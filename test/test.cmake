@@ -1,0 +1,200 @@
+
+cmake_minimum_required(VERSION 3.4.1)
+
+include_directories(../../..)
+include_directories(../../../autil/os)
+include_directories(../../../depe/rapidjson/include)
+include_directories(../../../depe/zlib/contrib/minizip)
+include_directories(../../../depe/openssl/openssl/include)
+include_directories(../../../depe/uv/include)
+include_directories(../../../depe/http_parser)
+include_directories(../../../depe/sqlite-amalgamation)
+include_directories(../../../depe/v8/include)
+include_directories(../../../depe/freetype2/include)
+include_directories(../../../depe/tess2/Include)
+include_directories(../../../depe/libwebp)
+include_directories(../../../depe/libgif/lib)
+include_directories(../../../depe/libjpeg-turbo)
+include_directories(../../../depe/libpng)
+include_directories(../../../depe/libwebp)
+include_directories(../../../depe/ffmpeg)
+include_directories(../../../depe/tinyxml2)
+include_directories(../../../out)
+link_directories(src/main/jniLibs/armeabi-v7a)
+
+add_definitions(
+   -DDEBUG
+   -D__STDC_CONSTANT_MACROS
+)
+
+add_definitions(
+  -DCHROME_PNG_WRITE_SUPPORT
+  -DPNG_USER_CONFIG
+)
+
+add_library(ngui-util
+            SHARED
+            ../../../autil/object.cc
+            ../../../autil/string.cc
+            ../../../autil/string-builder.cc
+            ../../../autil/array.cc
+            ../../../autil/codec.cc
+            ../../../autil/error.cc
+            ../../../autil/http.cc
+            ../../../autil/http-uri.cc
+            ../../../autil/http-helper.cc
+            ../../../autil/fs.cc
+            ../../../autil/fs-file.cc
+            ../../../autil/fs-sync.cc
+            ../../../autil/fs-async.cc
+            ../../../autil/fs-search.cc
+            ../../../autil/fs-reader.cc
+            ../../../autil/buffer.cc
+            ../../../autil/json.cc
+            ../../../autil/map.cc
+            ../../../autil/util.cc
+            ../../../autil/zlib.cc
+            ../../../autil/thread.cc
+            ../../../autil/jsax.cc
+            ../../../autil/sys.cc
+            ../../../autil/net.cc
+            ../../../autil/cb.cc
+            ../../../autil/date.cc
+            ../../../autil/http-cookie.cc
+            ../../../autil/localstorage.cc
+            ../../../android/android.cc
+            ../../../autil/os/android-jni.cc
+            ../../../autil/os/android-log.cc
+            ../../../autil/os/android-sys.cc
+            ../../../autil/os/android-fs.cc
+           )
+
+add_library(ngui-gui
+            SHARED
+            ../../../out/glsl-shader.cc
+            ../../../out/glsl-es2-shader.cc
+            ../../../out/font-natives.cc
+            ../../../agui/action.cc
+            ../../../agui/app.cc
+            ../../../agui/audio-player.cc
+            ../../../agui/div.cc
+            ../../../agui/indep.cc
+            ../../../agui/gradient.cc
+            ../../../agui/shadow.cc
+            ../../../agui/limit.cc
+            ../../../agui/limit-indep.cc
+            ../../../agui/image.cc
+            ../../../agui/bezier.cc
+            ../../../agui/event.cc
+            ../../../agui/display-port.cc
+            ../../../agui/font/font.cc
+            ../../../agui/image/codec.cc
+            ../../../agui/image/codec-tga.cc
+            ../../../agui/image/codec-pvrtc.cc
+            ../../../agui/pre-render.cc
+            ../../../agui/mathe.cc
+            ../../../agui/media-codec.cc
+            ../../../agui/media-codec-1.cc
+            ../../../agui/media-codec-software.cc
+            ../../../agui/label.cc
+            ../../../agui/layout.cc
+            ../../../agui/box.cc
+            ../../../agui/text-rows.cc
+            ../../../agui/view.cc
+            ../../../agui/draw.cc
+            ../../../agui/ogl/ogl.cc
+            ../../../agui/ogl/ogl-draw.cc
+            ../../../agui/ogl/ogl-es2.cc
+            ../../../agui/ogl/ogl-texture.cc
+            ../../../agui/ogl/ogl-font.cc
+            ../../../agui/root.cc
+            ../../../agui/sprite.cc
+            ../../../agui/scroll.cc
+            ../../../agui/span.cc
+            ../../../agui/hybrid.cc
+            ../../../agui/text-font.cc
+            ../../../agui/text-node.cc
+            ../../../agui/texture.cc
+            ../../../agui/vector.cc
+            ../../../agui/video.cc
+            ../../../agui/value.cc
+            ../../../agui/select_panel.cc
+            ../../../agui/button.cc
+            ../../../agui/keyboard.cc
+            ../../../agui/css.cc
+            ../../../agui/property.cc
+            ../../../agui/text.cc
+            ../../../agui/clip.cc
+            ../../../agui/input.cc
+            ../../../agui/textarea.cc
+            ../../../agui/os/android-ogl.cc
+            ../../../agui/os/android-app.cc
+            ../../../agui/os/android-media-codec.cc
+            ../../../agui/os/android-pcm-player.cc
+            ../../../agui/os/android-pcm-audio-track.cc
+            ../../../agui/os/android-keyboard.cc
+            ../../../agui/image/codec-gif.cc
+            ../../../agui/image/codec-jpeg.cc
+            ../../../agui/image/codec-png.cc
+            ../../../agui/image/codec-webp.cc
+          )
+
+add_library(ngui-js
+            SHARED
+            ../../../out/native-core-js.cc
+            ../../../ajs/js.cc
+            ../../../ajs/js-class.cc
+            ../../../ajs/util/tools.cc
+            ../../../ajs/util/buffer.cc
+            ../../../ajs/util/fs.cc
+            ../../../ajs/util/fs-reader.cc
+            ../../../ajs/util/fs-path.cc
+            ../../../ajs/util/http.cc
+            ../../../ajs/util/util.cc
+            ../../../ajs/util/zlib.cc
+            ../../../ajs/util/keys.cc
+            ../../../ajs/util/storage.cc
+            ../../../ajs/util/json.cc
+            ../../../ajs/util/event-1.cc
+            ../../../ajs/util/sys.cc
+            ../../../ajs/debug.cc
+            ../../../ajs/gui/gui.cc
+            ../../../ajs/gui/action.cc
+            ../../../ajs/gui/app.cc
+            ../../../ajs/gui/audio-player.cc
+            ../../../ajs/gui/video.cc
+            ../../../ajs/gui/media.cc
+            ../../../ajs/gui/div.cc
+            ../../../ajs/gui/display-port.cc
+            ../../../ajs/gui/indep.cc
+            ../../../ajs/gui/image.cc
+            ../../../ajs/gui/layout.cc
+            ../../../ajs/gui/box.cc
+            ../../../ajs/gui/view.cc
+            ../../../ajs/gui/root.cc
+            ../../../ajs/gui/span.cc
+            ../../../ajs/gui/sprite.cc
+            ../../../ajs/gui/hybrid.cc
+            ../../../ajs/gui/text-font.cc
+            ../../../ajs/gui/text-node.cc
+            ../../../ajs/gui/label.cc
+            ../../../ajs/gui/value.cc
+            ../../../ajs/gui/event.cc
+            ../../../ajs/gui/limit.cc
+            ../../../ajs/gui/select_panel.cc
+            ../../../ajs/gui/button.cc
+            ../../../ajs/gui/scroll.cc
+            ../../../ajs/gui/css.cc
+            ../../../ajs/gui/font.cc
+            ../../../ajs/gui/text.cc
+            ../../../ajs/gui/clip.cc
+            ../../../ajs/gui/input.cc
+            ../../../ajs/v8.cc
+          )
+
+add_library(ngui SHARED ../../../test/empty.cc)
+
+target_link_libraries(ngui-util atomic z android log ngui_depe_for_android_test)
+target_link_libraries(ngui-gui ngui-util OpenSLES GLESv3 EGL mediandk ngui_depe_for_android_test)
+target_link_libraries(ngui-js ngui-util ngui-gui ngui_depe_for_android_test)
+target_link_libraries(ngui ngui-util ngui-gui ngui-js ngui_depe_for_android_test)

@@ -1,0 +1,5 @@
+{
+	"name": "test-ngui",
+	"main": "test_gui.jsx",
+	"use_ngui_syntax": true
+}

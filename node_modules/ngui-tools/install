@@ -1,0 +1,5 @@
+#!/bin/sh
+
+set -e
+base=$(dirname "$0")
+exec node "${base}/install.js" "$@"

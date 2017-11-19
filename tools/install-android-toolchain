@@ -1,0 +1,56 @@
+#!/bin/sh
+#/Users/louis/install/dev/android-sdk/ndk-bundle
+ 
+if [ $2 ] && [ -d $2 ]; then
+ 
+  cd tools
+
+  arch="arm"
+  dir="arm"
+  toolchain="arm-linux-androideabi-4.9"
+  
+  echo $1
+  
+  if [ $1 = "arm64" ]; then
+    arch="arm64"
+    dir="arm64"
+    toolchain="aarch64-linux-android-4.9"
+  elif [ $1 = "mips" ]; then
+    arch="mips"
+    dir="mips"
+    toolchain="mipsel-linux-android-4.9"
+  elif [ $1 = "mips64" ]; then
+    arch="mips64"
+    dir="mips64"
+    toolchain="mips64el-linux-android-4.9"
+  elif [ $1 = "x86" ] || [ $1 = "ia32" ] || [ $1 = "i386" ]; then
+    arch="x86"
+    dir="x86"
+    toolchain="x86-4.9"
+  elif [ $1 = "x64" ] || [ $1 = "x86_64" ] || [ $1 = "ia64" ]; then
+    arch="x86_64"
+    dir="x64"
+    toolchain="x86_64-4.9"
+  fi
+  
+  echo  $arch, $toolchain
+  
+  DIR=$PWD/android-toolchain/$dir
+  
+  if [ ! -f $DIR/bin/clang ]; then
+    
+    $2/build/tools/make-standalone-toolchain.sh \
+      --arch=$arch \
+      --toolchain=$toolchain \
+      --install-dir=$DIR \
+      --platform=android-21 \
+      # --force
+    
+    #if [ `which python` ]; then 
+    #  rm -rf $DIR/bin/python
+    #fi
+  fi
+ 
+else
+  echo No ndk directory " ./tools/install-android-toolchain arm|arm64|mipsel|mips64|x86|x64 NDK-DIR"
+fi

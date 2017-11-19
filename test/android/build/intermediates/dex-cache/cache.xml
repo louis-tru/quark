@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="/Users/louis/Project/ngui/source/test/android/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="8034a40a5c2df689b2fbe0f6432bcdce19c6bd9c">
+        <dex dex="/Users/louis/Project/ngui/source/test/android/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_321407990b9fa80ec7235b062b87e06adc826aff/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/louis/Project/ngui/source/test/android/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
+        <dex dex="/Users/louis/Project/ngui/source/test/android/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_201c6eb299dcb373a0527b7170cd567d8f5c19da/classes.dex" />
+    </item>
+
+</items>

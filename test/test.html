@@ -1,0 +1,64 @@
+<!doctype html>
+
+<html>
+
+  <head>
+    <!--meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=yes" /-->
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
+  </head>
+  <body>
+    
+    <textarea id="textarea" style="width: 100%; height: 100px"></textarea>
+
+    <div id="div" style="height:300px; background:#f00"></div>
+    
+    <script>
+      
+      var textarea = document.getElementById('textarea');
+      var div = document.getElementById('div');
+      
+      textarea.onkeydown = function(evt) {
+        console.log('onkeydown', evt.keyCode);
+      }
+      
+      textarea.onkeyup = function(evt) {
+        console.log('onkeyup', evt.keyCode);
+        console.log(textarea.value);
+      }
+      
+      textarea.onkeypress = function(evt) {
+        console.log('onkeypress', evt.keyCode);
+      }
+      
+      textarea.onchange = function(evt) {
+        console.log('onchange', evt.keyCode, textarea.value);
+      }
+
+      function print(title, touchs) {
+        try {
+          textarea.value = title + ':\n' + 
+            Array.prototype.slice.call(touchs).map(function(it, i){ 
+              return i + '#id:' + it.identifier + ',x:' + it.pageX + ',y:'+ it.pageY 
+            }).join(',');
+        } catch(err) {
+          alert(err.message)
+        }
+      }
+
+      div.ontouchstart = function(ev) {
+        print('ontouchstart', ev.changedTouches)
+      }
+
+      div.ontouchmove = function(ev) {
+        print('ontouchmove', ev.changedTouches)
+      }
+
+      div.ontouchend = function(ev) {
+        print('ontouchend', ev.changedTouches)
+      }
+      
+    </script>
+    
+  </body>
+  
+</html>

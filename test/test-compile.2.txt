@@ -1,0 +1,77 @@
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang 
+-arch arm64 -dynamiclib 
+-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk 
+-L/Users/louis/Project/ngui/source/out/xcodebuild/ios.arm64/Release-iphoneos 
+-L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks 
+-F/Users/louis/Project/ngui/source/out/xcodebuild/ios.arm64/Release-iphoneos 
+-filelist /Users/louis/Project/ngui/source/out/xcodebuild/ios.arm64/ngui.ios.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest.LinkFileList 
+-install_name @rpath/iosFrameworkTest.framework/iosFrameworkTest 
+-Xlinker -rpath -Xlinker @executable_path/Frameworks 
+-Xlinker -rpath -Xlinker @loader_path/Frameworks 
+-miphoneos-version-min=8.0 
+-dead_strip 
+-Xlinker -object_path_lto 
+-Xlinker /Users/louis/Project/ngui/source/out/xcodebuild/ios.arm64/ngui.ios.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest_lto.o 
+-fembed-bitcode-marker 
+-fobjc-arc -fobjc-link-runtime 
+-framework Foundation -framework Foundation -framework UIKit 
+-single_module 
+-Xlinker -dependency_info 
+-Xlinker /Users/louis/Project/ngui/source/out/xcodebuild/ios.arm64/ngui.ios.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest_dependency_info.dat 
+-o /Users/louis/Project/ngui/source/out/xcodebuild/ios.arm64/Release-iphoneos/iosFrameworkTest.framework/iosFrameworkTest
+
+
+
+clang++ 
+-arch arm64 -dynamiclib 
+-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk 
+-L.
+-L./obj.target/ffmpeg
+-L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks
+-stdlib=libc++ 
+-filelist ngui.LinkFileList
+-o ngui.framework/ngui 
+-single_module 
+-install_name @rpath/ngui.framework/ngui 
+-Xlinker -rpath -Xlinker @executable_path/Frameworks 
+-Xlinker -rpath -Xlinker @loader_path/Frameworks 
+-Xlinker -no_deduplicate 
+-miphoneos-version-min=8.0 
+-fembed-bitcode 
+-dead_strip
+-fobjc-arc 
+-fobjc-link-runtime  
+-lngui-zlib 
+-lopenssl 
+-luv 
+-lhttp_parser 
+-lreachability 
+-ltess2 
+-lft2 
+-ltinyxml2 
+-lffmpeg 
+-framework Foundation 
+-framework SystemConfiguration 
+-framework OpenGLES 
+-framework CoreGraphics 
+-framework UIKit 
+-framework QuartzCore 
+-framework AudioToolbox 
+-framework CoreVideo 
+-framework VideoToolbox 
+-framework CoreMedia 
+-framework JavaScriptCore
+-liconv 
+-lbz2 
+-lsqlite3 
+-lz 
+
+
+clang++ -arch armv7 -shared -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk -L. -L./obj.target/ffmpeg -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks -stdlib=libc++ -filelist ngui.LinkFileList -o libngui.dylib -single_module -install_name @rpath/ngui.framework/ngui -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -miphoneos-version-min=8.0 -fembed-bitcode -dead_strip -fobjc-arc -fobjc-link-runtime -lngui-zlib -lopenssl -luv -lhttp_parser -lreachability -ltess2 -lft2 -ltinyxml2 -lffmpeg -framework Foundation -framework SystemConfiguration -framework OpenGLES -framework CoreGraphics -framework UIKit -framework QuartzCore -framework AudioToolbox -framework CoreVideo -framework VideoToolbox -framework CoreMedia -framework JavaScriptCore -liconv -lbz2 -lsqlite3 -lz 
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+{
+	"name": "examples",
+	"app_name":	"Examples",
+	"id": "org.ngui.examples",
+	"main":	"index.jsx",
+	"version": "1.0.0",
+	"ngui_syntax": true
+}

@@ -1,0 +1,5 @@
+out
+.svn
+.DS_Store
+node_modules/.bin
+ngui.sublime-workspace
