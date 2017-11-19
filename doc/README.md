@@ -98,10 +98,10 @@ $ ngui
 * Project [`Source code`] from `Github`
 
 
-[`Examples`]: https://github.com/louis-tru/ngui/demo
+[`Examples`]: https://github.com/louis-tru/ngui/tree/master/demo
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/ngui/releases/download/v1.0.0/examples-release.apk
+[`Android APK`]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
 [`NPM`]: https://www.npmjs.com/package/ngui-tools
 [`Source code`]: https://github.com/louis-tru/ngui
 
