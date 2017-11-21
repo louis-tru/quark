@@ -64,5 +64,5 @@
 [`Object`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [`Array`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 [`String`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
-[`bool`]: nativeTypes.md#bool
+[`bool`]: native_types.md#bool
 [`Buffer`]: https://nodejs.org/dist/latest-v8.x/docs/api/buffer.html

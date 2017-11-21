@@ -56,9 +56,9 @@
 
 * {[`DisplayPort`]} 
 
-## Get: atomPx 
+## Get: atomPixel 
 
-屏幕原子像素尺寸，快捷方式 --> [`atomPx`]
+屏幕原子像素尺寸，快捷方式 --> [`atomPixel`]
 
 * {[`float`]}
 
@@ -1752,15 +1752,15 @@ console.log(view.class);
 [`null`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null
 [`undefined`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
 
-[`int`]: nativeTypes.md#int
-[`uint`]: nativeTypes.md#uint
-[`int16`]: nativeTypes.md#int16
-[`uint16`]: nativeTypes.md#uint16
-[`int64`]: nativeTypes.md#int64
-[`uint64`]: nativeTypes.md#uint64
-[`float`]: nativeTypes.md#float
-[`double`]: nativeTypes.md#double
-[`bool`]: nativeTypes.md#bool
+[`int`]: native_types.md#int
+[`uint`]: native_types.md#uint
+[`int16`]: native_types.md#int16
+[`uint16`]: native_types.md#uint16
+[`int64`]: native_types.md#int64
+[`uint64`]: native_types.md#uint64
+[`float`]: native_types.md#float
+[`double`]: native_types.md#double
+[`bool`]: native_types.md#bool
 
 [`Mat`]: value.md#class-mat
 [`Vec2`]: value.md#class-vec2
@@ -1774,11 +1774,11 @@ console.log(view.class);
 [`KeyframeAction`]: action.md#class-keyframeaction
 [`action.create(json)`]: action.md#create-json-parent-
 [`action.transition(view,style,delay,cb)`]: action.md#transition-view-style-delay-cb-
-[`atomPx`]: displayPort.md#get-atomPx
-[`nextFrame(cb)`]: displayPort.md#nextFrame-cb-
+[`atomPixel`]: display_port.md#get-atompixel
+[`nextFrame(cb)`]: display_port.md#nextFrame-cb-
 [`New()`]: ctr.md#new-vx-parent-args-
 [`CSS()`]: css.md#css-sheets-
-[`DisplayPort`]: displayPort.md#class-displayport
+[`DisplayPort`]: display_port.md#class-displayport
 [`GUIApplication`]: app.md#class-guiapplication
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus

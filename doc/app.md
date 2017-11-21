@@ -183,15 +183,15 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`null`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null
 [`undefined`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
 
-[`int`]: nativeTypes.md#int
-[`uint`]: nativeTypes.md#uint
-[`int16`]: nativeTypes.md#int16
-[`uint16`]: nativeTypes.md#uint16
-[`int64`]: nativeTypes.md#int64
-[`uint64`]: nativeTypes.md#uint64
-[`float`]: nativeTypes.md#float
-[`double`]: nativeTypes.md#double
-[`bool`]: nativeTypes.md#bool
+[`int`]: native_types.md#int
+[`uint`]: native_types.md#uint
+[`int16`]: native_types.md#int16
+[`uint16`]: native_types.md#uint16
+[`int64`]: native_types.md#int64
+[`uint64`]: native_types.md#uint64
+[`float`]: native_types.md#float
+[`double`]: native_types.md#double
+[`bool`]: native_types.md#bool
 
 [`Notification`]: event.md#class-notification
 [`GUIApplication`]: app.md#class-guiapplication
@@ -205,7 +205,7 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextDecoration`]: value.md#class-textdecoration
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
-[`DisplayPort`]: displayPort.md#class-displayport
+[`DisplayPort`]: display_port.md#class-displayport
 [`Root`]: ngui.md#class-root
 [`View`]: ngui.md#class-view
 [`clear()`]: app.md#guiapplication-clear

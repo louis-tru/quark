@@ -107,7 +107,7 @@ install: tools
 	@$(MAKE) android
 	@./configure --ffmpeg=0
 	@$(MAKE) jsa-shell
-	@$(DEV_OUT)/install link
+	@$(DEV_OUT)/install
 
 # debug install ngui command
 debug_link:

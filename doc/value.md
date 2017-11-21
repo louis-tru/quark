@@ -532,15 +532,15 @@ var cueceEaseInOut = new Curve(0.25, 0.1, 0.25, 1)
 [`null`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null
 [`undefined`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
 
-[`int`]: nativeTypes.md#int
-[`uint`]: nativeTypes.md#uint
-[`int16`]: nativeTypes.md#int16
-[`uint16`]: nativeTypes.md#uint16
-[`int64`]: nativeTypes.md#int64
-[`uint64`]: nativeTypes.md#uint64
-[`float`]: nativeTypes.md#float
-[`double`]: nativeTypes.md#double
-[`bool`]: nativeTypes.md#bool
+[`int`]: native_types.md#int
+[`uint`]: native_types.md#uint
+[`int16`]: native_types.md#int16
+[`uint16`]: native_types.md#uint16
+[`int64`]: native_types.md#int64
+[`uint64`]: native_types.md#uint64
+[`float`]: native_types.md#float
+[`double`]: native_types.md#double
+[`bool`]: native_types.md#bool
 
 [`TextAlign`]: value.md#class-textalign
 [`Align`]: value.md#class-align
