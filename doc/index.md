@@ -3,7 +3,7 @@
 
 * [`About`](README.md)
 * [`Tools`](https://www.npmjs.com/package/ngui-tools)
-* [`Examples`](https://github.com/louis-tru/ngui/demo)
+* [`Examples`](https://github.com/louis-tru/ngui/tree/master/demo)
 
 # Modules
 
