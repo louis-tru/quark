@@ -1,6 +1,6 @@
 {
 	"name": "examples",
-	"app_name":	"Examples",
+	"app_name":	"Ngui-Examples",
 	"id": "org.ngui.examples",
 	"main":	"index.jsx",
 	"version": "1.0.0",

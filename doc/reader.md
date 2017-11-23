@@ -66,13 +66,11 @@ reader.readStream('zip:///var/data/test.zip@aa.txt', function(d){
 	/*Success*/ 
 	console.log(d.data.length, d.complete);
 }));
-reader.readStream('lib:///util/util.js', function(d){ }));
 
 // async read file
 reader.read('http://www.baidu.com', function(d){ }));
 reader.read('file:///var/data/test.txt', function(d){ }));
-reader.read('zip:///var/data/test.zip@aa.txt', function(d){ }));
-reader.read('lib:///util/util.js', function(d){ 
+reader.read('zip:///var/data/test.zip@aa.txt', function(d){ 
 	/*Success*/ 
 	console.log(d.length);
 }.catch(e=>{ /*Fail*/ }));

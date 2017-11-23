@@ -44,7 +44,7 @@ fs.rm_r_sync(target + '/product/examples');
 
 fs.cp_sync(root + '/node_modules/ngui-tools', target);
 fs.chmodSync(target + '/install', 0755);
-fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
+// fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
 fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);
 fs.chmodSync(target + '/gyp/gyp', 0755);
 

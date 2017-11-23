@@ -15,7 +15,7 @@
 
 * 如果传入的数据里没有`seq`也没`spawn`创建[`KeyframeAction`]，
 
-	对像的内部属性`frame`如果为[`Array`]，那么用这个[`Array`]创建[`Frame`]
+	对像的内部属性`keyframe`如果为[`Array`]，那么用这个[`Array`]创建[`Frame`]
 
 * @arg `json` {[`Object`]}
 * @arg `[parent]` {[`GroupAction`]} 
@@ -30,7 +30,7 @@ var act1 = action.create([
 ]);
 var act1 = action.create({
 	delay: 1000,
-	frame: [
+	keyframe: [
 		{ time:0, x:0, curve: 'linear', },
 		{ time:1000, x:100 },
 	]
@@ -40,7 +40,7 @@ var act2 = action.create({
 	loop: -1,
 	seq: [
 		{
-			frame: [
+			keyframe: [
 				{ time:0, x: 0 },
 				{ time:1000, x: 100 },
 			]
@@ -217,25 +217,11 @@ action.transition(view2, {
 
 * 并行子动作实现，所有的动作并行一起播放
 
-### SpawnAction.spawn(index)
-
-* 返回子动作`children(index)`的别名函数
-
-* @arg `index` {uint}
-* @ret {[`Action`]}
-
 
 ## `Class: SequenceAction`
 * `extends` [`GroupAction`]
 
 * 串行子动作实现，子动作一个接一个串行播放
-
-### SequenceAction.seq(index)
-
-* 返回子动作`children(index)`的别名函数
-
-* @arg `index` {uint}
-* @ret {[`Action`]}
 
 
 ## `Class: KeyframeAction`

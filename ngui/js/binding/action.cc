@@ -255,6 +255,9 @@ class WrapAction: public WrapObject {
     self->speed( value->ToNumberValue(worker) );
   }
 
+  static void null_set_accessor(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+  }
+
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(Action, constructor, {
       JS_SET_CLASS_METHOD(play, play);
@@ -271,6 +274,9 @@ class WrapAction: public WrapObject {
       JS_SET_CLASS_ACCESSOR(delay, delay, set_delay);
       JS_SET_CLASS_ACCESSOR(delayd, delayd);
       JS_SET_CLASS_ACCESSOR(speed, speed, set_speed);
+      JS_SET_CLASS_ACCESSOR(seq, nullptr, null_set_accessor);
+      JS_SET_CLASS_ACCESSOR(spawn, nullptr, null_set_accessor);
+      JS_SET_CLASS_ACCESSOR(keyframe, nullptr, null_set_accessor);
     }, nullptr);
   }
 };
@@ -348,10 +354,14 @@ class WrapGroupAction: public WrapObject {
     self->remove_child( args[0]->ToUint32Value(worker) );
   }
   
-  static void children(FunctionCall args, cchar* argument) {
+  static void children(FunctionCall args) {
     JS_WORKER(args); GUILock lock;
     if ( args.Length() < 1 || !args[0]->IsUint32(worker) ) {
-      JS_THROW_ERR(argument);
+      JS_THROW_ERR(
+        "* @func children(index)\n"
+        "* @arg index {uint}\n"
+        "* @ret {Action} return child action\n"
+      );
     }
     JS_SELF(GroupAction);
     
@@ -371,6 +381,7 @@ class WrapGroupAction: public WrapObject {
       JS_SET_CLASS_METHOD(append, append);
       JS_SET_CLASS_METHOD(insert, insert);
       JS_SET_CLASS_METHOD(removeChild, remove_child);
+      JS_SET_CLASS_METHOD(children, children);
     }, Action);
   }
 };
@@ -387,22 +398,8 @@ class WrapSpawnAction: public WrapObject {
     New<WrapSpawnAction>(args, new SpawnAction());
   }
   
-  /**
-   * @func spawn(index)
-   * @arg index {uint}
-   * @ret {Action} return child action
-   */
-  static void spawn(FunctionCall args) {
-    WrapGroupAction::children(args,
-                              "* @func spawn(index)\n"
-                              "* @arg index {uint}\n"
-                              "* @ret {Action} return child action\n"
-                              );
-  }
-  
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(SpawnAction, constructor, {
-      JS_SET_CLASS_METHOD(spawn, spawn);
     }, GroupAction);
   }
 };
@@ -418,23 +415,9 @@ class WrapSequenceAction: public WrapObject {
     js_check_gui_app();
     New<WrapSequenceAction>(args, new SequenceAction());
   }
-  
-  /**
-   * @func seq(index)
-   * @arg index {uint}
-   * @ret {Action} return child action
-   */
-  static void seq(FunctionCall args) {
-    WrapGroupAction::children(args,
-                              "* @func seq(index)\n"
-                              "* @arg index {uint}\n"
-                              "* @ret {Action} return child action\n"
-                              );
-  }
 
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(SequenceAction, constructor, {
-      JS_SET_CLASS_METHOD(seq, seq);
     }, GroupAction);
   }
 };

@@ -1,13 +1,13 @@
-Ngui
+Ngui简介
 ===============
 
-一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL
+这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL
 
 目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
-* 从这里[`Go API Index`](index.md)可以到 `API Documents Index`
+* 从这里[`Go API Index`](http://nodegui.org/doc/)可以到 `API Documents Index`
 
 # Simple Examples
 
@@ -66,7 +66,7 @@ $ ngui build
 
 ## Export project
 
-这一步导出[`Xcode`]或[`Android Studio`]工程，因为你最终要发布程序将会是一个`.apk`或`.ipa`
+这一步导出[Xcode]或[Android Studio]工程，因为你最终要发布程序将会是一个`.apk`或`.ipa`
 
 ```sh
 # shell
@@ -76,7 +76,7 @@ $ ngui export ios
 $ ngui export android
 ```
 
-导出工程后，接下来你可以使用[`Xcode`]与[`Android Studio`]打开它
+导出工程后，接下来你可以使用[Xcode]与[Android Studio]打开它
 
 
 ## Ngui test http server
@@ -92,17 +92,18 @@ $ ngui
 
 # Downloads
 
-* Examples demo [`Android APK`] Install package
+* Examples demo [Android APK] Install package
 
-* Project [`Source code`] from `Github`
+* Project [Source code] from `Github`
 
 
-[`Examples`]: https://github.com/louis-tru/ngui/tree/master/demo
-[`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
-[`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/ngui-tools
-[`Source code`]: https://github.com/louis-tru/ngui
+[Examples]: https://github.com/louis-tru/ngui/tree/master/demo
+[Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
+[Android Studio]: https://developer.android.com/studio/projects/create-project.html
+[Android APK]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
+[NPM]: https://www.npmjs.com/package/ngui-tools
+[Source code]: https://github.com/louis-tru/ngui
+
 
 <script>
 	<!--
