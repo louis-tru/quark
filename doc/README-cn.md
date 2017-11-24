@@ -20,7 +20,7 @@ new GUIApplication().start(
 )
 ```
 
-你可以获取到更加详细的`Examples`
+你可以获取到更加详细的[Examples]
 
 # Start Usage
 
