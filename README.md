@@ -18,7 +18,7 @@ Goal: developing GUI applications on this basis can take into account both the s
 Build and install ngui-tools
 ===============
 
-build must dependent xcode / python / nodejs / yasm.
+build must dependent Xcode / NDK / python / nodejs / yasm.
 
 install ngui tools `make install`, It takes a long time.
 

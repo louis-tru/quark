@@ -506,9 +506,9 @@ function configure() {
         syscall(`./tools/install-android-toolchain ${arch} ${ndk_path}`); // install tool
       } else {
         console.error(
-          `Run "./tools/install-android-toolchain ${arch} \
-          NDK-DIR" to install android toolchain !`);
-        return;
+          `Please run "./tools/install-android-toolchain ${arch} NDK-DIR" ` +
+          'to install android toolchain!');
+        process.exit(1);
       }
     }
     
