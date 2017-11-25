@@ -36,9 +36,9 @@ export ios xcode project `ngui export ios`
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { GUIApplication, Text } from 'ngui'
+import { GUIApplication, Root } from 'ngui'
 new GUIApplication().start(
-	<Text>hello world!</Text>
+	<Root>hello world!</Root>
 )
 ```
 
