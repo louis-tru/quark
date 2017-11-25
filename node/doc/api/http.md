@@ -286,9 +286,9 @@ added: v0.1.17
 
 This object is created internally and returned from [`http.request()`][].  It
 represents an _in-progress_ request whose header has already been queued.  The
-header is still mutable using the `setHeader(name, value)`, `getHeader(name)`,
-`removeHeader(name)` API.  The actual header will be sent along with the first
-data chunk or when calling [`request.end()`][].
+header is still mutable using the [`setHeader(name, value)`][],
+ [`getHeader(name)`][], [`removeHeader(name)`][] API.  The actual header will
+be sent along with the first data chunk or when calling [`request.end()`][].
 
 To get the response, add a listener for [`'response'`][] to the request object.
 [`'response'`][] will be emitted from the request object when the response
@@ -320,14 +320,6 @@ added: v1.4.1
 
 Emitted when the request has been aborted by the client. This event is only
 emitted on the first call to `abort()`.
-
-### Event: 'aborted'
-<!-- YAML
-added: v0.3.8
--->
-
-Emitted when the request has been aborted by the server and the network
-socket has closed.
 
 ### Event: 'connect'
 <!-- YAML
@@ -426,6 +418,16 @@ added: v0.5.3
 * `socket` {net.Socket}
 
 Emitted after a socket is assigned to this request.
+
+### Event: 'timeout'
+<!-- YAML
+added: v0.7.8
+-->
+
+Emitted when the underlying socket times out from inactivity. This only notifies
+that the socket has been idle. The request must be aborted manually.
+
+See also: [`request.setTimeout()`][]
 
 ### Event: 'upgrade'
 <!-- YAML
@@ -541,6 +543,58 @@ then tries to pack the request headers and data into a single TCP packet.
 That's usually desired (it saves a TCP round-trip), but not when the first
 data is not sent until possibly much later.  `request.flushHeaders()` bypasses
 the optimization and kickstarts the request.
+
+### request.getHeader(name)
+<!-- YAML
+added: v1.6.0
+-->
+
+* `name` {string}
+* Returns: {string}
+
+Reads out a header on the request. Note that the name is case insensitive.
+
+Example:
+```js
+const contentType = request.getHeader('Content-Type');
+```
+
+### request.removeHeader(name)
+<!-- YAML
+added: v1.6.0
+-->
+
+* `name` {string}
+
+Removes a header that's already defined into headers object.
+
+Example:
+```js
+request.removeHeader('Content-Type');
+```
+
+### request.setHeader(name, value)
+<!-- YAML
+added: v1.6.0
+-->
+
+* `name` {string}
+* `value` {string}
+
+Sets a single header value for headers object. If this header already exists in
+the to-be-sent headers, its value will be replaced. Use an array of strings
+here to send multiple headers with the same name.
+
+Example:
+```js
+request.setHeader('Content-Type', 'application/json');
+```
+
+or
+
+```js
+request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+```
 
 ### request.setNoDelay([noDelay])
 <!-- YAML
@@ -787,82 +841,10 @@ added: v0.1.90
 
 Stops the server from accepting new connections.  See [`net.Server.close()`][].
 
-### server.listen(handle[, callback])
-<!-- YAML
-added: v0.5.10
--->
+### server.listen()
 
-* `handle` {Object}
-* `callback` {Function}
-
-The `handle` object can be set to either a server or socket (anything
-with an underlying `_handle` member), or a `{fd: <n>}` object.
-
-This will cause the server to accept connections on the specified
-handle, but it is presumed that the file descriptor or handle has
-already been bound to a port or domain socket.
-
-Listening on a file descriptor is not supported on Windows.
-
-This function is asynchronous. `callback` will be added as a listener for the
-[`'listening'`][] event. See also [`net.Server.listen()`][].
-
-Returns `server`.
-
-*Note*: The `server.listen()` method may be called multiple times. Each
-subsequent call will *re-open* the server using the provided options.
-
-### server.listen(path[, callback])
-<!-- YAML
-added: v0.1.90
--->
-
-* `path` {string}
-* `callback` {Function}
-
-Start a UNIX socket server listening for connections on the given `path`.
-
-This function is asynchronous. `callback` will be added as a listener for the
-[`'listening'`][] event.  See also [`net.Server.listen(path)`][].
-
-*Note*: The `server.listen()` method may be called multiple times. Each
-subsequent call will *re-open* the server using the provided options.
-
-### server.listen([port][, hostname][, backlog][, callback])
-<!-- YAML
-added: v0.1.90
--->
-
-* `port` {number}
-* `hostname` {string}
-* `backlog` {number}
-* `callback` {Function}
-
-Begin accepting connections on the specified `port` and `hostname`. If the
-`hostname` is omitted, the server will accept connections on the
-[unspecified IPv6 address][] (`::`) when IPv6 is available, or the
-[unspecified IPv4 address][] (`0.0.0.0`) otherwise.
-
-*Note*: In most operating systems, listening to the
-[unspecified IPv6 address][] (`::`) may cause the `net.Server` to also listen on
-the [unspecified IPv4 address][] (`0.0.0.0`).
-
-Omit the port argument, or use a port value of `0`, to have the operating system
-assign a random port, which can be retrieved by using `server.address().port`
-after the `'listening'` event has been emitted.
-
-To listen to a unix socket, supply a filename instead of port and hostname.
-
-`backlog` is the maximum length of the queue of pending connections.
-The actual length will be determined by the OS through sysctl settings such as
-`tcp_max_syn_backlog` and `somaxconn` on linux. The default value of this
-parameter is 511 (not 512).
-
-This function is asynchronous. `callback` will be added as a listener for the
-[`'listening'`][] event.  See also [`net.Server.listen(port)`][].
-
-*Note*: The `server.listen()` method may be called multiple times. Each
-subsequent call will *re-open* the server using the provided options.
+Starts the HTTP server listening for connections.
+This method is identical to [`server.listen()`][] from [`net.Server`][].
 
 ### server.listening
 <!-- YAML
@@ -1402,8 +1384,7 @@ following additional events, methods, and properties.
 added: v0.3.8
 -->
 
-Emitted when the request has been aborted by the client and the network
-socket has closed.
+Emitted when the request has been aborted and the network socket has closed.
 
 ### Event: 'close'
 <!-- YAML
@@ -1884,7 +1865,6 @@ const req = http.request(options, (res) => {
 ```
 
 [`'checkContinue'`]: #http_event_checkcontinue
-[`'listening'`]: net.html#net_event_listening
 [`'request'`]: #http_event_request
 [`'response'`]: #http_event_response
 [`Agent`]: #http_class_http_agent
@@ -1894,6 +1874,7 @@ const req = http.request(options, (res) => {
 [`agent.createConnection()`]: #http_agent_createconnection_options_callback
 [`agent.getName()`]: #http_agent_getname_options
 [`destroy()`]: #http_agent_destroy
+[`getHeader(name)`]: #http_request_getheader_name
 [`http.Agent`]: #http_class_http_agent
 [`http.ClientRequest`]: #http_class_http_clientrequest
 [`http.IncomingMessage`]: #http_class_http_incomingmessage
@@ -1902,13 +1883,12 @@ const req = http.request(options, (res) => {
 [`http.request()`]: #http_http_request_options_callback
 [`message.headers`]: #http_message_headers
 [`net.Server.close()`]: net.html#net_server_close_callback
-[`net.Server.listen()`]: net.html#net_server_listen_handle_backlog_callback
-[`net.Server.listen(path)`]: net.html#net_server_listen_path_backlog_callback
-[`net.Server.listen(port)`]: net.html#net_server_listen_port_host_backlog_callback
 [`net.Server`]: net.html#net_class_net_server
 [`net.Socket`]: net.html#net_class_net_socket
 [`net.createConnection()`]: net.html#net_net_createconnection_options_connectlistener
+[`removeHeader(name)`]: #http_request_removeheader_name
 [`request.end()`]: #http_request_end_data_encoding_callback
+[`request.setTimeout()`]: #http_request_settimeout_timeout_callback
 [`request.socket`]: #http_request_socket
 [`request.socket.getPeerCertificate()`]: tls.html#tls_tlssocket_getpeercertificate_detailed
 [`request.write(data, encoding)`]: #http_request_write_chunk_encoding_callback
@@ -1919,7 +1899,9 @@ const req = http.request(options, (res) => {
 [`response.write(data, encoding)`]: #http_response_write_chunk_encoding_callback
 [`response.writeContinue()`]: #http_response_writecontinue
 [`response.writeHead()`]: #http_response_writehead_statuscode_statusmessage_headers
+[`server.listen()`]: net.html#net_server_listen
 [`server.timeout`]: #http_server_timeout
+[`setHeader(name, value)`]: #http_request_setheader_name_value
 [`socket.setKeepAlive()`]: net.html#net_socket_setkeepalive_enable_initialdelay
 [`socket.setNoDelay()`]: net.html#net_socket_setnodelay_nodelay
 [`socket.setTimeout()`]: net.html#net_socket_settimeout_timeout_callback
@@ -1927,5 +1909,3 @@ const req = http.request(options, (res) => {
 [Readable Stream]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [socket.unref()]: net.html#net_socket_unref
-[unspecified IPv4 address]: https://en.wikipedia.org/wiki/0.0.0.0
-[unspecified IPv6 address]: https://en.wikipedia.org/wiki/IPv6_address#Unspecified_address

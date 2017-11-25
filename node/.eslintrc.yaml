@@ -11,13 +11,14 @@ parserOptions:
   ecmaVersion: 2017
 
 overrides:
-  - files: ["doc/api/esm.md", "*.mjs"]
+  - files: ["doc/api/esm.md", "*.mjs", "test/es-module/test-esm-example-loader.js"]
     parserOptions:
       sourceType: module
 
 rules:
   # Possible Errors
   # http://eslint.org/docs/rules/#possible-errors
+  for-direction: error
   no-control-regex: error
   no-debugger: error
   no-dupe-args: error
@@ -41,6 +42,7 @@ rules:
 
   # Best Practices
   # http://eslint.org/docs/rules/#best-practices
+  accessor-pairs: error
   dot-location: [error, property]
   eqeqeq: [error, smart]
   no-fallthrough: error
@@ -117,10 +119,12 @@ rules:
   keyword-spacing: error
   linebreak-style: [error, unix]
   max-len: [error, {code: 80,
+                ignorePattern: "^\/\/ Flags:",
                 ignoreRegExpLiterals: true,
                 ignoreUrls: true,
                 tabWidth: 2}]
   new-parens: error
+  no-lonely-if: error
   no-mixed-spaces-and-tabs: error
   no-multiple-empty-lines: [error, {max: 2, maxEOF: 0, maxBOF: 0}]
   no-restricted-syntax: [error, {
@@ -141,6 +145,7 @@ rules:
   }]
   no-tabs: error
   no-trailing-spaces: error
+  object-curly-spacing: [error, always]
   one-var-declaration-per-line: error
   operator-linebreak: [error, after]
   quotes: [error, single, avoid-escape]
@@ -148,9 +153,9 @@ rules:
   semi-spacing: error
   space-before-blocks: [error, always]
   space-before-function-paren: [error, {
-    "anonymous": "never",
-    "named": "never",
-    "asyncArrow": "always"
+    anonymous: never,
+    named: never,
+    asyncArrow: always
   }]
   space-in-parens: [error, never]
   space-infix-ops: error
@@ -170,6 +175,7 @@ rules:
   no-this-before-super: error
   prefer-const: [error, {ignoreReadBeforeAssign: true}]
   rest-spread-spacing: error
+  symbol-description: error
   template-curly-spacing: error
 
   # Custom rules in tools/eslint-rules

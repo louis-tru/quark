@@ -7,6 +7,7 @@
 #include "node_url.h"
 #include "util.h"
 #include "util-inl.h"
+#include "node_internals.h"
 
 namespace node {
 namespace loader {
@@ -18,40 +19,41 @@ using v8::EscapableHandleScope;
 using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::FunctionTemplate;
+using v8::HandleScope;
 using v8::Integer;
 using v8::IntegrityLevel;
 using v8::Isolate;
 using v8::JSON;
 using v8::Local;
+using v8::Maybe;
 using v8::MaybeLocal;
 using v8::Module;
 using v8::Object;
-using v8::Persistent;
 using v8::Promise;
 using v8::ScriptCompiler;
 using v8::ScriptOrigin;
 using v8::String;
 using v8::Value;
 
-static const char* EXTENSIONS[] = {".mjs", ".js", ".json", ".node"};
-std::map<int, std::vector<ModuleWrap*>*> ModuleWrap::module_map_;
+static const char* const EXTENSIONS[] = {".mjs", ".js", ".json", ".node"};
 
 ModuleWrap::ModuleWrap(Environment* env,
                        Local<Object> object,
                        Local<Module> module,
                        Local<String> url) : BaseObject(env, object) {
-  Isolate* iso = Isolate::GetCurrent();
-  module_.Reset(iso, module);
-  url_.Reset(iso, url);
+  module_.Reset(env->isolate(), module);
+  url_.Reset(env->isolate(), url);
 }
 
 ModuleWrap::~ModuleWrap() {
-  Local<Module> module = module_.Get(Isolate::GetCurrent());
-  std::vector<ModuleWrap*>* same_hash = module_map_[module->GetIdentityHash()];
-  auto it = std::find(same_hash->begin(), same_hash->end(), this);
-
-  if (it != same_hash->end()) {
-    same_hash->erase(it);
+  HandleScope scope(env()->isolate());
+  Local<Module> module = module_.Get(env()->isolate());
+  auto range = env()->module_map.equal_range(module->GetIdentityHash());
+  for (auto it = range.first; it != range.second; ++it) {
+    if (it->second == this) {
+      env()->module_map.erase(it);
+      break;
+    }
   }
 
   module_.Reset();
@@ -119,12 +121,7 @@ void ModuleWrap::New(const FunctionCallbackInfo<Value>& args) {
   ModuleWrap* obj =
       new ModuleWrap(Environment::GetCurrent(ctx), that, mod, url);
 
-  if (ModuleWrap::module_map_.count(mod->GetIdentityHash()) == 0) {
-    ModuleWrap::module_map_[mod->GetIdentityHash()] =
-        new std::vector<ModuleWrap*>();
-  }
-
-  ModuleWrap::module_map_[mod->GetIdentityHash()]->push_back(obj);
+  env->module_map.emplace(mod->GetIdentityHash(), obj);
   Wrap(that, obj);
 
   that->SetIntegrityLevel(ctx, IntegrityLevel::kFrozen);
@@ -170,8 +167,7 @@ void ModuleWrap::Link(const FunctionCallbackInfo<Value>& args) {
       env->ThrowError("linking error, expected resolver to return a promise");
     }
     Local<Promise> resolve_promise = resolve_return_value.As<Promise>();
-    obj->resolve_cache_[specifier_std] = new Persistent<Promise>();
-    obj->resolve_cache_[specifier_std]->Reset(iso, resolve_promise);
+    obj->resolve_cache_[specifier_std].Reset(env->isolate(), resolve_promise);
   }
 
   args.GetReturnValue().Set(handle_scope.Escape(that));
@@ -184,12 +180,14 @@ void ModuleWrap::Instantiate(const FunctionCallbackInfo<Value>& args) {
 
   ModuleWrap* obj = Unwrap<ModuleWrap>(that);
   Local<Module> mod = obj->module_.Get(iso);
-  bool ok = mod->Instantiate(ctx, ModuleWrap::ResolveCallback);
+  Maybe<bool> ok = mod->InstantiateModule(ctx, ModuleWrap::ResolveCallback);
 
   // clear resolve cache on instantiate
+  for (auto& entry : obj->resolve_cache_)
+    entry.second.Reset();
   obj->resolve_cache_.clear();
 
-  if (!ok) {
+  if (!ok.FromMaybe(false)) {
     return;
   }
 }
@@ -209,23 +207,45 @@ void ModuleWrap::Evaluate(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(ret);
 }
 
+void ModuleWrap::Namespace(const FunctionCallbackInfo<Value>& args) {
+  Environment* env = Environment::GetCurrent(args);
+  auto isolate = args.GetIsolate();
+  auto that = args.This();
+  ModuleWrap* obj = Unwrap<ModuleWrap>(that);
+  CHECK_NE(obj, nullptr);
+
+  auto module = obj->module_.Get(isolate);
+
+  switch (module->GetStatus()) {
+    default:
+      return env->ThrowError(
+          "cannot get namespace, Module has not been instantiated");
+    case v8::Module::Status::kInstantiated:
+    case v8::Module::Status::kEvaluating:
+    case v8::Module::Status::kEvaluated:
+      break;
+  }
+
+  auto result = module->GetModuleNamespace();
+  args.GetReturnValue().Set(result);
+}
+
 MaybeLocal<Module> ModuleWrap::ResolveCallback(Local<Context> context,
                                                Local<String> specifier,
                                                Local<Module> referrer) {
   Environment* env = Environment::GetCurrent(context);
   Isolate* iso = Isolate::GetCurrent();
-  if (ModuleWrap::module_map_.count(referrer->GetIdentityHash()) == 0) {
+  if (env->module_map.count(referrer->GetIdentityHash()) == 0) {
     env->ThrowError("linking error, unknown module");
     return MaybeLocal<Module>();
   }
 
-  std::vector<ModuleWrap*>* possible_deps =
-      ModuleWrap::module_map_[referrer->GetIdentityHash()];
   ModuleWrap* dependent = nullptr;
-
-  for (auto possible_dep : *possible_deps) {
-    if (possible_dep->module_ == referrer) {
-      dependent = possible_dep;
+  auto range = env->module_map.equal_range(referrer->GetIdentityHash());
+  for (auto it = range.first; it != range.second; ++it) {
+    if (it->second->module_ == referrer) {
+      dependent = it->second;
+      break;
     }
   }
 
@@ -243,7 +263,7 @@ MaybeLocal<Module> ModuleWrap::ResolveCallback(Local<Context> context,
   }
 
   Local<Promise> resolve_promise =
-      dependent->resolve_cache_[specifier_std]->Get(iso);
+      dependent->resolve_cache_[specifier_std].Get(iso);
 
   if (resolve_promise->State() != Promise::kFulfilled) {
     env->ThrowError("linking error, dependency promises must be resolved on "
@@ -325,9 +345,9 @@ inline const struct read_result read_file(uv_file file) {
 }
 struct file_check {
   bool failed = true;
-  uv_file file;
-} file_check;
-inline const struct file_check check_file(URL search,
+  uv_file file = -1;
+};
+inline const struct file_check check_file(const URL& search,
                                           bool close = false,
                                           bool allow_dir = false) {
   struct file_check ret;
@@ -353,7 +373,7 @@ inline const struct file_check check_file(URL search,
   if (close) uv_fs_close(nullptr, &fs_req, fd, nullptr);
   return ret;
 }
-URL resolve_extensions(URL search, bool check_exact = true) {
+URL resolve_extensions(const URL& search, bool check_exact = true) {
   if (check_exact) {
     auto check = check_file(search, true);
     if (!check.failed) {
@@ -369,10 +389,10 @@ URL resolve_extensions(URL search, bool check_exact = true) {
   }
   return URL("");
 }
-inline URL resolve_index(URL search) {
+inline URL resolve_index(const URL& search) {
   return resolve_extensions(URL("index", &search), false);
 }
-URL resolve_main(URL search) {
+URL resolve_main(const URL& search) {
   URL pkg("package.json", &search);
   auto check = check_file(pkg);
   if (!check.failed) {
@@ -406,7 +426,7 @@ URL resolve_main(URL search) {
   }
   return URL("");
 }
-URL resolve_module(std::string specifier, URL* base) {
+URL resolve_module(std::string specifier, const URL* base) {
   URL parent(".", base);
   URL dir("");
   do {
@@ -431,7 +451,7 @@ URL resolve_module(std::string specifier, URL* base) {
   return URL("");
 }
 
-URL resolve_directory(URL search, bool read_pkg_json) {
+URL resolve_directory(const URL& search, bool read_pkg_json) {
   if (read_pkg_json) {
     auto main = resolve_main(search);
     if (!(main.flags() & URL_FLAGS_FAILED)) return main;
@@ -442,9 +462,14 @@ URL resolve_directory(URL search, bool read_pkg_json) {
 }  // anonymous namespace
 
 
-URL Resolve(std::string specifier, URL* base, bool read_pkg_json) {
+URL Resolve(std::string specifier, const URL* base, bool read_pkg_json) {
   URL pure_url(specifier);
   if (!(pure_url.flags() & URL_FLAGS_FAILED)) {
+    // just check existence, without altering
+    auto check = check_file(pure_url, true);
+    if (check.failed) {
+      return URL("");
+    }
     return pure_url;
   }
   if (specifier.length() == 0) {
@@ -461,7 +486,7 @@ URL Resolve(std::string specifier, URL* base, bool read_pkg_json) {
   } else {
     return resolve_module(specifier, base);
   }
-  return URL("");
+  UNREACHABLE();
 }
 
 void ModuleWrap::Resolve(const FunctionCallbackInfo<Value>& args) {
@@ -493,12 +518,11 @@ void ModuleWrap::Resolve(const FunctionCallbackInfo<Value>& args) {
     env->ThrowError("second argument is not a URL string");
     return;
   }
-  
+
   URL result = node::loader::Resolve(*specifier_utf, &url, true);
   if (result.flags() & URL_FLAGS_FAILED) {
-    std::string msg = "module ";
+    std::string msg = "Cannot find module ";
     msg += *specifier_utf;
-    msg += " not found";
     env->ThrowError(msg.c_str());
     return;
   }
@@ -519,6 +543,7 @@ void ModuleWrap::Initialize(Local<Object> target,
   env->SetProtoMethod(tpl, "link", Link);
   env->SetProtoMethod(tpl, "instantiate", Instantiate);
   env->SetProtoMethod(tpl, "evaluate", Evaluate);
+  env->SetProtoMethod(tpl, "namespace", Namespace);
 
   target->Set(FIXED_ONE_BYTE_STRING(isolate, "ModuleWrap"), tpl->GetFunction());
   env->SetMethod(target, "resolve", node::loader::ModuleWrap::Resolve);
@@ -527,5 +552,5 @@ void ModuleWrap::Initialize(Local<Object> target,
 }  // namespace loader
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(module_wrap,
-                                  node::loader::ModuleWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(module_wrap,
+                                   node::loader::ModuleWrap::Initialize)

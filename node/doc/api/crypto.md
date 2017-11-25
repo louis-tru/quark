@@ -918,24 +918,45 @@ of two ways:
 - Using the [`sign.update()`][] and [`sign.sign()`][] methods to produce the
   signature.
 
-The [`crypto.createSign()`][] method is used to create `Sign` instances. `Sign`
-objects are not to be created directly using the `new` keyword.
+The [`crypto.createSign()`][] method is used to create `Sign` instances. The
+argument is the string name of the hash function to use. `Sign` objects are not
+to be created directly using the `new` keyword.
 
 Example: Using `Sign` objects as streams:
 
 ```js
 const crypto = require('crypto');
-const sign = crypto.createSign('RSA-SHA256');
+const sign = crypto.createSign('SHA256');
 
 sign.write('some data to sign');
 sign.end();
 
 const privateKey = getPrivateKeySomehow();
 console.log(sign.sign(privateKey, 'hex'));
-// Prints: the calculated signature
+// Prints: the calculated signature using the specified private key and
+// SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding
+// parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.
 ```
 
 Example: Using the [`sign.update()`][] and [`sign.sign()`][] methods:
+
+```js
+const crypto = require('crypto');
+const sign = crypto.createSign('SHA256');
+
+sign.update('some data to sign');
+
+const privateKey = getPrivateKeySomehow();
+console.log(sign.sign(privateKey, 'hex'));
+// Prints: the calculated signature
+```
+
+In some cases, a `Sign` instance can also be created by passing in a signature
+algorithm name, such as 'RSA-SHA256'. This will use the corresponding digest
+algorithm. This does not work for all signature algorithms, such as
+'ecdsa-with-SHA256'. Use digest names instead.
+
+Example: signing using legacy signature algorithm name
 
 ```js
 const crypto = require('crypto');
@@ -946,29 +967,6 @@ sign.update('some data to sign');
 const privateKey = getPrivateKeySomehow();
 console.log(sign.sign(privateKey, 'hex'));
 // Prints: the calculated signature
-```
-
-A `Sign` instance can also be created by just passing in the digest
-algorithm name, in which case OpenSSL will infer the full signature algorithm
-from the type of the PEM-formatted private key, including algorithms that
-do not have directly exposed name constants, e.g. 'ecdsa-with-SHA256'.
-
-Example: signing using ECDSA with SHA256
-
-```js
-const crypto = require('crypto');
-const sign = crypto.createSign('sha256');
-
-sign.update('some data to sign');
-
-const privateKey =
-`-----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIF+jnWY1D5kbVYDNvxxo/Y+ku2uJPDwS0r/VuPZQrjjVoAoGCCqGSM49
-AwEHoUQDQgAEurOxfSxmqIRYzJVagdZfMMSjRNNhB8i3mXyIMq704m2m52FdfKZ2
-pQhByd5eyj3lgZ7m7jbchtdgyOF8Io/1ng==
------END EC PRIVATE KEY-----`;
-
-console.log(sign.sign(privateKey).toString('hex'));
 ```
 
 ### sign.sign(privateKey[, outputFormat])
@@ -1051,7 +1049,7 @@ Example: Using `Verify` objects as streams:
 
 ```js
 const crypto = require('crypto');
-const verify = crypto.createVerify('RSA-SHA256');
+const verify = crypto.createVerify('SHA256');
 
 verify.write('some data to sign');
 verify.end();
@@ -1066,7 +1064,7 @@ Example: Using the [`verify.update()`][] and [`verify.verify()`][] methods:
 
 ```js
 const crypto = require('crypto');
-const verify = crypto.createVerify('RSA-SHA256');
+const verify = crypto.createVerify('SHA256');
 
 verify.update('some data to sign');
 
@@ -1565,9 +1563,9 @@ Example:
 
 ```js
 const crypto = require('crypto');
-crypto.pbkdf2('secret', 'salt', 100000, 512, 'sha512', (err, derivedKey) => {
+crypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
   if (err) throw err;
-  console.log(derivedKey.toString('hex'));  // '3745e48...aa39b34'
+  console.log(derivedKey.toString('hex'));  // '3745e48...08d59ae'
 });
 ```
 
@@ -1617,8 +1615,8 @@ Example:
 
 ```js
 const crypto = require('crypto');
-const key = crypto.pbkdf2Sync('secret', 'salt', 100000, 512, 'sha512');
-console.log(key.toString('hex'));  // '3745e48...aa39b34'
+const key = crypto.pbkdf2Sync('secret', 'salt', 100000, 64, 'sha512');
+console.log(key.toString('hex'));  // '3745e48...08d59ae'
 ```
 
 An array of supported digest functions can be retrieved using
@@ -1635,6 +1633,7 @@ added: v0.11.14
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`,
     `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the decrypted content.
 
 Decrypts `buffer` with `privateKey`.
 
@@ -1652,49 +1651,52 @@ added: v1.1.0
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or
     `RSA_PKCS1_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the encrypted content.
 
 Encrypts `buffer` with `privateKey`.
 
 `privateKey` can be an object or a string. If `privateKey` is a string, it is
 treated as the key with no passphrase and will use `RSA_PKCS1_PADDING`.
 
-### crypto.publicDecrypt(publicKey, buffer)
+### crypto.publicDecrypt(key, buffer)
 <!-- YAML
 added: v1.1.0
 -->
-- `publicKey` {Object | string}
-  - `key` {string} A PEM encoded private key.
+- `key` {Object | string}
+  - `key` {string} A PEM encoded public or private key.
   - `passphrase` {string} An optional passphrase for the private key.
   - `padding` {crypto.constants} An optional padding value defined in
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING` or
     `RSA_PKCS1_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the decrypted content.
 
-Decrypts `buffer` with `publicKey`.
+Decrypts `buffer` with `key`.
 
-`publicKey` can be an object or a string. If `publicKey` is a string, it is
-treated as the key with no passphrase and will use `RSA_PKCS1_PADDING`.
+`key` can be an object or a string. If `key` is a string, it is treated as
+the key with no passphrase and will use `RSA_PKCS1_PADDING`.
 
 Because RSA public keys can be derived from private keys, a private key may
 be passed instead of a public key.
 
-### crypto.publicEncrypt(publicKey, buffer)
+### crypto.publicEncrypt(key, buffer)
 <!-- YAML
 added: v0.11.14
 -->
-- `publicKey` {Object | string}
-  - `key` {string} A PEM encoded private key.
+- `key` {Object | string}
+  - `key` {string} A PEM encoded public or private key.
   - `passphrase` {string} An optional passphrase for the private key.
   - `padding` {crypto.constants} An optional padding value defined in
     `crypto.constants`, which may be: `crypto.constants.RSA_NO_PADDING`,
     `RSA_PKCS1_PADDING`, or `crypto.constants.RSA_PKCS1_OAEP_PADDING`.
 - `buffer` {Buffer | TypedArray | DataView}
+- Returns: {Buffer} A new `Buffer` with the encrypted content.
 
-Encrypts the content of `buffer` with `publicKey` and returns a new
+Encrypts the content of `buffer` with `key` and returns a new
 [`Buffer`][] with encrypted content.
 
-`publicKey` can be an object or a string. If `publicKey` is a string, it is
-treated as the key with no passphrase and will use `RSA_PKCS1_OAEP_PADDING`.
+`key` can be an object or a string. If `key` is a string, it is treated as
+the key with no passphrase and will use `RSA_PKCS1_OAEP_PADDING`.
 
 Because RSA public keys can be derived from private keys, a private key may
 be passed instead of a public key.
@@ -2268,13 +2270,13 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 [`stream.transform` options]: stream.html#stream_new_stream_transform_options
 [`stream.Writable` options]: stream.html#stream_constructor_new_stream_writable_options
 [`tls.createSecureContext()`]: tls.html#tls_tls_createsecurecontext_options
-[`verify.update()`]: #crypto_verifier_update_data_inputencoding
-[`verify.verify()`]: #crypto_verifier_verify_object_signature_signatureformat
+[`verify.update()`]: #crypto_verify_update_data_inputencoding
+[`verify.verify()`]: #crypto_verify_verify_object_signature_signatureformat
 [Caveats]: #crypto_support_for_weak_or_compromised_algorithms
 [Crypto Constants]: #crypto_crypto_constants_1
 [HTML5's `keygen` element]: http://www.w3.org/TR/html5/forms.html#the-keygen-element
 [NIST SP 800-131A]: http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf
-[NIST SP 800-132]: http://csrc.nist.gov/publications/nistpubs/800-132/nist-sp800-132.pdf
+[NIST SP 800-132]: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf
 [Nonce-Disrespecting Adversaries]: https://github.com/nonce-disrespect/nonce-disrespect
 [OpenSSL's SPKAC implementation]: https://www.openssl.org/docs/man1.0.2/apps/spkac.html
 [RFC 2412]: https://www.rfc-editor.org/rfc/rfc2412.txt

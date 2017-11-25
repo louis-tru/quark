@@ -158,6 +158,7 @@ void CallbackInfo::WeakCallback(
     const WeakCallbackInfo<CallbackInfo>& data) {
   CallbackInfo* self = data.GetParameter();
   self->WeakCallback(data.GetIsolate());
+  self->persistent_.V8_DEATH_RESET();
   delete self;
 }
 

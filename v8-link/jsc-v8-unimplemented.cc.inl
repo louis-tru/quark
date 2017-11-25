@@ -31,16 +31,18 @@
 
 // --- M o d u l e ---
 
-bool DynamicImportResult::FinishDynamicImportSuccess(Local<Context> context,
-	Local<Module> module) { UNIMPLEMENTED(); }
-bool DynamicImportResult::FinishDynamicImportFailure(Local<Context> context,
-	Local<Value> exception) { UNIMPLEMENTED(); }
+Module::Status Module::GetStatus() const { UNIMPLEMENTED(); }
+Local<Value> Module::GetException() const { UNIMPLEMENTED(); }
+Location Module::GetModuleRequestLocation(int i) const { UNIMPLEMENTED(); }
 int Module::GetModuleRequestsLength() const { UNIMPLEMENTED(); }
 Local<String> Module::GetModuleRequest(int i) const { UNIMPLEMENTED(); }
 int Module::GetIdentityHash() const { UNIMPLEMENTED(); }
 bool Module::Instantiate(Local<Context> context,
 	Module::ResolveCallback callback) { UNIMPLEMENTED(); }
+Maybe<bool> Module::InstantiateModule(Local<Context> context,
+  Module::ResolveCallback callback) { UNIMPLEMENTED(); }
 MaybeLocal<Value> Module::Evaluate(Local<Context> context) { UNIMPLEMENTED(); }
+Local<Value> Module::GetModuleNamespace() { UNIMPLEMENTED(); }
 
 // --- W a s m   M o d u l e ---
 
@@ -223,15 +225,24 @@ MaybeLocal<Object> v8::Context::NewRemoteContext(
 
 // --- I s o l a t e ---
 
+void Isolate::SetHostImportModuleDynamicallyCallback(
+  HostImportModuleDynamicallyCallback callback) { UNIMPLEMENTED(); }
+Local<Context> Isolate::GetIncumbentContext() { UNIMPLEMENTED(); }
 v8::Local<v8::Context> Isolate::GetCallingContext() { return Local<Context>(); }
 v8::Local<v8::Context> Isolate::GetEnteredContext() { return GetCurrentContext(); }
 v8::Local<v8::Context> Isolate::GetEnteredOrMicrotaskContext() { return GetCurrentContext(); }
+void Isolate::AddGCPrologueCallback(GCCallbackWithData callback, void* data,
+                                    GCType gc_type_filter) {}
 void Isolate::AddGCPrologueCallback(GCCallback callback, GCType gc_type) {}
+void Isolate::RemoveGCPrologueCallback(GCCallbackWithData, void* data) {}
 void Isolate::RemoveGCPrologueCallback(GCCallback callback) {}
+void Isolate::AddGCEpilogueCallback(GCCallbackWithData callback, void* data,
+                                    GCType gc_type_filter){}
 void Isolate::AddGCEpilogueCallback(GCCallback callback, GCType gc_type) {}
+void Isolate::RemoveGCEpilogueCallback(GCCallbackWithData callback, void* data) {}
 void Isolate::RemoveGCEpilogueCallback(GCCallback callback) {}
-void V8::AddGCPrologueCallback(GCCallback callback, GCType gc_type) {}
-void V8::AddGCEpilogueCallback(GCCallback callback, GCType gc_type) {}
+void Isolate::SetGetExternallyAllocatedMemoryInBytesCallback(
+  GetExternallyAllocatedMemoryInBytesCallback callback) {}
 void Isolate::SetEmbedderHeapTracer(EmbedderHeapTracer* tracer) {}
 void Isolate::RequestInterrupt(InterruptCallback callback, void* data) {}
 void Isolate::RequestGarbageCollectionForTesting(GarbageCollectionType type) {}
@@ -291,7 +302,10 @@ void Isolate::SetStackLimit(uintptr_t stack_limit) {}
 void Isolate::GetCodeRange(void** start, size_t* length_in_bytes) {}
 void Isolate::SetOOMErrorHandler(OOMErrorCallback that) {}
 void Isolate::SetAllowCodeGenerationFromStringsCallback(
-	AllowCodeGenerationFromStringsCallback callback) {}
+	DeprecatedAllowCodeGenerationFromStringsCallback callback) {}
+void Isolate::SetAllowCodeGenerationFromStringsCallback(
+  FreshNewAllowCodeGenerationFromStringsCallback callback) {}
+void Isolate::SetWasmCompileStreamingCallback(ApiImplementationCallback callback) {}
 bool Isolate::IsDead() { return false; }
 void Isolate::SetFailedAccessCheckCallbackFunction(FailedAccessCheckCallback callback) {}
 void Isolate::SetCaptureStackTraceForUncaughtExceptions(
@@ -307,20 +321,27 @@ bool Isolate::AddMessageListenerWithErrorLevel(
 	MessageCallback that, int message_levels, Local<Value> data) { return false; }
 void Isolate::RemoveMessageListeners(MessageCallback that) {}
 
+// --- Context::BackupIncumbentScope ---
+Context::BackupIncumbentScope::
+  BackupIncumbentScope(Local<Context> backup_incumbent_context):prev_(nullptr) {}
+Context::BackupIncumbentScope::~BackupIncumbentScope() {}
+
 // --- V 8 ---
 
-void v8::V8::InitializePlatform(Platform* platform) {}
-void v8::V8::ShutdownPlatform() {}
+void V8::AddGCPrologueCallback(GCCallback callback, GCType gc_type) {}
+void V8::AddGCEpilogueCallback(GCCallback callback, GCType gc_type) {}
+void V8::InitializePlatform(Platform* platform) {}
+void V8::ShutdownPlatform() {}
 #if V8_OS_LINUX && V8_TARGET_ARCH_X64 && !V8_OS_ANDROID
-bool V8::TryHandleSignal(int signum, void* info, void* context) { return false; }
+bool TryHandleSignal(int signum, void* info, void* context) { return false; }
 #endif  // V8_OS_LINUX
 bool V8::RegisterDefaultSignalHandler() { return false; }
-void v8::V8::SetEntropySource(EntropySource entropy_source) {}
-void v8::V8::SetReturnAddressLocationResolver(
+void V8::SetEntropySource(EntropySource entropy_source) {}
+void V8::SetReturnAddressLocationResolver(
   ReturnAddressLocationResolver return_address_resolver) {}
-bool v8::V8::InitializeICU(const char* icu_data_file) { return false; }
-bool v8::V8::InitializeICUDefaultLocation(const char* exec_path,
+bool V8::InitializeICU(const char* icu_data_file) { return false; }
+bool V8::InitializeICUDefaultLocation(const char* exec_path,
                                           const char* icu_data_file) { return false; }
-void v8::V8::InitializeExternalStartupData(const char* directory_path) {}
-void v8::V8::InitializeExternalStartupData(const char* natives_blob,
+void V8::InitializeExternalStartupData(const char* directory_path) {}
+void V8::InitializeExternalStartupData(const char* natives_blob,
                                            const char* snapshot_blob) {}

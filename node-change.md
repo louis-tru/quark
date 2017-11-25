@@ -13,9 +13,6 @@
 ```cpp
 # if defined(TARGET_OS_IPHONE)
 #   define V8_OS_IOS 1
-#   ifndef USE_JSC
-#     #define USE_JSC 1
-#   endif
 # endif
 ```
 
@@ -87,13 +84,25 @@ int exec_argc, const char* const* exec_argv) {
 
 ```
 
-# node/lib/internal/bootstrap_node.js
+# node/src/node_crypto.cc
 
-```js
-- Module._resolveFilename(process.argv[1]);
-+ const filename = process.argv[1];
+```cc
+- static X509_STORE* NewRootCertStore()
++ X509_STORE* NewRootCertStore()
 ```
 
+# node/src/base-object-inl.h
+
+```cc
+-   self->persistent().Reset();
++   self->persistent().V8_DEATH_RESET();
+```
+
+# node/src/node_api.cc
+# node/src/node_object_wrap.h
+# node/src/node_buffer.cc
+
+# node/lib/internal/bootstrap_node.js
 # node/lib/fs.js
 # node/lib/module.js
 # node/lib/pkg.js

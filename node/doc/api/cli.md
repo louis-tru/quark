@@ -53,6 +53,10 @@ changes:
 Evaluate the following argument as JavaScript. The modules which are
 predefined in the REPL can also be used in `script`.
 
+*Note*: On Windows, using `cmd.exe` a single quote will not work correctly
+because it only recognizes double `"` for quoting. In Powershell or
+Git bash, both `'` and `"` are usable.
+
 
 ### `-p`, `--print "script"`
 <!-- YAML
@@ -178,14 +182,6 @@ added: v8.4.0
 
 Enable the experimental `'http2'` module.
 
-### `--napi-modules`
-<!-- YAML
-added: v8.0.0
--->
-
-Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
-(experimental).
-
 ### `--abort-on-uncaught-exception`
 <!-- YAML
 added: v0.10
@@ -218,6 +214,14 @@ added: v2.1.0
 
 Prints a stack trace whenever synchronous I/O is detected after the first turn
 of the event loop.
+
+### `--force-async-hooks-checks`
+<!-- YAML
+added: v8.8.0
+-->
+
+Enables runtime checks for `async_hooks`. These can also be enabled dynamically
+by enabling one of the `async_hooks` hooks.
 
 ### `--trace-events-enabled`
 <!-- YAML
@@ -436,6 +440,13 @@ added: v7.5.0
 
 When set to `1`, process warnings are silenced.
 
+### `NODE_NO_HTTP2=1`
+<!-- YAML
+added: v8.8.0
+-->
+
+When set to `1`, the `http2` module is suppressed.
+
 ### `NODE_OPTIONS=options...`
 <!-- YAML
 added: v8.0.0
@@ -453,7 +464,6 @@ Node options that are allowed are:
 - `--inspect-brk`
 - `--inspect-port`
 - `--inspect`
-- `--napi-modules`
 - `--no-deprecation`
 - `--no-warnings`
 - `--openssl-config`

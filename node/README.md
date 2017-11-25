@@ -99,7 +99,7 @@ Binaries, installers, and source tarballs are available at
 The [latest](https://nodejs.org/download/release/latest/) directory is an
 alias for the latest Current release. The latest LTS release from an LTS
 line is available in the form: latest-_codename_. For example:
-<https://nodejs.org/download/release/latest-argon>
+<https://nodejs.org/download/release/latest-argon>.
 
 #### Nightly Releases
 **Nightly** builds are available at
@@ -134,12 +134,12 @@ $ grep node-vx.y.z.tar.gz SHASUMS256.txt | sha256sum -c -
 _(Where "node-vx.y.z.tar.gz" is the name of the file you have
 downloaded)_
 
-Additionally, Current and LTS releases (not Nightlies) have GPG signed
-copies of SHASUMS256.txt files available as SHASUMS256.txt.asc. You can use
-`gpg` to verify that the file has not been tampered with.
+Additionally, Current and LTS releases (not Nightlies) have the GPG
+detached signature of SHASUMS256.txt available as SHASUMS256.txt.sig.
+You can use `gpg` to verify that SHASUMS256.txt has not been tampered with.
 
-To verify a SHASUMS256.txt.asc, you will first need to import all of
-the GPG keys of individuals authorized to create releases. They are
+To verify SHASUMS256.txt has not been altered, you will first need to import
+all of the GPG keys of individuals authorized to create releases. They are
 listed at the bottom of this README under [Release Team](#release-team).
 Use a command such as this to import the keys:
 
@@ -150,10 +150,17 @@ $ gpg --keyserver pool.sks-keyservers.net --recv-keys DD8F2338BAE7501E3DD5AC78C2
 _(See the bottom of this README for a full script to import active
 release keys)_
 
-You can then use `gpg --verify SHASUMS256.txt.asc` to verify that the
-file has been signed by an authorized member of the Node.js team.
+Next, download the SHASUMS256.txt.sig for the release:
 
-Once verified, use the SHASUMS256.txt.asc file to get the checksum for
+```console
+$ curl -O https://nodejs.org/dist/vx.y.z/SHASUMS256.txt.sig
+```
+
+After downloading the appropriate SHASUMS256.txt and SHASUMS256.txt.sig files,
+you can then use `gpg --verify SHASUMS256.txt.sig SHASUMS256.txt` to verify
+that the file has been signed by an authorized member of the Node.js team.
+
+Once verified, use the SHASUMS256.txt file to get the checksum for
 the binary verification command above.
 
 ## Building Node.js
@@ -229,8 +236,6 @@ For more information about the governance of the Node.js project, see
 
 * [addaleax](https://github.com/addaleax) -
 **Anna Henningsen** &lt;anna@addaleax.net&gt; (she/her)
-* [bnoordhuis](https://github.com/bnoordhuis) -
-**Ben Noordhuis** &lt;info@bnoordhuis.nl&gt;
 * [ChALkeR](https://github.com/ChALkeR) -
 **Сковорода Никита Андреевич** &lt;chalkerx@gmail.com&gt; (he/him)
 * [cjihrig](https://github.com/cjihrig) -
@@ -238,7 +243,7 @@ For more information about the governance of the Node.js project, see
 * [evanlucas](https://github.com/evanlucas) -
 **Evan Lucas** &lt;evanlucas@me.com&gt; (he/him)
 * [fhinkel](https://github.com/fhinkel) -
-**Franziska Hinkelmann** &lt;franziska.hinkelmann@gmail.com&gt;
+**Franziska Hinkelmann** &lt;franziska.hinkelmann@gmail.com&gt; (she/her)
 * [Fishrock123](https://github.com/Fishrock123) -
 **Jeremiah Senkpiel** &lt;fishrock123@rocketmail.com&gt;
 * [indutny](https://github.com/indutny) -
@@ -261,8 +266,6 @@ For more information about the governance of the Node.js project, see
 **Ali Ijaz Sheikh** &lt;ofrobots@google.com&gt;
 * [rvagg](https://github.com/rvagg) -
 **Rod Vagg** &lt;rod@vagg.org&gt;
-* [shigeki](https://github.com/shigeki) -
-**Shigeki Ohtsu** &lt;ohtsu@ohtsu.org&gt; (he/him)
 * [targos](https://github.com/targos) -
 **Michaël Zasso** &lt;targos@protonmail.com&gt; (he/him)
 * [thefourtheye](https://github.com/thefourtheye) -
@@ -274,16 +277,20 @@ For more information about the governance of the Node.js project, see
 
 ### TSC Emeriti
 
+* [bnoordhuis](https://github.com/bnoordhuis) -
+**Ben Noordhuis** &lt;info@bnoordhuis.nl&gt;
 * [chrisdickinson](https://github.com/chrisdickinson) -
 **Chris Dickinson** &lt;christopher.s.dickinson@gmail.com&gt;
 * [isaacs](https://github.com/isaacs) -
 **Isaac Z. Schlueter** &lt;i@izs.me&gt;
+* [nebrius](https://github.com/nebrius) -
+**Bryan Hughes** &lt;bryan@nebri.us&gt;
 * [orangemocha](https://github.com/orangemocha) -
 **Alexis Campailla** &lt;orangemocha@nodejs.org&gt;
 * [piscisaureus](https://github.com/piscisaureus) -
 **Bert Belder** &lt;bertbelder@gmail.com&gt;
-* [nebrius](https://github.com/nebrius) -
-**Bryan Hughes** &lt;bryan@nebri.us&gt;
+* [shigeki](https://github.com/shigeki) -
+**Shigeki Ohtsu** &lt;ohtsu@ohtsu.org&gt; (he/him)
 
 ### Collaborators
 
@@ -299,6 +306,8 @@ For more information about the governance of the Node.js project, see
 **Andreas Madsen** &lt;amwebdk@gmail.com&gt; (he/him)
 * [AnnaMag](https://github.com/AnnaMag) -
 **Anna M. Kedzierska** &lt;anna.m.kedzierska@gmail.com&gt;
+* [apapirovski](https://github.com/apapirovski) -
+**Anatoli Papirovski** &lt;apapirovski@mac.com&gt; (he/him)
 * [aqrln](https://github.com/aqrln) -
 **Alexey Orlenko** &lt;eaglexrlnk@gmail.com&gt; (he/him)
 * [bengl](https://github.com/bengl) -
@@ -307,6 +316,8 @@ For more information about the governance of the Node.js project, see
 **Benjamin Gruenbaum** &lt;benjamingr@gmail.com&gt;
 * [bmeck](https://github.com/bmeck) -
 **Bradley Farias** &lt;bradley.meck@gmail.com&gt;
+* [bmeurer](https://github.com/bmeurer) -
+**Benedikt Meurer** &lt;benedikt.meurer@gmail.com&gt;
 * [bnoordhuis](https://github.com/bnoordhuis) -
 **Ben Noordhuis** &lt;info@bnoordhuis.nl&gt;
 * [brendanashworth](https://github.com/brendanashworth) -
@@ -340,7 +351,7 @@ For more information about the governance of the Node.js project, see
 * [evanlucas](https://github.com/evanlucas) -
 **Evan Lucas** &lt;evanlucas@me.com&gt; (he/him)
 * [fhinkel](https://github.com/fhinkel) -
-**Franziska Hinkelmann** &lt;franziska.hinkelmann@gmail.com&gt;
+**Franziska Hinkelmann** &lt;franziska.hinkelmann@gmail.com&gt; (she/her)
 * [firedfox](https://github.com/firedfox) -
 **Daniel Wang** &lt;wangyang0123@gmail.com&gt;
 * [Fishrock123](https://github.com/Fishrock123) -
@@ -361,8 +372,6 @@ For more information about the governance of the Node.js project, see
 **Ilkka Myller** &lt;ilkka.myller@nodefield.com&gt;
 * [indutny](https://github.com/indutny) -
 **Fedor Indutny** &lt;fedor.indutny@gmail.com&gt;
-* [isaacs](https://github.com/isaacs) -
-**Isaac Z. Schlueter** &lt;i@izs.me&gt;
 * [italoacasas](https://github.com/italoacasas) -
 **Italo A. Casas** &lt;me@italoacasas.com&gt; (he/him)
 * [JacksonTian](https://github.com/JacksonTian) -
@@ -387,6 +396,8 @@ For more information about the governance of the Node.js project, see
 **Julian Duque** &lt;julianduquej@gmail.com&gt; (he/him)
 * [JungMinu](https://github.com/JungMinu) -
 **Minwoo Jung** &lt;minwoo@nodesource.com&gt; (he/him)
+* [kfarnung](https://github.com/kfarnung) -
+**Kyle Farnung** &lt;kfarnung@microsoft.com&gt; (he/him)
 * [kunalspathak](https://github.com/kunalspathak) -
 **Kunal Pathak** &lt;kunal.pathak@microsoft.com&gt;
 * [lance](https://github.com/lance) -
@@ -395,8 +406,6 @@ For more information about the governance of the Node.js project, see
 **Luigi Pinca** &lt;luigipinca@gmail.com&gt; (he/him)
 * [lucamaraschi](https://github.com/lucamaraschi) -
 **Luca Maraschi** &lt;luca.maraschi@gmail.com&gt; (he/him)
-* [lxe](https://github.com/lxe) -
-**Aleksey Smolenchuk** &lt;lxe@lxe.co&gt;
 * [matthewloring](https://github.com/matthewloring) -
 **Matthew Loring** &lt;mattloring@google.com&gt;
 * [mcollina](https://github.com/mcollina) -
@@ -409,8 +418,6 @@ For more information about the governance of the Node.js project, see
 **Mikeal Rogers** &lt;mikeal.rogers@gmail.com&gt;
 * [misterdjules](https://github.com/misterdjules) -
 **Julien Gilli** &lt;jgilli@nodejs.org&gt;
-* [monsanto](https://github.com/monsanto) -
-**Christopher Monsanto** &lt;chris@monsan.to&gt;
 * [mscdex](https://github.com/mscdex) -
 **Brian White** &lt;mscdex@mscdex.net&gt;
 * [MylesBorins](https://github.com/MylesBorins) -
@@ -419,18 +426,12 @@ For more information about the governance of the Node.js project, see
 **Teddy Katz** &lt;teddy.katz@gmail.com&gt;
 * [ofrobots](https://github.com/ofrobots) -
 **Ali Ijaz Sheikh** &lt;ofrobots@google.com&gt;
-* [Olegas](https://github.com/Olegas) -
-**Oleg Elifantiev** &lt;oleg@elifantiev.ru&gt;
 * [orangemocha](https://github.com/orangemocha) -
 **Alexis Campailla** &lt;orangemocha@nodejs.org&gt;
 * [othiym23](https://github.com/othiym23) -
 **Forrest L Norvell** &lt;ogd@aoaioxxysz.net&gt; (he/him)
-* [petkaantonov](https://github.com/petkaantonov) -
-**Petka Antonov** &lt;petka_antonov@hotmail.com&gt;
 * [phillipj](https://github.com/phillipj) -
 **Phillip Johnsen** &lt;johphi@gmail.com&gt;
-* [piscisaureus](https://github.com/piscisaureus) -
-**Bert Belder** &lt;bertbelder@gmail.com&gt;
 * [pmq20](https://github.com/pmq20) -
 **Minqi Pan** &lt;pmq2001@gmail.com&gt;
 * [princejwesley](https://github.com/princejwesley) -
@@ -441,8 +442,6 @@ For more information about the governance of the Node.js project, see
 **Refael Ackermann** &lt;refack@gmail.com&gt; (he/him)
 * [richardlau](https://github.com/richardlau) -
 **Richard Lau** &lt;riclau@uk.ibm.com&gt;
-* [rlidwka](https://github.com/rlidwka) -
-**Alex Kocharin** &lt;alex@kocharin.ru&gt;
 * [rmg](https://github.com/rmg) -
 **Ryan Graham** &lt;r.m.graham@gmail.com&gt;
 * [robertkowalski](https://github.com/robertkowalski) -
@@ -461,6 +460,8 @@ For more information about the governance of the Node.js project, see
 **Sam Roberts** &lt;vieuxtech@gmail.com&gt;
 * [santigimeno](https://github.com/santigimeno) -
 **Santiago Gimeno** &lt;santiago.gimeno@gmail.com&gt;
+* [sebdeckers](https://github.com/sebdeckers) -
+**Sebastiaan Deckers** &lt;sebdeckers83@gmail.com&gt;
 * [seishun](https://github.com/seishun) -
 **Nikolai Vavilov** &lt;vvnicholas@gmail.com&gt;
 * [shigeki](https://github.com/shigeki) -
@@ -473,8 +474,6 @@ For more information about the governance of the Node.js project, see
 **Stefan Budeanu** &lt;stefan@budeanu.com&gt;
 * [targos](https://github.com/targos) -
 **Michaël Zasso** &lt;targos@protonmail.com&gt; (he/him)
-* [tellnes](https://github.com/tellnes) -
-**Christian Tellnes** &lt;christian@tellnes.no&gt;
 * [thefourtheye](https://github.com/thefourtheye) -
 **Sakthipriyan Vairamani** &lt;thechargingvolcano@gmail.com&gt; (he/him)
 * [thekemkid](https://github.com/thekemkid) -
@@ -506,6 +505,25 @@ For more information about the governance of the Node.js project, see
 * [yosuke-furukawa](https://github.com/yosuke-furukawa) -
 **Yosuke Furukawa** &lt;yosuke.furukawa@gmail.com&gt;
 
+### Collaborator Emeriti
+
+* [isaacs](https://github.com/isaacs) -
+**Isaac Z. Schlueter** &lt;i@izs.me&gt;
+* [lxe](https://github.com/lxe) -
+**Aleksey Smolenchuk** &lt;lxe@lxe.co&gt;
+* [monsanto](https://github.com/monsanto) -
+**Christopher Monsanto** &lt;chris@monsan.to&gt;
+* [Olegas](https://github.com/Olegas) -
+**Oleg Elifantiev** &lt;oleg@elifantiev.ru&gt;
+* [petkaantonov](https://github.com/petkaantonov) -
+**Petka Antonov** &lt;petka_antonov@hotmail.com&gt;
+* [piscisaureus](https://github.com/piscisaureus) -
+**Bert Belder** &lt;bertbelder@gmail.com&gt;
+* [rlidwka](https://github.com/rlidwka) -
+**Alex Kocharin** &lt;alex@kocharin.ru&gt;
+* [tellnes](https://github.com/tellnes) -
+**Christian Tellnes** &lt;christian@tellnes.no&gt;
+
 Collaborators follow the [COLLABORATOR_GUIDE.md](./COLLABORATOR_GUIDE.md) in
 maintaining the Node.js project.
 
@@ -517,6 +535,8 @@ Node.js releases are signed with one of the following GPG keys:
 `94AE36675C464D64BAFA68DD7434390BDBE9B9C5`
 * **Evan Lucas** &lt;evanlucas@me.com&gt;
 `B9AE9905FFD7803F25714661B63B535A4C206CA9`
+* **Gibson Fahnestock** &lt;gibfahn@gmail.com&gt;
+`77984A986EBC2AA786BC0F66B01FBB92821C587A`
 * **Italo A. Casas** &lt;me@italoacasas.com&gt;
 `56730D5401028683275BD23C23EFEFE93C4CFFFE`
 * **James M Snell** &lt;jasnell@keybase.io&gt;
@@ -538,6 +558,7 @@ gpg --keyserver pool.sks-keyservers.net --recv-keys DD8F2338BAE7501E3DD5AC78C273
 gpg --keyserver pool.sks-keyservers.net --recv-keys C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8
 gpg --keyserver pool.sks-keyservers.net --recv-keys B9AE9905FFD7803F25714661B63B535A4C206CA9
 gpg --keyserver pool.sks-keyservers.net --recv-keys 56730D5401028683275BD23C23EFEFE93C4CFFFE
+gpg --keyserver pool.sks-keyservers.net --recv-keys 77984A986EBC2AA786BC0F66B01FBB92821C587A
 ```
 
 See the section above on [Verifying Binaries](#verifying-binaries) for details

@@ -105,13 +105,13 @@ out/android.classs.ngui.jar: android/org/ngui/*.java
 install: tools
 	@$(MAKE) ios
 	@$(MAKE) android
-	@./configure --ffmpeg=0
+	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@$(DEV_OUT)/install
 
 # debug install ngui command
 debug_link:
-	@./configure --ffmpeg=0
+	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@./$(DEV)/install link
 

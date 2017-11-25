@@ -1437,9 +1437,12 @@ user programs.
 added: v8.0.0
 -->
 
-* `err` {Error} An error.
-* `callback` {Function} A callback function that takes an optional error argument
-  which is invoked when the writable is destroyed.
+* `err` {Error} A possible error.
+* `callback` {Function} A callback function that takes an optional error
+  argument.
+
+The `_destroy()` method is called by [`writable.destroy()`][writable-destroy].
+It can be overriden by child classes but it **must not** be called directly.
 
 #### writable.\_final(callback)
 <!-- YAML
@@ -1601,6 +1604,18 @@ The `readable._read()` method is prefixed with an underscore because it is
 internal to the class that defines it, and should never be called directly by
 user programs.
 
+#### readable.\_destroy(err, callback)
+<!-- YAML
+added: v8.0.0
+-->
+
+* `err` {Error} A possible error.
+* `callback` {Function} A callback function that takes an optional error
+  argument.
+
+The `_destroy()` method is called by [`readable.destroy()`][readable-destroy].
+It can be overriden by child classes but it **must not** be called directly.
+
 #### readable.push(chunk[, encoding])
 <!-- YAML
 changes:
@@ -1615,7 +1630,7 @@ changes:
   any JavaScript value.
 * `encoding` {string} Encoding of string chunks.  Must be a valid
   Buffer encoding, such as `'utf8'` or `'ascii'`
-* Returns {boolean} `true` if additional chunks of data may continued to be
+* Returns: {boolean} `true` if additional chunks of data may continued to be
   pushed; `false` otherwise.
 
 When `chunk` is a `Buffer`, `Uint8Array` or `string`, the `chunk` of data will
@@ -2201,15 +2216,14 @@ contain multi-byte characters.
 [TCP sockets]: net.html#net_class_net_socket
 [Transform]: #stream_class_stream_transform
 [Writable]: #stream_class_stream_writable
-[child process stdin]: child_process.html#child_process_child_stdin
-[child process stdout and stderr]: child_process.html#child_process_child_stdout
+[child process stdin]: child_process.html#child_process_subprocess_stdin
+[child process stdout and stderr]: child_process.html#child_process_subprocess_stdout
 [crypto]: crypto.html
 [fs read streams]: fs.html#fs_class_fs_readstream
 [fs write streams]: fs.html#fs_class_fs_writestream
 [http-incoming-message]: http.html#http_class_http_incomingmessage
 [zlib]: zlib.html
-[hwm-gotcha]: #stream_highWaterMark_discrepency_after_calling_readable_setencoding
-[Readable]: #stream_class_stream_readable
+[hwm-gotcha]: #stream_highwatermark_discrepency_after_calling_readable_setencoding
 [stream-_flush]: #stream_transform_flush_callback
 [stream-_read]: #stream_readable_read_size_1
 [stream-_transform]: #stream_transform_transform_chunk_encoding_callback
@@ -2223,4 +2237,6 @@ contain multi-byte characters.
 [stream-resume]: #stream_readable_resume
 [stream-write]: #stream_writable_write_chunk_encoding_callback
 [readable-_destroy]: #stream_readable_destroy_err_callback
+[readable-destroy]: #stream_readable_destroy_error
 [writable-_destroy]: #stream_writable_destroy_err_callback
+[writable-destroy]: #stream_writable_destroy_error

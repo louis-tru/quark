@@ -1040,9 +1040,11 @@ void* Context::GetAlignedPointerFromEmbedderData(int index) {
 
 
 void V8::SetAllowCodeGenerationFromStringsCallback(
-    AllowCodeGenerationFromStringsCallback callback) {
+    DeprecatedAllowCodeGenerationFromStringsCallback callback) {
   Isolate* isolate = Isolate::GetCurrent();
-  isolate->SetAllowCodeGenerationFromStringsCallback(callback);
+  isolate->SetAllowCodeGenerationFromStringsCallback(
+      reinterpret_cast<FreshNewAllowCodeGenerationFromStringsCallback>(
+          callback));
 }
 
 

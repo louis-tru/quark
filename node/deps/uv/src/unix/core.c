@@ -58,13 +58,19 @@
 
 #if defined(__DragonFly__)      || \
     defined(__FreeBSD__)        || \
-    defined(__FreeBSD_kernel__)
+    defined(__FreeBSD_kernel__) || \
+    defined(__NetBSD__)
 # include <sys/sysctl.h>
 # include <sys/filio.h>
 # include <sys/wait.h>
 # define UV__O_CLOEXEC O_CLOEXEC
 # if defined(__FreeBSD__) && __FreeBSD__ >= 10
 #  define uv__accept4 accept4
+# endif
+# if defined(__NetBSD__)
+#  define uv__accept4(a, b, c, d) paccept((a), (b), (c), NULL, (d))
+# endif
+# if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
 #  define UV__SOCK_NONBLOCK SOCK_NONBLOCK
 #  define UV__SOCK_CLOEXEC  SOCK_CLOEXEC
 # endif
@@ -338,6 +344,7 @@ int uv_loop_alive(const uv_loop_t* loop) {
     return uv__loop_alive(loop);
 }
 
+
 int uv_run(uv_loop_t* loop, uv_run_mode mode) {
   int timeout;
   int r;
@@ -461,7 +468,9 @@ int uv__accept(int sockfd) {
   assert(sockfd >= 0);
 
   while (1) {
-#if defined(__linux__) || (defined(__FreeBSD__) && __FreeBSD__ >= 10)
+#if defined(__linux__)                          || \
+    (defined(__FreeBSD__) && __FreeBSD__ >= 10) || \
+    defined(__NetBSD__)
     static int no_accept4;
 
     if (no_accept4)
@@ -987,7 +996,7 @@ int uv__open_cloexec(const char* path, int flags) {
 
 int uv__dup2_cloexec(int oldfd, int newfd) {
   int r;
-#if defined(__FreeBSD__) && __FreeBSD__ >= 10
+#if (defined(__FreeBSD__) && __FreeBSD__ >= 10) || defined(__NetBSD__)
   r = dup3(oldfd, newfd, O_CLOEXEC);
   if (r == -1)
     return -errno;

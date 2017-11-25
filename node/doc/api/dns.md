@@ -141,11 +141,11 @@ changes:
   - `hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple
     flags may be passed by bitwise `OR`ing their values.
   - `all` {boolean} When `true`, the callback returns all resolved addresses in
-    an array. Otherwise, returns a single address. Defaults to `false`.
+    an array. Otherwise, returns a single address. **Default:** `false`
   - `verbatim` {boolean} When `true`, the callback receives IPv4 and IPv6
     addresses in the order the DNS resolver returned them.  When `false`,
     IPv4 addresses are placed before IPv6 addresses.
-    Default: currently `false` (addresses are reordered) but this is expected
+    **Default:** currently `false` (addresses are reordered) but this is expected
     to change in the not too distant future.
     New code should use `{ verbatim: true }`.
 - `callback` {Function}
@@ -245,7 +245,7 @@ Promise for an object with `hostname` and `service` properties.
 added: v0.1.27
 -->
 - `hostname` {string} Hostname to resolve.
-- `rrtype` {string} Resource record type. Default: `'A'`.
+- `rrtype` {string} Resource record type. **Default:** `'A'`
 - `callback` {Function}
   - `err` {Error}
   - `records` {string[] | Object[] | Object}
@@ -266,7 +266,7 @@ records. The type and structure of individual results varies based on `rrtype`:
 | `'PTR'`   | pointer records                | {string}    | [`dns.resolvePtr()`][]   |
 | `'SOA'`   | start of authority records     | {Object}    | [`dns.resolveSoa()`][]   |
 | `'SRV'`   | service records                | {Object}    | [`dns.resolveSrv()`][]   |
-| `'TXT'`   | text records                   | {string}    | [`dns.resolveTxt()`][]   |
+| `'TXT'`   | text records                   | {string[]}  | [`dns.resolveTxt()`][]   |
 | `'ANY'`   | any records                    | {Object}    | [`dns.resolveAny()`][]   |
 
 On error, `err` is an [`Error`][] object, where `err.code` is one of the
@@ -479,11 +479,11 @@ added: v0.1.27
 - `hostname` {string}
 - `callback` {Function}
   - `err` {Error}
-  - `addresses` {string[]}
+  - `records` {string[][]}
 
 Uses the DNS protocol to resolve text queries (`TXT` records) for the
-`hostname`. The `addresses` argument passed to the `callback` function is
-is a two-dimensional array of the text records available for `hostname` (e.g.,
+`hostname`. The `records` argument passed to the `callback` function is a
+two-dimensional array of the text records available for `hostname` (e.g.,
 `[ ['v=spf1 ip4:0.0.0.0 ', '~all' ] ]`). Each sub-array contains TXT chunks of
 one record. Depending on the use case, these could be either joined together or
 treated separately.
@@ -671,4 +671,3 @@ uses. For instance, _they do not use the configuration from `/etc/hosts`_.
 [Implementation considerations section]: #dns_implementation_considerations
 [rfc5952]: https://tools.ietf.org/html/rfc5952#section-6
 [supported `getaddrinfo` flags]: #dns_supported_getaddrinfo_flags
-[the official libuv documentation]: http://docs.libuv.org/en/latest/threadpool.html

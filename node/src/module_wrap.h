@@ -3,7 +3,7 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include "node_url.h"
@@ -13,7 +13,7 @@
 namespace node {
 namespace loader {
 
-node::url::URL Resolve(std::string specifier, node::url::URL* base,
+node::url::URL Resolve(std::string specifier, const node::url::URL* base,
                        bool read_pkg_json = false);
 
 class ModuleWrap : public BaseObject {
@@ -34,6 +34,7 @@ class ModuleWrap : public BaseObject {
   static void Link(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void Instantiate(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void Evaluate(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Namespace(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void GetUrl(v8::Local<v8::String> property,
                      const v8::PropertyCallbackInfo<v8::Value>& info);
   static void Resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -45,9 +46,7 @@ class ModuleWrap : public BaseObject {
   v8::Persistent<v8::Module> module_;
   v8::Persistent<v8::String> url_;
   bool linked_ = false;
-  std::map<std::string, v8::Persistent<v8::Promise>*> resolve_cache_;
-
-  static std::map<int, std::vector<ModuleWrap*>*> module_map_;
+  std::unordered_map<std::string, v8::Persistent<v8::Promise>> resolve_cache_;
 };
 
 }  // namespace loader

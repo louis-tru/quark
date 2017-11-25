@@ -34,9 +34,15 @@
 Maybe<bool> v8::Object::Set(v8::Local<v8::Context> context,
                             v8::Local<Value> key, v8::Local<Value> value) {
   ENV(context->GetIsolate());
-  i::JSCStringPtr name = JSValueToStringCopy(ctx, i::Back(key), NOTHING);
-  JSObjectSetProperty(ctx, i::Back<JSObjectRef>(this),
-                      *name, i::Back(value), 0, NOTHING);
+  i::JSCStringPtr name = JSValueToStringCopy(ctx, i::Back(key), &ex);
+  if (ex) { // 不能被转换为JSString
+    ex = nullptr;
+    JSValueRef argv[3] = { i::Back(this), i::Back(key), i::Back(value),  };
+    JSObjectCallAsFunction(ctx, isolate->setProperty(), nullptr, 3, argv, NOTHING);
+  } else {
+    JSObjectSetProperty(ctx, i::Back<JSObjectRef>(this),
+                        *name, i::Back(value), 0, NOTHING);
+  }
   return Just(true);
 }
 
@@ -76,7 +82,9 @@ Maybe<bool> v8::Object::DefineOwnProperty(v8::Local<v8::Context> context,
                                           v8::Local<Value> value,
                                           v8::PropertyAttribute attributes) {
   ENV(context->GetIsolate());
-  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), NOTHING);
+  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), &ex);
+  // TODO key 如果不能被转换为JSString暂时抛出异常
+  CHECK(!ex);
   JSPropertyAttributes attrs = attributes << 1;
   JSObjectSetProperty(ctx, i::Back<JSObjectRef>(this), *jkey,
                       i::Back(value), attrs, NOTHING);
@@ -113,7 +121,9 @@ Maybe<bool> v8::Object::ForceSet(v8::Local<v8::Context> context,
                                  v8::Local<Value> key, v8::Local<Value> value,
                                  v8::PropertyAttribute attribs) {
   ENV(context->GetIsolate());
-  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), NOTHING);
+  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), &ex);
+  // TODO key 如果不能被转换为JSString暂时抛出异常
+  CHECK(!ex);
   JSPropertyAttributes attrs = attribs << 1;
   JSObjectSetProperty(ctx, i::Back<JSObjectRef>(this), *jkey,
                       i::Back(value), attrs, NOTHING);
@@ -141,10 +151,18 @@ Maybe<bool> v8::Object::SetPrivate(Local<Context> context,
 MaybeLocal<Value> v8::Object::Get(Local<v8::Context> context,
                                   Local<Value> key) {
   ENV(context->GetIsolate());
-  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), OK(MaybeLocal<Value>()));
-  auto r = JSObjectGetProperty(ctx, i::Back<JSObjectRef>(this), *jkey,
-                               OK(MaybeLocal<Value>()));
-  return i::Cast(r);
+  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), &ex);
+  if (ex) {
+    ex = nullptr;
+    JSValueRef argv[2] = { i::Back(this), i::Back(key) };
+    auto r = JSObjectCallAsFunction(ctx, isolate->getProperty(), nullptr, 2, argv,
+                                    OK(MaybeLocal<Value>()));
+    return i::Cast(r);
+  } else {
+    auto r = JSObjectGetProperty(ctx, i::Back<JSObjectRef>(this), *jkey,
+                                 OK(MaybeLocal<Value>()));
+    return i::Cast(r);
+  }
 }
 
 Local<Value> v8::Object::Get(v8::Local<Value> key) {
@@ -314,9 +332,17 @@ Maybe<bool> v8::Object::SetIntegrityLevel(Local<Context> context,
 
 Maybe<bool> v8::Object::Delete(Local<Context> context, Local<Value> key) {
   ENV(context->GetIsolate());
-  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), NOTHING);
-  bool r = JSObjectDeleteProperty(ctx, i::Back<JSObjectRef>(this), *jkey, NOTHING);
-  return Just(r);
+  i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), &ex);
+  if (ex) {
+    ex = nullptr;
+    JSValueRef argv[2] = { i::Back(this), i::Back(key) };
+    auto r = JSObjectCallAsFunction(ctx, isolate->deleteProperty(), nullptr, 2, argv,
+                                    NOTHING);
+    return Just(true);
+  } else {
+    bool r = JSObjectDeleteProperty(ctx, i::Back<JSObjectRef>(this), *jkey, NOTHING);
+    return Just(r);
+  }
 }
 
 bool v8::Object::Delete(v8::Local<Value> key) {
@@ -335,8 +361,16 @@ Maybe<bool> v8::Object::Has(Local<Context> context,
                             Local<Value> key) {
   ENV(context->GetIsolate());
   i::JSCStringPtr jkey = JSValueToStringCopy(ctx, i::Back(key), NOTHING);
-  bool r = JSObjectHasProperty(ctx, i::Back<JSObjectRef>(this), *jkey);
-  return Just(r);
+  if (ex) {
+    ex = nullptr;
+    JSValueRef argv[2] = { i::Back(this), i::Back(key) };
+    auto r = JSObjectCallAsFunction(ctx, isolate->hasProperty(), nullptr, 2, argv,
+                                    NOTHING);
+    return Just(JSValueToBoolean(ctx, r));
+  } else {
+    bool r = JSObjectHasProperty(ctx, i::Back<JSObjectRef>(this), *jkey);
+    return Just(r);
+  }
 }
 
 bool v8::Object::Has(v8::Local<Value> key) {

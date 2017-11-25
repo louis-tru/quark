@@ -26,31 +26,30 @@ const stream = require('stream');
 const timers = require('timers');
 const util = require('util');
 const internalUtil = require('internal/util');
-const internalNet = require('internal/net');
+const { isLegalPort, normalizedArgsSymbol } = require('internal/net');
 const assert = require('assert');
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
 
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const TTYWrap = process.binding('tty_wrap');
-const TCP = process.binding('tcp_wrap').TCP;
-const Pipe = process.binding('pipe_wrap').Pipe;
-const TCPConnectWrap = process.binding('tcp_wrap').TCPConnectWrap;
-const PipeConnectWrap = process.binding('pipe_wrap').PipeConnectWrap;
-const ShutdownWrap = process.binding('stream_wrap').ShutdownWrap;
-const WriteWrap = process.binding('stream_wrap').WriteWrap;
-const async_id_symbol = process.binding('async_wrap').async_id_symbol;
+const { TCP } = process.binding('tcp_wrap');
+const { Pipe } = process.binding('pipe_wrap');
+const { TCPConnectWrap } = process.binding('tcp_wrap');
+const { PipeConnectWrap } = process.binding('pipe_wrap');
+const { ShutdownWrap, WriteWrap } = process.binding('stream_wrap');
+const { async_id_symbol } = process.binding('async_wrap');
 const { newUid, setInitTriggerId } = require('async_hooks');
-const nextTick = require('internal/process/next_tick').nextTick;
+const { nextTick } = require('internal/process/next_tick');
 const errors = require('internal/errors');
+const dns = require('dns');
 
-var cluster;
-var dns;
+// `cluster` is only used by `listenInCluster` so for startup performance
+// reasons it's lazy loaded.
+var cluster = null;
 
 const errnoException = util._errnoException;
 const exceptionWithHostPort = util._exceptionWithHostPort;
-const isLegalPort = internalNet.isLegalPort;
-const normalizedArgsSymbol = internalNet.normalizedArgsSymbol;
 
 function noop() {}
 
@@ -242,7 +241,7 @@ function Socket(options) {
       this._handle.reading = false;
       this._handle.readStop();
       this._readableState.flowing = false;
-    } else {
+    } else if (!options.manualStart) {
       this.read(0);
     }
   }
@@ -394,6 +393,16 @@ Socket.prototype.setTimeout = function(msecs, callback) {
 
 
 Socket.prototype._onTimeout = function() {
+  if (this._handle) {
+    // `.prevWriteQueueSize` !== `.updateWriteQueueSize()` means there is
+    // an active write in progress, so we suppress the timeout.
+    const prevWriteQueueSize = this._handle.writeQueueSize;
+    if (prevWriteQueueSize > 0 &&
+        prevWriteQueueSize !== this._handle.updateWriteQueueSize()) {
+      this._unrefTimer();
+      return;
+    }
+  }
   debug('_onTimeout');
   this.emit('timeout');
 };
@@ -897,7 +906,7 @@ function internalConnect(
   // TODO return promise from Socket.prototype.connect which
   // wraps _connectReq.
 
-  assert.ok(self.connecting);
+  assert(self.connecting);
 
   var err;
 
@@ -1023,7 +1032,6 @@ Socket.prototype.connect = function(...args) {
 
 
 function lookupAndConnect(self, options) {
-  const dns = lazyDns();
   var host = options.host || 'localhost';
   var port = options.port;
   var localAddress = options.localAddress;
@@ -1149,7 +1157,7 @@ function afterConnect(status, handle, req, readable, writable) {
 
   debug('afterConnect');
 
-  assert.ok(self.connecting);
+  assert(self.connecting);
   self.connecting = false;
   self._sockname = null;
 
@@ -1371,18 +1379,11 @@ function emitListeningNT(self) {
 }
 
 
-function lazyDns() {
-  if (dns === undefined)
-    dns = require('dns');
-  return dns;
-}
-
-
 function listenInCluster(server, address, port, addressType,
                          backlog, fd, exclusive) {
   exclusive = !!exclusive;
 
-  if (!cluster) cluster = require('cluster');
+  if (cluster === null) cluster = require('cluster');
 
   if (cluster.isMaster || exclusive) {
     // Will create a new handle
@@ -1449,11 +1450,12 @@ Server.prototype.listen = function(...args) {
   }
 
   // ([port][, host][, backlog][, cb]) where port is omitted,
-  // that is, listen() or listen(cb),
-  // or (options[, cb]) where options.port is explicitly set as undefined,
-  // bind to an arbitrary unused port
+  // that is, listen(), listen(null), listen(cb), or listen(null, cb)
+  // or (options[, cb]) where options.port is explicitly set as undefined or
+  // null, bind to an arbitrary unused port
   if (args.length === 0 || typeof args[0] === 'function' ||
-    (typeof options.port === 'undefined' && 'port' in options)) {
+      (typeof options.port === 'undefined' && 'port' in options) ||
+      options.port === null) {
     options.port = 0;
   }
   // ([port][, host][, backlog][, cb]) where port is specified
@@ -1491,7 +1493,6 @@ Server.prototype.listen = function(...args) {
 };
 
 function lookupAndListen(self, port, address, backlog, exclusive) {
-  const dns = lazyDns();
   dns.lookup(address, function doListen(err, ip, addressType) {
     if (err) {
       self.emit('error', err);
@@ -1663,6 +1664,10 @@ Server.prototype.listenFD = internalUtil.deprecate(function(fd, type) {
 Server.prototype._setupSlave = function(socketList) {
   this._usingSlaves = true;
   this._slaves.push(socketList);
+  socketList.once('exit', (socketList) => {
+    const index = this._slaves.indexOf(socketList);
+    this._slaves.splice(index, 1);
+  });
 };
 
 Server.prototype.ref = function() {

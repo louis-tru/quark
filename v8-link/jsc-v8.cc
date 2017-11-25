@@ -141,6 +141,10 @@ F(setHas) \
 F(setDelete) \
 F(symbolFor) \
 F(stringConcat) \
+F(getProperty) \
+F(setProperty) \
+F(deleteProperty) \
+F(hasProperty) \
 
 #define JS_CONTEXT_DATA(F) \
 F(Object) \

@@ -19,7 +19,7 @@
   },
   
   'target_defaults': {
-    'defines': [ 
+    'defines': [
       'XX_BUILDING_SHARED', 
     ],
     'conditions': [

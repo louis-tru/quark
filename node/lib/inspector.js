@@ -2,9 +2,9 @@
 
 const EventEmitter = require('events');
 const util = require('util');
-const { connect, open, url } = process.binding('inspector');
+const { Connection, open, url } = process.binding('inspector');
 
-if (!connect)
+if (!Connection)
   throw new Error('Inspector is not available');
 
 const connectionSymbol = Symbol('connectionProperty');
@@ -24,7 +24,7 @@ class Session extends EventEmitter {
     if (this[connectionSymbol])
       throw new Error('Already connected');
     this[connectionSymbol] =
-        connect((message) => this[onMessageSymbol](message));
+        new Connection((message) => this[onMessageSymbol](message));
   }
 
   [onMessageSymbol](message) {
@@ -66,7 +66,7 @@ class Session extends EventEmitter {
       throw new Error('Session is not connected');
     }
     const id = this[nextIdSymbol]++;
-    const message = {id, method};
+    const message = { id, method };
     if (params) {
       message['params'] = params;
     }

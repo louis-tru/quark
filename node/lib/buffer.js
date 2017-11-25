@@ -24,14 +24,18 @@
 const binding = process.binding('buffer');
 const config = process.binding('config');
 const { compare: compare_, compareOffset } = binding;
-const { isAnyArrayBuffer, isUint8Array } = process.binding('util');
+const { isAnyArrayBuffer } = process.binding('util');
+const {
+  isArrayBufferView,
+  isUint8Array
+} = require('internal/util/types');
 const bindingObj = {};
 const internalUtil = require('internal/util');
 const pendingDeprecation = !!config.pendingDeprecation;
 
 class FastBuffer extends Uint8Array {
-  constructor(...args) {
-    super(...args);
+  constructor(arg1, arg2, arg3) {
+    super(arg1, arg2, arg3);
   }
 }
 FastBuffer.prototype.constructor = Buffer;
@@ -175,14 +179,14 @@ Buffer.from = function(value, encodingOrOffset, length) {
   if (isAnyArrayBuffer(value))
     return fromArrayBuffer(value, encodingOrOffset, length);
 
-  if (value == null)
+  if (value === null || value === undefined)
     throw new TypeError(kFromErrorMsg);
 
   if (typeof value === 'number')
     throw new TypeError('"value" argument must not be a number');
 
   const valueOf = value.valueOf && value.valueOf();
-  if (valueOf != null && valueOf !== value)
+  if (valueOf !== null && valueOf !== undefined && valueOf !== value)
     return Buffer.from(valueOf, encodingOrOffset, length);
 
   var b = fromObject(value);
@@ -292,9 +296,9 @@ function allocate(size) {
 function fromString(string, encoding) {
   var length;
   if (typeof encoding !== 'string' || encoding.length === 0) {
-    encoding = 'utf8';
     if (string.length === 0)
       return new FastBuffer();
+    encoding = 'utf8';
     length = binding.byteLengthUtf8(string);
   } else {
     length = byteLength(string, encoding, true);
@@ -468,7 +472,7 @@ function base64ByteLength(str, bytes) {
 
 function byteLength(string, encoding) {
   if (typeof string !== 'string') {
-    if (ArrayBuffer.isView(string) || isAnyArrayBuffer(string)) {
+    if (isArrayBufferView(string) || isAnyArrayBuffer(string)) {
       return string.byteLength;
     }
 

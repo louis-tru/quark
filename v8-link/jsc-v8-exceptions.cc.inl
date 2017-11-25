@@ -208,6 +208,14 @@ class StackFrame: public Wrap {
     }
   }
   
+  inline JSValueRef FunctionName() const {
+    return m_function_name;
+  }
+  
+  inline JSValueRef ScriptName() const {
+    return m_script_name;
+  }
+
  private:
   int m_line_number = 0;
   int m_column = 0;
@@ -318,8 +326,6 @@ class Message: public Wrap {
   , m_exception(exception)
   , m_message(message)
   , m_source_line(isolate->Empty())
-  , m_script_origin(Cast(stack->GetFrameCount() ?
-                         stack->GetFrame(0)->m_script_name: isolate->Empty()))
   , m_start_position(0)
   , m_end_position(0)
   , m_line_number(0)
@@ -328,7 +334,6 @@ class Message: public Wrap {
   , m_stack_trace(stack)
   {
     Reference(m_exception);
-    Reference(i::Back(m_script_origin.ResourceName()));
     Reference(m_message);
     Reference(m_source_line);
     Reference(m_stack_trace);
@@ -388,11 +393,22 @@ class Message: public Wrap {
     return m;
   }
   
+  ScriptOrigin GetScriptOrigin() const {
+    auto isolate = reinterpret_cast<v8::Isolate*>(GetIsolate());
+    return ScriptOrigin(GetScriptResourceName(),
+                        Integer::New(isolate, m_line_number),
+                        Integer::New(isolate, m_start_column));
+  }
+  
+  Local<Value> GetScriptResourceName() const {
+    return Cast(m_stack_trace->GetFrameCount() ?
+                m_stack_trace->GetFrame(0)->ScriptName(): GetIsolate()->Empty());
+  }
+  
  private:
   JSValueRef m_exception;
   JSValueRef m_message;
   JSValueRef m_source_line;
-  ScriptOrigin m_script_origin;
   int m_start_position;
   int m_end_position;
   int m_line_number;
@@ -424,11 +440,11 @@ MaybeLocal<String> Message::GetSourceLine(Local<Context> context) const {
 }
 
 ScriptOrigin Message::GetScriptOrigin() const {
-  return reinterpret_cast<const i::Message*>(this)->m_script_origin;
+  return reinterpret_cast<const i::Message*>(this)->GetScriptOrigin();
 }
 
 Local<Value> Message::GetScriptResourceName() const {
-  return reinterpret_cast<const i::Message*>(this)->m_script_origin.ResourceName();
+  return reinterpret_cast<const i::Message*>(this)->GetScriptResourceName();
 }
 
 Local<StackTrace> Message::GetStackTrace() const {

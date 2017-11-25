@@ -102,6 +102,18 @@ function NativeToString() {
 function stringConcat(left, right) {
   return left + right;
 }
+function getProperty(obj, key) {
+  return obj[key];
+}
+function setProperty(obj, key, value) {
+  obj[key] = value;
+}
+function deleteProperty(obj, key) {
+  obj[key] = value;
+}
+function hasProperty(obj, key) {
+  return key in obj;
+}
 
 // exports
 exports.getPropertyNames = getPropertyNames;
@@ -142,3 +154,7 @@ exports.setHas = Set.prototype.has;
 exports.setDelete = Set.prototype.delete;
 exports.symbolFor = Symbol.for;
 exports.stringConcat = stringConcat;
+exports.getProperty = getProperty;
+exports.setProperty = setProperty;
+exports.deleteProperty = deleteProperty;
+exports.hasProperty = hasProperty;

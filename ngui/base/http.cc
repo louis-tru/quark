@@ -81,7 +81,7 @@ struct MultipartFormValue {
  * @class HttpClientRequest::Inl
  */
 class HttpClientRequest::Inl: public Reference, public Delegate {
-public:
+ public:
   typedef HttpClientRequest::Inl Client;
   virtual void trigger_http_error(HttpClientRequest* req, cError& error) {}
   virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -134,7 +134,7 @@ public:
   }
   
   class Sending {
-  public:
+   public:
     typedef NonObjectTraits Traits;
     Sending(Inl* host)
     : m_host(host), m_ending(false) {
@@ -151,7 +151,7 @@ public:
   };
   
   class Reader {
-  public:
+   public:
     virtual void read_advance() = 0;
     virtual void read_pause() = 0;
     virtual bool is_cache() = 0;
@@ -164,7 +164,7 @@ public:
   class Connect: public Object
   , public Socket::Delegate
   , public Reader, public AsyncFile::Delegate {
-  public:
+   public:
     
     typedef List<Connect*>::Iterator ID;
     
@@ -622,7 +622,7 @@ public:
       return false;
     }
     
-  private:
+   private:
     friend class ConnectPool;
     
     bool        m_ssl;
@@ -645,7 +645,7 @@ public:
   };
   
   class ConnectPool {
-  public:
+   public:
     
     struct connect_req {
       Client* client;
@@ -791,14 +791,14 @@ public:
       }
     }
     
-  private:
+   private:
     Mutex m_mutex;
     List<Connect*>  m_pool;
     List<connect_req> m_connect_req;
   };
   
   class FileCacheReader: public AsyncFile, public AsyncFile::Delegate, public Reader {
-  public:
+   public:
     FileCacheReader(Client* client, int64 size, RunLoop* loop)
     : AsyncFile(client->m_cache_path, loop)
     , m_client(client)
@@ -935,7 +935,7 @@ public:
       return true;
     }
     
-  private:
+   private:
     
     int     m_read_count;
     Client* m_client;
@@ -946,7 +946,7 @@ public:
   };
   
   class FileWriter: public Object, public AsyncFile::Delegate {
-  public:
+   public:
     FileWriter(Client* client, cString& path, bool is_cache_type, RunLoop* loop)
     : m_client(client)
     , m_file(nullptr)
@@ -1063,7 +1063,7 @@ public:
       if ( m_file ) {
         if ( m_file->is_open() ) {
           m_write_count++;
-          if ( m_write_count > 100 ) {
+          if ( m_write_count > 32 ) {
             m_client->read_pause();
           }
           m_file->write(buffer);
@@ -1077,16 +1077,16 @@ public:
       }
     }
     
-  private:
-    Client*     m_client;
-    Buffer      m_buffer;
+   private:
+    Client* m_client;
+    Buffer  m_buffer;
     AsyncFile*  m_file;
     bool    m_is_cache_type;
     int     m_write_count;
     bool    m_completed_end;
   };
   
-private:
+ private:
   
   void trigger_http_readystate_change(HttpReadyState ready_state) {
     if ( ready_state != m_ready_state ) {
@@ -1253,7 +1253,7 @@ private:
     }
   }
   
-public:
+ public:
   // public api
   
   void send(Buffer data) throw(Error) {

@@ -135,16 +135,6 @@ the Performance Timeline or any of the timestamp properties provided by the
 `PerformanceNodeTiming` class. If the named `endMark` does not exist, an
 error will be thrown.
 
-### performance.nodeFrame
-<!-- YAML
-added: v8.5.0
--->
-
-* {PerformanceFrame}
-
-An instance of the `PerformanceFrame` class that provides performance metrics
-for the event loop.
-
 ### performance.nodeTiming
 <!-- YAML
 added: v8.5.0
@@ -202,7 +192,7 @@ const obs = new PerformanceObserver((list) => {
   obs.disconnect();
   performance.clearFunctions();
 });
-obs.observe({ entryTypes: 'function' });
+obs.observe({ entryTypes: ['function'] });
 
 // A performance timeline entry will be created
 wrapped();
@@ -267,37 +257,6 @@ The value may be one of:
 * `perf_hooks.constants.NODE_PERFORMANCE_GC_MINOR`
 * `perf_hooks.constants.NODE_PERFORMANCE_GC_INCREMENTAL`
 * `perf_hooks.constants.NODE_PERFORMANCE_GC_WEAKCB`
-
-## Class: PerformanceNodeFrame extends PerformanceEntry
-<!-- YAML
-added: v8.5.0
--->
-
-Provides timing details for the Node.js event loop.
-
-### performanceNodeFrame.frameCheck
-
-The high resolution timestamp when `uv_check_t` processing occurred on the
-current loop.
-
-### performanceNodeFrame.frameCount
-
-The total number of event loop iterations (iterated when `uv_idle_t`
-processing occurrs).
-
-### performanceNodeFrame.frameIdle
-
-The high resolution timestamp when `uv_idle_t` processing occurred on the
-current loop.
-
-### performanceNodeFrame.framesPerSecond
-
-The number of event loop iterations per second.
-
-### performanceNodeFrame.framePrepare
-
-The high resolution timestamp when `uv_prepare_t` processing occurred on the
-current loop.
 
 ## Class: PerformanceNodeTiming extends PerformanceEntry
 <!-- YAML
@@ -655,4 +614,5 @@ require('some-module');
 ```
 
 [`timeOrigin`]: https://w3c.github.io/hr-time/#dom-performance-timeorigin
+[Async Hooks]: async_hooks.html
 [W3C Performance Timeline]: https://w3c.github.io/performance-timeline/

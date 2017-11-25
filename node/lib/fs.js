@@ -28,23 +28,25 @@ const constants = process.binding('constants').fs;
 const { S_IFIFO, S_IFLNK, S_IFMT, S_IFREG, S_IFSOCK } = constants;
 const util = require('util');
 const pathModule = require('path');
-const { isUint8Array, createPromise, promiseResolve } = process.binding('util');
+const { isUint8Array } = require('internal/util/types');
+const { createPromise, promiseResolve } = process.binding('util');
 
 const binding = process.binding('fs');
 const fs = exports;
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const errors = require('internal/errors');
-const Stream = require('stream').Stream;
+const { Readable, Writable } = require('stream');
 const EventEmitter = require('events');
-const FSReqWrap = binding.FSReqWrap;
-const FSEvent = process.binding('fs_event_wrap').FSEvent;
+const { FSReqWrap } = binding;
+const { FSEvent } = process.binding('fs_event_wrap');
 const internalFS = require('internal/fs');
-const internalURL = require('internal/url');
-const internalUtil = require('internal/util');
-const assertEncoding = internalFS.assertEncoding;
-const stringToFlags = internalFS.stringToFlags;
 const pkg = require('internal/pkg');
 const getPathFromURL = pkg.getPathFromURL;
+const internalUtil = require('internal/util');
+const {
+  assertEncoding,
+  stringToFlags
+} = internalFS;
 
 Object.defineProperty(exports, 'constants', {
   configurable: false,
@@ -52,11 +54,8 @@ Object.defineProperty(exports, 'constants', {
   value: constants
 });
 
-const Readable = Stream.Readable;
-const Writable = Stream.Writable;
-
 const kMinPoolSpace = 128;
-const kMaxLength = require('buffer').kMaxLength;
+const { kMaxLength } = require('buffer');
 
 const isWindows = process.platform === 'win32';
 
@@ -255,10 +254,10 @@ function statsFromValues() {
 
 // Don't allow mode to accidentally be overwritten.
 Object.defineProperties(fs, {
-  F_OK: {enumerable: true, value: constants.F_OK || 0},
-  R_OK: {enumerable: true, value: constants.R_OK || 0},
-  W_OK: {enumerable: true, value: constants.W_OK || 0},
-  X_OK: {enumerable: true, value: constants.X_OK || 0},
+  F_OK: { enumerable: true, value: constants.F_OK || 0 },
+  R_OK: { enumerable: true, value: constants.R_OK || 0 },
+  W_OK: { enumerable: true, value: constants.W_OK || 0 },
+  X_OK: { enumerable: true, value: constants.X_OK || 0 },
 });
 
 function handleError(val, callback) {
@@ -460,7 +459,11 @@ function readFileAfterStat(err) {
     return context.close(err);
   }
 
-  context.buffer = Buffer.allocUnsafeSlow(size);
+  try {
+    context.buffer = Buffer.allocUnsafeSlow(size);
+  } catch (err) {
+    return context.close(err);
+  }
   context.read();
 }
 
@@ -495,27 +498,21 @@ function readFileAfterClose(err) {
   if (context.err || err)
     return callback(context.err || err);
 
-  if (context.size === 0)
-    buffer = Buffer.concat(context.buffers, context.pos);
-  else if (context.pos < context.size)
-    buffer = context.buffer.slice(0, context.pos);
-  else
-    buffer = context.buffer;
-
-  if (context.encoding) {
-    return tryToString(buffer, context.encoding, callback);
-  }
-
-  callback(null, buffer);
-}
-
-function tryToString(buf, encoding, callback) {
   try {
-    buf = buf.toString(encoding);
+    if (context.size === 0)
+      buffer = Buffer.concat(context.buffers, context.pos);
+    else if (context.pos < context.size)
+      buffer = context.buffer.slice(0, context.pos);
+    else
+      buffer = context.buffer;
+
+    if (context.encoding)
+      buffer = buffer.toString(context.encoding);
   } catch (err) {
     return callback(err);
   }
-  callback(null, buf);
+
+  callback(null, buffer);
 }
 
 function tryStatSync(fd, isUserFd) {
@@ -611,10 +608,6 @@ fs.readFileSync = function(path, options) {
   if (options.encoding) buffer = buffer.toString(options.encoding);
   return buffer;
 };
-
-
-// Yes, the follow could be easily DRYed up but I provide the explicit
-// list to make the arguments clear.
 
 fs.close = function(fd, callback) {
   var req = new FSReqWrap();
@@ -1253,21 +1246,19 @@ function writeAll(fd, isUserFd, buffer, offset, length, position, callback) {
           callback(writeErr);
         });
       }
-    } else {
-      if (written === length) {
-        if (isUserFd) {
-          callback(null);
-        } else {
-          fs.close(fd, callback);
-        }
+    } else if (written === length) {
+      if (isUserFd) {
+        callback(null);
       } else {
-        offset += written;
-        length -= written;
-        if (position !== null) {
-          position += written;
-        }
-        writeAll(fd, isUserFd, buffer, offset, length, position, callback);
+        fs.close(fd, callback);
       }
+    } else {
+      offset += written;
+      length -= written;
+      if (position !== null) {
+        position += written;
+      }
+      writeAll(fd, isUserFd, buffer, offset, length, position, callback);
     }
   });
 }

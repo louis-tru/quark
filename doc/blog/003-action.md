@@ -1,4 +1,23 @@
-# 动作(Action)系统简介
+Ngui简介
+===============
+
+这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL，这也是第一个在移动端Android/iOS融合NodeJS的前端GUI项目，至此JavaScript成为了真正意义上前后端通吃的语言。
+
+Ngui的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
+
+* [`开源跨平台移动项目Ngui【简介】`](http://www.jianshu.com/p/2104b885eae6)
+
+* [`开源跨平台移动项目Ngui【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
+
+* [`开源跨平台移动项目Ngui【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
+
+* [`开源跨平台移动项目Ngui【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
+
+* [`开源跨平台移动项目Ngui【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
+
+* [`Ngui API 文档`](http://nodegui.org/doc/)
+
+# 什么是Action动作
 
 什么是动作呢？顾名思义它是管理运行环境中所有动作的中枢，通俗点讲就是动画。它也是总个框架核心组件之一，它提供动作的创建、删除、插入，以及提供对关键帧与过渡的诸多操作。关键帧的过渡可以使用三次贝塞尔曲线，或内置的曲线  linear/ease/ease_in/ease_out/ease_in_out，这也和大多数主流框架以及游戏引擎类似。
 

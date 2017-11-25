@@ -82,6 +82,7 @@
       'sources': [
         'src/inspector_agent.cc',
         'src/inspector_io.cc',
+        'src/inspector_js_api.cc',
         'src/inspector_socket.cc',
         'src/inspector_socket_server.cc',
         'src/inspector_agent.h',
@@ -231,7 +232,7 @@
       'defines': [ 'NODE_NO_BROWSER_GLOBALS' ],
     } ],
     [ 'node_use_bundled_v8=="true" and v8_postmortem_support=="true"', {
-      'dependencies': [ '../v8-link/v8-link.gyp:postmortem-metadata-link' ],
+      'dependencies': [ 'deps/v8/src/v8.gyp:postmortem-metadata' ],
       'conditions': [
         # -force_load is not applicable for the static library
         [ 'node_target_type!="static_library"', {
@@ -331,6 +332,18 @@
                    '-g',
                    '-O0' ],
        'cflags!': [ '-O3' ]
+    }],
+    [ 'OS=="mac" and node_shared=="false" and coverage=="true"', {
+      'xcode_settings': {
+        'OTHER_LDFLAGS': [
+          '--coverage',
+        ],
+        'OTHER_CFLAGS+': [
+          '--coverage',
+          '-g',
+          '-O0'
+        ],
+      }
     }],
     [ 'OS=="sunos"', {
       'ldflags': [ '-Wl,-M,/usr/lib/ld/map.noexstk' ],

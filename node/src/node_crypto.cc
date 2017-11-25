@@ -255,13 +255,65 @@ void ThrowCryptoError(Environment* env,
                       unsigned long err,  // NOLINT(runtime/int)
                       const char* default_message = nullptr) {
   HandleScope scope(env->isolate());
+  Local<String> message;
+
   if (err != 0 || default_message == nullptr) {
     char errmsg[128] = { 0 };
     ERR_error_string_n(err, errmsg, sizeof(errmsg));
-    env->ThrowError(errmsg);
+    message = String::NewFromUtf8(env->isolate(), errmsg,
+                                  v8::NewStringType::kNormal)
+                                      .ToLocalChecked();
   } else {
-    env->ThrowError(default_message);
+    message = String::NewFromUtf8(env->isolate(), default_message,
+                                  v8::NewStringType::kNormal)
+                                      .ToLocalChecked();
   }
+
+  Local<Value> exception_v = Exception::Error(message);
+  CHECK(!exception_v.IsEmpty());
+  Local<Object> exception = exception_v.As<Object>();
+  ERR_STATE* es = ERR_get_state();
+
+  if (es->bottom != es->top) {
+    Local<Array> error_stack = Array::New(env->isolate());
+    int top = es->top;
+
+    // Build the error_stack array to be added to opensslErrorStack property.
+    for (unsigned int i = 0; es->bottom != es->top;) {
+      unsigned long err_buf = es->err_buffer[es->top];  // NOLINT(runtime/int)
+      // Only add error string if there is valid err_buffer.
+      if (err_buf) {
+        char tmp_str[256];
+        ERR_error_string_n(err_buf, tmp_str, sizeof(tmp_str));
+        error_stack->Set(env->context(), i,
+                        String::NewFromUtf8(env->isolate(), tmp_str,
+                                              v8::NewStringType::kNormal)
+                                                  .ToLocalChecked()).FromJust();
+        // Only increment if we added to error_stack.
+        i++;
+      }
+
+      // Since the ERR_STATE is a ring buffer, we need to use modular
+      // arithmetic to loop back around in the case where bottom is after top.
+      // Using ERR_NUM_ERRORS  macro defined in openssl.
+      es->top = (((es->top - 1) % ERR_NUM_ERRORS) + ERR_NUM_ERRORS) %
+          ERR_NUM_ERRORS;
+    }
+
+    // Restore top.
+    es->top = top;
+
+    // Add the opensslErrorStack property to the exception object.
+    // The new property will look like the following:
+    // opensslErrorStack: [
+    // 'error:0906700D:PEM routines:PEM_ASN1_read_bio:ASN1 lib',
+    // 'error:0D07803A:asn1 encoding routines:ASN1_ITEM_EX_D2I:nested asn1 err'
+    // ]
+    exception->Set(env->context(), env->openssl_error_stack(), error_stack)
+        .FromJust();
+  }
+
+  env->isolate()->ThrowException(exception);
 }
 
 
@@ -923,20 +975,14 @@ void SecureContext::SetECDHCurve(const FunctionCallbackInfo<Value>& args) {
 
   node::Utf8Value curve(env->isolate(), args[0]);
 
-  int nid = OBJ_sn2nid(*curve);
-
-  if (nid == NID_undef)
-    return env->ThrowTypeError("First argument should be a valid curve name");
-
-  EC_KEY* ecdh = EC_KEY_new_by_curve_name(nid);
-
-  if (ecdh == nullptr)
-    return env->ThrowTypeError("First argument should be a valid curve name");
-
   SSL_CTX_set_options(sc->ctx_, SSL_OP_SINGLE_ECDH_USE);
-  SSL_CTX_set_tmp_ecdh(sc->ctx_, ecdh);
+  SSL_CTX_set_ecdh_auto(sc->ctx_, 1);
 
-  EC_KEY_free(ecdh);
+  if (strcmp(*curve, "auto") == 0)
+    return;
+
+  if (!SSL_CTX_set1_curves_list(sc->ctx_, *curve))
+    return env->ThrowError("Failed to set ECDH curve");
 }
 
 
@@ -1430,10 +1476,13 @@ int SSLWrap<Base>::NewSessionCallback(SSL* s, SSL_SESSION* sess) {
   memset(serialized, 0, size);
   i2d_SSL_SESSION(sess, &serialized);
 
+  unsigned int session_id_length;
+  const unsigned char* session_id = SSL_SESSION_get_id(sess,
+                                                       &session_id_length);
   Local<Object> session = Buffer::Copy(
       env,
-      reinterpret_cast<char*>(sess->session_id),
-      sess->session_id_length).ToLocalChecked();
+      reinterpret_cast<const char*>(session_id),
+      session_id_length).ToLocalChecked();
   Local<Value> argv[] = { session, buff };
   w->new_session_wait_ = true;
   w->MakeCallback(env->onnewsession_string(), arraysize(argv), argv);
@@ -1480,12 +1529,7 @@ static bool SafeX509ExtPrint(BIO* out, X509_EXTENSION* ext) {
   if (method != X509V3_EXT_get_nid(NID_subject_alt_name))
     return false;
 
-  const unsigned char* p = ext->value->data;
-  GENERAL_NAMES* names = reinterpret_cast<GENERAL_NAMES*>(ASN1_item_d2i(
-      NULL,
-      &p,
-      ext->value->length,
-      ASN1_ITEM_ptr(method->it)));
+  GENERAL_NAMES* names = static_cast<GENERAL_NAMES*>(X509V3_EXT_d2i(ext));
   if (names == NULL)
     return false;
 
@@ -1627,7 +1671,6 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     const char hex[] = "0123456789ABCDEF";
     char fingerprint[EVP_MAX_MD_SIZE * 3];
 
-    // TODO(indutny): Unify it with buffer's code
     for (i = 0; i < md_size; i++) {
       fingerprint[3*i] = hex[(md[i] & 0xf0) >> 4];
       fingerprint[(3*i)+1] = hex[(md[i] & 0x0f)];
@@ -3981,7 +4024,8 @@ void SignBase::CheckThrow(SignBase::Error error) {
 
 static bool ApplyRSAOptions(EVP_PKEY* pkey, EVP_PKEY_CTX* pkctx, int padding,
                             int salt_len) {
-  if (pkey->type == EVP_PKEY_RSA || pkey->type == EVP_PKEY_RSA2) {
+  if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA ||
+      EVP_PKEY_id(pkey) == EVP_PKEY_RSA2) {
     if (EVP_PKEY_CTX_set_rsa_padding(pkctx, padding) <= 0)
       return false;
     if (padding == RSA_PKCS1_PSS_PADDING) {
@@ -4090,33 +4134,23 @@ static int Node_SignFinal(EVP_MD_CTX* mdctx, unsigned char* md,
   if (!EVP_DigestFinal_ex(mdctx, m, &m_len))
     return rv;
 
-  if (mdctx->digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE) {
-    size_t sltmp = static_cast<size_t>(EVP_PKEY_size(pkey));
-    pkctx = EVP_PKEY_CTX_new(pkey, nullptr);
-    if (pkctx == nullptr)
-      goto err;
-    if (EVP_PKEY_sign_init(pkctx) <= 0)
-      goto err;
-    if (!ApplyRSAOptions(pkey, pkctx, padding, pss_salt_len))
-      goto err;
-    if (EVP_PKEY_CTX_set_signature_md(pkctx, mdctx->digest) <= 0)
-      goto err;
-    if (EVP_PKEY_sign(pkctx, md, &sltmp, m, m_len) <= 0)
-      goto err;
-    *sig_len = sltmp;
-    rv = 1;
-   err:
-    EVP_PKEY_CTX_free(pkctx);
-    return rv;
-  }
-
-  if (mdctx->digest->sign == nullptr) {
-    EVPerr(EVP_F_EVP_SIGNFINAL, EVP_R_NO_SIGN_FUNCTION_CONFIGURED);
-    return 0;
-  }
-
-  return mdctx->digest->sign(mdctx->digest->type, m, m_len, md, sig_len,
-                             pkey->pkey.ptr);
+  size_t sltmp = static_cast<size_t>(EVP_PKEY_size(pkey));
+  pkctx = EVP_PKEY_CTX_new(pkey, nullptr);
+  if (pkctx == nullptr)
+    goto err;
+  if (EVP_PKEY_sign_init(pkctx) <= 0)
+    goto err;
+  if (!ApplyRSAOptions(pkey, pkctx, padding, pss_salt_len))
+    goto err;
+  if (EVP_PKEY_CTX_set_signature_md(pkctx, EVP_MD_CTX_md(mdctx)) <= 0)
+    goto err;
+  if (EVP_PKEY_sign(pkctx, md, &sltmp, m, m_len) <= 0)
+    goto err;
+  *sig_len = sltmp;
+  rv = 1;
+ err:
+  EVP_PKEY_CTX_free(pkctx);
+  return rv;
 }
 
 SignBase::Error Sign::SignFinal(const char* key_pem,
@@ -4334,8 +4368,6 @@ SignBase::Error Verify::VerifyFinal(const char* key_pem,
   if (!initialised_)
     return kSignNotInitialised;
 
-  ClearErrorOnReturn clear_error_on_return;
-
   EVP_PKEY* pkey = nullptr;
   BIO* bp = nullptr;
   X509* x509 = nullptr;
@@ -4423,6 +4455,8 @@ SignBase::Error Verify::VerifyFinal(const char* key_pem,
 
 void Verify::VerifyFinal(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
+
+  ClearErrorOnReturn clear_error_on_return;
 
   Verify* verify;
   ASSIGN_OR_RETURN_UNWRAP(&verify, args.Holder());
@@ -6076,11 +6110,14 @@ void GetFipsCrypto(const FunctionCallbackInfo<Value>& args) {
 void SetFipsCrypto(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
 #ifdef NODE_FIPS_MODE
-  bool mode = args[0]->BooleanValue();
+  const bool enabled = FIPS_mode();
+  const bool enable = args[0]->BooleanValue();
+  if (enable == enabled)
+    return;  // No action needed.
   if (force_fips_crypto) {
     return env->ThrowError(
         "Cannot set FIPS mode, it was forced with --force-fips at startup.");
-  } else if (!FIPS_mode_set(mode)) {
+  } else if (!FIPS_mode_set(enable)) {
     unsigned long err = ERR_get_error();  // NOLINT(runtime/int)
     return ThrowCryptoError(env, err);
   }

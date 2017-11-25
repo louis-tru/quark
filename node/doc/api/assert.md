@@ -105,7 +105,7 @@ parameter is undefined, a default error message is assigned.
 added: v1.2.0
 changes:
   - version: v8.5.0
-    pr-url: https://github.com/nodejs/node/pull/12142
+    pr-url: https://github.com/nodejs/node/pull/15001
     description: Error names and messages are now properly compared
   - version: v8.0.0
     pr-url: https://github.com/nodejs/node/pull/12142
@@ -124,7 +124,7 @@ changes:
 * `expected` {any}
 * `message` {any}
 
-Generally identical to `assert.deepEqual()` with three exceptions:
+Generally identical to `assert.deepEqual()` with a few exceptions:
 
 1. Primitive values are compared using the [Strict Equality Comparison][]
   ( `===` ). Set values and Map keys are compared using the [SameValueZero][]
@@ -132,6 +132,7 @@ Generally identical to `assert.deepEqual()` with three exceptions:
 2. [`[[Prototype]]`][prototype-spec] of objects are compared using
   the [Strict Equality Comparison][] too.
 3. [Type tags][Object.prototype.toString()] of objects should be the same.
+4. [Object wrappers][] are compared both as objects and unwrapped values.
 
 ```js
 const assert = require('assert');
@@ -161,6 +162,11 @@ assert.deepEqual(date, fakeDate);
 assert.deepStrictEqual(date, fakeDate);
 // AssertionError: 2017-03-11T14:25:31.849Z deepStrictEqual Date {}
 // Different type tags
+
+assert.deepStrictEqual(new Number(1), new Number(2));
+// Fails because the wrapped number is unwrapped and compared as well.
+assert.deepStrictEqual(new String('foo'), Object('foo'));
+// OK because the object and the string are identical when unwrapped.
 ```
 
 If the values are not equal, an `AssertionError` is thrown with a `message`
@@ -269,8 +275,8 @@ added: v0.1.21
 * `actual` {any}
 * `expected` {any}
 * `message` {any}
-* `operator` {string} (default: '!=')
-* `stackStartFunction` {function} (default: `assert.fail`)
+* `operator` {string} **Default:** '!='
+* `stackStartFunction` {function} **Default:** `assert.fail`
 
 Throws an `AssertionError`. If `message` is falsy, the error message is set as
 the values of `actual` and `expected` separated by the provided `operator`.
@@ -381,7 +387,7 @@ assert.notDeepEqual(obj1, obj3);
 // AssertionError: { a: { b: 1 } } notDeepEqual { a: { b: 1 } }
 
 assert.notDeepEqual(obj1, obj4);
-// OK, obj1 and obj2 are not deeply equal
+// OK, obj1 and obj4 are not deeply equal
 ```
 
 If the values are deeply equal, an `AssertionError` is thrown with a `message`
@@ -622,7 +628,6 @@ assert(Object.is(str1 / 1, str2 / 1));
 For more information, see
 [MDN's guide on equality comparisons and sameness][mdn-equality-guide].
 
-[`Error`]: errors.html#errors_class_error
 [`Error.captureStackTrace`]: errors.html#errors_error_capturestacktrace_targetobject_constructoropt
 [`Map`]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map
 [`Object.is()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
@@ -641,3 +646,4 @@ For more information, see
 [enumerable "own" properties]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties
 [mdn-equality-guide]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 [prototype-spec]: https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
+[Object wrappers]: https://developer.mozilla.org/en-US/docs/Glossary/Primitive#Primitive_wrapper_objects_in_JavaScript

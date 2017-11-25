@@ -33,7 +33,7 @@ process.env.TEST_INIT = 1;
 
 function test(file, expected) {
   const path = `"${process.execPath}" ${file}`;
-  child.exec(path, {env: process.env}, common.mustCall((err, out) => {
+  child.exec(path, { env: process.env }, common.mustCall((err, out) => {
     assert.ifError(err);
     assert.strictEqual(out, expected, `'node ${file}' failed!`);
   }));
@@ -49,7 +49,7 @@ function test(file, expected) {
 
 {
   // test-init-index is in fixtures dir as requested by ry, so go there
-  process.chdir(common.fixturesDir);
+  process.chdir(fixtures.path());
   test('test-init-index', 'Loaded successfully!');
 }
 

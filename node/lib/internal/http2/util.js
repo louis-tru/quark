@@ -3,12 +3,20 @@
 const binding = process.binding('http2');
 const errors = require('internal/errors');
 
+const kSocket = Symbol('socket');
+
 const {
+  NGHTTP2_SESSION_CLIENT,
+  NGHTTP2_SESSION_SERVER,
+
   HTTP2_HEADER_STATUS,
   HTTP2_HEADER_METHOD,
   HTTP2_HEADER_AUTHORITY,
   HTTP2_HEADER_SCHEME,
   HTTP2_HEADER_PATH,
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS,
+  HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE,
+  HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
   HTTP2_HEADER_AGE,
   HTTP2_HEADER_AUTHORIZATION,
   HTTP2_HEADER_CONTENT_ENCODING,
@@ -20,6 +28,7 @@ const {
   HTTP2_HEADER_CONTENT_TYPE,
   HTTP2_HEADER_COOKIE,
   HTTP2_HEADER_DATE,
+  HTTP2_HEADER_DNT,
   HTTP2_HEADER_ETAG,
   HTTP2_HEADER_EXPIRES,
   HTTP2_HEADER_FROM,
@@ -36,7 +45,10 @@ const {
   HTTP2_HEADER_REFERER,
   HTTP2_HEADER_RETRY_AFTER,
   HTTP2_HEADER_SET_COOKIE,
+  HTTP2_HEADER_TK,
+  HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS,
   HTTP2_HEADER_USER_AGENT,
+  HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS,
 
   HTTP2_HEADER_CONNECTION,
   HTTP2_HEADER_UPGRADE,
@@ -71,6 +83,9 @@ const kSingleValueHeaders = new Set([
   HTTP2_HEADER_AUTHORITY,
   HTTP2_HEADER_SCHEME,
   HTTP2_HEADER_PATH,
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS,
+  HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE,
+  HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
   HTTP2_HEADER_AGE,
   HTTP2_HEADER_AUTHORIZATION,
   HTTP2_HEADER_CONTENT_ENCODING,
@@ -81,6 +96,7 @@ const kSingleValueHeaders = new Set([
   HTTP2_HEADER_CONTENT_RANGE,
   HTTP2_HEADER_CONTENT_TYPE,
   HTTP2_HEADER_DATE,
+  HTTP2_HEADER_DNT,
   HTTP2_HEADER_ETAG,
   HTTP2_HEADER_EXPIRES,
   HTTP2_HEADER_FROM,
@@ -96,7 +112,10 @@ const kSingleValueHeaders = new Set([
   HTTP2_HEADER_RANGE,
   HTTP2_HEADER_REFERER,
   HTTP2_HEADER_RETRY_AFTER,
-  HTTP2_HEADER_USER_AGENT
+  HTTP2_HEADER_TK,
+  HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS,
+  HTTP2_HEADER_USER_AGENT,
+  HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS
 ]);
 
 // The HTTP methods in this set are specifically defined as assigning no
@@ -343,8 +362,7 @@ function isIllegalConnectionSpecificHeader(name, value) {
     case HTTP2_HEADER_TRANSFER_ENCODING:
       return true;
     case HTTP2_HEADER_TE:
-      const val = Array.isArray(value) ? value.join(', ') : value;
-      return val !== 'trailers';
+      return value !== 'trailers';
     default:
       return false;
   }
@@ -381,47 +399,49 @@ function mapToHeaders(map,
   for (var i = 0; i < keys.length; i++) {
     let key = keys[i];
     let value = map[key];
-    let val;
-    if (typeof key === 'symbol' || value === undefined || !key)
+    if (value === undefined || key === '')
       continue;
-    key = String(key).toLowerCase();
-    const isArray = Array.isArray(value);
+    key = key.toLowerCase();
+    const isSingleValueHeader = kSingleValueHeaders.has(key);
+    let isArray = Array.isArray(value);
     if (isArray) {
       switch (value.length) {
         case 0:
           continue;
         case 1:
           value = String(value[0]);
+          isArray = false;
           break;
         default:
-          if (kSingleValueHeaders.has(key))
+          if (isSingleValueHeader)
             return new errors.Error('ERR_HTTP2_HEADER_SINGLE_VALUE', key);
       }
+    } else {
+      value = String(value);
+    }
+    if (isSingleValueHeader) {
+      if (singles.has(key))
+        return new errors.Error('ERR_HTTP2_HEADER_SINGLE_VALUE', key);
+      singles.add(key);
     }
     if (key[0] === ':') {
       const err = assertValuePseudoHeader(key);
       if (err !== undefined)
         return err;
-      ret = `${key}\0${String(value)}\0${ret}`;
+      ret = `${key}\0${value}\0${ret}`;
       count++;
     } else {
-      if (kSingleValueHeaders.has(key)) {
-        if (singles.has(key))
-          return new errors.Error('ERR_HTTP2_HEADER_SINGLE_VALUE', key);
-        singles.add(key);
-      }
       if (isIllegalConnectionSpecificHeader(key, value)) {
-        return new errors.Error('ERR_HTTP2_INVALID_CONNECTION_HEADERS');
+        return new errors.Error('ERR_HTTP2_INVALID_CONNECTION_HEADERS', key);
       }
       if (isArray) {
         for (var k = 0; k < value.length; k++) {
-          val = String(value[k]);
+          const val = String(value[k]);
           ret += `${key}\0${val}\0`;
         }
         count += value.length;
       } else {
-        val = String(value);
-        ret += `${key}\0${val}\0`;
+        ret += `${key}\0${value}\0`;
         count++;
       }
     }
@@ -439,13 +459,12 @@ class NghttpError extends Error {
   }
 }
 
-function assertIsObject(value, name, types) {
+function assertIsObject(value, name, types = 'object') {
   if (value !== undefined &&
       (value === null ||
        typeof value !== 'object' ||
        Array.isArray(value))) {
-    const err = new errors.TypeError('ERR_INVALID_ARG_TYPE',
-                                     name, types || 'object');
+    const err = new errors.TypeError('ERR_INVALID_ARG_TYPE', name, types);
     Error.captureStackTrace(err, assertIsObject);
     throw err;
   }
@@ -515,6 +534,17 @@ function isPayloadMeaningless(method) {
   return kNoPayloadMethods.has(method);
 }
 
+function sessionName(type) {
+  switch (type) {
+    case NGHTTP2_SESSION_CLIENT:
+      return 'client';
+    case NGHTTP2_SESSION_SERVER:
+      return 'server';
+    default:
+      return '<invalid>';
+  }
+}
+
 module.exports = {
   assertIsObject,
   assertValidPseudoHeaderResponse,
@@ -525,8 +555,10 @@ module.exports = {
   getSettings,
   getStreamState,
   isPayloadMeaningless,
+  kSocket,
   mapToHeaders,
   NghttpError,
+  sessionName,
   toHeaderObject,
   updateOptionsBuffer,
   updateSettingsBuffer

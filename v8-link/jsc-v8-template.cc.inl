@@ -68,7 +68,9 @@ class Template: public Wrap {
   void Set(JSStringRef name, Local<v8::Data> value, v8::PropertyAttribute attributes);
   void Set(Local<v8::Name> name, Local<v8::Data> value,
            v8::PropertyAttribute attributes = None) {
+    // TODO Symbol 不能被转换为字符串，
     JSCStringPtr s = Isolate::ToJSString(GetIsolate(), name);
+    DCHECK(*s);
     Set(*s, value, attributes);
   }
   
