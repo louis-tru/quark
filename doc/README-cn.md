@@ -14,9 +14,9 @@ Ngui的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般�
 这是一个简单的在屏幕上显示`hello world!`的程序
 
 ```jsx
-import { GUIApplication, Text } from 'ngui'
+import { GUIApplication, Root } from 'ngui'
 new GUIApplication().start(
-	<Text>hello world!</Text>
+	<Root>hello world!</Root>
 )
 ```
 

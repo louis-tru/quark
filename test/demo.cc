@@ -39,9 +39,9 @@ using namespace ngui;
 XX_GUI_MAIN() {
   
 #if USE_REMOTE
-  js::start( "http://192.168.1.11:1026/demo/examples --debug --no-cache --ignore-local=examples" );
+  js::start("http://192.168.1.11:1026/demo/examples --dev --ignore-local=*");
 #else
-  js::start( "demo/examples" );
+  js::start("demo/examples");
 #endif
   
   return 0;

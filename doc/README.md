@@ -15,9 +15,9 @@ Goal: developing GUI applications on this basis can take into account both the s
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { GUIApplication, Text } from 'ngui'
+import { GUIApplication, Root } from 'ngui'
 new GUIApplication().start(
-	<Text>hello world!</Text>
+	<Root>hello world!</Root>
 )
 ```
 
