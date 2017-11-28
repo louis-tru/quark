@@ -73,7 +73,7 @@ enum class Encoding {
  * @class Codec
  */
 class XX_EXPORT Codec {
-public:
+ public:
   
   /**
    * @func parse_encoding

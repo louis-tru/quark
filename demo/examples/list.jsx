@@ -26,7 +26,7 @@ export const vx = (
       <List id="list">
       	<Div margin=10 width="full">
       		<Text margin=4 width="full" 
-            borderBottom=`${atomPixel} #aaa`>%{vd._index + 1 + ': ' + vd.text}</Text>
+            borderBottom=`${atomPixel} #aaa`>%{vd.$index + 1 + ': ' + vd.text}</Text>
       	</Div>
       </List>
 

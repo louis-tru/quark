@@ -72,17 +72,48 @@ function print_warn(err) {
   console.warn.apply(console, format_msg(arguments));
 }
 
-/**
- * @fun extend # Extended attribute from obj to extd
- * @arg obj   {Object} 
- * @arg extd  {Object}
- * @ret       {Object}
- */
 function extend(obj, extd) {
   for (var name in extd) {
     obj[name] = extd[name];
   }
   return obj;
+}
+
+function extend2(obj, extd) {
+  for (var item of Object.entries(extd)) {
+    obj[item[0]] = item[1];
+  }
+  return obj;
+}
+
+function __vx(raw_vx, attrs, vdata) {
+  if (!Array.isArray(raw_vx) || raw_vx[0] !== 0) {
+    throw new TypeError('Raw View xml type error.');
+  }
+
+  var r = raw_vx.slice();
+
+  if (vdata) {
+    r[4] = vdata
+  }
+  
+  if (attrs.length != 0) {
+    var raw_attrs = raw_vx[2];
+    var attrs_map = {};
+    r[2] = attrs;
+    for (var attr of attrs) {
+      attrs_map[attr[0].join('.')] = 1; // mark current attr
+    }
+    for (var attr of raw_attrs) {
+      var name = attr[0].join('.');
+      if (!(name in attrs_map)) {
+        attrs.push(attr);
+        attrs_map[name] = 1;
+      }
+    }
+  }
+
+  return r;
 }
 
 /**
@@ -144,18 +175,8 @@ function read_text_sync(path) {
   return readFileSync(path, 'utf8');
 }
 
-/**
- * @class __bind data
- */
-class __bind {
-  constructor(func, once) {
-    this.once = once;
-    this.exec = func;
-  }
-}
-
-global.__bind = __bind;
-global.__extend = extend;
+global.__extend = extend2;
+global.__vx = __vx;
 
 // -------------------------- Package private API --------------------------
 

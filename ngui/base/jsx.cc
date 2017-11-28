@@ -100,20 +100,16 @@ static cUcs2String _MOD('%');
 static cUcs2String _AT('@');
 static cUcs2String _QUOTES('"');
 static cUcs2String _NEWLINE('\n');
-static cUcs2String _TAG(String("__tag__")); // __tag__
 static cUcs2String _CONST(String("const")); // const
 static cUcs2String _VAR(String("var"));     // var
 static cUcs2String _REQ(String("require"));   // __req
 static cUcs2String _COMMA(',');
 static cUcs2String _COLON(':');
 static cUcs2String _SEMICOLON(';');
-static cUcs2String _PROTO(String("__proto__")); // __proto__
 static cUcs2String _VX(String("vx"));       // vx
+static cUcs2String __VX(String("__vx"));
 static cUcs2String _VALUE(String("value"));
-static cUcs2String _DATA_BIND(String("new __bind((vd,ctr)=>{return")); // new __bind(func)
-static cUcs2String _DATA_BIND_END(String("},0)"));      // },0)
-static cUcs2String _DATA_BIND_END_ONCE(String("},1)")); // },1)
-static cUcs2String _CHILDREN(String("__child__")); // __child__
+static cUcs2String _DATA_BIND_FUNC(String("(vd,ctr)=>{return")); // (vd,ctr)=>{return
 static cUcs2String _XML_COMMENT(String("/***"));
 static cUcs2String _XML_COMMENT_END(String("**/"));
 static cUcs2String _COMMENT(String("/*"));
@@ -123,6 +119,15 @@ static cUcs2String _EXPORTS(String("exports"));
 static cUcs2String __EXPORT(String("module._export"));
 static cUcs2String __EXTEND(String("__extend"));
 static cUcs2String __PROTOTYPE(String("prototype"));
+static cUcs2String _NUMBER_0(String("0"));
+static cUcs2String _NUMBER_1(String("1"));
+static cUcs2String _NUMBER_2(String("2"));
+static cUcs2String _NUMBER_3(String("3"));
+static cUcs2String _NUMBER_4(String("4"));
+// static cUcs2String _NUMBER_5(String("5"));
+static cUcs2String _VDATA(String("vdata"));
+static cUcs2String _ATTRS_COMMENT(String("/*attrs*/"));
+static cUcs2String _CHILDS_COMMENT(String("/*childs*/"));
 
 //LF
 static inline bool is_carriage_return(int c) {
@@ -324,7 +329,7 @@ inline static bool isBinaryOrCompareOp(Token op){
  * @class Scanner jsx 简易词法分析器
  */
 class Scanner : public Object {
-public:
+ public:
   
   Scanner(const uint16* code, uint size)
   : code_(code)
@@ -717,7 +722,7 @@ public:
   inline bool         has_scape_before()  { return !current_->string_space.is_empty(); }
   inline bool         has_scape_before_next() { return !next_->string_space.is_empty(); }
   
-private:
+ private:
 
   struct TokenDesc {
     Token token;
@@ -1195,7 +1200,7 @@ case ch:
   
   Token scan_xml_content_string(bool ignore_space) {
     do {
-      if ( ignore_space && skip_white_space() ) {
+      if ( ignore_space && skip_white_space(true) ) {
         next_->string_value.push(' ');
       }
       if (c0_ == '\\') {
@@ -1451,12 +1456,26 @@ case ch:
     return NUMBER_LITERAL;
   }
   
-  bool skip_white_space() {
+  bool skip_white_space(bool ignore_record_first_space = false) {
     int start_position = pos_;
+    bool first = true;
+    
     while(true) {
       switch(c0_) {
-        case 0x09: case 0x0A: case 0x0B: case 0x0C: case 0x0D: case 0x20:
-          next_->string_space.push(c0_);
+        case 0x09:  // \t
+        case 0x20:  // space
+        case 0x0A:  // \n
+        case 0x0B:  //
+        case 0x0C:  //
+        case 0x0D:  // \r
+          if (ignore_record_first_space) { // 忽略记录第一个空格
+            if (!(first && c0_ == 0x20)) {
+              next_->string_space.push(c0_);
+            }
+          } else {
+            next_->string_space.push(c0_);
+          }
+          first = false;
           advance();
           break;
         default:
@@ -1543,7 +1562,8 @@ class Parser: public Object {
 public:
   
   Parser(cUcs2String& in, cString& path, bool is_jsx)
-  : _path(path)
+  : _out(nullptr)
+  , _path(path)
   , _is_jsx(is_jsx)
   , _level(0)
   , _is_class_member_data_expression(false)
@@ -1553,6 +1573,7 @@ public:
     //String str = in.to_string();
     //LOG(str);
     _scanner = new Scanner(*in, in.length());
+    _out = &_top_out;
   }
   
   virtual ~Parser() {
@@ -1561,7 +1582,7 @@ public:
   
   Ucs2String transform() {
     parse_document();
-    Ucs2String rv = _out.to_basic_string();
+    Ucs2String rv = _out->to_basic_string();
     //if ( _path.index_of("test.js") != -1 ) {
     //  String str = rv.to_string();
     //  LOG(str);
@@ -1569,7 +1590,7 @@ public:
     return rv;
   }
   
-private:
+ private:
   
   void parse_document() {
     
@@ -1610,6 +1631,8 @@ private:
           out_code(_NEWLINE);   // \n
         }
         out_code(_RBRACE);    // }
+        out_code(_COMMA);     // ,
+        out_code(_NUMBER_1);  // 1
         out_code(_RPAREN);    // )
         out_code(_SEMICOLON); // ;
       }
@@ -1845,13 +1868,13 @@ private:
       case XML_COMMENT:             // <!-- comment -->
         if (_is_jsx && !_is_xml_attribute_expression) {              //
           if ( _is_class_member_data_expression ) { // 结束原先的多行注释
-            _out.push(_COMMENT_END); // */
+            _out->push(_COMMENT_END); // */
           }
           out_code(_XML_COMMENT);
           out_code(_scanner->string_value());
           out_code(_XML_COMMENT_END);
           if ( _is_class_member_data_expression ) { // 重新开始多行注释
-            _out.push(_COMMENT); // /*
+            _out->push(_COMMENT); // /*
           }
         } else {
           UNEXPECTED_TOKEN_ERROR();
@@ -2293,13 +2316,13 @@ private:
     Token tok = _scanner->next();
 
     if ( is_import_declaration_identifier(tok) ) { // identifier
-      out_code(_VAR); // var
+      out_code(_CONST); // var
       collapse_scape();
       
       tok = peek();
       
       if (tok == AS) {
-        // import GUIApplication as GUIApp from ':gui/app';
+        // import GUIApplication as GUIApp from 'ngui/app';
         Ucs2String id = _scanner->string_value();
         _scanner->next(); // as
         if ( is_import_declaration_identifier(peek()) ) { // identifier
@@ -2308,7 +2331,7 @@ private:
           out_code(_ASSIGN); // =
           next();
           if (next() == FROM && next() == STRIXX_LITERAL) { // from
-            out_code(_REQ); // __req(':gui/app').GUIApplication;
+            out_code(_REQ); // __req('ngui/app').GUIApplication;
             out_code(_LPAREN); // (
             fetch_code();
             out_code(_RPAREN); // )
@@ -2321,13 +2344,13 @@ private:
           UNEXPECTED_TOKEN_ERROR();
         }
       } else if (tok == FROM) {
-        // import GUIApplication from ':gui/app';
+        // import GUIApplication from 'ngui/app';
         Ucs2String id = _scanner->string_value();
         out_code(id);    // GUIApplication
         next();           // from
         out_code(_ASSIGN); // =
         ASSERT_NEXT(STRIXX_LITERAL);
-        out_code(_REQ); // __req(':gui/app').GUIApplication;
+        out_code(_REQ); // __req('ngui/app').GUIApplication;
         out_code(_LPAREN); // (
         fetch_code();
         out_code(_RPAREN); // )
@@ -2338,15 +2361,15 @@ private:
       }
     }
     else if (tok == LBRACE) { // {
-      out_code(_VAR); // var
+      out_code(_CONST); // var
       collapse_scape();
       
-      // import { GUIApplication } from ':gui/app';
+      // import { GUIApplication } from 'ngui/app';
       parse_advance();
       ASSERT_NEXT(FROM);
       out_code(_ASSIGN); // =
       ASSERT_NEXT(STRIXX_LITERAL);
-      out_code(_REQ); // __req(':gui/app');
+      out_code(_REQ); // __req('ngui/app');
       out_code(_LPAREN); // (
       fetch_code();
       out_code(_RPAREN); // )
@@ -2357,7 +2380,7 @@ private:
       if (peek() == AS) {
         // import 'test_gui.jsx' as gui;
         
-        out_code(_VAR); // var
+        out_code(_CONST); // var
         collapse_scape();
         next(); // as
         if ( is_import_declaration_identifier(peek()) ) {
@@ -2365,7 +2388,7 @@ private:
           out_code(_SPACE); //
           out_code(_ASSIGN); // =
           next(); // IDENTIFIER
-          out_code(_REQ); // __req(':gui/app');
+          out_code(_REQ); // __req('ngui/app');
           out_code(_LPAREN); // (
           out_code(str);
           out_code(_RPAREN); // )
@@ -2383,14 +2406,16 @@ private:
           basename = basename.substr(0, i);
         }
         
-        if ( basename[0] == ':' ) { // :
-          basename = basename.substr(1);
-        } else {
-          i = basename.last_index_of("lib://"); // lib://gui
-          if (i == 0) {
-            basename = basename.substr(6);
-          }
-        }
+        /* 早期版本AvocadoJS中会有这种协议的名称 `:ngui` or `pkg://ngui` */
+        // if ( basename[0] == ':' ) { // :
+        //   basename = basename.substr(1);
+        // } else {
+        //   i = basename.last_index_of("pkg://"); // pkg://gui
+        //   if (i == 0) {
+        //     basename = basename.substr(6);
+        //   }
+        // }
+
         basename = basename.replace_all('.', '_').replace_all('-', '_');
         
         if (is_identifier_start(basename[0])) {
@@ -2406,7 +2431,7 @@ private:
         }
         
         if (!basename.is_empty()) {
-          out_code(_VAR); // var
+          out_code(_CONST); // var
           out_code(_SPACE); //
           out_code(Coder::decoding_to_uint16(Encoding::utf8, basename)); // identifier
           out_code(_SPACE); //
@@ -2565,10 +2590,7 @@ private:
     
     collapse_scape(); // push scape
     
-    Token token;
-    
-    // 转换xml为json对像
-    out_code(_LBRACE); // {
+    // 转换xml为json对像:
     
     Ucs2String tag_name = _scanner->string_value();
     int index = tag_name.index_of(':');
@@ -2578,120 +2600,171 @@ private:
       Ucs2String prefix = tag_name.substr(0, index);
       Ucs2String suffix = tag_name.substr(index + 1);
       
-      if (prefix == _VX) {    // <vx:xxxx
-        out_code(_PROTO);    // { __proto__
-        out_code(_COLON);    // :
-        out_code(suffix);    // xxxx
+      if (prefix == _VX) {  // <vx:tag
+        // __vx(tag,[attrs],vdata)
+        // final result:
+        // [0,tag,[attrs],[child],vdata]
+        out_code(__VX);     // __vx
+        out_code(_LPAREN);  // (
+        out_code(suffix);   // tag
+        out_code(_COMMA);   // ,
         vx_com = true;
       } else {                // <prefix:suffix
-        out_code(_TAG);        // __tag__
-        out_code(_COLON);      // :
-        out_code(prefix);      // prefix
-        out_code(_COMMA);      // ,
-        out_code(_VALUE);      // value
-        out_code(_COLON);      // :
-        //out_code(_QUOTES);     // "
-        out_code(suffix);      // suffix
-        //out_code(_QUOTES);     // "
+        // [1,prefix,suffix,[attrs],[child],vdata]
+        out_code(_LBRACK);    // [
+        out_code(_NUMBER_1);  // 1
+        out_code(_COMMA);     // ,
+        out_code(prefix);     // prefix
+        out_code(_COMMA);     // ,
+        out_code(suffix);     // suffix
+        out_code(_COMMA);     // ,
       }
-    } else {              // { __tag__: view
-      out_code(_TAG);    // __tag__
-      out_code(_COLON);  // :
-      out_code(tag_name);
+    } else {              // <tag
+      // [0,tag,[attrs],[child],vdata]
+      out_code(_LBRACK);    // [
+      out_code(_NUMBER_0);  // 0
+      out_code(_COMMA);     // ,
+      out_code(tag_name);   // tag
+      out_code(_COMMA);     // ,
     }
     
-    // 先解析xml属性部分
-     while(true) {
-      token = _scanner->next();
-      
-      if (is_object_property_identifier(token)) {
-      attr:
-        if (!_scanner->has_scape_before()) { // xml属性之间必须要有空白符号
-          error("Xml Syntax error");
-        }
-        Array<Ucs2String> attribute_name;
-        
-        // 添加属性
-        out_code(_COMMA);   // ,
-        collapse_scape(); // scape
-        attribute_name.push(_scanner->string_value());
-        token = next();
-        
-        while (token == PERIOD) { // .
-          if ( is_object_property_identifier(next()) ) {
-            attribute_name.push(_scanner->string_value());
-          } else {
-            error("Xml Syntax error");
-          }
-          token = next();
-        }
-        out_code(_QUOTES); // "
-        out_code(attribute_name.join('.')); // key
-        out_code(_QUOTES); // "
-        out_code(_COLON);  // :
-        
-        if (token == ASSIGN) { // =
-          // 有=符号,属性必须要有值,否则为异常
-          _is_xml_attribute_expression = true;
-          if ( peek() == COMMAND_DATA_BIND ) { // %%{
-            next();
-            parse_xml_attribute_data_bind(false);
-          } else if (peek() == COMMAND_DATA_BIND_ONCE) { // %{
-            next();
-            parse_xml_attribute_data_bind(true);
-          } else {
-            parse_expression(); // 解析属性值表达式
-          }
-          _is_xml_attribute_expression = false;
-          token = _scanner->next();
-        } else { // 没有值设置为 ""
-          out_code(_QUOTES);  // "
-          out_code(_QUOTES);  // "
-        }
-        if (is_object_property_identifier(token)) {
-          goto attr; // 重新开始新属性
-        }
-      }
-      if (token == DIV) {      // /  没有内容结束
-        if (_scanner->next() != GT) { // >  语法错误
-          error("Xml Syntax error");
-        }
-        
-        if ( !vx_com ) {
-          // add chileren
-          out_code(_COMMA);    // ,
-          out_code(_CHILDREN); // children
-          out_code(_COLON);    // :
-          out_code(_LBRACK);   // [
-          out_code(_RBRACK);   // ]
-        }
-        
-        break; // end
-      } else if (token == GT) {       //   >  闭合标签,开始解析内容
-        if ( vx_com ) { // view xml component cannot have child views.
-          error("View xml component cannot have child views.");
-        } else {
-          // 解析子内容以及子节点
-          parse_xml_element_context(tag_name); break;
-        }
-      } else {
+    Map<Ucs2String, bool> attrs;
+    Ucs2StringBuilder vdata;
+    Token token = _scanner->next();
+    bool start_parse_attrs = false;
+    
+    // 解析xml属性
+    if (is_object_property_identifier(token)) {
+     attr:
+      if (!_scanner->has_scape_before()) { // xml属性之间必须要有空白符号
         error("Xml Syntax error");
       }
+      collapse_scape();  // scape
+      
+      if (!start_parse_attrs) {
+        out_code(_LBRACK);    // [ parse attributes start
+        //out_code(_ATTRS_COMMENT); // add comment
+        start_parse_attrs = true;
+      }
+      
+      // 添加属性
+      Ucs2StringBuilder* raw_out = _out;
+      Ucs2String attribute_name;
+      bool is_vdata = (_scanner->string_value() == _VDATA && peek() != PERIOD);
+      if (is_vdata) {
+        _out = &vdata;
+      }
+      out_code(_LBRACK); // [ // attribute start
+      out_code(_LBRACK); // [ // attribute name start
+      
+      do { // .
+        out_code(_QUOTES); // "
+        out_code(_scanner->string_value());
+        out_code(_QUOTES); // "
+        attribute_name.push(_scanner->string_value());
+        token = next();
+        if (token != PERIOD) break;
+        if (!is_object_property_identifier(next())) {
+          error("Xml Syntax error");
+        }
+        out_code(_COMMA);   // ,
+      } while (true);
+      
+      out_code(_RBRACK); // ] // attribute name end
+      out_code(_COMMA);  // ,
+      
+      if (attrs.has(attribute_name)) {
+        error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
+      }
+      attrs.set(attribute_name, 1);
+      
+      if (token == ASSIGN) { // =
+        // 有=符号,属性必须要有值,否则为异常
+        _is_xml_attribute_expression = true;
+        if ( peek() == COMMAND_DATA_BIND ) { // %%{
+          parse_xml_attribute_data_bind(false);
+        } else if (peek() == COMMAND_DATA_BIND_ONCE) { // %{
+          parse_xml_attribute_data_bind(true);
+        } else {
+          out_code(_NUMBER_0);  // 0
+          out_code(_COMMA);     // ,
+          parse_expression(); // 解析属性值表达式
+        }
+        _is_xml_attribute_expression = false;
+        token = _scanner->next();
+      } else { // 没有值设置为 ""
+        out_code(_NUMBER_0);  // 0
+        out_code(_COMMA);     // ,
+        out_code(_QUOTES);    // "
+        out_code(_QUOTES);    // "
+      }
+      out_code(_RBRACK); // ] // attribute end
+      
+      if (is_vdata) {
+        _out = raw_out;
+      }
+      
+      if (is_object_property_identifier(token)) {
+        if (!is_vdata) {
+          out_code(_COMMA);   // ,
+        }
+        goto attr; // 重新开始新属性
+      }
+    } else {
+      out_code(_LBRACK);  // [ parse attributes start
+    }
+    out_code(_RBRACK);    // ] parse attributes end
+    
+    // 解析xml内容
+    if (token == DIV) {      // /  没有内容结束
+      if ( !vx_com ) {  // add chileren
+        out_code(_COMMA);    // ,
+        out_code(_LBRACK);   // [
+        out_code(_RBRACK);   // ]
+      }
+      collapse_scape();
+      if (_scanner->next() != GT) { // >  语法错误
+        error("Xml Syntax error");
+      }
+    } else if (token == GT) {       //   >  闭合标签,开始解析内容
+      if ( vx_com ) { // view xml component cannot have child views.
+        error("View xml component cannot have child views.");
+      } else { // 解析子内容以及子节点
+        parse_xml_element_context(tag_name);
+      }
+    } else {
+      error("Xml Syntax error");
     }
     
-    out_code(_RBRACE); // }
+    if (vdata.length()) {
+      out_code(_COMMA);    // ,
+      out_code(move(vdata));
+    }
+    
+    if (vx_com) { // __vx(vx::tag,[attrs],vdata)
+      out_code(_RPAREN); // )
+    } else {      // [0,tag,[attrs],[child],vdata]
+      out_code(_RBRACK); // ]
+    }
   }
   
   void parse_xml_attribute_data_bind(bool once) {
+    out_code(_NUMBER_3);  // 3
+    out_code(_COMMA);     // ,
+    next();
     XX_ASSERT(peek() == LBRACE);
     XX_ASSERT(_scanner->string_value().is_empty());
     // %{val}
-    out_code(_DATA_BIND); // new __bind(func, true)
+    out_code(_DATA_BIND_FUNC); // (vd,ctr)=>{return
     next();
     out_code(_LPAREN);  // (
     parse_brace_expression(LBRACE, RBRACE);
     out_code(_RPAREN);  // )
-    out_code(once ? _DATA_BIND_END_ONCE : _DATA_BIND_END);
+    out_code(_RBRACE);  // }
+    if (!once) {
+      out_code(_COMMA);     // ,
+      out_code(_NUMBER_1);  // 1
+    }
   }
   
   void complete_xml_content_string(Ucs2StringBuilder& str,
@@ -2702,9 +2775,13 @@ private:
       Ucs2String s = str.to_basic_string();
       if ( !ignore_space || ! s.is_blank() ) {
         add_xml_children_cut_comma(is_once_comma);
+        out_code(_LBRACK);   // [
+        out_code(_NUMBER_2); // 2
+        out_code(_COMMA);    // ,
         out_code(_QUOTES);   // "
         out_code(s);
         out_code(_QUOTES);   // "
+        out_code(_RBRACK);   // ]
       }
       str.clear();
     }
@@ -2712,7 +2789,7 @@ private:
       add_xml_children_cut_comma(is_once_comma);
     }
     if ( space.string_length() ) {
-      _out.push(move(space));
+      _out->push(move(space));
     }
   }
   
@@ -2729,9 +2806,9 @@ private:
     
     // add chileren
     out_code(_COMMA);    // ,
-    out_code(_CHILDREN); // __child__
-    out_code(_COLON);    // :
+    collapse_scape();
     out_code(_LBRACK);   // [
+    // out_code(_CHILDS_COMMENT); // add comment
     
     Token token, prev = ILLEGAL;
     Ucs2StringBuilder str, scape;
@@ -2775,15 +2852,20 @@ private:
           break;
           
         case LT: // <
-          str.push(_scanner->next_string_value()); break;
+          str.push(_scanner->next_string_value());
+          break;
           
         case COMMAND: // ${command}
           complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
           _scanner->next();     // command
           _scanner->next();     // {
-          out_code(_LPAREN);  // (
+          out_code(_LBRACK);    // [
+          out_code(_NUMBER_4);  // 4 command
+          out_code(_COMMA);     // ,
+          out_code(_LPAREN);    // (
           parse_brace_expression(LBRACE, RBRACE); //
-          out_code(_RPAREN);  // )
+          out_code(_RPAREN);    // )
+          out_code(_RBRACK);    // ]
           pos = _scanner->location().end_pos;
           break;
           
@@ -2791,11 +2873,17 @@ private:
           complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
           _scanner->next();     // command
           _scanner->next();     // {
-          out_code(_DATA_BIND);      // new BindData(func)
+          out_code(_LBRACK);    // [
+          out_code(_NUMBER_3);  // 3
+          out_code(_COMMA);     // ,
+          out_code(_DATA_BIND_FUNC);      // (vd,ctr)=>{return
           out_code(_LPAREN);  // (
           parse_brace_expression(LBRACE, RBRACE); //
           out_code(_RPAREN);  // )
-          out_code(_DATA_BIND_END);  // {{]
+          out_code(_RBRACE);  // }
+          out_code(_COMMA);   // ,
+          out_code(_NUMBER_1);// 1
+          out_code(_RBRACK);  // ]
           pos = _scanner->location().end_pos;
           break;
           
@@ -2803,11 +2891,15 @@ private:
           complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
           _scanner->next();     // command
           _scanner->next();     // {
-          out_code(_DATA_BIND);      // new BindData(func,true)
+          out_code(_LBRACK);    // [
+          out_code(_NUMBER_3);  // 3
+          out_code(_COMMA);     // ,
+          out_code(_DATA_BIND_FUNC);      // (vd,ctr)=>{return
           out_code(_LPAREN);  // (
           parse_brace_expression(LBRACE, RBRACE); //
           out_code(_RPAREN);  // )
-          out_code(_DATA_BIND_END_ONCE);  // {{]
+          out_code(_RBRACE);  // }
+          out_code(_RBRACK);  // ]
           pos = _scanner->location().end_pos;
           break;
           
@@ -2816,7 +2908,10 @@ private:
             scape.push(_scanner->next_string_space());
           str.push(_scanner->next_string_value());
           break;
-        default: error("Xml Syntax error", _scanner->next_location()); break;
+          
+        default:
+          error("Xml Syntax error", _scanner->next_location());
+          break;
       }
     }
   }
@@ -2858,7 +2953,7 @@ private:
       if ( _is_class_member_data_expression ) {
         _out_class_member_data_expression.push(_scanner->string_space());
       }
-      _out.push(move(_scanner->string_space()));
+      _top_out.push(move(_scanner->string_space()));
     }
   }
   
@@ -2872,7 +2967,7 @@ private:
       if ( _is_class_member_data_expression ) {
         _out_class_member_data_expression.push(code);
       }
-      _out.push(code);
+      _out->push(code);
     }
   }
   
@@ -2881,7 +2976,16 @@ private:
       if ( _is_class_member_data_expression ) {
         _out_class_member_data_expression.push(code);
       }
-      _out.push(move(code));
+      _out->push(move(code));
+    }
+  }
+  
+  void out_code(Ucs2StringBuilder&& code) {
+    if ( code.string_length() ) {
+      if ( _is_class_member_data_expression ) {
+        _out_class_member_data_expression.push(code);
+      }
+      _out->push(move(code));
     }
   }
   
@@ -2891,7 +2995,8 @@ private:
   };
   
   Scanner*          _scanner;
-  Ucs2StringBuilder _out;
+  Ucs2StringBuilder* _out;
+  Ucs2StringBuilder _top_out;
   Ucs2StringBuilder _out_class_member_data_expression;
   cString&          _path;
   bool              _is_jsx;

@@ -6,7 +6,7 @@ class IconsPanel extends ViewController {
   loadView(vx) {
     super.loadView(<Div margin=10 width="full" />);
     
-    var str = vx;
+    var [,str] = vx;
     var view = this.view;
     
     for ( var i = 0; i < str.length; i++ ) {

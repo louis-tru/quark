@@ -40,7 +40,8 @@ XX_NS(ngui)
 /**
  * @class List 双向链表
  */
-template<class Item, class ItemAllocator> class XX_EXPORT List: public Object {
+template<class Item, class ItemAllocator> 
+class XX_EXPORT List: public Object {
  private:
   struct ItemWrap {
     Item _item;

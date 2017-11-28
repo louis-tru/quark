@@ -128,7 +128,7 @@ class JSArray;
 class JSDate;
 class JSNumber;
 class JSInt32;
-class Integer;
+class JSInteger;
 class JSUint32;
 class JSBoolean;
 class JSFunction;
@@ -474,7 +474,7 @@ class XX_EXPORT JSInt32: public JSNumber {
   int Value(Worker* worker) const;
 };
 
-class XX_EXPORT Integer: public JSNumber {
+class XX_EXPORT JSInteger: public JSNumber {
  public:
   int64 Value(Worker* worker) const;
 };
@@ -813,7 +813,7 @@ class XX_EXPORT WrapObject {
   XX_HIDDEN_ALL_COPY(WrapObject);
  protected:
   
-  inline WrapObject() { }
+  inline WrapObject() {}
   
   /**
    * @destructor

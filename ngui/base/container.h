@@ -50,7 +50,7 @@ XX_NS(ngui)
  * @class Container
  */
 template <class T, class Allocator> class XX_EXPORT Container {
-public:
+ public:
   
   ~Container() {
     free();
@@ -136,7 +136,7 @@ public:
     }
   }
 
-protected:
+ protected:
   void realloc0(uint capacity) {
     if (capacity == 0) {
       free();

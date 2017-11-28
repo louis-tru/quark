@@ -674,7 +674,7 @@ double JSNumber::Value(Worker* worker) const {
 int JSInt32::Value(Worker* worker) const {
   return reinterpret_cast<const v8::Int32*>(this)->Value();
 }
-int64 Integer::Value(Worker* worker) const {
+int64 JSInteger::Value(Worker* worker) const {
   return reinterpret_cast<const v8::Integer*>(this)->Value();
 }
 uint JSUint32::Value(Worker* worker) const {
