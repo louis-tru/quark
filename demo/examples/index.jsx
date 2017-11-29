@@ -68,9 +68,9 @@ function review_code(evt) {
   evt.sender.topCtr.collection.push(review.vx, 1);
 }
 
-const ngui_tools = 'https://github.com/louis-tru/ngui-tools.git';
-const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui-tools/issues';
-const examples_source = 'https://github.com/louis-tru/ngui-demo.git';
+const ngui_tools = 'https://github.com/louis-tru/ngui.git';
+const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui/issues';
+const examples_source = 'https://github.com/louis-tru/ngui.git';
 const documents = 'http://nodegui.org/';
 
 function handle_go_to(evt) {
