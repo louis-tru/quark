@@ -38,9 +38,9 @@ import org.ngui.NGUIActivity;
 public class MainActivity extends NGUIActivity {
 
   static {
-    System.loadLibrary("ngui");
+    System.loadLibrary("ngui-test");
   }
-
+  
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -49,9 +49,7 @@ public class MainActivity extends NGUIActivity {
   protected String start_path() {
     //return "examples";
     //--inspect-brk=0.0.0.0:9229
-    String s = this.getExternalCacheDir().getPath();
-    Log.d("Test", s);
-    return "http://192.168.1.11:1026/examples --dev --ignore-local=*";
+    return "http://192.168.1.11:1026/demo/examples --dev --ignore-local=*";
   }
 
 }

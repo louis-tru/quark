@@ -92,7 +92,7 @@ static void read_system_default_font_family() {
     while (first) {
       if ( strcmp(first->Name(), "family") == 0 ) {
 
-#if DEBUG && 0
+#if defined(DEBUG) && 0
         auto att = first->FirstAttribute();
         LOG("%s, Attributes:", first->Name());
         while ( att ) {

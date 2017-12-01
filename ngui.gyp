@@ -73,7 +73,6 @@
        'OTHER_LDFLAGS': '-all_load',
       },
       'mac_bundle_resources': [
-        'ngui/base/cacert.pem',
         'node_modules/ngui',
       ],
       'conditions': [

@@ -183,6 +183,7 @@ int File::write(const void* buffer, int64 size, int64 offset) {
 
 struct FileStreamData {
   Buffer buffer;
+  int64 offset;
   int mark;
 };
 
@@ -224,6 +225,7 @@ public:
       XX_ASSERT( res == 0 );
     }
     Release(m_keep); m_keep = nullptr;
+    clear_writeing();
   }
   
   inline int fd() { return m_fp; }
@@ -281,6 +283,7 @@ public:
                 uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
       del(req)->trigger_async_file_error(host(req), err);
     }
+    req->ctx()->clear_writeing();
   }
   
   static void fs_read_cb(uv_fs_t* uv_req) {
@@ -301,7 +304,13 @@ public:
   static void fs_write_cb(uv_fs_t* uv_req) {
     FileStreamReq* req = FileStreamReq::cast(uv_req);
     Handle<FileStreamReq> handle(req);
+    auto self = req->ctx();
     uv_fs_req_cleanup(uv_req);
+
+    XX_ASSERT(self->m_writeing.first() == req);
+    self->m_writeing.shift();
+    self->write_first();
+
     if ( uv_req->result < 0 ) {
       Error err((int)uv_req->result, "%s, %s",
                 uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
@@ -353,13 +362,29 @@ public:
     buf.len = req->data().buffer.length();
     uv_fs_read(uv_loop(), req->req(), m_fp, &buf, 1, offset, &Inl::fs_read_cb);
   }
+
+  void clear_writeing() {
+    for(auto& i : m_writeing) {
+      i.value()->release();
+    }
+    m_writeing.clear();
+  }
+
+  void write_first() {
+    if (m_writeing.length()) {
+      auto req = m_writeing.first();
+      uv_buf_t buf;
+      buf.base = req->data().buffer.value();
+      buf.len = req->data().buffer.length();
+      uv_fs_write(uv_loop(), req->req(), m_fp, &buf, 1, req->data().offset, &Inl::fs_write_cb);
+    }
+  }
   
   void write(Buffer& buffer, int64 offset, int mark) {
-    auto req = new FileStreamReq(this, 0, { buffer, mark });
-    uv_buf_t buf;
-    buf.base = req->data().buffer.value();
-    buf.len = req->data().buffer.length();
-    uv_fs_write(uv_loop(), req->req(), m_fp, &buf, 1, offset, &Inl::fs_write_cb);
+    m_writeing.push(new FileStreamReq(this, 0, { buffer, offset, mark }));
+    if (m_writeing.length() == 1) {
+      write_first();
+    }
   }
 
   String      m_path;
@@ -368,6 +393,7 @@ public:
   KeepLoop*   m_keep;
   Delegate*   m_delegate;
   AsyncFile*  m_host;
+  List<FileStreamReq*> m_writeing;
 };
 
 AsyncFile::AsyncFile(cString& path, RunLoop* loop)

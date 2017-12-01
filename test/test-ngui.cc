@@ -39,9 +39,9 @@ using namespace ngui;
 void test_ngui() {
   
 #if USE_REMOTE
-  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/test/test-ngui --dev --no-cache");
+  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/test/test-ngui --dev");
 #else
-  //js::start("--inspect-brk=0.0.0.0:9229 test-ngui --dev --no-cache");
-  js::start("test-ngui --dev --no-cache");
+  //js::start("--inspect-brk=0.0.0.0:9229 test-ngui --dev");
+  js::start("examples");
 #endif
 }

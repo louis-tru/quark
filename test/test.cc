@@ -33,7 +33,7 @@
 #include "ngui/base/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_jsc
+#define TEST_FUNC_NAME test_fs2
 #endif
 
 using namespace ngui;
@@ -47,4 +47,6 @@ XX_GUI_MAIN() {
   TEST_FUNC_NAME();
   
   LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
+
+  return 0;
 }

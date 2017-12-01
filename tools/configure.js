@@ -66,6 +66,8 @@ def_opts('prefix', '/usr/local','--prefix       select the install prefix [{0}]'
 def_opts('no-browser-globals', 0,'--no-browser-globals do not export browser globals like setTimeout, console, etc. [{0}]' +
                                  '(This mode is not officially supported for regular applications)');
 def_opts('without-inspector', 0,'--without-inspector disable the V8 inspector protocol [{0}]');
+def_opts('without-visibility-hidden', 0, 
+                                '--without-visibility-hidden without visibility hidden [{0}]');
 
 function arm() {
   return opts.arch.match(/^arm/) ? 1 : 0;
@@ -455,9 +457,13 @@ function configure() {
       want_separate_host_toolset_mkpeephole: bi(v8_use_snapshot && cross_compiling),
     },
   };
-
-  var ENV = [ ];
+  
+  var ENV = [];
   var variables = config_gypi.variables;
+
+  if (opts.without_visibility_hidden) {
+    variables.without_visibility_hidden = 1;
+  }
 
   if ( use_dtrace ) {
     variables.uv_parent_path = '/deps/uv/';

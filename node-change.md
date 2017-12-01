@@ -107,3 +107,11 @@ int exec_argc, const char* const* exec_argv) {
 # node/lib/module.js
 # node/lib/pkg.js
 # node/lib/internal/pkg.js
+
+# node/deps/cares/config/android/ares_config.h
+
+```cc
+- #define HAVE_GETSERVBYPORT_R 1
++ /* #define HAVE_GETSERVBYPORT_R 1 */
+```
+

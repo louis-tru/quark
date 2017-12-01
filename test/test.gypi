@@ -39,6 +39,7 @@
         '../node_modules/ngui-tools',
         'test.cc',
         'test-fs.cc',
+        'test-fs2.cc',
         'test-gui.cc',
         'test-freetype.cc',
         'test-json.cc',
@@ -97,25 +98,25 @@
       'xcode_settings': {
         'OTHER_LDFLAGS': '-all_load',
       },
+      'sources': [
+        'demo.cc',
+      ],
       'conditions': [
         ['os in "ios osx"', {
           'sources': [
-            'demo.mm',
             'test-<(os).plist',
             'Storyboard-<(os).storyboard',
           ],
           'xcode_settings': {
             'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
           },
-        }, {
-          'sources': [ 'demo.cc', ]
         }],
       ],
     }, 
   ],
 
   'conditions': [
-    ['os=="android" and debug==1', {
+    ['os=="android"', { # and debug==1
       'targets': [
       {
         'variables': {
@@ -124,6 +125,7 @@
         'target_name': 'ngui_depes',
         'type': 'shared_library',
         'dependencies': [
+          'depe/curl/curl.gyp:curl',
           'ngui/base/minizip.gyp:minizip',
           'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
           'depe/tess2/tess2.gyp:tess2', 
@@ -171,7 +173,7 @@
         'type': 'none',
         'dependencies': [ 'ngui_depes' ],
         'copies': [{
-          'destination': '<(DEPTH)/out/jniLibs.Debug/<(android_abi)',
+          'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
           'files': [
             '<(output)/lib.target/libngui_depes.so',
           ],

@@ -32,6 +32,7 @@
     'android_abi%': '',
     'use_system_zlib%': 0,
     'use_v8%': 1,
+    'without_visibility_hidden%': 0,
 
     ############################# dependents set ##################
     
@@ -156,10 +157,13 @@
           'ONLY_ACTIVE_ARCH': 'NO',
         },
         'conditions': [
-         ['os=="android"', {
-           'cflags!': [ '-O3' ],
-           'cflags': [ '-O2' ],
-         }]
+          ['os=="android"', {
+            'cflags!': [ '-O3' ],
+            'cflags': [ '-O2' ],
+          }],
+          ['without_visibility_hidden==1', {
+            'cflags!': [ '-fvisibility=hidden' ],
+          }],
         ],
       }
     },

@@ -14,6 +14,7 @@ include_directories(../../../depe/libpng)
 include_directories(../../../depe/libwebp)
 include_directories(../../../depe/ffmpeg)
 include_directories(../../../depe/tinyxml2)
+include_directories(../../../depe/curl/include)
 include_directories(../../../node/src)
 include_directories(../../../node/deps/cares/include)
 include_directories(../../../node/deps/zlib/contrib/minizip)
@@ -23,7 +24,7 @@ include_directories(../../../node/deps/http_parser)
 include_directories(../../../v8-link/include)
 include_directories(../../../out)
 link_directories(src/main/jniLibs/${ANDROID_ABI})
-link_directories(../../../out/jniLibs.Debug/${ANDROID_ABI})
+link_directories(../../../out/jniLibs/${ANDROID_ABI})
 
 add_definitions(
    -DDEBUG
@@ -39,8 +40,7 @@ add_definitions(
   -DPNG_USER_CONFIG
 )
 
-add_library(ngui-base
-            SHARED
+add_library(ngui-base SHARED
             ../../../android/android.cc
             ../../../ngui/base/object.cc
             ../../../ngui/base/string.cc
@@ -77,8 +77,7 @@ add_library(ngui-base
             ../../../ngui/base/os/android-fs.cc
            )
 
-add_library(ngui-gui
-            SHARED
+add_library(ngui-gui SHARED
             ../../../out/glsl-shader.cc
             ../../../out/glsl-es2-shader.cc
             ../../../out/font-native.cc
@@ -123,7 +122,6 @@ add_library(ngui-gui
             ../../../ngui/text-font.cc
             ../../../ngui/text-node.cc
             ../../../ngui/texture.cc
-            ../../../ngui/vector.cc
             ../../../ngui/video.cc
             ../../../ngui/value.cc
             ../../../ngui/select-panel.cc
@@ -147,8 +145,7 @@ add_library(ngui-gui
             ../../../ngui/image/codec-webp.cc
           )
 
-add_library(ngui-js
-            SHARED
+add_library(ngui-js SHARED
             ../../../out/native-core-js.cc
             ../../../ngui/js/js.cc
             ../../../ngui/js/js-class.cc
@@ -156,7 +153,7 @@ add_library(ngui-js
             ../../../ngui/js/v8.cc
             ../../../ngui/js/v8.cc
             ../../../ngui/js/binding/base/event.cc
-            ../../../ngui/js/binding/base/fs-reader.cc
+            ../../../ngui/js/binding/base/reader.cc
             ../../../ngui/js/binding/base/fs.cc
             ../../../ngui/js/binding/base/http.cc
             ../../../ngui/js/binding/base/json.cc
@@ -174,7 +171,7 @@ add_library(ngui-js
             ../../../ngui/js/binding/display-port.cc
             ../../../ngui/js/binding/div.cc
             ../../../ngui/js/binding/font.cc
-            ../../../ngui/js/binding/gui.cc
+            ../../../ngui/js/binding/ngui.cc
             ../../../ngui/js/binding/hybrid.cc
             ../../../ngui/js/binding/image.cc
             ../../../ngui/js/binding/indep.cc
@@ -196,9 +193,47 @@ add_library(ngui-js
             ../../../ngui/js/binding/view.cc
           )
 
-add_library(ngui SHARED ../../../test/empty.cc)
+add_library(ngui-demo SHARED ../../../test/demo.cc)
+
+add_library(ngui-test SHARED
+            ../../../test/test.cc
+            ../../../test/test-fs.cc
+            ../../../test/test-fs2.cc
+            ../../../test/test-gui.cc
+            ../../../test/test-freetype.cc
+            ../../../test/test-json.cc
+            ../../../test/test-string.cc
+            ../../../test/test-list.cc
+            ../../../test/test-map.cc
+            ../../../test/test-event.cc
+            ../../../test/test-zlib.cc
+            ../../../test/test-curl.cc
+            ../../../test/test-curl2.cc
+            ../../../test/test-http.cc
+            ../../../test/test-https.cc
+            ../../../test/test-thread.cc
+            ../../../test/test-ffmpeg.cc
+            ../../../test/test-number.cc
+            ../../../test/test-uv.cc
+            ../../../test/test-net.cc
+            ../../../test/test-fs-async.cc
+            ../../../test/test-ssl.cc
+            ../../../test/test-http2.cc
+            ../../../test/test-net-ssl.cc
+            ../../../test/test-http-cookie.cc
+            ../../../test/test-localstorage.cc
+            ../../../test/test-buffer.cc
+            ../../../test/test-ngui.cc
+            ../../../test/test-jsc.cc
+            ../../../test/test-v8.cc
+            ../../../test/test-node.cc
+            ../../../test/test-loop.cc
+            ../../../test/test-sys.cc
+            ../../../test/test-mutex.cc
+)
 
 target_link_libraries(ngui-base atomic z android log ngui_depes)
-target_link_libraries(ngui-gui ngui-base OpenSLES GLESv3 EGL mediandk ngui_depes)
-target_link_libraries(ngui-js ngui-base ngui-gui ngui_depes)
-target_link_libraries(ngui ngui-base ngui-gui ngui-js ngui_depes)
+target_link_libraries(ngui-gui  ngui-base OpenSLES GLESv3 EGL mediandk ngui_depes)
+target_link_libraries(ngui-js   ngui-base ngui-gui ngui_depes)
+target_link_libraries(ngui-demo ngui-base ngui-gui ngui-js ngui_depes)
+target_link_libraries(ngui-test ngui-base ngui-gui ngui-js ngui_depes)
