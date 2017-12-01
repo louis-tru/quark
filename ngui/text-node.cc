@@ -45,7 +45,7 @@ XX_NS(ngui)
  * @class TextNode::Inl
  */
 class TextNode::Inl: public TextNode {
-public:
+ public:
 #define _inl(self) static_cast<TextNode::Inl*>(self)
 
   /**
@@ -149,7 +149,7 @@ public:
    */
   void compute_box_vertex(Vec2* final_vertex) {
     Vec2 start( -m_origin.x(), -m_origin.y() );
-    Vec2 end  (m_offset_end.x() - m_offset_start.y() - m_origin.x(),
+    Vec2 end  (m_offset_end.x() - m_offset_start.x() - m_origin.x(),
                m_offset_end.y() - m_offset_start.y() - m_origin.y() );
     final_vertex[0] = m_final_matrix * start;
     final_vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
@@ -270,7 +270,6 @@ CGRect TextNode::screen_rect() {
  * @func set_visible_draw
  */
 void TextNode::set_visible_draw() {
-  
   _inl(this)->compute_box_vertex(m_final_vertex);
   
   m_visible_draw =

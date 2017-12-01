@@ -219,8 +219,9 @@ CGRect Sprite::screen_rect() {
  */
 void Sprite::compute_box_vertex(Vec2 vertex[4]) {
   
-  Vec2 start( - m_origin.x(), - m_origin.y() );
-  Vec2 end  ( m_size.width() - m_origin.x(), m_size.height() - m_origin.y() );
+  Vec2 start( -m_origin.x(), -m_origin.y() );
+  Vec2 end  ( m_size.width() - m_origin.x(),
+              m_size.height() - m_origin.y() );
   
   vertex[0] = m_final_matrix * start;
   vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
