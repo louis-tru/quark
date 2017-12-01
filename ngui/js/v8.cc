@@ -583,6 +583,11 @@ Maybe<uint> JSValue::ToUint32Maybe(Worker* worker) const {
   }
 }
 
+bool JSValue::InstanceOf(Worker* worker, Local<JSObject> value) {
+  return reinterpret_cast<v8::Value*>(this)->
+    InstanceOf(CONTEXT(worker), Back<v8::Object>(value)).FromMaybe(false);
+}
+
 Local<JSValue> JSObject::Get(Worker* worker, Local<JSValue> key) {
   return Cast(reinterpret_cast<v8::Object*>(this)->
               Get(CONTEXT(worker), Back(key)).FromMaybe(v8::Local<v8::Value>()));

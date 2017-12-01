@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#define USE_REMOTE 1
+#define USE_REMOTE 0
 
 #include "ngui/js/js.h"
 #include "ngui/base/fs.h"

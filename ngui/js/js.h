@@ -419,6 +419,7 @@ class XX_EXPORT JSValue: public NoCopy {
   Maybe<int> ToInt32Maybe(Worker* worker) const;
   Maybe<uint> ToUint32Maybe(Worker* worker) const;
   Buffer ToBuffer(Worker* worker, Encoding en) const;
+  bool InstanceOf(Worker* worker, Local<JSObject> value);
 };
 
 class XX_EXPORT JSString: public JSValue {

@@ -39,8 +39,6 @@
 
 XX_NS(ngui)
 
-typedef value::CGRect CGRect;
-
 #define is_mark_pre m_prev_pre_mark
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
 
@@ -1201,7 +1199,7 @@ bool View::overlap_test_from_convex_quadrilateral(Vec2* quadrilateral_vertex, Ve
  */
 CGRect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
   
-  CGRegion re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
+  Region re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
   
   return { Vec2(re.x, re.y), Vec2(re.w, re.h) };
 }
@@ -1209,7 +1207,7 @@ CGRect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4])
 /**
  * @func screen_region_from_convex_quadrilateral
  */
-CGRegion View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
+Region View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
   
 #define A quadrilateral_vertex[0]
 #define B quadrilateral_vertex[1]

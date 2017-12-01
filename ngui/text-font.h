@@ -108,7 +108,7 @@ class XX_EXPORT TextFont {
    * @arg line_height {TextLineHeight}
    * @ret {FontGlyphTable*} 返回字型表
    */
-  FontGlyphTable* get_font_glyph_table_and_height(Data& data, TextLineHeightV line_height);
+  FontGlyphTable* get_font_glyph_table_and_height(Data& data, TextLineHeightValue line_height);
   
   /**
    * @func get_font_glyph_table
@@ -180,8 +180,8 @@ class XX_EXPORT TextLayout: public TextFont {
       bool  merge_space;      // 合并空白序列
       bool  merge_line_feed;  // 合并换行符
     } space_wrap;
-    TextOverflowEnum  overflow;
-    TextLineHeightV   text_line_height; // 行高
+    TextOverflowEnum    overflow;
+    TextLineHeightValue text_line_height; // 行高
   };
   
   /**

@@ -36,8 +36,6 @@
 
 XX_NS(ngui)
 
-typedef value::CGRect CGRect;
-
 const GUIEventName GUI_EVENT_KEYDOWN          ("Keydown", GUI_EVENT_CATEGORY_KEYBOARD);
 const GUIEventName GUI_EVENT_KEYPRESS         ("Keypress", GUI_EVENT_CATEGORY_KEYBOARD);
 const GUIEventName GUI_EVENT_KEYUP            ("Keyup", GUI_EVENT_CATEGORY_KEYBOARD);

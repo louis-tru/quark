@@ -416,7 +416,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func get_screen_region
    */
-  CGRegion get_screen_region();
+  Region get_screen_region();
   
  private:
   

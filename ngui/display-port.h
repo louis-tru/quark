@@ -140,12 +140,12 @@ class XX_EXPORT DisplayPort: public Reference {
   /**
    * @func draw_region
    */
-  inline const CGRegion& draw_region() const { return m_draw_region.last(); }
+  inline const Region& draw_region() const { return m_draw_region.last(); }
 
   /**
    * @func push_draw_region
    */
-  void push_draw_region(CGRegion value);
+  void push_draw_region(Region value);
   
   /**
    * @func pop_draw_region
@@ -219,7 +219,7 @@ class XX_EXPORT DisplayPort: public Reference {
   Draw*             m_draw_ctx;
   Mat4              m_root_matrix;
   float             m_atom_pixel;
-  List<CGRegion>    m_draw_region;
+  List<Region>      m_draw_region;
   GUIApplication*   m_host;
   List<Callback>    m_next_frame;
   

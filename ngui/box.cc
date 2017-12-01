@@ -942,7 +942,7 @@ void Box::compute_box_vertex(Vec2 vertex[4]) {
 /**
  * @func get_screen_region
  */
-CGRegion Box::get_screen_region() {
+Region Box::get_screen_region() {
   return screen_region_from_convex_quadrilateral(m_final_vertex);
 }
 
@@ -961,8 +961,8 @@ void Box::set_visible_draw() {
    * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
    * 这种模糊测试在大多数时候都是正确有效的。
    */
-  CGRegion dre = display_port()->draw_region();
-  CGRegion re = get_screen_region();
+  Region dre = display_port()->draw_region();
+  Region re = get_screen_region();
   
   if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
       XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w

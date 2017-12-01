@@ -2225,7 +2225,7 @@ public:
           if ( !is_class_member_identifier(next()) ) {
             UNEXPECTED_TOKEN_ERROR();
           }
-        function:
+         function:
           fetch_code(); // fetch function identifier
           if ( next() == LPAREN ) { // arguments
             out_code(_LPAREN); // (

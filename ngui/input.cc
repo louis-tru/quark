@@ -702,12 +702,11 @@ void Input::set_layout_content_offset() {
     m_data.cells.clear(); // 清空旧布局
     m_data.cell_draw_begin = m_data.cell_draw_end = 0;
     
-    TextLineHeightV line_height = m_text_line_height.value;
+    TextLineHeightValue line_height = m_text_line_height.value;
     
     bool multi_line = is_multi_line_input();
     
-    if ( !multi_line && m_explicit_height && m_text_line_height.value.is_auto ) {
-      line_height.is_auto = false;
+    if ( !multi_line && m_explicit_height && m_text_line_height.value.is_auto() ) {
       line_height.height = m_final_height;
     }
     

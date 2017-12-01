@@ -69,7 +69,6 @@ class BasicScroll;
   F(VIDEO, Video, video)  \
   F(ROOT, Root, root) \
   F(SPRITE, Sprite, sprite) \
-  F(VECTOR_GRAPH, VectorGraph, vector_graph)  \
   F(HYBRID, Hybrid, hybrid) \
   F(TEXT_NODE, TextNode, text_node) \
   F(SPAN, Span, span) \
@@ -637,7 +636,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   /**
    * @func screen_region_from_convex_quadrilateral
    */
-  static CGRegion screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+  static Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
   
   /**
    * @func layout_offset #  获取布局偏移值

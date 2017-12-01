@@ -36,10 +36,8 @@
 
 XX_NS(ngui)
 
-typedef value::CGRect CGRect;
-
 class Sprite::Inl: public Sprite {
-public:
+ public:
 #define _inl(self) static_cast<Sprite::Inl*>(self)
   /**
    * @func texture_change_handle
@@ -241,8 +239,8 @@ void Sprite::set_visible_draw() {
    * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
    * 这种模糊测试在大多数时候都是正确有效的。
    */
-  CGRegion dre = display_port()->draw_region();
-  CGRegion re = screen_region_from_convex_quadrilateral(m_final_vertex);
+  Region dre = display_port()->draw_region();
+  Region re = screen_region_from_convex_quadrilateral(m_final_vertex);
   
   m_visible_draw = false;
   

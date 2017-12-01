@@ -97,7 +97,7 @@ F(PROPERTY_TEXT_OVERFLOW, TextOverflow, text_overflow) \
 F(PROPERTY_TEXT_WHITE_SPACE, TextWhiteSpace, text_white_space) \
 F(PROPERTY_ALIGN_X, Align, align_x) /* free-div */ \
 F(PROPERTY_ALIGN_Y, Align, align_y) \
-F(PROPERTY_SHADOW, ShadowValue, shadow) /* shadow-div */ \
+F(PROPERTY_SHADOW, CGShadow, shadow) /* shadow-div */ \
 F(PROPERTY_SRC, String, src)    /* image */ \
 F(PROPERTY_BACKGROUND_IMAGE, String, background_image) \
 

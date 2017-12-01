@@ -975,28 +975,15 @@ TextShadow.prototype._value = null;
 class TextLineHeight extends TextAttrsValue {
   // _is_auto: true;
   // _height: 0;
-  get value() { return { is_auto: this._is_auto, height: this._height }; }
-  get isAuto() { return this._is_auto; }
+  get isAuto() { return this._height <= 0; }
   get height() { return this._height; }
-  set value(val) {
-    if (typeof val == 'object') {
-      this.is_auto = val.is_auto;
-      this.height = val.height;
-    } else {
-      throw new Error('Bad argument.');
-    }
-  }
-  set isAuto(value) {
-    this._is_auto = !!value;
-  }
   set height(value) {
     this._height = check_unsigned_number_ret(value);
   }
-  constructor(type, is_auto, height) {
+  constructor(type, height) {
     if (arguments.length > 0) {
       super(type);
       if (arguments.length > 1) {
-        this.is_auto = !!is_auto;
         if (check_unsigned_number(height)) this._height = height;
       }
     } else {
@@ -1006,14 +993,13 @@ class TextLineHeight extends TextAttrsValue {
   toString() {
     if (this._type == enum_object.inherit) {
       return 'inherit';
-    } else if (this._is_auto) {
+    } else if (this._height <= 0) {
       return 'auto';
     } else {
       return this._height.toString();
     }
   }
 }
-TextLineHeight.prototype._is_auto = true;
 TextLineHeight.prototype._height = 0;
 
 class TextDecoration extends TextAttrsEnumValue {
@@ -1191,10 +1177,9 @@ function _text_shadow(type, value) {
 function _text_shadow_rgba(type, offset_x, offset_y, size, r, g, b, a) {
   return _text_shadow(type, _shadow_rgba(offset_x, offset_y, size, r, g, b, a));
 }
-function _text_line_height(type, is_auto, height) {
+function _text_line_height(type, height) {
   var rev = new TextLineHeight();
   rev._type = type;
-  rev._is_auto = is_auto;
   rev._height = height;
   return rev;
 }
@@ -1624,10 +1609,10 @@ function parse_text_line_height(str) {
     if (str == 'inherit') {
       return new TextLineHeight();
     } else if (str == 'auto') {
-      return _text_line_height(enum_object.value, true, 0);
+      return _text_line_height(enum_object.value, 0);
     } else {
       if (/^(?:\d+)?\.?\d+$/.test(str)) {
-        return _text_line_height(enum_object.value, false, parseFloat(str));
+        return _text_line_height(enum_object.value, parseFloat(str));
       }
     }
   }

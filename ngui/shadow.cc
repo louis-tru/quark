@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "shadow.h"
+#include "shadow-1.h"
 #include "draw.h"
 
 XX_NS(ngui)
@@ -85,7 +85,7 @@ void Shadow::set_shadow_color(Color value) {
 /**
  * @func shadow {Shadow}
  */
-void Shadow::set_shadow(ShadowValue value) {
+void Shadow::set_shadow(CGShadow value) {
   m_shadow = value;
   mark(M_BOX_SHADOW);
 }

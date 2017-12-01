@@ -41,7 +41,7 @@
 #include "label.h"
 #include "image.h"
 #include "sprite.h"
-#include "shadow.h"
+#include "shadow-1.h"
 
 XX_NS(ngui)
 

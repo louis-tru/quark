@@ -34,7 +34,7 @@
 #include "../font/font-1.h"
 #include "../box.h"
 #include "../sprite.h"
-#include "../shadow.h"
+#include "../shadow-1.h"
 #include "../image.h"
 #include "../video.h"
 #include "../text-node.h"

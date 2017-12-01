@@ -193,7 +193,7 @@ class WrapStyleSheets: public WrapObject {
   def_property_from_type(text_white_space, TextWhiteSpace);
   def_property_from_type(align_x, Align);
   def_property_from_type(align_y, Align);
-  def_property_from_type2(shadow, ShadowValue, Shadow);
+  def_property_from_type2(shadow, CGShadow, Shadow);
   def_property_from_type(src, String);
   def_property_from_type(background_image, String);
   

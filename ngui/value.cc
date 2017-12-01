@@ -41,15 +41,13 @@ bool Shadow::operator==(const Shadow& shadow) const {
   shadow.color == color;
 }
 
-TextFamily::TextFamily(TextArrtsType type)
-: type(TextArrtsType::INHERIT)
+TextFamily::TextFamily(TextAttrType type)
+: type(TextAttrType::INHERIT)
 , value( FontPool::get_font_familys_id(String()) ) {
-  
 }
- 
-TextFamily::TextFamily(TextArrtsType type, const FontFamilysID* cffid)
+
+TextFamily::TextFamily(TextAttrType type, const FontFamilysID* cffid)
 : type(type), value(cffid) {
-  
 }
 
 cString& TextFamily::name() const {
@@ -58,14 +56,6 @@ cString& TextFamily::name() const {
 
 const Array<String>& TextFamily::names() const {
   return value->names();
-}
-
-bool TextLineHeightV::operator!=(const TextLineHeightV& value) const {
-  return is_auto == value.is_auto && height != value.height;
-}
-
-bool TextLineHeightV::operator==(const TextLineHeightV& value) const {
-  return is_auto == value.is_auto && height == value.height;
 }
 
 XX_END

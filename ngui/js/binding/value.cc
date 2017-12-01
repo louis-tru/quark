@@ -67,7 +67,7 @@ ValueProgram::ValueProgram(Worker* worker,
 #undef js_init_func
 }
 
-ValueProgram::~ValueProgram() { }
+ValueProgram::~ValueProgram() {}
 
 Local<JSValue> ValueProgram::New(const TextAlign& value) {
   Local<JSValue> arg = worker->New((uint)value);
@@ -106,7 +106,7 @@ Local<JSValue> ValueProgram::New(const Border& value) {
   args[4] = worker->New(value.color.a());
   return _BorderRgba.strong()->Call(worker, args.length(), &args[0]);
 }
-Local<JSValue> ValueProgram::New(const ShadowValue& value) {
+Local<JSValue> ValueProgram::New(const CGShadow& value) {
   Array<Local<JSValue>> args(7);
   args[0] = worker->New(value.offset_x);
   args[1] = worker->New(value.offset_y);
@@ -240,7 +240,6 @@ Local<JSValue> ValueProgram::New(const TextShadow& value) {
 Local<JSValue> ValueProgram::New(const TextLineHeight& value) {
   Array<Local<JSValue>> args(3);
   args[0] = worker->New((uint)value.type);
-  args[1] = worker->New(value.value.is_auto);
   args[2] = worker->New(value.value.height);
   return _TextLineHeight.strong()->Call(worker, args.length(), &args[0]);
 }
@@ -299,6 +298,38 @@ void ValueProgram::throwError(Local<JSValue> value, cchar* msg, Local<JSFunction
   parse_error_throw(worker, value, msg, more_msg);
 }
 
+#define DEF_STRING_VALUES(NAME, NAME2) #NAME2,
+#define INIT_CONST_MAP(TYPE, NAME) { string_values[(int)TYPE::NAME], TYPE::NAME },
+#define DEF_CONST_MAP(NAME, TYPE) \
+static const Map<String, TYPE> NAME({ XX_##NAME(INIT_CONST_MAP) })
+
+static cchar* string_values[] = {
+  JS_ENUM_VALUE(DEF_STRING_VALUES)
+};
+
+DEF_CONST_MAP(TEXT_ALIGN, TextAlign);
+DEF_CONST_MAP(ALIGN, Align);
+DEF_CONST_MAP(CONTENT_ALIGN, ContentAlign);
+DEF_CONST_MAP(REPEAT, Repeat);
+DEF_CONST_MAP(DIRECTION, Direction);
+DEF_CONST_MAP(KEYBOARD_TYPE, KeyboardType);
+DEF_CONST_MAP(KEYBOARD_RETURN_TYPE, KeyboardReturnType);
+
+static const Map<String, cCurve*> CURCE({
+  {"linear", &LINEAR },
+  {"ease", &EASE },
+  {"ease_in", &EASE_IN },
+  {"ease_out", &EASE_OUT },
+  {"ease_in_out", &EASE_IN_OUT },
+});
+static Map<uint, cCurve*> CURCE2({
+  { 0, &LINEAR },
+  { 1, &EASE },
+  { 2, &EASE_IN },
+  { 3, &EASE_OUT },
+  { 4, &EASE_IN_OUT },
+});
+
 #define js_parse(Type, ok) { \
 Local<JSObject> object;\
 if ( in->IsString(worker) ) {\
@@ -321,11 +352,67 @@ ok \
 return true;\
 }
 
+#define js_parse2(Type, FIND_MAP, ok) { \
+Local<JSObject> object; \
+if ( in->IsString(worker) ) { \
+  auto it = FIND_MAP.find(in->ToStringValue(worker)); \
+  if ( it.is_null() ) { /* err */ \
+    goto err; \
+  } else { \
+    out = it.value(); \
+    return true; \
+  } \
+} else if ( is##Type(in) ) { \
+  object = in.To<JSObject>(); \
+} else { \
+ err: \
+  parse_error_throw(worker, in, desc, _parse##Type##Description.strong()); \
+  return false; \
+} \
+ok \
+return true; \
+}
+
 // parse
 bool ValueProgram::parseTextAlign(Local<JSValue> in, TextAlign& out, cchar* desc) {
+  js_parse2(TextAlign, TEXT_ALIGN, {
+    out = (TextAlign)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseAlign(Local<JSValue> in, Align& out, cchar* desc) {
+  js_parse2(Align, ALIGN, {
+    out = (Align)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseContentAlign(Local<JSValue> in, ContentAlign& out, cchar* desc) {
+  js_parse2(ContentAlign, CONTENT_ALIGN, {
+    out = (ContentAlign)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseRepeat(Local<JSValue> in, Repeat& out, cchar* desc) {
+  js_parse2(Repeat, REPEAT, {
+    out = (Repeat)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseDirection(Local<JSValue> in, Direction& out, cchar* desc) {
+  js_parse2(Direction, DIRECTION, {
+    out = (Direction)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseKeyboardType(Local<JSValue> in, KeyboardType& out, cchar* desc) {
+  js_parse2(KeyboardType, KEYBOARD_TYPE, {
+    out = (KeyboardType)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseKeyboardReturnType(Local<JSValue> in, KeyboardReturnType& out, cchar* desc) {
+  js_parse2(KeyboardReturnType, KEYBOARD_RETURN_TYPE, {
+    out = (KeyboardReturnType)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  });
+}
+bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
   Local<JSObject> object;
   if ( in->IsString(worker) ) {
-    Local<JSValue> o = worker->New(_parseTextAlign)->Call(worker, 1, &in);
+    Local<JSValue> o = worker->New(_parseBorder)->Call(worker, 1, &in);
     if ( o.IsEmpty() ) { // err
       return false;
     } else if (o->IsNull(worker)) {
@@ -333,56 +420,21 @@ bool ValueProgram::parseTextAlign(Local<JSValue> in, TextAlign& out, cchar* desc
     } else {
       object = o.To<JSObject>();
     }
-  } else if ( isTextAlign(in) ) {
+  } else if ( isBorder(in) ) {
     object = in.To<JSObject>();
   } else {
-   err:
-    parse_error_throw(worker, in, desc, _parseTextAlignDescription.strong());
+  err:
+    parse_error_throw(worker, in, desc, _parseBorderDescription.strong());
     return false;
   }
-  out = (TextAlign)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+  out.width = object->Get(worker, worker->strs()->width())->ToNumberValue(worker);
+  out.color.r(object->Get(worker, worker->strs()->r())->ToUint32Value(worker));
+  out.color.g(object->Get(worker, worker->strs()->g())->ToUint32Value(worker));
+  out.color.b(object->Get(worker, worker->strs()->b())->ToUint32Value(worker));
+  out.color.a(object->Get(worker, worker->strs()->a())->ToUint32Value(worker));
   return true;
 }
-bool ValueProgram::parseAlign(Local<JSValue> in, Align& out, cchar* desc) {
-  js_parse(Align, {
-    out = (Align)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
-  });
-}
-bool ValueProgram::parseContentAlign(Local<JSValue> in, ContentAlign& out, cchar* desc) {
-  js_parse(ContentAlign, {
-    out = (ContentAlign)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
-  });
-}
-bool ValueProgram::parseRepeat(Local<JSValue> in, Repeat& out, cchar* desc) {
-  js_parse(Repeat, {
-    out = (Repeat)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
-  });
-}
-bool ValueProgram::parseDirection(Local<JSValue> in, Direction& out, cchar* desc) {
-  js_parse(Direction, {
-    out = (Direction)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
-  });
-}
-bool ValueProgram::parseKeyboardType(Local<JSValue> in, KeyboardType& out, cchar* desc) {
-  js_parse(KeyboardType, {
-    out = (KeyboardType)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
-  });
-}
-bool ValueProgram::parseKeyboardReturnType(Local<JSValue> in, KeyboardReturnType& out, cchar* desc) {
-  js_parse(KeyboardReturnType, {
-    out = (KeyboardReturnType)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
-  });
-}
-bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
-  js_parse(Border, {
-    out.width = object->Get(worker, worker->strs()->width())->ToNumberValue(worker);
-    out.color.r(object->Get(worker, worker->strs()->r())->ToUint32Value(worker));
-    out.color.g(object->Get(worker, worker->strs()->g())->ToUint32Value(worker));
-    out.color.b(object->Get(worker, worker->strs()->b())->ToUint32Value(worker));
-    out.color.a(object->Get(worker, worker->strs()->a())->ToUint32Value(worker));
-  });
-}
-bool ValueProgram::parseShadow(Local<JSValue> in, ShadowValue& out, cchar* desc) {
+bool ValueProgram::parseShadow(Local<JSValue> in, CGShadow& out, cchar* desc) {
   js_parse(Shadow, {
     out.offset_x = object->Get(worker, worker->strs()->offsetX())->ToNumberValue(worker);
     out.offset_y = object->Get(worker, worker->strs()->offsetY())->ToNumberValue(worker);
@@ -426,22 +478,11 @@ bool ValueProgram::parseCurve(Local<JSValue> in, Curve& out, cchar* desc) {
   Local<JSObject> object;
   
   if ( in->IsString(worker) ) {
-    static Map<String, cCurve*> const_curve([] {
-      Map<String, cCurve*> rv;
-      rv.set("linear", &LINEAR);
-      rv.set("ease", &EASE);
-      rv.set("ease_in", &EASE_IN);
-      rv.set("ease_out", &EASE_OUT);
-      rv.set("ease_in_out", &EASE_IN_OUT);
-      return rv;
-    }());
-    
     JS_WORKER();
-    auto it = const_curve.find( in->ToStringValue(worker,1) );
+    auto it = CURCE.find( in->ToStringValue(worker,1) );
     if ( !it.is_null() ) {
       out = *it.value(); return true;
     }
-    
     Local<JSValue> o = worker->New(_parseCurve)->Call(worker, 1, &in);
     if ( o.IsEmpty() || o->IsNull(worker) ) {
       return false;
@@ -449,17 +490,7 @@ bool ValueProgram::parseCurve(Local<JSValue> in, Curve& out, cchar* desc) {
       object = o.To<JSObject>();
     }
   } else if ( in->IsUint32(worker) ) {
-    static Map<uint, cCurve*> const_curve([] {
-      Map<uint, cCurve*> rv;
-      rv.set(0, &LINEAR);
-      rv.set(1, &EASE);
-      rv.set(2, &EASE_IN);
-      rv.set(3, &EASE_OUT);
-      rv.set(4, &EASE_IN_OUT);
-      return rv;
-    }());
-    
-    auto it = const_curve.find(in->ToUint32Value(worker));
+    auto it = CURCE2.find(in->ToUint32Value(worker));
     if ( !it.is_null() ) {
       out = *it.value(); return true;
     }
@@ -579,7 +610,7 @@ bool ValueProgram::parseFloatValues(Local<JSValue> in, Array<float>& out, cchar*
 }
 bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc) {
   js_parse(TextColor, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value.r(object->Get(worker, worker->strs()->r())->ToUint32Value(worker));
     out.value.g(object->Get(worker, worker->strs()->g())->ToUint32Value(worker));
     out.value.b(object->Get(worker, worker->strs()->b())->ToUint32Value(worker));
@@ -588,31 +619,31 @@ bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc
 }
 bool ValueProgram::parseTextSize(Local<JSValue> in, TextSize& out, cchar* desc) {
   if (in->IsNumber(worker)) {
-    out.type = TextArrtsType::VALUE;
+    out.type = TextAttrType::VALUE;
     out.value = in->ToNumberValue(worker);
     return true;
   }
   js_parse(TextSize, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value = object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
   });
 }
 bool ValueProgram::parseTextFamily(Local<JSValue> in, TextFamily& out, cchar* desc) {
   js_parse(TextFamily, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     String fonts = object->Get(worker, worker->strs()->value())->ToStringValue(worker);
     out.value = FontPool::get_font_familys_id(fonts);
   });
 }
 bool ValueProgram::parseTextStyle(Local<JSValue> in, TextStyle& out, cchar* desc) {
   js_parse(TextStyle, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value = (TextStyleEnum)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
   });
 }
 bool ValueProgram::parseTextShadow(Local<JSValue> in, TextShadow& out, cchar* desc) {
   js_parse(TextShadow, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value.offset_x = object->Get(worker, worker->strs()->offsetX())->ToNumberValue(worker);
     out.value.offset_y = object->Get(worker, worker->strs()->offsetY())->ToNumberValue(worker);
     out.value.size = object->Get(worker, worker->strs()->size())->ToNumberValue(worker);
@@ -625,21 +656,19 @@ bool ValueProgram::parseTextShadow(Local<JSValue> in, TextShadow& out, cchar* de
 bool ValueProgram::parseTextLineHeight(Local<JSValue> in,
                                        TextLineHeight& out, cchar* desc) {
   if (in->IsNumber(worker)) {
-    out.type = TextArrtsType::VALUE;
-    out.value.is_auto = false;
+    out.type = TextAttrType::VALUE;
     out.value.height = in->ToNumberValue(worker);
     return true;
   }
   js_parse(TextLineHeight, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
-    out.value.is_auto = object->Get(worker, worker->strs()->isAuto())->ToBooleanValue(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value.height = object->Get(worker, worker->strs()->height())->ToNumberValue(worker);
   });
 }
 bool ValueProgram::parseTextDecoration(Local<JSValue> in,
-                                         TextDecoration& out, cchar* desc) {
+                                       TextDecoration& out, cchar* desc) {
   js_parse(TextDecoration, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value = (TextDecorationEnum)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
   });
 }
@@ -653,165 +682,111 @@ bool ValueProgram::parsebool(Local<JSValue> in, bool& out, cchar* desc) {
 }
 bool ValueProgram::parseTextOverflow(Local<JSValue> in, TextOverflow& out, cchar* desc) {
   js_parse(TextOverflow, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value = (TextOverflowEnum)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
   });
 }
 bool ValueProgram::parseTextWhiteSpace(Local<JSValue> in,
                                       TextWhiteSpace& out, cchar* desc) {
   js_parse(TextWhiteSpace, {
-    out.type = (TextArrtsType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
     out.value = (TextWhiteSpaceEnum)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
   });
 }
 // is
 bool ValueProgram::isTextAlign(Local<JSValue> value) {
-  //return false;
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextAlign.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextAlign.strong());
 }
 bool ValueProgram::isAlign(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorAlign.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorAlign.strong());
 }
 bool ValueProgram::isContentAlign(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorContentAlign.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorContentAlign.strong());
 }
 bool ValueProgram::isRepeat(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorRepeat.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorRepeat.strong());
 }
 bool ValueProgram::isDirection(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorDirection.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorDirection.strong());
 }
 bool ValueProgram::isKeyboardType(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorKeyboardType.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorKeyboardType.strong());
 }
 bool ValueProgram::isKeyboardReturnType(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorKeyboardReturnType.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorKeyboardReturnType.strong());
 }
 bool ValueProgram::isBorder(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorBorder.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorBorder.strong());
 }
 bool ValueProgram::isShadow(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorShadow.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorShadow.strong());
 }
 bool ValueProgram::isColor(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorColor.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorColor.strong());
 }
 bool ValueProgram::isVec2(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorVec2.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorVec2.strong());
 }
 bool ValueProgram::isVec3(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorVec3.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorVec3.strong());
 }
 bool ValueProgram::isVec4(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorVec4.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorVec4.strong());
 }
 bool ValueProgram::isCurve(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorCurve.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorCurve.strong());
 }
 bool ValueProgram::isRect(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorRect.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorRect.strong());
 }
 bool ValueProgram::isMat(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorMat.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorMat.strong());
 }
 bool ValueProgram::isMat4(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorMat4.strong()->Equals(constructor);
+//  if ( ! value->IsObject(worker)) return false;
+//  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
+//  return _constructorMat4.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorMat4.strong());
 }
 bool ValueProgram::isValue(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorValue.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorValue.strong());
 }
 bool ValueProgram::isTextColor(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextColor.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextColor.strong());
 }
 bool ValueProgram::isTextSize(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextSize.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextSize.strong());
 }
 bool ValueProgram::isTextFamily(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextFamily.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextFamily.strong());
 }
 bool ValueProgram::isTextStyle(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextStyle.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextStyle.strong());
 }
 bool ValueProgram::isTextShadow(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextShadow.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextShadow.strong());
 }
 bool ValueProgram::isTextLineHeight(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextLineHeight.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextLineHeight.strong());
 }
 bool ValueProgram::isTextDecoration(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextDecoration.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextDecoration.strong());
 }
 bool ValueProgram::isBase(Local<JSValue> value) {
   return _isBase.strong()->Call(worker, 1, &value)->ToBooleanValue(worker);
 }
 bool ValueProgram::isString(Local<JSValue> value) {
-  return 1;
+  return true;
 }
 bool ValueProgram::isbool(Local<JSValue> value) {
-  return 1;
+  return true;
 }
 bool ValueProgram::isTextOverflow(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextOverflow.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextOverflow.strong());
 }
 bool ValueProgram::isTextWhiteSpace(Local<JSValue> value) {
-  if ( ! value->IsObject(worker)) return false;
-  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-  return _constructorTextWhiteSpace.strong()->Equals(constructor);
+  return value->InstanceOf(worker, _constructorTextWhiteSpace.strong());
 }
-
-// is_base
 
 /**
  * @class NativeValue

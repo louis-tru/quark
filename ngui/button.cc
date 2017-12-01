@@ -230,7 +230,7 @@ public:
 
 Button::Button() {
   m_text_align = TextAlign::CENTER;
-  m_text_size = { TextArrtsType::VALUE, 16 };
+  m_text_size = { TextAttrType::VALUE, 16 };
 }
 
 /**

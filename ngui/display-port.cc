@@ -210,10 +210,10 @@ void DisplayPort::refresh() {
   }
 }
 
-void DisplayPort::push_draw_region(CGRegion re) {
+void DisplayPort::push_draw_region(Region re) {
   // 计算一个交集区域
   
-  CGRegion dre = m_draw_region.last();
+  Region dre = m_draw_region.last();
   
   float x, x2, y, y2;
   

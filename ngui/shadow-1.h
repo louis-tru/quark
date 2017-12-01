@@ -91,12 +91,12 @@ class XX_EXPORT Shadow: public Div {
   /**
    * @func shadow
    */
-  inline ShadowValue shadow() const { return m_shadow; }
+  inline CGShadow shadow() const { return m_shadow; }
   
   /**
    * @func set_shadow_value
    */
-  void set_shadow(ShadowValue value);
+  void set_shadow(CGShadow value);
   
  protected:
   
@@ -106,8 +106,8 @@ class XX_EXPORT Shadow: public Div {
   virtual void draw(Draw* draw);
   
  private:
-  bool        m_is_draw_shadow_box;
-  ShadowValue m_shadow;
+  bool  m_is_draw_shadow_box;
+  CGShadow m_shadow;
 };
 
 XX_END
