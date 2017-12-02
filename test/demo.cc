@@ -43,9 +43,7 @@ XX_GUI_MAIN() {
   js::start(//"--inspect-brk=0.0.0.0:9229 "
   					"http://192.168.1.11:1026/demo/examples --dev --ignore-local=*");
 #else
-  //js::start("--inspect-brk=0.0.0.0:9229 examples");
-  js::start("examples");
-  // js::start("demo/examples");
+  js::start("demo/examples");
 #endif
   
   return 0;

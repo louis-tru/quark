@@ -108,6 +108,18 @@ int exec_argc, const char* const* exec_argv) {
 # node/lib/pkg.js
 # node/lib/internal/pkg.js
 
+# node/lib/buffer.js
+
+```js
+class FastBuffer extends Uint8Array {
+-  constructor(arg1, arg2, arg3) {
+-    super(arg1, arg2, arg3);
++  constructor(...args) {
++    super(...args);
+	}
+}
+```
+
 # node/deps/cares/config/android/ares_config.h
 
 ```cc
