@@ -113,8 +113,8 @@ int exec_argc, const char* const* exec_argv) {
 ```js
 class FastBuffer extends Uint8Array {
 -  constructor(arg1, arg2, arg3) {
--    super(arg1, arg2, arg3);
 +  constructor(...args) {
+-    super(arg1, arg2, arg3);
 +    super(...args);
 	}
 }
