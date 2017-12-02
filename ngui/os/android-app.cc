@@ -268,8 +268,10 @@ public:
     }
 
     android_app->m_host->render_loop()->post(Cb([targger_orientation](Se &ev) {
-      // 因为绘图表面反应迟钝，但调用eglSwapBuffers()会刷新绘图表面
-      android_app->m_host->refresh_display(); // 这主要为了刷新绘图表面
+      // 这里有点奇怪，因为绘图表面反应迟钝，
+      // 也就是说 `ANativeWindow_getWidth()` 返回值可能与当前真实值不相同，
+      // 但调用eglSwapBuffers()会刷新绘图表面。
+      android_app->m_host->refresh_display(); // 刷新绘图表面
       android_draw_core->refresh_surface_size(&android_app->m_rect);
 
       if ( targger_orientation ) { // 触发方向变化事件

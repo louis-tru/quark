@@ -51,6 +51,7 @@ class AndroidGLDrawCore {
   bool create_surface(ANativeWindow* window);
   void destroyed_surface(ANativeWindow* window);
   void refresh_surface_size(CGRect* rect);
+  void refresh_virtual_keyboard_rect();
   void refresh_status_for_buffer();
   void begin_render();
   void commit_render();
@@ -64,7 +65,7 @@ class AndroidGLDrawCore {
   EGLContext m_context;
   EGLSurface m_surface;
   ANativeWindow* m_window;
-  Vec2 m_surface_size;
+  Vec2 m_raw_surface_size;
   CGRect m_virtual_keys_rect;
   GLDraw* m_host;
 };

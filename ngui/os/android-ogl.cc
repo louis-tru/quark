@@ -138,7 +138,7 @@ static EGLConfig egl_config(EGLDisplay display, const Map<String, int> &options,
  * @class AndroidGLDraw
  */
 template<class Basic> class AndroidGLDraw: public Basic {
-public:
+ public:
   inline AndroidGLDraw(GUIApplication* host, EGLDisplay display,
                        EGLConfig config,
                        EGLContext ctx,
@@ -158,9 +158,13 @@ public:
     return multisample_ok_ || this->Basic::is_support_multisampled();
   }
   virtual void initializ_ogl_buffers() { core_.initializ_ogl_buffers(); }
+  virtual void refresh_status_for_root_matrix(const Mat4& root, const Mat4& query_root) {
+    Basic::refresh_status_for_root_matrix(root, query_root);
+    core_.refresh_virtual_keyboard_rect();
+  }
   inline AndroidGLDrawCore* core() { return &core_; }
 
-private:
+ private:
   AndroidGLDrawCore core_;
   bool multisample_ok_;
 };
@@ -294,7 +298,7 @@ bool AndroidGLDrawCore::create_surface(ANativeWindow* window) {
 
   m_window = window;
   m_surface = surface;
-  m_surface_size = Vec2(ANativeWindow_getWidth(window), ANativeWindow_getHeight(window));
+  m_raw_surface_size = Vec2(ANativeWindow_getWidth(window), ANativeWindow_getHeight(window));
 
   return true;
 }
@@ -313,24 +317,28 @@ void AndroidGLDrawCore::destroyed_surface(ANativeWindow* window) {
 void AndroidGLDrawCore::refresh_surface_size(CGRect* rect) {
 
   if ( m_window ) {
-    m_surface_size = Vec2(ANativeWindow_getWidth(m_window), ANativeWindow_getHeight(m_window));
+    m_raw_surface_size = Vec2(ANativeWindow_getWidth(m_window), ANativeWindow_getHeight(m_window));
   }
 
-  if ( m_surface_size[0] == 0 || m_surface_size[1] == 0 ) return;
+  if ( m_raw_surface_size[0] == 0 || m_raw_surface_size[1] == 0 ) return;
 
   if ( rect == nullptr ) {
     CGRect region = m_host->selected_region(); // 使用上次的区域，如果这是有效的
 
     if (region.size.width() == 0) { // 区域无效
-      m_host->set_surface_size(m_surface_size);
+      m_host->set_surface_size(m_raw_surface_size);
     } else {
-      m_host->set_surface_size(m_surface_size, &region);
+      m_host->set_surface_size(m_raw_surface_size, &region);
     }
   } else {
-    m_host->set_surface_size(m_surface_size, rect);
+    m_host->set_surface_size(m_raw_surface_size, rect);
   }
-  
+
   // set virtual keys rect
+  refresh_virtual_keyboard_rect();
+}
+
+void AndroidGLDrawCore::refresh_virtual_keyboard_rect() {
 
   m_virtual_keys_rect = CGRect();
 
@@ -341,29 +349,28 @@ void AndroidGLDrawCore::refresh_surface_size(CGRect* rect) {
   int height = int(m_host->surface_size().height() - region.size.height());
 
   if ( width > 0 ) { // left / right
-    if ( region.origin.x() == 0 ) { // right
+    if ( region.origin.x() == 0 ) { // right，虚拟键盘在`right`
       m_virtual_keys_rect = {
-        Vec2(region.size.width() / scale[0], 0),
-        Vec2(width / scale[0], region.size.height() / scale[1])
+              Vec2(region.size.width() / scale[0], 0),
+              Vec2(width / scale[0], region.size.height() / scale[1])
       };
-    } else { // left
+    } else { // left，虚拟键盘在`left`
       m_virtual_keys_rect = {
-        Vec2(-region.origin.x() / scale[0], 0),
-        Vec2(region.origin.x() / scale[0], region.size.height() / scale[1])
+              Vec2(-region.origin.x() / scale[0], 0),
+              Vec2(region.origin.x() / scale[0], region.size.height() / scale[1])
       };
     }
-  } else if ( height > 0 ) { // bottom
+  } else if ( height > 0 ) { // bottom，虚拟键盘在`bottom`
     m_virtual_keys_rect = {
-      Vec2(0, region.size.height() / scale[0]),
-      Vec2(region.size.width() / scale[0], height / scale[1])
+            Vec2(0, region.size.height() / scale[0]),
+            Vec2(region.size.width() / scale[0], height / scale[1])
     };
   }
-
 }
 
 void AndroidGLDrawCore::refresh_status_for_buffer() {
 
-  if ( m_host->surface_size() == Vec2() )
+  if (m_host->surface_size() == Vec2())
     return;
 
   Vec2 size = m_host->surface_size();
@@ -396,7 +403,7 @@ void AndroidGLDrawCore::commit_render() {
     glBindVertexArray(0);
   }
 
-#define gl_  glshaders(m_host)
+#define gl_ glshaders(m_host)
 
   if ( m_virtual_keys_rect.size.width() != 0 ) {
     // Draw Virtual Keys background color
