@@ -94,6 +94,7 @@
     'target_name': 'ngui_copy_so', 
     'type': 'none',
     'dependencies': [ 'ngui-lib' ],
+    
     'conditions': [
       # copy libngui.so to product directory
       ['debug==0 and output_library=="shared_library" and OS not in "mac"', {
@@ -105,9 +106,39 @@
         }], # copies
       }],
       # output mac shared library for "ngui.framework"
-      ['debug==0 and output_library=="shared_library" and OS in "mac" and project=="make"', {
+      ['debug==0 and output_library=="shared_library" \
+        and OS in "mac" and project=="make"', {
         'actions': [{
           'action_name': 'ngui_apple_dylib',
+          'variables': {
+            'embed_bitcode': '',
+            'conditions': [
+              ['arch in "arm arm64" and without_embed_bitcode==0', {
+                'embed_bitcode': '-fembed-bitcode',
+              }],
+              ['use_v8==0 and os=="ios"', {
+                'v8libs': [ '<(output)/libv8-link.a', ],
+                'l_v8libs': '-lv8-link',
+              }, {
+                'v8libs': [ 
+                  '<(output)/libv8_base.a',
+                  '<(output)/libv8_libbase.a',
+                  '<(output)/libv8_libsampler.a',
+                  '<(output)/libv8_builtins_setup.a',
+                  '<(output)/libv8_builtins_generators.a',
+                  '<(output)/libv8_nosnapshot.a',
+                  '<(output)/libv8_libplatform.a',
+                ],
+                'l_v8libs': '-lv8_base '
+                            '-lv8_libbase '
+                            '-lv8_libsampler '
+                            '-lv8_builtins_setup '
+                            '-lv8_builtins_generators '
+                            '-lv8_nosnapshot '
+                            '-lv8_libplatform ',
+              }],
+            ],
+          },
           'inputs': [
             '<(output)/libngui-base.a', 
             '<(output)/libngui-gui.a', 
@@ -121,20 +152,14 @@
             '<(output)/libft2.a',
             '<(output)/libtinyxml2.a',
             '<(output)/obj.target/ffmpeg/libffmpeg.a',
-            '<(output)/libv8-link.a',
             '<(output)/libnode.a',
             '<(output)/libnghttp2.a',
             '<(output)/libcares.a',
+            '<@(v8libs)',
           ],
           'outputs': [
             '<(output)/libngui.dylib',
           ],
-          'variables': {
-            'embed_bitcode': '',
-            'conditions': [['arch in "arm arm64"', {
-              'embed_bitcode': '-fembed-bitcode',
-            }]],
-          },
           'action': [ 'sh', '-c', 
             'cd <(output);'
             'find obj.target/ngui-base ' 
@@ -169,13 +194,10 @@
             '-lft2 '
             '-ltinyxml2 '
             '-lffmpeg '
-            '-lv8-link '
-            '-lnode '
-            '-lnghttp2 '
-            '-lv8-link '
             '-lnode '
             '-lnghttp2 '
             '-lcares '
+            '<(l_v8libs) '
             # Link system library
             '-framework Foundation '
             '-framework SystemConfiguration '

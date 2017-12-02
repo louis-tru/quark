@@ -68,6 +68,9 @@ def_opts('no-browser-globals', 0,'--no-browser-globals do not export browser glo
 def_opts('without-inspector', 0,'--without-inspector disable the V8 inspector protocol [{0}]');
 def_opts('without-visibility-hidden', 0, 
                                 '--without-visibility-hidden without visibility hidden [{0}]');
+def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
+def_opts('without-embed-bitcode', 0, 
+                                '--without-embed-bitcode disable apple embed-bitcode [{0}]');
 
 function arm() {
   return opts.arch.match(/^arm/) ? 1 : 0;
@@ -94,7 +97,7 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
   var os = opts.os;
   var arch = opts.arch;
   var cmd = '';
-  var source = __dirname + '/../depe/ffmpeg'
+  var source = __dirname + '/../depe/ffmpeg';
 
   var ff_opts = [
     `--prefix=${ff_install_dir}`,
@@ -217,7 +220,12 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
       --arch=${arch} \
       --enable-cross-compile \
       `;
-    cmd += `--cc='clang -miphoneos-version-min=8.0 -arch ${variables.arch_name} -fembed-bitcode' `; 
+
+    // apple marker
+    var f_embed_bitcode = opts.without_embed_bitcode ? 
+      '-fembed-bitcode-marker': '-fembed-bitcode';
+
+    cmd += `--cc='clang -miphoneos-version-min=8.0 -arch ${variables.arch_name} ${f_embed_bitcode}' `; 
     if (arch == 'x86' || arch == 'x64') {
       cmd += '--sysroot=$(xcrun --sdk iphonesimulator --show-sdk-path) ';
     } else {
@@ -229,7 +237,7 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
       ./configure \
       --target-os=darwin \
       --arch=${arch} `;
-    cmd += `--cc='clang -mmacosx-version-min=10.7 -arch ${variables.arch_name} -fembed-bitcode' `;
+    cmd += `--cc='clang -mmacosx-version-min=10.7 -arch ${variables.arch_name} ' `;
     cmd += '--sysroot=$(xcrun --sdk macosx --show-sdk-path) ';
   }
   
@@ -354,14 +362,12 @@ function configure() {
   }
   opts.use_v8 = bi(opts.use_v8);
 
-  /*
-  if ( os.match(/ios|android/) ) {
-    if ( opts.with_intl == 'auto' ) { // 默认不使用国际化
-      opts.with_intl = 0;
-    } 
-  }
-  opts.with_intl = bi(opts.with_intl);
-  */
+  // if ( os.match(/ios|android/) ) {
+  //   if ( opts.with_intl == 'auto' ) { // 默认不使用国际化
+  //     opts.with_intl = 0;
+  //   } 
+  // }
+  // opts.with_intl = bi(opts.with_intl);
 
   var config_gypi = {
     target_defaults: {
@@ -376,7 +382,7 @@ function configure() {
       arch: arch,
       arch_name: arch,
       arch_jni: arch,
-      suffix: arch,
+      suffix: suffix,
       debug: opts.debug,
       OS: get_OS(opts.os),
       os: opts.os,
@@ -463,6 +469,10 @@ function configure() {
 
   if (opts.without_visibility_hidden) {
     variables.without_visibility_hidden = 1;
+  }
+
+  if (opts.without_embed_bitcode) {
+    variables.without_embed_bitcode = 1;
   }
 
   if ( use_dtrace ) {
@@ -634,6 +644,10 @@ function configure() {
   else {
     console.error(`do not support ${os} os`);
     return;
+  }
+
+  if (opts.suffix) {
+    suffix = String(opts.suffix);
   }
 
   variables.output = path.format(`${__dirname}/../out/${os}.${suffix}.${configuration}`);

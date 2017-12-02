@@ -44,7 +44,7 @@ endef
 
 .SECONDEXPANSION:
 
-######################Build######################
+###################### Build ######################
 
 all: build
 
@@ -77,11 +77,21 @@ ios:
 	@$(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared
 	@$(MAKE) build
+	@./configure --os=ios --arch=arm64 --library=shared \
+		-v8 --suffix=arm64.v8 --without-embed-bitcode
+	@$(MAKE) build
 	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(DEV_OUT)/product/ios/iphonesimulator/Frameworks ./out/ios.x64.Release/libngui.dylib 
+					 $(DEV_OUT)/product/ios/iphonesimulator/Release/Frameworks \
+					 ./out/ios.x64.Release/libngui.dylib 
 	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(DEV_OUT)/product/ios/iphoneos/Frameworks ./out/ios.arm64.Release/libngui.dylib \
-					 #out/ios.armv7.Release/libngui.dylib
+					 $(DEV_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
+					 ./out/ios.x64.Release/libngui.dylib 
+	@$(NODE) ./tools/gen_apple_framework.js ios \
+					 $(DEV_OUT)/product/ios/iphoneos/Release/Frameworks \
+					 ./out/ios.arm64.Release/libngui.dylib # out/ios.armv7.Release/libngui.dylib
+	@$(NODE) ./tools/gen_apple_framework.js ios \
+					 $(DEV_OUT)/product/ios/iphoneos/Debug/Frameworks \
+					 ./out/ios.arm64.v8.Release/libngui.dylib
 
 # build all android platform and output to product dir
 android:

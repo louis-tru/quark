@@ -33,6 +33,7 @@
     'use_system_zlib%': 0,
     'use_v8%': 1,
     'without_visibility_hidden%': 0,
+    'without_embed_bitcode%': 0,
 
     ############################# dependents set ##################
     
@@ -203,7 +204,7 @@
           '-miphoneos-version-min=<(version_min)', 
           '-arch <(arch_name)'
           '-isysroot <(sysroot)', 
-          '-fembed-bitcode', #'-fembed-bitcode-marker',
+          # '-fembed-bitcode', #'-fembed-bitcode-marker',
         ],
         'ldflags': [ 
           '-miphoneos-version-min=<(version_min)',
@@ -216,6 +217,11 @@
         'conditions': [
           ['cplusplus11==1', { 'cflags_cc': [ '-stdlib=libc++' ] }],
           ['arch in "arm arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
+          ['without_embed_bitcode==1', { 
+            'cflags': [ '-fembed-bitcode-marker' ]
+          }, {
+            'cflags': [ '-fembed-bitcode' ]
+          }],
         ],
         'xcode_settings': {
           'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os).<(suffix)',
@@ -228,7 +234,7 @@
           'ARCHS': [ '$(ARCHS_STANDARD)' ],   # 'ARCHS': [ '$(ARCHS_STANDARD_32_BIT)' ],
           'SKIP_INSTALL': 'YES',
           'DEBUG_INFORMATION_FORMAT': 'dwarf', # dwarf-with-dsym
-          'ENABLE_BITCODE': 'YES',
+          #'ENABLE_BITCODE': 'YES',
           'CLANG_ENABLE_OBJC_ARC': 'YES',
           'VALID_ARCHS': '<(arch_name)',
           'conditions': [
@@ -239,6 +245,11 @@
               'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7s]': [ '$(inherited)', 'USE_SIMULATOR', ],
               'GCC_PREPROCESSOR_DEFINITIONS[arch=arm64]': [ '$(inherited)', 'USE_SIMULATOR', ],
             }],
+            ['without_embed_bitcode==0', {
+              'ENABLE_BITCODE': 'YES'
+            }, {
+              'ENABLE_BITCODE': 'NO'
+            }]
           ],
         },
       }],
