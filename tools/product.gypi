@@ -13,6 +13,7 @@
         'xcode_settings': {
           'GCC_OPTIMIZATION_LEVEL': '0',
           'ONLY_ACTIVE_ARCH': 'YES',      # Build Active Architecture Only
+          'ENABLE_BITCODE': 'NO',
         },
       },
       'Release': {
@@ -27,6 +28,13 @@
           'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
           'GCC_STRICT_ALIASING': 'YES',
           'ONLY_ACTIVE_ARCH': 'NO',
+          'conditions': [
+            ['os=="ios"', {
+              'ENABLE_BITCODE': 'YES',
+            },{
+              'ENABLE_BITCODE': 'NO',
+            }],
+          ],
         },
         'conditions': [
          ['os=="android"', {
@@ -58,7 +66,7 @@
             '$(inherited)', 
             '@executable_path/Frameworks'
           ],
-          'ENABLE_BITCODE': 'YES',
+          # 'ENABLE_BITCODE': 'YES',
           'CLANG_ENABLE_OBJC_ARC': 'YES',
           'VALID_ARCHS': ['arm64'],
         },
@@ -136,16 +144,16 @@
       ['os=="ios"', {
         'link_settings': { 
           'libraries': [ 
-            '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/Frameworks/ngui.framework',
             '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
+            '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
           ],
         },
         'direct_dependent_settings': {
           'mac_framework_dirs': [
-            '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/Frameworks',
+            '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks',
           ],
           'mac_bundle_frameworks': [
-            '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/Frameworks/ngui.framework',
+            '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
           ],
         },
       }],
