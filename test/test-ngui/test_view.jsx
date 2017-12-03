@@ -287,13 +287,13 @@ new GUIApplication({ _multisample: 4 }).start(
   var img = new Image();
   M(img, 'appendTo', [this.root])
   P(img, 'src');
-  P(img, 'src', $('res/10440501.jpg'));
+  P(img, 'src', resolve('res/10440501.jpg'));
   P(img, 'marginLeft', 'auto');
   P(img, 'marginRight', 'auto');
   P(img, 'sourceWidth');
   P(img, 'sourceHeight');
   P(img, 'backgroundImage');
-  P(img, 'backgroundImage', $('res/cc.jpg'));
+  P(img, 'backgroundImage', resolve('res/cc.jpg'));
   P(img, 'height', 200)
 
   LOG('\nTest Scroll:\n')
@@ -405,7 +405,7 @@ new GUIApplication({ _multisample: 4 }).start(
   var s = new Sprite()
   M(s, 'appendTo', [this.root])
   P(s, 'src');
-  P(s, 'src', $('res/cc.jpg'));
+  P(s, 'src', resolve('res/cc.jpg'));
   P(s, 'texture');
   P(s, 'startX');
   P(s, 'startX', 20);

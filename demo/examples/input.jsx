@@ -10,7 +10,7 @@ function end_input(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="Input" source=$(__filename)>
+  <Mynavpage title="Input" source=resolve(__filename)>
     <Div width="full">
       <Text margin=10 textBackgroundColor="#000" textColor="#fff">Examples Input</Text>
       

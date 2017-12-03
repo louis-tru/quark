@@ -3,7 +3,7 @@ import 'fs'
 import 'ngui/keys'
 import { M } from './test'
 
-//M(keys, 'parseFile', [ $('lib.keys') ])
+//M(keys, 'parseFile', [ resolve('lib.keys') ])
 M(keys, 'parse', [ 
 `
 a A

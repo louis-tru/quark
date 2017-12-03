@@ -87,20 +87,23 @@ function extend2(obj, extd) {
 }
 
 function __vx(raw_vx, attrs, vdata) {
-  if (!Array.isArray(raw_vx) || raw_vx[0] !== 0) {
+  if (!raw_vx || raw_vx.vx !== 0) {
     throw new TypeError('Raw View xml type error.');
   }
+  
+  // { vx:0, v:[tag,attrs,childs,vdata] }
 
-  var r = raw_vx.slice();
-
+  var v = raw_vx.v.slice();
+  var r = { vx: 0, v: v };
+  
   if (vdata) {
-    r[4] = vdata
+    v[3] = vdata;
   }
   
   if (attrs.length != 0) {
-    var raw_attrs = raw_vx[2];
+    var raw_attrs = v[1];
     var attrs_map = {};
-    r[2] = attrs;
+    v[1] = attrs; // new attrs
     for (var attr of attrs) {
       attrs_map[attr[0].join('.')] = 1; // mark current attr
     }

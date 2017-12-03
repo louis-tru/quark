@@ -6,7 +6,7 @@ class IconsPanel extends ViewController {
   loadView(vx) {
     super.loadView(<Div margin=10 width="full" />);
     
-    var [,str] = vx;
+    var {v:str} = vx;
     var view = this.view;
     
     for ( var i = 0; i < str.length; i++ ) {
@@ -24,7 +24,7 @@ class IconsPanel extends ViewController {
 }
 
 export const vx = (
-  <Mynavpage title="Icons" source=$(__filename)>
+  <Mynavpage title="Icons" source=resolve(__filename)>
     <Scroll width="full" height="full" bounceLock=0>
       <IconsPanel>
 \ue900

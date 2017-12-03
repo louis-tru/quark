@@ -135,7 +135,7 @@ new GUIApplication().start(
     height: 100,
     opacity: 1,
     visible: true,
-    src: $('res/cc.jpg'),
+    src: resolve('res/cc.jpg'),
 	}]);
 
 	M(act6, 'add', [{
@@ -212,8 +212,8 @@ new GUIApplication().start(
     align_x: 'center',
     align_y: 'bottom',
     shadow: '2 2 2 #f00',
-    src: $('res/bb.jpg'),
-    background_image: $('res/bb.jpg'),
+    src: resolve('res/bb.jpg'),
+    background_image: resolve('res/bb.jpg'),
 	}])
 
 	P(act6, 'first');

@@ -45,7 +45,7 @@ const toolbar_vx = (
 
 export const vx = (
   <Mynavpage 
-    title="Nav" source=$(__filename) 
+    title="Nav" source=resolve(__filename) 
     backgroundColor="#333" navbar=navbar_vx toolbar=toolbar_vx>
     <Div width="full">
       <Div width="full" height=0 />

@@ -16,7 +16,7 @@ function keyenter(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="List" source=$(__filename)>
+  <Mynavpage title="List" source=resolve(__filename)>
     <Div width="full">
     	<Input id="input" class="input" 
     		value="Hello." returnType="done" onKeyenter=keyenter />
@@ -26,7 +26,7 @@ export const vx = (
       <List id="list">
       	<Div margin=10 width="full">
       		<Text margin=4 width="full" 
-            borderBottom=`${atomPixel} #aaa`>%{vd.$index + 1 + ': ' + vd.text}</Text>
+            borderBottom=`${atomPixel} #aaa`>%{$.$index + 1 + ': ' + $.text}</Text>
       	</Div>
       </List>
 

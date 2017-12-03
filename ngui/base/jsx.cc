@@ -109,7 +109,7 @@ static cUcs2String _SEMICOLON(';');
 static cUcs2String _VX(String("vx"));       // vx
 static cUcs2String __VX(String("__vx"));
 static cUcs2String _VALUE(String("value"));
-static cUcs2String _DATA_BIND_FUNC(String("(vd,ctr)=>{return")); // (vd,ctr)=>{return
+static cUcs2String _DATA_BIND_FUNC(String("($,ctr)=>{return")); // ($,ctr)=>{return
 static cUcs2String _XML_COMMENT(String("/***"));
 static cUcs2String _XML_COMMENT_END(String("**/"));
 static cUcs2String _COMMENT(String("/*"));
@@ -123,11 +123,12 @@ static cUcs2String _NUMBER_0(String("0"));
 static cUcs2String _NUMBER_1(String("1"));
 static cUcs2String _NUMBER_2(String("2"));
 static cUcs2String _NUMBER_3(String("3"));
-static cUcs2String _NUMBER_4(String("4"));
-// static cUcs2String _NUMBER_5(String("5"));
 static cUcs2String _VDATA(String("vdata"));
 static cUcs2String _ATTRS_COMMENT(String("/*attrs*/"));
 static cUcs2String _CHILDS_COMMENT(String("/*childs*/"));
+static cUcs2String _TYPE(String("vx"));
+static cUcs2String _VALUE2(String("v"));
+static cUcs2String _MULTIPLE(String("m"));
 
 //LF
 static inline bool is_carriage_return(int c) {
@@ -2603,27 +2604,37 @@ public:
       if (prefix == _VX) {  // <vx:tag
         // __vx(tag,[attrs],vdata)
         // final result:
-        // [0,tag,[attrs],[child],vdata]
+        // {vx:0,v:[tag,[attrs],[child],vdata]}
         out_code(__VX);     // __vx
         out_code(_LPAREN);  // (
         out_code(suffix);   // tag
         out_code(_COMMA);   // ,
         vx_com = true;
       } else {                // <prefix:suffix
-        // [1,prefix,suffix,[attrs],[child],vdata]
-        out_code(_LBRACK);    // [
+        // {vx:1,v:[prefix,suffix,[attrs],[child],vdata]}
+        out_code(_LBRACE);    // {
+        out_code(_TYPE);      // t
+        out_code(_COLON);     // :
         out_code(_NUMBER_1);  // 1
         out_code(_COMMA);     // ,
+        out_code(_VALUE2);    // v
+        out_code(_COLON);     // :
+        out_code(_LBRACK);    // [
         out_code(prefix);     // prefix
         out_code(_COMMA);     // ,
         out_code(suffix);     // suffix
         out_code(_COMMA);     // ,
       }
     } else {              // <tag
-      // [0,tag,[attrs],[child],vdata]
-      out_code(_LBRACK);    // [
+      // {vx:0,v:[tag,[attrs],[child],vdata]}
+      out_code(_LBRACE);    // {
+      out_code(_TYPE);      // t
+      out_code(_COLON);     // :
       out_code(_NUMBER_0);  // 0
       out_code(_COMMA);     // ,
+      out_code(_VALUE2);    // v
+      out_code(_COLON);     // :
+      out_code(_LBRACK);    // [
       out_code(tag_name);   // tag
       out_code(_COMMA);     // ,
     }
@@ -2741,21 +2752,22 @@ public:
       out_code(move(vdata));
     }
     
-    if (vx_com) { // __vx(vx::tag,[attrs],vdata)
+    if (vx_com) { // __vx(tag,[attrs],vdata)
       out_code(_RPAREN); // )
-    } else {      // [0,tag,[attrs],[child],vdata]
+    } else {      // {vx:0,v:[tag,[attrs],[child],vdata]}
       out_code(_RBRACK); // ]
+      out_code(_RBRACE); // }
     }
   }
   
   void parse_xml_attribute_data_bind(bool once) {
-    out_code(_NUMBER_3);  // 3
+    out_code(_NUMBER_3);  // 2
     out_code(_COMMA);     // ,
     next();
     XX_ASSERT(peek() == LBRACE);
     XX_ASSERT(_scanner->string_value().is_empty());
     // %{val}
-    out_code(_DATA_BIND_FUNC); // (vd,ctr)=>{return
+    out_code(_DATA_BIND_FUNC); // ($,ctr)=>{return
     next();
     out_code(_LPAREN);  // (
     parse_brace_expression(LBRACE, RBRACE);
@@ -2775,13 +2787,18 @@ public:
       Ucs2String s = str.to_basic_string();
       if ( !ignore_space || ! s.is_blank() ) {
         add_xml_children_cut_comma(is_once_comma);
-        out_code(_LBRACK);   // [
+        // {vx:2,v:"s"}
+        out_code(_LBRACE);   // {
+        out_code(_TYPE);     // t
+        out_code(_COLON);    // :
         out_code(_NUMBER_2); // 2
         out_code(_COMMA);    // ,
+        out_code(_VALUE2);   // v
+        out_code(_COLON);    // :
         out_code(_QUOTES);   // "
         out_code(s);
         out_code(_QUOTES);   // "
-        out_code(_RBRACK);   // ]
+        out_code(_RBRACE);   // }
       }
       str.clear();
     }
@@ -2855,51 +2872,40 @@ public:
           str.push(_scanner->next_string_value());
           break;
           
+        case COMMAND_DATA_BIND: // %%{command}
+        case COMMAND_DATA_BIND_ONCE: // %{command}
+          complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
+          _scanner->next();     // command %% or %
+          _scanner->next();     // next {
+          out_code(_LBRACE);    // {
+          out_code(_TYPE);      // t
+          out_code(_COLON);     // :
+          out_code(_NUMBER_3);  // 3
+          out_code(_COMMA);     // ,
+          out_code(_VALUE2);    // v
+          out_code(_COLON);     // :
+          out_code(_DATA_BIND_FUNC);      // ($,ctr)=>{return
+          out_code(_LPAREN);  // (
+          parse_brace_expression(LBRACE, RBRACE); //
+          out_code(_RPAREN);  // )
+          out_code(_RBRACE);  // }
+          if (token == COMMAND_DATA_BIND) { // MULTIPLE
+            out_code(_COMMA);     // ,
+            out_code(_MULTIPLE);  // m
+            out_code(_COLON);     // :
+            out_code(_NUMBER_1);  // 1
+          }
+          out_code(_RBRACE);  // }
+          pos = _scanner->location().end_pos;
+          break;
+          
         case COMMAND: // ${command}
           complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-          _scanner->next();     // command
-          _scanner->next();     // {
-          out_code(_LBRACK);    // [
-          out_code(_NUMBER_4);  // 4 command
-          out_code(_COMMA);     // ,
+          _scanner->next();     // command ${
+          _scanner->next();     // next {
           out_code(_LPAREN);    // (
           parse_brace_expression(LBRACE, RBRACE); //
           out_code(_RPAREN);    // )
-          out_code(_RBRACK);    // ]
-          pos = _scanner->location().end_pos;
-          break;
-          
-        case COMMAND_DATA_BIND: // %%{command}
-          complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-          _scanner->next();     // command
-          _scanner->next();     // {
-          out_code(_LBRACK);    // [
-          out_code(_NUMBER_3);  // 3
-          out_code(_COMMA);     // ,
-          out_code(_DATA_BIND_FUNC);      // (vd,ctr)=>{return
-          out_code(_LPAREN);  // (
-          parse_brace_expression(LBRACE, RBRACE); //
-          out_code(_RPAREN);  // )
-          out_code(_RBRACE);  // }
-          out_code(_COMMA);   // ,
-          out_code(_NUMBER_1);// 1
-          out_code(_RBRACK);  // ]
-          pos = _scanner->location().end_pos;
-          break;
-          
-        case COMMAND_DATA_BIND_ONCE: // %{command}
-          complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-          _scanner->next();     // command
-          _scanner->next();     // {
-          out_code(_LBRACK);    // [
-          out_code(_NUMBER_3);  // 3
-          out_code(_COMMA);     // ,
-          out_code(_DATA_BIND_FUNC);      // (vd,ctr)=>{return
-          out_code(_LPAREN);  // (
-          parse_brace_expression(LBRACE, RBRACE); //
-          out_code(_RPAREN);  // )
-          out_code(_RBRACE);  // }
-          out_code(_RBRACK);  // ]
           pos = _scanner->location().end_pos;
           break;
           

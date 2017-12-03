@@ -35,7 +35,7 @@ import 'ngui/display_port' as dp;
 new GUIApplication().start(
 	<Root>
 		<Div width=200 height=200 background_color="#f00">
-			<Image src=$('res/cc.jpg') width="full" height="full" opacity=0.5 />
+			<Image src=resolve('res/cc.jpg') width="full" height="full" opacity=0.5 />
 		</Div>
 	</Root>
 ).onLoad = function() {

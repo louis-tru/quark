@@ -34,7 +34,7 @@ function Clear(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="Local Storage" source=$(__filename)>
+  <Mynavpage title="Local Storage" source=resolve(__filename)>
     <Div width="full">
     	<Input class="input" id="input" 
     		placeholder="Please enter value .." 

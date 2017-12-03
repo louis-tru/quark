@@ -73,7 +73,7 @@ new GUIApplication().start(<Root/>).onLoad = function() {
 	P(media, 'VIDEO_COLOR_FORMAT_YUV411P');
 	P(media, 'VIDEO_COLOR_FORMAT_YUV411SP');
 
-	const audio = new media.AudioPlayer($('all_we_know.mp3'))
+	const audio = new media.AudioPlayer(resolve('all_we_know.mp3'))
 
 	P(audio, 'autoPlay');
 	P(audio, 'sourceStatus');

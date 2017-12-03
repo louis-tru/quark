@@ -33,7 +33,7 @@ function custom() {
 }
 
 export const vx = (
-  <Mynavpage title="Dialog" source=$(__filename)>
+  <Mynavpage title="Dialog" source=resolve(__filename)>
     <Div width="full">
       <Button class="long_btn" onClick=alert>Alert</Button>
       <Button class="long_btn" onClick=confirm>Confirm</Button>

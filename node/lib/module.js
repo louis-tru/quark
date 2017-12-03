@@ -40,7 +40,7 @@ var packages = null;
 var isMain = false;
 
 const wrapper = [
-  '(function (exports, require, module, __filename, __dirname, $) { ', '\n});'
+  '(function (exports, require, module, __filename, __dirname, resolve) { ', '\n});'
 ];
 
 /**

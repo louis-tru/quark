@@ -183,7 +183,7 @@ M(css, 'CSS', [{
     align_x: 'left',
     align_y: 'top',
     shadow: '2 2 2 #f00',
-    src: $('res/cc.jpg'),
-    background_image: $('res/bb.jpg'),
+    src: resolve('res/cc.jpg'),
+    background_image: resolve('res/bb.jpg'),
   }
 }])

@@ -12,7 +12,7 @@ import './storage';
 
 export const vx = (
 
-  <Mynavpage title="Examples" source=$(__filename)>
+  <Mynavpage title="Examples" source=resolve(__filename)>
 
     <Scroll width="full" height="full" bounceLock=0>
 

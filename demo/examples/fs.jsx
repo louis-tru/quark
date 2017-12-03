@@ -49,7 +49,7 @@ function keyenter(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="File System" source=$(__filename)>
+  <Mynavpage title="File System" source=resolve(__filename)>
     <Div width="full">
     	<Input class="input" id="input" 
     		placeholder="Please enter write content.."

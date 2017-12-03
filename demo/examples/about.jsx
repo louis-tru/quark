@@ -2,7 +2,7 @@ import { Div, Button, Text, Scroll } from 'ngui';
 import Mynavpage from './public';
 
 export const vx = (
-  <Mynavpage title="About" source=$(__filename)>
+  <Mynavpage title="About" source=resolve(__filename)>
     <Scroll width="full" height="full">
       <Text width="full" margin=10>
 @@Ngui

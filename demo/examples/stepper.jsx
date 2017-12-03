@@ -22,7 +22,7 @@ function change_handle(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="Stepper" source=$(__filename)>
+  <Mynavpage title="Stepper" source=resolve(__filename)>
     <Div width="full" class="strpper_page">
       <Div class="item">
         <Text class="text" />

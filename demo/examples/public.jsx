@@ -92,7 +92,7 @@ export class Navbutton extends ViewController {
 }
 
 export class Mynavpage extends Navpage {
-  source: $(__filename);
+  source: resolve(__filename);
   
   loadView(vx) {
     super.loadView(vx);

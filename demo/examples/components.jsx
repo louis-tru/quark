@@ -8,7 +8,7 @@ import './dialog';
 import './list';
 
 export const vx = (
-  <Mynavpage title="Components" source=$(__filename)>
+  <Mynavpage title="Components" source=resolve(__filename)>
     <Scroll width="full" height="full" bounceLock=0>
     
       <Text class="category_title">Components.</Text>

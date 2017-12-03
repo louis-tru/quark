@@ -510,12 +510,12 @@ void ViewController::view(View* view) throw(Error) {
   if ( view != m_view ) {
     View* old = m_view; m_view = nullptr;
     if (old) {
-      if ( old->prev() ) {
+      if ( old->next() ) {
         Handle<ViewController> handle(this);
-        View* prev = old->prev();
+        View* next = old->next();
         old->remove();  // remove
         _inl(view)->set_ctr(this);
-        prev->after(view);
+        next->before(view);
       } else if ( old->parent() ) {
         Handle<ViewController> handle(this);
         View* parent = old->parent();

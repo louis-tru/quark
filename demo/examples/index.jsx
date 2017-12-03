@@ -95,7 +95,7 @@ var default_toolbar_vx = (
 )
 
 var ngui_tools_vx = (
-  <Mynavpage title="Ngui Tools" source=$(__filename)>
+  <Mynavpage title="Ngui Tools" source=resolve(__filename)>
     <Div width="full">
       <Hybrid class="category_title">
 @@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g ngui</T>.
@@ -107,7 +107,7 @@ var ngui_tools_vx = (
 )
 
 const examples_source_vx = (
-  <Mynavpage title="Examples Source" source=$(__filename)>
+  <Mynavpage title="Examples Source" source=resolve(__filename)>
     <Div width="full">
       <Text class="category_title">You can get the full examples source code from Github.</Text>
       <Button class="long_btn rm_margin_top" onClick=handle_go_to url=examples_source>Go Github</Button>
@@ -116,7 +116,7 @@ const examples_source_vx = (
 )
 
 var documents_vx = (
-  <Mynavpage title="Documents" source=$(__filename)>
+  <Mynavpage title="Documents" source=resolve(__filename)>
     <Div width="full">
       <Hybrid class="category_title">Now go to <T textColor="#0079ff">nodegui.org</T> to view the document?</Hybrid>
       <Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
@@ -125,7 +125,7 @@ var documents_vx = (
 )
 
 const bug_feedback_vx = (
-  <Mynavpage title="Bug Feedback" source=$(__filename)>
+  <Mynavpage title="Bug Feedback" source=resolve(__filename)>
     <Div width="full">
       <Hybrid class="category_title">Now go to Github issues list?</Hybrid>
       <Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools_issues_url>Go Github Issues</Button>
@@ -139,7 +139,7 @@ var app = new GUIApplication({ multisample: 2, mipmap: 1 }).start(
   <Root>
 
     <NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>
-      <Mynavpage title="Ngui" source=$(__filename)>
+      <Mynavpage title="Ngui" source=resolve(__filename)>
 
         <Scroll width="full" height="full" bounceLock=0>
           

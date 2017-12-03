@@ -112,7 +112,7 @@ const box = (
     </Div>
     <Div backgroundColor="#fb0" width=100 height=100 receive=1 />
       <Div backgroundColor="#fc0" width=100 height=100 receive=1>
-      <Sprite width=100 height=100 src=$('./res/10440501.jpg')
+      <Sprite width=100 height=100 src=resolve('./res/10440501.jpg')
         ratio="vec2(0.413,0.413)" repeat="mirrored_repeat" start="vec2(50,0)" />
     </Div>
     <Div backgroundColor="#fd0" width=100 height=100 receive=1 />
@@ -147,13 +147,13 @@ const test_scroll = (
   </Scroll>
 )
 
-console.log($('./res/bb.jpg'));
-console.log($('./res/cc.jpg'));
+console.log(resolve('./res/bb.jpg'));
+console.log(resolve('./res/cc.jpg'));
 
 const div1 = (
   <Div width="full">
     <Div backgroundColor="#0f0" width="20%" height=80 receive=1 />
-    <Image width="20%" height=80 src=$('./res/bb.jpg') receive=1 />
+    <Image width="20%" height=80 src=resolve('./res/bb.jpg') receive=1 />
     <Div backgroundColor="#f30" width="20%" height=80 receive=1 />
     <Div backgroundColor="#f50" width="20%" height=80 />
     <Div backgroundColor="#f60" width="20%" height=80 />

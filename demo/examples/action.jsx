@@ -38,11 +38,11 @@ export const vx = (
     navbar.titleTextColor="#fff"
     toolbar=toolbar_vx
     backgroundColor="#333"
-    title="Action" source=$(__filename)>
+    title="Action" source=resolve(__filename)>
     <Clip width="full" height="full">
 
 	  	<Indep width=600 alignX="center" alignY="center" y=-15 opacity=0.5>
-	    	<Image onHighlighted=highlighted id="img1" src=$('./gear0.png')
+	    	<Image onHighlighted=highlighted id="img1" src=resolve('./gear0.png')
 	    		marginLeft="auto" marginRight="auto" 
 	    		y=56 width=600 origin="300 300"
 	    		action=[
@@ -52,7 +52,7 @@ export const vx = (
 	    		action.loop=1e8
 	    		action.playing=1
 	    	/>
-	    	<Image onHighlighted=highlighted id="img2" src=$('./gear1.png')
+	    	<Image onHighlighted=highlighted id="img2" src=resolve('./gear1.png')
 	    		marginLeft="auto" 
 	    		marginRight="auto"
 	    		width=361 

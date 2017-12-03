@@ -24,7 +24,7 @@ function change_handle(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="Checkbox" source=$(__filename)>
+  <Mynavpage title="Checkbox" source=resolve(__filename)>
     <Div width="full" class="checkbox_page">
       <Div class="item">
         <Text class="text" value="YES" />

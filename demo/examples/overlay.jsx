@@ -46,7 +46,7 @@ function show_overlay3(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="Overlay" source=$(__filename)>
+  <Mynavpage title="Overlay" source=resolve(__filename)>
     <Div width="full" height="full">
       <Indep alignY="top" width="full">
         <Button class="long_btn" onClick=show_overlay> Show Overlay </Button>
