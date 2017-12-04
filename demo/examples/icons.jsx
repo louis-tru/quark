@@ -5,6 +5,8 @@ class IconsPanel extends ViewController {
   
   loadView(vx) {
     super.loadView(<Div margin=10 width="full" />);
+
+    var ts = new Date();
     
     var {v:str} = vx;
     var view = this.view;
@@ -20,6 +22,8 @@ class IconsPanel extends ViewController {
         , view)
       }
     }
+    
+    console.log(new Date() - ts);
   }
 }
 
