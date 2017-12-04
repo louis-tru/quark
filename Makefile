@@ -112,11 +112,12 @@ out/android.classs.ngui.jar: android/org/ngui/*.java
 	@cp out/android.classs/ngui.jar $(DEV_OUT)/product/android/libs
 
 # install ngui command
-install: tools
+install:
 	@$(MAKE) ios
 	@$(MAKE) android
 	@./configure --media=0
 	@$(MAKE) jsa-shell
+	@$(MAKE) tools
 	@$(DEV_OUT)/install
 
 # debug install ngui command
@@ -126,6 +127,7 @@ debug_link:
 	@./$(DEV)/install link
 
 tools:
+	@sudo rm -rf ./out/ngui-tools/bin/shell.js
 	@$(NODE) ./tools/cp-ngui-tools.js
 
 doc:
