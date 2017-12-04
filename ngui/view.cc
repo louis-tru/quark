@@ -653,6 +653,9 @@ View::~View() {
   if ( m_ctr ) {
     _inl(this)->del_ctr();
   }
+  if ( is_mark_pre ) { // 删除标记
+    _inl(this)->delete_mark();
+  }
   
   delete m_ctx_data; m_ctx_data = nullptr;
   Release(m_children); m_children = nullptr;

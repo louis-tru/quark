@@ -36,9 +36,16 @@
 XX_NS(ngui)
 
 /**
- * @constructor
+ * @destructor
  */
-Root::Root() throw(Error) {
+Root::~Root() {
+  XX_DEBUG("destructor root");
+}
+
+/**
+ * @func initialize()
+ */
+void Root::initialize() throw(Error) {
   auto app = ngui::app();
   XX_ASSERT_ERR(app, "Before you create a root, you need to create a GUIApplication");
   m_background_color = Color(255, 255, 255); // 默认白色背景
@@ -51,14 +58,6 @@ Root::Root() throw(Error) {
   set_height(size.height());
   mark(M_MATRIX);
   Inl_GUIApplication(app)->set_root(this);
-}
-
-
-/**
- * @destructor
- */
-Root::~Root() {
-  XX_DEBUG("destructor root");
 }
 
 /**

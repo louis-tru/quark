@@ -48,7 +48,9 @@ class WrapRoot: public WrapViewBase {
     js_check_gui_app();
     JS_WORKER(args);
     try {
-      New<WrapRoot>(args, new Root());
+      Handle<Root> r = new Root();
+      r->initialize();
+      New<WrapRoot>(args, r.collapse());
     } catch(cError& err) {
       JS_THROW_ERR(err);
     }

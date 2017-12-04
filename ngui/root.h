@@ -46,12 +46,17 @@ class XX_EXPORT Root: public SelectPanel {
  public:
   XX_DEFINE_GUI_VIEW(ROOT, Root, root);
   
-  Root() throw(Error);
+  inline Root() {}
   
   /**
    * @destructor
    */
   virtual ~Root();
+  
+  /**
+   * @func initialize()
+   */
+  void initialize() throw(Error);
   
   /**
    * @overwrite
@@ -64,14 +69,12 @@ class XX_EXPORT Root: public SelectPanel {
   virtual bool can_become_focus();
   
  protected:
-  
   /**
    * @overwrite
    */
   virtual void set_parent(View* parent) throw(Error);
   virtual void set_layout_explicit_size();
   virtual void set_layout_content_offset();
-  
 };
 
 XX_END

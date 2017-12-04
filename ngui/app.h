@@ -98,15 +98,17 @@ class XX_EXPORT GUIApplication: public Object {
   XX_EVENT(onresume);
   XX_EVENT(onmemorywarning);
   
-  /**
-   * @constructor
-   */
-  GUIApplication(const Map<String, int>& option = Map<String, int>()) throw(Error);
+  GUIApplication();
   
   /**
    * @destructor
    */
   virtual ~GUIApplication();
+  
+  /**
+   * @func initialize()
+   */
+  void initialize(const Map<String, int>& option = Map<String, int>()) throw(Error);
   
   /**
    * @func run 运行消息循环
@@ -208,9 +210,9 @@ class XX_EXPORT GUIApplication: public Object {
  protected:
   
   /**
-   * @func initialize(argc, argv) create sub gui thread, call by system
+   * @func run_main(argc, argv) create sub gui thread, call by system
    */
-  static void initialize(int argc, char* argv[]);
+  static void run_main(int argc, char* argv[]);
 
  private:
   

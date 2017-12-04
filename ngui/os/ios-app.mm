@@ -604,7 +604,7 @@ void DisplayPort::set_orientation(Orientation orientation) {
 }
 
 extern "C" int main(int argc, char* argv[]) {
-  AppInl::run_gui_application(argc, argv);
+  AppInl::run_main(argc, argv);
   
   if ( app() ) {
     @autoreleasepool {

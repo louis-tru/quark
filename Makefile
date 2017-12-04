@@ -39,7 +39,7 @@ CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 builddir="$(shell pwd)/$(LIBS_DIR)"
 endef
 
-.PHONY: $(PTOJECTS) jsa-shell install debug_link \
+.PHONY: $(PTOJECTS) jsa-shell install install_inl \
 	help all clear clear-all build server ios android doc tools
 
 .SECONDEXPANSION:
@@ -121,7 +121,7 @@ install:
 	@$(DEV_OUT)/install
 
 # debug install ngui command
-debug_link:
+install_inl:
 	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@./$(DEV)/install link

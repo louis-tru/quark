@@ -167,7 +167,7 @@ void AppInl::process_atexit() {
   // TOOD .. exit
 }
 
-void GUIApplication::initialize(int argc, char* argv[]) {
+void GUIApplication::run_main(int argc, char* argv[]) {
   static int is_initialize = 0;
   XX_CHECK(!is_initialize++, "Cannot multiple calls.");
   
@@ -211,7 +211,7 @@ void GUIApplication::run() {
   m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 }
 
-GUIApplication::GUIApplication(const Map<String, int>& option) throw(Error)
+GUIApplication::GUIApplication()
 : XX_INIT_EVENT(load)
 , XX_INIT_EVENT(unload)
 , XX_INIT_EVENT(background)
@@ -242,16 +242,6 @@ GUIApplication::GUIApplication(const Map<String, int>& option) throw(Error)
 , m_dispatch(nullptr)
 , m_action_center(nullptr)
 {
-  GUILock lock;
-  XX_ASSERT_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
-  m_shared = this;
-  HttpHelper::initialize(); // 初始http
-  
-  Inl_GUIApplication(this)->initialize(option);
-  m_display_port = NewRetain<DisplayPort>(this); // strong ref
-  m_draw_ctx->font_pool()->bind_display_port(m_display_port);
-  m_dispatch = new GUIEventDispatch(this);
-  m_action_center = new ActionCenter();
 }
 
 GUIApplication::~GUIApplication() {
@@ -273,6 +263,21 @@ GUIApplication::~GUIApplication() {
   m_render_loop = nullptr;
   m_main_loop = nullptr;
   m_shared = nullptr;
+}
+
+/**
+ * @func initialize
+ */
+void GUIApplication::initialize(const Map<String, int>& option) throw(Error) {
+  GUILock lock;
+  XX_ASSERT_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
+  m_shared = this;
+  HttpHelper::initialize(); // 初始http
+  Inl_GUIApplication(this)->initialize(option);
+  m_display_port = NewRetain<DisplayPort>(this); // strong ref
+  m_draw_ctx->font_pool()->bind_display_port(m_display_port);
+  m_dispatch = new GUIEventDispatch(this);
+  m_action_center = new ActionCenter();
 }
 
 /**

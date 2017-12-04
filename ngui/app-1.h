@@ -78,12 +78,12 @@ XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
    * @func set_root
    */
   void set_root(Root* value) throw(Error);
-
+  
   /**
-   * @func run_gui_application
+   * @func run_main
    */
-  inline static void run_gui_application(int argc, char* argv[]) {
-    GUIApplication::initialize(argc, argv);
+  inline static void run_main(int argc, char* argv[]) {
+    GUIApplication::run_main(argc, argv);
   }
   
   /**
