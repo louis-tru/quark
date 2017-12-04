@@ -299,7 +299,7 @@ class EventNoticer {
   }
   
   /**
-   * @set enable {bool} # 设置启用禁用
+   * @set enable {bool} # 设置, 启用/禁用
    */
   set enable (value) {
     this.m_enable = true;

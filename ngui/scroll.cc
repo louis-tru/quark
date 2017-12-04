@@ -382,6 +382,9 @@ public:
    */
   void set_scroll_and_trigger_event(Vec2 scroll) {
     
+    Vec2 scale = display_port()->scale_value();
+    scroll.x( round(scroll.x() * scale.x()) / scale.x() );
+    scroll.y( round(scroll.y() * scale.y()) / scale.y() );
     scroll.x( m_h_scroll ? scroll.x() : 0 );
     scroll.y( m_v_scroll ? scroll.y() : 0 );
     

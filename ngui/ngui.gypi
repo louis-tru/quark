@@ -69,7 +69,7 @@
       'audio-player.h',
       'div.h',
       'indep.h',
-      'shadow.h',
+      'shadow-1.h',
       'image.h',
       'bezier.h',
       'display-port.h',
