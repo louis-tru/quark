@@ -354,6 +354,7 @@ class RunLoop::Inl: public RunLoop {
       activate_loop();
     }
     uv_run(m_uv_loop, UV_RUN_DEFAULT); // run uv loop
+    close_uv_async();
     { // loop end
       ScopeLock lock(m_mutex);
       m_uv_async = nullptr;
@@ -376,9 +377,11 @@ class RunLoop::Inl: public RunLoop {
   }
   
   void close_uv_async() {
-    uv_close((uv_handle_t*)m_uv_async, nullptr); // close async
+    if (!uv_is_closing((uv_handle_t*)m_uv_async))
+      uv_close((uv_handle_t*)m_uv_async, nullptr); // close async
     uv_timer_stop(m_uv_timer);
-    uv_close((uv_handle_t*)m_uv_timer, nullptr);
+    if (!uv_is_closing((uv_handle_t*)m_uv_timer))
+      uv_close((uv_handle_t*)m_uv_timer, nullptr);
   }
   
   inline void uv_timer_req(int64 timeout_ms) {
@@ -609,6 +612,13 @@ bool RunLoop::is_main_loop() {
     return main_loop_obj == current();
   }
   return false;
+}
+
+/**
+ * @func is_process_exit
+ */
+bool RunLoop::is_process_exit() {
+  return process_exit;
 }
 
 /**

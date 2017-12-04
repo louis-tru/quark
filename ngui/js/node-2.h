@@ -36,20 +36,20 @@
 
 namespace node {
   
-  struct NguiApi ngui_api;
+  struct NguiApi* ngui_api = new NguiApi;
   
   void set_ngui_api(struct NguiApi api) {
-    ngui_api = api;
+    *ngui_api = api;
   }
   
   class NguiEnvironment {
   public:
     inline NguiEnvironment(Environment* env, v8::Isolate* isolate) {
       v8::HandleScope scope(isolate);
-      m_worker = ngui_api.create_ngui_JS_WORKER(env);
+      m_worker = ngui_api->create_ngui_JS_WORKER(env);
     }
     inline ~NguiEnvironment() {
-      ngui_api.delete_ngui_JS_WORKER(m_worker);
+      ngui_api->delete_ngui_JS_WORKER(m_worker);
       m_worker = nullptr;
     }
   private:

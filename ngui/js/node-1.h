@@ -49,9 +49,10 @@ namespace node {
     char* (*encoding_to_utf8)(const uint16_t* src, int length, int* out_len);
     uint16_t* (*decoding_utf8_to_uint16)(const char* src, int length, int* out_len);
     void (*print)(const char* msg, ...);
+    bool (*is_process_exit)();
   };
 
-  extern struct NguiApi ngui_api;
+  extern struct NguiApi* ngui_api;
   
   extern void set_ngui_api(struct NguiApi api);
 }

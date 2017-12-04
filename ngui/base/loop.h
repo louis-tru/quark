@@ -210,6 +210,11 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
    */
   static bool is_main_loop();
   
+  /**
+   * @func is_process_exit
+   */
+  static bool is_process_exit();
+  
  private:
   /**
    * @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体

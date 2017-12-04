@@ -5,6 +5,14 @@ function SetIterator() {}
 MapIterator.prototype = (new Map()).entries().__proto__;
 SetIterator.prototype = (new Set()).entries().__proto__;
 
+
+if (!Error.captureStackTrace) {
+	Error.captureStackTrace = function(targetObject, constructorOpt) {
+		// TODO ..
+		// print warning
+	};
+}
+
 // exports
 exports.Object = Object;
 exports.Function = Function;

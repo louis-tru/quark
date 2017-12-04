@@ -4761,7 +4761,7 @@ void FreeEnvironment(Environment* env) {
 inline int Start(Isolate* isolate, IsolateData* isolate_data,
                  int argc, const char* const* argv,
                  int exec_argc, const char* const* exec_argv) {
-  ngui::RunLoop* loop = ngui_api.ngui_main_loop();
+  ngui::RunLoop* loop = ngui_api->ngui_main_loop();
   HandleScope handle_scope(isolate);
   Local<Context> context = Context::New(isolate);
   Context::Scope context_scope(context);
@@ -4798,7 +4798,10 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
     bool more;
     PERFORMANCE_MARK(&env, LOOP_START);
     do {
-      ngui_api.run_ngui_loop(loop);
+      ngui_api->run_ngui_loop(loop);
+      /* IOS forces the process to terminate, but it does not quit immediately.
+       This may cause a process to run in the background for a long time, so force break here */
+      if (ngui_api->is_process_exit()) break;
 
       v8_platform.DrainVMTasks();
 
@@ -4826,7 +4829,9 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
 #if defined(LEAK_SANITIZER)
   __lsan_do_leak_check();
 #endif
-
+  
+  if (ngui_api->is_process_exit()) exit(0);
+  
   return exit_code;
 }
 

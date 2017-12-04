@@ -568,6 +568,9 @@ struct NguiApiImplementation {
     XX_STRING_FORMAT(msg, str);
     LOG(str);
   }
+  static bool is_process_exit() {
+    return RunLoop::is_process_exit();
+  }
 };
 
 int start(cString& argv_str) {
@@ -583,6 +586,7 @@ int start(cString& argv_str) {
       NguiApiImplementation::encoding_to_utf8,
       NguiApiImplementation::decoding_utf8_to_uint16,
       NguiApiImplementation::print,
+      NguiApiImplementation::is_process_exit,
     });
     ObjectAllocator allocator = {
       ObjectAllocatorImplementation::alloc,

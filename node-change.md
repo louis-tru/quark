@@ -36,7 +36,7 @@
 #include <ngui/js/node-1.h>
 
 +  int len;
-+  auto buff = ngui_api.encoding_to_utf8(source, (uint)view.length(), &len);
++  auto buff = ngui_api->encoding_to_utf8(source, (uint)view.length(), &len);
 
 +  auto s = std::string(buff, len);
 +  free(buff);
@@ -46,7 +46,7 @@
 
 + std::unique_ptr<StringBuffer> Utf8ToStringView(const std::string& message) {
 +  int len;
-+  auto buff = ngui_api.decoding_utf8_to_uint16(message.c_str(),
++  auto buff = ngui_api->decoding_utf8_to_uint16(message.c_str(),
                                                (uint)message.length(), &len);
 +  StringView view(reinterpret_cast<const uint16_t*>(buff), len);
   
@@ -73,14 +73,19 @@
 //
 
 int exec_argc, const char* const* exec_argv) {
-+  ngui::RunLoop* loop = ngui_api.ngui_main_loop();
++  ngui::RunLoop* loop = ngui_api->ngui_main_loop();
 
 + NguiEnvironment ngui_env(&env);
 
 // 
     do {
 -			uv_run(env.event_loop(), UV_RUN_DEFAULT);
-+     ngui_api.run_ngui_loop(loop);
++     ngui_api->run_ngui_loop(loop);
++			if (ngui_api->is_process_exit()) break;
+
+//
+
++ if (ngui_api->is_process_exit()) exit(0);
 
 ```
 

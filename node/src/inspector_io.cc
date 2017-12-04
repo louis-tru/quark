@@ -81,7 +81,7 @@ std::string StringViewToUtf8(const StringView& view) {
   }
   const uint16_t* source = view.characters16();
   int len;
-  auto buff = ngui_api.encoding_to_utf8(source, (uint)view.length(), &len);
+  auto buff = ngui_api->encoding_to_utf8(source, (uint)view.length(), &len);
 
   auto s = std::string(buff, len);
   free(buff);
@@ -113,7 +113,7 @@ void ReleasePairOnAsyncClose(uv_handle_t* async) {
 
 std::unique_ptr<StringBuffer> Utf8ToStringView(const std::string& message) {
   int len;
-  auto buff = ngui_api.decoding_utf8_to_uint16(message.c_str(),
+  auto buff = ngui_api->decoding_utf8_to_uint16(message.c_str(),
                                                (uint)message.length(), &len);
   StringView view(reinterpret_cast<const uint16_t*>(buff), len);
   
