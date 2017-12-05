@@ -42,7 +42,7 @@ $ sudo npm install -g ngui-tools
 	
 * 运行`ngui-tools` 需要依赖`nodejs`与`python2.7`
 
-* 并且不能运行在`windows`系统, 暂时只能在`mac`或`linux`下使用
+* 并且不能运行在`windows`系统, 暂时只能在`mac`下使用
 
 ## Create new project
 
