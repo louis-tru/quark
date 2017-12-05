@@ -4,3 +4,5 @@ out
 node_modules/.bin
 ngui.sublime-workspace
 benchmark
+node_modules/ngui-tools/osx
+node_modules/ngui-tools/linux
