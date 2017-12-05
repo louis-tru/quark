@@ -5,6 +5,13 @@
 * [`Tools`](https://www.npmjs.com/package/ngui-tools)
 * [`Examples`](https://github.com/louis-tru/ngui/tree/master/demo)
 
+# Course
+
+* [`Synopsis`](blog/001.md)
+* [`View and layout`](blog/002.md)
+* [`Action`](blog/003-action.md)
+* [`CSS`](blog/004-css.md)
+
 # Modules
 
 * [`ngui`](ngui.md)
