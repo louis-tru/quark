@@ -51,6 +51,6 @@ fs.chmodSync(target + '/gyp/gyp', 0755);
 copy_header(root + '/ngui', include);
 
 fs.cp_sync(root + '/demo/examples', target + '/product/examples');
-fs.cp_sync(root + '/node_modules/ngui', target + '/product/node_modules/ngui');
+fs.cp_sync(root + '/node_modules/ngui', target + '/product/libs/ngui');
 fs.cp_sync(root + '/tools/product.gypi', target + '/product/ngui.gypi');
 
