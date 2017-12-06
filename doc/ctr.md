@@ -135,7 +135,7 @@ new GUIApplication().start(
 #### ViewController.onTouchMove
 #### ViewController.onTouchEnd
 #### ViewController.onTouchCancel
-#### ViewController.onKeydown
+#### ViewController.onKeyDown
 #### ViewController.onKeyPress
 #### ViewController.onKeyUp
 #### ViewController.onKeyEnter
