@@ -75,14 +75,14 @@
 
 ### View.onBack
 ### View.onClick
-### View.onTouchstart
-### View.onTouchmove
-### View.onTouchend
-### View.onTouchcancel
-### View.onKeydown
-### View.onKeypress
-### View.onKeyup
-### View.onKeyenter
+### View.onTouchStart
+### View.onTouchMove
+### View.onTouchEnd
+### View.onTouchCancel
+### View.onKeyDown
+### View.onKeyPress
+### View.onKeyUp
+### View.onKeyEnter
 ### View.onFocus
 ### View.onBlur
 ### View.onHighlighted
