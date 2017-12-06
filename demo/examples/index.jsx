@@ -146,9 +146,9 @@ var app = new GUIApplication({ multisample: 2, mipmap: 1 }).start(
           <Text class="hello">Hello.</Text>
           <Div class="category">
             <Hybrid class="codepre">
-@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Text</T> } <T class="keywork">from</T> <T class="str">'ngui'</T>
+@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'ngui'</T>
 <T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
-  \<<T class="tag_name">Text</T>\>hello world!\</<T class="tag_name">Text</T>\>
+  \<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
 )@@
             </Hybrid>
           </Div>
