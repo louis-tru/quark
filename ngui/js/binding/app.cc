@@ -136,7 +136,7 @@ class WrapNativeGUIApplication: public WrapObject {
     Wrap<NativeGUIApplication>* wrap = nullptr;
     try {
       Handle<GUIApplication> h = new GUIApplication();
-      h->initialize();
+      h->initialize(option);
       auto app = h.collapse();
       wrap = New<WrapNativeGUIApplication>(args, app);
       app->XX_ON(memorywarning,

@@ -198,6 +198,8 @@ class Module {
       paths = nodePath.split(path.delimiter).filter(function(path) {
         return !!path;
       }).concat(paths);
+    } else {
+      nodePath = [];
     }
 
     modulePaths = nodePath;

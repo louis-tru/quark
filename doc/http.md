@@ -404,6 +404,13 @@ Callback: `cb()`
 * @arg `[cb]` {[`Function`]}
 * @ret {[`uint`]} return req id
 
+## downloadSync(url,save)
+
+同步下载并保存文件，失败抛出异常
+
+* @arg `url` {[`String`]}			请求的`url`
+* @arg `save` {[`String`]}		本地保存路径
+
 ## upload(url,localPath[,cb])
 
 上传本地文件到服务器，返回中止`id`失败抛出异常
@@ -414,6 +421,13 @@ Callback: `cb()`
 * @arg `localPath` {[`String`]}	要上传的本地文件路径
 * @arg `[cb]` {[`Function`]}
 * @ret {[`uint`]} return req id
+
+## uploadSync(url,local_path)
+
+同步上传文件，失败抛出异常
+
+* @arg url {String}
+* @arg local_path {String}
 
 ## get(url[,cb])
 

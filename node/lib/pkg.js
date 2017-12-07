@@ -192,19 +192,19 @@ function parseJSON(source, filename) {
   }
 }
 
-function Package_install_with_path(self, dirname, is_pkg, cb) {
+function Package_install_with_path(self, path, is_pkg, cb) {
   // 读取package.json文件
   var config = null;
-  var package_json = dirname + '/package.json';
-  var versions_json = dirname + '/versions.json';
-  var path = set_url_args(package_json, self.m_version_code);
+  var package_json = path + '/package.json';
+  var versions_json = path + '/versions.json';
+  var path2 = set_url_args(package_json, self.m_version_code);
   
   var read_versions_ok = function(data) {
     data = parseJSON(data, versions_json);
     if(self.m_build) {
-      self.m_pkg_files = Object.create(data.pkg_files || null);  // .pkg 中包含的文件列表
+      self.m_pkg_files = data.pkg_files || {};// .pkg 中包含的文件列表 
     }
-    self.m_versions = Object.create(data.versions);
+    self.m_versions = data.versions || {};
     self.m_install = true;
     cb && cb(); // ok
   }.catch(new_cb(cb).throw);
@@ -212,24 +212,24 @@ function Package_install_with_path(self, dirname, is_pkg, cb) {
   var read_pkg_json_ok = function(data) {
     self.m_config = config = parseJSON(data, package_json);
     config.src  = config.src || '';
-    self.m_src  = resolve(self.m_path, config.src);
+    self.m_src  = resolve(path, config.src);
     if (config.name != self.m_name) {
       return throw_err('Lib name must be ' +
                        `consistent with the folder name, ${self.m_name} != ${config.name}`, cb);
     }
     
-    if (self.m_build || is_network(dirname)) {
+    if (self.m_build || is_network(path)) {
       // 下载package内部资源文件版本信息
-      path = set_url_args(versions_json, self.m_version_code);
+      path2 = set_url_args(versions_json, self.m_version_code);
     } else {
       self.m_install = true;
       return cb && cb(); // ok
     }
     
-    cb ? read_text(path, read_versions_ok) : read_versions_ok(read_text_sync(path));
+    cb ? read_text(path2, read_versions_ok) : read_versions_ok(read_text_sync(path2));
   }.catch(new_cb(cb).throw);
   
-  cb ? read_text(path, read_pkg_json_ok) : read_pkg_json_ok(read_text_sync(path));
+  cb ? read_text(path2, read_pkg_json_ok) : read_pkg_json_ok(read_text_sync(path2));
 }
 
 function Package_install_remote(self, cb) {
@@ -276,7 +276,7 @@ function Package_install_old(self, cb) {
   old.pkg_path = '';
   var is_pkg = false;
   
-  if ( ! is_local_zip(old.path) ) {
+  if ( !is_local_zip(old.path) ) {
     is_pkg = fs.existsSync(`${old.path}/${self.m_name}.pkg`);
     if (is_pkg) {
       old.pkg_path = `zip:///${old.path.substr(8)}/${self.m_name}.pkg@`;
@@ -553,7 +553,10 @@ function Package_replace_local(self, path, build, version_code) {
   if ( Package_is_can_replace_local(self, path) ) {
     if ( build && version_code != self.m_version_code ) {
       if (self.m_build) {
-        self.m_old = { path: path, version_code: self.m_version_code };
+        self.m_old = {
+          path: self.m_path, 
+          version_code: self.m_version_code,
+        };
       }
       self.m_build = true;
       self.m_path = path;
@@ -579,21 +582,23 @@ function Package_is_can_replace_local(self, path) {
 // 注册更多相同名称的pkg都没关系,最终都只使用最开始注册的pkg
 function PackagesCore_register_path(self, path) {
   var path2 = resolve(path);
-  if ( !self.m_pkgs_register[path2] ) {
-    var mat = path2.match(/^(.+?\/)(?:([^\.\/]+)\/)?([a-z_$][a-z0-9\-_$]*)$/i);
+  var register = self.m_pkgs_register[path2];
+  if ( !register ) {
+    var mat = path2.match(/^(.+?\/)(?:([^\/]+)\/)?([a-z_$][a-z0-9\-_$]*)$/i);
     if ( mat ) {
       if ( mat[2] ) { // add node_modules
         PackagesCore_add_node_path(self, mat[1] + mat[2]);
       }
       /* pkg的状态,-1忽略/0未就绪/1准备中/2已经就绪/3异常 */
-      self.m_pkgs_register[path2] = { 
-        ready: 0, path: path2, name: mat[2],
+      self.m_pkgs_register[path2] = register = {
+        ready: 0, path: path2, name: mat[3],
       };
       self.m_is_ready = false; /* 设置未准备状态 */
     } else {
       throw new Error(`Invalid pkg path "${path}"`);
     }
   }
+  return register;
 }
 
 function PackagesCore_unregister_path(self, path) {
@@ -606,11 +611,13 @@ function PackagesCore_unregister_path(self, path) {
 }
 
 function PackagesCore_add_node_path(self, node_modules) {
-  var path = resolve(node_modules);
-  if ( !self.m_node_path[path] ) {
-    /* `node path`的状态,0未就绪/1准备中/2已经就绪 */
-    self.m_node_path[path] = { ready: 0, path: path };
-    self.m_is_ready = false; /* 设置未准备状态 */
+  if (node_modules) {
+    var path = resolve(node_modules);
+    if ( !self.m_node_path[path] ) {
+      /* `node path`的状态,0未就绪/1准备中/2已经就绪 */
+      self.m_node_path[path] = { ready: 0, path: path };
+      self.m_is_ready = false; /* 设置未准备状态 */
+    }
   }
 }
 
@@ -681,7 +688,7 @@ function PackagesCore_parse_new_pkgs_json(self, node_path, content, local) {
   for ( var name in json ) {
     if (name[0] != '@' /* 忽略: @ */ && 
       (!local || ignore_local_package.indexOf(name) === -1))
-    { 
+    {
       var value = json[name]; 
       var path  = node_path + '/' + name; // pkg path
       var is_build = false;       // is pkg build, 是否为build过的代码
@@ -691,7 +698,8 @@ function PackagesCore_parse_new_pkgs_json(self, node_path, content, local) {
       if (typeof value == 'object') {
          // Build Lib 会自动创建这个文件
         if (value.path) {
-          path = resolve(is_absolute(value.path) ? value.path : node_path + '/' + value.path);
+          path = resolve(is_absolute(value.path) ? 
+            value.path : node_path + '/' + value.path);
         }
         version_code = String(value.version_code || '');
         // 指定一个最终build的版本代码也可视目标pkg为build过后的代码
@@ -747,7 +755,7 @@ function PackagesCore_parse_new_pkg_json(self, register, content) {
   PackagesCore_new_pkg(self, register.path, json.name, is_build, version_code, origin);
 }
 
-function PackagesCore_load_pkg_json(self, register, async) {
+function PackagesCore_load_pkg_json(self, register, async, receipt) {
 
   if ( PackagesCore_verification_is_need_load_pkg(self, register, true) ) {
     // 没有此pkg实例,尝试读取package.json文件
@@ -762,10 +770,11 @@ function PackagesCore_load_pkg_json(self, register, async) {
         } catch (e) { 
           err = e;
         }
-        PackagesCore_load_pkg_json_after(self, err, register, true);
+        PackagesCore_load_pkg_json_after(self, err, register, true, receipt);
       }.catch(function(err) {
-        PackagesCore_load_pkg_json_after(self, err, register, true);
+        PackagesCore_load_pkg_json_after(self, err, register, true, receipt);
       }));
+      return;
     } else {
       try {
         PackagesCore_parse_new_pkg_json(self, register, read_text_sync(pkg_json));
@@ -774,10 +783,10 @@ function PackagesCore_load_pkg_json(self, register, async) {
       }
     }
   }
-  PackagesCore_load_pkg_json_after(self, err, register, async);
+  PackagesCore_load_pkg_json_after(self, err, register, async, receipt);
 }
 
-function PackagesCore_load_pkg_json_after(self, err, register, async) {
+function PackagesCore_load_pkg_json_after(self, err, register, async, receipt) {
   if (err) {
     var async_cb = self.m_async_cb;
     register.ready = 3; // 设置为异常
@@ -790,7 +799,8 @@ function PackagesCore_load_pkg_json_after(self, err, register, async) {
       throw err;
     }
   } else {
-    PackagesCore_require_before(self, async);
+    if (receipt)
+      PackagesCore_require_before(self, async);
   }
 }
 
@@ -799,6 +809,7 @@ function PackagesCore_try_parse_new_pkgs_json(self, node_path, async, local) {
   // load packages.json `packages.json` 文件必须强制加载不使用缓存
   var json_path_no_cache = set_url_args(pkgs_json, '_no_cache');
   if (async) {
+    node_path.ready = 1;  // 载入中packages.json
     read_text(json_path_no_cache, function(content) {
       try {
         PackagesCore_parse_new_pkgs_json(self, node_path, content, local);
@@ -838,35 +849,44 @@ function PackagesCore_require_before(self, async, cb) {
   }
   var is_loading = false;
 
+  // Prioritizing local loading node path
   for ( var i in self.m_node_path ) {
     var node_path = self.m_node_path[i];
     if (node_path.ready === 0) {
-      var pkgs_json = resolve(node_path.path, 'packages.json');
-      // load packages.json `packages.json` 文件必须强制加载不使用缓存
-      var json_path_no_cache = set_url_args(pkgs_json, '_no_cache');
-
       if (is_local(node_path.path)) { // local
         if (!ignore_all_local_package && isDirectorySync(node_path.path)) {
-          if (isFileSync(pkgs_json)) { // packages.json
+          //  Give priority to the use of `packages.json`
+          if (isFileSync(node_path.path + '/packages.json')) { 
             PackagesCore_try_parse_new_pkgs_json(self, node_path, false, true);
           } else { // no packages.json
             readdirSync(node_path.path).forEach(function(dirent) {
               if (dirent.type === 2 && ignore_local_package.indexOf(dirent.name) == -1) {
                 if ( isFileSync(dirent.pathname + '/package.json') ) {
-                  PackagesCore_register_path(self, dirent.pathname);
+                  var register = PackagesCore_register_path(self, dirent.pathname);
+                  if (register.ready === 0)
+                    PackagesCore_load_pkg_json(self, register, false, false);
                 }
               }
             });
           }
         } else {
-          node_path.ready = 2; // ok
+          node_path.ready = 2;  // ok
         }
-      } else if (async) {     // network
-        is_loading = true;    // 1.载入中,2.完成
-        node_path.ready = 1;  // 载入中packages.json
-        PackagesCore_try_parse_new_pkgs_json(self, node_path, true);
-      } else { // sync network
-        PackagesCore_try_parse_new_pkgs_json(self, node_path, false);
+      }
+    }
+  }
+
+  // Loading network node path
+  for ( var i in self.m_node_path ) {
+    var node_path = self.m_node_path[i];
+    if (node_path.ready === 0) {
+      if (!is_local(node_path.path)) { // local
+        if (async) {       // network
+          is_loading = true;      // 1.载入中,2.完成
+          PackagesCore_try_parse_new_pkgs_json(self, node_path, true);
+        } else { // sync network
+          PackagesCore_try_parse_new_pkgs_json(self, node_path, false);
+        }
       }
     } else if (node_path.ready === 1) {
       if (async) {
@@ -877,12 +897,13 @@ function PackagesCore_require_before(self, async, cb) {
 
   if ( is_loading ) return;
   
+  // Loading packages
   for ( var i in self.m_pkgs_register ) {
     var register = self.m_pkgs_register[i];
     if (register.ready === 0) {
       is_loading = true;
       register.ready = 1; // 设置成加载中状态
-      PackagesCore_load_pkg_json(self, register, async);
+      PackagesCore_load_pkg_json(self, register, async, true);
     } else if (register.ready === 1) {
       is_loading = true;
     } else if ( register.ready == 3 ) { // err
@@ -1020,12 +1041,24 @@ class Exports {
   getPackageWithAbsolutePath(path) {
     for (var i in packages.m_pkgs) {
       var pkg = packages.m_pkgs[i];
-      if ( !path.indexOf(pkg.path) ) { // 可能匹配
+      var old = pkg.m_old;
+
+      if (path.indexOf(pkg.path) === 0 || 
+          (old && path.indexOf(old.path) === 0) ) { // 可能匹配
         Package_install(pkg);
-        if ( !path.indexOf(pkg.src) ) {
+        
+        var src;
+        
+        if (path.indexOf(pkg.src) === 0) {
+          src = pkg.src;
+        } else if (old && path.indexOf(old.src) === 0) {
+          src = old.src;
+        }
+        
+        if (src) {
           return {
             package: pkg, 
-            path: path.substr(pkg.src.length + 1) || pkg.m_config.main || 'index',
+            path: path.substr(src.length + 1) || pkg.m_config.main || 'index',
           };
         }
       }

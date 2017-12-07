@@ -1222,9 +1222,9 @@ public:
     JS_SET_METHOD(setCachePath, set_cache_path);
     JS_SET_METHOD(clearCache, clear_cache);
     JS_SET_METHOD(clearCookie, clear_cookie);
-    //
-    //JS_SET_METHOD(download_sync, download_sync);
-    //JS_SET_METHOD(upload_sync, upload_sync);
+    JS_SET_METHOD(downloadSync, download_sync);
+    JS_SET_METHOD(uploadSync, upload_sync);
+    
     //JS_SET_METHOD(get_stream, get_stream);
     //JS_SET_METHOD(sslCacertFile, ssl_cacert_file);
     //JS_SET_METHOD(setSslCacertFile, set_ssl_cacert_file);
