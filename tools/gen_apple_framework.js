@@ -44,12 +44,16 @@ if ( argv.length == 0 ) {
 }
 
 function read_ngui_version_str() {
-	return read_ngui_version().join('.');
+	var versions = read_ngui_version();
+	var a = versions[0];
+	var b = versions[1] < 10 ? '0' + versions[1] : versions[1];
+	var c = versions[2] < 10 ? '0' + versions[2] : versions[2];
+	return `${a}.${b}.${c}`;
 }
 
 function read_plist_and_replace_version(version) {
 	var buf = fs.readFileSync(__dirname + '/framework.plist.binary');
-	var reg = new RegExp(new Buffer('0.1.0').toString('hex'), 'gm');
+	var reg = new RegExp(new Buffer('1.11.11').toString('hex'), 'gm');
 	var hex_str = buf.toString('hex').replace(reg, new Buffer(String(version)).toString('hex'));
 	var buf2 = new Buffer(hex_str, 'hex');
 	return buf2;

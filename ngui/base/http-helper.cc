@@ -207,7 +207,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
   }
   
   class Client: public HttpClientRequest, public HttpClientRequest::Delegate {
-  public:
+   public:
     Client(RunLoop* loop): HttpClientRequest(loop), m_loop(loop) {
       full_data = 1; is_error = 0;
       set_delegate(this);

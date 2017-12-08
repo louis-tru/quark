@@ -206,7 +206,7 @@
           'framework/Thing.h',
         ],
         'xcode_settings': {
-          'INFOPLIST_FILE': '$(SDKROOT)/test/framework/Info-<(os).plist',
+          'INFOPLIST_FILE': '<(DEPTH)/test/framework/Info-<(os).plist',
           #'SKIP_INSTALL': 'NO',
           'LD_RUNPATH_SEARCH_PATHS': [
             '$(inherited)',

@@ -73,13 +73,6 @@ function print_warn(err) {
 }
 
 function extend(obj, extd) {
-  for (var name in extd) {
-    obj[name] = extd[name];
-  }
-  return obj;
-}
-
-function extend2(obj, extd) {
   for (var item of Object.entries(extd)) {
     obj[item[0]] = item[1];
   }
@@ -178,7 +171,7 @@ function read_text_sync(path) {
   return readFileSync(path, 'utf8');
 }
 
-global.__extend = extend2;
+global.__extend = extend;
 global.__vx = __vx;
 
 // -------------------------- Package private API --------------------------
@@ -192,16 +185,17 @@ function parseJSON(source, filename) {
   }
 }
 
-function Package_install_with_path(self, path, is_pkg, cb) {
+function Package_install3(self, path, cb) {
   // 读取package.json文件
-  var config = null;
+  var version_code = self.m_version_code;
+  var info = null;
   var package_json = path + '/package.json';
   var versions_json = path + '/versions.json';
-  var path2 = set_url_args(package_json, self.m_version_code);
+  var path2 = set_url_args(package_json, version_code);
   
   var read_versions_ok = function(data) {
     data = parseJSON(data, versions_json);
-    if(self.m_build) {
+    if (self.m_build) {
       self.m_pkg_files = data.pkg_files || {};// .pkg 中包含的文件列表 
     }
     self.m_versions = data.versions || {};
@@ -210,17 +204,17 @@ function Package_install_with_path(self, path, is_pkg, cb) {
   }.catch(new_cb(cb).throw);
   
   var read_pkg_json_ok = function(data) {
-    self.m_config = config = parseJSON(data, package_json);
-    config.src  = config.src || '';
-    self.m_src  = resolve(path, config.src);
-    if (config.name != self.m_name) {
+    self.m_info = info = parseJSON(data, package_json);
+    info.src  = info.src || '';
+    self.m_src  = resolve(self.m_path, info.src);
+    if (info.name != self.m_name) {
       return throw_err('Lib name must be ' +
-                       `consistent with the folder name, ${self.m_name} != ${config.name}`, cb);
+                       `consistent with the folder name, ${self.m_name} != ${info.name}`, cb);
     }
     
     if (self.m_build || is_network(path)) {
-      // 下载package内部资源文件版本信息
-      path2 = set_url_args(versions_json, self.m_version_code);
+      // 读取package内部资源文件版本信息
+      path2 = set_url_args(versions_json, version_code);
     } else {
       self.m_install = true;
       return cb && cb(); // ok
@@ -235,104 +229,167 @@ function Package_install_with_path(self, path, is_pkg, cb) {
 function Package_install_remote(self, cb) {
   // 如果本地不存在相应版本的文件,下载远程.pkg文件到本地.
   // 远程.pkg文件必须存在否则抛出异常,并且不使用备选2方式
-  var pathname = _util.temp(`${self.m_name}.pkg.${self.m_version_code}`);
+  var version_code = self.m_version_code;
+  var pathname = _util.temp(`${self.m_name}.pkg`);
+  var pathname_ver = `${pathname}.${version_code}`;
 
   // zip:///Users/pppp/sasa/aa.apk@/aaaaa/bbbb/aa.js
-  
-  if (fs.existsSync(pathname)) { // 文件存在,无需下载
+  var has_pathname = fs.existsSync(pathname);
+
+  if (fs.existsSync(pathname_ver)) { // 文件存在,无需下载
     // 设置一个本地zip文件读取协议路径,使用这种路径可直接读取zip内部文件
-    self.m_pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
-    Package_install_with_path(self, self.m_pkg_path, true, cb);
+    if (has_pathname) {
+      if (fs.statSync(pathname).ino != fs.statSync(pathname_ver).ino) { // 文件id不相同
+        fs.unlinkSync(pathname);
+        fs.linkSync(pathname_ver, pathname); // 链接
+      }
+    } else {
+      fs.linkSync(pathname_ver, pathname); // 链接
+    }
+    self.m_pkg_path = `zip:///${pathname_ver.substr(8)}@`;  // file:///
+    Package_install3(self, self.m_pkg_path, cb);
   } else {
-    var url = set_url_args(`${self.m_path}/${self.m_name}.pkg`, self.m_version_code);
-    var tmp = pathname + '.~';
+    var url = set_url_args(`${self.m_path}/${self.m_name}.pkg`, version_code);
+    var tmp = pathname_ver + '.~';
     // TODO 文件比较大时需要断点续传下载
     // TODO 还应该使用读取数据流方式,实时回调通知下载进度
+    let doanload_ok = function() { // 下载成功
+      fs.renameSync(tmp, pathname_ver);
+      if (has_pathname)
+        fs.unlinkSync(pathname);
+      fs.linkSync(pathname_ver, pathname); // 链接
+      self.m_pkg_path = `zip:///${pathname_ver.substr(8)}@`; // file:///
+      Package_install3(self, self.m_pkg_path, cb);
+    }.catch(function(err) {
+      if (has_pathname) { // 使用原来的包
+        console.error(err);
+        self.m_pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
+        Package_install3(self, self.m_pkg_path, cb);
+      } else {
+        new_cb(cb).throw(err);
+      }
+    });
+
     if (cb) {
-      _http.download(url, tmp, function() { // 下载成功
-        fs.renameSync(tmp, pathname);
-        self.m_pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
-        Package_install_with_path(self, self.m_pkg_path, true, cb);
-      }.catch(cb.throw));
+      _http.download(url, tmp, doanload_ok);
     } else {
-      _http.downloadSync(url, tmp);
-      fs.renameSync(tmp, pathname);
-      self.m_pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
-      Package_install_with_path(self, self.m_pkg_path, true);
+      try {
+        _http.downloadSync(url, tmp);
+      } catch(err) {  
+        doanload_ok.throw(err); return;
+      }
+      doanload_ok();
     }
   }
 }
 
-function Package_install_old(self, cb) {
-  var old = self.m_old;
-  var install_ok = function() {
-    // 保存旧文件版本信息
-    old.src = self.m_src; 
-    old.versions = self.m_versions;
-    old.pkg_files = self.m_pkg_files;
+function Package_install_local(self, receive, cb) {
+  var path = receive.m_path;
+
+  var install_ok = function() { // 保存旧文件版本信息
+    receive.m_src = resolve(path, self.m_info.src);
+    receive.m_versions = self.m_versions;
+    receive.m_pkg_files = self.m_pkg_files;
     cb && cb();
   }.catch(new_cb(cb).throw);
   
-  old.pkg_path = '';
-  var is_pkg = false;
-  
-  if ( !is_local_zip(old.path) ) {
-    is_pkg = fs.existsSync(`${old.path}/${self.m_name}.pkg`);
+  receive.m_pkg_path = '';
+
+  /*
+  * build的pkg有两种格式
+  * 1.pkg根目录存在.pkg压缩文件,文件中包含全部文件版本信息与一部分源码文件以及资源文件.
+  * 2.pkg根目录不存在.pkg压缩文件,相比build前只多出文件版本信息,适用于android/ios安装包中存在.
+  */
+  /* 文件读取器不能读取zip内的.pkg文件. 
+  * 比如无法android资源包中的.pkg文件 
+  * 所以这里的pkg不能存在.pkg格式文件只能为普通文件
+  */
+
+  if ( !is_local_zip(path) ) {
+    var is_pkg = fs.existsSync(`${path}/${self.m_name}.pkg`);
     if (is_pkg) {
-      old.pkg_path = `zip:///${old.path.substr(8)}/${self.m_name}.pkg@`;
+      receive.m_pkg_path = `zip:///${path.substr(8)}/${self.m_name}.pkg@`;
     }
   }
-  cb ? Package_install_with_path(self, old.path, is_pkg, install_ok) : 
-        install_ok(Package_install_with_path(self, old.path, is_pkg));
+  if (cb) {
+    Package_install3(self, path, install_ok);
+  } else {
+    Package_install3(self, path)
+    install_ok();
+  }
 }
 
 // install
 function Package_install2(self, cb) {
   if (self.m_build) { // pkg明确声明为已build状态
-    if (self.m_local) { // 本地pkg
+    if (self.m_local_launch) { // 本地发起pkg
       //
-      if ( self.m_old ) { // 先载入本地旧包,然后载入远程origin包
+      var old = self.m_old;
+      if (old) { // 先载入本地旧包,然后载入远程origin包
+        let install_remote_ok = function(){ cb && cb() }.catch(err=>{
+          // 不能安装远程包,
+          console.error(err);
+          extend(self, old); // 恢复
+          self.m_old = null;
+          cb && cb();
+        });
         if (cb) {
-          Package_install_old(self, function() {
-            Package_install_remote(self, cb);
+          // 读取旧pkg中的信息也许有些离散文件还可以继续使用,降低网络消耗
+          Package_install_local(self, old, function() {
+            Package_install_remote(self, install_remote_ok);
           }.catch(cb.throw));
         } else {
-          Package_install_old(self); // 读取旧pkg中的信息也许有些离散文件还可以继续使用,降低网络消耗
-          Package_install_remote(self);
-        }
-        
-      } else {
-        var is_pkg = false;
-        /*
-         * build的pkg有两种格式
-         * 1.pkg根目录存在.pkg压缩文件,文件中包含全部文件版本信息与一部分源码文件以及资源文件.
-         * 2.pkg根目录不存在.pkg压缩文件,相比build前只多出文件版本信息,适用于android/ios安装包中存在.
-         */
-         /* 文件读取器不能读取zip内的.pkg文件. 
-          * 比如无法android资源包中的.pkg文件 
-          * 所以这里的pkg不能存在.pkg格式文件只能为普通文件
-          */
-        if ( ! is_local_zip(self.m_path) ) { // 非zip内路径
-          is_pkg = fs.existsSync(`${self.m_path}/${self.m_name}.pkg`);
-          if (is_pkg) { // 文件存在
-            // 设置一个本地zip文件读取协议路径
-            // zip:///temp/test.pkg@
-            self.m_pkg_path = `zip:///${self.m_path.substr(8)}/${self.m_name}.pkg@`;
+          Package_install_local(self, old);
+          try {
+            Package_install_remote(self);
+          } catch(err) {
+            install_remote_ok.throw(err);
           }
         }
-        Package_install_with_path(self, self.m_path, is_pkg, cb);
+      } else {
+
+        if (self.m_origin) { 
+          // 可能由于网络原因导致没有调用`Package_set_origin_version_code()`替换本地路径
+          // 但本地可能存在原先下载的origin包,检测原先下载的远程包是否可用
+          var path = _util.temp(`${self.m_name}.pkg`);
+          if (fs.existsSync(path)) { // 文件存在
+            var pkg_path = `zip:///${path.substr(8)}@`;
+            // 读取包内package.json文件内容
+            var package_json = pkg_path + '/package.json';
+            var info = parseJSON(read_text_sync(package_json), package_json);
+            if (info.version_code != self.m_version_code && 
+              info.build_time > self.m_info.build_time) { // 版本号不相同，并且时间比本地包新
+              self.m_old = {
+                m_path: self.m_path,
+                m_version_code: self.m_version_code,
+              };
+              if (cb) {
+                Package_install_local(self, self.m_old, function() {
+                  self.m_pkg_path = pkg_path;
+                  Package_install3(self, pkg_path, cb);
+                }.catch(cb.throw));
+              } else {
+                Package_install_local(self, self.m_old);
+                self.m_pkg_path = pkg_path;
+                Package_install3(self, pkg_path);
+              }
+              return;
+            }
+          }
+        }
+        Package_install_local(self, self, cb);
       }
     } else { //  单纯的远程.pkg, 远程包一定都是.pkg
       Package_install_remote(self, cb);
     }
   } else {
-    Package_install_with_path(self, self.m_path, false, cb);
+    Package_install3(self, self.m_path, cb);
   }
 }
 
 // install
 function Package_install(self, cb) {
-  if ( self.m_install ) { // 这里可以不使用锁定,因为释放代码只会加载一次
+  if ( self.m_install ) {
     return cb && cb();
   }
   if (cb) { // async
@@ -404,11 +461,11 @@ function Package_get_path(self, pathname) {
   if (self.m_old) { // 读取本地旧文件
     var old = self.m_old;
     // 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
-    if ( old.versions[pathname] === ver ) {
-      if ( old.pkg_files[pathname] ) {
-        rv = old.pkg_path + '/' + pathname;
+    if ( old.m_versions[pathname] === ver ) {
+      if ( old.m_pkg_files[pathname] ) {
+        rv = old.m_pkg_path + '/' + pathname;
       } else {
-        rv = old.src + '/' + pathname;
+        rv = old.m_src + '/' + pathname;
       }
     }
   }
@@ -462,8 +519,9 @@ Module._extensions['.js'] = function(module, filename) {
   var content = read_text_sync(filename);
   var pkg = module.package;
   var raw_filename = filename.replace(/\?.*$/, '');
-  if (pkg && pkg.m_config.ngui_syntax) {
-    if ( !pkg.m_build || pkg.m_config.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
+  if (pkg && pkg.m_info.ngui_syntax) {
+    if ( !pkg.m_build || 
+      pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
       content = _util.transformJs(content, raw_filename);
     }
   }
@@ -475,7 +533,8 @@ Module._extensions['.jsx'] = function(module, filename) {
   var content = read_text_sync(filename);
   var pkg = module.package;
   var raw_filename = filename.replace(/\?.*$/, '');
-  if ( !pkg || !pkg.m_build || pkg.m_config.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
+  if ( !pkg || !pkg.m_build || 
+    pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
     content = _util.transformJsx(content, raw_filename);
   }
   module._compile(internalModule.stripBOM(content), raw_filename);
@@ -511,7 +570,7 @@ function Package_require(self, parent, request) {
   Package_install(self);
 
   if (!request || request == '.') {
-    request = self.m_config.main || 'index';
+    request = self.m_info.main || 'index';
   }
   request = resolve_path_level(request, true);
   var pathname = Package_get_path(self, request);
@@ -547,30 +606,27 @@ function Package_require(self, parent, request) {
 }
 
 /**
- * @func Package_replace_local 必需要install之前调用,安装后无法实现替换
+ * @func Package_set_origin_version_code 必需要install之前调用,安装后无法实现替换
  */
-function Package_replace_local(self, path, build, version_code) {
-  if ( Package_is_can_replace_local(self, path) ) {
-    if ( build && version_code != self.m_version_code ) {
-      if (self.m_build) {
-        self.m_old = {
-          path: self.m_path, 
-          version_code: self.m_version_code,
-        };
-      }
-      self.m_build = true;
-      self.m_path = path;
-      self.m_version_code = version_code;
+function Package_set_origin_version_code(self, origin, origin_version_code) {
+  if (Package_is_can_check_origin(self, origin)) {
+    if ( origin_version_code != self.m_version_code ) {
+      self.m_old = {
+       m_path: self.m_path, 
+       m_version_code: self.m_version_code,
+      };
+      self.m_path = origin;
+      self.m_version_code = origin_version_code;
     }
   }
 }
 
 /**
- * @func Package_is_can_replace_local 是否可以替换
+ * @func Package_is_can_check_origin 是否可以检查源
  */
-function Package_is_can_replace_local(self, path) {
-  if ( /*!options.dev &&*/ self.m_build && !self.m_install && self.m_local ) {
-    if (path == self.m_origin && path != self.m_path) {
+function Package_is_can_check_origin(self, origin) {
+  if ( self.m_build && !self.m_install && self.m_local_launch ) {
+    if (origin == self.m_origin && origin != self.m_path) {
       return true;
     }
   }
@@ -580,7 +636,7 @@ function Package_is_can_replace_local(self, path) {
 // -------------------------- PackagesCore private func --------------------------
 
 // 注册更多相同名称的pkg都没关系,最终都只使用最开始注册的pkg
-function PackagesCore_register_path(self, path) {
+function PackagesCore_register_path(self, path, optional) {
   var path2 = resolve(path);
   var register = self.m_pkgs_register[path2];
   if ( !register ) {
@@ -591,7 +647,10 @@ function PackagesCore_register_path(self, path) {
       }
       /* pkg的状态,-1忽略/0未就绪/1准备中/2已经就绪/3异常 */
       self.m_pkgs_register[path2] = register = {
-        ready: 0, path: path2, name: mat[3],
+        ready: 0, 
+        path: path2, 
+        name: mat[3], 
+        optional: !!optional,
       };
       self.m_is_ready = false; /* 设置未准备状态 */
     } else {
@@ -659,16 +718,17 @@ function PackagesCore_depe_pkg(self, path, depe) {
   }
 }
 
-function PackagesCore_new_pkg(self, path, name, is_build, version_code, origin) {
+function PackagesCore_new_pkg(self, path, name, is_build, build_time, version_code, origin) {
   var pkg = self.m_pkgs[name];
   if (pkg) { // Lib 实例已创建(尝试更新)
-    Package_replace_local(pkg, path, is_build, version_code);
+    if (is_build)
+      Package_set_origin_version_code(pkg, path, version_code);
   } else {
-    pkg = new Package(path, name, is_build, version_code, String(origin)); // 创建一个pkg
+    pkg = new Package(path, name, is_build, build_time, version_code, String(origin)); // 创建一个pkg
     self.m_pkgs[name] = pkg;
     
     if ( pkg.m_origin ) { // reg origin pkg and check update
-      PackagesCore_register_path(self, pkg.m_origin);
+      PackagesCore_register_path(self, pkg.m_origin, true);
     }
   }
 }
@@ -692,6 +752,7 @@ function PackagesCore_parse_new_pkgs_json(self, node_path, content, local) {
       var value = json[name]; 
       var path  = node_path + '/' + name; // pkg path
       var is_build = false;       // is pkg build, 是否为build过的代码
+      var build_time = 0;
       var version_code  = '';     // pkg version code
       var origin = '';
       
@@ -704,6 +765,8 @@ function PackagesCore_parse_new_pkgs_json(self, node_path, content, local) {
         version_code = String(value.version_code || '');
         // 指定一个最终build的版本代码也可视目标pkg为build过后的代码
         is_build = '_build' in value ? !!value._build : !!version_code;
+        if (typeof value.build_time == 'number')
+          build_time = value.build_time;
         origin = value.origin || '';
       }
       else if (value) { // 把单纯的值当成pkg路径
@@ -720,7 +783,7 @@ function PackagesCore_parse_new_pkgs_json(self, node_path, content, local) {
       if ( PackagesCore_verification_is_need_load_pkg(self, register, false) ) {
         register.ready = 2;
         PackagesCore_depe_pkg(self, path, value.external_deps);
-        PackagesCore_new_pkg(self, path, name, is_build, version_code, origin);
+        PackagesCore_new_pkg(self, path, name, is_build, build_time, version_code, origin);
       }
     }
   }
@@ -732,7 +795,7 @@ function PackagesCore_verification_is_need_load_pkg(self, register, is_warn) {
     if ( pkg.path == register.path )  // 路径相同不需要在做任何工作了
       return false;
     // 路径不相同检测是否可以更新替换
-    if ( !Package_is_can_replace_local(pkg, register.path) ) { // 无法替换
+    if ( !Package_is_can_check_origin(pkg, register.path) ) { // 不需要check
       register.ready = -1; // 忽略
       if ( is_warn ) {
         console.warn('Ignore, Lib has been created and cannot be replaced,', register.path);
@@ -747,12 +810,13 @@ function PackagesCore_parse_new_pkg_json(self, register, content) {
   var json = parseJSON(content, register.path + '/package.json');
   var version_code = String(json.version_code || '');
   var is_build = '_build' in json ? !!json._build : !!version_code;
+  var build_time = typeof json.build_time == 'number' ? json.build_time : 0;
   var origin = register.disable_origin ? '' : register.origin || json.origin || '';
-
+  
   register.ready = 2; // 完成
   
   PackagesCore_depe_pkg(self, register.path, json.external_deps);
-  PackagesCore_new_pkg(self, register.path, json.name, is_build, version_code, origin);
+  PackagesCore_new_pkg(self, register.path, json.name, is_build, build_time, version_code, origin);
 }
 
 function PackagesCore_load_pkg_json(self, register, async, receipt) {
@@ -788,15 +852,21 @@ function PackagesCore_load_pkg_json(self, register, async, receipt) {
 
 function PackagesCore_load_pkg_json_after(self, err, register, async, receipt) {
   if (err) {
-    var async_cb = self.m_async_cb;
-    register.ready = 3; // 设置为异常
-    register.error = err;
-    self.m_async_cb = [];
-    async_cb.forEach(function(cb) { 
-      cb.throw(err); /* 抛出异常 */ 
-    });
-    if (!async) {
-      throw err;
+    if (register.optional) { // optional
+      register.ready = -1; // ignore
+      if (receipt)
+        PackagesCore_require_before(self, async);
+    } else {
+      var async_cb = self.m_async_cb;
+      register.ready = 3; // 设置为异常
+      register.error = err;
+      self.m_async_cb = [];
+      async_cb.forEach(function(cb) { 
+        cb.throw(err); /* 抛出异常 */ 
+      });
+      if (!async) {
+        throw err;
+      }
     }
   } else {
     if (receipt)
@@ -929,33 +999,33 @@ function PackagesCore_require_before(self, async, cb) {
  */
 class Package {
 
-  get config() { return this.m_config }
+  get info() { return this.m_info }
   get origin() { return this.m_origin }
   get name() { return this.m_name }   // pkg 名称
   get path() { return this.m_path }   // pkg 路径
   get src() { return this.m_src }
-  get has_build() { return this.m_build }                 // build
+  get has_build() { return this.m_build }             // build
   get versions() { return this.m_versions }           // 资源版本
   get version_code() { return this.m_version_code }   // 版本代码
   
   /**
    * @constructor
    */
-  constructor(path, name, build, version_code, origin) {
+  constructor(path, name, is_build, build_time, version_code, origin) {
     var self = this;
-    self.m_config = null;
+    self.m_info = { build_time: build_time };
     self.m_origin = is_network(origin) ? origin : '';
+    self.m_local_launch = is_local(path);
     self.m_name = name;
     self.m_path = path;
     self.m_src = '';        /* */
-    self.m_build = build;   /*  build 状态 */
+    self.m_build = is_build;
     self.m_pkg_path = '';   /* .pkg 文件本地路径 zip:///temp/test.pkg@ */
     self.m_pkg_files = {};  /* .pkg 中的文件列表,没有.pkg文件这个属性为null */
-    self.m_versions = {};   /* .pkg 文件以外资源文件的版本信息 */
+    self.m_versions = {};   /* .pkg 包内文件的版本信息 */
     self.m_version_code = version_code;
     self.m_install = false;
     self.m_modules = {};
-    self.m_local = is_local(path);
     self.m_old = null;
     self.m_path_cache = {};
     //zip:///applications/test.apk@/
@@ -1042,23 +1112,23 @@ class Exports {
     for (var i in packages.m_pkgs) {
       var pkg = packages.m_pkgs[i];
       var old = pkg.m_old;
-
+      
       if (path.indexOf(pkg.path) === 0 || 
-          (old && path.indexOf(old.path) === 0) ) { // 可能匹配
+          (old && path.indexOf(old.m_path) === 0) ) { // 可能匹配
         Package_install(pkg);
         
         var src;
         
         if (path.indexOf(pkg.src) === 0) {
           src = pkg.src;
-        } else if (old && path.indexOf(old.src) === 0) {
-          src = old.src;
+        } else if (old && path.indexOf(old.m_src) === 0) {
+          src = old.m_src;
         }
         
         if (src) {
           return {
             package: pkg, 
-            path: path.substr(src.length + 1) || pkg.m_config.main || 'index',
+            path: path.substr(src.length + 1) || pkg.m_info.main || 'index',
           };
         }
       }
