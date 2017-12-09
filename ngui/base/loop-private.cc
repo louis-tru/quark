@@ -39,7 +39,7 @@ extern int process_exit;
  * @class PrivateLoop
  */
 class PrivateLoop {
-public:
+ public:
   inline PrivateLoop(): m_loop(nullptr) {  }
   
   inline bool has_current_thread() {
@@ -68,7 +68,7 @@ public:
            * * *
            * 这里休眠200毫秒给外部线程足够时间往队列发送消息
            */
-          t.sleep_for(200 * 1000);
+          std::this_thread::sleep_for(std::chrono::microseconds(200 * 1000));
           if ( m_loop->is_alive() && !t.is_abort() ) {
             goto loop; // 继续运行
           }
@@ -82,7 +82,7 @@ public:
     return m_loop;
   }
   
-private:
+ private:
   ThreadID m_thread_id;
   RunLoop* m_loop;
   Mutex m_mutex;

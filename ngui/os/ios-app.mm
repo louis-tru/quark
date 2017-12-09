@@ -67,8 +67,6 @@ static NSString* app_delegate_name = @"";
  * @interface ApplicationDelegate
  */
 @interface ApplicationDelegate()<MFMailComposeViewControllerDelegate> {
-  Mutex     _main_mutex;
-  Condition _main_cond;
   Callback  _render_cb;
   UIWindow* _window;
   BOOL      _is_background;
@@ -82,6 +80,7 @@ static NSString* app_delegate_name = @"";
 @property (assign, nonatomic) Orientation current_orientation;
 @property (assign, nonatomic) bool visible_status_bar;
 @property (assign, nonatomic) UIStatusBarStyle status_bar_style;
+@property (assign, atomic) NSInteger render_task_count;
 @end
 
 /**
@@ -231,17 +230,15 @@ static NSString* app_delegate_name = @"";
 @implementation ApplicationDelegate
 
 static void render_loop_cb(Se& evt, Object* ctx) {
-  { //
-    ScopeLock scope(ios_app->_main_mutex);
-    ios_app->_main_cond.notify_one();
-  }
+  ios_app.render_task_count--;
   _inl_app(ios_app.app)->onRender();
 }
 
 - (void)render_loop:(CADisplayLink*)displayLink {
-  Lock lock(_main_mutex);
-  _app->render_loop()->post(_render_cb);
-  _main_cond.wait(lock);
+  if (self.render_task_count == 0) {
+    self.render_task_count++;
+    _app->render_loop()->post(_render_cb);
+  }
 }
 
 - (void)refresh_status {
@@ -271,6 +268,7 @@ static void render_loop_cb(Se& evt, Object* ctx) {
   self.current_orientation = Orientation::ORIENTATION_INVALID;
   self.visible_status_bar = YES;
   self.status_bar_style = UIStatusBarStyleLightContent;
+  self.render_task_count = 0;
   self.root_ctr = [[RootViewController alloc] init];
   self.display_link = [CADisplayLink displayLinkWithTarget:self selector:@selector(render_loop:)];
   self.window.backgroundColor = [UIColor blackColor];
