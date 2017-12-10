@@ -35,7 +35,7 @@
 
 using namespace ngui;
 
-#define USE_REMOTE 1
+#define USE_REMOTE 0
 
 XX_GUI_MAIN() {
   

@@ -23,7 +23,7 @@
     'direct_dependent_settings': {
       'include_dirs': [ '../..' ],
       'mac_bundle_resources': [
-        '../../node_modules/ngui',
+        #'../../node_modules/ngui',
       ],
     },
     'defines': [ 'NODE_WANT_INTERNALS=1' ],

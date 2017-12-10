@@ -1139,8 +1139,8 @@ void ActionCenter::advance() {
     uint64 time_span = 0;
     if (m_prev_sys_time) {  // 0表示还没开始
       time_span = sys_time - m_prev_sys_time;
-      if ( time_span > 300000 ) {   // 距离上一帧超过300ms重新记时(如应用程序从休眠中恢复)
-        time_span = 0;
+      if ( time_span > 200000 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
+        time_span = 200000; // 100ms
       }
     }
     for ( auto i = m_actions.begin(); !i.is_null(); ) {

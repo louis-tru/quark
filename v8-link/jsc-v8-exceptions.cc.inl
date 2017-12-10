@@ -56,16 +56,16 @@ has_terminated_(false) {
 }
 
 v8::TryCatch::~TryCatch() {
-  if ( rethrow_ ) { // rethrow
+  auto exception = isolate_->m_exception;
+  if (rethrow_ && exception) { // rethrow
     if (next_) {
-      next_->exception_ = exception_;
       next_->message_obj_ = message_obj_;
       next_->has_terminated_ = has_terminated_;
       next_->can_continue_ = can_continue_;
       isolate_->m_try_catch = next_;
     } else {
       isolate_->m_try_catch = nullptr;
-      isolate_->ThrowException((JSValueRef)exception_, (i::Message*)message_obj_);
+      isolate_->ThrowException(exception, (i::Message*)message_obj_);
     }
   } else {
     isolate_->m_try_catch = next_;
@@ -77,7 +77,7 @@ void* v8::TryCatch::operator new(size_t) { UNREACHABLE(); }
 void v8::TryCatch::operator delete(void*, size_t) { UNREACHABLE(); }
 
 bool v8::TryCatch::HasCaught() const {
-  return exception_;
+  return isolate_->m_exception;
 }
 
 bool v8::TryCatch::CanContinue() const {
@@ -96,14 +96,14 @@ v8::Local<v8::Value> v8::TryCatch::ReThrow() {
 }
 
 v8::Local<Value> v8::TryCatch::Exception() const {
-  return i::Cast(reinterpret_cast<JSValueRef>(exception_));
+  return i::Cast(isolate_->m_exception);
 }
 
 MaybeLocal<Value> v8::TryCatch::StackTrace(Local<Context> context) const {
   ENV(context->GetIsolate());
-  if (exception_) {
+  if (isolate_->m_exception) {
     DCHECK(JSValueIsObject(ctx, (JSValueRef)exception_));
-    auto r = JSObjectGetProperty(ctx, (JSObjectRef)exception_, i::stack_s, 0);
+    auto r = JSObjectGetProperty(ctx, (JSObjectRef)isolate_->m_exception, i::stack_s, 0);
     DCHECK(r);
     return i::Cast(r);
   }
@@ -120,10 +120,9 @@ v8::Local<v8::Message> v8::TryCatch::Message() const {
 }
 
 void v8::TryCatch::Reset() {
-  if (!rethrow_ && exception_) {
-    exception_ = nullptr;
-    message_obj_ = nullptr;
+  if (!rethrow_) {
     isolate_->m_exception = nullptr;
+    message_obj_ = nullptr;
   }
   ResetInternal();
 }
@@ -418,7 +417,7 @@ class Message: public Wrap {
   friend class v8::Message;
 };
 
-void Isolate::ParseMessage(Message* message) {
+void Isolate::PrintMessage(Message* message) {
   std::stringstream stream;
   message->Print(stream);
   std::string r = stream.str();

@@ -27,6 +27,7 @@
       'mac_bundle_resources': [
         'res',
         'test-ngui',
+        '../node_modules/ngui',
       ],
       'xcode_settings': {
         'OTHER_LDFLAGS': '-all_load',
@@ -92,6 +93,7 @@
       'mac_bundle': 1,
       'mac_bundle_resources': [
         '../demo/examples',
+        '../node_modules/ngui',
       ],
       'xcode_settings': {
         'OTHER_LDFLAGS': '-all_load',

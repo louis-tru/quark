@@ -109,6 +109,12 @@ int exec_argc, const char* const* exec_argv) {
 
 # node/lib/internal/bootstrap_node.js
 # node/lib/fs.js
+
+```js
++ const pkg = require('internal/pkg');
++ const getPathFromURL = pkg.getPathFromURL;
+```
+
 # node/lib/module.js
 # node/lib/pkg.js
 # node/lib/internal/pkg.js

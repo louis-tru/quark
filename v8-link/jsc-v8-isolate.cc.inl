@@ -377,7 +377,6 @@ class Isolate {
         m = reinterpret_cast<i::Message*>(*msg);
       }
       if (m_try_catch) {
-        m_try_catch->exception_ = (void*)exception;
         m_try_catch->message_obj_ = m;
       } else { // top stack throw
         auto data = m_message_listener_data ? m_message_listener_data : exception;
@@ -385,7 +384,7 @@ class Isolate {
           m_message_listener(Cast<v8::Message>(reinterpret_cast<class Object*>(m)),
                              Cast(data));
         } else {
-          ParseMessage(m);
+          PrintMessage(m);
         }
       }
     }
@@ -395,7 +394,7 @@ class Isolate {
     ThrowException(exception, nullptr);
   }
   
-  static inline void ParseMessage(i::Message* message);
+  static inline void PrintMessage(i::Message* message);
   
   bool AddMessageListener(MessageCallback that, Local<Value> data) {
     m_message_listener = that;
