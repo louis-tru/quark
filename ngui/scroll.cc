@@ -272,6 +272,8 @@ public:
     float y = (m_catch_position.y() < 1 ||
                m_catch_position.y() > m_box->final_width()) ?
                m_box->final_height() : m_catch_position.y();
+    if (x == 0.0) x = 1.0;
+    if (y == 0.0) y = 1.0;
     return Vec2(x, y);
   }
   

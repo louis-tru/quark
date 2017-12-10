@@ -27,19 +27,19 @@ async function async_test() {
 
 	var s = stat(FILE);
 
-	await AM(fs, 'chmodR', [DIR, s.mode() + 1, ()=>true ]);
-	VM(stat(FILE), 'mode', [], i=>i==s.mode()+1);
+	await AM(fs, 'chmodR', [DIR, s.mode + 1, ()=>true ]);
+	VM(stat(FILE), 'mode', [], i=>i==s.mode+1);
 
-	M(fs, 'chmodSyncR', [DIR, s.mode() + 2 ]);
-	VM(stat(FILE), 'mode', [], i=>i==s.mode()+2);
+	M(fs, 'chmodSyncR', [DIR, s.mode + 2 ]);
+	VM(stat(FILE), 'mode', [], i=>i==s.mode+2);
 
-	await AM(fs, 'chownR', [DIR, s.owner(), s.group(), ()=>true ]); 
-	VM(stat(DIR), 'owner', [], i=>i==s.owner());
-	VM(stat(DIR), 'group', [], i=>i==s.group());
+	await AM(fs, 'chownR', [DIR, s.uid, s.gid, ()=>true ]); 
+	VM(stat(DIR), 'owner', [], i=>i==s.uid);
+	VM(stat(DIR), 'group', [], i=>i==s.gid);
 
-	M(fs, 'chownSyncR', [DIR, s.owner(), s.group() ]); 
-	VM(stat(DIR), 'owner', [], i=>i==s.owner());
-	VM(stat(DIR), 'group', [], i=>i==s.group());
+	M(fs, 'chownSyncR', [DIR, s.uid, s.gid ]); 
+	VM(stat(DIR), 'owner', [], i=>i==s.uid);
+	VM(stat(DIR), 'group', [], i=>i==s.gid);
 
 	await AM(fs, 'mkdirP', [DIR + '/b/c', ()=>true]); 
 	VM(fs, 'existsSync', [DIR + '/b/c']);

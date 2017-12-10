@@ -32,6 +32,7 @@
 #ifndef __ngui__localstorage__
 #define __ngui__localstorage__
 
+#include "cb.h"
 #include "util.h"
 #include "string.h"
 
@@ -41,6 +42,8 @@ XX_EXPORT String localstorage_get(cString& name);
 XX_EXPORT void localstorage_set(cString& name, cString& value);
 XX_EXPORT void localstorage_delete(cString& name);
 XX_EXPORT void localstorage_clear();
+XX_EXPORT void localstorage_clear();
+XX_EXPORT void localstorage_transaction(cCb& cb);
 
 XX_END
 #endif

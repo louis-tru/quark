@@ -85,7 +85,7 @@ int exec_argc, const char* const* exec_argv) {
 
 //
 
-+ if (ngui_api->is_process_exit()) exit(0);
++	if (!ngui_api->is_process_exit()) {
 
 ```
 

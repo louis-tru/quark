@@ -61,6 +61,8 @@ static void assert_sqlite3_func(int c) {
 static void localstorage_close() {
   sqlite3* __db = _db;
   _db = nullptr;
+  
+  sqlite3_exec(__db, "commit;", 0, 0, 0);
   if ( _localstorage_get ) sqlite3_finalize(_localstorage_get); _localstorage_get = nullptr;
   if ( _localstorage_set ) sqlite3_finalize(_localstorage_set); _localstorage_set = nullptr;
   if ( _localstorage_del ) sqlite3_finalize(_localstorage_del); _localstorage_del = nullptr;
@@ -106,6 +108,9 @@ static void localstorage_initialize() {
       r = sqlite3_prepare(_db, sql_del, int(strlen(sql_del)), &_localstorage_del, nullptr); check(r);
       r = sqlite3_prepare(_db, sql_clear, int(strlen(sql_clear)), &_localstorage_clear, nullptr); check(r);
       
+      // r = sqlite3_exec(_db, "begin;", 0, 0, 0); check(r);
+      // r = sqlite3_exec(_db, "PRAGMA synchronous = OFF; ", 0, 0, 0); check(r);
+      
       atexit(localstorage_close);
     } else {
       _db = nullptr;
@@ -128,6 +133,7 @@ String localstorage_get(cString& name) {
   }
   return result;
 }
+
 void localstorage_set(cString& name, cString& value) {
   ScopeLock scope(mutex);
   localstorage_initialize();
@@ -141,6 +147,7 @@ void localstorage_set(cString& name, cString& value) {
     r = sqlite3_reset(_localstorage_set); assert_sqlite3(r);
   }
 }
+
 void localstorage_delete(cString& name) {
   ScopeLock scope(mutex);
   localstorage_initialize();
@@ -152,6 +159,7 @@ void localstorage_delete(cString& name) {
     r = sqlite3_reset(_localstorage_del); assert_sqlite3(r);
   }
 }
+
 void localstorage_clear() {
   ScopeLock scope(mutex);
   localstorage_initialize();
@@ -159,6 +167,26 @@ void localstorage_clear() {
     int r;
     r = sqlite3_step(_localstorage_clear); assert_sqlite3(r);
     r = sqlite3_reset(_localstorage_clear); assert_sqlite3(r);
+  }
+}
+
+void localstorage_transaction(cCb& cb) {
+  {
+    ScopeLock scope(mutex);
+    localstorage_initialize();
+  }
+  if ( _db ) {
+    int r;
+    {
+      ScopeLock scope(mutex);
+      r = sqlite3_exec(_db, "begin;", 0, 0, 0); check(r);
+    }
+    SimpleEvent ev = { 0,0,0 };
+    cb->call(ev);
+    {
+      ScopeLock scope(mutex);
+      r = sqlite3_exec(_db, "commit;", 0, 0, 0); check(r);
+    }
   }
 }
 

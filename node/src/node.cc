@@ -4830,8 +4830,6 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
   __lsan_do_leak_check();
 #endif
   
-  if (ngui_api->is_process_exit()) exit(0);
-  
   return exit_code;
 }
 
@@ -4873,7 +4871,7 @@ inline int Start(uv_loop_t* event_loop,
     exit_code = Start(isolate, &isolate_data, argc, argv, exec_argc, exec_argv);
   }
 
-  {
+  if (!ngui_api->is_process_exit()) {
     Mutex::ScopedLock scoped_lock(node_isolate_mutex);
     CHECK_EQ(node_isolate, isolate);
     node_isolate = nullptr;

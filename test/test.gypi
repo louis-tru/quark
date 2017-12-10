@@ -28,6 +28,7 @@
         'res',
         'test-ngui',
         '../node_modules/ngui',
+        '../benchmark',
       ],
       'xcode_settings': {
         'OTHER_LDFLAGS': '-all_load',
@@ -71,6 +72,7 @@
         'test-sys.cc',
         'test-mutex.cc',
         'test-ios-run-loop.cc', 
+        'test-benchmark.cc',
       ],
       'conditions': [
         ['os in "ios osx"', {

@@ -48,6 +48,14 @@ public:
     update_display_port();
   }
   
+  void update_root_size() {
+    Root* r = root();
+    if (r) {
+      r->set_width(m_size.width());
+      r->set_height(m_size.height());
+    }
+  }
+  
   void update_display_port() {
     
     if (m_lock_size.width() == 0 && m_lock_size.height() == 0) { // 使用系统默认的最合适的尺寸
@@ -88,13 +96,11 @@ public:
     
     XX_CHECK(m_host->render_loop());
     
+    update_root_size();
+
     m_host->render_loop()->post(Cb([this, test_root_matrix](Se& e) {
       m_draw_ctx->refresh_status_for_root_matrix(m_root_matrix, test_root_matrix);
-      Root* r = root();
-      if (r) {
-        r->set_width(m_size.width());
-        r->set_height(m_size.height());
-      }
+      update_root_size();
     }));
     
     // set default draw region

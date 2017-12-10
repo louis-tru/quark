@@ -43,7 +43,7 @@ XX_NS(ngui)
 
 #define LOOP RunLoop::current()
 #define LOOP2 RunLoop* loop = LOOP
-#define BUFFER_SIZE (1024 * 64) // 64kb
+#define BUFFER_SIZE (1024 * 16) // 16kb
 
 extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
 extern const int inl__file_mode_mask[];
@@ -182,8 +182,6 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
     {//
       m_buffer[0] = Buffer(BUFFER_SIZE);
       m_buffer[1] = Buffer(BUFFER_SIZE);
-      m_buffer[2] = Buffer(BUFFER_SIZE);
-      m_buffer[3] = Buffer(BUFFER_SIZE);
       m_source_file->set_delegate(this);
       m_target_file->set_delegate(this);
       m_source_file->open(FOPEN_R);
@@ -202,7 +200,7 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
     }
     
     Buffer alloc_buffer() {
-      for ( int i = 0; i < 4; i++ ) {
+      for ( int i = 0; i < 2; i++ ) {
         if (m_buffer[i].length()) {
           return m_buffer[i];
         }
@@ -211,7 +209,7 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
     }
     
     void release_buffer(Buffer buffer) {
-      for ( int i = 0; i < 4; i++ ) {
+      for ( int i = 0; i < 2; i++ ) {
         if (m_buffer[i].length() == 0) {
           m_buffer[i] = buffer.realloc(BUFFER_SIZE);
         }
@@ -296,7 +294,7 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
     AsyncFile* m_source_file;
     AsyncFile* m_target_file;
     Callback   m_end;
-    Buffer     m_buffer[4];
+    Buffer     m_buffer[2];
     int        m_reading_count;
     int        m_writeing_count;
     bool       m_read_end;

@@ -46,6 +46,13 @@
 
 删除所有本地值,包括普通数据与json数据
 
+## transaction(cb)
+
+使用sqlite事物, 启用最高速度访问本地存储接口api, 事件结束将数据保存到本地
+
+* @arg `cb` {[`Function`]}
+
 
 [`Object`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 [`String`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+[`Function`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function

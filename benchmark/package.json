@@ -1,0 +1,6 @@
+{
+	"name": "benchmark",
+	"version": "0.1.0",
+	"main": "fs.js",
+  "ngui_syntax": true
+}

@@ -44,7 +44,7 @@ Callback: `cb(data)` (data:[`StreamData`])
 * @arg `[cb]` {[`Function`]}
 * @ret {[`uint`]} return abort `id`
 
-## read(path[,cb])
+## readFile(path[,cb])
 
 异步读取文件，并返回中止`id`,通过中止`id`可强制取消当前的读取任务
 
@@ -76,7 +76,7 @@ reader.read('zip:///var/data/test.zip@aa.txt', function(d){
 }.catch(e=>{ /*Fail*/ }));
 ```
 
-## readSync(path)
+## readFileSync(path)
 
 同步读取文件,成功返回文件`Buffer`失败会抛出异常
 

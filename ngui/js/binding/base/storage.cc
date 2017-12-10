@@ -30,6 +30,7 @@
 
 #include "ngui/js/js.h"
 #include "ngui/base/localstorage.h"
+#include "cb-1.h"
 
 /**
  * @ns ngui::js
@@ -68,7 +69,7 @@ class NativeStorage {
     JS_WORKER(args);
     if (args.Length() < 2) {
       JS_THROW_ERR(
-        "* @func get(key)\n"
+        "* @func set(key)\n"
         "* @arg key {String}\n"
         "* @arg value {String}\n"
       );
@@ -90,9 +91,20 @@ class NativeStorage {
     }
     localstorage_delete( args[0]->ToStringValue(worker) );
   }
-
+  
   static void clear(FunctionCall args) {
     localstorage_clear();
+  }
+  
+  static void transaction(FunctionCall args) {
+    JS_WORKER(args);
+    if (args.Length() < 1 || !args[0]->IsFunction()) {
+      JS_THROW_ERR(
+                   "* @func transaction(key)\n"
+                   "* @arg cb {Function}\n"
+                   );
+    }
+    localstorage_transaction(get_callback_for_none(worker, args[0]));
   }
   
  public:
@@ -102,6 +114,7 @@ class NativeStorage {
     JS_SET_METHOD(set, set);
     JS_SET_METHOD(del, del);
     JS_SET_METHOD(clear, clear);
+    JS_SET_METHOD(transaction, transaction);
   }
 };
 
