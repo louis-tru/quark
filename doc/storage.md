@@ -22,21 +22,21 @@
 
 * @arg `key` {[`String`]}
 
-## getJson(key)
+## getJSON(key)
 
 通过名称获取本地值json数据
 
 * @arg `key` {[`String`]}
 * @ret {[`Object`]}
 
-## setJson(key, value)
+## setJSON(key, value)
 
 通过名称设置本地值json数据
 
 * @arg `key` {[`String`]}
 * @arg `value` {[`Object`]}
 
-## delJson(key)
+## delJSON(key)
 
 通过名称删除本地值json
 
