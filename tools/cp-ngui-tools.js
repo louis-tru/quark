@@ -39,14 +39,14 @@ var target = args[0] ? path.resolve(args[0]) : root + '/out/ngui-tools';
 var include = target + '/product/include/ngui';
 
 fs.rm_r_sync(include);
-fs.rm_r_sync(target + '/product/node_modules');
+fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
 
 fs.cp_sync(root + '/node_modules/ngui-tools', target);
 fs.chmodSync(target + '/install', 0755);
 // fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
 fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);
-fs.chmodSync(target + '/gyp/gyp', 0755);
+fs.chmodSync(target + '/toolchain/gyp/gyp', 0755);
 
 copy_header(root + '/ngui', include);
 

@@ -13,10 +13,10 @@ ANDROID_HOME	?= $(ANDROID_HOME)
 ANDROID_JAR		?= $(ANDROID_HOME)/platforms/android-23/android.jar
 JAVAC					?= javac
 JAR						?= jar
-DEV						= ./node_modules/ngui-tools
-GYP						= $(DEV)/gyp/gyp
+TOOLS					= ./node_modules/ngui-tools
+GYP						= $(TOOLS)/toolchain/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)
-DEV_OUT				= out/ngui-tools
+TOOLS_OUT			= out/ngui-tools
 MAKE_STYLE		=	make
 
 PTOJECTS = make xcode msvs make-linux cmake-linux cmake
@@ -64,8 +64,8 @@ jsa-shell: $(GYPFILES)
 	@echo "{'variables':{'project':'$(MAKE_STYLE)'}}" > out/var.gypi;
 	$(GYP) -f $(MAKE_STYLE) tools.gyp --generator-output="out/$(MAKE_STYLE)" $(GYP_ARGS)
 	@$(make_compile)
-	@mkdir -p $(DEV)/bin/$(OS)
-	@cp $(LIBS_DIR)/jsa-shell $(DEV)/bin/$(OS)/jsa-shell
+	@mkdir -p $(TOOLS)/bin/$(OS)
+	@cp $(LIBS_DIR)/jsa-shell $(TOOLS)/bin/$(OS)/jsa-shell
 
 #################################################
 
@@ -81,16 +81,16 @@ ios:
 		-v8 --suffix=arm64.v8 --without-embed-bitcode
 	@$(MAKE) build
 	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(DEV_OUT)/product/ios/iphonesimulator/Release/Frameworks \
+					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
 					 ./out/ios.x64.Release/libngui.dylib 
 	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(DEV_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
+					 $(TOOLS_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
 					 ./out/ios.x64.Release/libngui.dylib 
 	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(DEV_OUT)/product/ios/iphoneos/Release/Frameworks \
+					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
 					 ./out/ios.arm64.Release/libngui.dylib # out/ios.armv7.Release/libngui.dylib
 	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(DEV_OUT)/product/ios/iphoneos/Debug/Frameworks \
+					 $(TOOLS_OUT)/product/ios/iphoneos/Debug/Frameworks \
 					 ./out/ios.arm64.v8.Release/libngui.dylib
 
 # build all android platform and output to product dir
@@ -108,8 +108,8 @@ out/android.classs.ngui.jar: android/org/ngui/*.java
 	@rm -rf out/android.classs/*
 	@$(JAVAC) -bootclasspath $(ANDROID_JAR) -d out/android.classs android/org/ngui/*.java
 	@cd out/android.classs; $(JAR) cfv ngui.jar .
-	@mkdir -p $(DEV_OUT)/product/android/libs
-	@cp out/android.classs/ngui.jar $(DEV_OUT)/product/android/libs
+	@mkdir -p $(TOOLS_OUT)/product/android/libs
+	@cp out/android.classs/ngui.jar $(TOOLS_OUT)/product/android/libs
 
 # install ngui command
 install:
@@ -118,17 +118,17 @@ install:
 	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@$(MAKE) tools
-	@$(DEV_OUT)/install
 
 # debug install ngui command
 install_inl:
 	@./configure --media=0
 	@$(MAKE) jsa-shell
-	@./$(DEV)/install link
+	@./$(TOOLS)/install link
 
 tools:
 	@sudo rm -rf ./out/ngui-tools/bin/shell.js
 	@$(NODE) ./tools/cp-ngui-tools.js
+	@$(TOOLS_OUT)/install
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

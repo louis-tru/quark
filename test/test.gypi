@@ -26,7 +26,6 @@
       'mac_bundle': 1,
       'mac_bundle_resources': [
         'res',
-        'js',
         'test-ngui',
       ],
       'xcode_settings': {
@@ -67,15 +66,14 @@
         'test-ngui.cc',
         'test-jsc.cc',
         'test-v8.cc',
-        'test-node.cc',
         'test-loop.cc',
         'test-sys.cc',
         'test-mutex.cc',
+        'test-ios-run-loop.cc', 
       ],
       'conditions': [
         ['os in "ios osx"', {
           'sources': [ 
-            'test-ios-run-loop.mm', 
             'Storyboard-<(os).storyboard',
             'test-<(os).plist',
           ],

@@ -28,8 +28,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//var fs = require('fs');
+#include <ngui/base/env.h>
 
-console.log('hello world 2');
+#if XX_IOS
 
-require('./test_node_3');
+#include <ngui/base/util.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <dispatch/dispatch.h>
+#include <stdio.h>
+#include <thread>
+
+static void _perform(void *info __unused) {
+  printf("hello2\n");
+}
+
+static void _timer(CFRunLoopTimerRef timer __unused, void *info) {
+  printf("hello1\n");
+  CFRunLoopSourceRef source = (CFRunLoopSourceRef)info;
+  CFRunLoopSourceSignal(source);
+}
+
+int test_ios_run_loop() {
+  
+  CFRunLoopSourceRef source;
+  CFRunLoopSourceContext source_context;
+  CFRunLoopTimerRef timer;
+  CFRunLoopTimerContext timer_context;
+  
+  bzero(&source_context, sizeof(source_context));
+  source_context.perform = _perform;
+  source = CFRunLoopSourceCreate(NULL, 0, &source_context);
+  //
+  bzero(&timer_context, sizeof(timer_context));
+  timer_context.info = source;
+  timer = CFRunLoopTimerCreate(NULL, CFAbsoluteTimeGetCurrent(), 1, 0, 0, _timer, &timer_context);
+  
+  std::thread([&]() {
+    CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, kCFRunLoopCommonModes);
+    CFRunLoopRun();
+  }).detach();
+  
+  
+  CFRunLoopContainsSource(CFRunLoopGetCurrent(), source, kCFRunLoopCommonModes);
+  CFRunLoopRun();
+
+  return 0;
+}
+
+#endif
