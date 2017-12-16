@@ -115,8 +115,10 @@ class XX_EXPORT Image: public Div {
   virtual void draw(Draw* draw);
   virtual void set_layout_explicit_size();
   virtual void set_layout_content_offset();
+  virtual void set_visible_draw();
   
  private:
+  int       m_tex_level;
   Texture*  m_texture; // 图像纹理数据
   Texture*  m_background_image;
   

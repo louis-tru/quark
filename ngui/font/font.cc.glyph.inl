@@ -132,7 +132,7 @@ public:
   /**
    * @func find_glyph
    */
-  FontGlyph* find_glyph(uint16 unicode, TexureLevel level, bool vector) {
+  FontGlyph* find_glyph(uint16 unicode, FGTexureLevel level, bool vector) {
     
     FontGlyph* glyph = nullptr;
     
@@ -183,7 +183,7 @@ FontGlyph* FontGlyphTable::glyph(uint16 unicode) {
 /**
  * @func use_texture_glyph 使用纹理字型
  */
-FontGlyph* FontGlyphTable::use_texture_glyph(uint16 unicode, TexureLevel level) {
+FontGlyph* FontGlyphTable::use_texture_glyph(uint16 unicode, FGTexureLevel level) {
   XX_ASSERT(level < FontGlyph::LEVEL_NONE);
   
   FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);

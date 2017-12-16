@@ -270,7 +270,8 @@ static void render_loop_cb(Se& evt, Object* ctx) {
   self.status_bar_style = UIStatusBarStyleLightContent;
   self.render_task_count = 0;
   self.root_ctr = [[RootViewController alloc] init];
-  self.display_link = [CADisplayLink displayLinkWithTarget:self selector:@selector(render_loop:)];
+  self.display_link = [CADisplayLink displayLinkWithTarget:self
+                                                  selector:@selector(render_loop:)];
   self.window.backgroundColor = [UIColor blackColor];
   self.window.rootViewController = self.root_ctr;
   
@@ -286,7 +287,7 @@ static void render_loop_cb(Se& evt, Object* ctx) {
   [view addSubview:self.glview];
   [view addSubview:self.receiver];
   [view addConstraint:[NSLayoutConstraint
-                       constraintWithItem:self.self.glview
+                       constraintWithItem:self.glview
                        attribute:NSLayoutAttributeWidth
                        relatedBy:NSLayoutRelationEqual
                        toItem:view
@@ -294,7 +295,7 @@ static void render_loop_cb(Se& evt, Object* ctx) {
                        multiplier:1
                        constant:0]];
   [view addConstraint:[NSLayoutConstraint
-                       constraintWithItem:self.self.glview
+                       constraintWithItem:self.glview
                        attribute:NSLayoutAttributeHeight
                        relatedBy:NSLayoutRelationEqual
                        toItem:view
@@ -312,13 +313,13 @@ static void render_loop_cb(Se& evt, Object* ctx) {
                               kEAGLDrawablePropertyRetainedBacking,
                               kEAGLColorFormatRGBA8,
                               kEAGLDrawablePropertyColorFormat, nil];
-  layer.opaque = YES;
   
   _app->render_loop()->post(Cb([self, layer, rect](Se& d) {
     ios_draw_core->set_surface_view(self.glview, layer);
     ios_draw_core->refresh_surface_size(rect);
     _inl_app(self.app)->onLoad();
-    [self.display_link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+    [self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
+                            forMode:NSDefaultRunLoopMode];
   }));
   
   return YES;
@@ -399,9 +400,9 @@ void GUIApplication::open_url(cString& url) {
 }
 
 /**
- * @func split_NSArray(str)
+ * @func split_ns_array(str)
  */
-static NSArray<NSString*>* split_NSArray(cString& str) {
+static NSArray<NSString*>* split_ns_array(cString& str) {
   NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
   for (auto& i : str.split(',')) {
     [arr addObject: [NSString stringWithUTF8String:*i.value()]];
@@ -416,10 +417,10 @@ void GUIApplication::send_email(cString& recipient,
                                 cString& subject,
                                 cString& cc, cString& bcc, cString& body) {
   MFMailComposeViewController* mail = [MFMailComposeViewController new];
-  [mail setToRecipients:split_NSArray(recipient)];
+  [mail setToRecipients:split_ns_array(recipient)];
   [mail setSubject:[NSString stringWithUTF8String:*subject]];
-  [mail setCcRecipients:split_NSArray(cc)];
-  [mail setBccRecipients:split_NSArray(bcc)];
+  [mail setCcRecipients:split_ns_array(cc)];
+  [mail setBccRecipients:split_ns_array(bcc)];
   [mail setMessageBody:[NSString stringWithUTF8String:*body] isHTML:NO];
   mail.mailComposeDelegate = ios_app;
   dispatch_async(dispatch_get_main_queue(), ^{

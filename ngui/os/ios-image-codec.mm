@@ -35,25 +35,25 @@
 
 XX_NS(ngui)
 
-static PixelData xx_decode(cBuffer& data) {
+static PixelData image_decode(cBuffer& data) {
 
-  NSData* nsdata = [NSData dataWithBytes:*data length:data.length()];
-  CGImageRef cg_image = [[UIImage imageWithData:nsdata] CGImage];
+  NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
+  CGImageRef image = [[UIImage imageWithData:data2] CGImage];
 
-  if (cg_image) {
+  if (image) {
 
-    CGColorSpaceRef color_space = CGImageGetColorSpace(cg_image);
+    CGColorSpaceRef color_space = CGImageGetColorSpace(image);
     if (color_space) {
       
-      int width = (int)CGImageGetWidth(cg_image);
-      int height = (int)CGImageGetHeight(cg_image);
+      int width = (int)CGImageGetWidth(image);
+      int height = (int)CGImageGetHeight(image);
       int pixel_size = width * height * 4;
       
       CGImageAlphaInfo info;
       PixelData::Format format;
       bool alpha = true;
       
-      switch (CGImageGetAlphaInfo(cg_image)) {
+      switch (CGImageGetAlphaInfo(image)) {
         case kCGImageAlphaPremultipliedLast:
         case kCGImageAlphaPremultipliedFirst:
         case kCGImageAlphaLast:
@@ -76,29 +76,29 @@ static PixelData xx_decode(cBuffer& data) {
         isPremultipliedAlpha = false;
       }
       
-      Buffer _data(pixel_size);
+      Buffer pixel_data(pixel_size);
       color_space = CGColorSpaceCreateDeviceRGB();
       CGContextRef context =
-      CGBitmapContextCreate(*_data, width, height, 8,
+      CGBitmapContextCreate(*pixel_data, width, height, 8,
                             width * 4, color_space, info | kCGBitmapByteOrder32Big);
-      CGContextDrawImage(context, CGRectMake(0, 0, width, height), cg_image);
+      CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
       CGContextRelease(context);
       CFRelease(color_space);
-      return PixelData(_data, width, height, PixelData::RGBA8888, isPremultipliedAlpha);
+      return PixelData(pixel_data, width, height, PixelData::RGBA8888, isPremultipliedAlpha);
     }
   }
   return PixelData();
 }
 
-static PixelData xx_decode_header(cBuffer& data) {
+static PixelData image_decode_header(cBuffer& data) {
   
-  NSData* ns_data = [NSData dataWithBytes:*data length:data.length()];
-  CGImageRef cg_image = [[UIImage imageWithData:ns_data] CGImage];
+  NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
+  CGImageRef image = [[UIImage imageWithData:data2] CGImage];
   
-  if (cg_image) {
-    int width = (int)CGImageGetWidth(cg_image);
-    int height = (int)CGImageGetHeight(cg_image);
-    CGImageAlphaInfo alpha = CGImageGetAlphaInfo(cg_image);
+  if (image) {
+    int width = (int)CGImageGetWidth(image);
+    int height = (int)CGImageGetHeight(image);
+    CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image);
     PixelData::Format format;
     
     if (alpha == kCGImageAlphaPremultipliedLast ||
@@ -115,12 +115,12 @@ static PixelData xx_decode_header(cBuffer& data) {
 }
 
 Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
+  Array<PixelData> rv; rv.push(image_decode(data));
   return rv;
 }
 
 PixelData JPEGImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+  return image_decode_header(data);
 }
 
 Buffer JPEGImageCodec::encode(cPixelData& data) {
@@ -129,12 +129,12 @@ Buffer JPEGImageCodec::encode(cPixelData& data) {
 }
 
 Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
+  Array<PixelData> rv; rv.push(image_decode(data));
   return rv;
 }
 
 PixelData GIFImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+  return image_decode_header(data);
 }
 
 Buffer GIFImageCodec::encode(cPixelData& data) {
@@ -143,12 +143,12 @@ Buffer GIFImageCodec::encode(cPixelData& data) {
 }
 
 Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
+  Array<PixelData> rv; rv.push(image_decode(data));
   return rv;
 }
 
 PixelData PNGImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+  return image_decode_header(data);
 }
 
 Buffer PNGImageCodec::encode(cPixelData& data) {
@@ -157,12 +157,12 @@ Buffer PNGImageCodec::encode(cPixelData& data) {
 }
 
 Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
+  Array<PixelData> rv; rv.push(image_decode(data));
   return rv;
 }
 
 PixelData WEBPImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+  return image_decode_header(data);
 }
 
 Buffer WEBPImageCodec::encode(cPixelData& data) {

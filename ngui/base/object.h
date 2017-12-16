@@ -50,18 +50,9 @@ typedef unsigned char byte;
 typedef const unsigned char cbyte;
 typedef short int16;
 typedef unsigned short uint16;
+typedef unsigned int uint;
 typedef int int32;
 typedef unsigned int uint32;
-
-#if XX_UNIX
-# if XX_APPLE
-typedef unsigned int uint;
-# elif XX_LINUX
-typedef unsigned int uint;
-# endif
-#else
-typedef unsigned int uint;
-#endif
 
 #if XX_ARCH_64BIT
 typedef long int int64;

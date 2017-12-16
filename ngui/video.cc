@@ -84,7 +84,7 @@ public:
     
     PixelData pixel(body, m_video_width, m_video_height, (PixelData::Format)m_color_format );
     
-    bool r = static_cast<TextureYUV*>(Image::texture())->load_yuv(pixel); // load texture
+    bool r = static_cast<TextureYUV*>(texture())->load_yuv(pixel); // load texture
     m_video->release(buffer);
     return r;
   }
@@ -256,7 +256,9 @@ public:
         m_video->release(m_video_buffer);
         m_video->extractor()->set_disable(true);
         m_video->close();
+        texture()->unload();
       }
+      
       unregister_task();
       m_source->stop();
       

@@ -42,7 +42,7 @@
 
 XX_NS(ngui)
 
-typedef FontGlyph::TexureLevel TexureLevel;
+typedef FontGlyph::TexureLevel FGTexureLevel;
 
 enum ContainerFlag: char {
   CF_NO_READY = 0,
@@ -66,7 +66,7 @@ struct FontGlyphTable::GlyphsBlock {
 };
 
 struct FontGlyphTextureLevel {
-  TexureLevel level;
+  FGTexureLevel level;
   uint min_font_size;
   uint max_font_size;
 };
@@ -171,14 +171,14 @@ public:
   /**
    * @func set_texture_data
    */
-  inline bool set_texture_data(FontGlyph* glyph, TexureLevel level) {
+  inline bool set_texture_data(FontGlyph* glyph, FGTexureLevel level) {
     return m_pool->m_draw_ctx->set_font_glyph_texture_data(this, glyph, level);
   }
   
   /**
    * @func get_glyph
    */
-  FontGlyph* get_glyph(uint16 unicode, uint region, uint index, TexureLevel level, bool vector);
+  FontGlyph* get_glyph(uint16 unicode, uint region, uint index, FGTexureLevel level, bool vector);
   
 };
 

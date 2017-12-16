@@ -89,7 +89,7 @@ namespace shader {
  * @bases Object
  */
 class GLShader {
-public:
+ public:
   
   /**
    * @func uniform # 通过名称返回着色器统一值句柄
@@ -127,7 +127,7 @@ public:
    */
   inline bool is_query() const { return m_is_query; }
   
-private:
+ private:
   
   /**
    * @func handle
@@ -135,7 +135,7 @@ private:
    */
   inline void handle(GLuint value) { m_handle = value; }
   
-private:
+ private:
 #pragma pack(push, 4)
   GLuint  m_handle;
   int     m_is_query;
@@ -175,16 +175,17 @@ public:
   virtual void commit_render();
   virtual void begin_screen_occlusion_query();
   virtual void end_screen_occlusion_query();
-  virtual bool load_texture(Texture* tex, const Array<PixelData>& data);
+  virtual uint load_texture(const Array<PixelData>& data);
   virtual bool load_yuv_texture(TextureYUV* yuv_tex, cPixelData& data);
-  virtual void delete_texture(uint id);
+  virtual uint gen_texture(uint origin_texture, uint width, uint height);
   virtual void use_texture(uint id, Repeat repeat, uint slot);
   virtual void use_texture(uint id, uint slot);
+  virtual void delete_texture(uint id);
   virtual void delete_buffer(uint id);
   virtual void refresh_status_for_font_pool(FontPool* pool);
   virtual bool set_font_glyph_vertex_data(Font* font, FontGlyph* glyph);
   virtual bool set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level);
-  virtual void clear_screen(Color color);
+  virtual void clear_color(Color color);
   /**
    * @overwrite
    */
@@ -257,7 +258,7 @@ protected:
   GLuint            m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
   Array<GLShader>   m_shaders_vector; // 着色器程序表
   void*             m_shaders; // 着色器程序表
-  const GLShader*   m_cur_use_shader;
+  GLuint            m_current_frame_buffer;
   GLuint            m_render_buffer;
   GLuint            m_frame_buffer;
   GLuint            m_msaa_render_buffer;

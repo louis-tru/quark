@@ -151,4 +151,4 @@ reader.read('zip:///var/data/test.zip@aa.txt', function(d){
 [`fs.readStream`]: fs.md#readstream-path-cb-
 [`StreamData`]: reader.md#object-streamdata
 [`fs.abort`]: fs.md#abort-id-
-[`Dirent`]: fs.md#class-dirent
+[`Dirent`]: fs.md#object-dirent

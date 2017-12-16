@@ -226,10 +226,11 @@ add_library(ngui-test SHARED
             ../../../test/test-ngui.cc
             ../../../test/test-jsc.cc
             ../../../test/test-v8.cc
-            ../../../test/test-node.cc
             ../../../test/test-loop.cc
             ../../../test/test-sys.cc
             ../../../test/test-mutex.cc
+            ../../../test/test-ios-run-loop.cc
+            ../../../test/test-benchmark.cc
 )
 
 target_link_libraries(ngui-base atomic z android log ngui_depes)

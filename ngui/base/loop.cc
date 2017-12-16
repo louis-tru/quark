@@ -653,7 +653,10 @@ uint RunLoop::work(cCb& cb, cCb& done) {
   work->uv_req.data = work;
   work->host = this;
   post(Cb([work, this](Se& ev) {
-    int r = uv_queue_work(m_uv_loop, &work->uv_req, Work::uv_work_cb, Work::uv_after_work_cb);
+    int r = uv_queue_work(m_uv_loop,
+                          &work->uv_req,
+                          Work::uv_work_cb,
+                          Work::uv_after_work_cb);
     XX_ASSERT(!r);
     work->it = m_work.push(work);
   }));

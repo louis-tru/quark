@@ -15,7 +15,7 @@
 #define VERSION "1.5.1"
 
 /* The size of `size_t', as computed by sizeof. */
-#if NG_ARCH_32BIT
+#if XX_ARCH_32BIT
 # define SIZEOF_SIZE_T 4
 #else
 # define SIZEOF_SIZE_T 8

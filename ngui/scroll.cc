@@ -44,7 +44,7 @@ static cCurve ease_out(0, 0, 0.58, 1);
  * @class Scroll::Task
  */
 class BasicScroll::Task: public PreRender::Task {
-public:
+ public:
   
   Task(BasicScroll* host, uint64 duration, cCurve& curve = ease_out)
   : m_host(host)
@@ -92,8 +92,8 @@ public:
     return false;
   }
   
-protected:
-  
+ protected:
+
   BasicScroll* m_host;
   uint64 m_start_time;
   uint64 m_duration;
@@ -121,7 +121,7 @@ public:
    * @class ScrollMotionTask
    */
   class ScrollMotionTask: public BasicScroll::Task {
-  public:
+   public:
     
     ScrollMotionTask(BasicScroll* host, uint64 duration, Vec2 to, cCurve& curve = ease_out)
     : Task(host, duration, curve)
@@ -143,7 +143,7 @@ public:
       _inl(m_host)->termination_recovery(0, ease_in_out);
     }
     
-  private:
+   private:
     Vec2  m_from;
     Vec2  m_to;
   };
@@ -152,7 +152,7 @@ public:
    * @class ScrollBarFadeInOutTask
    */
   class ScrollBarFadeInOutTask: public Scroll::Task {
-  public:
+   public:
     
     ScrollBarFadeInOutTask(BasicScroll* host, uint64 duration, float to, cCurve& curve = ease_out)
     : Task(host, duration, curve)
@@ -175,7 +175,7 @@ public:
       _inl(m_host)->termination_task(this);
     }
     
-  private:
+   private:
     float m_from;
     float m_to;
   };
@@ -286,6 +286,13 @@ public:
     return Vec2(x, y);
   }
   
+  Vec2 optimal_display(Vec2 value) {
+    Vec2 scale = display_port()->scale_value();
+    value.x( round(value.x() * scale.x()) / scale.x() );
+    value.y( round(value.y() * scale.y()) / scale.y() );
+    return value;
+  }
+  
   /**
    * @func catch_valid_scroll
    */
@@ -303,7 +310,7 @@ public:
         valid.y( valid.y() + Catch.y() );
       }
     }
-    return valid;
+    return optimal_display(valid);
   }
   
   /**
@@ -384,9 +391,7 @@ public:
    */
   void set_scroll_and_trigger_event(Vec2 scroll) {
     
-    Vec2 scale = display_port()->scale_value();
-    scroll.x( round(scroll.x() * scale.x()) / scale.x() );
-    scroll.y( round(scroll.y() * scale.y()) / scale.y() );
+    scroll = optimal_display(scroll);
     scroll.x( m_h_scroll ? scroll.x() : 0 );
     scroll.y( m_v_scroll ? scroll.y() : 0 );
     
@@ -818,9 +823,12 @@ void BasicScroll::set_default_scroll_curve(cCurve& value) {
  * @func set_scroll_size
  */
 void BasicScroll::set_scroll_size(Vec2 size) {
-  m_scroll_size = size;
+  if (m_scroll_size != size) {
+    _inl(this)->immediate_end_all_task(); // change size immediate task
+    m_scroll_size = size;
+  }
   m_scroll_max = Vec2(XX_MIN(m_box->final_width() - size.width(), 0),
-                      XX_MIN(m_box->final_height() - size.height(), 0) );
+                      XX_MIN(m_box->final_height() - size.height(), 0));
   
   m_h_scroll = m_scroll_max.x() < 0;
   m_v_scroll = ((!m_bounce_lock && !m_h_scroll) || m_scroll_max.y() < 0);
@@ -828,8 +836,7 @@ void BasicScroll::set_scroll_size(Vec2 size) {
   m_h_scrollbar = (m_h_scroll && m_scrollbar);
   m_v_scrollbar = (m_v_scroll && m_scrollbar && m_scroll_max.y() < 0);
   
-  _inl(this)->immediate_end_all_task(); // change size immediate task
-  
+  //
   m_box->mark(View::M_SCROLL);
 }
 

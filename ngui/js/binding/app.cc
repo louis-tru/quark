@@ -197,6 +197,27 @@ class WrapNativeGUIApplication: public WrapObject {
     self->send_email( recipient, title, cc, bcc, body );
   }
   
+  static void max_texture_memory_limit(FunctionCall args) {
+    JS_WORKER(args);
+    JS_SELF(GUIApplication);
+    JS_RETURN(self->max_texture_memory_limit());
+  }
+
+  static void set_max_texture_memory_limit(FunctionCall args) {
+    JS_WORKER(args); GUILock lock;
+    if ( args.Length() == 0 && !args[0]->IsNumber() ) {
+      JS_THROW_ERR("@func setMaxTextureMemoryLimit(limit)");
+    }
+    JS_SELF(GUIApplication);
+    self->set_max_texture_memory_limit( args[0]->ToNumberValue(worker) );
+  }
+  
+  static void used_texture_memory(FunctionCall args) {
+    JS_WORKER(args);
+    JS_SELF(GUIApplication);
+    JS_RETURN(self->used_texture_memory());
+  }
+  
   /**
    * @get is_load {bool}
    */
@@ -449,6 +470,9 @@ class WrapNativeGUIApplication: public WrapObject {
       JS_SET_CLASS_METHOD(clear, clear);
       JS_SET_CLASS_METHOD(openUrl, open_url);
       JS_SET_CLASS_METHOD(sendEmail, send_email);
+      JS_SET_CLASS_METHOD(maxTextureMemoryLimit, max_texture_memory_limit);
+      JS_SET_CLASS_METHOD(setMaxTextureMemoryLimit, set_max_texture_memory_limit);
+      JS_SET_CLASS_METHOD(usedMemory, used_texture_memory);
       JS_SET_CLASS_ACCESSOR(isLoad, is_load);
       JS_SET_CLASS_ACCESSOR(displayPort, display_port);
       JS_SET_CLASS_ACCESSOR(root, root);

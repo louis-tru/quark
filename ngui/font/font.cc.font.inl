@@ -168,7 +168,7 @@ void Font::Inl::del_glyph_data(GlyphContainer* container) {
  */
 FontGlyph* Font::Inl::get_glyph(uint16 unicode,
                                 uint region,
-                                uint index, TexureLevel level, bool vector) {
+                                uint index, FGTexureLevel level, bool vector) {
   XX_ASSERT(region < 512);
   XX_ASSERT(index < 128);
   
@@ -286,42 +286,44 @@ void Font::Inl::clear(bool full) {
       m_ft_glyph = nullptr;
       
     } else {
-      struct Container { GlyphContainer* container; int region; };
-      
+      struct Container {
+        GlyphContainer* container;
+        int region;
+        uint64 use_count;
+      };
       uint64 total_data_size = 0;
-      List<Container> sort_containers;
-      
-      // 先按使用使用次数排序容器
-      
-      for (int i = 0; i < 512; i++) {
-        GlyphContainer* con = m_containers[i];
+      List<Container> containers_sort;
+      // 按使用使用次数排序
+      for (int regioni = 0; regioni < 512; regioni++) {
+        GlyphContainer* con = m_containers[regioni];
         if ( con ) {
-          auto it = sort_containers.end();
+          auto it = containers_sort.end();
+          uint64 use_count = con->use_count;
           
-          for ( auto& j : sort_containers ) {
-            if ( con->use_count <= j.value().container->use_count ) {
+          for ( auto& j : containers_sort ) {
+            if ( use_count <= j.value().use_count ) {
               it = j; break;
             }
           }
           if ( it.is_null() ) {
-            sort_containers.push({ con, i });
+            containers_sort.push({ con, regioni, use_count });
           } else {
-            sort_containers.before(it, { con, i });
+            containers_sort.before(it, { con, regioni, use_count });
           }
           total_data_size += con->data_size;
-          
+          con->use_count /= 2;
         } else { // 容器不存在,标志也不需要存在
-          delete m_flags[i]; m_flags[i] = nullptr;
+          delete m_flags[regioni]; m_flags[regioni] = nullptr;
         }
       }
       
-      if ( sort_containers.length() ) {
+      if ( containers_sort.length() ) {
         uint64 total_data_size_1_3 = total_data_size / 3;
         uint64 del_data_size = 0;
         // 从排序列表顶部开始删除总容量的1/3,并置零容器使用次数
-        auto last = --sort_containers.end();
+        auto last = --containers_sort.end();
         
-        for ( auto it = sort_containers.begin(); it != last; it++ ) {
+        for ( auto it = containers_sort.begin(); it != last; it++ ) {
           if ( del_data_size < total_data_size_1_3 ) {
             int region = it.value().region;
             del_data_size += it.value().container->data_size;

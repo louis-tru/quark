@@ -238,7 +238,7 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
     };
     
     //uint16 unicode = glyph->unicode();
-    //t_debug("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
+    //XX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
     //        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
     
     _inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);

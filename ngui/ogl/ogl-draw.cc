@@ -444,7 +444,7 @@ public:
   void draw_texture_text(View* v, TextFont* f, TextFont::Data& data, Color color, Vec2 offset) {
     
     FontGlyphTable* table = font_pool()->get_table(f->m_text_family.value, f->m_text_style.value);
-    TexureLevel level = data.texture_level;
+    FGTexureLevel level = data.texture_level;
     
     gl_->text_texture.use();
     
@@ -452,7 +452,7 @@ public:
     glUniform1f(gl_->text_texture_uniform_texture_scale, data.texture_scale);
     glUniform4f(gl_->text_texture_uniform_color,
                 color.r() / 255.0f, color.g() / 255.0f, color.b() / 255.0f, color.a() / 255.0f );
-    glActiveTexture(GL_TEXTURE7);
+    glActiveTexture(GL_TEXTURE0);
     
     for (int i = data.cell_draw_begin, e = data.cell_draw_end; i < e; i++) {
       
@@ -627,7 +627,7 @@ public:
   
 };
 
-void GLDraw::clear_screen(Color color) {
+void GLDraw::clear_color(Color color) {
   glClearColor(color.r() / 255, color.g() / 255, color.b() / 255, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
@@ -657,19 +657,21 @@ void GLDraw::draw(Image* v) {
     
     if ( v->m_is_draw_border_radius ) { // 绘制圆角
       
-      if ( v->m_texture->use() ||
-          (v->m_background_image && v->m_background_image->use()) ) {
-        gl_->box_image_radius.use(); // 使用圆角矩形纹理着色器
-        glUniform1fv(gl_->box_image_radius_uniform_draw_data, sizeof(Box_RadiusSize), xx_ctx_data_float_p(v));
-        glUniform1f(gl_->box_image_radius_uniform_sample_x2, 30); // sample 15*2
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 64);
-      }
-      else {
-        if ( v->m_background_color.a() ) { // 绘制背景
-          gl_->box_color_radius.use();
-          glUniform1fv(gl_->box_color_radius_uniform_draw_data, sizeof(Box_RadiusSize), xx_ctx_data_float_p(v));
-          glUniform1f(gl_->box_color_radius_uniform_sample_x2, 30); // sample 15*2
-          glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
+      if (v->m_final_width != 0 && v->m_final_height != 0) {
+        if ( v->m_texture->use(0, Texture::Level(v->m_tex_level)) ||
+            (v->m_background_image && v->m_background_image->use(0, Texture::LEVEL_0)) ) {
+          gl_->box_image_radius.use(); // 使用圆角矩形纹理着色器
+          glUniform1fv(gl_->box_image_radius_uniform_draw_data, sizeof(Box_RadiusSize), xx_ctx_data_float_p(v));
+          glUniform1f(gl_->box_image_radius_uniform_sample_x2, 30); // sample 15*2
+          glDrawArrays(GL_TRIANGLE_FAN, 0, 64);
+        }
+        else {
+          if ( v->m_background_color.a() ) { // 绘制背景
+            gl_->box_color_radius.use();
+            glUniform1fv(gl_->box_color_radius_uniform_draw_data, sizeof(Box_RadiusSize), xx_ctx_data_float_p(v));
+            glUniform1f(gl_->box_color_radius_uniform_sample_x2, 30); // sample 15*2
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
+          }
         }
       }
       
@@ -679,17 +681,21 @@ void GLDraw::draw(Image* v) {
     }
     else {
       
-      if ( v->m_texture->use() ||
-          (v->m_background_image && v->m_background_image->use()) ) {
-        gl_->box_image.use(); // 使用矩形纹理着色器
-        glUniform1fv(gl_->box_image_uniform_draw_data, sizeof(Box_BGColor), xx_ctx_data_float_p(v));
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-      }
-      else {
-        if ( v->m_background_color.a() ) { // 绘制背景
-          gl_->box_color.use();
-          glUniform1fv(gl_->box_color_uniform_draw_data, sizeof(Box_BGColor), xx_ctx_data_float_p(v));
+      if (v->m_final_width != 0 && v->m_final_height != 0) {
+        if ( v->m_texture->use(0, Texture::Level(v->m_tex_level)) ||
+            (v->m_background_image && v->m_background_image->use(0, Texture::LEVEL_0)) ) {
+          gl_->box_image.use(); // 使用矩形纹理着色器
+          glUniform1fv(gl_->box_image_uniform_draw_data, sizeof(Box_BGColor),
+                       xx_ctx_data_float_p(v));
           glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        }
+        else {
+          if ( v->m_background_color.a() ) { // 绘制背景
+            gl_->box_color.use();
+            glUniform1fv(gl_->box_color_uniform_draw_data, sizeof(Box_BGColor),
+                         xx_ctx_data_float_p(v));
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+          }
         }
       }
       
@@ -712,12 +718,13 @@ void GLDraw::draw(Video* v) {
   
   if ( v->m_visible_draw ) {
     
-    TextureYUV* tex = (TextureYUV*)v->m_texture;
+    Texture* tex = v->m_texture;
 
     // Video忽略圆角的绘制
     
     if (v->m_status != PLAYER_STATUS_STOP &&
-        v->m_status != PLAYER_STATUS_START && tex->use() ) {
+        v->m_status != PLAYER_STATUS_START &&
+        tex->use(0, Texture::LEVEL_0) && tex->use(1, Texture::LEVEL_1) ) {
       
       if ( tex->format() == PixelData::YUV420P ) {
         gl_->box_yuv420p_image.use();
@@ -733,7 +740,7 @@ void GLDraw::draw(Video* v) {
       }
     }
     else {
-      if ( v->m_background_image && v->m_background_image->use() ) { // 绘制背景图像
+      if ( v->m_background_image && v->m_background_image->use(0, Texture::LEVEL_0) ) { // 绘制背景图像
         gl_->box_image.use(); // 使用矩形纹理着色器
         glUniform1fv(gl_->box_image_uniform_draw_data, sizeof(Box_BGColor), xx_ctx_data_float_p(v));
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -855,7 +862,7 @@ void GLDraw::draw(Sprite* v) {
   }
   
   if ( v->m_visible_draw ) { // 为false时不需要绘制
-    if ( v->m_texture->use(v->m_repeat) ) {
+    if ( v->m_texture->use(0, Texture::Level(v->m_tex_level), v->m_repeat) ) {
       gl_->sprite.use();
       glUniform1fv(gl_->sprite_uniform_draw_data, SIZEOF(Sprite_CtxData), xx_ctx_data_float_p(v));
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -928,7 +935,7 @@ void GLDraw::draw(Root* v) {
     _inl(this)->solve(v);
   }
   
-  clear_screen(v->m_background_color);
+  clear_color(v->m_background_color);
   
   if ( v->m_visible_draw ) {
     

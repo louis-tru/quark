@@ -30,6 +30,10 @@
 
 #include "../texture.h"
 #include "ogl.h"
+#include "../base/sys.h"
+#include "glsl-shader.h"
+
+#define gl_ glshaders(this)
 
 XX_NS(ngui)
 
@@ -69,34 +73,29 @@ inline static bool is_support_texture(GLDraw* ctx, PixelFormat pixel_format) {
   return ctx->get_ogl_texture_pixel_format(pixel_format);
 }
 
-bool GLDraw::load_texture(Texture* t, const Array<PixelData>& data) {
-  
+uint GLDraw::load_texture(const Array<PixelData>& data) {
   if ( data.length() == 0 ) {
-    return false;
+    return 0;
   }
-  
   cPixelData& pixel_data = data[0];
-  WeakBuffer data0 = pixel_data.body();
   
-  if ( data0.length() == 0 ) {
-    return false;
+  if ( pixel_data.body().length() == 0 ) {
+    return 0;
   }
   
   PixelFormat pixel_format = pixel_data.format();
-  
   if ( ! is_support_texture(this, pixel_format) ) { // 当前GPU是否支持这些格式
-    return false;
+    return 0;
   }
   
-  // 置空当前状态
-  uint texture_handle;
-  glGenTextures(1, &texture_handle);
+  uint handle;
+  glGenTextures(1, &handle);
   glActiveTexture(GL_TEXTURE7);       // 使用第7纹理通道做为临时通道来载入纹理
-  glBindTexture(GL_TEXTURE_2D, texture_handle);
-
-  if ( ! glIsTexture(texture_handle) ) {
+  glBindTexture(GL_TEXTURE_2D, handle);
+  
+  if ( !glIsTexture(handle) ) {
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &texture_handle);
+    glDeleteTextures(1, &handle);
     return false;
   }
   
@@ -104,11 +103,9 @@ bool GLDraw::load_texture(Texture* t, const Array<PixelData>& data) {
   
   // 启用各向异性
 #if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
-  if ( anisotropic() ) {
-    GLfloat largest;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
-  }
+//  GLfloat largest;
+//  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
+//  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
 #endif
   
   glPixelStorei(GL_UNPACK_ALIGNMENT, get_ogl_UNPACK_ALIGNMENT_VALUE(pixel_format));
@@ -141,33 +138,22 @@ bool GLDraw::load_texture(Texture* t, const Array<PixelData>& data) {
       
       for (int i = 0; i < mipmap_level; i++) {
         cPixelData& pixel_data = data[i];
-        WeakBuffer body = pixel_data.body();
         glTexImage2D(GL_TEXTURE_2D, i, format,
                      pixel_data.width(),
                      pixel_data.height(), 0, format,
-                     get_ogl_texture_data_format(pixel_format), *body);
+                     get_ogl_texture_data_format(pixel_format), *pixel_data.body());
       }
     } else {
       glTexImage2D(GL_TEXTURE_2D, 0, format,
                    pixel_data.width(),
                    pixel_data.height(), 0, format,
-                   get_ogl_texture_data_format(pixel_format), *data0);
-      if ( mipmap() ) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D); // 生成mipmap
-      } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      }
+                   get_ogl_texture_data_format(pixel_format), *pixel_data.body());
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
   }
   
   // Load texture success
-  
-  if ( t->is_ready() ) {
-    glDeleteTextures(1, &t->m_handle); // Delete old texture
-  }
   
   // GL_REPEAT / GL_CLAMP_TO_EDGE / GL_MIRRORED_REPEAT 
   // 纹理重复方式
@@ -175,10 +161,41 @@ bool GLDraw::load_texture(Texture* t, const Array<PixelData>& data) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   
   glBindTexture(GL_TEXTURE_2D, 0);
-  t->m_handle = texture_handle;
-  t->m_status = TEXTURE_STATUS_COMPLETE;
   
-  return true;
+  return handle;
+}
+
+uint GLDraw::gen_texture(uint origin_texture, uint width, uint height) {
+  GLuint default_frame_buffer = m_current_frame_buffer;
+  GLuint handle;
+  GLuint frame_buffer;
+  glGenFramebuffers(1, &frame_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+  glGenTextures(1, &handle);
+  glActiveTexture(GL_TEXTURE7);
+  glBindTexture(GL_TEXTURE_2D, handle);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, handle, 0);
+  
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+    glViewport(0, 0, width, height);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, origin_texture);
+    gl_->gen_texture.use();
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glViewport(0, 0, surface_size()[0], surface_size()[1]);
+  } else {
+    glDeleteTextures(1, &handle);
+    handle = 0;
+  }
+  glBindFramebuffer(GL_FRAMEBUFFER, default_frame_buffer);
+  glDeleteFramebuffers(1, &frame_buffer);
+  
+  return handle;
 }
 
 static bool load_yuv_texture2(Draw* draw, uint handle,
@@ -197,22 +214,12 @@ static bool load_yuv_texture2(Draw* draw, uint handle,
   // 纹理重复方式
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  
-  // 启用各向异性
-#if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
-  if ( draw->anisotropic() ) {
-    GLfloat largest;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
-  }
-#endif
-  
   glPixelStorei(GL_UNPACK_ALIGNMENT, pixel_storei);
   
   if (new_gen) {
     glTexImage2D(GL_TEXTURE_2D, 0, format,
                  nw ? nw : width,
-                 nh ? nh : height, 0, format, GL_UNSIGNED_BYTE, NULL);
+                 nh ? nh : height, 0, format, GL_UNSIGNED_BYTE, nullptr);
   }
   glTexSubImage2D(GL_TEXTURE_2D, 0,
                   offset_x, offset_y,
@@ -233,14 +240,15 @@ bool GLDraw::load_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
   }
   
   uint tex_y, tex_uv;
-  bool new_gen = false;
+  bool gen = false;
   
-  if (yuv_tex->is_ready() && 
-      yuv_tex->width() == data.width() && yuv_tex->height() == data.height() ) {
-    tex_y = yuv_tex->handle();
-    tex_uv = yuv_tex->uv_handle();
+  if (yuv_tex->m_handle[0] &&
+      yuv_tex->width() == data.width() &&
+      yuv_tex->height() == data.height() ) {
+    tex_y = yuv_tex->m_handle[0];
+    tex_uv = yuv_tex->m_handle[1];
   } else {
-    new_gen = true;
+    gen = true;
     glGenTextures(1, &tex_y);
     glGenTextures(1, &tex_uv);
   }
@@ -252,7 +260,7 @@ bool GLDraw::load_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
   
   // set yuv texure
   if ( load_yuv_texture2(this, tex_y, GL_LUMINANCE, 1,
-                         0, 0, data.width(), data.height(), *data.body(), new_gen, 0, 0) ) {  // y
+                         0, 0, data.width(), data.height(), *data.body(), gen, 0, 0) ) {  // y
     bool ok = true;
     
     uint uv_w = ceilf(data.width() / 2.0);
@@ -260,7 +268,7 @@ bool GLDraw::load_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
     
     if ( format == PixelData::YUV420P ) { // 420p
       ok = load_yuv_texture2(this, tex_uv, GL_LUMINANCE, 1,                                   // u
-                             0, 0, uv_w, uv_h, *data.body(1), new_gen, uv_w, uv_h * 2);
+                             0, 0, uv_w, uv_h, *data.body(1), gen, uv_w, uv_h * 2);
       if ( ok ) {                                                                             // v
         glTexSubImage2D(GL_TEXTURE_2D, 0,
                         0, uv_h,
@@ -268,28 +276,26 @@ bool GLDraw::load_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
       }
     } else { // 420sp
       ok = load_yuv_texture2(this, tex_uv, GL_LUMINANCE_ALPHA, 2,                             // uv
-                             0, 0, uv_w, uv_h, *data.body(1), new_gen, 0, 0);
+                             0, 0, uv_w, uv_h, *data.body(1), gen, 0, 0);
     }
     
     if ( ok ) {
       // Load texture success
       
-      if ( yuv_tex->is_ready() ) {
-        if ( yuv_tex->handle() != tex_y ) {
-          glDeleteTextures(1, &yuv_tex->m_handle); // Delete old texture
-          glDeleteTextures(1, &yuv_tex->m_uv_handle);
+      if ( yuv_tex->m_handle[0] ) {
+        if ( yuv_tex->m_handle[0] != tex_y ) {
+          glDeleteTextures(2, yuv_tex->m_handle); // Delete old texture
         }
       }
       
       glBindTexture(GL_TEXTURE_2D, 0);
-      yuv_tex->m_handle = tex_y;
-      yuv_tex->m_uv_handle = tex_uv;
-      yuv_tex->m_status = TEXTURE_STATUS_COMPLETE;
+      yuv_tex->m_handle[0] = tex_y;
+      yuv_tex->m_handle[1] = tex_uv;
       return true;
     }
   }
   
-  if ( new_gen ) {
+  if ( gen ) {
     glDeleteTextures(1, &tex_y);
     glDeleteTextures(1, &tex_uv);
   }

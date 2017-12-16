@@ -17,6 +17,7 @@
       'ogl/glsl/text-box-color.glsl',
       'ogl/glsl/text-texture.glsl',
       'ogl/glsl/text-vertex.glsl',
+      'ogl/glsl/gen-texture.glsl',
     ],
     'gui_glsl_es2_files': [
       'ogl/glsl-es2/es2-index-id_.glsl',
@@ -36,6 +37,7 @@
       'ogl/glsl-es2/es2-text-box-color.glsl',
       'ogl/glsl-es2/es2-text-texture.glsl',
       'ogl/glsl-es2/es2-text-vertex.glsl',
+      'ogl/glsl-es2/es2-gen-texture.glsl',
     ],
     'gui_default_font_files': [
       'font/DejaVuSerif.ttf',

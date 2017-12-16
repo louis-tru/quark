@@ -41,6 +41,9 @@
 
 XX_NS(ngui)
 
+class PixelData;
+typedef const PixelData cPixelData;
+
 /**
  * @class PixelData
  */
@@ -107,7 +110,7 @@ class XX_EXPORT PixelData: public Object {
   };
   
   PixelData();
-  PixelData(const PixelData& data);
+  PixelData(cPixelData& data);
   PixelData(PixelData&& data);
   PixelData(Format format);
   PixelData(Buffer body, int width, int height,
@@ -121,7 +124,7 @@ class XX_EXPORT PixelData: public Object {
    * @func body 图像数据主体
    */
   inline cWeakBuffer& body(uint index = 0) const { return m_body[index]; }
-
+  
   /**
    * @func body_count
    * */
@@ -167,8 +170,6 @@ class XX_EXPORT PixelData: public Object {
   bool                m_is_premultiplied_alpha;
 };
 
-typedef const PixelData cPixelData;
-
 /**
  * @class ImageCodec
  */
@@ -195,10 +196,9 @@ class XX_EXPORT ImageCodec: public Object {
   
   /**
    * @func decode_header
-   * 只解码头信息,返回除主体数据以外的所有数据 width、height、format、
-   * 在一些特殊环境下为保证性能,
+   * 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
    * 如果当前只需要知道图像的附加信息可调用该函数,
-   * 因为解码像 jpg、png、pvrtc、etc 这种复杂压缩图像格式是很耗时间的.
+   * 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
    */
   virtual PixelData decode_header(cBuffer& data) = 0;
   
@@ -215,7 +215,7 @@ class XX_EXPORT ImageCodec: public Object {
   /**
    * @func create # 通过格式创建图像解析器
    */
-  static ImageCodec* create(ImageFormat format);
+  static ImageCodec* shared(ImageFormat format);
   
 };
 

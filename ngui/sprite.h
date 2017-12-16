@@ -232,8 +232,9 @@ class XX_EXPORT Sprite: public View {
   Vec2      m_size;
   Vec2      m_ratio;
   Texture*  m_texture;
+  int       m_tex_level;
   Repeat    m_repeat;
-  Vec2      m_final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
+  Vec2      m_final_vertex[4];      //  最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
   
   XX_DEFINE_INLINE_CLASS(Inl);
 };

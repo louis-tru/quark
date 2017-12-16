@@ -33,14 +33,14 @@ var fs = require('ngui-tools/fs');
 var keys = require('ngui-tools/keys');
 var service = require('ngui-tools/service');
 var HttpService = require('ngui-tools/http_service').HttpService;
-var debug = require('ngui-tools/debug/debug');
+var server = require('ngui-tools/toolchain/server');
 require('./test-multiple-service');
 
 var opt = { 
   // remote: 'http://192.168.1.124:1026/',
 };
 
-debug.start_server(opt);
+server.start_server(opt);
 
 // Tools service
 // http://127.0.0.1:1026/Tools/upload_file

@@ -102,7 +102,7 @@ static EGLConfig egl_config(EGLDisplay display, const Map<String, int> &options,
   }
 
   EGLint configIndex = 0;
-  for ( ; configIndex < numConfigs; configIndex++ ) {
+  for ( ;configIndex < numConfigs; configIndex++ ) {
 
     EGLConfig& cfg = supportedConfigs[configIndex];
 
@@ -177,13 +177,14 @@ AndroidGLDrawCore* AndroidGLDrawCore::create(GUIApplication* host,
   EGLConfig config = egl_config(display, options, multisample_ok);
 
   EGLint ctx_attrs[] = {
-          EGL_CONTEXT_CLIENT_VERSION, 3,  // opengl es 3
-          EGL_NONE
+    EGL_CONTEXT_CLIENT_VERSION, 3,  // opengl es 3
+    EGL_NONE
   };
 
   // TODO: 3.0 现在很多设备都抛出错误,并有一些设备不能绘制边框,暂时只使用2.0
   // TODO: `validate_vertex_attrib_state: No vertex attrib is enabled in a draw call!`
-  EGLContext ctx = nullptr;//eglCreateContext(display, config, nullptr, ctx_attrs);
+  EGLContext ctx = nullptr;
+  //EGLContext ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
   if ( ctx ) {
     rv = (new AndroidGLDraw<GLDraw>(host, display, config, ctx,
                                     multisample_ok,
@@ -393,6 +394,7 @@ void AndroidGLDrawCore::refresh_status_for_buffer() {
 void AndroidGLDrawCore::begin_render() {
   m_host->m_stencil_ref_value = 0;
   m_host->m_root_stencil_ref_value = 0;
+  m_host->m_current_frame_buffer = 0;
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_STENCIL_TEST);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

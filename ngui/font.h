@@ -607,6 +607,7 @@ class XX_EXPORT FontPool: public Object {
   friend class Font;
   friend class FontGlyphTable;
   friend class GUIApplication;
+  friend class Draw;
   friend class GLDraw;
   friend class GLES2Draw;
 };

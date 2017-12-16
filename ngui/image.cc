@@ -49,10 +49,10 @@ public:
   void solve_explicit_size() {
     
     Vec2 raw_limit = m_limit;
+    m_final_width = m_final_height = 0;
     
     if ( m_width.type == ValueType::AUTO ) {
       m_texture->load();
-      
       if ( m_height.type == ValueType::AUTO ) {
         solve_explicit_horizontal_size(1);
         solve_explicit_vertical_size(1);
@@ -64,7 +64,6 @@ public:
       }
     } else if ( m_height.type == ValueType::AUTO ) {
       m_texture->load();
-      
       solve_explicit_horizontal_size(1);
       solve_explicit_vertical_size(
         m_texture->width() == 0 ? 1 : m_final_width / m_texture->width()
@@ -111,7 +110,7 @@ public:
       
       switch ( m_width.type ) {
         case ValueType::AUTO: // AUTO (width=auto)
-          m_final_width = m_texture->width() * height_ratio;
+          m_final_width = (m_texture->width() ? m_texture->width(): m_final_height) * height_ratio;
           m_limit.width(m_final_width);
           _box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
           break;
@@ -158,7 +157,7 @@ public:
         m_final_width = m_width.value;
         m_limit.width(m_final_width);
       } else {
-        m_final_width = m_texture->width() * height_ratio;
+        m_final_width = (m_texture->width() ? m_texture->width() : m_final_height) * height_ratio;
         m_limit.width(m_final_width);
         
         // 如果父盒子为水平布局同时没有明确的宽度,FULL宽度会导致三次布局
@@ -186,7 +185,7 @@ public:
       
       switch(m_height.type) {
         case ValueType::AUTO: // AUTO
-          m_final_height = m_texture->height() * width_ratio;
+          m_final_height = (m_texture->height() ? m_texture->height(): m_final_width) * width_ratio;
           m_limit.height(m_final_height);
           _box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
           break;
@@ -233,7 +232,7 @@ public:
         m_final_height = m_height.value;
         m_limit.height(m_final_height);
       } else {
-        m_final_height = m_texture->height() * width_ratio;
+        m_final_height = (m_texture->height() ? m_texture->height(): m_final_width) * width_ratio;
         m_limit.height(m_final_height);
         
         // 如果父盒子为水平布局同时没有明确的宽度,FULL宽度会导致三次布局
@@ -248,12 +247,12 @@ public:
   }
   
   /**
-   * @func m_texture_change_handle
+   * @func texture_change_handle()
    */
-  void texture_change_handle(Event<float, Texture>& evt) { // 收到图像变化通知
+  void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
     GUILock lock;
-    TextureStatus status = evt.sender()->status();
-    if ( status == TEXTURE_STATUS_COMPLETE ) {
+    int status = *evt.data();
+    if (status & TEXTURE_CHANGE_OK) {
       mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXTURE); // 标记
     }
   }
@@ -263,7 +262,10 @@ public:
 /**
  * @constructor
  */
-Image::Image(): m_texture(draw_ctx()->empty_texture()), m_background_image(nullptr) {
+Image::Image()
+: m_tex_level(Texture::LEVEL_0)
+, m_texture(draw_ctx()->empty_texture())
+, m_background_image(nullptr) {
   m_texture->retain(); // 保持纹理
 }
 
@@ -277,7 +279,7 @@ Image* Image::create(cString& src) {
  * @destructor
  */
 Image::~Image() {
-  m_texture->XX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
+  m_texture->XX_OFF(change, &Inl::texture_change_handle, _inl(this));
   m_texture->release(); // 释放纹理
   if ( m_background_image ) {
     m_background_image->release();
@@ -309,7 +311,7 @@ String Image::src() const {
 }
 
 /**
- * @func set_src # src路径,设置一个路径相当设置了一个对应路径的纹理对像
+ * @func set_src(value) src路径,设置一个路径相当设置了一个对应路径的纹理对像
  * @arg value {cString}
  */
 void Image::set_src(cString& value) {
@@ -320,7 +322,7 @@ void Image::set_src(cString& value) {
  * @func source
  */
 String Image::source() const {
-  return m_texture->name();
+  return m_texture->id();
 }
 
 /**
@@ -374,7 +376,7 @@ void Image::set_texture(Texture* value) {
  */
 String Image::background_image() const {
   if ( m_background_image ) {
-    return m_background_image->name();
+    return m_background_image->id();
   } else {
     return String();
   }
@@ -460,6 +462,11 @@ void Image::set_layout_content_offset() {
       }
     }
   }
+}
+
+void Image::set_visible_draw() {
+  Div::set_visible_draw();
+  m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
 }
 
 XX_END

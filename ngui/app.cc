@@ -113,7 +113,8 @@ void AppInl::onForeground() {
 }
 
 void AppInl::onMemorywarning() {
-  m_main_loop->post(Cb([&](Se&){ XX_TRIGGER(memorywarning); clear(); }));
+  clear();
+  m_main_loop->post(Cb([&](Se&){ XX_TRIGGER(memorywarning); }));
 }
 
 /**
@@ -281,10 +282,10 @@ void GUIApplication::initialize(const Map<String, int>& option) throw(Error) {
 }
 
 /**
- * @func clear
+ * @func clear([full]) 清理不需要使用的资源
  */
 void GUIApplication::clear(bool full) {
-  m_draw_ctx->clear(full); // 清理不需要使用的资源
+  m_render_loop->post(Cb([&, full](Se& e){ m_draw_ctx->clear(full); }));
 }
 
 void GUIApplication::set_default_text_background_color(TextColor value) {
@@ -336,6 +337,18 @@ void GUIApplication::set_default_text_white_space(TextWhiteSpace value) {
   if ( value.type == TextAttrType::VALUE ) {
     m_default_text_white_space = value;
   }
+}
+
+uint64 GUIApplication::max_texture_memory_limit() const {
+  return m_draw_ctx->max_texture_memory_limit();
+}
+
+void GUIApplication::set_max_texture_memory_limit(uint64 limit) {
+  m_draw_ctx->set_max_texture_memory_limit(limit);
+}
+
+uint64 GUIApplication::used_texture_memory() const {
+  return m_draw_ctx->used_texture_memory();
 }
 
 XX_END

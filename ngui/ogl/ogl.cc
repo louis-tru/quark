@@ -80,15 +80,9 @@ public:
     
     // set uniform tex
     gl_->box_yuv420p_image.use();
-    glUniform1i(gl_->box_yuv420p_image_uniform_s_tex_y, 5);
-    glUniform1i(gl_->box_yuv420p_image_uniform_s_tex_uv, 6);
-    //
+    glUniform1i(gl_->box_yuv420p_image_uniform_s_tex_uv, 1);
     gl_->box_yuv420sp_image.use();
-    glUniform1i(gl_->box_yuv420sp_image_uniform_s_tex_y, 5);
-    glUniform1i(gl_->box_yuv420sp_image_uniform_s_tex_uv, 6);
-    //
-    gl_->text_texture.use();
-    glUniform1i(gl_->text_texture_uniform_sampler_tex_1, 7);
+    glUniform1i(gl_->box_yuv420sp_image_uniform_s_tex_uv, 1);
   }
   
 };
@@ -109,7 +103,7 @@ GLDraw::GLDraw(GUIApplication* host, const Map<String, int>& option): Draw(host,
 , m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE(0)
 , m_shaders_vector()
 , m_shaders(nullptr)
-, m_cur_use_shader(nullptr)
+, m_current_frame_buffer(0)
 , m_render_buffer(0)
 , m_frame_buffer(0)
 , m_msaa_render_buffer(0)
@@ -119,7 +113,6 @@ GLDraw::GLDraw(GUIApplication* host, const Map<String, int>& option): Draw(host,
 , m_stencil_ref_value(0)
 , m_root_stencil_ref_value(0)
 {
-  
 }
 
 GLDraw::~GLDraw() {
@@ -298,20 +291,22 @@ void GLDraw::refresh_status_for_buffer() {
 }
 
 void GLDraw::begin_render() {
-  
   m_stencil_ref_value = 0;
   m_root_stencil_ref_value = 0;
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_STENCIL_TEST);
-
   if ( multisample() > 1 && is_support_multisampled() ) {
     glBindFramebuffer(GL_FRAMEBUFFER, m_msaa_frame_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, m_msaa_frame_buffer);
+    m_current_frame_buffer = m_msaa_frame_buffer;
+  } else {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
+    m_current_frame_buffer = m_frame_buffer;
   }
 }
 
 void GLDraw::commit_render() {
-  
   if ( is_support_vao() ) {
     glBindVertexArray(0);
   }

@@ -34,24 +34,21 @@
 XX_NS(ngui)
 
 Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; 
-  
+  Array<PixelData> rv;
   int width, height;
-  char* buff = (char*)WebPDecodeRGBA((byte*)data.value(), data.length(), &width, &height);
+  byte* buff = WebPDecodeRGBA((byte*)data.value(), data.length(), &width, &height);
   if (buff) {
-    rv.push( PixelData( Buffer(buff, width * height * 4), width, height, 
-                        PixelData::RGBA8888, false) 
-            );
+    Buffer bf((char*)buff, width * height * 4);
+    rv.push( PixelData( bf, width, height, PixelData::RGBA8888, false) );
   }
   return rv;
 }
 
 PixelData WEBPImageCodec::decode_header (cBuffer& data) {
-  int width, height;
-  if ( WebPGetInfo((byte*)data.value(), data.length(), &width, &height) == VP8_STATUS_OK ) {
-    return PixelData( Buffer(), width, height, PixelData::RGBA8888, false);
-  }
-  return PixelData();
+  int width = 0, height = 0;
+  int ok = WebPGetInfo((byte*)data.value(), data.length(), &width, &height);
+  //if ( ok == VP8_STATUS_OK ) {
+  return PixelData( Buffer(), width, height, PixelData::RGBA8888, false);
 }
 
 Buffer WEBPImageCodec::encode (const PixelData& pixel_data) {

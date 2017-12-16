@@ -42,14 +42,12 @@ static cPixelData empty_pixel_data(WeakBuffer(empty_, 4), 1, 1, PixelData::RGBA8
  * @class TextureEmpty
  */
 class TextureEmpty: public Texture {
-public:
-  virtual ~TextureEmpty() {
-    Texture::unload();
-  }
+ public:
   virtual void load() {
-    XX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
+    if (m_status == TEXTURE_NO_LOADED) {
+      XX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
+    }
   }
-  virtual void unload() { /* empty noop */ }
 };
 
 Draw* Draw::m_draw_ctx = nullptr; // 当前GL上下文
@@ -60,22 +58,17 @@ Draw* Draw::m_draw_ctx = nullptr; // 当前GL上下文
 Draw::Draw(GUIApplication* host, const Map<String, int>& option)
 : XX_INIT_EVENT(surface_size_change)
 , m_host(host)
-, m_anisotropic(false)
-, m_mipmap(false)
 , m_multisample(0)
 , m_empty_texture( NewRetain<TextureEmpty>() )
 , m_font_pool(nullptr)
 , m_tex_pool(nullptr)
+, m_max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
 , m_best_display_scale(1)
 , m_library(DRAW_LIBRARY_INVALID)
 {
   XX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
   m_draw_ctx = this;
   
-  memset(m_cur_bind_textures, 0, sizeof(Texture*) * 8);
-  
-  if (option.has("anisotropic")) m_anisotropic = option.get("anisotropic");
-  if (option.has("mipmap")) m_mipmap = option.get("mipmap");
   if (option.has("multisample")) m_multisample = XX_MAX(option.get("multisample"), 0);
   
   m_font_pool = new FontPool(this); // 初始字体池
@@ -108,20 +101,11 @@ bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
 }
 
 /**
- * @func cur_texture
- */
-Texture* Draw::current_texture(uint slot) {
-  return m_cur_bind_textures[slot];
-}
-
-/**
  * @func clear
  */
 void Draw::clear(bool full) {
-  m_host->render_loop()->post(Cb([this, full](Se& e){
-    m_tex_pool->clear(full);
-    m_font_pool->clear(full);
-  }));
+  m_tex_pool->clear(full);
+  m_font_pool->clear(full);
 }
 
 /**
@@ -129,6 +113,31 @@ void Draw::clear(bool full) {
  */
 uint Draw::support_max_texture_font_size() {
   return 512;
+}
+
+void Draw::set_max_texture_memory_limit(uint64 limit) {
+  m_max_texture_memory_limit = XX_MAX(limit, 64 * 1024 * 1024);
+}
+
+uint64 Draw::used_texture_memory() const {
+  return m_tex_pool->m_total_data_size + m_font_pool->m_total_data_size;
+}
+
+/**
+ * @func adjust_texture_memory()
+ */
+bool Draw::adjust_texture_memory(uint64 will_alloc_size) {
+  
+  int i = 0;
+  do {
+    if (will_alloc_size + used_texture_memory() <= m_max_texture_memory_limit) {
+      return true;
+    }
+    clear();
+    i++;
+  } while(i < 3);
+  
+  return false;
 }
 
 XX_END

@@ -445,7 +445,7 @@ class XX_EXPORT Box: public Layout {
   float     m_raw_client_width;    // 原客户端宽度,视图所占用的所有水平尺寸,三次布局以前的宽度
   float     m_raw_client_height;   // 原客户端高度,视图所占用的所有垂直尺寸,三次布局以前的高度
   Vec2      m_limit;            // 限制内部偏移排版的尺寸,有明确尺寸时与final_width或final_height相等
-  Vec2      m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置
+  Vec2      m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
   uint      horizontal_active_mark_value; // 父视图尺寸改变时,这个值会被加入到当前主标记中
   uint      vertical_active_mark_value;   //
   int       m_linenum;          /* 盒子在Hybrid视图布局中的行索引,-1表式没有行无需显示 */

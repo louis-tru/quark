@@ -36,16 +36,16 @@
 
 XX_NS(ngui)
 
-class Sprite::Inl: public Sprite {
+XX_DEFINE_INLINE_MEMBERS(Sprite, Inl) {
  public:
-#define _inl(self) static_cast<Sprite::Inl*>(self)
+  
   /**
    * @func texture_change_handle
    */
-  void texture_change_handle(Event<float, Texture>& evt) { // 收到图像变化通知
+  void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
     GUILock lock;
-    TextureStatus status = evt.sender()->status();
-    if ( status == TEXTURE_STATUS_COMPLETE ) {
+    int status = *evt.data();
+    if (status & TEXTURE_CHANGE_OK) {
       mark(M_TEXTURE); // 标记
     }
   }
@@ -56,8 +56,9 @@ Sprite::Sprite(Vec2 size)
 : m_start()
 , m_size(size)
 , m_ratio(1,1)
-, m_repeat(Repeat::NONE)
 , m_texture(draw_ctx()->empty_texture())
+, m_tex_level(Texture::LEVEL_0)
+, m_repeat(Repeat::NONE)
 {
   m_need_draw = false;
   m_texture->retain();
@@ -67,7 +68,7 @@ Sprite::Sprite(Vec2 size)
  * @destructor
  */
 Sprite::~Sprite() {
-  m_texture->XX_OFF(change, &Sprite::Inl::texture_change_handle, _inl(this));
+  m_texture->XX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
   m_texture->release(); // 释放对像
 }
 
@@ -88,7 +89,7 @@ void Sprite::draw(Draw* draw) {
 }
 
 String Sprite::src() const {
-  return m_texture->name();
+  return m_texture->id();
 }
 
 Sprite* Sprite::create(cString& path, Vec2 size) {
@@ -121,10 +122,10 @@ void Sprite::set_texture(Texture* value) {
   }
   
   m_texture->release(); // 释放对像
-  m_texture->XX_OFF(change, &Sprite::Inl::texture_change_handle, _inl(this));
+  m_texture->XX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
   m_texture = value;
   m_texture->retain(); // 保持对像
-  m_texture->XX_ON(change, &Sprite::Inl::texture_change_handle, _inl(this));
+  m_texture->XX_ON(change, &Inl::texture_change_handle, Inl_Sprite(this));
   
   // 顶点座标数据受 origin、width、height 的影响
   // 纹理座标数据受 startX、startY、width、height 的影响
@@ -248,6 +249,7 @@ void Sprite::set_visible_draw() {
   if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
       XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
   ) {
+    m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
     m_visible_draw = true;
   }
 }

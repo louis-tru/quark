@@ -77,17 +77,9 @@ public:
     
     // set uniform tex
     gl_->box_yuv420p_image.use();
-    glUniform1i(gl_->box_yuv420p_image_uniform_s_tex_y, 5);
-    glUniform1i(gl_->box_yuv420p_image_uniform_s_tex_uv, 6);
-    //
+    glUniform1i(gl_->box_yuv420p_image_uniform_s_tex_uv, 1);
     gl_->box_yuv420sp_image.use();
-    glUniform1i(gl_->box_yuv420sp_image_uniform_s_tex_y, 5);
-    glUniform1i(gl_->box_yuv420sp_image_uniform_s_tex_uv, 6);
-    //
-    gl_->text_texture.use();
-    glUniform1i(gl_->text_texture_uniform_sampler_tex_1, 7);
-    //
-    // --------------------------
+    glUniform1i(gl_->box_yuv420sp_image_uniform_s_tex_uv, 1);
   }
   
   /**

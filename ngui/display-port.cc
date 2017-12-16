@@ -38,7 +38,8 @@
 
 XX_NS(ngui)
 
-class DisplayPort::Inl: public DisplayPort {
+
+XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 public:
 #define _inl(self) static_cast<DisplayPort::Inl*>(self)
   
@@ -186,9 +187,14 @@ void DisplayPort::render_frame() {
   if (r) {
     bool ok = m_pre_render->solve();
     if (ok || r->mark_value || r->m_child_change_flag) {
+      
       m_draw_ctx->begin_render();
       r->draw(m_draw_ctx); // 开始绘图
       _inl(this)->solve_next_frame();
+      
+#if DEBUG
+      int64 st = sys::time();
+#endif
       /*
        * commit_render()非常耗时,渲染线程长时间占用`GUILock`会柱塞主线程。
        * 所以这里释放`GUILock`，commit_render()主要是绘图相关的函数调用,
@@ -197,6 +203,14 @@ void DisplayPort::render_frame() {
       Inl2_RunLoop(m_host->render_loop())->independent_mutex_unlock();
       m_draw_ctx->commit_render();
       Inl2_RunLoop(m_host->render_loop())->independent_mutex_lock();
+#if DEBUG
+      int64 ts2 = (sys::time() - st) / 1e3;
+      if (ts2 > 16) {
+        LOG("ts: %ld -------------- ", ts2);
+      } else {
+        LOG("ts: %ld", ts2);
+      }
+#endif
       return;
     }
   }

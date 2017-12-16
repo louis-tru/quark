@@ -161,7 +161,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
    * @func work(cb[,done])
    */
   uint work(cCb& cb, cCb& done = 0);
-
+  
   /**
    * @func cancel_work(id)
    */

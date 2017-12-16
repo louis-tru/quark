@@ -33,6 +33,13 @@
 
 XX_NS(ngui)
 
+ImageCodec* tga_image_codec = nullptr;
+ImageCodec* jpeg_image_codec = nullptr;
+ImageCodec* gif_image_codec = nullptr;
+ImageCodec* png_image_codec = nullptr;
+ImageCodec* webp_image_codec = nullptr;
+ImageCodec* pvrtc_image_codec = nullptr;
+
 /**
  * @func is_compressd_format
  */
@@ -66,7 +73,6 @@ PixelData::PixelData()
 , m_height(0)
 , m_body()
 , m_format(INVALID), m_is_premultiplied_alpha(false) {
-
 }
 
 PixelData::PixelData(cPixelData& body)
@@ -75,16 +81,14 @@ PixelData::PixelData(cPixelData& body)
 , m_height(body.height())
 , m_body(body.m_body)
 , m_format(body.format()), m_is_premultiplied_alpha(false) {
-
 }
 
 PixelData::PixelData(PixelData&& body)
-: m_data( move(body.m_data) )
+: m_data(move(body.m_data))
 , m_width(body.width())
 , m_height(body.height())
 , m_body(move(body.m_body))
 , m_format(body.format()), m_is_premultiplied_alpha(false) {
-
 }
 
 PixelData::PixelData(Format format)
@@ -93,7 +97,6 @@ PixelData::PixelData(Format format)
 , m_height(0)
 , m_body()
 , m_format(format), m_is_premultiplied_alpha(false) {
-
 }
 
 PixelData::PixelData(Buffer body, int width,
@@ -159,15 +162,34 @@ ImageCodec::ImageFormat ImageCodec::get_image_format(cString& path) {
   return Unknown;
 }
 
-ImageCodec* ImageCodec::create(ImageFormat format) {
+ImageCodec* ImageCodec::shared(ImageFormat format) {
   switch (format) {
-    case TGA: return new TGAImageCodec();
-    case JPEG: return new JPEGImageCodec();
-    case GIF: return new GIFImageCodec();
-    case PNG: return new PNGImageCodec();
-    case WEBP: return new WEBPImageCodec();
-    case PVRTC: return new PVRTCImageCodec();
-    default: return nullptr;
+    case TGA:
+      if (!tga_image_codec)
+        tga_image_codec = new TGAImageCodec();
+      return tga_image_codec;
+    case JPEG:
+      if (!jpeg_image_codec)
+        jpeg_image_codec = new JPEGImageCodec();
+      return jpeg_image_codec;
+    case GIF:
+      if (!gif_image_codec)
+        gif_image_codec = new GIFImageCodec();
+      return gif_image_codec;
+    case PNG:
+      if (!png_image_codec)
+        png_image_codec = new PNGImageCodec();
+      return png_image_codec;
+    case WEBP:
+      if (!webp_image_codec)
+        webp_image_codec = new WEBPImageCodec();
+      return webp_image_codec;
+    case PVRTC:
+      if (!pvrtc_image_codec)
+        pvrtc_image_codec = new PVRTCImageCodec();
+      return pvrtc_image_codec;
+    default:
+      return nullptr;
   }
 }
 

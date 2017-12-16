@@ -360,6 +360,7 @@ FontPool::FontPool(Draw* ctx)
 , m_display_port(nullptr)
 , m_max_glyph_texture_size(0)
 , m_display_port_scale(0)
+, m_total_data_size(0)
 {
   XX_ASSERT(m_draw_ctx);
   
@@ -667,7 +668,7 @@ void FontPool::bind_display_port(DisplayPort* display_port) {
 /**
  * @func get_glyph_texture_level 通过字体尺寸获取纹理等级,与纹理大小font_size
  */
-TexureLevel FontPool::get_glyph_texture_level(float& font_size_out) {
+FGTexureLevel FontPool::get_glyph_texture_level(float& font_size_out) {
   if (font_size_out > m_max_glyph_texture_size) {
     return FontGlyph::LEVEL_NONE;
   }
@@ -694,7 +695,7 @@ String FontPool::get_family_name(cString& path) const {
 /**
  * @func get_glyph_texture_level # 根据字体尺寸获取纹理等级
  */
-float FontPool::get_glyph_texture_size(TexureLevel leval) {
+float FontPool::get_glyph_texture_size(FGTexureLevel leval) {
   XX_ASSERT( leval < FontGlyph::LEVEL_NONE );
   
   const float glyph_texture_levels_size[13] = {

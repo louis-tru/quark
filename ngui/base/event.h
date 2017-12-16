@@ -72,7 +72,7 @@ class XX_EXPORT Event: public Object {
   cSendData*  m_data;
  public:
   Event(cSendData& data = SendData())
-  :return_value(), m_noticer(nullptr), m_data(&data) { }
+  :return_value(), m_noticer(nullptr), m_data(&data) {}
   virtual void release() {
     m_noticer = nullptr;
     m_data = nullptr;

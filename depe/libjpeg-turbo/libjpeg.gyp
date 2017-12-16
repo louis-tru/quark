@@ -16,7 +16,7 @@
       'targets': [
         {
           'target_name': 'libjpeg',
-          'product_name': 'jpeg-2',
+          'product_name': 'jpeg2',
           'type': '<(library)',
           'include_dirs': [ '.', '../..' ],
           'defines': [

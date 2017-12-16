@@ -239,7 +239,7 @@ bool PreRender::solve() {
   
   bool rv = false;
   
-  if ( m_tasks.length() ) { // run task
+  if ( m_tasks.length() ) { // solve task
     
     int64 sys_time = sys::time_monotonic();
     

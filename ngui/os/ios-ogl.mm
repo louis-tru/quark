@@ -80,7 +80,7 @@ IOSGLDrawCore* IOSGLDrawCore::create(GUIApplication* host, const Map<String, int
 
 IOSGLDrawCore::IOSGLDrawCore(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
   XX_CHECK([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
-  //ctx.multiThreaded = YES;
+  ctx.multiThreaded = NO;
 }
 
 IOSGLDrawCore::~IOSGLDrawCore() {
@@ -127,7 +127,7 @@ void IOSGLDrawCore::commit_render() {
   // Assuming you allocated a color renderbuffer to point at a Core Animation layer,
   // you present its contents by making it the current renderbuffer
   // and calling the presentRenderbuffer: method on your rendering context.
-  [m_context presentRenderbuffer:GL_FRAMEBUFFER];
+  [m_context presentRenderbuffer:GL_FRAMEBUFFER ];
 }
 
 /**
@@ -159,6 +159,10 @@ GLint IOSGLDrawCore::get_ogl_texture_pixel_format(PixelData::Format pixel_format
     default: return 0;
   }
 }
+
+//void IOSGLDrawCore::set_current_context() {
+//  XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
+//}
 
 void IOSGLDrawCore::set_surface_view(UIView* view, CAEAGLLayer* layer) {
   XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");

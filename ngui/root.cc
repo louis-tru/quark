@@ -94,7 +94,7 @@ void Root::draw(Draw* draw) {
     mark_value = M_NONE;
     
   } else {
-    draw->clear_screen(Color(0, 0, 0));
+    draw->clear_color(Color(0, 0, 0));
   }
 }
 

@@ -194,6 +194,21 @@ class XX_EXPORT GUIApplication: public Object {
   void set_default_text_white_space(TextWhiteSpace value);
   
   /**
+   * @func max_texture_memory_limit()
+   */
+  uint64 max_texture_memory_limit() const;
+  
+  /**
+   * @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
+   */
+  void set_max_texture_memory_limit(uint64 limit);
+  
+  /**
+   * @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
+   */
+  uint64 used_texture_memory() const;
+  
+  /**
    * @func open_url()
    */
   void open_url(cString& url);
@@ -236,6 +251,7 @@ class XX_EXPORT GUIApplication: public Object {
   TextWhiteSpace       m_default_text_white_space; // text
   GUIEventDispatch*    m_dispatch;
   ActionCenter*        m_action_center;
+  uint64 m_max_texture_memory_limit;
   
   XX_DEFINE_INLINE_CLASS(Inl);
   
