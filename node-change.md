@@ -2,18 +2,18 @@
 # depe/v8/src/base/cpu.cc
 
 ```cpp
-#if V8_OS_IOS
-  // apple ios system
-#else
-#endif // defined(V8_OS_IOS) 
++ #if V8_OS_IOS
++   // apple ios system
++ #else
++ #endif // defined(V8_OS_IOS) 
 ```
 
 # depe/v8/include/v8config.h
 
 ```cpp
-# if defined(TARGET_OS_IPHONE)
-#   define V8_OS_IOS 1
-# endif
++ # if defined(TARGET_OS_IPHONE)
++ #   define V8_OS_IOS 1
++ # endif
 ```
 
 # node/deps/zlib/zlib.gyp
@@ -26,14 +26,14 @@
 # node/node.gypi
 
 ```py
-# For tests
-#'./deps/openssl/openssl.gyp:openssl-cli',
+- # For tests
+- './deps/openssl/openssl.gyp:openssl-cli',
 ```
 
 # node/src/inspector_io.cc
 
 ```cc
-#include <ngui/js/node-1.h>
++ #include <ngui/js/node-1.h>
 
 +  int len;
 +  auto buff = ngui_api->encoding_to_utf8(source, (uint)view.length(), &len);

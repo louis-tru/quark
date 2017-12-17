@@ -558,6 +558,7 @@ bool TextureYUV::load_yuv(cPixelData& data) {
 
 bool TextureYUV::unload(Level level) {
   Inl_Texture(this)->clear();
+  return true;
 }
 
 FileTexture::FileTexture(cString& path)
