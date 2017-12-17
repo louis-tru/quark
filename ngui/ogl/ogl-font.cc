@@ -210,7 +210,7 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
   
   GLuint texture_handle;
   glGenTextures(1, &texture_handle);
-  glActiveTexture(GL_TEXTURE7);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture_handle);
   
   if ( !glIsTexture(texture_handle) ) { return false; }

@@ -66,9 +66,9 @@ void main() {
 
 uniform lowp sampler2D sampler_tex_1;
 
-in  lowp vec2   f_tex_coord;
-in  lowp vec4   f_color;
-out lowp vec4   FragColor;
+in  lowp vec2 f_tex_coord;
+in  lowp vec4 f_color;
+out lowp vec4 FragColor;
 
 void main() {
   FragColor = f_color * vec4(1.0, 1.0, 1.0, texture(sampler_tex_1, f_tex_coord).a);

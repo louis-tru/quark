@@ -72,8 +72,8 @@ void main() {
 
 uniform lowp sampler2D sampler_tex_1;
 
-varying  lowp vec2  f_tex_coord;
-varying  lowp vec4  f_color;
+varying lowp vec2 f_tex_coord;
+varying lowp vec4 f_color;
 
 void main() {
   gl_FragColor = f_color * vec4(1.0, 1.0, 1.0, texture2D(sampler_tex_1, f_tex_coord).a);

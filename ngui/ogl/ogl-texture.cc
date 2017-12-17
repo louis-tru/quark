@@ -90,7 +90,7 @@ uint GLDraw::load_texture(const Array<PixelData>& data) {
   
   uint handle;
   glGenTextures(1, &handle);
-  glActiveTexture(GL_TEXTURE7);       // 使用第7纹理通道做为临时通道来载入纹理
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, handle);
   
   if ( !glIsTexture(handle) ) {
@@ -172,7 +172,7 @@ uint GLDraw::gen_texture(uint origin_texture, uint width, uint height) {
   glGenFramebuffers(1, &frame_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
   glGenTextures(1, &handle);
-  glActiveTexture(GL_TEXTURE7);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, handle);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -204,7 +204,7 @@ static bool load_yuv_texture2(Draw* draw, uint handle,
                               uint offset_x, uint offset_y, 
                               uint width, uint height, cchar* buffer, 
                               bool new_gen, uint nw = 0, uint nh = 0) {
-  glActiveTexture(GL_TEXTURE7);       // 使用第7纹理通道做为临时通道来载入纹理
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, handle);
 
   if ( ! glIsTexture(handle) ) {
