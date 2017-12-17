@@ -66,19 +66,19 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 
 获取纹理数据的最大内存限制值
 
-* @ret {[`uin64`]}
+* @ret {[`uint64`]}
 
 ### GUIApplication.setMaxTextureMemoryLimit(limit)
 
 设置纹理数据的最大内存限制值
 
-* @arg `limit` {[`uin64`]}
+* @arg `limit` {[`uint64`]}
 
 ### GUIApplication.usedTextureMemory()
 
 返回纹理数据使用的内存大小，这包括字体纹理数据与图像纹理数据
 
-* @ret {[`uin64`]}
+* @ret {[`uint64`]}
 
 ### Get: GUIApplication.isLoad 
 
