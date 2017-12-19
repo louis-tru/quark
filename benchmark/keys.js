@@ -2,9 +2,9 @@
 import 'ngui/keys';
 import 'ngui/fs';
 import 'ngui/url';
-import './print';
+import './uu';
 
-print.start();
+uu.start();
 
 var json = [];
 
@@ -17,14 +17,14 @@ for (var i = 0; i < 10000; i++) {
 	});
 }
 
-print.time('init');
+uu.time('init');
 
 var str = keys.stringify(json);
 
-print.time('keys.stringify(json)');
+uu.time('keys.stringify(json)');
 
 fs.writeFileSync(url.documents('benchmark-keys.keys'), str);
 
 var json2 = keys.parseFile(url.documents('benchmark-keys.keys'));
 
-print.time('keys.parseFile(benchmark-keys.keys)');
+uu.time('keys.parseFile(benchmark-keys.keys)');

@@ -1,8 +1,8 @@
 
 import { GUIApplication, Root, Div, Indep, ngui, New, lock } from 'ngui';
 import Color from 'ngui/value';
-import random from 'ngui/util';
-import './print';
+import {random, log } from 'ngui/util';
+import './uu';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root backgroundColor="#000">
@@ -38,3 +38,5 @@ new GUIApplication({ multisample: 2 }).start(
 		}
 	</Root>
 )
+
+uu.show_fsp();

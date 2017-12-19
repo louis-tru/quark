@@ -2,7 +2,7 @@
 import 'ngui/fs';
 import 'ngui/url';
 import 'ngui/reader';
-import './print';
+import './uu';
 
 var path = url.documents('benchmark.txt');
 
@@ -10,13 +10,13 @@ fs.writeFileSync(path, 'ABCDEFGHIJKMLN');
 
 var i = 0;
 
-print.start();
+uu.start();
 
 for (var j = 0; j < 10000; j++) {
 	reader.readFileSync(path);
 }
 
-print.time();
+uu.time();
 
 for (var j = 0; j < 10000; j++) {
 	reader.readFile(path, function(bf) {
@@ -24,4 +24,4 @@ for (var j = 0; j < 10000; j++) {
 	}.catch(e=>console.log('err', ++i)));
 }
 
-print.time();
+uu.time();

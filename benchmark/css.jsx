@@ -1,37 +1,54 @@
 
-import { GUIApplication, Root, Div, Indep, ngui, New, CSS } from 'ngui';
+import { GUIApplication, Root, Div, Indep, ngui, New } from 'ngui';
 import Color from 'ngui/value';
 import random from 'ngui/util';
-import './print';
+import 'ngui/css';
+import './uu';
 
-new GUIApplication({ multisample: 2 }).start(
-	<Root backgroundColor="#000" class="root">
-		%{
-			(()=>{
-				var w = ngui.displayPort.width;
-				var h = ngui.displayPort.height;
-				var csss = {};
-				var r = [];
-				for (var i = 0; i < 100000; i++) {
-					var color = new Color(random(0, 255), random(0, 255), random(0, 255), 255);
-					var s = random(20, 30);
-					var s2 = s / 2;
-					var x = random(0, w + s) - s2;
-					var y = random(0, h + s) - s2;
-					csss['.root .css_' + i] = {
-						backgroundColor: color,
-						width: s,
-						height: s,
-						x: x,
-						y: y,
-					};
-					r.push(<Indep class=('css_' + i) />);
-				}
-				
-				CSS(csss);
+var test_count = 100000;
 
-				return r;
-			})()
-		}
-	</Root>
-)
+css.create({
+	'.root': {
+		backgroundColor: '#000',
+	},
+});
+
+new GUIApplication({ multisample: 2 }).start(<Root />).onLoad = function() {
+	var w = ngui.displayPort.width;
+	var h = ngui.displayPort.height;
+	var csss = {};
+
+	for (var i = 0; i < test_count; i++) {
+		var s = random(20, 30);
+		var s2 = s / 2;
+		csss['.root .css_' + i] = {
+			backgroundColor: new Color(random(0, 255), random(0, 255), random(0, 255), 255),
+			width: s,
+			height: s,
+			x: random(0, w + s) - s2,
+			y: random(0, h + s) - s2,
+		};
+	}
+
+	uu.start();
+
+	css.create(csss);
+
+	uu.log();
+
+	this.root.class = 'root';
+
+	New(
+		<Div width="full" height="full">
+			${
+				Array.from({length:test_count}, (j, i)=>{
+					return <Indep class=('css_' + i) />;
+				})
+			}
+		</Div>, 
+		this.root
+	);
+
+	uu.log();
+
+}

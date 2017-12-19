@@ -1,12 +1,12 @@
 
 import EventNoticer from 'ngui/event';
-import './print';
+import './uu';
 
-print.start();
+uu.start();
 
 var ontest = new EventNoticer('test', this);
 
-print.time(1);
+uu.time(1);
 
 for (var i = 0; i < 1000000; i++) {
 	ontest.on(function() {
@@ -14,7 +14,7 @@ for (var i = 0; i < 1000000; i++) {
 	}, i);
 }
 
-print.time(2);
+uu.time(2);
 
 for (var i = 1000000; i < 2000000; i++) {
 	ontest.once(function() {
@@ -22,18 +22,18 @@ for (var i = 1000000; i < 2000000; i++) {
 	}, i);
 }
 
-print.time(3);
+uu.time(3);
 
 ontest.trigger();
 
-print.time(4);
+uu.time(4);
 
 for (var i = 0; i < 1000000; i++) {
 	ontest.off(i);
 }
 
-print.time(5);
+uu.time(5);
 
 ontest.trigger();
 
-print.time(6);
+uu.time(6);

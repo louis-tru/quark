@@ -1,22 +1,22 @@
 
 import 'ngui/storage';
-import './print';
+import './uu';
 
 storage.transaction(function() {
 
-	print.start();
+	uu.start();
 
 	for (var i = 0; i < 200000; i++) {
 		storage.set(i, 'localStorage_' + i);
 	}
 
-	print.time();
+	uu.log();
 
 	for (var i = 0; i < 200000; i++) {
 		storage.get(i);
 	}
 
-	print.time();
+	uu.log();
 
 	for (var i = 0; i < 200000; i++) {
 		storage.del(i);
@@ -24,6 +24,6 @@ storage.transaction(function() {
 
 	storage.clear();
 
-	print.time();
+	uu.log();
 
 });

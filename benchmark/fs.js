@@ -1,7 +1,7 @@
 
 import 'ngui/fs';
 import 'ngui/url';
-import './print';
+import './uu';
 
 var path = url.documents('benchmark.txt');
 
@@ -9,13 +9,13 @@ fs.writeFileSync(path, 'ABCDEFGHIJKMLN');
 
 var i = 0;
 
-print.start();
+uu.start();
 
 for (var j = 0; j < 1000; j++) {
 	fs.copySyncR(path, path + '.' + j);
 }
 
-print.time();
+uu.time();
 
 for (var j = 0; j < 1000; j++) {
 	fs.copyR(path, path + '.' + j, function(err) {
@@ -51,4 +51,4 @@ for (var j = 0; j < 1000; j++) {
 	});
 }
 
-print.time();
+uu.time();
