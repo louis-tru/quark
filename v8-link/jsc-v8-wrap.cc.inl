@@ -49,12 +49,16 @@ class Wrap: public PrivateDataBase {
     CHECK(Handle() == nullptr);
   }
   virtual Wrap* AsWrap() { return this; }
+  
   inline void retain() {
     JSValueProtect(m_isolate->jscc(), Handle());
   }
   inline void release() {
     if (!m_isolate->HasDestroy())
       JSValueUnprotect(m_isolate->jscc(), Handle());
+  }
+  inline void Destroy() {
+    delete this;
   }
   inline Isolate* GetIsolate() const {
     return m_isolate;

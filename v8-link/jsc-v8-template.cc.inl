@@ -410,7 +410,6 @@ class FunctionTemplate: public Template {
 void Isolate::InitializeTemplate() {
   m_default_placeholder_template = Retain(new ObjectTemplate(this, nullptr));
   m_cinfo_placeholder_template = Retain(new ObjectTemplate(this, nullptr));
-  // External Template
   auto ft = new FunctionTemplate(this);
   m_external_template = ft->InstanceTemplate();
   m_external_template->SetInternalFieldCount(1);

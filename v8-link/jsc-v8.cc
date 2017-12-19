@@ -309,7 +309,7 @@ class PrivateData: public PrivateDataBase {
   virtual ~PrivateData();
   inline void Destroy();
   virtual PrivateData* AsPrivateData() { return this; }
-  inline Isolate* GetIsolate() const;
+  inline Isolate* GetIsolate() const { return m_isolate; }
   static void DefaultWeakCallback(const WeakCallbackInfo<void>& data) {}
   inline JSObjectRef Handle() const { return m_handle; }
   inline ObjectTemplate* InstanceTemplate() const { return m_instance_template; }
@@ -384,12 +384,12 @@ class PrivateData: public PrivateDataBase {
   
   static PrivateData* New(Isolate* isolate, JSObjectRef handle,
                           ObjectTemplate* instance_template);
-
   
  protected:
   inline PrivateData(Isolate* isolate, JSObjectRef handle,
                          ObjectTemplate* instance_template)
   : m_handle(nullptr), m_instance_template(Retain(instance_template))
+  , m_isolate(isolate)
   , m_weak_parameter(nullptr), m_weak_callback(nullptr)
   , m_flags(kWEAK), m_ref_count(0) {
     DCHECK(m_instance_template);
@@ -404,6 +404,7 @@ class PrivateData: public PrivateDataBase {
  private:
   JSObjectRef m_handle;
   ObjectTemplate* m_instance_template;
+  Isolate* m_isolate;
   void* m_weak_parameter;
   WeakCallback m_weak_callback;
   uint16_t m_flags;
@@ -494,7 +495,7 @@ v8_ns(internal)
 
 void PrivateData::Destroy() {
   m_flags |= kNEAR_DEATH;
-  auto isolate = m_instance_template->GetIsolate();
+  auto isolate = m_isolate;
   if (isolate->ThreadID() == std::this_thread::get_id() || isolate->HasDestroy()) {
     delete this;
   } else {
@@ -504,27 +505,25 @@ void PrivateData::Destroy() {
 }
 
 PrivateData::~PrivateData() {
-  auto instance_template = InstanceTemplate();
-  auto ctx = instance_template->GetIsolate()->jscc();
-  int count = instance_template->InternalFieldCount();
-  for (int i = 0; i < count; i++) {
-    InternalField(i)->Reset(ctx);
+  if (!m_isolate->HasDestroy()) {
+    auto instance_template = InstanceTemplate();
+    auto ctx = instance_template->GetIsolate()->jscc();
+    int count = instance_template->InternalFieldCount();
+    for (int i = 0; i < count; i++) {
+      InternalField(i)->Reset(ctx);
+    }
+    Release(instance_template);
+    ExecWeakCallback();
   }
-  ExecWeakCallback();
-  Release(m_instance_template);
 #if XX_MEMORY_TRACE_MARK
   PrivateData_count--;
   LOG("PrivateData::~PrivateData, %d", PrivateData_count);
 #endif
 }
 
-Isolate* PrivateData::GetIsolate() const {
-  return m_instance_template->GetIsolate();
-}
-
 void PrivateData::ExecWeakCallback() {
   if (m_weak_callback && IsWeak()) {
-    auto isolate = m_instance_template->GetIsolate();
+    auto isolate = m_isolate;
     void* embedder_fields[kEmbedderFieldsInWeakCallback] = { nullptr, nullptr };
     WeakCallbackInfo<void> info(reinterpret_cast<v8::Isolate*>(isolate),
                                 m_weak_parameter, embedder_fields, &m_weak_callback);
@@ -547,12 +546,12 @@ void PrivateData::UpdateWeakFlags() {
     if (is_weak) {
       m_flags |= kWEAK;  // add weak flags
       if (!GetIsolate()->HasDestroy()) { // 如果上下文在释放中,不能访问JSValueUnprotect
-        JSValueUnprotect(JSC_CTX(m_instance_template->GetIsolate()), m_handle);
+        JSValueUnprotect(JSC_CTX(m_isolate), m_handle);
       }
     } else {
       m_flags &= ~kWEAK; // cancel weak flags
       if (!GetIsolate()->HasDestroy()) { // 如果上下文在释放中,不能访问JSValueProtect
-        JSValueProtect(JSC_CTX(m_instance_template->GetIsolate()), m_handle);
+        JSValueProtect(JSC_CTX(m_isolate), m_handle);
       }
     }
   }
@@ -608,7 +607,7 @@ PrivateData* PrivateData::New(Isolate* isolate,
                               ObjectTemplate* instance_template) {
   size_t size = sizeof(PrivateData);
   if (instance_template) {
-    size += instance_template->InternalFieldCount() * sizeof(EmbedderData*);
+    size += instance_template->InternalFieldCount() * sizeof(EmbedderData);
     instance_template = Retain(instance_template);
   } else {
     instance_template = isolate->DefaultPlaceholderTemplate();
@@ -625,7 +624,7 @@ int PrivateData::InternalFieldCount() const {
 
 EmbedderData* PrivateData::InternalField(int index) {
   DCHECK(index < InstanceTemplate()->InternalFieldCount());
-  return reinterpret_cast<EmbedderData*>((this + 1) + sizeof(EmbedderData*) * index);
+  return reinterpret_cast<EmbedderData*>((this + 1) + sizeof(EmbedderData) * index);
 }
 
 CInfo::~CallbackInfo() {
@@ -657,9 +656,8 @@ void CInfo::WrapDestructor(JSObjectRef object) {
   auto ptr = (Wrap*)JSObjectGetPrivate(object);
   DCHECK(ptr);
   ptr->m_handle = nullptr;
-  static int i = 0; i++;
-  // LOG("CInfo::WrapDestructor, %d, %p", i, ptr);
-  delete ptr;
+  ptr->Destroy();
+  // delete ptr;
 }
 
 template<typename T>
