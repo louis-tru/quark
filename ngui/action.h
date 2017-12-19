@@ -577,7 +577,7 @@ class XX_EXPORT ActionCenter: public Object {
   /**
    * @func advance
    */
-  void advance();
+  void advance(int64 now_time);
   
   /**
    * @func shared

@@ -46,6 +46,7 @@
 JS_BEGIN
 
 typedef Object NativeObject;
+static cString Space(' ');
 
 class WrapNativeObject: public WrapObject {
   static void constructor(FunctionCall args) {
@@ -357,6 +358,27 @@ class NativeUtil {
     JS_RETURN( Path::chdir(args[0]->ToStringValue(worker)) );
   }
   
+  static void log(FunctionCall args) {
+    JS_WORKER(args);
+    StringBuilder rv;
+    bool is_space = false;
+    
+    for (int i = 0; i < args.Length(); i++) {
+      if (is_space) {
+        rv.push(Space);
+      }
+      if (args[i]->IsObject(worker)) {
+        if (!JSON::stringify_console_styled(worker, args[i], &rv)) {
+          return;
+        }
+      } else {
+        rv.push( args[i]->ToStringValue(worker) );
+      }
+      is_space = true;
+    }
+    console::log(rv.to_string());
+  }
+  
   /**
    * @func binding
    */
@@ -378,6 +400,7 @@ class NativeUtil {
     JS_SET_METHOD(fallbackPath, fallbackPath);
     JS_SET_METHOD(cwd, cwd);
     JS_SET_METHOD(chdir, chdir);
+    JS_SET_METHOD(log, log);
     WrapNativeObject::binding(exports, worker);
     WrapSimpleHash::binding(exports, worker);
   }

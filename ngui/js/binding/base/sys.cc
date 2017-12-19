@@ -108,6 +108,10 @@ class NativeSys {
     JS_WORKER(args);
     JS_RETURN( sys::available_memory() );
   }
+  static void cpu_usage(FunctionCall args) {
+    JS_WORKER(args);
+    JS_RETURN( sys::cpu_usage() );
+  }
   
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_SET_METHOD(time, time);
@@ -127,6 +131,7 @@ class NativeSys {
     JS_SET_METHOD(memory, memory);
     JS_SET_METHOD(usedMemory, used_memory);
     JS_SET_METHOD(availableMemory, available_memory);
+    JS_SET_METHOD(cpuUsage, cpu_usage);
   }
 };
 

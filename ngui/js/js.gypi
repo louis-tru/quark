@@ -40,6 +40,7 @@
       'test.cc',
       'ngui.h',
       'v8.cc',
+      'log.cc',
       # ngui-base
       'binding/base/cb-1.h',
       'binding/base/reader.cc',

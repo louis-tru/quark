@@ -64,6 +64,9 @@ extern int (*__xx_default_gui_main)(int, char**);
 
 JS_BEGIN
 
+void open_rlog(cString& r_url);
+void close_rlog();
+
 IMPL::IMPL(Worker* host)
 : host_(host)
 , classs_(new JSClassStore(host)) {
@@ -542,10 +545,29 @@ struct ObjectAllocatorImplementation {
 };
 
 struct NguiApiImplementation {
-  static Worker* create_ngui_JS_WORKER(node::Environment* env) {
+  static Worker* create_ngui_js_worker(node::Environment* env,
+                                       bool is_inspector,
+                                       int argc, const char* const* argv) {
+    if (argc > 1) {
+      
+      Map<String, String> opts;
+      for (int i = 2; i < argc; i++) {
+        String arg = argv[i];
+        if ( arg[0] == '-' ) {
+          Array<String> ls = arg.split('=');
+          opts.set( ls[0].substr(arg[1] == '-' ? 2: 1), ls.length() > 1 ? ls[1] : String() );
+        }
+      }
+      
+      if (opts.has("rlog")) {
+        open_rlog(opts["rlog"]);
+      } else if (is_inspector || opts.has("dev")) {
+        open_rlog(argv[1]);
+      }
+    }
     return new Worker(env);
   }
-  static void delete_ngui_JS_WORKER(ngui::js::Worker* worker) {
+  static void delete_ngui_js_worker(ngui::js::Worker* worker) {
     Release(worker);
   }
   static RunLoop* ngui_main_loop() {
@@ -579,8 +601,8 @@ int start(cString& argv_str) {
   if ( is_initializ++ == 0 ) {
     HttpHelper::initialize();
     node::set_ngui_api({
-      NguiApiImplementation::create_ngui_JS_WORKER,
-      NguiApiImplementation::delete_ngui_JS_WORKER,
+      NguiApiImplementation::create_ngui_js_worker,
+      NguiApiImplementation::delete_ngui_js_worker,
       NguiApiImplementation::ngui_main_loop,
       NguiApiImplementation::run_ngui_loop,
       NguiApiImplementation::encoding_to_utf8,

@@ -55,7 +55,7 @@ Draw* Draw::m_draw_ctx = nullptr; // 当前GL上下文
 /**
  * @constructor
  */
-Draw::Draw(GUIApplication* host, const Map<String, int>& option)
+Draw::Draw(GUIApplication* host, const Map<String, int>& options)
 : XX_INIT_EVENT(surface_size_change)
 , m_host(host)
 , m_multisample(0)
@@ -69,7 +69,7 @@ Draw::Draw(GUIApplication* host, const Map<String, int>& option)
   XX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
   m_draw_ctx = this;
   
-  if (option.has("multisample")) m_multisample = XX_MAX(option.get("multisample"), 0);
+  if (options.has("multisample")) m_multisample = XX_MAX(options.get("multisample"), 0);
   
   m_font_pool = new FontPool(this); // 初始字体池
   m_tex_pool = new TexturePool(this); // 初始文件纹理池

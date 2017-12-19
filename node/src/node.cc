@@ -4782,7 +4782,7 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
     env.async_hooks()->force_checks();
   }
   
-  NguiEnvironment ngui_env(&env, isolate);
+  NguiEnvironment ngui_env(&env, debug_options.inspector_enabled(), argc, argv);
   
   {
     Environment::AsyncCallbackScope callback_scope(&env);

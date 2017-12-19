@@ -1386,16 +1386,16 @@ Vec2 View::position() {
 
 /**
  * "cls1 clas2 clas3"
- * @func classs
+ * @func set_class
  */
-void View::classs(cString& name) {
-  classs(name.split(' '));
+void View::set_class(cString& name) {
+  set_class(name.split(' '));
 }
 
 /**
- * @func classs
+ * @func set_class
  */
-void View::classs(const Array<String>& name) {
+void View::set_class(const Array<String>& name) {
   if ( !m_classs ) {
     m_classs = new CSSViewClasss(this);
   }

@@ -89,7 +89,7 @@ void AppInl::refresh_display() {
 
 void AppInl::onLoad() {
   m_is_load = true;
-  m_main_loop->post(Cb([&](Se& d) { XX_TRIGGER(load); }));
+  m_main_loop->post(Cb([&](Se& d) { GUILock lock; XX_TRIGGER(load); }));
 }
 
 void AppInl::onRender() {
@@ -269,12 +269,12 @@ GUIApplication::~GUIApplication() {
 /**
  * @func initialize
  */
-void GUIApplication::initialize(const Map<String, int>& option) throw(Error) {
+void GUIApplication::initialize(const Map<String, int>& options) throw(Error) {
   GUILock lock;
   XX_ASSERT_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
   m_shared = this;
   HttpHelper::initialize(); // 初始http
-  Inl_GUIApplication(this)->initialize(option);
+  Inl_GUIApplication(this)->initialize(options);
   m_display_port = NewRetain<DisplayPort>(this); // strong ref
   m_draw_ctx->font_pool()->bind_display_port(m_display_port);
   m_dispatch = new GUIEventDispatch(this);

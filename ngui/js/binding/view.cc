@@ -1272,13 +1272,13 @@ public:
   /**
    * @set class {String}
    */
-  static void set_classs(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+  static void set_class(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
     if ( !value->IsString(worker) ) {
       JS_THROW_ERR("Bad argument.");
     }
     JS_SELF(View);
-    self->classs( value->ToStringValue(worker) );
+    self->set_class( value->ToStringValue(worker) );
   }
   
   /**
@@ -1382,7 +1382,7 @@ public:
       JS_SET_CLASS_ACCESSOR(isFocus, is_focus, set_is_focus);
       JS_SET_CLASS_ACCESSOR(viewType, view_type);
       JS_SET_CLASS_ACCESSOR(style, style, set_style);
-      JS_SET_CLASS_ACCESSOR(class, classs, set_classs);
+      JS_SET_CLASS_ACCESSOR(class, classs, set_class);
     }, nullptr);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(View), View::VIEW);
   }

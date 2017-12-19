@@ -42,8 +42,9 @@ namespace ngui {
 namespace node {
   class Environment;
   struct NguiApi {
-    ngui::js::Worker* (*create_ngui_JS_WORKER)(Environment* env);
-    void (*delete_ngui_JS_WORKER)(ngui::js::Worker* worker);
+    ngui::js::Worker* (*create_ngui_js_worker)(Environment* env, bool is_inspector,
+                                               int argc, const char* const* arg);
+    void (*delete_ngui_js_worker)(ngui::js::Worker* worker);
     ngui::RunLoop* (*ngui_main_loop)();
     void (*run_ngui_loop)(ngui::RunLoop* loop);
     char* (*encoding_to_utf8)(const uint16_t* src, int length, int* out_len);

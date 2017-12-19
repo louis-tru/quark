@@ -354,11 +354,20 @@ public:
   }
   
   inline CSSName new_css_name2(cString& a, cString& b) {
-    Array<String> r(2); r.set(0, a); r.set(1, b); sort(r, 2); return CSSName(r);
+    Array<String> r(2);
+    r[0] = a;
+    r[1] = b;
+    sort(r, 2);
+    return CSSName(r);
   }
   
   inline CSSName new_css_name3(cString& a, cString& b, cString& c) {
-    Array<String> r(3); r.set(0, a); r.set(1, b); r.set(2, c); sort(r, 3); return CSSName(r);
+    Array<String> r(3);
+    r[0] = a;
+    r[1] = b;
+    r[2] = c;
+    sort(r, 3);
+    return CSSName(r);
   }
   
   Array<uint> get_css_query_grpup(Array<String>& classs) {
@@ -371,13 +380,16 @@ public:
     Array<uint> r;
     
     if ( len == 1 ) {
-      add_css_query_grpup(new_css_name1(classs[0]).hash(), r); return r;
+      add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
+      return r;
     }
     
     uint hash = CSSName(len > 4 ? sort(classs, 4).slice(0, 4): sort(classs, len)).hash();
     Array<uint>* group = get_css_find_group(hash);
     
-    if ( group && len <= 4 ) return *group;
+    if ( group && len <= 4 ) {
+      return *group;
+    }
     
     switch ( len ) {
       case 2:

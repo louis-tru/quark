@@ -35,6 +35,7 @@
 #include "root.h"
 #include "action.h"
 #include "base/loop-1.h"
+#include "base/sys.h"
 
 XX_NS(ngui)
 
@@ -148,6 +149,9 @@ DisplayPort::DisplayPort(GUIApplication* host)
 , m_root_matrix()
 , m_atom_pixel(1)
 , m_host(host)
+, m_fsp(0)
+, m_record_fsp(0)
+, m_record_fsp_time(0)
 {
   m_draw_region.push({ 0,0,0,0,0,0 });
   // 侦听视口尺寸变化
@@ -182,11 +186,19 @@ void DisplayPort::lock_size(float width, float height) {
  */
 void DisplayPort::render_frame() {
   Root* r = root();
-  m_host->action_center()->advance(); // advance action
+  int64 now_time = sys::time_monotonic();
+  m_host->action_center()->advance(now_time); // advance action
   
   if (r) {
-    bool ok = m_pre_render->solve();
+    bool ok = m_pre_render->solve(now_time);
     if (ok || r->mark_value || r->m_child_change_flag) {
+      
+      if (now_time - m_record_fsp_time >= 1e6) {
+        m_fsp = m_record_fsp;
+        m_record_fsp = 0;
+        m_record_fsp_time = now_time;
+      }
+      m_record_fsp++;
       
       m_draw_ctx->begin_render();
       r->draw(m_draw_ctx); // 开始绘图
@@ -223,7 +235,7 @@ void DisplayPort::render_frame() {
 void DisplayPort::refresh() {
   Root* r = root();
   if ( r ) {
-    m_pre_render->solve();
+    m_pre_render->solve(sys::time_monotonic());
     m_draw_ctx->begin_render();
     r->draw(m_draw_ctx); // 开始绘图
     m_draw_ctx->commit_render();

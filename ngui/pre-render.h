@@ -75,7 +75,7 @@ class XX_EXPORT PreRender: public Object {
   /**
    * @func solve 解决预先渲染问题,如果需要更新视图返回true
    */
-  bool solve();
+  bool solve(int64 now_time);
   
   /**
    * @func mark_pre

@@ -199,6 +199,11 @@ class XX_EXPORT DisplayPort: public Reference {
    * @func set_orientation(orientation)
    */
   void set_orientation(Orientation orientation);
+  
+  /**
+   * @func fsp()
+   */
+  inline uint fsp() const { return m_fsp; }
 
   /**
    * @func default_atom_pixel
@@ -213,7 +218,7 @@ class XX_EXPORT DisplayPort: public Reference {
   Vec2              m_phy_size;   // 视口在屏幕上所占的实际像素的尺寸
   Vec2              m_lock_size;  // 锁定视口的尺寸
   Vec2              m_size;       // 当前视口尺寸
-  float             m_scale;// 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
+  float             m_scale;      // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
   Vec2              m_scale_value;
   PreRender*        m_pre_render;
   Draw*             m_draw_ctx;
@@ -222,6 +227,8 @@ class XX_EXPORT DisplayPort: public Reference {
   List<Region>      m_draw_region;
   GUIApplication*   m_host;
   List<Callback>    m_next_frame;
+  uint  m_fsp, m_record_fsp;
+  int64 m_record_fsp_time;
   
   XX_DEFINE_INLINE_CLASS(Inl);
   friend class  GUIApplication; // 友元类

@@ -75,7 +75,7 @@
 int exec_argc, const char* const* exec_argv) {
 +  ngui::RunLoop* loop = ngui_api->ngui_main_loop();
 
-+ NguiEnvironment ngui_env(&env);
++ NguiEnvironment ngui_env(&env, is_inspector, argc, argv);
 
 // 
     do {

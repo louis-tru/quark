@@ -69,7 +69,8 @@ public:
             View* scope = view->parent();
             if ( sss ) {
               if ( sss->bottom_scope() != scope ) {
-                Release(sss); sss = new StyleSheetsScope(scope);
+                Release(sss);
+                sss = new StyleSheetsScope(scope);
               }
             } else {
               sss = new StyleSheetsScope(scope);
@@ -235,20 +236,18 @@ void PreRender::mark_pre(View* view) {
 /**
  * 解决标记需要更新的视图
  */
-bool PreRender::solve() {
+bool PreRender::solve(int64 now_time) {
   
   bool rv = false;
   
   if ( m_tasks.length() ) { // solve task
     
-    int64 sys_time = sys::time_monotonic();
-    
     for ( auto i = m_tasks.begin(), end = m_tasks.end(); i != end; ) {
       auto j = i++;
       Task* task = j.value();
       if ( task ) {
-        if ( sys_time > task->get_task_timeout() ) {
-          if ( task->run_task(sys_time) ) {
+        if ( now_time > task->get_task_timeout() ) {
+          if ( task->run_task(now_time) ) {
             rv = true;
           }
         }

@@ -685,14 +685,14 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   
   /**
    * "cls1 clas2 clas3"
-   * @func classs
+   * @func set_class
    */
-  void classs(cString& names);
+  void set_class(cString& names);
   
   /**
-   * @func classs
+   * @func set_class
    */
-  void classs(const Array<String>& names);
+  void set_class(const Array<String>& names);
   
   /**
    * @func add_class

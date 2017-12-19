@@ -1126,7 +1126,7 @@ ActionCenter::~ActionCenter() {
 /**
  * @func advance
  */
-void ActionCenter::advance() {
+void ActionCenter::advance(int64 now_time) {
   /*
   static int len = 0;
   if (len != m_actions.length()) {
@@ -1135,10 +1135,9 @@ void ActionCenter::advance() {
   }*/
   
   if ( m_actions.length() ) { // run task
-    uint64 sys_time = sys::time_monotonic();
-    uint64 time_span = 0;
+    int64 time_span = 0;
     if (m_prev_sys_time) {  // 0表示还没开始
-      time_span = sys_time - m_prev_sys_time;
+      time_span = now_time - m_prev_sys_time;
       if ( time_span > 200000 ) {   // 距离上一帧超过200ms重新记时(如应用程序从休眠中恢复)
         time_span = 200000; // 100ms
       }
@@ -1161,7 +1160,7 @@ void ActionCenter::advance() {
         m_actions.del(i++);
       }
     }
-    m_prev_sys_time = sys_time;
+    m_prev_sys_time = now_time;
   }
 }
 

@@ -1,4 +1,7 @@
 { 
+  'variables': {
+    'without_visibility_hidden%': 0,
+  },
   'targets': [
     {
       'target_name': 'test',
@@ -118,7 +121,7 @@
   ],
 
   'conditions': [
-    ['os=="android"', { # and debug==1
+    ['os=="android" and (debug==1 or without_visibility_hidden==1)', {
       'targets': [
       {
         'variables': {

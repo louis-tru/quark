@@ -527,17 +527,17 @@ bool Texture::use(uint slot, Level level, Repeat repeat) {
 bool TextureYUV::load_yuv(cPixelData& data) {
   
   auto pool = tex_pool();
-  uint old_size = m_data_size[0] + m_data_size[1];
+  int old_size = m_data_size[0] + m_data_size[1];
   set_texture_total_data_size(pool, -old_size);
-  uint size = m_width * m_height;
-  uint new_size = size + size / 2;
+  int size = data.width() * data.height();
+  int new_size = size + size / 2;
   
   if (draw_ctx()->adjust_texture_memory(new_size)) {
     if ( draw_ctx()->load_yuv_texture(this, data) ) {
       set_texture_total_data_size(pool, new_size);
       
-      if ( m_width != data.width() ||
-          m_height != data.height() || m_format != data.format() ) {
+      if (m_width != data.width() ||
+          m_height != data.height() || m_format != data.format()) {
         m_width = data.width();
         m_height = data.height();
         m_format = data.format();

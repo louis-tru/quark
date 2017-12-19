@@ -318,6 +318,15 @@ class WrapDisplayPort: public WrapObject {
   }
   
   /**
+   * @func fsp()
+   */
+  static void fsp(FunctionCall args) {
+    JS_WORKER(args); GUILock lock;
+    JS_SELF(DisplayPort);
+    JS_RETURN( self->fsp() );
+  }
+  
+  /**
    * @static default_atom_pixel {float} 
    */
   static void default_atom_pixel(Local<JSString> name, PropertyCall args) {
@@ -350,6 +359,7 @@ class WrapDisplayPort: public WrapObject {
       JS_SET_CLASS_METHOD(requestFullscreen, request_fullscreen);
       JS_SET_CLASS_METHOD(orientation, orientation);
       JS_SET_CLASS_METHOD(setOrientation, set_orientation);
+      JS_SET_CLASS_METHOD(fsp, fsp);
       JS_SET_CLASS_ACCESSOR(width, width);
       JS_SET_CLASS_ACCESSOR(height, height);
       JS_SET_CLASS_ACCESSOR(phyWidth, phy_width);

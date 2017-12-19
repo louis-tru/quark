@@ -152,6 +152,7 @@ add_library(ngui-js SHARED
             ../../../ngui/js/test.cc
             ../../../ngui/js/v8.cc
             ../../../ngui/js/v8.cc
+            ../../../ngui/js/log.cc
             ../../../ngui/js/binding/base/event.cc
             ../../../ngui/js/binding/base/reader.cc
             ../../../ngui/js/binding/base/fs.cc
