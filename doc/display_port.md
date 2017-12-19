@@ -154,6 +154,12 @@
 
 * @arg `orientation` {[`Orientation`]}
 
+### fsp()
+
+返回当前刷新率
+
+* @ret {[`uint`]}
+
 ## Get: defaultAtomPixel
 
 默认屏幕原子像素尺寸

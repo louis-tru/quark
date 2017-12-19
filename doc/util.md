@@ -63,6 +63,10 @@
 * @arg `name` {[`String`]}
 * @ret {[`String`]}
 
+## log()
+
+打印日志
+
 ## noop()
 
 空操作,调用后什么也不会做

@@ -137,6 +137,12 @@ console.log(sys.subsystem());
 
 获取当前应用可用的内存
 
+## cpuUsage()
+
+获取CPU占用率
+
+* @ret {[`float`]}
+
 
 [`String`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 

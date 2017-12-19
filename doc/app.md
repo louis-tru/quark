@@ -161,23 +161,9 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 * {[`TextWhiteSpace`]}
 
 
-
-
 ## `Object: Options`
 
 * 创建`GUIApplication`的选项，这是个`Object`类型描述并没有实际存在的构造函数
-
-### anisotropic
-
-* 启用图像各项异性 `anisotropic`
-
-* {[`bool`]}
-
-### mipmap
-
-* 启用mipmap图像 `mipmap`
-
-* {[`bool`]}
 
 ### multisample
 
