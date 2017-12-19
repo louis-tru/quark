@@ -48,15 +48,16 @@ XX_EXPORT String subsystem();
 XX_EXPORT const Array<String>& languages();
 XX_EXPORT String languages_string();
 XX_EXPORT String language();
-XX_EXPORT bool   is_wifi();
-XX_EXPORT bool   is_mobile();
-XX_EXPORT int    network_status();
-XX_EXPORT bool   is_ac_power();
-XX_EXPORT bool   is_battery();
-XX_EXPORT float  battery_level();
+XX_EXPORT bool  is_wifi();
+XX_EXPORT bool  is_mobile();
+XX_EXPORT int network_status();
+XX_EXPORT bool  is_ac_power();
+XX_EXPORT bool  is_battery();
+XX_EXPORT float battery_level();
 XX_EXPORT uint64 memory();
 XX_EXPORT uint64 used_memory();
 XX_EXPORT uint64 available_memory();
+XX_EXPORT float cpu_usage();
 
 XX_END XX_END
 #endif

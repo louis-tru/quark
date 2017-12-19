@@ -401,13 +401,11 @@ AsyncFile::AsyncFile(cString& path, RunLoop* loop)
 { }
 
 AsyncFile::~AsyncFile() {
-  Inl* inl = m_inl;
-  inl->m_keep->post(Cb([inl](Se& e){
-    inl->set_delegate(nullptr);
-    if (inl->is_open())
-      inl->close();
-    inl->release();
-  }));
+  XX_CHECK(m_inl->m_keep->host() == RunLoop::current());
+  m_inl->set_delegate(nullptr);
+  if (m_inl->is_open())
+    m_inl->close();
+  m_inl->release();
   m_inl = nullptr;
 }
 

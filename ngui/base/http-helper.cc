@@ -265,7 +265,16 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
     Mutex         mutex;
   };
   
-  Client cli(get_private_loop());
+  auto loop = get_private_loop();
+  
+  Client* cli_ptr = new Client(loop);
+  Client& cli = *cli_ptr;
+  
+  ScopeClear scope([cli_ptr, loop](){
+    loop->post(Cb([cli_ptr](Se& e){
+      cli_ptr->release();
+    }));
+  });
   
   try {
     cli.set_url(options.url);

@@ -117,7 +117,7 @@ namespace console {
   
   void report_error(cchar* format, ...) {
     XX_STRING_FORMAT(format, str);
-    default_console()->print_err(str);
+    printf("%s", *str);
   }
   
   // Attempts to dump a backtrace (if supported).

@@ -82,7 +82,7 @@ public:
   , m_delegate(this)
   , m_keep(loop->keep_alive(false))
   , m_port(0)
-  , m_open_keep(nullptr)
+  , m_uv_handle(nullptr)
   , m_is_open(false)
   , m_is_opening(false)
   , m_is_pause(false)
@@ -90,24 +90,35 @@ public:
   , m_keep_idle(7200)
   , m_no_delay(false)
   , m_timeout(0)
+  , m_uv_tcp(nullptr)
+  , m_uv_timer(nullptr)
   { //
     XX_CHECK(m_keep);
-    m_uv_tcp.flags = 0;
-    m_uv_timer.flags = 0;
   }
   
   virtual ~Inl() {
     XX_CHECK(!m_is_open);
-    XX_CHECK(!m_open_keep);
+    XX_CHECK(!m_uv_handle);
     Release(m_keep); m_keep = nullptr;
   }
   
-  class OpenKeep {
-  public:
+  class UVHandle {
+   public:
     typedef NonObjectTraits Traits;
-    inline OpenKeep(Inl* host): m_host(host) { host->retain(); }
-    inline ~OpenKeep() { m_host->release(); }
-    Inl* m_host;
+    inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
+      host->retain();
+      int r;
+      r = uv_tcp_init(loop, &uv_tcp); XX_ASSERT( r == 0 );
+      r = uv_timer_init(loop, &uv_timer); XX_ASSERT( r == 0 );
+      uv_tcp.data = this;
+      uv_timer.data = this;
+    }
+    inline ~UVHandle() {
+      host->release();
+    }
+    Inl* host;
+    uv_tcp_t  uv_tcp;
+    uv_timer_t  uv_timer;
   };
   
   // utils
@@ -157,21 +168,12 @@ public:
     async_callback(Cb(&Inl::timeout_cb2, self));
   }
   
-  void timeout_reset() {
-    uv_timer_stop(&m_uv_timer);
+  void reset_timeout() {
     if ( m_is_open ) {
+      uv_timer_stop(m_uv_timer);
       if ( m_timeout && !m_is_pause ) {
-        uv_timer_start(&m_uv_timer, &timeout_cb, m_timeout / 1000, 0);
+        uv_timer_start(m_uv_timer, &timeout_cb, m_timeout / 1000, 0);
       }
-    }
-  }
-  
-  // 确保连接已经关闭方可调用,否则可能造成crash
-  void close_uv_handle() {
-    if ( !uv_is_closing((uv_handle_t*)&m_uv_tcp) ) {
-      uv_close((uv_handle_t*)&m_uv_tcp, nullptr);
-      uv_timer_stop(&m_uv_timer);
-      uv_close((uv_handle_t*)&m_uv_timer, nullptr);
     }
   }
   
@@ -186,11 +188,15 @@ public:
   }
   
   void open() {
-    open2();
+    if ( m_is_opening ) {
+      report_err(Error(ERR_CONNECT_ALREADY_OPEN, "Connect opening or already open"), 1);
+    } else {
+      open2();
+    }
   }
   
   void close() {
-    if ( m_open_keep ) {
+    if (m_is_open) {
       shutdown();
     } else {
       report_not_open_connect_err(1);
@@ -229,27 +235,27 @@ public:
      */
     m_enable_keep_alive = enable;
     m_keep_idle = keep_idle ? 7200 : uint(keep_idle / 1000000);
-    if ( uv_is_active((uv_handle_t*)&m_uv_tcp) ) {
-      uv_tcp_keepalive(&m_uv_tcp, m_enable_keep_alive, m_keep_idle);
+    if ( m_uv_tcp && uv_is_active((uv_handle_t*)m_uv_tcp) ) {
+      uv_tcp_keepalive(m_uv_tcp, m_enable_keep_alive, m_keep_idle);
     }
   }
   
   void set_no_delay(bool no_delay) {
     m_no_delay = no_delay;
-    if ( uv_is_active((uv_handle_t*)&m_uv_tcp) ) {
-      uv_tcp_nodelay(&m_uv_tcp, m_no_delay);
+    if ( m_uv_tcp && uv_is_active((uv_handle_t*)m_uv_tcp) ) {
+      uv_tcp_nodelay(m_uv_tcp, m_no_delay);
     }
   }
   
   void set_timeout(uint64 timeout) {
     m_timeout = timeout;
-    timeout_reset();
+    reset_timeout();
   }
   
   void pause() {
     m_is_pause = true;
     if ( m_is_open ) {
-      uv_read_stop((uv_stream_t*)&m_uv_tcp);
+      uv_read_stop((uv_stream_t*)m_uv_tcp);
     }
   }
   
@@ -269,8 +275,8 @@ public:
       size = buffer.length();
     }
     if ( m_is_open ) {
-      if ( uv_is_writable((uv_stream_t*)&m_uv_tcp) ) {
-        timeout_reset();
+      if ( uv_is_writable((uv_stream_t*)m_uv_tcp) ) {
+        reset_timeout();
         write(buffer, mark);
       } else {
         report_err(Error(ERR_SOCKET_NOT_WRITABLE, "Socket not writable"), 1);
@@ -283,9 +289,8 @@ public:
   // ------------------------------------------------------------------------------------------
   
   void open2() {
-    if ( m_is_opening ) {
-      report_err(Error(ERR_CONNECT_ALREADY_OPEN, "Connect opening or already open"), 1); return;
-    }
+    XX_ASSERT(m_is_opening == false);
+    XX_ASSERT(m_uv_handle == nullptr);
     
     if ( m_remote_ip.is_empty() ) {
       sockaddr_in sockaddr;
@@ -335,104 +340,100 @@ public:
     }
     
     if ( !m_remote_ip.is_empty() ) {
-      uv_loop_t* loop = uv_loop();
-      int r;
-      r = uv_tcp_init(loop, &m_uv_tcp); XX_ASSERT( r == 0 );
-      r = uv_timer_init(loop, &m_uv_timer); XX_ASSERT( r == 0 );
-      m_uv_tcp.data = this;
-      m_uv_timer.data = this;
+      m_uv_handle = new UVHandle(this, uv_loop());
+      XX_ASSERT(m_uv_tcp == nullptr);
+      XX_ASSERT(m_uv_timer == nullptr);
+      m_uv_tcp = &m_uv_handle->uv_tcp;
+      m_uv_timer = &m_uv_handle->uv_timer;
       auto req = new SocketConReq(this);
-      r = uv_tcp_connect(req->req(), &m_uv_tcp, &m_address, &open_cb);
+      int r = uv_tcp_connect(req->req(), m_uv_tcp, &m_address, &open_cb);
       if (report_uv_err(r)) {
         Release(req);
-        close_uv_handle();
+        close2();
       } else {
         m_is_opening = true;
       }
     }
   }
   
-  virtual void trigger_stream_connect_open() {
-    m_is_open = true;
-    if ( !m_is_pause ) {
-      start_read(); // start receive data
-    }
-    timeout_reset();
-    m_delegate->trigger_socket_open(m_host);
-  }
-  
-  static void open_cb(uv_connect_t* uv_req, int status) {
-    //g_debug("--connect open, %d", status);
-    Handle<SocketConReq> req = SocketConReq::cast(uv_req);
-    Inl* self = req->ctx();
-    XX_ASSERT(self->m_is_opening);
-    XX_ASSERT(!self->m_open_keep);
-    XX_ASSERT(!self->m_is_open);
+  void close2() {
+    XX_ASSERT(m_uv_handle);
+    uv_close((uv_handle_t*)m_uv_tcp, [](uv_handle_t* handle){
+      Handle<UVHandle> h((UVHandle*)handle->data);
+    });
+    uv_timer_stop(m_uv_timer);
+    uv_close((uv_handle_t*)m_uv_timer, nullptr);
     
-    uv_tcp_keepalive(&self->m_uv_tcp, self->m_enable_keep_alive, self->m_keep_idle);
-    uv_tcp_nodelay(&self->m_uv_tcp, self->m_no_delay);
-    
-    if ( status ) {
-      //g_debug("--connect open3-----------------------------err");
-      self->m_is_opening = false;
-      self->report_uv_err(status);
-    } else {
-      //g_debug("--connect open4");
-      self->m_open_keep = new OpenKeep(self);
-      self->trigger_stream_connect_open();
-    }
-  }
-  
-  void trigger_socket_close() {
-    XX_ASSERT(m_open_keep);
-    Handle<OpenKeep> ok(m_open_keep);
-    close_uv_handle();
-    m_open_keep = nullptr;
+    m_uv_handle = nullptr;
+    m_uv_tcp = nullptr;
+    m_uv_timer = nullptr;
     m_is_pause = false;
-    if ( m_is_open ) {
+    if (m_is_open) {
       m_is_opening = false;
       m_is_open = false;
       m_delegate->trigger_socket_close(m_host);
-    } else if ( m_is_opening ) {
+    } else if (m_is_opening) {
       m_is_opening = false;
       Error err(ERR_CONNECT_UNEXPECTED_SHUTDOWN, "Connect unexpected shutdown");
       report_err(err);
     }
-    timeout_reset();
+  }
+  
+  virtual void trigger_socket_connect_open() {
+    m_is_open = true;
+    if ( !m_is_pause ) {
+      start_read(); // start receive data
+    }
+    reset_timeout();
+    m_delegate->trigger_socket_open(m_host);
+  }
+  
+  static void open_cb(uv_connect_t* uv_req, int status) {
+    Handle<SocketConReq> req = SocketConReq::cast(uv_req);
+    Inl* self = req->ctx();
+    XX_ASSERT(self->m_is_opening);
+    XX_ASSERT(!self->m_is_open);
+    
+    uv_tcp_keepalive(self->m_uv_tcp, self->m_enable_keep_alive, self->m_keep_idle);
+    uv_tcp_nodelay(self->m_uv_tcp, self->m_no_delay);
+    
+    if ( status ) {
+      self->m_is_opening = false;
+      self->report_uv_err(status);
+      self->close2();
+    } else {
+      self->trigger_socket_connect_open();
+    }
   }
   
   static void shutdown_cb(uv_shutdown_t* uv_req, int status) {
     Handle<SocketShutdownReq> req(SocketShutdownReq::cast(uv_req));
     Inl* self = req->ctx();
-    self->close_uv_handle();
     if ( status != 0 && status != UV_ECANCELED ) {
       // close status is send error
       self->report_uv_err(status);
     }
-    if ( self->m_is_open ) {
-      self->trigger_socket_close();
-    }
+    self->close2();
   }
   
   virtual void shutdown() {
     auto req = new SocketShutdownReq(this);
-    int r = uv_shutdown(req->req(), (uv_stream_t*)&m_uv_tcp, &shutdown_cb);
+    int r = uv_shutdown(req->req(), (uv_stream_t*)m_uv_tcp, &shutdown_cb);
     if ( report_uv_err(r) ) {
       Release(req);
-      close_uv_handle();
     }
   }
   
   static void read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
-    ((Inl*)stream->data)->trigger_socket_data(int(nread), buf->base);
+    (static_cast<UVHandle*>(stream->data)->host)->trigger_socket_data(int(nread), buf->base);
   }
   
   void start_read() {
-    uv_read_start((uv_stream_t*)&m_uv_tcp, &read_alloc_cb, &read_cb);
+    uv_read_start((uv_stream_t*)m_uv_tcp, &read_alloc_cb, &read_cb);
   }
   
   static void read_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-    Inl* self = ((Inl*)handle->data);
+    Inl* self = static_cast<UVHandle*>(handle->data)->host;
     if ( self->m_read_buffer.is_null() ) {
       self->m_read_buffer = Buffer( XX_MIN(65536, uint(suggested_size)) );
     }
@@ -446,9 +447,9 @@ public:
       if ( nread != UV_EOF ) { // 异常断开
         report_uv_err(int(nread));
       }
-      trigger_socket_close();
+      close2();
     } else {
-      timeout_reset();
+      reset_timeout();
       WeakBuffer buff(buffer, nread);
       m_delegate->trigger_socket_data(m_host, buff);
     }
@@ -471,7 +472,7 @@ public:
     uv_buf_t buf;
     buf.base = req->data().raw_buffer.value();
     buf.len = req->data().raw_buffer.length();
-    int r = uv_write(req->req(), (uv_stream_t*)&m_uv_tcp, &buf, 1, &write_cb);
+    int r = uv_write(req->req(), (uv_stream_t*)m_uv_tcp, &buf, 1, &write_cb);
     if ( report_uv_err(r) ) {
       Release(req);
     }
@@ -481,7 +482,7 @@ public:
   Socket*     m_host;
   Delegate*   m_delegate;
   KeepLoop*   m_keep;
-  OpenKeep*   m_open_keep;
+  UVHandle*   m_uv_handle;
   bool        m_is_open;
   bool        m_is_opening;
   bool        m_is_pause;
@@ -490,8 +491,8 @@ public:
   uint        m_keep_idle;
   String      m_hostname;
   uint16      m_port;
-  uv_tcp_t    m_uv_tcp;
-  uv_timer_t  m_uv_timer;
+  uv_tcp_t*   m_uv_tcp;
+  uv_timer_t* m_uv_timer;
   sockaddr    m_address;
   String      m_remote_ip;
   Buffer      m_read_buffer;
@@ -654,7 +655,8 @@ public:
   
   static void trigger_socket_write_from_loop(Se& evt, SSLSocketWriteReq* req) {
     Handle<SSLSocketWriteReq> req_(req);
-    req->ctx()->m_delegate->trigger_socket_write(req->ctx()->m_host, req->data().raw_buffer, req->data().mark);
+    req->ctx()->m_delegate->trigger_socket_write(req->ctx()->m_host, req->data().raw_buffer,
+                                                 req->data().mark);
   }
   
   static void ssl_write_cb(uv_write_t* req, int status) {
@@ -709,7 +711,7 @@ public:
       buf.base = req->data().raw_buffer.value();
       buf.len = req->data().raw_buffer.length();
       
-      r = uv_write(req->req(), (uv_stream_t*)&self->m_uv_tcp, &buf, 1, &ssl_handshake_write_cb);
+      r = uv_write(req->req(), (uv_stream_t*)self->m_uv_tcp, &buf, 1, &ssl_handshake_write_cb);
       
       if ( self->report_uv_err(r) ) {
         r = -1;
@@ -736,7 +738,7 @@ public:
         
         req->data().buffers[req->data().buffers_count] = buffer;
         
-        r = uv_write(req->req(), (uv_stream_t*)&self->m_uv_tcp, &buf, 1, &ssl_write_cb);
+        r = uv_write(req->req(), (uv_stream_t*)self->m_uv_tcp, &buf, 1, &ssl_write_cb);
         
         if ( self->report_uv_err(r) ) {
           // uv err
@@ -751,7 +753,7 @@ public:
         buf.base = req->data().raw_buffer.value();
         buf.len = req->data().raw_buffer.length();
         
-        r = uv_write(req->req(), (uv_stream_t*)&self->m_uv_tcp, &buf, 1, &ssl_other_write_cb);
+        r = uv_write(req->req(), (uv_stream_t*)self->m_uv_tcp, &buf, 1, &ssl_other_write_cb);
         
         if ( r != 0 ) {
           Release(req);
@@ -795,17 +797,17 @@ public:
   }
   
   static void ssl_handshake_timeout_cb(uv_timer_t* handle) {
-    SSL_INL* self = static_cast<SSL_INL*>(handle->data);
+    SSL_INL* self = static_cast<SSL_INL*>(static_cast<UVHandle*>(handle->data)->host);
     self->ssl_handshake_fail();
   }
   
   void set_ssl_handshake_timeout() {
-    XX_ASSERT(m_open_keep);
-    uv_timer_stop(&m_uv_timer);
-    uv_timer_start(&m_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
+    XX_ASSERT(m_uv_handle);
+    uv_timer_stop(m_uv_timer);
+    uv_timer_start(m_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
   }
   
-  virtual void trigger_stream_connect_open() {
+  virtual void trigger_socket_connect_open() {
     XX_ASSERT( !m_ssl_handshake );
     set_ssl_handshake_timeout();
     m_bio_read_source_buffer_length = 0;
@@ -828,7 +830,7 @@ public:
           report_uv_err(int(nread));
         }
       }
-      trigger_socket_close();
+      close2();
     } else {
       
       XX_ASSERT( m_bio_read_source_buffer_length == 0 );
@@ -841,7 +843,7 @@ public:
       }
       
       if ( m_is_open ) {
-        timeout_reset();
+        reset_timeout();
         
         while (1) {
           int i = SSL_read(m_ssl, m_ssl_read_buffer.value(), 65536);
@@ -869,9 +871,9 @@ public:
           m_is_open = true;
           
           if ( m_is_pause ) {
-            uv_read_stop((uv_stream_t*)&m_uv_tcp); // pause status
+            uv_read_stop((uv_stream_t*)m_uv_tcp); // pause status
           }
-          timeout_reset();
+          reset_timeout();
           m_delegate->trigger_socket_open(m_host);
           
           XX_ASSERT( m_bio_read_source_buffer_length == 0 );
@@ -923,7 +925,7 @@ BIO_METHOD SSL_INL::bio_method = {
   nullptr
 };
 
-Socket::Socket(): m_inl(nullptr) { }
+Socket::Socket(): m_inl(nullptr) {}
 
 Socket::Socket(cString& hostname, uint16 port, RunLoop* loop)
 : m_inl( NewRetain<Inl>(this, loop) ) {
@@ -931,13 +933,11 @@ Socket::Socket(cString& hostname, uint16 port, RunLoop* loop)
 }
 
 Socket::~Socket() {
-  Inl* inl = m_inl;
-  inl->m_keep->post(Cb([inl](Se& e) {
-    inl->set_delegate(nullptr);
-    if (inl->is_open())
-      inl->close();
-    Release(inl);
-  }));
+  XX_CHECK(m_inl->m_keep->host() == RunLoop::current());
+  m_inl->set_delegate(nullptr);
+  if (m_inl->is_open())
+    m_inl->close();
+  Release(m_inl);
   m_inl = nullptr;
 }
 void Socket::open() {

@@ -625,18 +625,18 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
    private:
     friend class ConnectPool;
     
-    bool        m_ssl;
+    bool  m_ssl;
+    bool  m_use;
+    bool  m_is_multipart_form_data;
+    bool  m_send_data;
     Socket*     m_socket;
     Client*     m_client;
-    bool        m_use;
     ID          m_id;
     AsyncFile*  m_upload_file;
     http_parser m_parser;
     http_parser_settings m_settings;
     List<MultipartFormValue> m_multipart_form_data;
     Buffer  m_multipart_form_buffer;
-    bool    m_is_multipart_form_data;
-    bool    m_send_data;
     String  m_header_field;
     Map<String, String> m_header;
     z_stream m_z_strm;
@@ -663,8 +663,11 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
     ~ConnectPool() {
       ScopeLock scope(m_mutex);
       for (auto& i : m_pool) {
-        i.value()->m_id = ConnectID();
-        Release(i.value());
+        auto con = i.value();
+        con->m_id = ConnectID();
+        con->m_loop->post(Cb([con](Se& e){
+          Release(con);
+        }));
       }
       m_pool_ptr = nullptr;
     }
@@ -740,7 +743,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
             connect_count--;
             m_pool.del(conn2->m_id);
             conn2->m_id = ConnectID();
-            conn2->release();
+            conn2->loop()->post(Cb([conn2](Se& e) {
+              conn2->release();
+            }));
           }
         }
         if (connect_count < MAX_CONNECT_COUNT) {
@@ -755,8 +760,11 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
     }
     
     void release(Connect* connect, bool immediately) {
-      if ( !connect ) return;
+      if (!connect) return;
       Lock lock(m_mutex);
+      if (connect->m_id.is_null()) {
+        return;
+      }
       
       if ( !connect->socket()->is_open() || immediately ) { // immediately release
         m_pool.del(connect->m_id);
@@ -1361,12 +1369,11 @@ HttpClientRequest::HttpClientRequest(RunLoop* loop): m_inl(NewRetain<Inl>(this, 
 }
 
 HttpClientRequest::~HttpClientRequest() {
+  XX_CHECK(m_inl->m_keep->host() == RunLoop::current());
   Inl* inl = m_inl;
-  inl->m_keep->post(Cb([inl](Se& e) {
-    inl->set_delegate(nullptr);
-    inl->abort();
-    inl->release();
-  }));
+  m_inl->set_delegate(nullptr);
+  m_inl->abort();
+  m_inl->release();
   m_inl = nullptr;
 }
 

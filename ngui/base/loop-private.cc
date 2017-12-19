@@ -58,7 +58,7 @@ class PrivateLoop {
         m_thread_id = t.id();
         m_cond.notify_all();
       }
-    loop:
+     loop:
       m_loop->run(2e7); // 使用20超时,20秒后没有新消息结束线程
       { //
         ScopeLock scope(m_mutex);

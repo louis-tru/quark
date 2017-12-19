@@ -106,6 +106,45 @@ uint64 available_memory() {
   return 0;
 }
 
+float cpu_usage() {
+  kern_return_t kr;
+  thread_array_t         thread_list;
+  mach_msg_type_number_t thread_count;
+  
+  // get threads in the task
+  kr = task_threads(mach_task_self(), &thread_list, &thread_count);
+  if (kr != KERN_SUCCESS) {
+    return -1;
+  }
+  
+  float cpu_usage = 0;
+  
+  for (int j = 0; j < thread_count; j++) {
+    thread_info_data_t     thinfo;
+    mach_msg_type_number_t thread_info_count = THREAD_INFO_MAX;
+    
+    kr = thread_info(thread_list[j], THREAD_BASIC_INFO,
+                     (thread_info_t)thinfo, &thread_info_count);
+    if (kr != KERN_SUCCESS) {
+      return -1;
+    }
+    
+    thread_basic_info_t basic_info_th = (thread_basic_info_t)thinfo;
+    
+    if (!(basic_info_th->flags & TH_FLAGS_IDLE)) {
+      cpu_usage += basic_info_th->cpu_usage;
+    }
+  } // for each thread
+  
+  cpu_usage = cpu_usage / (float)TH_USAGE_SCALE;
+  
+  kr = vm_deallocate(mach_task_self(), (vm_offset_t)thread_list,
+                     thread_count * sizeof(thread_t));
+  assert(kr == KERN_SUCCESS);
+  
+  return cpu_usage;
+}
+
 struct Languages {
   Array<String> values;
   String  string;
