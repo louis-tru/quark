@@ -18,7 +18,9 @@ Goal: developing GUI applications on this basis can take into account both the s
 Build and install ngui-tools
 ===============
 
-build must dependent Xcode / NDK / JDK1.7 /python / nodejs / yasm.
+1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
+
+2. Setting environment variable `JAVA_HOME` and `ANDROID_HOME`
 
 install ngui tools `make install`, It takes a long time.
 
