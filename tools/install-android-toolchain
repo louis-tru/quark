@@ -46,9 +46,9 @@ if [ $2 ] && [ -d $2 ]; then
       --platform=android-21 \
       # --force
     
-    #if [ `which python` ]; then 
-    #  rm -rf $DIR/bin/python
-    #fi
+    if [ `which python` ]; then 
+     rm -rf $DIR/bin/python
+    fi
   fi
  
 else
