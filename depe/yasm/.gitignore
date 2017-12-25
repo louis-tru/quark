@@ -70,3 +70,8 @@ x64
 *.log
 *.trs
 .dirstamp
+Makefile
+config.h
+config.h.in
+config.status
+config/test-driver

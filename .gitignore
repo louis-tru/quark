@@ -1,6 +1,7 @@
 out
 .svn
 .DS_Store
+*.DS_Store
 node_modules/.bin
 ngui.sublime-workspace
 node_modules/ngui-tools/osx

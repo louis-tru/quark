@@ -218,7 +218,9 @@
           ['cplusplus11==1', { 'cflags_cc': [ '-stdlib=libc++' ] }],
           ['arch in "arm arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
           ['without_embed_bitcode==1', { 
-            'cflags': [ '-fembed-bitcode-marker' ]
+            'cflags': [ 
+              #'-fembed-bitcode-marker' 
+            ]
           }, {
             'cflags': [ '-fembed-bitcode' ]
           }],
@@ -258,7 +260,6 @@
           '-mmacosx-version-min=<(version_min)',
           '-arch <(arch_name)',
           '-isysroot <(sysroot)', 
-          #'-fembed-bitcode', #'-fembed-bitcode-marker', 
         ],
         'ldflags': [ 
           '-mmacosx-version-min=<(version_min)',

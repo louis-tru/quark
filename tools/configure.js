@@ -222,8 +222,8 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
       `;
 
     // apple marker
-    var f_embed_bitcode = opts.without_embed_bitcode ? 
-      '-fembed-bitcode-marker': '-fembed-bitcode';
+    // -fembed-bitcode-marker
+    var f_embed_bitcode = opts.without_embed_bitcode ?  '' : '-fembed-bitcode';
 
     cmd += `--cc='clang -miphoneos-version-min=8.0 -arch ${variables.arch_name} ${f_embed_bitcode}' `; 
     if (arch == 'x86' || arch == 'x64') {
