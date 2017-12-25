@@ -11,8 +11,17 @@ x86parse.c
 lc3bid.c
 re2c-parser.c
 re2c-parser.h
+yasm
+vsyasm
+ytasm
+re2c
 cleanup
+genmacro
 test_hd
+genperf
+genversion
+genmodule
+genstring
 version.mac
 *_test
 configure
@@ -61,4 +70,3 @@ x64
 *.log
 *.trs
 .dirstamp
-*.user

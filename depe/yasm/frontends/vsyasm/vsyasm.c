@@ -185,7 +185,7 @@ static opt_option options[] =
       N_("inhibits warning messages"), NULL },
     { 'W', NULL, 0, opt_warning_handler, 0,
       N_("enables/disables warning"), NULL },
-    { 'Z', NULL, 1, opt_error_file, 0,
+    { 'E', NULL, 1, opt_error_file, 0,
       N_("redirect error messages to file"), N_("file") },
     { 's', NULL, 0, opt_error_stdout, 0,
       N_("redirect error messages to stdout"), NULL },
@@ -316,7 +316,7 @@ do_assemble(const char *in_filename)
          * machine to amd64.  When we get more arches with multiple machines,
          * we should do this in a more modular fashion.
          */
-        if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0 &&
+        if (strcmp(cur_arch_module->keyword, "x86") == 0 &&
             cur_objfmt_module->default_x86_mode_bits == 64)
             machine_name = yasm__xstrdup("amd64");
         else
@@ -394,7 +394,7 @@ do_assemble(const char *in_filename)
     apply_preproc_saved_options(preproc);
 
     /* Get initial x86 BITS setting from object format */
-    if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0) {
+    if (strcmp(cur_arch_module->keyword, "x86") == 0) {
         yasm_arch_set_var(arch, "mode_bits",
                           cur_objfmt_module->default_x86_mode_bits);
     }
@@ -450,7 +450,7 @@ do_assemble(const char *in_filename)
         return EXIT_FAILURE;
 
     /* open the object file for output (if not already opened by dbg objfmt) */
-    if (!obj && yasm__strcasecmp(cur_objfmt_module->keyword, "dbg") != 0) {
+    if (!obj && strcmp(cur_objfmt_module->keyword, "dbg") != 0) {
         obj = open_file(obj_filename, "wb");
         if (!obj) {
             yasm_preproc_destroy(preproc);
@@ -463,8 +463,7 @@ do_assemble(const char *in_filename)
 
     /* Write the object file */
     yasm_objfmt_output(object, obj?obj:stderr,
-                       yasm__strcasecmp(cur_dbgfmt_module->keyword, "null"),
-                       errwarns);
+                       strcmp(cur_dbgfmt_module->keyword, "null"), errwarns);
 
     /* Close object file */
     if (obj)
@@ -1120,8 +1119,6 @@ opt_warning_handler(char *cmd, /*@unused@*/ char *param, int extra)
         action(YASM_WARN_UNINIT_CONTENTS);
     else if (strcmp(cmd, "size-override") == 0)
         action(YASM_WARN_SIZE_OVERRIDE);
-    else if (strcmp(cmd, "segreg-in-64bit") == 0)
-        action(YASM_WARN_SEGREG_IN_64BIT);
     else
         return 1;
 

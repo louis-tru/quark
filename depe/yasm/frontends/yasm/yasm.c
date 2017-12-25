@@ -180,13 +180,11 @@ static opt_option options[] =
       N_("enables/disables warning"), NULL },
     { 'M', NULL, 0, opt_makedep_handler, 0,
       N_("generate Makefile dependencies on stdout"), NULL },
-    { 'Z', NULL, 1, opt_error_file, 0,
+    { 'E', NULL, 1, opt_error_file, 0,
       N_("redirect error messages to file"), N_("file") },
     { 's', NULL, 0, opt_error_stdout, 0,
       N_("redirect error messages to stdout"), NULL },
     { 'e', "preproc-only", 0, preproc_only_handler, 0,
-      N_("preprocess only (writes output to stdout by default)"), NULL },
-    { 'E', NULL, 0, preproc_only_handler, 0,
       N_("preprocess only (writes output to stdout by default)"), NULL },
     { 'i', NULL, 1, opt_include_option, 0,
       N_("add include path"), N_("path") },
@@ -390,7 +388,7 @@ do_assemble(void)
          * machine to amd64.  When we get more arches with multiple machines,
          * we should do this in a more modular fashion.
          */
-        if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0 &&
+        if (strcmp(cur_arch_module->keyword, "x86") == 0 &&
             cur_objfmt_module->default_x86_mode_bits == 64)
             machine_name = yasm__xstrdup("amd64");
         else
@@ -401,8 +399,8 @@ do_assemble(void)
     /* If we're using amd64 and the default objfmt is elfx32, change the
      * machine to "x32".
      */
-    if (yasm__strcasecmp(machine_name, "amd64") == 0 &&
-	yasm__strcasecmp(cur_objfmt_module->keyword, "elfx32") == 0)
+    if (strcmp(machine_name, "amd64") == 0 &&
+	strcmp(cur_objfmt_module->keyword, "elfx32") == 0)
       machine = "x32";
     else
       machine = machine_name;
@@ -484,7 +482,7 @@ do_assemble(void)
     apply_preproc_saved_options();
 
     /* Get initial x86 BITS setting from object format */
-    if (yasm__strcasecmp(cur_arch_module->keyword, "x86") == 0) {
+    if (strcmp(cur_arch_module->keyword, "x86") == 0) {
         yasm_arch_set_var(cur_arch, "mode_bits",
                           cur_objfmt_module->default_x86_mode_bits);
     }
@@ -536,7 +534,7 @@ do_assemble(void)
     check_errors(errwarns, object, linemap);
 
     /* open the object file for output (if not already opened by dbg objfmt) */
-    if (!obj && yasm__strcasecmp(cur_objfmt_module->keyword, "dbg") != 0) {
+    if (!obj && strcmp(cur_objfmt_module->keyword, "dbg") != 0) {
         obj = open_file(obj_filename, "wb");
         if (!obj) {
             cleanup(object);
@@ -546,8 +544,7 @@ do_assemble(void)
 
     /* Write the object file */
     yasm_objfmt_output(object, obj?obj:stderr,
-                       yasm__strcasecmp(cur_dbgfmt_module->keyword, "null"),
-                       errwarns);
+                       strcmp(cur_dbgfmt_module->keyword, "null"), errwarns);
 
     /* Close object file */
     if (obj)
@@ -1094,8 +1091,6 @@ opt_warning_handler(char *cmd, /*@unused@*/ char *param, int extra)
         action(YASM_WARN_UNINIT_CONTENTS);
     else if (strcmp(cmd, "size-override") == 0)
         action(YASM_WARN_SIZE_OVERRIDE);
-    else if (strcmp(cmd, "segreg-in-64bit") == 0)
-        action(YASM_WARN_SEGREG_IN_64BIT);
     else
         return 1;
 

@@ -936,12 +936,12 @@ void DFA_emit(DFA *d, FILE *o){
 	oline++;
 	useLabel(label);
     } else {
-	int j;
+	int i;
 	fputs("\tswitch(YYGETSTATE()) {\n", o);
 	fputs("\t\tcase -1: goto yy0;\n", o);
 
-	for (j=0; j<maxFillIndexes; ++j)
-	    fprintf(o, "\t\tcase %d: goto yyFillLabel%d;\n", j, j);
+	for (i=0; i<maxFillIndexes; ++i)
+	    fprintf(o, "\t\tcase %u: goto yyFillLabel%u;\n", i, i);
 
 	fputs("\t\tdefault: /* abort() */;\n", o);
 	fputs("\t}\n", o);
