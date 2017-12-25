@@ -22,7 +22,7 @@ Build and install ngui-tools
 
 2. Setting environment variable `JAVA_HOME` and `ANDROID_HOME`
 
-install ngui tools `make install`, It takes a long time.
+Compile and install ngui tools `make install`, It takes a long time.
 
 use ngui tools create project.
 

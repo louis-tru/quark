@@ -39,8 +39,8 @@ CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 builddir="$(shell pwd)/$(LIBS_DIR)"
 endef
 
-.PHONY: $(PTOJECTS) jsa-shell install install_inl \
-	help all clear clear-all build server ios android doc tools
+.PHONY: $(PTOJECTS) jsa-shell install install-dev install-tools \
+	help all clear clear-all build server ios android doc
 
 .SECONDEXPANSION:
 
@@ -117,15 +117,15 @@ install:
 	@$(MAKE) android
 	@./configure --media=0
 	@$(MAKE) jsa-shell
-	@$(MAKE) tools
+	@$(MAKE) install-tools
 
 # debug install ngui command
-install_inl:
+install-dev:
 	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@./$(TOOLS)/install link
 
-tools:
+install-tools:
 	@sudo rm -rf ./out/ngui-tools/bin/shell.js
 	@$(NODE) ./tools/cp-ngui-tools.js
 	@$(TOOLS_OUT)/install
