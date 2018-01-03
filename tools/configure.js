@@ -357,17 +357,12 @@ function configure() {
 
   if ( os == 'ios' ) {
     if ( opts.use_v8 == 'auto' ) { // ios默认使用 javascriptcore
-      opts.use_v8 = 0;
+      if ( arch != 'x86' && arch != 'x64' ) {
+        opts.use_v8 = 0;
+      }
     }
   }
   opts.use_v8 = bi(opts.use_v8);
-
-  // if ( os.match(/ios|android/) ) {
-  //   if ( opts.with_intl == 'auto' ) { // 默认不使用国际化
-  //     opts.with_intl = 0;
-  //   } 
-  // }
-  // opts.with_intl = bi(opts.with_intl);
 
   var config_gypi = {
     target_defaults: {
@@ -511,6 +506,8 @@ function configure() {
     'BUILDTYPE=' + configuration,
     'V=' + opts.v,
   ];
+
+  // ----------------------- android/linux/ios/osx ----------------------- 
 
   if ( os == 'android' ) {
     // check android toolchain
@@ -692,7 +689,7 @@ function configure() {
     }
   }
 
-  // output config.mk, config.gypi
+  // ------------------ output config.mk, config.gypi ------------------ 
   
   var config_gypi_str = JSON.stringify(config_gypi, null, 2);
   var config_mk_str = config_mk.join('\n') + '\n';
