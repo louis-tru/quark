@@ -7,8 +7,8 @@ import {
 import { NavpageCollection, Toolbar } from 'ngui/nav';
 import { Navbutton, Mynavpage } from './public';
 import './examples';
-import './about';
-import './review';
+import about_vx from './about';
+import review_vx from './review';
 
 CSS({
   
@@ -65,7 +65,7 @@ CSS({
 })
 
 function review_code(evt) {
-  evt.sender.topCtr.collection.push(review.vx, 1);
+  evt.sender.topCtr.collection.push(review_vx, 1);
 }
 
 const ngui_tools = 'https://www.npmjs.com/package/ngui-tools';
@@ -162,7 +162,7 @@ var app = new GUIApplication({ multisample: 2, mipmap: 1 }).start(
           
           <Text class="category_title" />
           <Clip class="category">
-            <Navbutton next=about.vx>About</Navbutton>
+            <Navbutton next=about_vx>About</Navbutton>
             <Navbutton next=documents_vx>Documents</Navbutton>
             <Navbutton next=bug_feedback_vx view.borderWidth=0>Bug Feedback</Navbutton>
           </Clip>

@@ -1,9 +1,9 @@
 import { 
 	Div, Hybrid, Text, Button, Image, Indep, Clip,
 } from 'ngui';
-import HIGHLIGHTED_DOWN from 'ngui/event';
-import Toolbar from 'ngui/nav';
-import Mynavpage from './public';
+import { HIGHLIGHTED_DOWN } from 'ngui/event';
+import { Toolbar } from 'ngui/nav';
+import { Mynavpage } from './public';
 import './review';
 
 function view_code(evt) {

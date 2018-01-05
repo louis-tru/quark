@@ -1,6 +1,6 @@
 import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'ngui';
 import { Navbutton, Mynavpage } from './public';
-import Overlay from 'ngui/overlay';
+import { Overlay } from 'ngui/overlay';
 
 function show_overlay(evt) {
   New(

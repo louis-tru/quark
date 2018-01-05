@@ -1,4 +1,4 @@
-import Navpage from 'ngui/nav';
+import { Navpage } from 'ngui/nav';
 import { 
   ViewController, Button, CSS,
   Text, TextNode, atomPixel: px, 

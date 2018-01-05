@@ -2,7 +2,7 @@
 import { P, M, LOG, AM, VM, VP, CA } from './test'
 import 'ngui/fs';
 import 'ngui/url';
-import Buffer from 'buffer';
+import { Buffer } from 'buffer';
 
 // init
 

@@ -1,6 +1,6 @@
 import { Div, Text, CSS, atomPixel } from 'ngui';
 import { Stepper } from 'ngui/stepper';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 
 CSS({
   '.strpper_page': {

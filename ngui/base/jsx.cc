@@ -102,7 +102,7 @@ static cUcs2String _QUOTES('"');
 static cUcs2String _NEWLINE('\n');
 static cUcs2String _CONST(String("const")); // const
 static cUcs2String _VAR(String("var"));     // var
-static cUcs2String _REQ(String("require"));   // __req
+static cUcs2String _REQUIRE(String("require"));   // require
 static cUcs2String _COMMA(',');
 static cUcs2String _COLON(':');
 static cUcs2String _SEMICOLON(';');
@@ -116,7 +116,9 @@ static cUcs2String _COMMENT(String("/*"));
 static cUcs2String _COMMENT_END(String("*/"));
 static cUcs2String _EXPORT_COMMENT(String("/*export*/"));
 static cUcs2String _EXPORTS(String("exports"));
-static cUcs2String __EXPORT(String("module._export"));
+static cUcs2String _EXPORT_DEFAULT(String("exports.default"));
+static cUcs2String _MODULE_EXPORT(String("module._export"));
+static cUcs2String _DEFAULT(String("default"));
 static cUcs2String __EXTEND(String("__extend"));
 static cUcs2String __PROTOTYPE(String("prototype"));
 static cUcs2String _NUMBER_0(String("0"));
@@ -1570,6 +1572,7 @@ public:
   , _is_class_member_data_expression(false)
   , _is_xml_attribute_expression(false)
   , _single_if_expression_before(false)
+  , _has_export_default(false)
   {
     //String str = in.to_string();
     //LOG(str);
@@ -1639,6 +1642,7 @@ public:
       }
     }
     
+    // export
     for (int i = 0; i < _exports.length(); i++) {
       out_code(_NEWLINE);
       out_code(_EXPORTS);    // exports.xxx=xxx;
@@ -1647,6 +1651,15 @@ public:
       out_code(_ASSIGN);     // =
       out_code(_exports[i]); // xxx
       out_code(_SEMICOLON);  // ;
+    }
+    
+    // export default
+    if (_has_export_default && !_export_default.is_empty()) {
+      out_code(_NEWLINE);
+      out_code(_EXPORT_DEFAULT);  // exports.default=xxx;
+      out_code(_ASSIGN);          // =
+      out_code(_export_default);  // xxx
+      out_code(_SEMICOLON);       // ;
     }
     
     out_code(_NEWLINE);
@@ -2272,6 +2285,18 @@ public:
     
     collapse_scape();
     Token tok = _scanner->next();
+    bool has_export_default = false;
+    
+    if (tok == DEFAULT) {
+      if (_has_export_default) {
+        UNEXPECTED_TOKEN_ERROR();
+      } else {
+        _has_export_default = true;
+        has_export_default = true;
+      }
+      collapse_scape();
+      tok = _scanner->next();
+    }
     
     switch (tok) {
       case ASYNC:
@@ -2286,9 +2311,13 @@ public:
       case LET:       // let
       case CONST:     // const
         out_code(_EXPORT_COMMENT);
-      identifier:
+       identifier:
         if ( is_declaration_identifier(peek()) ) {
-          _exports.push(_scanner->next_string_value());
+          if (has_export_default) {
+            _export_default = _scanner->next_string_value();
+          } else {
+            _exports.push(_scanner->next_string_value());
+          }
           parse_advance();
         } else {
           UNEXPECTED_TOKEN_ERROR();
@@ -2297,13 +2326,17 @@ public:
       case LPAREN:                  // (
       case LBRACK:                  // [
       case LBRACE:                  // {
-        goto __export;
+        goto _export;
       default:
         if ( is_declaration_identifier(tok) ) {
-        __export:
-          out_code(__EXPORT);        // __export=
-          out_code(_ASSIGN);
-          parse_advance();
+         _export:
+          if (has_export_default) {
+            out_code(_EXPORT_DEFAULT); // exports.default = expression
+          } else {
+            out_code(_MODULE_EXPORT);  // module._export = expression
+          }
+          out_code(_ASSIGN); // =
+          parse_advance();   // expression
         } else {
           UNEXPECTED_TOKEN_ERROR();
         }
@@ -2313,50 +2346,60 @@ public:
   
   void parse_import() {
     XX_ASSERT(_scanner->token() == IMPORT);
-    
     Token tok = _scanner->next();
 
-    if ( is_import_declaration_identifier(tok) ) { // identifier
-      out_code(_CONST); // var
+    if (is_import_declaration_identifier(tok)) { // identifier
+      out_code(_CONST); // const
       collapse_scape();
+      Ucs2String id = _scanner->string_value();
+      tok = _scanner->next();
       
-      tok = peek();
-      
-      if (tok == AS) {
-        // import GUIApplication as GUIApp from 'ngui/app';
-        Ucs2String id = _scanner->string_value();
-        _scanner->next(); // as
-        if ( is_import_declaration_identifier(peek()) ) { // identifier
-          out_code(_scanner->next_string_value());
-          collapse_scape();
-          out_code(_ASSIGN); // =
-          next();
-          if (next() == FROM && next() == STRIXX_LITERAL) { // from
-            out_code(_REQ); // __req('ngui/app').GUIApplication;
-            out_code(_LPAREN); // (
-            fetch_code();
-            out_code(_RPAREN); // )
-            out_code(_PERIOD); // .
-            out_code(id);      // GUIApplication
-          } else {
-            UNEXPECTED_TOKEN_ERROR();
-          }
-        } else {
-          UNEXPECTED_TOKEN_ERROR();
-        }
-      } else if (tok == FROM) {
-        // import GUIApplication from 'ngui/app';
-        Ucs2String id = _scanner->string_value();
-        out_code(id);    // GUIApplication
-        next();           // from
+      if (tok == FROM) { // import default
+        // import app from 'ngui/app';
+        out_code(id);      // app
         out_code(_ASSIGN); // =
         ASSERT_NEXT(STRIXX_LITERAL);
-        out_code(_REQ); // __req('ngui/app').GUIApplication;
+        out_code(_REQUIRE); // require('ngui/app').default;
         out_code(_LPAREN); // (
         fetch_code();
         out_code(_RPAREN); // )
         out_code(_PERIOD); // .
-        out_code(id);      // GUIApplication
+        out_code(_DEFAULT); // default
+      } else if (tok == COMMA) { // ,
+        // import app, { GUIApplication } from 'ngui/app';
+        // Not support `as` keyword `import app, { GUIApplication as App } from 'ngui/app'`
+        out_code(_LBRACE);
+        ASSERT_NEXT(LBRACE); // {
+        out_code(_DEFAULT);  // default
+        out_code(_COLON);    // :
+        out_code(id);        // app
+        out_code(_COMMA);    // :
+        parse_brace_expression(LBRACE, RBRACE);
+        out_code(_RBRACE); // }
+        ASSERT_NEXT(FROM);
+        out_code(_ASSIGN); // =
+        ASSERT_NEXT(STRIXX_LITERAL);
+        out_code(_REQUIRE); // require('ngui/app');
+        out_code(_LPAREN); // (
+        fetch_code();
+        out_code(_RPAREN); // )
+      }
+      else {
+        UNEXPECTED_TOKEN_ERROR();
+      }
+    }
+    else if (tok == MUL) {  // import * as app 'ngui/app';
+      out_code(_CONST); // const
+      ASSERT_NEXT(AS);      // as
+      tok = _scanner->next();
+      if (is_import_declaration_identifier(tok)) {
+        fetch_code();
+        out_code(_ASSIGN);  // =
+        ASSERT_NEXT(STRIXX_LITERAL);
+        out_code(_REQUIRE); // require('ngui/app');
+        out_code(_LPAREN); // (
+        fetch_code();
+        out_code(_RPAREN); // )
       } else {
         UNEXPECTED_TOKEN_ERROR();
       }
@@ -2364,18 +2407,19 @@ public:
     else if (tok == LBRACE) { // {
       out_code(_CONST); // var
       collapse_scape();
-      
       // import { GUIApplication } from 'ngui/app';
+      // Not support `as` keyword `import { GUIApplication as App } from 'ngui/app'`
       parse_advance();
       ASSERT_NEXT(FROM);
       out_code(_ASSIGN); // =
       ASSERT_NEXT(STRIXX_LITERAL);
-      out_code(_REQ); // __req('ngui/app');
+      out_code(_REQUIRE); // require('ngui/app');
       out_code(_LPAREN); // (
       fetch_code();
       out_code(_RPAREN); // )
     }
     else if (tok == STRIXX_LITERAL) {
+      // ngui private
     
       Ucs2String str = _scanner->string_value();
       if (peek() == AS) {
@@ -2389,7 +2433,7 @@ public:
           out_code(_SPACE); //
           out_code(_ASSIGN); // =
           next(); // IDENTIFIER
-          out_code(_REQ); // __req('ngui/app');
+          out_code(_REQUIRE); // require('ngui/app');
           out_code(_LPAREN); // (
           out_code(str);
           out_code(_RPAREN); // )
@@ -2406,17 +2450,6 @@ public:
         if (i != -1) {
           basename = basename.substr(0, i);
         }
-        
-        /* 早期版本AvocadoJS中会有这种协议的名称 `:ngui` or `pkg://ngui` */
-        // if ( basename[0] == ':' ) { // :
-        //   basename = basename.substr(1);
-        // } else {
-        //   i = basename.last_index_of("pkg://"); // pkg://gui
-        //   if (i == 0) {
-        //     basename = basename.substr(6);
-        //   }
-        // }
-
         basename = basename.replace_all('.', '_').replace_all('-', '_');
         
         if (is_identifier_start(basename[0])) {
@@ -2432,14 +2465,14 @@ public:
         }
         
         if (!basename.is_empty()) {
-          out_code(_CONST); // var
+          out_code(_CONST); // const
           out_code(_SPACE); //
           out_code(Coder::decoding_to_uint16(Encoding::utf8, basename)); // identifier
           out_code(_SPACE); //
           out_code(_ASSIGN); // =
           out_code(_SPACE);  //
         }
-        out_code(_REQ); // __req(':gui/app');
+        out_code(_REQUIRE); // require('ngui/app');
         out_code(_LPAREN); // (
         out_code(str);
         out_code(_RPAREN); // )
@@ -3009,9 +3042,11 @@ public:
   bool              _is_class_member_data_expression;
   bool              _is_xml_attribute_expression;
   Array<Ucs2String> _exports;
+  Ucs2String        _export_default;
   Array<MemberDataExpression> _class_member_data_expression;
   uint              _level;
   bool  _single_if_expression_before;
+  bool  _has_export_default;
 };
 
 Ucs2String Jsx::transform_jsx(cUcs2String& in, cString& path) throw(Error) {

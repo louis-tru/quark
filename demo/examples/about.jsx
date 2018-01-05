@@ -1,7 +1,7 @@
 import { Div, Button, Text, Scroll } from 'ngui';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 
-export const vx = (
+export default const vx = (
   <Mynavpage title="About" source=resolve(__filename)>
     <Scroll width="full" height="full">
       <Text width="full" margin=10>

@@ -1,5 +1,5 @@
 import { Div, Button, Text, Input, Textarea, ngui } from 'ngui';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 
 function start_input(evt) {
   evt.sender.topCtr.find('input1').focus();

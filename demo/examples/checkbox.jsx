@@ -1,6 +1,6 @@
 import { Div, Text, CSS, atomPixel } from 'ngui';
 import { Switch, Checkbox } from 'ngui/checkbox';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 
 CSS({
   '.checkbox_page': {

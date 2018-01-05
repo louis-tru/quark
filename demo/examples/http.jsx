@@ -1,8 +1,8 @@
 import { Div, Button, Input } from 'ngui';
 import 'ngui/util';
 import 'ngui/http';
-import alert from 'ngui/dialog';
-import Mynavpage from './public';
+import { alert } from 'ngui/dialog';
+import { Mynavpage } from './public';
 
 function url(evt) {
 	return evt.sender.topCtr.find('input').value;

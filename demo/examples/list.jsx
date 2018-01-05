@@ -1,6 +1,6 @@
 import { Div, Button, CSS, Input, Text, atomPixel } from 'ngui';
-import List from 'ngui/list';
-import Mynavpage from './public';
+import { List } from 'ngui/list';
+import { Mynavpage } from './public';
 
 function add(evt) {
 	var text = evt.sender.topCtr.find('input').value;

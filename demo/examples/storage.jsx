@@ -1,7 +1,7 @@
 import { Div, Button, Input } from 'ngui';
 import 'ngui/storage';
-import alert from 'ngui/dialog';
-import Mynavpage from './public';
+import { alert } from 'ngui/dialog';
+import { Mynavpage } from './public';
 
 const key = 'test';
 

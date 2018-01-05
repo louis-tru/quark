@@ -5,14 +5,38 @@ const ONLY_ENUMERABLE = 2;
 const ONLY_CONFIGURABLE = 4;
 const SKIP_STRINGS = 8;
 const SKIP_SYMBOLS = 16;
-function getPropertyNames(self, OwnOnly, property_filter, IncludeIndices) {
-  var r = [];
-  for (var i in self) {
-    r.push(i);
+
+function isNumber(s) {
+  var code = s.charCodeAt(0) - 48;
+  if (code >= 0 && code < 10) {
+    var code = s.charCodeAt(s.length - 1) - 48;
+    if (code >= 0 && code < 10) {
+      return true;
+    }
   }
-  return r;
+  return false;
 }
-function getOwnPropertyNames2(self, property_filter) {
+
+function getPropertyNames(self, OwnOnly, propertyFilter, includeIndices) {
+  if (OwnOnly && !includeIndices) {
+    return getOwnPropertyNames2(self, propertyFilter);
+  }
+  //if (propertyFilter !== 0) 
+  //  throw new Error('Not support property filter');
+  var props = [];
+  if (!includeIndices && Array.isArray(self)) { 
+    // exclude indexed
+    for (var i in self) {
+      if (!isNumber(i)) props.push(i);
+    }
+  } else {
+    for (var i in self) props.push(i);
+  }
+  return props;
+}
+function getOwnPropertyNames2(self, propertyFilter) {
+  //if (propertyFilter !== 0) 
+  //  throw new Error('Not support property filter');
   return Object.getOwnPropertyNames(self);
 }
 function isSymbol(val) {

@@ -53,9 +53,9 @@ import {
   Clip,
   Input,
   Textarea,
-  gui,
+  ngui: gui,
 } from 'ngui';
-import Video from 'ngui/media';
+import { Video } from 'ngui/media';
 
 CSS({
   '.test': {

@@ -1,5 +1,5 @@
 import { Div, Button, TextNode } from 'ngui';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 import 'ngui/dialog';
 
 function alert() {

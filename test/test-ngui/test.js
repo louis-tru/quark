@@ -1,5 +1,5 @@
 
-import 'ngui/base';
+import 'ngui/util';
 
 function json_stringify(value, whitelist) {
 

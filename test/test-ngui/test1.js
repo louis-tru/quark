@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import Buffer from 'buffer';
+import { Buffer } from 'buffer';
 import 'ngui/http';
 import 'ngui/value';
 import 'ngui/sys';

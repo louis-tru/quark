@@ -1,6 +1,6 @@
 import { Div, Button } from 'ngui';
 import { AudioPlayer, Video } from 'ngui/media';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 import 'ngui/url';
 
 const src_720 = 'http://nodegui.org/media/2017-09-11_15_41_19.mp4';

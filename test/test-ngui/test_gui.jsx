@@ -34,7 +34,7 @@ import {
   GUIApplication,
   Root, Div, Image, Sprite,
   Text, Label, Limit, Hybrid,
-  Span, Video, Panel, Button, TextNode, Scroll, gui
+  Span, Video, Panel, Button, TextNode, Scroll, ngui: gui
 } from 'ngui';
 
 const action1 = {

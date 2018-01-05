@@ -1,7 +1,7 @@
 import { 
   Div, Indep, Button, Text, Hybrid
 } from 'ngui';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 import { Navbar, Toolbar } from 'ngui/nav';
 import './review';
 

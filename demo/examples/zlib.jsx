@@ -1,5 +1,5 @@
 import { Div, Button } from 'ngui';
-import Mynavpage from './public';
+import { Mynavpage } from './public';
 
 export const vx = (
   <Mynavpage title="Zlib" source=resolve(__filename)>

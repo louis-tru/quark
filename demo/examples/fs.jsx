@@ -1,8 +1,8 @@
 import { Div, Button, Input } from 'ngui';
 import 'ngui/fs';
 import 'ngui/url';
-import alert from 'ngui/dialog';
-import Mynavpage from './public';
+import { alert } from 'ngui/dialog';
+import { Mynavpage } from './public';
 
 const filename = url.documents('test.txt');
 

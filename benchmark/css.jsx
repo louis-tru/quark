@@ -1,7 +1,7 @@
 
 import { GUIApplication, Root, Div, Indep, ngui, New } from 'ngui';
-import Color from 'ngui/value';
-import random from 'ngui/util';
+import { Color } from 'ngui/value';
+import { random } from 'ngui/util';
 import 'ngui/css';
 import './uu';
 

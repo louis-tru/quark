@@ -1,7 +1,7 @@
 
 import { P, M, AM, VM, VP, LOG, CA } from './test'
 import 'ngui/http'
-import Buffer from 'buffer'
+import { Buffer } from 'buffer'
 import 'ngui/url'
 import 'fs'
 
