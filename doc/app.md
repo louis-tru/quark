@@ -19,7 +19,7 @@
 
 Example:
 
-```js
+```jsx
 import GUIApplication from 'ngui/app'
 import Root from 'ngui'
 

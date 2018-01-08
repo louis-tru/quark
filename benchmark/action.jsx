@@ -1,7 +1,7 @@
 
 import { GUIApplication, Root, Div, Indep, ngui, New, lock } from 'ngui';
 import { Color } from 'ngui/value';
-import {random, log } from 'ngui/util';
+import { random, log } from 'ngui/util';
 import './uu';
 
 new GUIApplication({ multisample: 2 }).start(

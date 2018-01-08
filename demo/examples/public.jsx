@@ -2,8 +2,31 @@ import { Navpage } from 'ngui/nav';
 import { 
   ViewController, Button, CSS,
   Text, TextNode, atomPixel: px, 
-  Indep, isViewXml, Panel, Scroll, ngui
+  Indep, isViewXml, Panel, Scroll, ngui, Style
 } from 'ngui';
+
+// CSS(<Style>
+//   .long_btn {
+//     margin: 10;
+//     margin_bottom: 0;
+//     width: full;
+//     height: 36;
+//     text_line_height: 36;
+//     text_color: #0079ff;
+//     border_radius: 8;
+//     border: ${px} #0079ff;
+//   }
+//   .long_btn2 {
+//     margin: 10;
+//     margin_bottom: 0;
+//     width: full;
+//     height: 36
+//     text_line_height: 36;
+//     text_color: #fff;
+//     border_radius: 8;
+//     border: ${px} #fff;
+//   }
+// </Style>);
 
 CSS({
   

@@ -20,7 +20,7 @@
 
 Example:
 
-```js
+```jsx
 import { GUIApplication, ViewController, Root, Div } from 'ngui'
 import 'ngui/http'
 class MyCtr extends ViewController {
