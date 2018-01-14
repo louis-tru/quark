@@ -252,8 +252,16 @@ public:
   void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
     GUILock lock;
     int status = *evt.data();
+    
     if (status & TEXTURE_CHANGE_OK) {
       mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXTURE); // 标记
+    }
+    if (status & TEXTURE_CHANGE_ERROR) {
+      Error err(ERR_IMAGE_LOAD_ERROR, "Image load error, %s", *evt.sender()->id());
+      Handle<GUIEvent> evt = New<GUIEvent>(this, err);
+      trigger(GUI_EVENT_ERROR, **evt);
+    } else if (status & TEXTURE_COMPLETE) {
+      trigger(GUI_EVENT_LOAD);
     }
   }
 

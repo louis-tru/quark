@@ -57,13 +57,13 @@ XX_NS(ngui)
 template<class SendData = Object, class Sender = Object, class ReturnValue = int> class Event;
 template<class Event = Event<>> class EventNoticer;
 
-template<class SendData_, class Sender_, class ReturnValue_>
+template<class T_SendData, class T_Sender, class T_ReturnValue>
 class XX_EXPORT Event: public Object {
   XX_HIDDEN_ALL_COPY(Event);
  public:
-  typedef SendData_       SendData;
-  typedef Sender_         Sender;
-  typedef ReturnValue_    ReturnValue;
+  typedef T_SendData       SendData;
+  typedef T_Sender         Sender;
+  typedef T_ReturnValue    ReturnValue;
   typedef const SendData  cSendData;
   typedef EventNoticer<Event> Noticer;
   ReturnValue return_value;
@@ -94,6 +94,7 @@ class XX_EXPORT Event: public Object {
 
 template<class Event> class XX_EXPORT EventNoticer: public Event::BasicEventNoticer {
  public:
+  typedef Event EventType;
   typedef typename Event::SendData        SendData;
   typedef typename Event::cSendData       cSendData;
   typedef typename Event::Sender          Sender;
@@ -533,13 +534,14 @@ template<class Event> class XX_EXPORT EventNoticer: public Event::BasicEventNoti
  */
 template<
   class Event = Event<>,
-  class Name_ = String,
+  class Name  = String,
   class Basic = Object
 >
 class XX_EXPORT Notification: public Basic {
   XX_HIDDEN_ALL_COPY(Notification);
  public:
-  typedef Name_ Name;
+  typedef Event EventType;
+  typedef Name  NameType;
   typedef EventNoticer<Event>         Noticer;
   typedef typename Event::SendData    SendData;
   typedef typename Event::cSendData   cSendData;

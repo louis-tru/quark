@@ -31,6 +31,7 @@
 #ifndef __ngui__audio_player__
 #define __ngui__audio_player__
 
+#include "event.h"
 #include "player.h"
 #include "pcm-player.h"
 #include "media-codec.h"
@@ -40,8 +41,6 @@
  */
 
 XX_NS(ngui)
-
-class AudioPlayer;
 
 /**
  * @class AudioPlayer

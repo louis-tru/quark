@@ -368,22 +368,6 @@ class WrapBasicScroll {
 
 class WrapScroll: public WrapViewBase {
 
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    if ( name == GUI_EVENT_SCROLL.to_string() ) {
-      return ViewUtil::add_event_listener(reinterpret_cast<Wrap<View>*>(this), GUI_EVENT_SCROLL, func, id);
-    } else {
-      return ViewUtil::panel_add_event_listener(reinterpret_cast<Wrap<View>*>(this), name, func, id);
-    }
-  }
-  
-  virtual bool remove_event_listener(cString& name, int id) {
-    if ( name == GUI_EVENT_SCROLL.to_string() ) {
-      return ViewUtil::remove_event_listener(reinterpret_cast<Wrap<View>*>(this), GUI_EVENT_SCROLL, id);
-    } else {
-      return ViewUtil::panel_remove_event_listener(reinterpret_cast<Wrap<View>*>(this), name, id);
-    }
-  }
-  
   static void constructor(FunctionCall args) {
     JS_ATTACH(args);
     js_check_gui_app();
@@ -542,7 +526,7 @@ class WrapScroll: public WrapViewBase {
   }
 };
 
-void ViewUtil::inherit_scroll(Local<JSClass> cls, Worker* worker) {
+void WrapViewBase::inherit_scroll(Local<JSClass> cls, Worker* worker) {
   WrapBasicScroll::inherit(cls, worker);
 }
 

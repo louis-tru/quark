@@ -31,31 +31,18 @@
 #ifndef __ngui__player__
 #define __ngui__player__
 
-#include "event.h"
-
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+namespace ngui {
+  
+  enum PlayerStatus {
+    PLAYER_STATUS_STOP = 0,
+    PLAYER_STATUS_START,
+    PLAYER_STATUS_PLAYING,
+    PLAYER_STATUS_PAUSED,
+  };
 
-enum PlayerStatus {
-  PLAYER_STATUS_STOP = 0,
-  PLAYER_STATUS_START,
-  PLAYER_STATUS_PLAYING,
-  PLAYER_STATUS_PAUSED,
-};
-
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_WAIT_BUFFER;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_READY;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_START_PLAY;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_ERROR;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_SOURCE_EOF;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_PAUSE;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_RESUME;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_STOP;
-XX_EXPORT extern const GUIEventName GUI_EVENT_PLAYER_SEEK;
-XX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_PLAYER_TABLE;
-
-XX_END
+}
 #endif

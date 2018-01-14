@@ -36,7 +36,7 @@ XX_NS(ngui)
 
 XX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
 public:
-  inline ReturnValue& trigger(const Name& name, GUIEvent& evt) {
+  inline ReturnValue& trigger(const NameType& name, GUIEvent& evt) {
     return View::trigger(name, evt);
   }
 };

@@ -44,69 +44,12 @@ JS_BEGIN
 
 typedef MultimediaSource::TrackInfo TrackInfo;
 
-extern Local<JSValue> inl__track_to_jsvalue(const TrackInfo* track, Worker* worker);
+extern Local<JSValue> inl_track_to_jsvalue(const TrackInfo* track, Worker* worker);
 
 /**
  * @class WrapVideo
  */
 class WrapVideo: public WrapViewBase {
-  
-  template<class T>
-  void add_event_listener_(const GUIEventName& name, cString& func, int id) {
-    self<Video>()->on(name, [this, func]( GUIEvent& evt ) {
-      //if ( worker()->is_terminate() ) return;
-      HandleScope scope(worker());
-      // arg event
-      Wrap<GUIEvent>* ev = Wrap<GUIEvent>::pack(&evt);
-      
-      ev->set_private_data(Cast::entity<T>());
-      
-      Local<JSValue> args[2] = { ev->that(), worker()->New(true) };
-      // call js trigger func
-      call( worker()->New(func,1), 2, args );
-    }, id);
-  }
-  
-  /**
-   * @func overwrite
-   */
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    
-    if ( WrapViewBase::add_event_listener(name, func, id) ) {
-      return true;
-    }
-    auto i = GUI_EVENT_PLAYER_TABLE.find(name);
-    if ( i == GUI_EVENT_PLAYER_TABLE.end() ) {
-      return false;
-    }
-    
-    if ( i.value() == GUI_EVENT_PLAYER_WAIT_BUFFER ) { // Float
-      add_event_listener_<Float>(i.value(), func, id);
-    } else if ( i.value() == GUI_EVENT_PLAYER_ERROR ) { // Error
-      add_event_listener_<Error>(i.value(), func, id);
-    } else if ( i.value() == GUI_EVENT_PLAYER_SEEK ) { // Uint64
-      add_event_listener_<Uint64>(i.value(), func, id);
-    } else { // object
-      add_event_listener_<Object>(i.value(), func, id);
-    }
-    
-    return true;
-  }
-  
-  virtual bool remove_event_listener(cString& name, int id) {
-    
-    if ( WrapViewBase::remove_event_listener(name, id) ) {
-      return true;
-    }
-    auto i = GUI_EVENT_PLAYER_TABLE.find(name);
-    if ( i == GUI_EVENT_PLAYER_TABLE.end() ) {
-      return false;
-    }
-    // off event listener
-    self<Video>()->off(i.value(), id);
-    
-    return true;
-  }
   
   static void constructor(FunctionCall args) {
     JS_ATTACH(args);
@@ -205,16 +148,16 @@ class WrapVideo: public WrapViewBase {
     JS_WORKER(args);
     JS_SELF(Video);
     if (args.Length() < 1 || ! args[0]->IsUint32(worker) ) {
-      JS_RETURN( inl__track_to_jsvalue(self->audio_track(), worker) );
+      JS_RETURN( inl_track_to_jsvalue(self->audio_track(), worker) );
     } else {
-      JS_RETURN( inl__track_to_jsvalue(self->audio_track(args[0]->ToUint32Value(worker)), worker) );
+      JS_RETURN( inl_track_to_jsvalue(self->audio_track(args[0]->ToUint32Value(worker)), worker) );
     }
   }
   
   static void video_track(FunctionCall args) {
     JS_WORKER(args);
     JS_SELF(Video);
-    JS_RETURN( inl__track_to_jsvalue(self->video_track(), worker) );
+    JS_RETURN( inl_track_to_jsvalue(self->video_track(), worker) );
   }
   
   static void start(FunctionCall args) {

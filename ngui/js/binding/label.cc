@@ -101,7 +101,7 @@ class WrapLabel: public WrapViewBase {
       JS_SET_CLASS_ACCESSOR(textHoriBearing, text_hori_bearing);
       JS_SET_CLASS_ACCESSOR(textHeight, text_height);
       JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
-      ViewUtil::inherit_text_font(cls, worker);
+      WrapViewBase::inherit_text_font(cls, worker);
     }, View);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Label), View::LABEL);
   }

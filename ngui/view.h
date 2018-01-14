@@ -747,7 +747,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   /**
    * @func trigger_listener_change()
    */
-  virtual void trigger_listener_change(const Name& name, int count, int change);
+  virtual void trigger_listener_change(const NameType& name, int count, int change);
   
   /**
    * @func first_button
@@ -764,8 +764,8 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   /**
    * @func trigger()
    */
-  ReturnValue& trigger(const Name& name, GUIEvent& evt, bool need_send = false);
-  ReturnValue trigger(const Name& name, bool need_send = false);
+  ReturnValue& trigger(const NameType& name, GUIEvent& evt, bool need_send = false);
+  ReturnValue trigger(const NameType& name, bool need_send = false);
   
   /**
    * @func refresh_styles

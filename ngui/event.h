@@ -44,13 +44,7 @@
 
 XX_NS(ngui)
 
-class GUIApplication;
-class View;
-class Action;
-class Activity;
-class Button;
-
-// ---------------------------------------- EVENT TYPE ----------------------------------------
+// ----------- EVENT TYPE ----------- 
 
 enum {
   GUI_EVENT_CATEGORY_DEFAULT,
@@ -60,49 +54,49 @@ enum {
   GUI_EVENT_CATEGORY_TOUCH,
   GUI_EVENT_CATEGORY_ACTION,
   GUI_EVENT_CATEGORY_FOCUS_MOVE,
+  GUI_EVENT_CATEGORY_ERROR,
+  GUI_EVENT_CATEGORY_FLOAT,
+  GUI_EVENT_CATEGORY_UINT64,
 };
 
-class XX_EXPORT GUIEventName {
- public:
-  inline GUIEventName() { XX_UNREACHABLE(); }
-  inline GUIEventName(cString& n, uint category)
-  : name_(n), code_(n.hash_code()), category_(category) { }
-  inline uint hash_code() const { return code_; }
-  inline bool equals(const GUIEventName& o) const { return o.hash_code() == code_; }
-  inline String to_string() const { return name_; }
-  inline uint category() const { return category_; }
-  inline bool operator==(const GUIEventName& type) const { return type.code_ == code_; }
-  inline bool operator!=(const GUIEventName& type) const { return type.code_ != code_; }
- private:
-  String  name_;
-  uint  code_, category_;
+enum {
+  GUI_EVENT_FLAG_NONE = 0,
+  GUI_EVENT_FLAG_BUBBLE = (1 << 0),
+  GUI_EVENT_FLAG_PLAYER = (1 << 1),
 };
 
-// can bubble event
-XX_EXPORT extern const GUIEventName GUI_EVENT_CLICK;
-XX_EXPORT extern const GUIEventName GUI_EVENT_BACK;
-XX_EXPORT extern const GUIEventName GUI_EVENT_KEYDOWN;
-XX_EXPORT extern const GUIEventName GUI_EVENT_KEYPRESS;
-XX_EXPORT extern const GUIEventName GUI_EVENT_KEYUP;
-XX_EXPORT extern const GUIEventName GUI_EVENT_KEYENTER;
-XX_EXPORT extern const GUIEventName GUI_EVENT_TOUCHSTART;
-XX_EXPORT extern const GUIEventName GUI_EVENT_TOUCHMOVE;
-XX_EXPORT extern const GUIEventName GUI_EVENT_TOUCHEND;
-XX_EXPORT extern const GUIEventName GUI_EVENT_TOUCHCANCEL;
-XX_EXPORT extern const GUIEventName GUI_EVENT_FOCUS;
-XX_EXPORT extern const GUIEventName GUI_EVENT_BLUR;
-// canno bubble event
-XX_EXPORT extern const GUIEventName GUI_EVENT_HIGHLIGHTED; // normal / hover / down
-XX_EXPORT extern const GUIEventName GUI_EVENT_REMOVE_VIEW;
-XX_EXPORT extern const GUIEventName GUI_EVENT_ACTION_KEYFRAME;
-XX_EXPORT extern const GUIEventName GUI_EVENT_ACTION_LOOP;
-XX_EXPORT extern const GUIEventName GUI_EVENT_FOCUS_MOVE;
-XX_EXPORT extern const GUIEventName GUI_EVENT_SCROLL;
-XX_EXPORT extern const GUIEventName GUI_EVENT_CHANGE;
-//
-XX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_TABLE;
-
-// --------------------------------------------------------------------------------
+#define XX_GUI_EVENT_TABLE(F) \
+/* can bubble event */ \
+F(CLICK, Click, CLICK, GUI_EVENT_FLAG_BUBBLE) \
+F(BACK, Back, CLICK, GUI_EVENT_FLAG_BUBBLE) \
+F(KEYDOWN, KeyDown, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) /* View */\
+F(KEYPRESS, KeyPress, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
+F(KEYUP, KeyUp, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
+F(KEYENTER, KeyEnter, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCHSTART, TouchStart, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCHMOVE, TouchMove, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCHEND, TouchEnd, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCHCANCEL, TouchCancel, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(FOCUS, Focus, DEFAULT, GUI_EVENT_FLAG_BUBBLE) \
+F(BLUR, Blur, DEFAULT, GUI_EVENT_FLAG_BUBBLE) \
+/* canno bubble event */ \
+F(HIGHLIGHTED, Highlighted, HIGHLIGHTED, GUI_EVENT_FLAG_NONE) /* normal / hover / down */ \
+F(REMOVE_VIEW, RemoveView, DEFAULT, GUI_EVENT_FLAG_NONE) \
+F(ACTION_KEYFRAME, ActionKeyframe, ACTION, GUI_EVENT_FLAG_NONE) \
+F(ACTION_LOOP, ActionLoop, ACTION, GUI_EVENT_FLAG_NONE) \
+F(FOCUS_MOVE, FocusMove, FOCUS_MOVE, GUI_EVENT_FLAG_NONE) \
+F(SCROLL, Scroll, DEFAULT, GUI_EVENT_FLAG_NONE) \
+F(CHANGE, Change, DEFAULT, GUI_EVENT_FLAG_NONE) \
+F(LOAD, Load, DEFAULT, GUI_EVENT_FLAG_NONE) /* Image */ \
+F(ERROR, Error, ERROR, GUI_EVENT_FLAG_PLAYER) \
+F(READY, Ready, DEFAULT, GUI_EVENT_FLAG_PLAYER) /* AutoPlayer / Video */ \
+F(WAIT_BUFFER, WaitBuffer, FLOAT, GUI_EVENT_FLAG_PLAYER) \
+F(START_PLAY, StartPlay, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
+F(SOURCE_EOF, SourceEof, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
+F(PAUSE, Pause, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
+F(RESUME, Resume, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
+F(STOP, Stop, DEFAULT, GUI_EVENT_FLAG_PLAYER) \
+F(SEEK, Seek, UINT64, GUI_EVENT_FLAG_PLAYER) \
 
 enum HighlightedStatus {
   HIGHLIGHTED_NORMAL = 1,
@@ -115,6 +109,39 @@ enum ReturnValueMask {
   RETURN_VALUE_MASK_BUBBLE = (1 << 1),
   RETURN_VALUE_MASK_ALL = (RETURN_VALUE_MASK_DEFAULT | RETURN_VALUE_MASK_BUBBLE),
 };
+
+class XX_EXPORT GUIEventName {
+ public:
+  inline GUIEventName() { XX_UNREACHABLE(); }
+  inline GUIEventName(cString& n, uint category, int flag)
+  : name_(n), code_(n.hash_code()), category_(category), flag_(flag) { }
+  inline uint hash_code() const { return code_; }
+  inline bool equals(const GUIEventName& o) const { return o.hash_code() == code_; }
+  inline String to_string() const { return name_; }
+  inline uint category() const { return category_; }
+  inline int flag() const { return flag_; }
+  inline bool operator==(const GUIEventName& type) const { return type.code_ == code_; }
+  inline bool operator!=(const GUIEventName& type) const { return type.code_ != code_; }
+ private:
+  String  name_;
+  uint  code_, category_;
+  int  flag_;
+};
+
+XX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_TABLE;
+
+#define XX_FUN(NAME, STR, CATEGORY, BUBBLE) \
+XX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
+XX_GUI_EVENT_TABLE(XX_FUN)
+#undef XX_FUN
+
+// -----------------------------------
+
+class GUIApplication;
+class View;
+class Action;
+class Activity;
+class Button;
 
 struct XX_EXPORT GUITouch { // touch event point
   uint    id;

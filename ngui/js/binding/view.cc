@@ -68,7 +68,9 @@ class WrapNativeViewController: public WrapObject {
     // TODO ...
   }
   
-  static void trigger_remove_view(FunctionCall args) { }
+  static void trigger_remove_view(FunctionCall args) { 
+
+  }
   
   static void parent(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
@@ -173,7 +175,7 @@ class WrapNativeViewController: public WrapObject {
     self->remove();
   }
   
-public:
+ public:
   
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(NativeViewController, constructor, {
@@ -191,86 +193,6 @@ public:
 };
 
 // ================= View ================
-
-template<class T>
-static void add_event_listener_1(Wrap<View>* wrap, const GUIEventName& type, cString& func, int id) {
-  auto f = [wrap, func](GUIEvent& evt) {
-    HandleScope scope(wrap->worker());
-    // arg event
-    Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
-    
-    Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
-    // call js trigger func
-    Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
-    
-    // test:
-    //if (r->IsNumber(worker)) {
-    //  LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
-    //} else {
-    //  LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
-    //}
-    
-  };
-  
-  View* view = wrap->self();
-  
-  view->on(type, f, id);
-}
-
-/**
- * @func add_event_listener
- */
-bool ViewUtil::add_event_listener(Wrap<View>* wrap, cString& name, cString& func, int id) {
-  auto i = GUI_EVENT_TABLE.find(name);
-  if ( i == GUI_EVENT_TABLE.end() ) {
-    return false;
-  }
-  return add_event_listener(wrap, i.value(), func, id);
-}
-
-bool ViewUtil::add_event_listener(Wrap<View>* wrap, const GUIEventName& name, cString& func, int id) {
-  switch ( name.category() ) {
-    case GUI_EVENT_CATEGORY_KEYBOARD:
-      add_event_listener_1<GUIKeyEvent>(wrap, name, func, id); break;
-    case GUI_EVENT_CATEGORY_CLICK:
-      add_event_listener_1<GUIClickEvent>(wrap, name, func, id); break;
-    case GUI_EVENT_CATEGORY_HIGHLIGHTED:
-      add_event_listener_1<GUIHighlightedEvent>(wrap, name, func, id); break;
-    //case GUI_EVENT_CATEGORY_MOUSE:
-    //  add_event_listener_<GUIMouseEvent>(wrap, name, func, id); break;
-    case GUI_EVENT_CATEGORY_TOUCH:
-      add_event_listener_1<GUITouchEvent>(wrap, name, func, id); break;
-    case GUI_EVENT_CATEGORY_ACTION:
-      add_event_listener_1<GUIActionEvent>(wrap, name, func, id); break;
-    case GUI_EVENT_CATEGORY_FOCUS_MOVE:
-      add_event_listener_1<GUIFocusMoveEvent>(wrap, name, func, id); break;
-    default:
-      add_event_listener_1<GUIEvent>(wrap, name, func, id); break;
-  }
-  
-  return true;
-}
-
-/**
- * @func remove_event_listener
- */
-bool ViewUtil::remove_event_listener(Wrap<View>* wrap, cString& name, int id) {
-  
-  auto i = GUI_EVENT_TABLE.find(name);
-  if ( i == GUI_EVENT_TABLE.end() ) {
-    return false;
-  }
-  
-  // off event listener
-  wrap->self()->off(i.value(), id);
-  
-  return true;
-}
-
-bool ViewUtil::remove_event_listener(Wrap<View>* wrap, const GUIEventName& name, int id) {
-  wrap->self()->off(name, id);
-  return true;
-}
 
 /**
  * @class WrapView

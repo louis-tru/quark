@@ -35,13 +35,21 @@
 using namespace ngui;
 
 #define USE_REMOTE 0
+#define USE_INSPECT 0
 
 void test_ngui() {
   
 #if USE_REMOTE
-  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/test/test-ngui --dev");
+# if USE_INSPECT
+  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/test/test-ngui");
+# else
+  js::start("http://192.168.1.11:1026/test/test-ngui --dev");
+# endif
 #else
-  //js::start("--inspect-brk=0.0.0.0:9229 test-ngui --dev");
-  js::start("examples");
+# if USE_INSPECT
+  js::start("--inspect-brk=0.0.0.0:9229 test-ngui");
+# else
+  js::start("test-ngui --dev");
+# endif
 #endif
 }

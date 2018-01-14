@@ -52,7 +52,7 @@ class WrapSpan: public WrapViewBase {
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(Span, constructor, {
-      ViewUtil::inherit_text_layout(cls, worker);
+      WrapViewBase::inherit_text_layout(cls, worker);
     }, Layout);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Span), View::SPAN);
   }

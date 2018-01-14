@@ -39,45 +39,11 @@
 
 JS_BEGIN
 
-bool ViewUtil::panel_add_event_listener(Wrap<View>* wrap, cString& name, cString& func, int id) {
-  
-  if ( name == GUI_EVENT_FOCUS_MOVE.to_string() ) {
-    return ViewUtil::add_event_listener(wrap, GUI_EVENT_FOCUS_MOVE, func, id);
-  }
-  else {
-    return ViewUtil::add_event_listener(wrap, name, func, id);
-  }
-}
-
-bool ViewUtil::panel_remove_event_listener(Wrap<View>* wrap, cString& name, int id) {
-  
-  if ( name == GUI_EVENT_FOCUS_MOVE.to_string() ) {
-    return ViewUtil::remove_event_listener(wrap, GUI_EVENT_FOCUS_MOVE, id);
-  }
-  else {
-    return ViewUtil::remove_event_listener(wrap, name, id);
-  }
-}
-
 /**
  * @class WrapSelectPanel
  */
 class WrapSelectPanel: public WrapViewBase {
 
-  /**
-   * @func overwrite
-   */
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    return ViewUtil::panel_add_event_listener(reinterpret_cast<Wrap<View>*>(this), name, func, id);
-  }
-  
-  /**
-   * @func overwrite
-   */
-  virtual bool remove_event_listener(cString& name, int id) {
-    return ViewUtil::panel_remove_event_listener(reinterpret_cast<Wrap<View>*>(this), name, id);
-  }
-  
   static void constructor(FunctionCall args) {
     JS_ATTACH(args);
     js_check_gui_app();

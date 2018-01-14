@@ -103,7 +103,7 @@ public:
           if ( m_waiting_buffer ) {
             m_waiting_buffer = false;
             m_keep->post(Cb([this](Se& e){
-              trigger(GUI_EVENT_PLAYER_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
+              trigger(GUI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
             }));
           }
         } else { // 没有取到数据
@@ -112,7 +112,7 @@ public:
             if ( m_waiting_buffer == false ) {
               m_waiting_buffer = true;
               m_keep->post(Cb([this](Se& e){
-                trigger(GUI_EVENT_PLAYER_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
+                trigger(GUI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
               }));
             }
           } else if ( status == MULTIMEDIA_SOURCE_STATUS_EOF ) {
@@ -158,7 +158,7 @@ public:
           ScopeLock scope(m_mutex);
           m_status = PLAYER_STATUS_PLAYING;
           m_keep->post(Cb([this](Se& e){
-            trigger(GUI_EVENT_PLAYER_START_PLAY); // trigger start_play event
+            trigger(GUI_EVENT_START_PLAY); // trigger start_play event
           }));
         }
         {
@@ -268,7 +268,7 @@ public:
       }
       if ( is_event ) {
         m_keep->post(Cb([this](Se& e){
-          trigger(GUI_EVENT_PLAYER_STOP); // trigger stop event
+          trigger(GUI_EVENT_STOP); // trigger stop event
         }));
       }
       lock.lock();
@@ -361,17 +361,17 @@ void Video::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
                              * 所以等待解码器也无法输出数据时再触发事件
                              */
     if ( process < 1 ) { // trigger event wait_buffer
-      Inl_Video(this)->trigger(GUI_EVENT_PLAYER_WAIT_BUFFER, Float(process));
+      Inl_Video(this)->trigger(GUI_EVENT_WAIT_BUFFER, Float(process));
     }
   }
 }
 
 void Video::multimedia_source_eof(MultimediaSource* so) {
-  Inl_Video(this)->trigger(GUI_EVENT_PLAYER_SOURCE_EOF); // trigger event eof
+  Inl_Video(this)->trigger(GUI_EVENT_SOURCE_EOF); // trigger event eof
 }
 
 void Video::multimedia_source_error(MultimediaSource* so, cError& err) {
-  Inl_Video(this)->trigger(GUI_EVENT_PLAYER_ERROR, err); // trigger event error
+  Inl_Video(this)->trigger(GUI_EVENT_ERROR, err); // trigger event error
   stop();
 }
 
@@ -387,7 +387,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
   XX_ASSERT( m_source == src );
   
   if ( m_video ) {
-    Inl_Video(this)->trigger(GUI_EVENT_PLAYER_READY); // trigger event ready
+    Inl_Video(this)->trigger(GUI_EVENT_READY); // trigger event ready
     if ( m_status == PLAYER_STATUS_START ) {
       Inl_Video(this)->start_run();
     }
@@ -435,7 +435,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
         m_video->set_threads(2);
         m_video->set_background_run(true);
       }
-      Inl_Video(this)->trigger(GUI_EVENT_PLAYER_READY); // trigger event ready
+      Inl_Video(this)->trigger(GUI_EVENT_READY); // trigger event ready
       
       if ( m_status == PLAYER_STATUS_START ) {
         Inl_Video(this)->start_run();
@@ -447,7 +447,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
     } else {
       Error e(ERR_VIDEO_NEW_CODEC_FAIL, "Unable to create video decoder");
       XX_ERR("%s", *e.message());
-      Inl_Video(this)->trigger(GUI_EVENT_PLAYER_ERROR, e); // trigger event error
+      Inl_Video(this)->trigger(GUI_EVENT_ERROR, e); // trigger event error
       stop();
     } 
   }));
@@ -534,7 +534,7 @@ bool Video::seek(uint64 timeUs) {
         m_pcm->flush();
       }
       m_keep->post(Cb([this](SimpleEvent& e){
-        Inl_Video(this)->trigger(GUI_EVENT_PLAYER_SEEK, Uint64(m_time)); // trigger seek event
+        Inl_Video(this)->trigger(GUI_EVENT_SEEK, Uint64(m_time)); // trigger seek event
       }));
       return true;
     }
@@ -551,7 +551,7 @@ void Video::pause() {
     m_status = PLAYER_STATUS_PAUSED;
     m_uninterrupted_play_start_systime = 0;
     m_keep->post(Cb([this](SimpleEvent& e){
-      Inl_Video(this)->trigger(GUI_EVENT_PLAYER_PAUSE); // trigger pause event
+      Inl_Video(this)->trigger(GUI_EVENT_PAUSE); // trigger pause event
     }));
   }
 }
@@ -565,7 +565,7 @@ void Video::resume() {
     m_status = PLAYER_STATUS_PLAYING;
     m_uninterrupted_play_start_systime = 0;
     m_keep->post(Cb([this](SimpleEvent& e){
-      Inl_Video(this)->trigger(GUI_EVENT_PLAYER_RESUME); // trigger resume event
+      Inl_Video(this)->trigger(GUI_EVENT_RESUME); // trigger resume event
     }));
   }
 }

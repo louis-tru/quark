@@ -36,44 +36,17 @@
 
 XX_NS(ngui)
 
-const GUIEventName GUI_EVENT_KEYDOWN          ("KeyDown", GUI_EVENT_CATEGORY_KEYBOARD);
-const GUIEventName GUI_EVENT_KEYPRESS         ("KeyPress", GUI_EVENT_CATEGORY_KEYBOARD);
-const GUIEventName GUI_EVENT_KEYUP            ("KeyUp", GUI_EVENT_CATEGORY_KEYBOARD);
-const GUIEventName GUI_EVENT_KEYENTER         ("KeyEnter", GUI_EVENT_CATEGORY_KEYBOARD);
-const GUIEventName GUI_EVENT_BACK             ("Back", GUI_EVENT_CATEGORY_CLICK);
-const GUIEventName GUI_EVENT_CLICK            ("Click", GUI_EVENT_CATEGORY_CLICK);
-const GUIEventName GUI_EVENT_HIGHLIGHTED      ("Highlighted", GUI_EVENT_CATEGORY_HIGHLIGHTED);
-const GUIEventName GUI_EVENT_TOUCHSTART       ("TouchStart", GUI_EVENT_CATEGORY_TOUCH);
-const GUIEventName GUI_EVENT_TOUCHMOVE        ("TouchMove", GUI_EVENT_CATEGORY_TOUCH);
-const GUIEventName GUI_EVENT_TOUCHEND         ("TouchEnd", GUI_EVENT_CATEGORY_TOUCH);
-const GUIEventName GUI_EVENT_TOUCHCANCEL      ("TouchCancel", GUI_EVENT_CATEGORY_TOUCH);
-const GUIEventName GUI_EVENT_FOCUS            ("Focus", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_BLUR             ("Blur", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_REMOVE_VIEW      ("RemoveView", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_ACTION_KEYFRAME  ("ActionKeyframe", GUI_EVENT_CATEGORY_ACTION);
-const GUIEventName GUI_EVENT_ACTION_LOOP      ("ActionLoop", GUI_EVENT_CATEGORY_ACTION);
-const GUIEventName GUI_EVENT_FOCUS_MOVE       ("FocusMove", GUI_EVENT_CATEGORY_FOCUS_MOVE);
-const GUIEventName GUI_EVENT_SCROLL           ("Scroll", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_CHANGE           ("Change", GUI_EVENT_CATEGORY_DEFAULT);
+#define XX_FUN(NAME, S, CATEGORY, BUBBLE) \
+const GUIEventName GUI_EVENT_##NAME(#S, GUI_EVENT_CATEGORY_##CATEGORY, BUBBLE);
+XX_GUI_EVENT_TABLE(XX_FUN)
+#undef XX_FUN
 
 const Map<String, GUIEventName> GUI_EVENT_TABLE([]() -> Map<String, GUIEventName> {
   Map<String, GUIEventName> r;
-  r.set(GUI_EVENT_KEYDOWN.to_string(), GUI_EVENT_KEYDOWN);
-  r.set(GUI_EVENT_KEYPRESS.to_string(),  GUI_EVENT_KEYPRESS);
-  r.set(GUI_EVENT_KEYUP.to_string(),  GUI_EVENT_KEYUP);
-  r.set(GUI_EVENT_KEYENTER.to_string(),  GUI_EVENT_KEYENTER);
-  r.set(GUI_EVENT_BACK.to_string(),  GUI_EVENT_BACK);
-  r.set(GUI_EVENT_CLICK.to_string(),  GUI_EVENT_CLICK);
-  r.set(GUI_EVENT_TOUCHSTART.to_string(),  GUI_EVENT_TOUCHSTART);
-  r.set(GUI_EVENT_TOUCHMOVE.to_string(),  GUI_EVENT_TOUCHMOVE);
-  r.set(GUI_EVENT_TOUCHEND.to_string(),  GUI_EVENT_TOUCHEND);
-  r.set(GUI_EVENT_TOUCHCANCEL.to_string(),  GUI_EVENT_TOUCHCANCEL);
-  r.set(GUI_EVENT_FOCUS.to_string(),  GUI_EVENT_FOCUS);
-  r.set(GUI_EVENT_BLUR.to_string(),  GUI_EVENT_BLUR);
-  r.set(GUI_EVENT_HIGHLIGHTED.to_string(),  GUI_EVENT_HIGHLIGHTED);
-  r.set(GUI_EVENT_REMOVE_VIEW.to_string(), GUI_EVENT_REMOVE_VIEW);
-  r.set(GUI_EVENT_ACTION_KEYFRAME.to_string(), GUI_EVENT_ACTION_KEYFRAME);
-  r.set(GUI_EVENT_ACTION_LOOP.to_string(),  GUI_EVENT_ACTION_LOOP);
+#define XX_FUN(NAME, S, CATEGORY, BUBBLE) \
+r.set(GUI_EVENT_##NAME.to_string(), GUI_EVENT_##NAME);
+XX_GUI_EVENT_TABLE(XX_FUN)
+#undef XX_FUN
   return r;
 }());
 
@@ -110,7 +83,7 @@ public:
   /**
    * @func bubble_trigger
    */
-  int& bubble_trigger(const Name& name, GUIEvent& evt) {
+  int& bubble_trigger(const NameType& name, GUIEvent& evt) {
     View* view = this;
     while( view ) {
       if ( view->m_receive ) {
@@ -128,14 +101,14 @@ public:
 /**
  * @func trigger
  */
-int& View::trigger(const Name& name, GUIEvent& evt, bool need_send) {
+int& View::trigger(const NameType& name, GUIEvent& evt, bool need_send) {
   if ( m_receive || need_send ) {
     return Notification::trigger(name, evt);
   }
   return evt.return_value;
 }
 
-int View::trigger(const Name& name, bool need_send) {
+int View::trigger(const NameType& name, bool need_send) {
   if ( m_receive || need_send ) {
     auto del = noticer(name);
     if ( del ) {
@@ -145,7 +118,7 @@ int View::trigger(const Name& name, bool need_send) {
   return 0;
 }
 
-void View::trigger_listener_change(const Name& name, int count, int change) {
+void View::trigger_listener_change(const NameType& name, int count, int change) {
   if ( change > 0 ) {
     m_receive = true; // bind event auto open option
   }

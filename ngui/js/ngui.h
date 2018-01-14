@@ -116,10 +116,25 @@ class XX_EXPORT ValueProgram: public Object {
 };
 
 /**
- * @class ViewUtil
+ * @class WrapViewBase
  */
-class XX_EXPORT ViewUtil {
+class XX_EXPORT WrapViewBase: public WrapObject {
  public:
+
+  /**
+   * @func overwrite
+   */
+  virtual void destroy();
+  
+  /**
+   * @func overwrite
+   */
+  virtual bool add_event_listener(cString& name, cString& func, int id);
+  
+  /**
+   * @func overwrite
+   */
+  virtual bool remove_event_listener(cString& name, int id);
   
   /**
    * @func inherit_text_font
@@ -135,60 +150,6 @@ class XX_EXPORT ViewUtil {
    * @func inherit_scroll
    */
   static void inherit_scroll(Local<JSClass> cls, Worker* worker);
-  
-  /**
-   * @func add_event_listener
-   */
-  static bool add_event_listener(Wrap<View>* wrap, cString& name, cString& func, int id);
-  
-  /**
-   * @func remove_event_listener
-   */
-  static bool remove_event_listener(Wrap<View>* wrap, cString& name, int id);
-  
-  /**
-   * @func add_event_listener
-   */
-  static bool add_event_listener(Wrap<View>* wrap, const GUIEventName& name, cString& func, int id);
-
-  /**
-   * @func remove_event_listener
-   */
-  static bool remove_event_listener(Wrap<View>* wrap, const GUIEventName& name, int id);
-  
-  /**
-   * @func panel_add_event_listener
-   */
-  static bool panel_add_event_listener(Wrap<View>* wrap, cString& name, cString& func, int id);
-  
-  /**
-   * @func panel_remove_event_listener
-   */
-  static bool panel_remove_event_listener(Wrap<View>* wrap, cString& name, int id);
-  
-};
-
-/**
- * @class WrapViewBase
- */
-class XX_EXPORT WrapViewBase: public WrapObject {
- public:
-
-  virtual void destroy();
-  
-  /**
-   * @func overwrite
-   */
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    return ViewUtil::add_event_listener(reinterpret_cast<Wrap<View>*>(this), name, func, id);
-  }
-  
-  /**
-   * @func overwrite
-   */
-  virtual bool remove_event_listener(cString& name, int id) {
-    return ViewUtil::remove_event_listener(reinterpret_cast<Wrap<View>*>(this), name, id);
-  }
   
 };
 

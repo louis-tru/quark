@@ -42,7 +42,7 @@ JS_BEGIN
 
 typedef MultimediaSource::TrackInfo TrackInfo;
 
-Local<JSValue> inl__track_to_jsvalue(const TrackInfo* track, Worker* worker) {
+Local<JSValue> inl_track_to_jsvalue(const TrackInfo* track, Worker* worker) {
   if ( ! track ) {
     return worker->NewNull();
   }
@@ -86,54 +86,75 @@ Local<JSValue> inl__track_to_jsvalue(const TrackInfo* track, Worker* worker) {
   return obj.To<JSValue>();
 }
 
+template<class T, class Self>
+static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type, 
+                                 cString& func, int id, Cast* cast = nullptr) 
+{
+  auto f = [wrap, func, cast](typename Self::EventType& evt) {
+    // if (worker()->is_terminate()) return;
+    HandleScope scope(wrap->worker());
+    // arg event
+    Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
+    
+    if (cast)
+      ev->set_private_data(cast); // set data cast func
+    
+    Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
+    // call js trigger func
+    Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
+    
+    // test:
+    //if (r->IsNumber(worker)) {
+    //  LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
+    //} else {
+    //  LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
+    //}
+  };
+  
+  Self* self = wrap->self();
+  self->on(type, f, id);
+}
+
 /**
  * @class WrapAudioPlayer
  */
 class WrapAudioPlayer: public WrapObject {
  public:
-  template<class T>
-  void add_event_listener_1(const GUIEventName& name, cString& func, int id) {
-    self<AudioPlayer>()->on(name, [this, func](Event<>& evt) {
-      // if (worker()->is_terminate()) return;
-      HandleScope scope(worker());
-      // arg event
-      Wrap<Event<>>* ev = Wrap<Event<>>::pack(&evt);
-      
-      ev->set_private_data(Cast::entity<T>()); // set data cast func
-      
-      Local<JSValue> args[2] = { ev->that(), worker()->New(true) };
-      // call js trigger func
-      call( worker()->New(func,1), 2, args );
-    }, id);
-  }
-  
+
   /**
    * @func overwrite
    */
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    auto i = GUI_EVENT_PLAYER_TABLE.find(name);
-    if ( i == GUI_EVENT_PLAYER_TABLE.end() ) {
+  virtual bool add_event_listener(cString& name_s, cString& func, int id) {
+    auto i = GUI_EVENT_TABLE.find(name_s);
+    if ( i.is_null() || !(i.value().flag() & GUI_EVENT_FLAG_PLAYER) ) {
       return false;
     }
-    if ( i.value() == GUI_EVENT_PLAYER_WAIT_BUFFER ) { // Float
-      add_event_listener_1<Float>(i.value(), func, id);
-    } else if ( i.value() == GUI_EVENT_PLAYER_ERROR ) { // Error
-      add_event_listener_1<Error>(i.value(), func, id);
-    } else if ( i.value() == GUI_EVENT_PLAYER_SEEK ) { // Uint64
-      add_event_listener_1<Uint64>(i.value(), func, id);
-    } else { // object
-      add_event_listener_1<Object>(i.value(), func, id);
+    
+    GUIEventName name = i.value();
+    auto wrap = reinterpret_cast<Wrap<AudioPlayer>*>(this);
+    
+    switch ( name.category() ) {
+      case GUI_EVENT_CATEGORY_ERROR:
+        add_event_listener_1<Event<>>(wrap, name, func, id, Cast::entity<Error>()); break;
+      case GUI_EVENT_CATEGORY_FLOAT:
+        add_event_listener_1<Event<>>(wrap, name, func, id, Cast::entity<Float>()); break;
+      case GUI_EVENT_CATEGORY_UINT64:
+        add_event_listener_1<Event<>>(wrap, name, func, id, Cast::entity<Uint64>()); break;
+      case GUI_EVENT_CATEGORY_DEFAULT:
+        add_event_listener_1<Event<>>(wrap, name, func, id); break;
+      default:
+        return false;
     }
     return true;
   }
   
   virtual bool remove_event_listener(cString& name, int id) {
-    auto i = GUI_EVENT_PLAYER_TABLE.find(name);
-    if ( i != GUI_EVENT_PLAYER_TABLE.end() ) {
-      // off event listener
-      self<AudioPlayer>()->off(i.value(), id);
-      return true;
+    auto i = GUI_EVENT_TABLE.find(name);
+    if ( i.is_null() || !(i.value().flag() & GUI_EVENT_FLAG_PLAYER) ) {
+      return false;
     }
+    auto wrap = reinterpret_cast<Wrap<AudioPlayer>*>(this);
+    wrap->self()->off(i.value(), id); // off event listener
     return true;
   }
   
@@ -304,9 +325,9 @@ class WrapAudioPlayer: public WrapObject {
     JS_WORKER(args);
     JS_SELF(AudioPlayer);
     if (args.Length() < 1 || !args[0]->IsUint32(worker) ) {
-      JS_RETURN( inl__track_to_jsvalue(self->track(), worker) );
+      JS_RETURN( inl_track_to_jsvalue(self->track(), worker) );
     } else {
-      JS_RETURN( inl__track_to_jsvalue(self->track(args[0]->ToUint32Value(worker)), worker) );
+      JS_RETURN( inl_track_to_jsvalue(self->track(args[0]->ToUint32Value(worker)), worker) );
     }
   }
   
@@ -397,7 +418,7 @@ class WrapAudioPlayer: public WrapObject {
       JS_SET_CLASS_ACCESSOR(trackIndex, track_index);
       JS_SET_CLASS_ACCESSOR(trackCount, track_count);
       JS_SET_CLASS_ACCESSOR(disableWaitBuffer,
-                          disable_wait_buffer, set_disable_wait_buffer);
+                            disable_wait_buffer, set_disable_wait_buffer);
       JS_SET_CLASS_METHOD(selectTrack, select_track);
       JS_SET_CLASS_METHOD(track, track);
       JS_SET_CLASS_METHOD(start, start);

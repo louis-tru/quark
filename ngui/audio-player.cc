@@ -33,30 +33,6 @@
 
 XX_NS(ngui)
 
-const GUIEventName GUI_EVENT_PLAYER_WAIT_BUFFER     ("WaitBuffer", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_READY           ("Ready", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_START_PLAY      ("StartPlay", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_ERROR           ("Error", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_SOURCE_EOF      ("SourceEof", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_PAUSE           ("Pause", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_RESUME          ("Resume", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_STOP            ("Stop", GUI_EVENT_CATEGORY_DEFAULT);
-const GUIEventName GUI_EVENT_PLAYER_SEEK            ("Seek", GUI_EVENT_CATEGORY_DEFAULT);
-
-const Map<String, GUIEventName> GUI_EVENT_PLAYER_TABLE([] {
-  Map<String, GUIEventName> r;
-  r.set(GUI_EVENT_PLAYER_WAIT_BUFFER.to_string(), GUI_EVENT_PLAYER_WAIT_BUFFER);
-  r.set(GUI_EVENT_PLAYER_READY.to_string(), GUI_EVENT_PLAYER_READY);
-  r.set(GUI_EVENT_PLAYER_START_PLAY.to_string(), GUI_EVENT_PLAYER_START_PLAY);
-  r.set(GUI_EVENT_PLAYER_ERROR.to_string(), GUI_EVENT_PLAYER_ERROR);
-  r.set(GUI_EVENT_PLAYER_SOURCE_EOF.to_string(), GUI_EVENT_PLAYER_SOURCE_EOF);
-  r.set(GUI_EVENT_PLAYER_PAUSE.to_string(), GUI_EVENT_PLAYER_PAUSE);
-  r.set(GUI_EVENT_PLAYER_RESUME.to_string(), GUI_EVENT_PLAYER_RESUME);
-  r.set(GUI_EVENT_PLAYER_STOP.to_string(), GUI_EVENT_PLAYER_STOP);
-  r.set(GUI_EVENT_PLAYER_SEEK.to_string(), GUI_EVENT_PLAYER_SEEK);
-  return r;
-}());
-
 /**
  * @constructor
  */
@@ -120,7 +96,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
           if ( m_audio_buffer.total ) {
             if ( m_waiting_buffer ) {
               m_keep->post(Cb([this](Se& evt) {
-                trigger(GUI_EVENT_PLAYER_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
+                trigger(GUI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
               }));
               m_waiting_buffer = false;
             }
@@ -129,7 +105,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
             if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
               if ( m_waiting_buffer == false ) {
                 m_keep->post(Cb([this](Se& evt) {
-                  trigger(GUI_EVENT_PLAYER_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
+                  trigger(GUI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
                 }));
                 m_waiting_buffer = true;
               }
@@ -161,7 +137,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
           if ( m_status == PLAYER_STATUS_START ) {
             m_status = PLAYER_STATUS_PLAYING;
             m_keep->post(Cb([this](Se& evt) {
-              trigger(GUI_EVENT_PLAYER_START_PLAY); // trigger start_play event
+              trigger(GUI_EVENT_START_PLAY); // trigger start_play event
             }));
           }
           m_uninterrupted_play_start_systime = sys_time;
@@ -213,7 +189,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
       }
       if ( is_event ) {
         m_keep->post(Cb([this](SimpleEvent& e){
-          Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_STOP); // trigger stop event
+          Inl_AudioPlayer(this)->trigger(GUI_EVENT_STOP); // trigger stop event
         }));
       }
       lock.lock();
@@ -286,7 +262,7 @@ void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
   XX_ASSERT(m_source == src);
   
   if (m_audio) {
-    Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_READY); // trigger event ready
+    Inl_AudioPlayer(this)->trigger(GUI_EVENT_READY); // trigger event ready
     if ( m_status == PLAYER_STATUS_START ) {
       Inl_AudioPlayer(this)->start_run();
     }
@@ -322,7 +298,7 @@ void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
         ScopeLock scope(m_mutex);
         m_duration = m_source->duration();
       }
-      Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_READY); // trigger event ready
+      Inl_AudioPlayer(this)->trigger(GUI_EVENT_READY); // trigger event ready
       
       if ( m_status == PLAYER_STATUS_START ) {
         Inl_AudioPlayer(this)->start_run();
@@ -334,7 +310,7 @@ void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
     } else {
       Error e(ERR_AUDIO_NEW_CODEC_FAIL, "Unable to create video decoder");
       XX_ERR("%s", *e.message());
-      Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_ERROR, e); // trigger event error
+      Inl_AudioPlayer(this)->trigger(GUI_EVENT_ERROR, e); // trigger event error
       stop();
     }
   }));
@@ -346,17 +322,17 @@ void AudioPlayer::multimedia_source_wait_buffer(MultimediaSource* so, float proc
                             */
     if ( process < 1.0 ) {
        // trigger event wait_buffer
-      Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_WAIT_BUFFER, Float(process));
+      Inl_AudioPlayer(this)->trigger(GUI_EVENT_WAIT_BUFFER, Float(process));
     }
   }
 }
 
 void AudioPlayer::multimedia_source_eof(MultimediaSource* so) {
-  Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_SOURCE_EOF); // trigger event eof
+  Inl_AudioPlayer(this)->trigger(GUI_EVENT_SOURCE_EOF); // trigger event eof
 }
 
 void AudioPlayer::multimedia_source_error(MultimediaSource* so, cError& err) {
-  Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_ERROR, err); // trigger event error
+  Inl_AudioPlayer(this)->trigger(GUI_EVENT_ERROR, err); // trigger event error
   stop();
 }
 
@@ -475,7 +451,7 @@ bool AudioPlayer::seek(uint64 timeUs) {
       m_audio->flush();
       m_pcm->flush();
       m_keep->post(Cb([this](SimpleEvent& e){
-        Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_SEEK, Uint64(m_time)); // trigger seek event
+        Inl_AudioPlayer(this)->trigger(GUI_EVENT_SEEK, Uint64(m_time)); // trigger seek event
       }));
       return true;
     }
@@ -492,7 +468,7 @@ void AudioPlayer::pause() {
     m_status = PLAYER_STATUS_PAUSED;
     m_uninterrupted_play_start_systime = 0;
     m_keep->post(Cb([this](SimpleEvent& e){
-      Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_PAUSE); // trigger pause event
+      Inl_AudioPlayer(this)->trigger(GUI_EVENT_PAUSE); // trigger pause event
     }));
   }
 }
@@ -506,7 +482,7 @@ void AudioPlayer::resume() {
     m_status = PLAYER_STATUS_PLAYING;
     m_uninterrupted_play_start_systime = 0;
     m_keep->post(Cb([this](SimpleEvent& e){
-      Inl_AudioPlayer(this)->trigger(GUI_EVENT_PLAYER_RESUME); // trigger resume event
+      Inl_AudioPlayer(this)->trigger(GUI_EVENT_RESUME); // trigger resume event
     }));
   }
 }

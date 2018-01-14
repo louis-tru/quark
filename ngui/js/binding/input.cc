@@ -43,26 +43,6 @@ JS_BEGIN
 class WrapInput: public WrapViewBase {
  public:
   
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    Wrap<View>* wrap = reinterpret_cast<Wrap<View>*>(this);
-    
-    if ( name == GUI_EVENT_CHANGE.to_string() ) {
-      return ViewUtil::add_event_listener(wrap, GUI_EVENT_CHANGE, func, id);
-    } else {
-      return ViewUtil::add_event_listener(wrap, name, func, id);
-    }
-  }
-  
-  virtual bool remove_event_listener(cString& name, int id) {
-    Wrap<View>* wrap = reinterpret_cast<Wrap<View>*>(this);
-    
-    if ( name == GUI_EVENT_CHANGE.to_string() ) {
-      return ViewUtil::remove_event_listener(wrap, GUI_EVENT_CHANGE, id);
-    } else {
-      return ViewUtil::remove_event_listener(wrap, name, id);
-    }
-  }
-  
   static void constructor(FunctionCall args) {
     JS_ATTACH(args);
     js_check_gui_app();
@@ -166,30 +146,6 @@ class WrapInput: public WrapViewBase {
 class WrapTextarea: public WrapViewBase {
  public:
   
-  virtual bool add_event_listener(cString& name, cString& func, int id) {
-    Wrap<View>* wrap = reinterpret_cast<Wrap<View>*>(this);
-    
-    if ( name == GUI_EVENT_CHANGE.to_string() ) {
-      return ViewUtil::add_event_listener(wrap, GUI_EVENT_CHANGE, func, id);
-    } else if ( name == GUI_EVENT_SCROLL.to_string() ) {
-      return ViewUtil::add_event_listener(wrap, GUI_EVENT_SCROLL, func, id);
-    } else {
-      return ViewUtil::add_event_listener(wrap, name, func, id);
-    }
-  }
-  
-  virtual bool remove_event_listener(cString& name, int id) {
-    Wrap<View>* wrap = reinterpret_cast<Wrap<View>*>(this);
-    
-    if ( name == GUI_EVENT_CHANGE.to_string() ) {
-      return ViewUtil::remove_event_listener(wrap, GUI_EVENT_CHANGE, id);
-    } if ( name == GUI_EVENT_SCROLL.to_string() ) {
-      return ViewUtil::remove_event_listener(wrap, GUI_EVENT_SCROLL, id);
-    } else {
-      return ViewUtil::remove_event_listener(wrap, name, id);
-    }
-  }
-  
   static void constructor(FunctionCall args) {
     JS_ATTACH(args);
     js_check_gui_app();
@@ -198,7 +154,7 @@ class WrapTextarea: public WrapViewBase {
   
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(Textarea, constructor, {
-      ViewUtil::inherit_scroll(cls, worker);
+      WrapViewBase::inherit_scroll(cls, worker);
     }, Input);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Textarea), View::TEXTAREA);
   }

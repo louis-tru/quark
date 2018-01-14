@@ -601,7 +601,9 @@ void FileTexture::load(Level level) {
   #define LoaderTextureError(err) { \
     m_status = TEXTURE_ERROR;  \
     XX_ERR(err, *m_path); \
-    main_loop()->post(Cb([this](Se& e) { XX_TRIGGER(change, TEXTURE_CHANGE_ERROR); }, this)); \
+    main_loop()->post(Cb([this](Se& e) { \
+      XX_TRIGGER(change, TEXTURE_CHANGE_ERROR); \
+    }, this)); \
   }
   
   m_status |= TEXTURE_LOADING;
