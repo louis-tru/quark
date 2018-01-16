@@ -96,6 +96,13 @@ var Tools = util.class('Tools', HttpService, {
     }, 5000);
   },
 
+  test: function() {
+    console.log(this.data);
+    console.log(this.request.headers);
+    this.response.setHeader('Access-Control-Allow-Origin', '*');
+    this.ret('test_cross_domain ok');
+  },
+
 });
 
 service.set('Tools', Tools);
