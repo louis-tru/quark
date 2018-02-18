@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__handle__
-#define __ngui__handle__
+#ifndef __ngui__base__handle__
+#define __ngui__base__handle__
 
 #include <functional>
 #include "util.h"

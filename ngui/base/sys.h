@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__sys__
-#define __ngui__sys__
+#ifndef __ngui__base__sys__
+#define __ngui__base__sys__
 
 #include "util.h"
 #include "string.h"

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__string_builder__
-#define __ngui__string_builder__
+#ifndef __ngui__base__string_builder__
+#define __ngui__base__string_builder__
 
 #include "list.h"
 #include "string.h"

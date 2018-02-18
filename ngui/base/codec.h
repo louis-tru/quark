@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__codec__
-#define __ngui__codec__
+#ifndef __ngui__base__codec__
+#define __ngui__base__codec__
 
 #include "util.h"
 #include "buffer.h"

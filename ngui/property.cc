@@ -41,7 +41,7 @@
 #include "label.h"
 #include "image.h"
 #include "sprite.h"
-#include "shadow-1.h"
+#include "box-shadow-1.h"
 
 XX_NS(ngui)
 
@@ -115,7 +115,7 @@ PropertysAccessor::PropertysAccessor() {
   m_property_func_table.set(View::ROOT, div);
   m_property_func_table.set(View::LIMIT, div);
   m_property_func_table.set(View::IMAGE, div);
-  m_property_func_table.set(View::SHADOW, div);
+  m_property_func_table.set(View::BOX_SHADOW, div);
   m_property_func_table.set(View::SELECT_PANEL, div);
   m_property_func_table.set(View::CLIP, div);
   m_property_func_table.set(View::SPAN, view);
@@ -127,7 +127,7 @@ PropertysAccessor::PropertysAccessor() {
   set_func(m_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_Y, align_y);
   m_property_func_table.set(View::LIMIT_INDEP, m_property_func_table[View::INDEP]);
   // shadow
-  set_func(m_property_func_table[View::SHADOW], Shadow, PROPERTY_REPEAT, shadow);
+  set_func(m_property_func_table[View::BOX_SHADOW], BoxShadow, PROPERTY_REPEAT, shadow);
   // limit/limit_indep
   set_func(m_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_WIDTH, max_width);
   set_func(m_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_HEIGHT, max_height);

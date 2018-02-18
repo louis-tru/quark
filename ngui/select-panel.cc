@@ -39,11 +39,11 @@ public:
   
   static Button* first_button(View* v) {
     
-    if ( v->is_select_panel() ) {
+    if ( v->as_select_panel() ) {
       return nullptr;
     }
     else
-    if ( v->is_button() ) {
+    if ( v->as_button() ) {
       if ( v->final_visible() ) {
         return v->as_button();
       }
@@ -93,8 +93,9 @@ bool SelectPanel::is_activity() const {
 SelectPanel* SelectPanel::parent_panel() {
   View* v = parent();
   while( v ) {
-    if ( v->is_select_panel() ) {
-      return v->as_select_panel();
+    auto p = v->as_select_panel();
+    if ( p ) {
+      return p;
     }
     v = v->parent();
   }

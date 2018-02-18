@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ngui__localstorage__
-#define __ngui__localstorage__
+#ifndef __ngui__base__localstorage__
+#define __ngui__base__localstorage__
 
 #include "cb.h"
 #include "util.h"

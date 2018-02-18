@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__loop__
-#define __ngui__loop__
+#ifndef __ngui__base__loop__
+#define __ngui__base__loop__
 
 #include "util.h"
 #include "list.h"
@@ -84,15 +84,15 @@ ScopeLock thread##_lock(thread.mutex()); if (!t.is_abort())
   static SimpleThread* current();
   static void* get_specific_data(char id);
   static void set_specific_data(char id, void* data);
-  static void abort(ThreadID id, bool wait_end = false);
-  static void wait_end(ThreadID id);
+  static void abort(ThreadID id, int64 wait_end_timeoutUs = 0);
+  static void wait_end(ThreadID id, int64 timeoutUs = 0);
   static void awaken(ThreadID id);
  private:
   XX_DEFINE_INLINE_CLASS(Inl);
   struct Signal {
     Mutex mutex; Condition cond;
   };
-  typedef Array<Signal*> WaitList;
+  typedef List<Signal*> WaitList;
   Mutex m_mutex;
   Condition m_cond;
   WaitList m_external_wait;

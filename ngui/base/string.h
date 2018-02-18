@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__string__
-#define __ngui__string__
+#ifndef __ngui__base__string__
+#define __ngui__base__string__
 
 #include <stdarg.h>
 #include "array.h"

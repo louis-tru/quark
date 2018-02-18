@@ -106,7 +106,7 @@ Local<JSValue> ValueProgram::New(const Border& value) {
   args[4] = worker->New(value.color.a());
   return _BorderRgba.strong()->Call(worker, args.length(), &args[0]);
 }
-Local<JSValue> ValueProgram::New(const CGShadow& value) {
+Local<JSValue> ValueProgram::New(const Shadow& value) {
   Array<Local<JSValue>> args(7);
   args[0] = worker->New(value.offset_x);
   args[1] = worker->New(value.offset_y);
@@ -434,7 +434,7 @@ bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
   out.color.a(object->Get(worker, worker->strs()->a())->ToUint32Value(worker));
   return true;
 }
-bool ValueProgram::parseShadow(Local<JSValue> in, CGShadow& out, cchar* desc) {
+bool ValueProgram::parseShadow(Local<JSValue> in, Shadow& out, cchar* desc) {
   js_parse(Shadow, {
     out.offset_x = object->Get(worker, worker->strs()->offsetX())->ToNumberValue(worker);
     out.offset_y = object->Get(worker, worker->strs()->offsetY())->ToNumberValue(worker);

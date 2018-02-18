@@ -148,5 +148,5 @@ public:
 template<> void CSSProperty<TYPE, ENUM>::assignment(Frame* frame) { \
   frame->set_##NAME(m_value); \
 }
-xx_each_property_table(xx_def_property)
+XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_property

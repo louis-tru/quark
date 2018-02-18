@@ -39,6 +39,7 @@ CSS({
     text_color: "#0079ff",
     border_radius: 8,
     border: `${px} #0079ff`,
+    // background_color: '#f00',
   },
     
   '.long_btn2': {

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__util__
-#define __ngui__util__
+#ifndef __ngui__base__util__
+#define __ngui__base__util__
 
 #include "object.h"
 

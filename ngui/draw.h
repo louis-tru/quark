@@ -41,7 +41,7 @@
 #include "app.h"
 
 /**
- * @ns gui
+ * @ns ngui
  */
 
 XX_NS(ngui)
@@ -60,7 +60,7 @@ class Div;
 class Free;
 class Gradient;
 class Sprite;
-class Shadow;
+class BoxShadow;
 class Limit;
 class Image;
 class Scroll;
@@ -95,7 +95,7 @@ enum DrawLibrary {
 class XX_EXPORT DrawData {
  public:
   typedef NonObjectTraits Traits;
-  virtual ~DrawData() { }
+  virtual ~DrawData() {}
 };
 
 /**
@@ -105,7 +105,11 @@ class XX_EXPORT Draw: public Object {
   XX_HIDDEN_ALL_COPY(Draw);
  public:
   
-  Draw(GUIApplication* host, const Map<String, int>& option);
+  /**
+   * @constructor
+   * @arg options {Map} { multisample: 0-4 }
+   */
+  Draw(GUIApplication* host, const Map<String, int>& options);
   
   /**
    * @destructor
@@ -117,7 +121,7 @@ class XX_EXPORT Draw: public Object {
    */
   XX_EVENT(onsurface_size_change);
   
-  GUIApplication* host() const { return m_host; }
+  inline GUIApplication* host() const { return m_host; }
   inline DrawLibrary library() { return m_library; }
   inline Vec2 surface_size() const { return m_surface_size; }
   inline CGRect selected_region() const { return m_selected_region; }
@@ -128,7 +132,7 @@ class XX_EXPORT Draw: public Object {
   inline Texture* empty_texture() { return m_empty_texture; }
   inline FontPool* font_pool() const { return m_font_pool; }
   inline TexturePool* tex_pool() const { return m_tex_pool; }
-  static XX_INLINE Draw* current() { return m_draw_ctx; }
+  inline static Draw* current() { return m_draw_ctx; }
   virtual void clear(bool full = false);
   
   /**
@@ -155,28 +159,29 @@ class XX_EXPORT Draw: public Object {
   
   // ----------------------------------------
   
-  virtual void refresh_status_for_buffer() = 0;
-  virtual void refresh_status_for_root_matrix(const Mat4& root, const Mat4& query_root) = 0;
+  virtual void refresh_buffer() = 0;
+  virtual void refresh_root_matrix(const Mat4& root, const Mat4& query) = 0;
+  virtual void refresh_font_pool(FontPool* pool) = 0;
   virtual void begin_render() = 0;
   virtual void commit_render() = 0;
   virtual void begin_screen_occlusion_query() = 0;
   virtual void end_screen_occlusion_query() = 0;
-  virtual uint load_texture(const Array<PixelData>& data) = 0;
-  virtual bool load_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) = 0;
+  virtual uint set_texture(const Array<PixelData>& data) = 0;
+  virtual void del_texture(uint id) = 0;
+  virtual void del_buffer(uint id) = 0;
   virtual uint gen_texture(uint origin_texture, uint width, uint height) = 0;
   virtual void use_texture(uint id, Repeat repeat, uint slot = 0) = 0;
   virtual void use_texture(uint id, uint slot = 0) = 0;
-  virtual void delete_texture(uint id) = 0;
-  virtual void delete_buffer(uint id) = 0;
-  virtual void refresh_status_for_font_pool(FontPool* pool) = 0;
+  virtual bool set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) = 0;
   virtual bool set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) = 0;
   virtual bool set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level) = 0;
-  virtual uint support_max_texture_font_size();
   virtual void clear_color(Color color) = 0;
+  
+  // draw()
   virtual void draw(Root* v) = 0;
   virtual void draw(Video* v) = 0;
   virtual void draw(Image* v) = 0;
-  virtual void draw(Shadow* v) = 0;
+  virtual void draw(BoxShadow* v) = 0;
   virtual void draw(Box* v) = 0;
   virtual void draw(TextNode* v) = 0;
   virtual void draw(Label* v) = 0;

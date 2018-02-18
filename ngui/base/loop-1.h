@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__loop_1__
-#define __ngui__loop_1__
+#ifndef __ngui__base__loop_1__
+#define __ngui__base__loop_1__
 
 #include "loop.h"
 

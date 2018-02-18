@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__macros__
-#define __ngui__macros__
+#ifndef __ngui__base__macros__
+#define __ngui__base__macros__
 
 #if !defined(__cplusplus)
 # error "Please use the c++ compiler"

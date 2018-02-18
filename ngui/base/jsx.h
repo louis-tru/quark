@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__jsx__
-#define __ngui__jsx__
+#ifndef __ngui__base__jsx__
+#define __ngui__base__jsx__
 
 #include "util.h"
 #include "error.h"

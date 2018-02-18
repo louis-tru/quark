@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__map__
-#define __ngui__map__
+#ifndef __ngui__base__map__
+#define __ngui__base__map__
 
 #include "util.h"
 #include "container.h"

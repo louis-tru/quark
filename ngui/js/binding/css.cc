@@ -193,7 +193,7 @@ class WrapStyleSheets: public WrapObject {
   def_property_from_type(text_white_space, TextWhiteSpace);
   def_property_from_type(align_x, Align);
   def_property_from_type(align_y, Align);
-  def_property_from_type2(shadow, CGShadow, Shadow);
+  def_property_from_type2(shadow, Shadow, Shadow);
   def_property_from_type(src, String);
   def_property_from_type(background_image, String);
   
@@ -253,7 +253,7 @@ public:
     // PROPERTY
 #define xx_def_property(ENUM, TYPE, NAME) \
 JS_SET_PROPERTY(ENUM, ENUM);
-    xx_each_property_table(xx_def_property)
+    XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_property
     
     exports->Delete(worker, worker->New("PROPERTY_WIDTH2",1) );

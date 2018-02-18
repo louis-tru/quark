@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__http__
-#define __ngui__http__
+#ifndef __ngui__base__http__
+#define __ngui__base__http__
 
 #include "handle.h"
 #include "string.h"

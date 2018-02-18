@@ -91,7 +91,7 @@ bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
   ) {
     m_surface_size = surface_size;
     m_selected_region = region;
-    refresh_status_for_buffer();
+    refresh_buffer();
     m_host->main_loop()->post(Cb([this](Se& e){
       XX_TRIGGER(surface_size_change);
     }));
@@ -106,13 +106,6 @@ bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
 void Draw::clear(bool full) {
   m_tex_pool->clear(full);
   m_font_pool->clear(full);
-}
-
-/**
- * @func support_max_texture_font_size
- */
-uint Draw::support_max_texture_font_size() {
-  return 512;
 }
 
 void Draw::set_max_texture_memory_limit(uint64 limit) {

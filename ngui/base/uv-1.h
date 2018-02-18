@@ -28,11 +28,11 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
+#ifndef __ngui__base__uv_1__
+#define __ngui__base__uv_1__
+
 #include <uv.h>
 #include "util.h"
-
-#ifndef __ngui__uv_1__
-#define __ngui__uv_1__
 
 XX_NS(ngui)
 

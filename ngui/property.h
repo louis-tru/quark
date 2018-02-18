@@ -38,7 +38,7 @@ XX_NS(ngui)
 
 class View;
 
-#define xx_each_property_table(F) \
+#define XX_EACH_PROPERTY_TABLE(F) \
 F(PROPERTY_X, float, x) /*view*/ \
 F(PROPERTY_Y, float, y) \
 F(PROPERTY_SCALE_X, float, scale_x) \
@@ -97,7 +97,7 @@ F(PROPERTY_TEXT_OVERFLOW, TextOverflow, text_overflow) \
 F(PROPERTY_TEXT_WHITE_SPACE, TextWhiteSpace, text_white_space) \
 F(PROPERTY_ALIGN_X, Align, align_x) /* free-div */ \
 F(PROPERTY_ALIGN_Y, Align, align_y) \
-F(PROPERTY_SHADOW, CGShadow, shadow) /* shadow-div */ \
+F(PROPERTY_SHADOW, Shadow, shadow) /* shadow-div */ \
 F(PROPERTY_SRC, String, src)    /* image */ \
 F(PROPERTY_BACKGROUND_IMAGE, String, background_image) \
 
@@ -106,7 +106,7 @@ F(PROPERTY_BACKGROUND_IMAGE, String, background_image) \
  */
 enum PropertyName: uint {
 #define xx_def_enum(ENUM, TYPE, NAME) ENUM,
-  xx_each_property_table(xx_def_enum)
+  XX_EACH_PROPERTY_TABLE(xx_def_enum)
 #undef xx_def_enum
 };
 

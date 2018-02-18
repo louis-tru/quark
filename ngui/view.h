@@ -37,7 +37,7 @@
 #include "event.h"
 
 /**
- * @ns gui
+ * @ns ngui
  */
 
 XX_NS(ngui)
@@ -59,7 +59,7 @@ class BasicScroll;
   F(LAYOUT, Layout, layout) \
   F(BOX, Box, box)  \
   F(DIV, Div, div)  \
-  F(SHADOW, Shadow, shadow)  \
+  F(BOX_SHADOW, BoxShadow, box_shadow)  \
   F(GRADIENT, Gradient, gradient)  \
   F(INDEP, Indep, indep)  \
   F(LIMIT, Limit, limit) \
@@ -229,24 +229,15 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   virtual ViewType view_type() const { return VIEW; }
   
 #define xx_def_view_type(enum, type, name)  \
-  inline bool is_##name() const { return const_cast<View*>(this)->as_##name(); }  \
-  inline const type* as_##name() const { return const_cast<View*>(this)->as_##name(); } \
   virtual type* as_##name() { return nullptr; }
-
-  // as type / is type
+  // as type
   XX_EACH_VIEWS(xx_def_view_type)
-  
 #undef xx_def_view_type
   
   /**
    * @overwrite
    */
   virtual View* as_view() { return this; };
-  
-  /**
-   * @func is_clip
-   */
-  virtual bool is_clip() { return false; }
   
   /**
    * @enum MarkValue
@@ -893,7 +884,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   friend class Label;
   friend class Span;
   friend class CSSViewClasss;
-  friend class GUIResponder;
   friend class BasicScroll;
 };
 

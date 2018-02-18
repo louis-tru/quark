@@ -259,9 +259,9 @@ template<> void Property2<Border>::transition(uint f1, uint f2, float x, float t
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<CGShadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<> void Property2<Shadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
-    CGShadow v1 = m_frames[f1], v2 = m_frames[f2];
+    Shadow v1 = m_frames[f1], v2 = m_frames[f2];
     float offset_x = v1.offset_x - (v1.offset_x - v2.offset_x) * t;
     float offset_y = v1.offset_y - (v1.offset_y - v2.offset_y) * t;
     float size = v1.size - (v1.size - v2.size) * t;

@@ -3,7 +3,7 @@ import {
 } from 'ngui';
 import { Mynavpage } from './public';
 import { Navbar, Toolbar } from 'ngui/nav';
-import './review';
+import review_vx from './review';
 
 function hide_show_navbar(evt) {
   var navbar = evt.sender.topCtr.navbar;
@@ -22,7 +22,7 @@ function nav_pop(evt) {
 }
 
 function view_code(evt) {
-  evt.sender.topCtr.collection.push(review.vx, 1);
+  evt.sender.topCtr.collection.push(review_vx, 1);
 }
 
 const navbar_vx = (

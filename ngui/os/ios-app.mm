@@ -31,7 +31,7 @@
 #import <UIKit/UIKit.h>
 #import <OpenGLES/ES2/glext.h>
 #import "ngui/base/loop.h"
-#import "ios-ogl-1.h"
+#import "ios-gl-1.h"
 #import "ios-ime-receiver-1.h"
 #import "ios-app.h"
 #import "../app.h"

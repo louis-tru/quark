@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__android_jni__
-#define __ngui__android_jni__
+#ifndef __ngui__base__android_jni__
+#define __ngui__base__android_jni__
 
 #include "../util.h"
 

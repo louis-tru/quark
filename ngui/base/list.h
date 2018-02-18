@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__list__
-#define __ngui__list__
+#ifndef __ngui__base__list__
+#define __ngui__base__list__
 
 #include "util.h"
 #include "iterator.h"

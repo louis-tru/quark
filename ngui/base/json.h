@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__json__
-#define __ngui__json__
+#ifndef __ngui__base__json__
+#define __ngui__base__json__
 
 #include "string.h"
 #include "handle.h"

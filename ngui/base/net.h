@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__net__
-#define __ngui__net__
+#ifndef __ngui__base__net__
+#define __ngui__base__net__
 
 #include "util.h"
 #include "string.h"

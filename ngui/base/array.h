@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__array__
-#define __ngui__array__
+#ifndef __ngui__base__array__
+#define __ngui__base__array__
 
 #include "./util.h"
 #include "./container.h"

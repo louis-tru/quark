@@ -101,7 +101,7 @@ public:
     update_root_size();
 
     m_host->render_loop()->post(Cb([this, test_root_matrix](Se& e) {
-      m_draw_ctx->refresh_status_for_root_matrix(m_root_matrix, test_root_matrix);
+      m_draw_ctx->refresh_root_matrix(m_root_matrix, test_root_matrix);
       update_root_size();
     }));
     

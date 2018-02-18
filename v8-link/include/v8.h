@@ -4668,7 +4668,7 @@ class V8_EXPORT SharedArrayBuffer : public Object {
    * Data length in bytes.
    */
   size_t ByteLength() const;
-
+  
   /**
    * Create a new SharedArrayBuffer. Allocate |byte_length| bytes.
    * Allocated memory will be owned by a created SharedArrayBuffer and
@@ -4676,7 +4676,7 @@ class V8_EXPORT SharedArrayBuffer : public Object {
    * unless the object is externalized.
    */
   static Local<SharedArrayBuffer> New(Isolate* isolate, size_t byte_length);
-
+  
   /**
    * Create a new SharedArrayBuffer over an existing memory block.  The created
    * array buffer is immediately in externalized state unless otherwise
@@ -4686,7 +4686,7 @@ class V8_EXPORT SharedArrayBuffer : public Object {
   static Local<SharedArrayBuffer> New(
       Isolate* isolate, void* data, size_t byte_length,
       ArrayBufferCreationMode mode = ArrayBufferCreationMode::kExternalized);
-
+  
   /**
    * Returns true if SharedArrayBuffer is externalized, that is, does not
    * own its memory block.

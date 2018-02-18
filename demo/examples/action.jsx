@@ -4,10 +4,10 @@ import {
 import { HIGHLIGHTED_DOWN } from 'ngui/event';
 import { Toolbar } from 'ngui/nav';
 import { Mynavpage } from './public';
-import './review';
+import review_vx from './review';
 
 function view_code(evt) {
-  evt.sender.topCtr.collection.push(review.vx, 1);
+  evt.sender.topCtr.collection.push(review_vx, 1);
 }
 
 function highlighted(evt) {

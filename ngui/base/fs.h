@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__fs__
-#define __ngui__fs__
+#ifndef __ngui__base__fs__
+#define __ngui__base__fs__
 
 #include "cb.h"
 #include "string.h"

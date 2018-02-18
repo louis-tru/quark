@@ -52,7 +52,7 @@
 #include "ngui/app.h"
 #include "ngui/display-port.h"
 #include "ngui/root.h"
-#include "ngui/ogl/ogl.h"
+#include "ngui/gl/gl.h"
 
 using namespace ngui;
 

@@ -145,14 +145,14 @@ void Font::Inl::del_glyph_data(GlyphContainer* container) {
     
     for ( int i = 0; i < 128; i++, glyph++ ) {
       if ( glyph->m_vertex_value ) {
-        ctx->delete_buffer( glyph->m_vertex_value );
+        ctx->del_buffer( glyph->m_vertex_value );
         glyph->m_vertex_value = 0;
         glyph->m_vertex_count = 0;
       }
       
       for ( int i = 1; i < 12; i++ ) {
         if ( glyph->m_textures[i] ) { // 删除纹理
-          ctx->delete_texture( glyph->m_textures[i] );
+          ctx->del_texture( glyph->m_textures[i] );
         }
       }
       memset(glyph->m_textures, 0, sizeof(uint) * 13);

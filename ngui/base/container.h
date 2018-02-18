@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__container__
-#define __ngui__container__
+#ifndef __ngui__base__container__
+#define __ngui__base__container__
 
 #include <math.h>
 #include <string.h>

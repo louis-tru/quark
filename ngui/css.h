@@ -92,7 +92,7 @@ class XX_EXPORT StyleSheets: public Object {
   // -------------------- set property --------------------
   
 #define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
-  xx_each_property_table(xx_def_property)
+  XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_property
   
   void set_translate(Vec2 value) { set_x(value.x()); set_y(value.y()); }

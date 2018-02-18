@@ -31,6 +31,7 @@
 #include "image.h"
 #include "texture.h"
 #include "draw.h"
+#include "display-port.h"
 
 XX_NS(ngui)
 
@@ -261,7 +262,9 @@ public:
       Handle<GUIEvent> evt = New<GUIEvent>(this, err);
       trigger(GUI_EVENT_ERROR, **evt);
     } else if (status & TEXTURE_COMPLETE) {
-      trigger(GUI_EVENT_LOAD);
+      display_port()->next_frame(Cb([this](Se& e) {
+        trigger(GUI_EVENT_LOAD);
+      }, this));
     }
   }
 

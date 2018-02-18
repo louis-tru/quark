@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__cb__
-#define __ngui__cb__
+#ifndef __ngui__base__cb__
+#define __ngui__base__cb__
 
 #include "util.h"
 #include "error.h"

@@ -427,7 +427,7 @@ class XX_EXPORT KeyframeAction: public Action {
     void flush();
     
 #define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value); TYPE NAME();
-    xx_each_property_table(xx_def_property)
+    XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_property
     
     Vec2  translate() { return Vec2(x(), y()); }

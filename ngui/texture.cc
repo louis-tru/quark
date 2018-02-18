@@ -321,10 +321,10 @@ public:
     
     if (ctx->adjust_texture_memory(size)) {
       
-      uint handle = ctx->load_texture(mipmap_data);
+      uint handle = ctx->set_texture(mipmap_data);
       if (handle) {
         if (m_handle[0]) {
-          ctx->delete_texture(m_handle[0]);
+          ctx->del_texture(m_handle[0]);
         }
         cPixelData& pixel = mipmap_data[0];
         m_width  = pixel.width();
@@ -408,7 +408,7 @@ public:
     auto ctx = draw_ctx();
     for (int i = 0; i < 8; i++) {
       if (is_valid_texture(m_handle[i])) {
-        ctx->delete_texture(m_handle[i]); // 从GPU中删除纹理数据
+        ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
         set_texture_total_data_size(tex_pool(), -m_data_size[i]);
         m_handle[i] = 0;
         m_data_size[i] = 0;
@@ -533,7 +533,7 @@ bool TextureYUV::load_yuv(cPixelData& data) {
   int new_size = size + size / 2;
   
   if (draw_ctx()->adjust_texture_memory(new_size)) {
-    if ( draw_ctx()->load_yuv_texture(this, data) ) {
+    if ( draw_ctx()->set_yuv_texture(this, data) ) {
       set_texture_total_data_size(pool, new_size);
       
       if (m_width != data.width() ||
@@ -682,7 +682,7 @@ bool FileTexture::unload(Level level) {
     auto ctx = draw_ctx();
     for (int i = 0; i < LEVEL_NONE; i++) {
       if (is_valid_texture(m_handle[i])) {
-        ctx->delete_texture(m_handle[i]); // 从GPU中删除纹理数据
+        ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
         set_texture_total_data_size(tex_pool(), -m_data_size[i]);
       }
       m_handle[i] = 0;
@@ -693,7 +693,7 @@ bool FileTexture::unload(Level level) {
     m_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_HARDWARE_MIPMAP); // delete mark
   } else { // unload level
     if (is_valid_texture(m_handle[level])) {
-      draw_ctx()->delete_texture(m_handle[level]);
+      draw_ctx()->del_texture(m_handle[level]);
       set_texture_total_data_size(tex_pool(), -m_data_size[level]);
       if (level == LEVEL_0)
         m_status &= ~TEXTURE_HARDWARE_MIPMAP;

@@ -39,6 +39,10 @@
 #include <pthread.h>
 #include "../../node/deps/uv/src/queue.h"
 
+#ifndef XX_ATEXIT_WAIT_TIMEOUT
+# define XX_ATEXIT_WAIT_TIMEOUT 1e6
+#endif
+
 XX_NS(ngui)
 
 struct ThreadData {
@@ -147,7 +151,8 @@ public:
       body(*thread);
     }
     delete_thread_data(thread->m_id, thread, nullptr);
-    { ScopeLock lock(thread->m_mutex);
+    {
+      ScopeLock lock(thread->m_mutex);
       for (auto& i : thread->m_external_wait) { // notice external wait
         ScopeLock scope(i.value()->mutex);
         i.value()->cond.notify_one();
@@ -205,27 +210,29 @@ public:
   }
   
   static void atexit_exec() {
-    Array<ThreadID> threads;
+    Array<ThreadID> ths;
     { //
       ScopeLock scope(*thread_data_mutex);
       for ( auto& i : *thread_data ) {
         auto o = i.value();
         if (o.thread) {
           ScopeLock scope(o.thread->m_mutex);
-          o.thread->m_abort = true;
-          if (o.loop)
+          if (o.loop) {
             o.loop->stop();
+          }
+          o.thread->m_abort = true;
           o.thread->m_cond.notify_one(); // awaken sleep status
-          threads.push(o.thread->id());
+          ths.push(o.thread->id());
         } else if (o.loop) {
           o.loop->stop();
         }
       }
     }
     ThreadID id = current_id();
-    for ( auto& i: threads ) {
+    for ( auto& i: ths ) {
       if (i.value() != id) {
-        wait_end(i.value());
+        // 在这里等待这个线程的结束,这个时间默认为1秒钟
+        wait_end(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
       }
     }
   }
@@ -236,7 +243,7 @@ ThreadID SimpleThread::detach(Exec exec, cString& name) {
   return Inl::run(exec, 0, name);
 }
 
-void SimpleThread::abort(ThreadID id, bool wait_end) {
+void SimpleThread::abort(ThreadID id, int64 wait_end_timeoutUs) {
   Lock lock(*thread_data_mutex);
   auto i = thread_data->find(id);
   if ( !i.is_null() && i.value().thread ) {
@@ -249,17 +256,24 @@ void SimpleThread::abort(ThreadID id, bool wait_end) {
       lock.unlock();
       // Add wait to Thread obj
       Signal signal;
-      t->m_external_wait.push(&signal);
+      auto it = t->m_external_wait.push(&signal);
       Lock lock(signal.mutex);
       t->m_mutex.unlock();
-      signal.cond.wait(lock); // wait
+      if (wait_end_timeoutUs > 0) {
+        signal.cond.wait_for(lock, std::chrono::microseconds(wait_end_timeoutUs)); // wait
+      } else {
+        signal.cond.wait(lock); // wait
+      }
+      if (thread_data->has(id)) { // 如果线程句柄还存在,删除`signal`
+        t->m_external_wait.del(it);
+      }
     } else {
       t->m_mutex.unlock();
     }
   }
 }
 
-void SimpleThread::wait_end(ThreadID id) {
+void SimpleThread::wait_end(ThreadID id, int64 timeoutUs) {
   Lock lock(*thread_data_mutex);
   auto i = thread_data->find(id);
   if ( !i.is_null() && i.value().thread ) {
@@ -268,10 +282,17 @@ void SimpleThread::wait_end(ThreadID id) {
     // Add wait to Thread obj
     lock.unlock();
     Signal signal;
-    t->m_external_wait.push(&signal);
+    auto it = t->m_external_wait.push(&signal);
     Lock lock(signal.mutex);
     t->m_mutex.unlock();
-    signal.cond.wait(lock); // wait
+    if (timeoutUs > 0) {
+      signal.cond.wait_for(lock, std::chrono::microseconds(timeoutUs)); // wait
+    } else {
+      signal.cond.wait(lock); // wait
+    }
+    if (thread_data->has(id)) { // 如果线程句柄还存在,删除`signal`
+      t->m_external_wait.del(it);
+    }
   }
 }
 

@@ -150,6 +150,8 @@ static JSValueRef Release(JSContextRef ctx, JSValueRef t) {
   return nullptr;
 }
 
+static void CheckException(JSContextRef ctx, JSValueRef exception);
+
 class Microtask {
  public:
   enum CallbackStyle {
@@ -181,7 +183,7 @@ class Microtask {
 class IsolateData {
  public:
   void Initialize(JSGlobalContextRef ctx) {
-#define __ok() &ex); do { CHECK(ex==nullptr); }while(0
+#define __ok() &ex); do { CheckException(ctx, ex); }while(0
 #define SET_ARRTIBUTES(name) m_##name = (JSObjectRef) \
 JSObjectGetProperty(ctx, exports, i::name##_s, __ok()); \
 JSValueProtect(ctx, m_##name);
@@ -456,7 +458,11 @@ class Isolate {
   inline static std::string ToSTDString(Isolate* isolate, JSValueRef value) {
     return ToSTDString(isolate, Cast(value));
   }
-  static std::string ToSTDString(Isolate* isolate, JSStringRef value) {
+  inline static std::string ToSTDString(JSContextRef ctx, JSValueRef value) {
+    i::JSCStringPtr s = JSValueToStringCopy(ctx, value, 0);
+    return ToSTDString(*s);
+  }
+  static std::string ToSTDString(JSStringRef value) {
     size_t bufferSize = JSStringGetMaximumUTF8CStringSize(value);
     char* str = (char*)malloc(bufferSize);
     JSStringGetUTF8CString(value, str, bufferSize);
@@ -583,6 +589,20 @@ JS_CONTEXT_DATA(DEF_ARRTIBUTES)
 
 JSValueRef ScopeRetain(Isolate* isolate, JSValueRef value) {
   return isolate->ScopeRetain(value);
+}
+
+void CheckException(JSContextRef ctx, JSValueRef exception) {
+  if (exception) { // err
+    JSValueRef line = JSObjectGetProperty(ctx, (JSObjectRef)exception, line_s, 0);
+    JSValueRef column = JSObjectGetProperty(ctx, (JSObjectRef)exception, column_s, 0);
+    JSValueRef message = JSObjectGetProperty(ctx, (JSObjectRef)exception, message_s, 0);
+    JSValueRef stack = JSObjectGetProperty(ctx, (JSObjectRef)exception, stack_s, 0);
+    double l = JSValueToNumber(ctx, line, 0);
+    double c = JSValueToNumber(ctx, column, 0);
+    std::string m = Isolate::ToSTDString(ctx, message);
+    std::string s = Isolate::ToSTDString(ctx, stack);
+    v8::fatal("", l, "", "%s\n\n%s", m.c_str(), s.c_str());
+  }
 }
 
 Microtask::Microtask(Isolate* isolate, Local<Function> microtask)

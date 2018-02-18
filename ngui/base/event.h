@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui_event__
-#define __ngui_event__
+#ifndef __ngui__base__event__
+#define __ngui__base__event__
 
 #include "list.h"
 #include "map.h"

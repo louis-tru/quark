@@ -131,13 +131,13 @@ public:
           Layout* layout = static_cast<Layout*>(view);
           Layout* parent = layout->m_parent_layout; XX_ASSERT( parent );
           
-          if ( parent->is_div() ) { // in div
+          if ( parent->as_div() ) { // in div
             bool horizontal =
               (static_cast<Div*>(parent)->content_align() == ContentAlign::LEFT ||
                static_cast<Div*>(parent)->content_align() == ContentAlign::RIGHT);
             layout->set_layout_three_times(horizontal, false);
           } else {
-            XX_ASSERT( parent->is_hybrid() );
+            XX_ASSERT( parent->as_hybrid() );
             layout->set_layout_three_times(true, true);
           }
           

@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ngui__http__cookie__
-#define __ngui__http__cookie__
+#ifndef __ngui__base__http__cookie__
+#define __ngui__base__http__cookie__
 
 #include "util.h"
 #include "string.h"

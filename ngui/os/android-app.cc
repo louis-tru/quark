@@ -33,7 +33,7 @@
 #include "../app-1.h"
 #include "../display-port.h"
 #include "../event.h"
-#include "android-ogl-1.h"
+#include "android-gl-1.h"
 #include <android/native_activity.h>
 #include "ngui/base/os/android-jni.h"
 

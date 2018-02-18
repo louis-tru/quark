@@ -28,21 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs          = require('fs');
-var path        = require('path');
-var inputs      = process.argv.slice(2);
-var output_cpp  = inputs.pop();
-var output      = inputs.pop();
-var tag         = inputs.pop();
-var placeholder = inputs.pop();
-var Buffer      = require('buffer').Buffer;
+var fs      = require('fs');
+var path    = require('path');
+var inputs  = process.argv.slice(2);
+var output  = inputs.pop() || path.resolve(__dirname, '../out');
+var prefix  = inputs.pop();
+var Buffer  = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
 
-if ( placeholder ) {
-  placeholder = placeholder.split(',');
-}
-
-// tag = '';
+var inl_inputs = [__filename];
 
 function format_string() {
   var rev = arguments[0];
@@ -51,185 +45,238 @@ function format_string() {
   return rev;
 }
 
-function read_file_data(input, paths) {
+function strip_comment(code) {
+  return code.replace(/\/\/.*$/mg, '');
+}
+
+function resolve_include(input, paths, code) {
   if (paths[input]) {
     return '';
   }
   paths[input] = true;
-  
-  var code = fs.readFileSync(input).toString('utf8')
-              .replace(/\/\/.*$/mg, '');  // 删除注释
-  
+
+  if (!code) {
+    code = strip_comment(fs.readFileSync(input).toString('utf8'));
+  }
+    
   return code.replace(/^#include\s+"([^"]+)"/gm, function (all, a) {
     return  a.match(/\.(vp|fp)\.glsl$/i) ?
-            '' : read_file_data(path.resolve(path.dirname(input), a), paths);
+            '' : resolve_include(path.resolve(path.dirname(input), a), paths);
   });
 }
 
-function main() {
+function transformation_to_es2(glsl_code, type_vp) {
+  if (type_vp) {
+    glsl_code = glsl_code.replace(/a/, function(all, a, b) {
+      return all;
+    });
+  } else {
 
-  if ( !check_file_is_change(inputs, [output, output_cpp]) ) {
+  }
+  return glsl_code;
+}
+
+function find_uniforms_attributes(glsl_code, uniforms, uniform_blocks, attributes, type_vp) {
+
+  // find uniform and attribute
+  var glsl_code_reg =
+    /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?[a-zA-Z][a-zA-Z2-4]{2,}\s+([a-zA-Z0-9\_]+)\s*(\[\s*\d+\s*\])?;\s*$/mg;
+  var glsl_code_mat = glsl_code_reg.exec(glsl_code);
+  
+  while ( glsl_code_mat ) {
+    
+    if (glsl_code_mat[2] == 'uniform') {
+      // 剔除重复的名称
+      if (uniforms.indexOf(glsl_code_mat[5]) == -1) {
+        uniforms.push(glsl_code_mat[5]);
+      }
+    } else if (glsl_code_mat[2] == 'in') {
+      if ( type_vp ) {
+        attributes.push(glsl_code_mat[5]);
+      }
+    } else {
+      attributes.push(glsl_code_mat[5]);
+    }
+    
+    glsl_code_mat = glsl_code_reg.exec(glsl_code);
+  }
+  
+  // find uniform block
+  glsl_code_reg = /^\s*uniform\s+([a-zA-Z0-9\$_]+)\s*\{/mg;
+  glsl_code_mat = glsl_code_reg.exec(glsl_code);
+  
+  while ( glsl_code_mat ) { // 剔除重复的名称
+    if (uniform_blocks.indexOf(glsl_code_mat[1]) == -1) {
+      uniform_blocks.push(glsl_code_mat[1]);
+    }
+    glsl_code_mat = glsl_code_reg.exec(glsl_code);
+  }
+}
+
+function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
+  var output_hpp = path.resolve(output, filename + '.h');
+  var output_cpp = path.resolve(output, filename + '.cc');
+
+  if ( !check_file_is_change([pathname].concat(inl_inputs), [output_hpp, output_cpp]) ) {
     return;
   }
-  
-  var date = new Date();
-  var include = [
-                 '#ifndef __shader_natives_' + date.valueOf() + '__',
-                 '#define __shader_natives_' + date.valueOf() + '__',
-                 '#include "ngui/ogl/ogl.h"',
-                 'namespace ngui {',
-                 'namespace shader {',
-                 ];
-  
-  var natives = [ ];
-  
-  var shaders_struct = [
-                        '#pragma pack(push,4)',
-                        format_string('struct {0}GLShaders {', tag),
-                        ];
-  
-  var mat = output.match(/[\/\\]?([^\/\\]+\.(h|hpp))$/i);
-  
-  if ( ! mat ) {
-    throw "Output error";
-  }
+
+  var date = new Date().valueOf();
+  var hpp = [
+    '#ifndef __shader_natives_' + date + '__',
+    '#define __shader_natives_' + date + '__',
+    'namespace ngui {',
+    'namespace shader {',
+    '#pragma pack(push,4)',
+      format_string('struct struct_{0} {', name),
+      '  const char* name;',
+      '  const unsigned char* source_vp;',
+      '  const  unsigned long source_vp_len;',
+      '  const unsigned char* source_fp;',
+      '  const  unsigned long source_fp_len;',
+      '  const unsigned char* es2_source_vp;',
+      '  const  unsigned long es2_source_vp_len;',
+      '  const unsigned char* es2_source_fp;',
+      '  const  unsigned long es2_source_fp_len;',
+      '  const char* shader_uniforms;',
+      '  const char* shader_uniform_blocks;',
+      '  const char* shader_attributes;',
+      '  unsigned int shader;',
+      '  const int is_test;',
+  ];
   
   var cpp = [
-             format_string('#include "{0}"', mat[1]),
-             'namespace ngui {',
-             'namespace shader {',
-             ];
-  
-  for (var i = 0, address = 0; i < inputs.length; i++) {
-    var input = inputs[i];
-    var mat = input.match(/[\/\\](_)?([^\/\\]+?)(_)?\.glsl$/i);
-    if ( mat && !mat[1] && !mat[3] ) {
-      
-      var name = mat[2].replace(/[\.-]/gm, '_');
-      var codes = read_file_data(input, { }).split('#frag');
+    format_string('#include "{0}"', filename + '.h'),
+    '#include "ngui/gl/gl.h"',
+    'namespace ngui {',
+    'namespace shader {',
+  ];
 
-      // 
+  var source_vp;
+  var source_vp_len;
+  var source_fp;
+  var source_fp_len;
+  var es2_source_vp;
+  var es2_source_vp_len;
+  var es2_source_fp;
+  var es2_source_fp_len;
+  var is_test = /^test/.test(name);
+  var uniforms = [];
+  var uniform_blocks = [];
+  var attributes = [];
 
-      if ( codes.length != 2 ) {
-        continue;
-      }
-      
-      var cur_address = address;  // shader相对地址
-      address += 2;
-      var uniforms = [];
-      var uniform_blocks = [];
-      var attributes = [];
-      
-      codes.forEach(function(glsl_code, index) {
-        
-        // glsl_code = '#version 300 es \n' + glsl_code;
-                    
-        var type_vp = !index;
-        var id = name + '_' + (type_vp ? 'vp' : 'fp');
-        
-        var buff = new Buffer(glsl_code).toJSON().data;
-        var length = buff.length;
-        
-        // TODO parser glsl code
-        var glsl_code_reg =
-        /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?[a-zA-Z][a-zA-Z2-4]{2,}\s+([a-zA-Z0-9\_]+)\s*(\[\s*\d+\s*\])?;\s*$/mg;
-        var glsl_code_mat = glsl_code_reg.exec(glsl_code);
-        
-        while ( glsl_code_mat ) {
-          
-          if (glsl_code_mat[2] == 'uniform') {
-            // 剔除重复的名称
-            if (uniforms.indexOf(glsl_code_mat[5]) == -1) {
-              uniforms.push(glsl_code_mat[5]);
-              address++;
-            }
-          } else if (glsl_code_mat[2] == 'in') {
-            if ( type_vp ) {
-              attributes.push(glsl_code_mat[5]);
-              address++;
-            }
-          } else {
-            attributes.push(glsl_code_mat[5]);
-            address++;
-          }
-          
-          glsl_code_mat = glsl_code_reg.exec(glsl_code);
-        }
-        
-        glsl_code_reg = /^\s*uniform\s+([a-zA-Z0-9\$_]+)\s*\{/mg;
-        glsl_code_mat = glsl_code_reg.exec(glsl_code);
-          
-        while ( glsl_code_mat ) { // 剔除重复的名称
-          if (uniform_blocks.indexOf(glsl_code_mat[1]) == -1) {
-            uniform_blocks.push(glsl_code_mat[1]);
-            address++;
-          }
-          glsl_code_mat = glsl_code_reg.exec(glsl_code);
-        }
-        
-        buff.push(0);
-        
-        var s1 = 'extern const unsigned char {0}[];';
-        var s2 = 'extern const unsigned long {0}_len;';
-        var s3 = 'extern const unsigned char {0}[] = { {1} };';
-        var s4 = 'extern const unsigned long {0}_len = {1};';
-        
-        include.push(format_string(s1, id));
-        include.push(format_string(s2, id));
-        cpp.push(format_string(s3, id, buff.join(',')));
-        cpp.push(format_string(s4, id, length));
-        
-        if ( ! type_vp ) { // frag end          
-          s1 = '{ "{0}", {0}_vp, {0}_fp, {0}_vp_len, {0}_fp_len, {1}, "{2}", "{3}", "{4}" }';
-          natives.push(format_string(s1, name, cur_address,
-                                     uniforms.join(','),
-                                     uniform_blocks.join(','),
-                                     attributes.join(',')));
-          
-          shaders_struct.push(format_string('GLShader {0};', name));
-          shaders_struct.push(uniforms.map(function(item) {
-            return format_string('int {0}_uniform_{1} = 0;', name, item);
-          }).join('\n'));
-          if ( uniform_blocks.length ) {
-            shaders_struct.push(uniform_blocks.map(function(item) {
-              return format_string('int {0}_uniform_{1} = 0;', name, item);
-            }).join('\n'));
-          }
-          if ( placeholder ) {
-          // placeholder attribute identifier
-            shaders_struct.push(placeholder.map(function(item, i) {
-              address++;
-              return format_string('unsigned int {0}_in_{1} = {2};', name, item, i);
-            }).join('\n'));
-          }
-          if ( attributes.length ) {
-            shaders_struct.push(attributes.map(function(item, i) {
-              return format_string('unsigned int {0}_in_{1} = {2};', name, item, i);
-            }).join('\n'));
-          }
-          shaders_struct.push('');
-        }
-        // console.log(input);
-      });
+  [vert_code, frag_code].forEach(function(glsl_code, index) {
+    var type_vp = !index;
+    var es2_glsl_code = transformation_to_es2(glsl_code, type_vp);
+
+    find_uniforms_attributes(glsl_code, uniforms, uniform_blocks, attributes, type_vp);
+
+    var buff = new Buffer(glsl_code).toJSON().data;
+    var es2_buff = new Buffer(es2_glsl_code).toJSON().data;
+
+    if (type_vp) {
+      source_vp = buff;
+      source_vp_len = buff.length;
+      es2_source_vp = es2_buff;
+      es2_source_vp_len = es2_buff.length;
+    } else {
+      source_fp = buff;
+      source_fp_len = buff.length;
+      es2_source_fp = es2_buff;
+      es2_source_fp_len = es2_buff.length;
     }
-  }
-  
-  include.push(format_string('static const struct NativeGLSL {0}natives[] = {', tag));
-  include.push(natives.join(',\n'));
-  include.push('};');
-  include.push('}');
-  
-  include.push(shaders_struct.join('\n'));
-  include.push('};');
-  include.push('#pragma pack(pop)');
-  
-  include.push('}');
-  include.push('#endif');
+    buff.push(0); es2_buff.push(0);
+  });
+
+  // ---------------- output hpp ---------------- 
+
+  uniforms.concat(uniform_blocks).forEach(function(uniform) {
+    hpp.push(format_string('  int {0};', uniform));
+  });
+  attributes.forEach(function(attribute) {
+    hpp.push(format_string('  unsigned int {0};', attribute));
+  });
+  hpp.push(format_string('} extern {0};', name));
+  hpp.push('#pragma pack(pop)');
+  hpp.push('}', '}', '#endif');
+
+  // ---------------- output cpp ---------------- 
+
+  cpp.push(format_string('const unsigned char source_vp[] = { {0} };', source_vp));
+  cpp.push(format_string('const unsigned char source_fp[] = { {0} };', source_fp));
+  cpp.push(format_string('const unsigned char es2_source_vp[] = { {0} };', es2_source_vp));
+  cpp.push(format_string('const unsigned char es2_source_fp[] = { {0} };', es2_source_fp));
+  cpp.push(format_string('struct struct_{0} {0} = {', name)),
+  cpp.push(format_string('  "{0}",', name));
+  cpp.push(format_string('  source_vp,{0},', source_vp_len));
+  cpp.push(format_string('  source_fp,{0},', source_fp_len));
+  cpp.push(format_string('  es2_source_vp,{0},', es2_source_vp_len));
+  cpp.push(format_string('  es2_source_fp,{0},', es2_source_fp_len));
+  cpp.push(format_string('  "{0}",', uniforms.join(',')));
+  cpp.push(format_string('  "{0}",', uniform_blocks.join(',')));
+  cpp.push(format_string('  "{0}",', attributes.join(',')));
+  cpp.push('  0,');
+  cpp.push(is_test ? '  1,' : '  0,');
+
+  uniforms.concat(uniform_blocks).forEach(function(uniform) {
+    cpp.push('  0,');
+  });
+  attributes.forEach(function(attribute, i) {
+    cpp.push('  ' + i + ',');
+  });
+  cpp.push('};');
+
+  // init block
+  cpp.push(format_string('XX_INIT_BLOCK({0}) {', name));
+  cpp.push(format_string('  GLDraw::register_gl_shader((ngui::GLShader*)(&{0}));', name));
   cpp.push('}');
-  cpp.push('}');
-  
-  fs.writeFileSync(output, include.join('\n'));
+
+  cpp.push('}', '}');
+  fs.writeFileSync(output_hpp, hpp.join('\n'));
   fs.writeFileSync(output_cpp, cpp.join('\n'));
+}
+
+function main() {
+  var main_inputs = [];
+
+  inputs.forEach(function(input) {
+    var mat = input.match(/[\/\\](inl\-|_)?([^\/\\]+?)(_)?\.glsl$/i);
+    if ( mat && !mat[1] && !mat[3] ) {
+      main_inputs.push({ input: input, filename: mat[2] });
+    } else {
+      inl_inputs.push(input);
+    }
+  });
+
+  main_inputs.forEach(function(input) {
+    var filename = input.filename;
+    input = input.input;
+    var name = filename.replace(/[\.-]/gm, '_');
+    var code = strip_comment(fs.readFileSync(input).toString('utf8'));
+    var codes = { vert: '', frag: '' };
+
+    var reg = /^\s*#(vert|frag)\s*$/mg;
+    var prev = { index: 0, type: '' };
+
+    var mat = reg.exec(code);
+    while (mat) {
+      if (prev.index) {
+        codes[prev.type] += code.substring(prev.index, mat.index);
+      }
+      prev.index = mat.index + mat[0].length;
+      prev.type = mat[1];
+      mat = reg.exec(code);
+    }
+
+    if (prev.type && prev.index < code.length ) {
+      codes[prev.type] += code.substring(prev.index, code.length);
+    }
+    if ( codes.vert && codes.frag ) {
+      codes.vert = resolve_include(input, {}, codes.vert);
+      codes.frag = resolve_include(input, {}, codes.frag);
+      resolve_glsl(input, prefix + filename, name, codes.vert, codes.frag);
+    }
+  });
 }
 
 main();

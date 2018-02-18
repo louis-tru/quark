@@ -351,6 +351,9 @@ size_t v8::SharedArrayBuffer::ByteLength() const {
 
 Local<SharedArrayBuffer> v8::SharedArrayBuffer::New(Isolate* iso, size_t byte_length) {
   ENV(iso);
+  if (JSValueIsUndefined(ctx, isolate->SharedArrayBuffer())) {
+    return Local<SharedArrayBuffer>();
+  }
   JSValueRef argv[1] = {
     JSValueMakeNumber(ctx, byte_length),
   };

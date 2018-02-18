@@ -488,7 +488,7 @@ using value::Value;
 using value::Border;
 using value::TextLineHeightValue;
 using value::TextStyleEnum;
-typedef value::Shadow CGShadow;
+using value::Shadow;
 typedef value::Rect CGRect;
 using value::Region;
 using value::KeyboardType;

@@ -161,7 +161,7 @@ public:
           find->find(btn);
         }
       } else {
-        if ( ! v->is_select_panel() ) {
+        if ( ! v->as_select_panel() ) {
           _inl(v)->compute_final_matrix();
           v = v->first();
           while ( v ) {
@@ -246,8 +246,9 @@ Button* Button::find_next_button(Direction direction) {
 SelectPanel* Button::panel() {
   View* view = parent();
   while (view) {
-    if ( view->is_select_panel() ) {
-      return view->as_select_panel();
+    auto sp = view->as_select_panel();
+    if ( sp ) {
+      return sp;
     }
     view = view->parent();
   }

@@ -1448,8 +1448,9 @@ static Button* first_button_2(View* v) {
   
   while (v) {
     if ( v->final_visible() ) {
-      if ( v->is_button() ) {
-        return v->as_button();
+      auto btn = v->as_button();
+      if ( btn ) {
+        return btn;
       } else {
         SelectPanel* panel = v->as_select_panel();
         

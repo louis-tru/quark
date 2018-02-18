@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__android_log__
-#define __ngui__android_log__
+#ifndef __ngui__base__android_log__
+#define __ngui__base__android_log__
 
 #include "../util.h"
 

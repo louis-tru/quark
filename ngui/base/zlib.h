@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__zlib__
-#define __ngui__zlib__
+#ifndef __ngui__base__zlib__
+#define __ngui__base__zlib__
 
 #include "map.h"
 #include "string.h"

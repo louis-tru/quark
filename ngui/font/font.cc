@@ -43,6 +43,10 @@
 #include "font.cc.glyph.inl"
 #include "font.cc.family.inl"
 
+#ifndef XX_SUPPORT_MAX_TEXTURE_FONT_SIZE
+#define XX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
+#endif
+
 XX_NS(ngui)
 
 static String THIN_("thin");
@@ -226,15 +230,15 @@ public:
       m_display_port_scale = scale;
 
       m_draw_ctx->host()->render_loop()->post(Cb([this](Se& e) {
-        m_draw_ctx->refresh_status_for_font_pool(this);
+        m_draw_ctx->refresh_font_pool(this);
       }));
       
       Vec2 size = m_display_port->size();
       uint font_size = sqrtf(size.width() * size.height()) / 10;
       
       // 最大纹理字体不能超过上下文支持的大小
-      if (font_size >= m_draw_ctx->support_max_texture_font_size()) {
-        m_max_glyph_texture_size = m_draw_ctx->support_max_texture_font_size();
+      if (font_size >= XX_SUPPORT_MAX_TEXTURE_FONT_SIZE) {
+        m_max_glyph_texture_size = XX_SUPPORT_MAX_TEXTURE_FONT_SIZE;
       } else {
         m_max_glyph_texture_size = font_glyph_texture_levels_idx[font_size].max_font_size;
       }

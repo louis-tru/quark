@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__object__
-#define __ngui__object__
+#ifndef __ngui__base__object__
+#define __ngui__base__object__
 
 #include "macros.h"
 #include <atomic>

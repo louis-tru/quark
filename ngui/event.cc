@@ -293,7 +293,7 @@ public:
     if ( view->m_visible && in.length() ) {
       if ( view->m_visible_draw || view->m_need_draw ) {
         
-        if ( view->m_last && view->is_clip() ) {
+        if ( view->m_last && view->as_clip() ) {
           List<GUITouch> in2;
           
           for ( auto i = in.begin(), e = in.end(); i != e; ) {

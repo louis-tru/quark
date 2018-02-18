@@ -74,7 +74,7 @@ TYPE Frame::NAME() { \
 void Frame::set_##NAME(TYPE value) { \
   _inl_frame(this)->set_property_value<ENUM>(value); \
 }
-xx_each_property_table(xx_def_property)
+XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_accessor
 
 void Frame::set_margin(Value value) {

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__env__
-#define __ngui__env__
+#ifndef __ngui__base__env__
+#define __ngui__base__env__
 
 #define XX_HAS_CPP __cplusplus
 

@@ -226,7 +226,7 @@ void StyleSheets::set_border_radius(float value) {
 void StyleSheets::set_##NAME(TYPE value) { \
 _inl_ss(this)->set_property_value<ENUM>(value); \
 }
-xx_each_property_table(xx_def_property)
+XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_accessor
 
 // -----
