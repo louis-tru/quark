@@ -8,3 +8,4 @@ node_modules/ngui-tools/osx
 node_modules/ngui-tools/linux
 *jsa-shell
 depe/glsl-optimizer
+depe/glslang
