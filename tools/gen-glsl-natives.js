@@ -38,6 +38,20 @@ var check_file_is_change = require('./check').check_file_is_change;
 
 var inl_inputs = [__filename];
 
+var round = `
+float __round(float num) {
+  float r = floor(num);
+  if ( num - r >= 0.5 ) {
+    return r + 1.0;
+  } else {
+    return r;
+  }
+}
+vec2 __round(vec2 num) {
+  return vec2(__round(num.x), __round(num.y));
+}
+`;
+
 function format_string() {
   var rev = arguments[0];
   for (var i = 1, len = arguments.length; i < len; i++)
@@ -66,21 +80,61 @@ function resolve_include(input, paths, code) {
 }
 
 function transformation_to_es2(glsl_code, type_vp) {
-  if (type_vp) {
-    glsl_code = glsl_code.replace(/a/, function(all, a, b) {
-      return all;
-    });
-  } else {
+  var reg = /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(in|out)\s+((lowp|mediump|highp)\s+)?([a-zA-Z][a-zA-Z2-4]{2,})\s+([a-zA-Z0-9\_]+)\s*(\[\s*\d+\s*\])?;\s*$/mg;
+  var es2_frag_out_name = [];
+  var is_use_round = false;
 
+  glsl_code = glsl_code.replace(reg, function(all, layout, inout, c, d, type, id) {
+    if (type_vp) {
+      if (inout == 'in') {
+        return all.replace('in', 'attribute');
+      } else { // out
+        return all.replace('out', 'varying');
+      }
+    } else { // fp
+      if (inout == 'in') {
+        return all.replace('in', 'varying');
+      } else { // out
+        if (type == 'vec4') {
+          es2_frag_out_name.push({ type: type, id: id });
+        }
+        return '';
+      }
+    }
+    return all;
+  });
+
+  if (type_vp) {
+    glsl_code = glsl_code.replace(/gl_VertexID/g, '___VertexID');
+  } 
+  else { // fp
+    if (es2_frag_out_name.length) {
+      var reg = new RegExp(es2_frag_out_name[0].id, 'g');
+      glsl_code = glsl_code.replace(reg, 'gl_FragColor');
+    }
   }
+
+  glsl_code = glsl_code.replace(/#version\s+\d+\s+(es)?/g, '');
+
+  // glsl_code = glsl_code.replace(/(?<![a-zA-Z0-9\$_])texture\s*\(/g, 'texture2D(');
+  glsl_code = glsl_code.replace(/([^a-zA-Z0-9\$_])texture\s*\(/g, '$1texture2D(');
+  glsl_code = glsl_code.replace(/([^a-zA-Z0-9\$_])round\s*\(/g, function(all, a) {
+    is_use_round = true;
+    return a + '__round(';
+  });
+
+  if (is_use_round)
+    glsl_code = round + glsl_code;
+
+  // console.log('++++++++++++++++++++', glsl_code);
+
   return glsl_code;
 }
 
 function find_uniforms_attributes(glsl_code, uniforms, uniform_blocks, attributes, type_vp) {
 
   // find uniform and attribute
-  var glsl_code_reg =
-    /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?[a-zA-Z][a-zA-Z2-4]{2,}\s+([a-zA-Z0-9\_]+)\s*(\[\s*\d+\s*\])?;\s*$/mg;
+  var glsl_code_reg = /^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s+)?(uniform|attribute|in)\s+((lowp|mediump|highp)\s+)?[a-zA-Z][a-zA-Z2-4]{2,}\s+([a-zA-Z0-9\_]+)\s*(\[\s*\d+\s*\])?;\s*$/mg;
   var glsl_code_mat = glsl_code_reg.exec(glsl_code);
   
   while ( glsl_code_mat ) {

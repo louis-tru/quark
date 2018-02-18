@@ -41,7 +41,9 @@ void main() {
   v = v_matrix * vec4(v.xy, 0.0, 1.0);
   
   /* 在这里做取整,使纹理都刚好落到频幕物理像素点上,这样能减少小号字体插值绘制失真。*/
-  v.xyz = round(v.xyz * display_port_scale) / display_port_scale;
+  v.xy = round(v.xy * display_port_scale) / display_port_scale;
+  // v.x = round(v.x * display_port_scale) / display_port_scale;
+  // v.y = round(v.y * display_port_scale) / display_port_scale;
   
   gl_Position = r_matrix * v;
 }
