@@ -78,8 +78,20 @@ add_library(ngui-base SHARED
            )
 
 add_library(ngui-gui SHARED
-            ../../../out/glsl-shader.cc
-            ../../../out/glsl-es2-shader.cc
+            ../../../out/glsl-sprite.cc
+            ../../../out/glsl-box-image.cc
+            ../../../out/glsl-box-yuv420p-image.cc
+            ../../../out/glsl-box-yuv420sp-image.cc
+            ../../../out/glsl-box-border.cc
+            ../../../out/glsl-box-color.cc
+            ../../../out/glsl-box-shadow.cc
+            ../../../out/glsl-box-image-radius.cc
+            ../../../out/glsl-box-border-radius.cc
+            ../../../out/glsl-box-color-radius.cc
+            ../../../out/glsl-text-box-color.cc
+            ../../../out/glsl-text-texture.cc
+            ../../../out/glsl-text-vertex.cc
+            ../../../out/glsl-gen-texture.cc
             ../../../out/font-native.cc
             ../../../ngui/action.cc
             ../../../ngui/app.cc
@@ -87,7 +99,7 @@ add_library(ngui-gui SHARED
             ../../../ngui/div.cc
             ../../../ngui/indep.cc
             ../../../ngui/gradient.cc
-            ../../../ngui/shadow.cc
+            ../../../ngui/box-shadow.cc
             ../../../ngui/limit.cc
             ../../../ngui/limit-indep.cc
             ../../../ngui/image.cc
@@ -109,11 +121,10 @@ add_library(ngui-gui SHARED
             ../../../ngui/text-rows.cc
             ../../../ngui/view.cc
             ../../../ngui/draw.cc
-            ../../../ngui/ogl/ogl.cc
-            ../../../ngui/ogl/ogl-draw.cc
-            ../../../ngui/ogl/ogl-es2.cc
-            ../../../ngui/ogl/ogl-texture.cc
-            ../../../ngui/ogl/ogl-font.cc
+            ../../../ngui/gl/gl.cc
+            ../../../ngui/gl/gl-draw.cc
+            ../../../ngui/gl/gl-texture.cc
+            ../../../ngui/gl/gl-font.cc
             ../../../ngui/root.cc
             ../../../ngui/sprite.cc
             ../../../ngui/scroll.cc
@@ -133,7 +144,7 @@ add_library(ngui-gui SHARED
             ../../../ngui/clip.cc
             ../../../ngui/input.cc
             ../../../ngui/textarea.cc
-            ../../../ngui/os/android-ogl.cc
+            ../../../ngui/os/android-gl.cc
             ../../../ngui/os/android-app.cc
             ../../../ngui/os/android-media-codec.cc
             ../../../ngui/os/android-pcm-player.cc
@@ -225,6 +236,7 @@ add_library(ngui-test SHARED
             ../../../test/test-localstorage.cc
             ../../../test/test-buffer.cc
             ../../../test/test-ngui.cc
+            ../../../test/test-demo.cc
             ../../../test/test-jsc.cc
             ../../../test/test-v8.cc
             ../../../test/test-loop.cc

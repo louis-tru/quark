@@ -40,16 +40,16 @@ public class MainActivity extends NGUIActivity {
   static {
     System.loadLibrary("ngui-test");
   }
-  
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-  }
 
-  protected String start_path() {
-    //return "examples";
-    //--inspect-brk=0.0.0.0:9229
-    return "http://192.168.1.11:1026/demo/examples --dev --ignore-local=*";
-  }
+//  @Override
+//  protected void onCreate(Bundle savedInstanceState) {
+//    super.onCreate(savedInstanceState);
+//  }
+//
+//  protected String start_path() {
+//    //return "examples";
+//    //--inspect-brk=0.0.0.0:9229
+//    return "http://192.168.1.11:1026/demo/examples --dev --ignore-local=*";
+//  }
 
 }

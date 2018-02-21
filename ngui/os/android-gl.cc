@@ -32,8 +32,7 @@
 #include "android-gl-1.h"
 #include "android/android.h"
 #include "../display-port.h"
-#include "../gl/gl-es2-1.h"
-#include "glsl-shader.h"
+#include "glsl-box-color.h"
 
 #ifndef xx_use_depth_test
 #define xx_use_depth_test 0
@@ -183,8 +182,8 @@ AndroidGLDrawCore* AndroidGLDrawCore::create(GUIApplication* host,
 
   // TODO: 3.0 现在很多设备都抛出错误,并有一些设备不能绘制边框,暂时只使用2.0
   // TODO: `validate_vertex_attrib_state: No vertex attrib is enabled in a draw call!`
-  EGLContext ctx = nullptr;
-  //EGLContext ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
+  // EGLContext ctx = nullptr;
+  EGLContext ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
   if ( ctx ) {
     rv = (new AndroidGLDraw<GLDraw>(host, display, config, ctx,
                                     multisample_ok,
@@ -408,21 +407,23 @@ void AndroidGLDrawCore::commit_render() {
 #define gl_ glshaders(m_host)
 
   if ( m_virtual_keys_rect.size.width() != 0 ) {
-    // Draw Virtual Keys background color
-    gl_->box_color.use();
+    // Draw Virtual Keys background color  
 
-    float data[] = {
+    float view_matrix_op[] = {
       1,0,0, // matrix
       0,1,0,
       1, // opacity
-      m_virtual_keys_rect.origin[0], // vertex_ac
-      m_virtual_keys_rect.origin[1],
-      m_virtual_keys_rect.origin[0] + m_virtual_keys_rect.size[0],
-      m_virtual_keys_rect.origin[1] + m_virtual_keys_rect.size[1],
-      0,0,0,1 // background_color
+      0, 0, 0, 1, // background color
     };
+    glUseProgram(shader::box_color.shader);
+    glUniform1fv(shader::box_color.view_matrix_op, 7, view_matrix_op);
+    glUniform4f(shader::box_color.vertex_ac,
+                m_virtual_keys_rect.origin[0], // vertex_ac
+                m_virtual_keys_rect.origin[1],
+                m_virtual_keys_rect.origin[0] + m_virtual_keys_rect.size[0],
+                m_virtual_keys_rect.origin[1] + m_virtual_keys_rect.size[1]);
+    glUniform1fv(shader::box_color.draw_data, 4, view_matrix_op + 7);
 
-    glUniform1fv(gl_->box_color_uniform_draw_data, sizeof(data), data);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
 

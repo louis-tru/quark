@@ -28,11 +28,42 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "test-demo.cc"
+#include "ngui/js/js.h"
+#include "ngui/app.h"
+#include "ngui/base/fs.h"
 
-XX_GUI_MAIN() {
+using namespace ngui;
+
+#define USE_REMOTE 0
+#define USE_INSPECT 0
+
+void test_demo() {
   
-	test_demo();
-  
-  return 0;
+#if USE_REMOTE
+# if USE_INSPECT
+  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
+# else
+  js::start("http://192.168.1.11:1026/demo/examples --dev");
+# endif
+#else
+# if USE_INSPECT
+  js::start("--inspect-brk=0.0.0.0:9229 examples");
+# else
+  js::start("examples --dev");
+# endif
+#endif
 }
+
+extern "C" {
+
+#if XX_ANDROID
+#include <ngui/base/os/android-jni.h>
+
+	JNIEXPORT extern void
+	Java_org_ngui_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		LOG("Java_org_ngui_examples_MainActivity_test");
+	}
+	
+#endif
+}
+

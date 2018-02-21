@@ -69,6 +69,7 @@
         'test-localstorage.cc',
         'test-buffer.cc',
         'test-ngui.cc',
+        'test-demo.cc',
         'test-jsc.cc',
         'test-v8.cc',
         'test-loop.cc',

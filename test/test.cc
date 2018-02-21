@@ -33,7 +33,7 @@
 #include "ngui/base/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_ngui
+#define TEST_FUNC_NAME test_demo
 #endif
 
 using namespace ngui;
