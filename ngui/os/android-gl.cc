@@ -194,9 +194,9 @@ AndroidGLDrawCore* AndroidGLDrawCore::create(GUIApplication* host,
     ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
     XX_ASSERT(ctx);
 
-    rv = (new AndroidGLDraw<GLES2Draw>(host, display, config, ctx,
-                                       multisample_ok,
-                                       DRAW_LIBRARY_GLES2, options))->core();
+    rv = (new AndroidGLDraw<GLDraw>(host, display, config, ctx,
+                                    multisample_ok,
+                                    DRAW_LIBRARY_GLES2, options))->core();
   }
 
   return rv;
