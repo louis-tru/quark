@@ -39,7 +39,7 @@ var check_file_is_change = require('./check').check_file_is_change;
 var inl_inputs = [__filename];
 
 var round = `
-float __round(float num) {
+float xx_round(float num) {
   float r = floor(num);
   if ( num - r >= 0.5 ) {
     return r + 1.0;
@@ -47,8 +47,8 @@ float __round(float num) {
     return r;
   }
 }
-vec2 __round(vec2 num) {
-  return vec2(__round(num.x), __round(num.y));
+vec2 xx_round(vec2 num) {
+  return vec2(xx_round(num.x), xx_round(num.y));
 }
 `;
 
@@ -105,7 +105,7 @@ function transformation_to_es2(glsl_code, type_vp) {
   });
 
   if (type_vp) {
-    glsl_code = glsl_code.replace(/gl_VertexID/g, '___VertexID');
+    glsl_code = glsl_code.replace(/gl_VertexID/g, 'xx_VertexID');
   } 
   else { // fp
     if (es2_frag_out_name.length) {
@@ -120,7 +120,7 @@ function transformation_to_es2(glsl_code, type_vp) {
   glsl_code = glsl_code.replace(/([^a-zA-Z0-9\$_])texture\s*\(/g, '$1texture2D(');
   glsl_code = glsl_code.replace(/([^a-zA-Z0-9\$_])round\s*\(/g, function(all, a) {
     is_use_round = true;
-    return a + '__round(';
+    return a + 'xx_round(';
   });
 
   if (is_use_round)

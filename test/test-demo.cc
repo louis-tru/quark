@@ -38,7 +38,7 @@ using namespace ngui;
 #define USE_INSPECT 0
 
 void test_demo() {
-  
+
 #if USE_REMOTE
 # if USE_INSPECT
   js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
@@ -63,7 +63,7 @@ extern "C" {
 	Java_org_ngui_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
 		LOG("Java_org_ngui_examples_MainActivity_test");
 	}
-	
+
 #endif
 }
 

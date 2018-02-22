@@ -307,24 +307,22 @@ public:
     glUseProgram(shader::box_border.shader);
     
     set_box_uniform_value<Box_CtxData>(shader::box_border, v);
-
-    int i = shader::box_border.direction;
     
     if ( v->m_border_left.width != 0) { // left
-      glUniform1i(i, 0);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      glUniform1i(shader::box_border.direction, 0);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
     if ( v->m_border_top.width != 0) { // top
-      glUniform1i(i, 1);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      glUniform1i(shader::box_border.direction, 1);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
     if ( v->m_border_right.width != 0) { // right
-      glUniform1i(i, 2);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      glUniform1i(shader::box_border.direction, 2);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
     if ( v->m_border_bottom.width != 0) { // bottom
-      glUniform1i(i, 3);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      glUniform1i(shader::box_border.direction, 3);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
   }
   
@@ -343,7 +341,8 @@ public:
           glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
         }
         if ( v->m_is_draw_border ) { // 绘制边框
-          // TODO 在iOS系统中使用OpenGLES2.0方式运行Examples程序时，
+          // TODO resolved
+          // 在iOS系统中使用OpenGLES2.0方式运行Examples程序时，
           // 从主界面切换到`Examplex source`时会出现绘图命令提交异常导致程序奔溃
           // 初步判定是在绘制圆角边框时参数错误导致,所以在iOS上暂时只运行OpenGLES3.0模式
           draw_border_radius(v);
@@ -665,7 +664,7 @@ void GLDraw::draw(Image* v) {
           glUseProgram(shader::box_image_radius.shader); // 使用圆角矩形纹理着色器
           _inl(this)->set_box_uniform_value<Box_RadiusSize>(shader::box_image_radius, v);
           glUniform1f(shader::box_image_radius.sample_x2, 30); // sample 15*2
-          glDrawArrays(GL_TRIANGLE_FAN, 0, 64);
+          glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
         }
         else {
           if ( v->m_background_color.a() ) { // 绘制背景

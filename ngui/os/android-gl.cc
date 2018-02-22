@@ -180,9 +180,10 @@ AndroidGLDrawCore* AndroidGLDrawCore::create(GUIApplication* host,
     EGL_NONE
   };
 
-  // TODO: 3.0 现在很多设备都抛出错误,并有一些设备不能绘制边框,暂时只使用2.0
-  // TODO: `validate_vertex_attrib_state: No vertex attrib is enabled in a draw call!`
-  // EGLContext ctx = nullptr;
+  // TODO resolved
+  // 3.0 现在很多设备都抛出错误 `validate_vertex_attrib_state: No vertex attrib is enabled in a draw call!`
+  // 并有一些设备不能绘制边框,暂时只使用2.0
+  
   EGLContext ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
   if ( ctx ) {
     rv = (new AndroidGLDraw<GLDraw>(host, display, config, ctx,

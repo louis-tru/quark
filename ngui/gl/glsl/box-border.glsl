@@ -1,10 +1,6 @@
 #vert
 #include "_box.glsl"
 
-uniform int direction;
-
-out vec4 f_color;
-
 #define vertex0 (vertex_ac.xy - border_width.xy)
 #define vertex1 vec2(vertex_ac.z + border_width.z, vertex_ac.y - border_width.y)
 #define vertex2 (vertex_ac.zw + border_width.zw)
@@ -14,38 +10,50 @@ out vec4 f_color;
 #define vertex6 vec2(vertex_ac.z, vertex_ac.w)
 #define vertex7 vec2(vertex_ac.x, vertex_ac.w)
 
+uniform int direction;
+
+out vec4 f_color;
+
 // 使用4顶点的实例绘制, 一个实例绘制一条边
 
 void main() {
   
   vec2 v;
+  
+  // TODO
+  // 有某些android设备上运行在es3环境中时,
+  // 直接在if条件中使用 uniform `direction` 会导致非常奇怪的无法绘制的错误,
+  // 这可能是在编译glsl条件语句时导致的分支紊乱。
 
-  if (direction == 0) {
-    if      ( gl_VertexID == 0 ) v = vertex3;
-    else if ( gl_VertexID == 1 ) v = vertex0;
-    else if ( gl_VertexID == 2 ) v = vertex7;
-    else  v = vertex4;
+  int id = gl_VertexID;
+  int d = direction;
+
+  if (d == 0) {
+    if      ( id == 0 ) v = vertex3;
+    else if ( id == 1 ) v = vertex0;
+    else if ( id == 2 ) v = vertex4;
+    else  v = vertex7;
     f_color = vec4(border_left_color.rgb, border_left_color.a * opacity);
   } 
-  else if (direction == 1) {
-    if      ( gl_VertexID == 0 ) v = vertex0;
-    else if ( gl_VertexID == 1 ) v = vertex1;
-    else if ( gl_VertexID == 2 ) v = vertex4;
-    else  v = vertex5;
+  else if (d == 1) {
+    if      ( id == 0 ) v = vertex0;
+    else if ( id == 1 ) v = vertex1;
+    else if ( id == 2 ) v = vertex5;
+    else  v = vertex4;
     f_color = vec4(border_top_color.rgb, border_top_color.a * opacity);
   } 
-  else if (direction == 2) {
-    if      ( gl_VertexID == 0 ) v = vertex1;
-    else if ( gl_VertexID == 1 ) v = vertex2;
-    else if ( gl_VertexID == 2 ) v = vertex5;
-    else  v = vertex6;
+  else if (d == 2) {
+    if      ( id == 0 ) v = vertex1;
+    else if ( id == 1 ) v = vertex2;
+    else if ( id == 2 ) v = vertex6;
+    else  v = vertex5;
     f_color = vec4(border_right_color.rgb, border_right_color.a * opacity);
   } 
   else {
-    if      ( gl_VertexID == 0 ) v = vertex2;
-    else if ( gl_VertexID == 1 ) v = vertex3;
-    else if ( gl_VertexID == 2 ) v = vertex6;
-    else  v = vertex7;
+    if      ( id == 0 ) v = vertex2;
+    else if ( id == 1 ) v = vertex3;
+    else if ( id == 2 ) v = vertex7;
+    else  v = vertex6;
     f_color = vec4(border_bottom_color.rgb, border_bottom_color.a * opacity);
   }
   

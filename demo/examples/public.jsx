@@ -4,6 +4,7 @@ import {
   Text, TextNode, atomPixel: px, 
   Indep, isViewXml, Panel, Scroll, ngui, Style
 } from 'ngui';
+import 'ngui/util';
 
 // CSS(<Style>
 //   .long_btn {
@@ -86,6 +87,7 @@ CSS({
 export class Navbutton extends ViewController {
   
   loadView(vx) {
+    //util.log('---------------------', px);
     super.loadView(
       <Button
         onClick="handle_click"

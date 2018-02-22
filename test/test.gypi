@@ -31,6 +31,7 @@
         'res',
         'test-ngui',
         '../node_modules/ngui',
+        '../demo/examples',
         '../benchmark',
       ],
       'xcode_settings': {

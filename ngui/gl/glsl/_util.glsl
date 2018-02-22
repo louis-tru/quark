@@ -1,13 +1,15 @@
 
 #include "_version.glsl"
 
+precision mediump float;
+
 in vec2 vertex_id;
 uniform mat4  root_matrix;
 uniform float view_matrix_op[7];  // 视图变换/透明度
 uniform vec4  vertex_ac;
 uniform float draw_data[48];
 
-#define ___VertexID int(vertex_id[0])
+#define xx_VertexID int(vertex_id[0])
 #define r_matrix root_matrix
 #define v_matrix get_view_matrix()
 #define d_data draw_data
