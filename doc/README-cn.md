@@ -9,14 +9,18 @@ Ngui的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般�
 
 * 从这里[`Go API Index`](http://nodegui.org/doc/)可以到 `API Documents Index`
 
+| ![](http://nodegui.org/img/0x0ss.jpg) | ![](http://nodegui.org/img/0x0ss_3.jpg) | ![](http://nodegui.org/img/0x0ss_4.jpg) |
+|--|--|--|
+
+
 # Simple Examples
 
 这是一个简单的在屏幕上显示`hello world!`的程序
 
 ```jsx
-import { GUIApplication, Root } from 'ngui'
+import { GUIApplication, Text } from 'ngui'
 new GUIApplication().start(
-	<Root>hello world!</Root>
+	<Text>hello world!</Text>
 )
 ```
 
@@ -42,7 +46,7 @@ $ sudo npm install -g ngui-tools
 	
 * 运行`ngui-tools` 需要依赖`nodejs`与`python2.7`
 
-* 并且不能运行在`windows`系统, 暂时只能在`mac`下使用
+* 并且不能运行在`windows`系统, 暂时只能在`mac`或`linux`下使用
 
 ## Create new project
 
@@ -123,4 +127,9 @@ $ ngui
 	}
 	-->
 </script>
+
+
+
+
+
 
