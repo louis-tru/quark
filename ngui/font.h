@@ -205,7 +205,6 @@ class XX_EXPORT Font: public BasicFont {
   friend class FontGlyphTable;
   friend class FontPool;
   friend class GLDraw;
-  friend class GLES2Draw;
 };
 
 /**
@@ -316,7 +315,6 @@ class XX_EXPORT FontGlyph {
   friend class Font;
   friend class FontGlyphTable;
   friend class GLDraw;
-  friend class GLES2Draw;
 };
 
 /**
@@ -609,7 +607,6 @@ class XX_EXPORT FontPool: public Object {
   friend class GUIApplication;
   friend class Draw;
   friend class GLDraw;
-  friend class GLES2Draw;
 };
 
 XX_END

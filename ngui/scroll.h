@@ -284,7 +284,6 @@ class XX_EXPORT BasicScroll {
   XX_DEFINE_INLINE_CLASS(Task);
   
   friend class GLDraw;
-  friend class GLES2Draw;
   
   List<Task*> m_tasks;
   

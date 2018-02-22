@@ -45,7 +45,6 @@ XX_NS(ngui)
 class DrawData;
 class Draw;
 class GLDraw;
-class GLES2Draw;
 class View;
 class ViewController;
 class PreRender;
@@ -89,7 +88,6 @@ XX_EACH_VIEWS(XX_DEFINE_CLASS);
 #define XX_DEFINE_GUI_VIEW(enum, type, name) \
   public: \
   friend class GLDraw;  \
-  friend class GLES2Draw; \
   virtual type* as_##name() { return this; }  \
   virtual ViewType view_type() const { return enum; }
 
@@ -877,7 +875,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   friend class PreRender;
   friend class ViewController;
   friend class GLDraw;
-  friend class GLES2Draw;
   friend class GUIEventDispatch;
   friend class DisplayPort;
   friend class TextNode;

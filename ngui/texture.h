@@ -173,7 +173,6 @@ class XX_EXPORT Texture: public Reference {
   PixelFormat m_format;
   
   friend class GLDraw;
-  friend class GLES2Draw;
   
   XX_DEFINE_INLINE_CLASS(Inl);
 };
