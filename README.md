@@ -14,7 +14,7 @@ Goal: developing GUI applications on this basis can take into account both the s
 
 * From here, [`Go API Index`](http://nodegui.org/doc/) can go to `API Documents Index`
 
-| ![](http://nodegui.org/img/0x0ss.jpg) | ![](http://nodegui.org/img/0x0ss_3.jpg) | ![](http://nodegui.org/img/0x0ss_4.jpg) |
+| ![Screenshot](http://nodegui.org/img/0x0ss.jpg) | ![Screenshot](http://nodegui.org/img/0x0ss_3.jpg) | ![Screenshot](http://nodegui.org/img/0x0ss_4.jpg) |
 |--|--|--|
 
 

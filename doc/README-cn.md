@@ -9,7 +9,7 @@ Ngui的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般�
 
 * 从这里[`Go API Index`](http://nodegui.org/doc/)可以到 `API Documents Index`
 
-| ![](http://nodegui.org/img/0x0ss.jpg) | ![](http://nodegui.org/img/0x0ss_3.jpg) | ![](http://nodegui.org/img/0x0ss_4.jpg) |
+| ![Screenshot](http://nodegui.org/img/0x0ss.jpg) | ![Screenshot](http://nodegui.org/img/0x0ss_3.jpg) | ![Screenshot](http://nodegui.org/img/0x0ss_4.jpg) |
 |--|--|--|
 
 
