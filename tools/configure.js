@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-tools/fs');
-var path = require('ngui-tools/path');
+var fs = require('ngui-util/fs');
+var path = require('ngui-util/path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('ngui-tools/arguments');
-var syscall = require('ngui-tools/syscall').syscall;
-var syscall2 = require('ngui-tools/syscall').syscall2;
+var argument = require('ngui-util/arguments');
+var syscall = require('ngui-util/syscall').syscall;
+var syscall2 = require('ngui-util/syscall').syscall2;
 var opts = argument.options;
 var help_info = argument.help_info;
 var def_opts = argument.def_opts;

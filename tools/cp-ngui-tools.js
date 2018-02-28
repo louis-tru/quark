@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-tools/util');
-var fs = require('ngui-tools/fs');
+var util = require('ngui-util/util');
+var fs = require('ngui-util/fs');
 var copy_header = require('./cp-header').copy_header;
-var path = require('path')
+var path = require('path');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
