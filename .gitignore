@@ -9,3 +9,4 @@ node_modules/ngui-tools/linux
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang
+!node/deps/v8/src/base/debug
