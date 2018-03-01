@@ -138,3 +138,7 @@ class FastBuffer extends Uint8Array {
 + /* #define HAVE_GETSERVBYPORT_R 1 */
 ```
 
+# node/.gitignore
+
++ !deps/v8/src/base/debug
+

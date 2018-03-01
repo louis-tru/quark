@@ -374,12 +374,11 @@ class XX_EXPORT KeyframeAction: public Action {
     XX_HIDDEN_ALL_COPY(Frame);
    public:
     
-    inline Frame(KeyframeAction* host, uint index, const FixedCubicBezier& curve)
+    inline Frame(KeyframeAction* host,
+                 uint index, const FixedCubicBezier& curve)
     : m_host(host)
     , m_index(index)
-    , m_curve(curve), m_time(0) {
-      
-    }
+    , m_curve(curve), m_time(0) {}
     
     /**
      * @func index

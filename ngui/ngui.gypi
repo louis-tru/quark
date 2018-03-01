@@ -106,7 +106,6 @@
       'pcm-player.h',
       'action.h',
       'action.cc.inl',
-      'action.cc.frame.inl',
       'action.cc',
       'app.h',
       'app.cc',

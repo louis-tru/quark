@@ -33,7 +33,7 @@ var fs = require('ngui-util/fs');
 var keys = require('ngui-util/keys');
 var service = require('ngui-util/service');
 var HttpService = require('ngui-util/http_service').HttpService;
-var server = require('ngui-util/toolchain/server');
+var server = require('ngui-tools/toolchain/server');
 require('./test-multiple-service');
 
 var opt = { 
