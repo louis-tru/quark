@@ -36,7 +36,7 @@ var HttpService = require('ngui-util/http_service').HttpService;
 var server = require('ngui-tools/toolchain/server');
 require('./test-multiple-service');
 
-var opt = { 
+var opt = {
   // remote: 'http://192.168.1.124:1026/',
 };
 
@@ -53,7 +53,7 @@ var Tools = util.class('Tools', HttpService, {
       this.form.is_upload = true;
   },
   
-  upload_file: function () {
+  upload_file: function() {
 
     console.log('params', this.params);
     console.log('data', this.data);
