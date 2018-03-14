@@ -90,7 +90,7 @@ Example:
 // true
 // false
 console.log(url.isAbsolute('/var/kk'));
-console.log(url.isAbsolute('http://nodegui.org/'));
+console.log(url.isAbsolute('http://ngui.io/'));
 console.log(url.isAbsolute('index.jsx'));
 ```
 
@@ -105,8 +105,8 @@ console.log(url.isAbsolute('index.jsx'));
 Example:
 
 ```js
-// Prints: http://nodegui.org/A/C/test.js
-console.log(url.resolve('http://nodegui.org/home', "..", "A", "B", "..", "C", "test.js"));
+// Prints: http://ngui.io/A/C/test.js
+console.log(url.resolve('http://ngui.io/home', "..", "A", "B", "..", "C", "test.js"));
 // Prints: 
 // true
 // file:///var/data/aaa/cc/ddd/kk.jpg
@@ -131,12 +131,12 @@ Example:
 // Prints: file:///var/data/index.js
 var uri = new URL('index.js');
 console.log(uri.href);
-// Prints: http://nodegui.org/index.html?args=0
-var uri2 = new URL('http://nodegui.org/home/../index.html?args=0')
+// Prints: http://ngui.io/index.html?args=0
+var uri2 = new URL('http://ngui.io/home/../index.html?args=0')
 console.log(uri2.href);
 // Prints: 
 // Error: Parse uri error, Illegal URL
-new URL('http://nodegui.org:').href
+new URL('http://ngui.io:').href
 ```
 
 ### Get: URL.href
@@ -148,8 +148,8 @@ new URL('http://nodegui.org:').href
 Example:
 
 ```js
-// Prints: http://nodegui.org/
-console.log(new URL('http://nodegui.org/').href);
+// Prints: http://ngui.io/
+console.log(new URL('http://ngui.io/').href);
 ```
 
 ### Get: URL.filename
@@ -160,7 +160,7 @@ console.log(new URL('http://nodegui.org/').href);
 
 ```js
 // Prints: /aaa/bbbb/ccc/test.js
-console.log(new URL('http://nodegui.org/aaa/bbbb/ccc/test.js').filename);
+console.log(new URL('http://ngui.io/aaa/bbbb/ccc/test.js').filename);
 ```
 
 ### Get: URL.dirname
@@ -171,7 +171,7 @@ Example:
 
 ```js
 // Prints: /aaa/bbbb/ccc
-console.log(new URL('http://nodegui.org/aaa/bbbb/ccc/test.js').dirname);
+console.log(new URL('http://ngui.io/aaa/bbbb/ccc/test.js').dirname);
 ```
 
 ### Get: URL.search
@@ -184,7 +184,7 @@ Example:
 
 ```js
 // Prints: ?a=A&b=B
-console.log(new URL('http://nodegui.org/?a=A&b=B').search);
+console.log(new URL('http://ngui.io/?a=A&b=B').search);
 ```
 
 ### Get: URL.hash
@@ -197,7 +197,7 @@ Example:
 
 ```js
 // Prints: #c=C&d=D
-console.log(new URL('http://nodegui.org/?a=A&b=B#c=C&d=D').hash);
+console.log(new URL('http://ngui.io/?a=A&b=B#c=C&d=D').hash);
 ```
 
 ### Get: URL.host
@@ -209,8 +209,8 @@ console.log(new URL('http://nodegui.org/?a=A&b=B#c=C&d=D').hash);
 Example:
 
 ```js
-// Prints: nodegui.org:80
-console.log(new URL('http://nodegui.org:81/').host);
+// Prints: ngui.io:80
+console.log(new URL('http://ngui.io:81/').host);
 ```
 
 ### Get: URL.hostname
@@ -222,8 +222,8 @@ console.log(new URL('http://nodegui.org:81/').host);
 Example:
 
 ```js
-// Prints: nodegui.org
-console.log(new URL('http://nodegui.org:81/').host);
+// Prints: ngui.io
+console.log(new URL('http://ngui.io:81/').host);
 ```
 
 ### Get: URL.origin
@@ -235,8 +235,8 @@ console.log(new URL('http://nodegui.org:81/').host);
 Example:
 
 ```js
-// Prints: http://nodegui.org:81
-console.log(new URL('http://nodegui.org:81/host/index.html').host);
+// Prints: http://ngui.io:81
+console.log(new URL('http://ngui.io:81/host/index.html').host);
 // Prints: file://
 console.log(new URL('file:///var/data/index.html').host);
 ```
@@ -277,9 +277,9 @@ Example:
 
 ```js
 // Prints: 81
-console.log(new URL('http://nodegui.org:81').port);
+console.log(new URL('http://ngui.io:81').port);
 // Prints 没有端口号会返回空字符串: ""
-console.log(new URL('http://nodegui.org').port);
+console.log(new URL('http://ngui.io').port);
 ```
 
 ### Get: URL.protocol
@@ -300,7 +300,7 @@ Example:
 //   a: "100",
 //   b: "test"
 // }
-console.log(new URL('http://nodegui.org/?a=100&b=test').params);
+console.log(new URL('http://ngui.io/?a=100&b=test').params);
 ```
 
 ### Get: URL.hashParams
@@ -317,7 +317,7 @@ Example:
 //   a: "200",
 //   b: "300"
 // }
-console.log(new URL('http://nodegui.org/#a=200&b=300').hashParams);
+console.log(new URL('http://ngui.io/#a=200&b=300').hashParams);
 ```
 
 ### URL.getParam(name)
@@ -331,7 +331,7 @@ Example:
 
 ```js
 // Prints: ok
-console.log(new URL('http://nodegui.org/?args=ok').getParam('args'));
+console.log(new URL('http://ngui.io/?args=ok').getParam('args'));
 ```
 
 ### URL.setParam(name, value)
@@ -374,10 +374,10 @@ Example:
 
 ```js
 // Prints: ../A/B/C/test.js
-var uri = new URL('http://nodegui.org/home/');
-console.log(uri.relative('http://nodegui.org/A/B/C/test.js'));
+var uri = new URL('http://ngui.io/home/');
+console.log(uri.relative('http://ngui.io/A/B/C/test.js'));
 // Prints: file:///var/data/A/B/C/test.js
-var uri2 = new URL('http://nodegui.org/home/');
+var uri2 = new URL('http://ngui.io/home/');
 console.log(uri2.relative('file:///var/data/A/B/C/test.js'));
 
 ```

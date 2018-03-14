@@ -15,7 +15,7 @@ Ngui的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般�
 
 * [`开源跨平台移动项目Ngui【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Ngui API 文档`](http://nodegui.org/doc/)
+* [`Ngui API 文档`](http://ngui.io/doc/)
 
 # 什么是Action动作
 
@@ -172,13 +172,13 @@ view.transition({
 
 * `View.onActionLoop`动作循环开始时触发，第一次执行动作并不会触发。同样它也会有延时，也同样记录在`delay`。
 
-[Action]: https://nodegui.org/doc/action.html#class-action
-[GroupAction]: https://nodegui.org/doc/action.html#class-groupaction
-[SpawnAction]: https://nodegui.org/doc/action.html#class-spawnaction
-[SequenceAction]: https://nodegui.org/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://nodegui.org/doc/action.html#class-keyframeaction
-[Frame]: https://nodegui.org/doc/action.html#class-frame
-[View]: https://nodegui.org/doc/ngui.html#class-view
-[Div]: https://nodegui.org/doc/ngui.html#class-div
-[View.action]: https://nodegui.org/doc/ngui.html#set-view-action
-[View.transition()]: https://nodegui.org/doc/ngui.html#view-transition-style-delay-cb-
+[Action]: https://ngui.io/doc/action.html#class-action
+[GroupAction]: https://ngui.io/doc/action.html#class-groupaction
+[SpawnAction]: https://ngui.io/doc/action.html#class-spawnaction
+[SequenceAction]: https://ngui.io/doc/action.html#class-sequenceaction
+[KeyframeAction]: https://ngui.io/doc/action.html#class-keyframeaction
+[Frame]: https://ngui.io/doc/action.html#class-frame
+[View]: https://ngui.io/doc/ngui.html#class-view
+[Div]: https://ngui.io/doc/ngui.html#class-div
+[View.action]: https://ngui.io/doc/ngui.html#set-view-action
+[View.transition()]: https://ngui.io/doc/ngui.html#view-transition-style-delay-cb-

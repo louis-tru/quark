@@ -35,4 +35,4 @@
 * [`ngui/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Ngui`]: http://nodegui.org/
+[`Ngui`]: http://ngui.io/

@@ -15,7 +15,7 @@ Ngui的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般�
 
 * [`开源跨平台移动项目Ngui【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Ngui API 文档`](http://nodegui.org/doc/)
+* [`Ngui API 文档`](http://ngui.io/doc/)
 
 # Benchmark
 

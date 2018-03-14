@@ -36,7 +36,7 @@ void test_localstorage() {
   
   LOG(localstorage_get("test2"));
   
-  localstorage_set("test", "nodegui.org");
+  localstorage_set("test", "ngui.io");
   
   LOG(localstorage_get("test"));
   
@@ -44,7 +44,7 @@ void test_localstorage() {
   
   LOG(localstorage_get("test"));
   
-  localstorage_set("test", "nodegui.org");
+  localstorage_set("test", "ngui.io");
   
   LOG(localstorage_get("test"));
   

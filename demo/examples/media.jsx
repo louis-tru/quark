@@ -3,8 +3,8 @@ import { AudioPlayer, Video } from 'ngui/media';
 import { Mynavpage } from './public';
 import 'ngui/url';
 
-const src_720 = 'http://nodegui.org/media/2017-09-11_15_41_19.mp4';
-const audio_src = 'http://nodegui.org/media/all_we_know.mp3';
+const src_720 = 'http://ngui.io/media/2017-09-11_15_41_19.mp4';
+const audio_src = 'http://ngui.io/media/all_we_know.mp3';
 
 var audio_player = null;
 

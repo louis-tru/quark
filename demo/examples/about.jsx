@@ -20,7 +20,7 @@ https://github.com/louis-tru/ngui.git
 
 Support
 ===============
-http://nodegui.org
+http://ngui.io
 louistru@hotmail.com
 
 

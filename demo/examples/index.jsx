@@ -71,7 +71,7 @@ function review_code(evt) {
 const ngui_tools = 'https://www.npmjs.com/package/ngui-tools';
 const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui/issues';
 const examples_source = 'https://github.com/louis-tru/ngui.git';
-const documents = 'http://nodegui.org/';
+const documents = 'http://ngui.io/';
 
 function handle_go_to(evt) {
   var url = evt.sender.url;
@@ -118,7 +118,7 @@ const examples_source_vx = (
 var documents_vx = (
   <Mynavpage title="Documents" source=resolve(__filename)>
     <Div width="full">
-      <Hybrid class="category_title">Now go to <T textColor="#0079ff">nodegui.org</T> to view the document?</Hybrid>
+      <Hybrid class="category_title">Now go to <T textColor="#0079ff">ngui.io</T> to view the document?</Hybrid>
       <Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
     </Div>
   </Mynavpage>

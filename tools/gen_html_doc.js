@@ -31,8 +31,8 @@
 
 var fs = require('ngui-util/fs');
 var path = require('ngui-util/path');
-var marked_html = require('ngui-util/marked/html');
-var marked = require('ngui-util/node_modules/marked/index');
+var marked_html = require('ngui-tools/marked/html');
+var marked = require('ngui-tools/node_modules/marked/index');
 var read_ngui_version = require('./read_version').read_ngui_version;
 var argv = process.argv.slice(2);
 var template = null;

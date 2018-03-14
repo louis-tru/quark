@@ -12,9 +12,9 @@ Goal: developing GUI applications on this basis can take into account both the s
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 
-* From here, [`Go API Index`](http://nodegui.org/doc/) can go to `API Documents Index`
+* From here, [`Go API Index`](http://ngui.io/doc/) can go to `API Documents Index`
 
-| ![Screenshot](http://nodegui.org/img/0x0ss.jpg) | ![Screenshot](http://nodegui.org/img/0x0ss_3.jpg) | ![Screenshot](http://nodegui.org/img/0x0ss_4.jpg) |
+| ![Screenshot](http://ngui.io/img/0x0ss.jpg) | ![Screenshot](http://ngui.io/img/0x0ss_3.jpg) | ![Screenshot](http://ngui.io/img/0x0ss_4.jpg) |
 |--|--|--|
 
 
