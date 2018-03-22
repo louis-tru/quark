@@ -2211,12 +2211,12 @@ public:
           //class member identifier
           if ( peek() == LPAREN ) { // (
             goto function;
-          } else if ( member_data && peek() == COLON ) { // : class member data
+          } else if ( member_data && peek() == ASSIGN ) { // = class member data
             out_code(_COMMENT); // /*
             Ucs2String identifier = _scanner->string_value();
             fetch_code(); // identifier
-            next(); // :
-            out_code(_COLON); // :
+            next(); // =
+            out_code(_ASSIGN); // =
             _out_class_member_data_expression.clear();
             _is_class_member_data_expression = true;
             parse_expression();

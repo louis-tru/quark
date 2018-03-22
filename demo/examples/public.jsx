@@ -123,7 +123,7 @@ export class Navbutton extends ViewController {
 }
 
 export class Mynavpage extends Navpage {
-  source: resolve(__filename);
+  source = resolve(__filename);
   
   loadView(vx) {
     super.loadView(vx);
