@@ -135,7 +135,7 @@ const bug_feedback_vx = (
   </Mynavpage>
 )
 
-var app = new GUIApplication({ multisample: 2, mipmap: 1 }).start(
+var app = new GUIApplication({ multisample: 2 }).start(
   <Root>
 
     <NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>

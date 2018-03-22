@@ -7,13 +7,13 @@
 // 最精细的圆角边线参数:
 // 使用84顶点的实例绘制,1个实例绘制一条边,绘制4条边需要336个顶点
 // PI/4圆角采样为20
-// #define SAMPLEx2 42.0
+// #define SAMPLEx2 42
 // #define PI_40 0.07853981633974483   // PI / 2 / 20
 
 // 高性能的圆角边线参数:
 // 使用36顶点的实例绘制,1个实例绘制一条边,绘制4条边需要144个顶点
 // PI/4圆角采样为8
-#define SAMPLEx2 18.0
+#define SAMPLEx2 18
 #define PI_40 0.19634954084936207   // PI / 2 / 8
 
 #define radius          args[0].x
@@ -37,7 +37,7 @@ void main() {
   vec4 radius_size2 = vec4(radius_size.xyzw);
   vec4 border_width2 = vec4(border_width.xyzw);
   
-  float index = float(gl_VertexID) - SAMPLEx2;
+  float index = float(gl_VertexID - SAMPLEx2);
   
   if ( direction == 0 ) { // 左边边框
     if ( index < 0.0 ) { // 左下角

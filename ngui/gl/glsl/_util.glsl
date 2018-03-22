@@ -1,7 +1,7 @@
 
 #include "_version.glsl"
 
-precision mediump float;
+//precision mediump float;
 
 in vec2 vertex_id;
 uniform mat4  root_matrix;

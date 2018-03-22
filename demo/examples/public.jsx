@@ -40,7 +40,12 @@ CSS({
     text_color: "#0079ff",
     border_radius: 8,
     border: `${px} #0079ff`,
+    // border: `2 #0079ff`,
     // background_color: '#f00',
+    // border_radius: 80,
+    // border: `40 #0079ff`,
+    // border_left_color: '#f00',
+    // border_right_color: '#f00',
   },
     
   '.long_btn2': {
