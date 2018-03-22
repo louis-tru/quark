@@ -42,6 +42,7 @@
         '../demo/README.md',
         '../node_modules/ngui',
         '../node_modules/ngui-tools',
+        '../node_modules/ngui-util',
         'test.cc',
         'test-fs.cc',
         'test-fs2.cc',
