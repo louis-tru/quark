@@ -11,6 +11,7 @@
 * [`View and layout`](blog/002.md)
 * [`Action`](blog/003-action.md)
 * [`CSS`](blog/004-css.md)
+* [`Benchmark`](https://www.jianshu.com/p/e702af75a0c6)
 
 # Modules
 
