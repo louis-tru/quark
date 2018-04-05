@@ -72,7 +72,7 @@ function print_warn(err) {
   console.warn.apply(console, format_msg(arguments));
 }
 
-function extend_all(obj, extd) {
+function extend(obj, extd) {
   for (var item of Object.entries(extd)) {
     obj[item[0]] = item[1];
   }
@@ -120,7 +120,7 @@ function __vx(raw_vx, attrs, vdata) {
 function new_err(e) {
   if (! (e instanceof Error)) {
     if (typeof e == 'object') {
-      e = extend_all(new Error(e.message || 'Unknown error'), e);
+      e = extend(new Error(e.message || 'Unknown error'), e);
     } else {
       e = new Error(e);
     }
@@ -172,6 +172,7 @@ function read_text_sync(path) {
 }
 
 global.__vx = __vx;
+global.__extend = extend;
 
 // -------------------------- Package private API --------------------------
 
@@ -319,7 +320,7 @@ function Package_install2(self, cb) {
         let install_remote_ok = function(){ cb && cb() }.catch(err=>{
           // 不能安装远程包,
           console.error(err);
-          extend_all(self, old); // 恢复
+          extend(self, old); // 恢复
           self.m_old = null;
           cb && cb();
         });
@@ -1213,9 +1214,9 @@ class Exports {
 }
 
 /**
- * @func extendAll(obj, extd)
+ * @func extend(obj, extd)
  */
-Exports.prototype.extendAll = extend_all;
+Exports.prototype.extend = extend;
 
 // require absolute path file
 function inl_require_external(path) {

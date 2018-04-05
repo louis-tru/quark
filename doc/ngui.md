@@ -1234,7 +1234,7 @@ console.log(view.class);
 * {[`uint`]}
 
 
-## `Class: SelectPanel`
+## `Class: Panel`
 * `extends` [`Div`]
 
 按钮面板视图，它对[`Button`]有特别的作用，专门针对`tv`设备遥控器操作而设计
@@ -1243,45 +1243,45 @@ console.log(view.class);
 
 **`以下所说的切换都为按下遥控器或键盘时`**
 
-### SelectPanel.onFocusMove
+### Panel.onFocusMove
 
 内部[`Button`]焦点切换时触发
 
-### SelectPanel.allowLeave 
+### Panel.allowLeave 
 
 是否允许内部[`Button`]按钮将焦点切换到外部
 
 * {[`bool`]}
 
-### SelectPanel.allowEntry
+### Panel.allowEntry
 
 是否允许外部[`Button`]按钮将焦点切换到内部
 
 * {[`bool`]}
 
-### SelectPanel.intervalTime 
+### Panel.intervalTime 
 
 切换的时间限制，离上一次切换时间不到`intervalTime`不允许切换
 
 * {[`uint`]} ms
 
-### SelectPanel.enableSelect 
+### Panel.enableSelect 
 
 是否允许内部[`Button`]切换焦点
  
 * {[`bool`]}
 
-### Get: SelectPanel.isActivity 
+### Get: Panel.isActivity 
 
 是否激活状态，当内部[`Button`]拥有焦点时为激活状态
 
 * {[`bool`]}
 
-### Get: SelectPanel.parentPanel 
+### Get: Panel.parentPanel 
 
-父[`SelectPanel`]视图
+父[`Panel`]视图
 
-* {[`SelectPanel`]}
+* {[`Panel`]}
 
 
 ## `Class: Button`
@@ -1303,18 +1303,18 @@ console.log(view.class);
 
 ### Button.findNextButton(direction)
 
-查找指定方向相邻的按钮,按钮必需在[`SelectPanel`]才能查找，找不到返回`null`
+查找指定方向相邻的按钮,按钮必需在[`Panel`]才能查找，找不到返回`null`
 
 * @arg `direction` {[`Direction`]} 
 * @ret `{[`Button`]}`
 
 ### Get: Button.panel 
 
-* {[`SelectPanel`]}
+* {[`Panel`]}
 
 
 ## `Class: Root`
-* `extends` [`SelectPanel`]
+* `extends` [`Panel`]
 
 * 根视图，这个视图暂时只能是唯一的但未来可能会变化
 
@@ -1469,7 +1469,7 @@ console.log(view.class);
 
 
 ## `Class: Scroll`
-* `extends` [`SelectPanel`],[`BasicScroll`]
+* `extends` [`Panel`],[`BasicScroll`]
 
 滚动条的实现
 
@@ -1796,7 +1796,7 @@ console.log(view.class);
 [`Indep`]:  ngui.md#class-indep
 [`LimitIndep`]:  ngui.md#class-limitindep
 [`Image`]:  ngui.md#class-image
-[`SelectPanel`]:  ngui.md#class-panel
+[`Panel`]:  ngui.md#class-panel
 [`Root`]:  ngui.md#class-root
 [`BasicScroll`]: ngui.md#class-basicscroll
 [`Scroll`]: ngui.md#class-scroll

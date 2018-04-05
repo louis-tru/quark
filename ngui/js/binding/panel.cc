@@ -30,7 +30,7 @@
 
 #include "ngui/js/js-1.h"
 #include "ngui/js/ngui.h"
-#include "ngui/select-panel.h"
+#include "ngui/panel.h"
 #include "ngui/button.h"
 
 /**
@@ -40,14 +40,14 @@
 JS_BEGIN
 
 /**
- * @class WrapSelectPanel
+ * @class WrapPanel
  */
-class WrapSelectPanel: public WrapViewBase {
+class WrapPanel: public WrapViewBase {
 
   static void constructor(FunctionCall args) {
     JS_ATTACH(args);
     js_check_gui_app();
-    New<WrapSelectPanel>(args, new SelectPanel());
+    New<WrapPanel>(args, new Panel());
   }
   
   /**
@@ -56,7 +56,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void first_button(FunctionCall args) {
     JS_WORKER(args); GUILock lock;
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     Button* button = self->first_button();
     if ( button ) {
       JS_RETURN( Wrap<Button>::pack(button, View::BUTTON)->that() );
@@ -70,7 +70,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void allow_leave(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     JS_RETURN( self->allow_leave() );
   }
 
@@ -79,7 +79,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void set_allow_leave(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     self->set_allow_leave( value->ToBooleanValue(worker) );
   }
   
@@ -88,7 +88,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void allow_entry(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     JS_RETURN( self->allow_entry() );
   }
   
@@ -97,7 +97,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void set_allow_entry(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     self->set_allow_entry( value->ToBooleanValue(worker) );
   }
   
@@ -106,7 +106,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void interval_time(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     JS_RETURN( self->interval_time() );
   }
   
@@ -118,7 +118,7 @@ class WrapSelectPanel: public WrapViewBase {
     if ( ! value->IsNumber(worker) ) {
       JS_THROW_ERR("* @set intervalTime {uint} ms");
     }
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     int64 num = value->ToNumberValue(worker);
     self->set_interval_time( uint64(1000) * XX_MIN(0, num) );
   }
@@ -128,7 +128,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void enable_select(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     JS_RETURN( self->enable_select() );
   }
   
@@ -137,7 +137,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void set_enable_select(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     self->set_enable_select( value->ToBooleanValue(worker) );
   }
   
@@ -146,7 +146,7 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void is_activity(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
-    JS_SELF(SelectPanel);
+    JS_SELF(Panel);
     JS_RETURN( self->is_activity() );
   }
   
@@ -155,10 +155,10 @@ class WrapSelectPanel: public WrapViewBase {
    */
   static void parent_panel(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
-    JS_SELF(SelectPanel);
-    SelectPanel* panel = self->parent_panel();
+    JS_SELF(Panel);
+    Panel* panel = self->parent_panel();
     if ( panel ) {
-      JS_RETURN( Wrap<SelectPanel>::pack(panel, View::SELECT_PANEL)->that() );
+      JS_RETURN( Wrap<Panel>::pack(panel, View::panel)->that() );
     } else {
       JS_RETURN_NULL();
     }
@@ -166,7 +166,7 @@ class WrapSelectPanel: public WrapViewBase {
   
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(SelectPanel, constructor, {
+    JS_DEFINE_CLASS(Panel, constructor, {
       JS_SET_CLASS_METHOD(firstButton, first_button);
       JS_SET_CLASS_ACCESSOR(allowLeave, allow_leave, set_allow_leave);
       JS_SET_CLASS_ACCESSOR(allowEntry, allow_entry, set_allow_entry);
@@ -175,12 +175,12 @@ class WrapSelectPanel: public WrapViewBase {
       JS_SET_CLASS_ACCESSOR(isActivity, is_activity);
       JS_SET_CLASS_ACCESSOR(parentPanel, parent_panel);
     }, Div);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(SelectPanel), View::SELECT_PANEL);
+    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Panel), View::panel);
   }
 };
 
-void binding_select_panel(Local<JSObject> exports, Worker* worker) {
-  WrapSelectPanel::binding(exports, worker);
+void binding_panel(Local<JSObject> exports, Worker* worker) {
+  WrapPanel::binding(exports, worker);
 }
 
 JS_END

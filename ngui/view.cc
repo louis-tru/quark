@@ -35,7 +35,7 @@
 #include "pre-render.h"
 #include "root.h"
 #include "css.h"
-#include "select-panel.h"
+#include "panel.h"
 
 XX_NS(ngui)
 
@@ -1452,7 +1452,7 @@ static Button* first_button_2(View* v) {
       if ( btn ) {
         return btn;
       } else {
-        SelectPanel* panel = v->as_select_panel();
+        Panel* panel = v->as_panel();
         
         if ( !panel || (panel->enable_select() && panel->allow_entry()) ) {
           Button* btn = first_button_2(v);

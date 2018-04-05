@@ -133,7 +133,7 @@ bool View::focus() {
   View* old = app()->focus_view();
   Handle<GUIFocusMoveEvent> evt;
   
-  SelectPanel* panel = reinterpret_cast<Button*>(this)->panel();
+  Panel* panel = reinterpret_cast<Button*>(this)->panel();
   if ( panel ) {
     evt = NewEvent<GUIFocusMoveEvent>(panel, old, this);
     panel->trigger(GUI_EVENT_FOCUS_MOVE, **evt );
@@ -498,7 +498,7 @@ public:
     if ( !view ) view = app_->root();
     if ( view ) {
       View* focus_move = nullptr;
-      SelectPanel* panel = nullptr;
+      Panel* panel = nullptr;
       Direction direction = Direction::NONE;
       
       switch ( name ) {

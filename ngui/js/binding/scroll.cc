@@ -521,7 +521,7 @@ class WrapScroll: public WrapViewBase {
       JS_SET_CLASS_ACCESSOR(enableFixedScrollSize,
                           enable_fixed_scroll_size, set_enable_fixed_scroll_size);
       WrapBasicScroll::inherit(cls, worker);
-    }, SelectPanel);
+    }, Panel);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Scroll), View::SCROLL);
   }
 };

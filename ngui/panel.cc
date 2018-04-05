@@ -28,18 +28,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "select-panel.h"
+#include "panel.h"
 #include "button.h"
 #include "app-1.h"
 
 XX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(SelectPanel, Inl) {
+XX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
 public:
   
   static Button* first_button(View* v) {
     
-    if ( v->as_select_panel() ) {
+    if ( v->as_panel() ) {
       return nullptr;
     }
     else
@@ -67,7 +67,7 @@ public:
 /**
  * @constructor
  */
-SelectPanel::SelectPanel()
+Panel::Panel()
 : m_allow_leave(false)
 , m_allow_entry(false)
 , m_interval_time(0), m_enable_select(true) {
@@ -77,7 +77,7 @@ SelectPanel::SelectPanel()
 /**
  * @func is_activity
  */
-bool SelectPanel::is_activity() const {
+bool Panel::is_activity() const {
   View* view = app()->focus_view();
   if (view) {
     if ( view->as_button() ) {
@@ -90,10 +90,10 @@ bool SelectPanel::is_activity() const {
 /**
  * @func parent_panel
  */
-SelectPanel* SelectPanel::parent_panel() {
+Panel* Panel::parent_panel() {
   View* v = parent();
   while( v ) {
-    auto p = v->as_select_panel();
+    auto p = v->as_panel();
     if ( p ) {
       return p;
     }

@@ -73,10 +73,18 @@
 
 ## extend(obj, extd)
 
-把`extd`是的属性扩展到`obj`对像上
+递归`extd`对像属性并扩展到`obj`对像上
 
 * @arg `obj` {[`Object`]}
 * @arg `extd` {[`Object`]}
+* @ret {[`Object`]} 返回`obj`对像
+
+## assign(obj, ...extd)
+
+把`extd`是的属性扩展到`obj`对像上
+
+* @arg `obj` {[`Object`]}
+* @arg `...extd` {[`Object`]}
 * @ret {[`Object`]} 返回`obj`对像
 
 ## update(obj, extd)

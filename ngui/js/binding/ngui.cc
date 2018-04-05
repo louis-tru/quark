@@ -136,7 +136,7 @@ void binding_label(Local<JSObject> exports, Worker* worker);
 void binding_limit(Local<JSObject> exports, Worker* worker);
 void binding_action(Local<JSObject> exports, Worker* worker);
 void binding_button(Local<JSObject> exports, Worker* worker);
-void binding_select_panel(Local<JSObject> exports, Worker* worker);
+void binding_panel(Local<JSObject> exports, Worker* worker);
 void binding_scroll(Local<JSObject> exports, Worker* worker);
 void binding_text(Local<JSObject> exports, Worker* worker);
 void binding_clip(Local<JSObject> exports, Worker* worker);
@@ -170,7 +170,7 @@ class NativeNGUI {
     binding_layout(exports, worker);
     binding_box(exports, worker);
     binding_div(exports, worker);
-    binding_select_panel(exports, worker);
+    binding_panel(exports, worker);
     binding_hybrid(exports, worker);
     binding_span(exports, worker);
     binding_text_node(exports, worker);

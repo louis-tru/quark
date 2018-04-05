@@ -36,13 +36,13 @@
 XX_NS(ngui)
 
 /**
- * @class SelectPanel
+ * @class Panel
  */
-class XX_EXPORT SelectPanel: public Div {
+class XX_EXPORT Panel: public Div {
  public:
-  XX_DEFINE_GUI_VIEW(SELECT_PANEL, SelectPanel, select_panel)
+  XX_DEFINE_GUI_VIEW(PANEL, Panel, panel)
   
-  SelectPanel();
+  Panel();
   
   /**
    * @func allow_leave get
@@ -87,7 +87,7 @@ class XX_EXPORT SelectPanel: public Div {
   /**
    * @func parent_panel
    */
-  SelectPanel* parent_panel();
+  Panel* parent_panel();
   
   /**
    * @func is_activity

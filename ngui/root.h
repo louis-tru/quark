@@ -31,7 +31,7 @@
 #ifndef __ngui__root__
 #define __ngui__root__
 
-#include "select-panel.h"
+#include "panel.h"
 
 /**
  * @ns ngui
@@ -42,7 +42,7 @@ XX_NS(ngui)
 /**
  * @class Root 这个类型的视图尺寸为显示端口的尺寸
  */
-class XX_EXPORT Root: public SelectPanel {
+class XX_EXPORT Root: public Panel {
  public:
   XX_DEFINE_GUI_VIEW(ROOT, Root, root);
   

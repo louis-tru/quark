@@ -31,7 +31,7 @@
 #include "ngui/js/js-1.h"
 #include "ngui/js/ngui.h"
 #include "ngui/button.h"
-#include "ngui/select-panel.h"
+#include "ngui/panel.h"
 #include "ngui/hybrid.h"
 
 /**
@@ -85,9 +85,9 @@ class WrapButton: public WrapViewBase {
   static void panel(FunctionCall args) {
     JS_WORKER(args);
     JS_SELF(Button);
-    SelectPanel* panel = self->panel();
+    Panel* panel = self->panel();
     if ( panel ) {
-      JS_RETURN( Wrap<SelectPanel>::pack(panel, View::SELECT_PANEL)->that() );
+      JS_RETURN( Wrap<Panel>::pack(panel, View::panel)->that() );
     } else {
       JS_RETURN_NULL();
     }

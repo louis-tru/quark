@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "button.h"
-#include "select-panel.h"
+#include "panel.h"
 
 XX_NS(ngui)
 
@@ -66,13 +66,13 @@ public:
    */
   class Find: public Object {
   protected:
-    SelectPanel* panel;
+    Panel* panel;
     Button* self;
     Button* revt;
     Vec2 origin;
     float min;
     
-    Find(SelectPanel* p, Button* btn)
+    Find(Panel* p, Button* btn)
     : panel(p), self(btn), min(Float::max), revt(nullptr) {
       CGRect rect = self->screen_rect();
       origin = Vec2(rect.origin.x() + rect.size.width() / 2, 
@@ -99,7 +99,7 @@ public:
 
   public:
     
-    FindHorizontal(SelectPanel* panel, Button* btn): Find(panel, btn) { }
+    FindHorizontal(Panel* panel, Button* btn): Find(panel, btn) { }
     
     /**
      * @overwrite
@@ -128,7 +128,7 @@ public:
 
   public:
     
-    FindVertical(SelectPanel* panel, Button* btn): Find(panel, btn) { }
+    FindVertical(Panel* panel, Button* btn): Find(panel, btn) { }
     
     /**
      * @overwrite
@@ -161,7 +161,7 @@ public:
           find->find(btn);
         }
       } else {
-        if ( ! v->as_select_panel() ) {
+        if ( ! v->as_panel() ) {
           _inl(v)->compute_final_matrix();
           v = v->first();
           while ( v ) {
@@ -176,7 +176,7 @@ public:
   /**
    * @func find_next_button_2
    */
-  void find_next_button_2(SelectPanel* panel, Find* find) {
+  void find_next_button_2(Panel* panel, Find* find) {
     View* v = panel->first();
     while (v) {
       find_next_button_3(find, v);
@@ -187,7 +187,7 @@ public:
   /**
    * @func NewFind
    */
-  Find* NewFind(Direction direction, SelectPanel* panel) {
+  Find* NewFind(Direction direction, Panel* panel) {
     switch (direction) {
       default:
       case Direction::LEFT:
@@ -205,7 +205,7 @@ public:
    * @func find_next_button
    */
   Button* find_next_button(Direction direction) {
-    SelectPanel* panel = this->panel();
+    Panel* panel = this->panel();
     
     if ( panel && panel->enable_select() && final_visible() ) {
       panel->final_matrix(); // update final matrix
@@ -243,10 +243,10 @@ Button* Button::find_next_button(Direction direction) {
 /**
  * @func panel
  */
-SelectPanel* Button::panel() {
+Panel* Button::panel() {
   View* view = parent();
   while (view) {
-    auto sp = view->as_select_panel();
+    auto sp = view->as_panel();
     if ( sp ) {
       return sp;
     }

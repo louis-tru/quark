@@ -116,7 +116,7 @@ PropertysAccessor::PropertysAccessor() {
   m_property_func_table.set(View::LIMIT, div);
   m_property_func_table.set(View::IMAGE, div);
   m_property_func_table.set(View::BOX_SHADOW, div);
-  m_property_func_table.set(View::SELECT_PANEL, div);
+  m_property_func_table.set(View::panel, div);
   m_property_func_table.set(View::CLIP, div);
   m_property_func_table.set(View::SPAN, view);
   m_property_func_table.set(View::LABEL, view);

@@ -47,7 +47,7 @@ class XX_EXPORT Button: public Hybrid {
   /**
    * @func panel
    */
-  SelectPanel* panel();
+  Panel* panel();
   
   /**
    * @func find_next_button

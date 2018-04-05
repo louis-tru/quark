@@ -33,7 +33,7 @@
 #include "ngui/event.h"
 #include "ngui/action.h"
 #include "ngui/button.h"
-#include "ngui/select-panel.h"
+#include "ngui/panel.h"
 #include "ngui/keyboard.h"
 #include "ngui/js/str.h"
 #include "event-1.h"

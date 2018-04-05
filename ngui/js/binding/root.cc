@@ -60,7 +60,7 @@ class WrapRoot: public WrapViewBase {
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(Root, constructor, {
       // none
-    }, SelectPanel);
+    }, Panel);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Root), View::ROOT);
   }
 };

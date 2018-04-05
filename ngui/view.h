@@ -75,7 +75,7 @@ class BasicScroll;
   F(TEXT_LAYOUT, TextLayout, text_layout) \
   F(LABEL, Label, label) \
   F(BUTTON, Button, button) \
-  F(SELECT_PANEL, SelectPanel, select_panel) \
+  F(PANEL, Panel, panel) \
   F(TEXT, Text, text) \
   F(CLIP, Clip, clip) \
   F(INPUT, Input, input) \

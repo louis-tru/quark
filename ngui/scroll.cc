@@ -713,7 +713,7 @@ BasicScroll::BasicScroll(Box* box)
   box->on(GUI_EVENT_TOUCHEND, &Inl::m_touch_end_handle, _inl(this));
   box->on(GUI_EVENT_TOUCHCANCEL, &Inl::m_touch_end_handle, _inl(this));
   
-  XX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(SelectPanel));
+  XX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
 }
 
 BasicScroll::~BasicScroll() {
@@ -858,9 +858,9 @@ void BasicScroll::solve() {
 XX_DEFINE_INLINE_MEMBERS(Scroll, Inl) {
 public:
   /**
-   * @func handle_select_panel_focus_mode
+   * @func handle_panel_focus_mode
    */
-  void handle_select_panel_focus_mode(GUIEvent& e) {
+  void handle_panel_focus_mode(GUIEvent& e) {
     
     GUIFocusMoveEvent* evt = static_cast<GUIFocusMoveEvent*>(&e);
     View* view = evt->focus_move();
@@ -995,9 +995,9 @@ void Scroll::set_focus_align_y(Align value) {
 void Scroll::set_enable_focus_align(bool value) {
   if ( value != m_enable_focus_align ) {
     if ( value ) {
-      on(GUI_EVENT_FOCUS_MOVE, &Inl::handle_select_panel_focus_mode, Inl_Scroll(this));
+      on(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
     } else {
-      off(GUI_EVENT_FOCUS_MOVE, &Inl::handle_select_panel_focus_mode, Inl_Scroll(this));
+      off(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
     }
     m_enable_focus_align = value;
   }
@@ -1029,7 +1029,7 @@ void Scroll::draw(Draw* draw) {
     
     if ( mark_value ) {
       BasicScroll::solve();
-      SelectPanel::solve();
+      Panel::solve();
     }
     
     draw->draw(this);

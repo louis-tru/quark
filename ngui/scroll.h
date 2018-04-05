@@ -31,7 +31,7 @@
 #ifndef __ngui__scroll__
 #define __ngui__scroll__
 
-#include "select-panel.h"
+#include "panel.h"
 #include "pre-render.h"
 #include "bezier.h"
 
@@ -317,7 +317,7 @@ class XX_EXPORT BasicScroll {
 /**
  * @class Scroll
  */
-class XX_EXPORT Scroll: public SelectPanel, public BasicScroll {
+class XX_EXPORT Scroll: public Panel, public BasicScroll {
 public:
   XX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
   
