@@ -28,91 +28,119 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__image__
-#define __ngui__image__
+#ifndef __ngui__background__
+#define __ngui__background__
 
-#include "div.h"
-
-/**
- * @ns ngui
- */
+#include "box.h"
 
 XX_NS(ngui)
 
-using value::Repeat;
-
 /**
- * @class Image
+ * @class Background
  */
-class XX_EXPORT Image: public Div {
+class Background: public Reference {
  public:
-  XX_DEFINE_GUI_VIEW(IMAGE, Image, image);
   
-  Image();
+  enum Type {
+    M_INVALID,
+    M_CLOLR,
+    M_IMAGE,
+    M_GRADIENT,
+  };
   
-  virtual ~Image();
-  
-  /**
-   * @fuc create
-   */
-  static Image* create(cString& src);
-  
-  /**
-   * @func source_width
-   */
-  uint source_width() const;
+  Background();
   
   /**
-   * @func source_width
+   * @destructor
    */
-  uint source_height() const;
+  virtual ~Background();
   
   /**
-   * @func src 图像路径
+   * @func next()
    */
-  String src() const;
+  inline Background* next() { return m_next; }
   
   /**
-   * @func set_src
+   * @func set_next(value)
    */
-  void set_src(cString& value);
+  void set_next(Background* value) throw(Error);
   
   /**
-   * @func texture get 图像纹理数据
+   * @func type()
    */
-  inline Texture* texture() { return m_texture; }
-  
-  /**
-   * @func set_texture
-   */
-  virtual void set_texture(Texture* value);
+  virtual Type type() const { return M_INVALID; }
   
  protected:
   
   /**
-   * @func source
+   * @func mark_value()
    */
-  virtual String source() const;
+  void mark(uint mark_value);
   
   /**
-   * @func source
+   * @func set_host(host)
    */
-  virtual void set_source(cString& value);
+  void set_host(Box* host);
   
   /**
-   * @overwrite
+   * @func draw(draw)
    */
-  virtual void draw(Draw* draw);
-  virtual void set_layout_explicit_size();
-  virtual void set_layout_content_offset();
-  virtual void set_visible_draw();
+  virtual void draw(Draw* draw, Box* host) = 0;
   
+  Background* m_next;
+  Box*        m_host;
+  
+  friend class Box;
+  friend class GLDraw;
+};
+
+/**
+ * @class BackgroundColor
+ */
+class BackgroundColor: public Background {
+ public:
+  BackgroundColor();
+  virtual Type type() const { return M_CLOLR; }
+  inline Color color() const { return m_color; }
+  void set_color(Color value);
+ protected:
+  virtual void draw(Draw* draw, Box* host);
+ private:
+  Color m_color;
+  friend class GLDraw;
+};
+
+/**
+ * @class BackgroundImage
+ */
+class BackgroundImage: public Background {
+ public:
+  BackgroundImage();
+  virtual ~BackgroundImage();
+  virtual Type type() const { return M_IMAGE; }
+  inline Texture* texture() { return m_texture; }
+  void set_texture(Texture* value);
+ protected:
+  virtual void draw(Draw* draw, Box* host);
  private:
   int       m_tex_level;
-  Texture*  m_texture; // 图像纹理数据
-  
+  Texture*  m_texture;
   XX_DEFINE_INLINE_CLASS(Inl);
+  friend class GLDraw;
+};
+
+/**
+ * @class BackgroundGradient
+ */
+class BackgroundGradient: public Background {
+ public:
+  BackgroundGradient();
+  virtual Type type() const { return M_GRADIENT; }
+ protected:
+  virtual void draw(Draw* draw, Box* host);
+  friend class GLDraw;
 };
 
 XX_END
+
 #endif

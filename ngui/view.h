@@ -53,13 +53,13 @@ class Texture;
 class CSSViewClasss;
 class StyleSheetsScope;
 class BasicScroll;
+class Background;
 
 #define XX_EACH_VIEWS(F)  \
   F(LAYOUT, Layout, layout) \
   F(BOX, Box, box)  \
   F(DIV, Div, div)  \
   F(BOX_SHADOW, BoxShadow, box_shadow)  \
-  F(GRADIENT, Gradient, gradient)  \
   F(INDEP, Indep, indep)  \
   F(LIMIT, Limit, limit) \
   F(LIMIT_INDEP, LimitIndep, limit_indep) \
@@ -77,7 +77,6 @@ class BasicScroll;
   F(BUTTON, Button, button) \
   F(PANEL, Panel, panel) \
   F(TEXT, Text, text) \
-  F(CLIP, Clip, clip) \
   F(INPUT, Input, input) \
   F(TEXTAREA, Textarea, textarea) \
 
@@ -256,7 +255,8 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
     M_LAYOUT_THREE_TIMES    = (1 << 9),   // 第三次从外到内,设置无明确尺寸盒子,非所有无明确尺寸盒子都有三次
     M_BORDER                = (1 << 10),  // 边框
     M_BORDER_RADIUS         = (1 << 11),  // 边框圆角变化
-    M_BACKGROUND_COLOR      = (1 << 12),  // 颜色变化
+    M_BACKGROUND            = (1 << 12),  // 背景变化
+    M_BACKGROUND_COLOR      = M_BACKGROUND,
     M_TEXTURE               = (1 << 13),  // 纹理相关
     M_BOX_SHADOW            = (1 << 14),  // 阴影变化
     M_SCROLL                = (1 << 15),  //
@@ -264,10 +264,10 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
     M_TEXT_SIZE             = (1 << 17),  // 文本尺寸变化
     M_TEXT_FONT             = (1 << 18),  //
     M_INPUT_STATUS          = (1 << 19),  // 文本输入状态改变
-    M_STYLE_CLASS           = (1 << 29),  /* 变化class引起的样式变化 */
-    M_STYLE_FULL            = (1 << 30),  /* 所有后后代视图都受到影响 */
+    M_CLIP                  = (1 << 20),  // 溢出内容修剪
+    M_STYLE_CLASS           = (1 << 30),  /* 变化class引起的样式变化 */
+    M_STYLE_FULL            = (uint(1) << 31),  /* 所有后后代视图都受到影响 */
     M_STYLE                 = (M_STYLE_CLASS | M_STYLE_FULL),
-    M_TRANSFORM_AND_OPACITY_CTX_DATA = (uint(1) << 31),   /* 更新数据 */
   };
   
   /**
@@ -882,6 +882,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   friend class Span;
   friend class CSSViewClasss;
   friend class BasicScroll;
+  friend class Background;
 };
 
 XX_END

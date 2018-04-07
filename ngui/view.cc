@@ -357,14 +357,12 @@ public:
       if ( _inl(m_parent)->compute_final_matrix() || (mark_value & M_TRANSFORM) ) {
         m_parent->m_final_matrix.multiplication(matrix(), m_final_matrix);
         revoke_mark_value(mark_value, M_TRANSFORM); //  Delete M_TRANSFORM
-        mark_value |= M_TRANSFORM_AND_OPACITY_CTX_DATA; // add
         return true;
       }
     } else {
       if ( mark_value & M_TRANSFORM ) {
         m_final_matrix = matrix();
         revoke_mark_value(mark_value, M_TRANSFORM); //  Delete M_TRANSFORM
-        mark_value |= M_TRANSFORM_AND_OPACITY_CTX_DATA; // add
         return true;
       }
     }
@@ -379,14 +377,12 @@ public:
       if ( _inl(m_parent)->compute_final_opacity() || (mark_value & M_OPACITY) ) {
         m_final_opacity = m_parent->m_final_opacity * m_opacity;
         revoke_mark_value(mark_value, M_OPACITY); //  Delete M_OPACITY
-        mark_value |= M_TRANSFORM_AND_OPACITY_CTX_DATA; // add
         return true;
       }
     } else {
       if ( mark_value & M_OPACITY ) {
         m_final_opacity = m_opacity;
         revoke_mark_value(mark_value, M_OPACITY); //  Delete M_OPACITY
-        mark_value |= M_TRANSFORM_AND_OPACITY_CTX_DATA; // add
         return true;
       }
     }
@@ -657,7 +653,9 @@ View::~View() {
     _inl(this)->delete_mark();
   }
   
-  delete m_ctx_data; m_ctx_data = nullptr;
+  if ((size_t)m_ctx_data > 0x1) {
+    delete m_ctx_data; m_ctx_data = nullptr;
+  }
   Release(m_children); m_children = nullptr;
   Release(m_classs); m_classs = nullptr;
 }

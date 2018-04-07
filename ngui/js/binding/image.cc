@@ -74,26 +74,12 @@ class WrapImage: public WrapViewBase {
     JS_RETURN( self->source_height() );
   }
 
-  static void background_image(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Image);
-    JS_RETURN( self->background_image() );
-  }
-
-  static void set_background_image(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Image);
-    String src = value->ToStringValue(worker);
-    self->set_background_image(src);
-  }
-
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(Image, constructor, {
       JS_SET_CLASS_ACCESSOR(src, src, set_src);
       JS_SET_CLASS_ACCESSOR(sourceWidth, source_width);
       JS_SET_CLASS_ACCESSOR(sourceHeight, source_height);
-      JS_SET_CLASS_ACCESSOR(backgroundImage, background_image, set_background_image);
     }, Div);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Image), View::IMAGE);
   }

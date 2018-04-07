@@ -84,7 +84,6 @@
       'binding/css.cc',
       'binding/font.cc',
       'binding/text.cc',
-      'binding/clip.cc',
       'binding/input.cc',
     ],
     'conditions': [

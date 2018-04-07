@@ -265,6 +265,15 @@ class WrapBox: public WrapObject {
   }
 
   /**
+   * @get clip {bool}
+   */
+  static void clip(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    JS_RETURN( self->clip() );
+  }
+
+  /**
    * @get final_width {float}
    */
   static void final_width(Local<JSString> name, PropertyCall args) {
@@ -617,6 +626,15 @@ class WrapBox: public WrapObject {
     self->set_newline( value->ToBooleanValue(worker) );
   }
   
+  /**
+   * @set newline {bool}
+   */
+  static void set_clip(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+    JS_WORKER(args); GUILock lock;
+    JS_SELF(Box);
+    self->set_clip( value->ToBooleanValue(worker) );
+  }
+  
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS_NO_EXPORTS(Box, constructor, {
@@ -649,6 +667,7 @@ class WrapBox: public WrapObject {
       JS_SET_CLASS_ACCESSOR(borderRadiusLeftBottom, border_radius_left_bottom, set_border_radius_left_bottom);
       JS_SET_CLASS_ACCESSOR(backgroundColor, background_color, set_background_color);
       JS_SET_CLASS_ACCESSOR(newline, newline, set_newline);
+      JS_SET_CLASS_ACCESSOR(clip, clip, set_clip);
       JS_SET_CLASS_ACCESSOR(finalWidth, final_width);
       JS_SET_CLASS_ACCESSOR(finalHeight, final_height);
       JS_SET_CLASS_ACCESSOR(finalMarginLeft, final_margin_left);

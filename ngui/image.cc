@@ -149,7 +149,7 @@ public:
         m_final_margin_right = 0;
       }
       
-      m_raw_client_width =  m_border_left.width + m_border_right.width +
+      m_raw_client_width =  m_border_left_width + m_border_right_width +
                             m_final_margin_left + m_final_margin_right;
       
       m_explicit_width = true;  // 明确的宽度,不受内部挤压
@@ -224,7 +224,7 @@ public:
         m_final_margin_bottom = 0;
       }
       
-      m_raw_client_height = m_border_top.width + m_border_bottom.width +
+      m_raw_client_height = m_border_top_width + m_border_bottom_width +
                             m_final_margin_top + m_final_margin_bottom;
       
       m_explicit_height = true;  // 明确的宽度,不受内部挤压
@@ -276,7 +276,7 @@ public:
 Image::Image()
 : m_tex_level(Texture::LEVEL_0)
 , m_texture(draw_ctx()->empty_texture())
-, m_background_image(nullptr) {
+{
   m_texture->retain(); // 保持纹理
 }
 
@@ -292,9 +292,6 @@ Image* Image::create(cString& src) {
 Image::~Image() {
   m_texture->XX_OFF(change, &Inl::texture_change_handle, _inl(this));
   m_texture->release(); // 释放纹理
-  if ( m_background_image ) {
-    m_background_image->release();
-  }
 }
 
 /**
@@ -365,50 +362,14 @@ uint Image::source_height() const {
  * @func set_texture
  */
 void Image::set_texture(Texture* value) {
-  
   XX_ASSERT(value);
-  
-  // 如果值相同,不做处理
-  if (value == m_texture) {
-    return;
-  }
-  
+  if (value == m_texture) return;
   m_texture->XX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
   m_texture->release(); // 释放
   m_texture = value;
   m_texture->retain(); // 保持
   m_texture->XX_ON(change, &Image::Inl::texture_change_handle, _inl(this));
-  
   mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXTURE);
-}
-
-/**
- * @func background_image get
- */
-String Image::background_image() const {
-  if ( m_background_image ) {
-    return m_background_image->id();
-  } else {
-    return String();
-  }
-}
-
-/**
- * @func set_background_image set
- */
-void Image::set_background_image(cString& value) {
-  if ( value.is_empty() ) { // delete
-    if ( m_background_image  ) {
-      m_background_image->release();
-      m_background_image = nullptr;
-    }
-  } else {
-    if (m_background_image) {
-      m_background_image->release();
-    }
-    m_background_image = tex_pool()->get_texture(value);
-    m_background_image->retain();
-  }
 }
 
 /**

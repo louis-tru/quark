@@ -3,6 +3,8 @@
 
 // 只能使用4顶点的实例绘制
 
+uniform vec4 background_color;
+
 out vec4 f_color;
 
 void main() {

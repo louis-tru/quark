@@ -11,6 +11,7 @@
 #define vertex7 vec2(vertex_ac.x, vertex_ac.w)
 
 uniform int direction;
+uniform vec4 border_color;
 
 out vec4 f_color;
 
@@ -33,29 +34,27 @@ void main() {
     else if ( id == 1 ) v = vertex0;
     else if ( id == 2 ) v = vertex4;
     else  v = vertex7;
-    f_color = vec4(border_left_color.rgb, border_left_color.a * opacity);
   } 
   else if (d == 1) {
     if      ( id == 0 ) v = vertex0;
     else if ( id == 1 ) v = vertex1;
     else if ( id == 2 ) v = vertex5;
     else  v = vertex4;
-    f_color = vec4(border_top_color.rgb, border_top_color.a * opacity);
   } 
   else if (d == 2) {
     if      ( id == 0 ) v = vertex1;
     else if ( id == 1 ) v = vertex2;
     else if ( id == 2 ) v = vertex6;
     else  v = vertex5;
-    f_color = vec4(border_right_color.rgb, border_right_color.a * opacity);
   } 
   else {
     if      ( id == 0 ) v = vertex2;
     else if ( id == 1 ) v = vertex3;
     else if ( id == 2 ) v = vertex7;
     else  v = vertex6;
-    f_color = vec4(border_bottom_color.rgb, border_bottom_color.a * opacity);
   }
+  
+  f_color = vec4(border_color.rgb, border_color.a * opacity);
   
   gl_Position = r_matrix * v_matrix * vec4(v.xy, 0.0, 1.0);
 }

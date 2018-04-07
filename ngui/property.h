@@ -74,6 +74,7 @@ F(PROPERTY_BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom) \
 F(PROPERTY_BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom) \
 F(PROPERTY_BACKGROUND_COLOR, Color, background_color) \
 F(PROPERTY_NEWLINE, bool, newline) \
+F(PROPERTY_CLIP, bool, clip) \
 F(PROPERTY_CONTENT_ALIGN, ContentAlign, content_align) /* div*/ \
 F(PROPERTY_TEXT_ALIGN, TextAlign, text_align) /* text / label */ \
 F(PROPERTY_MAX_WIDTH, Value, max_width) /* limit-div / limit-text / limit-indep */ \
@@ -99,7 +100,6 @@ F(PROPERTY_ALIGN_X, Align, align_x) /* free-div */ \
 F(PROPERTY_ALIGN_Y, Align, align_y) \
 F(PROPERTY_SHADOW, Shadow, shadow) /* shadow-div */ \
 F(PROPERTY_SRC, String, src)    /* image */ \
-F(PROPERTY_BACKGROUND_IMAGE, String, background_image) \
 
 /**
  * @func PropertyName

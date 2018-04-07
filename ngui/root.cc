@@ -201,8 +201,8 @@ void Root::set_layout_content_offset() {
  * @overwrite
  */
 Vec2 Root::layout_offset() {
-  return Vec2(m_offset_start.x() + m_final_margin_left + m_border_left.width,
-              m_offset_start.y() + m_final_margin_top + m_border_top.width);
+  return Vec2(m_offset_start.x() + m_final_margin_left + m_border_left_width,
+              m_offset_start.y() + m_final_margin_top + m_border_top_width);
 }
 
 XX_END

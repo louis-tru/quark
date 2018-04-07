@@ -158,7 +158,7 @@ class WrapPanel: public WrapViewBase {
     JS_SELF(Panel);
     Panel* panel = self->parent_panel();
     if ( panel ) {
-      JS_RETURN( Wrap<Panel>::pack(panel, View::panel)->that() );
+      JS_RETURN( Wrap<Panel>::pack(panel, View::PANEL)->that() );
     } else {
       JS_RETURN_NULL();
     }
@@ -175,7 +175,7 @@ class WrapPanel: public WrapViewBase {
       JS_SET_CLASS_ACCESSOR(isActivity, is_activity);
       JS_SET_CLASS_ACCESSOR(parentPanel, parent_panel);
     }, Div);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Panel), View::panel);
+    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Panel), View::PANEL);
   }
 };
 

@@ -983,6 +983,12 @@ console.log(view.class);
 
 * {[`bool`]}
 
+### Box.clip 
+
+是否修剪溢出的子视图内容 **Default** `false`
+
+* {[`bool`]}
+
 ### Get: Box.finalWidth 
 
 获取最终宽度
@@ -1212,12 +1218,6 @@ console.log(view.class);
 源图像路径，[`reader`]中支持的路径协议都可以
 
 或者使用[`$(path)`]函数读取包内路径文件
-
-* {[`String`]}
-
-### Image.backgroundImage 
-
-背景图像，这个属性是为了在`src`图像还在载入中时这个可以做为临时图像源使用
 
 * {[`String`]}
 

@@ -146,7 +146,6 @@ public:
   virtual void draw(Text* v);
   virtual void draw(Sprite* v);
   virtual void draw(Scroll* v);
-  virtual void draw(Clip* v);
   virtual void draw(Input* v);
   virtual void draw(Textarea* v);
   

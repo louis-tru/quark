@@ -139,7 +139,6 @@ void binding_button(Local<JSObject> exports, Worker* worker);
 void binding_panel(Local<JSObject> exports, Worker* worker);
 void binding_scroll(Local<JSObject> exports, Worker* worker);
 void binding_text(Local<JSObject> exports, Worker* worker);
-void binding_clip(Local<JSObject> exports, Worker* worker);
 void binding_input(Local<JSObject> exports, Worker* worker);
 
 /**
@@ -182,7 +181,6 @@ class NativeNGUI {
     binding_scroll(exports, worker);
     binding_text(exports, worker);
     binding_button(exports, worker);
-    binding_clip(exports, worker);
     binding_input(exports, worker);
     JS_SET_METHOD(lock, lock);
   }

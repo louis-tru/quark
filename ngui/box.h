@@ -36,6 +36,7 @@
 XX_NS(ngui)
 
 class BasicScroll;
+class Background;
 
 /**
  * 布局盒子视图尺寸的变化会影响到:
@@ -49,6 +50,12 @@ class XX_EXPORT Box: public Layout {
   XX_DEFINE_GUI_VIEW(BOX, Box, box);
   
   Box();
+  
+  /**
+   * @overwrite
+   */
+  virtual ~Box();
+  virtual void remove();
     
   /**
    * @func width
@@ -123,7 +130,9 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_left
    */
-  inline Border border_left() const { return m_border_left; }
+  inline Border border_left() const {
+    return Border(m_border_left_width, m_border_left_color);
+  }
   
   /**
    * @func set_border_left
@@ -133,7 +142,9 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_top
    */
-  inline Border border_top() const { return m_border_top; }
+  inline Border border_top() const {
+    return Border(m_border_top_width, m_border_top_color);
+  }
   
   /**
    * @func set_border_top
@@ -143,7 +154,9 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_right
    */
-  inline Border border_right() const { return m_border_right; }
+  inline Border border_right() const {
+    return Border(m_border_right_width, m_border_right_color);
+  }
   
   /**
    * @func set_border_right
@@ -153,7 +166,9 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_bottom
    */
-  inline Border border_bottom() const { return m_border_bottom; }
+  inline Border border_bottom() const {
+    return Border(m_border_bottom_width, m_border_bottom_color);
+  }
   
   /**
    * @func set_border_bottom
@@ -168,7 +183,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func set_border_left_width
    */
-  inline float border_left_width() const { return m_border_left.width; }
+  inline float border_left_width() const { return m_border_left_width; }
   
   /**
    * @func set_border_left_width
@@ -178,7 +193,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_top_width
    */
-  inline float border_top_width() const { return m_border_top.width; }
+  inline float border_top_width() const { return m_border_top_width; }
   
   /**
    * @func set_border_top_width
@@ -188,7 +203,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_right_width
    */
-  inline float border_right_width() const { return m_border_right.width; }
+  inline float border_right_width() const { return m_border_right_width; }
   
   /**
    * @func set_border_right_width
@@ -198,7 +213,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_bottom_width
    */
-  inline float border_bottom_width() const { return m_border_bottom.width; }
+  inline float border_bottom_width() const { return m_border_bottom_width; }
   
   /**
    * @func set_border_bottom_width
@@ -213,7 +228,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_left_color
    */
-  inline Color border_left_color() const { return m_border_left.color; }
+  inline Color border_left_color() const { return m_border_left_color; }
   
   /**
    * @func set_border_left_color
@@ -223,7 +238,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_top_color
    */
-  inline Color border_top_color() const { return m_border_top.color; }
+  inline Color border_top_color() const { return m_border_top_color; }
   
   /**
    * @func set_border_top_color
@@ -233,7 +248,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_right_color
    */
-  inline Color border_right_color() const { return m_border_right.color; }
+  inline Color border_right_color() const { return m_border_right_color; }
   
   /**
    * @func set_border_right_color
@@ -243,7 +258,7 @@ class XX_EXPORT Box: public Layout {
   /**
    * @func border_bottom_color
    */
-  inline Color border_bottom_color() const { return m_border_bottom.color; }
+  inline Color border_bottom_color() const { return m_border_bottom_color; }
   
   /**
    * @func set_border_bottom_color
@@ -347,6 +362,26 @@ class XX_EXPORT Box: public Layout {
   inline float final_margin_bottom() const { return m_final_margin_bottom; }
   
   /**
+   * @func clip()
+   */
+  inline bool clip() const { return m_clip; }
+  
+  /**
+   * @func set_clip(bool)
+   */
+  void set_clip(bool value);
+  
+  /**
+   * @func background()
+   */
+  inline Background* background() { return m_background; }
+  
+  /**
+   * @func set_background(value)
+   */
+  void set_background(Background* value);
+  
+  /**
    * @overwrite
    */
   virtual View* append_text(cUcs2String& str) throw(Error);
@@ -426,15 +461,20 @@ class XX_EXPORT Box: public Layout {
   Value     m_margin_top;   // 顶边缘距离
   Value     m_margin_right; // 右边缘距离
   Value     m_margin_bottom; // 底边缘距离
-  Border    m_border_left; // 左边框
-  Border    m_border_top; // 顶边框
-  Border    m_border_right; // 右边框
-  Border    m_border_bottom; // 底边框
+  Color     m_border_left_color;
+  Color     m_border_top_color;
+  Color     m_border_right_color;
+  Color     m_border_bottom_color;
+  float     m_border_left_width;
+  float     m_border_top_width;
+  float     m_border_right_width;
+  float     m_border_bottom_width;
   float     m_border_radius_left_top; // 左上圆角
   float     m_border_radius_right_top; // 右上圆角
   float     m_border_radius_right_bottom; // 右下圆角
   float     m_border_radius_left_bottom; // 左下圆角
   Color     m_background_color; // 背景颜色
+  Background* m_background;     // 盒子背景
  protected:
   float     m_final_width; // 最终的宽度
   float     m_final_height; // 最终的高度
@@ -442,6 +482,10 @@ class XX_EXPORT Box: public Layout {
   float     m_final_margin_top; // 最终的顶边距
   float     m_final_margin_right; // 最终的右边距
   float     m_final_margin_bottom; // 最终的底边距
+  float     m_final_border_radius_left_top; // 最终的左上圆角
+  float     m_final_border_radius_right_top; // 最终的右上圆角
+  float     m_final_border_radius_right_bottom; // 最终的右下圆角
+  float     m_final_border_radius_left_bottom; // 最终的左下圆角
   float     m_raw_client_width;    // 原客户端宽度,视图所占用的所有水平尺寸,三次布局以前的宽度
   float     m_raw_client_height;   // 原客户端高度,视图所占用的所有垂直尺寸,三次布局以前的高度
   Vec2      m_limit;            // 限制内部偏移排版的尺寸,有明确尺寸时与final_width或final_height相等
@@ -450,6 +494,7 @@ class XX_EXPORT Box: public Layout {
   uint      vertical_active_mark_value;   //
   int       m_linenum;          /* 盒子在Hybrid视图布局中的行索引,-1表式没有行无需显示 */
   bool      m_newline;          // 新行或新列
+  bool      m_clip;             // 是否溢出修剪
   bool      m_explicit_width;     // 是否拥有明确宽度,明确宽度不会受到子布局视图的挤压影响
   bool      m_explicit_height;    // 是否拥有明确高度,明确高度不会受到子布局视图的挤压影响
   bool      m_is_draw_border;         // 是否需要绘制边框

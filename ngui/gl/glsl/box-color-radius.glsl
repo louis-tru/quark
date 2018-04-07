@@ -3,6 +3,8 @@
 
 // 只能使用84个顶点1实例绘制,可绘制一个圆角矩形
 
+uniform vec4 background_color;
+
 out vec4 f_color;
 
 void main() {

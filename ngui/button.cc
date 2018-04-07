@@ -47,7 +47,6 @@ public:
     if ( mark_value & M_TRANSFORM ) {
       parent()->final_matrix().multiplication(matrix(), m_final_matrix);
       mark_value &= (~M_TRANSFORM); //  Delete M_TRANSFORM
-      mark_value |= M_TRANSFORM_AND_OPACITY_CTX_DATA; // add
     }
   }
   

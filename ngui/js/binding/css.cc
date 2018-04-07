@@ -182,6 +182,7 @@ class WrapStyleSheets: public WrapObject {
   def_property_from_type(repeat, Repeat);
   def_property_from_type(text_background_color, TextColor);
   def_property_from_type(newline, bool);
+  def_property_from_type(clip, bool);
   def_property_from_type(text_color, TextColor);
   def_property_from_type(text_size, TextSize);
   def_property_from_type(text_style, TextStyle);
@@ -195,7 +196,7 @@ class WrapStyleSheets: public WrapObject {
   def_property_from_type(align_y, Align);
   def_property_from_type2(shadow, Shadow, Shadow);
   def_property_from_type(src, String);
-  def_property_from_type(background_image, String);
+  // def_property_from_type(background_image, String);
   
   static void create(FunctionCall args) {
     JS_WORKER(args); GUILock lock;
@@ -360,6 +361,7 @@ JS_SET_PROPERTY(ENUM, ENUM);
       JS_SET_CLASS_ACCESSOR(background_color, background_color, set_background_color);
       JS_SET_CLASS_ACCESSOR(backgroundColor, background_color, set_background_color);
       JS_SET_CLASS_ACCESSOR(newline, newline, set_newline);
+      JS_SET_CLASS_ACCESSOR(clip, clip, set_clip);
       JS_SET_CLASS_ACCESSOR(content_align, content_align, set_content_align);
       JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);
       JS_SET_CLASS_ACCESSOR(text_align, text_align, set_text_align);
@@ -403,8 +405,6 @@ JS_SET_PROPERTY(ENUM, ENUM);
       JS_SET_CLASS_ACCESSOR(alignY, align_y, set_align_y);
       JS_SET_CLASS_ACCESSOR(shadow, shadow, set_shadow);
       JS_SET_CLASS_ACCESSOR(src, src, set_src);
-      JS_SET_CLASS_ACCESSOR(background_image, background_image, set_background_image);
-      JS_SET_CLASS_ACCESSOR(backgroundImage, background_image, set_background_image);
     }, nullptr);
     
     JS_SET_METHOD(create, create);

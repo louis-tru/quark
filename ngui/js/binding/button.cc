@@ -87,7 +87,7 @@ class WrapButton: public WrapViewBase {
     JS_SELF(Button);
     Panel* panel = self->panel();
     if ( panel ) {
-      JS_RETURN( Wrap<Panel>::pack(panel, View::panel)->that() );
+      JS_RETURN( Wrap<Panel>::pack(panel, View::PANEL)->that() );
     } else {
       JS_RETURN_NULL();
     }

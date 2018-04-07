@@ -630,10 +630,6 @@ action.transition(view2, {
 
 * {[`String`]}
 
-### Frame.backgroundImage 
-
-* {[`String`]}
-
 
 ## LINEAR
 ## EASE

@@ -38,6 +38,7 @@
 #include "css.h"
 #include "limit.h"
 #include "limit-indep.h"
+#include "background.h"
 
 XX_NS(ngui)
 
@@ -129,7 +130,7 @@ public:
     }
     
     m_raw_client_width = m_final_margin_left + m_final_margin_right +
-                         m_border_left.width + m_border_right.width + m_final_width;
+                         m_border_left_width + m_border_right_width + m_final_width;
     m_limit.width(Float::max);
   }
   
@@ -154,7 +155,7 @@ public:
     }
     
     m_raw_client_width = m_final_margin_left +
-                         m_final_margin_right + m_border_left.width + m_border_right.width;
+                         m_final_margin_right + m_border_left_width + m_border_right_width;
     
     if ( m_raw_client_width < parent ) {
       m_final_width = parent - m_raw_client_width;
@@ -169,7 +170,7 @@ public:
     
     m_explicit_width = true;
     
-    m_raw_client_width = m_final_width + m_border_left.width + m_border_right.width;
+    m_raw_client_width = m_final_width + m_border_left_width + m_border_right_width;
     
     // 剩下的宽度
     float width = parent - m_raw_client_width;
@@ -217,7 +218,7 @@ public:
   inline void solve_final_horizontal_size_with_full_width(float parent) {
     
     float width = m_final_margin_left +
-                  m_final_margin_right + m_border_left.width + m_border_right.width;
+                  m_final_margin_right + m_border_left_width + m_border_right_width;
     if ( width < parent ) {
       m_final_width = parent - width;
       width = parent;
@@ -292,7 +293,7 @@ public:
         m_final_margin_right = 0;
       }
       
-      m_raw_client_width =  m_border_left.width + m_border_right.width +
+      m_raw_client_width =  m_border_left_width + m_border_right_width +
                             m_final_margin_left + m_final_margin_right;
       
       // 父视图没有明确的宽度或者父视图为普通视图,只有像素值才生效否则为不明确的值
@@ -337,7 +338,7 @@ public:
     }
     
     m_raw_client_height = m_final_margin_top + m_final_margin_bottom +
-                          m_border_top.width + m_border_bottom.width + m_final_height;
+                          m_border_top_width + m_border_bottom_width + m_final_height;
     m_limit.height(Float::max);
   }
   
@@ -363,7 +364,7 @@ public:
     }
     
     m_raw_client_height = m_final_margin_top +
-                          m_final_margin_bottom + m_border_top.width + m_border_bottom.width;
+                          m_final_margin_bottom + m_border_top_width + m_border_bottom_width;
     
     if (m_raw_client_height < parent) {
       m_final_height = parent - m_raw_client_height;
@@ -378,7 +379,7 @@ public:
     
     m_explicit_height = true; // 明确高度
     
-    m_raw_client_height = m_final_height + m_border_top.width + m_border_bottom.width;
+    m_raw_client_height = m_final_height + m_border_top_width + m_border_bottom_width;
     
     // 剩下的高度
     float height = parent - m_raw_client_height;
@@ -421,7 +422,7 @@ public:
   inline void solve_final_vertical_size_with_full_height(float parent) {
     
     float height = m_final_margin_top +
-                   m_final_margin_bottom + m_border_top.width + m_border_bottom.width;
+                   m_final_margin_bottom + m_border_top_width + m_border_bottom_width;
     if (height < parent) {
       m_final_height = parent - height;
       height = parent;
@@ -483,7 +484,7 @@ public:
         m_final_margin_bottom = 0;
       }
       
-      m_raw_client_height = m_border_top.width + m_border_bottom.width +
+      m_raw_client_height = m_border_top_width + m_border_bottom_width +
                             m_final_margin_top + m_final_margin_bottom;
       
       // 如果父盒子为垂直布局同时没有明确的高度,FULL高度会导致三次布局
@@ -726,6 +727,14 @@ public:
     }
   }
   
+  void remove_background() {
+    if (m_background) {
+      m_background->set_host(nullptr);
+      m_background->release();
+      m_background = nullptr;
+    }
+  }
+  
 };
 
 void _box_inl__solve_horizontal_size_with_auto_width(Box* box, float parent) {
@@ -801,21 +810,30 @@ Box::Box()
 , m_margin_right(ValueType::PIXEL)
 , m_margin_bottom(ValueType::PIXEL)
 , m_margin_left(ValueType::PIXEL)
-, m_border_top()
-, m_border_right()
-, m_border_bottom()
-, m_border_left()
+, m_border_left_color()
+, m_border_top_color()
+, m_border_right_color()
+, m_border_bottom_color()
+, m_border_left_width(0)
+, m_border_top_width(0)
+, m_border_right_width(0)
+, m_border_bottom_width(0)
 , m_border_radius_left_top(0)
 , m_border_radius_right_top(0)
 , m_border_radius_right_bottom(0)
 , m_border_radius_left_bottom(0)
 , m_background_color(0, 0, 0, 0)
+, m_background(nullptr)
 , m_final_width(0)
 , m_final_height(0)
+, m_final_margin_left(0)
 , m_final_margin_top(0)
 , m_final_margin_right(0)
 , m_final_margin_bottom(0)
-, m_final_margin_left(0)
+, m_final_border_radius_left_top(0)
+, m_final_border_radius_right_top(0)
+, m_final_border_radius_right_bottom(0)
+, m_final_border_radius_left_bottom(0)
 , m_raw_client_width(0)
 , m_raw_client_height(0)
 , m_limit()
@@ -823,11 +841,21 @@ Box::Box()
 , vertical_active_mark_value(0)
 , m_linenum(0)
 , m_newline(false)
+, m_clip(false)
 , m_explicit_width(false)
 , m_explicit_height(false)
 , m_is_draw_border(false)
-, m_is_draw_border_radius(false) {
-  
+, m_is_draw_border_radius(false)
+{
+}
+
+Box::~Box() {
+  _inl(this)->remove_background();
+}
+
+void Box::remove() {
+  _inl(this)->remove_background();
+  Layout::remove();
 }
 
 void Box::set_parent(View* parent) throw(Error) {
@@ -837,13 +865,10 @@ void Box::set_parent(View* parent) throw(Error) {
 
 void Box::draw(Draw* draw) {
   if ( m_visible ) {
-    
     if ( mark_value ) {
       solve();
     }
-    
     draw->draw(this);
-    
     mark_value = M_NONE;
   }
 }
@@ -912,8 +937,8 @@ Vec2 Box::layout_offset() {
     }
   }
   
-  return Vec2(offset_start_x + m_final_margin_left + m_border_left.width,
-              offset_start_y + m_final_margin_top + m_border_top.width);
+  return Vec2(offset_start_x + m_final_margin_left + m_border_left_width,
+              offset_start_y + m_final_margin_top + m_border_top_width);
 }
 
 /**
@@ -929,9 +954,9 @@ CGRect Box::screen_rect() {
  * @func compute_box_vertex
  */
 void Box::compute_box_vertex(Vec2 vertex[4]) {
-  Vec2 start(-m_border_left.width - m_origin.x(), -m_border_top.width - m_origin.y() );
-  Vec2 end  (m_final_width  + m_border_right.width - m_origin.x(),
-             m_final_height + m_border_bottom.width - m_origin.y() );
+  Vec2 start(-m_border_left_width - m_origin.x(), -m_border_top_width - m_origin.y() );
+  Vec2 end  (m_final_width  + m_border_right_width - m_origin.x(),
+             m_final_height + m_border_bottom_width - m_origin.y() );
   
   vertex[0] = m_final_matrix * start;
   vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
@@ -1052,11 +1077,15 @@ void Box::set_margin_left(Value value) {
  * @set
  */
 void Box::set_border(Border value) {
-  value.width = XX_MAX(value.width, 0);
-  m_border_top = value;
-  m_border_right = value;
-  m_border_bottom = value;
-  m_border_left = value;
+  float width = XX_MAX(value.width, 0);
+  m_border_top_color = value.color;
+  m_border_right_color = value.color;
+  m_border_bottom_color = value.color;
+  m_border_left_color = value.color;
+  m_border_top_width = width;
+  m_border_right_width = width;
+  m_border_bottom_width = width;
+  m_border_left_width = width;
   mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 }
 
@@ -1065,8 +1094,8 @@ void Box::set_border(Border value) {
  * @arg value {Border}
  */
 void Box::set_border_top(Border value) {
-  value.width = XX_MAX(value.width, 0);
-  m_border_top = value;
+  m_border_top_width = XX_MAX(value.width, 0);
+  m_border_top_color = value.color;
   mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
@@ -1075,8 +1104,8 @@ void Box::set_border_top(Border value) {
  * @arg value {Border}
  */
 void Box::set_border_right(Border value) {
-  value.width = XX_MAX(value.width, 0);
-  m_border_right = value;
+  m_border_right_width = XX_MAX(value.width, 0);
+  m_border_right_color = value.color;
   mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
@@ -1085,8 +1114,8 @@ void Box::set_border_right(Border value) {
  * @arg value {Border}
  */
 void Box::set_border_bottom(Border value) {
-  value.width = XX_MAX(value.width, 0);
-  m_border_bottom = value;
+  m_border_bottom_width = XX_MAX(value.width, 0);
+  m_border_bottom_color = value.color;
   mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
@@ -1096,8 +1125,8 @@ void Box::set_border_bottom(Border value) {
  * @set
  */
 void Box::set_border_left(Border value) {
-  value.width = XX_MAX(value.width, 0);
-  m_border_left = value;
+  m_border_left_width = XX_MAX(value.width, 0);
+  m_border_left_color = value.color;
   mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
@@ -1107,10 +1136,10 @@ void Box::set_border_left(Border value) {
  */
 void Box::set_border_width(float value) {
   value = XX_MAX(value, 0);
-  m_border_top.width = value;
-  m_border_right.width = value;
-  m_border_bottom.width = value;
-  m_border_left.width = value;
+  m_border_top_width = value;
+  m_border_right_width = value;
+  m_border_bottom_width = value;
+  m_border_left_width = value;
   mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 }
 
@@ -1120,7 +1149,7 @@ void Box::set_border_width(float value) {
  */
 void Box::set_border_top_width(float value) {
   value = XX_MAX(value, 0);
-  m_border_top.width = value;
+  m_border_top_width = value;
   mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
@@ -1130,7 +1159,7 @@ void Box::set_border_top_width(float value) {
  */
 void Box::set_border_right_width(float value) {
   value = XX_MAX(value, 0);
-  m_border_right.width = value;
+  m_border_right_width = value;
   mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
@@ -1140,7 +1169,7 @@ void Box::set_border_right_width(float value) {
  */
 void Box::set_border_bottom_width(float value) {
   value = XX_MAX(value, 0);
-  m_border_bottom.width = value;
+  m_border_bottom_width = value;
   mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
@@ -1150,7 +1179,7 @@ void Box::set_border_bottom_width(float value) {
  */
 void Box::set_border_left_width(float value) {
   value = XX_MAX(value, 0);
-  m_border_left.width = value;
+  m_border_left_width = value;
   mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
@@ -1159,10 +1188,10 @@ void Box::set_border_left_width(float value) {
  * @arg value {Color}
  */
 void Box::set_border_color(Color value) {
-  m_border_top.color = value;
-  m_border_right.color = value;
-  m_border_bottom.color = value;
-  m_border_left.color = value;
+  m_border_top_color = value;
+  m_border_right_color = value;
+  m_border_bottom_color = value;
+  m_border_left_color = value;
   mark(M_BORDER);
 }
 
@@ -1171,7 +1200,7 @@ void Box::set_border_color(Color value) {
  * @arg value {Color}
  */
 void Box::set_border_top_color(Color value) {
-  m_border_top.color = value;
+  m_border_top_color = value;
   mark(M_BORDER);
 }
 
@@ -1180,7 +1209,7 @@ void Box::set_border_top_color(Color value) {
  * @arg value {Color}
  */
 void Box::set_border_right_color(Color value) {
-  m_border_right.color = value;
+  m_border_right_color = value;
   mark(M_BORDER);
 }
 
@@ -1189,7 +1218,7 @@ void Box::set_border_right_color(Color value) {
  * @arg value {Color}
  */
 void Box::set_border_bottom_color(Color value) {
-  m_border_bottom.color = value;
+  m_border_bottom_color = value;
   mark(M_BORDER);
 }
 
@@ -1198,7 +1227,7 @@ void Box::set_border_bottom_color(Color value) {
  * @arg value {Color}
  */
 void Box::set_border_left_color(Color value) {
-  m_border_left.color = value;
+  m_border_left_color = value;
   mark(M_BORDER);
 }
 
@@ -1265,6 +1294,23 @@ void Box::set_background_color(Color value) {
 }
 
 /**
+ * @func set_background(value)
+ */
+void Box::set_background(Background* value) {
+  if (m_background) {
+    m_background->set_host(nullptr);
+    m_background->release();
+  }
+  m_background = value;
+  
+  if (value) {
+    value->retain();
+    value->set_host(this);
+  }
+  mark(M_BACKGROUND);
+}
+
+/**
  * @overwrite
  */
 void Box::set_visible(bool value) {
@@ -1281,6 +1327,14 @@ void Box::set_visible(bool value) {
 void Box::set_newline(bool value) {
   m_newline = value;
   mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL);
+}
+
+/**
+ * @func set_clip(bool)
+ */
+void Box::set_clip(bool value) {
+  m_clip = value;
+  mark(M_CLIP);
 }
 
 /**

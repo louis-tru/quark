@@ -105,7 +105,7 @@ while (view) {  \
     if ( m_final_width != squeeze.width() ) { // 宽度发生改变
       m_final_width       = squeeze.width();
       m_raw_client_width  = m_final_margin_left + m_final_margin_right +
-                            m_border_left.width + m_border_right.width + m_final_width;
+                            m_border_left_width + m_border_right_width + m_final_width;
       size_change = true;
     }
   }
@@ -122,7 +122,7 @@ while (view) {  \
     if ( m_final_height != squeeze.height() ) { // 高度发生改变
       m_final_height      = squeeze.height();
       m_raw_client_height = m_final_margin_top + m_final_margin_bottom +
-                            m_border_top.width + m_border_bottom.width + m_final_height;
+                            m_border_top_width + m_border_bottom_width + m_final_height;
       size_change = true;
     }
   }

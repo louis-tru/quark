@@ -1,10 +1,8 @@
 #vert
 #include "_box.glsl"
 
-// 只能使用4顶点的实例绘制
-
-#define shadow  vec3(d_data[28], d_data[29], d_data[30])
-#define color   vec4(d_data[31], d_data[32], d_data[33], d_data[34])
+uniform vec3 shadow; // offset_x, offset_y, size
+uniform vec4 shadow_color;
 
 out vec4 f_color;
 out vec2 f_tex_coord;
@@ -25,7 +23,7 @@ void main() {
     v = vertex_ac.xw; f_tex_coord = vec2(0.0, 1.0);
   }
   
-  f_color = color * vec4(1., 1., 1., opacity);
+  f_color = shadow_color * vec4(1., 1., 1., opacity);
   
   gl_Position = r_matrix * v_matrix * vec4(v.xy, 0.0, 1.0);
 }

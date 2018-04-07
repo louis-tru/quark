@@ -27,6 +27,7 @@
 #define border_y        args[2].z
 
 uniform int direction;
+uniform vec4 border_color;
 
 out vec4 f_color;
 
@@ -45,7 +46,6 @@ void main() {
     } else { // 左上角
       args = mat3(radius_size2.x, 0.0, 1.0, 1.0, 1.0, border_width2.xyxy);
     }
-    f_color = vec4(border_left_color.rgb, border_left_color.a * opacity);
   }
   else if ( direction == 1 ) { // 上边
     if ( index < 0.0 ) { // 左上角
@@ -53,7 +53,6 @@ void main() {
     } else { // 右上角
       args = mat3(radius_size2.y, 0.0, 0.0, 0.0, 1.0, border_width2.yzzy); // 逆时钟, x轴镜像
     }
-    f_color = vec4(border_top_color.rgb, border_top_color.a * opacity);
   }
   else if ( direction == 2 ) { // 右边
     if ( index < 0.0 ) { // 右上角
@@ -61,7 +60,6 @@ void main() {
     } else { // 右下角
       args = mat3(radius_size2.z, 0.0, 1.0, 0.0, 0.0, border_width2.zwzw);   // xy轴镜像
     }
-    f_color = vec4(border_right_color.rgb, border_right_color.a * opacity);
   }
   else { // 下边
     if ( index < 0.0 ) { // 右下角
@@ -69,7 +67,6 @@ void main() {
     } else { // 左下角
       args = mat3(radius_size2.w, 0.0, 0.0, 1.0, 0.0, border_width2.wxxw);    // 逆时钟, y轴镜像
     }
-    f_color = vec4(border_bottom_color.rgb, border_bottom_color.a * opacity);
   }
   
   // --
@@ -114,6 +111,8 @@ void main() {
   } else {
     v = vertex_ac.xy + v;
   }
+  
+  f_color = vec4(border_color.rgb, border_color.a * opacity);
   
   gl_Position = r_matrix * v_matrix * vec4(v.xy, 0.0, 1.0);
 }

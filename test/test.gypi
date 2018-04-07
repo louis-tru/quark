@@ -79,6 +79,7 @@
         'test-mutex.cc',
         'test-ios-run-loop.cc', 
         'test-benchmark.cc',
+        'test-sizeof.cc',
       ],
       'conditions': [
         ['os in "ios osx"', {

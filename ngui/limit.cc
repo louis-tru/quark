@@ -156,7 +156,7 @@ public:
           case ValueType::FULL:
             this->m_limit_min_width = (parent_width -
                                        this->m_final_margin_left - this->m_final_margin_right -
-                                       this->m_border_left.width - this->m_border_right.width);
+                                       this->m_border_left_width - this->m_border_right_width);
             break;
           case ValueType::PIXEL:
             this->m_limit_min_width = this->m_width.value;
@@ -175,7 +175,7 @@ public:
           case ValueType::FULL:
             this->m_limit.width(parent_width -
                                 this->m_final_margin_left - this->m_final_margin_right -
-                                this->m_border_left.width - this->m_border_right.width);
+                                this->m_border_left_width - this->m_border_right_width);
             break;
           case ValueType::PIXEL:
             this->m_limit.width(this->m_max_width.value);
@@ -207,7 +207,7 @@ public:
         this->m_final_margin_right = 0;
       }
       
-      this->m_raw_client_width =  this->m_border_left.width + this->m_border_right.width +
+      this->m_raw_client_width =  this->m_border_left_width + this->m_border_right_width +
                                   this->m_final_margin_left + this->m_final_margin_right;
       
       // 父视图没有明确的宽度或者父视图为普通视图,只有像素值才生效否则为不明确的值
@@ -299,7 +299,7 @@ public:
           case ValueType::FULL:
             this->m_limit_min_height = (parent_height -
                                         this->m_final_margin_top - this->m_final_margin_bottom -
-                                        this->m_border_top.width - this->m_border_bottom.width);
+                                        this->m_border_top_width - this->m_border_bottom_width);
             break;
           case ValueType::PIXEL:
             this->m_limit_min_height = this->m_height.value;
@@ -318,7 +318,7 @@ public:
           case ValueType::FULL:
             this->m_limit.height(parent_height -
                                  this->m_final_margin_top - this->m_final_margin_bottom -
-                                 this->m_border_top.width - this->m_border_bottom.width);
+                                 this->m_border_top_width - this->m_border_bottom_width);
             break;
           case ValueType::PIXEL:
             this->m_limit.height(this->m_max_height.value);
@@ -350,7 +350,7 @@ public:
         this->m_final_margin_bottom = 0;
       }
       
-      this->m_raw_client_height = this->m_border_top.width + this->m_border_bottom.width +
+      this->m_raw_client_height = this->m_border_top_width + this->m_border_bottom_width +
                                   this->m_final_margin_top + this->m_final_margin_bottom;
       
       // 父视图没有明确的高度或者父视图为普通视图,只有像素值才生效否则为不明确的值

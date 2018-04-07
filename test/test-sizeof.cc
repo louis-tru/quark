@@ -28,38 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js-1.h"
-#include "ngui/js/ngui.h"
-#include "ngui/clip.h"
+#include "ngui/base/sys.h"
 
-/**
- * @ns ngui::js
- */
+using namespace ngui;
 
-JS_BEGIN
-
-/**
- * @class WrapClip
- */
-class WrapClip: public WrapViewBase {
- public:
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapClip>(args, new Clip());
-  }
-  
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Clip, constructor, {
-      
-    }, Div);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Clip), View::CLIP);
-  }
+class TestSizeOf {
+ private:
+  float m_f1;
+  bool m_a;
+  bool m_b;
+  bool m_c;
+  bool m_d;
+  bool m_e;
+  bool m_f;
+  float m_f2;
 };
 
-void binding_clip(Local<JSObject> exports, Worker* worker) {
-  WrapClip::binding(exports, worker);
+void test_sizeof() {
+  LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }
 
-JS_END
+

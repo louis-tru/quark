@@ -53,28 +53,16 @@ class FontGlyph;
 class FontPool;
 class TexturePool;
 // view
-class View;
-class Layout;
 class Box;
-class Div;
-class Free;
-class Gradient;
-class Sprite;
 class BoxShadow;
-class Limit;
 class Image;
 class Scroll;
 class Video;
 class Root;
 class Sprite;
-class VectorGraph;
-class Hibrid;
 class Text;
 class TextNode;
-class TextFont;
-class TextLayout;
 class Label;
-class Clip;
 class Input;
 class Textarea;
 
@@ -188,7 +176,6 @@ class XX_EXPORT Draw: public Object {
   virtual void draw(Text* v) = 0;
   virtual void draw(Sprite* v) = 0;
   virtual void draw(Scroll* v) = 0;
-  virtual void draw(Clip* v) = 0;
   virtual void draw(Input* v) = 0;
   virtual void draw(Textarea* v) = 0;
   

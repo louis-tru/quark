@@ -101,6 +101,7 @@ PropertysAccessor::PropertysAccessor() {
   set_func(box, Box, PROPERTY_BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom);
   set_func(box, Box, PROPERTY_BACKGROUND_COLOR, background_color);
   set_func(box, Box, PROPERTY_NEWLINE, newline);
+  set_func(box, Box, PROPERTY_CLIP, clip);
 
   Map<PropertyName, Accessor> div = box;
   Map<PropertyName, Accessor> hybrid = box;
@@ -116,8 +117,7 @@ PropertysAccessor::PropertysAccessor() {
   m_property_func_table.set(View::LIMIT, div);
   m_property_func_table.set(View::IMAGE, div);
   m_property_func_table.set(View::BOX_SHADOW, div);
-  m_property_func_table.set(View::panel, div);
-  m_property_func_table.set(View::CLIP, div);
+  m_property_func_table.set(View::PANEL, div);
   m_property_func_table.set(View::SPAN, view);
   m_property_func_table.set(View::LABEL, view);
   m_property_func_table.set(View::SPRITE, view);
@@ -135,7 +135,6 @@ PropertysAccessor::PropertysAccessor() {
   set_func(m_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_HEIGHT, max_height);
   // video/image
   set_func(m_property_func_table[View::IMAGE], Image, PROPERTY_SRC, src);
-  set_func(m_property_func_table[View::IMAGE], Image, PROPERTY_BACKGROUND_IMAGE, background_image);
   m_property_func_table[View::VIDEO] = m_property_func_table[View::IMAGE];
   // sprite
   set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_WIDTH2, width);

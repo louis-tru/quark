@@ -693,6 +693,7 @@ class WrapFrame: public WrapObject {
   def_property(border_radius_left_bottom);
   def_property_from_type(background_color, Color);
   def_property_from_type(newline, bool);
+  def_property_from_type(clip, bool);
   def_property_from_type(content_align, ContentAlign);
   def_property_from_type(text_align, TextAlign);
   def_property_from_type(max_width, Value);
@@ -716,7 +717,6 @@ class WrapFrame: public WrapObject {
   def_property_from_type(align_y, Align);
   def_property_from_type2(shadow, Shadow, Shadow);
   def_property_from_type(src, String);
-  def_property_from_type(background_image, String);
 
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
@@ -779,6 +779,7 @@ class WrapFrame: public WrapObject {
       JS_SET_CLASS_ACCESSOR(borderRadiusLeftBottom, border_radius_left_bottom, set_border_radius_left_bottom);
       JS_SET_CLASS_ACCESSOR(backgroundColor, background_color, set_background_color);
       JS_SET_CLASS_ACCESSOR(newline, newline, set_newline);
+      JS_SET_CLASS_ACCESSOR(clip, clip, set_clip);
       JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);
       JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
       JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
@@ -802,7 +803,6 @@ class WrapFrame: public WrapObject {
       JS_SET_CLASS_ACCESSOR(alignY, align_y, set_align_y);
       JS_SET_CLASS_ACCESSOR(shadow, shadow, set_shadow);
       JS_SET_CLASS_ACCESSOR(src, src, set_src);
-      JS_SET_CLASS_ACCESSOR(backgroundImage, background_image, set_background_image);
       // style property end
     }, nullptr);
   }
