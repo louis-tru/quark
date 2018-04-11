@@ -47,7 +47,7 @@ template<class T, class T2 = typename T::Traits> class XX_EXPORT Handle {
   //! Copy constructor is not permitted.
   XX_HIDDEN_ALL_COPY(Handle);
   
-  inline T* shift() {
+  inline T* move() {
     return Traits::Retain(m_data) ? m_data : collapse();
   }
   
@@ -57,20 +57,20 @@ template<class T, class T2 = typename T::Traits> class XX_EXPORT Handle {
   
   inline Handle(): m_data(nullptr) { }
   inline Handle(T* data): m_data(data) { Traits::Retain(data); }
-  inline Handle(Handle& handle) { m_data = handle.shift(); }
-  inline Handle(Handle&& handle) { m_data = handle.shift(); }
+  inline Handle(Handle& handle) { m_data = handle.move(); }
+  inline Handle(Handle&& handle) { m_data = handle.move(); }
   
   ~Handle() { clear(); }
   
   inline Handle& operator=(Handle& handle) {
     clear();
-    m_data = handle.shift();
+    m_data = handle.move();
     return *this;
   }
   
   inline Handle& operator=(Handle&& handle) {
     clear();
-    m_data = handle.shift();
+    m_data = handle.move();
     return *this;
   }
   

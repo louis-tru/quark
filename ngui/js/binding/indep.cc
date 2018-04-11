@@ -71,20 +71,12 @@ class WrapIndep: public WrapViewBase {
     JS_SELF(Indep);
     self->set_align_y(out);
   }
-  /*
-  static void set_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args);
-    js_parse_value(Align, align, value, "Indep.align = %s");
-    JS_SELF(Indep);
-    self->set_align(out, out);
-  }*/
   
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
     JS_DEFINE_CLASS(Indep, constructor, {
       JS_SET_CLASS_ACCESSOR(alignX, align_x, set_align_x);
       JS_SET_CLASS_ACCESSOR(alignY, align_y, set_align_y);
-      // JS_SET_CLASS_ACCESSOR(align, nullptr, set_align);
     }, Div);
     IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Indep), View::INDEP);
   }

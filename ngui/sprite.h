@@ -106,6 +106,16 @@ class XX_EXPORT Sprite: public View {
   inline float height() const { return m_size.height(); }
   
   /**
+   * @func width_1()
+   */
+  inline Value width_1() const { return Value(m_size.width()); }
+  
+  /**
+   * @func height_1()
+   */
+  inline Value height_1() const { return Value(m_size.height()); }
+  
+  /**
    * @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
    */
   virtual bool overlap_test(Vec2 point);
@@ -139,6 +149,16 @@ class XX_EXPORT Sprite: public View {
    * @func set_height
    */
   void set_height(float value);
+  
+  /**
+   * @func set_width_1
+   */
+  inline void set_width_1(Value value) { set_width(value.value); }
+  
+  /**
+   * @func set_height_1
+   */
+  inline void set_height_1(Value value) { set_height(value.value); }
   
   /**
    * @func start 精灵图片的开始位置

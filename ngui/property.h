@@ -56,10 +56,6 @@ F(PROPERTY_MARGIN_LEFT, Value, margin_left) \
 F(PROPERTY_MARGIN_TOP, Value, margin_top) \
 F(PROPERTY_MARGIN_RIGHT, Value, margin_right) \
 F(PROPERTY_MARGIN_BOTTOM, Value, margin_bottom) \
-F(PROPERTY_BORDER_LEFT, Border, border_left) \
-F(PROPERTY_BORDER_TOP, Border, border_top) \
-F(PROPERTY_BORDER_RIGHT, Border, border_right) \
-F(PROPERTY_BORDER_BOTTOM, Border, border_bottom) \
 F(PROPERTY_BORDER_LEFT_WIDTH, float, border_left_width) \
 F(PROPERTY_BORDER_TOP_WIDTH, float, border_top_width) \
 F(PROPERTY_BORDER_RIGHT_WIDTH, float, border_right_width) \
@@ -73,14 +69,13 @@ F(PROPERTY_BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top) \
 F(PROPERTY_BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom) \
 F(PROPERTY_BORDER_RADIUS_LEFT_BOTTOM, float, border_radius_left_bottom) \
 F(PROPERTY_BACKGROUND_COLOR, Color, background_color) \
+F(PROPERTY_BACKGROUND, BackgroundPtr, background) \
 F(PROPERTY_NEWLINE, bool, newline) \
 F(PROPERTY_CLIP, bool, clip) \
 F(PROPERTY_CONTENT_ALIGN, ContentAlign, content_align) /* div*/ \
 F(PROPERTY_TEXT_ALIGN, TextAlign, text_align) /* text / label */ \
-F(PROPERTY_MAX_WIDTH, Value, max_width) /* limit-div / limit-text / limit-indep */ \
+F(PROPERTY_MAX_WIDTH, Value, max_width) /* limit / limit-indep */ \
 F(PROPERTY_MAX_HEIGHT, Value, max_height) \
-F(PROPERTY_WIDTH2, float, width2)  /* sprite // float value */ \
-F(PROPERTY_HEIGHT2, float, height2) /* float value */ \
 F(PROPERTY_START_X, float, start_x) \
 F(PROPERTY_START_Y, float, start_y) \
 F(PROPERTY_RATIO_X, float, ratio_x) \
@@ -96,18 +91,18 @@ F(PROPERTY_TEXT_SHADOW, TextShadow, text_shadow) \
 F(PROPERTY_TEXT_DECORATION, TextDecoration, text_decoration) \
 F(PROPERTY_TEXT_OVERFLOW, TextOverflow, text_overflow) \
 F(PROPERTY_TEXT_WHITE_SPACE, TextWhiteSpace, text_white_space) \
-F(PROPERTY_ALIGN_X, Align, align_x) /* free-div */ \
+F(PROPERTY_ALIGN_X, Align, align_x) /* indep */ \
 F(PROPERTY_ALIGN_Y, Align, align_y) \
-F(PROPERTY_SHADOW, Shadow, shadow) /* shadow-div */ \
+F(PROPERTY_SHADOW, Shadow, shadow) /* box-shadow */ \
 F(PROPERTY_SRC, String, src)    /* image */ \
 
 /**
  * @func PropertyName
  */
 enum PropertyName: uint {
-#define xx_def_enum(ENUM, TYPE, NAME) ENUM,
+# define xx_def_enum(ENUM, TYPE, NAME) ENUM,
   XX_EACH_PROPERTY_TABLE(xx_def_enum)
-#undef xx_def_enum
+# undef xx_def_enum
 };
 
 template<> inline uint

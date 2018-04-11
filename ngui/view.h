@@ -255,8 +255,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
     M_LAYOUT_THREE_TIMES    = (1 << 9),   // 第三次从外到内,设置无明确尺寸盒子,非所有无明确尺寸盒子都有三次
     M_BORDER                = (1 << 10),  // 边框
     M_BORDER_RADIUS         = (1 << 11),  // 边框圆角变化
-    M_BACKGROUND            = (1 << 12),  // 背景变化
-    M_BACKGROUND_COLOR      = M_BACKGROUND,
+    M_BACKGROUND_COLOR      = (1 << 12),  // 背景颜色变化
     M_TEXTURE               = (1 << 13),  // 纹理相关
     M_BOX_SHADOW            = (1 << 14),  // 阴影变化
     M_SCROLL                = (1 << 15),  //
@@ -265,6 +264,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
     M_TEXT_FONT             = (1 << 18),  //
     M_INPUT_STATUS          = (1 << 19),  // 文本输入状态改变
     M_CLIP                  = (1 << 20),  // 溢出内容修剪
+    M_BACKGROUND            = (1 << 21),  // 背景变化
     M_STYLE_CLASS           = (1 << 30),  /* 变化class引起的样式变化 */
     M_STYLE_FULL            = (uint(1) << 31),  /* 所有后后代视图都受到影响 */
     M_STYLE                 = (M_STYLE_CLASS | M_STYLE_FULL),
@@ -543,9 +543,9 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   void set_opacity(float value);
   
   /**
-   * @func set_visible_0
+   * @func set_visible_1
    */
-  inline void set_visible_0(bool value) { set_visible(value); }
+  inline void set_visible_1(bool value) { set_visible(value); }
   
   /**
    * @func set_visible

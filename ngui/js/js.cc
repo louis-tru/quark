@@ -281,11 +281,6 @@ Worker::~Worker() {
   delete m_inl; m_inl = nullptr;
 }
 
-//void Worker::set_value_program(ValueProgram* value) throw(Error) {
-//  XX_ASSERT_ERR(!m_value_program, "No need to repeat settings");
-//  m_value_program = value;
-//}
-
 /**
  * @func fatal exit worker
  */

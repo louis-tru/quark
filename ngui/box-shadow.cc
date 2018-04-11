@@ -39,13 +39,17 @@ BoxShadow::BoxShadow(): m_is_draw_shadow(false), m_shadow() {
 
 void BoxShadow::draw(Draw* draw) {
   if ( m_visible ) {
-    
     if ( mark_value ) {
       solve();
+      if ( mark_value & View::M_BOX_SHADOW ) {  // 阴影
+        if (m_shadow.offset_x != 0 ||
+            m_shadow.offset_y != 0 || m_shadow.size != 0) {
+          m_is_draw = true;
+          m_is_draw_shadow = true;
+        }
+      }
     }
-    
     draw->draw(this);
-    
     mark_value = M_NONE;
   }
 }

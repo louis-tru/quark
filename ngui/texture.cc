@@ -311,6 +311,7 @@ public:
    */
   bool load_mipmap_data(const Array<PixelData>& mipmap_data) {
     auto ctx = draw_ctx();
+    if (!ctx) return false;
     uint size = 0;
     uint size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
     
@@ -348,13 +349,16 @@ public:
   }
   
   void generate_texture() {
+    auto ctx = draw_ctx();
+    if (!ctx) return;
+    
+    m_status |= TEXTURE_LOADING;
     int status = TEXTURE_NO_LOADED;
     
     if (m_status & TEXTURE_HARDWARE_MIPMAP) {
       status |= (m_status & TEXTURE_CHANGE_LEVEL_MASK);
     } else {
       if (m_status & (TEXTURE_CHANGE_LEVEL_MASK & ~TEXTURE_CHANGE_LEVEL_0)) {
-        auto ctx = draw_ctx();
         int mark = TEXTURE_CHANGE_LEVEL_1;
         uint prev_level_handle = m_handle[0];
         uint width = m_width / 2;
@@ -408,8 +412,10 @@ public:
     auto ctx = draw_ctx();
     for (int i = 0; i < 8; i++) {
       if (is_valid_texture(m_handle[i])) {
-        ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
-        set_texture_total_data_size(tex_pool(), -m_data_size[i]);
+        if (ctx) {
+          ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
+          set_texture_total_data_size(tex_pool(), -m_data_size[i]);
+        }
         m_handle[i] = 0;
         m_data_size[i] = 0;
         m_use_count[i] = 0;
@@ -455,7 +461,9 @@ Texture::Level Texture::get_texture_level(uint ratio) {
  */
 Texture::Level Texture::get_texture_level_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
   if (m_width) {
-    float scale = display_port()->scale();
+    auto dp = display_port();
+    if (!dp) return Texture::LEVEL_0;
+    float scale = dp->scale();
     float width = sqrt(pow(quadrilateral_vertex[0][0] - quadrilateral_vertex[1][0], 2) +
                        pow(quadrilateral_vertex[0][1] - quadrilateral_vertex[1][1], 2)) * scale;
     float height = sqrt(pow(quadrilateral_vertex[0][0] - quadrilateral_vertex[3][0], 2) +
@@ -525,8 +533,8 @@ bool Texture::use(uint slot, Level level, Repeat repeat) {
 }
 
 bool TextureYUV::load_yuv(cPixelData& data) {
-  
   auto pool = tex_pool();
+  if (!pool) return false;
   int old_size = m_data_size[0] + m_data_size[1];
   set_texture_total_data_size(pool, -old_size);
   int size = data.width() * data.height();
@@ -606,12 +614,12 @@ void FileTexture::load(Level level) {
     }, this)); \
   }
   
-  m_status |= TEXTURE_LOADING;
-  
   if (!(m_status & TEXTURE_CHANGE_LEVEL_0) && (m_status & TEXTURE_COMPLETE)) {
     Inl_Texture(this)->generate_texture();
     return;
   }
+  
+  m_status |= TEXTURE_LOADING;
   
   struct DecodeContext {
     typedef NonObjectTraits Traits;
@@ -623,6 +631,7 @@ void FileTexture::load(Level level) {
   m_load_id = f_reader()->read_file(m_path, Cb([this](Se& d) {
     GUILock lock;
     m_load_id = 0;
+    
     if (d.error) {
       LoaderTextureError("Error: Error reading the image file, %s");
     }
@@ -633,9 +642,15 @@ void FileTexture::load(Level level) {
         LoaderTextureError("Error: File format is not supported, %s");
         return;
       }
+      auto app = GUIApplication::shared();
+      if (!app) {
+        m_status &= ~TEXTURE_LOADING;
+        XX_WARN("Unable to load the texture %s, need to initialize first GUIApplication", *m_path);
+        return;
+      }
       auto ctx = new DecodeContext();
       ctx->input = *static_cast<Buffer*>(d.data);
-      app()->render_loop()->work(Cb([this, ctx, parser](Se& e) {
+      app->render_loop()->work(Cb([this, ctx, parser](Se& e) {
         // 解码需要时间,发送到工作线程执行解码操作
         if (m_status & TEXTURE_CHANGE_LEVEL_0) {
           ctx->output = parser->decode(ctx->input);
@@ -682,8 +697,10 @@ bool FileTexture::unload(Level level) {
     auto ctx = draw_ctx();
     for (int i = 0; i < LEVEL_NONE; i++) {
       if (is_valid_texture(m_handle[i])) {
-        ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
-        set_texture_total_data_size(tex_pool(), -m_data_size[i]);
+        if (ctx) {
+          ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
+          set_texture_total_data_size(tex_pool(), -m_data_size[i]);
+        }
       }
       m_handle[i] = 0;
       m_repeat[i] = Repeat::NONE;
@@ -693,8 +710,11 @@ bool FileTexture::unload(Level level) {
     m_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_HARDWARE_MIPMAP); // delete mark
   } else { // unload level
     if (is_valid_texture(m_handle[level])) {
-      draw_ctx()->del_texture(m_handle[level]);
-      set_texture_total_data_size(tex_pool(), -m_data_size[level]);
+      auto ctx = draw_ctx();
+      if (ctx) {
+        ctx->del_texture(m_handle[level]);
+        set_texture_total_data_size(tex_pool(), -m_data_size[level]);
+      }
       if (level == LEVEL_0)
         m_status &= ~TEXTURE_HARDWARE_MIPMAP;
     }
@@ -768,9 +788,10 @@ TexturePool::~TexturePool() {
     auto tex = i.value();
     tex->m_pool = nullptr;
     XX_ASSERT( tex->ref_count() > 0 );
-    if ( tex->ref_count() == 1 ) {
-      Release(tex);
-    }
+    // if ( tex->ref_count() == 1 ) {
+    tex->unload();
+    Release(tex);
+    // }
   }
 }
 

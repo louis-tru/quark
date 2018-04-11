@@ -174,6 +174,26 @@ namespace value {
  F(ValueType, MINUS)   /* 减法(parent-value) ! */ \
 
   /**
+   * @enum BackgroundPositionType
+   */
+#define XX_BACKGROUND_POSITION_TYPE(F) \
+  F(ValueType, PIXEL)     /* 像素值  px */ \
+  F(ValueType, PERCENT)   /* 百分比  % */ \
+  F(ValueType, LEFT)      /* 居左 */ \
+  F(ValueType, RIGHT)     /* 居右  % */ \
+  F(ValueType, CENTER)    /* 居中 */ \
+  F(ValueType, TOP)       /* 居上 */ \
+  F(ValueType, BOTTOM)    /* 居下 */ \
+
+  /**
+   * @enum BackgroundSizeType
+   */
+#define XX_BACKGROUND_SIZE_TYPE(F) \
+  F(ValueType, AUTO)      /* 自动值  auto */ \
+  F(ValueType, PIXEL)     /* 像素值  px */ \
+  F(ValueType, PERCENT)   /* 百分比  % */ \
+
+  /**
    * @enum TextAttrType
    */
 #define XX_TEXT_ATTR_TYPE(F) \
@@ -292,6 +312,14 @@ namespace value {
     XX_VALUE_TYPE(DEF_ENUM)
   };
 
+  enum class BackgroundPositionType: byte {
+    XX_BACKGROUND_POSITION_TYPE(DEF_ENUM)
+  };
+  
+  enum class BackgroundSizeType: byte {
+    XX_BACKGROUND_SIZE_TYPE(DEF_ENUM)
+  };
+  
   enum class TextAttrType: byte {
     XX_TEXT_ATTR_TYPE(DEF_ENUM)
   };
@@ -323,7 +351,7 @@ namespace value {
   enum class ContentAlign: byte {
     XX_CONTENT_ALIGN(DEF_ENUM)
   };
-
+  
   enum class Repeat: byte {
     XX_REPEAT(DEF_ENUM)
   };
@@ -362,24 +390,29 @@ namespace value {
     float   size;
     Color   color;
     bool operator==(const Shadow&) const;
-    inline bool operator!=(const Shadow& shadow) const {
-      return ! operator==(shadow);
-    }
+    inline bool operator!=(const Shadow& value) const { return ! operator==(value); }
   };
   
   // Compound value
   
   /**
-   * @struct Value
+   * @struct ValueTemplate
    */
-  struct XX_EXPORT Value {
-    ValueType type;
-    float value;
-    inline Value(ValueType t = ValueType::AUTO, float v = 0)
-      : type(t), value(v) {
+  template<typename Type, Type TypeInit, typename Value = float>
+  struct XX_EXPORT ValueTemplate {
+    Type type;
+    Value value;
+    inline bool operator==(const ValueTemplate& value) const {
+      return value.type == value.type && value.value == value.value;
     }
-    inline Value(float v) : type(ValueType::PIXEL), value(v) {}
+    inline bool operator!=(const ValueTemplate& value) const { return !operator==(value); }
+    inline ValueTemplate(Type t = TypeInit, Value v = 0): type(t), value(v) {}
+    inline ValueTemplate(Value v) : type(Type::PIXEL), value(v) {}
   };
+  
+  typedef ValueTemplate<ValueType, ValueType::AUTO> Value;
+  typedef ValueTemplate<BackgroundPositionType, BackgroundPositionType::PIXEL> BackgroundPosition;
+  typedef ValueTemplate<BackgroundSizeType, BackgroundSizeType::PIXEL> BackgroundSize;
   
   /**
    * @struct TextColor
@@ -476,6 +509,8 @@ namespace value {
 
 using value::Direction;
 using value::ValueType;
+using value::BackgroundPositionType;
+using value::BackgroundSizeType;
 using value::TextAttrType;
 using value::TextDecorationEnum;
 using value::TextOverflowEnum;
@@ -485,6 +520,8 @@ using value::Align;
 using value::ContentAlign;
 using value::Repeat;
 using value::Value;
+using value::BackgroundPosition;
+using value::BackgroundSize;
 using value::Border;
 using value::TextLineHeightValue;
 using value::TextStyleEnum;

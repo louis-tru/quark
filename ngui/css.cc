@@ -75,13 +75,25 @@ public:
    * @func set_property_value
    */
   template<PropertyName Name, class T> inline void set_property_value(T value) {
+    typedef CSSProperty<T, Name> Type;
     auto it = m_property.find(Name);
     if ( it.is_null() ) {
-      CSSProperty<T, Name>* prop = new CSSProperty<T, Name>(value);
+      Type* prop = new Type(value);
       m_property.set(Name, prop);
     } else {
-      CSSProperty<T, Name>* prop = static_cast<CSSProperty<T, Name>*>(it.value());
-      prop->set_value(value);
+      static_cast<Type*>(it.value())->set_value(value);
+    }
+  }
+  
+  template<PropertyName Name, class T> inline T get_property_value() {
+    typedef CSSProperty<T, Name> Type;
+    auto it = m_property.find(Name);
+    if ( it.is_null() ) {
+      Type* prop = new Type(T());
+      m_property.set(Name, prop);
+      return prop->value();
+    } else {
+      return static_cast<Type*>(it.value())->value();
     }
   }
   
@@ -197,37 +209,32 @@ StyleSheets::~StyleSheets() {
 
 // -----
 
-void StyleSheets::set_margin(Value value) {
-  set_margin_left(value);  set_margin_top(value);
-  set_margin_right(value); set_margin_bottom(value);
-}
-
-void StyleSheets::set_border(Border value) {
-  set_border_left(value);  set_border_top(value);
-  set_border_right(value); set_border_bottom(value);
-}
-
-void StyleSheets::set_border_width(float value) {
-  set_border_left_width(value);   set_border_top_width(value);
-  set_border_right_width(value);  set_border_bottom_width(value);
-}
-
-void StyleSheets::set_border_color(Color value) {
-  set_border_left_color(value);   set_border_top_color(value);
-  set_border_right_color(value);  set_border_bottom_color(value);
-}
-
-void StyleSheets::set_border_radius(float value) {
-  set_border_radius_left_top(value);      set_border_radius_right_top(value);
-  set_border_radius_right_bottom(value);  set_border_radius_left_bottom(value);
-}
-
 #define xx_def_property(ENUM, TYPE, NAME) \
 void StyleSheets::set_##NAME(TYPE value) { \
 _inl_ss(this)->set_property_value<ENUM>(value); \
 }
 XX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_accessor
+
+template <> BackgroundPtr StyleSheets::Inl::
+get_property_value<PROPERTY_BACKGROUND, BackgroundPtr>() {
+  typedef CSSProperty<BackgroundPtr, PROPERTY_BACKGROUND> Type;
+  auto it = m_property.find(PROPERTY_BACKGROUND);
+  if (it.is_null()) {
+    Type* prop = new Type(new BackgroundImage());
+    m_property.set(PROPERTY_BACKGROUND, prop);
+    return prop->value();
+  } else {
+    static_cast<Type*>(it.value())->value();
+  }
+}
+
+/**
+ * @func background()
+ */
+BackgroundPtr StyleSheets::background() {
+  return _inl_ss(this)->get_property_value<PROPERTY_BACKGROUND, BackgroundPtr>();
+}
 
 // -----
 
@@ -571,7 +578,6 @@ CSSViewClasss::CSSViewClasss(View* host)
  * @destructor
  */
 CSSViewClasss::~CSSViewClasss() {
-  
 }
 
 /**

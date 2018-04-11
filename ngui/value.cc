@@ -34,11 +34,13 @@
 XX_NS(ngui)
 XX_NS(value)
 
-bool Shadow::operator==(const Shadow& shadow) const {
-  return  shadow.offset_x == offset_x &&
-  shadow.offset_y == offset_y &&
-  shadow.size == size &&
-  shadow.color == color;
+bool Shadow::operator==(const Shadow& value) const {
+  return  (
+           value.offset_x == offset_x &&
+           value.offset_y == offset_y &&
+           value.size == size &&
+           value.color == color
+          );
 }
 
 TextFamily::TextFamily(TextAttrType type)

@@ -1269,6 +1269,7 @@ void View::set_visible_draw() {
  * @func solve
  */
 void View::solve() {
+  uint mark_value = this->mark_value;
   
   if ( mark_value & M_BASIC_MATRIX ) {
     _inl(this)->compute_basic_transform_matrix(); // 计算基础矩阵

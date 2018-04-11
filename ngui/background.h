@@ -35,6 +35,9 @@
 
 XX_NS(ngui)
 
+class BackgroundImage;
+class BackgroundGradient;
+
 /**
  * @class Background
  */
@@ -43,7 +46,6 @@ class Background: public Reference {
   
   enum Type {
     M_INVALID,
-    M_CLOLR,
     M_IMAGE,
     M_GRADIENT,
   };
@@ -63,12 +65,44 @@ class Background: public Reference {
   /**
    * @func set_next(value)
    */
-  void set_next(Background* value) throw(Error);
+  void set_next(Background* value);
   
   /**
    * @func type()
    */
   virtual Type type() const { return M_INVALID; }
+  
+  /**
+   * @func as_image()
+   */
+  virtual BackgroundImage* as_image() { return nullptr; }
+  
+  /**
+   * @func as_gradient()
+   */
+  virtual BackgroundGradient* as_gradient() { return nullptr; }
+  
+  /**
+   * @func assign(left, right)
+   * @ret return left value
+   */
+  static Background* assign(Background* left, Background* right);
+  
+  /**
+   * @func allow_multi_holder()
+   */
+  inline bool allow_multi_holder() const { return m_allow_multi_holder; }
+  
+  /**
+   * @func set_allow_multi_holder(value)
+   */
+  void set_allow_multi_holder(bool value);
+  
+  /**
+   * @overwrite
+   */
+  virtual bool retain();
+  virtual void release();
   
  protected:
   
@@ -87,28 +121,20 @@ class Background: public Reference {
    */
   virtual void draw(Draw* draw, Box* host) = 0;
   
+  /**
+   * @func copy(to)
+   */
+  virtual Background* copy(Background* to) = 0;
+  
   Background* m_next;
   Box*        m_host;
-  
+  bool        m_allow_multi_holder;
+  XX_DEFINE_INLINE_CLASS(Inl);
   friend class Box;
   friend class GLDraw;
 };
 
-/**
- * @class BackgroundColor
- */
-class BackgroundColor: public Background {
- public:
-  BackgroundColor();
-  virtual Type type() const { return M_CLOLR; }
-  inline Color color() const { return m_color; }
-  void set_color(Color value);
- protected:
-  virtual void draw(Draw* draw, Box* host);
- private:
-  Color m_color;
-  friend class GLDraw;
-};
+typedef Background* BackgroundPtr;
 
 /**
  * @class BackgroundImage
@@ -118,13 +144,36 @@ class BackgroundImage: public Background {
   BackgroundImage();
   virtual ~BackgroundImage();
   virtual Type type() const { return M_IMAGE; }
+  virtual BackgroundImage* as_image() { return this; }
   inline Texture* texture() { return m_texture; }
+  inline Repeat repeat() const { return m_repeat; }
+  inline BackgroundPosition position_x() const { return m_position_x; }
+  inline BackgroundPosition position_y() const { return m_position_y; }
+  inline BackgroundSize size_x() const { return m_size_x; }
+  inline BackgroundSize size_y() const { return m_size_y; }
+  inline bool has_base64() const { return m_has_base64_src; }
+  String src() const;
+  void set_src(cString& value);
+  void set_src_base64(cString& data);
   void set_texture(Texture* value);
+  void set_repeat(Repeat value);
+  void set_position_x(BackgroundPosition value);
+  void set_position_y(BackgroundPosition value);
+  void set_size_x(BackgroundSize value);
+  void set_size_y(BackgroundSize value);
  protected:
   virtual void draw(Draw* draw, Box* host);
+  virtual Background* copy(Background* to);
  private:
+  String    m_src;
+  bool      m_has_base64_src;
   int       m_tex_level;
   Texture*  m_texture;
+  Repeat    m_repeat;
+  BackgroundPosition  m_position_x;
+  BackgroundPosition  m_position_y;
+  BackgroundSize      m_size_x;
+  BackgroundSize      m_size_y;
   XX_DEFINE_INLINE_CLASS(Inl);
   friend class GLDraw;
 };
@@ -136,8 +185,10 @@ class BackgroundGradient: public Background {
  public:
   BackgroundGradient();
   virtual Type type() const { return M_GRADIENT; }
+  virtual BackgroundGradient* as_gradient() { return nullptr; }
  protected:
   virtual void draw(Draw* draw, Box* host);
+  virtual Background* copy(Background* to);
   friend class GLDraw;
 };
 

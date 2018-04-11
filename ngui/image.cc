@@ -299,12 +299,10 @@ Image::~Image() {
  */
 void Image::draw(Draw* draw) {
   if ( m_visible ) {
-    
     if ( mark_value ) {
       solve();
     }
     draw->draw(this);
-    
     mark_value = M_NONE;
   }
 }

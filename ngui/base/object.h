@@ -96,7 +96,7 @@ typedef BasicString<uint32, Container<uint32>> Ucs4String;
 typedef const Ucs4String cUcs4String;
 
 XX_EXPORT void set_global_allocator(ObjectAllocator* allocator = nullptr);
-XX_EXPORT uint Retain(Object* obj);
+XX_EXPORT bool Retain(Object* obj);
 XX_EXPORT void Release(Object* obj);
 
 template<class T, typename... Args>

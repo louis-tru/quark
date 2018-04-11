@@ -55,11 +55,6 @@ class XX_EXPORT Indep: public Div {
   inline Align align_y() const { return m_align_y; };
   
   /**
-   * @func set_align
-   */
-  void set_align(Align x, Align y);
-  
-  /**
    * @func set_align_x
    */
   void set_align_x(Align value);
@@ -87,10 +82,10 @@ class XX_EXPORT Indep: public Div {
   virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
   virtual void set_layout_three_times(bool horizontal, bool hybrid);
   
-private:
+ private:
   Align m_align_x, m_align_y;
   
-  XX_DEFINE_INLINE_CLASS(_Inl);
+  XX_DEFINE_INLINE_CLASS(Inl);
 };
 
 

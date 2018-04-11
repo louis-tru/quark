@@ -59,6 +59,7 @@
       'binding/value.cc',
       'binding/ngui.cc',
       'binding/action.cc',
+      'binding/action-frame.cc',
       'binding/app.cc',
       'binding/audio-player.cc',
       'binding/video.cc',
@@ -85,6 +86,7 @@
       'binding/font.cc',
       'binding/text.cc',
       'binding/input.cc',
+      'binding/background.cc',
     ],
     'conditions': [
       ['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],

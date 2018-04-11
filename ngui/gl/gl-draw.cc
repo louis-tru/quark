@@ -90,61 +90,10 @@ class GLDraw::Inl2: public GLDraw {
 public:
 #define _inl(self) static_cast<GLDraw::Inl2*>(self)
   
-  /**
-   * @func new_ctx_data
-   */
-  inline void new_ctx_data(Box* v) {
+  template<class T>
+  inline void new_ctx_data(View* v) {
     if ( !v->m_ctx_data ) {
-      v->m_ctx_data = reinterpret_cast<DrawData*>(0x1); // new CtxDataWrap<CtxData>();
-      v->mark_value |= (Box::M_SHAPE | Box::M_BORDER_RADIUS);
-    }
-  }
-  
-  void solve(Box* v) {
-    
-    uint mark_value = v->mark_value;
-    
-    if ( mark_value & View::M_CLIP ) {
-      if (v->m_clip) {
-        new_ctx_data(v);
-      }
-    }
-    
-    if ( mark_value & View::M_BACKGROUND_COLOR ) { // 背景颜色
-      if ( v->m_background_color.a() ) {
-        new_ctx_data(v);
-      }
-    }
-    
-    if ( mark_value & View::M_BORDER ) { // 边框
-      v->m_is_draw_border = (v->m_border_left_width != 0 || v->m_border_right_width  != 0 ||
-                             v->m_border_top_width  != 0 || v->m_border_bottom_width != 0);
-      if ( v->m_is_draw_border ) {
-        new_ctx_data(v);
-      }
-      mark_value |= Box::M_BORDER_RADIUS; // 边框会影响圆角
-    }
-    
-    if ( v->m_ctx_data ) { // m_ctx_data = nullptr 表示这个视图没有绘制任务,所以不需要设置绘制数据
-      // 形状变化包括 width、height、border、margin,设置顶点数据
-      if ( mark_value & View::M_SHAPE ) {
-        mark_value |= View::M_BORDER_RADIUS; // 会影响圆角
-      }
-      if ( mark_value & View::M_BORDER_RADIUS ) { // 圆角标记
-        float w = (v->m_final_width + v->m_border_left_width + v->m_border_right_width) / 2.0;
-        float h = (v->m_final_height + v->m_border_top_width + v->m_border_bottom_width) / 2.0;
-        float max = XX_MIN(w, h);
-        v->m_final_border_radius_left_top = XX_MIN(v->m_border_radius_left_top, max);
-        v->m_final_border_radius_right_top = XX_MIN(v->m_border_radius_right_top, max);
-        v->m_final_border_radius_right_bottom = XX_MIN(v->m_border_radius_right_bottom, max);
-        v->m_final_border_radius_left_bottom = XX_MIN(v->m_border_radius_left_bottom, max);
-        v->m_is_draw_border_radius = (
-          v->m_final_border_radius_left_top != 0 ||
-          v->m_final_border_radius_right_top != 0 ||
-          v->m_final_border_radius_right_bottom != 0 ||
-          v->m_final_border_radius_left_bottom != 0
-        );
-      }
+      v->m_ctx_data = new CtxDataWrap<T>();
     }
   }
   
@@ -347,23 +296,18 @@ public:
   }
   
   void draw_box(Box* v, DrawContent draw_content = &Inl2::draw_box_content) {
-    if (v->m_ctx_data /* 没有数据无需绘制 */ ) {
-      draw_box_border(v);
-      
+    if (v->m_is_draw /* 不需要绘制 */ ) {
+      draw_box_border(v); // draw border
       if ( v->m_clip ) {
         draw_begin_clip(v);
         draw_content(this, v);
         draw_end_clip(v);
+        return;
+      } else if (v->m_background_color.a()) {
+        draw_box_background(v);
       }
-      else {
-        if (v->m_background_color.a()) {
-          draw_box_background(v);
-        }
-        draw_content(this, v);
-      }
-    } else {
-      draw_content(this, v);
     }
+    draw_content(this, v);
   }
   
   /**
@@ -568,9 +512,6 @@ void GLDraw::clear_color(Color color) {
 }
 
 void GLDraw::draw(Box* v) {
-  if ( v->mark_value ) {
-    _inl(this)->solve(v);
-  }
   if ( v->m_visible_draw ) {
     _inl(this)->draw_box(v);
   } else {
@@ -579,12 +520,6 @@ void GLDraw::draw(Box* v) {
 }
 
 void GLDraw::draw(Image* v) {
-  
-  if ( v->mark_value ) {
-    _inl(this)->new_ctx_data(v);
-    _inl(this)->solve(v);
-  }
-  
   if ( v->m_visible_draw ) {
     
     _inl(this)->draw_box(v, [](Inl2* self, Box* box) {
@@ -634,12 +569,6 @@ void GLDraw::draw(Image* v) {
 }
 
 void GLDraw::draw(Video* v) {
-  
-  if ( v->mark_value ) {
-    _inl(this)->new_ctx_data(v);
-    _inl(this)->solve(v);
-  }
-  
   if ( v->m_visible_draw ) {
     Texture* tex = v->m_texture;
     
@@ -677,20 +606,10 @@ void GLDraw::draw(Video* v) {
 }
 
 void GLDraw::draw(BoxShadow* v) {
-  
-  uint mark_value = v->mark_value;
-  if ( mark_value ) {
-    _inl(this)->solve(v);
-    if ( mark_value & View::M_BOX_SHADOW ) {  // 阴影
-      v->m_is_draw_shadow = v->m_shadow.offset_x != 0 ||
-                            v->m_shadow.offset_y != 0 || v->m_shadow.size != 0;
-    }
-  }
   if (v->m_visible_draw) {
     _inl(this)->draw_box(v);
-    if ( v->m_is_draw_shadow ) {
-      // TODO
-    }
+    // TODO draw sgadow ..
+    // ..
   } else {// end draw
     v->visit(this);
   }
@@ -717,9 +636,7 @@ void GLDraw::draw(Sprite* v) {
 }
 
 void GLDraw::draw(TextNode* v) {
-  
   if ( v->m_visible_draw ) {
-    
     uint begin = v->m_data.cell_draw_begin;
     uint end = v->m_data.cell_draw_end;
     
@@ -735,9 +652,7 @@ void GLDraw::draw(TextNode* v) {
 }
 
 void GLDraw::draw(Label* v) {
-  
   if ( v->m_visible_draw ) {
-    
     uint begin = v->m_data.cell_draw_begin;
     uint end = v->m_data.cell_draw_end;
     
@@ -752,9 +667,6 @@ void GLDraw::draw(Label* v) {
 }
 
 void GLDraw::draw(Text* v) {
-  if ( v->mark_value ) {
-    _inl(this)->solve(v);
-  }
   if ( v->m_visible_draw ) {
     _inl(this)->draw_box(v, [](Inl2* self, Box* b) {
       auto v = static_cast<Text*>(b);
@@ -773,10 +685,6 @@ void GLDraw::draw(Text* v) {
 }
 
 void GLDraw::draw(Scroll* v) {
-  if ( v->mark_value ) {
-    _inl(this)->new_ctx_data(v);
-    _inl(this)->solve(v);
-  }
   uint inherit_mark = v->mark_value & View::M_INHERIT;
   if ( v->mark_value & Scroll::M_SCROLL ) {
     inherit_mark |= View::M_MATRIX;
@@ -793,11 +701,6 @@ void GLDraw::draw(Scroll* v) {
 }
 
 void GLDraw::draw(Input* v) {
-  uint mark_value = v->mark_value;
-  if ( mark_value ) {
-    _inl(this)->new_ctx_data(v);
-    _inl(this)->solve(v);
-  }
   if ( v->m_visible_draw ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
@@ -807,11 +710,6 @@ void GLDraw::draw(Input* v) {
 }
 
 void GLDraw::draw(Textarea* v) {
-  uint mark_value = v->mark_value;
-  if ( mark_value ) {
-    _inl(this)->new_ctx_data(v);
-    _inl(this)->solve(v);
-  }
   if ( v->m_visible_draw ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
@@ -822,12 +720,6 @@ void GLDraw::draw(Textarea* v) {
 }
 
 void GLDraw::draw(Root* v) {
-  
-  if ( v->mark_value ) {
-    _inl(this)->solve(v);
-  }
-  clear_color(v->m_background_color);
-  
   if ( v->m_visible_draw ) {
     if ( v->m_is_draw_border_radius ) { // 圆角
       if ( v->m_is_draw_border ) { // 绘制边框
@@ -839,7 +731,6 @@ void GLDraw::draw(Root* v) {
       }
     }
   } // end draw
-
   v->visit(this);
 }
 

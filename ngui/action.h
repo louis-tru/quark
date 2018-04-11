@@ -38,6 +38,7 @@
 #include "bezier.h"
 #include "event.h"
 #include "property.h"
+#include "background.h"
 
 /**
  * @ns ngui
@@ -425,33 +426,10 @@ class XX_EXPORT KeyframeAction: public Action {
      */
     void flush();
     
-#define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value); TYPE NAME();
+# define xx_def_property(ENUM, TYPE, NAME) \
+  void set_##NAME(TYPE value); TYPE NAME();
     XX_EACH_PROPERTY_TABLE(xx_def_property)
-#undef xx_def_property
-    
-    Vec2  translate() { return Vec2(x(), y()); }
-    Vec2  scale() { return Vec2(scale_x(), scale_y()); }
-    Vec2  skew() { return Vec2(skew_x(), skew_y()); }
-    Vec2  origin() { return Vec2(origin_x(), origin_y()); }
-    Value min_width() { return width(); }
-    Value min_height() { return height(); }
-    Vec2  start() { return Vec2(start_x(), start_y()); }
-    Vec2  ratio() { return Vec2(ratio_x(), ratio_y()); }
-    
-    void set_translate(Vec2 value) { set_x(value.x()); set_y(value.y()); }
-    void set_scale(Vec2 value) { set_scale_x(value.x()); set_scale_y(value.y()); }
-    void set_skew(Vec2 value) { set_skew_x(value.x()); set_skew_y(value.y()); }
-    void set_origin(Vec2 value) { set_origin_x(value.x()); set_origin_y(value.y()); }
-    void set_start(Vec2 value) { set_start_x(value.x()); set_start_y(value.y()); }
-    void set_ratio(Vec2 value) { set_ratio_x(value.x()); set_ratio_y(value.y()); }
-    // void set_align(Align value) { set_align_x(value); set_align_y(value); }
-    void set_margin(Value value);
-    void set_border(Border value);
-    void set_border_width(float value);
-    void set_border_color(Color value);
-    void set_border_radius(float value);
-    void set_min_width(Value value) { set_width(value); }
-    void set_min_height(Value value) { set_height(value); }
+# undef xx_def_property
     
    private:
     

@@ -44,7 +44,14 @@ class TestSizeOf {
   float m_f2;
 };
 
+typedef TestSizeOf* TestSizeOfPtr;
+
 void test_sizeof() {
+  
+  TestSizeOfPtr of = TestSizeOfPtr();
+  
+  XX_CHECK(!of);
+  
   LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }
 

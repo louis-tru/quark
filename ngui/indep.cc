@@ -34,9 +34,9 @@
 
 XX_NS(ngui)
 
-class Indep::_Inl : public Indep {
+XX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
 public:
-#define _inl(self) static_cast<Indep::_Inl*>(static_cast<Indep*>(self))
+#define _inl(self) static_cast<Indep::Inl*>(static_cast<Indep*>(self))
   
   /**
    * @func set_indep_offset
@@ -70,11 +70,6 @@ public:
 };
 
 Indep::Indep(): m_align_x(Align::LEFT), m_align_y(Align::TOP) { }
-
-void Indep::set_align(Align x, Align y) {
-  set_align_x(x);
-  set_align_y(y);
-}
 
 void Indep::set_align_x(Align value) {
   if (value == Align::LEFT || value == Align::RIGHT || value == Align::CENTER) {

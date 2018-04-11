@@ -729,7 +729,6 @@ public:
   
   void remove_background() {
     if (m_background) {
-      m_background->set_host(nullptr);
       m_background->release();
       m_background = nullptr;
     }
@@ -844,6 +843,7 @@ Box::Box()
 , m_clip(false)
 , m_explicit_width(false)
 , m_explicit_height(false)
+, m_is_draw(false)
 , m_is_draw_border(false)
 , m_is_draw_border_radius(false)
 {
@@ -969,6 +969,50 @@ void Box::compute_box_vertex(Vec2 vertex[4]) {
  */
 Region Box::get_screen_region() {
   return screen_region_from_convex_quadrilateral(m_final_vertex);
+}
+
+/**
+ * @func solve() solve draw param
+ */
+void Box::solve() {
+  View::solve();
+  
+  uint mark_value = this->mark_value;
+  
+  if ( mark_value & View::M_BACKGROUND_COLOR ) { // 背景颜色
+    if ( m_background_color.a() ) {
+      m_is_draw = true;
+    }
+  }
+  if ( mark_value & View::M_BORDER ) { // 边框
+    m_is_draw_border = (
+      m_border_left_width != 0 ||
+      m_border_right_width  != 0 ||
+      m_border_top_width  != 0 ||
+      m_border_bottom_width != 0
+    );
+    if ( m_is_draw_border ) {
+      m_is_draw = true;
+    }
+    mark_value |= Box::M_BORDER_RADIUS; // 边框会影响圆角
+  }
+  
+  // 形状变化包括M_SHAPE (width、height、border、margin, 设置顶点数据), 这个会影响圆角
+  if ( mark_value & (View::M_BORDER_RADIUS | View::M_SHAPE) ) { // 圆角标记
+    float w = (m_final_width + m_border_left_width + m_border_right_width) / 2.0;
+    float h = (m_final_height + m_border_top_width + m_border_bottom_width) / 2.0;
+    float max = XX_MIN(w, h);
+    m_final_border_radius_left_top = XX_MIN(m_border_radius_left_top, max);
+    m_final_border_radius_right_top = XX_MIN(m_border_radius_right_top, max);
+    m_final_border_radius_right_bottom = XX_MIN(m_border_radius_right_bottom, max);
+    m_final_border_radius_left_bottom = XX_MIN(m_border_radius_left_bottom, max);
+    m_is_draw_border_radius = (
+      m_final_border_radius_left_top != 0 ||
+      m_final_border_radius_right_top != 0 ||
+      m_final_border_radius_right_bottom != 0 ||
+      m_final_border_radius_left_bottom != 0
+    );
+  }
 }
 
 /**
@@ -1297,15 +1341,9 @@ void Box::set_background_color(Color value) {
  * @func set_background(value)
  */
 void Box::set_background(Background* value) {
+  m_background = Background::assign(m_background, value);
   if (m_background) {
-    m_background->set_host(nullptr);
-    m_background->release();
-  }
-  m_background = value;
-  
-  if (value) {
-    value->retain();
-    value->set_host(this);
+    m_background->set_host(this);
   }
   mark(M_BACKGROUND);
 }
@@ -1333,8 +1371,13 @@ void Box::set_newline(bool value) {
  * @func set_clip(bool)
  */
 void Box::set_clip(bool value) {
-  m_clip = value;
-  mark(M_CLIP);
+  if (m_clip != value) {
+    m_clip = value;
+    if (value) {
+      m_is_draw = true;
+    }
+    mark(M_CLIP);
+  }
 }
 
 /**

@@ -89,10 +89,10 @@ void Root::draw(Draw* draw) {
       }
     }
     
+    draw->clear_color(m_background_color);
     draw->draw(this);
     
     mark_value = M_NONE;
-    
   } else {
     draw->clear_color(Color(0, 0, 0));
   }

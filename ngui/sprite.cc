@@ -147,7 +147,6 @@ void Sprite::set_start_y(float value) {
 }
 
 void Sprite::set_width(float value) {
-  
   // 值相同,不做处理
   if (m_size.width() != value) {
     m_size.width(value);
@@ -156,7 +155,6 @@ void Sprite::set_width(float value) {
 }
 
 void Sprite::set_height(float value) {
-  
   // 值相同,不做处理
   if (m_size.height() != value) {
     m_size.height(value);

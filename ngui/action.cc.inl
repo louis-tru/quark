@@ -42,7 +42,9 @@ public:
   inline Property2(uint frame_count)
   : m_frames(frame_count)
   , m_get_property_func(nullptr)
-  , m_set_property_func(nullptr) { }
+  , m_set_property_func(nullptr) {}
+  
+  virtual ~Property2() {}
   
   inline void set_property(List<View*>& views) {
     for ( auto& i : views ) {
@@ -97,7 +99,7 @@ public:
     m_frames[index] = value;
   } 
   
-protected:
+ protected:
   
   Array<T>        m_frames;
   T               m_transition;
@@ -201,20 +203,23 @@ template<> inline TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* v
 
 // transition
 
-template<> void Property2<bool>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<bool>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = t < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Vec2>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Vec2>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     Vec2 v1 = m_frames[f1], v2 = m_frames[f2];
     m_transition = Vec2(v1.x() - (v1.x() - v2.x()) * t, v1.y() - (v1.y() - v2.y()) * t);
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Color>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Color>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     Color v1 = m_frames[f1], v2 = m_frames[f2];
     m_transition = Color(v1.r() - (v1.r() - v2.r()) * t,
@@ -223,31 +228,36 @@ template<> void Property2<Color>::transition(uint f1, uint f2, float x, float t,
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextAlign>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextAlign>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = t < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Align>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Align>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = t < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<ContentAlign>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<ContentAlign>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = t < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Repeat>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Repeat>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = t < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Border>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Border>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     Border v1 = m_frames[f1], v2 = m_frames[f2];
     float width = v1.width - (v1.width - v2.width) * t;
@@ -259,7 +269,8 @@ template<> void Property2<Border>::transition(uint f1, uint f2, float x, float t
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Shadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Shadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     Shadow v1 = m_frames[f1], v2 = m_frames[f2];
     float offset_x = v1.offset_x - (v1.offset_x - v2.offset_x) * t;
@@ -273,7 +284,8 @@ template<> void Property2<Shadow>::transition(uint f1, uint f2, float x, float t
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<Value>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<Value>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     Value v1 = m_frames[f1], v2 = m_frames[f2];
     if ( v1.type == v2.type ) {
@@ -284,7 +296,8 @@ template<> void Property2<Value>::transition(uint f1, uint f2, float x, float t,
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextColor>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextColor>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     TextColor v1 = m_frames[f1], v2 = m_frames[f2];
     if ( v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE ) {
@@ -299,7 +312,8 @@ template<> void Property2<TextColor>::transition(uint f1, uint f2, float x, floa
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextSize>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextSize>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     TextSize v1 = m_frames[f1], v2 = m_frames[f2];
     if ( v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE ) {
@@ -310,19 +324,22 @@ template<> void Property2<TextSize>::transition(uint f1, uint f2, float x, float
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextStyle>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextStyle>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = x < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextFamily>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextFamily>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = x < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextLineHeight>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextLineHeight>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     TextLineHeight v1 = m_frames[f1], v2 = m_frames[f2];
     if (v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE) {
@@ -336,7 +353,8 @@ template<> void Property2<TextLineHeight>::transition(uint f1, uint f2, float x,
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextShadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextShadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     TextShadow v1 = m_frames[f1], v2 = m_frames[f2];
     if ( v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE ) {
@@ -354,29 +372,144 @@ template<> void Property2<TextShadow>::transition(uint f1, uint f2, float x, flo
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextDecoration>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextDecoration>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = x < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextOverflow>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextOverflow>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = x < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<TextWhiteSpace>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<TextWhiteSpace>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = x < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
 }
-template<> void Property2<String>::transition(uint f1, uint f2, float x, float t, Action* root) {
+template<>
+void Property2<String>::transition(uint f1, uint f2, float x, float t, Action* root) {
   if ( m_set_property_func ) {
     m_transition = x < 1.0 ? m_frames[f1] : m_frames[f2];
     set_property(_inl_action(root)->views());
   }
+}
+
+//-------------------------------------------------------------------------------
+
+template<>
+Property2<BackgroundPtr>::~Property2() {
+  Release(m_transition);
+  for (auto& i : m_frames) {
+    Release(i.value());
+  }
+}
+
+template<>
+void Property2<BackgroundPtr>::transition(uint f1, Action* root) {
+  if ( m_set_property_func ) {
+    m_transition = Background::assign(m_transition, m_frames[f1]);
+    set_property(_inl_action(root)->views());
+  }
+}
+
+static BackgroundPtr background_transition(BackgroundPtr tran,
+                                           BackgroundPtr r1, BackgroundPtr r2, float x, float y) {
+  if (!r1 || !r2) return tran;
+  auto type = r1->type();
+  if (type != r2->type()) return tran;
+  
+  if (type == Background::M_IMAGE) {
+    auto img = static_cast<BackgroundImage*>(tran);
+    auto img1 = r1->as_image();
+    auto img2 = r2->as_image();
+    
+    if (!tran || tran->type() != type) {
+      tran = img = new BackgroundImage();
+    }
+    
+    auto pos1x = img1->position_x();
+    auto pos1y = img1->position_y();
+    auto pos2x = img2->position_x();
+    auto pos2y = img2->position_y();
+    auto size1x = img1->size_x();
+    auto size1y = img1->size_y();
+    auto size2x = img2->size_x();
+    auto size2y = img2->size_y();
+
+    if (x < 1.0) {
+      img->set_texture(img1->texture());
+      img->set_repeat(img1->repeat());
+    } else {
+      img->set_texture(img2->texture());
+      img->set_repeat(img2->repeat());
+    }
+    
+    if (pos1x.type != pos2x.type) {
+      img->set_position_x(x < 1.0 ? pos1x : pos2x);
+    } else {
+      float value = pos1x.value - (pos1x.value - pos2x.value) * y;
+      img->set_position_x(BackgroundPosition(pos1x.type, value));
+    }
+    if (pos1y.type != pos2y.type) {
+      img->set_position_y(x < 1.0 ? pos1y : pos2y);
+    } else {
+      float value = pos1y.value - (pos1y.value - pos2y.value) * y;
+      img->set_position_y(BackgroundPosition(pos1y.type, value));
+    }
+    if (size1x.type != size2x.type) {
+      img->set_size_x(x < 1.0 ? size1x : size2x);
+    } else {
+      float value = size1x.value - (size1x.value - size2x.value) * y;
+      img->set_size_x(BackgroundSize(size1x.type, value));
+    }
+    if (size1y.type != size2y.type) {
+      img->set_size_y(x < 1.0 ? size1y : size2y);
+    } else {
+      float value = size1y.value - (size1y.value - size2y.value) * y;
+      img->set_size_y(BackgroundSize(size1y.type, value));
+    }
+    
+    auto next = background_transition(tran->next(), r1->next(), r2->next(), x, y);
+    
+    tran->set_next(next);
+  } else {
+    // TODO ...
+  }
+  return tran;
+}
+
+template<>
+void Property2<BackgroundPtr>::transition(uint f1, uint f2, float x, float y, Action* root) {
+  if ( m_set_property_func ) {
+    Background *v1 = m_frames[f1], *v2 = m_frames[f2];
+    auto new_tran = background_transition(m_transition, v1, v2, x, y);
+    m_transition = Background::assign(m_transition, new_tran);
+    set_property(_inl_action(root)->views());
+  }
+}
+
+template<>
+void Property2<BackgroundPtr>::fetch(uint frame, View* view) {
+  if ( m_get_property_func ) {
+    m_frames[frame] = Background::assign(m_frames[frame], get_property(view));
+  }
+}
+
+template<>
+void Property2<BackgroundPtr>::default_value(uint frame) {
+  m_frames[frame] = Background::assign(m_frames[frame], nullptr);
+}
+
+template<>
+void Property2<BackgroundPtr>::frame(uint index, BackgroundPtr value) {
+  m_frames[index] = Background::assign(m_frames[index], value);
 }
 
 //-------------------------------------------------------------------------------
@@ -442,5 +575,5 @@ template<> void Property3<float, PROPERTY_OPACITY>::bind_view(int type) {
 }
 template<> void Property3<bool, PROPERTY_VISIBLE>::bind_view(int type) {
   this->m_get_property_func = &View::visible;
-  this->m_set_property_func = &View::set_visible_0;
+  this->m_set_property_func = &View::set_visible_1;
 }

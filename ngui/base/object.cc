@@ -167,7 +167,7 @@ void set_global_allocator(ObjectAllocator* alloc) {
   }
 }
 
-uint Retain(Object* obj) {
+bool Retain(Object* obj) {
   return obj ? obj->retain() : false;
 }
 

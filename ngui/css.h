@@ -71,8 +71,7 @@ class XX_EXPORT StyleSheets: public Object {
   XX_HIDDEN_ALL_COPY(StyleSheets);
  protected:
   
-  StyleSheets(const CSSName& name,
-              StyleSheets* parent, CSSPseudoClass pseudo);
+  StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClass pseudo);
   
   /**
    * @destructor
@@ -84,31 +83,21 @@ class XX_EXPORT StyleSheets: public Object {
   
   class XX_EXPORT Property {
   public:
-    virtual ~Property() { }
+    virtual ~Property() = default;
     virtual void assignment(View* view) = 0;
     virtual void assignment(Frame* frame) = 0;
   };
   
   // -------------------- set property --------------------
   
-#define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
+# define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
   XX_EACH_PROPERTY_TABLE(xx_def_property)
-#undef xx_def_property
+# undef xx_def_property
   
-  void set_translate(Vec2 value) { set_x(value.x()); set_y(value.y()); }
-  void set_scale(Vec2 value) { set_scale_x(value.x()); set_scale_y(value.y()); }
-  void set_skew(Vec2 value) { set_skew_x(value.x()); set_skew_y(value.y()); }
-  void set_origin(Vec2 value) { set_origin_x(value.x()); set_origin_y(value.y()); }
-  void set_start(Vec2 value) { set_start_x(value.x()); set_start_y(value.y()); }
-  void set_ratio(Vec2 value) { set_ratio_x(value.x()); set_ratio_y(value.y()); }
-  // void set_align(Align value) { set_align_x(value); set_align_y(value); }
-  void set_margin(Value value);
-  void set_border(Border value);
-  void set_border_width(float value);
-  void set_border_color(Color value);
-  void set_border_radius(float value);
-  void set_min_width(Value value) { set_width(value); }
-  void set_min_height(Value value) { set_height(value); }
+  /**
+   * @func background()
+   */
+  BackgroundPtr background();
   
   /**
    * @func time

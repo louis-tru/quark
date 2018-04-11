@@ -36,6 +36,7 @@
 #include "ngui/value.h"
 #include "ngui/view.h"
 #include "ngui/bezier.h"
+#include "ngui/background.h"
 
 /**
  * @ns ngui::js
@@ -58,10 +59,10 @@ using namespace ngui::value;
 #define js_throw_value_err(value, msg, ...)\
   worker->value_program()->throwError(t, msg, ##__VA_ARGS__)
 
-
 // ------------- values -------------
 
 #define js_value_table(F) \
+F(String, String)         F(bool, bool) F(float, float) F(int, int) F(uint, uint) \
 F(TextAlign, TextAlign)   F(Align, Align)             F(ContentAlign, ContentAlign)  \
 F(Border, Border)         F(Shadow, Shadow)         F(Color, Color) \
 F(Vec2, Vec2)             F(Vec3, Vec3)               F(Vec4, Vec4) \
@@ -70,9 +71,10 @@ F(Value, Value)           F(TextColor, TextColor)     F(TextSize, TextSize)  \
 F(TextFamily, TextFamily) F(TextStyle, TextStyle)     F(TextShadow, TextShadow)  \
 F(TextLineHeight, TextLineHeight)                     F(TextDecoration, TextDecoration) \
 F(Repeat, Repeat)         F(Curve, Curve)             F(Direction, Direction) \
-F(String, String)         F(bool, bool)               F(TextOverflow, TextOverflow) \
-F(TextWhiteSpace, TextWhiteSpace)                     F(KeyboardType, KeyboardType)  \
-F(KeyboardReturnType, KeyboardReturnType)
+F(TextOverflow, TextOverflow)                         F(TextWhiteSpace, TextWhiteSpace) \
+F(KeyboardType, KeyboardType)                         F(KeyboardReturnType, KeyboardReturnType) \
+F(BackgroundPosition, BackgroundPosition)             F(BackgroundSize, BackgroundSize) \
+F(Background, BackgroundPtr)
 
 /**
  * @class ValueProgram
@@ -87,20 +89,16 @@ class XX_EXPORT ValueProgram: public Object {
 #define def_attr(Name, Type) \
   Persistent<JSFunction> _constructor##Name; \
   Persistent<JSFunction> _parse##Name; \
-  Persistent<JSFunction> _parse##Name##Description; \
+  Persistent<JSFunction> _parse##Name##Help; \
   Persistent<JSFunction> _##Name;
-
+  
   ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
-  
   virtual ~ValueProgram();
-  
-  js_value_table(def_attr_fn);
+  void throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> help = Local<JSFunction>());
   bool parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc);
-  bool parseFloatValues(Local<JSValue> in, Array<float>& out, cchar* desc);
+  bool parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc);
   bool isBase(Local<JSValue> value);
-  
-  void throwError(Local<JSValue> value, cchar* msg,
-                  Local<JSFunction> more_msg = Local<JSFunction>());
+  js_value_table(def_attr_fn);
  private:
   js_value_table(def_attr)
   Worker* worker;
@@ -108,9 +106,11 @@ class XX_EXPORT ValueProgram: public Object {
   Persistent<JSFunction> _ShadowRgba;
   Persistent<JSFunction> _TextColorRgba;
   Persistent<JSFunction> _TextShadowRgba;
-  Persistent<JSFunction> _parseValues;
-  Persistent<JSFunction> _parseFloatValues;
   Persistent<JSFunction> _isBase;
+  Persistent<JSFunction> _parseValues;
+  Persistent<JSFunction> _parseValuesHelp;
+  Persistent<JSFunction> _parseFloats;
+  Persistent<JSFunction> _parseFloatsHelp;
   #undef def_attr_fn
   #undef def_attr
 };

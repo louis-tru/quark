@@ -44,26 +44,31 @@ JS_BEGIN
 
 ValueProgram::ValueProgram(Worker* worker,
                          Local<JSObject> exports,
-                         Local<JSObject> native): worker(worker) {
-#define NewS(s) worker->New(s,1).To<JSValue>()
+                         Local<JSObject> priv): worker(worker) {
+#define Ascii(s) worker->New(s,1)
+  
+  Local<JSValue> help = Ascii("help");
   
 #define js_init_func(Name, Type) \
-  _constructor##Name .Reset(worker, exports->Get(worker,NewS(#Name)).To<JSFunction>()); \
-  _parse##Name       .Reset(worker, exports->Get(worker,NewS("parse"#Name)).To<JSFunction>()); \
-  _parse##Name##Description \
-  .Reset(worker, native->Get(worker,NewS("_parse"#Name"Description")).To<JSFunction>()); \
-  _##Name            .Reset(worker, native->Get(worker,NewS("_"#Name)).To<JSFunction>());
+  _constructor##Name .Reset(worker, exports->Get(worker,Ascii(#Name)).To<JSFunction>()); \
+  _parse##Name       .Reset(worker, exports->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
+  _parse##Name##Help \
+  .Reset(worker, _constructor##Name.strong()->Get(worker,help).To<JSFunction>()); \
+  _##Name            .Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
   
   js_value_table(js_init_func)
-  _BorderRgba     .Reset(worker, native->Get(worker,NewS("_BorderRgba")).To<JSFunction>());
-  _ShadowRgba     .Reset(worker, native->Get(worker,NewS("_ShadowRgba")).To<JSFunction>());
-  _TextColorRgba  .Reset(worker, native->Get(worker,NewS("_TextColorRgba")).To<JSFunction>());
-  _TextShadowRgba .Reset(worker, native->Get(worker,NewS("_TextShadowRgba")).To<JSFunction>());
-  _isBase         .Reset(worker, native->Get(worker,NewS("_isBase")).To<JSFunction>());
-  _parseValues    .Reset(worker, native->Get(worker,NewS("_parseValues")).To<JSFunction>());
-  _parseFloatValues.Reset(worker,native->Get(worker,NewS("_parseFloatValues")).To<JSFunction>());
-  
-#undef NewS
+  _BorderRgba     .Reset(worker, priv->Get(worker,Ascii("_BorderRgba")).To<JSFunction>());
+  _ShadowRgba     .Reset(worker, priv->Get(worker,Ascii("_ShadowRgba")).To<JSFunction>());
+  _TextColorRgba  .Reset(worker, priv->Get(worker,Ascii("_TextColorRgba")).To<JSFunction>());
+  _TextShadowRgba .Reset(worker, priv->Get(worker,Ascii("_TextShadowRgba")).To<JSFunction>());
+  _isBase         .Reset(worker, priv->Get(worker,Ascii("_isBase")).To<JSFunction>());
+  _parseValues    .Reset(worker, exports->Get(worker,Ascii("parseValues")).To<JSFunction>());
+  _parseFloats    .Reset(worker, exports->Get(worker,Ascii("parseFloats")).To<JSFunction>());
+  _parseValuesHelp.Reset(worker, _constructorValue.strong()->
+                         Get(worker,Ascii("helpValues")).To<JSFunction>());
+  _parseFloatsHelp.Reset(worker, _constructorValue.strong()->
+                         Get(worker,Ascii("helpFalots")).To<JSFunction>());
+#undef Ascii
 #undef js_init_func
 }
 
@@ -98,156 +103,192 @@ Local<JSValue> ValueProgram::New(const KeyboardReturnType& value) {
   return _KeyboardReturnType.strong()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const Border& value) {
-  Array<Local<JSValue>> args(5);
-  args[0] = worker->New(value.width);
-  args[1] = worker->New(value.color.r());
-  args[2] = worker->New(value.color.g());
-  args[3] = worker->New(value.color.b());
-  args[4] = worker->New(value.color.a());
-  return _BorderRgba.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.width),
+    worker->New(value.color.r()),
+    worker->New(value.color.g()),
+    worker->New(value.color.b()),
+    worker->New(value.color.a()),
+  };
+  return _BorderRgba.strong()->Call(worker, 5, args);
 }
 Local<JSValue> ValueProgram::New(const Shadow& value) {
-  Array<Local<JSValue>> args(7);
-  args[0] = worker->New(value.offset_x);
-  args[1] = worker->New(value.offset_y);
-  args[2] = worker->New(value.size);
-  args[3] = worker->New(value.color.b());
-  args[4] = worker->New(value.color.g());
-  args[5] = worker->New(value.color.b());
-  args[6] = worker->New(value.color.a());
-  return _ShadowRgba.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.offset_x),
+    worker->New(value.offset_y),
+    worker->New(value.size),
+    worker->New(value.color.b()),
+    worker->New(value.color.g()),
+    worker->New(value.color.b()),
+    worker->New(value.color.a()),
+  };
+  return _ShadowRgba.strong()->Call(worker, 7, args);
 }
 Local<JSValue> ValueProgram::New(const Color& value) {
-  Array<Local<JSValue>> args(4);
-  args[0] = worker->New(value.r());
-  args[1] = worker->New(value.g());
-  args[2] = worker->New(value.b());
-  args[3] = worker->New(value.a());
-  return _Color.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.r()),
+    worker->New(value.g()),
+    worker->New(value.b()),
+    worker->New(value.a()),
+  };
+  return _Color.strong()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(const Vec2& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New(value.x());
-  args[1] = worker->New(value.y());
-  return _Vec2.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.x()),
+    worker->New(value.y()),
+  };
+  return _Vec2.strong()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const Vec3& value) {
-  Array<Local<JSValue>> args(3);
-  args[0] = worker->New(value.x());
-  args[1] = worker->New(value.y());
-  args[2] = worker->New(value.z());
-  return _Vec3.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.x()),
+    worker->New(value.y()),
+    worker->New(value.z()),
+  };
+  return _Vec3.strong()->Call(worker, 3, args);
 }
 Local<JSValue> ValueProgram::New(const Vec4& value) {
-  Array<Local<JSValue>> args(4);
-  args[0] = worker->New(value.x());
-  args[1] = worker->New(value.y());
-  args[2] = worker->New(value.z());
-  args[3] = worker->New(value.w());
-  return _Vec4.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.x()),
+    worker->New(value.y()),
+    worker->New(value.z()),
+    worker->New(value.w()),
+  };
+  return _Vec4.strong()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(cCurve& value) {
-  Array<Local<JSValue>> args(4);
-  args[0] = worker->New(value.point1().x());
-  args[1] = worker->New(value.point1().y());
-  args[2] = worker->New(value.point2().x());
-  args[3] = worker->New(value.point2().y());
-  return _Curve.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.point1().x()),
+    worker->New(value.point1().y()),
+    worker->New(value.point2().x()),
+    worker->New(value.point2().y()),
+  };
+  return _Curve.strong()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(const CGRect& value) {
-  Array<Local<JSValue>> args(4);
-  args[0] = worker->New(value.origin.x());
-  args[1] = worker->New(value.origin.y());
-  args[2] = worker->New(value.size.width());
-  args[3] = worker->New(value.size.height());
-  return _Rect.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New(value.origin.x()),
+    worker->New(value.origin.y()),
+    worker->New(value.size.width()),
+    worker->New(value.size.height()),
+  };
+  return _Rect.strong()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(const Mat& value) {
-  Local<JSArray> arr = worker->NewArray(6);
-  arr->Set(worker, 0, worker->New( value[0] ));
-  arr->Set(worker, 1, worker->New( value[1] ));
-  arr->Set(worker, 2, worker->New( value[2] ));
-  arr->Set(worker, 3, worker->New( value[3] ));
-  arr->Set(worker, 4, worker->New( value[4] ));
-  arr->Set(worker, 5, worker->New( value[5] ));
-  return _Mat.strong()->Call(worker, 1, reinterpret_cast<Local<JSValue>*>(&arr));
+  Local<JSValue> args[] = {
+    worker->New(value[0]),
+    worker->New(value[1]),
+    worker->New(value[2]),
+    worker->New(value[3]),
+    worker->New(value[4]),
+    worker->New(value[5]),
+  };
+  return _Mat.strong()->Call(worker, 6, args);
 }
 Local<JSValue> ValueProgram::New(const Mat4& value) {
-  Local<JSArray> arr = worker->NewArray(16);
-  arr->Set(worker, 0, worker->New( value[0] ));
-  arr->Set(worker, 1, worker->New( value[1] ));
-  arr->Set(worker, 2, worker->New( value[2] ));
-  arr->Set(worker, 3, worker->New( value[3] ));
-  arr->Set(worker, 4, worker->New( value[4] ));
-  arr->Set(worker, 5, worker->New( value[5] ));
-  arr->Set(worker, 6, worker->New( value[6] ));
-  arr->Set(worker, 7, worker->New( value[7] ));
-  arr->Set(worker, 8, worker->New( value[8] ));
-  arr->Set(worker, 9, worker->New( value[9] ));
-  arr->Set(worker, 10, worker->New( value[10] ));
-  arr->Set(worker, 11, worker->New( value[11] ));
-  arr->Set(worker, 12, worker->New( value[12] ));
-  arr->Set(worker, 13, worker->New( value[13] ));
-  arr->Set(worker, 14, worker->New( value[14] ));
-  arr->Set(worker, 15, worker->New( value[15] ));
-  return _Mat4.strong()->Call(worker, 1, reinterpret_cast<Local<JSValue>*>(&arr));
+  Local<JSValue> args[] = {
+    worker->New(value[0]),
+    worker->New(value[1]),
+    worker->New(value[2]),
+    worker->New(value[3]),
+    worker->New(value[4]),
+    worker->New(value[5]),
+    worker->New(value[6]),
+    worker->New(value[7]),
+    worker->New(value[8]),
+    worker->New(value[9]),
+    worker->New(value[10]),
+    worker->New(value[11]),
+    worker->New(value[12]),
+    worker->New(value[13]),
+    worker->New(value[14]),
+    worker->New(value[15]),
+  };
+  return _Mat4.strong()->Call(worker, 16, args);
 }
 Local<JSValue> ValueProgram::New(const Value& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New(value.value);
-  return _Value.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value),
+  };
+  return _Value.strong()->Call(worker, 2, args);
+}
+Local<JSValue> ValueProgram::New(const BackgroundPosition& value) {
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value),
+  };
+  return _BackgroundPosition.strong()->Call(worker, 2, args);
+}
+Local<JSValue> ValueProgram::New(const BackgroundSize& value) {
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value),
+  };
+  return _BackgroundSize.strong()->Call(worker, 2, args);
+}
+Local<JSValue> ValueProgram::New(const BackgroundPtr& value) {
+  XX_UNIMPLEMENTED();
+  return Local<JSValue>();
 }
 Local<JSValue> ValueProgram::New(const TextColor& value) {
-  Array<Local<JSValue>> args(5);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New(value.value.r());
-  args[2] = worker->New(value.value.g());
-  args[3] = worker->New(value.value.b());
-  args[4] = worker->New(value.value.a());
-  return _TextColorRgba.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value.r()),
+    worker->New(value.value.g()),
+    worker->New(value.value.b()),
+    worker->New(value.value.a()),
+  };
+  return _TextColorRgba.strong()->Call(worker, 5, args);
 }
 Local<JSValue> ValueProgram::New(const TextSize& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New(value.value);
-  return _TextSize.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value),
+  };
+  return _TextSize.strong()->Call(worker, 1, args);
 }
 Local<JSValue> ValueProgram::New(const TextFamily& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New(value.name());
-  return _TextFamily.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.name()),
+  };
+  return _TextFamily.strong()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextStyle& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New((uint)value.value);
-  return _TextStyle.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New((uint)value.value),
+  };
+  return _TextStyle.strong()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextShadow& value) {
-  Array<Local<JSValue>> args(8);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New(value.value.offset_x);
-  args[2] = worker->New(value.value.offset_y);
-  args[3] = worker->New(value.value.size);
-  args[4] = worker->New(value.value.color.r());
-  args[5] = worker->New(value.value.color.g());
-  args[6] = worker->New(value.value.color.b());
-  args[7] = worker->New(value.value.color.a());
-  return _TextShadowRgba.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value.offset_x),
+    worker->New(value.value.offset_y),
+    worker->New(value.value.size),
+    worker->New(value.value.color.r()),
+    worker->New(value.value.color.g()),
+    worker->New(value.value.color.b()),
+    worker->New(value.value.color.a()),
+  };
+  return _TextShadowRgba.strong()->Call(worker, 8, args);
 }
 Local<JSValue> ValueProgram::New(const TextLineHeight& value) {
-  Array<Local<JSValue>> args(3);
-  args[0] = worker->New((uint)value.type);
-  args[2] = worker->New(value.value.height);
-  return _TextLineHeight.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New(value.value.height),
+  };
+  return _TextLineHeight.strong()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextDecoration& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New((uint)value.value);
-  return _TextDecoration.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New((uint)value.value),
+  };
+  return _TextDecoration.strong()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const String& value) {
   return worker->New(value);
@@ -255,47 +296,56 @@ Local<JSValue> ValueProgram::New(const String& value) {
 Local<JSValue> ValueProgram::New(const bool& value) {
   return worker->New(value);
 }
+Local<JSValue> ValueProgram::New(const float& value) {
+  return worker->New(value);
+}
+Local<JSValue> ValueProgram::New(const int& value) {
+  return worker->New(value);
+}
+Local<JSValue> ValueProgram::New(const uint& value) {
+  return worker->New(value);
+}
 Local<JSValue> ValueProgram::New(const TextOverflow& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New((uint)value.value);
-  return _TextOverflow.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New((uint)value.value),
+  };
+  return _TextOverflow.strong()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextWhiteSpace& value) {
-  Array<Local<JSValue>> args(2);
-  args[0] = worker->New((uint)value.type);
-  args[1] = worker->New((uint)value.value);
-  return _TextWhiteSpace.strong()->Call(worker, args.length(), &args[0]);
+  Local<JSValue> args[] = {
+    worker->New((uint)value.type),
+    worker->New((uint)value.value),
+  };
+  return _TextWhiteSpace.strong()->Call(worker, 2, args);
 }
 
 static void parse_error_throw(Worker* worker, Local<JSValue> value,
-                              cchar* desc, Local<JSFunction> func) {
-  String msg;
+                              cchar* msg, Local<JSFunction> help = Local<JSFunction>()) {
+  String help_str;
   
-  if ( !func.IsEmpty() ) {
-    Local<JSValue> o = func->Call(worker);
-    
-    if ( !o.IsEmpty() ) {
-      msg = o->ToStringValue(worker);
+  if (!help.IsEmpty() && help->IsFunction()) {
+    Local<JSValue> o = help->Call(worker);
+    if (!o.IsEmpty()) {
+      help_str = o->ToStringValue(worker);
     }
   }
-  
   // Bad argument. Input.type = `Bad`
   // reference value, "
   
-  String val = String::format(desc, *String::format("`%s`", *value->ToStringValue(worker)) );
+  String msg2 = String::format(msg, *String::format("`%s`", *value->ToStringValue(worker)) );
   Local<JSValue> err;
   
-  if ( msg.is_empty() ) {
-    err = worker->NewTypeError("Bad argument. %s.", *val);
+  if (help_str.is_empty()) {
+    err = worker->NewTypeError("Bad argument. %s.", *msg2);
   } else {
-    err = worker->NewTypeError("Bad argument. %s. Examples: %s", *val, *msg);
+    err = worker->NewTypeError("Bad argument. %s. Examples: %s", *msg2, *help_str);
   }
   worker->throw_err(err);
 }
 
-void ValueProgram::throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> more_msg) {
-  parse_error_throw(worker, value, msg, more_msg);
+void ValueProgram::throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> help) {
+  parse_error_throw(worker, value, msg, help);
 }
 
 #define DEF_STRING_VALUES(NAME, NAME2) #NAME2,
@@ -345,7 +395,7 @@ if ( in->IsString(worker) ) {\
   object = in.To<JSObject>();\
 } else {\
 err:\
-  parse_error_throw(worker, in, desc, _parse##Type##Description.strong());\
+  parse_error_throw(worker, in, desc, _parse##Type##Help.strong());\
   return false;\
 }\
 ok \
@@ -366,7 +416,7 @@ if ( in->IsString(worker) ) { \
   object = in.To<JSObject>(); \
 } else { \
  err: \
-  parse_error_throw(worker, in, desc, _parse##Type##Description.strong()); \
+  parse_error_throw(worker, in, desc, _parse##Type##Help.strong()); \
   return false; \
 } \
 ok \
@@ -424,7 +474,7 @@ bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
     object = in.To<JSObject>();
   } else {
   err:
-    parse_error_throw(worker, in, desc, _parseBorderDescription.strong());
+    parse_error_throw(worker, in, desc, _parseBorderHelp.strong());
     return false;
   }
   out.width = object->Get(worker, worker->strs()->width())->ToNumberValue(worker);
@@ -556,16 +606,49 @@ bool ValueProgram::parseValue(Local<JSValue> in, Value& out, cchar* desc) {
     out.value = object->Get(worker, worker->strs()->value())->ToNumberValue(worker);
   });
 }
+bool ValueProgram::parseBackgroundPosition(Local<JSValue> in,
+                                           BackgroundPosition& out, cchar* desc) {
+  if (in->IsNumber(worker)) {
+    out.type = BackgroundPositionType::PIXEL;
+    out.value = in->ToNumberValue(worker);
+    return true;
+  }
+  js_parse(BackgroundPosition, {
+    out.type = (BackgroundPositionType)
+    object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.value = object->Get(worker, worker->strs()->value())->ToNumberValue(worker);
+  });
+}
+bool ValueProgram::parseBackgroundSize(Local<JSValue> in, BackgroundSize& out, cchar* desc) {
+  if (in->IsNumber(worker)) {
+    out.type = BackgroundSizeType::PIXEL;
+    out.value = in->ToNumberValue(worker);
+    return true;
+  }
+  js_parse(BackgroundSize, {
+    out.type = (BackgroundSizeType)
+    object->Get(worker, worker->strs()->type())->ToUint32Value(worker);
+    out.value = object->Get(worker, worker->strs()->value())->ToNumberValue(worker);
+  });
+}
+bool ValueProgram::parseBackground(Local<JSValue> in, BackgroundPtr& out, cchar* desc) {
+  if (in->IsNull()) {
+    out = nullptr;
+    return true;
+  }
+  js_parse(Background, {
+    out = Wrap<Background>::unpack(object)->self();
+  });
+}
 bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc) {
   if (in->IsNumber(worker)) {
-    out.push(Value{ ValueType::PIXEL, (float)in->ToNumberValue(worker) }); return true;
+    out.push(Value{ ValueType::PIXEL, (float)in->ToNumberValue(worker) });
+    return true;
   }
   Local<JSArray> arr;
   if (in->IsString(worker)) {
     Local<JSValue> o = _parseValues.strong()->Call(worker, 1, &in);
-    if ( o.IsEmpty() || o->IsNull(worker)) {
-      return false;
-    } else {
+    if ( !o.IsEmpty() && !o->IsNull(worker)) {
       arr = o.To<JSArray>();
     }
   } else if ( isValue(in) ) {
@@ -574,39 +657,40 @@ bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc
       (float)in.To<JSObject>()->Get(worker, worker->strs()->value())->ToNumberValue(worker)
     }));
     return true;
-  } else {
-    return false;
   }
-  
-  for(int i = 0, len = arr->Length(worker); i < len; i++) {
-    Local<JSObject> obj = arr->Get(worker, i).To<JSObject>();
-    out.push(Value({
-      (ValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker),
-      (float)obj->Get(worker, worker->strs()->value())->ToNumberValue(worker)
-    }));
+  if (!arr.IsEmpty()) {
+    for(int i = 0, len = arr->Length(worker); i < len; i++) {
+      Local<JSObject> obj = arr->Get(worker, i).To<JSObject>();
+      out.push(Value({
+        (ValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker),
+        (float)obj->Get(worker, worker->strs()->value())->ToNumberValue(worker)
+      }));
+    }
+    return true;
   }
-  return true;
+  parse_error_throw(worker, in, desc, _parseValuesHelp.strong());
+  return false;
 }
-bool ValueProgram::parseFloatValues(Local<JSValue> in, Array<float>& out, cchar* desc) {
+bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc) {
   if (in->IsNumber(worker)) {
-    out.push(in->ToNumberValue(worker)); return true;
+    out.push(in->ToNumberValue(worker));
+    return true;
   }
   Local<JSArray> arr;
   if (in->IsString(worker)) {
-    
-    Local<JSValue> o = _parseFloatValues.strong()->Call(worker, 1, &in);
-    if ( o.IsEmpty() || o->IsNull(worker) ) {
-      return false;
-    } else {
+    Local<JSValue> o = _parseFloats.strong()->Call(worker, 1, &in);
+    if ( !o.IsEmpty() && !o->IsNull(worker) ) {
       arr = o.To<JSArray>();
     }
-  } else {
-    return false;
   }
-  for(int i = 0, len = arr->Length(worker); i < len; i++) {
-    out.push( arr->Get(worker, i)->ToNumberValue(worker) );
+  if (!arr.IsEmpty()) {
+    for(int i = 0, len = arr->Length(worker); i < len; i++) {
+      out.push( arr->Get(worker, i)->ToNumberValue(worker) );
+    }
+    return true;
   }
-  return true;
+  parse_error_throw(worker, in, desc, _parseFloatsHelp.strong());
+  return false;
 }
 bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc) {
   js_parse(TextColor, {
@@ -674,11 +758,50 @@ bool ValueProgram::parseTextDecoration(Local<JSValue> in,
 }
 bool ValueProgram::parseString(Local<JSValue> in, String& out, cchar* desc) {
   out = in->ToStringValue(worker);
-  return 1;
+  return true;
 }
 bool ValueProgram::parsebool(Local<JSValue> in, bool& out, cchar* desc) {
   out = in->ToBooleanValue(worker);
-  return 1;
+  return true;
+}
+bool ValueProgram::parsefloat(Local<JSValue> in, float& out, cchar* desc) {
+  if (in->IsNumber(worker)) {
+    out = in->ToNumberValue(worker);
+    return true;
+  }
+  if (in->IsString(worker)) {
+    if (in->ToStringValue(worker).to_float(&out)) {
+      return true;
+    }
+  }
+  parse_error_throw(worker, in, desc);
+  return false;
+}
+bool ValueProgram::parseint(Local<JSValue> in, int& out, cchar* desc) {
+  if (in->IsNumber(worker)) {
+    out = in->ToInt32Value(worker);
+    return true;
+  }
+  if (in->IsString(worker)) {
+    if (in->ToStringValue(worker).to_int(&out)) {
+      return true;
+    }
+  }
+  parse_error_throw(worker, in, desc);
+  return false;
+}
+bool ValueProgram::parseuint(Local<JSValue> in, uint& out, cchar* desc) {
+  if (in->IsNumber(worker)) {
+    out = in->ToUint32Value(worker);
+    return true;
+  }
+  if (in->IsString(worker)) {
+    if (in->ToStringValue(worker).to_uint(&out)) {
+      return true;
+    }
+  }
+  parse_error_throw(worker, in, desc);
+  return false;
 }
 bool ValueProgram::parseTextOverflow(Local<JSValue> in, TextOverflow& out, cchar* desc) {
   js_parse(TextOverflow, {
@@ -693,7 +816,9 @@ bool ValueProgram::parseTextWhiteSpace(Local<JSValue> in,
     out.value = (TextWhiteSpaceEnum)object->Get(worker, worker->strs()->value())->ToUint32Value(worker);
   });
 }
-// is
+
+// -------------------------------- is --------------------------------
+
 bool ValueProgram::isTextAlign(Local<JSValue> value) {
   return value->InstanceOf(worker, _constructorTextAlign.strong());
 }
@@ -743,13 +868,19 @@ bool ValueProgram::isMat(Local<JSValue> value) {
   return value->InstanceOf(worker, _constructorMat.strong());
 }
 bool ValueProgram::isMat4(Local<JSValue> value) {
-//  if ( ! value->IsObject(worker)) return false;
-//  Local<JSValue> constructor = value.To<JSObject>()->Get(worker, worker->strs()->constructor());
-//  return _constructorMat4.strong()->Equals(constructor);
   return value->InstanceOf(worker, _constructorMat4.strong());
 }
 bool ValueProgram::isValue(Local<JSValue> value) {
   return value->InstanceOf(worker, _constructorValue.strong());
+}
+bool ValueProgram::isBackgroundPosition(Local<JSValue> value) {
+  return value->InstanceOf(worker, _constructorBackgroundPosition.strong());
+}
+bool ValueProgram::isBackgroundSize(Local<JSValue> value) {
+  return value->InstanceOf(worker, _constructorBackgroundSize.strong());
+}
+bool ValueProgram::isBackground(Local<JSValue> value) {
+  return worker->has_instance<Background>(value);
 }
 bool ValueProgram::isTextColor(Local<JSValue> value) {
   return value->InstanceOf(worker, _constructorTextColor.strong());
@@ -781,6 +912,15 @@ bool ValueProgram::isString(Local<JSValue> value) {
 bool ValueProgram::isbool(Local<JSValue> value) {
   return true;
 }
+bool ValueProgram::isfloat(Local<JSValue> value) {
+  return value->IsNumber(worker);
+}
+bool ValueProgram::isint(Local<JSValue> value) {
+  return value->IsInt32(worker);
+}
+bool ValueProgram::isuint(Local<JSValue> value) {
+  return value->IsUint32(worker);
+}
 bool ValueProgram::isTextOverflow(Local<JSValue> value) {
   return value->InstanceOf(worker, _constructorTextOverflow.strong());
 }
@@ -788,14 +928,19 @@ bool ValueProgram::isTextWhiteSpace(Local<JSValue> value) {
   return value->InstanceOf(worker, _constructorTextWhiteSpace.strong());
 }
 
+void binding_background(Local<JSObject> exports, Worker* worker);
+
 /**
  * @class NativeValue
  */
 class NativeValue {
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
-    Local<JSObject> _native = worker->NewObject();
-    exports->Set(worker, worker->strs()->_native(), _native);
+    // binding Background / BackgroundImage / BackgroundGradient
+    binding_background(exports, worker);
+    
+    Local<JSObject> _prve = worker->NewObject();
+    exports->Set(worker, worker->New("_priv", 1), _prve);
     
     {
       TryCatch try_catch;
@@ -806,10 +951,10 @@ class NativeValue {
         if ( try_catch.HasCaught() ) {
           worker->report_exception(&try_catch);
         }
-        XX_FATAL("Could not initialize gui-value.js");
+        XX_FATAL("Could not initialize native/value.js");
       }
     }
-    worker->m_value_program = new ValueProgram(worker, exports, _native);
+    worker->m_value_program = new ValueProgram(worker, exports, _prve);
   }
 };
 

@@ -73,7 +73,7 @@ PropertysAccessor::PropertysAccessor() {
   set_func(view, View, PROPERTY_ORIGIN_X, origin_x);
   set_func(view, View, PROPERTY_ORIGIN_Y, origin_y);
   set_func(view, View, PROPERTY_OPACITY, opacity);
-  view.set(PROPERTY_VISIBLE, Accessor(&View::visible, &View::set_visible_0));
+  view.set(PROPERTY_VISIBLE, Accessor(&View::visible, &View::set_visible_1));
   
   Map<PropertyName, Accessor> box = view;
   
@@ -83,10 +83,6 @@ PropertysAccessor::PropertysAccessor() {
   set_func(box, Box, PROPERTY_MARGIN_TOP, margin_top);
   set_func(box, Box, PROPERTY_MARGIN_RIGHT, margin_right);
   set_func(box, Box, PROPERTY_MARGIN_BOTTOM, margin_bottom);
-  set_func(box, Box, PROPERTY_BORDER_LEFT, border_left);
-  set_func(box, Box, PROPERTY_BORDER_TOP, border_top);
-  set_func(box, Box, PROPERTY_BORDER_RIGHT, border_right);
-  set_func(box, Box, PROPERTY_BORDER_BOTTOM, border_bottom);
   set_func(box, Box, PROPERTY_BORDER_LEFT_WIDTH, border_left_width);
   set_func(box, Box, PROPERTY_BORDER_TOP_WIDTH, border_top_width);
   set_func(box, Box, PROPERTY_BORDER_RIGHT_WIDTH, border_right_width);
@@ -100,6 +96,7 @@ PropertysAccessor::PropertysAccessor() {
   set_func(box, Box, PROPERTY_BORDER_RADIUS_RIGHT_BOTTOM, border_radius_right_bottom);
   set_func(box, Box, PROPERTY_BORDER_RADIUS_LEFT_BOTTOM, border_radius_left_bottom);
   set_func(box, Box, PROPERTY_BACKGROUND_COLOR, background_color);
+  set_func(box, Box, PROPERTY_BACKGROUND, background);
   set_func(box, Box, PROPERTY_NEWLINE, newline);
   set_func(box, Box, PROPERTY_CLIP, clip);
 
@@ -137,8 +134,8 @@ PropertysAccessor::PropertysAccessor() {
   set_func(m_property_func_table[View::IMAGE], Image, PROPERTY_SRC, src);
   m_property_func_table[View::VIDEO] = m_property_func_table[View::IMAGE];
   // sprite
-  set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_WIDTH2, width);
-  set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_HEIGHT2, height);
+  set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_WIDTH, width_1);
+  set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_HEIGHT, height_1);
   set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_START_X, start_x);
   set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_START_Y, start_y);
   set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_X, ratio_x);

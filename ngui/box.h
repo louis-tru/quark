@@ -453,6 +453,11 @@ class XX_EXPORT Box: public Layout {
    */
   Region get_screen_region();
   
+  /**
+   * @func solve() solve draw param
+   */
+  void solve();
+  
  private:
   
   Value     m_width;  // width 宽度
@@ -473,8 +478,8 @@ class XX_EXPORT Box: public Layout {
   float     m_border_radius_right_top; // 右上圆角
   float     m_border_radius_right_bottom; // 右下圆角
   float     m_border_radius_left_bottom; // 左下圆角
-  Color     m_background_color; // 背景颜色
-  Background* m_background;     // 盒子背景
+  Color     m_background_color;     // 背景颜色
+  Background* m_background;         // 盒子背景
  protected:
   float     m_final_width; // 最终的宽度
   float     m_final_height; // 最终的高度
@@ -495,9 +500,10 @@ class XX_EXPORT Box: public Layout {
   int       m_linenum;          /* 盒子在Hybrid视图布局中的行索引,-1表式没有行无需显示 */
   bool      m_newline;          // 新行或新列
   bool      m_clip;             // 是否溢出修剪
-  bool      m_explicit_width;     // 是否拥有明确宽度,明确宽度不会受到子布局视图的挤压影响
-  bool      m_explicit_height;    // 是否拥有明确高度,明确高度不会受到子布局视图的挤压影响
-  bool      m_is_draw_border;         // 是否需要绘制边框
+  bool      m_explicit_width;   // 是否拥有明确宽度,明确宽度不会受到子布局视图的挤压影响
+  bool      m_explicit_height;  // 是否拥有明确高度,明确高度不会受到子布局视图的挤压影响
+  bool      m_is_draw; // m_is_draw = m_background_color.a()|m_background|m_is_draw_border;
+  bool      m_is_draw_border;   // 是否需要绘制边框
   bool      m_is_draw_border_radius;  // 是否要绘制圆角
   
   XX_DEFINE_INLINE_CLASS(Inl);
