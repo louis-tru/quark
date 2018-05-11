@@ -50,7 +50,7 @@ const join_path = win32 ? function(args) {
 };
 
 const matchs = win32 ? {
-  resolve: /^((\/)|([a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+  resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
   is_absolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
   is_local: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
 } : {
@@ -82,6 +82,8 @@ function resolve_path_level(path, retain_up) {
   return (retain_up ? new Array(up + 1).join('../') + path : path);
 }
 
+const PREFIX = 'file:///';
+
 /**
  * return format path
  */
@@ -91,17 +93,17 @@ function resolve() {
   // Find absolute path
   var mat = path.match(matchs.resolve);
   var slash = '';
-
+  
   // resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
   // resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
   
   if (mat) {
     if (mat[2]) { // local absolute path /
       if (win32 && mat[2] != '/') { // windows d:\
-        prefix = 'file:///' + mat[3] + '/';
+        prefix = PREFIX + mat[2] + '/';
         path = path.substr(2);
       } else {
-        prefix = 'file:///';
+        prefix = PREFIX; //'file:///';
       }
     } else {
       if (mat[4]) { // local file protocol
@@ -115,27 +117,14 @@ function resolve() {
       path = path.substr(prefix.length);
     }
   } else { // Relative path, no network protocol
-    prefix = 'file:///';
-    path = process.cwd() + '/' + path;
+    var cwd = process.cwd();
+    prefix = PREFIX; // 'file:///';
+    path = (win32 ? cwd.substr(3) : cwd) + '/' + path;
   }
 
   path = resolve_path_level(path);
 
   return path ? prefix + slash + path : prefix;
-}
-
-function resolveMainPath(path) {
-  if (path) {
-    if ( !is_absolute(path) ) {
-      // 非绝对路径,优先查找资源路径
-      if (isFileSync(_util.resources(path + '/package.json'))) {  
-        // 如果在资源中找到`package.json`文件
-        path = _util.resources(path);
-      }
-    }
-    path = fallbackPath(resolve(path));
-  }
-  return path;
 }
 
 /**
@@ -158,6 +147,20 @@ function is_local_zip(path) {
 
 function is_network(path) {
   return /^(https?):\/\/[^\/]+/i.test(path);
+}
+
+function resolveMainPath(path) {
+  if (path) {
+    if ( !is_absolute(path) ) {
+      // 非绝对路径,优先查找资源路径
+      if (isFileSync(_util.resources(path + '/package.json'))) {  
+        // 如果在资源中找到`package.json`文件
+        path = _util.resources(path);
+      }
+    }
+    path = fallbackPath(resolve(path));
+  }
+  return path;
 }
 
 function getPathFromURL(path) {

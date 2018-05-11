@@ -71,7 +71,7 @@
 
 空操作,调用后什么也不会做
 
-## extend(obj, extd)
+## extendEntries(obj, extd)
 
 递归`extd`对像属性并扩展到`obj`对像上
 
@@ -82,6 +82,14 @@
 ## assign(obj, ...extd)
 
 把`extd`是的属性扩展到`obj`对像上
+
+* @arg `obj` {[`Object`]}
+* @arg `...extd` {[`Object`]}
+* @ret {[`Object`]} 返回`obj`对像
+
+## extend(obj, ...extd)
+
+把`extd`是的属性扩展到`obj`对像上,assign相同,但这个函数能扩展属性访问器
 
 * @arg `obj` {[`Object`]}
 * @arg `...extd` {[`Object`]}

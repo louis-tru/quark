@@ -41,12 +41,13 @@ const { readFile, readFileSync, isFileSync,
         is_network,
       } = require('internal/pkg');
 const debug = util.debuglog('pkg');
-const options = { };  // start options
+const options = {};  // start options
 const external_cache = { };
 const assert = require('assert').ok;
 var ignore_local_package, ignore_all_local_package;
 var keys = null;
 var packages = null;  // packages
+var config = null;
 
 function parse_keys(content) {
   if ( !keys ) {
@@ -72,7 +73,7 @@ function print_warn(err) {
   console.warn.apply(console, format_msg(arguments));
 }
 
-function extend(obj, extd) {
+function extendEntries(obj, extd) {
   for (var item of Object.entries(extd)) {
     obj[item[0]] = item[1];
   }
@@ -120,7 +121,7 @@ function __vx(raw_vx, attrs, vdata) {
 function new_err(e) {
   if (! (e instanceof Error)) {
     if (typeof e == 'object') {
-      e = extend(new Error(e.message || 'Unknown error'), e);
+      e = extendEntries(new Error(e.message || 'Unknown error'), e);
     } else {
       e = new Error(e);
     }
@@ -172,7 +173,7 @@ function read_text_sync(path) {
 }
 
 global.__vx = __vx;
-global.__extend = extend;
+global.__extend = extendEntries;
 
 // -------------------------- Package private API --------------------------
 
@@ -320,7 +321,7 @@ function Package_install2(self, cb) {
         let install_remote_ok = function(){ cb && cb() }.catch(err=>{
           // 不能安装远程包,
           console.error(err);
-          extend(self, old); // 恢复
+          extendEntries(self, old); // 恢复
           self.m_old = null;
           cb && cb();
         });
@@ -1184,16 +1185,24 @@ class Exports {
     }.catch(cb.throw));
   }
 
-  resolve() {
-    return resolve.apply(null, arguments);
-  }
-
-  isAbsolute(path) {
-    return is_absolute(path);
-  }
-
   get options() {
     return options;
+  }
+
+  /**
+   * @get config
+   */ 
+  get config() {
+    if (!config) {
+      config = {};
+      var pkg = this.mainPackage;
+      if (pkg) {
+        try {
+          config = inl_require(pack.name + '/config');
+        } catch(err) {}
+      }
+    }
+    return config;
   }
   
   _resolveFilename(request, parent) {
@@ -1216,7 +1225,12 @@ class Exports {
 /**
  * @func extend(obj, extd)
  */
-Exports.prototype.extend = extend;
+Exports.prototype.extendEntries = extendEntries;
+Exports.prototype.resolve = resolve;
+Exports.prototype.isAbsolute = is_absolute;
+Exports.prototype.isLocal = is_local;
+Exports.prototype.isLocalZip = is_local_zip;
+Exports.prototype.isNetwork = is_network;
 
 // require absolute path file
 function inl_require_external(path) {
@@ -1250,7 +1264,7 @@ function inl_require_external(path) {
  * require('ngui/gui');
  *
  * @fun inl_require
- * @arg request {Object}  #    请求名
+ * @arg request {String}  #    请求名
  * @arg parent {Module}   #    父模块
  */
 function inl_require(request, parent) {

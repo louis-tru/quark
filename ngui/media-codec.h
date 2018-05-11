@@ -365,7 +365,7 @@ class XX_EXPORT MediaCodec: public Object {
   XX_HIDDEN_ALL_COPY(MediaCodec);
  public:
 
-  typedef MultimediaSource::Extractor   Extractor;
+  typedef MultimediaSource::Extractor Extractor;
   
   struct XX_EXPORT OutputBuffer {
     OutputBuffer();

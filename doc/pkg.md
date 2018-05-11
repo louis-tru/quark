@@ -2,13 +2,16 @@
 
 ## Get: mainPackage
 
+
 ## Get: main
 
 主启动运行文件路径
 
+
 ## Get: pkgs 
 
 获取package名称列表
+
 
 ## hasPackage(name)
 
@@ -16,11 +19,13 @@
 
 * @arg `name` {[`String`]}
 
+
 ## getPackage(name) 
 
 通过名称获取pkg实体
 
 * @arg `name` {[`String`]}
+
 
 ## getPackageWithAbsolutePath(path)
 
@@ -28,22 +33,27 @@
 
 * @arg `path` {[`String`]}
 
+
 ## addNodePath(node_modules) 
 
 * @arg `node_modules` {[`String`]}
-  
+
+
 ## addPackage(packagePath)
 
 * @arg `packagePath` {[`String`]}
+
 
 ## setOrigin(path[,origin])
 
 * @arg `path` {[`String`]}
 * @arg `[origin]` {[`String`]}
 
+
 ## disableOrigin(path)
 
 * @arg `path` {[`String`]}
+
 
 ## load(packageNames, cb)
 
@@ -51,6 +61,50 @@
 * @arg `cb` {[`Function`]}
 
 Asynchronous mode load packages info and ready
+
+
+## Get: options
+
+启动参数
+
+
+## extendEntries(obj, extd)
+
+* @arg `obj` {[`Object`]}
+* @arg `extd` {[`Object`]}
+* @ret {[`Object`]}
+
+## resolve(...args)
+
+* @arg `...args` {[`String`]}
+* @ret {[`String`]}
+
+
+## isAbsolute(path)
+
+* @arg `path` {[`String`]}
+* @ret {[`String`]}
+
+
+## isLocal(path)
+
+* @arg `path` {[`String`]}
+* @ret {[`String`]}
+
+
+## isLocalZip(path)
+
+* @arg `path` {[`String`]}
+* @ret {[`String`]}
+
+* @arg `path` {[`String`]}
+* @ret {[`String`]}
+
+
+## isNetwork(path)
+
+* @arg `path` {[`String`]}
+* @ret {[`String`]}
 
 
 [`Object`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
