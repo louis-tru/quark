@@ -8,7 +8,7 @@ CSS({
   },
   '.strpper_page .item': {
     width: 'full',
-    border_bottom: `${atomPixel} #ccc`,
+    borderBottom: `${atomPixel} #ccc`,
   },
   '.strpper_page .text': {
     width: '140!',

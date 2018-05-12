@@ -64,7 +64,7 @@ using namespace ngui::value;
 #define js_value_table(F) \
 F(String, String)         F(bool, bool) F(float, float) F(int, int) F(uint, uint) \
 F(TextAlign, TextAlign)   F(Align, Align)             F(ContentAlign, ContentAlign)  \
-F(Border, Border)         F(Shadow, Shadow)         F(Color, Color) \
+F(Border, Border)         F(Shadow, Shadow)           F(Color, Color) \
 F(Vec2, Vec2)             F(Vec3, Vec3)               F(Vec4, Vec4) \
 F(Rect, CGRect)           F(Mat, Mat)                 F(Mat4, Mat4) \
 F(Value, Value)           F(TextColor, TextColor)     F(TextSize, TextSize)  \

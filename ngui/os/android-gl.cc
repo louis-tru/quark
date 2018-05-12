@@ -406,28 +406,26 @@ void AndroidGLDrawCore::commit_render() {
   }
 
 #define gl_ glshaders(m_host)
-
   if ( m_virtual_keys_rect.size.width() != 0 ) {
     // Draw Virtual Keys background color  
 
-    float view_matrix_op[] = {
+    float view_matrix[] = {
       1,0,0, // matrix
       0,1,0,
-      1, // opacity
-      0, 0, 0, 1, // background color
+      1,      // opacity
     };
     glUseProgram(shader::box_color.shader);
-    glUniform1fv(shader::box_color.view_matrix_op, 7, view_matrix_op);
+    glUniform1fv(shader::box_color.view_matrix, 7, view_matrix);
     glUniform4f(shader::box_color.vertex_ac,
                 m_virtual_keys_rect.origin[0], // vertex_ac
                 m_virtual_keys_rect.origin[1],
                 m_virtual_keys_rect.origin[0] + m_virtual_keys_rect.size[0],
                 m_virtual_keys_rect.origin[1] + m_virtual_keys_rect.size[1]);
-    glUniform1fv(shader::box_color.draw_data, 4, view_matrix_op + 7);
-
+    glUniform4f(shader::box_color.border_width, 0, 0, 0, 0);
+    glUniform4f(shader::box_color.radius_size, 0, 0, 0, 0);
+    glUniform4f(shader::box_color.background_color, 0, 0, 0, 1);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
-
   eglSwapBuffers(m_display, m_surface);
 }
 

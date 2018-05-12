@@ -8,7 +8,7 @@ CSS({
   },
   '.checkbox_page .item': {
     width: 'full',
-    border_bottom: `${atomPixel} #ccc`,
+    borderBottom: `${atomPixel} #ccc`,
   },
   '.checkbox_page .text': {
     width: '100!',

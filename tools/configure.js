@@ -28,16 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-util/fs');
-var path = require('ngui-util/path');
+var fs = require('ngui-stew/fs');
+var path = require('ngui-stew/url');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('ngui-util/arguments');
-var syscall = require('ngui-util/syscall').syscall;
-var syscall2 = require('ngui-util/syscall').syscall2;
+var argument = require('ngui-stew/arguments');
+var syscall = require('ngui-stew/syscall').syscall;
+var syscall2 = require('ngui-stew/syscall').syscall2;
 var opts = argument.options;
-var help_info = argument.help_info;
-var def_opts = argument.def_opts;
+var help_info = argument.helpInfo;
+var def_opts = argument.defOpts;
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
@@ -647,7 +647,7 @@ function configure() {
     suffix = String(opts.suffix);
   }
 
-  variables.output = path.format(`${__dirname}/../out/${os}.${suffix}.${configuration}`);
+  variables.output = path.resolve(`${__dirname}/../out/${os}.${suffix}.${configuration}`);
   variables.suffix = suffix;
   config_mk.push('CXX=' + variables.cxx);
   config_mk.push('LINK=' + variables.ld);

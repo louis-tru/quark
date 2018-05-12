@@ -33,58 +33,58 @@ CSS({
   
   '.long_btn': {
     margin: 10,
-    margin_bottom: 0,
+    marginBottom: 0,
     width: "full",
     height: 36,
-    text_line_height: 36,
-    text_color: "#0079ff",
-    border_radius: 8,
+    textLineHeight: 36,
+    textColor: "#0079ff",
+    borderRadius: 8,
     border: `${px} #0079ff`,
     // border: `2 #0079ff`,
-    // background_color: '#f00',
-    // border_radius: 80,
+    // backgroundColor: '#f00',
+    // borderRadius: 80,
     // border: `40 #0079ff`,
-    // border_left_color: '#f00',
-    // border_right_color: '#f00',
+    // borderLeftColor: '#f00',
+    // borderRightColor: '#f00',
   },
     
   '.long_btn2': {
     margin: 10,
-    margin_bottom: 0,
+    marginBottom: 0,
     width: "full",
     height: 36,
-    text_line_height: 36,
-    text_color: "#fff",
-    border_radius: 8,
+    textLineHeight: 36,
+    textColor: "#fff",
+    borderRadius: 8,
     border: `${px} #fff`,
   },
   
   '.next_btn': {
     width: "full",
-    text_line_height: 45,
-    text_align: "left",
-    border_radius: 0,
+    textLineHeight: 45,
+    textAlign: "left",
+    borderRadius: 0,
   },
   
   '.next_btn:normal': {
-    background_color: '#fff0', time: 180
+    backgroundColor: '#fff0', time: 180
   },
   
   '.next_btn:hover': {
-    background_color: '#ececec', time: 50
+    backgroundColor: '#ececec', time: 50
   },
   
   '.next_btn:down': {
-    background_color: '#E1E4E4', time: 50
+    backgroundColor: '#E1E4E4', time: 50
   },
 
   '.input': {
     margin:10,
-    margin_bottom:0,
+    marginBottom:0,
     width:"full",
     height:30,
-    background_color:"#eee",
-    border_radius:8,
+    backgroundColor:"#eee",
+    borderRadius:8,
   },
 
 })

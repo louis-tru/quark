@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-util/util');
-var fs = require('ngui-util/fs');
-var copy_header = require('./cp-header').copy_header;
+var util = require('ngui-stew/util');
+var fs = require('ngui-stew/fs');
+var { copy_header } = require('./cp-header');
 var path = require('path');
 
 var args = process.argv.slice(2);
@@ -46,7 +46,7 @@ fs.cp_sync(root + '/node_modules/ngui-tools', target);
 fs.chmodSync(target + '/install', 0755);
 // fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
 fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);
-fs.chmodSync(target + '/toolchain/gyp/gyp', 0755);
+fs.chmodSync(target + '/gyp/gyp', 0755);
 
 copy_header(root + '/ngui', include);
 

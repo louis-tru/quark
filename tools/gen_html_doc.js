@@ -29,8 +29,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-util/fs');
-var path = require('ngui-util/path');
+var fs = require('ngui-stew/fs');
+var path = require('ngui-stew/url');
 var marked_html = require('ngui-tools/marked/html');
 var marked = require('ngui-tools/node_modules/marked/index');
 var read_ngui_version = require('./read_version').read_ngui_version;
@@ -42,8 +42,8 @@ if ( argv < 2 ) {
 	throw new Error('Bad argument.');
 }
 
-var source = path.format(argv[0]);
-var output = path.format(argv[1]);
+var source = path.resolve(argv[0]);
+var output = path.resolve(argv[1]);
 
 if ( fs.existsSync(source + '/index.md') ) { // 存在索引
 	var md = fs.readFileSync(source + '/index.md').toString();

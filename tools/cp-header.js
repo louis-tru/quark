@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-util/fs');
+var fs = require('ngui-stew/fs');
 
 function copy_header(source, target) {
 	fs.ls_sync(source).forEach(function(stat) {

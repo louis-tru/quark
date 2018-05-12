@@ -50,10 +50,13 @@ ValueProgram::ValueProgram(Worker* worker,
   Local<JSValue> help = Ascii("help");
   
 #define js_init_func(Name, Type) \
+  XX_DEBUG("%s", #Name);\
   _constructor##Name .Reset(worker, exports->Get(worker,Ascii(#Name)).To<JSFunction>()); \
   _parse##Name       .Reset(worker, exports->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
-  _parse##Name##Help \
-  .Reset(worker, _constructor##Name.strong()->Get(worker,help).To<JSFunction>()); \
+  if (_constructor##Name.strong()->IsObject()) { \
+    _parse##Name##Help.Reset(worker, \
+      _constructor##Name.strong()->Get(worker,help).To<JSFunction>()); \
+  }\
   _##Name            .Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
   
   js_value_table(js_init_func)

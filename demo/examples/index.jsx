@@ -14,14 +14,14 @@ CSS({
   
   '.category_title': {
     width: 'full',
-    text_line_height: 30,
-    text_color: '#6d6d72',
-    text_size: 14,
+    textLineHeight: 30,
+    textColor: '#6d6d72',
+    textSize: 14,
     margin: 16,
   },
 
   '.rm_margin_top': {
-    margin_top: 0,
+    marginTop: 0,
   },
 
   '.text_mark': {
@@ -30,37 +30,37 @@ CSS({
   
   '.hello': {
     width: 'full',
-    text_size:46, 
-    text_align:"center",
-    text_color:"#000",
+    textSize:46, 
+    textAlign:"center",
+    textColor:"#000",
     margin: 16,
-    margin_top: 18,
-    margin_bottom: 18,
+    marginTop: 18,
+    marginBottom: 18,
   },
   
   '.category': {
     width: 'full',
-    border_top: `${px} #c8c7cc`,
-    border_bottom: `${px} #c8c7cc`,
-    background_color: '#fff',
+    borderTop: `${px} #c8c7cc`,
+    borderBottom: `${px} #c8c7cc`,
+    backgroundColor: '#fff',
   },
 
   '.toolbar_btn': {
     margin: 8,
-    text_family: 'icon',
-    text_size: 24,
+    textFamily: 'icon',
+    textSize: 24,
   },
 
   '.codepre': {
     width:'full',
     margin:10,
-    text_color:"#000",
+    textColor:"#000",
   },
 
-  '.codepre .tag_name': { text_color: '#005cc5' },
-  '.codepre .keywork': { text_color: '#d73a49' },
-  '.codepre .identifier': { text_color: '#6f42c1' },
-  '.codepre .str': { text_color: '#007526' },
+  '.codepre .tag_name': { textColor: '#005cc5' },
+  '.codepre .keywork': { textColor: '#d73a49' },
+  '.codepre .identifier': { textColor: '#6f42c1' },
+  '.codepre .str': { textColor: '#007526' },
   
 })
 
