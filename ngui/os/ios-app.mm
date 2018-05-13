@@ -238,6 +238,8 @@ static void render_loop_cb(Se& evt, Object* ctx) {
   if (self.render_task_count == 0) {
     self.render_task_count++;
     _app->render_loop()->post(_render_cb);
+  } else {
+    // XX_DEBUG("no render");
   }
 }
 

@@ -597,6 +597,8 @@ void GLDraw::draw(Video* v) {
       if ( v->m_background_color.a() ) { // 绘制背景
         glUseProgram(shader::box_color.shader);
         _inl(this)->set_box_uniform_value(shader::box_color, v);
+        auto color = v->m_background_color.to_float_color();
+        glUniform4fv(shader::box_color.background_color, 1, color.value());
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
       }
     }

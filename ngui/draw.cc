@@ -130,6 +130,8 @@ bool Draw::adjust_texture_memory(uint64 will_alloc_size) {
     i++;
   } while(i < 3);
   
+  XX_WARN("Adjust texture memory fail");
+  
   return false;
 }
 

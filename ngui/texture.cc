@@ -542,6 +542,8 @@ bool TextureYUV::load_yuv(cPixelData& data) {
   
   if (draw_ctx()->adjust_texture_memory(new_size)) {
     if ( draw_ctx()->set_yuv_texture(this, data) ) {
+      m_data_size[0] = size;
+      m_data_size[1] = size / 2;
       set_texture_total_data_size(pool, new_size);
       
       if (m_width != data.width() ||
@@ -550,8 +552,6 @@ bool TextureYUV::load_yuv(cPixelData& data) {
         m_height = data.height();
         m_format = data.format();
         m_status = TEXTURE_COMPLETE;
-        m_data_size[0] = size;
-        m_data_size[1] = size / 2;
         main_loop()->post(Cb([this](Se& e) {
           XX_TRIGGER(change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
         }, this));
@@ -767,6 +767,7 @@ public:
   
   void set_texture_total_data_size(int size) {
     m_total_data_size += size;
+    // XX_DEBUG("texture_total_data_size: %d", m_total_data_size);
     XX_ASSERT(m_total_data_size >= 0);
   }
 };

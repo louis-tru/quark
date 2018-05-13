@@ -61,18 +61,14 @@ public:
   }
   
   virtual ~AppleVideoCodec() {
-    
-    flush();
-    
+    close();
     if ( m_sample_data ) {
-      CFRelease(m_sample_data); m_sample_data = nil;
+      CFRelease(m_sample_data);
+      m_sample_data = nil;
     }
     if (m_format_desc) {
-      CFRelease(m_format_desc); m_format_desc = nil;
-    }
-    if (m_session) {
-      VTDecompressionSessionInvalidate(m_session);
-      CFRelease(m_session); m_session = nil;
+      CFRelease(m_format_desc);
+      m_format_desc = nil;
     }
   }
   
@@ -228,8 +224,12 @@ public:
   virtual bool close() {
     if ( m_session ) {
       flush();
+      // Prevent deadlocks in VTDecompressionSessionInvalidate by waiting for the frames to complete manually.
+      // Seems to have appeared in iOS11
+      VTDecompressionSessionWaitForAsynchronousFrames(m_session);
       VTDecompressionSessionInvalidate(m_session);
-      CFRelease(m_session); m_session = nullptr;
+      CFRelease(m_session);
+      m_session = nullptr;
     }
     return true;
   }
@@ -436,22 +436,22 @@ public:
   /**
    * @overwrite
    */
-  virtual void set_frame_size(uint size) { }
-  virtual void set_threads(uint value) { }
-  virtual void set_background_run(bool value) { }
+  virtual void set_frame_size(uint size) {}
+  virtual void set_threads(uint value) {}
+  virtual void set_background_run(bool value) {}
   
-private:
+ private:
   VTDecompressionSessionRef m_session;
   CMFormatDescriptionRef    m_format_desc;
   CMSampleBufferRef         m_sample_data;
   uint64                    m_sample_time;
   Mutex                     m_output_buffer_mutex;
-  OutputBufferInfo          m_output_buffer[OUTPUT_BUFFER_NUM];
-  uint                      m_output_buffer_count;
-  uint                      m_start_decoder;
-  uint                      m_video_width;
-  uint                      m_video_height;
-  uint64                    m_presentation_time;
+  OutputBufferInfo  m_output_buffer[OUTPUT_BUFFER_NUM];
+  uint  m_output_buffer_count;
+  uint  m_start_decoder;
+  uint  m_video_width;
+  uint  m_video_height;
+  uint64  m_presentation_time;
 };
 
 /**

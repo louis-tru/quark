@@ -181,6 +181,8 @@ void DisplayPort::lock_size(float width, float height) {
   }
 }
 
+#define PRINT_RENDER_FRAME_TIME 0
+
 /**
  * @func render_frame()
  */
@@ -204,7 +206,7 @@ void DisplayPort::render_frame() {
       r->draw(m_draw_ctx); // 开始绘图
       _inl(this)->solve_next_frame();
       
-#if DEBUG
+#if DEBUG && PRINT_RENDER_FRAME_TIME
       int64 st = sys::time();
 #endif
       /*
@@ -215,7 +217,7 @@ void DisplayPort::render_frame() {
       Inl2_RunLoop(m_host->render_loop())->independent_mutex_unlock();
       m_draw_ctx->commit_render();
       Inl2_RunLoop(m_host->render_loop())->independent_mutex_lock();
-#if DEBUG
+#if DEBUG && PRINT_RENDER_FRAME_TIME
       int64 ts2 = (sys::time() - st) / 1e3;
       if (ts2 > 16) {
         LOG("ts: %ld -------------- ", ts2);
