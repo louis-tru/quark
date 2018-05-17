@@ -105,7 +105,7 @@ class XX_EXPORT Image: public Div {
   virtual void draw(Draw* draw);
   virtual void set_layout_explicit_size();
   virtual void set_layout_content_offset();
-  virtual void set_visible_draw();
+  virtual void set_screen_visible();
   
  private:
   int       m_tex_level;

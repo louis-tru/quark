@@ -229,9 +229,9 @@ void Sprite::compute_box_vertex(Vec2 vertex[4]) {
 }
 
 /**
- * @func set_visible_draw
+ * @func set_screen_visible
  */
-void Sprite::set_visible_draw() {
+void Sprite::set_screen_visible() {
   
   compute_box_vertex(m_final_vertex);
   
@@ -242,13 +242,13 @@ void Sprite::set_visible_draw() {
   Region dre = display_port()->draw_region();
   Region re = screen_region_from_convex_quadrilateral(m_final_vertex);
   
-  m_visible_draw = false;
+  m_screen_visible = false;
   
   if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
       XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
   ) {
     m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
-    m_visible_draw = true;
+    m_screen_visible = true;
   }
 }
 

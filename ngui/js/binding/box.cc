@@ -247,29 +247,6 @@ class WrapBox: public WrapObject {
   }
 
   /**
-   * @get background_color {Color}
-   */
-  static void background_color(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    JS_RETURN( worker->value_program()->New(self->background_color()) );
-  }
-
-  /**
-   * @get background {BackgroundPtr}
-   */
-  static void background(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    auto bg = self->background();
-    if (bg) {
-      JS_RETURN( pack(bg)->that() );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  /**
    * @get newline {bool}
    */
   static void newline(Local<JSString> name, PropertyCall args) {
@@ -285,21 +262,6 @@ class WrapBox: public WrapObject {
     JS_WORKER(args);
     JS_SELF(Box);
     JS_RETURN( self->clip() );
-  }
-  
-  inline static BackgroundImage* as_image(Box* self) {
-    return self->background() ? self->background()->as_image() : nullptr;
-  }
-  
-  static BackgroundImage* background_image(Box* self) {
-    auto bg = self->background();
-    if (bg) {
-      return bg->as_image();
-    } else {
-      auto img = new BackgroundImage();
-      self->set_background(img);
-      return img;
-    }
   }
   
   static void margin(Local<JSString> name, PropertyCall args) {
@@ -321,65 +283,6 @@ class WrapBox: public WrapObject {
   static void border_radius(Local<JSString> name, PropertyCall args) {
     JS_WORKER(args);
     JS_RETURN_NULL();
-  }
-  static void background_position(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_RETURN_NULL();
-  }
-  static void background_size(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_RETURN_NULL();
-  }
-  
-  static void background_repeat(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    auto img = as_image(self);
-    JS_RETURN( worker->value_program()->New(img ? img->repeat() : Repeat::NONE) );
-  }
-  
-  static void background_position_x(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    auto img = as_image(self);
-    if (img) {
-      JS_RETURN( worker->value_program()->New(img->position_x()) );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  static void background_position_y(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    auto img = as_image(self);
-    if (img) {
-      JS_RETURN( worker->value_program()->New(img->position_y()) );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  static void background_size_x(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    auto img = as_image(self);
-    if (img) {
-      JS_RETURN( worker->value_program()->New(img->size_x()) );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  static void background_size_y(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Box);
-    auto img = as_image(self);
-    if (img) {
-      JS_RETURN( worker->value_program()->New(img->size_y()) );
-    } else {
-      JS_RETURN_NULL();
-    }
   }
   
   /**
@@ -740,26 +643,6 @@ class WrapBox: public WrapObject {
     JS_SELF(Box);
     self->set_border_radius_left_bottom( value->ToNumberValue(worker) );
   }
-
-  /**
-   * @set background_color {Color}
-   */
-  static void set_background_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Color, value, "Box.backgroundColor = %s");
-    JS_SELF(Box);
-    self->set_background_color(out);
-  }
-  
-  /**
-   * @set background {BackgroundPtr}
-   */
-  static void set_background(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value2(BackgroundPtr, Background, value, "Box.background = %s");
-    JS_SELF(Box);
-    self->set_background(out);
-  }
   
   /**
    * @set newline {bool}
@@ -779,83 +662,244 @@ class WrapBox: public WrapObject {
     self->set_clip( value->ToBooleanValue(worker) );
   }
   
-  static void set_background_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Repeat, value, "Box.backgroundRepeat = %s");
+  /**
+   * @get background_color {Color}
+   */
+  static void background_color(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_repeat(out);
+    JS_RETURN( worker->value_program()->New(self->background_color()) );
+  }
+  
+  /**
+   * @set background_color {Color}
+   */
+  static void set_background_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+    JS_WORKER(args); GUILock lock;
+    js_parse_value(Color, value, "Box.backgroundColor = %s");
+    JS_SELF(Box);
+    self->set_background_color(out);
+  }
+
+  /********************************** background *****************************************/
+  
+  static inline BackgroundImage* as_background_image(Box* self) {
+    return self->background() ? self->background()->as_image() : nullptr;
+  }
+  
+  static BackgroundImage* get_background_image(Box* self) {
+    auto bg = self->background();
+    if (bg) {
+      return bg->as_image();
+    } else {
+      auto img = new BackgroundImage();
+      self->set_background(img);
+      return img;
     }
+  }
+  
+  //-------------------------------------
+  
+  /**
+   * @get background {BackgroundPtr}
+   */
+  static void background(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto bg = self->background();
+    if (bg) {
+      JS_RETURN( pack(bg)->that() );
+    } else {
+      JS_RETURN_NULL();
+    }
+  }
+  
+  /**
+   * @set background {BackgroundPtr}
+   */
+  static void set_background(Local<JSString> name,
+                             Local<JSValue> value, PropertySetCall args) {
+    JS_WORKER(args); GUILock lock;
+    js_parse_value2(BackgroundPtr, Background, value, "Box.background = %s");
+    JS_SELF(Box);
+    self->set_background(out);
+  }
+  
+  static void background_image(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto img = as_background_image(self);
+    if (img) {
+      JS_RETURN( img->src() );
+    } else {
+      JS_RETURN( JSString::Empty(worker) );
+    }
+  }
+  
+  /**
+   * @set background_image {BackgroundPtr}
+   */
+  static void set_background_image(Local<JSString> name,
+                                   Local<JSValue> value, PropertySetCall args) {
+    JS_WORKER(args); GUILock lock;
+    js_parse_value2(BackgroundPtr, BackgroundImage, value, "Box.backgroundImage = %s");
+    JS_SELF(Box);
+    out->set_holder_mode(Background::M_DISABLE); // 禁止被持有
+    self->set_background(out);
+  }
+  
+  // ----------------- get -----------------
+  
+  static void background_position(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_RETURN_NULL();
+  }
+  static void background_size(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_RETURN_NULL();
+  }
+  
+  static void background_repeat(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto img = as_background_image(self);
+    JS_RETURN( worker->value_program()->New(img ? img->repeat() : Repeat::NONE) );
+  }
+  
+  static void background_position_x(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto img = as_background_image(self);
+    if (img) {
+      JS_RETURN( worker->value_program()->New(img->position_x()) );
+    } else {
+      JS_RETURN_NULL();
+    }
+  }
+  
+  static void background_position_y(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto img = as_background_image(self);
+    if (img) {
+      JS_RETURN( worker->value_program()->New(img->position_y()) );
+    } else {
+      JS_RETURN_NULL();
+    }
+  }
+  
+  static void background_size_x(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto img = as_background_image(self);
+    if (img) {
+      JS_RETURN( worker->value_program()->New(img->size_x()) );
+    } else {
+      JS_RETURN_NULL();
+    }
+  }
+  
+  static void background_size_y(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(Box);
+    auto img = as_background_image(self);
+    if (img) {
+      JS_RETURN( worker->value_program()->New(img->size_y()) );
+    } else {
+      JS_RETURN_NULL();
+    }
+  }
+  
+  // ----------------- set -----------------
+  
+#define set_background_attrs(block) { \
+auto bg = get_background_image(self);\
+  int i = 0;\
+  while(bg) {\
+    block; \
+    i++;\
+    bg = bg->next() ? bg->next()->as_image(): nullptr; \
+  } \
+}
+  static void set_background_repeat(Local<JSString> name,
+                                    Local<JSValue> value, PropertySetCall args) {
+    JS_WORKER(args); GUILock lock;
+    js_parse_value2(Array<Repeat>, Repeats, value, "Box.backgroundRepeat = %s");
+    JS_SELF(Box);
+    set_background_attrs({
+      bg->set_repeat(out[i]);
+    });
   }
   
   static void set_background_position(Local<JSString> name,
                                       Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value(BackgroundPosition, value, "Box.backgroundPosition = %s");
+    js_parse_value2(Array<BackgroundPositionCollection>,
+                    BackgroundPositions, value, "Box.backgroundPosition = %s");
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_position_x(out);
-      img->set_position_y(out);
-    }
+    set_background_attrs({
+      bg->set_position_x(out[i].x);
+      bg->set_position_y(out[i].y);
+    });
   }
   
   static void set_background_position_x(Local<JSString> name,
                                         Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value(BackgroundPosition, value, "Box.backgroundPositionX = %s");
+    js_parse_value2(Array<BackgroundPositionCollection>,
+                    BackgroundPositions, value, "Box.backgroundPositionX = %s");
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_position_x(out);
-    }
+    set_background_attrs({
+      bg->set_position_x(out[i].x);
+    });
   }
   
   static void set_background_position_y(Local<JSString> name,
                                         Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value(BackgroundPosition, value, "Box.backgroundPositionY = %s");
+    js_parse_value2(Array<BackgroundPositionCollection>,
+                    BackgroundPositions, value, "Box.backgroundPositionY = %s");
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_position_y(out);
-    }
+    set_background_attrs({
+      bg->set_position_y(out[i].x);
+    });
   }
   
   static void set_background_size(Local<JSString> name,
                                   Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value(BackgroundSize, value, "Box.backgroundSize = %s");
+    js_parse_value2(Array<BackgroundSizeCollection>,
+                    BackgroundSizes, value, "Box.backgroundSize = %s");
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_size_x(out);
-      img->set_size_y(out);
-    }
+    set_background_attrs({
+      bg->set_size_x(out[i].x);
+      bg->set_size_y(out[i].y);
+    });
   }
   
   static void set_background_size_x(Local<JSString> name,
                                     Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value(BackgroundSize, value, "Box.backgroundSizeX = %s");
+    js_parse_value2(Array<BackgroundSizeCollection>,
+                    BackgroundSizes, value, "Box.backgroundSizeX = %s");
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_size_x(out);
-    }
+    set_background_attrs({
+      bg->set_size_x(out[i].x);
+    });
   }
   
   static void set_background_size_y(Local<JSString> name,
                                     Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value(BackgroundSize, value, "Box.backgroundSizeY = %s");
+    js_parse_value2(Array<BackgroundSizeCollection>,
+                    BackgroundSizes, value, "Box.backgroundSizeY = %s");
     JS_SELF(Box);
-    auto img = background_image(self);
-    if (img) {
-      img->set_size_y(out);
-    }
+    set_background_attrs({
+      bg->set_size_y(out[i].x);
+    });
   }
+  
+  /**********************************/
   
  public:
   static void binding(Local<JSObject> exports, Worker* worker) {
@@ -888,7 +932,9 @@ class WrapBox: public WrapObject {
       JS_SET_CLASS_ACCESSOR(borderRadiusRightBottom, border_radius_right_bottom, set_border_radius_right_bottom);
       JS_SET_CLASS_ACCESSOR(borderRadiusLeftBottom, border_radius_left_bottom, set_border_radius_left_bottom);
       JS_SET_CLASS_ACCESSOR(backgroundColor, background_color, set_background_color);
+      // background
       JS_SET_CLASS_ACCESSOR(background, background, set_background);
+      JS_SET_CLASS_ACCESSOR(background_image, background_image, set_background_image);
       JS_SET_CLASS_ACCESSOR(backgroundRepeat, background_repeat, set_background_repeat);
       JS_SET_CLASS_ACCESSOR(backgroundPosition, background_position, set_background_position);
       JS_SET_CLASS_ACCESSOR(backgroundPositionX, background_position_x, set_background_position_x);
@@ -896,6 +942,7 @@ class WrapBox: public WrapObject {
       JS_SET_CLASS_ACCESSOR(backgroundSize, background_size, set_background_size);
       JS_SET_CLASS_ACCESSOR(backgroundSizeX, background_size_x, set_background_size_x);
       JS_SET_CLASS_ACCESSOR(backgroundSizeY, background_size_y, set_background_size_y);
+      //
       JS_SET_CLASS_ACCESSOR(newline, newline, set_newline);
       JS_SET_CLASS_ACCESSOR(clip, clip, set_clip);
       JS_SET_CLASS_ACCESSOR(finalWidth, final_width);

@@ -266,12 +266,12 @@ CGRect TextNode::screen_rect() {
 }
 
 /**
- * @func set_visible_draw
+ * @func set_screen_visible
  */
-void TextNode::set_visible_draw() {
+void TextNode::set_screen_visible() {
   _inl(this)->compute_box_vertex(m_final_vertex);
   
-  m_visible_draw =
+  m_screen_visible =
   
   compute_text_visible_draw(m_final_vertex, m_data,
                             0, m_offset_end.x() - m_offset_start.x(), m_offset_start.y());

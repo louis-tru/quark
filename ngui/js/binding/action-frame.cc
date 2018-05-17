@@ -186,16 +186,6 @@ class WrapFrame: public WrapObject {
   def_property_from_type(border_radius_right_bottom, float);
   def_property_from_type(border_radius_left_bottom, float);
   def_property_from_type(background_color, Color);
-  def_property_from_type3(background, BackgroundPtr, Background, {
-    auto bg = self->background();
-    if (bg) {
-      JS_RETURN( pack(bg)->that() );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }, {
-    self->set_background(out);
-  });
   def_property_from_type(newline, bool);
   def_property_from_type(clip, bool);
   def_property_from_type(content_align, ContentAlign);
@@ -221,6 +211,18 @@ class WrapFrame: public WrapObject {
   def_property_from_type(align_y, Align);
   def_property_from_type(shadow, Shadow);
   def_property_from_type(src, String);
+  
+  // 
+  def_property_from_type3(background, BackgroundPtr, Background, {
+    auto bg = self->background();
+    if (bg) {
+      JS_RETURN( pack(bg)->that() );
+    } else {
+      JS_RETURN_NULL();
+    }
+  }, {
+    self->set_background(out);
+  });
   
   // -------------------- get/set Non meta attribute --------------------
   
@@ -365,12 +367,13 @@ class WrapFrame: public WrapObject {
     self->set_ratio_y(out.y());
   });
   
-  static BackgroundImage* as_image(Frame* self) {
-    auto bg = self->background();
-    return bg ? bg->as_image() : nullptr;
+  /********************************** background *****************************************/
+  
+  static inline BackgroundImage* as_background_image(Frame* self) {
+    return self->background() ? self->background()->as_image() : nullptr;
   }
   
-  static BackgroundImage* background_image(Frame* self) {
+  static BackgroundImage* get_background_image(Frame* self) {
     auto bg = self->background();
     if (bg) {
       return bg->as_image();
@@ -381,100 +384,103 @@ class WrapFrame: public WrapObject {
     }
   }
   
+  //-------------------------------------
+  
   def_property_from_type3(background_image, BackgroundPtr, Background, {
-    auto img = as_image(self);
+    auto img = as_background_image(self);
     if (img) {
       JS_RETURN( img->src() );
     } else {
       JS_RETURN( JSString::Empty(worker) );
     }
   }, {
-    auto img = out->as_image(); XX_ASSERT(img);
-    auto img2 = as_image(self);
-    if (img2) {
-      img2->set_src(img->src());
-    } else {
-      self->set_background(img);
-    }
+    out->set_holder_mode(Background::M_DISABLE);
+    self->set_background(out);
   });
-  def_property_from_type2(background_repeat, Repeat, {
-    auto img = as_image(self);
+  
+#define set_background_attrs(block) { \
+  auto bg = get_background_image(self);\
+  int i = 0;\
+  while(bg) {\
+    block; \
+    i++;\
+    bg = bg->next() ? bg->next()->as_image(): nullptr; \
+  } \
+}
+  def_property_from_type3(background_repeat, Array<Repeat>, Repeats, {
+    auto img = as_background_image(self);
     JS_RETURN( worker->value_program()->New( img ? img->repeat() : Repeat::NONE) );
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_repeat(out);
-    }
+    set_background_attrs({
+      bg->set_repeat(out[i]);
+    });
   });
-  def_property_from_type2(background_position, BackgroundPosition, {
+  def_property_from_type3(background_position,
+                          Array<BackgroundPositionCollection>, BackgroundPositions, {
     JS_RETURN_NULL();
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_position_x(out);
-      img->set_position_y(out);
-    }
+    set_background_attrs({
+      bg->set_position_x(out[i].x);
+      bg->set_position_y(out[i].y);
+    });
   });
-  def_property_from_type2(background_position_x, BackgroundPosition, {
-    auto img = as_image(self);
+  def_property_from_type3(background_position_x,
+                          Array<BackgroundPositionCollection>, BackgroundPositions, {
+    auto img = as_background_image(self);
     if (img) {
       JS_RETURN( worker->value_program()->New(img->position_x()) );
     } else {
       JS_RETURN_NULL();
     }
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_position_x(out);
-    }
+    set_background_attrs({
+      bg->set_position_x(out[i].x);
+    });
   });
-  def_property_from_type2(background_position_y, BackgroundPosition, {
-    auto img = as_image(self);
+  def_property_from_type3(background_position_y,
+                          Array<BackgroundPositionCollection>, BackgroundPositions, {
+    auto img = as_background_image(self);
     if (img) {
       JS_RETURN( worker->value_program()->New(img->position_y()) );
     } else {
       JS_RETURN_NULL();
     }
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_position_y(out);
-    }
+    set_background_attrs({
+      bg->set_position_y(out[i].x);
+    });
   });
-  def_property_from_type2(background_size, BackgroundSize, {
+  def_property_from_type3(background_size, Array<BackgroundSizeCollection>, BackgroundSizes, {
     JS_RETURN_NULL();
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_size_x(out);
-      img->set_size_y(out);
-    }
+    set_background_attrs({
+      bg->set_size_x(out[i].x);
+      bg->set_size_y(out[i].y);
+    });
   });
-  def_property_from_type2(background_size_x, BackgroundSize, {
-    auto img = as_image(self);
+  def_property_from_type3(background_size_x, Array<BackgroundSizeCollection>, BackgroundSizes, {
+    auto img = as_background_image(self);
     if (img) {
       JS_RETURN( worker->value_program()->New(img->size_x()) );
     } else {
       JS_RETURN_NULL();
     }
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_size_x(out);
-    }
+    set_background_attrs({
+      bg->set_size_x(out[i].x);
+    });
   });
-  def_property_from_type2(background_size_y, BackgroundSize, {
-    auto img = as_image(self);
+  def_property_from_type3(background_size_y, Array<BackgroundSizeCollection>, BackgroundSizes, {
+    auto img = as_background_image(self);
     if (img) {
       JS_RETURN( worker->value_program()->New(img->size_y()) );
     } else {
       JS_RETURN_NULL();
     }
   }, {
-    auto img = background_image(self);
-    if (img) {
-      img->set_size_y(out);
-    }
+    set_background_attrs({
+      bg->set_size_y(out[i].x);
+    });
   });
   
  public:

@@ -169,9 +169,7 @@ class WrapStyleSheets: public WrapObject {
   def_property_from_type(border_radius_right_bottom, float);
   def_property_from_type(border_radius_left_bottom, float);
   def_property_from_type(background_color, Color);
-  def_property_from_type3(background, BackgroundPtr, Background, {
-    self->set_background(out);
-  });
+  def_property_from_type3(background, BackgroundPtr, Background, { self->set_background(out); });
   def_property_from_type(content_align, ContentAlign);
   def_property_from_type(text_align, TextAlign);
   def_property_from_type(max_width, Value);
@@ -200,7 +198,7 @@ class WrapStyleSheets: public WrapObject {
   
   // -------------------- get/set Non meta attribute --------------------
   
-  inline static BackgroundImage* as_image(StyleSheets* self) {
+  inline static BackgroundImage* as_background_image(StyleSheets* self) {
     return self->background()->as_image();
   }
   
@@ -216,7 +214,7 @@ class WrapStyleSheets: public WrapObject {
   def_property_from_type2(origin, Vec2, {
     self->set_origin_x(out.x()); self->set_origin_y(out.y());
   });
-  def_set_property_from_type0(margin, Array<Value>, Values, {
+  def_property_from_type3(margin, Array<Value>, Values, {
     switch (out.length()) {
       case 1:
         self->set_margin_left(out[0]);
@@ -302,48 +300,59 @@ class WrapStyleSheets: public WrapObject {
     self->set_ratio_x(out.x());
     self->set_ratio_y(out.y());
   });
-  def_property_from_type3(background_image, BackgroundPtr, Background, {
-    auto img = out->as_image(); XX_ASSERT(img);
-    auto img2 = as_image(self);
-    if (img2) {
-      img2->set_src(img->src());
-    } else {
-      self->set_background(img);
-    }
+  def_property_from_type3(background_image, BackgroundPtr, BackgroundImage, {
+    out->set_holder_mode(Background::M_DISABLE); // 禁止被持有
+    self->set_background(out);
   });
-  def_property_from_type2(background_repeat, Repeat, {
-    auto img = as_image(self);
-    if (img) img->set_repeat(out);
+  
+#define set_background_attrs(block) { \
+  auto bg = as_background_image(self);\
+  int i = 0;\
+  while(bg) {\
+    block; \
+    i++;\
+    bg = bg->next() ? bg->next()->as_image(): nullptr; \
+  } \
+}
+  def_property_from_type3(background_repeat, Array<Repeat>, Repeats, {
+    set_background_attrs({
+      bg->set_repeat(out[i]);
+    });
   });
-  def_property_from_type2(background_position, BackgroundPosition, {
-    auto img = as_image(self);
-    if (img) {
-      img->set_position_x(out);
-      img->set_position_y(out);
-    }
+  def_property_from_type3(background_position,
+                          Array<BackgroundPositionCollection>, BackgroundPositions, {
+    set_background_attrs({
+      bg->set_position_x(out[i].x);
+      bg->set_position_y(out[i].y);
+    });
   });
-  def_property_from_type2(background_position_x, BackgroundPosition, {
-    auto img = as_image(self);
-    if (img) img->set_position_x(out);
+  def_property_from_type3(background_position_x,
+                          Array<BackgroundPositionCollection>, BackgroundPositions, {
+    set_background_attrs({
+      bg->set_position_x(out[i].x);
+    });
   });
-  def_property_from_type2(background_position_y, BackgroundPosition, {
-    auto img = as_image(self);
-    if (img) img->set_position_y(out);
+  def_property_from_type3(background_position_y,
+                          Array<BackgroundPositionCollection>, BackgroundPositions, {
+    set_background_attrs({
+      bg->set_position_y(out[i].x);
+    });
   });
-  def_property_from_type2(background_size, BackgroundSize, {
-    auto img = as_image(self);
-    if (img) {
-      img->set_size_x(out);
-      img->set_size_y(out);
-    }
+  def_property_from_type3(background_size, Array<BackgroundSizeCollection>, BackgroundSizes, {
+    set_background_attrs({
+      bg->set_size_x(out[i].x);
+      bg->set_size_y(out[i].y);
+    });
   });
-  def_property_from_type2(background_size_x, BackgroundSize, {
-    auto img = as_image(self);
-    if (img) img->set_size_x(out);
+  def_property_from_type3(background_size_x, Array<BackgroundSizeCollection>, BackgroundSizes, {
+    set_background_attrs({
+      bg->set_size_x(out[i].x);
+    });
   });
-  def_property_from_type2(background_size_y, BackgroundSize, {
-    auto img = as_image(self);
-    if (img) img->set_size_y(out);
+  def_property_from_type3(background_size_y, Array<BackgroundSizeCollection>, BackgroundSizes, {
+    set_background_attrs({
+      bg->set_size_y(out[i].x);
+    });
   });
   
 public:
@@ -370,18 +379,18 @@ public:
     JS_SET_PROPERTY(PROPERTY_BORDER_TOP, -12);
     JS_SET_PROPERTY(PROPERTY_BORDER_RIGHT, -13);
     JS_SET_PROPERTY(PROPERTY_BORDER_BOTTOM, -14);
-    JS_SET_PROPERTY(PROPERTY_MIN_WIDTH, -15);
-    JS_SET_PROPERTY(PROPERTY_MIN_HEIGHT, -16);
-    JS_SET_PROPERTY(PROPERTY_START, -17);
-    JS_SET_PROPERTY(PROPERTY_RATIO, -18);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_IMAGE, -19);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_REPEAT, -20);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION, -21);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_X, -22);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_Y, -23);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE, -24);
-    JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE_X, -25);
-    JS_SET_PROPERTY(PROPERTY_BORDER_RADIUS, -26);
+    JS_SET_PROPERTY(PROPERTY_BORDER_RADIUS, -15);
+    JS_SET_PROPERTY(PROPERTY_MIN_WIDTH, -16);
+    JS_SET_PROPERTY(PROPERTY_MIN_HEIGHT, -17);
+    JS_SET_PROPERTY(PROPERTY_START, -18);
+    JS_SET_PROPERTY(PROPERTY_RATIO, -19);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_IMAGE, -20);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_REPEAT, -21);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION, -22);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_X, -23);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_Y, -24);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE, -25);
+    JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE_X, -26);
     
     JS_DEFINE_CLASS(StyleSheets, constructor, {
       JS_SET_CLASS_ACCESSOR(time, time, set_time);

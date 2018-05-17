@@ -100,9 +100,9 @@ class XX_EXPORT TextNode: public Span {
   virtual void set_layout_three_times(bool horizontal, bool hybrid);
   
   /**
-   * @func set_visible_draw
+   * @func set_screen_visible
    */
-  virtual void set_visible_draw();
+  virtual void set_screen_visible();
   
  private:
   

@@ -248,7 +248,7 @@ keyboard_return_type[enum_object['continue']] = 1;
 
 // ----------------------------
 
-const { Background, BackgroundImage, BackgroundGradient } = exports;
+var { Background, BackgroundImage, BackgroundGradient, _priv } = exports;
 
 function check_uinteger(value) {
   return Number.isInteger(value) ? value >= 0 : false;
@@ -899,12 +899,6 @@ class Value extends Base {
   static help(str) {
     return get_error_msg(['auto', 'full', 10, '20%', '60!']);
   }
-  static helpValues(str) {
-    return get_error_msg(['auto', 'full', 10, '20%', '60!']);
-  }
-  static helpFalots(str) {
-    return get_error_msg([10, '10 20 30 40']);
-  }
 }
 Value.prototype._type = enum_object.auto;
 Value.prototype._value = 0;
@@ -1209,6 +1203,42 @@ class TextWhiteSpace extends TextAttrsEnumValue {
 TextWhiteSpace.prototype._value = enum_object.normal
 TextWhiteSpace.prototype._enum = text_white_space
 
+// List
+
+Background.help = function(str) {
+  return get_error_msg(['url(image.png)']);
+};
+
+class _Values {
+  static help(str) {
+    return get_error_msg(['auto', 'full', 10, '20%', '60!']);
+  }
+}
+
+class _Floats {
+  static help(str) {
+    return get_error_msg([10, '10 20 30 40']);
+  }
+}
+
+class _Repeats {
+  static help(str) {
+    return get_error_msg([10, '10 20 30 40']);
+  }
+}
+
+class _BackgroundPositions {
+  static help(str) {
+    return get_error_msg([10, '20%', 'left', 'right', 'center', 'top', 'bottom']);
+  }
+}
+
+class _BackgroundSizes {
+  static help(str) {
+    return get_error_msg(['auto', 10, '50%']);
+  }
+}
+
 // ----------------------------
 
 function _text_align(value) { 
@@ -1246,25 +1276,19 @@ function _keyboard_return_type(value) {
   rev._value = value;
   return rev;
 }
-function _border(width, color) { 
+function _border(width, r, g, b, a) {
   var rev = new Border();
   rev._width = width;
-  rev._color = color;
+  rev._color = _color(r, g, b, a);
   return rev;
 }
-function _border_rgba(width, r, g, b, a) {
-  return _border(width, _color(r, g, b, a));
-}
-function _shadow(offset_x, offset_y, size, color) { 
+function _shadow(offset_x, offset_y, size, r, g, b, a) {
   var rev = new Shadow();
   rev._offset_x = offset_x;
   rev._offset_y = offset_y;
   rev._size = size;
-  rev._color = color;
+  rev._color = _color(r, g, b, a);
   return rev;
-}
-function _shadow_rgba(offset_x, offset_y, size, r, g, b, a) {
-  return _shadow(offset_x, offset_y, size, _color(r, g, b, a));
 }
 function _color(r, g, b, a) {
   var rev = new Color();
@@ -1339,14 +1363,11 @@ function _background_size(type, value) {
   rev._value = value;
   return rev;
 }
-function _text_color(type, value) {
+function _text_color(type, r, g, b, a) {
   var rev = new TextColor();
   rev._type = type;
-  rev._value = value;
+  rev._value = _color(r, g, b, a);
   return rev;
-}
-function _text_color_rgba(type, r, g, b, a) {
-  return _text_color(type, _color(r, g, b, a));
 }
 function _text_size(type, value) {
   var rev = new TextStyle();
@@ -1366,14 +1387,11 @@ function _text_style(type, value) {
   rev._value = value;
   return rev;
 }
-function _text_shadow(type, value) {
+function _text_shadow(type, offset_x, offset_y, size, r, g, b, a) {
   var rev = new TextShadow();
   rev._type = type;
-  rev._value = value;
+  rev._value = _shadow(offset_x, offset_y, size, r, g, b, a);
   return rev;
-}
-function _text_shadow_rgba(type, offset_x, offset_y, size, r, g, b, a) {
-  return _text_shadow(type, _shadow_rgba(offset_x, offset_y, size, r, g, b, a));
 }
 function _text_line_height(type, height) {
   var rev = new TextLineHeight();
@@ -1398,12 +1416,6 @@ function _text_white_space(type, value) {
   rev._type = type;
   rev._value = value;
   return rev;
-}
-
-// is
-
-function _is_base(val) {
-  return val instanceof Base;
 }
 
 // parse
@@ -1695,7 +1707,7 @@ function parse_value(str) {
         if (m[5]) {
           if ( m[5] == '%' ) {
             type = enum_object.percent;
-            value /= 100;               // %
+            value /= 100; // %
           } else { // 10!
             type = enum_object.minus;
           }
@@ -1707,30 +1719,30 @@ function parse_value(str) {
   return null;
 }
 
-function parse_background_position(str) { 
+var background_position_type_2 = [];
+background_position_type_2[enum_object.left] = 1;
+background_position_type_2[enum_object.right] = 1;
+background_position_type_2[enum_object.center] = 1;
+background_position_type_2[enum_object.top] = 1;
+background_position_type_2[enum_object.bottom] = 1;
+
+function parse_background_position(str) {
   if (typeof str == 'string') {
     // left | right | center | top | bottom | 10.1 | 20% 
-    var m = str.match(/^((left)|(right)|(center)|(top)|(bottom)|(-?(?:\d+)?\.?\d+)(%)?)$/);
+    var type = enum_object[str];
+    var value = 0;
+    if (check_enum(background_position_type_2, type)) {
+      return _background_position(type, value);
+    }
+    var m = str.match(/^(-?(?:\d+)?\.?\d+)(%)?$/);
     if (m) {
-      if (m[2]) { // left
-        return _background_position(enum_object.left, 0);
-      } else if (m[3]) { // right
-        return _background_position(enum_object.right, 0);
-      } else if (m[4]) { // center
-        return _background_position(enum_object.center, 0);
-      } else if (m[5]) { // top
-        return _background_position(enum_object.top, 0);
-      } else if (m[6]) { // bottom 
-        return _background_position(enum_object.bottom, 0);
-      } else {
-        var type = enum_object.pixel;
-        var value = parseFloat(m[7]);
-        if (m[8]) { // %
-          type = enum_object.percent;
-          value /= 100; // %
-        }
-        return _background_position(type, value);
+      type = enum_object.pixel;
+      value = parseFloat(m[1]);
+      if (m[2]) { // %
+        type = enum_object.percent;
+        value /= 100; // %
       }
+      return _background_position(type, value);
     }
   }
   return null;
@@ -1757,37 +1769,117 @@ function parse_background_size(str) {
   return null;
 }
 
-function parse_background(str) { 
-  if (typeof str == 'string') {
-    // background-repeat    // none | repeat | repeat_x | mirrored_repeat | mirrored_repeat_x | mirrored_repeat_y
-    // background-position  // left | right | center | top | bottom | 10.1 | 20% 
-    // background-size      // auto | 10.1 | 20% 
-    var m = str.match(/^\s*url\(([^\(]+)\)(:?\s+(\w+))?\s*$/);
-    if (m) {
-      var bg = { src: m[1] };
-      if (m[2]) { // repeat
-        var value = enum_object[m[2]];
-        if (!check_enum(repeat, value)) return null;
-        var rev = new Repeat();
-        rev._value = value;
-        bg.repeat = rev;
+function parse_background_gradient(str) {
+  // m = str.match(/^\s*gradient\(([^\(]+)\)\s*$/);
+  // if (m) {}
+  return null;
+}
+
+function parse_background_1(str) {
+  var m;
+  // background-repeat    // none | repeat | repeat_x | mirrored_repeat | mirrored_repeat_x | mirrored_repeat_y
+  // background-position  // left | right | center | top | bottom | 10.1 | 20% 
+  // background-size      // auto | 10.1 | 20% 
+  m = str.match(/^\s*url\(([^\(]+)\)(:?\s+(.+))?\s*$/);
+  if (m) {
+    var attributes = { 
+      src: m[1],
+      // repeat
+      // positionX
+      // positionY
+      // sizeX
+      // sizeY
+    };
+    if (m[2]) { // attributes 
+      var s = m[2].split(/\s+/), val;
+      for (var i of m[2].split(/\s+/)) {
+        if (val = parse_repeat(i)) { // repeat
+          attributes.repeat = val;
+        } else if (val = parse_background_position(i)) { // position
+          if ('positionX' in attributes) {
+            if ('positionY' in attributes) {
+              if (val.type == enum_object.pixel || // px
+                val.type == enum_object.percent    // %
+              ) {
+                val = _background_size(val.type, val.value);
+                if ('sizeX' in attributes) {
+                  if ('sizeY' in attributes) { // error
+                    return null;
+                  } else {
+                    attributes.sizeY = val;
+                  }
+                } else {
+                  attributes.sizeX = val;
+                }
+              } else { // error
+                return null;
+              }
+            } else {
+              attributes.positionY = val;
+            }
+          } else {
+            attributes.positionX = val;
+          }
+        } else if (val = parse_background_size(i)) { // size
+          if ('sizeX' in attributes) {
+            if ('sizeY' in attributes) { // error
+              return null;
+            } else {
+              attributes.sizeY = val;
+            }
+          } else {
+            attributes.sizeX = val;
+          }
+        }
       }
-      return Object.assign(new BackgroundImage, bg);
+    }
+    return Object.assign(new BackgroundImage(), attributes);
+  }
+  return parse_background_gradient(str);
+}
+
+function parse_background_2(str) { // parse background image
+  var m;
+  m = str.match(/^\s*url\(([^\(]+)\)\s*$/);
+  if (m) {
+    return Object.assign(new BackgroundImage, { src: m[1] });
+  } else {
+    return parse_background_gradient(str);
+  }
+}
+
+function parse_background(str, image) {
+  var r = null;
+  if (typeof str == 'string') {
+    var prev;
+    for (var i of str.split(/\s*,\s*/)) {
+      var bg = image ? parse_background_2(i): parse_background_1(i);
+      if (bg) {
+        if (!r) {
+          r = bg;
+        }
+        if (prev) {
+          prev.next = bg;
+        }
+        prev = bg;
+      } else {
+        return null;
+      }
     }
   }
-  return null;
+  return r;
 }
 
 function parse_values(str) {
   if (typeof str == 'string') {
-    var ls = str.split(/\s+/);
     var rev = [];
-    for (var i = 0; i < ls.length; i++) {
-      var val = parse_value(ls[i]);
-      if (!val) {
+    for (var i of str.split(/\s+/)) {
+      var val = parse_value(i);
+      if (val) {
+        rev.push(val);
+      } else {
         return null;
       }
-      rev.push(val);
     }
     return rev;
   }
@@ -1798,13 +1890,74 @@ function parse_floats(str) {
   if (typeof str == 'string') {
     var ls = str.split(/\s+/);
     var rev = [];
-    for (var i = 0; i < ls.length; i++) {
-      var mat = ls[i].match(/^(-?(?:\d+)?\.?\d+)$/);
-      if ( ! mat) {
-        // throw_error([10]);
+    for (var i of str.split(/\s+/)) {
+      var mat = i.match(/^(-?(?:\d+)?\.?\d+)$/);
+      if (!mat) {
         return null;
       }
       rev.push(parseFloat(mat[1]));
+    }
+    return rev;
+  }
+  return null;
+}
+
+function parse_repeats(str) {
+  if (typeof str == 'string') {
+    var rev = [];
+    for (var i of str.split(/\s*,\s*/)) {
+      var r = parse_repeat(i);
+      if (r) {
+        rev.push(r);
+      } else {
+        return null;
+      }
+    }
+    return rev;
+  }
+  return null;
+}
+
+function parse_background_positions(str) { 
+  if (typeof str == 'string') {
+    var rev = [];
+    for (var i of str.split(/\s*,\s*/)) {
+      var items = [];
+      for (var j of i.split(/\s+/)) {
+        var r = parse_background_position(i);
+        if (r) {
+          items.push(r);
+        } else {
+          return null;
+        }
+      }
+      if (items.length == 1) {
+        items.push(_background_position(enum_object.center, 0));
+      }
+      r.push(items);
+    }
+    return rev;
+  }
+  return null;
+}
+
+function parse_background_sizes(str) { 
+  if (typeof str == 'string') {
+    var rev = [];
+    for (var i of str.split(/\s*,\s*/)) {
+      var items = [];
+      for (var j of i.split(/\s+/)) {
+        var r = parse_background_size(i);
+        if (r) {
+          items.push(r);
+        } else {
+          return null;
+        }
+      }
+      if (items.length == 1) {
+        items.push(_background_size(enum_object.auto, 0));
+      }
+      r.push(items);
     }
     return rev;
   }
@@ -1818,7 +1971,7 @@ function parse_text_color(str) {
     } else {
       var value = parse_color(str);
       if (value) {
-        return _text_color(enum_object.value, value);
+        return _text_color(enum_object.value, value._r, value._g, value._b, value._a);
       }
     }
   }
@@ -1934,44 +2087,6 @@ function parse_text_white_space(str) {
   return null;
 }
 
-// _priv
-
-var _priv = exports._priv;
-_priv._isBase = _is_base;
-_priv._TextAlign = _text_align;
-_priv._Align = _align;
-_priv._ContentAlign = _content_align;
-_priv._Repeat = _repeat;
-_priv._Direction = _direction;
-_priv._KeyboardType = _keyboard_type;
-_priv._KeyboardReturnType = _keyboard_return_type;
-_priv._Border = _border;
-_priv._BorderRgba = _border_rgba;
-_priv._Shadow = _shadow;
-_priv._ShadowRgba = _shadow_rgba;
-_priv._Color = _color;
-_priv._Vec2 = _vec2;
-_priv._Vec3 = _vec3;
-_priv._Vec4 = _vec4;
-_priv._Curve = _curve;
-_priv._Rect = _rect;
-_priv._Mat = _mat;
-_priv._Mat4 = _mat4;
-_priv._Value = _value;
-_priv._BackgroundPosition = _background_position;
-_priv._BackgroundSize = _background_size;
-_priv._TextColor = _text_color;
-_priv._TextColor_rgba = _text_color_rgba;
-_priv._TextSize = _text_size;
-_priv._TextFamily = _text_family;
-_priv._TextStyle = _text_style;
-_priv._TextShadow = _text_shadow;
-_priv._TextShadow_rgba = _text_shadow_rgba;
-_priv._TextLine_height = _text_line_height;
-_priv._TextDecoration = _text_decoration;
-_priv._TextOverflow = _text_overflow;
-_priv._TextWhiteSpace = _text_white_space;
-
 // constructor
 exports.TextAlign = TextAlign;
 exports.Align = Align;
@@ -2021,11 +2136,9 @@ exports.parseRect = parse_rect;
 exports.parseMat = parse_mat;
 exports.parseMat4 = parse_mat4;
 exports.parseValue = parse_value;
+exports.parseBackground = parse_background;
 exports.parseBackgroundPosition = parse_background_position;
 exports.parseBackgroundSize = parse_background_size;
-exports.parseBackground = parse_background;
-exports.parseValues = parse_values;
-exports.parseFloats = parse_floats;
 exports.parseTextColor = parse_text_color;
 exports.parseTextSize = parse_text_size;
 exports.parseTextFamily = parse_text_family;
@@ -2035,3 +2148,47 @@ exports.parseTextLineHeight = parse_text_line_height;
 exports.parseTextDecoration = parse_text_decoration;
 exports.parseTextOverflow = parse_text_overflow;
 exports.parseTextWhiteSpace = parse_text_white_space;
+exports.parseRepeats = parse_repeats;
+exports.parseValues = parse_values;
+exports.parseFloats = parse_floats;
+exports.parseBackgroundPositions = parse_background_positions;
+exports.parseBackgroundSizes = parse_background_sizes;
+// _priv
+_priv._isBase = function(val) { return val instanceof Base };
+_priv._TextAlign = _text_align;
+_priv._Align = _align;
+_priv._ContentAlign = _content_align;
+_priv._Repeat = _repeat;
+_priv._Direction = _direction;
+_priv._KeyboardType = _keyboard_type;
+_priv._KeyboardReturnType = _keyboard_return_type;
+_priv._Border = _border;
+_priv._Shadow = _shadow;
+_priv._Color = _color;
+_priv._Vec2 = _vec2;
+_priv._Vec3 = _vec3;
+_priv._Vec4 = _vec4;
+_priv._Curve = _curve;
+_priv._Rect = _rect;
+_priv._Mat = _mat;
+_priv._Mat4 = _mat4;
+_priv._Value = _value;
+_priv._BackgroundPosition = _background_position;
+_priv._BackgroundSize = _background_size;
+_priv._TextColor = _text_color;
+_priv._TextSize = _text_size;
+_priv._TextFamily = _text_family;
+_priv._TextStyle = _text_style;
+_priv._TextShadow = _text_shadow;
+_priv._TextLine_height = _text_line_height;
+_priv._TextDecoration = _text_decoration;
+_priv._TextOverflow = _text_overflow;
+_priv._TextWhiteSpace = _text_white_space;
+// priv class
+_priv.Values = _Values;
+_priv.Floats = _Floats;
+_priv.Repeats = _Repeats;
+_priv.BackgroundPositions = _BackgroundPositions;
+_priv.BackgroundSizes = _BackgroundSizes;
+
+Object.assign(_priv, exports);

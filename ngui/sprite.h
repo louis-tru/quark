@@ -240,7 +240,7 @@ class XX_EXPORT Sprite: public View {
    */
   virtual void draw(Draw* draw);
   virtual void set_parent(View* parent) throw(Error);
-  virtual void set_visible_draw();
+  virtual void set_screen_visible();
   
   /**
    * @func compute_box_vertex

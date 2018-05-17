@@ -673,7 +673,7 @@ public:
     }
     if ( rows->clip() ) { // 已经被修剪,不进行布局
       m_linenum = -1;
-      m_visible_draw = false;
+      m_screen_visible = false;
       set_default_offset_value(); return;
     }
         
@@ -843,7 +843,6 @@ Box::Box()
 , m_clip(false)
 , m_explicit_width(false)
 , m_explicit_height(false)
-, m_is_draw(false)
 , m_is_draw_border(false)
 , m_is_draw_border_radius(false)
 {
@@ -979,11 +978,8 @@ void Box::solve() {
   
   uint mark_value = this->mark_value;
   
-  if ( mark_value & View::M_BACKGROUND_COLOR ) { // 背景颜色
-    if ( m_background_color.a() ) {
-      m_is_draw = true;
-    }
-  }
+  // if ( mark_value & View::M_BACKGROUND_COLOR ) { // 背景颜色
+  // }
   if ( mark_value & View::M_BORDER ) { // 边框
     m_is_draw_border = (
       m_border_left_width != 0 ||
@@ -991,9 +987,6 @@ void Box::solve() {
       m_border_top_width  != 0 ||
       m_border_bottom_width != 0
     );
-    if ( m_is_draw_border ) {
-      m_is_draw = true;
-    }
     mark_value |= Box::M_BORDER_RADIUS; // 边框会影响圆角
   }
   
@@ -1016,11 +1009,11 @@ void Box::solve() {
 }
 
 /**
- * @func set_visible_draw
+ * @func set_screen_visible
  */
-void Box::set_visible_draw() {
+void Box::set_screen_visible() {
   
-  m_visible_draw = false;
+  m_screen_visible = false;
   
   if ( m_linenum == -1 ) { return; } // 没有布局,不显示在屏幕上
   
@@ -1036,7 +1029,7 @@ void Box::set_visible_draw() {
   if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
       XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
   ) {
-    m_visible_draw = true;
+    m_screen_visible = true;
   }
 }
 
@@ -1338,7 +1331,7 @@ void Box::set_background_color(Color value) {
 }
 
 /**
- * @func set_background(value)
+ * @func set_background(value, only_copy)
  */
 void Box::set_background(Background* value) {
   m_background = Background::assign(m_background, value);
@@ -1373,9 +1366,6 @@ void Box::set_newline(bool value) {
 void Box::set_clip(bool value) {
   if (m_clip != value) {
     m_clip = value;
-    if (value) {
-      m_is_draw = true;
-    }
     mark(M_CLIP);
   }
 }

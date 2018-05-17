@@ -49,6 +49,11 @@ class Background: public Reference {
     M_IMAGE,
     M_GRADIENT,
   };
+  enum HolderMode {
+    M_INDEPENDENT,
+    M_MULTIPLE,
+    M_DISABLE,
+  };
   
   Background();
   
@@ -91,12 +96,12 @@ class Background: public Reference {
   /**
    * @func allow_multi_holder()
    */
-  inline bool allow_multi_holder() const { return m_allow_multi_holder; }
+  inline HolderMode holder_mode() const { return m_holder_mode; }
   
   /**
-   * @func set_allow_multi_holder(value)
+   * @func set_holder_mode(value)
    */
-  void set_allow_multi_holder(bool value);
+  void set_holder_mode(HolderMode mode);
   
   /**
    * @overwrite
@@ -117,18 +122,13 @@ class Background: public Reference {
   void set_host(Box* host);
   
   /**
-   * @func draw(draw)
-   */
-  virtual void draw(Draw* draw, Box* host) = 0;
-  
-  /**
    * @func copy(to)
    */
   virtual Background* copy(Background* to) = 0;
   
   Background* m_next;
   Box*        m_host;
-  bool        m_allow_multi_holder;
+  HolderMode  m_holder_mode;
   XX_DEFINE_INLINE_CLASS(Inl);
   friend class Box;
   friend class GLDraw;
@@ -162,7 +162,6 @@ class BackgroundImage: public Background {
   void set_size_x(BackgroundSize value);
   void set_size_y(BackgroundSize value);
  protected:
-  virtual void draw(Draw* draw, Box* host);
   virtual Background* copy(Background* to);
  private:
   String    m_src;
@@ -174,6 +173,7 @@ class BackgroundImage: public Background {
   BackgroundPosition  m_position_y;
   BackgroundSize      m_size_x;
   BackgroundSize      m_size_y;
+  int m_attributes_flags;
   XX_DEFINE_INLINE_CLASS(Inl);
   friend class GLDraw;
 };
@@ -187,7 +187,6 @@ class BackgroundGradient: public Background {
   virtual Type type() const { return M_GRADIENT; }
   virtual BackgroundGradient* as_gradient() { return nullptr; }
  protected:
-  virtual void draw(Draw* draw, Box* host);
   virtual Background* copy(Background* to);
   friend class GLDraw;
 };

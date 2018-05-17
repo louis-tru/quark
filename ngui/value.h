@@ -414,6 +414,13 @@ namespace value {
   typedef ValueTemplate<BackgroundPositionType, BackgroundPositionType::PIXEL> BackgroundPosition;
   typedef ValueTemplate<BackgroundSizeType, BackgroundSizeType::PIXEL> BackgroundSize;
   
+  struct BackgroundPositionCollection {
+    BackgroundPosition x, y;
+  };
+  struct BackgroundSizeCollection {
+    BackgroundSize x, y;
+  };
+  
   /**
    * @struct TextColor
    */

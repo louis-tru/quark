@@ -477,6 +477,12 @@ Callback: cb()
 
 * {[`bool`]}
 
+### Get: View.screenVisible 
+
+该状态标识视图是否在屏幕或区域范围内,这个状态会忽略`visible`值
+
+* {[`bool`]}
+
 ### View.translate 
 
 矩阵变换位移

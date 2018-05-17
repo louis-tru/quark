@@ -46,6 +46,7 @@
 #include "../scroll.h"
 #include "../input.h"
 #include "../textarea.h"
+#include "../background.h"
 
 // glsl
 #include "glsl-sprite.h"
@@ -236,7 +237,7 @@ public:
     }
   }
   
-  void draw_box_background(Box* v) {
+  void draw_box_background_color(Box* v) {
     auto color = v->m_background_color.to_float_color();
     if ( v->m_is_draw_border_radius ) { // 圆角
       glUseProgram(shader::box_color_radius.shader);
@@ -252,6 +253,38 @@ public:
     }
   }
   
+  void draw_box_background_image(Box* v, BackgroundImage* image) {
+  //    int       m_tex_level;
+  //    Texture*  m_texture;
+  //    Repeat    m_repeat;
+  //    BackgroundPosition  m_position_x;
+  //    BackgroundPosition  m_position_y;
+  //    BackgroundSize      m_size_x;
+  //    BackgroundSize      m_size_y;
+  }
+  
+  void draw_box_background_gradient(Box* v, BackgroundGradient* gradient) {
+    // TODO ...
+    // draw background
+  }
+  
+  void draw_box_background(Box* v) {
+    auto bg = v->m_background;
+    while (bg) {
+      switch (bg->type()) {
+        case Background::M_IMAGE:
+          draw_box_background_image(v, static_cast<BackgroundImage*>(bg));
+          break;
+        case Background::M_GRADIENT:
+          draw_box_background_gradient(v, static_cast<BackgroundGradient*>(bg));
+          break;
+        default:
+          break;
+      }
+      bg = bg->next();
+    }
+  }
+  
   void draw_begin_clip(Box* v) {
     // build stencil test value and background color draw
     
@@ -263,17 +296,17 @@ public:
       glStencilOp(GL_KEEP, GL_INCR, GL_INCR); // Test成功增加模板值
     }
     
-    draw_box_background(v);
+    draw_box_background_color(v);
     
     glStencilFunc(GL_LEQUAL, ++m_stencil_ref_value, 0xFF); // 设置新参考值
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     
-    // 限制子视图绘图区域
+    // 限制子视图区域绘图
     display_port()->push_draw_region(v->get_screen_region());
   }
   
   void draw_end_clip(Box* v) {
-    display_port()->pop_draw_region(); // 弹出
+    display_port()->pop_draw_region(); // 弹出区域绘图
     
     if ( m_root_stencil_ref_value == m_stencil_ref_value - 1 ) {
       m_root_stencil_ref_value = m_stencil_ref_value;
@@ -284,30 +317,10 @@ public:
       glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE); // Test成功设置模板为参考值
       glBlendFunc(GL_ZERO, GL_ONE); // 禁止颜色输出
       
-      draw_box_background(v);
+      draw_box_background_color(v);
       
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // 打开颜色输出
     }
-  }
-  
-  typedef void (*DrawContent)(Inl2* self, Box* v);
-  static void draw_box_content(Inl2* self, Box* v) {
-    v->visit(self);
-  }
-  
-  void draw_box(Box* v, DrawContent draw_content = &Inl2::draw_box_content) {
-    if (v->m_is_draw /* 不需要绘制 */ ) {
-      draw_box_border(v); // draw border
-      if ( v->m_clip ) {
-        draw_begin_clip(v);
-        draw_content(this, v);
-        draw_end_clip(v);
-        return;
-      } else if (v->m_background_color.a()) {
-        draw_box_background(v);
-      }
-    }
-    draw_content(this, v);
   }
   
   /**
@@ -512,74 +525,78 @@ void GLDraw::clear_color(Color color) {
 }
 
 void GLDraw::draw(Box* v) {
-  if ( v->m_visible_draw ) {
-    _inl(this)->draw_box(v);
+  if ( v->m_screen_visible ) {
+    _inl(this)->draw_box_border(v); // draw border
+    if ( v->m_clip ) {
+      _inl(this)->draw_begin_clip(v);
+      _inl(this)->draw_box_background(v);
+      v->visit(this);
+      _inl(this)->draw_end_clip(v);
+    } else {
+      if (v->m_background_color.a()) {
+        _inl(this)->draw_box_background_color(v);
+      }
+      _inl(this)->draw_box_background(v);
+      v->visit(this);
+    }
   } else {
     v->visit(this);
   }
 }
 
 void GLDraw::draw(Image* v) {
-  if ( v->m_visible_draw ) {
-    
-    _inl(this)->draw_box(v, [](Inl2* self, Box* box) {
-      auto v = static_cast<Image*>(box);
-      
-      if ( v->m_is_draw_border_radius ) { // 绘制圆角
-        if (v->m_final_width != 0 && v->m_final_height != 0) {
-          if ( v->m_texture->use(0, Texture::Level(v->m_tex_level)) ) {
-            glUseProgram(shader::box_image_radius.shader); // 使用圆角矩形纹理着色器
-            _inl(self)->set_box_uniform_value(shader::box_image_radius, v);
-            glUniform1f(shader::box_image_radius.sample_x2, 30); // sample 15*2
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
-          }
-          else {
-            if ( v->m_background_color.a() ) { // 绘制背景
-              glUseProgram(shader::box_color_radius.shader);
-              _inl(self)->set_box_uniform_value(shader::box_color_radius, v);
-              glUniform1f(shader::box_color_radius.sample_x2, 30); // sample 15*2
-              glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
-            }
-          }
+  if ( v->m_screen_visible ) {
+    _inl(this)->draw_box_border(v);
+
+    bool clip = v->m_clip;
+    if ( clip ) 
+      _inl(this)->draw_begin_clip(v);
+
+    if (v->m_final_width != 0 && v->m_final_height != 0) {
+      if ( v->m_texture->use(0, Texture::Level(v->m_tex_level)) ) {
+        if (v->m_is_draw_border_radius) { // 绘制圆角
+          glUseProgram(shader::box_image_radius.shader); // 使用圆角矩形纹理着色器
+          _inl(this)->set_box_uniform_value(shader::box_image_radius, v);
+          glUniform1f(shader::box_image_radius.sample_x2, 30); // sample 15*2
+          glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
+        } else {
+          glUseProgram(shader::box_image.shader); // 使用矩形纹理着色器
+          _inl(this)->set_box_uniform_value(shader::box_image, v);
+          glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         }
-      }
-      else {
-        if (v->m_final_width != 0 && v->m_final_height != 0) {
-          if ( v->m_texture->use(0, Texture::Level(v->m_tex_level)) ) {
-            glUseProgram(shader::box_image.shader); // 使用矩形纹理着色器
-            _inl(self)->set_box_uniform_value(shader::box_image, v);
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-          }
-          else {
-            if ( v->m_background_color.a() ) { // 绘制背景
-              glUseProgram(shader::box_color.shader);
-              _inl(self)->set_box_uniform_value(shader::box_color, v);
-              glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-            }
-          }
+      } else {
+        if ( !clip && v->m_background_color.a() ) { // 绘制背景
+          _inl(this)->draw_box_background_color(v);
         }
+        _inl(this)->draw_box_background(v);
       }
-      
-      v->visit(self);
-    });
-    
+    }
+
+    v->visit(this); // draw child view
+
+    if ( clip ) 
+      _inl(this)->draw_end_clip(v);
+
   } else {// end draw
     v->visit(this);
   }
 }
 
 void GLDraw::draw(Video* v) {
-  if ( v->m_visible_draw ) {
+  if ( v->m_screen_visible ) {
+    _inl(this)->draw_box_border(v);
+
+    bool clip = v->m_clip;
+    if ( clip ) 
+      _inl(this)->draw_begin_clip(v);
+
     Texture* tex = v->m_texture;
-    
-    if ( v->m_is_draw_border ) { // 绘制边框
-      _inl(this)->draw_border(v);
-    }
-    // Video忽略圆角的绘制
+
     if (v->m_status != PLAYER_STATUS_STOP &&
         v->m_status != PLAYER_STATUS_START &&
         tex->use(0, Texture::LEVEL_0) && tex->use(1, Texture::LEVEL_1) ) {
-      
+      // Video暂时忽略圆角的绘制，可开启clip间接开启圆角。
+
       if ( tex->format() == PixelData::YUV420P ) {
         glUseProgram(shader::box_yuv420p_image.shader);
         _inl(this)->set_box_uniform_value(shader::box_yuv420p_image, v);
@@ -590,35 +607,52 @@ void GLDraw::draw(Video* v) {
         _inl(this)->set_box_uniform_value(shader::box_yuv420sp_image, v);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
       } else {
-        // TODO 咱不支持
+        // TODO 暂不支持
       }
-    }
-    else {
-      if ( v->m_background_color.a() ) { // 绘制背景
-        glUseProgram(shader::box_color.shader);
-        _inl(this)->set_box_uniform_value(shader::box_color, v);
-        auto color = v->m_background_color.to_float_color();
-        glUniform4fv(shader::box_color.background_color, 1, color.value());
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    } else {
+      if ( !clip && v->m_background_color.a() ) { // 绘制背景
+        _inl(this)->draw_box_background_color(v);
       }
+      _inl(this)->draw_box_background(v);
     }
-  } // end draw
-  
-  v->visit(this);
+
+    v->visit(this); // draw child view
+
+    if ( clip ) 
+      _inl(this)->draw_end_clip(v);
+
+  } else {
+    v->visit(this);
+  }
 }
 
 void GLDraw::draw(BoxShadow* v) {
-  if (v->m_visible_draw) {
-    _inl(this)->draw_box(v);
-    // TODO draw sgadow ..
+  if (v->m_screen_visible) {
+    _inl(this)->draw_box_border(v);
+
+    bool clip = v->m_clip;
+    if ( clip ) {
+      _inl(this)->draw_begin_clip(v);
+    } else if (v->m_background_color.a()) { // 绘制背景颜色
+      _inl(this)->draw_box_background_color(v);
+    }
+    _inl(this)->draw_box_background(v);
+
+    // TODO draw shadow ..
     // ..
-  } else {// end draw
+    
+    v->visit(this); // draw child view
+
+    if ( clip ) 
+      _inl(this)->draw_end_clip(v);
+
+  } else {
     v->visit(this);
   }
 }
 
 void GLDraw::draw(Sprite* v) {
-  if ( v->m_visible_draw ) { // 为false时不需要绘制
+  if ( v->m_screen_visible ) { // 为false时不需要绘制
     if ( v->m_texture->use(0, Texture::Level(v->m_tex_level), v->m_repeat) ) {
       glUseProgram(shader::sprite.shader);
       glUniform1fv(shader::sprite.view_matrix, 7, v->m_final_matrix.value());
@@ -633,12 +667,11 @@ void GLDraw::draw(Sprite* v) {
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
   }
-  
   v->visit(this);
 }
 
 void GLDraw::draw(TextNode* v) {
-  if ( v->m_visible_draw ) {
+  if ( v->m_screen_visible ) {
     uint begin = v->m_data.cell_draw_begin;
     uint end = v->m_data.cell_draw_end;
     
@@ -654,7 +687,7 @@ void GLDraw::draw(TextNode* v) {
 }
 
 void GLDraw::draw(Label* v) {
-  if ( v->m_visible_draw ) {
+  if ( v->m_screen_visible ) {
     uint begin = v->m_data.cell_draw_begin;
     uint end = v->m_data.cell_draw_end;
     
@@ -669,20 +702,30 @@ void GLDraw::draw(Label* v) {
 }
 
 void GLDraw::draw(Text* v) {
-  if ( v->m_visible_draw ) {
-    _inl(this)->draw_box(v, [](Inl2* self, Box* b) {
-      auto v = static_cast<Text*>(b);
-      uint begin = v->m_data.cell_draw_begin;
-      uint end = v->m_data.cell_draw_end;
-      
-      if ( begin != end ) {
-        Color color = v->m_text_background_color.value;
-        if ( color.a() ) {
-          self->draw_text_background(v, v->m_data, color, begin, end, Vec2());
-        }
-        self->draw_text(v, v, v->m_data, v->m_text_color.value, Vec2());
+  if ( v->m_screen_visible ) {
+    _inl(this)->draw_box_border(v);
+    
+    bool clip = v->m_clip;
+    if ( clip ) {
+      _inl(this)->draw_begin_clip(v);
+    } else if (v->m_background_color.a()) { // 绘制背景颜色
+      _inl(this)->draw_box_background_color(v);
+    }
+    _inl(this)->draw_box_background(v);
+
+    uint begin = v->m_data.cell_draw_begin;
+    uint end = v->m_data.cell_draw_end;
+    
+    if ( begin != end ) {
+      Color color = v->m_text_background_color.value;
+      if ( color.a() ) {
+        _inl(this)->draw_text_background(v, v->m_data, color, begin, end, Vec2());
       }
-    });
+      _inl(this)->draw_text(v, v, v->m_data, v->m_text_color.value, Vec2());
+    }
+
+    if ( clip ) 
+      _inl(this)->draw_end_clip(v);
   }
 }
 
@@ -691,9 +734,10 @@ void GLDraw::draw(Scroll* v) {
   if ( v->mark_value & Scroll::M_SCROLL ) {
     inherit_mark |= View::M_MATRIX;
   }
-  if ( v->m_visible_draw ) {
+  if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
+    _inl(this)->draw_box_background(v);
     v->visit(this, inherit_mark);
     _inl(this)->draw_end_clip(v);
     _inl(this)->draw_scroll_bar(v, v); // 绘制scrollbar
@@ -703,18 +747,20 @@ void GLDraw::draw(Scroll* v) {
 }
 
 void GLDraw::draw(Input* v) {
-  if ( v->m_visible_draw ) {
+  if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
+    _inl(this)->draw_box_background(v);
     _inl(this)->draw_input(v);
     _inl(this)->draw_end_clip(v);
   }
 }
 
 void GLDraw::draw(Textarea* v) {
-  if ( v->m_visible_draw ) {
+  if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
+    _inl(this)->draw_box_background(v);
     _inl(this)->draw_input(v);
     _inl(this)->draw_end_clip(v);
     _inl(this)->draw_scroll_bar(v, v); // 绘制scrollbar
@@ -722,17 +768,10 @@ void GLDraw::draw(Textarea* v) {
 }
 
 void GLDraw::draw(Root* v) {
-  if ( v->m_visible_draw ) {
-    if ( v->m_is_draw_border_radius ) { // 圆角
-      if ( v->m_is_draw_border ) { // 绘制边框
-        _inl(this)->draw_border_radius(v);
-      }
-    } else {
-      if ( v->m_is_draw_border ) { // 绘制边框
-        _inl(this)->draw_border(v);
-      }
-    }
-  } // end draw
+  if ( v->m_screen_visible ) {
+    _inl(this)->draw_box_border(v);
+    _inl(this)->draw_box_background(v);
+  }
   v->visit(this);
 }
 

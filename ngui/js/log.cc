@@ -71,7 +71,7 @@ public:
     
     String req = String::format(
     "POST /$console/log/ HTTP/1.1\r\n"
-    "Host: truth-x.org:1026\r\n"
+    "Host: ngui.io\r\n"
     "Connection: Close\r\n"
     "Accept: */*\r\n"
     "Content-Length: %d\r\n"

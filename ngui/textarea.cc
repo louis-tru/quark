@@ -72,7 +72,7 @@ void Textarea::draw(Draw* draw) {
       }
       
       if ( mark_value & M_SCROLL ) {
-        mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_visible_draw()
+        mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_screen_visible()
       }
       
       Input::solve();
@@ -107,11 +107,11 @@ void Textarea::set_input_text_offset(Vec2 value) {
   set_scroll( Vec2(-value.x() - input_text_offset_x_, -value.y()) );
 }
 
-void Textarea::set_visible_draw() {
+void Textarea::set_screen_visible() {
   
   compute_box_vertex(m_final_vertex);
   
-  m_visible_draw =
+  m_screen_visible =
   
   compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
 }

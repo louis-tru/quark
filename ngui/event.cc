@@ -249,7 +249,7 @@ public:
   // -------------------------- touch --------------------------
   
   void touchstart_2(View* view, List<GUITouch>& in) {
-    if ( view->receive() && view->m_visible_draw && in.length() ) {
+    if ( view->receive() && view->m_screen_visible && in.length() ) {
       Array<GUITouch> change_touches;
       
       for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -291,7 +291,7 @@ public:
   void touchstart(View* view, List<GUITouch>& in) {
     
     if ( view->m_visible && in.length() ) {
-      if ( view->m_visible_draw || view->m_need_draw ) {
+      if ( view->m_screen_visible || view->m_need_draw ) {
         
         if ( view->m_last && view->as_box() && static_cast<Box*>(view)->clip() ) {
           List<GUITouch> in2;

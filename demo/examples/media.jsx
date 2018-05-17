@@ -55,7 +55,15 @@ export const vx = (
       <Button class="long_btn" onClick=PlayAudio>Play Audio</Button>
       <Button class="long_btn" onClick=Stop>Stop</Button>
 
-      <Video marginTop=10 id="video" width="full" backgroundColor="#000" />
+      <Video 
+        id="video" 
+        marginTop=10
+        borderRadius=20 
+        border="8 #f00" 
+        clip=false
+        width="full" 
+        backgroundColor="#000" 
+      />
     </Div>
   </Mynavpage>
 )

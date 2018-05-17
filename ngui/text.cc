@@ -167,13 +167,13 @@ void Text::set_layout_content_offset() {
 }
 
 /**
- * @func set_visible_draw
+ * @func set_screen_visible
  */
-void Text::set_visible_draw() {
+void Text::set_screen_visible() {
   
   compute_box_vertex(m_final_vertex);
   
-  m_visible_draw =
+  m_screen_visible =
   
   compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, 0);
 }

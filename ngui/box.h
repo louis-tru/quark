@@ -444,9 +444,9 @@ class XX_EXPORT Box: public Layout {
   void compute_box_vertex(Vec2 vertex[4]);
   
   /**
-   * @func set_visible_draw
+   * @func set_screen_visible
    */
-  virtual void set_visible_draw();
+  virtual void set_screen_visible();
   
   /**
    * @func get_screen_region
@@ -502,7 +502,6 @@ class XX_EXPORT Box: public Layout {
   bool      m_clip;             // 是否溢出修剪
   bool      m_explicit_width;   // 是否拥有明确宽度,明确宽度不会受到子布局视图的挤压影响
   bool      m_explicit_height;  // 是否拥有明确高度,明确高度不会受到子布局视图的挤压影响
-  bool      m_is_draw; // m_is_draw = m_background_color.a()|m_background|m_is_draw_border;
   bool      m_is_draw_border;   // 是否需要绘制边框
   bool      m_is_draw_border_radius;  // 是否要绘制圆角
   

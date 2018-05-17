@@ -60,7 +60,7 @@ class XX_EXPORT Textarea: public Input, public BasicScroll {
   virtual bool is_multi_line_input();
   virtual Vec2 input_text_offset();
   virtual void set_input_text_offset(Vec2 value);
-  virtual void set_visible_draw();
+  virtual void set_screen_visible();
 };
 
 XX_END

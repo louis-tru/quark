@@ -265,6 +265,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
     M_INPUT_STATUS          = (1 << 19),  // 文本输入状态改变
     M_CLIP                  = (1 << 20),  // 溢出内容修剪
     M_BACKGROUND            = (1 << 21),  // 背景变化
+    M_REMOVING              = (1 << 29),  // 从父视图删除过程中
     M_STYLE_CLASS           = (1 << 30),  /* 变化class引起的样式变化 */
     M_STYLE_FULL            = (uint(1) << 31),  /* 所有后后代视图都受到影响 */
     M_STYLE                 = (M_STYLE_CLASS | M_STYLE_FULL),
@@ -465,12 +466,17 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   inline bool visible() const { return m_visible; }
   
   /**
-   * @get final_visible {bool} # 最终是否显示会受父视图的影响
+   * @func final_visible {bool} # 最终是否显示会受父视图的影响
    */
   inline bool final_visible() const { return m_final_visible; }
   
   /**
-   * @get translate
+   * @func screen_visible
+   */
+  inline bool screen_visible() const { return m_screen_visible; }
+  
+  /**
+   * @func translate
    */
   inline Vec2 translate() const { return m_translate; }
 
@@ -789,9 +795,9 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   void solve();
   
   /**
-   * @func set_visible_draw
+   * @func set_screen_visible
    */
-  virtual void set_visible_draw();
+  virtual void set_screen_visible();
   
   /**
    * @func accept_text
@@ -854,11 +860,10 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   bool m_visible;       /* 是否显示视图,包括子视图
                          * Whether to display the view, including the sub view */
   bool m_final_visible; /* 最终是否显示,受父视图m_visible影响 */
-  bool m_visible_draw;  /* 该状态标识视图是否在绘图范围内,这个状态会忽略m_visible值
-                         * Whether on the screen range inner */
+  bool m_screen_visible;  /* 该状态标识视图是否在屏幕或区域范围内,这个状态会忽略`m_visible`值
+                           * Whether on the screen range inner */
   bool m_need_draw;             /* 忽略视图visible draw,强制绘制子视图 */
   bool m_child_change_flag;     /* 子视图有变化标记,调用draw后重置 */
-  bool m_removing;              /* 删除中 */
   bool m_receive;               /* 是否接收事件 */
   ViewController* m_ctr;        /* ViewController */
   DrawData*       m_ctx_data;   /* 绘图上下文需要的数据 */

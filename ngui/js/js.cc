@@ -31,7 +31,6 @@
 #include "ngui/base/string.h"
 #include "js-1.h"
 #include "node-1.h"
-#include "test-1.h"
 #include "native-core-js.h"
 #include "ngui.h"
 #include "ngui/base/http.h"
@@ -74,13 +73,6 @@ IMPL::IMPL(Worker* host)
 
 IMPL::~IMPL() {
   XX_ASSERT( !classs_ );
-}
-
-CommonStrings::CommonStrings(Worker* worker): m_worker(worker) {
-#define js_init_persistent_string(name) \
-  __##name##_$_.Reset(worker, worker->New(#name, 1));
-  __Throw_$_.Reset(m_worker, worker->New("throw", 1));
-  js_common_string(js_init_persistent_string);
 }
 
 Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
@@ -544,7 +536,6 @@ struct NguiApiImplementation {
                                        bool is_inspector,
                                        int argc, const char* const* argv) {
     if (argc > 1) {
-      
       Map<String, String> opts;
       for (int i = 2; i < argc; i++) {
         String arg = argv[i];
@@ -553,7 +544,6 @@ struct NguiApiImplementation {
           opts.set( ls[0].substr(arg[1] == '-' ? 2: 1), ls.length() > 1 ? ls[1] : String() );
         }
       }
-      
       if (opts.has("rlog")) {
         open_rlog(opts["rlog"]);
       } else if (is_inspector || opts.has("dev")) {
@@ -650,7 +640,6 @@ int start(const Array<String>& argv) {
  * @func __default_main
  */
 int __default_main(int argc, char** argv) {
-  
   String path;
 
 #if XX_ANDROID

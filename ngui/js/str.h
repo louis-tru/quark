@@ -34,18 +34,68 @@
 #include "js.h"
 
 #define js_common_string(F)  \
-F(global)     F(exports)  F(constructor)  F(console)  F(__proto__) F(__native_private_data) \
-F(prototype)  F(type)     F(value)        F(isAuto)   F(width)    F(height)             \
-F(offset)     F(offsetX)  F(offsetY)      F(_value)   F(r)        F(g)                  \
-F(b)          F(a)        F(x)            F(y)        F(z)        F(start)              \
-F(point)      F(end)      F(w)            F(size)     F(color)    F(toJSON)             \
-F(___mark_json_stringify__)               F(stack)    F(get_path) F(_uncaught_exception)\
-F(_exit)      F(__view_)  F(triggerRemoveView)                                          \
-F(code)       F(message)  F(status)       F(url)      F(id)       F(startX)            \
-F(startY)     F(force)    F(view)         F(m_noticer)            F(point1X)  F(point1Y)  \
-F(point2X)    F(point2Y)  F(time)         F(m_change_touches)     F(name)     F(pathname) \
-F(styles)     F(sender)   F(__controller_) F(Buffer)  F(data)     F(total)    F(complete) \
-
+F(global) \
+F(exports) \
+F(constructor) \
+F(console) \
+F(__proto__) \
+F(__native_private_data) \
+F(prototype) \
+F(type) \
+F(value) \
+F(isAuto) \
+F(width) \
+F(height) \
+F(offset) \
+F(offsetX) \
+F(offsetY) \
+F(_value) \
+F(r) \
+F(g) \
+F(b) \
+F(a) \
+F(x) \
+F(y) \
+F(z) \
+F(start) \
+F(point) \
+F(end) \
+F(w) \
+F(size) \
+F(color) \
+F(toJSON) \
+F(___mark_json_stringify__) \
+F(stack) \
+F(get_path) \
+F(_uncaught_exception) \
+F(_exit) \
+F(__view_) \
+F(triggerRemoveView) \
+F(code) \
+F(message) \
+F(status) \
+F(url) \
+F(id) \
+F(startX) \
+F(startY) \
+F(force) \
+F(view) \
+F(m_noticer) \
+F(point1X) \
+F(point1Y) \
+F(point2X) \
+F(point2Y) \
+F(time) \
+F(m_change_touches) \
+F(name) \
+F(pathname) \
+F(styles) \
+F(sender) \
+F(__controller_) \
+F(Buffer) \
+F(data) \
+F(total) \
+F(complete) \
 
 JS_BEGIN
 
@@ -53,17 +103,18 @@ JS_BEGIN
  * @class CommonStrings
  */
 class XX_EXPORT CommonStrings: public Object {
+ public:
+  CommonStrings(Worker* worker);
 #define js_def_persistent_string(name) \
-private: Persistent<JSValue> __##name##_$_; \
 public: Local<JSValue> name() { \
-  return *reinterpret_cast<Local<JSValue>*>(const_cast<Persistent<JSValue>*>(&__##name##_$_)); \
-}
+return *reinterpret_cast<Local<JSValue>*>\
+  (const_cast<Persistent<JSValue>*>(&__##name##_$_)); \
+} \
+private: Persistent<JSValue> __##name##_$_;
  private:
   Worker* m_worker;
   js_def_persistent_string(Throw)
   js_common_string(js_def_persistent_string);
- public:
-  CommonStrings(Worker* worker);
 };
 
 JS_END

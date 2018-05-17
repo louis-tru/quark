@@ -817,6 +817,15 @@ public:
   }
 
   /**
+   * @get screenVisible {bool}
+   */
+  static void screen_visible(Local<JSString> name, PropertyCall args) {
+    JS_WORKER(args);
+    JS_SELF(View);
+    JS_RETURN( self->screen_visible() );
+  }
+
+  /**
    * @get translate {Vec2}
    */
   static void translate(Local<JSString> name, PropertyCall args) {
@@ -1291,6 +1300,7 @@ public:
       JS_SET_CLASS_ACCESSOR(opacity, opacity, set_opacity);
       JS_SET_CLASS_ACCESSOR(visible, visible, set_visible);
       JS_SET_CLASS_ACCESSOR(finalVisible, final_visible);
+      JS_SET_CLASS_ACCESSOR(screenVisible, screen_visible);
       JS_SET_CLASS_ACCESSOR(translate, translate, set_translate);
       JS_SET_CLASS_ACCESSOR(scale, scale, set_scale);
       JS_SET_CLASS_ACCESSOR(skew, skew, set_skew);
