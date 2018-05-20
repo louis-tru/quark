@@ -153,7 +153,6 @@ console.log(resolve('./res/cc.jpg'));
 const div1 = (
   <Div width="full">
     <Div backgroundColor="#0f0" width="20%" height=80 receive=1 />
-    <Image width="20%" height=80 src=resolve('./res/bb.jpg') receive=1 />
     <Div backgroundColor="#f30" width="20%" height=80 receive=1 />
     <Div backgroundColor="#f50" width="20%" height=80 />
     <Div backgroundColor="#f60" width="20%" height=80 />
@@ -177,6 +176,7 @@ const div1 = (
     <Div backgroundColor="#f60" width="20%" height=80 />
     <Div backgroundColor="#f50" width="20%" height=80 />
     <Div backgroundColor="#f40" width="20%" height=80 />
+    <Image width="20%" height=80 src=resolve('./res/bb.jpg') receive=1 />
     <Div backgroundColor="#f30" width="20%" height=80 />
     <Div backgroundColor="#f20" width="20%" height=80 />
     <Div backgroundColor="#f10" width="20%" height=80 />
@@ -185,11 +185,11 @@ const div1 = (
 
 // start gui application
 new GUIApplication({ multisample: 2 }).start(
-  <Root backgroundColor="#0ff">
+  <Root backgroundColor="#0ff" background=`url(${resolve('./res/bb.jpg')}) center center 80%`>
     <vx:test_scroll id="view1" />
     %{ div1 }
   </Root>
-).onLoad = function() {
+).onLoad = function a() {
   
   var r = gui.root;
 

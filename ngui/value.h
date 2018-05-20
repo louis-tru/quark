@@ -402,17 +402,19 @@ namespace value {
   struct XX_EXPORT ValueTemplate {
     Type type;
     Value value;
-    inline bool operator==(const ValueTemplate& value) const {
-      return value.type == value.type && value.value == value.value;
+    inline bool operator==(const ValueTemplate& val) const {
+      return val.type == type && val.value == value;
     }
-    inline bool operator!=(const ValueTemplate& value) const { return !operator==(value); }
+    inline bool operator!=(const ValueTemplate& value) const {
+      return !operator==(value);
+    }
     inline ValueTemplate(Type t = TypeInit, Value v = 0): type(t), value(v) {}
     inline ValueTemplate(Value v) : type(Type::PIXEL), value(v) {}
   };
   
   typedef ValueTemplate<ValueType, ValueType::AUTO> Value;
   typedef ValueTemplate<BackgroundPositionType, BackgroundPositionType::PIXEL> BackgroundPosition;
-  typedef ValueTemplate<BackgroundSizeType, BackgroundSizeType::PIXEL> BackgroundSize;
+  typedef ValueTemplate<BackgroundSizeType, BackgroundSizeType::AUTO> BackgroundSize;
   
   struct BackgroundPositionCollection {
     BackgroundPosition x, y;

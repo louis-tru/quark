@@ -96,8 +96,13 @@ Maybe<bool> ValueSerializer::Delegate::WriteHostObject(Isolate* v8_isolate,
 
 Maybe<uint32_t> ValueSerializer::Delegate::GetSharedArrayBufferId(
   Isolate* v8_isolate, Local<SharedArrayBuffer> shared_array_buffer) {
-  ENV(v8_isolate);
-  isolate->ThrowException(isolate->NewError("DataCloneError"));
+  // ENV(v8_isolate);
+  // isolate->ThrowException(isolate->NewError("DataCloneError"));
+  // return Nothing<uint32_t>();
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
   return Nothing<uint32_t>();
 }
 
@@ -155,6 +160,7 @@ void ValueSerializer::TransferArrayBuffer(uint32_t transfer_id,
 
 void ValueSerializer::TransferSharedArrayBuffer(
   uint32_t transfer_id, Local<SharedArrayBuffer> shared_array_buffer) {
+  // Discarded SharedArrayBuffer
 }
 
 void ValueSerializer::WriteUint32(uint32_t value) {
@@ -226,6 +232,7 @@ void ValueDeserializer::TransferArrayBuffer(uint32_t transfer_id,
 
 void ValueDeserializer::TransferSharedArrayBuffer(
   uint32_t transfer_id, Local<SharedArrayBuffer> shared_array_buffer) {
+  // Discarded SharedArrayBuffer
 }
 
 bool ValueDeserializer::ReadUint32(uint32_t* value) {

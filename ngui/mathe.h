@@ -123,6 +123,7 @@ class XX_EXPORT Vec2: public Vec<2> {
   inline bool is_zero() const { return _value[0] == 0 || _value[1] == 0; }
   inline bool operator!=(const Vec2& b) const { return !operator==(b); }
   float distance(Vec2 point) const;
+  float diagonal() const;
 };
 
 class XX_EXPORT Vec3: public Vec<3> {

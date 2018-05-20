@@ -39,6 +39,7 @@
 #include "limit.h"
 #include "limit-indep.h"
 #include "background.h"
+#include "texture.h"
 
 XX_NS(ngui)
 
@@ -956,7 +957,6 @@ void Box::compute_box_vertex(Vec2 vertex[4]) {
   Vec2 start(-m_border_left_width - m_origin.x(), -m_border_top_width - m_origin.y() );
   Vec2 end  (m_final_width  + m_border_right_width - m_origin.x(),
              m_final_height + m_border_bottom_width - m_origin.y() );
-  
   vertex[0] = m_final_matrix * start;
   vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
   vertex[2] = m_final_matrix * end;
@@ -979,6 +979,8 @@ void Box::solve() {
   uint mark_value = this->mark_value;
   
   // if ( mark_value & View::M_BACKGROUND_COLOR ) { // 背景颜色
+  // }
+  // if (mark_value & (M_BACKGROUND | M_TRANSFORM | M_SHAPE)) { // 背景
   // }
   if ( mark_value & View::M_BORDER ) { // 边框
     m_is_draw_border = (

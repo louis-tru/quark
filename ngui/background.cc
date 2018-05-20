@@ -30,6 +30,7 @@
 
 #include "background.h"
 #include "texture.h"
+#include "display-port.h"
 
 XX_NS(ngui)
 
@@ -205,24 +206,24 @@ public:
     }
   }
   
-  Texture* get_texture() {
-    if (!m_texture) {
-      if (!m_src.is_empty()) {
-        reset_texture();
-      }
-    }
-    return m_texture;
-  }
+//  Texture* get_texture() {
+//    if (!m_texture) {
+//      if (!m_src.is_empty()) {
+//        reset_texture();
+//      }
+//    }
+//    return m_texture;
+//  }
   
   void set_source(cString& src, bool has_base64) {
     if (has_base64 || src != m_src) {
+      m_src = src;
+      m_has_base64_src = has_base64;
       if ( src.is_empty() ) {
         set_texture(nullptr);
       } else {
         reset_texture();
       }
-      m_src = src;
-      m_has_base64_src = has_base64;
       m_attributes_flags |= BI_flag_src;
     }
   }
@@ -231,7 +232,6 @@ public:
 
 BackgroundImage::BackgroundImage()
 : m_src()
-, m_tex_level(Texture::LEVEL_0)
 , m_texture(nullptr)
 , m_repeat(Repeat::REPEAT)
 , m_attributes_flags(0)
@@ -329,6 +329,115 @@ void BackgroundImage::set_size_y(BackgroundSize value) {
     mark(View::M_BACKGROUND);
     m_attributes_flags |= BI_flag_size_y;
   }
+}
+
+bool BackgroundImage::get_background_image_data(Box* v,
+                                                Vec2& final_size,
+                                                Vec2& final_position, int& level) {
+  bool ok = false;
+  auto tex = m_texture;
+  if (!tex) {
+    return ok;
+  }
+  if (!tex->is_available()) {
+    tex->load(); return ok;
+  }
+  
+  float tex_width = tex->width();
+  float tex_height = tex->height();
+  auto sx = m_size_x, sy = m_size_y;
+  auto px = m_position_x, py = m_position_y;
+  
+  float final_size_x, final_size_y, final_position_x, final_position_y;
+  
+  if (sx.type == BackgroundSizeType::AUTO) {
+    switch (sy.type) {
+      case BackgroundSizeType::AUTO:
+        final_size_x = tex_width;
+        final_size_y = tex_height;
+        break;
+      case BackgroundSizeType::PIXEL:
+        final_size_y = sy.value;
+        final_size_x = tex_width * final_size_y / tex_height;
+        break;
+      case BackgroundSizeType::PERCENT:
+        final_size_y = sy.value * v->m_final_height;
+        final_size_x = tex_width * final_size_y / tex_height;
+        break;
+    }
+  } else {
+    if (sx.type == BackgroundSizeType::PIXEL) {
+      final_size_x = sx.value;
+    } else {
+      final_size_x = sx.value * v->m_final_width;
+    }
+    switch (sy.type) {
+      case BackgroundSizeType::AUTO:
+        final_size_y = tex_height * final_size_x / tex_width;
+        break;
+      case BackgroundSizeType::PIXEL:
+        final_size_y = sy.value;
+        break;
+      case BackgroundSizeType::PERCENT:
+        final_size_y = sy.value * v->m_final_height;
+        break;
+    }
+  }
+  
+  switch (px.type) {
+    case BackgroundPositionType::PIXEL:     /* 像素值  px */
+      final_position_x = px.value;
+      break;
+    case BackgroundPositionType::PERCENT:   /* 百分比  % */
+      final_position_x = px.value * v->m_final_width;
+      break;
+    case BackgroundPositionType::RIGHT:     /* 居右  % */
+      final_position_x = v->m_final_width - final_size_x;
+      break;
+    case BackgroundPositionType::CENTER:    /* 居中 */
+      final_position_x = (v->m_final_width - final_size_x) / 2;
+      break;
+    default:
+      final_position_x = 0; break;
+  }
+  
+  switch (py.type) {
+    case BackgroundPositionType::PIXEL:     /* 像素值  px */
+      final_position_y = py.value;
+      break;
+    case BackgroundPositionType::PERCENT:   /* 百分比  % */
+      final_position_y = py.value * v->m_final_height;
+      break;
+    case BackgroundPositionType::BOTTOM:     /* 居下  % */
+      final_position_y = v->m_final_height - final_size_y;
+      break;
+    case BackgroundPositionType::CENTER:    /* 居中 */
+      final_position_y = (v->m_final_height - final_size_y) / 2;
+      break;
+    default:
+      final_position_y = 0; break;
+  }
+  
+  final_size = Vec2(final_size_x, final_size_y);
+  final_position = Vec2(final_position_x, final_position_y);
+  
+  // Computing texture level
+  float dpscale = display_port()->scale();
+  // screen size
+  auto vertex = v->m_final_vertex;
+  float box_screen_scale_width = sqrt(pow(vertex[0][0] - vertex[1][0], 2) +
+                                      pow(vertex[0][1] - vertex[1][1], 2)) / v->m_final_width;
+  float box_screen_scale_height = sqrt(pow(vertex[0][0] - vertex[3][0], 2) +
+                                       pow(vertex[0][1] - vertex[3][1], 2)) / v->m_final_height;
+  float tex_screen_width = final_size_x * box_screen_scale_width;
+  float tex_screen_height = final_size_y * box_screen_scale_height;
+  
+  float ratio = (tex->width() / XX_MAX(tex_screen_width, 16) +
+                 tex->height() / XX_MAX(tex_screen_height, 16)) / 2 / dpscale;
+  
+  level = tex->get_texture_level(floorf(ratio));
+  
+  return true;
 }
 
 BackgroundGradient::BackgroundGradient()

@@ -38,6 +38,10 @@ float Vec2::distance(Vec2 point) const {
   return sqrtf( powf(x() - point.x(), 2) + powf(y() - point.y(), 2) );
 }
 
+float Vec2::diagonal() const {
+  return sqrtf( powf(width(), 2) + powf(height(), 2) );
+}
+
 bool FloatColor::operator==(const FloatColor& color) const {
   return color.r() == r() && color.g() == g() &&  color.b() == b() &&  color.a() == a();
 }

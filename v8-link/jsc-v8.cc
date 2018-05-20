@@ -167,7 +167,7 @@ F(Symbol) \
 F(Proxy) \
 F(Promise) \
 F(DataView) \
-F(SharedArrayBuffer) \
+/*F(SharedArrayBuffer)*/ \
 F(ArrayBuffer) \
 F(TypedArray) \
 F(Uint8Array) \
@@ -216,8 +216,8 @@ static JSStringRef anonymous_s = JSStringWithUTF8("<anonymous>");
 static JSStringRef eval_s = JSStringWithUTF8("<eval>");
 static JSStringRef empty_s = JSStringWithUTF8("");
 
-#define DEF_JSSTRING(NAME) static JSStringRef \
-NAME##_s = JSStringWithUTF8(#NAME);
+#define DEF_JSSTRING(NAME) \
+  static JSStringRef NAME##_s = JSStringWithUTF8(#NAME);
 JS_CONST_LIST(DEF_JSSTRING)
 JS_ISOLATE_DATA(DEF_JSSTRING)
 JS_CONTEXT_DATA(DEF_JSSTRING)

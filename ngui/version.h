@@ -32,8 +32,8 @@
 #define __ngui__version__
 
 #define NGUI_MAJOR_VERSION 0
-#define NGUI_MINOR_VERSION 3
-#define NGUI_PATCH_VERSION 6
+#define NGUI_MINOR_VERSION 4
+#define NGUI_PATCH_VERSION 0
 #define NGUI_TAG ""
 
 #define __STRINGIFY(n) __STRINGIFY_HELPER(n)

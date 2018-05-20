@@ -161,12 +161,12 @@ class BackgroundImage: public Background {
   void set_position_y(BackgroundPosition value);
   void set_size_x(BackgroundSize value);
   void set_size_y(BackgroundSize value);
+  bool get_background_image_data(Box* host, Vec2& size, Vec2& position, int& level);
  protected:
   virtual Background* copy(Background* to);
  private:
   String    m_src;
   bool      m_has_base64_src;
-  int       m_tex_level;
   Texture*  m_texture;
   Repeat    m_repeat;
   BackgroundPosition  m_position_x;
@@ -175,6 +175,7 @@ class BackgroundImage: public Background {
   BackgroundSize      m_size_y;
   int m_attributes_flags;
   XX_DEFINE_INLINE_CLASS(Inl);
+  friend class Box;
   friend class GLDraw;
 };
 

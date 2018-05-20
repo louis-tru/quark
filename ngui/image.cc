@@ -338,7 +338,7 @@ void Image::set_source(cString& value) {
   if ( value.is_empty() ) {
     set_texture(draw_ctx()->empty_texture());
   } else {
-    set_texture( tex_pool()->get_texture(value) );
+    set_texture(tex_pool()->get_texture(value));
   }
 }
 

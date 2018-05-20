@@ -168,16 +168,18 @@ public:
   static void set_position(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
     JS_SELF(BackgroundImage);
-    js_parse_value(BackgroundPosition, value, "BackgroundImage.position = %s");
-    self->set_position_x(out);
-    self->set_position_y(out);
+    js_parse_value2(Array<BackgroundPositionCollection>, BackgroundPositions,
+                    value, "BackgroundImage.position = %s");
+    self->set_position_x(out[0].x);
+    self->set_position_y(out[0].y);
   }
   static void set_size(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
     JS_SELF(BackgroundImage);
-    js_parse_value(BackgroundSize, value, "BackgroundImage.size = %s");
-    self->set_size_x(out);
-    self->set_size_y(out);
+    js_parse_value2(Array<BackgroundSizeCollection>, BackgroundSizes,
+                    value, "BackgroundImage.size = %s");
+    self->set_size_x(out[0].x);
+    self->set_size_y(out[0].y);
   }
   
   static void binding(Local<JSObject> exports, Worker* worker) {

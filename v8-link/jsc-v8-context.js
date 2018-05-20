@@ -34,7 +34,7 @@ exports.Symbol = Symbol;
 exports.Proxy = Proxy;
 exports.Promise = Promise;
 exports.DataView = DataView;
-exports.SharedArrayBuffer = typeof SharedArrayBuffer == 'function' ? SharedArrayBuffer : undefined;
+/*exports.SharedArrayBuffer = typeof SharedArrayBuffer == 'function' ? SharedArrayBuffer : undefined;*/
 exports.ArrayBuffer = ArrayBuffer;
 exports.TypedArray = Uint8Array.prototype.__proto__.constructor;
 exports.Uint8Array = Uint8Array;

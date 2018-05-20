@@ -448,7 +448,6 @@ Texture* Texture::create(const Array<PixelData>& data) {
  * @func get_texture_level()
  */
 Texture::Level Texture::get_texture_level(uint ratio) {
-  // return LEVEL_0;
   if (ratio > 255) {
     return LEVEL_7;
   } else {
@@ -457,20 +456,17 @@ Texture::Level Texture::get_texture_level(uint ratio) {
 }
 
 /**
- * @func get_texture_level_from_convex_quadrilateral(quadrilateral_vertex)
+ * @func get_texture_level_from_convex_quadrilateral(vertex)
  */
-Texture::Level Texture::get_texture_level_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
+Texture::Level Texture::get_texture_level_from_convex_quadrilateral(Vec2 vertex[4]) {
   if (m_width) {
     auto dp = display_port();
-    if (!dp) return Texture::LEVEL_0;
+    if (!dp) {
+      return Texture::LEVEL_0;
+    }
     float scale = dp->scale();
-    float width = sqrt(pow(quadrilateral_vertex[0][0] - quadrilateral_vertex[1][0], 2) +
-                       pow(quadrilateral_vertex[0][1] - quadrilateral_vertex[1][1], 2)) * scale;
-    float height = sqrt(pow(quadrilateral_vertex[0][0] - quadrilateral_vertex[3][0], 2) +
-                        pow(quadrilateral_vertex[0][1] - quadrilateral_vertex[3][1], 2)) * scale;
-    uint ratio_0 = floorf(m_width / XX_MAX(width, 16));
-    uint ratio_1 = floorf(m_height / XX_MAX(height, 16));
-    return get_texture_level(XX_MIN(ratio_0, ratio_1));
+    float diagonal = (vertex[0].distance(vertex[2]) + vertex[1].distance(vertex[3])) / 2 * scale;
+    return get_texture_level(floorf(m_diagonal / XX_MAX(diagonal, 16)));
   } else {
     return Texture::LEVEL_0;
   }
@@ -481,6 +477,7 @@ Texture::Texture()
 , m_status(TEXTURE_NO_LOADED)
 , m_width(0)
 , m_height(0)
+, m_diagonal(0)
 , m_format(PixelData::INVALID)
 {
   memset(m_handle, 0, sizeof(uint) * 24 + sizeof(Repeat) * 8);
@@ -550,6 +547,7 @@ bool TextureYUV::load_yuv(cPixelData& data) {
           m_height != data.height() || m_format != data.format()) {
         m_width = data.width();
         m_height = data.height();
+        m_diagonal = Vec2(m_width, m_height).diagonal();
         m_format = data.format();
         m_status = TEXTURE_COMPLETE;
         main_loop()->post(Cb([this](Se& e) {
@@ -648,19 +646,11 @@ void FileTexture::load(Level level) {
         XX_WARN("Unable to load the texture %s, need to initialize first GUIApplication", *m_path);
         return;
       }
+      
       auto ctx = new DecodeContext();
       ctx->input = *static_cast<Buffer*>(d.data);
-      app->render_loop()->work(Cb([this, ctx, parser](Se& e) {
-        // 解码需要时间,发送到工作线程执行解码操作
-        if (m_status & TEXTURE_CHANGE_LEVEL_0) {
-          ctx->output = parser->decode(ctx->input);
-        } else {
-          PixelData pd = parser->decode_header(ctx->input);
-          if (pd.width()) {
-            ctx->output = { pd };
-          }
-        }
-      }, this), Cb([this, ctx](Se& e) { // 完成
+      
+      Cb complete([this, ctx](Se& e) { // 完成
         Handle<DecodeContext> handle(ctx);
         if (!ctx->output.length()) {
           LoaderTextureError("Error: Loader image file error, %s");
@@ -675,10 +665,24 @@ void FileTexture::load(Level level) {
         } else {
           m_width = ctx->output[0].width();
           m_height = ctx->output[0].height();
+          m_diagonal = Vec2(m_width, m_height).diagonal();
           m_format = ctx->output[0].format();
         }
         Inl_Texture(this)->generate_texture();
-      }));
+      });
+      
+      if (m_status & TEXTURE_CHANGE_LEVEL_0) {
+        // 解码需要时间,发送到工作线程执行解码操作
+        app->render_loop()->work(Cb([this, ctx, parser](Se& e) {
+          ctx->output = parser->decode(ctx->input);
+        }, this), complete);
+      } else {
+        PixelData pd = parser->decode_header(ctx->input);
+        if (pd.width()) {
+          ctx->output = { pd };
+        }
+        complete->call();
+      }
     }
   }, this));
   

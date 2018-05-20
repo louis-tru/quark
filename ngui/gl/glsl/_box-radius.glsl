@@ -15,9 +15,10 @@
 // #define SAMPLEx2 32.0              // sample * 2 + 2
 // #define PI_40 0.10471975511965977  // PI / 2 / 15
 
+uniform bool  is_radius;
 uniform float sample_x2;
 
-vec4 vertex() {
+vec2 vertex() {
   
   float PI_40 = PI / sample_x2;
   float Vertex = float(gl_VertexID) - sample_x2 - 2.0;
@@ -59,5 +60,5 @@ vec4 vertex() {
     }
   }
   
-  return vec4(v.xy, 0.0, 1.0);
+  return v;
 }

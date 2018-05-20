@@ -514,6 +514,7 @@ class XX_EXPORT Box: public Layout {
   friend class Image;
   friend class Indep;
   friend class Root;
+  friend class BackgroundImage;
 };
 
 XX_END

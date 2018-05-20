@@ -106,7 +106,7 @@ bool Value::IsUint32() const {
 
 #define JS_TYPE_TABLE(F) \
 F(ArrayBuffer) \
-F(SharedArrayBuffer) \
+/*F(SharedArrayBuffer)*/ \
 F(DataView) \
 F(Proxy) \
 F(Map) \
@@ -138,6 +138,18 @@ bool Value::Is##Type () const { \
 }
 JS_TYPE_TABLE(VALUE_IS_TYPE)
 #undef VALUE_IS_TYPE
+
+bool Value::IsSharedArrayBuffer() const {
+  // ENV();
+  // bool ok = JSValueIsInstanceOfConstructor(ctx,
+  //   i::Back(this), isolate->Type(), OK(false));
+  // return ok;
+  //
+  // TODO..
+  // Discarded SharedArrayBuffer
+  UNIMPLEMENTED();
+  return false;
+}
 
 bool Value::IsExternal() const {
   ENV();

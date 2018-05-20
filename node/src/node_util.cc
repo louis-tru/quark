@@ -46,7 +46,7 @@ using v8::Value;
 static void IsAnyArrayBuffer(const FunctionCallbackInfo<Value>& args) {
   CHECK_EQ(1, args.Length());
   args.GetReturnValue().Set(
-    args[0]->IsArrayBuffer() || args[0]->IsSharedArrayBuffer());
+    args[0]->IsArrayBuffer() /*|| args[0]->IsSharedArrayBuffer()*/ );
 }
 
 static void GetPromiseDetails(const FunctionCallbackInfo<Value>& args) {

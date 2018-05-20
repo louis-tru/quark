@@ -303,63 +303,97 @@ TYPED_ARRAYS(TYPED_ARRAY_NEW2)
 
 Local<DataView> DataView::New(Local<ArrayBuffer> array_buffer,
                               size_t byte_offset, size_t byte_length) {
-  ENV();
-  JSValueRef argv[3] = {
-    i::Back(array_buffer),
-    JSValueMakeNumber(ctx, byte_offset),
-    JSValueMakeNumber(ctx, byte_length),
-  };
-  auto r = JSObjectCallAsConstructor(ctx, isolate->DataView(), 3, argv, OK(Local<DataView>()));
-  return i::Cast<DataView>(r);
+  // ENV();
+  // JSValueRef argv[3] = {
+  //   i::Back(array_buffer),
+  //   JSValueMakeNumber(ctx, byte_offset),
+  //   JSValueMakeNumber(ctx, byte_length),
+  // };
+  // auto r = JSObjectCallAsConstructor(ctx, isolate->DataView(), 3, argv, OK(Local<DataView>()));
+  // return i::Cast<DataView>(r);
+  //
+  // TODO..
+  UNIMPLEMENTED();
+  return Local<DataView>();
 }
 
 Local<DataView> DataView::New(Local<SharedArrayBuffer> shared_array_buffer,
                               size_t byte_offset, size_t byte_length) {
-  ENV();
-  JSValueRef argv[3] = {
-    i::Back(shared_array_buffer),
-    JSValueMakeNumber(ctx, byte_offset),
-    JSValueMakeNumber(ctx, byte_length),
-  };
-  auto r = JSObjectCallAsConstructor(ctx, isolate->DataView(), 3, argv, OK(Local<DataView>()));
-  return i::Cast<DataView>(r);
+  // ENV();
+  // JSValueRef argv[3] = {
+  //   i::Back(shared_array_buffer),
+  //   JSValueMakeNumber(ctx, byte_offset),
+  //   JSValueMakeNumber(ctx, byte_length),
+  // };
+  // auto r = JSObjectCallAsConstructor(ctx, isolate->DataView(), 3, argv, OK(Local<DataView>()));
+  // return i::Cast<DataView>(r);
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
+  return Local<DataView>();
 }
 
 bool v8::SharedArrayBuffer::IsExternal() const {
+  // return false;
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
   return false;
 }
 
 v8::SharedArrayBuffer::Contents v8::SharedArrayBuffer::Externalize() {
+  // return Contents();
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
   return Contents();
 }
 
 v8::SharedArrayBuffer::Contents v8::SharedArrayBuffer::GetContents() {
-  ENV();
-  Contents contents;
-  auto len = JSObjectGetArrayBufferByteLength(ctx, i::Back<JSObjectRef>(this), OK(contents));
-  auto ptr = JSObjectGetArrayBufferBytesPtr(ctx, i::Back<JSObjectRef>(this), OK(contents));
-  contents.data_ = ptr;
-  contents.byte_length_ = len;
-  return contents;
+  // ENV();
+  // Contents contents;
+  // auto len = JSObjectGetArrayBufferByteLength(ctx, i::Back<JSObjectRef>(this), OK(contents));
+  // auto ptr = JSObjectGetArrayBufferBytesPtr(ctx, i::Back<JSObjectRef>(this), OK(contents));
+  // contents.data_ = ptr;
+  // contents.byte_length_ = len;
+  // return contents;
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
+  return Contents();
 }
 
 size_t v8::SharedArrayBuffer::ByteLength() const {
-  ENV();
-  auto len = JSObjectGetTypedArrayByteLength(ctx, i::Back<JSObjectRef>(this), OK(0));
-  return len;
+  //ENV();
+  //auto len = JSObjectGetTypedArrayByteLength(ctx, i::Back<JSObjectRef>(this), OK(0));
+  // return len;
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
+  return 0;
 }
 
 Local<SharedArrayBuffer> v8::SharedArrayBuffer::New(Isolate* iso, size_t byte_length) {
-  ENV(iso);
-  if (JSValueIsUndefined(ctx, isolate->SharedArrayBuffer())) {
-    return Local<SharedArrayBuffer>();
-  }
-  JSValueRef argv[1] = {
-    JSValueMakeNumber(ctx, byte_length),
-  };
-  auto r = JSObjectCallAsConstructor(ctx, isolate->SharedArrayBuffer(), 1, argv,
-                                     OK(Local<SharedArrayBuffer>()));
-  return i::Cast<SharedArrayBuffer>(r);
+  // ENV(iso);
+  // if (JSValueIsUndefined(ctx, isolate->SharedArrayBuffer())) {
+  //   return Local<SharedArrayBuffer>();
+  // }
+  // JSValueRef argv[1] = {
+  //   JSValueMakeNumber(ctx, byte_length),
+  // };
+  // auto r = JSObjectCallAsConstructor(ctx, isolate->SharedArrayBuffer(), 1, argv,
+  //                                    OK(Local<SharedArrayBuffer>()));
+  // return i::Cast<SharedArrayBuffer>(r);
+  //
+  // TODO..
+  // SharedArrayBuffer Discarded
+  UNIMPLEMENTED();
+  return Local<SharedArrayBuffer>();
 }
 
 Local<SharedArrayBuffer> v8::SharedArrayBuffer::New(

@@ -115,9 +115,9 @@ class XX_EXPORT Texture: public Reference {
   static Level get_texture_level(uint ratio);
   
   /**
-   * @func get_texture_level_from_convex_quadrilateral(quadrilateral_vertex)
+   * @func get_texture_level_from_convex_quadrilateral(vertex)
    */
-  Level get_texture_level_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+  Level get_texture_level_from_convex_quadrilateral(Vec2 vertex[4]);
   
   /**
    * @destructor
@@ -141,14 +141,15 @@ class XX_EXPORT Texture: public Reference {
   bool use(uint slot = 0,
            Level level = LEVEL_0,
            Repeat repeat = Repeat::NONE);
-  
   inline int status() const { return m_status; }
+  inline bool is_available() const { return m_width != 0; }
   inline const uint* handle() const { return m_handle; }
   inline const uint* data_size() const { return m_data_size; }
   inline const uint* use_count() const { return m_use_count; }
   inline const Repeat* repeat() const { return m_repeat; }
   inline int width() const { return m_width; }
   inline int height() const { return m_height; }
+  inline int diagonal() const { return m_diagonal; }
   inline PixelFormat format() const { return m_format; }
   
  protected:
@@ -170,6 +171,7 @@ class XX_EXPORT Texture: public Reference {
   Repeat m_repeat[8];
   uint  m_width;
   uint  m_height;
+  uint  m_diagonal;
   PixelFormat m_format;
   
   friend class GLDraw;

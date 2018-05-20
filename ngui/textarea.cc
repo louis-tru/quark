@@ -113,7 +113,7 @@ void Textarea::set_screen_visible() {
   
   m_screen_visible =
   
-  compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
+    compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
 }
 
 XX_END

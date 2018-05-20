@@ -862,7 +862,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
   bool m_final_visible; /* 最终是否显示,受父视图m_visible影响 */
   bool m_screen_visible;  /* 该状态标识视图是否在屏幕或区域范围内,这个状态会忽略`m_visible`值
                            * Whether on the screen range inner */
-  bool m_need_draw;             /* 忽略视图visible draw,强制绘制子视图 */
+  bool m_need_draw;             /* 忽略视图visible值,强制绘制子视图 */
   bool m_child_change_flag;     /* 子视图有变化标记,调用draw后重置 */
   bool m_receive;               /* 是否接收事件 */
   ViewController* m_ctr;        /* ViewController */

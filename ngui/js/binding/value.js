@@ -1780,7 +1780,7 @@ function parse_background_1(str) {
   // background-repeat    // none | repeat | repeat_x | mirrored_repeat | mirrored_repeat_x | mirrored_repeat_y
   // background-position  // left | right | center | top | bottom | 10.1 | 20% 
   // background-size      // auto | 10.1 | 20% 
-  m = str.match(/^\s*url\(([^\(]+)\)(:?\s+(.+))?\s*$/);
+  m = str.match(/^\s*url\(([^\(]+)\)(?:\s+(.+))?\s*$/);
   if (m) {
     var attributes = { 
       src: m[1],
@@ -1791,7 +1791,7 @@ function parse_background_1(str) {
       // sizeY
     };
     if (m[2]) { // attributes 
-      var s = m[2].split(/\s+/), val;
+      var val;
       for (var i of m[2].split(/\s+/)) {
         if (val = parse_repeat(i)) { // repeat
           attributes.repeat = val;
@@ -1830,9 +1830,13 @@ function parse_background_1(str) {
           } else {
             attributes.sizeX = val;
           }
+        } else {
+          // console.log('***************', i);
+          return null;
         }
       }
     }
+    // console.log('-----------------', attributes);
     return Object.assign(new BackgroundImage(), attributes);
   }
   return parse_background_gradient(str);

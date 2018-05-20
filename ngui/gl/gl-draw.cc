@@ -56,13 +56,12 @@
 #include "glsl-box-border.h"
 #include "glsl-box-color.h"
 #include "glsl-box-shadow.h"
-#include "glsl-box-image-radius.h"
 #include "glsl-box-border-radius.h"
-#include "glsl-box-color-radius.h"
 #include "glsl-text-box-color.h"
 #include "glsl-text-texture.h"
 #include "glsl-text-vertex.h"
 #include "glsl-gen-texture.h"
+#include "glsl-box-background-image.h"
 
 #define SIZEOF(T) sizeof(T) / sizeof(float)
 #define xx_ctx_data(view, T)       static_cast<CtxDataWrap<T>*>(view->m_ctx_data)->value()
@@ -115,19 +114,20 @@ public:
       auto color = v->m_scrollbar_color.to_float_color();
       float r = scrollbar_width / 2.0f;
       
-      glUseProgram(shader::box_color_radius.shader);
-      glUniform1fv(shader::box_color_radius.view_matrix, 7, vm.view_matrix.value());
-      glUniform4fv(shader::box_color_radius.background_color, 1, color.value());
-      glUniform4f(shader::box_color_radius.border_width, 0, 0, 0, 0);
-      glUniform4f(shader::box_color_radius.radius_size, r, r, r, r);
-      glUniform1f(shader::box_color_radius.sample_x2, 6); // sample 3*2
+      glUseProgram(shader::box_color.shader);
+      glUniform1fv(shader::box_color.view_matrix, 7, vm.view_matrix.value());
+      glUniform4fv(shader::box_color.background_color, 1, color.value());
+      glUniform4f(shader::box_color.border_width, 0, 0, 0, 0);
+      glUniform4f(shader::box_color.radius_size, r, r, r, r);
+      glUniform1f(shader::box_color.sample_x2, 6); // sample 3*2
+      glUniform1i(shader::box_color.is_radius, 1);
       
       if ( v->m_h_scrollbar ) { // 绘制水平滚动条
         Vec2 a(v->m_h_scrollbar_position[0] - v1->m_origin.x(),
                v1->m_final_height - v1->m_origin.y() - scrollbar_width - scrollbar_margin);
         Vec2 c(a.x() + v->m_h_scrollbar_position[1],
                a.y() + scrollbar_width);
-        glUniform4f(shader::box_color_radius.vertex_ac, a[0], a[1], c[0], c[1]);
+        glUniform4f(shader::box_color.vertex_ac, a[0], a[1], c[0], c[1]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 16);
       }
       
@@ -137,7 +137,7 @@ public:
                v->m_v_scrollbar_position[0] - v1->m_origin.y());
         Vec2 c(a.x() + scrollbar_width,
                a.y() + v->m_v_scrollbar_position[1]);
-        glUniform4f(shader::box_color_radius.vertex_ac, a[0], a[1], c[0], c[1]);
+        glUniform4f(shader::box_color.vertex_ac, a[0], a[1], c[0], c[1]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 16);
       }
     }
@@ -148,8 +148,7 @@ public:
     glUniform1fv(shader.view_matrix, 7, v->m_final_matrix.value());
     glUniform4f(shader.vertex_ac,
                 -v->m_origin.x(), -v->m_origin.y(),
-                v->m_final_width - v->m_origin.x(),
-                v->m_final_height - v->m_origin.y());
+                v->m_final_width - v->m_origin.x(), v->m_final_height - v->m_origin.y());
     glUniform4fv(shader.border_width, 1, &v->m_border_left_width);
     glUniform4fv(shader.radius_size, 1, &v->m_final_border_radius_left_top);
   }
@@ -239,44 +238,73 @@ public:
   
   void draw_box_background_color(Box* v) {
     auto color = v->m_background_color.to_float_color();
+    glUseProgram(shader::box_color.shader);
+    set_box_uniform_value(shader::box_color, v);
+    glUniform4fv(shader::box_color.background_color, 1, color.value());
     if ( v->m_is_draw_border_radius ) { // 圆角
-      glUseProgram(shader::box_color_radius.shader);
-      set_box_uniform_value(shader::box_color_radius, v);
-      glUniform4fv(shader::box_color_radius.background_color, 1, color.value());
-      glUniform1f(shader::box_color_radius.sample_x2, 30); // sample 15*2
+      glUniform1f(shader::box_color.sample_x2, 30); // sample 15*2
+      glUniform1f(shader::box_color.is_radius, 1);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
     } else {
-      glUseProgram(shader::box_color.shader);
-      set_box_uniform_value(shader::box_color, v);
-      glUniform4fv(shader::box_color.background_color, 1, color.value());
+      glUniform1f(shader::box_color.is_radius, 0);
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
   }
   
-  void draw_box_background_image(Box* v, BackgroundImage* image) {
-  //    int       m_tex_level;
-  //    Texture*  m_texture;
-  //    Repeat    m_repeat;
-  //    BackgroundPosition  m_position_x;
-  //    BackgroundPosition  m_position_y;
-  //    BackgroundSize      m_size_x;
-  //    BackgroundSize      m_size_y;
+  void draw_box_background_image(Box* v, BackgroundImage* image, bool clip) {
+    Vec2 size, position;
+    int level;
+    if (image->get_background_image_data(v, size, position, level)) {
+      if ( image->m_texture->use(0, Texture::Level(level), image->m_repeat) ) {
+        Vec4 tex_coord(-position.x() / size.x(), -position.y() / size.y(),  // start
+                       v->m_final_width / size.x(), v->m_final_height / size.y());  // scale
+        glUseProgram(shader::box_background_image.shader); // 使用矩形纹理着色器
+        set_box_uniform_value(shader::box_background_image, v);
+        glUniform4fv(shader::box_background_image.tex_coord, 1, tex_coord.value());
+        
+        switch (image->m_repeat) {
+          case Repeat::NONE:
+            glUniform2i(shader::box_background_image.repeat, 0, 0);
+            break;
+          case Repeat::REPEAT:
+          case Repeat::MIRRORED_REPEAT:
+            glUniform2i(shader::box_background_image.repeat, 1, 1);
+            break;
+          case Repeat::REPEAT_X:
+          case Repeat::MIRRORED_REPEAT_X:
+            glUniform2i(shader::box_background_image.repeat, 1, 0);
+            break;
+          case Repeat::REPEAT_Y:
+          case Repeat::MIRRORED_REPEAT_Y:
+            glUniform2i(shader::box_background_image.repeat, 0, 1);
+            break;
+        }
+        if (v->m_is_draw_border_radius && !clip) { // 绘制圆角
+          glUniform1f(shader::box_background_image.sample_x2, 30); // sample 15*2
+          glUniform1i(shader::box_background_image.is_radius, 1);
+          glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
+        } else {
+          glUniform1i(shader::box_background_image.is_radius, 0);
+          glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        }
+      }
+    }
   }
   
-  void draw_box_background_gradient(Box* v, BackgroundGradient* gradient) {
+  void draw_box_background_gradient(Box* v, BackgroundGradient* gradient, bool clip) {
     // TODO ...
     // draw background
   }
   
-  void draw_box_background(Box* v) {
+  void draw_box_background(Box* v, bool clip) {
     auto bg = v->m_background;
     while (bg) {
       switch (bg->type()) {
         case Background::M_IMAGE:
-          draw_box_background_image(v, static_cast<BackgroundImage*>(bg));
+          draw_box_background_image(v, static_cast<BackgroundImage*>(bg), clip);
           break;
         case Background::M_GRADIENT:
-          draw_box_background_gradient(v, static_cast<BackgroundGradient*>(bg));
+          draw_box_background_gradient(v, static_cast<BackgroundGradient*>(bg), clip);
           break;
         default:
           break;
@@ -529,14 +557,14 @@ void GLDraw::draw(Box* v) {
     _inl(this)->draw_box_border(v); // draw border
     if ( v->m_clip ) {
       _inl(this)->draw_begin_clip(v);
-      _inl(this)->draw_box_background(v);
+      _inl(this)->draw_box_background(v, 1);
       v->visit(this);
       _inl(this)->draw_end_clip(v);
     } else {
       if (v->m_background_color.a()) {
         _inl(this)->draw_box_background_color(v);
       }
-      _inl(this)->draw_box_background(v);
+      _inl(this)->draw_box_background(v, 0);
       v->visit(this);
     }
   } else {
@@ -554,21 +582,21 @@ void GLDraw::draw(Image* v) {
 
     if (v->m_final_width != 0 && v->m_final_height != 0) {
       if ( v->m_texture->use(0, Texture::Level(v->m_tex_level)) ) {
+        glUseProgram(shader::box_image.shader); // 使用矩形纹理着色器
+        _inl(this)->set_box_uniform_value(shader::box_image, v);
         if (v->m_is_draw_border_radius) { // 绘制圆角
-          glUseProgram(shader::box_image_radius.shader); // 使用圆角矩形纹理着色器
-          _inl(this)->set_box_uniform_value(shader::box_image_radius, v);
-          glUniform1f(shader::box_image_radius.sample_x2, 30); // sample 15*2
+          glUniform1f(shader::box_image.sample_x2, 30); // sample 15*2
+          glUniform1i(shader::box_image.is_radius, 1);
           glDrawArrays(GL_TRIANGLE_STRIP, 0, 64);
         } else {
-          glUseProgram(shader::box_image.shader); // 使用矩形纹理着色器
-          _inl(this)->set_box_uniform_value(shader::box_image, v);
+          glUniform1i(shader::box_image.is_radius, 0);
           glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         }
       } else {
         if ( !clip && v->m_background_color.a() ) { // 绘制背景
           _inl(this)->draw_box_background_color(v);
         }
-        _inl(this)->draw_box_background(v);
+        _inl(this)->draw_box_background(v, clip);
       }
     }
 
@@ -613,7 +641,7 @@ void GLDraw::draw(Video* v) {
       if ( !clip && v->m_background_color.a() ) { // 绘制背景
         _inl(this)->draw_box_background_color(v);
       }
-      _inl(this)->draw_box_background(v);
+      _inl(this)->draw_box_background(v, clip);
     }
 
     v->visit(this); // draw child view
@@ -636,7 +664,7 @@ void GLDraw::draw(BoxShadow* v) {
     } else if (v->m_background_color.a()) { // 绘制背景颜色
       _inl(this)->draw_box_background_color(v);
     }
-    _inl(this)->draw_box_background(v);
+    _inl(this)->draw_box_background(v, clip);
 
     // TODO draw shadow ..
     // ..
@@ -711,7 +739,7 @@ void GLDraw::draw(Text* v) {
     } else if (v->m_background_color.a()) { // 绘制背景颜色
       _inl(this)->draw_box_background_color(v);
     }
-    _inl(this)->draw_box_background(v);
+    _inl(this)->draw_box_background(v, clip);
 
     uint begin = v->m_data.cell_draw_begin;
     uint end = v->m_data.cell_draw_end;
@@ -737,7 +765,7 @@ void GLDraw::draw(Scroll* v) {
   if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
-    _inl(this)->draw_box_background(v);
+    _inl(this)->draw_box_background(v, true);
     v->visit(this, inherit_mark);
     _inl(this)->draw_end_clip(v);
     _inl(this)->draw_scroll_bar(v, v); // 绘制scrollbar
@@ -750,7 +778,7 @@ void GLDraw::draw(Input* v) {
   if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
-    _inl(this)->draw_box_background(v);
+    _inl(this)->draw_box_background(v, true);
     _inl(this)->draw_input(v);
     _inl(this)->draw_end_clip(v);
   }
@@ -760,7 +788,7 @@ void GLDraw::draw(Textarea* v) {
   if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
     _inl(this)->draw_begin_clip(v);
-    _inl(this)->draw_box_background(v);
+    _inl(this)->draw_box_background(v, true);
     _inl(this)->draw_input(v);
     _inl(this)->draw_end_clip(v);
     _inl(this)->draw_scroll_bar(v, v); // 绘制scrollbar
@@ -770,7 +798,7 @@ void GLDraw::draw(Textarea* v) {
 void GLDraw::draw(Root* v) {
   if ( v->m_screen_visible ) {
     _inl(this)->draw_box_border(v);
-    _inl(this)->draw_box_background(v);
+    _inl(this)->draw_box_background(v, true);
   }
   v->visit(this);
 }

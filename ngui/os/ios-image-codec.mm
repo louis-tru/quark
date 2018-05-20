@@ -37,11 +37,12 @@ XX_NS(ngui)
 
 static PixelData image_decode(cBuffer& data) {
 
-  NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
+  NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data
+                                       length:data.length()
+                                 freeWhenDone:NO];
   CGImageRef image = [[UIImage imageWithData:data2] CGImage];
 
   if (image) {
-
     CGColorSpaceRef color_space = CGImageGetColorSpace(image);
     if (color_space) {
       
@@ -92,7 +93,9 @@ static PixelData image_decode(cBuffer& data) {
 
 static PixelData image_decode_header(cBuffer& data) {
   
-  NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data length:data.length() freeWhenDone:NO];
+  NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data
+                                       length:data.length()
+                                 freeWhenDone:NO];
   CGImageRef image = [[UIImage imageWithData:data2] CGImage];
   
   if (image) {
