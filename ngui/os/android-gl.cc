@@ -424,6 +424,7 @@ void AndroidGLDrawCore::commit_render() {
     glUniform4f(shader::box_color.border_width, 0, 0, 0, 0);
     glUniform4f(shader::box_color.radius_size, 0, 0, 0, 0);
     glUniform4f(shader::box_color.background_color, 0, 0, 0, 1);
+    glUniform1i(shader::box_color.is_radius, 0);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
   eglSwapBuffers(m_display, m_surface);
