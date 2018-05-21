@@ -34,14 +34,15 @@
 
 using namespace ngui;
 
-#define USE_REMOTE 0
-#define USE_INSPECT 0
+#define USE_REMOTE 1
+#define USE_INSPECT 1
 
 void test_demo() {
 
 #if USE_REMOTE
 # if USE_INSPECT
-  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
+  // js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
+  js::start("--inspect=0.0.0.0:9229 http://192.168.1.11:1026/eos_device --dev --ignore-local=*");
 # else
   js::start("http://192.168.1.11:1026/demo/examples --dev");
 # endif

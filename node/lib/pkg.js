@@ -1198,7 +1198,7 @@ class Exports {
       var pkg = this.mainPackage;
       if (pkg) {
         try {
-          config = inl_require(pack.name + '/config');
+          config = inl_require(pkg.name + '/config');
         } catch(err) {}
       }
     }

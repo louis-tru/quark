@@ -71,13 +71,14 @@ class KeepLoop;
 class XX_EXPORT SimpleThread {
  public:
   typedef NonObjectTraits Traits;
-#define XX_THREAD_LOCK(thread) \
-ScopeLock thread##_lock(thread.mutex()); if (!t.is_abort())
+#define XX_THREAD_LOCK(__t, block, ...) {\
+  ScopeLock __t##_lock(__t.mutex()); if (!__t.is_abort()) { block; } else { __VA_ARGS__; } }
   typedef std::function<void(SimpleThread& thread)> Exec;
   inline bool is_abort() const { return m_abort; }
   inline Mutex& mutex() { return m_mutex; }
   inline ThreadID id() const { return m_id; }
   inline String name() const { return m_name; }
+  inline RunLoop* loop() const { return m_loop; }
   static ThreadID detach(Exec exec, cString& name);
   static void sleep_for(uint64 timeUs = 0);
   static ThreadID current_id();
@@ -89,17 +90,14 @@ ScopeLock thread##_lock(thread.mutex()); if (!t.is_abort())
   static void awaken(ThreadID id);
  private:
   XX_DEFINE_INLINE_CLASS(Inl);
-  struct Signal {
-    Mutex mutex; Condition cond;
-  };
-  typedef List<Signal*> WaitList;
+  bool  m_abort;
   Mutex m_mutex;
   Condition m_cond;
-  WaitList m_external_wait;
-  bool  m_abort;
   ThreadID  m_id;
   uint  m_gid;
   String  m_name;
+  void* m_data[256];
+  RunLoop* m_loop;
 };
 
 /**
@@ -219,7 +217,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
   /**
    * @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
    */
-  RunLoop();
+  RunLoop(SimpleThread* t);
   
   XX_DEFINE_INLINE_CLASS(Inl);
   XX_DEFINE_INLINE_CLASS(Inl2);
@@ -234,7 +232,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
   List<Work*> m_work;
   Mutex m_mutex;
   RecursiveMutex* m_independent_mutex;
-  ThreadID m_thread_id;
+  SimpleThread* m_thread;
   uint  m_keep_count;
   uv_loop_t* m_uv_loop;
   uv_async_t* m_uv_async;

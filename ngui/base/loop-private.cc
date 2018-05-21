@@ -62,7 +62,7 @@ class PrivateLoop {
       m_loop->run(2e7); // 使用20超时,20秒后没有新消息结束线程
       { //
         ScopeLock scope(m_mutex);
-        XX_THREAD_LOCK(t) {
+        XX_THREAD_LOCK(t, {
           /* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
            * 200毫秒后没有向队列发送新消息结束线程
            * * *
@@ -72,7 +72,7 @@ class PrivateLoop {
           if ( m_loop->is_alive() && !t.is_abort() ) {
             goto loop; // 继续运行
           }
-        }
+        });
         m_loop = nullptr;
         m_thread_id = ThreadID();
       }

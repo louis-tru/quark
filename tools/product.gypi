@@ -142,7 +142,7 @@
         },
       }],
       ['os=="ios"', {
-        'link_settings': { 
+        'link_settings': {
           'libraries': [ 
             '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
             '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',

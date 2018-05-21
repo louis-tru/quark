@@ -313,7 +313,7 @@ BitRateInfo Inl::read_bit_rate_info(AVFormatContext* fmt_ctx, int start, int siz
   return info;
 }
 
-#define ABORT() { XX_THREAD_LOCK(t) trigger_error(e); return; }
+#define ABORT() { XX_THREAD_LOCK(t, { trigger_error(e); }); return; }
 
 /**
 * @func start
@@ -395,28 +395,26 @@ void Inl::start() {
     
     int bit_rate_index;
     
-    { //
-      XX_THREAD_LOCK(t) {
-        {
-          ScopeLock scope(mutex());
-          m_bit_rate = move(bit_rate);
-          m_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
-          m_fmt_ctx = fmt_ctx;
-        }
-        bit_rate_index = bit_rate.length() / 2; // default value
-        select_bit_rate(bit_rate_index);
-        select_multi_bit_rate2(bit_rate_index);
-
-        post(Cb([this](Se& d) {
-          { ScopeLock scope(mutex());
-            m_status = MULTIMEDIA_SOURCE_STATUS_READY;
-          }
-          m_delegate->multimedia_source_ready(m_host);
-        }));
-      } else {
-        return;
+    XX_THREAD_LOCK(t, {
+      {
+        ScopeLock scope(mutex());
+        m_bit_rate = move(bit_rate);
+        m_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
+        m_fmt_ctx = fmt_ctx;
       }
-    }
+      bit_rate_index = bit_rate.length() / 2; // default value
+      select_bit_rate(bit_rate_index);
+      select_multi_bit_rate2(bit_rate_index);
+
+      post(Cb([this](Se& d) {
+        { ScopeLock scope(mutex());
+          m_status = MULTIMEDIA_SOURCE_STATUS_READY;
+        }
+        m_delegate->multimedia_source_ready(m_host);
+      }));
+    }, {
+      return;
+    });
     
     read_stream(t, fmt_ctx, uri, bit_rate_index);
   }, "ffmpeg_read_source");

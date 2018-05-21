@@ -45,86 +45,6 @@
 
 XX_NS(ngui)
 
-struct ThreadData {
-  ThreadID id;
-  SimpleThread* thread;
-  RunLoop* loop;
-};
-
-struct ThreadSpecificData {
-  void* data[256];
-  RunLoop* loop;
-  SimpleThread* thread;
-};
-
-static Mutex* thread_data_mutex;
-static Map<ThreadID, ThreadData>* thread_data = nullptr;
-static RunLoop* main_loop_obj = nullptr;
-static pthread_key_t specific_key;
-int process_exit = 0;
-
-static void thread_destructor(void* ptr) {
-  auto data = reinterpret_cast<ThreadSpecificData*>(ptr);
-  if (data) {
-    if (!process_exit) {
-      if (main_loop_obj != data->loop) {
-        Release(data->loop);
-      }
-    }
-    delete data;
-  }
-}
-
-static void thread_init() {
-  int err = pthread_key_create(&specific_key, thread_destructor);
-  XX_CHECK(err == 0);
-}
-
-static ThreadSpecificData* get_thread_specific() {
-  auto ptr = reinterpret_cast<ThreadSpecificData*>(pthread_getspecific(specific_key));
-  if ( !ptr ) {
-    ptr = new ThreadSpecificData();
-    memset(ptr, 0, sizeof(ThreadSpecificData));
-    pthread_setspecific(specific_key, ptr);
-  }
-  return ptr;
-}
-
-void* SimpleThread::get_specific_data(char id) {
-  return get_thread_specific()->data[byte(id)];
-}
-
-void SimpleThread::set_specific_data(char id, void* data) {
-  get_thread_specific()->data[byte(id)] = data;
-}
-
-static void set_thread_data(ThreadID id, SimpleThread* thread, RunLoop* loop) {
-  ScopeLock scope(*thread_data_mutex);
-  auto it = thread_data->find(id);
-  if (it.is_null()) {
-    thread_data->set(id, { id, thread, loop });
-  } else {
-    if (thread)
-      it.value().thread = thread;
-    if (loop)
-      it.value().loop = loop;
-  }
-}
-
-static void delete_thread_data(ThreadID id, SimpleThread* thread, RunLoop* loop) {
-  ScopeLock scope(*thread_data_mutex);
-  auto it = thread_data->find(id);
-  if (!it.is_null()) {
-    if (thread)
-      it.value().thread = nullptr;
-    if (loop)
-      it.value().loop = nullptr;
-    if (it.value().loop == nullptr && it.value().thread == nullptr) {
-      thread_data->del(it);
-    }
-  }
-}
-
 template<> uint Compare<ThreadID>::hash(const ThreadID& key) {
   ThreadID* p = const_cast<ThreadID*>(&key);
   size_t* t = reinterpret_cast<size_t*>(p);
@@ -135,97 +55,141 @@ template<> bool Compare<ThreadID>::equals(const ThreadID& a,
   return a == b;
 }
 
+// ----------------------------------------------------------
+
+struct ListenSignal {
+  SimpleThread* thread;
+  Mutex mutex;
+  Condition cond;
+};
+
+static Mutex* all_threads_mutex;
+static Map<ThreadID, SimpleThread*>* all_threads = nullptr;
+static List<ListenSignal*>* all_thread_end_listens = nullptr;
+static RunLoop* main_loop_obj = nullptr;
+static pthread_key_t specific_key;
+int process_exit = 0;
+
 XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 public:
 #define _inl_t(self) static_cast<SimpleThread::Inl*>(self)
   
+  static void thread_destructor(void* ptr) {
+    auto thread = reinterpret_cast<SimpleThread*>(ptr);
+    if (process_exit == 0) { // no process exit
+      if (main_loop_obj == thread->m_loop) {
+        main_loop_obj = nullptr;
+      }
+      Release(thread->m_loop);
+    }
+    delete thread;
+  }
+  
+  static void thread_initialize() {
+    all_threads = new Map<ThreadID, SimpleThread*>();
+    all_threads_mutex = new Mutex;
+    all_thread_end_listens = new List<ListenSignal*>();
+    int err = pthread_key_create(&specific_key, thread_destructor);
+    XX_CHECK(err == 0);
+  }
+  
+  static void set_thread_specific_data(SimpleThread* thread) {
+    XX_CHECK(!pthread_getspecific(specific_key));
+    pthread_setspecific(specific_key, thread);
+  }
+  
+  static inline SimpleThread* get_thread_specific_data() {
+    return reinterpret_cast<SimpleThread*>(pthread_getspecific(specific_key));
+  }
+  
+  void set_run_loop(RunLoop* loop) {
+    XX_CHECK(!m_loop);
+    m_loop = loop;
+  }
+  
+  void del_run_loop(RunLoop* loop) {
+    XX_CHECK(m_loop);
+    XX_CHECK(m_loop == loop);
+    m_loop = nullptr;
+  }
+ 
   static void run2(Exec body, SimpleThread* thread) {
-    Handle<SimpleThread> handle(thread);
 #if XX_ANDROID
     JNI::ScopeENV scope;
 #endif
-    auto specific = get_thread_specific();
-    specific->thread = thread;
-    
+    set_thread_specific_data(thread);
     if ( !thread->m_abort ) {
       body(*thread);
     }
-    delete_thread_data(thread->m_id, thread, nullptr);
     {
-      ScopeLock lock(thread->m_mutex);
-      for (auto& i : thread->m_external_wait) { // notice external wait
-        ScopeLock scope(i.value()->mutex);
-        i.value()->cond.notify_one();
+      ScopeLock scope(*all_threads_mutex);
+      for (auto& i : *all_thread_end_listens) {
+        ListenSignal* s = i.value();
+        if (s->thread == thread) {
+          ScopeLock scope(s->mutex);
+          s->cond.notify_one();
+        }
       }
+      all_threads->del(thread->id());
     }
-    specific->thread = nullptr;
   }
   
   static ThreadID run(Exec exec, uint gid, cString& name) {
-    if ( process_exit ) return ThreadID();
-    SimpleThread* thread = new SimpleThread();
-    std::thread std_thread(run2, exec, thread);
-    thread->m_gid = gid;
-    thread->m_id = std_thread.get_id();
-    thread->m_name = name;
-    set_thread_data(thread->m_id, thread, nullptr);
-    std_thread.detach();
-    return thread->m_id;
+    if ( process_exit ) {
+      return ThreadID();
+    } else {
+      ScopeLock scope(*all_threads_mutex);
+      SimpleThread* thread = new SimpleThread();
+      std::thread std_thread(run2, exec, thread);
+      thread->m_gid = gid;
+      thread->m_id = std_thread.get_id();
+      thread->m_name = name;
+      thread->m_abort = false;
+      thread->m_loop = nullptr;
+      memset(thread->m_data, 0, sizeof(void*[256]));
+      all_threads->set(thread->m_id, thread);
+      std_thread.detach();
+      return thread->m_id;
+    }
   }
   
   static void abort_group(uint gid) {
-    ScopeLock scope(*thread_data_mutex);
-    for ( auto& i : *thread_data ) {
-      auto thread = i.value().thread;
-      if (thread) {
-        if ( thread->m_gid == gid ) {
-          ScopeLock lock(thread->m_mutex);
-          thread->m_abort = true;
-          thread->m_cond.notify_one(); // awaken sleep status
-        }
+    ScopeLock scope(*all_threads_mutex);
+    for ( auto& i : *all_threads ) {
+      auto thread = i.value();
+      if ( thread->m_gid == gid ) {
+        ScopeLock lock(thread->m_mutex);
+        thread->m_abort = true;
+        thread->m_cond.notify_one(); // awaken sleep status
       }
     }
   }
   
   static void awaken_group(uint gid) {
-    ScopeLock scope(*thread_data_mutex);
-    for ( auto& i : *thread_data ) {
-      auto thread = i.value().thread;
-      if (thread) {
-        if (thread->m_gid == gid) {
-          ScopeLock lock(thread->m_mutex);
-          thread->m_cond.notify_one(); // awaken sleep status
-        }
+    ScopeLock scope(*all_threads_mutex);
+    for ( auto& i : *all_threads ) {
+      auto thread = i.value();
+      if (thread->m_gid == gid) {
+        ScopeLock lock(thread->m_mutex);
+        thread->m_cond.notify_one(); // awaken sleep status
       }
     }
   }
   
-  static SimpleThread* get_thread_with_id(ThreadID id) {
-    Lock lock(*thread_data_mutex);
-    auto i = thread_data->find(id);
-    if ( i.is_null() ) {
-      return nullptr;
-    }
-    return i.value().thread;
-  }
-  
   static void atexit_exec() {
+    process_exit++; // exit
     Array<ThreadID> ths;
     { //
-      ScopeLock scope(*thread_data_mutex);
-      for ( auto& i : *thread_data ) {
-        auto o = i.value();
-        if (o.thread) {
-          ScopeLock scope(o.thread->m_mutex);
-          if (o.loop) {
-            o.loop->stop();
-          }
-          o.thread->m_abort = true;
-          o.thread->m_cond.notify_one(); // awaken sleep status
-          ths.push(o.thread->id());
-        } else if (o.loop) {
-          o.loop->stop();
+      ScopeLock scope(*all_threads_mutex);
+      for ( auto& i : *all_threads ) {
+        auto t = i.value();
+        ScopeLock scope(t->m_mutex);
+        if (t->m_loop) {
+          t->m_loop->stop();
         }
+        t->m_abort = true;
+        t->m_cond.notify_one(); // awaken sleep status
+        ths.push(t->id());
       }
     }
     ThreadID id = current_id();
@@ -239,60 +203,63 @@ public:
   
 };
 
+void* SimpleThread::get_specific_data(char id) {
+  return Inl::get_thread_specific_data()->m_data[byte(id)];
+}
+
+void SimpleThread::set_specific_data(char id, void* data) {
+  Inl::get_thread_specific_data()->m_data[byte(id)] = data;
+}
+
 ThreadID SimpleThread::detach(Exec exec, cString& name) {
   return Inl::run(exec, 0, name);
 }
 
 void SimpleThread::abort(ThreadID id, int64 wait_end_timeoutUs) {
-  Lock lock(*thread_data_mutex);
-  auto i = thread_data->find(id);
-  if ( !i.is_null() && i.value().thread ) {
-    SimpleThread* t = i.value().thread;
-    t->m_mutex.lock();
-    t->m_abort = true;
-    t->m_cond.notify_one(); // awaken sleep status
-    
-    if ( wait_end ) {
-      lock.unlock();
-      // Add wait to Thread obj
-      Signal signal;
-      auto it = t->m_external_wait.push(&signal);
-      Lock lock(signal.mutex);
-      t->m_mutex.unlock();
-      if (wait_end_timeoutUs > 0) {
-        signal.cond.wait_for(lock, std::chrono::microseconds(wait_end_timeoutUs)); // wait
-      } else {
-        signal.cond.wait(lock); // wait
+  Lock lock(*all_threads_mutex);
+  auto i = all_threads->find(id);
+  if ( !i.is_null() ) {
+    auto t = i.value();
+    auto& t2 = *t;
+    XX_THREAD_LOCK(t2, {
+      t->m_abort = true;
+      t->m_cond.notify_one(); // awaken sleep status
+    });
+    if ( wait_end_timeoutUs ) {
+      ListenSignal signal = { t };
+      auto it = all_thread_end_listens->push(&signal);
+      { //
+        Lock l(signal.mutex);
+        lock.unlock();
+        if (wait_end_timeoutUs > 0) {
+          signal.cond.wait_for(l, std::chrono::microseconds(wait_end_timeoutUs)); // wait
+        } else {
+          signal.cond.wait(l); // wait
+        }
       }
-      if (thread_data->has(id)) { // 如果线程句柄还存在,删除`signal`
-        t->m_external_wait.del(it);
-      }
-    } else {
-      t->m_mutex.unlock();
+      lock.lock();
+      all_thread_end_listens->del(it);
     }
   }
 }
 
 void SimpleThread::wait_end(ThreadID id, int64 timeoutUs) {
-  Lock lock(*thread_data_mutex);
-  auto i = thread_data->find(id);
-  if ( !i.is_null() && i.value().thread ) {
-    SimpleThread* t = i.value().thread;
-    t->m_mutex.lock(); //
-    // Add wait to Thread obj
-    lock.unlock();
-    Signal signal;
-    auto it = t->m_external_wait.push(&signal);
-    Lock lock(signal.mutex);
-    t->m_mutex.unlock();
-    if (timeoutUs > 0) {
-      signal.cond.wait_for(lock, std::chrono::microseconds(timeoutUs)); // wait
-    } else {
-      signal.cond.wait(lock); // wait
+  Lock lock(*all_threads_mutex);
+  auto i = all_threads->find(id);
+  if ( !i.is_null() ) {
+    ListenSignal signal = { i.value() };
+    auto it = all_thread_end_listens->push(&signal);
+    { //
+      Lock l(signal.mutex);
+      lock.unlock();
+      if (timeoutUs > 0) {
+        signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
+      } else {
+        signal.cond.wait(l); // wait
+      }
     }
-    if (thread_data->has(id)) { // 如果线程句柄还存在,删除`signal`
-      t->m_external_wait.del(it);
-    }
+    lock.lock();
+    all_thread_end_listens->del(it);
   }
 }
 
@@ -326,31 +293,24 @@ ThreadID SimpleThread::current_id() {
  * @func current
  */
 SimpleThread* SimpleThread::current() {
-  return get_thread_specific()->thread;
+  return Inl::get_thread_specific_data();
 }
 
 /**
  * @func awaken
  */
 void SimpleThread::awaken(ThreadID id) {
-  ScopeLock lock(*thread_data_mutex);
-  auto i = thread_data->find(id);
+  ScopeLock lock(*all_threads_mutex);
+  auto i = all_threads->find(id);
   if ( !i.is_null() ) {
-    ScopeLock scope(i.value().thread->m_mutex);
-    i.value().thread->m_cond.notify_one(); // awaken sleep status
+    ScopeLock scope(i.value()->m_mutex);
+    i.value()->m_cond.notify_one(); // awaken sleep status
   }
 }
 
-static void atexit_exec() {
-  process_exit++;
-  SimpleThread::Inl::atexit_exec();
-}
-
 XX_INIT_BLOCK(thread_init_once) {
-  thread_data = new Map<ThreadID, ThreadData>();
-  thread_data_mutex = new Mutex;
-  atexit(atexit_exec);
-  thread_init();
+  atexit(SimpleThread::Inl::atexit_exec);
+  SimpleThread::Inl::thread_initialize();
 }
 
 // --------------------- ThreadRunLoop ---------------------
@@ -576,19 +536,18 @@ struct RunLoop::Work {
 /**
  * @constructor
  */
-RunLoop::RunLoop()
-: m_thread_id(SimpleThread::current_id())
-, m_keep_count(0)
+RunLoop::RunLoop(SimpleThread* t)
+: m_keep_count(0)
 , m_independent_mutex(nullptr)
+, m_thread(t)
 , m_uv_loop(nullptr)
 , m_uv_async(nullptr)
 , m_uv_timer(nullptr)
 , m_timeout(0)
 , m_record_timeout(0)
 {
+  _inl_t(t)->set_run_loop(this);
   m_uv_loop = uv_loop_new();
-  get_thread_specific()->loop = this;
-  set_thread_data(m_thread_id, nullptr, this);
 }
 
 /**
@@ -598,17 +557,21 @@ RunLoop::~RunLoop() {
   XX_CHECK(m_keep_count == 0);
   XX_CHECK(m_work.length() == 0);
   XX_CHECK(m_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
-  uv_loop_delete(m_uv_loop);
-  delete_thread_data(m_thread_id, nullptr, this);
+  if (m_uv_loop != uv_default_loop()) {
+    uv_loop_delete(m_uv_loop);
+  }
+  _inl_t(m_thread)->del_run_loop(this);
 }
 
 /**
  * @func current() 获取当前线程消息队列
  */
 RunLoop* RunLoop::current() {
-  RunLoop* loop = get_thread_specific()->loop;
+  auto t = SimpleThread::Inl::get_thread_specific_data();
+  XX_CHECK(t);
+  auto loop = t->loop();
   if (!loop) {
-    loop = new RunLoop();
+     loop = new RunLoop(t);
   }
   return loop;
 }
@@ -618,6 +581,7 @@ RunLoop* RunLoop::current() {
  */
 RunLoop* RunLoop::main_loop() {
   if (!main_loop_obj) {
+    ScopeLock scope(*all_threads_mutex);
     main_loop_obj = current();
     uv_loop_delete(main_loop_obj->m_uv_loop);
     main_loop_obj->m_uv_loop = uv_default_loop();
@@ -674,10 +638,8 @@ uint RunLoop::work(cCb& cb, cCb& done) {
   work->uv_req.data = work;
   work->host = this;
   post(Cb([work, this](Se& ev) {
-    int r = uv_queue_work(m_uv_loop,
-                          &work->uv_req,
-                          Work::uv_work_cb,
-                          Work::uv_after_work_cb);
+    int r = uv_queue_work(m_uv_loop, &work->uv_req,
+                          Work::uv_work_cb, Work::uv_after_work_cb);
     XX_ASSERT(!r);
     work->it = m_work.push(work);
   }));
@@ -755,12 +717,12 @@ KeepLoop* RunLoop::keep_alive(bool declear) {
  * @ret {RunLoop*}
  */
 RunLoop* RunLoop::loop(ThreadID id) {
-  ScopeLock scope(*thread_data_mutex);
-  auto i = thread_data->find(id);
+  ScopeLock scope(*all_threads_mutex);
+  auto i = all_threads->find(id);
   if (i.is_null()) {
     return nullptr;
   }
-  return i.value().loop;
+  return i.value()->loop();
 }
 
 /**

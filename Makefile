@@ -83,9 +83,9 @@ ios:
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
 					 ./out/ios.x64.Release/libngui.dylib 
-	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(TOOLS_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
-					 ./out/ios.x64.Release/libngui.dylib 
+	# @$(NODE) ./tools/gen_apple_framework.js ios \
+	# 				 $(TOOLS_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
+	# 				 ./out/ios.x64.Release/libngui.dylib 
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
 					 ./out/ios.arm64.Release/libngui.dylib # out/ios.armv7.Release/libngui.dylib
