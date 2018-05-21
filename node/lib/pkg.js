@@ -517,7 +517,7 @@ Module._extensions['.js'] = function(module, filename) {
       content = _util.transformJs(content, raw_filename);
     }
   }
-  module._compile(internalModule.stripBOM(content), raw_filename);
+  module._compile(internalModule.stripBOM(content), raw_filename, filename);
 };
 
 // Native extension for .jsx
@@ -529,7 +529,7 @@ Module._extensions['.jsx'] = function(module, filename) {
     pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
     content = _util.transformJsx(content, raw_filename);
   }
-  module._compile(internalModule.stripBOM(content), raw_filename);
+  module._compile(internalModule.stripBOM(content), raw_filename, filename);
 };
 
 // Native extension for .json

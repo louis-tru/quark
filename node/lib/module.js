@@ -99,7 +99,7 @@ class Module {
   // the correct helper variables (require, module, exports) to
   // the file.
   // Returns exception, if any.
-  _compile(content, filename) {
+  _compile(content, filename, filename2) {
 
     content = internalModule.stripShebang(content);
 
@@ -124,7 +124,7 @@ class Module {
       }
 
       // Set breakpoint on module start
-      if (filename === resolvedArgv) {
+      if (filename2 === resolvedArgv) {
         delete process._breakFirstLine;
         inspectorWrapper = process.binding('inspector').callAndPauseOnStart;
         if (!inspectorWrapper) {
