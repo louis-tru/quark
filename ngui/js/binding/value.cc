@@ -833,7 +833,7 @@ bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc
     auto strs = in->ToStringValue(worker).split(' ');
     for (auto& i : strs) {
       if (!i.value().is_blank()) {
-        auto it = ALIGN.find(in->ToStringValue(worker));
+        auto it = ALIGN.find(i.value());
         if ( it.is_null() ) { /* err */
           goto err;
         } else {

@@ -79,7 +79,7 @@ class WrapIndep: public WrapViewBase {
   
   static void set_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
     JS_WORKER(args); GUILock lock;
-    js_parse_value2(Array<Align>, Aligns, value, "Indep.alignY = %s");
+    js_parse_value2(Array<Align>, Aligns, value, "Indep.align = %s");
     JS_SELF(Indep);
     self->set_align_x(out[0]);
     self->set_align_y(out[1]);
