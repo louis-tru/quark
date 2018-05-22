@@ -74,6 +74,7 @@ IOSGLDrawCore* IOSGLDrawCore::create(GUIApplication* host, const Map<String, int
   } else {
     XX_FATAL("Unable to initialize OGL device does not support OpenGLES");
   }
+  
   return rv;
 }
 

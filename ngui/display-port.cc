@@ -235,6 +235,7 @@ void DisplayPort::render_frame() {
  * @func refresh()
  */
 void DisplayPort::refresh() {
+  // TODO 必须要渲染循环中调用
   Root* r = root();
   if ( r ) {
     m_pre_render->solve(sys::time_monotonic());

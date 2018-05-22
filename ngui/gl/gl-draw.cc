@@ -439,7 +439,7 @@ public:
     
     glUseProgram(shader::text_texture.shader);
     
-    glUniform1fv(shader::text_texture.view_matrix, 7, &v->m_final_matrix[0]);
+    glUniform1fv(shader::text_texture.view_matrix, 7, v->m_final_matrix.value());
     glUniform1f(shader::text_texture.texture_scale, data.texture_scale);
     glUniform4f(shader::text_texture.color,
                 color.r() / 255.0f, color.g() / 255.0f, color.b() / 255.0f, color.a() / 255.0f );
@@ -468,6 +468,21 @@ public:
           
           glUniform1f(shader::text_texture.offset_x, offset_x);
           glBindTexture(GL_TEXTURE_2D, glyph->texture_id(level));
+          
+          /*
+          LOG(
+              "view_matrix: %f,%f,%f,%f,%f,%f,%f\n"
+              "texture_scale: %f\n"
+              "hori_baseline: %f\n"
+              "tex_size: %d,%d,%d,%d\n"
+              "offset_x: %f\n",
+              v->m_final_matrix[0],v->m_final_matrix[1],v->m_final_matrix[2],v->m_final_matrix[3],v->m_final_matrix[4],v->m_final_matrix[5],v->m_final_opacity,
+              data.texture_scale,
+              cell.baseline + offset.y(),
+              s.width, s.height, s.left, s.top,
+              offset_x
+          );*/
+          
           glDrawArrays(GL_TRIANGLE_FAN, 0, 4);  // 绘制文字纹理
         }
       }

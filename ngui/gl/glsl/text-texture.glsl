@@ -15,7 +15,7 @@ out vec2  f_tex_coord;    // 纹理座标
 out vec4  f_color;        // 文字颜色
 
 void main() {
-  
+
   f_color = color * vec4(1.0, 1.0, 1.0, opacity);
   
   vec4 tex_size2 = tex_size * texture_scale / display_port_scale;
@@ -60,4 +60,6 @@ out lowp vec4 FragColor;
 
 void main() {
   FragColor = f_color * vec4(1.0, 1.0, 1.0, texture(sampler_tex_1, f_tex_coord).a);
+  // FragColor = vec4(0.0, 0.0, 0.0, texture(sampler_tex_1, f_tex_coord).a);
+  //FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

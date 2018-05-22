@@ -1,5 +1,5 @@
 {
 	"name": "test-ngui",
-	"main": "test2.js",
+	"main": "test2.jsx",
 	"use_ngui_syntax": true
 }
