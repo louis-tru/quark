@@ -1179,6 +1179,22 @@ console.log(view.class);
 
 * {[`Align`]}
 
+### Set: Indep.align
+
+同时设置垂直与水平对齐方式，默认为`left`与`top`，有效的值为：
+
+* `left` - 水平左对齐
+
+* `right` - 水平右对齐
+
+* `top` - 垂直顶部对齐
+
+* `bottom` - 垂直底部对齐
+
+* `cerent` - 水平与垂直居中对齐
+
+* {[`Align`]}
+
 
 ## `Class: LimitIndep`
 * `extends` [`Indep`]

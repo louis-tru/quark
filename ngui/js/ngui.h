@@ -100,6 +100,7 @@ F(BackgroundSize, BackgroundSize) \
 /* Append, no actual type */\
 F(Values, Array<Value>) \
 F(Floats, Array<float>) \
+F(Aligns, Array<Align>) \
 F(Repeats, Array<Repeat>) \
 F(BackgroundPositions, Array<BackgroundPositionCollection>) \
 F(BackgroundSizes, Array<BackgroundSizeCollection>) \

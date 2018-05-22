@@ -242,6 +242,10 @@ class WrapStyleSheets: public WrapObject {
         break;
     }
   });
+  def_property_from_type3(align, Array<Align>, Aligns, {
+    self->set_align_x(out[0]);
+    self->set_align_y(out[1]);
+  });
   def_property_from_type2(border, Border, {
     self->set_border_left_color(out.color);
     self->set_border_top_color(out.color);
@@ -391,6 +395,7 @@ public:
     JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_Y, -24);
     JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE, -25);
     JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE_X, -26);
+    JS_SET_PROPERTY(PROPERTY_ALIGN, -27);
     
     JS_DEFINE_CLASS(StyleSheets, constructor, {
       JS_SET_CLASS_ACCESSOR(time, time, set_time);
@@ -469,6 +474,7 @@ public:
       JS_SET_CLASS_ACCESSOR(minHeight, nullptr, set_min_height);
       JS_SET_CLASS_ACCESSOR(start, nullptr, set_start);
       JS_SET_CLASS_ACCESSOR(ratio, nullptr, set_ratio);
+      JS_SET_CLASS_ACCESSOR(align, nullptr, set_align);
       JS_SET_CLASS_ACCESSOR(backgroundImage, nullptr, set_background_image);
       JS_SET_CLASS_ACCESSOR(backgroundRepeat, nullptr, set_background_repeat);
       JS_SET_CLASS_ACCESSOR(backgroundPosition, nullptr, set_background_position);

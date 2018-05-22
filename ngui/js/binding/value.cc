@@ -827,6 +827,35 @@ bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc
   parse_error_throw(worker, in, desc, _parseFloatsHelp.strong());
   return false;
 }
+bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc) {
+  Local<JSObject> object;
+  if ( in->IsString(worker) ) {
+    auto strs = in->ToStringValue(worker).split(' ');
+    for (auto& i : strs) {
+      if (!i.value().is_blank()) {
+        auto it = ALIGN.find(in->ToStringValue(worker));
+        if ( it.is_null() ) { /* err */
+          goto err;
+        } else {
+          out.push(it.value());
+        }
+      }
+    }
+    if (out.length()) {
+      if (out.length() == 1) {
+        out.push(out[0]);
+      }
+      return true;
+    }
+  } else if ( isAlign(in) ) {
+    auto align = (Align)in.To()->Get(worker, worker->strs()->value())->ToUint32Value(worker);
+    out = { align, align };
+    return true;
+  }
+err:
+  parse_error_throw(worker, in, desc, _parseAlignsHelp.strong());
+  return false;
+}
 bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc) {
   js_parse(TextColor, {
     out.type = (TextAttrType)object->Get(worker, worker->strs()->type())->ToUint32Value(worker);

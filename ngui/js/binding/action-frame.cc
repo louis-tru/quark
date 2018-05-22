@@ -366,6 +366,12 @@ class WrapFrame: public WrapObject {
     self->set_ratio_x(out.x());
     self->set_ratio_y(out.y());
   });
+  def_property_from_type3(align, Array<Align>, Aligns, {
+    JS_RETURN_NULL();
+  }, {
+    self->set_align_x(out[0]);
+    self->set_align_y(out[1]);
+  });
   
   /********************************** background *****************************************/
   
@@ -567,6 +573,7 @@ class WrapFrame: public WrapObject {
       JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
       JS_SET_CLASS_ACCESSOR(start, start, set_start);
       JS_SET_CLASS_ACCESSOR(ratio, ratio, set_ratio);
+      JS_SET_CLASS_ACCESSOR(align, align, set_align);
       JS_SET_CLASS_ACCESSOR(backgroundImage, background_image, set_background_image);
       JS_SET_CLASS_ACCESSOR(backgroundRepeat, background_repeat, set_background_repeat);
       JS_SET_CLASS_ACCESSOR(backgroundPosition, background_position, set_background_position);

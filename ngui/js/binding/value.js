@@ -1221,6 +1221,12 @@ class _Floats {
   }
 }
 
+class _Aligns {
+  static help(str) {
+    return get_error_msg(['left', 'top center']);
+  }
+}
+
 class _Repeats {
   static help(str) {
     return get_error_msg([10, '10 20 30 40']);
@@ -2191,6 +2197,7 @@ _priv._TextWhiteSpace = _text_white_space;
 // priv class
 _priv.Values = _Values;
 _priv.Floats = _Floats;
+_priv.Aligns = _Aligns;
 _priv.Repeats = _Repeats;
 _priv.BackgroundPositions = _BackgroundPositions;
 _priv.BackgroundSizes = _BackgroundSizes;
