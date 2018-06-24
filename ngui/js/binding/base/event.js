@@ -461,13 +461,13 @@ class EventNoticer {
   }
   
   /**
-   * @func $trigger(unknown_data, is_event)
+   * @func $trigger(event, is_event)
    */
-  $trigger(unknown_data, is_event) {
-    if ( is_event || (unknown_data && unknown_data.__has_event) ) {
-      return this.triggerWithEvent(unknown_data)
+  $trigger(event, is_event) {
+    if ( is_event || (event && event.__has_event) ) {
+      return this.triggerWithEvent(event)
     } else {
-      return this.trigger(unknown_data)
+      return this.trigger(event)
     }
   }
   

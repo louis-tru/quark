@@ -27,7 +27,7 @@
       '../../tools/configure.js',
       '../../tools/install-android-toolchain',
       '../version.h',
-      '../erron.h',
+      '../errno.h',
       'cacert.pem',
       # src
       'container.h',

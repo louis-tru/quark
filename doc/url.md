@@ -163,6 +163,17 @@ console.log(new URL('http://ngui.io/').href);
 console.log(new URL('http://ngui.io/aaa/bbbb/ccc/test.js').filename);
 ```
 
+### Get: URL.path
+
+获取路径包含参数部分
+
+* @ret {[`String`]}
+
+```js
+// Prints: /aaa/bbbb/ccc/test.js?asas=asas
+console.log(new URL('http://ngui.io/aaa/bbbb/ccc/test.js?asas=asas').path);
+```
+
 ### Get: URL.dirname
 
 获取目录名称
@@ -385,6 +396,7 @@ console.log(uri2.relative('file:///var/data/A/B/C/test.js'));
 ## `下面为URL快捷函数,其中第一个参数都为创建URL对像用到的路径`
 
 ## filename(path)
+## path(path)
 ## dirname(path)
 ## search(path)
 ## hash(path)

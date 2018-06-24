@@ -160,8 +160,7 @@ extend(Array.prototype, {
 
 extend(String, {
   format: function(str) {
-    str = String(str);
-    return str.format.apply(str, slice.call(arguments, 1));
+    return String.prototype.format.apply(str, slice.call(arguments, 1));
   }
 });
 
@@ -172,7 +171,8 @@ extend(String.prototype, {
  * @ret : xxxxxxAxxxxxBxxxxC,xxxAxxxxxB
  */
   format: function() {
-    for (var i = 0, val = this, len = arguments.length; i < len; i++)
+    var val = String(this);
+    for (var i = 0, len = arguments.length; i < len; i++)
       val = val.replace(new RegExp('\\{' + i + '\\}', 'g'), arguments[i]);
     return val;
   }
@@ -393,7 +393,12 @@ extend(Error, {
   new: function(e, code) {
     if (! (e instanceof Error)) {
       if (typeof e == 'object') {
-        e = Object.assign(new Error(e.message || 'Unknown error'), e);
+        if (Array.isArray(e)) {
+          code = e[0];
+          e = new Error(e[1] || 'Unknown error');
+        } else {
+          e = Object.assign(new Error(e.message || e.error || 'Unknown error'), e);
+        }
       } else {
         e = new Error(e);
       }

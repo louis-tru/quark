@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui_erron__
-#define __ngui_erron__
+#ifndef __ngui_errno__
+#define __ngui_errno__
 
 /**
  * @ns ngui
