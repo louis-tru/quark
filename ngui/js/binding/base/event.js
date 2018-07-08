@@ -35,35 +35,35 @@ var _id = 0;
   */
 class Event {
   
-	// m_data: null;
-	// m_noticer: null;
-	// m_return_value: 0;
+  // m_data: null;
+  // m_noticer: null;
+  // m_return_value: 0;
   // __has_event: 1;
   
-	/**
-	 * name
-	 */
-	get name () {
-		return this.m_noticer.name;
-	}
+  /**
+   * name
+   */
+  get name () {
+    return this.m_noticer.name;
+  }
   
-	/**
-	 * 事件数据
-	 */
-	get data () {
-		return this.m_data;
-	}
+  /**
+   * 事件数据
+   */
+  get data () {
+    return this.m_data;
+  }
   
-	/**
-	 * 发送者
-	 */
-	get sender () {
-		return this.m_noticer.sender;
-	}
+  /**
+   * 发送者
+   */
+  get sender () {
+    return this.m_noticer.sender;
+  }
 
-	get noticer () {
-		return this.m_noticer;
-	}
+  get noticer () {
+    return this.m_noticer;
+  }
 
   get returnValue() {
     return this.m_return_value;
@@ -79,12 +79,12 @@ class Event {
   /**
    * @constructor
    */
-	constructor(data) {
+  constructor(data) {
     this.m_noticer = null;
     this.m_return_value = 0;
     this.m_data = data;
-	}
-	// @end
+  }
+  // @end
 }
 
 Event.prototype.m_data = null;
@@ -216,45 +216,46 @@ List.prototype._length = 0;
 
 /* @fun add # Add event listen */
 function add(self, origin, listen, scope, id) {
+  if ( !self.m_event ) {
+    self.m_event = new Event(null);
+    self.m_event.m_noticer = self;
+  }
 
+  var map = self.m_listens_map;
+  if ( !map ) {
+    self.m_listens = new List();
+    self.m_listens_map = map = { };
+  }
+
+  if (typeof scope == 'number') {
+    id = scope;
+    scope = self.m_sender;
+  } else {
+    scope = scope || self.m_sender;
+    id = typeof id == 'number' ? id : ++_id;
+  }
+
+  var value = {
+    origin: origin,
+    listen: listen,
+    scope: scope,
+    id: id,
+  };
+  var item = map[id];
+
+  if ( item ) { // replace
+    item._value = value;
+  } else { // add
+
+    map[id] = self.m_listens.push(value);
+    self.m_length++;
+  }
+  return id;
+}
+
+function chack_add(self, origin, listen, scope, id) {
   if ( typeof origin == 'function' ) {
-    
-    if ( !self.m_event ) {
-    	self.m_event = new Event(null);
-    	self.m_event.m_noticer = self;
-    }
-
-    var map = self.m_listens_map;
-    if ( !map ) {
-      self.m_listens = new List();
-      self.m_listens_map = map = { };
-    }
-
-  	if (typeof scope == 'number') {
-  		id = scope;
-  		scope = self.m_sender;
-  	} else {
-  		scope = scope || self.m_sender;
-      id = typeof id == 'number' ? id : ++_id;
-  	}
-
-    var value = {
-      origin: origin,
-      listen: listen,
-      scope: scope,
-      id: id,
-    };
-    var item = map[id];
-
-    if ( item ) { // replace
-      item._value = value;
-    } else { // add
-
-      map[id] = self.m_listens.push(value);
-      self.m_length++;
-    }
-
-    return id;
+    add(self, origin, listen, scope, id);
   } else {
     throw new Error('Event listener function type is incorrect ');
   }
@@ -309,14 +310,14 @@ class EventNoticer {
    * @get name {String} # 事件名称
    */
   get name () {
-  	return this.m_name;
+    return this.m_name;
   }
   
   /**
    * @get {Object} # 事件发送者
    */
   get sender () {
-  	return this.m_sender;
+    return this.m_sender;
   }
   
   /**
@@ -324,7 +325,7 @@ class EventNoticer {
    * @get {int} # 添加的事件侦听数量
    */
   get length () {
-  	return this.m_length;
+    return this.m_length;
   }
   
   /**
@@ -352,7 +353,7 @@ class EventNoticer {
     if (listen instanceof EventNoticer) {
       return add_on_noticer(this, listen, scope);
     }
-    return add(this, listen, listen, scope, id);
+    return chack_add(this, listen, listen, scope, id);
   }
   
   /**
@@ -366,7 +367,7 @@ class EventNoticer {
       return add_once_noticer(this, listen);
     }
     var self = this;
-    var _id = add(this, listen, {
+    var _id = chack_add(this, listen, {
       call: function (scope, evt) {
         self.off(_id); listen.call(scope, evt);
       }
@@ -382,11 +383,11 @@ class EventNoticer {
    * @arg [scope] {Object}   #      重新指定侦听函数this
    * @arg [id] {String}     #     侦听器别名,可通过id删除
    */
-  on2 (listen, scope, id) {
+  on2(listen, scope, id) {
     if(listen instanceof EventNoticer){
       return add_on_noticer(this, listen);
     }
-    return add(this, listen, { call: listen }, scope, id);
+    return chack_add(this, listen, { call: listen }, scope, id);
   }
 
   /**
@@ -397,12 +398,12 @@ class EventNoticer {
    * @arg [scope] {Object}      # 重新指定侦听函数this
    * @arg [id] {String}         # 侦听器id,可通过id删除
    */
-  once2 (listen, scope, id) {
+  once2(listen, scope, id) {
     if ( listen instanceof EventNoticer ) {
       return add_once_noticer(this, listen, scope);
     }
     var self = this;
-    var _id = add(this, listen, {
+    var _id = chack_add(this, listen, {
       call: function (scope, evt) {
         self.off(_id); listen(scope, evt);
       }
@@ -436,7 +437,7 @@ class EventNoticer {
     }
     return 0;
   }
-
+  
   /**
    * @fun triggerWithEvent # 通知所有观察者
    * @arg data {Object} 要发送的event
@@ -476,7 +477,7 @@ class EventNoticer {
    * @arg [func] {Object}   # 可以是侦听函数,id,如果不传入参数卸载所有侦听器
    * @arg [scope] {Object}  # scope
    */
-  off (func, scope) {
+  off(func, scope) {
     if ( !this.m_length ) { return }
     if (func) {
 
@@ -489,7 +490,7 @@ class EventNoticer {
         }
       } else if ( func instanceof Function ) { // 要卸载是一个函数
         var item = this.m_listens._first;
-      	if (scope) { // 需比较范围
+        if (scope) { // 需比较范围
           while ( item ) {
             var value = item._value;
             if ( value ) {
@@ -501,7 +502,7 @@ class EventNoticer {
             }
             item = item._next;
           }
-      	} else { // 与这个函数有关系的
+        } else { // 与这个函数有关系的
           while ( item ) {
             var value = item._value;
             if ( value ) {
@@ -513,11 +514,11 @@ class EventNoticer {
             }
             item = item._next;
           }
-      	}
+        }
       } else if ( func instanceof Object ) { //
         var item = this.m_listens._first;
 
-      	if ( func instanceof EventNoticer ) { // 卸载代理
+        if ( func instanceof EventNoticer ) { // 卸载代理
           while ( item ) {
             var value = item._value;
             if ( value ) {
@@ -529,7 +530,7 @@ class EventNoticer {
             }
             item = item._next;
           }
-      	} else { // 要卸载这个范围上相关的侦听器
+        } else { // 要卸载这个范围上相关的侦听器
           while ( item ) {
             var value = item._value;
             if ( value ) {
@@ -541,7 +542,7 @@ class EventNoticer {
             }
             item = item._next;
           }
-      	}
+        }
       } else { //
         throw new Error('Param err');
       }

@@ -395,7 +395,9 @@ extend(Error, {
       if (typeof e == 'object') {
         if (Array.isArray(e)) {
           code = e[0];
+          var description = e[2] || '';
           e = new Error(e[1] || 'Unknown error');
+          e.description = description;
         } else {
           e = Object.assign(new Error(e.message || e.error || 'Unknown error'), e);
         }
@@ -407,4 +409,11 @@ extend(Error, {
     return e;
   },
 
+});
+
+extend(Error.prototype, {
+  
+  toJSON: function() {
+    return Error.toJSON(this);
+  },
 });
