@@ -49,17 +49,17 @@ function keyenter(evt) {
 }
 
 export const vx = (
-  <Mynavpage title="File System" source=resolve(__filename)>
-    <Div width="full">
-    	<Input class="input" id="input" 
-    		placeholder="Please enter write content.."
-    		value="Hello."
-    		returnType="done" onKeyEnter=keyenter />
-      <Button class="long_btn" onClick=WriteFile>WriteFile</Button>
-      <Button class="long_btn" onClick=WriteFileSync>WriteFileSync</Button>
-      <Button class="long_btn" onClick=ReadFile>ReadFile</Button>
-      <Button class="long_btn" onClick=ReadFile>ReadFileSync</Button>
-      <Button class="long_btn" onClick=Remove>Remove</Button>
-    </Div>
-  </Mynavpage>
+	<Mynavpage title="File System" source=resolve(__filename)>
+		<Div width="full">
+			<Input class="input" id="input" 
+				placeholder="Please enter write content.."
+				value="Hello."
+				returnType="done" onKeyEnter=keyenter />
+			<Button class="long_btn" onClick=WriteFile>WriteFile</Button>
+			<Button class="long_btn" onClick=WriteFileSync>WriteFileSync</Button>
+			<Button class="long_btn" onClick=ReadFile>ReadFile</Button>
+			<Button class="long_btn" onClick=ReadFile>ReadFileSync</Button>
+			<Button class="long_btn" onClick=Remove>Remove</Button>
+		</Div>
+	</Mynavpage>
 )

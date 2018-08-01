@@ -377,7 +377,11 @@ extend(Error, {
         return { message: 'unknown error', code: err, name: '', description: '' };
       } else {
         var r = Object.create(err);
-        r.code = r.code || 0;
+        if (typeof r.code == 'string') {
+          r.rawCode = r.code;
+          r.code = -1;
+        }
+        r.code = r.code || -1;
         r.name = r.name || '';
         r.description = r.description || '';
         r.message = r.message || 'unknown error';

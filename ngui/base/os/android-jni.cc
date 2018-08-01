@@ -157,6 +157,6 @@ extern "C"
     ngui::Android::initialize();
     ngui::AndroidConsole* console = new ngui::AndroidConsole();
     console->set_as_default();
-		return JNI_VERSION_1_6;
-	}
+    return JNI_VERSION_1_6;
+  }
 }

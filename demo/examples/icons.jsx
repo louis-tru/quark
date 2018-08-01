@@ -1,38 +1,38 @@
 import { 
-  Div, Scroll, Text, TextNode, Hybrid, ViewController, New 
+	Div, Scroll, Text, TextNode, Hybrid, ViewController, New 
 } from 'ngui';
 import { Mynavpage } from './public';
 
 class IconsPanel extends ViewController {
-  
-  loadView(vx) {
-    super.loadView(<Div margin=10 width="full" />);
+	
+	loadView(vx) {
+		super.loadView(<Div margin=10 width="full" />);
 
-    var ts = new Date();
-    
-    var {v:str} = vx;
-    var view = this.view;
-    
-    for ( var i = 0; i < str.length; i++ ) {
-      var unicode = str.charCodeAt(i);
-      if (unicode > 255) {
-        New(
-          <Hybrid marginBottom=10 textAlign="center" width="25%">
-            <TextNode textSize=28 textFamily="icon">${str[i]}</TextNode>
-            <TextNode textColor="#555">@@ ${unicode.toString(16)}</TextNode>
-          </Hybrid>
-        , view)
-      }
-    }
-    
-    console.log(new Date() - ts);
-  }
+		var ts = new Date();
+		
+		var {v:str} = vx;
+		var view = this.view;
+		
+		for ( var i = 0; i < str.length; i++ ) {
+			var unicode = str.charCodeAt(i);
+			if (unicode > 255) {
+				New(
+					<Hybrid marginBottom=10 textAlign="center" width="25%">
+						<TextNode textSize=28 textFamily="icon">${str[i]}</TextNode>
+						<TextNode textColor="#555">@@ ${unicode.toString(16)}</TextNode>
+					</Hybrid>
+				, view)
+			}
+		}
+		
+		console.log(new Date() - ts);
+	}
 }
 
 export const vx = (
-  <Mynavpage title="Icons" source=resolve(__filename)>
-    <Scroll width="full" height="full" bounceLock=0>
-      <IconsPanel>
+	<Mynavpage title="Icons" source=resolve(__filename)>
+		<Scroll width="full" height="full" bounceLock=0>
+			<IconsPanel>
 \ue900
 \ue901
 \ue902
@@ -1643,7 +1643,7 @@ export const vx = (
 \uef47
 \uef48
 \uef49
-      </IconsPanel>
-    </Scroll>
-  </Mynavpage>
+			</IconsPanel>
+		</Scroll>
+	</Mynavpage>
 )

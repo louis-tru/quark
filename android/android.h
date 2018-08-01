@@ -54,9 +54,9 @@ public:
 	static void set_visible_status_bar(bool visible);
 	static void set_status_bar_style(int style);
 	static void request_fullscreen(bool fullscreen);
-  static int  get_orientation();
-  static void set_orientation(int orientation);
-  static float get_display_scale();
+	static int  get_orientation();
+	static void set_orientation(int orientation);
+	static float get_display_scale();
 	static bool is_screen_on();
 	static void set_volume_up();
 	static void set_volume_down();
@@ -65,12 +65,12 @@ public:
 												 cString& subject,
 												 cString& cc, cString& bcc, cString& body);
 	// util
-  static String start_path();
+	static String start_path();
 	static String package_code_path();
 	static String files_dir_path();
 	static String cache_dir_path();
-  static String version();
-  static String brand();
+	static String version();
+	static String brand();
 	static String subsystem();
 	static int network_status();
 	static bool is_ac_power();

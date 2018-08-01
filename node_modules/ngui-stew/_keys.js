@@ -50,7 +50,7 @@ function parse_indent(self, code) {
 		}
 	}
 
-  // 使用2空格缩进
+	// 使用2空格缩进
 	if (space % 2 !== 0) {
 		throw error(self, 'Keys data indent error');
 	}
@@ -60,20 +60,20 @@ function parse_indent(self, code) {
 
 // 读取一行代码
 function read_line_code(self) {
-  if (self.input.length > self.index) {
-    var code = self.input[self.index];
-    self.index++;
-    return code;
-  }
-  return null;
+	if (self.input.length > self.index) {
+		var code = self.input[self.index];
+		self.index++;
+		return code;
+	}
+	return null;
 }
 
 // 解析接续多行值
 function parse_continuous(self, str) { // str,
-  if(str[str.length - 1] == '\\'){ // 连续的
-    var ls = [str.substr(0, str.length - 1)];
+	if(str[str.length - 1] == '\\'){ // 连续的
+		var ls = [str.substr(0, str.length - 1)];
 
-    while(true) {
+		while(true) {
 			str = read_line_code(self);
 			if (str) {
 				if (str[str.length - 1] == '\\') {
@@ -87,18 +87,18 @@ function parse_continuous(self, str) { // str,
 			}
 		}
 		return ls.join('');
-  }
-  return str;
+	}
+	return str;
 }
 
 function parse_string_to(str) {
-  return str.split(/[\s\t]+/).map(function (value) {
-    var mat = value.match(/^((-?\d+(\.\d+)?((e|E)\d+)?)|(true)|(false)|(null))$/);
-    if (mat) {
-      return mat[2] ? parseFloat(value) : mat[6] ? true : mat[7] ? false : null;
-    }
-    return value;
-  });
+	return str.split(/[\s\t]+/).map(function (value) {
+		var mat = value.match(/^((-?\d+(\.\d+)?((e|E)\d+)?)|(true)|(false)|(null))$/);
+		if (mat) {
+			return mat[2] ? parseFloat(value) : mat[6] ? true : mat[7] ? false : null;
+		}
+		return value;
+	});
 }
 
 // 分割普通值
@@ -140,10 +140,10 @@ function parse_and_split_value(value) {
 			// 查找结束
 			while ((end = value.indexOf(c, end)) != -1) {
 				if (value[end - 1] == '\\') { // 字符转义
-          str.push(value.substring(index, end - 1) + c);
+					str.push(value.substring(index, end - 1) + c);
 					end += 1; // 继续找
 					index = end;
-			  } else {    // 不是转义,字符串引号结束
+				} else {    // 不是转义,字符串引号结束
 					ls.push(value.substring(index, end));
 					index = prev_end = end + 1; // 设置上一个结束的位置
 					break;
@@ -176,89 +176,89 @@ function parse_and_split_value(value) {
 // 解析多行数组
 function parse_multi_row_array(self, indent) {
 
-  var ls = [];
-  var code = read_line_code(self);
-  while(code !== null){
+	var ls = [];
+	var code = read_line_code(self);
+	while(code !== null){
 		if(/^[\s\t]*@end[\s\t]*$/.test(code)){ // 查询结束关键字
 			// 开始缩进与结束缩进必需相同,否则异常
 			if(parse_indent(self, code).indent == indent){
-			  return ls;
+				return ls;
 			}
 			else{
 				throw error(self, '@end desc data indent error');
 			}
 		}
 		ls.push(parse_continuous(self, code));
-    code = read_line_code(self); // 继续查询end
-  }
-  return ls;
+		code = read_line_code(self); // 继续查询end
+	}
+	return ls;
 }
 
 // 读取一对普通 key/value
 function read_key_value_item(self) {
-  var code;
+	var code;
 
-  while (true) {
-    code = read_line_code(self);
-    if (code === null) {
-      return null;
-    }
-    else if(code) {
-      if(code.trim() !== ''){
-        break;
-      }
-    }
-  }
+	while (true) {
+		code = read_line_code(self);
+		if (code === null) {
+			return null;
+		}
+		else if(code) {
+			if(code.trim() !== ''){
+				break;
+			}
+		}
+	}
 
-  var item = parse_indent(self, code);
-  var content = item.content;
-  var mat = content.match(/\@?[^\s\@,]+|,/); // 查询key
+	var item = parse_indent(self, code);
+	var content = item.content;
+	var mat = content.match(/\@?[^\s\@,]+|,/); // 查询key
 
-  if (!mat) {
-    throw error(self, 'Key Illegal characters');
-  }
+	if (!mat) {
+		throw error(self, 'Key Illegal characters');
+	}
 
-  var key = mat[0];
-  var value = '';
+	var key = mat[0];
+	var value = '';
 
-  if(key.length < content.length) {
-    var char = content[key.length]; //content.substr(key.length, 1);
+	if(key.length < content.length) {
+		var char = content[key.length]; //content.substr(key.length, 1);
 
-    switch (char) {
-      case ':':
-        // 多行描叙数组,所以这一行后面不能在出现非空格的字符
-        // TODO : 后面可以随意写无需遵循缩进格式,直到文档结束或遇到@end
-        if(/[^\s\t]/.test(content.substr(key.length + 1))){ // 查询非空格字符
-          throw error(self, 'Parse multi row array Illegal characters');
-        }
-        value = parse_multi_row_array(self, item.indent); // 解析多行数组
-        break;
-      case ' ':
-      case '\t':
+		switch (char) {
+			case ':':
+				// 多行描叙数组,所以这一行后面不能在出现非空格的字符
+				// TODO : 后面可以随意写无需遵循缩进格式,直到文档结束或遇到@end
+				if(/[^\s\t]/.test(content.substr(key.length + 1))){ // 查询非空格字符
+					throw error(self, 'Parse multi row array Illegal characters');
+				}
+				value = parse_multi_row_array(self, item.indent); // 解析多行数组
+				break;
+			case ' ':
+			case '\t':
 
-        value = content.substr(key.length + 1).trim();
-        if(value) {
-          value = parse_and_split_value(parse_continuous(self, value) // 解析连续的字符
-          															); // 解析分割普通值
-          if (value.length == 1) {
-            value = value[0];
-          }
-        }
-        break;
-      default:
-        throw error(self, 'Key Illegal characters');
-    }
-  }
+				value = content.substr(key.length + 1).trim();
+				if(value) {
+					value = parse_and_split_value(parse_continuous(self, value) // 解析连续的字符
+																				); // 解析分割普通值
+					if (value.length == 1) {
+						value = value[0];
+					}
+				}
+				break;
+			default:
+				throw error(self, 'Key Illegal characters');
+		}
+	}
 
-  item.key = key;
-  item.value = value;
-  return item;
+	item.key = key;
+	item.value = value;
+	return item;
 }
 
 function error(self, message) {
-  var err = new Error(message + ', row: ' + (self.index));
-  err.row = self.index - 1;
-  return err;
+	var err = new Error(message + ', row: ' + (self.index));
+	err.row = self.index - 1;
+	return err;
 }
 
 /**
@@ -268,10 +268,10 @@ function push_data(self, data, key, value) {
 	if(data instanceof Array){
 		data.push(value);
 	} else {
-    if (key in data && typeof data[key] != 'funciton') { // key 重复
-      throw error(self, 'Key repeated');
-    }
-    data[key] = value;
+		if (key in data && typeof data[key] != 'funciton') { // key 重复
+			throw error(self, 'Key repeated');
+		}
+		data[key] = value;
 	}
 }
 
@@ -330,5 +330,5 @@ Parser.prototype.parse = function() {
 };
 
 exports.parse = function(str) {
-  return new Parser(str).parse();
+	return new Parser(str).parse();
 };
