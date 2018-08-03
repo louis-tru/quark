@@ -34,26 +34,26 @@ namespace v8 {
 namespace platform {
 
 	v8::Platform* CreateDefaultPlatform(int thread_pool_size,
-                                      IdleTaskSupport idle_task_support,
-                                      InProcessStackDumping in_process_stack_dumping,
-                                      v8::TracingController* tracing_controller) {
-    return nullptr;
+																			IdleTaskSupport idle_task_support,
+																			InProcessStackDumping in_process_stack_dumping,
+																			v8::TracingController* tracing_controller) {
+		return nullptr;
 	}
 
 	bool PumpMessageLoop(v8::Platform* platform,
-                       v8::Isolate* isolate, MessageLoopBehavior behavior) {
-    return false;
+											 v8::Isolate* isolate, MessageLoopBehavior behavior) {
+		return false;
 	}
-  
+	
 	void EnsureEventLoopInitialized(v8::Platform* platform, v8::Isolate* isolate) {
 	}
-  
+	
 	void RunIdleTasks(v8::Platform* platform, v8::Isolate* isolate, double idle_time_in_seconds) {
 	}
-  
-  void SetTracingController(v8::Platform* platform,
-                            v8::platform::tracing::TracingController* tracing_controller) {
-  }
-  
+	
+	void SetTracingController(v8::Platform* platform,
+														v8::platform::tracing::TracingController* tracing_controller) {
+	}
+	
 }
 }

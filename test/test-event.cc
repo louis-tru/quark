@@ -37,25 +37,25 @@
 using namespace ngui;
 
 void test_event() {
-  
-  EventNoticer<Event<int>> ontest("test");
-  
-  ontest.on([](Event<int>& evt) {
-    LOG("data:%d", evt.data());
-  });
-  
-  ontest.on([](Event<int>& evt) {
-    LOG("hh:%d", evt.data());
-  });
-  
-  LOG("done");
-  
-  const Map<String, String> map;
-  
-  map.begin();
-  map.end();
-  
-  ontest.trigger(100);
-  
-  
+	
+	EventNoticer<Event<int>> ontest("test");
+	
+	ontest.on([](Event<int>& evt) {
+		LOG("data:%d", evt.data());
+	});
+	
+	ontest.on([](Event<int>& evt) {
+		LOG("hh:%d", evt.data());
+	});
+	
+	LOG("done");
+	
+	const Map<String, String> map;
+	
+	map.begin();
+	map.end();
+	
+	ontest.trigger(100);
+	
+	
 }

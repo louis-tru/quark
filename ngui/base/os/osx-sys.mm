@@ -47,92 +47,92 @@ XX_NS(ngui)
 XX_NS(sys)
 
 String version() {
-  return String();
+	return String();
 }
 
 String brand() {
-  return "Apple";
+	return "Apple";
 }
 
 String subsystem() {
-  static String name("MacOSX");
-  return name;
+	static String name("MacOSX");
+	return name;
 }
 
 int network_status() {
-  Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
-  int code = [reachability currentReachabilityStatus];
-  if ( code == 1 ) { // wwan
-    return 3; // mobile network
-  }
-  return code;
+	Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
+	int code = [reachability currentReachabilityStatus];
+	if ( code == 1 ) { // wwan
+		return 3; // mobile network
+	}
+	return code;
 }
 
 bool is_ac_power() {
-  return 1;
+	return 1;
 }
 
 bool is_battery() {
-  return 0;
+	return 0;
 }
 
 float battery_level() {
-  return 0;
+	return 0;
 }
 
 uint64 memory() {
-  return [NSProcessInfo processInfo].physicalMemory;
+	return [NSProcessInfo processInfo].physicalMemory;
 }
 
 uint64 used_memory() {
-  struct task_basic_info info;
-  mach_msg_type_number_t size = TASK_BASIC_INFO_COUNT;
-  kern_return_t kerr = task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&info, &size);
-  return (kerr == KERN_SUCCESS) ? info.resident_size : 0; // size in bytes
+	struct task_basic_info info;
+	mach_msg_type_number_t size = TASK_BASIC_INFO_COUNT;
+	kern_return_t kerr = task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&info, &size);
+	return (kerr == KERN_SUCCESS) ? info.resident_size : 0; // size in bytes
 }
 
 uint64 available_memory() {
-  vm_statistics_data_t stats;
-  mach_msg_type_number_t size = HOST_VM_INFO_COUNT;
-  kern_return_t kerr = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&stats, &size);
-  if (kerr == KERN_SUCCESS) {
-    return vm_page_size * stats.free_count; // + vm_page_size * stats.inactive_count;
-  }
-  return 0;
+	vm_statistics_data_t stats;
+	mach_msg_type_number_t size = HOST_VM_INFO_COUNT;
+	kern_return_t kerr = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&stats, &size);
+	if (kerr == KERN_SUCCESS) {
+		return vm_page_size * stats.free_count; // + vm_page_size * stats.inactive_count;
+	}
+	return 0;
 }
 
 struct Languages {
-  Array<String> values;
-  String        string;
+	Array<String> values;
+	String        string;
 };
 
 static Languages _languages([] {
-  Languages r;
-  NSArray* languages = [NSLocale preferredLanguages];
-  for ( int i = 0; i < [languages count]; i++ ) {
-    NSString* str = [languages objectAtIndex:0];
-    r.values.push( [str UTF8String] );
-  }
-  r.string = r.values.join(',');
-  return r;
+	Languages r;
+	NSArray* languages = [NSLocale preferredLanguages];
+	for ( int i = 0; i < [languages count]; i++ ) {
+		NSString* str = [languages objectAtIndex:0];
+		r.values.push( [str UTF8String] );
+	}
+	r.string = r.values.join(',');
+	return r;
 }());
 
 const Array<String>& languages() {
-  return _languages.values;
+	return _languages.values;
 }
 
 String languages_string() {
-  return _languages.string;
+	return _languages.string;
 }
 
 String language() {
-  return languages()[0];
+	return languages()[0];
 }
 
 // plus
 
 String device_name() {
-  return String();
+	return String();
 }
 
 XX_END XX_END

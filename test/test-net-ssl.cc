@@ -35,51 +35,51 @@ using namespace ngui;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
 public:
-  MySSLSocket(): SSLSocket("www.baidu.com", 443) {
-    set_delegate(this);
-    open();
-    //set_timeout(2e6); // 2s
-  }
-  
-  void send_http() {
-    
-    String header =
-    "GET / HTTP/1.1\r\n"
-    "Host: www.baidu.com\r\n"
-    "_Connection: keep-alive\r\n"
-    "Connection: close\r\n"
-    "Accept: */*\r\n"
-    "User-Agent: Mozilla/5.0 AppleWebKit ngui Net Test\r\n\r\n";
-    
-    write(header.collapse_buffer());
-  }
-  
-  virtual void trigger_socket_open(Socket* stream) {
-    LOG("Open Socket");
-    send_http();
-  }
-  virtual void trigger_socket_close(Socket* stream) {
-    LOG("Close Socket");
-    Release(this);
-    //RunLoop::current()->stop();
-  }
-  virtual void trigger_socket_error(Socket* stream, cError& error) {
-    LOG("Error, %d, %s", error.code(), error.message().c());
-  }
-  virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
-    //LOG( String(buffer.value(), buffer.length()) );
-    LOG("DATA.., %d", buffer.length());
-  }
-  virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
-    LOG("Write, OK");
-  }
-  virtual void trigger_socket_timeout(Socket* socket) {
-    LOG("Timeout Socket");
-    close();
-  }
+	MySSLSocket(): SSLSocket("www.baidu.com", 443) {
+		set_delegate(this);
+		open();
+		//set_timeout(2e6); // 2s
+	}
+	
+	void send_http() {
+		
+		String header =
+		"GET / HTTP/1.1\r\n"
+		"Host: www.baidu.com\r\n"
+		"_Connection: keep-alive\r\n"
+		"Connection: close\r\n"
+		"Accept: */*\r\n"
+		"User-Agent: Mozilla/5.0 AppleWebKit ngui Net Test\r\n\r\n";
+		
+		write(header.collapse_buffer());
+	}
+	
+	virtual void trigger_socket_open(Socket* stream) {
+		LOG("Open Socket");
+		send_http();
+	}
+	virtual void trigger_socket_close(Socket* stream) {
+		LOG("Close Socket");
+		Release(this);
+		//RunLoop::current()->stop();
+	}
+	virtual void trigger_socket_error(Socket* stream, cError& error) {
+		LOG("Error, %d, %s", error.code(), error.message().c());
+	}
+	virtual void trigger_socket_data(Socket* stream, Buffer& buffer) {
+		//LOG( String(buffer.value(), buffer.length()) );
+		LOG("DATA.., %d", buffer.length());
+	}
+	virtual void trigger_socket_write(Socket* stream, Buffer buffer, int mark) {
+		LOG("Write, OK");
+	}
+	virtual void trigger_socket_timeout(Socket* socket) {
+		LOG("Timeout Socket");
+		close();
+	}
 };
 
 void test_net_ssl() {
-  New<MySSLSocket>();
-  RunLoop::current()->run();
+	New<MySSLSocket>();
+	RunLoop::current()->run();
 }

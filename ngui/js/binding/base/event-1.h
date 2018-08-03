@@ -44,15 +44,15 @@ JS_BEGIN
  */
 class Cast: public Object {
  public:
-  typedef Local<JSValue> (*CastFunc)(const Object& object, Worker* worker);
-  Local<JSValue> cast(const Object& object, Worker* worker);
-  template<class T> static Cast* entity() {
-    static Cast value(&Worker::New<T>);
-    return &value;
-  }
+	typedef Local<JSValue> (*CastFunc)(const Object& object, Worker* worker);
+	Local<JSValue> cast(const Object& object, Worker* worker);
+	template<class T> static Cast* entity() {
+		static Cast value(&Worker::New<T>);
+		return &value;
+	}
  private:
-  Cast(CastFunc func);
-  CastFunc m_cast_func;
+	Cast(CastFunc func);
+	CastFunc m_cast_func;
 };
 
 JS_END

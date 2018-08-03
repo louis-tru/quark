@@ -41,15 +41,15 @@ void test_demo() {
 
 #if USE_REMOTE
 # if USE_INSPECT
-  js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
+	js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
 # else
-  js::start("http://192.168.1.11:1026/demo/examples --dev");
+	js::start("http://192.168.1.11:1026/demo/examples --dev");
 # endif
 #else
 # if USE_INSPECT
-  js::start("--inspect-brk=0.0.0.0:9229 examples");
+	js::start("--inspect-brk=0.0.0.0:9229 examples");
 # else
-  js::start("examples --dev");
+	js::start("examples --dev");
 # endif
 #endif
 }

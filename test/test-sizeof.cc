@@ -34,25 +34,25 @@ using namespace ngui;
 
 class TestSizeOf {
  private:
-  float m_f1;
-  bool m_a;
-  bool m_b;
-  bool m_c;
-  bool m_d;
-  bool m_e;
-  bool m_f;
-  float m_f2;
+	float m_f1;
+	bool m_a;
+	bool m_b;
+	bool m_c;
+	bool m_d;
+	bool m_e;
+	bool m_f;
+	float m_f2;
 };
 
 typedef TestSizeOf* TestSizeOfPtr;
 
 void test_sizeof() {
-  
-  TestSizeOfPtr of = TestSizeOfPtr();
-  
-  XX_CHECK(!of);
-  
-  LOG("TestSizeOf: %d", sizeof(TestSizeOf));
+	
+	TestSizeOfPtr of = TestSizeOfPtr();
+	
+	XX_CHECK(!of);
+	
+	LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }
 
 

@@ -33,32 +33,32 @@
 XX_NS(ngui)
 
 template<> String BasicStringBuilder<char, Container<char>>::join(cString& sp) const {
-  if (this->length() == 1) {
-    return this->begin().value();
-  } else {
-    uint len = m_string_length + sp.length() * this->length() - sp.length();
-    Buffer buff(len, len + 1);
-    
-    char* data = *buff;
-    bool is_sp = false;
-    
-    for (auto i = this->begin(), e = this->end(); i != e; i++) {
-      uint len = i.value().length();
-      if (is_sp) {
-        memcpy(data, *sp, sp.length());
-        data += sp.length();
-      }
-      memcpy(data, *i.value(), len);
-      data += len;
-      is_sp = true;
-    }
-    *data = 0;
-    return String(move(buff));
-  }
+	if (this->length() == 1) {
+		return this->begin().value();
+	} else {
+		uint len = m_string_length + sp.length() * this->length() - sp.length();
+		Buffer buff(len, len + 1);
+		
+		char* data = *buff;
+		bool is_sp = false;
+		
+		for (auto i = this->begin(), e = this->end(); i != e; i++) {
+			uint len = i.value().length();
+			if (is_sp) {
+				memcpy(data, *sp, sp.length());
+				data += sp.length();
+			}
+			memcpy(data, *i.value(), len);
+			data += len;
+			is_sp = true;
+		}
+		*data = 0;
+		return String(move(buff));
+	}
 }
 
 template<> String BasicStringBuilder<char, Container<char>>::to_string() const {
-  return to_basic_string();
+	return to_basic_string();
 }
 
 XX_END

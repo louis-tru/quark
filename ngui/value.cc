@@ -35,12 +35,12 @@ XX_NS(ngui)
 XX_NS(value)
 
 bool Shadow::operator==(const Shadow& value) const {
-  return  (
-           value.offset_x == offset_x &&
-           value.offset_y == offset_y &&
-           value.size == size &&
-           value.color == color
-          );
+	return  (
+					 value.offset_x == offset_x &&
+					 value.offset_y == offset_y &&
+					 value.size == size &&
+					 value.color == color
+					);
 }
 
 TextFamily::TextFamily(TextAttrType type)
@@ -53,11 +53,11 @@ TextFamily::TextFamily(TextAttrType type, const FontFamilysID* cffid)
 }
 
 cString& TextFamily::name() const {
-  return value->name();
+	return value->name();
 }
 
 const Array<String>& TextFamily::names() const {
-  return value->names();
+	return value->names();
 }
 
 XX_END

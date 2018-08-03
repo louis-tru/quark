@@ -33,34 +33,34 @@
 using namespace ngui;
 
 static void message_cb(Se& ev, RunLoop* loop) {
-  static int i = 0;
-  LOG("message_cb, %d", i++);
+	static int i = 0;
+	LOG("message_cb, %d", i++);
 }
 
 void test_loop() {
-  RunLoop* loop = RunLoop::current();
-  KeepLoop* keep = loop->keep_alive();
-  SimpleThread::detach([&](SimpleThread& e) {
-    for ( int i = 0; i < 5; i++) {
-      e.sleep_for(1e6);
-      loop->post(Cb(message_cb, loop));
-    }
-    delete keep;
-  }, "test");
-  
-  loop->run(10e6);
-  
-  int id = loop->work(Cb([&](Se& e){
-    for (int i = 0; i < 5; i++) {
-      SimpleThread::sleep_for(1e6);
-      LOG("Exec work");
-      loop->post(Cb(message_cb, loop));
-    }
-  }), Cb([](Se& e){
-    LOG("Done");
-  }));
-  
-  loop->run();
-  
-  LOG("Loop ok");
+	RunLoop* loop = RunLoop::current();
+	KeepLoop* keep = loop->keep_alive();
+	SimpleThread::detach([&](SimpleThread& e) {
+		for ( int i = 0; i < 5; i++) {
+			e.sleep_for(1e6);
+			loop->post(Cb(message_cb, loop));
+		}
+		delete keep;
+	}, "test");
+	
+	loop->run(10e6);
+	
+	int id = loop->work(Cb([&](Se& e){
+		for (int i = 0; i < 5; i++) {
+			SimpleThread::sleep_for(1e6);
+			LOG("Exec work");
+			loop->post(Cb(message_cb, loop));
+		}
+	}), Cb([](Se& e){
+		LOG("Done");
+	}));
+	
+	loop->run();
+	
+	LOG("Loop ok");
 }

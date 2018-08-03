@@ -42,229 +42,229 @@ JS_BEGIN
 
 class NativeFileReader {
  public:
-  
-  /**
-   * @func parse_encoding()
-   */
-  static bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
-    JS_WORKER(args);
-    String s = arg->ToStringValue(worker);
-    en = Coder::parse_encoding( s );
-    if ( en == Encoding::unknown ) {
-      worker->throw_err(
-                        "Unknown encoding \"%s\", the optional value is "
-                        "[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s ); return false;
-    }
-    return true;
-  }
-  
-  template<bool stream> static void readFile(FunctionCall args, cchar* argument) {
-    JS_WORKER(args);
-    if ( args.Length() == 0 || ! args[0]->IsString(worker) ) {
-      JS_THROW_ERR(argument);
-    }
-    
-    String path = args[0]->ToStringValue(worker);
-    Callback cb;
-    
-    Encoding encoding = Encoding::unknown;
-    int args_index = 1;
-    
-    if (args.Length() > args_index && args[args_index]->IsString(worker)) { //
-      if ( ! parse_encoding(args, args[args_index], encoding) ) return;
-      args_index++;
-    }
-    if ( args.Length() > args_index ) {
-      cb = stream ?
-      get_callback_for_io_stream(worker, args[args_index]) :
-      get_callback_for_buffer(worker, args[args_index], encoding);
-    }
-    if ( stream ) {
-      JS_RETURN( f_reader()->read_stream( path, cb ) );
-    } else {
-      JS_RETURN( f_reader()->read_file( path, cb ) );
-    }
-  }
-  
-  /**
-   * @func readStream(path[,cb])
-   * @arg path {String}
-   * @arg [cb] {Function}
-   * @ret {uint} return read id
-   */
-  static void readStream(FunctionCall args) {
-    readFile<true>(args,
-               "* @func reader.readStream(path[,cb])\n"
-               "* @arg path {String}\n"
-               "* @arg [cb] {Function}\n"
-               "* @ret {uint} return read id\n"
-               );
-  }
-  
-  /**
-   * @func readFile(path[,cb])
-   * @arg path {String}
-   * @arg [cb] {Function}
-   * @ret {uint} return read id
-   */
-  static void readFile(FunctionCall args) {
-    readFile<false>(args,
-                "* @func reader.readFile(path[,encoding[,cb]])\n"
-                "* @arg path {String}\n"
-                "* @arg [encoding] {Encoding}\n"
-                "* @arg [cb] {Function}\n"
-                "* @ret {uint} return read id\n"
-                );
-  }
-  
-  /**
-   * @func readFileSync(path)
-   * @arg path {String}
-   * @ret {Buffer} return read Buffer
-   */
-  static void readFileSync(FunctionCall args) {
-    JS_WORKER(args);
-    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-      JS_THROW_ERR(
-                    "* @func reader.readFileSync(path[,encoding])\n"
-                    "* @arg path {String}\n"
-                    "* @arg [encoding] {Encoding}\n"
-                    "* @ret {Buffer} return read Buffer\n"
-                    );
-    }
-    
-    Encoding encoding = Encoding::unknown;
-    
-    if (args.Length() > 1 && args[1]->IsString(worker)) {
-      if ( ! parse_encoding(args, args[1], encoding) ) return;
-    }
-    
-    Buffer rv;
-    try {
-      rv = f_reader()->read_file_sync( args[0]->ToStringValue(worker) );
-    } catch(cError& err) {
-      JS_THROW_ERR(err);
-    }
-    
-    switch (encoding) {
-      case Encoding::hex: // 编码
-      case Encoding::base64: {
-        Buffer buff = Coder::encoding(encoding, rv);
-        JS_RETURN(worker->NewString(buff));
-        break;
-      }
-      case Encoding::unknown:
-        JS_RETURN(rv);
-        break;
-      default: {// 解码 to ucs2
-        Ucs2String str(Coder::decoding_to_uint16(encoding, rv));
-        JS_RETURN(worker->New(str));
-        break;
-      }
-    }
-  }
-  
-  /**
-   * @func existsSync(path)
-   * @arg path {String}
-   * @ret {bool}
-   */
-  static void existsSync(FunctionCall args) {
-    JS_WORKER(args);
-    if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-      JS_THROW_ERR(
-                    "* @func reader.existsSync(path)\n"
-                    "* @arg path {String}\n"
-                    "* @ret {bool}\n"
-                    );
-    }
-    JS_RETURN( f_reader()->exists_sync( args[0]->ToStringValue(worker) ) );
-  }
-  
-  /**
-   * @func isFileSync(path)
-   * @arg path {String}
-   * @ret {bool}
-   */
-  static void isFileSync(FunctionCall args) {
-    JS_WORKER(args);
-    if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-      JS_THROW_ERR(
-                    "* @func reader.isFileSync(path)\n"
-                    "* @arg path {String}\n"
-                    "* @ret {bool}\n"
-                    );
-    }
-    JS_RETURN( f_reader()->is_file_sync( args[0]->ToStringValue(worker) ) );
-  }
-  
-  /**
-   * @func isDirectorySync(path)
-   * @arg path {String}
-   * @ret {bool}
-   */
-  static void isDirectorySync(FunctionCall args) {
-    JS_WORKER(args);
-    if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-      JS_THROW_ERR(
-                    "* @func reader.isDirectorySyncpath)\n"
-                    "* @arg path {String}\n"
-                    "* @ret {bool}\n"
-                    );
-    }
-    JS_RETURN( f_reader()->is_directory_sync( args[0]->ToStringValue(worker) ) );
-  }
-  
-  /**
-   * @func readdirSync(path)
-   * @arg path {String}
-   * @ret {Array}
-   */
-  static void readdirSync(FunctionCall args) {
-    JS_WORKER(args);
-    if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-      JS_THROW_ERR(
-                    "* @func reader.readdirSync(path)\n"
-                    "* @arg path {String}\n"
-                    "* @ret {Array}\n"
-                    );
-    }
-    JS_RETURN( f_reader()->readdir_sync( args[0]->ToStringValue(worker) ) );
-  }
-  
-  /**
-   * @func abort(id)
-   * @arg id {uint} abort id
-   */
-  static void abort(FunctionCall args) {
-    JS_WORKER(args);
-    if ( args.Length() == 0 || ! args[0]->IsUint32(worker) ) {
-      JS_THROW_ERR(
-                    "* @func reader.abort(id)\n"
-                    "* @arg id {uint} abort id\n"
-                    );
-    }
-    f_reader()->abort( args[0]->ToUint32Value(worker) );
-  }
-  
-  /**
-   * @func clear()
-   */
-  static void clear(FunctionCall args) {
-    f_reader()->clear();
-  }
-  
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_SET_METHOD(readFile, readFile);
-    JS_SET_METHOD(readStream, readStream);
-    JS_SET_METHOD(readFileSync, readFileSync);
-    JS_SET_METHOD(existsSync, existsSync);
-    JS_SET_METHOD(isFileSync, isFileSync);
-    JS_SET_METHOD(isDirectorySync, isDirectorySync);
-    JS_SET_METHOD(readdirSync, readdirSync);
-    JS_SET_METHOD(abort, abort);
-    JS_SET_METHOD(clear, clear);
-  }
+	
+	/**
+	 * @func parse_encoding()
+	 */
+	static bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
+		JS_WORKER(args);
+		String s = arg->ToStringValue(worker);
+		en = Coder::parse_encoding( s );
+		if ( en == Encoding::unknown ) {
+			worker->throw_err(
+												"Unknown encoding \"%s\", the optional value is "
+												"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s ); return false;
+		}
+		return true;
+	}
+	
+	template<bool stream> static void readFile(FunctionCall args, cchar* argument) {
+		JS_WORKER(args);
+		if ( args.Length() == 0 || ! args[0]->IsString(worker) ) {
+			JS_THROW_ERR(argument);
+		}
+		
+		String path = args[0]->ToStringValue(worker);
+		Callback cb;
+		
+		Encoding encoding = Encoding::unknown;
+		int args_index = 1;
+		
+		if (args.Length() > args_index && args[args_index]->IsString(worker)) { //
+			if ( ! parse_encoding(args, args[args_index], encoding) ) return;
+			args_index++;
+		}
+		if ( args.Length() > args_index ) {
+			cb = stream ?
+			get_callback_for_io_stream(worker, args[args_index]) :
+			get_callback_for_buffer(worker, args[args_index], encoding);
+		}
+		if ( stream ) {
+			JS_RETURN( f_reader()->read_stream( path, cb ) );
+		} else {
+			JS_RETURN( f_reader()->read_file( path, cb ) );
+		}
+	}
+	
+	/**
+	 * @func readStream(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 * @ret {uint} return read id
+	 */
+	static void readStream(FunctionCall args) {
+		readFile<true>(args,
+							 "* @func reader.readStream(path[,cb])\n"
+							 "* @arg path {String}\n"
+							 "* @arg [cb] {Function}\n"
+							 "* @ret {uint} return read id\n"
+							 );
+	}
+	
+	/**
+	 * @func readFile(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 * @ret {uint} return read id
+	 */
+	static void readFile(FunctionCall args) {
+		readFile<false>(args,
+								"* @func reader.readFile(path[,encoding[,cb]])\n"
+								"* @arg path {String}\n"
+								"* @arg [encoding] {Encoding}\n"
+								"* @arg [cb] {Function}\n"
+								"* @ret {uint} return read id\n"
+								);
+	}
+	
+	/**
+	 * @func readFileSync(path)
+	 * @arg path {String}
+	 * @ret {Buffer} return read Buffer
+	 */
+	static void readFileSync(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || !args[0]->IsString(worker)) {
+			JS_THROW_ERR(
+										"* @func reader.readFileSync(path[,encoding])\n"
+										"* @arg path {String}\n"
+										"* @arg [encoding] {Encoding}\n"
+										"* @ret {Buffer} return read Buffer\n"
+										);
+		}
+		
+		Encoding encoding = Encoding::unknown;
+		
+		if (args.Length() > 1 && args[1]->IsString(worker)) {
+			if ( ! parse_encoding(args, args[1], encoding) ) return;
+		}
+		
+		Buffer rv;
+		try {
+			rv = f_reader()->read_file_sync( args[0]->ToStringValue(worker) );
+		} catch(cError& err) {
+			JS_THROW_ERR(err);
+		}
+		
+		switch (encoding) {
+			case Encoding::hex: // 编码
+			case Encoding::base64: {
+				Buffer buff = Coder::encoding(encoding, rv);
+				JS_RETURN(worker->NewString(buff));
+				break;
+			}
+			case Encoding::unknown:
+				JS_RETURN(rv);
+				break;
+			default: {// 解码 to ucs2
+				Ucs2String str(Coder::decoding_to_uint16(encoding, rv));
+				JS_RETURN(worker->New(str));
+				break;
+			}
+		}
+	}
+	
+	/**
+	 * @func existsSync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+	static void existsSync(FunctionCall args) {
+		JS_WORKER(args);
+		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
+			JS_THROW_ERR(
+										"* @func reader.existsSync(path)\n"
+										"* @arg path {String}\n"
+										"* @ret {bool}\n"
+										);
+		}
+		JS_RETURN( f_reader()->exists_sync( args[0]->ToStringValue(worker) ) );
+	}
+	
+	/**
+	 * @func isFileSync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+	static void isFileSync(FunctionCall args) {
+		JS_WORKER(args);
+		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
+			JS_THROW_ERR(
+										"* @func reader.isFileSync(path)\n"
+										"* @arg path {String}\n"
+										"* @ret {bool}\n"
+										);
+		}
+		JS_RETURN( f_reader()->is_file_sync( args[0]->ToStringValue(worker) ) );
+	}
+	
+	/**
+	 * @func isDirectorySync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+	static void isDirectorySync(FunctionCall args) {
+		JS_WORKER(args);
+		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
+			JS_THROW_ERR(
+										"* @func reader.isDirectorySyncpath)\n"
+										"* @arg path {String}\n"
+										"* @ret {bool}\n"
+										);
+		}
+		JS_RETURN( f_reader()->is_directory_sync( args[0]->ToStringValue(worker) ) );
+	}
+	
+	/**
+	 * @func readdirSync(path)
+	 * @arg path {String}
+	 * @ret {Array}
+	 */
+	static void readdirSync(FunctionCall args) {
+		JS_WORKER(args);
+		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
+			JS_THROW_ERR(
+										"* @func reader.readdirSync(path)\n"
+										"* @arg path {String}\n"
+										"* @ret {Array}\n"
+										);
+		}
+		JS_RETURN( f_reader()->readdir_sync( args[0]->ToStringValue(worker) ) );
+	}
+	
+	/**
+	 * @func abort(id)
+	 * @arg id {uint} abort id
+	 */
+	static void abort(FunctionCall args) {
+		JS_WORKER(args);
+		if ( args.Length() == 0 || ! args[0]->IsUint32(worker) ) {
+			JS_THROW_ERR(
+										"* @func reader.abort(id)\n"
+										"* @arg id {uint} abort id\n"
+										);
+		}
+		f_reader()->abort( args[0]->ToUint32Value(worker) );
+	}
+	
+	/**
+	 * @func clear()
+	 */
+	static void clear(FunctionCall args) {
+		f_reader()->clear();
+	}
+	
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_SET_METHOD(readFile, readFile);
+		JS_SET_METHOD(readStream, readStream);
+		JS_SET_METHOD(readFileSync, readFileSync);
+		JS_SET_METHOD(existsSync, existsSync);
+		JS_SET_METHOD(isFileSync, isFileSync);
+		JS_SET_METHOD(isDirectorySync, isDirectorySync);
+		JS_SET_METHOD(readdirSync, readdirSync);
+		JS_SET_METHOD(abort, abort);
+		JS_SET_METHOD(clear, clear);
+	}
 };
 
 JS_REG_MODULE(ngui_reader, NativeFileReader);

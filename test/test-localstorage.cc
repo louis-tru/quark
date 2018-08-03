@@ -33,27 +33,27 @@
 using namespace ngui;
 
 void test_localstorage() {
-  
-  LOG(localstorage_get("test2"));
-  
-  localstorage_set("test", "ngui.io");
-  
-  LOG(localstorage_get("test"));
-  
-  localstorage_delete("test");
-  
-  LOG(localstorage_get("test"));
-  
-  localstorage_set("test", "ngui.io");
-  
-  LOG(localstorage_get("test"));
-  
-  localstorage_clear();
-  
-  LOG(localstorage_get("test"));
-  
-  localstorage_set("test2", "test2");
-  
-  LOG(localstorage_get("test2"));
-  
+	
+	LOG(localstorage_get("test2"));
+	
+	localstorage_set("test", "ngui.io");
+	
+	LOG(localstorage_get("test"));
+	
+	localstorage_delete("test");
+	
+	LOG(localstorage_get("test"));
+	
+	localstorage_set("test", "ngui.io");
+	
+	LOG(localstorage_get("test"));
+	
+	localstorage_clear();
+	
+	LOG(localstorage_get("test"));
+	
+	localstorage_set("test2", "test2");
+	
+	LOG(localstorage_get("test2"));
+	
 }

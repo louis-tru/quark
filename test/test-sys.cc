@@ -33,20 +33,20 @@
 using namespace ngui;
 
 void test_sys() {
-  LOG(sys::info());
-  LOG(sys::version());
-  LOG(sys::brand());
-  LOG(sys::subsystem());
-  LOG(sys::language());
-  LOG(sys::is_wifi());
-  LOG(sys::is_mobile());
-  LOG(sys::network_status());
-  LOG(sys::is_ac_power());
-  LOG(sys::is_battery());
-  LOG(sys::battery_level());
-  LOG(sys::memory());
-  LOG(sys::used_memory());
-  LOG(sys::available_memory());
+	LOG(sys::info());
+	LOG(sys::version());
+	LOG(sys::brand());
+	LOG(sys::subsystem());
+	LOG(sys::language());
+	LOG(sys::is_wifi());
+	LOG(sys::is_mobile());
+	LOG(sys::network_status());
+	LOG(sys::is_ac_power());
+	LOG(sys::is_battery());
+	LOG(sys::battery_level());
+	LOG(sys::memory());
+	LOG(sys::used_memory());
+	LOG(sys::available_memory());
 }
 
 

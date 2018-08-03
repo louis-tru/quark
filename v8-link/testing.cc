@@ -33,8 +33,8 @@
 
 namespace v8 {
 
-  void Testing::SetStressRunType(StressType type) { }
-  int Testing::GetStressRuns() { return 0; }
-  void Testing::PrepareStressRun(int run) { }
-  void Testing::DeoptimizeAll(Isolate* isolate) { }
+	void Testing::SetStressRunType(StressType type) { }
+	int Testing::GetStressRuns() { return 0; }
+	void Testing::PrepareStressRun(int run) { }
+	void Testing::DeoptimizeAll(Isolate* isolate) { }
 }

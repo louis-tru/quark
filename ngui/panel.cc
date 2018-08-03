@@ -36,32 +36,32 @@ XX_NS(ngui)
 
 XX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
 public:
-  
-  static Button* first_button(View* v) {
-    
-    if ( v->as_panel() ) {
-      return nullptr;
-    }
-    else
-    if ( v->as_button() ) {
-      if ( v->final_visible() ) {
-        return v->as_button();
-      }
-    }
-    else {
-      v = v->first();
-      
-      while (v) {
-        Button* button = first_button(v);
-        if ( button ) {
-          return button;
-        }
-        v = v->next();
-      }
-    }
-    
-    return nullptr;
-  }
+	
+	static Button* first_button(View* v) {
+		
+		if ( v->as_panel() ) {
+			return nullptr;
+		}
+		else
+		if ( v->as_button() ) {
+			if ( v->final_visible() ) {
+				return v->as_button();
+			}
+		}
+		else {
+			v = v->first();
+			
+			while (v) {
+				Button* button = first_button(v);
+				if ( button ) {
+					return button;
+				}
+				v = v->next();
+			}
+		}
+		
+		return nullptr;
+	}
 };
 
 /**
@@ -71,35 +71,35 @@ Panel::Panel()
 : m_allow_leave(false)
 , m_allow_entry(false)
 , m_interval_time(0), m_enable_select(true) {
-  
+	
 }
 
 /**
  * @func is_activity
  */
 bool Panel::is_activity() const {
-  View* view = app()->focus_view();
-  if (view) {
-    if ( view->as_button() ) {
-      return view->as_button()->panel() == this;
-    }
-  }
-  return false;
+	View* view = app()->focus_view();
+	if (view) {
+		if ( view->as_button() ) {
+			return view->as_button()->panel() == this;
+		}
+	}
+	return false;
 }
 
 /**
  * @func parent_panel
  */
 Panel* Panel::parent_panel() {
-  View* v = parent();
-  while( v ) {
-    auto p = v->as_panel();
-    if ( p ) {
-      return p;
-    }
-    v = v->parent();
-  }
-  return nullptr;
+	View* v = parent();
+	while( v ) {
+		auto p = v->as_panel();
+		if ( p ) {
+			return p;
+		}
+		v = v->parent();
+	}
+	return nullptr;
 }
 
 XX_END

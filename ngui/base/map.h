@@ -48,21 +48,21 @@ XX_NS(ngui)
  */
 template<class T> class XX_EXPORT Compare {
  public:
-  static uint hash(const T& key) {
-    return key.hash_code();
-  }
-  static bool equals(const T& a, const T& b, uint ha, uint hb) {
-    return a.equals(b);
-  }
+	static uint hash(const T& key) {
+		return key.hash_code();
+	}
+	static bool equals(const T& a, const T& b, uint ha, uint hb) {
+		return a.equals(b);
+	}
 };
 
 template<class T> class XX_EXPORT PrtKey {
  public:
-  inline PrtKey(T* p): _ptr(p) { }
-  inline bool equals(const PrtKey& o) const { return o._ptr == _ptr; }
-  inline uint hash_code() const { return size_t(_ptr) % Uint::max; }
+	inline PrtKey(T* p): _ptr(p) { }
+	inline bool equals(const PrtKey& o) const { return o._ptr == _ptr; }
+	inline uint hash_code() const { return size_t(_ptr) % Uint::max; }
  private:
-  T* _ptr;
+	T* _ptr;
 };
 
 /**
@@ -70,109 +70,109 @@ template<class T> class XX_EXPORT PrtKey {
  * @template<class Key, class Value>
  */
 template<class TKey, class TValue,
-        class Compare = Compare<TKey>>
+				class Compare = Compare<TKey>>
 class XX_EXPORT Map: public Object {
  public:
-  typedef TKey Key;
-  typedef TValue Value;
+	typedef TKey Key;
+	typedef TValue Value;
  private:
-  
-  struct Item {
-    Key   key;
-    Value value;
-    Item* prev, *next;
-    uint  hash;
-    bool  mark;
-  };
-  
-  struct Node {
-    Item* first, *last;
-  };
-  
-  struct IteratorData {
-   public:
-    typedef TValue Value;
-    const Key& key() const;
-    const Value& value() const;
-    Key& key();
-    Value& value();
-   private:
-    IteratorData();
-    IteratorData(Map* host, Item* item);
-    bool equals(const IteratorData& it) const;
-    bool is_null() const;
-    void begen();
-    void prev();
-    void next();
-    Map* _host;
-    Item* _item;
-    friend class Map;
-    friend class ConstIteratorTemplate<IteratorData>;
-    friend class IteratorTemplate<IteratorData>;
-  };
-  
-  class NodeList: public Container<Node> {
-   public:
-    void realloc(uint capacity);
-    void auto_realloc();
-    Map* _host;
-  };
-  
-  typedef Array<Item*> Marks;
-  
-  friend class NodeList;
-  friend class iterator;
-  
+	
+	struct Item {
+		Key   key;
+		Value value;
+		Item* prev, *next;
+		uint  hash;
+		bool  mark;
+	};
+	
+	struct Node {
+		Item* first, *last;
+	};
+	
+	struct IteratorData {
+	 public:
+		typedef TValue Value;
+		const Key& key() const;
+		const Value& value() const;
+		Key& key();
+		Value& value();
+	 private:
+		IteratorData();
+		IteratorData(Map* host, Item* item);
+		bool equals(const IteratorData& it) const;
+		bool is_null() const;
+		void begen();
+		void prev();
+		void next();
+		Map* _host;
+		Item* _item;
+		friend class Map;
+		friend class ConstIteratorTemplate<IteratorData>;
+		friend class IteratorTemplate<IteratorData>;
+	};
+	
+	class NodeList: public Container<Node> {
+	 public:
+		void realloc(uint capacity);
+		void auto_realloc();
+		Map* _host;
+	};
+	
+	typedef Array<Item*> Marks;
+	
+	friend class NodeList;
+	friend class iterator;
+	
  public:
-  struct Initializer {
-    Key key;
-    Value value;
-  };
-  typedef std::initializer_list<Initializer> InitializerList;
-  typedef ConstIteratorTemplate<IteratorData> ConstIterator;
-  typedef IteratorTemplate<IteratorData> Iterator;
-  
-  Map();
-  Map(const Map& map);
-  Map(Map&& map);
-  Map(const InitializerList& list);
-  virtual ~Map();
-  Map& operator=(const Map& value);
-  Map& operator=(Map&& value);
-  const Value& operator[](const Key& key) const;
-  Value& operator[](const Key& key);
-  Value& operator[](Key&& key);
-  ConstIterator find(const Key& key) const;
-  Iterator find(const Key& key);
-  bool has(const Key& key) const;
-  Array<Key> keys() const;
-  Array<Value> values() const;
-  inline const Value& get(const Key& key) const { return operator[](key); }
-  inline Value& get(const Key& key) { return operator[](key); }
-  inline Value& get(Key&& key) { return operator[](move(key)); }
-  Value& set(const Key& key, const Value& value);
-  Value& set(Key&& key, Value&& value);
-  Value& set(Key&& key, const Value& value);
-  Value& set(const Key& key, Value&& value);
-  bool del(const Key& key);
-  bool del(ConstIterator it);
-  void clear();
-  void mark(const Key& key);
-  void mark(ConstIterator it);
-  void del_mark();
-  ConstIterator begin() const;
-  ConstIterator end() const;
-  Iterator begin();
-  Iterator end();
-  uint length() const;
-  
+	struct Initializer {
+		Key key;
+		Value value;
+	};
+	typedef std::initializer_list<Initializer> InitializerList;
+	typedef ConstIteratorTemplate<IteratorData> ConstIterator;
+	typedef IteratorTemplate<IteratorData> Iterator;
+	
+	Map();
+	Map(const Map& map);
+	Map(Map&& map);
+	Map(const InitializerList& list);
+	virtual ~Map();
+	Map& operator=(const Map& value);
+	Map& operator=(Map&& value);
+	const Value& operator[](const Key& key) const;
+	Value& operator[](const Key& key);
+	Value& operator[](Key&& key);
+	ConstIterator find(const Key& key) const;
+	Iterator find(const Key& key);
+	bool has(const Key& key) const;
+	Array<Key> keys() const;
+	Array<Value> values() const;
+	inline const Value& get(const Key& key) const { return operator[](key); }
+	inline Value& get(const Key& key) { return operator[](key); }
+	inline Value& get(Key&& key) { return operator[](move(key)); }
+	Value& set(const Key& key, const Value& value);
+	Value& set(Key&& key, Value&& value);
+	Value& set(Key&& key, const Value& value);
+	Value& set(const Key& key, Value&& value);
+	bool del(const Key& key);
+	bool del(ConstIterator it);
+	void clear();
+	void mark(const Key& key);
+	void mark(ConstIterator it);
+	void del_mark();
+	ConstIterator begin() const;
+	ConstIterator end() const;
+	Iterator begin();
+	Iterator end();
+	uint length() const;
+	
  private:
-  Item* find2(const Key& key);
-  Item* find_set(const Key& key, bool* is_new);
-  void  del2(Item* item);
-  uint  m_length;
-  NodeList m_nodes;
-  Marks m_marks;
+	Item* find2(const Key& key);
+	Item* find_set(const Key& key, bool* is_new);
+	void  del2(Item* item);
+	uint  m_length;
+	NodeList m_nodes;
+	Marks m_marks;
 };
 
 XX_END

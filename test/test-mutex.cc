@@ -39,58 +39,58 @@ RecursiveMutex rmtx;
 
 void test_mutex0()
 {
-  int cnt = 0;
-  while(run_flag)
-  {
-    ScopeLock scope(mtx);
-    cnt++;
-  }
-  LOG("std::mutex,%d", cnt);
+	int cnt = 0;
+	while(run_flag)
+	{
+		ScopeLock scope(mtx);
+		cnt++;
+	}
+	LOG("std::mutex,%d", cnt);
 }
 
 void test_recursive_mutex()
 {
-  int cnt = 0;
-  while(run_flag)
-  {
-    std::lock_guard<RecursiveMutex> scope(rmtx);
-    cnt++;
-  }
-  LOG("std::recursive_mutex,%d", cnt);
+	int cnt = 0;
+	while(run_flag)
+	{
+		std::lock_guard<RecursiveMutex> scope(rmtx);
+		cnt++;
+	}
+	LOG("std::recursive_mutex,%d", cnt);
 }
 
 void test_idle()
 {
-  volatile int j = 0;
-  int cnt = 0;
-  while(run_flag)
-  {
-    j++;
-    cnt++;
-  }
-  LOG("idle,%d", cnt);
+	volatile int j = 0;
+	int cnt = 0;
+	while(run_flag)
+	{
+		j++;
+		cnt++;
+	}
+	LOG("idle,%d", cnt);
 }
 
 void test_mutex() {
-  {
-    run_flag = true;
-    std::thread thr(test_mutex0);
-    SimpleThread::sleep_for(1e6);
-    run_flag = false;
-    thr.join();
-  }
-  {
-    run_flag = true;
-    std::thread thr(test_recursive_mutex);
-    SimpleThread::sleep_for(1e6);
-    run_flag = false;
-    thr.join();
-  }
-  {
-    run_flag = true;
-    std::thread thr(test_idle);
-    SimpleThread::sleep_for(1e6);
-    run_flag = false;
-    thr.join();
-  }
+	{
+		run_flag = true;
+		std::thread thr(test_mutex0);
+		SimpleThread::sleep_for(1e6);
+		run_flag = false;
+		thr.join();
+	}
+	{
+		run_flag = true;
+		std::thread thr(test_recursive_mutex);
+		SimpleThread::sleep_for(1e6);
+		run_flag = false;
+		thr.join();
+	}
+	{
+		run_flag = true;
+		std::thread thr(test_idle);
+		SimpleThread::sleep_for(1e6);
+		run_flag = false;
+		thr.join();
+	}
 }

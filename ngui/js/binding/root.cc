@@ -42,31 +42,31 @@ JS_BEGIN
  * @class WrapRoot
  */
 class WrapRoot: public WrapViewBase {
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    JS_WORKER(args);
-    try {
-      Handle<Root> r = new Root();
-      r->initialize();
-      New<WrapRoot>(args, r.collapse());
-    } catch(cError& err) {
-      JS_THROW_ERR(err);
-    }
-  }
-  
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		JS_WORKER(args);
+		try {
+			Handle<Root> r = new Root();
+			r->initialize();
+			New<WrapRoot>(args, r.collapse());
+		} catch(cError& err) {
+			JS_THROW_ERR(err);
+		}
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Root, constructor, {
-      // none
-    }, Panel);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Root), View::ROOT);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Root, constructor, {
+			// none
+		}, Panel);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Root), View::ROOT);
+	}
 };
 
 void binding_root(Local<JSObject> exports, Worker* worker) {
-  WrapRoot::binding(exports, worker);
+	WrapRoot::binding(exports, worker);
 }
 
 JS_END

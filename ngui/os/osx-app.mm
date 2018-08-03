@@ -45,7 +45,7 @@ typedef DisplayPort::Orientation Orientation;
  * @func pending() 挂起应用进程
  */
 void GUIApplication::pending() {
-  exit(0);
+	exit(0);
 }
 
 /**
@@ -59,15 +59,15 @@ void GUIApplication::open_url(cString& url) {
  * @func send_email
  */
 void GUIApplication::send_email(cString& recipient,
-                                cString& subject,
-                                cString& cc, cString& bcc, cString& body) {
+																cString& subject,
+																cString& cc, cString& bcc, cString& body) {
 }
 
 /**
  * @func initialize(options)
  */
 void AppInl::initialize(const Map<String, int>& options) {
-  
+	
 }
 
 /**
@@ -92,21 +92,21 @@ void AppInl::ime_keyboard_close() {
  * @func set_volume_up()
  */
 void AppInl::set_volume_up() {
-  // TODO ..
+	// TODO ..
 }
 
 /**
  * @func set_volume_down()
  */
 void AppInl::set_volume_down() {
-  // TODO ..
+	// TODO ..
 }
 
 /**
  * @func default_atom_pixel
  */
 float DisplayPort::default_atom_pixel() {
-  return 1.0;
+	return 1.0;
 }
 
 /**
@@ -120,7 +120,7 @@ void DisplayPort::keep_screen(bool keep) {
  * @func status_bar_height()
  */
 float DisplayPort::status_bar_height() {
-  return 1;
+	return 1;
 }
 
 /**
@@ -145,7 +145,7 @@ void DisplayPort::request_fullscreen(bool fullscreen) {
  * @func orientation()
  */
 Orientation DisplayPort::orientation() {
-  return ORIENTATION_INVALID;
+	return ORIENTATION_INVALID;
 }
 
 /**
@@ -155,9 +155,9 @@ void DisplayPort::set_orientation(Orientation orientation) {
 }
 
 extern "C" {
-  int main(int argc, char* argv[]) {
-    AppInl::run_gui_application(argc, argv);
-    // TODO..
-    return 0;
-  }
+	int main(int argc, char* argv[]) {
+		AppInl::run_gui_application(argc, argv);
+		// TODO..
+		return 0;
+	}
 }

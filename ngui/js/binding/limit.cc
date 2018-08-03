@@ -41,56 +41,56 @@ JS_BEGIN
 
 template<class T> class WrapLimit: public WrapViewBase {
  public:
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapLimit<T>>(args, new T());
-  }
-  static void min_width(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(T);
-    JS_RETURN( worker->value_program()->New(self->min_width()) );
-  }
-  static void min_height(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(T);
-    JS_RETURN( worker->value_program()->New(self->min_height()) );
-  }
-  static void max_width(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(T);
-    JS_RETURN( worker->value_program()->New(self->max_width()) );
-  }
-  static void max_height(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(T);
-    JS_RETURN( worker->value_program()->New(self->max_height()) );
-  }
-  static void set_min_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Value, value, "Limit.minWidth = %s");
-    JS_SELF(T);
-    self->set_min_width(out);
-  }
-  static void set_min_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Value, value, "Limit.minHeight = %s");
-    JS_SELF(T);
-    self->set_min_height(out);
-  }
-  static void set_max_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Value, value, "Limit.maxWidth = %s");
-    JS_SELF(T);
-    self->set_max_width(out);
-  }
-  static void set_max_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Value, value, "Limit.maxHeight = %s");
-    JS_SELF(T);
-    self->set_max_height(out);
-  }
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapLimit<T>>(args, new T());
+	}
+	static void min_width(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(T);
+		JS_RETURN( worker->value_program()->New(self->min_width()) );
+	}
+	static void min_height(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(T);
+		JS_RETURN( worker->value_program()->New(self->min_height()) );
+	}
+	static void max_width(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(T);
+		JS_RETURN( worker->value_program()->New(self->max_width()) );
+	}
+	static void max_height(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(T);
+		JS_RETURN( worker->value_program()->New(self->max_height()) );
+	}
+	static void set_min_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(Value, value, "Limit.minWidth = %s");
+		JS_SELF(T);
+		self->set_min_width(out);
+	}
+	static void set_min_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(Value, value, "Limit.minHeight = %s");
+		JS_SELF(T);
+		self->set_min_height(out);
+	}
+	static void set_max_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(Value, value, "Limit.maxWidth = %s");
+		JS_SELF(T);
+		self->set_max_width(out);
+	}
+	static void set_max_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(Value, value, "Limit.maxHeight = %s");
+		JS_SELF(T);
+		self->set_max_height(out);
+	}
 };
 
 /**
@@ -98,15 +98,15 @@ template<class T> class WrapLimit: public WrapViewBase {
  */
 class WrapLimitDiv: public WrapLimit<Limit> {
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Limit, constructor, {
-      JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
-      JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
-      JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
-      JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
-    }, Div);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Limit), View::LIMIT);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Limit, constructor, {
+			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
+			JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
+			JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
+			JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
+		}, Div);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Limit), View::LIMIT);
+	}
 };
 
 /**
@@ -114,20 +114,20 @@ class WrapLimitDiv: public WrapLimit<Limit> {
  */
 class WrapLimitIndep: public WrapLimit<LimitIndep> {
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(LimitIndep, constructor, {
-      JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
-      JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
-      JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
-      JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
-    }, Indep);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(LimitIndep), View::LIMIT_INDEP);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(LimitIndep, constructor, {
+			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
+			JS_SET_CLASS_ACCESSOR(minHeight, min_height, set_min_height);
+			JS_SET_CLASS_ACCESSOR(maxWidth, max_width, set_max_width);
+			JS_SET_CLASS_ACCESSOR(maxHeight, max_height, set_max_height);
+		}, Indep);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(LimitIndep), View::LIMIT_INDEP);
+	}
 };
 
 void binding_limit(Local<JSObject> exports, Worker* worker) {
-  WrapLimitDiv::binding(exports, worker);
-  WrapLimitIndep::binding(exports, worker);
+	WrapLimitDiv::binding(exports, worker);
+	WrapLimitIndep::binding(exports, worker);
 }
 
 JS_END

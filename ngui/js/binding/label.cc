@@ -43,72 +43,72 @@ JS_BEGIN
  */
 class WrapLabel: public WrapViewBase {
 
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapLabel>(args, new Label());
-  }
-  
-  static void length(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Label);
-    JS_RETURN( self->length() );
-  }
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapLabel>(args, new Label());
+	}
+	
+	static void length(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Label);
+		JS_RETURN( self->length() );
+	}
 
-  static void value(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Label);
-    JS_RETURN( self->value() );
-  }
-  
-  static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Label);
-    JS_RETURN( self->text_hori_bearing() );
-  }
-  
-  static void text_height(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Label);
-    JS_RETURN( self->text_height() );
-  }
-  
-  static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Label);
-    Ucs2String str = value->ToUcs2StringValue(worker);
-    self->set_value(str);
-  }
-  
-  static void text_align(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Label);
-    JS_RETURN( worker->value_program()->New(self->text_align()) );
-  }
-  
-  static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(TextAlign, value, "Label.textAlign = %s");
-    JS_SELF(Label);
-    self->set_text_align(out);
-  }
-  
+	static void value(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Label);
+		JS_RETURN( self->value() );
+	}
+	
+	static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Label);
+		JS_RETURN( self->text_hori_bearing() );
+	}
+	
+	static void text_height(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Label);
+		JS_RETURN( self->text_height() );
+	}
+	
+	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Label);
+		Ucs2String str = value->ToUcs2StringValue(worker);
+		self->set_value(str);
+	}
+	
+	static void text_align(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Label);
+		JS_RETURN( worker->value_program()->New(self->text_align()) );
+	}
+	
+	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(TextAlign, value, "Label.textAlign = %s");
+		JS_SELF(Label);
+		self->set_text_align(out);
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Label, constructor, {
-      JS_SET_CLASS_ACCESSOR(length, length);
-      JS_SET_CLASS_ACCESSOR(value, value, set_value);
-      JS_SET_CLASS_ACCESSOR(textHoriBearing, text_hori_bearing);
-      JS_SET_CLASS_ACCESSOR(textHeight, text_height);
-      JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
-      WrapViewBase::inherit_text_font(cls, worker);
-    }, View);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Label), View::LABEL);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Label, constructor, {
+			JS_SET_CLASS_ACCESSOR(length, length);
+			JS_SET_CLASS_ACCESSOR(value, value, set_value);
+			JS_SET_CLASS_ACCESSOR(textHoriBearing, text_hori_bearing);
+			JS_SET_CLASS_ACCESSOR(textHeight, text_height);
+			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
+			WrapViewBase::inherit_text_font(cls, worker);
+		}, View);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Label), View::LABEL);
+	}
 };
 
 void binding_label(Local<JSObject> exports, Worker* worker) {
-  WrapLabel::binding(exports, worker);
+	WrapLabel::binding(exports, worker);
 }
 
 JS_END

@@ -79,310 +79,310 @@ define_number(int64);
 define_number(uint64);
 
 void Console::log(cString& str) {
-  printf("%s\n", *str);
+	printf("%s\n", *str);
 }
 void Console::warn(cString& str) {
-  printf("Warning: %s\n", *str);
+	printf("Warning: %s\n", *str);
 }
 void Console::error(cString& str) {
-  fprintf(xx_stderr, "%s\n", *str);
+	fprintf(xx_stderr, "%s\n", *str);
 }
 void Console::print(cString& str) {
-  printf("%s", *str);
+	printf("%s", *str);
 }
 void Console::print_err(cString& str) {
-  fprintf(xx_stderr, "%s", *str);
+	fprintf(xx_stderr, "%s", *str);
 }
 void Console::clear() {
-  // noop
+	// noop
 }
 
 Console* _default_console = nullptr;
 
 void Console::set_as_default() {
-  if (_default_console != this) {
-    delete _default_console;
-    _default_console = this;
-  }
+	if (_default_console != this) {
+		delete _default_console;
+		_default_console = this;
+	}
 }
 
 static Console* default_console() {
-  if (!_default_console) {
-    New<Console>()->set_as_default();
-  }
-  return _default_console;
+	if (!_default_console) {
+		New<Console>()->set_as_default();
+	}
+	return _default_console;
 }
 
 namespace console {
-  
-  void report_error(cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    printf("%s", *str);
-  }
-  
-  // Attempts to dump a backtrace (if supported).
-  void dump_backtrace() {
+	
+	void report_error(cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		printf("%s", *str);
+	}
+	
+	// Attempts to dump a backtrace (if supported).
+	void dump_backtrace() {
 #if XX_VLIBC_GLIBC || XX_BSD
-    void* trace[100];
-    int size = backtrace(trace, 100);
-    report_error("\n==== C stack trace ===============================\n\n");
-    if (size == 0) {
-      report_error("(empty)\n");
-    } else {
-      for (int i = 1; i < size; ++i) {
-        report_error("%2d: ", i);
-        Dl_info info;
-        char* demangled = NULL;
-        if (!dladdr(trace[i], &info) || !info.dli_sname) {
-          report_error("%p\n", trace[i]);
-        } else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
-          report_error("%s\n", demangled);
-          free(demangled);
-        } else {
-          report_error("%s\n", info.dli_sname);
-        }
-      }
-    }
+		void* trace[100];
+		int size = backtrace(trace, 100);
+		report_error("\n==== C stack trace ===============================\n\n");
+		if (size == 0) {
+			report_error("(empty)\n");
+		} else {
+			for (int i = 1; i < size; ++i) {
+				report_error("%2d: ", i);
+				Dl_info info;
+				char* demangled = NULL;
+				if (!dladdr(trace[i], &info) || !info.dli_sname) {
+					report_error("%p\n", trace[i]);
+				} else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
+					report_error("%s\n", demangled);
+					free(demangled);
+				} else {
+					report_error("%s\n", info.dli_sname);
+				}
+			}
+		}
 #elif XX_QNX
-    char out[1024];
-    bt_accessor_t acc;
-    bt_memmap_t memmap;
-    bt_init_accessor(&acc, BT_SELF);
-    bt_load_memmap(&acc, &memmap);
-    bt_sprn_memmap(&memmap, out, sizeof(out));
-    error(out);
-    bt_addr_t trace[100];
-    int size = bt_get_backtrace(&acc, trace, 100);
-    report_error("\n==== C stack trace ===============================\n\n");
-    if (size == 0) {
-      report_error("(empty)\n");
-    } else {
-      bt_sprnf_addrs(&memmap, trace, size, const_cast<char*>("%a\n"),
-                     out, sizeof(out), NULL);
-      report_error(out);
-    }
-    bt_unload_memmap(&memmap);
-    bt_release_accessor(&acc);
+		char out[1024];
+		bt_accessor_t acc;
+		bt_memmap_t memmap;
+		bt_init_accessor(&acc, BT_SELF);
+		bt_load_memmap(&acc, &memmap);
+		bt_sprn_memmap(&memmap, out, sizeof(out));
+		error(out);
+		bt_addr_t trace[100];
+		int size = bt_get_backtrace(&acc, trace, 100);
+		report_error("\n==== C stack trace ===============================\n\n");
+		if (size == 0) {
+			report_error("(empty)\n");
+		} else {
+			bt_sprnf_addrs(&memmap, trace, size, const_cast<char*>("%a\n"),
+										 out, sizeof(out), NULL);
+			report_error(out);
+		}
+		bt_unload_memmap(&memmap);
+		bt_release_accessor(&acc);
 #endif  // XX_VLIBC_GLIBC || XX_BSD
-  }
-  
-  void log(char msg) {
-    default_console()->log( String::format("%d", msg) );
-  }
-  
-  void log(byte msg) {
-    default_console()->log( String::format("%u", msg) );
-  }
+	}
+	
+	void log(char msg) {
+		default_console()->log( String::format("%d", msg) );
+	}
+	
+	void log(byte msg) {
+		default_console()->log( String::format("%u", msg) );
+	}
 
-  void log(int16 msg) {
-    default_console()->log( String::format("%d", msg) );
-  }
+	void log(int16 msg) {
+		default_console()->log( String::format("%d", msg) );
+	}
 
-  void log(uint16 msg) {
-    default_console()->log( String::format("%u", msg) );
-  }
+	void log(uint16 msg) {
+		default_console()->log( String::format("%u", msg) );
+	}
 
-  void log(int msg) {
-    default_console()->log( String::format("%d", msg) );
-  }
-  
-  void log(uint msg) {
-    default_console()->log( String::format("%u", msg) );
-  }
+	void log(int msg) {
+		default_console()->log( String::format("%d", msg) );
+	}
+	
+	void log(uint msg) {
+		default_console()->log( String::format("%u", msg) );
+	}
 
-  void log(float msg) {
-    default_console()->log( String::format("%f", msg) );
-  }
+	void log(float msg) {
+		default_console()->log( String::format("%f", msg) );
+	}
 
-  void log(double msg) {
-    default_console()->log( String::format("%lf", msg) );
-  }
+	void log(double msg) {
+		default_console()->log( String::format("%lf", msg) );
+	}
 
-  void log(int64 msg) {
-  #if XX_ARCH_64BIT
-    default_console()->log( String::format("%ld", msg) );
-  #else
-    default_console()->log( String::format("%lld", msg) );
-  #endif
-  }
-  
+	void log(int64 msg) {
+	#if XX_ARCH_64BIT
+		default_console()->log( String::format("%ld", msg) );
+	#else
+		default_console()->log( String::format("%lld", msg) );
+	#endif
+	}
+	
 #if XX_ARCH_32BIT
-  void log(long msg) {
-    default_console()->log( String::format("%ld", msg) );
-  }
-  void log(unsigned long msg) {
-    default_console()->log( String::format("%lu", msg) );
-  }
+	void log(long msg) {
+		default_console()->log( String::format("%ld", msg) );
+	}
+	void log(unsigned long msg) {
+		default_console()->log( String::format("%lu", msg) );
+	}
 #endif
 
-  void log(uint64 msg) {
-  #if XX_ARCH_64BIT
-    default_console()->log( String::format("%lu", msg) );
-  #else
-    default_console()->log( String::format("%llu", msg) );
-  #endif
-  }
+	void log(uint64 msg) {
+	#if XX_ARCH_64BIT
+		default_console()->log( String::format("%lu", msg) );
+	#else
+		default_console()->log( String::format("%llu", msg) );
+	#endif
+	}
 
-  void log(bool msg) {
-    default_console()->log( msg ? "true": "false" );
-  }
-  
-  void log(cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    default_console()->log(str);
-  }
-  
-  void log(cString& msg) {
-    default_console()->log(msg);
-  }
-  
-  void log_ucs2(cUcs2String& msg) {
-    String s = Coder::encoding(Encoding::utf8, msg);
-    default_console()->log(s);
-  }
-    
-  void print(cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    default_console()->print(str);
-  }
+	void log(bool msg) {
+		default_console()->log( msg ? "true": "false" );
+	}
+	
+	void log(cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		default_console()->log(str);
+	}
+	
+	void log(cString& msg) {
+		default_console()->log(msg);
+	}
+	
+	void log_ucs2(cUcs2String& msg) {
+		String s = Coder::encoding(Encoding::utf8, msg);
+		default_console()->log(s);
+	}
+		
+	void print(cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		default_console()->print(str);
+	}
 
-  void print(cString& str) {
-    default_console()->print(str);
-  }
-  
-  void print_err(cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    default_console()->print_err(str);
-  }
-  
-  void print_err(cString& str) {
-    default_console()->print_err(str);
-  }
-  
-  void warn(cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    default_console()->warn(str);
-  }
-  
-  void warn(cString& str) {
-    default_console()->warn(str);
-  }
-  
-  void error(cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    default_console()->error(str);
-  }
-  
-  void error(cString& str) {
-    default_console()->error(str);
-  }
-  
-  void tag(cchar* tag, cchar* format, ...) {
-    XX_STRING_FORMAT(format, str);
-    default_console()->print(String::format("%s ", tag));
-    default_console()->log(str);
-  }
+	void print(cString& str) {
+		default_console()->print(str);
+	}
+	
+	void print_err(cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		default_console()->print_err(str);
+	}
+	
+	void print_err(cString& str) {
+		default_console()->print_err(str);
+	}
+	
+	void warn(cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		default_console()->warn(str);
+	}
+	
+	void warn(cString& str) {
+		default_console()->warn(str);
+	}
+	
+	void error(cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		default_console()->error(str);
+	}
+	
+	void error(cString& str) {
+		default_console()->error(str);
+	}
+	
+	void tag(cchar* tag, cchar* format, ...) {
+		XX_STRING_FORMAT(format, str);
+		default_console()->print(String::format("%s ", tag));
+		default_console()->log(str);
+	}
 
-  void clear() {
-    default_console()->clear();
-  }
-  
+	void clear() {
+		default_console()->clear();
+	}
+	
 } // end namescape console {
 
 static cchar* I64BIT_TABLE =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
 String SimpleHash::digest() {
-  String rev;
-  do {
-    rev += I64BIT_TABLE[_hash & 0x3F];
-  } while (_hash >>= 6);
-  return rev;
+	String rev;
+	do {
+		rev += I64BIT_TABLE[_hash & 0x3F];
+	} while (_hash >>= 6);
+	return rev;
 }
 
 uint hash_code(cchar* data, uint len) {
-  SimpleHash hash;
-  hash.update(data, len);
-  return hash.hash_code();
+	SimpleHash hash;
+	hash.update(data, len);
+	return hash.hash_code();
 }
 
 String hash(cchar* data, uint len) {
-  SimpleHash hash;
-  hash.update(data, len);
-  return hash.digest();
+	SimpleHash hash;
+	hash.update(data, len);
+	return hash.digest();
 }
 
 String hash(cString& str) {
-  return hash(*str, str.length());
+	return hash(*str, str.length());
 }
 
 int random(uint start, uint end) {
-  static uint id;
-  srand(uint(time(NULL) + id));
-  id = rand();
-  return (id % (end - start + 1)) + start;
+	static uint id;
+	srand(uint(time(NULL) + id));
+	id = rand();
+	return (id % (end - start + 1)) + start;
 }
 
 int fix_random(uint a, ...) {
-  int i = 0;
-  int total = a;
-  va_list ap;
-  va_start(ap, a);
-  while (1) {
-    int e = va_arg(ap, int);
-    if (e < 1) {
-      break;
-    }
-    total += e;
-  }
-  //
-  va_start(ap, a);
-  int r = random(0, total - 1);
-  total = a;
-  if (r >= total) {
-    while (1) {
-      i++;
-      int e = va_arg(ap, int);
-      if (e < 1) {
-        break;
-      }
-      total += e;
-      if (r < total) {
-        break;
-      }
-    }
-  }
-  va_end(ap);
-  return i;
+	int i = 0;
+	int total = a;
+	va_list ap;
+	va_start(ap, a);
+	while (1) {
+		int e = va_arg(ap, int);
+		if (e < 1) {
+			break;
+		}
+		total += e;
+	}
+	//
+	va_start(ap, a);
+	int r = random(0, total - 1);
+	total = a;
+	if (r >= total) {
+		while (1) {
+			i++;
+			int e = va_arg(ap, int);
+			if (e < 1) {
+				break;
+			}
+			total += e;
+			if (r < total) {
+				break;
+			}
+		}
+	}
+	va_end(ap);
+	return i;
 }
 
 void fatal(cchar* file, uint line, cchar* func, cchar* msg, ...) {
-  fflush(stdout);
-  fflush(xx_stderr);
-  if (msg) {
-    XX_STRING_FORMAT(msg, str);
-    default_console()->print_err("\n\n\n");
-    default_console()->error(str);
-  }
-  console::report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
-  console::dump_backtrace();
-  fflush(stdout);
-  fflush(xx_stderr);
-  IMMEDIATE_CRASH();
+	fflush(stdout);
+	fflush(xx_stderr);
+	if (msg) {
+		XX_STRING_FORMAT(msg, str);
+		default_console()->print_err("\n\n\n");
+		default_console()->error(str);
+	}
+	console::report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
+	console::dump_backtrace();
+	fflush(stdout);
+	fflush(xx_stderr);
+	IMMEDIATE_CRASH();
 }
 
 static std::atomic<uint64> id(10);
 
 uint64 iid() {
-  return id++;
+	return id++;
 }
 
 uint iid32() {
-  return id++ % Uint::max;
+	return id++ % Uint::max;
 }
 
 String version() {
-  return NGUI_VERSION;
+	return NGUI_VERSION;
 }
 
 XX_END

@@ -48,104 +48,104 @@ XX_NS(ngui)
 // hash
 
 template<> uint Compare<char>::hash(const char& key) {
-  return key;
+	return key;
 }
 
 template<> uint Compare<byte>::hash(const byte& key) {
-  return key;
+	return key;
 }
 
 template<> uint Compare<int16>::hash(const int16& key) {
-  return key;
+	return key;
 }
 
 template<> uint Compare<uint16>::hash(const uint16& key) {
-  return key;
+	return key;
 }
 
 template<> uint Compare<int>::hash(const int& key) {
-  return key;
+	return key;
 }
 
 template<> uint Compare<uint>::hash(const uint& key) {
-  return key;
+	return key;
 }
 
 template<> uint Compare<int64>::hash(const int64& key) {
-  return (uint)(key ^ (key >> 32));
+	return (uint)(key ^ (key >> 32));
 }
 
 template<> uint Compare<uint64>::hash(const uint64& key) {
-  return (uint)(key ^ (key >> 32));
+	return (uint)(key ^ (key >> 32));
 }
 
 template<> uint Compare<float>::hash(const float& key) {
-  return *reinterpret_cast<const uint*>(&key);
+	return *reinterpret_cast<const uint*>(&key);
 }
 
 template<> uint Compare<double>::hash(const double& key) {
-  const uint64* f = reinterpret_cast<const uint64*>(&key);
-  return (uint)((*f) ^ ((*f) >> 32));
+	const uint64* f = reinterpret_cast<const uint64*>(&key);
+	return (uint)((*f) ^ ((*f) >> 32));
 }
 
 template<> uint Compare<bool>::hash(const bool& key) {
-  return key;
+	return key;
 }
 
 // equals
 
 template<> bool Compare<String>::equals(const String& a, const String& b, uint ha, uint hb) {
-  // 字符串做一个模糊比较,只要hash_code相同就认为字符串是相同的.(完全比较太慢)
-  return ha == hb;
+	// 字符串做一个模糊比较,只要hash_code相同就认为字符串是相同的.(完全比较太慢)
+	return ha == hb;
 }
 
 template<> bool Compare<Ucs2String>::equals(const Ucs2String& a,
-                                            const Ucs2String& b, uint ha, uint hb) {
-  return ha == hb;
+																						const Ucs2String& b, uint ha, uint hb) {
+	return ha == hb;
 }
 
 template<> bool Compare<char>::equals(const char& a, const char& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<byte>::equals(const byte& a, const byte& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<int16>::equals(const int16& a, const int16& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<uint16>::equals(const uint16& a, const uint16& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<int>::equals(const int& a, const int& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<uint>::equals(const uint& a, const uint& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<int64>::equals(const int64& a, const int64& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<uint64>::equals(const uint64& a, const uint64& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<float>::equals(const float& a, const float& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<double>::equals(const double& a, const double& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 template<> bool Compare<bool>::equals(const bool& a, const bool& b, uint ha, uint hb) {
-  return a == b;
+	return a == b;
 }
 
 XX_END

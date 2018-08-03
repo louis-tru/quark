@@ -35,28 +35,28 @@
 #include "v8.h"
 
 namespace node {
-  
-  struct NguiApi* ngui_api = new NguiApi;
-  
-  void set_ngui_api(struct NguiApi api) {
-    *ngui_api = api;
-  }
-  
-  class NguiEnvironment {
-   public:
-    inline NguiEnvironment(Environment* env,
-                           bool is_inspector,
-                           int argc, const char* const* argv) {
-      v8::HandleScope scope(env->isolate());
-      m_worker = ngui_api->create_ngui_js_worker(env, is_inspector, argc, argv);
-    }
-    inline ~NguiEnvironment() {
-      ngui_api->delete_ngui_js_worker(m_worker);
-      m_worker = nullptr;
-    }
-   private:
-    ngui::js::Worker* m_worker;
-  };
+	
+	struct NguiApi* ngui_api = new NguiApi;
+	
+	void set_ngui_api(struct NguiApi api) {
+		*ngui_api = api;
+	}
+	
+	class NguiEnvironment {
+	 public:
+		inline NguiEnvironment(Environment* env,
+													 bool is_inspector,
+													 int argc, const char* const* argv) {
+			v8::HandleScope scope(env->isolate());
+			m_worker = ngui_api->create_ngui_js_worker(env, is_inspector, argc, argv);
+		}
+		inline ~NguiEnvironment() {
+			ngui_api->delete_ngui_js_worker(m_worker);
+			m_worker = nullptr;
+		}
+	 private:
+		ngui::js::Worker* m_worker;
+	};
 }
 
 #endif

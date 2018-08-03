@@ -35,8 +35,8 @@ JS_BEGIN
 CommonStrings::CommonStrings(Worker* worker): m_worker(worker) {
 #define js_init_persistent_string(name) \
 __##name##_$_.Reset(worker, worker->New(#name, 1));
-  __Throw_$_.Reset(m_worker, worker->New("throw", 1));
-  js_common_string(js_init_persistent_string);
+	__Throw_$_.Reset(m_worker, worker->New("throw", 1));
+	js_common_string(js_init_persistent_string);
 #undef js_init_persistent_string
 }
 

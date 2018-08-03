@@ -44,62 +44,62 @@ XX_NS(ngui)
  * @class Handle
  */
 template<class T, class T2 = typename T::Traits> class XX_EXPORT Handle {
-  //! Copy constructor is not permitted.
-  XX_HIDDEN_ALL_COPY(Handle);
-  
-  inline T* move() {
-    return Traits::Retain(m_data) ? m_data : collapse();
-  }
-  
+	//! Copy constructor is not permitted.
+	XX_HIDDEN_ALL_COPY(Handle);
+	
+	inline T* move() {
+		return Traits::Retain(m_data) ? m_data : collapse();
+	}
+	
  public:
-  typedef T Type;
-  typedef T2 Traits;
-  
-  inline Handle(): m_data(nullptr) { }
-  inline Handle(T* data): m_data(data) { Traits::Retain(data); }
-  inline Handle(Handle& handle) { m_data = handle.move(); }
-  inline Handle(Handle&& handle) { m_data = handle.move(); }
-  
-  ~Handle() { clear(); }
-  
-  inline Handle& operator=(Handle& handle) {
-    clear();
-    m_data = handle.move();
-    return *this;
-  }
-  
-  inline Handle& operator=(Handle&& handle) {
-    clear();
-    m_data = handle.move();
-    return *this;
-  }
-  
-  inline T* operator->() { return m_data; }
-  inline const T* operator->() const { return m_data; }
-  inline T* operator*() { return m_data; }
-  inline const T* operator*() const { return m_data; }
-  inline const T* value() const { return m_data; }
-  inline T* value() { return m_data; }
-  
-  /**
-   * @func is_null() Is null data available ?
-   */
-  inline bool is_null() const { return m_data == nullptr; }
-  
-  /**
-   * @func collapse() 解绑数据,用函数失去对数据的管理权,数据被移走
-   */
-  inline T* collapse() {
-    T* data = m_data; m_data = nullptr;
-    return data;
-  }
+	typedef T Type;
+	typedef T2 Traits;
+	
+	inline Handle(): m_data(nullptr) { }
+	inline Handle(T* data): m_data(data) { Traits::Retain(data); }
+	inline Handle(Handle& handle) { m_data = handle.move(); }
+	inline Handle(Handle&& handle) { m_data = handle.move(); }
+	
+	~Handle() { clear(); }
+	
+	inline Handle& operator=(Handle& handle) {
+		clear();
+		m_data = handle.move();
+		return *this;
+	}
+	
+	inline Handle& operator=(Handle&& handle) {
+		clear();
+		m_data = handle.move();
+		return *this;
+	}
+	
+	inline T* operator->() { return m_data; }
+	inline const T* operator->() const { return m_data; }
+	inline T* operator*() { return m_data; }
+	inline const T* operator*() const { return m_data; }
+	inline const T* value() const { return m_data; }
+	inline T* value() { return m_data; }
+	
+	/**
+	 * @func is_null() Is null data available ?
+	 */
+	inline bool is_null() const { return m_data == nullptr; }
+	
+	/**
+	 * @func collapse() 解绑数据,用函数失去对数据的管理权,数据被移走
+	 */
+	inline T* collapse() {
+		T* data = m_data; m_data = nullptr;
+		return data;
+	}
 
-  inline void clear() {
-    Traits::Release(m_data); m_data = nullptr;
-  }
-  
+	inline void clear() {
+		Traits::Release(m_data); m_data = nullptr;
+	}
+	
  private:
-  T* m_data;
+	T* m_data;
 };
 
 /**
@@ -107,12 +107,12 @@ template<class T, class T2 = typename T::Traits> class XX_EXPORT Handle {
  */
 class XX_EXPORT ScopeClear {
  public:
-  typedef std::function<void()> Clear;
-  ScopeClear(Clear clear): m_clear(clear) { }
-  ~ScopeClear() { m_clear(); }
-  inline void cancel() { m_clear = [](){ }; }
+	typedef std::function<void()> Clear;
+	ScopeClear(Clear clear): m_clear(clear) { }
+	~ScopeClear() { m_clear(); }
+	inline void cancel() { m_clear = [](){ }; }
  private:
-  Clear m_clear;
+	Clear m_clear;
 };
 
 XX_END

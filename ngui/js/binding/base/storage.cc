@@ -42,80 +42,80 @@ JS_BEGIN
  * @class NativeStorage
  */
 class NativeStorage {
-  
-  /**
-   * @func get(key)
-   * @arg key {String}
-   * @ret {String}
-   */
-  static void get(FunctionCall args) {
-    JS_WORKER(args);
-    if (args.Length() < 1) {
-      JS_THROW_ERR(
-        "* @func get(key)\n"
-        "* @arg key {String}\n"
-        "* @ret {String}\n"
-      );
-    }
-    JS_RETURN( localstorage_get( args[0]->ToStringValue(worker)) );
-  }
-  
-  /**
-   * @func set(key, value)
-   * @arg key {String}
-   * @arg value {String}
-   */
-  static void set(FunctionCall args) {
-    JS_WORKER(args);
-    if (args.Length() < 2) {
-      JS_THROW_ERR(
-        "* @func set(key)\n"
-        "* @arg key {String}\n"
-        "* @arg value {String}\n"
-      );
-    }
-    localstorage_set( args[0]->ToStringValue(worker), args[1]->ToStringValue(worker) );
-  }
-  
-  /**
-   * @func del(key)
-   * @arg key {String}
-   */
-  static void del(FunctionCall args) {
-    JS_WORKER(args);
-    if (args.Length() < 1) {
-      JS_THROW_ERR(
-        "* @func del(key)\n"
-        "* @arg key {String}\n"
-      );
-    }
-    localstorage_delete( args[0]->ToStringValue(worker) );
-  }
-  
-  static void clear(FunctionCall args) {
-    localstorage_clear();
-  }
-  
-  static void transaction(FunctionCall args) {
-    JS_WORKER(args);
-    if (args.Length() < 1 || !args[0]->IsFunction()) {
-      JS_THROW_ERR(
-                   "* @func transaction(key)\n"
-                   "* @arg cb {Function}\n"
-                   );
-    }
-    localstorage_transaction(get_callback_for_none(worker, args[0]));
-  }
-  
+	
+	/**
+	 * @func get(key)
+	 * @arg key {String}
+	 * @ret {String}
+	 */
+	static void get(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1) {
+			JS_THROW_ERR(
+				"* @func get(key)\n"
+				"* @arg key {String}\n"
+				"* @ret {String}\n"
+			);
+		}
+		JS_RETURN( localstorage_get( args[0]->ToStringValue(worker)) );
+	}
+	
+	/**
+	 * @func set(key, value)
+	 * @arg key {String}
+	 * @arg value {String}
+	 */
+	static void set(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 2) {
+			JS_THROW_ERR(
+				"* @func set(key)\n"
+				"* @arg key {String}\n"
+				"* @arg value {String}\n"
+			);
+		}
+		localstorage_set( args[0]->ToStringValue(worker), args[1]->ToStringValue(worker) );
+	}
+	
+	/**
+	 * @func del(key)
+	 * @arg key {String}
+	 */
+	static void del(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1) {
+			JS_THROW_ERR(
+				"* @func del(key)\n"
+				"* @arg key {String}\n"
+			);
+		}
+		localstorage_delete( args[0]->ToStringValue(worker) );
+	}
+	
+	static void clear(FunctionCall args) {
+		localstorage_clear();
+	}
+	
+	static void transaction(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || !args[0]->IsFunction()) {
+			JS_THROW_ERR(
+									 "* @func transaction(key)\n"
+									 "* @arg cb {Function}\n"
+									 );
+		}
+		localstorage_transaction(get_callback_for_none(worker, args[0]));
+	}
+	
  public:
-  
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_SET_METHOD(get, get);
-    JS_SET_METHOD(set, set);
-    JS_SET_METHOD(del, del);
-    JS_SET_METHOD(clear, clear);
-    JS_SET_METHOD(transaction, transaction);
-  }
+	
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_SET_METHOD(get, get);
+		JS_SET_METHOD(set, set);
+		JS_SET_METHOD(del, del);
+		JS_SET_METHOD(clear, clear);
+		JS_SET_METHOD(transaction, transaction);
+	}
 };
 
 JS_REG_MODULE(ngui_storage, NativeStorage);

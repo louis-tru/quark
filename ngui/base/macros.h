@@ -89,9 +89,9 @@
 
 #define XX_DEFINE_INLINE_CLASS(Inl) public: class Inl; friend class Inl; private:
 #define XX_DEFINE_INLINE_MEMBERS(cls, Inl) \
-  static XX_INLINE cls::Inl* Inl##_##cls(cls* self) { \
-    return reinterpret_cast<cls::Inl*>(self); \
-  } class cls::Inl: public cls
+	static XX_INLINE cls::Inl* Inl##_##cls(cls* self) { \
+		return reinterpret_cast<cls::Inl*>(self); \
+	} class cls::Inl: public cls
 
 #define XX_LOG(msg, ...)     	ngui::console::log(msg, ##__VA_ARGS__)
 #define XX_WARN(msg, ...)   	ngui::console::warn(msg, ##__VA_ARGS__)
@@ -158,11 +158,11 @@ extern __attribute__((constructor)) void __##fn(void)
 #define XX_HIDDEN_COPY_CONSTRUCTOR(T)  private: T(const T& t) = delete;
 #define XX_HIDDEN_ASSIGN_OPERATOR(T)   private: T& operator=(const T& t) = delete;
 #define XX_HIDDEN_ALL_COPY(T)	\
-  private: T(const T& t) = delete;	\
-  private: T& operator=(const T& t) = delete;
+	private: T(const T& t) = delete;	\
+	private: T& operator=(const T& t) = delete;
 #define XX_HIDDEN_HEAP_ALLOC() \
-  private: static void* operator new(size_t size) = delete; \
-  private: static void operator delete(void*, size_t) = delete
+	private: static void* operator new(size_t size) = delete; \
+	private: static void operator delete(void*, size_t) = delete
 
 // Helper macros end
 // -----------------------------------------------------------------------------

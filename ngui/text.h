@@ -44,69 +44,69 @@ XX_NS(ngui)
  */
 class XX_EXPORT Text: public Hybrid {
  public:
-  XX_DEFINE_GUI_VIEW(TEXT, Text, text);
-  
-  /**
-   * @overwrite
-   */
-  virtual void  prepend(View* child) throw(Error);
-  virtual void  append(View* child) throw(Error);
-  virtual View* append_text(cUcs2String& str) throw(Error);
-  virtual void remove_all_child();
-  
-  /**
-   * @get value
-   */
-  inline Ucs2String value() const { return m_data.string; }
-  
-  /**
-   * @set value
-   */
-  virtual void set_value(cUcs2String& str);
-  
-  /**
-   * @get length
-   */
-  inline uint length() const { return m_data.string.length(); }
-  
-  /**
-   * @get cells
-   */
-  inline const Array<Cell>& cells() const { return m_data.cells; }
-  
-  /**
-   * @func text_hori_bearing
-   */
-  inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
-  
-  /**
-   * @func text_height
-   */
-  inline float text_height() const { return m_data.text_height; }
+	XX_DEFINE_GUI_VIEW(TEXT, Text, text);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void  prepend(View* child) throw(Error);
+	virtual void  append(View* child) throw(Error);
+	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual void remove_all_child();
+	
+	/**
+	 * @get value
+	 */
+	inline Ucs2String value() const { return m_data.string; }
+	
+	/**
+	 * @set value
+	 */
+	virtual void set_value(cUcs2String& str);
+	
+	/**
+	 * @get length
+	 */
+	inline uint length() const { return m_data.string.length(); }
+	
+	/**
+	 * @get cells
+	 */
+	inline const Array<Cell>& cells() const { return m_data.cells; }
+	
+	/**
+	 * @func text_hori_bearing
+	 */
+	inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
+	
+	/**
+	 * @func text_height
+	 */
+	inline float text_height() const { return m_data.text_height; }
 
  protected:
-  
-  /**
-   * @func set_text_align_offset
-   */
-  void set_text_align_offset(float text_margin = 0);
-  
-  /**
-   * @func set_screen_visible
-   */
-  virtual void set_screen_visible();
+	
+	/**
+	 * @func set_text_align_offset
+	 */
+	void set_text_align_offset(float text_margin = 0);
+	
+	/**
+	 * @func set_screen_visible
+	 */
+	virtual void set_screen_visible();
 
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  virtual void accept_text(Ucs2StringBuilder& output) const;
-  virtual void set_layout_content_offset();
-  
-  Data  m_data;
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
-  friend class Hybrid;
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	virtual void accept_text(Ucs2StringBuilder& output) const;
+	virtual void set_layout_content_offset();
+	
+	Data  m_data;
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
+	friend class Hybrid;
 };
 
 XX_END

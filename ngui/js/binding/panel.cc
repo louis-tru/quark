@@ -44,143 +44,143 @@ JS_BEGIN
  */
 class WrapPanel: public WrapViewBase {
 
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapPanel>(args, new Panel());
-  }
-  
-  /**
-   * @func first_button()
-   * @ret {Button}
-   */
-  static void first_button(FunctionCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Panel);
-    Button* button = self->first_button();
-    if ( button ) {
-      JS_RETURN( Wrap<Button>::pack(button, View::BUTTON)->that() );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  /**
-   * @get allow_leave {bool}
-   */
-  static void allow_leave(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Panel);
-    JS_RETURN( self->allow_leave() );
-  }
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapPanel>(args, new Panel());
+	}
+	
+	/**
+	 * @func first_button()
+	 * @ret {Button}
+	 */
+	static void first_button(FunctionCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Panel);
+		Button* button = self->first_button();
+		if ( button ) {
+			JS_RETURN( Wrap<Button>::pack(button, View::BUTTON)->that() );
+		} else {
+			JS_RETURN_NULL();
+		}
+	}
+	
+	/**
+	 * @get allow_leave {bool}
+	 */
+	static void allow_leave(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Panel);
+		JS_RETURN( self->allow_leave() );
+	}
 
-  /**
-   * @set allow_leave {bool}
-   */
-  static void set_allow_leave(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Panel);
-    self->set_allow_leave( value->ToBooleanValue(worker) );
-  }
-  
-  /**
-   * @func allow_entry get
-   */
-  static void allow_entry(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Panel);
-    JS_RETURN( self->allow_entry() );
-  }
-  
-  /**
-   * @func set_allow_entry set
-   */
-  static void set_allow_entry(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Panel);
-    self->set_allow_entry( value->ToBooleanValue(worker) );
-  }
-  
-  /**
-   * @get interval_time {uint} ms
-   */
-  static void interval_time(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Panel);
-    JS_RETURN( self->interval_time() );
-  }
-  
-  /**
-   * @set interval_time {uint} ms
-   */
-  static void set_interval_time(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    if ( ! value->IsNumber(worker) ) {
-      JS_THROW_ERR("* @set intervalTime {uint} ms");
-    }
-    JS_SELF(Panel);
-    int64 num = value->ToNumberValue(worker);
-    self->set_interval_time( uint64(1000) * XX_MIN(0, num) );
-  }
-  
-  /**
-   * @get enable_switch {bool}
-   */
-  static void enable_select(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Panel);
-    JS_RETURN( self->enable_select() );
-  }
-  
-  /**
-   * @set enable_switch {bool}
-   */
-  static void set_enable_select(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Panel);
-    self->set_enable_select( value->ToBooleanValue(worker) );
-  }
-  
-  /**
-   * @get is_activity {bool}
-   */
-  static void is_activity(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Panel);
-    JS_RETURN( self->is_activity() );
-  }
-  
-  /**
-   * @get parent_panel {ButtonGroup}
-   */
-  static void parent_panel(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Panel);
-    Panel* panel = self->parent_panel();
-    if ( panel ) {
-      JS_RETURN( Wrap<Panel>::pack(panel, View::PANEL)->that() );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
+	/**
+	 * @set allow_leave {bool}
+	 */
+	static void set_allow_leave(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Panel);
+		self->set_allow_leave( value->ToBooleanValue(worker) );
+	}
+	
+	/**
+	 * @func allow_entry get
+	 */
+	static void allow_entry(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Panel);
+		JS_RETURN( self->allow_entry() );
+	}
+	
+	/**
+	 * @func set_allow_entry set
+	 */
+	static void set_allow_entry(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Panel);
+		self->set_allow_entry( value->ToBooleanValue(worker) );
+	}
+	
+	/**
+	 * @get interval_time {uint} ms
+	 */
+	static void interval_time(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Panel);
+		JS_RETURN( self->interval_time() );
+	}
+	
+	/**
+	 * @set interval_time {uint} ms
+	 */
+	static void set_interval_time(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		if ( ! value->IsNumber(worker) ) {
+			JS_THROW_ERR("* @set intervalTime {uint} ms");
+		}
+		JS_SELF(Panel);
+		int64 num = value->ToNumberValue(worker);
+		self->set_interval_time( uint64(1000) * XX_MIN(0, num) );
+	}
+	
+	/**
+	 * @get enable_switch {bool}
+	 */
+	static void enable_select(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Panel);
+		JS_RETURN( self->enable_select() );
+	}
+	
+	/**
+	 * @set enable_switch {bool}
+	 */
+	static void set_enable_select(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Panel);
+		self->set_enable_select( value->ToBooleanValue(worker) );
+	}
+	
+	/**
+	 * @get is_activity {bool}
+	 */
+	static void is_activity(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Panel);
+		JS_RETURN( self->is_activity() );
+	}
+	
+	/**
+	 * @get parent_panel {ButtonGroup}
+	 */
+	static void parent_panel(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Panel);
+		Panel* panel = self->parent_panel();
+		if ( panel ) {
+			JS_RETURN( Wrap<Panel>::pack(panel, View::PANEL)->that() );
+		} else {
+			JS_RETURN_NULL();
+		}
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Panel, constructor, {
-      JS_SET_CLASS_METHOD(firstButton, first_button);
-      JS_SET_CLASS_ACCESSOR(allowLeave, allow_leave, set_allow_leave);
-      JS_SET_CLASS_ACCESSOR(allowEntry, allow_entry, set_allow_entry);
-      JS_SET_CLASS_ACCESSOR(intervalTime,  interval_time, set_interval_time);
-      JS_SET_CLASS_ACCESSOR(enableSelect, enable_select, set_enable_select);
-      JS_SET_CLASS_ACCESSOR(isActivity, is_activity);
-      JS_SET_CLASS_ACCESSOR(parentPanel, parent_panel);
-    }, Div);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Panel), View::PANEL);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Panel, constructor, {
+			JS_SET_CLASS_METHOD(firstButton, first_button);
+			JS_SET_CLASS_ACCESSOR(allowLeave, allow_leave, set_allow_leave);
+			JS_SET_CLASS_ACCESSOR(allowEntry, allow_entry, set_allow_entry);
+			JS_SET_CLASS_ACCESSOR(intervalTime,  interval_time, set_interval_time);
+			JS_SET_CLASS_ACCESSOR(enableSelect, enable_select, set_enable_select);
+			JS_SET_CLASS_ACCESSOR(isActivity, is_activity);
+			JS_SET_CLASS_ACCESSOR(parentPanel, parent_panel);
+		}, Div);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Panel), View::PANEL);
+	}
 };
 
 void binding_panel(Local<JSObject> exports, Worker* worker) {
-  WrapPanel::binding(exports, worker);
+	WrapPanel::binding(exports, worker);
 }
 
 JS_END

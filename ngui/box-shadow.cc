@@ -34,63 +34,63 @@
 XX_NS(ngui)
 
 BoxShadow::BoxShadow(): m_is_draw_shadow(false), m_shadow() {
-  
+	
 }
 
 void BoxShadow::draw(Draw* draw) {
-  if ( m_visible ) {
-    if ( mark_value ) {
-      solve();
-      if ( mark_value & View::M_BOX_SHADOW ) {  // 阴影
-        if (m_shadow.offset_x != 0 ||
-            m_shadow.offset_y != 0 || m_shadow.size != 0) {
-          m_is_draw_shadow = true;
-        }
-      }
-    }
-    draw->draw(this);
-    mark_value = M_NONE;
-  }
+	if ( m_visible ) {
+		if ( mark_value ) {
+			solve();
+			if ( mark_value & View::M_BOX_SHADOW ) {  // 阴影
+				if (m_shadow.offset_x != 0 ||
+						m_shadow.offset_y != 0 || m_shadow.size != 0) {
+					m_is_draw_shadow = true;
+				}
+			}
+		}
+		draw->draw(this);
+		mark_value = M_NONE;
+	}
 }
 
 /**
  * @func set_shadow_offset_x
  */
 void BoxShadow::set_shadow_offset_x(float value) {
-  m_shadow.offset_x = value;
-  mark(M_BOX_SHADOW);
+	m_shadow.offset_x = value;
+	mark(M_BOX_SHADOW);
 }
 
 /**
  * @func set_shadow_offset_y
  */
 void BoxShadow::set_shadow_offset_y(float value) {
-  m_shadow.offset_y = value;
-  mark(M_BOX_SHADOW);
+	m_shadow.offset_y = value;
+	mark(M_BOX_SHADOW);
 }
 
 /**
  * @func set_shadow_size
  */
 void BoxShadow::set_shadow_size(float value) {
-  m_shadow.size = value;
-  mark(M_BOX_SHADOW);
+	m_shadow.size = value;
+	mark(M_BOX_SHADOW);
 }
 
 /**
  * @func set_shadow_color
  */
 void BoxShadow::set_shadow_color(Color value) {
-  m_shadow.color = value;
-  mark(M_BOX_SHADOW);
+	m_shadow.color = value;
+	mark(M_BOX_SHADOW);
 }
 
 /**
  * @func shadow {Shadow}
  */
 void BoxShadow::set_shadow(Shadow value) {
-  m_shadow = value;
-  mark(M_BOX_SHADOW);
+	m_shadow = value;
+	mark(M_BOX_SHADOW);
 }
 
 XX_END

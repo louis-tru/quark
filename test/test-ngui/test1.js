@@ -36,62 +36,62 @@ import 'ngui/sys';
 console.log('args:', process.argv, process.mainModule.filename);
 
 class Test {
-  aa: 'ABCDEFG';
+	aa: 'ABCDEFG';
 
-  bb() {
-    return 'bb'
-  }
-  cc() {
-    const aa = 100;
-    return 'cc' + aa;
-  }
-  
-  dd() {
+	bb() {
+		return 'bb'
+	}
+	cc() {
+		const aa = 100;
+		return 'cc' + aa;
+	}
+	
+	dd() {
 
-    var color = new value.Color(100, 200, 300, 400);
-    
-    console.log(color.toString());
-    console.log(color.toHex32String());
-    console.log(color.toRGBString());
-    console.log(color.toRGBAString());
-    console.log(this.aa);
-    console.log(this.bb());
-    console.log(this.cc());
-    
-    var buff0 = new Buffer('e6a59ae5ada6e6968741', 'hex');
-    var buff = new Buffer('5qWa5a2m5paHQQ==', 'base64');
-    var buff2 = new Buffer('你好sadasdfsadasdassdasd基本面a基本基本\
-    基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本');
-    
-    console.log(buff.toString());
-    console.log(buff.toString('hex'));
-    console.log(buff.toString('base64'));
-    
-    console.log(sys.info());
-    // console.log(http.getSync('http://www.baidu.com/').to_string());
-    
-    // http.get('http://www.baidu.com/', function(buff) {
-    http.get('http://fanyi.baidu.com/#en/zh/ELLIPSIS', function(buff) {
-      console.log(buff.toString(), buff.length);
-    });
-    
-    var o = { a: 1000, b: buff0, c: buff, d: buff2, e: this };
-    
-    o.u = o;
-    
-    console.log(o);
-    
-    var i = 0;
-    
-    var id = setInterval(function () {
-      console.log(++i);
-      
-      if (i == 20) {
-        clearInterval(id);
-      }
-    }, 1000.3);
-    
-  }
+		var color = new value.Color(100, 200, 300, 400);
+		
+		console.log(color.toString());
+		console.log(color.toHex32String());
+		console.log(color.toRGBString());
+		console.log(color.toRGBAString());
+		console.log(this.aa);
+		console.log(this.bb());
+		console.log(this.cc());
+		
+		var buff0 = new Buffer('e6a59ae5ada6e6968741', 'hex');
+		var buff = new Buffer('5qWa5a2m5paHQQ==', 'base64');
+		var buff2 = new Buffer('你好sadasdfsadasdassdasd基本面a基本基本\
+		基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本基本');
+		
+		console.log(buff.toString());
+		console.log(buff.toString('hex'));
+		console.log(buff.toString('base64'));
+		
+		console.log(sys.info());
+		// console.log(http.getSync('http://www.baidu.com/').to_string());
+		
+		// http.get('http://www.baidu.com/', function(buff) {
+		http.get('http://fanyi.baidu.com/#en/zh/ELLIPSIS', function(buff) {
+			console.log(buff.toString(), buff.length);
+		});
+		
+		var o = { a: 1000, b: buff0, c: buff, d: buff2, e: this };
+		
+		o.u = o;
+		
+		console.log(o);
+		
+		var i = 0;
+		
+		var id = setInterval(function () {
+			console.log(++i);
+			
+			if (i == 20) {
+				clearInterval(id);
+			}
+		}, 1000.3);
+		
+	}
 }
 
 new Test().dd();

@@ -43,11 +43,11 @@ static cPixelData empty_pixel_data(WeakBuffer(empty_, 4), 1, 1, PixelData::RGBA8
  */
 class TextureEmpty: public Texture {
  public:
-  virtual void load() {
-    if (m_status == TEXTURE_NO_LOADED) {
-      XX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
-    }
-  }
+	virtual void load() {
+		if (m_status == TEXTURE_NO_LOADED) {
+			XX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
+		}
+	}
 };
 
 Draw* Draw::m_draw_ctx = nullptr; // 当前GL上下文
@@ -66,73 +66,73 @@ Draw::Draw(GUIApplication* host, const Map<String, int>& options)
 , m_best_display_scale(1)
 , m_library(DRAW_LIBRARY_INVALID)
 {
-  XX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
-  m_draw_ctx = this;
-  
-  if (options.has("multisample")) m_multisample = XX_MAX(options.get("multisample"), 0);
-  
-  m_font_pool = new FontPool(this); // 初始字体池
-  m_tex_pool = new TexturePool(this); // 初始文件纹理池
+	XX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
+	m_draw_ctx = this;
+	
+	if (options.has("multisample")) m_multisample = XX_MAX(options.get("multisample"), 0);
+	
+	m_font_pool = new FontPool(this); // 初始字体池
+	m_tex_pool = new TexturePool(this); // 初始文件纹理池
 }
 
 Draw::~Draw() {
-  Release(m_empty_texture); m_empty_texture = nullptr;
-  Release(m_font_pool); m_font_pool = nullptr;
-  Release(m_tex_pool); m_tex_pool = nullptr;
-  m_draw_ctx = nullptr;
+	Release(m_empty_texture); m_empty_texture = nullptr;
+	Release(m_font_pool); m_font_pool = nullptr;
+	Release(m_tex_pool); m_tex_pool = nullptr;
+	m_draw_ctx = nullptr;
 }
 
 bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
-  CGRect region = select_region ? *select_region : CGRect({ Vec2(), surface_size });
-  // float h = display_port()->status_bar_height();
-  if (m_surface_size != surface_size ||
-      m_selected_region.origin != region.origin ||
-      m_selected_region.size != region.size
-  ) {
-    m_surface_size = surface_size;
-    m_selected_region = region;
-    refresh_buffer();
-    m_host->main_loop()->post(Cb([this](Se& e){
-      XX_TRIGGER(surface_size_change);
-    }));
-    return true;
-  }
-  return false;
+	CGRect region = select_region ? *select_region : CGRect({ Vec2(), surface_size });
+	// float h = display_port()->status_bar_height();
+	if (m_surface_size != surface_size ||
+			m_selected_region.origin != region.origin ||
+			m_selected_region.size != region.size
+	) {
+		m_surface_size = surface_size;
+		m_selected_region = region;
+		refresh_buffer();
+		m_host->main_loop()->post(Cb([this](Se& e){
+			XX_TRIGGER(surface_size_change);
+		}));
+		return true;
+	}
+	return false;
 }
 
 /**
  * @func clear
  */
 void Draw::clear(bool full) {
-  m_tex_pool->clear(full);
-  m_font_pool->clear(full);
+	m_tex_pool->clear(full);
+	m_font_pool->clear(full);
 }
 
 void Draw::set_max_texture_memory_limit(uint64 limit) {
-  m_max_texture_memory_limit = XX_MAX(limit, 64 * 1024 * 1024);
+	m_max_texture_memory_limit = XX_MAX(limit, 64 * 1024 * 1024);
 }
 
 uint64 Draw::used_texture_memory() const {
-  return m_tex_pool->m_total_data_size + m_font_pool->m_total_data_size;
+	return m_tex_pool->m_total_data_size + m_font_pool->m_total_data_size;
 }
 
 /**
  * @func adjust_texture_memory()
  */
 bool Draw::adjust_texture_memory(uint64 will_alloc_size) {
-  
-  int i = 0;
-  do {
-    if (will_alloc_size + used_texture_memory() <= m_max_texture_memory_limit) {
-      return true;
-    }
-    clear();
-    i++;
-  } while(i < 3);
-  
-  XX_WARN("Adjust texture memory fail");
-  
-  return false;
+	
+	int i = 0;
+	do {
+		if (will_alloc_size + used_texture_memory() <= m_max_texture_memory_limit) {
+			return true;
+		}
+		clear();
+		i++;
+	} while(i < 3);
+	
+	XX_WARN("Adjust texture memory fail");
+	
+	return false;
 }
 
 XX_END

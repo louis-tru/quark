@@ -32,136 +32,136 @@ var currentTimezone = new Date().getTimezoneOffset() / -60;
 var slice = Array.prototype.slice;
 
 function illegal_operation() {
-  throw new Error('Illegal operation');
+	throw new Error('Illegal operation');
 }
 
 /**
  * @fun ext_class #  EXT class prototype objects
  */
 function extend(obj, extd) {
-  for (var i in extd) {
-    var desc = Object.getOwnPropertyDescriptor(extd, i);
-    desc.enumerable = false;
-    Object.defineProperty(obj, i, desc);
-  }
+	for (var i in extd) {
+		var desc = Object.getOwnPropertyDescriptor(extd, i);
+		desc.enumerable = false;
+		Object.defineProperty(obj, i, desc);
+	}
 }
 
 extend(Function.prototype, {
-  
-  catch: function(catch_func) {
-    this.throw = catch_func;
-    this.catch = illegal_operation;
-    return this;
-  },
-  
-  /**
-   * @fun err # 捕获回调异常
-   * @arg cb {Function}
-   */
-  err: function(cb) {
-    if (cb)
-      return this.catch(cb.throw);
-    return this;
-  },
-  
-  /**
-   * @fun throw # 抛出异常到给回调函数
-   * @arg e {Object}
-   */
-  throw: function(e) {
-    throw e;
-  },
+	
+	catch: function(catch_func) {
+		this.throw = catch_func;
+		this.catch = illegal_operation;
+		return this;
+	},
+	
+	/**
+	 * @fun err # 捕获回调异常
+	 * @arg cb {Function}
+	 */
+	err: function(cb) {
+		if (cb)
+			return this.catch(cb.throw);
+		return this;
+	},
+	
+	/**
+	 * @fun throw # 抛出异常到给回调函数
+	 * @arg e {Object}
+	 */
+	throw: function(e) {
+		throw e;
+	},
 
-  /**
-    * @func setTimeout 延迟执行函数单位毫秒
-    * @arg time {Number}  要延迟时间长度单位(毫秒)
-    * @arg ...args        提前传入的参数1
-    */
-  setTimeout: function(time/*, ...args*/) {
-    var self = this;
-    var args = slice.call(arguments, 1);
-    return setTimeout(function() {
-      self.apply(null, args);
-    }, time);
-  },
-  
+	/**
+		* @func setTimeout 延迟执行函数单位毫秒
+		* @arg time {Number}  要延迟时间长度单位(毫秒)
+		* @arg ...args        提前传入的参数1
+		*/
+	setTimeout: function(time/*, ...args*/) {
+		var self = this;
+		var args = slice.call(arguments, 1);
+		return setTimeout(function() {
+			self.apply(null, args);
+		}, time);
+	},
+	
 });
 
 extend(Array, {
-  toArray: function (obj, index, end) {
-    return slice.call(obj, index, end);
-  },
+	toArray: function (obj, index, end) {
+		return slice.call(obj, index, end);
+	},
 });
 
 
 extend(Array.prototype, {
 
-  /**
-   * @func deleteValue(val) 移除指定值元素
-   * @arg value {Object}
-   */
-  deleteValue: function(value) {
-    var i = this.indexOf(value);
-    if (i != -1) {
-      this.splice(i, 1);
-    }
-  },
+	/**
+	 * @func deleteValue(val) 移除指定值元素
+	 * @arg value {Object}
+	 */
+	deleteValue: function(value) {
+		var i = this.indexOf(value);
+		if (i != -1) {
+			this.splice(i, 1);
+		}
+	},
 
-  /**
-   * 查询数组元素指定属性名称的值是否与val相等,如果查询不匹配返回-1
-   * @func indexOfProperty(property,value)
-   * @arg property {String}   数组元素的属性名
-   * @arg value {Object}      需要查询的值
-   * @ret {Number}            返回数组索引值
-   */
-  indexOfProperty: function(property, value, from_index) {
-    var len = this.length;
-    if (!len) {
-      return -1;
-    }
-    var i = from_index ? ((from_index % len) + len) % len: 0;
-    for ( ;i < len; i++) {
-      if (this[i][property] === value) {
-        return i;
-      }
-    }
-    return -1;
-  },
+	/**
+	 * 查询数组元素指定属性名称的值是否与val相等,如果查询不匹配返回-1
+	 * @func indexOfProperty(property,value)
+	 * @arg property {String}   数组元素的属性名
+	 * @arg value {Object}      需要查询的值
+	 * @ret {Number}            返回数组索引值
+	 */
+	indexOfProperty: function(property, value, from_index) {
+		var len = this.length;
+		if (!len) {
+			return -1;
+		}
+		var i = from_index ? ((from_index % len) + len) % len: 0;
+		for ( ;i < len; i++) {
+			if (this[i][property] === value) {
+				return i;
+			}
+		}
+		return -1;
+	},
 
-  /**
-   * 从后面开始查询数组元素指定属性名称的值是否与val相等,如果查询不匹配返回-1
-   * @func lastIndexOfProperty(property,value)
-   * @arg property {String} 数组元素的属性名
-   * @arg value {Object}  需要查询的值
-   * @ret {Number}        返回数组索引值
-   */
-  lastIndexOfProperty(property, value, from_index) {
-    var len = this.length;
-    if (!len) {
-      return -1;
-    }
-    var i = from_index ? ((from_index % len) + len) % len: 0;
-    for ( ;i > -1; i--) {
-      if (this[i][property] === value) {
-        return i;
-      }
-    }
-    return -1;
-  },
+	/**
+	 * 从后面开始查询数组元素指定属性名称的值是否与val相等,如果查询不匹配返回-1
+	 * @func lastIndexOfProperty(property,value)
+	 * @arg property {String} 数组元素的属性名
+	 * @arg value {Object}  需要查询的值
+	 * @ret {Number}        返回数组索引值
+	 */
+	lastIndexOfProperty(property, value, from_index) {
+		var len = this.length;
+		if (!len) {
+			return -1;
+		}
+		var i = from_index ? ((from_index % len) + len) % len: 0;
+		for ( ;i > -1; i--) {
+			if (this[i][property] === value) {
+				return i;
+			}
+		}
+		return -1;
+	},
 
-  /**
-   * 倒叙索引数组元素
-   */
-  last: function (index) {
-    return this[this.length - 1 - index];
-  },
+	/**
+	 * 倒叙索引数组元素
+	 */
+	last: function (index) {
+		return this[this.length - 1 - index];
+	},
 
 });
 
 extend(String, {
-  format: function(str) {
-    return String.prototype.format.apply(str, slice.call(arguments, 1));
-  }
+	format: function(str) {
+		return String.prototype.format.apply(str, slice.call(arguments, 1));
+	}
 });
 
 extend(String.prototype, {
@@ -170,141 +170,141 @@ extend(String.prototype, {
  * var newStr = str.format('A', 'B', 'C');
  * @ret : xxxxxxAxxxxxBxxxxC,xxxAxxxxxB
  */
-  format: function() {
-    var val = String(this);
-    for (var i = 0, len = arguments.length; i < len; i++)
-      val = val.replace(new RegExp('\\{' + i + '\\}', 'g'), arguments[i]);
-    return val;
-  }
+	format: function() {
+		var val = String(this);
+		for (var i = 0, len = arguments.length; i < len; i++)
+			val = val.replace(new RegExp('\\{' + i + '\\}', 'g'), arguments[i]);
+		return val;
+	}
 });
 
 extend(Number.prototype, {
-  /**
-  * 转换为前后固定位数的字符串
-  * @arg before {Number}  小数点前固定位数
-  * @arg [after] {Number} 小数点后固定位数
-  */
-  toFixedBefore: function(before, after) {
-    if (!isFinite(this)) {
-      return String(this);
-    } else {
-      var num = typeof after == 'number' ? this.toFixed(after) : String(this);
-      var match = num.match(/^(\d+)(\.\d+)?$/);
-      var integer = match[1];
-      var len = before - integer.length;
-      if (len > 0)
-        num = new Array(len + 1).join('0') + num;
-      return num;
-    }
-  }
+	/**
+	* 转换为前后固定位数的字符串
+	* @arg before {Number}  小数点前固定位数
+	* @arg [after] {Number} 小数点后固定位数
+	*/
+	toFixedBefore: function(before, after) {
+		if (!isFinite(this)) {
+			return String(this);
+		} else {
+			var num = typeof after == 'number' ? this.toFixed(after) : String(this);
+			var match = num.match(/^(\d+)(\.\d+)?$/);
+			var integer = match[1];
+			var len = before - integer.length;
+			if (len > 0)
+				num = new Array(len + 1).join('0') + num;
+			return num;
+		}
+	}
 
 });
 
 
 // index of
 function index_of(str, str1) {
-  var index = str.indexOf(str1);
-  return index > -1 ? index : Infinity;
+	var index = str.indexOf(str1);
+	return index > -1 ? index : Infinity;
 }
 
 extend(Date, {
 
-  currentTimezone: currentTimezone,
+	currentTimezone: currentTimezone,
 
-  /**
-   * 解析字符串为时间
-   * <pre><code>
-   * var i = '2008-02-13 01:12:13';
-   * var date = Date.parseDate(i); //返回的新时间
-   * </code></pre>
-   * @func parseDate(str[,format[,timezone]])
-   * @arg str {String}        要解析的字符串
-   * @arg [format] {String}   date format   default yyyyMMddhhmmssfff
-   * @arg [timezone] {Number} 要解析的时间所在时区,默认为当前时区
-   * @ret {Date}              返回新时间
-   */
-  parseDate: function(date_str, format, timezone) {
+	/**
+	 * 解析字符串为时间
+	 * <pre><code>
+	 * var i = '2008-02-13 01:12:13';
+	 * var date = Date.parseDate(i); //返回的新时间
+	 * </code></pre>
+	 * @func parseDate(str[,format[,timezone]])
+	 * @arg str {String}        要解析的字符串
+	 * @arg [format] {String}   date format   default yyyyMMddhhmmssfff
+	 * @arg [timezone] {Number} 要解析的时间所在时区,默认为当前时区
+	 * @ret {Date}              返回新时间
+	 */
+	parseDate: function(date_str, format, timezone) {
 
-    date_str = date_str.replace(/[^0-9]/gm, '');
-    format = format || 'yyyyMMddhhmmssfff';
+		date_str = date_str.replace(/[^0-9]/gm, '');
+		format = format || 'yyyyMMddhhmmssfff';
 
-    var l = date_str.length;
-    var val;
-    
-    if (timezone === undefined)
-      timezone = currentTimezone;
+		var l = date_str.length;
+		var val;
+		
+		if (timezone === undefined)
+			timezone = currentTimezone;
 
-    var d = new Date();
+		var d = new Date();
 
-    return new Date(
-      date_str.substr(index_of(format, 'yyyy'), 4) || d.getFullYear(),
-      (date_str.substr(index_of(format, 'MM'), 2) || d.getMonth() + 1) - 1,
-      date_str.substr(index_of(format, 'dd'), 2) || d.getDate(),
-      (date_str.substr(index_of(format, 'hh'), 2) || d.getHours()) - currentTimezone + timezone,
-      date_str.substr(index_of(format, 'mm'), 2) || d.getMinutes(),
-      date_str.substr(index_of(format, 'ss'), 2) || d.getSeconds(),
-      date_str.substr(index_of(format, 'fff'), 3) || 0
-    );
-  },
+		return new Date(
+			date_str.substr(index_of(format, 'yyyy'), 4) || d.getFullYear(),
+			(date_str.substr(index_of(format, 'MM'), 2) || d.getMonth() + 1) - 1,
+			date_str.substr(index_of(format, 'dd'), 2) || d.getDate(),
+			(date_str.substr(index_of(format, 'hh'), 2) || d.getHours()) - currentTimezone + timezone,
+			date_str.substr(index_of(format, 'mm'), 2) || d.getMinutes(),
+			date_str.substr(index_of(format, 'ss'), 2) || d.getSeconds(),
+			date_str.substr(index_of(format, 'fff'), 3) || 0
+		);
+	},
 
-   /**
-    * 格式化时间戳(单位:毫秒)
-    * <pre><code>
-    * var time_span = 10002100;
-    * var format = 'dd hh:mm:ss';
-    * var str = Date.formatTimeSpan(time_span, format); // str = '0 2:46:42'
-    * var format = 'dd天hh时mm分ss秒';
-    * var str = Date.formatTimeSpan(time_span, format); // str = '0天2时46分42秒'
-    * format = 'hh时mm分ss秒';
-    * str = Date.formatTimeSpan(time_span, format); // str = '2时46分42秒'
-    * format = 'mm分ss秒';
-    * str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
-    * </code></pre>
-    * @func formatTimeSpan(ts[,format])
-    * @arg ts {Number} 要格式化的时间戳
-    * @arg [format]  {String} 要格式化的时间戳格式
-    * @ret {String} 返回的格式化后的时间戳
-    */
-  formatTimeSpan: function(time_span, format) {
-    
-    format = format || 'dd hh:mm:ss';
+	 /**
+		* 格式化时间戳(单位:毫秒)
+		* <pre><code>
+		* var time_span = 10002100;
+		* var format = 'dd hh:mm:ss';
+		* var str = Date.formatTimeSpan(time_span, format); // str = '0 2:46:42'
+		* var format = 'dd天hh时mm分ss秒';
+		* var str = Date.formatTimeSpan(time_span, format); // str = '0天2时46分42秒'
+		* format = 'hh时mm分ss秒';
+		* str = Date.formatTimeSpan(time_span, format); // str = '2时46分42秒'
+		* format = 'mm分ss秒';
+		* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
+		* </code></pre>
+		* @func formatTimeSpan(ts[,format])
+		* @arg ts {Number} 要格式化的时间戳
+		* @arg [format]  {String} 要格式化的时间戳格式
+		* @ret {String} 返回的格式化后的时间戳
+		*/
+	formatTimeSpan: function(time_span, format) {
+		
+		format = format || 'dd hh:mm:ss';
 
-    var data = [];
-    var items = [
-      [1, 1000, /fff/g],
-      [1000, 60, /ss/g],
-      [60, 60, /mm/g],
-      [60, 24, /hh/g],
-      [24, 1, /dd/g]
-    ];
-    
-    var start = false;
+		var data = [];
+		var items = [
+			[1, 1000, /fff/g],
+			[1000, 60, /ss/g],
+			[60, 60, /mm/g],
+			[60, 24, /hh/g],
+			[24, 1, /dd/g]
+		];
+		
+		var start = false;
 
-    for (var i = 0; i < 5; i++) {
-      var item = items[i];
-      var reg = item[2];
+		for (var i = 0; i < 5; i++) {
+			var item = items[i];
+			var reg = item[2];
 
-      if (format.match(reg)) {
-        start = true;
-      }
-      else if (start) {
-        break;
-      }
-      time_span = time_span / item[0];
-      data.push([time_span % item[1], time_span]);
-    }
+			if (format.match(reg)) {
+				start = true;
+			}
+			else if (start) {
+				break;
+			}
+			time_span = time_span / item[0];
+			data.push([time_span % item[1], time_span]);
+		}
 
-    if (!start) {
-      return format;
-    }
+		if (!start) {
+			return format;
+		}
 
-    data.last(0).reverse();
-    data.forEach(function (item, index) {
-      format =
-        format.replace(items[index][2], Math.floor(item[0]).toFixedBefore(2));
-    });
-    return format;
-  },
+		data.last(0).reverse();
+		data.forEach(function (item, index) {
+			format =
+				format.replace(items[index][2], Math.floor(item[0]).toFixedBefore(2));
+		});
+		return format;
+	},
 
 });
 
@@ -312,112 +312,112 @@ const rawDateToString = Date.prototype.toString;
 
 extend(Date.prototype, {
 
-  ...(Date.prototype.rawToString ? {}: {
-    /**
-    * 给定日期格式返回日期字符串
-    * <pre><code>
-    * var date = new Date();
-    * var format = 'yyyy-MM-dd hh:mm:ss.fff';
-    * var dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
-    * format = 'yyyy-MM-dd hh:mm:ss';
-    * dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
-    * format = 'yyyy/MM/dd';
-    * dateStr = date.toString(format); // dateStr的值为 '2008/12/10'
-    * format = 'yyyy-MM-dd hh';
-    * dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
-    * </code></pre>
-    * @func date_to_string(date[,foramt])
-    * @arg date {Date}
-    * @arg [format] {String} 要转换的字符串格式
-    * @ret {String} 返回格式化后的时间字符串
-    */
-    toString: function(format, timezone) {
-      if (typeof format == 'string') {
-        var d = new Date(this.valueOf());
-        
-        if (typeof timezone == 'number') {
-          var cur_time_zone = d.getTimezoneOffset() / -60;
-          var offset = timezone - cur_time_zone;
-          d.setHours(d.getHours() + offset);
-        }
-        return format.replace('yyyy', d.getFullYear())
-          .replace('MM', (d.getMonth() + 1).toFixedBefore(2))
-          .replace('dd', d.getDate().toFixedBefore(2))
-          .replace('hh', d.getHours().toFixedBefore(2))
-          .replace('HH', d.getHours().toFixedBefore(2))
-          .replace('mm', d.getMinutes().toFixedBefore(2))
-          .replace('ss', d.getSeconds().toFixedBefore(2))
-          .replace('fff', d.getMilliseconds().toFixedBefore(3))
-      } else {
-        return rawDateToString.call(this);
-      }
-    },
-    rawToString: rawDateToString,
-  }),
+	...(Date.prototype.rawToString ? {}: {
+		/**
+		* 给定日期格式返回日期字符串
+		* <pre><code>
+		* var date = new Date();
+		* var format = 'yyyy-MM-dd hh:mm:ss.fff';
+		* var dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
+		* format = 'yyyy-MM-dd hh:mm:ss';
+		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
+		* format = 'yyyy/MM/dd';
+		* dateStr = date.toString(format); // dateStr的值为 '2008/12/10'
+		* format = 'yyyy-MM-dd hh';
+		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
+		* </code></pre>
+		* @func date_to_string(date[,foramt])
+		* @arg date {Date}
+		* @arg [format] {String} 要转换的字符串格式
+		* @ret {String} 返回格式化后的时间字符串
+		*/
+		toString: function(format, timezone) {
+			if (typeof format == 'string') {
+				var d = new Date(this.valueOf());
+				
+				if (typeof timezone == 'number') {
+					var cur_time_zone = d.getTimezoneOffset() / -60;
+					var offset = timezone - cur_time_zone;
+					d.setHours(d.getHours() + offset);
+				}
+				return format.replace('yyyy', d.getFullYear())
+					.replace('MM', (d.getMonth() + 1).toFixedBefore(2))
+					.replace('dd', d.getDate().toFixedBefore(2))
+					.replace('hh', d.getHours().toFixedBefore(2))
+					.replace('HH', d.getHours().toFixedBefore(2))
+					.replace('mm', d.getMinutes().toFixedBefore(2))
+					.replace('ss', d.getSeconds().toFixedBefore(2))
+					.replace('fff', d.getMilliseconds().toFixedBefore(3))
+			} else {
+				return rawDateToString.call(this);
+			}
+		},
+		rawToString: rawDateToString,
+	}),
 
-  /**
-   * @func addMs 给当前Date时间追加毫秒,改变时间值
-   * @arg ms {Number}  要添追加的毫秒值
-   * @ret {Date}
-   */
-  addMs: function(ms) {
-    this.setMilliseconds(this.getMilliseconds() + ms);
-    return this;
-  },
+	/**
+	 * @func addMs 给当前Date时间追加毫秒,改变时间值
+	 * @arg ms {Number}  要添追加的毫秒值
+	 * @ret {Date}
+	 */
+	addMs: function(ms) {
+		this.setMilliseconds(this.getMilliseconds() + ms);
+		return this;
+	},
 
 });
 
 extend(Error, {
 
-  toJSON: function(err) {
-    if ( err ) {
-      if ( typeof err == 'string' ) {
-        return { message: err || 'unknown error', code: 0, name: '', description: '' };
-      } else if ( typeof err == 'number' ) {
-        return { message: 'unknown error', code: err, name: '', description: '' };
-      } else {
-        var r = Object.create(err);
-        if (typeof r.code == 'string') {
-          r.rawCode = r.code;
-          r.code = -1;
-        }
-        r.code = r.code || -1;
-        r.name = r.name || '';
-        r.description = r.description || '';
-        r.message = r.message || 'unknown error';
-        r.stack = r.stack || '';
-        return r;
-      } 
-    } else {
-      return { message: 'unknown error', code: 0, name: '', description: '' };
-    }
-    return r;
-  },
+	toJSON: function(err) {
+		if ( err ) {
+			if ( typeof err == 'string' ) {
+				return { message: err || 'unknown error', code: 0, name: '', description: '' };
+			} else if ( typeof err == 'number' ) {
+				return { message: 'unknown error', code: err, name: '', description: '' };
+			} else {
+				var r = Object.create(err);
+				if (typeof r.code == 'string') {
+					r.rawCode = r.code;
+					r.code = -1;
+				}
+				r.code = r.code || -1;
+				r.name = r.name || '';
+				r.description = r.description || '';
+				r.message = r.message || 'unknown error';
+				r.stack = r.stack || '';
+				return r;
+			} 
+		} else {
+			return { message: 'unknown error', code: 0, name: '', description: '' };
+		}
+		return r;
+	},
 
-  new: function(e, code) {
-    if (! (e instanceof Error)) {
-      if (typeof e == 'object') {
-        if (Array.isArray(e)) {
-          code = e[0];
-          var description = e[2] || '';
-          e = new Error(e[1] || 'Unknown error');
-          e.description = description;
-        } else {
-          e = Object.assign(new Error(e.message || e.error || 'Unknown error'), e);
-        }
-      } else {
-        e = new Error(e);
-      }
-    }
-    e.code = code || -1;
-    return e;
-  },
+	new: function(e, code) {
+		if (! (e instanceof Error)) {
+			if (typeof e == 'object') {
+				if (Array.isArray(e)) {
+					code = e[0];
+					var description = e[2] || '';
+					e = new Error(e[1] || 'Unknown error');
+					e.description = description;
+				} else {
+					e = Object.assign(new Error(e.message || e.error || 'Unknown error'), e);
+				}
+			} else {
+				e = new Error(e);
+			}
+		}
+		e.code = code || -1;
+		return e;
+	},
 
 });
 
 extend(Error.prototype, {
-  
-  toJSON: function() {
-    return Error.toJSON(this);
-  },
+	
+	toJSON: function() {
+		return Error.toJSON(this);
+	},
 });

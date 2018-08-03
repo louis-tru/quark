@@ -48,16 +48,16 @@ using namespace ngui;
 using namespace ngui::value;
 
 #define js_check_gui_app() if ( ! app() ) { \
-  JS_WORKER(args); JS_THROW_ERR("Need to create a `new GUIApplication()`"); }
+	JS_WORKER(args); JS_THROW_ERR("Need to create a `new GUIApplication()`"); }
 
 #define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
 #define js_parse_value2(Type, Name, value, desc) \
-  Type out; \
-  if ( !worker->value_program()->parse##Name(value, out, desc)) \
-  { return; /*JS_THROW_ERR("Bad argument.");*/ }
+	Type out; \
+	if ( !worker->value_program()->parse##Name(value, out, desc)) \
+	{ return; /*JS_THROW_ERR("Bad argument.");*/ }
 
 #define js_throw_value_err(value, msg, ...)\
-  worker->value_program()->throwError(t, msg, ##__VA_ARGS__)
+	worker->value_program()->throwError(t, msg, ##__VA_ARGS__)
 
 // ------------- values -------------
 
@@ -111,28 +111,28 @@ F(BackgroundSizes, Array<BackgroundSizeCollection>) \
 class XX_EXPORT ValueProgram: public Object {
  public:
 #define def_attr_fn(Name, Type)           \
-  Local<JSValue> New(const Type& value);  \
-  bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg); \
-  bool is##Name(Local<JSValue> value);
-  
+	Local<JSValue> New(const Type& value);  \
+	bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg); \
+	bool is##Name(Local<JSValue> value);
+	
 #define def_attr(Name, Type) \
-  Persistent<JSFunction> _constructor##Name; \
-  Persistent<JSFunction> _parse##Name; \
-  Persistent<JSFunction> _parse##Name##Help; \
-  Persistent<JSFunction> _##Name;
-  
-  ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
-  virtual ~ValueProgram();
-  void throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> help = Local<JSFunction>());
-  bool isBase(Local<JSValue> value);
-  bool parseBackgroundImage(Local<JSValue> in, BackgroundPtr& out, cchar* err_msg);
-  js_value_table(def_attr_fn);
+	Persistent<JSFunction> _constructor##Name; \
+	Persistent<JSFunction> _parse##Name; \
+	Persistent<JSFunction> _parse##Name##Help; \
+	Persistent<JSFunction> _##Name;
+	
+	ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
+	virtual ~ValueProgram();
+	void throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> help = Local<JSFunction>());
+	bool isBase(Local<JSValue> value);
+	bool parseBackgroundImage(Local<JSValue> in, BackgroundPtr& out, cchar* err_msg);
+	js_value_table(def_attr_fn);
  private:
-  js_value_table(def_attr)
-  Worker* worker;
-  Persistent<JSFunction> _isBase;
-  #undef def_attr_fn
-  #undef def_attr
+	js_value_table(def_attr)
+	Worker* worker;
+	Persistent<JSFunction> _isBase;
+	#undef def_attr_fn
+	#undef def_attr
 };
 
 /**
@@ -141,36 +141,36 @@ class XX_EXPORT ValueProgram: public Object {
 class XX_EXPORT WrapViewBase: public WrapObject {
  public:
 
-  /**
-   * @func overwrite
-   */
-  virtual void destroy();
-  
-  /**
-   * @func overwrite
-   */
-  virtual bool add_event_listener(cString& name, cString& func, int id);
-  
-  /**
-   * @func overwrite
-   */
-  virtual bool remove_event_listener(cString& name, int id);
-  
-  /**
-   * @func inherit_text_font
-   */
-  static void inherit_text_font(Local<JSClass> cls, Worker* worker);
-  
-  /**
-   * @func inherit_text_layout
-   */
-  static void inherit_text_layout(Local<JSClass> cls, Worker* worker);
-  
-  /**
-   * @func inherit_scroll
-   */
-  static void inherit_scroll(Local<JSClass> cls, Worker* worker);
-  
+	/**
+	 * @func overwrite
+	 */
+	virtual void destroy();
+	
+	/**
+	 * @func overwrite
+	 */
+	virtual bool add_event_listener(cString& name, cString& func, int id);
+	
+	/**
+	 * @func overwrite
+	 */
+	virtual bool remove_event_listener(cString& name, int id);
+	
+	/**
+	 * @func inherit_text_font
+	 */
+	static void inherit_text_font(Local<JSClass> cls, Worker* worker);
+	
+	/**
+	 * @func inherit_text_layout
+	 */
+	static void inherit_text_layout(Local<JSClass> cls, Worker* worker);
+	
+	/**
+	 * @func inherit_scroll
+	 */
+	static void inherit_scroll(Local<JSClass> cls, Worker* worker);
+	
 };
 
 JS_END

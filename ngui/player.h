@@ -36,13 +36,13 @@
  */
 
 namespace ngui {
-  
-  enum PlayerStatus {
-    PLAYER_STATUS_STOP = 0,
-    PLAYER_STATUS_START,
-    PLAYER_STATUS_PLAYING,
-    PLAYER_STATUS_PAUSED,
-  };
+	
+	enum PlayerStatus {
+		PLAYER_STATUS_STOP = 0,
+		PLAYER_STATUS_START,
+		PLAYER_STATUS_PLAYING,
+		PLAYER_STATUS_PAUSED,
+	};
 
 }
 #endif

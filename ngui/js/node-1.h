@@ -34,28 +34,28 @@
 #include "ngui/base/loop.h"
 
 namespace ngui {
-  namespace js {
-    class Worker;
-  }
+	namespace js {
+		class Worker;
+	}
 }
 
 namespace node {
-  class Environment;
-  struct NguiApi {
-    ngui::js::Worker* (*create_ngui_js_worker)(Environment* env, bool is_inspector,
-                                               int argc, const char* const* arg);
-    void (*delete_ngui_js_worker)(ngui::js::Worker* worker);
-    ngui::RunLoop* (*ngui_main_loop)();
-    void (*run_ngui_loop)(ngui::RunLoop* loop);
-    char* (*encoding_to_utf8)(const uint16_t* src, int length, int* out_len);
-    uint16_t* (*decoding_utf8_to_uint16)(const char* src, int length, int* out_len);
-    void (*print)(const char* msg, ...);
-    bool (*is_process_exit)();
-  };
+	class Environment;
+	struct NguiApi {
+		ngui::js::Worker* (*create_ngui_js_worker)(Environment* env, bool is_inspector,
+																							 int argc, const char* const* arg);
+		void (*delete_ngui_js_worker)(ngui::js::Worker* worker);
+		ngui::RunLoop* (*ngui_main_loop)();
+		void (*run_ngui_loop)(ngui::RunLoop* loop);
+		char* (*encoding_to_utf8)(const uint16_t* src, int length, int* out_len);
+		uint16_t* (*decoding_utf8_to_uint16)(const char* src, int length, int* out_len);
+		void (*print)(const char* msg, ...);
+		bool (*is_process_exit)();
+	};
 
-  extern struct NguiApi* ngui_api;
-  
-  extern void set_ngui_api(struct NguiApi api);
+	extern struct NguiApi* ngui_api;
+	
+	extern void set_ngui_api(struct NguiApi api);
 }
 
 #endif

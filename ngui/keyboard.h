@@ -183,7 +183,7 @@ F(KEYCODE_HELP,             335)     /* Help */ \
 
 enum KeyboardKeyName {
 #define xx_def_enum_keyboard_key_name(Name, Code) Name = Code,
-  xx_each_keyboard_key_name_table(xx_def_enum_keyboard_key_name)
+	xx_each_keyboard_key_name_table(xx_def_enum_keyboard_key_name)
 #undef xx_def_enum_keyboard_key_name
 };
 
@@ -193,69 +193,69 @@ enum KeyboardKeyName {
 class XX_EXPORT KeyboardAdapter: public Object {
  public:
 
-  KeyboardAdapter();
-  
-  /**
-   * @func create
-   */
-  static KeyboardAdapter* create();
-  
-  /**
-   * @func keyname
-   */
-  inline KeyboardKeyName keyname() const { return keyname_; }
+	KeyboardAdapter();
+	
+	/**
+	 * @func create
+	 */
+	static KeyboardAdapter* create();
+	
+	/**
+	 * @func keyname
+	 */
+	inline KeyboardKeyName keyname() const { return keyname_; }
 
-  /**
-   * @func keypress
-   */
-  inline int keypress() const { return keypress_; }
-  
-  inline bool shift() const { return shift_; }
-  inline bool alt() const { return alt_; }
-  inline bool ctrl() const { return ctrl_; }
-  inline bool command() const { return command_; }
-  inline bool caps_lock() const { return caps_lock_; }
-  inline int  repeat() const { return repeat_; }
-  inline int  device() const { return device_; }
-  inline int  source() const { return source_; }
-  
-  /**
-   * @func dispatch
-   */
-  void dispatch(int keycode, bool soft, bool down, int repeat, int device, int source);
-  
+	/**
+	 * @func keypress
+	 */
+	inline int keypress() const { return keypress_; }
+	
+	inline bool shift() const { return shift_; }
+	inline bool alt() const { return alt_; }
+	inline bool ctrl() const { return ctrl_; }
+	inline bool command() const { return command_; }
+	inline bool caps_lock() const { return caps_lock_; }
+	inline int  repeat() const { return repeat_; }
+	inline int  device() const { return device_; }
+	inline int  source() const { return source_; }
+	
+	/**
+	 * @func dispatch
+	 */
+	void dispatch(int keycode, bool soft, bool down, int repeat, int device, int source);
+	
  protected:
 
-  /**
-   * @func transformation_keypress
-   */
-  virtual int transformation_keypress(KeyboardKeyName name);
-  
-  /**
-   * @func transformation
-   */
-  virtual bool transformation(int keycode, bool soft, bool down);
-  
-  struct AsciiKeyboardKeycode {
-    KeyboardKeyName name;
-    bool is_shift;
-  };
-  
-  struct SymbolKeypressValue {
-    int normal, shift;
-  };
-  
-  Map<int, KeyboardKeyName>      m_keycodes;
-  Map<int, AsciiKeyboardKeycode> m_ascii_keycodes;
-  Map<int, SymbolKeypressValue>  m_symbol_keypress;
-  
-  GUIApplication* app_;
-  KeyboardKeyName keyname_;
-  int   keypress_;
-  bool  shift_;
-  bool  alt_, ctrl_;
-  bool  command_, caps_lock_;
-  int   repeat_, device_, source_;
+	/**
+	 * @func transformation_keypress
+	 */
+	virtual int transformation_keypress(KeyboardKeyName name);
+	
+	/**
+	 * @func transformation
+	 */
+	virtual bool transformation(int keycode, bool soft, bool down);
+	
+	struct AsciiKeyboardKeycode {
+		KeyboardKeyName name;
+		bool is_shift;
+	};
+	
+	struct SymbolKeypressValue {
+		int normal, shift;
+	};
+	
+	Map<int, KeyboardKeyName>      m_keycodes;
+	Map<int, AsciiKeyboardKeycode> m_ascii_keycodes;
+	Map<int, SymbolKeypressValue>  m_symbol_keypress;
+	
+	GUIApplication* app_;
+	KeyboardKeyName keyname_;
+	int   keypress_;
+	bool  shift_;
+	bool  alt_, ctrl_;
+	bool  command_, caps_lock_;
+	int   repeat_, device_, source_;
 };
 
 XX_END

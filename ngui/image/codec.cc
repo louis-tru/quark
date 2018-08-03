@@ -44,27 +44,27 @@ ImageCodec* pvrtc_image_codec = nullptr;
  * @func is_compressd_format
  */
 bool PixelData::is_compressd_format(Format format) {
-  return format < NumCompressedPFs;
+	return format < NumCompressedPFs;
 }
 
 /**
  * @func get_pixel_data_size
  */
 uint PixelData::get_pixel_data_size(Format format) {
-  switch ( format ) {
-    default: return 2;
-    case RGBA8888:
-    case RGBX8888: return 4;
-    case RGB888: return 3;
-    case RGBA4444:
-    case RGBX4444:
-    case RGB565:
-    case LUMINANCE_ALPHA88:
-    case RGBA5551: return 2;
-    case ALPHA8:
-    case LUMINANCE8: return 1;
-    case INVALID: return 0;
-  }
+	switch ( format ) {
+		default: return 2;
+		case RGBA8888:
+		case RGBX8888: return 4;
+		case RGB888: return 3;
+		case RGBA4444:
+		case RGBX4444:
+		case RGB565:
+		case LUMINANCE_ALPHA88:
+		case RGBA5551: return 2;
+		case ALPHA8:
+		case LUMINANCE8: return 1;
+		case INVALID: return 0;
+	}
 }
 
 PixelData::PixelData()
@@ -100,27 +100,27 @@ PixelData::PixelData(Format format)
 }
 
 PixelData::PixelData(Buffer body, int width,
-                     int height, Format format, bool is_premultiplied_alpha)
+										 int height, Format format, bool is_premultiplied_alpha)
 : m_data(body)
 , m_width(width)
 , m_height(height)
 , m_body()
 , m_format(format), m_is_premultiplied_alpha(is_premultiplied_alpha) {
-  m_body.push(WeakBuffer(*m_data, m_data.length()));
+	m_body.push(WeakBuffer(*m_data, m_data.length()));
 }
 
 PixelData::PixelData(WeakBuffer body, int width,
-                     int height, Format format, bool is_premultiplied_alpha)
+										 int height, Format format, bool is_premultiplied_alpha)
 : m_data()
 , m_width(width)
 , m_height(height)
 , m_body()
 , m_format(format), m_is_premultiplied_alpha(is_premultiplied_alpha) {
-  m_body.push(body);
+	m_body.push(body);
 }
 
 PixelData::PixelData(const Array<WeakBuffer>& body, int width,
-                     int height, Format format, bool is_premultiplied_alpha)
+										 int height, Format format, bool is_premultiplied_alpha)
 : m_data()
 , m_width(width)
 , m_height(height)
@@ -133,64 +133,64 @@ PixelData::PixelData(const Array<WeakBuffer>& body, int width,
  * @func get_image_format 通过路径获取图片类型
  */
 ImageCodec::ImageFormat ImageCodec::get_image_format(cString& path) {
-  
-  String str = path.to_lower_case();
-  int len = str.length();
-  
-  if (str.last_index_of(".pvr") != -1) {
-    return PVRTC;
-  }
-  else if (str.last_index_of(".tga") != -1) {
-    return TGA;
-  }
-  // JPF、JPX、J2C、JP2、J2K、JPC、LWF
-  else if ( str.last_index_of(".jpg") != -1 ||
-            str.last_index_of(".jpf") != -1 ||
-            str.last_index_of(".jpeg") != -1
-  ) {
-    return JPEG;
-  }
-  else if (str.last_index_of(".gif") != -1) {
-    return GIF;
-  }
-  else if (str.last_index_of(".png") != -1) {
-    return PNG;
-  }
-  else if (str.last_index_of(".webp") != -1) {
-    return WEBP;
-  }
-  return Unknown;
+	
+	String str = path.to_lower_case();
+	int len = str.length();
+	
+	if (str.last_index_of(".pvr") != -1) {
+		return PVRTC;
+	}
+	else if (str.last_index_of(".tga") != -1) {
+		return TGA;
+	}
+	// JPF、JPX、J2C、JP2、J2K、JPC、LWF
+	else if ( str.last_index_of(".jpg") != -1 ||
+						str.last_index_of(".jpf") != -1 ||
+						str.last_index_of(".jpeg") != -1
+	) {
+		return JPEG;
+	}
+	else if (str.last_index_of(".gif") != -1) {
+		return GIF;
+	}
+	else if (str.last_index_of(".png") != -1) {
+		return PNG;
+	}
+	else if (str.last_index_of(".webp") != -1) {
+		return WEBP;
+	}
+	return Unknown;
 }
 
 ImageCodec* ImageCodec::shared(ImageFormat format) {
-  switch (format) {
-    case TGA:
-      if (!tga_image_codec)
-        tga_image_codec = new TGAImageCodec();
-      return tga_image_codec;
-    case JPEG:
-      if (!jpeg_image_codec)
-        jpeg_image_codec = new JPEGImageCodec();
-      return jpeg_image_codec;
-    case GIF:
-      if (!gif_image_codec)
-        gif_image_codec = new GIFImageCodec();
-      return gif_image_codec;
-    case PNG:
-      if (!png_image_codec)
-        png_image_codec = new PNGImageCodec();
-      return png_image_codec;
-    case WEBP:
-      if (!webp_image_codec)
-        webp_image_codec = new WEBPImageCodec();
-      return webp_image_codec;
-    case PVRTC:
-      if (!pvrtc_image_codec)
-        pvrtc_image_codec = new PVRTCImageCodec();
-      return pvrtc_image_codec;
-    default:
-      return nullptr;
-  }
+	switch (format) {
+		case TGA:
+			if (!tga_image_codec)
+				tga_image_codec = new TGAImageCodec();
+			return tga_image_codec;
+		case JPEG:
+			if (!jpeg_image_codec)
+				jpeg_image_codec = new JPEGImageCodec();
+			return jpeg_image_codec;
+		case GIF:
+			if (!gif_image_codec)
+				gif_image_codec = new GIFImageCodec();
+			return gif_image_codec;
+		case PNG:
+			if (!png_image_codec)
+				png_image_codec = new PNGImageCodec();
+			return png_image_codec;
+		case WEBP:
+			if (!webp_image_codec)
+				webp_image_codec = new WEBPImageCodec();
+			return webp_image_codec;
+		case PVRTC:
+			if (!pvrtc_image_codec)
+				pvrtc_image_codec = new PVRTCImageCodec();
+			return pvrtc_image_codec;
+		default:
+			return nullptr;
+	}
 }
 
 XX_END

@@ -43,38 +43,38 @@ JS_BEGIN
  */
 class WrapHybrid: public WrapViewBase {
  public:
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapHybrid>(args, new Hybrid());
-  }
-  
-  static void text_align(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Hybrid);
-    JS_RETURN( worker->value_program()->New(self->text_align()) );
-  }
-  
-  static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(TextAlign, value, "Hybrid.textAlign = %s");
-    JS_SELF(Hybrid);
-    self->set_text_align(out);
-  }
-  
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapHybrid>(args, new Hybrid());
+	}
+	
+	static void text_align(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Hybrid);
+		JS_RETURN( worker->value_program()->New(self->text_align()) );
+	}
+	
+	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(TextAlign, value, "Hybrid.textAlign = %s");
+		JS_SELF(Hybrid);
+		self->set_text_align(out);
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Hybrid, constructor, {
-      JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
-      WrapViewBase::inherit_text_layout(cls, worker);
-    }, Box);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Hybrid), View::HYBRID);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Hybrid, constructor, {
+			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
+			WrapViewBase::inherit_text_layout(cls, worker);
+		}, Box);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Hybrid), View::HYBRID);
+	}
 };
 
 void binding_hybrid(Local<JSObject> exports, Worker* worker) {
-  WrapHybrid::binding(exports, worker);
+	WrapHybrid::binding(exports, worker);
 }
 
 JS_END

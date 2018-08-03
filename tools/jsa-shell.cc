@@ -41,62 +41,62 @@ using namespace ngui;
 
 bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx) {
 #if DEBUG_JSA
-  if ( jsx ) {
-    out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src));
-  } else {
-    out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src));
-  }
+	if ( jsx ) {
+		out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src));
+	} else {
+		out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src));
+	}
 #else
-  try {
-    if ( jsx ) {
-      out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src));
-    } else {
-      out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src));
-    }
-  } catch(Error& err) {
-    error(err.message());
-  }
+	try {
+		if ( jsx ) {
+			out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src));
+		} else {
+			out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src));
+		}
+	} catch(Error& err) {
+		error(err.message());
+	}
 #endif
-  return 0;
+	return 0;
 }
 
 int main(int argc, char* argv[]) {
 
 #if DEBUG_JSA
-  String src = DEBUG_JSA_PATH;
-  String target = DEBUG_JSA_PATH"c";
+	String src = DEBUG_JSA_PATH;
+	String target = DEBUG_JSA_PATH"c";
 #else
-  if ( argc < 3 ) {
-    error("Bad argument.");
-  }
-  String src = argv[1];
-  String target = argv[2];
+	if ( argc < 3 ) {
+		error("Bad argument.");
+	}
+	String src = argv[1];
+	String target = argv[2];
 #endif
-  
-  if ( ! FileHelper::exists_sync(src) ) {
-    error("Bad argument.");
-  }
-  
-  String extname = Path::extname(src).lower_case();
-    
-  Ucs2String in;
-  Buffer out;
-  
-  in = Codec::decoding_to_uint16(Encoding::utf8, FileHelper::read_file_sync(src));
-  
-  int r = 0;
-    
-  if ( extname == ".js" ) {
-    r = transform_js(src, in, out, false);
-  } else if ( extname == ".jsx" ) {
-    r = transform_js(src, in, out, true);
-  } else {
-    error("Bad argument.");
-  }
-  
-  if ( r == 0 ) {
-    FileHelper::write_file_sync(target, move(out));
-  }
+	
+	if ( ! FileHelper::exists_sync(src) ) {
+		error("Bad argument.");
+	}
+	
+	String extname = Path::extname(src).lower_case();
+		
+	Ucs2String in;
+	Buffer out;
+	
+	in = Codec::decoding_to_uint16(Encoding::utf8, FileHelper::read_file_sync(src));
+	
+	int r = 0;
+		
+	if ( extname == ".js" ) {
+		r = transform_js(src, in, out, false);
+	} else if ( extname == ".jsx" ) {
+		r = transform_js(src, in, out, true);
+	} else {
+		error("Bad argument.");
+	}
+	
+	if ( r == 0 ) {
+		FileHelper::write_file_sync(target, move(out));
+	}
 
-  return r;
+	return r;
 }

@@ -45,65 +45,65 @@ JS_BEGIN
  */
 class WrapButton: public WrapViewBase {
  public:
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapButton>(args, new Button());
-  }
-  
-  /**
-   * @func find_next_button(direction)
-   * @arg direction {Direction}
-   * @ret {Button}
-   */
-  static void find_next_button(FunctionCall args) {
-    GUILock lock;
-    
-    cchar* argument =
-    "* @func findNextButton(direction)\n"
-    "* @arg direction {Direction}\n"
-    "* @ret {Button}\n"
-    ;
-    
-    JS_WORKER(args);
-    if ( args.Length() < 1 ) {
-      JS_THROW_ERR(argument);
-    }
-    js_parse_value(Direction, args[0], "Button.findNextButton(%s)");
-    
-    JS_SELF(Button);
-    Button* button = self->find_next_button(out);
-    
-    if ( button ) {
-      JS_RETURN( Wrap<Button>::pack(button, View::BUTTON)->that() );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  static void panel(FunctionCall args) {
-    JS_WORKER(args);
-    JS_SELF(Button);
-    Panel* panel = self->panel();
-    if ( panel ) {
-      JS_RETURN( Wrap<Panel>::pack(panel, View::PANEL)->that() );
-    } else {
-      JS_RETURN_NULL();
-    }
-  }
-  
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Button, constructor, {
-      JS_SET_CLASS_METHOD(findNextButton, find_next_button);
-      JS_SET_CLASS_METHOD(panel, panel);
-    }, Hybrid);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Button), View::BUTTON);
-  }
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapButton>(args, new Button());
+	}
+	
+	/**
+	 * @func find_next_button(direction)
+	 * @arg direction {Direction}
+	 * @ret {Button}
+	 */
+	static void find_next_button(FunctionCall args) {
+		GUILock lock;
+		
+		cchar* argument =
+		"* @func findNextButton(direction)\n"
+		"* @arg direction {Direction}\n"
+		"* @ret {Button}\n"
+		;
+		
+		JS_WORKER(args);
+		if ( args.Length() < 1 ) {
+			JS_THROW_ERR(argument);
+		}
+		js_parse_value(Direction, args[0], "Button.findNextButton(%s)");
+		
+		JS_SELF(Button);
+		Button* button = self->find_next_button(out);
+		
+		if ( button ) {
+			JS_RETURN( Wrap<Button>::pack(button, View::BUTTON)->that() );
+		} else {
+			JS_RETURN_NULL();
+		}
+	}
+	
+	static void panel(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(Button);
+		Panel* panel = self->panel();
+		if ( panel ) {
+			JS_RETURN( Wrap<Panel>::pack(panel, View::PANEL)->that() );
+		} else {
+			JS_RETURN_NULL();
+		}
+	}
+	
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Button, constructor, {
+			JS_SET_CLASS_METHOD(findNextButton, find_next_button);
+			JS_SET_CLASS_METHOD(panel, panel);
+		}, Hybrid);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Button), View::BUTTON);
+	}
 };
 
 void binding_button(Local<JSObject> exports, Worker* worker) {
-  WrapButton::binding(exports, worker);
+	WrapButton::binding(exports, worker);
 }
 
 JS_END

@@ -40,27 +40,27 @@ XX_NS(ngui)
  * @class Textarea
  */
 class XX_EXPORT Textarea: public Input, public BasicScroll {
-  XX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
+	XX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
  public:
-  
-  Textarea();
-  
-  /**
-   * @overwrite
-   */
-  virtual bool is_clip() { return true; }
-  
+	
+	Textarea();
+	
+	/**
+	 * @overwrite
+	 */
+	virtual bool is_clip() { return true; }
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  virtual void set_layout_content_offset();
-  virtual bool is_multi_line_input();
-  virtual Vec2 input_text_offset();
-  virtual void set_input_text_offset(Vec2 value);
-  virtual void set_screen_visible();
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	virtual void set_layout_content_offset();
+	virtual bool is_multi_line_input();
+	virtual Vec2 input_text_offset();
+	virtual void set_input_text_offset(Vec2 value);
+	virtual void set_screen_visible();
 };
 
 XX_END

@@ -40,33 +40,33 @@
 XX_NS(ngui)
 
 namespace console {
-  XX_EXPORT void log(char);
-  XX_EXPORT void log(byte);
-  XX_EXPORT void log(int16);
-  XX_EXPORT void log(uint16);
-  XX_EXPORT void log(int);
-  XX_EXPORT void log(uint);
-  XX_EXPORT void log(float);
-  XX_EXPORT void log(double);
-  XX_EXPORT void log(int64);
-  XX_EXPORT void log(uint64);
-  XX_EXPORT void log(bool);
-  XX_EXPORT void log(cchar*, ...);
-  XX_EXPORT void log(cString&);
-  XX_EXPORT void log_ucs2(cUcs2String&);
-  XX_EXPORT void warn(cchar*, ...);
-  XX_EXPORT void warn(cString&);
-  XX_EXPORT void error(cchar*, ...);
-  XX_EXPORT void error(cString&);
-  XX_EXPORT void tag(cchar*, cchar*, ...);
-  XX_EXPORT void print(cchar*, ...);
-  XX_EXPORT void print(cString&);
-  XX_EXPORT void print_err(cchar*, ...);
-  XX_EXPORT void print_err(cString&);
-  XX_EXPORT void clear();
+	XX_EXPORT void log(char);
+	XX_EXPORT void log(byte);
+	XX_EXPORT void log(int16);
+	XX_EXPORT void log(uint16);
+	XX_EXPORT void log(int);
+	XX_EXPORT void log(uint);
+	XX_EXPORT void log(float);
+	XX_EXPORT void log(double);
+	XX_EXPORT void log(int64);
+	XX_EXPORT void log(uint64);
+	XX_EXPORT void log(bool);
+	XX_EXPORT void log(cchar*, ...);
+	XX_EXPORT void log(cString&);
+	XX_EXPORT void log_ucs2(cUcs2String&);
+	XX_EXPORT void warn(cchar*, ...);
+	XX_EXPORT void warn(cString&);
+	XX_EXPORT void error(cchar*, ...);
+	XX_EXPORT void error(cString&);
+	XX_EXPORT void tag(cchar*, cchar*, ...);
+	XX_EXPORT void print(cchar*, ...);
+	XX_EXPORT void print(cString&);
+	XX_EXPORT void print_err(cchar*, ...);
+	XX_EXPORT void print_err(cString&);
+	XX_EXPORT void clear();
 #if XX_ARCH_32BIT
-  XX_EXPORT void log(long);
-  XX_EXPORT void log(unsigned long);
+	XX_EXPORT void log(long);
+	XX_EXPORT void log(unsigned long);
 #endif
 }
 
@@ -75,14 +75,14 @@ namespace console {
  */
 class XX_EXPORT Console {
  public:
-  typedef NonObjectTraits Traits;
-  virtual void log(cString& str);
-  virtual void warn(cString& str);
-  virtual void error(cString& str);
-  virtual void print(cString& str);
-  virtual void print_err(cString& str);
-  virtual void clear();
-  void set_as_default();
+	typedef NonObjectTraits Traits;
+	virtual void log(cString& str);
+	virtual void warn(cString& str);
+	virtual void error(cString& str);
+	virtual void print(cString& str);
+	virtual void print_err(cString& str);
+	virtual void clear();
+	void set_as_default();
 };
 
 // ----------------- Number Object -----------------
@@ -92,21 +92,21 @@ class XX_EXPORT Console {
  */
 template <typename T> class XX_EXPORT Number: public Object {
  public:
-  inline Number(T v): value(v) { }
-  inline T operator*() { return value; }
-  inline Number& operator++() { value++; return *this; } // ++i
-  inline Number& operator--() { value--; return *this; } // --i
-  inline Number  operator++(int) { T v = value; value++; return v; } // i++
-  inline Number  operator--(int) { T v = value; value--; return v; } // i--
-  template <typename T2> inline T operator=(T2 v) { value = v.value; return value; }
-  template <typename T2> inline bool operator==(T2 v) { return value == v.value; }
-  template <typename T2> inline bool operator!=(T2 v) { return value != v.value; }
-  template <typename T2> inline bool operator<(T2 v) { return value < v.value; }
-  template <typename T2> inline bool operator>(T2 v) { return value > v.value; }
-  template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
-  template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
-  T value;
-  static const T min, max;
+	inline Number(T v): value(v) { }
+	inline T operator*() { return value; }
+	inline Number& operator++() { value++; return *this; } // ++i
+	inline Number& operator--() { value--; return *this; } // --i
+	inline Number  operator++(int) { T v = value; value++; return v; } // i++
+	inline Number  operator--(int) { T v = value; value--; return v; } // i--
+	template <typename T2> inline T operator=(T2 v) { value = v.value; return value; }
+	template <typename T2> inline bool operator==(T2 v) { return value == v.value; }
+	template <typename T2> inline bool operator!=(T2 v) { return value != v.value; }
+	template <typename T2> inline bool operator<(T2 v) { return value < v.value; }
+	template <typename T2> inline bool operator>(T2 v) { return value > v.value; }
+	template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
+	template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
+	T value;
+	static const T min, max;
 };
 
 #define define_number(NAME, T) \
@@ -131,16 +131,16 @@ define_number(Uint64, uint64);
  * @class SimpleHash
  */
 class XX_EXPORT SimpleHash: public Object {
-  uint _hash;
+	uint _hash;
  public:
-  inline SimpleHash(): _hash(5381) { }
-  inline uint hash_code() { return _hash; }
-  inline void clear() { _hash = 5381; }
-  String digest();
-  template<class T>
-  void update(const T* data, uint len) {
-    while (len--) _hash += (_hash << 5) + data[len];
-  }
+	inline SimpleHash(): _hash(5381) { }
+	inline uint hash_code() { return _hash; }
+	inline void clear() { _hash = 5381; }
+	String digest();
+	template<class T>
+	void update(const T* data, uint len) {
+		while (len--) _hash += (_hash << 5) + data[len];
+	}
 };
 
 XX_EXPORT extern uint hash_code(cchar* data, uint len);
@@ -156,34 +156,34 @@ XX_EXPORT extern int64  parse_time(cString& str);
 XX_EXPORT extern String gmt_time_string(int64 second);
 
 namespace _right_reference {
-  // remove_reference
-  template <class Tp> struct _remove_reference       { typedef Tp type; };
-  template <class Tp> struct _remove_reference<Tp&>  { typedef Tp type; };
-  template <class Tp> struct _remove_reference<Tp&&> { typedef Tp type; };
+	// remove_reference
+	template <class Tp> struct _remove_reference       { typedef Tp type; };
+	template <class Tp> struct _remove_reference<Tp&>  { typedef Tp type; };
+	template <class Tp> struct _remove_reference<Tp&&> { typedef Tp type; };
 
-  // is_reference
-  template <class Tp> struct _is_lvalue_reference      { static const bool value = false; };
-  template <class Tp> struct _is_lvalue_reference<Tp&> { static const bool value = true; };
+	// is_reference
+	template <class Tp> struct _is_lvalue_reference      { static const bool value = false; };
+	template <class Tp> struct _is_lvalue_reference<Tp&> { static const bool value = true; };
 }
 
 // move
 
 template <class Tp>
 XX_INLINE constexpr typename _right_reference::_remove_reference<Tp>::type&& move(Tp&& t) {
-  typedef typename _right_reference::_remove_reference<Tp>::type Up;
-  return static_cast<Up&&>(t);
+	typedef typename _right_reference::_remove_reference<Tp>::type Up;
+	return static_cast<Up&&>(t);
 }
 
 template <class Tp>
 XX_INLINE constexpr Tp&& forward(typename _right_reference::_remove_reference<Tp>::type& t) {
-  return static_cast<Tp&&>(t);
+	return static_cast<Tp&&>(t);
 }
 
 template <class Tp>
 XX_INLINE constexpr Tp&& forward(typename _right_reference::_remove_reference<Tp>::type&& t) {
-  typedef typename _right_reference::_is_lvalue_reference<Tp> _is_lvalue_reference;
-  static_assert(!_is_lvalue_reference::value, "Can not forward an rvalue as an lvalue.");
-  return static_cast<Tp&&>(t);
+	typedef typename _right_reference::_is_lvalue_reference<Tp> _is_lvalue_reference;
+	static_assert(!_is_lvalue_reference::value, "Can not forward an rvalue as an lvalue.");
+	return static_cast<Tp&&>(t);
 }
 
 XX_END

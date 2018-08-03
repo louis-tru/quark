@@ -40,63 +40,63 @@ extern int process_exit;
  */
 class PrivateLoop {
  public:
-  inline PrivateLoop(): m_loop(nullptr) {  }
-  
-  inline bool has_current_thread() {
-    return SimpleThread::current_id() == m_thread_id;
-  }
-  
-  RunLoop* loop() {
-    Lock lock(m_mutex);
-    if (process_exit) return nullptr;
-    if (m_loop) return m_loop;
-    
-    SimpleThread::detach([this](SimpleThread& t) {
-      { //
-        ScopeLock scope(m_mutex);
-        m_loop = RunLoop::current();
-        m_thread_id = t.id();
-        m_cond.notify_all();
-      }
-     loop:
-      m_loop->run(2e7); // 使用20超时,20秒后没有新消息结束线程
-      { //
-        ScopeLock scope(m_mutex);
-        XX_THREAD_LOCK(t, {
-          /* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
-           * 200毫秒后没有向队列发送新消息结束线程
-           * * *
-           * 这里休眠200毫秒给外部线程足够时间往队列发送消息
-           */
-          std::this_thread::sleep_for(std::chrono::microseconds(200 * 1000));
-          if ( m_loop->is_alive() && !t.is_abort() ) {
-            goto loop; // 继续运行
-          }
-        });
-        m_loop = nullptr;
-        m_thread_id = ThreadID();
-      }
-    }, "private_loop");
-    
-    m_cond.wait(lock); // wait
-    return m_loop;
-  }
-  
+	inline PrivateLoop(): m_loop(nullptr) {  }
+	
+	inline bool has_current_thread() {
+		return SimpleThread::current_id() == m_thread_id;
+	}
+	
+	RunLoop* loop() {
+		Lock lock(m_mutex);
+		if (process_exit) return nullptr;
+		if (m_loop) return m_loop;
+		
+		SimpleThread::detach([this](SimpleThread& t) {
+			{ //
+				ScopeLock scope(m_mutex);
+				m_loop = RunLoop::current();
+				m_thread_id = t.id();
+				m_cond.notify_all();
+			}
+		 loop:
+			m_loop->run(2e7); // 使用20超时,20秒后没有新消息结束线程
+			{ //
+				ScopeLock scope(m_mutex);
+				XX_THREAD_LOCK(t, {
+					/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
+					 * 200毫秒后没有向队列发送新消息结束线程
+					 * * *
+					 * 这里休眠200毫秒给外部线程足够时间往队列发送消息
+					 */
+					std::this_thread::sleep_for(std::chrono::microseconds(200 * 1000));
+					if ( m_loop->is_alive() && !t.is_abort() ) {
+						goto loop; // 继续运行
+					}
+				});
+				m_loop = nullptr;
+				m_thread_id = ThreadID();
+			}
+		}, "private_loop");
+		
+		m_cond.wait(lock); // wait
+		return m_loop;
+	}
+	
  private:
-  ThreadID m_thread_id;
-  RunLoop* m_loop;
-  Mutex m_mutex;
-  Condition m_cond;
+	ThreadID m_thread_id;
+	RunLoop* m_loop;
+	Mutex m_mutex;
+	Condition m_cond;
 };
 
 static PrivateLoop* private_loop = new PrivateLoop;
 
 RunLoop* get_private_loop() {
-  return private_loop->loop();
+	return private_loop->loop();
 }
 
 bool has_private_loop_thread() {
-  return private_loop->has_current_thread();
+	return private_loop->has_current_thread();
 }
 
 XX_END

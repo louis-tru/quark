@@ -34,48 +34,48 @@ XX_NS(ngui)
 
 template<>
 BasicString<char, Container<char>>::BasicString(const Object& o) {
-  String str = o.to_string();
-  m_core = str.m_core;
-  m_core->retain();
+	String str = o.to_string();
+	m_core = str.m_core;
+	m_core->retain();
 }
 
 template<> BasicString<uint16, Container<uint16>>::BasicString(const Object& o) {
-  String str = o.to_string();
-  ArrayBuffer<uint16> data = Coder::decoding_to_uint16(Encoding::utf8, str);
-  uint len = data.length();
-  Char* s = data.collapse();
-  if (s) {
-    m_core = new StringCore(len, s);
-  } else {
-    m_core = use_empty_core();
-  }
+	String str = o.to_string();
+	ArrayBuffer<uint16> data = Coder::decoding_to_uint16(Encoding::utf8, str);
+	uint len = data.length();
+	Char* s = data.collapse();
+	if (s) {
+		m_core = new StringCore(len, s);
+	} else {
+		m_core = use_empty_core();
+	}
 }
 
 template<> BasicString<uint32, Container<uint32>>::BasicString(const Object& o) {
-  String str = o.to_string();
-  ArrayBuffer<uint32> data = Coder::decoding_to_uint32(Encoding::utf8, str);
-  uint len = data.length();
-  Char* s = data.collapse();
-  if (s) {
-    m_core = new StringCore(len, s);
-  } else {
-    m_core = use_empty_core();
-  }
+	String str = o.to_string();
+	ArrayBuffer<uint32> data = Coder::decoding_to_uint32(Encoding::utf8, str);
+	uint len = data.length();
+	Char* s = data.collapse();
+	if (s) {
+		m_core = new StringCore(len, s);
+	} else {
+		m_core = use_empty_core();
+	}
 }
 
 template<>
 String BasicString<char, Container<char>>::to_string() const {
-  return *this;
+	return *this;
 }
 
 template<>
 String BasicString<uint16, Container<uint16>>::to_string() const {
-  return Coder::encoding(Encoding::utf8, *this);
+	return Coder::encoding(Encoding::utf8, *this);
 }
 
 template<>
 String BasicString<uint32, Container<uint32>>::to_string() const {
-  return Coder::encoding(Encoding::utf8, *this);
+	return Coder::encoding(Encoding::utf8, *this);
 }
 
 XX_END

@@ -36,32 +36,32 @@
 using namespace ngui;
 
 void test_http() {
-  LOG(HttpHelper::get_sync("http://www.163.com/"));
-  
-  String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
-  "14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
-  String m3u8_2 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
-  "14461-ai-de-zhui-zong-01-ji_201608180551/hls1600k/14461-ai-de-zhui-zong-01-ji.m3u8";
-  String url  = "http://www.baidu.com/";
-  
-  HttpHelper::download_sync("https://www.baidu.com/", Path::documents("baidu3.htm"));
-  
-  LOG(FileHelper::read_file_sync(Path::documents("baidu3.htm")));
-  
-  HttpHelper::get_stream(url, Cb([](Se& d) {
-    if ( d.error ) {
-      LOG(d.error->message());
-    } else {
-      IOStreamData* data = static_cast<IOStreamData*>(d.data);
-      int len = data->buffer().length();
-      LOG(String(data->buffer().collapse(), len));
-      LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
-      
-      FileHelper::abort(data->id());
-    }
-  }));
-  
-  RunLoop::current()->run();
-  
-  LOG("END");
+	LOG(HttpHelper::get_sync("http://www.163.com/"));
+	
+	String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
+	"14461-ai-de-zhui-zong-01-ji_201608180551/14461-ai-de-zhui-zong-01-ji.m3u8";
+	String m3u8_2 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"
+	"14461-ai-de-zhui-zong-01-ji_201608180551/hls1600k/14461-ai-de-zhui-zong-01-ji.m3u8";
+	String url  = "http://www.baidu.com/";
+	
+	HttpHelper::download_sync("https://www.baidu.com/", Path::documents("baidu3.htm"));
+	
+	LOG(FileHelper::read_file_sync(Path::documents("baidu3.htm")));
+	
+	HttpHelper::get_stream(url, Cb([](Se& d) {
+		if ( d.error ) {
+			LOG(d.error->message());
+		} else {
+			IOStreamData* data = static_cast<IOStreamData*>(d.data);
+			int len = data->buffer().length();
+			LOG(String(data->buffer().collapse(), len));
+			LOG("%llu/%llu, complete: %i", data->size(), data->total(), data->complete());
+			
+			FileHelper::abort(data->id());
+		}
+	}));
+	
+	RunLoop::current()->run();
+	
+	LOG("END");
 }

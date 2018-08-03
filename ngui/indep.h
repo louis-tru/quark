@@ -40,52 +40,52 @@ XX_NS(ngui)
  */
 class XX_EXPORT Indep: public Div {
  public:
-  XX_DEFINE_GUI_VIEW(INDEP, Indep, indep);
-  
-  Indep();
-  
-  /**
-   * @func align_x
-   */
-  inline Align align_x() const { return m_align_x; };
-  
-  /**
-   * @func align_y
-   */
-  inline Align align_y() const { return m_align_y; };
-  
-  /**
-   * @func set_align_x
-   */
-  void set_align_x(Align value);
-  
-  /**
-   * @func set_align_y
-   */
-  void set_align_y(Align value);
-  
-  /**
-   * @overwrite
-   */
-  virtual Vec2 layout_offset();
-  
+	XX_DEFINE_GUI_VIEW(INDEP, Indep, indep);
+	
+	Indep();
+	
+	/**
+	 * @func align_x
+	 */
+	inline Align align_x() const { return m_align_x; };
+	
+	/**
+	 * @func align_y
+	 */
+	inline Align align_y() const { return m_align_y; };
+	
+	/**
+	 * @func set_align_x
+	 */
+	void set_align_x(Align value);
+	
+	/**
+	 * @func set_align_y
+	 */
+	void set_align_y(Align value);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual Vec2 layout_offset();
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void set_parent(View* parent) throw(Error);
-  virtual void set_layout_explicit_size();
-  virtual void set_layout_content_offset();
-  virtual Box* set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* div);
-  virtual Box* set_offset_vertical(Box* prev, Vec2& squeeze, float limit, Div* div);
-  virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
-  virtual void set_layout_three_times(bool horizontal, bool hybrid);
-  
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void set_parent(View* parent) throw(Error);
+	virtual void set_layout_explicit_size();
+	virtual void set_layout_content_offset();
+	virtual Box* set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* div);
+	virtual Box* set_offset_vertical(Box* prev, Vec2& squeeze, float limit, Div* div);
+	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
+	virtual void set_layout_three_times(bool horizontal, bool hybrid);
+	
  private:
-  Align m_align_x, m_align_y;
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
+	Align m_align_x, m_align_y;
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
 };
 
 

@@ -42,51 +42,51 @@ JS_BEGIN
  * @class WrapImage
  */
 class WrapImage: public WrapViewBase {
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapImage>(args, new Image());
-  }
-  
-  static void src(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Image);
-    JS_RETURN( self->src() );
-  }
-  
-  static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Image);
-    String src = value->ToStringValue(worker);
-    self->set_src(src);
-  }
-  
-  static void source_width(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Image);
-    JS_RETURN( self->source_width() );
-  }
-  
-  static void source_height(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Image);
-    JS_RETURN( self->source_height() );
-  }
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapImage>(args, new Image());
+	}
+	
+	static void src(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Image);
+		JS_RETURN( self->src() );
+	}
+	
+	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Image);
+		String src = value->ToStringValue(worker);
+		self->set_src(src);
+	}
+	
+	static void source_width(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Image);
+		JS_RETURN( self->source_width() );
+	}
+	
+	static void source_height(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Image);
+		JS_RETURN( self->source_height() );
+	}
 
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Image, constructor, {
-      JS_SET_CLASS_ACCESSOR(src, src, set_src);
-      JS_SET_CLASS_ACCESSOR(sourceWidth, source_width);
-      JS_SET_CLASS_ACCESSOR(sourceHeight, source_height);
-    }, Div);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Image), View::IMAGE);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Image, constructor, {
+			JS_SET_CLASS_ACCESSOR(src, src, set_src);
+			JS_SET_CLASS_ACCESSOR(sourceWidth, source_width);
+			JS_SET_CLASS_ACCESSOR(sourceHeight, source_height);
+		}, Div);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Image), View::IMAGE);
+	}
 };
 
 void binding_image(Local<JSObject> exports, Worker* worker) {
-  WrapImage::binding(exports, worker);
+	WrapImage::binding(exports, worker);
 }
 
 JS_END

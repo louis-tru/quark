@@ -39,49 +39,49 @@ new GUIApplication().start(<Root/>).onLoad = function() {
 
 	LOG('\nTest GUIApplication:\n')
 
-  P(app, 'current')
-  P(app, 'root')
-  P(app, 'rootCtr')
-  M(a.onUnload, 'on', [function() { LOG('---- onunload') }])
-  M(a.onBackground, 'on', [function() { LOG('---- onbackground') }])
-  M(a.onForeground, 'on', [function() { LOG('---- onforeground') }])
-  M(a.onPause, 'on', [function() { LOG('---- onpause') }])
-  M(a.onResume, 'on', [function() { LOG('---- onresume') }])
-  M(a.onMemorywarning, 'on', [function() { LOG('---- onmemorywarning') }])
-  M(a, 'clear');
-  P(a, 'isLoad');
-  P(a, 'displayPort')
-  P(a, 'root')
-  P(a, 'focusView')
-  P(a, 'defaultTextBackgroundColor')
-  P(a, 'defaultTextBackgroundColor', '#f0f')
-  P(a, 'defaultTextBackgroundColor')
-  P(a, 'defaultTextColor');
-  P(a, 'defaultTextColor', '#f00');
-  P(a, 'defaultTextColor');
-  P(a, 'defaultTextSize');
-  P(a, 'defaultTextSize', 24);
-  P(a, 'defaultTextSize');
-  P(a, 'defaultTextStyle');
-  P(a, 'defaultTextStyle', 'bold');
-  P(a, 'defaultTextStyle');
-  P(a, 'defaultTextFamily');
-  P(a, 'defaultTextFamily', 'Helvetica');
-  P(a, 'defaultTextFamily');
-  P(a, 'defaultTextShadow');
-  P(a, 'defaultTextShadow', '10 10 10 #00f');
-  P(a, 'defaultTextShadow');
-  P(a, 'defaultTextLineHeight');
-  P(a, 'defaultTextLineHeight', 'auto');
-  P(a, 'defaultTextLineHeight');
-  P(a, 'defaultTextDecoration');
-  P(a, 'defaultTextDecoration', 'overline');
-  P(a, 'defaultTextDecoration');
-  P(a, 'defaultTextOverflow');
-  P(a, 'defaultTextOverflow', 'clip');
-  P(a, 'defaultTextOverflow');
-  P(a, 'defaultTextWhiteSpace');
-  P(a, 'defaultTextWhiteSpace', 'no_space');
-  P(a, 'defaultTextWhiteSpace');
+	P(app, 'current')
+	P(app, 'root')
+	P(app, 'rootCtr')
+	M(a.onUnload, 'on', [function() { LOG('---- onunload') }])
+	M(a.onBackground, 'on', [function() { LOG('---- onbackground') }])
+	M(a.onForeground, 'on', [function() { LOG('---- onforeground') }])
+	M(a.onPause, 'on', [function() { LOG('---- onpause') }])
+	M(a.onResume, 'on', [function() { LOG('---- onresume') }])
+	M(a.onMemorywarning, 'on', [function() { LOG('---- onmemorywarning') }])
+	M(a, 'clear');
+	P(a, 'isLoad');
+	P(a, 'displayPort')
+	P(a, 'root')
+	P(a, 'focusView')
+	P(a, 'defaultTextBackgroundColor')
+	P(a, 'defaultTextBackgroundColor', '#f0f')
+	P(a, 'defaultTextBackgroundColor')
+	P(a, 'defaultTextColor');
+	P(a, 'defaultTextColor', '#f00');
+	P(a, 'defaultTextColor');
+	P(a, 'defaultTextSize');
+	P(a, 'defaultTextSize', 24);
+	P(a, 'defaultTextSize');
+	P(a, 'defaultTextStyle');
+	P(a, 'defaultTextStyle', 'bold');
+	P(a, 'defaultTextStyle');
+	P(a, 'defaultTextFamily');
+	P(a, 'defaultTextFamily', 'Helvetica');
+	P(a, 'defaultTextFamily');
+	P(a, 'defaultTextShadow');
+	P(a, 'defaultTextShadow', '10 10 10 #00f');
+	P(a, 'defaultTextShadow');
+	P(a, 'defaultTextLineHeight');
+	P(a, 'defaultTextLineHeight', 'auto');
+	P(a, 'defaultTextLineHeight');
+	P(a, 'defaultTextDecoration');
+	P(a, 'defaultTextDecoration', 'overline');
+	P(a, 'defaultTextDecoration');
+	P(a, 'defaultTextOverflow');
+	P(a, 'defaultTextOverflow', 'clip');
+	P(a, 'defaultTextOverflow');
+	P(a, 'defaultTextWhiteSpace');
+	P(a, 'defaultTextWhiteSpace', 'no_space');
+	P(a, 'defaultTextWhiteSpace');
 
 };

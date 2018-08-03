@@ -32,7 +32,7 @@ var fs = require('fs');
 
 function check_file_is_change(inputs, outputs) {
 	var last_ctime = 0;
-  
+	
 	inputs.forEach(function(input) {
 		var ctime = fs.statSync(input).ctime;
 		if ( ctime > last_ctime ) {
@@ -40,17 +40,17 @@ function check_file_is_change(inputs, outputs) {
 		}
 	});
 
-  for ( var i = 0; i < outputs.length; i++ ) {
-  	if ( fs.existsSync(outputs[i]) ) {
-      var ctime = fs.statSync(outputs[i]).ctime;
-  		if ( ctime < last_ctime ) {
-  			return true;
-  		}
-  	} else {
-  		return true;
-  	}
-  }
-  return false;
+	for ( var i = 0; i < outputs.length; i++ ) {
+		if ( fs.existsSync(outputs[i]) ) {
+			var ctime = fs.statSync(outputs[i]).ctime;
+			if ( ctime < last_ctime ) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+	return false;
 }
 
 exports.check_file_is_change = check_file_is_change;

@@ -46,32 +46,32 @@ XX_NS(ngui)
  */
 class XX_EXPORT Span: public Layout, public TextLayout {
  public:
-  XX_DEFINE_GUI_VIEW(SPAN, Span, span);
-  
-  typedef ReferenceTraits Traits;
-  
-  Span();
+	XX_DEFINE_GUI_VIEW(SPAN, Span, span);
+	
+	typedef ReferenceTraits Traits;
+	
+	Span();
 
-  /**
-   * @overwrite
-   */
-  virtual TextFont* as_text_font() { return this; }
-  virtual TextLayout* as_text_layout() { return this; }
-  virtual View* view() { return this; }
-  virtual void set_visible(bool value);
-  virtual View* append_text(cUcs2String& str) throw(Error);
-  virtual Vec2 layout_offset();
-  
+	/**
+	 * @overwrite
+	 */
+	virtual TextFont* as_text_font() { return this; }
+	virtual TextLayout* as_text_layout() { return this; }
+	virtual View* view() { return this; }
+	virtual void set_visible(bool value);
+	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual Vec2 layout_offset();
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void set_layout_explicit_size();
-  virtual void set_layout_content_offset();
-  virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
-  virtual void set_layout_three_times(bool horizontal, bool hybrid);
-  
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void set_layout_explicit_size();
+	virtual void set_layout_content_offset();
+	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
+	virtual void set_layout_three_times(bool horizontal, bool hybrid);
+	
 };
 
 XX_END

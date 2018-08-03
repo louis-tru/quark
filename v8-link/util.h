@@ -54,56 +54,56 @@
 
 namespace v8 {
 
-  struct DefaultTraits {
-    template<class T> inline static bool Retain(T* obj) { return 0; }
-    template<class T> inline static void Release(T* obj) { delete obj; }
-    static constexpr bool is_reference = false;
-  };
-  struct CPointerTraits: DefaultTraits {
-    template<class T> inline static void Release(T* obj) { free(obj); }
-  };
+	struct DefaultTraits {
+		template<class T> inline static bool Retain(T* obj) { return 0; }
+		template<class T> inline static void Release(T* obj) { delete obj; }
+		static constexpr bool is_reference = false;
+	};
+	struct CPointerTraits: DefaultTraits {
+		template<class T> inline static void Release(T* obj) { free(obj); }
+	};
 
 	template<class T, class T2 = typename T::Traits> class UniquePtr {
-	  UniquePtr(const UniquePtr& h) = delete;
-	  UniquePtr& operator=(const UniquePtr& h) = delete;
-	  inline T* shift() {
-	    return Traits::Retain(m_data) ? m_data : collapse();
-	  }
+		UniquePtr(const UniquePtr& h) = delete;
+		UniquePtr& operator=(const UniquePtr& h) = delete;
+		inline T* shift() {
+			return Traits::Retain(m_data) ? m_data : collapse();
+		}
 	 public:
-	  typedef T Type;
-	  typedef T2 Traits;
-	  
-	  inline UniquePtr(): m_data(nullptr) { }
-	  inline UniquePtr(T* data): m_data(data) { Traits::Retain(data); }
-	  inline UniquePtr(UniquePtr& handle) { m_data = handle.shift(); }
-	  inline UniquePtr(UniquePtr&& handle) { m_data = handle.shift(); }
-	  ~UniquePtr() { clear(); }
-	  inline UniquePtr& operator=(UniquePtr& handle) {
-	    clear();
-	    m_data = handle.shift();
-	    return *this;
-	  }
-	  inline UniquePtr& operator=(UniquePtr&& handle) {
-	    clear();
-	    m_data = handle.shift();
-	    return *this;
-	  }
-	  inline T* operator->() { return m_data; }
-	  inline const T* operator->() const { return m_data; }
-	  inline T* operator*() { return m_data; }
-	  inline const T* operator*() const { return m_data; }
-	  inline const T* value() const { return m_data; }
-	  inline T* value() { return m_data; }
-	  inline bool is_null() const { return m_data == nullptr; }
-	  inline T* collapse() {
-	    T* data = m_data; m_data = nullptr;
-	    return data;
-	  }
-	  inline void clear() {
-	    Traits::Release(m_data); m_data = nullptr;
-	  }
+		typedef T Type;
+		typedef T2 Traits;
+		
+		inline UniquePtr(): m_data(nullptr) { }
+		inline UniquePtr(T* data): m_data(data) { Traits::Retain(data); }
+		inline UniquePtr(UniquePtr& handle) { m_data = handle.shift(); }
+		inline UniquePtr(UniquePtr&& handle) { m_data = handle.shift(); }
+		~UniquePtr() { clear(); }
+		inline UniquePtr& operator=(UniquePtr& handle) {
+			clear();
+			m_data = handle.shift();
+			return *this;
+		}
+		inline UniquePtr& operator=(UniquePtr&& handle) {
+			clear();
+			m_data = handle.shift();
+			return *this;
+		}
+		inline T* operator->() { return m_data; }
+		inline const T* operator->() const { return m_data; }
+		inline T* operator*() { return m_data; }
+		inline const T* operator*() const { return m_data; }
+		inline const T* value() const { return m_data; }
+		inline T* value() { return m_data; }
+		inline bool is_null() const { return m_data == nullptr; }
+		inline T* collapse() {
+			T* data = m_data; m_data = nullptr;
+			return data;
+		}
+		inline void clear() {
+			Traits::Release(m_data); m_data = nullptr;
+		}
 	 private:
-	  T* m_data;
+		T* m_data;
 	};
 
 	/**
@@ -111,17 +111,17 @@ namespace v8 {
 	 */
 	class ScopeClear {
 	 public:
-	  typedef std::function<void()> Clear;
-	  ScopeClear(Clear clear): m_clear(clear) { }
-	  ~ScopeClear() { m_clear(); }
-	  inline void cancel() { m_clear = [](){ }; }
+		typedef std::function<void()> Clear;
+		ScopeClear(Clear clear): m_clear(clear) { }
+		~ScopeClear() { m_clear(); }
+		inline void cancel() { m_clear = [](){ }; }
 	 private:
-	  Clear m_clear;
+		Clear m_clear;
 	};
 	
-  void log(const std::string& msg);
+	void log(const std::string& msg);
 	void log(const char* msg, ...);
-  void fatal(const char* msg = 0, ...);
+	void fatal(const char* msg = 0, ...);
 	void fatal(const char* file, int line, const char* func, const char* msg = 0, ...);
 }
 

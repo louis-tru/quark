@@ -7,22 +7,22 @@ BUILD_V8=$2
 
 build() {
 	make build
-  cd out/ios.$1.Release
-  rm -f libngui.a libv8.a
-  
+	cd out/ios.$1.Release
+	rm -f libngui.a libv8.a
+	
 	ar rc libngui.a `find obj.target/ngui-gui \
-	 												obj.target/ngui-stew \
-	 												obj.target/ngui-js \
-	 												obj.target/zlib \
-	 												obj.target/ft2 \
-	 												obj.target/http_parser \
-	 												obj.target/openssl \
-	 												obj.target/reachability \
-	 												obj.target/tess2 \
-	 												obj.target/libuv \
-	 												obj.target/tinyxml2 \
-	 												obj.target/ffmpeg/libs \
-	 												-name *.o|xargs`
+													obj.target/ngui-stew \
+													obj.target/ngui-js \
+													obj.target/zlib \
+													obj.target/ft2 \
+													obj.target/http_parser \
+													obj.target/openssl \
+													obj.target/reachability \
+													obj.target/tess2 \
+													obj.target/libuv \
+													obj.target/tinyxml2 \
+													obj.target/ffmpeg/libs \
+													-name *.o|xargs`
 	ranlib libngui.a
 
 	if [ "$2" = 1 ]; then

@@ -101,18 +101,18 @@ F(PROPERTY_SRC, String, src)    /* image */ \
  */
 enum PropertyName: uint {
 # define xx_def_enum(ENUM, TYPE, NAME) ENUM,
-  XX_EACH_PROPERTY_TABLE(xx_def_enum)
+	XX_EACH_PROPERTY_TABLE(xx_def_enum)
 # undef xx_def_enum
 };
 
 template<> inline uint
 Compare<PropertyName>::hash(const PropertyName& key) {
-  return key;
+	return key;
 }
 template<> inline bool
 Compare<PropertyName>::equals(const PropertyName& a,
-                              const PropertyName& b, uint ha, uint hb) {
-  return a == b;
+															const PropertyName& b, uint ha, uint hb) {
+	return a == b;
 }
 
 /**
@@ -120,42 +120,42 @@ Compare<PropertyName>::equals(const PropertyName& a,
  */
 class XX_EXPORT PropertysAccessor: public Object {
  public:
-  
-  typedef void (View::*Func)();
-  typedef int ViewType;
-  
-  struct XX_EXPORT Accessor {
-    
-    inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) { }
-    
-    template<typename T, typename T2>
-    inline Accessor(T get, T2 set)
-    : get_accessor(Func(get)), set_accessor(Func(set)) { }
-    
-    Func get_accessor;
-    Func set_accessor;
-  };
-  
-  PropertysAccessor();
-  
-  /**
-   * @func accessor
-   */
-  Accessor accessor(ViewType type, PropertyName name);
-  
-  /**
-   * @func has_accessor
-   */
-  bool has_accessor(ViewType type, PropertyName name);
-  
-  /**
-   * @func shared
-   */
-  static PropertysAccessor* shared();
-  
+	
+	typedef void (View::*Func)();
+	typedef int ViewType;
+	
+	struct XX_EXPORT Accessor {
+		
+		inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) { }
+		
+		template<typename T, typename T2>
+		inline Accessor(T get, T2 set)
+		: get_accessor(Func(get)), set_accessor(Func(set)) { }
+		
+		Func get_accessor;
+		Func set_accessor;
+	};
+	
+	PropertysAccessor();
+	
+	/**
+	 * @func accessor
+	 */
+	Accessor accessor(ViewType type, PropertyName name);
+	
+	/**
+	 * @func has_accessor
+	 */
+	bool has_accessor(ViewType type, PropertyName name);
+	
+	/**
+	 * @func shared
+	 */
+	static PropertysAccessor* shared();
+	
  private:
-  
-  Map<ViewType, Map<PropertyName, Accessor>> m_property_func_table;
+	
+	Map<ViewType, Map<PropertyName, Accessor>> m_property_func_table;
 };
 
 XX_END

@@ -35,22 +35,22 @@
 XX_NS(ngui)
 
 void AndroidConsole::log(cString& str) {
-  __android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
+	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
 }
 void AndroidConsole::warn(cString& str) {
-  __android_log_print(ANDROID_LOG_WARN, "XX_WARN", "%s\n", *str);
+	__android_log_print(ANDROID_LOG_WARN, "XX_WARN", "%s\n", *str);
 }
 void AndroidConsole::error(cString& str) {
-  __android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
+	__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
 }
 void AndroidConsole::print(cString& str) {
-  __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
+	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
 }
 void AndroidConsole::print_err(cString& str) {
-  __android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
+	__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
 }
 void AndroidConsole::clear() {
-  // noop
+	// noop
 }
 
 XX_END

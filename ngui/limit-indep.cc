@@ -40,25 +40,25 @@ LimitIndep::LimitIndep()
 , m_max_height(ValueType::AUTO)
 , m_limit_min_width(0)
 , m_limit_min_height(0) {
-  
+	
 }
 
 /**
  * @func set_min_width
  */
 void LimitIndep::set_max_width(Value value) {
-  m_max_width = value;
-  mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
-  set_horizontal_active_mark();
+	m_max_width = value;
+	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
+	set_horizontal_active_mark();
 }
 
 /**
  * @func set_min_width
  */
 void LimitIndep::set_max_height(Value value) {
-  m_max_height = value;
-  mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
-  set_vertical_active_mark();
+	m_max_height = value;
+	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
+	set_vertical_active_mark();
 }
 
 XX_END

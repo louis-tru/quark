@@ -42,24 +42,24 @@ JS_BEGIN
  * @class WrapSpan
  */
 class WrapSpan: public WrapViewBase {
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapSpan>(args, new Span());
-  }
-  
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapSpan>(args, new Span());
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Span, constructor, {
-      WrapViewBase::inherit_text_layout(cls, worker);
-    }, Layout);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Span), View::SPAN);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Span, constructor, {
+			WrapViewBase::inherit_text_layout(cls, worker);
+		}, Layout);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Span), View::SPAN);
+	}
 };
 
 void binding_span(Local<JSObject> exports, Worker* worker) {
-  WrapSpan::binding(exports, worker);
+	WrapSpan::binding(exports, worker);
 }
 
 JS_END

@@ -37,80 +37,80 @@ XX_NS(ngui)
 XX_NS(sys)
 
 String version() {
-  return String();
+	return String();
 }
 
 String brand() {
-  return "Linux";
+	return "Linux";
 }
 
 String subsystem() {
-  static String name("Linux");
-  return "";
+	static String name("Linux");
+	return "";
 }
 
 int network_status() {
-  return 1;
+	return 1;
 }
 
 bool is_ac_power() {
-  return 1;
+	return 1;
 }
 
 bool is_battery() {
-  return 0;
+	return 0;
 }
 
 float battery_level() {
-  return 0;
+	return 0;
 }
 
 uint64 memory() {
-  return 0;
+	return 0;
 }
 
 uint64 used_memory() {
-  return 0;
+	return 0;
 }
 
 uint64 available_memory() {
-  return 0;
+	return 0;
 }
 
 struct Languages {
-  Array<String> values;
-  String        string;
+	Array<String> values;
+	String        string;
 };
 
 static Languages _languages([] {
-  Languages r;
-  
-  cchar* lang = getenv("LANG");
-  if ( lang ) {
-    r.values.push(lang);
-  } else {
-    r.values.push("en_US");
-  }
-  r.string = r.values.join(',');
-  return r;
+	Languages r;
+	
+	cchar* lang = getenv("LANG");
+	if ( lang ) {
+		r.values.push(lang);
+	} else {
+		r.values.push("en_US");
+	}
+	r.string = r.values.join(',');
+	return r;
 }());
 
 const Array<String>& languages() {
-  return _languages.values;
+	return _languages.values;
 }
 
 String languages_string() {
-  return _languages.string;
+	return _languages.string;
 }
 
 String language() {
-  return languages()[0];
+	return languages()[0];
 }
 
 // plus
 
 String device_name() {
-  return String();
+	return String();
 }
 
 XX_END XX_END

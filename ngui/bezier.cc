@@ -39,77 +39,77 @@ XX_NS(ngui)
  * @constructor
  */
 QuadraticBezier::QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2)
-  : p0x(p0.x()), p0y(p0.y()), p1x(p1.x()), p1y(p1.y()), p2x(p2.x()), p2y(p2.y()) { }
+	: p0x(p0.x()), p0y(p0.y()), p1x(p1.x()), p1y(p1.y()), p2x(p2.x()), p2y(p2.y()) { }
 
 /**
  * @func sample_curve_x
  */
 float QuadraticBezier::sample_curve_x(float t) const {
-  float t2 = 1 - t;
-  return t2 * t2 * p0x + 2 * t * t2 * p1x + t * t * p2x;
+	float t2 = 1 - t;
+	return t2 * t2 * p0x + 2 * t * t2 * p1x + t * t * p2x;
 }
 
 /**
  * @func sample_curve_y
  */
 float QuadraticBezier::sample_curve_y(float t) const {
-  float t2 = 1 - t;
-  return t2 * t2 * p0y + 2 * t * t2 * p1y + t * t * p2y;
+	float t2 = 1 - t;
+	return t2 * t2 * p0y + 2 * t * t2 * p1y + t * t * p2y;
 }
 
 /**
  * @func compute_bezier_points
  */
 void QuadraticBezier::sample_curve_points(uint sample_count, float* out) const {
-  float dt = 1.0 / ( sample_count - 1 );
-  for( int i = 0; i < sample_count; i++) {
-    float t = i * dt;
-    float t2 = 1 - t;
-    float t3 = t2 * t2;
-    float t4 = 2 * t * t2;
-    float t5 = t * t;
-    out[i * 2]      = t3 * p0x + t4 * p1x + t5 * p2x;
-    out[i * 2 + 1]  = t3 * p0y + t4 * p1y + t5 * p2y;
-  }
+	float dt = 1.0 / ( sample_count - 1 );
+	for( int i = 0; i < sample_count; i++) {
+		float t = i * dt;
+		float t2 = 1 - t;
+		float t3 = t2 * t2;
+		float t4 = 2 * t * t2;
+		float t5 = t * t;
+		out[i * 2]      = t3 * p0x + t4 * p1x + t5 * p2x;
+		out[i * 2 + 1]  = t3 * p0y + t4 * p1y + t5 * p2y;
+	}
 }
 
 /**
  * @func sample_curve_points
  */
 ArrayBuffer<Vec2> QuadraticBezier::sample_curve_points(uint sample_count) const {
-  ArrayBuffer<Vec2> rev(sample_count);
-  sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
-  return rev;
+	ArrayBuffer<Vec2> rev(sample_count);
+	sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
+	return rev;
 }
 
 CubicBezier::CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3): p0x(p0.x()), p0y(p0.y()) {
-  cx = 3.0 * (p1.x() - p0x);
-  bx = 3.0 * (p2.x() - p1.x()) - cx;
-  ax = p3.x() - p0x - cx - bx;
-  //
-  cy = 3.0 * (p1.y() - p0y);
-  by = 3.0 * (p2.y() - p1.y()) - cy;
-  ay = p3.y() - p0y - cy - by;
+	cx = 3.0 * (p1.x() - p0x);
+	bx = 3.0 * (p2.x() - p1.x()) - cx;
+	ax = p3.x() - p0x - cx - bx;
+	//
+	cy = 3.0 * (p1.y() - p0y);
+	by = 3.0 * (p2.y() - p1.y()) - cy;
+	ay = p3.y() - p0y - cy - by;
 }
 
 /**
  * @func compute_bezier_points
  */
 void CubicBezier::sample_curve_points(uint sample_count, float* out) const {
-  float dt = 1.0 / ( sample_count - 1 );
-  for( int i = 0; i < sample_count; i++) {
-    out[i * 2] = sample_curve_x(i * dt);
-    out[i * 2 + 1] = sample_curve_y(i * dt);
-  }
+	float dt = 1.0 / ( sample_count - 1 );
+	for( int i = 0; i < sample_count; i++) {
+		out[i * 2] = sample_curve_x(i * dt);
+		out[i * 2 + 1] = sample_curve_y(i * dt);
+	}
 }
 
 /**
  * @func sample_curve_points
  */
 ArrayBuffer<Vec2> CubicBezier::sample_curve_points(uint sample_count) const {
-  ArrayBuffer<Vec2> rev(sample_count);
-  sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
-  return rev;
+	ArrayBuffer<Vec2> rev(sample_count);
+	sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
+	return rev;
 }
 
 /**
@@ -117,20 +117,20 @@ ArrayBuffer<Vec2> CubicBezier::sample_curve_points(uint sample_count) const {
  */
 class FixedCubicBezier::Inl: public FixedCubicBezier {
 public:
-  
-  /**
-   * @func defalut_solve
-   */
-  float defalut_solve(float x, float epsilon) const {
-    return sample_curve_y(solve_curve_x(x, epsilon));
-  }
-  
-  /**
-   * @func solve_linear
-   */
-  float solve_linear(float x, float epsilon) const {
-    return x;
-  }
+	
+	/**
+	 * @func defalut_solve
+	 */
+	float defalut_solve(float x, float epsilon) const {
+		return sample_curve_y(solve_curve_x(x, epsilon));
+	}
+	
+	/**
+	 * @func solve_linear
+	 */
+	float solve_linear(float x, float epsilon) const {
+		return x;
+	}
 };
 
 /**
@@ -150,9 +150,9 @@ FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2)
 : CubicBezier(Vec2(0, 0), p1, p2, Vec2(1, 1))
 , m_solve((Solve)&Inl::defalut_solve)
 , m_p1(p1), m_p2(p2) {
-  if ( p1.x() == 0 && p1.y() == 0 && p2.x() == 1 && p2.y() == 1 ) {
-    m_solve = (Solve)&Inl::solve_linear;
-  }
+	if ( p1.x() == 0 && p1.y() == 0 && p2.x() == 1 && p2.y() == 1 ) {
+		m_solve = (Solve)&Inl::solve_linear;
+	}
 }
 
 /**
@@ -160,42 +160,42 @@ FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2)
  * 通过x值迭代逼近查找t值
  */
 float FixedCubicBezier::solve_curve_x(float x, float epsilon) const {
-  float t0;
-  float t1;
-  float t2;
-  float x2;
-  float d2;
-  int i;
-  // First try a few iterations of Newton's method -- normally very fast.
-  for (t2 = x, i = 0; i < 8; i++) {
-    x2 = sample_curve_x(t2) - x;
-    if (fabsf (x2) < epsilon)
-      return t2;
-    d2 = sample_curve_derivative_x(t2);
-    if (fabsf(d2) < 1e-6)
-      break;
-    t2 = t2 - x2 / d2;
-  }
-  // Fall back to the bisection method for reliability.
-  t0 = 0.0;
-  t1 = 1.0;
-  t2 = x;
-  if (t2 < t0)
-    return t0;
-  if (t2 > t1)
-    return t1;
-  while (t0 < t1) {
-    x2 = sample_curve_x(t2);
-    if (fabsf(x2 - x) < epsilon)
-      return t2;
-    if (x > x2)
-      t0 = t2;
-    else
-      t1 = t2;
-    t2 = (t1 - t0) * .5 + t0;
-  }
-  // Failure.
-  return t2;
+	float t0;
+	float t1;
+	float t2;
+	float x2;
+	float d2;
+	int i;
+	// First try a few iterations of Newton's method -- normally very fast.
+	for (t2 = x, i = 0; i < 8; i++) {
+		x2 = sample_curve_x(t2) - x;
+		if (fabsf (x2) < epsilon)
+			return t2;
+		d2 = sample_curve_derivative_x(t2);
+		if (fabsf(d2) < 1e-6)
+			break;
+		t2 = t2 - x2 / d2;
+	}
+	// Fall back to the bisection method for reliability.
+	t0 = 0.0;
+	t1 = 1.0;
+	t2 = x;
+	if (t2 < t0)
+		return t0;
+	if (t2 > t1)
+		return t1;
+	while (t0 < t1) {
+		x2 = sample_curve_x(t2);
+		if (fabsf(x2 - x) < epsilon)
+			return t2;
+		if (x > x2)
+			t0 = t2;
+		else
+			t1 = t2;
+		t2 = (t1 - t0) * .5 + t0;
+	}
+	// Failure.
+	return t2;
 }
 
 const FixedCubicBezier LINEAR;

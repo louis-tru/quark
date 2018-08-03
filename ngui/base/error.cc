@@ -48,8 +48,8 @@ Error::Error(int code, cString& msg)
 }
 
 Error::Error(int code, cchar* msg, ...): m_code(code) {
-  XX_STRING_FORMAT(msg, m);
-  m_message = new String(m);
+	XX_STRING_FORMAT(msg, m);
+	m_message = new String(m);
 }
 
 Error::Error(cString& msg): m_code(ERR_UNKNOWN_ERROR), m_message(new String(msg)) {
@@ -57,8 +57,8 @@ Error::Error(cString& msg): m_code(ERR_UNKNOWN_ERROR), m_message(new String(msg)
 }
 
 Error::Error(cchar* msg, ...): m_code(ERR_UNKNOWN_ERROR) {
-  XX_STRING_FORMAT(msg, m);
-  m_message = new String(m);
+	XX_STRING_FORMAT(msg, m);
+	m_message = new String(m);
 }
 
 Error::Error(cError& e)
@@ -68,29 +68,29 @@ Error::Error(cError& e)
 }
 
 Error& Error::operator=(const Error& e) {
-  m_code = e.m_code;
-  *m_message = *e.m_message;
-  return *this;
+	m_code = e.m_code;
+	*m_message = *e.m_message;
+	return *this;
 }
 
 Error::~Error() {
-  Release(m_message);
+	Release(m_message);
 }
 
 cString& Error::message() const throw() {
-  return *m_message;
+	return *m_message;
 }
 
 int Error::code() const throw() {
-  return m_code;
+	return m_code;
 }
 
 void Error::set_message(cString& value) {
-  *m_message = value;
+	*m_message = value;
 }
 
 void Error::set_code(int value) {
-  m_code = value;
+	m_code = value;
 }
 
 #endif

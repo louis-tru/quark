@@ -42,12 +42,12 @@ XX_NS(ngui)
  */
 class XX_EXPORT AndroidConsole: public Console {
  public:
-  virtual void log(cString& str);
-  virtual void warn(cString& str);
-  virtual void error(cString& str);
-  virtual void print(cString& str);
-  virtual void print_err(cString& str);
-  virtual void clear();
+	virtual void log(cString& str);
+	virtual void warn(cString& str);
+	virtual void error(cString& str);
+	virtual void print(cString& str);
+	virtual void print_err(cString& str);
+	virtual void clear();
 };
 
 XX_END

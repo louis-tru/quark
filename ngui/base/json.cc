@@ -45,259 +45,259 @@ static MemoryPoolAllocator shareMemoryPoolAllocator;
 static const JSON NullValue;
 
 JSON::JSON() {
-  new(this)RValue();
+	new(this)RValue();
 }
 
 JSON::JSON(Type type) {
-  new(this)RValue(rapidjson::Type(type));
+	new(this)RValue(rapidjson::Type(type));
 }
 
 JSON::JSON(bool b) {
-  new(this)RValue(b);
+	new(this)RValue(b);
 }
 
 //! Constructor for int value.
 JSON::JSON(int i) {
-  new(this)RValue(i);
+	new(this)RValue(i);
 }
 
 //! Constructor for unsigned value.
 JSON::JSON(uint u) {
-  new(this)RValue(u);
+	new(this)RValue(u);
 }
 
 //! Constructor for int64_t value.
 JSON::JSON(int64 i64) {
-  new(this)RValue((int64_t)i64);
+	new(this)RValue((int64_t)i64);
 }
 
 //! Constructor for uint64_t value.
 JSON::JSON(uint64 u64) {
-  new(this)RValue((uint64_t)u64);
+	new(this)RValue((uint64_t)u64);
 }
 
 //! Constructor for double value.
 JSON::JSON(double d) {
-  new(this)RValue(d);
+	new(this)RValue(d);
 }
 
 //! Constructor for ccharp value.
 JSON::JSON(cchar* str) {
-  new(this)RValue(str, uint(strlen(str)), shareMemoryPoolAllocator);
+	new(this)RValue(str, uint(strlen(str)), shareMemoryPoolAllocator);
 }
 
 //! Constructor for CStringRef value.
 JSON::JSON(cString& str) {
-  new(this)RValue(*str, str.length(), shareMemoryPoolAllocator);
+	new(this)RValue(*str, str.length(), shareMemoryPoolAllocator);
 }
 
 //! Constructor for CDataRef value.
 JSON::JSON(cBuffer& data) {
-  new(this)RValue(*data, data.length(), shareMemoryPoolAllocator);
+	new(this)RValue(*data, data.length(), shareMemoryPoolAllocator);
 }
 
 JSON::JSON(JSON&& json) {
-  new(this)RValue(move(*reinterpret_cast<RValue*>(&json))); // init
+	new(this)RValue(move(*reinterpret_cast<RValue*>(&json))); // init
 }
 JSON& JSON::operator=(JSON&& json) {
-  *reinterpret_cast<RValue*>(this) = move(*reinterpret_cast<RValue*>(&json));
-  return *this;
+	*reinterpret_cast<RValue*>(this) = move(*reinterpret_cast<RValue*>(&json));
+	return *this;
 }
 
 JSON::JSON(JSON& json) {
 //  TLog(sizeof(RValue));
 //  TLog(sizeof(JSON));
-  new(this)RValue(move(*reinterpret_cast<RValue*>(&json))); // init
+	new(this)RValue(move(*reinterpret_cast<RValue*>(&json))); // init
 }
 
 JSON::~JSON(){
-  reinterpret_cast<RValue*>(this)->
-    ~GenericValue<rapidjson::UTF8<>, MemoryPoolAllocator>();
+	reinterpret_cast<RValue*>(this)->
+		~GenericValue<rapidjson::UTF8<>, MemoryPoolAllocator>();
 }
 
 JSON JSON::clone() const {
-  RValue copy(*reinterpret_cast<CRValue*>(this), shareMemoryPoolAllocator);
-  return *reinterpret_cast<JSON*>(&copy);
+	RValue copy(*reinterpret_cast<CRValue*>(this), shareMemoryPoolAllocator);
+	return *reinterpret_cast<JSON*>(&copy);
 }
 
 JSON& JSON::operator=(JSON& json) {
-  *reinterpret_cast<RValue*>(this) = *reinterpret_cast<RValue*>(&json);
-  return *this;
+	*reinterpret_cast<RValue*>(this) = *reinterpret_cast<RValue*>(&json);
+	return *this;
 }
 
 JSON& JSON::operator=(bool b) {
-  reinterpret_cast<RValue*>(this)->SetBool(b);
-  return *this;
+	reinterpret_cast<RValue*>(this)->SetBool(b);
+	return *this;
 }
 
 JSON& JSON::operator=(int i) {
-  reinterpret_cast<RValue*>(this)->SetInt(i);
-  return *this;
+	reinterpret_cast<RValue*>(this)->SetInt(i);
+	return *this;
 }
 
 JSON& JSON::operator=(uint u) {
-  reinterpret_cast<RValue*>(this)->SetUint(u);
-  return *this;
+	reinterpret_cast<RValue*>(this)->SetUint(u);
+	return *this;
 }
 
 JSON& JSON::operator=(int64 i64) {
-  reinterpret_cast<RValue*>(this)->SetInt64(i64);
-  return *this;
+	reinterpret_cast<RValue*>(this)->SetInt64(i64);
+	return *this;
 }
 
 JSON& JSON::operator=(uint64 u64) {
-  reinterpret_cast<RValue*>(this)->SetUint64(u64);
-  return *this;
+	reinterpret_cast<RValue*>(this)->SetUint64(u64);
+	return *this;
 }
 
 JSON& JSON::operator=(double d) {
-  reinterpret_cast<RValue*>(this)->SetDouble(d);
-  return *this;
+	reinterpret_cast<RValue*>(this)->SetDouble(d);
+	return *this;
 }
 
 JSON& JSON::operator=(cchar* str) {
-  reinterpret_cast<RValue*>(this)->
-    SetString(str, uint(strlen(str)), shareMemoryPoolAllocator);
-  return *this;
+	reinterpret_cast<RValue*>(this)->
+		SetString(str, uint(strlen(str)), shareMemoryPoolAllocator);
+	return *this;
 }
 
 JSON& JSON::operator=(cString& str) {
-  reinterpret_cast<RValue*>(this)->
-    SetString(*str, str.length(), shareMemoryPoolAllocator);
-  return *this;
+	reinterpret_cast<RValue*>(this)->
+		SetString(*str, str.length(), shareMemoryPoolAllocator);
+	return *this;
 }
 
 JSON& JSON::operator=(cBuffer& data) {
-  reinterpret_cast<RValue*>(this)->
-    SetString(*data, data.length(), shareMemoryPoolAllocator);
-  return *this;
+	reinterpret_cast<RValue*>(this)->
+		SetString(*data, data.length(), shareMemoryPoolAllocator);
+	return *this;
 }
 
 bool JSON::operator==(const JSON& json) const {
-  CRValue& b = *reinterpret_cast<CRValue*>(&json);
-  return reinterpret_cast<CRValue*>(this)->operator==(b);
+	CRValue& b = *reinterpret_cast<CRValue*>(&json);
+	return reinterpret_cast<CRValue*>(this)->operator==(b);
 }
 
 bool JSON::operator==(cchar* str) const {
-  return reinterpret_cast<CRValue*>(this)->operator==(str);
+	return reinterpret_cast<CRValue*>(this)->operator==(str);
 }
 
 bool JSON::operator==(cString& str) const {
-  return reinterpret_cast<CRValue*>(this)->operator==(*str);
+	return reinterpret_cast<CRValue*>(this)->operator==(*str);
 }
 
 JSON& JSON::operator[](cJSON& key) {
-  RValue* self = reinterpret_cast<RValue*>(this);
-  CRValue& n = *reinterpret_cast<CRValue*>(&key);
-  XX_ASSERT(self->IsObject());
-  XX_ASSERT(n.IsString());
-  RValue::MemberIterator member = self->FindMember(n);
-  RValue* value = NULL;
-  
-  if (member != self->MemberEnd()) {
-    value = &member->value;
-  }
-  else {
-    // 创建一个空值
-    self->AddMember(RValue(n, shareMemoryPoolAllocator),
-                    RValue(),
-                    shareMemoryPoolAllocator);
-    value = &self->FindMember(n)->value;
-  }
-  return *reinterpret_cast<JSON*>(value);
+	RValue* self = reinterpret_cast<RValue*>(this);
+	CRValue& n = *reinterpret_cast<CRValue*>(&key);
+	XX_ASSERT(self->IsObject());
+	XX_ASSERT(n.IsString());
+	RValue::MemberIterator member = self->FindMember(n);
+	RValue* value = NULL;
+	
+	if (member != self->MemberEnd()) {
+		value = &member->value;
+	}
+	else {
+		// 创建一个空值
+		self->AddMember(RValue(n, shareMemoryPoolAllocator),
+										RValue(),
+										shareMemoryPoolAllocator);
+		value = &self->FindMember(n)->value;
+	}
+	return *reinterpret_cast<JSON*>(value);
 }
 
 const JSON& JSON::operator[](cJSON& key) const {
-  CRValue* self = reinterpret_cast<CRValue*>(this);
-  CRValue& n = *reinterpret_cast<CRValue*>(&key);
-  XX_ASSERT(self->IsObject());
-  XX_ASSERT(n.IsString());
-  RValue::ConstMemberIterator member = self->FindMember(n);
-  
-  if (member != self->MemberEnd()){
-    return *reinterpret_cast<const JSON*>(&member->value);
-  }
-  return NullValue;
+	CRValue* self = reinterpret_cast<CRValue*>(this);
+	CRValue& n = *reinterpret_cast<CRValue*>(&key);
+	XX_ASSERT(self->IsObject());
+	XX_ASSERT(n.IsString());
+	RValue::ConstMemberIterator member = self->FindMember(n);
+	
+	if (member != self->MemberEnd()){
+		return *reinterpret_cast<const JSON*>(&member->value);
+	}
+	return NullValue;
 }
 
 JSON& JSON::operator[](int index) {
-  XX_ASSERT(is_array());
-  RValue* self = reinterpret_cast<RValue*>(this);
-  XX_ASSERT(self->IsArray());
-  RValue* value = NULL;
-  
-  int size = self->Size();
-  
-  if (index < size) {
-    value = &(*self)[index];
-  }
-  else {
-    for ( ; size <= index; size++) {
-      self->PushBack(RValue(), shareMemoryPoolAllocator);
-    }
-    auto it = self->End();
-    value = --it;
-  }
-  return *reinterpret_cast<JSON*>(value);
+	XX_ASSERT(is_array());
+	RValue* self = reinterpret_cast<RValue*>(this);
+	XX_ASSERT(self->IsArray());
+	RValue* value = NULL;
+	
+	int size = self->Size();
+	
+	if (index < size) {
+		value = &(*self)[index];
+	}
+	else {
+		for ( ; size <= index; size++) {
+			self->PushBack(RValue(), shareMemoryPoolAllocator);
+		}
+		auto it = self->End();
+		value = --it;
+	}
+	return *reinterpret_cast<JSON*>(value);
 }
 
 JSON& JSON::operator[] (cchar* key) {
-  RValue* self = reinterpret_cast<RValue*>(this);
-  XX_ASSERT(self->IsObject());
-  RValue n(rapidjson::StringRef(key));
-  RValue::MemberIterator member = self->FindMember(n);
-  RValue* value = NULL;
-  
-  if (member != self->MemberEnd()){
-    value = &member->value;
-  }
-  else {
-    // 创建一个空值
-    self->AddMember(RValue(n, shareMemoryPoolAllocator),
-                    RValue(),
-                    shareMemoryPoolAllocator);
-    value = &self->FindMember(n)->value;
-  }
-  return *reinterpret_cast<JSON*>(value);
+	RValue* self = reinterpret_cast<RValue*>(this);
+	XX_ASSERT(self->IsObject());
+	RValue n(rapidjson::StringRef(key));
+	RValue::MemberIterator member = self->FindMember(n);
+	RValue* value = NULL;
+	
+	if (member != self->MemberEnd()){
+		value = &member->value;
+	}
+	else {
+		// 创建一个空值
+		self->AddMember(RValue(n, shareMemoryPoolAllocator),
+										RValue(),
+										shareMemoryPoolAllocator);
+		value = &self->FindMember(n)->value;
+	}
+	return *reinterpret_cast<JSON*>(value);
 }
 
 JSON& JSON::operator[] (cString& key) {
-  return operator[](*key);
+	return operator[](*key);
 }
 
 const JSON& JSON::operator[](int index) const {
-  CRValue* self = reinterpret_cast<CRValue*>(this);
-  XX_ASSERT(self->IsArray());
-  
-  int size = self->Size();
-  if(index < size){
-    return *reinterpret_cast<const JSON*>(&(*self)[index]);
-  }
-  return NullValue;
+	CRValue* self = reinterpret_cast<CRValue*>(this);
+	XX_ASSERT(self->IsArray());
+	
+	int size = self->Size();
+	if(index < size){
+		return *reinterpret_cast<const JSON*>(&(*self)[index]);
+	}
+	return NullValue;
 }
 
 const JSON& JSON::operator[](cchar* key) const {
-  CRValue* self = reinterpret_cast<CRValue*>(this);
-  XX_ASSERT(self->IsObject());
-  RValue n(rapidjson::StringRef(key));
-  RValue::ConstMemberIterator member = self->FindMember(n);
-  
-  if (member != self->MemberEnd()) {
-    return *reinterpret_cast<const JSON*>(&member->value);
-  }
-  return NullValue;
+	CRValue* self = reinterpret_cast<CRValue*>(this);
+	XX_ASSERT(self->IsObject());
+	RValue n(rapidjson::StringRef(key));
+	RValue::ConstMemberIterator member = self->FindMember(n);
+	
+	if (member != self->MemberEnd()) {
+		return *reinterpret_cast<const JSON*>(&member->value);
+	}
+	return NullValue;
 }
 
 const JSON& JSON::operator[](cString& key) const {
-  return operator[](*key);
+	return operator[](*key);
 }
 
 bool JSON::is_member(cchar* key) const {
-  return reinterpret_cast<CRValue*>(this)->HasMember(key);
+	return reinterpret_cast<CRValue*>(this)->HasMember(key);
 }
 
 bool JSON::is_member(cString& key) const {
-  return reinterpret_cast<CRValue*>(this)->HasMember(*key);
+	return reinterpret_cast<CRValue*>(this)->HasMember(*key);
 }
 
 bool JSON::is_null()   const { return reinterpret_cast<CRValue*>(this)->IsNull(); }
@@ -325,116 +325,116 @@ uint JSON::string_length() const { return reinterpret_cast<CRValue*>(this)->GetS
 uint JSON::length()        const { return reinterpret_cast<CRValue*>(this)->Size(); }
 
 void JSON::clear() {
-  if (is_array()) {
-    reinterpret_cast<RValue*>(this)->Clear();
-  }
-  else if (is_object()) {
-    reinterpret_cast<RValue*>(this)->RemoveAllMembers();
-  }
+	if (is_array()) {
+		reinterpret_cast<RValue*>(this)->Clear();
+	}
+	else if (is_object()) {
+		reinterpret_cast<RValue*>(this)->RemoveAllMembers();
+	}
 }
 
 void JSON::pop() {
-  reinterpret_cast<RValue*>(this)->PopBack();
+	reinterpret_cast<RValue*>(this)->PopBack();
 }
 
 void JSON::remove(cchar* key) {
-  RValue* self = reinterpret_cast<RValue*>(this);
-  XX_ASSERT(self->IsObject());
-  RValue n(rapidjson::StringRef(key));
-  RValue::MemberIterator member = self->FindMember(n);
-  
-  if (member != self->MemberEnd()) {
-    self->RemoveMember(member);
-  }
+	RValue* self = reinterpret_cast<RValue*>(this);
+	XX_ASSERT(self->IsObject());
+	RValue n(rapidjson::StringRef(key));
+	RValue::MemberIterator member = self->FindMember(n);
+	
+	if (member != self->MemberEnd()) {
+		self->RemoveMember(member);
+	}
 }
 
 void JSON::remove(cString& key) {
-  remove(*key);
+	remove(*key);
 }
 
 void JSON::remove(JSON::ConstIterator it) {
-  RValue* self = reinterpret_cast<RValue*>(this);
-  self->EraseMember(*reinterpret_cast<RValue::ConstMemberIterator*>(&it));
+	RValue* self = reinterpret_cast<RValue*>(this);
+	self->EraseMember(*reinterpret_cast<RValue::ConstMemberIterator*>(&it));
 }
 
 void JSON::remove(JSON::ConstArrayIterator it) {
-  RValue* self = reinterpret_cast<RValue*>(this);
-  self->Erase(*reinterpret_cast<RValue::ConstValueIterator*>(&it));
+	RValue* self = reinterpret_cast<RValue*>(this);
+	self->Erase(*reinterpret_cast<RValue::ConstValueIterator*>(&it));
 }
 
 JSON::Iterator JSON::begin() {
-  RValue::MemberIterator it = reinterpret_cast<RValue*>(this)->MemberBegin();
-  return *reinterpret_cast<JSON::Iterator*>(&it);
+	RValue::MemberIterator it = reinterpret_cast<RValue*>(this)->MemberBegin();
+	return *reinterpret_cast<JSON::Iterator*>(&it);
 }
 
 JSON::Iterator JSON::end() {
-  RValue::MemberIterator it = reinterpret_cast<RValue*>(this)->MemberEnd();
-  return *reinterpret_cast<JSON::Iterator*>(&it);
+	RValue::MemberIterator it = reinterpret_cast<RValue*>(this)->MemberEnd();
+	return *reinterpret_cast<JSON::Iterator*>(&it);
 }
 
 JSON::ConstIterator JSON::begin() const {
-  RValue::ConstMemberIterator it = reinterpret_cast<CRValue*>(this)->MemberBegin();
-  return *reinterpret_cast<JSON::ConstIterator*>(&it);
+	RValue::ConstMemberIterator it = reinterpret_cast<CRValue*>(this)->MemberBegin();
+	return *reinterpret_cast<JSON::ConstIterator*>(&it);
 }
 
 JSON::ConstIterator JSON::end() const {
-  RValue::ConstMemberIterator it = reinterpret_cast<CRValue*>(this)->MemberEnd();
-  return *reinterpret_cast<JSON::ConstIterator*>(&it);
+	RValue::ConstMemberIterator it = reinterpret_cast<CRValue*>(this)->MemberEnd();
+	return *reinterpret_cast<JSON::ConstIterator*>(&it);
 }
 
 JSON::ArrayIterator JSON::begin_array() {
-  return reinterpret_cast<ArrayIterator>(reinterpret_cast<RValue*>(this)->Begin());
+	return reinterpret_cast<ArrayIterator>(reinterpret_cast<RValue*>(this)->Begin());
 }
 
 JSON::ArrayIterator JSON::end_array() {
-  return reinterpret_cast<ArrayIterator>(reinterpret_cast<RValue*>(this)->End());
+	return reinterpret_cast<ArrayIterator>(reinterpret_cast<RValue*>(this)->End());
 }
 
 JSON::ConstArrayIterator JSON::begin_array() const {
-  return reinterpret_cast<ConstArrayIterator>(reinterpret_cast<CRValue*>(this)->Begin());
+	return reinterpret_cast<ConstArrayIterator>(reinterpret_cast<CRValue*>(this)->Begin());
 }
 
 JSON::ConstArrayIterator JSON::end_array() const {
-  return reinterpret_cast<ConstArrayIterator>(reinterpret_cast<CRValue*>(this)->End());
+	return reinterpret_cast<ConstArrayIterator>(reinterpret_cast<CRValue*>(this)->End());
 }
 
 JSON JSON::parse(cBuffer& data){
-  return parse(*data);
+	return parse(*data);
 }
 
 JSON JSON::parse(cString& json){
-  return parse(*json);
+	return parse(*json);
 }
 
 JSON JSON::parse(cchar* json){
-  RDocument doc(&shareMemoryPoolAllocator);
-  doc.Parse(json);
-  XX_ASSERT_ERR(!doc.HasParseError(),
-                "json parse error, offset: %lu, code: %d\n%s",
-                doc.GetErrorOffset(),
-                doc.GetParseError(), json);
-  return *reinterpret_cast<JSON*>(&doc);
+	RDocument doc(&shareMemoryPoolAllocator);
+	doc.Parse(json);
+	XX_ASSERT_ERR(!doc.HasParseError(),
+								"json parse error, offset: %lu, code: %d\n%s",
+								doc.GetErrorOffset(),
+								doc.GetParseError(), json);
+	return *reinterpret_cast<JSON*>(&doc);
 }
 
 String JSON::stringify(cJSON& json){
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  reinterpret_cast<CRValue*>(&json)->Accept(writer);
-  return move(String(buffer.GetString(), uint(buffer.GetSize())));
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	reinterpret_cast<CRValue*>(&json)->Accept(writer);
+	return move(String(buffer.GetString(), uint(buffer.GetSize())));
 }
 
 JSON& JSON::ext(JSON& o, JSON& extd) {
-  
-  if (o.is_object() && extd.is_object()) {
-    for (auto i = extd.begin(); i != extd.end(); i++) {
-      o[i->name] = i->value;
-    }
-  }
-  else {
-    //  XX_ASSERT_ERR(0, "This method is only applicable to \"Object\" type of JOSN");
-    XX_WARN("%s", "This method is only applicable to \"Object\" type of JOSN");
-  }
-  return o;
+	
+	if (o.is_object() && extd.is_object()) {
+		for (auto i = extd.begin(); i != extd.end(); i++) {
+			o[i->name] = i->value;
+		}
+	}
+	else {
+		//  XX_ASSERT_ERR(0, "This method is only applicable to \"Object\" type of JOSN");
+		XX_WARN("%s", "This method is only applicable to \"Object\" type of JOSN");
+	}
+	return o;
 }
 
 /**
@@ -442,7 +442,7 @@ JSON& JSON::ext(JSON& o, JSON& extd) {
  * @return {JSON}
  */
 JSON JSON::object(){
-  return JSON(kObjectType);
+	return JSON(kObjectType);
 }
 
 /**
@@ -450,7 +450,7 @@ JSON JSON::object(){
  * @return {JSON}
  */
 JSON JSON::array(){
-  return JSON(kArrayType);
+	return JSON(kArrayType);
 }
 
 /**
@@ -458,7 +458,7 @@ JSON JSON::array(){
  * @return {JSON}
  */
 JSON JSON::null(){
-  return JSON();
+	return JSON();
 }
 
 XX_END

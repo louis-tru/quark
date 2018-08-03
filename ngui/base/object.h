@@ -73,15 +73,15 @@ class Object;
 class Reference;
 
 struct Allocator {
-  static void* alloc(size_t size);
-  static void* realloc(void* ptr, size_t size);
-  static void free(void* ptr);
+	static void* alloc(size_t size);
+	static void* realloc(void* ptr, size_t size);
+	static void free(void* ptr);
 };
 
 struct ObjectAllocator {
-  void* (*alloc)(size_t size);
-  void (*release)(Object* obj);
-  void (*retain)(Object* obj);
+	void* (*alloc)(size_t size);
+	void (*release)(Object* obj);
+	void (*retain)(Object* obj);
 };
 
 template<class T, class A = Allocator> class Container;
@@ -104,7 +104,7 @@ XX_INLINE T* New(Args... args) { return new T(args...); }
 
 template<class T, typename... Args>
 XX_INLINE T* NewRetain(Args... args) { 
-  T* r = new T(args...); r->retain(); return r; 
+	T* r = new T(args...); r->retain(); return r; 
 }
 
 class DefaultTraits;
@@ -115,24 +115,24 @@ class ReferenceTraits;
  */
 class XX_EXPORT Object {
  public:
-  typedef DefaultTraits Traits;
-  virtual String to_string() const;
-  virtual bool is_reference() const;
-  virtual bool retain();
-  virtual void release();
-  static void* operator new(std::size_t size);
-  static void* operator new(std::size_t size, void* p);
-  static void  operator delete(void* p);
+	typedef DefaultTraits Traits;
+	virtual String to_string() const;
+	virtual bool is_reference() const;
+	virtual bool retain();
+	virtual void release();
+	static void* operator new(std::size_t size);
+	static void* operator new(std::size_t size, void* p);
+	static void  operator delete(void* p);
 #if XX_MEMORY_TRACE_MARK
-  static std::vector<Object*> mark_objects();
-  static int mark_objects_count();
-  Object();
-  virtual ~Object();
+	static std::vector<Object*> mark_objects();
+	static int mark_objects_count();
+	Object();
+	virtual ~Object();
  private:
-  int initialize_mark_();
-  int mark_index_;
+	int initialize_mark_();
+	int mark_index_;
 #else
-  virtual ~Object() = default;
+	virtual ~Object() = default;
 #endif
 };
 
@@ -141,17 +141,17 @@ class XX_EXPORT Object {
  */
 class XX_EXPORT Reference: public Object {
  public:
-  typedef ReferenceTraits Traits;
-  inline Reference(): m_ref_count(0) { }
-  inline Reference(const Reference& ref): m_ref_count(0) { }
-  inline Reference& operator=(const Reference& ref) { return *this; }
-  virtual ~Reference();
-  virtual bool retain();
-  virtual void release();
-  virtual bool is_reference() const;
-  inline int ref_count() const { return m_ref_count; }
+	typedef ReferenceTraits Traits;
+	inline Reference(): m_ref_count(0) { }
+	inline Reference(const Reference& ref): m_ref_count(0) { }
+	inline Reference& operator=(const Reference& ref) { return *this; }
+	virtual ~Reference();
+	virtual bool retain();
+	virtual void release();
+	virtual bool is_reference() const;
+	inline int ref_count() const { return m_ref_count; }
  protected:
-  std::atomic_int m_ref_count;
+	std::atomic_int m_ref_count;
 };
 
 /**
@@ -159,10 +159,10 @@ class XX_EXPORT Reference: public Object {
  */
 class XX_EXPORT DefaultTraits {
  public:
-  inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
-  inline static void Release(Object* obj) { if (obj) obj->release(); }
-  static constexpr bool is_reference = false;
-  static constexpr bool is_object = true;
+	inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
+	inline static void Release(Object* obj) { if (obj) obj->release(); }
+	static constexpr bool is_reference = false;
+	static constexpr bool is_object = true;
 };
 
 /**
@@ -170,7 +170,7 @@ class XX_EXPORT DefaultTraits {
  */
 class XX_EXPORT ReferenceTraits: public DefaultTraits {
  public:
-  static constexpr bool is_reference = true;
+	static constexpr bool is_reference = true;
 };
 
 /**
@@ -178,13 +178,13 @@ class XX_EXPORT ReferenceTraits: public DefaultTraits {
  */
 class XX_EXPORT ProtocolTraits {
  public:
-  template<class T> inline static bool Retain(T* obj) {
-    return obj ? dynamic_cast<Object*>(obj)->retain() : 0;
-  }
-  template<class T> inline static void Release(T* obj) {
-    if (obj) dynamic_cast<Object*>(obj)->release();
-  }
-  static constexpr bool is_reference = false;
+	template<class T> inline static bool Retain(T* obj) {
+		return obj ? dynamic_cast<Object*>(obj)->retain() : 0;
+	}
+	template<class T> inline static void Release(T* obj) {
+		if (obj) dynamic_cast<Object*>(obj)->release();
+	}
+	static constexpr bool is_reference = false;
 };
 
 /**
@@ -192,11 +192,11 @@ class XX_EXPORT ProtocolTraits {
  */
 class XX_EXPORT NonObjectTraits {
  public:
-  template<class T> inline static bool Retain(T* obj) {
-    /* Non referential pairs need not be Retain */ return 0;
-  }
-  template<class T> inline static void Release(T* obj) { delete obj; }
-  static constexpr bool is_reference = false;
+	template<class T> inline static bool Retain(T* obj) {
+		/* Non referential pairs need not be Retain */ return 0;
+	}
+	template<class T> inline static void Release(T* obj) { delete obj; }
+	static constexpr bool is_reference = false;
 };
 
 XX_END

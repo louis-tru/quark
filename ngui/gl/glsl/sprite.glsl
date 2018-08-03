@@ -15,24 +15,24 @@ out vec2  f_tex_coord;
 #define tex_c_y (vertex_ac.w - vertex_ac.y + tex_ss.y) / tex_ss.w / tex_ratio.y
 
 void main() {
-  vec2 v;
-  
-  if (gl_VertexID == 0) {
-    v = vertex_ac.xy; f_tex_coord = vec2(tex_a_x, tex_a_y);
-  }
-  else if (gl_VertexID == 1) {
-    v = vertex_ac.zy; f_tex_coord = vec2(tex_c_x, tex_a_y);
-  }
-  else if (gl_VertexID == 2) {
-    v = vertex_ac.zw; f_tex_coord = vec2(tex_c_x, tex_c_y);
-  }
-  else {
-    v = vertex_ac.xw; f_tex_coord = vec2(tex_a_x, tex_c_y);
-  }
+	vec2 v;
+	
+	if (gl_VertexID == 0) {
+		v = vertex_ac.xy; f_tex_coord = vec2(tex_a_x, tex_a_y);
+	}
+	else if (gl_VertexID == 1) {
+		v = vertex_ac.zy; f_tex_coord = vec2(tex_c_x, tex_a_y);
+	}
+	else if (gl_VertexID == 2) {
+		v = vertex_ac.zw; f_tex_coord = vec2(tex_c_x, tex_c_y);
+	}
+	else {
+		v = vertex_ac.xw; f_tex_coord = vec2(tex_a_x, tex_c_y);
+	}
 
-  f_opacity = opacity;
-  
-  gl_Position = r_matrix * v_matrix * vec4(v.xy, 0.0, 1.0);
+	f_opacity = opacity;
+	
+	gl_Position = r_matrix * v_matrix * vec4(v.xy, 0.0, 1.0);
 }
 
 #frag
@@ -45,6 +45,6 @@ in  lowp vec2  f_tex_coord;
 out lowp vec4  FragColor;
 
 void main() {
-  // discard;
-  FragColor = texture(s_tex0, f_tex_coord) * vec4(1.0, 1.0, 1.0, f_opacity);
+	// discard;
+	FragColor = texture(s_tex0, f_tex_coord) * vec4(1.0, 1.0, 1.0, f_opacity);
 }

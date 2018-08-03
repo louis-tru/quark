@@ -35,85 +35,85 @@
 XX_NS(ngui)
 
 Textarea::Textarea(): Input(), BasicScroll(this) {
-  
+	
 }
 
 void Textarea::draw(Draw* draw) {
-  if ( m_visible ) {
-    
-    if ( mark_value ) {
-      
-      BasicScroll::solve();
-      
-      if (m_rows.max_width() <= final_width()) {
-        input_text_offset_x_ = 0;
-      } else {
-        switch ( m_text_align ) {
-          default:
-          case TextAlign::LEFT_REVERSE:
-            input_text_offset_x_ = 0; break;
-          case TextAlign::CENTER:
-          case TextAlign::CENTER_REVERSE:
-            input_text_offset_x_ = (final_width() - m_rows.max_width()) / 2.0;
-            break;
-          case TextAlign::RIGHT:
-          case TextAlign::RIGHT_REVERSE:
-            input_text_offset_x_ = final_width() - m_rows.max_width();
-            break;
-        }
-      }
-      
-      if ( mark_value & (M_CONTENT_OFFSET | M_LAYOUT_THREE_TIMES) ) {
-        set_text_align_offset(text_margin_);
-      }
-      
-      if ( mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS) ) {
-        refresh_cursor_screen_position(); // text layout
-      }
-      
-      if ( mark_value & M_SCROLL ) {
-        mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_screen_visible()
-      }
-      
-      Input::solve();
-      
-      if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
-        set_glyph_texture_level(m_data);
-      }
-    }
-    
-    draw->draw(this);
-    
-    mark_value = M_NONE;
-  }
+	if ( m_visible ) {
+		
+		if ( mark_value ) {
+			
+			BasicScroll::solve();
+			
+			if (m_rows.max_width() <= final_width()) {
+				input_text_offset_x_ = 0;
+			} else {
+				switch ( m_text_align ) {
+					default:
+					case TextAlign::LEFT_REVERSE:
+						input_text_offset_x_ = 0; break;
+					case TextAlign::CENTER:
+					case TextAlign::CENTER_REVERSE:
+						input_text_offset_x_ = (final_width() - m_rows.max_width()) / 2.0;
+						break;
+					case TextAlign::RIGHT:
+					case TextAlign::RIGHT_REVERSE:
+						input_text_offset_x_ = final_width() - m_rows.max_width();
+						break;
+				}
+			}
+			
+			if ( mark_value & (M_CONTENT_OFFSET | M_LAYOUT_THREE_TIMES) ) {
+				set_text_align_offset(text_margin_);
+			}
+			
+			if ( mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS) ) {
+				refresh_cursor_screen_position(); // text layout
+			}
+			
+			if ( mark_value & M_SCROLL ) {
+				mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_screen_visible()
+			}
+			
+			Input::solve();
+			
+			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
+				set_glyph_texture_level(m_data);
+			}
+		}
+		
+		draw->draw(this);
+		
+		mark_value = M_NONE;
+	}
 }
 
 void Textarea::set_layout_content_offset() {
-  if ( m_final_visible ) {
-    Input::set_layout_content_offset();
-    BasicScroll::set_scroll_size(Vec2(m_rows.max_width(), m_rows.max_height()));
-  }
+	if ( m_final_visible ) {
+		Input::set_layout_content_offset();
+		BasicScroll::set_scroll_size(Vec2(m_rows.max_width(), m_rows.max_height()));
+	}
 }
 
 bool Textarea::is_multi_line_input() {
-  return true;
+	return true;
 }
 
 Vec2 Textarea::input_text_offset() {
-  return Vec2( -scroll_x() - input_text_offset_x_, -scroll_y() );
+	return Vec2( -scroll_x() - input_text_offset_x_, -scroll_y() );
 }
 
 void Textarea::set_input_text_offset(Vec2 value) {
-  set_scroll( Vec2(-value.x() - input_text_offset_x_, -value.y()) );
+	set_scroll( Vec2(-value.x() - input_text_offset_x_, -value.y()) );
 }
 
 void Textarea::set_screen_visible() {
-  
-  compute_box_vertex(m_final_vertex);
-  
-  m_screen_visible =
-  
-    compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
+	
+	compute_box_vertex(m_final_vertex);
+	
+	m_screen_visible =
+	
+		compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
 }
 
 XX_END

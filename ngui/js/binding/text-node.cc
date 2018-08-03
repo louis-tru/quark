@@ -42,58 +42,58 @@ JS_BEGIN
  * @class WrapTextNode
  */
 class WrapTextNode: public WrapViewBase {
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapTextNode>(args, new TextNode());
-  }
-  
-  static void length(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(TextNode);
-    JS_RETURN( self->length() );
-  }
-  
-  static void value(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(TextNode);
-    JS_RETURN( self->value() );
-  }
-  
-  static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(TextNode);
-    Ucs2String str = value->ToUcs2StringValue(worker);
-    self->set_value(str);
-  }
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapTextNode>(args, new TextNode());
+	}
+	
+	static void length(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(TextNode);
+		JS_RETURN( self->length() );
+	}
+	
+	static void value(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(TextNode);
+		JS_RETURN( self->value() );
+	}
+	
+	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(TextNode);
+		Ucs2String str = value->ToUcs2StringValue(worker);
+		self->set_value(str);
+	}
 
-  static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(TextNode);
-    JS_RETURN( self->text_hori_bearing() );
-  }
-  
-  static void text_height(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(TextNode);
-    JS_RETURN( self->text_height() );
-  }
-  
+	static void text_hori_bearing(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(TextNode);
+		JS_RETURN( self->text_hori_bearing() );
+	}
+	
+	static void text_height(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(TextNode);
+		JS_RETURN( self->text_height() );
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(TextNode, constructor, {
-      JS_SET_CLASS_ACCESSOR(length, length);
-      JS_SET_CLASS_ACCESSOR(value, value, set_value);
-      JS_SET_CLASS_ACCESSOR(textHoriBearing, text_hori_bearing);
-      JS_SET_CLASS_ACCESSOR(textHeight, text_height);
-    }, Span);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(TextNode), View::TEXT_NODE);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(TextNode, constructor, {
+			JS_SET_CLASS_ACCESSOR(length, length);
+			JS_SET_CLASS_ACCESSOR(value, value, set_value);
+			JS_SET_CLASS_ACCESSOR(textHoriBearing, text_hori_bearing);
+			JS_SET_CLASS_ACCESSOR(textHeight, text_height);
+		}, Span);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(TextNode), View::TEXT_NODE);
+	}
 };
 
 void binding_text_node(Local<JSObject> exports, Worker* worker) {
-  WrapTextNode::binding(exports, worker);
+	WrapTextNode::binding(exports, worker);
 }
 
 JS_END

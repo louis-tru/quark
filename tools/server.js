@@ -37,7 +37,7 @@ var server = require('ngui-tools/toolchain/server');
 require('./test-multiple-service');
 
 var opt = {
-  // remote: 'http://192.168.1.124:1026/',
+	// remote: 'http://192.168.1.124:1026/',
 };
 
 server.start_server(opt);
@@ -46,62 +46,62 @@ server.start_server(opt);
 // http://127.0.0.1:1026/Tools/upload_file
 
 var Tools = util.class('Tools', HttpService, {
-  
-  action: function(info) {
-    HttpService.prototype.action.call(this, info);
-    if ( this.form )
-      this.form.is_upload = true;
-  },
-  
-  upload_file: function() {
+	
+	action: function(info) {
+		HttpService.prototype.action.call(this, info);
+		if ( this.form )
+			this.form.is_upload = true;
+	},
+	
+	upload_file: function() {
 
-    console.log('params', this.params);
-    console.log('data', this.data);
-    
-    if (this.form) {
-      for (var name in this.form.files) {
-        var file = this.form.files[name];
-        for (var i = 0; i < file.length; i++) {
-          if ( file[i].path ) {
-            fs.renameSync(file[i].path, this.server.temp + '/' + file[i].filename);
-          }
-        }
-      }
-    }
+		console.log('params', this.params);
+		console.log('data', this.data);
+		
+		if (this.form) {
+			for (var name in this.form.files) {
+				var file = this.form.files[name];
+				for (var i = 0; i < file.length; i++) {
+					if ( file[i].path ) {
+						fs.renameSync(file[i].path, this.server.temp + '/' + file[i].filename);
+					}
+				}
+			}
+		}
 
-    console.log('\nrequest headers:\n', this.request.headers);
-    console.log('\n---------------------------', this.form ? 'form ok' : '', '\n');
-    
-    this.cookie.set('Hello', 'Hello', new Date(2088, 1, 1), '/');
-    this.cookie.set('mark', Date.now(), new Date(2120, 1, 1), '/');
-    
-    this.ret_html(
-      '<!doctype html>\
-      <html>\
-      <body>\
-        <form method="post" action="/Tools/upload_file" enctype="multipart/form-data"> \
-          <h2>upload file</h2>\
-          <input type="file" name="upload" multiple="" />\
-          <input type="submit" name="submit" value="send" />\
-        </form>\
-      </body>\
-      </html>'
-    );
-  },
+		console.log('\nrequest headers:\n', this.request.headers);
+		console.log('\n---------------------------', this.form ? 'form ok' : '', '\n');
+		
+		this.cookie.set('Hello', 'Hello', new Date(2088, 1, 1), '/');
+		this.cookie.set('mark', Date.now(), new Date(2120, 1, 1), '/');
+		
+		this.ret_html(
+			'<!doctype html>\
+			<html>\
+			<body>\
+				<form method="post" action="/Tools/upload_file" enctype="multipart/form-data"> \
+					<h2>upload file</h2>\
+					<input type="file" name="upload" multiple="" />\
+					<input type="submit" name="submit" value="send" />\
+				</form>\
+			</body>\
+			</html>'
+		);
+	},
 
-  test_timeout: function() {
-    var self = this;
-    setTimeout(function() {
-      self.ret_html('OK');
-    }, 5000);
-  },
+	test_timeout: function() {
+		var self = this;
+		setTimeout(function() {
+			self.ret_html('OK');
+		}, 5000);
+	},
 
-  test: function() {
-    console.log(this.data);
-    console.log(this.request.headers);
-    this.response.setHeader('Access-Control-Allow-Origin', '*');
-    this.ret('test_cross_domain ok');
-  },
+	test: function() {
+		console.log(this.data);
+		console.log(this.request.headers);
+		this.response.setHeader('Access-Control-Allow-Origin', '*');
+		this.ret('test_cross_domain ok');
+	},
 
 });
 

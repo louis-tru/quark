@@ -44,75 +44,75 @@ class TextRows;
  */
 class XX_EXPORT Layout: public View {
  public:
-  XX_DEFINE_GUI_VIEW(LAYOUT, Layout, layout);
-  
-  Layout();
-  
-  /**
-   * @overwrite
-   */
-  virtual void remove();
-  virtual void remove_all_child();
-  
-  /**
-   * @func client_width 客户端宽度,视图所占用的所有水平尺寸
-   */
-  inline float client_width() const {
-    return m_offset_end.x() - m_offset_start.x();
-  }
-  
-  /**
-   * @func client_height 客户端高度,视图所占用的所有垂直尺寸
-   */
-  inline float client_height() const {
-    return m_offset_end.y() - m_offset_start.y();
-  }
-  
+	XX_DEFINE_GUI_VIEW(LAYOUT, Layout, layout);
+	
+	Layout();
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void remove();
+	virtual void remove_all_child();
+	
+	/**
+	 * @func client_width 客户端宽度,视图所占用的所有水平尺寸
+	 */
+	inline float client_width() const {
+		return m_offset_end.x() - m_offset_start.x();
+	}
+	
+	/**
+	 * @func client_height 客户端高度,视图所占用的所有垂直尺寸
+	 */
+	inline float client_height() const {
+		return m_offset_end.y() - m_offset_start.y();
+	}
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void set_parent(View* parent) throw(Error);
-  
-  /**
-   * 设置视图的尺寸
-   * @func set_layout_explicit_size Explicit dimensions from outside to inside
-   */
-  virtual void set_layout_explicit_size() = 0;
-  
-  /**
-   * 设置内容视图的偏移量
-   * @func set_layout_content_offset Content migration from inside to outside
-   */
-  virtual void set_layout_content_offset() = 0;
-  
-  /**
-   * @func set_layout_three_times 第三次布局
-   */
-  virtual void set_layout_three_times(bool horizontal, bool hybrid) = 0;
-  
-  /**
-   * @func set_offset_in_hybrid 设置在混合视图中的偏移量
-   */
-  virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) = 0;
-  
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void set_parent(View* parent) throw(Error);
+	
+	/**
+	 * 设置视图的尺寸
+	 * @func set_layout_explicit_size Explicit dimensions from outside to inside
+	 */
+	virtual void set_layout_explicit_size() = 0;
+	
+	/**
+	 * 设置内容视图的偏移量
+	 * @func set_layout_content_offset Content migration from inside to outside
+	 */
+	virtual void set_layout_content_offset() = 0;
+	
+	/**
+	 * @func set_layout_three_times 第三次布局
+	 */
+	virtual void set_layout_three_times(bool horizontal, bool hybrid) = 0;
+	
+	/**
+	 * @func set_offset_in_hybrid 设置在混合视图中的偏移量
+	 */
+	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) = 0;
+	
  protected:
-  Vec2    m_offset_start;   /* 相对父视图的开始偏移位置 */
-  Vec2    m_offset_end;     /* 相对父视图的结束偏移位置 */
-  Layout* m_parent_layout;  /* 父关联的布局视图，在一般为父布局视图，在Text布局中时为顶层Text视图
-                             * 应该在做布局运算时被设置 
-                             */
-  friend class PreRender;
-  friend class Box;
-  friend class TextLayout;
-  friend class Hybrid;
-  friend class Text;
-  friend class Div;
-  friend class Limit;
-  friend class Span;
-  friend class Image;
-  friend class Scroll;
+	Vec2    m_offset_start;   /* 相对父视图的开始偏移位置 */
+	Vec2    m_offset_end;     /* 相对父视图的结束偏移位置 */
+	Layout* m_parent_layout;  /* 父关联的布局视图，在一般为父布局视图，在Text布局中时为顶层Text视图
+														 * 应该在做布局运算时被设置 
+														 */
+	friend class PreRender;
+	friend class Box;
+	friend class TextLayout;
+	friend class Hybrid;
+	friend class Text;
+	friend class Div;
+	friend class Limit;
+	friend class Span;
+	friend class Image;
+	friend class Scroll;
 };
 
 XX_END

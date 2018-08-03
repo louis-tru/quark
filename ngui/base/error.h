@@ -44,7 +44,7 @@
 #define XX_ASSERT_ERR(cond, ...) if(!(cond)) throw ngui::Error(__VA_ARGS__)
 
 #define XX_IGNORE_ERR(block) try block catch (const ngui::Error& err) {    \
-  XX_DEBUG("%s,%s", "The exception is ignored", err.message().c());     \
+	XX_DEBUG("%s,%s", "The exception is ignored", err.message().c());     \
 }((void)0)
 
 XX_NS(ngui)
@@ -54,23 +54,23 @@ XX_NS(ngui)
  */
 class XX_EXPORT Error: public Object {
  public:
-  
-  Error();
-  Error(int code, cString& msg);
-  Error(int code, cchar*, ...);
-  Error(cString& msg);
-  Error(cchar*, ...);
-  Error(const Error& err);
-  virtual ~Error();
-  Error& operator=(const Error& e);
-  virtual cString& message() const throw();
-  virtual int code() const throw();
-  void set_code(int value);
-  void set_message(cString& value);
+	
+	Error();
+	Error(int code, cString& msg);
+	Error(int code, cchar*, ...);
+	Error(cString& msg);
+	Error(cchar*, ...);
+	Error(const Error& err);
+	virtual ~Error();
+	Error& operator=(const Error& e);
+	virtual cString& message() const throw();
+	virtual int code() const throw();
+	void set_code(int value);
+	void set_message(cString& value);
 
  private:
-  int     m_code;
-  String* m_message;
+	int     m_code;
+	String* m_message;
 };
 
 typedef const Error cError;

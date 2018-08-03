@@ -36,41 +36,41 @@
 using namespace ngui;
 
 class Test{
-  String str;
+	String str;
 };
 
 void test_list() {
-  
-  String str = "a,b,c,d,s,d,f,g,gh,t,r,w,cs,dsfsd,fsdf,dsf,sdf,sd";
-  
-  Array<String> ls = str.split(",");
-  
-  LOG(ls.length());
-  
-  ls.push("ABCD");
-  ls.push("ABCD1");
-  ls.pop();
-  
-  LOG(ls.length());
-  
-  LOG(ls[0]);
-  
-  LOG(ls.join("-"));
-  
-  String str2(str);
-  
-  LOG(str2.to_string());
-  LOG(str2.copy_buffer());
-  
-  for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
-    LOG(i.value());
-  }
-  
-  Array<int> ls2;
-  
-  ls2.push(10);
-  ls2.push(11);
-  ls2.push(12);
-  ls2.pop();
-  
+	
+	String str = "a,b,c,d,s,d,f,g,gh,t,r,w,cs,dsfsd,fsdf,dsf,sdf,sd";
+	
+	Array<String> ls = str.split(",");
+	
+	LOG(ls.length());
+	
+	ls.push("ABCD");
+	ls.push("ABCD1");
+	ls.pop();
+	
+	LOG(ls.length());
+	
+	LOG(ls[0]);
+	
+	LOG(ls.join("-"));
+	
+	String str2(str);
+	
+	LOG(str2.to_string());
+	LOG(str2.copy_buffer());
+	
+	for (auto i = ls.begin(), end = ls.end(); i != end; i++) {
+		LOG(i.value());
+	}
+	
+	Array<int> ls2;
+	
+	ls2.push(10);
+	ls2.push(11);
+	ls2.push(12);
+	ls2.pop();
+	
 }

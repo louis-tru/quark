@@ -42,36 +42,36 @@ JS_BEGIN
  * @class WrapLayout
  */
 class WrapLayout: public WrapObject {
-  
-  static void constructor(FunctionCall args) {
-    JS_WORKER(args);
-    JS_THROW_ERR("Forbidden access abstract");
-  }
-  
-  static void client_width(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Layout);
-    JS_RETURN( self->client_width() );
-  }
-  
-  static void client_height(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Layout);
-    JS_RETURN( self->client_height() );
-  }
-  
+	
+	static void constructor(FunctionCall args) {
+		JS_WORKER(args);
+		JS_THROW_ERR("Forbidden access abstract");
+	}
+	
+	static void client_width(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Layout);
+		JS_RETURN( self->client_width() );
+	}
+	
+	static void client_height(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Layout);
+		JS_RETURN( self->client_height() );
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS_NO_EXPORTS(Layout, constructor, {
-      JS_SET_CLASS_ACCESSOR(clientWidth, client_width);
-      JS_SET_CLASS_ACCESSOR(clientHeight, client_height);
-    }, View);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Layout), View::LAYOUT);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS_NO_EXPORTS(Layout, constructor, {
+			JS_SET_CLASS_ACCESSOR(clientWidth, client_width);
+			JS_SET_CLASS_ACCESSOR(clientHeight, client_height);
+		}, View);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Layout), View::LAYOUT);
+	}
 };
 
 void binding_layout(Local<JSObject> exports, Worker* worker) {
-  WrapLayout::binding(exports, worker);
+	WrapLayout::binding(exports, worker);
 }
 
 JS_END

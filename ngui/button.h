@@ -40,29 +40,29 @@ XX_NS(ngui)
  */
 class XX_EXPORT Button: public Hybrid {
  public:
-  XX_DEFINE_GUI_VIEW(BUTTON, Button, button)
-  
-  Button();
-  
-  /**
-   * @func panel
-   */
-  Panel* panel();
-  
-  /**
-   * @func find_next_button
-   */
-  Button* find_next_button(Direction direction);
-  
-  /**
-   * @overwrite
-   */
-  virtual bool can_become_focus();
-  
+	XX_DEFINE_GUI_VIEW(BUTTON, Button, button)
+	
+	Button();
+	
+	/**
+	 * @func panel
+	 */
+	Panel* panel();
+	
+	/**
+	 * @func find_next_button
+	 */
+	Button* find_next_button(Direction direction);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual bool can_become_focus();
+	
  private:
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
-  
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
+	
 };
 
 XX_END

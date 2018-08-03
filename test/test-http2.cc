@@ -37,60 +37,60 @@ using namespace ngui;
 
 class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
 public:
-  MyClient(): HttpClientRequest( ), count(0) {
-    set_delegate(this);
-  }
-  
-  virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
-    LOG("trigger_http_error, %s", *error.message());
-  }
-  virtual void trigger_http_write(HttpClientRequest* req) {
-    LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-  }
-  virtual void trigger_http_header(HttpClientRequest* req) {
-    LOG("Header: %d", status_code());
-    for ( auto& i : get_all_response_headers() ) {
-      LOG("  %s: %s", i.key().c(), i.value().c());
-    }
-    LOG("");
-  }
-  virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
-    LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
-    LOG( String(buffer.value(), buffer.length()) );
-  }
-  virtual void trigger_http_end(HttpClientRequest* req) {
-    LOG("http_end, status: %d, %s", status_code(), url().c());
-    // LOG( FileHelper::read_file_sync(Path::documents("http.cc")) );
-    release();
-    //RunLoop::current()->stop();
-  }
-  virtual void trigger_http_readystate_change(HttpClientRequest* req) {
-    LOG( "http_readystate_change, %d", ready_state() );
-  }
-  virtual void trigger_http_timeout(HttpClientRequest* req) {
-    LOG( "trigger_http_timeout" );
-  }
-  virtual void trigger_http_abort(HttpClientRequest* req) {
-    LOG( "trigger_http_abort" );
-  }
-  
-  int count;
-  
+	MyClient(): HttpClientRequest( ), count(0) {
+		set_delegate(this);
+	}
+	
+	virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
+		LOG("trigger_http_error, %s", *error.message());
+	}
+	virtual void trigger_http_write(HttpClientRequest* req) {
+		LOG("Write, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+	}
+	virtual void trigger_http_header(HttpClientRequest* req) {
+		LOG("Header: %d", status_code());
+		for ( auto& i : get_all_response_headers() ) {
+			LOG("  %s: %s", i.key().c(), i.value().c());
+		}
+		LOG("");
+	}
+	virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
+		LOG("Read, %d/%d, %d/%d", download_size(), download_total(), upload_size(), upload_total());
+		LOG( String(buffer.value(), buffer.length()) );
+	}
+	virtual void trigger_http_end(HttpClientRequest* req) {
+		LOG("http_end, status: %d, %s", status_code(), url().c());
+		// LOG( FileHelper::read_file_sync(Path::documents("http.cc")) );
+		release();
+		//RunLoop::current()->stop();
+	}
+	virtual void trigger_http_readystate_change(HttpClientRequest* req) {
+		LOG( "http_readystate_change, %d", ready_state() );
+	}
+	virtual void trigger_http_timeout(HttpClientRequest* req) {
+		LOG( "trigger_http_timeout" );
+	}
+	virtual void trigger_http_abort(HttpClientRequest* req) {
+		LOG( "trigger_http_abort" );
+	}
+	
+	int count;
+	
 };
 
 void test_http2() {
-  
-  MyClient* cli = new MyClient();
-  
-  String url = "https://www.baidu.com";
-  cli->set_method(HTTP_METHOD_GET);
-  cli->set_url(url);
-  //cli->set_keep_alive(false);
-  //req->disable_cache(true);
-  //req->disable_cookie(true);
-  //req->set_save_path(Path::documents("http.cc"));
-  cli->send();
-  
-  RunLoop::current()->run();
+	
+	MyClient* cli = new MyClient();
+	
+	String url = "https://www.baidu.com";
+	cli->set_method(HTTP_METHOD_GET);
+	cli->set_url(url);
+	//cli->set_keep_alive(false);
+	//req->disable_cache(true);
+	//req->disable_cookie(true);
+	//req->set_save_path(Path::documents("http.cc"));
+	cli->send();
+	
+	RunLoop::current()->run();
 }
 

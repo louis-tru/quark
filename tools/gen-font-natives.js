@@ -37,90 +37,90 @@ var Buffer = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
 
 function format_string() {
-  var rev = arguments[0];
-  for (var i = 1, len = arguments.length; i < len; i++)
-    rev = rev.replace(new RegExp('\\{' + (i - 1) + '\\}', 'g'), arguments[i]);
-  return rev;
+	var rev = arguments[0];
+	for (var i = 1, len = arguments.length; i < len; i++)
+		rev = rev.replace(new RegExp('\\{' + (i - 1) + '\\}', 'g'), arguments[i]);
+	return rev;
 }
 
 /*
 struct Native_font_data_ {
-  uint count;
-  const byte* data;
+	uint count;
+	const byte* data;
 };
 
 extern const byte native_font_data_aa_ttf_[] = { 0, 1, 2, 3, 4, 5 };
 extern const byte native_font_data_bb_ttf_[] = { 0, 1, 2, 3, 4, 5 };
 
 const Native_font_data_ native_fonts_[] = {
-  { 6, native_font_data_aa_ttf_ },
-  { 6, native_font_data_bb_ttf_ },
+	{ 6, native_font_data_aa_ttf_ },
+	{ 6, native_font_data_bb_ttf_ },
 };
 */
 
 function write(fd) {
-  for (var i = 1; i < arguments.length; i++) {
-    fs.writeSync(fd, arguments[i], 'utf-8');
-    fs.writeSync(fd, '\n', 'utf-8');
-  }
+	for (var i = 1; i < arguments.length; i++) {
+		fs.writeSync(fd, arguments[i], 'utf-8');
+		fs.writeSync(fd, '\n', 'utf-8');
+	}
 }
 
 function main() {
-  // console.log(inputs, output);
+	// console.log(inputs, output);
 
-  if (!check_file_is_change(inputs, [output_cc, output_h])) {
-    return;
-  }
-  
-  var cc_fd = fs.openSync(output_cc, 'w');
-  var h_fd = fs.openSync(output_h, 'w');
-  
-  if (!cc_fd || !h_fd) {
-    throw "Output error";
-  }
-  
-  write(h_fd, 
-    '#ifndef __ngui__native__',
-    '#define __ngui__native__',
-   'namespace ngui{',
-    'struct Native_font_data_ {',
-        'unsigned int count;',
-        'const unsigned char* data;',
-   '};'
-  );
+	if (!check_file_is_change(inputs, [output_cc, output_h])) {
+		return;
+	}
+	
+	var cc_fd = fs.openSync(output_cc, 'w');
+	var h_fd = fs.openSync(output_h, 'w');
+	
+	if (!cc_fd || !h_fd) {
+		throw "Output error";
+	}
+	
+	write(h_fd, 
+		'#ifndef __ngui__native__',
+		'#define __ngui__native__',
+	 'namespace ngui{',
+		'struct Native_font_data_ {',
+				'unsigned int count;',
+				'const unsigned char* data;',
+	 '};'
+	);
 
-  write(cc_fd, 'namespace ngui{');
-  
-  var fonts = [];
-  
-  for (var i = 0; i < inputs.length; i++) {
-    
-    var filename = inputs[i];
-    var name = format_string('native_font_data_{0}_',
-                             path.basename(filename).replace(/[\.-]/gm, '_'));
-    var arr = fs.readFileSync(filename).toJSON().data;
-    
-    fonts.push({ name: name, count: arr.length });
-    
-    write(h_fd, format_string('extern const unsigned char {0}[];', name));
-    write(cc_fd, format_string('extern const unsigned char {0}[] = {', name));
-    write(cc_fd, arr.join(','));
-    write(cc_fd, '};');
-  }
+	write(cc_fd, 'namespace ngui{');
+	
+	var fonts = [];
+	
+	for (var i = 0; i < inputs.length; i++) {
+		
+		var filename = inputs[i];
+		var name = format_string('native_font_data_{0}_',
+														 path.basename(filename).replace(/[\.-]/gm, '_'));
+		var arr = fs.readFileSync(filename).toJSON().data;
+		
+		fonts.push({ name: name, count: arr.length });
+		
+		write(h_fd, format_string('extern const unsigned char {0}[];', name));
+		write(cc_fd, format_string('extern const unsigned char {0}[] = {', name));
+		write(cc_fd, arr.join(','));
+		write(cc_fd, '};');
+	}
 
-  write(cc_fd, '}');
-  
-  write(h_fd, 'static const Native_font_data_ native_fonts_[] = {');
-          
-  for (var i = 0; i < fonts.length; i++) {
-    write(h_fd, '{ ' + fonts[i].count + ', ' + fonts[i].name + ' },');
-  }
+	write(cc_fd, '}');
+	
+	write(h_fd, 'static const Native_font_data_ native_fonts_[] = {');
+					
+	for (var i = 0; i < fonts.length; i++) {
+		write(h_fd, '{ ' + fonts[i].count + ', ' + fonts[i].name + ' },');
+	}
 
-  write(h_fd, '};}');
-  write(h_fd, '#endif');
-  
-  fs.closeSync(h_fd);
-  fs.closeSync(cc_fd);
+	write(h_fd, '};}');
+	write(h_fd, '#endif');
+	
+	fs.closeSync(h_fd);
+	fs.closeSync(cc_fd);
 }
 
 main();

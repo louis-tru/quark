@@ -38,54 +38,54 @@ static String write_str;
 class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
  public:
 
-  TestAsyncFile(cString& src): AsyncFile(src) {
-    set_delegate(this);
-  }
+	TestAsyncFile(cString& src): AsyncFile(src) {
+		set_delegate(this);
+	}
 
-  virtual ~TestAsyncFile() {
-    LOG("Delete TestAsyncFile");
-  }
+	virtual ~TestAsyncFile() {
+		LOG("Delete TestAsyncFile");
+	}
 
-  virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-    LOG("Error, %s", error.message().c());
-  }
-  virtual void trigger_async_file_open(AsyncFile* file) {
-    LOG("Open, %s", *path());
+	virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
+		LOG("Error, %s", error.message().c());
+	}
+	virtual void trigger_async_file_open(AsyncFile* file) {
+		LOG("Open, %s", *path());
 
-    for ( i = 0; i < 30; i++ ) {
-      write(write_str.copy_buffer());
-    }
-  }
-  virtual void trigger_async_file_close(AsyncFile* file) {
-    LOG("Close");
-    Release(this);
-  }
-  virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
-    i--;
-    LOG("Write ok, %d", i);
+		for ( i = 0; i < 30; i++ ) {
+			write(write_str.copy_buffer());
+		}
+	}
+	virtual void trigger_async_file_close(AsyncFile* file) {
+		LOG("Close");
+		Release(this);
+	}
+	virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
+		i--;
+		LOG("Write ok, %d", i);
 
-    if (i == 0) {
-      String s = f_reader()->read_file_sync(Path::documents("test_fs2.txt"));
-      LOG("Write count, %d", s.length());
-      close();
-    }
-  }
+		if (i == 0) {
+			String s = f_reader()->read_file_sync(Path::documents("test_fs2.txt"));
+			LOG("Write count, %d", s.length());
+			close();
+		}
+	}
 
-  virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {}
+	virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {}
 
-  int i = 0;
+	int i = 0;
 
 };
 
 void test_fs2() {
 
-  write_str = f_reader()->read_file_sync(Path::resources("ngui/ctr.js"));
+	write_str = f_reader()->read_file_sync(Path::resources("ngui/ctr.js"));
 
-  TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
+	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 
-  file->open(FileOpenMode::FOPEN_W);
+	file->open(FileOpenMode::FOPEN_W);
 
-  RunLoop::current()->run();
+	RunLoop::current()->run();
 
-  LOG("END");
+	LOG("END");
 }

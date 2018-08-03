@@ -41,76 +41,76 @@ XX_NS(ngui)
 
 XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
  public:
-  
-  struct KeyboardOptions {
-    bool         is_clear;
-    KeyboardType type;
-    KeyboardReturnType return_type;
-  };
-  
-  void initialize(const Map<String, int>& option);
-  void refresh_display();
-  void onLoad();
-  void onRender();
-  void onPause();
-  void onResume();
-  void onBackground();
-  void onForeground();
-  void onMemorywarning();
-  void onUnload();
+	
+	struct KeyboardOptions {
+		bool         is_clear;
+		KeyboardType type;
+		KeyboardReturnType return_type;
+	};
+	
+	void initialize(const Map<String, int>& option);
+	void refresh_display();
+	void onLoad();
+	void onRender();
+	void onPause();
+	void onResume();
+	void onBackground();
+	void onForeground();
+	void onMemorywarning();
+	void onUnload();
 
-  /**
-   * @func process_atexit()
-   */
-  static void process_atexit();
+	/**
+	 * @func process_atexit()
+	 */
+	static void process_atexit();
 
-  /**
-   * @func set_volume_up()
-   */
-  void set_volume_up();
+	/**
+	 * @func set_volume_up()
+	 */
+	void set_volume_up();
 
-  /**
-   * @func set_volume_down()
-   */
-  void set_volume_down();
-  
-  /**
-   * @func set_root
-   */
-  void set_root(Root* value) throw(Error);
-  
-  /**
-   * @func run_main
-   */
-  inline static void run_main(int argc, char* argv[]) {
-    GUIApplication::run_main(argc, argv);
-  }
-  
-  /**
-   * @func set_focus_view
-   */
-  bool set_focus_view(View* view);
-  
-  /**
-   * @func dispatch
-   * */
-  inline GUIEventDispatch* dispatch() { return m_dispatch; }
-  
-  /**
-   * @func ime_keyboard_open
-   */
-  void ime_keyboard_open(KeyboardOptions options);
-  
-  /**
-   * @func ime_keyboard_can_backspace
-   */
-  void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-  
-  /**
-   * @func ime_keyboard_close
-   */
-  void ime_keyboard_close();
-  
+	/**
+	 * @func set_volume_down()
+	 */
+	void set_volume_down();
+	
+	/**
+	 * @func set_root
+	 */
+	void set_root(Root* value) throw(Error);
+	
+	/**
+	 * @func run_main
+	 */
+	inline static void run_main(int argc, char* argv[]) {
+		GUIApplication::run_main(argc, argv);
+	}
+	
+	/**
+	 * @func set_focus_view
+	 */
+	bool set_focus_view(View* view);
+	
+	/**
+	 * @func dispatch
+	 * */
+	inline GUIEventDispatch* dispatch() { return m_dispatch; }
+	
+	/**
+	 * @func ime_keyboard_open
+	 */
+	void ime_keyboard_open(KeyboardOptions options);
+	
+	/**
+	 * @func ime_keyboard_can_backspace
+	 */
+	void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
+	
+	/**
+	 * @func ime_keyboard_close
+	 */
+	void ime_keyboard_close();
+	
 };
 
 #define _inl_app(self) static_cast<AppInl*>(self)

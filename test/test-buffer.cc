@@ -34,26 +34,26 @@
 using namespace ngui;
 
 void test_buffer() {
-  
-  Buffer bf(5);
-  
-  bf[0] = 'a';
-  bf[1] = 'b';
-  bf[2] = 'c';
-  bf[3] = 'd';
-  bf[4] = '\0';
-  
-  WeakBuffer bf2(bf);
-  
-  WeakBuffer bf3(move(bf2));
-  
-  WeakBuffer bf4;
-  
-  bf4 = move(bf2);
-  
-  LOG("%i,%s", *bf, *bf);
-  LOG("%i,%s", *bf2, *bf2);
-  LOG("%i,%s", *bf3, *bf3);
-  LOG("%i,%s", *bf4, *bf4);
-  
+	
+	Buffer bf(5);
+	
+	bf[0] = 'a';
+	bf[1] = 'b';
+	bf[2] = 'c';
+	bf[3] = 'd';
+	bf[4] = '\0';
+	
+	WeakBuffer bf2(bf);
+	
+	WeakBuffer bf3(move(bf2));
+	
+	WeakBuffer bf4;
+	
+	bf4 = move(bf2);
+	
+	LOG("%i,%s", *bf, *bf);
+	LOG("%i,%s", *bf2, *bf2);
+	LOG("%i,%s", *bf3, *bf3);
+	LOG("%i,%s", *bf4, *bf4);
+	
 }

@@ -1,4 +1,4 @@
-  /* ***** BEGIN LICENSE BLOCK *****
+	/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, xuewen.chu
@@ -42,11 +42,11 @@ void TEST_FUNC_NAME();
 
 XX_GUI_MAIN() {
 
-  uint64 st = sys::time();
-  
-  TEST_FUNC_NAME();
-  
-  LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
+	uint64 st = sys::time();
+	
+	TEST_FUNC_NAME();
+	
+	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
 
-  return 0;
+	return 0;
 }

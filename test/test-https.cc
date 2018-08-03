@@ -36,11 +36,11 @@
 using namespace ngui;
 
 void test_https() {
-  HttpHelper::initialize();
-  
-  Buffer buffer = HttpHelper::get_sync("https://fanyi.baidu.com/");
-  
-  LOG(move(buffer));
-  
-  LOG("END");
+	HttpHelper::initialize();
+	
+	Buffer buffer = HttpHelper::get_sync("https://fanyi.baidu.com/");
+	
+	LOG(move(buffer));
+	
+	LOG("END");
 }

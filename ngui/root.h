@@ -44,37 +44,37 @@ XX_NS(ngui)
  */
 class XX_EXPORT Root: public Panel {
  public:
-  XX_DEFINE_GUI_VIEW(ROOT, Root, root);
-  
-  inline Root() {}
-  
-  /**
-   * @destructor
-   */
-  virtual ~Root();
-  
-  /**
-   * @func initialize()
-   */
-  void initialize() throw(Error);
-  
-  /**
-   * @overwrite
-   */
-  virtual void prepend(View* child) throw(Error);
-  virtual void append(View* child) throw(Error);
-  virtual View* append_text(cUcs2String& str) throw(Error);
-  virtual Vec2 layout_offset();
-  virtual void draw(Draw* draw);
-  virtual bool can_become_focus();
-  
+	XX_DEFINE_GUI_VIEW(ROOT, Root, root);
+	
+	inline Root() {}
+	
+	/**
+	 * @destructor
+	 */
+	virtual ~Root();
+	
+	/**
+	 * @func initialize()
+	 */
+	void initialize() throw(Error);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void prepend(View* child) throw(Error);
+	virtual void append(View* child) throw(Error);
+	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual Vec2 layout_offset();
+	virtual void draw(Draw* draw);
+	virtual bool can_become_focus();
+	
  protected:
-  /**
-   * @overwrite
-   */
-  virtual void set_parent(View* parent) throw(Error);
-  virtual void set_layout_explicit_size();
-  virtual void set_layout_content_offset();
+	/**
+	 * @overwrite
+	 */
+	virtual void set_parent(View* parent) throw(Error);
+	virtual void set_layout_explicit_size();
+	virtual void set_layout_content_offset();
 };
 
 XX_END

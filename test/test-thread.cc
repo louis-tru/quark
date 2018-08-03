@@ -38,43 +38,43 @@ using namespace ngui;
 
 class Foo {
 public:
-  Foo()
-  : flag_(0)
-  , thread1_(std::bind(&Foo::threadFunc1, this))
-  , thread2_(std::bind(&Foo::threadFunc2, this))
-  {
-  }
-  
-  ~Foo()
-  {
-    thread1_.join();
-    thread2_.join();
-  }
-  
+	Foo()
+	: flag_(0)
+	, thread1_(std::bind(&Foo::threadFunc1, this))
+	, thread2_(std::bind(&Foo::threadFunc2, this))
+	{
+	}
+	
+	~Foo()
+	{
+		thread1_.join();
+		thread2_.join();
+	}
+	
 private:
-  void threadFunc1()
-  {
-    std::unique_lock<std::mutex> ul(mutex_);
-    while (0 == flag_) {
-      cond_.wait(ul);
-    }
-    LOG("%d", flag_);
-  }
-  
-  void threadFunc2()
-  {
-    // 为了测试，等待3秒
-    std::this_thread::sleep_for((std::chrono::milliseconds(3000)));
-    std::unique_lock<std::mutex> ul(mutex_);
-    flag_ = 100;
-    cond_.notify_one();
-  }
-  
-  int flag_;
-  std::mutex mutex_;
-  std::condition_variable cond_;
-  std::thread thread1_;
-  std::thread thread2_;
+	void threadFunc1()
+	{
+		std::unique_lock<std::mutex> ul(mutex_);
+		while (0 == flag_) {
+			cond_.wait(ul);
+		}
+		LOG("%d", flag_);
+	}
+	
+	void threadFunc2()
+	{
+		// 为了测试，等待3秒
+		std::this_thread::sleep_for((std::chrono::milliseconds(3000)));
+		std::unique_lock<std::mutex> ul(mutex_);
+		flag_ = 100;
+		cond_.notify_one();
+	}
+	
+	int flag_;
+	std::mutex mutex_;
+	std::condition_variable cond_;
+	std::thread thread1_;
+	std::thread thread2_;
 };
 
 std::mutex m1;
@@ -82,43 +82,43 @@ int i = 0;
 std::atomic_int atomic_lock(false);
 
 void test_for() {
-  
-  int j = 0;
-  
-  while (1) {
-    
-    std::lock_guard<std::mutex> lock(m1);
-    
-    if (i < 10000000) {
-      i++;
-      j++;
-    } else {
-      break;
-    }
-  
-  }
-  
-  m1.lock();
-  LOG("result: %d", j);
-  m1.unlock();
-  
+	
+	int j = 0;
+	
+	while (1) {
+		
+		std::lock_guard<std::mutex> lock(m1);
+		
+		if (i < 10000000) {
+			i++;
+			j++;
+		} else {
+			break;
+		}
+	
+	}
+	
+	m1.lock();
+	LOG("result: %d", j);
+	m1.unlock();
+	
 }
 
 void test_thread() {
-  
-  std::thread::id id = std::this_thread::get_id();
-  {
-    Foo f;
-  }
-  
-  std::thread g_a(test_for);
-  std::thread g_b(test_for);
-  
-  g_a.get_id();
-  
-  g_a.join();
-  g_b.join();
-  
-  LOG("done");
-  
+	
+	std::thread::id id = std::this_thread::get_id();
+	{
+		Foo f;
+	}
+	
+	std::thread g_a(test_for);
+	std::thread g_b(test_for);
+	
+	g_a.get_id();
+	
+	g_a.join();
+	g_b.join();
+	
+	LOG("done");
+	
 }

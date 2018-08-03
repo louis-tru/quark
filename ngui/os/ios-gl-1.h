@@ -43,20 +43,20 @@ XX_NS(ngui)
 
 class XX_EXPORT IOSGLDrawCore {
 public:
-  IOSGLDrawCore(GLDraw* host, EAGLContext* ctx);
-  ~IOSGLDrawCore();
-  void commit_render();
-  GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-  void gl_main_render_buffer_storage();
-  void set_surface_view(UIView* view, CAEAGLLayer* layer);
-  bool refresh_surface_size(::CGRect rect);
-  inline GLDraw* host() { return m_host; }
-  static IOSGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
+	IOSGLDrawCore(GLDraw* host, EAGLContext* ctx);
+	~IOSGLDrawCore();
+	void commit_render();
+	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
+	void gl_main_render_buffer_storage();
+	void set_surface_view(UIView* view, CAEAGLLayer* layer);
+	bool refresh_surface_size(::CGRect rect);
+	inline GLDraw* host() { return m_host; }
+	static IOSGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
 private:
-  UIView* m_surface_view;
-  CAEAGLLayer* m_layer;
-  EAGLContext* m_context;
-  GLDraw*      m_host;
+	UIView* m_surface_view;
+	CAEAGLLayer* m_layer;
+	EAGLContext* m_context;
+	GLDraw*      m_host;
 };
 
 XX_END

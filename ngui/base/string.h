@@ -47,127 +47,127 @@ XX_NS(ngui)
 template <class TChar, class TContainer>
 class XX_EXPORT BasicString: public Object {
  public:
-  typedef TChar Char;
-  typedef TContainer Container;
+	typedef TChar Char;
+	typedef TContainer Container;
  private:
-  
-  class StringCore {
-   public:
-    StringCore();
-    StringCore(const StringCore&);
-    StringCore(uint len);
-    StringCore(uint len, Char* value);
-    void retain();
-    void release();
-    void modify(BasicString* host);
-    inline Char* value() { return *container; }
-    inline uint capacity() { return container.capacity(); }
-    inline Char* collapse();
-    inline int ref() const { return m_ref; }
-    uint length;
-    Container container; 
-    static StringCore* use_empty();
-   protected:
-    std::atomic_int m_ref;
-  };
-  
-  friend class StringCore;
-  inline static StringCore* use_empty_core();
-  StringCore* m_core; // string core
+	
+	class StringCore {
+	 public:
+		StringCore();
+		StringCore(const StringCore&);
+		StringCore(uint len);
+		StringCore(uint len, Char* value);
+		void retain();
+		void release();
+		void modify(BasicString* host);
+		inline Char* value() { return *container; }
+		inline uint capacity() { return container.capacity(); }
+		inline Char* collapse();
+		inline int ref() const { return m_ref; }
+		uint length;
+		Container container; 
+		static StringCore* use_empty();
+	 protected:
+		std::atomic_int m_ref;
+	};
+	
+	friend class StringCore;
+	inline static StringCore* use_empty_core();
+	StringCore* m_core; // string core
 
-  BasicString(StringCore* core);
+	BasicString(StringCore* core);
  public:
-  BasicString();
-  BasicString(char i);
-  BasicString(int i);
-  BasicString(uint i);
-  BasicString(int64 i);
-  BasicString(uint64 i);
-  BasicString(float f);
-  BasicString(double f);
-  BasicString(const Char* s1, uint s1_len, const Char* s2, uint s2_len);
-  BasicString(const Char* s, uint len);
-  BasicString(const BasicString& s);
-  BasicString(BasicString&& s);
-  BasicString(ArrayBuffer<Char>&& data);
-  BasicString(ArrayBuffer<Char>& data) = delete;
-  BasicString(const Object& o);
-  virtual ~BasicString();
-  static String format(cchar* format, ...);
-  inline bool is_empty() const;
-  bool is_blank() const;
-  inline const Char* c() const;
-  inline const Char* operator*() const;
-  inline Char operator[](uint index) const;
-  inline uint capacity() const;
-  inline uint length() const;
-  BasicString full_copy() const;
-  Array<BasicString> split(const BasicString& sp) const;
-  BasicString trim() const;
-  BasicString trim_left() const;
-  BasicString trim_right() const;
-  BasicString& upper_case();
-  BasicString& lower_case();
-  BasicString to_upper_case() const;
-  BasicString to_lower_case() const;
-  int index_of(const BasicString& s, uint start = 0) const;
-  int last_index_of(const BasicString& s, int start) const;
-  int last_index_of(const BasicString& s) const;
-  BasicString replace(const BasicString& s, const BasicString& rep) const;
-  BasicString replace_all(const BasicString& s, const BasicString& rep) const;
-  inline BasicString substr(uint start, uint length) const;
-  inline BasicString substr(uint start) const;
-  inline BasicString substring(uint start, uint end) const;
-  inline BasicString substring(uint start) const;
-  BasicString& push(const Char* s, uint len);
-  BasicString& push(const BasicString& s);
-  BasicString& push(Char s);
-  inline BasicString& operator+=(const BasicString& s);
-  inline BasicString operator+(const BasicString& s) const;
-  BasicString& operator=(const BasicString& s);
-  BasicString& operator=(BasicString&& s);
-  bool operator==(const BasicString& s) const;
-  bool operator!=(const BasicString& s) const;
-  bool operator>(const BasicString& s) const;
-  bool operator<(const BasicString& s) const;
-  bool operator>=(const BasicString& s) const;
-  bool operator<=(const BasicString& s) const;
-  BasicString(const Char* s);
-  int index_of(const Char* s, uint start = 0) const;
-  int last_index_of(const Char* s, int start) const;
-  int last_index_of(const Char* s) const;
-  BasicString replace(const Char* s, const Char* rep) const;
-  BasicString replace_all(const Char* s, const Char* rep) const;
-  BasicString& push(const Char* s);
-  BasicString& operator+=(const Char* s);
-  BasicString operator+(const Char* s) const;
-  BasicString& assignment(const Char* s, uint len);
-  BasicString& operator=(const Char* s);
-  bool operator==(const Char* s) const;
-  bool operator!=(const Char* s) const;
-  bool operator>(const Char* s) const;
-  bool operator<(const Char* s) const;
-  bool operator>=(const Char* s) const;
-  bool operator<=(const Char* s) const;
-  uint hash_code() const;
-  virtual String to_string() const;
-  Char* collapse();
-  ArrayBuffer<Char> collapse_buffer();
-  ArrayBuffer<Char> copy_buffer() const;
-  int to_int() const;
-  uint to_uint() const;
-  int64 to_int64() const;
-  uint64 to_uint64() const;
-  float to_float() const;
-  double to_double() const;
-  bool to_bool() const;
-  bool to_int(int* out) const;
-  bool to_uint(uint* out) const;
-  bool to_int64(int64* out) const;
-  bool to_uint64(uint64* out) const;
-  bool to_float(float* out) const;
-  bool to_double(double* out) const;
-  bool to_bool(bool* out) const;
+	BasicString();
+	BasicString(char i);
+	BasicString(int i);
+	BasicString(uint i);
+	BasicString(int64 i);
+	BasicString(uint64 i);
+	BasicString(float f);
+	BasicString(double f);
+	BasicString(const Char* s1, uint s1_len, const Char* s2, uint s2_len);
+	BasicString(const Char* s, uint len);
+	BasicString(const BasicString& s);
+	BasicString(BasicString&& s);
+	BasicString(ArrayBuffer<Char>&& data);
+	BasicString(ArrayBuffer<Char>& data) = delete;
+	BasicString(const Object& o);
+	virtual ~BasicString();
+	static String format(cchar* format, ...);
+	inline bool is_empty() const;
+	bool is_blank() const;
+	inline const Char* c() const;
+	inline const Char* operator*() const;
+	inline Char operator[](uint index) const;
+	inline uint capacity() const;
+	inline uint length() const;
+	BasicString full_copy() const;
+	Array<BasicString> split(const BasicString& sp) const;
+	BasicString trim() const;
+	BasicString trim_left() const;
+	BasicString trim_right() const;
+	BasicString& upper_case();
+	BasicString& lower_case();
+	BasicString to_upper_case() const;
+	BasicString to_lower_case() const;
+	int index_of(const BasicString& s, uint start = 0) const;
+	int last_index_of(const BasicString& s, int start) const;
+	int last_index_of(const BasicString& s) const;
+	BasicString replace(const BasicString& s, const BasicString& rep) const;
+	BasicString replace_all(const BasicString& s, const BasicString& rep) const;
+	inline BasicString substr(uint start, uint length) const;
+	inline BasicString substr(uint start) const;
+	inline BasicString substring(uint start, uint end) const;
+	inline BasicString substring(uint start) const;
+	BasicString& push(const Char* s, uint len);
+	BasicString& push(const BasicString& s);
+	BasicString& push(Char s);
+	inline BasicString& operator+=(const BasicString& s);
+	inline BasicString operator+(const BasicString& s) const;
+	BasicString& operator=(const BasicString& s);
+	BasicString& operator=(BasicString&& s);
+	bool operator==(const BasicString& s) const;
+	bool operator!=(const BasicString& s) const;
+	bool operator>(const BasicString& s) const;
+	bool operator<(const BasicString& s) const;
+	bool operator>=(const BasicString& s) const;
+	bool operator<=(const BasicString& s) const;
+	BasicString(const Char* s);
+	int index_of(const Char* s, uint start = 0) const;
+	int last_index_of(const Char* s, int start) const;
+	int last_index_of(const Char* s) const;
+	BasicString replace(const Char* s, const Char* rep) const;
+	BasicString replace_all(const Char* s, const Char* rep) const;
+	BasicString& push(const Char* s);
+	BasicString& operator+=(const Char* s);
+	BasicString operator+(const Char* s) const;
+	BasicString& assignment(const Char* s, uint len);
+	BasicString& operator=(const Char* s);
+	bool operator==(const Char* s) const;
+	bool operator!=(const Char* s) const;
+	bool operator>(const Char* s) const;
+	bool operator<(const Char* s) const;
+	bool operator>=(const Char* s) const;
+	bool operator<=(const Char* s) const;
+	uint hash_code() const;
+	virtual String to_string() const;
+	Char* collapse();
+	ArrayBuffer<Char> collapse_buffer();
+	ArrayBuffer<Char> copy_buffer() const;
+	int to_int() const;
+	uint to_uint() const;
+	int64 to_int64() const;
+	uint64 to_uint64() const;
+	float to_float() const;
+	double to_double() const;
+	bool to_bool() const;
+	bool to_int(int* out) const;
+	bool to_uint(uint* out) const;
+	bool to_int64(int64* out) const;
+	bool to_uint64(uint64* out) const;
+	bool to_float(float* out) const;
+	bool to_double(double* out) const;
+	bool to_bool(bool* out) const;
 };
 
 XX_END

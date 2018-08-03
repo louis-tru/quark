@@ -47,216 +47,216 @@ using value::Repeat;
  */
 class XX_EXPORT Sprite: public View {
  public:
-  XX_DEFINE_GUI_VIEW(SPRITE, Sprite, sprite);
-  
-  Sprite(Vec2 size = Vec2());
+	XX_DEFINE_GUI_VIEW(SPRITE, Sprite, sprite);
+	
+	Sprite(Vec2 size = Vec2());
 
-  virtual ~Sprite();
-  
-  /**
-   * @func create # 创建一个新精灵对像
-   * @arg [size = Size()] {Size}
-   */
-  static inline Sprite* create(Vec2 size = Vec2()) {
-    return New<Sprite>(size);
-  }
-  
-  /**
-   * @func create # 通过图像路径创建一个新精灵对像
-   * @arg src {cString&}
-   * @arg [size = Size()] {Size}
-   */
-  static Sprite* create(cString& src, Vec2 size = Vec2());
-  
-  /**
-   * @func create # 通过纹理对像创建一个精灵对像
-   * @arg texture {Texture*}
-   * @arg [size = Size()] {Size}
-   */
-  static Sprite* create(Texture* texture, Vec2 size = Vec2());
-  
-  /**
-   * @func src 路径,精灵要显示的图像路径
-   */
-  String src() const;
-  
-  /**
-   * @func texture 精灵的纹理
-   */
-  inline Texture* texture() const { return m_texture; }
-  
-  /**
-   * @func start_x 精灵在图像中的开始x轴座标
-   */
-  inline float start_x() const { return m_start.x(); }
-  
-  /**
-   * @func start_y 精灵在图像中的开始y轴座标
-   */
-  inline float start_y() const { return m_start.y(); }
-  
-  /**
-   * @func width 精灵宽度
-   */
-  inline float width() const { return m_size.width(); }
-  
-  /**
-   * @func height 精灵高度
-   */
-  inline float height() const { return m_size.height(); }
-  
-  /**
-   * @func width_1()
-   */
-  inline Value width_1() const { return Value(m_size.width()); }
-  
-  /**
-   * @func height_1()
-   */
-  inline Value height_1() const { return Value(m_size.height()); }
-  
-  /**
-   * @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
-   */
-  virtual bool overlap_test(Vec2 point);
-  
-  /**
-   * @func set_src
-   */
-  void set_src(cString& value);
-  
-  /**
-   * @func set_texture
-   */
-  void set_texture(Texture* value);
-  
-  /**
-   * @func set_start_x
-   */
-  void set_start_x(float value);
-  
-  /**
-   * @func set_start_y
-   */
-  void set_start_y(float value);
-  
-  /**
-   * @func set_width
-   */
-  void set_width(float value);
-  
-  /**
-   * @func set_height
-   */
-  void set_height(float value);
-  
-  /**
-   * @func set_width_1
-   */
-  inline void set_width_1(Value value) { set_width(value.value); }
-  
-  /**
-   * @func set_height_1
-   */
-  inline void set_height_1(Value value) { set_height(value.value); }
-  
-  /**
-   * @func start 精灵图片的开始位置
-   */
-  inline Vec2 start() const {
-    return m_start;
-  }
-  
-  /**
-   * @func start 精灵图片的开始位置
-   */
-  inline void start(Vec2 value) {
-    set_start_x(value.x()); set_start_y(value.y());
-  }
-  
-  /**
-   * @func size 精灵视图的尺寸
-   */
-  inline Vec2 size() const { return m_size; }
-  
-  /**
-   * @func size 精灵视图的尺寸
-   */
-  inline void set_size(Vec2 value) {
-    set_width(value.width()); set_height(value.height());
-  }
-  
-  /**
-   * @func ratio_x get
-   */
-  inline float ratio_x() const { return m_ratio.x(); }
-  
-  /**
-   * @func ratio_y get
-   */
-  inline float ratio_y() const { return m_ratio.y(); }
-  
-  /**
-   * @func ratio get 图像比例尺
-   */
-  inline Vec2 ratio() const { return m_ratio; }
-  
-  /**
-   * @func set_ratio_x set
-   */
-  void set_ratio_x(float value);
-  
-  /**
-   * @func set_ratio_y set
-   */
-  void set_ratio_y(float value);
-  
-  /**
-   * @func ratio set
-   */
-  void set_ratio(Vec2 value) {
-    set_ratio_x(value.x()); set_ratio_y(value.y());
-  }
-  
-  /**
-   * @func repeat get
-   */
-  inline Repeat repeat() const { return m_repeat; }
-  
-  /**
-   * @func repeat set
-   */
-  void set_repeat(Repeat value);
-  
-  /**
-   * @overwrite
-   */
-  virtual CGRect screen_rect();
-  
+	virtual ~Sprite();
+	
+	/**
+	 * @func create # 创建一个新精灵对像
+	 * @arg [size = Size()] {Size}
+	 */
+	static inline Sprite* create(Vec2 size = Vec2()) {
+		return New<Sprite>(size);
+	}
+	
+	/**
+	 * @func create # 通过图像路径创建一个新精灵对像
+	 * @arg src {cString&}
+	 * @arg [size = Size()] {Size}
+	 */
+	static Sprite* create(cString& src, Vec2 size = Vec2());
+	
+	/**
+	 * @func create # 通过纹理对像创建一个精灵对像
+	 * @arg texture {Texture*}
+	 * @arg [size = Size()] {Size}
+	 */
+	static Sprite* create(Texture* texture, Vec2 size = Vec2());
+	
+	/**
+	 * @func src 路径,精灵要显示的图像路径
+	 */
+	String src() const;
+	
+	/**
+	 * @func texture 精灵的纹理
+	 */
+	inline Texture* texture() const { return m_texture; }
+	
+	/**
+	 * @func start_x 精灵在图像中的开始x轴座标
+	 */
+	inline float start_x() const { return m_start.x(); }
+	
+	/**
+	 * @func start_y 精灵在图像中的开始y轴座标
+	 */
+	inline float start_y() const { return m_start.y(); }
+	
+	/**
+	 * @func width 精灵宽度
+	 */
+	inline float width() const { return m_size.width(); }
+	
+	/**
+	 * @func height 精灵高度
+	 */
+	inline float height() const { return m_size.height(); }
+	
+	/**
+	 * @func width_1()
+	 */
+	inline Value width_1() const { return Value(m_size.width()); }
+	
+	/**
+	 * @func height_1()
+	 */
+	inline Value height_1() const { return Value(m_size.height()); }
+	
+	/**
+	 * @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
+	 */
+	virtual bool overlap_test(Vec2 point);
+	
+	/**
+	 * @func set_src
+	 */
+	void set_src(cString& value);
+	
+	/**
+	 * @func set_texture
+	 */
+	void set_texture(Texture* value);
+	
+	/**
+	 * @func set_start_x
+	 */
+	void set_start_x(float value);
+	
+	/**
+	 * @func set_start_y
+	 */
+	void set_start_y(float value);
+	
+	/**
+	 * @func set_width
+	 */
+	void set_width(float value);
+	
+	/**
+	 * @func set_height
+	 */
+	void set_height(float value);
+	
+	/**
+	 * @func set_width_1
+	 */
+	inline void set_width_1(Value value) { set_width(value.value); }
+	
+	/**
+	 * @func set_height_1
+	 */
+	inline void set_height_1(Value value) { set_height(value.value); }
+	
+	/**
+	 * @func start 精灵图片的开始位置
+	 */
+	inline Vec2 start() const {
+		return m_start;
+	}
+	
+	/**
+	 * @func start 精灵图片的开始位置
+	 */
+	inline void start(Vec2 value) {
+		set_start_x(value.x()); set_start_y(value.y());
+	}
+	
+	/**
+	 * @func size 精灵视图的尺寸
+	 */
+	inline Vec2 size() const { return m_size; }
+	
+	/**
+	 * @func size 精灵视图的尺寸
+	 */
+	inline void set_size(Vec2 value) {
+		set_width(value.width()); set_height(value.height());
+	}
+	
+	/**
+	 * @func ratio_x get
+	 */
+	inline float ratio_x() const { return m_ratio.x(); }
+	
+	/**
+	 * @func ratio_y get
+	 */
+	inline float ratio_y() const { return m_ratio.y(); }
+	
+	/**
+	 * @func ratio get 图像比例尺
+	 */
+	inline Vec2 ratio() const { return m_ratio; }
+	
+	/**
+	 * @func set_ratio_x set
+	 */
+	void set_ratio_x(float value);
+	
+	/**
+	 * @func set_ratio_y set
+	 */
+	void set_ratio_y(float value);
+	
+	/**
+	 * @func ratio set
+	 */
+	void set_ratio(Vec2 value) {
+		set_ratio_x(value.x()); set_ratio_y(value.y());
+	}
+	
+	/**
+	 * @func repeat get
+	 */
+	inline Repeat repeat() const { return m_repeat; }
+	
+	/**
+	 * @func repeat set
+	 */
+	void set_repeat(Repeat value);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual CGRect screen_rect();
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  virtual void set_parent(View* parent) throw(Error);
-  virtual void set_screen_visible();
-  
-  /**
-   * @func compute_box_vertex
-   */
-  void compute_box_vertex(Vec2 vertex[4]);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	virtual void set_parent(View* parent) throw(Error);
+	virtual void set_screen_visible();
+	
+	/**
+	 * @func compute_box_vertex
+	 */
+	void compute_box_vertex(Vec2 vertex[4]);
 
  private:
-  Vec2      m_start;
-  Vec2      m_size;
-  Vec2      m_ratio;
-  Texture*  m_texture;
-  int       m_tex_level;
-  Repeat    m_repeat;
-  Vec2      m_final_vertex[4];      //  最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
+	Vec2      m_start;
+	Vec2      m_size;
+	Vec2      m_ratio;
+	Texture*  m_texture;
+	int       m_tex_level;
+	Repeat    m_repeat;
+	Vec2      m_final_vertex[4];      //  最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
 };
 
 XX_END

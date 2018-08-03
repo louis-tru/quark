@@ -45,7 +45,7 @@ JS_BEGIN
  */
 class JSON {
  public:
-  static bool stringify_console_styled(Worker* worker, Local<JSValue> arg, StringBuilder* out);
+	static bool stringify_console_styled(Worker* worker, Local<JSValue> arg, StringBuilder* out);
 };
 
 JS_END

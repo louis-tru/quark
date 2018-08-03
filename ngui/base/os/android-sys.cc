@@ -41,147 +41,147 @@ XX_NS(ngui)
 XX_NS(sys)
 
 String version() {
-  return Android::version();
+	return Android::version();
 }
 
 String brand() {
-  return Android::brand();
+	return Android::brand();
 }
 
 String subsystem() {
-  return Android::subsystem();
+	return Android::subsystem();
 }
 
 int network_status() {
-  return Android::network_status();
+	return Android::network_status();
 }
 
 bool is_ac_power() {
-  return Android::is_ac_power();
+	return Android::is_ac_power();
 }
 
 bool is_battery() {
-  return Android::is_battery();
+	return Android::is_battery();
 }
 
 float battery_level() {
-  return Android::battery_level();
+	return Android::battery_level();
 }
 
 uint64 memory() {
-  return Android::memory();
+	return Android::memory();
 }
 
 uint64 used_memory() {
-  return Android::used_memory();
+	return Android::used_memory();
 }
 
 uint64 available_memory() {
-  return Android::available_memory();
+	return Android::available_memory();
 }
 
 static std::atomic_int priv_cpu_total_count(0);
 static std::atomic_int priv_cpu_usage_count(0);
 
 float cpu_usage() {
-  char bf[512] = {0};
-  Array<String> cpus;
-  String prev_str;
-  int size;
-  int fd = FileHelper::open_sync("/proc/stat");
-  if (fd <= 0) return 0;
+	char bf[512] = {0};
+	Array<String> cpus;
+	String prev_str;
+	int size;
+	int fd = FileHelper::open_sync("/proc/stat");
+	if (fd <= 0) return 0;
 
-  while((size = FileHelper::read_sync(fd, bf, 511))) {
-    char* s = bf;
-    char* ch;
-    while ((ch = strchr(s, '\n'))) {
-      prev_str.push(s, ch - s);
-      cpus.push(prev_str);
-      prev_str = String();
-      size -= (ch - s + 1);
-      s = ch + 1;
-      if (size >= 3) {
-        if (s[0] != 'c' || s[1] != 'p' || s[2] != 'u') {
-          goto close;
-        }
-      }
-    }
-    prev_str = String(s, size);
-    memset(bf, 0, 512);
-  }
+	while((size = FileHelper::read_sync(fd, bf, 511))) {
+		char* s = bf;
+		char* ch;
+		while ((ch = strchr(s, '\n'))) {
+			prev_str.push(s, ch - s);
+			cpus.push(prev_str);
+			prev_str = String();
+			size -= (ch - s + 1);
+			s = ch + 1;
+			if (size >= 3) {
+				if (s[0] != 'c' || s[1] != 'p' || s[2] != 'u') {
+					goto close;
+				}
+			}
+		}
+		prev_str = String(s, size);
+		memset(bf, 0, 512);
+	}
 
-  close:
+	close:
 
-  FileHelper::close_sync(fd);
+	FileHelper::close_sync(fd);
 
-  /*
-  cpu  13338472 1558806 14443730 67158069 309781 8802 449488 0 0 0
-  cpu0 5973903 511252 6880315 56648901 292831 5742 229508 0 0 0
-  cpu1 3601621 560275 3626209 3411119 7260 1362 175918 0 0 0
-  cpu2 3197300 455895 3207150 3442833 5097 1186 32364 0 0 0
-  cpu3 565647 31382 730054 3655214 4591 510 11697 0 0 0
-  */
+	/*
+	cpu  13338472 1558806 14443730 67158069 309781 8802 449488 0 0 0
+	cpu0 5973903 511252 6880315 56648901 292831 5742 229508 0 0 0
+	cpu1 3601621 560275 3626209 3411119 7260 1362 175918 0 0 0
+	cpu2 3197300 455895 3207150 3442833 5097 1186 32364 0 0 0
+	cpu3 565647 31382 730054 3655214 4591 510 11697 0 0 0
+	*/
 
-  if (cpus.length() < 2) {
-    return 0;
-  }
+	if (cpus.length() < 2) {
+		return 0;
+	}
 
-  auto ls = cpus[0].substr(3).trim().split(' ');
-  int total = ls[0].to_int() +
-          ls[1].to_int() +
-          ls[2].to_int() +
-          ls[3].to_int() +
-          ls[4].to_int() +
-          ls[5].to_int() + ls[6].to_int();
+	auto ls = cpus[0].substr(3).trim().split(' ');
+	int total = ls[0].to_int() +
+					ls[1].to_int() +
+					ls[2].to_int() +
+					ls[3].to_int() +
+					ls[4].to_int() +
+					ls[5].to_int() + ls[6].to_int();
 
-  fd = FileHelper::open_sync(String::format("/proc/%d/stat", getpid()));
-  if (fd <= 0) return 0;
-  memset(bf, 0, 512);
-  size = FileHelper::read_sync(fd, bf, 511);
-  ls = String(bf, size).split(' ');
-  FileHelper::close_sync(fd);
-  if (ls.length() < 17) return 0;
+	fd = FileHelper::open_sync(String::format("/proc/%d/stat", getpid()));
+	if (fd <= 0) return 0;
+	memset(bf, 0, 512);
+	size = FileHelper::read_sync(fd, bf, 511);
+	ls = String(bf, size).split(' ');
+	FileHelper::close_sync(fd);
+	if (ls.length() < 17) return 0;
 
-  int usage = ls[13].to_int() +
-          ls[14].to_int() +
-          ls[15].to_int() + ls[16].to_int();
+	int usage = ls[13].to_int() +
+					ls[14].to_int() +
+					ls[15].to_int() + ls[16].to_int();
 
-  int priv_total = priv_cpu_total_count;
-  int priv_usage = priv_cpu_usage_count;
+	int priv_total = priv_cpu_total_count;
+	int priv_usage = priv_cpu_usage_count;
 
-  float cpu_usage = float(usage - priv_usage) / float(total - priv_total);
+	float cpu_usage = float(usage - priv_usage) / float(total - priv_total);
 
-  priv_cpu_total_count = total;
-  priv_cpu_usage_count = usage;
+	priv_cpu_total_count = total;
+	priv_cpu_usage_count = usage;
 
-  return cpu_usage * (cpus.length() - 1);
+	return cpu_usage * (cpus.length() - 1);
 }
 
 struct Languages {
-  Array<String> values;
-  String  string;
+	Array<String> values;
+	String  string;
 };
 
 static Languages& get_languages() {
-  static Languages languages([]{
-    Languages r;
-    r.string = Android::language();
-    r.values.push(r.string);
-    return r;
-  }());
-  return languages;
+	static Languages languages([]{
+		Languages r;
+		r.string = Android::language();
+		r.values.push(r.string);
+		return r;
+	}());
+	return languages;
 }
 
 const Array<String>& languages() {
-  return get_languages().values;
+	return get_languages().values;
 }
 
 String languages_string() {
-  return get_languages().string;
+	return get_languages().string;
 }
 
 String language() {
-  return get_languages().values[0];
+	return get_languages().values[0];
 }
 
 XX_END XX_END

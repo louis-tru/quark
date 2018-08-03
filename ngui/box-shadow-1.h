@@ -44,70 +44,70 @@ XX_NS(ngui)
  */
 class XX_EXPORT BoxShadow: public Div {
  public:
-  XX_DEFINE_GUI_VIEW(BOX_SHADOW, BoxShadow, shadow);
-  
-  BoxShadow();
-  
-  /**
-   * @func shadow_offset_x
-   */
-  inline float shadow_offset_x() const { return m_shadow.offset_x; }
-  
-  /**
-   * @func set_shadow_offset_x
-   */
-  void set_shadow_offset_x(float value);
-  
-  /**
-   * @func shadow_offset_y
-   */
-  inline float shadow_offset_y() const { return m_shadow.offset_y; }
-  
-  /**
-   * @func set_shadow_offset_y
-   */
-  void set_shadow_offset_y(float value);
-  
-  /**
-   * @func shadow_size
-   */
-  inline float shadow_size() const { return m_shadow.size; }
-  
-  /**
-   * @func shadow_size
-   */
-  void set_shadow_size(float value);
-  
-  /**
-   * @func shadow_color
-   */
-  inline Color shadow_color() const { return m_shadow.color; }
-  
-  /**
-   * @func shadow_color
-   */
-  void set_shadow_color(Color value);
-  
-  /**
-   * @func shadow
-   */
-  inline Shadow shadow() const { return m_shadow; }
-  
-  /**
-   * @func set_shadow_value
-   */
-  void set_shadow(Shadow value);
-  
+	XX_DEFINE_GUI_VIEW(BOX_SHADOW, BoxShadow, shadow);
+	
+	BoxShadow();
+	
+	/**
+	 * @func shadow_offset_x
+	 */
+	inline float shadow_offset_x() const { return m_shadow.offset_x; }
+	
+	/**
+	 * @func set_shadow_offset_x
+	 */
+	void set_shadow_offset_x(float value);
+	
+	/**
+	 * @func shadow_offset_y
+	 */
+	inline float shadow_offset_y() const { return m_shadow.offset_y; }
+	
+	/**
+	 * @func set_shadow_offset_y
+	 */
+	void set_shadow_offset_y(float value);
+	
+	/**
+	 * @func shadow_size
+	 */
+	inline float shadow_size() const { return m_shadow.size; }
+	
+	/**
+	 * @func shadow_size
+	 */
+	void set_shadow_size(float value);
+	
+	/**
+	 * @func shadow_color
+	 */
+	inline Color shadow_color() const { return m_shadow.color; }
+	
+	/**
+	 * @func shadow_color
+	 */
+	void set_shadow_color(Color value);
+	
+	/**
+	 * @func shadow
+	 */
+	inline Shadow shadow() const { return m_shadow; }
+	
+	/**
+	 * @func set_shadow_value
+	 */
+	void set_shadow(Shadow value);
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	
  private:
-  bool  m_is_draw_shadow;
-  Shadow m_shadow;
+	bool  m_is_draw_shadow;
+	Shadow m_shadow;
 };
 
 XX_END

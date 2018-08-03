@@ -173,10 +173,10 @@ async function async_test_helper() {
 		disableCache: true,
 		disableCookie: true,
 	}, d=>1])
-  await AM(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>d.complete]);
-  
-  M(http, 'requestSync', [{ url: 'https://www.baidu.com/' }]);
-  await AM(http, 'download', ['https://www.baidu.com/', url.documents('down.html'), d=>1]);
+	await AM(http, 'requestStream', [{ url: 'https://www.baidu.com/' }, d=>d.complete]);
+	
+	M(http, 'requestSync', [{ url: 'https://www.baidu.com/' }]);
+	await AM(http, 'download', ['https://www.baidu.com/', url.documents('down.html'), d=>1]);
 	VM(fs, 'existsSync', [url.documents('down.html')], true);
 	//M(http, 'downloadSync', ['https://www.baidu.com/', url.documents('down2.html')]);
 	//VM(fs, 'existsSync', [url.documents('down2.html')], true);

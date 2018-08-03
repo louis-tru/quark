@@ -31,260 +31,260 @@
 #include "v8-profiler.h"
 
 namespace v8 {
-  
-  std::unique_ptr<TracingCpuProfiler> TracingCpuProfiler::Create(Isolate* iso) {
-    return std::unique_ptr<TracingCpuProfiler>();
-  }
+	
+	std::unique_ptr<TracingCpuProfiler> TracingCpuProfiler::Create(Isolate* iso) {
+		return std::unique_ptr<TracingCpuProfiler>();
+	}
 
-  void TickSample::Init(Isolate* isolate, const v8::RegisterState& state,
-            RecordCEntryFrame record_c_entry_frame, bool update_stats,
-            bool use_simulator_reg_state) {
-  }
+	void TickSample::Init(Isolate* isolate, const v8::RegisterState& state,
+						RecordCEntryFrame record_c_entry_frame, bool update_stats,
+						bool use_simulator_reg_state) {
+	}
 
-  bool TickSample::GetStackSample(Isolate* isolate, v8::RegisterState* state,
-                             RecordCEntryFrame record_c_entry_frame,
-                             void** frames, size_t frames_limit,
-                             v8::SampleInfo* sample_info,
-                             bool use_simulator_reg_state) {
-  	return false;
-  }
+	bool TickSample::GetStackSample(Isolate* isolate, v8::RegisterState* state,
+														 RecordCEntryFrame record_c_entry_frame,
+														 void** frames, size_t frames_limit,
+														 v8::SampleInfo* sample_info,
+														 bool use_simulator_reg_state) {
+		return false;
+	}
 
-  Local<String> CpuProfileNode::GetFunctionName() const {
-  	return Local<String>();
-  }
+	Local<String> CpuProfileNode::GetFunctionName() const {
+		return Local<String>();
+	}
 
-  const char* CpuProfileNode::GetFunctionNameStr() const {
-  	return nullptr;
-  }
+	const char* CpuProfileNode::GetFunctionNameStr() const {
+		return nullptr;
+	}
 
-  int CpuProfileNode::GetScriptId() const {
-  	return 0;
-  }
+	int CpuProfileNode::GetScriptId() const {
+		return 0;
+	}
 
-  Local<String> CpuProfileNode::GetScriptResourceName() const {
-  	return Local<String>();
-  }
+	Local<String> CpuProfileNode::GetScriptResourceName() const {
+		return Local<String>();
+	}
 
-  const char* CpuProfileNode::GetScriptResourceNameStr() const {
-  	return nullptr;
-  }
+	const char* CpuProfileNode::GetScriptResourceNameStr() const {
+		return nullptr;
+	}
 
-  int CpuProfileNode::GetLineNumber() const {
-  	return 0;
-  }
+	int CpuProfileNode::GetLineNumber() const {
+		return 0;
+	}
 
-  int CpuProfileNode::GetColumnNumber() const {
-  	return 0;
-  }
+	int CpuProfileNode::GetColumnNumber() const {
+		return 0;
+	}
 
-  unsigned int CpuProfileNode::GetHitLineCount() const {
-  	return 0;
-  }
+	unsigned int CpuProfileNode::GetHitLineCount() const {
+		return 0;
+	}
 
-  bool CpuProfileNode::GetLineTicks(LineTick* entries, unsigned int length) const {
-  	return false;
-  }
+	bool CpuProfileNode::GetLineTicks(LineTick* entries, unsigned int length) const {
+		return false;
+	}
 
-  const char* CpuProfileNode::GetBailoutReason() const {
-  	return nullptr;
-  }
+	const char* CpuProfileNode::GetBailoutReason() const {
+		return nullptr;
+	}
 
-  unsigned CpuProfileNode::GetHitCount() const {
-  	return 0;
-  }
+	unsigned CpuProfileNode::GetHitCount() const {
+		return 0;
+	}
 
 	unsigned CpuProfileNode::GetCallUid() const {
 		return 0;
 	}
 
-  unsigned CpuProfileNode::GetNodeId() const {
-  	return 0;
-  }
+	unsigned CpuProfileNode::GetNodeId() const {
+		return 0;
+	}
 
-  int CpuProfileNode::GetChildrenCount() const {
-  	return 0;
-  }
+	int CpuProfileNode::GetChildrenCount() const {
+		return 0;
+	}
 
-  const CpuProfileNode* CpuProfileNode::GetChild(int index) const {
-  	return 0;
-  }
+	const CpuProfileNode* CpuProfileNode::GetChild(int index) const {
+		return 0;
+	}
 
-  const std::vector<CpuProfileDeoptInfo>& CpuProfileNode::GetDeoptInfos() const {
-  	static std::vector<CpuProfileDeoptInfo> vec; return vec;
-  }
-  
-  Local<String> CpuProfile::GetTitle() const {
-  	return Local<String>();
-  }
+	const std::vector<CpuProfileDeoptInfo>& CpuProfileNode::GetDeoptInfos() const {
+		static std::vector<CpuProfileDeoptInfo> vec; return vec;
+	}
+	
+	Local<String> CpuProfile::GetTitle() const {
+		return Local<String>();
+	}
 
-  const CpuProfileNode* CpuProfile::GetTopDownRoot() const {
-  	return nullptr;
-  }
+	const CpuProfileNode* CpuProfile::GetTopDownRoot() const {
+		return nullptr;
+	}
 
-  int CpuProfile::GetSamplesCount() const { 
-  	return 0;
-  }
+	int CpuProfile::GetSamplesCount() const { 
+		return 0;
+	}
 
-  const CpuProfileNode* CpuProfile::GetSample(int index) const {
-  	return nullptr;
-  }
+	const CpuProfileNode* CpuProfile::GetSample(int index) const {
+		return nullptr;
+	}
 
-  int64_t CpuProfile::GetSampleTimestamp(int index) const {
-  	return 0;
-  }
+	int64_t CpuProfile::GetSampleTimestamp(int index) const {
+		return 0;
+	}
 
-  int64_t CpuProfile::GetStartTime() const {
-  	return 0;
-  }
+	int64_t CpuProfile::GetStartTime() const {
+		return 0;
+	}
 
-  int64_t CpuProfile::GetEndTime() const {
-  	return 0;
-  }
+	int64_t CpuProfile::GetEndTime() const {
+		return 0;
+	}
 
-  void CpuProfile::Delete() {}
+	void CpuProfile::Delete() {}
 
-  CpuProfiler* CpuProfiler::New(Isolate* isolate) {
-  	return nullptr;
-  }
+	CpuProfiler* CpuProfiler::New(Isolate* isolate) {
+		return nullptr;
+	}
 
-  void CpuProfiler::Dispose() {}
+	void CpuProfiler::Dispose() {}
 
-  void CpuProfiler::SetSamplingInterval(int us) {}
+	void CpuProfiler::SetSamplingInterval(int us) {}
 
-  void CpuProfiler::StartProfiling(Local<String> title, bool record_samples) {}
+	void CpuProfiler::StartProfiling(Local<String> title, bool record_samples) {}
 
-  CpuProfile* CpuProfiler::StopProfiling(Local<String> title) {
-  	return nullptr;
-  }
+	CpuProfile* CpuProfiler::StopProfiling(Local<String> title) {
+		return nullptr;
+	}
 
-  void CpuProfiler::CollectSample() {}
+	void CpuProfiler::CollectSample() {}
 
-  void CpuProfiler::SetIdle(bool is_idle) {}
+	void CpuProfiler::SetIdle(bool is_idle) {}
 
-  HeapGraphEdge::Type HeapGraphEdge::GetType() const {
-  	return kContextVariable;
-  }
+	HeapGraphEdge::Type HeapGraphEdge::GetType() const {
+		return kContextVariable;
+	}
 
-  Local<Value> HeapGraphEdge::GetName() const {
-  	return Local<Value>();
-  }
+	Local<Value> HeapGraphEdge::GetName() const {
+		return Local<Value>();
+	}
 
-  const HeapGraphNode* HeapGraphEdge::GetFromNode() const {
-  	return nullptr;
-  }
+	const HeapGraphNode* HeapGraphEdge::GetFromNode() const {
+		return nullptr;
+	}
 
-  const HeapGraphNode* HeapGraphEdge::GetToNode() const {
-  	return nullptr;
-  }
+	const HeapGraphNode* HeapGraphEdge::GetToNode() const {
+		return nullptr;
+	}
 
-  HeapGraphNode::Type HeapGraphNode::GetType() const {
-  	return kHidden;
-  }
+	HeapGraphNode::Type HeapGraphNode::GetType() const {
+		return kHidden;
+	}
 
-  Local<String> HeapGraphNode::GetName() const {
-  	return Local<String>();
-  }
+	Local<String> HeapGraphNode::GetName() const {
+		return Local<String>();
+	}
 
-  SnapshotObjectId HeapGraphNode::GetId() const {
-  	return 0;
-  }
+	SnapshotObjectId HeapGraphNode::GetId() const {
+		return 0;
+	}
 
-  size_t HeapGraphNode::GetShallowSize() const {
-  	return 0;
-  }
+	size_t HeapGraphNode::GetShallowSize() const {
+		return 0;
+	}
 
-  int HeapGraphNode::GetChildrenCount() const {
-  	return 0;
-  }
+	int HeapGraphNode::GetChildrenCount() const {
+		return 0;
+	}
 
-  const HeapGraphEdge* HeapGraphNode::GetChild(int index) const {
-  	return nullptr;
-  }
+	const HeapGraphEdge* HeapGraphNode::GetChild(int index) const {
+		return nullptr;
+	}
 
 	const HeapGraphNode* HeapSnapshot::GetRoot() const {
 		return nullptr;
 	}
 
-  const HeapGraphNode* HeapSnapshot::GetNodeById(SnapshotObjectId id) const {
-  	return nullptr;
-  }
+	const HeapGraphNode* HeapSnapshot::GetNodeById(SnapshotObjectId id) const {
+		return nullptr;
+	}
 
-  int HeapSnapshot::GetNodesCount() const {
-  	return 0;
-  }
+	int HeapSnapshot::GetNodesCount() const {
+		return 0;
+	}
 
-  const HeapGraphNode* HeapSnapshot::GetNode(int index) const {
-  	return nullptr;
-  }
+	const HeapGraphNode* HeapSnapshot::GetNode(int index) const {
+		return nullptr;
+	}
 
-  SnapshotObjectId HeapSnapshot::GetMaxSnapshotJSObjectId() const {
-  	return 0;
-  }
+	SnapshotObjectId HeapSnapshot::GetMaxSnapshotJSObjectId() const {
+		return 0;
+	}
 
-  void HeapSnapshot::Delete() {}
+	void HeapSnapshot::Delete() {}
 
-  void HeapSnapshot::Serialize(OutputStream* stream,
-                 SerializationFormat format) const {}
+	void HeapSnapshot::Serialize(OutputStream* stream,
+								 SerializationFormat format) const {}
 
-  int HeapProfiler::GetSnapshotCount() {
-  	return 0;
-  }
+	int HeapProfiler::GetSnapshotCount() {
+		return 0;
+	}
 
-  const HeapSnapshot* HeapProfiler::GetHeapSnapshot(int index) {
-  	return nullptr;
-  }
+	const HeapSnapshot* HeapProfiler::GetHeapSnapshot(int index) {
+		return nullptr;
+	}
 
-  SnapshotObjectId HeapProfiler::GetObjectId(Local<Value> value) {
-  	return 0;
-  }
+	SnapshotObjectId HeapProfiler::GetObjectId(Local<Value> value) {
+		return 0;
+	}
 
-  Local<Value> HeapProfiler::FindObjectById(SnapshotObjectId id) {
-  	return Local<Value>();
-  }
+	Local<Value> HeapProfiler::FindObjectById(SnapshotObjectId id) {
+		return Local<Value>();
+	}
 
-  void HeapProfiler::ClearObjectIds() {}
+	void HeapProfiler::ClearObjectIds() {}
 
-  /**
-   * Takes a heap snapshot and returns it.
-   */
-  const HeapSnapshot* HeapProfiler::TakeHeapSnapshot(
-      ActivityControl* control,
-      ObjectNameResolver* global_object_name_resolver) {
-  	return nullptr;
-  }
+	/**
+	 * Takes a heap snapshot and returns it.
+	 */
+	const HeapSnapshot* HeapProfiler::TakeHeapSnapshot(
+			ActivityControl* control,
+			ObjectNameResolver* global_object_name_resolver) {
+		return nullptr;
+	}
 
-  void HeapProfiler::StartTrackingHeapObjects(bool track_allocations) {}
+	void HeapProfiler::StartTrackingHeapObjects(bool track_allocations) {}
 
-  SnapshotObjectId HeapProfiler::GetHeapStats(OutputStream* stream,
-                                int64_t* timestamp_us) {
-  	return 0;
-  }
+	SnapshotObjectId HeapProfiler::GetHeapStats(OutputStream* stream,
+																int64_t* timestamp_us) {
+		return 0;
+	}
 
-  void HeapProfiler::StopTrackingHeapObjects() {}
+	void HeapProfiler::StopTrackingHeapObjects() {}
 
-  bool HeapProfiler::StartSamplingHeapProfiler(uint64_t sample_interval,
-                                 int stack_depth,
-                                 SamplingFlags flags) {
-  	return false;
-  }
+	bool HeapProfiler::StartSamplingHeapProfiler(uint64_t sample_interval,
+																 int stack_depth,
+																 SamplingFlags flags) {
+		return false;
+	}
 
-  void HeapProfiler::StopSamplingHeapProfiler() {}
+	void HeapProfiler::StopSamplingHeapProfiler() {}
 
-  AllocationProfile* HeapProfiler::GetAllocationProfile() {
-  	return nullptr;
-  }
+	AllocationProfile* HeapProfiler::GetAllocationProfile() {
+		return nullptr;
+	}
 
-  void HeapProfiler::DeleteAllHeapSnapshots() {}
+	void HeapProfiler::DeleteAllHeapSnapshots() {}
 
-  void HeapProfiler::SetWrapperClassInfoProvider(
-      uint16_t class_id,
-      WrapperInfoCallback callback) {}
+	void HeapProfiler::SetWrapperClassInfoProvider(
+			uint16_t class_id,
+			WrapperInfoCallback callback) {}
 
-  void HeapProfiler::SetGetRetainerInfosCallback(GetRetainerInfosCallback callback) {}
+	void HeapProfiler::SetGetRetainerInfosCallback(GetRetainerInfosCallback callback) {}
 
-  size_t HeapProfiler::GetProfilerMemorySize() {
-  	return 0;
-  }
+	size_t HeapProfiler::GetProfilerMemorySize() {
+		return 0;
+	}
 
 }
 

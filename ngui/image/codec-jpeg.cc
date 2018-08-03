@@ -38,115 +38,115 @@ extern "C" {
 XX_NS(ngui)
 
 struct JPEGClientData {
-  jmp_buf jmpbuf;
+	jmp_buf jmpbuf;
 };
 
 static void jpeg_error_output(j_common_ptr cinfo) {
-  XX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
-  JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
-  longjmp(data->jmpbuf, 0);
+	XX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
+	JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
+	longjmp(data->jmpbuf, 0);
 }
 
 Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv;
-  struct jpeg_decompress_struct jpeg;
-  struct jpeg_error_mgr jerr;
-  jpeg.err = jpeg_std_error(&jerr);
-  jerr.error_exit = jpeg_error_output;
-  
-  JPEGClientData client_data;
-  jpeg.client_data = &client_data;
-  jpeg_create_decompress(&jpeg);
+	Array<PixelData> rv;
+	struct jpeg_decompress_struct jpeg;
+	struct jpeg_error_mgr jerr;
+	jpeg.err = jpeg_std_error(&jerr);
+	jerr.error_exit = jpeg_error_output;
+	
+	JPEGClientData client_data;
+	jpeg.client_data = &client_data;
+	jpeg_create_decompress(&jpeg);
 
-  jpeg_mem_src(&jpeg, (byte*)*data, data.length());
-  
-  if ( setjmp(client_data.jmpbuf) ) {
-    jpeg_destroy_decompress(&jpeg);
-    return rv;
-  }
-  
-  jpeg_read_header(&jpeg, TRUE);
+	jpeg_mem_src(&jpeg, (byte*)*data, data.length());
+	
+	if ( setjmp(client_data.jmpbuf) ) {
+		jpeg_destroy_decompress(&jpeg);
+		return rv;
+	}
+	
+	jpeg_read_header(&jpeg, TRUE);
 
-  uint w = jpeg.image_width;
-  uint h = jpeg.image_height;
-  int num = jpeg.num_components;
-  JSAMPROW row;
+	uint w = jpeg.image_width;
+	uint h = jpeg.image_height;
+	int num = jpeg.num_components;
+	JSAMPROW row;
 
-  jpeg_start_decompress(&jpeg);
+	jpeg_start_decompress(&jpeg);
 
-  if (num == 1) {
-    uint rowbytes = w * num;
-    uint count = h * rowbytes;
-    Buffer buff(count);
+	if (num == 1) {
+		uint rowbytes = w * num;
+		uint count = h * rowbytes;
+		Buffer buff(count);
 
-    while(jpeg.output_scanline < jpeg.output_height) {
-      row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
-      jpeg_read_scanlines(&jpeg, &row, 1);
-    }
+		while(jpeg.output_scanline < jpeg.output_height) {
+			row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
+			jpeg_read_scanlines(&jpeg, &row, 1);
+		}
 
-    rv.push( PixelData(buff, w, h, PixelData::LUMINANCE8, false) );
+		rv.push( PixelData(buff, w, h, PixelData::LUMINANCE8, false) );
 
-  } else if (num == 3) {
-    uint rowbytes = w * 4;
-    uint count = h * rowbytes;
-    Buffer buff(count);
+	} else if (num == 3) {
+		uint rowbytes = w * 4;
+		uint count = h * rowbytes;
+		Buffer buff(count);
 
-    JSAMPARRAY rows = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
+		JSAMPARRAY rows = (*jpeg.mem->alloc_sarray)((j_common_ptr) &jpeg, JPOOL_IMAGE, w * num, 1);
 
-    while(jpeg.output_scanline < jpeg.output_height) {
-      row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
-      jpeg_read_scanlines(&jpeg, rows, 1);
+		while(jpeg.output_scanline < jpeg.output_height) {
+			row = (JSAMPROW)*buff + jpeg.output_scanline * rowbytes;
+			jpeg_read_scanlines(&jpeg, rows, 1);
 
-      JSAMPROW row2 = rows[0];
+			JSAMPROW row2 = rows[0];
 
-      for (int column = 0; column < w; column++) {
-        *((int*)row) = *((int*)row2);
-        row[3] = 255;
-        row += 4; row2 += 3;
-      }
-    }
+			for (int column = 0; column < w; column++) {
+				*((int*)row) = *((int*)row2);
+				row[3] = 255;
+				row += 4; row2 += 3;
+			}
+		}
 
-    rv.push( PixelData(buff, w, h, PixelData::RGBX8888, false) );
-  }
+		rv.push( PixelData(buff, w, h, PixelData::RGBX8888, false) );
+	}
 
-  jpeg_start_decompress(&jpeg);
-  jpeg_destroy_decompress(&jpeg);
+	jpeg_start_decompress(&jpeg);
+	jpeg_destroy_decompress(&jpeg);
 
-  return rv;
+	return rv;
 }
 
 PixelData JPEGImageCodec::decode_header(cBuffer& data) {
-  struct jpeg_decompress_struct jpeg;
-  struct jpeg_error_mgr jerr;
-  jpeg.err = jpeg_std_error(&jerr);
-  jerr.error_exit = jpeg_error_output;
-  
-  JPEGClientData client_data;
-  jpeg.client_data = &client_data;
-  jpeg_create_decompress(&jpeg);
-  
-  ScopeClear clear([&jpeg]() {
-    jpeg_destroy_decompress(&jpeg);
-  });
-  jpeg_mem_src(&jpeg, (byte*)*data, data.length());
-  
-  if ( setjmp(client_data.jmpbuf) ) {
-    return PixelData();
-  }
-  
-  jpeg_read_header(&jpeg, TRUE);
-  
-  uint w = jpeg.image_width;
-  uint h = jpeg.image_height;
-  int num = jpeg.num_components;
+	struct jpeg_decompress_struct jpeg;
+	struct jpeg_error_mgr jerr;
+	jpeg.err = jpeg_std_error(&jerr);
+	jerr.error_exit = jpeg_error_output;
+	
+	JPEGClientData client_data;
+	jpeg.client_data = &client_data;
+	jpeg_create_decompress(&jpeg);
+	
+	ScopeClear clear([&jpeg]() {
+		jpeg_destroy_decompress(&jpeg);
+	});
+	jpeg_mem_src(&jpeg, (byte*)*data, data.length());
+	
+	if ( setjmp(client_data.jmpbuf) ) {
+		return PixelData();
+	}
+	
+	jpeg_read_header(&jpeg, TRUE);
+	
+	uint w = jpeg.image_width;
+	uint h = jpeg.image_height;
+	int num = jpeg.num_components;
 
-  return PixelData(Buffer(), w, h,
-                   num == 1 ? PixelData::LUMINANCE8:
-                   num == 3 ? PixelData::RGBX8888: PixelData::INVALID, false);
+	return PixelData(Buffer(), w, h,
+									 num == 1 ? PixelData::LUMINANCE8:
+									 num == 3 ? PixelData::RGBX8888: PixelData::INVALID, false);
 }
 
 Buffer JPEGImageCodec::encode(const PixelData& pixel_data) {
-  return Buffer();
+	return Buffer();
 }
 
 XX_END

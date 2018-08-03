@@ -44,72 +44,72 @@ XX_NS(ngui)
  */
 class XX_EXPORT TextNode: public Span {
  public:
-  XX_DEFINE_GUI_VIEW(TEXT_NODE, TextNode, text_node);
-  
-  TextNode();
-  
-  /**
-   * @overwrite
-   */
-  virtual void prepend(View* child) throw(Error);
-  virtual void append(View* child) throw(Error);
-  virtual View* append_text(cUcs2String& str) throw(Error);
-  virtual void remove_all_child();
-  virtual Vec2 layout_offset();
-  virtual bool overlap_test(Vec2 point);
-  virtual CGRect screen_rect();
-  
-  /**
-   * @get value
-   */
-  inline Ucs2String value() const { return m_data.string; }
-  
-  /**
-   * @set value
-   */
-  void set_value(cUcs2String& str);
-  
-  /**
-   * @get length {uint}
-   */
-  inline uint length() const { return m_data.string.length(); }
-  
-  /**
-   * @get cells
-   */
-  inline const Array<Cell>& cells() const { return m_data.cells; }
-  
-  /**
-   * @func text_hori_bearing
-   */
-  inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
-  
-  /**
-   * @func text_height
-   */
-  inline float text_height() const { return m_data.text_height; }
-  
+	XX_DEFINE_GUI_VIEW(TEXT_NODE, TextNode, text_node);
+	
+	TextNode();
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void prepend(View* child) throw(Error);
+	virtual void append(View* child) throw(Error);
+	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual void remove_all_child();
+	virtual Vec2 layout_offset();
+	virtual bool overlap_test(Vec2 point);
+	virtual CGRect screen_rect();
+	
+	/**
+	 * @get value
+	 */
+	inline Ucs2String value() const { return m_data.string; }
+	
+	/**
+	 * @set value
+	 */
+	void set_value(cUcs2String& str);
+	
+	/**
+	 * @get length {uint}
+	 */
+	inline uint length() const { return m_data.string.length(); }
+	
+	/**
+	 * @get cells
+	 */
+	inline const Array<Cell>& cells() const { return m_data.cells; }
+	
+	/**
+	 * @func text_hori_bearing
+	 */
+	inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
+	
+	/**
+	 * @func text_height
+	 */
+	inline float text_height() const { return m_data.text_height; }
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  virtual void accept_text(Ucs2StringBuilder& output) const;
-  virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
-  virtual void set_layout_three_times(bool horizontal, bool hybrid);
-  
-  /**
-   * @func set_screen_visible
-   */
-  virtual void set_screen_visible();
-  
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	virtual void accept_text(Ucs2StringBuilder& output) const;
+	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
+	virtual void set_layout_three_times(bool horizontal, bool hybrid);
+	
+	/**
+	 * @func set_screen_visible
+	 */
+	virtual void set_screen_visible();
+	
  private:
-  
-  Data  m_data;
-  bool  m_valid_layout_offset;
-  Vec2  m_final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
-  XX_DEFINE_INLINE_CLASS(Inl);
+	
+	Data  m_data;
+	bool  m_valid_layout_offset;
+	Vec2  m_final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
+	XX_DEFINE_INLINE_CLASS(Inl);
 };
 
 XX_END

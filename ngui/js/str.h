@@ -104,17 +104,17 @@ JS_BEGIN
  */
 class XX_EXPORT CommonStrings: public Object {
  public:
-  CommonStrings(Worker* worker);
+	CommonStrings(Worker* worker);
 #define js_def_persistent_string(name) \
 public: Local<JSValue> name() { \
 return *reinterpret_cast<Local<JSValue>*>\
-  (const_cast<Persistent<JSValue>*>(&__##name##_$_)); \
+	(const_cast<Persistent<JSValue>*>(&__##name##_$_)); \
 } \
 private: Persistent<JSValue> __##name##_$_;
  private:
-  Worker* m_worker;
-  js_def_persistent_string(Throw)
-  js_common_string(js_def_persistent_string);
+	Worker* m_worker;
+	js_def_persistent_string(Throw)
+	js_common_string(js_def_persistent_string);
 };
 
 JS_END

@@ -70,27 +70,27 @@ function gen(src, target) {
 function each_dir(src, target) {
 
 	if (!fs.existsSync(target)) { // 创建目录
-    fs.mkdirSync(target);
-  }
+		fs.mkdirSync(target);
+	}
 
-  var ls = fs.readdirSync(source + src);
-  
-  for (var i = 0; i < ls.length; i++) {
-    var name = ls[i];
-    if (name[0] != '.') {
+	var ls = fs.readdirSync(source + src);
+	
+	for (var i = 0; i < ls.length; i++) {
+		var name = ls[i];
+		if (name[0] != '.') {
 
-	    var src2 = src + '/' + name;
-	    var target2 = target + '/' + name;
-	    var stat = fs.statSync(source + src2);
-	    
-	    if (stat.isFile()) {
-	      gen(src2, target2);
-	    } 
-	    else if (stat.isDirectory()) {
-	      each_dir(src2, target2);
-	    }
-  	}
-  }
+			var src2 = src + '/' + name;
+			var target2 = target + '/' + name;
+			var stat = fs.statSync(source + src2);
+			
+			if (stat.isFile()) {
+				gen(src2, target2);
+			} 
+			else if (stat.isDirectory()) {
+				each_dir(src2, target2);
+			}
+		}
+	}
 }
 
 fs.mkdir_p_sync(output);

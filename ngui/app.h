@@ -69,12 +69,12 @@ class CSSManager;
  */
 class GUILock {
  public:
-  GUILock();
-  ~GUILock();
-  void lock();
-  void unlock();
+	GUILock();
+	~GUILock();
+	void lock();
+	void unlock();
  private:
-  void* m_d;
+	void* m_d;
 };
 
 /*
@@ -87,191 +87,191 @@ class GUILock {
  * @class GUIApplication
  */
 class XX_EXPORT GUIApplication: public Object {
-  XX_HIDDEN_ALL_COPY(GUIApplication);
+	XX_HIDDEN_ALL_COPY(GUIApplication);
  public:
 
-  XX_EVENT(onload);
-  XX_EVENT(onunload);
-  XX_EVENT(onbackground);
-  XX_EVENT(onforeground);
-  XX_EVENT(onpause);
-  XX_EVENT(onresume);
-  XX_EVENT(onmemorywarning);
-  
-  GUIApplication();
-  
-  /**
-   * @destructor
-   */
-  virtual ~GUIApplication();
-  
-  /**
-   * @func initialize()
-   */
-  void initialize(const Map<String, int>& option = Map<String, int>()) throw(Error);
-  
-  /**
-   * @func run 运行消息循环
-   */
-  void run();
-  
-  /**
-   * @func clear 清理垃圾回收内存资源, full=true 清理全部资源
-   */
-  void clear(bool full = false);
-  
-  /**
-   * @func pending() 挂起应用进程
-   */
-  void pending();
-  
-  /**
-   * @func is_load
-   */
-  inline bool is_load() const { return m_is_load; }
-  
-  /**
-   * @func draw_ctx 绘图上下文
-   */
-  inline Draw* draw_ctx() { return m_draw_ctx; }
-  
-  /**
-   * @func display_port GUI程序显示端口
-   */
-  inline DisplayPort* display_port() { return m_display_port; }
-  
-  /**
-   * @func root GUI程序的根视图
-   */
-  inline Root* root() { return m_root; }
-  
-  /**
-   * @func focus_view
-   */
-  inline View* focus_view() { return m_focus_view; }
-  
-  /**
-   * @func render_loop gui render loop
-   */
-  inline RunLoop* render_loop() const { return m_render_loop; }
-  
-  /**
-   * @func work_loop work loop
-   */
-  inline RunLoop* main_loop() const { return m_main_loop; }
-  
-  /**
-   * @func action_center
-   */
-  inline ActionCenter* action_center() { return m_action_center; }
-  
-  /**
-   * @func app Get current gui application entity
-   */
-  static inline GUIApplication* shared() { return m_shared; }
+	XX_EVENT(onload);
+	XX_EVENT(onunload);
+	XX_EVENT(onbackground);
+	XX_EVENT(onforeground);
+	XX_EVENT(onpause);
+	XX_EVENT(onresume);
+	XX_EVENT(onmemorywarning);
+	
+	GUIApplication();
+	
+	/**
+	 * @destructor
+	 */
+	virtual ~GUIApplication();
+	
+	/**
+	 * @func initialize()
+	 */
+	void initialize(const Map<String, int>& option = Map<String, int>()) throw(Error);
+	
+	/**
+	 * @func run 运行消息循环
+	 */
+	void run();
+	
+	/**
+	 * @func clear 清理垃圾回收内存资源, full=true 清理全部资源
+	 */
+	void clear(bool full = false);
+	
+	/**
+	 * @func pending() 挂起应用进程
+	 */
+	void pending();
+	
+	/**
+	 * @func is_load
+	 */
+	inline bool is_load() const { return m_is_load; }
+	
+	/**
+	 * @func draw_ctx 绘图上下文
+	 */
+	inline Draw* draw_ctx() { return m_draw_ctx; }
+	
+	/**
+	 * @func display_port GUI程序显示端口
+	 */
+	inline DisplayPort* display_port() { return m_display_port; }
+	
+	/**
+	 * @func root GUI程序的根视图
+	 */
+	inline Root* root() { return m_root; }
+	
+	/**
+	 * @func focus_view
+	 */
+	inline View* focus_view() { return m_focus_view; }
+	
+	/**
+	 * @func render_loop gui render loop
+	 */
+	inline RunLoop* render_loop() const { return m_render_loop; }
+	
+	/**
+	 * @func work_loop work loop
+	 */
+	inline RunLoop* main_loop() const { return m_main_loop; }
+	
+	/**
+	 * @func action_center
+	 */
+	inline ActionCenter* action_center() { return m_action_center; }
+	
+	/**
+	 * @func app Get current gui application entity
+	 */
+	static inline GUIApplication* shared() { return m_shared; }
 
-  // get default text attrs
-  inline TextColor default_text_background_color() { return m_default_text_background_color; }
-  inline TextColor default_text_color() { return m_default_text_color; }
-  inline TextSize default_text_size() { return m_default_text_size; }
-  inline TextStyle default_text_style() { return m_default_text_style; }
-  inline TextFamily default_text_family() { return m_default_text_family; }
-  inline TextShadow default_text_shadow() { return m_default_text_shadow; }
-  inline TextLineHeight default_text_line_height() { return m_default_text_line_height; }
-  inline TextDecoration default_text_decoration() { return m_default_text_decoration; }
-  inline TextOverflow default_text_overflow() { return m_default_text_overflow; }
-  inline TextWhiteSpace default_text_white_space() { return m_default_text_white_space; }
-  // set default text attrs
-  void set_default_text_background_color(TextColor value);
-  void set_default_text_color(TextColor value);
-  void set_default_text_size(TextSize value);
-  void set_default_text_style(TextStyle value);
-  void set_default_text_family(TextFamily value);
-  void set_default_text_shadow(TextShadow value);
-  void set_default_text_line_height(TextLineHeight value);
-  void set_default_text_decoration(TextDecoration value);
-  void set_default_text_overflow(TextOverflow value);
-  void set_default_text_white_space(TextWhiteSpace value);
-  
-  /**
-   * @func max_texture_memory_limit()
-   */
-  uint64 max_texture_memory_limit() const;
-  
-  /**
-   * @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
-   */
-  void set_max_texture_memory_limit(uint64 limit);
-  
-  /**
-   * @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
-   */
-  uint64 used_texture_memory() const;
-  
-  /**
-   * @func open_url()
-   */
-  void open_url(cString& url);
-  
-  /**
-   * @func send_email
-   */
-  void send_email(cString& recipient,
-                  cString& subject,
-                  cString& cc = String(),
-                  cString& bcc = String(),
-                  cString& body = String());
-  
+	// get default text attrs
+	inline TextColor default_text_background_color() { return m_default_text_background_color; }
+	inline TextColor default_text_color() { return m_default_text_color; }
+	inline TextSize default_text_size() { return m_default_text_size; }
+	inline TextStyle default_text_style() { return m_default_text_style; }
+	inline TextFamily default_text_family() { return m_default_text_family; }
+	inline TextShadow default_text_shadow() { return m_default_text_shadow; }
+	inline TextLineHeight default_text_line_height() { return m_default_text_line_height; }
+	inline TextDecoration default_text_decoration() { return m_default_text_decoration; }
+	inline TextOverflow default_text_overflow() { return m_default_text_overflow; }
+	inline TextWhiteSpace default_text_white_space() { return m_default_text_white_space; }
+	// set default text attrs
+	void set_default_text_background_color(TextColor value);
+	void set_default_text_color(TextColor value);
+	void set_default_text_size(TextSize value);
+	void set_default_text_style(TextStyle value);
+	void set_default_text_family(TextFamily value);
+	void set_default_text_shadow(TextShadow value);
+	void set_default_text_line_height(TextLineHeight value);
+	void set_default_text_decoration(TextDecoration value);
+	void set_default_text_overflow(TextOverflow value);
+	void set_default_text_white_space(TextWhiteSpace value);
+	
+	/**
+	 * @func max_texture_memory_limit()
+	 */
+	uint64 max_texture_memory_limit() const;
+	
+	/**
+	 * @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
+	 */
+	void set_max_texture_memory_limit(uint64 limit);
+	
+	/**
+	 * @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
+	 */
+	uint64 used_texture_memory() const;
+	
+	/**
+	 * @func open_url()
+	 */
+	void open_url(cString& url);
+	
+	/**
+	 * @func send_email
+	 */
+	void send_email(cString& recipient,
+									cString& subject,
+									cString& cc = String(),
+									cString& bcc = String(),
+									cString& body = String());
+	
  protected:
-  
-  /**
-   * @func run_main(argc, argv) create sub gui thread, call by system
-   */
-  static void run_main(int argc, char* argv[]);
+	
+	/**
+	 * @func run_main(argc, argv) create sub gui thread, call by system
+	 */
+	static void run_main(int argc, char* argv[]);
 
  private:
-  
-  static GUIApplication*  m_shared;   // 当前应用程序
-  bool  m_is_run, m_is_load;
-  RunLoop  *m_render_loop, *m_main_loop;
-  KeepLoop *m_render_keep, *m_main_keep;
-  Draw*                m_draw_ctx;         // 绘图上下文
-  DisplayPort*         m_display_port;     // 显示端口
-  Root*                m_root;             // 根视图
-  View*                m_focus_view;       // 焦点视图
-  TextColor            m_default_text_background_color; // default text attrs
-  TextColor            m_default_text_color;
-  TextSize             m_default_text_size;
-  TextStyle            m_default_text_style;
-  TextFamily           m_default_text_family;
-  TextShadow           m_default_text_shadow;
-  TextLineHeight       m_default_text_line_height;
-  TextDecoration       m_default_text_decoration;
-  TextOverflow         m_default_text_overflow;
-  TextWhiteSpace       m_default_text_white_space; // text
-  GUIEventDispatch*    m_dispatch;
-  ActionCenter*        m_action_center;
-  uint64 m_max_texture_memory_limit;
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
-  
-  friend GUIApplication*  app();
-  friend Root*            root();
-  friend RunLoop*         main_loop();
-  friend DisplayPort*     display_port();
+	
+	static GUIApplication*  m_shared;   // 当前应用程序
+	bool  m_is_run, m_is_load;
+	RunLoop  *m_render_loop, *m_main_loop;
+	KeepLoop *m_render_keep, *m_main_keep;
+	Draw*                m_draw_ctx;         // 绘图上下文
+	DisplayPort*         m_display_port;     // 显示端口
+	Root*                m_root;             // 根视图
+	View*                m_focus_view;       // 焦点视图
+	TextColor            m_default_text_background_color; // default text attrs
+	TextColor            m_default_text_color;
+	TextSize             m_default_text_size;
+	TextStyle            m_default_text_style;
+	TextFamily           m_default_text_family;
+	TextShadow           m_default_text_shadow;
+	TextLineHeight       m_default_text_line_height;
+	TextDecoration       m_default_text_decoration;
+	TextOverflow         m_default_text_overflow;
+	TextWhiteSpace       m_default_text_white_space; // text
+	GUIEventDispatch*    m_dispatch;
+	ActionCenter*        m_action_center;
+	uint64 m_max_texture_memory_limit;
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
+	
+	friend GUIApplication*  app();
+	friend Root*            root();
+	friend RunLoop*         main_loop();
+	friend DisplayPort*     display_port();
 };
 
 inline GUIApplication* app() {
-  return GUIApplication::m_shared;
+	return GUIApplication::m_shared;
 }
 inline Root* root() {
-  return GUIApplication::m_shared ? GUIApplication::m_shared->m_root : nullptr;
+	return GUIApplication::m_shared ? GUIApplication::m_shared->m_root : nullptr;
 }
 inline DisplayPort* display_port() {
-  return GUIApplication::m_shared ? GUIApplication::m_shared->m_display_port : nullptr;
+	return GUIApplication::m_shared ? GUIApplication::m_shared->m_display_port : nullptr;
 }
 inline RunLoop* main_loop() {
-  return GUIApplication::m_shared ? GUIApplication::m_shared->m_main_loop : nullptr;
+	return GUIApplication::m_shared ? GUIApplication::m_shared->m_main_loop : nullptr;
 }
 
 XX_END

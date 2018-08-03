@@ -45,40 +45,40 @@ XX_NS(ngui)
  */
 class XX_EXPORT TextRows {
  public:
-  
-  struct XX_EXPORT Row {
-    Vec2 offset_start;
-    Vec2 offset_end;
-    float baseline;
-    float ascender;
-    float descender;
-    uint  row_num;
-  };
-  
-  TextRows();
-  
-  inline Row* last() { return m_last; }
-  inline uint count() const { return m_values.length(); }
-  inline uint last_num() const { return m_last_num; }
-  inline bool clip() const { return m_is_clip; }
-  inline void mark_clip() { m_is_clip = true; }
-  inline float max_width() const { return m_max_width; }
-  inline float max_height() const { return m_last->offset_end.y(); }
-  inline const Array<Row>& rows() const { return m_values; }
-  inline Row& operator[](uint index) { return m_values[index]; }
-  
-  void push_row(float ascender, float descender);
-  void update_row(float ascender, float descender);
-  void reset();
-  void set_width(float value);
-  
+	
+	struct XX_EXPORT Row {
+		Vec2 offset_start;
+		Vec2 offset_end;
+		float baseline;
+		float ascender;
+		float descender;
+		uint  row_num;
+	};
+	
+	TextRows();
+	
+	inline Row* last() { return m_last; }
+	inline uint count() const { return m_values.length(); }
+	inline uint last_num() const { return m_last_num; }
+	inline bool clip() const { return m_is_clip; }
+	inline void mark_clip() { m_is_clip = true; }
+	inline float max_width() const { return m_max_width; }
+	inline float max_height() const { return m_last->offset_end.y(); }
+	inline const Array<Row>& rows() const { return m_values; }
+	inline Row& operator[](uint index) { return m_values[index]; }
+	
+	void push_row(float ascender, float descender);
+	void update_row(float ascender, float descender);
+	void reset();
+	void set_width(float value);
+	
  private:
-  
-  Array<Row>  m_values;
-  Row*        m_last;       // 最后行
-  uint        m_last_num;   // 最后行号
-  float       m_max_width;  // 最大宽度
-  bool        m_is_clip;    // 修剪结束
+	
+	Array<Row>  m_values;
+	Row*        m_last;       // 最后行
+	uint        m_last_num;   // 最后行号
+	float       m_max_width;  // 最大宽度
+	bool        m_is_clip;    // 修剪结束
 };
 
 XX_END

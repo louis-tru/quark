@@ -36,41 +36,41 @@
 using namespace ngui;
 
 void test_json() {
-  
-  String str1("100");
-  String str2 = str1;
-  
-  LOG("OK");
-  
-  cchar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
-  
-  JSON json = JSON::parse(json_str);
-  
-  LOG(JSON::stringify(json));
-  
-  LOG("short,%d", sizeof(short));
-  LOG("int,%d", sizeof(int));
-  LOG("long,%d", sizeof(long));
-  LOG("long int,%d", sizeof(long int));
-  LOG("long double,%d", sizeof(long double));
-  
-  LOG("\n");
-  
-  LOG(sizeof(int));
-  LOG(sizeof(int*));
-  LOG(sizeof(long));
+	
+	String str1("100");
+	String str2 = str1;
+	
+	LOG("OK");
+	
+	cchar* json_str = "{ \"a\": \"ABCD\", \"b\": 100 }";
+	
+	JSON json = JSON::parse(json_str);
+	
+	LOG(JSON::stringify(json));
+	
+	LOG("short,%d", sizeof(short));
+	LOG("int,%d", sizeof(int));
+	LOG("long,%d", sizeof(long));
+	LOG("long int,%d", sizeof(long int));
+	LOG("long double,%d", sizeof(long double));
+	
+	LOG("\n");
+	
+	LOG(sizeof(int));
+	LOG(sizeof(int*));
+	LOG(sizeof(long));
 //  LOG(sizeof(EventDelegate<>));
-  
-  std::map<String, cchar*> m;
-  LOG("%s", m["a"]);
-  cchar*& a = m["a"];
-  a = "110";
-  LOG("%s", m["a"]);
-  
-  const int* i = new int(101);
-  
-  LOG(*i);
-  
-  delete i;
-  LOG(*i);
+	
+	std::map<String, cchar*> m;
+	LOG("%s", m["a"]);
+	cchar*& a = m["a"];
+	a = "110";
+	LOG("%s", m["a"]);
+	
+	const int* i = new int(101);
+	
+	LOG(*i);
+	
+	delete i;
+	LOG(*i);
 }

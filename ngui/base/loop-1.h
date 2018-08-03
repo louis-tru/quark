@@ -43,40 +43,40 @@ XX_NS(ngui)
  * @class ParallelWorking
  */
 class ParallelWorking: public Object {
-  XX_HIDDEN_ALL_COPY(ParallelWorking);
+	XX_HIDDEN_ALL_COPY(ParallelWorking);
  public:
-  typedef SimpleThread::Exec Exec;
-  ParallelWorking();
-  ParallelWorking(RunLoop* loop);
-  virtual ~ParallelWorking();
-  ThreadID detach_child(Exec exec, cString& name);
-  void abort_child(ThreadID id = ThreadID());   // default abort all child
-  void awaken_child(ThreadID id = ThreadID());  // default awaken all child
-  uint post(cCb& cb); // post message to main thread
-  uint post(cCb& cb, uint64 delay_us);
-  void abort(uint id = 0);
-  inline Mutex& mutex() { return m_mutex; }
+	typedef SimpleThread::Exec Exec;
+	ParallelWorking();
+	ParallelWorking(RunLoop* loop);
+	virtual ~ParallelWorking();
+	ThreadID detach_child(Exec exec, cString& name);
+	void abort_child(ThreadID id = ThreadID());   // default abort all child
+	void awaken_child(ThreadID id = ThreadID());  // default awaken all child
+	uint post(cCb& cb); // post message to main thread
+	uint post(cCb& cb, uint64 delay_us);
+	void abort(uint id = 0);
+	inline Mutex& mutex() { return m_mutex; }
  private:
-  KeepLoop*  m_proxy;
-  Mutex m_mutex;
-  uint  m_gid;
+	KeepLoop*  m_proxy;
+	Mutex m_mutex;
+	uint  m_gid;
 };
 
 XX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
  public:
-  inline void set_independent_mutex(RecursiveMutex* mutex) {
-    m_independent_mutex = mutex;
-  }
-  inline void independent_mutex_lock() {
-    if (m_independent_mutex) {
-      m_independent_mutex->lock();
-    }
-  }
-  inline void independent_mutex_unlock() {
-    if (m_independent_mutex) {
-      m_independent_mutex->unlock();
-    }
-  }
+	inline void set_independent_mutex(RecursiveMutex* mutex) {
+		m_independent_mutex = mutex;
+	}
+	inline void independent_mutex_lock() {
+		if (m_independent_mutex) {
+			m_independent_mutex->lock();
+		}
+	}
+	inline void independent_mutex_unlock() {
+		if (m_independent_mutex) {
+			m_independent_mutex->unlock();
+		}
+	}
 };
 
 XX_END

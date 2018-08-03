@@ -33,69 +33,69 @@
 XX_NS(ngui)
 
 TextRows::TextRows() {
-  reset();
+	reset();
 }
 
 void TextRows::push_row(float ascender, float descender) {
-  
-  float line_height = ascender + descender;
-  
-  if (m_last->offset_start.y() == m_last->offset_end.y()) { // 只有第一行才会这样
-    m_last->offset_end.y(m_last->offset_start.y() + line_height);
-    m_last->baseline = ascender;
-    m_last->ascender = ascender;
-    m_last->descender = descender;
-  }
-  
-  set_width( m_last->offset_end.x() );
-  
-  m_last_num++;
-  
-  m_values.push({
-    Vec2(0, m_last->offset_end.y()),
-    Vec2(0, m_last->offset_end.y() + line_height),
-    m_last->offset_end.y() + ascender,
-    ascender,
-    descender,
-    m_last_num
-  });
-  
-  m_last = &m_values[m_last_num];
+	
+	float line_height = ascender + descender;
+	
+	if (m_last->offset_start.y() == m_last->offset_end.y()) { // 只有第一行才会这样
+		m_last->offset_end.y(m_last->offset_start.y() + line_height);
+		m_last->baseline = ascender;
+		m_last->ascender = ascender;
+		m_last->descender = descender;
+	}
+	
+	set_width( m_last->offset_end.x() );
+	
+	m_last_num++;
+	
+	m_values.push({
+		Vec2(0, m_last->offset_end.y()),
+		Vec2(0, m_last->offset_end.y() + line_height),
+		m_last->offset_end.y() + ascender,
+		ascender,
+		descender,
+		m_last_num
+	});
+	
+	m_last = &m_values[m_last_num];
 }
 
 void TextRows::update_row(float asc, float desc) {
-  
-  bool change = false;
-  
-  if (asc > m_last->ascender) {
-    m_last->ascender = asc;
-    change = true;
-  }
-  
-  if (desc > m_last->descender) {
-    m_last->descender = desc;
-    change = true;
-  }
-  
-  if ( change ) {
-    m_last->baseline = m_last->offset_start.y() + m_last->ascender;
-    m_last->offset_end.y(m_last->baseline + m_last->descender);
-  }
+	
+	bool change = false;
+	
+	if (asc > m_last->ascender) {
+		m_last->ascender = asc;
+		change = true;
+	}
+	
+	if (desc > m_last->descender) {
+		m_last->descender = desc;
+		change = true;
+	}
+	
+	if ( change ) {
+		m_last->baseline = m_last->offset_start.y() + m_last->ascender;
+		m_last->offset_end.y(m_last->baseline + m_last->descender);
+	}
 }
 
 void TextRows::reset() {
-  m_values.clear();
-  m_values.push({ Vec2(), Vec2(), 0, 0, 0, 0 });
-  m_last_num = 0;
-  m_last = &m_values[0];
-  m_max_width = 0;
-  m_is_clip = false;
+	m_values.clear();
+	m_values.push({ Vec2(), Vec2(), 0, 0, 0, 0 });
+	m_last_num = 0;
+	m_last = &m_values[0];
+	m_max_width = 0;
+	m_is_clip = false;
 }
 
 void TextRows::set_width(float value) {
-  if ( value > m_max_width ) {
-    m_max_width = value;
-  }
+	if ( value > m_max_width ) {
+		m_max_width = value;
+	}
 }
 
 XX_END

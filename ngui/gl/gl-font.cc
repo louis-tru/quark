@@ -84,175 +84,175 @@ void test__TESS_CONNECTED_POLYGONS() {
 }
 
 bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
-  
-  struct ShortVec2 { int16 x; int16 y; };
-  
-  if ( ! glyph->m_have_outline ) { // 没有轮廓,使用一个空白轮廓
-    
-    ShortVec2 vertex[3] = { { 0,0 }, { 0,0 }, { 0,0 } };
-    
-    glGenBuffers(1, &glyph->m_vertex_value);
-    glBindBuffer(GL_ARRAY_BUFFER, glyph->m_vertex_value);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ShortVec2) * 3, vertex, GL_STATIC_DRAW);
-    // mark_new_data_size(glyph, sizeof(ShortVec2) * 3);
-    
-    return true;
-  }
-  
-  // TODO parse vbo data
-  FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, 64 * 64, 72, 72);
-  XX_ASSERT(!error);
-  
-  if ( error ) {
-    XX_WARN("%s", "parse font glyph vbo data error"); return false;
-  }
-  
-  error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(),
-                        FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
-  XX_ASSERT( ! error );
-  
-  if ( error ) {
-    XX_WARN("%s", "parse font glyph vbo data error"); return false;
-  }
-  
-  // 字的轮廓信息完全存储在outline中，下面的代码就是分解高阶曲线
-  
-  TESStesselator* tess = tessNewTess(nullptr);
-  
-  ScopeClear clear([tess]() { tessDeleteTess(tess); });
-  
-  FT_Outline_Funcs funcs = {
-    Font::Inl::move_to,
-    Font::Inl::line_to, Font::Inl::conic_to, Font::Inl::cubic_to, 0, 0
-  };
-  
-  Font::Inl::DecomposeData data = {
-    tess,
-    Container<Vec2>(256),
-    10, // 14, // 曲线采样率,采样率越高所表现的曲线越圆滑
-    0,
-    0
-  };
-  
-  error = FT_Outline_Decompose(&((FT_GlyphSlot)font->m_ft_glyph)->outline, &funcs, &data);
-  if ( error ) {
-    XX_WARN("%s", "parse font glyph vbo data error"); return false;
-  }
-  
-  tessAddContour(tess, 2, *data.vertex, sizeof(Vec2), data.length);
-  
-  int poly_size = 3;
-  // 转换成gl可以绘制的凸轮廓顶点数据
-  if ( ! tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_CONNECTED_POLYGONS, poly_size, 2, 0) ) {
-    return false;
-  }
-  
-  const int nelems = tessGetElementCount(tess);
-  const TESSindex* elems = tessGetElements(tess);
-  const TESSreal* verts = tessGetVertices(tess);
-  ArrayBuffer<ShortVec2> vertex(nelems * poly_size);
-  
-  int vertex_count = 0;
-  for (int i = 0; i < nelems; i++) {
-    const TESSindex* poly = &elems[i * poly_size * 2];
-    for (int j = 0; j < poly_size; j++) {
-      int16 x = roundf(*(verts + poly[j] * 2));
-      int16 y = roundf(*(verts + poly[j] * 2 + 1));
-      vertex[vertex_count] = { x, y };
-      vertex_count++;
-    }
-  }
-  
-  //  LOG("vertex_length:%d", data.total);
-  //  LOG("tess vertex_length:%d, element_count:%d", tessGetVertexCount(*tess), nelems);
-  //  LOG("tess total vertex length:%d", vertex_count);
-  
-  glGenBuffers(1, &glyph->m_vertex_value);
-  glBindBuffer(GL_ARRAY_BUFFER, glyph->m_vertex_value);
-  glyph->m_vertex_count = vertex_count;
-  
-  uint size = sizeof(ShortVec2) * vertex_count;
-  
-  glBufferData(GL_ARRAY_BUFFER, size, *vertex, GL_STATIC_DRAW);
-  _inl_font(font)->mark_new_data_size(glyph, size);
-  
-  return true;
+	
+	struct ShortVec2 { int16 x; int16 y; };
+	
+	if ( ! glyph->m_have_outline ) { // 没有轮廓,使用一个空白轮廓
+		
+		ShortVec2 vertex[3] = { { 0,0 }, { 0,0 }, { 0,0 } };
+		
+		glGenBuffers(1, &glyph->m_vertex_value);
+		glBindBuffer(GL_ARRAY_BUFFER, glyph->m_vertex_value);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(ShortVec2) * 3, vertex, GL_STATIC_DRAW);
+		// mark_new_data_size(glyph, sizeof(ShortVec2) * 3);
+		
+		return true;
+	}
+	
+	// TODO parse vbo data
+	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, 64 * 64, 72, 72);
+	XX_ASSERT(!error);
+	
+	if ( error ) {
+		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+	}
+	
+	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(),
+												FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
+	XX_ASSERT( ! error );
+	
+	if ( error ) {
+		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+	}
+	
+	// 字的轮廓信息完全存储在outline中，下面的代码就是分解高阶曲线
+	
+	TESStesselator* tess = tessNewTess(nullptr);
+	
+	ScopeClear clear([tess]() { tessDeleteTess(tess); });
+	
+	FT_Outline_Funcs funcs = {
+		Font::Inl::move_to,
+		Font::Inl::line_to, Font::Inl::conic_to, Font::Inl::cubic_to, 0, 0
+	};
+	
+	Font::Inl::DecomposeData data = {
+		tess,
+		Container<Vec2>(256),
+		10, // 14, // 曲线采样率,采样率越高所表现的曲线越圆滑
+		0,
+		0
+	};
+	
+	error = FT_Outline_Decompose(&((FT_GlyphSlot)font->m_ft_glyph)->outline, &funcs, &data);
+	if ( error ) {
+		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+	}
+	
+	tessAddContour(tess, 2, *data.vertex, sizeof(Vec2), data.length);
+	
+	int poly_size = 3;
+	// 转换成gl可以绘制的凸轮廓顶点数据
+	if ( ! tessTesselate(tess, TESS_WINDING_POSITIVE, TESS_CONNECTED_POLYGONS, poly_size, 2, 0) ) {
+		return false;
+	}
+	
+	const int nelems = tessGetElementCount(tess);
+	const TESSindex* elems = tessGetElements(tess);
+	const TESSreal* verts = tessGetVertices(tess);
+	ArrayBuffer<ShortVec2> vertex(nelems * poly_size);
+	
+	int vertex_count = 0;
+	for (int i = 0; i < nelems; i++) {
+		const TESSindex* poly = &elems[i * poly_size * 2];
+		for (int j = 0; j < poly_size; j++) {
+			int16 x = roundf(*(verts + poly[j] * 2));
+			int16 y = roundf(*(verts + poly[j] * 2 + 1));
+			vertex[vertex_count] = { x, y };
+			vertex_count++;
+		}
+	}
+	
+	//  LOG("vertex_length:%d", data.total);
+	//  LOG("tess vertex_length:%d, element_count:%d", tessGetVertexCount(*tess), nelems);
+	//  LOG("tess total vertex length:%d", vertex_count);
+	
+	glGenBuffers(1, &glyph->m_vertex_value);
+	glBindBuffer(GL_ARRAY_BUFFER, glyph->m_vertex_value);
+	glyph->m_vertex_count = vertex_count;
+	
+	uint size = sizeof(ShortVec2) * vertex_count;
+	
+	glBufferData(GL_ARRAY_BUFFER, size, *vertex, GL_STATIC_DRAW);
+	_inl_font(font)->mark_new_data_size(glyph, size);
+	
+	return true;
 }
 
 bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level) {
-  
-  // @texture_levels_size
-  const float texture_levels_size[13] = {
-    10, 12, 14, 16, 18, 20, 25, 32, 64, 128, 256, 512
-  };
-  
-  float font_size = texture_levels_size[level] * font->m_pool->m_display_port_scale;
-  
-  FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, font_size * 64, 72, 72);
-  if (error) {
-    XX_WARN("%s", "parse font glyph vbo data error"); return false;
-  }
-  
-  error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
-  if (error) {
-    XX_WARN("%s", "parse font glyph vbo data error"); return false;
-  }
-  
-  if ( ((FT_GlyphSlot)font->m_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
-    error = FT_Render_Glyph((FT_GlyphSlot)font->m_ft_glyph, FT_RENDER_MODE_NORMAL);
-    if (error) {
-      XX_WARN("%s", "parse font glyph vbo data error"); return false;
-    }
-  }
-  
-  FT_GlyphSlot slot = (FT_GlyphSlot)font->m_ft_glyph;
-  FT_Bitmap bit = slot->bitmap;
-  
-  GLuint texture_handle;
-  glGenTextures(1, &texture_handle);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture_handle);
-  
-  if ( !glIsTexture(texture_handle) ) { return false; }
-  
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  
-  // 纹理重复方式
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  
-  glyph->m_textures[level] = texture_handle;
-  
-  if ( glyph->m_have_outline ) { // 有轮廓
-    
-    glTexImage2D(GL_TEXTURE_2D, 0,
-                 GL_ALPHA, bit.width, bit.rows, 0,
-                 GL_ALPHA, GL_UNSIGNED_BYTE, bit.buffer);
-    glyph->m_texture_size[level] = {
-      int16(bit.width),
-      int16(bit.rows),
-      int16(slot->bitmap_left),
-      int16(slot->bitmap_top)
-    };
-    
-    //uint16 unicode = glyph->unicode();
-    //XX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
-    //        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
-    
-    _inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);
-  }
-  else { // 没有轮廓, 使用一个透明的空白像素
-    byte empty_pixel = 0;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 1, 1, 0, GL_ALPHA, GL_UNSIGNED_BYTE, &empty_pixel);
-    glyph->m_texture_size[level] = { 1, 1, 0, 0 };
-    _inl_font(font)->mark_new_data_size(glyph, 1);
-  }
-  
-  glBindTexture(GL_TEXTURE_2D, 0);
-  
-  return true;
+	
+	// @texture_levels_size
+	const float texture_levels_size[13] = {
+		10, 12, 14, 16, 18, 20, 25, 32, 64, 128, 256, 512
+	};
+	
+	float font_size = texture_levels_size[level] * font->m_pool->m_display_port_scale;
+	
+	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, font_size * 64, 72, 72);
+	if (error) {
+		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+	}
+	
+	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
+	if (error) {
+		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+	}
+	
+	if ( ((FT_GlyphSlot)font->m_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
+		error = FT_Render_Glyph((FT_GlyphSlot)font->m_ft_glyph, FT_RENDER_MODE_NORMAL);
+		if (error) {
+			XX_WARN("%s", "parse font glyph vbo data error"); return false;
+		}
+	}
+	
+	FT_GlyphSlot slot = (FT_GlyphSlot)font->m_ft_glyph;
+	FT_Bitmap bit = slot->bitmap;
+	
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+	
+	if ( !glIsTexture(texture_handle) ) { return false; }
+	
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	// 纹理重复方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	glyph->m_textures[level] = texture_handle;
+	
+	if ( glyph->m_have_outline ) { // 有轮廓
+		
+		glTexImage2D(GL_TEXTURE_2D, 0,
+								 GL_ALPHA, bit.width, bit.rows, 0,
+								 GL_ALPHA, GL_UNSIGNED_BYTE, bit.buffer);
+		glyph->m_texture_size[level] = {
+			int16(bit.width),
+			int16(bit.rows),
+			int16(slot->bitmap_left),
+			int16(slot->bitmap_top)
+		};
+		
+		//uint16 unicode = glyph->unicode();
+		//XX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
+		//        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
+		
+		_inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);
+	}
+	else { // 没有轮廓, 使用一个透明的空白像素
+		byte empty_pixel = 0;
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 1, 1, 0, GL_ALPHA, GL_UNSIGNED_BYTE, &empty_pixel);
+		glyph->m_texture_size[level] = { 1, 1, 0, 0 };
+		_inl_font(font)->mark_new_data_size(glyph, 1);
+	}
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	return true;
 }
 
 XX_END

@@ -63,13 +63,13 @@ MultimediaSource::TrackInfo::TrackInfo() {
 // ------------------- MultimediaSource ------------------
 
 MultimediaSource::MultimediaSource(cString& uri, RunLoop* loop): m_inl(nullptr) {
-  m_inl = new Inl(this, uri, loop);
+	m_inl = new Inl(this, uri, loop);
 }
 MultimediaSource::~MultimediaSource() { Release(m_inl); m_inl = nullptr; }
 void MultimediaSource::set_delegate(Delegate* delegate) { m_inl->set_delegate(delegate); }
 const URI& MultimediaSource::uri() const { return m_inl->m_uri; }
 MultimediaSourceStatus MultimediaSource::status() const {
-  return (MultimediaSourceStatus)(int)m_inl->m_status;
+	return (MultimediaSourceStatus)(int)m_inl->m_status;
 }
 uint64 MultimediaSource::duration() const { return m_inl->m_duration; }
 uint MultimediaSource::bit_rate_index() const { return m_inl->bit_rate_index(); }
@@ -97,34 +97,34 @@ Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& 
 , m_eof_flags(0)
 , m_disable(1)
 {
-  
+	
 }
 
 /**
  * @func select_track
  */
 bool Extractor::select_track(uint index) {
-  ScopeLock lock(m_host->m_inl->mutex());
-  if ( m_track_index != index && index < m_tracks.length() ) {
-    m_host->m_inl->extractor_flush(this);
-    m_track_index = index;
-    return true;
-  }
-  return false;
+	ScopeLock lock(m_host->m_inl->mutex());
+	if ( m_track_index != index && index < m_tracks.length() ) {
+		m_host->m_inl->extractor_flush(this);
+		m_track_index = index;
+		return true;
+	}
+	return false;
 }
 
 /**
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(char* out, uint size) {
-  if ( m_sample_data.size ) {
-    size = XX_MIN(m_sample_data.size, size);
-    memcpy(out, m_sample_data.data, size);
-    m_sample_data.data += size;
-    m_sample_data.size -= size;
-    return size;
-  }
-  return 0;
+	if ( m_sample_data.size ) {
+		size = XX_MIN(m_sample_data.size, size);
+		memcpy(out, m_sample_data.data, size);
+		m_sample_data.data += size;
+		m_sample_data.size -= size;
+		return size;
+	}
+	return 0;
 }
 
 
@@ -132,26 +132,26 @@ uint Extractor::deplete_sample(char* out, uint size) {
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(Buffer& out) {
-  uint size = out.write(m_sample_data.data, 0, m_sample_data.size);
-  m_sample_data.size = 0;
-  return size;
+	uint size = out.write(m_sample_data.data, 0, m_sample_data.size);
+	m_sample_data.size = 0;
+	return size;
 }
 
 /**
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(uint size) {
-  size = XX_MIN(size, m_sample_data.size);
-  m_sample_data.size -= size;
-  m_sample_data.data += size;
-  return size;
+	size = XX_MIN(size, m_sample_data.size);
+	m_sample_data.size -= size;
+	m_sample_data.data += size;
+	return size;
 }
 
 /**
  * @func advance
  * */
 bool Extractor::advance() {
-  return m_host->m_inl->extractor_advance(this);
+	return m_host->m_inl->extractor_advance(this);
 }
 
 // ----------------- MediaCodec -------------------
@@ -166,145 +166,145 @@ MediaCodec::MediaCodec(Extractor* extractor)
 , m_channel_layout(CH_INVALID)
 , m_channel_count(0)
 , m_frame_interval(0) {
-  m_frame_interval = extractor->track().frame_interval;
+	m_frame_interval = extractor->track().frame_interval;
 }
 
 /**
  * @func set_delegate
  */
 void MediaCodec::set_delegate(Delegate* delegate) {
-  XX_ASSERT(delegate);
-  m_delegate = delegate;
+	XX_ASSERT(delegate);
+	m_delegate = delegate;
 }
 
 inline static bool is_nalu_start(byte* str) {
-  return str[0] == 0 && str[1] == 0 && str[2] == 0 && str[3] == 1;
+	return str[0] == 0 && str[1] == 0 && str[2] == 0 && str[3] == 1;
 }
 
 static bool find_nalu_package(cBuffer& buffer, uint start, uint& end) {
-  uint length = buffer.length();
-  if ( start < length ) {
-    cchar* c = *buffer + start;
-    while(1) {
-      size_t size = strlen(c);
-      start += size;
-      c     += size;
-      if ( start + 4 < length ) {
-        if (c[1] == 0 && c[2] == 0 && c[3] == 1) {
-          end = start;
-          return true;
-        } else {
-          start++; c++;
-        }
-      } else {
-        end = length; return true;
-      }
-    }
-  }
-  return false;
+	uint length = buffer.length();
+	if ( start < length ) {
+		cchar* c = *buffer + start;
+		while(1) {
+			size_t size = strlen(c);
+			start += size;
+			c     += size;
+			if ( start + 4 < length ) {
+				if (c[1] == 0 && c[2] == 0 && c[3] == 1) {
+					end = start;
+					return true;
+				} else {
+					start++; c++;
+				}
+			} else {
+				end = length; return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**
  * @func parse_psp_pps
  * */
 bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
-  // set sps and pps
-  byte* buf = (byte*)*extradata;
-  
-  if ( is_nalu_start(buf) ) { // nalu
-    uint start = 4, end = 0;
-    while (find_nalu_package(extradata, start, end)) {
-      int nalu_type = buf[start] & 0x1F;
-      if (nalu_type == 0x07) {        // SPS
-        out_psp.write((char*)buf + start - 4, 0, end - start + 4);
-      } else if (nalu_type == 0x08) { // PPS
-        out_pps.write((char*)buf + start - 4, 0, end - start + 4);
-      }
-      if (out_psp.length() && out_pps.length()) {
-        return true;
-      }
-      start = end + 4; // 0x0 0x0 0x0 0x1
-    }
-  } else { // mp4 style
-    uint sps_size = buf[7];
-    uint numOfPictureParameterSets = buf[8 + sps_size];
-    if (numOfPictureParameterSets == 1) {
-      uint pps_size = buf[10 + sps_size];
-      if (sps_size + pps_size < extradata.length()) {
-        char csd_s[4] = {0, 0, 0, 1};
-        out_psp.write(csd_s, 0, 4);
-        out_pps.write(csd_s, 0, 4);
-        out_psp.write((char*)buf + 8, 4, sps_size);
-        out_pps.write((char*)buf + 11 + sps_size, 4, pps_size);
-        return true;
-      }
-    }
-  }
-  return false;
+	// set sps and pps
+	byte* buf = (byte*)*extradata;
+	
+	if ( is_nalu_start(buf) ) { // nalu
+		uint start = 4, end = 0;
+		while (find_nalu_package(extradata, start, end)) {
+			int nalu_type = buf[start] & 0x1F;
+			if (nalu_type == 0x07) {        // SPS
+				out_psp.write((char*)buf + start - 4, 0, end - start + 4);
+			} else if (nalu_type == 0x08) { // PPS
+				out_pps.write((char*)buf + start - 4, 0, end - start + 4);
+			}
+			if (out_psp.length() && out_pps.length()) {
+				return true;
+			}
+			start = end + 4; // 0x0 0x0 0x0 0x1
+		}
+	} else { // mp4 style
+		uint sps_size = buf[7];
+		uint numOfPictureParameterSets = buf[8 + sps_size];
+		if (numOfPictureParameterSets == 1) {
+			uint pps_size = buf[10 + sps_size];
+			if (sps_size + pps_size < extradata.length()) {
+				char csd_s[4] = {0, 0, 0, 1};
+				out_psp.write(csd_s, 0, 4);
+				out_pps.write(csd_s, 0, 4);
+				out_psp.write((char*)buf + 8, 4, sps_size);
+				out_pps.write((char*)buf + 11 + sps_size, 4, pps_size);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 /**
  * @func convert_sample_data_to_nalu
  * */
 bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
-  uint size = buffer.length();
-  if (size) {
-    byte* buf = (byte*)*buffer;
-    if ( !is_nalu_start(buf) ) {
-      uint i = 0;
-      while ( i + 4 < size ) {
-        uint len = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8)) + buf[3];
-        buf[0] = 0;
-        buf[1] = 0;
-        buf[2] = 0;
-        buf[3] = 1;
-        i += len + 4;
-        buf += len + 4;
-      }
-    }
-    return true;
-  }
-  return false;
+	uint size = buffer.length();
+	if (size) {
+		byte* buf = (byte*)*buffer;
+		if ( !is_nalu_start(buf) ) {
+			uint i = 0;
+			while ( i + 4 < size ) {
+				uint len = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8)) + buf[3];
+				buf[0] = 0;
+				buf[1] = 0;
+				buf[2] = 0;
+				buf[3] = 1;
+				i += len + 4;
+				buf += len + 4;
+			}
+		}
+		return true;
+	}
+	return false;
 }
 
 /**
  * @func convert_sample_data_to_mp4_style
  * */
 bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
-  uint size = buffer.length();
-  if (size) {
-    byte* buf = (byte*)*buffer;
-    if ( is_nalu_start(buf) ) {
-      uint start = 4, end = 0;
-      while( find_nalu_package(buffer, start, end) ) {
-        int s = end - start;
-        byte header[4] = { (byte)(s >> 24), (byte)(s >> 16), (byte)(s >> 8), (byte)s };
-        memcpy(buf + start - 4, header, 4);
-        start = end + 4;
-      }
-    }
-    return true;
-  }
-  return false;
+	uint size = buffer.length();
+	if (size) {
+		byte* buf = (byte*)*buffer;
+		if ( is_nalu_start(buf) ) {
+			uint start = 4, end = 0;
+			while( find_nalu_package(buffer, start, end) ) {
+				int s = end - start;
+				byte header[4] = { (byte)(s >> 24), (byte)(s >> 16), (byte)(s >> 8), (byte)s };
+				memcpy(buf + start - 4, header, 4);
+				start = end + 4;
+			}
+		}
+		return true;
+	}
+	return false;
 }
 
 /**
  * @func create decoder
  * */
 MediaCodec* MediaCodec::create(MediaType type, MultimediaSource* source) {
-  MediaCodec* rv = hardware(type, source);
-  if ( ! rv ) {
-    rv = software(type, source);
-  }
-  return rv;
+	MediaCodec* rv = hardware(type, source);
+	if ( ! rv ) {
+		rv = software(type, source);
+	}
+	return rv;
 }
 
 MediaCodec::OutputBuffer::OutputBuffer() {
-  memset(this, 0, sizeof(OutputBuffer));
+	memset(this, 0, sizeof(OutputBuffer));
 }
 
 MediaCodec::OutputBuffer::OutputBuffer(const OutputBuffer& buffer) {
-  memcpy(this, &buffer, sizeof(OutputBuffer));
+	memcpy(this, &buffer, sizeof(OutputBuffer));
 }
 
 XX_END

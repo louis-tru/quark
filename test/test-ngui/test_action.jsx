@@ -131,89 +131,89 @@ new GUIApplication().start(
 		time: 0,
 		//
 		origin: '50 50',
-    width: 100,
-    height: 100,
-    opacity: 1,
-    visible: true,
-    src: resolve('res/cc.jpg'),
+		width: 100,
+		height: 100,
+		opacity: 1,
+		visible: true,
+		src: resolve('res/cc.jpg'),
 	}]);
 
 	M(act6, 'add', [{
 		time: 4000,
 		//
 		translate: '0 0',
-    scale: '1 1',
-    skew: '0 0',
-    origin: '0 0',
-    margin: 0,
-    border: '0 #000',
-    border_width: 0,
-    border_color: '#000',
-    border_radius: 0,
-    min_width: 'auto',
-    min_height: 'auto',
-    start: '0 0',
-    ratio: '1 1',
-    //
-    x: 0,
-    y: 0,
-    scale_x: 1,
-    scale_y: 1,
-    skew_x: 0,
-    skew_y: 0,
-    origin_x: 50,
-    origin_y: 50,
-    rotate_z: 0,
-    opacity: 1,
-    visible: true,
-    width: 100,
-    height: 100,
-    margin_left: 'auto',
-    margin_top: 'auto',
-    margin_right: 'auto',
-    margin_bottom: 'auto',
-    border_left: '0 #000',
-    border_top: '0 #000',
-    border_right: '0 #000',
-    border_bottom: '0 #000',
-    border_left_width: 0,
-    border_top_width: 0,
-    border_right_width: 0,
-    border_bottom_width: 0,
-    border_left_color: '#000',
-    border_top_color: '#000',
-    border_right_color: '#000',
-    border_bottom_color: '#000',
-    border_radius_left_top: 0,
-    border_radius_right_top: 0,
-    border_radius_right_bottom: 0,
-    border_radius_left_bottom: 0,
-    background_color: '#000',
-    newline: false,
-    content_align: 'right',
-    text_align: 'center',
-    max_width: 'full',
-    max_height: 'auto',
-    start_x: 0,
-    start_y: 0,
-    ratio_x: 1,
-    ratio_y: 1,
-    repeat: 'repeat',
-    text_background_color: '#ff0',
-    text_color: '#f00',
-    text_size: 'inherit',
-    text_style: 'inherit',
-    text_family: 'inherit',
-    text_line_height: 'inherit',
-    text_shadow: '2 2 2 #000',
-    text_decoration: 'overline',
-    text_overflow: 'ellipsis',
-    text_white_space: 'no_wrap',
-    align_x: 'center',
-    align_y: 'bottom',
-    shadow: '2 2 2 #f00',
-    src: resolve('res/bb.jpg'),
-    background_image: resolve('res/bb.jpg'),
+		scale: '1 1',
+		skew: '0 0',
+		origin: '0 0',
+		margin: 0,
+		border: '0 #000',
+		border_width: 0,
+		border_color: '#000',
+		border_radius: 0,
+		min_width: 'auto',
+		min_height: 'auto',
+		start: '0 0',
+		ratio: '1 1',
+		//
+		x: 0,
+		y: 0,
+		scale_x: 1,
+		scale_y: 1,
+		skew_x: 0,
+		skew_y: 0,
+		origin_x: 50,
+		origin_y: 50,
+		rotate_z: 0,
+		opacity: 1,
+		visible: true,
+		width: 100,
+		height: 100,
+		margin_left: 'auto',
+		margin_top: 'auto',
+		margin_right: 'auto',
+		margin_bottom: 'auto',
+		border_left: '0 #000',
+		border_top: '0 #000',
+		border_right: '0 #000',
+		border_bottom: '0 #000',
+		border_left_width: 0,
+		border_top_width: 0,
+		border_right_width: 0,
+		border_bottom_width: 0,
+		border_left_color: '#000',
+		border_top_color: '#000',
+		border_right_color: '#000',
+		border_bottom_color: '#000',
+		border_radius_left_top: 0,
+		border_radius_right_top: 0,
+		border_radius_right_bottom: 0,
+		border_radius_left_bottom: 0,
+		background_color: '#000',
+		newline: false,
+		content_align: 'right',
+		text_align: 'center',
+		max_width: 'full',
+		max_height: 'auto',
+		start_x: 0,
+		start_y: 0,
+		ratio_x: 1,
+		ratio_y: 1,
+		repeat: 'repeat',
+		text_background_color: '#ff0',
+		text_color: '#f00',
+		text_size: 'inherit',
+		text_style: 'inherit',
+		text_family: 'inherit',
+		text_line_height: 'inherit',
+		text_shadow: '2 2 2 #000',
+		text_decoration: 'overline',
+		text_overflow: 'ellipsis',
+		text_white_space: 'no_wrap',
+		align_x: 'center',
+		align_y: 'bottom',
+		shadow: '2 2 2 #f00',
+		src: resolve('res/bb.jpg'),
+		background_image: resolve('res/bb.jpg'),
 	}])
 
 	P(act6, 'first');
@@ -232,75 +232,75 @@ new GUIApplication().start(
 	var f = M(act6, 'frame', [1]);
 
 	P(f, 'translate')
-  P(f, 'scale')
-  P(f, 'skew')
-  P(f, 'origin');
-  P(f, 'margin');
-  P(f, 'border');
-  P(f, 'border_width');
-  P(f, 'border_color');
-  P(f, 'border_radius');
-  P(f, 'min_width');
-  P(f, 'min_height');
-  P(f, 'start');
-  P(f, 'ratio');
-  P(f, 'width');
-  P(f, 'height');
-  P(f, 'x');
-  P(f, 'y');
-  P(f, 'scale_x');
-  P(f, 'scale_y');
-  P(f, 'skew_x');
-  P(f, 'skew_y');
-  P(f, 'origin_x');
-  P(f, 'origin_y');
-  P(f, 'rotate_z');
-  P(f, 'opacity');
-  P(f, 'visible');
-  P(f, 'margin_left');
-  P(f, 'margin_top');
-  P(f, 'margin_right');
-  P(f, 'margin_bottom');
-  P(f, 'border_left');
-  P(f, 'border_top');
-  P(f, 'border_right');
-  P(f, 'border_bottom');
-  P(f, 'border_left_width');
-  P(f, 'border_top_width');
-  P(f, 'border_right_width');
-  P(f, 'border_bottom_width');
-  P(f, 'border_left_color');
-  P(f, 'border_top_color');
-  P(f, 'border_right_color');
-  P(f, 'border_bottom_color');
-  P(f, 'border_radius_left_top');
-  P(f, 'border_radius_right_top');
-  P(f, 'border_radius_right_bottom');
-  P(f, 'border_radius_left_bottom');
-  P(f, 'background_color');
-  P(f, 'newline');
-  P(f, 'content_align');
-  P(f, 'text_align');
-  P(f, 'max_width');
-  P(f, 'max_height');
-  P(f, 'start_x');
-  P(f, 'start_y');
-  P(f, 'ratio_x');
-  P(f, 'ratio_y');
-  P(f, 'repeat');
-  P(f, 'text_background_color');
-  P(f, 'text_color');
-  P(f, 'text_size');
-  P(f, 'text_style');
-  P(f, 'text_family');
-  P(f, 'text_line_height');
-  P(f, 'text_shadow');
-  P(f, 'text_decoration');
-  P(f, 'text_overflow');
-  P(f, 'text_white_space');
-  P(f, 'align_x');
-  P(f, 'align_y');
-  P(f, 'shadow');
-  P(f, 'src');
-  P(f, 'background_image');
+	P(f, 'scale')
+	P(f, 'skew')
+	P(f, 'origin');
+	P(f, 'margin');
+	P(f, 'border');
+	P(f, 'border_width');
+	P(f, 'border_color');
+	P(f, 'border_radius');
+	P(f, 'min_width');
+	P(f, 'min_height');
+	P(f, 'start');
+	P(f, 'ratio');
+	P(f, 'width');
+	P(f, 'height');
+	P(f, 'x');
+	P(f, 'y');
+	P(f, 'scale_x');
+	P(f, 'scale_y');
+	P(f, 'skew_x');
+	P(f, 'skew_y');
+	P(f, 'origin_x');
+	P(f, 'origin_y');
+	P(f, 'rotate_z');
+	P(f, 'opacity');
+	P(f, 'visible');
+	P(f, 'margin_left');
+	P(f, 'margin_top');
+	P(f, 'margin_right');
+	P(f, 'margin_bottom');
+	P(f, 'border_left');
+	P(f, 'border_top');
+	P(f, 'border_right');
+	P(f, 'border_bottom');
+	P(f, 'border_left_width');
+	P(f, 'border_top_width');
+	P(f, 'border_right_width');
+	P(f, 'border_bottom_width');
+	P(f, 'border_left_color');
+	P(f, 'border_top_color');
+	P(f, 'border_right_color');
+	P(f, 'border_bottom_color');
+	P(f, 'border_radius_left_top');
+	P(f, 'border_radius_right_top');
+	P(f, 'border_radius_right_bottom');
+	P(f, 'border_radius_left_bottom');
+	P(f, 'background_color');
+	P(f, 'newline');
+	P(f, 'content_align');
+	P(f, 'text_align');
+	P(f, 'max_width');
+	P(f, 'max_height');
+	P(f, 'start_x');
+	P(f, 'start_y');
+	P(f, 'ratio_x');
+	P(f, 'ratio_y');
+	P(f, 'repeat');
+	P(f, 'text_background_color');
+	P(f, 'text_color');
+	P(f, 'text_size');
+	P(f, 'text_style');
+	P(f, 'text_family');
+	P(f, 'text_line_height');
+	P(f, 'text_shadow');
+	P(f, 'text_decoration');
+	P(f, 'text_overflow');
+	P(f, 'text_white_space');
+	P(f, 'align_x');
+	P(f, 'align_y');
+	P(f, 'shadow');
+	P(f, 'src');
+	P(f, 'background_image');
 };

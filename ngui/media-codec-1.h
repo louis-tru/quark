@@ -50,108 +50,108 @@ class SoftwareMediaCodec;
 
 class MultimediaSource::Inl: public ParallelWorking {
  public:
-  
-  Inl(MultimediaSource*, cString& uri, RunLoop* loop);
-  
-  /**
-   * @destructor
-   */
-  virtual ~Inl();
-  
-  /**
-   * @func set_delegate
-   */
-  void set_delegate(Delegate* delegate);
-  
-  /**
-   * @func bit_rate_index
-   */
-  uint bit_rate_index();
-  
-  /**
-   * @func bit_rates
-   */
-  const Array<BitRateInfo>& bit_rate();
-  
-  /**
-   * @func bit_rate
-   */
-  bool select_bit_rate(uint index);
-  
-  /**
-   * @func extractor
-   */
-  Extractor* extractor(MediaType type);
-    
-  /**
-   * @func seek
-   * */
-  bool seek(uint64 timeUs);
+	
+	Inl(MultimediaSource*, cString& uri, RunLoop* loop);
+	
+	/**
+	 * @destructor
+	 */
+	virtual ~Inl();
+	
+	/**
+	 * @func set_delegate
+	 */
+	void set_delegate(Delegate* delegate);
+	
+	/**
+	 * @func bit_rate_index
+	 */
+	uint bit_rate_index();
+	
+	/**
+	 * @func bit_rates
+	 */
+	const Array<BitRateInfo>& bit_rate();
+	
+	/**
+	 * @func bit_rate
+	 */
+	bool select_bit_rate(uint index);
+	
+	/**
+	 * @func extractor
+	 */
+	Extractor* extractor(MediaType type);
+		
+	/**
+	 * @func seek
+	 * */
+	bool seek(uint64 timeUs);
 
-  /**
-   * @func start
-   * */
-  void start();
+	/**
+	 * @func start
+	 * */
+	void start();
 
-  /**
-   * @func start
-   * */
-  void stop();
-  
-  /**
-   * @func is_active
-   */
-  inline bool is_active() {
-    return  m_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-            m_status == MULTIMEDIA_SOURCE_STATUS_WAIT;
-  }
-  
-  /**
-   * @func disable_wait_buffer
-   */
-  void disable_wait_buffer(bool value);
-  
-  /**
-   * @func get_stream
-   */
-  AVStream* get_stream(const TrackInfo& track);
-  
+	/**
+	 * @func start
+	 * */
+	void stop();
+	
+	/**
+	 * @func is_active
+	 */
+	inline bool is_active() {
+		return  m_status == MULTIMEDIA_SOURCE_STATUS_READY ||
+						m_status == MULTIMEDIA_SOURCE_STATUS_WAIT;
+	}
+	
+	/**
+	 * @func disable_wait_buffer
+	 */
+	void disable_wait_buffer(bool value);
+	
+	/**
+	 * @func get_stream
+	 */
+	AVStream* get_stream(const TrackInfo& track);
+	
  private: 
-  typedef Extractor::SampleData SampleData;
-  
-  void reset();
-  bool has_empty_extractor();
-  void extractor_flush(Extractor* ex);
-  BitRateInfo read_bit_rate_info(AVFormatContext* fmt_ctx, int i, int size);
-  void select_multi_bit_rate2(uint index);
-  void read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, int bit_rate_index);
-  bool extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn);
-  bool extractor_advance(Extractor* ex);
-  bool extractor_advance_no_wait(Extractor* ex);
-  Extractor* valid_extractor(AVMediaType type);
-  bool has_valid_extractor();
-  void trigger_error(cError& err);
-  void trigger_wait_buffer();
-  void trigger_ready_buffer();
-  void trigger_eof();
-  
-  friend class MultimediaSource;
-  friend class Extractor;
-  friend class MediaCodec;
-  friend class SoftwareMediaCodec;
-  
+	typedef Extractor::SampleData SampleData;
+	
+	void reset();
+	bool has_empty_extractor();
+	void extractor_flush(Extractor* ex);
+	BitRateInfo read_bit_rate_info(AVFormatContext* fmt_ctx, int i, int size);
+	void select_multi_bit_rate2(uint index);
+	void read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, int bit_rate_index);
+	bool extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn);
+	bool extractor_advance(Extractor* ex);
+	bool extractor_advance_no_wait(Extractor* ex);
+	Extractor* valid_extractor(AVMediaType type);
+	bool has_valid_extractor();
+	void trigger_error(cError& err);
+	void trigger_wait_buffer();
+	void trigger_ready_buffer();
+	void trigger_eof();
+	
+	friend class MultimediaSource;
+	friend class Extractor;
+	friend class MediaCodec;
+	friend class SoftwareMediaCodec;
+	
  private:
-  MultimediaSource*           m_host;
-  URI                         m_uri;
-  MultimediaSourceStatus      m_status;
-  Delegate*                   m_delegate;
-  uint                        m_bit_rate_index;
-  Array<BitRateInfo>          m_bit_rate;
-  Map<int, Extractor*>        m_extractors;
-  uint64                      m_duration;
-  AVFormatContext*            m_fmt_ctx;
-  bool                        m_read_eof;
-  bool                        m_disable_wait_buffer;
+	MultimediaSource*           m_host;
+	URI                         m_uri;
+	MultimediaSourceStatus      m_status;
+	Delegate*                   m_delegate;
+	uint                        m_bit_rate_index;
+	Array<BitRateInfo>          m_bit_rate;
+	Map<int, Extractor*>        m_extractors;
+	uint64                      m_duration;
+	AVFormatContext*            m_fmt_ctx;
+	bool                        m_read_eof;
+	bool                        m_disable_wait_buffer;
 };
 
 XX_END

@@ -42,11 +42,11 @@ JS_BEGIN
  */
 class NativeKeys {
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    worker->run_native_script(exports, WeakBuffer((char*)
-                              native_js::CORE_native_js_code_keys_,
-                              native_js::CORE_native_js_code_keys_count_), "keys.js");
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		worker->run_native_script(exports, WeakBuffer((char*)
+															native_js::CORE_native_js_code_keys_,
+															native_js::CORE_native_js_code_keys_count_), "keys.js");
+	}
 };
 
 JS_REG_MODULE(ngui_keys, NativeKeys)

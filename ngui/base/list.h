@@ -43,84 +43,84 @@ XX_NS(ngui)
 template<class Item, class ItemAllocator> 
 class XX_EXPORT List: public Object {
  private:
-  struct ItemWrap {
-    Item _item;
-    ItemWrap* _prev;
-    ItemWrap* _next;
-    static void* operator new (std::size_t size) {
-      return ItemAllocator::alloc(size);
-    }
-    static void  operator delete(void* p) {
-      return ItemAllocator::free(p);
-    }
-  };
-  struct IteratorData {
-   public:
-    typedef Item Value;
-    const Item& value() const;
-    Item& value();
-   private:
-    IteratorData();
-    IteratorData(List*, ItemWrap*);
-    bool equals(const IteratorData& it) const;
-    bool is_null() const;
-    void prev();
-    void next();
-    List* _host;
-    ItemWrap* _item;
-    friend class List;
-    friend class ConstIteratorTemplate<IteratorData>;
-    friend class IteratorTemplate<IteratorData>;
-  };
-  
+	struct ItemWrap {
+		Item _item;
+		ItemWrap* _prev;
+		ItemWrap* _next;
+		static void* operator new (std::size_t size) {
+			return ItemAllocator::alloc(size);
+		}
+		static void  operator delete(void* p) {
+			return ItemAllocator::free(p);
+		}
+	};
+	struct IteratorData {
+	 public:
+		typedef Item Value;
+		const Item& value() const;
+		Item& value();
+	 private:
+		IteratorData();
+		IteratorData(List*, ItemWrap*);
+		bool equals(const IteratorData& it) const;
+		bool is_null() const;
+		void prev();
+		void next();
+		List* _host;
+		ItemWrap* _item;
+		friend class List;
+		friend class ConstIteratorTemplate<IteratorData>;
+		friend class IteratorTemplate<IteratorData>;
+	};
+	
  public:
-  typedef ConstIteratorTemplate<IteratorData> ConstIterator;
-  typedef IteratorTemplate<IteratorData> Iterator;
-  
-  List();
-  List(const List&);
-  List(List&&);
-  List(const std::initializer_list<Item>& list);
-  virtual ~List();
-  List& operator=(const List&);
-  List& operator=(List&&);
-  Iterator push(const Item& item);
-  Iterator push(Item&& item);
-  void push(const List& ls);
-  void push(List&& ls);
-  Iterator unshift(const Item& item);
-  Iterator unshift(Item&& item);
-  void unshift(const List& ls);
-  void unshift(List&& ls);
-  void pop();
-  void shift();
-  void pop(uint count);
-  void shift(uint count);
-  Iterator before(ConstIterator it, const Item& item);
-  Iterator before(ConstIterator it, Item&& item);
-  Iterator after(ConstIterator it, const Item& item);
-  Iterator after(ConstIterator it, Item&& item);
-  void del(ConstIterator it);
-  void clear();
-  const Item& first()const;
-  const Item& last()const;
-  Item& first();
-  Item& last();
-  ConstIterator find(uint offset) const;
-  Iterator find(uint offset);
-  ConstIterator find(ConstIterator it, int offset = 0) const;
-  Iterator find(ConstIterator it, int offset = 0);
-  String join(cString& sp) const;
-  ConstIterator begin() const;
-  ConstIterator end() const;
-  Iterator begin();
-  Iterator end();
-  uint length() const;
-  
+	typedef ConstIteratorTemplate<IteratorData> ConstIterator;
+	typedef IteratorTemplate<IteratorData> Iterator;
+	
+	List();
+	List(const List&);
+	List(List&&);
+	List(const std::initializer_list<Item>& list);
+	virtual ~List();
+	List& operator=(const List&);
+	List& operator=(List&&);
+	Iterator push(const Item& item);
+	Iterator push(Item&& item);
+	void push(const List& ls);
+	void push(List&& ls);
+	Iterator unshift(const Item& item);
+	Iterator unshift(Item&& item);
+	void unshift(const List& ls);
+	void unshift(List&& ls);
+	void pop();
+	void shift();
+	void pop(uint count);
+	void shift(uint count);
+	Iterator before(ConstIterator it, const Item& item);
+	Iterator before(ConstIterator it, Item&& item);
+	Iterator after(ConstIterator it, const Item& item);
+	Iterator after(ConstIterator it, Item&& item);
+	void del(ConstIterator it);
+	void clear();
+	const Item& first()const;
+	const Item& last()const;
+	Item& first();
+	Item& last();
+	ConstIterator find(uint offset) const;
+	Iterator find(uint offset);
+	ConstIterator find(ConstIterator it, int offset = 0) const;
+	Iterator find(ConstIterator it, int offset = 0);
+	String join(cString& sp) const;
+	ConstIterator begin() const;
+	ConstIterator end() const;
+	Iterator begin();
+	Iterator end();
+	uint length() const;
+	
  private:
-  ItemWrap* _first;
-  ItemWrap* _last;
-  uint      _length;
+	ItemWrap* _first;
+	ItemWrap* _last;
+	uint      _length;
 };
 
 XX_END

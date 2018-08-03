@@ -37,33 +37,33 @@
 XX_NS(ngui)
 
 static void* default_alloc(size_t size) {
-  return ::malloc(size);
+	return ::malloc(size);
 }
 
 static void default_release(Object* obj) {
-  obj->~Object();
-  free(obj);
+	obj->~Object();
+	free(obj);
 }
 
 static void default_retain(Object* obj) {
-  /* NOOP */
+	/* NOOP */
 }
 
 void* Allocator::alloc(size_t size) {
-  return ::malloc(size);
+	return ::malloc(size);
 }
 void* Allocator::realloc(void* ptr, size_t size) {
-  return ::realloc(ptr, size);
+	return ::realloc(ptr, size);
 }
 void Allocator::free(void* ptr) {
-  ::free(ptr);
+	::free(ptr);
 }
 
 static ObjectAllocator object_allocator = { &default_alloc, &default_release, &default_retain };
 
 String Object::to_string() const {
-  static String str("[Object]");
-  return str;
+	static String str("[Object]");
+	return str;
 }
 
 #if XX_MEMORY_TRACE_MARK
@@ -71,19 +71,19 @@ String Object::to_string() const {
 static int active_mark_objects_count_ = 0;
 static Mutex mark_objects_mutex;
 static Array<Object*> mark_objects_([](){
-  Array<Object*> rv;
-  return rv;
+	Array<Object*> rv;
+	return rv;
 }());
 
 int Object::initialize_mark_() {
-  if ( mark_index_ == 123456 ) {
-    ScopeLock scope(mark_objects_mutex);
-    uint index = mark_objects_.length();
-    mark_objects_.push(this);
-    active_mark_objects_count_++;
-    return index;
-  }
-  return -1;
+	if ( mark_index_ == 123456 ) {
+		ScopeLock scope(mark_objects_mutex);
+		uint index = mark_objects_.length();
+		mark_objects_.push(this);
+		active_mark_objects_count_++;
+		return index;
+	}
+	return -1;
 }
 
 Object::Object(): mark_index_(initialize_mark_()) {
@@ -91,112 +91,112 @@ Object::Object(): mark_index_(initialize_mark_()) {
 }
 
 Object::~Object() {
-  if ( mark_index_ > -1 ) {
-    ScopeLock scope(mark_objects_mutex);
-    mark_objects_[mark_index_] = nullptr;
-    XX_ASSERT(active_mark_objects_count_);
-    active_mark_objects_count_--;
-  }
+	if ( mark_index_ > -1 ) {
+		ScopeLock scope(mark_objects_mutex);
+		mark_objects_[mark_index_] = nullptr;
+		XX_ASSERT(active_mark_objects_count_);
+		active_mark_objects_count_--;
+	}
 }
 
 std::vector<Object*> Object::mark_objects() {
-  ScopeLock scope(mark_objects_mutex);
-  Array<Object*> new_mark_objects;
-  std::vector<Object*> rv;
-  
-  for ( auto& i : mark_objects_ ) {
-    Object* obj = i.value();
-    if ( i.value() ) {
-      obj->mark_index_ = new_mark_objects.length();
-      new_mark_objects.push(obj);
-      rv.push_back(obj);
-    }
-  }
-  
-  XX_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
-  
-  mark_objects_ = move(new_mark_objects);
-  return rv;
+	ScopeLock scope(mark_objects_mutex);
+	Array<Object*> new_mark_objects;
+	std::vector<Object*> rv;
+	
+	for ( auto& i : mark_objects_ ) {
+		Object* obj = i.value();
+		if ( i.value() ) {
+			obj->mark_index_ = new_mark_objects.length();
+			new_mark_objects.push(obj);
+			rv.push_back(obj);
+		}
+	}
+	
+	XX_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
+	
+	mark_objects_ = move(new_mark_objects);
+	return rv;
 }
 
 int Object::mark_objects_count() {
-  return active_mark_objects_count_;
+	return active_mark_objects_count_;
 }
 
 #endif
 
 bool Object::is_reference() const {
-  return false;
+	return false;
 }
 
 bool Object::retain() {
-  return 0;
+	return 0;
 }
 
 void Object::release() {
-  object_allocator.release(this);
+	object_allocator.release(this);
 }
 
 void* Object::operator new(std::size_t size) {
-  
+	
 #if XX_MEMORY_TRACE_MARK
-  void* p = object_allocator.alloc(size);
-  ((Object*)p)->mark_index_ = 123456;
-  return p;
+	void* p = object_allocator.alloc(size);
+	((Object*)p)->mark_index_ = 123456;
+	return p;
 #else
-  return object_allocator.alloc(size);
+	return object_allocator.alloc(size);
 #endif
 }
 
 void* Object::operator new(std::size_t size, void* p) {
-  std::size_t s;
-  return p;
+	std::size_t s;
+	return p;
 }
 
 void Object::operator delete(void* p) {
-  XX_UNREACHABLE();
+	XX_UNREACHABLE();
 }
 
 void set_global_allocator(ObjectAllocator* alloc) {
-  if ( alloc ) {
-    object_allocator.alloc = alloc->alloc ? alloc->alloc : default_alloc;
-    object_allocator.release = alloc->release ? alloc->release : default_release;
-    object_allocator.retain = alloc->retain ? alloc->retain : default_retain;
-  } else {
-    object_allocator = { &default_alloc, &default_release, &default_retain };
-  }
+	if ( alloc ) {
+		object_allocator.alloc = alloc->alloc ? alloc->alloc : default_alloc;
+		object_allocator.release = alloc->release ? alloc->release : default_release;
+		object_allocator.retain = alloc->retain ? alloc->retain : default_retain;
+	} else {
+		object_allocator = { &default_alloc, &default_release, &default_retain };
+	}
 }
 
 bool Retain(Object* obj) {
-  return obj ? obj->retain() : false;
+	return obj ? obj->retain() : false;
 }
 
 void Release(Object* obj) {
-  if ( obj )
-    obj->release();
+	if ( obj )
+		obj->release();
 }
 
 Reference::~Reference() {
-  XX_ASSERT( m_ref_count <= 0 );
+	XX_ASSERT( m_ref_count <= 0 );
 }
 
 bool Reference::retain() {
-  XX_ASSERT(m_ref_count >= 0);
-  if ( m_ref_count++ == 0 ) {
-    object_allocator.retain(this);
-  }
-  return true;
+	XX_ASSERT(m_ref_count >= 0);
+	if ( m_ref_count++ == 0 ) {
+		object_allocator.retain(this);
+	}
+	return true;
 }
 
 void Reference::release() {
-  XX_ASSERT(m_ref_count >= 0);
-  if ( --m_ref_count <= 0 ) { // 当引用记数小宇等于0释放
-    object_allocator.release(this);
-  }
+	XX_ASSERT(m_ref_count >= 0);
+	if ( --m_ref_count <= 0 ) { // 当引用记数小宇等于0释放
+		object_allocator.release(this);
+	}
 }
 
 bool Reference::is_reference() const {
-  return true;
+	return true;
 }
 
 XX_END

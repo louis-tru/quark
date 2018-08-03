@@ -42,127 +42,127 @@ JS_BEGIN
 
 class WrapInput: public WrapViewBase {
  public:
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapInput>(args, new Input());
-  }
-  
-  static void type(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Input);
-    JS_RETURN( worker->value_program()->New(self->type()) );
-  }
-  
-  static void return_type(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Input);
-    JS_RETURN( worker->value_program()->New(self->return_type()) );
-  }
-  
-  static void placeholder(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Input);
-    JS_RETURN( self->placeholder() );
-  }
-  
-  static void placeholder_color(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Input);
-    JS_RETURN( worker->value_program()->New(self->placeholder_color()) );
-  }
-  
-  static void security(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Input);
-    JS_RETURN( self->security() );
-  }
-  
-  static void text_margin(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Input);
-    JS_RETURN( self->text_margin() );
-  }
-  
-  static void set_type(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(KeyboardType, value, "Input.type = %s");
-    JS_SELF(Input);
-    self->set_type(out);
-  }
-  
-  static void set_return_type(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(KeyboardReturnType, value, "Input.returnType = %s");
-    JS_SELF(Input);
-    self->set_return_type(out);
-  }
-  
-  static void set_placeholder(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Input);
-    self->set_placeholder( value->ToUcs2StringValue(worker) );
-  }
-  
-  static void set_placeholder_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(Color, value, "Input.placeholderColor = %s");
-    JS_SELF(Input);
-    self->set_placeholder_color( out );
-  }
-  
-  static void set_security(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    JS_SELF(Input);
-    self->set_security( value->ToBooleanValue(worker) );
-  }
-  
-  /**
-   * @set text_margin {float}
-   */
-  static void set_text_margin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    if ( ! value->IsNumber(worker) ) {
-      JS_THROW_ERR("* @set textMargin {float}");
-    }
-    JS_SELF(Input);
-    self->set_text_margin(value->ToNumberValue(worker));
-  }
-  
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Input, constructor, {
-      JS_SET_CLASS_ACCESSOR(type, type, set_type);
-      JS_SET_CLASS_ACCESSOR(returnType, return_type, set_return_type);
-      JS_SET_CLASS_ACCESSOR(placeholder, placeholder, set_placeholder);
-      JS_SET_CLASS_ACCESSOR(placeholderColor, placeholder_color, set_placeholder_color);
-      JS_SET_CLASS_ACCESSOR(security, security, set_security);
-      JS_SET_CLASS_ACCESSOR(textMargin, text_margin, set_text_margin);
-    }, Text);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Input), View::INPUT);
-  }
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapInput>(args, new Input());
+	}
+	
+	static void type(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Input);
+		JS_RETURN( worker->value_program()->New(self->type()) );
+	}
+	
+	static void return_type(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Input);
+		JS_RETURN( worker->value_program()->New(self->return_type()) );
+	}
+	
+	static void placeholder(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Input);
+		JS_RETURN( self->placeholder() );
+	}
+	
+	static void placeholder_color(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Input);
+		JS_RETURN( worker->value_program()->New(self->placeholder_color()) );
+	}
+	
+	static void security(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Input);
+		JS_RETURN( self->security() );
+	}
+	
+	static void text_margin(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Input);
+		JS_RETURN( self->text_margin() );
+	}
+	
+	static void set_type(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(KeyboardType, value, "Input.type = %s");
+		JS_SELF(Input);
+		self->set_type(out);
+	}
+	
+	static void set_return_type(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(KeyboardReturnType, value, "Input.returnType = %s");
+		JS_SELF(Input);
+		self->set_return_type(out);
+	}
+	
+	static void set_placeholder(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Input);
+		self->set_placeholder( value->ToUcs2StringValue(worker) );
+	}
+	
+	static void set_placeholder_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(Color, value, "Input.placeholderColor = %s");
+		JS_SELF(Input);
+		self->set_placeholder_color( out );
+	}
+	
+	static void set_security(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		JS_SELF(Input);
+		self->set_security( value->ToBooleanValue(worker) );
+	}
+	
+	/**
+	 * @set text_margin {float}
+	 */
+	static void set_text_margin(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		if ( ! value->IsNumber(worker) ) {
+			JS_THROW_ERR("* @set textMargin {float}");
+		}
+		JS_SELF(Input);
+		self->set_text_margin(value->ToNumberValue(worker));
+	}
+	
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Input, constructor, {
+			JS_SET_CLASS_ACCESSOR(type, type, set_type);
+			JS_SET_CLASS_ACCESSOR(returnType, return_type, set_return_type);
+			JS_SET_CLASS_ACCESSOR(placeholder, placeholder, set_placeholder);
+			JS_SET_CLASS_ACCESSOR(placeholderColor, placeholder_color, set_placeholder_color);
+			JS_SET_CLASS_ACCESSOR(security, security, set_security);
+			JS_SET_CLASS_ACCESSOR(textMargin, text_margin, set_text_margin);
+		}, Text);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Input), View::INPUT);
+	}
 };
 
 class WrapTextarea: public WrapViewBase {
  public:
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapTextarea>(args, new Textarea());
-  }
-  
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Textarea, constructor, {
-      WrapViewBase::inherit_scroll(cls, worker);
-    }, Input);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Textarea), View::TEXTAREA);
-  }
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapTextarea>(args, new Textarea());
+	}
+	
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Textarea, constructor, {
+			WrapViewBase::inherit_scroll(cls, worker);
+		}, Input);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Textarea), View::TEXTAREA);
+	}
 };
 
 void binding_input(Local<JSObject> exports, Worker* worker) {
-  WrapInput::binding(exports, worker);
-  WrapTextarea::binding(exports, worker);
+	WrapInput::binding(exports, worker);
+	WrapTextarea::binding(exports, worker);
 }
 
 JS_END

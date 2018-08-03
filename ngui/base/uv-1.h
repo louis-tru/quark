@@ -42,45 +42,45 @@ XX_NS(ngui)
 template<class uv_req, class Context, class Data = Object>
 class UVRequestWrap: public Object {
  public:
-  inline UVRequestWrap(Context* ctx, cCb& cb = 0, Data data = Data())
-  : m_ctx(ctx), m_cb(cb), m_data(move(data)) {
-    m_req.data = this;
-    if (Context::Traits::is_reference) Retain(m_ctx);
-  }
-  virtual ~UVRequestWrap() {
-    if (Context::Traits::is_reference) Release(m_ctx);
-  }
-  static inline UVRequestWrap* cast(uv_req* req) {
-    return (UVRequestWrap*)req->data;
-  }
-  inline Context* ctx() { return m_ctx; }
-  inline Callback& cb() { return m_cb; }
-  inline uv_req* req() { return &m_req; }
-  inline Data& data() { return m_data; }
+	inline UVRequestWrap(Context* ctx, cCb& cb = 0, Data data = Data())
+	: m_ctx(ctx), m_cb(cb), m_data(move(data)) {
+		m_req.data = this;
+		if (Context::Traits::is_reference) Retain(m_ctx);
+	}
+	virtual ~UVRequestWrap() {
+		if (Context::Traits::is_reference) Release(m_ctx);
+	}
+	static inline UVRequestWrap* cast(uv_req* req) {
+		return (UVRequestWrap*)req->data;
+	}
+	inline Context* ctx() { return m_ctx; }
+	inline Callback& cb() { return m_cb; }
+	inline uv_req* req() { return &m_req; }
+	inline Data& data() { return m_data; }
  private:
-  uv_req    m_req;
-  Context*  m_ctx;
-  Callback  m_cb;
-  Data      m_data;
+	uv_req    m_req;
+	Context*  m_ctx;
+	Callback  m_cb;
+	Data      m_data;
 };
 
 /**
  * @class AsyncIOTask
  */
 class XX_EXPORT AsyncIOTask: public Reference {
-  XX_HIDDEN_ALL_COPY(AsyncIOTask);
+	XX_HIDDEN_ALL_COPY(AsyncIOTask);
  public:
-  AsyncIOTask(RunLoop* loop = RunLoop::current());
-  virtual ~AsyncIOTask();
-  static void safe_abort(uint id);
-  inline bool is_abort() const { return m_abort; }
-  inline uint id() const { return m_id; }
-  inline RunLoop* loop() { return m_loop; }
-  virtual void abort();
+	AsyncIOTask(RunLoop* loop = RunLoop::current());
+	virtual ~AsyncIOTask();
+	static void safe_abort(uint id);
+	inline bool is_abort() const { return m_abort; }
+	inline uint id() const { return m_id; }
+	inline RunLoop* loop() { return m_loop; }
+	virtual void abort();
  private:
-  uint m_id;
-  bool m_abort;
-  RunLoop* m_loop;
+	uint m_id;
+	bool m_abort;
+	RunLoop* m_loop;
 };
 
 XX_END

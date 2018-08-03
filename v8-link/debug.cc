@@ -36,44 +36,44 @@ namespace v8 {
 		return false;
 	}
 
-  void Debug::DebugBreak(Isolate* isolate) {}
+	void Debug::DebugBreak(Isolate* isolate) {}
 
-  void Debug::CancelDebugBreak(Isolate* isolate) {}
+	void Debug::CancelDebugBreak(Isolate* isolate) {}
 
-  bool Debug::CheckDebugBreak(Isolate* isolate) { 
-    return false;
-  }
+	bool Debug::CheckDebugBreak(Isolate* isolate) { 
+		return false;
+	}
 
-  void Debug::SetMessageHandler(Isolate* isolate, MessageHandler handler) {}
+	void Debug::SetMessageHandler(Isolate* isolate, MessageHandler handler) {}
 
-  void Debug::SendCommand(Isolate* isolate, const uint16_t* command,
-                          int length, ClientData* client_data) {}
+	void Debug::SendCommand(Isolate* isolate, const uint16_t* command,
+													int length, ClientData* client_data) {}
 
-  MaybeLocal<Value> Debug::Call(Local<Context> context,
-                                v8::Local<v8::Function> fun, Local<Value> data) {
-    return fun->Call(context, Local<Value>(), data.IsEmpty() ? 0 : 1, &data);
-  }
+	MaybeLocal<Value> Debug::Call(Local<Context> context,
+																v8::Local<v8::Function> fun, Local<Value> data) {
+		return fun->Call(context, Local<Value>(), data.IsEmpty() ? 0 : 1, &data);
+	}
 
-  void Debug::ProcessDebugMessages(Isolate* isolate) {}
+	void Debug::ProcessDebugMessages(Isolate* isolate) {}
 
-  Local<Context> Debug::GetDebugContext(Isolate* isolate) {
-    return isolate->GetCurrentContext();
-  }
+	Local<Context> Debug::GetDebugContext(Isolate* isolate) {
+		return isolate->GetCurrentContext();
+	}
 
-  MaybeLocal<Context> Debug::GetDebuggedContext(Isolate* isolate) {
-    return MaybeLocal<Context>(isolate->GetCurrentContext());
-  }
+	MaybeLocal<Context> Debug::GetDebuggedContext(Isolate* isolate) {
+		return MaybeLocal<Context>(isolate->GetCurrentContext());
+	}
 
-  void Debug::SetLiveEditEnabled(Isolate* isolate, bool enable) {}
+	void Debug::SetLiveEditEnabled(Isolate* isolate, bool enable) {}
 
-  MaybeLocal<Array> Debug::GetInternalProperties(Isolate* isolate, Local<Value> value) {
-    return MaybeLocal<Array>();
-  }
+	MaybeLocal<Array> Debug::GetInternalProperties(Isolate* isolate, Local<Value> value) {
+		return MaybeLocal<Array>();
+	}
 
-  bool Debug::IsTailCallEliminationEnabled(Isolate* isolate) {
-    return false;
-  }
+	bool Debug::IsTailCallEliminationEnabled(Isolate* isolate) {
+		return false;
+	}
 
-  void Debug::SetTailCallEliminationEnabled(Isolate* isolate, bool enabled) {}
-  
+	void Debug::SetTailCallEliminationEnabled(Isolate* isolate, bool enabled) {}
+	
 }

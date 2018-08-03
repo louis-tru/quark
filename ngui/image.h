@@ -46,72 +46,72 @@ using value::Repeat;
  */
 class XX_EXPORT Image: public Div {
  public:
-  XX_DEFINE_GUI_VIEW(IMAGE, Image, image);
-  
-  Image();
-  
-  virtual ~Image();
-  
-  /**
-   * @fuc create
-   */
-  static Image* create(cString& src);
-  
-  /**
-   * @func source_width
-   */
-  uint source_width() const;
-  
-  /**
-   * @func source_width
-   */
-  uint source_height() const;
-  
-  /**
-   * @func src 图像路径
-   */
-  String src() const;
-  
-  /**
-   * @func set_src
-   */
-  void set_src(cString& value);
-  
-  /**
-   * @func texture get 图像纹理数据
-   */
-  inline Texture* texture() { return m_texture; }
-  
-  /**
-   * @func set_texture
-   */
-  virtual void set_texture(Texture* value);
-  
+	XX_DEFINE_GUI_VIEW(IMAGE, Image, image);
+	
+	Image();
+	
+	virtual ~Image();
+	
+	/**
+	 * @fuc create
+	 */
+	static Image* create(cString& src);
+	
+	/**
+	 * @func source_width
+	 */
+	uint source_width() const;
+	
+	/**
+	 * @func source_width
+	 */
+	uint source_height() const;
+	
+	/**
+	 * @func src 图像路径
+	 */
+	String src() const;
+	
+	/**
+	 * @func set_src
+	 */
+	void set_src(cString& value);
+	
+	/**
+	 * @func texture get 图像纹理数据
+	 */
+	inline Texture* texture() { return m_texture; }
+	
+	/**
+	 * @func set_texture
+	 */
+	virtual void set_texture(Texture* value);
+	
  protected:
-  
-  /**
-   * @func source
-   */
-  virtual String source() const;
-  
-  /**
-   * @func source
-   */
-  virtual void set_source(cString& value);
-  
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  virtual void set_layout_explicit_size();
-  virtual void set_layout_content_offset();
-  virtual void set_screen_visible();
-  
+	
+	/**
+	 * @func source
+	 */
+	virtual String source() const;
+	
+	/**
+	 * @func source
+	 */
+	virtual void set_source(cString& value);
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	virtual void set_layout_explicit_size();
+	virtual void set_layout_content_offset();
+	virtual void set_screen_visible();
+	
  private:
-  int       m_tex_level;
-  Texture*  m_texture; // 图像纹理数据
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
+	int       m_tex_level;
+	Texture*  m_texture; // 图像纹理数据
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
 };
 
 XX_END

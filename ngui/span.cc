@@ -37,107 +37,107 @@ XX_NS(ngui)
 extern void _view_inl__safe_delete_mark(View* view);
 
 Span::Span() {
-  m_need_draw = true;
+	m_need_draw = true;
 }
 
 /**
  * @overwrie
  */
 void Span::set_visible(bool value) {
-  if (m_visible != value) { 
-    View::set_visible(value);
-    // 这会影响其它兄弟视图的位置
-    mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL/* | M_TEXT_FONT*/);
-  }
+	if (m_visible != value) { 
+		View::set_visible(value);
+		// 这会影响其它兄弟视图的位置
+		mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL/* | M_TEXT_FONT*/);
+	}
 }
 
 /**
  * @overwrite
  */
 View* Span::append_text(cUcs2String& str) throw(Error) {
-  TextNode* text = new TextNode();
-  text->set_value( str );
-  append(text);
-  return text;
+	TextNode* text = new TextNode();
+	text->set_value( str );
+	append(text);
+	return text;
 }
 
 /**
  * @overwrite
  */
 Vec2 Span::layout_offset() {
-  return m_offset_start;
+	return m_offset_start;
 }
 
 /**
  * @overwrite
  */
 void Span::set_layout_explicit_size() {
-  
-  if ( m_final_visible ) {
-    if ( mark_value & M_TEXT_FONT ) { // 文本属性的变化会影响后代文本视图属性
-      solve_text_layout_mark();
-    }
-  }
-  if ( mark_value & (M_SIZE_HORIZONTAL | M_SIZE_VERTICAL) ) {
-    TextLayout* text = parent()->as_text_layout();
-    if ( text ) {
-      text->view()->mark_pre( M_CONTENT_OFFSET ); // 布局尺寸改变可能会影响到内容的偏移值
-    } else {
-      mark_pre( M_CONTENT_OFFSET );
-    }
-  }
+	
+	if ( m_final_visible ) {
+		if ( mark_value & M_TEXT_FONT ) { // 文本属性的变化会影响后代文本视图属性
+			solve_text_layout_mark();
+		}
+	}
+	if ( mark_value & (M_SIZE_HORIZONTAL | M_SIZE_VERTICAL) ) {
+		TextLayout* text = parent()->as_text_layout();
+		if ( text ) {
+			text->view()->mark_pre( M_CONTENT_OFFSET ); // 布局尺寸改变可能会影响到内容的偏移值
+		} else {
+			mark_pre( M_CONTENT_OFFSET );
+		}
+	}
 }
 
 /**
  * @overwrite
  */
 void Span::set_layout_content_offset() {
-  
-  if (m_final_visible) {
-    
-    TextLayout* text = parent()->as_text_layout();
-    if ( text ) { // 父视图必需是TextLayout
-      text->view()->mark_pre( M_CONTENT_OFFSET ); // 内容偏移不能直接设置,传递给父视图
-    } else { // 否则做简单处理
-      TextRows rows;
-      set_offset_in_hybrid(&rows, Vec2(Float::max, Float::max), nullptr);
-    }
-  }
+	
+	if (m_final_visible) {
+		
+		TextLayout* text = parent()->as_text_layout();
+		if ( text ) { // 父视图必需是TextLayout
+			text->view()->mark_pre( M_CONTENT_OFFSET ); // 内容偏移不能直接设置,传递给父视图
+		} else { // 否则做简单处理
+			TextRows rows;
+			set_offset_in_hybrid(&rows, Vec2(Float::max, Float::max), nullptr);
+		}
+	}
 }
 
 /**
  * @overwrite
  */
 void Span::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) {
-  if ( m_visible ) {
-    
-    View* view = first();
-    
-    while ( view ) {
-      Layout* layout = view->as_layout();
-      if ( layout ) {
-        layout->set_offset_in_hybrid(rows, limit, hybrid);
-      }
-      view = view->next();
-    }
-  }
+	if ( m_visible ) {
+		
+		View* view = first();
+		
+		while ( view ) {
+			Layout* layout = view->as_layout();
+			if ( layout ) {
+				layout->set_offset_in_hybrid(rows, limit, hybrid);
+			}
+			view = view->next();
+		}
+	}
 }
 
 /**
  * @overwrite
  */
 void Span::set_layout_three_times(bool horizontal, bool hybrid) {
-  if ( m_visible ) {
-    View* view = first();
-    while (view) {
-      Layout* layout = view->as_layout();
-      if ( layout ) {
-        layout->set_layout_three_times(horizontal, hybrid);
-        _view_inl__safe_delete_mark(layout);
-      }
-      view = view->next();
-    }
-  }
+	if ( m_visible ) {
+		View* view = first();
+		while (view) {
+			Layout* layout = view->as_layout();
+			if ( layout ) {
+				layout->set_layout_three_times(horizontal, hybrid);
+				_view_inl__safe_delete_mark(layout);
+			}
+			view = view->next();
+		}
+	}
 }
 
 XX_END

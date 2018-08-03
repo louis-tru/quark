@@ -39,21 +39,21 @@
 XX_NS(ngui)
 
 XX_EXPORT String http_cookie_get(cString& domain,
-                       					 cString& name,
-                       					 cString& path = String(), bool secure = 0);
+																 cString& name,
+																 cString& path = String(), bool secure = 0);
 
 XX_EXPORT String http_cookie_get_all_string(cString& domain,
-                                  					cString& path = String(), bool secure = 0);
+																						cString& path = String(), bool secure = 0);
 
 XX_EXPORT Map<String, String> http_cookie_get_all(cString& domain,
-                                        					cString& path = String(), bool secure = 0);
+																									cString& path = String(), bool secure = 0);
 
 XX_EXPORT void http_cookie_set_with_expression(cString& domain, cString& expression);
 
 XX_EXPORT void http_cookie_set(cString& domain,
-                     					 cString& name,
-                     					 cString& value,
-                     					 int64 expires = -1, cString& path = String(), bool secure = 0);
+															 cString& name,
+															 cString& value,
+															 int64 expires = -1, cString& path = String(), bool secure = 0);
 
 XX_EXPORT void http_cookie_delete(cString& domain, cString& name, cString& path = String());
 

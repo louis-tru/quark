@@ -39,59 +39,59 @@ XX_NS(ngui)
  */
 Layout::Layout()
 : m_parent_layout(nullptr) {
-  m_need_draw = false;
+	m_need_draw = false;
 }
 
 /**
  * @overwrite
  */
 void Layout::remove() {
-  View* Parent = parent();
-  if (Parent) {
-    m_parent_layout = nullptr;
-    Layout* layout = Parent->as_layout();
-    if ( layout && layout->level() ) {
-      layout->mark_pre(M_CONTENT_OFFSET);
-    }
-  }
-  View::remove();
+	View* Parent = parent();
+	if (Parent) {
+		m_parent_layout = nullptr;
+		Layout* layout = Parent->as_layout();
+		if ( layout && layout->level() ) {
+			layout->mark_pre(M_CONTENT_OFFSET);
+		}
+	}
+	View::remove();
 }
 
 /**
  * @overwrite
  */
 void Layout::remove_all_child() {
-  if (first())
-    mark_pre(M_CONTENT_OFFSET);
-  View::remove_all_child();
+	if (first())
+		mark_pre(M_CONTENT_OFFSET);
+	View::remove_all_child();
 }
 
 /**
  * @overwrite
  */
 void Layout::set_parent(View* parent) throw(Error) {
-  
-  View* old_parent = View::parent();
-  
-  m_parent_layout = nullptr;
-  
-  if (parent != old_parent) {
-    if (old_parent) {
-      Layout* layout = old_parent->as_layout();
-      if (layout) { // 旧的父视图必然受影响
-        layout->mark_pre(M_CONTENT_OFFSET);
-      }
-    }
-    View::set_parent(parent);
-    // 父视图的变化会影响继承类型的M_TEXT_FONT值
-    mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXT_FONT );
-  } 
-  else { // 相同父视图也可能受到影响
-    Layout* layout = parent->as_layout();
-    if (layout) {
-      layout->mark_pre(M_CONTENT_OFFSET);
-    }
-  }
+	
+	View* old_parent = View::parent();
+	
+	m_parent_layout = nullptr;
+	
+	if (parent != old_parent) {
+		if (old_parent) {
+			Layout* layout = old_parent->as_layout();
+			if (layout) { // 旧的父视图必然受影响
+				layout->mark_pre(M_CONTENT_OFFSET);
+			}
+		}
+		View::set_parent(parent);
+		// 父视图的变化会影响继承类型的M_TEXT_FONT值
+		mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXT_FONT );
+	} 
+	else { // 相同父视图也可能受到影响
+		Layout* layout = parent->as_layout();
+		if (layout) {
+			layout->mark_pre(M_CONTENT_OFFSET);
+		}
+	}
 }
 
 XX_END

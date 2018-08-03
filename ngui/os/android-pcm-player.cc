@@ -53,58 +53,58 @@ static AudioEngine* xx_share_engine = NULL;
 
 struct AudioEngine {
 
-  AudioEngine(): engineObject(NULL), engineEngine(NULL), outputMixObject(NULL) {
-    SLresult result;
+	AudioEngine(): engineObject(NULL), engineEngine(NULL), outputMixObject(NULL) {
+		SLresult result;
 
-    // create engine
-    result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL); 
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// create engine
+		result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL); 
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // realize the engine
-    result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// realize the engine
+		result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // get the engine interface, which is needed in order to create other objects
-    result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// get the engine interface, which is needed in order to create other objects
+		result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // create output mix,
-    result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// create output mix,
+		result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // realize the output mix
-    result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
-  }
+		// realize the output mix
+		result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
+	}
 
-  ~AudioEngine() {
+	~AudioEngine() {
 
-    // destroy output mix object, and invalidate all associated interfaces
-    if (outputMixObject != NULL) {
-      (*outputMixObject)->Destroy(outputMixObject);
-      outputMixObject = NULL;
-    }
+		// destroy output mix object, and invalidate all associated interfaces
+		if (outputMixObject != NULL) {
+			(*outputMixObject)->Destroy(outputMixObject);
+			outputMixObject = NULL;
+		}
 
-    // destroy engine object, and invalidate all associated interfaces
-    if (engineObject != NULL) {
-      (*engineObject)->Destroy(engineObject);
-      engineObject = NULL;
-      engineEngine = NULL;
-    }
-  }
+		// destroy engine object, and invalidate all associated interfaces
+		if (engineObject != NULL) {
+			(*engineObject)->Destroy(engineObject);
+			engineObject = NULL;
+			engineEngine = NULL;
+		}
+	}
 
-  static AudioEngine* share() {
-    if ( ! xx_share_engine ) {
-      xx_share_engine = new AudioEngine();
-    }
-    return xx_share_engine;
-  }
+	static AudioEngine* share() {
+		if ( ! xx_share_engine ) {
+			xx_share_engine = new AudioEngine();
+		}
+		return xx_share_engine;
+	}
 
-  // engine interfaces
-  SLObjectItf engineObject;
-  SLEngineItf engineEngine;
-  // output mix interfaces
-  SLObjectItf outputMixObject;
+	// engine interfaces
+	SLObjectItf engineObject;
+	SLEngineItf engineEngine;
+	// output mix interfaces
+	SLObjectItf outputMixObject;
 };
 
 /**
@@ -112,230 +112,230 @@ struct AudioEngine {
  */
 class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 public:
-  typedef DefaultTraits Traits;
+	typedef DefaultTraits Traits;
 
-  AndroidPCMOpenSLES()
-          : m_max_volume_level(100)
-          , bqPlayerObject(NULL)
-          , bqPlayerPlay(NULL)
-          , bqPlayerBufferQueue(NULL)
-          , bqPlayerEffectSend(NULL)
-          , bqPlayerVolume(NULL)
-          , m_buffer_size(0)
-  {
+	AndroidPCMOpenSLES()
+					: m_max_volume_level(100)
+					, bqPlayerObject(NULL)
+					, bqPlayerPlay(NULL)
+					, bqPlayerBufferQueue(NULL)
+					, bqPlayerEffectSend(NULL)
+					, bqPlayerVolume(NULL)
+					, m_buffer_size(0)
+	{
 
-  }
+	}
 
-  virtual ~AndroidPCMOpenSLES() {
-    // destory player object
-    if (bqPlayerObject != NULL) {
-      (*bqPlayerObject)->Destroy(bqPlayerObject);
-      bqPlayerPlay = NULL;
-      bqPlayerBufferQueue = NULL;
-      bqPlayerEffectSend = NULL;
-      bqPlayerVolume = NULL;
-    }
-  }
+	virtual ~AndroidPCMOpenSLES() {
+		// destory player object
+		if (bqPlayerObject != NULL) {
+			(*bqPlayerObject)->Destroy(bqPlayerObject);
+			bqPlayerPlay = NULL;
+			bqPlayerBufferQueue = NULL;
+			bqPlayerEffectSend = NULL;
+			bqPlayerVolume = NULL;
+		}
+	}
 
-  bool initialize(uint channel_count, uint sample_rate) {
+	bool initialize(uint channel_count, uint sample_rate) {
 
-    AudioEngine* engine = AudioEngine::share();
-    if ( ! engine ) {
-      return false;
-    }
+		AudioEngine* engine = AudioEngine::share();
+		if ( ! engine ) {
+			return false;
+		}
 
-    m_channel_count = channel_count;
-    m_sample_rate = sample_rate;
-    m_buffer_size = min_buffer_size();
+		m_channel_count = channel_count;
+		m_sample_rate = sample_rate;
+		m_buffer_size = min_buffer_size();
 
-    SLresult result;
-    SLuint32 channelMask;
-    SLuint32 samplesPerSec;
+		SLresult result;
+		SLuint32 channelMask;
+		SLuint32 samplesPerSec;
 
-    switch (channel_count) {
-      case 1: // 1
-        channelMask = SL_SPEAKER_FRONT_CENTER; break;
-      case 2: // 2
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT; break;
-      case 3: // 2.1
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT |
-                      SL_SPEAKER_LOW_FREQUENCY; break;
-      case 4: // 4
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT |
-                      SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
-      case 5: // 4.1
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_LOW_FREQUENCY |
-                      SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
-      case 6: // 5.1
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
-                      SL_SPEAKER_LOW_FREQUENCY |
-                      SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_LEFT; break;
-      case 7: // 6.1
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
-                      SL_SPEAKER_LOW_FREQUENCY |
-                      SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT |
-                      SL_SPEAKER_BACK_CENTER; break;
-      case 8: // 7.1
-        channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
-                      SL_SPEAKER_LOW_FREQUENCY |
-                      SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT |
-                      SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
-      default: return false;
-    }
+		switch (channel_count) {
+			case 1: // 1
+				channelMask = SL_SPEAKER_FRONT_CENTER; break;
+			case 2: // 2
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT; break;
+			case 3: // 2.1
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT |
+											SL_SPEAKER_LOW_FREQUENCY; break;
+			case 4: // 4
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT |
+											SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
+			case 5: // 4.1
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_LOW_FREQUENCY |
+											SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
+			case 6: // 5.1
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
+											SL_SPEAKER_LOW_FREQUENCY |
+											SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_LEFT; break;
+			case 7: // 6.1
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
+											SL_SPEAKER_LOW_FREQUENCY |
+											SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT |
+											SL_SPEAKER_BACK_CENTER; break;
+			case 8: // 7.1
+				channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_CENTER |
+											SL_SPEAKER_LOW_FREQUENCY |
+											SL_SPEAKER_SIDE_LEFT | SL_SPEAKER_SIDE_RIGHT |
+											SL_SPEAKER_BACK_LEFT | SL_SPEAKER_BACK_RIGHT; break;
+			default: return false;
+		}
 
-    switch (sample_rate) {
-      case 8000 : samplesPerSec = SL_SAMPLINGRATE_8; break;
-      case 11025: samplesPerSec = SL_SAMPLINGRATE_11_025; break;
-      case 12000: samplesPerSec = SL_SAMPLINGRATE_12; break;
-      case 16000: samplesPerSec = SL_SAMPLINGRATE_16; break;
-      case 22050: samplesPerSec = SL_SAMPLINGRATE_22_05; break;
-      case 24000: samplesPerSec = SL_SAMPLINGRATE_24; break;
-      case 32000: samplesPerSec = SL_SAMPLINGRATE_32; break;
-      case 44100: samplesPerSec = SL_SAMPLINGRATE_44_1; break;
-      case 48000: samplesPerSec = SL_SAMPLINGRATE_48; break;
-      case 64000: samplesPerSec = SL_SAMPLINGRATE_64; break; // not support
-      case 88200: samplesPerSec = SL_SAMPLINGRATE_88_2; break;
-      case 192000: samplesPerSec = SL_SAMPLINGRATE_192; break;
-      default: return false;
-    }
+		switch (sample_rate) {
+			case 8000 : samplesPerSec = SL_SAMPLINGRATE_8; break;
+			case 11025: samplesPerSec = SL_SAMPLINGRATE_11_025; break;
+			case 12000: samplesPerSec = SL_SAMPLINGRATE_12; break;
+			case 16000: samplesPerSec = SL_SAMPLINGRATE_16; break;
+			case 22050: samplesPerSec = SL_SAMPLINGRATE_22_05; break;
+			case 24000: samplesPerSec = SL_SAMPLINGRATE_24; break;
+			case 32000: samplesPerSec = SL_SAMPLINGRATE_32; break;
+			case 44100: samplesPerSec = SL_SAMPLINGRATE_44_1; break;
+			case 48000: samplesPerSec = SL_SAMPLINGRATE_48; break;
+			case 64000: samplesPerSec = SL_SAMPLINGRATE_64; break; // not support
+			case 88200: samplesPerSec = SL_SAMPLINGRATE_88_2; break;
+			case 192000: samplesPerSec = SL_SAMPLINGRATE_192; break;
+			default: return false;
+		}
 
-    // configure audio source
-    SLDataLocator_AndroidSimpleBufferQueue loc_bufq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2 };
+		// configure audio source
+		SLDataLocator_AndroidSimpleBufferQueue loc_bufq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2 };
 
-    SLDataFormat_PCM format_pcm = { SL_DATAFORMAT_PCM,
-                                    channel_count,
-                                    samplesPerSec,
-                                    SL_PCMSAMPLEFORMAT_FIXED_16,
-                                    SL_PCMSAMPLEFORMAT_FIXED_16,
-                                    channelMask,
-                                    SL_BYTEORDER_LITTLEENDIAN };
-    SLDataSource audioSrc = { &loc_bufq, &format_pcm };
+		SLDataFormat_PCM format_pcm = { SL_DATAFORMAT_PCM,
+																		channel_count,
+																		samplesPerSec,
+																		SL_PCMSAMPLEFORMAT_FIXED_16,
+																		SL_PCMSAMPLEFORMAT_FIXED_16,
+																		channelMask,
+																		SL_BYTEORDER_LITTLEENDIAN };
+		SLDataSource audioSrc = { &loc_bufq, &format_pcm };
 
-    // configure audio sink
-    SLDataLocator_OutputMix loc_outmix  = { SL_DATALOCATOR_OUTPUTMIX, engine->outputMixObject };
-    SLDataSink              audioSnk    = { &loc_outmix, NULL };
+		// configure audio sink
+		SLDataLocator_OutputMix loc_outmix  = { SL_DATALOCATOR_OUTPUTMIX, engine->outputMixObject };
+		SLDataSink              audioSnk    = { &loc_outmix, NULL };
 
-    // create audio player
-    const SLInterfaceID ids[3]  = { SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME };
-    const SLboolean     req[3]  = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
+		// create audio player
+		const SLInterfaceID ids[3]  = { SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME };
+		const SLboolean     req[3]  = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
 
-    result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
-                                                        &bqPlayerObject,
-                                                        &audioSrc, &audioSnk, 3, ids, req);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
+																												&bqPlayerObject,
+																												&audioSrc, &audioSnk, 3, ids, req);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // realize the player
-    result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// realize the player
+		result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // get the play interface
-    result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// get the play interface
+		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // get the buffer queue interface
-    result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// get the buffer queue interface
+		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // get the effect send interface
-    result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// get the effect send interface
+		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // get the volume interface
-    result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// get the volume interface
+		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // get max volume level
-    result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &m_max_volume_level);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// get max volume level
+		result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &m_max_volume_level);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    // set playing status
-    result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
+		// set playing status
+		result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
 
-    XX_DEBUG("createAudioPlayer finish");
+		XX_DEBUG("createAudioPlayer finish");
 
-    return true;
-  }
+		return true;
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual bool write(cBuffer& buffer) {
-    SLresult result;
-    ScopeLock scope(m_lock);
-    // input pcm buffer
-    result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
-    return result != SL_RESULT_BUFFER_INSUFFICIENT;
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual bool write(cBuffer& buffer) {
+		SLresult result;
+		ScopeLock scope(m_lock);
+		// input pcm buffer
+		result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
+		return result != SL_RESULT_BUFFER_INSUFFICIENT;
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual void flush() {
-    SLresult result;
-    // lock
-    ScopeLock scope(m_lock);
-    // clear buffer
-    result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
-    XX_ASSERT(SL_RESULT_SUCCESS == result);
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual void flush() {
+		SLresult result;
+		// lock
+		ScopeLock scope(m_lock);
+		// clear buffer
+		result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
+		XX_ASSERT(SL_RESULT_SUCCESS == result);
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual bool set_mute(bool value) {
-    SLresult result;
-    result = (*bqPlayerVolume)->SetMute(bqPlayerVolume, value);
-    return SL_RESULT_SUCCESS == result;
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual bool set_mute(bool value) {
+		SLresult result;
+		result = (*bqPlayerVolume)->SetMute(bqPlayerVolume, value);
+		return SL_RESULT_SUCCESS == result;
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual bool set_volume(uint value) {
-    if ( m_max_volume_level ) {
-      SLresult result;
-      result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * m_max_volume_level);
-      return SL_RESULT_SUCCESS == result;
-    }
-    return false;
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual bool set_volume(uint value) {
+		if ( m_max_volume_level ) {
+			SLresult result;
+			result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * m_max_volume_level);
+			return SL_RESULT_SUCCESS == result;
+		}
+		return false;
+	}
 
-  /**
-   * @func buffer_size
-   * */
-  virtual uint buffer_size() {
-    return m_buffer_size;
-  }
+	/**
+	 * @func buffer_size
+	 * */
+	virtual uint buffer_size() {
+		return m_buffer_size;
+	}
 
-  uint min_buffer_size() {
-    JNI::ScopeENV env;
-    JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
-    int r = env->CallStaticIntMethod(m.clazz(), m.method(), m_sample_rate,
-                                     get_channel_mask(m_channel_count), 2/*ENCODIXX_PCM_16BIT*/);
-    return r;
-  }
+	uint min_buffer_size() {
+		JNI::ScopeENV env;
+		JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
+		int r = env->CallStaticIntMethod(m.clazz(), m.method(), m_sample_rate,
+																		 get_channel_mask(m_channel_count), 2/*ENCODIXX_PCM_16BIT*/);
+		return r;
+	}
 
 private:
-  Mutex         m_lock;
-  SLint16	      m_max_volume_level;
-  uint          m_sample_rate;
-  uint          m_channel_count;
-  uint          m_buffer_size;
+	Mutex         m_lock;
+	SLint16	      m_max_volume_level;
+	uint          m_sample_rate;
+	uint          m_channel_count;
+	uint          m_buffer_size;
 
-  // engine interfaces
-  SLObjectItf engineObject;
-  SLEngineItf engineEngine;
+	// engine interfaces
+	SLObjectItf engineObject;
+	SLEngineItf engineEngine;
 
-  // output mix interfaces
-  SLObjectItf outputMixObject;
+	// output mix interfaces
+	SLObjectItf outputMixObject;
 
-  // buffer queue player interfaces
-  SLObjectItf bqPlayerObject;
-  SLPlayItf bqPlayerPlay;
-  SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
-  SLEffectSendItf bqPlayerEffectSend;
-  SLVolumeItf bqPlayerVolume;
+	// buffer queue player interfaces
+	SLObjectItf bqPlayerObject;
+	SLPlayItf bqPlayerPlay;
+	SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
+	SLEffectSendItf bqPlayerEffectSend;
+	SLVolumeItf bqPlayerVolume;
 };
 
 #endif
@@ -350,14 +350,14 @@ extern PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sampl
  */
 PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 #if USE_ANDROID_OPENSLES_PCM_PLAYER
-  Handle<AndroidPCMOpenSLES> pcm = new AndroidPCMOpenSLES();
-  if ( pcm->initialize( channel_count, sample_rate) ) {
-    return pcm.collapse();
-  } else {
-    return _inl_create_android_audio_track(channel_count, sample_rate);
-  }
+	Handle<AndroidPCMOpenSLES> pcm = new AndroidPCMOpenSLES();
+	if ( pcm->initialize( channel_count, sample_rate) ) {
+		return pcm.collapse();
+	} else {
+		return _inl_create_android_audio_track(channel_count, sample_rate);
+	}
 #else
-  return _inl_create_android_audio_track(channel_count, sample_rate);
+	return _inl_create_android_audio_track(channel_count, sample_rate);
 #endif
 }
 

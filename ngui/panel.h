@@ -40,69 +40,69 @@ XX_NS(ngui)
  */
 class XX_EXPORT Panel: public Div {
  public:
-  XX_DEFINE_GUI_VIEW(PANEL, Panel, panel)
-  
-  Panel();
-  
-  /**
-   * @func allow_leave get
-   */
-  inline bool allow_leave() const { return m_allow_leave; }
-  
-  /**
-   * @func set_allow_leave set
-   */
-  inline void set_allow_leave(bool value) { m_allow_leave = value; }
-  
-  /**
-   * @func allow_entry get
-   */
-  inline bool allow_entry() const { return m_allow_entry; }
-  
-  /**
-   * @func set_allow_entry set
-   */
-  inline void set_allow_entry(bool value) { m_allow_entry = value; }
-  
-  /**
-   * @func switch_time get
-   */
-  inline uint64 interval_time() const { return m_interval_time; }
-  
-  /**
-   * @func set_switch_time set
-   */
-  inline void set_interval_time(uint64 value) { m_interval_time = value; }
-  
-  /**
-   * @func enable_switch get
-   */
-  inline bool enable_select() const { return m_enable_select; }
-  
-  /**
-   * @func set_enable_switch set
-   */
-  inline void set_enable_select(bool value) { m_enable_select = value; }
-  
-  /**
-   * @func parent_panel
-   */
-  Panel* parent_panel();
-  
-  /**
-   * @func is_activity
-   */
-  bool is_activity() const;
-  
+	XX_DEFINE_GUI_VIEW(PANEL, Panel, panel)
+	
+	Panel();
+	
+	/**
+	 * @func allow_leave get
+	 */
+	inline bool allow_leave() const { return m_allow_leave; }
+	
+	/**
+	 * @func set_allow_leave set
+	 */
+	inline void set_allow_leave(bool value) { m_allow_leave = value; }
+	
+	/**
+	 * @func allow_entry get
+	 */
+	inline bool allow_entry() const { return m_allow_entry; }
+	
+	/**
+	 * @func set_allow_entry set
+	 */
+	inline void set_allow_entry(bool value) { m_allow_entry = value; }
+	
+	/**
+	 * @func switch_time get
+	 */
+	inline uint64 interval_time() const { return m_interval_time; }
+	
+	/**
+	 * @func set_switch_time set
+	 */
+	inline void set_interval_time(uint64 value) { m_interval_time = value; }
+	
+	/**
+	 * @func enable_switch get
+	 */
+	inline bool enable_select() const { return m_enable_select; }
+	
+	/**
+	 * @func set_enable_switch set
+	 */
+	inline void set_enable_select(bool value) { m_enable_select = value; }
+	
+	/**
+	 * @func parent_panel
+	 */
+	Panel* parent_panel();
+	
+	/**
+	 * @func is_activity
+	 */
+	bool is_activity() const;
+	
  private:
-  
-  bool  m_allow_leave;
-  bool  m_allow_entry;
-  uint64  m_interval_time;
-  bool  m_enable_select;
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
-  
+	
+	bool  m_allow_leave;
+	bool  m_allow_entry;
+	uint64  m_interval_time;
+	bool  m_enable_select;
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
+	
 };
 
 XX_END

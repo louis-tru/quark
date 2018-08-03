@@ -38,8 +38,8 @@
 XX_NS(ngui)
 
 template <class Char,
-          class Container,
-          class ItemAllocator = Allocator>
+					class Container,
+					class ItemAllocator = Allocator>
 class BasicStringBuilder;
 typedef BasicStringBuilder<char, Container<char>> StringBuilder;
 typedef BasicStringBuilder<uint16, Container<uint16>> Ucs2StringBuilder;
@@ -50,38 +50,38 @@ typedef BasicStringBuilder<uint16, Container<uint16>> Ucs2StringBuilder;
 template <class Char, class Container, class ItemAllocator>
 class XX_EXPORT BasicStringBuilder: public List<BasicString<Char, Container>, ItemAllocator> {
  public:
-  typedef BasicString<Char, Container> Item;
-  typedef typename List<Item, ItemAllocator>::Iterator Iterator;
-  typedef typename List<Item, ItemAllocator>::ConstIterator ConstIterator;
-  
-  BasicStringBuilder();
-  BasicStringBuilder(const BasicStringBuilder&);
-  BasicStringBuilder(BasicStringBuilder&&);
-  virtual ~BasicStringBuilder();
-  BasicStringBuilder& operator=(const BasicStringBuilder&);
-  BasicStringBuilder& operator=(BasicStringBuilder&&);
-  void push(const Item& item);
-  void push(Item&& item);
-  void push(const BasicStringBuilder& ls);
-  void push(BasicStringBuilder&& ls);
-  void unshift(const Item& item);
-  void unshift(Item&& item);
-  void unshift(const BasicStringBuilder& ls);
-  void unshift(BasicStringBuilder&& ls);
-  void pop();
-  void shift();
-  void insert(ConstIterator it, const Item& item);
-  void insert(ConstIterator it, Item&& item);
-  void del(ConstIterator it);
-  void clear();
-  String join(cString& sp) const;
-  virtual String to_string() const;
-  BasicString<Char, Container> to_basic_string() const;
-  ArrayBuffer<Char> to_buffer() const;
-  uint string_length() const;
-  
+	typedef BasicString<Char, Container> Item;
+	typedef typename List<Item, ItemAllocator>::Iterator Iterator;
+	typedef typename List<Item, ItemAllocator>::ConstIterator ConstIterator;
+	
+	BasicStringBuilder();
+	BasicStringBuilder(const BasicStringBuilder&);
+	BasicStringBuilder(BasicStringBuilder&&);
+	virtual ~BasicStringBuilder();
+	BasicStringBuilder& operator=(const BasicStringBuilder&);
+	BasicStringBuilder& operator=(BasicStringBuilder&&);
+	void push(const Item& item);
+	void push(Item&& item);
+	void push(const BasicStringBuilder& ls);
+	void push(BasicStringBuilder&& ls);
+	void unshift(const Item& item);
+	void unshift(Item&& item);
+	void unshift(const BasicStringBuilder& ls);
+	void unshift(BasicStringBuilder&& ls);
+	void pop();
+	void shift();
+	void insert(ConstIterator it, const Item& item);
+	void insert(ConstIterator it, Item&& item);
+	void del(ConstIterator it);
+	void clear();
+	String join(cString& sp) const;
+	virtual String to_string() const;
+	BasicString<Char, Container> to_basic_string() const;
+	ArrayBuffer<Char> to_buffer() const;
+	uint string_length() const;
+	
  private:
-  uint m_string_length;
+	uint m_string_length;
 };
 
 XX_END

@@ -45,80 +45,80 @@ XX_NS(ngui)
 class XX_EXPORT JNI {
  public:
 
-  /**
-   * @class ScopeENV
-   */
-  class XX_EXPORT ScopeENV {
-    XX_HIDDEN_ALL_COPY(ScopeENV);
-   public:
-    ScopeENV();
-    ~ScopeENV();
-    inline bool is_null() const { return m_env == NULL; }
-    inline JNIEnv* operator*() const { return m_env; }
-    inline JNIEnv* operator->() const { return m_env; }
-   private:
-    JNIEnv* m_env;
-    bool    m_is_attach;
-    // @end
-  };
+	/**
+	 * @class ScopeENV
+	 */
+	class XX_EXPORT ScopeENV {
+		XX_HIDDEN_ALL_COPY(ScopeENV);
+	 public:
+		ScopeENV();
+		~ScopeENV();
+		inline bool is_null() const { return m_env == NULL; }
+		inline JNIEnv* operator*() const { return m_env; }
+		inline JNIEnv* operator->() const { return m_env; }
+	 private:
+		JNIEnv* m_env;
+		bool    m_is_attach;
+		// @end
+	};
 
-  /**
-   * @class MethodInfo
-   */
-  class XX_EXPORT MethodInfo {
-   public:
-    MethodInfo(cchar* clazz, cchar* method, cchar* param_code, bool is_static = false);
-    MethodInfo(jclass clazz, cchar* method, cchar* param_code, bool is_static = false);
-    inline jclass clazz() const { return m_clazz; }
-    inline jmethodID method() const { return m_method; }
-   private:
-    jclass      m_clazz;
-    jmethodID   m_method;
-    // @end
-  };
+	/**
+	 * @class MethodInfo
+	 */
+	class XX_EXPORT MethodInfo {
+	 public:
+		MethodInfo(cchar* clazz, cchar* method, cchar* param_code, bool is_static = false);
+		MethodInfo(jclass clazz, cchar* method, cchar* param_code, bool is_static = false);
+		inline jclass clazz() const { return m_clazz; }
+		inline jmethodID method() const { return m_method; }
+	 private:
+		jclass      m_clazz;
+		jmethodID   m_method;
+		// @end
+	};
 
-  /**
-   * @func find_clazz
-   * */
-  static jclass find_clazz(cchar* clazz);
+	/**
+	 * @func find_clazz
+	 * */
+	static jclass find_clazz(cchar* clazz);
 
-  /**
-   * @func find_method
-   * */
-  inline static jmethodID find_method(jclass clazz, cchar* method, cchar* param_code) {
-    return MethodInfo(clazz, method, param_code).method();
-  }
+	/**
+	 * @func find_method
+	 * */
+	inline static jmethodID find_method(jclass clazz, cchar* method, cchar* param_code) {
+		return MethodInfo(clazz, method, param_code).method();
+	}
 
-  /**
-   * @func find_static_method
-   * */
-  inline static jmethodID find_static_method(jclass clazz, cchar* method, cchar* param_code) {
-    return MethodInfo(clazz, method, param_code, true).method();
-  }
+	/**
+	 * @func find_static_method
+	 * */
+	inline static jmethodID find_static_method(jclass clazz, cchar* method, cchar* param_code) {
+		return MethodInfo(clazz, method, param_code, true).method();
+	}
 
-  /**
-   * @func find_method
-   * */
-  inline static jmethodID find_method(cchar* clazz, cchar* method, cchar* param_code) {
-    return MethodInfo(clazz, method, param_code).method();
-  }
+	/**
+	 * @func find_method
+	 * */
+	inline static jmethodID find_method(cchar* clazz, cchar* method, cchar* param_code) {
+		return MethodInfo(clazz, method, param_code).method();
+	}
 
-  /**
-   * @func find_static_method
-   * */
-  static jmethodID find_static_method(cchar* clazz, cchar* method, cchar* param_code) {
-    return MethodInfo(clazz, method, param_code, true).method();
-  }
+	/**
+	 * @func find_static_method
+	 * */
+	static jmethodID find_static_method(cchar* clazz, cchar* method, cchar* param_code) {
+		return MethodInfo(clazz, method, param_code, true).method();
+	}
 
-  /**
-   * @func jvm
-   */
-  static JavaVM* jvm();
+	/**
+	 * @func jvm
+	 */
+	static JavaVM* jvm();
 
-  /**
-   * @func jstring_to_string
-   */
-  static String jstring_to_string(jstring jstr, JNIEnv* env = NULL);
+	/**
+	 * @func jstring_to_string
+	 */
+	static String jstring_to_string(jstring jstr, JNIEnv* env = NULL);
 };
 
 XX_END

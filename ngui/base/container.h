@@ -51,105 +51,105 @@ XX_NS(ngui)
  */
 template <class T, class Allocator> class XX_EXPORT Container {
  public:
-  
-  ~Container() {
-    free();
-  }
-  
-  inline uint capacity() const { return m_capacity; }
-  inline uint size() const { return sizeof(T) * m_capacity; }
-  inline T* operator*() { return m_value; }
-  inline const T* operator*() const { return m_value; }
-  
-  //
-  
-  Container(uint capacity = 0): m_capacity(0), m_value(nullptr) {
-    if ( capacity ) {
-      m_capacity = powf(2, ceil(log2(XX_MAX(XX_MIN_CAPACITY, capacity))));
-      m_value = static_cast<T*>(Allocator::alloc(size()));
-      XX_ASSERT(m_value);
-    }
-  }
-  
-  Container(uint capacity, T* value)
-  : m_capacity(capacity), m_value(value)
-  { }
-  
-  Container(const Container& container): m_capacity(0), m_value(nullptr)  {
-    operator=(container);
-  }
-  
-  Container(Container&& container): m_capacity(0), m_value(nullptr) {
-    operator=(ngui::move(container));
-  }
-  
-  Container& operator=(const Container& container) {
-    free();
-    m_capacity = container.m_capacity;
-    if (m_capacity) {
-      m_value = static_cast<T*>(Allocator::alloc(size()));
-      ::memcpy((void*)m_value, (void*)*container, size());
-    }
-    return *this;
-  }
-  
-  Container& operator=(Container&& container) {
-    free();
-    m_capacity = container.m_capacity;
-    m_value = container.collapse();
-    return *this;
-  }
-  
-  /**
-   * @func realloc auro realloc
-   * @arg capacity {uint}
-   */
-  void realloc(uint capacity) {
-    if ( capacity ) {
-      capacity = XX_MAX(XX_MIN_CAPACITY, capacity);
-      if ( capacity > m_capacity || capacity < m_capacity / 4.0 ) {
-        realloc0(powf(2, ceil(log2(capacity))));
-      }
-    } else {
-      free();
-    }
-  }
-  
-  /**
-   * @func collapse
-   */
-  T* collapse() {
-    T* rev = m_value;
-    m_capacity = 0;
-    m_value = nullptr;
-    return rev;
-  }
-  
-  /**
-   * @func free
-   */
-  void free() {
-    if ( m_value ) {
-      Allocator::free(m_value);
-      m_capacity = 0;
-      m_value = nullptr;
-    }
-  }
+	
+	~Container() {
+		free();
+	}
+	
+	inline uint capacity() const { return m_capacity; }
+	inline uint size() const { return sizeof(T) * m_capacity; }
+	inline T* operator*() { return m_value; }
+	inline const T* operator*() const { return m_value; }
+	
+	//
+	
+	Container(uint capacity = 0): m_capacity(0), m_value(nullptr) {
+		if ( capacity ) {
+			m_capacity = powf(2, ceil(log2(XX_MAX(XX_MIN_CAPACITY, capacity))));
+			m_value = static_cast<T*>(Allocator::alloc(size()));
+			XX_ASSERT(m_value);
+		}
+	}
+	
+	Container(uint capacity, T* value)
+	: m_capacity(capacity), m_value(value)
+	{ }
+	
+	Container(const Container& container): m_capacity(0), m_value(nullptr)  {
+		operator=(container);
+	}
+	
+	Container(Container&& container): m_capacity(0), m_value(nullptr) {
+		operator=(ngui::move(container));
+	}
+	
+	Container& operator=(const Container& container) {
+		free();
+		m_capacity = container.m_capacity;
+		if (m_capacity) {
+			m_value = static_cast<T*>(Allocator::alloc(size()));
+			::memcpy((void*)m_value, (void*)*container, size());
+		}
+		return *this;
+	}
+	
+	Container& operator=(Container&& container) {
+		free();
+		m_capacity = container.m_capacity;
+		m_value = container.collapse();
+		return *this;
+	}
+	
+	/**
+	 * @func realloc auro realloc
+	 * @arg capacity {uint}
+	 */
+	void realloc(uint capacity) {
+		if ( capacity ) {
+			capacity = XX_MAX(XX_MIN_CAPACITY, capacity);
+			if ( capacity > m_capacity || capacity < m_capacity / 4.0 ) {
+				realloc0(powf(2, ceil(log2(capacity))));
+			}
+		} else {
+			free();
+		}
+	}
+	
+	/**
+	 * @func collapse
+	 */
+	T* collapse() {
+		T* rev = m_value;
+		m_capacity = 0;
+		m_value = nullptr;
+		return rev;
+	}
+	
+	/**
+	 * @func free
+	 */
+	void free() {
+		if ( m_value ) {
+			Allocator::free(m_value);
+			m_capacity = 0;
+			m_value = nullptr;
+		}
+	}
 
  protected:
-  void realloc0(uint capacity) {
-    if (capacity == 0) {
-      free();
-    } else if ( capacity != m_capacity ) {
-      uint size = sizeof(T) * capacity;
-      m_capacity = capacity;
-      m_value = (T*)(m_value ? Allocator::realloc(m_value, size) : Allocator::alloc(size));
-    }
-  }
-  template<class S, class A> friend class Container;
-  
-  uint  m_capacity;
-  T*  m_value;
+	void realloc0(uint capacity) {
+		if (capacity == 0) {
+			free();
+		} else if ( capacity != m_capacity ) {
+			uint size = sizeof(T) * capacity;
+			m_capacity = capacity;
+			m_value = (T*)(m_value ? Allocator::realloc(m_value, size) : Allocator::alloc(size));
+		}
+	}
+	template<class S, class A> friend class Container;
+	
+	uint  m_capacity;
+	T*  m_value;
 };
 
 XX_END

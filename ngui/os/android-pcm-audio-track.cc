@@ -39,73 +39,73 @@ typedef JNI::ScopeENV   ScopeENV;
 
 enum {
 /** Default audio channel mask */
-  CHANNEL_OUT_DEFAULT = 1,
+	CHANNEL_OUT_DEFAULT = 1,
 
 // Output channel mask definitions below are translated to the native values defined in
 //  in /system/media/audio/include/system/audio.h in the JNI code of AudioTrack
-  CHANNEL_OUT_FRONT_LEFT = 0x4,
-  CHANNEL_OUT_FRONT_RIGHT = 0x8,
-  CHANNEL_OUT_FRONT_CENTER = 0x10,
-  CHANNEL_OUT_LOW_FREQUENCY = 0x20,
-  CHANNEL_OUT_BACK_LEFT = 0x40,
-  CHANNEL_OUT_BACK_RIGHT = 0x80,
-  CHANNEL_OUT_FRONT_LEFT_OF_CENTER = 0x100,
-  CHANNEL_OUT_FRONT_RIGHT_OF_CENTER = 0x200,
-  CHANNEL_OUT_BACK_CENTER = 0x400,
-  CHANNEL_OUT_SIDE_LEFT = 0x800,
-  CHANNEL_OUT_SIDE_RIGHT = 0x1000,
+	CHANNEL_OUT_FRONT_LEFT = 0x4,
+	CHANNEL_OUT_FRONT_RIGHT = 0x8,
+	CHANNEL_OUT_FRONT_CENTER = 0x10,
+	CHANNEL_OUT_LOW_FREQUENCY = 0x20,
+	CHANNEL_OUT_BACK_LEFT = 0x40,
+	CHANNEL_OUT_BACK_RIGHT = 0x80,
+	CHANNEL_OUT_FRONT_LEFT_OF_CENTER = 0x100,
+	CHANNEL_OUT_FRONT_RIGHT_OF_CENTER = 0x200,
+	CHANNEL_OUT_BACK_CENTER = 0x400,
+	CHANNEL_OUT_SIDE_LEFT = 0x800,
+	CHANNEL_OUT_SIDE_RIGHT = 0x1000,
 /** @hide */
-  CHANNEL_OUT_TOP_CENTER = 0x2000,
+	CHANNEL_OUT_TOP_CENTER = 0x2000,
 /** @hide */
-  CHANNEL_OUT_TOP_FRONT_LEFT = 0x4000,
+	CHANNEL_OUT_TOP_FRONT_LEFT = 0x4000,
 /** @hide */
-  CHANNEL_OUT_TOP_FRONT_CENTER = 0x8000,
+	CHANNEL_OUT_TOP_FRONT_CENTER = 0x8000,
 /** @hide */
-  CHANNEL_OUT_TOP_FRONT_RIGHT = 0x10000,
+	CHANNEL_OUT_TOP_FRONT_RIGHT = 0x10000,
 /** @hide */
-  CHANNEL_OUT_TOP_BACK_LEFT = 0x20000,
+	CHANNEL_OUT_TOP_BACK_LEFT = 0x20000,
 /** @hide */
-  CHANNEL_OUT_TOP_BACK_CENTER = 0x40000,
+	CHANNEL_OUT_TOP_BACK_CENTER = 0x40000,
 /** @hide */
-  CHANNEL_OUT_TOP_BACK_RIGHT = 0x80000,
+	CHANNEL_OUT_TOP_BACK_RIGHT = 0x80000,
 };
 
 /**
  * @func get_channel_mask
  * */
 int get_channel_mask(uint channel_count) {
-  int channelMask = CHANNEL_OUT_DEFAULT;
-  switch (channel_count) {
-    default:
-    case 1: // 1
-      channelMask = CHANNEL_OUT_DEFAULT/*CHANNEL_OUT_FRONT_CENTER*/; break;
-    case 2: // 2
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT; break;
-    case 3: // 2.1
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-              CHANNEL_OUT_LOW_FREQUENCY; break;
-    case 4: // 4
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-              CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
-    case 5: // 4.1
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_LOW_FREQUENCY |
-              CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
-    case 6: // 5.1
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
-              CHANNEL_OUT_LOW_FREQUENCY |
-              CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_LEFT; break;
-    case 7: // 6.1
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
-              CHANNEL_OUT_LOW_FREQUENCY |
-              CHANNEL_OUT_SIDE_LEFT | CHANNEL_OUT_SIDE_RIGHT |
-              CHANNEL_OUT_BACK_CENTER; break;
-    case 8: // 7.1
-      channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
-              CHANNEL_OUT_LOW_FREQUENCY |
-              CHANNEL_OUT_SIDE_LEFT | CHANNEL_OUT_SIDE_RIGHT |
-              CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
-  }
-  return channelMask;
+	int channelMask = CHANNEL_OUT_DEFAULT;
+	switch (channel_count) {
+		default:
+		case 1: // 1
+			channelMask = CHANNEL_OUT_DEFAULT/*CHANNEL_OUT_FRONT_CENTER*/; break;
+		case 2: // 2
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT; break;
+		case 3: // 2.1
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
+							CHANNEL_OUT_LOW_FREQUENCY; break;
+		case 4: // 4
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
+							CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
+		case 5: // 4.1
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_LOW_FREQUENCY |
+							CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
+		case 6: // 5.1
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
+							CHANNEL_OUT_LOW_FREQUENCY |
+							CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_LEFT; break;
+		case 7: // 6.1
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
+							CHANNEL_OUT_LOW_FREQUENCY |
+							CHANNEL_OUT_SIDE_LEFT | CHANNEL_OUT_SIDE_RIGHT |
+							CHANNEL_OUT_BACK_CENTER; break;
+		case 8: // 7.1
+			channelMask = CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER |
+							CHANNEL_OUT_LOW_FREQUENCY |
+							CHANNEL_OUT_SIDE_LEFT | CHANNEL_OUT_SIDE_RIGHT |
+							CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT; break;
+	}
+	return channelMask;
 }
 
 /**
@@ -113,177 +113,177 @@ int get_channel_mask(uint channel_count) {
  */
 class AndroidAudioTrack: public Object, public PCMPlayer {
 public:
-  typedef DefaultTraits Traits;
+	typedef DefaultTraits Traits;
 
-  AndroidAudioTrack()
-  : m_sample_rate(0)
-  , m_channel_count(0)
-  , m_buffer_size(0)
-  , m_min_volume(0)
-  , m_max_volume(1)
-  , m_volume(70)
-  , m_self(NULL)
-  , m_clazz(NULL)
-  , m_buffer(NULL)
-  {
-    ScopeENV env;
-    m_buffer_rewind     = JNI::find_method("java/nio/ByteBuffer", "rewind", "()Ljava/nio/Buffer;");
-    m_clazz             = JNI::find_clazz("android/media/AudioTrack");
-    m_getMinBufferSize  = JNI::find_static_method(m_clazz, "getMinBufferSize", "(III)I");
-    m_getMinVolume      = JNI::find_static_method(m_clazz, "getMinVolume", "()F");
-    m_getMaxVolume      = JNI::find_static_method(m_clazz, "getMaxVolume", "()F");
-    m_constructor       = JNI::find_method(m_clazz, "<init>", "(IIIIII)V");
-    m_play              = JNI::find_method(m_clazz, "play", "()V");
-    m_stop              = JNI::find_method(m_clazz, "stop", "()V");
-    m_pause             = JNI::find_method(m_clazz, "pause", "()V");
-    m_write             = JNI::find_method(m_clazz, "write", "(Ljava/nio/ByteBuffer;II)I");
-    m_setVolume         = JNI::find_method(m_clazz, "setVolume", "(F)I");
-    m_flush             = JNI::find_method(m_clazz, "flush", "()V");
-    m_clazz = (jclass)env->NewGlobalRef(m_clazz);
-  }
+	AndroidAudioTrack()
+	: m_sample_rate(0)
+	, m_channel_count(0)
+	, m_buffer_size(0)
+	, m_min_volume(0)
+	, m_max_volume(1)
+	, m_volume(70)
+	, m_self(NULL)
+	, m_clazz(NULL)
+	, m_buffer(NULL)
+	{
+		ScopeENV env;
+		m_buffer_rewind     = JNI::find_method("java/nio/ByteBuffer", "rewind", "()Ljava/nio/Buffer;");
+		m_clazz             = JNI::find_clazz("android/media/AudioTrack");
+		m_getMinBufferSize  = JNI::find_static_method(m_clazz, "getMinBufferSize", "(III)I");
+		m_getMinVolume      = JNI::find_static_method(m_clazz, "getMinVolume", "()F");
+		m_getMaxVolume      = JNI::find_static_method(m_clazz, "getMaxVolume", "()F");
+		m_constructor       = JNI::find_method(m_clazz, "<init>", "(IIIIII)V");
+		m_play              = JNI::find_method(m_clazz, "play", "()V");
+		m_stop              = JNI::find_method(m_clazz, "stop", "()V");
+		m_pause             = JNI::find_method(m_clazz, "pause", "()V");
+		m_write             = JNI::find_method(m_clazz, "write", "(Ljava/nio/ByteBuffer;II)I");
+		m_setVolume         = JNI::find_method(m_clazz, "setVolume", "(F)I");
+		m_flush             = JNI::find_method(m_clazz, "flush", "()V");
+		m_clazz = (jclass)env->NewGlobalRef(m_clazz);
+	}
 
-  virtual ~AndroidAudioTrack() {
-    ScopeENV env;
-    if ( m_self ) {
-      env->CallVoidMethod(m_self, m_stop);
-      env->DeleteGlobalRef(m_self);
-    }
-    if ( m_clazz )
-      env->DeleteGlobalRef(m_clazz);
-    if ( m_buffer )
-      env->DeleteGlobalRef(m_buffer);
-  }
+	virtual ~AndroidAudioTrack() {
+		ScopeENV env;
+		if ( m_self ) {
+			env->CallVoidMethod(m_self, m_stop);
+			env->DeleteGlobalRef(m_self);
+		}
+		if ( m_clazz )
+			env->DeleteGlobalRef(m_clazz);
+		if ( m_buffer )
+			env->DeleteGlobalRef(m_buffer);
+	}
 
-  bool initialize(uint channel_count, uint sample_rate) {
-    ScopeENV env;
+	bool initialize(uint channel_count, uint sample_rate) {
+		ScopeENV env;
 
-    m_channel_count = channel_count;
-    m_sample_rate = sample_rate;
-    m_buffer_size = min_buffer_size();
-    m_min_volume = env->CallStaticFloatMethod(m_clazz, m_getMinVolume);
-    m_max_volume = env->CallStaticFloatMethod(m_clazz, m_getMaxVolume);
+		m_channel_count = channel_count;
+		m_sample_rate = sample_rate;
+		m_buffer_size = min_buffer_size();
+		m_min_volume = env->CallStaticFloatMethod(m_clazz, m_getMinVolume);
+		m_max_volume = env->CallStaticFloatMethod(m_clazz, m_getMaxVolume);
 
-    if ( m_buffer_size <= 0 ) {
-      m_buffer_size = 4096 * m_channel_count;
-    }
+		if ( m_buffer_size <= 0 ) {
+			m_buffer_size = 4096 * m_channel_count;
+		}
 
-    // new Audio track object
-    m_self = env->NewObject(m_clazz, m_constructor,
-                            3, /* STREAM_MUSIC */
-                            m_sample_rate,
-                            get_channel_mask(m_channel_count),
-                            2, /* ENCODIXX_PCM_16BIT */
-                            m_buffer_size * 2,
-                            1  /* MODE_STREAM */
-    );
+		// new Audio track object
+		m_self = env->NewObject(m_clazz, m_constructor,
+														3, /* STREAM_MUSIC */
+														m_sample_rate,
+														get_channel_mask(m_channel_count),
+														2, /* ENCODIXX_PCM_16BIT */
+														m_buffer_size * 2,
+														1  /* MODE_STREAM */
+		);
 
-    XX_ASSERT(m_self);
+		XX_ASSERT(m_self);
 
-    m_self = env->NewGlobalRef(m_self);
+		m_self = env->NewGlobalRef(m_self);
 
-    // new buffer swap area
-    uint size = XX_MAX(m_buffer_size, 1024 * 32);
-    m_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(malloc(size), size));
+		// new buffer swap area
+		uint size = XX_MAX(m_buffer_size, 1024 * 32);
+		m_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(malloc(size), size));
 
-    // audio track play
-    env->CallVoidMethod(m_self, m_play);
+		// audio track play
+		env->CallVoidMethod(m_self, m_play);
 
-    return true;
-  }
+		return true;
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual bool write(cBuffer& buffer) {
-    ScopeENV env;
-    // buffer rewind
-    env->DeleteLocalRef(env->CallObjectMethod(m_buffer, m_buffer_rewind));
-    // copy pcm data
-    memcpy(env->GetDirectBufferAddress(m_buffer), *buffer, buffer.length());
-    // write pcm data
-    int r = env->CallIntMethod(m_self, m_write, m_buffer, buffer.length(), 1);
+	/**
+	 * @overwrite
+	 * */
+	virtual bool write(cBuffer& buffer) {
+		ScopeENV env;
+		// buffer rewind
+		env->DeleteLocalRef(env->CallObjectMethod(m_buffer, m_buffer_rewind));
+		// copy pcm data
+		memcpy(env->GetDirectBufferAddress(m_buffer), *buffer, buffer.length());
+		// write pcm data
+		int r = env->CallIntMethod(m_self, m_write, m_buffer, buffer.length(), 1);
 
-    return r == buffer.length();
-  }
+		return r == buffer.length();
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual void flush() {
-    JNI::ScopeENV env;
-    env->CallVoidMethod(m_self, m_flush);
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual void flush() {
+		JNI::ScopeENV env;
+		env->CallVoidMethod(m_self, m_flush);
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual bool set_mute(bool value) {
-    if ( value ) {
-      JNI::ScopeENV env;
-      env->CallVoidMethod(m_self, m_setVolume, 0.0f);
-    } else {
-      set_volume(m_volume);
-    }
-    return true;
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual bool set_mute(bool value) {
+		if ( value ) {
+			JNI::ScopeENV env;
+			env->CallVoidMethod(m_self, m_setVolume, 0.0f);
+		} else {
+			set_volume(m_volume);
+		}
+		return true;
+	}
 
-  /**
-   * @overwrite
-   * */
-  virtual bool set_volume(uint value) {
-    JNI::ScopeENV env;
-    m_volume = XX_MIN(100, value);
-    jfloat f = m_volume / 100.0;
-    env->CallIntMethod(m_self, m_setVolume, f);
-    return true;
-  }
+	/**
+	 * @overwrite
+	 * */
+	virtual bool set_volume(uint value) {
+		JNI::ScopeENV env;
+		m_volume = XX_MIN(100, value);
+		jfloat f = m_volume / 100.0;
+		env->CallIntMethod(m_self, m_setVolume, f);
+		return true;
+	}
 
-  /**
-   * @func buffer_size
-   * */
-  virtual uint buffer_size() {
-    return m_buffer_size;
-  }
+	/**
+	 * @func buffer_size
+	 * */
+	virtual uint buffer_size() {
+		return m_buffer_size;
+	}
 
-  int min_buffer_size() {
-    JNI::ScopeENV env;
-    int mask = get_channel_mask(XX_MAX(m_channel_count, 2));
-    return env->CallStaticIntMethod(m_clazz, m_getMinBufferSize,
-                                    m_sample_rate, mask, 2/*ENCODIXX_PCM_16BIT*/);
-  }
+	int min_buffer_size() {
+		JNI::ScopeENV env;
+		int mask = get_channel_mask(XX_MAX(m_channel_count, 2));
+		return env->CallStaticIntMethod(m_clazz, m_getMinBufferSize,
+																		m_sample_rate, mask, 2/*ENCODIXX_PCM_16BIT*/);
+	}
 
 private:
-  uint        m_sample_rate;
-  uint        m_channel_count;
-  int         m_buffer_size;
-  float       m_min_volume;
-  float       m_max_volume;
-  uint        m_volume;
-  jobject     m_self;
-  jclass      m_clazz;
-  jobject     m_buffer;
-  jmethodID   m_getMinBufferSize;
-  jmethodID   m_getMinVolume;
-  jmethodID   m_getMaxVolume;
-  jmethodID   m_constructor;
-  jmethodID   m_play;
-  jmethodID   m_stop;
-  jmethodID   m_pause;
-  jmethodID   m_write;
-  jmethodID   m_setVolume;
-  jmethodID   m_flush;
-  jmethodID   m_buffer_rewind;
+	uint        m_sample_rate;
+	uint        m_channel_count;
+	int         m_buffer_size;
+	float       m_min_volume;
+	float       m_max_volume;
+	uint        m_volume;
+	jobject     m_self;
+	jclass      m_clazz;
+	jobject     m_buffer;
+	jmethodID   m_getMinBufferSize;
+	jmethodID   m_getMinVolume;
+	jmethodID   m_getMaxVolume;
+	jmethodID   m_constructor;
+	jmethodID   m_play;
+	jmethodID   m_stop;
+	jmethodID   m_pause;
+	jmethodID   m_write;
+	jmethodID   m_setVolume;
+	jmethodID   m_flush;
+	jmethodID   m_buffer_rewind;
 };
 
 /**
  * @func _inl_create_android_audio_track
  */
 PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate) {
-  Handle<AndroidAudioTrack> pcm = new AndroidAudioTrack();
-  if ( pcm->initialize(channel_count, sample_rate) ) {
-    return pcm.collapse();
-  }
-  return NULL;
+	Handle<AndroidAudioTrack> pcm = new AndroidAudioTrack();
+	if ( pcm->initialize(channel_count, sample_rate) ) {
+		return pcm.collapse();
+	}
+	return NULL;
 }
 
 XX_END

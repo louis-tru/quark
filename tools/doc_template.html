@@ -1,101 +1,101 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>__placeholder_title__</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic" />
-  <script>
-    var src = '__placeholder_src__';
-    var relative = '__placeholder_relative__';
-    document.write('<link rel="stylesheet" href="'+relative+'assets/style.css" />');
-    document.write('<link rel="stylesheet" href="'+relative+'assets/sh.css" />');
-  </script>
+	<meta charset="utf-8"/>
+	<title>__placeholder_title__</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic" />
+	<script>
+		var src = '__placeholder_src__';
+		var relative = '__placeholder_relative__';
+		document.write('<link rel="stylesheet" href="'+relative+'assets/style.css" />');
+		document.write('<link rel="stylesheet" href="'+relative+'assets/sh.css" />');
+	</script>
 
 </head>
 <body class="alt apidoc" id="api-section-documentation">
 
-  <style>  
-    #column1.interior {
-      overflow-wrap: break-word;
-    }
-  
-    .on {
-      color: #43853d !important;
-      border-radius: 0;
-      border-bottom: 1px solid #43853d;
-      background: none;
-    }
+	<style>  
+		#column1.interior {
+			overflow-wrap: break-word;
+		}
+	
+		.on {
+			color: #43853d !important;
+			border-radius: 0;
+			border-bottom: 1px solid #43853d;
+			background: none;
+		}
 
-    img {
-      max-width: 100%;
-    }
+		img {
+			max-width: 100%;
+		}
 
-  </style>
-  
-  <div id="content" class="clearfix">
+	</style>
+	
+	<div id="content" class="clearfix">
 
-    <div id="column2" class="interior">
+		<div id="column2" class="interior">
 
-      <!--div id="intro" class="interior">
-        <a href="/" id="home2" title="Go back to the home page">
-          NGUI
-        </a>
-      </div-->
+			<!--div id="intro" class="interior">
+				<a href="/" id="home2" title="Go back to the home page">
+					NGUI
+				</a>
+			</div-->
 
-      __placeholder_index__
+			__placeholder_index__
 
-    </div>
-    
-    <div id="column1" data-id="documentation" class="interior">
-      <header>
-        <h1>Ngui __placeholder_version__ Documentation</h1>
-        <div id="gtoc">
-          <p>
-            <a href="/doc" id="index">Documentation Index</a> |
-            <a href="/" id="home">Home</a>
-          </p>
-        </div>
-        <hr>
-      </header>
+		</div>
+		
+		<div id="column1" data-id="documentation" class="interior">
+			<header>
+				<h1>Ngui __placeholder_version__ Documentation</h1>
+				<div id="gtoc">
+					<p>
+						<a href="/doc" id="index">Documentation Index</a> |
+						<a href="/" id="home">Home</a>
+					</p>
+				</div>
+				<hr>
+			</header>
 
-      <div id="toc">
-        <h2>Table of Contents</h2>
-        __placeholder_toc__
-      </div>
+			<div id="toc">
+				<h2>Table of Contents</h2>
+				__placeholder_toc__
+			</div>
 
-      <div id="apicontent">
-        __placeholder_body__
-      </div>
+			<div id="apicontent">
+				__placeholder_body__
+			</div>
 
-    </div>
+		</div>
 
-  </div>
+	</div>
 
-  <script>
-    document.write('<script src="'+relative+'assets/sh_main.js"><\/script>');
-    document.write('<script src="'+relative+'assets/sh_javascript.min.js"><\/script>');
-  </script>
+	<script>
+		document.write('<script src="'+relative+'assets/sh_main.js"><\/script>');
+		document.write('<script src="'+relative+'assets/sh_javascript.min.js"><\/script>');
+	</script>
 
-  <script>
-    highlight(undefined, undefined, 'pre');
-    
-    var column2 = document.getElementById('column2');
-    var a = column2.querySelector('li > a[href="' + src + '"]')
-    if ( a ) {
-      a.className += ' on';
-    }
-    if ( relative ) {
-      column2.querySelectorAll('li > a').forEach(function(a) {
-        var href = a.getAttribute('href');
-        if ( !href.match(/^(\/|https?:\/\/)/) ) {
-          a.setAttribute('href', relative + href);
-        }
-      });
-    }
-    document.getElementById('index').href = relative + '.';
-    document.getElementById('home').href = relative + '..';
-    // document.getElementById('home2').href = relative + '..';
-  </script>
+	<script>
+		highlight(undefined, undefined, 'pre');
+		
+		var column2 = document.getElementById('column2');
+		var a = column2.querySelector('li > a[href="' + src + '"]')
+		if ( a ) {
+			a.className += ' on';
+		}
+		if ( relative ) {
+			column2.querySelectorAll('li > a').forEach(function(a) {
+				var href = a.getAttribute('href');
+				if ( !href.match(/^(\/|https?:\/\/)/) ) {
+					a.setAttribute('href', relative + href);
+				}
+			});
+		}
+		document.getElementById('index').href = relative + '.';
+		document.getElementById('home').href = relative + '..';
+		// document.getElementById('home2').href = relative + '..';
+	</script>
 
 </body>
 </html>

@@ -33,67 +33,67 @@
 XX_NS(ngui)
 
 static PixelData xx_decode(cBuffer& data) {
-  return PixelData();
+	return PixelData();
 }
 
 static PixelData xx_decode_header(cBuffer& data) {
-  return PixelData();
+	return PixelData();
 }
 
 Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
-  return rv;
+	Array<PixelData> rv; rv.push(xx_decode(data));
+	return rv;
 }
 
 PixelData JPEGImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+	return xx_decode_header(data);
 }
 
 Buffer JPEGImageCodec::encode(cPixelData& data) {
-  XX_UNIMPLEMENTED();
-  return Buffer();
+	XX_UNIMPLEMENTED();
+	return Buffer();
 }
 
 Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
-  return rv;
+	Array<PixelData> rv; rv.push(xx_decode(data));
+	return rv;
 }
 
 PixelData GIFImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+	return xx_decode_header(data);
 }
 
 Buffer GIFImageCodec::encode(cPixelData& data) {
-  XX_UNIMPLEMENTED();
-  return Buffer();
+	XX_UNIMPLEMENTED();
+	return Buffer();
 }
 
 Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
-  return rv;
+	Array<PixelData> rv; rv.push(xx_decode(data));
+	return rv;
 }
 
 PixelData PNGImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+	return xx_decode_header(data);
 }
 
 Buffer PNGImageCodec::encode(cPixelData& data) {
-  XX_UNIMPLEMENTED();
-  return Buffer();
+	XX_UNIMPLEMENTED();
+	return Buffer();
 }
 
 Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-  Array<PixelData> rv; rv.push(xx_decode(data));
-  return rv;
+	Array<PixelData> rv; rv.push(xx_decode(data));
+	return rv;
 }
 
 PixelData WEBPImageCodec::decode_header(cBuffer& data) {
-  return xx_decode_header(data);
+	return xx_decode_header(data);
 }
 
 Buffer WEBPImageCodec::encode(cPixelData& data) {
-  XX_UNIMPLEMENTED();
-  return Buffer();
+	XX_UNIMPLEMENTED();
+	return Buffer();
 }
 
 XX_END

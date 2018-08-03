@@ -42,37 +42,37 @@ JS_BEGIN
  * @class WrapDiv
  */
 class WrapDiv: public WrapViewBase {
-  
-  static void constructor(FunctionCall args) {
-    JS_ATTACH(args);
-    js_check_gui_app();
-    New<WrapDiv>(args, new Div());
-  }
-  
-  static void content_align(Local<JSString> name, PropertyCall args) {
-    JS_WORKER(args);
-    JS_SELF(Div);
-    JS_RETURN( worker->value_program()->New(self->content_align()) );
-  }
-  
-  static void set_content_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-    JS_WORKER(args); GUILock lock;
-    js_parse_value(ContentAlign, value, "Div.contentAlign = %s");
-    JS_SELF(Div);
-    self->set_content_align(out);
-  }
-  
+	
+	static void constructor(FunctionCall args) {
+		JS_ATTACH(args);
+		js_check_gui_app();
+		New<WrapDiv>(args, new Div());
+	}
+	
+	static void content_align(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(Div);
+		JS_RETURN( worker->value_program()->New(self->content_align()) );
+	}
+	
+	static void set_content_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
+		JS_WORKER(args); GUILock lock;
+		js_parse_value(ContentAlign, value, "Div.contentAlign = %s");
+		JS_SELF(Div);
+		self->set_content_align(out);
+	}
+	
  public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
-    JS_DEFINE_CLASS(Div, constructor, {
-      JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);
-    }, Box);
-    IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Div), View::DIV);
-  }
+	static void binding(Local<JSObject> exports, Worker* worker) {
+		JS_DEFINE_CLASS(Div, constructor, {
+			JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);
+		}, Box);
+		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Div), View::DIV);
+	}
 };
 
 void binding_div(Local<JSObject> exports, Worker* worker) {
-  WrapDiv::binding(exports, worker);
+	WrapDiv::binding(exports, worker);
 }
 
 JS_END

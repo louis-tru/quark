@@ -51,95 +51,95 @@
 #endif
 
 namespace v8 {
-  
-  void log(const std::string& msg) {
-    fprintf(stdout, "%s\n", msg.c_str());
-  }
-  
-	void log(const char* msg, ...) {
-    va_list args;
-    va_start(args, msg);
-    vfprintf(stdout, msg, args);
-    fprintf(stdout, "%s", "\n");
+	
+	void log(const std::string& msg) {
+		fprintf(stdout, "%s\n", msg.c_str());
 	}
-  
-  void report_error(const char* msg, ...) {
-    va_list args;
-    va_start(args, msg);
-    vfprintf(stderr, msg, args);
-  }
-  
-  void dump_backtrace() {
+	
+	void log(const char* msg, ...) {
+		va_list args;
+		va_start(args, msg);
+		vfprintf(stdout, msg, args);
+		fprintf(stdout, "%s", "\n");
+	}
+	
+	void report_error(const char* msg, ...) {
+		va_list args;
+		va_start(args, msg);
+		vfprintf(stderr, msg, args);
+	}
+	
+	void dump_backtrace() {
 #if v8_vlibc_glibc || V8_OS_BSD
-    void* trace[100];
-    int size = backtrace(trace, 100);
-    report_error("\n==== C stack trace ===============================\n\n");
-    if (size == 0) {
-      report_error("(empty)\n");
-    } else {
-      for (int i = 1; i < size; ++i) {
-        report_error("%2d: ", i);
-        Dl_info info;
-        char* demangled = NULL;
-        if (!dladdr(trace[i], &info) || !info.dli_sname) {
-          report_error("%p\n", trace[i]);
-        } else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
-          report_error("%s\n", demangled);
-          free(demangled);
-        } else {
-          report_error("%s\n", info.dli_sname);
-        }
-      }
-    }
+		void* trace[100];
+		int size = backtrace(trace, 100);
+		report_error("\n==== C stack trace ===============================\n\n");
+		if (size == 0) {
+			report_error("(empty)\n");
+		} else {
+			for (int i = 1; i < size; ++i) {
+				report_error("%2d: ", i);
+				Dl_info info;
+				char* demangled = NULL;
+				if (!dladdr(trace[i], &info) || !info.dli_sname) {
+					report_error("%p\n", trace[i]);
+				} else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
+					report_error("%s\n", demangled);
+					free(demangled);
+				} else {
+					report_error("%s\n", info.dli_sname);
+				}
+			}
+		}
 #elif V8_OS_QNX
-    char out[1024];
-    bt_accessor_t acc;
-    bt_memmap_t memmap;
-    bt_init_accessor(&acc, BT_SELF);
-    bt_load_memmap(&acc, &memmap);
-    bt_sprn_memmap(&memmap, out, sizeof(out));
-    error(out);
-    bt_addr_t trace[100];
-    int size = bt_get_backtrace(&acc, trace, 100);
-    report_error("\n==== C stack trace ===============================\n\n");
-    if (size == 0) {
-      report_error("(empty)\n");
-    } else {
-      bt_sprnf_addrs(&memmap, trace, size, const_cast<char*>("%a\n"),
-                     out, sizeof(out), NULL);
-      report_error(out);
-    }
-    bt_unload_memmap(&memmap);
-    bt_release_accessor(&acc);
+		char out[1024];
+		bt_accessor_t acc;
+		bt_memmap_t memmap;
+		bt_init_accessor(&acc, BT_SELF);
+		bt_load_memmap(&acc, &memmap);
+		bt_sprn_memmap(&memmap, out, sizeof(out));
+		error(out);
+		bt_addr_t trace[100];
+		int size = bt_get_backtrace(&acc, trace, 100);
+		report_error("\n==== C stack trace ===============================\n\n");
+		if (size == 0) {
+			report_error("(empty)\n");
+		} else {
+			bt_sprnf_addrs(&memmap, trace, size, const_cast<char*>("%a\n"),
+										 out, sizeof(out), NULL);
+			report_error(out);
+		}
+		bt_unload_memmap(&memmap);
+		bt_release_accessor(&acc);
 #endif  // v8_vlibc_glibc || V8_OS_BSD
-  }
-  
-  extern void fatal(const char* msg, ...) {
-    fflush(stdout);
-    fflush(stderr);
-    if (msg) {
-      va_list args;
-      va_start(args, msg);
-      vfprintf(stderr, msg, args);
-    }
-    dump_backtrace();
-    fflush(stdout);
-    fflush(stderr);
-    IMMEDIATE_CRASH();
-  }
-  
+	}
+	
+	extern void fatal(const char* msg, ...) {
+		fflush(stdout);
+		fflush(stderr);
+		if (msg) {
+			va_list args;
+			va_start(args, msg);
+			vfprintf(stderr, msg, args);
+		}
+		dump_backtrace();
+		fflush(stdout);
+		fflush(stderr);
+		IMMEDIATE_CRASH();
+	}
+	
 	void fatal(const char* file, int line, const char* func, const char* msg, ...) {
-	  fflush(stdout);
-	  fflush(stderr);
-    if (msg) {
-      va_list args;
-      va_start(args, msg);
-      vfprintf(stderr, msg, args);
-    }
-	  fprintf(stderr, "#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
-	  dump_backtrace();
-	  fflush(stdout);
-	  fflush(stderr);
-	  IMMEDIATE_CRASH();
+		fflush(stdout);
+		fflush(stderr);
+		if (msg) {
+			va_list args;
+			va_start(args, msg);
+			vfprintf(stderr, msg, args);
+		}
+		fprintf(stderr, "#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
+		dump_backtrace();
+		fflush(stdout);
+		fflush(stderr);
+		IMMEDIATE_CRASH();
 	}
 }

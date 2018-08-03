@@ -45,37 +45,37 @@ XX_NS(ngui)
  */
 class PCMPlayer {
  public:
-  typedef ProtocolTraits Traits;
+	typedef ProtocolTraits Traits;
 
-  /**
-   * @func write
-   * */
-  virtual bool write(cBuffer& buffer) = 0;
+	/**
+	 * @func write
+	 * */
+	virtual bool write(cBuffer& buffer) = 0;
 
-  /**
-   * @func flush
-   * */
-  virtual void flush() = 0;
+	/**
+	 * @func flush
+	 * */
+	virtual void flush() = 0;
 
-  /**
-   * @func set_mute
-   * */
-  virtual bool set_mute(bool value) = 0;
+	/**
+	 * @func set_mute
+	 * */
+	virtual bool set_mute(bool value) = 0;
 
-  /**
-   * @func set_volume 0-100
-   * */
-  virtual bool set_volume(uint value) = 0;
+	/**
+	 * @func set_volume 0-100
+	 * */
+	virtual bool set_volume(uint value) = 0;
 
-  /**
-   * @func buffer_size
-   * */
-  virtual uint buffer_size() = 0;
+	/**
+	 * @func buffer_size
+	 * */
+	virtual uint buffer_size() = 0;
 
-  /**
-   * @func create
-   */
-  static PCMPlayer* create(uint channel_count, uint sample_rate);
+	/**
+	 * @func create
+	 */
+	static PCMPlayer* create(uint channel_count, uint sample_rate);
 
 };
 

@@ -15,8 +15,8 @@ uniform vec4  vertex_ac;
 #define opacity _vm[6]
 
 mat4 get_view_matrix() {
-  return mat4(_vm[0], _vm[3], 0.0, 0.0,
-              _vm[1], _vm[4], 0.0, 0.0,
-              0.0,      0.0,    1.0, 0.0,
-              _vm[2], _vm[5], 0.0, 1.0);
+	return mat4(_vm[0], _vm[3], 0.0, 0.0,
+							_vm[1], _vm[4], 0.0, 0.0,
+							0.0,      0.0,    1.0, 0.0,
+							_vm[2], _vm[5], 0.0, 1.0);
 }

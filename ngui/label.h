@@ -47,83 +47,83 @@ XX_NS(ngui)
  */
 class XX_EXPORT Label: public View, public TextFont {
  public:
-  XX_DEFINE_GUI_VIEW(LABEL, Label, label);
-  
-  typedef ReferenceTraits Traits;
-  
-  Label();
-  
-  /**
-   * @overwrite
-   */
-  virtual void prepend(View* child) throw(Error);
-  virtual void append(View* child) throw(Error);
-  virtual View* append_text(cUcs2String& str) throw(Error);
-  virtual TextFont* as_text_font() { return this; }
-  virtual void remove_all_child();
-  virtual View* view() { return this; }
-  virtual CGRect screen_rect();
-  virtual bool overlap_test(Vec2 point);
-  
-  /**
-   * @func value
-   */
-  Ucs2String value() const { return m_data.string; }
-  
-  /**
-   * @func set_value
-   */
-  void set_value(cUcs2String& str);
-  
-  /**
-   * @func length
-   */
-  inline uint length() const { return m_data.string.length(); }
-  
-  /**
-   * @func cells
-   */
-  inline const Array<Cell>& cells() const { return m_data.cells; }
-  
-  /**
-   * @func text_align
-   */
-  inline TextAlign text_align() const { return m_text_align; }
-  
-  /**
-   * @func set_text_align
-   */
-  void set_text_align(TextAlign value);
-  
-  /**
-   * @func text_hori_bearing
-   */
-  inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
-  
-  /**
-   * @func text_height
-   */
-  inline float text_height() const { return m_data.text_height; }
-  
+	XX_DEFINE_GUI_VIEW(LABEL, Label, label);
+	
+	typedef ReferenceTraits Traits;
+	
+	Label();
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void prepend(View* child) throw(Error);
+	virtual void append(View* child) throw(Error);
+	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual TextFont* as_text_font() { return this; }
+	virtual void remove_all_child();
+	virtual View* view() { return this; }
+	virtual CGRect screen_rect();
+	virtual bool overlap_test(Vec2 point);
+	
+	/**
+	 * @func value
+	 */
+	Ucs2String value() const { return m_data.string; }
+	
+	/**
+	 * @func set_value
+	 */
+	void set_value(cUcs2String& str);
+	
+	/**
+	 * @func length
+	 */
+	inline uint length() const { return m_data.string.length(); }
+	
+	/**
+	 * @func cells
+	 */
+	inline const Array<Cell>& cells() const { return m_data.cells; }
+	
+	/**
+	 * @func text_align
+	 */
+	inline TextAlign text_align() const { return m_text_align; }
+	
+	/**
+	 * @func set_text_align
+	 */
+	void set_text_align(TextAlign value);
+	
+	/**
+	 * @func text_hori_bearing
+	 */
+	inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
+	
+	/**
+	 * @func text_height
+	 */
+	inline float text_height() const { return m_data.text_height; }
+	
  protected:
-  
-  /**
-   * @overwrite
-   */
-  virtual void draw(Draw* draw);
-  virtual void mark_text(uint value);
-  virtual void accept_text(Ucs2StringBuilder& out) const;
-  virtual void set_screen_visible();
-  virtual void set_parent(View* parent) throw(Error);
-  
+	
+	/**
+	 * @overwrite
+	 */
+	virtual void draw(Draw* draw);
+	virtual void mark_text(uint value);
+	virtual void accept_text(Ucs2StringBuilder& out) const;
+	virtual void set_screen_visible();
+	virtual void set_parent(View* parent) throw(Error);
+	
  private:
-  Data        m_data;
-  TextAlign   m_text_align;
-  Vec2        m_box_size;
-  float       m_box_offset_start;
-  Vec2        m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置
-  
-  XX_DEFINE_INLINE_CLASS(Inl);
+	Data        m_data;
+	TextAlign   m_text_align;
+	Vec2        m_box_size;
+	float       m_box_offset_start;
+	Vec2        m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置
+	
+	XX_DEFINE_INLINE_CLASS(Inl);
 };
 
 XX_END

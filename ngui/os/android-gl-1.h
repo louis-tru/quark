@@ -45,29 +45,29 @@ XX_NS(ngui)
 
 class AndroidGLDrawCore {
  public:
-  AndroidGLDrawCore(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
-  ~AndroidGLDrawCore();
-  void initialize();
-  bool create_surface(ANativeWindow* window);
-  void destroyed_surface(ANativeWindow* window);
-  void refresh_surface_size(CGRect* rect);
-  void refresh_virtual_keyboard_rect();
-  void refresh_buffer();
-  void begin_render();
-  void commit_render();
-  void initializ_gl_buffers();
-  GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-  inline GLDraw* host() { return m_host; }
-  static AndroidGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
+	AndroidGLDrawCore(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
+	~AndroidGLDrawCore();
+	void initialize();
+	bool create_surface(ANativeWindow* window);
+	void destroyed_surface(ANativeWindow* window);
+	void refresh_surface_size(CGRect* rect);
+	void refresh_virtual_keyboard_rect();
+	void refresh_buffer();
+	void begin_render();
+	void commit_render();
+	void initializ_gl_buffers();
+	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
+	inline GLDraw* host() { return m_host; }
+	static AndroidGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
  protected:
-  EGLDisplay m_display;
-  EGLConfig m_config;
-  EGLContext m_context;
-  EGLSurface m_surface;
-  ANativeWindow* m_window;
-  Vec2 m_raw_surface_size;
-  CGRect m_virtual_keys_rect;
-  GLDraw* m_host;
+	EGLDisplay m_display;
+	EGLConfig m_config;
+	EGLContext m_context;
+	EGLSurface m_surface;
+	ANativeWindow* m_window;
+	Vec2 m_raw_surface_size;
+	CGRect m_virtual_keys_rect;
+	GLDraw* m_host;
 };
 
 XX_END

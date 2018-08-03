@@ -47,56 +47,56 @@ XX_NS(ngui)
  */
 class XX_EXPORT Hybrid: public Box, public TextLayout {
  public:
-  XX_DEFINE_GUI_VIEW(HYBRID, Hybrid, hybrid);
-  
-  typedef ReferenceTraits Traits;
-  
-  Hybrid();
-  
-  /**
-   * @overwrite
-   */
-  virtual TextFont* as_text_font() { return this; }
-  virtual TextLayout* as_text_layout() { return this; }
-  virtual View* view() { return this; }
-  virtual View* append_text(cUcs2String& str) throw(Error);
-  virtual void set_visible(bool value);
-  
-  /**
-   * @func text_align
-   */
-  inline TextAlign text_align() const { return m_text_align; }
-  
-  /**
-   * @func set_text_align
-   */
-  void set_text_align(TextAlign value);
-  
-  /**
-   * @func rows
-   */
-  inline TextRows& rows() { return m_rows; }
-  
+	XX_DEFINE_GUI_VIEW(HYBRID, Hybrid, hybrid);
+	
+	typedef ReferenceTraits Traits;
+	
+	Hybrid();
+	
+	/**
+	 * @overwrite
+	 */
+	virtual TextFont* as_text_font() { return this; }
+	virtual TextLayout* as_text_layout() { return this; }
+	virtual View* view() { return this; }
+	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual void set_visible(bool value);
+	
+	/**
+	 * @func text_align
+	 */
+	inline TextAlign text_align() const { return m_text_align; }
+	
+	/**
+	 * @func set_text_align
+	 */
+	void set_text_align(TextAlign value);
+	
+	/**
+	 * @func rows
+	 */
+	inline TextRows& rows() { return m_rows; }
+	
  protected:
 
-  /**
-   * @overwrite
-   */
-  virtual void set_layout_explicit_size();
-  virtual void set_layout_content_offset();
-  virtual void set_layout_three_times(bool horizontal, bool hybrid);
-  
-  /**
-   * @func set_layout_content_offset_after
-   */
-  void set_layout_content_offset_after();
-  
+	/**
+	 * @overwrite
+	 */
+	virtual void set_layout_explicit_size();
+	virtual void set_layout_content_offset();
+	virtual void set_layout_three_times(bool horizontal, bool hybrid);
+	
+	/**
+	 * @func set_layout_content_offset_after
+	 */
+	void set_layout_content_offset_after();
+	
  protected:
-  TextRows  m_rows;
-  TextAlign m_text_align;
-  
-  friend class Div;
-  
+	TextRows  m_rows;
+	TextAlign m_text_align;
+	
+	friend class Div;
+	
 };
 
 XX_END

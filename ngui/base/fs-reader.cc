@@ -41,315 +41,315 @@ String inl__format_part_path(cString& path);
 
 class FileReader::Core {
 public:
-  
-  enum Protocol {
-    FILE = 0,
-    ZIP,
-    HTTP,
-    HTTPS,
-    FTP,
-    FTPS,
-    Unknown,
-  };
-  
-  ~Core() {
-    ScopeLock lock(zip_mutex_);
-    for (auto i = zips_.begin(), e = zips_.end(); i != e; i++) {
-      Release(i.value());
-    }
-  }
-  
-  Protocol protocol(cString& path) {
-    if ( Path::is_local_file( path ) ) {
-      return FILE;
-    }
-    if ( Path::is_local_zip( path ) ) {
-      return ZIP;
-    }
-    if ((path[0] == 'h' || path[0] == 'H') &&
-        (path[1] == 't' || path[1] == 'T') &&
-        (path[2] == 't' || path[2] == 'T') &&
-        (path[3] == 'p' || path[3] == 'P')) {
-      if (path[4] == ':' &&
-          path[5] == '/' &&
-          path[6] == '/') {
-        return HTTP;
-      }
-      if ((path[4] == 's' || path[4] == 'S') &&
-          path[5] == ':' &&
-          path[6] == '/' &&
-          path[7] == '/') {
-        return HTTPS;
-      }
-    }
-    if ((path[0] == 'f' || path[0] == 'F') &&
-        (path[1] == 't' || path[1] == 'T') &&
-        (path[2] == 'p' || path[2] == 'P')) {
-      if (path[3] == ':' &&
-          path[4] == '/' &&
-          path[5] == '/') {
-        return FTP;
-      }
-      if ((path[3] == 's' || path[3] == 'S') &&
-          path[4] == ':' &&
-          path[5] == '/' &&
-          path[6] == '/') {
-        return FTPS;
-      }
-    }
-    return Unknown;
-  }
-  
-  String zip_path(cString& path) {
-    int  i = path.index_of('@');
-    if (i != -1) {
-      return path.substr(0, i);
-    }
-    return String();
-  }
-  
-  ZipReader* get_zip_reader(cString& path) throw(Error) {
-    ZipReader* reader = zips_.get(path);
-    if (reader) {
-      return reader;
-    }
-    reader = new ZipReader(path);
-    if ( !reader->open() ) {
-      Release(reader);
-      XX_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
-    }
-    zips_.set(path, reader);
-    return reader;
-  }
+	
+	enum Protocol {
+		FILE = 0,
+		ZIP,
+		HTTP,
+		HTTPS,
+		FTP,
+		FTPS,
+		Unknown,
+	};
+	
+	~Core() {
+		ScopeLock lock(zip_mutex_);
+		for (auto i = zips_.begin(), e = zips_.end(); i != e; i++) {
+			Release(i.value());
+		}
+	}
+	
+	Protocol protocol(cString& path) {
+		if ( Path::is_local_file( path ) ) {
+			return FILE;
+		}
+		if ( Path::is_local_zip( path ) ) {
+			return ZIP;
+		}
+		if ((path[0] == 'h' || path[0] == 'H') &&
+				(path[1] == 't' || path[1] == 'T') &&
+				(path[2] == 't' || path[2] == 'T') &&
+				(path[3] == 'p' || path[3] == 'P')) {
+			if (path[4] == ':' &&
+					path[5] == '/' &&
+					path[6] == '/') {
+				return HTTP;
+			}
+			if ((path[4] == 's' || path[4] == 'S') &&
+					path[5] == ':' &&
+					path[6] == '/' &&
+					path[7] == '/') {
+				return HTTPS;
+			}
+		}
+		if ((path[0] == 'f' || path[0] == 'F') &&
+				(path[1] == 't' || path[1] == 'T') &&
+				(path[2] == 'p' || path[2] == 'P')) {
+			if (path[3] == ':' &&
+					path[4] == '/' &&
+					path[5] == '/') {
+				return FTP;
+			}
+			if ((path[3] == 's' || path[3] == 'S') &&
+					path[4] == ':' &&
+					path[5] == '/' &&
+					path[6] == '/') {
+				return FTPS;
+			}
+		}
+		return Unknown;
+	}
+	
+	String zip_path(cString& path) {
+		int  i = path.index_of('@');
+		if (i != -1) {
+			return path.substr(0, i);
+		}
+		return String();
+	}
+	
+	ZipReader* get_zip_reader(cString& path) throw(Error) {
+		ZipReader* reader = zips_.get(path);
+		if (reader) {
+			return reader;
+		}
+		reader = new ZipReader(path);
+		if ( !reader->open() ) {
+			Release(reader);
+			XX_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
+		}
+		zips_.set(path, reader);
+		return reader;
+	}
 
-  void read_from_zip(RunLoop* loop, cString& zip, cString& path, bool stream, cCb& cb) {
-    Buffer buffer;
-    ScopeLock lock(zip_mutex_);
-    try {
-      ZipReader* read = get_zip_reader(zip);
-      String inl_path = inl__format_part_path(path.substr(zip.length() + 1));
-      if ( read->jump(inl_path) ) {
-        buffer = read->read();
-      } else {
-        Error err("Zip package internal file does not exist, %s", *path);
-        async_err_callback(cb, move(err), loop); return;
-      }
-    } catch (cError& err) {
-      Error e(err);
-      async_err_callback(cb, Error(err), loop); return;
-    }
-    
-    if ( stream ) {
-      uint len = buffer.length();
-      async_callback(cb, IOStreamData(buffer, 1, 0, len, len, nullptr), static_cast<PostMessage*>(loop));
-    } else {
-      async_callback(cb, move(buffer), static_cast<PostMessage*>(loop));
-    }
-  }
+	void read_from_zip(RunLoop* loop, cString& zip, cString& path, bool stream, cCb& cb) {
+		Buffer buffer;
+		ScopeLock lock(zip_mutex_);
+		try {
+			ZipReader* read = get_zip_reader(zip);
+			String inl_path = inl__format_part_path(path.substr(zip.length() + 1));
+			if ( read->jump(inl_path) ) {
+				buffer = read->read();
+			} else {
+				Error err("Zip package internal file does not exist, %s", *path);
+				async_err_callback(cb, move(err), loop); return;
+			}
+		} catch (cError& err) {
+			Error e(err);
+			async_err_callback(cb, Error(err), loop); return;
+		}
+		
+		if ( stream ) {
+			uint len = buffer.length();
+			async_callback(cb, IOStreamData(buffer, 1, 0, len, len, nullptr), static_cast<PostMessage*>(loop));
+		} else {
+			async_callback(cb, move(buffer), static_cast<PostMessage*>(loop));
+		}
+	}
 
-  /**
-   * @func read
-   */
-  uint read(cString& path, cCb& cb, bool stream) {
-    
-    Protocol p = protocol(path);
-    uint id = 0;
+	/**
+	 * @func read
+	 */
+	uint read(cString& path, cCb& cb, bool stream) {
+		
+		Protocol p = protocol(path);
+		uint id = 0;
 
-    switch (p) {
-      default:
-      case FILE:
-        if ( stream ) {
-          id = FileHelper::read_stream(path, cb);
-        } else {
-          FileHelper::read_file(path, cb);
-        }
-        break;
-      case ZIP: {
-        String zip = zip_path(path);
-        if ( zip.is_empty() ) {
-          async_err_callback(cb, Error("Invalid file path, \"%s\"", *path), RunLoop::current());
-        } else {
-          RunLoop* loop = RunLoop::current();
-          loop->work(Cb([this, loop, zip, path, stream, cb](Se& evt) {
-            read_from_zip(loop, zip, path, stream, cb);
-          }));
-        }
-        break;
-      }
-      case FTP:
-      case FTPS:
-        async_err_callback(cb, Error(ERR_NOT_SUPPORTED_FILE_PROTOCOL,
-                                     "This file protocol is not supported"),
-                           RunLoop::current()
-        );
-        break;
-      case HTTP:
-      case HTTPS:
-        try {
-          if ( stream ) {
-            id = HttpHelper::get_stream(path, cb);
-          } else {
-            id = HttpHelper::get(path, cb);
-          }
-        } catch(cError& err) {
-          async_err_callback(cb, Error(err), RunLoop::current());
-        }
-        break;
-    }
-    return id;
-  }
-  
-  /**
-   * @func read_sync
-   */
-  Buffer read_sync(cString& path) throw(Error) {
-    Buffer rv;
-    
-    switch ( protocol(path) ) {
-      default:
-      case FILE:
-        XX_ASSERT_ERR(FileHelper::exists_sync(path),
-                      ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
-        rv = FileHelper::read_file_sync(path);
-        break;
-      case ZIP: {
-        String zip = zip_path(path);
-        XX_ASSERT_ERR(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
-        
-        ScopeLock lock(zip_mutex_);
-        
-        ZipReader* read = get_zip_reader(zip);
-        String inl_path = inl__format_part_path( path.substr(zip.length() + 1) );
-        
-        if ( read->jump(inl_path) ) {
-          rv = read->read();
-        } else {
-          XX_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS, "Zip package internal file does not exist, %s", *path);
-        }
-        break;
-      }
-      case FTP:
-      case FTPS:
-        XX_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
-        break;
-      case HTTP:
-      case HTTPS: rv = HttpHelper::get_sync(path); break;
-    }
-    return rv;
-  }
-  
-  /**
-   * @func abort
-   */
-  void abort(uint id) {
-    AsyncIOTask::safe_abort(id);
-  }
-  
-  /**
-   * @func exists_sync
-   */
-  bool exists_sync(cString& path, bool file, bool dir) {
-    switch ( protocol(path) ) {
-      default:
-      case FILE:
-        if ( file && FileHelper::is_file_sync(path) )
-          return true;
-        if ( dir  && FileHelper::is_directory_sync(path) )
-          return true;
-      case ZIP: {
-        String zip = zip_path(path);
-        if ( !zip.is_empty() ) {
-          XX_IGNORE_ERR({
-            ScopeLock lock(zip_mutex_);
-            ZipReader* read = get_zip_reader(zip);
-            String inl_path = inl__format_part_path( path.substr(zip.length() + 1) );
-            if ( file && read->is_file( inl_path ) )
-              return true;
-            if ( dir && read->is_directory( inl_path ) )
-              return true;
-          });
-        }
-        return false;
-      }
-    }
-    return false;
-  }
-  
-  Array<Dirent> readdir_sync(cString& path) {
-    Array<Dirent> rv;
-    switch ( protocol(path) ) {
-      default:
-      case FILE:
-        rv = FileHelper::readdir_sync(path);
-      case ZIP: {
-        String zip = zip_path(path);
-        if ( !zip.is_empty() ) {
-          XX_IGNORE_ERR({
-            ScopeLock lock(zip_mutex_);
-            ZipReader* read = get_zip_reader(zip);
-            String inl_path = inl__format_part_path( path.substr(zip.length() + 1) );
-            rv = read->readdir(inl_path);
-          });
-        }
-        break;
-      }
-    }
-    return move(rv);
-  }
-  
-  /**
-   * @func format
-   */
-  String format(cString& path) {
-    int index = -1;
-    switch ( protocol(path) ) {
-      default:
-      case ZIP:
-      case FILE: return Path::format("%s", *path);
-      case HTTP: index = path.index_of('/', 8); break;
-      case HTTPS:index = path.index_of('/', 9); break;
-      case FTP:  index = path.index_of('/', 7); break;
-      case FTPS: index = path.index_of('/', 8); break;
-    }
-    if (index == -1) {
-      return path;
-    }
-    String s = inl__format_part_path(path.substr(index));
-    if (s.is_empty()) {
-      return path.substr(0, index);
-    } else {
-      return path.substr(0, index + 1) + s;
-    }
-  }
-  
-  bool is_absolute(cString& path) {
-    
-    if ( Path::is_local_absolute(path) ) {
-      return true;
-    } else {
-      switch ( protocol(path) ) {
-        case ZIP: 
-        case FILE: 
-        case HTTP: 
-        case HTTPS: 
-        case FTP: 
-        case FTPS: return true;
-        default: return false;
-      }
-    }
-  }
-  
-  void clear() {
-    ScopeLock lock(zip_mutex_);
-    for ( auto& i: zips_ ) {
-      Release(i.value());
-    }
-    zips_.clear();
-  }
-  
+		switch (p) {
+			default:
+			case FILE:
+				if ( stream ) {
+					id = FileHelper::read_stream(path, cb);
+				} else {
+					FileHelper::read_file(path, cb);
+				}
+				break;
+			case ZIP: {
+				String zip = zip_path(path);
+				if ( zip.is_empty() ) {
+					async_err_callback(cb, Error("Invalid file path, \"%s\"", *path), RunLoop::current());
+				} else {
+					RunLoop* loop = RunLoop::current();
+					loop->work(Cb([this, loop, zip, path, stream, cb](Se& evt) {
+						read_from_zip(loop, zip, path, stream, cb);
+					}));
+				}
+				break;
+			}
+			case FTP:
+			case FTPS:
+				async_err_callback(cb, Error(ERR_NOT_SUPPORTED_FILE_PROTOCOL,
+																		 "This file protocol is not supported"),
+													 RunLoop::current()
+				);
+				break;
+			case HTTP:
+			case HTTPS:
+				try {
+					if ( stream ) {
+						id = HttpHelper::get_stream(path, cb);
+					} else {
+						id = HttpHelper::get(path, cb);
+					}
+				} catch(cError& err) {
+					async_err_callback(cb, Error(err), RunLoop::current());
+				}
+				break;
+		}
+		return id;
+	}
+	
+	/**
+	 * @func read_sync
+	 */
+	Buffer read_sync(cString& path) throw(Error) {
+		Buffer rv;
+		
+		switch ( protocol(path) ) {
+			default:
+			case FILE:
+				XX_ASSERT_ERR(FileHelper::exists_sync(path),
+											ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
+				rv = FileHelper::read_file_sync(path);
+				break;
+			case ZIP: {
+				String zip = zip_path(path);
+				XX_ASSERT_ERR(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+				
+				ScopeLock lock(zip_mutex_);
+				
+				ZipReader* read = get_zip_reader(zip);
+				String inl_path = inl__format_part_path( path.substr(zip.length() + 1) );
+				
+				if ( read->jump(inl_path) ) {
+					rv = read->read();
+				} else {
+					XX_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS, "Zip package internal file does not exist, %s", *path);
+				}
+				break;
+			}
+			case FTP:
+			case FTPS:
+				XX_THROW(ERR_NOT_SUPPORTED_FILE_PROTOCOL, "This file protocol is not supported");
+				break;
+			case HTTP:
+			case HTTPS: rv = HttpHelper::get_sync(path); break;
+		}
+		return rv;
+	}
+	
+	/**
+	 * @func abort
+	 */
+	void abort(uint id) {
+		AsyncIOTask::safe_abort(id);
+	}
+	
+	/**
+	 * @func exists_sync
+	 */
+	bool exists_sync(cString& path, bool file, bool dir) {
+		switch ( protocol(path) ) {
+			default:
+			case FILE:
+				if ( file && FileHelper::is_file_sync(path) )
+					return true;
+				if ( dir  && FileHelper::is_directory_sync(path) )
+					return true;
+			case ZIP: {
+				String zip = zip_path(path);
+				if ( !zip.is_empty() ) {
+					XX_IGNORE_ERR({
+						ScopeLock lock(zip_mutex_);
+						ZipReader* read = get_zip_reader(zip);
+						String inl_path = inl__format_part_path( path.substr(zip.length() + 1) );
+						if ( file && read->is_file( inl_path ) )
+							return true;
+						if ( dir && read->is_directory( inl_path ) )
+							return true;
+					});
+				}
+				return false;
+			}
+		}
+		return false;
+	}
+	
+	Array<Dirent> readdir_sync(cString& path) {
+		Array<Dirent> rv;
+		switch ( protocol(path) ) {
+			default:
+			case FILE:
+				rv = FileHelper::readdir_sync(path);
+			case ZIP: {
+				String zip = zip_path(path);
+				if ( !zip.is_empty() ) {
+					XX_IGNORE_ERR({
+						ScopeLock lock(zip_mutex_);
+						ZipReader* read = get_zip_reader(zip);
+						String inl_path = inl__format_part_path( path.substr(zip.length() + 1) );
+						rv = read->readdir(inl_path);
+					});
+				}
+				break;
+			}
+		}
+		return move(rv);
+	}
+	
+	/**
+	 * @func format
+	 */
+	String format(cString& path) {
+		int index = -1;
+		switch ( protocol(path) ) {
+			default:
+			case ZIP:
+			case FILE: return Path::format("%s", *path);
+			case HTTP: index = path.index_of('/', 8); break;
+			case HTTPS:index = path.index_of('/', 9); break;
+			case FTP:  index = path.index_of('/', 7); break;
+			case FTPS: index = path.index_of('/', 8); break;
+		}
+		if (index == -1) {
+			return path;
+		}
+		String s = inl__format_part_path(path.substr(index));
+		if (s.is_empty()) {
+			return path.substr(0, index);
+		} else {
+			return path.substr(0, index + 1) + s;
+		}
+	}
+	
+	bool is_absolute(cString& path) {
+		
+		if ( Path::is_local_absolute(path) ) {
+			return true;
+		} else {
+			switch ( protocol(path) ) {
+				case ZIP: 
+				case FILE: 
+				case HTTP: 
+				case HTTPS: 
+				case FTP: 
+				case FTPS: return true;
+				default: return false;
+			}
+		}
+	}
+	
+	void clear() {
+		ScopeLock lock(zip_mutex_);
+		for ( auto& i: zips_ ) {
+			Release(i.value());
+		}
+		zips_.clear();
+	}
+	
 private:
-  Mutex zip_mutex_;
-  Map<String, ZipReader*> zips_;
+	Mutex zip_mutex_;
+	Map<String, ZipReader*> zips_;
 };
 
 /**
@@ -361,49 +361,49 @@ FileReader::FileReader(): m_core(new Core()) { }
  * @constructor
  */
 FileReader::FileReader(FileReader&& reader): m_core(reader.m_core) {
-  reader.m_core = nullptr;
+	reader.m_core = nullptr;
 }
 
 /**
  * @destructor
  */
 FileReader::~FileReader() {
-  delete m_core;
-  m_core = nullptr;
+	delete m_core;
+	m_core = nullptr;
 }
 
 uint FileReader::read_file(cString& path, cCb& cb) {
-  return m_core->read(path, cb, false);
+	return m_core->read(path, cb, false);
 }
 uint FileReader::read_stream(cString& path, cCb& cb) {
-  return m_core->read(path, cb, true);
+	return m_core->read(path, cb, true);
 }
 Buffer FileReader::read_file_sync(cString& path) throw(Error) {
-  return m_core->read_sync(path);
+	return m_core->read_sync(path);
 }
 void FileReader::abort(uint id) {
-  m_core->abort(id);
+	m_core->abort(id);
 }
 bool FileReader::exists_sync(cString& path) {
-  return m_core->exists_sync(path, 1, 1);
+	return m_core->exists_sync(path, 1, 1);
 }
 bool FileReader::is_file_sync(cString& path) {
-  return m_core->exists_sync(path, 1, 0);
+	return m_core->exists_sync(path, 1, 0);
 }
 bool FileReader::is_directory_sync(cString& path) {
-  return m_core->exists_sync(path, 0, 1);
+	return m_core->exists_sync(path, 0, 1);
 }
 Array<Dirent> FileReader::readdir_sync(cString& path) {
-  return m_core->readdir_sync(path);
+	return m_core->readdir_sync(path);
 }
 String FileReader::format(cString& path) {
-  return m_core->format(path);
+	return m_core->format(path);
 }
 bool FileReader::is_absolute(cString& path) {
-  return m_core->is_absolute(path);
+	return m_core->is_absolute(path);
 }
 void FileReader::clear() {
-  return m_core->clear();
+	return m_core->clear();
 }
 
 static FileReader* shared_instance = nullptr;
@@ -412,20 +412,20 @@ static FileReader* shared_instance = nullptr;
  * @func set_to_share
  */
 void FileReader::set_shared_instance(FileReader* reader) {
-  if (shared_instance != reader) {
-    Release(shared_instance);
-    shared_instance = reader;
-  }
+	if (shared_instance != reader) {
+		Release(shared_instance);
+		shared_instance = reader;
+	}
 }
 
 /**
  * @func share
  */
 FileReader* FileReader::shared() {
-  if ( !shared_instance ) {
-    shared_instance = new FileReader();
-  }
-  return shared_instance;
+	if ( !shared_instance ) {
+		shared_instance = new FileReader();
+	}
+	return shared_instance;
 }
 
 XX_END

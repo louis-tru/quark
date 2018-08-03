@@ -19,46 +19,46 @@ uniform bool  is_radius;
 uniform float sample_x2;
 
 vec2 vertex() {
-  
-  float PI_40 = PI / sample_x2;
-  float Vertex = float(gl_VertexID) - sample_x2 - 2.0;
-  
-  float r_x, r_y, x, y;
-  vec2 v;
-  
-  if ( Vertex < 0.0 ) { // 上半
-    float index = float(gl_VertexID) / 2.0;
-    
-    if ( mod(float(gl_VertexID), 2.0) == 0.0 ) { // 左上角
-      r_x = max(radius_size.x - border_width.x, 0.0); // x轴半径
-      r_y = max(radius_size.x - border_width.y, 0.0); // y轴半径
-      x = (cos(PIx0_5 + PI_40 * index) + 1.0) * r_x;   // 距离原始顶点的x轴偏移
-      y = (sin(PIx0_5 + PI_40 * index) - 1.0) * -r_y;  // 距离原始顶点的y轴偏移
-      v = vec2(vertex_ac.x + x, vertex_ac.y + y); // 得到真实坐标
-    } else { // 右上角
-      r_x = max(radius_size.y - border_width.z, 0.0); // x轴半径
-      r_y = max(radius_size.y - border_width.y, 0.0); // y轴半径
-      x = (cos(PIx0_5 - PI_40 * index) - 1.0) * r_x;
-      y = (sin(PIx0_5 - PI_40 * index) - 1.0) * -r_y;
-      v = vec2(vertex_ac.z + x, vertex_ac.y + y);
-    }
-  } else { // 下半
-    float index = Vertex / 2.0;
-    
-    if ( mod(float(gl_VertexID), 2.0) == 0.0 ) { // 左下角
-      r_x = max(radius_size.w - border_width.x, 0.0);
-      r_y = max(radius_size.w - border_width.w, 0.0);
-      x = (cos(PI + PI_40 * index) + 1.0) * r_x;
-      y = (sin(PI + PI_40 * index) + 1.0) * -r_y;
-      v = vec2(vertex_ac.x + x, vertex_ac.w + y);
-    } else { // 右下角
-      r_x = max(radius_size.z - border_width.z, 0.0);
-      r_y = max(radius_size.z - border_width.w, 0.0);
-      x = (cos(PI_40 * index) - 1.0) * r_x;
-      y = (sin(PI_40 * index) - 1.0) * r_y;
-      v = vec2(vertex_ac.z + x, vertex_ac.w + y);
-    }
-  }
-  
-  return v;
+	
+	float PI_40 = PI / sample_x2;
+	float Vertex = float(gl_VertexID) - sample_x2 - 2.0;
+	
+	float r_x, r_y, x, y;
+	vec2 v;
+	
+	if ( Vertex < 0.0 ) { // 上半
+		float index = float(gl_VertexID) / 2.0;
+		
+		if ( mod(float(gl_VertexID), 2.0) == 0.0 ) { // 左上角
+			r_x = max(radius_size.x - border_width.x, 0.0); // x轴半径
+			r_y = max(radius_size.x - border_width.y, 0.0); // y轴半径
+			x = (cos(PIx0_5 + PI_40 * index) + 1.0) * r_x;   // 距离原始顶点的x轴偏移
+			y = (sin(PIx0_5 + PI_40 * index) - 1.0) * -r_y;  // 距离原始顶点的y轴偏移
+			v = vec2(vertex_ac.x + x, vertex_ac.y + y); // 得到真实坐标
+		} else { // 右上角
+			r_x = max(radius_size.y - border_width.z, 0.0); // x轴半径
+			r_y = max(radius_size.y - border_width.y, 0.0); // y轴半径
+			x = (cos(PIx0_5 - PI_40 * index) - 1.0) * r_x;
+			y = (sin(PIx0_5 - PI_40 * index) - 1.0) * -r_y;
+			v = vec2(vertex_ac.z + x, vertex_ac.y + y);
+		}
+	} else { // 下半
+		float index = Vertex / 2.0;
+		
+		if ( mod(float(gl_VertexID), 2.0) == 0.0 ) { // 左下角
+			r_x = max(radius_size.w - border_width.x, 0.0);
+			r_y = max(radius_size.w - border_width.w, 0.0);
+			x = (cos(PI + PI_40 * index) + 1.0) * r_x;
+			y = (sin(PI + PI_40 * index) + 1.0) * -r_y;
+			v = vec2(vertex_ac.x + x, vertex_ac.w + y);
+		} else { // 右下角
+			r_x = max(radius_size.z - border_width.z, 0.0);
+			r_y = max(radius_size.z - border_width.w, 0.0);
+			x = (cos(PI_40 * index) - 1.0) * r_x;
+			y = (sin(PI_40 * index) - 1.0) * r_y;
+			v = vec2(vertex_ac.z + x, vertex_ac.w + y);
+		}
+	}
+	
+	return v;
 }

@@ -62,101 +62,101 @@ get_static_method_info(info, "com/ngui/Helper", "get_package_code_path", "()Ljav
  */
 
 JNI::ScopeENV::ScopeENV(): m_env(NULL), m_is_attach(false) {
-  XX_ASSERT( javavm );
-  
-  if (  javavm->GetEnv((void**)&m_env, JNI_VERSION_1_6) != JNI_OK ) {
-    jint result;
-    result = javavm->AttachCurrentThread(&m_env, NULL);
-    XX_ASSERT( result == JNI_OK );
-    m_is_attach = true;
-  }
+	XX_ASSERT( javavm );
+	
+	if (  javavm->GetEnv((void**)&m_env, JNI_VERSION_1_6) != JNI_OK ) {
+		jint result;
+		result = javavm->AttachCurrentThread(&m_env, NULL);
+		XX_ASSERT( result == JNI_OK );
+		m_is_attach = true;
+	}
 }
 
 JNI::ScopeENV::~ScopeENV() {
-  if ( m_is_attach ) {
-    javavm->DetachCurrentThread();
-  }
+	if ( m_is_attach ) {
+		javavm->DetachCurrentThread();
+	}
 }
 
 JavaVM* JNI::jvm() {
-  return javavm;
+	return javavm;
 }
 
 JNI::MethodInfo::MethodInfo(cchar* clazz, cchar* method, cchar* param_code, bool is_static)
 : m_clazz(NULL)
 , m_method(NULL) {
-  ScopeENV env;
+	ScopeENV env;
 
-  if ( !env.is_null() ) {
-    m_clazz = env->FindClass(clazz);
-    if ( is_static ) {
-      m_method = env->GetStaticMethodID(m_clazz, method, param_code);
-    } else {
-      m_method = env->GetMethodID(m_clazz, method, param_code);
-    }
-  }
+	if ( !env.is_null() ) {
+		m_clazz = env->FindClass(clazz);
+		if ( is_static ) {
+			m_method = env->GetStaticMethodID(m_clazz, method, param_code);
+		} else {
+			m_method = env->GetMethodID(m_clazz, method, param_code);
+		}
+	}
 }
 
 JNI::MethodInfo::MethodInfo(jclass clazz, cchar* method, cchar* param_code, bool is_static)
 : m_clazz(clazz)
 , m_method(NULL) {
-  ScopeENV env;
+	ScopeENV env;
 
-  if ( !env.is_null() ) {
-    if ( is_static ) {
-      m_method = env->GetStaticMethodID(m_clazz, method, param_code);
-    } else {
-      m_method = env->GetMethodID(m_clazz, method, param_code);
-    }
-  }
+	if ( !env.is_null() ) {
+		if ( is_static ) {
+			m_method = env->GetStaticMethodID(m_clazz, method, param_code);
+		} else {
+			m_method = env->GetMethodID(m_clazz, method, param_code);
+		}
+	}
 }
 
 /**
 * @func find_clazz
 * */
 jclass JNI::find_clazz(cchar* clazz) {
-  ScopeENV env;
-  if (env.is_null()) {
-    return NULL;
-  } else {
-    return env->FindClass(clazz);
-  }
+	ScopeENV env;
+	if (env.is_null()) {
+		return NULL;
+	} else {
+		return env->FindClass(clazz);
+	}
 }
 
 String JNI::jstring_to_string(jstring jstr, JNIEnv* env) {
 
-  if (jstr == NULL) {
-    return String();
-  }
+	if (jstr == NULL) {
+		return String();
+	}
 
-  if ( env ) {
-    cchar* chars = env->GetStringUTFChars(jstr, NULL);
-    String rv(chars);
-    env->ReleaseStringUTFChars(jstr, chars);
-    return rv;
-  } else {
-    
-    ScopeENV env;
-    if ( env.is_null() ) {
-      return String();
-    }
-    cchar* chars = env->GetStringUTFChars(jstr, NULL);
-    jsize len = env->GetStringUTFLength(jstr);
-    String rv(chars, len);
-    env->ReleaseStringUTFChars(jstr, chars);
-    return rv;
-  }
+	if ( env ) {
+		cchar* chars = env->GetStringUTFChars(jstr, NULL);
+		String rv(chars);
+		env->ReleaseStringUTFChars(jstr, chars);
+		return rv;
+	} else {
+		
+		ScopeENV env;
+		if ( env.is_null() ) {
+			return String();
+		}
+		cchar* chars = env->GetStringUTFChars(jstr, NULL);
+		jsize len = env->GetStringUTFLength(jstr);
+		String rv(chars, len);
+		env->ReleaseStringUTFChars(jstr, chars);
+		return rv;
+	}
 }
 
 XX_END
 
 extern "C" 
 {
-  XX_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    javavm = vm;
-    ngui::Android::initialize();
-    ngui::AndroidConsole* console = new ngui::AndroidConsole();
-    console->set_as_default();
-    return JNI_VERSION_1_6;
-  }
+	XX_EXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+		javavm = vm;
+		ngui::Android::initialize();
+		ngui::AndroidConsole* console = new ngui::AndroidConsole();
+		console->set_as_default();
+		return JNI_VERSION_1_6;
+	}
 }
