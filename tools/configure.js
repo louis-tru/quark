@@ -34,17 +34,16 @@ var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
 var argument = require('ngui-stew/arguments');
 var syscall = require('ngui-stew/syscall').syscall;
-var syscall2 = require('ngui-stew/syscall').syscall2;
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
+var default_arch = host_arch || 'x86';
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
 def_opts('debug', 0,            '--debug        enable debug status [{0}]');
 def_opts('os', host_os,         '--os=OS        system type ios/android/osx/linux/win [{0}]');
-def_opts('arch', process.arch || 'x86',  
-																'--arch=CPU     cpu type options arm/arm64/mips/mips64/x86/x64 [{0}]');
+def_opts('arch', default_arch,  '--arch=CPU     cpu type options arm/arm64/mips/mips64/x86/x64 [{0}]');
 def_opts('library', 'static',   '--library=LIB  compile output library type static/shared [{0}]');
 def_opts('armv7', arm(),        '--armv7        enable armv7 [{0}]');
 def_opts('armv7s', 0,           '--armv7s       enable armv7s form apple iphone [{0}]');
@@ -54,7 +53,7 @@ def_opts('arm-vfp', opts.arch == 'arm64' ? 'vfpv4':
 																'--arm-vfp=VAL  enable arm vfp options vfpv2/vfpv3/vfpv4/none [{0}]');
 def_opts('arm-fpu', opts.arm_neon ? 'neon': opts.arm_vfp, 
 																'--arm-fpu=VAL  enable arm fpu [{0}]');
-def_opts('clang', opts.os.match(/osx|ios/) ? 1 : 0, 
+def_opts('clang', opts.os.match(/osx|ios|iwatch|tvos/) ? 1 : 0, 
 																'--clang        enable clang compiler [{0}]');
 def_opts('media', 'auto',       '--media        compile media [{0}]');
 def_opts(['ndk-path','ndk'], '','--ndk-path     android NDK path [{0}]');
@@ -198,8 +197,8 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 		var cflags = '-ffunction-sections -fdata-sections ';
 
 		if ( use_gcc ) { // use gcc 
-			cflags += '-funswitch-loops ';
 			cc = `${variables.cross_prefix}gcc`;
+			cflags += '-funswitch-loops ';
 		}
 		if ( opts.arch == 'arm' ) {
 			cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
@@ -219,7 +218,7 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 			--target-os=darwin \
 			--arch=${arch} \
 			--enable-cross-compile \
-			`;
+		`;
 
 		// apple marker
 		// -fembed-bitcode-marker
@@ -280,9 +279,12 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 
 	console.log('FFMpeg Configuration:\n');
 
-	var log = syscall2(`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/ffmpeg; ${cmd}; `);
+	var log = syscall(
+		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/ffmpeg; ${cmd};`
+	);
+	console.error(log.stderr.join('\n'));
+	console.log(log.stdout.join('\n'));
 
-	console.log(log);
 	return true;
 }
 
@@ -476,7 +478,7 @@ function configure() {
 
 	if ( variables.v8_enable_i18n_support ) {
 		// configure node 
-		syscall2(`cd ${__dirname}/../node; ./configure`);
+		syscall(`cd ${__dirname}/../node; ./configure`);
 
 		var config = fs.readFileSync(__dirname + '/../node/icu_config.gypi', 'utf8');
 		config = config.replace(/'[^']+derb\.c(pp)?',?/g, '');

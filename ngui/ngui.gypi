@@ -249,6 +249,20 @@
 					]
 				},
 			}],
+			['os=="linux"', {
+				'sources': [
+					'os/linux-app.cc',
+					'os/linux-gl.cc',
+					'os/linux-keyboard.cc',
+					'os/linux-media-codec.cc',
+					'os/linux-pcm-player.cc',
+				],
+				'link_settings': { 
+					'libraries': [ 
+						# '-lGLESv3', '-lEGL', '-lOpenSLES', '-lmediandk' 
+					],
+				},
+			}],
 			# conditions end
 		],
 		'actions': [
