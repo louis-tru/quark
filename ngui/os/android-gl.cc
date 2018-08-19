@@ -440,12 +440,4 @@ void AndroidGLDrawCore::initializ_gl_buffers() {
 	}
 }
 
-/**
- * @func default_atom_pixel
- */
-float DisplayPort::default_atom_pixel() {
-	float v = Android::get_display_scale();
-	return 1.0f / v;
-}
-
 XX_END

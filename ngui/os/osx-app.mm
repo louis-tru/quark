@@ -37,9 +37,9 @@
 #import "../event.h"
 
 using namespace ngui;
-using namespace ngui;
 
 typedef DisplayPort::Orientation Orientation;
+typedef DisplayPort::StatusBarStyle StatusBarStyle;
 
 /**
  * @func pending() 挂起应用进程
