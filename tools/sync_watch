@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+
+var nstew = require('ngui-stew');
+var fs = require('ngui-stew/fs');
+var path = require('path');
+var { execSync } = require('ngui-stew/syscall');
+
+var root = process.cwd();
+var target = process.argv[2] || 'louis@192.168.0.115:~/Project/ngui/ngui';
+
+//console.log(`watch ${root} ${target}`);
+
+var gitignore = ['.git', '.svn', 'out', 'node/deps', 'tools/android-toolchain'];
+var count = 1;
+
+function each_directory(root, dir, cb) {
+	fs.readdirSync(root + '/' + dir).forEach(name=>{
+		var pathname = dir + (dir ? '/': '') + name;
+		var stat;
+		try {
+			stat = fs.statSync(root + '/' + pathname);
+		} catch(e) {
+			console.error(e.message);
+			return;
+		}
+		if (stat.isDirectory()) {
+			if (cb(pathname, name, ext, true)) {
+				each_directory(root, pathname, cb);
+			}
+		} else {
+			var ext = path.extname(pathname);
+			var name = pathname.substring(0, pathname.length - ext.length);
+			cb(pathname, name, ext, false);
+		}
+	});
+}
+
+function sync(type, dir, filename) {
+	if (gitignore.indexOf(filename) != -1) return;
+	console.log('sync', dir, filename, '...');
+	var cmd = `scp ${root}/${dir}/${filename} ${target}/${dir}`;
+	// console.log(cmd);
+	var r = execSync(cmd);
+	console.log('sync', dir, filename, r.code == 0 ? 'ok': 'fail');
+}
+
+fs.watch(root, (type, filename)=>sync(type, '.', filename));
+
+each_directory(root, '', function(pathname, name, ext, is_dir) {
+	if (is_dir) {
+		if (gitignore.indexOf(name) >= 0 || 
+				gitignore.indexOf(pathname) >= 0
+		) {
+			// console.log(pathname);
+			return false;
+		}
+		fs.watch(root + '/' + pathname, (type, filename)=>sync(type, pathname, filename));
+		count++;
+		return true;
+	}
+});
+
+// sudo ulimit -HSn 12000
+
+execSync(`cd ${root}; git status -s | awk '{print $2}'`).stdout.forEach(e=>{
+	if (e) {
+		sync('init', path.dirname(e), path.basename(e));
+	}
+});
+
+console.log(`---------------- Start watch dir count ${count} ... ---------------- `);
