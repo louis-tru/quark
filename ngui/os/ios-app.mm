@@ -41,7 +41,6 @@
 #import <MessageUI/MFMailComposeViewController.h>
 
 using namespace ngui;
-using namespace ngui;
 
 typedef DisplayPort::Orientation Orientation;
 typedef DisplayPort::StatusBarStyle StatusBarStyle;

@@ -39,9 +39,8 @@ String Path::executable() {
 }
 
 String Path::documents(cString& path) {
-	static cString rv( format( [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-																													NSUserDomainMask,
-																													YES) objectAtIndex:0] UTF8String] ));
+	NSArray* arr = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	static cString rv( format([arr objectAtIndex:0].UTF8String));
 	if (rv.is_empty()) {
 		return rv;
 	}

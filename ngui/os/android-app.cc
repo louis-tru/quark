@@ -42,11 +42,10 @@ XX_NS(ngui)
 class AndroidApplication;
 static AndroidApplication* android_app = nullptr;
 static AndroidGLDrawCore* android_draw_core = nullptr;
-typedef GUIApplication::Inl AppInl;
 typedef DisplayPort::Orientation Orientation;
 
 class AndroidApplication {
-public:
+ public:
 	typedef NonObjectTraits Traits;
 
 	AndroidApplication()
@@ -434,7 +433,7 @@ public:
 		android_app->m_queue = nullptr;
 	}
 
-private:
+ private:
 	ANativeActivity* m_activity;
 	ANativeWindow* m_window;
 	AppInl* m_host;
@@ -448,6 +447,15 @@ private:
 	Mutex m_mutex;
 	bool m_is_init_ok;
 };
+
+/**
+ * @func pending() 挂起应用进程
+ */
+void GUIApplication::pending() {
+	if ( android_app ) {
+		android_app->pending();
+	}
+}
 
 /**
  * @func open_url()
@@ -464,7 +472,6 @@ void GUIApplication::send_email(cString& recipient,
 																cString& cc, cString& bcc, cString& body) {
 	Android::send_email(recipient, subject, cc, bcc, body);
 }
-
 
 void AppInl::initialize(const Map<String, int>& options) {
 	XX_ASSERT(!android_draw_core);
@@ -494,15 +501,6 @@ void AppInl::ime_keyboard_close() {
 }
 
 /**
- * @func pending() 挂起应用进程
- */
-void GUIApplication::pending() {
-	if ( android_app ) {
-		android_app->pending();
-	}
-}
-
-/**
  * @func set_volume_up()
  */
 void AppInl::set_volume_up() {
@@ -514,6 +512,14 @@ void AppInl::set_volume_up() {
  */
 void AppInl::set_volume_down() {
 	Android::set_volume_down();
+}
+
+/**
+ * @func default_atom_pixel
+ */
+float DisplayPort::default_atom_pixel() {
+	float v = Android::get_display_scale();
+	return 1.0f / v;
 }
 
 /**
@@ -591,8 +597,8 @@ extern "C" {
 	
 	XX_EXPORT void Java_org_ngui_IMEReceiver_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 		jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
-		_inl_app(app())->dispatch()->keyboard_adapter()->dispatch(keycode, ascii,
-																															down, repeat, device, source);
+		_inl_app(app())->dispatch()->keyboard_adapter()->
+			dispatch(keycode, ascii, down, repeat, device, source);
 	}
 
 	XX_EXPORT void Java_org_ngui_NGUIActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
@@ -601,7 +607,8 @@ extern "C" {
 		}));
 	}
 
-	XX_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize)
+	XX_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
+																					void* savedState, size_t savedStateSize)
 	{
 		AndroidApplication::onCreate(activity, savedState, savedStateSize);
 	}
