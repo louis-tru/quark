@@ -117,8 +117,8 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'os/linux-sys.mm',
-					'os/linux-fs.mm',
+					'os/linux-sys.cc',
+					'os/linux-fs.cc',
 				],
 			}],
 			['os=="ios"', {
