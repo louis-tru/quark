@@ -354,11 +354,11 @@ function configure() {
 	var configuration = opts.debug ? 'Debug': 'Release';
 	var cross_compiling = arch != host_arch;
 	var use_dtrace = is_use_dtrace();
-	/* ½»²æ±àÒëÊ±ĞèÒªµ¥¶ÀµÄ¹¤¾ß¼¯À´Éú³Év8-js¿ìÕÕ,ËùÒÔ½»²æ±àÒëÔİÊ±²»Ê¹ÓÃv8-js¿ìÕÕ*/
+	/* äº¤å‰ç¼–è¯‘æ—¶éœ€è¦å•ç‹¬çš„å·¥å…·é›†æ¥ç”Ÿæˆv8-jså¿«ç…§,æ‰€ä»¥äº¤å‰ç¼–è¯‘æš‚æ—¶ä¸ä½¿ç”¨v8-jså¿«ç…§*/
 	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile;
 
 	if ( os == 'ios' ) {
-		if ( opts.use_v8 == 'auto' ) { // iosÄ¬ÈÏÊ¹ÓÃ javascriptcore
+		if ( opts.use_v8 == 'auto' ) { // iosé»˜è®¤ä½¿ç”¨ javascriptcore
 			if ( arch != 'x86' && arch != 'x64' ) {
 				opts.use_v8 = 0;
 			}
@@ -559,8 +559,8 @@ function configure() {
 			variables.cxx = `${tool.cross_prefix}g++`;
 			// variables.ld = `${tool.cross_prefix}g++`;
 			/* 
-			 * ÕâÀïÊ¹ÓÃg++½øĞĞÁ´½Ó»áµ¼ÖÂÎŞ·¨ÔËĞĞ,
-			 * Õâ¿ÉÄÜÊÇg++Ä¬ÈÏÁ´½ÓµÄstl¿âÓĞÎÊÌâ.²»ÔÙ×·¾¿¸ü¶àÏ¸½Ú,Ê¹ÓÃclang++½øĞĞÁ´½Ó
+			 * è¿™é‡Œä½¿ç”¨g++è¿›è¡Œé“¾æ¥ä¼šå¯¼è‡´æ— æ³•è¿è¡Œ,
+			 * è¿™å¯èƒ½æ˜¯g++é»˜è®¤é“¾æ¥çš„stlåº“æœ‰é—®é¢˜.ä¸å†è¿½ç©¶æ›´å¤šç»†èŠ‚,ä½¿ç”¨clang++è¿›è¡Œé“¾æ¥
 			 */
 			variables.ld = `${tool.cross_prefix}clang++`;
 		}
