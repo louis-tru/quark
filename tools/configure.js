@@ -348,17 +348,17 @@ function configure() {
 	// 
 	opts.arch = arch_format(opts.arch);
 	var os = opts.os;
-	var modile_platform = (os == 'ios' || os == 'android');
+	var modile = (os == 'ios' || os == 'android');
 	var arch = opts.arch;
 	var suffix = arch;
 	var configuration = opts.debug ? 'Debug': 'Release';
-	var cross_compiling = opts.arch != host_arch;
+	var cross_compiling = arch != host_arch;
 	var use_dtrace = is_use_dtrace();
-	/* äº¤å‰ç¼–è¯‘æ—¶éœ€è¦å•ç‹¬çš„å·¥å…·é›†æ¥ç”Ÿæˆv8-jså¿«ç…§,æ‰€ä»¥äº¤å‰ç¼–è¯‘æš‚æ—¶ä¸ä½¿ç”¨v8-jså¿«ç…§*/
-	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile_platform;
+	/* ½»²æ±àÒëÊ±ĞèÒªµ¥¶ÀµÄ¹¤¾ß¼¯À´Éú³Év8-js¿ìÕÕ,ËùÒÔ½»²æ±àÒëÔİÊ±²»Ê¹ÓÃv8-js¿ìÕÕ*/
+	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile;
 
 	if ( os == 'ios' ) {
-		if ( opts.use_v8 == 'auto' ) { // iosé»˜è®¤ä½¿ç”¨ javascriptcore
+		if ( opts.use_v8 == 'auto' ) { // iosÄ¬ÈÏÊ¹ÓÃ javascriptcore
 			if ( arch != 'x86' && arch != 'x64' ) {
 				opts.use_v8 = 0;
 			}
@@ -378,7 +378,6 @@ function configure() {
 			target_arch: arch == 'x86' ? 'ia32' : arch,   // v8 target_arch
 			arch: arch,
 			arch_name: arch,
-			arch_jni: arch,
 			suffix: suffix,
 			debug: opts.debug,
 			OS: get_OS(opts.os),
@@ -395,7 +394,7 @@ function configure() {
 			arm_fpu: opts.arm_fpu,
 			cross_compiling: bi(cross_compiling),
 			cross_prefix: '',
-			use_system_zlib: bi(os.match(/^(ios|android)$/)),
+			use_system_zlib: bi(os.match(/^(android|ios|osx)$/)),
 			media: opts.media,
 			version_min: '',
 			output: '',
@@ -407,7 +406,7 @@ function configure() {
 			ranlib: 'ranlib',
 			strip: 'strip',
 			build_sysroot: '/',
-			build_bin: '/bin',
+			build_bin: '/usr/bin',
 			build_tools: __dirname,
 			android_abi: '',
 			xcode_version: 0,
@@ -540,12 +539,13 @@ function configure() {
 			console.error(`do not support android os and ${arch} cpu architectures`);
 			return;
 		}
+
 		if (arch == 'arm' && opts.armv7) {
 			suffix = 'armv7';
 			tool.arch_name = 'armv7-a';
 			tool.abi = 'armeabi-v7a';
 		}
-		config_mk.push('JNI_DIR=' + tool.abi);
+
 		variables.cross_prefix = tool.cross_prefix;
 		variables.arch_name = tool.arch_name;
 		variables.android_abi = tool.abi;
@@ -559,8 +559,8 @@ function configure() {
 			variables.cxx = `${tool.cross_prefix}g++`;
 			// variables.ld = `${tool.cross_prefix}g++`;
 			/* 
-			 * è¿™é‡Œä½¿ç”¨g++è¿›è¡Œé“¾æ¥ä¼šå¯¼è‡´æ— æ³•è¿è¡Œ,
-			 * è¿™å¯èƒ½æ˜¯g++é»˜è®¤é“¾æ¥çš„stlåº“æœ‰é—®é¢˜.ä¸å†è¿½ç©¶æ›´å¤šç»†èŠ‚,ä½¿ç”¨clang++è¿›è¡Œé“¾æ¥
+			 * ÕâÀïÊ¹ÓÃg++½øĞĞÁ´½Ó»áµ¼ÖÂÎŞ·¨ÔËĞĞ,
+			 * Õâ¿ÉÄÜÊÇg++Ä¬ÈÏÁ´½ÓµÄstl¿âÓĞÎÊÌâ.²»ÔÙ×·¾¿¸ü¶àÏ¸½Ú,Ê¹ÓÃclang++½øĞĞÁ´½Ó
 			 */
 			variables.ld = `${tool.cross_prefix}clang++`;
 		}
@@ -570,12 +570,37 @@ function configure() {
 		variables.strip = `${tool.cross_prefix}strip`;
 		variables.build_bin = `${toolchain_dir}/bin`;
 		variables.build_sysroot = `${toolchain_dir}/sysroot`;
-		variables.use_system_zlib = 1;
 	}
 	else if ( os == 'linux' ) {
-		// TODO..
+
+		if (arch == 'arm' || arch == 'arm64') {
+
+		}
+
+/*
+arm-linux-gnueabihf-addr2line     arm-linux-gnueabihf-gcc-ar-7      arm-linux-gnueabihf-ld.gold                                         
+arm-linux-gnueabihf-ar            arm-linux-gnueabihf-gcc-nm-7      arm-linux-gnueabihf-nm                                              
+arm-linux-gnueabihf-as            arm-linux-gnueabihf-gcc-ranlib-7  arm-linux-gnueabihf-objcopy                                         
+arm-linux-gnueabihf-c++filt       arm-linux-gnueabihf-gcov-7        arm-linux-gnueabihf-objdump                                         
+arm-linux-gnueabihf-cpp-7         arm-linux-gnueabihf-gcov-dump-7   arm-linux-gnueabihf-ranlib                                          
+arm-linux-gnueabihf-dwp           arm-linux-gnueabihf-gcov-tool-7   arm-linux-gnueabihf-readelf                                         
+arm-linux-gnueabihf-elfedit       arm-linux-gnueabihf-gprof         arm-linux-gnueabihf-size                                            
+arm-linux-gnueabihf-g++-7         arm-linux-gnueabihf-ld            arm-linux-gnueabihf-strings                                         
+arm-linux-gnueabihf-gcc-7         arm-linux-gnueabihf-ld.bfd        arm-linux-gnueabihf-strip 
+*/
+
+		// variables.cc = `${tool.cross_prefix}clang`;
+		// variables.cxx = `${tool.cross_prefix}clang++`;
+		// variables.ld = `${tool.cross_prefix}clang++`;
+		// variables.ar = `${tool.cross_prefix}ar`;
+		// variables.as = `${tool.cross_prefix}as`;
+		// variables.ranlib = `${tool.cross_prefix}ranlib`;
+		// variables.strip = `${tool.cross_prefix}strip`;
+		// variables.build_bin = `${toolchain_dir}/bin`;
+		// variables.build_sysroot = `${toolchain_dir}/sysroot`;
 	}
 	else if (os == 'ios' || os == 'osx') {
+
 		if ( os == 'ios' ) {
 			if ( host_os != 'osx' ) {
 				console.error(
@@ -594,6 +619,13 @@ function configure() {
 			}
 		}
 
+		var XCODEDIR = syscall('xcode-select --print-path')[0];
+
+		try {
+			variables.xcode_version = syscall('xcodebuild -version')[0].match(/\d+.\d+$/)[0];
+			variables.llvm_version = syscall('cc --version')[0].match(/clang-(\d+\.\d+(\.\d+)?)/)[1];
+		} catch(e) {}
+
 		if ( arch == 'arm' ) {
 			suffix = opts.armv7s ? 'armv7s' : 'armv7';
 			variables.arch_name = opts.armv7s ? 'armv7s' : 'armv7';
@@ -603,26 +635,15 @@ function configure() {
 			variables.arch_name = 'x86_64';
 		}
 
-		var XCODEDIR = syscall('xcode-select --print-path')[0];
-
 		if ( os == 'ios' ) {
-			/*
-			var IPHONEOS_PLATFORM = `${XCODEDIR}/Platforms/iPhoneOS.platform`;
-			var IPHONESIMULATOR_PLATFORM = `${XCODEDIR}/Platforms/iPhoneSimulator.platform`;
-			var IPHONEOS_SYSROOT = `${IPHONEOS_PLATFORM}/Developer/SDKs/iPhoneOS.sdk`;
-			var IPHONESIMULATOR_SYSROOT = `${IPHONESIMULATOR_PLATFORM}/Developer/SDKs/iPhoneSimulator.sdk`;
-			*/
 			if (arch == 'x86' || arch == 'x64') {
 				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path')[0];
 			} else {
 				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path')[0];
 			}
 			variables.version_min = '10.0';
-
 		} else { // osx
-			var MACOSX_PLATFORM = `${XCODEDIR}/Platforms/MacOSX.platform`;
-			var MACOSX_SYSROOT = `${MACOSX_PLATFORM}/Developer/SDKs/MacOSX.sdk`;
-			variables.build_sysroot = MACOSX_SYSROOT;
+			variables.build_sysroot = `${XCODEDIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk`;
 			variables.version_min = '10.7';
 		}
 		
@@ -634,11 +655,6 @@ function configure() {
 		variables.ranlib = 'ranlib';
 		variables.strip = 'strip';
 		variables.build_bin = `${XCODEDIR}/Toolchains/XcodeDefault.xctoolchain/usr/bin`;
-		try {
-			variables.xcode_version = syscall('xcodebuild -version')[0].match(/\d+.\d+$/)[0];
-			variables.llvm_version = syscall('cc --version')[0].match(/clang-(\d+\.\d+(\.\d+)?)/)[1];
-		} catch(e) {}
-		variables.use_system_zlib = 1;
 	} 
 	else {
 		console.error(`do not support ${os} os`);
@@ -661,12 +677,15 @@ function configure() {
 	ENV.push('export AS=' + variables.as);
 	ENV.push(`export PATH=${__dirname}:${variables.build_bin}:$$PATH`);
 	ENV.push(`export SYSROOT=${variables.build_sysroot}`);
+
 	var java_home = process.env.JAVA7_HOME || process.env.JAVA_HOME;
 	if ( java_home ) {
 		config_mk.push(`JAVAC=${java_home}/bin/javac`);
 		config_mk.push(`JAR=${java_home}/bin/jar`);
 	}
 	
+	// -------------------------- configure ffmpeg --------------------------
+
 	{ // configure ffmpeg
 		var ff_install_dir = `${variables.output}/obj.target/ffmpeg`;
 		var rebuild_ff = false;
@@ -725,4 +744,3 @@ function configure() {
 }
 
 configure();
-

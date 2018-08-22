@@ -1,4 +1,4 @@
--include out/config.mk
+include out/config.mk
 
 ARCH					?= x64
 SUFFIX				?= $(ARCH)
@@ -20,8 +20,7 @@ TOOLS_OUT			= out/ngui-tools
 MAKE_STYLE		=	make
 
 PTOJECTS = make xcode msvs make-linux cmake-linux cmake
-GYPFILES = Makefile ngui.gyp tools/common.gypi \
-					 out/config.gypi tools.gyp tools/tools.gypi
+GYPFILES = Makefile ngui.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS = -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -40,16 +39,13 @@ builddir="$(shell pwd)/$(LIBS_DIR)"
 endef
 
 .PHONY: $(PTOJECTS) jsa-shell install install-dev install-tools \
-	help all clear clear-all build server ios android doc
+	help all clear clear-all build server ios android linux osx doc
 
 .SECONDEXPANSION:
 
 ###################### Build ######################
 
 all: build
-
-out/config.gypi: configure
-	./configure
 
 # GYP file generation targets.
 $(PTOJECTS): $(GYPFILES)
@@ -102,6 +98,8 @@ android:
 	@./configure --os=android --arch=arm --library=shared
 	@$(MAKE) build
 	@$(MAKE) out/android.classs.ngui.jar
+
+linux:
 
 out/android.classs.ngui.jar: android/org/ngui/*.java
 	@mkdir -p out/android.classs
