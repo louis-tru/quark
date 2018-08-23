@@ -27,3 +27,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * ***** END LICENSE BLOCK ***** */
+
+#include "../pcm-player.h"
+
+XX_NS(ngui)
+
+/**
+ * @class LinuxPCMOpenSLES
+ */
+class LinuxPCMOpenSLES: public Object, public PCMPlayer {
+ public:
+	typedef DefaultTraits Traits;
+
+	LinuxPCMOpenSLES() {
+		// TODO ...
+	}
+
+	virtual ~LinuxPCMOpenSLES() {
+		// TODO ...
+	}
+
+ private:
+
+};
+
+/**
+ * @func create
+ */
+PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
+	return nullptr;
+}
+
+XX_END

@@ -191,9 +191,9 @@ KeyboardAdapter::KeyboardAdapter(): app_(app()) {
 }
 
 /**
- * @func transformation_keypress
+ * @func to_keypress
  */
-int KeyboardAdapter::transformation_keypress(KeyboardKeyName name) {
+int KeyboardAdapter::to_keypress(KeyboardKeyName name) {
 
 	// Letters
 	if ( name >= 65 && name <= 90 ) {
@@ -226,11 +226,11 @@ bool KeyboardAdapter::transformation(int keycode, bool ascii, bool down) {
 		} else {
 			shift_ = it.value().is_shift;
 			keyname_ = it.value().name;
-			keypress_ = transformation_keypress( keyname_ );
+			keypress_ = to_keypress( keyname_ );
 		}
 	} else {
 		auto it = m_keycodes.find(keycode);
-		if ( it.is_null() ) {
+		if ( it.is_null() ) { // Unknown keycode
 			keyname_ = KeyboardKeyName(keycode + 100000);
 			keypress_ = 0;
 		} else {
@@ -254,7 +254,7 @@ bool KeyboardAdapter::transformation(int keycode, bool ascii, bool down) {
 					default: break;
 				}
 			}
-			keypress_ = transformation_keypress( keyname_ );
+			keypress_ = to_keypress( keyname_ );
 		}
 	}
 	

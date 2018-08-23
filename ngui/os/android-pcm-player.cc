@@ -111,7 +111,7 @@ struct AudioEngine {
  * @class AndroidPCMOpenSLES
  */
 class AndroidPCMOpenSLES: public Object, public PCMPlayer {
-public:
+ public:
 	typedef DefaultTraits Traits;
 
 	AndroidPCMOpenSLES()
@@ -316,7 +316,7 @@ public:
 		return r;
 	}
 
-private:
+ private:
 	Mutex         m_lock;
 	SLint16	      m_max_volume_level;
 	uint          m_sample_rate;

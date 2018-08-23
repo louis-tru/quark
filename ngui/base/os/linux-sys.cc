@@ -79,15 +79,14 @@ uint64 available_memory() {
 
 struct Languages {
 	Array<String> values;
-	String        string;
+	String				string;
 };
 
 static Languages _languages([] {
 	Languages r;
-	
-	cchar* lang = getenv("LANG");
+	cchar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 	if ( lang ) {
-		r.values.push(lang);
+		r.values.push(String(lang).split('.')[0]);
 	} else {
 		r.values.push("en_US");
 	}

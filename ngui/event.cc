@@ -621,7 +621,7 @@ void KeyboardAdapter::dispatch(int keycode, bool ascii,
 		repeat_ = repeat; device_ = device;
 		source_ = source;
 		
-		bool clear = transformation(keycode, ascii, down);
+		bool is_clear = transformation(keycode, ascii, down);
 		
 		if ( down ) {
 			_inl_di(_inl_app(app_)->dispatch())->dispatch_keyboard_down();
@@ -629,7 +629,7 @@ void KeyboardAdapter::dispatch(int keycode, bool ascii,
 			_inl_di(_inl_app(app_)->dispatch())->dispatch_keyboard_up();
 		}
 		
-		if ( clear ) {
+		if ( is_clear ) {
 			shift_ = alt_ = false;
 			ctrl_ = command_ = false;
 		}

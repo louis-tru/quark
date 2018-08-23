@@ -227,9 +227,9 @@ class XX_EXPORT KeyboardAdapter: public Object {
  protected:
 
 	/**
-	 * @func transformation_keypress
+	 * @func to_keypress
 	 */
-	virtual int transformation_keypress(KeyboardKeyName name);
+	virtual int to_keypress(KeyboardKeyName name);
 	
 	/**
 	 * @func transformation

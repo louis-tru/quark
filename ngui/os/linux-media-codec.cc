@@ -27,3 +27,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * ***** END LICENSE BLOCK ***** */
+
+#include "../media-codec-1.h"
+
+XX_NS(ngui)
+
+/**
+ * @class LinuxHardwareMediaCodec
+ * */
+class LinuxHardwareMediaCodec: public MediaCodec {
+ public:
+
+	LinuxHardwareMediaCodec(Extractor* extractor)
+	: MediaCodec(extractor) {
+		// TODO ...
+	}
+
+	/**
+	 * @destructor
+	 */
+	virtual ~LinuxHardwareMediaCodec() {
+		// TODO ...
+	}
+
+ private:
+
+};
+
+/**
+ * @func hardware
+ */
+MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
+	return nullptr;
+}
+
+XX_END

@@ -198,6 +198,7 @@
 			}],
 			['os=="linux"', {
 				'defines': [ '__STDC_LIMIT_MACROS' ],
+				'ldflags': [ '-pthread' ],
 			}],
 			['os=="ios"', {
 				'cflags': [ 

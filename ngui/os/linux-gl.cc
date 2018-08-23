@@ -28,4 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "ngui/base/util.h"
 
+#if XX_LINUX
+
+#include "../gl/gl.h"
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <EGL/eglplatform.h>
+
+XX_NS(ngui)
+
+XX_END
+
+#endif

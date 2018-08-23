@@ -46,8 +46,8 @@
 # include <OpenGL/gl3ext.h>
 #elif XX_LINUX
 # define GL_GLEXT_PROTOTYPES
-# include <GLES2/gl2.h>
-# include <GLES2/gl2ext.h>
+# include <GLES3/gl3.h>
+# include <GLES3/gl3ext.h>
 #elif XX_WIN
 #else
 # error "The operating system does not support"

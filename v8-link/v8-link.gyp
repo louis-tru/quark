@@ -25,49 +25,49 @@
 	},
 	'target_defaults': {
 		'direct_dependent_settings': {
-	    'include_dirs': [ 'include', ],
-	  },
+			'include_dirs': [ 'include', ],
+		},
 	},
 	'conditions': [
 		['use_v8==0 and os=="ios"', {
 			'target_defaults': {
-        'defines': [ 'USE_JSC=1' ],
-        'direct_dependent_settings': {
-          'defines': [ 'USE_JSC=1' ],
-        },
+				'defines': [ 'USE_JSC=1' ],
+				'direct_dependent_settings': {
+					'defines': [ 'USE_JSC=1' ],
+				},
 			},
 			'targets': [
 			{
 				'target_name': 'v8-link',
 				'type': '<(library)',
 				'include_dirs': [ 'include', ],
-        'link_settings': {
-          'libraries': [
-            '$(SDKROOT)/System/Library/Frameworks/JavaScriptCore.framework',
-          ]
-        },
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/JavaScriptCore.framework',
+					]
+				},
 				'sources': [
 					'<@(v8_includes)',
 					'util.h',
 					'util.cc',
 					'native-js.cc',
 					'jsc-v8.cc',
-          'jsc-v8-serializer.cc.inl',
-          'jsc-v8-script.cc.inl',
-          'jsc-v8-exceptions.cc.inl',
-          'jsc-v8-property-descriptor.cc.inl',
-          'jsc-v8-check.cc.inl',
-          'jsc-v8-template.cc.inl',
-          'jsc-v8-value.cc.inl',
-          'jsc-v8-object.cc.inl',
-          'jsc-v8-function.cc.inl',
-          'jsc-v8-string.cc.inl',
-          'jsc-v8-array-buffer.cc.inl',
-          'jsc-v8-promise.cc.inl',
-          'jsc-v8-unimplemented.cc.inl',
-          'jsc-v8-wrap.cc.inl',
-          'jsc-v8-isolate.cc.inl',
-          'jsc-v8-context.cc.inl',
+					'jsc-v8-serializer.cc.inl',
+					'jsc-v8-script.cc.inl',
+					'jsc-v8-exceptions.cc.inl',
+					'jsc-v8-property-descriptor.cc.inl',
+					'jsc-v8-check.cc.inl',
+					'jsc-v8-template.cc.inl',
+					'jsc-v8-value.cc.inl',
+					'jsc-v8-object.cc.inl',
+					'jsc-v8-function.cc.inl',
+					'jsc-v8-string.cc.inl',
+					'jsc-v8-array-buffer.cc.inl',
+					'jsc-v8-promise.cc.inl',
+					'jsc-v8-unimplemented.cc.inl',
+					'jsc-v8-wrap.cc.inl',
+					'jsc-v8-isolate.cc.inl',
+					'jsc-v8-context.cc.inl',
 					'debug.cc',
 					'inspector.cc',
 					'libplatform.cc',
@@ -75,32 +75,32 @@
 					'tracing.cc',
 					'profiler.cc',
 				],
-        'actions': [
-          {
-            'variables': {
-              'native_js_files': [
-                'jsc-v8-isolate.js',
-                'jsc-v8-context.js',
-              ],
-            },
-            'action_name': 'gen_js_natives',
-            'inputs': [
-              'gen-js-natives.js',
-              '<@(native_js_files)',
-            ],
-            'outputs': [
-              'native-js.h',
-              'native-js.cc',
-            ],
-            'action': [
-              'node',
-              '<@(_inputs)',
-              'JSC',
-              'wrap',
-              '<@(_outputs)',
-            ],
-          },
-        ],
+				'actions': [
+					{
+						'variables': {
+							'native_js_files': [
+								'jsc-v8-isolate.js',
+								'jsc-v8-context.js',
+							],
+						},
+						'action_name': 'gen_js_natives',
+						'inputs': [
+							'gen-js-natives.js',
+							'<@(native_js_files)',
+						],
+						'outputs': [
+							'native-js.h',
+							'native-js.cc',
+						],
+						'action': [
+							'node',
+							'<@(_inputs)',
+							'JSC',
+							'wrap',
+							'<@(_outputs)',
+						],
+					},
+				],
 			},
 			{
 				'target_name': 'v8_libplatform-link',
@@ -113,10 +113,10 @@
 		}, 
 		{ # use v8
 			'target_defaults': {
-        'defines': [ 'USE_JSC=0' ],
-        'direct_dependent_settings': {
-          'defines': [ 'USE_JSC=0' ],
-        },
+				'defines': [ 'USE_JSC=0' ],
+				'direct_dependent_settings': {
+					'defines': [ 'USE_JSC=0' ],
+				},
 			},
 			'targets': [
 			{

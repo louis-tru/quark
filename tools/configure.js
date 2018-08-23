@@ -410,7 +410,7 @@ function configure() {
 			arm_fpu: opts.arm_fpu,
 			cross_compiling: bi(cross_compiling),
 			cross_prefix: '',
-			use_system_zlib: bi(os.match(/^(android|ios|osx)$/)),
+			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			media: opts.media,
 			version_min: '',
 			output: '',
@@ -597,8 +597,8 @@ function configure() {
 			console.error(`You can compile targets ${arch} only on X86 or x64 machine Linux systems.`);
 			return;
 		}
-		if (opts.clang) {
-			console.warn('The Linux system calls the clang compiler to use GCC.')
+		if ( opts.clang ) {
+			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
 
 		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
@@ -613,9 +613,9 @@ function configure() {
 			} else if (arch == 'arm64') {
 				variables.arch_name = 'armv8-a';
 			}
-			var ns = ['cc', 'cxx', 'ar', 'as', 'ranlib', 'strip'];
+			var ns = ['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'];
 
-			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
+			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
 				var cmd = `find /usr/bin -name arm-linux*${e}*`;
 				var [,r] = syscall(cmd).stdout.sort((a,b)=>a.length - b.length);
 				util.assert(r, `${e} cross compilation was not found`);
@@ -627,13 +627,6 @@ function configure() {
 				util.assert(!execSync('which ' + e).code, `${e} command was not found`);
 			});
 			variables.arch_name = arch == 'x86' ? 'i386' : 'x86-64';
-			variables.cc = 'gcc';
-			variables.cxx = 'g++';
-			variables.ld = 'g++';
-			variables.ar = 'ar';
-			variables.as = 'as';
-			variables.ranlib = 'ranlib';
-			variables.strip = 'strip';
 		}
 	}
 	else if (os == 'ios' || os == 'osx') {

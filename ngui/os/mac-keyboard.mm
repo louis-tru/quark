@@ -34,7 +34,7 @@
 XX_NS(ngui)
 
 /**
- * @class IOSKeyboardAdapter
+ * @class AppleKeyboardAdapter
  */
 class AppleKeyboardAdapter: public KeyboardAdapter {
 public:

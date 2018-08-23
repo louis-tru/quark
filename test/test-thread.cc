@@ -33,6 +33,7 @@
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 
 using namespace ngui;
 

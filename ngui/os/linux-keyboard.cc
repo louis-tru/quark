@@ -28,4 +28,24 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "../keyboard.h"
+#include "ngui/base/map.h"
 
+XX_NS(ngui)
+
+/**
+ * @class LinuxKeyboardAdapter
+ */
+class LinuxKeyboardAdapter: public KeyboardAdapter {
+public:
+
+	LinuxKeyboardAdapter() {
+		
+	}
+};
+
+KeyboardAdapter* KeyboardAdapter::create() {
+	return new LinuxKeyboardAdapter();
+}
+
+XX_END

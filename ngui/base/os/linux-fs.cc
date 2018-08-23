@@ -45,7 +45,7 @@ String Path::executable() {
 }
 
 String Path::documents(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), "documents") );
+	static cString rv( Path::format("%s/%s", getenv("HOME"), "Documents") );
 	if ( path.is_empty() ) {
 		return rv;
 	}
@@ -53,7 +53,7 @@ String Path::documents(cString& path) {
 }
 
 String Path::temp(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), "temp") );
+	static cString rv( Path::format("%s/%s", getenv("HOME"), ".cache") );
 	if (path.is_empty()) {
 		return rv;
 	}
@@ -65,7 +65,6 @@ String Path::temp(cString& path) {
  */
 String Path::resources(cString& path) {
 	static cString rv( Path::dirname(executable()) );
-	
 	if (path.is_empty()) {
 		return rv;
 	}
