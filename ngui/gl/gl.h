@@ -36,24 +36,19 @@
 #if XX_IOS
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
-#
 #elif XX_ANDROID
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
-#
 #elif XX_OSX
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
-#
 #elif XX_LINUX
 # define GL_GLEXT_PROTOTYPES
-# include <GL/gl.h>
-# include <GL/glext.h>
-#
+# include <GLES2/gl2.h>
+# include <GLES2/gl2ext.h>
 #elif XX_WIN
-#
 #else
 # error "The operating system does not support"
 #endif

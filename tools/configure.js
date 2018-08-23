@@ -28,12 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+var util = require('ngui-stew');
 var fs = require('ngui-stew/fs');
 var path = require('ngui-stew/url');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
 var argument = require('ngui-stew/arguments');
-var syscall = require('ngui-stew/syscall').syscall;
+var { syscall, execSync } = require('ngui-stew/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
@@ -182,14 +183,14 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 	];
 
 	if (os == 'android') {
-		cmd = `
+		cmd = `\
 			./configure \
 			--target-os=android \
 			--arch=${arch} \
 			--sysroot=${variables.build_sysroot} \
 			--cross-prefix=${variables.cross_prefix} \
 			--enable-cross-compile \
-			`;
+		`;
 			// --enable-jni \
 			// --enable-mediacodec \
 
@@ -200,26 +201,37 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 			cc = `${variables.cross_prefix}gcc`;
 			cflags += '-funswitch-loops ';
 		}
-		if ( opts.arch == 'arm' ) {
+		if ( arch == 'arm' || arch == 'arm64' ) {
 			cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
 		} else {
 			cmd += `--cc='${cc} ${cflags}' `;
 		}
 	} 
 	else if ( os=='linux' ) {
-		cmd = `./configure --target-os=linux --arch=${arch} `;
+		cmd = `\
+			./configure \
+			--target-os=linux \
+			--arch=${arch} \
+		`;
 		if ( host_arch != arch ) {
 			cmd += '--enable-cross-compile ';
 		}
+		var cc = variables.cc;
+		var cflags = '-ffunction-sections -fdata-sections -funswitch-loops ';
+
+		if ( arch == 'arm' || arch == 'arm64' ) {
+			cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
+		} else {
+			cmd += `--cc='${cc} ${cflags}' `;
+		}
 	}
 	else if (os == 'ios') {
-		cmd = `
+		cmd = `\
 			./configure \
 			--target-os=darwin \
 			--arch=${arch} \
 			--enable-cross-compile \
 		`;
-
 		// apple marker
 		// -fembed-bitcode-marker
 		var f_embed_bitcode = opts.without_embed_bitcode ?  '' : '-fembed-bitcode';
@@ -232,10 +244,11 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 		}
 	} 
 	else if (os == 'osx') {
-		cmd = `
+		cmd = `\
 			./configure \
 			--target-os=darwin \
-			--arch=${arch} `;
+			--arch=${arch} \
+		`;
 		cmd += `--cc='clang -mmacosx-version-min=10.7 -arch ${variables.arch_name} ' `;
 		cmd += '--sysroot=$(xcrun --sdk macosx --show-sdk-path) ';
 	}
@@ -258,26 +271,29 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 	cmd += ff_opts.join(' ');
 
 	// clean
-	syscall(`cd depe/ffmpeg; make clean; find . -name *.o|xargs rm; `);
-	syscall(`rm -rf ${variables.output}/obj.target/depe/ffmpeg/*;
-					 rm -rf ${ff_install_dir}; \
-					 rm -rf ${source}/compat/strtod.d \
-									${source}/compat/strtod.o \
-									${source}/.config \
-									${source}/config.fate \
-									${source}/config.log \
-									${source}/config.mak \
-									${source}/doc/config.texi \
-									${source}/doc/examples/pc-uninstalled \
-									${source}/libavcodec/libavcodec.pc \
-									${source}/libavdevice/libavdevice.pc \
-									${source}/libavfilter/libavfilter.pc \
-									${source}/libavformat/libavformat.pc \
-									${source}/libavutil/libavutil.pc \
-									${source}/libswresample/libswresample.pc \
+	execSync(`cd depe/ffmpeg; make clean; find . -name *.o|xargs rm; `);
+	syscall(`
+		rm -rf ${variables.output}/obj.target/depe/ffmpeg/*;
+		rm -rf ${ff_install_dir}; \
+		rm -rf \
+		${source}/compat/strtod.d \
+		${source}/compat/strtod.o \
+		${source}/.config \
+		${source}/config.fate \
+		${source}/config.log \
+		${source}/config.mak \
+		${source}/doc/config.texi \
+		${source}/doc/examples/pc-uninstalled \
+		${source}/libavcodec/libavcodec.pc \
+		${source}/libavdevice/libavdevice.pc \
+		${source}/libavfilter/libavfilter.pc \
+		${source}/libavformat/libavformat.pc \
+		${source}/libavutil/libavutil.pc \
+		${source}/libswresample/libswresample.pc \
 	`);
 
 	console.log('FFMpeg Configuration:\n');
+	console.log(cmd, '\n');
 
 	var log = syscall(
 		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/ffmpeg; ${cmd};`
@@ -573,31 +589,52 @@ function configure() {
 	}
 	else if ( os == 'linux' ) {
 
-		if (arch == 'arm' || arch == 'arm64') {
-
+		if ( ['arm', 'arm64', 'x86', 'x64'].indexOf(arch) == -1 ) {
+			console.error(`do not support linux os and ${arch} cpu architectures`);
+			return;
+		}
+		if ( host_os != 'linux' || (host_arch != 'x86' && host_arch != 'x64') ) {
+			console.error(`You can compile targets ${arch} only on X86 or x64 machine Linux systems.`);
+			return;
+		}
+		if (opts.clang) {
+			console.warn('The Linux system calls the clang compiler to use GCC.')
 		}
 
-/*
-arm-linux-gnueabihf-addr2line     arm-linux-gnueabihf-gcc-ar-7      arm-linux-gnueabihf-ld.gold                                         
-arm-linux-gnueabihf-ar            arm-linux-gnueabihf-gcc-nm-7      arm-linux-gnueabihf-nm                                              
-arm-linux-gnueabihf-as            arm-linux-gnueabihf-gcc-ranlib-7  arm-linux-gnueabihf-objcopy                                         
-arm-linux-gnueabihf-c++filt       arm-linux-gnueabihf-gcov-7        arm-linux-gnueabihf-objdump                                         
-arm-linux-gnueabihf-cpp-7         arm-linux-gnueabihf-gcov-dump-7   arm-linux-gnueabihf-ranlib                                          
-arm-linux-gnueabihf-dwp           arm-linux-gnueabihf-gcov-tool-7   arm-linux-gnueabihf-readelf                                         
-arm-linux-gnueabihf-elfedit       arm-linux-gnueabihf-gprof         arm-linux-gnueabihf-size                                            
-arm-linux-gnueabihf-g++-7         arm-linux-gnueabihf-ld            arm-linux-gnueabihf-strings                                         
-arm-linux-gnueabihf-gcc-7         arm-linux-gnueabihf-ld.bfd        arm-linux-gnueabihf-strip 
-*/
+		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
+			if (arch == 'arm') {
+				if (opts.armv7) {
+					suffix = 'armv7';
+					variables.arch_name = 'armv7-a';
+				} else {
+					suffix = 'armv6';
+					variables.arch_name = 'armv6';
+				}
+			} else if (arch == 'arm64') {
+				variables.arch_name = 'armv8-a';
+			}
+			var ns = ['cc', 'cxx', 'ar', 'as', 'ranlib', 'strip'];
 
-		// variables.cc = `${tool.cross_prefix}clang`;
-		// variables.cxx = `${tool.cross_prefix}clang++`;
-		// variables.ld = `${tool.cross_prefix}clang++`;
-		// variables.ar = `${tool.cross_prefix}ar`;
-		// variables.as = `${tool.cross_prefix}as`;
-		// variables.ranlib = `${tool.cross_prefix}ranlib`;
-		// variables.strip = `${tool.cross_prefix}strip`;
-		// variables.build_bin = `${toolchain_dir}/bin`;
-		// variables.build_sysroot = `${toolchain_dir}/sysroot`;
+			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
+				var cmd = `find /usr/bin -name arm-linux*${e}*`;
+				var [,r] = syscall(cmd).stdout.sort((a,b)=>a.length - b.length);
+				util.assert(r, `${e} cross compilation was not found`);
+				variables[ns[i]] = r;
+			});
+
+		} else { // x86 x64
+			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
+				util.assert(!execSync('which ' + e).code, `${e} command was not found`);
+			});
+			variables.arch_name = arch == 'x86' ? 'i386' : 'x86-64';
+			variables.cc = 'gcc';
+			variables.cxx = 'g++';
+			variables.ld = 'g++';
+			variables.ar = 'ar';
+			variables.as = 'as';
+			variables.ranlib = 'ranlib';
+			variables.strip = 'strip';
+		}
 	}
 	else if (os == 'ios' || os == 'osx') {
 

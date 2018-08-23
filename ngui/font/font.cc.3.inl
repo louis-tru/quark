@@ -36,18 +36,30 @@ XX_NS(ngui)
 
 using namespace tinyxml2;
 
-#define xx_font_family_info_save ".simple_font_family_info"
+#define xx_font_family_info_cache ".simple_font_family_cache"
+static XMLDocument* system_fonts_config = nullptr;
 
-#if XX_IOS
-static cString system_fonts_dir = "/System/Library/Fonts";
+static cString get_system_fonts_dir() {
+	static String system_fonts_dir;
+	if (!system_fonts_dir.is_empty()) return system_fonts_dir;
+#if XX_IOS || XX_OSX
+	system_fonts_dir = "/System/Library/Fonts";
 #elif XX_ANDROID
-static cString system_fonts_dir = "/system/fonts";
-static cString system_fonts_config = "/system/etc/fonts.xml";
-#elif XX_OSX
-static cString system_fonts_dir = "/System/Library/Fonts";
+	system_fonts_dir = "/system/fonts";
+	system_fonts_config = new XMLDocument();
+	system_fonts_config->LoadFile("/system/etc/fonts.xml");
+#elif XX_LINUX
+	system_fonts_dir = "/usr/share/fonts";
+	system_fonts_config = new XMLDocument();
+	system_fonts_config->LoadFile("/etc/fonts/fonts.conf");
+	if (!system_fonts_config->Error()) {
+		// TODO...
+	}
 #endif
+	return system_fonts_dir;
+}
 
-static Array<FontPool::SimpleFontFamily>* sys_font_family_info = nullptr;
+static Array<FontPool::SimpleFontFamily>* sys_font_family_list = nullptr;
 static String first_sys_font_family;
 static String second_sys_font_family;
 
@@ -55,8 +67,8 @@ static String second_sys_font_family;
  * @func find_font_family_by_path(path)
  */
 static String find_font_family_by_path(cString& path) {
-	XX_ASSERT(sys_font_family_info);
-	for ( auto& i : *sys_font_family_info ) {
+	XX_ASSERT(sys_font_family_list);
+	for ( auto& i : *sys_font_family_list ) {
 		if (i.value().path == path) {
 			return i.value().family;
 		}
@@ -65,16 +77,14 @@ static String find_font_family_by_path(cString& path) {
 }
 
 /**
- * @func read_system_default_font_family()
+ * @func read_system_default_font_family_name()
  */
-static void read_system_default_font_family() {
-	XX_ASSERT(sys_font_family_info);
+static void read_system_default_font_family_name() {
+	XX_ASSERT(sys_font_family_list);
+
+	if ( !system_fonts_config->Error() ) {
 #if XX_ANDROID
-	XMLDocument doc;
-	XMLError r = doc.LoadFile(*system_fonts_config);
-	
-	if ( r == XML_NO_ERROR ) {
-		auto root = doc.RootElement();
+		auto root = system_fonts_config->RootElement();
 
 		// set first
 		const XMLElement* first = root->FirstChildElement("family");
@@ -82,7 +92,8 @@ static void read_system_default_font_family() {
 		if ( first && (first = first->FirstChildElement("font")) ) {
 			cchar* path = first->GetText();
 			if ( path ) {
-				first_sys_font_family = find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
+				first_sys_font_family = 
+					find_font_family_by_path(Path::format("%s/%s", *get_system_fonts_dir(), path));
 			}
 		}
 
@@ -106,7 +117,8 @@ static void read_system_default_font_family() {
 					if ( (first = first->FirstChildElement("font")) ) {
 						cchar* path = first->GetText();
 						if ( path ) {
-							second_sys_font_family = find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
+							second_sys_font_family = 
+								find_font_family_by_path(Path::format("%s/%s", *get_system_fonts_dir(), path));
 						}
 					}
 					break;
@@ -114,16 +126,18 @@ static void read_system_default_font_family() {
 			}
 			first = first->NextSiblingElement();
 		}
+#elif XX_LINUX 
+		// TODO ...
+#endif // XX_ANDROID
 	}
-#endif
 }
 
 /**
- * @func read_system_font_family
+ * @func read_system_font_family_cache
  */
-static bool read_system_font_family() {
+static bool read_system_font_family_cache() {
 	
-	String path = Path::temp(xx_font_family_info_save);
+	String path = Path::temp(xx_font_family_info_cache);
 	
 	if ( FileHelper::exists_sync(path) ) { // 这个文件存在
 		String data = FileHelper::read_file_sync(path);
@@ -175,7 +189,7 @@ static bool read_system_font_family() {
 						
 						//LOG("       %s", *JSON::stringify(font));
 					}
-					sys_font_family_info->push( move(sffd) );
+					sys_font_family_list->push( move(sffd) );
 				}
 				return true; // ok
 			}
@@ -192,7 +206,6 @@ void FontPool::Inl::initialize_default_fonts() {
 	Array<String> first;    // 第二默认字体(英文字符集)
 	Array<String> second;   // 第二默认字体
 	Array<String> third;    // 第三默认字体
-	Array<String> four;
 	
 	if ( !first_sys_font_family.is_empty() ) {
 		first.push(first_sys_font_family);
@@ -216,9 +229,17 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans CJK");
 	second.push("Noto Sans SC");
 	second.push("Droid Sans Fallback");
+#elif XX_LINUX
+// TODO ...
+	// first.push("Roboto");
+	// first.push("Droid Sans");
+	// first.push("Droid Sans Mono");
+	// second.push("Noto Sans CJK");
+	// second.push("Noto Sans SC");
+	// second.push("Droid Sans Fallback");
 #endif
 	
-	set_default_fonts(&first, &second, &third, &four, nullptr);
+	set_default_fonts(&first, &second, &third, nullptr);
 }
 
 /**
@@ -226,14 +247,13 @@ void FontPool::Inl::initialize_default_fonts() {
  */
 const Array<FontPool::SimpleFontFamily>& FontPool::system_font_family() {
 	
-	if ( sys_font_family_info ) {
-		return *sys_font_family_info;
+	if ( sys_font_family_list ) {
+		return *sys_font_family_list;
 	}
-
-	sys_font_family_info = new Array<SimpleFontFamily>();
+	sys_font_family_list = new Array<SimpleFontFamily>();
 	
 	// 先读取缓存文件,如果找不到缓存文件遍历字体文件夹
-	if ( ! read_system_font_family() ) {
+	if ( ! read_system_font_family_cache() ) {
 		
 		String sys_id = hash( sys::info() ); // 系统标识
 		
@@ -244,7 +264,7 @@ const Array<FontPool::SimpleFontFamily>& FontPool::system_font_family() {
 		
 		JSON font_familys = JSON::array();
 		
-		FileHelper::each_sync(system_fonts_dir, Cb([&](Se& d) {
+		FileHelper::each_sync(get_system_fonts_dir(), Cb([&](Se& d) {
 			
 			Dirent* ent = static_cast<Dirent*>(d.data);
 			
@@ -273,13 +293,13 @@ const Array<FontPool::SimpleFontFamily>& FontPool::system_font_family() {
 					}
 					item[ "fonts" ] = fonts;
 					font_familys[ font_familys.length() ] = item;
-					sys_font_family_info->push( move(**sffd) );
+					sys_font_family_list->push( move(**sffd) );
 				}
 			}
 			d.return_value = 1;
 		}));
 		
-		read_system_default_font_family();
+		read_system_default_font_family_name();
 		
 		JSON json = JSON::object();
 		json["sys_id"] = sys_id;
@@ -289,12 +309,11 @@ const Array<FontPool::SimpleFontFamily>& FontPool::system_font_family() {
 		json["font_familys"] = font_familys;
 		String json_str = JSON::stringify( json );
 		// LOG(json_str);
-		
 		String data = String::format( "%s\n%s", *hash(json_str), *json_str );
-		FileHelper::write_file_sync(Path::temp(xx_font_family_info_save), data); // 写入文件
+		FileHelper::write_file_sync(Path::temp(xx_font_family_info_cache), data); // 写入文件
 	}
 	
-	return *sys_font_family_info;
+	return *sys_font_family_list;
 }
 
 XX_END

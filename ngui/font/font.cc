@@ -459,7 +459,8 @@ void FontPool::set_default_fonts(const Array<String>* first, ...) {
 		auto j = m_blend_fonts.find(first->item(i));
 		if (j != end) {
 			has.set(j.value()->name(), true);
-			m_default_fonts.push(j.value()); break;
+			m_default_fonts.push(j.value()); 
+			break;
 		}
 	}
 	

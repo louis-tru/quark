@@ -259,7 +259,7 @@
 				],
 				'link_settings': { 
 					'libraries': [ 
-						# '-lGLESv3', '-lEGL', '-lOpenSLES', '-lmediandk' 
+						'-lGLESv2', '-lGEGL', #'-lOpenSLES', '-lmediandk' 
 					],
 				},
 			}],
