@@ -121,7 +121,7 @@ extend(Array.prototype, {
 		}
 		var i = from_index ? ((from_index % len) + len) % len: 0;
 		for ( ;i < len; i++) {
-			if (this[i][property] === value) {
+			if (this[i][property] == value) {
 				return i;
 			}
 		}
