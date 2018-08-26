@@ -141,7 +141,7 @@
 				},
 			},
 			'Release': {
-				'cflags': [ 
+				'cflags': [
 					'-O3', 
 					'-ffunction-sections', 
 					'-fdata-sections', 

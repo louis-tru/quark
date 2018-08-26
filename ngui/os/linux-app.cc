@@ -156,7 +156,10 @@ XX_END
 extern "C" {
 
 	int main(int argc, char* argv[]) {
-		ngui::AppInl::run_main(argc, argv);
+
+		printf("---------------%s\n", "OK");
+
+		// ngui::AppInl::run_main(argc, argv);
 		
 		// TODO..
 		return 0;

@@ -3,12 +3,23 @@
 var nstew = require('ngui-stew');
 var fs = require('ngui-stew/fs');
 var path = require('path');
+var { options, helpInfo, defOpts } = require('ngui-stew/arguments');
 var { execSync } = require('ngui-stew/syscall');
 
-var root = process.cwd();
-var target = process.argv[2] || 'louis@192.168.0.115:~/Project/ngui/ngui';
+defOpts('help', 0,									'--help, --help print help info');
+defOpts('u', 'louis',								'-u username [{0}]');
+defOpts('h', '192.168.0.115',				'-h host [{0}]');
+defOpts('t', '~/Project/ngui/ngui',	'-t target directory [{0}]');
 
-//console.log(`watch ${root} ${target}`);
+if (options.help) {
+	console.log(' ', helpInfo.join('\n  '));
+	process.exit(0);
+}
+
+var root = process.cwd();
+var target = `${options.u}@${options.h}:${options.t}`;
+
+console.log(`watch ${root} ${target}`);
 
 var gitignore = ['.git', '.svn', 'out', 'node/deps', 'tools/android-toolchain'];
 var count = 1;

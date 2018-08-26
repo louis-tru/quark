@@ -19,10 +19,10 @@
 	},
 	
 	'target_defaults': {
-		'defines': [
-			'XX_BUILDING_SHARED', 
-		],
 		'conditions': [
+			['output_library=="shared_library"', { 
+				'defines': [ 'XX_BUILDING_SHARED' ],
+			}],
 			# c++ exceptions
 			['cplusplus_exceptions==1', {
 				'xcode_settings': {

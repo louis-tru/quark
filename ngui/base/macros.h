@@ -109,7 +109,7 @@
 
 #ifdef XX_BUILDING_SHARED
 # define XX_EXPORT __declspec(dllexport)
-#elif XX_USIXX_SHARED
+#elif XX_USING_SHARED
 # define XX_EXPORT __declspec(dllimport)
 #else
 # define XX_EXPORT

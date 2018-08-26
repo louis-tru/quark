@@ -448,7 +448,7 @@ extern "C" NODE_EXTERN void node_module_register(void* mod);
 #ifdef NODE_SHARED_MODE
 # define NODE_CTOR_PREFIX
 #else
-# define NODE_CTOR_PREFIX static
+# define NODE_CTOR_PREFIX 
 #endif
 
 #if defined(_MSC_VER)
@@ -460,7 +460,7 @@ extern "C" NODE_EXTERN void node_module_register(void* mod);
   NODE_CTOR_PREFIX void __cdecl fn(void)
 #else
 #define NODE_C_CTOR(fn)                                               \
-  NODE_CTOR_PREFIX void fn(void) __attribute__((constructor));        \
+  NODE_CTOR_PREFIX void fn(void) __attribute__((constructor)) __attribute__((visibility("default")));        \
   NODE_CTOR_PREFIX void fn(void)
 #endif
 
@@ -498,6 +498,7 @@ extern "C" NODE_EXTERN void node_module_register(void* mod);
       NULL                                                            \
     };                                                                \
     NODE_C_CTOR(_register_ ## modname) {                              \
+      printf("---------------%s\n", "_register_ "#modname" ok");      \
       node_module_register(&_module);                                 \
     }                                                                 \
   }

@@ -77,6 +77,10 @@ uint64 available_memory() {
 	return 0;
 }
 
+float cpu_usage() {
+	return 1;
+}
+
 struct Languages {
 	Array<String> values;
 	String				string;
