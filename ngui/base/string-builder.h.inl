@@ -185,7 +185,7 @@ BasicStringBuilder<Char, Container, Allocator>::to_basic_string() const {
 template <class Char, class Container, class Allocator>
 ArrayBuffer<Char> BasicStringBuilder<Char, Container, Allocator>::to_buffer() const {
 	ArrayBuffer<Char> buff(m_string_length, m_string_length + 1);
-	uint index = 0;
+	// uint index = 0;
 	Char* data = *buff;
 	for (auto i = this->begin(), e = this->end(); i != e; i++) {
 		uint len = i.value().length();

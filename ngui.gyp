@@ -54,7 +54,7 @@
 		'target_name': 'ngui-lib',
 		'product_name': 'ngui',
 		'type': 'none',
-		'dependencies': [ 
+		'dependencies': [
 			'ngui-base', 
 			'ngui-gui', 
 			'ngui-js', 

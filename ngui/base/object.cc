@@ -149,7 +149,7 @@ void* Object::operator new(std::size_t size) {
 }
 
 void* Object::operator new(std::size_t size, void* p) {
-	std::size_t s;
+	// std::size_t s;
 	return p;
 }
 

@@ -115,7 +115,7 @@ static int _index_of(const BasicString* self,
 template <class BasicString>
 static int _last_index_of(const BasicString* self,
 													const typename BasicString::Char* s, int len, int start) {
-	typedef typename BasicString::Char Char;
+	// typedef typename BasicString::Char Char;
 	
 	if ( start + len > self->length() )
 		start = self->length() - len;
@@ -168,25 +168,25 @@ XX_INLINE static int _compare(const BasicString* self, const typename BasicStrin
 
 template <class Char, class Container>
 BasicString<Char, Container>::StringCore::StringCore(const StringCore& core)
-: m_ref(1), length(core.length), container(core.container) {
+: length(core.length), container(core.container), m_ref(1) {
 	
 }
 
 template <class Char, class Container>
 BasicString<Char, Container>::StringCore::StringCore()
-: m_ref(1), length(0), container(1) {
+: length(0), container(1), m_ref(1) {
 	*(*container) = '\0';
 }
 
 template <class Char, class Container>
 BasicString<Char, Container>::StringCore::StringCore(uint len)
-: m_ref(1), length(len), container(len + 1) {
+: length(len), container(len + 1), m_ref(1) {
 	(*container)[len] = '\0';
 }
 
 template <class Char, class Container>
 BasicString<Char, Container>::StringCore::StringCore(uint len, Char* value)
-: m_ref(1), length(len), container(len + 1, value)
+: length(len), container(len + 1, value), m_ref(1)
 { }
 
 template <class Char, class Container>

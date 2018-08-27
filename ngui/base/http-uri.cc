@@ -208,7 +208,7 @@ static inline int needs_encoding(char ch, char next
 extern String inl__uri_encode(cString& url, bool component, bool secondary) {
 	
 	byte ch = 0;
-	uint len = url.length();
+	int len = url.length();
 	cchar* src = *url;
 	size_t msize = 0;
 	

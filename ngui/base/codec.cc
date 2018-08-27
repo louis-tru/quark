@@ -93,7 +93,7 @@ static uint encoding_unicode_to_utf8_char(uint unicode, char* s) {
 		*s = unicode;
 	}
 	else {
-		int length;
+		// int length;
 		if (unicode < 0x7FF + 1) {            // 两字节编码
 			rev = 2;
 			*s = 0b11000000;
@@ -306,7 +306,7 @@ static Buffer encoding_to_ucs4(const Char* source, uint len) {
 }
 
 static Buffer encoding_with_byte_(Encoding target_en, cchar* source, uint len) {
-	cchar* end = source + len;
+	// cchar* end = source + len;
 	
 	switch (target_en) {
 		case Encoding::binary: {
@@ -343,7 +343,7 @@ static Buffer encoding_with_byte_(Encoding target_en, cchar* source, uint len) {
 }
 
 static Buffer encoding_with_uint16_(Encoding target_en, const uint16* source, uint len) {
-	const uint16* end = source + len;
+	// const uint16* end = source + len;
 	
 	switch (target_en) {
 		case Encoding::binary: {
@@ -382,7 +382,7 @@ static Buffer encoding_with_uint16_(Encoding target_en, const uint16* source, ui
 }
 
 static Buffer encoding_with_uint32_(Encoding target_en, const uint32* source, uint len) {
-	const uint32* end = source + len;
+	// const uint32* end = source + len;
 	
 	switch (target_en) {
 		case Encoding::binary: {

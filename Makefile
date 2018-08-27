@@ -32,11 +32,10 @@ ifeq ($(OS), android)
 MAKE_STYLE = make-linux
 endif
 
-define make_compile
-	$(ENV) $(MAKE) -C "out/$(MAKE_STYLE)" -f Makefile.$(OS).$(SUFFIX) \
+make_compile=\
+	$(ENV) $(1) -C "out/$(MAKE_STYLE)" -f Makefile.$(OS).$(SUFFIX) \
 CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 builddir="$(shell pwd)/$(LIBS_DIR)"
-endef
 
 .PHONY: $(PTOJECTS) jsa-shell install install-dev install-tools \
 	help all clear clear-all build server ios android linux osx doc
@@ -54,12 +53,12 @@ $(PTOJECTS): $(GYPFILES)
 	$(GYP) -f $@ ngui.gyp --generator-output="out/$@" $(GYP_ARGS)
 
 build: $(MAKE_STYLE) # out/$(MAKE_STYLE)/Makefile.$(OS).$(SUFFIX)
-	@$(make_compile)
+	@$(call make_compile, $(MAKE))
 
 jsa-shell: $(GYPFILES)
 	@echo "{'variables':{'project':'$(MAKE_STYLE)'}}" > out/var.gypi;
 	$(GYP) -f $(MAKE_STYLE) tools.gyp --generator-output="out/$(MAKE_STYLE)" $(GYP_ARGS)
-	@$(make_compile)
+	@$(make_compile, $(MAKE))
 	@mkdir -p $(TOOLS)/bin/$(OS)
 	@cp $(LIBS_DIR)/jsa-shell $(TOOLS)/bin/$(OS)/jsa-shell
 

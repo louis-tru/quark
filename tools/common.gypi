@@ -198,7 +198,21 @@
 			}],
 			['os=="linux"', {
 				'defines': [ '__STDC_LIMIT_MACROS' ],
-				'ldflags': [ '-pthread' ],
+				'cflags': [
+					'-Wall',
+					'-Wextra',
+					'-Wno-unused-parameter',
+					'-Wno-deprecated',
+					'-march=<(arch_name)',
+				],
+				'ldflags': [ 
+					'-pthread', 
+					#'-rdynamic',
+				],
+				'conditions': [
+					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] },],
+					['arch=="x64"', { 'cflags': [ '-m64' ] },],
+				],
 			}],
 			['os=="ios"', {
 				'cflags': [ 

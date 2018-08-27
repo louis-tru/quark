@@ -1,6 +1,16 @@
 { 
 	'variables': {
 		'without_visibility_hidden%': 0,
+		'other_ldflags': [
+			'-Wl,--whole-archive',
+			'<(output)/obj.target/libngui-base.a',
+			'<(output)/obj.target/libngui-gui.a',
+			'<(output)/obj.target/libngui-js.a',
+			'<(output)/obj.target/node/libnode.a',
+			# '<(output)/obj.target/node/deps/v8/src/libv8_base.a',
+			# '<(output)/obj.target/node/deps/openssl/libopenssl.a',
+			'-Wl,--no-whole-archive',
+		],
 	},
 	'targets': [
 		{
@@ -84,12 +94,15 @@
 			'conditions': [
 				['os in "ios osx"', {
 					'sources': [ 
-						'Storyboard-<(os).storyboard',
 						'test-<(os).plist',
+						'Storyboard-<(os).storyboard',
 					],
 					'xcode_settings': {
 						'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
 					},
+				}],
+				['os in "linux android"', {
+					'ldflags': [ '<@(other_ldflags)' ],
 				}],
 			],
 		}, 
@@ -120,6 +133,9 @@
 						'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
 					},
 				}],
+				['os in "linux android"', {
+					'ldflags': [ '<@(other_ldflags)' ],
+				}],
 			],
 		}, 
 	],
@@ -128,9 +144,6 @@
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'variables': {
-					'ff_install_dir%':  '<(output)/obj.target/ffmpeg',
-				},
 				'target_name': 'ngui_depes',
 				'type': 'shared_library',
 				'dependencies': [
@@ -151,7 +164,7 @@
 				'ldflags': [ 
 					'-s',
 					'-Wl,--whole-archive',
-					'<(ff_install_dir)/libffmpeg.a',
+					'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					'-Wl,--no-whole-archive',
 				],
 				'direct_dependent_settings': {

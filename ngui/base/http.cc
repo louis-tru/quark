@@ -809,9 +809,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	 public:
 		FileCacheReader(Client* client, int64 size, RunLoop* loop)
 		: AsyncFile(client->m_cache_path, loop)
+		, m_read_count(0)
 		, m_client(client)
-		, m_offset(0)
-		, m_parse_header(true), m_size(size), m_read_count(0) {
+		, m_parse_header(true), m_offset(0), m_size(size) {
 			XX_ASSERT(!m_client->m_cache_reader);
 			m_client->m_cache_reader = this;
 			set_delegate(this);
@@ -1370,7 +1370,6 @@ HttpClientRequest::HttpClientRequest(RunLoop* loop): m_inl(NewRetain<Inl>(this, 
 
 HttpClientRequest::~HttpClientRequest() {
 	XX_CHECK(m_inl->m_keep->host() == RunLoop::current());
-	Inl* inl = m_inl;
 	m_inl->set_delegate(nullptr);
 	m_inl->abort();
 	m_inl->release();

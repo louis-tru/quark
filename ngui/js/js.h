@@ -57,7 +57,7 @@
 
 #define JS_REG_MODULE(name, cls) \
 	XX_INIT_BLOCK(JS_REG_MODULE_##name) { \
-		printf("%s\n", "------------------- "#name" ok"); \
+		XX_DEBUG("%s", "------------------- JS_REG_MODULE "#name""); \
 		ngui::js::Worker::reg_module(#name, cls::binding, __FILE__); \
 	}
 

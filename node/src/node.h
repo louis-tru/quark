@@ -498,7 +498,6 @@ extern "C" NODE_EXTERN void node_module_register(void* mod);
       NULL                                                            \
     };                                                                \
     NODE_C_CTOR(_register_ ## modname) {                              \
-      printf("---------------%s\n", "_register_ "#modname" ok");      \
       node_module_register(&_module);                                 \
     }                                                                 \
   }

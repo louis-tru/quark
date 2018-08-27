@@ -117,7 +117,7 @@
 		'type': 'none',
 		'direct_dependent_settings': {
 			'defines': [ 
-				'xx_using_shared', 
+				'XX_USING_SHARED', 
 			],
 			'xcode_settings': {
 				'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
@@ -145,7 +145,8 @@
 				'link_settings': {
 					'libraries': [ 
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
+						# '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
+						'<(DEPTH)/out/libs/ios/iphoneos/Release/Frameworks/ngui.framework',
 					],
 				},
 				'direct_dependent_settings': {
@@ -153,7 +154,8 @@
 						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
+						# '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
+						'<(DEPTH)/out/libs/ios/iphoneos/Release/Frameworks/ngui.framework',
 					],
 				},
 			}],
