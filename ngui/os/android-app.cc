@@ -201,7 +201,7 @@ class AndroidApplication {
 	static void onStart(ANativeActivity* activity) {
 		
 		if ( android_app->m_host == nullptr ) { // start gui
-			AppInl::run_main(0, nullptr); // run gui application
+			AppInl::start(0, nullptr); // run gui application
 
 			android_app->m_host = Inl_GUIApplication(app());
 			android_app->m_dispatch = android_app->m_host->dispatch();

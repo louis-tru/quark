@@ -308,10 +308,11 @@ void SimpleThread::awaken(ThreadID id) {
 	}
 }
 
-XX_INIT_BLOCK(thread_init_once) {
-	atexit(SimpleThread::Inl::atexit_exec);
-	SimpleThread::Inl::thread_initialize();
-}
+// XX_INIT_BLOCK(thread_init_once) {
+// 	XX_DEBUG("thread_init_once");
+// 	atexit(SimpleThread::Inl::atexit_exec);
+// 	SimpleThread::Inl::thread_initialize();
+// }
 
 // --------------------- ThreadRunLoop ---------------------
 

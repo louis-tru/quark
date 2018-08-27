@@ -225,9 +225,9 @@ class XX_EXPORT GUIApplication: public Object {
  protected:
 	
 	/**
-	 * @func run_main(argc, argv) create sub gui thread, call by system
+	 * @func start(argc, argv) create sub gui thread, call by system
 	 */
-	static void run_main(int argc, char* argv[]);
+	static void start(int argc, char* argv[]);
 
  private:
 	

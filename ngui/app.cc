@@ -47,6 +47,7 @@ typedef GUIApplication::Inl AppInl;
 static Mutex root_thread_mutex;
 static Condition  root_thread_cond;
 static RecursiveMutex* gui_mutex = new RecursiveMutex;
+static int process_exit = 0;
 GUIApplication* GUIApplication::m_shared = nullptr;
 
 static void root_thread_continue() {
@@ -168,7 +169,7 @@ void AppInl::process_atexit() {
 	// TOOD .. exit
 }
 
-void GUIApplication::run_main(int argc, char* argv[]) {
+void GUIApplication::start(int argc, char* argv[]) {
 	static int is_initialize = 0;
 	XX_CHECK(!is_initialize++, "Cannot multiple calls.");
 	
@@ -182,12 +183,21 @@ void GUIApplication::run_main(int argc, char* argv[]) {
 		__xx_default_gui_main = nullptr;
 		__XX_GUI_MAIN = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
+
+		process_exit++;
 		
-		exit(rc); // if sub thread end then exit
+		root_thread_continue(); // 根线程继续运行
+
+		// LOG("OK");
+
+		// SimpleThread::sleep_for(1000*1000);
+
+		// exit(rc); // if sub thread end then exit
+
 	}, "gui");
 	
-	// 在调用GUIApplication::run()之前一直阻塞这个主线程
-	while(!m_shared || !m_shared->m_is_run) {
+	while (!process_exit && (!m_shared || !m_shared->m_is_run)) {
+		// 在调用GUIApplication::run()之前一直阻塞这个主线程
 		root_thread_wait();
 	}
 }
