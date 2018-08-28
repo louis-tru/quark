@@ -71,8 +71,8 @@ static pthread_key_t specific_key;
 int process_exit = 0;
 
 XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
-public:
-#define _inl_t(self) static_cast<SimpleThread::Inl*>(self)
+ public:
+	#define _inl_t(self) static_cast<SimpleThread::Inl*>(self)
 	
 	static void thread_destructor(void* ptr) {
 		auto thread = reinterpret_cast<SimpleThread*>(ptr);
@@ -114,9 +114,9 @@ public:
 	}
 
 	static void run2(Exec body, SimpleThread* thread) {
-#if XX_ANDROID
-		JNI::ScopeENV scope;
-#endif
+		#if XX_ANDROID
+			JNI::ScopeENV scope;
+		#endif
 		set_thread_specific_data(thread);
 		if ( !thread->m_abort ) {
 			body(*thread);

@@ -40,6 +40,10 @@
 #define Console Console
 #endif
 
+XX_NS(ngui)
+extern RunLoop* get_private_loop();
+XX_END
+
 JS_BEGIN
 
 #define TEST_HTTP 0
@@ -52,7 +56,7 @@ static RemoteConsole* r_console = nullptr;
 static int i = 0;
 
 class MyHttp: public Socket, public Socket::Delegate {
-public:
+ public:
 	
 	Buffer buff;
 	
@@ -119,23 +123,25 @@ class RemoteConsole: public Console {
 	
 	void send(cchar* tag, int type, bool line_feed, cString& log) {
 		
-		Buffer buff = String::format("tag=%s&type=%d&line_feed=%d&log=%s",
-																 tag, type, line_feed, *URI::encode(log)).collapse_buffer();
-#if TEST_HTTP
-		New<MyHttp>(buff);
-#else
-		HttpHelper::RequestOptions opts = {
-			String::format("%s/$console/log/", *m_remote_url),
-			HTTP_METHOD_POST,
-			Map<String, String>(),
-			buff,
-			String(),
-			String(),
-			false,
-			true,
-		};
-		HttpHelper::request(opts, m_remote_log_cb);
-#endif
+		String data = String::format("tag=%s&type=%d&line_feed=%d&log=%s",
+																 tag, type, line_feed, *URI::encode(log));
+		#if TEST_HTTP
+			New<MyHttp>(data.collapse_buffer());
+		#else
+			get_private_loop()->post(Cb([this, data](Se&) {
+				HttpHelper::RequestOptions opts = {
+					String::format("%s/$console/log/", *m_remote_url),
+					HTTP_METHOD_POST,
+					Map<String, String>(),
+					data.copy_buffer(),
+					String(),
+					String(),
+					false,
+					true,
+				};
+				HttpHelper::request(opts, m_remote_log_cb);
+			}));
+		#endif
 	}
 	
 	virtual void log(cString& log) {
@@ -180,7 +186,7 @@ class RemoteConsole: public Console {
 
 void open_rlog(cString& r_url) {
 	if (!r_console) {
-		RemoteConsole::connect_remote_console( r_url );
+		// RemoteConsole::connect_remote_console( r_url );
 	}
 }
 

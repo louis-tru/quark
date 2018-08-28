@@ -123,9 +123,7 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 		}
 		
 		virtual void trigger_http_abort(HttpClientRequest* req) {
-#if DEBUG
-			printf("request async abort\n");
-#endif
+			XX_DEBUG("request async abort");
 		}
 		
 		virtual void trigger_http_write(HttpClientRequest* req) {}
@@ -205,64 +203,72 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 										String::format("cannot send sync http request, %s"
 																	 , options.url.c()), 0, options.url);
 	}
+
+	XX_DEBUG("request_sync %s", options.url.c());
 	
 	class Client: public HttpClientRequest, public HttpClientRequest::Delegate {
 	 public:
-		Client(RunLoop* loop): HttpClientRequest(loop), m_loop(loop) {
-			full_data = 1; is_error = 0;
+		Client(RunLoop* loop): HttpClientRequest(loop)
+		, m_loop(loop), full_data(1), is_error(0), ok(0) {
 			set_delegate(this);
 		}
 		virtual void trigger_http_error(HttpClientRequest* req, cError& err) {
-			ScopeLock scope(mutex);
-			error = err;
-			is_error = 1;
-			cond.notify_one();
+			XX_DEBUG("request_sync %s err", *url());
+			end(&err);
 		}
 		virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
+			XX_DEBUG("request_sync %s data ..", *url());
 			if (full_data) {
 				data.push(buffer.collapse_string());
 			}
 		}
 		virtual void trigger_http_end(HttpClientRequest* req) {
-			ScopeLock scope(mutex);
-			cond.notify_one();
+			XX_DEBUG("request_sync %s end", *url());
+			end(nullptr);
 		}
 		virtual void trigger_http_abort(HttpClientRequest* req) {
-#if DEBUG
-			printf("request_sync abort\n");
-#endif
+			XX_DEBUG("request_sync %s abort", *url());
 		}
 		virtual void trigger_http_write(HttpClientRequest* req) {}
 		virtual void trigger_http_header(HttpClientRequest* req) {}
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
 		virtual void trigger_http_timeout(HttpClientRequest* req) {}
+
+		void end(cError* err) {
+			ScopeLock scope(mutex);
+			if (err) {
+				is_error = 1;
+				error = *err;
+			}
+			ok = 1;
+			cond.notify_one();
+		}
 		
 		void send_sync(Buffer buffer) throw(HttpError) {
 			Lock lock(mutex);
 			post_data = buffer;
 			m_loop->post(Cb([this](Se&) {
+				XX_DEBUG("request_sync %s send", *url());
 				try {
 					send(post_data);
-				} catch (cError& e) {
-					ScopeLock scope(mutex);
-					is_error = true;
-					error = move(e);
-					cond.notify_one();
+				} catch (Error& e) {
+					end(&e);
 				}
 			}));
-			cond.wait(lock); // wait done
+			while (!ok) {
+				cond.wait(lock); // wait done
+			}
 			if (is_error) {
 				throw HttpError(move(error));
 			}
 		}
-		bool          full_data;
-		bool          is_error;
-		RunLoop*      m_loop;
-		Buffer        post_data;
-		Error         error;
+		bool					full_data, is_error, ok;
+		RunLoop*			m_loop;
+		Buffer				post_data;
+		Error 				error;
 		StringBuilder data;
-		Condition     cond;
-		Mutex         mutex;
+		Condition			cond;
+		Mutex 				mutex;
 	};
 	
 	auto loop = get_private_loop();
@@ -295,8 +301,12 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	} catch(cError& e) {
 		throw HttpError(e);
 	}
+
+	XX_DEBUG("request_sync %s ..", options.url.c());
 	
 	cli.send_sync(options.post_data);
+
+	XX_DEBUG("request_sync %s ok", options.url.c());
 	
 	if ( cli.is_error ) {
 		HttpError e(cli.error.code(),

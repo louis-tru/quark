@@ -160,29 +160,29 @@ class NativeNGUI {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("ngui_value");
-		worker->binding_module("ngui_event");
-		binding_app(exports, worker);
-		binding_display(exports, worker);
-		binding_view(exports, worker);
-		binding_sprite(exports, worker);
-		binding_layout(exports, worker);
-		binding_box(exports, worker);
-		binding_div(exports, worker);
-		binding_panel(exports, worker);
-		binding_hybrid(exports, worker);
-		binding_span(exports, worker);
-		binding_text_node(exports, worker);
-		binding_image(exports, worker);
-		binding_indep_div(exports, worker);
-		binding_root(exports, worker);
-		binding_label(exports, worker);
-		binding_limit(exports, worker);
-		binding_scroll(exports, worker);
-		binding_text(exports, worker);
-		binding_button(exports, worker);
-		binding_input(exports, worker);
-		JS_SET_METHOD(lock, lock);
+		worker->binding_module("ngui_value");	XX_DEBUG("binding ngui_value ok");
+		worker->binding_module("ngui_event");	XX_DEBUG("binding ngui_event ok");
+		binding_app(exports, worker); 			XX_DEBUG("binding app ok");
+		binding_display(exports, worker); 	XX_DEBUG("binding display ok");
+		binding_view(exports, worker); 			XX_DEBUG("binding view ok");
+		binding_sprite(exports, worker); 		XX_DEBUG("binding sprite ok");
+		binding_layout(exports, worker); 		XX_DEBUG("binding layout ok");
+		binding_box(exports, worker); 			XX_DEBUG("binding box ok");
+		binding_div(exports, worker); 			XX_DEBUG("binding div ok");
+		binding_panel(exports, worker); 		XX_DEBUG("binding panel ok");
+		binding_hybrid(exports, worker); 		XX_DEBUG("binding hybrid ok");
+		binding_span(exports, worker); 			XX_DEBUG("binding span ok");
+		binding_text_node(exports, worker); XX_DEBUG("binding text_node ok");
+		binding_image(exports, worker); 		XX_DEBUG("binding image ok");
+		binding_indep_div(exports, worker); XX_DEBUG("binding indep_div ok");
+		binding_root(exports, worker); 			XX_DEBUG("binding root ok");
+		binding_label(exports, worker); 		XX_DEBUG("binding label ok");
+		binding_limit(exports, worker); 		XX_DEBUG("binding limit ok");
+		binding_scroll(exports, worker); 		XX_DEBUG("binding scroll ok");
+		binding_text(exports, worker); 			XX_DEBUG("binding text ok");
+		binding_button(exports, worker); 		XX_DEBUG("binding button ok");
+		binding_input(exports, worker); 		XX_DEBUG("binding input ok");
+		JS_SET_METHOD(lock, lock); 					XX_DEBUG("binding lock ok");
 	}
 };
 

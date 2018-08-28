@@ -41,9 +41,9 @@ XX_NS(ngui)
 typedef Socket::Delegate Delegate;
 
 static int ssl_initializ = 0;
-static String ssl_cacert_file_path = String();
-static String ssl_client_key_file_path = String();
-static String ssl_client_keypasswd = String();
+static String* ssl_cacert_file_path = new String();
+static String* ssl_client_key_file_path = new String();
+static String* ssl_client_keypasswd = new String();
 static X509_STORE* ssl_x509_store = nullptr;
 static SSL_CTX* ssl_v23_client_ctx = nullptr;
 static X509_STORE* (*NewRootCertStore)() = nullptr;
@@ -68,7 +68,7 @@ typedef UVRequestWrap<uv_write_t, Socket::Inl, SSLSocketWriteReqData> SSLSocketW
  * @class Socket::Inl
  */
 class Socket::Inl: public Reference, public Socket::Delegate {
-public:
+ public:
 	typedef ReferenceTraits Traits;
 	virtual void trigger_socket_open(Socket* stream) {}
 	virtual void trigger_socket_close(Socket* stream) {}
@@ -503,9 +503,9 @@ public:
  * @class SSL_INL
  */
 class SSL_INL: public Socket::Inl {
-public:
+ public:
 	
-	static bool copy_ssl_cert_file(cString& path, cString& copy, String& out, cchar* err_msg) {
+	static bool copy_ssl_cert_file(cString& path, cString& copy, String* out, cchar* err_msg) {
 		String str = f_reader()->format(path);
 		if ( Path::is_local_zip(str) ) {
 			String copy_path = Path::temp(copy);
@@ -518,10 +518,10 @@ public:
 					XX_ERR("%s, %s", err_msg, *err.message()); return false;
 				}
 			}
-			out = copy_path;
+			*out = copy_path;
 		} else {
 			if ( FileHelper::exists_sync(str) ) {
-				out = str;
+				*out = str;
 			} else {
 				XX_ERR("%s, path does not exist", err_msg); return false;
 			}
@@ -536,7 +536,7 @@ public:
 				ssl_x509_store = X509_STORE_new();
 			}
 			
-			cchar* ca = Path::fallback_c(ssl_cacert_file_path);
+			cchar* ca = Path::fallback_c(*ssl_cacert_file_path);
 			int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 			
 			// XX_DEBUG("ssl load x509 store, %s"r);
@@ -901,7 +901,7 @@ public:
 		}
 	}
 	
-private:
+ private:
 	
 	SSL*    m_ssl;
 	cchar*  m_bio_read_source_buffer;
@@ -1001,7 +1001,7 @@ static void set_ssl_client_key_file(cString& path) {
 }
 
 static void set_ssl_client_keypasswd(cString& passwd) {
-	ssl_client_keypasswd = passwd;
+	*ssl_client_keypasswd = passwd;
 }
 
 SSLSocket::SSLSocket(cString& hostname, uint16 port, RunLoop* loop) {
