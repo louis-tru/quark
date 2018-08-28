@@ -143,7 +143,9 @@ class WrapNativeGUIApplication: public WrapObject {
 								 &WrapNativeGUIApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeGUIApplication*>(wrap));
 			SimpleThread::detach([app](SimpleThread& t) {
+				XX_DEBUG("run render loop ...");
 				app->run(); // run gui main thread loop
+				XX_DEBUG("run render loop end");
 			}, "render_loop");
 			
 		} catch(cError& err) {

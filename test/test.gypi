@@ -54,6 +54,7 @@
 				'../node_modules/ngui-tools',
 				'../node_modules/ngui-stew',
 				'test.cc',
+				'test-ngui.cc',
 				'test-fs.cc',
 				'test-fs2.cc',
 				'test-gui.cc',
@@ -80,7 +81,6 @@
 				'test-http-cookie.cc',
 				'test-localstorage.cc',
 				'test-buffer.cc',
-				'test-ngui.cc',
 				'test-demo.cc',
 				'test-jsc.cc',
 				'test-v8.cc',
@@ -105,7 +105,26 @@
 					'ldflags': [ '<@(other_ldflags)' ],
 				}],
 			],
-		}, 
+		},
+		{
+			'target_name': 'test2',
+			'type': 'executable',
+			'mac_bundle': 1,
+			'sources': [
+				'test2.cc',
+			],
+			'conditions': [
+				['os in "ios osx"', {
+					'sources': [
+						'test-<(os).plist',
+						'Storyboard-<(os).storyboard',
+					],
+					'xcode_settings': {
+						'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
+					},
+				}],
+			],
+		},
 		{
 			'target_name': 'ngui-demo',
 			'type': 'executable',
@@ -137,7 +156,7 @@
 					'ldflags': [ '<@(other_ldflags)' ],
 				}],
 			],
-		}, 
+		},
 	],
 
 	'conditions': [

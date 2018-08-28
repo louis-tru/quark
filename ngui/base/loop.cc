@@ -112,7 +112,7 @@ public:
 		XX_CHECK(m_loop == loop);
 		m_loop = nullptr;
 	}
- 
+
 	static void run2(Exec body, SimpleThread* thread) {
 #if XX_ANDROID
 		JNI::ScopeENV scope;
@@ -140,15 +140,15 @@ public:
 		} else {
 			ScopeLock scope(*all_threads_mutex);
 			SimpleThread* thread = new SimpleThread();
-			std::thread std_thread(run2, exec, thread);
+			std::thread t(run2, exec, thread);
 			thread->m_gid = gid;
-			thread->m_id = std_thread.get_id();
+			thread->m_id = t.get_id();
 			thread->m_name = name;
 			thread->m_abort = false;
 			thread->m_loop = nullptr;
 			memset(thread->m_data, 0, sizeof(void*[256]));
 			all_threads->set(thread->m_id, thread);
-			std_thread.detach();
+			t.detach();
 			return thread->m_id;
 		}
 	}
@@ -308,11 +308,11 @@ void SimpleThread::awaken(ThreadID id) {
 	}
 }
 
-// XX_INIT_BLOCK(thread_init_once) {
-// 	XX_DEBUG("thread_init_once");
-// 	atexit(SimpleThread::Inl::atexit_exec);
-// 	SimpleThread::Inl::thread_initialize();
-// }
+XX_INIT_BLOCK(thread_init_once) {
+	XX_DEBUG("thread_init_once");
+	atexit(SimpleThread::Inl::atexit_exec);
+	SimpleThread::Inl::thread_initialize();
+}
 
 // --------------------- ThreadRunLoop ---------------------
 

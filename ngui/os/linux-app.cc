@@ -64,7 +64,7 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(const Map<String, int>& options) {
-	
+	XX_DEBUG("AppInl::initialize");
 }
 
 /**
@@ -158,6 +158,7 @@ extern "C" {
 	int main(int argc, char* argv[]) {
 		ngui::AppInl::start(argc, argv);
 		// TODO..
+		LOG("OK");
 		return 0;
 	}
 	

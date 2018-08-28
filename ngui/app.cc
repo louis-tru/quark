@@ -44,23 +44,27 @@ XX_NS(ngui)
 
 typedef GUIApplication::Inl AppInl;
 
-static Mutex root_thread_mutex;
-static Condition  root_thread_cond;
-static RecursiveMutex* gui_mutex = new RecursiveMutex;
-static int process_exit = 0;
+// global shared gui application 
 GUIApplication* GUIApplication::m_shared = nullptr;
 
-static void root_thread_continue() {
-	ScopeLock scope(root_thread_mutex);
-	root_thread_cond.notify_one();
-}
+struct thread_control {
+	Mutex root_thread_mutex;
+	Condition root_thread_cond;
+	RecursiveMutex ngui_thread_mutex;
 
-static void root_thread_wait(bool* ok = nullptr) {
-	Lock lock(root_thread_mutex);
-	do {
-		root_thread_cond.wait(lock);
-	} while(ok && !*ok);
-}
+	void root_thread_awaken() {
+		ScopeLock scope(root_thread_mutex);
+		root_thread_cond.notify_one();
+	}
+
+	void root_thread_sleep(bool* ok = nullptr) {
+		Lock lock(root_thread_mutex);
+		do {
+			root_thread_cond.wait(lock);
+		} while(ok && !*ok);
+	}
+
+} *tctr = new thread_control();
 
 GUILock::GUILock(): m_d(nullptr) {
 	lock();
@@ -72,8 +76,8 @@ GUILock::~GUILock() {
 
 void GUILock::lock() {
 	if (!m_d) {
-		m_d = gui_mutex;
-		gui_mutex->lock();
+		m_d = &tctr->ngui_thread_mutex;
+		tctr->ngui_thread_mutex.lock();
 	}
 }
 
@@ -147,6 +151,9 @@ bool AppInl::set_focus_view(View* view) {
 	return true;
 }
 
+/**
+ * @func onUnload()
+ */
 void AppInl::onUnload() {
 	if (m_is_load) {
 		m_is_load = false;
@@ -156,54 +163,37 @@ void AppInl::onUnload() {
 				GUILock lock;
 				m_root->remove();
 			}
-			root_thread_continue();
+			tctr->root_thread_awaken();
 		}));
-		root_thread_wait();
+		tctr->root_thread_sleep();
 	}
 }
 
 /**
- * @func process_atexit()
+ * @func start()
  */
-void AppInl::process_atexit() {
-	// TOOD .. exit
-}
-
 void GUIApplication::start(int argc, char* argv[]) {
 	static int is_initialize = 0;
 	XX_CHECK(!is_initialize++, "Cannot multiple calls.");
 	
-	atexit(&Inl::process_atexit);
-	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	SimpleThread::detach([argc, argv](SimpleThread& t) {
 		XX_CHECK( __xx_default_gui_main );
-		
 		auto main = __XX_GUI_MAIN ? __XX_GUI_MAIN : __xx_default_gui_main;
 		__xx_default_gui_main = nullptr;
 		__XX_GUI_MAIN = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
-
-		process_exit++;
-		
-		root_thread_continue(); // 根线程继续运行
-
-		// LOG("OK");
-
-		// SimpleThread::sleep_for(1000*1000);
-
-		// exit(rc); // if sub thread end then exit
-
+		exit(rc); // if sub thread end then exit
 	}, "gui");
-	
-	while (!process_exit && (!m_shared || !m_shared->m_is_run)) {
-		// 在调用GUIApplication::run()之前一直阻塞这个主线程
-		root_thread_wait();
+
+	// 在调用GUIApplication::run()之前一直阻塞这个主线程
+	while (!m_shared || !m_shared->m_is_run) {
+		tctr->root_thread_sleep();
 	}
 }
 
 /**
- * @func run
+ * @func run()
  */
 void GUIApplication::run() {
 	XX_CHECK(!m_is_run, "GUI program has been running");
@@ -214,9 +204,9 @@ void GUIApplication::run() {
 	m_render_loop = RunLoop::current(); // 当前消息队列
 	m_render_keep = m_render_loop->keep_alive(); // 保持
 	if (m_main_loop != m_render_loop) {
-		Inl2_RunLoop(m_render_loop)->set_independent_mutex(gui_mutex);
+		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->ngui_thread_mutex);
 	}
-	root_thread_continue(); // 根线程继续运行
+	tctr->root_thread_awaken(); // 根线程继续运行
 	
 	XX_CHECK(!m_render_loop->runing());
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
@@ -277,7 +267,7 @@ GUIApplication::~GUIApplication() {
 }
 
 /**
- * @func initialize
+ * @func initialize()
  */
 void GUIApplication::initialize(const Map<String, int>& options) throw(Error) {
 	GUILock lock;
@@ -285,8 +275,11 @@ void GUIApplication::initialize(const Map<String, int>& options) throw(Error) {
 	m_shared = this;
 	HttpHelper::initialize(); // 初始http
 	Inl_GUIApplication(this)->initialize(options);
+	XX_DEBUG("Inl_GUIApplication initialize ok");
 	m_display_port = NewRetain<DisplayPort>(this); // strong ref
+	XX_DEBUG("NewRetain<DisplayPort> ok");
 	m_draw_ctx->font_pool()->bind_display_port(m_display_port);
+	XX_DEBUG("m_draw_ctx->font_pool()->bind_display_port ok");
 	m_dispatch = new GUIEventDispatch(this);
 	m_action_center = new ActionCenter();
 }

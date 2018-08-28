@@ -155,7 +155,9 @@ DisplayPort::DisplayPort(GUIApplication* host)
 {
 	m_draw_region.push({ 0,0,0,0,0,0 });
 	// 侦听视口尺寸变化
+	XX_DEBUG("m_draw_ctx->XX_ON ...");
 	m_draw_ctx->XX_ON(surface_size_change, &Inl::handle_surface_size_change, _inl(this));
+	XX_DEBUG("m_draw_ctx->XX_ON ok");
 }
 
 /**

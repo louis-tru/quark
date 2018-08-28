@@ -158,6 +158,7 @@ extern "C" {
 	int main(int argc, char* argv[]) {
 		AppInl::start(argc, argv);
 		// TODO..
+		LOG("%s", "OK");
 		return 0;
 	}
 }

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,93 +25,26 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __trurh__gui_app_1__
-#define __trurh__gui_app_1__
+#include <thread>
 
-#include "app.h"
+int main() {
 
-/**
- * @ns trurh::gui
- */
+	std::thread t([](){
 
-XX_NS(ngui)
+		printf("%s\n", "-------------------ok");
 
-XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
- public:
-	
-	struct KeyboardOptions {
-		bool         is_clear;
-		KeyboardType type;
-		KeyboardReturnType return_type;
-	};
-	
-	void initialize(const Map<String, int>& option);
-	void refresh_display();
-	void onLoad();
-	void onRender();
-	void onPause();
-	void onResume();
-	void onBackground();
-	void onForeground();
-	void onMemorywarning();
-	void onUnload();
-	
-	/**
-	 * @func set_volume_up()
-	 */
-	void set_volume_up();
+		exit(0);
 
-	/**
-	 * @func set_volume_down()
-	 */
-	void set_volume_down();
-	
-	/**
-	 * @func set_root
-	 */
-	void set_root(Root* value) throw(Error);
-	
-	/**
-	 * @func start
-	 */
-	inline static void start(int argc, char* argv[]) {
-		GUIApplication::start(argc, argv);
-	}
-	
-	/**
-	 * @func set_focus_view
-	 */
-	bool set_focus_view(View* view);
-	
-	/**
-	 * @func dispatch
-	 * */
-	inline GUIEventDispatch* dispatch() { return m_dispatch; }
-	
-	/**
-	 * @func ime_keyboard_open
-	 */
-	void ime_keyboard_open(KeyboardOptions options);
-	
-	/**
-	 * @func ime_keyboard_can_backspace
-	 */
-	void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-	
-	/**
-	 * @func ime_keyboard_close
-	 */
-	void ime_keyboard_close();
-	
-};
+		// std::this_thread::sleep_for(std::chrono::milliseconds(4000));
 
-#define _inl_app(self) static_cast<AppInl*>(self)
+	});
 
-typedef GUIApplication::Inl AppInl;
+	t.detach();
 
-XX_END
+	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-#endif
+	return 0;
+}

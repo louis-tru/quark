@@ -52,7 +52,7 @@ ValueProgram::ValueProgram(Worker* worker,
 	_isBase.Reset(worker, priv->Get(worker,Ascii("_isBase")).To<JSFunction>());
 	
 #define js_init_func(Name, Type) \
-	XX_DEBUG("%s", #Name);\
+	XX_DEBUG("init value %s", #Name);\
 	_constructor##Name .Reset(worker, priv->Get(worker,Ascii(#Name)).To<JSFunction>()); \
 	_parse##Name       .Reset(worker, priv->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
 	if (_constructor##Name.strong()->IsObject()) { \
