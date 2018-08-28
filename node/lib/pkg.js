@@ -811,7 +811,7 @@ function PackagesCore_load_pkg_json(self, register, async, receipt) {
     // 没有此pkg实例,尝试读取package.json文件
     // 文件必须强制加载不使用缓存
     var package_json = register.path + '/package.json';
-    var pkg_json = set_url_args(package_json, '_no_cache');
+    var pkg_json = set_url_args(package_json, '__nocache');
     var err = null;
     if ( async ) {
       read_text(pkg_json, function(content) {
@@ -863,7 +863,7 @@ function PackagesCore_load_pkg_json_after(self, err, register, async, receipt) {
 function PackagesCore_try_parse_new_pkgs_json(self, node_path, async, local) {
   var pkgs_json = node_path.path + '/packages.json';
   // load packages.json `packages.json` 文件必须强制加载不使用缓存
-  var json_path_no_cache = set_url_args(pkgs_json, '_no_cache');
+  var json_path_no_cache = set_url_args(pkgs_json, '__nocache');
   if (async) {
     node_path.ready = 1;  // 载入中packages.json
     read_text(json_path_no_cache, function(content) {
@@ -1346,9 +1346,9 @@ function parse_argv() {
 
   if ('no_cache' in options || options.dev) {
     if (options.url_arg) {
-      options.url_arg += '&_no_cache';
+      options.url_arg += '&__nocache';
     } else {
-      options.url_arg = '_no_cache';
+      options.url_arg = '__nocache';
     }
   }
 

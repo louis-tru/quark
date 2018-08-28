@@ -1277,7 +1277,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_cache_path = inl__get_http_cache_path() + '/' +
 			hash_code(m_uri.href().c(), m_uri.href().length());
 		
-		int i = m_uri.search().index_of("_no_cache");
+		int i = m_uri.search().index_of("__nocache");
 		if ( i == 0 || (i > 0 && m_uri.search()[i-1] == '&') ) {
 			m_url_no_cache_arg = true;
 		}
