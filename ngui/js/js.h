@@ -822,8 +822,8 @@ class XX_EXPORT WrapObject {
 	 */
 	~WrapObject();
 	
-	virtual void initialize() {}
-	virtual void destroy() { delete this; }
+	virtual void initialize();
+	virtual void destroy();
 	
 	/**
 	 * @func New()
