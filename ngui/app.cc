@@ -64,7 +64,9 @@ struct thread_control {
 		} while(ok && !*ok);
 	}
 
-} *tctr = new thread_control();
+};
+
+static auto *tctr = new thread_control();
 
 GUILock::GUILock(): m_d(nullptr) {
 	lock();
