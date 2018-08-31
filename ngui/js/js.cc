@@ -397,6 +397,9 @@ public:
 	}
 };
 
+void WrapObject::initialize() {}
+void WrapObject::destroy() { delete this; }
+
 void WrapObject::init2(FunctionCall args) {
 	XX_ASSERT(args.IsConstructCall());
 	Worker* worker_ = args.worker();

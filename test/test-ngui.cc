@@ -35,7 +35,7 @@
 using namespace ngui;
 
 #define USE_REMOTE 1
-#define IP_REMOTE "192.168.0.11"
+#define IP_REMOTE "127.0.0.1"
 #define USE_INSPECT 0
 
 void test_ngui() {
