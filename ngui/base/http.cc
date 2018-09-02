@@ -459,15 +459,21 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			}
 			
 			StringBuilder header_str;
-			bool search = m_client->m_uri.search().is_empty();
+			String search = m_client->m_uri.search();
+
+			if (m_client->m_url_no_cache_arg) {
+				search = search.replace("__nocache", "");
+				if (search.length() == 1) {
+					search = String();
+				}
+			}
 			
 			header_str.push(String::format
 			(
-			"%s %s%s%s HTTP/1.1\r\n"
+			"%s %s%s HTTP/1.1\r\n"
 			 , string_method[m_client->m_method].c()
 			 , *inl__uri_encode(m_client->m_uri.pathname(), false, true)
-			 , search ? "" : "?"
-			 , search ? "" : m_client->m_uri.search().c()
+			 , search.c()
 			));
 			
 			for ( auto& i : header ) {
@@ -1278,7 +1284,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			hash_code(m_uri.href().c(), m_uri.href().length());
 		
 		int i = m_uri.search().index_of("__nocache");
-		if ( i == 0 || (i > 0 && m_uri.search()[i-1] == '&') ) {
+		if ( i != -1 && m_uri.search()[i+9] != '=' ) {
 			m_url_no_cache_arg = true;
 		}
 		

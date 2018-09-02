@@ -134,7 +134,7 @@ URI::URI(cString& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
 	
 	int index = _pathname.index_of('?');
 	if (index != -1) {
-		_search = _pathname.substr(index + 1);
+		_search = _pathname.substr(index);
 		_pathname = _pathname.substr(0, index);
 	}
 	
