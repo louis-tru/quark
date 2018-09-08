@@ -37,38 +37,25 @@ XX_NS(ngui)
 using namespace tinyxml2;
 
 #define xx_font_family_info_cache ".simple_font_family_cache"
-static XMLDocument* system_fonts_config = nullptr;
 
-static cString get_system_fonts_dir() {
-	static String system_fonts_dir;
-	if (!system_fonts_dir.is_empty()) return system_fonts_dir;
 #if XX_IOS || XX_OSX
-	system_fonts_dir = "/System/Library/Fonts";
+static String system_fonts_dir = "/System/Library/Fonts";
 #elif XX_ANDROID
-	system_fonts_dir = "/system/fonts";
-	system_fonts_config = new XMLDocument();
-	system_fonts_config->LoadFile("/system/etc/fonts.xml");
+static String system_fonts_dir = "/system/fonts";
 #elif XX_LINUX
-	system_fonts_dir = "/usr/share/fonts";
-	system_fonts_config = new XMLDocument();
-	system_fonts_config->LoadFile("/etc/fonts/fonts.conf");
-	if (!system_fonts_config->Error()) {
-		// TODO...
-	}
+static String system_fonts_dir = "/usr/share/fonts";
 #endif
-	return system_fonts_dir;
-}
-
-static Array<FontPool::SimpleFontFamily>* sys_font_family_list = nullptr;
-static String first_sys_font_family;
-static String second_sys_font_family;
+typedef Array<FontPool::SimpleFontFamily> SimpleFontList;
+static SimpleFontList* system_font_family_list = nullptr;
+static String system_first_font_family_name;
+static String system_second_font_family_name;
 
 /**
  * @func find_font_family_by_path(path)
  */
 static String find_font_family_by_path(cString& path) {
-	XX_ASSERT(sys_font_family_list);
-	for ( auto& i : *sys_font_family_list ) {
+	XX_ASSERT(system_font_family_list);
+	for ( auto& i : *system_font_family_list ) {
 		if (i.value().path == path) {
 			return i.value().family;
 		}
@@ -77,23 +64,25 @@ static String find_font_family_by_path(cString& path) {
 }
 
 /**
- * @func read_system_default_font_family_name()
+ * @func get_system_font_family_name()
  */
-static void read_system_default_font_family_name() {
-	XX_ASSERT(sys_font_family_list);
+static void get_system_font_family_name() {
+	XX_ASSERT(system_font_family_list);
 
-	if ( !system_fonts_config->Error() ) {
-#if XX_ANDROID
-		auto root = system_fonts_config->RootElement();
+	auto config = new XMLDocument();
 
+ #if XX_ANDROID
+
+	if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
+		auto root = config->RootElement();
 		// set first
 		const XMLElement* first = root->FirstChildElement("family");
 		
 		if ( first && (first = first->FirstChildElement("font")) ) {
 			cchar* path = first->GetText();
 			if ( path ) {
-				first_sys_font_family = 
-					find_font_family_by_path(Path::format("%s/%s", *get_system_fonts_dir(), path));
+				system_first_font_family = 
+					find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
 			}
 		}
 
@@ -103,22 +92,22 @@ static void read_system_default_font_family_name() {
 		while (first) {
 			if ( strcmp(first->Name(), "family") == 0 ) {
 
-#if defined(DEBUG) && 0
+			#if defined(DEBUG) && 0
 				auto att = first->FirstAttribute();
 				LOG("%s, Attributes:", first->Name());
 				while ( att ) {
 					LOG("     %s:%s", att->Name(), att->Value());
 					att = att->Next();
 				}
-#endif
+			#endif
 				auto lang = first->FindAttribute("lang");
 				if ( lang && strcmp(lang->Value(), "zh-Hans") == 0 ) {
 
 					if ( (first = first->FirstChildElement("font")) ) {
 						cchar* path = first->GetText();
 						if ( path ) {
-							second_sys_font_family = 
-								find_font_family_by_path(Path::format("%s/%s", *get_system_fonts_dir(), path));
+							system_second_font_family = 
+								find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
 						}
 					}
 					break;
@@ -126,80 +115,88 @@ static void read_system_default_font_family_name() {
 			}
 			first = first->NextSiblingElement();
 		}
-#elif XX_LINUX 
-		// TODO ...
-#endif // XX_ANDROID
 	}
+ #elif XX_LINUX 
+	if (config->LoadFile("/etc/fonts/fonts.conf") == XML_NO_ERROR) {
+		
+	}
+ #endif // XX_ANDROID
 }
 
 /**
- * @func read_system_font_family_cache
+ * @func read_system_font_family_cache()
  */
 static bool read_system_font_family_cache() {
 	
 	String path = Path::temp(xx_font_family_info_cache);
 	
-	if ( FileHelper::exists_sync(path) ) { // 这个文件存在
-		String data = FileHelper::read_file_sync(path);
-		Array<String> ls = data.split('\n');
-		
-		if ( ls.length() != 2 )
-			return false;
-		
-		String check_code = ls[0]; // 第一行代码为文件校验码
-		String json_str = ls[1];
-		
-		if ( check_code == hash(json_str) ) { // 验证文件是否被改动或损坏
-			JSON json = JSON::parse(json_str);
-			String sys_id = hash(sys::info()); // 系统标识
-			String lib_version = NGUI_VERSION;
-			
-			if (sys_id == json["sys_id"].to_cstring() && // 操作系统与是否升级
-					lib_version == json["library_version"].to_cstring() // lib版本是否变化
-			) {
-				JSON familys = json["font_familys"];
-				
-				first_sys_font_family = json["first_sys_font_family"].to_string();
-				second_sys_font_family = json["second_sys_font_family"].to_string();
-				
-				for ( int i = 0, len = familys.length(); i < len; i++ ) {
-					JSON& item = familys[i];
-					JSON& fonts = item["fonts"]; // fonts
-					
-					FontPool::SimpleFontFamily sffd = {
-						item["path"].to_string(), // path
-						item["family"].to_string(), // family
-					};
-					
-					//LOG("family:%s, %s", item["family"].to_cstring(), item["path"].to_cstring());
-					
-					for ( int j = 0, o = fonts.length(); j < o; j++ ) {
-						JSON& font = fonts[j];
-						sffd.fonts.push({
-							font[0].to_string(),  // name
-							TextStyleEnum(font[1].to_uint()), // style
-							font[2].to_uint(),    // num_glyphs
-							font[3].to_int(),     // height
-							font[4].to_int(),     // max_advance
-							font[5].to_int(),     // ascender
-							font[6].to_int(),     // descender
-							font[7].to_int(),     // underline_position
-							font[8].to_int(),     // underline_thickness
-						});
-						
-						//LOG("       %s", *JSON::stringify(font));
-					}
-					sys_font_family_list->push( move(sffd) );
-				}
-				return true; // ok
-			}
-		}
+	if ( !FileHelper::exists_sync(path) ) { // 这个文件不存在
+		return false;
 	}
-	return false;
+
+	String data = FileHelper::read_file_sync(path);
+	Array<String> ls = data.split('\n');
+	
+	if ( ls.length() != 2 ) {
+		return false;
+	}
+	
+	String check_code = ls[0]; // 第一行代码为文件校验码
+	String json_str = ls[1];
+	
+	if ( check_code != hash(json_str) ) { // 验证文件是否被改动或损坏
+		return false;
+	}
+	JSON json = JSON::parse(json_str);
+	String sys_id = hash(sys::info()); // 系统标识
+	String lib_version = NGUI_VERSION;
+
+	if (sys_id != json["sys_id"].to_cstring()) { // 操作系统与是否升级
+		return false;
+	}
+	if (lib_version != json["library_version"].to_cstring()) {// lib版本是否变化
+		return false;
+	}
+
+	JSON familys = json["font_familys"];
+
+	system_first_font_family_name = json["system_first_font_family_name"].to_string();
+	system_second_font_family_name = json["system_second_font_family_name"].to_string();
+	
+	for ( int i = 0, len = familys.length(); i < len; i++ ) {
+		JSON& item = familys[i];
+		JSON& fonts = item["fonts"]; // fonts
+		
+		FontPool::SimpleFontFamily sffd = {
+			item["path"].to_string(), // path
+			item["family"].to_string(), // family
+		};
+		
+		//LOG("family:%s, %s", item["family"].to_cstring(), item["path"].to_cstring());
+		
+		for ( int j = 0, o = fonts.length(); j < o; j++ ) {
+			JSON& font = fonts[j];
+			sffd.fonts.push({
+				font[0].to_string(),  // name
+				TextStyleEnum(font[1].to_uint()), // style
+				font[2].to_uint(),    // num_glyphs
+				font[3].to_int(),     // height
+				font[4].to_int(),     // max_advance
+				font[5].to_int(),     // ascender
+				font[6].to_int(),     // descender
+				font[7].to_int(),     // underline_position
+				font[8].to_int(),     // underline_thickness
+			});
+			
+			//LOG("       %s", *JSON::stringify(font));
+		}
+		system_font_family_list->push( move(sffd) );
+	}
+	return true; // ok
 }
 
 /**
- * @func initialize_default_fonts
+ * @func initialize_default_fonts()
  */
 void FontPool::Inl::initialize_default_fonts() {
 	
@@ -207,14 +204,14 @@ void FontPool::Inl::initialize_default_fonts() {
 	Array<String> second;   // 第二默认字体
 	Array<String> third;    // 第三默认字体
 	
-	if ( !first_sys_font_family.is_empty() ) {
-		first.push(first_sys_font_family);
+	if ( !system_first_font_family_name.is_empty() ) {
+		first.push(system_first_font_family_name);
 	}
-	if ( !second_sys_font_family.is_empty() ) {
-		second.push(second_sys_font_family);
+	if ( !system_second_font_family_name.is_empty() ) {
+		second.push(system_second_font_family_name);
 	}
 	
-#if XX_IOS || XX_OSX
+ #if XX_IOS || XX_OSX
 	first.push("Helvetica Neue");
 	first.push("Helvetica");
 	first.push("Thonburi");
@@ -222,22 +219,21 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("HeitiFallback");
 	second.push("Heiti TC");
 	second.push(".HeitiFallback");
-#elif XX_ANDROID
+ #elif XX_ANDROID
 	first.push("Roboto");
 	first.push("Droid Sans");
 	first.push("Droid Sans Mono");
 	second.push("Noto Sans CJK");
 	second.push("Noto Sans SC");
 	second.push("Droid Sans Fallback");
-#elif XX_LINUX
-// TODO ...
+ #elif XX_LINUX
 	// first.push("Roboto");
 	// first.push("Droid Sans");
 	// first.push("Droid Sans Mono");
 	// second.push("Noto Sans CJK");
 	// second.push("Noto Sans SC");
 	// second.push("Droid Sans Fallback");
-#endif
+ #endif
 	
 	set_default_fonts(&first, &second, &third, nullptr);
 }
@@ -245,75 +241,75 @@ void FontPool::Inl::initialize_default_fonts() {
 /**
  * @func system_font_family
  */
-const Array<FontPool::SimpleFontFamily>& FontPool::system_font_family() {
+const SimpleFontList& FontPool::system_font_family() {
 	
-	if ( sys_font_family_list ) {
-		return *sys_font_family_list;
+	if ( system_font_family_list ) {
+		return *system_font_family_list;
 	}
-	sys_font_family_list = new Array<SimpleFontFamily>();
+	system_font_family_list = new Array<SimpleFontFamily>();
 	
 	// 先读取缓存文件,如果找不到缓存文件遍历字体文件夹
-	if ( ! read_system_font_family_cache() ) {
-		
-		String sys_id = hash( sys::info() ); // 系统标识
-		
-		FT_Library ft_lib;
-		FT_Init_FreeType( &ft_lib );
-		
-		ScopeClear clear([&ft_lib]() { FT_Done_FreeType( ft_lib ); });
-		
-		JSON font_familys = JSON::array();
-		
-		FileHelper::each_sync(get_system_fonts_dir(), Cb([&](Se& d) {
-			
-			Dirent* ent = static_cast<Dirent*>(d.data);
-			
-			if ( ent->type == FILE_FILE ) {
-				Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(ent->pathname, ft_lib);
-				
-				if ( ! sffd.is_null() ) {
-					JSON item = JSON::object();
-					item["path"] = sffd->path;
-					item["family"] = sffd->family;
-					JSON fonts = JSON::array();
-					
-					for ( int i = 0; i < sffd->fonts.length(); i++ ) {
-						SimpleFont& sfd = sffd->fonts[i];
-						JSON font = JSON::array();
-						font[0] = sfd.name;
-						font[1] = int(sfd.style);
-						font[2] = sfd.num_glyphs;
-						font[3] = sfd.height;
-						font[4] = sfd.max_advance;
-						font[5] = sfd.ascender;
-						font[6] = sfd.descender;
-						font[7] = sfd.underline_position;
-						font[8] = sfd.underline_thickness;
-						fonts[i] = font;
-					}
-					item[ "fonts" ] = fonts;
-					font_familys[ font_familys.length() ] = item;
-					sys_font_family_list->push( move(**sffd) );
-				}
-			}
-			d.return_value = 1;
-		}));
-		
-		read_system_default_font_family_name();
-		
-		JSON json = JSON::object();
-		json["sys_id"] = sys_id;
-		json["library_version"] = NGUI_VERSION;
-		json["first_sys_font_family"] = first_sys_font_family;
-		json["second_sys_font_family"] = second_sys_font_family;
-		json["font_familys"] = font_familys;
-		String json_str = JSON::stringify( json );
-		// LOG(json_str);
-		String data = String::format( "%s\n%s", *hash(json_str), *json_str );
-		FileHelper::write_file_sync(Path::temp(xx_font_family_info_cache), data); // 写入文件
+	if ( read_system_font_family_cache() ) {
+		return *system_font_family_list;
 	}
 	
-	return *sys_font_family_list;
+	String sys_id = hash( sys::info() ); // 系统标识
+	
+	FT_Library ft_lib;
+	FT_Init_FreeType( &ft_lib );
+	
+	ScopeClear clear([&ft_lib]() { FT_Done_FreeType(ft_lib); });
+	
+	JSON font_familys = JSON::array();
+	
+	FileHelper::each_sync(system_fonts_dir, Cb([&](Se& d) {
+		
+		Dirent* ent = static_cast<Dirent*>(d.data);
+		
+		if ( ent->type == FILE_FILE ) {
+			Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(ent->pathname, ft_lib);
+			
+			if ( ! sffd.is_null() ) {
+				JSON item = JSON::object();
+				item["path"] = sffd->path;
+				item["family"] = sffd->family;
+				JSON fonts = JSON::array();
+				
+				for ( int i = 0; i < sffd->fonts.length(); i++ ) {
+					SimpleFont& sfd = sffd->fonts[i];
+					JSON font = JSON::array();
+					font[0] = sfd.name;
+					font[1] = int(sfd.style);
+					font[2] = sfd.num_glyphs;
+					font[3] = sfd.height;
+					font[4] = sfd.max_advance;
+					font[5] = sfd.ascender;
+					font[6] = sfd.descender;
+					font[7] = sfd.underline_position;
+					font[8] = sfd.underline_thickness;
+					fonts[i] = font;
+				}
+				item[ "fonts" ] = fonts;
+				font_familys[ font_familys.length() ] = item;
+				system_font_family_list->push( move(**sffd) );
+			}
+		}
+		d.return_value = 1;
+	}));
+	
+	get_system_font_family_name();
+	
+	JSON json = JSON::object();
+	json["sys_id"] = sys_id;
+	json["library_version"] = NGUI_VERSION;
+	json["system_first_font_family_name"] = system_first_font_family_name;
+	json["system_second_font_family_name"] = system_second_font_family_name;
+	json["font_familys"] = font_familys;
+	String json_str = JSON::stringify( json );
+	String data = String::format( "%s\n%s", *hash(json_str), *json_str );
+	FileHelper::write_file_sync(Path::temp(xx_font_family_info_cache), data); // 写入文件
+	
+	return *system_font_family_list;
 }
 
 XX_END
