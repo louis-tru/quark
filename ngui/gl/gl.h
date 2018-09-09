@@ -220,7 +220,7 @@ public:
 	friend class GLShader;
 	friend class Texture;
 	friend class IOSGLDrawCore;
-	friend class AndroidGLDrawCore;
+	friend class LinuxGLDrawCore;
 };
 
 XX_END

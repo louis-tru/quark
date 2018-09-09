@@ -78,7 +78,7 @@ struct Allocator {
 	static void free(void* ptr);
 };
 
-struct ObjectAllocator {
+struct GlobalAllocator {
 	void* (*alloc)(size_t size);
 	void (*release)(Object* obj);
 	void (*retain)(Object* obj);
@@ -95,7 +95,7 @@ typedef const Ucs2String cUcs2String;
 typedef BasicString<uint32, Container<uint32>> Ucs4String;
 typedef const Ucs4String cUcs4String;
 
-XX_EXPORT void set_global_allocator(ObjectAllocator* allocator = nullptr);
+XX_EXPORT void set_global_allocator(GlobalAllocator* allocator = nullptr);
 XX_EXPORT bool Retain(Object* obj);
 XX_EXPORT void Release(Object* obj);
 

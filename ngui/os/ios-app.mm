@@ -387,7 +387,7 @@ static void render_loop_cb(Se& evt, Object* ctx) {
  * @func pending() 挂起应用进程
  */
 void GUIApplication::pending() {
-	exit(0);
+	// exit(0);
 }
 
 /**
@@ -604,6 +604,11 @@ void DisplayPort::set_orientation(Orientation orientation) {
 }
 
 extern "C" int main(int argc, char* argv[]) {
+	/**************************************************/
+	/**************************************************/
+	/*************** Start GUI Application ************/
+	/**************************************************/
+	/**************************************************/
 	AppInl::start(argc, argv);
 	
 	if ( app() ) {

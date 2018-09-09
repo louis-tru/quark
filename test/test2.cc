@@ -28,23 +28,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <thread>
+#include "ngui/base/sys.h"
+
+#ifndef TEST_FUNC_NAME
+#define TEST_FUNC_NAME test2_x11
+#endif
+
+using namespace ngui;
+
+void TEST_FUNC_NAME();
 
 int main() {
 
-	std::thread t([](){
-
-		printf("%s\n", "-------------------ok");
-
-		exit(0);
-
-		// std::this_thread::sleep_for(std::chrono::milliseconds(4000));
-
-	});
-
-	t.detach();
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+	uint64 st = sys::time();
+	
+	TEST_FUNC_NAME();
+	
+	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
 
 	return 0;
 }
+

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,52 +25,69 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__android_gl_1__
-#define __ngui__android_gl_1__
+#include <stdio.h>
+#include <stdlib.h>
+#include <X11/Xlib.h>
 
-#include "ngui/base/util.h"
+#define WINDOW_SIZE 500
 
-#if XX_ANDROID
+void test2_x11() {
 
-#include "../gl/gl.h"
-#include <android/native_window.h>
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <EGL/eglplatform.h>
+	// 连接到 X Server，创建到 X Server 的套接字连接
+	Display* dpy = XOpenDisplay(NULL);
 
-XX_NS(ngui)
+	XSetWindowAttributes attrs;
+	// 创建 200X200 的白色背景窗口
+	attrs.background_pixel = XWhitePixel(dpy, 0);
 
-class AndroidGLDrawCore {
- public:
-	AndroidGLDrawCore(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
-	~AndroidGLDrawCore();
-	void initialize();
-	bool create_surface(ANativeWindow* window);
-	void destroyed_surface(ANativeWindow* window);
-	void refresh_surface_size(CGRect* rect);
-	void refresh_virtual_keyboard_rect();
-	void refresh_buffer();
-	void begin_render();
-	void commit_render();
-	void initializ_gl_buffers();
-	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-	inline GLDraw* host() { return m_host; }
-	static AndroidGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
- protected:
-	EGLDisplay m_display;
-	EGLConfig m_config;
-	EGLContext m_context;
-	EGLSurface m_surface;
-	ANativeWindow* m_window;
-	Vec2 m_raw_surface_size;
-	CGRect m_virtual_keys_rect;
-	GLDraw* m_host;
-};
+	Window win = XCreateWindow(
+		dpy,
+		XRootWindow(dpy, 0),
+		0,
+		0,
+		WINDOW_SIZE,
+		WINDOW_SIZE,
+		0,
+		DefaultDepth(dpy, 0),
+		InputOutput,
+		DefaultVisual(dpy, 0),
+		CWBackPixel,
+		&attrs
+	);
 
-XX_END
+	// 选择输入事件。
+	XSelectInput(dpy, win, ExposureMask | KeyPressMask);
 
-#endif
-#endif
+	// 创建绘图上下文
+	GC gc = XCreateGC(dpy, win, 0, NULL);
+
+	//Map 窗口
+	XMapWindow(dpy, win);
+
+	// 事件主循环。主要处理 Expose 事件和 KeyPress 事件
+	while(1) {
+		XKeyEvent event;
+		XNextEvent(dpy,(XEvent*)&event);
+
+		switch(event.type) {
+			case Expose: // 处理 Expose 事件
+				// 绘制 100 个点
+				XWindowAttributes attrs;
+				XGetWindowAttributes(dpy, win, &attrs);
+				printf("%s,width: %d, height: %d\n", "draw", attrs.width, attrs.height);
+				for (int i = 0; i < WINDOW_SIZE / 2; i++)
+					XDrawPoint(dpy, win, gc, WINDOW_SIZE / 4 + i, WINDOW_SIZE / 2);
+				break;
+			case KeyPress: // 处理按键事件
+				XFreeGC(dpy, gc);
+				XCloseDisplay(dpy);
+				exit(0);
+				break;
+			default: break;
+		}
+	}
+
+}

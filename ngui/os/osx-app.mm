@@ -45,7 +45,7 @@ typedef DisplayPort::StatusBarStyle StatusBarStyle;
  * @func pending() 挂起应用进程
  */
 void GUIApplication::pending() {
-	exit(0);
+	// exit(0);
 }
 
 /**
@@ -156,6 +156,11 @@ void DisplayPort::set_orientation(Orientation orientation) {
 
 extern "C" {
 	int main(int argc, char* argv[]) {
+		/**************************************************/
+		/**************************************************/
+		/*************** Start GUI Application ************/
+		/**************************************************/
+		/**************************************************/
 		AppInl::start(argc, argv);
 		// TODO..
 		LOG("%s", "OK");

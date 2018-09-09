@@ -43,7 +43,7 @@ XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
  public:
 	
 	struct KeyboardOptions {
-		bool         is_clear;
+		bool	is_clear;
 		KeyboardType type;
 		KeyboardReturnType return_type;
 	};

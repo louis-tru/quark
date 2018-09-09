@@ -80,7 +80,7 @@ class GUILock {
 /*
  * 关于GUI中的事件:
  * GUI中所有事件都在`main loop`触发，并且不锁定`GUILock`，
- * 所以事件监听器添加也必须在`main loop`。
+ * 所以添加事件监听器也必须在`main loop`。
  */
 
 /**

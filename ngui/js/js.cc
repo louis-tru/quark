@@ -507,7 +507,7 @@ WrapObject* WrapObject::pack2(Object* object, uint64 type_id) {
 	return wrap;
 }
 
-struct ObjectAllocatorImplementation {
+struct GlobalAllocatorImplementation {
 
 	static void* alloc(size_t size) {
 		WrapObject* o = (WrapObject*)::malloc(size + sizeof(WrapObject));
@@ -598,10 +598,10 @@ int start(cString& argv_str) {
 			NguiApiImplementation::print,
 			NguiApiImplementation::is_process_exit,
 		});
-		ObjectAllocator allocator = {
-			ObjectAllocatorImplementation::alloc,
-			ObjectAllocatorImplementation::release,
-			ObjectAllocatorImplementation::retain,
+		GlobalAllocator allocator = {
+			GlobalAllocatorImplementation::alloc,
+			GlobalAllocatorImplementation::release,
+			GlobalAllocatorImplementation::retain,
 		};
 		set_global_allocator(&allocator);
 		ngui::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);

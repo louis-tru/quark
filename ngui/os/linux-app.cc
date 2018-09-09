@@ -29,14 +29,38 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/base/loop.h"
-#include "../app.h"
-#include "../display-port.h"
 #include "../app-1.h"
 #include "../event.h"
+#include "../display-port.h"
+#include "linux-gl-1.h"
 
 XX_NS(ngui)
 
+class LinuxApplication;
+static LinuxApplication* application = nullptr;
+static LinuxGLDrawCore* gl_draw_core = nullptr;
 typedef DisplayPort::Orientation Orientation;
+
+/**
+ * @class LinuxApplication
+ */
+class LinuxApplication {
+ public:
+	typedef NonObjectTraits Traits;
+
+	LinuxApplication()
+	{
+		XX_ASSERT(!application);
+		application = this;
+	}
+
+	static void create() {
+		new LinuxApplication();
+	}
+
+ private:
+
+};
 
 /**
  * @func pending() 挂起应用进程
@@ -49,7 +73,7 @@ void GUIApplication::pending() {
  * @func open_url()
  */
 void GUIApplication::open_url(cString& url) {
-
+	// TODO ...
 }
 
 /**
@@ -58,6 +82,7 @@ void GUIApplication::open_url(cString& url) {
 void GUIApplication::send_email(cString& recipient,
 																cString& subject,
 																cString& cc, cString& bcc, cString& body) {
+	// TODO ...
 }
 
 /**
@@ -65,24 +90,30 @@ void GUIApplication::send_email(cString& recipient,
  */
 void AppInl::initialize(const Map<String, int>& options) {
 	XX_DEBUG("AppInl::initialize");
+	XX_ASSERT(!gl_draw_core);
+	gl_draw_core = LinuxGLDrawCore::create(this, options);
+	m_draw_ctx = gl_draw_core->host();
 }
 
 /**
  * @func ime_keyboard_open
  */
 void AppInl::ime_keyboard_open(KeyboardOptions options) {
+	// TODO...
 }
 
 /**
  * @func ime_keyboard_can_backspace
  */
 void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
+	// TODO...
 }
 
 /**
  * @func ime_keyboard_close
  */
 void AppInl::ime_keyboard_close() {
+	// TODO...
 }
 
 /**
@@ -110,32 +141,35 @@ float DisplayPort::default_atom_pixel() {
  * @func keep_screen(keep)
  */
 void DisplayPort::keep_screen(bool keep) {
-
+	// TODO ..
 }
 
 /**
  * @func status_bar_height()
  */
 float DisplayPort::status_bar_height() {
-	return 1;
+	return 0;
 }
 
 /**
  * @func set_visible_status_bar(visible)
  */
 void DisplayPort::set_visible_status_bar(bool visible) {
+	// TODO ..
 }
 
 /**
  * @func set_status_bar_text_color(color)
  */
 void DisplayPort::set_status_bar_style(StatusBarStyle style) {
+	// TODO ..
 }
 
 /**
  * @func request_fullscreen(fullscreen)
  */
 void DisplayPort::request_fullscreen(bool fullscreen) {
+	// TODO ..
 }
 
 /**
@@ -149,6 +183,7 @@ Orientation DisplayPort::orientation() {
  * @func set_orientation(orientation)
  */
 void DisplayPort::set_orientation(Orientation orientation) {
+	// TODO ..
 }
 
 XX_END
@@ -156,9 +191,16 @@ XX_END
 extern "C" {
 
 	int main(int argc, char* argv[]) {
+		/**************************************************/
+		/**************************************************/
+		/************** Start GUI Application *************/
+		/**************************************************/
+		/**************************************************/
 		ngui::AppInl::start(argc, argv);
-		// TODO..
-		LOG("OK");
+
+		if ( ngui::app() ) {
+			ngui::LinuxApplication::create();
+		}
 		return 0;
 	}
 	
