@@ -28,104 +28,56 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __trurh__gui_app_1__
-#define __trurh__gui_app_1__
-
-#include "app.h"
-
-/**
- * @ns trurh::gui
- */
+#include "app-1.h"
+#include "base/loop.h"
 
 XX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
- public:
+RenderLooper::RenderLooper(AppInl* host)
+: m_host(host), m_id(nullptr) {
 	
-	struct KeyboardOptions {
-		bool	is_clear;
-		KeyboardType type;
-		KeyboardReturnType return_type;
-	};
-	
-	void initialize(const Map<String, int>& option);
-	void refresh_display();
-	void onLoad();
-	void onRender();
-	void onPause();
-	void onResume();
-	void onBackground();
-	void onForeground();
-	void onMemorywarning();
-	void onUnload();
-	
-	/**
-	 * @func set_volume_up()
-	 */
-	void set_volume_up();
+}
 
-	/**
-	 * @func set_volume_down()
-	 */
-	void set_volume_down();
-	
-	/**
-	 * @func set_root
-	 */
-	void set_root(Root* value) throw(Error);
-	
-	/**
-	 * @func start
-	 */
-	inline static void start(int argc, char* argv[]) {
-		GUIApplication::start(argc, argv);
+RenderLooper::~RenderLooper() {
+	stop();
+}
+
+struct LooperData: Object {
+	int id;
+	AppInl* host;
+	Callback cb;
+};
+
+void looper(Se& ev, LooperData* data) {
+	if ( data->id ) {
+		// 60fsp
+		data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000); 
+		data->host->onRender();
+	} else {
+		Release(data);
 	}
-	
-	/**
-	 * @func set_focus_view
-	 */
-	bool set_focus_view(View* view);
-	
-	/**
-	 * @func dispatch
-	 * */
-	inline GUIEventDispatch* dispatch() { return m_dispatch; }
-	
-	/**
-	 * @func ime_keyboard_open
-	 */
-	void ime_keyboard_open(KeyboardOptions options);
-	
-	/**
-	 * @func ime_keyboard_can_backspace
-	 */
-	void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-	
-	/**
-	 * @func ime_keyboard_close
-	 */
-	void ime_keyboard_close();
-	
-};
+}
 
-#define _inl_app(self) static_cast<AppInl*>(self)
+void RenderLooper::start() {
+	m_host->render_loop()->post_sync(Cb([this](Se &ev) {
+		if (!m_id) {
+			LooperData* data = new LooperData();
+			data->id = iid32();
+			data->host = m_host;
+			data->cb = Cb(&looper, data);
+			m_id = &data->id;
+			looper(ev, data);
+		}
+	}));
+}
 
-typedef GUIApplication::Inl AppInl;
-
-/**
- * @class RenderLooper
- */
-class RenderLooper {
- public:
-	RenderLooper(AppInl* host);
-	~RenderLooper();
-	void start();
-	void stop();
- private:
-	AppInl* m_host;
-	int* m_id;
-};
+void RenderLooper::stop() {
+	m_host->render_loop()->post_sync(Cb([this](Se& ev) {
+		if (m_id) {
+			*m_id = 0;
+			m_id = nullptr;
+		}
+	}));
+}
 
 XX_END
-
-#endif

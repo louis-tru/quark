@@ -318,7 +318,7 @@ XX_INIT_BLOCK(thread_init_once) {
 
 class RunLoop::Inl: public RunLoop {
  public:
-#define _inl(self) static_cast<RunLoop::Inl*>(self)
+ #define _inl(self) static_cast<RunLoop::Inl*>(self)
 	
 	void run(int64 timeout) {
 		if (process_exit) return;
@@ -458,7 +458,7 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	/**
-	 * @func post
+	 * @func post()
 	 */
 	uint post(cCb& exec, uint group, uint64 delay_us) {
 		ScopeLock lock(m_mutex);
@@ -471,6 +471,32 @@ class RunLoop::Inl: public RunLoop {
 		}
 		activate_loop(); // 通知继续
 		return id;
+	}
+
+	void post_sync(cCb& exec, uint group, uint64 delay_us) {
+		if (SimpleThread::current_id() == m_thread->id()) { // 相同的线程立即执行
+			SimpleEvent data = { 0, this, 0 };
+			exec->call(data);
+		} else {
+			struct Ctx { 
+				bool end; Condition cond; 
+			} ctx = {false};
+			Lock lock(m_mutex);
+			Ctx* ctxp = &ctx;
+			m_queue.push({ 
+				0, group, 0, 
+				Callback([exec, ctxp, this](Se& e) {
+					exec->call(e);
+					ScopeLock scope(m_mutex);
+					ctxp->end = true;
+					ctxp->cond.notify_all();
+				})
+			});
+			activate_loop(); // 通知继续
+			do {
+				ctx.cond.wait(lock);
+			} while(!ctx.end);
+		}
 	}
 	
 	inline void abort_group(uint group) {
@@ -626,6 +652,13 @@ bool RunLoop::is_alive() const {
  */
 uint RunLoop::post(cCb& cb, uint64 delay_us) {
 	return _inl(this)->post(cb, 0, delay_us);
+}
+
+/**
+ * @func post_sync(cb)
+ */
+void RunLoop::post_sync(cCb& cb) {
+	_inl(this)->post_sync(cb, 0, 0);
 }
 
 /**

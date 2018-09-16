@@ -156,6 +156,8 @@ public:
 		
 		if (err) {
 			XX_ERR("Unable to load font, Freetype2 error code: %d", err);
+		} else if (!face->family_name) {
+			XX_ERR("Unable to load font, not family name");
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -292,6 +294,8 @@ public:
 		
 		if (err) {
 			XX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
+		} else if (!face->family_name) {
+			XX_WARN("Unable to load font file \"%s\", not family name", *path);
 		} else {
 			
 			FT_Long num_faces = face->num_faces;

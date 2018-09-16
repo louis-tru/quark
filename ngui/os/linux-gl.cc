@@ -49,10 +49,13 @@ XX_NS(ngui)
 static EGLDisplay egl_display() {
 	static EGLDisplay display = EGL_NO_DISPLAY;
 	if ( display == EGL_NO_DISPLAY ) { // get display and init it
+		// display = XOpenDisplay(nullptr);
+		// XX_DEBUG("XOpenDisplay, %p", display);
 		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		XX_DEBUG("eglGetDisplay, %p", display);
 		XX_ASSERT(display != EGL_NO_DISPLAY);
 		EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-		XX_ASSERT(displayState);
+		XX_CHECK(displayState, "Cannot initialize EGL");
 	}
 	return display;
 }

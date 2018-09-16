@@ -177,6 +177,7 @@
 			'textarea.cc',
 			'background.h',
 			'background.cc',
+			'render-looper.cc',
 		],
 		'conditions': [
 			['os=="android"', {

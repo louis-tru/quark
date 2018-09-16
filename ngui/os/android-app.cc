@@ -48,7 +48,6 @@ typedef DisplayPort::Orientation Orientation;
  * @class AndroidApplication
  */
 class AndroidApplication {
- public:
 	typedef NonObjectTraits Traits;
 
 	AndroidApplication()
@@ -57,51 +56,26 @@ class AndroidApplication {
 	, m_host(nullptr)
 	, m_queue(nullptr)
 	, m_looper(nullptr)
+	, m_render_looper(nullptr)
 	, m_dispatch( nullptr )
-	, m_render_loop_id(0)
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
 	, m_is_init_ok(false)
 	{
-		XX_ASSERT(!application);
-		application = this;
+		XX_ASSERT(!application); application = this;
 		m_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 	}
 
-	// ----------- Render ----------
+ public:
+	// ----------------------------------------------------------------------
 
-	static void render_task(Se& ev, Uint* id) {
-		auto self = application;
-		if ( id->value == self->m_render_loop_id ) {
-			self->m_host->render_loop()->
-				post(self->m_render_task_cb, 1000.0 / 60.0 * 1000); // 60fsp
-			self->m_host->onRender();
-		} else {
-			Release(id);
-		}
-	}
-
-	void start_render_task() {
+	inline void start_render_task() {
 		if ( Android::is_screen_on() ) {
-			m_host->render_loop()->post(Cb([this](Se &ev) {
-				ScopeLock scope(m_mutex);
-				if (m_window && !m_render_loop_id) {
-					Uint *id = new Uint(iid32());
-					m_render_loop_id = id->value;
-					m_render_task_cb = Cb(&render_task, id);
-					render_task(ev, id);
-				}
-			}));
+			m_render_looper->start();
 		}
 	}
 
-	void stop_render_task(bool immediately = false /*如果要立即停止,必须在在渲染循环调用*/) {
-		if (immediately) {
-			m_render_loop_id = 0;
-		} else {
-			m_host->render_loop()->post(Cb([this](Se& ev) {
-				m_render_loop_id = 0;
-			}));
-		}
+	inline void stop_render_task() {
+		m_render_looper->stop();
 	}
 
 	inline Orientation orientation() const { 
@@ -112,7 +86,7 @@ class AndroidApplication {
 		return m_host; 
 	}
 
-	// ---------- static ----------
+	// -------------------------------static---------------------------------
 
 	static void onCreate(ANativeActivity* activity, void* saved_state, size_t saved_state_size) {
 		if ( !application ) {
@@ -141,10 +115,6 @@ class AndroidApplication {
 		application->m_activity = activity;
 	}
 
-	void pending() {
-		ANativeActivity_finish(m_activity);
-	}
-
 	static void onDestroy(ANativeActivity* activity) {
 		XX_ASSERT(application->m_activity);
 
@@ -170,6 +140,8 @@ class AndroidApplication {
 		// application->m_app->onUnload();
 		// delete application; application = nullptr;
 	}
+
+	// ----------------------------------------------------------------------
 
 	static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
 		ScopeLock scope(application->m_mutex);
@@ -201,7 +173,7 @@ class AndroidApplication {
 		application->m_window = nullptr;
 		application->m_host->render_loop()->post(Cb([window](Se& ev) {
 			gl_draw_core->destroy_surface(window);
-			application->stop_render_task(true);
+			application->stop_render_task();
 		}));
 	}
 
@@ -217,6 +189,7 @@ class AndroidApplication {
 
 			application->m_host = Inl_GUIApplication(app());
 			application->m_dispatch = application->m_host->dispatch();
+			application->m_render_looper = new RenderLooper(application->m_host);
 
 			XX_ASSERT(application->m_activity);
 			XX_ASSERT(application->m_host);
@@ -224,41 +197,6 @@ class AndroidApplication {
 		}
 		application->m_host->onForeground();
 		application->stop_render_task();
-	}
-	
-	static void onResume(ANativeActivity* activity) {
-		application->m_host->onResume();
-	}
-	
-	static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
-		return nullptr;
-	}
-	
-	static void onPause(ANativeActivity* activity) {
-		application->m_host->onPause();
-	}
-	
-	static void onStop(ANativeActivity* activity) {
-		application->m_host->onBackground();
-		application->stop_render_task();
-	}
-	
-	static void onConfigurationChanged(ANativeActivity* activity) {
-		XX_DEBUG("onConfigurationChanged");
-	}
-	
-	static void onLowMemory(ANativeActivity* activity) {
-		XX_DEBUG("onLowMemory");
-		application->m_host->onMemorywarning();
-	}
-	
-	static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
-		XX_DEBUG("onWindowFocusChanged");
-		application->start_render_task();
-	}
-	
-	static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-		XX_DEBUG("onNativeWindowResized");
 	}
 
 	static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
@@ -293,53 +231,85 @@ class AndroidApplication {
 		}));
 	}
 
+	// ----------------------------------------------------------------------
+	
+	static void onStop(ANativeActivity* activity) {
+		application->m_host->onBackground();
+		application->stop_render_task();
+	}
+
+	static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
+		XX_DEBUG("onWindowFocusChanged");
+		application->start_render_task();
+	}
+
 	static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
 		XX_DEBUG("onNativeWindowRedrawNeeded");
 		application->start_render_task();
 	}
 
-	// --------------------------- Dispatch event ---------------------------
-
-	static bool get_gui_touch(AInputEvent* motion_event, int pointer_index, GUITouch* out) {
-		Vec2 scale = application->m_host->display_port()->scale();
-		float left = application->m_rect.origin.x();
-
-		int id = AMotionEvent_getPointerId(motion_event, pointer_index);
-		float x = AMotionEvent_getX(motion_event, pointer_index) - left;
-		float y = AMotionEvent_getY(motion_event, pointer_index);
-		float pressure = AMotionEvent_getPressure(motion_event, pointer_index);
-
-		*out = {
-						uint(id + 20170820),
-						0, 0,
-						x / scale.x(),
-						y / scale.y(),
-						pressure,
-						false,
-						nullptr,
-		};
-
-		float h_x = AMotionEvent_getHistoricalX(motion_event, pointer_index, 0);
-		float h_y = AMotionEvent_getHistoricalY(motion_event, pointer_index, 0);
-		return x != h_x || y != h_y;
+	// ----------------------------------------------------------------------
+	
+	static void onLowMemory(ANativeActivity* activity) {
+		XX_DEBUG("onLowMemory");
+		application->m_host->onMemorywarning();
 	}
 
-	static List<GUITouch> to_gui_touchs(AInputEvent* motion_event, bool filter) {
-		List<GUITouch> rv;
-		GUITouch touch;
-		int count = AMotionEvent_getPointerCount(motion_event);
+	static void onResume(ANativeActivity* activity) {
+		application->m_host->onResume();
+	}
 
-		for (int i = 0; i < count; i++) {
-			if ( filter ) {
-				if ( get_gui_touch(motion_event, i, &touch) ) {
-					rv.push(touch);
-				}
+	static void onPause(ANativeActivity* activity) {
+		application->m_host->onPause();
+	}
+
+	// ----------------------------------------------------------------------
+	
+	static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
+		return nullptr;
+	}
+	
+	static void onConfigurationChanged(ANativeActivity* activity) {
+		XX_DEBUG("onConfigurationChanged");
+	}
+	
+	static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
+		XX_DEBUG("onNativeWindowResized");
+	}
+
+	// --------------------------- Dispatch event ---------------------------
+
+	static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
+		if ( queue != application->m_queue ) {
+			if ( application->m_queue ) {
+				AInputQueue_detachLooper(application->m_queue);
+			}
+			AInputQueue_attachLooper(queue, application->m_looper,
+															 ALOOPER_POLL_CALLBACK,
+															 (ALooper_callbackFunc) &onInputEvent_callback, queue);
+			application->m_queue = queue;
+		}
+	}
+	
+	static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
+		AInputQueue_detachLooper(queue);
+		application->m_queue = nullptr;
+	}
+
+	// ----------------------------------------------------------------------
+
+	static int onInputEvent_callback(int fd, int events, AInputQueue* queue) {
+		AInputEvent* event = nullptr;
+
+		while( AInputQueue_getEvent(queue, &event) >= 0 ) {
+			if (AInputQueue_preDispatchEvent(queue, event) == 0) {
+				dispatch_event(event);
+				AInputQueue_finishEvent(queue, event, fd);
 			} else {
-				get_gui_touch(motion_event, i, &touch);
-				rv.push(touch);
+				XX_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
 			}
 		}
-		return rv;
+		return 1;
 	}
 
 	static void dispatch_event(AInputEvent* event) {
@@ -414,35 +384,52 @@ class AndroidApplication {
 		}
 	}
 
-	static int onInputEvent_callback(int fd, int events, AInputQueue* queue) {
-		AInputEvent* event = nullptr;
+	static bool get_gui_touch(AInputEvent* motion_event, int pointer_index, GUITouch* out) {
+		Vec2 scale = application->m_host->display_port()->scale();
+		float left = application->m_rect.origin.x();
 
-		while( AInputQueue_getEvent(queue, &event) >= 0 ) {
-			if (AInputQueue_preDispatchEvent(queue, event) == 0) {
-				dispatch_event(event);
-				AInputQueue_finishEvent(queue, event, fd);
+		int id = AMotionEvent_getPointerId(motion_event, pointer_index);
+		float x = AMotionEvent_getX(motion_event, pointer_index) - left;
+		float y = AMotionEvent_getY(motion_event, pointer_index);
+		float pressure = AMotionEvent_getPressure(motion_event, pointer_index);
+
+		*out = {
+						uint(id + 20170820),
+						0, 0,
+						x / scale.x(),
+						y / scale.y(),
+						pressure,
+						false,
+						nullptr,
+		};
+
+		float h_x = AMotionEvent_getHistoricalX(motion_event, pointer_index, 0);
+		float h_y = AMotionEvent_getHistoricalY(motion_event, pointer_index, 0);
+		return x != h_x || y != h_y;
+	}
+
+	static List<GUITouch> to_gui_touchs(AInputEvent* motion_event, bool filter) {
+		List<GUITouch> rv;
+		GUITouch touch;
+		int count = AMotionEvent_getPointerCount(motion_event);
+
+		for (int i = 0; i < count; i++) {
+			if ( filter ) {
+				if ( get_gui_touch(motion_event, i, &touch) ) {
+					rv.push(touch);
+				}
 			} else {
-				XX_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
+				get_gui_touch(motion_event, i, &touch);
+				rv.push(touch);
 			}
 		}
-		return 1;
+		return rv;
 	}
 
-	static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
-		if ( queue != application->m_queue ) {
-			if ( application->m_queue ) {
-				AInputQueue_detachLooper(application->m_queue);
-			}
-			AInputQueue_attachLooper(queue, application->m_looper,
-															 ALOOPER_POLL_CALLBACK,
-															 (ALooper_callbackFunc) &onInputEvent_callback, queue);
-			application->m_queue = queue;
-		}
-	}
-	
-	static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-		AInputQueue_detachLooper(queue);
-		application->m_queue = nullptr;
+	// ----------------------------------------------------------------------
+
+	void pending() {
+		ANativeActivity_finish(m_activity);
 	}
 
  private:
@@ -451,9 +438,8 @@ class AndroidApplication {
 	AppInl* m_host;
 	AInputQueue* m_queue;
 	ALooper* m_looper;
+	RenderLooper* m_render_looper;
 	GUIEventDispatch* m_dispatch;
-	Callback m_render_task_cb;
-	uint m_render_loop_id;
 	Orientation m_current_orientation;
 	CGRect m_rect;
 	Mutex m_mutex;

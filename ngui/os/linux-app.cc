@@ -33,6 +33,8 @@
 #include "../event.h"
 #include "../display-port.h"
 #include "linux-gl-1.h"
+#include "ngui/base/loop.h"
+#include <X11/Xlib.h>
 
 XX_NS(ngui)
 
@@ -45,21 +47,78 @@ typedef DisplayPort::Orientation Orientation;
  * @class LinuxApplication
  */
 class LinuxApplication {
- public:
 	typedef NonObjectTraits Traits;
 
 	LinuxApplication()
+	: m_window(0), m_host(nullptr)
+	, m_render_looper(nullptr), m_dispatch(nullptr)
+	, m_current_orientation(Orientation::ORIENTATION_INVALID)
 	{
-		XX_ASSERT(!application);
-		application = this;
+		XX_ASSERT(!application); application = this;
+		m_host = Inl_GUIApplication(app());
+		m_dispatch = m_host->dispatch();
+		m_render_looper = new RenderLooper(m_host);
 	}
 
-	static void create() {
-		new LinuxApplication();
+ public:
+
+	static void start(int argc, char* argv[]) {
+		ngui::AppInl::start(argc, argv);
+		if ( !ngui::app() ) return;
+		new LinuxApplication(); // create linux application object
+
+		// TODO ...
+
+		Display* dpy = XOpenDisplay(nullptr); // 连接到 X Server，创建到 X Server 的套接字连接
+
+		XSetWindowAttributes attrs;
+		// attrs.background_pixel = XWhitePixel(dpy, 0);
+
+		Window win = XCreateWindow(
+			dpy,
+			XRootWindow(dpy, 0),
+			0,
+			0,
+			500,
+			500,
+			0,
+			DefaultDepth(dpy, 0),
+			InputOutput,
+			DefaultVisual(dpy, 0),
+			CWBackPixel,
+			&attrs
+		);
+		
+		XSelectInput(dpy, win, ExposureMask | KeyPressMask); // 选择输入事件。
+		XMapWindow(dpy, win); //Map 窗口
+
+		// 事件主循环。主要处理 Expose 事件和 KeyPress 事件
+		while(1) {
+			XKeyEvent event;
+			XNextEvent(dpy,(XEvent*)&event);
+
+			switch(event.type) {
+				case Expose:
+					XWindowAttributes attrs;
+					XGetWindowAttributes(dpy, win, &attrs);
+					LOG("%s,width: %d, height: %d\n", "draw", attrs.width, attrs.height);
+					break;
+				case KeyPress:
+					XCloseDisplay(dpy);
+					exit(0);
+					break;
+				default: break;
+			}
+		}
+
 	}
 
  private:
-
+	Window m_window;
+	AppInl* m_host;
+	RenderLooper* m_render_looper;
+	GUIEventDispatch* m_dispatch;
+	Orientation m_current_orientation;
 };
 
 /**
@@ -196,11 +255,7 @@ extern "C" {
 		/************** Start GUI Application *************/
 		/**************************************************/
 		/**************************************************/
-		ngui::AppInl::start(argc, argv);
-
-		if ( ngui::app() ) {
-			ngui::LinuxApplication::create();
-		}
+		ngui::LinuxApplication::start(argc, argv);
 		return 0;
 	}
 	

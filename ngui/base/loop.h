@@ -133,6 +133,11 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	 * @func post(cb[,delay_us]) post message and setting delay
 	 */
 	uint post(cCb& cb, uint64 delay_us = 0);
+
+	/**
+	 * @func post_sync(cb)
+	 */
+	void post_sync(cCb& cb);
 	
 	/**
 	 * @overwrite
