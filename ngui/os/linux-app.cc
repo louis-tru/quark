@@ -67,20 +67,21 @@ class LinuxApplication {
 		if ( !ngui::app() ) return;
 		new LinuxApplication(); // create linux application object
 
-		// TODO ...
-
-		Display* dpy = XOpenDisplay(nullptr); // 连接到 X Server，创建到 X Server 的套接字连接
+		Display* dpy = XOpenDisplay(nullptr);
+		Window root = XRootWindow(dpy, 0);
 
 		XSetWindowAttributes attrs;
-		// attrs.background_pixel = XWhitePixel(dpy, 0);
-
+		attrs.background_pixel = XBlackPixel(dpy, 0);
+		XWindowAttributes attrs2;
+		Status r = XGetWindowAttributes(dpy, root, &attrs2);
+		
 		Window win = XCreateWindow(
 			dpy,
-			XRootWindow(dpy, 0),
+			root,
 			0,
 			0,
-			500,
-			500,
+			attrs2.width,
+			attrs2.height,
 			0,
 			DefaultDepth(dpy, 0),
 			InputOutput,
@@ -98,11 +99,12 @@ class LinuxApplication {
 			XNextEvent(dpy,(XEvent*)&event);
 
 			switch(event.type) {
-				case Expose:
+				case Expose: {
 					XWindowAttributes attrs;
-					XGetWindowAttributes(dpy, win, &attrs);
+					Status r = XGetWindowAttributes(dpy, win, &attrs);
 					LOG("%s,width: %d, height: %d\n", "draw", attrs.width, attrs.height);
 					break;
+				}
 				case KeyPress:
 					XCloseDisplay(dpy);
 					exit(0);
