@@ -17,11 +17,13 @@ TOOLS					= ./node_modules/ngui-tools
 GYP						= $(TOOLS)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)
 TOOLS_OUT			= out/ngui-tools
-MAKE_STYLE		=	make
+BUILD_STYLE 	=	make
 
-PTOJECTS = make xcode msvs make-linux cmake-linux cmake
-GYPFILES = Makefile ngui.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
-GYP_ARGS = -Goutput_dir="out" \
+#######################
+
+STYLES		= make xcode msvs make-linux cmake-linux cmake
+GYPFILES	= Makefile ngui.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
+GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
 ifeq ($(V), 1)
@@ -29,15 +31,15 @@ V_ARG = "V=1"
 endif
 
 ifeq ($(OS), android)
-MAKE_STYLE = make-linux
+BUILD_STYLE = make-linux
 endif
 
 make_compile=\
-	$(ENV) $(1) -C "out/$(MAKE_STYLE)" -f Makefile.$(OS).$(SUFFIX) \
+	$(ENV) $(1) -C "out/$(BUILD_STYLE)" -f Makefile.$(OS).$(SUFFIX) \
 CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 builddir="$(shell pwd)/$(LIBS_DIR)"
 
-.PHONY: $(PTOJECTS) jsa-shell install install-dev install-tools \
+.PHONY: $(STYLES) jsa-shell install install-dev install-tools \
 	help all clear clear-all build server ios android linux osx doc
 
 .SECONDEXPANSION:
@@ -47,17 +49,17 @@ builddir="$(shell pwd)/$(LIBS_DIR)"
 all: build
 
 # GYP file generation targets.
-$(PTOJECTS): $(GYPFILES)
+$(STYLES): $(GYPFILES)
 	@echo "{'variables':{'project':'$@'}}" > out/var.gypi;
 	@GYP_GENERATORS=$@ \
 	$(GYP) -f $@ ngui.gyp --generator-output="out/$@" $(GYP_ARGS)
 
-build: $(MAKE_STYLE) # out/$(MAKE_STYLE)/Makefile.$(OS).$(SUFFIX)
+build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile, $(MAKE))
 
 jsa-shell: $(GYPFILES)
-	@echo "{'variables':{'project':'$(MAKE_STYLE)'}}" > out/var.gypi;
-	$(GYP) -f $(MAKE_STYLE) tools.gyp --generator-output="out/$(MAKE_STYLE)" $(GYP_ARGS)
+	@echo "{'variables':{'project':'$(BUILD_STYLE)'}}" > out/var.gypi;
+	$(GYP) -f $(BUILD_STYLE) tools.gyp --generator-output="out/$(BUILD_STYLE)" $(GYP_ARGS)
 	@$(make_compile, $(MAKE))
 	@mkdir -p $(TOOLS)/bin/$(OS)
 	@cp $(LIBS_DIR)/jsa-shell $(TOOLS)/bin/$(OS)/jsa-shell
@@ -67,14 +69,14 @@ jsa-shell: $(GYPFILES)
 # build all ios platform and output to product dir
 ios:
 	#@./configure --os=ios --arch=arm --library=shared
-	#@$(MAKE) build   # armv7 say goodbye 
+	#@$(MAKE)   # armv7 say goodbye 
 	@./configure --os=ios --arch=x64 --library=shared
-	@$(MAKE) build
+	@$(MAKE)
 	@./configure --os=ios --arch=arm64 --library=shared
-	@$(MAKE) build
+	@$(MAKE)
 	@./configure --os=ios --arch=arm64 --library=shared \
 		-v8 --suffix=arm64.v8 --without-embed-bitcode
-	@$(MAKE) build
+	@$(MAKE)
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
 					 ./out/ios.x64.Release/libngui.dylib 
@@ -91,11 +93,11 @@ ios:
 # build all android platform and output to product dir
 android:
 	@./configure --os=android --arch=x86 --library=shared
-	@$(MAKE) build
+	@$(MAKE)
 	@./configure --os=android --arch=arm64 --library=shared
-	@$(MAKE) build
+	@$(MAKE)
 	@./configure --os=android --arch=arm --library=shared
-	@$(MAKE) build
+	@$(MAKE)
 	@$(MAKE) out/android.classs.ngui.jar
 
 linux:

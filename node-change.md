@@ -30,6 +30,13 @@
 - './deps/openssl/openssl.gyp:openssl-cli',
 ```
 
+# node/node.gyp
+
+```py
+- 'src/tracing/trace_event.h'
++ 'src/tracing/trace_event.h',
+```
+
 # node/src/inspector_io.cc
 
 ```cc
@@ -142,3 +149,11 @@ class FastBuffer extends Uint8Array {
 
 + !deps/v8/src/base/debug
 
+# deps/v8/src/inspector/inspector.gypi
+
+```py
+- '../../include/v8-inspector.h',
+- '../../include/v8-inspector-protocol.h',
++ #'../../include/v8-inspector.h',
++ #'../../include/v8-inspector-protocol.h',
+```
