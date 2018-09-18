@@ -92,10 +92,10 @@ class LinuxApplication {
 		
 		XSelectInput(dpy, win, ExposureMask | KeyPressMask); // 选择输入事件。
 		XMapWindow(dpy, win); //Map 窗口
-
-		// 事件主循环。主要处理 Expose 事件和 KeyPress 事件
+		
+		XKeyEvent event;
+		
 		while(1) {
-			XKeyEvent event;
 			XNextEvent(dpy,(XEvent*)&event);
 
 			switch(event.type) {
