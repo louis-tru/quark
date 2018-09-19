@@ -33,10 +33,6 @@
 #include "../display-port.h"
 #include "linux-gl-1.h"
 #include "glsl-box-color.h"
-#if XX_ANDROID
-#include "android/android.h"
-#include <android/native_window.h>
-#endif
 
 #ifndef xx_use_depth_test
 #define xx_use_depth_test 0
@@ -49,8 +45,6 @@ XX_NS(ngui)
 static EGLDisplay egl_display() {
 	static EGLDisplay display = EGL_NO_DISPLAY;
 	if ( display == EGL_NO_DISPLAY ) { // get display and init it
-		// display = XOpenDisplay(nullptr);
-		// XX_DEBUG("XOpenDisplay, %p", display);
 		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		XX_DEBUG("eglGetDisplay, %p", display);
 		XX_ASSERT(display != EGL_NO_DISPLAY);
@@ -65,8 +59,7 @@ static EGLConfig egl_config(
 		const Map<String, int> &options, 
 		bool& multisample_ok
 ) {
-	static EGLConfig config = nullptr;
-
+	EGLConfig config = nullptr;
 	multisample_ok = false;
 	EGLint multisample = 0;
 
@@ -298,18 +291,7 @@ void LinuxGLDrawCore::initialize() {
 	m_host->set_best_display_scale(1);
  #endif
 	m_host->initialize();
-	refresh_surface_size(nullptr);
-}
-
-static Vec2 get_window_size(EGLNativeWindowType window) {
- #if XX_ANDROID // android
-	return Vec2(ANativeWindow_getWidth(window), ANativeWindow_getHeight(window));
- #else  // linux X11 xwindow
-	XWindowAttributes attrs;
-	Status r = XGetWindowAttributes(EGL_DEFAULT_DISPLAY, window, &attrs);
-	XX_ASSERT(r);
-	return Vec2(attrs.width, attrs.height);
- #endif
+	refresh_surface_size();
 }
 
 bool LinuxGLDrawCore::create_surface(EGLNativeWindowType window) {
@@ -355,7 +337,7 @@ void LinuxGLDrawCore::refresh_surface_size(CGRect* rect) {
 	if ( rect == nullptr ) {
 		CGRect region = m_host->selected_region(); // 使用上次的区域，如果这是有效的
 
-		if (region.size.width() == 0) { // 区域无效
+		if (region.size[0] == 0 || region.size[1] == 0) { // 区域无效
 			m_host->set_surface_size(m_raw_surface_size);
 		} else {
 			m_host->set_surface_size(m_raw_surface_size, &region);

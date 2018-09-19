@@ -43,7 +43,8 @@ void test_ngui() {
 # if USE_INSPECT
 	js::start("--inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/test/test-ngui");
 # else
-	js::start("http://" IP_REMOTE ":1026/test/test-ngui --dev");
+	//js::start("http://" IP_REMOTE ":1026/test/test-ngui --dev");
+	js::start("http://" IP_REMOTE ":1026/demo/examples --dev");
 # endif
 #else
 # if USE_INSPECT

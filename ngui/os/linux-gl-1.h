@@ -49,7 +49,7 @@ class LinuxGLDrawCore {
 	void initialize();
 	bool create_surface(EGLNativeWindowType window);
 	void destroy_surface(EGLNativeWindowType window);
-	void refresh_surface_size(CGRect* rect);
+	void refresh_surface_size(CGRect* rect = nullptr);
 	void refresh_virtual_keyboard_rect();
 	void refresh_buffer();
 	void begin_render();
@@ -58,6 +58,7 @@ class LinuxGLDrawCore {
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	inline GLDraw* host() { return m_host; }
 	static LinuxGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
+	static Vec2 get_window_size(EGLNativeWindowType window);
  protected:
 	EGLDisplay m_display;
 	EGLConfig m_config;

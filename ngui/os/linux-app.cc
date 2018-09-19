@@ -48,80 +48,118 @@ typedef DisplayPort::Orientation Orientation;
  */
 class LinuxApplication {
 	typedef NonObjectTraits Traits;
+ public:
 
 	LinuxApplication()
-	: m_window(0), m_host(nullptr)
-	, m_render_looper(nullptr), m_dispatch(nullptr)
+	: m_dpy(nullptr)
+	, m_root(0)
+	, m_win(0)
+	, m_host(nullptr)
+	, m_render_looper(nullptr)
+	, m_dispatch(nullptr)
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
+	, m_win_width(1)
+	, m_win_height(1)
 	{
 		XX_ASSERT(!application); application = this;
 		m_host = Inl_GUIApplication(app());
+		m_dpy = XOpenDisplay(nullptr);
+		m_root = XRootWindow(m_dpy, 0);
 		m_dispatch = m_host->dispatch();
 		m_render_looper = new RenderLooper(m_host);
 	}
 
- public:
+	~LinuxApplication() {}
 
-	static void start(int argc, char* argv[]) {
-		ngui::AppInl::start(argc, argv);
-		if ( !ngui::app() ) return;
-		new LinuxApplication(); // create linux application object
+	inline RunLoop* render_loop() {
+		return m_host->render_loop();
+	}
 
-		Display* dpy = XOpenDisplay(nullptr);
-		Window root = XRootWindow(dpy, 0);
+	void start() {
 
-		XSetWindowAttributes attrs;
-		attrs.background_pixel = XBlackPixel(dpy, 0);
-		XWindowAttributes attrs2;
-		Status r = XGetWindowAttributes(dpy, root, &attrs2);
+		XKeyEvent event;
+		XSetWindowAttributes set;
+		set.background_pixel = XBlackPixel(m_dpy, 0);
+		XWindowAttributes attrs;
+		XGetWindowAttributes(m_dpy, m_root, &attrs);
 		
-		Window win = XCreateWindow(
-			dpy,
-			root,
+		m_win = XCreateWindow(
+			m_dpy,
+			m_root,
 			0,
 			0,
-			attrs2.width,
-			attrs2.height,
+			attrs.width,
+			attrs.height,
 			0,
-			DefaultDepth(dpy, 0),
+			DefaultDepth(m_dpy, 0),
 			InputOutput,
-			DefaultVisual(dpy, 0),
+			DefaultVisual(m_dpy, 0),
 			CWBackPixel,
-			&attrs
+			&set
 		);
 		
-		XSelectInput(dpy, win, ExposureMask | KeyPressMask); // 选择输入事件。
-		XMapWindow(dpy, win); //Map 窗口
-		
-		XKeyEvent event;
+		XSelectInput(m_dpy, m_win, ExposureMask | KeyPressMask); // 选择输入事件。
+		XMapWindow(m_dpy, m_win); //Map 窗口
+
+		render_loop()->post(Cb([this](Se &ev) {
+			gl_draw_core->create_surface(m_win);
+			gl_draw_core->initialize();
+			m_host->onLoad();
+			m_host->onForeground();
+			m_host->onResume();
+			// application->m_host->onBackground();
+			// application->m_host->onPause();
+			// application->m_host->onMemorywarning();
+			m_render_looper->start();
+		}));
 		
 		while(1) {
-			XNextEvent(dpy,(XEvent*)&event);
+			XNextEvent(m_dpy,(XEvent*)&event);
 
 			switch(event.type) {
-				case Expose: {
-					XWindowAttributes attrs;
-					Status r = XGetWindowAttributes(dpy, win, &attrs);
-					LOG("%s,width: %d, height: %d\n", "draw", attrs.width, attrs.height);
+				case Expose:
+					XGetWindowAttributes(m_dpy, m_win, &attrs);
+					m_win_width = attrs.width;
+					m_win_height = attrs.height;
+					render_loop()->post(Cb([](Se &ev) {
+						gl_draw_core->refresh_surface_size();
+					}));
 					break;
-				}
 				case KeyPress:
-					XCloseDisplay(dpy);
-					exit(0);
+				LOG("event, %d", event.type);
 					break;
-				default: break;
+				default:
+					LOG("event, %d", event.type);
+					break;
 			}
 		}
 
+		XCloseDisplay(m_dpy);
+	}
+
+	static Vec2 get_window_size(EGLNativeWindowType win) {
+		if (application && win == application->m_win) {
+			return Vec2(application->m_win_width, application->m_win_height);
+		} else {
+			return Vec2();
+		}
 	}
 
  private:
-	Window m_window;
 	AppInl* m_host;
+	Display* m_dpy;
+	Window m_root;
+	Window m_win;
 	RenderLooper* m_render_looper;
 	GUIEventDispatch* m_dispatch;
 	Orientation m_current_orientation;
+	std::atomic_int m_win_width;
+	std::atomic_int m_win_height;
 };
+
+Vec2 LinuxGLDrawCore::get_window_size(EGLNativeWindowType win) {
+	return LinuxApplication::get_window_size(win);
+}
 
 /**
  * @func pending() 挂起应用进程
@@ -257,7 +295,12 @@ extern "C" {
 		/************** Start GUI Application *************/
 		/**************************************************/
 		/**************************************************/
-		ngui::LinuxApplication::start(argc, argv);
+		ngui::AppInl::start(argc, argv);
+
+		if ( ngui::app() ) {
+			// create linux application object
+			(new ngui::LinuxApplication())->start();
+		}
 		return 0;
 	}
 	
