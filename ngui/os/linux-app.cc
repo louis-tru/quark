@@ -61,15 +61,15 @@ class LinuxApplication {
 	, m_win_height(1)
 	{
 		XX_ASSERT(!application); application = this;
+		m_dpy = XOpenDisplay(nullptr);
 	}
 
 	void initialize() {
 
 		m_host = Inl_GUIApplication(app());
-		m_dpy = XOpenDisplay(nullptr);
-		m_root = XRootWindow(m_dpy, 0);
 		m_dispatch = m_host->dispatch();
 		m_render_looper = new RenderLooper(m_host);
+		m_root = XRootWindow(m_dpy, 0);
 
 		XKeyEvent event;
 		XSetWindowAttributes set;
@@ -77,7 +77,21 @@ class LinuxApplication {
 		// set.background_pixel = XWhitePixel(m_dpy, 0);
 		XWindowAttributes attrs;
 		XGetWindowAttributes(m_dpy, m_root, &attrs);
-		
+
+		if (m_options.has("width")) {
+			int v = m_options["width"];
+			if (v > 0) {
+				attrs.width = v;
+			}
+		}
+
+		if (m_options.has("height")) {
+			int v = m_options["height"];
+			if (v > 0) {
+				attrs.height = v;
+			}
+		}
+
 		m_win = XCreateWindow(
 			m_dpy,
 			m_root,
@@ -131,18 +145,18 @@ class LinuxApplication {
 			}
 		}
 
-		XCloseDisplay(m_dpy);
+		XCloseDisplay(m_dpy); m_dpy = nullptr;
 	}
 
  public:
 
 	static void start(int argc, char* argv[]) {
-		new LinuxApplication();
 		/**************************************************/
 		/**************************************************/
 		/************** Start GUI Application *************/
 		/**************************************************/
 		/**************************************************/
+		new LinuxApplication();
 		ngui::AppInl::start(argc, argv);
 		if ( app() ) {
 			application->initialize();
@@ -157,12 +171,12 @@ class LinuxApplication {
 		m_options = options;
 	}
 
-	static Vec2 get_window_size() {
-		if (application) {
-			return Vec2(application->m_win_width, application->m_win_height);
-		} else {
-			return Vec2(1,1);
-		}
+	inline Vec2 get_window_size() {
+		return Vec2(application->m_win_width, application->m_win_height);
+	}
+
+	inline Display* get_x11_display() {
+		return m_dpy;
 	}
 
  private:
@@ -178,8 +192,12 @@ class LinuxApplication {
 	Map<String, int> m_options;
 };
 
-Vec2 LinuxGLDrawCore::get_window_size(EGLNativeWindowType win) {
-	return LinuxApplication::get_window_size();
+Vec2 __get_window_size() {
+	return application->get_window_size();
+}
+
+Display* __get_x11_display() {
+	return application->get_x11_display();
 }
 
 /**

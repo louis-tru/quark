@@ -58,7 +58,6 @@ class LinuxGLDrawCore {
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	inline GLDraw* host() { return m_host; }
 	static LinuxGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
-	static Vec2 get_window_size(EGLNativeWindowType window);
  protected:
 	EGLDisplay m_display;
 	EGLConfig m_config;

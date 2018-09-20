@@ -449,10 +449,6 @@ class AndroidApplication {
 	bool m_is_init_ok;
 };
 
-Vec2 LinuxGLDrawCore::get_window_size(EGLNativeWindowType win) {
-	return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
-}
-
 /**
  * @func pending() 挂起应用进程
  */

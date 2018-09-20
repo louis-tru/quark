@@ -35,6 +35,7 @@
 #include "glsl-box-color.h"
 #if XX_ANDROID
 # include "android/android.h"
+#include <android/native_window.h>
 #endif
 
 #ifndef xx_use_depth_test
@@ -45,10 +46,19 @@
 
 XX_NS(ngui)
 
+#if XX_LINUX
+extern Vec2 __get_window_size();
+extern Display* __get_x11_display();
+#endif
+
 static EGLDisplay egl_display() {
 	static EGLDisplay display = EGL_NO_DISPLAY;
 	if ( display == EGL_NO_DISPLAY ) { // get display and init it
-		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		#if XX_ANDROID
+			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		#else
+			display = eglGetDisplay(__get_x11_display());
+		#endif
 		XX_DEBUG("eglGetDisplay, %p", display);
 		XX_ASSERT(display != EGL_NO_DISPLAY);
 		EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
@@ -295,6 +305,14 @@ void LinuxGLDrawCore::initialize() {
  #endif
 	m_host->initialize();
 	refresh_surface_size(nullptr);
+}
+
+static Vec2 get_window_size(EGLNativeWindowType win) {
+#if XX_ANDROID
+	return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
+#else
+	return __get_window_size();
+#endif
 }
 
 bool LinuxGLDrawCore::create_surface(EGLNativeWindowType window) {
