@@ -3,6 +3,6 @@
 	"app_name":	"Ngui-Benchmark",
 	"id": "org.ngui.benchmark",
 	"version": "0.1.0",
-	"main": "view.jsx",
+	"main": "action.jsx",
 	"ngui_syntax": true
 }

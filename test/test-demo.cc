@@ -34,16 +34,16 @@
 
 using namespace ngui;
 
-#define USE_REMOTE 0
+#define USE_REMOTE 1
+#define IP_REMOTE "127.0.0.1"
 #define USE_INSPECT 0
 
 void test_demo() {
-
 #if USE_REMOTE
 # if USE_INSPECT
-	js::start("--inspect-brk=0.0.0.0:9229 http://192.168.1.11:1026/demo/examples");
+	js::start("--inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/demo/examples");
 # else
-	js::start("http://192.168.1.11:1026/demo/examples --dev");
+	js::start("http://" IP_REMOTE ":1026/demo/examples --dev");
 # endif
 #else
 # if USE_INSPECT

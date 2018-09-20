@@ -4,12 +4,13 @@ import { Color } from 'ngui/value';
 import { random, log } from 'ngui/util';
 import './uu';
 
-new GUIApplication({ multisample: 2 }).start(
+new GUIApplication({ multisample: 4 }).start(
 	<Root backgroundColor="#000">
 		%{
 			(()=>{
 				var w = ngui.displayPort.width;
 				var h = ngui.displayPort.height;
+				console.log(w,h);
 				var r = [];
 				for (var i = 0; i < 4000; i++) {
 					var color = new Color(random(0, 255), random(0, 255), random(0, 255), 255);

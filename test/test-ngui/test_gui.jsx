@@ -184,7 +184,7 @@ const div1 = (
 )
 
 // start gui application
-new GUIApplication({ multisample: 2 }).start(
+new GUIApplication({ multisample: 4 }).start(
 	<Root backgroundColor="#0ff" background=`url(${resolve('./res/bb.jpg')}) center center 80%`>
 		<vx:test_scroll id="view1" />
 		%{ div1 }

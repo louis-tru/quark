@@ -59,9 +59,15 @@ class LinuxApplication {
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
 	, m_win_width(1)
 	, m_win_height(1)
+	, m_is_init(0)
 	{
 		XX_ASSERT(!application); application = this;
 		m_dpy = XOpenDisplay(nullptr);
+		m_root = XRootWindow(m_dpy, 0);
+		XWindowAttributes attrs;
+		XGetWindowAttributes(m_dpy, m_root, &attrs);
+		m_win_width = attrs.width;
+		m_win_height = attrs.height;
 	}
 
 	void initialize() {
@@ -69,26 +75,25 @@ class LinuxApplication {
 		m_host = Inl_GUIApplication(app());
 		m_dispatch = m_host->dispatch();
 		m_render_looper = new RenderLooper(m_host);
-		m_root = XRootWindow(m_dpy, 0);
 
-		XKeyEvent event;
 		XSetWindowAttributes set;
 		set.background_pixel = XBlackPixel(m_dpy, 0);
-		// set.background_pixel = XWhitePixel(m_dpy, 0);
-		XWindowAttributes attrs;
-		XGetWindowAttributes(m_dpy, m_root, &attrs);
+
+		if (m_options.has("background")) {
+			set.background_pixel = m_options["background"];
+		}
 
 		if (m_options.has("width")) {
 			int v = m_options["width"];
 			if (v > 0) {
-				attrs.width = v;
+				m_win_width = v;
 			}
 		}
 
 		if (m_options.has("height")) {
 			int v = m_options["height"];
 			if (v > 0) {
-				attrs.height = v;
+				m_win_height = v;
 			}
 		}
 
@@ -97,8 +102,8 @@ class LinuxApplication {
 			m_root,
 			0,
 			0,
-			attrs.width,
-			attrs.height,
+			(uint)m_win_width,
+			(uint)m_win_height,
 			0,
 			DefaultDepth(m_dpy, 0),
 			InputOutput,
@@ -107,57 +112,103 @@ class LinuxApplication {
 			&set
 		);
 		
-		XSelectInput(m_dpy, m_win, ExposureMask | KeyPressMask); // 选择输入事件。
+		XSelectInput(m_dpy, m_win, //0xffffffff
+				ExposureMask
+			| KeyPressMask
+			| KeyRelease
+			| MotionNotify
+			| EnterWindowMask
+			| LeaveWindowMask
+			| FocusChangeMask
+			//| PropertyChangeMask
+		); // 选择输入事件。
+
 		XMapWindow(m_dpy, m_win); //Map 窗口
-
-		render_loop()->post(Cb([this](Se &ev) {
-			gl_draw_core->create_surface(m_win);
-			gl_draw_core->initialize();
-			m_host->onLoad();
-			m_host->onForeground();
-			m_host->onResume();
-			// application->m_host->onBackground();
-			// application->m_host->onPause();
-			// application->m_host->onMemorywarning();
-			m_render_looper->start();
-		}));
-
+		
 		while(1) {
-			XNextEvent(m_dpy,(XEvent*)&event);
-
-			switch(event.type) {
-				case Expose:
-					XGetWindowAttributes(m_dpy, m_win, &attrs);
-					m_win_width = attrs.width;
-					m_win_height = attrs.height;
-					render_loop()->post_sync(Cb([this](Se &ev) {
-						CGRect rect = { Vec2(), get_window_size() };
-						gl_draw_core->refresh_surface_size(&rect);
-						m_host->refresh_display(); // 刷新显示
-					}));
-					break;
-				case KeyPress:
-				LOG("event, %d", event.type);
-					break;
-				default:
-					LOG("event, %d", event.type);
-					break;
+			XEvent event;
+			XNextEvent(m_dpy, &event);
+			if (!handle_events(event)) {
+				break;
 			}
 		}
 
+		m_host->onUnload();
+
 		XCloseDisplay(m_dpy); m_dpy = nullptr;
+	}
+
+	bool handle_events(XEvent& event) {
+
+		// m_host->onBackground();
+		// m_host->onMemorywarning();
+
+		switch(event.type) {
+			case Expose: {
+				XWindowAttributes attrs;
+				XGetWindowAttributes(m_dpy, m_win, &attrs);
+				m_win_width = attrs.width;
+				m_win_height = attrs.height;
+
+				render_loop()->post_sync(Cb([this](Se &ev) {
+					if (m_is_init) {
+						CGRect rect = {Vec2(), get_window_size()};
+						gl_draw_core->refresh_surface_size(&rect);
+						m_host->refresh_display(); // 刷新显示
+					} else {
+						m_is_init = true;
+						gl_draw_core->create_surface(m_win);
+						gl_draw_core->initialize();
+						m_host->onLoad();
+						m_host->onForeground();
+						m_render_looper->start();
+					}
+				}));
+				break;
+			}
+			case KeyPress:
+				LOG("event, KeyPress");
+				break;
+			case KeyRelease:
+				LOG("event, KeyRelease");
+				break;
+			case MotionNotify:
+				LOG("event, MotionNotify");
+				break;
+			case FocusIn:
+				LOG("event, FocusIn");
+				m_host->onResume();
+				break;
+			case FocusOut:
+				LOG("event, FocusOut");
+				m_host->onPause();
+				break;
+			case EnterNotify:
+				LOG("event, EnterNotify");
+				break;
+			case LeaveNotify:
+				LOG("event, LeaveNotify");
+				break;
+			default:
+				LOG("event, %d", event.type);
+				break;
+		}
+
+		return true;
 	}
 
  public:
 
 	static void start(int argc, char* argv[]) {
+		new LinuxApplication();
+
 		/**************************************************/
 		/**************************************************/
 		/************** Start GUI Application *************/
 		/**************************************************/
 		/**************************************************/
-		new LinuxApplication();
 		ngui::AppInl::start(argc, argv);
+
 		if ( app() ) {
 			application->initialize();
 		}
@@ -172,7 +223,7 @@ class LinuxApplication {
 	}
 
 	inline Vec2 get_window_size() {
-		return Vec2(application->m_win_width, application->m_win_height);
+		return Vec2(m_win_width, m_win_height);
 	}
 
 	inline Display* get_x11_display() {
@@ -190,6 +241,7 @@ class LinuxApplication {
 	std::atomic_int m_win_width;
 	std::atomic_int m_win_height;
 	Map<String, int> m_options;
+	bool m_is_init;
 };
 
 Vec2 __get_window_size() {
@@ -327,11 +379,7 @@ void DisplayPort::set_orientation(Orientation orientation) {
 
 XX_END
 
-extern "C" {
-
-	int main(int argc, char* argv[]) {
-		ngui::LinuxApplication::start(argc, argv);
-		return 0;
-	}
-	
+extern "C" int main(int argc, char* argv[]) {
+	ngui::LinuxApplication::start(argc, argv);
+	return 0;
 }

@@ -135,7 +135,12 @@ const bug_feedback_vx = (
 	</Mynavpage>
 )
 
-var app = new GUIApplication({ multisample: 2, width: 420, height: 800 }).start(
+var app = new GUIApplication({
+	multisample: 4, 
+	width: 420, 
+	height: 800, 
+	background: 0xff0000,
+}).start(
 	<Root>
 
 		<NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>
