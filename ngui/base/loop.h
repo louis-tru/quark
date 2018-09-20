@@ -135,7 +135,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	uint post(cCb& cb, uint64 delay_us = 0);
 
 	/**
-	 * @func post_sync(cb)
+	 * @func post_sync(cb) 切记线程循环调用,导致锁死
 	 */
 	void post_sync(cCb& cb);
 	

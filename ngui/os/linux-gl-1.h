@@ -49,7 +49,7 @@ class LinuxGLDrawCore {
 	void initialize();
 	bool create_surface(EGLNativeWindowType window);
 	void destroy_surface(EGLNativeWindowType window);
-	void refresh_surface_size(CGRect* rect = nullptr);
+	void refresh_surface_size(CGRect* rect);
 	void refresh_virtual_keyboard_rect();
 	void refresh_buffer();
 	void begin_render();

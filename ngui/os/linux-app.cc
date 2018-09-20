@@ -48,13 +48,12 @@ typedef DisplayPort::Orientation Orientation;
  */
 class LinuxApplication {
 	typedef NonObjectTraits Traits;
- public:
 
 	LinuxApplication()
-	: m_dpy(nullptr)
+	: m_host(nullptr)
+	, m_dpy(nullptr)
 	, m_root(0)
 	, m_win(0)
-	, m_host(nullptr)
 	, m_render_looper(nullptr)
 	, m_dispatch(nullptr)
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
@@ -62,24 +61,20 @@ class LinuxApplication {
 	, m_win_height(1)
 	{
 		XX_ASSERT(!application); application = this;
+	}
+
+	void initialize() {
+
 		m_host = Inl_GUIApplication(app());
 		m_dpy = XOpenDisplay(nullptr);
 		m_root = XRootWindow(m_dpy, 0);
 		m_dispatch = m_host->dispatch();
 		m_render_looper = new RenderLooper(m_host);
-	}
-
-	~LinuxApplication() {}
-
-	inline RunLoop* render_loop() {
-		return m_host->render_loop();
-	}
-
-	void start() {
 
 		XKeyEvent event;
 		XSetWindowAttributes set;
 		set.background_pixel = XBlackPixel(m_dpy, 0);
+		// set.background_pixel = XWhitePixel(m_dpy, 0);
 		XWindowAttributes attrs;
 		XGetWindowAttributes(m_dpy, m_root, &attrs);
 		
@@ -112,7 +107,7 @@ class LinuxApplication {
 			// application->m_host->onMemorywarning();
 			m_render_looper->start();
 		}));
-		
+
 		while(1) {
 			XNextEvent(m_dpy,(XEvent*)&event);
 
@@ -121,8 +116,10 @@ class LinuxApplication {
 					XGetWindowAttributes(m_dpy, m_win, &attrs);
 					m_win_width = attrs.width;
 					m_win_height = attrs.height;
-					render_loop()->post(Cb([](Se &ev) {
-						gl_draw_core->refresh_surface_size();
+					render_loop()->post_sync(Cb([this](Se &ev) {
+						CGRect rect = { Vec2(), get_window_size() };
+						gl_draw_core->refresh_surface_size(&rect);
+						m_host->refresh_display(); // 刷新显示
 					}));
 					break;
 				case KeyPress:
@@ -137,11 +134,34 @@ class LinuxApplication {
 		XCloseDisplay(m_dpy);
 	}
 
-	static Vec2 get_window_size(EGLNativeWindowType win) {
-		if (application && win == application->m_win) {
+ public:
+
+	static void start(int argc, char* argv[]) {
+		new LinuxApplication();
+		/**************************************************/
+		/**************************************************/
+		/************** Start GUI Application *************/
+		/**************************************************/
+		/**************************************************/
+		ngui::AppInl::start(argc, argv);
+		if ( app() ) {
+			application->initialize();
+		}
+	}
+
+	inline RunLoop* render_loop() {
+		return m_host->render_loop();
+	}
+
+	inline void set_options(const Map<String, int>& options) {
+		m_options = options;
+	}
+
+	static Vec2 get_window_size() {
+		if (application) {
 			return Vec2(application->m_win_width, application->m_win_height);
 		} else {
-			return Vec2();
+			return Vec2(1,1);
 		}
 	}
 
@@ -155,10 +175,11 @@ class LinuxApplication {
 	Orientation m_current_orientation;
 	std::atomic_int m_win_width;
 	std::atomic_int m_win_height;
+	Map<String, int> m_options;
 };
 
 Vec2 LinuxGLDrawCore::get_window_size(EGLNativeWindowType win) {
-	return LinuxApplication::get_window_size(win);
+	return LinuxApplication::get_window_size();
 }
 
 /**
@@ -190,6 +211,7 @@ void GUIApplication::send_email(cString& recipient,
 void AppInl::initialize(const Map<String, int>& options) {
 	XX_DEBUG("AppInl::initialize");
 	XX_ASSERT(!gl_draw_core);
+	application->set_options(options);
 	gl_draw_core = LinuxGLDrawCore::create(this, options);
 	m_draw_ctx = gl_draw_core->host();
 }
@@ -290,17 +312,7 @@ XX_END
 extern "C" {
 
 	int main(int argc, char* argv[]) {
-		/**************************************************/
-		/**************************************************/
-		/************** Start GUI Application *************/
-		/**************************************************/
-		/**************************************************/
-		ngui::AppInl::start(argc, argv);
-
-		if ( ngui::app() ) {
-			// create linux application object
-			(new ngui::LinuxApplication())->start();
-		}
+		ngui::LinuxApplication::start(argc, argv);
 		return 0;
 	}
 	

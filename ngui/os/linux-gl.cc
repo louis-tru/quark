@@ -33,6 +33,9 @@
 #include "../display-port.h"
 #include "linux-gl-1.h"
 #include "glsl-box-color.h"
+#if XX_ANDROID
+# include "android/android.h"
+#endif
 
 #ifndef xx_use_depth_test
 #define xx_use_depth_test 0
@@ -291,7 +294,7 @@ void LinuxGLDrawCore::initialize() {
 	m_host->set_best_display_scale(1);
  #endif
 	m_host->initialize();
-	refresh_surface_size();
+	refresh_surface_size(nullptr);
 }
 
 bool LinuxGLDrawCore::create_surface(EGLNativeWindowType window) {

@@ -56,7 +56,7 @@ Draw* Draw::m_draw_ctx = nullptr; // 当前GL上下文
  * @constructor
  */
 Draw::Draw(GUIApplication* host, const Map<String, int>& options)
-: XX_INIT_EVENT(surface_size_change)
+: XX_INIT_EVENT(surface_size_change_r)
 , m_host(host)
 , m_multisample(0)
 , m_empty_texture( NewRetain<TextureEmpty>() )
@@ -83,8 +83,9 @@ Draw::~Draw() {
 }
 
 bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
-	CGRect region = select_region ? *select_region : CGRect({ Vec2(), surface_size });
-	// float h = display_port()->status_bar_height();
+	CGRect region = select_region ? 
+		*select_region : CGRect({ Vec2(), surface_size });
+		
 	if (m_surface_size != surface_size ||
 			m_selected_region.origin != region.origin ||
 			m_selected_region.size != region.size
@@ -92,9 +93,7 @@ bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
 		m_surface_size = surface_size;
 		m_selected_region = region;
 		refresh_buffer();
-		m_host->main_loop()->post(Cb([this](Se& e){
-			XX_TRIGGER(surface_size_change);
-		}));
+		XX_TRIGGER(surface_size_change_r);
 		return true;
 	}
 	return false;

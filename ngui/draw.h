@@ -105,9 +105,9 @@ class XX_EXPORT Draw: public Object {
 	virtual ~Draw();
 	
 	/**
-	 * @event onsurface_size_change 绘图表面尺寸发生变化时触发
+	 * @event surface_size_change_r 绘图表面尺寸发生变化时从渲染线程触发
 	 */
-	XX_EVENT(onsurface_size_change);
+	XX_EVENT(onsurface_size_change_r);
 	
 	inline GUIApplication* host() const { return m_host; }
 	inline DrawLibrary library() { return m_library; }

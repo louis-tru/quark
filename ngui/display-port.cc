@@ -45,9 +45,8 @@ public:
 #define _inl(self) static_cast<DisplayPort::Inl*>(self)
 	
 	void handle_surface_size_change(Event<>& evt) {
-		GUILock lock;
 		m_phy_size = m_draw_ctx->selected_region().size;
-		update_display_port();
+		update_display_port_r();
 	}
 	
 	void update_root_size() {
@@ -58,7 +57,7 @@ public:
 		}
 	}
 	
-	void update_display_port() {
+	void update_display_port_r() {
 		
 		if (m_lock_size.width() == 0 && m_lock_size.height() == 0) { // 使用系统默认的最合适的尺寸
 			m_size = { m_phy_size.width() / m_draw_ctx->best_display_scale(),
@@ -96,14 +95,9 @@ public:
 		Mat4 test_root_matrix = // 测试着色器视图矩阵要大一圈
 		Mat4::ortho(start[0]-5, end[0]+5, start[1]-5, end[1]+5, -1.0f, 1.0f);
 		
-		XX_CHECK(m_host->render_loop());
+		m_draw_ctx->refresh_root_matrix(m_root_matrix, test_root_matrix);
 		
-		update_root_size();
-
-		m_host->render_loop()->post(Cb([this, test_root_matrix](Se& e) {
-			m_draw_ctx->refresh_root_matrix(m_root_matrix, test_root_matrix);
-			update_root_size();
-		}));
+		update_root_size(); // update root
 		
 		// set default draw region
 		m_draw_region.first() = {
@@ -156,7 +150,7 @@ DisplayPort::DisplayPort(GUIApplication* host)
 	m_draw_region.push({ 0,0,0,0,0,0 });
 	// 侦听视口尺寸变化
 	XX_DEBUG("m_draw_ctx->XX_ON ...");
-	m_draw_ctx->XX_ON(surface_size_change, &Inl::handle_surface_size_change, _inl(this));
+	m_draw_ctx->XX_ON(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 	XX_DEBUG("m_draw_ctx->XX_ON ok");
 }
 
@@ -165,7 +159,7 @@ DisplayPort::DisplayPort(GUIApplication* host)
  */
 DisplayPort::~DisplayPort() {
 	Release(m_pre_render);
-	m_draw_ctx->XX_OFF(surface_size_change, &Inl::handle_surface_size_change, _inl(this));
+	m_draw_ctx->XX_OFF(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 }
 
 float DisplayPort::best_scale() const {
@@ -176,7 +170,10 @@ void DisplayPort::lock_size(float width, float height) {
 	if (width >= 0.0 && height >= 0.0) {
 		if (m_lock_size.width() != width || m_lock_size.height() != height) {
 			m_lock_size = { width, height };
-			_inl(this)->update_display_port();
+			XX_CHECK(m_host->render_loop());
+			m_host->render_loop()->post_sync(Cb([this](Se& e) {
+				_inl(this)->update_display_port_r();
+			}));
 		}
 	} else {
 		XX_WARN("Lock size value can not be less than zero\n");
