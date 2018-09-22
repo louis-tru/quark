@@ -139,7 +139,7 @@ var app = new GUIApplication({
 	multisample: 4, 
 	width: 420, 
 	height: 800, 
-	background: 0xff0000,
+	background: 0xffffff,
 }).start(
 	<Root>
 

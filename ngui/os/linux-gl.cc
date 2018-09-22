@@ -81,7 +81,7 @@ static EGLConfig egl_config(
 	}
 
 	// choose configuration
-	const EGLint attribs[] = {
+	EGLint attribs[] = {
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL_RED_SIZE,   8,
@@ -103,8 +103,19 @@ static EGLConfig egl_config(
 	XX_ASSERT(chooseConfigState);
 
 	if ( numConfigs == 0 ) {
-		XX_FATAL("We can't have EGLConfig array with zero size!");
+		// attempt disable multi sample
+		attribs[17] = 0;
+		attribs[19] = 0;
+		multisample = 0;
+		chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
+		XX_ASSERT(chooseConfigState);
+		
+		if (numConfigs == 0) {
+			XX_FATAL("We can't have EGLConfig array with zero size!");
+		}
 	}
+
+	XX_DEBUG("numConfigs,%d", numConfigs);
 
 	// then we create array large enough to store all configs
 	ArrayBuffer<EGLConfig> supportedConfigs(numConfigs);
@@ -125,15 +136,17 @@ static EGLConfig egl_config(
 
 		EGLint r, g ,b, a, s, sa;
 
-		bool hasMatch =  eglGetConfigAttrib(display, cfg, EGL_RED_SIZE,   &r) && r == 8
-										 && eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) && g == 8
-										 && eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE,  &b) && b == 8
-										 && eglGetConfigAttrib(display, cfg, EGL_ALPHA_SIZE, &a) && a == 8
-										 && eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &s) && s == 8
-										 && eglGetConfigAttrib(display, cfg, EGL_SAMPLES, &sa) && 
-										 (multisample <= 1 || sa >= multisample)
+		bool hasMatch = 
+				eglGetConfigAttrib(display, cfg, EGL_RED_SIZE,   &r) && r == 8
+			&& eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) && g == 8
+			&& eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE,  &b) && b == 8
+			&& eglGetConfigAttrib(display, cfg, EGL_ALPHA_SIZE, &a) && a == 8
+			&& eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &s) && s == 8
+			&& eglGetConfigAttrib(display, cfg, EGL_SAMPLES, &sa) 
+			&& (multisample <= 1 || sa >= multisample)
 		;
 		if ( hasMatch ) {
+			XX_DEBUG("hasMatch,%d", configIndex);
 			config = supportedConfigs[configIndex];
 			break;
 		}
