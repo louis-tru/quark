@@ -109,6 +109,9 @@ class LinuxApplication {
 	}
 
 	~LinuxApplication() {
+		if (m_win) {
+			XDestroyWindow(m_dpy, m_win); m_win = 0;
+		}
 		if (m_dpy) {
 			XCloseDisplay(m_dpy); m_dpy = nullptr;
 		}
@@ -128,6 +131,7 @@ class LinuxApplication {
 	void destroy_app() {
 		m_host->onUnload();
 		m_host->main_loop()->stop();
+		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
 		SimpleThread::wait_end(m_main_tid); // wait main loop end
 	}
@@ -153,20 +157,19 @@ class LinuxApplication {
 			&m_xset
 		);
 
-		XStoreName(m_dpy, m_win, ""/*title*/);
 		// XSelectInput(m_dpy, m_root, SubstructureNotifyMask);
-		XMapWindow(m_dpy, m_win); //Map 窗口
+		XStoreName(m_dpy, m_win, ""/*title*/);
 		XSetWMProtocols(m_dpy, m_win, &m_wm_delete_window, True);
+		XMapWindow(m_dpy, m_win); //Map 窗口
 
 		signal(SIGTERM, signal_handler);
 		signal(SIGINT, signal_handler);
 
 		XEvent event;
 		do {
-			/*XEventsQueued(m_dpy, QueuedAfterFlush)*/
 			XNextEvent(m_dpy, &event);
 		} while(handle_events(event));
-		
+
 		destroy_app();
 	}
 
