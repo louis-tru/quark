@@ -35,7 +35,7 @@
 
 #if XX_LINUX || XX_ANDROID
 
-#include "../gl/gl.h"
+#include "ngui/gl/gl.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>

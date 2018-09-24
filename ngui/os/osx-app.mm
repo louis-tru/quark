@@ -30,7 +30,7 @@
 
 #import <AppKit/AppKit.h>
 #import "ngui/base/loop.h"
-#import "osx-app-1.h"
+#import "./osx-app-1.h"
 #import "../app.h"
 #import "../display-port.h"
 #import "../app-1.h"

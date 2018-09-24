@@ -181,6 +181,11 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	 * @func uv_loop()
 	 */
 	inline uv_loop_t* uv_loop() { return m_uv_loop; }
+
+	/**
+	 * @func thread_id()
+	 */
+	inline ThreadID thread_id() const { return m_tid; }
 	
 	/**
 	 * @func current() 获取当前线程消息队列
@@ -238,6 +243,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	Mutex m_mutex;
 	RecursiveMutex* m_independent_mutex;
 	SimpleThread* m_thread;
+	ThreadID m_tid;
 	uint  m_keep_count;
 	uv_loop_t* m_uv_loop;
 	uv_async_t* m_uv_async;

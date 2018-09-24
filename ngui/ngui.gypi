@@ -260,7 +260,7 @@
 				],
 				'link_settings': { 
 					'libraries': [ 
-						'-lGLESv2', '-lEGL', '-lX11',
+						'-lGLESv2', '-lEGL', '-lX11', '-lXt',
 					],
 				},
 			}],

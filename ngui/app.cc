@@ -159,15 +159,13 @@ bool AppInl::set_focus_view(View* view) {
 void AppInl::onUnload() {
 	if (m_is_load) {
 		m_is_load = false;
-		m_main_loop->post(Cb([&](Se& d) {
+		m_main_loop->post_sync(Cb([&](Se& d) {
 			XX_TRIGGER(unload);
 			if (m_root) {
 				GUILock lock;
 				m_root->remove();
 			}
-			tctr->root_thread_awaken();
 		}));
-		tctr->root_thread_sleep();
 	}
 }
 
