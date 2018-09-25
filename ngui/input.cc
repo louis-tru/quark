@@ -277,7 +277,7 @@ public:
 				for ( int j = begin; j >= 0; j-- ) {
 					Cell* cell = &m_data.cells[j];
 					if ( cell->line_num == cursor_linenum_ ) {
-						if ( cell->begin <= cursor ) {
+						if ( int(cell->begin) <= cursor ) {
 							float x = cell->offset[XX_MIN(cursor - cell->begin, cell->chars.length())];
 							x = cell->offset_start + (reverse ? -x : x);
 							point.x(pos.x() + offset.x() + x);
@@ -331,7 +331,7 @@ public:
 		// find cell start and end
 		int cell_begin = -1, cell_end = -1;
 		
-		for ( int i = 0; i < m_data.cells.length(); i++ ) {
+		for ( uint i = 0; i < m_data.cells.length(); i++ ) {
 			if ( m_data.cells[i].line_num == row->row_num  ) { // 排除小余目标行cell
 				cell_begin = i;
 				
@@ -365,7 +365,7 @@ public:
 					Cell& cell = m_data.cells[i];
 					float offset0 = offset_start + (reverse ? -cell.offset[0] : cell.offset[0]);
 					
-					for ( int j = 1; j < cell.offset.length(); j++ ) {
+					for ( int j = 1, l = cell.offset.length(); j < l; j++ ) {
 						float offset = offset_start + (reverse ? -cell.offset[j] : cell.offset[j]);
 						
 						if ( (offset0 <= x && x <= offset) || (offset <= x && x <= offset0) ) {
@@ -473,13 +473,13 @@ Input::Input()
 : placeholder_color_(150, 150, 150), marked_color_(0, 160, 255, 100)
 , marked_text_idx_(0), cursor_(0), cursor_linenum_(0)
 , marked_cell_begin_(0), marked_cell_end_(0)
-, text_margin_(6), cursor_x_(0), flag_(0)
-, type_(KeyboardType::NORMAL)
-, return_type_(KeyboardReturnType::NORMAL)
+, text_margin_(6), cursor_x_(0)
 , editing_(false), cursor_twinkle_status_(true), security_(false)
+, flag_(0), type_(KeyboardType::NORMAL)
+, return_type_(KeyboardReturnType::NORMAL)
 {
 	m_receive = true;
-	
+
 	on(GUI_EVENT_CLICK, &Input::Inl::click_handle, Inl_Input(this));
 	on(GUI_EVENT_TOUCHSTART, &Input::Inl::touchstart_handle, Inl_Input(this));
 	on(GUI_EVENT_TOUCHMOVE, &Input::Inl::touchmove_handle, Inl_Input(this));
@@ -532,24 +532,24 @@ bool Input::run_task(int64 sys_time) {
 void Input::input_delete_text(int count) {
 	
 	if ( editing_ ) {
-		
+		int cursor = cursor_;
 		if ( !marked_text_.length() ) {
 			if ( count < 0 ) {
-				count = XX_MIN(cursor_, -count);
+				count = XX_MIN(cursor, -count);
 				if ( count ) {
 					Ucs2String old = m_data.string;
-					m_data.string = Ucs2String(*old, cursor_ - count,
-																		 *old + cursor_, old.length() - cursor_);
+					m_data.string = Ucs2String(*old, cursor - count,
+																		 *old + cursor, int(old.length()) - cursor);
 					cursor_ -= count;
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 				}
 			} else if ( count > 0 ) {
-				count = XX_MIN(length() - cursor_, count);
+				count = XX_MIN(int(length()) - cursor, count);
 				if ( count ) {
 					Ucs2String old = m_data.string;
-					m_data.string = Ucs2String(*old, cursor_,
-																		 *old + cursor_ + count,
-																		 old.length() - cursor_ - count);
+					m_data.string = Ucs2String(*old, cursor,
+																		 *old + cursor + count,
+																		 int(old.length()) - cursor - count);
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 				}
 			}
@@ -810,7 +810,7 @@ void Input::refresh_cursor_screen_position() {
 						cell = &i.value(); break;
 					} else {
 						if ( cursor_ == end ) {
-							if ( i.index() + 1 == m_data.cells.length() ) { // last cell
+							if ( uint(i.index() + 1) == m_data.cells.length() ) { // last cell
 								cell = &i.value(); break;
 							}
 						}

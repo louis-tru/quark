@@ -37,8 +37,8 @@ XX_NS(ngui)
  * @class Button::Inl
  */
 class Button::Inl: public Button {
-public:
-#define _inl(self) static_cast<Button::Inl*>(self)
+ public:
+ #define _inl(self) static_cast<Button::Inl*>(self)
 	
 	/**
 	 * @func compute_final_matrix
@@ -64,7 +64,7 @@ public:
 	 * @func Find
 	 */
 	class Find: public Object {
-	protected:
+	 protected:
 		Panel* panel;
 		Button* self;
 		Button* revt;
@@ -72,13 +72,17 @@ public:
 		float min;
 		
 		Find(Panel* p, Button* btn)
-		: panel(p), self(btn), min(Float::max), revt(nullptr) {
+		: panel(p)
+		, self(btn)
+		, revt(nullptr)
+		, min(Float::max) 
+		{
 			CGRect rect = self->screen_rect();
 			origin = Vec2(rect.origin.x() + rect.size.width() / 2, 
 										rect.origin.y() + rect.size.height() / 2);
 		}
 		
-	public:
+	 public:
 		
 		inline Button* result() { return revt; }
 		
@@ -94,9 +98,9 @@ public:
 	/**
 	 * @class FindHorizontal
 	 */
-	template<Direction direction> class FindHorizontal: public Find {
-
-	public:
+	template<Direction direction> 
+	class FindHorizontal: public Find {
+	 public:
 		
 		FindHorizontal(Panel* panel, Button* btn): Find(panel, btn) { }
 		

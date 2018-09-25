@@ -202,6 +202,7 @@
 					'-Wall',
 					'-Wextra',
 					'-Wno-unused-parameter',
+					'-Wno-unused-but-set-parameter',
 					'-Wno-unused-variable',
 					'-Wno-unused-but-set-variable',
 					'-Wno-unused-result',

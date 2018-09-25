@@ -99,7 +99,7 @@ Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 
 			JSAMPROW row2 = rows[0];
 
-			for (int column = 0; column < w; column++) {
+			for (uint column = 0; column < w; column++) {
 				*((int*)row) = *((int*)row2);
 				row[3] = 255;
 				row += 4; row2 += 3;

@@ -225,7 +225,7 @@ get_property_value<PROPERTY_BACKGROUND, BackgroundPtr>() {
 		m_property.set(PROPERTY_BACKGROUND, prop);
 		return prop->value();
 	} else {
-		static_cast<Type*>(it.value())->value();
+		return static_cast<Type*>(it.value())->value();
 	}
 }
 
@@ -417,7 +417,7 @@ public:
 				break;
 			default:  // 4...
 				if ( group ) { // len > 4
-					for ( int i = 4; i < len; i++ ) {
+					for ( uint i = 4; i < len; i++ ) {
 						add_css_query_grpup(CSSName(classs[i]).hash(), r);
 					}
 					r.push( *group );
@@ -440,7 +440,7 @@ public:
 				add_css_query_grpup(hash, r);
 				m_css_query_group_cache.set(hash, r);
 				// 
-				for ( int i = 4; i < len; i++ ) { // len > 4
+				for ( uint i = 4; i < len; i++ ) { // len > 4
 					add_css_query_grpup(CSSName(classs[i]).hash(), r);
 				}
 				break;

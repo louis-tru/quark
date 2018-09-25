@@ -169,8 +169,8 @@ class XX_EXPORT Texture: public Reference {
 	uint  m_data_size[8];
 	uint  m_use_count[8];
 	Repeat m_repeat[8];
-	uint  m_width;
-	uint  m_height;
+	int   m_width;
+	int   m_height;
 	uint  m_diagonal;
 	PixelFormat m_format;
 	

@@ -63,49 +63,6 @@ class LinuxApplication {
 	, m_is_init(0)
 	{
 		XX_ASSERT(!application); application = this;
-		m_dpy = XOpenDisplay(nullptr); 
-		XX_CHECK(m_dpy, "Cannot connect to display");
-		m_root = XDefaultRootWindow(m_dpy);
-
-		XWindowAttributes attrs;
-		XGetWindowAttributes(m_dpy, m_root, &attrs);
-		m_win_width        = attrs.width;
-		m_win_height       = attrs.height;
-		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
-		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
-		
-		m_xset.background_pixel = 0;
-		m_xset.border_pixel = 0;
-		m_xset.background_pixmap = None;
-		m_xset.border_pixmap = None;
-		m_xset.event_mask = (NoEventMask
-			| ExposureMask
-			| KeyPressMask
-			| KeyRelease
-			| ButtonPressMask
-			| ButtonReleaseMask
-			| PointerMotionMask // Motion
-			| PointerMotionHintMask // Motion
-			| Button1MotionMask // Motion
-			| Button2MotionMask // Motion
-			| Button3MotionMask // Motion
-			| Button4MotionMask // Motion
-			| Button5MotionMask // Motion
-			| ButtonMotionMask // Motion
-			| EnterWindowMask
-			| LeaveWindowMask
-			| KeymapStateMask // KeymapNotify
-				// | VisibilityChangeMask	//
-			| StructureNotifyMask 	// ConfigureNotify
-				// | ResizeRedirectMask				//
-				// | SubstructureNotifyMask		//
-				// | SubstructureRedirectMask	//
-			| FocusChangeMask // FocusIn, FocusOut
-			| PropertyChangeMask // PropertyNotify
-				// | ColormapChangeMask	//
-				// | OwnerGrabButtonMask	//
-		);
-		m_xset.do_not_propagate_mask = NoEventMask;
 	}
 
 	~LinuxApplication() {
@@ -286,8 +243,51 @@ class LinuxApplication {
 		return m_host->render_loop();
 	}
 
-	inline void set_options(const Map<String, int>& options) {
+	void initialize(const Map<String, int>& options) {
 		m_options = options;
+		m_dpy = XOpenDisplay(nullptr);
+		XX_CHECK(m_dpy, "Cannot connect to display");
+		m_root = XDefaultRootWindow(m_dpy);
+
+		XWindowAttributes attrs;
+		XGetWindowAttributes(m_dpy, m_root, &attrs);
+		m_win_width        = attrs.width;
+		m_win_height       = attrs.height;
+		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
+		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
+		
+		m_xset.background_pixel = 0;
+		m_xset.border_pixel = 0;
+		m_xset.background_pixmap = None;
+		m_xset.border_pixmap = None;
+		m_xset.event_mask = (NoEventMask
+			| ExposureMask
+			| KeyPressMask
+			| KeyRelease
+			| ButtonPressMask
+			| ButtonReleaseMask
+			| PointerMotionMask // Motion
+			| PointerMotionHintMask // Motion
+			| Button1MotionMask // Motion
+			| Button2MotionMask // Motion
+			| Button3MotionMask // Motion
+			| Button4MotionMask // Motion
+			| Button5MotionMask // Motion
+			| ButtonMotionMask // Motion
+			| EnterWindowMask
+			| LeaveWindowMask
+			| KeymapStateMask // KeymapNotify
+				// | VisibilityChangeMask	//
+			| StructureNotifyMask 	// ConfigureNotify
+				// | ResizeRedirectMask				//
+				// | SubstructureNotifyMask		//
+				// | SubstructureRedirectMask	//
+			| FocusChangeMask // FocusIn, FocusOut
+			| PropertyChangeMask // PropertyNotify
+				// | ColormapChangeMask	//
+				// | OwnerGrabButtonMask	//
+		);
+		m_xset.do_not_propagate_mask = NoEventMask;
 
 		if (options.has("width")) {
 			int v = options["width"];
@@ -304,7 +304,6 @@ class LinuxApplication {
 		if (options.has("background")) {
 			m_xset.background_pixel = options["background"];
 		}
-
 	}
 
 	inline Vec2 get_window_size() {
@@ -369,7 +368,7 @@ void GUIApplication::send_email(cString& recipient,
 void AppInl::initialize(const Map<String, int>& options) {
 	XX_DEBUG("AppInl::initialize");
 	XX_ASSERT(!gl_draw_core);
-	application->set_options(options);
+	application->initialize(options);
 	gl_draw_core = LinuxGLDrawCore::create(this, options);
 	m_draw_ctx = gl_draw_core->host();
 }

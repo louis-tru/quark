@@ -116,10 +116,9 @@ template <class BasicString>
 static int _last_index_of(const BasicString* self,
 													const typename BasicString::Char* s, int len, int start) {
 	// typedef typename BasicString::Char Char;
-	
-	if ( start + len > int(self->length()) )
-		start = self->length() - len;
-	
+	int slen = self->length();
+	if ( start + len > len )
+		start = slen - len;
 	for ( ; start > -1; start--) {
 		if (_memcmp(self->c() + start, s, len) == 0) {
 			return start;

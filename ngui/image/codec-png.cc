@@ -107,7 +107,7 @@ Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
 	Buffer buff((uint)(h * rowbytes));
 	Array<png_bytep> row_pointers((uint)h);
 	
-	for (int i = 0; i < h; i++) {
+	for (uint i = 0; i < h; i++) {
 		row_pointers[i] = (byte*)buff.value() + rowbytes * i;
 	}
 	png_read_image(png, &row_pointers[0]);

@@ -124,7 +124,7 @@ class MultimediaSource::Inl: public ParallelWorking {
 	void extractor_flush(Extractor* ex);
 	BitRateInfo read_bit_rate_info(AVFormatContext* fmt_ctx, int i, int size);
 	void select_multi_bit_rate2(uint index);
-	void read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, int bit_rate_index);
+	void read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index);
 	bool extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn);
 	bool extractor_advance(Extractor* ex);
 	bool extractor_advance_no_wait(Extractor* ex);
