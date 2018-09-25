@@ -337,8 +337,8 @@ class Scanner : public Object {
 	Scanner(const uint16* code, uint size)
 	: code_(code)
 	, size_(size)
-	, line_(0)
 	, pos_(0)
+	, line_(0)
 	, current_(new TokenDesc())
 	, next_(new TokenDesc())
 	{ //
@@ -1460,7 +1460,7 @@ case ch:
 	}
 	
 	bool skip_white_space(bool ignore_record_first_space = false) {
-		int start_position = pos_;
+		uint start_position = pos_;
 		bool first = true;
 		
 		while(true) {
@@ -1567,8 +1567,8 @@ public:
 	Parser(cUcs2String& in, cString& path, bool is_jsx)
 	: _out(nullptr)
 	, _path(path)
-	, _is_jsx(is_jsx)
 	, _level(0)
+	, _is_jsx(is_jsx)
 	, _is_class_member_data_expression(false)
 	, _is_xml_attribute_expression(false)
 	, _single_if_expression_before(false)
@@ -1643,7 +1643,7 @@ public:
 		}
 		
 		// export
-		for (int i = 0; i < _exports.length(); i++) {
+		for (uint i = 0; i < _exports.length(); i++) {
 			out_code(_NEWLINE);
 			out_code(_EXPORTS);    // exports.xxx=xxx;
 			out_code(_PERIOD);     // .
@@ -2860,7 +2860,7 @@ public:
 		out_code(_LBRACK);   // [
 		// out_code(_CHILDS_COMMENT); // add comment
 		
-		Token token, prev = ILLEGAL;
+		Token token;// prev = ILLEGAL;
 		Ucs2StringBuilder str, scape;
 		bool ignore_space = true;
 		uint pos = _scanner->location().end_pos;
@@ -3038,13 +3038,13 @@ public:
 	Ucs2StringBuilder _top_out;
 	Ucs2StringBuilder _out_class_member_data_expression;
 	cString&          _path;
-	bool              _is_jsx;
-	bool              _is_class_member_data_expression;
-	bool              _is_xml_attribute_expression;
 	Array<Ucs2String> _exports;
 	Ucs2String        _export_default;
 	Array<MemberDataExpression> _class_member_data_expression;
 	uint              _level;
+	bool              _is_jsx;
+	bool              _is_class_member_data_expression;
+	bool              _is_xml_attribute_expression;
 	bool  _single_if_expression_before;
 	bool  _has_export_default;
 };

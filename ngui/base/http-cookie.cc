@@ -76,14 +76,22 @@ static void assert_sqlite3_func(int c) {
 static void http_cookie_close() {
 	sqlite3* __db = _db;
 	_db = nullptr;
-	if ( _http_cookie_get ) sqlite3_finalize(_http_cookie_get); _http_cookie_get = nullptr;
-	if ( _http_cookie_get_all ) sqlite3_finalize(_http_cookie_get_all); _http_cookie_get_all = nullptr;
-	if ( _http_cookie_has ) sqlite3_finalize(_http_cookie_has); _http_cookie_has = nullptr;
-	if ( _http_cookie_add ) sqlite3_finalize(_http_cookie_add); _http_cookie_add = nullptr;
-	if ( _http_cookie_set ) sqlite3_finalize(_http_cookie_set); _http_cookie_set = nullptr;
-	if ( _http_cookie_del ) sqlite3_finalize(_http_cookie_del); _http_cookie_del = nullptr;
-	if ( _http_cookie_del_all ) sqlite3_finalize(_http_cookie_del_all); _http_cookie_del_all = nullptr;
-	if ( _http_cookie_clear ) sqlite3_finalize(_http_cookie_clear); _http_cookie_clear = nullptr;
+	if ( _http_cookie_get ) sqlite3_finalize(_http_cookie_get); 
+	_http_cookie_get = nullptr;
+	if ( _http_cookie_get_all ) sqlite3_finalize(_http_cookie_get_all); 
+	_http_cookie_get_all = nullptr;
+	if ( _http_cookie_has ) sqlite3_finalize(_http_cookie_has); 
+	_http_cookie_has = nullptr;
+	if ( _http_cookie_add ) sqlite3_finalize(_http_cookie_add); 
+	_http_cookie_add = nullptr;
+	if ( _http_cookie_set ) sqlite3_finalize(_http_cookie_set); 
+	_http_cookie_set = nullptr;
+	if ( _http_cookie_del ) sqlite3_finalize(_http_cookie_del); 
+	_http_cookie_del = nullptr;
+	if ( _http_cookie_del_all ) sqlite3_finalize(_http_cookie_del_all); 
+	_http_cookie_del_all = nullptr;
+	if ( _http_cookie_clear ) sqlite3_finalize(_http_cookie_clear); 
+	_http_cookie_clear = nullptr;
 	if ( __db ) sqlite3_close(__db);
 }
 

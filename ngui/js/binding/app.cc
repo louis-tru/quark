@@ -113,10 +113,10 @@ class WrapNativeGUIApplication: public WrapObject {
 	
 	void memorywarning_handle(Event<>& evt) {
 		worker()->garbage_collection(); // 清理内存
-#if XX_MEMORY_TRACE_MARK
+	 #if XX_MEMORY_TRACE_MARK
 		uint count = Object::mark_objects_count();
 		LOG("All unrelease heap objects count: %d", count);
-#endif
+	 #endif
 	}
 
 	/**

@@ -63,10 +63,14 @@ static void localstorage_close() {
 	_db = nullptr;
 	
 	sqlite3_exec(__db, "commit;", 0, 0, 0);
-	if ( _localstorage_get ) sqlite3_finalize(_localstorage_get); _localstorage_get = nullptr;
-	if ( _localstorage_set ) sqlite3_finalize(_localstorage_set); _localstorage_set = nullptr;
-	if ( _localstorage_del ) sqlite3_finalize(_localstorage_del); _localstorage_del = nullptr;
-	if ( _localstorage_clear ) sqlite3_finalize(_localstorage_clear); _localstorage_clear = nullptr;
+	if ( _localstorage_get ) sqlite3_finalize(_localstorage_get); 
+	_localstorage_get = nullptr;
+	if ( _localstorage_set ) sqlite3_finalize(_localstorage_set); 
+	_localstorage_set = nullptr;
+	if ( _localstorage_del ) sqlite3_finalize(_localstorage_del); 
+	_localstorage_del = nullptr;
+	if ( _localstorage_clear ) sqlite3_finalize(_localstorage_clear); 
+	_localstorage_clear = nullptr;
 	if ( __db ) sqlite3_close(__db);
 }
 

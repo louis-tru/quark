@@ -205,7 +205,7 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
 										 bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 										 uint repeat, int device, int source)
 	: GUIEvent(origin), keycode_(keycode)
-	, repeat_(repeat), device_(device), source_(source), shift_(shift)
+	, device_(device), source_(source), repeat_(repeat), shift_(shift)
 	, ctrl_(ctrl), alt_(alt), command_(command), caps_lock_(caps_lock), focus_move_(nullptr) { }
 	inline int  keycode() const { return keycode_; }
 	inline int  repeat() const { return repeat_; }
@@ -234,7 +234,7 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
 class XX_EXPORT GUIClickEvent: public GUIEvent {
  public:
 	inline GUIClickEvent(View* origin, float x, float y, bool keyboard = false, uint count = 1)
-	: GUIEvent(origin), x_(x), y_(y), keyboard_(keyboard), count_(count) { }
+	: GUIEvent(origin), x_(x), y_(y), count_(count), keyboard_(keyboard) { }
 	inline float x() const { return x_; }
 	inline float y() const { return y_; }
 	inline uint count() const { return count_; }

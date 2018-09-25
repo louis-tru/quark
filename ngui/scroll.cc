@@ -77,7 +77,7 @@ class BasicScroll::Task: public PreRender::Task {
 			immediate_end();
 		} else {
 			int64 now = sys::time_monotonic();
-			if ( now >= m_start_time + m_duration ) {
+			if ( uint(now) >= m_start_time + m_duration ) {
 				end();
 			} else {
 				if ( m_is_inl_ease_out ) {
@@ -695,18 +695,18 @@ BasicScroll::BasicScroll(Box* box)
 , m_resistance(1)
 , m_default_scroll_duration(0)
 , m_default_scroll_curve(const_cast<Curve*>(&ease_out))
-, m_bounce(true)
-, m_momentum(true)
-, m_scrollbar(true)
-, m_lock_h(false)
-, m_lock_v(false)
 , m_moved(false)
 , m_h_scroll(false)
 , m_v_scroll(false)
 , m_h_scrollbar(false)
 , m_v_scrollbar(false)
 , m_bounce_lock(true)
+, m_lock_h(false)
+, m_lock_v(false)
 , m_lock_direction(false)
+, m_bounce(true)
+, m_momentum(true)
+, m_scrollbar(true)
 {
 	box->on(GUI_EVENT_TOUCHSTART, &Inl::m_touch_start_handle, _inl(this));
 	box->on(GUI_EVENT_TOUCHMOVE, &Inl::m_touch_move_handle, _inl(this));

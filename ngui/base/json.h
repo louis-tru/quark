@@ -81,7 +81,7 @@ class XX_EXPORT JSON {
 		Reference operator*() const { return *ptr_; }
 		Pointer   operator->() const { return ptr_; }
 		//
-	private:
+	 private:
 		MemberIterator();
 		Pointer ptr_; //!< raw pointer
 	};

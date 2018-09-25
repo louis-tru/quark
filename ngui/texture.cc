@@ -315,7 +315,7 @@ public:
 		uint size = 0;
 		uint size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
 		
-		for (int i = 0; i < mipmap_data.length(); i++) {
+		for (uint i = 0; i < mipmap_data.length(); i++) {
 			auto data = mipmap_data[i];
 			size += data.width() * data.height() * size_pixel;
 		}

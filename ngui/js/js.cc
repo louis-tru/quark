@@ -398,7 +398,9 @@ public:
 };
 
 void WrapObject::initialize() {}
-void WrapObject::destroy() { delete this; }
+void WrapObject::destroy() { 
+	delete this;
+}
 
 void WrapObject::init2(FunctionCall args) {
 	XX_ASSERT(args.IsConstructCall());
@@ -442,10 +444,10 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 WrapObject::~WrapObject() {
 	XX_ASSERT(handle_.IsEmpty());
 
-#if XX_MEMORY_TRACE_MARK
+ #if XX_MEMORY_TRACE_MARK
 	record_wrap_count--;
 	print_wrap("~WrapObject");
-#endif
+ #endif
 	self()->~Object();
 }
 
@@ -655,7 +657,7 @@ int __default_main(int argc, char** argv) {
 		Array<String> ls = String(reader->read_file_sync( path )).split('\n');
 		path = String();
 	
-		for ( int i = 0; i < ls.length(); i++ ) {
+		for ( uint i = 0; i < ls.length(); i++ ) {
 			String s = ls[i].trim();
 			if ( s[0] != '#' ) {
 				path = s;

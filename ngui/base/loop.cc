@@ -564,10 +564,10 @@ struct RunLoop::Work {
  * @constructor
  */
 RunLoop::RunLoop(SimpleThread* t)
-: m_keep_count(0)
-, m_independent_mutex(nullptr)
+: m_independent_mutex(nullptr)
 , m_thread(t)
 , m_tid(t->id())
+, m_keep_count(0)
 , m_uv_loop(nullptr)
 , m_uv_async(nullptr)
 , m_uv_timer(nullptr)

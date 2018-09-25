@@ -240,7 +240,7 @@ float TextFont::simple_layout_width(cUcs2String& text) {
 	float rv = 0;
 	float ratio = 4096.0 / size.value;
 	
-	for ( int i = 0; i < text.length(); i++ ) {
+	for ( uint i = 0; i < text.length(); i++ ) {
 		rv += table->glyph(text[i])->hori_advance() / ratio;
 	}
 	
@@ -310,7 +310,7 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 	
 	for ( auto& i : data.cells ) {
 		Cell& cell = i.value();
-		if ( line_num != cell.line_num && cell.chars.length() ) {
+		if ( line_num != int(cell.line_num) && cell.chars.length() ) {
 			line_num = cell.line_num;
 			y = cell.baseline - y2;
 			
@@ -581,7 +581,7 @@ public:
 		
 		if ( ellipsis_count ) {
 			float offset = cell.offset[cell.chars.length()] + hori_advance;
-			for ( int i = 0; i < ellipsis_count; i++ ) {
+			for ( uint i = 0; i < ellipsis_count; i++ ) {
 				cell.offset.push(offset + i * hori_advance);
 				cell.chars.push('.');
 			}
@@ -665,7 +665,7 @@ public:
 							}
 							
 							float offset = offset_end->x();
-							for ( int i = 0; i < word.count; i++ ) {
+							for ( uint i = 0; i < word.count; i++ ) {
 								word.offset[i] -= offset; // 新行重置单词偏移量
 							}
 							new_row(rows, cell, data, begin);
@@ -801,7 +801,7 @@ void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 																				Data& data, uint16 security, uint count, Options* opts) {
 	Ucs2String string;
-	for ( int i = 0; i < count; i++ ) {
+	for ( uint i = 0; i < count; i++ ) {
 		string.push(&security, 1);
 	}
 	set_text_layout_offset(rows, limit, data, string, 0, count, opts, true);

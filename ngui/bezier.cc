@@ -62,7 +62,7 @@ float QuadraticBezier::sample_curve_y(float t) const {
  */
 void QuadraticBezier::sample_curve_points(uint sample_count, float* out) const {
 	float dt = 1.0 / ( sample_count - 1 );
-	for( int i = 0; i < sample_count; i++) {
+	for( uint i = 0; i < sample_count; i++) {
 		float t = i * dt;
 		float t2 = 1 - t;
 		float t3 = t2 * t2;
@@ -97,7 +97,7 @@ CubicBezier::CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3): p0x(p0.x()), p0y(p
  */
 void CubicBezier::sample_curve_points(uint sample_count, float* out) const {
 	float dt = 1.0 / ( sample_count - 1 );
-	for( int i = 0; i < sample_count; i++) {
+	for( uint i = 0; i < sample_count; i++) {
 		out[i * 2] = sample_curve_x(i * dt);
 		out[i * 2 + 1] = sample_curve_y(i * dt);
 	}

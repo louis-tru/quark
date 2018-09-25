@@ -215,7 +215,7 @@ class XX_EXPORT Action: public Reference {
 	Action* m_parent;
 	int     m_loop;
 	int     m_loopd;
-	uint64  m_full_duration;
+	int64   m_full_duration;
 	int64   m_delay;
 	int64   m_delayd;
 	float   m_speed;
@@ -360,7 +360,7 @@ class XX_EXPORT KeyframeAction: public Action {
  public:
 	
 	class XX_EXPORT Property {
-	public:
+	 public:
 		virtual ~Property() { }
 		virtual void bind_view(int view_type) = 0;
 		virtual void transition(uint frame1, Action* root) = 0;
@@ -426,10 +426,10 @@ class XX_EXPORT KeyframeAction: public Action {
 		 */
 		void flush();
 		
-# define xx_def_property(ENUM, TYPE, NAME) \
-	void set_##NAME(TYPE value); TYPE NAME();
+	 #define xx_def_property(ENUM, TYPE, NAME) \
+		void set_##NAME(TYPE value); TYPE NAME();
 		XX_EACH_PROPERTY_TABLE(xx_def_property)
-# undef xx_def_property
+	 #undef xx_def_property
 		
 	 private:
 		

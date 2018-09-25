@@ -333,7 +333,7 @@ public:
 	 * @func update_spawn_action_duration()
 	 */
 	void update_spawn_action_duration() {
-		uint64 new_duration = 0;
+		int64 new_duration = 0;
 		
 		for ( auto& i : m_actions ) {
 			new_duration = XX_MAX(i.value()->m_full_duration, new_duration);
@@ -397,8 +397,8 @@ void Frame::flush() {
  * @class KeyframeAction::Inl
  */
 class KeyframeAction::Inl: public KeyframeAction {
-public:
-#define _inl_key_action(self) static_cast<KeyframeAction::Inl*>(self)
+ public:
+ #define _inl_key_action(self) static_cast<KeyframeAction::Inl*>(self)
 	
 	/**
 	 * @func transition
@@ -423,21 +423,21 @@ public:
 	 */
 	uint64 advance(uint64 time_span, Action* root) {
 		
-	start:
+	 start:
 		
 		uint f1 = m_frame;
 		uint f2 = f1 + 1;
 		
 		if ( f2 < length() ) {
-		advance:
+		 advance:
 			
 			if ( ! _inl_action(root)->is_playing() ) { // is playing
 				return 0;
 			}
 			
 			int64 time = m_time + time_span;
-			uint64 time1 = m_frames[f1]->time();
-			uint64 time2 = m_frames[f2]->time();
+			int64 time1 = m_frames[f1]->time();
+			int64 time2 = m_frames[f2]->time();
 			int64 t = time - time2;
 			
 			if ( t < 0 ) {
@@ -476,7 +476,7 @@ public:
 		} else { // last frame
 			
 			if ( m_loop && m_full_duration > m_delay ) {
-			loop:
+			 loop:
 				
 				if ( m_loop > 0 ) {
 					if ( m_loopd < m_loop ) { // 可经继续循环
@@ -693,7 +693,7 @@ void GroupAction::remove_child(uint index) {
 }
 
 void SpawnAction::remove_child(uint index) {
-	uint64 duration = _inl_group_action(this)->m_remove(index) + m_delay;
+	int64 duration = _inl_group_action(this)->m_remove(index) + m_delay;
 	if ( duration == m_full_duration ) {
 		_inl_group_action(this)->update_spawn_action_duration();
 	}
@@ -866,14 +866,14 @@ void KeyframeAction::seek_time(uint64 time, Action* root) {
 		}
 		
 		m_frame = frame->index();
-		m_time = XX_MIN(time, m_full_duration - m_delay);
+		m_time = XX_MIN(int64(time), m_full_duration - m_delay);
 		
 		uint f1 = m_frame;
 		uint f2 = f1 + 1;
 		
 		if ( f2 < length() ) {
-			uint64 time1 = frame->time();
-			uint64 time2 = m_frames[f2]->time();
+			int64 time1 = frame->time();
+			int64 time2 = m_frames[f2]->time();
 			float x = (m_time - time1) / float(time2 - time1);
 			float t = frame->curve().solve(x, 0.001);
 			_inl_key_action(this)->transition(f1, f2, x, t, root);
@@ -881,7 +881,7 @@ void KeyframeAction::seek_time(uint64 time, Action* root) {
 			_inl_key_action(this)->transition(f1, root);
 		}
 		
-		if ( m_time == frame->time() ) {
+		if ( m_time == int64(frame->time()) ) {
 			_inl_action(this)->trigger_action_key_frame(0, m_frame, root);
 		}
 	}

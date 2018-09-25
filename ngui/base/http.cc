@@ -170,12 +170,14 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		
 		Connect(cString& hostname, uint16 port, bool ssl, RunLoop* loop)
 		: m_ssl(ssl)
+		, m_use(false)
+		, m_is_multipart_form_data(false)
+		, m_send_data(false)
 		, m_socket(nullptr)
 		, m_client(nullptr)
-		, m_use(false)
 		, m_upload_file(nullptr)
 		, m_z_gzip(0), m_loop(loop) { //
-			
+
 			if ( m_ssl ) {
 				m_socket = new SSLSocket(hostname, port, loop);
 			} else {

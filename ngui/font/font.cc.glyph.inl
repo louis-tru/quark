@@ -98,7 +98,7 @@ public:
 		m_ascender = 0;
 		m_descender = 0;
 		
-		for ( int i = 0; i < m_fonts.length(); i++ ) {
+		for ( uint i = 0; i < m_fonts.length(); i++ ) {
 			Font* font = m_fonts[i];
 			m_height = XX_MAX(m_height, font->height());
 			m_ascender = XX_MAX(m_ascender, font->ascender());

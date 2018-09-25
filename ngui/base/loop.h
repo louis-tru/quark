@@ -71,7 +71,7 @@ class KeepLoop;
 class XX_EXPORT SimpleThread {
  public:
 	typedef NonObjectTraits Traits;
-#define XX_THREAD_LOCK(__t, block, ...) {\
+ #define XX_THREAD_LOCK(__t, block, ...) {\
 	ScopeLock __t##_lock(__t.mutex()); if (!__t.is_abort()) { block; } else { __VA_ARGS__; } }
 	typedef std::function<void(SimpleThread& thread)> Exec;
 	inline bool is_abort() const { return m_abort; }
@@ -237,8 +237,8 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 		int64 time;
 		Callback resolve;
 	};
-	List<Queue> m_queue;
 	struct Work;
+	List<Queue> m_queue;
 	List<Work*> m_work;
 	Mutex m_mutex;
 	RecursiveMutex* m_independent_mutex;
@@ -258,7 +258,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 class XX_EXPORT KeepLoop: public Object, public PostMessage {
 	XX_HIDDEN_ALL_COPY(KeepLoop);
  public:
-	xx_default_allocator();
+	XX_DEFAULT_ALLOCATOR();
 	/**
 	 * @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
 	 */

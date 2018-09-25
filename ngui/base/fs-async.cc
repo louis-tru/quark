@@ -352,7 +352,7 @@ public:
 	void advance() {
 		if ( is_abort() ) return;
 		
-		if ( m_last->index < m_last->dirents.length() ) {
+		if ( m_last->index < int(m_last->dirents.length()) ) {
 			m_dirent = &m_last->dirents[m_last->index];
 			
 			if ( m_internal ) { // 内部优先

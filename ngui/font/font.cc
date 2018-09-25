@@ -368,9 +368,9 @@ FontPool::FontPool(Draw* ctx)
 : m_ft_lib(nullptr)
 , m_draw_ctx(ctx)
 , m_display_port(nullptr)
+, m_total_data_size(0)
 , m_max_glyph_texture_size(0)
 , m_display_port_scale(0)
-, m_total_data_size(0)
 {
 	XX_ASSERT(m_draw_ctx);
 	
@@ -379,7 +379,7 @@ FontPool::FontPool(Draw* ctx)
 	{ // 载入内置字体
 		uint count = sizeof(native_fonts_) / sizeof(Native_font_data_);
 		
-		for (int i = 0 ; i < count; i++) {
+		for (uint i = 0 ; i < count; i++) {
 			WeakBuffer data((cchar*)native_fonts_[i].data, native_fonts_[i].count);
 			auto font_data = new FontFromData::Data(data);
 			_inl_pool(this)->register_font(font_data, i == 1 ? "icon" : String());
@@ -402,7 +402,7 @@ FontPool::FontPool(Draw* ctx)
 			
 			const SimpleFontFamily& sffd = i.value();
 			
-			for (int i = 0; i < sffd.fonts.length(); i++) {
+			for (uint i = 0; i < sffd.fonts.length(); i++) {
 				const SimpleFont& sfd = sffd.fonts[i];
 				
 				_inl_pool(this)->register_font(sffd.family, sfd.name,
@@ -459,7 +459,7 @@ void FontPool::set_default_fonts(const Array<String>* first, ...) {
 	
 	auto end = m_blend_fonts.end();
 	
-	for (int i = 0; i < first->length(); i++) {
+	for (uint i = 0; i < first->length(); i++) {
 		auto j = m_blend_fonts.find(first->item(i));
 		if (j != end) {
 			has.set(j.value()->name(), true);
@@ -474,7 +474,7 @@ void FontPool::set_default_fonts(const Array<String>* first, ...) {
 	const Array<String>* ls = va_arg(arg, const Array<String>*);
 	
 	while (ls) {
-		for (int i = 0; i < ls->length(); i++) {
+		for (uint i = 0; i < ls->length(); i++) {
 			auto j = m_blend_fonts.find(ls->item(i));
 			if (j != end) {
 				if ( ! has.has(j.value()->name()) ) {
@@ -505,7 +505,7 @@ void FontPool::set_default_fonts(const Array<String>& fonts) {
 	
 	auto end = m_blend_fonts.end();
 	
-	for (int i = 0; i < fonts.length(); i++) {
+	for (uint i = 0; i < fonts.length(); i++) {
 		auto j = m_blend_fonts.find(fonts[i].trim());
 		if (j != end) {
 			if ( ! has.has(j.value()->name()) ) {
@@ -525,7 +525,7 @@ void FontPool::set_default_fonts(const Array<String>& fonts) {
  */
 Array<String> FontPool::default_font_names() const {
 	Array<String> rev;
-	for (int i = 0; i < m_default_fonts.length(); i++)
+	for (uint i = 0; i < m_default_fonts.length(); i++)
 		rev.push(m_default_fonts[i]->name());
 	return rev;
 }
@@ -611,7 +611,7 @@ bool FontPool::register_font_file(cString& path, cString& family_alias) {
 		
 		if ( !sffd.is_null() ) {
 			
-			for (int i = 0; i < sffd->fonts.length(); i++) {
+			for (uint i = 0; i < sffd->fonts.length(); i++) {
 				
 				SimpleFont& sfd = sffd->fonts[i];
 				if (!

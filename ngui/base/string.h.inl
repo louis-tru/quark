@@ -117,7 +117,7 @@ static int _last_index_of(const BasicString* self,
 													const typename BasicString::Char* s, int len, int start) {
 	// typedef typename BasicString::Char Char;
 	
-	if ( start + len > self->length() )
+	if ( start + len > int(self->length()) )
 		start = self->length() - len;
 	
 	for ( ; start > -1; start--) {
@@ -467,7 +467,7 @@ bool BasicString<Char, Container>::is_blank() const { // Not Thread safe
 	
 	Char* value = m_core->value();
 	
-	for (int i = 0 ; i < len; i++) {
+	for (uint i = 0 ; i < len; i++) {
 		if (strchr(ws, value[i]) == nullptr) {
 			return false;
 		}

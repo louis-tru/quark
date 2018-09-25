@@ -354,32 +354,38 @@ void JSON::remove(cString& key) {
 
 void JSON::remove(JSON::ConstIterator it) {
 	RValue* self = reinterpret_cast<RValue*>(this);
-	self->EraseMember(*reinterpret_cast<RValue::ConstMemberIterator*>(&it));
+	auto it_ = reinterpret_cast<RValue::ConstMemberIterator*>(&it);
+	self->EraseMember(*it_);
 }
 
 void JSON::remove(JSON::ConstArrayIterator it) {
 	RValue* self = reinterpret_cast<RValue*>(this);
-	self->Erase(*reinterpret_cast<RValue::ConstValueIterator*>(&it));
+	auto it_ = reinterpret_cast<RValue::ConstValueIterator*>(&it);
+	self->Erase(*it_);
 }
 
 JSON::Iterator JSON::begin() {
-	RValue::MemberIterator it = reinterpret_cast<RValue*>(this)->MemberBegin();
-	return *reinterpret_cast<JSON::Iterator*>(&it);
+	auto it = reinterpret_cast<RValue*>(this)->MemberBegin();
+	auto it_ = reinterpret_cast<JSON::Iterator*>(&it);
+	return *it_;
 }
 
 JSON::Iterator JSON::end() {
-	RValue::MemberIterator it = reinterpret_cast<RValue*>(this)->MemberEnd();
-	return *reinterpret_cast<JSON::Iterator*>(&it);
+	auto it = reinterpret_cast<RValue*>(this)->MemberEnd();
+	auto it_ = reinterpret_cast<JSON::Iterator*>(&it);
+	return *it_;
 }
 
 JSON::ConstIterator JSON::begin() const {
-	RValue::ConstMemberIterator it = reinterpret_cast<CRValue*>(this)->MemberBegin();
-	return *reinterpret_cast<JSON::ConstIterator*>(&it);
+	auto it = reinterpret_cast<CRValue*>(this)->MemberBegin();
+	auto it_ = reinterpret_cast<JSON::ConstIterator*>(&it);
+	return *it_;
 }
 
 JSON::ConstIterator JSON::end() const {
-	RValue::ConstMemberIterator it = reinterpret_cast<CRValue*>(this)->MemberEnd();
-	return *reinterpret_cast<JSON::ConstIterator*>(&it);
+	auto it = reinterpret_cast<CRValue*>(this)->MemberEnd();
+	auto it_ = reinterpret_cast<JSON::ConstIterator*>(&it);
+	return *it_;
 }
 
 JSON::ArrayIterator JSON::begin_array() {

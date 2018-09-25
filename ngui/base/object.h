@@ -62,7 +62,7 @@ typedef long long int int64;
 typedef unsigned long long int uint64;
 #endif
 
-#define xx_default_allocator() \
+#define XX_DEFAULT_ALLOCATOR()  \
 static void* operator new(std::size_t size) { return ::operator new(size); } \
 static void  operator delete(void* p) { ::operator delete(p); } \
 virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }

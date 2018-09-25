@@ -202,7 +202,13 @@
 					'-Wall',
 					'-Wextra',
 					'-Wno-unused-parameter',
+					'-Wno-unused-variable',
+					'-Wno-unused-but-set-variable',
+					'-Wno-unused-result',
 					'-Wno-deprecated',
+					'-Wno-missing-field-initializers',
+					'-Wno-implicit-fallthrough',
+					# '-Wno-misleading-indentation',
 					'-march=<(arch_name)',
 				],
 				'ldflags': [ 

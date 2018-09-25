@@ -88,8 +88,8 @@ AVStream* MultimediaSource::get_stream(const TrackInfo& t) { return m_inl->get_s
 Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks)
 : m_host(host)
 , m_type(type)
-, m_tracks(move(tracks))
 , m_track_index(0)
+, m_tracks(move(tracks))
 , m_sample_data_cache()
 , m_sample_index_cache(0)
 , m_sample_count_cache(0)
@@ -97,7 +97,6 @@ Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& 
 , m_eof_flags(0)
 , m_disable(1)
 {
-	
 }
 
 /**

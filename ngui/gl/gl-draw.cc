@@ -415,7 +415,7 @@ public:
 				
 				glUniform1f(shader::text_vertex.hori_baseline, cell.baseline + offset.y());
 				
-				for (int j = 0; j < count; j++) {
+				for (uint j = 0; j < count; j++) {
 					FontGlyph* glyph = table->use_vector_glyph(chars[j]);
 					/* 水平偏移 */
 					float offset_x = offset_start + (cell.reverse ? -offset_table[j + 1] : offset_table[j]);
@@ -456,7 +456,7 @@ public:
 				
 				glUniform1f(shader::text_texture.hori_baseline, cell.baseline + offset.y() );
 				
-				for (int j = 0; j < count; j++) {
+				for (uint j = 0; j < count; j++) {
 					
 					uint16 unicode = chars[j];
 					FontGlyph* glyph = table->use_texture_glyph(unicode, level); /* 使用纹理 */

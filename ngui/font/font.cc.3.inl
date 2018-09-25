@@ -275,7 +275,7 @@ const SimpleFontList& FontPool::system_font_family() {
 				item["family"] = sffd->family;
 				JSON fonts = JSON::array();
 				
-				for ( int i = 0; i < sffd->fonts.length(); i++ ) {
+				for ( uint i = 0; i < sffd->fonts.length(); i++ ) {
 					SimpleFont& sfd = sffd->fonts[i];
 					JSON font = JSON::array();
 					font[0] = sfd.name;

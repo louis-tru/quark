@@ -71,7 +71,7 @@ bool Array<T, Container>::IteratorData::equals(const IteratorData& it) const {
 
 template<class T, class Container>
 bool Array<T, Container>::IteratorData::is_null() const {
-	return !_host || _index == _host->_length;
+	return !_host || uint(_index) == _host->_length;
 }
 
 template<class T, class Container>
@@ -83,7 +83,7 @@ void Array<T, Container>::IteratorData::prev() { // --
 template<class T, class Container>
 void Array<T, Container>::IteratorData::next() { // ++
 	if (_host)
-		_index = XX_MIN(_host->_length, _index + 1);
+		_index = XX_MIN(_host->_length, uint(_index + 1));
 }
 
 // Array

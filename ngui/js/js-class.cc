@@ -33,9 +33,8 @@
 JS_BEGIN
 
 JSClassStore::JSClassStore(Worker* worker)
-: worker_(worker)
-, current_attach_object_(nullptr) {
-	
+: current_attach_object_(nullptr)
+, worker_(worker) {
 }
 
 JSClassStore::~JSClassStore() {

@@ -37,7 +37,7 @@ XX_NS(ngui)
 #define CACHE_DATA_TIME_SECOND 10
 
 class DefaultMultimediaSourceDelegate: public MultimediaSource::Delegate {
-public:
+ public:
 	virtual void multimedia_source_ready(MultimediaSource* source) {}
 	virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) {}
 	virtual void multimedia_source_eof(MultimediaSource* source) {}
@@ -53,14 +53,13 @@ Inl::Inl(MultimediaSource* host, cString& uri, RunLoop* loop)
 , m_host(host)
 , m_status(MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED)
 , m_delegate(&default_multimedia_source_delegate)
-, m_duration(0)
 , m_bit_rate_index(0)
+, m_duration(0)
 , m_fmt_ctx(nullptr)
 , m_read_eof(false)
 , m_disable_wait_buffer(false)
 {
 	m_uri = URI( f_reader()->format(uri) );
-	
 	/* register all formats and codecs */
 	av_register_all();
 	avformat_network_init();
@@ -132,7 +131,7 @@ bool Inl::select_bit_rate(uint index) {
 			Extractor* ex = i.value();
 			Array<TrackInfo> tracks;
 
-			for ( int j = 0; j < info.tracks.length(); j++ ) {
+			for ( uint j = 0; j < info.tracks.length(); j++ ) {
 				if (info.tracks[j].type == ex->type()) {
 					tracks.push(info.tracks[j]);
 				}
@@ -173,18 +172,18 @@ void Inl::extractor_flush(Extractor* ex) {
 void Inl::select_multi_bit_rate2(uint index) {
 	AVFormatContext* fmt_ctx = m_fmt_ctx;
 	if ( fmt_ctx->nb_programs ) {
-		for (int i = 0; i < fmt_ctx->nb_programs; i++) {
+		for (uint i = 0; i < fmt_ctx->nb_programs; i++) {
 			AVProgram* program = fmt_ctx->programs[i];
-			for (int j = 0; j < program->nb_stream_indexes; j++) {
+			for (uint j = 0; j < program->nb_stream_indexes; j++) {
 				fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_ALL;
 			}
 		}
 		AVProgram* program = fmt_ctx->programs[ XX_MIN(index, fmt_ctx->nb_programs - 1) ];
-		for (int j = 0; j < program->nb_stream_indexes; j++) {
+		for (uint j = 0; j < program->nb_stream_indexes; j++) {
 			fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_NONE;
 		}
 	} else {
-		for ( int i = 0; i < fmt_ctx->nb_streams; i++ ) {
+		for ( uint i = 0; i < fmt_ctx->nb_streams; i++ ) {
 			fmt_ctx->streams[i]->discard = AVDISCARD_NONE;
 		}
 	}
@@ -207,7 +206,7 @@ Extractor* Inl::extractor(MediaType type) {
 			BitRateInfo& info = m_bit_rate[m_bit_rate_index];
 			Array<TrackInfo> tr;
 			
-			for (int i = 0; i < info.tracks.length(); i++) {
+			for (uint i = 0; i < info.tracks.length(); i++) {
 				if (info.tracks[i].type == type) {
 					tr.push(info.tracks[i]);
 				}
@@ -379,7 +378,7 @@ void Inl::start() {
 		Array<BitRateInfo> bit_rate;
 		
 		if (fmt_ctx->nb_programs) {
-			for (int i = 0; i < fmt_ctx->nb_programs; i++) {
+			for (uint i = 0; i < fmt_ctx->nb_programs; i++) {
 				AVProgram* program = fmt_ctx->programs[i];
 				BitRateInfo info = read_bit_rate_info(fmt_ctx, *program->stream_index,
 																						 *program->stream_index + program->nb_stream_indexes);
@@ -631,11 +630,11 @@ bool Inl::extractor_advance(Extractor* ex) {
 /**
  * @func read_stream
  * */
-void Inl::read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, int bit_rate_index) {
+void Inl::read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index) {
 	
 	Array<double> tbns;
 	
-	for (int i = 0; i < fmt_ctx->nb_streams; i++) {
+	for (uint i = 0; i < fmt_ctx->nb_streams; i++) {
 		AVStream* stream  = fmt_ctx->streams[i];
 		double n = double(1000000.0) / (double(stream->time_base.den) / double(stream->time_base.num));
 		tbns.push(n);
@@ -698,7 +697,7 @@ void Inl::read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, i
 				}
 
 				if ( has_valid_extractor() ) {
-					int stream = pkt.stream_index; // stream index
+					uint stream = pkt.stream_index; // stream index
 					
 					Extractor *ex = valid_extractor(fmt_ctx->streams[stream]->codecpar->codec_type);
 					if (ex) {

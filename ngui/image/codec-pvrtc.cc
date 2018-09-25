@@ -265,10 +265,10 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		const char PVRv2TexIdentifier[4] = { 'P', 'V', 'R', '!' };
 		PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
 		uint pvrTag = header->pvrTag;
-		if (PVRv2TexIdentifier[0] != ((pvrTag >>  0) & 0xff) ||
-				PVRv2TexIdentifier[1] != ((pvrTag >>  8) & 0xff) ||
-				PVRv2TexIdentifier[2] != ((pvrTag >> 16) & 0xff) ||
-				PVRv2TexIdentifier[3] != ((pvrTag >> 24) & 0xff)) {
+		if (PVRv2TexIdentifier[0] != char((pvrTag >>  0) & 0xff) ||
+				PVRv2TexIdentifier[1] != char((pvrTag >>  8) & 0xff) ||
+				PVRv2TexIdentifier[2] != char((pvrTag >> 16) & 0xff) ||
+				PVRv2TexIdentifier[3] != char((pvrTag >> 24) & 0xff)) {
 			return false;
 		}
 		return true;
@@ -370,7 +370,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 			
 			uint numberOfMipmaps = header->numberOfMipmaps;
 			
-			for (int i = 0; i < numberOfMipmaps; i++) {
+			for (uint i = 0; i < numberOfMipmaps; i++) {
 				
 				uint dataSize = m_get_texture_data_size(*header, i);
 				char* new_data = new char[dataSize];

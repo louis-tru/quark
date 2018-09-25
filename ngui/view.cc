@@ -677,7 +677,7 @@ void View::set_parent(View* parent) throw(Error) {
 		m_parent = parent;
 		
 		// 设置level
-		int level = parent->m_level;
+		uint level = parent->m_level;
 		if (level) {
 			if ( level + 1 != m_level ) {
 				_inl(this)->set_level_and_visible(level + 1, parent->m_final_visible);

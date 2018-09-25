@@ -97,7 +97,7 @@ template<> uint Array<T, Container<T>>::write(const T* src, int to, uint size) {
 } \
 \
 template<> uint Array<T, Container<T>>::pop(uint count) { \
-	int j = XX_MAX(_length - count, 0); \
+	uint j = uint(XX_MAX(_length - count, 0)); \
 	if (_length > j) {  \
 		_length = j;  \
 		_container.realloc(_length); \

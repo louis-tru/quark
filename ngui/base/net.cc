@@ -46,7 +46,7 @@ static String* ssl_client_key_file_path = new String();
 static String* ssl_client_keypasswd = new String();
 static X509_STORE* ssl_x509_store = nullptr;
 static SSL_CTX* ssl_v23_client_ctx = nullptr;
-static X509_STORE* (*NewRootCertStore)() = nullptr;
+static X509_STORE* (*new_root_cert_store)() = nullptr;
 
 struct SocketWriteReqData {
 	Buffer raw_buffer;
@@ -81,17 +81,17 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	: m_host(host)
 	, m_delegate(this)
 	, m_keep(loop->keep_alive(false))
-	, m_port(0)
 	, m_uv_handle(nullptr)
 	, m_is_open(false)
 	, m_is_opening(false)
 	, m_is_pause(false)
 	, m_enable_keep_alive(false)
-	, m_keep_idle(7200)
 	, m_no_delay(false)
-	, m_timeout(0)
+	, m_keep_idle(7200)
+	, m_port(0)
 	, m_uv_tcp(nullptr)
 	, m_uv_timer(nullptr)
+	, m_timeout(0)
 	{ //
 		XX_CHECK(m_keep);
 	}
@@ -561,8 +561,8 @@ class SSL_INL: public Socket::Inl {
 			ssl_v23_client_ctx = SSL_CTX_new( SSLv23_client_method() );
 			SSL_CTX_set_verify(ssl_v23_client_ctx, SSL_VERIFY_PEER, NULL);
 			if (!ssl_x509_store) {
-				if (NewRootCertStore) {
-					ssl_x509_store = NewRootCertStore();
+				if (new_root_cert_store) {
+					ssl_x509_store = new_root_cert_store();
 					SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
 				} else {
 					set_ssl_cacert_file(Path::resources("cacert.pem"));
@@ -905,7 +905,7 @@ class SSL_INL: public Socket::Inl {
 	
 	SSL*    m_ssl;
 	cchar*  m_bio_read_source_buffer;
-	uint    m_bio_read_source_buffer_length;
+	int     m_bio_read_source_buffer_length;
 	Buffer  m_ssl_read_buffer;
 	String  m_ssl_error_msg;
 	int     m_ssl_handshake;
@@ -989,9 +989,10 @@ void Socket::write(Buffer buffer, int mark) {
 
 void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
 	XX_CHECK(func);
-	NewRootCertStore = func;
+	new_root_cert_store = func;
 }
 
+/*
 static void set_ssl_cacert_file(cString& path) {
 	SSL_INL::set_ssl_cacert_file(path);
 }
@@ -1002,7 +1003,7 @@ static void set_ssl_client_key_file(cString& path) {
 
 static void set_ssl_client_keypasswd(cString& passwd) {
 	*ssl_client_keypasswd = passwd;
-}
+}*/
 
 SSLSocket::SSLSocket(cString& hostname, uint16 port, RunLoop* loop) {
 	m_inl = NewRetain<SSL_INL>(this, loop);

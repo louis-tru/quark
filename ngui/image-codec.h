@@ -133,12 +133,12 @@ class XX_EXPORT PixelData: public Object {
 	/**
 	 * @func width 图像宽度
 	 */
-	inline int width() const { return m_width; };
+	inline uint width() const { return m_width; };
 	
 	/**
 	 * @func height 图像高度
 	 */
-	inline int height() const { return m_height; };
+	inline uint height() const { return m_height; };
 	
 	/**
 	 * @func format 图像像素的排列格式

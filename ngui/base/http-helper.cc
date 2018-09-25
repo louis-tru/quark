@@ -209,7 +209,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	class Client: public HttpClientRequest, public HttpClientRequest::Delegate {
 	 public:
 		Client(RunLoop* loop): HttpClientRequest(loop)
-		, m_loop(loop), full_data(1), is_error(0), ok(0) {
+		, full_data(1), is_error(0), ok(0), m_loop(loop) {
 			set_delegate(this);
 		}
 		virtual void trigger_http_error(HttpClientRequest* req, cError& err) {

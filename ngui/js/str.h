@@ -105,12 +105,10 @@ JS_BEGIN
 class XX_EXPORT CommonStrings: public Object {
  public:
 	CommonStrings(Worker* worker);
-#define js_def_persistent_string(name) \
-public: Local<JSValue> name() { \
-return *reinterpret_cast<Local<JSValue>*>\
-	(const_cast<Persistent<JSValue>*>(&__##name##_$_)); \
-} \
-private: Persistent<JSValue> __##name##_$_;
+ #define js_def_persistent_string(name) \
+ public: Local<JSValue> name() { \
+		auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
+ private: Persistent<JSValue> __##name##_$_;
  private:
 	Worker* m_worker;
 	js_def_persistent_string(Throw)

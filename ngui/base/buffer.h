@@ -253,9 +253,12 @@ template<class T> class XX_EXPORT WeakArrayBuffer: public ArrayBuffer<T> {
 		this->_container.m_weak = true;
 	}
 	
-	WeakArrayBuffer(const WeakArrayBuffer& arr) {
+	WeakArrayBuffer(const WeakArrayBuffer<T>& arr) 
+	: ArrayBuffer<T>(
+		const_cast<T*>(*arr._container), 
+		arr._length, arr._container.capacity()
+	) {
 		this->_container.m_weak = true;
-		operator=(arr);
 	}
 	
 	template<class T2>
@@ -264,7 +267,7 @@ template<class T> class XX_EXPORT WeakArrayBuffer: public ArrayBuffer<T> {
 		operator=(arr);
 	}
 
-	WeakArrayBuffer& operator=(const WeakArrayBuffer& arr) {
+	WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
 		return operator=(*static_cast<const Array<T, BufferContainer<T>>*>(&arr));
 	}
 	

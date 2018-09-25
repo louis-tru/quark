@@ -619,8 +619,9 @@ class XX_EXPORT Worker: public Object {
 	
 	template <class T>
 	XX_INLINE Local<T> New(const PersistentBase<T>& value) {
-		Local<JSValue> r = New(*reinterpret_cast<const PersistentBase<JSValue>*>(&value));
-		return *reinterpret_cast<Local<T>*>(&r);
+		auto r = New(*reinterpret_cast<const PersistentBase<JSValue>*>(&value));
+		auto r_ = reinterpret_cast<Local<T>*>(&r);
+		return *r_;
 	}
 	
 	Local<JSValue> New(const PersistentBase<JSValue>& value);

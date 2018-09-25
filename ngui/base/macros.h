@@ -80,7 +80,7 @@
 # define XX_ASSERT(cond, ...) XX_CHECK(cond, ##__VA_ARGS__)
 # define XX_DEBUG(msg, ...) ngui::console::log(msg, ##__VA_ARGS__)
 #else
-# define XX_ASSERT(cond, ...)	((void)0)
+# define XX_ASSERT(cond, ...) ((void)0)
 # define XX_DEBUG(msg, ...) ((void)0)
 #endif
 
@@ -93,14 +93,14 @@
 		return reinterpret_cast<cls::Inl*>(self); \
 	} class cls::Inl: public cls
 
-#define XX_LOG(msg, ...)     	ngui::console::log(msg, ##__VA_ARGS__)
-#define XX_WARN(msg, ...)   	ngui::console::warn(msg, ##__VA_ARGS__)
+#define XX_LOG(msg, ...)      ngui::console::log(msg, ##__VA_ARGS__)
+#define XX_WARN(msg, ...)     ngui::console::warn(msg, ##__VA_ARGS__)
 #define XX_ERR(msg, ...)      ngui::console::error(msg, ##__VA_ARGS__)
 #define XX_FATAL(...)         ngui::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define XX_UNIMPLEMENTED()    XX_FATAL("Unimplemented code")
 #define XX_UNREACHABLE()      XX_FATAL("Unreachable code")
-#define XX_MIN(A, B)	        ((A) < (B) ? (A) : (B))
-#define XX_MAX(A, B)	        ((A) > (B) ? (A) : (B))
+#define XX_MIN(A, B)          ((A) < (B) ? (A) : (B))
+#define XX_MAX(A, B)          ((A) > (B) ? (A) : (B))
 #define LOG XX_LOG
 
 // ------------------------------------------------------------------

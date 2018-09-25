@@ -90,7 +90,7 @@ bool FileHelper::mkdir_p_sync(cString& path, uint mode) {
 		return true;
 	}
 	
-	uint len = (uint)strlen(path2);
+	int len = strlen(path2);
 	char c = path2[len - 1];
 	if (c == '/' || c == '\\') {
 		len--;
@@ -371,7 +371,7 @@ bool FileHelper::writable_sync(cString& path) {
 bool FileHelper::executable_sync(cString& path) {
 	uv_fs_t req;
 	int r = uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), X_OK, nullptr);
-	return r = 0;
+	return (r == 0);
 }
 
 // --------------- file read write ---------------

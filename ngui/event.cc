@@ -546,7 +546,7 @@ public:
 				}
 
 				if ( name == KEYCODE_CENTER && m_keyboard->repeat() == 0 ) {
-					CGRect rect = view->screen_rect();
+					// CGRect rect = view->screen_rect();
 					auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 				}

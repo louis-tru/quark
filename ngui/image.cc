@@ -82,7 +82,7 @@ public:
 		
 		bool h = raw_limit.width() != m_limit.width();
 		bool v = raw_limit.height() != m_limit.height();
-		bool child_mark = M_NONE;
+		uint child_mark = M_NONE;
 		
 		if ( h ) {
 			if ( m_content_align == ContentAlign::RIGHT ) {

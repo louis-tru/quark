@@ -64,10 +64,10 @@ namespace console {
 	XX_EXPORT void print_err(cchar*, ...);
 	XX_EXPORT void print_err(cString&);
 	XX_EXPORT void clear();
-#if XX_ARCH_32BIT
+ #if XX_ARCH_32BIT
 	XX_EXPORT void log(long);
 	XX_EXPORT void log(unsigned long);
-#endif
+ #endif
 }
 
 /**
@@ -76,6 +76,7 @@ namespace console {
 class XX_EXPORT Console {
  public:
 	typedef NonObjectTraits Traits;
+	virtual ~Console() = default;
 	virtual void log(cString& str);
 	virtual void warn(cString& str);
 	virtual void error(cString& str);

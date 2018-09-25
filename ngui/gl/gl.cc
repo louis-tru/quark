@@ -75,7 +75,7 @@ public:
 			
 			if ( *shader->shader_uniforms != '\0' ) {
 				Array<String> uniforms = String(shader->shader_uniforms).split(',');
-				for ( int i = 0; i < uniforms.length(); i++ ) {
+				for ( uint i = 0; i < uniforms.length(); i++ ) {
 					int index = glGetUniformLocation( handle, *uniforms[i] );
 					*(((int*)(shader + 1)) + i) = index;
 				}
