@@ -78,7 +78,7 @@ while (false) { \
 	auto cls = worker->NewClass(JS_TYPEID(name), #name, \
 	constructor, &Attach::Callback, base); \
 	cls->SetInstanceInternalFieldCount(1); \
-	block; ((void*)0)
+	block; ((void)0) 
 
 #define JS_DEFINE_CLASS(name, constructor, block, base) \
 	JS_NEW_CLASS(name, constructor, block, JS_TYPEID(base)); \
@@ -319,7 +319,8 @@ class XX_EXPORT ReturnValue {
 	template <class S>
 	inline void Set(Local<S> value) {
 		JS_TYPE_CHECK(JSValue, S);
-		Set(*reinterpret_cast<Local<JSValue>*>(&value));
+		auto _ = reinterpret_cast<Local<JSValue>*>(&value);
+		Set(*_);
 	}
 	void Set(bool value);
 	void Set(double i);

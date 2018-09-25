@@ -70,7 +70,7 @@ class InlJSON {
 	Local<JSValue> _mark_key;
 	
 	void push_indent() {
-		for (int i = 0; i < _indent; i++) {
+		for (uint i = 0; i < _indent; i++) {
 			_rv->push(Space);
 		}
 	}
@@ -129,7 +129,7 @@ class InlJSON {
 		_rv->push(BufferPrefix);
 		cchar* hex = "0123456789abcdef";
 		byte* s = (byte*)buf->value();
-		for (int i = 0; i < buf->length(); i++) {
+		for (uint i = 0; i < buf->length(); i++) {
 			byte ch = s[i];
 			_rv->push(Space);
 			_rv->push( hex[ch >> 4] );
@@ -254,7 +254,7 @@ class InlJSON {
 	}
 	
  public:
-	InlJSON(Worker* worker) : _indent(0), worker(worker), _rv(NULL) {
+	InlJSON(Worker* worker) : _indent(0), _rv(NULL), worker(worker) {
 		_mark_key = worker->strs()->___mark_json_stringify__();
 	}
 	

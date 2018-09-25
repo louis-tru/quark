@@ -82,12 +82,14 @@ typedef const v8::PropertyCallbackInfo<void>&  V8PropertySetCall;
 
 template<class T = JSValue, class S>
 XX_INLINE Local<T> Cast(v8::Local<S> o) {
-	return *reinterpret_cast<Local<T>*>(&o);
+	auto _ = reinterpret_cast<Local<T>*>(&o);
+	return *_;
 }
 
 template<class T = v8::Value, class S>
 XX_INLINE v8::Local<T> Back(Local<S> o) {
-	return *reinterpret_cast<v8::Local<T>*>(&o);
+	auto _ = reinterpret_cast<v8::Local<T>*>(&o);
+	return *_;
 }
 
 /**
@@ -286,11 +288,13 @@ class V8JSClass: public JSClassIMPL {
 	}
 	
 	v8::Local<v8::FunctionTemplate> Template() {
-		return *reinterpret_cast<v8::Local<v8::FunctionTemplate>*>(&temp_);
+		auto _ = reinterpret_cast<v8::Local<v8::FunctionTemplate>*>(&temp_);
+		return *_;
 	}
 	
 	v8::Local<v8::Function> ParentFromFunction() {
-		return *reinterpret_cast<v8::Local<v8::Function>*>(&parent_2_);
+		auto _ = reinterpret_cast<v8::Local<v8::Function>*>(&parent_2_);
+		return *_;
 	}
 	
 	bool HasParentFromFunction() {
@@ -843,7 +847,8 @@ bool FunctionCallbackInfo::IsConstructCall() const {
 ReturnValue FunctionCallbackInfo::GetReturnValue() const {
 	auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
 	v8::ReturnValue<v8::Value> rv = info->GetReturnValue();
-	return *reinterpret_cast<ReturnValue*>(&rv);
+	auto _ = reinterpret_cast<ReturnValue*>(&rv);
+	return *_;
 }
 
 Local<JSObject> PropertyCallbackInfo::This() const {
@@ -853,7 +858,8 @@ Local<JSObject> PropertyCallbackInfo::This() const {
 ReturnValue PropertyCallbackInfo::GetReturnValue() const {
 	auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
 	v8::ReturnValue<v8::Value> rv = info->GetReturnValue();
-	return *reinterpret_cast<ReturnValue*>(&rv);
+	auto _ = reinterpret_cast<ReturnValue*>(&rv);
+	return *_;
 }
 
 Local<JSObject> PropertySetCallbackInfo::This() const {
@@ -1094,7 +1100,7 @@ Local<JSObject> Worker::NewError(Local<JSObject> value) {
 	v8::Local<v8::Value> msg = v->Get( Back(strs()->message()) );
 	v8::Local<v8::Object> e = v8::Exception::Error(msg->ToString()).As<v8::Object>();
 	v8::Local<v8::Array> names = v->GetPropertyNames();
-	for (int i = 0, j = 0; i < names->Length(); i++) {
+	for (uint i = 0, j = 0; i < names->Length(); i++) {
 		v8::Local<v8::Value> key = names->Get(i);
 		e->Set(key, v->Get(key));
 	}

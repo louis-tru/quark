@@ -46,9 +46,9 @@ class NativeViewController: public ViewController {
  public:
 	virtual void trigger_remove_view(View* view) {
 		Wrap<NativeViewController>* wrap = WrapObject::pack(this);
+		HandleScope scope(wrap->worker());
 		Wrap<View>* wrap_view = Wrap<View>::pack(view, view->view_type());
 		Local<JSValue> arg = wrap_view->that();
-		HandleScope scope(wrap->worker());
 		wrap->call(wrap->worker()->strs()->triggerRemoveView(), 1, &arg); // trigger event
 	}
 };

@@ -88,11 +88,13 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		}
 		virtual void trigger_http_write(HttpClientRequest* req) {
 			if ( !trigger_write.is_empty() ) {
+				HandleScope scope(worker());
 				host()->call( worker()->New(trigger_write, 1) );
 			}
 		}
 		virtual void trigger_http_header(HttpClientRequest* req) {
 			if ( !trigger_header.is_empty() ) {
+				HandleScope scope(worker());
 				host()->call( worker()->New(trigger_header, 1) );
 			}
 		}
@@ -105,21 +107,25 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		}
 		virtual void trigger_http_end(HttpClientRequest* req) {
 			if ( !trigger_end.is_empty() ) {
+				HandleScope scope(worker());
 				host()->call( worker()->New(trigger_end, 1) );
 			}
 		}
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {
 			if ( !trigger_readystate_change.is_empty() ) {
+				HandleScope scope(worker());
 				host()->call( worker()->New(trigger_readystate_change, 1) );
 			}
 		}
 		virtual void trigger_http_timeout(HttpClientRequest* req) {
 			if ( !trigger_timeout.is_empty() ) {
+				HandleScope scope(worker());
 				host()->call( worker()->New(trigger_timeout, 1) );
 			}
 		}
 		virtual void trigger_http_abort(HttpClientRequest* req) {
 			if ( !trigger_abort.is_empty() ) {
+				HandleScope scope(worker());
 				host()->call( worker()->New(trigger_abort, 1) );
 			}
 		}
