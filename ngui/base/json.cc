@@ -199,7 +199,7 @@ JSON& JSON::operator[](cJSON& key) {
 	}
 	else {
 		// 创建一个空值
-		self->AddMember(RValue(n, shareMemoryPoolAllocator),
+		self->AddMember(RValue(n.GetString(), n.GetStringLength(), shareMemoryPoolAllocator),
 										RValue(),
 										shareMemoryPoolAllocator);
 		value = &self->FindMember(n)->value;
@@ -253,7 +253,7 @@ JSON& JSON::operator[] (cchar* key) {
 	}
 	else {
 		// 创建一个空值
-		self->AddMember(RValue(n, shareMemoryPoolAllocator),
+		self->AddMember(RValue(key, n.GetStringLength(), shareMemoryPoolAllocator),
 										RValue(),
 										shareMemoryPoolAllocator);
 		value = &self->FindMember(n)->value;

@@ -57,7 +57,7 @@ class LinuxGLDrawCore {
 	void initializ_gl_buffers();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	inline GLDraw* host() { return m_host; }
-	static LinuxGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
+	static LinuxGLDrawCore* create(GUIApplication* host, cJSON& options);
  protected:
 	EGLDisplay m_display;
 	EGLConfig m_config;

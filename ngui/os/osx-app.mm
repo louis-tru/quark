@@ -66,7 +66,7 @@ void GUIApplication::send_email(cString& recipient,
 /**
  * @func initialize(options)
  */
-void AppInl::initialize(const Map<String, int>& options) {
+void AppInl::initialize(cJSON& options) {
 	
 }
 

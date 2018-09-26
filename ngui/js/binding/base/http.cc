@@ -695,7 +695,7 @@ public:
 		
 		value = obj->Get(worker, worker->New(const_headers,1));
 		if ( value.IsEmpty() ) return false;
-		if (!value.To<JSObject>()->ToStringMapMaybe(worker).To(opt.headers)) return false;
+		if (!value.To<JSObject>()->ToStringMap(worker).To(opt.headers)) return false;
 		
 		value = obj->Get(worker, worker->New(const_post_data,1));
 		if ( value.IsEmpty() ) return false;

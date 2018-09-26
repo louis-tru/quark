@@ -143,7 +143,7 @@ public:
 /**
  * @constructor
  */
-GLDraw::GLDraw(GUIApplication* host, const Map<String, int>& option): Draw(host, option)
+GLDraw::GLDraw(GUIApplication* host, cJSON& options): Draw(host, options)
 , m_begin_screen_occlusion_query_status(false)
 , m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE(0)
 , m_current_frame_buffer(0)

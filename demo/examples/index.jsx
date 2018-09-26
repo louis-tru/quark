@@ -140,6 +140,7 @@ var app = new GUIApplication({
 	width: 420, 
 	height: 800, 
 	background: 0xffffff,
+	title: 'Ngui Examples',
 }).start(
 	<Root>
 

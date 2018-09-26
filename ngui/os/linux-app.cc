@@ -76,22 +76,15 @@ class LinuxApplication {
 		gl_draw_core = nullptr;
 	}
 
+	/*
 	static void signal_handler(int signal) {
 		switch(signal) {
 			case SIGINT:
 			case SIGTERM:
-				application->destroy_app();
+				application->exit_app();
 				break;
 		}
-	}
-
-	void destroy_app() {
-		m_host->onUnload();
-		m_host->main_loop()->stop();
-		XDestroyWindow(m_dpy, m_win); m_win = 0;
-		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
-		SimpleThread::wait_end(m_main_tid); // wait main loop end
-	}
+	}*/
 
 	void run() {
 		m_host = Inl_GUIApplication(app());
@@ -113,21 +106,17 @@ class LinuxApplication {
 			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap,
 			&m_xset
 		);
-
 		// XSelectInput(m_dpy, m_root, SubstructureNotifyMask);
-		XStoreName(m_dpy, m_win, ""/*title*/);
+		XStoreName(m_dpy, m_win, *m_title);
 		XSetWMProtocols(m_dpy, m_win, &m_wm_delete_window, True);
 		XMapWindow(m_dpy, m_win); //Map 窗口
-
-		signal(SIGTERM, signal_handler);
-		signal(SIGINT, signal_handler);
 
 		XEvent event;
 		do {
 			XNextEvent(m_dpy, &event);
 		} while(handle_events(event));
 
-		destroy_app();
+		exit_app();
 	}
 
 	bool handle_events(XEvent& event) {
@@ -222,6 +211,14 @@ class LinuxApplication {
 		return true;
 	}
 
+	void exit_app() {
+		m_host->onUnload();
+		m_host->main_loop()->stop();
+		XDestroyWindow(m_dpy, m_win); m_win = 0;
+		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
+		SimpleThread::wait_end(m_main_tid); // wait main loop end
+	}
+
  public:
 
 	static void start(int argc, char* argv[]) {
@@ -243,8 +240,7 @@ class LinuxApplication {
 		return m_host->render_loop();
 	}
 
-	void initialize(const Map<String, int>& options) {
-		m_options = options;
+	void initialize(cJSON& options) {
 		m_dpy = XOpenDisplay(nullptr);
 		XX_CHECK(m_dpy, "Cannot connect to display");
 		m_root = XDefaultRootWindow(m_dpy);
@@ -289,21 +285,15 @@ class LinuxApplication {
 		);
 		m_xset.do_not_propagate_mask = NoEventMask;
 
-		if (options.has("width")) {
-			int v = options["width"];
-			if (v > 0) {
-				m_win_width = v;
-			}
-		}
-		if (options.has("height")) {
-			int v = options["height"];
-			if (v > 0) {
-				m_win_height = v;
-			}
-		}
-		if (options.has("background")) {
-			m_xset.background_pixel = options["background"];
-		}
+		cJSON& o_w = options["width"];
+		cJSON& o_h = options["height"];
+		cJSON& o_b = options["background"];
+		cJSON& o_t = options["title"];
+
+		if (o_w.is_uint()) m_win_width = XX_MAX(1, o_w.to_uint());
+		if (o_h.is_uint()) m_win_height = XX_MAX(1, o_h.to_uint());
+		if (o_w.is_uint()) m_xset.background_pixel = o_b.to_uint();
+		if (o_t.is_string()) m_title = o_t.to_string();
 	}
 
 	inline Vec2 get_window_size() {
@@ -324,11 +314,11 @@ class LinuxApplication {
 	Orientation m_current_orientation;
 	std::atomic_int m_win_width;
 	std::atomic_int m_win_height;
-	Map<String, int> m_options;
 	bool m_is_init;
 	XSetWindowAttributes m_xset;
 	Atom m_wm_protocols, m_wm_delete_window;
 	ThreadID m_main_tid;
+	String m_title;
 };
 
 Vec2 __get_window_size() {
@@ -365,7 +355,7 @@ void GUIApplication::send_email(cString& recipient,
 /**
  * @func initialize(options)
  */
-void AppInl::initialize(const Map<String, int>& options) {
+void AppInl::initialize(cJSON& options) {
 	XX_DEBUG("AppInl::initialize");
 	XX_ASSERT(!gl_draw_core);
 	application->initialize(options);

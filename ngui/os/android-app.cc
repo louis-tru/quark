@@ -390,22 +390,20 @@ class AndroidApplication {
 	static bool get_gui_touch(AInputEvent* motion_event, int pointer_index, GUITouch* out) {
 		Vec2 scale = application->m_host->display_port()->scale();
 		float left = application->m_rect.origin.x();
-
 		int id = AMotionEvent_getPointerId(motion_event, pointer_index);
 		float x = AMotionEvent_getX(motion_event, pointer_index) - left;
 		float y = AMotionEvent_getY(motion_event, pointer_index);
 		float pressure = AMotionEvent_getPressure(motion_event, pointer_index);
-
+		
 		*out = {
-						uint(id + 20170820),
-						0, 0,
-						x / scale.x(),
-						y / scale.y(),
-						pressure,
-						false,
-						nullptr,
+			uint(id + 20170820),
+			0, 0,
+			x / scale.x(),
+			y / scale.y(),
+			pressure,
+			false,
+			nullptr,
 		};
-
 		float h_x = AMotionEvent_getHistoricalX(motion_event, pointer_index, 0);
 		float h_y = AMotionEvent_getHistoricalY(motion_event, pointer_index, 0);
 		return x != h_x || y != h_y;

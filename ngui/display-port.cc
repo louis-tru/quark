@@ -41,8 +41,8 @@ XX_NS(ngui)
 
 
 XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
-public:
-#define _inl(self) static_cast<DisplayPort::Inl*>(self)
+ public:
+ #define _inl(self) static_cast<DisplayPort::Inl*>(self)
 	
 	void handle_surface_size_change(Event<>& evt) {
 		m_phy_size = m_draw_ctx->selected_region().size;

@@ -42,6 +42,7 @@
 
 #define XX_THROW(code, ...) throw ngui::Error(code, __VA_ARGS__)
 #define XX_ASSERT_ERR(cond, ...) if(!(cond)) throw ngui::Error(__VA_ARGS__)
+#define XX_CHECK_ERR XX_ASSERT_ERR
 
 #define XX_IGNORE_ERR(block) try block catch (const ngui::Error& err) {    \
 	XX_DEBUG("%s,%s", "The exception is ignored", err.message().c());     \

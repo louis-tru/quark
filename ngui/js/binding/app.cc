@@ -126,17 +126,17 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
 		
-		Map<String, int> option;
+		JSON options;
 		
 		if ( args.Length() > 0 && args[0]->IsObject(worker) ) {
-			if (!args[0].To<JSObject>()->ToIntegerMapMaybe(worker).To(option)) 
+			if (!args[0].To<JSObject>()->ToJSON(worker).To(options))
 				return;
 		}
 		
 		Wrap<NativeGUIApplication>* wrap = nullptr;
 		try {
 			Handle<GUIApplication> h = new GUIApplication();
-			h->initialize(option);
+			h->initialize(options);
 			auto app = h.collapse();
 			wrap = New<WrapNativeGUIApplication>(args, app);
 			app->XX_ON(memorywarning,
@@ -220,6 +220,24 @@ class WrapNativeGUIApplication: public WrapObject {
 		JS_RETURN(self->used_texture_memory());
 	}
 	
+	/**
+	 * @func pending()
+	 */
+	static void pending(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(GUIApplication);
+		self->pending();
+	}
+
+	/**
+	 * @exit()
+	 */
+	static void exit(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(GUIApplication);
+		self->exit();
+	}
+
 	/**
 	 * @get is_load {bool}
 	 */
@@ -475,6 +493,8 @@ class WrapNativeGUIApplication: public WrapObject {
 			JS_SET_CLASS_METHOD(maxTextureMemoryLimit, max_texture_memory_limit);
 			JS_SET_CLASS_METHOD(setMaxTextureMemoryLimit, set_max_texture_memory_limit);
 			JS_SET_CLASS_METHOD(usedMemory, used_texture_memory);
+			JS_SET_CLASS_METHOD(pending, pending);
+			JS_SET_CLASS_METHOD(exit, exit);
 			JS_SET_CLASS_ACCESSOR(isLoad, is_load);
 			JS_SET_CLASS_ACCESSOR(displayPort, display_port);
 			JS_SET_CLASS_ACCESSOR(root, root);

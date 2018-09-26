@@ -37,6 +37,7 @@
 #include "ngui/base/map.h"
 #include "ngui/base/error.h"
 #include "ngui/base/fs.h"
+#include "ngui/base/json.h"
 
 // ------------- js common macro -------------
 
@@ -443,8 +444,9 @@ class XX_EXPORT JSObject: public JSValue {
 	bool Delete(Worker* worker, Local<JSValue> key);
 	bool Delete(Worker* worker, uint index);
 	Local<JSArray> GetPropertyNames(Worker* worker);
-	Maybe<Map<String, int>> ToIntegerMapMaybe(Worker* worker);
-	Maybe<Map<String, String>> ToStringMapMaybe(Worker* worker);
+	Maybe<Map<String, int>> ToIntegerMap(Worker* worker);
+	Maybe<Map<String, String>> ToStringMap(Worker* worker);
+	Maybe<JSON> ToJSON(Worker* worker);
 	Local<JSValue> GetProperty(Worker* worker, cString& name);
 	Local<JSFunction> GetConstructor(Worker* worker);
 	template<class T>

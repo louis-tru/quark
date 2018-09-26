@@ -43,7 +43,7 @@ template<class Basic> class IOSGLDraw: public Basic {
 public:
 	IOSGLDraw(GUIApplication* host, EAGLContext* ctx,
 						DrawLibrary library,
-						const Map<String, int>& option): Basic(host, option), core_(this, ctx) {
+						cJSON& options): Basic(host, options), core_(this, ctx) {
 		this->m_library = library;
 		this->initialize();
 	}
@@ -62,7 +62,7 @@ private:
 	IOSGLDrawCore core_;
 };
 
-IOSGLDrawCore* IOSGLDrawCore::create(GUIApplication* host, const Map<String, int>& options) {
+IOSGLDrawCore* IOSGLDrawCore::create(GUIApplication* host, cJSON& options) {
 	IOSGLDrawCore* rv = nullptr;
 	EAGLContext* ctx = [EAGLContext alloc];
 	

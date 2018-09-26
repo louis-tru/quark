@@ -97,7 +97,7 @@ class XX_EXPORT Draw: public Object {
 	 * @constructor
 	 * @arg options {Map} { multisample: 0-4 }
 	 */
-	Draw(GUIApplication* host, const Map<String, int>& options);
+	Draw(GUIApplication* host, cJSON& options);
 	
 	/**
 	 * @destructor

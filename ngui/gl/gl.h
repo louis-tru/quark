@@ -90,7 +90,7 @@ public:
 	/**
 	 * @constructor
 	 */
-	GLDraw(GUIApplication* host, const Map<String, int>& option);
+	GLDraw(GUIApplication* host, cJSON& options);
 	
 	/**
 	 * @destructor

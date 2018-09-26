@@ -41,14 +41,13 @@ XX_NS(ngui)
 
 XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
  public:
-	
 	struct KeyboardOptions {
 		bool	is_clear;
 		KeyboardType type;
 		KeyboardReturnType return_type;
 	};
 	
-	void initialize(const Map<String, int>& option);
+	void initialize(cJSON& options);
 	void refresh_display();
 	void onLoad();
 	void onRender();

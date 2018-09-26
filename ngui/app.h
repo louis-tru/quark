@@ -34,6 +34,7 @@
 #include "base/util.h"
 #include "base/event.h"
 #include "base/loop.h"
+#include "base/json.h"
 #include "value.h"
 
 #define XX_GUI_MAIN() \
@@ -108,7 +109,7 @@ class XX_EXPORT GUIApplication: public Object {
 	/**
 	 * @func initialize()
 	 */
-	void initialize(const Map<String, int>& option = Map<String, int>()) throw(Error);
+	void initialize(cJSON& options = JSON::object()) throw(Error);
 	
 	/**
 	 * @func run 运行消息循环
@@ -124,6 +125,11 @@ class XX_EXPORT GUIApplication: public Object {
 	 * @func pending() 挂起应用进程
 	 */
 	void pending();
+
+	/**
+	 * @exit()
+	 */
+	void exit();
 	
 	/**
 	 * @func is_load

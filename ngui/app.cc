@@ -183,7 +183,7 @@ void GUIApplication::start(int argc, char* argv[]) {
 		__xx_default_gui_main = nullptr;
 		__XX_GUI_MAIN = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
-		exit(rc); // if sub thread end then exit
+		::exit(rc); // if sub thread end then exit
 	}, "gui");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
@@ -210,6 +210,12 @@ void GUIApplication::run() {
 	
 	XX_CHECK(!m_render_loop->runing());
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
+}
+
+void GUIApplication::exit() {
+	_inl_app(this)->onUnload();
+	XX_ASSERT(m_main_loop);
+	m_main_loop->stop();
 }
 
 GUIApplication::GUIApplication()
@@ -269,12 +275,12 @@ GUIApplication::~GUIApplication() {
 /**
  * @func initialize()
  */
-void GUIApplication::initialize(const Map<String, int>& options) throw(Error) {
+void GUIApplication::initialize(cJSON& options) throw(Error) {
 	GUILock lock;
-	XX_ASSERT_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
+	XX_CHECK_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
 	m_shared = this;
 	HttpHelper::initialize(); // 初始http
-	Inl_GUIApplication(this)->initialize(options);
+	_inl_app(this)->initialize(options);
 	XX_DEBUG("Inl_GUIApplication initialize ok");
 	m_display_port = NewRetain<DisplayPort>(this); // strong ref
 	XX_DEBUG("NewRetain<DisplayPort> ok");

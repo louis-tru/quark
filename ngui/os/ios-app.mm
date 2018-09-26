@@ -432,7 +432,7 @@ void GUIApplication::send_email(cString& recipient,
 /**
  * @func initialize(options)
  */
-void AppInl::initialize(const Map<String, int>& options) {
+void AppInl::initialize(cJSON& options) {
 	XX_ASSERT(!ios_draw_core);
 	ios_draw_core = IOSGLDrawCore::create(this, options);
 	m_draw_ctx = ios_draw_core->host();

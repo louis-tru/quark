@@ -4,7 +4,7 @@ import { Color } from 'ngui/value';
 import { random, log } from 'ngui/util';
 import './uu';
 
-new GUIApplication({ multisample: 4 }).start(
+new GUIApplication({ multisample: 4, title: 'Ngui benchmark' }).start(
 	<Root backgroundColor="#000">
 		%{
 			(()=>{

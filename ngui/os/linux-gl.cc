@@ -68,17 +68,15 @@ static EGLDisplay egl_display() {
 }
 
 static EGLConfig egl_config(
-		EGLDisplay display, 
-		const Map<String, int> &options, 
-		bool& multisample_ok
-) {
+	EGLDisplay display, cJSON& options, bool& multisample_ok) 
+{
 	EGLConfig config = nullptr;
 	multisample_ok = false;
 	EGLint multisample = 0;
 
-	if (options.has("multisample")) {
-		multisample = XX_MAX(options.get("multisample"), 0);
-	}
+	cJSON& msample = options["multisample"];
+	if (msample.is_uint()) 
+		multisample = XX_MAX(msample.to_uint(), 0);
 
 	// choose configuration
 	EGLint attribs[] = {
@@ -174,7 +172,7 @@ template<class Basic> class LinuxGLDraw: public Basic {
 										 EGLContext ctx,
 										 bool multisample_ok,
 										 DrawLibrary library, 
-										 const Map<String, int>& options
+										 cJSON& options
 	) : Basic(host, options)
 		, core_(this, display, config, ctx)
 		, multisample_ok_(multisample_ok) 
@@ -202,7 +200,7 @@ template<class Basic> class LinuxGLDraw: public Basic {
 	bool multisample_ok_;
 };
 
-LinuxGLDrawCore* LinuxGLDrawCore::create(GUIApplication* host, const Map<String, int> &options) {
+LinuxGLDrawCore* LinuxGLDrawCore::create(GUIApplication* host, cJSON& options) {
 	LinuxGLDrawCore* rv = nullptr;
 	bool multisample_ok;
 	EGLDisplay display = egl_display();

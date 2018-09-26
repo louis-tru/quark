@@ -93,7 +93,7 @@ Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 	}
 }
 
-Maybe<Map<String, int>> JSObject::ToIntegerMapMaybe(Worker* worker) {
+Maybe<Map<String, int>> JSObject::ToIntegerMap(Worker* worker) {
 	Map<String, int> r;
 	
 	if ( IsObject(worker) ) {
@@ -116,7 +116,7 @@ Maybe<Map<String, int>> JSObject::ToIntegerMapMaybe(Worker* worker) {
 	return Maybe<Map<String, int>>(move(r));
 }
 
-Maybe<Map<String, String>> JSObject::ToStringMapMaybe(Worker* worker) {
+Maybe<Map<String, String>> JSObject::ToStringMap(Worker* worker) {
 	Map<String, String> r;
 	
 	if ( IsObject(worker) ) {
@@ -132,6 +132,37 @@ Maybe<Map<String, String>> JSObject::ToStringMapMaybe(Worker* worker) {
 		}
 	}
 	return Maybe<Map<String, String>>(move(r));
+}
+
+Maybe<JSON> JSObject::ToJSON(Worker* worker) {
+	JSON r = JSON::object();
+	
+	if ( IsObject(worker) ) {
+		Local<JSArray> names = GetPropertyNames(worker);
+		if ( names.IsEmpty() ) return Maybe<JSON>();
+		
+		for ( uint i = 0, len = names->Length(worker); i < len; i++ ) {
+			Local<JSValue> key = names->Get(worker, i);
+			if ( names.IsEmpty() ) return Maybe<JSON>();
+			Local<JSValue> val = Get(worker, key);
+			if ( val.IsEmpty() ) return Maybe<JSON>();
+			String key_s = key->ToStringValue(worker);
+			if (val->IsUint32(worker)) {
+				r[key_s] = val->ToUint32Value(worker);
+			} else if (val->IsInt32(worker)) {
+				r[key_s] = val->ToInt32Value(worker);
+			} else if (val->IsNumber(worker)) {
+				r[key_s] = val->ToInt32Value(worker);
+			} else if (val->IsBoolean(worker)) {
+				r[key_s] = val->ToBooleanValue(worker);
+			} else if (val->IsNull(worker)) {
+				r[key_s] = JSON::null();
+			} else {
+				r[key_s] = val->ToStringValue(worker);
+			}
+		}
+	}
+	return Maybe<JSON>(move(r));
 }
 
 Local<JSValue> JSObject::GetProperty(Worker* worker, cString& name) {
