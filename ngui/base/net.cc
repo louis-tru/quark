@@ -224,7 +224,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		/*
 		 int keepAlive = 1;   // 开启keepalive属性. 缺省值: 0(关闭)
 		 int keepIdle = 10;   // 如果在60秒内没有任何数据交互,则进行探测. 缺省值:7200(s)
-		 int keepInterval = 5;   // 探测时发探测包的时间间隔为5秒. 缺省值:75(s)
+		 int keepInterval = 5;// 探测时发探测包的时间间隔为5秒. 缺省值:75(s)
 		 int keepCount = 2;   // 探测重试的次数. 全部超时则认定连接失效..缺省值:9(次)
 		 
 		 int fd = m_uv_handle.io_watcher.fd;
@@ -234,7 +234,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		 setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
 		 */
 		m_enable_keep_alive = enable;
-		m_keep_idle = keep_idle ? 7200 : uint(keep_idle / 1000000);
+		m_keep_idle = keep_idle ? uint(keep_idle / 1000000): 7200;
 		if ( m_uv_tcp && uv_is_active((uv_handle_t*)m_uv_tcp) ) {
 			uv_tcp_keepalive(m_uv_tcp, m_enable_keep_alive, m_keep_idle);
 		}
