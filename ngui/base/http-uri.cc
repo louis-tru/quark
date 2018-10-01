@@ -264,7 +264,7 @@ String URI::decode(cString& url) {
 	// alloc
 	dec = (char *) malloc(len + 1);
 	
-#define push(c) (dec[size++] = c)
+ #define push(c) (dec[size++] = c)
 	
 	// decode
 	while (len--) {
@@ -283,7 +283,7 @@ String URI::decode(cString& url) {
 	
 	dec[size] = '\0';
 	
-#undef push
+ #undef push
 	
 	return Buffer(dec, uint(size));
 }

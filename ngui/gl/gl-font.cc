@@ -34,54 +34,48 @@
 
 XX_NS(ngui)
 
+#if DEBUG
 void test__TESS_CONNECTED_POLYGONS() {
+	// TESS_CONNECTED_POLYGONS
+	//  Each element in the element array is polygon defined as 'polySize' number of vertex indices,
+	//  followed by 'polySize' indices to neighour polygons, that is each element is 'polySize' * 2 indices.
+	//  If a polygon has than 'polySize' vertices, the remaining indices are stored as TESS_UNDEF.
+	//  If a polygon edge is a boundary, that is, not connected to another polygon, the neighbour index is TESS_UNDEF.
+	//  Example, flood fill based on seed polygon:
+	Data visited(new char[nelems] { 0 }, nelems);
+	TESSindex stack[50];
+	TESSindex start_poly = 0;
+	uint count = 0;
 
-//// TESS_CONNECTED_POLYGONS
-////  Each element in the element array is polygon defined as 'polySize' number of vertex indices,
-////  followed by 'polySize' indices to neighour polygons, that is each element is 'polySize' * 2 indices.
-////  If a polygon has than 'polySize' vertices, the remaining indices are stored as TESS_UNDEF.
-////  If a polygon edge is a boundary, that is, not connected to another polygon, the neighbour index is TESS_UNDEF.
-////  Example, flood fill based on seed polygon:
-//Data visited(new char[nelems] { 0 }, nelems);
-//TESSindex stack[50];
-//TESSindex start_poly = 0;
-//uint count = 0;
-//
-//while (start_poly < nelems) {
-//  
-//  if ( ! visited[start_poly] ) {
-//    
-//    int nstack = 0;
-//    
-//    stack[nstack++] = start_poly;
-//    visited[start_poly++] = 1;
-//    
-//    while (nstack > 0) {
-//      TESSindex idx = stack[--nstack];
-//      const TESSindex* poly = &elems[idx * poly_size * 2];
-//      const TESSindex* nei = &poly[poly_size];
-//      LOG("--begin:%d", idx);
-//      for (int i = 0; i < poly_size; i++) {
-//        TESSindex vidx = poly[i], eidx = nei[i];
-//        if (vidx == TESS_UNDEF) break;
-//        LOG("i:%d,poly:%d", i, poly[i]);
-//        if (eidx != TESS_UNDEF && !visited[eidx]) {
-//          LOG("i:%d,nei:%d--", i, eidx);
-//          stack[nstack++] = eidx;
-//          visited[eidx] = 1;
-//        }
-//      }
-//    }
-//    
-//    count++;
-//    
-//    LOG("------------------------------count:%d", count);
-//    
-//  } else {
-//    start_poly++;
-//  }
-//}
+	while (start_poly < nelems) {
+		if ( !visited[start_poly] ) {
+			int nstack = 0;
+			stack[nstack++] = start_poly;
+			visited[start_poly++] = 1;
+			while (nstack > 0) {
+				TESSindex idx = stack[--nstack];
+				const TESSindex* poly = &elems[idx * poly_size * 2];
+				const TESSindex* nei = &poly[poly_size];
+				LOG("--begin:%d", idx);
+				for (int i = 0; i < poly_size; i++) {
+					TESSindex vidx = poly[i], eidx = nei[i];
+					if (vidx == TESS_UNDEF) break;
+					LOG("i:%d,poly:%d", i, poly[i]);
+					if (eidx != TESS_UNDEF && !visited[eidx]) {
+						LOG("i:%d,nei:%d--", i, eidx);
+						stack[nstack++] = eidx;
+						visited[eidx] = 1;
+					}
+				}
+			}
+			count++;
+			LOG("------------------------------count:%d", count);
+		} else {
+			start_poly++;
+		}
+	}
 }
+#endif
 
 bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	
