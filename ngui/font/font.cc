@@ -668,9 +668,9 @@ void FontPool::clear(bool full) {
 }
 
 /**
- * @func bind_display_port
+ * @func set_display_port
  */
-void FontPool::bind_display_port(DisplayPort* display_port) {
+void FontPool::set_display_port(DisplayPort* display_port) {
 	XX_ASSERT(!m_display_port);
 	display_port->XX_ON(change, &Inl::display_port_change_handle, _inl_pool(this));
 	m_display_port = display_port;

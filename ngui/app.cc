@@ -284,8 +284,8 @@ void GUIApplication::initialize(cJSON& options) throw(Error) {
 	XX_DEBUG("Inl_GUIApplication initialize ok");
 	m_display_port = NewRetain<DisplayPort>(this); // strong ref
 	XX_DEBUG("NewRetain<DisplayPort> ok");
-	m_draw_ctx->font_pool()->bind_display_port(m_display_port);
-	XX_DEBUG("m_draw_ctx->font_pool()->bind_display_port ok");
+	m_draw_ctx->font_pool()->set_display_port(m_display_port);
+	XX_DEBUG("m_draw_ctx->font_pool()->set_display_port() ok");
 	m_dispatch = new GUIEventDispatch(this);
 	m_action_center = new ActionCenter();
 }

@@ -114,7 +114,7 @@ class XX_EXPORT GUIEventName {
  public:
 	inline GUIEventName() { XX_UNREACHABLE(); }
 	inline GUIEventName(cString& n, uint category, int flag)
-	: name_(n), code_(n.hash_code()), category_(category), flag_(flag) { }
+		: name_(n), code_(n.hash_code()), category_(category), flag_(flag) { }
 	inline uint hash_code() const { return code_; }
 	inline bool equals(const GUIEventName& o) const { return o.hash_code() == code_; }
 	inline String to_string() const { return name_; }
@@ -143,7 +143,7 @@ class Action;
 class Activity;
 class Button;
 
-struct XX_EXPORT GUITouch { // touch event point
+struct GUITouch { // touch event point
 	uint    id;
 	float   start_x, start_y;
 	float   x, y, force;
@@ -158,7 +158,7 @@ class XX_EXPORT GUIEvent: public Event<Object, View> {
  public:
 	inline GUIEvent(cSendData data): Event<Object, View>() { XX_UNREACHABLE(); }
 	inline GUIEvent(View* origin, cSendData data = SendData())
-	: Event(data), origin_(origin), time_(sys::time()), valid_(true) {
+		: Event(data), origin_(origin), time_(sys::time()), valid_(true) {
 		return_value = RETURN_VALUE_MASK_ALL;
 	}
 	inline View* origin() const { return origin_; }
@@ -169,8 +169,7 @@ class XX_EXPORT GUIEvent: public Event<Object, View> {
 	inline bool is_bubble() const { return return_value & RETURN_VALUE_MASK_BUBBLE; }
 	virtual void release() {
 		valid_ = false;
-		origin_ = nullptr;
-		Event<Object, View>::release();
+		origin_ = nullptr; Event<Object, View>::release();
 	}
  protected:
 	View*   origin_;
@@ -184,7 +183,7 @@ class XX_EXPORT GUIEvent: public Event<Object, View> {
 class XX_EXPORT GUIActionEvent: public GUIEvent {
  public:
 	inline GUIActionEvent(Action* action, View* view, uint64 delay, uint frame, uint loop)
-	: GUIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) { }
+		: GUIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) { }
 	inline Action* action() const { return action_; }
 	inline uint64 delay() const { return delay_; }
 	inline uint frame() const { return frame_; }
@@ -204,9 +203,9 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
 	inline GUIKeyEvent(View* origin, uint keycode,
 										 bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 										 uint repeat, int device, int source)
-	: GUIEvent(origin), keycode_(keycode)
-	, device_(device), source_(source), repeat_(repeat), shift_(shift)
-	, ctrl_(ctrl), alt_(alt), command_(command), caps_lock_(caps_lock), focus_move_(nullptr) { }
+		: GUIEvent(origin), keycode_(keycode)
+		, device_(device), source_(source), repeat_(repeat), shift_(shift)
+		, ctrl_(ctrl), alt_(alt), command_(command), caps_lock_(caps_lock), focus_move_(nullptr) { }
 	inline int  keycode() const { return keycode_; }
 	inline int  repeat() const { return repeat_; }
 	inline int  device() const { return device_; }
@@ -234,7 +233,7 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
 class XX_EXPORT GUIClickEvent: public GUIEvent {
  public:
 	inline GUIClickEvent(View* origin, float x, float y, bool keyboard = false, uint count = 1)
-	: GUIEvent(origin), x_(x), y_(y), count_(count), keyboard_(keyboard) { }
+		: GUIEvent(origin), x_(x), y_(y), count_(count), keyboard_(keyboard) { }
 	inline float x() const { return x_; }
 	inline float y() const { return y_; }
 	inline uint count() const { return count_; }
@@ -253,8 +252,8 @@ class XX_EXPORT GUIMouseEvent: public GUIKeyEvent {
 	inline GUIMouseEvent(View* origin, float x, float y, uint keycode,
 											 bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
 											 uint repeat = 0, int device = 0, int source = 0)
-	: GUIKeyEvent(origin, keycode,shift, ctrl, alt,
-								command, caps_lock, repeat, device, source), x_(x), y_(y) { }
+		: GUIKeyEvent(origin, keycode, shift, ctrl, alt,
+			command, caps_lock, repeat, device, source), x_(x), y_(y) { }
 	inline float x() const { return x_; }
 	inline float y() const { return y_; }
  private:
@@ -267,7 +266,7 @@ class XX_EXPORT GUIMouseEvent: public GUIKeyEvent {
 class XX_EXPORT GUIHighlightedEvent: public GUIEvent {
  public:
 	inline GUIHighlightedEvent(View* origin, HighlightedStatus status)
-	: GUIEvent(origin), _status(status) { }
+		: GUIEvent(origin), _status(status) { }
 	inline HighlightedStatus status() const { return _status; }
  private:
 	HighlightedStatus _status;
@@ -290,17 +289,19 @@ class XX_EXPORT GUITouchEvent: public GUIEvent {
  */
 class XX_EXPORT GUIFocusMoveEvent: public GUIEvent {
  public:
-	inline GUIFocusMoveEvent(View* origin, View* focus, View* focus_move)
-	: GUIEvent(origin), m_focus(focus), m_focus_move(focus_move) { }
-	inline View* focus() { return m_focus; }
-	inline View* focus_move() { return m_focus_move; }
+	inline GUIFocusMoveEvent(View* origin, View* old_focus, View* new_focus)
+		: GUIEvent(origin), m_old_focus(old_focus), m_new_focus(new_focus) { }
+	inline View* old_focus() { return m_old_focus; }
+	inline View* new_focus() { return m_new_focus; }
+	inline View* focus() { return m_old_focus; }
+	inline View* focus_move() { return m_new_focus; }
 	virtual void release() {
-		m_focus = nullptr;
-		m_focus_move = nullptr; GUIEvent::release();
+		m_old_focus = nullptr;
+		m_new_focus = nullptr; GUIEvent::release();
 	}
  private:
-	View* m_focus;
-	View* m_focus_move;
+	View* m_old_focus;
+	View* m_new_focus;
 };
 
 /**
@@ -309,7 +310,6 @@ class XX_EXPORT GUIFocusMoveEvent: public GUIEvent {
 class XX_EXPORT TextInputProtocol {
  public:
 	typedef ProtocolTraits Traits;
-	
 	virtual void input_delete_text(int count) = 0;
 	virtual void input_insert_text(cString& text) = 0;
 	virtual void input_marked_text(cString& text) = 0;
@@ -326,9 +326,7 @@ class XX_EXPORT TextInputProtocol {
 class XX_EXPORT GUIEventDispatch: public Object {
  public:
 	GUIEventDispatch(GUIApplication* app);
-	
 	virtual ~GUIEventDispatch();
-	
 	void dispatch_touchstart(List<GUITouch>&& touches);   // touch
 	void dispatch_touchmove(List<GUITouch>&& touches);
 	void dispatch_touchend(List<GUITouch>&& touches);

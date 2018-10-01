@@ -35,6 +35,7 @@
 #include "./linux-gl-1.h"
 #include "../base/loop.h"
 #include <X11/Xlib.h>
+#include <X11/Xresource.h>
 #include <signal.h>
 
 XX_NS(ngui)
@@ -43,6 +44,15 @@ class LinuxApplication;
 static LinuxApplication* application = nullptr;
 static LinuxGLDrawCore* gl_draw_core = nullptr;
 typedef DisplayPort::Orientation Orientation;
+
+// static void signal_handler(int signal) {
+// 	switch(signal) {
+// 		case SIGINT:
+// 		case SIGTERM:
+// 			application->exit_app();
+// 			break;
+// 	}
+// }
 
 /**
  * @class LinuxApplication
@@ -61,6 +71,8 @@ class LinuxApplication {
 	, m_win_width(1)
 	, m_win_height(1)
 	, m_is_init(0)
+	, m_xft_dpi(96.0)
+	, m_xwin_scale(1.0)
 	{
 		XX_ASSERT(!application); application = this;
 	}
@@ -76,15 +88,100 @@ class LinuxApplication {
 		gl_draw_core = nullptr;
 	}
 
-	/*
-	static void signal_handler(int signal) {
-		switch(signal) {
-			case SIGINT:
-			case SIGTERM:
-				application->exit_app();
+	void handle_expose(XEvent& event) {
+		XX_DEBUG("event, Expose");
+		XWindowAttributes attrs;
+		XGetWindowAttributes(m_dpy, m_win, &attrs);
+		m_win_width = attrs.width;
+		m_win_height = attrs.height;
+		render_loop()->post_sync(Cb([this](Se &ev) {
+			if (m_is_init) {
+				CGRect rect = {Vec2(), get_window_size()};
+				gl_draw_core->refresh_surface_size(&rect);
+				m_host->refresh_display(); // 刷新显示
+			} else {
+				m_is_init = true;
+				gl_draw_core->create_surface(m_win);
+				gl_draw_core->initialize();
+				m_host->onLoad();
+				m_host->onForeground();
+				m_render_looper->start();
+			}
+		}));
+	}
+
+	bool handle_events(XEvent& event) {
+
+		cchar *key_name[] = {
+			"left",
+			"second (or middle)",
+			"right",
+			"pull_up",
+			"pull_down",
+			"aaaa",
+			"bbbb",
+			"cccc",
+		};
+
+		switch(event.type) {
+			case Expose:
+				handle_expose(event);
+				break;
+			case MapNotify:
+				if (m_is_init) {
+					XX_DEBUG("event, MapNotify, Window onForeground");
+					m_host->onForeground();
+					m_render_looper->start();
+				}
+				break;
+			case UnmapNotify:
+				XX_DEBUG("event, UnmapNotify, Window onBackground");
+				m_host->onBackground();
+				m_render_looper->stop();
+				break;
+			case FocusIn:
+				XX_DEBUG("event, FocusIn, Window onResume");
+				m_host->onResume();
+				break;
+			case FocusOut:
+				XX_DEBUG("event, FocusOut, Window onPause");
+				m_host->onPause();
+				break;
+			case KeyPress:
+				LOG("event, KeyDown, keycode: %d", event.xkey.keycode);
+				break;
+			case KeyRelease:
+				LOG("event, KeyUp, keycode: %d", event.xkey.keycode);
+				break;
+			case ButtonPress:
+				LOG("event, MouseDown, button: %s", key_name[event.xbutton.button - 1]);
+				break;
+			case ButtonRelease:
+				LOG("event, MouseUp, button: %s", key_name[event.xbutton.button - 1]);
+				break;
+			case MotionNotify:
+				LOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+				break;
+			case EnterNotify:
+				XX_DEBUG("event, EnterNotify");
+				break;
+			case LeaveNotify:
+				XX_DEBUG("event, LeaveNotify");
+				break;
+			case ClientMessage:
+				if (event.xclient.message_type == m_wm_protocols && 
+					(Atom)event.xclient.data.l[0] == m_wm_delete_window) {
+					return false; // exit
+				}
+				break;
+			default:
+				XX_DEBUG("event, %d", event.type);
 				break;
 		}
-	}*/
+
+		// m_host->onMemorywarning();
+		return true;
+	}
 
 	void run() {
 		m_host = Inl_GUIApplication(app());
@@ -106,7 +203,8 @@ class LinuxApplication {
 			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap,
 			&m_xset
 		);
-		// XSelectInput(m_dpy, m_root, SubstructureNotifyMask);
+
+		// XSelectInput(m_dpy, m_win, PointerMotionMask);
 		XStoreName(m_dpy, m_win, *m_title);
 		XSetWMProtocols(m_dpy, m_win, &m_wm_delete_window, True);
 		XMapWindow(m_dpy, m_win); //Map 窗口
@@ -119,104 +217,30 @@ class LinuxApplication {
 		exit_app();
 	}
 
-	bool handle_events(XEvent& event) {
-
-		switch(event.type) {
-			case Expose: {
-				XX_DEBUG("event, Expose");
-				XWindowAttributes attrs;
-				XGetWindowAttributes(m_dpy, m_win, &attrs);
-				m_win_width = attrs.width;
-				m_win_height = attrs.height;
-
-				render_loop()->post_sync(Cb([this](Se &ev) {
-					if (m_is_init) {
-						CGRect rect = {Vec2(), get_window_size()};
-						gl_draw_core->refresh_surface_size(&rect);
-						m_host->refresh_display(); // 刷新显示
-					} else {
-						m_is_init = true;
-						gl_draw_core->create_surface(m_win);
-						gl_draw_core->initialize();
-						m_host->onLoad();
-						m_host->onForeground();
-						m_render_looper->start();
-					}
-				}));
-				break;
-			}
-			case MapNotify:
-				if (m_is_init) {
-					XX_DEBUG("event, MapNotify, onForeground");
-					m_host->onForeground();
-					m_render_looper->start();
-				}
-				break;
-			case UnmapNotify:
-				XX_DEBUG("event, UnmapNotify, onBackground");
-				m_host->onBackground();
-				m_render_looper->stop();
-				break;
-			case FocusIn:
-				XX_DEBUG("event, FocusIn, onResume");
-				m_host->onResume();
-				break;
-			case FocusOut:
-				XX_DEBUG("event, FocusOut, onPause");
-				m_host->onPause();
-				break;
-			case KeyPress:
-				LOG("event, KeyPress");
-				break;
-			case KeyRelease:
-				LOG("event, KeyRelease");
-				break;
-			case ButtonPress:
-				LOG("event, ButtonPress, Mouse Down");
-				break;
-			case ButtonRelease:
-				LOG("event, ButtonRelease, Mouse Up");
-				break;
-			case MotionNotify:
-				LOG("event, MotionNotify");
-				break;
-			case EnterNotify:
-				LOG("event, EnterNotify");
-				break;
-			case LeaveNotify:
-				LOG("event, LeaveNotify");
-				break;
-			case KeymapNotify:
-				LOG("event, KeymapNotify");
-				break;
-			case PropertyNotify:
-				LOG("event, PropertyNotify");
-				break;
-			case ConfigureNotify:
-				LOG("event, ConfigureNotify");
-				break;
-			case ClientMessage:
-				if (event.xclient.message_type == m_wm_protocols && 
-					(Atom)event.xclient.data.l[0] == m_wm_delete_window) {
-					return false; // exit
-				}
-				break;
-			default:
-				LOG("event, %d", event.type);
-				break;
-		}
-
-		// m_host->onMemorywarning();
-
-		return true;
-	}
-
 	void exit_app() {
 		m_host->onUnload();
 		m_host->main_loop()->stop();
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
 		SimpleThread::wait_end(m_main_tid); // wait main loop end
+	}
+
+	float getMonitorDPI() {
+		char* ms = XResourceManagerString(m_dpy);
+		float dpi = 96.0;
+		if (ms) {
+			XX_DEBUG("Entire DB:\n%s", ms);
+			XrmDatabase db = XrmGetStringDatabase(ms);
+			XrmValue value;
+			char* type = nullptr;
+			if (XrmGetResource(db, "Xft.dpi", "String", &type, &value) == True) {
+				if (value.addr) {
+					dpi = atof(value.addr);
+				}
+			}
+		}
+		XX_DEBUG("DPI: %f", dpi);
+		return dpi;
 	}
 
  public:
@@ -240,6 +264,10 @@ class LinuxApplication {
 		return m_host->render_loop();
 	}
 
+	inline float xwin_scale() {
+		return m_xwin_scale;
+	}
+
 	void initialize(cJSON& options) {
 		m_dpy = XOpenDisplay(nullptr);
 		XX_CHECK(m_dpy, "Cannot connect to display");
@@ -251,6 +279,10 @@ class LinuxApplication {
 		m_win_height       = attrs.height;
 		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
 		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
+		m_xft_dpi = getMonitorDPI();
+		m_xwin_scale = m_xft_dpi / 96.0;
+
+		XX_DEBUG("width: %d, height: %d, dpi scale: %f", attrs.width, attrs.height, m_xwin_scale);
 		
 		m_xset.background_pixel = 0;
 		m_xset.border_pixel = 0;
@@ -262,26 +294,16 @@ class LinuxApplication {
 			| KeyRelease
 			| ButtonPressMask
 			| ButtonReleaseMask
-			| PointerMotionMask // Motion
-			| PointerMotionHintMask // Motion
+			| PointerMotionMask // MotionNotify
 			| Button1MotionMask // Motion
 			| Button2MotionMask // Motion
 			| Button3MotionMask // Motion
 			| Button4MotionMask // Motion
 			| Button5MotionMask // Motion
-			| ButtonMotionMask // Motion
-			| EnterWindowMask
-			| LeaveWindowMask
-			| KeymapStateMask // KeymapNotify
-				// | VisibilityChangeMask	//
-			| StructureNotifyMask 	// ConfigureNotify
-				// | ResizeRedirectMask				//
-				// | SubstructureNotifyMask		//
-				// | SubstructureRedirectMask	//
-			| FocusChangeMask // FocusIn, FocusOut
-			| PropertyChangeMask // PropertyNotify
-				// | ColormapChangeMask	//
-				// | OwnerGrabButtonMask	//
+			| ButtonMotionMask  // Motion
+			| EnterWindowMask   // EnterNotify
+			| LeaveWindowMask   // LeaveNotify
+			| FocusChangeMask   // FocusIn, FocusOut
 		);
 		m_xset.do_not_propagate_mask = NoEventMask;
 
@@ -307,14 +329,13 @@ class LinuxApplication {
  private:
 	AppInl* m_host;
 	Display* m_dpy;
-	Window m_root;
-	Window m_win;
+	Window m_root, m_win;
 	RenderLooper* m_render_looper;
 	GUIEventDispatch* m_dispatch;
 	Orientation m_current_orientation;
-	std::atomic_int m_win_width;
-	std::atomic_int m_win_height;
+	std::atomic_int m_win_width, m_win_height;
 	bool m_is_init;
+	float m_xft_dpi, m_xwin_scale;
 	XSetWindowAttributes m_xset;
 	Atom m_wm_protocols, m_wm_delete_window;
 	ThreadID m_main_tid;
@@ -402,7 +423,7 @@ void AppInl::set_volume_down() {
  * @func default_atom_pixel
  */
 float DisplayPort::default_atom_pixel() {
-	return 1.0;
+	return 1.0 / application->xwin_scale();
 }
 
 /**

@@ -582,9 +582,9 @@ class XX_EXPORT FontPool: public Object {
  private:
 	
 	/**
-	 * @func bind_display_port
+	 * @func set_display_port
 	 */
-	void bind_display_port(DisplayPort* display_port);
+	void set_display_port(DisplayPort* display_port);
 	
 	void*                       m_ft_lib;     /* FT_Library */
 	Map<String, BasicFont*>     m_blend_fonts;/* 所有的家族与字体包括别名 */

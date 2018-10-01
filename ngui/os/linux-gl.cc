@@ -312,7 +312,7 @@ void LinuxGLDrawCore::initialize() {
  #if XX_ANDROID
 	m_host->set_best_display_scale(Android::get_display_scale());
  #else
-	m_host->set_best_display_scale(1);
+	m_host->set_best_display_scale(1.0 / DisplayPort::default_atom_pixel());
  #endif
 	m_host->initialize();
 	refresh_surface_size(nullptr);

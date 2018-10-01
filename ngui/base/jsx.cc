@@ -2099,15 +2099,15 @@ public:
 	}
 
 	Ucs2String to_event_js_code(cUcs2String& name) {
-		//  get onchange() { return this.$getNoticer('change') }
-		//  set onchange(func) { this.$addDefaultListener('change', func) }
+		//  get onchange() { return this.getNoticer('change') }
+		//  set onchange(func) { this.addDefaultListener('change', func) }
 		//  triggerchange(data, is_event) { return this.$trigger('change', data, is_event) }
 		//
 		static cUcs2String a1(String("get on"));
-		static cUcs2String a2(String("() { return this.$getNoticer('"));
+		static cUcs2String a2(String("() { return this.getNoticer('"));
 		static cUcs2String a3(String("') }"));
 		static cUcs2String b1(String("set on"));
-		static cUcs2String b2(String("(func) { this.$addDefaultListener('"));
+		static cUcs2String b2(String("(func) { this.addDefaultListener('"));
 		static cUcs2String b3(String("', func) }"));
 		static cUcs2String c1(String("trigger"));
 		static cUcs2String c2(String("(ev,is_ev) { return this.$trigger('"));

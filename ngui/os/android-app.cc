@@ -394,6 +394,8 @@ class AndroidApplication {
 		float x = AMotionEvent_getX(motion_event, pointer_index) - left;
 		float y = AMotionEvent_getY(motion_event, pointer_index);
 		float pressure = AMotionEvent_getPressure(motion_event, pointer_index);
+		float h_x = AMotionEvent_getHistoricalX(motion_event, pointer_index, 0);
+		float h_y = AMotionEvent_getHistoricalY(motion_event, pointer_index, 0);
 		
 		*out = {
 			uint(id + 20170820),
@@ -404,8 +406,6 @@ class AndroidApplication {
 			false,
 			nullptr,
 		};
-		float h_x = AMotionEvent_getHistoricalX(motion_event, pointer_index, 0);
-		float h_y = AMotionEvent_getHistoricalY(motion_event, pointer_index, 0);
 		return x != h_x || y != h_y;
 	}
 
