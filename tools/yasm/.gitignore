@@ -11,14 +11,14 @@ x86parse.c
 lc3bid.c
 re2c-parser.c
 re2c-parser.h
-yasm
-vsyasm
+# yasm
+# vsyasm
 ytasm
-re2c
+# re2c
 cleanup
-genmacro
+# genmacro
 test_hd
-genperf
+# genperf
 genversion
 genmodule
 genstring
@@ -48,7 +48,7 @@ python-setup.txt
 yasm_python.c
 .python-build
 _yasm.pxi
-yasm.pyx
+# yasm.pyx
 build
 yasm.so
 x86cpu.c
