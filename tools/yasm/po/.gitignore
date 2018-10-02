@@ -1,4 +1,4 @@
-Makefile.in.in
+# Makefile.in.in
 POTFILES
 cat-id-tbl.c
 yasm.pot
