@@ -2,7 +2,7 @@
   'targets': [{
     'target_name': 'curl',
     'type': '<(library)',
-    'include_dirs': [ 'include', 'lib', '../..' ],
+    'include_dirs': [ 'include', 'lib', '../..', '../../node/deps/zlib' ],
     'dependencies': [
       '../../node/deps/openssl/openssl.gyp:openssl',
       '../../node/deps/zlib/zlib.gyp:zlib'

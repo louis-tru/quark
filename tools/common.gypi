@@ -215,6 +215,7 @@
 				'ldflags': [ 
 					'-pthread', 
 					#'-rdynamic',
+					
 				],
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] },],

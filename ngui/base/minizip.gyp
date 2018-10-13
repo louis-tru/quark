@@ -8,7 +8,10 @@
 			'../../node/deps/zlib/zlib.gyp:zlib'
 		],
 		'direct_dependent_settings': {
-			'include_dirs': [ '../../node/deps/zlib/contrib/minizip', ],
+			'include_dirs': [ 
+				'../../node/deps/zlib/contrib/minizip', 
+				'../../node/deps/zlib',
+			],
 		},
 		'include_dirs': [ '../../node/deps/zlib', ],
 		'sources': [
@@ -24,7 +27,7 @@
 				},
 			},'use_system_zlib==0', {
 				'direct_dependent_settings': {
-					'include_dirs': [ '../../node/deps/zlib' ],
+					# 'include_dirs': [ '../../node/deps/zlib' ],
 				},
 			}],
 			[ 'os=="win"', {

@@ -76,5 +76,10 @@ config.h
 config.h.in
 config.status
 config/test-driver
+genmacro
+genperf
+re2c
+vsyasm
+yasm
 
 

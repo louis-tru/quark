@@ -11,6 +11,9 @@
         'dependencies': [
           '../../node/deps/zlib/zlib.gyp:zlib'
         ],
+        'include_dirs': [
+          '../../node/deps/zlib'
+        ],
         'defines': [
           'CHROME_PNG_WRITE_SUPPORT',
           'PNG_USER_CONFIG',
