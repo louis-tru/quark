@@ -227,13 +227,15 @@ function add(self, origin, listen, scope, id) {
 		self.m_listens_map = map = { };
 	}
 
-	if (typeof scope == 'number') {
+	if (typeof scope != 'object') {
 		id = scope;
 		scope = self.m_sender;
 	} else {
 		scope = scope || self.m_sender;
-		id = typeof id == 'number' ? id : ++_id;
+		id = id || ++_id;
 	}
+
+	id = String(id);
 
 	var value = {
 		origin: origin,
@@ -246,7 +248,6 @@ function add(self, origin, listen, scope, id) {
 	if ( item ) { // replace
 		item._value = value;
 	} else { // add
-
 		map[id] = self.m_listens.push(value);
 		self.m_length++;
 	}
@@ -481,7 +482,7 @@ class EventNoticer {
 		if ( !this.m_length ) { return }
 		if (func) {
 
-			if ( typeof func == 'number' ) { // by id delete 
+			if ( typeof func == 'string' || typeof func == 'number' ) { // by id delete 
 				var item = this.m_listens_map[func];
 				if ( item ) {
 					this.m_length--;
