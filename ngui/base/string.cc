@@ -47,7 +47,7 @@ template<> BasicString<uint16, Container<uint16>>::BasicString(const Object& o) 
 	if (s) {
 		m_core = new StringCore(len, s);
 	} else {
-		m_core = use_empty_core();
+		m_core = StringCore::empty();
 	}
 }
 
@@ -59,7 +59,7 @@ template<> BasicString<uint32, Container<uint32>>::BasicString(const Object& o) 
 	if (s) {
 		m_core = new StringCore(len, s);
 	} else {
-		m_core = use_empty_core();
+		m_core = StringCore::empty();
 	}
 }
 

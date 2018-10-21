@@ -44,39 +44,11 @@ XX_NS(ngui)
  * @bases Object
  * @template <class Char = char, class Container = Container<char>>
  */
-template <class TChar, class TContainer>
+template <class _Char, class _Container>
 class XX_EXPORT BasicString: public Object {
  public:
-	typedef TChar Char;
-	typedef TContainer Container;
- private:
-	
-	class StringCore {
-	 public:
-		StringCore();
-		StringCore(const StringCore&);
-		StringCore(uint len);
-		StringCore(uint len, Char* value);
-		void retain();
-		void release();
-		void modify(BasicString* host);
-		inline Char* value() { return *container; }
-		inline uint capacity() { return container.capacity(); }
-		inline Char* collapse();
-		inline int ref() const { return m_ref; }
-		uint length;
-		Container container; 
-		static StringCore* use_empty();
-	 protected:
-		std::atomic_int m_ref;
-	};
-	
-	friend class StringCore;
-	inline static StringCore* use_empty_core();
-	StringCore* m_core; // string core
-
-	BasicString(StringCore* core);
- public:
+	typedef _Char Char;
+	typedef _Container Container;
 	BasicString();
 	BasicString(char i);
 	BasicString(int i);
@@ -141,7 +113,7 @@ class XX_EXPORT BasicString: public Object {
 	BasicString& push(const Char* s);
 	BasicString& operator+=(const Char* s);
 	BasicString operator+(const Char* s) const;
-	BasicString& assignment(const Char* s, uint len);
+	BasicString& assign(const Char* s, uint len);
 	BasicString& operator=(const Char* s);
 	bool operator==(const Char* s) const;
 	bool operator!=(const Char* s) const;
@@ -168,6 +140,12 @@ class XX_EXPORT BasicString: public Object {
 	bool to_float(float* out) const;
 	bool to_double(double* out) const;
 	bool to_bool(bool* out) const;
+
+ private:
+	class StringCore;
+	friend class StringCore;
+	StringCore* m_core; // string core
+	BasicString(StringCore* core);
 };
 
 XX_END

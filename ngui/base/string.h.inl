@@ -165,75 +165,82 @@ XX_INLINE static int _compare(const BasicString* self, const typename BasicStrin
 	return _memcmp(self->c(), s, self->length() + 1);
 }
 
-template <class Char, class Container>
-BasicString<Char, Container>::StringCore::StringCore(const StringCore& core)
-: length(core.length), container(core.container), m_ref(1) {
-	
-}
 
+/**
+ * @class BasicString::StringCore
+ * @private
+ */
 template <class Char, class Container>
-BasicString<Char, Container>::StringCore::StringCore()
-: length(0), container(1), m_ref(1) {
-	*(*container) = '\0';
-}
+class BasicString<Char, Container>::StringCore {
+ public:
 
-template <class Char, class Container>
-BasicString<Char, Container>::StringCore::StringCore(uint len)
-: length(len), container(len + 1), m_ref(1) {
-	(*container)[len] = '\0';
-}
-
-template <class Char, class Container>
-BasicString<Char, Container>::StringCore::StringCore(uint len, Char* value)
-: length(len), container(len + 1, value), m_ref(1)
-{ }
-
-template <class Char, class Container>
-void BasicString<Char, Container>::StringCore::retain() {
-	m_ref++;
-}
-
-template <class Char, class Container>
-void BasicString<Char, Container>::StringCore::release() {
-	XX_ASSERT(m_ref > 0);
-	if ( --m_ref == 0 ) {
-		delete this; // 只有当引用记数变成0才会释放
+	StringCore(): length(0), container(1), m_ref(1) {
+		*(*container) = '\0';
 	}
-}
 
-template <class Char, class Container>
-void BasicString<Char, Container>::StringCore::modify(BasicString* host) {
-	// 修改需要从共享核心中分离出来
-	// 多个线程同时使用一个StringCore时候如果考虑线程安全需要加锁
-	if ( m_ref > 1 ) { // 大于1表示为共享核心
-		host->m_core = new StringCore(*this);
-		release();
+	StringCore(const StringCore& core): length(core.length), container(core.container), m_ref(1) 
+	{}
+
+	StringCore(uint len): length(len), container(len + 1), m_ref(1) {
+		(*container)[len] = '\0';
 	}
-}
 
-template <class Char, class Container>
-Char* BasicString<Char, Container>::StringCore::collapse() {
-	length = 0;
-	return container.collapse();
-}
+	StringCore(uint len, Char* value): length(len), container(len + 1, value), m_ref(1) 
+	{}
 
-template <class Char, class Container>
-typename BasicString<Char, Container>::StringCore*
-BasicString<Char, Container>::StringCore::use_empty() {
-	class EmptyCore: public StringCore {
-	 public:
-		EmptyCore() { this->m_ref = 2; }
-	};
-	static StringCore* core(new StringCore());
-	core->m_ref++;
-	return core;
-}
+	void retain() {
+		m_ref++;
+	}
 
-template <class Char, class Container>
-typename BasicString<Char, Container>::StringCore* 
-BasicString<Char, Container>::use_empty_core() {
-	return StringCore::use_empty();
-}
+	void release() {
+		XX_ASSERT(m_ref > 0);
+		if ( --m_ref == 0 ) {
+			delete this; // 只有当引用记数变成0才会释放
+		}
+	}
+
+	void modify(BasicString* host) {
+		// 修改需要从共享核心中分离出来
+		// 多个线程同时使用一个StringCore时候如果考虑线程安全需要加锁
+		if ( m_ref > 1 ) { // 大于1表示为共享核心
+			host->m_core = new StringCore(*this);
+			release();
+		}
+	}
+
+	inline Char* value() {
+		return *container;
+	}
+
+	inline uint capacity() {
+		return container.capacity();
+	}
+
+	inline Char* collapse() {
+		length = 0;
+		return container.collapse();
+	}
+
+	inline int ref() const {
+		return m_ref; 
+	}
+
+	/**
+	 * @func empty() use empty string core
+	 */
+	static StringCore* empty() {
+		static StringCore* core(new StringCore());
+		core->m_ref++; // ref +1
+		return core;
+	}
+
+	uint length;
+	Container container;
+ protected:
+	std::atomic_int m_ref;
+};
+
+// ** BasicString::StringCore END **
 
 template <class Char, class Container>
 BasicString<Char, Container>::BasicString(StringCore* core): m_core(core) {
@@ -242,7 +249,7 @@ BasicString<Char, Container>::BasicString(StringCore* core): m_core(core) {
 
 template <class Char, class Container>
 BasicString<Char, Container>::BasicString() {
-	m_core = use_empty_core();
+	m_core = StringCore::empty();
 }
 
 template <class Char, class Container>
@@ -255,7 +262,7 @@ BasicString<Char, Container>::BasicString(const Char* a, uint a_len, const Char*
 
 template <class Char, class Container>
 BasicString<Char, Container>::BasicString(const Char* s, uint len)
-: m_core(len ? new StringCore(len) : use_empty_core()) {
+: m_core(len ? new StringCore(len) : StringCore::empty()) {
 	_memcpy(m_core->value(), s, len);
 }
 
@@ -266,7 +273,7 @@ BasicString<Char, Container>::BasicString(const BasicString& s): m_core(s.m_core
 
 template <class Char, class Container>
 BasicString<Char, Container>::BasicString(BasicString&& v): m_core(v.m_core) {
-	v.m_core = use_empty_core();
+	v.m_core = StringCore::empty();
 }
 
 template <class Char, class Container>
@@ -282,7 +289,7 @@ BasicString<Char, Container>::BasicString(ArrayBuffer<Char>&& data) {
 	if (s) {
 		m_core = new StringCore(len, s);
 	} else {
-		m_core = use_empty_core();
+		m_core = StringCore::empty();
 	}
 }
 
@@ -583,7 +590,7 @@ Char* BasicString<Char, Container>::collapse() { // Not Thread safe
 		rev[m_core->length] = 0;
 	}
 	m_core->release();
-	m_core = use_empty_core();
+	m_core = StringCore::empty();
 	return rev;
 }
 
@@ -665,11 +672,11 @@ BasicString<Char, Container>& BasicString<Char, Container>::push(Char s) { // No
 }
 
 template <class Char, class Container>
-BasicString<Char, Container>& BasicString<Char, Container>::assignment(const Char* s, uint len) { // Not Thread safe
-	
+BasicString<Char, Container>& BasicString<Char, Container>::assign(const Char* s, uint len) { // Not Thread safe
+
 	if (m_core->ref() > 1) { // 当前不是唯一引用,抛弃核心创建一个新的核心
 		m_core->release();
-		m_core = len ? new StringCore(len) : use_empty_core();
+		m_core = len ? new StringCore(len) : StringCore::empty();
 	} else { // 当唯一引用时,调用自动调整容量
 		m_core->container.realloc(len + 1);
 	}
@@ -693,7 +700,7 @@ BasicString<Char, Container>& BasicString<Char, Container>::operator=(const Basi
 template <class Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::operator=(BasicString&& s) { // Not Thread safe
 	auto core = s.m_core;
-	s.m_core = use_empty_core();
+	s.m_core = StringCore::empty();
 	auto self = m_core;
 	m_core = core;
 	self->release();
@@ -740,7 +747,7 @@ BasicString<Char, Container>::BasicString (const Char* s) {
 			return;
 		}
 	}
-	m_core = use_empty_core();
+	m_core = StringCore::empty();
 }
 
 template <class Char, class Container>
@@ -787,7 +794,7 @@ BasicString<Char, Container> BasicString<Char, Container>::operator+(const Char*
 
 template <class Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::operator=(const Char* s) {
-	return assignment(s, _strlen(s));
+	return assign(s, _strlen(s));
 }
 
 template <class Char, class Container>

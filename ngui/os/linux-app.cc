@@ -45,14 +45,13 @@ static LinuxApplication* application = nullptr;
 static LinuxGLDrawCore* gl_draw_core = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
-// static void signal_handler(int signal) {
-// 	switch(signal) {
-// 		case SIGINT:
-// 		case SIGTERM:
-// 			application->exit_app();
-// 			break;
-// 	}
-// }
+cchar* MOUSE_KEYS[] = {
+	"left",
+	"second (or middle)",
+	"right",
+	"pull_up",
+	"pull_down",
+};
 
 /**
  * @class LinuxApplication
@@ -92,8 +91,10 @@ class LinuxApplication {
 		XX_DEBUG("event, Expose");
 		XWindowAttributes attrs;
 		XGetWindowAttributes(m_dpy, m_win, &attrs);
+
 		m_win_width = attrs.width;
 		m_win_height = attrs.height;
+
 		render_loop()->post_sync(Cb([this](Se &ev) {
 			if (m_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
@@ -111,17 +112,6 @@ class LinuxApplication {
 	}
 
 	bool handle_events(XEvent& event) {
-
-		cchar *key_name[] = {
-			"left",
-			"second (or middle)",
-			"right",
-			"pull_up",
-			"pull_down",
-			"aaaa",
-			"bbbb",
-			"cccc",
-		};
 
 		switch(event.type) {
 			case Expose:
@@ -154,10 +144,10 @@ class LinuxApplication {
 				LOG("event, KeyUp, keycode: %d", event.xkey.keycode);
 				break;
 			case ButtonPress:
-				LOG("event, MouseDown, button: %s", key_name[event.xbutton.button - 1]);
+				LOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 				break;
 			case ButtonRelease:
-				LOG("event, MouseUp, button: %s", key_name[event.xbutton.button - 1]);
+				LOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 				break;
 			case MotionNotify:
 				LOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
@@ -269,7 +259,7 @@ class LinuxApplication {
 	}
 
 	void initialize(cJSON& options) {
-		m_dpy = XOpenDisplay(nullptr);
+		m_dpy = XOpenDisplay(nullptr); 
 		XX_CHECK(m_dpy, "Cannot connect to display");
 		m_root = XDefaultRootWindow(m_dpy);
 
