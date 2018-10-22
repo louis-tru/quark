@@ -403,6 +403,7 @@ extend(Error, {
 					e = new Error(e[1] || 'Unknown error');
 					e.description = description;
 				} else {
+					code = e.code;
 					e = Object.assign(new Error(e.message || e.error || 'Unknown error'), e);
 				}
 			} else {
