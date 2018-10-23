@@ -33,7 +33,7 @@
 namespace v8_inspector {
 
 	std::unique_ptr<V8Inspector> V8Inspector::create(v8::Isolate* iso, V8InspectorClient* cli) {
-		std::unique_ptr<V8Inspector>();
+		return std::unique_ptr<V8Inspector>();
 	}
 
 }
