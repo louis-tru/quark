@@ -50,7 +50,7 @@ static cString background("Background");
 static cString foreground("Foreground");
 static cString pause("Pause");
 static cString resume("Resume");
-static cString memorywarning("Memorywarning");
+static cString memorywarning("MemoryWarning");
 
 typedef GUIApplication NativeGUIApplication;
 

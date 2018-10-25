@@ -85,8 +85,8 @@ bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id) {
 			add_event_listener_1<GUIClickEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_KEYBOARD:
 			add_event_listener_1<GUIKeyEvent>(wrap, name, func, id); break;
-		//case GUI_EVENT_CATEGORY_MOUSE:
-		//  add_event_listener_<GUIMouseEvent>(wrap, name, func, id); break;
+		case GUI_EVENT_CATEGORY_MOUSE:
+		 add_event_listener_1<GUIMouseEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_TOUCH:
 			add_event_listener_1<GUITouchEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_HIGHLIGHTED:

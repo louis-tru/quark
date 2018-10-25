@@ -124,6 +124,18 @@ void AppInl::onMemorywarning() {
 	m_main_loop->post(Cb([&](Se&){ XX_TRIGGER(memorywarning); }));
 }
 
+void AppInl::onUnload() {
+	if (m_is_load) {
+		m_is_load = false;
+		m_main_loop->post_sync(Cb([&](Se& d) {
+			XX_TRIGGER(unload);
+			if (m_root) {
+				GUILock lock;
+				m_root->remove();
+			}
+		}));
+	}
+}
 /**
  * @func set_root
  */
@@ -151,22 +163,6 @@ bool AppInl::set_focus_view(View* view) {
 		}
 	}
 	return true;
-}
-
-/**
- * @func onUnload()
- */
-void AppInl::onUnload() {
-	if (m_is_load) {
-		m_is_load = false;
-		m_main_loop->post_sync(Cb([&](Se& d) {
-			XX_TRIGGER(unload);
-			if (m_root) {
-				GUILock lock;
-				m_root->remove();
-			}
-		}));
-	}
 }
 
 /**

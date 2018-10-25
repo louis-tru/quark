@@ -84,12 +84,12 @@ class XX_EXPORT DisplayPort: public Reference {
 	/**
 	 * @event onchange 显示端口变化事件
 	 */
-	XX_EVENT(onchange);
+	XX_EVENT(change);
 
 	/**
 	 * @event onorientation 屏幕方向发生改变触发
 	 */
-	XX_EVENT(onorientation);
+	XX_EVENT(orientation);
 	
 	/**
 	 * @func phy_size 视口在屏幕上所占的实际物理像素的尺寸

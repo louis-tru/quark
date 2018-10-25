@@ -708,10 +708,10 @@ BasicScroll::BasicScroll(Box* box)
 , m_momentum(true)
 , m_scrollbar(true)
 {
-	box->on(GUI_EVENT_TOUCHSTART, &Inl::m_touch_start_handle, _inl(this));
-	box->on(GUI_EVENT_TOUCHMOVE, &Inl::m_touch_move_handle, _inl(this));
-	box->on(GUI_EVENT_TOUCHEND, &Inl::m_touch_end_handle, _inl(this));
-	box->on(GUI_EVENT_TOUCHCANCEL, &Inl::m_touch_end_handle, _inl(this));
+	box->on(GUI_EVENT_TOUCH_START, &Inl::m_touch_start_handle, _inl(this));
+	box->on(GUI_EVENT_TOUCH_MOVE, &Inl::m_touch_move_handle, _inl(this));
+	box->on(GUI_EVENT_TOUCH_END, &Inl::m_touch_end_handle, _inl(this));
+	box->on(GUI_EVENT_TOUCH_CANCEL, &Inl::m_touch_end_handle, _inl(this));
 	
 	XX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
 }

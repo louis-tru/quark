@@ -84,6 +84,8 @@
 # define XX_DEBUG(msg, ...) ((void)0)
 #endif
 
+#define DLOG XX_DEBUG
+
 #define XX_NS(name) namespace name {
 #define XX_END };
 

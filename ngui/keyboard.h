@@ -43,6 +43,10 @@ F(KEYCODE_UNKNOWN,          0)  \
 F(KEYCODE_MOUSE_LEFT,       1)  \
 F(KEYCODE_MOUSE_CENTER,     2)  \
 F(KEYCODE_MOUSE_RIGHT,      3)  \
+F(KEYCODE_MOUSE_WHEEL_UP,   4)  \
+F(KEYCODE_MOUSE_WHEEL_DOWN, 5)  \
+F(KEYCODE_MOUSE_WHEEL_LEFT, 6)  \
+F(KEYCODE_MOUSE_WHEEL_RIGHT,7)  \
 F(KEYCODE_BACK_SPACE,       8)  /* back space */ \
 F(KEYCODE_TAB,              9)  /* tab */ \
 F(KEYCODE_CLEAR,            12) /* clear */ \

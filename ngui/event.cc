@@ -36,14 +36,14 @@
 
 XX_NS(ngui)
 
-#define XX_FUN(NAME, S, CATEGORY, BUBBLE) \
-const GUIEventName GUI_EVENT_##NAME(#S, GUI_EVENT_CATEGORY_##CATEGORY, BUBBLE);
+#define XX_FUN(NAME, STR, CATEGORY, FLAG) \
+const GUIEventName GUI_EVENT_##NAME(#STR, GUI_EVENT_CATEGORY_##CATEGORY, FLAG);
 XX_GUI_EVENT_TABLE(XX_FUN)
 #undef XX_FUN
 
 const Map<String, GUIEventName> GUI_EVENT_TABLE([]() -> Map<String, GUIEventName> {
 	Map<String, GUIEventName> r;
-#define XX_FUN(NAME, S, CATEGORY, BUBBLE) \
+#define XX_FUN(NAME, STR, CATEGORY, FLAG) \
 r.set(GUI_EVENT_##NAME.to_string(), GUI_EVENT_##NAME);
 XX_GUI_EVENT_TABLE(XX_FUN)
 #undef XX_FUN
@@ -58,8 +58,8 @@ template<class T, typename... Args>
 inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
 XX_DEFINE_INLINE_MEMBERS(View, EventInl) {
-public:
-#define _inl_view(self) static_cast<View::EventInl*>(static_cast<View*>(self))
+ public:
+ #define _inl_view(self) static_cast<View::EventInl*>(static_cast<View*>(self))
 	
 	/**
 	 * @func trigger_highlightted
@@ -199,8 +199,7 @@ bool View::can_become_focus() {
  * @class GUIEventDispatch::OriginTouche
  */
 class GUIEventDispatch::OriginTouche {
-public:
-	
+ public:
 	OriginTouche() { XX_UNREACHABLE(); }
 	OriginTouche(View* view)
 	: _view(view)
@@ -231,12 +230,41 @@ public:
 	inline uint count() { return _touches.length(); }
 	inline bool has(uint id) { return _touches.has(id); }
 	inline void del(uint id) { _touches.del(id); }
-private:
+ private:
 	View* _view;
 	Map<uint, GUITouch> _touches;
 	Vec2  _start_position;
 	bool  _is_click_invalid;
 	bool  _is_click_down;
+};
+
+/**
+ * @class GUIEventDispatch::MouseFocus
+ */
+class GUIEventDispatch::MouseFocus {
+ public:
+	MouseFocus(): m_view(nullptr) {
+	}
+	~MouseFocus() {
+		Release(m_view);
+	}
+	void set_point(Vec2 point) {
+		m_point = point;
+	}
+	void set_view(View* view) {
+		if (m_view) {
+			Release(m_view);
+		}
+		if (view) {
+			view->retain();
+		}
+		m_view = view;
+	}
+	inline Vec2 point() const { return m_point; }
+	inline View* view() { return m_view; }
+ private:
+	Vec2 m_point;
+	View* m_view;
 };
 
 /**
@@ -274,7 +302,7 @@ public:
 			
 			if ( change_touches.length() ) { // notice
 				auto evt = NewEvent<GUITouchEvent>(view, change_touches);
-				_inl_view(view)->bubble_trigger(GUI_EVENT_TOUCHSTART, **evt); // emit event
+				_inl_view(view)->bubble_trigger(GUI_EVENT_TOUCH_START, **evt); // emit event
 				
 				if ( !m_origin_touches[view]->is_click_down() ) { // trigger click down
 					m_origin_touches[view]->set_click_down(true);
@@ -323,8 +351,8 @@ public:
 					}
 					touchstart_2(view, in);
 				}
+				
 			}
-			
 		}
 	}
 	
@@ -360,7 +388,7 @@ public:
 			View* view = touchs[0].view;
 			// emit event
 			_inl_view(view)->bubble_trigger(
-				 GUI_EVENT_TOUCHMOVE,
+				 GUI_EVENT_TOUCH_MOVE,
 				 **NewEvent<GUITouchEvent>(view, i.value())
 			);
 			
@@ -449,8 +477,9 @@ public:
 							auto evt = NewEvent<GUIHighlightedEvent>(view, HOVER_or_NORMAL(view));
 							_inl_view(view)->trigger_highlightted(**evt);
 							
-							if ( type == GUI_EVENT_TOUCHEND && view->final_visible() ) {
-								auto evt = NewEvent<GUIClickEvent>(view, item.value().x, item.value().y);
+							if ( type == GUI_EVENT_TOUCH_END && view->final_visible() ) {
+								auto evt = NewEvent<GUIClickEvent>(view, item.value().x, item.value().y, 
+																										GUIClickEvent::TOUCH);
 								_inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, **evt); // emit click event
 							}
 							break;
@@ -481,19 +510,95 @@ public:
 	
 	void dispatch_touchend(Se& evt) {
 		GUILock lock;
-		touchend(*static_cast<List<GUITouch>*>(evt.data), GUI_EVENT_TOUCHEND);
+		touchend(*static_cast<List<GUITouch>*>(evt.data), GUI_EVENT_TOUCH_END);
 	}
 	
 	void dispatch_touchcancel(Se& evt) {
 		GUILock lock;
-		touchend(*static_cast<List<GUITouch>*>(evt.data), GUI_EVENT_TOUCHCANCEL);
+		touchend(*static_cast<List<GUITouch>*>(evt.data), GUI_EVENT_TOUCH_CANCEL);
+	}
+
+	// -------------------------- mouse --------------------------
+
+	void dispatch_mousemove(float x, float y) {
+		GUILock lock;
+		m_mouse_focus->set_point(Vec2(x, y));
+		
+		// LOG("mouse: %f, %f", x, y);
+
+
+
+	}
+
+	void mousepress(View* view, KeyboardKeyName name, bool down, float x, float y) {
+
+		auto evt = NewEvent<GUIMouseEvent>(view, x, y, name,
+			m_keyboard->shift(),
+			m_keyboard->ctrl(), m_keyboard->alt(),
+			m_keyboard->command(), m_keyboard->caps_lock(),
+			0, 0, 0
+		);
+
+		if (down) {
+			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_DOWN, **evt);
+		} else {
+			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_UP, **evt);
+		}
+
+		if (name != KEYCODE_MOUSE_LEFT || !evt->is_default()) return;
+
+		if (down) {
+			_inl_view(view)->trigger_highlightted(
+				**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN)); // emit style status event
+		} else {
+			_inl_view(view)->trigger_highlightted(
+				**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); // emit style status event
+			// _inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, 
+			// 	**NewEvent<GUIClickEvent>(view, x, y, GUIClickEvent::MOUSE));
+		}
+	}
+
+	void mousewhell(View* view, KeyboardKeyName name, bool down, float x, float y) {
+		if (down) {
+			auto evt = NewEvent<GUIMouseEvent>(view, x, y, name,
+				m_keyboard->shift(),
+				m_keyboard->ctrl(), m_keyboard->alt(),
+				m_keyboard->command(), m_keyboard->caps_lock(),
+				0, 0, 0
+			);
+			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_WHEEL, **evt);
+		}
+	}
+
+	void dispatch_mousepress(KeyboardKeyName name, bool down) {
+		GUILock lock;
+		auto view = m_mouse_focus->view();
+		if (view) {
+			switch(name) {
+				case KEYCODE_MOUSE_LEFT:
+				case KEYCODE_MOUSE_CENTER:
+				case KEYCODE_MOUSE_RIGHT:
+					mousepress(view, name, down, 
+						m_mouse_focus->point().x(), m_mouse_focus->point().y());
+					break;
+				case KEYCODE_MOUSE_WHEEL_UP:
+					mousewhell(view, name, down, 0, -53); break;
+				case KEYCODE_MOUSE_WHEEL_DOWN:
+					mousewhell(view, name, down, 0, 53); break;
+				case KEYCODE_MOUSE_WHEEL_LEFT:
+					mousewhell(view, name, down, -53, 0); break;
+				case KEYCODE_MOUSE_WHEEL_RIGHT:
+					mousewhell(view, name, down, 53, 0); break;
+				default: break;
+			}
+		}
 	}
 
 	// -------------------------- keyboard --------------------------
 
 	void dispatch_keyboard_down() {
+		GUILock lock;
 		KeyboardKeyName name = m_keyboard->keyname();
-
 		View* view = app_->focus_view();
 		if ( !view ) view = app_->root();
 		if ( view ) {
@@ -527,12 +632,12 @@ public:
 			
 			evt->set_focus_move(focus_move);
 			
-			_inl_view(view)->bubble_trigger(GUI_EVENT_KEYDOWN, **evt);
+			_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_DOWN, **evt);
 			
 			if ( evt->is_default() ) {
 				
 				if ( name == KEYCODE_ENTER ) {
-					_inl_view(view)->bubble_trigger(GUI_EVENT_KEYENTER, **evt);
+					_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_ENTER, **evt);
 				} else if ( name == KEYCODE_VOLUME_UP ) {
 					_inl_app(app_)->set_volume_up();
 				} else if ( name == KEYCODE_VOLUME_DOWN ) {
@@ -542,7 +647,7 @@ public:
 				int keypress_code = m_keyboard->keypress();
 				if ( keypress_code ) { // keypress
 					evt->set_keycode( keypress_code );
-					_inl_view(view)->bubble_trigger(GUI_EVENT_KEYPRESS, **evt);
+					_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_PRESS, **evt);
 				}
 
 				if ( name == KEYCODE_CENTER && m_keyboard->repeat() == 0 ) {
@@ -560,7 +665,7 @@ public:
 	}
 	
 	void dispatch_keyboard_up() {
-		
+		GUILock lock;
 		KeyboardKeyName name = m_keyboard->keyname();
 		View* view = app_->focus_view();
 		if ( !view ) view = app_->root();
@@ -572,13 +677,14 @@ public:
 				m_keyboard->repeat(), m_keyboard->device(), m_keyboard->source()
 			);
 			
-			_inl_view(view)->bubble_trigger(GUI_EVENT_KEYUP, **evt);
+			_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_UP, **evt);
 			
 			if ( evt->is_default() ) {
 				if ( name == KEYCODE_BACK ) {
 					CGRect rect = view->screen_rect();
 					auto evt = NewEvent<GUIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
-																							rect.origin.y() + rect.size.y() / 2, true);
+																							rect.origin.y() + rect.size.y() / 2, 
+																							GUIClickEvent::KEYBOARD);
 					_inl_view(view)->bubble_trigger(GUI_EVENT_BACK, **evt); // emit back
 					
 					if ( evt->is_default() ) {
@@ -592,32 +698,35 @@ public:
 					
 					CGRect rect = view->screen_rect();
 					auto evt2 = NewEvent<GUIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
-																						 rect.origin.y() + rect.size.y() / 2, true);
+																						 rect.origin.y() + rect.size.y() / 2, 
+																						 GUIClickEvent::KEYBOARD);
 					_inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, **evt2);
 				} // 
 			}
 		}
 	}
 	
+	// ---------------
 };
 
 GUIEventDispatch::GUIEventDispatch(GUIApplication* app): app_(app), m_text_input(nullptr) {
 	m_keyboard = KeyboardAdapter::create();
+	m_mouse_focus = new MouseFocus();
 }
 
 GUIEventDispatch::~GUIEventDispatch() {
-	for (auto& i : m_origin_touches) {
+	for (auto& i : m_origin_touches)
 		delete i.value();
-	}
 	Release(m_keyboard);
+	delete m_mouse_focus;
 }
 
 #define _loop static_cast<PostMessage*>(app_->main_loop())
 
 void KeyboardAdapter::dispatch(int keycode, bool ascii,
-															 bool down, int repeat, int device, int source) {
+															 bool down, int repeat, int device, int source) 
+{
 	async_callback(Cb([=](Se& evt) {
-		GUILock lock;
 		repeat_ = repeat; device_ = device;
 		source_ = source;
 		
@@ -650,6 +759,18 @@ void GUIEventDispatch::dispatch_touchend(List<GUITouch>&& list) {
 
 void GUIEventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
 	async_callback(Cb(&Inl::dispatch_touchcancel, _inl_di(this)), move(list), _loop);
+}
+
+void GUIEventDispatch::dispatch_mousemove(float x, float y) {
+	async_callback(Cb([=](Se& evt) {
+		_inl_di(this)->dispatch_mousemove(x, y);
+	}), _loop);
+}
+
+void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
+	async_callback(Cb([=](Se& evt) {
+		_inl_di(this)->dispatch_mousepress(name, down);
+	}), _loop);
 }
 
 void GUIEventDispatch::dispatch_ime_delete(int count) {
@@ -691,9 +812,6 @@ void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
 	}), _loop);
 }
 
-/**
- * @func make_text_input
- */
 void GUIEventDispatch::make_text_input(TextInputProtocol* input) {
 	if ( input != m_text_input ) {
 		// TextInput* old = m_text_input;

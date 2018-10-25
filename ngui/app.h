@@ -91,13 +91,13 @@ class XX_EXPORT GUIApplication: public Object {
 	XX_HIDDEN_ALL_COPY(GUIApplication);
  public:
 
-	XX_EVENT(onload);
-	XX_EVENT(onunload);
-	XX_EVENT(onbackground);
-	XX_EVENT(onforeground);
-	XX_EVENT(onpause);
-	XX_EVENT(onresume);
-	XX_EVENT(onmemorywarning);
+	XX_EVENT(load);
+	XX_EVENT(unload);
+	XX_EVENT(background);
+	XX_EVENT(foreground);
+	XX_EVENT(pause);
+	XX_EVENT(resume);
+	XX_EVENT(memorywarning);
 	
 	GUIApplication();
 	

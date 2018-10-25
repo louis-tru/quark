@@ -481,19 +481,19 @@ class WrapGUIClickEvent: public WrapObject {
 	}
 	
 	/**
-	 * @get keyboard {bool}
+	 * @get mode {int}
 	 */
-	static void keyboard(Local<JSString> name, PropertyCall args) {
+	static void mode(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIClickEvent);
-		JS_RETURN( self->keyboard() );
+		JS_RETURN( int(self->mode()) );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(GUIClickEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(x, x);
 			JS_SET_CLASS_ACCESSOR(y, y);
-			JS_SET_CLASS_ACCESSOR(keyboard, keyboard);
+			JS_SET_CLASS_ACCESSOR(mode, mode);
 			JS_SET_CLASS_ACCESSOR(count, count);
 		}, GUIEvent);
 	}

@@ -45,13 +45,17 @@ static LinuxApplication* application = nullptr;
 static LinuxGLDrawCore* gl_draw_core = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
+#if DEBUG
 cchar* MOUSE_KEYS[] = {
 	"left",
 	"second (or middle)",
 	"right",
 	"pull_up",
 	"pull_down",
+	"pull_left",
+	"pull_right",
 };
+#endif
 
 /**
  * @class LinuxApplication
@@ -119,22 +123,22 @@ class LinuxApplication {
 				break;
 			case MapNotify:
 				if (m_is_init) {
-					XX_DEBUG("event, MapNotify, Window onForeground");
+					DLOG("event, MapNotify, Window onForeground");
 					m_host->onForeground();
 					m_render_looper->start();
 				}
 				break;
 			case UnmapNotify:
-				XX_DEBUG("event, UnmapNotify, Window onBackground");
+				DLOG("event, UnmapNotify, Window onBackground");
 				m_host->onBackground();
 				m_render_looper->stop();
 				break;
 			case FocusIn:
-				XX_DEBUG("event, FocusIn, Window onResume");
+				DLOG("event, FocusIn, Window onResume");
 				m_host->onResume();
 				break;
 			case FocusOut:
-				XX_DEBUG("event, FocusOut, Window onPause");
+				DLOG("event, FocusOut, Window onPause");
 				m_host->onPause();
 				break;
 			case KeyPress:
@@ -144,19 +148,22 @@ class LinuxApplication {
 				LOG("event, KeyUp, keycode: %d", event.xkey.keycode);
 				break;
 			case ButtonPress:
-				LOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+				DLOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+				m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
 				break;
 			case ButtonRelease:
-				LOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+				DLOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+				m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
 				break;
 			case MotionNotify:
-				LOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+				DLOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+				m_dispatch->dispatch_mousemove(event.xmotion.x, event.xmotion.y);
 				break;
 			case EnterNotify:
-				XX_DEBUG("event, EnterNotify");
+				DLOG("event, EnterNotify");
 				break;
 			case LeaveNotify:
-				XX_DEBUG("event, LeaveNotify");
+				DLOG("event, LeaveNotify");
 				break;
 			case ClientMessage:
 				if (event.xclient.message_type == m_wm_protocols && 
@@ -165,7 +172,7 @@ class LinuxApplication {
 				}
 				break;
 			default:
-				XX_DEBUG("event, %d", event.type);
+				DLOG("event, %d", event.type);
 				break;
 		}
 

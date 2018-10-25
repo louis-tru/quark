@@ -10,7 +10,7 @@
 ### GUIApplication.onForeground
 ### GUIApplication.onPause
 ### GUIApplication.onResume
-### GUIApplication.onMemorywarning
+### GUIApplication.onMemoryWarning
 
 内存不足时触发，触发后会自动调用[`clear()`]进行资源清理并执行`js`垃圾收集
 

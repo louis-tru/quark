@@ -44,7 +44,7 @@
 
 XX_NS(ngui)
 
-// ----------- EVENT TYPE ----------- 
+// ----------- EVENT CATEGORY ----------- 
 
 enum {
 	GUI_EVENT_CATEGORY_DEFAULT,
@@ -52,6 +52,7 @@ enum {
 	GUI_EVENT_CATEGORY_CLICK,
 	GUI_EVENT_CATEGORY_HIGHLIGHTED,
 	GUI_EVENT_CATEGORY_TOUCH,
+	GUI_EVENT_CATEGORY_MOUSE,
 	GUI_EVENT_CATEGORY_ACTION,
 	GUI_EVENT_CATEGORY_FOCUS_MOVE,
 	GUI_EVENT_CATEGORY_ERROR,
@@ -65,18 +66,27 @@ enum {
 	GUI_EVENT_FLAG_PLAYER = (1 << 1),
 };
 
+// NAME, STR_NAME, CATEGORY, FLAG
 #define XX_GUI_EVENT_TABLE(F) \
 /* can bubble event */ \
 F(CLICK, Click, CLICK, GUI_EVENT_FLAG_BUBBLE) \
 F(BACK, Back, CLICK, GUI_EVENT_FLAG_BUBBLE) \
-F(KEYDOWN, KeyDown, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) /* View */\
-F(KEYPRESS, KeyPress, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
-F(KEYUP, KeyUp, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
-F(KEYENTER, KeyEnter, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
-F(TOUCHSTART, TouchStart, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-F(TOUCHMOVE, TouchMove, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-F(TOUCHEND, TouchEnd, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
-F(TOUCHCANCEL, TouchCancel, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(KEY_DOWN, KeyDown, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) /* View */\
+F(KEY_PRESS, KeyPress, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
+F(KEY_UP, KeyUp, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
+F(KEY_ENTER, KeyEnter, KEYBOARD, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCH_START, TouchStart, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCH_MOVE, TouchMove, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCH_END, TouchEnd, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(TOUCH_CANCEL, TouchCancel, TOUCH, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_OVER, MouseOver, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_OUT, MouseOut, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_LEAVE, MouseLeave, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_ENTER, MouseEnter, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_MOVE, MouseMove, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_DOWN, MouseDown, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_UP, MouseUp, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
+F(MOUSE_WHEEL, MouseWheel, MOUSE, GUI_EVENT_FLAG_BUBBLE) \
 F(FOCUS, Focus, DEFAULT, GUI_EVENT_FLAG_BUBBLE) \
 F(BLUR, Blur, DEFAULT, GUI_EVENT_FLAG_BUBBLE) \
 /* canno bubble event */ \
@@ -130,7 +140,7 @@ class XX_EXPORT GUIEventName {
 
 XX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_TABLE;
 
-#define XX_FUN(NAME, STR, CATEGORY, BUBBLE) \
+#define XX_FUN(NAME, STR, CATEGORY, FLAG) \
 XX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
 XX_GUI_EVENT_TABLE(XX_FUN)
 #undef XX_FUN
@@ -142,14 +152,6 @@ class View;
 class Action;
 class Activity;
 class Button;
-
-struct GUITouch { // touch event point
-	uint    id;
-	float   start_x, start_y;
-	float   x, y, force;
-	bool    click_in;
-	View*   view;
-};
 
 /**
  * @func GUIEvent gui event
@@ -232,16 +234,17 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
  */
 class XX_EXPORT GUIClickEvent: public GUIEvent {
  public:
-	inline GUIClickEvent(View* origin, float x, float y, bool keyboard = false, uint count = 1)
-		: GUIEvent(origin), x_(x), y_(y), count_(count), keyboard_(keyboard) { }
+	enum Mode { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
+	inline GUIClickEvent(View* origin, float x, float y, Mode mode, uint count = 1)
+		: GUIEvent(origin), x_(x), y_(y), count_(count), mode_(mode) { }
 	inline float x() const { return x_; }
 	inline float y() const { return y_; }
 	inline uint count() const { return count_; }
-	inline bool keyboard() const { return keyboard_; }
+	inline Mode mode() const { return mode_; }
  private:
 	float x_, y_;
 	uint count_;
-	bool keyboard_;
+	Mode mode_;
 };
 
 /**
@@ -277,12 +280,21 @@ class XX_EXPORT GUIHighlightedEvent: public GUIEvent {
  */
 class XX_EXPORT GUITouchEvent: public GUIEvent {
  public:
-	inline GUITouchEvent(View* origin, Array<GUITouch>& touches)
+	struct Touch { // touch event point
+		uint    id;
+		float   start_x, start_y;
+		float   x, y, force;
+		bool    click_in;
+		View*   view;
+	};
+	inline GUITouchEvent(View* origin, Array<Touch>& touches)
 		: GUIEvent(origin), m_change_touches(touches) { }
-	inline Array<GUITouch>& changed_touches() { return m_change_touches; }
+	inline Array<Touch>& changed_touches() { return m_change_touches; }
  private:
-	Array<GUITouch> m_change_touches;
+	Array<Touch> m_change_touches;
 };
+
+typedef GUITouchEvent::Touch GUITouch;
 
 /**
  * @class GUIFocusMoveEvent
@@ -331,6 +343,8 @@ class XX_EXPORT GUIEventDispatch: public Object {
 	void dispatch_touchmove(List<GUITouch>&& touches);
 	void dispatch_touchend(List<GUITouch>&& touches);
 	void dispatch_touchcancel(List<GUITouch>&& touches);
+	void dispatch_mousemove(float x, float y);
+	void dispatch_mousepress(KeyboardKeyName key, bool down);
 	void dispatch_ime_delete(int count);     // ime input
 	void dispatch_ime_insert(cString& text);
 	void dispatch_ime_marked(cString& text);
@@ -349,10 +363,13 @@ class XX_EXPORT GUIEventDispatch: public Object {
 	}
 	
  private:
-	class OriginTouche; typedef Map<PrtKey<View>, OriginTouche*> OriginTouches;
+	class OriginTouche;
+	class MouseFocus;
+	typedef Map<PrtKey<View>, OriginTouche*> OriginTouches;
 	
 	GUIApplication*     app_;
 	OriginTouches       m_origin_touches;
+	MouseFocus*         m_mouse_focus;
 	KeyboardAdapter*    m_keyboard;
 	TextInputProtocol*  m_text_input;
 	

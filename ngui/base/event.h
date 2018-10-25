@@ -39,14 +39,14 @@
 #include <functional>
 
 #define XX_EVENT(name, ...) \
-public: inline ngui::EventNoticer<__VA_ARGS__>& name () { return _##name; } \
-private:ngui::EventNoticer<__VA_ARGS__>_##name; public:
+public: inline ngui::EventNoticer<__VA_ARGS__>& on##name () { return m_on##name; } \
+private:ngui::EventNoticer<__VA_ARGS__> m_on##name; public:
 
-#define XX_INIT_EVENT(name)  _on##name(#name, this)
+#define XX_INIT_EVENT(name)   m_on##name(#name, this)
 #define XX_ON(name, ...)      on##name().on( __VA_ARGS__ )
 #define XX_ONCE(name, ...)    on##name().once( __VA_ARGS__ )
 #define XX_OFF(name, ...)     on##name().off( __VA_ARGS__ )
-#define XX_TRIGGER(name, ...)  on##name().trigger( __VA_ARGS__ )
+#define XX_TRIGGER(name, ...) on##name().trigger( __VA_ARGS__ )
 
 /**
  * @ns ngui
@@ -84,7 +84,7 @@ class XX_EXPORT Event: public Object {
 	inline cSendData* data() const { return m_data; }
 	
 	class BasicEventNoticer: public Object {
-	protected:
+	 protected:
 		inline static void set_event(Noticer* noticer, Event& evt) {
 			evt.m_noticer = noticer;
 		}

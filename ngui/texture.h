@@ -97,7 +97,7 @@ class XX_EXPORT Texture: public Reference {
 	/**
 	 * @event onchange 纹理变化事件,比如尺寸了生了变化
 	 */
-	XX_EVENT(onchange, Event<int, Texture>);
+	XX_EVENT(change, Event<int, Texture>);
 	
 	/**
 	 * @func create() 通过图像数据创建一个新的纹理对像,如果成功返回纹理对像
@@ -242,7 +242,7 @@ class XX_EXPORT TexturePool: public Object {
 	/**
 	 * @event onchange 纹理载入变化事件
 	 */
-	XX_EVENT(onchange, TexturePoolEvent);
+	XX_EVENT(change, TexturePoolEvent);
 	
 	/**
 	 * @constructor

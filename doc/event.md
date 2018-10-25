@@ -520,9 +520,11 @@ GUI事件数据上下文，构造函数为私有不能访问
 
 * {[`uint`]}
 
-### Get: GUIClickEvent.keyboard 
+### Get: GUIClickEvent.mode 
 
-* {[`bool`]}
+触发方式`1=TOUCH, 2=KEYBOARD, 3=MOUSE`
+
+* {[`int`]}
 
 
 ## `Class: GUIHighlightedEvent`
