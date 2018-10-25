@@ -35,7 +35,7 @@
 XX_NS(ngui)
 
 XX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
-public:
+ public:
 	
 	static Button* first_button(View* v) {
 		

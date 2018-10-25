@@ -213,11 +213,11 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	 * @enum ViewType
 	 */
 	enum ViewType {
-#define xx_def_view_type(enum, type, name) enum,
+	 #define xx_def_view_type(enum, type, name) enum,
 		INVALID = 0,
 		VIEW,
 		XX_EACH_VIEWS(xx_def_view_type)
-#undef xx_def_view_type
+	 #undef xx_def_view_type
 	};
 
 	/**
@@ -225,11 +225,11 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	 */
 	virtual ViewType view_type() const { return VIEW; }
 	
-#define xx_def_view_type(enum, type, name)  \
+ #define xx_def_view_type(enum, type, name)  \
 	virtual type* as_##name() { return nullptr; }
 	// as type
 	XX_EACH_VIEWS(xx_def_view_type)
-#undef xx_def_view_type
+ #undef xx_def_view_type
 	
 	/**
 	 * @overwrite

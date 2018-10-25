@@ -450,7 +450,7 @@ void LinuxGLDrawCore::commit_render() {
 		glBindVertexArray(0);
 	}
 
- #define gl_ glshaders(m_host)
+	// #define gl_ glshaders(m_host)
 	if ( m_virtual_keys_rect.size.width() != 0 ) {
 		// Draw Virtual Keys background color  
 
