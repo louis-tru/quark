@@ -45,8 +45,8 @@ public:
  * @class ActionCenter::Inl
  */
 class ActionCenter::Inl: public ActionCenter {
-public:
-#define _inl_action_center(self) static_cast<ActionCenter::Inl*>(self)
+ public:
+ #define _inl_action_center(self) static_cast<ActionCenter::Inl*>(self)
 	
 	/**
 	 * @func add
@@ -81,8 +81,8 @@ inline void __update_spawn_action_duration(SpawnAction* act);
  * @class Action::Inl
  */
 class Action::Inl: public Action {
-public:
-#define _inl_action(self) static_cast<Action::Inl*>(static_cast<Action*>(self))
+ public:
+ #define _inl_action(self) static_cast<Action::Inl*>(static_cast<Action*>(self))
 	
 	void set_parent(Action* parent) throw(Error) {
 		
@@ -245,8 +245,8 @@ public:
 #include "action.cc.inl"
 
 class Frame::Inl: public Frame {
-public:
-#define _inl_frame(self) static_cast<KeyframeAction::Frame::Inl*>(self)
+ public:
+ #define _inl_frame(self) static_cast<KeyframeAction::Frame::Inl*>(self)
 	
 	template<PropertyName Name, class T> inline T property_value() {
 		typedef Property2<T> Type;
@@ -288,8 +288,8 @@ XX_EACH_PROPERTY_TABLE(xx_def_property)
  * @func GroupAction::Inl
  */
 class GroupAction::Inl: public GroupAction {
-public:
-#define _inl_group_action(self) static_cast<GroupAction::Inl*>(static_cast<GroupAction*>(self))
+ public:
+ #define _inl_group_action(self) static_cast<GroupAction::Inl*>(static_cast<GroupAction*>(self))
 	
 	/**
 	 * @func clear_all
@@ -909,7 +909,7 @@ uint64 SpawnAction::advance(uint64 time_span, bool restart, Action* root) {
 	
 	uint64 surplus_time = time_span;
 	
-advance:
+ advance:
 	
 	for ( auto& i : m_actions ) {
 		uint64 time = i.value()->advance(time_span, restart, root);
@@ -940,7 +940,7 @@ advance:
 		}
 	}
 	
-end:
+ end:
 	return surplus_time / m_speed;
 }
 
@@ -975,7 +975,7 @@ uint64 SequenceAction::advance(uint64 time_span, bool restart, Action* root) {
 		}
 	}
 	
-advance:
+ advance:
 	
 	time_span = m_action.value()->advance(time_span, restart, root);
 	
@@ -1022,7 +1022,7 @@ advance:
 		}
 	}
 	
-end:
+ end:
 	return time_span / m_speed;
 }
 

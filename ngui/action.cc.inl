@@ -35,7 +35,7 @@ typedef KeyframeAction::Property Property;
  * @class Property2
  */
 template<class T> class Property2: public Property {
-public:
+ public:
 	typedef T    (View::*GetPropertyFunc)() const;
 	typedef void (View::*SetPropertyFunc)(T value);
 	
@@ -518,7 +518,7 @@ void Property2<BackgroundPtr>::frame(uint index, BackgroundPtr value) {
  * @class Property3
  */
 template<class T, PropertyName Name> class Property3: public Property2<T> {
-public:
+ public:
 	
 	typedef typename Property2<T>::GetPropertyFunc GetPropertyFunc;
 	typedef typename Property2<T>::SetPropertyFunc SetPropertyFunc;
