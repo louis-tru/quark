@@ -928,7 +928,6 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 					m_offset += buffer.length();
 					m_client->m_download_size += buffer.length();
 					m_client->trigger_http_data(buffer, false);
-					// m_client->trigger_http_data(buffer, true, true);
 				} else { // end
 					m_client->trigger_http_end();
 				}
@@ -969,11 +968,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	
 	class FileWriter: public Object, public AsyncFile::Delegate {
 	 public:
-		FileWriter(Client* client, cString& path, bool write_header, bool only_header, RunLoop* loop)
+		FileWriter(Client* client, cString& path, bool write_header, RunLoop* loop)
 		: m_client(client)
 		, m_file(nullptr)
 		, m_write_header(write_header)
-		, m_only_header(only_header)
 		, m_write_count(0)
 		, m_completed_end(0) {
 			XX_ASSERT(!m_client->m_file_writer);
@@ -1064,10 +1062,8 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
 			if ( mark ) {
 				if ( mark == 2 ) {
-					// if (!m_only_header) {
 					m_write_count++;
 					m_file->write(m_buffer);
-					// }
 				}
 			} else {
 				m_client->trigger_http_data2(buffer);
@@ -1096,13 +1092,11 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		void write(Buffer& buffer) {
 			if ( m_file ) {
 				if ( m_file->is_open() ) {
-					// if (!m_only_header) {
 					m_write_count++;
 					if ( m_write_count > 32 ) {
 						m_client->read_pause();
 					}
 					m_file->write(buffer);
-					// }
 				} else {
 					m_buffer.write(buffer);
 					m_client->read_pause();
@@ -1118,7 +1112,6 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		Buffer  m_buffer;
 		AsyncFile*  m_file;
 		bool    m_write_header;
-		bool    m_only_header;
 		int     m_write_count;
 		bool    m_completed_end;
 	};
@@ -1164,7 +1157,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		r->read_pause();
 	}
 	
-	void trigger_http_data(Buffer& buffer, bool save_cache, bool only_header = false) {
+	void trigger_http_data(Buffer& buffer, int save_cache) {
 		// if ( save_cache ) {
 		// 	if ( m_cache_reader ) {
 		// 		m_cache_reader->release();
@@ -1173,12 +1166,12 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		// }
 		if ( !m_save_path.is_empty() ) {
 			if ( !m_file_writer ) {
-				new FileWriter(this, m_save_path, false, only_header, loop());
+				new FileWriter(this, m_save_path, false, loop());
 			}
 			m_file_writer->write(buffer);
 		} else if ( !is_disable_cache() && save_cache ) {
 			if ( !m_file_writer ) {
-				new FileWriter(this, m_cache_path, true, only_header, loop());
+				new FileWriter(this, m_cache_path, true, loop());
 			}
 			m_file_writer->write(buffer);
 		} else {
