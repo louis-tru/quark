@@ -191,7 +191,7 @@ typedef UVRequestWrap<uv_fs_t, AsyncFile::Inl> FileReq;
 typedef UVRequestWrap<uv_fs_t, AsyncFile::Inl, FileStreamData> FileStreamReq;
 
 class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
-public:
+ public:
 	typedef AsyncFile::Delegate Delegate;
 	virtual void trigger_async_file_open(AsyncFile* file) { }
 	virtual void trigger_async_file_close(AsyncFile* file) { }
@@ -376,6 +376,7 @@ public:
 			uv_buf_t buf;
 			buf.base = req->data().buffer.value();
 			buf.len = req->data().buffer.length();
+			// LOG("write_first-- %ld", req->data().offset);
 			uv_fs_write(uv_loop(), req->req(), m_fp, &buf, 1, req->data().offset, &Inl::fs_write_cb);
 		}
 	}

@@ -155,10 +155,12 @@ class LinuxApplication {
 				DLOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
 				m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
 				break;
-			case MotionNotify:
+			case MotionNotify: {
+				Vec2 scale = m_host->display_port()->scale();
 				DLOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
-				m_dispatch->dispatch_mousemove(event.xmotion.x, event.xmotion.y);
+				m_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
 				break;
+			}
 			case EnterNotify:
 				DLOG("event, EnterNotify");
 				break;
@@ -309,8 +311,8 @@ class LinuxApplication {
 		cJSON& o_b = options["background"];
 		cJSON& o_t = options["title"];
 
-		if (o_w.is_uint()) m_win_width = XX_MAX(1, o_w.to_uint());
-		if (o_h.is_uint()) m_win_height = XX_MAX(1, o_h.to_uint());
+		if (o_w.is_uint()) m_win_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
+		if (o_h.is_uint()) m_win_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
 		if (o_w.is_uint()) m_xset.background_pixel = o_b.to_uint();
 		if (o_t.is_string()) m_title = o_t.to_string();
 	}

@@ -520,55 +520,68 @@ public:
 
 	// -------------------------- mouse --------------------------
 
+	void mousemove_2(View* view, Vec2 p) {
+		View* old = m_mouse_h->view();
+		if (old != view) {
+			m_mouse_h->set_view(view);
+			if (old) {
+				auto evt = NewEvent<GUIMouseEvent>(old, p[0], p[1], 0,
+					m_keyboard->shift(),
+					m_keyboard->ctrl(), m_keyboard->alt(),
+					m_keyboard->command(), m_keyboard->caps_lock(),
+					0, 0, 0
+				);
+				_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_OUT, **evt);
+				if (evt->is_default()) {
+					_inl_view(old)->trigger_highlightted( // emit style status event
+						**NewEvent<GUIHighlightedEvent>(old, HIGHLIGHTED_NORMAL));
+				}
+			}
+			if (view) {
+				_inl_view(view)->trigger_highlightted( // emit style status event
+					**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); 
+			}
+		}
+		else if (view) {
+			auto evt = NewEvent<GUIMouseEvent>(view, p[0], p[1], 0,
+				m_keyboard->shift(),
+				m_keyboard->ctrl(), m_keyboard->alt(),
+				m_keyboard->command(), m_keyboard->caps_lock(),
+				0, 0, 0
+			);
+			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_MOVE, **evt);
+		}
+	}
+
 	bool mousemove(View* view, Vec2 p) {
 		if ( view->m_visible ) {
 			if ( view->m_screen_visible || view->m_need_draw ) {
 				View* v = view->m_last;
-				bool test = view->overlap_test(p);
-				#define _clip (view->as_box() && static_cast<Box*>(view)->clip())
 
-				if ( v && (test || !_clip) ) {
-					#undef _clip
-					do {
+				if (v && view->as_box() && static_cast<Box*>(view)->clip()) {
+					if (view->overlap_test(p)) {
+						while (v) {
+							if (mousemove(v, p)) {
+								return true;
+							}
+							v = v->m_prev;
+						}
+						if (view->receive()) {
+							mousemove_2(view, p);
+							return true;
+						}
+					}
+				} else {
+					while (v) {
 						if (mousemove(v, p)) {
 							return true;
 						}
 						v = v->m_prev;
-					} while(v);
-				}
-
-				if (test && view->receive()) {
-					View* old = m_mouse_h->view();
-
-					if (old != view) {
-						m_mouse_h->set_view(view);
-						if (old) {
-							auto evt = NewEvent<GUIMouseEvent>(view, p[0], p[1], 0,
-								m_keyboard->shift(),
-								m_keyboard->ctrl(), m_keyboard->alt(),
-								m_keyboard->command(), m_keyboard->caps_lock(),
-								0, 0, 0
-							);
-							_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_OVER, **evt);
-							if (evt->is_default()) {
-								_inl_view(old)->trigger_highlightted( // emit style status event
-									**NewEvent<GUIHighlightedEvent>(old, HIGHLIGHTED_NORMAL)); 
-							}
-						}
-						_inl_view(view)->trigger_highlightted( // emit style status event
-							**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); 
 					}
-					else {
-						auto evt = NewEvent<GUIMouseEvent>(view, p[0], p[1], 0,
-							m_keyboard->shift(),
-							m_keyboard->ctrl(), m_keyboard->alt(),
-							m_keyboard->command(), m_keyboard->caps_lock(),
-							0, 0, 0
-						);
-						_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_MOVE, **evt);
+					if (view->receive() && view->overlap_test(p)) {
+						mousemove_2(view, p);
+						return true;
 					}
-
-					return true;
 				}
 			}
 		}
@@ -787,7 +800,9 @@ void GUIEventDispatch::dispatch_mousemove(float x, float y) {
 		m_mouse_h->set_point(Vec2(x, y));
 		Root* r = app_->root();
 		if (r) {
-			_inl_di(this)->mousemove(r, Vec2(x, y));
+			if (!_inl_di(this)->mousemove(r, Vec2(x, y))) {
+				_inl_di(this)->mousemove_2(nullptr, Vec2(x, y));
+			}
 		}
 	}), _loop);
 }
