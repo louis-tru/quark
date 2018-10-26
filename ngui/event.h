@@ -364,12 +364,12 @@ class XX_EXPORT GUIEventDispatch: public Object {
 	
  private:
 	class OriginTouche;
-	class MouseFocus;
+	class MouseHandle;
 	typedef Map<PrtKey<View>, OriginTouche*> OriginTouches;
 	
 	GUIApplication*     app_;
 	OriginTouches       m_origin_touches;
-	MouseFocus*         m_mouse_focus;
+	MouseHandle*        m_mouse_h;
 	KeyboardAdapter*    m_keyboard;
 	TextInputProtocol*  m_text_input;
 	

@@ -53,6 +53,7 @@ void Root::initialize() throw(Error) {
 	m_final_visible = true;
 	m_explicit_width = true;
 	m_explicit_height = true;
+	// m_receive = true;
 	Vec2 size = display_port()->size();
 	set_width(size.width());
 	set_height(size.height());
