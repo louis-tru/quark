@@ -44,26 +44,35 @@
 XX_NS(ngui)
 
 /**
- * @enum FileOpenMode # File open mode
+ * @enum FileOpenFlag # File open flag
  */
-enum FileOpenMode {
-	FOPEN_READ = 0,   // r  打开只读文件，该文件必须存在。
-	FOPEN_WRITE,      // w  打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失。
-										//    若文件不存在则建立该文件。
-	FOPEN_APPEND,     // a  以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，
-										//    写入的数据会被加到文件尾，即文件原先的内容会被保留。
-	FOPEN_READ_PLUS,  // r+ 打开可读写文件，该文件必须存在。
-	FOPEN_WRITE_PLUS, // w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。
-										//    若文件不存在则建立该文件。
-	FOPEN_APPEND_PLUS,// a+	以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，
-										//    写入的数据会被加到文件尾后，即文件原先的内容会被保留。
-	FOPEN_NUM,        // num
-	FOPEN_R = FOPEN_READ,                   // r
-	FOPEN_W = FOPEN_WRITE,                  // w
-	FOPEN_A = FOPEN_APPEND,                 // a
-	FOPEN_RP = FOPEN_READ_PLUS,             // r+
-	FOPEN_WP = FOPEN_WRITE_PLUS,            // w+
-	FOPEN_AP = FOPEN_APPEND_PLUS,           // a+
+enum FileOpenFlag {
+	FOPEN_ACCMODE = 03,
+	FOPEN_RDONLY = 00,
+	FOPEN_WRONLY = 01,
+	FOPEN_RDWR = 02,
+	FOPEN_CREAT = 0100,
+	FOPEN_EXCL = 0200,
+	FOPEN_NOCTTY = 0400,
+	FOPEN_TRUNC = 01000,
+	FOPEN_APPEND = 02000,
+	FOPEN_NONBLOCK = 04000,
+	//
+	// r 打开只读文件，该文件必须存在。
+	FOPEN_R = FOPEN_RDONLY,
+	// w 打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失，若文件不存在则建立该文件。
+	FOPEN_W = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_TRUNC,
+	// a 以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，
+	//   写入的数据会被加到文件尾，即文件原先的内容会被保留。
+	FOPEN_A = FOPEN_WRONLY | FOPEN_CREAT | FOPEN_APPEND,
+	// r+ 打开可读写文件，该文件必须存在。
+	FOPEN_RP = FOPEN_RDWR,
+	// w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。
+	//    若文件不存在则建立该文件。
+	FOPEN_WP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_TRUNC,
+	// a+	以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，
+	//    写入的数据会被加到文件尾后，即文件原先的内容会被保留。
+	FOPEN_AP = FOPEN_RDWR | FOPEN_CREAT | FOPEN_APPEND,
 };
 
 enum FileType {
@@ -133,7 +142,7 @@ class XX_EXPORT FileProtocol {
  public:
 	typedef ProtocolTraits Traits;
 	virtual bool is_open() = 0;
-	virtual bool open(FileOpenMode mode = FOPEN_R) = 0;
+	virtual bool open(int flag = FOPEN_R) = 0;
 	virtual bool close() = 0;
 	virtual int read(void* buffer, int64 size, int64 offset = -1) = 0;
 	virtual int write(const void* buffer, int64 size, int64 offset = -1) = 0;
@@ -150,7 +159,7 @@ class XX_EXPORT File: public Object, public FileProtocol {
 	virtual ~File();
 	inline  String path() const { return m_path; }
 	virtual bool is_open();
-	virtual bool open(FileOpenMode mode = FOPEN_R);
+	virtual bool open(int flag = FOPEN_R);
 	virtual bool close();
 	virtual int read(void* buffer, int64 size, int64 offset = -1);
 	virtual int write(const void* buffer, int64 size, int64 offset = -1);
@@ -179,7 +188,7 @@ class XX_EXPORT AsyncFile: public Object {
 	String path() const;
 	void set_delegate(Delegate* delegate);
 	bool is_open();
-	void open(FileOpenMode mode = FOPEN_R);
+	void open(int flag = FOPEN_R);
 	void close();
 	void read(Buffer buffer, int64 offset = -1, int mark = 0);
 	void write(Buffer buffer, int64 offset = -1, int mark = 0);
@@ -265,8 +274,8 @@ class XX_EXPORT FileHelper {
 	static void write_file(cString& path, cString& str, cCb& cb = 0);
 	static void write_file(cString& path, Buffer buffer, cCb& cb = 0);
 	// open file fd
-	static int  open_sync(cString& path, FileOpenMode mode = FOPEN_R);
-	static void open(cString& path, FileOpenMode mode = FOPEN_R, cCb& cb = 0);
+	static int  open_sync(cString& path, int flag = FOPEN_R);
+	static void open(cString& path, int flag = FOPEN_R, cCb& cb = 0);
 	static void open(cString& path, cCb& cb = 0);
 	static int  close_sync(int fd);
 	static void close(int fd, cCb& cb = 0);

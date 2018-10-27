@@ -49,7 +49,7 @@ extern String inl__uri_encode(cString& url, bool component = false, bool seconda
 static const String string_method[5] = { "GET", "POST", "HEAD", "DELETE", "PUT" };
 static const String string_colon(": ");
 static const String string_space(" ");
-static const String string_end("\r\n");
+static const String string_header_end("\r\n");
 static const String string_max_age("max-age=");
 static const String content_type_form("application/x-www-form-urlencoded; charset=utf-8");
 static const String content_type_multipart_form("multipart/form-data; "
@@ -160,7 +160,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	class ConnectPool;
 	class Connect;
 	typedef List<Connect*>::Iterator ConnectID;
-	
+
+	/**
+	 * @class HttpClientRequest::Inl::Connect
+	 */
 	class Connect: public Object
 	, public Socket::Delegate
 	, public Reader, public AsyncFile::Delegate {
@@ -327,14 +330,14 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				buff = WeakBuffer(at, uint(length)).copy();
 			}
 			if ( buff.length() ) {
-				self->m_client->trigger_http_data(buff, true);
+				self->m_client->trigger_http_data(buff, 2);
 			}
 			return 0;
 		}
 		
 		static int on_message_complete(http_parser* parser) {
 			//g_debug("--http response parser on_message_complete");
-			static_cast<Connect*>(parser->data)->m_client->http_response_complete();
+			static_cast<Connect*>(parser->data)->m_client->http_response_complete(false);
 			return 0;
 		}
 		
@@ -482,10 +485,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				header_str.push(i.key());       // name
 				header_str.push(string_colon);  // :
 				header_str.push(i.value());     // value
-				header_str.push(string_end);    // \r\n
+				header_str.push(string_header_end);    // \r\n
 			}
 			
-			header_str.push(string_end); // \r\n
+			header_str.push(string_header_end); // \r\n
 			
 			m_client->trigger_http_readystate_change(HTTP_READY_STATE_SENDING);
 			
@@ -576,7 +579,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			} else {
 				XX_ASSERT(m_multipart_form_data.length());
 				XX_ASSERT(m_upload_file);
-				m_socket->write(string_end.copy_buffer()); // \r\n
+				m_socket->write(string_header_end.copy_buffer()); // \r\n
 				m_upload_file->release(); // release file
 				m_upload_file = nullptr;
 				m_multipart_form_data.shift();
@@ -606,7 +609,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				} else {
 					m_multipart_form_buffer.write( form.data.c(), 0, form.data.length() );
 					m_socket->write(m_multipart_form_buffer.realloc(form.data.length()), 1);
-					m_socket->write(string_end.copy_buffer());
+					m_socket->write(string_header_end.copy_buffer());
 					m_multipart_form_data.shift();
 				}
 			} else {
@@ -651,7 +654,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		int      m_z_gzip;
 		RunLoop*  m_loop;
 	};
-	
+
+	/**
+	 * @class HttpClientRequest::Inl::ConnectPool
+	 */
 	class ConnectPool {
 	 public:
 		
@@ -813,11 +819,16 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		List<connect_req> m_connect_req;
 	};
 	
-	class FileCacheReader: public AsyncFile, public AsyncFile::Delegate, public Reader {
+	/**
+	 * @class HttpClientRequest::Inl::FileCacheReader
+	 */
+	class FileCacheReader: public AsyncFile, 
+		public AsyncFile::Delegate, public Reader 
+	{
 	 public:
 		FileCacheReader(Client* client, int64 size, RunLoop* loop)
 		: AsyncFile(client->m_cache_path, loop)
-		, m_read_count(0)
+		, m_read_count(0), m_http_data_flag(0)
 		, m_client(client)
 		, m_parse_header(true), m_offset(0), m_size(size) {
 			XX_ASSERT(!m_client->m_cache_reader);
@@ -920,16 +931,15 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 			} else {
 				// read cache
-				
 				m_read_count--;
 				XX_ASSERT(m_read_count == 0);
 				
 				if ( buffer.length() ) {
 					m_offset += buffer.length();
 					m_client->m_download_size += buffer.length();
-					m_client->trigger_http_data(buffer, false);
+					m_client->trigger_http_data(buffer, m_http_data_flag);
 				} else { // end
-					m_client->trigger_http_end();
+					m_client->http_response_complete(true);
 				}
 			}
 		}
@@ -956,62 +966,76 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 	 private:
-		
-		int     m_read_count;
+		int m_read_count, m_http_data_flag;
 		Client* m_client;
 		Map<String, String> m_header;
-
 		bool m_parse_header;
 		uint  m_offset;
 		int64 m_size;
 	};
-	
+
+	Map<String, String>& response_header() {
+		return m_response_header;
+	}
+
+	static String convert_to_expires(cString& cache_control) {
+		if ( !cache_control.is_empty() ) {
+			int i = cache_control.index_of(string_max_age);
+			if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
+				int j = cache_control.index_of(',', i);
+				String max_age = j != -1
+				? cache_control.substring(i + string_max_age.length(), j)
+				: cache_control.substring(i + string_max_age.length());
+				
+				int64 num = max_age.trim().to_int64();
+				if ( num > 0 ) {
+					return gmt_time_string( sys::time_second() + num );
+				}
+			}
+		}
+		return String();
+	}
+
+	/**
+	 * @class HttpClientRequest::Inl::FileWriter
+	 */
 	class FileWriter: public Object, public AsyncFile::Delegate {
 	 public:
-		FileWriter(Client* client, cString& path, bool write_header, RunLoop* loop)
+		FileWriter(Client* client, cString& path, int flag, RunLoop* loop)
 		: m_client(client)
 		, m_file(nullptr)
-		, m_write_header(write_header)
+		, m_write_flag(flag)
 		, m_write_count(0)
-		, m_completed_end(0) {
+		, m_ready(0), m_completed_end(0) {
+			// flag:
+			// flag = 0 only write body 
+			// flag = 1 only write header 
+			// flag = 2 write header and body
+
 			XX_ASSERT(!m_client->m_file_writer);
 			m_client->m_file_writer = this;
 
-			// LOG("FileWriter m_write_header -- %i, %s", m_write_header, *path);
+			// LOG("FileWriter m_write_flag -- %i, %s", m_write_flag, *path);
 			
-			if ( write_header ) { // verification cache is valid
-				XX_ASSERT(m_client->m_response_header.length());
-				Map<String, String>& header = m_client->m_response_header;
-				
-				if ( header.has("cache-control") ) {
-					String cache_control = header.get("cache-control");
+			if ( m_write_flag ) { // verification cache is valid
+				auto& r_header = m_client->response_header(); 
+				XX_ASSERT(r_header.length());
 
-					// LOG("FileWriter -- %s", *cache_control);
-					
-					if ( !cache_control.is_empty() ) {
-						int i = cache_control.index_of(string_max_age);
-						if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
-							int j = cache_control.index_of(',', i);
-							String max_age = j != -1
-							? cache_control.substring(i + string_max_age.length(), j)
-							: cache_control.substring(i + string_max_age.length());
-							
-							int64 num = max_age.trim().to_int64();
-							if ( num > 0 ) {
-								String gmt = gmt_time_string( sys::time_second() + num );
-								header.set("expires", gmt);
-							}
-						}
+				if ( r_header.has("cache-control") ) {
+					String expires = convert_to_expires(r_header.get("cache-control"));
+					// LOG("FileWriter -- %s", *expires);
+					if ( !expires.is_empty() ) {
+						r_header.set("expires", expires);
 					}
 				}
-				
-				if ( header.has("expires") ) {
-					int64 expires = parse_time(header.get("expires"));
+
+				if ( r_header.has("expires") ) {
+					int64 expires = parse_time(r_header.get("expires"));
 					int64 now = sys::time();
 					if ( expires > now ) {
 						m_file = new AsyncFile(path, loop);
 					}
-				} else if ( header.has("last-modified") || header.has("etag") ) {
+				} else if ( r_header.has("last-modified") || r_header.has("etag") ) {
 					m_file = new AsyncFile(path, loop);
 				}
 			} else { // download save
@@ -1020,8 +1044,11 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			
 			if ( m_file ) {
 				m_file->set_delegate(this);
-				// m_file->open(FOPEN_W);
-				m_file->open(FOPEN_A);
+				if (m_write_flag == 1) { // only write header
+					m_file->open(FOPEN_WRONLY | FOPEN_CREAT);
+				} else {
+					m_file->open(FOPEN_W);
+				}
 			}
 		}
 		
@@ -1031,20 +1058,31 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 		virtual void trigger_async_file_open(AsyncFile* file) {
-			if ( m_write_header ) { // write header
+			if ( m_write_flag ) { // write header
 				String header;
-				for ( auto& i : m_client->m_response_header ) {
+				auto& r_header = m_client->response_header();
+
+				for ( auto& i : r_header ) {
 					if (i.key() != "cache-control") {
 						header += i.key();
 						header += string_colon;
-						header += i.value();
-						header += string_end;
+						if (i.key() == "expires") {
+							// 写入一个固定长度的时间字符串,方便以后重写这个值
+							String val = i.value();
+							while (val.length() < 36) {
+								val.push(' ');
+							}
+							header += val;
+						} else {
+							header += i.value();
+						}
+						header += string_header_end;
 					}
 				}
-				header += string_end;
-				// m_file->write( header.collapse_buffer(), -1, 2 ); // header write
-				m_file->write( header.collapse_buffer(), 0, 2 ); // header write
+				header += string_header_end;
+				m_file->write( header.collapse_buffer(), m_write_flag == 1 ? 0: -1, 2 ); // header write
 			} else {
+				m_ready = true;
 				m_write_count++;
 				m_file->write(m_buffer);
 			}
@@ -1062,15 +1100,21 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
 			if ( mark ) {
 				if ( mark == 2 ) {
-					m_write_count++;
-					m_file->write(m_buffer);
+					m_ready = true;
+					if (m_buffer.length()) {
+						m_write_count++;
+						m_file->write(m_buffer);
+					} else {
+						goto advance;
+					}
 				}
 			} else {
 				m_client->trigger_http_data2(buffer);
 				m_write_count--;
 				XX_ASSERT(m_write_count >= 0);
+			 advance:
 				if ( m_write_count == 0 ) {
-					if ( m_completed_end ) {
+					if ( m_completed_end ) { // http已经结束
 						m_client->trigger_http_end();
 					} else {
 						m_client->read_advance();
@@ -1081,17 +1125,13 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		
 		virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) { }
 		
-		bool is_complete() const {
+		bool is_write_complete() const {
 			return m_write_count == 0 && m_buffer.length() == 0;
 		}
 		
-		void set_completed_end() {
-			m_completed_end = true;
-		}
-		
 		void write(Buffer& buffer) {
-			if ( m_file ) {
-				if ( m_file->is_open() ) {
+			if ( m_file && m_write_flag != 1 ) {
+				if ( m_ready ) {
 					m_write_count++;
 					if ( m_write_count > 32 ) {
 						m_client->read_pause();
@@ -1106,17 +1146,42 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				m_client->read_advance();
 			}
 		}
+
+		void end() {
+			m_completed_end = true;
+		}
 		
 	 private:
 		Client* m_client;
 		Buffer  m_buffer;
 		AsyncFile*  m_file;
-		bool    m_write_header;
-		int     m_write_count;
-		bool    m_completed_end;
+		int	m_write_flag, m_write_count;
+		bool	m_ready, m_completed_end;
 	};
 	
  private:
+	
+	Reader* reader() {
+		return m_connect ? (Reader*)m_connect: (Reader*)m_cache_reader;
+	}
+	
+	void read_advance() {
+		Reader* r = reader(); XX_ASSERT(r);
+		if ( m_pause ) {
+			r->read_pause();
+		} else {
+			r->read_advance();
+		}
+	}
+
+	void read_pause() {
+		Reader* r = reader(); XX_ASSERT(r);
+		r->read_pause();
+	}
+	
+	bool is_disable_cache() {
+		return m_disable_cache || m_url_no_cache_arg;
+	}
 	
 	void trigger_http_readystate_change(HttpReadyState ready_state) {
 		if ( ready_state != m_ready_state ) {
@@ -1134,44 +1199,39 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_response_header = move(header);
 		m_delegate->trigger_http_header(m_host);
 	}
-	
+
 	void trigger_http_data2(Buffer& buffer) {
 		m_delegate->trigger_http_data(m_host, buffer);
 	}
 	
-	void read_advance() {
-		Reader* r = reader(); XX_ASSERT(r);
-		if ( m_pause ) {
-			r->read_pause();
-		} else {
-			r->read_advance();
+	/**
+	 * @func trigger_http_data()
+	 * @arg write_flag {int}
+	 */
+	void trigger_http_data(Buffer& buffer, int write_flag) {
+
+		// write_flag:
+		// write_flag = 0 not write cache 
+		// write_flag = 1 write response header 
+		// write_flag = 2 write response header and body
+
+		if ( write_flag == 2 ) {
+			// `write_flag==2` 写入头与主体缓存时,
+			// 一定是由`Connect`发起的调用,所以已不再需要`m_cache_reader`了
+			if ( m_cache_reader ) {
+				m_cache_reader->release();
+				m_cache_reader = nullptr;
+			}
 		}
-	}
-	
-	bool is_disable_cache() {
-		return m_disable_cache || m_url_no_cache_arg;
-	}
-	
-	void read_pause() {
-		Reader* r = reader(); XX_ASSERT(r);
-		r->read_pause();
-	}
-	
-	void trigger_http_data(Buffer& buffer, int save_cache) {
-		// if ( save_cache ) {
-		// 	if ( m_cache_reader ) {
-		// 		m_cache_reader->release();
-		// 		m_cache_reader = nullptr;
-		// 	}
-		// }
+
 		if ( !m_save_path.is_empty() ) {
 			if ( !m_file_writer ) {
-				new FileWriter(this, m_save_path, false, loop());
+				new FileWriter(this, m_save_path, 0, loop());
 			}
 			m_file_writer->write(buffer);
-		} else if ( !is_disable_cache() && save_cache ) {
+		} else if ( !is_disable_cache() && write_flag ) {
 			if ( !m_file_writer ) {
-				new FileWriter(this, m_cache_path, true, loop());
+				new FileWriter(this, m_cache_path, write_flag, loop());
 			}
 			m_file_writer->write(buffer);
 		} else {
@@ -1180,20 +1240,35 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 	}
 	
-	void http_response_complete() {
-		XX_ASSERT(m_connect);
-		XX_ASSERT(m_pool_ptr);
-		m_pool_ptr->release(m_connect, false); m_connect = nullptr;
-		
-		if ( m_status_code == 304 ) {
-			m_cache_reader->read_advance(); return;
+	void http_response_complete(bool cache) {
+
+		if (!cache) {
+			XX_ASSERT(m_pool_ptr);
+			XX_ASSERT(m_connect);
+			m_pool_ptr->release(m_connect, false);
+			m_connect = nullptr;
+
+			if ( m_status_code == 304 ) {
+				XX_ASSERT(m_cache_reader);
+
+				String expires = convert_to_expires(m_response_header.get("cache-control"));
+				if (expires.is_empty()) {
+					expires = m_response_header.get("expires");
+				}
+				m_response_header = move(m_cache_reader->header());
+
+				if (!expires.is_empty()) { // 重新设置 expires
+					m_response_header.set("expires", expires);
+				}
+				m_cache_reader->read_advance(); return;
+			}
 		}
 		
 		if ( m_file_writer ) {
-			if ( m_file_writer->is_complete() ) { // 写入完成
+			if ( m_file_writer->is_write_complete() ) { // 缓存是否写入完成
 				trigger_http_end();
 			} else {
-				m_file_writer->set_completed_end(); // 写入完成后可以结束
+				m_file_writer->end(); // 通知已经结束
 			}
 		} else {
 			trigger_http_end();
@@ -1209,14 +1284,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_delegate->trigger_http_timeout(m_host);
 		abort_();
 	}
-	
-	Reader* reader() {
-		if ( m_connect )
-			return m_connect;
-		else
-			return m_cache_reader;
-	}
-	
+
 	void send_http() {
 		XX_ASSERT(m_sending);
 		XX_ASSERT(!m_connect);

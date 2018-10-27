@@ -142,17 +142,15 @@ bool GZip::is_open() {
 	return m_gzfp != NULL;
 }
 
-cchar* const c_file_mask[FOPEN_NUM] = {
-	"r", "w", "a", "r+", "w+", "a+"
-};
+extern cchar* inl__file_flag_str(int flag);
 
 // Override
-bool GZip::open(FileOpenMode mode) {
+bool GZip::open(int flag) {
 	XX_ASSERT(!m_gzfp);
 	if(m_gzfp){ // 已经打开了
 		return true;
 	}
-	m_gzfp = gzopen(Path::fallback_c(m_path), c_file_mask[mode]);
+	m_gzfp = gzopen(Path::fallback_c(m_path), inl__file_flag_str(flag));
 	if(m_gzfp){
 		return true;
 	}
@@ -186,8 +184,8 @@ int GZip::write(const void* buffer, int64 size, int64 offset) {
 }
 
 XX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
-public:
-#define _inl_reader(self) static_cast<ZipReader::Inl*>(self)
+ public:
+ #define _inl_reader(self) static_cast<ZipReader::Inl*>(self)
 	
 	bool m_open_current_file() {
 		if ( m_is_open ) {

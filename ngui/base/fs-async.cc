@@ -46,7 +46,7 @@ XX_NS(ngui)
 #define BUFFER_SIZE (1024 * 16) // 16kb
 
 extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
-extern const int inl__file_mode_mask[];
+extern int inl__file_flag_mask(int flag);
 
 // --------------------------------- async -----------------------------------
 
@@ -1020,13 +1020,13 @@ void FileHelper::write_file(cString& path, cString& str, cCb& cb) {
 }
 
 // open/close file fd
-void FileHelper::open(cString& path, FileOpenMode mode, cCb& cb) {
+void FileHelper::open(cString& path, int flag, cCb& cb) {
 	struct Data;
 	typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 	
 	struct Data {
 		String path;
-		FileOpenMode mode;
+		int flag;
 		
 		static void fs_open_cb(uv_fs_t* uv_req) { // open file
 			uv_fs_req_cleanup(uv_req);
@@ -1045,13 +1045,13 @@ void FileHelper::open(cString& path, FileOpenMode mode, cCb& cb) {
 			uv_fs_open(req->uv_loop(),
 								 req->req(),
 								 Path::fallback_c(data.path),
-								 inl__file_mode_mask[data.mode],
+								 inl__file_flag_mask(data.flag),
 								 default_mode,
 								 &fs_open_cb);
 		}
 	};
 	
-	Data::start(new FileReq(cb, LOOP, { path, mode }));
+	Data::start(new FileReq(cb, LOOP, { path, flag }));
 }
 
 void FileHelper::open(cString& path, cCb& cb) {

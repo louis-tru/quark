@@ -117,16 +117,38 @@ uint64 FileStat::birthtime() const {
 #undef STAT
 
 /**
- * C file mode mask
+ * @func get C file flga
  */
-extern const int inl__file_mode_mask[FOPEN_NUM] = {
-	O_RDONLY,                           // r
-	O_WRONLY | O_CREAT | O_TRUNC,       // w
-	O_WRONLY | O_CREAT | O_APPEND,      // a
-	O_RDWR,                             // r+
-	O_RDWR | O_CREAT | O_TRUNC ,        // w+
-	O_RDWR | O_CREAT | O_APPEND         // a+
-};
+int inl__file_flag_mask(int flag) {
+ #if XX_POSIX || XX_UNIX
+	return flag;
+ #else
+	int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR | 
+		O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | O_APPEND | O_NONBLOCK);
+	if (FOPEN_ACCMODE & flag) r_flag =| O_ACCMODE;
+	if (FOPEN_WRONLY & flag) r_flag =| O_WRONLY;
+	if (FOPEN_RDWR & flag) r_flag =| O_RDWR;
+	if (FOPEN_CREAT & flag) r_flag =| O_CREAT;
+	if (FOPEN_EXCL & flag) r_flag =| O_EXCL;
+	if (FOPEN_NOCTTY & flag) r_flag =| O_NOCTTY;
+	if (FOPEN_TRUNC & flag) r_flag =| O_TRUNC;
+	if (FOPEN_APPEND & flag) r_flag =| O_APPEND;
+	if (FOPEN_NONBLOCK & flag) r_flag =| O_NONBLOCK;
+	return r_flag;
+ #endif
+}
+
+cchar* inl__file_flag_str(int flag) {
+	switch (flag) {
+		default:
+		case FOPEN_R: return "r";
+		case FOPEN_W: return "w";
+		case FOPEN_A: return "a";
+		case FOPEN_RP: return "r+";
+		case FOPEN_WP: return "w+";
+		case FOPEN_AP: return "a+";
+	}
+}
 
 File::~File() {
 	close();
@@ -136,7 +158,7 @@ bool File::is_open() {
 	return m_fp;
 }
 
-bool File::open(FileOpenMode mode) {
+bool File::open(int flag) {
 	if ( m_fp ) { // 文件已经打开
 		XX_ERR( "file already open" );
 		return false;
@@ -144,7 +166,7 @@ bool File::open(FileOpenMode mode) {
 	uv_fs_t req;
 	m_fp = uv_fs_open(uv_default_loop(), &req,
 										Path::fallback_c(m_path),
-										inl__file_mode_mask[mode], FileHelper::default_mode, nullptr);
+										inl__file_flag_mask(flag), FileHelper::default_mode, nullptr);
 	if ( m_fp > 0 ) {
 		return true;
 	}
@@ -324,7 +346,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		return m_fp;
 	}
 	
-	void open(FileOpenMode mode) {
+	void open(int flag) {
 		if (m_fp) {
 			Error e(ERR_FILE_ALREADY_OPEN, "File already open");
 			async_err_callback(Cb(&Inl::fs_error_cb, this), move(e), loop());
@@ -339,7 +361,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		auto req = new FileReq(this);
 		uv_fs_open(uv_loop(), req->req(),
 							 Path::fallback_c(m_path),
-							 inl__file_mode_mask[mode], FileHelper::default_mode, &Inl::fs_open_cb);
+							 inl__file_flag_mask(flag), FileHelper::default_mode, &Inl::fs_open_cb);
 	}
 	
 	void close() {
@@ -420,8 +442,8 @@ bool AsyncFile::is_open() {
 	return m_inl->m_fp;
 }
 
-void AsyncFile::open(FileOpenMode mode) {
-	m_inl->open(mode);
+void AsyncFile::open(int flag) {
+	m_inl->open(flag);
 }
 
 void AsyncFile::close() {
