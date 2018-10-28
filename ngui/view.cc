@@ -732,14 +732,14 @@ void View::remove() {
 				ctr->release();
 			}
 			
-			off();
+			remove_event_listener();
 			m_level = 0;
 			m_parent = m_top = m_prev = m_next = nullptr;
 			revoke_mark_value(mark_value, M_REMOVING);
 			release(); // Disconnect from parent view strong reference
 		}
 		else {
-			// off();
+			// remove_event_listener();
 			action(nullptr); // del action
 			_inl(this)->inl_remove_all_child(); // 删除子视图
 			if ( m_ctr ) 

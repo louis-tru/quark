@@ -549,7 +549,6 @@ class XX_EXPORT Notification: public Basic {
 	typedef typename Event::ReturnValue ReturnValue;
 	typedef typename Noticer::ListenerFunc ListenerFunc;
  private:
-	
 	struct NoticerWrap {
 		inline NoticerWrap() { XX_UNREACHABLE(); }
 		inline NoticerWrap(const Name& t, Sender* sender)
@@ -576,8 +575,8 @@ class XX_EXPORT Notification: public Basic {
 			m_noticers = nullptr;
 		}
 	}
-	
-	Noticer* noticer(const Name& name) const {
+
+	Noticer* get_noticer(const Name& name) const {
 		if ( m_noticers != nullptr ) {
 			auto it = m_noticers->find(name);
 			if (!it.is_null()) {
@@ -585,6 +584,13 @@ class XX_EXPORT Notification: public Basic {
 			}
 		}
 		return nullptr;
+	}
+
+	bool has_noticer(const Name& name) const {
+		if ( m_noticers != nullptr ) {
+			return m_noticers->has(name);
+		}
+		return false;
 	}
 	
 	/**
@@ -600,58 +606,58 @@ class XX_EXPORT Notification: public Basic {
 	 * @arg name {const Type&}
 	 * @arg count {int}
 	 */
-	virtual void trigger_listener_change(const Name& name, int count, int change) { }
+	virtual void trigger_listener_change(const Name& name, int count, int change) {}
 	
 	template<class Scope>
-	inline void on(const Name& name,
+	inline void add_event_listener(const Name& name,
 								 void (Scope::*listener)(Event&),
 								 Scope* scope) {
-		auto del = get_noticer(name);
+		auto del = get_noticer2(name);
 		del->on(listener, scope);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
 	template<class Scope>
-	inline void once(const Name& name,
+	inline void add_event_listener_once(const Name& name,
 									 void (Scope::*listener)(Event&),
 									 Scope* scope) {
-		auto del = get_noticer(name);
+		auto del = get_noticer2(name);
 		del->once(listener, scope);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
 	template<class Data>
-	inline void on(const Name& name,
+	inline void add_event_listener(const Name& name,
 								 void (*listener)(Event&, Data*),
 								 Data* data = nullptr) {
-		auto del = get_noticer(name);
+		auto del = get_noticer2(name);
 		del->once(listener, data);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
 	template<class Data>
-	inline void once(const Name& name,
+	inline void add_event_listener_once(const Name& name,
 									 void (*listener)(Event&, Data*),
 									 Data* data = nullptr) {
-		auto del = get_noticer(name);
+		auto del = get_noticer2(name);
 		del->once(listener, data);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
-	inline void on( const Name& name, ListenerFunc listener, int id = 0) {
-		auto del = get_noticer(name);
+	inline void add_event_listener( const Name& name, ListenerFunc listener, int id = 0) {
+		auto del = get_noticer2(name);
 		del->on(listener, id);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
-	inline void once( const Name& name, ListenerFunc listener, int id = 0) {
-		auto del = get_noticer(name);
+	inline void add_event_listener_once( const Name& name, ListenerFunc listener, int id = 0) {
+		auto del = get_noticer2(name);
 		del->once(listener, id);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
-	inline void on(const Name& name, Noticer* shell) {
-		auto del = get_noticer(name);
+	inline void add_event_listener(const Name& name, Noticer* shell) {
+		auto del = get_noticer2(name);
 		del->on(shell);
 		trigger_listener_change(name, del->count(), 1);
 	}
@@ -659,17 +665,17 @@ class XX_EXPORT Notification: public Basic {
 	/**
 	 * 添加一个侦听器,只侦听一次,后被卸载
 	 */
-	inline void once(const Name& name, Noticer* shell) {
-		auto del = get_noticer(name);
+	inline void add_event_listener_once(const Name& name, Noticer* shell) {
+		auto del = get_noticer2(name);
 		del->once(shell);
 		trigger_listener_change(name, del->count(), 1);
 	}
 	
 	template<class Scope>
-	inline void off(const Name& name,
+	inline void remove_event_listener(const Name& name,
 									void (Scope::*listener)(Event&)
 									) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		if (del) {
 			del->off(listener);
 			trigger_listener_change(name, del->count(), -1);
@@ -677,9 +683,9 @@ class XX_EXPORT Notification: public Basic {
 	}
 	
 	template<class Scope>
-	inline void off(const Name& name,
+	inline void remove_event_listener(const Name& name,
 									void (Scope::*listener)(Event&), Scope* scope) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		if (del) {
 			del->off(listener, scope);
 			trigger_listener_change(name, del->count(), -1);
@@ -687,10 +693,10 @@ class XX_EXPORT Notification: public Basic {
 	}
 	
 	template<class Data>
-	inline void off(const Name& name,
-									void (*listener)(Event&, Data*)
+	inline void remove_event_listener(const Name& name,
+										void (*listener)(Event&, Data*)
 									) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		if (del) {
 			del->off(listener);
 			trigger_listener_change(name, del->count(), -1);
@@ -698,10 +704,10 @@ class XX_EXPORT Notification: public Basic {
 	}
 	
 	template<class Data>
-	inline void off(const Name& name,
+	inline void remove_event_listener(const Name& name,
 									void (*listener)(Event&, Data*),
 									Data* data) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		if (del) {
 			del->off(listener, data);
 			trigger_listener_change(name, del->count(), -1);
@@ -711,8 +717,8 @@ class XX_EXPORT Notification: public Basic {
 	/**
 	 * @func off
 	 */
-	inline void off(const Name& name, int id) {
-		auto del = noticer(name);
+	inline void remove_event_listener(const Name& name, int id) {
+		auto del = get_noticer(name);
 		if (del) {
 			del->off(id);
 			trigger_listener_change(name, del->count(), -1);
@@ -722,7 +728,7 @@ class XX_EXPORT Notification: public Basic {
 	/**
 	 * @func off
 	 */
-	inline void off(int id) {
+	inline void remove_event_listener(int id) {
 		if (m_noticers) {
 			auto end = m_noticers->end();
 			for (auto i = m_noticers->begin(); i != end; i++) {
@@ -736,7 +742,8 @@ class XX_EXPORT Notification: public Basic {
 	/**
 	 * 卸载这个范围里的所有侦听器
 	 */
-	template<class Scope> inline void off(Scope* scope) {
+	template<class Scope> 
+	inline void remove_event_listener(Scope* scope) {
 		if (m_noticers) {
 			for ( auto& i : *m_noticers ) {
 				NoticerWrap* inl = i.value();
@@ -746,8 +753,8 @@ class XX_EXPORT Notification: public Basic {
 		}
 	}
 	
-	inline void off(const Name& name, Noticer* shell) {
-		auto del = noticer(name);
+	inline void remove_event_listener(const Name& name, Noticer* shell) {
+		auto del = get_noticer(name);
 		if (del) {
 			del->off(shell);
 			trigger_listener_change(name, del->count(), -1);
@@ -759,8 +766,8 @@ class XX_EXPORT Notification: public Basic {
 	/**
 	 * 卸载指定事件名称上的全部侦听函数
 	 */
-	inline void off(const Name& name) {
-		auto del = noticer(name);
+	inline void remove_event_listener(const Name& name) {
+		auto del = get_noticer(name);
 		if (del) {
 			del->off();
 			trigger_listener_change(name, del->count(), -1);
@@ -770,7 +777,7 @@ class XX_EXPORT Notification: public Basic {
 	/**
 	 * 卸载全部侦听函数
 	 */
-	inline void off() {
+	inline void remove_event_listener() {
 		if (m_noticers) {
 			for ( auto& i : *m_noticers ) {
 				NoticerWrap* inl = i.value();
@@ -786,7 +793,7 @@ class XX_EXPORT Notification: public Basic {
 	 * NOTE: 这个方法能创建默认事件数据
 	 */
 	inline ReturnValue trigger(const Name& name) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		return move( del ? del->trigger(): ReturnValue() );
 	}
 	
@@ -796,7 +803,7 @@ class XX_EXPORT Notification: public Basic {
 	 * @arg evt {cSendData&}
 	 */
 	inline ReturnValue trigger(const Name& name, cSendData& data) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		return move( del ? del->trigger(data): ReturnValue() );
 	}
 	
@@ -806,13 +813,13 @@ class XX_EXPORT Notification: public Basic {
 	 * @arg evt {Event&}
 	 */
 	inline ReturnValue& trigger(const Name& name, Event& evt) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		return del ? del->trigger(evt): evt.return_value;
 	}
 	
  private:
 	
-	Noticer* get_noticer(const Name& name) {
+	Noticer* get_noticer2(const Name& name) {
 		if (m_noticers == nullptr) {
 			m_noticers = new Events();
 		}

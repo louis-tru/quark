@@ -226,9 +226,15 @@ class XX_EXPORT KeyboardAdapter: public Object {
 	/**
 	 * @func dispatch
 	 */
-	void dispatch(int keycode, bool soft, bool down, int repeat, int device, int source);
+	void dispatch(int keycode, bool ascii, bool down,
+								int repeat = 0, int device = 0, int source = 0);
 	
  protected:
+
+	/**
+	 * @func set_utils_keycodes
+	 */
+	void set_utils_keycodes();
 
 	/**
 	 * @func to_keypress
@@ -238,7 +244,7 @@ class XX_EXPORT KeyboardAdapter: public Object {
 	/**
 	 * @func transformation
 	 */
-	virtual bool transformation(int keycode, bool soft, bool down);
+	virtual bool transformation(int keycode, bool ascii, bool down);
 	
 	struct AsciiKeyboardKeycode {
 		KeyboardKeyName name;

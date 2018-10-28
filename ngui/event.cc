@@ -110,7 +110,7 @@ int& View::trigger(const NameType& name, GUIEvent& evt, bool need_send) {
 
 int View::trigger(const NameType& name, bool need_send) {
 	if ( m_receive || need_send ) {
-		auto del = noticer(name);
+		auto del = get_noticer(name);
 		if ( del ) {
 			return del->trigger( **NewEvent<GUIEvent>(this) );
 		}
@@ -243,21 +243,13 @@ class GUIEventDispatch::OriginTouche {
  */
 class GUIEventDispatch::MouseHandle {
  public:
-	MouseHandle()
-	: _view(nullptr), _click_view(nullptr) 
-	{}
-	~MouseHandle() {
-		Release(_view);
-	}
+	MouseHandle(): _view(nullptr), _click_view(nullptr) {}
+	~MouseHandle() { Release(_view); }
 	inline View* view() { return _view; }
 	inline Vec2 view_start_position() { return _start_position; }
 	inline Vec2 position() { return _position; }
-	inline bool is_click_invalid() { return _click_view; }
 	inline View* click_down_view() { return _click_view; }
 	inline void set_position(Vec2 value) { _position = value; }
-	void set_click_invalid() {
-		Release(_click_view); _click_view = nullptr;
-	}
 	void set_click_down_view(View* view) {
 		Release(_click_view);
 		if (view) {
@@ -369,6 +361,7 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	 * @func touch_move
 	 */
 	void touchmove(List<GUITouch>& in) {
+
 		Map<PrtKey<View>, Array<GUITouch>> change_touches;
 		
 		for ( auto& i : in ) {
@@ -381,9 +374,6 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 					touch.force = in_touch.force;
 					if ( !touches.value()->is_click_invalid() ) {
 						touch.click_in = touch.view->overlap_test(Vec2(touch.x, touch.y));
-						//if ( !touch.is_click_range ) {
-						//  XX_DEBUG("Out click range");
-						//}
 					}
 					change_touches[touch.view].push(touch);
 					break;
@@ -529,56 +519,79 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 	// -------------------------- mouse --------------------------
 
+	Handle<GUIMouseEvent> NewMouseEvent(View* view, float x, float y, uint keycode = 0) {
+		return NewEvent<GUIMouseEvent>(view, x, y, keycode,
+			m_keyboard->shift(),
+			m_keyboard->ctrl(), m_keyboard->alt(),
+			m_keyboard->command(), m_keyboard->caps_lock(), 0, 0, 0
+		);
+	}
+
+	inline static bool test_view_level(View* parent, View* subview) {
+		return parent->has_child(subview);
+	}
+
 	void mousemove_2(View* view, Vec2 pos) {
 
-		if ( !m_mouse_h->is_click_invalid() ) { // no invalid
-			Vec2 position = OriginTouche::view_position(view);
+		View* d_view = m_mouse_h->click_down_view();
+
+		if ( d_view ) { // no invalid
+			Vec2 position = OriginTouche::view_position(d_view);
 			Vec2 start_position = m_mouse_h->view_start_position();
 			float d = sqrtf(powf((position.x() - start_position.x()), 2) +
 											powf((position.y() - start_position.y()), 2));
 			// 视图位置移动超过2取消点击状态
 			if ( d > 2 ) { // trigger invalid status
-				if (view == m_mouse_h->click_down_view()) {
-					
+				if (view == d_view) {
+					_inl_view(view)->trigger_highlightted( // emit style status event
+						**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); 
 				}
-				if ( origin_touche->is_click_down() ) { // trigger style up
-					// emit style status event
-					auto evt = NewEvent<GUIHighlightedEvent>(view, HOVER_or_NORMAL(view));
-					_inl_view(view)->trigger_highlightted(**evt);
-				}
-				origin_touche->set_click_invalid();
+				m_mouse_h->set_click_down_view(nullptr);
 			}
 		}
 
+		float x = pos[0], y = pos[1];
+
 		View* old = m_mouse_h->view();
+
 		if (old != view) {
 			m_mouse_h->set_view(view);
+
 			if (old) {
-				auto evt = NewEvent<GUIMouseEvent>(old, pos[0], pos[1], 0,
-					m_keyboard->shift(),
-					m_keyboard->ctrl(), m_keyboard->alt(),
-					m_keyboard->command(), m_keyboard->caps_lock(),
-					0, 0, 0
-				);
+				auto evt = NewMouseEvent(old, x, y);
 				_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_OUT, **evt);
+
 				if (evt->is_default()) {
+					evt->return_value = RETURN_VALUE_MASK_ALL;
+
+					if (!view || !test_view_level(old, view)) {
+						_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_LEAVE, **evt);
+					}
+
 					_inl_view(old)->trigger_highlightted( // emit style status event
 						**NewEvent<GUIHighlightedEvent>(old, HIGHLIGHTED_NORMAL));
 				}
 			}
 			if (view) {
-				_inl_view(view)->trigger_highlightted( // emit style status event
-					**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); 
+				auto evt = NewMouseEvent(old, x, y);
+				_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_OVER, **evt);
+
+				if (evt->is_default()) {
+					evt->return_value = RETURN_VALUE_MASK_ALL;
+					
+					if (!old || !test_view_level(view, old)) {
+						_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_ENTER, **evt);
+					}
+
+					_inl_view(view)->trigger_highlightted( // emit style status event
+						**NewEvent<GUIHighlightedEvent>(view, 
+							view == d_view ? HIGHLIGHTED_DOWN: HIGHLIGHTED_HOVER)
+					); 
+				}
 			}
 		}
 		else if (view) {
-			auto evt = NewEvent<GUIMouseEvent>(view, pos[0], pos[1], 0,
-				m_keyboard->shift(),
-				m_keyboard->ctrl(), m_keyboard->alt(),
-				m_keyboard->command(), m_keyboard->caps_lock(),
-				0, 0, 0
-			);
-			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_MOVE, **evt);
+			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_MOVE, **NewMouseEvent(view, x, y));
 		}
 	}
 
@@ -621,12 +634,7 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 		float x = pos[0], y = pos[1];
 
-		auto evt = NewEvent<GUIMouseEvent>(view, x, y, name,
-			m_keyboard->shift(),
-			m_keyboard->ctrl(), m_keyboard->alt(),
-			m_keyboard->command(), m_keyboard->caps_lock(),
-			0, 0, 0
-		);
+		auto evt = NewMouseEvent(view, x, y, name);
 
 		Handle<View> click_view = m_mouse_h->click_down_view();
 
@@ -656,23 +664,20 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 	void mousewhell(View* view, KeyboardKeyName name, bool down, float x, float y) {
 		if (down) {
-			auto evt = NewEvent<GUIMouseEvent>(view, x, y, name,
-				m_keyboard->shift(),
-				m_keyboard->ctrl(), m_keyboard->alt(),
-				m_keyboard->command(), m_keyboard->caps_lock(),
-				0, 0, 0
-			);
-			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_WHEEL, **evt);
+			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_WHEEL, **NewMouseEvent(view, x, y, name));
 		}
 	}
 
 	// -------------------------- keyboard --------------------------
 
 	void keyboard_down() {
-		KeyboardKeyName name = m_keyboard->keyname();
+
 		View* view = app_->focus_view();
-		if ( !view ) view = app_->root();
+		if ( !view ) 
+			view = app_->root();
+
 		if ( view ) {
+			auto name = m_keyboard->keyname();
 			View* focus_move = nullptr;
 			Panel* panel = nullptr;
 			Direction direction = Direction::NONE;
@@ -736,10 +741,13 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	}
 	
 	void keyboard_up() {
-		KeyboardKeyName name = m_keyboard->keyname();
+
 		View* view = app_->focus_view();
-		if ( !view ) view = app_->root();
+		if ( !view ) 
+			view = app_->root();
+
 		if ( view ) {
+			auto name = m_keyboard->keyname();
 			auto evt = NewEvent<GUIKeyEvent>(view, name,
 				m_keyboard->shift(),
 				m_keyboard->ctrl(), m_keyboard->alt(),

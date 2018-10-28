@@ -708,10 +708,10 @@ BasicScroll::BasicScroll(Box* box)
 , m_momentum(true)
 , m_scrollbar(true)
 {
-	box->on(GUI_EVENT_TOUCH_START, &Inl::m_touch_start_handle, _inl(this));
-	box->on(GUI_EVENT_TOUCH_MOVE, &Inl::m_touch_move_handle, _inl(this));
-	box->on(GUI_EVENT_TOUCH_END, &Inl::m_touch_end_handle, _inl(this));
-	box->on(GUI_EVENT_TOUCH_CANCEL, &Inl::m_touch_end_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_START, &Inl::m_touch_start_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_MOVE, &Inl::m_touch_move_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_END, &Inl::m_touch_end_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_CANCEL, &Inl::m_touch_end_handle, _inl(this));
 	
 	XX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
 }
@@ -995,9 +995,9 @@ void Scroll::set_focus_align_y(Align value) {
 void Scroll::set_enable_focus_align(bool value) {
 	if ( value != m_enable_focus_align ) {
 		if ( value ) {
-			on(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
+			add_event_listener(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
 		} else {
-			off(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
+			remove_event_listener(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
 		}
 		m_enable_focus_align = value;
 	}

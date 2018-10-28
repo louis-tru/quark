@@ -68,7 +68,7 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 	};
 	
 	Self* self = wrap->self();
-	self->on(type, f, id);
+	self->add_event_listener(type, f, id);
 }
 
 bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id) {
@@ -115,7 +115,7 @@ bool WrapViewBase::remove_event_listener(cString& name, int id) {
 		return false;
 	}
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
-	wrap->self()->off(i.value(), id); // off event listener
+	wrap->self()->remove_event_listener(i.value(), id); // off event listener
 	return true;
 }
 

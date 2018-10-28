@@ -480,14 +480,14 @@ Input::Input()
 {
 	m_receive = true;
 
-	on(GUI_EVENT_CLICK, &Input::Inl::click_handle, Inl_Input(this));
-	on(GUI_EVENT_TOUCH_START, &Input::Inl::touchstart_handle, Inl_Input(this));
-	on(GUI_EVENT_TOUCH_MOVE, &Input::Inl::touchmove_handle, Inl_Input(this));
-	on(GUI_EVENT_TOUCH_END, &Input::Inl::touchend_handle, Inl_Input(this));
-	on(GUI_EVENT_TOUCH_CANCEL, &Input::Inl::touchend_handle, Inl_Input(this));
-	on(GUI_EVENT_FOCUS, &Input::Inl::focus_handle, Inl_Input(this));
-	on(GUI_EVENT_BLUR, &Input::Inl::blur_handle, Inl_Input(this));
-	on(GUI_EVENT_KEY_DOWN, &Input::Inl::keydown_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_CLICK, &Input::Inl::click_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_TOUCH_START, &Input::Inl::touchstart_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_TOUCH_MOVE, &Input::Inl::touchmove_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_TOUCH_END, &Input::Inl::touchend_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_TOUCH_CANCEL, &Input::Inl::touchend_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_FOCUS, &Input::Inl::focus_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_BLUR, &Input::Inl::blur_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_KEY_DOWN, &Input::Inl::keydown_handle, Inl_Input(this));
 }
 
 void Input::set_value(cUcs2String& str) {

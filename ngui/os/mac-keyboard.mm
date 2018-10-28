@@ -37,12 +37,13 @@ XX_NS(ngui)
  * @class AppleKeyboardAdapter
  */
 class AppleKeyboardAdapter: public KeyboardAdapter {
-public:
-	
-	AppleKeyboardAdapter() {
-		
-	}
+ public:
+	AppleKeyboardAdapter();
 };
+
+AppleKeyboardAdapter::AppleKeyboardAdapter() {
+	// TODO ...
+}
 
 KeyboardAdapter* KeyboardAdapter::create() {
 	return new AppleKeyboardAdapter();

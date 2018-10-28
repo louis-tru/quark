@@ -143,9 +143,11 @@ class LinuxApplication {
 				break;
 			case KeyPress:
 				LOG("event, KeyDown, keycode: %d", event.xkey.keycode);
+				m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
 				break;
 			case KeyRelease:
-				LOG("event, KeyUp, keycode: %d", event.xkey.keycode);
+				DLOG("event, KeyUp, keycode: %d", event.xkey.keycode);
+				m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
 				break;
 			case ButtonPress:
 				DLOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);

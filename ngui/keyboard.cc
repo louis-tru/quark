@@ -191,6 +191,12 @@ KeyboardAdapter::KeyboardAdapter(): app_(app()) {
 }
 
 /**
+ * @func set_utils_keycodes
+ */
+void KeyboardAdapter::set_utils_keycodes() {
+}
+
+/**
  * @func to_keypress
  */
 int KeyboardAdapter::to_keypress(KeyboardKeyName name) {

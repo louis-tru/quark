@@ -112,7 +112,7 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 	};
 	
 	Self* self = wrap->self();
-	self->on(type, f, id);
+	self->add_event_listener(type, f, id);
 }
 
 /**
@@ -154,7 +154,7 @@ class WrapAudioPlayer: public WrapObject {
 			return false;
 		}
 		auto wrap = reinterpret_cast<Wrap<AudioPlayer>*>(this);
-		wrap->self()->off(i.value(), id); // off event listener
+		wrap->self()->remove_event_listener(i.value(), id); // off event listener
 		return true;
 	}
 	
