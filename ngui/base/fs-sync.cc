@@ -42,7 +42,7 @@
 XX_NS(ngui)
 
 extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
-extern const int inl__file_mode_mask[];
+extern int inl__file_flag_mask(int flag);
 
 // ---------------------------------------FileHelper------------------------------------------
 
@@ -442,11 +442,11 @@ int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) {
 	return r;
 }
 // open/close file fd
-int FileHelper::open_sync(cString& path, FileOpenMode mode) {
+int FileHelper::open_sync(cString& path, int flag) {
 	uv_fs_t req;
 	int fd = uv_fs_open(uv_default_loop(), &req,
 											Path::fallback_c(path),
-											inl__file_mode_mask[mode], default_mode, nullptr);
+											inl__file_flag_mask(flag), default_mode, nullptr);
 	return fd;
 }
 int FileHelper::close_sync(int fd) {

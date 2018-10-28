@@ -90,6 +90,7 @@
 				'test-ios-run-loop.cc', 
 				'test-benchmark.cc',
 				'test-sizeof.cc',
+				'test-util.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {

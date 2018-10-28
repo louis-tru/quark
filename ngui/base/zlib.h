@@ -105,7 +105,7 @@ class XX_EXPORT GZip: public Object, public FileProtocol {
 	 * BOTH and BOTH_NEW and BOTH_END_NEW cannot use
 	 * @override
 	 */
-	virtual bool open(FileOpenMode mode = FOPEN_R);
+	virtual bool open(int flag = FOPEN_R);
 	
 	/**
 	 * @override
