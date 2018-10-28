@@ -243,35 +243,44 @@ class GUIEventDispatch::OriginTouche {
  */
 class GUIEventDispatch::MouseHandle {
  public:
-	MouseHandle(): m_view(nullptr) {
-	}
+	MouseHandle()
+	: _view(nullptr), _click_view(nullptr) 
+	{}
 	~MouseHandle() {
-		Release(m_view);
+		Release(_view);
 	}
-	void set_point(Vec2 point) {
-		m_point = point;
+	inline View* view() { return _view; }
+	inline Vec2 view_start_position() { return _start_position; }
+	inline Vec2 position() { return _position; }
+	inline bool is_click_invalid() { return _click_view; }
+	inline View* click_down_view() { return _click_view; }
+	inline void set_position(Vec2 value) { _position = value; }
+	void set_click_invalid() {
+		Release(_click_view); _click_view = nullptr;
 	}
-	void set_view(View* view) {
-		if (m_view) {
-			Release(m_view);
-		}
+	void set_click_down_view(View* view) {
+		Release(_click_view);
 		if (view) {
 			view->retain();
+			_start_position = OriginTouche::view_position(view);
 		}
-		m_view = view;
+		_click_view = view;
 	}
-	inline Vec2 point() const { return m_point; }
-	inline View* view() { return m_view; }
+	void set_view(View* view) {
+		Release(_view);
+		Retain(view);
+		_view = view;
+	}
  private:
-	Vec2 m_point;
-	View* m_view;
+	View* _view, *_click_view;
+	Vec2 _start_position, _position;
 };
 
 /**
  * @class GUIEventDispatch::Inl
  */
 XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
-public:
+ public:
 	#define _inl_di(self) static_cast<GUIEventDispatch::Inl*>(self)
 	
 	// -------------------------- touch --------------------------
@@ -520,12 +529,32 @@ public:
 
 	// -------------------------- mouse --------------------------
 
-	void mousemove_2(View* view, Vec2 p) {
+	void mousemove_2(View* view, Vec2 pos) {
+
+		if ( !m_mouse_h->is_click_invalid() ) { // no invalid
+			Vec2 position = OriginTouche::view_position(view);
+			Vec2 start_position = m_mouse_h->view_start_position();
+			float d = sqrtf(powf((position.x() - start_position.x()), 2) +
+											powf((position.y() - start_position.y()), 2));
+			// 视图位置移动超过2取消点击状态
+			if ( d > 2 ) { // trigger invalid status
+				if (view == m_mouse_h->click_down_view()) {
+					
+				}
+				if ( origin_touche->is_click_down() ) { // trigger style up
+					// emit style status event
+					auto evt = NewEvent<GUIHighlightedEvent>(view, HOVER_or_NORMAL(view));
+					_inl_view(view)->trigger_highlightted(**evt);
+				}
+				origin_touche->set_click_invalid();
+			}
+		}
+
 		View* old = m_mouse_h->view();
 		if (old != view) {
 			m_mouse_h->set_view(view);
 			if (old) {
-				auto evt = NewEvent<GUIMouseEvent>(old, p[0], p[1], 0,
+				auto evt = NewEvent<GUIMouseEvent>(old, pos[0], pos[1], 0,
 					m_keyboard->shift(),
 					m_keyboard->ctrl(), m_keyboard->alt(),
 					m_keyboard->command(), m_keyboard->caps_lock(),
@@ -543,7 +572,7 @@ public:
 			}
 		}
 		else if (view) {
-			auto evt = NewEvent<GUIMouseEvent>(view, p[0], p[1], 0,
+			auto evt = NewEvent<GUIMouseEvent>(view, pos[0], pos[1], 0,
 				m_keyboard->shift(),
 				m_keyboard->ctrl(), m_keyboard->alt(),
 				m_keyboard->command(), m_keyboard->caps_lock(),
@@ -553,33 +582,33 @@ public:
 		}
 	}
 
-	bool mousemove(View* view, Vec2 p) {
+	bool mousemove(View* view, Vec2 pos) {
 		if ( view->m_visible ) {
 			if ( view->m_screen_visible || view->m_need_draw ) {
 				View* v = view->m_last;
 
 				if (v && view->as_box() && static_cast<Box*>(view)->clip()) {
-					if (view->overlap_test(p)) {
+					if (view->overlap_test(pos)) {
 						while (v) {
-							if (mousemove(v, p)) {
+							if (mousemove(v, pos)) {
 								return true;
 							}
 							v = v->m_prev;
 						}
 						if (view->receive()) {
-							mousemove_2(view, p);
+							mousemove_2(view, pos);
 							return true;
 						}
 					}
 				} else {
 					while (v) {
-						if (mousemove(v, p)) {
+						if (mousemove(v, pos)) {
 							return true;
 						}
 						v = v->m_prev;
 					}
-					if (view->receive() && view->overlap_test(p)) {
-						mousemove_2(view, p);
+					if (view->receive() && view->overlap_test(pos)) {
+						mousemove_2(view, pos);
 						return true;
 					}
 				}
@@ -588,18 +617,24 @@ public:
 		return false;
 	}
 
-	void mousepress(View* view, KeyboardKeyName name, bool down, Vec2 p) {
+	void mousepress(View* view, KeyboardKeyName name, bool down, Vec2 pos) {
 
-		auto evt = NewEvent<GUIMouseEvent>(view, p[0], p[1], name,
+		float x = pos[0], y = pos[1];
+
+		auto evt = NewEvent<GUIMouseEvent>(view, x, y, name,
 			m_keyboard->shift(),
 			m_keyboard->ctrl(), m_keyboard->alt(),
 			m_keyboard->command(), m_keyboard->caps_lock(),
 			0, 0, 0
 		);
 
+		Handle<View> click_view = m_mouse_h->click_down_view();
+
 		if (down) {
+			m_mouse_h->set_click_down_view(view);
 			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_DOWN, **evt);
 		} else {
+			m_mouse_h->set_click_down_view(nullptr);
 			_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_UP, **evt);
 		}
 
@@ -611,8 +646,11 @@ public:
 		} else {
 			_inl_view(view)->trigger_highlightted(
 				**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); // emit style status event
-			// _inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, 
-			// 	**NewEvent<GUIClickEvent>(view, x, y, GUIClickEvent::MOUSE));
+
+			if (view == *click_view) {
+				_inl_view(view)->bubble_trigger(GUI_EVENT_CLICK, 
+					**NewEvent<GUIClickEvent>(view, x, y, GUIClickEvent::MOUSE));
+			}
 		}
 	}
 
@@ -797,7 +835,7 @@ void GUIEventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
 void GUIEventDispatch::dispatch_mousemove(float x, float y) {
 	async_callback(Cb([=](Se& evt) {
 		GUILock lock;
-		m_mouse_h->set_point(Vec2(x, y));
+		m_mouse_h->set_position(Vec2(x, y));
 		Root* r = app_->root();
 		if (r) {
 			if (!_inl_di(this)->mousemove(r, Vec2(x, y))) {
@@ -816,7 +854,7 @@ void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
 				case KEYCODE_MOUSE_LEFT:
 				case KEYCODE_MOUSE_CENTER:
 				case KEYCODE_MOUSE_RIGHT:
-					_inl_di(this)->mousepress(view, name, down, m_mouse_h->point());
+					_inl_di(this)->mousepress(view, name, down, m_mouse_h->position());
 					break;
 				case KEYCODE_MOUSE_WHEEL_UP:
 					_inl_di(this)->mousewhell(view, name, down, 0, -53); break;
