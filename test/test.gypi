@@ -52,7 +52,7 @@
 				'../demo/README.md',
 				'../node_modules/ngui',
 				'../node_modules/ngui-tools',
-				'../node_modules/ngui-stew',
+				'../node_modules/ngui-utils',
 				'test.cc',
 				'test-ngui.cc',
 				'test-fs.cc',

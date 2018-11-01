@@ -29,8 +29,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-stew/fs');
-var path = require('ngui-stew/url');
+var fs = require('ngui-utils/fs');
+var path = require('ngui-utils/url');
 var marked_html = require('ngui-tools/marked/html');
 var marked = require('ngui-tools/node_modules/marked/index');
 var read_ngui_version = require('./read_version').read_ngui_version;

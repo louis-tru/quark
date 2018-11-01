@@ -1,7 +1,7 @@
 
 var { Buffer } = require('buffer');
-var util = require('ngui-stew');
-var r = require('ngui-stew/request');
+var util = require('ngui-utils');
+var r = require('ngui-utils/request');
 
 // 测试EOS区块链RPC交易
 

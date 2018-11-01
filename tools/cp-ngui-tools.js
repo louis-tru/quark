@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-stew/util');
-var fs = require('ngui-stew/fs');
+var util = require('ngui-utils/util');
+var fs = require('ngui-utils/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
 

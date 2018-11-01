@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-stew');
-var service = require('ngui-stew/service');
-var HttpService = require('ngui-stew/http_service').HttpService;
+var util = require('ngui-utils');
+var service = require('ngui-utils/service');
+var HttpService = require('ngui-utils/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

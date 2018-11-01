@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-stew');
-var fs = require('ngui-stew/fs');
-var keys = require('ngui-stew/keys');
-var service = require('ngui-stew/service');
-var HttpService = require('ngui-stew/http_service').HttpService;
+var util = require('ngui-utils');
+var fs = require('ngui-utils/fs');
+var keys = require('ngui-utils/keys');
+var service = require('ngui-utils/service');
+var HttpService = require('ngui-utils/http_service').HttpService;
 var server = require('ngui-tools/toolchain/server');
 require('./test-multiple-service');
 

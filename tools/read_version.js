@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-stew/fs');
+var fs = require('ngui-utils/fs');
 
 function read_ngui_version() {
 	var str = fs.readFileSync(__dirname + '/../ngui/version.h').toString('utf-8');

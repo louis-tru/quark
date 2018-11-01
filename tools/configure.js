@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-stew');
-var fs = require('ngui-stew/fs');
-var path = require('ngui-stew/url');
+var util = require('ngui-utils');
+var fs = require('ngui-utils/fs');
+var path = require('ngui-utils/url');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('ngui-stew/arguments');
-var { syscall, execSync } = require('ngui-stew/syscall');
+var argument = require('ngui-utils/arguments');
+var { syscall, execSync } = require('ngui-utils/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
