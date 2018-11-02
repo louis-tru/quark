@@ -106,7 +106,7 @@ extend(Array.prototype, {
 			this.splice(i, 1);
 		}
 	},
-
+	
 	/**
 	 * 查询数组元素指定属性名称的值是否与val相等,如果查询不匹配返回-1
 	 * @func indexOfProperty(property,value)
@@ -165,11 +165,11 @@ extend(String, {
 });
 
 extend(String.prototype, {
-/**
- * var str = 'xxxxxx{0}xxxxx{1}xxxx{2},xxx{0}xxxxx{2}';
- * var newStr = str.format('A', 'B', 'C');
- * @ret : xxxxxxAxxxxxBxxxxC,xxxAxxxxxB
- */
+	/**
+	 * var str = 'xxxxxx{0}xxxxx{1}xxxx{2},xxx{0}xxxxx{2}';
+	 * var newStr = str.format('A', 'B', 'C');
+	 * @ret : xxxxxxAxxxxxBxxxxC,xxxAxxxxxB
+	 */
 	format: function() {
 		var val = String(this);
 		for (var i = 0, len = arguments.length; i < len; i++)
@@ -224,26 +224,28 @@ extend(Date, {
 	 * @ret {Date}              返回新时间
 	 */
 	parseDate: function(date_str, format, timezone) {
+		var s = date_str.replace(/[^0-9]/gm, '');
+		var f = '';
 
-		date_str = date_str.replace(/[^0-9]/gm, '');
-		format = format || 'yyyyMMddhhmmssfff';
-
-		var l = date_str.length;
-		var val;
+		String(format || 'yyyyMMddhhmmssfff')
+		.replace(/(yyyy|MM|dd|hh|mm|ss|fff)/gm, e=>{
+			f += e;
+		});
 		
 		if (timezone === undefined)
 			timezone = currentTimezone;
 
 		var d = new Date();
+		var diffTime = currentTimezone - timezone;
 
 		return new Date(
-			date_str.substr(index_of(format, 'yyyy'), 4) || d.getFullYear(),
-			(date_str.substr(index_of(format, 'MM'), 2) || d.getMonth() + 1) - 1,
-			date_str.substr(index_of(format, 'dd'), 2) || d.getDate(),
-			(date_str.substr(index_of(format, 'hh'), 2) || d.getHours()) - currentTimezone + timezone,
-			date_str.substr(index_of(format, 'mm'), 2) || d.getMinutes(),
-			date_str.substr(index_of(format, 'ss'), 2) || d.getSeconds(),
-			date_str.substr(index_of(format, 'fff'), 3) || 0
+			Number(s.substr(index_of(f, 'yyyy'), 4)) || d.getFullYear(),
+			Number(s.substr(index_of(f, 'MM'), 2) || 1/*(d.getMonth() + 1)*/) - 1,
+			Number(s.substr(index_of(f, 'dd'), 2)) || 1/*d.getDate()*/,
+			Number(s.substr(index_of(f, 'hh'), 2) || 0/*d.getHours()*/) - diffTime,
+			Number(s.substr(index_of(f, 'mm'), 2)) || 0/*d.getMinutes()*/,
+			Number(s.substr(index_of(f, 'ss'), 2)) || 0/*d.getSeconds()*/,
+			Number(s.substr(index_of(f, 'fff'), 3)) || 0
 		);
 	},
 
@@ -393,7 +395,7 @@ extend(Error, {
 		}
 		return r;
 	},
-
+	
 	new: function(e, code) {
 		if (! (e instanceof Error)) {
 			if (typeof e == 'object') {
@@ -417,7 +419,7 @@ extend(Error, {
 });
 
 extend(Error.prototype, {
-	
+
 	toJSON: function() {
 		return Error.toJSON(this);
 	},
