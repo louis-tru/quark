@@ -116,7 +116,7 @@ static void parse_system_font_family_name() {
 	}
  #elif XX_LINUX 
 	if (config->LoadFile("/etc/fonts/fonts.conf") == XML_NO_ERROR) {
-		
+
 	}
  #endif // XX_ANDROID End
 
@@ -227,9 +227,10 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans SC");
 	second.push("Droid Sans Fallback");
  #elif XX_LINUX
-	first.push("Manjari");
+	first.push("Droid Sans Fallback");
+	first.push("DejaVu Serif");
 	second.push("Noto Sans CJK JP");
-	// third.push("sans");
+	second.push("Noto Sans SC");
  #endif
 	
 	set_default_fonts(&first, &second, &third, nullptr);
