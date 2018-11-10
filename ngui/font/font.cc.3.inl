@@ -64,15 +64,14 @@ static String find_font_family_by_path(cString& path) {
 }
 
 /**
- * @func get_system_font_family_name()
+ * @func parse_system_font_family_name()
  */
-static void get_system_font_family_name() {
+static void parse_system_font_family_name() {
 	XX_ASSERT(system_font_family_list);
 
-	auto config = new XMLDocument();
+	XMLDocument* config = new XMLDocument();
 
  #if XX_ANDROID
-
 	if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
 		auto root = config->RootElement();
 		// set first
@@ -85,7 +84,6 @@ static void get_system_font_family_name() {
 					find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
 			}
 		}
-
 		// set second
 		first = root->FirstChildElement();
 
@@ -120,13 +118,15 @@ static void get_system_font_family_name() {
 	if (config->LoadFile("/etc/fonts/fonts.conf") == XML_NO_ERROR) {
 		
 	}
- #endif // XX_ANDROID
+ #endif // XX_ANDROID End
+
+	delete config;
 }
 
 /**
- * @func read_system_font_family_cache()
+ * @func get_system_font_family_cache()
  */
-static bool read_system_font_family_cache() {
+static bool get_system_font_family_cache() {
 	
 	String path = Path::temp(xx_font_family_info_cache);
 	
@@ -172,7 +172,7 @@ static bool read_system_font_family_cache() {
 			item["family"].to_string(), // family
 		};
 		
-		//LOG("family:%s, %s", item["family"].to_cstring(), item["path"].to_cstring());
+		DLOG("family:%s, %s", item["family"].to_cstring(), item["path"].to_cstring());
 		
 		for ( int j = 0, o = fonts.length(); j < o; j++ ) {
 			JSON& font = fonts[j];
@@ -188,7 +188,7 @@ static bool read_system_font_family_cache() {
 				font[8].to_int(),     // underline_thickness
 			});
 			
-			//LOG("       %s", *JSON::stringify(font));
+			// LOG("       %s", *JSON::stringify(font));
 		}
 		system_font_family_list->push( move(sffd) );
 	}
@@ -227,12 +227,9 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans SC");
 	second.push("Droid Sans Fallback");
  #elif XX_LINUX
-	// first.push("Roboto");
-	// first.push("Droid Sans");
-	// first.push("Droid Sans Mono");
-	// second.push("Noto Sans CJK");
-	// second.push("Noto Sans SC");
-	// second.push("Droid Sans Fallback");
+	first.push("Manjari");
+	second.push("Noto Sans CJK JP");
+	// third.push("sans");
  #endif
 	
 	set_default_fonts(&first, &second, &third, nullptr);
@@ -242,14 +239,15 @@ void FontPool::Inl::initialize_default_fonts() {
  * @func system_font_family
  */
 const SimpleFontList& FontPool::system_font_family() {
-	
+
 	if ( system_font_family_list ) {
 		return *system_font_family_list;
 	}
+
 	system_font_family_list = new Array<SimpleFontFamily>();
 	
 	// 先读取缓存文件,如果找不到缓存文件遍历字体文件夹
-	if ( read_system_font_family_cache() ) {
+	if ( get_system_font_family_cache() ) {
 		return *system_font_family_list;
 	}
 	
@@ -297,7 +295,7 @@ const SimpleFontList& FontPool::system_font_family() {
 		d.return_value = 1;
 	}));
 	
-	get_system_font_family_name();
+	parse_system_font_family_name();
 	
 	JSON json = JSON::object();
 	json["sys_id"] = sys_id;
