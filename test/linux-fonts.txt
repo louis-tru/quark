@@ -1,0 +1,273 @@
+family:Courier 10 Pitch, file:///usr/share/fonts/X11/Type1/c0419bt_.pfb
+family:Courier 10 Pitch, file:///usr/share/fonts/X11/Type1/c0582bt_.pfb
+family:Courier 10 Pitch, file:///usr/share/fonts/X11/Type1/c0583bt_.pfb
+family:Courier 10 Pitch, file:///usr/share/fonts/X11/Type1/c0611bt_.pfb
+family:Bitstream Charter, file:///usr/share/fonts/X11/Type1/c0632bt_.pfb
+family:Bitstream Charter, file:///usr/share/fonts/X11/Type1/c0633bt_.pfb
+family:Bitstream Charter, file:///usr/share/fonts/X11/Type1/c0648bt_.pfb
+family:Bitstream Charter, file:///usr/share/fonts/X11/Type1/c0649bt_.pfb
+family:Manjari, file:///usr/share/fonts/opentype/malayalam/Manjari-Bold.otf
+family:Manjari, file:///usr/share/fonts/opentype/malayalam/Manjari-Regular.otf
+family:Manjari, file:///usr/share/fonts/opentype/malayalam/Manjari-Thin.otf
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-Black.ttc
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-DemiLight.ttc
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-Light.ttc
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+family:Noto Sans CJK JP, file:///usr/share/fonts/opentype/noto/NotoSansCJK-Thin.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-Black.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-ExtraLight.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-Light.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-Medium.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc
+family:Noto Serif CJK JP, file:///usr/share/fonts/opentype/noto/NotoSerifCJK-SemiBold.ttc
+family:Gargi, file:///usr/share/fonts/truetype/Gargi/Gargi.ttf
+family:Gubbi, file:///usr/share/fonts/truetype/Gubbi/Gubbi.ttf
+family:Nakula, file:///usr/share/fonts/truetype/Nakula/nakula.ttf
+family:Navilu, file:///usr/share/fonts/truetype/Navilu/Navilu.ttf
+family:Sahadeva, file:///usr/share/fonts/truetype/Sahadeva/sahadeva.ttf
+family:Sarai, file:///usr/share/fonts/truetype/Sarai/Sarai.ttf
+family:Abyssinica SIL, file:///usr/share/fonts/truetype/abyssinica/AbyssinicaSIL-R.ttf
+family:Symbola, file:///usr/share/fonts/truetype/ancient-scripts/Symbola_hint.ttf
+family:AR PL UKai CN, file:///usr/share/fonts/truetype/arphic/ukai.ttc
+family:AR PL UMing CN, file:///usr/share/fonts/truetype/arphic/uming.ttc
+family:DejaVu Sans, file:///usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf
+family:DejaVu Sans, file:///usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+family:DejaVu Sans Mono, file:///usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf
+family:DejaVu Sans Mono, file:///usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+family:DejaVu Serif, file:///usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
+family:DejaVu Serif, file:///usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf
+family:Droid Sans Fallback, file:///usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf
+family:Jamrul, file:///usr/share/fonts/truetype/fonts-beng-extra/JamrulNormal.ttf
+family:Likhan, file:///usr/share/fonts/truetype/fonts-beng-extra/LikhanNormal.ttf
+family:Mukti Narrow, file:///usr/share/fonts/truetype/fonts-beng-extra/MuktiNarrow.ttf
+family:Mukti Narrow, file:///usr/share/fonts/truetype/fonts-beng-extra/MuktiNarrowBold.ttf
+family:Ani, file:///usr/share/fonts/truetype/fonts-beng-extra/ani.ttf
+family:Mitra Mono, file:///usr/share/fonts/truetype/fonts-beng-extra/mitra.ttf
+family:Chandas, file:///usr/share/fonts/truetype/fonts-deva-extra/chandas1-2.ttf
+family:Kalimati, file:///usr/share/fonts/truetype/fonts-deva-extra/kalimati.ttf
+family:Samanata, file:///usr/share/fonts/truetype/fonts-deva-extra/samanata.ttf
+family:Rekha, file:///usr/share/fonts/truetype/fonts-gujr-extra/Rekha.ttf
+family:aakar, file:///usr/share/fonts/truetype/fonts-gujr-extra/aakar-medium.ttf
+family:padmaa-Bold.1.1, file:///usr/share/fonts/truetype/fonts-gujr-extra/padmaa-Bold.1.1.ttf
+family:padmaa, file:///usr/share/fonts/truetype/fonts-gujr-extra/padmaa-Medium-0.5.ttf
+family:padmaa, file:///usr/share/fonts/truetype/fonts-gujr-extra/padmaa.ttf
+family:Saab, file:///usr/share/fonts/truetype/fonts-guru-extra/Saab.ttf
+family:Kalapi, file:///usr/share/fonts/truetype/fonts-kalapi/Kalapi.ttf
+family:ori1Uni, file:///usr/share/fonts/truetype/fonts-orya-extra/utkal.ttf
+family:Pothana2000, file:///usr/share/fonts/truetype/fonts-telu-extra/Pothana2000.ttf
+family:Vemana2000, file:///usr/share/fonts/truetype/fonts-telu-extra/vemana2000.ttf
+family:FreeMono, file:///usr/share/fonts/truetype/freefont/FreeMono.ttf
+family:FreeMono, file:///usr/share/fonts/truetype/freefont/FreeMonoBold.ttf
+family:FreeMono, file:///usr/share/fonts/truetype/freefont/FreeMonoBoldOblique.ttf
+family:FreeMono, file:///usr/share/fonts/truetype/freefont/FreeMonoOblique.ttf
+family:FreeSans, file:///usr/share/fonts/truetype/freefont/FreeSans.ttf
+family:FreeSans, file:///usr/share/fonts/truetype/freefont/FreeSansBold.ttf
+family:FreeSans, file:///usr/share/fonts/truetype/freefont/FreeSansBoldOblique.ttf
+family:FreeSans, file:///usr/share/fonts/truetype/freefont/FreeSansOblique.ttf
+family:FreeSerif, file:///usr/share/fonts/truetype/freefont/FreeSerif.ttf
+family:FreeSerif, file:///usr/share/fonts/truetype/freefont/FreeSerifBold.ttf
+family:FreeSerif, file:///usr/share/fonts/truetype/freefont/FreeSerifBoldItalic.ttf
+family:FreeSerif, file:///usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf
+family:KacstArt, file:///usr/share/fonts/truetype/kacst/KacstArt.ttf
+family:KacstBook, file:///usr/share/fonts/truetype/kacst/KacstBook.ttf
+family:KacstDecorative, file:///usr/share/fonts/truetype/kacst/KacstDecorative.ttf
+family:KacstDigital, file:///usr/share/fonts/truetype/kacst/KacstDigital.ttf
+family:KacstFarsi, file:///usr/share/fonts/truetype/kacst/KacstFarsi.ttf
+family:KacstLetter, file:///usr/share/fonts/truetype/kacst/KacstLetter.ttf
+family:KacstNaskh, file:///usr/share/fonts/truetype/kacst/KacstNaskh.ttf
+family:KacstOffice, file:///usr/share/fonts/truetype/kacst/KacstOffice.ttf
+family:KacstPen, file:///usr/share/fonts/truetype/kacst/KacstPen.ttf
+family:KacstPoster, file:///usr/share/fonts/truetype/kacst/KacstPoster.ttf
+family:KacstQurn, file:///usr/share/fonts/truetype/kacst/KacstQurn.ttf
+family:KacstScreen, file:///usr/share/fonts/truetype/kacst/KacstScreen.ttf
+family:KacstTitle, file:///usr/share/fonts/truetype/kacst/KacstTitle.ttf
+family:KacstTitleL, file:///usr/share/fonts/truetype/kacst/KacstTitleL.ttf
+family:mry_KacstQurn, file:///usr/share/fonts/truetype/kacst/mry_KacstQurn.ttf
+family:KacstOne, file:///usr/share/fonts/truetype/kacst-one/KacstOne-Bold.ttf
+family:KacstOne, file:///usr/share/fonts/truetype/kacst-one/KacstOne.ttf
+family:Phetsarath OT, file:///usr/share/fonts/truetype/lao/Phetsarath_OT.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf
+family:Liberation Sans Narrow, file:///usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf
+family:Liberation Sans Narrow, file:///usr/share/fonts/truetype/liberation/LiberationSansNarrow-BoldItalic.ttf
+family:Liberation Sans Narrow, file:///usr/share/fonts/truetype/liberation/LiberationSansNarrow-Italic.ttf
+family:Liberation Sans Narrow, file:///usr/share/fonts/truetype/liberation/LiberationSansNarrow-Regular.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation2/LiberationMono-Bold.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation2/LiberationMono-BoldItalic.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation2/LiberationMono-Italic.ttf
+family:Liberation Mono, file:///usr/share/fonts/truetype/liberation2/LiberationMono-Regular.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation2/LiberationSans-BoldItalic.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation2/LiberationSans-Italic.ttf
+family:Liberation Sans, file:///usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation2/LiberationSerif-Bold.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation2/LiberationSerif-BoldItalic.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation2/LiberationSerif-Italic.ttf
+family:Liberation Serif, file:///usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf
+family:Lohit Assamese, file:///usr/share/fonts/truetype/lohit-assamese/Lohit-Assamese.ttf
+family:Lohit Bengali, file:///usr/share/fonts/truetype/lohit-bengali/Lohit-Bengali.ttf
+family:Lohit Devanagari, file:///usr/share/fonts/truetype/lohit-devanagari/Lohit-Devanagari.ttf
+family:Lohit Gujarati, file:///usr/share/fonts/truetype/lohit-gujarati/Lohit-Gujarati.ttf
+family:Lohit Kannada, file:///usr/share/fonts/truetype/lohit-kannada/Lohit-Kannada.ttf
+family:Lohit Malayalam, file:///usr/share/fonts/truetype/lohit-malayalam/Lohit-Malayalam.ttf
+family:Lohit Odia, file:///usr/share/fonts/truetype/lohit-oriya/Lohit-Odia.ttf
+family:Lohit Gurmukhi, file:///usr/share/fonts/truetype/lohit-punjabi/Lohit-Gurmukhi.ttf
+family:Lohit Tamil, file:///usr/share/fonts/truetype/lohit-tamil/Lohit-Tamil.ttf
+family:Lohit Tamil Classical, file:///usr/share/fonts/truetype/lohit-tamil-classical/Lohit-Tamil-Classical.ttf
+family:Lohit Telugu, file:///usr/share/fonts/truetype/lohit-telugu/Lohit-Telugu.ttf
+family:AnjaliOldLipi, file:///usr/share/fonts/truetype/malayalam/AnjaliOldLipi.ttf
+family:Chilanka, file:///usr/share/fonts/truetype/malayalam/Chilanka-Regular.ttf
+family:Dyuthi, file:///usr/share/fonts/truetype/malayalam/Dyuthi.ttf
+family:Karumbi, file:///usr/share/fonts/truetype/malayalam/Karumbi.ttf
+family:Keraleeyam, file:///usr/share/fonts/truetype/malayalam/Keraleeyam.ttf
+family:Meera, file:///usr/share/fonts/truetype/malayalam/Meera.ttf
+family:Rachana, file:///usr/share/fonts/truetype/malayalam/Rachana-Bold.ttf
+family:Rachana, file:///usr/share/fonts/truetype/malayalam/Rachana-Regular.ttf
+family:RaghuMalayalam, file:///usr/share/fonts/truetype/malayalam/RaghuMalayalamSans-Regular.ttf
+family:Suruma, file:///usr/share/fonts/truetype/malayalam/Suruma.ttf
+family:Uroob, file:///usr/share/fonts/truetype/malayalam/Uroob.ttf
+family:NanumBarunGothic, file:///usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf
+family:NanumBarunGothic, file:///usr/share/fonts/truetype/nanum/NanumBarunGothicBold.ttf
+family:NanumGothic, file:///usr/share/fonts/truetype/nanum/NanumGothic.ttf
+family:NanumGothic, file:///usr/share/fonts/truetype/nanum/NanumGothicBold.ttf
+family:NanumMyeongjo, file:///usr/share/fonts/truetype/nanum/NanumMyeongjo.ttf
+family:NanumMyeongjo, file:///usr/share/fonts/truetype/nanum/NanumMyeongjoBold.ttf
+family:NanumSquare, file:///usr/share/fonts/truetype/nanum/NanumSquareB.ttf
+family:NanumSquare, file:///usr/share/fonts/truetype/nanum/NanumSquareR.ttf
+family:NanumSquareRound, file:///usr/share/fonts/truetype/nanum/NanumSquareRoundB.ttf
+family:NanumSquareRound, file:///usr/share/fonts/truetype/nanum/NanumSquareRoundR.ttf
+family:Noto Mono, file:///usr/share/fonts/truetype/noto/NotoMono-Regular.ttf
+family:OpenSymbol, file:///usr/share/fonts/truetype/openoffice/opens___.ttf
+family:Padauk, file:///usr/share/fonts/truetype/padauk/Padauk-Bold.ttf
+family:Padauk, file:///usr/share/fonts/truetype/padauk/Padauk-Regular.ttf
+family:Padauk Book, file:///usr/share/fonts/truetype/padauk/PadaukBook-Bold.ttf
+family:Padauk Book, file:///usr/share/fonts/truetype/padauk/PadaukBook-Regular.ttf
+family:Pagul, file:///usr/share/fonts/truetype/pagul/Pagul.ttf
+family:Samyak Devanagari, file:///usr/share/fonts/truetype/samyak/Samyak-Devanagari.ttf
+family:Samyak Gujarati, file:///usr/share/fonts/truetype/samyak-fonts/Samyak-Gujarati.ttf
+family:Samyak Malayalam, file:///usr/share/fonts/truetype/samyak-fonts/Samyak-Malayalam.ttf
+family:Samyak Tamil, file:///usr/share/fonts/truetype/samyak-fonts/Samyak-Tamil.ttf
+family:LKLUG, file:///usr/share/fonts/truetype/sinhala/lklug.ttf
+family:TakaoPGothic, file:///usr/share/fonts/truetype/takao-gothic/TakaoPGothic.ttf
+family:Tibetan Machine Uni, file:///usr/share/fonts/truetype/tibetan-machine/TibetanMachineUni.ttf
+family:Garuda, file:///usr/share/fonts/truetype/tlwg/Garuda-Bold.ttf
+family:Garuda, file:///usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.ttf
+family:Garuda, file:///usr/share/fonts/truetype/tlwg/Garuda-Oblique.ttf
+family:Garuda, file:///usr/share/fonts/truetype/tlwg/Garuda.ttf
+family:Kinnari, file:///usr/share/fonts/truetype/tlwg/Kinnari-Bold.ttf
+family:Kinnari, file:///usr/share/fonts/truetype/tlwg/Kinnari-BoldItalic.ttf
+family:Kinnari, file:///usr/share/fonts/truetype/tlwg/Kinnari-BoldOblique.ttf
+family:Kinnari, file:///usr/share/fonts/truetype/tlwg/Kinnari-Italic.ttf
+family:Kinnari, file:///usr/share/fonts/truetype/tlwg/Kinnari-Oblique.ttf
+family:Kinnari, file:///usr/share/fonts/truetype/tlwg/Kinnari.ttf
+family:Laksaman, file:///usr/share/fonts/truetype/tlwg/Laksaman-Bold.ttf
+family:Laksaman, file:///usr/share/fonts/truetype/tlwg/Laksaman-BoldItalic.ttf
+family:Laksaman, file:///usr/share/fonts/truetype/tlwg/Laksaman-Italic.ttf
+family:Laksaman, file:///usr/share/fonts/truetype/tlwg/Laksaman.ttf
+family:Loma, file:///usr/share/fonts/truetype/tlwg/Loma-Bold.ttf
+family:Loma, file:///usr/share/fonts/truetype/tlwg/Loma-BoldOblique.ttf
+family:Loma, file:///usr/share/fonts/truetype/tlwg/Loma-Oblique.ttf
+family:Loma, file:///usr/share/fonts/truetype/tlwg/Loma.ttf
+family:Norasi, file:///usr/share/fonts/truetype/tlwg/Norasi-Bold.ttf
+family:Norasi, file:///usr/share/fonts/truetype/tlwg/Norasi-BoldItalic.ttf
+family:Norasi, file:///usr/share/fonts/truetype/tlwg/Norasi-BoldOblique.ttf
+family:Norasi, file:///usr/share/fonts/truetype/tlwg/Norasi-Italic.ttf
+family:Norasi, file:///usr/share/fonts/truetype/tlwg/Norasi-Oblique.ttf
+family:Norasi, file:///usr/share/fonts/truetype/tlwg/Norasi.ttf
+family:Purisa, file:///usr/share/fonts/truetype/tlwg/Purisa-Bold.ttf
+family:Purisa, file:///usr/share/fonts/truetype/tlwg/Purisa-BoldOblique.ttf
+family:Purisa, file:///usr/share/fonts/truetype/tlwg/Purisa-Oblique.ttf
+family:Purisa, file:///usr/share/fonts/truetype/tlwg/Purisa.ttf
+family:Sawasdee, file:///usr/share/fonts/truetype/tlwg/Sawasdee-Bold.ttf
+family:Sawasdee, file:///usr/share/fonts/truetype/tlwg/Sawasdee-BoldOblique.ttf
+family:Sawasdee, file:///usr/share/fonts/truetype/tlwg/Sawasdee-Oblique.ttf
+family:Sawasdee, file:///usr/share/fonts/truetype/tlwg/Sawasdee.ttf
+family:Tlwg Mono, file:///usr/share/fonts/truetype/tlwg/TlwgMono-Bold.ttf
+family:Tlwg Mono, file:///usr/share/fonts/truetype/tlwg/TlwgMono-BoldOblique.ttf
+family:Tlwg Mono, file:///usr/share/fonts/truetype/tlwg/TlwgMono-Oblique.ttf
+family:Tlwg Mono, file:///usr/share/fonts/truetype/tlwg/TlwgMono.ttf
+family:Tlwg Typewriter, file:///usr/share/fonts/truetype/tlwg/TlwgTypewriter-Bold.ttf
+family:Tlwg Typewriter, file:///usr/share/fonts/truetype/tlwg/TlwgTypewriter-BoldOblique.ttf
+family:Tlwg Typewriter, file:///usr/share/fonts/truetype/tlwg/TlwgTypewriter-Oblique.ttf
+family:Tlwg Typewriter, file:///usr/share/fonts/truetype/tlwg/TlwgTypewriter.ttf
+family:Tlwg Typist, file:///usr/share/fonts/truetype/tlwg/TlwgTypist-Bold.ttf
+family:Tlwg Typist, file:///usr/share/fonts/truetype/tlwg/TlwgTypist-BoldOblique.ttf
+family:Tlwg Typist, file:///usr/share/fonts/truetype/tlwg/TlwgTypist-Oblique.ttf
+family:Tlwg Typist, file:///usr/share/fonts/truetype/tlwg/TlwgTypist.ttf
+family:Tlwg Typo, file:///usr/share/fonts/truetype/tlwg/TlwgTypo-Bold.ttf
+family:Tlwg Typo, file:///usr/share/fonts/truetype/tlwg/TlwgTypo-BoldOblique.ttf
+family:Tlwg Typo, file:///usr/share/fonts/truetype/tlwg/TlwgTypo-Oblique.ttf
+family:Tlwg Typo, file:///usr/share/fonts/truetype/tlwg/TlwgTypo.ttf
+family:Umpush, file:///usr/share/fonts/truetype/tlwg/Umpush-Bold.ttf
+family:Umpush, file:///usr/share/fonts/truetype/tlwg/Umpush-BoldOblique.ttf
+family:Umpush, file:///usr/share/fonts/truetype/tlwg/Umpush-Light.ttf
+family:Umpush, file:///usr/share/fonts/truetype/tlwg/Umpush-LightOblique.ttf
+family:Umpush, file:///usr/share/fonts/truetype/tlwg/Umpush-Oblique.ttf
+family:Umpush, file:///usr/share/fonts/truetype/tlwg/Umpush.ttf
+family:Waree, file:///usr/share/fonts/truetype/tlwg/Waree-Bold.ttf
+family:Waree, file:///usr/share/fonts/truetype/tlwg/Waree-BoldOblique.ttf
+family:Waree, file:///usr/share/fonts/truetype/tlwg/Waree-Oblique.ttf
+family:Waree, file:///usr/share/fonts/truetype/tlwg/Waree.ttf
+family:Khmer OS, file:///usr/share/fonts/truetype/ttf-khmeros-core/KhmerOS.ttf
+family:Khmer OS System, file:///usr/share/fonts/truetype/ttf-khmeros-core/KhmerOSsys.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-BI.ttf
+family:Ubuntu Condensed, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-C.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-L.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-LI.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-M.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-MI.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf
+family:Ubuntu, file:///usr/share/fonts/truetype/ubuntu/Ubuntu-RI.ttf
+family:Ubuntu Mono, file:///usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf
+family:Ubuntu Mono, file:///usr/share/fonts/truetype/ubuntu/UbuntuMono-BI.ttf
+family:Ubuntu Mono, file:///usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf
+family:Ubuntu Mono, file:///usr/share/fonts/truetype/ubuntu/UbuntuMono-RI.ttf
+family:URW Gothic L, file:///usr/share/fonts/type1/gsfonts/a010013l.pfb
+family:URW Gothic L, file:///usr/share/fonts/type1/gsfonts/a010015l.pfb
+family:URW Gothic L, file:///usr/share/fonts/type1/gsfonts/a010033l.pfb
+family:URW Gothic L, file:///usr/share/fonts/type1/gsfonts/a010035l.pfb
+family:URW Bookman L, file:///usr/share/fonts/type1/gsfonts/b018012l.pfb
+family:URW Bookman L, file:///usr/share/fonts/type1/gsfonts/b018015l.pfb
+family:URW Bookman L, file:///usr/share/fonts/type1/gsfonts/b018032l.pfb
+family:URW Bookman L, file:///usr/share/fonts/type1/gsfonts/b018035l.pfb
+family:Century Schoolbook L, file:///usr/share/fonts/type1/gsfonts/c059013l.pfb
+family:Century Schoolbook L, file:///usr/share/fonts/type1/gsfonts/c059016l.pfb
+family:Century Schoolbook L, file:///usr/share/fonts/type1/gsfonts/c059033l.pfb
+family:Century Schoolbook L, file:///usr/share/fonts/type1/gsfonts/c059036l.pfb
+family:Dingbats, file:///usr/share/fonts/type1/gsfonts/d050000l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019003l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019004l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019023l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019024l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019043l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019044l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019063l.pfb
+family:Nimbus Sans L, file:///usr/share/fonts/type1/gsfonts/n019064l.pfb
+family:Nimbus Roman No9 L, file:///usr/share/fonts/type1/gsfonts/n021003l.pfb
+family:Nimbus Roman No9 L, file:///usr/share/fonts/type1/gsfonts/n021004l.pfb
+family:Nimbus Roman No9 L, file:///usr/share/fonts/type1/gsfonts/n021023l.pfb
+family:Nimbus Roman No9 L, file:///usr/share/fonts/type1/gsfonts/n021024l.pfb
+family:Nimbus Mono L, file:///usr/share/fonts/type1/gsfonts/n022003l.pfb
+family:Nimbus Mono L, file:///usr/share/fonts/type1/gsfonts/n022004l.pfb
+family:Nimbus Mono L, file:///usr/share/fonts/type1/gsfonts/n022023l.pfb
+family:Nimbus Mono L, file:///usr/share/fonts/type1/gsfonts/n022024l.pfb
+family:URW Palladio L, file:///usr/share/fonts/type1/gsfonts/p052003l.pfb
+family:URW Palladio L, file:///usr/share/fonts/type1/gsfonts/p052004l.pfb
+family:URW Palladio L, file:///usr/share/fonts/type1/gsfonts/p052023l.pfb
+family:URW Palladio L, file:///usr/share/fonts/type1/gsfonts/p052024l.pfb
+family:Standard Symbols L, file:///usr/share/fonts/type1/gsfonts/s050000l.pfb
+family:URW Chancery L, file:///usr/share/fonts/type1/gsfonts/z003034l.pfb

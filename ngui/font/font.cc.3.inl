@@ -231,6 +231,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	first.push("DejaVu Serif");
 	second.push("Noto Sans CJK JP");
 	second.push("Noto Sans SC");
+	second.push("AR PL UMing CN");
  #endif
 	
 	set_default_fonts(&first, &second, &third, nullptr);
