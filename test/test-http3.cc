@@ -1,4 +1,4 @@
-	/* ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, xuewen.chu
@@ -28,25 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/app.h"
-#include "ngui/base/sys.h"
-#include "ngui/base/loop.h"
-
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_http3
-#endif
+#include <ngui/base/http.h>
 
 using namespace ngui;
 
-void TEST_FUNC_NAME();
-
-XX_GUI_MAIN() {
-
-	uint64 st = sys::time();
-	
-	TEST_FUNC_NAME();
-	
-	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
-
-	return 0;
+void test_http3() {
+	LOG(HttpHelper::get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));
 }

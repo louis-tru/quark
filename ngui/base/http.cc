@@ -113,7 +113,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	//, _disable_ssl_verify_host(0)
 	, m_keep_alive(true)
 	, m_sending(nullptr)
-	, m_timeout(0), m_pause(false), m_url_no_cache_arg(false), m_wait_connect_id(0)
+	, m_timeout(0), m_pause(false)
+	, m_url_no_cache_arg(false), m_wait_connect_id(0)
+	, m_write_cache_flag(0)
 	{
 		HttpHelper::initialize();
 	}
@@ -237,7 +239,11 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		static int on_status(http_parser* parser, const char *at, size_t length) {
 			//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint(length)).c());
 			Connect* self = static_cast<Connect*>(parser->data);
-			self->m_client->m_status_code = String(at - 4, 3).to_uint();
+			uint status_code = String(at - 4, 3).to_uint();
+			if (status_code == 200) {
+				self->m_client->m_write_cache_flag = 2; // set write cache flag
+			}
+			self->m_client->m_status_code = status_code;
 			return 0;
 		}
 		
@@ -330,7 +336,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				buff = WeakBuffer(at, uint(length)).copy();
 			}
 			if ( buff.length() ) {
-				self->m_client->trigger_http_data(buff, 2);
+				self->m_client->trigger_http_data(buff);
 			}
 			return 0;
 		}
@@ -828,7 +834,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	 public:
 		FileCacheReader(Client* client, int64 size, RunLoop* loop)
 		: AsyncFile(client->m_cache_path, loop)
-		, m_read_count(0), m_http_data_flag(0)
+		, m_read_count(0)
 		, m_client(client)
 		, m_parse_header(true), m_offset(0), m_size(size) {
 			XX_ASSERT(!m_client->m_cache_reader);
@@ -882,7 +888,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 					 ... Body ...
 					 */
 					
-					for ( int i = 0 ; ; ) {
+					for ( int i = 0; ; ) {
 						int j = str.index_of(s, i);
 						if ( j != -1 && j != 0 ) {
 							if ( j == i ) { // parse header end
@@ -897,8 +903,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 									read_advance();
 								} else {
 									// LOG("Read -- %ld, %ld, %s", expires, sys::time(), *m_header.get("expires"));
-									int64 last_modified = parse_time(m_header.get("last-modified"));
-									if ( last_modified > 0 || !m_header.get("etag").is_empty() ) {
+									if (parse_time(m_header.get("last-modified")) > 0 ||
+											!m_header.get("etag").is_empty()
+									) {
 										m_client->send_http();
 									} else {
 										continue_send_and_release(); // full invalid
@@ -937,7 +944,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				if ( buffer.length() ) {
 					m_offset += buffer.length();
 					m_client->m_download_size += buffer.length();
-					m_client->trigger_http_data(buffer, m_http_data_flag);
+					m_client->trigger_http_data(buffer);
 				} else { // end
 					m_client->http_response_complete(true);
 				}
@@ -964,9 +971,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		virtual bool is_cache() {
 			return true;
 		}
-		
+
 	 private:
-		int m_read_count, m_http_data_flag;
+		int m_read_count;
 		Client* m_client;
 		Map<String, String> m_header;
 		bool m_parse_header;
@@ -1063,7 +1070,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				auto& r_header = m_client->response_header();
 
 				for ( auto& i : r_header ) {
-					if (i.key() != "cache-control") {
+					if (!i.value().is_empty() && i.key() != "cache-control") {
 						header += i.key();
 						header += string_colon;
 						if (i.key() == "expires") {
@@ -1208,15 +1215,15 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	 * @func trigger_http_data()
 	 * @arg write_flag {int}
 	 */
-	void trigger_http_data(Buffer& buffer, int write_flag) {
+	void trigger_http_data(Buffer& buffer) {
 
-		// write_flag:
-		// write_flag = 0 not write cache 
-		// write_flag = 1 write response header 
-		// write_flag = 2 write response header and body
+		// m_write_cache_flag:
+		// m_write_cache_flag = 0 not write cache 
+		// m_write_cache_flag = 1 write response header 
+		// m_write_cache_flag = 2 write response header and body
 
-		if ( write_flag == 2 ) {
-			// `write_flag==2` 写入头与主体缓存时,
+		if ( m_write_cache_flag == 2 ) {
+			// `m_write_cache_flag==2` 写入头与主体缓存时,
 			// 一定是由`Connect`发起的调用,所以已不再需要`m_cache_reader`了
 			if ( m_cache_reader ) {
 				m_cache_reader->release();
@@ -1229,9 +1236,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				new FileWriter(this, m_save_path, 0, loop());
 			}
 			m_file_writer->write(buffer);
-		} else if ( !is_disable_cache() && write_flag ) {
+		} else if ( !is_disable_cache() && m_write_cache_flag ) {
 			if ( !m_file_writer ) {
-				new FileWriter(this, m_cache_path, write_flag, loop());
+				new FileWriter(this, m_cache_path, m_write_cache_flag, loop());
 			}
 			m_file_writer->write(buffer);
 		} else {
@@ -1257,10 +1264,14 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 				m_response_header = move(m_cache_reader->header());
 
-				if (!expires.is_empty()) { // 重新设置 expires
+				if (!expires.is_empty() && expires != m_response_header.get("expires")) {
+					// 重新设置 expires
+					m_write_cache_flag = 1; // rewrite response header
 					m_response_header.set("expires", expires);
 				}
-				m_cache_reader->read_advance(); return;
+				m_cache_reader->read_advance();
+
+				return;
 			}
 		}
 		
@@ -1410,7 +1421,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			}
 		}
 	}
-	
+		
 	// -----------------------------------attrs------------------------------------------
 	
 	HttpClientRequest* m_host;
@@ -1445,7 +1456,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	uint64      m_timeout;
 	bool        m_pause;
 	bool        m_url_no_cache_arg;
-	uint        m_wait_connect_id;
+	uint        m_wait_connect_id, m_write_cache_flag;
 	static      ConnectPool m_pool;
 	static      ConnectPool* m_pool_ptr;
 };
