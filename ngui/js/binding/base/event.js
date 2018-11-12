@@ -228,7 +228,7 @@ function add(self, origin, listen, scope, id) {
 	}
 
 	if (typeof scope != 'object') {
-		id = scope;
+		id = scope || ++_id;
 		scope = self.m_sender;
 	} else {
 		scope = scope || self.m_sender;
