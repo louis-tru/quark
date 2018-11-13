@@ -1197,14 +1197,26 @@ class Exports {
       config = {};
       var pkg = this.mainPackage;
       if (pkg) {
-        try {
-          config = inl_require(pkg.name + '/config');
-        } catch(err) {}
+        config = 
+          this._read_config(pkg.name + '/config') ||
+          this._read_config(pkg.name + '/.config') ||
+          this._read_config(process.cwd() + '/config') || 
+          this._read_config(process.cwd() + '/.config') || {};
+      } else {
+        config = 
+          this._read_config(process.cwd() + '/config') || 
+          this._read_config(process.cwd() + '/.config') || {};
       }
     }
     return config;
   }
   
+  _read_config(pathname) {
+    try {
+      return inl_require(pathname);
+    } catch(e) {}
+  }
+
   _resolveFilename(request, parent) {
     if (parent) {
       return Package_resolve_filename(parent.package, parent.dir, request);
