@@ -1201,7 +1201,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_delegate->trigger_http_write(m_host);
 	}
 	
-	void trigger_http_header(uint status_code, Map<String, String>&& header, bool cache) {
+	void trigger_http_header(uint status_code, Map<String, String>&& header, bool fromCache) {
 		m_status_code = status_code;
 		m_response_header = move(header);
 		m_delegate->trigger_http_header(m_host);
@@ -1213,7 +1213,6 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	
 	/**
 	 * @func trigger_http_data()
-	 * @arg write_flag {int}
 	 */
 	void trigger_http_data(Buffer& buffer) {
 
@@ -1247,31 +1246,32 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 	}
 	
-	void http_response_complete(bool cache) {
+	void http_response_complete(bool fromCache) {
 
-		if (!cache) {
+		if (!fromCache) {
 			XX_ASSERT(m_pool_ptr);
 			XX_ASSERT(m_connect);
 			m_pool_ptr->release(m_connect, false);
 			m_connect = nullptr;
 
-			if ( m_status_code == 304 ) {
-				XX_ASSERT(m_cache_reader);
+			if ( m_status_code == 304) {
+				if (m_cache_reader) {
+					String expires = convert_to_expires(m_response_header.get("cache-control"));
+					if (expires.is_empty()) {
+						expires = m_response_header.get("expires");
+					}
+					m_response_header = move(m_cache_reader->header());
 
-				String expires = convert_to_expires(m_response_header.get("cache-control"));
-				if (expires.is_empty()) {
-					expires = m_response_header.get("expires");
+					if (!expires.is_empty() && expires != m_response_header.get("expires")) {
+						// 重新设置 expires
+						m_write_cache_flag = 1; // rewrite response header
+						m_response_header.set("expires", expires);
+					}
+					m_cache_reader->read_advance();
+					return;
+				} else {
+					XX_ERR("http response status code error, %d", m_status_code);
 				}
-				m_response_header = move(m_cache_reader->header());
-
-				if (!expires.is_empty() && expires != m_response_header.get("expires")) {
-					// 重新设置 expires
-					m_write_cache_flag = 1; // rewrite response header
-					m_response_header.set("expires", expires);
-				}
-				m_cache_reader->read_advance();
-
-				return;
 			}
 		}
 		

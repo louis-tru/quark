@@ -38,7 +38,7 @@
  */
 
 #define T_PI 3.1415926535898f                   // PI
-#define T_PI_RATIO_180  0.017453292519943f			// PI / 180
+#define T_PI_RATIO_180  0.017453292519943f      // PI / 180
 #define T_180_RATIO_PI 57.29577951308232f       // 180 / PI
 
 XX_NS(ngui)

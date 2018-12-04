@@ -115,9 +115,8 @@ static void parse_system_font_family_name() {
 		}
 	}
  #elif XX_LINUX 
-	if (config->LoadFile("/etc/fonts/fonts.conf") == XML_NO_ERROR) {
-
-	}
+	// if (config->LoadFile("/etc/fonts/fonts.conf") == XML_NO_ERROR) {
+	// }
  #endif // XX_ANDROID End
 
 	delete config;
