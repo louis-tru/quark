@@ -374,11 +374,11 @@ extend(Error, {
 	toJSON: function(err) {
 		if ( err ) {
 			if ( typeof err == 'string' ) {
-				return { message: err || 'unknown error', code: 0, name: '', description: '' };
+				return { message: err || 'unknown error', code: -1, name: '', description: '' };
 			} else if ( typeof err == 'number' ) {
 				return { message: 'unknown error', code: err, name: '', description: '' };
 			} else {
-				var r = Object.create(err);
+				var r = Object.assign(Object.create(err), err);
 				if (typeof r.code == 'string') {
 					r.rawCode = r.code;
 					r.code = -1;
@@ -405,15 +405,27 @@ extend(Error, {
 					e = new Error(e[1] || 'Unknown error');
 					e.description = description;
 				} else {
-					code = e.code;
-					e = Object.assign(new Error(e.message || e.error || 'Unknown error'), e);
+					var Err = global[e.name] || Error;
+					var msg = e.message || e.error || 'Unknown error';
+					e = Object.assign(new Err(msg), e);
 				}
 			} else {
 				e = new Error(e);
 			}
 		}
-		e.code = code || -1;
+		e.code = code || e.code || -1;
 		return e;
+	},
+
+	furl: function(err) {
+		err = Error.new(err);
+		var Err = global[err.name] || Error;
+		var msg = err.message +'\n' + Object.entries(err).map(([k,v])=>{
+			return k + ': ' + (typeof v == 'object' ? JSON.stringify(v, null, 2): v);
+		}).join('\n');
+		var r = new Err(msg);
+		r.stack = err.stack;
+		return r;
 	},
 
 });
