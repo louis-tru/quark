@@ -383,13 +383,13 @@ extend(Error, {
 					r.rawCode = r.code;
 					r.code = -1;
 				}
-				r.code = r.code || -1;
+				r.code = Number(r.code) || -1;
 				r.name = r.name || '';
 				r.description = r.description || '';
 				r.message = r.message || 'unknown error';
 				r.stack = r.stack || '';
 				return r;
-			} 
+			}
 		} else {
 			return { message: 'unknown error', code: 0, name: '', description: '' };
 		}
@@ -413,7 +413,7 @@ extend(Error, {
 				e = new Error(e);
 			}
 		}
-		e.code = code || e.code || -1;
+		e.code = Number(code || e.code) || -1;
 		return e;
 	},
 
