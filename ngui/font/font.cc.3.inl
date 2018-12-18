@@ -69,9 +69,11 @@ static String find_font_family_by_path(cString& path) {
 static void parse_system_font_family_name() {
 	XX_ASSERT(system_font_family_list);
 
-	XMLDocument* config = new XMLDocument();
+	XMLDocument* config = nullptr;
 
  #if XX_ANDROID
+	config = new XMLDocument();
+
 	if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
 		auto root = config->RootElement();
 		// set first
@@ -80,7 +82,7 @@ static void parse_system_font_family_name() {
 		if ( first && (first = first->FirstChildElement("font")) ) {
 			cchar* path = first->GetText();
 			if ( path ) {
-				system_first_font_family = 
+				system_first_font_family_name = 
 					find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
 			}
 		}
@@ -104,7 +106,7 @@ static void parse_system_font_family_name() {
 					if ( (first = first->FirstChildElement("font")) ) {
 						cchar* path = first->GetText();
 						if ( path ) {
-							system_second_font_family = 
+							system_second_font_family_name = 
 								find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
 						}
 					}
@@ -115,8 +117,6 @@ static void parse_system_font_family_name() {
 		}
 	}
  #elif XX_LINUX 
-	// if (config->LoadFile("/etc/fonts/fonts.conf") == XML_NO_ERROR) {
-	// }
  #endif // XX_ANDROID End
 
 	delete config;
@@ -223,14 +223,18 @@ void FontPool::Inl::initialize_default_fonts() {
 	first.push("Droid Sans");
 	first.push("Droid Sans Mono");
 	second.push("Noto Sans CJK");
+	second.push("Noto Sans CJK JP");
 	second.push("Noto Sans SC");
-	second.push("Droid Sans Fallback");
+	third.push("Droid Sans Fallback");
  #elif XX_LINUX
-	first.push("Droid Sans Fallback");
-	first.push("DejaVu Serif");
+	first.push("Roboto");
+	first.push("DejaVu Sans");
+	first.push("DejaVu Sans Mono");
+	second.push("Noto Sans CJK");
 	second.push("Noto Sans CJK JP");
 	second.push("Noto Sans SC");
 	second.push("AR PL UMing CN");
+	third.push("Droid Sans Fallback");
  #endif
 	
 	set_default_fonts(&first, &second, &third, nullptr);
@@ -246,12 +250,12 @@ const SimpleFontList& FontPool::system_font_family() {
 	}
 
 	system_font_family_list = new Array<SimpleFontFamily>();
-	
+
 	// 先读取缓存文件,如果找不到缓存文件遍历字体文件夹
 	if ( get_system_font_family_cache() ) {
 		return *system_font_family_list;
 	}
-	
+
 	String sys_id = hash( sys::info() ); // 系统标识
 	
 	FT_Library ft_lib;

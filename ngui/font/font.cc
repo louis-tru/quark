@@ -51,15 +51,15 @@
 XX_NS(ngui)
 
 static String THIN_("thin");
-static String ULTRALIGHT_("ultralight");
+static String ULTRALIGHT_("ultralight"); static String BOOK_("book");
 static String LIGHT_("light");
-static String REGULAR_("regular");
-static String MEDIUM_("medium");
-static String SEMIBOLD_("semibold");
-static String BOLD_("bold");
+static String REGULAR_("regular"); static String NORMAL_("normal"); 
+static String MEDIUM_("medium"); static String DEMI_("demi");
+static String SEMIBOLD_("semibold"); static String ROMAN_("roman");
+static String BOLD_("bold"); static String CONDENSED_("Condensed");
 static String HEAVY_("heavy");
 static String BLACK_("black");
-static String ITALIC_("italic");
+static String ITALIC_("italic"); static String OBLIQUE_("oblique");
 
 /**
  * @class FontPool::Inl
@@ -249,6 +249,10 @@ public:
 		}
 	}
 
+	static bool has_italic_style(cString& style_name) {
+		return style_name.index_of(ITALIC_) != -1 || style_name.index_of(OBLIQUE_) != -1;
+	}
+
 	/**
 	 * @func parse_style_flag()
 	 */
@@ -256,31 +260,31 @@ public:
 		String str = style_name.to_lower_case();
 		
 		if ( str.index_of(THIN_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::THIN_ITALIC : TextStyleEnum::THIN;
+			return has_italic_style(str) ? TextStyleEnum::THIN_ITALIC : TextStyleEnum::THIN;
 		}
-		if ( str.index_of(ULTRALIGHT_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::ULTRALIGHT_ITALIC : TextStyleEnum::ULTRALIGHT;
+		if ( str.index_of(ULTRALIGHT_) != -1 || str.index_of(BOOK_) != -1 ) {
+			return has_italic_style(str) ? TextStyleEnum::ULTRALIGHT_ITALIC : TextStyleEnum::ULTRALIGHT;
 		}
 		if ( str.index_of(LIGHT_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::LIGHT_ITALIC : TextStyleEnum::LIGHT;
+			return has_italic_style(str) ? TextStyleEnum::LIGHT_ITALIC : TextStyleEnum::LIGHT;
 		}
-		if ( str.index_of(REGULAR_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::ITALIC : TextStyleEnum::REGULAR;
+		if ( str.index_of(REGULAR_) != -1 || str.index_of(NORMAL_) != -1 ) {
+			return has_italic_style(str) ? TextStyleEnum::ITALIC : TextStyleEnum::REGULAR;
 		}
-		if ( str.index_of(MEDIUM_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::MEDIUM_ITALIC : TextStyleEnum::MEDIUM;
+		if ( str.index_of(MEDIUM_) != -1 || str.index_of(DEMI_) != -1 ) {
+			return has_italic_style(str) ? TextStyleEnum::MEDIUM_ITALIC : TextStyleEnum::MEDIUM;
 		}
-		if ( str.index_of(SEMIBOLD_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::SEMIBOLD_ITALIC : TextStyleEnum::SEMIBOLD;
+		if ( str.index_of(SEMIBOLD_) != -1 || str.index_of(ROMAN_) != -1 ) {
+			return has_italic_style(str) ? TextStyleEnum::SEMIBOLD_ITALIC : TextStyleEnum::SEMIBOLD;
 		}
-		if ( str.index_of(BOLD_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::BOLD_ITALIC : TextStyleEnum::BOLD;
+		if ( str.index_of(BOLD_) != -1 || str.index_of(CONDENSED_) != -1 ) {
+			return has_italic_style(str) ? TextStyleEnum::BOLD_ITALIC : TextStyleEnum::BOLD;
 		}
 		if ( str.index_of(HEAVY_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::HEAVY_ITALIC : TextStyleEnum::HEAVY;
+			return has_italic_style(str) ? TextStyleEnum::HEAVY_ITALIC : TextStyleEnum::HEAVY;
 		}
 		if ( str.index_of(BLACK_) != -1 ) {
-			return str.index_of(ITALIC_) != -1 ? TextStyleEnum::BLACK_ITALIC : TextStyleEnum::BLACK;
+			return has_italic_style(str) ? TextStyleEnum::BLACK_ITALIC : TextStyleEnum::BLACK;
 		}
 		return TextStyleEnum::OTHER;
 	}
@@ -312,7 +316,7 @@ public:
 				if (face->charmap &&
 						face->charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
 						FT_IS_SCALABLE(face)                              // 必须为矢量字体
-						) {
+				) {
 					
 					FT_Set_Char_Size(face, 0, 64 * 64, 72, 72);
 					
@@ -325,7 +329,9 @@ public:
 					int underline_position	= face->underline_position;
 					int underline_thickness = face->underline_thickness;
 					String name = FT_Get_Postscript_Name(face);
-					
+
+					DLOG("------------inl_read_font_file, %s, %s", *name, face->style_name);
+
 					sff->fonts.push({
 						name,
 						parse_style_flags(name, face->style_name),

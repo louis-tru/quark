@@ -62,7 +62,7 @@ new GUIApplication().start(
 
 * 载入视图完成时触发
 
-### ViewController.onViewDataChange
+### ViewController.onViewData
 
 * 视图数据变化时触发，如果有视图关注这个数据，那么它也会发生改变
 
