@@ -40,7 +40,7 @@ CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 builddir="$(shell pwd)/$(LIBS_DIR)"
 
 .PHONY: $(STYLES) jsa-shell install install-dev install-tools \
-	help all clear clear-all build server ios android linux osx doc
+	help all clean clean-all build web server ios android linux osx doc
 
 .SECONDEXPANSION:
 
@@ -132,14 +132,14 @@ install-tools:
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
 
-server:
+web server:
 	@$(NODE) tools/server.js
 
-clear:
+clean:
 	@rm -rfv out/$(OS).*
 	@rm -rfv out/product/ngui/product/$(OS)
 
-clear-all:
+clean-all:
 	@rm -rfv out
 
 help:
