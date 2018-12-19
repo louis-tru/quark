@@ -39,10 +39,8 @@
 #include "ngui/app.h"
 #include "ngui/app-1.h"
 
-#include "font.cc.1.inl"
-#include "font.cc.font.inl"
-#include "font.cc.glyph.inl"
-#include "font.cc.family.inl"
+#include "font.cc.levels.inl"
+#include "font.cc.all.inl"
 
 #ifndef XX_SUPPORT_MAX_TEXTURE_FONT_SIZE
 #define XX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
@@ -53,10 +51,10 @@ XX_NS(ngui)
 static String THIN_("thin");
 static String ULTRALIGHT_("ultralight"); static String BOOK_("book");
 static String LIGHT_("light");
-static String REGULAR_("regular"); static String NORMAL_("normal"); 
+static String REGULAR_("regular"); static String NORMAL_("normal");
 static String MEDIUM_("medium"); static String DEMI_("demi");
 static String SEMIBOLD_("semibold"); static String ROMAN_("roman");
-static String BOLD_("bold"); static String CONDENSED_("Condensed");
+static String BOLD_("bold"); static String CONDENSED_("condensed");
 static String HEAVY_("heavy");
 static String BLACK_("black");
 static String ITALIC_("italic"); static String OBLIQUE_("oblique");
@@ -65,8 +63,8 @@ static String ITALIC_("italic"); static String OBLIQUE_("oblique");
  * @class FontPool::Inl
  */
 class FontPool::Inl: public FontPool {
-public:
-#define _inl_pool(self) static_cast<FontPool::Inl*>(self)
+ public:
+	#define _inl_pool(self) static_cast<FontPool::Inl*>(self)
 	
 	/**
 	 * @func initialize_default_fonts()
@@ -76,19 +74,21 @@ public:
 	/**
 	 * @fucn m_add_font
 	 */
-	bool register_font(cString& family_name,
-										 cString& font_name,
-										 TextStyleEnum style,
-										 uint num_glyphs,
-										 uint face_index,
-										 int  height,       /* text height in 26.6 frac. pixels       */
-										 int  max_advance,  /* max horizontal advance, in 26.6 pixels */
-										 int  ascender,     /* ascender in 26.6 frac. pixels          */
-										 int  descender,    /* descender in 26.6 frac. pixels         */
-										 int  underline_position,
-										 int  underline_thickness,
-										 cString& path,
-										 FontFromData::Data* data) {
+	bool register_font(
+		cString& family_name,
+		cString& font_name,
+		TextStyleEnum style,
+		uint num_glyphs,
+		uint face_index,
+		int  height,       /* text height in 26.6 frac. pixels       */
+		int  max_advance,  /* max horizontal advance, in 26.6 pixels */
+		int  ascender,     /* ascender in 26.6 frac. pixels          */
+		int  descender,    /* descender in 26.6 frac. pixels         */
+		int  underline_position,
+		int  underline_thickness,
+		cString& path,
+		FontFromData::Data* data
+	) {
 		if ( ! path.is_empty() ) { // 文件
 			
 			if ( ! FileHelper::is_file_sync(path) )
@@ -794,4 +794,4 @@ cFFID FontPool::get_font_familys_id(cString fonts) {
 
 XX_END
 
-#include "font.cc.3.inl"
+#include "font.cc.init.inl"

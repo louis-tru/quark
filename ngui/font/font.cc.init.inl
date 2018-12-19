@@ -92,14 +92,14 @@ static void parse_system_font_family_name() {
 		while (first) {
 			if ( strcmp(first->Name(), "family") == 0 ) {
 
-			#if defined(DEBUG) && 0
+			 #if defined(DEBUG) && 0
 				auto att = first->FirstAttribute();
 				LOG("%s, Attributes:", first->Name());
 				while ( att ) {
 					LOG("     %s:%s", att->Name(), att->Value());
 					att = att->Next();
 				}
-			#endif
+			 #endif
 				auto lang = first->FindAttribute("lang");
 				if ( lang && strcmp(lang->Value(), "zh-Hans") == 0 ) {
 

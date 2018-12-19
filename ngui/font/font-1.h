@@ -33,8 +33,8 @@
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
-#include <tesselator.h>
 #include <freetype/ftoutln.h>
+#include <tesselator.h>
 #include "ngui/base/fs.h"
 #include "ngui/font.h"
 #include "ngui/bezier.h"
@@ -81,18 +81,21 @@ class Font::Inl : public Font {
 public:
 #define _inl_font(self) static_cast<Font::Inl*>(self)
 	
-	void initialize(FontPool* pool,
-								 FontFamily* family,
-								 String font_name,
-								 TextStyleEnum style,
-								 uint num_glyphs,
-								 uint face_index,
-								 int height,       /* text height in 26.6 frac. pixels       */
-								 int max_advance,  /* max horizontal advance, in 26.6 pixels */
-								 int ascender,     /* ascender in 26.6 frac. pixels          */
-								 int descender,    /* descender in 26.6 frac. pixels         */
-								 int underline_position,
-								 int underline_thickness, FT_Library  lib);
+	void initialize(
+		FontPool* pool,
+		FontFamily* family,
+		String font_name,
+		TextStyleEnum style,
+		uint num_glyphs,
+		uint face_index,
+		int height,       /* text height in 26.6 frac. pixels       */
+		int max_advance,  /* max horizontal advance, in 26.6 pixels */
+		int ascender,     /* ascender in 26.6 frac. pixels          */
+		int descender,    /* descender in 26.6 frac. pixels         */
+		int underline_position,
+		int underline_thickness, FT_Library lib
+	);
+
 	/**
 	 * @struct DecomposeData
 	 */
@@ -103,7 +106,6 @@ public:
 		uint length;
 		uint total;
 		Vec2 p0;
-		
 		/**
 		 * @func push_vertex
 		 */
