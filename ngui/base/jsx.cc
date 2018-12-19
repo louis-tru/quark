@@ -68,6 +68,7 @@ static cUcs2String _ASSIGN_SHR(String(">>>="));
 static cUcs2String _ASSIGN_ADD(String("+="));
 static cUcs2String _ASSIGN_SUB(String("-="));
 static cUcs2String _ASSIGN_MUL(String("*="));
+static cUcs2String _ASSIGN_POWER(String("**="));
 static cUcs2String _ASSIGN_DIV(String("/="));
 static cUcs2String _ASSIGN_MOD(String("%="));
 static cUcs2String _OR(String("||"));
@@ -95,6 +96,7 @@ static cUcs2String _BIT_OR('|');
 static cUcs2String _BIT_NOT('~');
 static cUcs2String _BIT_XOR('^');
 static cUcs2String _MUL('*');
+static cUcs2String _POWER(String("**"));
 static cUcs2String _BIT_AND('&');
 static cUcs2String _MOD('%');
 static cUcs2String _AT('@');
@@ -258,6 +260,7 @@ enum Token {
 	ASSIGN_ADD,             // +=
 	ASSIGN_SUB,             // -=
 	ASSIGN_MUL,             // *=
+	ASSIGN_POWER,           // **=
 	ASSIGN_DIV,             // /=
 	ASSIGN_MOD,             // %=
 	/* Binary operators sorted by precedence. */
@@ -272,6 +275,7 @@ enum Token {
 	ADD,                    // +
 	SUB,                    // -
 	MUL,                    // *
+	POWER,                  // **
 	DIV,                    // /
 	MOD,                    // %
 	/* Compare operators sorted by precedence. */
@@ -878,8 +882,15 @@ class Scanner : public Object {
 					break;
 					
 				case '*':
-					// * *=
-					token = select('=', ASSIGN_MUL, MUL);
+					// * *= ** **=
+					advance();
+					if (c0_ == '*') { // ** **=
+						token = select('=', ASSIGN_POWER, POWER);
+					} else if (c0_ == '=') { // *=
+						token = select(ASSIGN_MUL);
+					} else { // *
+						token = MUL;
+					}
 					break;
 
 				case '/':
@@ -1024,68 +1035,66 @@ class Scanner : public Object {
 		// ----------------------------------------------------------------------------
 		// Keyword Matcher
 		
-#define KEYWORDS(KEYWORD_GROUP, KEYWORD)  \
-KEYWORD_GROUP('a')  \
-KEYWORD("as", AS) \
-KEYWORD("async", ASYNC) \
-KEYWORD_GROUP('c')  \
-KEYWORD("class", CLASS) \
-KEYWORD("const", CONST) \
-KEYWORD_GROUP('d')  \
-KEYWORD("default", DEFAULT) \
-KEYWORD_GROUP('e')  \
-KEYWORD("export", EXPORT) \
-KEYWORD("extends", EXTENDS) \
-KEYWORD("event", EVENT) \
-KEYWORD("else", ELSE) \
-KEYWORD_GROUP('f')  \
-KEYWORD("from", FROM) \
-KEYWORD("function", FUNCTION) \
-KEYWORD_GROUP('g')  \
-KEYWORD("get", GET) \
-KEYWORD_GROUP('i')  \
-KEYWORD("instanceof", INSTANCEOF) \
-KEYWORD("import", IMPORT) \
-KEYWORD("in", IN) \
-KEYWORD("if", IF) \
-KEYWORD_GROUP('l')  \
-KEYWORD("let", LET) \
-KEYWORD_GROUP('o')  \
-KEYWORD("of", OF) \
-KEYWORD_GROUP('r')  \
-KEYWORD("return", RETURN) \
-KEYWORD_GROUP('s')  \
-KEYWORD("set", SET) \
-KEYWORD_GROUP('t')  \
-KEYWORD("typeof", TYPEOF) \
-KEYWORD_GROUP('v')  \
-KEYWORD("var", VAR) \
+		#define KEYWORDS(KEYWORD_GROUP, KEYWORD)  \
+			KEYWORD_GROUP('a')  \
+			KEYWORD("as", AS) \
+			KEYWORD("async", ASYNC) \
+			KEYWORD_GROUP('c')  \
+			KEYWORD("class", CLASS) \
+			KEYWORD("const", CONST) \
+			KEYWORD_GROUP('d')  \
+			KEYWORD("default", DEFAULT) \
+			KEYWORD_GROUP('e')  \
+			KEYWORD("export", EXPORT) \
+			KEYWORD("extends", EXTENDS) \
+			KEYWORD("event", EVENT) \
+			KEYWORD("else", ELSE) \
+			KEYWORD_GROUP('f')  \
+			KEYWORD("from", FROM) \
+			KEYWORD("function", FUNCTION) \
+			KEYWORD_GROUP('g')  \
+			KEYWORD("get", GET) \
+			KEYWORD_GROUP('i')  \
+			KEYWORD("instanceof", INSTANCEOF) \
+			KEYWORD("import", IMPORT) \
+			KEYWORD("in", IN) \
+			KEYWORD("if", IF) \
+			KEYWORD_GROUP('l')  \
+			KEYWORD("let", LET) \
+			KEYWORD_GROUP('o')  \
+			KEYWORD("of", OF) \
+			KEYWORD_GROUP('r')  \
+			KEYWORD("return", RETURN) \
+			KEYWORD_GROUP('s')  \
+			KEYWORD("set", SET) \
+			KEYWORD_GROUP('t')  \
+			KEYWORD("typeof", TYPEOF) \
+			KEYWORD_GROUP('v')  \
+			KEYWORD("var", VAR) \
 		
 		switch (input[0]) {
 			default:
-#define KEYWORD_GROUP_CASE(ch)                          \
-break;                                                  \
-case ch:
-#define KEYWORD(keyword, token)                         \
-{                                                       \
-/* 'keyword' is a char array, so sizeof(keyword) is */  \
-/* strlen(keyword) plus 1 for the NUL char. */          \
-	const int keyword_length = sizeof(keyword) - 1;       \
-	XX_ASSERT(keyword_length >= kMinLength);               \
-	XX_ASSERT(keyword_length <= kMaxLength);               \
-	if (input_length == keyword_length &&                 \
-		input[1] == keyword[1] &&                           \
-		(keyword_length <= 2 || input[2] == keyword[2]) &&  \
-		(keyword_length <= 3 || input[3] == keyword[3]) &&  \
-		(keyword_length <= 4 || input[4] == keyword[4]) &&  \
-		(keyword_length <= 5 || input[5] == keyword[5]) &&  \
-		(keyword_length <= 6 || input[6] == keyword[6]) &&  \
-		(keyword_length <= 7 || input[7] == keyword[7]) &&  \
-		(keyword_length <= 8 || input[8] == keyword[8]) &&  \
-		(keyword_length <= 9 || input[9] == keyword[9])) {  \
-		return token;                                       \
-	}                                                     \
-}
+			#define KEYWORD_GROUP_CASE(ch) break; case ch:
+			#define KEYWORD(keyword, token)                         \
+			{                                                       \
+			/* 'keyword' is a char array, so sizeof(keyword) is */  \
+			/* strlen(keyword) plus 1 for the NUL char. */          \
+				const int keyword_length = sizeof(keyword) - 1;       \
+				XX_ASSERT(keyword_length >= kMinLength);               \
+				XX_ASSERT(keyword_length <= kMaxLength);               \
+				if (input_length == keyword_length &&                 \
+					input[1] == keyword[1] &&                           \
+					(keyword_length <= 2 || input[2] == keyword[2]) &&  \
+					(keyword_length <= 3 || input[3] == keyword[3]) &&  \
+					(keyword_length <= 4 || input[4] == keyword[4]) &&  \
+					(keyword_length <= 5 || input[5] == keyword[5]) &&  \
+					(keyword_length <= 6 || input[6] == keyword[6]) &&  \
+					(keyword_length <= 7 || input[7] == keyword[7]) &&  \
+					(keyword_length <= 8 || input[8] == keyword[8]) &&  \
+					(keyword_length <= 9 || input[9] == keyword[9])) {  \
+					return token;                                       \
+				}                                                     \
+			}
 			KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 		}
 		return Token::IDENTIFIER;
@@ -1238,7 +1247,7 @@ case ch:
 		
 		next_->string_space.push('/');
 		next_->string_space.push('*');
-		while (c0_ >= 0){
+		while (c0_ >= 0) {
 			int ch = c0_;
 			advance();
 			// If we have reached the end of the multi-line comment, we
@@ -1742,6 +1751,8 @@ public:
 				out_code(_BIT_XOR); break;
 			case MUL:                     // *
 				out_code(_MUL); break;
+			case POWER:                     // **
+				out_code(_POWER); break;
 			case BIT_AND:                 // &
 				out_code(_BIT_AND); break;
 			case MOD:                     // %
@@ -1768,6 +1779,8 @@ public:
 				out_code(_ASSIGN_SUB); break;
 			case ASSIGN_MUL:             // *=
 				out_code(_ASSIGN_MUL); break;
+			case ASSIGN_POWER:             // **=
+				out_code(_ASSIGN_POWER); break;
 			case ASSIGN_MOD:             // %=
 				out_code(_ASSIGN_MOD); break;
 			case OR:                     // ||
