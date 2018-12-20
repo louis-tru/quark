@@ -142,7 +142,7 @@ class LinuxApplication {
 				m_host->onPause();
 				break;
 			case KeyPress:
-				DLOG("event, KeyDown, keycode: %d", event.xkey.keycode);
+				DLOG("event, KeyDown, keycode: %ld", event.xkey.keycode);
 				m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
 				break;
 			case KeyRelease:

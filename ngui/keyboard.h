@@ -70,7 +70,8 @@ F(KEYCODE_MOVE_END,         35) /* end */ \
 F(KEYCODE_MOVE_HOME,        36) /* home */ \
 F(KEYCODE_SCROLL_LOCK,      145) \
 F(KEYCODE_BREAK,            19) \
-F(KEYCODE_SYSRQ,            124) \
+F(KEYCODE_SYSRQ,            42) \
+F(KEYCODE_HELP,             47) /* Help */ \
 F(KEYCODE_0,                48) /* 0 ) */ \
 F(KEYCODE_1,                49) /* 1 ! */ \
 F(KEYCODE_2,                50) /* 2 @ */ \
@@ -124,7 +125,7 @@ F(KEYCODE_NUMPAD_SUBTRACT,  109)  /* - */ \
 F(KEYCODE_NUMPAD_ADD,       107) /* + */ \
 F(KEYCODE_NUMPAD_DOT,       110) /* . */ \
 F(KEYCODE_NUMPAD_ENTER,     108) /* enter */ \
-F(KEYCODE_F1,               112) /* f1 - f12 */ \
+F(KEYCODE_F1,               112) /* f1 - f24 */ \
 F(KEYCODE_F2,               113) \
 F(KEYCODE_F3,               114) \
 F(KEYCODE_F4,               115) \
@@ -136,6 +137,18 @@ F(KEYCODE_F9,               120) \
 F(KEYCODE_F10,              121) \
 F(KEYCODE_F11,              122) \
 F(KEYCODE_F12,              123) \
+F(KEYCODE_F13,              124) \
+F(KEYCODE_F14,              125) \
+F(KEYCODE_F15,              126) \
+F(KEYCODE_F16,              127) \
+F(KEYCODE_F17,              128) \
+F(KEYCODE_F18,              129) \
+F(KEYCODE_F19,              130) \
+F(KEYCODE_F20,              131) \
+F(KEYCODE_F21,              132) \
+F(KEYCODE_F22,              133) \
+F(KEYCODE_F23,              134) \
+F(KEYCODE_F24,              135) \
 F(KEYCODE_SEMICOLON,        186)  /* ; : */ \
 F(KEYCODE_EQUALS,           187)  /* = + */ \
 F(KEYCODE_MINUS,            189)  /* - _ */ \
@@ -183,7 +196,6 @@ F(KEYCODE_ENVELOPE,         331)     /* 按键Envelope special function */ \
 F(KEYCODE_BOOKMARK,         332)     /* 按键Bookmark */ \
 F(KEYCODE_ZOOM_IN,          333)     /* 放大键 */ \
 F(KEYCODE_ZOOM_OUT,         334)     /* 缩小键 */ \
-F(KEYCODE_HELP,             335)     /* Help */ \
 
 enum KeyboardKeyName {
 #define xx_def_enum_keyboard_key_name(Name, Code) Name = Code,
