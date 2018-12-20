@@ -1,9 +1,10 @@
 import { Div, Button } from 'ngui';
 import { AudioPlayer, Video } from 'ngui/media';
 import { Mynavpage } from './public';
-import 'ngui/url';
+import * as aaaa from 'ngui/url';
 
-const src_720 = 'http://ngui.io/media/2017-09-11_15_41_19.mp4';
+// const src_720 = 'http://ngui.io/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://ngui.io/media/piper720p.mp4';
 const audio_src = 'http://ngui.io/media/all_we_know.mp3';
 
 var audio_player = null;
@@ -59,7 +60,7 @@ export const vx = (
 				id="video" 
 				marginTop=10
 				borderRadius=20 
-				border="8 #f00" 
+				_border="8 #f00" 
 				clip=false
 				width="full" 
 				backgroundColor="#000" 
