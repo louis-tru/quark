@@ -2401,12 +2401,13 @@ public:
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
-		else if (tok == MUL) {  // import * as app 'ngui/app';
+		else if (tok == MUL) {  // import * as app from 'ngui/app';
 			out_code(_CONST); // const
 			ASSERT_NEXT(AS);      // as
 			tok = _scanner->next();
 			if (is_import_declaration_identifier(tok)) {
 				fetch_code();
+				ASSERT_NEXT(FROM);
 				out_code(_ASSIGN);  // =
 				ASSERT_NEXT(STRIXX_LITERAL);
 				out_code(_REQUIRE); // require('ngui/app');
@@ -2432,7 +2433,7 @@ public:
 			out_code(_RPAREN); // )
 		}
 		else if (tok == STRIXX_LITERAL) {
-			// ngui private
+			// ngui private syntax
 		
 			Ucs2String str = _scanner->string_value();
 			if (peek() == AS) {

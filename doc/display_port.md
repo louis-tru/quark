@@ -166,6 +166,12 @@
 
 * {[`float`]}
 
+## Get: defaultStatusBarHeight
+
+默认屏幕bar高度
+
+* {[`float`]}
+
 ## Get: atomPixel
 
 屏幕原子像素尺寸

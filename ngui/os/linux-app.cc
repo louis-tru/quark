@@ -442,6 +442,13 @@ float DisplayPort::status_bar_height() {
 }
 
 /**
+ * @func default_status_bar_height
+ */
+float DisplayPort::default_status_bar_height() {
+	return 0;
+}
+
+/**
  * @func set_visible_status_bar(visible)
  */
 void DisplayPort::set_visible_status_bar(bool visible) {

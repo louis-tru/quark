@@ -513,6 +513,16 @@ float DisplayPort::status_bar_height() {
 }
 
 /**
+ * @func default_status_bar_height
+ */
+float DisplayPort::default_status_bar_height() {
+	if (ios_app && ios_app.app) {
+		return ios_app.app->display_port()->status_bar_height();
+	}
+	return 0;
+}
+
+/**
  * @func set_visible_status_bar(visible)
  */
 void DisplayPort::set_visible_status_bar(bool visible) {

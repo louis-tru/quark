@@ -210,6 +210,11 @@ class XX_EXPORT DisplayPort: public Reference {
 	 */
 	static float default_atom_pixel();
 
+	/**
+	 * @func default_status_bar_height
+	 */
+	static float default_status_bar_height();
+
  private:
 
 	void render_frame();
