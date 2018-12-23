@@ -257,6 +257,7 @@
 					'os/linux-keyboard.cc',
 					'os/linux-media-codec.cc',
 					'os/linux-pcm-player.cc',
+					'os/linux-ime-receiver.cc',
 				],
 				'link_settings': { 
 					'libraries': [ 
