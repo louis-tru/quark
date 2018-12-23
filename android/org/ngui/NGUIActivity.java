@@ -147,11 +147,11 @@ public class NGUIActivity extends NativeActivity implements View.OnSystemUiVisib
 		super.onConfigurationChanged(newConfig);
 	}
 	
-	protected String start_path() {
+	protected String startPath() {
 		return "";
 	}
 
-	protected boolean is_debugger() {
+	protected boolean isDebugger() {
 		ApplicationInfo info = getApplicationInfo();
 		return (info.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
 	}

@@ -46,7 +46,7 @@ public class MainActivity extends NGUIActivity {
 //    super.onCreate(savedInstanceState);
 //  }
 //
-//  protected String start_path() {
+//  protected String startPath() {
 //    //return "examples";
 //    //--inspect-brk=0.0.0.0:9229
 //    return "http://192.168.1.11:1026/demo/examples --dev --ignore-local=*";
