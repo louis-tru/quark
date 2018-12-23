@@ -30,7 +30,6 @@
 
 #include "http-cookie.h"
 #include "fs.h"
-#include "sys.h"
 #include <sqlite3.h>
 
 XX_NS(ngui)

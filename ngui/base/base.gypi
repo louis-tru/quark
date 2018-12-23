@@ -82,8 +82,6 @@
 			'jsx.h',
 			'jsx.cc',
 			'macros.h',
-			'sys.h',
-			'sys.cc',
 			'net.h',
 			'net.cc',
 			'uv-1.h',
@@ -100,12 +98,11 @@
 				'sources':[
 					'../../android/android.h',
 					'../../android/android.cc',
-					'os/android-jni.h',
-					'os/android-jni.cc',
-					'os/android-log.h',
-					'os/android-log.cc',
-					'os/android-sys.cc',
-					'os/android-fs.cc',
+					'android-jni.h',
+					'android-jni.cc',
+					'android-log.h',
+					'android-log.cc',
+					'_android.cc',
 				],
 				'link_settings': { 
 					'libraries': [ 
@@ -117,8 +114,7 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'os/linux-sys.cc',
-					'os/linux-fs.cc',
+					'_linux.cc',
 				],
 			}],
 			['os=="ios"', {
@@ -126,8 +122,7 @@
 					'depe/reachability/reachability.gyp:reachability', 
 				],
 				'sources': [
-					'os/ios-sys.mm',
-					'os/ios-fs.mm',
+					'_mac.mm',
 				],
 			}],
 			['os=="osx"', {
@@ -135,8 +130,7 @@
 					'depe/reachability/reachability.gyp:reachability', 
 				],
 				'sources':[
-					'os/osx-sys.mm',
-					'os/osx-fs.mm',
+					'_mac.mm',
 				],
 			}],
 		]

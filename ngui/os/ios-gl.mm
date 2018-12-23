@@ -32,7 +32,7 @@
 #include "../app.h"
 #include "../display-port.h"
 #include <OpenGLES/ES2/glext.h>
-#include "ngui/base/sys.h"
+#include "ngui/sys.h"
 
 XX_NS(ngui)
 

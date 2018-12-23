@@ -28,48 +28,40 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdlib.h>
+#include "../sys.h"
+#include "../string.h"
+#include "../array.h"
 #include <unistd.h>
-#include <linux/limits.h>
-#include "../fs.h"
 
 XX_NS(ngui)
+XX_NS(sys)
 
-String Path::executable() {
-	static cString rv([]() -> String { 
-		char dir[PATH_MAX] = { 0 };
-		int n = readlink("/proc/self/exe", dir, PATH_MAX);
-		return Path::format("%s", dir);
-	}());
-	return rv;
+int network_status() {
+	return 1;
 }
 
-String Path::documents(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), "Documents") );
-	if ( path.is_empty() ) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
+bool is_ac_power() {
+	return 1;
 }
 
-String Path::temp(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), ".cache") );
-	if (path.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
+bool is_battery() {
+	return 0;
 }
 
-/**
- * Get the resoures dir
- */
-String Path::resources(cString& path) {
-	static cString rv( Path::dirname(executable()) );
-	if (path.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
+float battery_level() {
+	return 0;
 }
 
-XX_END
+uint64 memory() {
+	return 0;
+}
 
+uint64 used_memory() {
+	return 0;
+}
+
+uint64 available_memory() {
+	return 0;
+}
+
+XX_END XX_END

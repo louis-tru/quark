@@ -40,6 +40,51 @@
 #include "codec.h"
 #include "loop.h"
 
+#if XX_UNIX
+#include <sys/utsname.h>
+#include <unistd.h>
+#endif
+
+#if XX_APPLE
+#include <mach/mach_time.h>
+#include <mach/mach.h>
+#include <mach/clock.h>
+
+#define clock_gettime clock_gettime2
+
+static clock_serv_t get_clock_port(clock_id_t clock_id) {
+	clock_serv_t clock_r;
+	host_get_clock_service(mach_host_self(), clock_id, &clock_r);
+	return clock_r;
+}
+
+static clock_serv_t clock_realtime = get_clock_port(CALENDAR_CLOCK);
+static mach_port_t clock_monotonic = get_clock_port(SYSTEM_CLOCK);
+
+int clock_gettime2(clockid_t id, struct timespec *tspec) {
+	mach_timespec_t mts;
+	int retval = 0;
+	if (id == CLOCK_MONOTONIC) {
+		retval = clock_get_time(clock_monotonic, &mts);
+		if (retval != 0) {
+			return retval;
+		}
+	} else if (id == CLOCK_REALTIME) {
+		retval = clock_get_time(clock_realtime, &mts);
+		if (retval != 0) {
+			return retval;
+		}
+	} else {
+		/* only CLOCK_MONOTOIC and CLOCK_REALTIME clocks supported */
+		return -1;
+	}
+	tspec->tv_sec = mts.tv_sec;
+	tspec->tv_nsec = mts.tv_nsec;
+	return 0;
+}
+
+#endif
+
 #if defined(__GLIBC__) || defined(__GNU_LIBRARY__)
 # define XX_VLIBC_GLIBC 1
 #endif
@@ -67,16 +112,16 @@ XX_NS(ngui)
 #define define_number(T) \
 template<> const T Number<T>::min(std::numeric_limits<T>::min());\
 template<> const T Number<T>::max(std::numeric_limits<T>::max());
-define_number(float);
-define_number(double);
-define_number(char);
-define_number(byte);
-define_number(int16);
-define_number(uint16);
-define_number(int);
-define_number(uint);
-define_number(int64);
-define_number(uint64);
+	define_number(float);
+	define_number(double);
+	define_number(char);
+	define_number(byte);
+	define_number(int16);
+	define_number(uint16);
+	define_number(int);
+	define_number(uint);
+	define_number(int64);
+	define_number(uint64);
 
 void Console::log(cString& str) {
 	printf("%s\n", *str);
@@ -122,7 +167,7 @@ namespace console {
 	
 	// Attempts to dump a backtrace (if supported).
 	void dump_backtrace() {
-#if XX_VLIBC_GLIBC || XX_BSD
+	 #if XX_VLIBC_GLIBC || XX_BSD
 		void* trace[100];
 		int size = backtrace(trace, 100);
 		report_error("\n==== C stack trace ===============================\n\n");
@@ -143,7 +188,7 @@ namespace console {
 				}
 			}
 		}
-#elif XX_QNX
+	 #elif XX_QNX
 		char out[1024];
 		bt_accessor_t acc;
 		bt_memmap_t memmap;
@@ -163,7 +208,7 @@ namespace console {
 		}
 		bt_unload_memmap(&memmap);
 		bt_release_accessor(&acc);
-#endif  // XX_VLIBC_GLIBC || XX_BSD
+	 #endif  // XX_VLIBC_GLIBC || XX_BSD
 	}
 	
 	void log(char msg) {
@@ -199,28 +244,28 @@ namespace console {
 	}
 
 	void log(int64 msg) {
-	#if XX_ARCH_64BIT
+	 #if XX_ARCH_64BIT
 		default_console()->log( String::format("%ld", msg) );
-	#else
+	 #else
 		default_console()->log( String::format("%lld", msg) );
-	#endif
+	 #endif
 	}
 	
-#if XX_ARCH_32BIT
+ #if XX_ARCH_32BIT
 	void log(long msg) {
 		default_console()->log( String::format("%ld", msg) );
 	}
 	void log(unsigned long msg) {
 		default_console()->log( String::format("%lu", msg) );
 	}
-#endif
+ #endif
 
 	void log(uint64 msg) {
-	#if XX_ARCH_64BIT
+	 #if XX_ARCH_64BIT
 		default_console()->log( String::format("%lu", msg) );
-	#else
+	 #else
 		default_console()->log( String::format("%llu", msg) );
-	#endif
+	 #endif
 	}
 
 	void log(bool msg) {
@@ -383,6 +428,108 @@ uint iid32() {
 
 String version() {
 	return NGUI_VERSION;
+}
+
+namespace sys {
+
+	String name() {
+		#if XX_NACL
+			static String _name("Nacl");
+		#elif XX_IOS
+			static String _name("iOS");
+		#elif XX_OSX
+			static String _name("MacOSX");
+		#elif XX_ANDROID
+			static String _name("Android");
+		#elif XX_WIN
+			static String _name("Windows");
+		#elif XX_QNX
+			static String _name("Qnx");
+		#elif XX_LINUX
+			static String _name("Linux");
+		#else
+		# error no Support
+		#endif
+		return _name;
+	}
+
+ #if XX_UNIX
+	static String* _info = nullptr;
+	String info() {
+		if (!_info) {
+			_info = new String();
+			static struct utsname _uts;
+			static char _hostname[256];
+			gethostname(_hostname, 255);
+			uname(&_uts);
+			*_info = String::format("host: %s\nsys: %s\nmachine: %s\nnodename: %s\nversion: %s\nrelease: %s",
+														 _hostname,
+														 _uts.sysname,
+														 _uts.machine,
+														 _uts.nodename, _uts.version, _uts.release);
+			//  getlogin(), getuid(), getgid(),
+		}
+		return *_info;
+	}
+ #endif
+
+	int64 time_second() {
+		return ::time(nullptr);
+	}
+
+	int64 time() {
+		timespec now;
+		clock_gettime(CLOCK_REALTIME, &now);
+		int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+		return r;
+	}
+
+	int64 time_monotonic() {
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+		return r;
+	}
+
+	struct Languages {
+		String strings; String string;
+	};
+
+ #if XX_APPLE
+	void __get_languages(String& langs, String& lang);
+ #endif
+
+	static Languages* _languages = nullptr;
+	static Languages* get_languages() {
+		if (!_languages) {
+			_languages = new Languages();
+		 #if XX_IOS
+			_languages = new Languages();
+			__get_languages(_languages->strings, _languages->string);
+		 #elif XX_ANDROID
+			_languages->strings = Android::language();
+			_languages->string = _languages->strings;
+		 #elif XX_LINUX
+			cchar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
+			if ( lang ) {
+				_languages->strings = String(lang).split('.')[0];
+			} else {
+				_languages->strings = "en_US";
+			}
+			_languages->string = _languages->strings;
+		 #endif
+		}
+		return _languages;
+	}
+
+	String languages() {
+		return get_languages()->strings;
+	}
+
+	String language() {
+		return get_languages()->string;
+	}
+
 }
 
 XX_END

@@ -33,7 +33,6 @@
 #include "fs.h"
 #include "ngui/version.h"
 #include "string-builder.h"
-#include "sys.h"
 #include "net.h"
 #include <http_parser.h>
 #include <zlib.h>

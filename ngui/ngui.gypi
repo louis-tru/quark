@@ -178,6 +178,8 @@
 			'background.h',
 			'background.cc',
 			'render-looper.cc',
+			'sys.h',
+			'sys.cc',
 		],
 		'conditions': [
 			['os=="android"', {
@@ -190,6 +192,7 @@
 					'os/android-pcm-audio-track.cc',
 					'os/android-keyboard.cc',
 					'os/android/com/ngui/MainActivity.java',
+					'os/android-sys.cc',
 				],
 				'link_settings': { 
 					'libraries': [ '-lGLESv3', '-lEGL', '-lOpenSLES', '-lmediandk' ],
@@ -221,6 +224,7 @@
 					'os/mac-media-codec.mm',
 					'os/mac-pcm-player.mm',
 					'os/mac-keyboard.mm',
+					'os/mac-sys.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -240,6 +244,7 @@
 					'os/mac-media-codec.mm',
 					'os/mac-pcm-player.mm',
 					'os/mac-keyboard.mm',
+					'os/mac-sys.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -258,6 +263,7 @@
 					'os/linux-media-codec.cc',
 					'os/linux-pcm-player.cc',
 					'os/linux-ime-receiver.cc',
+					'os/linux-sys.cc',
 				],
 				'link_settings': { 
 					'libraries': [ 

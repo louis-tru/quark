@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "base/sys.h"
+#include "sys.h"
 #include "scroll.h"
 #include "bezier.h"
 #include "app.h"

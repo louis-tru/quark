@@ -33,7 +33,6 @@
 #include "fs.h"
 #include "ngui/version.h"
 #include "string-builder.h"
-#include "sys.h"
 #include "net.h"
 #include <http_parser.h>
 #include <zlib.h>
@@ -370,7 +369,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			if ( !header.has("Accept-Charset") )  header.set("Accept-Charset", "utf-8");
 			if ( !header.has("Accept") )          header.set("Accept", "*/*");
 			if ( !header.has("DNT") )             header.set("DNT", "1");
-			if ( !header.has("Accept-Language") ) header.set("Accept-Language", sys::languages_string());
+			if ( !header.has("Accept-Language") ) header.set("Accept-Language", sys::languages());
 			
 			if ( !m_client->m_username.is_empty() && !m_client->m_password.is_empty() ) {
 				String s = m_client->m_username + ':' + m_client->m_password;

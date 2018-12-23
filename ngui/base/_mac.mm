@@ -28,8 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "fs.h"
 #include <Foundation/Foundation.h>
-#include "../fs.h"
+#if XX_IOS
+# import <UIKit/UIKit.h>
+#else
+# import <AppKit/AppKit.h>
+#endif
 
 XX_NS(ngui)
 
@@ -49,7 +54,6 @@ String Path::documents(cString& path) {
 
 String Path::temp(cString& path) {
 	static cString rv(Path::format("%s", [NSTemporaryDirectory() UTF8String]));
-	
 	if (path.is_empty()) {
 		return rv;
 	}
@@ -65,6 +69,50 @@ String Path::resources(cString& path) {
 		return rv;
 	}
 	return Path::format("%s/%s", *rv, *path);
+}
+
+namespace sys {
+
+	String brand() {
+		return "Apple";
+	}
+
+ #if XX_IOS
+
+	String version() {
+		return [[[UIDevice currentDevice] systemVersion] UTF8String];
+	}
+
+	String subsystem() {
+		return [[[UIDevice currentDevice] model] UTF8String];
+	}
+
+ #else
+
+	String version() {
+		return String();
+	}
+
+	String subsystem() {
+		static String name("MacOSX");
+		return name;
+	}
+
+ #endif
+
+	void __get_languages(String& langs, String& lang) {
+		NSArray* languages = [NSLocale preferredLanguages];
+		for ( int i = 0; i < [languages count]; i++ ) {
+			NSString* str = [languages objectAtIndex:0];
+			if (i == 0) {
+				lang = [str UTF8String];
+			} else {
+				langs += ',';
+			}
+			langs += [str UTF8String];
+		}
+	}
+	
 }
 
 XX_END

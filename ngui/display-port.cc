@@ -35,7 +35,7 @@
 #include "root.h"
 #include "action.h"
 #include "base/loop-1.h"
-#include "base/sys.h"
+#include "sys.h"
 
 XX_NS(ngui)
 

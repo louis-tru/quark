@@ -243,7 +243,7 @@ public class Android {
 								activity.getSystemService(Context.TELEPHONY_SERVICE);
 
 				if (sub_type == TelephonyManager.NETWORK_TYPE_LTE) {
-					return 5; // 4G
+					return 6; // 4G
 				} else if (sub_type == TelephonyManager.NETWORK_TYPE_UMTS ||
 								sub_type == TelephonyManager.NETWORK_TYPE_HSDPA ||
 								sub_type == TelephonyManager.NETWORK_TYPE_EVDO_0) {
@@ -253,8 +253,10 @@ public class Android {
 								sub_type == TelephonyManager.NETWORK_TYPE_CDMA) {
 					return 4; // 2G
 				} else {
-					return 4; // 2G
+					return 3; // 2G
 				}
+			} else {
+				return 1; // eth
 			}
 		}
 		return 0;

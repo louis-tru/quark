@@ -31,9 +31,8 @@
 
 #include "loop.h"
 #include "loop-1.h"
-#include "sys.h"
 #if XX_ANDROID
-# include "os/android-jni.h"
+# include "android-jni.h"
 #endif
 #include <uv.h>
 #include <pthread.h>

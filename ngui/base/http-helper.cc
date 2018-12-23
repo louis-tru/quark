@@ -33,7 +33,6 @@
 #include "fs.h"
 #include "ngui/version.h"
 #include "string-builder.h"
-#include "sys.h"
 #include "uv-1.h"
 
 XX_NS(ngui)

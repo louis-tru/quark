@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,48 +25,27 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include <Foundation/Foundation.h>
-#include "../fs.h"
+#ifndef __ngui__base__sys__
+#define __ngui__base__sys__
+
+#include "base/util.h"
 
 XX_NS(ngui)
+XX_NS(sys)
 
-String Path::executable() {
-	static cString rv( format( [[[NSBundle mainBundle] executablePath] UTF8String] ) );
-	return rv;
-}
+XX_EXPORT bool  is_wifi();
+XX_EXPORT bool  is_mobile();
+XX_EXPORT int   network_status();
+XX_EXPORT bool  is_ac_power();
+XX_EXPORT bool  is_battery();
+XX_EXPORT float battery_level();
+XX_EXPORT uint64 memory();
+XX_EXPORT uint64 used_memory();
+XX_EXPORT uint64 available_memory();
+XX_EXPORT float cpu_usage();
 
-String Path::documents(cString& path) {
-	static cString rv( format( [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-																													NSUserDomainMask,
-																													YES) objectAtIndex:0] UTF8String] ));
-	if (rv.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
-}
-
-String Path::temp(cString& path) {
-	static cString rv(Path::format("%s", [NSTemporaryDirectory() UTF8String]));
-	
-	if (path.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
-}
-
-/**
- * Get the resoures dir
- */
-String Path::resources(cString& path) {
-	static cString rv(Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]));
-	
-	if (rv.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
-}
-
-XX_END
+XX_END XX_END
+#endif

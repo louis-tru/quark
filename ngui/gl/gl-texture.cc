@@ -30,7 +30,7 @@
 
 #include "../texture.h"
 #include "gl.h"
-#include "../base/sys.h"
+#include "../sys.h"
 #include "glsl-gen-texture.h"
 
 XX_NS(ngui)

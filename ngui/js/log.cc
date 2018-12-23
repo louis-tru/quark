@@ -34,7 +34,7 @@
 #include "js.h"
 
 #if XX_ANDROID
-#include "ngui/base/os/android-log.h"
+#include "ngui/base/android-log.h"
 #define Console AndroidConsole
 #else
 #define Console Console

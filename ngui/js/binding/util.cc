@@ -30,7 +30,7 @@
 
 #include "ngui/base/string.h"
 #include "ngui/base/fs.h"
-#include "ngui/base/sys.h"
+#include "ngui/sys.h"
 #include "ngui/base/loop.h"
 #include "ngui/base/string-builder.h"
 #include "ngui/js/ngui.h"

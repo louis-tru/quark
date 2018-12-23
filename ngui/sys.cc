@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,14 +25,13 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/string-builder.h"
-#include "../sys.h"
-#include "../string.h"
-#include "../fs.h"
-#include "android/android.h"
+#include "sys.h"
+#include "base/array.h"
+#include "base/string.h"
+#include "base/fs.h"
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
@@ -40,45 +39,15 @@
 XX_NS(ngui)
 XX_NS(sys)
 
-String version() {
-	return Android::version();
+bool is_wifi() {
+	return network_status() == 2;
 }
 
-String brand() {
-	return Android::brand();
+bool is_mobile() {
+	return network_status() >= 3;
 }
 
-String subsystem() {
-	return Android::subsystem();
-}
-
-int network_status() {
-	return Android::network_status();
-}
-
-bool is_ac_power() {
-	return Android::is_ac_power();
-}
-
-bool is_battery() {
-	return Android::is_battery();
-}
-
-float battery_level() {
-	return Android::battery_level();
-}
-
-uint64 memory() {
-	return Android::memory();
-}
-
-uint64 used_memory() {
-	return Android::used_memory();
-}
-
-uint64 available_memory() {
-	return Android::available_memory();
-}
+#if XX_LINUX || XX_ANDROID
 
 static std::atomic_int priv_cpu_total_count(0);
 static std::atomic_int priv_cpu_usage_count(0);
@@ -110,7 +79,7 @@ float cpu_usage() {
 		memset(bf, 0, 512);
 	}
 
-	close:
+ close:
 
 	FileHelper::close_sync(fd);
 
@@ -157,31 +126,6 @@ float cpu_usage() {
 	return cpu_usage * (cpus.length() - 1);
 }
 
-struct Languages {
-	Array<String> values;
-	String  string;
-};
-
-static Languages& get_languages() {
-	static Languages languages([]{
-		Languages r;
-		r.string = Android::language();
-		r.values.push(r.string);
-		return r;
-	}());
-	return languages;
-}
-
-const Array<String>& languages() {
-	return get_languages().values;
-}
-
-String languages_string() {
-	return get_languages().string;
-}
-
-String language() {
-	return get_languages().values[0];
-}
+#endif
 
 XX_END XX_END

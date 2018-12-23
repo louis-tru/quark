@@ -32,32 +32,22 @@
 #import "../string.h"
 #import "../array.h"
 #import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
+#if XX_IOS
+# import <UIKit/UIKit.h>
+#else
+# import <AppKit/AppKit.h>
+#endif
 #import <mach/vm_statistics.h>
 #import <mach/mach_host.h>
 #import <mach/host_info.h>
 #import <mach/vm_page_size.h>
 #import <mach/mach_init.h>
 #import <Reachability.h>
-
 #import <sys/sysctl.h>
 #import <mach/mach.h>
 
 XX_NS(ngui)
 XX_NS(sys)
-
-String version() {
-	return String();
-}
-
-String brand() {
-	return "Apple";
-}
-
-String subsystem() {
-	static String name("MacOSX");
-	return name;
-}
 
 int network_status() {
 	Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
@@ -67,6 +57,33 @@ int network_status() {
 	}
 	return code;
 }
+
+#if XX_IOS
+
+bool is_ac_power() {
+	[UIDevice currentDevice].batteryMonitoringEnabled = YES;
+	UIDeviceBatteryState state = [UIDevice currentDevice].batteryState;
+	if ( state == UIDeviceBatteryStateFull ||
+			 state == UIDeviceBatteryStateCharging ) { // 充电状态
+		return 1;
+	}
+	return 0;
+}
+
+bool is_battery() {
+	return 1;
+}
+
+float battery_level() {
+	[UIDevice currentDevice].batteryMonitoringEnabled = YES;
+	return [UIDevice currentDevice].batteryLevel;
+}
+
+String device_name() {
+	return [[[UIDevice currentDevice] name] UTF8String];
+}
+
+#else
 
 bool is_ac_power() {
 	return 1;
@@ -79,6 +96,12 @@ bool is_battery() {
 float battery_level() {
 	return 0;
 }
+
+String device_name() {
+	return String();
+}
+
+#endif
 
 uint64 memory() {
 	return [NSProcessInfo processInfo].physicalMemory;
@@ -101,38 +124,43 @@ uint64 available_memory() {
 	return 0;
 }
 
-struct Languages {
-	Array<String> values;
-	String        string;
-};
-
-static Languages _languages([] {
-	Languages r;
-	NSArray* languages = [NSLocale preferredLanguages];
-	for ( int i = 0; i < [languages count]; i++ ) {
-		NSString* str = [languages objectAtIndex:0];
-		r.values.push( [str UTF8String] );
+float cpu_usage() {
+	kern_return_t kr;
+	thread_array_t         thread_list;
+	mach_msg_type_number_t thread_count;
+	
+	// get threads in the task
+	kr = task_threads(mach_task_self(), &thread_list, &thread_count);
+	if (kr != KERN_SUCCESS) {
+		return -1;
 	}
-	r.string = r.values.join(',');
-	return r;
-}());
-
-const Array<String>& languages() {
-	return _languages.values;
-}
-
-String languages_string() {
-	return _languages.string;
-}
-
-String language() {
-	return languages()[0];
-}
-
-// plus
-
-String device_name() {
-	return String();
+	
+	float cpu_usage = 0;
+	
+	for (int j = 0; j < thread_count; j++) {
+		thread_info_data_t     thinfo;
+		mach_msg_type_number_t thread_info_count = THREAD_INFO_MAX;
+		
+		kr = thread_info(thread_list[j], THREAD_BASIC_INFO,
+										 (thread_info_t)thinfo, &thread_info_count);
+		if (kr != KERN_SUCCESS) {
+			return -1;
+		}
+		
+		thread_basic_info_t basic_info_th = (thread_basic_info_t)thinfo;
+		
+		if (!(basic_info_th->flags & TH_FLAGS_IDLE)) {
+			cpu_usage += basic_info_th->cpu_usage;
+		}
+	} // for each thread
+	
+	cpu_usage = cpu_usage / (float)TH_USAGE_SCALE;
+	
+	kr = vm_deallocate(mach_task_self(), (vm_offset_t)thread_list,
+										 thread_count * sizeof(thread_t));
+	assert(kr == KERN_SUCCESS);
+	
+	return cpu_usage;
 }
 
 XX_END XX_END

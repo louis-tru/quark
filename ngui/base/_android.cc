@@ -28,92 +28,74 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../sys.h"
-#include "../string.h"
-#include "../array.h"
 #include <unistd.h>
+#include "fs.h"
+#include "android-jni.h"
+#include "android/android.h"
+
+using namespace ngui;
 
 XX_NS(ngui)
-XX_NS(sys)
 
-String version() {
-	return String();
+String init_executable() {
+	char path[256] = { 0 };
+	int size = readlink("/proc/self/exe", path, 255);
+	return Path::format("%s", path);
 }
 
-String brand() {
-	return "Linux";
+String Path::executable() {
+	static cString rv( init_executable() );
+	return rv;
 }
 
-String subsystem() {
-	static String name("Linux");
-	return "";
-}
-
-int network_status() {
-	return 1;
-}
-
-bool is_ac_power() {
-	return 1;
-}
-
-bool is_battery() {
-	return 0;
-}
-
-float battery_level() {
-	return 0;
-}
-
-uint64 memory() {
-	return 0;
-}
-
-uint64 used_memory() {
-	return 0;
-}
-
-uint64 available_memory() {
-	return 0;
-}
-
-float cpu_usage() {
-	return 1;
-}
-
-struct Languages {
-	Array<String> values;
-	String				string;
-};
-
-static Languages _languages([] {
-	Languages r;
-	cchar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
-	if ( lang ) {
-		r.values.push(String(lang).split('.')[0]);
-	} else {
-		r.values.push("en_US");
+String Path::documents(cString& path) {
+	static String documents_path(
+					Path::format("%s", *Android::files_dir_path())
+	);
+	if ( path.is_empty() ) {
+		return documents_path;
 	}
-	r.string = r.values.join(',');
-	return r;
-}());
-
-const Array<String>& languages() {
-	return _languages.values;
+	return Path::format("%s/%s", *documents_path, *path);
 }
 
-String languages_string() {
-	return _languages.string;
+String Path::temp(cString& path) {
+	static String temp_path(
+					Path::format("%s", *Android::cache_dir_path())
+	);
+	if ( path.is_empty() ) {
+		return temp_path;
+	}
+	return Path::format("%s/%s", *temp_path, *path);
 }
 
-String language() {
-	return languages()[0];
+/**
+ * Get the resoures dir
+ */
+String Path::resources(cString& path) {
+	static String resources_path(
+					Path::format("zip://%s@/assets", *Android::package_code_path())
+	);
+	if ( path.is_empty() ) {
+		return resources_path;
+	}
+	return Path::format("%s/%s", *resources_path, *path);
 }
 
-// plus
+namespace sys {
 
-String device_name() {
-	return String();
+	String version() {
+		return Android::version();
+	}
+
+	String brand() {
+		return Android::brand();
+	}
+
+	String subsystem() {
+		return Android::subsystem();
+	}
+
 }
 
-XX_END XX_END
+XX_END
+

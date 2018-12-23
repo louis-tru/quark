@@ -28,58 +28,37 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <unistd.h>
-#include "../fs.h"
-#include "android-jni.h"
 #include "android/android.h"
 
-using namespace ngui;
-
 XX_NS(ngui)
+XX_NS(sys)
 
-String init_executable() {
-	char path[256] = { 0 };
-	int size = readlink("/proc/self/exe", path, 255);
-	return Path::format("%s", path);
+int network_status() {
+	return Android::network_status();
 }
 
-String Path::executable() {
-	static cString rv( init_executable() );
-	return rv;
+bool is_ac_power() {
+	return Android::is_ac_power();
 }
 
-String Path::documents(cString& path) {
-	static String documents_path(
-					Path::format("%s", *Android::files_dir_path())
-	);
-	if ( path.is_empty() ) {
-		return documents_path;
-	}
-	return Path::format("%s/%s", *documents_path, *path);
+bool is_battery() {
+	return Android::is_battery();
 }
 
-String Path::temp(cString& path) {
-	static String temp_path(
-					Path::format("%s", *Android::cache_dir_path())
-	);
-	if ( path.is_empty() ) {
-		return temp_path;
-	}
-	return Path::format("%s/%s", *temp_path, *path);
+float battery_level() {
+	return Android::battery_level();
 }
 
-/**
- * Get the resoures dir
- */
-String Path::resources(cString& path) {
-	static String resources_path(
-					Path::format("zip://%s@/assets", *Android::package_code_path())
-	);
-	if ( path.is_empty() ) {
-		return resources_path;
-	}
-	return Path::format("%s/%s", *resources_path, *path);
+uint64 memory() {
+	return Android::memory();
 }
 
-XX_END
+uint64 used_memory() {
+	return Android::used_memory();
+}
 
+uint64 available_memory() {
+	return Android::available_memory();
+}
+
+XX_END XX_END

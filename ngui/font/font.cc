@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/sys.h"
+#include "ngui/sys.h"
 #include "ngui/base/buffer.h"
 #include "font-1.h"
 #include "font-native.h"

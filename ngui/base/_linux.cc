@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,39 +25,68 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__base__sys__
-#define __ngui__base__sys__
-
-#include "util.h"
-#include "string.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <linux/limits.h>
+#include "fs.h"
 
 XX_NS(ngui)
-XX_NS(sys)
 
-XX_EXPORT int64 time_second();
-XX_EXPORT int64 time();
-XX_EXPORT int64 time_monotonic();
-XX_EXPORT String name();
-XX_EXPORT String info();
-XX_EXPORT String version();
-XX_EXPORT String brand();
-XX_EXPORT String subsystem();
-XX_EXPORT const Array<String>& languages();
-XX_EXPORT String languages_string();
-XX_EXPORT String language();
-XX_EXPORT bool  is_wifi();
-XX_EXPORT bool  is_mobile();
-XX_EXPORT int network_status();
-XX_EXPORT bool  is_ac_power();
-XX_EXPORT bool  is_battery();
-XX_EXPORT float battery_level();
-XX_EXPORT uint64 memory();
-XX_EXPORT uint64 used_memory();
-XX_EXPORT uint64 available_memory();
-XX_EXPORT float cpu_usage();
+String Path::executable() {
+	static cString rv([]() -> String { 
+		char dir[PATH_MAX] = { 0 };
+		int n = readlink("/proc/self/exe", dir, PATH_MAX);
+		return Path::format("%s", dir);
+	}());
+	return rv;
+}
 
-XX_END XX_END
-#endif
+String Path::documents(cString& path) {
+	static cString rv( Path::format("%s/%s", getenv("HOME"), "Documents") );
+	if ( path.is_empty() ) {
+		return rv;
+	}
+	return Path::format("%s/%s", *rv, *path);
+}
+
+String Path::temp(cString& path) {
+	static cString rv( Path::format("%s/%s", getenv("HOME"), ".cache") );
+	if (path.is_empty()) {
+		return rv;
+	}
+	return Path::format("%s/%s", *rv, *path);
+}
+
+/**
+ * Get the resoures dir
+ */
+String Path::resources(cString& path) {
+	static cString rv( Path::dirname(executable()) );
+	if (path.is_empty()) {
+		return rv;
+	}
+	return Path::format("%s/%s", *rv, *path);
+}
+
+namespace sys {
+
+	String version() {
+		return String();
+	}
+
+	String brand() {
+		return "Linux";
+	}
+
+	String subsystem() {
+		static String name("Linux");
+		return name;
+	}
+
+}
+
+XX_END
+

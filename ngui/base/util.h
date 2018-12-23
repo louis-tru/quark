@@ -111,19 +111,18 @@ template <typename T> class XX_EXPORT Number: public Object {
 };
 
 #define define_number(NAME, T) \
-typedef Number<T> NAME; \
-template<> const T NAME::min; template<> const T NAME::max;
-define_number(Bool, bool);
-define_number(Float, float);
-define_number(Double, double);
-define_number(Char, char);
-define_number(Byte, byte);
-define_number(Int16, int16);
-define_number(Uint16, uint16);
-define_number(Int, int);    typedef Number<int>   Int32;
-define_number(Uint, uint);  typedef Number<uint>  Uint32;
-define_number(Int64, int64);
-define_number(Uint64, uint64);
+typedef Number<T> NAME; template<> const T NAME::min; template<> const T NAME::max;
+	define_number(Bool, bool);
+	define_number(Float, float);
+	define_number(Double, double);
+	define_number(Char, char);
+	define_number(Byte, byte);
+	define_number(Int16, int16);
+	define_number(Uint16, uint16);
+	define_number(Int, int);    typedef Number<int>   Int32;
+	define_number(Uint, uint);  typedef Number<uint>  Uint32;
+	define_number(Int64, int64);
+	define_number(Uint64, uint64);
 #undef define_number
 
 // ----------------- Number Object END -----------------
@@ -186,6 +185,19 @@ XX_INLINE constexpr Tp&& forward(typename _right_reference::_remove_reference<Tp
 	static_assert(!_is_lvalue_reference::value, "Can not forward an rvalue as an lvalue.");
 	return static_cast<Tp&&>(t);
 }
+
+namespace sys {
+	XX_EXPORT String name();
+	XX_EXPORT String version();
+	XX_EXPORT String brand();
+	XX_EXPORT String subsystem();
+	XX_EXPORT String info();
+	XX_EXPORT String languages();
+	XX_EXPORT String language();
+	XX_EXPORT int64 time();
+	XX_EXPORT int64 time_second();
+	XX_EXPORT int64 time_monotonic();
+};
 
 XX_END
 
