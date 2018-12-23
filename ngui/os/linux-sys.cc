@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../sys.h"
-#include "../string.h"
-#include "../array.h"
+#include "../base/string.h"
+#include "../base/array.h"
 #include <unistd.h>
 
 XX_NS(ngui)
