@@ -35,7 +35,7 @@
 #include "ngui.h"
 #include "ngui/base/http.h"
 #if XX_ANDROID
-#include "android/android.h"
+# include "android/android.h"
 #endif
 #include "node.h"
 #include "ngui/base/codec.h"

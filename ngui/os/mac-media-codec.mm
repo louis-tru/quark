@@ -40,7 +40,7 @@ XX_NS(ngui)
  * @class AppleVideoCodec
  */
 class AppleVideoCodec: public MediaCodec {
-public:
+ public:
 	
 	struct OutputBufferInfo {
 		CVPixelBufferRef        buffer = nullptr;
@@ -195,11 +195,11 @@ public:
 			kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange], (id)kCVPixelBufferPixelFormatTypeKey,
 			[NSNumber numberWithUnsignedInt:track.width], (id)kCVPixelBufferWidthKey,
 			[NSNumber numberWithUnsignedInt:track.height], (id)kCVPixelBufferHeightKey,
-#if XX_IOS
+		#if XX_IOS
 			[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLESCompatibilityKey,
-#else
+		#else
 			[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLCompatibilityKey,
-#endif
+		#endif
 			nil
 		];
 		

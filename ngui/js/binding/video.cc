@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/js/js-1.h"
-#include "base/event-1.h"
+#include "event-1.h"
 #include "ngui/js/ngui.h"
 #include "ngui/video.h"
 #include "ngui/player.h"

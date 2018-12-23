@@ -42,7 +42,7 @@ XX_NS(ngui)
  * @class ApplePCMPlayer
  */
 class ApplePCMPlayer: public Object, public PCMPlayer {
-public:
+ public:
 	typedef DefaultTraits Traits;
 	
 	struct WaitWriteBuffer {
@@ -268,7 +268,7 @@ public:
 		return XX_MAX(4096, m_channel_count * m_sample_rate / 10);
 	}
 	
-private:
+ private:
 	AudioQueueRef             m_queue;
 	AudioQueueBufferRef       m_buffer_all[QUEUE_BUFFER_COUNT];
 	AudioQueueBufferRef       m_buffer_free[QUEUE_BUFFER_COUNT];

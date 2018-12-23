@@ -98,6 +98,9 @@ class Worker::IMPL {
 
 typedef Worker::IMPL IMPL;
 
+/**
+ * @class JSClassIMPL
+ */
 class JSClassIMPL {
  public:
 	inline JSClassIMPL(Worker* worker, uint64 id, cString& name)

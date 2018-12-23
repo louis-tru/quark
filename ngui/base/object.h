@@ -123,7 +123,7 @@ class XX_EXPORT Object {
 	static void* operator new(std::size_t size);
 	static void* operator new(std::size_t size, void* p);
 	static void  operator delete(void* p);
-#if XX_MEMORY_TRACE_MARK
+ #if XX_MEMORY_TRACE_MARK
 	static std::vector<Object*> mark_objects();
 	static int mark_objects_count();
 	Object();
@@ -131,9 +131,9 @@ class XX_EXPORT Object {
  private:
 	int initialize_mark_();
 	int mark_index_;
-#else
+ #else
 	virtual ~Object() = default;
-#endif
+ #endif
 };
 
 /**

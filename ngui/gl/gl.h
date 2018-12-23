@@ -63,7 +63,7 @@ class  Font;
 class  FontGlyph;
 
 struct GLShader {
-#pragma pack(push,4)
+ #pragma pack(push,4)
 	const char* name;
 	const unsigned char* source_vp;
 	const  unsigned long source_vp_len;
@@ -78,14 +78,14 @@ struct GLShader {
 	const char* shader_attributes;
 	unsigned int shader;
 	const int is_test;
-#pragma pack(pop)
+ #pragma pack(pop)
 };
 
 /**
  * @class GLDraw
  */
 class GLDraw: public Draw {
-public:
+ public:
 	
 	/**
 	 * @constructor

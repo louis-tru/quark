@@ -110,16 +110,16 @@ F(BackgroundSizes, Array<BackgroundSizeCollection>) \
  */
 class XX_EXPORT ValueProgram: public Object {
  public:
-#define def_attr_fn(Name, Type)           \
-	Local<JSValue> New(const Type& value);  \
-	bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg); \
-	bool is##Name(Local<JSValue> value);
+	#define def_attr_fn(Name, Type)           \
+		Local<JSValue> New(const Type& value);  \
+		bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg); \
+		bool is##Name(Local<JSValue> value);
 	
-#define def_attr(Name, Type) \
-	Persistent<JSFunction> _constructor##Name; \
-	Persistent<JSFunction> _parse##Name; \
-	Persistent<JSFunction> _parse##Name##Help; \
-	Persistent<JSFunction> _##Name;
+	#define def_attr(Name, Type) \
+		Persistent<JSFunction> _constructor##Name; \
+		Persistent<JSFunction> _parse##Name; \
+		Persistent<JSFunction> _parse##Name##Help; \
+		Persistent<JSFunction> _##Name;
 	
 	ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
 	virtual ~ValueProgram();
