@@ -70,10 +70,10 @@ add_library(ngui-base SHARED
             ../../../ngui/utils/date.cc
             ../../../ngui/utils/http-cookie.cc
             ../../../ngui/utils/localstorage.cc
-            ../../../ngui/utils/os/android-jni.cc
-            ../../../ngui/utils/os/android-log.cc
-            ../../../ngui/utils/os/android-sys.cc
-            ../../../ngui/utils/os/android-fs.cc
+            ../../../ngui/utils/android-jni.cc
+            ../../../ngui/utils/android-log.cc
+            ../../../ngui/utils/android-sys.cc
+            ../../../ngui/utils/android-fs.cc
            )
 
 add_library(ngui-gui SHARED
@@ -143,12 +143,12 @@ add_library(ngui-gui SHARED
             ../../../ngui/clip.cc
             ../../../ngui/input.cc
             ../../../ngui/textarea.cc
-            ../../../ngui/os/android-gl.cc
-            ../../../ngui/os/android-app.cc
-            ../../../ngui/os/android-media-codec.cc
-            ../../../ngui/os/android-pcm-player.cc
-            ../../../ngui/os/android-pcm-audio-track.cc
-            ../../../ngui/os/android-keyboard.cc
+            ../../../ngui/platforms/android-gl.cc
+            ../../../ngui/platforms/android-app.cc
+            ../../../ngui/platforms/android-media-codec.cc
+            ../../../ngui/platforms/android-pcm-player.cc
+            ../../../ngui/platforms/android-pcm-audio-track.cc
+            ../../../ngui/platforms/android-keyboard.cc
             ../../../ngui/image/codec-gif.cc
             ../../../ngui/image/codec-jpeg.cc
             ../../../ngui/image/codec-png.cc
