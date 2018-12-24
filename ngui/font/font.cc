@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/sys.h"
-#include "ngui/base/buffer.h"
+#include "ngui/utils/buffer.h"
 #include "font-1.h"
 #include "font-native.h"
 #include "ngui/bezier.h"

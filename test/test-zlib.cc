@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/base/zlib.h>
+#include <ngui/utils/zlib.h>
 #include <zlib.h>
 #include <map>
 

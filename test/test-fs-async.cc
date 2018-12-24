@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/util.h"
-#include "ngui/base/fs.h"
+#include "ngui/utils/util.h"
+#include "ngui/utils/fs.h"
 
 using namespace ngui;
 

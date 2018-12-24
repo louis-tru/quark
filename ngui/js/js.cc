@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/string.h"
+#include "ngui/utils/string.h"
 #include "js-1.h"
 #include "node-1.h"
 #include "native-core-js.h"
 #include "ngui.h"
-#include "ngui/base/http.h"
+#include "ngui/utils/http.h"
 #if XX_ANDROID
 # include "android/android.h"
 #endif
 #include "node.h"
-#include "ngui/base/codec.h"
+#include "ngui/utils/codec.h"
 #include <openssl/ssl.h>
 
 namespace ngui {

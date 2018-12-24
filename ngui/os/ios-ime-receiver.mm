@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ios-ime-receiver-1.h"
-#import "ngui/base/util.h"
+#import "ngui/utils/util.h"
 #import "ngui/event.h"
 #import "ngui/app-1.h"
 

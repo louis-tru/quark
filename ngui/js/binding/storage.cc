@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/js/js.h"
-#include "ngui/base/localstorage.h"
+#include "ngui/utils/localstorage.h"
 #include "cb-1.h"
 
 /**

@@ -32,7 +32,7 @@
 #define __ngui__js__cb__
 
 #include "ngui/js/js.h"
-#include "ngui/base/codec.h"
+#include "ngui/utils/codec.h"
 
 /**
  * @ns ngui::js

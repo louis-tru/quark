@@ -31,7 +31,7 @@
 #ifndef __ngui__js__node_1__
 #define __ngui__js__node_1__
 
-#include "ngui/base/loop.h"
+#include "ngui/utils/loop.h"
 
 namespace ngui {
 	namespace js {

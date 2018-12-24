@@ -31,10 +31,10 @@
 #ifndef __ngui__media_codec__
 #define __ngui__media_codec__
 
-#include "base/util.h"
-#include "base/string.h"
-#include "base/buffer.h"
-#include "base/http.h"
+#include "utils/util.h"
+#include "utils/string.h"
+#include "utils/buffer.h"
+#include "utils/http.h"
 #include "image-codec.h"
 
 typedef struct AVStream AVStream;

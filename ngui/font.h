@@ -31,8 +31,8 @@
 #ifndef __ngui__font__
 #define __ngui__font__
 
-#include "base/array.h"
-#include "base/map.h"
+#include "utils/array.h"
+#include "utils/map.h"
 #include "draw.h"
 #include "value.h"
 

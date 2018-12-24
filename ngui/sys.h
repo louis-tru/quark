@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__base__sys__
-#define __ngui__base__sys__
+#ifndef __ngui__utils__sys__
+#define __ngui__utils__sys__
 
-#include "base/util.h"
+#include "utils/util.h"
 
 XX_NS(ngui)
 XX_NS(sys)

@@ -35,7 +35,7 @@
 #include "draw.h"
 #include "pcm-player.h"
 #include "media-codec.h"
-#include "base/loop.h"
+#include "utils/loop.h"
 
 XX_NS(ngui)
 

@@ -1,6 +1,6 @@
 {  
 	'includes': [
-		'ngui/base/base.gypi',
+		'ngui/utils/utils.gypi',
 		'ngui/ngui.gypi',
 		'ngui/js/js.gypi',
 	],
@@ -55,7 +55,7 @@
 		'product_name': 'ngui',
 		'type': 'none',
 		'dependencies': [
-			'ngui-base', 
+			'ngui-utils', 
 			'ngui-gui', 
 			'ngui-js', 
 		],
@@ -140,7 +140,7 @@
 						],
 					},
 					'inputs': [
-						'<(output)/libngui-base.a', 
+						'<(output)/libngui-utils.a', 
 						'<(output)/libngui-gui.a', 
 						'<(output)/libngui-js.a',
 						'<(output)/libminizip.a',
@@ -162,7 +162,7 @@
 					],
 					'action': [ 'sh', '-c', 
 						'cd <(output);'
-						'find obj.target/ngui-base ' 
+						'find obj.target/ngui-utils ' 
 						'obj.target/ngui-gui '
 						'obj.target/ngui-js '
 						'obj.target/node/node -name *.o > ngui.LinkFileList;'

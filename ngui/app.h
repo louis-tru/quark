@@ -31,10 +31,10 @@
 #ifndef __ngui__app__
 #define __ngui__app__
 
-#include "base/util.h"
-#include "base/event.h"
-#include "base/loop.h"
-#include "base/json.h"
+#include "utils/util.h"
+#include "utils/event.h"
+#include "utils/loop.h"
+#include "utils/json.h"
 #include "value.h"
 
 #define XX_GUI_MAIN() \

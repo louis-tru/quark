@@ -13,7 +13,7 @@
 			'../../node/deps/uv/include',
 		],
 		'dependencies': [
-			'ngui-base', 
+			'ngui-utils', 
 			'ngui-gui', 
 			'node/deps/openssl/openssl.gyp:openssl',
 			'node/node.gyp:node', 
@@ -40,7 +40,7 @@
 			'ngui.h',
 			'v8.cc',
 			'log.cc',
-			# binding ngui-base
+			# binding ngui-utils
 			'binding/cb-1.h',
 			'binding/reader.cc',
 			'binding/http.cc',

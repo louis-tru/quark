@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <AppKit/AppKit.h>
-#import "ngui/base/loop.h"
+#import "ngui/utils/loop.h"
 #import "./osx-app-1.h"
 #import "../app.h"
 #import "../display-port.h"
@@ -120,7 +120,14 @@ void DisplayPort::keep_screen(bool keep) {
  * @func status_bar_height()
  */
 float DisplayPort::status_bar_height() {
-	return 1;
+	return 0;
+}
+
+/**
+ * @func default_status_bar_height
+ */
+float DisplayPort::default_status_bar_height() {
+	return 0;
 }
 
 /**

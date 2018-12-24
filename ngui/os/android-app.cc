@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../base/loop.h"
+#include "../utils/loop.h"
 #include "../app-1.h"
 #include "../event.h"
 #include "../display-port.h"
 #include "./linux-gl-1.h"
-#include "../base/os/android-jni.h"
+#include "../utils/os/android-jni.h"
 #include "android/android.h"
 #include <android/native_activity.h>
 #include <android/native_window.h>

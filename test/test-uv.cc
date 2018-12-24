@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/util.h"
-#include "ngui/base/fs.h"
-#include "ngui/base/loop.h"
+#include "ngui/utils/util.h"
+#include "ngui/utils/fs.h"
+#include "ngui/utils/loop.h"
 #include <uv.h>
 
 using namespace ngui;

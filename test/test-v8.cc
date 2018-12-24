@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/util.h"
-#include "ngui/base/string.h"
+#include "ngui/utils/util.h"
+#include "ngui/utils/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>

@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../base/loop.h"
+#include "../utils/loop.h"
 #include "../app-1.h"
 #include "../event.h"
 #include "../display-port.h"
 #include "./linux-gl-1.h"
-#include "../base/loop.h"
+#include "../utils/loop.h"
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
 #include <signal.h>

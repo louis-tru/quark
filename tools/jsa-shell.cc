@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/fs.h"
-#include "ngui/base/jsx.h"
-#include "ngui/base/codec.h" 
+#include "ngui/utils/fs.h"
+#include "ngui/utils/jsx.h"
+#include "ngui/utils/codec.h" 
 
 using namespace ngui;
 

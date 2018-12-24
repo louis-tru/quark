@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/app.h"
-#include "ngui/base/sys.h"
-#include "ngui/base/loop.h"
+#include "ngui/sys.h"
+#include "ngui/utils/loop.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_http3

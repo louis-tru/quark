@@ -31,8 +31,8 @@
 #ifndef __ngui__event__
 #define __ngui__event__
 
-#include "base/event.h"
-#include "base/array.h"
+#include "utils/event.h"
+#include "utils/array.h"
 #include "sys.h"
 #include "mathe.h"
 #include "value.h"

@@ -28,7 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/sys.h"
+#include "ngui/sys.h"
+#include "ngui/utils/string.h"
 
 using namespace ngui;
 

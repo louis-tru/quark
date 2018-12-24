@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/util.h"
-#include "ngui/base/http.h"
-#include "ngui/base/net.h"
+#include "ngui/utils/util.h"
+#include "ngui/utils/http.h"
+#include "ngui/utils/net.h"
 #include "js.h"
 
 #if XX_ANDROID
-#include "ngui/base/android-log.h"
+#include "ngui/utils/android-log.h"
 #define Console AndroidConsole
 #else
 #define Console Console

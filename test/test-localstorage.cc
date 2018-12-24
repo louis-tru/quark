@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/localstorage.h"
+#include "ngui/utils/localstorage.h"
 
 using namespace ngui;
 

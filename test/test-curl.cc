@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <curl/curl.h>
-#include <ngui/base/util.h>
-#include <ngui/base/http.h>
-#include <ngui/base/buffer.h>
+#include <ngui/utils/util.h>
+#include <ngui/utils/http.h>
+#include <ngui/utils/buffer.h>
 
 using namespace ngui;
 

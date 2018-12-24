@@ -2,7 +2,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 include_directories(../../..)
-include_directories(../../../ngui/base/os)
 include_directories(../../../depe/rapidjson/include)
 include_directories(../../../depe/sqlite-amalgamation)
 include_directories(../../../depe/freetype2/include)
@@ -42,39 +41,39 @@ add_definitions(
 
 add_library(ngui-base SHARED
             ../../../android/android.cc
-            ../../../ngui/base/object.cc
-            ../../../ngui/base/string.cc
-            ../../../ngui/base/string-builder.cc
-            ../../../ngui/base/array.cc
-            ../../../ngui/base/codec.cc
-            ../../../ngui/base/error.cc
-            ../../../ngui/base/http.cc
-            ../../../ngui/base/http-uri.cc
-            ../../../ngui/base/http-helper.cc
-            ../../../ngui/base/fs.cc
-            ../../../ngui/base/fs-file.cc
-            ../../../ngui/base/fs-sync.cc
-            ../../../ngui/base/fs-async.cc
-            ../../../ngui/base/fs-search.cc
-            ../../../ngui/base/fs-reader.cc
-            ../../../ngui/base/buffer.cc
-            ../../../ngui/base/json.cc
-            ../../../ngui/base/map.cc
-            ../../../ngui/base/util.cc
-            ../../../ngui/base/zlib.cc
-            ../../../ngui/base/loop.cc
-            ../../../ngui/base/loop-private.cc
-            ../../../ngui/base/jsx.cc
-            ../../../ngui/base/sys.cc
-            ../../../ngui/base/net.cc
-            ../../../ngui/base/cb.cc
-            ../../../ngui/base/date.cc
-            ../../../ngui/base/http-cookie.cc
-            ../../../ngui/base/localstorage.cc
-            ../../../ngui/base/os/android-jni.cc
-            ../../../ngui/base/os/android-log.cc
-            ../../../ngui/base/os/android-sys.cc
-            ../../../ngui/base/os/android-fs.cc
+            ../../../ngui/utils/object.cc
+            ../../../ngui/utils/string.cc
+            ../../../ngui/utils/string-builder.cc
+            ../../../ngui/utils/array.cc
+            ../../../ngui/utils/codec.cc
+            ../../../ngui/utils/error.cc
+            ../../../ngui/utils/http.cc
+            ../../../ngui/utils/http-uri.cc
+            ../../../ngui/utils/http-helper.cc
+            ../../../ngui/utils/fs.cc
+            ../../../ngui/utils/fs-file.cc
+            ../../../ngui/utils/fs-sync.cc
+            ../../../ngui/utils/fs-async.cc
+            ../../../ngui/utils/fs-search.cc
+            ../../../ngui/utils/fs-reader.cc
+            ../../../ngui/utils/buffer.cc
+            ../../../ngui/utils/json.cc
+            ../../../ngui/utils/map.cc
+            ../../../ngui/utils/util.cc
+            ../../../ngui/utils/zlib.cc
+            ../../../ngui/utils/loop.cc
+            ../../../ngui/utils/loop-private.cc
+            ../../../ngui/utils/jsx.cc
+            ../../../ngui/utils/sys.cc
+            ../../../ngui/utils/net.cc
+            ../../../ngui/utils/cb.cc
+            ../../../ngui/utils/date.cc
+            ../../../ngui/utils/http-cookie.cc
+            ../../../ngui/utils/localstorage.cc
+            ../../../ngui/utils/os/android-jni.cc
+            ../../../ngui/utils/os/android-log.cc
+            ../../../ngui/utils/os/android-sys.cc
+            ../../../ngui/utils/os/android-fs.cc
            )
 
 add_library(ngui-gui SHARED
@@ -164,15 +163,15 @@ add_library(ngui-js SHARED
             ../../../ngui/js/v8.cc
             ../../../ngui/js/v8.cc
             ../../../ngui/js/log.cc
-            ../../../ngui/js/binding/base/event.cc
-            ../../../ngui/js/binding/base/reader.cc
-            ../../../ngui/js/binding/base/fs.cc
-            ../../../ngui/js/binding/base/http.cc
-            ../../../ngui/js/binding/base/json.cc
-            ../../../ngui/js/binding/base/keys.cc
-            ../../../ngui/js/binding/base/storage.cc
-            ../../../ngui/js/binding/base/sys.cc
-            ../../../ngui/js/binding/base/util.cc
+            ../../../ngui/js/binding/utils/event.cc
+            ../../../ngui/js/binding/utils/reader.cc
+            ../../../ngui/js/binding/utils/fs.cc
+            ../../../ngui/js/binding/utils/http.cc
+            ../../../ngui/js/binding/utils/json.cc
+            ../../../ngui/js/binding/utils/keys.cc
+            ../../../ngui/js/binding/utils/storage.cc
+            ../../../ngui/js/binding/utils/sys.cc
+            ../../../ngui/js/binding/utils/util.cc
             ../../../ngui/js/binding/action.cc
             ../../../ngui/js/binding/app.cc
             ../../../ngui/js/binding/audio-player.cc

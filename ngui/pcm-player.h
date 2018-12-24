@@ -31,8 +31,8 @@
 #ifndef __ngui__pcm_player__
 #define __ngui__pcm_player__
 
-#include "base/util.h"
-#include "base/buffer.h"
+#include "utils/util.h"
+#include "utils/buffer.h"
 
 /**
  * @ns ngui

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/net.h"
+#include "ngui/utils/net.h"
 #include <uv.h>
 
 using namespace ngui;

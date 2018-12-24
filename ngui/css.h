@@ -31,10 +31,10 @@
 #ifndef __ngui__css__
 #define __ngui__css__
 
-#include "base/util.h"
-#include "base/map.h"
-#include "base/string.h"
-#include "base/list.h"
+#include "utils/util.h"
+#include "utils/map.h"
+#include "utils/string.h"
+#include "utils/list.h"
 #include "property.h"
 #include "value.h"
 #include "action.h"

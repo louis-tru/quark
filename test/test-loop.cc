@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/base/loop.h>
+#include <ngui/utils/loop.h>
 
 using namespace ngui;
 

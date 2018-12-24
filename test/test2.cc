@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/sys.h"
+#include "ngui/sys.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test2_x11

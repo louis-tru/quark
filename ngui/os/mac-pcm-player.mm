@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../pcm-player.h"
-#include "ngui/base/handle.h"
-#include "ngui/base/loop.h"
+#include "ngui/utils/handle.h"
+#include "ngui/utils/loop.h"
 #include <Audiotoolbox/AudioToolbox.h>
 
 XX_NS(ngui)

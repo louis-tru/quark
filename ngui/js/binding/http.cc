@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/http.h"
+#include "ngui/utils/http.h"
 #include "ngui/js/js.h"
 #include "cb-1.h"
 

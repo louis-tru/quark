@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/base/fs.h>
+#include <ngui/utils/fs.h>
 #include <pwd.h>
 
 using namespace ngui;

@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <v8.h>
-#include "ngui/base/util.h"
-#include "ngui/base/http.h"
-#include "ngui/base/string-builder.h"
+#include "ngui/utils/util.h"
+#include "ngui/utils/http.h"
+#include "ngui/utils/string-builder.h"
 #include "ngui/view.h"
 #include "js-1.h"
 #include "env-inl.h"

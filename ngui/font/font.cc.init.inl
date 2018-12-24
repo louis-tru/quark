@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/version.h"
-#include "ngui/base/json.h"
+#include "ngui/utils/json.h"
 #include "tinyxml2.h"
 
 XX_NS(ngui)

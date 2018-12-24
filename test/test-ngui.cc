@@ -30,7 +30,7 @@
 
 #include "ngui/js/js.h"
 #include "ngui/app.h"
-#include "ngui/base/fs.h"
+#include "ngui/utils/fs.h"
 
 using namespace ngui;
 

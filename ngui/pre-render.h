@@ -31,9 +31,9 @@
 #ifndef __ngui__pre_render__
 #define __ngui__pre_render__
 
-#include "base/util.h"
-#include "base/array.h"
-#include "base/list.h"
+#include "utils/util.h"
+#include "utils/array.h"
+#include "utils/list.h"
 
 /**
  * @ns ngui

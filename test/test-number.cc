@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/base/util.h>
-#include <ngui/base/loop.h>
-#include <ngui/base/array.h>
-#include <ngui/base/sys.h>
+#include <ngui/utils/util.h>
+#include <ngui/utils/loop.h>
+#include <ngui/utils/array.h>
+#include <ngui/sys.h>
 
 using namespace ngui;
 

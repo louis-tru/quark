@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/fs.h"
-#include "ngui/base/http.h"
+#include "ngui/utils/fs.h"
+#include "ngui/utils/http.h"
 #include "ngui/js/js.h"
 #include "ngui/js/str.h"
 #include "cb-1.h"

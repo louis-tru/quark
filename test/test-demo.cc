@@ -30,7 +30,7 @@
 
 #include "ngui/js/js.h"
 #include "ngui/app.h"
-#include "ngui/base/fs.h"
+#include "ngui/utils/fs.h"
 
 using namespace ngui;
 
@@ -57,7 +57,7 @@ void test_demo() {
 extern "C" {
 
 #if XX_ANDROID
-#include <ngui/base/os/android-jni.h>
+#include <ngui/utils/os/android-jni.h>
 
 	JNIEXPORT extern void
 	Java_org_ngui_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {

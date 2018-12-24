@@ -30,7 +30,7 @@
 
 #include <math.h>
 #include "text-node.h"
-#include "base/codec.h"
+#include "utils/codec.h"
 #include "text-rows.h"
 #include "hybrid.h"
 #include "app.h"

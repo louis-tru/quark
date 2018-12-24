@@ -31,7 +31,7 @@
 #ifndef __ngui__ios_gl__
 #define __ngui__ios_gl__
 
-#include "ngui/base/util.h"
+#include "ngui/utils/util.h"
 
 #if XX_IOS
 

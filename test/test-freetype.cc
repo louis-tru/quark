@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/base/util.h>
-#include <ngui/base/string.h>
-#include <ngui/base/map.h>
-#include <ngui/base/fs.h>
-#include <ngui/base/sys.h>
+#include <ngui/utils/util.h>
+#include <ngui/utils/string.h>
+#include <ngui/utils/map.h>
+#include <ngui/utils/fs.h>
+#include <ngui/sys.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>

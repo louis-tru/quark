@@ -189,7 +189,7 @@
 				'type': 'shared_library',
 				'dependencies': [
 					'depe/curl/curl.gyp:curl',
-					'ngui/base/minizip.gyp:minizip',
+					'ngui/utils/minizip.gyp:minizip',
 					'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',

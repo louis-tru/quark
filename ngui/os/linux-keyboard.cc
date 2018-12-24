@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../keyboard.h"
-#include "ngui/base/map.h"
+#include "ngui/utils/map.h"
 
 XX_NS(ngui)
 

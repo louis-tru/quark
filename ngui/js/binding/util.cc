@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/string.h"
-#include "ngui/base/fs.h"
+#include "ngui/utils/string.h"
+#include "ngui/utils/fs.h"
 #include "ngui/sys.h"
-#include "ngui/base/loop.h"
-#include "ngui/base/string-builder.h"
+#include "ngui/utils/loop.h"
+#include "ngui/utils/string-builder.h"
 #include "ngui/js/ngui.h"
-#include "ngui/base/jsx.h"
+#include "ngui/utils/jsx.h"
 #include "ngui/js/str.h"
 #include "native-core-js.h"
 #include "json-1.h"

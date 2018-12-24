@@ -30,7 +30,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-#include "ngui/base/os/android-jni.h"
+#include "ngui/utils/os/android-jni.h"
 #include "../media-codec-1.h"
 
 #ifndef USE_FFMPEG_MEDIACODEC

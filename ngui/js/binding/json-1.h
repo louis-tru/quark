@@ -31,7 +31,7 @@
 #ifndef __ngui__js__json__
 #define __ngui__js__json__
 
-#include "ngui/base/string-builder.h"
+#include "ngui/utils/string-builder.h"
 #include "ngui/js/js.h"
 
 /**

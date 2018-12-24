@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <ngui/base/string.h>
-#include <ngui/base/codec.h>
+#include <ngui/utils/string.h>
+#include <ngui/utils/codec.h>
 
 using namespace std;
 using namespace ngui;

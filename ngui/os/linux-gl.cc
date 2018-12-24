@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/util.h"
+#include "ngui/utils/util.h"
 #include "../app-1.h"
 #include "../display-port.h"
 #include "linux-gl-1.h"

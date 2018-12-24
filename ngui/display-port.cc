@@ -34,7 +34,7 @@
 #include "pre-render.h"
 #include "root.h"
 #include "action.h"
-#include "base/loop-1.h"
+#include "utils/loop-1.h"
 #include "sys.h"
 
 XX_NS(ngui)

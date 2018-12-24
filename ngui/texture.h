@@ -31,11 +31,11 @@
 #ifndef __ngui__texture__
 #define __ngui__texture__
 
-#include "base/map.h"
-#include "base/event.h"
-#include "base/string.h"
-#include "base/handle.h"
-#include "base/buffer.h"
+#include "utils/map.h"
+#include "utils/event.h"
+#include "utils/string.h"
+#include "utils/handle.h"
+#include "utils/buffer.h"
 #include "image-codec.h"
 #include "value.h"
 

@@ -58,7 +58,7 @@
 /*  DEFINITION OF THESE SYMBOLS SHALL NOT TAKE PLACE ANYWHERE ELSE  */
 /* ================================================================ */
 
-#include <ngui/base/env.h>
+#include <ngui/utils/env.h>
 
 #ifdef CURL_SIZEOF_LONG
 #error "CURL_SIZEOF_LONG shall not be defined except in curlbuild.h"

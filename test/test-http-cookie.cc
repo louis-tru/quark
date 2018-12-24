@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/http-cookie.h"
-#include "ngui/base/sys.h"
+#include "ngui/utils/http-cookie.h"
+#include "ngui/sys.h"
 
 using namespace ngui;
 

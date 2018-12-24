@@ -60,7 +60,7 @@
 			'../out',
 		],
 		'dependencies': [
-			'ngui-base', 
+			'ngui-utils', 
 			'depe/tess2/tess2.gyp:tess2', 
 			'depe/freetype2/freetype2.gyp:ft2',
 			'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
@@ -220,7 +220,7 @@
 					'os/ios-ime-receiver.mm',
 					'os/ios-gl-1.h',
 					'os/ios-gl.mm',
-					'os/ios-image-codec.mm',
+					'os/mac-image-codec.mm',
 					'os/mac-media-codec.mm',
 					'os/mac-pcm-player.mm',
 					'os/mac-keyboard.mm',
@@ -240,7 +240,7 @@
 				'sources': [
 					'os/osx-app-1.h',
 					'os/osx-app.mm',
-					'os/osx-image-codec.mm',
+					'os/mac-image-codec.mm',
 					'os/mac-media-codec.mm',
 					'os/mac-pcm-player.mm',
 					'os/mac-keyboard.mm',

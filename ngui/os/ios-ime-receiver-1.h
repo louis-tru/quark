@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/base/util.h"
+#include "ngui/utils/util.h"
 
 #if XX_IOS
 
