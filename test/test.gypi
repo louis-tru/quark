@@ -3,7 +3,7 @@
 		'without_visibility_hidden%': 0,
 		'other_ldflags': [
 			'-Wl,--whole-archive',
-			'<(output)/obj.target/libngui-base.a',
+			'<(output)/obj.target/libngui-utils.a',
 			'<(output)/obj.target/libngui-gui.a',
 			'<(output)/obj.target/libngui-js.a',
 			'<(output)/obj.target/node/libnode.a',
@@ -22,7 +22,7 @@
 			],
 			'dependencies': [
 				'ngui-lib',
-				'ngui-base',
+				'ngui-utils',
 				'ngui-gui',
 				'ngui-js',
 				'depe/tess2/tess2.gyp:tess2',
@@ -112,7 +112,7 @@
 			'target_name': 'test2',
 			'type': 'executable',
 			'dependencies': [
-				'ngui-base',
+				'ngui-utils',
 			],
 			'sources': [
 				'test2.cc',
@@ -141,7 +141,7 @@
 					},
 					'ldflags': [ 
 						'-Wl,--whole-archive',
-						'<(output)/obj.target/libngui-base.a',
+						'<(output)/obj.target/libngui-utils.a',
 						'-Wl,--no-whole-archive',
 					],
 				}],

@@ -184,15 +184,15 @@
 		'conditions': [
 			['os=="android"', {
 				'sources': [
-					'os/android-gl-1.h',
-					'os/android-gl.cc',
-					'os/android-app.cc',
-					'os/android-media-codec.cc',
-					'os/android-pcm-player.cc',
-					'os/android-pcm-audio-track.cc',
-					'os/android-keyboard.cc',
-					'os/android/com/ngui/MainActivity.java',
-					'os/android-sys.cc',
+					'platforms/android-gl-1.h',
+					'platforms/android-gl.cc',
+					'platforms/android-app.cc',
+					'platforms/android-media-codec.cc',
+					'platforms/android-pcm-player.cc',
+					'platforms/android-pcm-audio-track.cc',
+					'platforms/android-keyboard.cc',
+					'platforms/android/com/ngui/MainActivity.java',
+					'platforms/android-sys.cc',
 				],
 				'link_settings': { 
 					'libraries': [ '-lGLESv3', '-lEGL', '-lOpenSLES', '-lmediandk' ],
@@ -214,17 +214,17 @@
 			}],
 			['os=="ios"', {
 				'sources':[
-					'os/ios-app.h',
-					'os/ios-app.mm',
-					'os/ios-ime-receiver-1.h',
-					'os/ios-ime-receiver.mm',
-					'os/ios-gl-1.h',
-					'os/ios-gl.mm',
-					'os/mac-image-codec.mm',
-					'os/mac-media-codec.mm',
-					'os/mac-pcm-player.mm',
-					'os/mac-keyboard.mm',
-					'os/mac-sys.mm',
+					'platforms/ios-app.h',
+					'platforms/ios-app.mm',
+					'platforms/ios-ime-receiver-1.h',
+					'platforms/ios-ime-receiver.mm',
+					'platforms/ios-gl-1.h',
+					'platforms/ios-gl.mm',
+					'platforms/mac-image-codec.mm',
+					'platforms/mac-media-codec.mm',
+					'platforms/mac-pcm-player.mm',
+					'platforms/mac-keyboard.mm',
+					'platforms/mac-sys.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -238,13 +238,13 @@
 			}],
 			['os=="osx"', {
 				'sources': [
-					'os/osx-app-1.h',
-					'os/osx-app.mm',
-					'os/mac-image-codec.mm',
-					'os/mac-media-codec.mm',
-					'os/mac-pcm-player.mm',
-					'os/mac-keyboard.mm',
-					'os/mac-sys.mm',
+					'platforms/osx-app-1.h',
+					'platforms/osx-app.mm',
+					'platforms/mac-image-codec.mm',
+					'platforms/mac-media-codec.mm',
+					'platforms/mac-pcm-player.mm',
+					'platforms/mac-keyboard.mm',
+					'platforms/mac-sys.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -257,13 +257,13 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'os/linux-app.cc',
-					'os/linux-gl.cc',
-					'os/linux-keyboard.cc',
-					'os/linux-media-codec.cc',
-					'os/linux-pcm-player.cc',
-					'os/linux-ime-receiver.cc',
-					'os/linux-sys.cc',
+					'platforms/linux-app.cc',
+					'platforms/linux-gl.cc',
+					'platforms/linux-keyboard.cc',
+					'platforms/linux-media-codec.cc',
+					'platforms/linux-pcm-player.cc',
+					'platforms/linux-ime-receiver.cc',
+					'platforms/linux-sys.cc',
 				],
 				'link_settings': { 
 					'libraries': [ 
