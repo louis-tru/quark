@@ -34,7 +34,7 @@
 
 #define WINDOW_SIZE 500
 
-void test2_x11() {
+int test2_x11(int argc, char *argv[]) {
 
 	// 连接到 X Server，创建到 X Server 的套接字连接
 	Display* dpy = XOpenDisplay(NULL);
@@ -90,4 +90,5 @@ void test2_x11() {
 		}
 	}
 
+	return 0;
 }

@@ -274,6 +274,8 @@ class LinuxApplication {
 		XX_CHECK(m_dpy, "Cannot connect to display");
 		m_root = XDefaultRootWindow(m_dpy);
 
+		XIM xim = XOpenIM(m_dpy, NULL, NULL, NULL);
+
 		XWindowAttributes attrs;
 		XGetWindowAttributes(m_dpy, m_root, &attrs);
 		m_win_width        = attrs.width;

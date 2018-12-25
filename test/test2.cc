@@ -31,21 +31,21 @@
 #include "ngui/sys.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_x11
+#define TEST_FUNC_NAME test2_xim
 #endif
 
 using namespace ngui;
 
-void TEST_FUNC_NAME();
+int TEST_FUNC_NAME(int argc, char *argv[]);
 
-int main() {
+int main(int argc, char *argv[]) {
 
 	uint64 st = sys::time();
 	
-	TEST_FUNC_NAME();
+	int r = TEST_FUNC_NAME(argc, argv);
 	
 	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
 
-	return 0;
+	return r;
 }
 

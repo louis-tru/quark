@@ -30,7 +30,7 @@
 
 #include <thread>
 
-void test2_thread() {
+int test2_thread(int argc, char *argv[]) {
 
 	std::thread t([](){
 		printf("%s\n", "-------------------ok");
@@ -41,4 +41,6 @@ void test2_thread() {
 	t.detach();
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+
+	return 0;
 }

@@ -118,6 +118,7 @@
 				'test2.cc',
 				'test2-thread.cc',
 				'test2-x11.cc',
+				'test2-xim.cc',
 			],
 			'mac_bundle': 1,
 			'xcode_settings': {
