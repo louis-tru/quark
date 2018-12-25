@@ -136,7 +136,7 @@ bool TextView::isDestroyed()
 void TextView::registerInstantiateCallback()
 {
 	XRegisterIMInstantiateCallback(m_display, NULL, NULL, NULL,
-			   TextView::IMInstantiateCallback, (XPointer)this);
+			TextView::IMInstantiateCallback, (XPointer)this);
 }
 
 void TextView::openIM()
@@ -380,9 +380,8 @@ void TextView::setTitle(const char *title)
 
 void TextView::destroy()
 {
-	for (std::vector<std::wstring*>::iterator iter = m_text.begin();
-	 iter != m_text.end();
-	 ++iter) {
+	for (auto iter = m_text.begin(); 
+		iter != m_text.end(); ++iter) {
 		delete (*iter);
 	}
 
@@ -567,9 +566,8 @@ void TextView::onKeyPress(XKeyPressedEvent *event)
 		XwcLookupString(m_ic, event, wbuf, NELEMENTS(wbuf), &keysym, &status);
 	}
 
-	if (status == XLookupChars ||
-		status == XLookupKeySym ||
-		status == XLookupBoth) {
+	if (status == XLookupChars || 
+		status == XLookupKeySym || status == XLookupBoth) {
 		if (keysym == XK_Return) {
 			onKeyReturn();
 		} else if (keysym == XK_Delete) {
@@ -909,24 +907,24 @@ int test2_xim(int argc, char *argv[])
 		if (XFilterEvent(&event, None))
 			continue;
 
-		switch(event.type){
-		case FocusIn:
-			textview.onFocusIn();
-			break;
-		case FocusOut:
-			textview.onFocusOut();
-			break;
-		case Expose:
-			textview.onExpose();
-			break;
-		case KeyPress:
-			textview.onKeyPress(&event.xkey);
-			break;
-		case ClientMessage:
-			textview.onClientMessage(&event.xclient);
-			break;
-		default:
-			break;
+		switch (event.type) {
+			case FocusIn:
+				textview.onFocusIn();
+				break;
+			case FocusOut:
+				textview.onFocusOut();
+				break;
+			case Expose:
+				textview.onExpose();
+				break;
+			case KeyPress:
+				textview.onKeyPress(&event.xkey);
+				break;
+			case ClientMessage:
+				textview.onClientMessage(&event.xclient);
+				break;
+			default:
+				break;
 		}
 
 		if (textview.isDestroyed()) {
