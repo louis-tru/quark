@@ -32,7 +32,7 @@
 #import <OpenGLES/ES2/glext.h>
 #import "../utils/loop.h"
 #import "./ios-gl-1.h"
-#import "./ios-ime-receiver-1.h"
+#import "./ios-ime-helper-1.h"
 #import "./ios-app.h"
 #import "../app.h"
 #import "../display-port.h"
@@ -71,7 +71,7 @@ static NSString* app_delegate_name = @"";
 	BOOL      _is_background;
 }
 @property (strong, nonatomic) GLView* glview;
-@property (strong, nonatomic) IOSIMEReceiver* receiver;
+@property (strong, nonatomic) IOSIMEHelprt* ime;
 @property (strong, nonatomic) CADisplayLink* display_link;
 @property (strong, nonatomic) UIApplication* host;
 @property (strong, nonatomic) RootViewController* root_ctr;
@@ -283,10 +283,10 @@ static void render_loop_cb(Se& evt, Object* ctx) {
 	self.glview.contentScaleFactor = UIScreen.mainScreen.scale;
 	self.glview.translatesAutoresizingMaskIntoConstraints = NO;
 	self.glview.app = _inl_app(self.app);
-	self.receiver = [[IOSIMEReceiver alloc] initWithApplication:self.app];
+	self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
 	
 	[view addSubview:self.glview];
-	[view addSubview:self.receiver];
+	[view addSubview:self.ime];
 	[view addConstraint:[NSLayoutConstraint
 											 constraintWithItem:self.glview
 											 attribute:NSLayoutAttributeWidth
@@ -443,12 +443,12 @@ void AppInl::initialize(cJSON& options) {
  */
 void AppInl::ime_keyboard_open(KeyboardOptions options) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[ios_app.receiver input_keyboard_type:options.type];
-		[ios_app.receiver input_keyboard_return_type:options.return_type];
+		[ios_app.ime set_keyboard_type:options.type];
+		[ios_app.ime set_keyboard_return_type:options.return_type];
 		if ( options.is_clear ) {
-			[ios_app.receiver clear];
+			[ios_app.ime clear];
 		}
-		[ios_app.receiver open];
+		[ios_app.ime open];
 	});
 }
 
@@ -457,7 +457,7 @@ void AppInl::ime_keyboard_open(KeyboardOptions options) {
  */
 void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[ios_app.receiver input_keyboard_can_backspace:can_backspace];
+		[ios_app.ime set_keyboard_can_backspace:can_backspace];
 	});
 }
 
@@ -466,7 +466,7 @@ void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
  */
 void AppInl::ime_keyboard_close() {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[ios_app.receiver close];
+		[ios_app.ime close];
 	});
 }
 

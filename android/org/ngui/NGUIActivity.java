@@ -55,7 +55,7 @@ import android.content.pm.ApplicationInfo;
 public class NGUIActivity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
 
 	private static String TAG = "NGUI";
-	private IMEReceiver m_receiver = null;
+	private IMEHelper m_ime = null;
 	private Handler m_handler = null;
 	private PowerManager pm = null;
 	private AudioManager am = null;
@@ -166,29 +166,29 @@ public class NGUIActivity extends NativeActivity implements View.OnSystemUiVisib
 
 		public void ime_keyboard_open(boolean clear, int type, int return_type) {
 			Log.d(TAG, "ime_keyboard_open");
-			if ( host.m_receiver == null ) {
-				host.m_receiver = new IMEReceiver(host);
-				((FrameLayout) host.findViewById(android.R.id.content)).addView(host.m_receiver);
+			if ( host.m_ime == null ) {
+				host.m_ime = new IMEHelper(host);
+				((FrameLayout) host.findViewById(android.R.id.content)).addView(host.m_ime);
 			}
 			if ( clear ) {
-				host.m_receiver.clear();
+				host.m_ime.clear();
 			}
-			host.m_receiver.set_keyboard_return_type(return_type);
-			host.m_receiver.set_keyboard_type(type);
-			host.m_receiver.open();
+			host.m_ime.set_keyboard_return_type(return_type);
+			host.m_ime.set_keyboard_type(type);
+			host.m_ime.open();
 		}
 
 		public void ime_keyboard_can_backspace(boolean can_backspace, boolean can_delete) {
 			Log.d(TAG, "ime_keyboard_can_backspace");
-			if ( host.m_receiver != null ) {
-				host.m_receiver.set_can_backspace(can_backspace, can_delete);
+			if ( host.m_ime != null ) {
+				host.m_ime.set_can_backspace(can_backspace, can_delete);
 			}
 		}
 
 		public void ime_keyboard_close() {
 			Log.d(TAG, "ime_keyboard_close");
-			if ( host.m_receiver != null ) {
-				host.m_receiver.close();
+			if ( host.m_ime != null ) {
+				host.m_ime.close();
 			}
 		}
 

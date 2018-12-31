@@ -37,7 +37,7 @@ XX_NS(ngui)
  * @constructor 
  */
 KeyboardAdapter::KeyboardAdapter(): app_(app()) {
-	XX_ASSERT(app_);
+	XX_CHECK(app_);
 	
 	keyname_ = KEYCODE_UNKNOWN;
 	keypress_ = 0;
@@ -222,9 +222,9 @@ int KeyboardAdapter::to_keypress(KeyboardKeyName name) {
 	return 0;
 }
 
-bool KeyboardAdapter::transformation(int keycode, bool ascii, bool down) {
+bool KeyboardAdapter::transformation(uint keycode, bool unicode, bool down) {
 	
-	if ( ascii ) {
+	if ( unicode ) {
 		auto it = m_ascii_keycodes.find(keycode);
 		if ( it.is_null() ) {
 			keyname_ = KEYCODE_UNKNOWN;
@@ -264,7 +264,7 @@ bool KeyboardAdapter::transformation(int keycode, bool ascii, bool down) {
 		}
 	}
 	
-	return ascii;
+	return unicode;
 }
 
 XX_END

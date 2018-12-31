@@ -50,7 +50,7 @@ GUIApplication* GUIApplication::m_shared = nullptr;
 struct thread_control {
 	Mutex root_thread_mutex;
 	Condition root_thread_cond;
-	RecursiveMutex ngui_thread_mutex;
+	RecursiveMutex gui_thread_mutex;
 
 	void root_thread_awaken() {
 		ScopeLock scope(root_thread_mutex);
@@ -78,8 +78,8 @@ GUILock::~GUILock() {
 
 void GUILock::lock() {
 	if (!m_d) {
-		m_d = &tctr->ngui_thread_mutex;
-		tctr->ngui_thread_mutex.lock();
+		m_d = &tctr->gui_thread_mutex;
+		tctr->gui_thread_mutex.lock();
 	}
 }
 
@@ -200,7 +200,7 @@ void GUIApplication::run() {
 	m_render_loop = RunLoop::current(); // 当前消息队列
 	m_render_keep = m_render_loop->keep_alive(); // 保持
 	if (m_main_loop != m_render_loop) {
-		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->ngui_thread_mutex);
+		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->gui_thread_mutex);
 	}
 	tctr->root_thread_awaken(); // 根线程继续运行
 	
@@ -211,6 +211,8 @@ void GUIApplication::run() {
 void GUIApplication::exit() {
 	_inl_app(this)->onUnload();
 	XX_ASSERT(m_main_loop);
+	Release(m_render_keep); // stop render loop
+	m_render_keep = nullptr;
 	m_main_loop->stop();
 }
 

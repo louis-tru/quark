@@ -49,7 +49,7 @@ import android.widget.EditText;
 
 import java.util.Date;
 
-public class IMEReceiver extends EditText {
+public class IMEHelper extends EditText {
 
 	private boolean m_has_open = false;
 	private long m_action_time = 0;
@@ -73,9 +73,9 @@ public class IMEReceiver extends EditText {
 
 	static private class ImplementsInputConnection implements InputConnection {
 
-		private IMEReceiver m_host = null;
+		private IMEHelper m_host = null;
 
-		ImplementsInputConnection(IMEReceiver host) {
+		ImplementsInputConnection(IMEHelper host) {
 			m_host = host;
 		}
 		// implements InputConnection
@@ -215,7 +215,7 @@ public class IMEReceiver extends EditText {
 						ime_insert(Character.toString(c));
 					} else {
 						// TODO..
-						Log.d("IMEReceiver", String.format("keycode:%s", event.getKeyCode()));
+						Log.d("IMEHelper", String.format("keycode:%s", event.getKeyCode()));
 					}
 				}
 			}
@@ -247,7 +247,7 @@ public class IMEReceiver extends EditText {
 		}
 	}
 
-	public IMEReceiver(final Context context) {
+	public IMEHelper(final Context context) {
 		super(context);
 		m_imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 	}

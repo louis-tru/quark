@@ -37,6 +37,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
 #include <signal.h>
+#include "linux-ime-helper-1.h"
 
 XX_NS(ngui)
 
@@ -61,6 +62,7 @@ cchar* MOUSE_KEYS[] = {
  * @class LinuxApplication
  */
 class LinuxApplication {
+ public:
 	typedef NonObjectTraits Traits;
 
 	LinuxApplication()
@@ -71,11 +73,12 @@ class LinuxApplication {
 	, m_render_looper(nullptr)
 	, m_dispatch(nullptr)
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
-	, m_win_width(1)
-	, m_win_height(1)
-	, m_is_init(0)
+	, m_r_width(0), m_r_height(0)
+	, m_win_width(1), m_win_height(1)
+	, m_is_init(0), m_exit(0)
 	, m_xft_dpi(96.0)
 	, m_xwin_scale(1.0)
+	, m_ime(nullptr)
 	{
 		XX_ASSERT(!application); application = this;
 	}
@@ -87,101 +90,25 @@ class LinuxApplication {
 		if (m_dpy) {
 			XCloseDisplay(m_dpy); m_dpy = nullptr;
 		}
+		if (m_ime) {
+			delete m_ime; m_ime = nullptr;
+		}
 		application = nullptr;
 		gl_draw_core = nullptr;
 	}
 
-	void handle_expose(XEvent& event) {
-		XX_DEBUG("event, Expose");
-		XWindowAttributes attrs;
-		XGetWindowAttributes(m_dpy, m_win, &attrs);
-
-		m_win_width = attrs.width;
-		m_win_height = attrs.height;
-
-		render_loop()->post_sync(Cb([this](Se &ev) {
-			if (m_is_init) {
-				CGRect rect = {Vec2(), get_window_size()};
-				gl_draw_core->refresh_surface_size(&rect);
-				m_host->refresh_display(); // 刷新显示
-			} else {
-				m_is_init = true;
-				gl_draw_core->create_surface(m_win);
-				gl_draw_core->initialize();
-				m_host->onLoad();
-				m_host->onForeground();
-				m_render_looper->start();
-			}
-		}));
-	}
-
-	bool handle_events(XEvent& event) {
-
-		switch(event.type) {
-			case Expose:
-				handle_expose(event);
-				break;
-			case MapNotify:
-				if (m_is_init) {
-					DLOG("event, MapNotify, Window onForeground");
-					m_host->onForeground();
-					m_render_looper->start();
-				}
-				break;
-			case UnmapNotify:
-				DLOG("event, UnmapNotify, Window onBackground");
-				m_host->onBackground();
-				m_render_looper->stop();
-				break;
-			case FocusIn:
-				DLOG("event, FocusIn, Window onResume");
-				m_host->onResume();
-				break;
-			case FocusOut:
-				DLOG("event, FocusOut, Window onPause");
-				m_host->onPause();
-				break;
-			case KeyPress:
-				DLOG("event, KeyDown, keycode: %ld", event.xkey.keycode);
-				m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
-				break;
-			case KeyRelease:
-				DLOG("event, KeyUp, keycode: %d", event.xkey.keycode);
-				m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
-				break;
-			case ButtonPress:
-				DLOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-				m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
-				break;
-			case ButtonRelease:
-				DLOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-				m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
-				break;
-			case MotionNotify: {
-				Vec2 scale = m_host->display_port()->scale();
-				DLOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
-				m_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
-				break;
-			}
-			case EnterNotify:
-				DLOG("event, EnterNotify");
-				break;
-			case LeaveNotify:
-				DLOG("event, LeaveNotify");
-				break;
-			case ClientMessage:
-				if (event.xclient.message_type == m_wm_protocols && 
-					(Atom)event.xclient.data.l[0] == m_wm_delete_window) {
-					return false; // exit
-				}
-				break;
-			default:
-				DLOG("event, %d", event.type);
-				break;
+	void post_message(cCb& cb) {
+		XX_ASSERT(m_win);
+		{
+			ScopeLock lock(m_queue_mutex);
+			m_queue.push(cb);
 		}
-
-		// m_host->onMemorywarning();
-		return true;
+		XCirculateEvent event;
+		event.type = CirculateNotify;
+		event.display = m_dpy;
+		event.window = m_win;
+		event.place = PlaceOnTop;
+		XSendEvent(m_dpy, m_win, false, NoEventMask, (XEvent*)&event);
 	}
 
 	void run() {
@@ -190,79 +117,114 @@ class LinuxApplication {
 		m_render_looper = new RenderLooper(m_host);
 		m_main_tid = m_host->main_loop()->thread_id();
 
+		// create x11 window
 		m_win = XCreateWindow(
-			m_dpy,
-			m_root,
-			0,
-			0,
-			(uint)m_win_width,
-			(uint)m_win_height,
-			0,
+			m_dpy, m_root,
+			(m_r_width - m_win_width) / 2,
+			(m_r_height - m_win_height) / 2,
+			uint(m_win_width),
+			uint(m_win_height), 0,
 			DefaultDepth(m_dpy, 0),
 			InputOutput,
 			DefaultVisual(m_dpy, 0),
-			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap,
-			&m_xset
+			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &m_xset
 		);
 
+		XX_CHECK(m_win, "Cannot create XWindow");
+
+		m_ime = new LINUXIMEHelper(m_host, m_dpy, m_win);
+
 		// XSelectInput(m_dpy, m_win, PointerMotionMask);
-		XStoreName(m_dpy, m_win, *m_title);
+		XStoreName(m_dpy, m_win, *m_title); // set window title name
 		XSetWMProtocols(m_dpy, m_win, &m_wm_delete_window, True);
-		XMapWindow(m_dpy, m_win); //Map 窗口
+		XMapWindow(m_dpy, m_win); // Activate window
 
 		XEvent event;
+
 		do {
 			XNextEvent(m_dpy, &event);
-		} while(handle_events(event));
 
-		exit_app();
-	}
+			resolved_queue(); // resolved message queue
 
-	void exit_app() {
-		m_host->onUnload();
-		m_host->main_loop()->stop();
-		XDestroyWindow(m_dpy, m_win); m_win = 0;
-		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
-		SimpleThread::wait_end(m_main_tid); // wait main loop end
-	}
-
-	float getMonitorDPI() {
-		char* ms = XResourceManagerString(m_dpy);
-		float dpi = 96.0;
-		if (ms) {
-			XX_DEBUG("Entire DB:\n%s", ms);
-			XrmDatabase db = XrmGetStringDatabase(ms);
-			XrmValue value;
-			char* type = nullptr;
-			if (XrmGetResource(db, "Xft.dpi", "String", &type, &value) == True) {
-				if (value.addr) {
-					dpi = atof(value.addr);
-				}
+			if (XFilterEvent(&event, None)) {
+				continue;
 			}
-		}
-		XX_DEBUG("DPI: %f", dpi);
-		return dpi;
+
+			switch(event.type) {
+				case Expose:
+					handle_expose(event);
+					break;
+				case MapNotify:
+					if (m_is_init) {
+						DLOG("event, MapNotify, Window onForeground");
+						m_host->onForeground();
+						m_render_looper->start();
+					}
+					break;
+				case UnmapNotify:
+					DLOG("event, UnmapNotify, Window onBackground");
+					m_host->onBackground();
+					m_render_looper->stop();
+					break;
+				case FocusIn:
+					DLOG("event, FocusIn, Window onResume");
+					m_ime->focus_in();
+					m_host->onResume();
+					break;
+				case FocusOut:
+					DLOG("event, FocusOut, Window onPause");
+					m_ime->focus_out();
+					m_host->onPause();
+					break;
+				case KeyPress:
+					DLOG("event, KeyDown, keycode: %ld", event.xkey.keycode);
+					m_ime->key_press(&event.xkey);
+					m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
+					break;
+				case KeyRelease:
+					DLOG("event, KeyUp, keycode: %d", event.xkey.keycode);
+					m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
+					break;
+				case ButtonPress:
+					DLOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+					m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
+					break;
+				case ButtonRelease:
+					DLOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
+					m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
+					break;
+				case MotionNotify: {
+					Vec2 scale = m_host->display_port()->scale();
+					DLOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
+					m_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
+					break;
+				}
+				case EnterNotify:
+					DLOG("event, EnterNotify");
+					break;
+				case LeaveNotify:
+					DLOG("event, LeaveNotify");
+					break;
+				case CirculateNotify:
+					DLOG("event, CirculateNotify");
+					break;
+				case ClientMessage:
+					if (event.xclient.message_type == m_wm_protocols && 
+						(Atom)event.xclient.data.l[0] == m_wm_delete_window) {
+						m_exit = 1; // exit
+					}
+					break;
+				default:
+					DLOG("event, %d", event.type);
+					break;
+			}
+		} while(!m_exit);
+
+		destroy();
 	}
 
- public:
-
-	static void start(int argc, char* argv[]) {
-		auto _ = new LinuxApplication();
-		/**************************************************/
-		/**************************************************/
-		/************** Start GUI Application *************/
-		/**************************************************/
-		/**************************************************/
-		ngui::AppInl::start(argc, argv);
-
-		if ( app() ) {
-			_->run();
-		}
-		delete _;
-	}
-
-	inline RunLoop* render_loop() {
-		return m_host->render_loop();
+	inline LINUXIMEHelper* ime() {
+		return m_ime;
 	}
 
 	inline float xwin_scale() {
@@ -270,22 +232,22 @@ class LinuxApplication {
 	}
 
 	void initialize(cJSON& options) {
-		m_dpy = XOpenDisplay(nullptr); 
+		XX_CHECK(XInitThreads(), "Cannot init X threads");
+
+		m_dpy = XOpenDisplay(nullptr);
 		XX_CHECK(m_dpy, "Cannot connect to display");
 		m_root = XDefaultRootWindow(m_dpy);
 
-		XIM xim = XOpenIM(m_dpy, NULL, NULL, NULL);
-
 		XWindowAttributes attrs;
 		XGetWindowAttributes(m_dpy, m_root, &attrs);
-		m_win_width        = attrs.width;
-		m_win_height       = attrs.height;
+		m_win_width = m_r_width   = attrs.width;
+		m_win_height = m_r_height = attrs.height;
 		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
 		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
-		m_xft_dpi = getMonitorDPI();
+		m_xft_dpi = get_monitor_dpi();
 		m_xwin_scale = m_xft_dpi / 96.0;
 
-		XX_DEBUG("width: %d, height: %d, dpi scale: %f", attrs.width, attrs.height, m_xwin_scale);
+		DLOG("width: %d, height: %d, dpi scale: %f", m_r_width, m_r_height, m_xwin_scale);
 		
 		m_xset.background_pixel = 0;
 		m_xset.border_pixel = 0;
@@ -330,27 +292,106 @@ class LinuxApplication {
 	}
 
  private:
+
+	void resolved_queue() {
+		List<Callback> queue;
+		{
+			ScopeLock lock(m_queue_mutex);
+			if (m_queue.length()) {
+				queue = move(m_queue);
+			}
+		}
+		if (queue.length()) {
+			for (auto& i: queue) {
+				SimpleEvent data = { 0, m_host, 0 };
+				i.value()->call(data);
+			}
+		}
+	}
+
+	void handle_expose(XEvent& event) {
+		DLOG("event, Expose");
+		XWindowAttributes attrs;
+		XGetWindowAttributes(m_dpy, m_win, &attrs);
+
+		m_win_width = attrs.width;
+		m_win_height = attrs.height;
+
+		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
+			if (m_is_init) {
+				CGRect rect = {Vec2(), get_window_size()};
+				gl_draw_core->refresh_surface_size(&rect);
+				m_host->refresh_display(); // 刷新显示
+			} else {
+				m_is_init = 1;
+				gl_draw_core->create_surface(m_win);
+				gl_draw_core->initialize();
+				m_host->onLoad();
+				m_host->onForeground();
+				m_render_looper->start();
+			}
+		}));
+	}
+
+	void destroy() {
+		m_render_looper->stop();
+		m_host->exit();
+		SimpleThread::wait_end(m_main_tid); // wait main loop end
+		XDestroyWindow(m_dpy, m_win); m_win = 0;
+		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
+	}
+
+	float get_monitor_dpi() {
+		char* ms = XResourceManagerString(m_dpy);
+		float dpi = 96.0;
+		if (ms) {
+			DLOG("Entire DB:\n%s", ms);
+			XrmDatabase db = XrmGetStringDatabase(ms);
+			XrmValue value;
+			char* type = nullptr;
+			if (XrmGetResource(db, "Xft.dpi", "String", &type, &value) == True) {
+				if (value.addr) {
+					dpi = atof(value.addr);
+				}
+			}
+		}
+		DLOG("DPI: %f", dpi);
+		return dpi;
+	}
+
 	AppInl* m_host;
 	Display* m_dpy;
 	Window m_root, m_win;
 	RenderLooper* m_render_looper;
 	GUIEventDispatch* m_dispatch;
 	Orientation m_current_orientation;
+	int m_r_width, m_r_height;
 	std::atomic_int m_win_width, m_win_height;
-	bool m_is_init;
+	bool m_is_init, m_exit;
 	float m_xft_dpi, m_xwin_scale;
 	XSetWindowAttributes m_xset;
 	Atom m_wm_protocols, m_wm_delete_window;
 	ThreadID m_main_tid;
 	String m_title;
+	LINUXIMEHelper* m_ime;
+	List<Callback> m_queue;
+	Mutex m_queue_mutex;
 };
 
 Vec2 __get_window_size() {
+	XX_CHECK(application);
 	return application->get_window_size();
 }
 
 Display* __get_x11_display() {
+	XX_CHECK(application);
 	return application->get_x11_display();
+}
+
+// sync to x11 main message loop
+void __dispatch_x11_async(cCb& cb) {
+	XX_ASSERT(application);
+	return application->post_message(cb);
 }
 
 /**
@@ -380,7 +421,7 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	XX_DEBUG("AppInl::initialize");
+	DLOG("AppInl::initialize");
 	XX_ASSERT(!gl_draw_core);
 	application->initialize(options);
 	gl_draw_core = LinuxGLDrawCore::create(this, options);
@@ -391,21 +432,26 @@ void AppInl::initialize(cJSON& options) {
  * @func ime_keyboard_open
  */
 void AppInl::ime_keyboard_open(KeyboardOptions options) {
-	// TODO...
+	application->ime()->set_keyboard_type(options.type);
+	application->ime()->set_keyboard_return_type(options.return_type);
+	if (options.is_clear) {
+		application->ime()->clear();
+	}
+	application->ime()->open();
 }
 
 /**
  * @func ime_keyboard_can_backspace
  */
 void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
-	// TODO...
+	application->ime()->set_keyboard_can_backspace(can_backspace, can_delete);
 }
 
 /**
  * @func ime_keyboard_close
  */
 void AppInl::ime_keyboard_close() {
-	// TODO...
+	application->ime()->close();
 }
 
 /**
@@ -487,7 +533,21 @@ void DisplayPort::set_orientation(Orientation orientation) {
 
 XX_END
 
+using namespace ngui;
+
 extern "C" int main(int argc, char* argv[]) {
-	ngui::LinuxApplication::start(argc, argv);
+	Handle<LinuxApplication> h = new LinuxApplication();
+
+	/**************************************************/
+	/**************************************************/
+	/************** Start GUI Application *************/
+	/**************************************************/
+	/**************************************************/
+	AppInl::start(argc, argv);
+
+	if ( app() ) {
+		h->run();
+	}
+
 	return 0;
 }

@@ -28,4 +28,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "ngui/utils/util.h"
 
+#if XX_IOS
+
+#import <UIKit/UIKit.h>
+#import "ngui/app.h"
+#import "ngui/event.h"
+
+using namespace ngui;
+using namespace ngui;
+
+@interface IOSIMEHelprt: UIView<UITextInput>
+- (id)initWithApplication:(GUIApplication*)app;
+- (void)open;
+- (void)close;
+- (void)clear;
+- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete;
+- (void)set_keyboard_type:(KeyboardType)type;
+- (void)set_keyboard_return_type:(KeyboardReturnType)type;
+@end
+
+#endif

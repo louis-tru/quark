@@ -28,25 +28,31 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/util.h"
+#include "ngui/app-1.h"
+#include "ngui/event.h"
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
-#if XX_IOS
+XX_NS(ngui)
 
-#import <UIKit/UIKit.h>
-#import "ngui/app.h"
-#import "ngui/event.h"
+class LINUXIMEHelper {
+ public:
+	LINUXIMEHelper(AppInl* app, Display* dpy, 
+								Window win, int inputStyle = XIMPreeditPosition);
+	~LINUXIMEHelper();
+	void open();
+	void close();
+	void clear();
+	void set_keyboard_can_backspace(bool can_backspace, bool can_delete);
+	void set_keyboard_type(KeyboardType type);
+	void set_keyboard_return_type(KeyboardReturnType type);
+	void set_spot_location(Vec2 point);
+	void key_press(XKeyPressedEvent *event);
+	void focus_in();
+	void focus_out();
+ private:
+	class Inl;
+	Inl* m_inl;
+};
 
-using namespace ngui;
-using namespace ngui;
-
-@interface IOSIMEReceiver: UIView<UITextInput>
-- (id)initWithApplication:(GUIApplication*)app;
-- (void)open;
-- (void)close;
-- (void)clear;
-- (void)input_keyboard_can_backspace:(bool)can_backspace;
-- (void)input_keyboard_type:(KeyboardType)type;
-- (void)input_keyboard_return_type:(KeyboardReturnType)type;
-@end
-
-#endif
+XX_END

@@ -157,6 +157,8 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	
 	/**
 	 * @func stop() 停止循环
+	 * TODO 同由其在多线程中调用时,调用前请确保`RunLoop`句柄是否还有效,
+	 *   并且确保`KeepLoop`都已释放,`RunLoop`在销毁时会检查`keep_count`
 	 */
 	void stop();
 	
@@ -173,7 +175,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	/**
 	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
 	 * @func keep_alive(declear)
-	 * @arg [declear=true] {bool} KeepLoop 释放时是否清理未完成的`post`消息
+	 * @arg [declear=true] {bool} KeepLoop 释放时是否清理由keekloop发起并未完成的`post`消息
 	 */
 	KeepLoop* keep_alive(bool declear = true);
 	

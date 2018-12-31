@@ -813,7 +813,7 @@ GUIEventDispatch::~GUIEventDispatch() {
 
 #define _loop static_cast<PostMessage*>(app_->main_loop())
 
-void KeyboardAdapter::dispatch(int keycode, bool ascii,
+void KeyboardAdapter::dispatch(uint keycode, bool unicode,
 															 bool down, int repeat, int device, int source) 
 {
 	async_callback(Cb([=](Se& evt) {
@@ -821,7 +821,7 @@ void KeyboardAdapter::dispatch(int keycode, bool ascii,
 		repeat_ = repeat; device_ = device;
 		source_ = source;
 		
-		bool is_clear = transformation(keycode, ascii, down);
+		bool is_clear = transformation(keycode, unicode, down);
 		
 		if ( down ) {
 			_inl_di(_inl_app(app_)->dispatch())->keyboard_down();

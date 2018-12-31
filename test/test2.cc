@@ -28,23 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/sys.h"
+#include <stdio.h>
+#include <time.h>
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test2_xim
 #endif
 
-using namespace ngui;
-
 int TEST_FUNC_NAME(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
 
-	uint64 st = sys::time();
+	time_t st = time(NULL);
 	
 	int r = TEST_FUNC_NAME(argc, argv);
 	
-	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
+	printf("eclapsed time:%ds\n", int(time(NULL) - st));
 
 	return r;
 }

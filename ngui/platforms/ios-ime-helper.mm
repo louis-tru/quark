@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "ios-ime-receiver-1.h"
+#import "ios-ime-helper-1.h"
 #import "ngui/utils/util.h"
 #import "ngui/event.h"
 #import "ngui/app-1.h"
@@ -97,7 +97,7 @@ using namespace ngui;
 @end
 
 
-@interface IOSIMEReceiver() {
+@interface IOSIMEHelprt() {
 	@private
 	NSString* _marked_text;
 	UITextInputStringTokenizer* _tokenizer;
@@ -109,7 +109,7 @@ using namespace ngui;
 }
 @end
 
-@implementation IOSIMEReceiver
+@implementation IOSIMEHelprt
 
 #pragma mark UITextInputTraits protocol
 @synthesize autocapitalizationType;
@@ -215,11 +215,11 @@ using namespace ngui;
 	_clearing = NO;
 }
 
-- (void)input_keyboard_can_backspace:(bool)can_backspace {
+- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete {
 	_can_backspace = can_backspace;
 }
 
-- (void)input_keyboard_type:(KeyboardType)type {
+- (void)set_keyboard_type:(KeyboardType)type {
 		UIKeyboardType type2 = UIKeyboardTypeDefault;
 		switch ( type ) {
 			default: break;
@@ -238,7 +238,7 @@ using namespace ngui;
 		self.keyboardType = type2;
 }
 
-- (void)input_keyboard_return_type:(KeyboardReturnType)type {
+- (void)set_keyboard_return_type:(KeyboardReturnType)type {
 	UIReturnKeyType type2 = UIReturnKeyDefault;
 	switch ( type ) {
 		default: break;

@@ -40,7 +40,7 @@ CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 builddir="$(shell pwd)/$(LIBS_DIR)"
 
 .PHONY: $(STYLES) jsa-shell install install-dev install-tools \
-	help all clean clean-all build web server ios android linux osx doc
+	help all clean clean-all build web server ios android linux osx doc test2
 
 .SECONDEXPANSION:
 
@@ -148,3 +148,6 @@ help:
 	@echo exec \"make xcode\" output xcode project file
 	@echo You must first call before calling make \"./configure\"
 	@echo
+
+test2:
+	make -C test -f test2.mk
