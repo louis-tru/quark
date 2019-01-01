@@ -817,12 +817,12 @@ public:
 	}
 
 	/**
-	 * @get screenVisible {bool}
+	 * @get drawVisible {bool}
 	 */
-	static void screen_visible(Local<JSString> name, PropertyCall args) {
+	static void draw_visible(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
-		JS_RETURN( self->screen_visible() );
+		JS_RETURN( self->draw_visible() );
 	}
 
 	/**
@@ -1300,7 +1300,7 @@ public:
 			JS_SET_CLASS_ACCESSOR(opacity, opacity, set_opacity);
 			JS_SET_CLASS_ACCESSOR(visible, visible, set_visible);
 			JS_SET_CLASS_ACCESSOR(finalVisible, final_visible);
-			JS_SET_CLASS_ACCESSOR(screenVisible, screen_visible);
+			JS_SET_CLASS_ACCESSOR(drawVisible, draw_visible);
 			JS_SET_CLASS_ACCESSOR(translate, translate, set_translate);
 			JS_SET_CLASS_ACCESSOR(scale, scale, set_scale);
 			JS_SET_CLASS_ACCESSOR(skew, skew, set_skew);

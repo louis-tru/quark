@@ -362,7 +362,7 @@ public:
 		glUniform1fv(shader::text_box_color.view_matrix, 7, &v->m_final_matrix[0]);
 		glUniform4f(shader::text_box_color.background_color,
 								color.r() / 255.0f, color.g() / 255.0f, color.b() / 255.0f, color.a() / 255.0f );
-		glUniform2f( shader::text_box_color.origin, v->m_origin.x(), v->m_origin.y() );
+		glUniform2f( shader::text_box_color.origin, -v->m_origin.x(), -v->m_origin.y() );
 		
 		while ( begin < end ) {
 			TextFont::Cell& cell = data.cells[begin];
@@ -454,7 +454,7 @@ public:
 				float offset_start = cell.offset_start + offset.x();
 				float* offset_table = &cell.offset[0];
 				
-				glUniform1f(shader::text_texture.hori_baseline, cell.baseline + offset.y() );
+				glUniform1f(shader::text_texture.hori_baseline, cell.baseline + offset.y());
 				
 				for (uint j = 0; j < count; j++) {
 					
@@ -476,7 +476,8 @@ public:
 							"hori_baseline: %f\n"
 							"tex_size: %d,%d,%d,%d\n"
 							"offset_x: %f\n",
-							v->m_final_matrix[0],v->m_final_matrix[1],v->m_final_matrix[2],v->m_final_matrix[3],v->m_final_matrix[4],v->m_final_matrix[5],v->m_final_opacity,
+							v->m_final_matrix[0],v->m_final_matrix[1],v->m_final_matrix[2],
+							v->m_final_matrix[3],v->m_final_matrix[4],v->m_final_matrix[5],v->m_final_opacity,
 							data.texture_scale,
 							cell.baseline + offset.y(),
 							s.width, s.height, s.left, s.top,
@@ -494,9 +495,9 @@ public:
 	 */
 	void draw_text(View* v, TextFont* f, TextFont::Data& data, Color color, Vec2 offset) {
 		if ( data.texture_level == FontGlyph::LEVEL_NONE ) { //  没有纹理等级,使用矢量顶点
-			draw_vector_text(v, f, data, color, offset);
+			draw_vector_text(v, f, data, color, offset - v->m_origin);
 		} else {
-			draw_texture_text(v, f, data, color, offset);
+			draw_texture_text(v, f, data, color, offset - v->m_origin);
 		}
 	}
 	
@@ -516,7 +517,7 @@ public:
 		glUniform4f(shader::text_box_color.background_color,
 								color.r() / 255.0f, color.g() / 255.0f, color.b() / 255.0f, color.a() / 255.0f );
 		
-		glUniform2f(shader::text_box_color.origin, v->m_origin.x(), v->m_origin.y());
+		glUniform2f(shader::text_box_color.origin, -v->m_origin.x(), -v->m_origin.y());
 		glUniform4f(shader::text_box_color.vertex_ac, x - 1, y, x + 1, y + v->m_data.text_height);
 		
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4); // 绘图背景
@@ -568,7 +569,7 @@ void GLDraw::clear_color(Color color) {
 }
 
 void GLDraw::draw(Box* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v); // draw border
 		if ( v->m_clip ) {
 			_inl(this)->draw_begin_clip(v);
@@ -588,7 +589,7 @@ void GLDraw::draw(Box* v) {
 }
 
 void GLDraw::draw(Image* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 
 		bool clip = v->m_clip;
@@ -626,7 +627,7 @@ void GLDraw::draw(Image* v) {
 }
 
 void GLDraw::draw(Video* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 
 		bool clip = v->m_clip;
@@ -670,7 +671,7 @@ void GLDraw::draw(Video* v) {
 }
 
 void GLDraw::draw(BoxShadow* v) {
-	if (v->m_screen_visible) {
+	if (v->m_draw_visible) {
 		_inl(this)->draw_box_border(v);
 
 		bool clip = v->m_clip;
@@ -695,7 +696,7 @@ void GLDraw::draw(BoxShadow* v) {
 }
 
 void GLDraw::draw(Sprite* v) {
-	if ( v->m_screen_visible ) { // 为false时不需要绘制
+	if ( v->m_draw_visible ) { // 为false时不需要绘制
 		if ( v->m_texture->use(0, Texture::Level(v->m_tex_level), v->m_repeat) ) {
 			glUseProgram(shader::sprite.shader);
 			glUniform1fv(shader::sprite.view_matrix, 7, v->m_final_matrix.value());
@@ -714,7 +715,7 @@ void GLDraw::draw(Sprite* v) {
 }
 
 void GLDraw::draw(TextNode* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		uint begin = v->m_data.cell_draw_begin;
 		uint end = v->m_data.cell_draw_end;
 		
@@ -730,7 +731,7 @@ void GLDraw::draw(TextNode* v) {
 }
 
 void GLDraw::draw(Label* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		uint begin = v->m_data.cell_draw_begin;
 		uint end = v->m_data.cell_draw_end;
 		
@@ -745,7 +746,7 @@ void GLDraw::draw(Label* v) {
 }
 
 void GLDraw::draw(Text* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 		
 		bool clip = v->m_clip;
@@ -777,7 +778,7 @@ void GLDraw::draw(Scroll* v) {
 	if ( v->mark_value & Scroll::M_SCROLL ) {
 		inherit_mark |= View::M_MATRIX;
 	}
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 		_inl(this)->draw_begin_clip(v);
 		_inl(this)->draw_box_background(v, true);
@@ -790,7 +791,7 @@ void GLDraw::draw(Scroll* v) {
 }
 
 void GLDraw::draw(Input* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 		_inl(this)->draw_begin_clip(v);
 		_inl(this)->draw_box_background(v, true);
@@ -800,7 +801,7 @@ void GLDraw::draw(Input* v) {
 }
 
 void GLDraw::draw(Textarea* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 		_inl(this)->draw_begin_clip(v);
 		_inl(this)->draw_box_background(v, true);
@@ -811,7 +812,7 @@ void GLDraw::draw(Textarea* v) {
 }
 
 void GLDraw::draw(Root* v) {
-	if ( v->m_screen_visible ) {
+	if ( v->m_draw_visible ) {
 		_inl(this)->draw_box_border(v);
 		_inl(this)->draw_box_background(v, true);
 	}

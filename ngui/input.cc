@@ -35,7 +35,7 @@
 XX_NS(ngui)
 
 XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
-public:
+ public:
 	
 	/**
 	 * @func activate_touchmove_selectd_timeout
@@ -51,7 +51,6 @@ public:
 	void click_handle(GUIEvent& evt) {
 		GUIClickEvent* e = static_cast<GUIClickEvent*>(&evt);
 		if ( editing_ ) {
-			// TODO..
 			_inl_app(app())->ime_keyboard_open({ false, type_, return_type_ });
 		} else {
 			if ( flag_ == 8 ) { // 禁用点击聚焦
@@ -76,11 +75,38 @@ public:
 		}
 		return i;
 	}
-	
+
 	void touchstart_handle(GUIEvent& evt) {
 		GUITouchEvent* e = static_cast<GUITouchEvent*>(&evt);
-		Vec2 point(e->changed_touches()[0].x, e->changed_touches()[0].y);
-		
+		start_handle(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+	}
+	
+	void touchmove_handle(GUIEvent& evt) {
+		GUITouchEvent* e = static_cast<GUITouchEvent*>(&evt);
+		move_handle(evt, Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+	}
+	
+	void touchend_handle(GUIEvent& evt) {
+		GUITouchEvent* e = static_cast<GUITouchEvent*>(&evt);
+		end_handle(Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y));
+	}
+
+	void mousedown_handle(GUIEvent& evt) {
+		GUIMouseEvent* e = static_cast<GUIMouseEvent*>(&evt);
+		start_handle(Vec2(e->x(), e->y()));
+	}
+
+	void mousemove_handle(GUIEvent& evt) {
+		GUIMouseEvent* e = static_cast<GUIMouseEvent*>(&evt);
+		move_handle(evt, Vec2(e->x(), e->y()));
+	}
+
+	void mouseup_handle(GUIEvent& evt) {
+		GUIMouseEvent* e = static_cast<GUIMouseEvent*>(&evt);
+		end_handle(Vec2(e->x(), e->y()));
+	}
+	
+	void start_handle(Vec2 point) {
 		if ( editing_ ) {
 			point_ = point;
 			/*
@@ -120,11 +146,9 @@ public:
 		}
 	}
 	
-	void touchmove_handle(GUIEvent& evt) {
-		GUITouchEvent* e = static_cast<GUITouchEvent*>(&evt);
-		
+	void move_handle(GUIEvent& evt, Vec2 point) {
 		if ( editing_ ) {
-			point_ = Vec2(e->changed_touches()[0].x, e->changed_touches()[0].y);
+			point_ = point;
 			
 			switch (flag_) {
 				default: break;
@@ -161,7 +185,6 @@ public:
 				Textarea* textarea = as_textarea();
 				if ( textarea ) { // 多行移动后禁用点击聚焦
 					if ( textarea->scroll_x() != 0 || textarea->scroll_y() != 0 ) {
-						Vec2 point(e->changed_touches()[0].x, e->changed_touches()[0].y);
 						// 计算移动距离
 						float d = sqrtf(powf(point.x() - point_.x(), 2) + powf(point.y() - point_.y(), 2));
 						if ( d > 5 ) { // 移动超过5禁用点击聚焦
@@ -173,10 +196,7 @@ public:
 		}
 	}
 	
-	void touchend_handle(GUIEvent& evt) {
-		GUITouchEvent* e = static_cast<GUITouchEvent*>(&evt);
-		Vec2 point(e->changed_touches()[0].x, e->changed_touches()[0].y);
-		
+	void end_handle(Vec2 point) {
 		if ( editing_ ) {
 			if ( flag_ == 1 || flag_ == 3 ) {
 				set_cursor_with_screen_coord(point);
@@ -203,16 +223,44 @@ public:
 		}
 		unregister_task();
 	}
+
+	Vec2 spot_location() {
+		Vec2 offset = input_text_offset();
+
+		float y = m_rows[cursor_linenum_].baseline - m_data.text_hori_bearing + offset.y();
+		float x = cursor_x_ + offset.x();
+
+		Vec2 cursor_offset(x - m_origin.x(), y + m_data.text_height - m_origin.y());
+		Vec2 location = m_final_matrix * cursor_offset;
+
+		DLOG("input_spot_location,x:%f,y:%f", location.x(), location.y());
+		
+		return location;
+	}
 	
 	void keydown_handle(GUIEvent& evt) { // keyboard event
 		if ( editing_ && flag_ == 0 ) {
 			
 			switch ( static_cast<GUIKeyEvent*>(&evt)->keycode() ) {
 				default: break;
-				case KEYCODE_LEFT: /* TODO */ break;
-				case KEYCODE_UP: /* TODO */ break;
-				case KEYCODE_RIGHT: /* TODO */ break;
-				case KEYCODE_DOWN: /* TODO */ break;
+				case KEYCODE_LEFT:
+					cursor_ = XX_MAX(0, int(cursor_ - 1));
+					break;
+				case KEYCODE_UP: {
+					Vec2 location = spot_location();
+					Vec2 coord(location.x(), location.y() - (m_data.text_height * 1.5));
+					set_cursor_with_screen_coord(coord);
+					break;
+				}
+				case KEYCODE_RIGHT:
+					cursor_ = XX_MIN(m_data.string.length(), cursor_ + 1);
+					break;
+				case KEYCODE_DOWN: {
+					Vec2 location = spot_location();
+					Vec2 coord(location.x(), location.y() + (m_data.text_height * 0.5));
+					set_cursor_with_screen_coord(coord);
+					break;
+				}
 				case KEYCODE_PAGE_UP: /* TODO */
 					break;
 				case KEYCODE_PAGE_DOWN: /* TODO */
@@ -303,7 +351,8 @@ public:
 			return;
 		}
 	
-		Vec2 pos = position();
+		// Vec2 pos = position() - m_origin; // TODO 这个方法效率低
+		Vec2 pos = Vec2(m_final_matrix[2], m_final_matrix[5]) - m_origin;
 		
 		// find row
 		
@@ -383,7 +432,7 @@ public:
 			}
 			//
 		}
-	end:
+	 end:
 		
 		limit_cursor_in_marked_text();
 		reset_cursor_twinkle_task_timeout();
@@ -409,7 +458,7 @@ public:
 		}
 	}
 	
-	Ucs2String delete_line_feed(cString& text) {
+	Ucs2String delete_line_feed_format(cString& text) {
 		String s = text;
 		if ( !is_multi_line_input() ) {
 			if ( text.length() > 1 ) {
@@ -485,6 +534,9 @@ Input::Input()
 	add_event_listener(GUI_EVENT_TOUCH_MOVE, &Input::Inl::touchmove_handle, Inl_Input(this));
 	add_event_listener(GUI_EVENT_TOUCH_END, &Input::Inl::touchend_handle, Inl_Input(this));
 	add_event_listener(GUI_EVENT_TOUCH_CANCEL, &Input::Inl::touchend_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_MOUSE_DOWN, &Input::Inl::mousedown_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_MOUSE_MOVE, &Input::Inl::mousemove_handle, Inl_Input(this));
+	add_event_listener(GUI_EVENT_MOUSE_UP, &Input::Inl::mouseup_handle, Inl_Input(this));
 	add_event_listener(GUI_EVENT_FOCUS, &Input::Inl::focus_handle, Inl_Input(this));
 	add_event_listener(GUI_EVENT_BLUR, &Input::Inl::blur_handle, Inl_Input(this));
 	add_event_listener(GUI_EVENT_KEY_DOWN, &Input::Inl::keydown_handle, Inl_Input(this));
@@ -565,7 +617,7 @@ void Input::input_delete(int count) {
 
 void Input::input_insert(cString& text) {
 	if ( editing_ ) {
-		Inl_Input(this)->input_insert_text(Inl_Input(this)->delete_line_feed(text));
+		Inl_Input(this)->input_insert_text(Inl_Input(this)->delete_line_feed_format(text));
 		Inl_Input(this)->trigger_change();
 		Inl_Input(this)->reset_cursor_twinkle_task_timeout();
 	}
@@ -573,7 +625,7 @@ void Input::input_insert(cString& text) {
 
 void Input::input_marked(cString& text) {
 	if ( editing_ ) {
-		Inl_Input(this)->input_marked_text(Inl_Input(this)->delete_line_feed(text));
+		Inl_Input(this)->input_marked_text(Inl_Input(this)->delete_line_feed_format(text));
 		Inl_Input(this)->trigger_change();
 		Inl_Input(this)->reset_cursor_twinkle_task_timeout();
 	}
@@ -581,15 +633,15 @@ void Input::input_marked(cString& text) {
 
 void Input::input_unmark(cString& text) {
 	if ( editing_ ) {
-		Inl_Input(this)->input_unmark_text(Inl_Input(this)->delete_line_feed(text));
+		Inl_Input(this)->input_unmark_text(Inl_Input(this)->delete_line_feed_format(text));
 		Inl_Input(this)->trigger_change();
 		Inl_Input(this)->reset_cursor_twinkle_task_timeout();
 	}
 }
 
 void Input::input_control(KeyboardKeyName name) {
-	if ( editing_ ) {
-		LOG("input_control,%d", name);
+	if ( editing_ && flag_ == 0 ) {
+		// LOG("input_control,%d", name);
 	}
 }
 
@@ -606,7 +658,11 @@ bool Input::input_can_backspace() {
 }
 
 Vec2 Input::input_spot_location() {
-	return Vec2(1,1);
+	if (editing_) {
+		return Inl_Input(this)->spot_location();
+	} else {
+		return Vec2();
+	}
 }
 
 KeyboardType Input::input_keyboard_type() {
@@ -682,12 +738,17 @@ void Input::draw(Draw* draw) {
 			if ( mark_value & (M_CONTENT_OFFSET | M_LAYOUT_THREE_TIMES) ) {
 				set_text_align_offset(text_margin_);
 			}
-			
-			if ( mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS) ) {
+
+			bool change = mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS);
+			if ( change ) {
 				refresh_cursor_screen_position(); // text layout
 			}
-			
+
 			solve();
+
+			if (change && editing_) {
+				_inl_app(app())->ime_keyboard_spot_location(input_spot_location());
+			}
 			
 			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
 				set_glyph_texture_level(m_data);
@@ -882,7 +943,7 @@ void Input::refresh_cursor_screen_position() {
 			}
 		}
 		
-	x:
+	 x:
 		
 		// x
 		if ( max_width <= m_final_width - text_margin_ - text_margin_ ) {
@@ -921,11 +982,11 @@ void Input::refresh_cursor_screen_position() {
 				text_offset.x(text_offset.x() - offset - text_margin_ + m_final_width);
 			}
 		}
-	end:
+	 end:
 		
 		set_input_text_offset(text_offset);
 	} else {
-		if ( !is_multi_line_input() ) {
+		if ( !is_multi_line_input() ) { // 
 			set_input_text_offset(Vec2());
 		}
 	}

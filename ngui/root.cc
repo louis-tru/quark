@@ -86,7 +86,7 @@ void Root::draw(Draw* draw) {
 			}
 			
 			if ( mark_value & (M_TRANSFORM | M_SHAPE) ) {
-				set_screen_visible();
+				set_draw_visible();
 			}
 		}
 		

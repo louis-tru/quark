@@ -278,7 +278,7 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	// -------------------------- touch --------------------------
 	
 	void touchstart_2(View* view, List<GUITouch>& in) {
-		if ( view->receive() && view->m_screen_visible && in.length() ) {
+		if ( view->receive() && view->m_draw_visible && in.length() ) {
 			Array<GUITouch> change_touches;
 			
 			for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -320,7 +320,7 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	void touchstart(View* view, List<GUITouch>& in) {
 		
 		if ( view->m_visible && in.length() ) {
-			if ( view->m_screen_visible || view->m_need_draw ) {
+			if ( view->m_draw_visible || view->m_need_draw ) {
 				
 				if ( view->m_last && view->as_box() && static_cast<Box*>(view)->clip() ) {
 					List<GUITouch> in2;
@@ -533,7 +533,7 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 	static View* find_receive_event_view_2(View* view, Vec2 pos) {
 		if ( view->m_visible ) {
-			if ( view->m_screen_visible || view->m_need_draw ) {
+			if ( view->m_draw_visible || view->m_need_draw ) {
 				View* v = view->m_last;
 
 				if (v && view->as_box() && static_cast<Box*>(view)->clip()) {

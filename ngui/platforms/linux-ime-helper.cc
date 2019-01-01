@@ -31,6 +31,7 @@
 #include "linux-ime-helper-1.h"
 #include "ngui/utils/cb.h"
 #include "ngui/keyboard.h"
+#include "ngui/display-port.h"
 #include <X11/keysym.h>
 #include <locale.h>
 
@@ -135,8 +136,9 @@ class LINUXIMEHelper::Inl {
 	}
 
 	void set_spot_location(Vec2 location) {
-		m_spot_location = { 
-			int16(location.x()), int16(location.y())
+		Vec2 scale = m_app->display_port()->scale_value();
+		m_spot_location = {
+			int16(location.x() * scale.x()), int16(location.y() * scale.y())
 		};
 		updateSpotLocation();
 	}

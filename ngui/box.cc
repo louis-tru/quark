@@ -674,7 +674,7 @@ public:
 		}
 		if ( rows->clip() ) { // 已经被修剪,不进行布局
 			m_linenum = -1;
-			m_screen_visible = false;
+			m_draw_visible = false;
 			set_default_offset_value(); return;
 		}
 				
@@ -1011,11 +1011,11 @@ void Box::solve() {
 }
 
 /**
- * @func set_screen_visible
+ * @func set_draw_visible
  */
-void Box::set_screen_visible() {
+void Box::set_draw_visible() {
 	
-	m_screen_visible = false;
+	m_draw_visible = false;
 	
 	if ( m_linenum == -1 ) { return; } // 没有布局,不显示在屏幕上
 	
@@ -1031,7 +1031,7 @@ void Box::set_screen_visible() {
 	if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
 			XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
 	) {
-		m_screen_visible = true;
+		m_draw_visible = true;
 	}
 }
 

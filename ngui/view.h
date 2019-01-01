@@ -471,9 +471,9 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	inline bool final_visible() const { return m_final_visible; }
 	
 	/**
-	 * @func screen_visible
+	 * @func draw_visible
 	 */
-	inline bool screen_visible() const { return m_screen_visible; }
+	inline bool draw_visible() const { return m_draw_visible; }
 	
 	/**
 	 * @func translate
@@ -795,9 +795,9 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	void solve();
 	
 	/**
-	 * @func set_screen_visible
+	 * @func set_draw_visible
 	 */
-	virtual void set_screen_visible();
+	virtual void set_draw_visible();
 	
 	/**
 	 * @func accept_text
@@ -860,7 +860,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	bool m_visible;       /* 是否显示视图,包括子视图
 												 * Whether to display the view, including the sub view */
 	bool m_final_visible; /* 最终是否显示,受父视图m_visible影响 */
-	bool m_screen_visible;  /* 该状态标识视图是否在屏幕或区域范围内,这个状态会忽略`m_visible`值
+	bool m_draw_visible;  /* 该状态标识视图是否在屏幕或区域范围内(是否需要绘图),这个状态会忽略`m_visible`值
 													 * Whether on the screen range inner */
 	bool m_need_draw;             /* 忽略视图visible值,强制绘制子视图 */
 	bool m_child_change_flag;     /* 子视图有变化标记,调用draw后重置 */

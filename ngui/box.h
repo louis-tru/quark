@@ -444,9 +444,9 @@ class XX_EXPORT Box: public Layout {
 	void compute_box_vertex(Vec2 vertex[4]);
 	
 	/**
-	 * @func set_screen_visible
+	 * @func set_draw_visible
 	 */
-	virtual void set_screen_visible();
+	virtual void set_draw_visible();
 	
 	/**
 	 * @func get_screen_region

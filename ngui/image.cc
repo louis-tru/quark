@@ -434,8 +434,8 @@ void Image::set_layout_content_offset() {
 	}
 }
 
-void Image::set_screen_visible() {
-	Div::set_screen_visible();
+void Image::set_draw_visible() {
+	Div::set_draw_visible();
 	m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
 }
 

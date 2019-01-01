@@ -30,7 +30,7 @@
 
 #include "textarea.h"
 #include "display-port.h"
-#include "app.h"
+#include "app-1.h"
 
 XX_NS(ngui)
 
@@ -66,16 +66,21 @@ void Textarea::draw(Draw* draw) {
 			if ( mark_value & (M_CONTENT_OFFSET | M_LAYOUT_THREE_TIMES) ) {
 				set_text_align_offset(text_margin_);
 			}
-			
-			if ( mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS) ) {
+
+			bool change = mark_value & (M_CONTENT_OFFSET | M_INPUT_STATUS);
+			if ( change ) {
 				refresh_cursor_screen_position(); // text layout
 			}
-			
+
 			if ( mark_value & M_SCROLL ) {
-				mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_screen_visible()
+				mark_value |= M_SHAPE; // 设置这个标记只为了重新调用 set_draw_visible()
 			}
-			
+
 			Input::solve();
+
+			if (change && editing_) {
+				_inl_app(app())->ime_keyboard_spot_location(input_spot_location());
+			}
 			
 			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
 				set_glyph_texture_level(m_data);
@@ -107,11 +112,11 @@ void Textarea::set_input_text_offset(Vec2 value) {
 	set_scroll( Vec2(-value.x() - input_text_offset_x_, -value.y()) );
 }
 
-void Textarea::set_screen_visible() {
+void Textarea::set_draw_visible() {
 	
 	compute_box_vertex(m_final_vertex);
 	
-	m_screen_visible =
+	m_draw_visible =
 	
 		compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
 }

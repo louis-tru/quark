@@ -92,9 +92,9 @@ class XX_EXPORT Text: public Hybrid {
 	void set_text_align_offset(float text_margin = 0);
 	
 	/**
-	 * @func set_screen_visible
+	 * @func set_draw_visible
 	 */
-	virtual void set_screen_visible();
+	virtual void set_draw_visible();
 
 	/**
 	 * @overwrite

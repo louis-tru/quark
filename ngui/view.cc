@@ -620,7 +620,7 @@ View::View()
 , mark_value(0)
 , m_visible(true)
 , m_final_visible(false)
-, m_screen_visible(false)
+, m_draw_visible(false)
 , m_need_draw(true)
 , m_child_change_flag(false)
 , m_receive(false)
@@ -1110,7 +1110,7 @@ void View::set_need_draw(bool value) {
 void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
 	View* view = m_first;
 	
-	if ( m_screen_visible || need_draw ) {
+	if ( m_draw_visible || need_draw ) {
 		m_child_change_flag = false;
 		while (view) {
 			view->mark_value |= inherit_mark;
@@ -1259,9 +1259,9 @@ Region View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex)
 }
 
 /**
- * @func set_screen_visible
+ * @func set_draw_visible
  */
-void View::set_screen_visible() {
+void View::set_draw_visible() {
 	// noop
 }
 
@@ -1278,13 +1278,13 @@ void View::solve() {
 	if ( mark_value & M_TRANSFORM ) {
 		m_parent->m_final_matrix.multiplication(m_matrix, m_final_matrix);
 		m_final_opacity = m_parent->m_final_opacity * m_opacity; // 最终的不透明度
-		set_screen_visible();
+		set_draw_visible();
 	} else {
 		if ( mark_value & M_OPACITY ) {
 			m_final_opacity = m_parent->m_final_opacity * m_opacity;
 		}
 		if ( mark_value & M_SHAPE ) {
-			set_screen_visible();
+			set_draw_visible();
 		}
 	}
 }

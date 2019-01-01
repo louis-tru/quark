@@ -109,8 +109,8 @@ class BasicScroll::Task: public PreRender::Task {
  * @class BasicScroll::Inl
  */
 class BasicScroll::Inl: public BasicScroll {
-public:
-#define _inl(self) static_cast<BasicScroll::Inl*>(static_cast<BasicScroll*>(self))
+ public:
+ #define _inl(self) static_cast<BasicScroll::Inl*>(static_cast<BasicScroll*>(self))
 	
 	struct Momentum {
 		float dist;

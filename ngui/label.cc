@@ -258,7 +258,7 @@ void Label::draw(Draw* draw) {
 			}
 			
 			if ( mark_value & Layout::M_CONTENT_OFFSET ) {
-				mark_value |= (M_SHAPE); // 标记 M_SHAPE 是为了调用 set_screen_visible()
+				mark_value |= (M_SHAPE); // 标记 M_SHAPE 是为了调用 set_draw_visible()
 				switch (m_text_align) {
 					case TextAlign::LEFT:
 						_inl(this)->set_layout_content_offset<TextAlign::LEFT>(); break;
@@ -305,13 +305,13 @@ CGRect Label::screen_rect() {
 }
 
 /**
- * @func set_screen_visible
+ * @func set_draw_visible
  */
-void Label::set_screen_visible() {
+void Label::set_draw_visible() {
 	
 	_inl(this)->compute_final_vertex(m_final_vertex);
 	
-	m_screen_visible =
+	m_draw_visible =
 	
 	compute_text_visible_draw(m_final_vertex,
 														m_data,

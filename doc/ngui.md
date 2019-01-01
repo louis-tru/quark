@@ -477,9 +477,9 @@ Callback: cb()
 
 * {[`bool`]}
 
-### Get: View.screenVisible 
+### Get: View.drawVisible 
 
-该状态标识视图是否在屏幕或区域范围内,这个状态会忽略`visible`值
+该状态标识视图是否在屏幕或区域范围内(是否需要绘图),这个状态会忽略`visible`值
 
 * {[`bool`]}
 

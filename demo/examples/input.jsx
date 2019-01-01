@@ -1,4 +1,4 @@
-import { Div, Button, Text, Input, Textarea, ngui } from 'ngui';
+import { Div, Button, Text, Input, Textarea, ngui, Label } from 'ngui';
 import { Mynavpage } from './public';
 
 function start_input(evt) {
@@ -12,7 +12,7 @@ function end_input(evt) {
 export const vx = (
 	<Mynavpage title="Input" source=resolve(__filename)>
 		<Div width="full">
-			<Text margin=10 textBackgroundColor="#000" textColor="#fff">Examples Input</Text>
+			<Text margin=10 origin="10 10" textBackgroundColor="#000" textColor="#fff">Examples Input</Text>
 			
 			<Input id="input0" margin=10 
 				width="full" 
@@ -22,7 +22,7 @@ export const vx = (
 				returnType="next"
 				borderRadius=8 placeholder="Please enter.." />
 
-			<Input id="input1" margin=10 
+			<Input id="input1" margin=10
 				width="full" 
 				textColor="#fff"
 				backgroundColor="#000"
@@ -33,7 +33,7 @@ export const vx = (
 				textAlign="center" 
 				placeholder="Please enter.." value="Hello" />
 			
-			<Textarea margin=10 
+			<Textarea margin=10 origin="50 50"
 				width="full" 
 				height=120 
 				textColor="#000"

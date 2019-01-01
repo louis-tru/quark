@@ -113,7 +113,7 @@ class XX_EXPORT Label: public View, public TextFont {
 	virtual void draw(Draw* draw);
 	virtual void mark_text(uint value);
 	virtual void accept_text(Ucs2StringBuilder& out) const;
-	virtual void set_screen_visible();
+	virtual void set_draw_visible();
 	virtual void set_parent(View* parent) throw(Error);
 	
  private:
