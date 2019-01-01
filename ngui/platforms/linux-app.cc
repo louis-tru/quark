@@ -432,12 +432,7 @@ void AppInl::initialize(cJSON& options) {
  * @func ime_keyboard_open
  */
 void AppInl::ime_keyboard_open(KeyboardOptions options) {
-	application->ime()->set_keyboard_type(options.type);
-	application->ime()->set_keyboard_return_type(options.return_type);
-	if (options.is_clear) {
-		application->ime()->clear();
-	}
-	application->ime()->open();
+	application->ime()->open(options);
 }
 
 /**
@@ -452,6 +447,13 @@ void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
  */
 void AppInl::ime_keyboard_close() {
 	application->ime()->close();
+}
+
+/**
+ * @func ime_keyboard_spot_location
+ */
+void AppInl::ime_keyboard_spot_location(Vec2 location) {
+	application->ime()->set_spot_location(location);
 }
 
 /**

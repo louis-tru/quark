@@ -136,9 +136,9 @@ class XX_EXPORT FileStat: public Object {
 };
 
 /**
- * @class FileProtocol
+ * @class IFile
  */
-class XX_EXPORT FileProtocol {
+class XX_EXPORT IFile {
  public:
 	typedef ProtocolTraits Traits;
 	virtual bool is_open() = 0;
@@ -151,7 +151,7 @@ class XX_EXPORT FileProtocol {
 /**
  * @class File
  */
-class XX_EXPORT File: public Object, public FileProtocol {
+class XX_EXPORT File: public Object, public IFile {
 	XX_HIDDEN_ALL_COPY(File);
  public:
 	typedef DefaultTraits Traits;

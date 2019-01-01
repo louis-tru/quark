@@ -892,7 +892,7 @@ void GUIEventDispatch::dispatch_ime_delete(int count) {
 	async_callback(Cb([=](Se& d) {
 		GUILock lock;
 		if ( m_text_input ) {
-			m_text_input->input_delete_text(count);
+			m_text_input->input_delete(count);
 			bool can_backspace = m_text_input->input_can_backspace();
 			bool can_delete = m_text_input->input_can_delete();
 			_inl_app(app_)->ime_keyboard_can_backspace(can_backspace, can_delete);
@@ -904,7 +904,7 @@ void GUIEventDispatch::dispatch_ime_insert(cString& text) {
 	async_callback(Cb([=](Se& d) {
 		GUILock lock;
 		if ( m_text_input ) {
-			m_text_input->input_insert_text(text);
+			m_text_input->input_insert(text);
 		}
 	}), _loop);
 }
@@ -913,7 +913,7 @@ void GUIEventDispatch::dispatch_ime_marked(cString& text) {
 	async_callback(Cb([=](Se& d) {
 		GUILock lock;
 		if ( m_text_input ) {
-			m_text_input->input_marked_text(text);
+			m_text_input->input_marked(text);
 		}
 	}), _loop);
 }
@@ -922,19 +922,29 @@ void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
 	async_callback(Cb([=](Se& d) {
 		GUILock lock;
 		if ( m_text_input ) {
-			m_text_input->input_unmark_text(text);
+			m_text_input->input_unmark(text);
 		}
 	}), _loop);
 }
 
-void GUIEventDispatch::make_text_input(TextInputProtocol* input) {
+void GUIEventDispatch::dispatch_ime_control(KeyboardKeyName name) {
+	async_callback(Cb([=](Se& d) {
+		GUILock lock;
+		if ( m_text_input ) {
+			m_text_input->input_control(name);
+		}
+	}), _loop);
+}
+
+void GUIEventDispatch::make_text_input(ITextInput* input) {
 	if ( input != m_text_input ) {
-		// TextInput* old = m_text_input;
 		m_text_input = input;
 		
 		if ( input ) {
 			_inl_app(app_)->ime_keyboard_open({
-				true, input->keyboard_type(), input->keyboard_return_type()
+				true, input->input_keyboard_type(),
+				input->input_keyboard_return_type(),
+				input->input_spot_location(),
 			});
 		} else {
 			_inl_app(app_)->ime_keyboard_close();
@@ -942,7 +952,9 @@ void GUIEventDispatch::make_text_input(TextInputProtocol* input) {
 	} else {
 		if ( input ) {
 			_inl_app(app_)->ime_keyboard_open({
-				false, input->keyboard_type(), input->keyboard_return_type()
+				false, input->input_keyboard_type(),
+				input->input_keyboard_return_type(),
+				input->input_spot_location(),
 			});
 		}
 	}

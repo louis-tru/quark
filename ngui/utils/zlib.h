@@ -78,7 +78,7 @@ class XX_EXPORT ZLib {
  *
  * @class GZip
  */
-class XX_EXPORT GZip: public Object, public FileProtocol {
+class XX_EXPORT GZip: public Object, public IFile {
  public:
 	
 	typedef DefaultTraits Traits;

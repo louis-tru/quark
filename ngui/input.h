@@ -39,7 +39,7 @@ XX_NS(ngui)
 /**
  * @class Input
  */
-class XX_EXPORT Input: public Text, public PreRender::Task, public TextInputProtocol {
+class XX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
  public:
 	XX_DEFINE_GUI_VIEW(INPUT, Input, input);
 	
@@ -50,14 +50,18 @@ class XX_EXPORT Input: public Text, public PreRender::Task, public TextInputProt
 	/**
 	 * @overwrite
 	 */
-	virtual void input_delete_text(int count);
-	virtual void input_insert_text(cString& text);
-	virtual void input_marked_text(cString& text);
-	virtual void input_unmark_text(cString& text);
+	// @ITextInput
+	virtual void input_delete(int count);
+	virtual void input_insert(cString& text);
+	virtual void input_marked(cString& text);
+	virtual void input_unmark(cString& text);
+	virtual void input_control(KeyboardKeyName name);
 	virtual bool input_can_delete();
 	virtual bool input_can_backspace();
-	virtual KeyboardType keyboard_type();
-	virtual KeyboardReturnType keyboard_return_type();
+	virtual Vec2 input_spot_location();
+	virtual KeyboardType input_keyboard_type();
+	virtual KeyboardReturnType input_keyboard_return_type();
+	// @end
 	virtual void set_value(cUcs2String& str);
 	virtual View* append_text(cUcs2String& str) throw(Error);
 	virtual void remove_all_child();

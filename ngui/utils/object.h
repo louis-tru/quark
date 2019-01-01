@@ -187,6 +187,8 @@ class XX_EXPORT ProtocolTraits {
 	static constexpr bool is_reference = false;
 };
 
+typedef ProtocolTraits InterfaceTraits;
+
 /**
  * @class NonObjectTraits
  */

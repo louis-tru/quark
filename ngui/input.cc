@@ -529,7 +529,7 @@ bool Input::run_task(int64 sys_time) {
 	return false;
 }
 
-void Input::input_delete_text(int count) {
+void Input::input_delete(int count) {
 	
 	if ( editing_ ) {
 		int cursor = cursor_;
@@ -563,7 +563,7 @@ void Input::input_delete_text(int count) {
 	
 }
 
-void Input::input_insert_text(cString& text) {
+void Input::input_insert(cString& text) {
 	if ( editing_ ) {
 		Inl_Input(this)->input_insert_text(Inl_Input(this)->delete_line_feed(text));
 		Inl_Input(this)->trigger_change();
@@ -571,7 +571,7 @@ void Input::input_insert_text(cString& text) {
 	}
 }
 
-void Input::input_marked_text(cString& text) {
+void Input::input_marked(cString& text) {
 	if ( editing_ ) {
 		Inl_Input(this)->input_marked_text(Inl_Input(this)->delete_line_feed(text));
 		Inl_Input(this)->trigger_change();
@@ -579,11 +579,17 @@ void Input::input_marked_text(cString& text) {
 	}
 }
 
-void Input::input_unmark_text(cString& text) {
+void Input::input_unmark(cString& text) {
 	if ( editing_ ) {
 		Inl_Input(this)->input_unmark_text(Inl_Input(this)->delete_line_feed(text));
 		Inl_Input(this)->trigger_change();
 		Inl_Input(this)->reset_cursor_twinkle_task_timeout();
+	}
+}
+
+void Input::input_control(KeyboardKeyName name) {
+	if ( editing_ ) {
+		LOG("input_control,%d", name);
 	}
 }
 
@@ -599,11 +605,15 @@ bool Input::input_can_backspace() {
 	return editing_ && cursor_;
 }
 
-KeyboardType Input::keyboard_type() {
+Vec2 Input::input_spot_location() {
+	return Vec2(1,1);
+}
+
+KeyboardType Input::input_keyboard_type() {
 	return type_;
 }
 
-KeyboardReturnType Input::keyboard_return_type() {
+KeyboardReturnType Input::input_keyboard_return_type() {
 	return return_type_;
 }
 

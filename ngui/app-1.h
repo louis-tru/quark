@@ -42,9 +42,10 @@ XX_NS(ngui)
 XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
  public:
 	struct KeyboardOptions {
-		bool	is_clear;
-		KeyboardType type;
+		bool               is_clear;
+		KeyboardType       type;
 		KeyboardReturnType return_type;
+		Vec2               spot_location;
 	};
 	
 	void initialize(cJSON& options);
@@ -104,6 +105,11 @@ XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
 	 * @func ime_keyboard_close
 	 */
 	void ime_keyboard_close();
+	
+	/**
+	 * @func ime_keyboard_spot_location
+	 */
+	void ime_keyboard_spot_location(Vec2 location);
 	
 };
 

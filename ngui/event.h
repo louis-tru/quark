@@ -317,19 +317,21 @@ class XX_EXPORT GUIFocusMoveEvent: public GUIEvent {
 };
 
 /**
- * @class TextInputProtocol
+ * @class ITextInput
  */
-class XX_EXPORT TextInputProtocol {
+class XX_EXPORT ITextInput {
  public:
 	typedef ProtocolTraits Traits;
-	virtual void input_delete_text(int count) = 0;
-	virtual void input_insert_text(cString& text) = 0;
-	virtual void input_marked_text(cString& text) = 0;
-	virtual void input_unmark_text(cString& text) = 0;
+	virtual void input_delete(int count) = 0;
+	virtual void input_insert(cString& text) = 0;
+	virtual void input_marked(cString& text) = 0;
+	virtual void input_unmark(cString& text) = 0;
+	virtual void input_control(KeyboardKeyName name) = 0;
 	virtual bool input_can_delete() = 0;
 	virtual bool input_can_backspace() = 0;
-	virtual KeyboardType keyboard_type() = 0;
-	virtual KeyboardReturnType keyboard_return_type() = 0;
+	virtual Vec2 input_spot_location() = 0;
+	virtual KeyboardType input_keyboard_type() = 0;
+	virtual KeyboardReturnType input_keyboard_return_type() = 0;
 };
 
 /**
@@ -339,21 +341,25 @@ class XX_EXPORT GUIEventDispatch: public Object {
  public:
 	GUIEventDispatch(GUIApplication* app);
 	virtual ~GUIEventDispatch();
-	void dispatch_touchstart(List<GUITouch>&& touches);   // touch
+	// touch
+	void dispatch_touchstart(List<GUITouch>&& touches);
 	void dispatch_touchmove(List<GUITouch>&& touches);
 	void dispatch_touchend(List<GUITouch>&& touches);
 	void dispatch_touchcancel(List<GUITouch>&& touches);
+	// mouse
 	void dispatch_mousemove(float x, float y);
 	void dispatch_mousepress(KeyboardKeyName key, bool down);
-	void dispatch_ime_delete(int count);     // ime input
+	// ime
+	void dispatch_ime_delete(int count);
 	void dispatch_ime_insert(cString& text);
 	void dispatch_ime_marked(cString& text);
 	void dispatch_ime_unmark(cString& text);
-	
+	void dispatch_ime_control(KeyboardKeyName name);
+
 	/**
 	 * @func make_text_input
 	 */
-	void make_text_input(TextInputProtocol* input);
+	void make_text_input(ITextInput* input);
 	
 	/**
 	 * @func keyboard_adapter
@@ -371,7 +377,7 @@ class XX_EXPORT GUIEventDispatch: public Object {
 	OriginTouches       m_origin_touches;
 	MouseHandle*        m_mouse_h;
 	KeyboardAdapter*    m_keyboard;
-	TextInputProtocol*  m_text_input;
+	ITextInput*         m_text_input;
 	
 	XX_DEFINE_INLINE_CLASS(Inl);
 };

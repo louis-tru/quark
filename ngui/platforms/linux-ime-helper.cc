@@ -30,6 +30,7 @@
 
 #include "linux-ime-helper-1.h"
 #include "ngui/utils/cb.h"
+#include "ngui/keyboard.h"
 #include <X11/keysym.h>
 #include <locale.h>
 
@@ -68,13 +69,13 @@ class LINUXIMEHelper::Inl {
 	}
 
 	Inl(AppInl* app, Display* dpy, Window win, int inputStyle)
-	: m_app(app)
-	, m_display(dpy)
-	, m_window(win)
-	, m_im(NULL), m_ic(NULL)
-	, m_has_open(false)
-	, m_input_style(inputStyle)
-	, m_fontset(NULL)
+		: m_app(app)
+		, m_display(dpy)
+		, m_window(win)
+		, m_im(NULL), m_ic(NULL)
+		, m_has_open(false)
+		, m_input_style(inputStyle)
+		, m_fontset(NULL)
 	{
 		m_spot_location = {1,1};
 
@@ -133,14 +134,11 @@ class LINUXIMEHelper::Inl {
 		// TODO
 	}
 
-	void set_spot_location(Vec2 point) {
-		m_spot_location = { int16(point.x()), int16(point.y()) };
-		if (m_ic) {
-			XVaNestedList attr = XVaCreateNestedList(0,
-				XNSpotLocation, &m_spot_location, NULL);
-			XSetICValues(m_ic, XNPreeditAttributes, attr, NULL);
-			XFree(attr);
-		}
+	void set_spot_location(Vec2 location) {
+		m_spot_location = { 
+			int16(location.x()), int16(location.y())
+		};
+		updateSpotLocation();
 	}
 
 	void key_press(XKeyPressedEvent *event)
@@ -173,17 +171,17 @@ class LINUXIMEHelper::Inl {
 			} else if (keysym == XK_Escape) {
 				// esc
 			} else if (keysym == XK_Left) {
-				moveCaret(-1, 0);
+				onKeyControl(KEYCODE_LEFT);
 			} else if (keysym == XK_Right) {
-				moveCaret(1, 0);
+				onKeyControl(KEYCODE_RIGHT);
 			} else if (keysym == XK_Up) {
-				moveCaret(0, -1);
+				onKeyControl(KEYCODE_UP);
 			} else if (keysym == XK_Down) {
-				moveCaret(0, 1);
+				onKeyControl(KEYCODE_DOWN);
 			} else if (keysym == XK_Home) {
-				onKeyHome();
+				onKeyControl(KEYCODE_MOVE_HOME);
 			} else if (keysym == XK_End) {
-				onKeyEnd();
+				onKeyControl(KEYCODE_MOVE_END);
 			} else {
 				if ((status == XLookupChars || status == XLookupBoth) &&
 				((event->state & ControlMask) != ControlMask) &&
@@ -307,10 +305,10 @@ class LINUXIMEHelper::Inl {
 
 		switch (caret_data->direction) {
 			case XIMForwardChar:
-				self->moveCaret(1, 0);
+				self->onKeyControl(KEYCODE_RIGHT);
 				break;
 			case XIMBackwardChar:
-				self->moveCaret(-1, 0);
+				self->onKeyControl(KEYCODE_LEFT);
 				break;
 			case XIMDontChange:
 				break;
@@ -404,18 +402,19 @@ class LINUXIMEHelper::Inl {
 		if ((m_input_style & XIMPreeditPosition) && m_fontset) {
 			XRectangle area = { 0,0,1,1 };
 			XVaNestedList attr = XVaCreateNestedList(0,
-							 XNSpotLocation, &m_spot_location,
-							 XNArea, &area,
-							 XNFontSet, m_fontset,
-							 NULL);
+							XNSpotLocation, &m_spot_location,
+							XNArea, &area,
+							XNFontSet, m_fontset,
+							NULL);
+
 			m_ic = XCreateIC(m_im,
-				 XNInputStyle, XIMPreeditPosition,
-				 XNClientWindow, m_window,
-				 XNPreeditAttributes, attr,
-				 NULL);
+							XNInputStyle, XIMPreeditPosition,
+							XNClientWindow, m_window,
+							XNPreeditAttributes, attr,
+							NULL);
+
 			XFree(attr);
 		} else {
-
 			XIMCallback preedit_start, preedit_done, preedit_draw, preedit_caret;
 
 			preedit_start.callback = preeditStartCallback;
@@ -437,24 +436,24 @@ class LINUXIMEHelper::Inl {
 			status_draw.client_data = (XPointer)this;
 
 			XVaNestedList preedit_attr = XVaCreateNestedList(0,
-						 XNPreeditStartCallback, &preedit_start,
-						 XNPreeditDoneCallback,  &preedit_done,
-						 XNPreeditDrawCallback,  &preedit_draw,
-						 XNPreeditCaretCallback, &preedit_caret,
-						 NULL);
+							XNPreeditStartCallback, &preedit_start,
+							XNPreeditDoneCallback,  &preedit_done,
+							XNPreeditDrawCallback,  &preedit_draw,
+							XNPreeditCaretCallback, &preedit_caret,
+							NULL);
 
 			XVaNestedList status_attr = XVaCreateNestedList(0,
-						 XNStatusStartCallback, &status_start,
-						 XNStatusDoneCallback,  &status_done,
-						 XNStatusDrawCallback,  &status_draw,
-						 NULL);
+							XNStatusStartCallback, &status_start,
+							XNStatusDoneCallback,  &status_done,
+							XNStatusDrawCallback,  &status_draw,
+							NULL);
 
-			m_ic = XCreateIC(m_im, 
-					 XNInputStyle, XIMPreeditCallbacks,
-					 XNClientWindow, m_window,
-					 XNPreeditAttributes, preedit_attr,
-					 XNStatusAttributes, status_attr,
-					 NULL);
+			m_ic = XCreateIC(m_im,
+							XNInputStyle, XIMPreeditCallbacks,
+							XNClientWindow, m_window,
+							XNPreeditAttributes, preedit_attr,
+							XNStatusAttributes, status_attr,
+							NULL);
 			XFree(preedit_attr);
 			XFree(status_attr);
 		}
@@ -466,7 +465,6 @@ class LINUXIMEHelper::Inl {
 				strconv.client_data = (XPointer)this;
 				XSetICValues(m_ic, XNStringConversionCallback, &strconv, NULL);
 			}
-
 			DLOG("XIC is created");
 		} else {
 			DLOG("cannot create XIC");
@@ -498,6 +496,15 @@ class LINUXIMEHelper::Inl {
 		} else {
 			Ucs4String ustr = (const uint*)str;
 			return ustr.to_string();
+		}
+	}
+
+	void updateSpotLocation() {
+		if (m_ic) {
+			XVaNestedList attr = XVaCreateNestedList(0,
+				XNSpotLocation, &m_spot_location, NULL);
+			XSetICValues(m_ic, XNPreeditAttributes, attr, NULL);
+			XFree(attr);
 		}
 	}
 
@@ -539,19 +546,8 @@ class LINUXIMEHelper::Inl {
 		// TODO ...
 	}
 
-	void moveCaret(int x, int y)
-	{
-		LOG("moveCaret,%d,%d", x, y);
-	}
-
-	void onKeyHome()
-	{
-		LOG("onKeyHome");
-	}
-
-	void onKeyEnd()
-	{
-		LOG("onKeyEnd");
+	void onKeyControl(KeyboardKeyName name) {
+		m_app->dispatch()->dispatch_ime_control(name);
 	}
 
 	AppInl* m_app;
@@ -573,9 +569,15 @@ LINUXIMEHelper::~LINUXIMEHelper() {
 	delete m_inl;
 	m_inl = nullptr;
 }
-void LINUXIMEHelper::open() {
+void LINUXIMEHelper::open(KeyboardOptions options) {
 	if (!m_inl) return;
 	__dispatch_x11_async(Cb([=](Se& e){
+		m_inl->set_keyboard_type(options.type);
+		m_inl->set_keyboard_return_type(options.return_type);
+		m_inl->set_spot_location(options.spot_location);
+		if (options.is_clear) {
+			m_inl->clear();
+		}
 		m_inl->open();
 	}));
 }
@@ -609,10 +611,10 @@ void LINUXIMEHelper::set_keyboard_return_type(KeyboardReturnType type) {
 		m_inl->set_keyboard_return_type(type);
 	}));
 }
-void LINUXIMEHelper::set_spot_location(Vec2 point) {
+void LINUXIMEHelper::set_spot_location(Vec2 location) {
 	if (!m_inl) return;
 	__dispatch_x11_async(Cb([=](Se& e){
-		m_inl->set_spot_location(point);
+		m_inl->set_spot_location(location);
 	}));
 }
 void LINUXIMEHelper::key_press(XKeyPressedEvent *event) {

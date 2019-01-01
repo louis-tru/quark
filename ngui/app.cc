@@ -157,7 +157,7 @@ bool AppInl::set_focus_view(View* view) {
 			}
 			m_focus_view = view;
 			m_focus_view->retain(); // strong ref
-			m_dispatch->make_text_input(dynamic_cast<TextInputProtocol*>(view));
+			m_dispatch->make_text_input(dynamic_cast<ITextInput*>(view));
 		} else {
 			return false;
 		}
