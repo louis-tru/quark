@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../pcm-player.h"
+#include <alsa/asoundlib.h>
 
 XX_NS(ngui)
 
