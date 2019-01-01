@@ -360,7 +360,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 				final_size_y = sy.value;
 				final_size_x = tex_width * final_size_y / tex_height;
 				break;
-			case BackgroundSizeType::PERCENT:
+			default: // case BackgroundSizeType::PERCENT:
 				final_size_y = sy.value * v->m_final_height;
 				final_size_x = tex_width * final_size_y / tex_height;
 				break;
@@ -378,7 +378,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 			case BackgroundSizeType::PIXEL:
 				final_size_y = sy.value;
 				break;
-			case BackgroundSizeType::PERCENT:
+			default:// case BackgroundSizeType::PERCENT:
 				final_size_y = sy.value * v->m_final_height;
 				break;
 		}
