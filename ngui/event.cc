@@ -937,6 +937,7 @@ void GUIEventDispatch::dispatch_ime_control(KeyboardKeyName name) {
 }
 
 void GUIEventDispatch::make_text_input(ITextInput* input) {
+	DLOG("make_text_input");
 	if ( input != m_text_input ) {
 		m_text_input = input;
 		

@@ -258,9 +258,6 @@
 				},
 			}],
 			['os=="linux"', {
-				'include_dirs': [
-					'../tools/linux/usr/include',
-				],
 				'sources': [
 					'platforms/linux-app.cc',
 					'platforms/linux-gl.cc',

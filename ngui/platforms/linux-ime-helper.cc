@@ -99,6 +99,7 @@ class LINUXIMEHelper::Inl {
 	}
 
 	void open() {
+		DLOG("IME open");
 		if (!m_has_open) {
 			m_has_open = true;
 			registerInstantiateCallback();
@@ -106,19 +107,21 @@ class LINUXIMEHelper::Inl {
 	}
 
 	void close() {
+		DLOG("IME close");
 		m_has_open = false;
 		destroyIC();
 		closeIM();
 	}
 
 	void clear() {
+		DLOG("IME clear");
 		if (m_has_open && m_ic) {
 			if (!m_preedit_string.is_empty()) {
 				m_preedit_string = String();
 				m_app->dispatch()->dispatch_ime_unmark(String());
 			}
-			XwcResetIC(m_ic);
 			XUnsetICFocus(m_ic);
+			Xutf8ResetIC(m_ic);
 			XSetICFocus(m_ic);
 		}
 	}
@@ -136,11 +139,14 @@ class LINUXIMEHelper::Inl {
 	}
 
 	void set_spot_location(Vec2 location) {
-		Vec2 scale = m_app->display_port()->scale_value();
-		m_spot_location = {
-			int16(location.x() * scale.x()), int16(location.y() * scale.y())
-		};
-		updateSpotLocation();
+		DLOG("set_spot_location, x=%f,y=%f", location[0], location[1]);
+		if (location[0] != 0 || location[1] != 0) {
+			Vec2 scale = m_app->display_port()->scale_value();
+			m_spot_location = {
+				int16(location.x() * scale.x()), int16(location.y() * scale.y())
+			};
+			updateSpotLocation();
+		}
 	}
 
 	void key_press(XKeyPressedEvent *event)
@@ -186,9 +192,11 @@ class LINUXIMEHelper::Inl {
 				onKeyControl(KEYCODE_MOVE_END);
 			} else {
 				if ((status == XLookupChars || status == XLookupBoth) &&
-				((event->state & ControlMask) != ControlMask) &&
-				((event->state & Mod1Mask) != Mod1Mask))
-				insert(buf);
+					((event->state & ControlMask) != ControlMask) &&
+					((event->state & Mod1Mask) != Mod1Mask)) 
+				{
+					insert(buf);
+				}
 			}
 		}
 	}

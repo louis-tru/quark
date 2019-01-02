@@ -197,6 +197,9 @@
 				],
 			}],
 			['os=="linux"', {
+				'include_dirs': [
+					'linux/usr/include',
+				],
 				'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
 					'-Wall',
@@ -215,7 +218,6 @@
 				'ldflags': [ 
 					'-pthread', 
 					#'-rdynamic',
-					
 				],
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] },],

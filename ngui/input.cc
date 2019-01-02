@@ -51,7 +51,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	void click_handle(GUIEvent& evt) {
 		GUIClickEvent* e = static_cast<GUIClickEvent*>(&evt);
 		if ( editing_ ) {
-			_inl_app(app())->ime_keyboard_open({ false, type_, return_type_ });
+			_inl_app(app())->ime_keyboard_open({ false, type_, return_type_, input_spot_location() });
 		} else {
 			if ( flag_ == 8 ) { // 禁用点击聚焦
 				flag_ = 0;
@@ -679,7 +679,7 @@ KeyboardReturnType Input::input_keyboard_return_type() {
 void Input::set_type(KeyboardType value) {
 	type_ = value;
 	if ( editing_ ) {
-		_inl_app(app())->ime_keyboard_open({ false, type_, return_type_ });
+		_inl_app(app())->ime_keyboard_open({ false, type_, return_type_, input_spot_location() });
 	}
 }
 
@@ -689,7 +689,7 @@ void Input::set_type(KeyboardType value) {
 void Input::set_return_type(KeyboardReturnType value) {
 	return_type_ = value;
 	if ( editing_ ) {
-		_inl_app(app())->ime_keyboard_open({ false, type_, return_type_ });
+		_inl_app(app())->ime_keyboard_open({ false, type_, return_type_, input_spot_location() });
 	}
 }
 

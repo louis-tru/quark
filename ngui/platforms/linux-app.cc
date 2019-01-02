@@ -103,10 +103,22 @@ class LinuxApplication {
 			ScopeLock lock(m_queue_mutex);
 			m_queue.push(cb);
 		}
+		// XExposeEvent event;
+		// event.type = Expose;
+		// event.display = m_dpy;
+		// event.window = m_win;
+		// event.x = 0;
+		// event.y = 0;
+		// event.width = 1;
+		// event.height = 1;
+		// event.count = 0;
+		// Status status = XSendEvent(m_dpy, m_win, true, ExposureMask, (XEvent*)&event);
+
 		XCirculateEvent event;
 		event.type = CirculateNotify;
 		event.display = m_dpy;
 		event.window = m_win;
+		// event.parent = m_root;
 		event.place = PlaceOnTop;
 		XSendEvent(m_dpy, m_win, false, NoEventMask, (XEvent*)&event);
 	}
@@ -207,6 +219,9 @@ class LinuxApplication {
 					break;
 				case CirculateNotify:
 					DLOG("event, CirculateNotify");
+					break;
+				case CirculateRequest:
+					DLOG("event, CirculateRequest");
 					break;
 				case ClientMessage:
 					if (event.xclient.message_type == m_wm_protocols && 
