@@ -5,8 +5,13 @@ OUT   := ../out/$(OS).$(ARCH)/test2
 CXX   ?= g++
 NAME  ?= test2
 
+ifeq ($(OS),Linux)
+	LINUX = $(OS)
+endif
+
 # -ffunction-sections -fdata-sections 
-FLAGS 		= -Wall -g -O0 -I. '-DDEBUG' '-D_DEBUG'
+INCLUDES	= -I. $(if $(LINUX),-I../tools/linux/usr/include)
+FLAGS 		= -Wall -g -O0 $(INCLUDES) '-DDEBUG' '-D_DEBUG'
 CXXFLAGS 	= -std=c++0x -fexceptions -frtti
 LINKFLAGS = -lGLESv2 -lEGL -lX11 -pthread -lasound
 
