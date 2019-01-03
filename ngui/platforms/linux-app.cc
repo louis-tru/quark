@@ -421,6 +421,7 @@ void GUIApplication::pending() {
  */
 void GUIApplication::open_url(cString& url) {
 	// TODO ...
+	// x-www-browser
 }
 
 /**
