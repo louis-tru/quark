@@ -120,6 +120,7 @@
 				'test2-x11.cc',
 				'test2-xim.cc',
 				'test2-alsa.cc',
+				'test2-alsa2.cc',
 			],
 			'mac_bundle': 1,
 			'xcode_settings': {

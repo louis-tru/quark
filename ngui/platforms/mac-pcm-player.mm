@@ -284,9 +284,9 @@ class ApplePCMPlayer: public Object, public PCMPlayer {
 };
 
 PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
-	Handle<ApplePCMPlayer> pcm = new ApplePCMPlayer();
-	if ( pcm->initialize(channel_count, sample_rate) ) {
-		return pcm.collapse();
+	Handle<ApplePCMPlayer> player = new ApplePCMPlayer();
+	if ( player->initialize(channel_count, sample_rate) ) {
+		return player.collapse();
 	}
 	return NULL;
 }

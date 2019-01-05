@@ -38,11 +38,11 @@ typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
 
 enum {
-/** Default audio channel mask */
+	/** Default audio channel mask */
 	CHANNEL_OUT_DEFAULT = 1,
 
-// Output channel mask definitions below are translated to the native values defined in
-//  in /system/media/audio/include/system/audio.h in the JNI code of AudioTrack
+	// Output channel mask definitions below are translated to the native values defined in
+	//  in /system/media/audio/include/system/audio.h in the JNI code of AudioTrack
 	CHANNEL_OUT_FRONT_LEFT = 0x4,
 	CHANNEL_OUT_FRONT_RIGHT = 0x8,
 	CHANNEL_OUT_FRONT_CENTER = 0x10,
@@ -54,19 +54,19 @@ enum {
 	CHANNEL_OUT_BACK_CENTER = 0x400,
 	CHANNEL_OUT_SIDE_LEFT = 0x800,
 	CHANNEL_OUT_SIDE_RIGHT = 0x1000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_CENTER = 0x2000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_FRONT_LEFT = 0x4000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_FRONT_CENTER = 0x8000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_FRONT_RIGHT = 0x10000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_BACK_LEFT = 0x20000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_BACK_CENTER = 0x40000,
-/** @hide */
+	/** @hide */
 	CHANNEL_OUT_TOP_BACK_RIGHT = 0x80000,
 };
 
@@ -112,7 +112,7 @@ int get_channel_mask(uint channel_count) {
  * @class AndroidAudioTrack
  */
 class AndroidAudioTrack: public Object, public PCMPlayer {
-public:
+ public:
 	typedef DefaultTraits Traits;
 
 	AndroidAudioTrack()
@@ -252,7 +252,7 @@ public:
 																		m_sample_rate, mask, 2/*ENCODIXX_PCM_16BIT*/);
 	}
 
-private:
+ private:
 	uint        m_sample_rate;
 	uint        m_channel_count;
 	int         m_buffer_size;
@@ -279,9 +279,9 @@ private:
  * @func _inl_create_android_audio_track
  */
 PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate) {
-	Handle<AndroidAudioTrack> pcm = new AndroidAudioTrack();
-	if ( pcm->initialize(channel_count, sample_rate) ) {
-		return pcm.collapse();
+	Handle<AndroidAudioTrack> player = new AndroidAudioTrack();
+	if ( player->initialize(channel_count, sample_rate) ) {
+		return player.collapse();
 	}
 	return NULL;
 }

@@ -151,7 +151,8 @@ class AppleVideoCodec: public MediaCodec {
 																	void* source_sample,
 																	OSStatus status,
 																	VTDecodeInfoFlags flags,
-																	CVImageBufferRef buffer, CMTime pts, CMTime duration) {
+																	CVImageBufferRef buffer, CMTime pts, CMTime duration) 
+	{
 		if (status == noErr) {
 			ScopeLock scope(self->m_output_buffer_mutex); // lock scope
 			
@@ -195,11 +196,11 @@ class AppleVideoCodec: public MediaCodec {
 			kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange], (id)kCVPixelBufferPixelFormatTypeKey,
 			[NSNumber numberWithUnsignedInt:track.width], (id)kCVPixelBufferWidthKey,
 			[NSNumber numberWithUnsignedInt:track.height], (id)kCVPixelBufferHeightKey,
-		#if XX_IOS
+		 #if XX_IOS
 			[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLESCompatibilityKey,
-		#else
+		 #else
 			[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLCompatibilityKey,
-		#endif
+		 #endif
 			nil
 		];
 		
@@ -446,7 +447,7 @@ class AppleVideoCodec: public MediaCodec {
 	CMSampleBufferRef         m_sample_data;
 	uint64                    m_sample_time;
 	Mutex                     m_output_buffer_mutex;
-	OutputBufferInfo  m_output_buffer[OUTPUT_BUFFER_NUM];
+	OutputBufferInfo          m_output_buffer[OUTPUT_BUFFER_NUM];
 	uint  m_output_buffer_count;
 	uint  m_start_decoder;
 	uint  m_video_width;

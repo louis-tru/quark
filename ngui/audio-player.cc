@@ -112,7 +112,8 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 						} else if ( status == MULTIMEDIA_SOURCE_STATUS_EOF ) {
 							m_keep->post(Cb([this](Se& evt) {
 								stop();
-							})); return;
+							}));
+							return;
 						}
 					}
 					//
@@ -122,7 +123,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 			if ( m_audio_buffer.total ) {
 				uint64 pts = m_audio_buffer.time;
 				
-				if (m_uninterrupted_play_start_systime &&      // 0表示还没开始
+				if (m_uninterrupted_play_start_systime &&         // 0表示还没开始
 						pts &&                                        // 演示时间为0表示开始或(即时渲染如视频电话)
 						sys_time - m_prev_presentation_time < 300000  // 距离上一帧超过300ms重新记时(如应用程序从休眠中恢复或数据缓冲)
 				) {
@@ -158,6 +159,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 		if ( sleep_st > 0 ) {
 			SimpleThread::sleep_for(sleep_st);
 		}
+
 		goto loop;
 	}
 	

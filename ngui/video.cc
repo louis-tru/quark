@@ -191,6 +191,7 @@ public:
 	void play_audio() {
 		// m_audio->set_frame_size( m_pcm->buffer_size() );
 	 loop:
+
 		uint64 sys_time = sys::time_monotonic();
 		
 		{ //
@@ -229,6 +230,7 @@ public:
 		if ( sleep_st > 0 ) {
 			SimpleThread::sleep_for(sleep_st);
 		}
+
 		goto loop;
 	}
 	

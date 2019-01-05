@@ -349,16 +349,16 @@ extern PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sampl
  * @func create
  */
 PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
-#if USE_ANDROID_OPENSLES_PCM_PLAYER
-	Handle<AndroidPCMOpenSLES> pcm = new AndroidPCMOpenSLES();
-	if ( pcm->initialize( channel_count, sample_rate) ) {
-		return pcm.collapse();
+ #if USE_ANDROID_OPENSLES_PCM_PLAYER
+	Handle<AndroidPCMOpenSLES> player = new AndroidPCMOpenSLES();
+	if ( player->initialize( channel_count, sample_rate) ) {
+		return player.collapse();
 	} else {
 		return _inl_create_android_audio_track(channel_count, sample_rate);
 	}
-#else
+ #else
 	return _inl_create_android_audio_track(channel_count, sample_rate);
-#endif
+ #endif
 }
 
 XX_END

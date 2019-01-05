@@ -148,13 +148,13 @@ static void _TEST_get_sample_data(byte* out, uint size, uint& sample_size) {
 }
 
 #else
-#define _TEST_init_AMediaExtractor(path, select_track) (void*)(0)
-#define _TEST_get_sample_data(out, size, sample_size) (void*)(0)
+# define _TEST_init_AMediaExtractor(path, select_track) (void*)(0)
+# define _TEST_get_sample_data(out, size, sample_size) (void*)(0)
 #endif
 
 // @func init_ffmpeg_jni
 static void init_ffmpeg_jni() {
-#if USE_FFMPEG_MEDIACODEC
+ #if USE_FFMPEG_MEDIACODEC
 	static bool has_init = false;
 	if (!has_init) {
 		has_init = true;
@@ -162,7 +162,7 @@ static void init_ffmpeg_jni() {
 			XX_ERR( "x_jni_set_java_vm(), unsuccessful." );
 		}
 	}
-#endif
+ #endif
 }
 
 /**

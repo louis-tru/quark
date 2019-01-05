@@ -34,29 +34,61 @@
 XX_NS(ngui)
 
 /**
- * @class LinuxPCMOpenSLES
+ * @class LinuxPCMPlayer
  */
-class LinuxPCMOpenSLES: public Object, public PCMPlayer {
+class LinuxPCMPlayer: public Object, public PCMPlayer {
  public:
 	typedef DefaultTraits Traits;
 
-	LinuxPCMOpenSLES() {
+	LinuxPCMPlayer()
+	: m_handle(NULL) {
+	}
+
+	virtual ~LinuxPCMPlayer() {
+		if (m_handle) {
+			snd_pcm_close(m_handle);
+		}
+	}
+
+	bool initialize(uint channel_count, uint sample_rate) {
+		// TODO ...
+		return true;
+	}
+
+	virtual bool write(cBuffer& buffer) {
 		// TODO ...
 	}
 
-	virtual ~LinuxPCMOpenSLES() {
+	virtual void flush() {
+		// TODO ...
+	}
+
+	virtual bool set_mute(bool value) {
+		// TODO ...
+	}
+
+	virtual bool set_volume(uint value) {
+		// TODO ...
+	}
+
+	virtual uint buffer_size() {
 		// TODO ...
 	}
 
  private:
 
+	snd_pcm_t *m_handle;
 };
 
 /**
  * @func create
  */
 PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
-	return nullptr;
+	Handle<LinuxPCMPlayer> player = new LinuxPCMPlayer();
+	if ( player->initialize(channel_count, sample_rate) ) {
+		return player.collapse();
+	}
+	return NULL;
 }
 
 XX_END
