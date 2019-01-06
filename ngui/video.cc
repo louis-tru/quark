@@ -182,13 +182,14 @@ public:
 	bool write_audio_pcm() {
 		bool r = m_pcm->write(WeakBuffer((char*)m_audio_buffer.data[0], m_audio_buffer.linesize[0]));
 		if ( !r ) {
-			XX_DEBUG("Discard, audio PCM frame, %lld", m_audio_buffer.time);
+			DLOG("Discard, audio PCM frame, %lld", m_audio_buffer.time);
 		}
 		m_audio->release(m_audio_buffer);
 		return r;
 	}
 	
 	void play_audio() {
+		float compensate = m_pcm->delay_frame();
 		// m_audio->set_frame_size( m_pcm->buffer_size() );
 	 loop:
 
@@ -212,9 +213,9 @@ public:
 					if (m_audio_buffer.time) {
 						int64 st = (sys_time - m_uninterrupted_play_start_systime) -     // sys
 											 (m_audio_buffer.time - m_uninterrupted_play_start_time); // frame
-						int delay = m_audio->frame_interval();
+						int delay = m_audio->frame_interval() * compensate;
 
-						if (st >= -delay) { // 是否达到播放声音时间。输入pcm到能听到声音会有一些延时,这里设置补偿
+						if (st >= delay) { // 是否达到播放声音时间。输入pcm到能听到声音会有一些延时,这里设置补偿
 							write_audio_pcm();
 						}
 					} else { // 演示时间为0表示开始或即时渲染(如视频电话)
@@ -259,6 +260,10 @@ public:
 				m_video->extractor()->set_disable(true);
 				m_video->close();
 				texture()->unload();
+			}
+
+			if (m_pcm) {
+				m_pcm->flush();
 			}
 			
 			unregister_task();

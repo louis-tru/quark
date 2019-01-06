@@ -206,7 +206,14 @@ class ApplePCMPlayer: public Object, public PCMPlayer {
 	
 	/**
 	 * @overwrite
-	 * */
+	 */
+	virtual float delay_frame() {
+		return -1;
+	}
+
+	/**
+	 * @overwrite
+	 */
 	virtual void flush() {
 		ScopeLock scope(m_mutex);
 		m_wait_write_buffer_index = 0;

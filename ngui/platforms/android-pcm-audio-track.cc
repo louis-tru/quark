@@ -205,6 +205,13 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 
 		return r == buffer.length();
 	}
+	
+	/**
+	 * @overwrite
+	 */
+	virtual float delay_frame() {
+		return -1;
+	}
 
 	/**
 	 * @overwrite

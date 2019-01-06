@@ -29,9 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../pcm-player.h"
+#include "ngui/utils/handle.h"
+#include "ngui/utils/string.h"
 #include <alsa/asoundlib.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 XX_NS(ngui)
+
+#define DEFAULT_PCM_PERIOD_SIZE 4096
+#define DEFAULT_PCM_PERIODS 3
 
 /**
  * @class LinuxPCMPlayer
@@ -41,24 +48,96 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	typedef DefaultTraits Traits;
 
 	LinuxPCMPlayer()
-	: m_handle(NULL) {
+		: m_pcm(NULL)
+		, m_hw_params(NULL), m_sw_params(NULL)
+		, m_period_size(DEFAULT_PCM_PERIOD_SIZE)
+		, m_periods(DEFAULT_PCM_PERIODS)
+		, m_channel_count(0), m_sample_rate(0)
+	{
+	 #if DEBUG
+		char* PCM_PERIODS = getenv("PCM_PERIODS");
+		char* PCM_PERIOD_SIZE = getenv("PCM_PERIOD_SIZE");
+		if (PCM_PERIODS) {
+			m_period_size = String(PCM_PERIODS).to_uint();
+		}
+		if (PCM_PERIOD_SIZE) {
+			m_periods = String(PCM_PERIOD_SIZE).to_uint();
+		}
+	 #endif
 	}
 
 	virtual ~LinuxPCMPlayer() {
-		if (m_handle) {
-			snd_pcm_close(m_handle);
+		if (m_pcm) {
+			snd_pcm_close(m_pcm); m_pcm = NULL;
 		}
+		if (m_hw_params) {
+			snd_pcm_hw_params_free(m_hw_params); m_hw_params = NULL;
+		}
+		if (m_sw_params) {
+			snd_pcm_sw_params_free(m_sw_params); m_sw_params = NULL;
+		}
+		DLOG("~LinuxPCMPlayer");
 	}
 
 	bool initialize(uint channel_count, uint sample_rate) {
+	 #define CHECK() if (r < 0) return 0
+		int r, dir = 0;
+		m_channel_count = channel_count;
+		m_sample_rate = sample_rate;
+
+		r = snd_pcm_open(&m_pcm, "default",
+			SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK); CHECK();
+		// hardware params
+		r = snd_pcm_hw_params_malloc(&m_hw_params); CHECK();
+		r = snd_pcm_hw_params_any(m_pcm, m_hw_params); CHECK();
+		r = snd_pcm_hw_params_set_access(m_pcm, m_hw_params, SND_PCM_ACCESS_RW_INTERLEAVED); CHECK();
+		r = snd_pcm_hw_params_set_format(m_pcm, m_hw_params, SND_PCM_FORMAT_S16); CHECK();
+		r = snd_pcm_hw_params_set_channels(m_pcm, m_hw_params, channel_count); CHECK();
+		r = snd_pcm_hw_params_set_rate_near(m_pcm, m_hw_params, &sample_rate, &dir); CHECK();
+		r = snd_pcm_hw_params_set_period_size_near(m_pcm, m_hw_params, &m_period_size, &dir); CHECK();
+		r = snd_pcm_hw_params_set_periods_near(m_pcm, m_hw_params, &m_periods, &dir); CHECK();
+		// send params to device
+		r = snd_pcm_hw_params(m_pcm, m_hw_params); CHECK();
+		//
+		//software params
+		r = snd_pcm_sw_params_malloc(&m_sw_params); CHECK();
+		r = snd_pcm_sw_params_current(m_pcm, m_sw_params); CHECK();
+		r = snd_pcm_sw_params_set_tstamp_type(m_pcm, 
+			m_sw_params, SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW); CHECK();
+		r = snd_pcm_sw_params_set_start_threshold(m_pcm, m_sw_params, m_period_size * 2); CHECK();
+		r = snd_pcm_sw_params_set_stop_threshold(m_pcm, m_sw_params, m_period_size); CHECK();
+		r = snd_pcm_sw_params_set_avail_min(m_pcm, m_sw_params, m_period_size); CHECK();
+		// send sw params
+		r = snd_pcm_sw_params( m_pcm, m_sw_params); CHECK();
+
+		// pcm handle prepare
+		r = snd_pcm_prepare(m_pcm); CHECK();
+
 		return true;
 	}
 
 	virtual bool write(cBuffer& buffer) {
+		int r;
+		snd_pcm_uframes_t frames;
+		/* buffer.len / 16(采样位数) / 8 * 声道数 */
+		frames = buffer.length() / (16 / 8 * m_channel_count);
+		r = snd_pcm_writei(m_pcm, *buffer, frames);
+		if (r < 0) {
+			DLOG("snd_pcm_writei err,%d", r);
+			r = snd_pcm_recover(m_pcm, r, 0);
+			DLOG("snd_pcm_recover ok,%d", r);
+			return 0;
+		}
 		return true;
 	}
 
+	virtual float delay_frame() {
+		return -4;
+	}
+
 	virtual void flush() {
+		snd_pcm_reset(m_pcm);
+		snd_pcm_prepare(m_pcm);
 	}
 
 	virtual bool set_mute(bool value) {
@@ -70,22 +149,27 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	}
 
 	virtual uint buffer_size() {
-		// TODO ...
+		return m_period_size;
 	}
 
  private:
 
-	snd_pcm_t *m_handle;
+	snd_pcm_t* m_pcm;
+	snd_pcm_hw_params_t* m_hw_params;
+	snd_pcm_sw_params_t* m_sw_params;
+	// snd_mixer_t* m_mixer;
+	snd_pcm_uframes_t m_period_size;
+	uint m_periods, m_channel_count, m_sample_rate;
 };
 
 /**
  * @func create
  */
 PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
-	// Handle<LinuxPCMPlayer> player = new LinuxPCMPlayer();
-	// if ( player->initialize(channel_count, sample_rate) ) {
-	// 	return player.collapse();
-	// }
+	Handle<LinuxPCMPlayer> player = new LinuxPCMPlayer();
+	if ( player->initialize(channel_count, sample_rate) ) {
+		return player.collapse();
+	}
 	return NULL;
 }
 

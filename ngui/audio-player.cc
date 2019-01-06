@@ -78,6 +78,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 	}
 	
 	void play_audio() {
+		float compensate = m_pcm->delay_frame();
 	 loop:
 		
 		uint64 sys_time = sys::time_monotonic();
@@ -129,9 +130,9 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 				) {
 					int64 st =  (sys_time - m_uninterrupted_play_start_systime) -     // sys
 											(pts - m_uninterrupted_play_start_time); // frame
-					int delay = m_audio->frame_interval();
+					int delay = m_audio->frame_interval() * compensate;
 					
-					if (st >= -delay) { // 是否达到播放声音时间。输入pcm到能听到声音会有一些延时,这里设置补偿
+					if (st >= delay) { // 是否达到播放声音时间。输入pcm到能听到声音会有一些延时,这里设置补偿
 						write_audio_pcm(sys_time);
 					}
 				} else {
@@ -182,7 +183,9 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 				m_audio->close();
 				Release(m_audio); m_audio = nullptr;
 			}
+
 			PCMPlayer::Traits::Release(m_pcm); m_pcm = nullptr;
+			
 			m_source->stop();
 			
 			lock.unlock();

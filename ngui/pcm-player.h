@@ -73,6 +73,11 @@ class PCMPlayer {
 	virtual uint buffer_size() = 0;
 
 	/**
+	 * @func delay_frame
+	 */
+	virtual float delay_frame() = 0;
+
+	/**
 	 * @func create
 	 */
 	static PCMPlayer* create(uint channel_count, uint sample_rate);

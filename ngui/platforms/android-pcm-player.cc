@@ -267,6 +267,13 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 		result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
 		return result != SL_RESULT_BUFFER_INSUFFICIENT;
 	}
+	
+	/**
+	 * @overwrite
+	 */
+	virtual float delay_frame() {
+		return -1;
+	}
 
 	/**
 	 * @overwrite
