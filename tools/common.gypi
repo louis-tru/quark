@@ -211,7 +211,7 @@
 					'-Wno-unused-result',
 					'-Wno-deprecated',
 					'-Wno-missing-field-initializers',
-					'-Wno-implicit-fallthrough',
+					# '-Wno-implicit-fallthrough',
 					# '-Wno-misleading-indentation',
 					'-march=<(arch_name)',
 				],
@@ -222,7 +222,7 @@
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
 					['arch=="x64"', { 'cflags': [ '-m64' ] }],
-					['gcc_version<7', { 'cflags!': [ '-Wno-implicit-fallthrough' ] }],
+					['gcc_version>="7.0"', { 'cflags': [ '-Wno-implicit-fallthrough' ] }],
 				],
 			}],
 			['os=="ios"', {

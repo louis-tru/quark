@@ -636,16 +636,10 @@ function configure() {
 			});
 		}
 
-		var version = execSync(`${variables.cc} --version| grep gcc | awk '{ print $4 }'`).stdout[0];
-		if (version) {
-			version = version.replace(/(\d+)\.?(.+)?/, function(all, a, b) {
-				if (b) {
-					return a + '.' + b.replace('.', '');
-				}
-				return all;
-			});
-			variables.gcc_version = Number(version) || 0;
-		}
+		// gcc version
+		var gcc_version = execSync(`${variables.cc} \
+			--version| grep gcc | awk '{ print $4 }'`).stdout[0];
+		variables.gcc_version = gcc_version || 0;
 	}
 	else if (os == 'ios' || os == 'osx') {
 
