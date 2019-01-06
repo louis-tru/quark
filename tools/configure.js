@@ -594,9 +594,13 @@ function configure() {
 			return;
 		}
 		if ( host_os != 'linux' || (host_arch != 'x86' && host_arch != 'x64') ) {
-			console.error(`You can compile targets ${arch} only on X86 or x64 machine Linux systems.`);
+			console.error(`You can compile targets ${arch} only on Linux systems.`);
 			return;
 		}
+		// if (host_arch != 'x86' && host_arch != 'x64') {
+		// 	console.error(`You can compile targets ${arch} only on X86 or x64 machine Linux systems.`);
+		// 	return;
+		// }
 		if ( opts.clang ) {
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
