@@ -636,7 +636,7 @@ function configure() {
 			});
 		}
 
-		var version = execSync(`${variables.cxx} --version| grep gcc | awk '{ print $4 }'`).stdout[0];
+		var version = execSync(`${variables.cc} --version| grep gcc | awk '{ print $4 }'`).stdout[0];
 		if (version) {
 			version = version.replace(/(\d+)\.?(.+)?/, function(all, a, b) {
 				if (b) {
