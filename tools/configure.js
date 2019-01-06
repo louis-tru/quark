@@ -593,7 +593,7 @@ function configure() {
 			console.error(`do not support linux os and ${arch} cpu architectures`);
 			return;
 		}
-		if ( host_os != 'linux' || (host_arch != 'x86' && host_arch != 'x64') ) {
+		if ( host_os != 'linux' ) {
 			console.error(`You can compile targets ${arch} only on Linux systems.`);
 			return;
 		}
