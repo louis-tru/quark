@@ -285,7 +285,7 @@
                 }],
               ],
             }],
-            [ 'OS=="linux" or (OS=="android" and (target_arch=="ia32" or target_arch=="x64"))', {
+            [ '(OS=="linux" or OS=="android") and (target_arch=="ia32" or target_arch=="x64")', {
               'conditions': [
                 [ 'use_system_yasm==1', {
                   'variables': { 'yasm_path': '<!(which yasm)' }
