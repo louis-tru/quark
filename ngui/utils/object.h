@@ -87,9 +87,9 @@ struct ObjectAllocator {
 	Retain retain;
 };
 
-template<class T, class Alloc = DefaultAllocator> class Container;
+template<class T, class A = DefaultAllocator> class Container;
 template<class T, class Container = Container<T>> class Array;
-template<class Item, class ItemAllocator = Allocator> class List;
+template<class Item, class ItemAllocator = DefaultAllocator> class List;
 template<class Char = char, class Container = Container<Char>> class BasicString;
 typedef BasicString<> String;
 typedef const String cString;
