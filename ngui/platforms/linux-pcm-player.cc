@@ -131,8 +131,8 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		return true;
 	}
 
-	virtual float delay_frame() {
-		return -4;
+	virtual float compensate() {
+		return -10.0f;
 	}
 
 	virtual void flush() {

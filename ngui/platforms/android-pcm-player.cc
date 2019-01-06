@@ -271,8 +271,8 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	/**
 	 * @overwrite
 	 */
-	virtual float delay_frame() {
-		return -1;
+	virtual float compensate() {
+		return -1.0;
 	}
 
 	/**

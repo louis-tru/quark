@@ -73,9 +73,9 @@ class PCMPlayer {
 	virtual uint buffer_size() = 0;
 
 	/**
-	 * @func delay_frame
+	 * @func compensate
 	 */
-	virtual float delay_frame() = 0;
+	virtual float compensate() = 0;
 
 	/**
 	 * @func create

@@ -78,7 +78,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 	}
 	
 	void play_audio() {
-		float compensate = m_pcm->delay_frame();
+		float compensate = m_pcm->compensate();
 	 loop:
 		
 		uint64 sys_time = sys::time_monotonic();

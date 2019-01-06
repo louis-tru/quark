@@ -189,7 +189,7 @@ public:
 	}
 	
 	void play_audio() {
-		float compensate = m_pcm->delay_frame();
+		float compensate = m_pcm->compensate();
 		// m_audio->set_frame_size( m_pcm->buffer_size() );
 	 loop:
 
