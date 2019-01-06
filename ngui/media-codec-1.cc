@@ -49,15 +49,15 @@ static DefaultMultimediaSourceDelegate default_multimedia_source_delegate;
 // ------------------- MultimediaSource::Inl ------------------
 
 Inl::Inl(MultimediaSource* host, cString& uri, RunLoop* loop)
-: ParallelWorking(loop)
-, m_host(host)
-, m_status(MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED)
-, m_delegate(&default_multimedia_source_delegate)
-, m_bit_rate_index(0)
-, m_duration(0)
-, m_fmt_ctx(nullptr)
-, m_read_eof(false)
-, m_disable_wait_buffer(false)
+	: ParallelWorking(loop)
+	, m_host(host)
+	, m_status(MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED)
+	, m_delegate(&default_multimedia_source_delegate)
+	, m_bit_rate_index(0)
+	, m_duration(0)
+	, m_fmt_ctx(nullptr)
+	, m_read_eof(false)
+	, m_disable_wait_buffer(false)
 {
 	m_uri = URI( f_reader()->format(uri) );
 	/* register all formats and codecs */

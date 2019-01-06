@@ -34,7 +34,7 @@
 using namespace ngui;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
-public:
+ public:
 	
 	AsyncFileRead(cString& src): AsyncFile(src) {
 		set_delegate(this);
@@ -80,7 +80,7 @@ public:
 };
 
 class AsyncFileWrite: public AsyncFile, public AsyncFile::Delegate {
-public:
+ public:
 	
 	AsyncFileWrite(cString& src): AsyncFile(src) {
 		set_delegate(this);
@@ -112,7 +112,7 @@ public:
 	virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {}
 };
 
-void test_file_async() {
+void test_file_async(int argc, char **argv) {
 	New<AsyncFileWrite>(Path::documents("test2.txt"))->open(FOPEN_A);
 	RunLoop::current()->run();
 }

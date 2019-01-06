@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <alsa/asoundlib.h>
+#if defined(__linux__)
 
-using namespace std;
+#include <alsa/asoundlib.h>
 
 static char *device = "default";    /*default playback device */
 
@@ -75,3 +75,5 @@ int test2_alsa(int argc, char *argv[])
 	snd_pcm_close(handle);
 	return 0;
 }
+
+#endif

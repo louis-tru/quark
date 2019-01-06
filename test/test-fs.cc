@@ -33,7 +33,7 @@
 
 using namespace ngui;
 
-void test_fs() {
+void test_fs(int argc, char **argv) {
 	
 	String test_str = "ABCDEFG";
 	

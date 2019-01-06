@@ -49,14 +49,15 @@ class AppleVideoCodec: public MediaCodec {
 	};
 	
 	AppleVideoCodec(Extractor* ex)
-	: MediaCodec(ex)
-	, m_session(nullptr)
-	, m_format_desc(nullptr)
-	, m_sample_data(nullptr), m_sample_time(0)
-	, m_output_buffer_count(0)
-	, m_start_decoder(0)
-	, m_video_width(0), m_video_height(0)
-	, m_presentation_time(0) {
+		: MediaCodec(ex)
+		, m_session(nullptr)
+		, m_format_desc(nullptr)
+		, m_sample_data(nullptr), m_sample_time(0)
+		, m_output_buffer_count(0)
+		, m_start_decoder(0)
+		, m_video_width(0), m_video_height(0)
+		, m_presentation_time(0) 
+	{
 		
 	}
 	

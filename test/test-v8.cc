@@ -164,7 +164,7 @@ void test_template(Isolate* isolate, Local<Context> ctx) {
 	run_script(isolate, "test()", "test.js");
 }
 
-void test_v8() {
+void test_v8(int argc, char **argv) {
 	
 	v8::Platform* platform = v8::platform::CreateDefaultPlatform();
 	v8::V8::InitializePlatform(platform);

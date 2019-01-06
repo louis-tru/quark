@@ -194,7 +194,7 @@ static int SSLCertCallback(SSL* s, void* arg) {
 	return 1;
 }
 
-void test_ssl() {
+void test_ssl(int argc, char **argv) {
 	
 	init_ssl();
 	

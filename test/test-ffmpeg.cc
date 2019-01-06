@@ -35,7 +35,6 @@ extern "C" {
 	#include <libavutil/timestamp.h>
 	#include <libavformat/avformat.h>
 	#include <libavcodec/avcodec.h>
-	
 	// #include <libavcodec/fft.h>
 }
 
@@ -269,7 +268,7 @@ static int get_format_from_sample_fmt(const char **fmt,
 	return -1;
 }
 
-int test_ffmpeg ()
+int test_ffmpeg (int argc, char **argv)
 {
 	int ret = 0, got_frame;
 	

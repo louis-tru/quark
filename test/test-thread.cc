@@ -38,7 +38,7 @@
 using namespace ngui;
 
 class Foo {
-public:
+ public:
 	Foo()
 	: flag_(0)
 	, thread1_(std::bind(&Foo::threadFunc1, this))
@@ -52,7 +52,7 @@ public:
 		thread2_.join();
 	}
 	
-private:
+ private:
 	void threadFunc1()
 	{
 		std::unique_lock<std::mutex> ul(mutex_);
@@ -105,7 +105,7 @@ void test_for() {
 	
 }
 
-void test_thread() {
+void test_thread(int argc, char **argv) {
 	
 	std::thread::id id = std::this_thread::get_id();
 	{

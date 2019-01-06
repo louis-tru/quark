@@ -35,7 +35,7 @@
 
 using namespace ngui;
 
-void test_json() {
+void test_json(int argc, char **argv) {
 	
 	String str1("100");
 	String str2 = str1;

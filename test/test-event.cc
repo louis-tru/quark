@@ -36,7 +36,7 @@
 
 using namespace ngui;
 
-void test_event() {
+void test_event(int argc, char **argv) {
 	
 	EventNoticer<Event<int>> ontest("test");
 	

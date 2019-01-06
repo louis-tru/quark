@@ -36,7 +36,7 @@
 using namespace ngui;
 
 class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
-public:
+ public:
 	MyClient(): HttpClientRequest( ), count(0) {
 		set_delegate(this);
 	}
@@ -78,7 +78,7 @@ public:
 	
 };
 
-void test_http2() {
+void test_http2(int argc, char **argv) {
 	
 	MyClient* cli = new MyClient();
 	

@@ -92,6 +92,7 @@
 				'test-benchmark.cc',
 				'test-sizeof.cc',
 				'test-util.cc',
+				'test-alsa-ff.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {
@@ -111,9 +112,6 @@
 		{
 			'target_name': 'test2',
 			'type': 'executable',
-			'dependencies': [
-				'ngui-utils',
-			],
 			'sources': [
 				'test2.cc',
 				'test2-thread.cc',
@@ -142,11 +140,6 @@
 							'-lGLESv2', '-lEGL', '-lX11', '-lasound',
 						],
 					},
-					'ldflags': [ 
-						'-Wl,--whole-archive',
-						'<(output)/obj.target/libngui-utils.a',
-						'-Wl,--no-whole-archive',
-					],
 				}],
 			],
 		},

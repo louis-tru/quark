@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#if defined(__linux__)
+
 #include <alsa/asoundlib.h>
 
 int test2_alsa2(int argc, char *argv[])
@@ -173,3 +175,5 @@ int test2_alsa2(int argc, char *argv[])
 	
 	return 0;
 }
+
+#endif

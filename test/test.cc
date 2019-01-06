@@ -33,18 +33,18 @@
 #include "ngui/utils/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_http3
+#define TEST_FUNC_NAME test_alsa_ff
 #endif
 
 using namespace ngui;
 
-void TEST_FUNC_NAME();
+void TEST_FUNC_NAME(int argc, char** argv);
 
 XX_GUI_MAIN() {
 
 	uint64 st = sys::time();
 	
-	TEST_FUNC_NAME();
+	TEST_FUNC_NAME(argc, argv);
 	
 	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
 

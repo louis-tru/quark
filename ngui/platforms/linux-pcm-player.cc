@@ -84,10 +84,10 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
  * @func create
  */
 PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
-	Handle<LinuxPCMPlayer> player = new LinuxPCMPlayer();
-	if ( player->initialize(channel_count, sample_rate) ) {
-		return player.collapse();
-	}
+	// Handle<LinuxPCMPlayer> player = new LinuxPCMPlayer();
+	// if ( player->initialize(channel_count, sample_rate) ) {
+	// 	return player.collapse();
+	// }
 	return NULL;
 }
 

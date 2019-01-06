@@ -32,7 +32,7 @@
 
 using namespace ngui;
 
-void test_localstorage() {
+void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test2"));
 	

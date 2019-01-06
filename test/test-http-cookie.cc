@@ -33,7 +33,7 @@
 
 using namespace ngui;
 
-void test_http_cookie() {
+void test_http_cookie(int argc, char **argv) {
 	
 	LOG(http_cookie_get("ngui.io", "test"));
 	

@@ -46,7 +46,7 @@ class TestSizeOf {
 
 typedef TestSizeOf* TestSizeOfPtr;
 
-void test_sizeof() {
+void test_sizeof(int argc, char **argv) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
 	

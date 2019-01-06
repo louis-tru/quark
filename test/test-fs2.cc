@@ -80,7 +80,7 @@ class TestAsyncFile: public AsyncFile, public AsyncFile::Delegate {
 
 };
 
-void test_fs2() {
+void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	

@@ -116,7 +116,8 @@ class MultimediaSource::Inl: public ParallelWorking {
 	 */
 	AVStream* get_stream(const TrackInfo& track);
 	
- private: 
+ private:
+
 	typedef Extractor::SampleData SampleData;
 	
 	void reset();
@@ -140,7 +141,6 @@ class MultimediaSource::Inl: public ParallelWorking {
 	friend class MediaCodec;
 	friend class SoftwareMediaCodec;
 	
- private:
 	MultimediaSource*           m_host;
 	URI                         m_uri;
 	MultimediaSourceStatus      m_status;

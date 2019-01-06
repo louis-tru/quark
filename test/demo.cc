@@ -32,7 +32,7 @@
 
 XX_GUI_MAIN() {
 	
-	test_demo();
+	test_demo(argc, argv);
 	
 	return 0;
 }

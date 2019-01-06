@@ -34,6 +34,6 @@ using namespace ngui;
 
 #define IP_REMOTE "127.0.0.1"
 
-void test_benchmark() {
+void test_benchmark(int argc, char **argv) {
 	js::start("http://" IP_REMOTE ":1026/benchmark --dev --ignore-local=*");
 }

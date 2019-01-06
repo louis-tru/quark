@@ -394,7 +394,7 @@ JSValueRef PrintCallback(JSContextRef ctx, JSObjectRef function,
 	return nullptr;
 }
 
-void test_jsc() {
+void test_jsc(int argc, char **argv) {
 	JSContextGroupRef group = JSContextGroupCreate();
 	JSGlobalContextRef ctx = JSGlobalContextCreateInGroup(group, nullptr);
 	JSGlobalContextRef ctx1 = JSGlobalContextCreateInGroup(group, nullptr);

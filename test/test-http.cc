@@ -35,7 +35,7 @@
 
 using namespace ngui;
 
-void test_http() {
+void test_http(int argc, char **argv) {
 	LOG(HttpHelper::get_sync("http://www.163.com/"));
 	
 	String m3u8 = "http://huace.cdn.ottcloud.tv/huace/videos/dst/2016/08/"

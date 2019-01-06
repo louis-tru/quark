@@ -33,7 +33,7 @@
 
 using namespace ngui;
 
-void test_buffer() {
+void test_buffer(int argc, char **argv) {
 	
 	Buffer bf(5);
 	

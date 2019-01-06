@@ -33,7 +33,7 @@
 
 using namespace ngui;
 
-void test_util() {
+void test_util(int argc, char **argv) {
 	int64 i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");
 	LOG(i);
 }

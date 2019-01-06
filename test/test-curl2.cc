@@ -67,7 +67,7 @@ static size_t req_reader_cb(void* buffer, size_t size, size_t nmemb, void* data)
 	return 0;
 }
 
-void test_curl2() {
+void test_curl2(int argc, char **argv) {
 	
 	HttpHelper::initialize();
 	

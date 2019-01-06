@@ -48,7 +48,7 @@ static void _timer(CFRunLoopTimerRef timer __unused, void *info) {
 	CFRunLoopSourceSignal(source);
 }
 
-int test_ios_run_loop() {
+int test_ios_run_loop(int argc, char **argv) {
 	
 	CFRunLoopSourceRef source;
 	CFRunLoopSourceContext source_context;

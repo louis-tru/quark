@@ -38,7 +38,7 @@ using namespace ngui;
 #define IP_REMOTE "127.0.0.1"
 #define USE_INSPECT 0
 
-void test_ngui() {
+void test_ngui(int argc, char **argv) {
 #if USE_REMOTE
 # if USE_INSPECT
 	js::start("--inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/test/test-ngui");

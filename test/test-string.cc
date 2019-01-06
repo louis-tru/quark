@@ -89,7 +89,7 @@ void test2 (const string& str) {
 
 // const static Str s = "op";
 
-void test_string () {
+void test_string (int argc, char **argv) {
 	
 	// utf8 / ucs2 / ucs4
 	Ucs2String ucs2 = Coder::decoding_to_uint16(Encoding::utf8, "楚学文"); // 解码

@@ -34,7 +34,7 @@
 using namespace ngui;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
-public:
+ public:
 	MySSLSocket(): SSLSocket("www.baidu.com", 443) {
 		set_delegate(this);
 		open();
@@ -79,7 +79,7 @@ public:
 	}
 };
 
-void test_net_ssl() {
+void test_net_ssl(int argc, char **argv) {
 	New<MySSLSocket>();
 	RunLoop::current()->run();
 }

@@ -37,7 +37,7 @@ static void message_cb(Se& ev, RunLoop* loop) {
 	LOG("message_cb, %d", i++);
 }
 
-void test_loop() {
+void test_loop(int argc, char **argv) {
 	RunLoop* loop = RunLoop::current();
 	KeepLoop* keep = loop->keep_alive();
 	SimpleThread::detach([&](SimpleThread& e) {

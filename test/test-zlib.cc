@@ -34,7 +34,7 @@
 
 using namespace ngui;
 
-void test_zlib () {
+void test_zlib (int argc, char **argv) {
 	
 	std::map<String, int> map;
 	

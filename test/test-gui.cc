@@ -118,7 +118,7 @@ void onload_handle (Event<>& evt, void* user) {
 	
 }
 
-void test_gui() {
+void test_gui(int argc, char **argv) {
 	GUIApplication app;
 	app.XX_ON(load, onload_handle);
 	app.run();

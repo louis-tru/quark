@@ -224,7 +224,7 @@ int curl_easy_demo(int num) {
 	return 0;
 }
 
-void test_curl() {
+void test_curl(int argc, char **argv) {
 //  test_curl();
 	curl_multi_demo(1);
 //  curl_easy_demo(1);

@@ -304,7 +304,7 @@ void draw_char() {
 	app.run();
 }
 
-void test_freetype() {
+void test_freetype(int argc, char **argv) {
 	
 	LOG(sys::info());
 	

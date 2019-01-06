@@ -36,23 +36,23 @@ XX_NS(ngui)
  * @class SoftwareMediaCodec
  */
 class SoftwareMediaCodec: public MediaCodec {
-public:
+ public:
 	
 	/**
 	 * @constructor
 	 */
 	SoftwareMediaCodec(Extractor* extractor, AVCodecContext* ctx)
-	: MediaCodec(extractor)
-	, m_codec_ctx(ctx)
-	, m_frame(NULL)
-	, m_audio_buffer_size(0)
-	, m_audio_swr_ctx(NULL)
-	, m_audio_frame_size(0)
-	, m_presentation_time(0)
-	, m_threads(1)
-	, m_background_run(false)
-	, m_is_open(false)
-	, m_output_occupy(false)
+		: MediaCodec(extractor)
+		, m_codec_ctx(ctx)
+		, m_frame(NULL)
+		, m_audio_buffer_size(0)
+		, m_audio_swr_ctx(NULL)
+		, m_audio_frame_size(0)
+		, m_presentation_time(0)
+		, m_threads(1)
+		, m_background_run(false)
+		, m_is_open(false)
+		, m_output_occupy(false)
 	{
 		m_frame = av_frame_alloc(); XX_ASSERT(m_frame);
 		
@@ -178,7 +178,7 @@ public:
 	 * @func background_run
 	 */
 	void background_run(SimpleThread& t) {
-	loop:
+	 loop:
 		bool ok = 0;
 		{ //
 			ScopeLock scope(t.mutex());
@@ -404,7 +404,7 @@ public:
 		return nullptr;
 	}
 	
-private:
+ private:
 	AVCodecContext* m_codec_ctx;
 	AVFrame*        m_frame;
 	Buffer          m_audio_buffer;

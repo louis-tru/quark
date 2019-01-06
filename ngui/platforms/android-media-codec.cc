@@ -169,21 +169,21 @@ static void init_ffmpeg_jni() {
  * @class AndroidHardwareMediaCodec
  * */
 class AndroidHardwareMediaCodec: public MediaCodec {
-public:
+ public:
 
 	/**
 	 * @constructor
 	 */
 	AndroidHardwareMediaCodec(Extractor* extractor, AMediaCodec* codec, AMediaFormat* format)
-	: MediaCodec(extractor)
-	, m_format(format)
-	, m_codec(codec)
-	, m_eof_flags(false)
-	, m_video_width(0)
-	, m_video_height(0)
-	, m_audio_frame_size(0)
-	, m_presentation_time(0)
-	, m_is_open(true)
+		: MediaCodec(extractor)
+		, m_format(format)
+		, m_codec(codec)
+		, m_eof_flags(false)
+		, m_video_width(0)
+		, m_video_height(0)
+		, m_audio_frame_size(0)
+		, m_presentation_time(0)
+		, m_is_open(true)
 	{
 		const TrackInfo& track = extractor->track();
 

@@ -39,7 +39,7 @@ class Test{
 	String str;
 };
 
-void test_list() {
+void test_list(int argc, char **argv) {
 	
 	String str = "a,b,c,d,s,d,f,g,gh,t,r,w,cs,dsfsd,fsdf,dsf,sdf,sd";
 	

@@ -33,7 +33,7 @@
 
 using namespace ngui;
 
-void test_sys() {
+void test_sys(int argc, char **argv) {
 	LOG(sys::info());
 	LOG(sys::version());
 	LOG(sys::brand());

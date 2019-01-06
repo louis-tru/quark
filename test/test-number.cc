@@ -462,7 +462,7 @@ void test_operation(const char* name) {
   LOG("%s: %llu", name, s2 - s1);
 }
 
-void test_number() {
+void test_number(int argc, char **argv) {
   
   double d = -500;
   

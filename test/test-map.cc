@@ -36,7 +36,7 @@
 
 using namespace ngui;
 
-void test_map() {
+void test_map(int argc, char **argv) {
 	
 	std::map<int, String> m;
 	

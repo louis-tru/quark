@@ -102,7 +102,7 @@ void test_net_parse_host(cString& host_str, int af) {
 }
 
 class MySocket: public Socket, public Socket::Delegate {
-public:
+ public:
 	MySocket(): Socket("www.iqiyi.com", 80) {
 		set_delegate(this);
 		open();
@@ -146,7 +146,7 @@ public:
 	}
 };
 
-void test_net() {
+void test_net(int argc, char **argv) {
 	test_net_parse_host("v.qq.com", AF_INET);
 	test_net_parse_host("google.com", AF_INET6);
 	test_net_parse_host("google.com", -1);

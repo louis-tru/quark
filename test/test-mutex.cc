@@ -71,7 +71,7 @@ void test_idle()
 	LOG("idle,%d", cnt);
 }
 
-void test_mutex() {
+void test_mutex(int argc, char **argv) {
 	{
 		run_flag = true;
 		std::thread thr(test_mutex0);

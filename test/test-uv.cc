@@ -153,7 +153,7 @@ void test_timer_uv() {
 	LOG("test uv timer ok");
 }
 
-void test_uv() {
+void test_uv(int argc, char **argv) {
 	uv_loop = uv_loop_new();
 	test_uv_file();
 	test_uv_async_check_idle();
