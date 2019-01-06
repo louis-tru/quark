@@ -51,24 +51,22 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	}
 
 	bool initialize(uint channel_count, uint sample_rate) {
-		// TODO ...
 		return true;
 	}
 
 	virtual bool write(cBuffer& buffer) {
-		// TODO ...
+		return true;
 	}
 
 	virtual void flush() {
-		// TODO ...
 	}
 
 	virtual bool set_mute(bool value) {
-		// TODO ...
+		return true;
 	}
 
 	virtual bool set_volume(uint value) {
-		// TODO ...
+		return true;
 	}
 
 	virtual uint buffer_size() {

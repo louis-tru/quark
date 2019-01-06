@@ -72,19 +72,22 @@ virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this
 class Object;
 class Reference;
 
-struct Allocator {
+struct DefaultAllocator {
 	static void* alloc(size_t size);
 	static void* realloc(void* ptr, size_t size);
 	static void free(void* ptr);
 };
 
-struct GlobalAllocator {
-	void* (*alloc)(size_t size);
-	void (*release)(Object* obj);
-	void (*retain)(Object* obj);
+struct ObjectAllocator {
+	typedef void* (*Alloc)(size_t size);
+	Alloc alloc;
+	typedef void (*Release)(Object* obj);
+	Release release;
+	typedef void (*Retain)(Object* obj);
+	Retain retain;
 };
 
-template<class T, class A = Allocator> class Container;
+template<class T, class Alloc = DefaultAllocator> class Container;
 template<class T, class Container = Container<T>> class Array;
 template<class Item, class ItemAllocator = Allocator> class List;
 template<class Char = char, class Container = Container<Char>> class BasicString;
@@ -95,7 +98,7 @@ typedef const Ucs2String cUcs2String;
 typedef BasicString<uint32, Container<uint32>> Ucs4String;
 typedef const Ucs4String cUcs4String;
 
-XX_EXPORT void set_global_allocator(GlobalAllocator* allocator = nullptr);
+XX_EXPORT void set_object_allocator(ObjectAllocator* allocator = nullptr);
 XX_EXPORT bool Retain(Object* obj);
 XX_EXPORT void Release(Object* obj);
 

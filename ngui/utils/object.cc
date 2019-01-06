@@ -36,31 +36,29 @@
 
 XX_NS(ngui)
 
-static void* default_global_alloc(size_t size) {
+void* DefaultAllocator::alloc(size_t size) {
 	return ::malloc(size);
 }
-
-static void default_global_release(Object* obj) {
-	obj->~Object();
-	free(obj);
-}
-
-static void default_global_retain(Object* obj) {
-	/* NOOP */
-}
-
-void* Allocator::alloc(size_t size) {
-	return ::malloc(size);
-}
-void* Allocator::realloc(void* ptr, size_t size) {
+void* DefaultAllocator::realloc(void* ptr, size_t size) {
 	return ::realloc(ptr, size);
 }
-void Allocator::free(void* ptr) {
+void DefaultAllocator::free(void* ptr) {
 	::free(ptr);
 }
 
-static GlobalAllocator global_allocator = {
-	&default_global_alloc, &default_global_release, &default_global_retain 
+static void* default_object_alloc(size_t size) {
+	return ::malloc(size);
+}
+static void default_object_release(Object* obj) {
+	obj->~Object();
+	::free(obj);
+}
+static void default_object_retain(Object* obj) {
+	/* NOOP */
+}
+
+static ObjectAllocator object_allocator = {
+	&default_object_alloc, &default_object_release, &default_object_retain,
 };
 
 String Object::to_string() const {
@@ -136,18 +134,18 @@ bool Object::retain() {
 }
 
 void Object::release() {
-	global_allocator.release(this);
+	object_allocator.release(this);
 }
 
 void* Object::operator new(std::size_t size) {
 	
-#if XX_MEMORY_TRACE_MARK
-	void* p = global_allocator.alloc(size);
+ #if XX_MEMORY_TRACE_MARK
+	void* p = object_allocator.alloc(size);
 	((Object*)p)->mark_index_ = 123456;
 	return p;
-#else
-	return global_allocator.alloc(size);
-#endif
+ #else
+	return object_allocator.alloc(size);
+ #endif
 }
 
 void* Object::operator new(std::size_t size, void* p) {
@@ -159,13 +157,27 @@ void Object::operator delete(void* p) {
 	XX_UNREACHABLE();
 }
 
-void set_global_allocator(GlobalAllocator* alloc) {
+void set_object_allocator(ObjectAllocator* alloc) {
 	if ( alloc ) {
-		global_allocator.alloc = alloc->alloc ? alloc->alloc : default_global_alloc;
-		global_allocator.release = alloc->release ? alloc->release : default_global_release;
-		global_allocator.retain = alloc->retain ? alloc->retain : default_global_retain;
+		if (alloc->alloc) {
+			object_allocator.alloc = alloc->alloc;
+		} else {
+			object_allocator.alloc = &default_object_alloc;
+		}
+		if (alloc->release) {
+			object_allocator.release = alloc->release;
+		} else {
+			object_allocator.release = &default_object_release;
+		}
+		if (alloc->retain) {
+			object_allocator.retain = alloc->retain;
+		} else {
+			object_allocator.retain = &default_object_retain;
+		}
 	} else {
-		global_allocator = { &default_global_alloc, &default_global_release, &default_global_retain };
+		object_allocator.alloc = &default_object_alloc;
+		object_allocator.release = &default_object_release;
+		object_allocator.retain = &default_object_retain;
 	}
 }
 
@@ -185,7 +197,7 @@ Reference::~Reference() {
 bool Reference::retain() {
 	XX_ASSERT(m_ref_count >= 0);
 	if ( m_ref_count++ == 0 ) {
-		global_allocator.retain(this);
+		object_allocator.retain(this);
 	}
 	return true;
 }
@@ -193,7 +205,7 @@ bool Reference::retain() {
 void Reference::release() {
 	XX_ASSERT(m_ref_count >= 0);
 	if ( --m_ref_count <= 0 ) { // 当引用记数小宇等于0释放
-		global_allocator.release(this);
+		object_allocator.release(this);
 	}
 }
 
