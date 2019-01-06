@@ -597,10 +597,10 @@ function configure() {
 			console.error(`You can compile targets ${arch} only on Linux systems.`);
 			return;
 		}
-		// if (host_arch != 'x86' && host_arch != 'x64') {
-		// 	console.error(`You can compile targets ${arch} only on X86 or x64 machine Linux systems.`);
-		// 	return;
-		// }
+		if (host_arch != 'x86' && host_arch != 'x64' && (arch == 'x86' || arch == 'x64')) {
+			console.error(`You can compile targets ${arch} only on X86 or x64 machine Linux systems.`);
+			return;
+		}
 		if ( opts.clang ) {
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
@@ -617,21 +617,24 @@ function configure() {
 			} else if (arch == 'arm64') {
 				variables.arch_name = 'armv8-a';
 			}
-			var ns = ['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'];
+		} else { // x86 x64
+			variables.arch_name = arch == 'x86' ? 'i386' : 'x86-64';
+		}
 
+		// check compiler
+		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
 			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
 				var cmd = `find /usr/bin -name arm-linux*${e}*`;
 				var [,r] = syscall(cmd).stdout.sort((a,b)=>a.length - b.length);
 				util.assert(r, `${e} cross compilation was not found`);
-				variables[ns[i]] = r;
+				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
 			});
-
-		} else { // x86 x64
+		} else {
 			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
 				util.assert(!execSync('which ' + e).code, `${e} command was not found`);
 			});
-			variables.arch_name = arch == 'x86' ? 'i386' : 'x86-64';
 		}
+
 	}
 	else if (os == 'ios' || os == 'osx') {
 
