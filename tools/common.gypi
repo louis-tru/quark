@@ -220,8 +220,9 @@
 					#'-rdynamic',
 				],
 				'conditions': [
-					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] },],
-					['arch=="x64"', { 'cflags': [ '-m64' ] },],
+					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
+					['arch=="x64"', { 'cflags': [ '-m64' ] }],
+					['gcc_version<7', { 'cflags!': [ '-Wno-implicit-fallthrough' ] }],
 				],
 			}],
 			['os=="ios"', {

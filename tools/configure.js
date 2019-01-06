@@ -419,6 +419,7 @@ function configure() {
 			ld: 'g++',
 			ar: 'ar',
 			as: 'as',
+			gcc_version: 0,
 			ranlib: 'ranlib',
 			strip: 'strip',
 			build_sysroot: '/',
@@ -635,6 +636,16 @@ function configure() {
 			});
 		}
 
+		var version = execSync(`${variables.cxx} --version| grep gcc | awk '{ print $4 }'`).stdout[0];
+		if (version) {
+			version = version.replace(/(\d+)\.?(.+)?/, function(all, a, b) {
+				if (b) {
+					return a + '.' + b.replace('.', '');
+				}
+				return all;
+			});
+			variables.gcc_version = Number(version) || 0;
+		}
 	}
 	else if (os == 'ios' || os == 'osx') {
 
