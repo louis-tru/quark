@@ -61,7 +61,7 @@ typedef uint64 size_t;
 #else
 typedef long long int int64;
 typedef unsigned long long int uint64;
-typedef uint64 size_t;
+typedef uint32 size_t;
 #endif
 
 #define XX_DEFAULT_ALLOCATOR()  \
