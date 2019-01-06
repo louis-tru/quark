@@ -39,7 +39,7 @@ XX_NS(ngui)
 
 template <class Char,
 					class Container,
-					class ItemAllocator = Allocator>
+					class ItemAllocator = DefaultAllocator>
 class BasicStringBuilder;
 typedef BasicStringBuilder<char, Container<char>> StringBuilder;
 typedef BasicStringBuilder<uint16, Container<uint16>> Ucs2StringBuilder;
