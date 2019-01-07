@@ -132,7 +132,7 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	}
 
 	virtual float compensate() {
-		return -10.0f;
+		return -1.0f;
 	}
 
 	virtual void flush() {
