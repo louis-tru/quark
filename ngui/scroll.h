@@ -318,7 +318,7 @@ class XX_EXPORT BasicScroll {
  * @class Scroll
  */
 class XX_EXPORT Scroll: public Panel, public BasicScroll {
-public:
+ public:
 	XX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
 	
 	Scroll();
@@ -409,7 +409,7 @@ public:
 	 */
 	void set_enable_fixed_scroll_size(Vec2 size);
 	
-protected:
+ protected:
 	
 	/**
 	 * @overwrite
@@ -417,7 +417,7 @@ protected:
 	virtual void draw(Draw* draw);
 	virtual void set_layout_content_offset();
 	
-private:
+ private:
 	
 	XX_DEFINE_INLINE_CLASS(Inl);
 	
