@@ -32,12 +32,14 @@
 #include "../app-1.h"
 #include "../event.h"
 #include "../display-port.h"
-#include "./linux-gl-1.h"
 #include "../utils/loop.h"
+#include "../utils/http.h"
+#include "linux-gl-1.h"
+#include "linux-ime-helper-1.h"
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
 #include <signal.h>
-#include "linux-ime-helper-1.h"
+#include <unistd.h>
 
 XX_NS(ngui)
 
@@ -73,8 +75,9 @@ class LinuxApplication {
 	, m_render_looper(nullptr)
 	, m_dispatch(nullptr)
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
-	, m_r_width(0), m_r_height(0)
-	, m_win_width(1), m_win_height(1)
+	, m_screen(0), m_s_width(0), m_s_height(0)
+	, m_x(0), m_y(0), m_width(1), m_height(1)
+	, m_w_width(1), m_w_height(1)
 	, m_is_init(0), m_exit(0)
 	, m_xft_dpi(96.0)
 	, m_xwin_scale(1.0)
@@ -118,7 +121,6 @@ class LinuxApplication {
 		event.type = CirculateNotify;
 		event.display = m_dpy;
 		event.window = m_win;
-		// event.parent = m_root;
 		event.place = PlaceOnTop;
 		XSendEvent(m_dpy, m_win, false, NoEventMask, (XEvent*)&event);
 	}
@@ -132,15 +134,17 @@ class LinuxApplication {
 		// create x11 window
 		m_win = XCreateWindow(
 			m_dpy, m_root,
-			(m_r_width - m_win_width) / 2,
-			(m_r_height - m_win_height) / 2,
-			uint(m_win_width),
-			uint(m_win_height), 0,
+			m_x, m_y,
+			m_width, m_height, 0,
 			DefaultDepth(m_dpy, 0),
 			InputOutput,
 			DefaultVisual(m_dpy, 0),
-			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &m_xset
+			CWBackPixel|CWEventMask|CWBorderPixel|CWColormap, &m_xset
 		);
+
+		LOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
+
+		// request_fullscreen(true);
 
 		XX_CHECK(m_win, "Cannot create XWindow");
 
@@ -153,6 +157,7 @@ class LinuxApplication {
 
 		XEvent event;
 
+		// run message main_loop
 		do {
 			XNextEvent(m_dpy, &event);
 
@@ -211,18 +216,6 @@ class LinuxApplication {
 					m_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
 					break;
 				}
-				case EnterNotify:
-					DLOG("event, EnterNotify");
-					break;
-				case LeaveNotify:
-					DLOG("event, LeaveNotify");
-					break;
-				case CirculateNotify:
-					DLOG("event, CirculateNotify");
-					break;
-				case CirculateRequest:
-					DLOG("event, CirculateRequest");
-					break;
 				case ClientMessage:
 					if (event.xclient.message_type == m_wm_protocols && 
 						(Atom)event.xclient.data.l[0] == m_wm_delete_window) {
@@ -252,17 +245,17 @@ class LinuxApplication {
 		m_dpy = XOpenDisplay(nullptr);
 		XX_CHECK(m_dpy, "Cannot connect to display");
 		m_root = XDefaultRootWindow(m_dpy);
+		m_screen = DefaultScreen(m_dpy);
 
-		XWindowAttributes attrs;
-		XGetWindowAttributes(m_dpy, m_root, &attrs);
-		m_win_width = m_r_width   = attrs.width;
-		m_win_height = m_r_height = attrs.height;
+		m_w_width = m_width = m_s_width   = XDisplayWidth(m_dpy, m_screen);
+		m_w_height = m_height = m_s_height = XDisplayHeight(m_dpy, m_screen);
+
 		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
 		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
 		m_xft_dpi = get_monitor_dpi();
 		m_xwin_scale = m_xft_dpi / 96.0;
 
-		DLOG("width: %d, height: %d, dpi scale: %f", m_r_width, m_r_height, m_xwin_scale);
+		DLOG("screen width: %d, height: %d, dpi scale: %f", m_s_width, m_s_height, m_xwin_scale);
 		
 		m_xset.background_pixel = 0;
 		m_xset.border_pixel = 0;
@@ -287,19 +280,48 @@ class LinuxApplication {
 		);
 		m_xset.do_not_propagate_mask = NoEventMask;
 
+		cJSON& o_x = options["x"];
+		cJSON& o_y = options["y"];
 		cJSON& o_w = options["width"];
 		cJSON& o_h = options["height"];
 		cJSON& o_b = options["background"];
 		cJSON& o_t = options["title"];
 
-		if (o_w.is_uint()) m_win_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
-		if (o_h.is_uint()) m_win_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
-		if (o_w.is_uint()) m_xset.background_pixel = o_b.to_uint();
+		if (o_w.is_uint()) m_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
+		if (o_h.is_uint()) m_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
+		if (o_x.is_uint()) m_x = o_x.to_uint() * m_xwin_scale; else m_x = (m_s_width - m_width) / 2;
+		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
+		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
 		if (o_t.is_string()) m_title = o_t.to_string();
 	}
 
+	void request_fullscreen(bool fullscreen) {
+		int mask = CWBackPixel|CWEventMask|CWBorderPixel|CWColormap;
+		int x, y, width, height;
+		if (fullscreen) {
+			XWindowAttributes attrs;
+			XGetWindowAttributes(m_dpy, m_win, &attrs);
+			m_x = attrs.x;
+			m_y = attrs.y;
+			x = 0; y = 0;
+			m_width = m_w_width;
+			m_height = m_w_height;
+			width = XDisplayWidth(m_dpy, m_screen);
+			height = XDisplayHeight(m_dpy, m_screen);
+			mask |= CWOverrideRedirect;
+			m_xset.override_redirect = True;
+		} else {
+			x = m_x; y = m_y;
+			width = m_width;
+			height = m_height;
+			m_xset.override_redirect = False;
+		}
+		XChangeWindowAttributes(m_dpy, m_win, mask, &m_xset);
+		XMoveResizeWindow(m_dpy, m_win, x, y, width, height);
+	}
+
 	inline Vec2 get_window_size() {
-		return Vec2(m_win_width, m_win_height);
+		return Vec2(m_w_width, m_w_height);
 	}
 
 	inline Display* get_x11_display() {
@@ -329,8 +351,8 @@ class LinuxApplication {
 		XWindowAttributes attrs;
 		XGetWindowAttributes(m_dpy, m_win, &attrs);
 
-		m_win_width = attrs.width;
-		m_win_height = attrs.height;
+		m_w_width = attrs.width;
+		m_w_height = attrs.height;
 
 		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
 			if (m_is_init) {
@@ -374,14 +396,17 @@ class LinuxApplication {
 		return dpi;
 	}
 
+	// @methods data:
 	AppInl* m_host;
 	Display* m_dpy;
 	Window m_root, m_win;
 	RenderLooper* m_render_looper;
 	GUIEventDispatch* m_dispatch;
 	Orientation m_current_orientation;
-	int m_r_width, m_r_height;
-	std::atomic_int m_win_width, m_win_height;
+	int m_screen, m_s_width, m_s_height;
+	int m_x, m_y;
+	uint m_width, m_height;
+	std::atomic_int m_w_width, m_w_height;
 	bool m_is_init, m_exit;
 	float m_xft_dpi, m_xwin_scale;
 	XSetWindowAttributes m_xset;
@@ -420,8 +445,9 @@ void GUIApplication::pending() {
  * @func open_url()
  */
 void GUIApplication::open_url(cString& url) {
-	// TODO ...
-	// x-www-browser
+	if (vfork() == 0) {
+		execlp("xdg-open", "xdg-open", *url, NULL);
+	}
 }
 
 /**
@@ -429,8 +455,36 @@ void GUIApplication::open_url(cString& url) {
  */
 void GUIApplication::send_email(cString& recipient,
 																cString& subject,
-																cString& cc, cString& bcc, cString& body) {
-	// TODO ...
+																cString& cc, cString& bcc, cString& body) 
+{
+	String arg = "mailto:";
+
+	arg += recipient + '?';
+
+	if (!cc.is_empty()) {
+		arg += "cc=";
+		arg += cc + '&';
+	}
+	if (!bcc.is_empty()) {
+		arg += "bcc=";
+		arg += bcc + '&';
+	}
+
+	arg += "subject=";
+	arg += URI::encode(subject) + '&';
+
+	if (!body.is_empty()) {
+		arg += "body=";
+		arg += URI::encode(body);
+	}
+
+	// xdg-open
+	// mailto:haorooms@126.com?cc=name2@rapidtables.com&bcc=name3@rapidtables.com&
+	// subject=The%20subject%20of%20the%20email&body=The%20body%20of%20the%20email
+
+	if (vfork() == 0) {
+		execlp("xdg-open", "xdg-open", *arg, NULL);
+	}
 }
 
 /**
@@ -490,6 +544,7 @@ void AppInl::set_volume_down() {
  * @func default_atom_pixel
  */
 float DisplayPort::default_atom_pixel() {
+	// TODO ..
 	return 1.0 / application->xwin_scale();
 }
 
@@ -518,21 +573,21 @@ float DisplayPort::default_status_bar_height() {
  * @func set_visible_status_bar(visible)
  */
 void DisplayPort::set_visible_status_bar(bool visible) {
-	// TODO ..
 }
 
 /**
  * @func set_status_bar_text_color(color)
  */
 void DisplayPort::set_status_bar_style(StatusBarStyle style) {
-	// TODO ..
 }
 
 /**
  * @func request_fullscreen(fullscreen)
  */
 void DisplayPort::request_fullscreen(bool fullscreen) {
-	// TODO ..
+	__dispatch_x11_async(Cb([fullscreen](Se& e) {
+		application->request_fullscreen(fullscreen);
+	}));
 }
 
 /**
@@ -546,7 +601,6 @@ Orientation DisplayPort::orientation() {
  * @func set_orientation(orientation)
  */
 void DisplayPort::set_orientation(Orientation orientation) {
-	// TODO ..
 }
 
 XX_END

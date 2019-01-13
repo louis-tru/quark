@@ -7,6 +7,28 @@
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
 	</head>
 	<body>
+
+		<table width="100%" border=1>
+			<tr><td>参数</td><td>描述</td></tr>
+			<tr><td>mailto:name@email.com</td><td>e-mail recipient address</td></tr>
+			<tr><td>cc=name@email.com</td><td>carbon copy e-mail address</td></tr>
+			<tr><td>bcc=name@email.com</td><td>blind carbon copy e-mail address</td></tr>
+			<tr><td>subject=subject text</td><td>e-mail的题目</td></tr>
+			<tr><td>body=body text</td><td>e-mail的内容</td></tr>
+			<tr><td>?</td><td>和浏览器地址操作一样，第一个参数符合是？</td></tr>
+			<tr><td>&</td><td>其他参数符号是&</td></tr>
+		</table>
+
+		<a href="mailto:haorooms@126.com">给haorooms发送邮件</a><br/>
+
+		<a href="mailto:haorooms@126.com?subject=The%20subject%20of%20the%20mail">给haorooms发送邮件</a><br/>
+
+		<a href="mailto:haorooms@126.com?cc=name2@rapidtables.com&bcc=name3@rapidtables.com
+&subject=The%20subject%20of%20the%20email
+&body=The%20body%20of%20the%20email">
+发送Email  用cc, bcc, 主题和内容</a>
+
+		<br/>
 		
 		<textarea id="textarea" style="width: 100%; height: 100px"></textarea>
 

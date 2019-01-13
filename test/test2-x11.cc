@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#if defined(__linux__)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <X11/Xlib.h>
@@ -92,3 +94,5 @@ int test2_x11(int argc, char *argv[]) {
 
 	return 0;
 }
+
+#endif

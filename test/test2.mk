@@ -21,6 +21,7 @@ SOURCES = test2.cc  \
 					test2-thread.cc \
 					test2-alsa.cc \
 					test2-alsa2.cc \
+					test2-xopen2.cc \
 
 OBJECTS = $(addsuffix .o,$(basename $(SOURCES)))
 

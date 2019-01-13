@@ -150,8 +150,8 @@ URI::URI(cString& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
 #define IN_RANGE(a,b,c) (a >= b && a <= c)
 
 static inline int needs_encoding(char ch, char next
-																 , bool component
-																 , bool secondary) {
+																 , bool component, bool secondary)
+{
 	if ( ch < 0 ) {
 		return 1;
 	}

@@ -49,10 +49,12 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 
 	LinuxPCMPlayer()
 		: m_pcm(NULL)
-		, m_hw_params(NULL), m_sw_params(NULL)
+		, m_hw_params(NULL), m_sw_params(NULL), m_mixer(NULL)
 		, m_period_size(DEFAULT_PCM_PERIOD_SIZE)
 		, m_periods(DEFAULT_PCM_PERIODS)
 		, m_channel_count(0), m_sample_rate(0)
+		, m_volume(100)
+		, m_mute(false)
 	{
 	 #if DEBUG
 		char* PCM_PERIODS = getenv("PCM_PERIODS");
@@ -67,8 +69,8 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	}
 
 	virtual ~LinuxPCMPlayer() {
-		if (m_pcm) {
-			snd_pcm_close(m_pcm); m_pcm = NULL;
+		if (m_mixer) {
+			snd_mixer_close(m_mixer); m_mixer = NULL;
 		}
 		if (m_hw_params) {
 			snd_pcm_hw_params_free(m_hw_params); m_hw_params = NULL;
@@ -76,6 +78,10 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		if (m_sw_params) {
 			snd_pcm_sw_params_free(m_sw_params); m_sw_params = NULL;
 		}
+		if (m_pcm) {
+			snd_pcm_close(m_pcm); m_pcm = NULL;
+		}
+
 		DLOG("~LinuxPCMPlayer");
 	}
 
@@ -113,7 +119,51 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		// pcm handle prepare
 		r = snd_pcm_prepare(m_pcm); CHECK();
 
+		set_volume3();
+
 		return true;
+	}
+
+	void set_volume3() {
+		int volume = 20;
+		int unmute;
+		snd_mixer_t* mixer;
+		snd_mixer_elem_t* element;
+		snd_mixer_selem_regopt options;
+
+		options.ver = 1;
+		options.abstract = SND_MIXER_SABSTRACT_BASIC;
+		options.device = "default";
+		options.playback_pcm = NULL;
+		options.capture_pcm = NULL;
+
+		snd_mixer_open(&mixer, 0);
+		snd_mixer_attach(mixer, "default");
+		snd_mixer_selem_register(mixer, &options, NULL);
+		snd_mixer_load(mixer);
+		/* 取得第一個 element，也就是 Master */
+		element = snd_mixer_first_elem(mixer); LOG("element,%p", element);
+		// element = snd_mixer_elem_next(element); LOG("element,%p", element);
+		// element = snd_mixer_elem_next(element); LOG("element,%p", element);
+		/* 設定音量的範圍 0 ~ 100 */
+		snd_mixer_selem_set_playback_volume_range(element, 0, 100);
+		/* 取得是否靜音 */
+		// snd_mixer_selem_get_playback_switch(element, SND_MIXER_SCHN_FRONT_LEFT, &unmute);
+
+		// LOG("snd_mixer_selem_get_playback_switch, %d", unmute);
+
+		snd_mixer_selem_set_playback_volume(element, SND_MIXER_SCHN_FRONT_LEFT, volume);
+		snd_mixer_selem_set_playback_volume(element, SND_MIXER_SCHN_FRONT_RIGHT, volume);
+
+		/* 將 切換為靜音 */
+		// for (int chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
+		// 	snd_mixer_selem_set_playback_switch(element, (snd_mixer_selem_channel_id_t)chn, 0);
+		// }
+
+		/* 將 切換為非靜音 */
+		// for (int chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++) {
+		// 	snd_mixer_selem_set_playback_switch(element, (snd_mixer_selem_channel_id_t)chn, 1);
+		// }
 	}
 
 	virtual bool write(cBuffer& buffer) {
@@ -141,10 +191,30 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	}
 
 	virtual bool set_mute(bool value) {
+		if (value != m_mute) {
+			if (!set_volume2(value ? 0: m_volume)) {
+				return false;
+			}
+			m_mute = value;
+		}
+		return true;
+	}
+
+	bool set_volume2(uint value) {
+		// TODO ...
 		return true;
 	}
 
 	virtual bool set_volume(uint value) {
+		if (value != m_volume || m_mute) {
+			if (!set_volume2(value)) {
+				return false;
+			}
+			if (value) {
+				m_mute = false;
+			}
+			m_volume = value;
+		}
 		return true;
 	}
 
@@ -157,9 +227,11 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 	snd_pcm_t* m_pcm;
 	snd_pcm_hw_params_t* m_hw_params;
 	snd_pcm_sw_params_t* m_sw_params;
-	// snd_mixer_t* m_mixer;
+	snd_mixer_t* m_mixer;
 	snd_pcm_uframes_t m_period_size;
 	uint m_periods, m_channel_count, m_sample_rate;
+	uint m_volume;
+	bool m_mute;
 };
 
 /**

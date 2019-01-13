@@ -28,6 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#if defined(__linux__)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -938,3 +940,5 @@ int test2_xim(int argc, char *argv[])
 
 	return 0;
 }
+
+#endif

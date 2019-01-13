@@ -28,23 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#if defined(__linux__)
+
+#include <unistd.h>
 #include <stdio.h>
-#include <time.h>
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_xopen
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+int test2_xopen2(int argc, char *argv[])
+{
+	if (vfork() == 0) {
+		execlp("xdg-open", "xdg-open", "http://baidu.com", NULL);
+	}
 }
 
+#endif

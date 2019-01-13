@@ -128,10 +128,10 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 		'--disable-filters',
 
 		// enable decoders
-		'--enable-decoder=aac',     
-		'--enable-decoder=aac_fixed',   
-		'--enable-decoder=aac_latm',         
-		'--enable-decoder=ac3',     
+		'--enable-decoder=aac',
+		'--enable-decoder=aac_fixed',
+		'--enable-decoder=aac_latm',
+		'--enable-decoder=ac3',
 		'--enable-decoder=ac3_fixed',
 		'--enable-decoder=mp1',
 		'--enable-decoder=mp2',
