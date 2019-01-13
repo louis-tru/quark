@@ -62,14 +62,9 @@ struct memory_info_t {
 
 memory_info_t get_memory_info() {
 	memory_info_t r = {0,0,0};
-	Buffer bf(128); bf[127] = '\0';
 
-	int fd = FileHelper::open_sync("/proc/meminfo");
-	FileHelper::read_sync(fd, *bf, 127);
-	FileHelper::close_sync(fd);
-
-	String s = bf.collapse_string();
-	// DLOG("/proc/meminfo, %s", *s);
+	String s = FileHelper::read_file_sync("/proc/meminfo", 127).collapse_string();
+	DLOG("/proc/meminfo, %s", *s);
 
 	if (!s.is_empty()) {
 		int i, j;

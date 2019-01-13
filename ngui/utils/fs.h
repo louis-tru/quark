@@ -266,8 +266,8 @@ class XX_EXPORT FileHelper {
 	// read stream
 	static uint read_stream(cString& path, cCb& cb = 0);
 	// read file
-	static Buffer read_file_sync(cString& path, int* err = nullptr);
-	static void read_file(cString& path, cCb& cb = 0);
+	static Buffer read_file_sync(cString& path, int64 size = -1, int* err = nullptr);
+	static void read_file(cString& path, cCb& cb = 0, int64 size = -1);
 	// write file
 	static int  write_file_sync(cString& path, cString& str);
 	static int  write_file_sync(cString& path, const void* data, int64 size);
