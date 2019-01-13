@@ -34,6 +34,7 @@
 #include "../display-port.h"
 #include "../utils/loop.h"
 #include "../utils/http.h"
+#include "../sys.h"
 #include "linux-gl-1.h"
 #include "linux-ime-helper-1.h"
 #include <X11/Xlib.h>
@@ -152,7 +153,7 @@ class LinuxApplication {
 			CWBackPixel|CWEventMask|CWBorderPixel|CWColormap, &m_xset
 		);
 
-		LOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
+		DLOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
 
 		// request_fullscreen(true);
 

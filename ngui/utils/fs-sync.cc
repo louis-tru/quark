@@ -386,6 +386,8 @@ Buffer FileHelper::read_file_sync(cString& path, int* err) {
 	uv_fs_t req;
 	int fd = uv_fs_open(uv_default_loop(), &req, Path::fallback_c(path), O_RDONLY, 0, nullptr);
 	int r = 0;
+
+	// DLOG("read_file_sync, %d", fd);
 	
 	while (1) {
 		if ( fd < 0 ) {
