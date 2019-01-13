@@ -79,9 +79,9 @@ float battery_level() {
 	return [UIDevice currentDevice].batteryLevel;
 }
 
-String device_name() {
-	return [[[UIDevice currentDevice] name] UTF8String];
-}
+// String device_name() {
+// 	return [[[UIDevice currentDevice] name] UTF8String];
+// }
 
 #else
 
@@ -97,9 +97,9 @@ float battery_level() {
 	return 0;
 }
 
-String device_name() {
-	return String();
-}
+// String device_name() {
+// 	return String();
+// }
 
 #endif
 

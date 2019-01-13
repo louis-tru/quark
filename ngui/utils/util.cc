@@ -454,22 +454,26 @@ namespace sys {
 	}
 
  #if XX_UNIX
-	static String* _info = nullptr;
+	static String* info_str = nullptr;
+
 	String info() {
-		if (!_info) {
-			_info = new String();
+		if (!info_str) {
+			info_str = new String();
 			static struct utsname _uts;
 			static char _hostname[256];
 			gethostname(_hostname, 255);
 			uname(&_uts);
-			*_info = String::format("host: %s\nsys: %s\nmachine: %s\nnodename: %s\nversion: %s\nrelease: %s",
-														 _hostname,
-														 _uts.sysname,
-														 _uts.machine,
-														 _uts.nodename, _uts.version, _uts.release);
+			*info_str = String::format(
+				"host: %s\nsys: %s\nmachine: %s\n"
+				"nodename: %s\nversion: %s\nrelease: %s",
+				_hostname,
+				_uts.sysname,
+				_uts.machine,
+				_uts.nodename, _uts.version, _uts.release
+			);
 			//  getlogin(), getuid(), getgid(),
 		}
-		return *_info;
+		return *info_str;
 	}
  #endif
 
@@ -491,43 +495,44 @@ namespace sys {
 		return r;
 	}
 
-	struct Languages {
-		String strings; String string;
+	struct language_t {
+		String langs;
+		String lang;
 	};
 
  #if XX_APPLE
 	void __get_languages(String& langs, String& lang);
  #endif
 
-	static Languages* _languages = nullptr;
-	static Languages* get_languages() {
-		if (!_languages) {
-			_languages = new Languages();
+	static language_t* langs_ = nullptr;
+	static language_t* get_languages() {
+		if (!langs_) {
+			langs_ = new language_t();
 		 #if XX_IOS
-			_languages = new Languages();
-			__get_languages(_languages->strings, _languages->string);
+			langs_ = new language_t();
+			__get_languages(langs_->langs, langs_->lang);
 		 #elif XX_ANDROID
-			_languages->strings = Android::language();
-			_languages->string = _languages->strings;
+			langs_->langs = Android::language();
+			langs_->lang = langs_->langs;
 		 #elif XX_LINUX
 			cchar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 			if ( lang ) {
-				_languages->strings = String(lang).split('.')[0];
+				langs_->langs = String(lang).split('.')[0];
 			} else {
-				_languages->strings = "en_US";
+				langs_->langs = "en_US";
 			}
-			_languages->string = _languages->strings;
+			langs_->lang = langs_->langs;
 		 #endif
 		}
-		return _languages;
+		return langs_;
 	}
 
 	String languages() {
-		return get_languages()->strings;
+		return get_languages()->langs;
 	}
 
 	String language() {
-		return get_languages()->string;
+		return get_languages()->lang;
 	}
 
 }
