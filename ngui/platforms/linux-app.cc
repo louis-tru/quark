@@ -251,6 +251,7 @@ class LinuxApplication {
 	}
 
 	void initialize(cJSON& options) {
+		// LOG("subsystem, %s", *sys::subsystem());
 		XX_CHECK(XInitThreads(), "Cannot init X threads");
 
 		m_dpy = XOpenDisplay(nullptr);

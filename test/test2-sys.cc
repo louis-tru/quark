@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,78 +25,21 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <linux/limits.h>
+#include <stdio.h>
 #include <sys/utsname.h>
-#include "fs.h"
 
-XX_NS(ngui)
+int test2_sys(int argc, char *argv[]) {
+	struct utsname utsn;
+	uname(&utsn);
 
-String Path::executable() {
-	static cString rv([]() -> String { 
-		char dir[PATH_MAX] = { 0 };
-		int n = readlink("/proc/self/exe", dir, PATH_MAX);
-		return Path::format("%s", dir);
-	}());
-	return rv;
+	printf("sysname:%s\n", utsn.sysname);
+	printf("nodename:%s\n", utsn.nodename);
+	printf("release:%s\n", utsn.release);
+	printf("version:%s\n", utsn.version);
+	printf("machine:%s\n", utsn.machine);
+
+	return 0;
 }
-
-String Path::documents(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), "Documents") );
-	if ( path.is_empty() ) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
-}
-
-String Path::temp(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), ".cache") );
-	if (path.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
-}
-
-/**
- * Get the resoures dir
- */
-String Path::resources(cString& path) {
-	static cString rv( Path::dirname(executable()) );
-	if (path.is_empty()) {
-		return rv;
-	}
-	return Path::format("%s/%s", *rv, *path);
-}
-
-namespace sys {
-
-	static struct utsname* utsn = NULL;
-
-	utsname* _uname() {
-		if (!utsn) {
-			utsn = new utsname();
-			uname(utsn);
-		}
-		return utsn;
-	}
-
-	String version() {
-		return _uname()->release;
-	}
-
-	String brand() {
-		return "Linux";
-	}
-
-	String subsystem() {
-		return _uname()->version;
-	}
-
-}
-
-XX_END
-

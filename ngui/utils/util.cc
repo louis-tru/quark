@@ -459,17 +459,17 @@ namespace sys {
 	String info() {
 		if (!info_str) {
 			info_str = new String();
-			static struct utsname _uts;
-			static char _hostname[256];
-			gethostname(_hostname, 255);
-			uname(&_uts);
+			static struct utsname uts;
+			static char name[256];
+			gethostname(name, 255);
+			uname(&uts);
 			*info_str = String::format(
 				"host: %s\nsys: %s\nmachine: %s\n"
 				"nodename: %s\nversion: %s\nrelease: %s",
-				_hostname,
-				_uts.sysname,
-				_uts.machine,
-				_uts.nodename, _uts.version, _uts.release
+				name,
+				uts.sysname,
+				uts.machine,
+				uts.nodename, uts.version, uts.release
 			);
 			//  getlogin(), getuid(), getgid(),
 		}
