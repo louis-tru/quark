@@ -40,6 +40,7 @@
 #include <X11/Xresource.h>
 #include <signal.h>
 #include <unistd.h>
+#include <alsa/asoundlib.h>
 
 XX_NS(ngui)
 
@@ -82,11 +83,20 @@ class LinuxApplication {
 	, m_xft_dpi(96.0)
 	, m_xwin_scale(1.0)
 	, m_ime(nullptr)
+	, m_mixer(nullptr)
+	, m_element(nullptr)
 	{
 		XX_ASSERT(!application); application = this;
 	}
 
 	~LinuxApplication() {
+		if (m_mixer) {
+			snd_mixer_free(m_mixer);
+			snd_mixer_detach(m_mixer, "default");
+			snd_mixer_close(m_mixer);
+			m_mixer = nullptr;
+			m_element = nullptr;
+		}
 		if (m_win) {
 			XDestroyWindow(m_dpy, m_win); m_win = 0;
 		}
@@ -293,6 +303,38 @@ class LinuxApplication {
 		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
 		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
 		if (o_t.is_string()) m_title = o_t.to_string();
+
+		initialize_master_volume_control();
+	}
+
+	int get_master_volume() {
+		long volume = 0;
+		if (m_element) {
+			snd_mixer_selem_get_playback_volume(m_element, SND_MIXER_SCHN_FRONT_LEFT, &volume);
+		}
+		return volume;
+	}
+
+	void set_master_volume(int volume) {
+		volume = XX_MAX(0, volume);
+		volume = XX_MIN(100, volume);
+
+		const snd_mixer_selem_channel_id_t chs[] = {
+			SND_MIXER_SCHN_FRONT_LEFT,
+			SND_MIXER_SCHN_FRONT_RIGHT,
+			SND_MIXER_SCHN_REAR_LEFT,
+			SND_MIXER_SCHN_REAR_RIGHT,
+			SND_MIXER_SCHN_FRONT_CENTER,
+			SND_MIXER_SCHN_WOOFER,
+			SND_MIXER_SCHN_SIDE_LEFT,
+			SND_MIXER_SCHN_SIDE_RIGHT,
+			SND_MIXER_SCHN_REAR_CENTER,
+		};
+		int len = sizeof(snd_mixer_selem_channel_id_t) / sizeof(chs);
+
+		for (int i = 0; i < len; i++) {
+			snd_mixer_selem_set_playback_volume(m_element, chs[i], volume);
+		}
 	}
 
 	void request_fullscreen(bool fullscreen) {
@@ -329,6 +371,20 @@ class LinuxApplication {
 	}
 
  private:
+
+	void initialize_master_volume_control() {
+		XX_ASSERT(!m_mixer);
+		snd_mixer_open(&m_mixer, 0);
+		snd_mixer_attach(m_mixer, "default");
+		snd_mixer_selem_register(m_mixer, NULL, NULL);
+		snd_mixer_load(m_mixer);
+		/* 取得第一個 element，也就是 Master */
+		m_element = snd_mixer_first_elem(m_mixer); DLOG("element,%p", m_element);
+		/* 設定音量的範圍 0 ~ 100 */
+		if (m_element) {
+			snd_mixer_selem_set_playback_volume_range(m_element, 0, 100);
+		}
+	}
 
 	void resolved_queue() {
 		List<Callback> queue;
@@ -416,6 +472,8 @@ class LinuxApplication {
 	LINUXIMEHelper* m_ime;
 	List<Callback> m_queue;
 	Mutex m_queue_mutex;
+	snd_mixer_t* m_mixer;
+	snd_mixer_elem_t* m_element;
 };
 
 Vec2 __get_window_size() {
@@ -530,14 +588,14 @@ void AppInl::ime_keyboard_spot_location(Vec2 location) {
  * @func set_volume_up()
  */
 void AppInl::set_volume_up() {
-	// TODO ..
+	application->set_master_volume(application->get_master_volume() + 1);
 }
 
 /**
  * @func set_volume_down()
  */
 void AppInl::set_volume_down() {
-	// TODO ..
+	application->set_master_volume(application->get_master_volume() - 1);
 }
 
 /**

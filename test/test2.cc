@@ -32,7 +32,7 @@
 #include <time.h>
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_xopen
+#define TEST_FUNC_NAME test2_xopen2
 #endif
 
 int TEST_FUNC_NAME(int argc, char *argv[]);
