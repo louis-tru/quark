@@ -378,9 +378,9 @@ bool FileHelper::executable_sync(cString& path) {
 
 // read file
 
-Buffer FileHelper::read_file_sync(cString& path, int* err) {
+Buffer FileHelper::read_file_sync(cString& path, int64 size, int* err) {
 	
-	int64 size = -1, offset = -1;
+	int64 offset = -1;
 	
 	Buffer buff;
 	uv_fs_t req;

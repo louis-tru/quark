@@ -877,8 +877,8 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 
 // read file
 
-void FileHelper::read_file(cString& path, cCb& cb) {
-	int64 size = -1, offset = -1;
+void FileHelper::read_file(cString& path, cCb& cb, int64 size) {
+	int64 offset = -1;
 	struct Data;
 	typedef AsyncReqNonCtx<uv_fs_t, Data> FileReq;
 	
