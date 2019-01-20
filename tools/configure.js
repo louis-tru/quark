@@ -257,7 +257,7 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 		return false;
 	}
 	
-	if ( opts.library == 'shared' ) { 
+	if ( opts.library == 'shared' ) {
 		ff_opts.push('--enable-pic');
 	}
 	if ( opts.debug ) {
