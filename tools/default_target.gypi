@@ -2,19 +2,12 @@
 	'variables': {
 		'cplusplus_exceptions%': 1,
 		'cplusplus_rtti%': 1,
-		'output_library%': 'static_library',
-		'ngui_product_dir%': '<(output)/../ngui-tools/product',
-		'ngui_product_so_subdir%': '<(os)/<(arch)',
-		'conditions': [
-			['os=="android"', {
-				'ngui_product_so_subdir': '<(os)/jniLibs/<(android_abi)'
-			}],
-		],
+		'library_output%': 'static_library',
 	},
 	
 	'target_defaults': {
 		'conditions': [
-			['output_library=="shared_library"', { 
+			['library_output=="shared_library"', { 
 				'defines': [ 'XX_BUILDING_SHARED' ],
 			}],
 			# c++ exceptions

@@ -401,7 +401,7 @@ function configure() {
 			use_v8: opts.use_v8,
 			clang: opts.clang,
 			library: 'static_library',
-			output_library: opts.library + '_library',
+			library_output: opts.library + '_library',
 			armv7: opts.armv7,
 			armv7s: opts.armv7s,
 			arm64: bi(arch == 'arm64'),
