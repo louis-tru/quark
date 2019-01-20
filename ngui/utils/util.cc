@@ -501,7 +501,7 @@ namespace sys {
 	};
 
  #if XX_APPLE
-	void __get_languages(String& langs, String& lang);
+	void __get_languages__(String& langs, String& lang);
  #endif
 
 	static language_t* langs_ = nullptr;
@@ -510,7 +510,7 @@ namespace sys {
 			langs_ = new language_t();
 		 #if XX_IOS
 			langs_ = new language_t();
-			__get_languages(langs_->langs, langs_->lang);
+			__get_languages__(langs_->langs, langs_->lang);
 		 #elif XX_ANDROID
 			langs_->langs = Android::language();
 			langs_->lang = langs_->langs;

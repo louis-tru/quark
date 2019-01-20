@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../pcm-player.h"
-#include "ngui/utils/handle.h"
-#include "ngui/utils/loop.h"
-#include <Audiotoolbox/AudioToolbox.h>
+#import "../pcm-player.h"
+#import "ngui/utils/handle.h"
+#import "ngui/utils/loop.h"
+#import <Audiotoolbox/AudioToolbox.h>
 
 XX_NS(ngui)
 

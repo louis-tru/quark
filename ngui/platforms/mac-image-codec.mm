@@ -28,20 +28,28 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/image-codec.h"
-#include <Foundation/Foundation.h>
-#include <CoreGraphics/CoreGraphics.h>
-#include <GLKit/GLKit.h>
+#import "ngui/image-codec.h"
+#import <Foundation/Foundation.h>
+#import <CoreGraphics/CoreGraphics.h>
+#import <GLKit/GLKit.h>
+
+#if XX_OSX
+# import <AppKit/AppKit.h>
+# define UIImage NSImage
+#else
+# import <UIKit/UIKit.h>
+#endif
 
 XX_NS(ngui)
 
 static PixelData image_decode(cBuffer& data) {
 
-	NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data
-																			 length:data.length()
-																 freeWhenDone:NO];
-	CGImageRef image = [[UIImage imageWithData:data2] CGImage];
-
+	NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
+                                        length:data.length()
+                                  freeWhenDone:NO];
+  UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
+  CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
+  
 	if (image) {
 		CGColorSpaceRef color_space = CGImageGetColorSpace(image);
 		if (color_space) {
@@ -93,10 +101,11 @@ static PixelData image_decode(cBuffer& data) {
 
 static PixelData image_decode_header(cBuffer& data) {
 	
-	NSData* data2 = [NSData dataWithBytesNoCopy:(void*)*data
-																			 length:data.length()
-																 freeWhenDone:NO];
-	CGImageRef image = [[UIImage imageWithData:data2] CGImage];
+	NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
+                                        length:data.length()
+                                  freeWhenDone:NO];
+  UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
+  CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
 	
 	if (image) {
 		int width = (int)CGImageGetWidth(image);

@@ -39,36 +39,41 @@
 XX_NS(ngui)
 
 String Path::executable() {
-	static cString rv( format( [[[NSBundle mainBundle] executablePath] UTF8String] ) );
-	return rv;
+	static cString path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
+	return path;
 }
 
-String Path::documents(cString& path) {
-	NSArray* arr = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	static cString rv( format([arr objectAtIndex:0].UTF8String));
-	if (rv.is_empty()) {
-		return rv;
+String Path::documents(cString& child) {
+	static cString path(
+		Path::format([NSSearchPathForDirectoriesInDomains(
+			NSDocumentDirectory,
+			NSUserDomainMask,
+			YES
+		) objectAtIndex:0].UTF8String)
+	);
+	if (child.is_empty()) {
+		return path;
 	}
-	return Path::format("%s/%s", *rv, *path);
+	return Path::format("%s/%s", *path, *child);
 }
 
-String Path::temp(cString& path) {
-	static cString rv(Path::format("%s", [NSTemporaryDirectory() UTF8String]));
-	if (path.is_empty()) {
-		return rv;
+String Path::temp(cString& child) {
+	static cString path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
+	if (child.is_empty()) {
+		return path;
 	}
-	return Path::format("%s/%s", *rv, *path);
+	return Path::format("%s/%s", *path, *child);
 }
 
 /**
  * Get the resoures dir
  */
-String Path::resources(cString& path) {
-	static cString rv(Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]));
-	if (rv.is_empty()) {
-		return rv;
+String Path::resources(cString& child) {
+	static cString path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
+	if (child.is_empty()) {
+		return path;
 	}
-	return Path::format("%s/%s", *rv, *path);
+	return Path::format("%s/%s", *path, *child);
 }
 
 namespace sys {
@@ -100,7 +105,7 @@ namespace sys {
 
  #endif
 
-	void __get_languages(String& langs, String& lang) {
+	void __get_languages__(String& langs, String& lang) {
 		NSArray* languages = [NSLocale preferredLanguages];
 		for ( int i = 0; i < [languages count]; i++ ) {
 			NSString* str = [languages objectAtIndex:0];

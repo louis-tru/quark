@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
+#import <ngui/utils/util.h>
 
 #if XX_OSX
 

@@ -32,7 +32,7 @@
 #include <time.h>
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_sys
+#define TEST_FUNC_NAME test2_opengl
 #endif
 
 int TEST_FUNC_NAME(int argc, char *argv[]);

@@ -46,7 +46,7 @@ typedef DisplayPort::Orientation Orientation;
 typedef DisplayPort::StatusBarStyle StatusBarStyle;
 
 static ApplicationDelegate* ios_app = nil;
-static IOSGLDrawCore* ios_draw_core = nil;
+static IOSGLDrawProxy* ios_draw_proxy = nil;
 static NSString* app_delegate_name = @"";
 
 /**
@@ -132,7 +132,7 @@ static NSString* app_delegate_name = @"";
 		Orientation ori = display_port()->orientation();
 		::CGRect rect = ios_app.glview.frame;
 		ios_app.app->render_loop()->post(Cb([ori, rect](Se& d) {
-			ios_draw_core->refresh_surface_size(rect);
+			ios_draw_proxy->refresh_surface_size(rect);
 			if (ori != ios_app.current_orientation) {
 				ios_app.current_orientation = ori;
 				main_loop()->post(Cb([](Se& e) {
@@ -316,8 +316,8 @@ static void render_loop_cb(Se& evt, Object* ctx) {
 															kEAGLDrawablePropertyColorFormat, nil];
 	
 	_app->render_loop()->post(Cb([self, layer, rect](Se& d) {
-		ios_draw_core->set_surface_view(self.glview, layer);
-		ios_draw_core->refresh_surface_size(rect);
+		ios_draw_proxy->set_surface_view(self.glview, layer);
+		ios_draw_proxy->refresh_surface_size(rect);
 		_inl_app(self.app)->onLoad();
 		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 														forMode:NSDefaultRunLoopMode];
@@ -333,7 +333,7 @@ static void render_loop_cb(Se& evt, Object* ctx) {
 - (void)refresh_surface_size {
 	::CGRect rect = ios_app.glview.frame;
 	_app->render_loop()->post(Cb([self, rect](Se& d) {
-		ios_draw_core->refresh_surface_size(rect);
+		ios_draw_proxy->refresh_surface_size(rect);
 	}));
 }
 
@@ -433,9 +433,9 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	XX_ASSERT(!ios_draw_core);
-	ios_draw_core = IOSGLDrawCore::create(this, options);
-	m_draw_ctx = ios_draw_core->host();
+	XX_ASSERT(!ios_draw_proxy);
+	ios_draw_proxy = IOSGLDrawProxy::create(this, options);
+	m_draw_ctx = ios_draw_proxy->host();
 }
 
 /**
@@ -546,7 +546,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 			
 			::CGRect rect = ios_app.glview.frame;
 			m_host->render_loop()->post(Cb([this, rect](Se& ev) {
-				if ( !ios_draw_core->refresh_surface_size(rect) ) {
+				if ( !ios_draw_proxy->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					main_loop()->post(Cb([this](Se& e){
 						XX_TRIGGER(change);

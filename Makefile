@@ -34,10 +34,14 @@ ifeq ($(OS), android)
 BUILD_STYLE = make-linux
 endif
 
+gen_project=\
+	echo "{'variables':{'project':'$(1)'}}" > out/var.gypi; \
+	GYP_GENERATORS=$(1) $(GYP) -f $(1) $(2) --generator-output="out/$(1)" $(GYP_ARGS)
+
 make_compile=\
 	$(ENV) $(1) -C "out/$(BUILD_STYLE)" -f Makefile.$(OS).$(SUFFIX) \
-CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
-builddir="$(shell pwd)/$(LIBS_DIR)"
+	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
+	builddir="$(shell pwd)/$(LIBS_DIR)"
 
 .PHONY: $(STYLES) jsa-shell install install-dev install-tools \
 	help all clean clean-all build web server ios android linux osx doc test2
@@ -50,17 +54,14 @@ all: build
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@echo "{'variables':{'project':'$@'}}" > out/var.gypi;
-	@GYP_GENERATORS=$@ \
-	$(GYP) -f $@ ngui.gyp --generator-output="out/$@" $(GYP_ARGS)
+	@$(call gen_project,$@,ngui.gyp)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
-	@$(call make_compile, $(MAKE))
+	@$(call make_compile,$(MAKE))
 
 jsa-shell: $(GYPFILES)
-	@echo "{'variables':{'project':'$(BUILD_STYLE)'}}" > out/var.gypi;
-	$(GYP) -f $(BUILD_STYLE) tools.gyp --generator-output="out/$(BUILD_STYLE)" $(GYP_ARGS)
-	@$(make_compile, $(MAKE))
+	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
+	@$(call make_compile,$(MAKE))
 	@mkdir -p $(TOOLS)/bin/$(OS)
 	@cp $(LIBS_DIR)/jsa-shell $(TOOLS)/bin/$(OS)/jsa-shell
 
@@ -149,5 +150,7 @@ help:
 	@echo You must first call before calling make \"./configure\"
 	@echo
 
-test2:
-	make -C test -f test2.mk
+test2: $(GYPFILES)
+	#make -C test -f test2.mk
+	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
+	@$(call make_compile,$(MAKE))

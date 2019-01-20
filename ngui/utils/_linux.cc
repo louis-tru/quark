@@ -37,39 +37,39 @@
 XX_NS(ngui)
 
 String Path::executable() {
-	static cString rv([]() -> String { 
+	static cString path([]() -> String { 
 		char dir[PATH_MAX] = { 0 };
 		int n = readlink("/proc/self/exe", dir, PATH_MAX);
 		return Path::format("%s", dir);
 	}());
-	return rv;
+	return path;
 }
 
-String Path::documents(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), "Documents") );
-	if ( path.is_empty() ) {
-		return rv;
+String Path::documents(cString& child) {
+	static cString path(Path::format("%s/%s", getenv("HOME"), "Documents"));
+	if ( child.is_empty() ) {
+		return path;
 	}
-	return Path::format("%s/%s", *rv, *path);
+	return Path::format("%s/%s", *path, *child);
 }
 
-String Path::temp(cString& path) {
-	static cString rv( Path::format("%s/%s", getenv("HOME"), ".cache") );
-	if (path.is_empty()) {
-		return rv;
+String Path::temp(cString& child) {
+	static cString path( Path::format("%s/%s", getenv("HOME"), ".cache") );
+	if (child.is_empty()) {
+		return path;
 	}
-	return Path::format("%s/%s", *rv, *path);
+	return Path::format("%s/%s", *path, *child);
 }
 
 /**
  * Get the resoures dir
  */
-String Path::resources(cString& path) {
-	static cString rv( Path::dirname(executable()) );
-	if (path.is_empty()) {
-		return rv;
+String Path::resources(cString& child) {
+	static cString path( Path::dirname(executable()) );
+	if (child.is_empty()) {
+		return path;
 	}
-	return Path::format("%s/%s", *rv, *path);
+	return Path::format("%s/%s", *path, *child);
 }
 
 namespace sys {

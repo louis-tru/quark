@@ -101,17 +101,12 @@ public:
 		
 		/*
 		 * 为了兼容 es3.0 语法的自动索引id
-		 * 设置0,1属性槽,做为opengles2.0 的 gl_InstanceID, gl_VertexID 自动化索引数据
+		 * 设置0属性槽,做为opengles2.0 的 gl_VertexID 自动化索引数据
 		 * 所以调用这个方法后0,1两个属性槽被占用不能使用
 		 */
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 		
-		//    if ( m_is_support_instanced ) {
-		//      glEnableVertexAttribArray(1);
-		//      glVertexAttribDivisor(1, 1);   // 1 Instanced
-		//      glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		//    }
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	

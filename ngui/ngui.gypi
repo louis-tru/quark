@@ -80,7 +80,7 @@
 			'bezier.h',
 			'display-port.h',
 			'event.h',
-			'image/codec.h',
+			'image-codec.h',
 			'label.h',
 			'layout.h',
 			'box.h',
@@ -239,6 +239,9 @@
 				},
 			}],
 			['os=="osx"', {
+				'dependencies': [ 
+					'depe/reachability/reachability.gyp:reachability', 
+				],
 				'sources': [
 					'platforms/osx-app-1.h',
 					'platforms/osx-app.mm',
@@ -247,6 +250,8 @@
 					'platforms/mac-pcm-player.mm',
 					'platforms/mac-keyboard.mm',
 					'platforms/mac-sys.mm',
+					'platforms/ios-gl-1.h',
+					'platforms/ios-gl.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -254,10 +259,14 @@
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+						'$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
 					]
 				},
 			}],
 			['os=="linux"', {
+				'dependencies': [ 
+					'depe/reachability/reachability.gyp:reachability', 
+				],
 				'sources': [
 					'platforms/linux-app.cc',
 					'platforms/linux-gl.cc',

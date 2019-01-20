@@ -15,7 +15,7 @@ FLAGS 		= -Wall -g -O0 $(INCLUDES) '-DDEBUG' '-D_DEBUG'
 CXXFLAGS 	= -std=c++0x -fexceptions -frtti
 LINKFLAGS = -lGLESv2 -lEGL -lX11 -pthread -lasound
 
-SOURCES = test2.cc  \
+SOURCES = test2.cc \
 					test2-xim.cc \
 					test2-x11.cc \
 					test2-thread.cc \

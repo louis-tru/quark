@@ -41,7 +41,6 @@
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
 #elif XX_OSX
-# include <OpenGL/OpenGL.h>
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
 #elif XX_LINUX
@@ -219,8 +218,8 @@ class GLDraw: public Draw {
 	
 	friend class GLShader;
 	friend class Texture;
-	friend class IOSGLDrawCore;
-	friend class LinuxGLDrawCore;
+	friend class IOSGLDrawProxy;
+	friend class LinuxGLDrawProxy;
 };
 
 XX_END

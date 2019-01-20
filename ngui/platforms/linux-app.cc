@@ -47,7 +47,7 @@ XX_NS(ngui)
 
 class LinuxApplication;
 static LinuxApplication* application = nullptr;
-static LinuxGLDrawCore* gl_draw_core = nullptr;
+static LinuxGLDrawProxy* gl_draw_proxy = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
 #if DEBUG
@@ -108,7 +108,7 @@ class LinuxApplication {
 			delete m_ime; m_ime = nullptr;
 		}
 		application = nullptr;
-		gl_draw_core = nullptr;
+		gl_draw_proxy = nullptr;
 	}
 
 	void post_message(cCb& cb) {
@@ -414,12 +414,12 @@ class LinuxApplication {
 		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
 			if (m_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
-				gl_draw_core->refresh_surface_size(&rect);
+				gl_draw_proxy->refresh_surface_size(&rect);
 				m_host->refresh_display(); // 刷新显示
 			} else {
 				m_is_init = 1;
-				gl_draw_core->create_surface(m_win);
-				gl_draw_core->initialize();
+				gl_draw_proxy->create_surface(m_win);
+				gl_draw_proxy->initialize();
 				m_host->onLoad();
 				m_host->onForeground();
 				m_render_looper->start();
@@ -551,10 +551,10 @@ void GUIApplication::send_email(cString& recipient,
  */
 void AppInl::initialize(cJSON& options) {
 	DLOG("AppInl::initialize");
-	XX_ASSERT(!gl_draw_core);
+	XX_ASSERT(!gl_draw_proxy);
 	application->initialize(options);
-	gl_draw_core = LinuxGLDrawCore::create(this, options);
-	m_draw_ctx = gl_draw_core->host();
+	gl_draw_proxy = LinuxGLDrawProxy::create(this, options);
+	m_draw_ctx = gl_draw_proxy->host();
 }
 
 /**

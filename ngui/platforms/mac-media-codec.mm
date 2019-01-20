@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../media-codec-1.h"
-#include <VideoToolbox/VideoToolbox.h>
-#include <AudioToolbox/AudioToolbox.h>
+#import "../media-codec-1.h"
+#import <VideoToolbox/VideoToolbox.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 XX_NS(ngui)
 

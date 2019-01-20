@@ -117,19 +117,8 @@
 					'_linux.cc',
 				],
 			}],
-			['os=="ios"', {
-				'dependencies': [ 
-					'depe/reachability/reachability.gyp:reachability', 
-				],
+			['os in "ios osx"', {
 				'sources': [
-					'_mac.mm',
-				],
-			}],
-			['os=="osx"', {
-				'dependencies': [ 
-					'depe/reachability/reachability.gyp:reachability', 
-				],
-				'sources':[
 					'_mac.mm',
 				],
 			}],

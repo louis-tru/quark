@@ -33,26 +33,32 @@
 
 #include "ngui/utils/util.h"
 
-#if XX_IOS
+#if XX_IOS || XX_OSX
 
-#include <UIKit/UIKit.h>
-#include <OpenGLES/EAGL.h>
 #include "ngui/gl/gl.h"
+
+#if XX_IOS
+# include <UIKit/UIKit.h>
+# include <OpenGLES/EAGL.h>
+#else
+# include <OpenGL/OpenGL.h>
+# define EAGLContext NSOpenGLContext
+#endif
 
 XX_NS(ngui)
 
-class XX_EXPORT IOSGLDrawCore {
-public:
-	IOSGLDrawCore(GLDraw* host, EAGLContext* ctx);
-	~IOSGLDrawCore();
+class XX_EXPORT IOSGLDrawProxy {
+ public:
+	IOSGLDrawProxy(GLDraw* host, EAGLContext* ctx);
+	~IOSGLDrawProxy();
 	void commit_render();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	void gl_main_render_buffer_storage();
 	void set_surface_view(UIView* view, CAEAGLLayer* layer);
 	bool refresh_surface_size(::CGRect rect);
 	inline GLDraw* host() { return m_host; }
-	static IOSGLDrawCore* create(GUIApplication* host, const Map<String, int>& options);
-private:
+	static IOSGLDrawProxy* create(GUIApplication* host, const Map<String, int>& options);
+ private:
 	UIView* m_surface_view;
 	CAEAGLLayer* m_layer;
 	EAGLContext* m_context;

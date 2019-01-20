@@ -28,11 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ios-gl-1.h"
-#include "../app.h"
-#include "../display-port.h"
-#include <OpenGLES/ES2/glext.h>
-#include "ngui/sys.h"
+#import "ios-gl-1.h"
+#import "../app.h"
+#import "../display-port.h"
+#import "ngui/sys.h"
+
+#if XX_IOS
+# import <OpenGLES/ES2/glext.h>
+#endif
 
 XX_NS(ngui)
 
@@ -40,37 +43,37 @@ XX_NS(ngui)
  * @class IOSGLDraw
  */
 template<class Basic> class IOSGLDraw: public Basic {
-public:
+ public:
 	IOSGLDraw(GUIApplication* host, EAGLContext* ctx,
 						DrawLibrary library,
-						cJSON& options): Basic(host, options), core_(this, ctx) {
+						cJSON& options): Basic(host, options), proxy_(this, ctx) {
 		this->m_library = library;
 		this->initialize();
 	}
 	virtual void commit_render() {
-		core_.commit_render();
+		proxy_.commit_render();
 	}
 	virtual GLint get_gl_texture_pixel_format(PixelData::Format pixel_format) {
-		return core_.get_gl_texture_pixel_format(pixel_format);
+		return proxy_.get_gl_texture_pixel_format(pixel_format);
 	}
 	virtual void gl_main_render_buffer_storage() {
-		core_.gl_main_render_buffer_storage();
+		proxy_.gl_main_render_buffer_storage();
 	}
-	inline IOSGLDrawCore* core() { return &core_; }
+	inline IOSGLDrawProxy* proxy() { return &proxy_; }
 	
-private:
-	IOSGLDrawCore core_;
+ private:
+	IOSGLDrawProxy proxy_;
 };
 
-IOSGLDrawCore* IOSGLDrawCore::create(GUIApplication* host, cJSON& options) {
-	IOSGLDrawCore* rv = nullptr;
+IOSGLDrawProxy* IOSGLDrawProxy::create(GUIApplication* host, cJSON& options) {
+	IOSGLDrawProxy* rv = nullptr;
 	EAGLContext* ctx = [EAGLContext alloc];
 	
 	if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-		rv = (new IOSGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES3, options))->core();
+		rv = (new IOSGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES3, options))->proxy();
 	} else
 	if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
-		rv = (new IOSGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES2, options))->core();
+		rv = (new IOSGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES2, options))->proxy();
 	} else {
 		XX_FATAL("Unable to initialize OGL device does not support OpenGLES");
 	}
@@ -78,16 +81,16 @@ IOSGLDrawCore* IOSGLDrawCore::create(GUIApplication* host, cJSON& options) {
 	return rv;
 }
 
-IOSGLDrawCore::IOSGLDrawCore(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
+IOSGLDrawProxy::IOSGLDrawProxy(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
 	XX_CHECK([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 	ctx.multiThreaded = NO;
 }
 
-IOSGLDrawCore::~IOSGLDrawCore() {
+IOSGLDrawProxy::~IOSGLDrawProxy() {
 	[EAGLContext setCurrentContext:nullptr];
 }
 
-void IOSGLDrawCore::gl_main_render_buffer_storage() {
+void IOSGLDrawProxy::gl_main_render_buffer_storage() {
 	// Create the color renderbuffer and call the rendering context to allocate the storage
 	// on our Core Animation layer.
 	// The width, height, and format of the renderbuffer storage are derived from the bounds
@@ -96,7 +99,7 @@ void IOSGLDrawCore::gl_main_render_buffer_storage() {
 	[m_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:m_layer];
 }
 
-void IOSGLDrawCore::commit_render() {
+void IOSGLDrawProxy::commit_render() {
 	glBindVertexArray(0); // clear vao
 	
 	if (m_host->multisample() > 1) {
@@ -133,7 +136,7 @@ void IOSGLDrawCore::commit_render() {
 /**
  * @func get_gl_texture_pixel_format 获取当前环境对应的OpenGL纹理像素格式,如果返回0表示不支持纹理格式
  */
-GLint IOSGLDrawCore::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
+GLint IOSGLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 	switch (pixel_format) {
 		case PixelData::RGBA4444:
 		case PixelData::RGBX4444:
@@ -160,18 +163,18 @@ GLint IOSGLDrawCore::get_gl_texture_pixel_format(PixelData::Format pixel_format)
 	}
 }
 
-//void IOSGLDrawCore::set_current_context() {
+//void IOSGLDrawProxy::set_current_context() {
 //  XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 //}
 
-void IOSGLDrawCore::set_surface_view(UIView* view, CAEAGLLayer* layer) {
+void IOSGLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
 	XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 	m_surface_view = view;
 	m_layer = layer;
 	m_host->set_best_display_scale(UIScreen.mainScreen.scale);
 }
 
-bool IOSGLDrawCore::refresh_surface_size(::CGRect rect) {
+bool IOSGLDrawProxy::refresh_surface_size(::CGRect rect) {
 	Vec2 size(rect.size.width * UIScreen.mainScreen.scale,
 						rect.size.height * UIScreen.mainScreen.scale);
 	if ( !size.is_zero() ) {

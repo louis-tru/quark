@@ -324,19 +324,19 @@ class XX_EXPORT Path {
 	 * @func documents_dir # Get the documents dir.
 	 * @ret {cString&} # The path that can be write/read a file in
 	 */
-	static String documents(cString& path = String());
+	static String documents(cString& child = String());
 	
 	/**
 	 * @func temp_dir # Get the temp dir.
 	 * @ret {cString&} # The path that can be write/read a file in
 	 */
-	static String temp(cString& path = String());
+	static String temp(cString& child = String());
 	
 	/**
 	 * @func resources_dir # Get the resoures dir
 	 * @ret {cString&}
 	 */
-	static String resources(cString& path = String());
+	static String resources(cString& child = String());
 	
 	/**
 	 * @func is_absolute # Is absolute path
