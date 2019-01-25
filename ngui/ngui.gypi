@@ -215,6 +215,9 @@
 				]
 			}],
 			['os=="ios"', {
+				'dependencies': [ 
+					'depe/reachability/reachability.gyp:reachability', 
+				],
 				'sources':[
 					'platforms/ios-app.h',
 					'platforms/ios-app.mm',
@@ -264,9 +267,6 @@
 				},
 			}],
 			['os=="linux"', {
-				'dependencies': [ 
-					'depe/reachability/reachability.gyp:reachability', 
-				],
 				'sources': [
 					'platforms/linux-app.cc',
 					'platforms/linux-gl.cc',
