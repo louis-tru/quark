@@ -9,10 +9,8 @@
 			'test2-xim.cc',
 			'test2-alsa.cc',
 			'test2-alsa2.cc',
-			#'test2-xopen.cc',
-			'test2-xopen2.cc',
+			'test2-xopen.cc',
 			'test2-sys.cc',
-			'test2-opengl.mm',
 		],
 		# 'mac_bundle': 1,
 		'xcode_settings': {
@@ -21,6 +19,7 @@
 		'conditions': [
 			['os in "ios osx"', {
 				'sources': [
+					'test2-opengl.mm',
 					'test-<(os).plist',
 					'Storyboard-<(os).storyboard',
 				],
