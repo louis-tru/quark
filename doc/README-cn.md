@@ -7,9 +7,9 @@ Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
-* 从这里[`Go API Index`](http://shark.io/doc/)可以到 `API Documents Index`
+* 从这里[`Go API Index`](http://shark1.org/doc/)可以到 `API Documents Index`
 
-| ![Screenshot](http://shark.io/img/0x0ss.jpg) | ![Screenshot](http://shark.io/img/0x0ss_3.jpg) | ![Screenshot](http://shark.io/img/0x0ss_4.jpg) |
+| ![Screenshot](http://shark1.org/img/0x0ss.jpg) | ![Screenshot](http://shark1.org/img/0x0ss_3.jpg) | ![Screenshot](http://shark1.org/img/0x0ss_4.jpg) |
 |--|--|--|
 
 

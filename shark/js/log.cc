@@ -75,7 +75,7 @@ class MyHttp: public Socket, public Socket::Delegate {
 		
 		String req = String::format(
 		"POST /$console/log/ HTTP/1.1\r\n"
-		"Host: shark.io\r\n"
+		"Host: shark1.org\r\n"
 		"Connection: Close\r\n"
 		"Accept: */*\r\n"
 		"Content-Length: %d\r\n"

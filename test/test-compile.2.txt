@@ -5,20 +5,20 @@
 -L/Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/Release-iphoneos 
 -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks 
 -F/Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/Release-iphoneos 
--filelist /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/shark.ios.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest.LinkFileList 
+-filelist /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/shark1.orgs.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest.LinkFileList 
 -install_name @rpath/iosFrameworkTest.framework/iosFrameworkTest 
 -Xlinker -rpath -Xlinker @executable_path/Frameworks 
 -Xlinker -rpath -Xlinker @loader_path/Frameworks 
 -miphoneos-version-min=8.0 
 -dead_strip 
 -Xlinker -object_path_lto 
--Xlinker /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/shark.ios.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest_lto.o 
+-Xlinker /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/shark1.orgs.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest_lto.o 
 -fembed-bitcode-marker 
 -fobjc-arc -fobjc-link-runtime 
 -framework Foundation -framework Foundation -framework UIKit 
 -single_module 
 -Xlinker -dependency_info 
--Xlinker /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/shark.ios.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest_dependency_info.dat 
+-Xlinker /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/shark1.orgs.arm64.build/Release-iphoneos/iosFrameworkTest.build/Objects-normal/arm64/iosFrameworkTest_dependency_info.dat 
 -o /Users/louis/Project/shark/source/out/xcodebuild/ios.arm64/Release-iphoneos/iosFrameworkTest.framework/iosFrameworkTest
 
 

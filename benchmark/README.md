@@ -15,7 +15,7 @@ Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般
 
 * [`开源跨平台移动项目Shark【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Shark API 文档`](http://shark.io/doc/)
+* [`Shark API 文档`](http://shark1.org/doc/)
 
 # Benchmark
 

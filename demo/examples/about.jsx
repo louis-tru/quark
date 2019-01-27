@@ -20,7 +20,7 @@ https://github.com/louis-tru/shark.git
 
 Support
 ===============
-http://shark.io
+http://shark1.org
 louistru@hotmail.com
 
 

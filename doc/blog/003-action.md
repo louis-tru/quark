@@ -15,7 +15,7 @@ Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般
 
 * [`开源跨平台移动项目Shark【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Shark API 文档`](http://shark.io/doc/)
+* [`Shark API 文档`](http://shark1.org/doc/)
 
 # 什么是Action动作
 
@@ -172,13 +172,13 @@ view.transition({
 
 * `View.onActionLoop`动作循环开始时触发，第一次执行动作并不会触发。同样它也会有延时，也同样记录在`delay`。
 
-[Action]: https://shark.io/doc/action.html#class-action
-[GroupAction]: https://shark.io/doc/action.html#class-groupaction
-[SpawnAction]: https://shark.io/doc/action.html#class-spawnaction
-[SequenceAction]: https://shark.io/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://shark.io/doc/action.html#class-keyframeaction
-[Frame]: https://shark.io/doc/action.html#class-frame
-[View]: https://shark.io/doc/shark.html#class-view
-[Div]: https://shark.io/doc/shark.html#class-div
-[View.action]: https://shark.io/doc/shark.html#set-view-action
-[View.transition()]: https://shark.io/doc/shark.html#view-transition-style-delay-cb-
+[Action]: https://shark1.org/doc/action.html#class-action
+[GroupAction]: https://shark1.org/doc/action.html#class-groupaction
+[SpawnAction]: https://shark1.org/doc/action.html#class-spawnaction
+[SequenceAction]: https://shark1.org/doc/action.html#class-sequenceaction
+[KeyframeAction]: https://shark1.org/doc/action.html#class-keyframeaction
+[Frame]: https://shark1.org/doc/action.html#class-frame
+[View]: https://shark1.org/doc/shark.html#class-view
+[Div]: https://shark1.org/doc/shark.html#class-div
+[View.action]: https://shark1.org/doc/shark.html#set-view-action
+[View.transition()]: https://shark1.org/doc/shark.html#view-transition-style-delay-cb-

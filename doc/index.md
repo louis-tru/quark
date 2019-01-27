@@ -36,4 +36,4 @@
 * [`shark/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Shark`]: http://shark.io/
+[`Shark`]: http://shark1.org/

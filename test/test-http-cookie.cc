@@ -35,60 +35,60 @@ using namespace shark;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
-	http_cookie_set("shark.io", "test", "shark.io");
+	http_cookie_set("shark1.org", "test", "shark1.org");
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
-	LOG(http_cookie_get("www.shark.io", "test"));
+	LOG(http_cookie_get("www.shark1.org", "test"));
 	
-	http_cookie_set("www.shark.io", "test2", "*********************************");
+	http_cookie_set("www.shark1.org", "test2", "*********************************");
 	
-	LOG(http_cookie_get("shark.io", "test2"));
+	LOG(http_cookie_get("shark1.org", "test2"));
 	
-	LOG(http_cookie_get("www.shark.io", "test2"));
+	LOG(http_cookie_get("www.shark1.org", "test2"));
 	
-	http_cookie_set("shark.io", "test2", "-----------------------------", -1, "/AA");
+	http_cookie_set("shark1.org", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG(http_cookie_get("shark.io", "test2"));
+	LOG(http_cookie_get("shark1.org", "test2"));
 	
-	LOG(http_cookie_get("shark.io", "test2", "/AA"));
+	LOG(http_cookie_get("shark1.org", "test2", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.shark.io", "/AA"));
+	LOG(http_cookie_get_all_string("www.shark1.org", "/AA"));
 	
-	http_cookie_set_with_expression("shark.io", "test3=HHHH--l; path=/AA; max-age=60");
+	http_cookie_set_with_expression("shark1.org", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	LOG(http_cookie_get("shark.io", "test3"));
+	LOG(http_cookie_get("shark1.org", "test3"));
 	
-	LOG(http_cookie_get("shark.io", "test3", "/AA"));
+	LOG(http_cookie_get("shark1.org", "test3", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.shark.io", "/AA"));
+	LOG(http_cookie_get_all_string("www.shark1.org", "/AA"));
 	
 	// test delete
 	
-	http_cookie_delete("shark.io", "test");
+	http_cookie_delete("shark1.org", "test");
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
-	http_cookie_set("shark.io", "test", "shark.io");
+	http_cookie_set("shark1.org", "test", "shark1.org");
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
-	http_cookie_delete_all("shark.io");
+	http_cookie_delete_all("shark1.org");
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
-	http_cookie_set("shark.io", "test", "shark.io");
+	http_cookie_set("shark1.org", "test", "shark1.org");
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
 	http_cookie_clear();
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
-	http_cookie_set("shark.io", "test", "END test cookie", sys::time() + 6e7); // 60s expires
+	http_cookie_set("shark1.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
 	
-	LOG(http_cookie_get("shark.io", "test"));
+	LOG(http_cookie_get("shark1.org", "test"));
 	
 }
