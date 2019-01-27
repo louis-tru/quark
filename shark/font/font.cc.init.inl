@@ -148,7 +148,7 @@ static bool get_system_font_family_cache() {
 	}
 	JSON json = JSON::parse(json_str);
 	String sys_id = hash(sys::info()); // 系统标识
-	String lib_version = Shark_VERSION;
+	String lib_version = SHARK_VERSION;
 
 	if (sys_id != json["sys_id"].to_cstring()) { // 操作系统与是否升级
 		return false;
