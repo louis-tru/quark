@@ -219,7 +219,7 @@
 					'depe/reachability/reachability.gyp:reachability', 
 				],
 				'sources':[
-					'platforms/ios-app.h',
+					'platforms/max-app.h',
 					'platforms/ios-app.mm',
 					'platforms/ios-ime-helper-1.h',
 					'platforms/ios-ime-helper.mm',
@@ -246,15 +246,15 @@
 					'depe/reachability/reachability.gyp:reachability', 
 				],
 				'sources': [
-					'platforms/osx-app-1.h',
+					'platforms/max-app.h',
 					'platforms/osx-app.mm',
 					'platforms/mac-image-codec.mm',
 					'platforms/mac-media-codec.mm',
 					'platforms/mac-pcm-player.mm',
 					'platforms/mac-keyboard.mm',
 					'platforms/mac-sys.mm',
-					'platforms/ios-gl-1.h',
-					'platforms/ios-gl.mm',
+					# 'platforms/ios-gl-1.h',
+					# 'platforms/ios-gl.mm',
 				],
 				'link_settings': {
 					'libraries': [

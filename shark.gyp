@@ -39,7 +39,7 @@
 			 'OTHER_LDFLAGS': '-all_load',
 			},
 			'mac_bundle_resources': [
-				'node_modules/shark',
+				'libs/shark',
 			],
 			'conditions': [
 				['cplusplus_exceptions==1', {

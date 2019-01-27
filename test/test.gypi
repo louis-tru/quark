@@ -40,7 +40,7 @@
 			'mac_bundle_resources': [
 				'res',
 				'test-shark',
-				'../node_modules/shark',
+				'../libs/shark',
 				'../demo/examples',
 				'../benchmark',
 			],
@@ -50,9 +50,9 @@
 			'sources': [
 				'../demo/examples',
 				'../demo/README.md',
-				'../node_modules/shark',
-				'../node_modules/shark-tools',
-				'../node_modules/shark-utils',
+				'../libs/shark',
+				'../libs/shark-tools',
+				'../libs/shark-utils',
 				'test.cc',
 				'test-shark.cc',
 				'test-fs.cc',
@@ -118,7 +118,7 @@
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'../demo/examples',
-				'../node_modules/shark',
+				'../libs/shark',
 			],
 			'xcode_settings': {
 				'OTHER_LDFLAGS': '-all_load',

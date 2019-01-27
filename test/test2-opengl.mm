@@ -220,6 +220,23 @@ static CVReturn display_link_callback(
 	setup_opengl();
 }
 
+- (CVReturn) getFrameForTime:(const CVTimeStamp*)outputTime {
+	// Add your drawing codes here
+	NSOpenGLContext *currentContext = [self openGLContext];
+	[currentContext makeCurrentContext];
+
+	// must lock GL context because display link is threaded
+	CGLLockContext(static_cast<CGLContextObj>([currentContext CGLContextObj]));
+
+	// Add your drawing codes here
+	draw_frame();
+
+	[currentContext flushBuffer];
+
+	CGLUnlockContext(static_cast<CGLContextObj>([currentContext CGLContextObj]));
+	return kCVReturnSuccess;
+}
+
 - (NSOpenGLPixelFormat*) createPixelFormat {
 	NSOpenGLPixelFormat *pixelFormat;
 
@@ -237,23 +254,6 @@ static CVReturn display_link_callback(
 
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 	return pixelFormat;
-}
-
-- (CVReturn) getFrameForTime:(const CVTimeStamp*)outputTime {
-	// Add your drawing codes here
-	NSOpenGLContext *currentContext = [self openGLContext];
-	[currentContext makeCurrentContext];
-
-	// must lock GL context because display link is threaded
-	CGLLockContext(static_cast<CGLContextObj>([currentContext CGLContextObj]));
-
-	// Add your drawing codes here
-	draw_frame();
-
-	[currentContext flushBuffer];
-
-	CGLUnlockContext(static_cast<CGLContextObj>([currentContext CGLContextObj]));
-	return kCVReturnSuccess;
 }
 
 - (void) dealloc {

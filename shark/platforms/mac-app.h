@@ -28,18 +28,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-
-#if XX_IOS
-
 #import <shark/app.h>
-#import <UIKit/UIKit.h>
 
-@interface ApplicationDelegate : UIResponder<UIApplicationDelegate>
-@property (assign, nonatomic, readonly) shark::GUIApplication* app;
-
-+ (void)set_application_delegate:(NSString*)name;
-
-@end
-
+#if XX_OSX
+ #import <AppKit/AppKit.h>
+ #define UIResponder NSResponder
+ #define UIApplicationDelegate NSApplicationDelegate
+ #define UIWindow NSWindow
+#else
+ #import <UIKit/UIKit.h>
 #endif
+
+@interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
+@property (assign, nonatomic, readonly) shark::GUIApplication* app;
++ (void)set_application_delegate:(NSString*)name;
+- (UIWindow*)window;
+@end
