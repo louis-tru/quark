@@ -51,7 +51,7 @@ var config = null;
 
 function parse_keys(content) {
   if ( !keys ) {
-    keys = process.binding('ngui_keys');
+    keys = process.binding('shark_keys');
   }
   return keys.parse(content);
 }

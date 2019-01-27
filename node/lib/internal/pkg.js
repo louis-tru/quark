@@ -24,10 +24,10 @@
 const win32 = process.platform == 'win32';
 const { readFile, readFileSync, 
 				existsSync, isFileSync, 
-				isDirectorySync, readdirSync } = process.binding('ngui_reader');
+				isDirectorySync, readdirSync } = process.binding('shark_reader');
 const internalURL = require('internal/url');
 const getPathFromURLRaw = internalURL.getPathFromURL;
-const _util = process.binding('ngui_util');
+const _util = process.binding('shark_util');
 
 const fallbackPath = win32 ? function(url) {
   return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
