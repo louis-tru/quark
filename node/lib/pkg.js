@@ -1377,30 +1377,30 @@ function parse_argv() {
   }
 }
 
-function add_node_path(main) {
+function add_main_node_path(main) {
 
   if (is_network(main)) {
     if (options.dev) {
       PackagesCore_require_before(packages); // load packages
-      // 这是一个网络启动并为调式状态时,尝试从调式服务器`/node_modules` load `package`
+      // 这是一个网络启动并为调式状态时,尝试从调式服务器`/libs` load `package`
       var mat = main.match(/^https?:\/\/[^\/]+/);
       assert(mat, 'Unknown err');
-      exports.addNodePath(mat[0] + '/node_modules');
+      exports.addNodePath(mat[0] + '/libs');
     }
   }
   else { // local
     if (path.extname(main) == '') { // package
-      exports.addNodePath(main + '/node_modules');
-      exports.addNodePath(main + '/../node_modules');
+      exports.addNodePath(main + '/libs');
+      exports.addNodePath(main + '/../libs');
     } else {
-      exports.addNodePath(path.dirname(main) + '/node_modules');
-      exports.addNodePath(path.dirname(main) + '/../node_modules');
+      exports.addNodePath(path.dirname(main) + '/libs');
+      exports.addNodePath(path.dirname(main) + '/../libs');
     }
   }
 
   [
     _util.resources(), 
-    _util.resources('node_modules'),
+    _util.resources('libs'),
   ].concat(Module.globalPaths).forEach(function(path) {
     exports.addNodePath(path);
   });
@@ -1417,7 +1417,7 @@ function start() {
   var main = process.argv[1];
   if (main) { // start
 
-    add_node_path(main);
+    add_main_node_path(main);
     
     if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
       inl_require(main, null);

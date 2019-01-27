@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('shark-utils');
-var fs = require('shark-utils/fs');
-var path = require('shark-utils/url');
+var util = require('../libs/shark-utils');
+var fs = require('../libs/shark-utils/fs');
+var path = require('../libs/shark-utils/url');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('shark-utils/arguments');
-var { syscall, execSync } = require('shark-utils/syscall');
+var argument = require('../libs/shark-utils/arguments');
+var { syscall, execSync } = require('../libs/shark-utils/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

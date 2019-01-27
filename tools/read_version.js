@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('shark-utils/fs');
+var fs = require('../libs/shark-utils/fs');
 
 function read_shark_version() {
 	var str = fs.readFileSync(__dirname + '/../shark/version.h').toString('utf-8');

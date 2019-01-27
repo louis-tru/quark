@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('shark-utils');
-var fs = require('shark-utils/fs');
-var keys = require('shark-utils/keys');
-var service = require('shark-utils/service');
-var HttpService = require('shark-utils/http_service').HttpService;
-var server = require('shark-tools/toolchain/server');
+var util = require('../libs/shark-utils');
+var fs = require('../libs/shark-utils/fs');
+var keys = require('../libs/shark-utils/keys');
+var service = require('../libs/shark-utils/service');
+var HttpService = require('../libs/shark-utils/http_service').HttpService;
+var server = require('../libs/shark-tools/toolchain/server');
 require('./test-multiple-service');
 
 var opt = {
