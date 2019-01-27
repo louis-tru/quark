@@ -1,7 +1,7 @@
 
 import { P, M, LOG, AM, VM, VP, CA } from './test'
-import 'ngui/fs';
-import 'ngui/url';
+import 'shark/fs';
+import 'shark/url';
 import { Buffer } from 'buffer';
 
 // init

@@ -1,4 +1,4 @@
-# `ngui/ctr`
+# `shark/ctr`
 
 ## empty
 
@@ -21,8 +21,8 @@
 Example:
 
 ```jsx
-import { GUIApplication, ViewController, Root, Div } from 'ngui'
-import 'ngui/http'
+import { GUIApplication, ViewController, Root, Div } from 'shark'
+import 'shark/http'
 class MyCtr extends ViewController {
 	loadView() {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>{
@@ -222,18 +222,18 @@ new GUIApplication().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: ngui.md#class-view
+[`View`]: shark.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: ngui.md#get-view-action
-[`View.style`]: ngui.md#view-style
-[`View.visible`]: ngui.md#view-visible
-[`View.receive`]: ngui.md#view-receive
-[`View.class`]: ngui.md#get-view-class
-[`View.transition()`]: ngui.md#view-transition-style-delay-cb-
-[`View.show()`]: ngui.md#view-show-
-[`View.hide()`]: ngui.md#view-hide-
-[`View.addClass()`]: ngui.md#view-addClass-name-
-[`View.removeClass()`]: ngui.md#view-removeclass-name-
-[`View.toggleClass()`]: ngui.md#view-toggleclass-name-
-[`View.remove()`]: ngui.md#view-remove-
+[`View.action`]: shark.md#get-view-action
+[`View.style`]: shark.md#view-style
+[`View.visible`]: shark.md#view-visible
+[`View.receive`]: shark.md#view-receive
+[`View.class`]: shark.md#get-view-class
+[`View.transition()`]: shark.md#view-transition-style-delay-cb-
+[`View.show()`]: shark.md#view-show-
+[`View.hide()`]: shark.md#view-hide-
+[`View.addClass()`]: shark.md#view-addClass-name-
+[`View.removeClass()`]: shark.md#view-removeclass-name-
+[`View.toggleClass()`]: shark.md#view-toggleclass-name-
+[`View.remove()`]: shark.md#view-remove-

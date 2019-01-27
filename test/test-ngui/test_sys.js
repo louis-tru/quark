@@ -1,5 +1,5 @@
 
-import 'ngui/sys'
+import 'shark/sys'
 import { P, M } from './test'
 
 M(sys, 'time');

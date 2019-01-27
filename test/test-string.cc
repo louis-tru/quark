@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <ngui/utils/string.h>
-#include <ngui/utils/codec.h>
+#include <shark/utils/string.h>
+#include <shark/utils/codec.h>
 
 using namespace std;
-using namespace ngui;
+using namespace shark;
 
 class Str {
  private:

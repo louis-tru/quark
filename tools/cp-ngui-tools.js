@@ -28,29 +28,29 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-utils/util');
-var fs = require('ngui-utils/fs');
+var util = require('shark-utils/util');
+var fs = require('shark-utils/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/ngui-tools';
-var include = target + '/product/include/ngui';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/shark-tools';
+var include = target + '/product/include/shark';
 
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
 
-fs.cp_sync(root + '/node_modules/ngui-tools', target);
+fs.cp_sync(root + '/node_modules/shark-tools', target);
 fs.chmodSync(target + '/install', 0755);
 // fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
 fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
-copy_header(root + '/ngui', include);
+copy_header(root + '/shark', include);
 
 fs.cp_sync(root + '/demo/examples', target + '/product/examples');
-fs.cp_sync(root + '/node_modules/ngui', target + '/product/libs/ngui');
-fs.cp_sync(root + '/tools/product.gypi', target + '/product/ngui.gypi');
+fs.cp_sync(root + '/node_modules/shark', target + '/product/libs/shark');
+fs.cp_sync(root + '/tools/product.gypi', target + '/product/shark.gypi');
 

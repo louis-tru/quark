@@ -29,8 +29,8 @@ const fs = require('fs');
 const path = require('path');
 const Module = require('module');
 const win32 = process.platform == 'win32';
-const _util = process.binding('ngui_util');
-const _http = process.binding('ngui_http');
+const _util = process.binding('shark_util');
+const _http = process.binding('shark_http');
 const { readFile, readFileSync, isFileSync, 
         isDirectorySync, readdirSync, fallbackPath,
         resolve_path_level,
@@ -511,7 +511,7 @@ Module._extensions['.js'] = function(module, filename) {
   var content = read_text_sync(filename);
   var pkg = module.package;
   var raw_filename = filename.replace(/\?.*$/, '');
-  if (pkg && pkg.m_info.ngui_syntax) {
+  if (pkg && pkg.m_info.shark_syntax) {
     if ( !pkg.m_build || 
       pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
       content = _util.transformJs(content, raw_filename);
@@ -1272,8 +1272,8 @@ function inl_require_external(path) {
 }
 
 /**
- * require('ngui/util.js');
- * require('ngui/gui');
+ * require('shark/util.js');
+ * require('shark/gui');
  *
  * @fun inl_require
  * @arg request {String}  #    请求名

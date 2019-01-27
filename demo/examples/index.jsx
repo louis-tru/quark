@@ -1,10 +1,10 @@
-import 'ngui/util';
-import 'ngui/sys';
+import 'shark/util';
+import 'shark/sys';
 import {
 	GUIApplication, Root, Scroll, CSS, atomPixel: px,
-	Div, Hybrid, Clip, Text, Button, TextNode: T, ngui
-} from 'ngui';
-import { NavpageCollection, Toolbar } from 'ngui/nav';
+	Div, Hybrid, Clip, Text, Button, TextNode: T, shark
+} from 'shark';
+import { NavpageCollection, Toolbar } from 'shark/nav';
 import { Navbutton, Mynavpage } from './public';
 import './examples';
 import about_vx from './about';
@@ -68,20 +68,20 @@ function review_code(evt) {
 	evt.sender.topCtr.collection.push(review_vx, 1);
 }
 
-const ngui_tools = 'https://www.npmjs.com/package/ngui-tools';
-const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui/issues';
-const examples_source = 'https://github.com/louis-tru/ngui.git';
-const documents = 'http://ngui.io/';
+const shark_tools = 'https://www.npmjs.com/package/shark-tools';
+const shark_tools_issues_url = 'https://github.com/louis-tru/shark/issues';
+const examples_source = 'https://github.com/louis-tru/shark.git';
+const documents = 'http://shark.io/';
 
 function handle_go_to(evt) {
 	var url = evt.sender.url;
 	if ( url ) {
-		ngui.app.openUrl(url);
+		shark.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	ngui.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	shark.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 var default_toolbar_vx = (
@@ -94,14 +94,14 @@ var default_toolbar_vx = (
 	</Toolbar>
 )
 
-var ngui_tools_vx = (
-	<Mynavpage title="Ngui Tools" source=resolve(__filename)>
+var shark_tools_vx = (
+	<Mynavpage title="Shark Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g ngui</T>.
+@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g shark</T>.
 2. Or get the node modules from Github.@@
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=shark_tools>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -118,7 +118,7 @@ const examples_source_vx = (
 var documents_vx = (
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff">ngui.io</T> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff">shark.io</T> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
 		</Div>
 	</Mynavpage>
@@ -128,7 +128,7 @@ const bug_feedback_vx = (
 	<Mynavpage title="Bug Feedback" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools_issues_url>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=shark_tools_issues_url>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_bug_feedback>Send email</Button>
 		</Div>
@@ -140,19 +140,19 @@ var app = new GUIApplication({
 	width: 420, 
 	height: 800, 
 	background: 0xffffff,
-	title: 'Ngui Examples',
+	title: 'Shark Examples',
 }).start(
 	<Root>
 
 		<NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>
-			<Mynavpage title="Ngui" source=resolve(__filename)>
+			<Mynavpage title="Shark" source=resolve(__filename)>
 
 				<Scroll width="full" height="full" bounceLock=0>
 					
 					<Text class="hello">Hello.</Text>
 					<Div class="category">
 						<Hybrid class="codepre">
-@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'ngui'</T>
+@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'shark'</T>
 <T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
 	\<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
 )@@
@@ -163,7 +163,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=ngui_tools_vx view.borderWidth=0>Ngui Tools</Navbutton>
+						<Navbutton next=shark_tools_vx view.borderWidth=0>Shark Tools</Navbutton>
 					</Clip>
 					
 					<Text class="category_title" />

@@ -1,6 +1,6 @@
 
 import { LOG, M } from './test'
-import 'ngui/storage'
+import 'shark/storage'
 
 LOG('\nTest Storage:\n')
 

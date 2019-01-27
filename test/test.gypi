@@ -3,9 +3,9 @@
 		'without_visibility_hidden%': 0,
 		'other_ldflags': [
 			'-Wl,--whole-archive',
-			'<(output)/obj.target/libngui-utils.a',
-			'<(output)/obj.target/libngui-gui.a',
-			'<(output)/obj.target/libngui-js.a',
+			'<(output)/obj.target/libshark-utils.a',
+			'<(output)/obj.target/libshark-gui.a',
+			'<(output)/obj.target/libshark-js.a',
 			'<(output)/obj.target/node/libnode.a',
 			# '<(output)/obj.target/node/deps/v8/src/libv8_base.a',
 			# '<(output)/obj.target/node/deps/openssl/libopenssl.a',
@@ -21,10 +21,10 @@
 				'../node/src',
 			],
 			'dependencies': [
-				'ngui-lib',
-				'ngui-utils',
-				'ngui-gui',
-				'ngui-js',
+				'shark-lib',
+				'shark-utils',
+				'shark-gui',
+				'shark-js',
 				'depe/tess2/tess2.gyp:tess2',
 				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
@@ -39,8 +39,8 @@
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-ngui',
-				'../node_modules/ngui',
+				'test-shark',
+				'../node_modules/shark',
 				'../demo/examples',
 				'../benchmark',
 			],
@@ -50,11 +50,11 @@
 			'sources': [
 				'../demo/examples',
 				'../demo/README.md',
-				'../node_modules/ngui',
-				'../node_modules/ngui-tools',
-				'../node_modules/ngui-utils',
+				'../node_modules/shark',
+				'../node_modules/shark-tools',
+				'../node_modules/shark-utils',
 				'test.cc',
-				'test-ngui.cc',
+				'test-shark.cc',
 				'test-fs.cc',
 				'test-fs2.cc',
 				'test-gui.cc',
@@ -110,15 +110,15 @@
 			],
 		},
 		{
-			'target_name': 'ngui-demo',
+			'target_name': 'shark-demo',
 			'type': 'executable',
 			'dependencies': [ 
-				'ngui-lib',
+				'shark-lib',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'../demo/examples',
-				'../node_modules/ngui',
+				'../node_modules/shark',
 			],
 			'xcode_settings': {
 				'OTHER_LDFLAGS': '-all_load',
@@ -147,11 +147,11 @@
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'ngui_depes',
+				'target_name': 'shark_depes',
 				'type': 'shared_library',
 				'dependencies': [
 					'depe/curl/curl.gyp:curl',
-					'ngui/utils/minizip.gyp:minizip',
+					'shark/utils/minizip.gyp:minizip',
 					'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
@@ -194,13 +194,13 @@
 					],
 				},
 			}, {
-				'target_name': 'ngui_depes_copy',
+				'target_name': 'shark_depes_copy',
 				'type': 'none',
-				'dependencies': [ 'ngui_depes' ],
+				'dependencies': [ 'shark_depes' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libngui_depes.so',
+						'<(output)/lib.target/libshark_depes.so',
 					],
 				}],
 			}],
@@ -208,7 +208,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'NguiTest',
+				'target_name': 'SharkTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],

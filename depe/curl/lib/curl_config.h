@@ -1,7 +1,7 @@
 /* lib/curl_config.h.  Generated from curl_config.h.in by configure.  */
 /* lib/curl_config.h.in.  Generated from configure.ac by autoheader.  */
 
-#include <ngui/utils/env.h>
+#include <shark/utils/env.h>
 
 /* Location of default ca bundle */
 /* #undef CURL_CA_BUNDLE */

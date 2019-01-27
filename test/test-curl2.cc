@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/http.h>
-#include <ngui/utils/string.h>
-#include <ngui/utils/fs.h>
+#include <shark/utils/util.h>
+#include <shark/utils/http.h>
+#include <shark/utils/string.h>
+#include <shark/utils/fs.h>
 #include <curl/curl.h>
 
-using namespace ngui;
+using namespace shark;
 
 static int req_progress_cb(void* req,
 													 curl_off_t dltotal, curl_off_t dlnow,
@@ -71,8 +71,8 @@ void test_curl2(int argc, char **argv) {
 	
 	HttpHelper::initialize();
 	
-	static cString url = "http://ngui-x.org:1026/TestService/test?asasas=pppp";
-	//  static cString url = "http://nguif.org:1026/js/inltest/test_build.js";
+	static cString url = "http://shark-x.org:1026/TestService/test?asasas=pppp";
+	//  static cString url = "http://sharkf.org:1026/js/inltest/test_build.js";
 	
 	static cString cookie = Path::format("%s/cookie.txt", *Path::temp());
 	

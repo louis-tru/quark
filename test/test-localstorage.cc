@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/localstorage.h"
+#include "shark/utils/localstorage.h"
 
-using namespace ngui;
+using namespace shark;
 
 void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test2"));
 	
-	localstorage_set("test", "ngui.io");
+	localstorage_set("test", "shark.io");
 	
 	LOG(localstorage_get("test"));
 	
@@ -44,7 +44,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test"));
 	
-	localstorage_set("test", "ngui.io");
+	localstorage_set("test", "shark.io");
 	
 	LOG(localstorage_get("test"));
 	

@@ -5,7 +5,7 @@ android {
   buildToolsVersion '26.0.2'
 
   defaultConfig {
-    applicationId "com.ngui.test"
+    applicationId "com.shark.test"
     minSdkVersion 21
     targetSdkVersion 24
     versionCode 1

@@ -1,4 +1,4 @@
-# `ngui/reader`
+# `shark/reader`
 
 这里提供的方法可以针对不协议的uri路径进行基本的读取操作
 

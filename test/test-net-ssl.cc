@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/net.h"
+#include "shark/utils/net.h"
 #include <uv.h>
 
-using namespace ngui;
+using namespace shark;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
  public:
@@ -49,7 +49,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		"_Connection: keep-alive\r\n"
 		"Connection: close\r\n"
 		"Accept: */*\r\n"
-		"User-Agent: Mozilla/5.0 AppleWebKit ngui Net Test\r\n\r\n";
+		"User-Agent: Mozilla/5.0 AppleWebKit shark Net Test\r\n\r\n";
 		
 		write(header.collapse_buffer());
 	}

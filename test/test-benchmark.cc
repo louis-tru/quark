@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js.h"
+#include "shark/js/js.h"
 
-using namespace ngui;
+using namespace shark;
 
 #define IP_REMOTE "127.0.0.1"
 

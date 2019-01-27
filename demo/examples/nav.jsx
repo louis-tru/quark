@@ -1,8 +1,8 @@
 import { 
 	Div, Indep, Button, Text, Hybrid
-} from 'ngui';
+} from 'shark';
 import { Mynavpage } from './public';
-import { Navbar, Toolbar } from 'ngui/nav';
+import { Navbar, Toolbar } from 'shark/nav';
 import review_vx from './review';
 
 function hide_show_navbar(evt) {

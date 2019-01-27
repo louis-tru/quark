@@ -1,5 +1,5 @@
 
-import 'ngui/http';
+import 'shark/http';
 
 var i = 0;
 

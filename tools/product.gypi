@@ -113,7 +113,7 @@
 	},
 
 	'targets': [{
-		'target_name': 'ngui-lib',
+		'target_name': 'shark-lib',
 		'type': 'none',
 		'direct_dependent_settings': {
 			'defines': [ 
@@ -131,7 +131,7 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-lngui',
+						'-lshark',
 					],
 					'library_dirs': [
 						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
@@ -145,8 +145,8 @@
 				'link_settings': {
 					'libraries': [ 
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						# '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
-						'<(DEPTH)/out/libs/ios/iphoneos/Release/Frameworks/ngui.framework',
+						# '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/shark.framework',
+						'<(DEPTH)/out/libs/ios/iphoneos/Release/Frameworks/shark.framework',
 					],
 				},
 				'direct_dependent_settings': {
@@ -154,8 +154,8 @@
 						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks',
 					],
 					'mac_bundle_frameworks': [
-						# '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/ngui.framework',
-						'<(DEPTH)/out/libs/ios/iphoneos/Release/Frameworks/ngui.framework',
+						# '<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/$(CONFIGURATION)/Frameworks/shark.framework',
+						'<(DEPTH)/out/libs/ios/iphoneos/Release/Frameworks/shark.framework',
 					],
 				},
 			}],

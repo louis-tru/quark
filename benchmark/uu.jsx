@@ -1,8 +1,8 @@
 
-import 'ngui/http';
-import 'ngui/util';
-import 'ngui/sys';
-import { Indep, ngui, New, Text } from 'ngui';
+import 'shark/http';
+import 'shark/util';
+import 'shark/sys';
+import { Indep, shark, New, Text } from 'shark';
 
 var ts = 0;
 
@@ -19,7 +19,7 @@ function log(...args) {
 
 function show_fsp_ok() {
 
-	var displayPort = ngui.displayPort;
+	var displayPort = shark.displayPort;
 	var fsp = null;
 	var priv_fsp_value = 0;
 	var priv_cpu_usage = 0;
@@ -35,7 +35,7 @@ function show_fsp_ok() {
 	}
 
 	setTimeout(function() {
-		var root = ngui.root;
+		var root = shark.root;
 		if (root) {
 			fsp = New(
 				<Indep alignY="bottom" x=5 y=-5>
@@ -50,7 +50,7 @@ function show_fsp_ok() {
 }
 
 function show_fsp() {
-	var app = ngui.app;
+	var app = shark.app;
 	util.assert(app);
 
 	if (app.isLoad) {

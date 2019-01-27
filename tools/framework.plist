@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ngui</string>
+	<string>shark</string>
 	<key>CFBundleExecutable</key>
-	<string>ngui</string>
+	<string>shark</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.ngui.ngui</string>
+	<string>org.shark.shark</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>ngui</string>
+	<string>shark</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>

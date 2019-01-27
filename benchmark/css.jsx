@@ -1,8 +1,8 @@
 
-import { GUIApplication, Root, Div, Indep, ngui, New } from 'ngui';
-import { Color } from 'ngui/value';
-import { random } from 'ngui/util';
-import 'ngui/css';
+import { GUIApplication, Root, Div, Indep, shark, New } from 'shark';
+import { Color } from 'shark/value';
+import { random } from 'shark/util';
+import 'shark/css';
 import './uu';
 
 var test_count = 100000;
@@ -14,8 +14,8 @@ css.create({
 });
 
 new GUIApplication({ multisample: 2 }).start(<Root />).onLoad = function() {
-	var w = ngui.displayPort.width;
-	var h = ngui.displayPort.height;
+	var w = shark.displayPort.width;
+	var h = shark.displayPort.height;
 	var csss = {};
 
 	for (var i = 0; i < test_count; i++) {

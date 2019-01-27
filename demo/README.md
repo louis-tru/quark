@@ -1,18 +1,18 @@
-Ngui Examples
+Shark Examples
 ===============
 
-* 这是一个`Ngui`演示工程，请使用`ngui`命令导出到`xcode`或`android studio`
+* 这是一个`Shark`演示工程，请使用`shark`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`ngui-tools`
+## 获取`shark-tools`
 
-* 使用 nodejs `npm`安装`ngui-tools`
+* 使用 nodejs `npm`安装`shark-tools`
 
 
 ```sh
 # shell
-sudo npm install -g ngui-tools
+sudo npm install -g shark-tools
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g ngui-tools
 
 ```sh
 # shell
-ngui export ios
-ngui export android
+shark export ios
+shark export android
 ```
 
 导出后使用`xcode`获取`android studio`打开`Project`文件夹下的工程文件

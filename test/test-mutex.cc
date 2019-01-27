@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/loop.h>
+#include <shark/utils/util.h>
+#include <shark/utils/loop.h>
 
-using namespace ngui;
+using namespace shark;
 
 volatile bool run_flag = false;
 Mutex mtx;

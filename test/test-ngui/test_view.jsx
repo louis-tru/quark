@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Vec2, value } from 'ngui/value';
-import KeyframeAction from 'ngui/action';
+import { Vec2, value } from 'shark/value';
+import KeyframeAction from 'shark/action';
 import {
 	GUIApplication,
 	CSS,
@@ -53,9 +53,9 @@ import {
 	Clip,
 	Input,
 	Textarea,
-	ngui: gui,
-} from 'ngui';
-import { Video } from 'ngui/media';
+	shark: gui,
+} from 'shark';
+import { Video } from 'shark/media';
 
 CSS({
 	'.test': {

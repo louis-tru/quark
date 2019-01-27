@@ -1,5 +1,5 @@
 
-import 'ngui/util';
+import 'shark/util';
 
 function json_stringify(value, whitelist) {
 

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/sys.h"
+#include "shark/sys.h"
 
-using namespace ngui;
+using namespace shark;
 
 class TestSizeOf {
  private:

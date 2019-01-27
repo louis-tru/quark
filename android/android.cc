@@ -29,18 +29,27 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "ngui/base/os/android-jni.h"
+#include "shark/base/os/android-jni.h"
 
-XX_NS(ngui)
+XX_NS(shark)
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
 
 class APICore {
-public:
+ public:
 	APICore() {
 		ScopeENV env;
-		clazz_              = JNI::find_clazz("org/ngui/Android");
+		clazz_              = JNI::find_clazz("org/shark/Android");
+		clazz_build_        = JNI::find_clazz("android.os.Build");
+		// utils
+		version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
+		brand_              = JNI::find_static_method(clazz_, "brand", "()Ljava/lang/String;");
+		subsystem_          = JNI::find_static_method(clazz_, "subsystem", "()Ljava/lang/String;");
+		package_code_path_  = JNI::find_static_method(clazz_, "package_code_path", "()Ljava/lang/String;");
+		cache_dir_path_     = JNI::find_static_method(clazz_, "cache_dir_path", "()Ljava/lang/String;");
+		files_dir_path_     = JNI::find_static_method(clazz_, "files_dir_path", "()Ljava/lang/String;");
+		// shark
 		ime_keyboard_open_  = JNI::find_static_method(clazz_, "ime_keyboard_open", "(ZII)V");
 		ime_keyboard_can_backspace_ = JNI::find_static_method(clazz_, "ime_keyboard_can_backspace", "(ZZ)V");
 		ime_keyboard_close_ = JNI::find_static_method(clazz_, "ime_keyboard_close", "()V");
@@ -57,14 +66,10 @@ public:
 		set_volume_down_    = JNI::find_static_method(clazz_, "set_volume_down", "()V");
 		open_url_           = JNI::find_static_method(clazz_, "open_url", "(Ljava/lang/String;)V");
 		send_email_         = JNI::find_static_method(clazz_, "send_email",
-																									"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+																									"(Ljava/lang/String;Ljava/lang/String;"
+																									"Ljava/lang/String;Ljava/lang/String;"
+																									"Ljava/lang/String;)V");
 		start_path_         = JNI::find_static_method(clazz_, "start_path", "()Ljava/lang/String;");
-		package_code_path_  = JNI::find_static_method(clazz_, "package_code_path", "()Ljava/lang/String;");
-		files_dir_path_     = JNI::find_static_method(clazz_, "files_dir_path", "()Ljava/lang/String;");
-		cache_dir_path_     = JNI::find_static_method(clazz_, "cache_dir_path", "()Ljava/lang/String;");
-		version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
-		brand_              = JNI::find_static_method(clazz_, "brand", "()Ljava/lang/String;");
-		subsystem_          = JNI::find_static_method(clazz_, "subsystem", "()Ljava/lang/String;");
 		network_status_     = JNI::find_static_method(clazz_, "network_status", "()I");
 		is_ac_power_        = JNI::find_static_method(clazz_, "is_ac_power", "()Z");
 		is_battery_         = JNI::find_static_method(clazz_, "is_battery", "()Z");
@@ -74,13 +79,16 @@ public:
 		memory_             = JNI::find_static_method(clazz_, "memory", "()J");
 		used_memory_        = JNI::find_static_method(clazz_, "used_memory", "()J");
 		clazz_ = (jclass)env->NewGlobalRef(clazz_);
+		clazz_build_ = (jclass)env->NewGlobalRef(clazz_build_);
 	}
 
 	~APICore() {
 		ScopeENV env;
 		env->DeleteGlobalRef(clazz_);
+		env->DeleteGlobalRef(clazz_build_);
 	}
 
+	jclass    clazz_build_;
 	jclass    clazz_;
 	jmethodID ime_keyboard_open_;
 	jmethodID ime_keyboard_can_backspace_;

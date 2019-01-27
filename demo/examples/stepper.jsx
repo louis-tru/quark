@@ -1,5 +1,5 @@
-import { Div, Text, CSS, atomPixel } from 'ngui';
-import { Stepper } from 'ngui/stepper';
+import { Div, Text, CSS, atomPixel } from 'shark';
+import { Stepper } from 'shark/stepper';
 import { Mynavpage } from './public';
 
 CSS({

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/net.h"
-#include "ngui/utils/fs.h"
+#include "shark/utils/net.h"
+#include "shark/utils/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace ngui;
+using namespace shark;
 
 #define error_report printf
 #define info_report printf

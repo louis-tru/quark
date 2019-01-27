@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/sys.h"
-#include "ngui/utils/string.h"
+#include "shark/sys.h"
+#include "shark/utils/string.h"
 
-using namespace ngui;
+using namespace shark;
 
 void test_sys(int argc, char **argv) {
 	LOG(sys::info());

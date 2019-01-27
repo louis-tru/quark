@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/map.h>
-#include <ngui/utils/array.h>
-#include <ngui/utils/list.h>
-#include <ngui/utils/string.h>
-#include <ngui/utils/event.h>
+#include <shark/utils/map.h>
+#include <shark/utils/array.h>
+#include <shark/utils/list.h>
+#include <shark/utils/string.h>
+#include <shark/utils/event.h>
 
-using namespace ngui;
+using namespace shark;
 
 void test_event(int argc, char **argv) {
 	

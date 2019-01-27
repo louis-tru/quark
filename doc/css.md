@@ -1,4 +1,4 @@
-# `ngui/css`
+# `shark/css`
 
 * `css`样式表类似于html `css`样式表，支持使用多级样式表，但只支持`class`类
 
@@ -36,9 +36,9 @@
 Example:
 
 ```js
-import CSS from 'ngui/css'
-import { GUIApplication, Root, Div } from 'ngui'
-import 'ngui/dialog'
+import CSS from 'shark/css'
+import { GUIApplication, Root, Div } from 'shark'
+import 'shark/dialog'
 // 样式表都是全局的
 CSS({
 	'.test': {
@@ -168,7 +168,7 @@ new GUIApplication().start(
 
 [`KeyframeAction`]: action.md#class-keyframeaction
 [`Frame`]: action.md#class-frame
-[`HIGHLIGHTED_NORMAL`]: ngui.md#highlighted_normal
-[`HIGHLIGHTED_HOVER`]: ngui.md#highlighted_hover
-[`HIGHLIGHTED_DOWN`]: ngui.md#highlighted_down
-[`View.onHighlighted`]: ngui.md#view-onhighlighted
+[`HIGHLIGHTED_NORMAL`]: shark.md#highlighted_normal
+[`HIGHLIGHTED_HOVER`]: shark.md#highlighted_hover
+[`HIGHLIGHTED_DOWN`]: shark.md#highlighted_down
+[`View.onHighlighted`]: shark.md#view-onhighlighted

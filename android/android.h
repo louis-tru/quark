@@ -28,16 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__android__android__
-#define __ngui__android__android__
+#ifndef __shark__android__android__
+#define __shark__android__android__
 
-#include "ngui/base/util.h"
+#include "shark/base/util.h"
 
 #if XX_ANDROID
 
-#include "ngui/base/string.h"
+#include "shark/base/string.h"
 
-XX_NS(ngui)
+XX_NS(shark)
 
 /**
  * @class Android

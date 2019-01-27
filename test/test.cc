@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/app.h"
-#include "ngui/sys.h"
-#include "ngui/utils/loop.h"
+#include "shark/app.h"
+#include "shark/sys.h"
+#include "shark/utils/loop.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_sys
 #endif
 
-using namespace ngui;
+using namespace shark;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 

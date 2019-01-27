@@ -1,5 +1,5 @@
-import { Div, Text, CSS, atomPixel } from 'ngui';
-import { Switch, Checkbox } from 'ngui/checkbox';
+import { Div, Text, CSS, atomPixel } from 'shark';
+import { Switch, Checkbox } from 'shark/checkbox';
 import { Mynavpage } from './public';
 
 CSS({

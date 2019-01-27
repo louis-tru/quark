@@ -1,6 +1,6 @@
 import { 
 	Div, Scroll, Text, TextNode, Hybrid, ViewController, New 
-} from 'ngui';
+} from 'shark';
 import { Mynavpage } from './public';
 
 class IconsPanel extends ViewController {

@@ -1,8 +1,8 @@
 {
 	"name": "examples",
-	"app_name":	"Ngui-Examples",
-	"id": "org.ngui.examples",
+	"app_name":	"Shark-Examples",
+	"id": "org.shark.examples",
 	"main":	"index.jsx",
 	"version": "1.0.0",
-	"ngui_syntax": true
+	"shark_syntax": true
 }

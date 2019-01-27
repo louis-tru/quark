@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root, Div, Button, Indep, Image } from 'ngui';
-import 'ngui/action';
-import 'ngui/css';
+import { GUIApplication, Root, Div, Button, Indep, Image } from 'shark';
+import 'shark/action';
+import 'shark/css';
 
 new GUIApplication().start(
 	<Root>

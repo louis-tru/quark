@@ -38,10 +38,10 @@ extern "C" {
 	// #include <libavcodec/fft.h>
 }
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/fs.h>
+#include <shark/utils/util.h>
+#include <shark/utils/fs.h>
 
-using namespace ngui;
+using namespace shark;
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;

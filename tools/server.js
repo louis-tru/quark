@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-utils');
-var fs = require('ngui-utils/fs');
-var keys = require('ngui-utils/keys');
-var service = require('ngui-utils/service');
-var HttpService = require('ngui-utils/http_service').HttpService;
-var server = require('ngui-tools/toolchain/server');
+var util = require('shark-utils');
+var fs = require('shark-utils/fs');
+var keys = require('shark-utils/keys');
+var service = require('shark-utils/service');
+var HttpService = require('shark-utils/http_service').HttpService;
+var server = require('shark-tools/toolchain/server');
 require('./test-multiple-service');
 
 var opt = {

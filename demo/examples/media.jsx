@@ -1,11 +1,11 @@
-import { Div, Button } from 'ngui';
-import { AudioPlayer, Video } from 'ngui/media';
+import { Div, Button } from 'shark';
+import { AudioPlayer, Video } from 'shark/media';
 import { Mynavpage } from './public';
-import * as aaaa from 'ngui/url';
+import * as aaaa from 'shark/url';
 
-// const src_720 = 'http://ngui.io/media/2017-09-11_15_41_19.mp4';
-const src_720 = 'http://ngui.io/media/piper720p.mp4';
-const audio_src = 'http://ngui.io/media/all_we_know.mp3';
+// const src_720 = 'http://shark.io/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://shark.io/media/piper720p.mp4';
+const audio_src = 'http://shark.io/media/all_we_know.mp3';
 
 var audio_player = null;
 

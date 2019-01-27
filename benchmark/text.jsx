@@ -1,5 +1,5 @@
 
-import { Image } from 'ngui';
+import { Image } from 'shark';
 import './print';
 
 

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/string.h>
+#include <shark/utils/util.h>
+#include <shark/utils/string.h>
 
-using namespace ngui;
+using namespace shark;
 
 void test_util(int argc, char **argv) {
 	int64 i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");

@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'ngui';
-import 'ngui/font' as f;
-import 'ngui/url';
-import 'ngui/app';
+import { GUIApplication, Root } from 'shark';
+import 'shark/font' as f;
+import 'shark/url';
+import 'shark/app';
 
 new GUIApplication().start(<Root/>).onLoad = function() {
 	const a = this;

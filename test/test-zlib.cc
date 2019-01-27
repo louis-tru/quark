@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/zlib.h>
+#include <shark/utils/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace ngui;
+using namespace shark;
 
 void test_zlib (int argc, char **argv) {
 	

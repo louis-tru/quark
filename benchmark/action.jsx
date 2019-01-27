@@ -1,15 +1,15 @@
 
-import { GUIApplication, Root, Div, Indep, ngui, New, lock } from 'ngui';
-import { Color } from 'ngui/value';
-import { random, log } from 'ngui/util';
+import { GUIApplication, Root, Div, Indep, shark, New, lock } from 'shark';
+import { Color } from 'shark/value';
+import { random, log } from 'shark/util';
 import './uu';
 
-new GUIApplication({ multisample: 4, title: 'Ngui benchmark' }).start(
+new GUIApplication({ multisample: 4, title: 'Shark benchmark' }).start(
 	<Root backgroundColor="#000">
 		%{
 			(()=>{
-				var w = ngui.displayPort.width;
-				var h = ngui.displayPort.height;
+				var w = shark.displayPort.width;
+				var h = shark.displayPort.height;
 				console.log(w,h);
 				var r = [];
 				for (var i = 0; i < 4000; i++) {

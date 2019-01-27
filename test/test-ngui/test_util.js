@@ -1,7 +1,7 @@
 
 import { LOG, AM, M, P, VM, VP, CA } from './test'
-import 'ngui/base'
-import 'ngui/http'
+import 'shark/base'
+import 'shark/http'
 
 async function test() {
 
@@ -16,7 +16,7 @@ async function test() {
 	await AM(process, 'nextTick', [()=>1])
 	M(util, 'garbageCollection')
 	M(util, 'transformJSX', ['var vx = (<Div> ABCDEFG </Div>); New(vx)', 'test.jsx'])
-	M(util, 'transformJS', ['import "ngui/base"', 'test.js'])
+	M(util, 'transformJS', ['import "shark/base"', 'test.js'])
 	P(util, 'noop')
 	M(util, 'extend', [{a:10}, {b:100}])
 	M(util, 'err', ['Err'])

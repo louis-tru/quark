@@ -1,6 +1,6 @@
-import { Div, Button, Input } from 'ngui';
-import 'ngui/storage';
-import { alert } from 'ngui/dialog';
+import { Div, Button, Input } from 'shark';
+import 'shark/storage';
+import { alert } from 'shark/dialog';
 import { Mynavpage } from './public';
 
 const key = 'test';

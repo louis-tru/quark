@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/fs.h>
+#include <shark/utils/fs.h>
 #include <pwd.h>
 
-using namespace ngui;
+using namespace shark;
 
 void test_fs(int argc, char **argv) {
 	

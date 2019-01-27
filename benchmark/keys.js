@@ -1,7 +1,7 @@
 
-import 'ngui/keys';
-import 'ngui/fs';
-import 'ngui/url';
+import 'shark/keys';
+import 'shark/fs';
+import 'shark/url';
 import './uu';
 
 uu.start();

@@ -1,7 +1,7 @@
-import { Scroll, Text } from 'ngui';
+import { Scroll, Text } from 'shark';
 import { Mynavpage } from './public';
-import { Toolbar } from 'ngui/nav';
-import 'ngui/reader';
+import { Toolbar } from 'shark/nav';
+import 'shark/reader';
 
 function foreground(evt) {
 	var navpage = evt.sender;

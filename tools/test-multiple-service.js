@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-utils');
-var service = require('ngui-utils/service');
-var HttpService = require('ngui-utils/http_service').HttpService;
+var util = require('shark-utils');
+var service = require('shark-utils/service');
+var HttpService = require('shark-utils/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

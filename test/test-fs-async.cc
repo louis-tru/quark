@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/util.h"
-#include "ngui/utils/fs.h"
+#include "shark/utils/util.h"
+#include "shark/utils/fs.h"
 
-using namespace ngui;
+using namespace shark;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
  public:

@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'ngui/event';
+import { EventNoticer } from 'shark/event';
 import './uu';
 
 uu.start();

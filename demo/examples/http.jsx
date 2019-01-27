@@ -1,7 +1,7 @@
-import { Div, Button, Input } from 'ngui';
-import 'ngui/util';
-import 'ngui/http';
-import { alert } from 'ngui/dialog';
+import { Div, Button, Input } from 'shark';
+import 'shark/util';
+import 'shark/http';
+import { alert } from 'shark/dialog';
 import { Mynavpage } from './public';
 
 function url(evt) {

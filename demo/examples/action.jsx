@@ -1,8 +1,8 @@
 import { 
 	Div, Hybrid, Text, Button, Image, Indep, Clip,
-} from 'ngui';
-import { HIGHLIGHTED_DOWN } from 'ngui/event';
-import { Toolbar } from 'ngui/nav';
+} from 'shark';
+import { HIGHLIGHTED_DOWN } from 'shark/event';
+import { Toolbar } from 'shark/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

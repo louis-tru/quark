@@ -1,18 +1,18 @@
 #!/bin/sh
 
 CWD=`pwd`
-PRODUCT_DIR="out/product/ngui/product"
+PRODUCT_DIR="out/product/shark/product"
 BUILD_ALL=$1
 BUILD_V8=$2
 
 build() {
 	make build
 	cd out/ios.$1.Release
-	rm -f libngui.a libv8.a
+	rm -f libshark.a libv8.a
 	
-	ar rc libngui.a `find obj.target/ngui-gui \
-													obj.target/ngui-utils \
-													obj.target/ngui-js \
+	ar rc libshark.a `find obj.target/shark-gui \
+													obj.target/shark-utils \
+													obj.target/shark-js \
 													obj.target/zlib \
 													obj.target/ft2 \
 													obj.target/http_parser \
@@ -23,7 +23,7 @@ build() {
 													obj.target/tinyxml2 \
 													obj.target/ffmpeg/libs \
 													-name *.o|xargs`
-	ranlib libngui.a
+	ranlib libshark.a
 
 	if [ "$2" = 1 ]; then
 		ar rc libv8.a `find obj.target/v8_base \
@@ -43,9 +43,9 @@ build arm64 $BUILD_V8
 ./configure --os=ios --arch=x64
 build x64 $BUILD_V8
 
-LIBS_NODEUI="out/ios.armv7.Release/libngui.a 
-							out/ios.arm64.Release/libngui.a 
-							out/ios.x64.Release/libngui.a"
+LIBS_NODEUI="out/ios.armv7.Release/libshark.a 
+							out/ios.arm64.Release/libshark.a 
+							out/ios.x64.Release/libshark.a"
 LIBS_V8="out/ios.armv7.Release/libv8.a 
 				out/ios.arm64.Release/libv8.a 
 				out/ios.x64.Release/libv8.a"
@@ -57,8 +57,8 @@ if [ "$BUILD_ALL" = 1 ]; then
 	build x86 $BUILD_V8
 	
 	LIBS_NODEUI="$OUT_LIBS_NODEUI
-								out/ios.armv7s.Release/libngui.a 
-								out/ios.x86.Release/libngui.a"
+								out/ios.armv7s.Release/libshark.a 
+								out/ios.x86.Release/libshark.a"
 	LIBS_V8="$LIBS_V8 
 					out/ios.armv7s.Release/libv8.a 
 					out/ios.x86.Release/libv8.a"
@@ -67,7 +67,7 @@ fi
 mkdir -p ${PRODUCT_DIR}/ios
 rm -rf ${PRODUCT_DIR}/ios/*.a
 
-lipo $LIBS_NODEUI -create -output ${PRODUCT_DIR}/ios/libngui.a
+lipo $LIBS_NODEUI -create -output ${PRODUCT_DIR}/ios/libshark.a
 if [ "$BUILD_V8" = 1 ]; then
 	lipo $LIBS_V8 -create -output ${PRODUCT_DIR}/ios/libv8.a
 fi

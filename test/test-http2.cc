@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/http.h>
-#include <ngui/utils/string.h>
-#include <ngui/utils/fs.h>
+#include <shark/utils/util.h>
+#include <shark/utils/http.h>
+#include <shark/utils/string.h>
+#include <shark/utils/fs.h>
 
-using namespace ngui;
+using namespace shark;
 
 class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
  public:

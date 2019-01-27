@@ -1,6 +1,6 @@
 
-import 'ngui/fs';
-import 'ngui/url';
+import 'shark/fs';
+import 'shark/url';
 import './uu';
 
 var path = url.documents('benchmark.txt');

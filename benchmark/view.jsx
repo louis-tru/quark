@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Div, Scroll, New, CSS } from 'ngui';
-import { Color } from 'ngui/value';
-import { random } from 'ngui/util';
+import { GUIApplication, Root, Div, Scroll, New, CSS } from 'shark';
+import { Color } from 'shark/value';
+import { random } from 'shark/util';
 import './uu';
 
 CSS({

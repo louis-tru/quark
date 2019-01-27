@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
+#include <shark/utils/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace ngui;
+using namespace shark;
 
 class Foo {
  public:

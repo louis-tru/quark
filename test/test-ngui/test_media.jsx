@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'ngui';
-import 'ngui/media';
+import { GUIApplication, Root } from 'shark';
+import 'shark/media';
 
 new GUIApplication().start(<Root/>).onLoad = function() {
 

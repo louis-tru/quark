@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/util.h"
-#include "ngui/utils/buffer.h"
+#include "shark/utils/util.h"
+#include "shark/utils/buffer.h"
 
-using namespace ngui;
+using namespace shark;
 
 void test_buffer(int argc, char **argv) {
 	

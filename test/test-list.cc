@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/array.h>
-#include <ngui/utils/list.h>
-#include <ngui/utils/string.h>
+#include <shark/utils/array.h>
+#include <shark/utils/list.h>
+#include <shark/utils/string.h>
 #include <map>
 
-using namespace ngui;
+using namespace shark;
 
 class Test{
 	String str;

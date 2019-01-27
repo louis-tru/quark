@@ -39,44 +39,44 @@ add_definitions(
   -DPNG_USER_CONFIG
 )
 
-add_library(ngui-base SHARED
+add_library(shark-base SHARED
             ../../../android/android.cc
-            ../../../ngui/utils/object.cc
-            ../../../ngui/utils/string.cc
-            ../../../ngui/utils/string-builder.cc
-            ../../../ngui/utils/array.cc
-            ../../../ngui/utils/codec.cc
-            ../../../ngui/utils/error.cc
-            ../../../ngui/utils/http.cc
-            ../../../ngui/utils/http-uri.cc
-            ../../../ngui/utils/http-helper.cc
-            ../../../ngui/utils/fs.cc
-            ../../../ngui/utils/fs-file.cc
-            ../../../ngui/utils/fs-sync.cc
-            ../../../ngui/utils/fs-async.cc
-            ../../../ngui/utils/fs-search.cc
-            ../../../ngui/utils/fs-reader.cc
-            ../../../ngui/utils/buffer.cc
-            ../../../ngui/utils/json.cc
-            ../../../ngui/utils/map.cc
-            ../../../ngui/utils/util.cc
-            ../../../ngui/utils/zlib.cc
-            ../../../ngui/utils/loop.cc
-            ../../../ngui/utils/loop-private.cc
-            ../../../ngui/utils/jsx.cc
-            ../../../ngui/utils/sys.cc
-            ../../../ngui/utils/net.cc
-            ../../../ngui/utils/cb.cc
-            ../../../ngui/utils/date.cc
-            ../../../ngui/utils/http-cookie.cc
-            ../../../ngui/utils/localstorage.cc
-            ../../../ngui/utils/android-jni.cc
-            ../../../ngui/utils/android-log.cc
-            ../../../ngui/utils/android-sys.cc
-            ../../../ngui/utils/android-fs.cc
+            ../../../shark/utils/object.cc
+            ../../../shark/utils/string.cc
+            ../../../shark/utils/string-builder.cc
+            ../../../shark/utils/array.cc
+            ../../../shark/utils/codec.cc
+            ../../../shark/utils/error.cc
+            ../../../shark/utils/http.cc
+            ../../../shark/utils/http-uri.cc
+            ../../../shark/utils/http-helper.cc
+            ../../../shark/utils/fs.cc
+            ../../../shark/utils/fs-file.cc
+            ../../../shark/utils/fs-sync.cc
+            ../../../shark/utils/fs-async.cc
+            ../../../shark/utils/fs-search.cc
+            ../../../shark/utils/fs-reader.cc
+            ../../../shark/utils/buffer.cc
+            ../../../shark/utils/json.cc
+            ../../../shark/utils/map.cc
+            ../../../shark/utils/util.cc
+            ../../../shark/utils/zlib.cc
+            ../../../shark/utils/loop.cc
+            ../../../shark/utils/loop-private.cc
+            ../../../shark/utils/jsx.cc
+            ../../../shark/utils/sys.cc
+            ../../../shark/utils/net.cc
+            ../../../shark/utils/cb.cc
+            ../../../shark/utils/date.cc
+            ../../../shark/utils/http-cookie.cc
+            ../../../shark/utils/localstorage.cc
+            ../../../shark/utils/android-jni.cc
+            ../../../shark/utils/android-log.cc
+            ../../../shark/utils/android-sys.cc
+            ../../../shark/utils/android-fs.cc
            )
 
-add_library(ngui-gui SHARED
+add_library(shark-gui SHARED
             ../../../out/glsl-sprite.cc
             ../../../out/glsl-box-image.cc
             ../../../out/glsl-box-yuv420p-image.cc
@@ -92,121 +92,121 @@ add_library(ngui-gui SHARED
             ../../../out/glsl-text-vertex.cc
             ../../../out/glsl-gen-texture.cc
             ../../../out/font-native.cc
-            ../../../ngui/action.cc
-            ../../../ngui/app.cc
-            ../../../ngui/audio-player.cc
-            ../../../ngui/div.cc
-            ../../../ngui/indep.cc
-            ../../../ngui/gradient.cc
-            ../../../ngui/box-shadow.cc
-            ../../../ngui/limit.cc
-            ../../../ngui/limit-indep.cc
-            ../../../ngui/image.cc
-            ../../../ngui/bezier.cc
-            ../../../ngui/event.cc
-            ../../../ngui/display-port.cc
-            ../../../ngui/font/font.cc
-            ../../../ngui/image/codec.cc
-            ../../../ngui/image/codec-tga.cc
-            ../../../ngui/image/codec-pvrtc.cc
-            ../../../ngui/pre-render.cc
-            ../../../ngui/mathe.cc
-            ../../../ngui/media-codec.cc
-            ../../../ngui/media-codec-1.cc
-            ../../../ngui/media-codec-software.cc
-            ../../../ngui/label.cc
-            ../../../ngui/layout.cc
-            ../../../ngui/box.cc
-            ../../../ngui/text-rows.cc
-            ../../../ngui/view.cc
-            ../../../ngui/draw.cc
-            ../../../ngui/gl/gl.cc
-            ../../../ngui/gl/gl-draw.cc
-            ../../../ngui/gl/gl-texture.cc
-            ../../../ngui/gl/gl-font.cc
-            ../../../ngui/root.cc
-            ../../../ngui/sprite.cc
-            ../../../ngui/scroll.cc
-            ../../../ngui/span.cc
-            ../../../ngui/hybrid.cc
-            ../../../ngui/text-font.cc
-            ../../../ngui/text-node.cc
-            ../../../ngui/texture.cc
-            ../../../ngui/video.cc
-            ../../../ngui/value.cc
-            ../../../ngui/select-panel.cc
-            ../../../ngui/button.cc
-            ../../../ngui/keyboard.cc
-            ../../../ngui/css.cc
-            ../../../ngui/property.cc
-            ../../../ngui/text.cc
-            ../../../ngui/clip.cc
-            ../../../ngui/input.cc
-            ../../../ngui/textarea.cc
-            ../../../ngui/platforms/android-gl.cc
-            ../../../ngui/platforms/android-app.cc
-            ../../../ngui/platforms/android-media-codec.cc
-            ../../../ngui/platforms/android-pcm-player.cc
-            ../../../ngui/platforms/android-pcm-audio-track.cc
-            ../../../ngui/platforms/android-keyboard.cc
-            ../../../ngui/image/codec-gif.cc
-            ../../../ngui/image/codec-jpeg.cc
-            ../../../ngui/image/codec-png.cc
-            ../../../ngui/image/codec-webp.cc
+            ../../../shark/action.cc
+            ../../../shark/app.cc
+            ../../../shark/audio-player.cc
+            ../../../shark/div.cc
+            ../../../shark/indep.cc
+            ../../../shark/gradient.cc
+            ../../../shark/box-shadow.cc
+            ../../../shark/limit.cc
+            ../../../shark/limit-indep.cc
+            ../../../shark/image.cc
+            ../../../shark/bezier.cc
+            ../../../shark/event.cc
+            ../../../shark/display-port.cc
+            ../../../shark/font/font.cc
+            ../../../shark/image/codec.cc
+            ../../../shark/image/codec-tga.cc
+            ../../../shark/image/codec-pvrtc.cc
+            ../../../shark/pre-render.cc
+            ../../../shark/mathe.cc
+            ../../../shark/media-codec.cc
+            ../../../shark/media-codec-1.cc
+            ../../../shark/media-codec-software.cc
+            ../../../shark/label.cc
+            ../../../shark/layout.cc
+            ../../../shark/box.cc
+            ../../../shark/text-rows.cc
+            ../../../shark/view.cc
+            ../../../shark/draw.cc
+            ../../../shark/gl/gl.cc
+            ../../../shark/gl/gl-draw.cc
+            ../../../shark/gl/gl-texture.cc
+            ../../../shark/gl/gl-font.cc
+            ../../../shark/root.cc
+            ../../../shark/sprite.cc
+            ../../../shark/scroll.cc
+            ../../../shark/span.cc
+            ../../../shark/hybrid.cc
+            ../../../shark/text-font.cc
+            ../../../shark/text-node.cc
+            ../../../shark/texture.cc
+            ../../../shark/video.cc
+            ../../../shark/value.cc
+            ../../../shark/select-panel.cc
+            ../../../shark/button.cc
+            ../../../shark/keyboard.cc
+            ../../../shark/css.cc
+            ../../../shark/property.cc
+            ../../../shark/text.cc
+            ../../../shark/clip.cc
+            ../../../shark/input.cc
+            ../../../shark/textarea.cc
+            ../../../shark/platforms/android-gl.cc
+            ../../../shark/platforms/android-app.cc
+            ../../../shark/platforms/android-media-codec.cc
+            ../../../shark/platforms/android-pcm-player.cc
+            ../../../shark/platforms/android-pcm-audio-track.cc
+            ../../../shark/platforms/android-keyboard.cc
+            ../../../shark/image/codec-gif.cc
+            ../../../shark/image/codec-jpeg.cc
+            ../../../shark/image/codec-png.cc
+            ../../../shark/image/codec-webp.cc
           )
 
-add_library(ngui-js SHARED
+add_library(shark-js SHARED
             ../../../out/native-core-js.cc
-            ../../../ngui/js/js.cc
-            ../../../ngui/js/js-class.cc
-            ../../../ngui/js/test.cc
-            ../../../ngui/js/v8.cc
-            ../../../ngui/js/v8.cc
-            ../../../ngui/js/log.cc
-            ../../../ngui/js/binding/utils/event.cc
-            ../../../ngui/js/binding/utils/reader.cc
-            ../../../ngui/js/binding/utils/fs.cc
-            ../../../ngui/js/binding/utils/http.cc
-            ../../../ngui/js/binding/utils/json.cc
-            ../../../ngui/js/binding/utils/keys.cc
-            ../../../ngui/js/binding/utils/storage.cc
-            ../../../ngui/js/binding/utils/sys.cc
-            ../../../ngui/js/binding/utils/util.cc
-            ../../../ngui/js/binding/action.cc
-            ../../../ngui/js/binding/app.cc
-            ../../../ngui/js/binding/audio-player.cc
-            ../../../ngui/js/binding/box.cc
-            ../../../ngui/js/binding/button.cc
-            ../../../ngui/js/binding/clip.cc
-            ../../../ngui/js/binding/css.cc
-            ../../../ngui/js/binding/display-port.cc
-            ../../../ngui/js/binding/div.cc
-            ../../../ngui/js/binding/font.cc
-            ../../../ngui/js/binding/ngui.cc
-            ../../../ngui/js/binding/hybrid.cc
-            ../../../ngui/js/binding/image.cc
-            ../../../ngui/js/binding/indep.cc
-            ../../../ngui/js/binding/input.cc
-            ../../../ngui/js/binding/label.cc
-            ../../../ngui/js/binding/layout.cc
-            ../../../ngui/js/binding/limit.cc
-            ../../../ngui/js/binding/media.cc
-            ../../../ngui/js/binding/root.cc
-            ../../../ngui/js/binding/scroll.cc
-            ../../../ngui/js/binding/select-panel.cc
-            ../../../ngui/js/binding/span.cc
-            ../../../ngui/js/binding/sprite.cc
-            ../../../ngui/js/binding/text-font.cc
-            ../../../ngui/js/binding/text-node.cc
-            ../../../ngui/js/binding/text.cc
-            ../../../ngui/js/binding/value.cc
-            ../../../ngui/js/binding/video.cc
-            ../../../ngui/js/binding/view.cc
+            ../../../shark/js/js.cc
+            ../../../shark/js/js-class.cc
+            ../../../shark/js/test.cc
+            ../../../shark/js/v8.cc
+            ../../../shark/js/v8.cc
+            ../../../shark/js/log.cc
+            ../../../shark/js/binding/utils/event.cc
+            ../../../shark/js/binding/utils/reader.cc
+            ../../../shark/js/binding/utils/fs.cc
+            ../../../shark/js/binding/utils/http.cc
+            ../../../shark/js/binding/utils/json.cc
+            ../../../shark/js/binding/utils/keys.cc
+            ../../../shark/js/binding/utils/storage.cc
+            ../../../shark/js/binding/utils/sys.cc
+            ../../../shark/js/binding/utils/util.cc
+            ../../../shark/js/binding/action.cc
+            ../../../shark/js/binding/app.cc
+            ../../../shark/js/binding/audio-player.cc
+            ../../../shark/js/binding/box.cc
+            ../../../shark/js/binding/button.cc
+            ../../../shark/js/binding/clip.cc
+            ../../../shark/js/binding/css.cc
+            ../../../shark/js/binding/display-port.cc
+            ../../../shark/js/binding/div.cc
+            ../../../shark/js/binding/font.cc
+            ../../../shark/js/binding/shark.cc
+            ../../../shark/js/binding/hybrid.cc
+            ../../../shark/js/binding/image.cc
+            ../../../shark/js/binding/indep.cc
+            ../../../shark/js/binding/input.cc
+            ../../../shark/js/binding/label.cc
+            ../../../shark/js/binding/layout.cc
+            ../../../shark/js/binding/limit.cc
+            ../../../shark/js/binding/media.cc
+            ../../../shark/js/binding/root.cc
+            ../../../shark/js/binding/scroll.cc
+            ../../../shark/js/binding/select-panel.cc
+            ../../../shark/js/binding/span.cc
+            ../../../shark/js/binding/sprite.cc
+            ../../../shark/js/binding/text-font.cc
+            ../../../shark/js/binding/text-node.cc
+            ../../../shark/js/binding/text.cc
+            ../../../shark/js/binding/value.cc
+            ../../../shark/js/binding/video.cc
+            ../../../shark/js/binding/view.cc
           )
 
-add_library(ngui-demo SHARED ../../../test/demo.cc)
+add_library(shark-demo SHARED ../../../test/demo.cc)
 
-add_library(ngui-test SHARED
+add_library(shark-test SHARED
             ../../../test/test.cc
             ../../../test/test-fs.cc
             ../../../test/test-fs2.cc
@@ -234,7 +234,7 @@ add_library(ngui-test SHARED
             ../../../test/test-http-cookie.cc
             ../../../test/test-localstorage.cc
             ../../../test/test-buffer.cc
-            ../../../test/test-ngui.cc
+            ../../../test/test-shark.cc
             ../../../test/test-demo.cc
             ../../../test/test-jsc.cc
             ../../../test/test-v8.cc
@@ -245,8 +245,8 @@ add_library(ngui-test SHARED
             ../../../test/test-benchmark.cc
 )
 
-target_link_libraries(ngui-base atomic z android log ngui_depes)
-target_link_libraries(ngui-gui  ngui-base OpenSLES GLESv3 EGL mediandk ngui_depes)
-target_link_libraries(ngui-js   ngui-base ngui-gui ngui_depes)
-target_link_libraries(ngui-demo ngui-base ngui-gui ngui-js ngui_depes)
-target_link_libraries(ngui-test ngui-base ngui-gui ngui-js ngui_depes)
+target_link_libraries(shark-base atomic z android log shark_depes)
+target_link_libraries(shark-gui  shark-base OpenSLES GLESv3 EGL mediandk shark_depes)
+target_link_libraries(shark-js   shark-base shark-gui shark_depes)
+target_link_libraries(shark-demo shark-base shark-gui shark-js shark_depes)
+target_link_libraries(shark-test shark-base shark-gui shark-js shark_depes)

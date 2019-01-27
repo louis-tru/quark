@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'ngui/utils/utils.gypi',
+		'shark/utils/utils.gypi',
 	],
 	'conditions': [
 		['os != "ios" or project == "xcode"', {

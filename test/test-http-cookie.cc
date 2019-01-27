@@ -28,67 +28,67 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/http-cookie.h"
-#include "ngui/sys.h"
+#include "shark/utils/http-cookie.h"
+#include "shark/sys.h"
 
-using namespace ngui;
+using namespace shark;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
-	http_cookie_set("ngui.io", "test", "ngui.io");
+	http_cookie_set("shark.io", "test", "shark.io");
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
-	LOG(http_cookie_get("www.ngui.io", "test"));
+	LOG(http_cookie_get("www.shark.io", "test"));
 	
-	http_cookie_set("www.ngui.io", "test2", "*********************************");
+	http_cookie_set("www.shark.io", "test2", "*********************************");
 	
-	LOG(http_cookie_get("ngui.io", "test2"));
+	LOG(http_cookie_get("shark.io", "test2"));
 	
-	LOG(http_cookie_get("www.ngui.io", "test2"));
+	LOG(http_cookie_get("www.shark.io", "test2"));
 	
-	http_cookie_set("ngui.io", "test2", "-----------------------------", -1, "/AA");
+	http_cookie_set("shark.io", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG(http_cookie_get("ngui.io", "test2"));
+	LOG(http_cookie_get("shark.io", "test2"));
 	
-	LOG(http_cookie_get("ngui.io", "test2", "/AA"));
+	LOG(http_cookie_get("shark.io", "test2", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.ngui.io", "/AA"));
+	LOG(http_cookie_get_all_string("www.shark.io", "/AA"));
 	
-	http_cookie_set_with_expression("ngui.io", "test3=HHHH--l; path=/AA; max-age=60");
+	http_cookie_set_with_expression("shark.io", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	LOG(http_cookie_get("ngui.io", "test3"));
+	LOG(http_cookie_get("shark.io", "test3"));
 	
-	LOG(http_cookie_get("ngui.io", "test3", "/AA"));
+	LOG(http_cookie_get("shark.io", "test3", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.ngui.io", "/AA"));
+	LOG(http_cookie_get_all_string("www.shark.io", "/AA"));
 	
 	// test delete
 	
-	http_cookie_delete("ngui.io", "test");
+	http_cookie_delete("shark.io", "test");
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
-	http_cookie_set("ngui.io", "test", "ngui.io");
+	http_cookie_set("shark.io", "test", "shark.io");
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
-	http_cookie_delete_all("ngui.io");
+	http_cookie_delete_all("shark.io");
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
-	http_cookie_set("ngui.io", "test", "ngui.io");
+	http_cookie_set("shark.io", "test", "shark.io");
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
 	http_cookie_clear();
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
-	http_cookie_set("ngui.io", "test", "END test cookie", sys::time() + 6e7); // 60s expires
+	http_cookie_set("shark.io", "test", "END test cookie", sys::time() + 6e7); // 60s expires
 	
-	LOG(http_cookie_get("ngui.io", "test"));
+	LOG(http_cookie_get("shark.io", "test"));
 	
 }

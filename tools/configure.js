@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('ngui-utils');
-var fs = require('ngui-utils/fs');
-var path = require('ngui-utils/url');
+var util = require('shark-utils');
+var fs = require('shark-utils/fs');
+var path = require('shark-utils/url');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('ngui-utils/arguments');
-var { syscall, execSync } = require('ngui-utils/syscall');
+var argument = require('shark-utils/arguments');
+var { syscall, execSync } = require('shark-utils/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

@@ -3,9 +3,9 @@ out
 .DS_Store
 *.DS_Store
 node_modules/.bin
-ngui.sublime-workspace
-node_modules/ngui-tools/osx
-node_modules/ngui-tools/linux
+shark.sublime-workspace
+node_modules/shark-tools/osx
+node_modules/shark-tools/linux
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang

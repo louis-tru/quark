@@ -1,7 +1,7 @@
-import { Div, Button, Input } from 'ngui';
-import 'ngui/fs';
-import 'ngui/url';
-import { alert } from 'ngui/dialog';
+import { Div, Button, Input } from 'shark';
+import 'shark/fs';
+import 'shark/url';
+import { alert } from 'shark/dialog';
 import { Mynavpage } from './public';
 
 const filename = url.documents('test.txt');

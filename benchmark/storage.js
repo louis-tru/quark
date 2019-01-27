@@ -1,5 +1,5 @@
 
-import 'ngui/storage';
+import 'shark/storage';
 import './uu';
 
 storage.transaction(function() {

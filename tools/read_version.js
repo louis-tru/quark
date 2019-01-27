@@ -28,28 +28,28 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ngui-utils/fs');
+var fs = require('shark-utils/fs');
 
-function read_ngui_version() {
-	var str = fs.readFileSync(__dirname + '/../ngui/version.h').toString('utf-8');
+function read_shark_version() {
+	var str = fs.readFileSync(__dirname + '/../shark/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
 	var mat;
 
-	if ( (mat = /#define\s+NGUI_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+SHARK_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MAJOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+NGUI_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+SHARK_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MINOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+NGUI_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+SHARK_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse ngui version number form ngui/version.h');
+		throw new Error('Cannot parse shark version number form shark/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-exports.read_ngui_version = read_ngui_version;
+exports.read_shark_version = read_shark_version;

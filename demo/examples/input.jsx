@@ -1,4 +1,4 @@
-import { Div, Button, Text, Input, Textarea, ngui, Label } from 'ngui';
+import { Div, Button, Text, Input, Textarea, shark, Label } from 'shark';
 import { Mynavpage } from './public';
 
 function start_input(evt) {
@@ -6,7 +6,7 @@ function start_input(evt) {
 }
 
 function end_input(evt) {
-	ngui.app.focusView.blur();
+	shark.app.focusView.blur();
 }
 
 export const vx = (

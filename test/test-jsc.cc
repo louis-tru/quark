@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "ngui/utils/util.h"
-#include "ngui/utils/string-builder.h"
-#include "ngui/utils/buffer.h"
-#include "ngui/utils/loop.h"
+#include "shark/utils/util.h"
+#include "shark/utils/string-builder.h"
+#include "shark/utils/buffer.h"
+#include "shark/utils/loop.h"
 
-using namespace ngui;
+using namespace shark;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;

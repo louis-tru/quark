@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/loop.h>
-#include <ngui/utils/array.h>
-#include <ngui/sys.h>
+#include <shark/utils/util.h>
+#include <shark/utils/loop.h>
+#include <shark/utils/array.h>
+#include <shark/sys.h>
 
-using namespace ngui;
+using namespace shark;
 
 template<class T>
 void test_operation_add(const char* name) {

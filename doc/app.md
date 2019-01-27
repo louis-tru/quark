@@ -1,4 +1,4 @@
-# `ngui/app`
+# `shark/app`
 
 
 ## `Class: GUIApplication`
@@ -20,8 +20,8 @@
 Example:
 
 ```jsx
-import GUIApplication from 'ngui/app'
-import Root from 'ngui'
+import GUIApplication from 'shark/app'
+import Root from 'shark'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
@@ -211,6 +211,6 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
 [`DisplayPort`]: display_port.md#class-displayport
-[`Root`]: ngui.md#class-root
-[`View`]: ngui.md#class-view
+[`Root`]: shark.md#class-root
+[`View`]: shark.md#class-view
 [`clear()`]: app.md#guiapplication-clear

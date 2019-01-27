@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/loop.h>
+#include <shark/utils/loop.h>
 
-using namespace ngui;
+using namespace shark;
 
 static void message_cb(Se& ev, RunLoop* loop) {
 	static int i = 0;

@@ -1,8 +1,8 @@
 {
 	"name": "benchmark",
-	"app_name":	"Ngui-Benchmark",
-	"id": "org.ngui.benchmark",
+	"app_name":	"Shark-Benchmark",
+	"id": "org.shark.benchmark",
 	"version": "0.1.0",
 	"main": "action.jsx",
-	"ngui_syntax": true
+	"shark_syntax": true
 }

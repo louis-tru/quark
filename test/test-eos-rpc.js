@@ -1,7 +1,7 @@
 
 var { Buffer } = require('buffer');
-var util = require('ngui-utils');
-var r = require('ngui-utils/request');
+var util = require('shark-utils');
+var r = require('shark-utils/request');
 
 // 测试EOS区块链RPC交易
 

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Root, GUIApplication } from 'ngui';
-import { AudioPlayer, Video } from 'ngui/media';
+import { Root, GUIApplication } from 'shark';
+import { AudioPlayer, Video } from 'shark/media';
 
 const src0 = '/sdcard/Download/Shutter.Island.2010.禁闭岛.双语字幕.HR-HDTV.AC3.1024X576.X264-人人影视制作.mkv';
 const src1 = '/sdcard/Download/神鬼奇谋.mp4';

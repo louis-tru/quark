@@ -1,4 +1,4 @@
-import { Scroll, Clip, Text, ngui } from 'ngui';
+import { Scroll, Clip, Text, shark } from 'shark';
 import { Navbutton, Mynavpage } from './public';
 import './checkbox';
 import './overlay';

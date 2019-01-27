@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Buffer } from 'buffer';
-import 'ngui/http';
-import 'ngui/value';
-import 'ngui/sys';
+import 'shark/http';
+import 'shark/value';
+import 'shark/sys';
 
 console.log('args:', process.argv, process.mainModule.filename);
 

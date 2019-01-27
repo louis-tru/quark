@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/utils/string.h>
-#include <ngui/utils/map.h>
-#include <ngui/utils/fs.h>
-#include <ngui/sys.h>
+#include <shark/utils/util.h>
+#include <shark/utils/string.h>
+#include <shark/utils/map.h>
+#include <shark/utils/fs.h>
+#include <shark/sys.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -44,17 +44,17 @@
 #include <chrono>
 
 //
-#include "ngui/image-codec.h"
-#include "ngui/texture.h"
-#include "ngui/image.h"
-#include "ngui/sprite.h"
-#include "ngui/box.h"
-#include "ngui/app.h"
-#include "ngui/display-port.h"
-#include "ngui/root.h"
-#include "ngui/gl/gl.h"
+#include "shark/image-codec.h"
+#include "shark/texture.h"
+#include "shark/image.h"
+#include "shark/sprite.h"
+#include "shark/box.h"
+#include "shark/app.h"
+#include "shark/display-port.h"
+#include "shark/root.h"
+#include "shark/gl/gl.h"
 
-using namespace ngui;
+using namespace shark;
 
 void each_fonts () {
 	

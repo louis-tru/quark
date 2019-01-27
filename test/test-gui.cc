@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/util.h>
-#include <ngui/image.h>
-#include <ngui/sprite.h>
-#include <ngui/div.h>
-#include <ngui/app.h>
-#include <ngui/display-port.h>
-#include <ngui/root.h>
-#include <ngui/utils/fs.h>
-#include <ngui/gl/gl.h>
+#include <shark/utils/util.h>
+#include <shark/image.h>
+#include <shark/sprite.h>
+#include <shark/div.h>
+#include <shark/app.h>
+#include <shark/display-port.h>
+#include <shark/root.h>
+#include <shark/utils/fs.h>
+#include <shark/gl/gl.h>
 
-using namespace ngui;
-using ngui::value::ValueType;
-using ngui::value::Value;
+using namespace shark;
+using shark::value::ValueType;
+using shark::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

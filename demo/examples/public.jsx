@@ -1,10 +1,10 @@
-import { Navpage } from 'ngui/nav';
+import { Navpage } from 'shark/nav';
 import { 
 	ViewController, Button, CSS,
 	Text, TextNode, atomPixel: px, 
-	Indep, isViewXml, Panel, Scroll, ngui, Style
-} from 'ngui';
-import 'ngui/util';
+	Indep, isViewXml, Panel, Scroll, shark, Style
+} from 'shark';
+import 'shark/util';
 
 // CSS(<Style>
 //   .long_btn {
@@ -130,7 +130,7 @@ export class Mynavpage extends Navpage {
 		this.backgroundColor = "#f8f8f8";
 		<!-- White title -->
 		<!--
-			ngui.displayPort.setStatusBarStyle(1);
+			shark.displayPort.setStatusBarStyle(1);
 			this.navbar.backgroundColor = '#f9f9f9';
 			this.navbar.titleTextColor = '#000';
 			this.navbar.backTextColor = '#0079ff';
@@ -151,7 +151,7 @@ export class Mynavpage extends Navpage {
 			btn = first.first_button();
 		}
 		if ( !btn ) {
-			btn = ngui.root.first_button();
+			btn = shark.root.first_button();
 		}
 		if ( btn ) {
 			btn.focus();

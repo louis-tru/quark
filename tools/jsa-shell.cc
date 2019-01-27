@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/utils/fs.h"
-#include "ngui/utils/jsx.h"
-#include "ngui/utils/codec.h" 
+#include "shark/utils/fs.h"
+#include "shark/utils/jsx.h"
+#include "shark/utils/codec.h" 
 
-using namespace ngui;
+using namespace shark;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/ngui_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/shark_ace/ace/Makefile.dryice.js"
 
 #define error(err) { XX_ERR(err); return 1; }
 

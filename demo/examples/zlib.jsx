@@ -1,4 +1,4 @@
-import { Div, Button } from 'ngui';
+import { Div, Button } from 'shark';
 import { Mynavpage } from './public';
 
 export const vx = (

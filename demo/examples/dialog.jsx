@@ -1,6 +1,6 @@
-import { Div, Button, TextNode } from 'ngui';
+import { Div, Button, TextNode } from 'shark';
 import { Mynavpage } from './public';
-import 'ngui/dialog';
+import 'shark/dialog';
 
 function alert() {
 	dialog.alert('Hello alert.');

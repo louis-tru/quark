@@ -13,16 +13,16 @@ ANDROID_SDK		?= $(ANDROID_HOME)
 ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-23/android.jar
 JAVAC					?= javac
 JAR						?= jar
-TOOLS					= ./node_modules/ngui-tools
+TOOLS					= ./node_modules/shark-tools
 GYP						= $(TOOLS)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)
-TOOLS_OUT			= out/ngui-tools
+TOOLS_OUT			= out/shark-tools
 BUILD_STYLE 	=	make
 
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile ngui.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
+GYPFILES	= Makefile shark.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -54,7 +54,7 @@ all: build
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call gen_project,$@,ngui.gyp)
+	@$(call gen_project,$@,shark.gyp)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
@@ -80,16 +80,16 @@ ios:
 	@$(MAKE)
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
-					 ./out/ios.x64.Release/libngui.dylib 
+					 ./out/ios.x64.Release/libshark.dylib 
 	# @$(NODE) ./tools/gen_apple_framework.js ios \
 	# 				 $(TOOLS_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
-	# 				 ./out/ios.x64.Release/libngui.dylib 
+	# 				 ./out/ios.x64.Release/libshark.dylib 
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
-					 ./out/ios.arm64.Release/libngui.dylib # out/ios.armv7.Release/libngui.dylib
+					 ./out/ios.arm64.Release/libshark.dylib # out/ios.armv7.Release/libshark.dylib
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Debug/Frameworks \
-					 ./out/ios.arm64.v8.Release/libngui.dylib
+					 ./out/ios.arm64.v8.Release/libshark.dylib
 
 # build all android platform and output to product dir
 android:
@@ -99,19 +99,19 @@ android:
 	@$(MAKE)
 	@./configure --os=android --arch=arm --library=shared
 	@$(MAKE)
-	@$(MAKE) out/android.classs.ngui.jar
+	@$(MAKE) out/android.classs.shark.jar
 
 linux:
 
-out/android.classs.ngui.jar: android/org/ngui/*.java
+out/android.classs.shark.jar: android/org/shark/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_JAR) -d out/android.classs android/org/ngui/*.java
-	@cd out/android.classs; $(JAR) cfv ngui.jar .
+	@$(JAVAC) -bootclasspath $(ANDROID_JAR) -d out/android.classs android/org/shark/*.java
+	@cd out/android.classs; $(JAR) cfv shark.jar .
 	@mkdir -p $(TOOLS_OUT)/product/android/libs
-	@cp out/android.classs/ngui.jar $(TOOLS_OUT)/product/android/libs
+	@cp out/android.classs/shark.jar $(TOOLS_OUT)/product/android/libs
 
-# install ngui command
+# install shark command
 install:
 	@$(MAKE) ios
 	@$(MAKE) android
@@ -119,15 +119,15 @@ install:
 	@$(MAKE) jsa-shell
 	@$(MAKE) install-tools
 
-# debug install ngui command
+# debug install shark command
 install-dev:
 	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@./$(TOOLS)/install link
 
 install-tools:
-	@sudo rm -rf ./out/ngui-tools/bin/shell.js
-	@$(NODE) ./tools/cp-ngui-tools.js
+	@sudo rm -rf ./out/shark-tools/bin/shell.js
+	@$(NODE) ./tools/cp-shark-tools.js
 	@$(TOOLS_OUT)/install
 
 doc:
@@ -138,7 +138,7 @@ web server:
 
 clean:
 	@rm -rfv out/$(OS).*
-	@rm -rfv out/product/ngui/product/$(OS)
+	@rm -rfv out/product/shark/product/$(OS)
 
 clean-all:
 	@rm -rfv out

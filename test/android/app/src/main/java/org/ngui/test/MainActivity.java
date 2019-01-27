@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.ngui.test;
+package org.shark.test;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import org.ngui.NGUIActivity;
+import org.shark.SharkActivity;
 
-public class MainActivity extends NGUIActivity {
+public class MainActivity extends SharkActivity {
 
   static {
-    System.loadLibrary("ngui-test");
+    System.loadLibrary("shark-test");
   }
 
 //  @Override

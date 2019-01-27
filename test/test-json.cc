@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ngui/utils/json.h>
-#include <ngui/utils/string.h>
-#include <ngui/utils/event.h>
+#include <shark/utils/json.h>
+#include <shark/utils/string.h>
+#include <shark/utils/event.h>
 #include <map>
 
-using namespace ngui;
+using namespace shark;
 
 void test_json(int argc, char **argv) {
 	

@@ -1,6 +1,6 @@
 
-import { GUIApplication: App, Root, Image, Scroll } from 'ngui';
-import 'ngui/reader';
+import { GUIApplication: App, Root, Image, Scroll } from 'shark';
+import 'shark/reader';
 import 'path';
 
 new App({ multisample: 2 }).start(
