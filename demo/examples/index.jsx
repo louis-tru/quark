@@ -71,7 +71,7 @@ function review_code(evt) {
 const qgr_tools = 'https://www.npmjs.com/package/qgr-tools';
 const qgr_tools_issues_url = 'https://github.com/louis-tru/qgr/issues';
 const examples_source = 'https://github.com/louis-tru/qgr.git';
-const documents = 'http://qgr1.org/';
+const documents = 'http://quickgr.org/';
 
 function handle_go_to(evt) {
 	var url = evt.sender.url;
@@ -118,7 +118,7 @@ const examples_source_vx = (
 var documents_vx = (
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff">qgr1.org</T> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff">quickgr.org</T> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
 		</Div>
 	</Mynavpage>

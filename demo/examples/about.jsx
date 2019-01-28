@@ -20,7 +20,7 @@ https://github.com/louis-tru/qgr.git
 
 Support
 ===============
-http://qgr1.org
+http://quickgr.org
 louistru@hotmail.com
 
 

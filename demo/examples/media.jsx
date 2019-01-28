@@ -3,9 +3,9 @@ import { AudioPlayer, Video } from 'qgr/media';
 import { Mynavpage } from './public';
 import * as aaaa from 'qgr/url';
 
-// const src_720 = 'http://qgr1.org/media/2017-09-11_15_41_19.mp4';
-const src_720 = 'http://qgr1.org/media/piper720p.mp4';
-const audio_src = 'http://qgr1.org/media/all_we_know.mp3';
+// const src_720 = 'http://quickgr.org/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://quickgr.org/media/piper720p.mp4';
+const audio_src = 'http://quickgr.org/media/all_we_know.mp3';
 
 var audio_player = null;
 
