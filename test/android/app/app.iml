@@ -34,11 +34,11 @@
     <content url="file://$MODULE_DIR$/../../../android">
       <sourceFolder url="file://$MODULE_DIR$/../../../android" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../shark/base">
-      <sourceFolder url="file://$MODULE_DIR$/../../../shark/base" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../qgr/base">
+      <sourceFolder url="file://$MODULE_DIR$/../../../qgr/base" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../shark/utils/os">
-      <sourceFolder url="file://$MODULE_DIR$/../../../shark/utils/os" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../qgr/utils/os">
+      <sourceFolder url="file://$MODULE_DIR$/../../../qgr/utils/os" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../..">
       <sourceFolder url="file://$MODULE_DIR$/../.." isTestSource="false" />

@@ -29,11 +29,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('shark-utils/fs');
-var path = require('shark-utils/url');
-var marked_html = require('shark-tools/marked/html');
-var marked = require('shark-tools/node_modules/marked/index');
-var read_shark_version = require('./read_version').read_shark_version;
+var fs = require('qgr-utils/fs');
+var path = require('qgr-utils/url');
+var marked_html = require('qhammer/marked/html');
+var marked = require('qhammer/node_modules/marked/index');
+var read_qgr_version = require('./read_version').read_qgr_version;
 var argv = process.argv.slice(2);
 var template = null;
 var indexs = { };
@@ -50,7 +50,7 @@ if ( fs.existsSync(source + '/index.md') ) { // 存在索引
 	md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 	var r = marked_html.gen_html(md, '', '__placeholder_body__');
 	template = fs.readFileSync(__dirname + '/doc_template.html').toString();
-	template = template.replace('__placeholder_version__', 'v' + read_shark_version().join('.'));
+	template = template.replace('__placeholder_version__', 'v' + read_qgr_version().join('.'));
 	template = template.replace('__placeholder_index__', r.html);
 }
 
@@ -62,7 +62,7 @@ function gen(src, target) {
 		md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 		var tmp = template.replace('__placeholder_src__', src.substr(1).replace(/.(md|mdown)/i, '.html'));
 		tmp = tmp.replace('__placeholder_relative__', new Array(src.split('/').length - 1).join('../'));
-		var r = marked_html.gen_html(md, indexs[src] || 'Shark API Documentation', tmp);
+		var r = marked_html.gen_html(md, indexs[src] || 'qgr API Documentation', tmp);
 		fs.writeFileSync(save, r.html);
 	}
 }
@@ -94,6 +94,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(__dirname + '/../node_modules/shark-tools/marked/assets', output + '/assets');
+fs.cp_sync(__dirname + '/../libs/qhammer/marked/assets', output + '/assets');
 
 each_dir('', output);

@@ -1,7 +1,7 @@
 
 var { Buffer } = require('buffer');
-var util = require('shark-utils');
-var r = require('shark-utils/request');
+var util = require('qgr-utils');
+var r = require('qgr-utils/request');
 
 // 测试EOS区块链RPC交易
 

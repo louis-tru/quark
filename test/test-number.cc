@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-#include <shark/utils/loop.h>
-#include <shark/utils/array.h>
-#include <shark/sys.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/loop.h>
+#include <qgr/utils/array.h>
+#include <qgr/sys.h>
 
-using namespace shark;
+using namespace qgr;
 
 template<class T>
 void test_operation_add(const char* name) {

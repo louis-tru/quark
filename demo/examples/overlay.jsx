@@ -1,6 +1,6 @@
-import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'shark';
+import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'qgr';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'shark/overlay';
+import { Overlay } from 'qgr/overlay';
 
 function show_overlay(evt) {
 	New(

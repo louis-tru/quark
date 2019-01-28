@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-#include <shark/utils/string.h>
-#include <shark/utils/map.h>
-#include <shark/utils/fs.h>
-#include <shark/sys.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/map.h>
+#include <qgr/utils/fs.h>
+#include <qgr/sys.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -44,17 +44,17 @@
 #include <chrono>
 
 //
-#include "shark/image-codec.h"
-#include "shark/texture.h"
-#include "shark/image.h"
-#include "shark/sprite.h"
-#include "shark/box.h"
-#include "shark/app.h"
-#include "shark/display-port.h"
-#include "shark/root.h"
-#include "shark/gl/gl.h"
+#include "qgr/image-codec.h"
+#include "qgr/texture.h"
+#include "qgr/image.h"
+#include "qgr/sprite.h"
+#include "qgr/box.h"
+#include "qgr/app.h"
+#include "qgr/display-port.h"
+#include "qgr/root.h"
+#include "qgr/gl/gl.h"
 
-using namespace shark;
+using namespace qgr;
 
 void each_fonts () {
 	

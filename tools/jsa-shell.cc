@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/utils/fs.h"
-#include "shark/utils/jsx.h"
-#include "shark/utils/codec.h" 
+#include "qgr/utils/fs.h"
+#include "qgr/utils/jsx.h"
+#include "qgr/utils/codec.h" 
 
-using namespace shark;
+using namespace qgr;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/shark_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/qgr_ace/ace/Makefile.dryice.js"
 
 #define error(err) { XX_ERR(err); return 1; }
 

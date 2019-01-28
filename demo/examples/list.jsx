@@ -1,5 +1,5 @@
-import { Div, Button, CSS, Input, Text, atomPixel } from 'shark';
-import { List } from 'shark/list';
+import { Div, Button, CSS, Input, Text, atomPixel } from 'qgr';
+import { List } from 'qgr/list';
 import { Mynavpage } from './public';
 
 function add(evt) {

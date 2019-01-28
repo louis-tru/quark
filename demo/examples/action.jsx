@@ -1,8 +1,8 @@
 import { 
 	Div, Hybrid, Text, Button, Image, Indep, Clip,
-} from 'shark';
-import { HIGHLIGHTED_DOWN } from 'shark/event';
-import { Toolbar } from 'shark/nav';
+} from 'qgr';
+import { HIGHLIGHTED_DOWN } from 'qgr/event';
+import { Toolbar } from 'qgr/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

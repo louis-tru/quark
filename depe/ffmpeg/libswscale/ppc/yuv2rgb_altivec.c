@@ -34,7 +34,7 @@
  *
  * 2. The inefficient use of chroma loading needs a bit of brushing up.
  *
- * 3. Analysis of pipeline stalls needs to be done. Use shark to identify
+ * 3. Analysis of pipeline stalls needs to be done. Use qgr to identify
  * pipeline stalls.
  *
  *

@@ -1,4 +1,4 @@
-# `shark`
+# `qgr`
 
 
 ## `Class: GUIApplication`
@@ -97,15 +97,15 @@
 Example:
 
 ```js
-import { View, Div, shark } from 'shark'
+import { View, Div, qgr } from 'qgr'
 
 var v = new View();
 v.x = 100;
 v.y = 100;
-shark.root.append(v);
+qgr.root.append(v);
 
 // jsx语法只能存在于.jsx文件中
-var v2 = shark.New(<Div width=100 height=100 backgroundColor="#f00" />, v);
+var v2 = qgr.New(<Div width=100 height=100 backgroundColor="#f00" />, v);
 v2.onClick.on(function(ev) {
 	console.log('div click');
 })
@@ -1805,38 +1805,38 @@ console.log(view.class);
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus
 [`Notification`]: event.md#class-notification
-[`TextFont`]: shark.md#class-textfont
-[`TextLayout`]: shark.md#class-textlayout
-[`View`]: shark.md#class-view
-[`Sprite`]: shark.md#class-sprite
-[`Layout`]: shark.md#class-layout
-[`Span`]: shark.md#class-span
-[`Box`]: shark.md#class-box
-[`Div`]: shark.md#class-div
-[`Hybrid`]:  shark.md#class-hybrid
-[`Limit`]:  shark.md#class-limit
-[`Indep`]:  shark.md#class-indep
-[`LimitIndep`]:  shark.md#class-limitindep
-[`Image`]:  shark.md#class-image
-[`Panel`]:  shark.md#class-panel
-[`Root`]:  shark.md#class-root
-[`BasicScroll`]: shark.md#class-basicscroll
-[`Scroll`]: shark.md#class-scroll
-[`Button`]: shark.md#class-button
-[`Text`]: shark.md#class-text
-[`Input`]: shark.md#class-input
-[`Textarea`]: shark.md#class-textarea
-[`TextNode`]: shark.md#class-textnode
-[`Label`]: shark.md#class-label
-[`Trap in Layout`]: shark.md#trap-in-layout
+[`TextFont`]: qgr.md#class-textfont
+[`TextLayout`]: qgr.md#class-textlayout
+[`View`]: qgr.md#class-view
+[`Sprite`]: qgr.md#class-sprite
+[`Layout`]: qgr.md#class-layout
+[`Span`]: qgr.md#class-span
+[`Box`]: qgr.md#class-box
+[`Div`]: qgr.md#class-div
+[`Hybrid`]:  qgr.md#class-hybrid
+[`Limit`]:  qgr.md#class-limit
+[`Indep`]:  qgr.md#class-indep
+[`LimitIndep`]:  qgr.md#class-limitindep
+[`Image`]:  qgr.md#class-image
+[`Panel`]:  qgr.md#class-panel
+[`Root`]:  qgr.md#class-root
+[`BasicScroll`]: qgr.md#class-basicscroll
+[`Scroll`]: qgr.md#class-scroll
+[`Button`]: qgr.md#class-button
+[`Text`]: qgr.md#class-text
+[`Input`]: qgr.md#class-input
+[`Textarea`]: qgr.md#class-textarea
+[`TextNode`]: qgr.md#class-textnode
+[`Label`]: qgr.md#class-label
+[`Trap in Layout`]: qgr.md#trap-in-layout
 [`reader`]: reader.md
 [`$(path)`]: global.md#_Path-path-
 [`Repeat`]: value.md#class-repeat
 [`ContentAlign`]: value.md#class-contentalign
-[`Limit.minWidth`]: shark.md#limit-minWidth
-[`Limit.minHeight`]: shark.md#limit-minHeight
-[`Limit.maxWidth`]: shark.md#limit-maxWidth
-[`Limit.maxHeight`]: shark.md#limit-maxHeight
+[`Limit.minWidth`]: qgr.md#limit-minWidth
+[`Limit.minHeight`]: qgr.md#limit-minHeight
+[`Limit.maxWidth`]: qgr.md#limit-maxWidth
+[`Limit.maxHeight`]: qgr.md#limit-maxHeight
 [`Curve`]: value.md#class-curve
 [`TextColor`]: value.md#class-textcolor
 [`TextSize`]: value.md#class-textsize

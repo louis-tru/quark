@@ -80,16 +80,16 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __shark__native__',
-		'#define __shark__native__',
-	 'namespace shark{',
+		'#ifndef __qgr__native__',
+		'#define __qgr__native__',
+	 'namespace qgr{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace shark{');
+	write(cc_fd, 'namespace qgr{');
 	
 	var fonts = [];
 	

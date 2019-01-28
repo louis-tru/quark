@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/sys.h"
-#include "shark/utils/string.h"
+#include "qgr/sys.h"
+#include "qgr/utils/string.h"
 
-using namespace shark;
+using namespace qgr;
 
 void test_sys(int argc, char **argv) {
 	LOG(sys::info());

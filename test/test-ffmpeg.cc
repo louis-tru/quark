@@ -38,10 +38,10 @@ extern "C" {
 	// #include <libavcodec/fft.h>
 }
 
-#include <shark/utils/util.h>
-#include <shark/utils/fs.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/fs.h>
 
-using namespace shark;
+using namespace qgr;
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;

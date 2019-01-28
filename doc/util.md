@@ -1,8 +1,8 @@
-# `shark/util`
+# `qgr/util`
 
 ## version()
 
-获取`Shark`版本号字符串
+获取`Qgr`版本号字符串
 
 * @ret {[`String`]}
 
@@ -32,7 +32,7 @@
 
 编译运行一段javascript代码并返回运行结果,与`eval`函数类似,但这个方法可以指定一个名称与一个运行上下文对像
 
-如果要执行Shark `js` or `jsx` 代码需先使用 `util.transformJs()` or `util.transformJsx()` 进行转换
+如果要执行Qgr `js` or `jsx` 代码需先使用 `util.transformJs()` or `util.transformJsx()` 进行转换
 
 名称在调试代码或程序发生异常时非常有用
 
@@ -45,7 +45,7 @@
 
 ## transformJsx(source,name)
 
-转换Shark `jsx`代码为普通的可运行的`js`代码
+转换Qgr `jsx`代码为普通的可运行的`js`代码
 
 转换失败会抛出异常,成功则返回新的代码
 
@@ -55,7 +55,7 @@
 
 ## transformJs(source,name)
 
-转换Shark `js`代码为普通的可运行的`js`代码
+转换Qgr `js`代码为普通的可运行的`js`代码
 
 转换失败会抛出异常,成功则返回新的代码
 

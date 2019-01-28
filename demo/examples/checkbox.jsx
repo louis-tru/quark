@@ -1,5 +1,5 @@
-import { Div, Text, CSS, atomPixel } from 'shark';
-import { Switch, Checkbox } from 'shark/checkbox';
+import { Div, Text, CSS, atomPixel } from 'qgr';
+import { Switch, Checkbox } from 'qgr/checkbox';
 import { Mynavpage } from './public';
 
 CSS({

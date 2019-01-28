@@ -1,8 +1,8 @@
 {
 	"name": "benchmark",
-	"app_name":	"Shark-Benchmark",
-	"id": "org.shark.benchmark",
+	"app_name":	"Qgr-Benchmark",
+	"id": "org.qgr.benchmark",
 	"version": "0.1.0",
 	"main": "action.jsx",
-	"shark_syntax": true
+	"qgr_syntax": true
 }

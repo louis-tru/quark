@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/array.h>
-#include <shark/utils/list.h>
-#include <shark/utils/string.h>
+#include <qgr/utils/array.h>
+#include <qgr/utils/list.h>
+#include <qgr/utils/string.h>
 #include <map>
 
-using namespace shark;
+using namespace qgr;
 
 class Test{
 	String str;

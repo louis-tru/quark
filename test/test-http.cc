@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-#include <shark/utils/http.h>
-#include <shark/utils/string.h>
-#include <shark/utils/fs.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/http.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/fs.h>
 
-using namespace shark;
+using namespace qgr;
 
 void test_http(int argc, char **argv) {
 	LOG(HttpHelper::get_sync("http://www.163.com/"));

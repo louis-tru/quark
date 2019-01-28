@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('shark-utils/fs');
+var fs = require('qgr-utils/fs');
 
 function copy_header(source, target) {
 	fs.ls_sync(source).forEach(function(stat) {

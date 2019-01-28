@@ -1,4 +1,4 @@
-import { Div, Button, Text, Input, Textarea, shark, Label } from 'shark';
+import { Div, Button, Text, Input, Textarea, qgr, Label } from 'qgr';
 import { Mynavpage } from './public';
 
 function start_input(evt) {
@@ -6,7 +6,7 @@ function start_input(evt) {
 }
 
 function end_input(evt) {
-	shark.app.focusView.blur();
+	qgr.app.focusView.blur();
 }
 
 export const vx = (

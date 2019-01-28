@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.shark;
+package org.qgr;
 
 import android.app.Activity;
 import android.content.Context;

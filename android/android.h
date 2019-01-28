@@ -28,16 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __shark__android__android__
-#define __shark__android__android__
+#ifndef __qgr__android__android__
+#define __qgr__android__android__
 
-#include "shark/base/util.h"
+#include "qgr/base/util.h"
 
 #if XX_ANDROID
 
-#include "shark/base/string.h"
+#include "qgr/base/string.h"
 
-XX_NS(shark)
+XX_NS(qgr)
 
 /**
  * @class Android

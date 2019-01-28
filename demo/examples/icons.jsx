@@ -1,6 +1,6 @@
 import { 
 	Div, Scroll, Text, TextNode, Hybrid, ViewController, New 
-} from 'shark';
+} from 'qgr';
 import { Mynavpage } from './public';
 
 class IconsPanel extends ViewController {

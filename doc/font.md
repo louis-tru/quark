@@ -1,4 +1,4 @@
-# `shark/font`
+# `qgr/font`
 
 
 ## setDefaultFonts(fonts)

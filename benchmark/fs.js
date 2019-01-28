@@ -1,6 +1,6 @@
 
-import 'shark/fs';
-import 'shark/url';
+import 'qgr/fs';
+import 'qgr/url';
 import './uu';
 
 var path = url.documents('benchmark.txt');

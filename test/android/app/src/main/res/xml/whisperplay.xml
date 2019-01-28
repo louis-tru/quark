@@ -2,7 +2,7 @@
 <whisperplay>
   <dial>
     <application>
-      <dialid>sharkTemplate</dialid>
+      <dialid>qgrTemplate</dialid>
       <startAction>android.intent.action.MAIN</startAction>
     </application>
   </dial>

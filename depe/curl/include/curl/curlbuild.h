@@ -58,7 +58,7 @@
 /*  DEFINITION OF THESE SYMBOLS SHALL NOT TAKE PLACE ANYWHERE ELSE  */
 /* ================================================================ */
 
-#include <shark/utils/env.h>
+#include <qgr/utils/env.h>
 
 #ifdef CURL_SIZEOF_LONG
 #error "CURL_SIZEOF_LONG shall not be defined except in curlbuild.h"

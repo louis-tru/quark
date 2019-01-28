@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>shark</string>
+	<string>qgr</string>
 	<key>CFBundleExecutable</key>
-	<string>shark</string>
+	<string>qgr</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.shark.shark</string>
+	<string>org.qgr.qgr</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>shark</string>
+	<string>qgr</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>

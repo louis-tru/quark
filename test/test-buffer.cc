@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/utils/util.h"
-#include "shark/utils/buffer.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/buffer.h"
 
-using namespace shark;
+using namespace qgr;
 
 void test_buffer(int argc, char **argv) {
 	

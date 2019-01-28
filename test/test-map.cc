@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/array.h>
-#include <shark/utils/list.h>
-#include <shark/utils/string.h>
-#include <shark/utils/map.h>
+#include <qgr/utils/array.h>
+#include <qgr/utils/list.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/map.h>
 #include <map>
 
-using namespace shark;
+using namespace qgr;
 
 void test_map(int argc, char **argv) {
 	

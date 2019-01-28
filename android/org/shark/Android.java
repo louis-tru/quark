@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.shark;
+package org.qgr;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -47,11 +47,11 @@ import android.util.Log;
 
 public class Android {
 
-	private static String TAG = "Shark";
-	private static SharkActivity activity = null;
+	private static String TAG = "Qgr";
+	private static QgrActivity activity = null;
 	private static int battery_status = BatteryManager.BATTERY_STATUS_UNKNOWN;
 	private static boolean is_ac_power_connected = false;
-	private static SharkActivity.PrivateAPI api = null;
+	private static QgrActivity.PrivateAPI api = null;
 
 	private static BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
@@ -69,7 +69,7 @@ public class Android {
 		}
 	};
 
-	public static void initialize(SharkActivity act, SharkActivity.PrivateAPI api) {
+	public static void initialize(QgrActivity act, QgrActivity.PrivateAPI api) {
 		if ( !act.equals(activity) ) {
 			activity = act;
 			Android.api = api;
@@ -79,7 +79,7 @@ public class Android {
 		}
 	}
 
-	public static void uninitialize(SharkActivity act) {
+	public static void uninitialize(QgrActivity act) {
 		if ( act.equals(activity) ) {
 			activity.unregisterReceiver(receiver);
 			activity = null;

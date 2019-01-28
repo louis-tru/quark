@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/map.h>
-#include <shark/utils/array.h>
-#include <shark/utils/list.h>
-#include <shark/utils/string.h>
-#include <shark/utils/event.h>
+#include <qgr/utils/map.h>
+#include <qgr/utils/array.h>
+#include <qgr/utils/list.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/event.h>
 
-using namespace shark;
+using namespace qgr;
 
 void test_event(int argc, char **argv) {
 	

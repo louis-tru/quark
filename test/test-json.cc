@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/json.h>
-#include <shark/utils/string.h>
-#include <shark/utils/event.h>
+#include <qgr/utils/json.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/event.h>
 #include <map>
 
-using namespace shark;
+using namespace qgr;
 
 void test_json(int argc, char **argv) {
 	

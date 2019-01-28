@@ -1,5 +1,5 @@
 
-import { Image } from 'shark';
+import { Image } from 'qgr';
 import './print';
 
 

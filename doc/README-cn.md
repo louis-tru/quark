@@ -1,15 +1,15 @@
-Shark简介
+Qgr简介
 ===============
 
 这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL，这也是第一个在移动端Android/iOS融合NodeJS的前端GUI项目，至此JavaScript成为了真正意义上前后端通吃的语言。
 
-Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
+Qgr的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
-* 从这里[`Go API Index`](http://shark1.org/doc/)可以到 `API Documents Index`
+* 从这里[`Go API Index`](http://qgr1.org/doc/)可以到 `API Documents Index`
 
-| ![Screenshot](http://shark1.org/img/0x0ss.jpg) | ![Screenshot](http://shark1.org/img/0x0ss_3.jpg) | ![Screenshot](http://shark1.org/img/0x0ss_4.jpg) |
+| ![Screenshot](http://qgr1.org/img/0x0ss.jpg) | ![Screenshot](http://qgr1.org/img/0x0ss_3.jpg) | ![Screenshot](http://qgr1.org/img/0x0ss_4.jpg) |
 |--|--|--|
 
 
@@ -18,7 +18,7 @@ Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般
 这是一个简单的在屏幕上显示`hello world!`的程序
 
 ```jsx
-import { GUIApplication, Text } from 'shark'
+import { GUIApplication, Text } from 'qgr'
 new GUIApplication().start(
 	<Text>hello world!</Text>
 )
@@ -28,35 +28,35 @@ new GUIApplication().start(
 
 # Start Usage
 
-如果你从来没有使用过`Shark`你可以从这里开始，一步步创建你的`Shark`程序。
+如果你从来没有使用过`Qgr`你可以从这里开始，一步步创建你的`Qgr`程序。
 
-## Install shark-tools
+## Install qgr-tools
 
-首先你需要安装`Shark`提供的工具包
+首先你需要安装`Qgr`提供的工具包
 
-* 使用 nodejs `npm` 安装 `shark-tools`
+* 使用 nodejs `npm` 安装 `qgr-tools`
 
 * 打开`Terminal`并执行以下命令：
 
 ```sh
 # shell
-$ sudo npm install -g shark-tools
+$ sudo npm install -g qgr-tools
 
 ```
 	
-* 运行`shark-tools` 需要依赖`nodejs`与`python2.7`
+* 运行`qgr-tools` 需要依赖`nodejs`与`python2.7`
 
 * 并且不能运行在`windows`系统, 暂时只能在`mac`或`linux`下使用
 
 ## Create new project
 
-使用下面的`shell`命令创建一个新的`Shark`工程：
+使用下面的`shell`命令创建一个新的`Qgr`工程：
 
 ```sh
 # shell
 $ mkdir myproject
 $ cd myproject
-$ shark init
+$ qgr init
 ```
 
 ## Build project
@@ -65,7 +65,7 @@ $ shark init
 
 ```sh
 # shell
-$ shark build
+$ qgr build
 ```
 
 ## Export project
@@ -75,23 +75,23 @@ $ shark build
 ```sh
 # shell
 # export xcode ios project
-$ shark export ios
+$ qgr export ios
 # export android studio project
-$ shark export android
+$ qgr export android
 ```
 
 导出工程后，接下来你可以使用[Xcode]与[Android Studio]打开它
 
 
-## Shark test http server
+## Qgr test http server
 
-`shark-tools`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
+`qgr-tools`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
 
 执行下面的代码可以启动它：
 
 ```sh
 # shell
-$ shark
+$ qgr
 ```
 
 # Downloads
@@ -101,12 +101,12 @@ $ shark
 * Project [Source code] from `Github`
 
 
-[Examples]: https://github.com/louis-tru/shark/tree/master/demo
+[Examples]: https://github.com/louis-tru/qgr/tree/master/demo
 [Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [Android Studio]: https://developer.android.com/studio/projects/create-project.html
-[Android APK]: https://github.com/louis-tru/shark/releases/download/v0.1.0/examples-release.apk
-[NPM]: https://www.npmjs.com/package/shark-tools
-[Source code]: https://github.com/louis-tru/shark
+[Android APK]: https://github.com/louis-tru/qgr/releases/download/v0.1.0/examples-release.apk
+[NPM]: https://www.npmjs.com/package/qgr-tools
+[Source code]: https://github.com/louis-tru/qgr
 
 
 <script>

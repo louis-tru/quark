@@ -39,44 +39,44 @@ add_definitions(
   -DPNG_USER_CONFIG
 )
 
-add_library(shark-base SHARED
+add_library(qgr-base SHARED
             ../../../android/android.cc
-            ../../../shark/utils/object.cc
-            ../../../shark/utils/string.cc
-            ../../../shark/utils/string-builder.cc
-            ../../../shark/utils/array.cc
-            ../../../shark/utils/codec.cc
-            ../../../shark/utils/error.cc
-            ../../../shark/utils/http.cc
-            ../../../shark/utils/http-uri.cc
-            ../../../shark/utils/http-helper.cc
-            ../../../shark/utils/fs.cc
-            ../../../shark/utils/fs-file.cc
-            ../../../shark/utils/fs-sync.cc
-            ../../../shark/utils/fs-async.cc
-            ../../../shark/utils/fs-search.cc
-            ../../../shark/utils/fs-reader.cc
-            ../../../shark/utils/buffer.cc
-            ../../../shark/utils/json.cc
-            ../../../shark/utils/map.cc
-            ../../../shark/utils/util.cc
-            ../../../shark/utils/zlib.cc
-            ../../../shark/utils/loop.cc
-            ../../../shark/utils/loop-private.cc
-            ../../../shark/utils/jsx.cc
-            ../../../shark/utils/sys.cc
-            ../../../shark/utils/net.cc
-            ../../../shark/utils/cb.cc
-            ../../../shark/utils/date.cc
-            ../../../shark/utils/http-cookie.cc
-            ../../../shark/utils/localstorage.cc
-            ../../../shark/utils/android-jni.cc
-            ../../../shark/utils/android-log.cc
-            ../../../shark/utils/android-sys.cc
-            ../../../shark/utils/android-fs.cc
+            ../../../qgr/utils/object.cc
+            ../../../qgr/utils/string.cc
+            ../../../qgr/utils/string-builder.cc
+            ../../../qgr/utils/array.cc
+            ../../../qgr/utils/codec.cc
+            ../../../qgr/utils/error.cc
+            ../../../qgr/utils/http.cc
+            ../../../qgr/utils/http-uri.cc
+            ../../../qgr/utils/http-helper.cc
+            ../../../qgr/utils/fs.cc
+            ../../../qgr/utils/fs-file.cc
+            ../../../qgr/utils/fs-sync.cc
+            ../../../qgr/utils/fs-async.cc
+            ../../../qgr/utils/fs-search.cc
+            ../../../qgr/utils/fs-reader.cc
+            ../../../qgr/utils/buffer.cc
+            ../../../qgr/utils/json.cc
+            ../../../qgr/utils/map.cc
+            ../../../qgr/utils/util.cc
+            ../../../qgr/utils/zlib.cc
+            ../../../qgr/utils/loop.cc
+            ../../../qgr/utils/loop-private.cc
+            ../../../qgr/utils/jsx.cc
+            ../../../qgr/utils/sys.cc
+            ../../../qgr/utils/net.cc
+            ../../../qgr/utils/cb.cc
+            ../../../qgr/utils/date.cc
+            ../../../qgr/utils/http-cookie.cc
+            ../../../qgr/utils/localstorage.cc
+            ../../../qgr/utils/android-jni.cc
+            ../../../qgr/utils/android-log.cc
+            ../../../qgr/utils/android-sys.cc
+            ../../../qgr/utils/android-fs.cc
            )
 
-add_library(shark-gui SHARED
+add_library(qgr-gui SHARED
             ../../../out/glsl-sprite.cc
             ../../../out/glsl-box-image.cc
             ../../../out/glsl-box-yuv420p-image.cc
@@ -92,121 +92,121 @@ add_library(shark-gui SHARED
             ../../../out/glsl-text-vertex.cc
             ../../../out/glsl-gen-texture.cc
             ../../../out/font-native.cc
-            ../../../shark/action.cc
-            ../../../shark/app.cc
-            ../../../shark/audio-player.cc
-            ../../../shark/div.cc
-            ../../../shark/indep.cc
-            ../../../shark/gradient.cc
-            ../../../shark/box-shadow.cc
-            ../../../shark/limit.cc
-            ../../../shark/limit-indep.cc
-            ../../../shark/image.cc
-            ../../../shark/bezier.cc
-            ../../../shark/event.cc
-            ../../../shark/display-port.cc
-            ../../../shark/font/font.cc
-            ../../../shark/image/codec.cc
-            ../../../shark/image/codec-tga.cc
-            ../../../shark/image/codec-pvrtc.cc
-            ../../../shark/pre-render.cc
-            ../../../shark/mathe.cc
-            ../../../shark/media-codec.cc
-            ../../../shark/media-codec-1.cc
-            ../../../shark/media-codec-software.cc
-            ../../../shark/label.cc
-            ../../../shark/layout.cc
-            ../../../shark/box.cc
-            ../../../shark/text-rows.cc
-            ../../../shark/view.cc
-            ../../../shark/draw.cc
-            ../../../shark/gl/gl.cc
-            ../../../shark/gl/gl-draw.cc
-            ../../../shark/gl/gl-texture.cc
-            ../../../shark/gl/gl-font.cc
-            ../../../shark/root.cc
-            ../../../shark/sprite.cc
-            ../../../shark/scroll.cc
-            ../../../shark/span.cc
-            ../../../shark/hybrid.cc
-            ../../../shark/text-font.cc
-            ../../../shark/text-node.cc
-            ../../../shark/texture.cc
-            ../../../shark/video.cc
-            ../../../shark/value.cc
-            ../../../shark/select-panel.cc
-            ../../../shark/button.cc
-            ../../../shark/keyboard.cc
-            ../../../shark/css.cc
-            ../../../shark/property.cc
-            ../../../shark/text.cc
-            ../../../shark/clip.cc
-            ../../../shark/input.cc
-            ../../../shark/textarea.cc
-            ../../../shark/platforms/android-gl.cc
-            ../../../shark/platforms/android-app.cc
-            ../../../shark/platforms/android-media-codec.cc
-            ../../../shark/platforms/android-pcm-player.cc
-            ../../../shark/platforms/android-pcm-audio-track.cc
-            ../../../shark/platforms/android-keyboard.cc
-            ../../../shark/image/codec-gif.cc
-            ../../../shark/image/codec-jpeg.cc
-            ../../../shark/image/codec-png.cc
-            ../../../shark/image/codec-webp.cc
+            ../../../qgr/action.cc
+            ../../../qgr/app.cc
+            ../../../qgr/audio-player.cc
+            ../../../qgr/div.cc
+            ../../../qgr/indep.cc
+            ../../../qgr/gradient.cc
+            ../../../qgr/box-shadow.cc
+            ../../../qgr/limit.cc
+            ../../../qgr/limit-indep.cc
+            ../../../qgr/image.cc
+            ../../../qgr/bezier.cc
+            ../../../qgr/event.cc
+            ../../../qgr/display-port.cc
+            ../../../qgr/font/font.cc
+            ../../../qgr/image/codec.cc
+            ../../../qgr/image/codec-tga.cc
+            ../../../qgr/image/codec-pvrtc.cc
+            ../../../qgr/pre-render.cc
+            ../../../qgr/mathe.cc
+            ../../../qgr/media-codec.cc
+            ../../../qgr/media-codec-1.cc
+            ../../../qgr/media-codec-software.cc
+            ../../../qgr/label.cc
+            ../../../qgr/layout.cc
+            ../../../qgr/box.cc
+            ../../../qgr/text-rows.cc
+            ../../../qgr/view.cc
+            ../../../qgr/draw.cc
+            ../../../qgr/gl/gl.cc
+            ../../../qgr/gl/gl-draw.cc
+            ../../../qgr/gl/gl-texture.cc
+            ../../../qgr/gl/gl-font.cc
+            ../../../qgr/root.cc
+            ../../../qgr/sprite.cc
+            ../../../qgr/scroll.cc
+            ../../../qgr/span.cc
+            ../../../qgr/hybrid.cc
+            ../../../qgr/text-font.cc
+            ../../../qgr/text-node.cc
+            ../../../qgr/texture.cc
+            ../../../qgr/video.cc
+            ../../../qgr/value.cc
+            ../../../qgr/select-panel.cc
+            ../../../qgr/button.cc
+            ../../../qgr/keyboard.cc
+            ../../../qgr/css.cc
+            ../../../qgr/property.cc
+            ../../../qgr/text.cc
+            ../../../qgr/clip.cc
+            ../../../qgr/input.cc
+            ../../../qgr/textarea.cc
+            ../../../qgr/platforms/android-gl.cc
+            ../../../qgr/platforms/android-app.cc
+            ../../../qgr/platforms/android-media-codec.cc
+            ../../../qgr/platforms/android-pcm-player.cc
+            ../../../qgr/platforms/android-pcm-audio-track.cc
+            ../../../qgr/platforms/android-keyboard.cc
+            ../../../qgr/image/codec-gif.cc
+            ../../../qgr/image/codec-jpeg.cc
+            ../../../qgr/image/codec-png.cc
+            ../../../qgr/image/codec-webp.cc
           )
 
-add_library(shark-js SHARED
+add_library(qgr-js SHARED
             ../../../out/native-core-js.cc
-            ../../../shark/js/js.cc
-            ../../../shark/js/js-class.cc
-            ../../../shark/js/test.cc
-            ../../../shark/js/v8.cc
-            ../../../shark/js/v8.cc
-            ../../../shark/js/log.cc
-            ../../../shark/js/binding/utils/event.cc
-            ../../../shark/js/binding/utils/reader.cc
-            ../../../shark/js/binding/utils/fs.cc
-            ../../../shark/js/binding/utils/http.cc
-            ../../../shark/js/binding/utils/json.cc
-            ../../../shark/js/binding/utils/keys.cc
-            ../../../shark/js/binding/utils/storage.cc
-            ../../../shark/js/binding/utils/sys.cc
-            ../../../shark/js/binding/utils/util.cc
-            ../../../shark/js/binding/action.cc
-            ../../../shark/js/binding/app.cc
-            ../../../shark/js/binding/audio-player.cc
-            ../../../shark/js/binding/box.cc
-            ../../../shark/js/binding/button.cc
-            ../../../shark/js/binding/clip.cc
-            ../../../shark/js/binding/css.cc
-            ../../../shark/js/binding/display-port.cc
-            ../../../shark/js/binding/div.cc
-            ../../../shark/js/binding/font.cc
-            ../../../shark/js/binding/shark.cc
-            ../../../shark/js/binding/hybrid.cc
-            ../../../shark/js/binding/image.cc
-            ../../../shark/js/binding/indep.cc
-            ../../../shark/js/binding/input.cc
-            ../../../shark/js/binding/label.cc
-            ../../../shark/js/binding/layout.cc
-            ../../../shark/js/binding/limit.cc
-            ../../../shark/js/binding/media.cc
-            ../../../shark/js/binding/root.cc
-            ../../../shark/js/binding/scroll.cc
-            ../../../shark/js/binding/select-panel.cc
-            ../../../shark/js/binding/span.cc
-            ../../../shark/js/binding/sprite.cc
-            ../../../shark/js/binding/text-font.cc
-            ../../../shark/js/binding/text-node.cc
-            ../../../shark/js/binding/text.cc
-            ../../../shark/js/binding/value.cc
-            ../../../shark/js/binding/video.cc
-            ../../../shark/js/binding/view.cc
+            ../../../qgr/js/js.cc
+            ../../../qgr/js/js-class.cc
+            ../../../qgr/js/test.cc
+            ../../../qgr/js/v8.cc
+            ../../../qgr/js/v8.cc
+            ../../../qgr/js/log.cc
+            ../../../qgr/js/binding/utils/event.cc
+            ../../../qgr/js/binding/utils/reader.cc
+            ../../../qgr/js/binding/utils/fs.cc
+            ../../../qgr/js/binding/utils/http.cc
+            ../../../qgr/js/binding/utils/json.cc
+            ../../../qgr/js/binding/utils/keys.cc
+            ../../../qgr/js/binding/utils/storage.cc
+            ../../../qgr/js/binding/utils/sys.cc
+            ../../../qgr/js/binding/utils/util.cc
+            ../../../qgr/js/binding/action.cc
+            ../../../qgr/js/binding/app.cc
+            ../../../qgr/js/binding/audio-player.cc
+            ../../../qgr/js/binding/box.cc
+            ../../../qgr/js/binding/button.cc
+            ../../../qgr/js/binding/clip.cc
+            ../../../qgr/js/binding/css.cc
+            ../../../qgr/js/binding/display-port.cc
+            ../../../qgr/js/binding/div.cc
+            ../../../qgr/js/binding/font.cc
+            ../../../qgr/js/binding/qgr.cc
+            ../../../qgr/js/binding/hybrid.cc
+            ../../../qgr/js/binding/image.cc
+            ../../../qgr/js/binding/indep.cc
+            ../../../qgr/js/binding/input.cc
+            ../../../qgr/js/binding/label.cc
+            ../../../qgr/js/binding/layout.cc
+            ../../../qgr/js/binding/limit.cc
+            ../../../qgr/js/binding/media.cc
+            ../../../qgr/js/binding/root.cc
+            ../../../qgr/js/binding/scroll.cc
+            ../../../qgr/js/binding/select-panel.cc
+            ../../../qgr/js/binding/span.cc
+            ../../../qgr/js/binding/sprite.cc
+            ../../../qgr/js/binding/text-font.cc
+            ../../../qgr/js/binding/text-node.cc
+            ../../../qgr/js/binding/text.cc
+            ../../../qgr/js/binding/value.cc
+            ../../../qgr/js/binding/video.cc
+            ../../../qgr/js/binding/view.cc
           )
 
-add_library(shark-demo SHARED ../../../test/demo.cc)
+add_library(qgr-demo SHARED ../../../test/demo.cc)
 
-add_library(shark-test SHARED
+add_library(qgr-test SHARED
             ../../../test/test.cc
             ../../../test/test-fs.cc
             ../../../test/test-fs2.cc
@@ -234,7 +234,7 @@ add_library(shark-test SHARED
             ../../../test/test-http-cookie.cc
             ../../../test/test-localstorage.cc
             ../../../test/test-buffer.cc
-            ../../../test/test-shark.cc
+            ../../../test/test-qgr.cc
             ../../../test/test-demo.cc
             ../../../test/test-jsc.cc
             ../../../test/test-v8.cc
@@ -245,8 +245,8 @@ add_library(shark-test SHARED
             ../../../test/test-benchmark.cc
 )
 
-target_link_libraries(shark-base atomic z android log shark_depes)
-target_link_libraries(shark-gui  shark-base OpenSLES GLESv3 EGL mediandk shark_depes)
-target_link_libraries(shark-js   shark-base shark-gui shark_depes)
-target_link_libraries(shark-demo shark-base shark-gui shark-js shark_depes)
-target_link_libraries(shark-test shark-base shark-gui shark-js shark_depes)
+target_link_libraries(qgr-base atomic z android log qgr_depes)
+target_link_libraries(qgr-gui  qgr-base OpenSLES GLESv3 EGL mediandk qgr_depes)
+target_link_libraries(qgr-js   qgr-base qgr-gui qgr_depes)
+target_link_libraries(qgr-demo qgr-base qgr-gui qgr-js qgr_depes)
+target_link_libraries(qgr-test qgr-base qgr-gui qgr-js qgr_depes)

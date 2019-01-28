@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/utils/util.h"
-#include "shark/utils/fs.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/fs.h"
 
-using namespace shark;
+using namespace qgr;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
  public:

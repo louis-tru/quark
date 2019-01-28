@@ -1,5 +1,5 @@
 
-import 'shark/http';
+import 'qgr/http';
 
 var i = 0;
 

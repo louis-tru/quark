@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-#include <shark/utils/http.h>
-#include <shark/utils/string.h>
-#include <shark/utils/fs.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/http.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/fs.h>
 #include <curl/curl.h>
 
-using namespace shark;
+using namespace qgr;
 
 static int req_progress_cb(void* req,
 													 curl_off_t dltotal, curl_off_t dlnow,
@@ -71,8 +71,8 @@ void test_curl2(int argc, char **argv) {
 	
 	HttpHelper::initialize();
 	
-	static cString url = "http://shark-x.org:1026/TestService/test?asasas=pppp";
-	//  static cString url = "http://sharkf.org:1026/js/inltest/test_build.js";
+	static cString url = "http://qgr-x.org:1026/TestService/test?asasas=pppp";
+	//  static cString url = "http://qgrf.org:1026/js/inltest/test_build.js";
 	
 	static cString cookie = Path::format("%s/cookie.txt", *Path::temp());
 	

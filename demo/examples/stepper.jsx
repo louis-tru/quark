@@ -1,5 +1,5 @@
-import { Div, Text, CSS, atomPixel } from 'shark';
-import { Stepper } from 'shark/stepper';
+import { Div, Text, CSS, atomPixel } from 'qgr';
+import { Stepper } from 'qgr/stepper';
 import { Mynavpage } from './public';
 
 CSS({

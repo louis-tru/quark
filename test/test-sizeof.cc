@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/sys.h"
+#include "qgr/sys.h"
 
-using namespace shark;
+using namespace qgr;
 
 class TestSizeOf {
  private:

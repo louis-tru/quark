@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/loop.h>
+#include <qgr/utils/loop.h>
 
-using namespace shark;
+using namespace qgr;
 
 static void message_cb(Se& ev, RunLoop* loop) {
 	static int i = 0;

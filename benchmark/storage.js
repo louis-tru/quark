@@ -1,5 +1,5 @@
 
-import 'shark/storage';
+import 'qgr/storage';
 import './uu';
 
 storage.transaction(function() {

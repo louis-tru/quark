@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/utils/util.h"
-#include "shark/utils/fs.h"
-#include "shark/utils/loop.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/fs.h"
+#include "qgr/utils/loop.h"
 #include <uv.h>
 
-using namespace shark;
+using namespace qgr;
 
 static uv_loop_t* uv_loop = nullptr;
 

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/js/js.h"
-#include "shark/app.h"
-#include "shark/utils/fs.h"
+#include "qgr/js/js.h"
+#include "qgr/app.h"
+#include "qgr/utils/fs.h"
 
-using namespace shark;
+using namespace qgr;
 
 #define USE_REMOTE 1
 #define IP_REMOTE "127.0.0.1"
@@ -57,11 +57,11 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if XX_ANDROID
-#include <shark/utils/android-jni.h>
+#include <qgr/utils/android-jni.h>
 
 	JNIEXPORT extern void
-	Java_org_shark_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		LOG("Java_org_shark_examples_MainActivity_test");
+	Java_org_qgr_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		LOG("Java_org_qgr_examples_MainActivity_test");
 	}
 
 #endif

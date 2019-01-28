@@ -13,16 +13,16 @@ ANDROID_SDK		?= $(ANDROID_HOME)
 ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-23/android.jar
 JAVAC					?= javac
 JAR						?= jar
-TOOLS					= ./libs/shark-tools
+TOOLS					= ./libs/qhammer
 GYP						= $(TOOLS)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)
-TOOLS_OUT			= out/shark-tools
+TOOLS_OUT			= out/qhammer
 BUILD_STYLE 	=	make
 
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile shark.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
+GYPFILES	= Makefile qgr.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -54,7 +54,7 @@ all: build
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call gen_project,$@,shark.gyp)
+	@$(call gen_project,$@,qgr.gyp)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
@@ -80,16 +80,16 @@ ios:
 	@$(MAKE)
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
-					 ./out/ios.x64.Release/libshark.dylib 
+					 ./out/ios.x64.Release/libqgr.dylib 
 	# @$(NODE) ./tools/gen_apple_framework.js ios \
 	# 				 $(TOOLS_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
-	# 				 ./out/ios.x64.Release/libshark.dylib 
+	# 				 ./out/ios.x64.Release/libqgr.dylib 
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
-					 ./out/ios.arm64.Release/libshark.dylib # out/ios.armv7.Release/libshark.dylib
+					 ./out/ios.arm64.Release/libqgr.dylib # out/ios.armv7.Release/libqgr.dylib
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Debug/Frameworks \
-					 ./out/ios.arm64.v8.Release/libshark.dylib
+					 ./out/ios.arm64.v8.Release/libqgr.dylib
 
 # build all android platform and output to product dir
 android:
@@ -99,19 +99,19 @@ android:
 	@$(MAKE)
 	@./configure --os=android --arch=arm --library=shared
 	@$(MAKE)
-	@$(MAKE) out/android.classs.shark.jar
+	@$(MAKE) out/android.classs.qgr.jar
 
 linux:
 
-out/android.classs.shark.jar: android/org/shark/*.java
+out/android.classs.qgr.jar: android/org/qgr/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_JAR) -d out/android.classs android/org/shark/*.java
-	@cd out/android.classs; $(JAR) cfv shark.jar .
+	@$(JAVAC) -bootclasspath $(ANDROID_JAR) -d out/android.classs android/org/qgr/*.java
+	@cd out/android.classs; $(JAR) cfv qgr.jar .
 	@mkdir -p $(TOOLS_OUT)/product/android/libs
-	@cp out/android.classs/shark.jar $(TOOLS_OUT)/product/android/libs
+	@cp out/android.classs/qgr.jar $(TOOLS_OUT)/product/android/libs
 
-# install shark command
+# install qgr command
 install:
 	@$(MAKE) ios
 	@$(MAKE) android
@@ -119,15 +119,15 @@ install:
 	@$(MAKE) jsa-shell
 	@$(MAKE) install-tools
 
-# debug install shark command
+# debug install qgr command
 install-dev:
 	@./configure --media=0
 	@$(MAKE) jsa-shell
 	@./$(TOOLS)/install link
 
 install-tools:
-	@sudo rm -rf ./out/shark-tools/bin/shell.js
-	@$(NODE) ./tools/cp-shark-tools.js
+	@sudo rm -rf ./out/qgr-tools/bin/shell.js
+	@$(NODE) ./tools/cp-qgr-tools.js
 	@$(TOOLS_OUT)/install
 
 doc:
@@ -138,7 +138,7 @@ web server:
 
 clean:
 	@rm -rfv out/$(OS).*
-	@rm -rfv out/product/shark/product/$(OS)
+	@rm -rfv out/product/qgr/product/$(OS)
 
 clean-all:
 	@rm -rfv out

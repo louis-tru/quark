@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "shark/base/os/android-jni.h"
+#include "qgr/base/os/android-jni.h"
 
-XX_NS(shark)
+XX_NS(qgr)
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
@@ -40,7 +40,7 @@ class APICore {
  public:
 	APICore() {
 		ScopeENV env;
-		clazz_              = JNI::find_clazz("org/shark/Android");
+		clazz_              = JNI::find_clazz("org/qgr/Android");
 		clazz_build_        = JNI::find_clazz("android.os.Build");
 		// utils
 		version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
@@ -49,7 +49,7 @@ class APICore {
 		package_code_path_  = JNI::find_static_method(clazz_, "package_code_path", "()Ljava/lang/String;");
 		cache_dir_path_     = JNI::find_static_method(clazz_, "cache_dir_path", "()Ljava/lang/String;");
 		files_dir_path_     = JNI::find_static_method(clazz_, "files_dir_path", "()Ljava/lang/String;");
-		// shark
+		// qgr
 		ime_keyboard_open_  = JNI::find_static_method(clazz_, "ime_keyboard_open", "(ZII)V");
 		ime_keyboard_can_backspace_ = JNI::find_static_method(clazz_, "ime_keyboard_can_backspace", "(ZZ)V");
 		ime_keyboard_close_ = JNI::find_static_method(clazz_, "ime_keyboard_close", "()V");

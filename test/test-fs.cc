@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/fs.h>
+#include <qgr/utils/fs.h>
 #include <pwd.h>
 
-using namespace shark;
+using namespace qgr;
 
 void test_fs(int argc, char **argv) {
 	

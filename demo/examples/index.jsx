@@ -1,10 +1,10 @@
-import 'shark/util';
-import 'shark/sys';
+import 'qgr/util';
+import 'qgr/sys';
 import {
 	GUIApplication, Root, Scroll, CSS, atomPixel: px,
-	Div, Hybrid, Clip, Text, Button, TextNode: T, shark
-} from 'shark';
-import { NavpageCollection, Toolbar } from 'shark/nav';
+	Div, Hybrid, Clip, Text, Button, TextNode: T, qgr
+} from 'qgr';
+import { NavpageCollection, Toolbar } from 'qgr/nav';
 import { Navbutton, Mynavpage } from './public';
 import './examples';
 import about_vx from './about';
@@ -68,20 +68,20 @@ function review_code(evt) {
 	evt.sender.topCtr.collection.push(review_vx, 1);
 }
 
-const shark_tools = 'https://www.npmjs.com/package/shark-tools';
-const shark_tools_issues_url = 'https://github.com/louis-tru/shark/issues';
-const examples_source = 'https://github.com/louis-tru/shark.git';
-const documents = 'http://shark1.org/';
+const qgr_tools = 'https://www.npmjs.com/package/qgr-tools';
+const qgr_tools_issues_url = 'https://github.com/louis-tru/qgr/issues';
+const examples_source = 'https://github.com/louis-tru/qgr.git';
+const documents = 'http://qgr1.org/';
 
 function handle_go_to(evt) {
 	var url = evt.sender.url;
 	if ( url ) {
-		shark.app.openUrl(url);
+		qgr.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	shark.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	qgr.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 var default_toolbar_vx = (
@@ -94,14 +94,14 @@ var default_toolbar_vx = (
 	</Toolbar>
 )
 
-var shark_tools_vx = (
-	<Mynavpage title="Shark Tools" source=resolve(__filename)>
+var qgr_tools_vx = (
+	<Mynavpage title="Qgr Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g shark</T>.
+@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g qgr</T>.
 2. Or get the node modules from Github.@@
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=shark_tools>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=qgr_tools>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -118,7 +118,7 @@ const examples_source_vx = (
 var documents_vx = (
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff">shark1.org</T> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff">qgr1.org</T> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
 		</Div>
 	</Mynavpage>
@@ -128,7 +128,7 @@ const bug_feedback_vx = (
 	<Mynavpage title="Bug Feedback" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=shark_tools_issues_url>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=qgr_tools_issues_url>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_bug_feedback>Send email</Button>
 		</Div>
@@ -140,19 +140,19 @@ var app = new GUIApplication({
 	width: 420, 
 	height: 800, 
 	background: 0xffffff,
-	title: 'Shark Examples',
+	title: 'Qgr Examples',
 }).start(
 	<Root>
 
 		<NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>
-			<Mynavpage title="Shark" source=resolve(__filename)>
+			<Mynavpage title="Qgr" source=resolve(__filename)>
 
 				<Scroll width="full" height="full" bounceLock=0>
 					
 					<Text class="hello">Hello.</Text>
 					<Div class="category">
 						<Hybrid class="codepre">
-@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'shark'</T>
+@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'qgr'</T>
 <T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
 	\<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
 )@@
@@ -163,7 +163,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=shark_tools_vx view.borderWidth=0>Shark Tools</Navbutton>
+						<Navbutton next=qgr_tools_vx view.borderWidth=0>Qgr Tools</Navbutton>
 					</Clip>
 					
 					<Text class="category_title" />

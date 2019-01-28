@@ -32,7 +32,7 @@ add_definitions(
   -DPNG_USER_CONFIG
 )
 
-add_library(shark-util
+add_library(qgr-util
 		SHARED
 		../../../autil/object.cc
 		../../../autil/string.cc
@@ -69,7 +69,7 @@ add_library(shark-util
 		../../../autil/os/android-fs.cc
 	     )
 
-add_library(shark-gui
+add_library(qgr-gui
 		SHARED
 		../../../out/glsl-shader.cc
 		../../../out/glsl-es2-shader.cc
@@ -139,7 +139,7 @@ add_library(shark-gui
 		../../../agui/image/codec-webp.cc
 	    )
 
-add_library(shark-js
+add_library(qgr-js
 		SHARED
 		../../../out/native-core-js.cc
 		../../../ajs/js.cc
@@ -192,9 +192,9 @@ add_library(shark-js
 		../../../ajs/v8.cc
 	    )
 
-add_library(shark SHARED ../../../test/empty.cc)
+add_library(qgr SHARED ../../../test/empty.cc)
 
-target_link_libraries(shark-util atomic z android log shark_depe_for_android_test)
-target_link_libraries(shark-gui shark-util OpenSLES GLESv3 EGL mediandk shark_depe_for_android_test)
-target_link_libraries(shark-js shark-util shark-gui shark_depe_for_android_test)
-target_link_libraries(shark shark-util shark-gui shark-js shark_depe_for_android_test)
+target_link_libraries(qgr-util atomic z android log qgr_depe_for_android_test)
+target_link_libraries(qgr-gui qgr-util OpenSLES GLESv3 EGL mediandk qgr_depe_for_android_test)
+target_link_libraries(qgr-js qgr-util qgr-gui qgr_depe_for_android_test)
+target_link_libraries(qgr qgr-util qgr-gui qgr-js qgr_depe_for_android_test)

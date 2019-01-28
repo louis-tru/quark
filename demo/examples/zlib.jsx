@@ -1,4 +1,4 @@
-import { Div, Button } from 'shark';
+import { Div, Button } from 'qgr';
 import { Mynavpage } from './public';
 
 export const vx = (

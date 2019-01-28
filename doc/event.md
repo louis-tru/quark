@@ -1,4 +1,4 @@
-# `shark/event`
+# `qgr/event`
 
 
 ## `Enum: HighlightedStatus`
@@ -605,6 +605,6 @@ GUI事件数据上下文，构造函数为私有不能访问
 [`KeyboardKeyName`]: event.md#enum-keyboardkeyname
 [`Action`]: action.md#class-action
 [`GUIEvent`]: event.md#class-guievent
-[`View`]: shark.md#class-view
+[`View`]: qgr.md#class-view
 [`GUITouch`]: event.md#object-guitouch
 

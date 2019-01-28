@@ -1,9 +1,9 @@
 
-# [`Shark`]
+# [`Qgr`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/shark-tools)
-* [`Examples`](https://github.com/louis-tru/shark/tree/master/demo)
+* [`Tools`](https://www.npmjs.com/package/qgr-tools)
+* [`Examples`](https://github.com/louis-tru/qgr/tree/master/demo)
 
 # Course
 
@@ -15,25 +15,25 @@
 
 # Modules
 
-* [`shark`](shark.md)
+* [`qgr`](qgr.md)
 * [`pkg`](pkg.md)
-* [`shark/action`](action.md)
-* [`shark/app`](app.md)
-* [`shark/css`](css.md)
-* [`shark/ctr`](ctr.md)
-* [`shark/display_port`](display_port.md)
-* [`shark/font`](font.md)
-* [`shark/media`](media.md)
-* [`shark/value`](value.md)
-* [`shark/util`](util.md)
-* [`shark/event`](event.md)
-* [`shark/fs`](fs.md)
-* [`shark/http`](http.md)
-* [`shark/keys`](keys.md)
-* [`shark/url`](url.md)
-* [`shark/reader`](reader.md)
-* [`shark/storage`](storage.md)
-* [`shark/sys`](sys.md)
+* [`qgr/action`](action.md)
+* [`qgr/app`](app.md)
+* [`qgr/css`](css.md)
+* [`qgr/ctr`](ctr.md)
+* [`qgr/display_port`](display_port.md)
+* [`qgr/font`](font.md)
+* [`qgr/media`](media.md)
+* [`qgr/value`](value.md)
+* [`qgr/util`](util.md)
+* [`qgr/event`](event.md)
+* [`qgr/fs`](fs.md)
+* [`qgr/http`](http.md)
+* [`qgr/keys`](keys.md)
+* [`qgr/url`](url.md)
+* [`qgr/reader`](reader.md)
+* [`qgr/storage`](storage.md)
+* [`qgr/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Shark`]: http://shark1.org/
+[`Qgr`]: http://qgr1.org/

@@ -1,6 +1,6 @@
-import { Div, Button, Input } from 'shark';
-import 'shark/storage';
-import { alert } from 'shark/dialog';
+import { Div, Button, Input } from 'qgr';
+import 'qgr/storage';
+import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
 const key = 'test';

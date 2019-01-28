@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/js/js.h"
+#include "qgr/js/js.h"
 
-using namespace shark;
+using namespace qgr;
 
 #define IP_REMOTE "127.0.0.1"
 

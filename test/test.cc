@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "shark/app.h"
-#include "shark/sys.h"
-#include "shark/utils/loop.h"
+#include "qgr/app.h"
+#include "qgr/sys.h"
+#include "qgr/utils/loop.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_sys
 #endif
 
-using namespace shark;
+using namespace qgr;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 

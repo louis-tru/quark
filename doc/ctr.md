@@ -1,4 +1,4 @@
-# `shark/ctr`
+# `qgr/ctr`
 
 ## empty
 
@@ -21,8 +21,8 @@
 Example:
 
 ```jsx
-import { GUIApplication, ViewController, Root, Div } from 'shark'
-import 'shark/http'
+import { GUIApplication, ViewController, Root, Div } from 'qgr'
+import 'qgr/http'
 class MyCtr extends ViewController {
 	loadView() {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>{
@@ -222,18 +222,18 @@ new GUIApplication().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: shark.md#class-view
+[`View`]: qgr.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: shark.md#get-view-action
-[`View.style`]: shark.md#view-style
-[`View.visible`]: shark.md#view-visible
-[`View.receive`]: shark.md#view-receive
-[`View.class`]: shark.md#get-view-class
-[`View.transition()`]: shark.md#view-transition-style-delay-cb-
-[`View.show()`]: shark.md#view-show-
-[`View.hide()`]: shark.md#view-hide-
-[`View.addClass()`]: shark.md#view-addClass-name-
-[`View.removeClass()`]: shark.md#view-removeclass-name-
-[`View.toggleClass()`]: shark.md#view-toggleclass-name-
-[`View.remove()`]: shark.md#view-remove-
+[`View.action`]: qgr.md#get-view-action
+[`View.style`]: qgr.md#view-style
+[`View.visible`]: qgr.md#view-visible
+[`View.receive`]: qgr.md#view-receive
+[`View.class`]: qgr.md#get-view-class
+[`View.transition()`]: qgr.md#view-transition-style-delay-cb-
+[`View.show()`]: qgr.md#view-show-
+[`View.hide()`]: qgr.md#view-hide-
+[`View.addClass()`]: qgr.md#view-addClass-name-
+[`View.removeClass()`]: qgr.md#view-removeclass-name-
+[`View.toggleClass()`]: qgr.md#view-toggleclass-name-
+[`View.remove()`]: qgr.md#view-remove-

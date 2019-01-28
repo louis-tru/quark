@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/shark-utils');
-var fs = require('../libs/shark-utils/fs');
-var keys = require('../libs/shark-utils/keys');
-var service = require('../libs/shark-utils/service');
-var HttpService = require('../libs/shark-utils/http_service').HttpService;
-var server = require('../libs/shark-tools/toolchain/server');
+var util = require('../libs/qsprite');
+var fs = require('../libs/qsprite/fs');
+var keys = require('../libs/qsprite/keys');
+var service = require('../libs/qsprite/service');
+var HttpService = require('../libs/qsprite/http_service').HttpService;
+var server = require('../libs/qhammer/toolchain/server');
 require('./test-multiple-service');
 
 var opt = {

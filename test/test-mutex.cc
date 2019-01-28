@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-#include <shark/utils/loop.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/loop.h>
 
-using namespace shark;
+using namespace qgr;
 
 volatile bool run_flag = false;
 Mutex mtx;

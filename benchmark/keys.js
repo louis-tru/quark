@@ -1,7 +1,7 @@
 
-import 'shark/keys';
-import 'shark/fs';
-import 'shark/url';
+import 'qgr/keys';
+import 'qgr/fs';
+import 'qgr/url';
 import './uu';
 
 uu.start();

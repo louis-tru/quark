@@ -1,4 +1,4 @@
-import { Scroll, Clip, Text, shark } from 'shark';
+import { Scroll, Clip, Text, qgr } from 'qgr';
 import { Navbutton, Mynavpage } from './public';
 import './checkbox';
 import './overlay';

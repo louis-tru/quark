@@ -1,15 +1,15 @@
 
-import { GUIApplication, Root, Div, Indep, shark, New, lock } from 'shark';
-import { Color } from 'shark/value';
-import { random, log } from 'shark/util';
+import { GUIApplication, Root, Div, Indep, qgr, New, lock } from 'qgr';
+import { Color } from 'qgr/value';
+import { random, log } from 'qgr/util';
 import './uu';
 
-new GUIApplication({ multisample: 4, title: 'Shark benchmark' }).start(
+new GUIApplication({ multisample: 4, title: 'Qgr benchmark' }).start(
 	<Root backgroundColor="#000">
 		%{
 			(()=>{
-				var w = shark.displayPort.width;
-				var h = shark.displayPort.height;
+				var w = qgr.displayPort.width;
+				var h = qgr.displayPort.height;
 				console.log(w,h);
 				var r = [];
 				for (var i = 0; i < 4000; i++) {

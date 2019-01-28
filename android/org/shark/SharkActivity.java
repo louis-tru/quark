@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.shark;
+package org.qgr;
 
 import android.app.KeyguardManager;
 import android.app.NativeActivity;
@@ -52,9 +52,9 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.content.pm.ApplicationInfo;
 
-public class SharkActivity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
+public class QgrActivity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
 
-	private static String TAG = "SHARK";
+	private static String TAG = "QGR";
 	private IMEHelper m_ime = null;
 	private Handler m_handler = null;
 	private PowerManager pm = null;
@@ -158,9 +158,9 @@ public class SharkActivity extends NativeActivity implements View.OnSystemUiVisi
 
 	static public class PrivateAPI {
 
-		private SharkActivity host = null;
+		private QgrActivity host = null;
 
-		private PrivateAPI(SharkActivity host) {
+		private PrivateAPI(QgrActivity host) {
 			this.host = host;
 		}
 

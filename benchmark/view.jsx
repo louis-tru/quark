@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Div, Scroll, New, CSS } from 'shark';
-import { Color } from 'shark/value';
-import { random } from 'shark/util';
+import { GUIApplication, Root, Div, Scroll, New, CSS } from 'qgr';
+import { Color } from 'qgr/value';
+import { random } from 'qgr/util';
 import './uu';
 
 CSS({

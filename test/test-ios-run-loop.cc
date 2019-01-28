@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/env.h>
+#include <qgr/utils/env.h>
 
 #if XX_IOS
 
-#include <shark/utils/util.h>
+#include <qgr/utils/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
 #include <stdio.h>

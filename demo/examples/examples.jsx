@@ -1,4 +1,4 @@
-import { Scroll, Div, Clip, Text } from 'shark';
+import { Scroll, Div, Clip, Text } from 'qgr';
 import { Navbutton, Mynavpage } from './public';
 import './components';
 import './input';

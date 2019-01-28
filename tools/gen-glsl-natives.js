@@ -179,7 +179,7 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 	var hpp = [
 		'#ifndef __shader_natives_' + date + '__',
 		'#define __shader_natives_' + date + '__',
-		'namespace shark {',
+		'namespace qgr {',
 		'namespace shader {',
 		'#pragma pack(push,4)',
 			format_string('struct struct_{0} {', name),
@@ -201,8 +201,8 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 	
 	var cpp = [
 		format_string('#include "{0}"', filename + '.h'),
-		'#include "shark/gl/gl.h"',
-		'namespace shark {',
+		'#include "qgr/gl/gl.h"',
+		'namespace qgr {',
 		'namespace shader {',
 	];
 
@@ -282,7 +282,7 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 
 	// init block
 	cpp.push(format_string('XX_INIT_BLOCK({0}) {', name));
-	cpp.push(format_string('  GLDraw::register_gl_shader((shark::GLShader*)(&{0}));', name));
+	cpp.push(format_string('  GLDraw::register_gl_shader((qgr::GLShader*)(&{0}));', name));
 	cpp.push('}');
 
 	cpp.push('}', '}');

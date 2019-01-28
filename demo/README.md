@@ -1,18 +1,18 @@
-Shark Examples
+Qgr Examples
 ===============
 
-* 这是一个`Shark`演示工程，请使用`shark`命令导出到`xcode`或`android studio`
+* 这是一个`Qgr`演示工程，请使用`qgr`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`shark-tools`
+## 获取`qgr-tools`
 
-* 使用 nodejs `npm`安装`shark-tools`
+* 使用 nodejs `npm`安装`qgr-tools`
 
 
 ```sh
 # shell
-sudo npm install -g shark-tools
+sudo npm install -g qgr-tools
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g shark-tools
 
 ```sh
 # shell
-shark export ios
-shark export android
+qgr export ios
+qgr export android
 ```
 
 导出后使用`xcode`获取`android studio`打开`Project`文件夹下的工程文件

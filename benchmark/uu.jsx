@@ -1,8 +1,8 @@
 
-import 'shark/http';
-import 'shark/util';
-import 'shark/sys';
-import { Indep, shark, New, Text } from 'shark';
+import 'qgr/http';
+import 'qgr/util';
+import 'qgr/sys';
+import { Indep, qgr, New, Text } from 'qgr';
 
 var ts = 0;
 
@@ -19,7 +19,7 @@ function log(...args) {
 
 function show_fsp_ok() {
 
-	var displayPort = shark.displayPort;
+	var displayPort = qgr.displayPort;
 	var fsp = null;
 	var priv_fsp_value = 0;
 	var priv_cpu_usage = 0;
@@ -35,7 +35,7 @@ function show_fsp_ok() {
 	}
 
 	setTimeout(function() {
-		var root = shark.root;
+		var root = qgr.root;
 		if (root) {
 			fsp = New(
 				<Indep alignY="bottom" x=5 y=-5>
@@ -50,7 +50,7 @@ function show_fsp_ok() {
 }
 
 function show_fsp() {
-	var app = shark.app;
+	var app = qgr.app;
 	util.assert(app);
 
 	if (app.isLoad) {

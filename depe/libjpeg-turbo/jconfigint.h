@@ -1,5 +1,5 @@
 
-#include <shark/utils/env.h>
+#include <qgr/utils/env.h>
 
 /* jconfigint.h.  Generated from jconfigint.h.in by configure.  */
 /* libjpeg-turbo build number */

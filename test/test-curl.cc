@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <curl/curl.h>
-#include <shark/utils/util.h>
-#include <shark/utils/http.h>
-#include <shark/utils/buffer.h>
+#include <qgr/utils/util.h>
+#include <qgr/utils/http.h>
+#include <qgr/utils/buffer.h>
 
-using namespace shark;
+using namespace qgr;
 
 static cString  url     = "http://www.qq.com/";
 static cString  PROXY   = "";

@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'shark/event';
+import { EventNoticer } from 'qgr/event';
 import './uu';
 
 uu.start();

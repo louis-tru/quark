@@ -1,7 +1,7 @@
-import { Div, Button, Input } from 'shark';
-import 'shark/util';
-import 'shark/http';
-import { alert } from 'shark/dialog';
+import { Div, Button, Input } from 'qgr';
+import 'qgr/util';
+import 'qgr/http';
+import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
 function url(evt) {

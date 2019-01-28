@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
-#include <shark/image.h>
-#include <shark/sprite.h>
-#include <shark/div.h>
-#include <shark/app.h>
-#include <shark/display-port.h>
-#include <shark/root.h>
-#include <shark/utils/fs.h>
-#include <shark/gl/gl.h>
+#include <qgr/utils/util.h>
+#include <qgr/image.h>
+#include <qgr/sprite.h>
+#include <qgr/div.h>
+#include <qgr/app.h>
+#include <qgr/display-port.h>
+#include <qgr/root.h>
+#include <qgr/utils/fs.h>
+#include <qgr/gl/gl.h>
 
-using namespace shark;
-using shark::value::ValueType;
-using shark::value::Value;
+using namespace qgr;
+using qgr::value::ValueType;
+using qgr::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

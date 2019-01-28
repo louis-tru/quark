@@ -1,4 +1,4 @@
-# `shark/action`
+# `qgr/action`
 
 
 ## create(json[,parent])
@@ -668,7 +668,7 @@ action.transition(view2, {
 [`SequenceAction`]: action.md#class-sequenceaction
 [`KeyframeAction`]: action.md#class-keyframeaction
 [`Frame`]: action.md#class-frame
-[`View`]: shark.md#class-view
+[`View`]: qgr.md#class-view
 [`Curve`]: value.md#class-curve
 [`LINEAR`]: action.md#linear
 [`EASE`]: action.md#ease

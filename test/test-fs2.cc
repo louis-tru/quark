@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/fs.h>
-#include <shark/utils/loop.h>
+#include <qgr/utils/fs.h>
+#include <qgr/utils/loop.h>
 
-using namespace shark;
+using namespace qgr;
 
 static String write_str;
 
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	
-	write_str = f_reader()->read_file_sync(Path::resources("shark/ctr.js"));
+	write_str = f_reader()->read_file_sync(Path::resources("qgr/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 

@@ -28,7 +28,7 @@
 #include "node_revert.h"
 #include "node_debug_options.h"
 #include "node_perf.h"
-#include "shark/js/node-2.h"
+#include "qgr/js/node-2.h"
 
 #if defined HAVE_PERFCTR
 #include "node_counters.h"
@@ -4761,7 +4761,7 @@ void FreeEnvironment(Environment* env) {
 inline int Start(Isolate* isolate, IsolateData* isolate_data,
                  int argc, const char* const* argv,
                  int exec_argc, const char* const* exec_argv) {
-  shark::RunLoop* loop = shark_api->shark_main_loop();
+  qgr::RunLoop* loop = qgr_api->qgr_main_loop();
   HandleScope handle_scope(isolate);
   Local<Context> context = Context::New(isolate);
   Context::Scope context_scope(context);
@@ -4782,7 +4782,7 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
     env.async_hooks()->force_checks();
   }
   
-  SharkEnvironment shark_env(&env, debug_options.inspector_enabled(), argc, argv);
+  QgrEnvironment qgr_env(&env, debug_options.inspector_enabled(), argc, argv);
   
   {
     Environment::AsyncCallbackScope callback_scope(&env);
@@ -4798,10 +4798,10 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
     bool more;
     PERFORMANCE_MARK(&env, LOOP_START);
     do {
-      shark_api->run_shark_loop(loop);
+      qgr_api->run_qgr_loop(loop);
       /* IOS forces the process to terminate, but it does not quit immediately.
        This may cause a process to run in the background for a long time, so force break here */
-      if (shark_api->is_process_exit()) break;
+      if (qgr_api->is_process_exit()) break;
 
       v8_platform.DrainVMTasks();
 
@@ -4871,7 +4871,7 @@ inline int Start(uv_loop_t* event_loop,
     exit_code = Start(isolate, &isolate_data, argc, argv, exec_argc, exec_argv);
   }
 
-  if (!shark_api->is_process_exit()) {
+  if (!qgr_api->is_process_exit()) {
     Mutex::ScopedLock scoped_lock(node_isolate_mutex);
     CHECK_EQ(node_isolate, isolate);
     node_isolate = nullptr;

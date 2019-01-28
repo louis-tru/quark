@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <shark/utils/string.h>
-#include <shark/utils/codec.h>
+#include <qgr/utils/string.h>
+#include <qgr/utils/codec.h>
 
 using namespace std;
-using namespace shark;
+using namespace qgr;
 
 class Str {
  private:

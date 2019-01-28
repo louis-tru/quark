@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/util.h>
+#include <qgr/utils/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace shark;
+using namespace qgr;
 
 class Foo {
  public:

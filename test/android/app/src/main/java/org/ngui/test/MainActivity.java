@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.shark.test;
+package org.qgr.test;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import org.shark.SharkActivity;
+import org.qgr.QgrActivity;
 
-public class MainActivity extends SharkActivity {
+public class MainActivity extends QgrActivity {
 
   static {
-    System.loadLibrary("shark-test");
+    System.loadLibrary("qgr-test");
   }
 
 //  @Override

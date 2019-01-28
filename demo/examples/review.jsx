@@ -1,7 +1,7 @@
-import { Scroll, Text } from 'shark';
+import { Scroll, Text } from 'qgr';
 import { Mynavpage } from './public';
-import { Toolbar } from 'shark/nav';
-import 'shark/reader';
+import { Toolbar } from 'qgr/nav';
+import 'qgr/reader';
 
 function foreground(evt) {
 	var navpage = evt.sender;

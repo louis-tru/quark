@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <shark/utils/zlib.h>
+#include <qgr/utils/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace shark;
+using namespace qgr;
 
 void test_zlib (int argc, char **argv) {
 	

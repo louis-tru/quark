@@ -1,8 +1,8 @@
 {
 	"name": "examples",
-	"app_name":	"Shark-Examples",
-	"id": "org.shark.examples",
+	"app_name":	"Qgr-Examples",
+	"id": "org.qgr.examples",
 	"main":	"index.jsx",
 	"version": "1.0.0",
-	"shark_syntax": true
+	"qgr_syntax": true
 }

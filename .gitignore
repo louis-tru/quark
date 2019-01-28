@@ -3,9 +3,9 @@ out
 .DS_Store
 *.DS_Store
 node_modules/.bin
-shark.sublime-workspace
-node_modules/shark-tools/osx
-node_modules/shark-tools/linux
+qgr.sublime-workspace
+node_modules/qgr-tools/osx
+node_modules/qgr-tools/linux
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang

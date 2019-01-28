@@ -231,7 +231,7 @@ ff_rdt_parse_header(const uint8_t *buf, int len,
      * 16: seq_no
      *     Packet sequence number; if >=0xFF00, this is a non-data packet
      *     containing stream status info, the second byte indicates the
-     *     type of status packet (see wireshark docs / source code [2])
+     *     type of status packet (see wireqgr docs / source code [2])
      * if (len_included) {
      *     16: packet_len
      * } else {
@@ -258,8 +258,8 @@ ff_rdt_parse_header(const uint8_t *buf, int len,
      *     16: stream_id (extended stream ID; see stream_id)
      * }
      * [1] https://protocol.helixcommunity.org/files/2005/devdocs/RDT_Feature_Level_20.txt
-     * [2] http://www.wireshark.org/docs/dfref/r/rdt.html and
-     *     http://anonsvn.wireshark.org/viewvc/trunk/epan/dissectors/packet-rdt.c
+     * [2] http://www.wireqgr.org/docs/dfref/r/rdt.html and
+     *     http://anonsvn.wireqgr.org/viewvc/trunk/epan/dissectors/packet-rdt.c
      */
     init_get_bits(&gb, buf, len << 3);
     len_included  = get_bits1(&gb);

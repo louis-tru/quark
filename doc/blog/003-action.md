@@ -1,21 +1,21 @@
-Shark简介
+Qgr简介
 ===============
 
 这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL，这也是第一个在移动端Android/iOS融合NodeJS的前端GUI项目，至此JavaScript成为了真正意义上前后端通吃的语言。
 
-Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
+Qgr的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
 
-* [`开源跨平台移动项目Shark【简介】`](http://www.jianshu.com/p/2104b885eae6)
+* [`开源跨平台移动项目Qgr【简介】`](http://www.jianshu.com/p/2104b885eae6)
 
-* [`开源跨平台移动项目Shark【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
+* [`开源跨平台移动项目Qgr【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
 
-* [`开源跨平台移动项目Shark【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
+* [`开源跨平台移动项目Qgr【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
 
-* [`开源跨平台移动项目Shark【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
+* [`开源跨平台移动项目Qgr【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
 
-* [`开源跨平台移动项目Shark【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
+* [`开源跨平台移动项目Qgr【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Shark API 文档`](http://shark1.org/doc/)
+* [`Qgr API 文档`](http://qgr1.org/doc/)
 
 # 什么是Action动作
 
@@ -27,8 +27,8 @@ Shark的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般
 比如说现在创建了一个新的关键帧动作，给它设置两个关键帧，且x的值经过1秒钟从0变化到100。这个过程是动作自身发生的变化并且带动与之相关的视图一同发生改变，请记住这个过程视图是被动的，而动作才是主动的发生改变。
 
 ```js
-import { shark, Div } from 'shark';
-import KeyframeAction from 'shark/action';
+import { qgr, Div } from 'qgr';
+import KeyframeAction from 'qgr/action';
 var div = new Div();
 var act = new KeyframeAction();
 act.add({ x: 0, time: 0 });
@@ -37,7 +37,7 @@ div.width = 50;
 div.height = 50;
 div.backgroundColor = '#f00';
 div.action = act;
-div.appendTo(shark.root);
+div.appendTo(qgr.root);
 act.play();
 ```
 
@@ -97,7 +97,7 @@ act2.paly();
 
 # View.action属性
 
-[View.action]做为[View]的一个属性可接收多种类型的参数，之前给大家展示的例子中创建动作是很繁琐的，但`active`提供多种类型的参数类型的支持，包括`json`数据与`Action`对像实例本身。前面的例子中已介绍过`Action`方式，下面着重说`json`数据方法。大家也可研读`shark.js`与`action.js`中的源代码，其它[View.action]属性只是做简单的调用转发，功能的实现其实是在`action.js`文件中的`create()`方法里实现的。
+[View.action]做为[View]的一个属性可接收多种类型的参数，之前给大家展示的例子中创建动作是很繁琐的，但`active`提供多种类型的参数类型的支持，包括`json`数据与`Action`对像实例本身。前面的例子中已介绍过`Action`方式，下面着重说`json`数据方法。大家也可研读`qgr.js`与`action.js`中的源代码，其它[View.action]属性只是做简单的调用转发，功能的实现其实是在`action.js`文件中的`create()`方法里实现的。
 
 看例子:
 ```js
@@ -172,13 +172,13 @@ view.transition({
 
 * `View.onActionLoop`动作循环开始时触发，第一次执行动作并不会触发。同样它也会有延时，也同样记录在`delay`。
 
-[Action]: https://shark1.org/doc/action.html#class-action
-[GroupAction]: https://shark1.org/doc/action.html#class-groupaction
-[SpawnAction]: https://shark1.org/doc/action.html#class-spawnaction
-[SequenceAction]: https://shark1.org/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://shark1.org/doc/action.html#class-keyframeaction
-[Frame]: https://shark1.org/doc/action.html#class-frame
-[View]: https://shark1.org/doc/shark.html#class-view
-[Div]: https://shark1.org/doc/shark.html#class-div
-[View.action]: https://shark1.org/doc/shark.html#set-view-action
-[View.transition()]: https://shark1.org/doc/shark.html#view-transition-style-delay-cb-
+[Action]: https://qgr1.org/doc/action.html#class-action
+[GroupAction]: https://qgr1.org/doc/action.html#class-groupaction
+[SpawnAction]: https://qgr1.org/doc/action.html#class-spawnaction
+[SequenceAction]: https://qgr1.org/doc/action.html#class-sequenceaction
+[KeyframeAction]: https://qgr1.org/doc/action.html#class-keyframeaction
+[Frame]: https://qgr1.org/doc/action.html#class-frame
+[View]: https://qgr1.org/doc/qgr.html#class-view
+[Div]: https://qgr1.org/doc/qgr.html#class-div
+[View.action]: https://qgr1.org/doc/qgr.html#set-view-action
+[View.transition()]: https://qgr1.org/doc/qgr.html#view-transition-style-delay-cb-

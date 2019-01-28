@@ -1,10 +1,10 @@
-import { Navpage } from 'shark/nav';
+import { Navpage } from 'qgr/nav';
 import { 
 	ViewController, Button, CSS,
 	Text, TextNode, atomPixel: px, 
-	Indep, isViewXml, Panel, Scroll, shark, Style
-} from 'shark';
-import 'shark/util';
+	Indep, isViewXml, Panel, Scroll, qgr, Style
+} from 'qgr';
+import 'qgr/util';
 
 // CSS(<Style>
 //   .long_btn {
@@ -130,7 +130,7 @@ export class Mynavpage extends Navpage {
 		this.backgroundColor = "#f8f8f8";
 		<!-- White title -->
 		<!--
-			shark.displayPort.setStatusBarStyle(1);
+			qgr.displayPort.setStatusBarStyle(1);
 			this.navbar.backgroundColor = '#f9f9f9';
 			this.navbar.titleTextColor = '#000';
 			this.navbar.backTextColor = '#0079ff';
@@ -151,7 +151,7 @@ export class Mynavpage extends Navpage {
 			btn = first.first_button();
 		}
 		if ( !btn ) {
-			btn = shark.root.first_button();
+			btn = qgr.root.first_button();
 		}
 		if ( btn ) {
 			btn.focus();

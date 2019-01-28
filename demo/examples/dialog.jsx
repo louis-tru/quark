@@ -1,6 +1,6 @@
-import { Div, Button, TextNode } from 'shark';
+import { Div, Button, TextNode } from 'qgr';
 import { Mynavpage } from './public';
-import 'shark/dialog';
+import 'qgr/dialog';
 
 function alert() {
 	dialog.alert('Hello alert.');
