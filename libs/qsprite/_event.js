@@ -221,10 +221,10 @@ function add(self, origin, listen, scope, id) {
 		self.m_event.m_noticer = self;
 	}
 
-	var map = self.m_listens_map;
-	if ( !map ) {
+	var listens_map = self.m_listens_map;
+	if ( !listens_map ) {
 		self.m_listens = new List();
-		self.m_listens_map = map = { };
+		self.m_listens_map = listens_map = { };
 	}
 
 	if (typeof scope != 'object') {
@@ -243,12 +243,12 @@ function add(self, origin, listen, scope, id) {
 		scope: scope,
 		id: id,
 	};
-	var item = map[id];
+	var item = listens_map[id];
 
 	if ( item ) { // replace
 		item._value = value;
 	} else { // add
-		map[id] = self.m_listens.push(value);
+		listens_map[id] = self.m_listens.push(value);
 		self.m_length++;
 	}
 	return id;
@@ -262,9 +262,9 @@ function chack_add(self, origin, listen, scope, id) {
 	}
 }
 
-function notice_proxy_noticer(self, evt) {
+function notice_proxy_noticer(proxy_noticer, evt) {
 	var noticer = evt.m_noticer;
-	self.triggerWithEvent(evt);
+	proxy_noticer.triggerWithEvent(evt);
 	evt.m_noticer = noticer;
 }
 
@@ -518,31 +518,17 @@ class EventNoticer {
 				}
 			} else if ( func instanceof Object ) { //
 				var item = this.m_listens._first;
-
-				if ( func instanceof EventNoticer ) { // 卸载代理
-					while ( item ) {
-						var value = item._value;
-						if ( value ) {
-							if ( value.origin === func ) {
-								this.m_length--;
-								delete this.m_listens_map[value.id];
-								item._value = null; break; // clear
-							}
+				// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
+				while ( item ) {
+					var value = item._value;
+					if ( value ) {
+						if ( value.scope === func ) {
+							this.m_length--;
+							delete this.m_listens_map[value.id];
+							item._value = null; // break; // clear
 						}
-						item = item._next;
 					}
-				} else { // 要卸载这个范围上相关的侦听器
-					while ( item ) {
-						var value = item._value;
-						if ( value ) {
-							if ( value.scope === func ) {
-								this.m_length--;
-								delete this.m_listens_map[value.id];
-								item._value = null; break; // clear
-							}
-						}
-						item = item._next;
-					}
+					item = item._next;
 				}
 			} else { //
 				throw new Error('Param err');
