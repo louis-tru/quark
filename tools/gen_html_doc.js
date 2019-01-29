@@ -31,8 +31,8 @@
 
 var fs = require('qgr-utils/fs');
 var path = require('qgr-utils/url');
-var marked_html = require('qhammer/marked/html');
-var marked = require('qhammer/node_modules/marked/index');
+var marked_html = require('qgr-tools/marked/html');
+var marked = require('qgr-tools/node_modules/marked/index');
 var read_qgr_version = require('./read_version').read_qgr_version;
 var argv = process.argv.slice(2);
 var template = null;
@@ -94,6 +94,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(__dirname + '/../libs/qhammer/marked/assets', output + '/assets');
+fs.cp_sync(__dirname + '/../libs/qgr-tools/marked/assets', output + '/assets');
 
 each_dir('', output);

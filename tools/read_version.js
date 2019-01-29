@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/qsprite/fs');
+var fs = require('../libs/qgr-utils/fs');
 
 function read_qgr_version() {
 	var str = fs.readFileSync(__dirname + '/../qgr/version.h').toString('utf-8');

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qsprite');
-var service = require('../libs/qsprite/service');
-var HttpService = require('../libs/qsprite/http_service').HttpService;
+var util = require('../libs/qgr-utils');
+var service = require('../libs/qgr-utils/service');
+var HttpService = require('../libs/qgr-utils/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

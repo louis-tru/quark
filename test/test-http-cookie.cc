@@ -35,60 +35,60 @@ using namespace qgr;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	http_cookie_set("qgr1.org", "test", "qgr1.org");
+	http_cookie_set("quickgr.org", "test", "quickgr.org");
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	LOG(http_cookie_get("www.qgr1.org", "test"));
+	LOG(http_cookie_get("www.quickgr.org", "test"));
 	
-	http_cookie_set("www.qgr1.org", "test2", "*********************************");
+	http_cookie_set("www.quickgr.org", "test2", "*********************************");
 	
-	LOG(http_cookie_get("qgr1.org", "test2"));
+	LOG(http_cookie_get("quickgr.org", "test2"));
 	
-	LOG(http_cookie_get("www.qgr1.org", "test2"));
+	LOG(http_cookie_get("www.quickgr.org", "test2"));
 	
-	http_cookie_set("qgr1.org", "test2", "-----------------------------", -1, "/AA");
+	http_cookie_set("quickgr.org", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG(http_cookie_get("qgr1.org", "test2"));
+	LOG(http_cookie_get("quickgr.org", "test2"));
 	
-	LOG(http_cookie_get("qgr1.org", "test2", "/AA"));
+	LOG(http_cookie_get("quickgr.org", "test2", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.qgr1.org", "/AA"));
+	LOG(http_cookie_get_all_string("www.quickgr.org", "/AA"));
 	
-	http_cookie_set_with_expression("qgr1.org", "test3=HHHH--l; path=/AA; max-age=60");
+	http_cookie_set_with_expression("quickgr.org", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	LOG(http_cookie_get("qgr1.org", "test3"));
+	LOG(http_cookie_get("quickgr.org", "test3"));
 	
-	LOG(http_cookie_get("qgr1.org", "test3", "/AA"));
+	LOG(http_cookie_get("quickgr.org", "test3", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.qgr1.org", "/AA"));
+	LOG(http_cookie_get_all_string("www.quickgr.org", "/AA"));
 	
 	// test delete
 	
-	http_cookie_delete("qgr1.org", "test");
+	http_cookie_delete("quickgr.org", "test");
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	http_cookie_set("qgr1.org", "test", "qgr1.org");
+	http_cookie_set("quickgr.org", "test", "quickgr.org");
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	http_cookie_delete_all("qgr1.org");
+	http_cookie_delete_all("quickgr.org");
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	http_cookie_set("qgr1.org", "test", "qgr1.org");
+	http_cookie_set("quickgr.org", "test", "quickgr.org");
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
 	http_cookie_clear();
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	http_cookie_set("qgr1.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
+	http_cookie_set("quickgr.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
 	
-	LOG(http_cookie_get("qgr1.org", "test"));
+	LOG(http_cookie_get("quickgr.org", "test"));
 	
 }

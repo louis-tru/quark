@@ -216,19 +216,19 @@ class URL {
 		return this._hash;
 	}
 	
-	// host: "qgr1.org:81"
+	// host: "quickgr.org:81"
 	get host() {
 		parse_path(this);
 		return this._hostname + (this._port ? ':' + this._port : '');
 	}
 	
-	// hostname: "qgr1.org"
+	// hostname: "quickgr.org"
 	get hostname() {
 		parse_path(this);
 		return this._hostname;
 	}
 	
-	// origin: "http://qgr1.org:81"
+	// origin: "http://quickgr.org:81"
 	get origin() {
 		parse_path(this);
 		return this._origin;

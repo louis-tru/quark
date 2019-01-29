@@ -4,8 +4,8 @@ out
 *.DS_Store
 node_modules/.bin
 qgr.sublime-workspace
-node_modules/qgr-tools/osx
-node_modules/qgr-tools/linux
+libs/qgr-tools/osx
+libs/qgr-tools/linux
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang

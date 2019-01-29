@@ -15,7 +15,7 @@ Qgr的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般�
 
 * [`开源跨平台移动项目Qgr【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Qgr API 文档`](http://qgr1.org/doc/)
+* [`Qgr API 文档`](http://quickgr.org/doc/)
 
 # 什么是Action动作
 
@@ -172,13 +172,13 @@ view.transition({
 
 * `View.onActionLoop`动作循环开始时触发，第一次执行动作并不会触发。同样它也会有延时，也同样记录在`delay`。
 
-[Action]: https://qgr1.org/doc/action.html#class-action
-[GroupAction]: https://qgr1.org/doc/action.html#class-groupaction
-[SpawnAction]: https://qgr1.org/doc/action.html#class-spawnaction
-[SequenceAction]: https://qgr1.org/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://qgr1.org/doc/action.html#class-keyframeaction
-[Frame]: https://qgr1.org/doc/action.html#class-frame
-[View]: https://qgr1.org/doc/qgr.html#class-view
-[Div]: https://qgr1.org/doc/qgr.html#class-div
-[View.action]: https://qgr1.org/doc/qgr.html#set-view-action
-[View.transition()]: https://qgr1.org/doc/qgr.html#view-transition-style-delay-cb-
+[Action]: https://quickgr.org/doc/action.html#class-action
+[GroupAction]: https://quickgr.org/doc/action.html#class-groupaction
+[SpawnAction]: https://quickgr.org/doc/action.html#class-spawnaction
+[SequenceAction]: https://quickgr.org/doc/action.html#class-sequenceaction
+[KeyframeAction]: https://quickgr.org/doc/action.html#class-keyframeaction
+[Frame]: https://quickgr.org/doc/action.html#class-frame
+[View]: https://quickgr.org/doc/qgr.html#class-view
+[Div]: https://quickgr.org/doc/qgr.html#class-div
+[View.action]: https://quickgr.org/doc/qgr.html#set-view-action
+[View.transition()]: https://quickgr.org/doc/qgr.html#view-transition-style-delay-cb-

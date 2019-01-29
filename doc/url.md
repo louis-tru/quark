@@ -90,7 +90,7 @@ Example:
 // true
 // false
 console.log(url.isAbsolute('/var/kk'));
-console.log(url.isAbsolute('http://qgr1.org/'));
+console.log(url.isAbsolute('http://quickgr.org/'));
 console.log(url.isAbsolute('index.jsx'));
 ```
 
@@ -105,8 +105,8 @@ console.log(url.isAbsolute('index.jsx'));
 Example:
 
 ```js
-// Prints: http://qgr1.org/A/C/test.js
-console.log(url.resolve('http://qgr1.org/home', "..", "A", "B", "..", "C", "test.js"));
+// Prints: http://quickgr.org/A/C/test.js
+console.log(url.resolve('http://quickgr.org/home', "..", "A", "B", "..", "C", "test.js"));
 // Prints: 
 // true
 // file:///var/data/aaa/cc/ddd/kk.jpg
@@ -131,12 +131,12 @@ Example:
 // Prints: file:///var/data/index.js
 var uri = new URL('index.js');
 console.log(uri.href);
-// Prints: http://qgr1.org/index.html?args=0
-var uri2 = new URL('http://qgr1.org/home/../index.html?args=0')
+// Prints: http://quickgr.org/index.html?args=0
+var uri2 = new URL('http://quickgr.org/home/../index.html?args=0')
 console.log(uri2.href);
 // Prints: 
 // Error: Parse uri error, Illegal URL
-new URL('http://qgr1.org:').href
+new URL('http://quickgr.org:').href
 ```
 
 ### Get: URL.href
@@ -148,8 +148,8 @@ new URL('http://qgr1.org:').href
 Example:
 
 ```js
-// Prints: http://qgr1.org/
-console.log(new URL('http://qgr1.org/').href);
+// Prints: http://quickgr.org/
+console.log(new URL('http://quickgr.org/').href);
 ```
 
 ### Get: URL.filename
@@ -160,7 +160,7 @@ console.log(new URL('http://qgr1.org/').href);
 
 ```js
 // Prints: /aaa/bbbb/ccc/test.js
-console.log(new URL('http://qgr1.org/aaa/bbbb/ccc/test.js').filename);
+console.log(new URL('http://quickgr.org/aaa/bbbb/ccc/test.js').filename);
 ```
 
 ### Get: URL.path
@@ -171,7 +171,7 @@ console.log(new URL('http://qgr1.org/aaa/bbbb/ccc/test.js').filename);
 
 ```js
 // Prints: /aaa/bbbb/ccc/test.js?asas=asas
-console.log(new URL('http://qgr1.org/aaa/bbbb/ccc/test.js?asas=asas').path);
+console.log(new URL('http://quickgr.org/aaa/bbbb/ccc/test.js?asas=asas').path);
 ```
 
 ### Get: URL.dirname
@@ -182,7 +182,7 @@ Example:
 
 ```js
 // Prints: /aaa/bbbb/ccc
-console.log(new URL('http://qgr1.org/aaa/bbbb/ccc/test.js').dirname);
+console.log(new URL('http://quickgr.org/aaa/bbbb/ccc/test.js').dirname);
 ```
 
 ### Get: URL.search
@@ -195,7 +195,7 @@ Example:
 
 ```js
 // Prints: ?a=A&b=B
-console.log(new URL('http://qgr1.org/?a=A&b=B').search);
+console.log(new URL('http://quickgr.org/?a=A&b=B').search);
 ```
 
 ### Get: URL.hash
@@ -208,7 +208,7 @@ Example:
 
 ```js
 // Prints: #c=C&d=D
-console.log(new URL('http://qgr1.org/?a=A&b=B#c=C&d=D').hash);
+console.log(new URL('http://quickgr.org/?a=A&b=B#c=C&d=D').hash);
 ```
 
 ### Get: URL.host
@@ -220,8 +220,8 @@ console.log(new URL('http://qgr1.org/?a=A&b=B#c=C&d=D').hash);
 Example:
 
 ```js
-// Prints: qgr1.org:80
-console.log(new URL('http://qgr1.org:81/').host);
+// Prints: quickgr.org:80
+console.log(new URL('http://quickgr.org:81/').host);
 ```
 
 ### Get: URL.hostname
@@ -233,8 +233,8 @@ console.log(new URL('http://qgr1.org:81/').host);
 Example:
 
 ```js
-// Prints: qgr1.org
-console.log(new URL('http://qgr1.org:81/').host);
+// Prints: quickgr.org
+console.log(new URL('http://quickgr.org:81/').host);
 ```
 
 ### Get: URL.origin
@@ -246,8 +246,8 @@ console.log(new URL('http://qgr1.org:81/').host);
 Example:
 
 ```js
-// Prints: http://qgr1.org:81
-console.log(new URL('http://qgr1.org:81/host/index.html').host);
+// Prints: http://quickgr.org:81
+console.log(new URL('http://quickgr.org:81/host/index.html').host);
 // Prints: file://
 console.log(new URL('file:///var/data/index.html').host);
 ```
@@ -288,9 +288,9 @@ Example:
 
 ```js
 // Prints: 81
-console.log(new URL('http://qgr1.org:81').port);
+console.log(new URL('http://quickgr.org:81').port);
 // Prints 没有端口号会返回空字符串: ""
-console.log(new URL('http://qgr1.org').port);
+console.log(new URL('http://quickgr.org').port);
 ```
 
 ### Get: URL.protocol
@@ -311,7 +311,7 @@ Example:
 //   a: "100",
 //   b: "test"
 // }
-console.log(new URL('http://qgr1.org/?a=100&b=test').params);
+console.log(new URL('http://quickgr.org/?a=100&b=test').params);
 ```
 
 ### Get: URL.hashParams
@@ -328,7 +328,7 @@ Example:
 //   a: "200",
 //   b: "300"
 // }
-console.log(new URL('http://qgr1.org/#a=200&b=300').hashParams);
+console.log(new URL('http://quickgr.org/#a=200&b=300').hashParams);
 ```
 
 ### URL.getParam(name)
@@ -342,7 +342,7 @@ Example:
 
 ```js
 // Prints: ok
-console.log(new URL('http://qgr1.org/?args=ok').getParam('args'));
+console.log(new URL('http://quickgr.org/?args=ok').getParam('args'));
 ```
 
 ### URL.setParam(name, value)
@@ -385,10 +385,10 @@ Example:
 
 ```js
 // Prints: ../A/B/C/test.js
-var uri = new URL('http://qgr1.org/home/');
-console.log(uri.relative('http://qgr1.org/A/B/C/test.js'));
+var uri = new URL('http://quickgr.org/home/');
+console.log(uri.relative('http://quickgr.org/A/B/C/test.js'));
 // Prints: file:///var/data/A/B/C/test.js
-var uri2 = new URL('http://qgr1.org/home/');
+var uri2 = new URL('http://quickgr.org/home/');
 console.log(uri2.relative('file:///var/data/A/B/C/test.js'));
 
 ```

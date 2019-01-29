@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qsprite');
-var fs = require('../libs/qsprite/fs');
-var path = require('../libs/qsprite/url');
+var util = require('../libs/qgr-utils');
+var fs = require('../libs/qgr-utils/fs');
+var path = require('../libs/qgr-utils/url');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('../libs/qsprite/arguments');
-var { syscall, execSync } = require('../libs/qsprite/syscall');
+var argument = require('../libs/qgr-utils/arguments');
+var { syscall, execSync } = require('../libs/qgr-utils/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

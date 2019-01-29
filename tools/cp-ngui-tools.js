@@ -35,14 +35,14 @@ var path = require('path');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/qhammer';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/qgr-tools';
 var include = target + '/product/include/qgr';
 
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
 
-fs.cp_sync(root + '/libs/qhammer', target);
+fs.cp_sync(root + '/libs/qgr-tools', target);
 fs.chmodSync(target + '/install', 0755);
 // fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
 fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);

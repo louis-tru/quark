@@ -13,10 +13,10 @@ ANDROID_SDK		?= $(ANDROID_HOME)
 ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-23/android.jar
 JAVAC					?= javac
 JAR						?= jar
-TOOLS					= ./libs/qhammer
+TOOLS					= ./libs/qgr-tools
 GYP						= $(TOOLS)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)
-TOOLS_OUT			= out/qhammer
+TOOLS_OUT			= out/qgr-tools
 BUILD_STYLE 	=	make
 
 #######################
@@ -127,7 +127,7 @@ install-dev:
 
 install-tools:
 	@sudo rm -rf ./out/qgr-tools/bin/shell.js
-	@$(NODE) ./tools/cp-qgr-tools.js
+	@$(NODE) ./tools/cp-ngui-tools.js
 	@$(TOOLS_OUT)/install
 
 doc:

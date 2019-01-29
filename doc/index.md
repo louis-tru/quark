@@ -36,4 +36,4 @@
 * [`qgr/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Qgr`]: http://qgr1.org/
+[`Qgr`]: http://quickgr.org/

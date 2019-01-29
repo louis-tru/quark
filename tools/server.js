@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qsprite');
-var fs = require('../libs/qsprite/fs');
-var keys = require('../libs/qsprite/keys');
-var service = require('../libs/qsprite/service');
-var HttpService = require('../libs/qsprite/http_service').HttpService;
-var server = require('../libs/qhammer/toolchain/server');
+var util = require('../libs/qgr-utils');
+var fs = require('../libs/qgr-utils/fs');
+var keys = require('../libs/qgr-utils/keys');
+var service = require('../libs/qgr-utils/service');
+var HttpService = require('../libs/qgr-utils/http_service').HttpService;
+var server = require('../libs/qgr-tools/toolchain/server');
 require('./test-multiple-service');
 
 var opt = {
