@@ -145,7 +145,7 @@ var app = new GUIApplication({
 	<Root>
 
 		<NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>
-			<Mynavpage title="Qgr" source=resolve(__filename)>
+			<Mynavpage title="Home" source=resolve(__filename)>
 
 				<Scroll width="full" height="full" bounceLock=0>
 					
