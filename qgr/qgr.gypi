@@ -219,7 +219,7 @@
 					'depe/reachability/reachability.gyp:reachability', 
 				],
 				'sources':[
-					'platforms/max-app.h',
+					'platforms/mac-app.h',
 					'platforms/ios-app.mm',
 					'platforms/ios-ime-helper-1.h',
 					'platforms/ios-ime-helper.mm',
@@ -246,7 +246,7 @@
 					'depe/reachability/reachability.gyp:reachability', 
 				],
 				'sources': [
-					'platforms/max-app.h',
+					'platforms/mac-app.h',
 					'platforms/osx-app.mm',
 					'platforms/mac-image-codec.mm',
 					'platforms/mac-media-codec.mm',

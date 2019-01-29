@@ -127,7 +127,7 @@ install-dev:
 
 install-tools:
 	@sudo rm -rf ./out/qgr-tools/bin/shell.js
-	@$(NODE) ./tools/cp-ngui-tools.js
+	@$(NODE) ./tools/cp-qgr-tools.js
 	@$(TOOLS_OUT)/install
 
 doc:
