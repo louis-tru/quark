@@ -37,7 +37,13 @@ var { log, error, dir, warn } = console;
 function print(self, TAG, func, ...args) {
 	args.unshift(new Date().toString('yyyy-MM-dd hh:mm:ss.fff'));
 	args.unshift(TAG);
-	args = args.map(e=>typeof e == 'object' ? JSON.stringify(e, null, 2): e);
+	args = args.map(e=>{
+		try {
+			return typeof e == 'object' ? JSON.stringify(e, null, 2): e;
+		} catch(e) {
+			return e;
+		}
+	});
 	func.call(console, ...args);
 	var data = args.join(' ');
 	if (self.m_fd) {
