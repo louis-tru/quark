@@ -31,7 +31,7 @@
 #ifndef __qgr__utils__loop_1__
 #define __qgr__utils__loop_1__
 
-#include "loop.h"
+#include "qgr/utils/loop.h"
 
 /**
  * @ns qgr

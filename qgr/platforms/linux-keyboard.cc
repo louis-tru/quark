@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../keyboard.h"
+#include "qgr/keyboard.h"
 #include "qgr/utils/map.h"
 
 XX_NS(qgr)

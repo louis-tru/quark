@@ -31,7 +31,7 @@
 #ifndef __qgr__limit__
 #define __qgr__limit__
 
-#include "div.h"
+#include "qgr/div.h"
 
 /**
  * @ns qgr

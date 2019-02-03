@@ -31,10 +31,10 @@
 #ifndef __qgr__hybrid__
 #define __qgr__hybrid__
 
-#include "box.h"
-#include "text-font.h"
-#include "text-rows.h"
-#include "span.h"
+#include "qgr/box.h"
+#include "qgr/text-font.h"
+#include "qgr/text-rows.h"
+#include "qgr/span.h"
 
 /**
  * @ns qgr

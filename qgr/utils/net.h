@@ -31,10 +31,10 @@
 #ifndef __qgr__utils__net__
 #define __qgr__utils__net__
 
-#include "util.h"
-#include "string.h"
-#include "buffer.h"
-#include "loop.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/buffer.h"
+#include "qgr/utils/loop.h"
 
 /**
  * @ns qgr

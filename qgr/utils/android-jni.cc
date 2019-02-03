@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <android/api-level.h>
-#include "android-log.h"
-#include "android-jni.h"
+#include "qgr/utils/android-log.h"
+#include "qgr/utils/android-jni.h"
 #include "android/android.h"
-#include "../string.h"
-#include "../loop.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/loop.h"
 
 static JavaVM* javavm = nullptr;
 

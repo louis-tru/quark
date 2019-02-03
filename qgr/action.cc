@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/action.h>
-#include "view.h"
-#include "app.h"
+#include "qgr/action.h"
+#include "qgr/view.h"
+#include "qgr/app.h"
 
 XX_NS(qgr)
 

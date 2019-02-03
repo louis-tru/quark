@@ -30,14 +30,14 @@
 
 #import <UIKit/UIKit.h>
 #import <OpenGLES/ES2/glext.h>
-#import "../utils/loop.h"
-#import "./ios-gl-1.h"
-#import "./ios-ime-helper-1.h"
-#import "./ios-app.h"
-#import "../app.h"
-#import "../display-port.h"
-#import "../app-1.h"
-#import "../event.h"
+#import "qgr/utils/loop.h"
+#import "ios-gl-1.h"
+#import "ios-ime-helper-1.h"
+#import "ios-app.h"
+#import "qgr/app.h"
+#import "qgr/display-port.h"
+#import "qgr/app-1.h"
+#import "qgr/event.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
 using namespace qgr;
@@ -46,7 +46,7 @@ typedef DisplayPort::Orientation Orientation;
 typedef DisplayPort::StatusBarStyle StatusBarStyle;
 
 static ApplicationDelegate* app_delegate = nil;
-static IOSGLDrawProxy* gl_draw_proxy = nil;
+static GLDrawProxy* gl_draw_context = nil;
 static NSString* app_delegate_name = @"";
 
 /**
@@ -133,7 +133,7 @@ static NSString* app_delegate_name = @"";
 		Orientation ori = display_port()->orientation();
 		::CGRect rect = app_delegate.glview.frame;
 		app_delegate.app->render_loop()->post(Cb([ori, rect](Se& d) {
-			gl_draw_proxy->refresh_surface_size(rect);
+			gl_draw_context->refresh_surface_size(rect);
 			if (ori != app_delegate.current_orientation) {
 				app_delegate.current_orientation = ori;
 				main_loop()->post(Cb([](Se& e) {
@@ -263,7 +263,7 @@ static void render_exec_func(Se& evt, Object* ctx) {
 - (void)refresh_surface_size {
 	::CGRect rect = app_delegate.glview.frame;
 	_app->render_loop()->post(Cb([self, rect](Se& d) {
-		gl_draw_proxy->refresh_surface_size(rect);
+		gl_draw_context->refresh_surface_size(rect);
 	}));
 }
 
@@ -334,8 +334,8 @@ static void render_exec_func(Se& evt, Object* ctx) {
 															kEAGLDrawablePropertyColorFormat, nil];
 	
 	_app->render_loop()->post(Cb([self, layer, rect](Se& d) {
-		gl_draw_proxy->set_surface_view(self.glview, layer);
-		gl_draw_proxy->refresh_surface_size(rect);
+		gl_draw_context->set_surface_view(self.glview, layer);
+		gl_draw_context->refresh_surface_size(rect);
 		_inl_app(self.app)->onLoad();
 		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 														forMode:NSDefaultRunLoopMode];
@@ -438,9 +438,9 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	XX_ASSERT(!gl_draw_proxy);
-	gl_draw_proxy = IOSGLDrawProxy::create(this, options);
-	m_draw_ctx = gl_draw_proxy->host();
+	XX_ASSERT(!gl_draw_context);
+	gl_draw_context = GLDrawProxy::create(this, options);
+	m_draw_ctx = gl_draw_context->host();
 }
 
 /**

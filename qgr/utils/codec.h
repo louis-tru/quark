@@ -31,8 +31,8 @@
 #ifndef __qgr__utils__codec__
 #define __qgr__utils__codec__
 
-#include "util.h"
-#include "buffer.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/buffer.h"
 
 /**
  * @ns qgr

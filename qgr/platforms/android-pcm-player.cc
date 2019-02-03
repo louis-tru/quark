@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../pcm-player.h"
+#include "qgr/pcm-player.h"
 #include "qgr/utils/handle.h"
 #include "qgr/utils/loop.h"
 #include "qgr/utils/os/android-jni.h"

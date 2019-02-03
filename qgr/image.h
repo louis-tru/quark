@@ -31,7 +31,7 @@
 #ifndef __qgr__image__
 #define __qgr__image__
 
-#include "div.h"
+#include "qgr/div.h"
 
 /**
  * @ns qgr

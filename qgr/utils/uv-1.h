@@ -32,7 +32,7 @@
 #define __qgr__utils__uv_1__
 
 #include <uv.h>
-#include "util.h"
+#include "qgr/utils/util.h"
 
 XX_NS(qgr)
 

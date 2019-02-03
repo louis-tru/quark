@@ -31,9 +31,9 @@
 #ifndef __qgr__pre_render__
 #define __qgr__pre_render__
 
-#include "utils/util.h"
-#include "utils/array.h"
-#include "utils/list.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/list.h"
 
 /**
  * @ns qgr

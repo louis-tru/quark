@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../pcm-player.h"
+#import "qgr/pcm-player.h"
 #import "qgr/utils/handle.h"
 #import "qgr/utils/loop.h"
 #import <Audiotoolbox/AudioToolbox.h>

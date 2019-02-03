@@ -85,8 +85,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <errno.h>
-#include "util.h"
-#include "string.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
 
 XX_NS(qgr)
 

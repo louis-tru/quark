@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../image-codec.h"
+#include "qgr/image-codec.h"
 #include <setjmp.h>
 
 extern "C" {

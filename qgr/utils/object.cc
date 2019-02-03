@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "string.h"
-#include "object.h"
-#include "loop.h"
-#include "array.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/object.h"
+#include "qgr/utils/loop.h"
+#include "qgr/utils/array.h"
 #include <vector>
 
 XX_NS(qgr)

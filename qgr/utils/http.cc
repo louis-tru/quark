@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "http.h"
-#include "http-cookie.h"
-#include "fs.h"
+#include "qgr/utils/http.h"
+#include "qgr/utils/http-cookie.h"
+#include "qgr/utils/fs.h"
 #include "qgr/version.h"
-#include "string-builder.h"
-#include "net.h"
+#include "qgr/utils/string-builder.h"
+#include "qgr/utils/net.h"
 #include <http_parser.h>
 #include <zlib.h>
 

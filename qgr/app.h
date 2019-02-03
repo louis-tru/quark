@@ -31,11 +31,11 @@
 #ifndef __qgr__app__
 #define __qgr__app__
 
-#include "utils/util.h"
-#include "utils/event.h"
-#include "utils/loop.h"
-#include "utils/json.h"
-#include "value.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/event.h"
+#include "qgr/utils/loop.h"
+#include "qgr/utils/json.h"
+#include "qgr/value.h"
 
 #define XX_GUI_MAIN() \
 int __XX_GUI_MAIN__(int, char**); \

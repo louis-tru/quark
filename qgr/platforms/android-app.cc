@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../utils/loop.h"
-#include "../app-1.h"
-#include "../event.h"
-#include "../display-port.h"
-#include "./linux-gl-1.h"
-#include "../utils/os/android-jni.h"
+#include "qgr/utils/loop.h"
+#include "qgr/app-1.h"
+#include "qgr/event.h"
+#include "qgr/display-port.h"
+#include "linux-gl-1.h"
+#include "qgr/utils/os/android-jni.h"
 #include "android/android.h"
 #include <android/native_activity.h>
 #include <android/native_window.h>
@@ -42,7 +42,7 @@ XX_NS(qgr)
 
 class AndroidApplication;
 static AndroidApplication* application = nullptr;
-static LinuxGLDrawCore* gl_draw_core = nullptr;
+static GLDrawProxy* gl_draw_context = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
 /**
@@ -152,16 +152,16 @@ class AndroidApplication {
 			{ //
 				ScopeLock scope(application->m_mutex);
 				if ( window == application->m_window ) {
-					ok = gl_draw_core->create_surface(application->m_window);
+					ok = gl_draw_context->create_surface(application->m_window);
 				}
 			}
 			if ( ok ) {
 				if ( application->m_is_init_ok ) {
-					gl_draw_core->refresh_surface_size(nullptr);
+					gl_draw_context->refresh_surface_size(nullptr);
 					application->m_host->refresh_display(); // 更新画面
 				} else {
 					application->m_is_init_ok = true;
-					gl_draw_core->initialize();
+					gl_draw_context->initialize();
 					application->m_host->onLoad();
 				}
 				application->start_render_task();
@@ -173,7 +173,7 @@ class AndroidApplication {
 		ScopeLock scope(application->m_mutex);
 		application->m_window = nullptr;
 		application->m_host->render_loop()->post(Cb([window](Se& ev) {
-			gl_draw_core->destroy_surface(window);
+			gl_draw_context->destroy_surface(window);
 			application->stop_render_task();
 		}));
 	}
@@ -224,7 +224,7 @@ class AndroidApplication {
 			// 但调用eglSwapBuffers()会刷新绘图表面。
 			application->m_host->refresh_display(); // 刷新绘图表面
 			// ****************************************
-			gl_draw_core->refresh_surface_size(&application->m_rect);
+			gl_draw_context->refresh_surface_size(&application->m_rect);
 
 			if ( targger_orientation ) { // 触发方向变化事件
 				application->m_host->main_loop()->post(Cb([](Se& e) {
@@ -473,9 +473,9 @@ void GUIApplication::send_email(cString& recipient,
 }
 
 void AppInl::initialize(const Map<String, int>& options) {
-	XX_ASSERT(!gl_draw_core);
-	gl_draw_core = LinuxGLDrawCore::create(this, options);
-	m_draw_ctx = gl_draw_core->host();
+	XX_ASSERT(!gl_draw_context);
+	gl_draw_context = GLDrawProxy::create(this, options);
+	m_draw_ctx = gl_draw_context->host();
 }
 
 /**

@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../utils/loop.h"
-#include "../app-1.h"
-#include "../event.h"
-#include "../display-port.h"
-#include "../utils/loop.h"
-#include "../utils/http.h"
-#include "../sys.h"
+#include "qgr/utils/loop.h"
+#include "qgr/app-1.h"
+#include "qgr/event.h"
+#include "qgr/display-port.h"
+#include "qgr/utils/loop.h"
+#include "qgr/utils/http.h"
+#include "qgr/sys.h"
 #include "linux-gl-1.h"
 #include "linux-ime-helper-1.h"
 #include <X11/Xlib.h>
@@ -47,7 +47,7 @@ XX_NS(qgr)
 
 class LinuxApplication;
 static LinuxApplication* application = nullptr;
-static LinuxGLDrawProxy* gl_draw_proxy = nullptr;
+static GLDrawProxy* gl_draw_context = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
 #if DEBUG
@@ -108,7 +108,7 @@ class LinuxApplication {
 			delete m_ime; m_ime = nullptr;
 		}
 		application = nullptr;
-		gl_draw_proxy = nullptr;
+		gl_draw_context = nullptr;
 	}
 
 	void post_message(cCb& cb) {
@@ -414,12 +414,12 @@ class LinuxApplication {
 		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
 			if (m_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
-				gl_draw_proxy->refresh_surface_size(&rect);
+				gl_draw_context->refresh_surface_size(&rect);
 				m_host->refresh_display(); // 刷新显示
 			} else {
 				m_is_init = 1;
-				gl_draw_proxy->create_surface(m_win);
-				gl_draw_proxy->initialize();
+				gl_draw_context->create_surface(m_win);
+				gl_draw_context->initialize();
 				m_host->onLoad();
 				m_host->onForeground();
 				m_render_looper->start();
@@ -551,10 +551,10 @@ void GUIApplication::send_email(cString& recipient,
  */
 void AppInl::initialize(cJSON& options) {
 	DLOG("AppInl::initialize");
-	XX_ASSERT(!gl_draw_proxy);
+	XX_ASSERT(!gl_draw_context);
 	application->initialize(options);
-	gl_draw_proxy = LinuxGLDrawProxy::create(this, options);
-	m_draw_ctx = gl_draw_proxy->host();
+	gl_draw_context = GLDrawProxy::create(this, options);
+	m_draw_ctx = gl_draw_context->host();
 }
 
 /**

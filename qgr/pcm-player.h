@@ -31,8 +31,8 @@
 #ifndef __qgr__pcm_player__
 #define __qgr__pcm_player__
 
-#include "utils/util.h"
-#include "utils/buffer.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/buffer.h"
 
 /**
  * @ns qgr

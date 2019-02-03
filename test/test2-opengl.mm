@@ -272,7 +272,9 @@ int test2_opengl(int argc, char *argv[]) {
 
 		id window = [[NSWindow alloc]
 			initWithContentRect:rect
-				styleMask:NSWindowStyleMaskTitled
+				styleMask:NSWindowStyleMaskTitled |
+								 NSWindowStyleMaskClosable |
+								 NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable
 					backing:NSBackingStoreBuffered
 						defer:NO];
 

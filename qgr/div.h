@@ -31,7 +31,7 @@
 #ifndef __qgr__div__
 #define __qgr__div__
 
-#include "box.h"
+#include "qgr/box.h"
 
 XX_NS(qgr)
 

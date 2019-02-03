@@ -36,8 +36,8 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-#include "media-codec.h"
-#include "utils/loop-1.h"
+#include "qgr/media-codec.h"
+#include "qgr/utils/loop-1.h"
 
 XX_NS(qgr)
 

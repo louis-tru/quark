@@ -31,7 +31,7 @@
 #ifndef __qgr__mathe__
 #define __qgr__mathe__
 
-#include "utils/util.h"
+#include "qgr/utils/util.h"
 
 /**
  * @ns qgr
@@ -211,6 +211,7 @@ class XX_EXPORT FloatColor: public MTColor<float> {
  */
 class XX_EXPORT Color: public MTColor<byte> {
  public:
+	Color(uint color);
 	inline Color(): MTColor<byte>(0, 0, 0, 255) { }
 	inline Color(byte r, byte g, byte b): MTColor<byte>(r, g, b, 255) { }
 	inline Color(byte r, byte g, byte b, byte a): MTColor<byte>(r, g, b, a) { }

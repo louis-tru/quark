@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../image-codec.h"
+#include "qgr/image-codec.h"
 #include <png.h>
 
 XX_NS(qgr)

@@ -31,9 +31,9 @@
 #ifndef __qgr__scroll__
 #define __qgr__scroll__
 
-#include "panel.h"
-#include "pre-render.h"
-#include "bezier.h"
+#include "qgr/panel.h"
+#include "qgr/pre-render.h"
+#include "qgr/bezier.h"
 
 /**
  * @ns qgr

@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <unistd.h>
-#include "fs.h"
-#include "android-jni.h"
+#include "qgr/utils/fs.h"
+#include "qgr/utils/android-jni.h"
 #include "android/android.h"
 
 using namespace qgr;

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "error.h"
-#include "codec.h"
-#include "buffer.h"
-#include "string.h"
-#include "map.h"
+#include "qgr/utils/error.h"
+#include "qgr/utils/codec.h"
+#include "qgr/utils/buffer.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/map.h"
 
 XX_NS(qgr)
 

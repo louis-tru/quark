@@ -31,8 +31,8 @@
 #ifndef __qgr__keyboard__
 #define __qgr__keyboard__
 
-#include "utils/util.h"
-#include "utils/map.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/map.h"
 
 XX_NS(qgr)
 

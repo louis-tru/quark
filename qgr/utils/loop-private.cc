@@ -29,7 +29,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "loop.h"
+#include "qgr/utils/loop.h"
 
 XX_NS(qgr)
 

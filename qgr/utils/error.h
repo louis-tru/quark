@@ -35,7 +35,7 @@
  * @ns qgr
  */
 
-#include "util.h"
+#include "qgr/utils/util.h"
 #include "qgr/errno.h"
 
 #if XX_EXCEPTIONS_SUPPORT

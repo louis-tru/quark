@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "qgr/utils/os/android-jni.h"
-#include "../media-codec-1.h"
+#include "qgr/media-codec-1.h"
 
 #ifndef USE_FFMPEG_MEDIACODEC
 #define USE_FFMPEG_MEDIACODEC 0

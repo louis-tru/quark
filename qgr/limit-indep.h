@@ -31,8 +31,8 @@
 #ifndef __qgr__limit_indep__
 #define __qgr__limit_indep__
 
-#include "indep.h"
-#include "limit.h"
+#include "qgr/indep.h"
+#include "qgr/limit.h"
 
 /**
  * @ns qgr

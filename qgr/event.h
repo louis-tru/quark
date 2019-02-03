@@ -31,12 +31,12 @@
 #ifndef __qgr__event__
 #define __qgr__event__
 
-#include "utils/event.h"
-#include "utils/array.h"
-#include "sys.h"
-#include "mathe.h"
-#include "value.h"
-#include "keyboard.h"
+#include "qgr/utils/event.h"
+#include "qgr/utils/array.h"
+#include "qgr/sys.h"
+#include "qgr/mathe.h"
+#include "qgr/value.h"
+#include "qgr/keyboard.h"
 
 /**
  * @ns qgr

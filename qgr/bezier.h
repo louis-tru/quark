@@ -31,8 +31,8 @@
 #ifndef __qgr__bezier__
 #define __qgr__bezier__
 
-#include "mathe.h"
-#include "utils/buffer.h"
+#include "qgr/mathe.h"
+#include "qgr/utils/buffer.h"
 
 /**
  * @ns qgr

@@ -31,7 +31,7 @@
 #ifndef __qgr__indep__
 #define __qgr__indep__
 
-#include "div.h"
+#include "qgr/div.h"
 
 XX_NS(qgr)
 

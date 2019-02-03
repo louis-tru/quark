@@ -31,8 +31,8 @@
 #ifndef __qgr__textarea__
 #define __qgr__textarea__
 
-#include "input.h"
-#include "scroll.h"
+#include "qgr/input.h"
+#include "qgr/scroll.h"
 
 XX_NS(qgr)
 

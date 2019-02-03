@@ -32,10 +32,10 @@
 #define __qgr__utils__string__
 
 #include <stdarg.h>
-#include "array.h"
-#include "util.h"
-#include "handle.h"
-#include "container.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/handle.h"
+#include "qgr/utils/container.h"
 
 XX_NS(qgr)
 

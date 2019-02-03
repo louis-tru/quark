@@ -29,24 +29,21 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ios-gl-1.h"
-#import "../app.h"
-#import "../display-port.h"
+#import "qgr/app.h"
+#import "qgr/display-port.h"
 #import "qgr/sys.h"
-
-#if XX_IOS
-# import <OpenGLES/ES2/glext.h>
-#endif
+#import <OpenGLES/ES2/glext.h>
 
 XX_NS(qgr)
 
 /**
- * @class IOSGLDraw
+ * @class MyGLDraw
  */
-template<class Basic> class IOSGLDraw: public Basic {
+template<class Basic> class MyGLDraw: public Basic {
  public:
-	IOSGLDraw(GUIApplication* host, EAGLContext* ctx,
-						DrawLibrary library,
-						cJSON& options): Basic(host, options), proxy_(this, ctx) {
+	MyGLDraw(GUIApplication* host, EAGLContext* ctx,
+					 DrawLibrary library,
+					 cJSON& options): Basic(host, options), proxy_(this, ctx) {
 		this->m_library = library;
 		this->initialize();
 	}
@@ -59,21 +56,21 @@ template<class Basic> class IOSGLDraw: public Basic {
 	virtual void gl_main_render_buffer_storage() {
 		proxy_.gl_main_render_buffer_storage();
 	}
-	inline IOSGLDrawProxy* proxy() { return &proxy_; }
+	inline GLDrawProxy* proxy() { return &proxy_; }
 	
  private:
-	IOSGLDrawProxy proxy_;
+	GLDrawProxy proxy_;
 };
 
-IOSGLDrawProxy* IOSGLDrawProxy::create(GUIApplication* host, cJSON& options) {
-	IOSGLDrawProxy* rv = nullptr;
+GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
+	GLDrawProxy* rv = nullptr;
 	EAGLContext* ctx = [EAGLContext alloc];
 	
 	if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-		rv = (new IOSGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES3, options))->proxy();
+		rv = (new MyGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES3, options))->proxy();
 	} else
 	if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
-		rv = (new IOSGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES2, options))->proxy();
+		rv = (new MyGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES2, options))->proxy();
 	} else {
 		XX_FATAL("Unable to initialize OGL device does not support OpenGLES");
 	}
@@ -81,16 +78,16 @@ IOSGLDrawProxy* IOSGLDrawProxy::create(GUIApplication* host, cJSON& options) {
 	return rv;
 }
 
-IOSGLDrawProxy::IOSGLDrawProxy(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
+GLDrawProxy::GLDrawProxy(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
 	XX_CHECK([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 	ctx.multiThreaded = NO;
 }
 
-IOSGLDrawProxy::~IOSGLDrawProxy() {
+GLDrawProxy::~GLDrawProxy() {
 	[EAGLContext setCurrentContext:nullptr];
 }
 
-void IOSGLDrawProxy::gl_main_render_buffer_storage() {
+void GLDrawProxy::gl_main_render_buffer_storage() {
 	// Create the color renderbuffer and call the rendering context to allocate the storage
 	// on our Core Animation layer.
 	// The width, height, and format of the renderbuffer storage are derived from the bounds
@@ -99,7 +96,7 @@ void IOSGLDrawProxy::gl_main_render_buffer_storage() {
 	[m_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:m_layer];
 }
 
-void IOSGLDrawProxy::commit_render() {
+void GLDrawProxy::commit_render() {
 	glBindVertexArray(0); // clear vao
 	
 	if (m_host->multisample() > 1) {
@@ -136,7 +133,7 @@ void IOSGLDrawProxy::commit_render() {
 /**
  * @func get_gl_texture_pixel_format 获取当前环境对应的OpenGL纹理像素格式,如果返回0表示不支持纹理格式
  */
-GLint IOSGLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
+GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 	switch (pixel_format) {
 		case PixelData::RGBA4444:
 		case PixelData::RGBX4444:
@@ -163,18 +160,18 @@ GLint IOSGLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format
 	}
 }
 
-//void IOSGLDrawProxy::set_current_context() {
+//void GLDrawProxy::set_current_context() {
 //  XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 //}
 
-void IOSGLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
+void GLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
 	XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 	m_surface_view = view;
 	m_layer = layer;
 	m_host->set_best_display_scale(UIScreen.mainScreen.scale);
 }
 
-bool IOSGLDrawProxy::refresh_surface_size(::CGRect rect) {
+bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
 	Vec2 size(rect.size.width * UIScreen.mainScreen.scale,
 						rect.size.height * UIScreen.mainScreen.scale);
 	if ( !size.is_zero() ) {

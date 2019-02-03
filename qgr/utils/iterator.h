@@ -31,7 +31,7 @@
 #ifndef __qgr__utils__iterator__
 #define __qgr__utils__iterator__
 
-#include "util.h"
+#include "qgr/utils/util.h"
 
 XX_NS(qgr)
 

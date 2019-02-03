@@ -28,21 +28,61 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/array.h"
-#include "qgr/utils/array.cc.inl"
+#import <AppKit/AppKit.h>
+#import "mac-app.h"
 
-XX_NS(qgr)
+#define UIApplication NSApplication
+#define UIView NSView
+#define UIColor NSColor
+#define UIScreen NSScreen
 
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(byte, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(bool, Container);
+/**
+ * @interface ApplicationDelegate
+ */
+@interface ApplicationDelegate()<NSWindowDelegate> {
+	UIWindow* _window;
+}
+@end
 
-XX_END
+/**
+ * @implementation ApplicationDelegate
+ */
+@implementation ApplicationDelegate
+
+- (void)applicationDidFinishLaunching:(NSNotification*) notification {
+	// UIApplication* app = UIApplication.sharedApplication;
+	UIScreen* screen = UIScreen.mainScreen;
+	
+	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
+		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
+	::CGRect sframe = screen.frame;
+	
+	float scale = screen.backingScaleFactor;
+
+	_window = [[UIWindow alloc] initWithContentRect:NSMakeRect(0,0,400,800)
+																				styleMask:style
+																					backing:NSBackingStoreBuffered
+																						defer:NO
+																					 screen:nil];
+	
+	_window.delegate = self;
+	_window.backgroundColor = [NSColor whiteColor];
+	_window.title = @"okoko";
+	[_window makeKeyAndOrderFront:nil];
+	[_window center];
+}
+
+@end
+
+int main(int argc, char* argv[]) {
+	@autoreleasepool {
+		//[NSApplication sharedApplication];
+		//[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+		[NSApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
+		// [NSApp activateIgnoringOtherApps:YES];
+		[NSApplication.sharedApplication run];
+		//[NSApp run];
+	}
+	return 0;
+}

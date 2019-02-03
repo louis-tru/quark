@@ -31,8 +31,8 @@
 #ifndef __qgr__text_font__
 #define __qgr__text_font__
 
-#include "value.h"
-#include "font.h"
+#include "qgr/value.h"
+#include "qgr/font.h"
 
 /**
  * @ns qgr

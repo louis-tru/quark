@@ -31,10 +31,10 @@
 #ifndef __qgr__utils__array__
 #define __qgr__utils__array__
 
-#include "./util.h"
-#include "./container.h"
-#include "./iterator.h"
-#include "./error.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/container.h"
+#include "qgr/utils/iterator.h"
+#include "qgr/utils/error.h"
 #include <initializer_list>
 
 /**
@@ -130,6 +130,6 @@ class XX_EXPORT Array: public Object {
 
 XX_END
 
-#include "array.inl"
+#include "qgr/utils/array.inl"
 
 #endif

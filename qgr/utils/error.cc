@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "error.h"
-#include "string.h"
+#include "qgr/utils/error.h"
+#include "qgr/utils/string.h"
 
 XX_NS(qgr)
 

@@ -31,10 +31,10 @@
 #ifndef __qgr__utils__zlib__
 #define __qgr__utils__zlib__
 
-#include "map.h"
-#include "string.h"
-#include "fs.h"
-#include "error.h"
+#include "qgr/utils/map.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/fs.h"
+#include "qgr/utils/error.h"
 
 /**
  * @ns qgr

@@ -31,33 +31,27 @@
 #ifndef __qgr__ios_gl__
 #define __qgr__ios_gl__
 
-#include "qgr/utils/util.h"
-
-#if XX_IOS || XX_OSX
-
-#include "qgr/gl/gl.h"
+#import "qgr/utils/macros.h"
 
 #if XX_IOS
-# include <UIKit/UIKit.h>
-# include <OpenGLES/EAGL.h>
-#else
-# include <OpenGL/OpenGL.h>
-# define EAGLContext NSOpenGLContext
-#endif
+
+#import "qgr/gl/gl.h"
+#import <UIKit/UIKit.h>
+#import <OpenGLES/EAGL.h>
 
 XX_NS(qgr)
 
-class XX_EXPORT IOSGLDrawProxy {
+class XX_EXPORT GLDrawProxy {
  public:
-	IOSGLDrawProxy(GLDraw* host, EAGLContext* ctx);
-	~IOSGLDrawProxy();
+	GLDrawProxy(GLDraw* host, EAGLContext* ctx);
+	~GLDrawProxy();
 	void commit_render();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	void gl_main_render_buffer_storage();
 	void set_surface_view(UIView* view, CAEAGLLayer* layer);
 	bool refresh_surface_size(::CGRect rect);
 	inline GLDraw* host() { return m_host; }
-	static IOSGLDrawProxy* create(GUIApplication* host, const Map<String, int>& options);
+	static GLDrawProxy* create(GUIApplication* host, cJSON& options);
  private:
 	UIView* m_surface_view;
 	CAEAGLLayer* m_layer;

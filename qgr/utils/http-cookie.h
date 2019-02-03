@@ -32,9 +32,9 @@
 #ifndef __qgr__utils__http__cookie__
 #define __qgr__utils__http__cookie__
 
-#include "util.h"
-#include "string.h"
-#include "map.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/map.h"
 
 XX_NS(qgr)
 

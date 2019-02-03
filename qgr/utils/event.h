@@ -31,11 +31,11 @@
 #ifndef __qgr__utils__event__
 #define __qgr__utils__event__
 
-#include "list.h"
-#include "map.h"
-#include "util.h"
-#include "string.h"
-#include "error.h"
+#include "qgr/utils/list.h"
+#include "qgr/utils/map.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/error.h"
 #include <functional>
 
 #define XX_EVENT(name, ...) \

@@ -31,8 +31,8 @@
 #ifndef __qgr__utils__json__
 #define __qgr__utils__json__
 
-#include "string.h"
-#include "handle.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/handle.h"
 
 /**
  * @ns qgr

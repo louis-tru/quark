@@ -25,6 +25,6 @@
 	<key>MinimumOSVersion</key>
 	<string>10.7</string>
 	<key>NSPrincipalClass</key>
-	<string></string>
+	<string>NSPrincipalClass</string>
 </dict>
 </plist>

@@ -31,9 +31,9 @@
 #ifndef __qgr__utils__string_builder__
 #define __qgr__utils__string_builder__
 
-#include "list.h"
-#include "string.h"
-#include "buffer.h"
+#include "qgr/utils/list.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/buffer.h"
 
 XX_NS(qgr)
 

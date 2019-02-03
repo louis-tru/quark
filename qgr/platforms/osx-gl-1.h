@@ -28,21 +28,38 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/array.h"
-#include "qgr/utils/array.cc.inl"
+#ifndef __qgr__osx_gl__
+#define __qgr__osx_gl__
+
+#import "qgr/utils/macros.h"
+
+#if XX_OSX
+
+#import "qgr/gl/gl.h"
+#import <AppKit/AppKit.h>
+#import <OpenGL/OpenGL.h>
+
+#define UIView NSView
 
 XX_NS(qgr)
 
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(byte, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(bool, Container);
+class XX_EXPORT GLDrawProxy {
+ public:
+	GLDrawProxy(GLDraw* host);
+	~GLDrawProxy();
+	void initialize(UIView* view, NSOpenGLContext* ctx);
+	void commit_render();
+	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
+	bool refresh_surface_size(::CGRect rect);
+	inline GLDraw* host() { return m_host; }
+	static GLDrawProxy* create(GUIApplication* host, cJSON& options);
+ private:
+	UIView* m_surface_view;
+	NSOpenGLContext* m_context;
+	GLDraw* m_host;
+};
 
 XX_END
+
+#endif
+#endif

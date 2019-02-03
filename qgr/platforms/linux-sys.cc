@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../sys.h"
-#include "../utils/string.h"
-#include "../utils/array.h"
-#include "../utils/fs.h"
-#include "../utils/buffer.h"
+#include "qgr/sys.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/fs.h"
+#include "qgr/utils/buffer.h"
 #include <unistd.h>
 
 XX_NS(qgr)

@@ -31,8 +31,8 @@
 #ifndef __qgr__property__
 #define __qgr__property__
 
-#include "utils/util.h"
-#include "utils/map.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/map.h"
 
 XX_NS(qgr)
 

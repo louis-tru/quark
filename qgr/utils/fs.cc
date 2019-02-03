@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <sys/stat.h>
-#include "fs.h"
+#include "qgr/utils/fs.h"
 
 #if XX_WIN
 	#include <io.h>

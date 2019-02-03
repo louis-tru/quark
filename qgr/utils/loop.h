@@ -31,11 +31,11 @@
 #ifndef __qgr__utils__loop__
 #define __qgr__utils__loop__
 
-#include "util.h"
-#include "list.h"
-#include "map.h"
-#include "event.h"
-#include "cb.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/list.h"
+#include "qgr/utils/map.h"
+#include "qgr/utils/event.h"
+#include "qgr/utils/cb.h"
 #include <functional>
 #include <thread>
 #include <mutex>

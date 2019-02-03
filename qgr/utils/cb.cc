@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <uv.h>
-#include "cb.h"
-#include "string.h"
-#include "loop.h"
-#include "uv-1.h"
+#include "qgr/utils/cb.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/loop.h"
+#include "qgr/utils/uv-1.h"
 
 XX_NS(qgr)
 

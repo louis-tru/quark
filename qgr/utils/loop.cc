@@ -29,14 +29,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "loop.h"
-#include "loop-1.h"
+#include "qgr/utils/loop.h"
+#include "qgr/utils/loop-1.h"
 #if XX_ANDROID
-# include "android-jni.h"
+# include "qgr/utils/android-jni.h"
 #endif
 #include <uv.h>
 #include <pthread.h>
-#include "../../node/deps/uv/src/queue.h"
+#include "node/deps/uv/src/queue.h"
 
 #ifndef XX_ATEXIT_WAIT_TIMEOUT
 # define XX_ATEXIT_WAIT_TIMEOUT 1e6

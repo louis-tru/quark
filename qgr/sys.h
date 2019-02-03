@@ -31,7 +31,7 @@
 #ifndef __qgr__utils__sys__
 #define __qgr__utils__sys__
 
-#include "utils/util.h"
+#include "qgr/utils/util.h"
 
 XX_NS(qgr)
 XX_NS(sys)

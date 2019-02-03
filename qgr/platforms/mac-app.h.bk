@@ -28,21 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/array.h"
-#include "qgr/utils/array.cc.inl"
+ #import <AppKit/AppKit.h>
+ #define UIResponder NSResponder
+ #define UIApplicationDelegate NSApplicationDelegate
+ #define UIWindow NSWindow
 
-XX_NS(qgr)
-
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(byte, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double, Container);
-XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(bool, Container);
-
-XX_END
+@interface ApplicationDelegate: NSObject<NSApplicationDelegate>
+@end

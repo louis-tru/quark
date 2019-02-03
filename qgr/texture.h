@@ -31,13 +31,13 @@
 #ifndef __qgr__texture__
 #define __qgr__texture__
 
-#include "utils/map.h"
-#include "utils/event.h"
-#include "utils/string.h"
-#include "utils/handle.h"
-#include "utils/buffer.h"
-#include "image-codec.h"
-#include "value.h"
+#include "qgr/utils/map.h"
+#include "qgr/utils/event.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/handle.h"
+#include "qgr/utils/buffer.h"
+#include "qgr/image-codec.h"
+#include "qgr/value.h"
 
 /**
  * @ns qgr

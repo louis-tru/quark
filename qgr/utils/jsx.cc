@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "jsx.h"
-#include "string.h"
-#include "string-builder.h"
-#include "codec.h"
-#include "fs.h"
+#include "qgr/utils/jsx.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/string-builder.h"
+#include "qgr/utils/codec.h"
+#include "qgr/utils/fs.h"
 
 XX_NS(qgr)
 

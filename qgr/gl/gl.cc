@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "gl.h"
-#include "../texture.h"
-#include "../font/font-1.h"
+#include "qgr/gl/gl.h"
+#include "qgr/texture.h"
+#include "qgr/font/font-1.h"
 #include "glsl-text-texture.h"
 #include "glsl-box-yuv420p-image.h"
 #include "glsl-box-yuv420sp-image.h"
@@ -64,11 +64,13 @@ public:
 										WeakBuffer((cchar*)shader->es2_source_vp, (uint)shader->es2_source_vp_len),
 										WeakBuffer((cchar*)shader->es2_source_fp, (uint)shader->es2_source_fp_len),
 										String(shader->shader_attributes).split(','));
-			} else {
+			} else if (m_library == DRAW_LIBRARY_GLES3) {
 				handle = compile_link_shader(shader->name,
 										WeakBuffer((cchar*)shader->source_vp, (uint)shader->source_vp_len),
 										WeakBuffer((cchar*)shader->source_fp, (uint)shader->source_fp_len),
 										String(shader->shader_attributes).split(','));
+			} else { // opengl
+				
 			}
 			XX_ASSERT(handle);
 			shader->shader = handle;

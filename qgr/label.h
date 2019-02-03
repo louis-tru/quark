@@ -31,10 +31,10 @@
 #ifndef __qgr__label__
 #define __qgr__label__
 
-#include "view.h"
-#include "value.h"
-#include "text-font.h"
-#include "font.h"
+#include "qgr/view.h"
+#include "qgr/value.h"
+#include "qgr/text-font.h"
+#include "qgr/font.h"
 
 /**
  * @ns qgr

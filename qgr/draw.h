@@ -31,14 +31,14 @@
 #ifndef __qgr__draw__
 #define __qgr__draw__
 
-#include "utils/array.h"
-#include "utils/util.h"
-#include "utils/string.h"
-#include "utils/event.h"
-#include "image-codec.h"
-#include "mathe.h"
-#include "value.h"
-#include "app.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/event.h"
+#include "qgr/image-codec.h"
+#include "qgr/mathe.h"
+#include "qgr/value.h"
+#include "qgr/app.h"
 
 /**
  * @ns qgr

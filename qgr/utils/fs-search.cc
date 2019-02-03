@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "fs.h"
-#include "zlib.h"
-#include "handle.h"
-#include "error.h"
+#include "qgr/utils/fs.h"
+#include "qgr/utils/zlib.h"
+#include "qgr/utils/handle.h"
+#include "qgr/utils/error.h"
 
 XX_NS(qgr)
 

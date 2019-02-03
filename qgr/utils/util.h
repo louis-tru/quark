@@ -31,7 +31,7 @@
 #ifndef __qgr__utils__util__
 #define __qgr__utils__util__
 
-#include "object.h"
+#include "qgr/utils/object.h"
 
 /**
  * @ns qgr

@@ -30,8 +30,8 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
-#include "json.h"
-#include "error.h"
+#include "qgr/utils/json.h"
+#include "qgr/utils/error.h"
 
 XX_NS(qgr)
 

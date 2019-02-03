@@ -661,11 +661,13 @@ function configure() {
 			}
 		}
 
-		var XCODEDIR = syscall('xcode-select --print-path')[0];
+		var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
 
 		try {
-			variables.xcode_version = syscall('xcodebuild -version')[0].match(/\d+.\d+$/)[0];
-			variables.llvm_version = syscall('cc --version')[0].match(/clang-(\d+\.\d+(\.\d+)?)/)[1];
+			variables.xcode_version = 
+				syscall('xcodebuild -version').stdout[0].match(/\d+.\d+$/)[0];
+			variables.llvm_version = 
+				syscall('cc --version').stdout[0].match(/clang-(\d+\.\d+(\.\d+)?)/)[1];
 		} catch(e) {}
 
 		if ( arch == 'arm' ) {
@@ -679,9 +681,9 @@ function configure() {
 
 		if ( os == 'ios' ) {
 			if (arch == 'x86' || arch == 'x64') {
-				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path')[0];
+				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path').stdout[0];
 			} else {
-				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path')[0];
+				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path').stdout[0];
 			}
 			variables.version_min = '10.0';
 		} else { // osx

@@ -31,9 +31,9 @@
 #ifndef __qgr__layout__
 #define __qgr__layout__
 
-#include "view.h"
-#include "value.h"
-#include "text-font.h"
+#include "qgr/view.h"
+#include "qgr/value.h"
+#include "qgr/text-font.h"
 
 XX_NS(qgr)
 

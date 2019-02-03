@@ -31,7 +31,7 @@
 #ifndef __qgr__utils__android_jni__
 #define __qgr__utils__android_jni__
 
-#include "../util.h"
+#include "qgr/utils/util.h"
 
 #if XX_ANDROID
 

@@ -31,11 +31,11 @@
 #ifndef __qgr__utils__fs__
 #define __qgr__utils__fs__
 
-#include "cb.h"
-#include "string.h"
-#include "handle.h"
-#include "list.h"
-#include "loop.h"
+#include "qgr/utils/cb.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/handle.h"
+#include "qgr/utils/list.h"
+#include "qgr/utils/loop.h"
 
 /**
  * @ns qgr

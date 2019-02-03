@@ -31,8 +31,8 @@
 #ifndef __qgr__input__
 #define __qgr__input__
 
-#include "text.h"
-#include "pre-render.h"
+#include "qgr/text.h"
+#include "qgr/pre-render.h"
 
 XX_NS(qgr)
 

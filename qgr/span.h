@@ -31,9 +31,9 @@
 #ifndef __qgr__span__
 #define __qgr__span__
 
-#include "layout.h"
-#include "text-font.h"
-#include "font.h"
+#include "qgr/layout.h"
+#include "qgr/text-font.h"
+#include "qgr/font.h"
 
 /**
  * @ns qgr

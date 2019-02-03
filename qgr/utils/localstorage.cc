@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "localstorage.h"
-#include "fs.h"
+#include "qgr/utils/localstorage.h"
+#include "qgr/utils/fs.h"
 #include <sqlite3.h>
 
 XX_NS(qgr)

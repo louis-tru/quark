@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "map.h"
+#include "qgr/utils/map.h"
 
 XX_NS(qgr)
 

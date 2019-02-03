@@ -35,10 +35,10 @@
 #include <string>
 #include <unistd.h>
 #include "qgr/version.h"
-#include "util.h"
-#include "string.h"
-#include "codec.h"
-#include "loop.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/codec.h"
+#include "qgr/utils/loop.h"
 
 #if XX_UNIX
 #include <sys/utsname.h>

@@ -34,7 +34,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include "util.h"
+#include "qgr/utils/util.h"
 
 /**
  * @ns qgr

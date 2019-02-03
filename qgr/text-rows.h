@@ -31,7 +31,7 @@
 #ifndef __qgr__text_rows__
 #define __qgr__text_rows__
 
-#include "layout.h"
+#include "qgr/layout.h"
 
 /**
  * @ns qgr

@@ -31,13 +31,13 @@
 #ifndef __qgr__utils__http__
 #define __qgr__utils__http__
 
-#include "handle.h"
-#include "string.h"
-#include "map.h"
-#include "event.h"
-#include "error.h"
-#include "loop.h"
-#include "fs.h"
+#include "qgr/utils/handle.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/map.h"
+#include "qgr/utils/event.h"
+#include "qgr/utils/error.h"
+#include "qgr/utils/loop.h"
+#include "qgr/utils/fs.h"
 
 XX_NS(qgr)
 

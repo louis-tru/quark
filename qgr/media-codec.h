@@ -31,11 +31,11 @@
 #ifndef __qgr__media_codec__
 #define __qgr__media_codec__
 
-#include "utils/util.h"
-#include "utils/string.h"
-#include "utils/buffer.h"
-#include "utils/http.h"
-#include "image-codec.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/buffer.h"
+#include "qgr/utils/http.h"
+#include "qgr/image-codec.h"
 
 typedef struct AVStream AVStream;
 

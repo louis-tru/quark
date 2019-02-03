@@ -31,10 +31,10 @@
 #ifndef __qgr__utils__cb__
 #define __qgr__utils__cb__
 
-#include "util.h"
-#include "error.h"
-#include "buffer.h"
-#include "handle.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/error.h"
+#include "qgr/utils/buffer.h"
+#include "qgr/utils/handle.h"
 #include <functional>
 
 /**

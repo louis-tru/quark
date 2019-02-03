@@ -31,7 +31,7 @@
 #ifndef __qgr__text_node__
 #define __qgr__text_node__
 
-#include "span.h"
+#include "qgr/span.h"
 
 /**
  * @ns qgr

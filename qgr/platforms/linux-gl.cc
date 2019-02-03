@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "qgr/utils/util.h"
-#include "../app-1.h"
-#include "../display-port.h"
+#include "qgr/app-1.h"
+#include "qgr/display-port.h"
 #include "linux-gl-1.h"
 #include "glsl-box-color.h"
 #if XX_ANDROID
@@ -163,16 +163,16 @@ static EGLConfig egl_config(
 }
 
 /**
- * @class LinuxGLDraw
+ * @class MyGLDraw
  */
-template<class Basic> class LinuxGLDraw: public Basic {
+template<class Basic> class MyGLDraw: public Basic {
  public:
-	inline LinuxGLDraw(GUIApplication* host, EGLDisplay display,
-										 EGLConfig config,
-										 EGLContext ctx,
-										 bool multisample_ok,
-										 DrawLibrary library, 
-										 cJSON& options
+	inline MyGLDraw(GUIApplication* host, EGLDisplay display,
+									EGLConfig config,
+									EGLContext ctx,
+									bool multisample_ok,
+									DrawLibrary library, 
+									cJSON& options
 	) : Basic(host, options)
 		, proxy_(this, display, config, ctx)
 		, multisample_ok_(multisample_ok) 
@@ -193,15 +193,15 @@ template<class Basic> class LinuxGLDraw: public Basic {
 		Basic::refresh_root_matrix(root, query);
 		proxy_.refresh_virtual_keyboard_rect();
 	}
-	inline LinuxGLDrawProxy* core() { return &proxy_; }
+	inline GLDrawProxy* core() { return &proxy_; }
 
  private:
-	LinuxGLDrawProxy proxy_;
+	GLDrawProxy proxy_;
 	bool multisample_ok_;
 };
 
-LinuxGLDrawProxy* LinuxGLDrawProxy::create(GUIApplication* host, cJSON& options) {
-	LinuxGLDrawProxy* rv = nullptr;
+GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
+	GLDrawProxy* rv = nullptr;
 	bool multisample_ok;
 	EGLDisplay display = egl_display();
 	EGLConfig config = egl_config(display, options, multisample_ok);
@@ -217,23 +217,23 @@ LinuxGLDrawProxy* LinuxGLDrawProxy::create(GUIApplication* host, cJSON& options)
 	
 	EGLContext ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
 	if ( ctx ) {
-		rv = (new LinuxGLDraw<GLDraw>(host, display, config, ctx,
-																	multisample_ok,
-																	DRAW_LIBRARY_GLES3, options))->core();
+		rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
+															 multisample_ok,
+															 DRAW_LIBRARY_GLES3, options))->core();
 	} else {
 		ctx_attrs[1] = 2; // opengl es 2
 		ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
 		XX_ASSERT(ctx);
 
-		rv = (new LinuxGLDraw<GLDraw>(host, display, config, ctx,
-																	multisample_ok,
-																	DRAW_LIBRARY_GLES2, options))->core();
+		rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
+															 multisample_ok,
+															 DRAW_LIBRARY_GLES2, options))->core();
 	}
 
 	return rv;
 }
 
-LinuxGLDrawProxy::LinuxGLDrawProxy(GLDraw* host, 
+GLDrawProxy::GLDrawProxy(GLDraw* host, 
 	EGLDisplay display, EGLConfig cfg, EGLContext ctx)
 : m_display(display)
 , m_config(cfg)
@@ -244,7 +244,7 @@ LinuxGLDrawProxy::LinuxGLDrawProxy(GLDraw* host,
 
 }
 
-LinuxGLDrawProxy::~LinuxGLDrawProxy() {
+GLDrawProxy::~GLDrawProxy() {
 	if ( m_display != EGL_NO_DISPLAY ) {
 		eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if ( m_context != EGL_NO_CONTEXT ) {
@@ -261,7 +261,7 @@ LinuxGLDrawProxy::~LinuxGLDrawProxy() {
 	m_window = EGL_NO_NATIVE_WINDOW;
 }
 
-GLint LinuxGLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
+GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 	if (m_host->library() == DRAW_LIBRARY_GLES2) {
 		switch (pixel_format) {
 			case PixelData::RGBA4444:
@@ -308,25 +308,25 @@ GLint LinuxGLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_form
 	}
 }
 
-void LinuxGLDrawProxy::initialize() {
+void GLDrawProxy::initialize() {
+	m_host->initialize();
  #if XX_ANDROID
 	m_host->set_best_display_scale(Android::get_display_scale());
  #else
 	m_host->set_best_display_scale(1.0 / DisplayPort::default_atom_pixel());
  #endif
-	m_host->initialize();
 	refresh_surface_size(nullptr);
 }
 
 static Vec2 get_window_size(EGLNativeWindowType win) {
-#if XX_ANDROID
+ #if XX_ANDROID
 	return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
-#else
+ #else
 	return __get_window_size();
-#endif
+ #endif
 }
 
-bool LinuxGLDrawProxy::create_surface(EGLNativeWindowType window) {
+bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
 	XX_ASSERT(!m_window);
 	XX_ASSERT(!m_surface);
 	EGLSurface surface = eglCreateWindowSurface(m_display, m_config, window, nullptr);
@@ -347,7 +347,7 @@ bool LinuxGLDrawProxy::create_surface(EGLNativeWindowType window) {
 	return true;
 }
 
-void LinuxGLDrawProxy::destroy_surface(EGLNativeWindowType window) {
+void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 	if ( m_window ) {
 		XX_ASSERT(window == m_window);
 		if (m_surface) {
@@ -358,7 +358,7 @@ void LinuxGLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 	}
 }
 
-void LinuxGLDrawProxy::refresh_surface_size(CGRect* rect) {
+void GLDrawProxy::refresh_surface_size(CGRect* rect) {
 
 	if ( m_window ) {
 		m_raw_surface_size = get_window_size(m_window);
@@ -382,7 +382,7 @@ void LinuxGLDrawProxy::refresh_surface_size(CGRect* rect) {
 	refresh_virtual_keyboard_rect();
 }
 
-void LinuxGLDrawProxy::refresh_virtual_keyboard_rect() {
+void GLDrawProxy::refresh_virtual_keyboard_rect() {
 	// draw android virtual keyboard rect
  #if XX_ANDROID
 	m_virtual_keys_rect = CGRect();
@@ -414,7 +414,7 @@ void LinuxGLDrawProxy::refresh_virtual_keyboard_rect() {
  #endif
 }
 
-void LinuxGLDrawProxy::refresh_buffer() {
+void GLDrawProxy::refresh_buffer() {
 
 	if (m_host->surface_size() == Vec2())
 		return;
@@ -436,7 +436,7 @@ void LinuxGLDrawProxy::refresh_buffer() {
 	XX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 }
 
-void LinuxGLDrawProxy::begin_render() {
+void GLDrawProxy::begin_render() {
 	m_host->m_stencil_ref_value = 0;
 	m_host->m_root_stencil_ref_value = 0;
 	m_host->m_current_frame_buffer = 0;
@@ -445,7 +445,7 @@ void LinuxGLDrawProxy::begin_render() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void LinuxGLDrawProxy::commit_render() {
+void GLDrawProxy::commit_render() {
 	if ( m_host->is_support_vao() ) {
 		glBindVertexArray(0);
 	}
@@ -475,7 +475,7 @@ void LinuxGLDrawProxy::commit_render() {
 	eglSwapBuffers(m_display, m_surface);
 }
 
-void LinuxGLDrawProxy::initializ_gl_buffers() {
+void GLDrawProxy::initializ_gl_buffers() {
 	if ( ! m_host->m_frame_buffer ) {
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 		glGenFramebuffers(1, &m_host->m_frame_buffer);

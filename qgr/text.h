@@ -31,7 +31,7 @@
 #ifndef __qgr__text__
 #define __qgr__text__
 
-#include "hybrid.h"
+#include "qgr/hybrid.h"
 
 /**
  * @ns qgr

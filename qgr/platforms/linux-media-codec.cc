@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../media-codec-1.h"
+#include "qgr/media-codec-1.h"
 
 XX_NS(qgr)
 

@@ -31,7 +31,7 @@
 #ifndef __qgr__gl__gl__
 #define __qgr__gl__gl__
 
-#include "../draw.h"
+#include "qgr/draw.h"
 
 #if XX_IOS
 # include <OpenGLES/ES3/gl.h>
@@ -47,7 +47,6 @@
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
-#elif XX_WIN
 #else
 # error "The operating system does not support"
 #endif

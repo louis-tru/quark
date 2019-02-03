@@ -1,3 +1,6 @@
+
+
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,6 +31,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#import "qgr/utils/macros.h"
+
+#if XX_IOS || XX_OSX
+
 #import <qgr/app.h>
 
 #if XX_OSX
@@ -44,3 +51,5 @@
 + (void)set_application_delegate:(NSString*)name;
 - (UIWindow*)window;
 @end
+
+#endif

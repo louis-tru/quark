@@ -32,9 +32,9 @@
 #ifndef __qgr__utils__localstorage__
 #define __qgr__utils__localstorage__
 
-#include "cb.h"
-#include "util.h"
-#include "string.h"
+#include "qgr/utils/cb.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/string.h"
 
 XX_NS(qgr)
 

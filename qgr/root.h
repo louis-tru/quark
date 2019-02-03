@@ -31,7 +31,7 @@
 #ifndef __qgr__root__
 #define __qgr__root__
 
-#include "panel.h"
+#include "qgr/panel.h"
 
 /**
  * @ns qgr

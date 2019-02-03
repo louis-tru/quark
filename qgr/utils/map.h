@@ -31,10 +31,10 @@
 #ifndef __qgr__utils__map__
 #define __qgr__utils__map__
 
-#include "util.h"
-#include "container.h"
-#include "iterator.h"
-#include "array.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/container.h"
+#include "qgr/utils/iterator.h"
+#include "qgr/utils/array.h"
 #include <initializer_list>
 
 XX_NS(qgr)

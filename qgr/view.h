@@ -31,10 +31,10 @@
 #ifndef __qgr__view__
 #define __qgr__view__
 
-#include "utils/array.h"
-#include "utils/string.h"
-#include "utils/string-builder.h"
-#include "event.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/string-builder.h"
+#include "qgr/event.h"
 
 /**
  * @ns qgr

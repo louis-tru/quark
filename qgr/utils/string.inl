@@ -31,7 +31,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "buffer.h"
+#include "qgr/utils/buffer.h"
 
 XX_NS(qgr)
 

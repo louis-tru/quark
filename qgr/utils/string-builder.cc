@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "string-builder.h"
+#include "qgr/utils/string-builder.h"
 
 XX_NS(qgr)
 

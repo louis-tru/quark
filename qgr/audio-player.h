@@ -31,10 +31,10 @@
 #ifndef __qgr__audio_player__
 #define __qgr__audio_player__
 
-#include "event.h"
-#include "player.h"
-#include "pcm-player.h"
-#include "media-codec.h"
+#include "qgr/event.h"
+#include "qgr/player.h"
+#include "qgr/pcm-player.h"
+#include "qgr/media-codec.h"
 
 /**
  * @ns qgr

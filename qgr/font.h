@@ -31,10 +31,10 @@
 #ifndef __qgr__font__
 #define __qgr__font__
 
-#include "utils/array.h"
-#include "utils/map.h"
-#include "draw.h"
-#include "value.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/map.h"
+#include "qgr/draw.h"
+#include "qgr/value.h"
 
 /**
  * @ns qgr

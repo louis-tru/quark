@@ -31,9 +31,9 @@
 #ifndef __qgr__value__
 #define __qgr__value__
 
-#include "utils/util.h"
-#include "utils/array.h"
-#include "mathe.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/array.h"
+#include "qgr/mathe.h"
 
 /**
  * @ns qgr

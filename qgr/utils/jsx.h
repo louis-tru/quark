@@ -31,8 +31,8 @@
 #ifndef __qgr__utils__jsx__
 #define __qgr__utils__jsx__
 
-#include "util.h"
-#include "error.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/error.h"
 
 XX_NS(qgr)
 

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "error.h"
-#include "fs.h"
+#include "qgr/utils/error.h"
+#include "qgr/utils/fs.h"
 #include <uv.h>
 
 #if XX_WIN

@@ -31,7 +31,7 @@
 #ifndef __qgr__box_shadow__
 #define __qgr__box_shadow__
 
-#include "div.h"
+#include "qgr/div.h"
 
 /**
  * @ns qgr

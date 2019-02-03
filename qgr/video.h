@@ -31,10 +31,10 @@
 #ifndef __qgr__video__
 #define __qgr__video__
 
-#include "player.h"
-#include "image.h"
-#include "pre-render.h"
-#include "media-codec.h"
+#include "qgr/player.h"
+#include "qgr/image.h"
+#include "qgr/pre-render.h"
+#include "qgr/media-codec.h"
 
 /**
  * @ns qgr

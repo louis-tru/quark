@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <android/log.h>
-#include "android-log.h"
-#include "../string.h"
+#include "qgr/utils/android-log.h"
+#include "qgr/utils/string.h"
 
 XX_NS(qgr)
 

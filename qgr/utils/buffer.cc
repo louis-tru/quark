@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./buffer.h"
-#include "./array.cc.inl"
+#include "qgr/utils/buffer.h"
+#include "qgr/utils/array.cc.inl"
 
 XX_NS(qgr)
  

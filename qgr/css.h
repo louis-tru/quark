@@ -31,13 +31,13 @@
 #ifndef __qgr__css__
 #define __qgr__css__
 
-#include "utils/util.h"
-#include "utils/map.h"
-#include "utils/string.h"
-#include "utils/list.h"
-#include "property.h"
-#include "value.h"
-#include "action.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/map.h"
+#include "qgr/utils/string.h"
+#include "qgr/utils/list.h"
+#include "qgr/property.h"
+#include "qgr/value.h"
+#include "qgr/action.h"
 
 XX_NS(qgr)
 

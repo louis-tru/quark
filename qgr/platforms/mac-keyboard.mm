@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../keyboard.h"
+#import "qgr/keyboard.h"
 #import "qgr/utils/map.h"
 
 XX_NS(qgr)

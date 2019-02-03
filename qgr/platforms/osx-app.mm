@@ -30,24 +30,30 @@
 
 #import <AppKit/AppKit.h>
 #import "qgr/utils/loop.h"
-#import "./mac-app.h"
-#import "../app.h"
-#import "../display-port.h"
-#import "../app-1.h"
-#import "../event.h"
+#import "mac-app.h"
+#import "osx-gl-1.h"
+#import "qgr/app.h"
+#import "qgr/display-port.h"
+#import "qgr/app-1.h"
+#import "qgr/event.h"
 
 using namespace qgr;
 
 typedef DisplayPort::Orientation Orientation;
 typedef DisplayPort::StatusBarStyle StatusBarStyle;
 
+@class ApplicationOptions;
+@class MacIMEHelprt;
+
+static ApplicationOptions* app_options = nil;
 static ApplicationDelegate* app_delegate = nil;
-//static IOSGLDrawProxy* gl_draw_proxy = nil;
+static GLDrawProxy* gl_draw_context = nil;
 static NSString* app_delegate_name = @"";
 
 #define UIApplication NSApplication
 #define UIView NSView
 #define UIColor NSColor
+#define UIScreen NSScreen
 
 /**
  * @interface GLView
@@ -59,19 +65,33 @@ static NSString* app_delegate_name = @"";
 @end
 
 /**
+ * @interface ApplicationOptions
+ */
+@interface ApplicationOptions: NSObject;
+@property (assign, nonatomic) int x;
+@property (assign, nonatomic) int y;
+@property (assign, nonatomic) int width;
+@property (assign, nonatomic) int height;
+@property (strong, nonatomic) UIColor* background_color;
+@property (assign, nonatomic) String title;
+@end
+
+/**
  * @interface ApplicationDelegate
  */
 @interface ApplicationDelegate()<NSWindowDelegate> {
 	UIWindow* _window;
 	BOOL      _is_background;
 	BOOL      _is_pause;
+	BOOL      _loaded;
 	Callback  _render_exec;
 }
 @property (strong, nonatomic) GLView* glview;
-//@property (strong, nonatomic) IOSIMEHelprt* ime;
+@property (strong, nonatomic) MacIMEHelprt* ime;
 @property (strong, nonatomic) UIApplication* host;
 @property (assign, atomic) NSInteger render_task_count;
 - (void)display_link_callback:(const CVTimeStamp*)outputTime;
+- (void)initialize;
 @end
 
 //* ***********************************************************************************
@@ -108,9 +128,10 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 }
 
 - (void)prepareOpenGL {
+	
 	// Synchronize buffer swaps with vertical refresh rate
 	GLint swapInt = 1;
-	[[self openGLContext] setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+	[self.openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
 
 	// Create a display link capable of being used with all active displays
 	CVDisplayLinkCreateWithActiveCGDisplays(&_display_link);
@@ -126,8 +147,8 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 	// Activate the display link
 	CVDisplayLinkStart(_display_link);
 	
-	// -------------- setup opengl ----------------
-	// setup_opengl();
+	// init
+	[app_delegate initialize];
 }
 
 - (void)dealloc {
@@ -138,8 +159,48 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 @end
 
 /**
+ * @implementation ApplicationOptions
+ */
+
+@implementation ApplicationOptions
+
+- (id)init:(cJSON&) options {
+	self = [super init];
+	if (!self) return self;
+	
+	self.x = -1;
+	self.y = -1;
+	self.width = -1;
+	self.height = -1;
+	self.background_color = [UIColor blackColor];
+	self.title = String();
+	
+	cJSON& o_x = options["x"];
+	cJSON& o_y = options["y"];
+	cJSON& o_w = options["width"];
+	cJSON& o_h = options["height"];
+	cJSON& o_b = options["background"];
+	cJSON& o_t = options["title"];
+	
+	if (o_w.is_uint()) _width = XX_MAX(1, o_w.to_uint());
+	if (o_h.is_uint()) _height = XX_MAX(1, o_h.to_uint());
+	if (o_x.is_uint()) _x = o_x.to_uint();
+	if (o_y.is_uint()) _y = o_y.to_uint();
+	if (o_t.is_string()) _title = o_t.to_string();
+	if (o_b.is_uint()) {
+		FloatColor color = Color(o_b.to_uint() << 8).to_float_color();
+		_background_color = [UIColor colorWithSRGBRed:color.r()
+																						green:color.g()
+																						 blue:color.b()
+																						alpha:1];
+	}
+	return self;
+}
+
+@end
+
+/**
  * @implementation ApplicationDelegate
- * ***********************************************************************************
  */
 @implementation ApplicationDelegate
 
@@ -150,7 +211,7 @@ static void render_exec_func(Se& evt, Object* ctx) {
 
 - (void)display_link_callback:(const CVTimeStamp*)outputTime {
 	if (self.render_task_count == 0) {
-		// self.render_task_count++;
+		self.render_task_count++;
 		
 		// Add your drawing codes here
 		NSOpenGLContext* currentContext = self.glview.openGLContext;
@@ -175,10 +236,11 @@ static void render_exec_func(Se& evt, Object* ctx) {
 }
 
 - (void)refresh_surface_size_with_rect:(::CGRect)rect {
+	if (!_loaded) return;
+	_app->render_loop()->post(Cb([self, rect](Se& d) {
+		gl_draw_context->refresh_surface_size(rect);
+	}));
 	LOG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
-//	_app->render_loop()->post(Cb([self, rect](Se& d) {
-//	gl_draw_proxy->refresh_surface_size(rect);
-//	}));
 }
 
 - (void)refresh_surface_size {
@@ -189,17 +251,37 @@ static void render_exec_func(Se& evt, Object* ctx) {
 	app_delegate_name = name;
 }
 
+- (void)background {
+	if (_loaded && !_is_background) {
+		[self pause];
+		_is_background = YES;
+		XX_DEBUG("onBackground");
+		_inl_app(_app)->onBackground();
+	}
+}
+
+- (void)foreground {
+	if (_loaded && _is_background) {
+		_is_background = NO;
+		XX_DEBUG("onForeground");
+		_inl_app(_app)->onForeground();
+		[self resume];
+	}
+}
+
 - (void)pause {
-	if (!_is_pause) {
+	if (_loaded && !_is_pause) {
+		XX_DEBUG("onPause");
 		_is_pause = YES;
-		//_inl_app(_app)->onPause();
+		_inl_app(_app)->onPause();
 	}
 }
 
 - (void)resume {
-	if (_is_pause) {
+	if (_loaded && _is_pause) {
+		XX_DEBUG("onResume");
 		_is_pause = NO;
-		//_inl_app(_app)->onResume();
+		_inl_app(_app)->onResume();
 		[self refresh_surface_size];
 	}
 }
@@ -208,40 +290,64 @@ static void render_exec_func(Se& evt, Object* ctx) {
 	// TODO ..
 }
 
+- (void)initialize {
+	NSOpenGLContext* context = self.glview.openGLContext;
+	::CGRect rect = self.glview.frame;
+	_app->render_loop()->post_sync(Cb([self, rect, context](Se& d) {
+		gl_draw_context->initialize(self.glview, context);
+		gl_draw_context->refresh_surface_size(rect);
+		_inl_app(_app)->onLoad();
+		_loaded = YES;
+	}));
+	[self foreground];
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
+	UIApplication* app = UIApplication.sharedApplication;
 	XX_ASSERT(!app_delegate); app_delegate = self;
-	
-	UIApplication* app = [UIApplication sharedApplication];
-	NSWindowStyleMask style =
+	_app = Inl_GUIApplication(GUIApplication::shared()); XX_ASSERT(_app);
+		
+	UIScreen* screen = UIScreen.mainScreen;
+	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-	::CGRect win_rect = NSMakeRect(0, 0, 800, 600);
+	::CGRect sframe = screen.frame;
 	
-	// _app = Inl_GUIApplication(GUIApplication::shared()); XX_ASSERT(self.app);
-	_window = [[UIWindow alloc] initWithContentRect:win_rect
+	float scale = screen.backingScaleFactor;
+	float width = app_options.width > 0 ? app_options.width: sframe.size.width;
+	float height = app_options.height > 0 ? app_options.height: sframe.size.height;
+	float x = app_options.x > 0 ? app_options.x: (sframe.size.width - width) / 2.0;
+	float y = app_options.y > 0 ? app_options.y: (sframe.size.height - height) / 2.0;
+	
+	_window = [[UIWindow alloc] initWithContentRect:NSMakeRect(x, y, width, height)
 																				styleMask:style
 																					backing:NSBackingStoreBuffered
 																						defer:NO
 																					 screen:nil];
-	_is_background = NO;
-	_is_pause = NO;
+	_is_background = YES;
+	_is_pause = YES;
+	_loaded = NO;
 	_render_exec = Cb(render_exec_func);
 	
 	self.host = app;
 	self.render_task_count = 0;
 	
 	self.window.delegate = self;
-	self.window.backgroundColor = [UIColor redColor];
-	[self.window setTitle:@"Qgr"];
+	self.window.backgroundColor = app_options.background_color;
+	self.window.title = [NSString stringWithFormat:@"%s", *app_options.title];
 	[self.window makeKeyAndOrderFront:nil];
-	[self.window center];
+	
+	if (app_options.x < 0 && app_options.y < 0) {
+		[self.window center];
+	}
 	
 	UIView* view = self.window.contentView;
 	self.glview = [[GLView alloc] initWithFrame:[view bounds]];
-	[self.glview scaleUnitSquareToSize:NSMakeSize(NSScreen.mainScreen.backingScaleFactor,
-																								NSScreen.mainScreen.backingScaleFactor)];
+	//[self.glview scaleUnitSquareToSize:NSMakeSize(scale, scale)];
+	self.glview.layer.contentsScale = scale;
 	self.glview.translatesAutoresizingMaskIntoConstraints = NO;
-	// self.glview.app = _inl_app(self.app);
+	self.glview.wantsBestResolutionOpenGLSurface = YES;
+	self.glview.app = _inl_app(self.app);
 	//self.ime = [[IOSIMEHelprt alloc] initWithApplication:self.app];
 	
 	[view addSubview:self.glview];
@@ -264,16 +370,6 @@ static void render_exec_func(Se& evt, Object* ctx) {
 											 constant:0]];
 	
 	[self add_system_notification];
-	
-	::CGRect rect = self.glview.frame;
-	
-	//	_app->render_loop()->post(Cb([self, layer, rect](Se& d) {
-	//		gl_draw_proxy->set_surface_view(self.glview, layer);
-	//		gl_draw_proxy->refresh_surface_size(rect);
-	//		_inl_app(self.app)->onLoad();
-	//		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
-	//														forMode:NSDefaultRunLoopMode];
-	//	}));
 }
 
 - (void)applicationWillResignActive:(NSNotification*)notification {
@@ -294,7 +390,7 @@ static void render_exec_func(Se& evt, Object* ctx) {
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
 	XX_DEBUG("applicationWillTerminate");
-	// _inl_app(_app)->onUnload();
+	_inl_app(_app)->onUnload();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
@@ -318,15 +414,11 @@ static void render_exec_func(Se& evt, Object* ctx) {
 }
 
 - (void)windowDidMiniaturize:(NSNotification*)notification {
-	[self pause];
-	_is_background = YES;
-	// _inl_app(_app)->onBackground();
+	[self background];
 }
 
 - (void)windowDidDeminiaturize:(NSNotification*)notification {
-	_is_background = NO;
-	// _inl_app(_app)->onForeground();
-	[self resume];
+	[self foreground];
 }
 
 @end
@@ -358,7 +450,11 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	// app_delegate = [[ApplicationDelegate alloc] init]];
+	XX_ASSERT(!app_options);
+	app_options = [[ApplicationOptions alloc] init:options];
+	XX_ASSERT(!gl_draw_context);
+	gl_draw_context = GLDrawProxy::create(this, options);
+	m_draw_ctx = gl_draw_context->host();
 }
 
 /**
@@ -406,7 +502,7 @@ void AppInl::set_volume_down() {
  * @func default_atom_pixel
  */
 float DisplayPort::default_atom_pixel() {
-	return 1.0;
+	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
 }
 
 /**
@@ -467,19 +563,20 @@ extern "C" {
 		/*************** Start GUI Application ************/
 		/**************************************************/
 		/**************************************************/
-		// AppInl::start(argc, argv);
+		AppInl::start(argc, argv);
 		
 		@autoreleasepool {
-			[NSApplication sharedApplication];
+			[UIApplication sharedApplication];
 			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 			if ( [app_delegate_name isEqual:@""] ) {
-				[NSApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
+				[UIApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
 			} else {
 				Class cls = NSClassFromString(app_delegate_name);
-				[NSApplication.sharedApplication setDelegate:[[cls alloc] init]];
+				[UIApplication.sharedApplication setDelegate:[[cls alloc] init]];
 			}
-			 [NSApp run];
+			[UIApplication.sharedApplication run];
 		}
 		return 0;
 	}
 }
+

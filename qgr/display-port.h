@@ -31,12 +31,12 @@
 #ifndef __qgr__display_port__
 #define __qgr__display_port__
 
-#include "utils/util.h"
-#include "utils/event.h"
-#include "utils/list.h"
-#include "mathe.h"
-#include "value.h"
-#include "utils/cb.h"
+#include "qgr/utils/util.h"
+#include "qgr/utils/event.h"
+#include "qgr/utils/list.h"
+#include "qgr/mathe.h"
+#include "qgr/value.h"
+#include "qgr/utils/cb.h"
 
 /**
  * @ns qgr

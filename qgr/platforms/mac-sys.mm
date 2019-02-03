@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "../sys.h"
-#import "../utils/string.h"
-#import "../utils/array.h"
+#import "qgr/sys.h"
+#import "qgr/utils/string.h"
+#import "qgr/utils/array.h"
 #import <Foundation/Foundation.h>
 #if XX_IOS
 # import <UIKit/UIKit.h>

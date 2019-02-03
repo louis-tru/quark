@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <linux/limits.h>
 #include <sys/utsname.h>
-#include "fs.h"
+#include "qgr/utils/fs.h"
 
 XX_NS(qgr)
 

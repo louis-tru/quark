@@ -31,8 +31,8 @@
 #ifndef __qgr__sprite__
 #define __qgr__sprite__
 
-#include "view.h"
-#include "value.h"
+#include "qgr/view.h"
+#include "qgr/value.h"
 
 /**
  * @ns qgr

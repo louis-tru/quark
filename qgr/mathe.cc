@@ -46,6 +46,19 @@ bool FloatColor::operator==(const FloatColor& color) const {
 	return color.r() == r() && color.g() == g() &&  color.b() == b() &&  color.a() == a();
 }
 
+static inline byte getPartColor(int color, int offset) {
+	return (color >> offset) & 0xff;
+}
+
+Color::Color(uint color)
+: MTColor<byte>(getPartColor(color, 24),
+								getPartColor(color, 16),
+								getPartColor(color, 8),
+								getPartColor(color, 0))
+{
+	
+}
+
 bool Color::operator==(Color color) const {
 	return *reinterpret_cast<const int*>(&color) == *reinterpret_cast<const int*>(this);
 }

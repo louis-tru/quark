@@ -31,7 +31,7 @@
 #ifndef __qgr__panel__
 #define __qgr__panel__
 
-#include "div.h"
+#include "qgr/div.h"
 
 XX_NS(qgr)
 

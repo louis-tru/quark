@@ -31,14 +31,14 @@
 #ifndef __qgr__action__
 #define __qgr__action__
 
-#include "utils/array.h"
-#include "utils/list.h"
-#include "utils/map.h"
-#include "value.h"
-#include "bezier.h"
-#include "event.h"
-#include "property.h"
-#include "background.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/list.h"
+#include "qgr/utils/map.h"
+#include "qgr/value.h"
+#include "qgr/bezier.h"
+#include "qgr/event.h"
+#include "qgr/property.h"
+#include "qgr/background.h"
 
 /**
  * @ns qgr

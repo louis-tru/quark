@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "net.h"
-#include "string.h"
+#include "qgr/utils/net.h"
+#include "qgr/utils/string.h"
 #include <errno.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "http.h"
-#include "uv-1.h"
+#include "qgr/utils/http.h"
+#include "qgr/utils/uv-1.h"
 
 XX_NS(qgr)
 

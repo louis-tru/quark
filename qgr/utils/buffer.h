@@ -31,8 +31,8 @@
 #ifndef __qgr__utils__buffer__
 #define __qgr__utils__buffer__
 
-#include "array.h"
-#include "codec.h"
+#include "qgr/utils/array.h"
+#include "qgr/utils/codec.h"
 
 /**
  * @ns qgr

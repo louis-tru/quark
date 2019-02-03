@@ -31,7 +31,7 @@
 #ifndef __qgr__button__
 #define __qgr__button__
 
-#include "hybrid.h"
+#include "qgr/hybrid.h"
 
 XX_NS(qgr)
 

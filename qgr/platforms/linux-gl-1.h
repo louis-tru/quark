@@ -42,10 +42,10 @@
 
 XX_NS(qgr)
 
-class LinuxGLDrawProxy {
+class GLDrawProxy {
  public:
-	LinuxGLDrawProxy(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
-	~LinuxGLDrawProxy();
+	GLDrawProxy(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
+	~GLDrawProxy();
 	void initialize();
 	bool create_surface(EGLNativeWindowType window);
 	void destroy_surface(EGLNativeWindowType window);
@@ -57,7 +57,7 @@ class LinuxGLDrawProxy {
 	void initializ_gl_buffers();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	inline GLDraw* host() { return m_host; }
-	static LinuxGLDrawProxy* create(GUIApplication* host, cJSON& options);
+	static GLDrawProxy* create(GUIApplication* host, cJSON& options);
  protected:
 	EGLDisplay m_display;
 	EGLConfig m_config;

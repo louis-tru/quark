@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "gl.h"
-#include "../font/font-1.h"
-#include "../display-port.h"
+#include "qgr/gl/gl.h"
+#include "qgr/font/font-1.h"
+#include "qgr/display-port.h"
 
 XX_NS(qgr)
 

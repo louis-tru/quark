@@ -215,11 +215,11 @@ class NativeUtil {
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		worker->garbage_collection();
-#if XX_MEMORY_TRACE_MARK
+	 #if XX_MEMORY_TRACE_MARK
 		std::vector<Object*> objs = Object::mark_objects();
 		Object** objs2 = &objs[0];
 		LOG("All unrelease heap objects count: %d", objs.size());
-#endif
+	 #endif
 	}
 	
 	static void run_script(FunctionCall args) {
