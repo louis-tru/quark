@@ -777,9 +777,7 @@ function configure() {
 		fs.mkdirSync('out');
 	}
 
-	touch_file([
-		'out/glsl-shader.cc', 
-		'out/glsl-es2-shader.cc', 
+	touch_file([ 
 		'out/native-core-js.cc',
 		'out/font-native.cc',
 	]);

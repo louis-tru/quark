@@ -127,7 +127,7 @@ void GLDrawProxy::commit_render() {
 	// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 	// you present its contents by making it the current renderbuffer
 	// and calling the presentRenderbuffer: method on your rendering context.
-	[m_context presentRenderbuffer:GL_FRAMEBUFFER ];
+	[m_context presentRenderbuffer:GL_FRAMEBUFFER];
 }
 
 /**
@@ -172,8 +172,8 @@ void GLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
 }
 
 bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
-	Vec2 size(rect.size.width * UIScreen.mainScreen.scale,
-						rect.size.height * UIScreen.mainScreen.scale);
+	float scale = UIScreen.mainScreen.scale;
+	Vec2 size(rect.size.width * scale, rect.size.height * scale);
 	if ( !size.is_zero() ) {
 		return m_host->set_surface_size(size);
 	}

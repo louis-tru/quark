@@ -61,5 +61,5 @@ out lowp vec4 FragColor;
 void main() {
 	FragColor = f_color * vec4(1.0, 1.0, 1.0, texture(sampler_tex_1, f_tex_coord).a);
 	// FragColor = vec4(0.0, 0.0, 0.0, texture(sampler_tex_1, f_tex_coord).a);
-	//FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+	// FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

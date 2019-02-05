@@ -48,15 +48,15 @@ template<class Basic> class MyGLDraw: public Basic {
 					 cJSON& options): Basic(host, options), proxy_(this) {
 		this->m_library = library;
 	}
+	virtual void begin_render() {
+		proxy_.commit_render();
+	}
 	virtual void commit_render() {
 		proxy_.commit_render();
 	}
 	virtual GLint get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 		return proxy_.get_gl_texture_pixel_format(pixel_format);
 	}
-//	virtual void gl_main_render_buffer_storage() {
-//		proxy_.gl_main_render_buffer_storage();
-//	}
 	inline GLDrawProxy* proxy() { return &proxy_; }
 	
  private:
@@ -78,52 +78,34 @@ GLDrawProxy::~GLDrawProxy() {
 
 void GLDrawProxy::initialize(UIView* view, NSOpenGLContext* ctx) {
 	[ctx makeCurrentContext];
-//	GLint major, minor;
-//	NSOpenGLGetVersion(&major, &minor);
-//	kCGLRPMajorGLVersion
+	
+	GLint major, minor;
+	NSOpenGLGetVersion(&major, &minor);
+	LOG("NSOpenGLGetVersion: %d, %d", major, minor);
+	
 	const GLubyte * name = glGetString(GL_VENDOR);
 	const GLubyte * biaoshifu = glGetString(GL_RENDERER);
 	const GLubyte * OpenGLVersion = glGetString(GL_VERSION);
-	
 	LOG("%s, %s, %s", name, biaoshifu, OpenGLVersion);
+	
 	m_surface_view = view;
 	m_context = ctx;
 	m_host->initialize();
 	m_host->set_best_display_scale(UIScreen.mainScreen.backingScaleFactor);
 }
 
+void GLDrawProxy::begin_render() {
+	// Add your drawing codes here
+	[m_context makeCurrentContext];
+	// must lock GL context because display link is threaded
+	CGLLockContext(m_context.CGLContextObj);
+	m_host->GLDraw::begin_render();
+}
+
 void GLDrawProxy::commit_render() {
-//	glBindVertexArray(0); // clear vao
-//
-//	if (m_host->multisample() > 1) {
-//		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_host->m_msaa_frame_buffer);
-//		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_host->m_frame_buffer);
-//		GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-//
-//		if (m_host->library() == DRAW_LIBRARY_GLES2) {
-//			glResolveMultisampleFramebufferAPPLE();
-//			glDiscardFramebufferEXT(GL_READ_FRAMEBUFFER, 3, attachments);
-//		} else {
-//			Vec2 ssize = m_host->surface_size();
-//			glBlitFramebuffer(0, 0, ssize.width(), ssize.height(),
-//												0, 0, ssize.width(), ssize.height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-//			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
-//		}
-//		glBindFramebuffer(GL_FRAMEBUFFER, m_host->m_frame_buffer);
-//		glBindRenderbuffer(GL_RENDERBUFFER, m_host->m_frame_buffer);
-//	} else {
-//		GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-//		if (m_host->library() == DRAW_LIBRARY_GLES2) {
-//			glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
-//		} else {
-//			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-//		}
-//	}
-//
-//	// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
-//	// you present its contents by making it the current renderbuffer
-//	// and calling the presentRenderbuffer: method on your rendering context.
-//	[m_context presentRenderbuffer:GL_FRAMEBUFFER ];
+	m_host->GLDraw::commit_render();
+	[m_context flushBuffer];
+	CGLUnlockContext(m_context.CGLContextObj);
 }
 
 /**
@@ -141,7 +123,7 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 		case PixelData::ALPHA8: return GL_ALPHA;
 		case PixelData::LUMINANCE8: return GL_LUMINANCE;
 		case PixelData::LUMINANCE_ALPHA88: return GL_LUMINANCE_ALPHA;
-			// compressd texture
+		// compressd texture
 //		case PixelData::PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 //		case PixelData::PVRTCI_2BPP_RGBA:
 //		case PixelData::PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;

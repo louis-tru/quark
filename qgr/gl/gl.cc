@@ -70,7 +70,7 @@ public:
 										WeakBuffer((cchar*)shader->source_fp, (uint)shader->source_fp_len),
 										String(shader->shader_attributes).split(','));
 			} else { // opengl
-				
+				// TODO ...
 			}
 			XX_ASSERT(handle);
 			shader->shader = handle;

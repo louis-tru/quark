@@ -272,12 +272,14 @@ static void render_exec_func(Se& evt, Object* ctx) {
 }
 
 - (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-	XX_ASSERT(!app_delegate); app_delegate = self;
+	XX_ASSERT(!app_delegate); 
+	app_delegate = self;
 	
 	//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 	//[app setStatusBarHidden:NO];
 	
-	_app = Inl_GUIApplication(GUIApplication::shared()); XX_ASSERT(self.app);
+	_app = Inl_GUIApplication(GUIApplication::shared()); 
+	XX_ASSERT(self.app);
 	_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	_is_background = NO;
 	_render_exec = Cb(render_exec_func);

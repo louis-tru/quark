@@ -48,6 +48,7 @@ class XX_EXPORT GLDrawProxy {
 	GLDrawProxy(GLDraw* host);
 	~GLDrawProxy();
 	void initialize(UIView* view, NSOpenGLContext* ctx);
+	void begin_render();
 	void commit_render();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	bool refresh_surface_size(::CGRect rect);

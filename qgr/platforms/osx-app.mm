@@ -144,11 +144,11 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 	CGLPixelFormatObj cglPixelFormat = (__bridge CGLPixelFormatObj)([self createPixelFormat]);
 	CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_display_link, cglContext, cglPixelFormat);
 	
-	// Activate the display link
-	CVDisplayLinkStart(_display_link);
-	
 	// init
 	[app_delegate initialize];
+	
+	// Activate the display link
+	CVDisplayLinkStart(_display_link);
 }
 
 - (void)dealloc {
@@ -212,20 +212,7 @@ static void render_exec_func(Se& evt, Object* ctx) {
 - (void)display_link_callback:(const CVTimeStamp*)outputTime {
 	if (self.render_task_count == 0) {
 		self.render_task_count++;
-		
-		// Add your drawing codes here
-		NSOpenGLContext* currentContext = self.glview.openGLContext;
-		[currentContext makeCurrentContext];
-		
-		// must lock GL context because display link is threaded
-		CGLLockContext(currentContext.CGLContextObj);
-		
-		// Add your drawing codes here
-		// _app->render_loop()->post(_render_exec);
-		
-		[currentContext flushBuffer];
-		
-		CGLUnlockContext(currentContext.CGLContextObj);
+		_app->render_loop()->post(_render_exec);
 	} else {
 		 XX_DEBUG("miss frame");
 	}
@@ -304,9 +291,11 @@ static void render_exec_func(Se& evt, Object* ctx) {
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
 	UIApplication* app = UIApplication.sharedApplication;
-	XX_ASSERT(!app_delegate); app_delegate = self;
-	_app = Inl_GUIApplication(GUIApplication::shared()); XX_ASSERT(_app);
-		
+	XX_ASSERT(!app_delegate);
+	app_delegate = self;
+	_app = Inl_GUIApplication(GUIApplication::shared());
+	XX_ASSERT(_app);
+	
 	UIScreen* screen = UIScreen.mainScreen;
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
