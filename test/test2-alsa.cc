@@ -76,4 +76,6 @@ int test2_alsa(int argc, char *argv[])
 	return 0;
 }
 
+#else
+int test2_alsa(int argc, char *argv[]){}
 #endif

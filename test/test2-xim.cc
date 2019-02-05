@@ -940,5 +940,6 @@ int test2_xim(int argc, char *argv[])
 
 	return 0;
 }
-
+#else
+int test2_xim(int argc, char *argv[]){}
 #endif

@@ -198,7 +198,7 @@
 					'libraries': [ '-lGLESv3', '-lEGL', '-lOpenSLES', '-lmediandk' ],
 				},
 			}],
-			['os not in "ios osx"', { 
+			['OS!="mac"', {
 				'dependencies': [
 					'depe/libgif/libgif.gyp:libgif', 
 					'depe/libjpeg-turbo/libjpeg.gyp:libjpeg', 
@@ -212,17 +212,12 @@
 					'image/codec-webp.cc',
 				]
 			}],
-			['os=="ios"', {
-				'dependencies': [ 
-					'depe/reachability/reachability.gyp:reachability', 
+			['OS=="mac"', {
+				'dependencies': [
+					'depe/reachability/reachability.gyp:reachability',
 				],
 				'sources':[
 					'platforms/mac-app.h',
-					'platforms/ios-app.mm',
-					'platforms/ios-ime-helper-1.h',
-					'platforms/ios-ime-helper.mm',
-					'platforms/ios-gl-1.h',
-					'platforms/ios-gl.mm',
 					'platforms/mac-image-codec.mm',
 					'platforms/mac-media-codec.mm',
 					'platforms/mac-pcm-player.mm',
@@ -231,35 +226,37 @@
 				],
 				'link_settings': {
 					'libraries': [
-						'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
-						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
+					]
+				},
+			}],
+			['os=="ios"', {
+				'sources':[
+					'platforms/ios-app.mm',
+					'platforms/ios-ime-helper-1.h',
+					'platforms/ios-ime-helper.mm',
+					'platforms/ios-gl-1.h',
+					'platforms/ios-gl.mm',
+				],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
 						'$(SDKROOT)/System/Library/Frameworks/MessageUI.framework',
 					]
 				},
 			}],
 			['os=="osx"', {
-				'dependencies': [ 
-					'depe/reachability/reachability.gyp:reachability', 
-				],
 				'sources': [
-					'platforms/mac-app.h',
 					'platforms/osx-app.mm',
-					'platforms/mac-image-codec.mm',
-					'platforms/mac-media-codec.mm',
-					'platforms/mac-pcm-player.mm',
-					'platforms/mac-keyboard.mm',
-					'platforms/mac-sys.mm',
 					'platforms/osx-gl-1.h',
 					'platforms/osx-gl.mm',
 				],
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
-						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
-						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
 						'$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
 					]
 				},

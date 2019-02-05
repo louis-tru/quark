@@ -30,7 +30,7 @@
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
-#if TARGET_OS_MAC && !TARGET_OS_IPHONE
+# if TARGET_OS_MAC && !TARGET_OS_IPHONE
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
@@ -292,5 +292,9 @@ int test2_opengl(int argc, char *argv[]) {
 	return 0;
 }
 
-#endif
+# else
+int test2_opengl(int argc, char *argv[]) { return 0; }
+# endif
+#else
+int test2_opengl(int argc, char *argv[]) { return 0; }
 #endif

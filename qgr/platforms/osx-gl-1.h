@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// ******************** U n r e a l i z e d ********************
+
 #ifndef __qgr__osx_gl__
 #define __qgr__osx_gl__
 

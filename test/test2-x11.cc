@@ -94,5 +94,6 @@ int test2_x11(int argc, char *argv[]) {
 
 	return 0;
 }
-
+#else
+int test2_x11(int argc, char *argv[]){}
 #endif

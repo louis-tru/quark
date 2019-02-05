@@ -175,5 +175,6 @@ int test2_alsa2(int argc, char *argv[])
 	
 	return 0;
 }
-
+#else
+int test2_alsa2(int argc, char *argv[]){}
 #endif
