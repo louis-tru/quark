@@ -659,6 +659,8 @@ function configure() {
 				console.error(`do not support MacOSX and ${arch} cpu architectures`);
 				return;
 			}
+			console.warn();
+			console.warn('******************** Unrealized MacOSX Protform ********************');
 		}
 
 		var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
