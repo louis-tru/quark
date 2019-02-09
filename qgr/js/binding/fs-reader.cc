@@ -132,22 +132,7 @@ class NativeFileReader {
 			JS_THROW_ERR(err);
 		}
 		
-		switch (encoding) {
-			case Encoding::hex: // 编码
-			case Encoding::base64: {
-				Buffer buff = Coder::encoding(encoding, rv);
-				JS_RETURN(worker->NewString(buff));
-				break;
-			}
-			case Encoding::unknown:
-				JS_RETURN(rv);
-				break;
-			default: {// 解码 to ucs2
-				Ucs2String str(Coder::decoding_to_uint16(encoding, rv));
-				JS_RETURN(worker->New(str));
-				break;
-			}
-		}
+		JS_RETURN( convert_buffer(worker, rv, encoding) );
 	}
 	
 	/**
