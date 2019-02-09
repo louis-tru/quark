@@ -33,6 +33,7 @@
 #include "qgr/js/js.h"
 #include "qgr/js/str.h"
 #include "cb-1.h"
+#include "fs-1.h"
 
 /**
  * @ns qgr::js
@@ -309,11 +310,134 @@ class WrapFileStat: public WrapObject {
 	}
 };
 
+static bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
+	JS_WORKER(args);
+	String s = arg->ToStringValue(worker);
+	en = Coder::parse_encoding( s );
+	if ( en == Encoding::unknown ) {
+		worker->throw_err( 
+			"Unknown encoding \"%s\", the optional value is "
+			"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s );
+		return false;
+	}
+	return true;
+}
+
+static bool parse_file_write_params(FunctionCall args, bool sync, int& args_index
+																		, Buffer& keep
+																		, void*& buff
+																		, int64& size
+																		, Buffer*& raw_buff
+																		)
+{
+	JS_WORKER(args);
+	
+	buff = nullptr;
+	size = 0;
+	args_index = 2;
+	raw_buff = nullptr;
+	
+	if ( args[1]->IsString(worker) ) { // 写入字符串
+		
+		Encoding en = Encoding::utf8;
+		if ( args.Length() > 2 && args[2]->IsString(worker) ) { // 第三个参数为编码格式
+			if ( ! parse_encoding(args, args[2], en) ) {
+				return false;
+			}
+			args_index++;
+		}
+		keep = args[1]->ToBuffer(worker, en);
+		buff = keep.value();
+		size = keep.length();
+	}
+	else {
+		if ( args[1]->IsArrayBuffer(worker) ) { // 写入原生 ArrayBuffer
+			Local<JSArrayBuffer> ab = args[1].To<JSArrayBuffer>();
+			buff = ab->Data(worker);
+			size = ab->ByteLength(worker);
+			raw_buff = (Buffer*)0x1;
+			if ( !sync ) { // move data
+				// 这是一个危险的操作,一定要确保keep不能被释放否则会导致致命错误
+				keep = Buffer((char*)buff, (uint)size);
+			}
+		} else {
+			Buffer* src = Wrap<Buffer>::unpack(args[1].To<JSObject>())->self();
+			buff = src->value();
+			size = src->length();
+			raw_buff = src;
+			if ( !sync ) { // move data
+				keep = *src;
+			}
+		}
+		
+		if ( args.Length() > 2 && args[2]->IsInt32(worker) ) { // size
+			int num = args[2]->ToInt32Value(worker);
+			if ( num >= 0 ) {
+				size = av_min( num, size );
+				keep.realloc((uint)size);
+			}
+			args_index++;
+		}
+	}
+	
+	return true;
+}
+
 /**
  * @class NativeFileHelper
  */
 class NativeFileHelper {
  public:
+
+	/**
+	 * @func chmodSync(path[,mode])
+	 * @arg path {String}
+	 * @arg [mode=default_mode] {uint}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func chmod(path[,mode[,cb]][,cb])
+	 * @arg path {String}
+	 * @arg [mode=default_mode] {uint}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void chmod(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func chmodSync(path[,mode])\n"
+					"* @arg path {String}\n"
+					"* @arg [mode=default_mode] {uint}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func chmod(path[,mode[,cb]][,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [mode=default_mode] {uint}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		int args_index = 1;
+		uint mode = FileHelper::default_mode;
+		if (args.Length() > 1 && args[1]->IsUint32(worker)) {
+			mode = args[1]->ToUint32Value(worker);
+			args_index++;
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::chmod_sync(args[0]->ToStringValue(worker), mode) );
+		} else {
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_none(worker, args[args_index]);
+			}
+			FileHelper::chmod(args[0]->ToStringValue(worker), mode, cb);
+		}
+	}
+
 	
 	/**
 	 * @func chmod_r_sync(path[,mode])
@@ -334,14 +458,14 @@ class NativeFileHelper {
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
 				JS_THROW_ERR(
-					"* @func chmodSyncR(path[,mode])\n"
+					"* @func chmodrSync(path[,mode])\n"
 					"* @arg path {String}\n"
 					"* @arg [mode=default_mode] {uint}\n"
 					"* @ret {bool}\n"
 				);
 			} else {
 				JS_THROW_ERR(
-					"* @func chmodR(path[,mode[,cb]][,cb])\n"
+					"* @func chmodr(path[,mode[,cb]][,cb])\n"
 					"* @arg path {String}\n"
 					"* @arg [mode=default_mode] {uint}\n"
 					"* @arg [cb] {Function}\n"
@@ -366,6 +490,61 @@ class NativeFileHelper {
 		}
 	}
 
+	/**
+	 * @func chownSync(path, owner, group)
+	 * @arg path {String}
+	 * @arg owner {uint}
+	 * @arg group {uint}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func chown(path, owner, group[,cb])
+	 * @arg path {String}
+	 * @arg owner {uint}
+	 * @arg group {uint}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void chown(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 3 ||
+				!args[0]->IsString(worker) ||
+				!args[1]->IsUint32(worker) || !args[2]->IsUint32(worker) ) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func chownSync(path, owner, group)\n"
+					"* @arg path {String}\n"
+					"* @arg owner {uint}\n"
+					"* @arg group {uint}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func chown(path, owner, group[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg owner {uint}\n"
+					"* @arg group {uint}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		
+		if ( sync ) {
+			
+			JS_RETURN( FileHelper::chown_sync(args[0]->ToStringValue(worker),
+																				args[1]->ToUint32Value(worker),
+																				args[2]->ToUint32Value(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 3 ) {
+				cb = get_callback_for_none(worker, args[3]);
+			}
+			FileHelper::chown(args[0]->ToStringValue(worker),
+												args[1]->ToUint32Value(worker),
+												args[2]->ToUint32Value(worker), cb);
+		}
+	}
+	
 	/**
 	 * @func chown_r_sync(path, owner, group)
 	 * @arg path {String}
@@ -423,6 +602,55 @@ class NativeFileHelper {
 	}
 	
 	/**
+	 * @func mkdir_sync(path[,mode])
+	 * @arg path {String}
+	 * @arg [mode=default_mode] {uint}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func mkdir(path[,mode[,cb]][,cb])
+	 * @arg path {String}
+	 * @arg [mode=default_mode] {uint}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void mkdir(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || !args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func mkdirSync(path[,mode])\n"
+					"* @arg path {String}\n"
+					"* @arg [mode=default_mode] {uint}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func mkdir(path[,mode[,cb]][,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [mode=default_mode] {uint}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		int args_index = 1;
+		uint mode = FileHelper::default_mode;
+		if (args.Length() > 1 && args[1]->IsUint32(worker)) {
+			mode = args[1]->ToUint32Value(worker);
+			args_index++;
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::mkdir_sync(args[0]->ToStringValue(worker), mode) );
+		} else {
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_none(worker, args[args_index]);
+			}
+			FileHelper::mkdir(args[0]->ToStringValue(worker), mode, cb);
+		}
+	}
+
+	/**
 	 * @func mkdir_p_sync(path[,mode])
 	 * @arg path {String}
 	 * @arg [mode=default_mode] {uint}
@@ -473,6 +701,130 @@ class NativeFileHelper {
 		}
 	}
 
+	/**
+	 * @func rename_sync(name,new_name)
+	 * @arg name {String}
+	 * @arg new_name {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func rename(name,new_name[,cb])
+	 * @arg name {String}
+	 * @arg new_name {String}
+	 * @arg [cb] {Function}
+	 */  
+	template<bool sync> static void rename(FunctionCall args) {
+		JS_WORKER(args);
+
+		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func renameSync(name,new_name)\n"
+					"* @arg name {String}\n"
+					"* @arg new_name {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func rename(name,new_name[,cb])\n"
+					"* @arg name {String}\n"
+					"* @arg new_name {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+
+		if ( sync ) {
+			JS_RETURN( FileHelper::rename_sync(args[0]->ToStringValue(worker),
+																					args[1]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 2 ) {
+				cb = get_callback_for_none(worker, args[2]);
+			}
+			FileHelper::rename(args[0]->ToStringValue(worker), args[1]->ToStringValue(worker), cb);
+		}
+	}
+	
+	/**
+	 * @func unlink_sync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func unlink(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void unlink(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || !args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func unlinkSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func unlink(path[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::unlink_sync(args[0]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_none(worker, args[1]);
+			}
+			FileHelper::unlink(args[0]->ToStringValue(worker), cb);
+		}
+	}
+
+	/**
+	 * @func rmdir_sync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func rmdir(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void rmdir(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || !args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func rmdirSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func rmdir(path)\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::rmdir_sync(args[0]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_none(worker, args[1]);
+			}
+			FileHelper::rmdir(args[0]->ToStringValue(worker), cb);
+		}
+	}
+	
 	/**
 	 * @func rm_r_sync(path)
 	 * @arg path {String}
@@ -580,14 +932,14 @@ class NativeFileHelper {
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
 			if ( sync ) {
 				JS_THROW_ERR(
-					"* @func copySyncR(path, target)\n"
+					"* @func copyrSync(path, target)\n"
 					"* @arg path {String}\n"
 					"* @arg target {String}\n"
 					"* @ret {bool}\n"
 				);
 			} else {
 				JS_THROW_ERR(
-					"* @func copyR(path, target)\n"
+					"* @func copyr(path, target)\n"
 					"* @arg path {String}\n"
 					"* @arg target {String}\n"
 					"* @arg [cb] {Function}\n"
@@ -640,20 +992,98 @@ class NativeFileHelper {
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_type_array_dirent(worker, args[1]);
+				cb = get_callback_for_array_dirent(worker, args[1]);
 			}
 			FileHelper::readdir( args[0]->ToStringValue(worker), cb);
 		}
 	}
 	
 	/**
-	 * @func exists_file_sync(path)
+	 * @func stat_sync(path)
+	 * @arg path {String}
+	 * @ret {FileStat}
+	 */
+	
+	/**
+	 * @func stat(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void stat(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func statSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {FileStat}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func stat(path[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::stat_sync( args[0]->ToStringValue(worker) ) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_file_stat(worker, args[1]);
+			}
+			FileHelper::stat(args[0]->ToStringValue(worker), cb);
+		}
+	}
+	
+	/**
+	 * @func exists_sync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func exists(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void exists(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func existsSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func exists(path[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::exists_sync(args[0]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_bool(worker, args[1]);
+			}
+			FileHelper::exists(args[0]->ToStringValue(worker), cb);
+		}
+	}
+
+	/**
+	 * @func isFileSync(path)
 	 * @arg path {String}
 	 * @ret {bool}
 	 */
 	
 	/**
-	 * @func is_file(path[,cb])
+	 * @func isFile(path[,cb])
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
@@ -679,7 +1109,7 @@ class NativeFileHelper {
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_type_bool(worker, args[1]);
+				cb = get_callback_for_bool(worker, args[1]);
 			}
 			FileHelper::is_file(args[0]->ToStringValue(worker), cb);
 		}
@@ -718,9 +1148,597 @@ class NativeFileHelper {
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_type_bool(worker, args[1]);
+				cb = get_callback_for_bool(worker, args[1]);
 			}
 			FileHelper::is_directory(args[0]->ToStringValue(worker), cb);
+		}
+	}
+	
+	/**
+	 * @func readable_sync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func readable(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void readable(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func readableSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func readable(path[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::readable_sync(args[0]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_bool(worker, args[1]);
+			}
+			FileHelper::readable(args[0]->ToStringValue(worker), cb);
+		}
+	}
+	
+	/**
+	 * @func writable_sync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func writable(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void writable(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func writableSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func writable(path[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::writable_sync(args[0]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_bool(worker, args[1]);
+			}
+			FileHelper::writable(args[0]->ToStringValue(worker), cb);
+		}
+	}
+	
+	/**
+	 * @func executable_sync(path)
+	 * @arg path {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func executable(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static void executable(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func executableSync(path)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func executable(path[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::executable_sync(args[0]->ToStringValue(worker)) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_bool(worker, args[1]);
+			}
+			FileHelper::executable(args[0]->ToStringValue(worker), cb);
+		}
+	}
+
+	/**
+	 * @func read_stream(path[,cb])
+	 * @arg [cb] {Function}
+	 * @ret {uint} return abort id
+	 */
+	static void read_stream(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || !args[0]->IsString(worker)) {
+			JS_THROW_ERR(
+										"* @func readStream(path[,cb])\n"
+										"* @arg [cb] {Function}\n"
+										"* @ret {uint} return abort id\n"
+										);
+		}
+		String path = args[0]->ToStringValue(worker);
+		
+		Callback cb;
+		if ( args.Length() > 1 ) {
+			cb = get_callback_for_io_stream(worker, args[1]);
+		}
+		JS_RETURN( FileHelper::read_stream(path, cb) );
+	}
+	
+	/**
+	 * @func read_file_sync(path)
+	 * @arg path {String}
+	 * @ret {Buffer} return file buffer
+	 */
+	/**
+	 * @func read_file(path[,cb])
+	 * @arg path {String}
+	 * @arg [cb] {Function}
+	 */
+	static void read_file(FunctionCall args, bool sync) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+											"* @func readFileSync(path)\n"
+											"* @arg path {String}\n"
+											"* @arg [encoding] {String}\n"
+											"* @ret {Buffer} return file buffer\n"
+											);
+			} else {
+				JS_THROW_ERR(
+											"* @func readFile(path[,cb])\n"
+											"* @arg path {String}\n"
+											"* @arg [encoding] {String}\n"
+											"* @arg [cb] {Function}\n"
+											);
+			}
+		}
+
+		String path = args[0]->ToStringValue(worker);
+		Encoding encoding = Encoding::unknown;
+		int args_index = 1;
+
+		if (args.Length() > args_index && args[args_index]->IsString(worker)) { //
+			if ( ! parse_encoding(args, args[args_index], encoding) ) return;
+			args_index++;
+		}
+
+		if ( sync ) {
+			int err = 0;
+			Buffer r = FileHelper::read_file_sync(path, &err);
+			if ( err < 0 ) {
+				JS_RETURN_NULL();
+			} else {
+				JS_RETURN( convert_buffer(worker, r, encoding) );
+			}
+		} else {
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_buffer(worker, args[args_index], encoding);
+			}
+			FileHelper::read_file(path, cb);
+		}
+	}
+	
+	/**
+	 * @func write_file_sync(path,buffer[,size])
+	 * @func write_file_sync(path,string[,encoding])
+	 * @arg path {String}
+	 * @arg string {String}
+	 * @arg buffer {Buffer|ArrayBuffer}
+	 * @arg [size] {int}
+	 * @arg [encoding='utf8'] {String}
+	 * @ret {bool}
+	 */
+	/**
+	 * @func write_file(path,buffer[,cb])
+	 * @func write_file(path,buffer[,size[,cb]])
+	 * @func write_file(path,string[,encoding[,cb]])
+	 * @arg path {String}
+	 * @arg string {String}
+	 * @arg buffer {Buffer|ArrayBuffer}
+	 * @arg [size] {int}
+	 * @arg [encoding=utf8] {Encoding}
+	 * @arg [cb] {Function}
+	 */
+	static void write_file(FunctionCall args, bool sync) {
+		JS_WORKER(args);
+		
+		if ( args.Length() < 2 || !args[0]->IsString(worker) ||
+				!(args[1]->IsString(worker) ||
+					args[1]->IsArrayBuffer(worker) ||
+					worker->has_buffer(args[1])
+					)
+				) { // 参数错误
+			if ( sync ) {
+				JS_THROW_ERR(
+											"* @func writeSileSync(path,buffer[,size])\n"
+											"* @func writeFileSync(path,string[,encoding])\n"
+											"* @arg path {String}\n"
+											"* @arg string {String}\n"
+											"* @arg buffer {Buffer|ArrayBuffer}\n"
+											"* @arg [size] {int}\n"
+											"* @arg [encoding=utf8] {Encoding}\n"
+											"* @ret {int}\n"
+											);
+			} else {
+				JS_THROW_ERR(
+											"* @func writeFile(path,buffer[,cb])\n"
+											"* @func writeFile(path,buffer[,size[,cb]])\n"
+											"* @func writeFile(path,string[,encoding[,cb]])\n"
+											"* @arg path {String}\n"
+											"* @arg string {String}\n"
+											"* @arg buffer {Buffer|ArrayBuffer}\n"
+											"* @arg [size] {int}\n"
+											"* @arg [encoding=utf8] {Encoding}\n"
+											"* @arg [cb] {Function}\n"
+											);
+			}
+		}
+		
+		String path = args[0]->ToStringValue(worker);
+		
+		Buffer keep;
+		void*  buff;
+		int64 size;
+		Buffer* raw_buff;
+		int args_index;
+		
+		if (!parse_file_write_params(args, sync, args_index, keep, buff, size, raw_buff)) return;
+		
+		if ( sync ) {
+			JS_RETURN( FileHelper::write_file_sync(path, buff, size) );
+		} else {
+			
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_none(worker, args[args_index]);
+			}
+			
+			// keep raw buffer Persistent javascript value
+			CopyablePersistentValue persistent(worker, args[1]);
+			
+			FileHelper::write_file(path, keep, Callback([persistent, raw_buff, cb](SimpleEvent& ev) {
+				XX_ASSERT( ev.data );
+				if (raw_buff) { // restore raw buffer
+					if ( raw_buff == (Buffer*)0x1 ) { // 这是ArrayBuffer,
+						// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
+						static_cast<Buffer*>(ev.data)->collapse();
+					} else {
+						*raw_buff = *static_cast<Buffer*>(ev.data);
+					}
+				}
+				cb->call(ev);
+			}));
+		}
+	}
+	
+	/**
+	 * @func open_sync(path[,mode])
+	 * @arg path {String}
+	 * @arg [mode=FOPEN_R] {FileOpenMode}
+	 * @ret {int} return file handle `success >= 0`
+	 */
+	/**
+	 * @func open(path[,mode[,cb]])
+	 * @func open(path[,cb])
+	 * @arg path {String}
+	 * @arg [mode=FOPEN_R] {FileOpenMode}
+	 * @arg [cb] {Function}
+	 */
+	static void open(FunctionCall args, bool sync) {
+		JS_WORKER(args);
+		
+		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
+			if ( sync ) {
+				JS_THROW_ERR(
+											"* @func openSync(path[,mode])\n"
+											"* @arg path {String}\n"
+											"* @arg [mode=FOPEN_R] {FileOpenMode}\n"
+											"* @ret {int} return file handle `success >= 0`\n"
+											);
+			} else {
+				JS_THROW_ERR(
+											"* @func open(path[,mode[,cb]])\n"
+											"* @func open(path[,cb])\n"
+											"* @arg path {String}\n"
+											"* @arg [mode=FOPEN_R] {FileOpenMode}\n"
+											"* @arg [cb] {Function}\n"
+											);
+			}
+		}
+		
+		uint args_index = 1;
+		FileOpenMode mode = FileOpenMode::FOPEN_R;
+		
+		if ( args.Length() > 1 && args[1]->IsUint32(worker) ) {
+			uint num = args[1]->ToUint32Value(worker);
+			if ( num < FileOpenMode::FOPEN_NUM ) {
+				mode = (FileOpenMode)num;
+			}
+			args_index++;
+		}
+		
+		if ( sync ) {
+			JS_RETURN( FileHelper::open_sync(args[0]->ToStringValue(worker), mode) );
+		} else {
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_int(worker, args[args_index]);
+			}
+			FileHelper::open(args[0]->ToStringValue(worker), mode, cb);
+		}
+	}
+	
+	/**
+	 * @func close_sync(fd)
+	 * @arg path {int} file handle
+	 * @ret {int} return err code `success == 0`
+	 */
+	/**
+	 * @func close(fd[,cb])
+	 * @arg fd {int} file handle
+	 * @arg [cb] {Function}
+	 */
+	static void close(FunctionCall args, bool sync) {
+		JS_WORKER(args);
+		
+		if ( args.Length() == 0 || !args[0]->IsInt32(worker) ) {
+			if ( sync ) {
+				JS_THROW_ERR(
+											"* @func closeSync(fd)\n"
+											"* @arg path {int} file handle\n"
+											"* @ret {int} return err code `success == 0`\n"
+											);
+			} else {
+				JS_THROW_ERR(
+											"* @func close(fd[,cb])\n"
+											"* @arg fd {int} file handle\n"
+											"* @arg [cb] {Function}\n"
+											);
+			}
+		}
+		
+		int fd = args[0]->ToInt32Value(worker);
+		
+		if ( sync ) {
+			JS_RETURN( FileHelper::close_sync(fd) );
+		} else {
+			Callback cb;
+			if ( args.Length() > 1 ) {
+				cb = get_callback_for_none(worker, args[1]);
+			}
+			FileHelper::close(fd, cb);
+		}
+	}
+
+	
+	/**
+	 * @func read_sync(fd,buffer[,size[,offset]])
+	 * @arg fd {int} file handle
+	 * @arg buffer {Buffer} output buffer
+	 * @arg [size=-1] {int}
+	 * @arg [offset=-1] {int}
+	 * @ret {int} return err code `success >= 0`
+	 */
+	/**
+	 * @func read(fd,buffer[,size[,offset[,cb]]])
+	 * @func read(fd,buffer[,size[,cb]])
+	 * @func read(fd,buffer[,cb])
+	 * @arg fd {int} file handle
+	 * @arg buffer {Buffer} output buffer
+	 * @arg [size=-1] {int}
+	 * @arg [offset=-1] {int}
+	 * @arg [cb] {Function}
+	 */
+	static void read(FunctionCall args, bool sync) {
+		JS_WORKER(args);
+		
+		if ( args.Length() < 2 || !args[0]->IsInt32(worker) || !worker->has_buffer(args[1]) ) {
+			if ( sync ) {
+				JS_THROW_ERR(
+											"* @func readSync(fd,buffer[,size[,offset]])\n"
+											"* @arg fd {int} file handle\n"
+											"* @arg buffer {Buffer} output buffer\n"
+											"* @arg [size=-1] {int}\n"
+											"* @arg [offset=-1] {int}\n"
+											"* @ret {int} return err code `success >= 0`\n"
+											);
+			} else {
+				JS_THROW_ERR(
+											"* @func read(fd,buffer[,size[,offset[,cb]]])\n"
+											"* @func read(fd,buffer[,size[,cb]])\n"
+											"* @func read(fd,buffer[,cb])\n"
+											"* @arg fd {int} file handle\n"
+											"* @arg buffer {Buffer} output buffer\n"
+											"* @arg [size=-1] {int}\n"
+											"* @arg [offset=-1] {int}\n"
+											"* @arg [cb] {Function}\n"
+											);
+			}
+		}
+		
+		Buffer* raw_buf = Wrap<Buffer>::unpack(args[1].To())->self();
+		
+		int fd = args[0]->ToInt32Value(worker);
+		uint size = raw_buf->length();
+		int64 offset = -1;
+		uint args_index = 2;
+		
+		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
+			int num = args[args_index]->ToInt32Value(worker);
+			if ( num >= 0 ) {
+				size = av_min(size, num);
+			}
+			args_index++;
+		}
+		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
+			offset = args[args_index]->ToInt32Value(worker);
+			if ( offset < 0 ) offset = -1;
+			args_index++;
+		}
+		
+		if ( sync ) {
+			int r = FileHelper::read_sync(fd, **raw_buf, size, offset);
+			JS_RETURN( r );
+		} else {
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_int(worker, args[args_index]);
+			}
+			
+			// keep war buffer Persistent javascript object
+			CopyablePersistentValue persistent(worker, args[1]);
+			uint raw_buff_len = raw_buf->length();
+			
+			FileHelper::read(fd, raw_buf->realloc(size), offset,
+											 Callback([persistent, raw_buf, raw_buff_len, cb](SimpleEvent& ev) {
+				XX_ASSERT( ev.data );
+				Int read_len(static_cast<Buffer*>(ev.data)->length());
+				// restore raw buffer
+				*raw_buf = static_cast<Buffer*>(ev.data)->realloc(raw_buff_len);
+				ev.data = &read_len;
+				cb->call(ev);
+			}));
+		}
+	}
+	
+	/**
+	 * @func write_sync(fd,buffer[,size[,offset]])
+	 * @func write_sync(fd,string[,encoding[,offset]])
+	 * @arg fd {int} file handle
+	 * @arg buffer {Buffer|ArrayBuffer} write buffer
+	 * @arg string {String} write string
+	 * @arg [size=-1] {int} read size, `-1` use buffer.length
+	 * @arg [offset=-1] {int}
+	 * @arg [encoding='utf8'] {String}
+	 * @ret {int} return err code `success >= 0`
+	 */
+	/**
+	 * @func write(fd,buffer[,size[,offset[,cb]]])
+	 * @func write(fd,buffer[,size[,cb]])
+	 * @func write(fd,buffer[,cb])
+	 * @func write(fd,string[,encoding[,offset[,cb]]])
+	 * @func write(fd,string[,encoding[,cb]])
+	 * @func write(fd,string[,cb])
+	 * @arg fd {int} file handle
+	 * @arg buffer {Buffer|ArrayBuffer} write buffer
+	 * @arg string {String} write string
+	 * @arg [size=-1] {int} read size, `-1` use buffer.length
+	 * @arg [offset=-1] {int}
+	 * @arg [encoding='utf8'] {String}
+	 * @arg [cb] {Function}
+	 */
+	static void write(FunctionCall args, bool sync) {
+		JS_WORKER(args);
+		
+		if (args.Length() < 2 || !args[0]->IsInt32(worker) ||
+			!(args[1]->IsString(worker) ||
+				args[1]->IsArrayBuffer(worker) ||
+				worker->has_buffer(args[1]) )
+		) { // 参数错误
+			if ( sync ) {
+				JS_THROW_ERR(
+											"* @func writeSync(fd,buffer[,size[,offset]])\n"
+											"* @func writeSync(fd,string[,encoding[,offset]])\n"
+											"* @arg fd {int} file handle\n"
+											"* @arg buffer {Buffer|ArrayBuffer} write buffer\n"
+											"* @arg string {String} write string\n"
+											"* @arg [size=-1] {int} read size, `-1` use buffer.length\n"
+											"* @arg [offset=-1] {int}\n"
+											"* @arg [encoding='utf8'] {String}\n"
+											"* @ret {int} return err code `success >= 0`\n"
+											);
+			} else {
+				JS_THROW_ERR(
+											"* @func write(fd,buffer[,size[,offset[,cb]]])\n"
+											"* @func write(fd,buffer[,size[,cb]])\n"
+											"* @func write(fd,buffer[,cb])\n"
+											"* @func write(fd,string[,encoding,[,offset[,cb]]])\n"
+											"* @func write(fd,string[,encoding,[,cb]])\n"
+											"* @func write(fd,string[,cb])\n"
+											"* @arg fd {int} file handle\n"
+											"* @arg buffer {Buffer|ArrayBuffer} write buffer\n"
+											"* @arg string {String} write string\n"
+											"* @arg [size=-1] {int} read size, `-1` use buffer.length\n"
+											"* @arg [offset=-1] {int}\n"
+											"* @arg [encoding='utf8'] {String}\n"
+											"* @arg [cb] {Function}\n"
+											);
+			}
+		}
+		
+		int fd = args[0]->ToInt32Value(worker);
+
+		Buffer keep;
+		void*  buff;
+		int64 size;
+		int64 offset = -1;
+		Buffer* raw_buff;
+		int args_index;
+		
+		if (!parse_file_write_params(args, sync, args_index, keep, buff, size, raw_buff)) return;
+		
+		if (args.Length() > args_index && args[args_index]->IsInt32()) { // offset
+			offset = args[args_index]->ToInt32Value(worker);
+			if ( offset < 0 )
+				offset = -1;
+			args_index++;
+		}
+		
+		if ( sync ) {
+			JS_RETURN( FileHelper::write_sync(fd, buff, size, offset) );
+		} else {
+			Callback cb;
+			if ( args.Length() > args_index ) {
+				cb = get_callback_for_none(worker, args[args_index]);
+			}
+			
+			// keep raw buffer Persistent javascript value
+			CopyablePersistentValue persistent(worker, args[1]);
+			
+			FileHelper::write(fd, keep, offset, Callback([persistent, raw_buff, cb](SimpleEvent& ev) {
+				XX_ASSERT( ev.data );
+				if (raw_buff) { // restore raw buffer
+					if ( raw_buff == (Buffer*)0x1 ) { // 这是ArrayBuffer,
+						// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
+						static_cast<Buffer*>(ev.data)->collapse();
+					} else {
+						*raw_buff = *static_cast<Buffer*>(ev.data);
+					}
+				}
+				cb->call(ev);
+			}));
 		}
 	}
 	
@@ -739,9 +1757,24 @@ class NativeFileHelper {
 		FileHelper::abort( args[0]->ToUint32Value(worker) );
 	}
 	
+	// sync
+	static void write_file_sync(FunctionCall args) { write_file(args, 1); }
+	static void read_file_sync(FunctionCall args) { read_file(args, 1); }
+	static void open_sync(FunctionCall args) { open(args, 1); }
+	static void close_sync(FunctionCall args) { close(args, 1); }
+	static void read_sync(FunctionCall args) { read(args, 1); }
+	static void write_sync(FunctionCall args) { write(args, 1); }
+	// async
+	static void write_file_async(FunctionCall args) { write_file(args, 0); }
+	static void read_file_async(FunctionCall args) { read_file(args, 0); }
+	static void open_async(FunctionCall args) { open(args, 0); }
+	static void close_async(FunctionCall args) { close(args, 0); }
+	static void read_async(FunctionCall args) { read(args, 0); }
+	static void write_async(FunctionCall args) { write(args, 0); }
+
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		WrapFileStat::binding(exports, worker);
-		//
+
 		JS_SET_PROPERTY(FOPEN_ACCMODE, FOPEN_ACCMODE);
 		JS_SET_PROPERTY(FOPEN_RDONLY, FOPEN_RDONLY);
 		JS_SET_PROPERTY(FOPEN_WRONLY, FOPEN_WRONLY);
@@ -767,26 +1800,64 @@ class NativeFileHelper {
 		JS_SET_PROPERTY(FTYPE_CHAR, FTYPE_CHAR);
 		JS_SET_PROPERTY(FTYPE_BLOCK, FTYPE_BLOCK);
 		JS_SET_PROPERTY(DEFAULT_MODE, FileHelper::default_mode);
-		// api
+		// api sync
+		JS_SET_METHOD(chmodSync, chmod<true>);
+		JS_SET_METHOD(chownSync, chown<true>);
+		JS_SET_METHOD(mkdirSync, mkdir<true>);
+		JS_SET_METHOD(renameSync, rename<true>);
+		JS_SET_METHOD(unlinkSync, unlink<true>);
+		JS_SET_METHOD(rmdirSync, rmdir<true>);
+		JS_SET_METHOD(readdirSync, readdir<true>);
+		JS_SET_METHOD(statSync, stat<true>);
+		JS_SET_METHOD(existsSync, exists<true>);
+		JS_SET_METHOD(isFileSync, is_file<true>);
+		JS_SET_METHOD(isDirectorySync, is_directory<true>);
+		JS_SET_METHOD(readableSync, readable<true>);
+		JS_SET_METHOD(writableSync, writable<true>);
+		JS_SET_METHOD(executableSync, executable<true>);
+		JS_SET_METHOD(copySync, cp<true>);
 		JS_SET_METHOD(chmodrSync, chmod_r<true>);
 		JS_SET_METHOD(chownrSync, chown_r<true>);
 		JS_SET_METHOD(mkdirpSync, mkdir_p<true>);
 		JS_SET_METHOD(removerSync, rm_r<true>);
-		JS_SET_METHOD(copySync, cp<true>);
 		JS_SET_METHOD(copyrSync, cp_r<true>);
-		JS_SET_METHOD(readdirSync, readdir<true>);
-		JS_SET_METHOD(isFileSync, is_file<true>);
-		JS_SET_METHOD(isDirectorySync, is_directory<true>);
-		JS_SET_METHOD(abort, abort);
-		JS_SET_METHOD(mkdirp, mkdir_p<false>);
+		// async
+		JS_SET_METHOD(chmod, chmod<false>);
+		JS_SET_METHOD(chown, chown<false>);
+		JS_SET_METHOD(mkdir, mkdir<false>);
+		JS_SET_METHOD(rename, rename<false>);
+		JS_SET_METHOD(unlink, unlink<false>);
+		JS_SET_METHOD(rmdir, rmdir<false>);
 		JS_SET_METHOD(readdir, readdir<false>);
+		JS_SET_METHOD(stat, stat<false>);
+		JS_SET_METHOD(exists, exists<false>);
 		JS_SET_METHOD(isFile, is_file<false>);
 		JS_SET_METHOD(isDirectory, is_directory<false>);
+		JS_SET_METHOD(readable, readable<false>);
+		JS_SET_METHOD(writable, writable<false>);
+		JS_SET_METHOD(executable, executable<false>);
+		JS_SET_METHOD(copy, cp<false>);
 		JS_SET_METHOD(chmodr, chmod_r<false>);
 		JS_SET_METHOD(chownr, chown_r<false>);
+		JS_SET_METHOD(mkdirp, mkdir_p<false>);
 		JS_SET_METHOD(remover, rm_r<false>);
-		JS_SET_METHOD(copy, cp<false>);
 		JS_SET_METHOD(copyr, cp_r<false>);
+		JS_SET_METHOD(readStream, read_stream);
+		JS_SET_METHOD(abort, abort);
+		// read/write file sync
+		JS_SET_METHOD(writeFileSync, write_file_sync);
+		JS_SET_METHOD(readFileSync, read_file_sync);
+		JS_SET_METHOD(openSync, open_sync);
+		JS_SET_METHOD(closeSync, close_sync);
+		JS_SET_METHOD(readSync, read_sync);
+		JS_SET_METHOD(writeSync, write_sync);
+		// async
+		JS_SET_METHOD(writeFile, write_file_async);
+		JS_SET_METHOD(readFile, read_file_async);
+		JS_SET_METHOD(open, open_async);
+		JS_SET_METHOD(close, close_async);
+		JS_SET_METHOD(read, read_async);
+		JS_SET_METHOD(write, write_async);
 	}
 };
 

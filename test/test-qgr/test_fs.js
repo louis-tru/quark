@@ -27,35 +27,35 @@ async function async_test() {
 
 	var s = stat(FILE);
 
-	await AM(fs, 'chmodR', [DIR, s.mode + 1, ()=>true ]);
+	await AM(fs, 'chmodr', [DIR, s.mode + 1, ()=>true ]);
 	VM(stat(FILE), 'mode', [], i=>i==s.mode+1);
 
-	M(fs, 'chmodSyncR', [DIR, s.mode + 2 ]);
+	M(fs, 'chmodrSync', [DIR, s.mode + 2 ]);
 	VM(stat(FILE), 'mode', [], i=>i==s.mode+2);
 
-	await AM(fs, 'chownR', [DIR, s.uid, s.gid, ()=>true ]); 
+	await AM(fs, 'chownr', [DIR, s.uid, s.gid, ()=>true ]);
 	VM(stat(DIR), 'owner', [], i=>i==s.uid);
 	VM(stat(DIR), 'group', [], i=>i==s.gid);
 
-	M(fs, 'chownSyncR', [DIR, s.uid, s.gid ]); 
+	M(fs, 'chownrSync', [DIR, s.uid, s.gid ]);
 	VM(stat(DIR), 'owner', [], i=>i==s.uid);
 	VM(stat(DIR), 'group', [], i=>i==s.gid);
 
-	await AM(fs, 'mkdirP', [DIR + '/b/c', ()=>true]); 
+	await AM(fs, 'mkdirp', [DIR + '/b/c', ()=>true]);
 	VM(fs, 'existsSync', [DIR + '/b/c']);
 
-	M(fs, 'mkdirSyncP', [DIR + '/b_sync/c']); 
+	M(fs, 'mkdirpSync', [DIR + '/b_sync/c']);
 	VM(fs, 'existsSync', [DIR + '/b_sync/c']);
 	
 	fs.writeFileSync(FILE + '/b/b.txt', 'ABCDEFG');
-	await AM(fs, 'removeR', [DIR + '/b', ()=>1]);
+	await AM(fs, 'remover', [DIR + '/b', ()=>1]);
 	VM(fs, 'existsSync', [DIR + '/b'], false);
 	VM(fs, 'existsSync', [DIR + '/b/b.txt'], false);
 	
 	fs.writeFileSync(FILE + '/c_sync/c.txt', 'ABCDEFG');
-	M(fs, 'removeSyncR', [DIR + '/c_sync']);
-	VM(fs, 'exists_sync', [DIR + '/c_sync'], false);
-	VM(fs, 'exists_sync', [DIR + '/c_sync/c.txt'], false);
+	M(fs, 'removerSync', [DIR + '/c_sync']);
+	VM(fs, 'existsSync', [DIR + '/c_sync'], false);
+	VM(fs, 'existsSync', [DIR + '/c_sync/c.txt'], false);
 	
 	await AM(fs, 'copy', [FILE, DIR + '/cp.txt', ()=>1]);
 	VM(fs, 'existsSync', [DIR + '/cp.txt']);
@@ -63,11 +63,11 @@ async function async_test() {
 	M(fs, 'copySync', [FILE, DIR + '/cp_sync.txt']);
 	VM(fs, 'existsSync', [DIR + '/cp_sync.txt']);
 	
-	await AM(fs, 'copyR', [DIR, DIR2, ()=>1]);
+	await AM(fs, 'copyr', [DIR, DIR2, ()=>1]);
 	VM(fs, 'existsSync', [DIR2]);
 	VM(fs, 'existsSync', [DIR2 + '/cp.txt']);
 	
-	M(fs, 'copySyncR', [DIR, DIR2 + '_sync']);
+	M(fs, 'copyrSync', [DIR, DIR2 + '_sync']);
 	VM(fs, 'existsSync', [DIR2 + '_sync']);
 	VM(fs, 'existsSync', [DIR2 + '_sync' + '/cp.txt']);
 

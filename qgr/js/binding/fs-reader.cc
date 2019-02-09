@@ -33,6 +33,7 @@
 #include "qgr/js/str.h"
 #include "qgr/utils/codec.h"
 #include "cb-1.h"
+#include "fs-1.h"
 
 /**
  * @ns qgr::js
@@ -42,21 +43,6 @@ JS_BEGIN
 
 class NativeFileReader {
  public:
-	
-	/**
-	 * @func parse_encoding()
-	 */
-	static bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
-		JS_WORKER(args);
-		String s = arg->ToStringValue(worker);
-		en = Coder::parse_encoding( s );
-		if ( en == Encoding::unknown ) {
-			worker->throw_err("Unknown encoding \"%s\", the optional value is "
-												"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s );
-			return false;
-		}
-		return true;
-	}
 	
 	template<bool stream> static void readFile(FunctionCall args, cchar* argument) {
 		JS_WORKER(args);

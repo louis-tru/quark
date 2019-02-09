@@ -196,6 +196,7 @@ class XX_EXPORT FileHelper {
 	 */
 	static bool each_sync(cString& path, cCb& cb, bool internal = false);
 	
+	// sync
 	/**
 	 * @func chmod_sync
 	 */
@@ -226,7 +227,7 @@ class XX_EXPORT FileHelper {
 	static bool readable_sync(cString& path);
 	static bool writable_sync(cString& path);
 	static bool executable_sync(cString& path);
-	static void abort(uint id);
+	// async
 	static void chmod(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static void chown(cString& path, uint owner, uint group, cCb& cb = 0);
 	static void mkdir(cString& path, uint mode = default_mode, cCb& cb = 0);
@@ -249,6 +250,7 @@ class XX_EXPORT FileHelper {
 	static uint rm_r(cString& path, cCb& cb = 0);
 	static uint cp(cString& source, cString& target, cCb& cb = 0);
 	static uint cp_r(cString& source, cString& target, cCb& cb = 0);
+	static void abort(uint id);
 	// read stream
 	static uint read_stream(cString& path, cCb& cb = 0);
 	// read file

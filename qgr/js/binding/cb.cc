@@ -36,7 +36,7 @@
 
 JS_BEGIN
 
-template<class T, class Err = Error>
+template<class Type, class Err = Error>
 Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
@@ -50,7 +50,7 @@ Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
 				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
 			} else {
-				T* data = static_cast<T*>(d.data);
+				Type* data = static_cast<Type*>(d.data);
 				Local<JSValue> arg = worker->New(*data);
 				f->Call(worker, 1, &arg);
 			}
@@ -58,6 +58,28 @@ Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 	} else {
 		return 0;
 	}
+}
+
+Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding) {
+	Local<JSValue> result;
+	Buffer* data = static_cast<Buffer*>(d.data);
+	switch (encoding) {
+		case Encoding::hex: // 编码
+		case Encoding::base64: {
+			Buffer buff = Coder::encoding(encoding, *data);
+			result = worker->NewString(buff);
+			break;
+		}
+		case Encoding::unknown:
+			result = worker->New(*data);
+			break;
+		default: {// 解码 to ucs2
+			Ucs2String str(Coder::decoding_to_uint16(encoding, *data));
+			result = worker->New(str);
+			break;
+		}
+	}
+	return result;
 }
 
 template<class Err = Error>
@@ -74,24 +96,7 @@ Callback get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding en
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
 				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
 			} else {
-				Buffer* data = static_cast<Buffer*>(d.data);
-				Local<JSValue> arg;
-				switch (encoding) {
-					case Encoding::hex: // 编码
-					case Encoding::base64: {
-						Buffer buff = Coder::encoding(encoding, *data);
-						arg = worker->NewString(buff);
-						break;
-					}
-					case Encoding::unknown:
-						arg = worker->New(*data);
-						break;
-					default: {// 解码 to ucs2
-						Ucs2String str(Coder::decoding_to_uint16(encoding, *data));
-						arg = worker->New(str);
-						break;
-					}
-				}
+				Local<JSValue> arg = convert_buffer(worker, d.data, encoding);
 				f->Call(worker, 1, &arg);
 			}
 		});
@@ -170,6 +175,14 @@ Callback get_callback_for_array_dirent(Worker* worker, Local<JSValue> cb) {
 
 Callback get_callback_for_bool(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_type<Bool>(worker, cb);
+}
+
+Callback get_callback_for_int(Worker* worker, Local<JSValue> cb) {
+	return get_callback_for_type<Int>(worker, cb);
+}
+
+Callback get_callback_for_file_stat(Worker* worker, Local<JSValue> cb) {
+	return get_callback_for_type<FileStat>(worker, cb);
 }
 
 JS_END

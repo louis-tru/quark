@@ -28,8 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __qgr__js__cb__
-#define __qgr__js__cb__
+
+#ifndef __qgr__js__fs_1__
+#define __qgr__js__fs_1__
 
 #include "qgr/js/js.h"
 #include "qgr/utils/codec.h"
@@ -40,19 +41,7 @@
 
 JS_BEGIN
 
-Local<JSValue> convert_buffer(Worker* worker, 
-	Buffer& buffer, Encoding encoding = Encoding::unknown);
-Callback get_callback_for_buffer(Worker* worker, 
-	Local<JSValue> cb, Encoding encoding = Encoding::unknown);
-Callback get_callback_for_buffer_http_error(Worker* worker, 
-	Local<JSValue> cb, Encoding encoding = Encoding::unknown);
-Callback get_callback_for_io_stream(Worker* worker, Local<JSValue> cb);
-Callback get_callback_for_io_stream_http_error(Worker* worker, Local<JSValue> cb);
-Callback get_callback_for_none(Worker* worker, Local<JSValue> cb);
-Callback get_callback_for_array_dirent(Worker* worker, Local<JSValue> cb);
-Callback get_callback_for_bool(Worker* worker, Local<JSValue> cb);
-Callback get_callback_for_int(Worker* worker, Local<JSValue> cb);
-Callback get_callback_for_file_stat(Worker* worker, Local<JSValue> cb);
+bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en);
 
 JS_END
 #endif

@@ -142,18 +142,18 @@ export function AM(self, name, args = [], v) {
 			resolve(args[0]);
 		}
 		
-		args = args.map(function(i) {
-			if (typeof i != 'function') {
-				return i;
+		args = args.map(function(e) {
+			if (typeof e != 'function') {
+				return e;
 			}
 			async = true;
 			return function(...args) {
-				if ( i(...args) ) 
+				if ( e(...args) )
 					ok(0, ...args);
 			}.catch(reject);
 		});
 
-		r = self[name]( ...args ); 
+		r = self[name]( ...args );
 
 		if ( !async ) {
 			ok(1);

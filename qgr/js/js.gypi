@@ -42,7 +42,11 @@
 			'log.cc',
 			# binding qgr-utils
 			'binding/cb-1.h',
-			'binding/reader.cc',
+			'binding/cb.cc',
+			'binding/fs-1.h',
+			'binding/fs.cc',
+			'binding/fs-reader.cc',
+			'binding/fs-path.cc',
 			'binding/http.cc',
 			'binding/util.cc',
 			'binding/keys.cc',
@@ -52,7 +56,6 @@
 			'binding/event-1.h',
 			'binding/event.cc',
 			'binding/sys.cc',
-			'binding/fs.cc',
 			'binding/event.cc',
 			# binding qgr-gui
 			'binding/value.cc',

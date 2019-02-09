@@ -30,10 +30,10 @@
 
 'use strict';
 
-const NativeModule = require('native_module');
-const fs = require('fs');
-const path = require('path');
-const Module = require('module');
+// const NativeModule = require('native_module');
+const fs = bindingNative('qgr_fs');
+const path = require('qgr_path');
+// const Module = require('module');
 const _util = bindingNative('qgr_util');
 const _http = bindingNative('qgr_http');
 const win32 = _util.platform == 'win32';
