@@ -79,15 +79,15 @@ uint64 FileStat::mode() const { return STAT->st_mode; }
 
 FileType FileStat::type() const {
 	if ( m_stat ) {
-		if ( S_ISREG(((uv_stat_t*)m_stat)->st_mode) ) return FILE_FILE;
-		if ( S_ISDIR(((uv_stat_t*)m_stat)->st_mode) ) return FILE_DIR;
-		if ( S_ISLNK(((uv_stat_t*)m_stat)->st_mode) ) return FILE_LINK;
-		if ( S_ISFIFO(((uv_stat_t*)m_stat)->st_mode) ) return FILE_FIFO;
-		if ( S_ISSOCK(((uv_stat_t*)m_stat)->st_mode) ) return FILE_SOCKET;
-		if ( S_ISCHR(((uv_stat_t*)m_stat)->st_mode) ) return FILE_CHAR;
-		if ( S_ISBLK(((uv_stat_t*)m_stat)->st_mode) ) return FILE_BLOCK;
+		if ( S_ISREG(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_FILE;
+		if ( S_ISDIR(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_DIR;
+		if ( S_ISLNK(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_LINK;
+		if ( S_ISFIFO(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_FIFO;
+		if ( S_ISSOCK(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_SOCKET;
+		if ( S_ISCHR(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_CHAR;
+		if ( S_ISBLK(((uv_stat_t*)m_stat)->st_mode) ) return FTYPE_BLOCK;
 	}
-	return FILE_UNKNOWN;
+	return FTYPE_UNKNOWN;
 }
 
 uint64 FileStat::group() const { return STAT->st_gid; }

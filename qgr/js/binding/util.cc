@@ -271,93 +271,6 @@ class NativeUtil {
 		transform_js(args, false);
 	}
 	
-	/**
-	 * @func executable()
-	 * @ret {String}
-	 */
-	static void executable(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( Path::executable() );
-	}
-	
-	/**
-	 * @func documents([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void documents(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( Path::documents() );
-		}
-		JS_RETURN( Path::documents( args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
-	 * @func temp([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void temp(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( Path::temp() );
-		}
-		JS_RETURN( Path::temp( args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
-	 * @func resources([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void resources(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( Path::resources() );
-		}
-		JS_RETURN( Path::resources( args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
-	 * @func fallbackPath(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void fallbackPath(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
-									 "* @func fallbackPath(path)\n"
-									 "* @arg path {String}\n"
-									 "* @ret {String}\n"
-									 );
-		}
-		JS_RETURN( Path::fallback(args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
-	 * @func cwd()
-	 * @ret {String}
-	 */
-	static void cwd(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( Path::cwd() );
-	}
-	
-	/**
-	 * @func chdir(path)
-	 * @arg path {String}
-	 * @ret {bool}
-	 */
-	static void chdir(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( false );
-		}
-		JS_RETURN( Path::chdir(args[0]->ToStringValue(worker)) );
-	}
-	
 	static void log(FunctionCall args) {
 		JS_WORKER(args);
 		StringBuilder rv;
@@ -378,6 +291,14 @@ class NativeUtil {
 		}
 		console::log(rv.to_string());
 	}
+
+	/**
+	 * @static platform {String} 
+	 */
+	static void platform(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_RETURN( platform() );
+	}
 	
 	/**
 	 * @func binding
@@ -393,14 +314,8 @@ class NativeUtil {
 		JS_SET_METHOD(garbageCollection, garbageCollection);
 		JS_SET_METHOD(transformJsx, transformJsx);
 		JS_SET_METHOD(transformJs, transformJs);
-		JS_SET_METHOD(executable, executable);
-		JS_SET_METHOD(documents, documents);
-		JS_SET_METHOD(temp, temp);
-		JS_SET_METHOD(resources, resources);
-		JS_SET_METHOD(fallbackPath, fallbackPath);
-		JS_SET_METHOD(cwd, cwd);
-		JS_SET_METHOD(chdir, chdir);
 		JS_SET_METHOD(log, log);
+		JS_SET_ACCESSOR(platform, platform);
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);
 	}

@@ -22,7 +22,6 @@
 'use strict';
 
 const NativeModule = require('native_module');
-const internalModule = require('internal/module');
 const pkg = require('internal/pkg');
 const util = require('util');
 const fs = require('fs');
@@ -48,6 +47,18 @@ var ignore_local_package, ignore_all_local_package;
 var keys = null;
 var packages = null;  // packages
 var config = null;
+
+/**
+ * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+ * because the buffer-to-string conversion in `fs.readFileSync()`
+ * translates it to FEFF, the UTF-16 BOM.
+ */
+function stripBOM(content) {
+  if (content.charCodeAt(0) === 0xFEFF) {
+    content = content.slice(1);
+  }
+  return content;
+}
 
 function parse_keys(content) {
   if ( !keys ) {
@@ -179,7 +190,7 @@ global.__extend = extendEntries;
 
 function parseJSON(source, filename) {
   try {
-    return JSON.parse(internalModule.stripBOM(source));
+    return JSON.parse(stripBOM(source));
   } catch (err) {
     err.message = filename + ': ' + err.message;
     throw err;
@@ -517,7 +528,7 @@ Module._extensions['.js'] = function(module, filename) {
       content = _util.transformJs(content, raw_filename);
     }
   }
-  module._compile(internalModule.stripBOM(content), raw_filename, filename);
+  module._compile(stripBOM(content), raw_filename, filename);
 };
 
 // Native extension for .jsx
@@ -529,7 +540,7 @@ Module._extensions['.jsx'] = function(module, filename) {
     pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
     content = _util.transformJsx(content, raw_filename);
   }
-  module._compile(internalModule.stripBOM(content), raw_filename, filename);
+  module._compile(stripBOM(content), raw_filename, filename);
 };
 
 // Native extension for .json

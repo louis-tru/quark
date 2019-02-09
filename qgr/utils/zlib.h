@@ -57,14 +57,14 @@ class XX_EXPORT ZLib {
 	static Buffer compress(cString& str, int level = -1);
 	
 	/**
-	 * @func uncompress
-	 */
-	static Buffer uncompress(cString& str);
-	
-	/**
 	 * @func compress
 	 */
 	static Buffer compress(cBuffer& buff, int level = -1);
+	
+	/**
+	 * @func uncompress
+	 */
+	static Buffer uncompress(cString& str);
 	
 	/**
 	 * @func uncompress
@@ -78,7 +78,7 @@ class XX_EXPORT ZLib {
  *
  * @class GZip
  */
-class XX_EXPORT GZip: public Object, public IFile {
+class XX_EXPORT GZip: public Object {
  public:
 	
 	typedef DefaultTraits Traits;
@@ -196,9 +196,9 @@ class XX_EXPORT ZipReader: public Object {
 	Buffer read(uint size);
 	
 	/**
-	 * @func cur_name 当前文件名称
+	 * @func current 当前文件名称
 	 */
-	inline String cur_name() const {
+	inline String current() const {
 		return m_cur_it.value().pathname;
 	}
 	

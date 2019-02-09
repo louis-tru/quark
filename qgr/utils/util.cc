@@ -430,6 +430,23 @@ String version() {
 	return QGR_VERSION;
 }
 
+String platform() {
+	#if XX_NACL
+		static String _name("nacl");
+	#elif XX_IOS || XX_OSX
+		static String _name("darwin");
+	#elif XX_ANDROID || XX_LINUX
+		static String _name("linux");
+	#elif XX_WIN
+		static String _name("win32");
+	#elif XX_QNX
+		static String _name("qnx");
+	#else
+	# error no support
+	#endif
+	return _name;
+}
+
 namespace sys {
 
 	String name() {
@@ -448,7 +465,7 @@ namespace sys {
 		#elif XX_LINUX
 			static String _name("Linux");
 		#else
-		# error no Support
+		# error no support
 		#endif
 		return _name;
 	}

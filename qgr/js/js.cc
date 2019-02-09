@@ -281,8 +281,10 @@ Worker::Worker(node::Environment* env)
 , m_env(env)
 {
 	XX_CHECK(worker() == nullptr);
+	
 	m_inl = IMPL::create(this);
 	m_global = m_inl->initialize();
+
 	if (m_global.IsEmpty()) {
 		XX_FATAL("Cannot complete initialization by Worker !");
 	}
@@ -400,26 +402,26 @@ static int record_strong_count = 0;
  * @class WrapObject::Inl
  */
 class WrapObject::Inl: public WrapObject {
-public:
-#define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
+ public:
+ #define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
 	
 	void clear_weak() {
-#if XX_MEMORY_TRACE_MARK
+	 #if XX_MEMORY_TRACE_MARK
 		if (IMPL::current(worker())->IsWeak(handle_)) {
 			record_strong_count++;
 			print_wrap("mark_strong");
 		}
-#endif
+	 #endif
 		IMPL::current(worker())->ClearWeak(handle_, this);
 	}
 	
 	void make_weak() {
-#if XX_MEMORY_TRACE_MARK
+	 #if XX_MEMORY_TRACE_MARK
 		if (!IMPL::current(worker())->IsWeak(handle_)) {
 			record_strong_count--;
 			print_wrap("make_weak");
 		}
-#endif
+	 #endif
 		IMPL::current(worker())->SetWeak(handle_, this, [](const WeakCallbackInfo& info) {
 			auto self = _inl_wrap(info.GetParameter());
 			self->handle_.V8_DEATH_RESET();
@@ -440,10 +442,10 @@ void WrapObject::init2(FunctionCall args) {
 	XX_ASSERT( !classs->current_attach_object_ );
 	handle_.Reset(worker_, args.This());
 	bool ok = IMPL::SetObjectPrivate(args.This(), this); XX_ASSERT(ok);
-#if XX_MEMORY_TRACE_MARK
+ #if XX_MEMORY_TRACE_MARK
 	record_wrap_count++; 
 	record_strong_count++;
-#endif
+ #endif
 	if (!self()->is_reference() || /* non reference */
 			static_cast<Reference*>(self())->ref_count() <= 0) {
 		_inl_wrap(this)->make_weak();
@@ -462,11 +464,11 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); XX_ASSERT(ok);
 		classs->current_attach_object_ = nullptr;
 		wrap->initialize();
-#if XX_MEMORY_TRACE_MARK
+	 #if XX_MEMORY_TRACE_MARK
 		record_wrap_count++; 
 		record_strong_count++;
 		print_wrap("External");
-#endif
+	 #endif
 		return wrap;
 	}
 	return nullptr;

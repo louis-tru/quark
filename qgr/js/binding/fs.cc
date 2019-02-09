@@ -35,190 +35,285 @@
 #include "cb-1.h"
 
 /**
- * @ns avocado::ajs
+ * @ns qgr::js
  */
 
 JS_BEGIN
 
-template<class T, class Err = Error, int ErrStyle = 1>
-Callback get_callback_for_t(Worker* worker, Local<JSValue> cb) {
-	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
-		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
+/**
+ * @class WrapFileStat
+ */
+class WrapFileStat: public WrapObject {
+ public:
+
+	/**
+	 * @constructor([path])
+	 * @arg [path] {String}
+	 */
+	static void constructor(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || ! args[0]->IsString(worker)) {
+			New<WrapFileStat>(args, new FileStat());
+		} else {
+			New<WrapFileStat>(args, new FileStat(args[0]->ToStringValue(worker)));
+		}
+	}
+
+	/**
+	 * @func is_valid()
+	 * @ret {bool}
+	 */
+	static void is_valid(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->is_valid() );
+	}
+
+	/**
+	 * @func is_file()
+	 * @ret {bool}
+	 */
+	static void is_file(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->is_file() );
+	}
+
+	/**
+	 * @func is_dir()
+	 * @ret {bool}
+	 */
+	static void is_dir(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->is_dir() );
+	}
+
+	/**
+	 * @func is_link()
+	 * @ret {bool}
+	 */
+	static void is_link(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->is_link() );
+	}
+
+	/**
+	 * @func is_sock()
+	 * @ret {bool}
+	 */
+	static void is_sock(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->is_sock() );
+	}
+
+	/**
+	 * @func mode()
+	 * @ret {uint64}
+	 */
+	static void mode(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->mode() );
+	}
+
+	/**
+	 * @func type()
+	 * @ret {DirentType}
+	 */
+	static void type(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->type() );
+	}
+	
+	/**
+	 * @func group()
+	 * @ret {uint64}
+	 */
+	static void group(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->group() );
+	}
+
+	/**
+	 * @func owner()
+	 * @ret {uint64}
+	 */
+	static void owner(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->owner() );
+	}
+
+	/**
+	 * @func size()
+	 * @ret {uint64}
+	 */
+	static void size(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->size() );
+	}
+
+	/**
+	 * @func nlink()
+	 * @ret {uint64}
+	 */
+	static void nlink(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->nlink() );
+	}
+
+	/**
+	 * @func ino()
+	 * @ret {uint64}
+	 */
+	static void ino(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->ino() );
+	}
+
+	/**
+	 * @func blksize()
+	 * @ret {uint64}
+	 */
+	static void blksize(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->blksize() );
+	}
+
+	/**
+	 * @func blocks()
+	 * @ret {uint64}
+	 */
+	static void blocks(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->blocks() );
+	}
+
+	/**
+	 * @func flags()
+	 * @ret {uint64}
+	 */
+	static void flags(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->flags() );
+	}
+
+	/**
+	 * @func gen()
+	 * @ret {uint64}
+	 */
+	static void gen(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->gen() );
+	}
+
+	/**
+	 * @func dev()
+	 * @ret {uint64}
+	 */
+	static void dev(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->dev() );
+	}
+
+	/**
+	 * @func rdev()
+	 * @ret {uint64}
+	 */
+	static void rdev(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->rdev() );
+	}
+
+	/**
+	 * @func atime()
+	 * @ret {uint64}
+	 */
+	static void atime(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->atime() / 1000 );
+	}
+
+	/**
+	 * @func mtime()
+	 * @ret {uint64}
+	 */
+	static void mtime(FunctionCall args) {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->mtime() / 1000 );
+	}
+
+	/**
+	 * @func ctime()
+	 * @ret {uint64}
+	 */
+	static void ctime(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->ctime() / 1000 );
+	}
+
+	/**
+	 * @func birthtime()
+	 * @ret {uint64}
+	 */
+	static void birthtime(FunctionCall args)  {
+		JS_WORKER(args);
+		JS_SELF(FileStat);
+		JS_RETURN( self->birthtime() / 1000 );
+	}
+
+	static void binding(Local<JSObject> exports, Worker* worker) {
 		
-		return Cb([worker, func](Se& d) {
-			XX_ASSERT(!func.IsEmpty());
-			HandleScope scope(worker);
-			Local<JSFunction> f = func.strong();
-			
-			if ( d.error ) {
-				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				if (ErrStyle == 0) {
-					f->Call(worker, 1, &arg);
-				} else {
-					Local<JSFunction> e = f->Get(worker, worker->strs()->Throw()).To<JSFunction>();
-					e->Call(worker, 1, &arg, f);
-				}
-			} else {
-				T* data = static_cast<T*>(d.data);
-				Local<JSValue> arg = worker->New(*data);
-				if (ErrStyle == 0) {
-					Local<JSValue> args[2] = { worker->NewNull(), arg };
-					f->Call(worker, 2, args);
-				} else {
-					f->Call(worker, 1, &arg);
-				}
-			}
-		});
-	} else {
-		return 0;
+		JS_DEFINE_CLASS(FileStat, constructor, {
+			JS_SET_CLASS_METHOD(isValid, is_valid);
+			JS_SET_CLASS_METHOD(isFile, is_file);
+			JS_SET_CLASS_METHOD(isDir, is_dir);
+			JS_SET_CLASS_METHOD(isDirectory, is_dir);
+			JS_SET_CLASS_METHOD(isLink, is_link);
+			JS_SET_CLASS_METHOD(isSock, is_sock);
+			JS_SET_CLASS_METHOD(mode, mode);
+			JS_SET_CLASS_METHOD(type, type);
+			JS_SET_CLASS_METHOD(group, group);
+			JS_SET_CLASS_METHOD(owner, owner);
+			JS_SET_CLASS_METHOD(size, size);
+			JS_SET_CLASS_METHOD(nlink, nlink);
+			JS_SET_CLASS_METHOD(ino, ino);
+			JS_SET_CLASS_METHOD(blksize, blksize);
+			JS_SET_CLASS_METHOD(blocks, blocks);
+			JS_SET_CLASS_METHOD(flags, flags);
+			JS_SET_CLASS_METHOD(gen, gen);
+			JS_SET_CLASS_METHOD(dev, dev);
+			JS_SET_CLASS_METHOD(rdev, rdev);
+			JS_SET_CLASS_METHOD(atime, atime);
+			JS_SET_CLASS_METHOD(mtime, mtime);
+			JS_SET_CLASS_METHOD(ctime, ctime);
+			JS_SET_CLASS_METHOD(birthtime, birthtime);
+		}, NULL);
 	}
-}
-
-template<class Err = Error, bool ErrStyle = 1>
-Callback get_callback_for_buffer_2(Worker* worker, Local<JSValue> cb, Encoding encoding) {
-	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
-		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
-
-		return Cb([worker, func, encoding](Se& d) {
-			XX_ASSERT(!func.IsEmpty());
-			HandleScope scope(worker);
-			Local<JSFunction> f = func.strong();
-			
-			if ( d.error ) {
-				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				if (ErrStyle == 0) {
-					f->Call(worker, 1, &arg);
-				} else {
-					Local<JSFunction> e = f->Get(worker, worker->strs()->Throw()).To<JSFunction>();
-					e->Call(worker, 1, &arg, f);
-				}
-			} else {
-				Buffer* data = static_cast<Buffer*>(d.data);
-				Local<JSValue> arg;
-				switch (encoding) {
-					case Encoding::hex: // 编码
-					case Encoding::base64: {
-						Buffer buff = Coder::encoding(encoding, *data);
-						arg = worker->NewString(buff);
-						break;
-					}
-					case Encoding::unknown:
-						arg = worker->New(*data);
-						break;
-					default: {// 解码 to ucs2
-						Ucs2String str(Coder::decoding_to_uint16(encoding, *data));
-						arg = worker->New(str);
-						break;
-					}
-				}
-				if (ErrStyle == 0) {
-					Local<JSValue> args[2] = { worker->NewNull(), arg };
-					f->Call(worker, 2, args);
-				} else {
-					f->Call(worker, 1, &arg);
-				}
-			}
-		});
-	} else {
-		return 0;
-	}
-}
-
-template<class Err = Error, bool ErrStyle = 1>
-Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
-	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
-		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
-		
-		return Cb([worker, func](Se& d) {
-			XX_ASSERT(!func.IsEmpty());
-			HandleScope scope(worker);
-			
-			Local<JSFunction> f = func.strong();
-			
-			if ( d.error ) {
-				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				if (ErrStyle == 0) {
-					f->Call(worker, 1, &arg);
-				} else {
-					Local<JSFunction> e = f->Get(worker, worker->strs()->Throw()).To<JSFunction>();
-					e->Call(worker, 1, &arg, f);
-				}
-			} else {
-				IOStreamData* data = static_cast<IOStreamData*>(d.data);
-				Local<JSObject> arg = worker->NewObject();
-				arg->Set(worker, worker->strs()->data(), worker->New(data->buffer()) );
-				arg->Set(worker, worker->strs()->complete(), worker->New(data->complete()) );
-				arg->Set(worker, worker->strs()->size(), worker->New(data->size()) );
-				arg->Set(worker, worker->strs()->total(), worker->New(data->total()) );
-				if (ErrStyle == 0) {
-					Local<JSValue> args[2] = { worker->NewNull(), arg };
-					f->Call(worker, 2, args);
-				} else {
-					f->Call(worker, 1, reinterpret_cast<Local<JSValue>*>(&arg));
-				}
-			}
-		});
-	} else {
-		return 0;
-	}
-}
-
-template<bool ErrStyle = 1>
-Callback get_callback_for_none_2(Worker* worker, Local<JSValue> cb) {
-	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
-		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
-		
-		return Cb([worker, func](Se& d) {
-			XX_ASSERT(!func.IsEmpty());
-			HandleScope scope(worker);
-			Local<JSFunction> f = func.strong();
-			if ( d.error ) {
-				Local<JSValue> arg = worker->New(*static_cast<const Error*>(d.error));
-				if (ErrStyle == 0) {
-					f->Call(worker, 1, &arg);
-				} else {
-					Local<JSFunction> e = f->Get(worker, worker->strs()->Throw()).To<JSFunction>();
-					e->Call(worker, 1, &arg, f);
-				}
-			} else {
-				if (ErrStyle == 0) {
-					Local<JSValue> arg = worker->NewNull();
-					f->Call(worker, 1, &arg);
-				} else {
-					f->Call(worker);
-				}
-			}
-		});
-	} else {
-		return 0;
-	}
-}
-
-Callback get_callback_for_none(Worker* worker, Local<JSValue> cb) {
-	return get_callback_for_none_2(worker, cb);
-}
-
-Callback get_callback_for_buffer(Worker* worker, Local<JSValue> cb, Encoding encoding) {
-	return get_callback_for_buffer_2(worker, cb, encoding);
-}
-
-Callback get_callback_for_buffer_http_error(Worker* worker, Local<JSValue> cb, Encoding encoding) {
-	return get_callback_for_buffer_2<HttpError>(worker, cb, encoding);
-}
-
-Callback get_callback_for_io_stream(Worker* worker, Local<JSValue> cb) {
-	return get_callback_for_io_stream2(worker, cb);
-}
-
-Callback get_callback_for_io_stream_http_error(Worker* worker, Local<JSValue> cb) {
-	return get_callback_for_io_stream2<HttpError>(worker, cb);
-}
+};
 
 /**
- * @class NativeFS
+ * @class NativeFileHelper
  */
-class NativeFS {
-public:
+class NativeFileHelper {
+ public:
 	
 	/**
 	 * @func chmod_r_sync(path[,mode])
@@ -265,7 +360,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
-				cb = get_callback_for_none_2<0>(worker, args[args_index]);
+				cb = get_callback_for_none(worker, args[args_index]);
 			}
 			JS_RETURN( FileHelper::chmod_r(args[0]->ToStringValue(worker), mode, cb) );
 		}
@@ -294,7 +389,7 @@ public:
 				!args[1]->IsUint32(worker) || !args[2]->IsUint32(worker) ) {
 			if ( sync ) {
 				JS_THROW_ERR(
-					"* @func chownSyncR(path, owner, group)\n"
+					"* @func chownrSync(path, owner, group)\n"
 					"* @arg path {String}\n"
 					"* @arg owner {uint}\n"
 					"* @arg group {uint}\n"
@@ -302,7 +397,7 @@ public:
 				);
 			} else {
 				JS_THROW_ERR(
-					"* @func chownR(path, owner, group[,cb])\n"
+					"* @func chownr(path, owner, group[,cb])\n"
 					"* @arg path {String}\n"
 					"* @arg owner {uint}\n"
 					"* @arg group {uint}\n"
@@ -319,7 +414,7 @@ public:
 		} else {
 			Callback cb; 
 			if ( args.Length() > 3 ) {
-				cb = get_callback_for_none_2<0>(worker, args[3]);
+				cb = get_callback_for_none(worker, args[3]);
 			}
 			JS_RETURN( FileHelper::chown_r(args[0]->ToStringValue(worker),
 																			args[1]->ToUint32Value(worker),
@@ -346,14 +441,14 @@ public:
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ){
 				JS_THROW_ERR(
-					"* @func mkdirSyncP(path[,mode])\n"
+					"* @func mkdirpSync(path[,mode])\n"
 					"* @arg path {String}\n"
 					"* @arg [mode=default_mode] {uint}\n"
 					"* @ret {bool}\n"
 				);
 			} else {
 				JS_THROW_ERR(
-					"* @func mkdirP(path[,mode[,cb]][,cb])\n"
+					"* @func mkdirp(path[,mode[,cb]][,cb])\n"
 					"* @arg path {String}\n"
 					"* @arg [mode=default_mode] {uint}\n"
 					"* @arg [cb] {Function}\n"
@@ -372,7 +467,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
-				cb = get_callback_for_none_2<0>(worker, args[args_index]);
+				cb = get_callback_for_none(worker, args[args_index]);
 			}
 			FileHelper::mkdir_p(args[0]->ToStringValue(worker), mode, cb);
 		}
@@ -395,13 +490,13 @@ public:
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
 			if ( sync ) {
 				JS_THROW_ERR(
-					"* @func removeSyncR(path)\n"
+					"* @func removerSync(path)\n"
 					"* @arg path {String}\n"
 					"* @ret {bool}\n"
 				);
 			} else {
 				JS_THROW_ERR(
-					"* @func removeR(path)\n"
+					"* @func remover(path)\n"
 					"* @arg path {String}\n"
 					"* @arg [cb] {Function}\n"
 					"* @ret {uint} return id\n"
@@ -413,7 +508,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_none_2<0>(worker, args[1]);
+				cb = get_callback_for_none(worker, args[1]);
 			}
 			JS_RETURN( FileHelper::rm_r(args[0]->ToStringValue(worker), cb) );
 		}
@@ -459,7 +554,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
-				cb = get_callback_for_none_2<0>(worker, args[2]);
+				cb = get_callback_for_none(worker, args[2]);
 			}
 			JS_RETURN( FileHelper::cp(args[0]->ToStringValue(worker),
 																 args[1]->ToStringValue(worker), cb) );
@@ -506,7 +601,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
-				cb = get_callback_for_none_2<0>(worker, args[2]);
+				cb = get_callback_for_none(worker, args[2]);
 			}
 			JS_RETURN( FileHelper::cp_r(args[0]->ToStringValue(worker),
 																	 args[1]->ToStringValue(worker), cb) );
@@ -545,7 +640,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_t<Array<Dirent>, Error, 0>(worker, args[1]);
+				cb = get_callback_for_type_array_dirent(worker, args[1]);
 			}
 			FileHelper::readdir( args[0]->ToStringValue(worker), cb);
 		}
@@ -584,20 +679,20 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_t<Bool, Error, 0>(worker, args[1]);
+				cb = get_callback_for_type_bool(worker, args[1]);
 			}
 			FileHelper::is_file(args[0]->ToStringValue(worker), cb);
 		}
 	}
 	
 	/**
-	 * @func exists_dir_sync(path)
+	 * @func isDirectorySync(path)
 	 * @arg path {String}
 	 * @ret {bool}
 	 */
 	
 	/**
-	 * @func is_directory(path[,cb])
+	 * @func isDirectory(path[,cb])
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
@@ -623,7 +718,7 @@ public:
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
-				cb = get_callback_for_t<Bool, Error, 0>(worker, args[1]);
+				cb = get_callback_for_type_bool(worker, args[1]);
 			}
 			FileHelper::is_directory(args[0]->ToStringValue(worker), cb);
 		}
@@ -645,39 +740,55 @@ public:
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
+		WrapFileStat::binding(exports, worker);
 		//
-		JS_SET_PROPERTY(FILE_UNKNOWN, FILE_UNKNOWN);
-		JS_SET_PROPERTY(FILE_FILE, FILE_FILE);
-		JS_SET_PROPERTY(FILE_DIR, FILE_DIR);
-		JS_SET_PROPERTY(FILE_LINK, FILE_LINK);
-		JS_SET_PROPERTY(FILE_FIFO, FILE_FIFO);
-		JS_SET_PROPERTY(FILE_SOCKET, FILE_SOCKET);
-		JS_SET_PROPERTY(FILE_CHAR, FILE_CHAR);
-		JS_SET_PROPERTY(FILE_BLOCK, FILE_BLOCK);
-		//
+		JS_SET_PROPERTY(FOPEN_ACCMODE, FOPEN_ACCMODE);
+		JS_SET_PROPERTY(FOPEN_RDONLY, FOPEN_RDONLY);
+		JS_SET_PROPERTY(FOPEN_WRONLY, FOPEN_WRONLY);
+		JS_SET_PROPERTY(FOPEN_RDWR, FOPEN_RDWR);
+		JS_SET_PROPERTY(FOPEN_CREAT, FOPEN_CREAT);
+		JS_SET_PROPERTY(FOPEN_EXCL, FOPEN_EXCL);
+		JS_SET_PROPERTY(FOPEN_NOCTTY, FOPEN_NOCTTY);
+		JS_SET_PROPERTY(FOPEN_TRUNC, FOPEN_TRUNC);
+		JS_SET_PROPERTY(FOPEN_APPEND, FOPEN_APPEND);
+		JS_SET_PROPERTY(FOPEN_NONBLOCK, FOPEN_NONBLOCK);
+		JS_SET_PROPERTY(FOPEN_R, FOPEN_R);
+		JS_SET_PROPERTY(FOPEN_W, FOPEN_W);
+		JS_SET_PROPERTY(FOPEN_A, FOPEN_A);
+		JS_SET_PROPERTY(FOPEN_RP, FOPEN_RP);
+		JS_SET_PROPERTY(FOPEN_WP, FOPEN_WP);
+		JS_SET_PROPERTY(FOPEN_AP, FOPEN_AP);
+		JS_SET_PROPERTY(FTYPE_UNKNOWN, FTYPE_UNKNOWN);
+		JS_SET_PROPERTY(FTYPE_FILE, FTYPE_FILE);
+		JS_SET_PROPERTY(FTYPE_DIR, FTYPE_DIR);
+		JS_SET_PROPERTY(FTYPE_LINK, FTYPE_LINK);
+		JS_SET_PROPERTY(FTYPE_FIFO, FTYPE_FIFO);
+		JS_SET_PROPERTY(FTYPE_SOCKET, FTYPE_SOCKET);
+		JS_SET_PROPERTY(FTYPE_CHAR, FTYPE_CHAR);
+		JS_SET_PROPERTY(FTYPE_BLOCK, FTYPE_BLOCK);
 		JS_SET_PROPERTY(DEFAULT_MODE, FileHelper::default_mode);
 		// api
-		JS_SET_METHOD(chmodSyncR, chmod_r<true>);
-		JS_SET_METHOD(chownSyncR, chown_r<true>);
-		JS_SET_METHOD(mkdirSyncP, mkdir_p<true>);
-		JS_SET_METHOD(removeSyncR, rm_r<true>);
+		JS_SET_METHOD(chmodrSync, chmod_r<true>);
+		JS_SET_METHOD(chownrSync, chown_r<true>);
+		JS_SET_METHOD(mkdirpSync, mkdir_p<true>);
+		JS_SET_METHOD(removerSync, rm_r<true>);
 		JS_SET_METHOD(copySync, cp<true>);
-		JS_SET_METHOD(copySyncR, cp_r<true>);
+		JS_SET_METHOD(copyrSync, cp_r<true>);
 		JS_SET_METHOD(readdirSync, readdir<true>);
 		JS_SET_METHOD(isFileSync, is_file<true>);
 		JS_SET_METHOD(isDirectorySync, is_directory<true>);
 		JS_SET_METHOD(abort, abort);
-		JS_SET_METHOD(mkdirP, mkdir_p<false>);
+		JS_SET_METHOD(mkdirp, mkdir_p<false>);
 		JS_SET_METHOD(readdir, readdir<false>);
 		JS_SET_METHOD(isFile, is_file<false>);
 		JS_SET_METHOD(isDirectory, is_directory<false>);
-		JS_SET_METHOD(chmodR, chmod_r<false>);
-		JS_SET_METHOD(chownR, chown_r<false>);
-		JS_SET_METHOD(removeR, rm_r<false>);
+		JS_SET_METHOD(chmodr, chmod_r<false>);
+		JS_SET_METHOD(chownr, chown_r<false>);
+		JS_SET_METHOD(remover, rm_r<false>);
 		JS_SET_METHOD(copy, cp<false>);
-		JS_SET_METHOD(copyR, cp_r<false>);
+		JS_SET_METHOD(copyr, cp_r<false>);
 	}
 };
 
-JS_REG_MODULE(qgr_fs, NativeFS);
+JS_REG_MODULE(qgr_fs, NativeFileHelper);
 JS_END

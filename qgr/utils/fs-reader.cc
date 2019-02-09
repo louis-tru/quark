@@ -40,7 +40,7 @@ XX_NS(qgr)
 String inl__format_part_path(cString& path);
 
 class FileReader::Core {
-public:
+ public:
 	
 	enum Protocol {
 		FILE = 0,
@@ -347,7 +347,7 @@ public:
 		zips_.clear();
 	}
 	
-private:
+ private:
 	Mutex zip_mutex_;
 	Map<String, ZipReader*> zips_;
 };

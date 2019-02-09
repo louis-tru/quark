@@ -143,17 +143,18 @@ class XX_EXPORT SimpleHash: public Object {
 	}
 };
 
-XX_EXPORT extern uint hash_code(cchar* data, uint len);
-XX_EXPORT extern String hash(cchar* data, uint len);
-XX_EXPORT extern String hash(cString& str);
-XX_EXPORT extern int random(uint start = 0, uint end = 0x7fffffff);
-XX_EXPORT extern int fix_random(uint a, ...);
-XX_EXPORT extern void fatal(cchar* file, uint line, cchar* func, cchar* msg = 0, ...);
-XX_EXPORT extern uint64 iid();
-XX_EXPORT extern uint   iid32();
-XX_EXPORT extern String version();
-XX_EXPORT extern int64  parse_time(cString& str);
-XX_EXPORT extern String gmt_time_string(int64 second);
+XX_EXPORT uint hash_code(cchar* data, uint len);
+XX_EXPORT String hash(cchar* data, uint len);
+XX_EXPORT String hash(cString& str);
+XX_EXPORT int random(uint start = 0, uint end = 0x7fffffff);
+XX_EXPORT int fix_random(uint a, ...);
+XX_EXPORT void fatal(cchar* file, uint line, cchar* func, cchar* msg = 0, ...);
+XX_EXPORT uint64 iid();
+XX_EXPORT uint   iid32();
+XX_EXPORT String version();
+XX_EXPORT int64  parse_time(cString& str);
+XX_EXPORT String gmt_time_string(int64 second);
+XX_EXPORT String platform();
 
 namespace _right_reference {
 	// remove_reference

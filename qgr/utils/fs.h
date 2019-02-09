@@ -57,7 +57,6 @@ enum FileOpenFlag {
 	FOPEN_TRUNC = 01000,
 	FOPEN_APPEND = 02000,
 	FOPEN_NONBLOCK = 04000,
-	//
 	// r 打开只读文件，该文件必须存在。
 	FOPEN_R = FOPEN_RDONLY,
 	// w 打开只写文件，若文件存在则文件长度清为零，即该文件内容会消失，若文件不存在则建立该文件。
@@ -76,19 +75,19 @@ enum FileOpenFlag {
 };
 
 enum FileType {
-	FILE_UNKNOWN,
-	FILE_FILE,
-	FILE_DIR,
-	FILE_LINK,
-	FILE_FIFO,
-	FILE_SOCKET,
-	FILE_CHAR,
-	FILE_BLOCK
+	FTYPE_UNKNOWN,
+	FTYPE_FILE,
+	FTYPE_DIR,
+	FTYPE_LINK,
+	FTYPE_FIFO,
+	FTYPE_SOCKET,
+	FTYPE_CHAR,
+	FTYPE_BLOCK
 };
 
 class XX_EXPORT Dirent: public Object {
  public:
-	inline Dirent() { }
+	inline Dirent() {}
 	inline Dirent(cString& n, cString& p, FileType t)
 		: name(n), pathname(p), type(t) {
 	}
@@ -136,22 +135,9 @@ class XX_EXPORT FileStat: public Object {
 };
 
 /**
- * @class IFile
- */
-class XX_EXPORT IFile {
- public:
-	typedef ProtocolTraits Traits;
-	virtual bool is_open() = 0;
-	virtual bool open(int flag = FOPEN_R) = 0;
-	virtual bool close() = 0;
-	virtual int read(void* buffer, int64 size, int64 offset = -1) = 0;
-	virtual int write(const void* buffer, int64 size, int64 offset = -1) = 0;
-};
-
-/**
  * @class File
  */
-class XX_EXPORT File: public Object, public IFile {
+class XX_EXPORT File: public Object {
 	XX_HIDDEN_ALL_COPY(File);
  public:
 	typedef DefaultTraits Traits;
@@ -176,7 +162,7 @@ class XX_EXPORT AsyncFile: public Object {
  public:
 	typedef DefaultTraits Traits;
 	class XX_EXPORT Delegate {
-	public:
+	 public:
 		virtual void trigger_async_file_open(AsyncFile* file) = 0;
 		virtual void trigger_async_file_close(AsyncFile* file) = 0;
 		virtual void trigger_async_file_error(AsyncFile* file, cError& error) = 0;
@@ -206,7 +192,7 @@ class XX_EXPORT FileHelper {
 	static const uint default_mode;
 	
 	/**
-	 * @func each_sync 递归遍历子子文件与子目录, 遍历回调回返0停止遍历
+	 * @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
 	 */
 	static bool each_sync(cString& path, cCb& cb, bool internal = false);
 	

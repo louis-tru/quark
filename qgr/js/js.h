@@ -66,9 +66,9 @@
 #define JS_ATTACH(args) if (WrapObject::attach(args)) return
 
 #define JS_TYPE_CHECK(T, S)  \
-while (false) { \
-	*(static_cast<T* volatile*>(0)) = static_cast<S*>(0); \
-}
+	while (false) { \
+		*(static_cast<T* volatile*>(0)) = static_cast<S*>(0); \
+	}
 
 // define class macro
 #define JS_NEW_CLASS(name, constructor, block, base) \
@@ -556,8 +556,8 @@ class XX_EXPORT TryCatch: public NoCopy {
 class XX_EXPORT Worker: public Object {
 	XX_HIDDEN_ALL_COPY(Worker);
  public:
-	typedef void  (*BindingCallback)(Local<JSObject> exports, Worker* worker);
-	typedef void  (*WrapAttachCallback)(WrapObject* wrap);
+	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
+	typedef void (*WrapAttachCallback)(WrapObject* wrap);
 	
 	Worker(node::Environment* env);
 	

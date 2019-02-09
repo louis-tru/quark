@@ -51,9 +51,9 @@ class NativeFileReader {
 		String s = arg->ToStringValue(worker);
 		en = Coder::parse_encoding( s );
 		if ( en == Encoding::unknown ) {
-			worker->throw_err(
-												"Unknown encoding \"%s\", the optional value is "
-												"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s ); return false;
+			worker->throw_err("Unknown encoding \"%s\", the optional value is "
+												"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s );
+			return false;
 		}
 		return true;
 	}
