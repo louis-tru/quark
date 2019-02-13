@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_value');
+module.exports = bindingNative('_value');
 
 // ========== Enum ==========
 // AUTO

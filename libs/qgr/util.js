@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var _pkg = requireNative('_pkg');
-var _util = requireNative('_util');
+var _pkg = bindingNative('_pkg');
+var _util = bindingNative('_util');
 
 /**************************************************************************/
 
@@ -174,6 +174,11 @@ exports = module.exports = {
 	 * @func isAbsolute(path)
 	 */
 	isAbsolute: _pkg.isAbsolute,
+
+	/**
+	 * @field pkg
+	 */
+	pkg: _pkg,
 	
 	/**
 	 * Empty function
