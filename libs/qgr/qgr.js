@@ -38,7 +38,7 @@ import './ctr';
 import './display_port';
 import './css';
 
- /**
+/**
 	* @class View
 	* @class Sprite
 	* @class Label
@@ -59,11 +59,11 @@ import './css';
 	* @class Root
 	*/
 
- /**
+/**
 	* @func lock(func) Lock gui render thread
 	*/
 
- /**
+/**
 	* @class TextFont abstract class
 	* @get,set textBackgroundColor {ColorValue}
 	* @get,set textColor {ColorValue}
@@ -76,7 +76,7 @@ import './css';
 	* @end
 	*/
 
- /**
+/**
 	* @class TextLayout abstract class
 	* @bases TextFont
 	* @get,set textOverflow {TextOverflowValue}
@@ -84,7 +84,7 @@ import './css';
 	* @end
 	*/
 
- /**
+/**
 	* @class View
 	*/
 class View extends event.NativeNotification {
@@ -183,7 +183,7 @@ class View extends event.NativeNotification {
 	}
 }
 
- /**
+/**
 	* @class View
 	*
 	* @constructor() 
@@ -314,7 +314,7 @@ class View extends event.NativeNotification {
 	* @end
 	*/
 
- /**
+/**
 	* @class Sprite
 	* @bases View
 	* @get,set src {String}
@@ -330,7 +330,7 @@ class View extends event.NativeNotification {
 	* @end
 	*/
 
- /**
+/**
 	* @class Label
 	* @bases View, TextFont
 	*  @get length {uint}
@@ -341,21 +341,21 @@ class View extends event.NativeNotification {
 	* @end
 	*/
 
- /**
+/**
 	* @class Layout abstract class
 	* @bases View
 	* @get clientWidth {float}
 	* @get clientHeight {float}
 	* @end 
 	*/
- 
- /**
+
+/**
 	* @class Span
 	* @bases Layout, TextLayout
 	* @end
 	*/
 
- /**
+/**
 	* @class TextNode
 	* @bases Span
 	* @get length {uint}
@@ -365,7 +365,7 @@ class View extends event.NativeNotification {
 	* @end
 	*/
 
- /**
+/**
 	* @class Box abstract class
 	* @bases Layout
 	* @get,set width {Value}
@@ -490,7 +490,7 @@ class Panel {
  * @bases Panel
  */
 
- /**
+/**
 	* @class BasicScroll
 	*
 	* @func scrollTo(scroll[,duration[,curve]])
@@ -531,7 +531,7 @@ class Scroll {
 	event onScroll;
 }
 
- /** 
+/**
 	* @class Scroll
 	* @bases Panel,BasicScroll
 	*
@@ -546,8 +546,8 @@ class Scroll {
 	* @end
 	*/
 
- /**
-	* @class Button 
+/**
+	* @class Button
 	* @bases Hybrid
 	*/
 export class Button extends exports.Button {
@@ -607,7 +607,7 @@ export class Button extends exports.Button {
 	}
 }
 
- /**
+/**
 	* @class Button
 	* @bases Hybrid
 	*
@@ -619,7 +619,7 @@ export class Button extends exports.Button {
 	* @end
 	*/
 
- /**
+/**
 	* @class Text
 	* @bases Hybrid
 	* @get length {uint}
@@ -629,7 +629,7 @@ export class Button extends exports.Button {
 	* @end
 	*/
 
- /**
+/**
 	* @class Input
 	* @bases Text
 	* @get,set type {KeyboardType}
@@ -641,7 +641,7 @@ export class Button extends exports.Button {
 	* @end
 	*/
 
- /**
+/**
 	* @class Textarea
 	* @bases Input, BasicScroll
 	* @end

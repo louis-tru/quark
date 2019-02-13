@@ -30,24 +30,24 @@
 
 export bindingNative('_fs');
 
- /**
+/**
 	* @enum FileType
-	* FILE_UNKNOWN,
-	* FILE_FILE,
-	* FILE_DIR,
-	* FILE_LINK,
-	* FILE_FIFO,
-	* FILE_SOCKET,
-	* FILE_CHAR,
-	* FILE_BLOCK
+	* FTYPE_UNKNOWN,
+	* FTYPE_FILE,
+	* FTYPE_DIR,
+	* FTYPE_LINK,
+	* FTYPE_FIFO,
+	* FTYPE_SOCKET,
+	* FTYPE_CHAR,
+	* FTYPE_BLOCK
 	* @end
 	*/
 
- /**
+/**
 	* DEFAULT_MODE
 	*/
 
- /**
+/**
 	* @object Dirent
 	* name     {String}
 	*	pathname {String}
@@ -55,53 +55,53 @@ export bindingNative('_fs');
 	* @end
 	*/
 
- /**
+/**
 	*
 	* @func abort(id) abort async io
 	* @arg id {uint}
 	*
-	* @func chmodR(path[,mode[,cb]])
-	* @func chmodR(path[,cb])
+	* @func chmodr(path[,mode[,cb]])
+	* @func chmodr(path[,cb])
 	* @arg path {String}
 	* @arg [mode=DEFAULT_MODE] {uint}
 	* @arg [cb] {Function}
 	* @ret {uint} return id
 	*
-	* @func chmodSyncR(path[,mode])
+	* @func chmodrSync(path[,mode])
 	* @arg path {String}
 	* @arg [mode=DEFAULT_MODE] {uint}
 	* @ret {bool}
 	*
-	* @func chownR(path, owner, group[,cb])
+	* @func chownr(path, owner, group[,cb])
 	* @arg path {String}
 	* @arg owner {uint}
 	* @arg group {uint}
 	* @arg [cb] {Function}
 	* @ret {uint} return id
 	*
-	* @func chownSyncR(path, owner, group)
+	* @func chownrSync(path, owner, group)
 	* @arg path {String}
 	* @arg owner {uint}
 	* @arg group {uint}
 	* @ret {bool}
 	*
-	* @func mkdirP(path[,mode[,cb]])
-	* @func mkdirP(path[,cb])
+	* @func mkdirp(path[,mode[,cb]])
+	* @func mkdirp(path[,cb])
 	* @arg path {String}
 	* @arg [mode=default_mode] {uint}
 	* @arg [cb] {Function}
 	*
-	* @func mkdirSyncP(path[,mode])
+	* @func mkdirpSync(path[,mode])
 	* @arg path {String}
 	* @arg [mode=default_mode] {uint}
 	* @ret {bool}
 	*
-	* @func removeR(path[,cb])
+	* @func remover(path[,cb])
 	* @arg path {String}
 	* @arg [cb] {Function}
 	* @ret {uint} return id
 	*
-	* @func removeSyncR(path)
+	* @func removerSync(path)
 	* @arg path {String}
 	* @ret {bool}
 	*
@@ -116,13 +116,13 @@ export bindingNative('_fs');
 	* @arg target {String}
 	* @ret {bool}
 	*
-	* @func copyR(path, target[,cb])
+	* @func copyr(path, target[,cb])
 	* @arg path {String}
 	* @arg target {String}
 	* @arg [cb] {Function}
 	* @ret {uint} return id
 	*
-	* @func copySyncR(path, target)
+	* @func copyrSync(path, target)
 	* @arg path {String}
 	* @arg target {String}
 	* @ret {bool}
@@ -135,7 +135,7 @@ export bindingNative('_fs');
 	* @func readdirSync(path)
 	* @func ls_sync(path)
 	* @arg path {String}
-	* @ret {Array} return Array<Dirent>	
+	* @ret {Array} return Array<Dirent>
 	*
 	* @func isFile(path[,cb])
 	* @arg path {String}

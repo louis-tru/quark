@@ -31,7 +31,7 @@
 import './util';
 import './app';
 import { NativeNotification } from './event';
-export bindingNative('_qgr');
+export bindingNative('_display_port');
 
 /**
  * @class DisplayPort
@@ -60,7 +60,7 @@ class DisplayPort extends NativeNotification {
  * STATUS_BAR_STYLE_BLACK
  */
 
- /**
+/**
 	* @class DisplayPort
 	*
 	* @func lockSize([width[,height]])
@@ -124,7 +124,7 @@ class DisplayPort extends NativeNotification {
 
 
 	/**
-	 * @get defaultAtomPixel {float} 
+	 * @get defaultAtomPixel {float}
 	 */
 
 util.extendClass(exports.DisplayPort, DisplayPort);

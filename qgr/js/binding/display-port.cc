@@ -357,7 +357,11 @@ class WrapDisplayPort: public WrapObject {
 		JS_SET_PROPERTY(ORIENTATION_USER_PORTRAIT, DisplayPort::ORIENTATION_USER_PORTRAIT);
 		JS_SET_PROPERTY(ORIENTATION_USER_LANDSCAPE, DisplayPort::ORIENTATION_USER_LANDSCAPE);
 		JS_SET_PROPERTY(ORIENTATION_USER_LOCKED, DisplayPort::ORIENTATION_USER_LOCKED);
-		
+
+		// emun StatusBarStyle
+		JS_SET_PROPERTY(STATUS_BAR_STYLE_WHITE, DisplayPort::STATUS_BAR_STYLE_WHITE);
+		JS_SET_PROPERTY(STATUS_BAR_STYLE_BLACK, DisplayPort::STATUS_BAR_STYLE_BLACK);
+
 		JS_DEFINE_CLASS(DisplayPort, constructor, {
 			JS_SET_CLASS_METHOD(lockSize, lock_size);
 			JS_SET_CLASS_METHOD(nextFrame, next_frame);
@@ -382,8 +386,5 @@ class WrapDisplayPort: public WrapObject {
 	}
 };
 
-void binding_display(Local<JSObject> exports, Worker* worker) {
-	WrapDisplayPort::binding(exports, worker);
-}
-
+JS_REG_MODULE(_display_port, WrapDisplayPort);
 JS_END

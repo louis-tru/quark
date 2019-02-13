@@ -120,7 +120,6 @@ bool WrapViewBase::remove_event_listener(cString& name, int id) {
 }
 
 void binding_app(Local<JSObject> exports, Worker* worker);
-void binding_display(Local<JSObject> exports, Worker* worker);
 void binding_view(Local<JSObject> exports, Worker* worker);
 void binding_sprite(Local<JSObject> exports, Worker* worker);
 void binding_layout(Local<JSObject> exports, Worker* worker);
@@ -163,7 +162,6 @@ class NativeQgr {
 		worker->binding_module("_value");	XX_DEBUG("binding qgr_value ok");
 		worker->binding_module("_event");	XX_DEBUG("binding qgr_event ok");
 		binding_app(exports, worker); 			XX_DEBUG("binding app ok");
-		binding_display(exports, worker); 	XX_DEBUG("binding display ok");
 		binding_view(exports, worker); 			XX_DEBUG("binding view ok");
 		binding_sprite(exports, worker); 		XX_DEBUG("binding sprite ok");
 		binding_layout(exports, worker); 		XX_DEBUG("binding layout ok");

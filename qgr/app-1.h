@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __trurh__gui_app_1__
-#define __trurh__gui_app_1__
+#ifndef __qgr__gui_app_1__
+#define __qgr__gui_app_1__
 
 #include "app.h"
 

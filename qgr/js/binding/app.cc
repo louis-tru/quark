@@ -500,7 +500,7 @@ class WrapNativeGUIApplication: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(root, root);
 			JS_SET_CLASS_ACCESSOR(focusView, focus_view);
 			JS_SET_CLASS_ACCESSOR(defaultTextBackgroundColor,
-													default_text_background_color, set_default_text_background_color);
+														default_text_background_color, set_default_text_background_color);
 			JS_SET_CLASS_ACCESSOR(defaultTextColor, default_text_color, set_default_text_color);
 			JS_SET_CLASS_ACCESSOR(defaultTextSize, default_text_size, set_default_text_size);
 			JS_SET_CLASS_ACCESSOR(defaultTextStyle, default_text_style, set_default_text_style);

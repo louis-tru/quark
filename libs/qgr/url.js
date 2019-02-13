@@ -28,9 +28,54 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const util = require('./util');
-const pkg = require('pkg');
-const path = require('path');
+export bindingNative('_path');
+
+/**
+ * @func basename(path)
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func dirname(path)
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func extname(path)
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func executable()
+ * @ret {String}
+ *
+ * @func documents([path])
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func temp([path])
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func resources([path])
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func is_local_absolute(path)
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func fallbackPath(path)
+ * @arg path {String}
+ * @ret {String}
+ *
+ * @func cwd()
+ * @ret {String}
+ *
+ * @func chdir(path)
+ * @arg path {String}
+ * @ret {bool}
+ *
+ */
+
+const _pkg = bindingNative('_pkg');
 
 function split_path(self) {
 	if (self._is_split) return;
@@ -57,7 +102,7 @@ function split_path(self) {
 			val = value;
 		}
 	}
-	self._value = pkg.resolve(val);
+	self._value = _pkg.resolve(val);
 }
 
 function parse_base_ext_name(self) {
@@ -353,62 +398,15 @@ module.exports = {
 
 	URL: URL,
 
-	/**
-	 * @func executable()
-	 * @ret {String}
-	 */
-	executable: util.executable,
-
-	/**
-	 * @func documents([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	documents: util.documents,
-
-	/**
-	 * @func temp([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	temp: util.temp,
-
-	/**
-	 * @func resources([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	resources: util.resources,
-
-	/**
-	 * @func fallback(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	fallback: util.fallback,
-
-	/**
-	 * @func cwd()
-	 * @ret {String}
-	 */
-	cwd: util.cwd,
-
-	/**
-	 * @func chdir(path)
-	 * @arg path {String}
-	 * @ret {bool}
-	 */
-	chdir: util.chdir,
-
 	/** 
-	 * @func isAbsolute() is absolute path
+	 * @func isAbsolute(path) is absolute path
 	 */
-	isAbsolute: pkg.isAbsolute, // func
+	isAbsolute: _pkg.isAbsolute, // func
 	
 	/**
-	 * @func resolve() resolve path 
+	 * @func resolve(path) resolve path 
 	 */
-	resolve: pkg.resolve, // func
+	resolve: _pkg.resolve, // func
 
 	/**
 	 * full filename
@@ -424,21 +422,6 @@ module.exports = {
 		return get_path(path).path;
 	},
 	
-	// dirname path dir 
-	dirname: function (name) {
-		return path.dirname(name);
-	},
-		
-	// base name
-	basename: function (name) {
-		return path.basename(name);
-	},
-	
-	// path extname
-	extname: function (name) {
-		return path.extname(name);
-	},
-
 	search: function (path) {
 		return get_path(path).search;
 	},
