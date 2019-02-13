@@ -224,7 +224,7 @@ class WrapVideo: public WrapViewBase {
 
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("qgr_value");
+		worker->binding_module("_value");
 
 		JS_DEFINE_CLASS(Video, constructor, {
 			JS_SET_CLASS_ACCESSOR(autoPlay, auto_play, set_auto_play);

@@ -135,5 +135,5 @@ class NativeSys {
 	}
 };
 
-JS_REG_MODULE(qgr_sys, NativeSys)
+JS_REG_MODULE(_sys, NativeSys)
 JS_END

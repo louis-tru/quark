@@ -28,9 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-var _pkg = require('pkg');
-var _util = process.binding('qgr_util');
+var _pkg = requireNative('_pkg');
+var _util = requireNative('_util');
 
 /**************************************************************************/
 

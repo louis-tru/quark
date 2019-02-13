@@ -160,8 +160,8 @@ class NativeQgr {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("qgr_value");	XX_DEBUG("binding qgr_value ok");
-		worker->binding_module("qgr_event");	XX_DEBUG("binding qgr_event ok");
+		worker->binding_module("_value");	XX_DEBUG("binding qgr_value ok");
+		worker->binding_module("_event");	XX_DEBUG("binding qgr_event ok");
 		binding_app(exports, worker); 			XX_DEBUG("binding app ok");
 		binding_display(exports, worker); 	XX_DEBUG("binding display ok");
 		binding_view(exports, worker); 			XX_DEBUG("binding view ok");
@@ -186,5 +186,5 @@ class NativeQgr {
 	}
 };
 
-JS_REG_MODULE(qgr, NativeQgr);
+JS_REG_MODULE(_qgr, NativeQgr);
 JS_END

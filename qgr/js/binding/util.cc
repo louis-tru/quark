@@ -321,5 +321,5 @@ class NativeUtil {
 	}
 };
 
-JS_REG_MODULE(qgr_util, NativeUtil)
+JS_REG_MODULE(_util, NativeUtil)
 JS_END

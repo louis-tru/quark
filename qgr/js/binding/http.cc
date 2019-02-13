@@ -1239,5 +1239,5 @@ public:
 	}
 };
 
-JS_REG_MODULE(qgr_http, NativeHttp);
+JS_REG_MODULE(_http, NativeHttp);
 JS_END

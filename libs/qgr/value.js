@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_value');
+export bindingNative('_value');
 
 // ========== Enum ==========
 // AUTO

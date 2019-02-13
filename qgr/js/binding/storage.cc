@@ -118,5 +118,5 @@ class NativeStorage {
 	}
 };
 
-JS_REG_MODULE(qgr_storage, NativeStorage);
+JS_REG_MODULE(_storage, NativeStorage);
 JS_END

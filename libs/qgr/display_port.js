@@ -31,7 +31,7 @@
 import './util';
 import './app';
 import { NativeNotification } from './event';
-export process.binding('qgr');
+export bindingNative('_qgr');
 
 /**
  * @class DisplayPort

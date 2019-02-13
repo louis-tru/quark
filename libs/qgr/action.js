@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_action');
+export bindingNative('_action');
 
 import './util';
 import './value';

@@ -31,9 +31,9 @@
 import './util';
 import { EventNoticer, NativeNotification } from './event';
 
-var qgr = process.binding('qgr');
-var View = qgr.View;
-var Text = qgr.Text;
+var _qgr = bindingNative('_qgr');
+var View = _qgr.View;
+var Text = _qgr.Text;
 var extend = util.extend;
 
 function reset_data_bind_attrs(responder /* ViewController or View */ ) {
@@ -545,7 +545,7 @@ export function New(vx, parent, ...args) {
  * @class ViewController
  * @bases NativeViewController
  */
-export class ViewController extends qgr.NativeViewController {
+export class ViewController extends _qgr.NativeViewController {
 
 	m_vdata = null; // 视图数据
 	m_mapping = null;

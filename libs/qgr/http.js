@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_http');
+export bindingNative('_http');
 
 import './util';
 import { NativeNotification } from './event';

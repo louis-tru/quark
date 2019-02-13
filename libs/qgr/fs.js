@@ -28,9 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-exports.__proto__ = require('fs');
-
-export process.binding('qgr_fs');
+export bindingNative('_fs');
 
  /**
 	* @enum FileType

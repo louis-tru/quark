@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_css');
+export bindingNative('_css');
 
 import './util';
 import './value';

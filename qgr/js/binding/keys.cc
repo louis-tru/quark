@@ -49,5 +49,5 @@ class NativeKeys {
 	}
 };
 
-JS_REG_MODULE(qgr_keys, NativeKeys)
+JS_REG_MODULE(_keys, NativeKeys)
 JS_END

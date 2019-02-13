@@ -33,8 +33,8 @@ import './display_port';
 import { NativeNotification } from './event';
 import { ViewController, isViewXml, EMPTY_VIEW_XML } from './ctr';
 
-var qgr = process.binding('qgr');
-var Root = qgr.Root;
+var _qgr = bindingNative('_qgr');
+var Root = _qgr.Root;
 var cur = null;
 var cur_root = null;
 var cur_root_ctr = null;
@@ -113,7 +113,7 @@ function start(self, vx) {
  * @class GUIApplication
  * @bases NativeGUIApplication,NativeNotification
  */
-export class GUIApplication extends qgr.NativeGUIApplication {
+export class GUIApplication extends _qgr.NativeGUIApplication {
 	
 	event onLoad;
 	event onUnload;

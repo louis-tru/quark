@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr');
+export bindingNative('_qgr');
 
 import './util';
 import './event';

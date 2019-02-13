@@ -489,5 +489,5 @@ public:
 	}
 };
 
-JS_REG_MODULE(qgr_css, WrapStyleSheets);
+JS_REG_MODULE(_css, WrapStyleSheets);
 JS_END

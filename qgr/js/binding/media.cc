@@ -95,5 +95,5 @@ class NativeMedia {
 };
 
 
-JS_REG_MODULE(qgr_media, NativeMedia);
+JS_REG_MODULE(_media, NativeMedia);
 JS_END

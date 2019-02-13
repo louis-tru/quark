@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_reader');
+export bindingNative('_reader');
 
  /**
 	* @func readStream(path[,cb])

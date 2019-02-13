@@ -1122,5 +1122,5 @@ class NativeValue {
 	}
 };
 
-JS_REG_MODULE(qgr_value, NativeValue);
+JS_REG_MODULE(_value, NativeValue);
 JS_END

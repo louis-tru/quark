@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_storage');
+export bindingNative('_storage');
 
  /**
 	* @func get(key)

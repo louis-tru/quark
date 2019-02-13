@@ -238,6 +238,6 @@ class NativeFileReader {
 	}
 };
 
-JS_REG_MODULE(qgr_reader, NativeFileReader);
+JS_REG_MODULE(_reader, NativeFileReader);
 JS_END
  

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_font');
+export bindingNative('_font');
 
  /**
 	* @func setDefaultFonts(fonts)

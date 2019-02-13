@@ -30,11 +30,11 @@
 
 'use strict';
 
-const _util = bindingNative('qgr_util');
+const _util = bindingNative('_util');
 const win32 = _util.platform == 'win32';
 const { readFile, readFileSync, 
 				existsSync, isFileSync, 
-				isDirectorySync, readdirSync } = bindingNative('qgr_reader');
+				isDirectorySync, readdirSync } = bindingNative('_reader');
 
 const fallbackPath = win32 ? function(url) {
 	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');

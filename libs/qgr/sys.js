@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_sys');
+export bindingNative('_sys');
 
  /**
 	* @func time()

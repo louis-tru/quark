@@ -630,7 +630,7 @@ void binding_frame(Local<JSObject> exports, Worker* worker);
 class BindingAction {
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("qgr_value");
+		worker->binding_module("_value");
 		
 		// CubicBezier const
 		JS_SET_PROPERTY(LINEAR, 0);
@@ -648,5 +648,5 @@ class BindingAction {
 	}
 };
 
-JS_REG_MODULE(qgr_action, BindingAction);
+JS_REG_MODULE(_action, BindingAction);
 JS_END

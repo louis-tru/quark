@@ -198,5 +198,5 @@ class NativePath {
 	}
 };
 
-JS_REG_MODULE(qgr_path, NativePath);
+JS_REG_MODULE(_path, NativePath);
 JS_END

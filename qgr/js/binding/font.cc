@@ -211,6 +211,6 @@ class WrapFontStatic {
 	}
 };
 
-JS_REG_MODULE(qgr_font, WrapFontStatic);
+JS_REG_MODULE(_font, WrapFontStatic);
 
 JS_END

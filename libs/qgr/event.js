@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Object.assign(exports, process.binding('qgr_event'));
+Object.assign(exports, bindingNative('_event'));
 
 const util = require('./util');
 const EventNoticer = exports.EventNoticer;

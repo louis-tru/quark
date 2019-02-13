@@ -1861,5 +1861,5 @@ class NativeFileHelper {
 	}
 };
 
-JS_REG_MODULE(qgr_fs, NativeFileHelper);
+JS_REG_MODULE(_fs, NativeFileHelper);
 JS_END

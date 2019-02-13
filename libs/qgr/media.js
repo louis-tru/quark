@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export process.binding('qgr_media');
+export bindingNative('_media');
 
 import './util';
 import { NativeNotification } from './event';
