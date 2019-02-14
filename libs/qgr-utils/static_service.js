@@ -179,7 +179,7 @@ function resultFileData(self, filename, type, size, start_range, end_range) {
 	res.setHeader('Content-Type', getContentType(self, type));
 
 	if (start_range != -1 && end_range != -1) {
-		res.setHeader('Content-Length', start_range - end_range);
+		res.setHeader('Content-Length', end_range - start_range);
 		res.setHeader('Content-Range', `bytes ${start_range}-${end_range-1}/${size}`);
 		res.writeHead(206);
 		if (start_range >= end_range) {
