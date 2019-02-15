@@ -1,6 +1,6 @@
 {
 	"name": "qgr-utils",
-	"version": "0.7.18",
+	"version": "0.7.19",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "util.js",
 	"author": {
