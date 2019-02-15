@@ -479,8 +479,8 @@ var Client = util.class('Client', Notification, {
 			if (timeout) {
 				timeid = setTimeout(e=>{
 					// console.error(`method call timeout, ${this.name}/${name}`);
-					reject(Error.new(`method call timeout, ${this.name}/${name}`, 
-						errno.ERR_METHOD_CALL_TIMEOUT[0]));
+					reject(Error.new([...errno.ERR_METHOD_CALL_TIMEOUT,
+						`method call timeout, ${this.name}/${name}`]);
 				}, timeout);
 			}
 

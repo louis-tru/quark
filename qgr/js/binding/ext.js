@@ -401,7 +401,7 @@ extend(Error, {
 			if (typeof e == 'object') {
 				if (Array.isArray(e)) {
 					code = e[0];
-					var description = e[2] || '';
+					var description = e.slice(2).join() || '';
 					e = new Error(e[1] || 'Unknown error');
 					e.description = description;
 				} else {
