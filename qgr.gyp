@@ -118,7 +118,6 @@
 						'<(output)/libft2.a',
 						'<(output)/libtinyxml2.a',
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
-						'<(output)/libnode.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
 						'<@(v8libs)',
@@ -130,8 +129,7 @@
 						'cd <(output);'
 						'find obj.target/qgr-utils ' 
 						'obj.target/qgr-gui '
-						'obj.target/qgr-js '
-						'obj.target/node/node -name *.o > qgr.LinkFileList;'
+						'obj.target/qgr-js -name *.o > qgr.LinkFileList;'
 						'clang++ '
 						'-arch <(arch_name) -dynamiclib '
 						'-isysroot <(sysroot) '
@@ -160,7 +158,6 @@
 						'-lft2 '
 						'-ltinyxml2 '
 						'-lffmpeg '
-						'-lnode '
 						'-lnghttp2 '
 						'-lcares '
 						'<(v8libs_l) '

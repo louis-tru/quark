@@ -62,19 +62,19 @@ Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 
 Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding) {
 	Local<JSValue> result;
-	Buffer* data = static_cast<Buffer*>(d.data);
+	Buffer* data = &buffer; //static_cast<Buffer*>(buffer.data);
 	switch (encoding) {
 		case Encoding::hex: // 编码
 		case Encoding::base64: {
-			Buffer buff = Coder::encoding(encoding, *data);
+			Buffer buff = Coder::encoding(encoding, buffer);
 			result = worker->NewString(buff);
 			break;
 		}
 		case Encoding::unknown:
-			result = worker->New(*data);
+			result = worker->New(buffer);
 			break;
 		default: {// 解码 to ucs2
-			Ucs2String str(Coder::decoding_to_uint16(encoding, *data));
+			Ucs2String str(Coder::decoding_to_uint16(encoding, buffer));
 			result = worker->New(str);
 			break;
 		}
@@ -96,7 +96,8 @@ Callback get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding en
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
 				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
 			} else {
-				Local<JSValue> arg = convert_buffer(worker, d.data, encoding);
+				Buffer* bf = static_cast<Buffer*>(d.data);
+				Local<JSValue> arg = convert_buffer(worker, *bf, encoding);
 				f->Call(worker, 1, &arg);
 			}
 		});

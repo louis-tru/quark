@@ -30,7 +30,7 @@
 
 #include "qgr/utils/fs.h"
 #include "qgr/utils/http.h"
-#include "qgr/js/js.h"
+#include "qgr/js/wrap.h"
 #include "qgr/js/str.h"
 #include "cb-1.h"
 #include "fs-1.h"
@@ -310,7 +310,7 @@ class WrapFileStat: public WrapObject {
 	}
 };
 
-static bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
+bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
 	JS_WORKER(args);
 	String s = arg->ToStringValue(worker);
 	en = Coder::parse_encoding( s );
@@ -373,7 +373,7 @@ static bool parse_file_write_params(FunctionCall args, bool sync, int& args_inde
 		if ( args.Length() > 2 && args[2]->IsInt32(worker) ) { // size
 			int num = args[2]->ToInt32Value(worker);
 			if ( num >= 0 ) {
-				size = av_min( num, size );
+				size = XX_MIN( num, size );
 				keep.realloc((uint)size);
 			}
 			args_index++;
@@ -1335,7 +1335,7 @@ class NativeFileHelper {
 
 		if ( sync ) {
 			int err = 0;
-			Buffer r = FileHelper::read_file_sync(path, &err);
+			Buffer r = FileHelper::read_file_sync(path, -1, &err);
 			if ( err < 0 ) {
 				JS_RETURN_NULL();
 			} else {
@@ -1479,24 +1479,22 @@ class NativeFileHelper {
 		}
 		
 		uint args_index = 1;
-		FileOpenMode mode = FileOpenMode::FOPEN_R;
+		FileOpenFlag flag = FileOpenFlag::FOPEN_R;
 		
 		if ( args.Length() > 1 && args[1]->IsUint32(worker) ) {
 			uint num = args[1]->ToUint32Value(worker);
-			if ( num < FileOpenMode::FOPEN_NUM ) {
-				mode = (FileOpenMode)num;
-			}
+			flag = (FileOpenFlag)num;
 			args_index++;
 		}
 		
 		if ( sync ) {
-			JS_RETURN( FileHelper::open_sync(args[0]->ToStringValue(worker), mode) );
+			JS_RETURN( FileHelper::open_sync(args[0]->ToStringValue(worker), flag) );
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_int(worker, args[args_index]);
 			}
-			FileHelper::open(args[0]->ToStringValue(worker), mode, cb);
+			FileHelper::open(args[0]->ToStringValue(worker), flag, cb);
 		}
 	}
 	
@@ -1598,7 +1596,7 @@ class NativeFileHelper {
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
 			int num = args[args_index]->ToInt32Value(worker);
 			if ( num >= 0 ) {
-				size = av_min(size, num);
+				size = XX_MIN(size, num);
 			}
 			args_index++;
 		}

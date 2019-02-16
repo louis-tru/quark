@@ -34,8 +34,6 @@
 #include "qgr/utils/string-builder.h"
 #include "qgr/view.h"
 #include "js-1.h"
-#include "env-inl.h"
-#include "node_buffer.h"
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
@@ -149,8 +147,9 @@ class V8WorkerIMPL: public IMPL {
 	}
 	
 	virtual Local<JSObject> initialize() {
-		isolate_ = host_->m_env->isolate();
-		context_ = host_->m_env->context();
+		// TODO
+//		isolate_ = host_->m_env->isolate();
+//		context_ = host_->m_env->context();
 		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, host_);
 		return Cast<JSObject>(context_->Global());
 	}
@@ -477,6 +476,7 @@ Local<JSObject> JSValue::ToObject(Worker* worker) const {
 Local<JSBoolean> JSValue::ToBoolean(Worker* worker) const {
 	return Cast<JSBoolean>(reinterpret_cast<const v8::Value*>(this)->ToBoolean());
 }
+
 #if USE_JSC
 String JSValue::ToStringValue(Worker* worker, bool ascii) const {
 	ENV(worker);
@@ -1110,8 +1110,9 @@ Local<JSObject> Worker::NewError(Local<JSObject> value) {
 Local<JSTypedArray> Worker::New(Buffer&& buff) {
 	size_t size = buff.length();
 	char* data = buff.collapse();
-	auto bf = node::Buffer::New(ISOLATE(this), data, size).ToLocalChecked();
-	return Cast<JSTypedArray>(bf);
+	// TODO
+	// auto bf = node::Buffer::New(ISOLATE(this), data, size).ToLocalChecked();
+//	return Cast<JSTypedArray>(bf);
 }
 
 void Worker::throw_err(Local<JSValue> exception) {
@@ -1189,44 +1190,6 @@ bool Worker::run_native_script(Local<JSObject> exports, cBuffer& source, cString
  */
 void Worker::garbage_collection() {
 	ISOLATE(this)->LowMemoryNotification();
-}
-
-void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
-	
-	struct node_module2: node::node_module {
-		static void Func(v8::Local<v8::Object> exports,
-										 v8::Local<v8::Value> module,
-										 v8::Local<v8::Context> context, void* priv) {
-			auto data = (node_module2*)priv; XX_ASSERT(data);
-			data->binding(Cast<JSObject>(exports), Worker::worker());
-		}
-		BindingCallback binding;
-		String name;
-	};
-	
-	auto m = new node_module2();
-	
-	m->binding = binding;
-	m->name = name;
-	m->nm_version = NODE_MODULE_VERSION;
-	m->nm_flags = NM_F_BUILTIN;
-	m->nm_dso_handle = NULL;
-	m->nm_filename = file ? file : __FILE__;
-	m->nm_register_func = NULL;
-	m->nm_context_register_func = node_module2::Func;
-	m->nm_modname = *m->name;
-	m->nm_priv = m;
-	m->nm_link = NULL;
-	
-	//XX_DEBUG("node::node_module_register: %s", *name);
-	
-	node::node_module_register(m);
-}
-
-Local<JSObject> Worker::binding_module(cString& name) {
-	Local<JSValue> argv = New(name);
-	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(this, "binding");
-	return binding.To<JSFunction>()->Call(this, 1, &argv).To();
 }
 
 JS_END

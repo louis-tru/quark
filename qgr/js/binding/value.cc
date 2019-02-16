@@ -31,6 +31,7 @@
 #include "qgr/js/str.h"
 #include "qgr/js/js-1.h"
 #include "qgr/js/qgr.h"
+#include "qgr/js/value.h"
 #include "qgr/font.h"
 #include "qgr/draw.h"
 #include "native-core-js.h"

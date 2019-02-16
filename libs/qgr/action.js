@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_action');
+export requireNative('_action');
 
 import './util';
 import './value';

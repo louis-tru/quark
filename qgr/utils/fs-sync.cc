@@ -54,7 +54,7 @@ static bool each_sync(Array<Dirent>& ls, cCb& cb, bool internal) {
 				return false;
 			}
 		}
-		if ( dirent.type == FILE_DIR ) { // 目录
+		if ( dirent.type == FTYPE_DIR ) { // 目录
 			auto ls = FileHelper::ls_sync(dirent.pathname);
 			if ( !each_sync(ls, cb, internal) ) { // 停止遍历
 				return false;
@@ -236,7 +236,7 @@ bool FileHelper::rm_r_sync(cString& path, bool* stop_signal) {
 		} else {
 			Dirent* dirent = static_cast<Dirent*>(d.data);
 			cchar* p = Path::fallback_c(dirent->pathname);
-			if ( dirent->type == FILE_DIR ) {
+			if ( dirent->type == FTYPE_DIR ) {
 				d.return_value = uv_fs_rmdir(uv_default_loop(), &req, p, nullptr) == 0;
 			} else {
 				d.return_value = uv_fs_unlink(uv_default_loop(), &req, p, nullptr) == 0;
@@ -296,10 +296,10 @@ bool FileHelper::cp_r_sync(cString& source, cString& target, bool* stop_signal) 
 		String target = xx_path + dirent->pathname.substr(s_len); // 目标文件
 		
 		switch (dirent->type) {
-			case FILE_DIR:
+			case FTYPE_DIR:
 				d.return_value = mkdir_sync(target); /* create dir */
 				break;
-			case FILE_FILE:
+			case FTYPE_FILE:
 				d.return_value = cp_sync2(dirent->pathname, target, stop_signal);
 				break;
 			default: break;

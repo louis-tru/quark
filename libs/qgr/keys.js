@@ -30,7 +30,7 @@
 
 var util = require('./util');
 var reader = require('./reader');
-var parse_keys = bindingNative('_keys').parse;
+var parse_keys = requireNative('_keys').parse;
 
 function write_data(self, value) {
 	self.m_out.push(

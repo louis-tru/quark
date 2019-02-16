@@ -269,7 +269,7 @@ const SimpleFontList& FontPool::system_font_family() {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		
-		if ( ent->type == FILE_FILE ) {
+		if ( ent->type == FTYPE_FILE ) {
 			Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(ent->pathname, ft_lib);
 			
 			if ( ! sffd.is_null() ) {

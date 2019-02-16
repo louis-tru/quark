@@ -297,7 +297,7 @@ class NativeUtil {
 	 */
 	static void platform(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
-		JS_RETURN( platform() );
+		JS_RETURN( qgr::platform() );
 	}
 	
 	/**

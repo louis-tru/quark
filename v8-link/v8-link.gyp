@@ -3,7 +3,7 @@
 		'library%': 'static_library',
 		'OS%': 'mac',
 		'use_v8%': 1,
-		'v8_source%': '../node/deps/v8',
+		'v8_source%': '../depe/v8',
 		'v8_includes': [
 			'include/v8.h',
 			'include/v8.h.inl',

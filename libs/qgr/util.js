@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var _pkg = bindingNative('_pkg');
-var _util = bindingNative('_util');
+var _pkg = requireNative('_pkg').packages;
+var _util = requireNative('_util');
 
 /**************************************************************************/
 

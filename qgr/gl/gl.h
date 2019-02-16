@@ -217,8 +217,7 @@ class GLDraw: public Draw {
 	
 	friend class GLShader;
 	friend class Texture;
-	friend class IOSGLDrawProxy;
-	friend class LinuxGLDrawProxy;
+	friend class GLDrawProxy;
 };
 
 XX_END

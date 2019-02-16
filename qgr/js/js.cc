@@ -30,26 +30,11 @@
 
 #include "qgr/utils/string.h"
 #include "js-1.h"
-#include "node-1.h"
 #include "native-core-js.h"
 #include "qgr.h"
 #include "qgr/utils/http.h"
-#if XX_ANDROID
-# include "android/android.h"
-#endif
-#include "node.h"
 #include "qgr/utils/codec.h"
-#include <openssl/ssl.h>
-
-namespace qgr {
-	extern void set_ssl_root_x509_store_function(X509_STORE* (*)());
-}
-
-namespace node {
-	namespace crypto {
-		extern X509_STORE* NewRootCertStore();
-	}
-}
+#include "value.h"
 
 /**
  * @ns qgr::js
@@ -59,12 +44,8 @@ namespace node {
 # define WORKER_DATA_INDEX (-1)
 #endif
 
-extern int (*__xx_default_gui_main)(int, char**);
 
 JS_BEGIN
-
-void open_rlog(cString& r_url);
-void close_rlog();
 
 IMPL::IMPL(Worker* host)
 : host_(host)
@@ -273,12 +254,13 @@ void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that) {
 	Reset(that.worker_, that.strong());
 }
 
-Worker::Worker(node::Environment* env)
+// -------------------------------------------------------------------------------------
+
+Worker::Worker()
 : m_thread_id(SimpleThread::current_id())
 , m_value_program( nullptr )
 , m_strs( nullptr )
 , m_inl(nullptr)
-, m_env(env)
 {
 	XX_CHECK(worker() == nullptr);
 	
@@ -385,328 +367,42 @@ WeakBuffer Worker::as_buffer(Local<JSValue> val) {
 	return WeakBuffer();
 }
 
-//#undef XX_MEMORY_TRACE_MARK
-//#define XX_MEMORY_TRACE_MARK 1
-
-#if XX_MEMORY_TRACE_MARK
-static int record_wrap_count = 0;
-static int record_strong_count = 0;
-
-# define print_wrap(s) \
-	LOG("record_wrap_count: %d, strong: %d, %s", record_wrap_count, record_strong_count, s)
-#else
-# define print_wrap(s)
-#endif
-
-/**
- * @class WrapObject::Inl
- */
-class WrapObject::Inl: public WrapObject {
- public:
- #define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
+void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
 	
-	void clear_weak() {
-	 #if XX_MEMORY_TRACE_MARK
-		if (IMPL::current(worker())->IsWeak(handle_)) {
-			record_strong_count++;
-			print_wrap("mark_strong");
-		}
-	 #endif
-		IMPL::current(worker())->ClearWeak(handle_, this);
-	}
-	
-	void make_weak() {
-	 #if XX_MEMORY_TRACE_MARK
-		if (!IMPL::current(worker())->IsWeak(handle_)) {
-			record_strong_count--;
-			print_wrap("make_weak");
-		}
-	 #endif
-		IMPL::current(worker())->SetWeak(handle_, this, [](const WeakCallbackInfo& info) {
-			auto self = _inl_wrap(info.GetParameter());
-			self->handle_.V8_DEATH_RESET();
-			self->destroy();
-		});
-	}
-};
-
-void WrapObject::initialize() {}
-void WrapObject::destroy() { 
-	delete this;
+//	struct node_module2: node::node_module {
+//		static void Func(v8::Local<v8::Object> exports,
+//										 v8::Local<v8::Value> module,
+//										 v8::Local<v8::Context> context, void* priv) {
+//			auto data = (node_module2*)priv; XX_ASSERT(data);
+//			data->binding(Cast<JSObject>(exports), Worker::worker());
+//		}
+//		BindingCallback binding;
+//		String name;
+//	};
+//
+//	auto m = new node_module2();
+//
+//	m->binding = binding;
+//	m->name = name;
+//	m->nm_version = NODE_MODULE_VERSION;
+//	m->nm_flags = NM_F_BUILTIN;
+//	m->nm_dso_handle = NULL;
+//	m->nm_filename = file ? file : __FILE__;
+//	m->nm_register_func = NULL;
+//	m->nm_context_register_func = node_module2::Func;
+//	m->nm_modname = *m->name;
+//	m->nm_priv = m;
+//	m->nm_link = NULL;
+//
+//	//XX_DEBUG("node::node_module_register: %s", *name);
+//
+//	node::node_module_register(m);
 }
 
-void WrapObject::init2(FunctionCall args) {
-	XX_ASSERT(args.IsConstructCall());
-	Worker* worker_ = args.worker();
-	auto classs = IMPL::current(worker_)->js_class();
-	XX_ASSERT( !classs->current_attach_object_ );
-	handle_.Reset(worker_, args.This());
-	bool ok = IMPL::SetObjectPrivate(args.This(), this); XX_ASSERT(ok);
- #if XX_MEMORY_TRACE_MARK
-	record_wrap_count++; 
-	record_strong_count++;
- #endif
-	if (!self()->is_reference() || /* non reference */
-			static_cast<Reference*>(self())->ref_count() <= 0) {
-		_inl_wrap(this)->make_weak();
-	}
-	initialize();
-}
-
-WrapObject* WrapObject::attach(FunctionCall args) {
-	JS_WORKER(args);
-	auto classs = IMPL::current(worker)->js_class();
-	if ( classs->current_attach_object_ ) {
-		WrapObject* wrap = classs->current_attach_object_;
-		XX_ASSERT(!wrap->worker());
-		XX_ASSERT(args.IsConstructCall());
-		wrap->handle_.Reset(worker, args.This());
-		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); XX_ASSERT(ok);
-		classs->current_attach_object_ = nullptr;
-		wrap->initialize();
-	 #if XX_MEMORY_TRACE_MARK
-		record_wrap_count++; 
-		record_strong_count++;
-		print_wrap("External");
-	 #endif
-		return wrap;
-	}
-	return nullptr;
-}
-
-WrapObject::~WrapObject() {
-	XX_ASSERT(handle_.IsEmpty());
-
- #if XX_MEMORY_TRACE_MARK
-	record_wrap_count--;
-	print_wrap("~WrapObject");
- #endif
-	self()->~Object();
-}
-
-Object* WrapObject::private_data() {
-	Local<JSValue> data = get(worker()->strs()->__native_private_data());
-	if ( worker()->has_instance(data, JS_TYPEID(Object)) ) {
-		return unpack<Object>(data.To<JSObject>())->self();
-	}
-	return nullptr;
-}
-
-bool WrapObject::set_private_data(Object* data, bool trusteeship) {
-	XX_ASSERT(data);
-	auto p = pack(data, JS_TYPEID(Object));
-	if (p) {
-		set(worker()->strs()->__native_private_data(), p->that());
-		if (trusteeship) {
-			if (!data->is_reference() || /* non reference */
-					static_cast<Reference*>(data)->ref_count() <= 0) {
-				_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
-			}
-		}
-		XX_ASSERT(private_data());
-	}
-	return p;
-}
-
-Local<JSValue> WrapObject::call(Local<JSValue> name, int argc, Local<JSValue> argv[]) {
-	Local<JSObject> o = that();
-	Local<JSValue> func = o->Get(worker(), name);
-	if ( func->IsFunction(worker()) ) {
-		return func.To<JSFunction>()->Call(worker(), argc, argv, o);
-	} else {
-		worker()->throw_err("Function not found, \"%s\"", *name->ToStringValue(worker()));
-		return Local<JSValue>();
-	}
-}
-
-Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) {
-	return call(worker()->New(name), argc, argv);
-}
-
-bool WrapObject::is_pack(Local<JSObject> object) {
-	XX_ASSERT(!object.IsEmpty());
-	return IMPL::GetObjectPrivate(object);
-}
-
-WrapObject* WrapObject::unpack2(Local<JSObject> object) {
-	XX_ASSERT(!object.IsEmpty());
-	return static_cast<WrapObject*>(IMPL::GetObjectPrivate(object));
-}
-
-WrapObject* WrapObject::pack2(Object* object, uint64 type_id) {
-	WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
-	if ( !wrap->worker() ) { // uninitialized
-		JS_WORKER();
-		return IMPL::js_class(worker)->attach(type_id, object);
-	}
-	return wrap;
-}
-
-struct ObjectAllocatorImpl {
-
-	static void* alloc(size_t size) {
-		WrapObject* o = (WrapObject*)::malloc(size + sizeof(WrapObject));
-		XX_ASSERT(o);
-		memset((void*)o, 0, sizeof(WrapObject));
-		return o + 1;
-	}
-	
-	static void release(Object* obj) {
-		WrapObject* wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-		if ( wrap->worker() ) {
-			_inl_wrap(wrap)->make_weak();
-		}  else { // uninitialized
-			obj->~Object();
-			::free(wrap);
-		}
-	}
-	
-	static void retain(Object* obj) {
-		WrapObject* wrap = reinterpret_cast<WrapObject*>(obj) - 1;
-		if ( wrap->worker() ) {
-			_inl_wrap(wrap)->clear_weak();
-		} // else // uninitialized
-	}
-};
-
-struct QgrApiImplementation {
-	static Worker* create_qgr_js_worker(node::Environment* env,
-																			 bool is_inspector,
-																			 int argc, const char* const* argv) {
-		if (argc > 1) {
-			Map<String, String> opts;
-			for (int i = 2; i < argc; i++) {
-				String arg = argv[i];
-				if ( arg[0] == '-' ) {
-					Array<String> ls = arg.split('=');
-					opts.set( ls[0].substr(arg[1] == '-' ? 2: 1), ls.length() > 1 ? ls[1] : String() );
-				}
-			}
-			if (opts.has("rlog")) {
-				open_rlog(opts["rlog"]);
-			} else if (is_inspector || opts.has("dev")) {
-				open_rlog(argv[1]);
-			}
-		}
-		return new Worker(env);
-	}
-	static void delete_qgr_js_worker(qgr::js::Worker* worker) {
-		Release(worker);
-	}
-	static RunLoop* qgr_main_loop() {
-		return qgr::RunLoop::main_loop();
-	}
-	static void run_qgr_loop(RunLoop* loop) {
-		loop->run();
-	}
-	static char* encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
-		auto buff = Codec::encoding(Encoding::UTF8, src, length);
-		*out_len = buff.length();
-		return buff.collapse();
-	}
-	static uint16_t* decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
-		auto buff = Codec::decoding_to_uint16(Encoding::UTF8, src, length);
-		*out_len = buff.length();
-		return buff.collapse();
-	}
-	static void print(const char* msg, ...) {
-		XX_STRING_FORMAT(msg, str);
-		LOG(str);
-	}
-	static bool is_process_exit() {
-		return RunLoop::is_process_exit();
-	}
-};
-
-int start(cString& argv_str) {
-	
-	static int is_initializ = 0;
-	if ( is_initializ++ == 0 ) {
-		HttpHelper::initialize();
-		node::set_qgr_api({
-			QgrApiImplementation::create_qgr_js_worker,
-			QgrApiImplementation::delete_qgr_js_worker,
-			QgrApiImplementation::qgr_main_loop,
-			QgrApiImplementation::run_qgr_loop,
-			QgrApiImplementation::encoding_to_utf8,
-			QgrApiImplementation::decoding_utf8_to_uint16,
-			QgrApiImplementation::print,
-			QgrApiImplementation::is_process_exit,
-		});
-		ObjectAllocator allocator = {
-			ObjectAllocatorImpl::alloc,
-			ObjectAllocatorImpl::release,
-			ObjectAllocatorImpl::retain,
-		};
-		set_object_allocator(&allocator);
-		qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
-	}
-	
-	String str = argv_str.trim();
-	// add prefix
-	if (argv_str.index_of("node") != 0 && argv_str.index_of("qgr") != 0) {
-		str = String("node ") + str;
-	}
-	
-	char* str2 = const_cast<char*>(*str);
-	Array<char*> argv = { str2 };
-	
-	int index = 0;
-	while ((index = str.index_of(" ", index)) != -1) {
-		str2[index] = '\0';
-		index++;
-		argv.push(str2 + index);
-	}
-	
-	return node::Start(argv.length(), const_cast<char**>(&argv[0]));
-}
-
-int start(const Array<String>& argv) {
-	String argv_str;
-	for ( auto& i : argv  ) {
-		if (!i.value().is_blank()) {
-			if ( !argv_str.is_empty() ) {
-				argv_str += " ";
-			}
-			argv_str += i.value();
-		}
-	}
-	return start(*argv_str);
-}
-
-/**
- * @func __default_main
- */
-int __default_main(int argc, char** argv) {
-	String path;
-
- #if XX_ANDROID
-	path = Android::start_path();
-	if ( path.is_empty() )
- #endif
-	{
-		FileReader* reader = FileReader::shared();
-		path = Path::resources("index");
-		Array<String> ls = String(reader->read_file_sync( path )).split('\n');
-		path = String();
-	
-		for ( uint i = 0; i < ls.length(); i++ ) {
-			String s = ls[i].trim();
-			if ( s[0] != '#' ) {
-				path = s;
-				break;
-			}
-		}
-	}
-	if ( ! path.is_empty() ) {
-		return start(path);
-	}
-
-	return 0;
-}
-
-XX_INIT_BLOCK(__default_main) {
-	__xx_default_gui_main = __default_main;
+Local<JSObject> Worker::binding_module(cString& name) {
+//	Local<JSValue> argv = New(name);
+//	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(this, "binding");
+//	return binding.To<JSFunction>()->Call(this, 1, &argv).To();
 }
 
 JS_END

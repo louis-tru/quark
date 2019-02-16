@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_font');
+export requireNative('_font');
 
  /**
 	* @func setDefaultFonts(fonts)

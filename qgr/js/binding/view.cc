@@ -35,6 +35,7 @@
 #include "qgr/action.h"
 #include "qgr/css.h"
 #include "qgr/button.h"
+#include "qgr/js/value.h"
 
 /**
  * @ns qgr::js

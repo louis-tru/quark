@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_http');
+export requireNative('_http');
 
 import './util';
 import { NativeNotification } from './event';

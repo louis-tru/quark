@@ -31,7 +31,7 @@
 import './util';
 import './app';
 import { NativeNotification } from './event';
-export bindingNative('_display_port');
+export requireNative('_display_port');
 
 /**
  * @class DisplayPort

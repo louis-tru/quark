@@ -6,9 +6,8 @@
 			'<(output)/obj.target/libqgr-utils.a',
 			'<(output)/obj.target/libqgr-gui.a',
 			'<(output)/obj.target/libqgr-js.a',
-			'<(output)/obj.target/node/libnode.a',
-			# '<(output)/obj.target/node/deps/v8/src/libv8_base.a',
-			# '<(output)/obj.target/node/deps/openssl/libopenssl.a',
+			# '<(output)/obj.target/depe/v8/src/libv8_base.a',
+			# '<(output)/obj.target/depe/openssl/libopenssl.a',
 			'-Wl,--no-whole-archive',
 		],
 	},
@@ -18,7 +17,6 @@
 			'type': 'executable',
 			'include_dirs': [ 
 				'../out',
-				'../node/src',
 			],
 			'dependencies': [
 				'qgr-lib',
@@ -29,12 +27,11 @@
 				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
 				'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
-				'node/deps/openssl/openssl.gyp:openssl',
+				'depe/openssl/openssl.gyp:openssl',
 				'v8-link/v8-link.gyp:v8-link',
 				'v8-link/v8-link.gyp:v8_libplatform-link',
-				'node/deps/uv/uv.gyp:libuv',
-				'node/deps/http_parser/http_parser.gyp:http_parser',
-				'node/node.gyp:node', 
+				'depe/uv/uv.gyp:libuv',
+				'depe/http_parser/http_parser.gyp:http_parser',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -161,7 +158,6 @@
 					'depe/libpng/libpng.gyp:libpng',
 					'depe/libwebp/libwebp.gyp:libwebp',
 					'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
-					'node/node.gyp:node',
 				],
 				'link_settings': { 'libraries': [ '-lz' ] },
 				'ldflags': [ 
@@ -172,10 +168,10 @@
 				],
 				'direct_dependent_settings': {
 					'include_dirs': [ 
-						'../node/deps/v8/include', 
-						'../node/deps/http_parser', 
-						'../node/deps/uv/include', 
-						'../node/deps/openssl/openssl/include', 
+						'../depe/v8/include', 
+						'../depe/http_parser', 
+						'../depe/uv/include', 
+						'../depe/openssl/openssl/include', 
 						'../depe/ffmpeg', 
 						'../depe/tinyxml2', 
 						'../depe/tess2/include', 

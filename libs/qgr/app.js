@@ -33,7 +33,7 @@ import './display_port';
 import { NativeNotification } from './event';
 import { ViewController, isViewXml, EMPTY_VIEW_XML } from './ctr';
 
-var _qgr = bindingNative('_qgr');
+var _qgr = requireNative('_qgr');
 var Root = _qgr.Root;
 var cur = null;
 var cur_root = null;

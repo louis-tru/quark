@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Object.assign(exports, bindingNative('_event'));
+Object.assign(exports, requireNative('_event'));
 
 const util = require('./util');
 const EventNoticer = exports.EventNoticer;

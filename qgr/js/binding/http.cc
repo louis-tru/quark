@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "qgr/utils/http.h"
-#include "qgr/js/js.h"
+#include "qgr/js/wrap.h"
 #include "cb-1.h"
 
 /**

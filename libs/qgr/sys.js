@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_sys');
+export requireNative('_sys');
 
  /**
 	* @func time()

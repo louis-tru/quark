@@ -356,7 +356,7 @@ public:
 			m_dirent = &m_last->dirents[m_last->index];
 			
 			if ( m_internal ) { // 内部优先
-				if ( m_dirent->type == FILE_DIR && m_last->mask == 0 ) { // 目录
+				if ( m_dirent->type == FTYPE_DIR && m_last->mask == 0 ) { // 目录
 					m_last->mask = 1;
 					into(m_dirent->pathname);
 				} else {
@@ -366,7 +366,7 @@ public:
 				}
 			}
 			else {
-				if ( m_dirent->type == FILE_DIR ) {
+				if ( m_dirent->type == FTYPE_DIR ) {
 					if ( m_last->mask == 0 ) {
 						m_last->mask = 1;
 						sync_callback(m_cb, nullptr, this);
@@ -564,7 +564,7 @@ uint FileHelper::rm_r(cString& path, cCb& cb) {
 				}
 			}
 		});
-		if ( each->dirent().type == FILE_DIR ) {
+		if ( each->dirent().type == FTYPE_DIR ) {
 			each->loop();
 			rmdir2(each->dirent().pathname, cb2, each->loop());
 		} else {
@@ -610,9 +610,9 @@ uint FileHelper::cp_r(cString& source, cString& target, cCb& cb) {
 			const Dirent& ent = t->dirent();
 			
 			switch (ent.type) {
-				case FILE_DIR:
+				case FTYPE_DIR:
 					exists2(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
-				case FILE_FILE:
+				case FTYPE_FILE:
 					t->m_copy_task = cp2(ent.pathname, t->target(), Cb([t](Se& ev) {
 						t->m_copy_task = nullptr;
 						if ( !t->is_abort() ) {

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_media');
+export requireNative('_media');
 
 import './util';
 import { NativeNotification } from './event';

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_storage');
+export requireNative('_storage');
 
  /**
 	* @func get(key)

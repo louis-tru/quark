@@ -31,7 +31,7 @@
 import './util';
 import { EventNoticer, NativeNotification } from './event';
 
-var _qgr = bindingNative('_qgr');
+var _qgr = requireNative('_qgr');
 var View = _qgr.View;
 var Text = _qgr.Text;
 var extend = util.extend;

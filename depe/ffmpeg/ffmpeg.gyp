@@ -16,8 +16,8 @@
 			'defines': [ '__STDC_CONSTANT_MACROS', ],
 		},
 		'dependencies': [
-			'../../node/deps/openssl/openssl.gyp:openssl',
-			'../../node/deps/zlib/zlib.gyp:zlib',
+			'../../depe/openssl/openssl.gyp:openssl',
+			'../../depe/zlib/zlib.gyp:zlib',
 			'ffmpeg_compile',
 		],
 		'sources': [

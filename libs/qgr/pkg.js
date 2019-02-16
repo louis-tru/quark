@@ -28,4 +28,4 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-module.exports = bindingNative('_pkg');
+module.exports = requireNative('_pkg').packages;

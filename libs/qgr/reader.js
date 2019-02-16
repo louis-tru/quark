@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_reader');
+export requireNative('_reader');
 
  /**
 	* @func readStream(path[,cb])

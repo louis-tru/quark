@@ -100,9 +100,6 @@
 namespace qgr {
 	class HttpError;
 }
-namespace node {
-	class Environment;
-}
 
 /**
  * @ns qgr::js
@@ -559,7 +556,7 @@ class XX_EXPORT Worker: public Object {
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
 	
-	Worker(node::Environment* env);
+	Worker();
 	
 	/**
 	 * @destructor
@@ -581,6 +578,7 @@ class XX_EXPORT Worker: public Object {
 	 */
 	static void reg_module(cString& name,
 												 BindingCallback binding, cchar* file = nullptr);
+
 	/**
 	 * @func binding_module
 	 */
@@ -790,11 +788,6 @@ class XX_EXPORT Worker: public Object {
 	 * @func garbage_collection()
 	 */
 	void garbage_collection();
-
-	/**
-	 * @func node_env()
-	 */
-	inline node::Environment* node_env() { return m_env; }
 	
  private:
 	XX_DEFINE_INLINE_CLASS(IMPL);
@@ -807,123 +800,9 @@ class XX_EXPORT Worker: public Object {
 	CommonStrings*  m_strs;
 	Local<JSObject> m_global;
 	IMPL*           m_inl;
-	node::Environment* m_env;
+	String          m_argv_str;
+	Array<char*>    m_argv;
 };
-
-template<class T> class Wrap;
-
-/**
- * @class WrapObject
- */
-class XX_EXPORT WrapObject {
-	XX_HIDDEN_ALL_COPY(WrapObject);
- protected:
-	
-	inline WrapObject() {}
-	
-	/**
-	 * @destructor
-	 */
-	~WrapObject();
-	
-	virtual void initialize();
-	virtual void destroy();
-	
-	/**
-	 * @func New()
-	 */
-	template<class W, class O>
-	static Wrap<O>* New(FunctionCall args, O* object) {
-		static_assert(sizeof(W) == sizeof(WrapObject),
-									"Derived wrap class pairs cannot declare data members");
-		static_assert(O::Traits::is_object, "Must be object");
-		auto wrap = new(reinterpret_cast<WrapObject*>(object) - 1) W();
-		wrap->init2(args);
-		return static_cast<js::Wrap<O>*>(static_cast<WrapObject*>(wrap));
-	}
-	
-	static WrapObject* attach(FunctionCall args);
-
- public:
-	virtual bool add_event_listener(cString& name, cString& func, int id) {
-		return false;
-	}
-	virtual bool remove_event_listener(cString& name, int id) {
-		return false;
-	}
-	
-	inline Worker* worker() {
-		return handle_.worker_;
-	}
-	Object* private_data();
-	bool set_private_data(Object* data, bool trusteeship = false);
-	
-	inline Persistent<JSObject>& handle() {
-		return handle_;
-	}
-	inline Local<JSObject> that() {
-		return worker()->New(handle_);
-	}
-	inline Local<JSValue> get(Local<JSValue> key) {
-		return handle_.strong()->Get(worker(), key);
-	}
-	inline bool set(Local<JSValue> key, Local<JSValue> value) {
-		return handle_.strong()->Set(worker(), key, value);
-	}
-	inline bool del(Local<JSValue> key) {
-		return handle_.strong()->Delete(worker(), key);
-	}
-	
-	Local<JSValue> call(Local<JSValue> name, int argc = 0, Local<JSValue> argv[] = nullptr);
-	Local<JSValue> call(cString& name, int argc = 0, Local<JSValue> argv[] = nullptr);
-	
-	template<class T = Object>
-	inline T* self() {
-		return static_cast<T*>(reinterpret_cast<Object*>(this + 1));
-	}
-	
-	// static
-	
-	static bool is_pack(Local<JSObject> object);
-	
-	template<class T = Object>
-	static inline Wrap<T>* unpack(Local<JSObject> value) {
-		return static_cast<Wrap<T>*>(unpack2(value));
-	}
-	template<class T>
-	static inline Wrap<T>* pack(T* object) {
-		return static_cast<js::Wrap<T>*>(pack2(object, JS_TYPEID(*object)));
-	}
-	template<class T>
-	static inline Wrap<T>* pack(T* object, uint64 type_id) {
-		return static_cast<js::Wrap<T>*>(pack2(object, type_id));
-	}
-	
- private:
-	static WrapObject* unpack2(Local<JSObject> object);
-	static WrapObject* pack2(Object* object, uint64 type_id);
-	void init2(FunctionCall args);
-
- protected:
-	Persistent<JSObject> handle_;
-	XX_DEFINE_INLINE_CLASS(Inl);
-	friend class Allocator;
-};
-
-template<class T = Object>
-class XX_EXPORT Wrap: public WrapObject {
-	Wrap() = delete;
- public:
-	inline static Wrap<T>* unpack(Local<JSObject> value) {
-		return WrapObject::unpack<T>(value);
-	}
-	inline T* self() {
-		return reinterpret_cast<T*>(this + 1);
-	}
-};
-
-XX_EXPORT int start(cString& argv);
-XX_EXPORT int start(const Array<String>& argv);
 
 // **********************************************************************
 

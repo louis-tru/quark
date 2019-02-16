@@ -30,11 +30,9 @@
 
 'use strict';
 
-const _util = bindingNative('_util');
-const win32 = _util.platform == 'win32';
-const { readFile, readFileSync, 
-				existsSync, isFileSync, 
-				isDirectorySync, readdirSync } = bindingNative('_reader');
+const _path = requireNative('_path');
+const win32 = requireNative('_util').platform == 'win32';
+const { isFileSync } = requireNative('_reader');
 
 const fallbackPath = win32 ? function(url) {
 	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
@@ -58,18 +56,18 @@ const join_path = win32 ? function(args) {
 
 const matchs = win32 ? {
 	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	is_absolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	is_local: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
+	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
 } : {
 	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	is_absolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	is_local: /^(\/|(file|zip):\/\/\/)/i,
+	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^(\/|(file|zip):\/\/\/)/i,
 };
 
 /** 
  * format part 
  */
-function resolve_path_level(path, retain_up) {
+function resolvePathLevel(path, retain_up) {
 	var ls = path.split('/');
 	var rev = [];
 	var up = 0;
@@ -129,40 +127,40 @@ function resolve() {
 		path = (win32 ? cwd.substr(3) : cwd) + '/' + path;
 	}
 
-	path = resolve_path_level(path);
+	path = resolvePathLevel(path);
 
 	return path ? prefix + slash + path : prefix;
 }
 
 /**
- * @func is_absolute # 是否为绝对路径
+ * @func isAbsolute # 是否为绝对路径
  */
-function is_absolute(path) {
-	return matchs.is_absolute.test(path);
+function isAbsolute(path) {
+	return matchs.isAbsolute.test(path);
 }
 
 /**
- * @func is_local # 是否为本地路径
+ * @func isLocal # 是否为本地路径
  */
-function is_local(path) {
-	return matchs.is_local.test(path);
+function isLocal(path) {
+	return matchs.isLocal.test(path);
 }
 
-function is_local_zip(path) {
+function isLocalZip(path) {
 	return /^zip:\/\/\//i.test(path);
 }
 
-function is_network(path) {
+function isNetwork(path) {
 	return /^(https?):\/\/[^\/]+/i.test(path);
 }
 
 function resolveMainPath(path) {
 	if (path) {
-		if ( !is_absolute(path) ) {
+		if ( !isAbsolute(path) ) {
 			// 非绝对路径,优先查找资源路径
-			if (isFileSync(_util.resources(path + '/package.json'))) {
+			if (isFileSync(_path.resources(path + '/package.json'))) {
 				// 如果在资源中找到`package.json`文件
-				path = _util.resources(path);
+				path = _path.resources(path);
 			}
 		}
 		path = fallbackPath(resolve(path));
@@ -170,42 +168,13 @@ function resolveMainPath(path) {
 	return path;
 }
 
-function maybeCallback(cb) {
-	return typeof cb === 'function' ? cb : function(err) {
-		if (err) throw err;
-	};
-}
-
-function readFile2(path, options, callback) {
-	var callback = maybeCallback(callback || options);
-
-	var cb = (function(result) {
-		callback(null, result);
-	}).catch(function(err) {
-		callback(err);
-	});
-
-	if ( typeof options == 'function' || !options ) {
-		readFile(path, cb);
-	} else {
-		readFile(path, options, cb);
-	}
-}
-
-module.exports = {
-	readFile,
-	readFileSync,
-	existsSync,
-	isFileSync,
-	isDirectorySync,
-	readdirSync,
-	readFile2,
+Object.assign(exports, {
 	fallbackPath,
-	resolve_path_level,
+	resolvePathLevel,
 	resolve,
-	is_absolute,
-	is_local,
-	is_local_zip,
-	is_network,
+	isAbsolute,
+	isLocal,
+	isLocalZip,
+	isNetwork,
 	resolveMainPath,
-};
+});

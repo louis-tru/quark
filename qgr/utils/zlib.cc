@@ -237,7 +237,7 @@ XX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
 			String basename = pathname.substr(dirname.length() + 1);
 			auto it = m_dir_info.find(dirname);
 			if ( it.is_null() ) {
-				add_dir_info_item(dirname, FILE_DIR);
+				add_dir_info_item(dirname, FTYPE_DIR);
 				m_dir_info.get(dirname).push(Dirent(basename, compatible_path, type));
 			} else {
 				it.value().push(Dirent(basename, compatible_path, type));
@@ -305,7 +305,7 @@ bool ZipReader::open() {
 		uint compressed_size = (uint)unzfi.compressed_size;
 		uint uncompressed_size = (uint)unzfi.uncompressed_size;
 		unz_entry_info info = { _pos, pathname, compressed_size, uncompressed_size };
-		_inl_reader(this)->add_dir_info_item(pathname, FILE_FILE);
+		_inl_reader(this)->add_dir_info_item(pathname, FTYPE_FILE);
 		m_file_info.set(info.pathname, info);
 	} while(unzGoToNextFile(unzp) == UNZ_OK);
 	

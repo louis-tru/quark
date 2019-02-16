@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_css');
+export requireNative('_css');
 
 import './util';
 import './value';

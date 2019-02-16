@@ -71,6 +71,7 @@ def_opts('without-visibility-hidden', 0,
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
 def_opts('without-embed-bitcode', 0, 
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
+def_opts('enable-node', 0,      '--enable-node enable node [{0}]');
 
 function arm() {
 	return opts.arch.match(/^arm/) ? 1 : 0;
@@ -236,7 +237,7 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 		// -fembed-bitcode-marker
 		var f_embed_bitcode = opts.without_embed_bitcode ?  '' : '-fembed-bitcode';
 
-		cmd += `--cc='clang -miphoneos-version-min=8.0 -arch ${variables.arch_name} ${f_embed_bitcode}' `; 
+		cmd += `--cc='clang -miphoneos-version-min=10.0 -arch ${variables.arch_name} ${f_embed_bitcode}' `; 
 		if (arch == 'x86' || arch == 'x64') {
 			cmd += '--sysroot=$(xcrun --sdk iphonesimulator --show-sdk-path) ';
 		} else {
@@ -349,6 +350,67 @@ function get_OS(os) {
 	return OS;
 }
 
+function configure_node(opts, variables, configuration) {
+	
+	var cfg = {
+		coverage: 'false',
+		debug_devtools: 'node',
+		debug_http2: 'false',
+		debug_nghttp2: 'false',
+		icu_small: 'false',
+		node_enable_d8: 'false',
+		node_enable_v8_vtunejit: 'false',
+		node_install_npm: 'false',
+		node_module_version: 57,
+		node_no_browser_globals: bs(opts.no_browser_globals),
+		node_prefix: opts.prefix,
+		node_release_urlbase: '',
+		node_shared: 'false',
+		node_shared_cares: 'false',
+		node_shared_http_parser: 'false',
+		node_shared_libuv: 'false',
+		node_shared_openssl: 'false',
+		node_shared_zlib: 'false',
+		node_tag: '',
+		node_use_etw: 'false',
+		node_use_lttng: 'false',
+		node_use_perfctr: 'false',
+		node_use_v8_platform: bs(opts.use_v8),
+		node_use_bundled_v8: 'true', //bs(opts.use_v8),
+		node_without_node_options: 'false',
+		shlib_suffix: '',
+		v8_enable_i18n_support: bi(opts.use_v8 && opts.with_intl),
+		
+	};
+
+	Object.assign(variables, cfg);
+
+	if ( variables.v8_enable_i18n_support ) {
+		// configure node 
+		syscall(`cd ${__dirname}/../node; ./configure`);
+
+		var config = fs.readFileSync(__dirname + '/../node/icu_config.gypi', 'utf8');
+		config = config.replace(/'[^']+derb\.c(pp)?',?/g, '');
+		fs.writeFileSync(__dirname + '/../node/icu_config.gypi', config);
+		config = fs.readFileSync(__dirname + '/../node/config.gypi', 'utf8');
+		config = config.replace(/^#.+/gm, '');
+		config = eval('(' + config + ')').variables;
+		fs.rm_r_sync(__dirname + '/../node/out');
+		fs.rm_r_sync(__dirname + '/../node/config.mk');
+
+		variables.icu_ver_major = config.icu_ver_major;
+		variables.icu_data_file = config.icu_data_file;
+		variables.icu_data_in = config.icu_data_in;
+		variables.icu_endianness = config.icu_endianness;
+		variables.icu_locales = config.icu_locales;
+		variables.icu_gyp_path = 
+			path.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_gyp_path}`);
+		variables.icu_path = 
+			path.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_path}`);
+		variables.icu_small = 'true';
+	}
+}
+
 function configure() {
 
 	if (opts.help || opts.h) { // print help info
@@ -388,6 +450,7 @@ function configure() {
 		},
 		variables: {
 			/* config */
+			asan: 0,
 			host_node: process.execPath,
 			host_os: host_os == 'osx' ? 'mac' : host_os,    // v8 host_os
 			host_arch: host_arch == 'x86' ? 'ia32' : host_arch,  // v8 host_arch
@@ -428,43 +491,15 @@ function configure() {
 			android_abi: '',
 			xcode_version: 0,
 			llvm_version: 0,
-			/* node config */
-			asan: 0,
-			coverage: 'false',
-			debug_devtools: 'node',
-			debug_http2: 'false',
-			debug_nghttp2: 'false',
-			force_dynamic_crt: 0,
-			icu_small: 'false',
-			node_byteorder: 'little',
-			node_enable_d8: 'false',
-			node_enable_v8_vtunejit: 'false',
-			node_install_npm: 'false',
-			node_module_version: 57,
-			node_no_browser_globals: bs(opts.no_browser_globals),
-			node_prefix: opts.prefix,
-			node_release_urlbase: '',
-			node_shared: 'false',
-			node_shared_cares: 'false',
-			node_shared_http_parser: 'false',
-			node_shared_libuv: 'false',
-			node_shared_openssl: 'false',
-			node_shared_zlib: 'false',
-			node_tag: '',
-			node_use_dtrace: bs(use_dtrace),
-			node_use_etw: 'false',
-			node_use_lttng: 'false',
-			node_use_openssl: bs(!opts.without_ssl),
-			node_use_perfctr: 'false',
-			node_use_v8_platform: bs(opts.use_v8),
-			node_use_bundled_v8: 'true', //bs(opts.use_v8),
-			node_without_node_options: 'false',
+			// depes config
 			openssl_fips: '',
 			openssl_no_asm: bi(os.match(/^(ios|android)$/)),
-			shlib_suffix: '',
+			node_byteorder: 'little',
+			node_use_openssl: bs(!opts.without_ssl),
+			node_use_dtrace: bs(use_dtrace),
 			uv_use_dtrace: bs(use_dtrace),
+			force_dynamic_crt: 0,
 			v8_enable_gdbjit: 0,
-			v8_enable_i18n_support: bi(opts.use_v8 && opts.with_intl),
 			v8_enable_inspector: bi(opts.use_v8 && !opts.without_inspector && !opts.without_ssl),
 			v8_no_strict_aliasing: 1,
 			v8_optimized_debug: 0,
@@ -491,29 +526,8 @@ function configure() {
 		variables.uv_parent_path = '/deps/uv/';
 	}
 
-	if ( variables.v8_enable_i18n_support ) {
-		// configure node 
-		syscall(`cd ${__dirname}/../node; ./configure`);
-
-		var config = fs.readFileSync(__dirname + '/../node/icu_config.gypi', 'utf8');
-		config = config.replace(/'[^']+derb\.c(pp)?',?/g, '');
-		fs.writeFileSync(__dirname + '/../node/icu_config.gypi', config);
-		config = fs.readFileSync(__dirname + '/../node/config.gypi', 'utf8');
-		config = config.replace(/^#.+/gm, '');
-		config = eval('(' + config + ')').variables;
-		fs.rm_r_sync(__dirname + '/../node/out');
-		fs.rm_r_sync(__dirname + '/../node/config.mk');
-
-		variables.icu_ver_major = config.icu_ver_major;
-		variables.icu_data_file = config.icu_data_file;
-		variables.icu_data_in = config.icu_data_in;
-		variables.icu_endianness = config.icu_endianness;
-		variables.icu_locales = config.icu_locales;
-		variables.icu_gyp_path = 
-			path.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_gyp_path}`);
-		variables.icu_path = 
-			path.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_path}`);
-		variables.icu_small = 'true';
+	if (opts.enable_node) {
+		configure_node(opts, variables, configuration);
 	}
 
 	var config_mk = [
@@ -785,8 +799,11 @@ function configure() {
 	]);
 	
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
-	fs.writeFileSync('node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
 	fs.writeFileSync('out/config.mk', config_mk_str);
+
+	if (opts.enable_node) { 
+		fs.writeFileSync('node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
+	}
 }
 
 configure();

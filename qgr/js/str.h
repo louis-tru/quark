@@ -31,7 +31,7 @@
 #ifndef __qgr__js__strs__
 #define __qgr__js__strs__
 
-#include "js.h"
+#include "qgr/js/js.h"
 
 #define js_common_string(F)  \
 F(global) \

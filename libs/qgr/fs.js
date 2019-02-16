@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_fs');
+export requireNative('_fs');
 
 /**
 	* @enum FileType

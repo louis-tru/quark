@@ -28,9 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/js/js.h"
-#include "qgr/app.h"
-#include "qgr/utils/fs.h"
+#include "qgr/js/qgr.h"
 
 using namespace qgr;
 

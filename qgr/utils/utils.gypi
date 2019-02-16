@@ -5,9 +5,9 @@
 		'type': '<(library)',
 		'dependencies': [ 
 			'qgr/utils/minizip.gyp:minizip',
-			'node/deps/openssl/openssl.gyp:openssl',
-			'node/deps/uv/uv.gyp:libuv',
-			'node/deps/http_parser/http_parser.gyp:http_parser',
+			'depe/openssl/openssl.gyp:openssl',
+			'depe/uv/uv.gyp:libuv',
+			'depe/http_parser/http_parser.gyp:http_parser',
 			'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
 		],
 		'direct_dependent_settings': {

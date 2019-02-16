@@ -33,7 +33,7 @@
 #import "qgr/utils/loop.h"
 #import "ios-gl-1.h"
 #import "ios-ime-helper-1.h"
-#import "ios-app.h"
+#import "mac-app.h"
 #import "qgr/app.h"
 #import "qgr/display-port.h"
 #import "qgr/app-1.h"
@@ -464,7 +464,7 @@ void AppInl::ime_keyboard_open(KeyboardOptions options) {
  */
 void AppInl::ime_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[app_delegate.ime set_keyboard_can_backspace:can_backspace];
+		[app_delegate.ime set_keyboard_can_backspace:can_backspace can_delete:can_delete];
 	});
 }
 
@@ -555,7 +555,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 			
 			::CGRect rect = app_delegate.glview.frame;
 			m_host->render_loop()->post(Cb([this, rect](Se& ev) {
-				if ( !ios_draw_proxy->refresh_surface_size(rect) ) {
+				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					main_loop()->post(Cb([this](Se& e){
 						XX_TRIGGER(change);

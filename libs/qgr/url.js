@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export bindingNative('_path');
+export requireNative('_path');
 
 /**
  * @func basename(path)
@@ -75,7 +75,7 @@ export bindingNative('_path');
  *
  */
 
-const _pkg = bindingNative('_pkg');
+const _pkg = requireNative('_pkg').packages;
 
 function split_path(self) {
 	if (self._is_split) return;
