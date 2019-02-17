@@ -29,7 +29,6 @@
 			'js.h',
 			'qgr.h',
 			'qgr.cc',
-			'rlog.cc',
 			'str.h',
 			'str.cc',
 			'v8.cc',
@@ -92,13 +91,19 @@
 			['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],
 			['node_use_openssl=="true"', { 'defines': [ 'HAVE_OPENSSL=1' ] }],
 			['node_use_dtrace=="true"', { 'defines': [ 'HAVE_DTRACE=1' ] }],
-			['enable_node==1', { 
-				#'include_dirs': ['../../depe/node/deps/cares/include','../../depe/node/deps/uv/include'],
+			['enable_node==1', {
+				'include_dirs': [
+					'../../depe/node/src',
+					'../../depe/node/deps/uv/include',
+					#'../../depe/node/deps/cares/include',
+				],
 				'dependencies': [
 					'depe/node/node.gyp:node',
-					#'depe/node/deps/openssl/openssl.gyp:openssl',
+					'depe/node/deps/openssl/openssl.gyp:openssl',
 				],
 				'defines': ['HAVE_NODE=1'],
+			}, {
+				'defines': ['HAVE_NODE=0'],
 			}],
 		],
 		'actions': [

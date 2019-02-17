@@ -34,42 +34,22 @@ const _util = requireNative('_util');
 const _path = requireNative('_path');
 const _fs = requireNative('_fs');
 const _http = requireNative('_http');
+const _pkgutil = requireNative('_pkgutil');
 const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
-				isLocal, isLocalZip, isNetwork } = requireNative('_pkgutil');
+				isLocal, isLocalZip, 
+				isNetwork, assert, debug, stripBOM } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = requireNative('_reader');
+const { haveNode } = _util;
 const options = {};  // start options
 const external_cache = {};
 var ignore_local_package, ignore_all_local_package;
 var keys = null, config = null;
 var instance = null;
-
-function assert(value, message) {
-	if (!value) {
-		throw new Error('assert fail, ' + (message || ''));
-	}
-}
-
-function debug(...args) {
-	if (options.dev) {
-		console.log('PKG', ...args);
-	}
-}
-
-/**
- * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
- * because the buffer-to-string conversion in `fs.readFileSync()`
- * translates it to FEFF, the UTF-16 BOM.
- */
-function stripBOM(content) {
-	if (content.charCodeAt(0) === 0xFEFF) {
-		content = content.slice(1);
-	}
-	return content;
-}
+var Module, NativeModule;
 
 function parse_keys(content) {
 	if ( !keys ) {
@@ -197,87 +177,14 @@ function read_text_sync(path) {
 global.__vx = __vx;
 global.__extend = extendEntries;
 
+// -------------------------- Module extensions --------------------------
 
-function makeRequireFunction(mod) {
-	function require(path) {
-		return mod.require(path);
-	}
-	function resolve(request, options) {
-		return Package_resolve_filename(mod.package, mod.dir, request);
-	}
-	require.resolve = resolve;
-	return require;
-}
-
-/**
- * @class Module
- */
-class Module {
-
-	constructor(id, parent, pkg) {
-		this.id = id;
-		this.exports = {};
-		this.parent = parent;
-		this.filename = null;
-		this.loaded = false;
-		this.children = [];
-		this.package = pkg;
-		this.file = '';
-		this.dir = '';
-	}
-
-	load(filename) {
-		debug('load %j for module %j', filename, this.id);
-
-		if ( !instance.m_main_module ) {
-			instance.m_main_module = this;
-			this.id = '.';
-		}
-		assert(!this.loaded);
-		this.filename = filename;
-		this.paths = [];
-
-		var extension = _path.extname(filename).replace(/\?.*$/, '') || '.js';
-		if (!Module._extensions[extension]) extension = '.js';
-		Module._extensions[extension](this, filename);
-		this.loaded = true;
-	}
-
-	require(path) {
-		assert(path, 'missing path');
-		assert(typeof path === 'string', 'path must be a string');
-		return inl_require(path, this);
-	}
-
-	set _export(value) {
-		Object.getOwnPropertyNames(value).forEach((name)=>{
-			Object.defineProperty(this.exports, name, Object.getOwnPropertyDescriptor(value, name));
-		});
-	}
-
-	_compile(content, filename) {
-		var wrapper = Module.wrap(content);
-		var compiledWrapper = _util.runScript(wrapper, filename);
-		var dirname = _path.dirname(filename);
-		var require = makeRequireFunction(this);
-		var result = compiledWrapper.call(this.exports, this.exports, require, this,
-																	filename, dirname, require.resolve);
-		return result;
-	}
-
-	static wrap(script) {
-		return `(function (exports,require,module,__filename,__dirname,resolve){${script}\n})`;
-	}
-
-}
-
-Module._extensions = {};
+var Module_extensions = {};
 
 // Native extension for .js
-Module._extensions['.js'] = function(module, filename) {
+Module_extensions['.js'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	var pkg = module.package;
-	filename = filename.replace(/\?.*$/, '');
 	if (pkg && pkg.m_info.qgr_syntax) {
 		if ( !pkg.m_build || 
 			pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
@@ -288,10 +195,9 @@ Module._extensions['.js'] = function(module, filename) {
 };
 
 // Native extension for .jsx
-Module._extensions['.jsx'] = function(module, filename) {
+Module_extensions['.jsx'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	var pkg = module.package;
-	filename = filename.replace(/\?.*$/, '');
 	if ( !pkg || !pkg.m_build || 
 		pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
 		content = _util.transformJsx(content, filename);
@@ -300,13 +206,13 @@ Module._extensions['.jsx'] = function(module, filename) {
 };
 
 // Native extension for .json
-Module._extensions['.json'] = function(module, filename) {
+Module_extensions['.json'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	module.exports = parseJSON(content, filename);
 };
 
 // Native extension for .keys
-Module._extensions['.keys'] = function(module, filename) {
+Module_extensions['.keys'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	try {
 		module.exports = parse_keys(content);
@@ -315,6 +221,14 @@ Module._extensions['.keys'] = function(module, filename) {
 		throw err;
 	}
 };
+
+if (haveNode) {
+	//Native extension for .node
+	Module_extensions['.node'] = function(module, filename) {
+	  filename = fallbackPath(filename);
+	  return process.dlopen(module, path._makeLong(filename));
+	};
+}
 
 // -------------------------- Package private API --------------------------
 
@@ -608,6 +522,9 @@ function Package_get_path(self, pathname) {
 }
 
 function resolve_filename(request) {
+	if (haveNode && NativeModule.nonInternalExists(request)) {
+		return request;
+	}
 	var mat = request.match(/^([a-z\-_$]+)(\/(.+))?$/i);
 	if (mat) {
 		var pkg = instance.getPackage(mat[1]);
@@ -630,6 +547,9 @@ function resolve_filename(request) {
 }
 
 function Package_resolve_filename(self, dir, request) {
+	if (haveNode && NativeModule.nonInternalExists(request)) {
+		return request;
+	}
 	if (request.length > 2 && 
 			request.charCodeAt(0) === 46/*.*/ &&  (
 			request.charCodeAt(1) === 46/*.*/ || 
@@ -1297,6 +1217,60 @@ class Packages {
 		}
 		return config;
 	}
+
+	_resolveFilename(request, parent) {
+		if (parent) {
+			return Package_resolve_filename(parent.package, parent.dir, request);
+		} else {
+			return resolve_filename(request);
+		}
+	}
+
+	/**
+	 * # startup run
+	 * # parse args ready run
+	 */
+	_startup(_Module, _NativeModule) {
+		assert(_Module);
+		exports.Module = Module = _Module;
+		exports.NativeModule = NativeModule = _NativeModule || null;
+		Object.assign(Module._extensions, Module_extensions);
+
+		parse_argv(); // parse argv
+
+		var main = _util.argv[1];
+		if (main) { // start
+			add_main_search_path(main);
+			
+			if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
+				inl_require(main, null);
+			} else {
+				var mat = main.match( /^(.+\/)?([a-z_$][a-z0-9_\-$]*)$/i );
+				if ( !mat) { // pkg
+					throw new Error(`Could not start, invalid package path "${main}"`);
+				}
+				var pkg = mat[2];
+				instance.addPackage(main); // 添加pkg
+				
+				if (options.dev) { // sync 这样更加容易发现错误,但会卡死工作线程
+					inl_require(pkg, null); // 载入pkg
+				} else {
+					instance.load(pkg, function(proc) { // 异步载入`package`
+						if (proc == 1) 
+							inl_require(pkg, null);
+					}.catch(function(err) {
+						_util.fatal(err);
+					}));
+				}
+			}
+		}
+		delete Packages.prototype._startup;
+	}
+
+	_require(request, parent) {
+		return inl_require(request, parent);
+	}
+
 }
 
 /**
@@ -1356,6 +1330,11 @@ function inl_require(request, parent) {
 
 	Packages_require_before(instance, false); //先准备pkg
 
+	if (haveNode && NativeModule.nonInternalExists(request)) {
+		debug('load native module %s', request);
+		return NativeModule.require(request);
+	}
+
 	if (request.length > 2 && 
 			request.charCodeAt(0) === 46/*.*/ &&  (
 			request.charCodeAt(1) === 46/*.*/ || 
@@ -1414,8 +1393,10 @@ function parse_argv() {
 		}
 	}
 
-	if (_util.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
-		options.dev = 1;
+	if (haveNode) {
+		if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
+			options.dev = 1;
+		}
 	}
 
 	options.dev = !!options.dev;
@@ -1469,45 +1450,9 @@ function add_main_search_path(main) {
 	[
 		_path.resources(), 
 		_path.resources('libs'),
-	].forEach(function(path) {
+	].concat(Module.globalPaths).forEach(function(path) {
 		instance.addPackageSearchPath(path);
 	});
 }
 
-exports.Module = Module;
 exports.packages = new Packages();
-
-/**
- * # startup run
- * # parse args ready run
- */
-(function startup() {
-	parse_argv();
-
-	var main = _util.argv[1];
-	if (main) { // start
-		add_main_search_path(main);
-		
-		if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
-			inl_require(main, null);
-		} else {
-			var mat = main.match( /^(.+\/)?([a-z_$][a-z0-9_\-$]*)$/i );
-			if ( !mat) { // pkg
-				throw new Error(`Could not start, invalid package path "${main}"`);
-			}
-			var pkg = mat[2];
-			instance.addPackage(main); // 添加pkg
-			
-			if (options.dev) { // sync 这样更加容易发现错误,但会卡死工作线程
-				inl_require(pkg, null); // 载入pkg
-			} else {
-				instance.load(pkg, function(proc) { // 异步载入`package`
-					if (proc == 1) 
-						inl_require(pkg, null);
-				}.catch(function(err) {
-					_util.fatal(err);
-				}));
-			}
-		}
-	}
-})();

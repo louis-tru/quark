@@ -54,9 +54,9 @@ const uint FileHelper::default_mode([]() {
 
 static String split_path(cString& path, bool basename) {
 	String s = path;
-#if XX_WIN
+ #if XX_WIN
 	s = s.replace_all('\\', '/');
-#endif
+ #endif
 	int start = path.length();
 	if (path[start - 1] == '/') {
 		start -= 2;

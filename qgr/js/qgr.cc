@@ -36,9 +36,27 @@
 #if XX_ANDROID
 # include "android/android.h"
 #endif
-#include "depe/node/src/qgr.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
+
+#ifndef HAVE_NODE
+#define HAVE_NODE 0
+#endif
+
+#if HAVE_NODE
+#include "node.h"
+#include "qgr/utils/codec.h"
+#include "openssl/ssl.h"
+#include "depe/node/src/qgr.h"
+namespace qgr {
+	void set_ssl_root_x509_store_function(X509_STORE* (*)());
+}
+namespace node {
+	namespace crypto {
+		X509_STORE* NewRootCertStore();
+	}
+}
+#endif
 
 /**
  * @ns qgr::js
@@ -60,14 +78,11 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 		HandleScope scope(wrap->worker());
 		// arg event
 		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
-
 		if (cast)
 			ev->set_private_data(cast); // set data cast func
-		
 		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
 		// call js trigger func
 		Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
-		
 		// test:
 		//if (r->IsNumber(worker)) {
 		//  LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
@@ -131,12 +146,11 @@ bool WrapViewBase::remove_event_listener(cString& name, int id) {
 
 // -------------------------------------------------------------------------------------
 
-void open_rlog(cString& r_url);
-void close_rlog();
 void* object_allocator_alloc(size_t size);
-void object_allocator_release(Object* obj);
-void object_allocator_retain(Object* obj);
+void  object_allocator_release(Object* obj);
+void  object_allocator_retain(Object* obj);
 
+#if HAVE_NODE
 /**
  * @class QgrApiImpl
  */
@@ -145,21 +159,6 @@ class QgrApiImpl: public node::QgrApi {
 
 	Worker* create_worker(node::Environment* env, bool is_inspector,
 												int argc, const char* const* argv) {
-		if (argc > 1) {
-			Map<String, String> opts;
-			for (int i = 2; i < argc; i++) {
-				String arg = argv[i];
-				if ( arg[0] == '-' ) {
-					Array<String> ls = arg.split('=');
-					opts.set( ls[0].substr(arg[1] == '-' ? 2: 1), ls.length() > 1 ? ls[1] : String() );
-				}
-			}
-			if (opts.has("rlog")) {
-				open_rlog(opts["rlog"]);
-			} else if (is_inspector || opts.has("dev")) {
-				open_rlog(argv[1]);
-			}
-		}
 		return new Worker();
 	}
 
@@ -193,51 +192,81 @@ class QgrApiImpl: public node::QgrApi {
 	}
 };
 
+#endif
+
 // startup argv
-static Array<char*>* worker_start_argv = nullptr;
-static int is_start_initializ = 0;
+Array<char*>* __qgr_argv = nullptr;
+int __qgr_have_node = 0;
+
+// parse argv
+static void parse_argv(cString& argv_in, Array<char*>& argv, Array<char*>& qgr_argv) {
+	static String argv_str = argv_in.trim();
+	// add prefix
+	if (argv_in.index_of("qgr") != 0) {
+		argv_str = String("qgr ") + argv_str;
+	}
+	Array<String> argv_ls = argv_str.split(' ');
+	__qgr_have_node = 0;
+	argv_str = String();
+	
+	for (auto& i : argv_ls) {
+		argv_str += i.value().trim() + ' ';
+	}
+	argv_str = argv_str.trim_right();
+	
+	char* str_c = const_cast<char*>(*argv_str);
+	argv.push(str_c);
+	qgr_argv.push(str_c);
+	
+	int qgr_ok = 0;
+	int index = 0;
+	while ((index = argv_str.index_of(" ", index)) != -1) {
+		str_c[index] = '\0';
+		index++;
+		char* arg = str_c + index;
+		if (qgr_ok) {
+			qgr_argv.push(str_c);
+		} else if (arg[0] != '-') {
+			qgr_ok = 1;
+			qgr_argv.push(str_c);
+		} else if (strcmp(arg, "--node") == 0) {
+			__qgr_have_node = 1;
+			continue;
+		}
+		argv.push(arg);
+	}
+}
 
 int start(cString& argv_str) {
+	static int is_start_initializ = 0;
 	if ( is_start_initializ++ == 0 ) {
 		HttpHelper::initialize();
-
-		node::set_qgr_api(new QgrApiImpl);
-
 		ObjectAllocator allocator = {
 			object_allocator_alloc, object_allocator_release, object_allocator_retain,
 		};
 		qgr::set_object_allocator(&allocator);
-
-		// qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
+	 #if HAVE_NODE
+		node::set_qgr_api(new QgrApiImpl);
+		qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
+	 #endif
 	}
 
 	RunLoop* loop = RunLoop::main_loop();
 	
-	static String str = argv_str.trim();
-	// add prefix
-	if (argv_str.index_of("qgr") != 0) {
-		str = String("qgr ") + str;
-	}
-	
-	char* str2 = const_cast<char*>(*str);
-	Array<char*> argv = { str2 };
-	
-	int index = 0;
-	while ((index = str.index_of(" ", index)) != -1) {
-		str2[index] = '\0';
-		index++;
-		argv.push(str2 + index);
-	}
+	Array<char*> argv, qgr_argv;
+	parse_argv(argv_str, argv, qgr_argv);
 
-	XX_CHECK(!worker_start_argv);
-	worker_start_argv = &argv;
+	XX_CHECK(!__qgr_argv);
+	__qgr_argv = &qgr_argv;
+	int code;
 	
-	int code = 0;
-	
-	// TODO
-	// int code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
-
-	worker_start_argv = nullptr;
+	if (HAVE_NODE && __qgr_have_node) {
+		code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
+	} else {
+		__qgr_have_node = 0;
+		// TODO
+	}
+	__qgr_argv = nullptr;
 
 	return code;
 }

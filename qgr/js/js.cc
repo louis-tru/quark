@@ -424,6 +424,10 @@ Local<JSObject> Worker::binding_module(cString& name) {
 			return exports;
 		}
 	}
+	
+ #if HAVE_NODE
+	
+ #endif
 	return Local<JSObject>();
 }
 

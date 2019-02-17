@@ -41,6 +41,9 @@
 
 JS_BEGIN
 
+extern Array<char*>* __qgr_argv;
+extern int __qgr_have_node;
+
 typedef Object NativeObject;
 
 class WrapNativeObject: public WrapObject {
@@ -295,6 +298,14 @@ class NativeUtil {
 		JS_SET_METHOD(transformJsx, transformJsx);
 		JS_SET_METHOD(transformJs, transformJs);
 		JS_SET_PROPERTY(platform, qgr::platform());
+		JS_SET_PROPERTY(haveNode, __qgr_have_node);
+		Local<JSArray> argv = worker->NewArray();
+		if (__qgr_argv) {
+			for (int i = 0; i < __qgr_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(__qgr_argv->item(i)));
+			}
+		}
+		JS_SET_PROPERTY(argv, argv);
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);
 	}
