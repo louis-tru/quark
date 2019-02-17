@@ -144,6 +144,9 @@ class XX_EXPORT NoCopy {
 template<class T>
 class XX_EXPORT Maybe {
  public:
+	Maybe() : val_ok_(false) {}
+	explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
+	explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
 	XX_INLINE bool Ok() const { return val_ok_; }
 	XX_INLINE bool To(T& out) {
 		if ( val_ok_ ) {
@@ -155,41 +158,54 @@ class XX_EXPORT Maybe {
 		return val_ok_ ? move(val_) : default_value;
 	}
  private:
-	Maybe() : val_ok_(false) {}
-	explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
-	explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
 	bool val_ok_;
 	T val_;
-	friend class JSValue;
-	friend class JSArray;
-	friend class JSObject;
+};
+
+template <class T>
+class XX_EXPORT MaybeLocal {
+ public:
+  XX_INLINE MaybeLocal() : val_(nullptr) {}
+  template <class S>
+  XX_INLINE MaybeLocal(Local<S> that)
+	: val_(reinterpret_cast<T*>(*that)) {
+    JS_TYPE_CHECK(T, S);
+  }
+  XX_INLINE bool IsEmpty() const { return val_ == nullptr; }
+  template <class S>
+  XX_INLINE bool ToLocal(Local<S>* out) const {
+    out->val_ = IsEmpty() ? nullptr : this->val_;
+    return !IsEmpty();
+  }
+	XX_INLINE Local<T> ToLocalChecked();
+  template <class S>
+  XX_INLINE Local<S> FromMaybe(Local<S> default_value) const {
+    return IsEmpty() ? default_value : Local<S>(val_);
+  }
+ private:
+  T* val_;
 };
 
 template<class T>
 class XX_EXPORT Local {
  public:
 	XX_INLINE Local() : val_(0) {}
-	
 	template <class S>
 	XX_INLINE Local(Local<S> that)
 	: val_(reinterpret_cast<T*>(*that)) {
 		JS_TYPE_CHECK(T, S);
 	}
-	
 	XX_INLINE bool IsEmpty() const { return val_ == 0; }
 	XX_INLINE void Clear() { val_ = 0; }
 	XX_INLINE T* operator->() const { return val_; }
 	XX_INLINE T* operator*() const { return val_; }
-
 	template <class S> XX_INLINE static Local<T> Cast(Local<S> that) {
 		return Local<T>( static_cast<T*>(*that) );
 	}
-	
 	template <class S = JSObject> XX_INLINE Local<S> To() const {
 		// unsafe conversion 
 		return Local<S>::Cast(*this);
 	}
-	
  private:
 	friend class JSValue;
 	friend class JSFunction;
@@ -204,12 +220,10 @@ template<class T>
 class XX_EXPORT PersistentBase: public NoCopy {
  public:
 	typedef void (*WeakCallback)(void* ptr);
-	
 	XX_INLINE void Reset() {
 		JS_TYPE_CHECK(JSValue, T);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset();
 	}
-	
 	template <class S>
 	XX_INLINE void Reset(Worker* worker, const Local<S>& other) {
 		JS_TYPE_CHECK(T, S);
@@ -217,21 +231,16 @@ class XX_EXPORT PersistentBase: public NoCopy {
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->
 		Reset(worker, *reinterpret_cast<const Local<JSValue>*>(&other));
 	}
-	
 	template <class S>
 	XX_INLINE void Reset(Worker* worker, const PersistentBase<S>& other) {
 		JS_TYPE_CHECK(T, S);
 		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset(worker, other.strong());
 	}
-	
 	XX_INLINE bool IsEmpty() const { return val_ == 0; }
-		
 	XX_INLINE Local<T> strong() const {
 		return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
 	}
-	
 	XX_INLINE Worker* worker() const { return worker_; }
-	
  private:
 	friend class WrapObject;
 	friend class Worker;
@@ -556,7 +565,7 @@ class XX_EXPORT Worker: public Object {
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
 	
-	Worker();
+	Worker* create();
 	
 	/**
 	 * @destructor
@@ -582,7 +591,7 @@ class XX_EXPORT Worker: public Object {
 	/**
 	 * @func binding_module
 	 */
-	Local<JSObject> binding_module(cString& name);
+	Local<JSValue> binding_module(cString& name);
 	
 	/**
 	 * @func New()
@@ -767,8 +776,13 @@ class XX_EXPORT Worker: public Object {
 	/**
 	 * @func run_native_script
 	 */
-	bool run_native_script(Local<JSObject> exports, cBuffer& source, cString& name);
-	
+	Local<JSValue> run_native_script(Local<JSObject> exports, cBuffer& source, cString& name);
+
+	/**
+	 * @func run_native_script
+	 */
+	Local<JSValue> run_native_script(cBuffer& source, cString& name);
+
 	/**
 	 * @func value_program
 	 */
@@ -801,6 +815,8 @@ class XX_EXPORT Worker: public Object {
 	
  private:
 	XX_DEFINE_INLINE_CLASS(IMPL);
+	
+	Worker();
 	
 	friend class V8WorkerIMPL;
 	friend class NativeValue;
@@ -854,6 +870,12 @@ template<> XX_EXPORT bool JSClass::SetStaticProperty<Local<JSValue>>
 (
  Worker* worker, cString& name, Local<JSValue> value
  );
+template<class T>
+Local<T> MaybeLocal<T>::ToLocalChecked() {
+	reinterpret_cast<MaybeLocal<JSValue>*>(this)->ToLocalChecked();
+	return Local<T>(val_);
+}
+template <> XX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
 
 JS_END
 #endif

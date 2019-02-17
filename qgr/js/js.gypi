@@ -23,6 +23,7 @@
 		'defines': [ 'NODE_WANT_INTERNALS=1' ],
 		'sources': [
 			'../../out/native-core-js.cc',
+			'../../out/native-ext-js.cc',
 			'js-1.h',
 			'js-cls.cc',
 			'js.cc',
@@ -95,7 +96,7 @@
 				'include_dirs': [
 					'../../depe/node/src',
 					'../../depe/node/deps/uv/include',
-					#'../../depe/node/deps/cares/include',
+					'../../depe/node/deps/cares/include',
 				],
 				'dependencies': [
 					'depe/node/node.gyp:node',
@@ -108,17 +109,43 @@
 		],
 		'actions': [
 			{
+				'action_name': 'gen_ext_js_natives',
 				'variables': {
-					'native_core_js_files': [
-					'binding/ext.js',
-					'binding/event.js',
-					'binding/value.js',
+					'files': [
+						'binding/ext.js',
+						'binding/event.js',
+						'binding/value.js',
+						'../../depe/node/lib/module.js',
 					],
 				},
-				'action_name': 'gen_core_js_natives',
 				'inputs': [
 					'../../tools/gen-js-natives.js',
-					'<@(native_core_js_files)',
+					'<@(files)',
+				],
+				'outputs': [
+					'../../out/native-ext-js.h',
+					'../../out/native-ext-js.cc',
+				],
+				'action': [
+					'<(node)',
+					'<@(_inputs)',
+					'EXT',
+					'wrap',
+					'<@(_outputs)',
+				],
+			},
+			{
+				'action_name': 'gen_core_js_natives',
+				'variables': {
+					'files': [
+						'binding/_keys.js',
+						'binding/_pkg.js',
+						'binding/_pkgutil.js',
+					],
+				},
+				'inputs': [
+					'../../tools/gen-js-natives.js',
+					'<@(files)',
 				],
 				'outputs': [
 					'../../out/native-core-js.h',

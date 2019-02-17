@@ -72,7 +72,7 @@ const NativeJSCode CORE_native_js_[] = {
 };
 */
 
-var wrap_s = new Buffer('(function(exports, global){').toJSON().data;
+var wrap_s = new Buffer('(function(exports,module,global){').toJSON().data;
 var wrap_e = new Buffer('})').toJSON().data;
 var wrap_len = is_wrap ? wrap_s.length + wrap_e.length : 0;
 

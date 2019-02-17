@@ -36,6 +36,7 @@
 #if XX_ANDROID
 # include "android/android.h"
 #endif
+#include "native-ext-js.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
 
@@ -265,6 +266,12 @@ int start(cString& argv_str) {
 	} else {
 		__qgr_have_node = 0;
 		// TODO
+		
+		WeakBuffer bf((char*) native_js::EXT_native_js_code_module_,
+									native_js::EXT_native_js_code_module_count_);
+//		if ( run_native_script(bf, "ext.js").IsEmpty() ) {
+//			XX_FATAL("Not initialize");
+//		}
 	}
 	__qgr_argv = nullptr;
 

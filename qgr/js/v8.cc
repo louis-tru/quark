@@ -36,6 +36,11 @@
 #include "js-1.h"
 #include "wrap.h"
 
+#if HAVE_NODE
+#include "env.h"
+#include "env-inl.h"
+#endif
+
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
 #define ENV(...) \
@@ -172,10 +177,10 @@ class V8WorkerIMPL: public IMPL {
 		return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 	}
 	
-	MaybeLocal<v8::Value> run_script(v8::Local<v8::String> source_string,
+	v8::MaybeLocal<v8::Value> run_script(v8::Local<v8::String> source_string,
 																	 v8::Local<v8::String> name, v8::Local<v8::Object> sandbox) {
 		v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
-		MaybeLocal<v8::Value> result;
+		v8::MaybeLocal<v8::Value> result;
 		
 		if ( sandbox.IsEmpty() ) { // use default sandbox
 			v8::Local<v8::Script> script;
@@ -192,6 +197,27 @@ class V8WorkerIMPL: public IMPL {
 			}
 		}
 		return result;
+	}
+	
+	Local<JSValue> run_native_script(Local<JSObject> exports, cBuffer& source, cString& name) {
+		v8::Local<v8::Value> _name = Back(host_->New(String::format("%s", *name)));
+		v8::Local<v8::Value> _souece = Back(host_->NewString(source));
+		
+		v8::MaybeLocal<v8::Value> rv;
+		
+		rv = run_script(_souece.As<v8::String>(),
+										_name.As<v8::String>(), v8::Local<v8::Object>());
+		if ( !rv.IsEmpty() ) {
+			Local<JSObject> module = host_->NewObject();
+			module->Set(host_, host_->strs()->exports(), exports);
+			v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
+			v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(host_->m_global) };
+			rv = func->Call(CONTEXT(host_), v8::Undefined(ISOLATE(this)), 3, &args[0]);
+			if (!rv.IsEmpty()) {
+				return module->Get(host_, host_->strs()->exports());
+			}
+		}
+		return Local<JSValue>();
 	}
 	
 	// Extracts a C string from a V8 Utf8Value.
@@ -704,8 +730,8 @@ Local<JSValue> JSFunction::Call(Worker* worker, int argc,
 		recv = worker->NewUndefined();
 	}
 	v8::Local<v8::Function> fn2 = Back(Local<JSValue>(this)).As<v8::Function>();
-	MaybeLocal<v8::Value> r = fn2->Call(CONTEXT(worker), Back(recv), argc,
-																			reinterpret_cast<v8::Local<v8::Value>*>(argv));
+	v8::MaybeLocal<v8::Value> r = fn2->Call(CONTEXT(worker), Back(recv), argc,
+																					reinterpret_cast<v8::Local<v8::Value>*>(argv));
 	return Cast(r.FromMaybe(v8::Local<v8::Value>()));
 }
 
@@ -715,8 +741,8 @@ Local<JSValue> JSFunction::Call(Worker* worker, Local<JSValue> recv) {
 
 Local<JSObject> JSFunction::NewInstance(Worker* worker, int argc, Local<JSValue> argv[]) {
 	v8::Local<v8::Function> fn2 = Back(Local<JSValue>(this)).As<v8::Function>();
-	MaybeLocal<v8::Object> r = fn2->NewInstance(CONTEXT(worker), argc,
-																							reinterpret_cast<v8::Local<v8::Value>*>(argv));
+	v8::MaybeLocal<v8::Object> r = fn2->NewInstance(CONTEXT(worker), argc,
+																									reinterpret_cast<v8::Local<v8::Value>*>(argv));
 	return Cast<JSObject>(r.FromMaybe(v8::Local<v8::Object>()));
 }
 
@@ -789,6 +815,10 @@ template<> bool JSClass::SetStaticProperty<Local<JSValue>>
 	reinterpret_cast<V8JSClass*>(this)->Template()->
 					Set(Back<v8::String>(worker->New(name, 1)), Back(value));
 	return true;
+}
+
+template <> XX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked() {
+	return Cast(reinterpret_cast<v8::MaybeLocal<v8::Value>*>(this)->ToLocalChecked());
 }
 
 void JSClass::SetInstanceInternalFieldCount(int count) {
@@ -1159,9 +1189,9 @@ void Worker::report_exception(TryCatch* try_catch) {
 
 Local<JSValue> Worker::run_script(Local<JSString> source,
 																	Local<JSString> name, Local<JSObject> sandbox) {
-	MaybeLocal<v8::Value> r = WORKER(this)->run_script(Back<v8::String>(source),
-																											 Back<v8::String>(name),
-																											 Back<v8::Object>(sandbox));
+	v8::MaybeLocal<v8::Value> r = WORKER(this)->run_script(Back<v8::String>(source),
+																												Back<v8::String>(name),
+																												Back<v8::Object>(sandbox));
 	return Cast(r.FromMaybe(v8::Local<v8::Value>()));
 }
 
@@ -1170,24 +1200,18 @@ Local<JSValue> Worker::run_script(cString& source,
 	return run_script(New(source), New(name), sandbox);
 }
 
-bool Worker::run_native_script(Local<JSObject> exports, cBuffer& source, cString& name) {
+Local<JSValue> Worker::run_native_script(Local<JSObject> exports, cBuffer& source, cString& name) {
 	v8::HandleScope scope(ISOLATE(this));
-	
-	v8::Local<v8::Value> _name = Back(New(String::format("%s", *name)));
-	v8::Local<v8::Value> _souece = Back(NewString(source));
-	
-	MaybeLocal<v8::Value> rv;
-	
-	rv = WORKER(this)->run_script(_souece.As<v8::String>(),
-																	_name.As<v8::String>(), v8::Local<v8::Object>());
-	
-	if ( !rv.IsEmpty() ) {
-		v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-		v8::Local<v8::Value> args[] = { Back(exports), Back(m_global) };
-		rv = func->Call(CONTEXT(this), v8::Undefined(ISOLATE(this)), 2, &args[0]);
-	}
-	//  XX_ASSERT_ERR(rv.IsEmpty(), "Unable to execute Native script \"\"", *name);
-	return !rv.IsEmpty();
+	return WORKER(this)->run_native_script(exports, source, name);
+}
+
+/**
+ * @func run_native_script
+ */
+Local<JSValue> Worker::run_native_script(cBuffer& source, cString& name) {
+	v8::HandleScope scope(ISOLATE(this));
+	Local<JSObject> exports = NewObject();
+	return WORKER(this)->run_native_script(exports, source, name);
 }
 
 /**
@@ -1195,6 +1219,17 @@ bool Worker::run_native_script(Local<JSObject> exports, cBuffer& source, cString
  */
 void Worker::garbage_collection() {
 	ISOLATE(this)->LowMemoryNotification();
+}
+
+Local<JSValue> binding_node_module(Worker* worker, cString& name) {
+ #if HAVE_NODE
+	node::Environment* m_env = nullptr;
+	Local<JSValue> argv = worker->New(name);
+	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(worker, "binding");
+	return binding.To<JSFunction>()->Call(worker, 1, &argv);
+ #else
+	return Local<JSValue>();
+ #endif
 }
 
 JS_END

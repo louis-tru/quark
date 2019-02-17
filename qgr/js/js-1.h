@@ -42,6 +42,10 @@
 #define js_bind_common_native_event(name) \
 	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
 
+namespace node {
+	class Environment;
+}
+
 /**
  * @ns qgr::js
  */
@@ -62,7 +66,7 @@ class WeakCallbackInfo {
  */
 class Worker::IMPL {
  public:
-	IMPL(Worker* host);
+	IMPL(Worker* host, node::Environment* env);
 	virtual ~IMPL();
 	virtual Local<JSObject> initialize() = 0;
 	static IMPL* create(Worker* host);
@@ -93,6 +97,7 @@ class Worker::IMPL {
 	Worker* host_;
 	JSClassStore* classs_;
 	Persistent<JSObject> m_native_modules;
+	node::Environment* m_env;
 };
 
 typedef Worker::IMPL IMPL;
