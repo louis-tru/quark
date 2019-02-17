@@ -40,11 +40,6 @@
  * @ns qgr::js
  */
 
-#ifndef WORKER_DATA_INDEX
-# define WORKER_DATA_INDEX (-1)
-#endif
-
-
 JS_BEGIN
 
 IMPL::IMPL(Worker* host)
@@ -53,7 +48,8 @@ IMPL::IMPL(Worker* host)
 }
 
 IMPL::~IMPL() {
-	XX_ASSERT( !classs_ );
+	delete classs_; classs_ = nullptr;
+	m_native_modules.Reset();
 }
 
 Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
@@ -256,6 +252,18 @@ void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that) {
 
 // -------------------------------------------------------------------------------------
 
+static void requireNative(FunctionCall args) {
+	JS_WORKER(args);
+	if (args.Length() < 1) {
+		JS_THROW_ERR("Bad argument.");
+	}
+	String name = args[0]->ToStringValue(worker);
+	Local<JSObject> r = worker->binding_module(name);
+	if (!r.IsEmpty()) {
+		JS_RETURN(r);
+	}
+}
+
 Worker::Worker()
 : m_thread_id(SimpleThread::current_id())
 , m_value_program( nullptr )
@@ -270,7 +278,6 @@ Worker::Worker()
 	if (m_global.IsEmpty()) {
 		XX_FATAL("Cannot complete initialization by Worker !");
 	}
-	
 	m_strs = new CommonStrings(this);
 	
 	WeakBuffer bf((char*) native_js::CORE_native_js_code_ext_,
@@ -278,13 +285,13 @@ Worker::Worker()
 	if ( !run_native_script(m_global, bf, "ext.js")) {
 		XX_FATAL("Not initialize");
 	}
+	
+	m_global->SetMethod(this, "requireNative", requireNative);
 }
 
 Worker::~Worker() {
 	Release(m_value_program); m_value_program = nullptr;
 	Release(m_strs); m_strs = nullptr;
-	
-	delete m_inl->classs_; m_inl->classs_ = nullptr;
 	delete m_inl; m_inl = nullptr;
 }
 
@@ -314,7 +321,7 @@ Local<JSObject> Worker::New(const HttpError& err) {
 
 Local<JSArray> Worker::New(Array<Dirent>& ls) { return New(move(ls)); }
 Local<JSArray> Worker::New(Array<FileStat>& ls) { return New(move(ls)); }
-Local<JSTypedArray> Worker::New(Buffer& buff) { return New(move(buff)); }
+Local<JSObject> Worker::New(Buffer& buff) { return New(move(buff)); }
 Local<JSObject> Worker::New(FileStat& stat) { return New(move(stat)); }
 Local<JSObject> Worker::NewError(cError& err) { return New(err); }
 Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
@@ -333,7 +340,7 @@ Local<JSObject> Worker::NewInstance(uint64 id, uint argc, Local<JSValue>* argv) 
 	return func->NewInstance(this, argc, argv);
 }
 
-Local<JSTypedArray> Worker::NewBuffer(Local<JSString> str, Encoding en) {
+Local<JSObject> Worker::NewBuffer(Local<JSString> str, Encoding en) {
 	Buffer buff = str->ToBuffer(this, en);
 	return New(buff);
 }
@@ -344,6 +351,10 @@ void Worker::throw_err(cchar* errmsg, ...) {
 }
 
 bool Worker::has_buffer(Local<JSValue> val) {
+	return m_inl->classs_->is_buffer(val);
+}
+
+bool Worker::has_typed_buffer(Local<JSValue> val) {
 	return val->IsTypedArray(this) || val->IsArrayBuffer(this);
 }
 
@@ -358,7 +369,17 @@ bool Worker::has_instance(Local<JSValue> val, uint64 id) {
 /**
  * @func as_buffer
  */
-WeakBuffer Worker::as_buffer(Local<JSValue> val) {
+Buffer* Worker::as_buffer(Local<JSValue> val) {
+	if ( m_inl->classs_->is_buffer(val) ) {
+		return Wrap<Buffer>::unpack(val.To<JSObject>())->self();
+	}
+	return nullptr;
+}
+
+/**
+ * @func as_buffer TypedArray or ArrayBuffer to WeakBuffer
+ */
+WeakBuffer Worker::as_typed_buffer(Local<JSValue> val) {
 	if (val->IsTypedArray(this)) {
 		return val.To<JSTypedArray>()->weak_buffer(this);
 	} else if (val->IsArrayBuffer()) {
@@ -367,42 +388,42 @@ WeakBuffer Worker::as_buffer(Local<JSValue> val) {
 	return WeakBuffer();
 }
 
+struct NativeModule {
+	String name;
+	String file;
+	Worker::BindingCallback binding;
+};
+
+static Map<String, NativeModule>* native_modules = nullptr;
+
 void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
 	
-//	struct node_module2: node::node_module {
-//		static void Func(v8::Local<v8::Object> exports,
-//										 v8::Local<v8::Value> module,
-//										 v8::Local<v8::Context> context, void* priv) {
-//			auto data = (node_module2*)priv; XX_ASSERT(data);
-//			data->binding(Cast<JSObject>(exports), Worker::worker());
-//		}
-//		BindingCallback binding;
-//		String name;
-//	};
-//
-//	auto m = new node_module2();
-//
-//	m->binding = binding;
-//	m->name = name;
-//	m->nm_version = NODE_MODULE_VERSION;
-//	m->nm_flags = NM_F_BUILTIN;
-//	m->nm_dso_handle = NULL;
-//	m->nm_filename = file ? file : __FILE__;
-//	m->nm_register_func = NULL;
-//	m->nm_context_register_func = node_module2::Func;
-//	m->nm_modname = *m->name;
-//	m->nm_priv = m;
-//	m->nm_link = NULL;
-//
-//	//XX_DEBUG("node::node_module_register: %s", *name);
-//
-//	node::node_module_register(m);
+	if (!native_modules) {
+		native_modules = new Map<String, NativeModule>();
+	}
+	//XX_DEBUG("reg_module: %s, %s", *name, file);
+	
+	native_modules->set(name, { name, file ? file : __FILE__, binding });
 }
 
 Local<JSObject> Worker::binding_module(cString& name) {
-//	Local<JSValue> argv = New(name);
-//	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(this, "binding");
-//	return binding.To<JSFunction>()->Call(this, 1, &argv).To();
+	Local<JSValue> str = New(name);
+	Local<JSValue> r = m_inl->m_native_modules.strong()->Get(this, str);
+	
+	if (!r->IsUndefined()) {
+		return r.To<JSObject>();
+	}
+	if (native_modules) {
+		auto it = native_modules->find(name);
+		if (!it.is_null()) {
+			NativeModule& mod = it.value();
+			Local<JSObject> exports = NewObject();
+			mod.binding(exports, this);
+			m_inl->m_native_modules.strong()->Set(this, str, exports);
+			return exports;
+		}
+	}
+	return Local<JSObject>();
 }
 
 JS_END

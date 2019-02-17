@@ -45,7 +45,7 @@ class WrapRoot: public WrapViewBase {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		JS_WORKER(args);
 		try {
 			Handle<Root> r = new Root();

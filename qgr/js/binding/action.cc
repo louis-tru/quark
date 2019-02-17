@@ -394,7 +394,7 @@ class WrapSpawnAction: public WrapObject {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapSpawnAction>(args, new SpawnAction());
 	}
 	
@@ -412,7 +412,7 @@ class WrapSequenceAction: public WrapObject {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapSequenceAction>(args, new SequenceAction());
 	}
 
@@ -432,7 +432,7 @@ class WrapKeyframeAction: public WrapObject {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapKeyframeAction>(args, new KeyframeAction());
 	}
 	

@@ -43,6 +43,8 @@
 * @arg `[sandbox]` {[`Object`]}
 * @ret {[`Object`]} 返回执行结果
 
+## nextTick(cb)
+
 ## transformJsx(source,name)
 
 转换Qgr `jsx`代码为普通的可运行的`js`代码
@@ -62,10 +64,6 @@
 * @arg `source` {[`String`]}
 * @arg `name` {[`String`]}
 * @ret {[`String`]}
-
-## log()
-
-打印日志
 
 ## noop()
 

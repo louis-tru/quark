@@ -51,7 +51,7 @@ class WrapFontStatic {
 	 */
 	static void set_default_fonts(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		js_check_gui_app();
+		JS_CHECK_APP();
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR("Bad argument.");
 		}
@@ -73,7 +73,7 @@ class WrapFontStatic {
 	 */
 	static void default_font_names(FunctionCall args) {
 		JS_WORKER(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		Array<String> arr = font_pool()->default_font_names();
 		JS_RETURN(arr);
 	}
@@ -84,7 +84,7 @@ class WrapFontStatic {
 	 */
 	static void family_names(FunctionCall args) {
 		JS_WORKER(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		Array<String> arr = font_pool()->family_names();
 		JS_RETURN(arr);
 	}
@@ -96,7 +96,7 @@ class WrapFontStatic {
 	 */
 	static void font_names(FunctionCall args) {
 		JS_WORKER(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 				"* @func fontNames(family)\n"
@@ -115,7 +115,7 @@ class WrapFontStatic {
 	 */
 	static void test(FunctionCall args) {
 		JS_WORKER(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(
 				"* @func test(name) test font or family\n"
@@ -135,7 +135,7 @@ class WrapFontStatic {
 	 */
 	static void register_font(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		js_check_gui_app();
+		JS_CHECK_APP();
 		if ( args.Length() < 1 || !worker->has_buffer(args[0]) ) {
 			JS_THROW_ERR(
 				"* @func registerFont(font_data)\n"
@@ -161,7 +161,7 @@ class WrapFontStatic {
 	 */
 	static void register_font_file(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		js_check_gui_app();
+		JS_CHECK_APP();
 		if ( args.Length() < 1 || !args[0]->IsString(worker) ) {
 			JS_THROW_ERR(
 				"* @func registerFontFile(path[,alias])\n"
@@ -186,7 +186,7 @@ class WrapFontStatic {
 	 */
 	static void set_family_alias(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		js_check_gui_app();
+		JS_CHECK_APP();
 		if ( args.Length() < 2 ) {
 			JS_THROW_ERR(
 				"* @func setFamilyAlias(family, alias)\n"

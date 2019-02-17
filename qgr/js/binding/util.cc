@@ -32,12 +32,8 @@
 #include "qgr/utils/fs.h"
 #include "qgr/sys.h"
 #include "qgr/utils/loop.h"
-#include "qgr/utils/string-builder.h"
 #include "qgr/js/qgr.h"
 #include "qgr/utils/jsx.h"
-#include "qgr/js/str.h"
-#include "native-core-js.h"
-#include "json-1.h"
 
 /**
  * @ns qgr::js
@@ -46,7 +42,6 @@
 JS_BEGIN
 
 typedef Object NativeObject;
-static cString Space(' ');
 
 class WrapNativeObject: public WrapObject {
 	static void constructor(FunctionCall args) {
@@ -243,7 +238,20 @@ class NativeUtil {
 			JS_RETURN( rv );
 		}
 	}
-	
+
+	static void next_tick(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || ! args[0]->IsFunction(worker)) {
+			JS_WORKER_ERR("Bad argument");
+		}
+		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
+		RunLoop::next_tick(Callback([worker, func](Se& e) {
+			XX_ASSERT(!func.IsEmpty());
+			JS_HANDLE_SCOPE();
+			func.strong()->Call(worker);
+		}));
+	}
+
 	static void transform_js(FunctionCall args, bool jsx) {
 		JS_WORKER(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
@@ -271,35 +279,6 @@ class NativeUtil {
 		transform_js(args, false);
 	}
 	
-	static void log(FunctionCall args) {
-		JS_WORKER(args);
-		StringBuilder rv;
-		bool is_space = false;
-		
-		for (int i = 0; i < args.Length(); i++) {
-			if (is_space) {
-				rv.push(Space);
-			}
-			if (args[i]->IsObject(worker)) {
-				if (!JSON::stringify_console_styled(worker, args[i], &rv)) {
-					return;
-				}
-			} else {
-				rv.push( args[i]->ToStringValue(worker) );
-			}
-			is_space = true;
-		}
-		console::log(rv.to_string());
-	}
-
-	/**
-	 * @static platform {String} 
-	 */
-	static void platform(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_RETURN( qgr::platform() );
-	}
-	
 	/**
 	 * @func binding
 	 */
@@ -312,10 +291,10 @@ class NativeUtil {
 		JS_SET_METHOD(removeNativeEventListener, removeNativeEventListener);
 		JS_SET_METHOD(runScript, run_script);
 		JS_SET_METHOD(garbageCollection, garbageCollection);
+		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(transformJsx, transformJsx);
 		JS_SET_METHOD(transformJs, transformJs);
-		JS_SET_METHOD(log, log);
-		JS_SET_ACCESSOR(platform, platform);
+		JS_SET_PROPERTY(platform, qgr::platform());
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);
 	}

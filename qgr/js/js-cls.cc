@@ -35,7 +35,8 @@ JS_BEGIN
 
 JSClassStore::JSClassStore(Worker* worker)
 : current_attach_object_(nullptr)
-, worker_(worker) {
+, worker_(worker)
+, buffer_value_(nullptr) {
 }
 
 JSClassStore::~JSClassStore() {
@@ -130,6 +131,38 @@ bool JSClassStore::instanceof(Local<JSValue> val, uint64 id) {
 		return cls->HasInstance(worker_, val);
 	}
 	return false;
+}
+
+/**
+ * @func is_buffer(val)
+ */
+bool JSClassStore::is_buffer(Local<JSValue> val) {
+	if (!buffer_value_) {
+		buffer_value_ = values_.get(JS_TYPEID(Buffer));
+	}
+	if (buffer_value_) {
+		Local<JSClass> cls = buffer_value_->jsclass.strong();
+		return cls->HasInstance(worker_, val);
+	}
+	return false;
+}
+
+/**
+ * @func get_buffer_constructor
+ */
+Local<JSFunction> JSClassStore::get_buffer_constructor() {
+	if (!buffer_value_) {
+		buffer_value_ = values_.get(JS_TYPEID(Buffer));
+	}
+	if (buffer_value_) {
+		if (buffer_value_->function.IsEmpty()) {
+			Local<JSFunction> func =
+			IMPL::current(worker_)->GenConstructor(buffer_value_->jsclass.strong());
+			buffer_value_->function.Reset(worker_, func);
+		}
+		return buffer_value_->function.strong();
+	}
+	return Local<JSFunction>();
 }
 
 JS_END

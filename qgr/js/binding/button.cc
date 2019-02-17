@@ -48,7 +48,7 @@ class WrapButton: public WrapViewBase {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapButton>(args, new Button());
 	}
 	

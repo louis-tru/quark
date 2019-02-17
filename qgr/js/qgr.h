@@ -43,7 +43,7 @@
 
 JS_BEGIN
 
-#define js_check_gui_app() if ( ! app() ) { \
+#define JS_CHECK_APP() if ( ! app() ) { \
 	JS_WORKER(args); JS_THROW_ERR("Need to create a `new GUIApplication()`"); }
 
 /**
@@ -85,8 +85,6 @@ class XX_EXPORT WrapViewBase: public WrapObject {
 };
 
 XX_EXPORT int start(cString& argv);
-XX_EXPORT int start(const Array<String>& argv);
-XX_EXPORT const Array<char*>* start_argv();
 
 JS_END
 #endif

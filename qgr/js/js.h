@@ -607,8 +607,8 @@ class XX_EXPORT Worker: public Object {
 	Local<JSArray>  New(Array<FileStat>& data);
 	Local<JSArray>  New(Array<FileStat>&& data);
 	Local<JSObject> New(const Map<String, String>& data);
-	Local<JSTypedArray> New(Buffer& buff);
-	Local<JSTypedArray> New(Buffer&& buff);
+	Local<JSObject> New(Buffer& buff);
+	Local<JSObject> New(Buffer&& buff);
 	Local<JSObject> New(FileStat& stat);
 	Local<JSObject> New(FileStat&& stat);
 	Local<JSObject> New(const Dirent& dir);
@@ -630,7 +630,7 @@ class XX_EXPORT Worker: public Object {
 	Local<JSObject> NewInstance(uint64 id, uint argc = 0, Local<JSValue>* argv = nullptr);
 	Local<JSString> NewString(cBuffer& data);
 	Local<JSString> NewString(cchar* str, uint len);
-	Local<JSTypedArray> NewBuffer(Local<JSString> str, Encoding enc = Encoding::utf8);
+	Local<JSObject> NewBuffer(Local<JSString> str, Encoding enc = Encoding::utf8);
 	Local<JSObject> NewRangeError(cchar* errmsg, ...);
 	Local<JSObject> NewReferenceError(cchar* errmsg, ...);
 	Local<JSObject> NewSyntaxError(cchar* errmsg, ...);
@@ -668,24 +668,34 @@ class XX_EXPORT Worker: public Object {
 	void throw_err(cchar* errmsg, ...);
 	
 	/**
-	 * @func has_buffer has javascript ArrayBufferView or ArrayBuffer
-	 */
-	bool has_buffer(Local<JSValue> val);
-	
-	/**
-	 * @func has_view() has View type
-	 */
-	bool has_view(Local<JSValue> val);
-	
-	/**
 	 * @func has_instance
 	 */
 	bool has_instance(Local<JSValue> val, uint64 id);
 	
 	/**
-	 * @func as_buffer ArrayBufferView or ArrayBuffer to WeakBuffer
+	 * @func has_buffer has javascript ArrayBufferView or ArrayBuffer
 	 */
-	WeakBuffer as_buffer(Local<JSValue> val);
+	bool has_buffer(Local<JSValue> val);
+	
+	/**
+	 * @func has_typed_buffer() has javascript TypedArray or ArrayBuffer
+	 */
+	bool has_typed_buffer(Local<JSValue> val);
+	
+	/**
+	 * @func has_view() has View type
+	 */
+	bool has_view(Local<JSValue> val);
+
+	/**
+	 * @func as_buffer()
+	 */
+	Buffer* as_buffer(Local<JSValue> val);
+	
+	/**
+	 * @func as_buffer TypedArray or ArrayBuffer to WeakBuffer
+	 */
+	WeakBuffer as_typed_buffer(Local<JSValue> val);
 	
 	/**
 	 * @func has_instance
@@ -800,8 +810,6 @@ class XX_EXPORT Worker: public Object {
 	CommonStrings*  m_strs;
 	Local<JSObject> m_global;
 	IMPL*           m_inl;
-	String          m_argv_str;
-	Array<char*>    m_argv;
 };
 
 // **********************************************************************

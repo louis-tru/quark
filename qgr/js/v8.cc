@@ -34,6 +34,7 @@
 #include "qgr/utils/string-builder.h"
 #include "qgr/view.h"
 #include "js-1.h"
+#include "wrap.h"
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
@@ -148,9 +149,13 @@ class V8WorkerIMPL: public IMPL {
 	
 	virtual Local<JSObject> initialize() {
 		// TODO
-//		isolate_ = host_->m_env->isolate();
-//		context_ = host_->m_env->context();
+		//		isolate_ = host_->m_env->isolate();
+		//		context_ = host_->m_env->context();
+		
 		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, host_);
+		
+		m_native_modules.Reset(host_, host_->NewObject());
+		
 		return Cast<JSObject>(context_->Global());
 	}
 	
@@ -1107,12 +1112,12 @@ Local<JSObject> Worker::NewError(Local<JSObject> value) {
 	return Cast<JSObject>(e);
 }
 
-Local<JSTypedArray> Worker::New(Buffer&& buff) {
-	size_t size = buff.length();
-	char* data = buff.collapse();
-	// TODO
-	// auto bf = node::Buffer::New(ISOLATE(this), data, size).ToLocalChecked();
-//	return Cast<JSTypedArray>(bf);
+Local<JSObject> Worker::New(Buffer&& buff) {
+	Local<JSFunction> func = m_inl->classs_->get_buffer_constructor();
+	XX_ASSERT( !func.IsEmpty() );
+	Local<JSObject> bf = func->NewInstance(this);
+	*Wrap<Buffer>::unpack(bf)->self() = move(buff);
+	return bf;
 }
 
 void Worker::throw_err(Local<JSValue> exception) {

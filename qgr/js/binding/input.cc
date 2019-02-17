@@ -45,7 +45,7 @@ class WrapInput: public WrapViewBase {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapInput>(args, new Input());
 	}
 	
@@ -148,7 +148,7 @@ class WrapTextarea: public WrapViewBase {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapTextarea>(args, new Textarea());
 	}
 	

@@ -1106,14 +1106,52 @@ public:
 	}
 
 	/**
-	 * @func ssl_cacert_file()
-	 * @ret {String} return cacert file path
+	 * @func cache_path()
+	 * @ret {String}
 	 */
-	static void ssl_cacert_file(FunctionCall args) {
+	static void cache_path(FunctionCall args) {
 		JS_WORKER(args);
-		// JS_RETURN( HttpHelper::ssl_cacert_file() );
+		JS_RETURN( HttpHelper::cache_path() );
 	}
 
+	/**
+	 * @func set_cache_path(path)
+	 * @arg path {String}
+	 */
+	static void set_cache_path(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || !args[0]->IsString(worker)) {
+			JS_THROW_ERR(
+				"* @func setCachePath(path)\n"
+				"* @arg path {String}\n"
+			);
+		}
+		HttpHelper::set_cache_path( args[0]->ToStringValue(worker) );
+	}
+
+	/**
+	 * @func clear_cache()
+	 */
+	static void clear_cache(FunctionCall args) {
+		HttpHelper::clear_cache();
+	}
+
+	/**
+	 * @func clear_cookie()
+	 */
+	static void clear_cookie(FunctionCall args) {
+		HttpHelper::clear_cookie();
+	}
+	
+// /**
+//  * @func ssl_cacert_file()
+//  * @ret {String} return cacert file path
+//  */
+// static void ssl_cacert_file(FunctionCall args) {
+// 	JS_WORKER(args);
+// 	JS_RETURN( HttpHelper::ssl_cacert_file() );
+// }
+// 
 //  /**
 //   * @func ssl_cacert_file(path)
 //   * @arg path {String}
@@ -1159,65 +1197,29 @@ public:
 //    HttpHelper::set_ssl_client_keypasswd( args[0]->ToStringValue(worker) );
 //  }
 
-	/**
-	 * @func cache_path()
-	 * @ret {String}
-	 */
-	static void cache_path(FunctionCall args) {
-		JS_WORKER(args);
-		JS_RETURN( HttpHelper::cache_path() );
-	}
-
-	/**
-	 * @func set_cache_path(path)
-	 * @arg path {String}
-	 */
-	static void set_cache_path(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
-				"* @func setCachePath(path)\n"
-				"* @arg path {String}\n"
-			);
-		}
-		HttpHelper::set_cache_path( args[0]->ToStringValue(worker) );
-	}
-
-	/**
-	 * @func clear_cache()
-	 */
-	static void clear_cache(FunctionCall args) {
-		HttpHelper::clear_cache();
-	}
-
-	/**
-	 * @func clear_cookie()
-	 */
-	static void clear_cookie(FunctionCall args) {
-		HttpHelper::clear_cookie();
-	}
-	
 	static void binding(Local<JSObject> exports, Worker* worker) {
+		worker->binding_module("_buffer");
 		WrapNativeHttpClientRequest::binding(exports, worker);
-		//
+		// HTTP_METHOD
 		JS_SET_PROPERTY(HTTP_METHOD_GET, HTTP_METHOD_GET);
 		JS_SET_PROPERTY(HTTP_METHOD_POST, HTTP_METHOD_POST);
 		JS_SET_PROPERTY(HTTP_METHOD_HEAD, HTTP_METHOD_HEAD);
 		JS_SET_PROPERTY(HTTP_METHOD_DELETE, HTTP_METHOD_DELETE);
 		JS_SET_PROPERTY(HTTP_METHOD_PUT, HTTP_METHOD_PUT);
-		//
+		// HTTP_READY
 		JS_SET_PROPERTY(HTTP_READY_STATE_INITIAL, HTTP_READY_STATE_INITIAL);
 		JS_SET_PROPERTY(HTTP_READY_STATE_READY, HTTP_READY_STATE_READY);
 		JS_SET_PROPERTY(HTTP_READY_STATE_SENDING, HTTP_READY_STATE_SENDING);
 		JS_SET_PROPERTY(HTTP_READY_STATE_RESPONSE, HTTP_READY_STATE_RESPONSE);
 		JS_SET_PROPERTY(HTTP_READY_STATE_COMPLETED, HTTP_READY_STATE_COMPLETED);
-		//
+		// FUNC
 		JS_SET_METHOD(request, request);
 		JS_SET_METHOD(requestStream, request_stream);
 		JS_SET_METHOD(requestSync, request_sync);
 		JS_SET_METHOD(download, download);
 		JS_SET_METHOD(upload, upload);
 		JS_SET_METHOD(get, get);
+		JS_SET_METHOD(getStream, get_stream);
 		JS_SET_METHOD(post, post);
 		JS_SET_METHOD(getSync, get_sync);
 		JS_SET_METHOD(postSync, post_sync);
@@ -1230,12 +1232,10 @@ public:
 		JS_SET_METHOD(clearCookie, clear_cookie);
 		JS_SET_METHOD(downloadSync, download_sync);
 		JS_SET_METHOD(uploadSync, upload_sync);
-		
-		//JS_SET_METHOD(get_stream, get_stream);
 		//JS_SET_METHOD(sslCacertFile, ssl_cacert_file);
 		//JS_SET_METHOD(setSslCacertFile, set_ssl_cacert_file);
-		//JS_SET_METHOD(set_ssl_client_key_file, set_ssl_client_key_file);
-		//JS_SET_METHOD(set_ssl_client_keypasswd, set_ssl_client_keypasswd);
+		//JS_SET_METHOD(setSslClientKeyFile, set_ssl_client_key_file);
+		//JS_SET_METHOD(setSslClientKeypasswd, set_ssl_client_keypasswd);
 	}
 };
 

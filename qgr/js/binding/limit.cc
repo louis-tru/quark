@@ -44,7 +44,7 @@ template<class T> class WrapLimit: public WrapViewBase {
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
-		js_check_gui_app();
+		JS_CHECK_APP();
 		New<WrapLimit<T>>(args, new T());
 	}
 	static void min_width(Local<JSString> name, PropertyCall args) {

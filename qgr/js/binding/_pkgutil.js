@@ -32,7 +32,7 @@
 
 const _path = requireNative('_path');
 const win32 = requireNative('_util').platform == 'win32';
-const { isFileSync } = requireNative('_reader');
+const { readFileSync, isFileSync } = requireNative('_reader');
 
 const fallbackPath = win32 ? function(url) {
 	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
@@ -177,4 +177,5 @@ Object.assign(exports, {
 	isLocalZip,
 	isNetwork,
 	resolveMainPath,
+	readFileSync,
 });

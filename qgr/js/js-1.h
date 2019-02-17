@@ -65,9 +65,7 @@ class Worker::IMPL {
 	IMPL(Worker* host);
 	virtual ~IMPL();
 	virtual Local<JSObject> initialize() = 0;
-	
 	static IMPL* create(Worker* host);
-	static void binding(FunctionCall args);
 	
 	template<class T = IMPL>
 	inline static T* current(Worker* worker = Worker::worker()) {
@@ -94,6 +92,7 @@ class Worker::IMPL {
 	friend class Worker;
 	Worker* host_;
 	JSClassStore* classs_;
+	Persistent<JSObject> m_native_modules;
 };
 
 typedef Worker::IMPL IMPL;
@@ -184,6 +183,16 @@ class JSClassStore {
 	bool instanceof(Local<JSValue> val, uint64 id);
 	
 	/**
+	 * @func is_buffer(val)
+	 */
+	bool is_buffer(Local<JSValue> val);
+	
+	/**
+	 * @func get_buffer_constructor
+	 */
+	Local<JSFunction> get_buffer_constructor();
+
+	/**
 	 * @func has
 	 */
 	inline bool has(uint64 id) {
@@ -201,6 +210,7 @@ class JSClassStore {
 	Map<uint64, Desc*> values_;
 	WrapObject* current_attach_object_;
 	Worker* worker_;
+	Desc* buffer_value_;
 	
 	friend class WrapObject;
 };

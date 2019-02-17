@@ -36,6 +36,7 @@
 #if XX_ANDROID
 # include "android/android.h"
 #endif
+#include "node/src/qgr.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
 
@@ -79,7 +80,8 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 	self->add_event_listener(type, f, id);
 }
 
-bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id) {
+bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id) 
+{
 	auto i = GUI_EVENT_TABLE.find(name_s);
 	if ( i.is_null() ) {
 		return false;
@@ -135,12 +137,14 @@ void* object_allocator_alloc(size_t size);
 void object_allocator_release(Object* obj);
 void object_allocator_retain(Object* obj);
 
-struct QgrApiImplementation {
-	
-	// TODO
-	static Worker* create_qgr_js_worker(/*node::Environment* env,*/
-																			 bool is_inspector,
-																			 int argc, const char* const* argv) {
+/**
+ * @class QgrApiImpl
+ */
+class QgrApiImpl: public QgrApi {
+ public:
+
+	Worker* create_worker(node::Environment* env, bool is_inspector,
+												int argc, const char* const* argv) {
 		if (argc > 1) {
 			Map<String, String> opts;
 			for (int i = 2; i < argc; i++) {
@@ -158,66 +162,56 @@ struct QgrApiImplementation {
 		}
 		return new Worker();
 	}
-	static void delete_qgr_js_worker(qgr::js::Worker* worker) {
+
+	void delete_worker(qgr::js::Worker* worker) {
 		Release(worker);
 	}
-	static RunLoop* qgr_main_loop() {
-		return qgr::RunLoop::main_loop();
+
+	void run_loop() {
+		qgr::RunLoop::main_loop()->run();
 	}
-	static void run_qgr_loop(RunLoop* loop) {
-		loop->run();
-	}
-	static char* encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
+
+	char* encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
 		auto buff = Codec::encoding(Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}
-	static uint16_t* decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
+
+	uint16_t* decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
 		auto buff = Codec::decoding_to_uint16(Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}
-	static void print(const char* msg, ...) {
+
+	void print(const char* msg, ...) {
 		XX_STRING_FORMAT(msg, str);
 		LOG(str);
 	}
-	static bool is_process_exit() {
+
+	bool is_process_exit() {
 		return RunLoop::is_process_exit();
 	}
 };
 
 // startup argv
 static Array<char*>* worker_start_argv = nullptr;
-
-const Array<char*>* start_argv() {
-	return worker_start_argv;
-}
+static int is_start_initializ = 0;
 
 int start(cString& argv_str) {
-	
-	static int is_initializ = 0;
-	if ( is_initializ++ == 0 ) {
+	if ( is_start_initializ++ == 0 ) {
 		HttpHelper::initialize();
-		
-		// TODO
-		// node::set_qgr_api({
-		// 	QgrApiImplementation::create_qgr_js_worker,
-		// 	QgrApiImplementation::delete_qgr_js_worker,
-		// 	QgrApiImplementation::qgr_main_loop,
-		// 	QgrApiImplementation::run_qgr_loop,
-		// 	QgrApiImplementation::encoding_to_utf8,
-		// 	QgrApiImplementation::decoding_utf8_to_uint16,
-		// 	QgrApiImplementation::print,
-		// 	QgrApiImplementation::is_process_exit,
-		// });
+
+		node::set_qgr_api(new QgrApiImpl);
 
 		ObjectAllocator allocator = {
 			object_allocator_alloc, object_allocator_release, object_allocator_retain,
 		};
 		qgr::set_object_allocator(&allocator);
-		// TODO
+
 		// qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
 	}
+
+	RunLoop* loop = RunLoop::main_loop();
 	
 	static String str = argv_str.trim();
 	// add prefix
@@ -246,19 +240,6 @@ int start(cString& argv_str) {
 	worker_start_argv = nullptr;
 
 	return code;
-}
-
-int start(const Array<String>& argv) {
-	String argv_str;
-	for ( auto& i : argv  ) {
-		if (!i.value().is_blank()) {
-			if ( !argv_str.is_empty() ) {
-				argv_str += " ";
-			}
-			argv_str += i.value();
-		}
-	}
-	return start(*argv_str);
 }
 
 /**

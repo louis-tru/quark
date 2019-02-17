@@ -56,6 +56,8 @@
 			'binding/event.cc',
 			'binding/sys.cc',
 			'binding/event.cc',
+			'binding/timer.cc',
+			'binding/console.cc',
 			# binding qgr-gui
 			'binding/value.cc',
 			'binding/qgr-binding.cc',
