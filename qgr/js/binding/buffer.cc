@@ -654,7 +654,7 @@ class WrapBuffer: public WrapObject {
 	 * @func binding
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_NEW_CLASS(Buffer, constructor, {
+		JS_DEFINE_CLASS(Buffer, constructor, {
 			JS_SET_CLASS_ACCESSOR(length, length);
 			JS_SET_CLASS_INDEXED(indexed_getter, indexed_setter);
 			JS_SET_CLASS_METHOD(copy, copy);
@@ -674,9 +674,7 @@ class WrapBuffer: public WrapObject {
 			//JS_SET_CLASS_METHOD(push, push);
 			//JS_SET_CLASS_METHOD(pop, pop);
 			//JS_SET_CLASS_METHOD(toArray, to_array);
-		}, 0);
-		
-		cls->Export(worker, "Buffer", exports);
+		}, nullptr);
 	}
 };
 

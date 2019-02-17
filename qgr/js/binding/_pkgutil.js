@@ -31,8 +31,10 @@
 'use strict';
 
 const _path = requireNative('_path');
-const win32 = requireNative('_util').platform == 'win32';
+const _util = requireNative('_util');
+const win32 = _util.platform == 'win32';
 const { readFileSync, isFileSync } = requireNative('_reader');
+const { haveNode } = _util;
 
 const fallbackPath = win32 ? function(url) {
 	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
@@ -63,6 +65,16 @@ const matchs = win32 ? {
 	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
 	isLocal: /^(\/|(file|zip):\/\/\/)/i,
 };
+
+if (!haveNode) {
+	const _console = requireNative('_console');
+	const _timer = requireNative('_timer');
+	global.console = _console;
+	global.setTimeout = _timer.setTimeout;
+	global.setInterval = _timer.setInterval;
+	global.clearTimeout = _timer.clearTimeout;
+	global.clearInterval = _timer.clearInterval;
+}
 
 /** 
  * format part 
