@@ -71,7 +71,7 @@ def_opts('without-visibility-hidden', 0,
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
 def_opts('without-embed-bitcode', 0, 
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
-def_opts('enable-node', 0,      '--enable-node enable node [{0}]');
+def_opts('without-node', 0,     '--without-node disable node [{0}]');
 
 function arm() {
 	return opts.arch.match(/^arm/) ? 1 : 0;
@@ -353,6 +353,7 @@ function get_OS(os) {
 function configure_node(opts, variables, configuration) {
 	
 	var cfg = {
+		enable_node: 1,
 		coverage: 'false',
 		debug_devtools: 'node',
 		debug_http2: 'false',
@@ -380,7 +381,6 @@ function configure_node(opts, variables, configuration) {
 		node_without_node_options: 'false',
 		shlib_suffix: '',
 		v8_enable_i18n_support: bi(opts.use_v8 && opts.with_intl),
-		
 	};
 
 	Object.assign(variables, cfg);
@@ -526,7 +526,7 @@ function configure() {
 		variables.uv_parent_path = '/deps/uv/';
 	}
 
-	if (opts.enable_node) {
+	if (!opts.without_node) {
 		configure_node(opts, variables, configuration);
 	}
 
@@ -801,8 +801,8 @@ function configure() {
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
 	fs.writeFileSync('out/config.mk', config_mk_str);
 
-	if (opts.enable_node) { 
-		fs.writeFileSync('node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
+	if (!opts.without_node) { 
+		fs.writeFileSync('depe/node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
 	}
 }
 

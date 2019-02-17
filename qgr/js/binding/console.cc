@@ -107,7 +107,7 @@ class NativeConsole {
 	
 	static void count(FunctionCall args) {}
 	
-	static void assert(FunctionCall args) {}
+	static void Assert(FunctionCall args) {}
 	
 	static void markTimeline(FunctionCall args) {}
 	
@@ -145,7 +145,7 @@ class NativeConsole {
 		JS_SET_METHOD(groupCollapsed, groupCollapsed);
 		JS_SET_METHOD(groupEnd, groupEnd);
 		JS_SET_METHOD(count, count);
-		JS_SET_METHOD(assert, assert);
+		JS_SET_METHOD(assert, Assert);
 		JS_SET_METHOD(markTimeline, markTimeline);
 		JS_SET_METHOD(profile, profile);
 		JS_SET_METHOD(profileEnd, profileEnd);

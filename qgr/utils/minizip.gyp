@@ -5,19 +5,19 @@
 		'type': '<(library)',
 		'cflags': [ '-ansi' ],
 		'dependencies': [
-			'../../depe/zlib/zlib.gyp:zlib'
+			'../../depe/node/deps/zlib/zlib.gyp:zlib'
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ 
-				'../../depe/zlib/contrib/minizip', 
-				'../../depe/zlib',
+				'../../depe/node/deps/zlib/contrib/minizip', 
+				'../../depe/node/deps/zlib',
 			],
 		},
-		'include_dirs': [ '../../depe/zlib', ],
+		'include_dirs': [ '../../depe/node/deps/zlib', ],
 		'sources': [
-			'../../depe/zlib/contrib/minizip/ioapi.c',
-			'../../depe/zlib/contrib/minizip/zip.c',
-			'../../depe/zlib/contrib/minizip/unzip.c',
+			'../../depe/node/deps/zlib/contrib/minizip/ioapi.c',
+			'../../depe/node/deps/zlib/contrib/minizip/zip.c',
+			'../../depe/node/deps/zlib/contrib/minizip/unzip.c',
 		],
 		'conditions': [
 			['os in "osx ios" and use_system_zlib==1', {
@@ -27,11 +27,11 @@
 				},
 			},'use_system_zlib==0', {
 				'direct_dependent_settings': {
-					# 'include_dirs': [ '../../depe/zlib' ],
+					# 'include_dirs': [ '../../depe/node/deps/zlib' ],
 				},
 			}],
 			[ 'os=="win"', {
-				'sources': [ '../../depe/zlib/contrib/minizip/iowin32.c' ]
+				'sources': [ '../../depe/node/deps/zlib/contrib/minizip/iowin32.c' ]
 			},{
 				'cflags!': [ '-ansi' ],
 			}],

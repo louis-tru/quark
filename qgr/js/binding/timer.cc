@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/util/loop.h"
+#include "qgr/utils/loop.h"
 #include "qgr/js/wrap.h"
 
 /**

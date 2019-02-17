@@ -242,7 +242,7 @@ class NativeUtil {
 	static void next_tick(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || ! args[0]->IsFunction(worker)) {
-			JS_WORKER_ERR("Bad argument");
+			JS_THROW_ERR("Bad argument");
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Callback([worker, func](Se& e) {

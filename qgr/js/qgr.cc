@@ -36,7 +36,7 @@
 #if XX_ANDROID
 # include "android/android.h"
 #endif
-#include "node/src/qgr.h"
+#include "depe/node/src/qgr.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
 
@@ -140,7 +140,7 @@ void object_allocator_retain(Object* obj);
 /**
  * @class QgrApiImpl
  */
-class QgrApiImpl: public QgrApi {
+class QgrApiImpl: public node::QgrApi {
  public:
 
 	Worker* create_worker(node::Environment* env, bool is_inspector,

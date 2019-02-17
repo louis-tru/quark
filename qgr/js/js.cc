@@ -369,11 +369,12 @@ bool Worker::has_instance(Local<JSValue> val, uint64 id) {
 /**
  * @func as_buffer
  */
-Buffer* Worker::as_buffer(Local<JSValue> val) {
+WeakBuffer Worker::as_buffer(Local<JSValue> val) {
 	if ( m_inl->classs_->is_buffer(val) ) {
-		return Wrap<Buffer>::unpack(val.To<JSObject>())->self();
+		Buffer* bf = Wrap<Buffer>::unpack(val.To<JSObject>())->self();
+		return WeakBuffer(bf->value(), bf->length());
 	}
-	return nullptr;
+	return WeakBuffer();
 }
 
 /**

@@ -690,7 +690,7 @@ class XX_EXPORT Worker: public Object {
 	/**
 	 * @func as_buffer()
 	 */
-	Buffer* as_buffer(Local<JSValue> val);
+	WeakBuffer as_buffer(Local<JSValue> val);
 	
 	/**
 	 * @func as_buffer TypedArray or ArrayBuffer to WeakBuffer

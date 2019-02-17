@@ -36,7 +36,7 @@
 #endif
 #include <uv.h>
 #include <pthread.h>
-#include "depe/uv/src/queue.h"
+#include "depe/node/deps/uv/src/queue.h"
 
 #ifndef XX_ATEXIT_WAIT_TIMEOUT
 # define XX_ATEXIT_WAIT_TIMEOUT 1e6

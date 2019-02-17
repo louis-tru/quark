@@ -2,10 +2,10 @@
   'targets': [{
     'target_name': 'curl',
     'type': '<(library)',
-    'include_dirs': [ 'include', 'lib', '../..', '../../depe/zlib' ],
+    'include_dirs': [ 'include', 'lib', '../..', '../../depe/node/deps/zlib' ],
     'dependencies': [
-      '../../depe/openssl/openssl.gyp:openssl',
-      '../../depe/zlib/zlib.gyp:zlib'
+      '../../depe/node/deps/openssl/openssl.gyp:openssl',
+      '../../depe/node/deps/zlib/zlib.gyp:zlib'
     ],
     'direct_dependent_settings': {
       'include_dirs': [ 'include' ],
