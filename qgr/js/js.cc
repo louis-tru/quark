@@ -449,7 +449,7 @@ Local<JSValue> Worker::binding_module(cString& name) {
 			mod.binding(exports, this);
 		} else if (mod.native_code) {
 			WeakBuffer bf((char*) mod.native_code->code, mod.native_code->count);
-			exports = run_native_script(exports, bf, name).To<JSObject>();
+			exports = run_native_script(exports, bf, name).To();
 			if ( exports.IsEmpty() ) {
 				return exports;
 			}
