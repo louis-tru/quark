@@ -144,8 +144,12 @@ function action_multiple(self, info) {
 	}
 
 	self.request.on('end', async function() {
-		var auth = util.isAsync(self.auth) ? 
-			(await self.auth(info)): self.auth(info);
+		var auth = false;
+		try {
+			auth = util.isAsync(self.auth) ? (await self.auth(info)): self.auth(info);
+		} catch(e) {
+			console.error(e);
+		}
 		if (!auth) {
 			self.returnJSONError(Error.new(errno.ERR_ILLEGAL_ACCESS)); return;
 		}
@@ -287,8 +291,12 @@ var HttpService = util.class('HttpService', StaticService, {
 		};
 		
 		var ok = async function() {
-			
-			var auth = util.isAsync(self.auth) ? (await self.auth(info)): self.auth(info);
+			var auth;
+			try {
+				auth = util.isAsync(self.auth) ? (await self.auth(info)): self.auth(info);
+			} catch(e) {
+				console.error(e);
+			}
 			if (!auth) {
 				callback(Error.new(errno.ERR_ILLEGAL_ACCESS));
 				return;
