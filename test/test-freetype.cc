@@ -77,7 +77,7 @@ void each_fonts () {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		
-		if ( ent->type == FILE_FILE ) {
+		if ( ent->type == FTYPE_FILE ) {
 			
 			error = FT_New_Face(library, *ent->pathname, 0, &face);
 			

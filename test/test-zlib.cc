@@ -145,6 +145,6 @@ void test_zlib (int argc, char **argv) {
 		LOG("next, %d", reader.next());
 		LOG(reader.read(str2, 100));
 		LOG(str2);
-		LOG(reader.cur_name());
+		LOG(reader.current());
 	}
 }

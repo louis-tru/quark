@@ -31,6 +31,14 @@
 #include <stdio.h>
 #include <time.h>
 
+#ifdef __APPLE__
+# include <TargetConditionals.h>
+#endif
+
+#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
+int test2_opengl(int argc, char *argv[]) { return 0; }
+#endif
+
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test2_opengl
 #endif

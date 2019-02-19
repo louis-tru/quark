@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/js/js.h"
+#include "qgr/js/qgr.h"
 
 using namespace qgr;
 
 #define IP_REMOTE "127.0.0.1"
 
 void test_benchmark(int argc, char **argv) {
-	js::start("http://" IP_REMOTE ":1026/benchmark --dev --ignore-local=*");
+	js::start("--node http://" IP_REMOTE ":1026/benchmark --dev --ignore-local=*");
 }

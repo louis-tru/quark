@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/js/js.h"
+#include "qgr/js/qgr.h"
 #include "qgr/app.h"
 #include "qgr/utils/fs.h"
 
@@ -41,15 +41,15 @@ using namespace qgr;
 void test_qgr(int argc, char **argv) {
 #if USE_REMOTE
 # if USE_INSPECT
-	js::start("--inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/test/test-qgr");
+	js::start("--node --inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/test/test-qgr");
 # else
-	js::start("http://" IP_REMOTE ":1026/test/test-qgr --dev");
+	js::start("--node http://" IP_REMOTE ":1026/test/test-qgr --dev");
 # endif
 #else
 # if USE_INSPECT
-	js::start("--inspect-brk=0.0.0.0:9229 test-qgr");
+	js::start("--node --inspect-brk=0.0.0.0:9229 test-qgr");
 # else
-	js::start("test-qgr --dev");
+	js::start("--node test-qgr --dev");
 # endif
 #endif
 }
