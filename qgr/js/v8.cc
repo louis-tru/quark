@@ -35,6 +35,7 @@
 #include "qgr/view.h"
 #include "js-1.h"
 #include "wrap.h"
+#include "native-ext-js.h"
 
 #if HAVE_NODE
 #include "env.h"
@@ -65,6 +66,7 @@ namespace v8 {
 
 JS_BEGIN
 
+using namespace native_js;
 using namespace v8;
 
 #ifndef ISOLATE_INL_WORKER_DATA_INDEX
@@ -123,11 +125,59 @@ class V8ExternalStringResource: public v8::String::ExternalStringResource {
  */
 class V8WorkerIMPL: public IMPL {
  public:
-	Isolate* isolate_;
+	struct V8HandleScope {
+		v8::HandleScope value;
+		inline V8HandleScope(Isolate* isolate): value(isolate) {}
+	};
+	Isolate*  isolate_;
+	Locker*   locker_;
+	V8HandleScope* handle_scope_;
 	v8::Local<v8::Context> context_;
-	
-	V8WorkerIMPL(Worker* host): IMPL(host) {}
-	
+
+	void initialize() {
+		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, host_);
+		m_global = context_->Global();
+		m_native_modules.Reset(host_, host_->NewObject());
+		IMPL::initialize();
+	}
+
+	V8WorkerIMPL(Worker* host): IMPL(host), locker_(nullptr), handle_scope_(nullptr) {
+		Isolate::CreateParams params;
+		params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+		isolate_ = Isolate::New(params);
+		locker_ = new Locker(isolate_);
+		isolate_->Enter();
+		handle_scope_ = new V8HandleScope(isolate_);
+		context_ = v8::Context::New(isolate_);
+		context_->Enter();
+		initialize();
+		isolate_->SetFatalErrorHandler(OnFatalError);
+		isolate_->AddMessageListener(MessageCallback);
+		isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
+	}
+
+	V8WorkerIMPL(Worker* host, node::Environment* env): IMPL(host), handle_scope_(nullptr) {
+		m_env = env;
+		isolate_ = env->isolate();
+		context_ = env->context();
+		initialize();
+	}
+
+	virtual ~V8WorkerIMPL() {
+		Release(m_value_program); m_value_program = nullptr;
+		Release(m_strs); m_strs = nullptr;
+		delete classs_; classs_ = nullptr;
+		m_native_modules.Reset();
+		if (!context_.IsEmpty) {
+			context_->Exit();
+			context_.Clear();
+			delete handle_scope_; handle_scope_ = nullptr;
+			isolate_->Exit();
+			delete locker_; locker_ = nullptr;
+			isolate_->Dispose(); isolate_ = nullptr;
+		}
+	}
+
 	inline static Worker* worker(Isolate* isolate) {
 		return static_cast<Worker*>( isolate->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
 	}
@@ -152,18 +202,6 @@ class V8WorkerIMPL: public IMPL {
 		return worker;
 	}
 	
-	virtual Local<JSObject> initialize() {
-		// TODO
-		//		isolate_ = host_->m_env->isolate();
-		//		context_ = host_->m_env->context();
-		
-		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, host_);
-		
-		m_native_modules.Reset(host_, host_->NewObject());
-		
-		return Cast<JSObject>(context_->Global());
-	}
-	
 	XX_INLINE v8::Local<v8::String> NewFromOneByte(cchar* str) {
 		return v8::String::NewFromOneByte(isolate_, (byte*)str);
 	}
@@ -178,7 +216,8 @@ class V8WorkerIMPL: public IMPL {
 	}
 	
 	v8::MaybeLocal<v8::Value> run_script(v8::Local<v8::String> source_string,
-																	 v8::Local<v8::String> name, v8::Local<v8::Object> sandbox) {
+																	 v8::Local<v8::String> name, v8::Local<v8::Object> sandbox) 
+	{
 		v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
 		v8::MaybeLocal<v8::Value> result;
 		
@@ -199,7 +238,7 @@ class V8WorkerIMPL: public IMPL {
 		return result;
 	}
 	
-	Local<JSValue> run_native_script(Local<JSObject> exports, cBuffer& source, cString& name) {
+	Local<JSValue> run_native_script(cBuffer& source, cString& name, Local<JSObject> exports) {
 		v8::Local<v8::Value> _name = Back(host_->New(String::format("%s", *name)));
 		v8::Local<v8::Value> _souece = Back(host_->NewString(source));
 		
@@ -270,16 +309,48 @@ class V8WorkerIMPL: public IMPL {
 		}
 	}
 	
-	void report_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+	void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		XX_ERR( parse_exception_message(message, error) );
 	}
-	
-	void fatal_exception(v8::TryCatch* try_catch) {
-		if ( try_catch->HasCaught() ) {
-			host_->fatal(Cast(try_catch->Exception()));
+
+	static void OnFatalError(const char* location, const char* message) {
+		if (location) {
+			XX_FATAL("FATAL ERROR: %s %s\n", location, message);
+		} else {
+			XX_FATAL("FATAL ERROR: %s\n", message);
 		}
 	}
-	
+
+	static void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		current()->uncaught_exception(message, error);
+	}
+
+	static void PromiseRejectCallback(PromiseRejectMessage message) {
+		// Local<Promise> promise = message.GetPromise();
+		// Isolate* isolate = promise->GetIsolate();
+		// Local<Value> value = message.GetValue();
+		// Local<Integer> event = Integer::New(isolate, message.GetEvent());
+
+		// Environment* env = Environment::GetCurrent(isolate);
+		// Local<Function> callback = env->promise_reject_function();
+
+		// if (value.IsEmpty())
+		// 	value = Undefined(isolate);
+
+		// Local<Value> args[] = { event, promise, value };
+		// Local<Object> process = env->process_object();
+
+		// callback->Call(process, arraysize(args), args);
+	}
+
+	void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		// TODO ...
+	}
+
+	void rejection_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+		// TODO ...
+	}
+
 };
 
 Worker* Worker::worker() {
@@ -287,17 +358,42 @@ Worker* Worker::worker() {
 	return reinterpret_cast<Worker*>(worker);
 }
 
+Worker* IMPL::create() {
+	auto worker = new Worker();
+	worker->m_inl = new V8WorkerIMPL(worker);
+	return worker;
+}
+
+Worker* IMPL::createWithNode(node::Environment* env) {
+	auto worker = new Worker();
+	worker->m_inl = new V8WorkerIMPL(worker, env);
+	return worker;
+}
+
+WrapObject* IMPL::GetObjectPrivate(Local<JSObject> object) {
+	if (Back<v8::Object>(object)->InternalFieldCount() > 0) {
+		return (WrapObject*)Back<v8::Object>(object)->GetAlignedPointerFromInternalField(0);
+	}
+	return nullptr;
+}
+
+bool IMPL::SetObjectPrivate(Local<JSObject> object, WrapObject* value) {
+	if (Back<v8::Object>(object)->InternalFieldCount() > 0) {
+		Back<v8::Object>(object)->SetAlignedPointerInInternalField(0, value);
+		return true;
+	}
+	return false;
+}
+
 /**
  * @class V8JSClass
  */
 class V8JSClass: public JSClassIMPL {
  public:
-	V8JSClass(Worker* worker, uint64 id,
-						cString& name,
+	V8JSClass(Worker* worker, uint64 id, cString& name,
 						FunctionCallback constructor, V8JSClass* base,
 						v8::Local<v8::Function> base2 = v8::Local<v8::Function>())
-	: JSClassIMPL(worker, id, name)
-	, parent_(base)
+	: JSClassIMPL(worker, id, name), parent_(base)
 	{ //
 		v8::FunctionCallback cb = reinterpret_cast<v8::FunctionCallback>(constructor);
 		v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(ISOLATE(worker), cb);
@@ -336,25 +432,6 @@ class V8JSClass: public JSClassIMPL {
 	v8::Persistent<v8::Function> parent_2_;
 	v8::Persistent<v8::FunctionTemplate> temp_;
 };
-
-IMPL* IMPL::create(Worker* host) {
-	return new V8WorkerIMPL(host);
-}
-
-WrapObject* IMPL::GetObjectPrivate(Local<JSObject> object) {
-	if (Back<v8::Object>(object)->InternalFieldCount() > 0) {
-		return (WrapObject*)Back<v8::Object>(object)->GetAlignedPointerFromInternalField(0);
-	}
-	return nullptr;
-}
-
-bool  IMPL::SetObjectPrivate(Local<JSObject> object, WrapObject* value) {
-	if (Back<v8::Object>(object)->InternalFieldCount() > 0) {
-		Back<v8::Object>(object)->SetAlignedPointerInInternalField(0, value);
-		return true;
-	}
-	return false;
-}
 
 Worker* WeakCallbackInfo::worker() const {
 	auto info = reinterpret_cast<const v8::WeakCallbackInfo<Object>*>(this);
@@ -403,6 +480,17 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 		XX_ASSERT(ok);
 	}
 	return Cast<JSFunction>(f);
+}
+
+Local<JSValue> IMPL::binding_node_module(cString& name) {
+ #if HAVE_NODE
+	XX_ASSERT(m_env);
+	Local<JSValue> argv = host_->New(name);
+	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(host_, "binding");
+	return binding.To<JSFunction>()->Call(host_, 1, &argv);
+ #else
+	return Local<JSValue>();
+ #endif
 }
 
 struct V8HandleScopeWrap {
@@ -1182,9 +1270,9 @@ Local<JSClass> Worker::NewClass(uint64 id, cString& name,
 	return rv;
 }
 
-void Worker::report_exception(TryCatch* try_catch) {
+void Worker::print_exception(TryCatch* try_catch) {
 	TryCatchWrap* wrap = *reinterpret_cast<TryCatchWrap**>(try_catch);
-	WORKER(this)->report_exception(wrap->try_.Message(), wrap->try_.Exception());
+	WORKER(this)->print_exception(wrap->try_.Message(), wrap->try_.Exception());
 }
 
 Local<JSValue> Worker::run_script(Local<JSString> source,
@@ -1200,18 +1288,13 @@ Local<JSValue> Worker::run_script(cString& source,
 	return run_script(New(source), New(name), sandbox);
 }
 
-Local<JSValue> Worker::run_native_script(Local<JSObject> exports, cBuffer& source, cString& name) {
+Local<JSValue> Worker::run_native_script(
+	cBuffer& source, cString& name, Local<JSObject> exports) {
 	v8::HandleScope scope(ISOLATE(this));
-	return WORKER(this)->run_native_script(exports, source, name);
-}
-
-/**
- * @func run_native_script
- */
-Local<JSValue> Worker::run_native_script(cBuffer& source, cString& name) {
-	v8::HandleScope scope(ISOLATE(this));
-	Local<JSObject> exports = NewObject();
-	return WORKER(this)->run_native_script(exports, source, name);
+	if (exports.IsEmpty()) {
+		exports = NewObject();
+	}
+	return WORKER(this)->run_native_script(source, name, exports);
 }
 
 /**
@@ -1221,15 +1304,43 @@ void Worker::garbage_collection() {
 	ISOLATE(this)->LowMemoryNotification();
 }
 
-Local<JSValue> binding_node_module(Worker* worker, cString& name) {
- #if HAVE_NODE
-	node::Environment* m_env = nullptr;
-	Local<JSValue> argv = worker->New(name);
-	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(worker, "binding");
-	return binding.To<JSFunction>()->Call(worker, 1, &argv);
- #else
-	return Local<JSValue>();
- #endif
+int IMPL::start(int argc, char** argv) {
+	v8::Platform* platform = v8::platform::CreateDefaultPlatform();
+	v8::V8::InitializePlatform(platform);
+	v8::V8::Initialize();
+
+	Isolate::CreateParams params;
+	params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+	Isolate* isolate = v8::Isolate::New(params);
+	{
+		Locker locker(isolate);
+		isolate->Enter();
+		{
+			HandleScope scope(isolate);
+			Local<Context> context = v8::Context::New(isolate);
+			context->Enter();
+			// ...
+			test_template(isolate, context);
+			test_persistent(isolate, context);
+			context->Exit();
+		}
+		isolate->Exit();
+	}
+	isolate->Dispose();
+	
+	auto worker = new IMPL::create();
+	JS_HANDLE_SCOPE();
+	
+	WeakBuffer bf((char*) EXT_native_js_code_module_, EXT_native_js_code_module_count_);
+	Local<JSValue> module = worker->run_native_script(bf, "module.js");
+
+	if ( module.IsEmpty() ) {
+		XX_FATAL("cannot start worker");
+	}
+
+	v8::V8::ShutdownPlatform();
+	v8::V8::Dispose();
+	delete platform;
 }
 
 JS_END

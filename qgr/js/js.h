@@ -165,25 +165,25 @@ class XX_EXPORT Maybe {
 template <class T>
 class XX_EXPORT MaybeLocal {
  public:
-  XX_INLINE MaybeLocal() : val_(nullptr) {}
-  template <class S>
-  XX_INLINE MaybeLocal(Local<S> that)
+	XX_INLINE MaybeLocal() : val_(nullptr) {}
+	template <class S>
+	XX_INLINE MaybeLocal(Local<S> that)
 	: val_(reinterpret_cast<T*>(*that)) {
-    JS_TYPE_CHECK(T, S);
-  }
-  XX_INLINE bool IsEmpty() const { return val_ == nullptr; }
-  template <class S>
-  XX_INLINE bool ToLocal(Local<S>* out) const {
-    out->val_ = IsEmpty() ? nullptr : this->val_;
-    return !IsEmpty();
-  }
+		JS_TYPE_CHECK(T, S);
+	}
+	XX_INLINE bool IsEmpty() const { return val_ == nullptr; }
+	template <class S>
+	XX_INLINE bool ToLocal(Local<S>* out) const {
+		out->val_ = IsEmpty() ? nullptr : this->val_;
+		return !IsEmpty();
+	}
 	XX_INLINE Local<T> ToLocalChecked();
-  template <class S>
-  XX_INLINE Local<S> FromMaybe(Local<S> default_value) const {
-    return IsEmpty() ? default_value : Local<S>(val_);
-  }
+	template <class S>
+	XX_INLINE Local<S> FromMaybe(Local<S> default_value) const {
+		return IsEmpty() ? default_value : Local<S>(val_);
+	}
  private:
-  T* val_;
+	T* val_;
 };
 
 template<class T>
@@ -776,37 +776,34 @@ class XX_EXPORT Worker: public Object {
 	/**
 	 * @func run_native_script
 	 */
-	Local<JSValue> run_native_script(Local<JSObject> exports, cBuffer& source, cString& name);
-
-	/**
-	 * @func run_native_script
-	 */
-	Local<JSValue> run_native_script(cBuffer& source, cString& name);
+	Local<JSValue> run_native_script(
+		cBuffer& source, cString& name, 
+		Local<JSObject> exports = Local<JSObject>());
 
 	/**
 	 * @func value_program
 	 */
-	inline ValueProgram* value_program() { return m_value_program; }
+	ValueProgram* value_program();
 	
 	/**
 	 * @func strs
 	 */
-	inline CommonStrings* strs() { return m_strs; }
+	CommonStrings* strs();
 	
 	/**
 	 * @func thread_id
 	 */
-	inline ThreadID thread_id() const { return m_thread_id; }
+	ThreadID thread_id();
 	
 	/**
-	 * @func report_exception
+	 * @func global()
 	 */
-	void report_exception(TryCatch* try_catch);
+	Local<JSObject> global();
 	
 	/**
-	 * @func fatal exit worker
+	 * @func print_exception
 	 */
-	void fatal(Local<JSValue> err);
+	void print_exception(TryCatch* try_catch);
 	
 	/**
 	 * @func garbage_collection()
@@ -814,18 +811,12 @@ class XX_EXPORT Worker: public Object {
 	void garbage_collection();
 	
  private:
-	XX_DEFINE_INLINE_CLASS(IMPL);
-	
+
 	Worker();
-	
-	friend class V8WorkerIMPL;
+
 	friend class NativeValue;
-	
-	ThreadID        m_thread_id;
-	ValueProgram*   m_value_program;
-	CommonStrings*  m_strs;
-	Local<JSObject> m_global;
-	IMPL*           m_inl;
+	XX_DEFINE_INLINE_CLASS(IMPL);
+	IMPL* m_inl;
 };
 
 // **********************************************************************

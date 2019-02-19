@@ -1,5 +1,5 @@
 {
 	"name": "test-qgr",
 	"main": "test_gui.jsx",
-	"use_qgr_syntax": true
+	"qgr_syntax": true
 }

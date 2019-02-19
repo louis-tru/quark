@@ -321,6 +321,12 @@ static void chown2(cString& path, uint owner, uint group, cCb& cb, RunLoop* loop
 							Path::fallback_c(path), owner, group, &uv_fs_async_cb);
 }
 
+static void link2(cString& path, cString& newPath, cCb& cb, RunLoop* loop) {
+	uv_fs_link(loop->uv_loop(),
+						 New<FileReq>(cb, loop)->req(),
+						 Path::fallback_c(path), Path::fallback_c(newPath), &uv_fs_async_cb);
+}
+
 static void unlink2(cString& path, cCb& cb, RunLoop* loop) {
 	uv_fs_unlink(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
@@ -538,6 +544,10 @@ void FileHelper::rename(cString& name, cString& new_name, cCb& cb) {
 
 void FileHelper::mv(cString& name, cString& new_name, cCb& cb) {
 	rename(name, new_name, cb);
+}
+
+void FileHelper::link(cString& path, cString& newPath, cCb& cb = 0) {
+	link2(path, newPath, cb, LOOP);
 }
 
 void FileHelper::unlink(cString& path, cCb& cb) {

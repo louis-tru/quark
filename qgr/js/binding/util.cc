@@ -41,8 +41,8 @@
 
 JS_BEGIN
 
-extern Array<char*>* __qgr_argv;
-extern int __qgr_have_node;
+extern Array<char*>* _qgr_argv;
+extern int _qgr_have_node;
 
 typedef Object NativeObject;
 
@@ -130,16 +130,6 @@ class NativeUtil {
 		Ucs2String str = args[0]->ToUcs2StringValue(worker);
 		hash.update(*str, str.length());
 		return hash;
-	}
-	
-	// api
-	static void fatal(FunctionCall args) {
-		JS_WORKER(args);
-		if ( args.Length() ) {
-			worker->fatal(args[0]);
-		} else {
-			worker->fatal(worker->New("Fatal"));
-		}
 	}
 	
 	static void hashCode(FunctionCall args) {
@@ -286,7 +276,6 @@ class NativeUtil {
 	 * @func binding
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(fatal, fatal);
 		JS_SET_METHOD(hashCode, hashCode);
 		JS_SET_METHOD(hash, hash);
 		JS_SET_METHOD(version, version);
@@ -298,11 +287,11 @@ class NativeUtil {
 		JS_SET_METHOD(transformJsx, transformJsx);
 		JS_SET_METHOD(transformJs, transformJs);
 		JS_SET_PROPERTY(platform, qgr::platform());
-		JS_SET_PROPERTY(haveNode, __qgr_have_node);
+		JS_SET_PROPERTY(haveNode, _qgr_have_node);
 		Local<JSArray> argv = worker->NewArray();
-		if (__qgr_argv) {
-			for (int i = 0; i < __qgr_argv->length(); i++) {
-				argv->Set(worker, i, worker->New(__qgr_argv->item(i)));
+		if (_qgr_argv) {
+			for (int i = 0; i < _qgr_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(_qgr_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);

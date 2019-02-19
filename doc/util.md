@@ -6,10 +6,6 @@
 
 * @ret {[`String`]}
 
-## fatal(err)
-
-抛出致命异常
-
 ## hashCode(string)
 
 获取字符串的哈希代码值

@@ -79,7 +79,7 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 		HandleScope scope(wrap->worker());
 		// arg event
 		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
-		if (cast)
+		if (cast) 
 			ev->set_private_data(cast); // set data cast func
 		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
 		// call js trigger func
@@ -160,7 +160,7 @@ class QgrApiImpl: public node::QgrApi {
 
 	Worker* create_worker(node::Environment* env, bool is_inspector,
 												int argc, const char* const* argv) {
-		return new Worker();
+		return new IMPL::createWithNode(env);
 	}
 
 	void delete_worker(qgr::js::Worker* worker) {
@@ -196,8 +196,8 @@ class QgrApiImpl: public node::QgrApi {
 #endif
 
 // startup argv
-Array<char*>* __qgr_argv = nullptr;
-int __qgr_have_node = 0;
+Array<char*>* _qgr_argv = nullptr;
+int _qgr_have_node = 0;
 
 // parse argv
 static void parse_argv(cString& argv_in, Array<char*>& argv, Array<char*>& qgr_argv) {
@@ -207,7 +207,7 @@ static void parse_argv(cString& argv_in, Array<char*>& argv, Array<char*>& qgr_a
 		argv_str = String("qgr ") + argv_str;
 	}
 	Array<String> argv_ls = argv_str.split(' ');
-	__qgr_have_node = 0;
+	_qgr_have_node = 0;
 	argv_str = String();
 	
 	for (auto& i : argv_ls) {
@@ -231,7 +231,7 @@ static void parse_argv(cString& argv_in, Array<char*>& argv, Array<char*>& qgr_a
 			qgr_ok = 1;
 			qgr_argv.push(str_c);
 		} else if (strcmp(arg, "--node") == 0) {
-			__qgr_have_node = 1;
+			_qgr_have_node = 1;
 			continue;
 		}
 		argv.push(arg);
@@ -257,23 +257,17 @@ int start(cString& argv_str) {
 	Array<char*> argv, qgr_argv;
 	parse_argv(argv_str, argv, qgr_argv);
 
-	XX_CHECK(!__qgr_argv);
-	__qgr_argv = &qgr_argv;
+	XX_CHECK(!_qgr_argv);
+	_qgr_argv = &qgr_argv;
 	int code;
 	
-	if (HAVE_NODE && __qgr_have_node) {
+	if (HAVE_NODE && _qgr_have_node) {
 		code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
 	} else {
-		__qgr_have_node = 0;
-		// TODO
-		
-		WeakBuffer bf((char*) native_js::EXT_native_js_code_module_,
-									native_js::EXT_native_js_code_module_count_);
-//		if ( run_native_script(bf, "ext.js").IsEmpty() ) {
-//			XX_FATAL("Not initialize");
-//		}
+		_qgr_have_node = 0;
+		code = IMPL::start(argv.length(), const_cast<char**>(&argv[0]));
 	}
-	__qgr_argv = nullptr;
+	_qgr_argv = nullptr;
 
 	return code;
 }

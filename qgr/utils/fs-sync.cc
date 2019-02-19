@@ -213,6 +213,15 @@ bool FileHelper::mv_sync(cString& name, cString& new_name) {
 	return rename_sync(name, new_name);
 }
 
+bool FileHelper::link_sync(cString& path, cString& newPath) {
+	uv_fs_t req;
+	return uv_fs_link(
+		uv_default_loop(), &req,
+		Path::fallback_c(path),
+		Path::fallback_c(newPath), nullptr
+	) == 0;
+}
+
 bool FileHelper::unlink_sync(cString& path) {
 	uv_fs_t req;
 	return uv_fs_unlink(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0;

@@ -746,7 +746,51 @@ class NativeFileHelper {
 			FileHelper::rename(args[0]->ToStringValue(worker), args[1]->ToStringValue(worker), cb);
 		}
 	}
-	
+
+	/**
+	 * @func link_sync(path)
+	 * @arg path {String}
+	 * @arg newPath {String}
+	 * @ret {bool}
+	 */
+
+	/**
+	 * @func link(path[,cb])
+	 * @arg path {String}
+	 * @arg newPath {String}
+	 * @arg [cb] {Function}
+	 */
+	template<bool sync> static bool link_sync(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
+			if ( sync ) {
+				JS_THROW_ERR(
+					"* @func linkSync(path,newPath)\n"
+					"* @arg path {String}\n"
+					"* @ret {bool}\n"
+				);
+			} else {
+				JS_THROW_ERR(
+					"* @func link(path,newPath[,cb])\n"
+					"* @arg path {String}\n"
+					"* @arg [cb] {Function}\n"
+				);
+			}
+		}
+		if ( sync ) {
+			JS_RETURN( FileHelper::link_sync(
+				args[0]->ToStringValue(worker),
+				args[1]->ToStringValue(worker))
+			);
+		} else {
+			Callback cb;
+			if ( args.Length() > 2 ) {
+				cb = get_callback_for_none(worker, args[2]);
+			}
+			FileHelper::link(args[0]->ToStringValue(worker), args[1]->ToStringValue(worker), cb);
+		}
+	}
+
 	/**
 	 * @func unlink_sync(path)
 	 * @arg path {String}
@@ -1803,6 +1847,7 @@ class NativeFileHelper {
 		JS_SET_METHOD(chownSync, chown<true>);
 		JS_SET_METHOD(mkdirSync, mkdir<true>);
 		JS_SET_METHOD(renameSync, rename<true>);
+		JS_SET_METHOD(linkSync, link<true>);
 		JS_SET_METHOD(unlinkSync, unlink<true>);
 		JS_SET_METHOD(rmdirSync, rmdir<true>);
 		JS_SET_METHOD(readdirSync, readdir<true>);
@@ -1824,6 +1869,7 @@ class NativeFileHelper {
 		JS_SET_METHOD(chown, chown<false>);
 		JS_SET_METHOD(mkdir, mkdir<false>);
 		JS_SET_METHOD(rename, rename<false>);
+		JS_SET_METHOD(link, link<false>);
 		JS_SET_METHOD(unlink, unlink<false>);
 		JS_SET_METHOD(rmdir, rmdir<false>);
 		JS_SET_METHOD(readdir, readdir<false>);

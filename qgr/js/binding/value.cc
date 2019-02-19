@@ -1110,16 +1110,16 @@ class NativeValue {
 		{
 			TryCatch try_catch;
 
-			if (worker->run_native_script(exports, WeakBuffer((char*)
+			if (worker->run_native_script(WeakBuffer((char*)
 							native_js::EXT_native_js_code_value_,
-							native_js::EXT_native_js_code_value_count_), "value.js").IsEmpty()) {
+							native_js::EXT_native_js_code_value_count_), "value.js", exports).IsEmpty()) {
 				if ( try_catch.HasCaught() ) {
-					worker->report_exception(&try_catch);
+					worker->print_exception(&try_catch);
 				}
 				XX_FATAL("Could not initialize native/value.js");
 			}
 		}
-		worker->m_value_program = new ValueProgram(worker, exports, _prve);
+		worker->m_inl->m_value_program = new ValueProgram(worker, exports, _prve);
 	}
 };
 

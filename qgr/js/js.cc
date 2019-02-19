@@ -45,17 +45,6 @@ JS_BEGIN
 
 using namespace native_js;
 
-IMPL::IMPL(Worker* host, node::Environment* env)
-: host_(host)
-, classs_(new JSClassStore(host))
-, m_env(env) {
-}
-
-IMPL::~IMPL() {
-	delete classs_; classs_ = nullptr;
-	m_native_modules.Reset();
-}
-
 Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 	switch (en) {
 		case Encoding::hex: // 解码 hex and base64
@@ -256,6 +245,8 @@ void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that) {
 
 // -------------------------------------------------------------------------------------
 
+static void reg_core_native_module();
+
 static void requireNative(FunctionCall args) {
 	JS_WORKER(args);
 	if (args.Length() < 1) {
@@ -268,52 +259,57 @@ static void requireNative(FunctionCall args) {
 	}
 }
 
-static void reg_core_native_module();
+void IMPL::initialize() {
+	classs_ = new JSClassStore(host);
+	m_strs = new CommonStrings(host);
 
-Worker* Worker::create() {
-	// TODO ...
-	return nullptr;
-}
-
-Worker::Worker()
-: m_thread_id(SimpleThread::current_id())
-, m_value_program( nullptr )
-, m_strs( nullptr )
-, m_inl(nullptr)
-{
-	XX_CHECK(worker() == nullptr);
-	
-	m_inl = IMPL::create(this);
-	m_global = m_inl->initialize();
-
-	if (m_global.IsEmpty()) {
-		XX_FATAL("Cannot complete initialization by Worker !");
+	if ( host_->run_native_script(WeakBuffer((char*)
+				EXT_native_js_code_ext_, 
+				EXT_native_js_code_ext_count_), "ext.js").IsEmpty()
+	) {
+		XX_FATAL("Cannot initialize worker ext");
 	}
-	m_strs = new CommonStrings(this);
-	
-	WeakBuffer bf((char*) native_js::EXT_native_js_code_ext_,
-								native_js::EXT_native_js_code_ext_count_);
-	if ( run_native_script(bf, "ext.js").IsEmpty() ) {
-		XX_FATAL("Not initialize");
-	}
-	
-	m_global->SetMethod(this, "requireNative", requireNative);
-	
+	m_global->SetMethod(host_, "requireNative", requireNative);
+
 	reg_core_native_module();
 }
 
+IMPL::IMPL(Worker* host)
+: host_(host)
+, m_thread_id(SimpleThread::current_id())
+, m_value_program(nullptr), m_strs(nullptr)
+, classs_(nullptr), m_env(nullptr) {
+}
+
+IMPL::~IMPL() {
+}
+
+Worker* Worker::create() {
+	return new IMPL:create();
+}
+
+Worker::Worker(): m_inl(nullptr) {
+	XX_CHECK(worker() == nullptr);
+}
+
 Worker::~Worker() {
-	Release(m_value_program); m_value_program = nullptr;
-	Release(m_strs); m_strs = nullptr;
 	delete m_inl; m_inl = nullptr;
 }
 
-/**
- * @func fatal exit worker
- */
-void Worker::fatal(Local<JSValue> err) {
-	// TODO ..
-	throw_err(err);
+ValueProgram* Worker::value_program() {
+	return m_inl->m_value_program;
+}
+
+CommonStrings* Worker::strs() {
+	return m_inl->m_strs; 
+}
+
+ThreadID Worker::thread_id() {
+	return m_inl->m_thread_id;
+}
+
+Local<JSObject> Worker::global() {
+	return m_inl->m_global;
 }
 
 Local<JSObject> Worker::NewError(cchar* errmsg, ...) {
@@ -379,9 +375,6 @@ bool Worker::has_instance(Local<JSValue> val, uint64 id) {
 	return m_inl->classs_->instanceof(val, id);
 }
 
-/**
- * @func as_buffer
- */
 WeakBuffer Worker::as_buffer(Local<JSValue> val) {
 	if ( m_inl->classs_->is_buffer(val) ) {
 		Buffer* bf = Wrap<Buffer>::unpack(val.To<JSObject>())->self();
@@ -390,9 +383,6 @@ WeakBuffer Worker::as_buffer(Local<JSValue> val) {
 	return WeakBuffer();
 }
 
-/**
- * @func as_buffer TypedArray or ArrayBuffer to WeakBuffer
- */
 WeakBuffer Worker::as_typed_buffer(Local<JSValue> val) {
 	if (val->IsTypedArray(this)) {
 		return val.To<JSTypedArray>()->weak_buffer(this);
@@ -428,11 +418,8 @@ void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
 	if (!native_modules) {
 		native_modules = new Map<String, NativeModule>();
 	}
-	//XX_DEBUG("reg_module: %s, %s", *name, file);
 	native_modules->set(name, { name, file ? file : __FILE__, binding });
 }
-
-Local<JSValue> binding_node_module(Worker* worker, cString& name);
 
 Local<JSValue> Worker::binding_module(cString& name) {
 	Local<JSValue> str = New(name);
@@ -449,7 +436,7 @@ Local<JSValue> Worker::binding_module(cString& name) {
 			mod.binding(exports, this);
 		} else if (mod.native_code) {
 			WeakBuffer bf((char*) mod.native_code->code, mod.native_code->count);
-			exports = run_native_script(exports, bf, name).To();
+			exports = run_native_script(bf, name, exports).To();
 			if ( exports.IsEmpty() ) {
 				return exports;
 			}
@@ -457,7 +444,7 @@ Local<JSValue> Worker::binding_module(cString& name) {
 		m_inl->m_native_modules.strong()->Set(this, str, exports);
 		return exports;
 	}
-	return binding_node_module(this, name);
+	return m_inl->binding_node_module(name);
 }
 
 JS_END

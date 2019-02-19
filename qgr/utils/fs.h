@@ -213,6 +213,7 @@ class XX_EXPORT FileHelper {
 	static bool mkdir_p_sync(cString& path, uint mode = default_mode);
 	static bool rename_sync(cString& name, cString& new_name);
 	static bool mv_sync(cString& name, cString& new_name);
+	static bool link_sync(cString& path, cString& newPath);
 	static bool unlink_sync(cString& path);
 	static bool rmdir_sync(cString& path);
 	static bool rm_r_sync(cString& path, bool* stop_signal = nullptr);
@@ -234,6 +235,7 @@ class XX_EXPORT FileHelper {
 	static void mkdir_p(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static void rename(cString& name, cString& new_name, cCb& cb = 0);
 	static void mv(cString& name, cString& new_name, cCb& cb = 0);
+	static bool link(cString& path, cString& newPath, cCb& cb = 0);
 	static void unlink(cString& path, cCb& cb = 0);
 	static void rmdir(cString& path, cCb& cb = 0);
 	static void readdir(cString& path, cCb& cb = 0);

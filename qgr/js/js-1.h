@@ -66,10 +66,11 @@ class WeakCallbackInfo {
  */
 class Worker::IMPL {
  public:
-	IMPL(Worker* host, node::Environment* env);
+	IMPL(Worker* host);
 	virtual ~IMPL();
-	virtual Local<JSObject> initialize() = 0;
-	static IMPL* create(Worker* host);
+	void initialize();
+	static Worker* create();
+	static Worker* createWithNode(node::Environment* env);
 	
 	template<class T = IMPL>
 	inline static T* current(Worker* worker = Worker::worker()) {
@@ -89,13 +90,21 @@ class Worker::IMPL {
 	void SetWeak(PersistentBase<JSObject>& handle,
 							 WrapObject* ptr, WeakCallbackInfo::Callback callback);
 	void ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr);
-	
+
 	Local<JSFunction> GenConstructor(Local<JSClass> cls);
+	Local<JSValue> binding_node_module(cString& name);
+
+	static int start(int argc, char** argv);
 	
  protected:
 	friend class Worker;
-	Worker* host_;
-	JSClassStore* classs_;
+	friend class NativeValue;
+	Worker*         host_;
+	ThreadID        m_thread_id;
+	ValueProgram*   m_value_program;
+	CommonStrings*  m_strs;
+	JSClassStore*   classs_;
+	Local<JSObject> m_global;
 	Persistent<JSObject> m_native_modules;
 	node::Environment* m_env;
 };
