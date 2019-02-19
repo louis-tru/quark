@@ -235,7 +235,7 @@ class XX_EXPORT FileHelper {
 	static void mkdir_p(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static void rename(cString& name, cString& new_name, cCb& cb = 0);
 	static void mv(cString& name, cString& new_name, cCb& cb = 0);
-	static bool link(cString& path, cString& newPath, cCb& cb = 0);
+	static void link(cString& path, cString& newPath, cCb& cb = 0);
 	static void unlink(cString& path, cCb& cb = 0);
 	static void rmdir(cString& path, cCb& cb = 0);
 	static void readdir(cString& path, cCb& cb = 0);

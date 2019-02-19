@@ -760,7 +760,7 @@ class NativeFileHelper {
 	 * @arg newPath {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static bool link_sync(FunctionCall args) {
+	template<bool sync> static void link(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
 			if ( sync ) {

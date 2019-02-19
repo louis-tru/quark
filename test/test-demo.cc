@@ -39,15 +39,15 @@ using namespace qgr;
 void test_demo(int argc, char **argv) {
 #if USE_REMOTE
 # if USE_INSPECT
-	js::start("--inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/demo/examples");
+	js::start("--node --inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/demo/examples");
 # else
-	js::start("http://" IP_REMOTE ":1026/demo/examples --dev");
+	js::start("--node http://" IP_REMOTE ":1026/demo/examples --dev");
 # endif
 #else
 # if USE_INSPECT
-	js::start("--inspect-brk=0.0.0.0:9229 examples");
+	js::start("--node --inspect-brk=0.0.0.0:9229 examples");
 # else
-	js::start("examples --dev");
+	js::start("--node examples --dev");
 # endif
 #endif
 }
@@ -56,12 +56,10 @@ extern "C" {
 
 #if XX_ANDROID
 #include <qgr/utils/android-jni.h>
-
 	JNIEXPORT extern void
 	Java_org_qgr_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
 		LOG("Java_org_qgr_examples_MainActivity_test");
 	}
-
 #endif
 }
 

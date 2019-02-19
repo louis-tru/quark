@@ -815,6 +815,7 @@ class XX_EXPORT Worker: public Object {
 	Worker();
 
 	friend class NativeValue;
+	friend class WorkerIMPL;
 	XX_DEFINE_INLINE_CLASS(IMPL);
 	IMPL* m_inl;
 };

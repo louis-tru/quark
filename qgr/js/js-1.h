@@ -77,10 +77,10 @@ class Worker::IMPL {
 		return static_cast<T*>(worker->m_inl);
 	}
 	inline static JSClassStore* js_class(Worker* worker) {
-		return worker->m_inl->classs_;
+		return worker->m_inl->m_classs;
 	}
-	inline Worker* host() { return host_; }
-	inline JSClassStore* js_class() { return classs_; }
+	inline Worker* host() { return m_host; }
+	inline JSClassStore* js_class() { return m_classs; }
 	
 	static WrapObject* GetObjectPrivate(Local<JSObject> object);
 	static bool SetObjectPrivate(Local<JSObject> object, WrapObject* value);
@@ -94,16 +94,21 @@ class Worker::IMPL {
 	Local<JSFunction> GenConstructor(Local<JSClass> cls);
 	Local<JSValue> binding_node_module(cString& name);
 
+	int  OnExit();
+	void OnBeforeExit();
+	void OnUncaughtException();
+	void OnUnhandledRejection();
+
 	static int start(int argc, char** argv);
 	
  protected:
 	friend class Worker;
 	friend class NativeValue;
-	Worker*         host_;
+	Worker*         m_host;
 	ThreadID        m_thread_id;
 	ValueProgram*   m_value_program;
 	CommonStrings*  m_strs;
-	JSClassStore*   classs_;
+	JSClassStore*   m_classs;
 	Local<JSObject> m_global;
 	Persistent<JSObject> m_native_modules;
 	node::Environment* m_env;
@@ -118,8 +123,7 @@ class JSClassIMPL {
  public:
 	inline JSClassIMPL(Worker* worker, uint64 id, cString& name)
 	: worker_(worker)
-	, id_(id)
-	, name_(name), ref_(0) {
+	, id_(id), name_(name), ref_(0) {
 	}
 	
 	virtual ~JSClassIMPL() { }

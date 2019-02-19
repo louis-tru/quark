@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <v8.h>
+#include <libplatform/libplatform.h>
 #include "qgr/utils/util.h"
 #include "qgr/utils/http.h"
 #include "qgr/utils/string-builder.h"
@@ -36,6 +37,8 @@
 #include "js-1.h"
 #include "wrap.h"
 #include "native-ext-js.h"
+#include <uv.h>
+#include "value.h"
 
 #if HAVE_NODE
 #include "env.h"
@@ -73,9 +76,9 @@ using namespace v8;
 # define ISOLATE_INL_WORKER_DATA_INDEX (0)
 #endif
 
-#define ISOLATE(...) V8WorkerIMPL::current( __VA_ARGS__ )->isolate_
-#define CONTEXT(...) V8WorkerIMPL::current( __VA_ARGS__ )->context_
-#define WORKER(...) V8WorkerIMPL::current( __VA_ARGS__ )
+#define ISOLATE(...) WorkerIMPL::current( __VA_ARGS__ )->isolate_
+#define CONTEXT(...) WorkerIMPL::current( __VA_ARGS__ )->context_
+#define WORKER(...) WorkerIMPL::current( __VA_ARGS__ )
 #define CURRENT Worker::worker()
 
 static v8::Platform* platform = nullptr;
@@ -121,9 +124,9 @@ class V8ExternalStringResource: public v8::String::ExternalStringResource {
 };
 
 /**
- * @class V8WorkerIMPL
+ * @class WorkerIMPL
  */
-class V8WorkerIMPL: public IMPL {
+class WorkerIMPL: public IMPL {
  public:
 	struct V8HandleScope {
 		v8::HandleScope value;
@@ -135,13 +138,13 @@ class V8WorkerIMPL: public IMPL {
 	v8::Local<v8::Context> context_;
 
 	void initialize() {
-		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, host_);
-		m_global = context_->Global();
-		m_native_modules.Reset(host_, host_->NewObject());
+		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
+		m_global = Cast<JSObject>(context_->Global());
+		m_native_modules.Reset(m_host, m_host->NewObject());
 		IMPL::initialize();
 	}
 
-	V8WorkerIMPL(Worker* host): IMPL(host), locker_(nullptr), handle_scope_(nullptr) {
+	WorkerIMPL(Worker* host): IMPL(host), locker_(nullptr), handle_scope_(nullptr) {
 		Isolate::CreateParams params;
 		params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 		isolate_ = Isolate::New(params);
@@ -156,19 +159,19 @@ class V8WorkerIMPL: public IMPL {
 		isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
 	}
 
-	V8WorkerIMPL(Worker* host, node::Environment* env): IMPL(host), handle_scope_(nullptr) {
+	WorkerIMPL(Worker* host, node::Environment* env): IMPL(host), handle_scope_(nullptr) {
 		m_env = env;
 		isolate_ = env->isolate();
 		context_ = env->context();
 		initialize();
 	}
 
-	virtual ~V8WorkerIMPL() {
+	virtual ~WorkerIMPL() {
 		Release(m_value_program); m_value_program = nullptr;
 		Release(m_strs); m_strs = nullptr;
-		delete classs_; classs_ = nullptr;
+		delete m_classs; m_classs = nullptr;
 		m_native_modules.Reset();
-		if (!context_.IsEmpty) {
+		if (!context_.IsEmpty()) {
 			context_->Exit();
 			context_.Clear();
 			delete handle_scope_; handle_scope_ = nullptr;
@@ -194,11 +197,11 @@ class V8WorkerIMPL: public IMPL {
 		return static_cast<Worker*>( args.GetIsolate()->GetData(ISOLATE_INL_WORKER_DATA_INDEX) );
 	}
 
-	inline static V8WorkerIMPL* current(Worker* worker = Worker::worker()) {
-		return static_cast<V8WorkerIMPL*>(worker->m_inl);
+	inline static WorkerIMPL* current(Worker* worker = Worker::worker()) {
+		return static_cast<WorkerIMPL*>(worker->m_inl);
 	}
 	
-	inline static V8WorkerIMPL* current(V8WorkerIMPL* worker) {
+	inline static WorkerIMPL* current(WorkerIMPL* worker) {
 		return worker;
 	}
 	
@@ -239,21 +242,21 @@ class V8WorkerIMPL: public IMPL {
 	}
 	
 	Local<JSValue> run_native_script(cBuffer& source, cString& name, Local<JSObject> exports) {
-		v8::Local<v8::Value> _name = Back(host_->New(String::format("%s", *name)));
-		v8::Local<v8::Value> _souece = Back(host_->NewString(source));
+		v8::Local<v8::Value> _name = Back(m_host->New(String::format("%s", *name)));
+		v8::Local<v8::Value> _souece = Back(m_host->NewString(source));
 		
 		v8::MaybeLocal<v8::Value> rv;
 		
 		rv = run_script(_souece.As<v8::String>(),
 										_name.As<v8::String>(), v8::Local<v8::Object>());
 		if ( !rv.IsEmpty() ) {
-			Local<JSObject> module = host_->NewObject();
-			module->Set(host_, host_->strs()->exports(), exports);
+			Local<JSObject> module = m_host->NewObject();
+			module->Set(m_host, m_host->strs()->exports(), exports);
 			v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-			v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(host_->m_global) };
-			rv = func->Call(CONTEXT(host_), v8::Undefined(ISOLATE(this)), 3, &args[0]);
+			v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(m_global) };
+			rv = func->Call(CONTEXT(m_host), v8::Undefined(ISOLATE(this)), 3, &args[0]);
 			if (!rv.IsEmpty()) {
-				return module->Get(host_, host_->strs()->exports());
+				return module->Get(m_host, m_host->strs()->exports());
 			}
 		}
 		return Local<JSValue>();
@@ -345,9 +348,10 @@ class V8WorkerIMPL: public IMPL {
 
 	void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		// TODO ...
+		print_exception(message, error);
 	}
 
-	void rejection_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+	void unhandled_rejection(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		// TODO ...
 	}
 
@@ -360,13 +364,13 @@ Worker* Worker::worker() {
 
 Worker* IMPL::create() {
 	auto worker = new Worker();
-	worker->m_inl = new V8WorkerIMPL(worker);
+	worker->m_inl = new WorkerIMPL(worker);
 	return worker;
 }
 
 Worker* IMPL::createWithNode(node::Environment* env) {
 	auto worker = new Worker();
-	worker->m_inl = new V8WorkerIMPL(worker, env);
+	worker->m_inl = new WorkerIMPL(worker, env);
 	return worker;
 }
 
@@ -435,7 +439,7 @@ class V8JSClass: public JSClassIMPL {
 
 Worker* WeakCallbackInfo::worker() const {
 	auto info = reinterpret_cast<const v8::WeakCallbackInfo<Object>*>(this);
-	return V8WorkerIMPL::worker(info->GetIsolate());
+	return WorkerIMPL::worker(info->GetIsolate());
 }
 
 void* WeakCallbackInfo::GetParameter() const {
@@ -465,7 +469,7 @@ void IMPL::ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr) {
 
 Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 	V8JSClass* v8cls = reinterpret_cast<V8JSClass*>(*cls);
-	auto f = v8cls->Template()->GetFunction(CONTEXT(host_)).FromMaybe(v8::Local<v8::Function>());
+	auto f = v8cls->Template()->GetFunction(CONTEXT(m_host)).FromMaybe(v8::Local<v8::Function>());
 	if ( v8cls->HasParentFromFunction() ) {
 		bool ok;
 		// function.__proto__ = base
@@ -473,9 +477,9 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 		//XX_ASSERT(ok);
 		// function.prototype.__proto__ = base.prototype
 		auto b = v8cls->ParentFromFunction();
-		auto s = Back(host_->strs()->prototype());
-		auto p = f->Get(CONTEXT(host_), s).ToLocalChecked().As<v8::Object>();
-		auto p2 = b->Get(CONTEXT(host_), s).ToLocalChecked().As<v8::Object>();
+		auto s = Back(m_host->strs()->prototype());
+		auto p = f->Get(CONTEXT(m_host), s).ToLocalChecked().As<v8::Object>();
+		auto p2 = b->Get(CONTEXT(m_host), s).ToLocalChecked().As<v8::Object>();
 		ok = p->SetPrototype(p2);
 		XX_ASSERT(ok);
 	}
@@ -485,9 +489,9 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 Local<JSValue> IMPL::binding_node_module(cString& name) {
  #if HAVE_NODE
 	XX_ASSERT(m_env);
-	Local<JSValue> argv = host_->New(name);
-	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(host_, "binding");
-	return binding.To<JSFunction>()->Call(host_, 1, &argv);
+	Local<JSValue> argv = m_host->New(name);
+	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(m_host, "binding");
+	return binding.To<JSFunction>()->Call(m_host, 1, &argv);
  #else
 	return Local<JSValue>();
  #endif
@@ -991,17 +995,17 @@ Local<JSObject> PropertySetCallbackInfo::This() const {
 
 Worker* FunctionCallbackInfo::worker() const {
 	auto info = reinterpret_cast<const v8::FunctionCallbackInfo<v8::Value>*>(this);
-	return V8WorkerIMPL::worker(info->GetIsolate());
+	return WorkerIMPL::worker(info->GetIsolate());
 }
 
 Worker* PropertyCallbackInfo::worker() const {
 	auto info = reinterpret_cast<const v8::PropertyCallbackInfo<v8::Value>*>(this);
-	return V8WorkerIMPL::worker(info->GetIsolate());
+	return WorkerIMPL::worker(info->GetIsolate());
 }
 
 Worker* PropertySetCallbackInfo::worker() const {
 	auto info = reinterpret_cast<const v8::PropertyCallbackInfo<void>*>(this);
-	return V8WorkerIMPL::worker(info->GetIsolate());
+	return WorkerIMPL::worker(info->GetIsolate());
 }
 
 struct TryCatchWrap {
@@ -1231,7 +1235,7 @@ Local<JSObject> Worker::NewError(Local<JSObject> value) {
 }
 
 Local<JSObject> Worker::New(Buffer&& buff) {
-	Local<JSFunction> func = m_inl->classs_->get_buffer_constructor();
+	Local<JSFunction> func = m_inl->m_classs->get_buffer_constructor();
 	XX_ASSERT( !func.IsEmpty() );
 	Local<JSObject> bf = func->NewInstance(this);
 	*Wrap<Buffer>::unpack(bf)->self() = move(buff);
@@ -1248,14 +1252,14 @@ Local<JSClass> Worker::NewClass(uint64 id,
 																WrapAttachCallback attach_callback, Local<JSClass> base) {
 	auto cls = new V8JSClass(this, id, name, constructor, reinterpret_cast<V8JSClass*>(*base));
 	Local<JSClass> rv(reinterpret_cast<JSClass*>(cls));
-	m_inl->classs_->set_class(id, rv, attach_callback);
+	m_inl->m_classs->set_class(id, rv, attach_callback);
 	return rv;
 }
 
 Local<JSClass> Worker::NewClass(uint64 id, cString& name,
 																FunctionCallback constructor,
 																WrapAttachCallback attach_callback, uint64 base) {
-	return NewClass(id, name, constructor, attach_callback, m_inl->classs_->get_class(base));
+	return NewClass(id, name, constructor, attach_callback, m_inl->m_classs->get_class(base));
 }
 
 /**
@@ -1266,7 +1270,7 @@ Local<JSClass> Worker::NewClass(uint64 id, cString& name,
 																WrapAttachCallback attach_callback, Local<JSFunction> base) {
 	auto cls = new V8JSClass(this, id, name, constructor, nullptr, Back<v8::Function>(base));
 	Local<JSClass> rv(reinterpret_cast<JSClass*>(cls));
-	m_inl->classs_->set_class(id, rv, attach_callback);
+	m_inl->m_classs->set_class(id, rv, attach_callback);
 	return rv;
 }
 
@@ -1309,38 +1313,48 @@ int IMPL::start(int argc, char** argv) {
 	v8::V8::InitializePlatform(platform);
 	v8::V8::Initialize();
 
-	Isolate::CreateParams params;
-	params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-	Isolate* isolate = v8::Isolate::New(params);
-	{
-		Locker locker(isolate);
-		isolate->Enter();
-		{
-			HandleScope scope(isolate);
-			Local<Context> context = v8::Context::New(isolate);
-			context->Enter();
-			// ...
-			test_template(isolate, context);
-			test_persistent(isolate, context);
-			context->Exit();
-		}
-		isolate->Exit();
-	}
-	isolate->Dispose();
-	
-	auto worker = new IMPL::create();
-	JS_HANDLE_SCOPE();
-	
-	WeakBuffer bf((char*) EXT_native_js_code_module_, EXT_native_js_code_module_count_);
-	Local<JSValue> module = worker->run_native_script(bf, "module.js");
+  // Unconditionally force typed arrays to allocate outside the v8 heap. This
+  // is to prevent memory pointers from being moved around that are returned by
+  // Buffer::Data().
+  const char no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
+  v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
+	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
-	if ( module.IsEmpty() ) {
-		XX_FATAL("cannot start worker");
+	int code = 0;
+	{
+		Handle<Worker> worker = IMPL::create();
+		v8::SealHandleScope seal(v8::Isolate::GetCurrent());
+		Local<JSValue> module = worker->run_native_script(WeakBuffer((char*) 
+				EXT_native_js_code_module_, 
+				EXT_native_js_code_module_count_), "module.js"
+		);
+		XX_CHECK(!module.IsEmpty(), "Cannot start worker");
+
+		Local<JSValue> r = module.To()->
+			GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
+		XX_CHECK(!r.IsEmpty(), "Cannot call runMain()");
+
+		do {
+			RunLoop::main_loop()->run();
+			/* IOS forces the process to terminate, but it does not quit immediately.
+			 This may cause a process to run in the background for a long time, so force break here */
+			if (RunLoop::is_process_exit()) break;
+
+			worker->m_inl->OnBeforeExit();
+
+			// Emit `beforeExit` if the loop became alive either after emitting
+			// event, or after running some callbacks.
+		} while (uv_loop_alive(RunLoop::main_loop()->uv_loop()));
+
+		if (!RunLoop::is_process_exit())
+			code = worker->m_inl->OnExit();
 	}
 
 	v8::V8::ShutdownPlatform();
 	v8::V8::Dispose();
 	delete platform;
+
+	return code;
 }
 
 JS_END

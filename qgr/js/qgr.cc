@@ -28,6 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include "js-1.h"
 #include "qgr/app.h"
 #include "qgr/view.h"
 #include "qgr/js/qgr.h"
@@ -160,15 +161,15 @@ class QgrApiImpl: public node::QgrApi {
 
 	Worker* create_worker(node::Environment* env, bool is_inspector,
 												int argc, const char* const* argv) {
-		return new IMPL::createWithNode(env);
+		return IMPL::createWithNode(env);
 	}
 
-	void delete_worker(qgr::js::Worker* worker) {
+	void delete_worker(Worker* worker) {
 		Release(worker);
 	}
 
 	void run_loop() {
-		qgr::RunLoop::main_loop()->run();
+		RunLoop::main_loop()->run();
 	}
 
 	char* encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
@@ -265,7 +266,7 @@ int start(cString& argv_str) {
 		code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
 	} else {
 		_qgr_have_node = 0;
-		code = IMPL::start(argv.length(), const_cast<char**>(&argv[0]));
+		code = IMPL::start(argv.length(), &argv[0]);
 	}
 	_qgr_argv = nullptr;
 

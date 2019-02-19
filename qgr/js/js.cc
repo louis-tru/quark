@@ -247,7 +247,7 @@ void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that) {
 
 static void reg_core_native_module();
 
-static void requireNative(FunctionCall args) {
+static void require_native(FunctionCall args) {
 	JS_WORKER(args);
 	if (args.Length() < 1) {
 		JS_THROW_ERR("Bad argument.");
@@ -260,32 +260,48 @@ static void requireNative(FunctionCall args) {
 }
 
 void IMPL::initialize() {
-	classs_ = new JSClassStore(host);
-	m_strs = new CommonStrings(host);
+	m_classs = new JSClassStore(m_host);
+	m_strs = new CommonStrings(m_host);
 
-	if ( host_->run_native_script(WeakBuffer((char*)
-				EXT_native_js_code_ext_, 
-				EXT_native_js_code_ext_count_), "ext.js").IsEmpty()
-	) {
-		XX_FATAL("Cannot initialize worker ext");
-	}
-	m_global->SetMethod(host_, "requireNative", requireNative);
+	Local<JSValue> ext = m_host->run_native_script(WeakBuffer((char*)
+			EXT_native_js_code_ext_, 
+			EXT_native_js_code_ext_count_), "ext.js"
+	);
+	XX_CHECK(!ext.IsEmpty(), "Cannot initialize worker ext");
+	m_global->SetMethod(m_host, "requireNative", require_native);
 
 	reg_core_native_module();
 }
 
 IMPL::IMPL(Worker* host)
-: host_(host)
+: m_host(host)
 , m_thread_id(SimpleThread::current_id())
 , m_value_program(nullptr), m_strs(nullptr)
-, classs_(nullptr), m_env(nullptr) {
+, m_classs(nullptr), m_env(nullptr) {
 }
 
 IMPL::~IMPL() {
 }
 
+int IMPL::OnExit() {
+	// TODO...
+	return 0;
+}
+
+void IMPL::OnBeforeExit() {
+	// TODO...
+}
+
+void IMPL::OnUncaughtException() {
+	// TODO...
+}
+
+void IMPL::OnUnhandledRejection() {
+	// TODO...
+}
+
 Worker* Worker::create() {
-	return new IMPL:create();
+	return IMPL::create();
 }
 
 Worker::Worker(): m_inl(nullptr) {
@@ -336,7 +352,7 @@ Local<JSObject> Worker::NewError(cError& err) { return New(err); }
 Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
 
 Local<JSObject> Worker::New(FileStat&& stat) {
-	Local<JSFunction> func = m_inl->classs_->get_constructor(JS_TYPEID(FileStat));
+	Local<JSFunction> func = m_inl->m_classs->get_constructor(JS_TYPEID(FileStat));
 	XX_ASSERT( !func.IsEmpty() );
 	Local<JSObject> r = func->NewInstance(this);
 	*Wrap<FileStat>::unpack(r)->self() = move(stat);
@@ -344,7 +360,7 @@ Local<JSObject> Worker::New(FileStat&& stat) {
 }
 
 Local<JSObject> Worker::NewInstance(uint64 id, uint argc, Local<JSValue>* argv) {
-	Local<JSFunction> func = m_inl->classs_->get_constructor(id);
+	Local<JSFunction> func = m_inl->m_classs->get_constructor(id);
 	XX_ASSERT( !func.IsEmpty() );
 	return func->NewInstance(this, argc, argv);
 }
@@ -360,7 +376,7 @@ void Worker::throw_err(cchar* errmsg, ...) {
 }
 
 bool Worker::has_buffer(Local<JSValue> val) {
-	return m_inl->classs_->is_buffer(val);
+	return m_inl->m_classs->is_buffer(val);
 }
 
 bool Worker::has_typed_buffer(Local<JSValue> val) {
@@ -368,15 +384,15 @@ bool Worker::has_typed_buffer(Local<JSValue> val) {
 }
 
 bool Worker::has_view(Local<JSValue> val) {
-	return m_inl->classs_->instanceof(val, qgr::View::VIEW);
+	return m_inl->m_classs->instanceof(val, qgr::View::VIEW);
 }
 
 bool Worker::has_instance(Local<JSValue> val, uint64 id) {
-	return m_inl->classs_->instanceof(val, id);
+	return m_inl->m_classs->instanceof(val, id);
 }
 
 WeakBuffer Worker::as_buffer(Local<JSValue> val) {
-	if ( m_inl->classs_->is_buffer(val) ) {
+	if ( m_inl->m_classs->is_buffer(val) ) {
 		Buffer* bf = Wrap<Buffer>::unpack(val.To<JSObject>())->self();
 		return WeakBuffer(bf->value(), bf->length());
 	}

@@ -546,7 +546,7 @@ void FileHelper::mv(cString& name, cString& new_name, cCb& cb) {
 	rename(name, new_name, cb);
 }
 
-void FileHelper::link(cString& path, cString& newPath, cCb& cb = 0) {
+void FileHelper::link(cString& path, cString& newPath, cCb& cb) {
 	link2(path, newPath, cb, LOOP);
 }
 

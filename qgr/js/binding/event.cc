@@ -45,6 +45,8 @@
 
 JS_BEGIN
 
+using namespace native_js;
+
 Cast::Cast(CastFunc func): m_cast_func(func) { }
 
 Local<JSValue> Cast::cast(const Object& object, Worker* worker) {
@@ -678,8 +680,8 @@ class BindingNativeEvent {
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->run_native_script(WeakBuffer((char*)
-															native_js::EXT_native_js_code_event_,
-															native_js::EXT_native_js_code_event_count_), exports, "event.js");
+															EXT_native_js_code_event_,
+															EXT_native_js_code_event_count_), "event.js", exports);
 		// Enum: HighlightedStatus
 		JS_SET_PROPERTY(HIGHLIGHTED_NORMAL, HIGHLIGHTED_NORMAL);
 		JS_SET_PROPERTY(HIGHLIGHTED_HOVER, HIGHLIGHTED_HOVER);
