@@ -1259,7 +1259,7 @@ class Packages {
 						if (proc == 1) 
 							inl_require(pkg, null);
 					}.catch(function(err) {
-						_util.fatal(err);
+						throw err;
 					}));
 				}
 			}
