@@ -91,13 +91,13 @@ class XX_EXPORT WrapObject {
 		return worker()->New(handle_);
 	}
 	inline Local<JSValue> get(Local<JSValue> key) {
-		return handle_.strong()->Get(worker(), key);
+		return handle_.local()->Get(worker(), key);
 	}
 	inline bool set(Local<JSValue> key, Local<JSValue> value) {
-		return handle_.strong()->Set(worker(), key, value);
+		return handle_.local()->Set(worker(), key, value);
 	}
 	inline bool del(Local<JSValue> key) {
-		return handle_.strong()->Delete(worker(), key);
+		return handle_.local()->Delete(worker(), key);
 	}
 	
 	Local<JSValue> call(Local<JSValue> name, int argc = 0, Local<JSValue> argv[] = nullptr);

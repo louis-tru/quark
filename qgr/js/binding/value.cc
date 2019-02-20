@@ -56,9 +56,9 @@ ValueProgram::ValueProgram(Worker* worker,
 	XX_DEBUG("init value %s", #Name);\
 	_constructor##Name .Reset(worker, priv->Get(worker,Ascii(#Name)).To<JSFunction>()); \
 	_parse##Name       .Reset(worker, priv->Get(worker,Ascii("parse"#Name)).To<JSFunction>()); \
-	if (_constructor##Name.strong()->IsObject()) { \
+	if (_constructor##Name.local()->IsObject()) { \
 		_parse##Name##Help.Reset(worker, \
-			_constructor##Name.strong()->Get(worker,help).To<JSFunction>()); \
+			_constructor##Name.local()->Get(worker,help).To<JSFunction>()); \
 	}\
 	_##Name.Reset(worker, priv->Get(worker,Ascii("_"#Name)).To<JSFunction>());
 	
@@ -72,31 +72,31 @@ ValueProgram::~ValueProgram() {}
 
 Local<JSValue> ValueProgram::New(const TextAlign& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _TextAlign.strong()->Call(worker, 1, &arg);
+	return _TextAlign.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const Align& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _Align.strong()->Call(worker, 1, &arg);
+	return _Align.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const ContentAlign& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _ContentAlign.strong()->Call(worker, 1, &arg);
+	return _ContentAlign.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const Repeat& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _Repeat.strong()->Call(worker, 1, &arg);
+	return _Repeat.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const Direction& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _Direction.strong()->Call(worker, 1, &arg);
+	return _Direction.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const KeyboardType& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _KeyboardType.strong()->Call(worker, 1, &arg);
+	return _KeyboardType.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const KeyboardReturnType& value) {
 	Local<JSValue> arg = worker->New((uint)value);
-	return _KeyboardReturnType.strong()->Call(worker, 1, &arg);
+	return _KeyboardReturnType.local()->Call(worker, 1, &arg);
 }
 Local<JSValue> ValueProgram::New(const Border& value) {
 	Local<JSValue> args[] = {
@@ -106,7 +106,7 @@ Local<JSValue> ValueProgram::New(const Border& value) {
 		worker->New(value.color.b()),
 		worker->New(value.color.a()),
 	};
-	return _Border.strong()->Call(worker, 5, args);
+	return _Border.local()->Call(worker, 5, args);
 }
 Local<JSValue> ValueProgram::New(const Shadow& value) {
 	Local<JSValue> args[] = {
@@ -118,7 +118,7 @@ Local<JSValue> ValueProgram::New(const Shadow& value) {
 		worker->New(value.color.b()),
 		worker->New(value.color.a()),
 	};
-	return _Shadow.strong()->Call(worker, 7, args);
+	return _Shadow.local()->Call(worker, 7, args);
 }
 Local<JSValue> ValueProgram::New(const Color& value) {
 	Local<JSValue> args[] = {
@@ -127,14 +127,14 @@ Local<JSValue> ValueProgram::New(const Color& value) {
 		worker->New(value.b()),
 		worker->New(value.a()),
 	};
-	return _Color.strong()->Call(worker, 4, args);
+	return _Color.local()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(const Vec2& value) {
 	Local<JSValue> args[] = {
 		worker->New(value.x()),
 		worker->New(value.y()),
 	};
-	return _Vec2.strong()->Call(worker, 2, args);
+	return _Vec2.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const Vec3& value) {
 	Local<JSValue> args[] = {
@@ -142,7 +142,7 @@ Local<JSValue> ValueProgram::New(const Vec3& value) {
 		worker->New(value.y()),
 		worker->New(value.z()),
 	};
-	return _Vec3.strong()->Call(worker, 3, args);
+	return _Vec3.local()->Call(worker, 3, args);
 }
 Local<JSValue> ValueProgram::New(const Vec4& value) {
 	Local<JSValue> args[] = {
@@ -151,7 +151,7 @@ Local<JSValue> ValueProgram::New(const Vec4& value) {
 		worker->New(value.z()),
 		worker->New(value.w()),
 	};
-	return _Vec4.strong()->Call(worker, 4, args);
+	return _Vec4.local()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(cCurve& value) {
 	Local<JSValue> args[] = {
@@ -160,7 +160,7 @@ Local<JSValue> ValueProgram::New(cCurve& value) {
 		worker->New(value.point2().x()),
 		worker->New(value.point2().y()),
 	};
-	return _Curve.strong()->Call(worker, 4, args);
+	return _Curve.local()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(const CGRect& value) {
 	Local<JSValue> args[] = {
@@ -169,7 +169,7 @@ Local<JSValue> ValueProgram::New(const CGRect& value) {
 		worker->New(value.size.width()),
 		worker->New(value.size.height()),
 	};
-	return _Rect.strong()->Call(worker, 4, args);
+	return _Rect.local()->Call(worker, 4, args);
 }
 Local<JSValue> ValueProgram::New(const Mat& value) {
 	Local<JSValue> args[] = {
@@ -180,7 +180,7 @@ Local<JSValue> ValueProgram::New(const Mat& value) {
 		worker->New(value[4]),
 		worker->New(value[5]),
 	};
-	return _Mat.strong()->Call(worker, 6, args);
+	return _Mat.local()->Call(worker, 6, args);
 }
 Local<JSValue> ValueProgram::New(const Mat4& value) {
 	Local<JSValue> args[] = {
@@ -201,28 +201,28 @@ Local<JSValue> ValueProgram::New(const Mat4& value) {
 		worker->New(value[14]),
 		worker->New(value[15]),
 	};
-	return _Mat4.strong()->Call(worker, 16, args);
+	return _Mat4.local()->Call(worker, 16, args);
 }
 Local<JSValue> ValueProgram::New(const Value& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New(value.value),
 	};
-	return _Value.strong()->Call(worker, 2, args);
+	return _Value.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const BackgroundPosition& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New(value.value),
 	};
-	return _BackgroundPosition.strong()->Call(worker, 2, args);
+	return _BackgroundPosition.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const BackgroundSize& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New(value.value),
 	};
-	return _BackgroundSize.strong()->Call(worker, 2, args);
+	return _BackgroundSize.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const BackgroundPtr& value) {
 	XX_UNIMPLEMENTED();
@@ -236,28 +236,28 @@ Local<JSValue> ValueProgram::New(const TextColor& value) {
 		worker->New(value.value.b()),
 		worker->New(value.value.a()),
 	};
-	return _TextColor.strong()->Call(worker, 5, args);
+	return _TextColor.local()->Call(worker, 5, args);
 }
 Local<JSValue> ValueProgram::New(const TextSize& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New(value.value),
 	};
-	return _TextSize.strong()->Call(worker, 1, args);
+	return _TextSize.local()->Call(worker, 1, args);
 }
 Local<JSValue> ValueProgram::New(const TextFamily& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New(value.name()),
 	};
-	return _TextFamily.strong()->Call(worker, 2, args);
+	return _TextFamily.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextStyle& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New((uint)value.value),
 	};
-	return _TextStyle.strong()->Call(worker, 2, args);
+	return _TextStyle.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextShadow& value) {
 	Local<JSValue> args[] = {
@@ -270,21 +270,21 @@ Local<JSValue> ValueProgram::New(const TextShadow& value) {
 		worker->New(value.value.color.b()),
 		worker->New(value.value.color.a()),
 	};
-	return _TextShadow.strong()->Call(worker, 8, args);
+	return _TextShadow.local()->Call(worker, 8, args);
 }
 Local<JSValue> ValueProgram::New(const TextLineHeight& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New(value.value.height),
 	};
-	return _TextLineHeight.strong()->Call(worker, 2, args);
+	return _TextLineHeight.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextDecoration& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New((uint)value.value),
 	};
-	return _TextDecoration.strong()->Call(worker, 2, args);
+	return _TextDecoration.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const String& value) {
 	return worker->New(value);
@@ -306,14 +306,14 @@ Local<JSValue> ValueProgram::New(const TextOverflow& value) {
 		worker->New((uint)value.type),
 		worker->New((uint)value.value),
 	};
-	return _TextOverflow.strong()->Call(worker, 2, args);
+	return _TextOverflow.local()->Call(worker, 2, args);
 }
 Local<JSValue> ValueProgram::New(const TextWhiteSpace& value) {
 	Local<JSValue> args[] = {
 		worker->New((uint)value.type),
 		worker->New((uint)value.value),
 	};
-	return _TextWhiteSpace.strong()->Call(worker, 2, args);
+	return _TextWhiteSpace.local()->Call(worker, 2, args);
 }
 
 static void parse_error_throw(Worker* worker, Local<JSValue> value,
@@ -379,7 +379,7 @@ static Map<uint, cCurve*> CURCE2({
 #define js_parse(Type, ok) { \
 Local<JSObject> object;\
 if ( in->IsString(worker) ) {\
-	Local<JSValue> o = _parse##Type.strong()->Call(worker, 1, &in);\
+	Local<JSValue> o = _parse##Type.local()->Call(worker, 1, &in);\
 	if ( o.IsEmpty() ) {\
 		return false;\
 	} else if (o->IsNull(worker)) { \
@@ -391,7 +391,7 @@ if ( in->IsString(worker) ) {\
 	object = in.To<JSObject>();\
 } else {\
 err:\
-	parse_error_throw(worker, in, desc, _parse##Type##Help.strong());\
+	parse_error_throw(worker, in, desc, _parse##Type##Help.local());\
 	return false;\
 }\
 ok \
@@ -412,7 +412,7 @@ if ( in->IsString(worker) ) { \
 	object = in.To<JSObject>(); \
 } else { \
  err: \
-	parse_error_throw(worker, in, desc, _parse##Type##Help.strong()); \
+	parse_error_throw(worker, in, desc, _parse##Type##Help.local()); \
 	return false; \
 } \
 ok \
@@ -470,7 +470,7 @@ bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
 		object = in.To<JSObject>();
 	} else {
 	err:
-		parse_error_throw(worker, in, desc, _parseBorderHelp.strong());
+		parse_error_throw(worker, in, desc, _parseBorderHelp.local());
 		return false;
 	}
 	out.width = object->Get(worker, worker->strs()->width())->ToNumberValue(worker);
@@ -656,7 +656,7 @@ bool ValueProgram::parseBackgroundImage(Local<JSValue> in, BackgroundPtr& out, c
 		object = in.To<JSObject>();
 	} else {
 	err:
-		parse_error_throw(worker, in, desc, _parseBackgroundHelp.strong());
+		parse_error_throw(worker, in, desc, _parseBackgroundHelp.local());
 		return false;
 	}
 	out = Wrap<Background>::unpack(object)->self();
@@ -665,7 +665,7 @@ bool ValueProgram::parseBackgroundImage(Local<JSValue> in, BackgroundPtr& out, c
 bool ValueProgram::parseRepeats(Local<JSValue> in, Array<Repeat>& out, cchar* desc) {
 	Local<JSArray> arr;
 	if (in->IsString(worker)) {
-		Local<JSValue> o = _parseRepeats.strong()->Call(worker, 1, &in);
+		Local<JSValue> o = _parseRepeats.local()->Call(worker, 1, &in);
 		if (o.IsEmpty()) {
 			return false;
 		}
@@ -683,14 +683,14 @@ bool ValueProgram::parseRepeats(Local<JSValue> in, Array<Repeat>& out, cchar* de
 		}
 		return true;
 	}
-	parse_error_throw(worker, in, desc, _parseRepeatsHelp.strong());
+	parse_error_throw(worker, in, desc, _parseRepeatsHelp.local());
 	return false;
 }
 bool ValueProgram::parseBackgroundPositions(Local<JSValue> in,
 																						Array<BackgroundPositionCollection>& out, cchar* desc) {
 	Local<JSArray> arr;
 	if (in->IsString(worker)) {
-		Local<JSValue> o = _parseBackgroundPositions.strong()->Call(worker, 1, &in);
+		Local<JSValue> o = _parseBackgroundPositions.local()->Call(worker, 1, &in);
 		if (o.IsEmpty()) {
 			return false;
 		}
@@ -725,14 +725,14 @@ bool ValueProgram::parseBackgroundPositions(Local<JSValue> in,
 		}
 		return true;
 	}
-	parse_error_throw(worker, in, desc, _parseBackgroundPositionsHelp.strong());
+	parse_error_throw(worker, in, desc, _parseBackgroundPositionsHelp.local());
 	return false;
 }
 bool ValueProgram::parseBackgroundSizes(Local<JSValue> in,
 																				Array<BackgroundSizeCollection>& out, cchar* desc) {
 	Local<JSArray> arr;
 	if (in->IsString(worker)) {
-		Local<JSValue> o = _parseBackgroundSizes.strong()->Call(worker, 1, &in);
+		Local<JSValue> o = _parseBackgroundSizes.local()->Call(worker, 1, &in);
 		if (o.IsEmpty()) {
 			return false;
 		}
@@ -767,7 +767,7 @@ bool ValueProgram::parseBackgroundSizes(Local<JSValue> in,
 		}
 		return true;
 	}
-	parse_error_throw(worker, in, desc, _parseBackgroundSizesHelp.strong());
+	parse_error_throw(worker, in, desc, _parseBackgroundSizesHelp.local());
 	return false;
 }
 bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc) {
@@ -777,7 +777,7 @@ bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc
 	}
 	Local<JSArray> arr;
 	if (in->IsString(worker)) {
-		Local<JSValue> o = _parseValues.strong()->Call(worker, 1, &in);
+		Local<JSValue> o = _parseValues.local()->Call(worker, 1, &in);
 		if (o.IsEmpty()) {
 			return false;
 		}
@@ -801,7 +801,7 @@ bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc
 		}
 		return true;
 	}
-	parse_error_throw(worker, in, desc, _parseValuesHelp.strong());
+	parse_error_throw(worker, in, desc, _parseValuesHelp.local());
 	return false;
 }
 bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc) {
@@ -811,7 +811,7 @@ bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc
 	}
 	Local<JSArray> arr;
 	if (in->IsString(worker)) {
-		Local<JSValue> o = _parseFloats.strong()->Call(worker, 1, &in);
+		Local<JSValue> o = _parseFloats.local()->Call(worker, 1, &in);
 		if (o.IsEmpty()) {
 			return false;
 		}
@@ -825,7 +825,7 @@ bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc
 		}
 		return true;
 	}
-	parse_error_throw(worker, in, desc, _parseFloatsHelp.strong());
+	parse_error_throw(worker, in, desc, _parseFloatsHelp.local());
 	return false;
 }
 bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc) {
@@ -854,7 +854,7 @@ bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc
 		return true;
 	}
 err:
-	parse_error_throw(worker, in, desc, _parseAlignsHelp.strong());
+	parse_error_throw(worker, in, desc, _parseAlignsHelp.local());
 	return false;
 }
 bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc) {
@@ -985,91 +985,91 @@ bool ValueProgram::parseTextWhiteSpace(Local<JSValue> in,
 // -------------------------------- is --------------------------------
 
 bool ValueProgram::isBase(Local<JSValue> value) {
-	return _isBase.strong()->Call(worker, 1, &value)->ToBooleanValue(worker);
+	return _isBase.local()->Call(worker, 1, &value)->ToBooleanValue(worker);
 }
 bool ValueProgram::isTextAlign(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextAlign.strong());
+	return value->InstanceOf(worker, _constructorTextAlign.local());
 }
 bool ValueProgram::isAlign(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorAlign.strong());
+	return value->InstanceOf(worker, _constructorAlign.local());
 }
 bool ValueProgram::isContentAlign(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorContentAlign.strong());
+	return value->InstanceOf(worker, _constructorContentAlign.local());
 }
 bool ValueProgram::isRepeat(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorRepeat.strong());
+	return value->InstanceOf(worker, _constructorRepeat.local());
 }
 bool ValueProgram::isDirection(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorDirection.strong());
+	return value->InstanceOf(worker, _constructorDirection.local());
 }
 bool ValueProgram::isKeyboardType(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorKeyboardType.strong());
+	return value->InstanceOf(worker, _constructorKeyboardType.local());
 }
 bool ValueProgram::isKeyboardReturnType(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorKeyboardReturnType.strong());
+	return value->InstanceOf(worker, _constructorKeyboardReturnType.local());
 }
 bool ValueProgram::isBorder(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorBorder.strong());
+	return value->InstanceOf(worker, _constructorBorder.local());
 }
 bool ValueProgram::isShadow(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorShadow.strong());
+	return value->InstanceOf(worker, _constructorShadow.local());
 }
 bool ValueProgram::isColor(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorColor.strong());
+	return value->InstanceOf(worker, _constructorColor.local());
 }
 bool ValueProgram::isVec2(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorVec2.strong());
+	return value->InstanceOf(worker, _constructorVec2.local());
 }
 bool ValueProgram::isVec3(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorVec3.strong());
+	return value->InstanceOf(worker, _constructorVec3.local());
 }
 bool ValueProgram::isVec4(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorVec4.strong());
+	return value->InstanceOf(worker, _constructorVec4.local());
 }
 bool ValueProgram::isCurve(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorCurve.strong());
+	return value->InstanceOf(worker, _constructorCurve.local());
 }
 bool ValueProgram::isRect(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorRect.strong());
+	return value->InstanceOf(worker, _constructorRect.local());
 }
 bool ValueProgram::isMat(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorMat.strong());
+	return value->InstanceOf(worker, _constructorMat.local());
 }
 bool ValueProgram::isMat4(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorMat4.strong());
+	return value->InstanceOf(worker, _constructorMat4.local());
 }
 bool ValueProgram::isValue(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorValue.strong());
+	return value->InstanceOf(worker, _constructorValue.local());
 }
 bool ValueProgram::isBackgroundPosition(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorBackgroundPosition.strong());
+	return value->InstanceOf(worker, _constructorBackgroundPosition.local());
 }
 bool ValueProgram::isBackgroundSize(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorBackgroundSize.strong());
+	return value->InstanceOf(worker, _constructorBackgroundSize.local());
 }
 bool ValueProgram::isBackground(Local<JSValue> value) {
 	return worker->has_instance<Background>(value);
 }
 bool ValueProgram::isTextColor(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextColor.strong());
+	return value->InstanceOf(worker, _constructorTextColor.local());
 }
 bool ValueProgram::isTextSize(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextSize.strong());
+	return value->InstanceOf(worker, _constructorTextSize.local());
 }
 bool ValueProgram::isTextFamily(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextFamily.strong());
+	return value->InstanceOf(worker, _constructorTextFamily.local());
 }
 bool ValueProgram::isTextStyle(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextStyle.strong());
+	return value->InstanceOf(worker, _constructorTextStyle.local());
 }
 bool ValueProgram::isTextShadow(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextShadow.strong());
+	return value->InstanceOf(worker, _constructorTextShadow.local());
 }
 bool ValueProgram::isTextLineHeight(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextLineHeight.strong());
+	return value->InstanceOf(worker, _constructorTextLineHeight.local());
 }
 bool ValueProgram::isTextDecoration(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextDecoration.strong());
+	return value->InstanceOf(worker, _constructorTextDecoration.local());
 }
 bool ValueProgram::isString(Local<JSValue> value) {
 	return true;
@@ -1087,10 +1087,10 @@ bool ValueProgram::isuint(Local<JSValue> value) {
 	return value->IsUint32(worker);
 }
 bool ValueProgram::isTextOverflow(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextOverflow.strong());
+	return value->InstanceOf(worker, _constructorTextOverflow.local());
 }
 bool ValueProgram::isTextWhiteSpace(Local<JSValue> value) {
-	return value->InstanceOf(worker, _constructorTextWhiteSpace.strong());
+	return value->InstanceOf(worker, _constructorTextWhiteSpace.local());
 }
 
 void binding_background(Local<JSObject> exports, Worker* worker);

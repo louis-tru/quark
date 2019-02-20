@@ -234,10 +234,10 @@ class XX_EXPORT PersistentBase: public NoCopy {
 	template <class S>
 	XX_INLINE void Reset(Worker* worker, const PersistentBase<S>& other) {
 		JS_TYPE_CHECK(T, S);
-		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset(worker, other.strong());
+		reinterpret_cast<PersistentBase<JSValue>*>(this)->Reset(worker, other.local());
 	}
 	XX_INLINE bool IsEmpty() const { return val_ == 0; }
-	XX_INLINE Local<T> strong() const {
+	XX_INLINE Local<T> local() const {
 		return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
 	}
 	XX_INLINE Worker* worker() const { return worker_; }
@@ -812,12 +812,12 @@ class XX_EXPORT Worker: public Object {
 	
  private:
 
-	Worker();
-
 	friend class NativeValue;
 	friend class WorkerIMPL;
 	XX_DEFINE_INLINE_CLASS(IMPL);
 	IMPL* m_inl;
+
+	Worker(IMPL* inl);
 };
 
 // **********************************************************************

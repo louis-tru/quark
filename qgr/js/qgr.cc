@@ -262,11 +262,14 @@ int start(cString& argv_str) {
 	_qgr_argv = &qgr_argv;
 	int code;
 	
-	if (HAVE_NODE && _qgr_have_node) {
+ #if HAVE_NODE
+	if (_qgr_have_node) {
 		code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
-	} else {
+	} else 
+ #endif
+	{
 		_qgr_have_node = 0;
-		code = IMPL::start(argv.length(), &argv[0]);
+		code = IMPL::start(argv.length(), const_cast<char**>(&argv[0]));
 	}
 	_qgr_argv = nullptr;
 

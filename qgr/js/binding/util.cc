@@ -241,7 +241,7 @@ class NativeUtil {
 		RunLoop::next_tick(Callback([worker, func](Se& e) {
 			XX_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
-			func.strong()->Call(worker);
+			func.local()->Call(worker);
 		}));
 	}
 

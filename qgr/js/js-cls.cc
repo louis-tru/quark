@@ -50,7 +50,7 @@ JSClassStore::~JSClassStore() {
 Local<JSClass> JSClassStore::get_class(uint64 id) {
 	auto i = values_.find(id);
 	if ( !i.is_null() ) {
-		return i.value()->jsclass.strong();
+		return i.value()->jsclass.local();
 	}
 	return Local<JSClass>();
 }
@@ -81,10 +81,10 @@ Local<JSFunction> JSClassStore::get_constructor(uint64 id) {
 	if ( !it.is_null() ) {
 		if (it.value()->function.IsEmpty()) {
 			Local<JSFunction> func =
-				IMPL::current(worker_)->GenConstructor(it.value()->jsclass.strong());
+				IMPL::current(worker_)->GenConstructor(it.value()->jsclass.local());
 			it.value()->function.Reset(worker_, func);
 		}
-		return it.value()->function.strong();
+		return it.value()->function.local();
 	}
 	return Local<JSFunction>();
 }
@@ -109,7 +109,7 @@ WrapObject* JSClassStore::attach(uint64 id, Object* object) {
 		
 		XX_ASSERT( !current_attach_object_ );
 		
-		Local<JSFunction> func = it.value()->function.strong();
+		Local<JSFunction> func = it.value()->function.local();
 		if ( func.IsEmpty() ) {
 			func = get_constructor(id);
 		}
@@ -127,7 +127,7 @@ WrapObject* JSClassStore::attach(uint64 id, Object* object) {
 
 bool JSClassStore::instanceof(Local<JSValue> val, uint64 id) {
 	if ( values_.has(id) ) {
-		Local<JSClass> cls = values_.get(id)->jsclass.strong();
+		Local<JSClass> cls = values_.get(id)->jsclass.local();
 		return cls->HasInstance(worker_, val);
 	}
 	return false;
@@ -141,7 +141,7 @@ bool JSClassStore::is_buffer(Local<JSValue> val) {
 		buffer_value_ = values_.get(JS_TYPEID(Buffer));
 	}
 	if (buffer_value_) {
-		Local<JSClass> cls = buffer_value_->jsclass.strong();
+		Local<JSClass> cls = buffer_value_->jsclass.local();
 		return cls->HasInstance(worker_, val);
 	}
 	return false;
@@ -157,10 +157,10 @@ Local<JSFunction> JSClassStore::get_buffer_constructor() {
 	if (buffer_value_) {
 		if (buffer_value_->function.IsEmpty()) {
 			Local<JSFunction> func =
-			IMPL::current(worker_)->GenConstructor(buffer_value_->jsclass.strong());
+			IMPL::current(worker_)->GenConstructor(buffer_value_->jsclass.local());
 			buffer_value_->function.Reset(worker_, func);
 		}
-		return buffer_value_->function.strong();
+		return buffer_value_->function.local();
 	}
 	return Local<JSFunction>();
 }

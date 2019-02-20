@@ -240,15 +240,24 @@ void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other)
 
 template<> template<>
 void CopyablePersistentClass::Copy(const PersistentBase<JSClass>& that) {
-	Reset(that.worker_, that.strong());
+	Reset(that.worker_, that.local());
 }
 
 // -------------------------------------------------------------------------------------
 
-static void reg_core_native_module();
+struct NativeModule {
+	String name;
+	String file;
+	Worker::BindingCallback binding;
+	const CORE_NativeJSCode* native_code;
+};
 
+static Map<String, NativeModule>* native_modules = nullptr;
+
+// @private requireNative
 static void require_native(FunctionCall args) {
 	JS_WORKER(args);
+	JS_HANDLE_SCOPE();
 	if (args.Length() < 1) {
 		JS_THROW_ERR("Bad argument.");
 	}
@@ -260,24 +269,24 @@ static void require_native(FunctionCall args) {
 }
 
 void IMPL::initialize() {
+	HandleScope scope(m_host);
 	m_classs = new JSClassStore(m_host);
 	m_strs = new CommonStrings(m_host);
-
+	m_global->SetMethod(m_host, "requireNative", require_native);
+	
 	Local<JSValue> ext = m_host->run_native_script(WeakBuffer((char*)
 			EXT_native_js_code_ext_, 
 			EXT_native_js_code_ext_count_), "ext.js"
 	);
 	XX_CHECK(!ext.IsEmpty(), "Cannot initialize worker ext");
-	m_global->SetMethod(m_host, "requireNative", require_native);
-
-	reg_core_native_module();
 }
 
-IMPL::IMPL(Worker* host)
-: m_host(host)
+IMPL::IMPL()
+: m_host(nullptr)
 , m_thread_id(SimpleThread::current_id())
 , m_value_program(nullptr), m_strs(nullptr)
 , m_classs(nullptr), m_env(nullptr) {
+	m_host = new Worker(this);
 }
 
 IMPL::~IMPL() {
@@ -304,8 +313,54 @@ Worker* Worker::create() {
 	return IMPL::create();
 }
 
-Worker::Worker(): m_inl(nullptr) {
-	XX_CHECK(worker() == nullptr);
+void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
+	if (!native_modules) {
+		native_modules = new Map<String, NativeModule>();
+	}
+	native_modules->set(name, { name, file ? file : __FILE__, binding });
+}
+
+Local<JSValue> Worker::binding_module(cString& name) {
+	Local<JSValue> str = New(name);
+	Local<JSValue> r = m_inl->m_native_modules.local()->Get(this, str);
+	
+	if (!r->IsUndefined()) {
+		return r.To<JSObject>();
+	}
+	auto it = native_modules->find(name);
+	if (it.is_null()) {
+		return m_inl->binding_node_module(name);
+	} else {
+		NativeModule& mod = it.value();
+		Local<JSObject> exports = NewObject();
+		if (mod.binding) {
+			mod.binding(exports, this);
+		} else if (mod.native_code) {
+			exports = run_native_script(WeakBuffer((char*)
+				mod.native_code->code, 
+				mod.native_code->count), name, exports
+			).To();
+			if ( exports.IsEmpty() ) {
+				return exports;
+			}
+		}
+		m_inl->m_native_modules.local()->Set(this, str, exports);
+		return exports;
+	}
+}
+
+Worker::Worker(IMPL* inl): m_inl(inl) {
+	// register core native module
+	static int initializ_core_native_module = 0;
+	if ( initializ_core_native_module++ == 0 ) {
+		if (!native_modules) {
+			native_modules = new Map<String, NativeModule>();
+		}
+		for (int i = 0; i < CORE_native_js_count_; i++) {
+			const CORE_NativeJSCode* code = CORE_native_js_ + i;
+			native_modules->set(code->name, { code->name, code->name, 0, code });
+		}
+	}
 }
 
 Worker::~Worker() {
@@ -406,61 +461,6 @@ WeakBuffer Worker::as_typed_buffer(Local<JSValue> val) {
 		return val.To<JSArrayBuffer>()->weak_buffer(this);
 	}
 	return WeakBuffer();
-}
-
-struct NativeModule {
-	String name;
-	String file;
-	Worker::BindingCallback binding;
-	const CORE_NativeJSCode* native_code;
-};
-
-static Map<String, NativeModule>* native_modules = nullptr;
-
-static void reg_core_native_module() {
-	static int is_initializ = 0;
-	if ( is_initializ++ == 0 ) {
-		if (!native_modules) {
-			native_modules = new Map<String, NativeModule>();
-		}
-		for (int i = 0; i < CORE_native_js_count_; i++) {
-			const CORE_NativeJSCode* code = CORE_native_js_ + i;
-			native_modules->set(code->name, { code->name, code->name, 0, code });
-		}
-	}
-}
-
-void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
-	if (!native_modules) {
-		native_modules = new Map<String, NativeModule>();
-	}
-	native_modules->set(name, { name, file ? file : __FILE__, binding });
-}
-
-Local<JSValue> Worker::binding_module(cString& name) {
-	Local<JSValue> str = New(name);
-	Local<JSValue> r = m_inl->m_native_modules.strong()->Get(this, str);
-	
-	if (!r->IsUndefined()) {
-		return r.To<JSObject>();
-	}
-	auto it = native_modules->find(name);
-	if (!it.is_null()) {
-		NativeModule& mod = it.value();
-		Local<JSObject> exports = NewObject();
-		if (mod.binding) {
-			mod.binding(exports, this);
-		} else if (mod.native_code) {
-			WeakBuffer bf((char*) mod.native_code->code, mod.native_code->count);
-			exports = run_native_script(bf, name, exports).To();
-			if ( exports.IsEmpty() ) {
-				return exports;
-			}
-		}
-		m_inl->m_native_modules.strong()->Set(this, str, exports);
-		return exports;
-	}
-	return m_inl->binding_node_module(name);
 }
 
 JS_END

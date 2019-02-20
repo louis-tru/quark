@@ -128,42 +128,49 @@ class V8ExternalStringResource: public v8::String::ExternalStringResource {
  */
 class WorkerIMPL: public IMPL {
  public:
-	struct V8HandleScope {
-		v8::HandleScope value;
-		inline V8HandleScope(Isolate* isolate): value(isolate) {}
+ 	template<class T>
+	struct Wrap {
+		T value;
+		inline Wrap(Isolate* isolate): value(isolate) {}
 	};
 	Isolate*  isolate_;
 	Locker*   locker_;
-	V8HandleScope* handle_scope_;
+	Wrap<v8::HandleScope>* handle_scope_;
+	Wrap<v8::SealHandleScope>* handle_scope_seal_;
 	v8::Local<v8::Context> context_;
 
-	void initialize() {
+	virtual void initialize() {
 		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
 		m_global = Cast<JSObject>(context_->Global());
 		m_native_modules.Reset(m_host, m_host->NewObject());
+		if (!m_env) {
+			handle_scope_seal_ = new Wrap<v8::SealHandleScope>(isolate_);
+		}
 		IMPL::initialize();
 	}
 
-	WorkerIMPL(Worker* host): IMPL(host), locker_(nullptr), handle_scope_(nullptr) {
+	WorkerIMPL()
+		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
+	{
 		Isolate::CreateParams params;
 		params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 		isolate_ = Isolate::New(params);
 		locker_ = new Locker(isolate_);
 		isolate_->Enter();
-		handle_scope_ = new V8HandleScope(isolate_);
+		handle_scope_ = new Wrap<v8::HandleScope>(isolate_);
 		context_ = v8::Context::New(isolate_);
 		context_->Enter();
-		initialize();
 		isolate_->SetFatalErrorHandler(OnFatalError);
 		isolate_->AddMessageListener(MessageCallback);
 		isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
 	}
 
-	WorkerIMPL(Worker* host, node::Environment* env): IMPL(host), handle_scope_(nullptr) {
+	WorkerIMPL(node::Environment* env)
+		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
+	{
 		m_env = env;
 		isolate_ = env->isolate();
 		context_ = env->context();
-		initialize();
 	}
 
 	virtual ~WorkerIMPL() {
@@ -171,9 +178,10 @@ class WorkerIMPL: public IMPL {
 		Release(m_strs); m_strs = nullptr;
 		delete m_classs; m_classs = nullptr;
 		m_native_modules.Reset();
-		if (!context_.IsEmpty()) {
+		if (!m_env) {
 			context_->Exit();
 			context_.Clear();
+			delete handle_scope_seal_; handle_scope_seal_ = nullptr;
 			delete handle_scope_; handle_scope_ = nullptr;
 			isolate_->Exit();
 			delete locker_; locker_ = nullptr;
@@ -256,7 +264,9 @@ class WorkerIMPL: public IMPL {
 			v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(m_global) };
 			rv = func->Call(CONTEXT(m_host), v8::Undefined(ISOLATE(this)), 3, &args[0]);
 			if (!rv.IsEmpty()) {
-				return module->Get(m_host, m_host->strs()->exports());
+				Local<JSValue> rv = module->Get(m_host, m_host->strs()->exports());
+				XX_ASSERT(rv->IsObject(m_host));
+				return rv;
 			}
 		}
 		return Local<JSValue>();
@@ -363,15 +373,15 @@ Worker* Worker::worker() {
 }
 
 Worker* IMPL::create() {
-	auto worker = new Worker();
-	worker->m_inl = new WorkerIMPL(worker);
-	return worker;
+	auto inl = new WorkerIMPL();
+	inl->initialize();
+	return inl->m_host;
 }
 
 Worker* IMPL::createWithNode(node::Environment* env) {
-	auto worker = new Worker();
-	worker->m_inl = new WorkerIMPL(worker, env);
-	return worker;
+	auto inl = new WorkerIMPL(env);
+	inl->initialize();
+	return inl->m_host;
 }
 
 WrapObject* IMPL::GetObjectPrivate(Local<JSObject> object) {
@@ -1294,11 +1304,12 @@ Local<JSValue> Worker::run_script(cString& source,
 
 Local<JSValue> Worker::run_native_script(
 	cBuffer& source, cString& name, Local<JSObject> exports) {
-	v8::HandleScope scope(ISOLATE(this));
+	v8::EscapableHandleScope scope(ISOLATE(this));
 	if (exports.IsEmpty()) {
 		exports = NewObject();
 	}
-	return WORKER(this)->run_native_script(source, name, exports);
+	Local<JSValue> r = WORKER(this)->run_native_script(source, name, exports);
+	return Cast(scope.Escape(Back(r)));
 }
 
 /**
@@ -1323,16 +1334,18 @@ int IMPL::start(int argc, char** argv) {
 	int code = 0;
 	{
 		Handle<Worker> worker = IMPL::create();
-		v8::SealHandleScope seal(v8::Isolate::GetCurrent());
-		Local<JSValue> module = worker->run_native_script(WeakBuffer((char*) 
-				EXT_native_js_code_module_, 
-				EXT_native_js_code_module_count_), "module.js"
-		);
-		XX_CHECK(!module.IsEmpty(), "Cannot start worker");
+		{
+			HandleScope scope(*worker);
+			Local<JSValue> module = worker->run_native_script(WeakBuffer((char*)
+					EXT_native_js_code_module_, 
+					EXT_native_js_code_module_count_), "module.js"
+			);
+			XX_CHECK(!module.IsEmpty(), "Cannot start worker");
 
-		Local<JSValue> r = module.To()->
-			GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
-		XX_CHECK(!r.IsEmpty(), "Cannot call runMain()");
+			Local<JSValue> r = module.To()->
+				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
+			XX_CHECK(!r.IsEmpty(), "Cannot call runMain()");
+		}
 
 		do {
 			RunLoop::main_loop()->run();

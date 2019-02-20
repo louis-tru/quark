@@ -353,7 +353,7 @@ function get_OS(os) {
 function configure_node(opts, variables, configuration) {
 	
 	var cfg = {
-		enable_node: 1,
+		node_enable: 1,
 		coverage: 'false',
 		debug_devtools: 'node',
 		debug_http2: 'false',

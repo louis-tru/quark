@@ -44,7 +44,7 @@ Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 		return Cb([worker, func](Se& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			Local<JSFunction> f = func.strong();
+			Local<JSFunction> f = func.local();
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
@@ -90,7 +90,7 @@ Callback get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding en
 		return Cb([worker, func, encoding](Se& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			Local<JSFunction> f = func.strong();
+			Local<JSFunction> f = func.local();
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
@@ -115,7 +115,7 @@ Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			
-			Local<JSFunction> f = func.strong();
+			Local<JSFunction> f = func.local();
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
@@ -141,7 +141,7 @@ Callback get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 		return Cb([worker, func](Se& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
-			Local<JSFunction> f = func.strong();
+			Local<JSFunction> f = func.local();
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Error*>(d.error));
 				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);

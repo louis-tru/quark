@@ -66,9 +66,9 @@ class WeakCallbackInfo {
  */
 class Worker::IMPL {
  public:
-	IMPL(Worker* host);
+	IMPL();
 	virtual ~IMPL();
-	void initialize();
+	virtual void initialize();
 	static Worker* create();
 	static Worker* createWithNode(node::Environment* env);
 	

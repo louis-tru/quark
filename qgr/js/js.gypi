@@ -1,7 +1,7 @@
 {
 	'variables': {
 		'use_v8%': 0,
-		'enable_node%': 0,
+		'node_enable%': 0,
 	},
 	'targets': [{
 		'target_name': 'qgr-js',
@@ -92,7 +92,7 @@
 			['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],
 			['node_use_openssl=="true"', { 'defines': [ 'HAVE_OPENSSL=1' ] }],
 			['node_use_dtrace=="true"', { 'defines': [ 'HAVE_DTRACE=1' ] }],
-			['enable_node==1', {
+			['node_enable==1', {
 				'include_dirs': [
 					'../../depe/node/src',
 					'../../depe/node/deps/uv/include',

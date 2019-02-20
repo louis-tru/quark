@@ -11,7 +11,7 @@
 			# '<(output)/obj.target/depe/node/deps/openssl/libopenssl.a',
 			'-Wl,--no-whole-archive',
 		],
-		'enable_node%': 0,
+		'node_enable%': 0,
 	},
 	'targets': [
 		{
@@ -107,7 +107,7 @@
 				['os in "linux android"', {
 					'ldflags': [ '<@(other_ldflags)' ],
 				}],
-				#['enable_node==1', { 'dependencies':['depe/node/node.gyp:node'] }],
+				#['node_enable==1', { 'dependencies':['depe/node/node.gyp:node'] }],
 			],
 		},
 		{
