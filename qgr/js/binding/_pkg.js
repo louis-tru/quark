@@ -39,13 +39,14 @@ const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
 				isLocal, isLocalZip, 
-				isNetwork, assert, debug, stripBOM } = _pkgutil;
+				isNetwork, assert, stripBOM } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = requireNative('_reader');
 const { haveNode } = _util;
 const options = {};  // start options
 const external_cache = {};
+const debug = _pkgutil.debug('PKG');
 var ignore_local_package, ignore_all_local_package;
 var keys = null, config = null;
 var instance = null;
@@ -1326,7 +1327,7 @@ function inl_require(request, parent) {
 	var dir = '';
 
 	if (parent) {
-		debug('Module._load REQUEST %s parent: %s', request, parent.id);
+		debug('require %s parent: %s', request, parent.id);
 		pkg = parent.package;
 		dir = parent.dir;
 	}
@@ -1334,7 +1335,7 @@ function inl_require(request, parent) {
 	Packages_require_before(instance, false); //先准备pkg
 
 	if (haveNode && NativeModule.nonInternalExists(request)) {
-		debug('load native module %s', request);
+		debug('load node native module %s', request);
 		return NativeModule.require(request);
 	}
 

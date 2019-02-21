@@ -254,14 +254,16 @@ function assert(value, message) {
 	}
 }
 
-function debug(...args) {
-	if (exports.__dev) {
-		if (args.length > 1) {
-			var str = args.shift();
-			for (var arg of args) {
-				str = str.replace('%j', arg);
+function debug(TAG = 'PKG') {
+	return function(...args) {
+		if (exports.__dev) {
+			if (args.length > 1) {
+				var str = args.shift();
+				for (var arg of args) {
+					str = str.replace(/\%(j|s)/, arg);
+				}
+				console.log(TAG, str);
 			}
-			console.log('PKG', str);
 		}
 	}
 }

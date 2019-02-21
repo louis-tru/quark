@@ -72,8 +72,8 @@ void WrapViewBase::destroy() {
 }
 
 template<class T, class Self>
-static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type, 
-																 cString& func, int id, Cast* cast = nullptr) 
+static void add_event_listener_1(
+	Wrap<Self>* wrap, const GUIEventName& type, cString& func, int id, Cast* cast = nullptr) 
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
 		// if (worker()->is_terminate()) return;
@@ -85,12 +85,6 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
 		// call js trigger func
 		Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
-		// test:
-		//if (r->IsNumber(worker)) {
-		//  LOG("--------------number,%s", *r->ToStringValue(wrap->worker()));
-		//} else {
-		//  LOG("--------------string,%s", *r->ToStringValue(wrap->worker()));
-		//}
 	};
 	
 	Self* self = wrap->self();
