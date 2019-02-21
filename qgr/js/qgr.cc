@@ -227,11 +227,11 @@ static void parse_argv(cString& argv_in, Array<char*>& argv, Array<char*>& qgr_a
 		index++;
 		char* arg = str_c + index;
 		if (qgr_ok) {
-			qgr_argv.push(str_c);
+			qgr_argv.push(arg);
 		} else if (arg[0] != '-') {
 			qgr_ok = 1;
-			qgr_argv.push(str_c);
-		} else if (strcmp(arg, "--node") == 0) {
+			qgr_argv.push(arg);
+		} else if (strstr(arg, "--node") == arg) {
 			_qgr_have_node = 1;
 			continue;
 		}
@@ -262,11 +262,11 @@ int start(cString& argv_str) {
 	_qgr_argv = &qgr_argv;
 	int code;
 	
- #if HAVE_NODE
-	if (_qgr_have_node) {
-		code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
-	} else 
- #endif
+ // #if HAVE_NODE
+	// if (_qgr_have_node) {
+	// 	code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
+	// } else 
+ // #endif
 	{
 		_qgr_have_node = 0;
 		code = IMPL::start(argv.length(), const_cast<char**>(&argv[0]));

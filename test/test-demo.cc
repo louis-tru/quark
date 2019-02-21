@@ -39,13 +39,13 @@ using namespace qgr;
 void test_demo(int argc, char **argv) {
 #if USE_REMOTE
 # if USE_INSPECT
-	js::start("--node --inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/demo/examples");
+	js::start("--node --inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/demo/examples --dev");
 # else
 	js::start("--node http://" IP_REMOTE ":1026/demo/examples --dev");
 # endif
 #else
 # if USE_INSPECT
-	js::start("--node --inspect-brk=0.0.0.0:9229 examples");
+	js::start("--node --inspect-brk=0.0.0.0:9229 examples --dev");
 # else
 	js::start("--node examples --dev");
 # endif

@@ -483,8 +483,8 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 	if ( v8cls->HasParentFromFunction() ) {
 		bool ok;
 		// function.__proto__ = base
-		//ok = f->SetPrototype(v8cls->ParentFromFunction());
-		//XX_ASSERT(ok);
+		// ok = f->SetPrototype(v8cls->ParentFromFunction());
+		// XX_ASSERT(ok);
 		// function.prototype.__proto__ = base.prototype
 		auto b = v8cls->ParentFromFunction();
 		auto s = Back(m_host->strs()->prototype());
@@ -498,13 +498,14 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 
 Local<JSValue> IMPL::binding_node_module(cString& name) {
  #if HAVE_NODE
-	XX_ASSERT(m_env);
-	Local<JSValue> argv = m_host->New(name);
-	Local<JSValue> binding = Cast<JSObject>(m_env->process_object())->GetProperty(m_host, "binding");
-	return binding.To<JSFunction>()->Call(m_host, 1, &argv);
- #else
-	return Local<JSValue>();
+	if (m_env) {
+		Local<JSValue> argv = m_host->New(name);
+		Local<JSValue> binding = Cast<JSObject>(
+			m_env->process_object())->GetProperty(m_host, "binding");
+		return binding.To<JSFunction>()->Call(m_host, 1, &argv);
+	}
  #endif
+	return Local<JSValue>();
 }
 
 struct V8HandleScopeWrap {
@@ -1324,11 +1325,11 @@ int IMPL::start(int argc, char** argv) {
 	v8::V8::InitializePlatform(platform);
 	v8::V8::Initialize();
 
-  // Unconditionally force typed arrays to allocate outside the v8 heap. This
-  // is to prevent memory pointers from being moved around that are returned by
-  // Buffer::Data().
-  const char no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
-  v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
+	// Unconditionally force typed arrays to allocate outside the v8 heap. This
+	// is to prevent memory pointers from being moved around that are returned by
+	// Buffer::Data().
+	const char no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
+	v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
 	int code = 0;

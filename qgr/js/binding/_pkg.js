@@ -182,27 +182,29 @@ global.__extend = extendEntries;
 var Module_extensions = {};
 
 // Native extension for .js
-Module_extensions['.js'] = function(module, filename) {
-	var content = read_text_sync(filename);
+Module_extensions['.js'] = function(module, rawFilename) {
+	var content = read_text_sync(rawFilename);
 	var pkg = module.package;
+	var filename = rawFilename.replace(/\?.*$/, '');
 	if (pkg && pkg.m_info.qgr_syntax) {
 		if ( !pkg.m_build || 
 			pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
 			content = _util.transformJs(content, filename);
 		}
 	}
-	module._compile(stripBOM(content), filename);
+	module._compile(stripBOM(content), filename, rawFilename);
 };
 
 // Native extension for .jsx
-Module_extensions['.jsx'] = function(module, filename) {
-	var content = read_text_sync(filename);
+Module_extensions['.jsx'] = function(module, rawFilename) {
+	var content = read_text_sync(rawFilename);
 	var pkg = module.package;
+	var filename = rawFilename.replace(/\?.*$/, '');
 	if ( !pkg || !pkg.m_build || 
 		pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
 		content = _util.transformJsx(content, filename);
 	}
-	module._compile(stripBOM(content), filename);
+	module._compile(stripBOM(content), filename, rawFilename);
 };
 
 // Native extension for .json
@@ -225,8 +227,8 @@ Module_extensions['.keys'] = function(module, filename) {
 if (haveNode) {
 	//Native extension for .node
 	Module_extensions['.node'] = function(module, filename) {
-	  filename = fallbackPath(filename);
-	  return process.dlopen(module, path._makeLong(filename));
+		filename = fallbackPath(filename);
+		return process.dlopen(module, path._makeLong(filename));
 	};
 }
 
@@ -841,7 +843,8 @@ function Packages_verification_is_need_load_pkg(self, register, is_warn) {
 		if ( !Package_is_can_check_origin(pkg, register.path) ) { // 不需要check
 			register.ready = -1; // 忽略
 			if ( is_warn ) {
-				console.warn('Ignore, Lib has been created and cannot be replaced,', register.path);
+				throw register;
+				print_warn('Ignore, Lib has been created and cannot be replaced,', register.path);
 			}
 			return false;
 		}
@@ -1372,6 +1375,8 @@ function inl_require_without_err(pathname, parent) {
 }
 
 function parse_argv() {
+	// console.log('parse_argv', _util.argv);
+
 	var args = _util.argv.slice(2);
 	
 	for (var i = 0; i < args.length; i++) {
@@ -1399,7 +1404,7 @@ function parse_argv() {
 		}
 	}
 
-	options.dev = !!options.dev;
+	_pkgutil.__dev = options.dev = !!options.dev;
 	
 	if ( !('url_arg' in options) ) {
 		options.url_arg = '';

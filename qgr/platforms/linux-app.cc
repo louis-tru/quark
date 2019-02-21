@@ -242,6 +242,30 @@ class LinuxApplication {
 		destroy();
 	}
 
+	void handle_expose(XEvent& event) {
+		DLOG("event, Expose");
+		XWindowAttributes attrs;
+		XGetWindowAttributes(m_dpy, m_win, &attrs);
+
+		m_w_width = attrs.width;
+		m_w_height = attrs.height;
+    //if (!m_is_init) 
+		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
+			if (m_is_init) {
+				CGRect rect = {Vec2(), get_window_size()};
+				gl_draw_context->refresh_surface_size(&rect);
+				m_host->refresh_display(); // 刷新显示
+			} else {
+				m_is_init = 1;
+				gl_draw_context->create_surface(m_win);
+				gl_draw_context->initialize();
+				m_host->onLoad();
+				m_host->onForeground();
+				m_render_looper->start();
+			}
+		}));
+	}
+
 	inline LINUXIMEHelper* ime() {
 		return m_ime;
 	}
@@ -371,8 +395,6 @@ class LinuxApplication {
 		return m_dpy;
 	}
 
- private:
-
 	void initialize_master_volume_control() {
 		XX_ASSERT(!m_mixer);
 		snd_mixer_open(&m_mixer, 0);
@@ -401,30 +423,6 @@ class LinuxApplication {
 				i.value()->call(data);
 			}
 		}
-	}
-
-	void handle_expose(XEvent& event) {
-		DLOG("event, Expose");
-		XWindowAttributes attrs;
-		XGetWindowAttributes(m_dpy, m_win, &attrs);
-
-		m_w_width = attrs.width;
-		m_w_height = attrs.height;
-
-		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
-			if (m_is_init) {
-				CGRect rect = {Vec2(), get_window_size()};
-				gl_draw_context->refresh_surface_size(&rect);
-				m_host->refresh_display(); // 刷新显示
-			} else {
-				m_is_init = 1;
-				gl_draw_context->create_surface(m_win);
-				gl_draw_context->initialize();
-				m_host->onLoad();
-				m_host->onForeground();
-				m_render_looper->start();
-			}
-		}));
 	}
 
 	void destroy() {

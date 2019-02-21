@@ -346,7 +346,10 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	static void resolve_queue_before(uv_handle_t* handle) {
-		((Inl*)handle->data)->resolve_queue();
+    bool Continue;
+		do {
+      Continue = ((Inl*)handle->data)->resolve_queue();
+    } while (Continue);
 	}
 	
 	bool is_alive() {
@@ -369,7 +372,7 @@ class RunLoop::Inl: public RunLoop {
 		uv_timer_start(m_uv_timer, (uv_timer_cb)resolve_queue_before, timeout_ms, 0);
 	}
 	
-	void resolve_queue_after(int64 timeout_ms) {
+	bool resolve_queue_after(int64 timeout_ms) {
 		if (m_uv_loop->stop_flag != 0) { // 循环停止标志
 			close_uv_async();
 		}
@@ -402,10 +405,13 @@ class RunLoop::Inl: public RunLoop {
 			if (timeout_ms > 0) { // > 0, delay
 				uv_timer_req(timeout_ms);
 			} else { // == 0
-				uv_async_send(m_uv_async);
+				// uv_async_send(m_uv_async);
+				/* Do a cheap read first. */
+				return 1; // continue
 			}
 			m_record_timeout = 0; // 取消超时记录
 		}
+		return 0;
 	}
 	
 	void resolve_queue(List<Queue>& queue) {
@@ -420,7 +426,7 @@ class RunLoop::Inl: public RunLoop {
 		}
 	}
 	
-	void resolve_queue() {
+	bool resolve_queue() {
 		List<Queue> queue;
 		{ ScopeLock lock(m_mutex);
 			if (m_queue.length()) {
@@ -452,7 +458,7 @@ class RunLoop::Inl: public RunLoop {
 					duration = du;
 				}
 			}
-			resolve_queue_after(duration / 1e3);
+			return resolve_queue_after(duration / 1e3);
 		}
 	}
 	

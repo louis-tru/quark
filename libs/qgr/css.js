@@ -32,9 +32,8 @@ export requireNative('_css');
 
 import './util';
 import './value';
-import 'pkg';
 
-const dev = pkg.options.dev;
+const dev = util.dev;
 const _priv = value._priv;
 
 // Meta attribute

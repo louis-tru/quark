@@ -204,7 +204,7 @@ function makeRequireFunction(mod) {
 
 	resolve.paths = paths;
 
-	require.main = null;//process.mainModule;
+	require.main = mod.package.mainModule;
 
 	// Enable support to add extra extension types.
 	require.extensions = Module._extensions;
@@ -255,8 +255,14 @@ function assert(value, message) {
 }
 
 function debug(...args) {
-	if (options.dev) {
-		console.log('PKG', ...args);
+	if (exports.__dev) {
+		if (args.length > 1) {
+			var str = args.shift();
+			for (var arg of args) {
+				str = str.replace('%j', arg);
+			}
+			console.log('PKG', str);
+		}
 	}
 }
 

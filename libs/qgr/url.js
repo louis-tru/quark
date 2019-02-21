@@ -193,7 +193,7 @@ function stringify_params(prefix, params) {
 /**
  * @class URL
  */
-class URL {
+export class URL {
 	_is_split = false;
 	_is_parse = false;
 	_value = '';
@@ -394,9 +394,7 @@ function get_path(path) {
 	return new URL(path);
 }
 
-module.exports = {
-
-	URL: URL,
+export {
 
 	/** 
 	 * @func isAbsolute(path) is absolute path

@@ -329,6 +329,7 @@ Local<JSValue> Worker::binding_module(cString& name) {
 	}
 	auto it = native_modules->find(name);
 	if (it.is_null()) {
+
 		return m_inl->binding_node_module(name);
 	} else {
 		NativeModule& mod = it.value();
