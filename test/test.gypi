@@ -1,17 +1,25 @@
 { 
 	'variables': {
+		'node_enable%': 0,
 		'without_visibility_hidden%': 0,
 		'other_ldflags': [
 			'-Wl,--whole-archive',
 			'<(output)/obj.target/libqgr-utils.a',
 			'<(output)/obj.target/libqgr-gui.a',
 			'<(output)/obj.target/libqgr-js.a',
-			#'<(output)/obj.target/depe/node/libnode.a',
 			# '<(output)/obj.target/depe/node/deps/v8/src/libv8_base.a',
 			# '<(output)/obj.target/depe/node/deps/openssl/libopenssl.a',
 			'-Wl,--no-whole-archive',
 		],
-		'node_enable%': 0,
+		'conditions': [
+			['node_enable==1', {
+				'other_ldflags+': [ 
+					'-Wl,--whole-archive', 
+					'<(output)/obj.target/depe/node/libnode.a', 
+					'-Wl,--no-whole-archive', 
+				],
+			}],
+		],
 	},
 	'targets': [
 		{
@@ -107,7 +115,9 @@
 				['os in "linux android"', {
 					'ldflags': [ '<@(other_ldflags)' ],
 				}],
-				#['node_enable==1', { 'dependencies':['depe/node/node.gyp:node'] }],
+				['node_enable==1', {
+					'dependencies': ['depe/node/node.gyp:node'],
+				}],
 			],
 		},
 		{
@@ -162,7 +172,6 @@
 					'depe/libpng/libpng.gyp:libpng',
 					'depe/libwebp/libwebp.gyp:libwebp',
 					'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
-					#'depe/node/node.gyp:node',
 				],
 				'link_settings': { 'libraries': [ '-lz' ] },
 				'ldflags': [ 
@@ -194,6 +203,11 @@
 						'PNG_USER_CONFIG',
 					],
 				},
+				'conditions': [
+					['node_enable==1', {
+						'dependencies': ['depe/node/node.gyp:node'],
+					}],
+				],
 			}, {
 				'target_name': 'qgr_depes_copy',
 				'type': 'none',

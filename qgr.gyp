@@ -73,11 +73,14 @@
 			}],
 			# output mac shared library for "qgr.framework"
 			['debug==0 and library_output=="shared_library" \
-				and OS in "mac" and project=="make"', {
+								and OS in "mac" and project=="make"', {
 				'actions': [{
 					'action_name': 'qgr_apple_dylib',
 					'variables': {
 						'embed_bitcode': '',
+						'inputs_node': '',
+						'LinkFileList_node': '',
+						'link_node': '',
 						'conditions': [
 							['arch in "arm arm64" and without_embed_bitcode==0', {
 								'embed_bitcode': '-fembed-bitcode',
@@ -103,6 +106,11 @@
 														'-lv8_nosnapshot '
 														'-lv8_libplatform ',
 							}],
+							['node_enable==1', {
+								'inputs_node': '<(output)/libnode.a',
+								'LinkFileList_node': 'obj.target/node/depe/node',
+								'link_node': '-lnode',
+							}],
 						],
 					},
 					'inputs': [
@@ -118,7 +126,7 @@
 						'<(output)/libft2.a',
 						'<(output)/libtinyxml2.a',
 						'<(output)/obj.target/depe/ffmpeg/libffmpeg.a',
-						#'<(output)/libnode.a',
+						'<(inputs_node)',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
 						'<@(v8libs)',
@@ -131,7 +139,7 @@
 						'find obj.target/qgr-utils ' 
 						'obj.target/qgr-gui '
 						'obj.target/qgr-js '
-						#'obj.target/node/depe/node '
+						'<(LinkFileList_node) '
 						'-name *.o > qgr.LinkFileList;'
 						'clang++ '
 						'-arch <(arch_name) -dynamiclib '
@@ -161,7 +169,7 @@
 						'-lft2 '
 						'-ltinyxml2 '
 						'-lffmpeg '
-						#'-lnode '
+						'<(link_node) '
 						'-lnghttp2 '
 						'-lcares '
 						'<(v8libs_l) '
