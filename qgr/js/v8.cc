@@ -139,16 +139,6 @@ class WorkerIMPL: public IMPL {
 	Wrap<v8::SealHandleScope>* handle_scope_seal_;
 	v8::Local<v8::Context> context_;
 
-	virtual void initialize() {
-		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
-		m_global = Cast<JSObject>(context_->Global());
-		m_native_modules.Reset(m_host, m_host->NewObject());
-		if (!m_env) {
-			handle_scope_seal_ = new Wrap<v8::SealHandleScope>(isolate_);
-		}
-		IMPL::initialize();
-	}
-
 	WorkerIMPL()
 		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
 	{
@@ -177,11 +167,17 @@ class WorkerIMPL: public IMPL {
 #endif
 	}
 
-	virtual ~WorkerIMPL() {
-		Release(m_values); m_values = nullptr;
-		Release(m_strs); m_strs = nullptr;
-		delete m_classs; m_classs = nullptr;
-		m_native_modules.Reset();
+	virtual void initialize() {
+		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
+		m_global.Reset(m_host, Cast<JSObject>(context_->Global()) );
+		if (!m_env) {
+			handle_scope_seal_ = new Wrap<v8::SealHandleScope>(isolate_);
+		}
+		IMPL::initialize();
+	}
+
+	virtual void release() {
+		IMPL::release();
 		if (!m_env) {
 			context_->Exit();
 			context_.Clear();
@@ -265,8 +261,8 @@ class WorkerIMPL: public IMPL {
 			Local<JSObject> module = m_host->NewObject();
 			module->Set(m_host, m_host->strs()->exports(), exports);
 			v8::Local<v8::Function> func = rv.ToLocalChecked().As<v8::Function>();
-			v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(m_global) };
-			rv = func->Call(CONTEXT(m_host), v8::Undefined(ISOLATE(this)), 3, &args[0]);
+			v8::Local<v8::Value> args[] = { Back(exports), Back(module), Back(m_global.local()) };
+			rv = func->Call(CONTEXT(m_host), v8::Undefined(ISOLATE(this)), 3, args);
 			if (!rv.IsEmpty()) {
 				Local<JSValue> rv = module->Get(m_host, m_host->strs()->exports());
 				XX_ASSERT(rv->IsObject(m_host));

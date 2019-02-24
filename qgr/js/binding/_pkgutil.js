@@ -281,7 +281,7 @@ function assert(value, message) {
 
 function debug(TAG = 'PKG') {
 	return function(...args) {
-		if (exports.__dev) {
+		if (exports.dev) {
 			if (args.length > 1) {
 				var str = args.shift();
 				for (var arg of args) {

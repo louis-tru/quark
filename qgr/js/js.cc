@@ -270,15 +270,26 @@ static void require_native(FunctionCall args) {
 
 void IMPL::initialize() {
 	HandleScope scope(m_host);
+	m_native_modules.Reset(m_host, m_host->NewObject());
 	m_classs = new JSClassStore(m_host);
 	m_strs = new CommonStrings(m_host);
-	m_global->SetMethod(m_host, "requireNative", require_native);
+	XX_CHECK(m_global.local()->IsObject(m_host));
+	m_global.local()->SetProperty(m_host, "global", m_global.local());
+	m_global.local()->SetMethod(m_host, "requireNative", require_native);
 	
 	Local<JSValue> ext = m_host->run_native_script(WeakBuffer((char*)
 			EXT_native_js_code_ext_, 
 			EXT_native_js_code_ext_count_), "ext.js"
 	);
 	XX_CHECK(!ext.IsEmpty(), "Cannot initialize worker ext");
+}
+
+void IMPL::release() {
+	Release(m_values); m_values = nullptr;
+	Release(m_strs); m_strs = nullptr;
+	delete m_classs; m_classs = nullptr;
+	m_native_modules.Reset();
+	m_global.Reset();
 }
 
 IMPL::IMPL()
@@ -290,6 +301,7 @@ IMPL::IMPL()
 }
 
 IMPL::~IMPL() {
+	release();
 }
 
 static Local<JSValue> TriggerEventFromUtil(Worker* worker,
@@ -363,7 +375,6 @@ Local<JSValue> Worker::binding_module(cString& name) {
 	}
 	auto it = native_modules->find(name);
 	if (it.is_null()) {
-
 		return m_inl->binding_node_module(name);
 	} else {
 		NativeModule& mod = it.value();
@@ -415,7 +426,7 @@ ThreadID Worker::thread_id() {
 }
 
 Local<JSObject> Worker::global() {
-	return m_inl->m_global;
+	return m_inl->m_global.local();
 }
 
 Local<JSObject> Worker::NewError(cchar* errmsg, ...) {

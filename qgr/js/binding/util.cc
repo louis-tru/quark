@@ -41,8 +41,9 @@
 
 JS_BEGIN
 
-extern Array<char*>* _qgr_argv;
-extern int _qgr_have_node;
+extern Array<char*>* __qgr_argv;
+extern int __qgr_have_node;
+extern int __qgr_have_dev;
 
 typedef Object NativeObject;
 
@@ -282,7 +283,7 @@ class NativeUtil {
 		}
 		qgr::exit(code);
 	}
-	
+
 	/**
 	 * @func binding
 	 */
@@ -299,11 +300,12 @@ class NativeUtil {
 		JS_SET_METHOD(transformJs, transformJs);
 		JS_SET_METHOD(exit, exit);
 		JS_SET_PROPERTY(platform, qgr::platform());
-		JS_SET_PROPERTY(haveNode, _qgr_have_node);
+		JS_SET_PROPERTY(haveNode, __qgr_have_node);
+		JS_SET_PROPERTY(dev, __qgr_have_dev);
 		Local<JSArray> argv = worker->NewArray();
-		if (_qgr_argv) {
-			for (int i = 0; i < _qgr_argv->length(); i++) {
-				argv->Set(worker, i, worker->New(_qgr_argv->item(i)));
+		if (__qgr_argv) {
+			for (int i = 0; i < __qgr_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(__qgr_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);

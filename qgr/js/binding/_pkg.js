@@ -1067,13 +1067,15 @@ function Packages_require_parse_argv(self) {
 		}
 	}
 
+	options.dev = _util.dev;
+
 	if (haveNode) {
 		if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
 			options.dev = 1;
 		}
 	}
 
-	_pkgutil.__dev = options.dev = !!options.dev;
+	_pkgutil.dev = options.dev = !!options.dev;
 	
 	if ( !('url_arg' in options) ) {
 		options.url_arg = '';
@@ -1412,7 +1414,7 @@ function inl_require(request, parent) {
 	var dir = '';
 
 	if (parent) {
-		debug('require %s parent: %s', request, parent.id);
+		//debug('require %s parent: %s', request, parent.id);
 		pkg = parent.package;
 		dir = parent.dir;
 	}

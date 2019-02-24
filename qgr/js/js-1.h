@@ -69,6 +69,7 @@ class Worker::IMPL {
 	IMPL();
 	virtual ~IMPL();
 	virtual void initialize();
+	virtual void release();
 	static Worker* create();
 	static Worker* createWithNode(node::Environment* env);
 	
@@ -109,7 +110,7 @@ class Worker::IMPL {
 	ValueProgram*   m_values;
 	CommonStrings*  m_strs;
 	JSClassStore*   m_classs;
-	Local<JSObject> m_global;
+	Persistent<JSObject> m_global;
 	Persistent<JSObject> m_native_modules;
 	node::Environment* m_env;
 };

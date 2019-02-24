@@ -36,7 +36,7 @@ using namespace qgr;
 #define USE_REMOTE 1
 #define USE_INSPECT 0
 #define USE_NODE 0
-#define USE_DEV 1
+#define USE_DEV 0
 
 #if USE_NODE
 # define NODE_FLAG "--node "
@@ -45,10 +45,10 @@ using namespace qgr;
 #endif
 
 void test_demo(int argc, char **argv) {
-#if USE_NODE
-	String cmd = "qgr " USE_NODE;
-#else
 	String cmd = "qgr ";
+#if USE_NODE
+	String cmd += USE_NODE;
+#else
 	for (int i = 0; i < argc; i++) {
 		if (strcmp(argv[i], "--node") == 0) {
 			cmd += "--node "; break;
@@ -57,14 +57,28 @@ void test_demo(int argc, char **argv) {
 #endif
 #if USE_INSPECT
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
+#else
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "--inspect") == 0) {
+			cmd += "--inspect=0.0.0.0:9229 "; break;
+		} else if (strcmp(argv[i], "--inspect-brk") == 0) {
+			cmd += "--inspect-brk=0.0.0.0:9229 "; break;
+		}
+	}
+#endif
+#if USE_DEV
+	cmd += "--dev ";
+#else
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "--dev") == 0) {
+			cmd += "--dev "; break;
+		}
+	}
 #endif
 #if USE_REMOTE
 	cmd += "http://" IP_REMOTE ":1026/demo/examples ";
 #else
 	cmd += "examples ";
-#endif
-#if USE_DEV
-	cmd += "--dev ";
 #endif
 	js::Start(cmd);
 }

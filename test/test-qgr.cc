@@ -49,9 +49,9 @@ void test_qgr(int argc, char **argv) {
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #endif
 #if USE_REMOTE
-	cmd += "http://" IP_REMOTE ":1026/test/test-qgr --dev";
+	cmd += "--dev http://" IP_REMOTE ":1026/test/test-qgr";
 #else
-	cmd += "test-qgr --dev";
+	cmd += "--dev test-qgr";
 #endif
 	js::Start(cmd);
 }

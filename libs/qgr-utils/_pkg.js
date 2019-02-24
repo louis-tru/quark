@@ -201,12 +201,14 @@ function parse_argv() {
 		}
 	}
 
+	// options.dev = _util.dev;
+
 	if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0) || 
 			process.argv.some(s=>(s+'').indexOf('--inspect') == 0)) {
 		options.dev = 1;
 	}
 
-	options.dev = !!options.dev;
+	/*_pkgutil.dev = */options.dev = !!options.dev;
 	
 	if ( !('url_arg' in options) ) {
 		options.url_arg = '';
@@ -214,9 +216,9 @@ function parse_argv() {
 
 	if ('no_cache' in options || options.dev) {
 		if (options.url_arg) {
-			options.url_arg += '&_no_cache';
+			options.url_arg += '&__nocache';
 		} else {
-			options.url_arg = '_no_cache';
+			options.url_arg = '__nocache';
 		}
 	}
 
