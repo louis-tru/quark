@@ -309,7 +309,7 @@ function Package_install_remote(self, cb) {
 			Package_install3(self, self.m_pkg_path, cb);
 		}.catch(function(err) {
 			if (has_pathname) { // 使用原来的包
-				console.error(err);
+				print_err(err);
 				self.m_pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
 				Package_install3(self, self.m_pkg_path, cb);
 			} else {
@@ -375,7 +375,7 @@ function Package_install2(self, cb) {
 			if (old) { // 先载入本地旧包,然后载入远程origin包
 				let install_remote_ok = function(){ cb && cb() }.catch(err=>{
 					// 不能安装远程包,
-					console.error(err);
+					print_err(err);
 					extendEntries(self, old); // 恢复
 					self.m_old = null;
 					cb && cb();
@@ -970,7 +970,7 @@ function Packages_require_before(self, async, cb) {
 			if (isLocal(node_path.path)) { // local
 				if (!ignore_all_local_package && isDirectorySync(node_path.path)) {
 					//  Give priority to the use of `packages.json`
-					if (isFileSync(node_path.path + '/packages.json')) { 
+					if (isFileSync(node_path.path + '/packages.json')) {
 						Packages_try_parse_new_pkgs_json(self, node_path, false, true);
 					} else { // no packages.json
 						readdirSync(node_path.path).forEach(function(dirent) {
@@ -1127,6 +1127,8 @@ function Packages_require_add_main_search_path(self) {
 	[
 		_path.resources(), 
 		_path.resources('libs'),
+		_path.cwd(), 
+		_path.cwd() + '/libs',
 	].concat(Module.globalPaths).forEach(function(path) {
 		instance.addPackageSearchPath(path);
 	});

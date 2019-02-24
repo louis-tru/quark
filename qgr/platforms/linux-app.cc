@@ -83,6 +83,7 @@ class LinuxApplication {
 	, m_is_init(0), m_exit(0)
 	, m_xft_dpi(96.0)
 	, m_xwin_scale(1.0)
+	, m_main_loop(0)
 	, m_ime(nullptr)
 	, m_mixer(nullptr)
 	, m_element(nullptr)
@@ -140,7 +141,7 @@ class LinuxApplication {
 		m_host = Inl_GUIApplication(app());
 		m_dispatch = m_host->dispatch();
 		m_render_looper = new RenderLooper(m_host);
-		m_main_tid = m_host->main_loop()->thread_id();
+		m_main_loop = m_host->main_loop();
 
 		// create x11 window
 		m_win = XCreateWindow(
@@ -428,7 +429,11 @@ class LinuxApplication {
 	void destroy() {
 		m_render_looper->stop();
 		m_host->exit();
-		SimpleThread::wait_end(m_main_tid); // wait main loop end
+		do {
+			// TODO potential safety hazard
+			m_main_loop->stop();
+			SimpleThread::wait_end(m_main_loop->thread_id(), 1e5/*100ms*/); // wait main loop end
+		} while(m_main_loop->is_alive());
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
 	}
@@ -466,7 +471,7 @@ class LinuxApplication {
 	float m_xft_dpi, m_xwin_scale;
 	XSetWindowAttributes m_xset;
 	Atom m_wm_protocols, m_wm_delete_window;
-	ThreadID m_main_tid;
+	RunLoop* m_main_loop;
 	String m_title;
 	LINUXIMEHelper* m_ime;
 	List<Callback> m_queue;

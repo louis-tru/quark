@@ -206,13 +206,20 @@ void GUIApplication::run() {
 	
 	XX_CHECK(!m_render_loop->runing());
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
+	XX_CHECK(m_render_keep == nullptr);
+	m_is_run = false;
+	m_render_loop = nullptr;
+	m_main_loop = nullptr;
 }
 
 void GUIApplication::exit() {
-	_inl_app(this)->onUnload();
 	XX_ASSERT(m_main_loop);
-	Release(m_render_keep); // stop render loop
-	m_render_keep = nullptr;
+	if (m_render_keep) {
+		_inl_app(this)->onUnload();
+		Release(m_render_keep); // stop render loop
+		m_render_keep = nullptr;
+	}
+	m_render_loop->stop();
 	m_main_loop->stop();
 }
 
