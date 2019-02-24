@@ -43,6 +43,7 @@ JS_BEGIN
  * @class WrapPanel
  */
 class WrapPanel: public WrapViewBase {
+ public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -164,7 +165,6 @@ class WrapPanel: public WrapViewBase {
 		}
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Panel, constructor, {
 			JS_SET_CLASS_METHOD(firstButton, first_button);

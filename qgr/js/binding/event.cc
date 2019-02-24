@@ -58,7 +58,7 @@ Local<JSValue> Cast::cast(const Object& object, Worker* worker) {
 typedef Event<> NativeEvent;
 
 class WrapNativeEvent: public WrapObject {
- public: 
+ public:
 	typedef Event<> Type;
 	
 	static void constructor(FunctionCall args) {

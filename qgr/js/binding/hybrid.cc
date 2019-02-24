@@ -53,7 +53,7 @@ class WrapHybrid: public WrapViewBase {
 	static void text_align(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Hybrid);
-		JS_RETURN( worker->value_program()->New(self->text_align()) );
+		JS_RETURN( worker->values()->New(self->text_align()) );
 	}
 	
 	static void set_text_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -63,7 +63,6 @@ class WrapHybrid: public WrapViewBase {
 		self->set_text_align(out);
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Hybrid, constructor, {
 			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);

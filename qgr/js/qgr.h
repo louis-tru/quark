@@ -84,7 +84,9 @@ class XX_EXPORT WrapViewBase: public WrapObject {
 	
 };
 
-XX_EXPORT int start(cString& argv);
+XX_EXPORT int Start(cString& cmd);
+XX_EXPORT int Start(const Array<String>& argv);
+XX_EXPORT int Start(int argc, char** argv);
 
 JS_END
 #endif

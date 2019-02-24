@@ -167,7 +167,7 @@ namespace console {
 	
 	// Attempts to dump a backtrace (if supported).
 	void dump_backtrace() {
-	 #if XX_VLIBC_GLIBC || XX_BSD
+#if XX_VLIBC_GLIBC || XX_BSD
 		void* trace[100];
 		int size = backtrace(trace, 100);
 		report_error("\n==== C stack trace ===============================\n\n");
@@ -188,7 +188,7 @@ namespace console {
 				}
 			}
 		}
-	 #elif XX_QNX
+#elif XX_QNX
 		char out[1024];
 		bt_accessor_t acc;
 		bt_memmap_t memmap;
@@ -208,7 +208,7 @@ namespace console {
 		}
 		bt_unload_memmap(&memmap);
 		bt_release_accessor(&acc);
-	 #endif  // XX_VLIBC_GLIBC || XX_BSD
+#endif  // XX_VLIBC_GLIBC || XX_BSD
 	}
 	
 	void log(char msg) {
@@ -244,28 +244,28 @@ namespace console {
 	}
 
 	void log(int64 msg) {
-	 #if XX_ARCH_64BIT
+#if XX_ARCH_64BIT
 		default_console()->log( String::format("%ld", msg) );
-	 #else
+#else
 		default_console()->log( String::format("%lld", msg) );
-	 #endif
+#endif
 	}
 	
- #if XX_ARCH_32BIT
+#if XX_ARCH_32BIT
 	void log(long msg) {
 		default_console()->log( String::format("%ld", msg) );
 	}
 	void log(unsigned long msg) {
 		default_console()->log( String::format("%lu", msg) );
 	}
- #endif
+#endif 
 
 	void log(uint64 msg) {
-	 #if XX_ARCH_64BIT
+#if XX_ARCH_64BIT
 		default_console()->log( String::format("%lu", msg) );
-	 #else
+#else
 		default_console()->log( String::format("%llu", msg) );
-	 #endif
+#endif
 	}
 
 	void log(bool msg) {
@@ -431,46 +431,54 @@ String version() {
 }
 
 String platform() {
-	#if XX_NACL
+#if XX_NACL
 		static String _name("nacl");
-	#elif XX_IOS || XX_OSX
+#elif  XX_IOS || XX_OSX
 		static String _name("darwin");
-	#elif XX_ANDROID || XX_LINUX
+#elif  XX_ANDROID || XX_LINUX
 		static String _name("linux");
-	#elif XX_WIN
+#elif  XX_WIN
 		static String _name("win32");
-	#elif XX_QNX
+#elif  XX_QNX
 		static String _name("qnx");
-	#else
+#else
 	# error no support
-	#endif
+#endif
 	return _name;
+}
+
+void exit(int rc) {
+	if (!RunLoop::is_process_exit()) {
+		::exit(rc);
+	} else {
+		XX_ERR("The program has exited");
+	}
 }
 
 namespace sys {
 
 	String name() {
-		#if XX_NACL
+#if XX_NACL
 			static String _name("Nacl");
-		#elif XX_IOS
+#elif  XX_IOS
 			static String _name("iOS");
-		#elif XX_OSX
+#elif  XX_OSX
 			static String _name("MacOSX");
-		#elif XX_ANDROID
+#elif  XX_ANDROID
 			static String _name("Android");
-		#elif XX_WIN
+#elif  XX_WIN
 			static String _name("Windows");
-		#elif XX_QNX
+#elif  XX_QNX
 			static String _name("Qnx");
-		#elif XX_LINUX
+#elif  XX_LINUX
 			static String _name("Linux");
-		#else
+#else
 		# error no support
-		#endif
+#endif
 		return _name;
 	}
 
- #if XX_UNIX
+#if XX_UNIX
 	static String* info_str = nullptr;
 
 	String info() {
@@ -492,7 +500,7 @@ namespace sys {
 		}
 		return *info_str;
 	}
- #endif
+#endif 
 
 	int64 time_second() {
 		return ::time(nullptr);
@@ -517,21 +525,21 @@ namespace sys {
 		String lang;
 	};
 
- #if XX_APPLE
+#if XX_APPLE
 	void __get_languages__(String& langs, String& lang);
- #endif
+#endif 
 
 	static language_t* langs_ = nullptr;
 	static language_t* get_languages() {
 		if (!langs_) {
 			langs_ = new language_t();
-		 #if XX_IOS
+#if XX_IOS
 			langs_ = new language_t();
 			__get_languages__(langs_->langs, langs_->lang);
-		 #elif XX_ANDROID
+#elif XX_ANDROID
 			langs_->langs = Android::language();
 			langs_->lang = langs_->langs;
-		 #elif XX_LINUX
+#elif XX_LINUX
 			cchar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 			if ( lang ) {
 				langs_->langs = String(lang).split('.')[0];
@@ -539,7 +547,7 @@ namespace sys {
 				langs_->langs = "en_US";
 			}
 			langs_->lang = langs_->langs;
-		 #endif
+#endif
 		}
 		return langs_;
 	}

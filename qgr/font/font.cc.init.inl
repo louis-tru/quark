@@ -71,7 +71,7 @@ static void parse_system_font_family_name() {
 
 	XMLDocument* config = nullptr;
 
- #if XX_ANDROID
+#if XX_ANDROID
 	config = new XMLDocument();
 
 	if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
@@ -92,14 +92,14 @@ static void parse_system_font_family_name() {
 		while (first) {
 			if ( strcmp(first->Name(), "family") == 0 ) {
 
-			 #if defined(DEBUG) && 0
+#if defined(DEBUG) && 0
 				auto att = first->FirstAttribute();
 				LOG("%s, Attributes:", first->Name());
 				while ( att ) {
 					LOG("     %s:%s", att->Name(), att->Value());
 					att = att->Next();
 				}
-			 #endif
+#endif
 				auto lang = first->FindAttribute("lang");
 				if ( lang && strcmp(lang->Value(), "zh-Hans") == 0 ) {
 
@@ -116,8 +116,8 @@ static void parse_system_font_family_name() {
 			first = first->NextSiblingElement();
 		}
 	}
- #elif XX_LINUX 
- #endif // XX_ANDROID End
+#elif XX_LINUX 
+#endif // XX_ANDROID End
 
 	delete config;
 }
@@ -210,7 +210,7 @@ void FontPool::Inl::initialize_default_fonts() {
 		second.push(system_second_font_family_name);
 	}
 	
- #if XX_IOS || XX_OSX
+#if XX_IOS || XX_OSX
 	first.push("Helvetica Neue");
 	first.push("Helvetica");
 	first.push("Thonburi");
@@ -218,7 +218,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("HeitiFallback");
 	second.push("Heiti TC");
 	second.push(".HeitiFallback");
- #elif XX_ANDROID
+#elif XX_ANDROID
 	first.push("Roboto");
 	first.push("Droid Sans");
 	first.push("Droid Sans Mono");
@@ -226,7 +226,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans CJK JP");
 	second.push("Noto Sans SC");
 	third.push("Droid Sans Fallback");
- #elif XX_LINUX
+#elif XX_LINUX
 	first.push("Roboto");
 	first.push("DejaVu Sans");
 	first.push("DejaVu Sans Mono");
@@ -235,7 +235,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans SC");
 	second.push("AR PL UMing CN");
 	third.push("Droid Sans Fallback");
- #endif
+#endif
 	
 	set_default_fonts(&first, &second, &third, nullptr);
 }

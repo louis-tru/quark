@@ -199,8 +199,8 @@ public class Android {
 
 	// -------------------- util --------------------
 
-	private static String start_path() {
-		return activity.startPath();
+	private static String start_cmd() {
+		return activity.startCommand();
 	}
 	
 	private static String package_code_path() {

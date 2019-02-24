@@ -42,6 +42,7 @@ JS_BEGIN
 BasicScroll* self = dynamic_cast<BasicScroll*>(Wrap<View>::unpack(args.This())->self())
 
 class WrapBasicScroll {
+ public:
 
 	/**
 	 * @func scrollTo(scroll[,duration[,curve]])
@@ -85,7 +86,7 @@ class WrapBasicScroll {
 	static void scroll(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
 		js_scroll_self();
-		JS_RETURN( worker->value_program()->New(self->scroll()) );
+		JS_RETURN( worker->values()->New(self->scroll()) );
 	}
 	
 	static void set_scroll(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -250,7 +251,7 @@ class WrapBasicScroll {
 	static void scrollbar_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		js_scroll_self();
-		JS_RETURN( worker->value_program()->New(self->scrollbar_color()) );
+		JS_RETURN( worker->values()->New(self->scrollbar_color()) );
 	}
 	
 	static void set_scrollbar_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -323,7 +324,7 @@ class WrapBasicScroll {
 	static void default_scroll_curve(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		js_scroll_self();
-		JS_RETURN( worker->value_program()->New(self->default_scroll_curve()) );
+		JS_RETURN( worker->values()->New(self->default_scroll_curve()) );
 	}
 	
 	static void set_default_scroll_curve(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -339,7 +340,6 @@ class WrapBasicScroll {
 		self->terminate();
 	}
 
- public:
 	static void inherit(Local<JSClass> cls, Worker* worker) {
 		JS_SET_CLASS_METHOD(scrollTo, scroll_to);
 		JS_SET_CLASS_METHOD(terminate, terminate);
@@ -367,6 +367,7 @@ class WrapBasicScroll {
 };
 
 class WrapScroll: public WrapViewBase {
+ public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -401,13 +402,13 @@ class WrapScroll: public WrapViewBase {
 	static void focus_align_x(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Scroll);
-		JS_RETURN( worker->value_program()->New( self->focus_align_x() ) );
+		JS_RETURN( worker->values()->New( self->focus_align_x() ) );
 	}
 	
 	static void focus_align_y(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Scroll);
-		JS_RETURN( worker->value_program()->New( self->focus_align_y() ) );
+		JS_RETURN( worker->values()->New( self->focus_align_y() ) );
 	}
 	
 	/**
@@ -508,7 +509,6 @@ class WrapScroll: public WrapViewBase {
 		self->set_enable_fixed_scroll_size( out );
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Scroll, constructor, {
 			JS_SET_CLASS_ACCESSOR(focusMarginLeft, focus_margin_left, set_focus_margin_left);

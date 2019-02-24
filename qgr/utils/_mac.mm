@@ -82,7 +82,7 @@ namespace sys {
 		return "Apple";
 	}
 
- #if XX_IOS
+#if XX_IOS
 
 	String version() {
 		return [[[UIDevice currentDevice] systemVersion] UTF8String];
@@ -92,7 +92,7 @@ namespace sys {
 		return [[[UIDevice currentDevice] model] UTF8String];
 	}
 
- #else
+#else 
 
 	String version() {
 		return String();
@@ -103,7 +103,7 @@ namespace sys {
 		return name;
 	}
 
- #endif
+#endif 
 
 	void __get_languages__(String& langs, String& lang) {
 		NSArray* languages = [NSLocale preferredLanguages];

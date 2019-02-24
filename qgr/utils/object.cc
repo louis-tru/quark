@@ -139,13 +139,13 @@ void Object::release() {
 
 void* Object::operator new(std::size_t size) {
 	
- #if XX_MEMORY_TRACE_MARK
+#if XX_MEMORY_TRACE_MARK
 	void* p = object_allocator.alloc(size);
 	((Object*)p)->mark_index_ = 123456;
 	return p;
- #else
+#else 
 	return object_allocator.alloc(size);
- #endif
+#endif 
 }
 
 void* Object::operator new(std::size_t size, void* p) {

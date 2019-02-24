@@ -1114,12 +1114,12 @@ class NativeValue {
 							native_js::EXT_native_js_code_value_,
 							native_js::EXT_native_js_code_value_count_), "value.js", exports).IsEmpty()) {
 				if ( try_catch.HasCaught() ) {
-					worker->print_exception(&try_catch);
+					worker->report_exception(&try_catch);
 				}
 				XX_FATAL("Could not initialize native/value.js");
 			}
 		}
-		worker->m_inl->m_value_program = new ValueProgram(worker, exports, _prve);
+		worker->m_inl->m_values = new ValueProgram(worker, exports, _prve);
 	}
 };
 

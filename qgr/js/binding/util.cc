@@ -47,11 +47,11 @@ extern int _qgr_have_node;
 typedef Object NativeObject;
 
 class WrapNativeObject: public WrapObject {
+ public:
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		New<WrapNativeObject>(args, new NativeObject());
 	}
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS_NO_EXPORTS(NativeObject, constructor, {
 			// none
@@ -169,9 +169,11 @@ class NativeUtil {
 		{ HandleScope scope(worker);
 			WrapObject* wrap = WrapObject::unpack(args[0].To<JSObject>());
 			String name = args[1]->ToStringValue(worker,1);
-			String func = String("__on").push(name).push("_native");
-			wrap->set(worker->New(func,1), args[2]);
+			String func = String("__on").push(name).push("_native").push(id);
 			bool ok = wrap->add_event_listener(name, func, id);
+			if (ok) {
+				wrap->set(worker->New(func,1), args[2]);
+			}
 			JS_RETURN(ok);
 		}
 	}
@@ -193,7 +195,7 @@ class NativeUtil {
 			WrapObject* wrap = WrapObject::unpack(args[0].To<JSObject>());
 			bool ok = wrap->remove_event_listener(name, id);
 			if ( ok ) {
-				String func = String("__on").push(name).push("_native");
+				String func = String("__on").push(name).push("_native").push(id);
 				wrap->del( worker->New(func) );
 			}
 			JS_RETURN(ok);
@@ -203,11 +205,11 @@ class NativeUtil {
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		worker->garbage_collection();
-	 #if XX_MEMORY_TRACE_MARK
+#if XX_MEMORY_TRACE_MARK
 		std::vector<Object*> objs = Object::mark_objects();
 		Object** objs2 = &objs[0];
 		LOG("All unrelease heap objects count: %d", objs.size());
-	 #endif
+#endif
 	}
 	
 	static void run_script(FunctionCall args) {
@@ -272,6 +274,15 @@ class NativeUtil {
 		transform_js(args, false);
 	}
 	
+	static void exit(FunctionCall args) {
+		JS_WORKER(args);
+		int code = 0;
+		if (args.Length() > 0 && args[0]->IsInt32(worker)) {
+			code = args[0]->ToInt32Value(worker);
+		}
+		qgr::exit(code);
+	}
+	
 	/**
 	 * @func binding
 	 */
@@ -286,6 +297,7 @@ class NativeUtil {
 		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(transformJsx, transformJsx);
 		JS_SET_METHOD(transformJs, transformJs);
+		JS_SET_METHOD(exit, exit);
 		JS_SET_PROPERTY(platform, qgr::platform());
 		JS_SET_PROPERTY(haveNode, _qgr_have_node);
 		Local<JSArray> argv = worker->NewArray();

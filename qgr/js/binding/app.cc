@@ -113,10 +113,10 @@ class WrapNativeGUIApplication: public WrapObject {
 	
 	void memorywarning_handle(Event<>& evt) {
 		worker()->garbage_collection(); // 清理内存
-	 #if XX_MEMORY_TRACE_MARK
+#if XX_MEMORY_TRACE_MARK
 		uint count = Object::mark_objects_count();
 		LOG("All unrelease heap objects count: %d", count);
-	 #endif
+#endif
 	}
 
 	/**
@@ -291,7 +291,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_background_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_background_color()) );
+		JS_RETURN( worker->values()->New(self->default_text_background_color()) );
 	}
 	
 	/**
@@ -300,7 +300,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_color()) );
+		JS_RETURN( worker->values()->New(self->default_text_color()) );
 	}
 	
 	/**
@@ -309,7 +309,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_size(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_size()) );
+		JS_RETURN( worker->values()->New(self->default_text_size()) );
 	}
 	
 	/**
@@ -318,7 +318,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_style(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_style()) );
+		JS_RETURN( worker->values()->New(self->default_text_style()) );
 	}
 	
 	/**
@@ -327,7 +327,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_family(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_family()) );
+		JS_RETURN( worker->values()->New(self->default_text_family()) );
 	}
 	
 	/**
@@ -336,7 +336,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_shadow(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_shadow()) );
+		JS_RETURN( worker->values()->New(self->default_text_shadow()) );
 	}
 	
 	/**
@@ -345,7 +345,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_line_height(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_line_height()) );
+		JS_RETURN( worker->values()->New(self->default_text_line_height()) );
 	}
 	
 	/**
@@ -354,7 +354,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_decoration(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_decoration()) );
+		JS_RETURN( worker->values()->New(self->default_text_decoration()) );
 	}
 	
 	/**
@@ -363,7 +363,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_overflow(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_overflow()) );
+		JS_RETURN( worker->values()->New(self->default_text_overflow()) );
 	}
 	
 	/**
@@ -372,7 +372,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void default_text_white_space(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIApplication);
-		JS_RETURN( worker->value_program()->New(self->default_text_white_space()) );
+		JS_RETURN( worker->values()->New(self->default_text_white_space()) );
 	}
 	
 	/**

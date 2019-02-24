@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapRoot
  */
 class WrapRoot: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
@@ -56,7 +57,6 @@ class WrapRoot: public WrapViewBase {
 		}
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Root, constructor, {
 			// none

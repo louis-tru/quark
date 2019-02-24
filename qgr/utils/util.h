@@ -64,10 +64,10 @@ namespace console {
 	XX_EXPORT void print_err(cchar*, ...);
 	XX_EXPORT void print_err(cString&);
 	XX_EXPORT void clear();
- #if XX_ARCH_32BIT
+#if XX_ARCH_32BIT
 	XX_EXPORT void log(long);
 	XX_EXPORT void log(unsigned long);
- #endif
+#endif 
 }
 
 /**
@@ -155,6 +155,7 @@ XX_EXPORT String version();
 XX_EXPORT int64  parse_time(cString& str);
 XX_EXPORT String gmt_time_string(int64 second);
 XX_EXPORT String platform();
+XX_EXPORT void exit(int rc);
 
 namespace _right_reference {
 	// remove_reference

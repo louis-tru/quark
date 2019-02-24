@@ -54,11 +54,11 @@ extern Display* __get_x11_display();
 static EGLDisplay egl_display() {
 	static EGLDisplay display = EGL_NO_DISPLAY;
 	if ( display == EGL_NO_DISPLAY ) { // get display and init it
-		#if XX_ANDROID
+#if XX_ANDROID
 			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-		#else
+#else
 			display = eglGetDisplay(__get_x11_display());
-		#endif
+#endif
 		XX_DEBUG("eglGetDisplay, %p", display);
 		XX_ASSERT(display != EGL_NO_DISPLAY);
 		EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
@@ -310,20 +310,20 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 
 void GLDrawProxy::initialize() {
 	m_host->initialize();
- #if XX_ANDROID
+#if XX_ANDROID
 	m_host->set_best_display_scale(Android::get_display_scale());
- #else
+#else 
 	m_host->set_best_display_scale(1.0 / DisplayPort::default_atom_pixel());
- #endif
+#endif 
 	refresh_surface_size(nullptr);
 }
 
 static Vec2 get_window_size(EGLNativeWindowType win) {
- #if XX_ANDROID
+#if XX_ANDROID
 	return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
- #else
+#else 
 	return __get_window_size();
- #endif
+#endif 
 }
 
 bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
@@ -335,10 +335,23 @@ bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
 		XX_ERR("Unable to create a drawing surface");
 		return false;
 	}
-	if ( !eglMakeCurrent(m_display, surface, surface, m_context) ) {
-		eglDestroySurface(m_display, surface);
-		return false;
+
+	bool ok;
+
+ #define CHECK(ok) \
+	if ( !(ok) ) { \
+		XX_ERR("Unable to make egl current"); \
+		eglDestroySurface(m_display, surface); \
+		return false; \
 	}
+
+	// m_host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
+	// 	ok = eglMakeCurrent(m_display, surface, surface, m_context);
+	// 	XX_CHECK(ok);
+	// }));
+	// CHECK(ok);
+	
+	CHECK(eglMakeCurrent(m_display, surface, surface, m_context));
 
 	m_window = window;
 	m_surface = surface;
@@ -384,7 +397,7 @@ void GLDrawProxy::refresh_surface_size(CGRect* rect) {
 
 void GLDrawProxy::refresh_virtual_keyboard_rect() {
 	// draw android virtual keyboard rect
- #if XX_ANDROID
+#if XX_ANDROID
 	m_virtual_keys_rect = CGRect();
 
 	Vec2 scale = m_host->host()->display_port()->scale_value();
@@ -411,7 +424,7 @@ void GLDrawProxy::refresh_virtual_keyboard_rect() {
 						Vec2(region.size.width() / scale[0], height / scale[1])
 		};
 	}
- #endif
+#endif 
 }
 
 void GLDrawProxy::refresh_buffer() {

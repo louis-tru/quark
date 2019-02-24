@@ -41,6 +41,7 @@ JS_BEGIN
  * @class NativePath
  */
 class NativePath {
+ public:
 
 	/**
 	 * @func basename(path)
@@ -180,8 +181,6 @@ class NativePath {
 		}
 		JS_RETURN( Path::chdir(args[0]->ToStringValue(worker)) );
 	}
-	
- public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_METHOD(basename, basename);

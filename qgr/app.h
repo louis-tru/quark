@@ -38,9 +38,12 @@
 #include "qgr/value.h"
 
 #define XX_GUI_MAIN() \
-int __XX_GUI_MAIN__(int, char**); \
-XX_INIT_BLOCK(__XX_GUI_MAIN__) { __XX_GUI_MAIN = __XX_GUI_MAIN__; } \
-int __XX_GUI_MAIN__(int argc, char** argv)
+	int __XX_GUI_MAIN__(int, char**); \
+	XX_INIT_BLOCK(__XX_GUI_MAIN__) { __XX_GUI_MAIN = __XX_GUI_MAIN__; } \
+	int __XX_GUI_MAIN__(int argc, char** argv)
+
+#define XX_CHECK_RENDER_THREAD() XX_CHECK(app()->has_current_render_thread())
+#define XX_ASSERT_RENDER_THREAD() XX_ASSERT(app()->has_current_render_thread())
 
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
@@ -165,6 +168,11 @@ class XX_EXPORT GUIApplication: public Object {
 	 * @func work_loop work loop
 	 */
 	inline RunLoop* main_loop() const { return m_main_loop; }
+
+	/**
+	 * @func has_current_render_thread()
+	 */
+	bool has_current_render_thread() const;
 	
 	/**
 	 * @func action_center

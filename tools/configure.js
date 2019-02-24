@@ -494,6 +494,7 @@ function configure() {
 			// depes config
 			openssl_fips: '',
 			openssl_no_asm: bi(os.match(/^(ios|android)$/)),
+			node_enable: 0,
 			node_byteorder: 'little',
 			node_use_openssl: bs(!opts.without_ssl),
 			node_use_dtrace: bs(use_dtrace),
@@ -507,6 +508,7 @@ function configure() {
 			v8_random_seed: 0,
 			v8_trace_maps: 0,
 			v8_use_snapshot: bs(v8_use_snapshot),
+			v8_enable_i18n_support: 0,
 			want_separate_host_toolset: bi(v8_use_snapshot &&cross_compiling && !opts.without_snapshot),
 			want_separate_host_toolset_mkpeephole: bi(v8_use_snapshot && cross_compiling),
 		},

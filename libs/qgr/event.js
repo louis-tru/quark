@@ -30,7 +30,7 @@
 
 Object.assign(exports, requireNative('_event'));
 
-const util = require('./util');
+const _util = requireNative('_util');
 const EventNoticer = exports.EventNoticer;
 const PREFIX = '__on';
 const REG = new RegExp('^' + PREFIX);
@@ -72,7 +72,7 @@ class Notification {
 			if ( typeof func2 == 'function' ) {
 				return this.getNoticer(name).on(func2, 0); // default id 0
 			} else {
-				throw util.err(`Cannot find a function named "${func}"`);
+				throw Error.new(`Cannot find a function named "${func}"`);
 			}
 		} else {
 			return this.getNoticer(name).on(func, 0); // default id 0
@@ -230,7 +230,7 @@ exports.allNoticers = allNoticers;
  * @class NativeNotification
  */
 export class NativeNotification extends Notification {
-	
+
 	/**
 	 * @overwrite
 	 */
@@ -241,16 +241,16 @@ export class NativeNotification extends Notification {
 			var trigger = this['trigger' + name];
 			if ( trigger ) {
 				// bind native
-				util.addNativeEventListener(this, name, (evt, is_event) => {
+				_util.addNativeEventListener(this, name, (evt, is_event) => {
 					// native event
-					//console.log('util.addNativeEventListener', name);
+					//console.log('_util.addNativeEventListener', name);
 					var ok = trigger.call(this, evt, is_event);
-					//console.log('util.addNativeEventListener', name, ok, String(trigger));
+					//console.log('_util.addNativeEventListener', name, ok, String(trigger));
 					return ok;
 				}, -1);
 			} else {
 				// bind native
-				util.addNativeEventListener(this, name, (evt, is_event) => {
+				_util.addNativeEventListener(this, name, (evt, is_event) => {
 					// native event
 					return is_event ? noticer.triggerWithEvent(evt) : noticer.trigger(evt);
 				}, -1);

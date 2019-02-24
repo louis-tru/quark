@@ -199,7 +199,7 @@ class WrapNativeViewController: public WrapObject {
  * @class WrapView
  */
 class WrapView: public WrapViewBase {
-public:
+ public:
 	
 	/**
 	 * @constructor() 
@@ -412,7 +412,7 @@ public:
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(View);
 		Vec2 rev = self->layout_offset();
-		JS_RETURN( worker->value_program()->New(rev) );
+		JS_RETURN( worker->values()->New(rev) );
 	}
 	
 	/**
@@ -428,7 +428,7 @@ public:
 		}
 		JS_SELF(View);
 		Vec2 rev = self->layout_offset_from(target);
-		JS_RETURN( worker->value_program()->New(rev) );
+		JS_RETURN( worker->values()->New(rev) );
 	}
 
 	/**
@@ -502,7 +502,7 @@ public:
 	static void screen_rect(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->screen_rect()) );
+		JS_RETURN( worker->values()->New(self->screen_rect()) );
 	}
 
 	/**
@@ -512,7 +512,7 @@ public:
 	static void final_matrix(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->final_matrix()) );
+		JS_RETURN( worker->values()->New(self->final_matrix()) );
 	}
 
 	/**
@@ -532,7 +532,7 @@ public:
 	static void position(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->position()) );
+		JS_RETURN( worker->values()->New(self->position()) );
 	}
 
 	/**
@@ -832,7 +832,7 @@ public:
 	static void translate(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->translate()) );
+		JS_RETURN( worker->values()->New(self->translate()) );
 	}
 
 	/**
@@ -841,7 +841,7 @@ public:
 	static void scale(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->scale()) );
+		JS_RETURN( worker->values()->New(self->scale()) );
 	}
 
 	/**
@@ -850,7 +850,7 @@ public:
 	static void skew(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->skew()) );
+		JS_RETURN( worker->values()->New(self->skew()) );
 	}
 
 	/**
@@ -877,7 +877,7 @@ public:
 	static void origin(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->origin()) );
+		JS_RETURN( worker->values()->New(self->origin()) );
 	}
 
 	/**
@@ -886,7 +886,7 @@ public:
 	static void matrix(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(View);
-		JS_RETURN( worker->value_program()->New(self->matrix()) );
+		JS_RETURN( worker->values()->New(self->matrix()) );
 	}
 
 	/**

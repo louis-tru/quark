@@ -44,7 +44,8 @@ using namespace qgr;
  * @class WrapFontStatic
  */
 class WrapFontStatic {
-	
+ public:
+
 	/**
 	 * @func set_default_fonts(fonts)
 	 * @arg fonts {String|Array}
@@ -196,8 +197,6 @@ class WrapFontStatic {
 		}
 		font_pool()->set_family_alias( args[0]->ToStringValue(worker), args[1]->ToStringValue(worker) );
 	}
-	
- public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_METHOD(setDefaultFonts, set_default_fonts);

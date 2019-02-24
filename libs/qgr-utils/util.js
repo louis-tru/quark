@@ -28,9 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-require('./_ext');
+if (!global.requireNative && typeof global.requireNative != 'function') { // qgr
+	require('./_ext');
+}
 var _pkg = require('./_pkg');
 var _util = require('./_util');
+
+var next_tick = process.nextTick;
+var utils = {};
 
 /**************************************************************************/
 
@@ -108,29 +113,17 @@ function extend(obj, extd) {
 	return obj;
 }
 
-/**
- * @fun next_tick # Next tick exec
- * @arg [self]  {Object}
- * @arg cb      {Function} # callback function
- * @arg [...] {Object} # call args
- */
-function next_tick(cb) {
-	var self = null;
-	var args = Array.toArray(arguments, 1);
-
-	if (typeof cb != 'function') {
-		self = cb;
-		cb = args.shift();
+function extendClass(cls, ...extds) {
+	var proto = cls.prototype;
+	for (var extd of extds) {
+		if (extd instanceof Function) {
+			extd = extd.prototype;
+		}
+		extend(proto, extd);
 	}
-	if (typeof cb != 'function')
-		throw new Error('arguments error');
-	
-	process.nextTick(function () {
-		cb.apply(self, args);
-	});
 }
 
-exports = module.exports = {
+exports = module.exports = assign(utils, _util, {
 
 	// @func fatal()
 	// @func hashCode()
@@ -175,7 +168,7 @@ exports = module.exports = {
 	 * @func isAbsolute(path)
 	 */
 	isAbsolute: _pkg.isAbsolute,
-	
+
 	/**
 	 * Empty function
 	 */
@@ -415,15 +408,7 @@ exports = module.exports = {
 	/**
 	 * @fun extendClass #  EXT class prototype objects
 	 */
-	extendClass: function(cls, ...extds) {
-		var proto = cls.prototype;
-		for (var extd of extds) {
-			if (extd instanceof Function) {
-				extd = extd.prototype;
-			}
-			extend(proto, extd);
-		}
-	},
+	extendClass: extendClass,
 	
 	/**
 	 * @fun equalsClass  # Whether this type of sub-types
@@ -485,6 +470,4 @@ exports = module.exports = {
 	},
 	
 	// @end
-};
-
-exports.__proto__ = _util;
+});

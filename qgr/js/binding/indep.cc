@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapIndep
  */
 class WrapIndep: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
@@ -52,12 +53,12 @@ class WrapIndep: public WrapViewBase {
 	static void align_x(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Indep);
-		JS_RETURN( worker->value_program()->New(self->align_x()) );
+		JS_RETURN( worker->values()->New(self->align_x()) );
 	}
 	static void align_y(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Indep);
-		JS_RETURN( worker->value_program()->New(self->align_y()) );
+		JS_RETURN( worker->values()->New(self->align_y()) );
 	}
 	static void set_align_x(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
@@ -85,7 +86,6 @@ class WrapIndep: public WrapViewBase {
 		self->set_align_y(out[1]);
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Indep, constructor, {
 			JS_SET_CLASS_ACCESSOR(alignX, align_x, set_align_x);

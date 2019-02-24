@@ -100,27 +100,27 @@ public:
 	static void repeat(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->value_program()->New(self->repeat()));
+		JS_RETURN( worker->values()->New(self->repeat()));
 	}
 	static void position_x(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->value_program()->New(self->position_x()));
+		JS_RETURN( worker->values()->New(self->position_x()));
 	}
 	static void position_y(Local<JSString> name, PropertyCall args){
 		JS_WORKER(args);
 		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->value_program()->New(self->position_y()));
+		JS_RETURN( worker->values()->New(self->position_y()));
 	}
 	static void size_x(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->value_program()->New(self->size_x()));
+		JS_RETURN( worker->values()->New(self->size_x()));
 	}
 	static void size_y(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(BackgroundImage);
-		JS_RETURN( worker->value_program()->New(self->size_y()));
+		JS_RETURN( worker->values()->New(self->size_y()));
 	}
 	static void position(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);

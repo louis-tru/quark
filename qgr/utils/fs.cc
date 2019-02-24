@@ -54,9 +54,9 @@ const uint FileHelper::default_mode([]() {
 
 static String split_path(cString& path, bool basename) {
 	String s = path;
- #if XX_WIN
+#if XX_WIN
 	s = s.replace_all('\\', '/');
- #endif
+#endif 
 	int start = path.length();
 	if (path[start - 1] == '/') {
 		start -= 2;
@@ -96,41 +96,41 @@ String Path::extname(cString& path) {
 }
 
 String Path::cwd() {
- #if XX_WIN
+#if XX_WIN
 	char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
 	_getcwd(cwd + 8, 1024);
 	String str = String(cwd).replace_all('\\', '/');
 	if (str.length() == 10)
 		str.push('/'); //
 	return str;
- #else
+#else 
 	char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/' };
 	getcwd(cwd + 7, 1024);
 	return cwd;
- #endif
+#endif 
 }
 
 bool Path::chdir(cString& path) {
 	String str = format("%s", *path);
- #if XX_WIN
+#if XX_WIN
 	return _chdir(*str.substr(8)) == 0;
- #else
+#else 
 	return ::chdir(*str.substr(7)) == 0;
- #endif
+#endif 
 }
 
 static const String chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
 
 bool Path::is_local_absolute(cString& path) {
- #if XX_WIN
+#if XX_WIN
 	if (chars.index_of(s[0]) != -1 && path[1] == ':') {
 		return true;
 	}
- #else
+#else 
 	if (path[0] == '/') {
 		return true;
 	}
- #endif
+#endif 
 	else if ( is_local_zip(path) || is_local_file( path ) ) {
 		return true;
 	}

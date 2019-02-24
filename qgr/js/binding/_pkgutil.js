@@ -70,10 +70,35 @@ if (!haveNode) {
 	const _console = requireNative('_console');
 	const _timer = requireNative('_timer');
 	global.console = _console;
-	global.setTimeout = _timer.setTimeout;
-	global.setInterval = _timer.setInterval;
+
+	function setTimeout(cb, timeout, ...args) {
+		if (typeof cb != 'function') {
+			throw TypeError('"callback" argument must be a function');
+		}
+		if (args.length) {
+			return _timer.setTimeout(e=>cb(...args), timeout);
+		} else {
+			return _timer.setTimeout(cb, timeout);
+		}
+	}
+
+	function setInterval(cb, timeout, ...args) {
+		if (typeof cb != 'function') {
+			throw TypeError('"callback" argument must be a function');
+		}
+		if (args.length) {
+			return _timer.setInterval(e=>cb(...args), timeout);
+		} else {
+			return _timer.setInterval(cb, timeout);
+		}
+	}
+
+	global.setTimeout = setTimeout;
+	global.setInterval = setInterval;
 	global.clearTimeout = _timer.clearTimeout;
 	global.clearInterval = _timer.clearInterval;
+	global.setImmediate = (cb, ...args)=>setTimeout(cb, 0, ...args);
+	global.clearImmediate = _timer.clearTimeout;
 }
 
 /** 

@@ -179,7 +179,7 @@ void GUIApplication::start(int argc, char* argv[]) {
 		__xx_default_gui_main = nullptr;
 		__XX_GUI_MAIN = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
-		::exit(rc); // if sub thread end then exit
+		qgr::exit(rc); // if sub thread end then exit
 	}, "gui");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
@@ -286,6 +286,13 @@ void GUIApplication::initialize(cJSON& options) throw(Error) {
 	XX_DEBUG("m_draw_ctx->font_pool()->set_display_port() ok");
 	m_dispatch = new GUIEventDispatch(this);
 	m_action_center = new ActionCenter();
+}
+
+/**
+ * @func has_current_render_thread()
+ */
+bool GUIApplication::has_current_render_thread() const {
+	return m_render_loop && m_render_loop->thread_id() == SimpleThread::current_id();
 }
 
 /**

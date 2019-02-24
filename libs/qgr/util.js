@@ -28,8 +28,63 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+import { Event, Notification } from './event';
 var _pkg = requireNative('_pkg').packages;
 var _util = requireNative('_util');
+var { haveNode } = _util;
+
+function next_tick(cb, ...args) {
+	if (typeof cb != 'function')
+		throw new Error('callback must be a function');
+	_util.nextTick(function() {
+		cb(...args);
+	});
+}
+
+var listeners = {
+	BeforeExit: function(noticer, code = 0) {
+		return noticer.triggerWithEvent(new Event(code, code));
+	},
+	Exit: function(noticer, code = 0) {
+		return noticer.triggerWithEvent(new Event(code, code));
+	},
+	UncaughtException: function(noticer, err) {
+		return noticer.length && noticer.trigger(err) === 0;
+	},
+	UnhandledRejection: function(noticer, reason, promise) {
+		return noticer.length && noticer.trigger({ reason, promise }) === 0;
+	},
+}
+
+class Utils extends Notification {
+
+	getNoticer(name) {
+		var noticer = this['__on' + name];
+		if ( ! noticer ) {
+			var listener = listeners[name];
+			if (listener) {
+				if (haveNode) {
+					process.on(name.substr(0, 1).toLowerCase() + name.substr(1), function(...args) {
+						return listener(noticer, ...args);
+					});
+				} else {
+					_util[`__on${name}_native`] = function(...args) {
+						return listener(noticer, ...args);
+					};
+				}
+			} else {
+				// bind native event
+				_util[`__on${name}_native`] = function(data) {
+					return noticer.trigger(data);
+				};
+			}
+			this['__on' + name] = noticer = new event.EventNoticer(name, this);
+		}
+		return noticer;
+	}
+}
+
+var utils = new Utils();
 
 /**************************************************************************/
 
@@ -107,29 +162,17 @@ function extend(obj, extd) {
 	return obj;
 }
 
-/**
- * @fun nextTick # Next tick exec
- * @arg [self]  {Object}
- * @arg cb      {Function} # callback function
- * @arg [...] {Object} # call args
- */
-function next_tick(cb) {
-	var self = null;
-	var args = Array.toArray(arguments, 1);
-
-	if (typeof cb != 'function') {
-		self = cb;
-		cb = args.shift();
+function extendClass(cls, ...extds) {
+	var proto = cls.prototype;
+	for (var extd of extds) {
+		if (extd instanceof Function) {
+			extd = extd.prototype;
+		}
+		extend(proto, extd);
 	}
-	if (typeof cb != 'function')
-		throw new Error('arguments error');
-	
-	process.nextTick(function () {
-		cb.apply(self, args);
-	});
 }
 
-exports = module.exports = {
+exports = module.exports = assign(utils, _util, {
 
 	// @func fatal()
 	// @func hashCode()
@@ -175,11 +218,6 @@ exports = module.exports = {
 	 */
 	isAbsolute: _pkg.isAbsolute,
 
-	/**
-	 * @field pkg
-	 */
-	pkg: _pkg,
-	
 	/**
 	 * Empty function
 	 */
@@ -232,7 +270,7 @@ exports = module.exports = {
 	err: function(e, code) {
 		return Error.new(e, code);
 	},
-	
+
 	/**
 	 * @fun cb # return default callback
 	 * @ret {Function}
@@ -240,7 +278,7 @@ exports = module.exports = {
 	cb: function(cb) {
 		return cb || function () { };
 	},
-	
+
 	/**
 	 * @fun throw # 抛出异常
 	 * @arg err {Object}
@@ -419,15 +457,7 @@ exports = module.exports = {
 	/**
 	 * @fun extendClass #  EXT class prototype objects
 	 */
-	extendClass: function(cls, ...extds) {
-		var proto = cls.prototype;
-		for (var extd of extds) {
-			if (extd instanceof Function) {
-				extd = extd.prototype;
-			}
-			extend(proto, extd);
-		}
-	},
+	extendClass: extendClass,
 	
 	/**
 	 * @fun equalsClass  # Whether this type of sub-types
@@ -489,6 +519,4 @@ exports = module.exports = {
 	},
 	
 	// @end
-};
-
-exports.__proto__ = _util;
+});

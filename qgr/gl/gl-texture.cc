@@ -100,11 +100,11 @@ uint GLDraw::set_texture(const Array<PixelData>& data) {
 	GLint format = get_gl_texture_pixel_format(pixel_format); XX_ASSERT(format);
 	
 	// 启用各向异性
- #if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
+#if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
   //  GLfloat largest;
   //  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest);
   //  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest);
- #endif
+#endif 
 	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, get_gl_UNPACK_ALIGNMENT_VALUE(pixel_format));
 	

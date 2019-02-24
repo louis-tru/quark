@@ -42,7 +42,8 @@ JS_BEGIN
  * @class NativeStorage
  */
 class NativeStorage {
-	
+ public:
+
 	/**
 	 * @func get(key)
 	 * @arg key {String}
@@ -106,8 +107,6 @@ class NativeStorage {
 		}
 		localstorage_transaction(get_callback_for_none(worker, args[0]));
 	}
-	
- public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_METHOD(get, get);

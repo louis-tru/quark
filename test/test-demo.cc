@@ -32,24 +32,41 @@
 
 using namespace qgr;
 
-#define USE_REMOTE 1
 #define IP_REMOTE "127.0.0.1"
+#define USE_REMOTE 1
 #define USE_INSPECT 0
+#define USE_NODE 0
+#define USE_DEV 1
+
+#if USE_NODE
+# define NODE_FLAG "--node "
+#else
+# define NODE_FLAG ""
+#endif
 
 void test_demo(int argc, char **argv) {
-#if USE_REMOTE
-# if USE_INSPECT
-	js::start("--node --inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/demo/examples --dev");
-# else
-	js::start("--node http://" IP_REMOTE ":1026/demo/examples --dev");
-# endif
+#if USE_NODE
+	String cmd = "qgr " USE_NODE;
 #else
-# if USE_INSPECT
-	js::start("--node --inspect-brk=0.0.0.0:9229 examples --dev");
-# else
-	js::start("--node examples --dev");
-# endif
+	String cmd = "qgr ";
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "--node") == 0) {
+			cmd += "--node "; break;
+		}
+	}
 #endif
+#if USE_INSPECT
+	cmd += "--inspect-brk=0.0.0.0:9229 ";
+#endif
+#if USE_REMOTE
+	cmd += "http://" IP_REMOTE ":1026/demo/examples ";
+#else
+	cmd += "examples ";
+#endif
+#if USE_DEV
+	cmd += "--dev ";
+#endif
+	js::Start(cmd);
 }
 
 extern "C" {

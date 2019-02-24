@@ -91,6 +91,7 @@
 		'node_tag%': '',
 		'node_byteorder%': 'little',
 		'node_enable_d8%': 'false',
+		'node_enable%': 0,
 		'node_release_urlbase%': '',
 		'openssl_no_asm%': 0,
 		'openssl_fips%': '',

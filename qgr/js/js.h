@@ -781,9 +781,9 @@ class XX_EXPORT Worker: public Object {
 		Local<JSObject> exports = Local<JSObject>());
 
 	/**
-	 * @func value_program
+	 * @func values
 	 */
-	ValueProgram* value_program();
+	ValueProgram* values();
 	
 	/**
 	 * @func strs
@@ -801,9 +801,9 @@ class XX_EXPORT Worker: public Object {
 	Local<JSObject> global();
 	
 	/**
-	 * @func print_exception
+	 * @func report_exception
 	 */
-	void print_exception(TryCatch* try_catch);
+	void report_exception(TryCatch* try_catch);
 	
 	/**
 	 * @func garbage_collection()

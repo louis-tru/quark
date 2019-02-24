@@ -284,7 +284,7 @@ void IMPL::initialize() {
 IMPL::IMPL()
 : m_host(nullptr)
 , m_thread_id(SimpleThread::current_id())
-, m_value_program(nullptr), m_strs(nullptr)
+, m_values(nullptr), m_strs(nullptr)
 , m_classs(nullptr), m_env(nullptr) {
 	m_host = new Worker(this);
 }
@@ -292,21 +292,55 @@ IMPL::IMPL()
 IMPL::~IMPL() {
 }
 
-int IMPL::OnExit() {
-	// TODO...
-	return 0;
+static Local<JSValue> TriggerEventFromUtil(Worker* worker,
+	cString& name, int argc = 0, Local<JSValue> argv[] = 0)
+{
+	Local<JSObject> _util = worker->binding_module("_util").To();
+	XX_ASSERT(!_util.IsEmpty());
+
+	Local<JSValue> func = _util->GetProperty(worker, String("__on").push(name).push("_native"));
+	if (!func->IsFunction(worker)) {
+		return Local<JSValue>();
+	}
+	return func.To<JSFunction>()->Call(worker, argc, argv);
 }
 
-void IMPL::OnBeforeExit() {
-	// TODO...
+static int TriggerExit_1(Worker* worker, cString& name, int code) {
+	JS_HANDLE_SCOPE();
+	Local<JSValue> argv = worker->New(code);
+	Local<JSValue> rc = TriggerEventFromUtil(worker, name, 1, &argv);
+	if (!rc.IsEmpty() && rc->IsInt32(worker)) {
+		return rc->ToInt32Value(worker);
+	} else {
+		return code;
+	}
 }
 
-void IMPL::OnUncaughtException() {
-	// TODO...
+static bool TriggerException(Worker* worker, cString& name, int argc, Local<JSValue> argv[]) {
+	JS_HANDLE_SCOPE();
+	Local<JSValue> rc = TriggerEventFromUtil(worker, name, argc, argv);
+	if (!rc.IsEmpty() && rc->ToBooleanValue(worker)) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
-void IMPL::OnUnhandledRejection() {
-	// TODO...
+int IMPL::TriggerExit(int code) {
+	return TriggerExit_1(m_host, "Exit", code);
+}
+
+int IMPL::TriggerBeforeExit(int code) {
+	return TriggerExit_1(m_host, "BeforeExit", code);
+}
+
+bool IMPL::TriggerUncaughtException(Local<JSValue> err) {
+	return TriggerException(m_host, "UncaughtException", 1, &err);
+}
+
+bool IMPL::TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise) {
+	Local<JSValue> argv[] = { reason, promise };
+	return TriggerException(m_host, "UncaughtException", 2, argv);
 }
 
 Worker* Worker::create() {
@@ -368,8 +402,8 @@ Worker::~Worker() {
 	delete m_inl; m_inl = nullptr;
 }
 
-ValueProgram* Worker::value_program() {
-	return m_inl->m_value_program;
+ValueProgram* Worker::values() {
+	return m_inl->m_values;
 }
 
 CommonStrings* Worker::strs() {

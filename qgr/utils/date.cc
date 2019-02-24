@@ -484,10 +484,10 @@ static int parsedate(const char *date, time_t *output)
 				if(error)
 					return PARSEDATE_FAIL;
 				
-			 #if LONG_MAX != INT_MAX
+#if LONG_MAX != INT_MAX
 				if((lval > (long)INT_MAX) || (lval < (long)INT_MIN))
 					return PARSEDATE_FAIL;
-			 #endif
+#endif
 				
 				val = sltosi(lval);
 				
@@ -563,13 +563,13 @@ static int parsedate(const char *date, time_t *output)
 		/* lacks vital info, fail */
 		return PARSEDATE_FAIL;
 	
- #if SIZEOF_TIME_T < 5
+#if SIZEOF_TIME_T < 5
 	/* 32 bit time_t can only hold dates to the beginning of 2038 */
 	if(yearnum > 2037) {
 		*output = 0x7fffffff;
 		return PARSEDATE_LATER;
 	}
- #endif
+#endif 
 	
 	if(yearnum < 1970) {
 		*output = 0;

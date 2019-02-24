@@ -117,7 +117,7 @@ var Conversation = util.class('Conversation', {
 				this.send({ type: 'bind_client_service', name: name });
 			}
 			else {
-				util.nextTick(this, this.connect); // 还没有打开连接,下一帧开始尝试连接
+				util.nextTick(e=>this.connect()); // 还没有打开连接,下一帧开始尝试连接
 			}
 		}
 	},

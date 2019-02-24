@@ -42,14 +42,14 @@ JS_BEGIN
  * @class WrapSpan
  */
 class WrapSpan: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
 		New<WrapSpan>(args, new Span());
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Span, constructor, {
 			WrapViewBase::inherit_text_layout(cls, worker);

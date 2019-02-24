@@ -42,6 +42,7 @@ JS_BEGIN
  * @class WrapSprite
  */
 class WrapSprite: public WrapViewBase {
+ public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -83,7 +84,7 @@ class WrapSprite: public WrapViewBase {
 	static void start(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Sprite);
-		JS_RETURN( worker->value_program()->New(self->start()) );
+		JS_RETURN( worker->values()->New(self->start()) );
 	}
 	// set
 	static void set_src(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -188,7 +189,7 @@ class WrapSprite: public WrapViewBase {
 	static void ratio(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Sprite);
-		JS_RETURN( worker->value_program()->New(self->ratio()) );
+		JS_RETURN( worker->values()->New(self->ratio()) );
 	}
 	static void set_ratio(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
@@ -199,7 +200,7 @@ class WrapSprite: public WrapViewBase {
 	static void repeat(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Sprite);
-		JS_RETURN( worker->value_program()->New(self->repeat()) );
+		JS_RETURN( worker->values()->New(self->repeat()) );
 	}
 	static void set_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
@@ -208,7 +209,6 @@ class WrapSprite: public WrapViewBase {
 		self->set_repeat( out );
 	}
 
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Sprite, constructor, {
 			JS_SET_CLASS_ACCESSOR(src, src, set_src);

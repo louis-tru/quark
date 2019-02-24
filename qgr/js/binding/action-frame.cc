@@ -59,7 +59,7 @@ static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCa
 // ----------------------------------------------------------------
 
 #define def_property_from_type(Name, Type) \
-	def_get_property_from_type0(Name,JS_RETURN(worker->value_program()->New(self->Name()))) \
+	def_get_property_from_type0(Name,JS_RETURN(worker->values()->New(self->Name()))) \
 	def_set_property_from_type0(Name, Type, Type, self->set_##Name(out))
 
 #define def_property_from_type2(Name, Type, get, set)\
@@ -227,25 +227,25 @@ class WrapFrame: public WrapObject {
 	// -------------------- get/set Non meta attribute --------------------
 	
 	def_property_from_type2(translate, Vec2, {
-		JS_RETURN( worker->value_program()->New(Vec2(self->x(), self->y())) );
+		JS_RETURN( worker->values()->New(Vec2(self->x(), self->y())) );
 	}, {
 		self->set_x(out.x());
 		self->set_y(out.y());
 	});
 	def_property_from_type2(scale, Vec2, {
-		JS_RETURN( worker->value_program()->New(Vec2(self->scale_x(), self->scale_y())) );
+		JS_RETURN( worker->values()->New(Vec2(self->scale_x(), self->scale_y())) );
 	},{
 		self->set_scale_x(out.x());
 		self->set_scale_y(out.y());
 	});
 	def_property_from_type2(skew, Vec2, {
-		JS_RETURN( worker->value_program()->New(Vec2(self->skew_x(), self->skew_y())) );
+		JS_RETURN( worker->values()->New(Vec2(self->skew_x(), self->skew_y())) );
 	},{
 		self->set_skew_x(out.x());
 		self->set_skew_y(out.y());
 	});
 	def_property_from_type2(origin, Vec2, {
-		JS_RETURN( worker->value_program()->New(Vec2(self->origin_x(), self->origin_y())) );
+		JS_RETURN( worker->values()->New(Vec2(self->origin_x(), self->origin_y())) );
 	},{
 		self->set_origin_x(out.x());
 		self->set_origin_y(out.y());
@@ -294,28 +294,28 @@ class WrapFrame: public WrapObject {
 	});
 	def_property_from_type2(border_left, Border, {
 		Border border(self->border_left_width(), self->border_left_color());
-		JS_RETURN(worker->value_program()->New(border));
+		JS_RETURN(worker->values()->New(border));
 	}, {
 		self->set_border_left_color(out.color);
 		self->set_border_left_width(out.width);
 	});
 	def_property_from_type2(border_top, Border, {
 		Border border(self->border_top_width(), self->border_top_color());
-		JS_RETURN(worker->value_program()->New(border));
+		JS_RETURN(worker->values()->New(border));
 	}, {
 		self->set_border_top_color(out.color);
 		self->set_border_top_width(out.width);
 	});
 	def_property_from_type2(border_right, Border, {
 		Border border(self->border_right_width(), self->border_right_color());
-		JS_RETURN(worker->value_program()->New(border));
+		JS_RETURN(worker->values()->New(border));
 	}, {
 		self->set_border_right_color(out.color);
 		self->set_border_right_width(out.width);
 	});
 	def_property_from_type2(border_bottom, Border, {
 		Border border(self->border_bottom_width(), self->border_bottom_color());
-		JS_RETURN(worker->value_program()->New(border));
+		JS_RETURN(worker->values()->New(border));
 	}, {
 		self->set_border_bottom_color(out.color);
 		self->set_border_bottom_width(out.width);
@@ -345,23 +345,23 @@ class WrapFrame: public WrapObject {
 		self->set_border_radius_right_bottom(out);
 	});
 	def_property_from_type2(min_width, float, {
-		JS_RETURN(worker->value_program()->New(self->width()));
+		JS_RETURN(worker->values()->New(self->width()));
 	}, {
 		self->set_width(out);
 	});
 	def_property_from_type2(min_height, float, {
-		JS_RETURN(worker->value_program()->New(self->height()));
+		JS_RETURN(worker->values()->New(self->height()));
 	}, {
 		self->set_height(out);
 	});
 	def_property_from_type2(start, Vec2, {
-		JS_RETURN(worker->value_program()->New(Vec2(self->start_x(), self->start_y())));
+		JS_RETURN(worker->values()->New(Vec2(self->start_x(), self->start_y())));
 	}, {
 		self->set_start_x(out.x());
 		self->set_start_y(out.y());
 	});
 	def_property_from_type2(ratio, Vec2, {
-		JS_RETURN(worker->value_program()->New(Vec2(self->ratio_x(), self->ratio_y())));
+		JS_RETURN(worker->values()->New(Vec2(self->ratio_x(), self->ratio_y())));
 	}, {
 		self->set_ratio_x(out.x());
 		self->set_ratio_y(out.y());
@@ -415,7 +415,7 @@ class WrapFrame: public WrapObject {
 }
 	def_property_from_type3(background_repeat, Array<Repeat>, Repeats, {
 		auto img = as_background_image(self);
-		JS_RETURN( worker->value_program()->New( img ? img->repeat() : Repeat::NONE) );
+		JS_RETURN( worker->values()->New( img ? img->repeat() : Repeat::NONE) );
 	}, {
 		set_background_attrs({
 			bg->set_repeat(out[i]);
@@ -434,7 +434,7 @@ class WrapFrame: public WrapObject {
 													Array<BackgroundPositionCollection>, BackgroundPositions, {
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->position_x()) );
+			JS_RETURN( worker->values()->New(img->position_x()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -447,7 +447,7 @@ class WrapFrame: public WrapObject {
 													Array<BackgroundPositionCollection>, BackgroundPositions, {
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->position_y()) );
+			JS_RETURN( worker->values()->New(img->position_y()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -467,7 +467,7 @@ class WrapFrame: public WrapObject {
 	def_property_from_type3(background_size_x, Array<BackgroundSizeCollection>, BackgroundSizes, {
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->size_x()) );
+			JS_RETURN( worker->values()->New(img->size_x()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -479,7 +479,7 @@ class WrapFrame: public WrapObject {
 	def_property_from_type3(background_size_y, Array<BackgroundSizeCollection>, BackgroundSizes, {
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->size_y()) );
+			JS_RETURN( worker->values()->New(img->size_y()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -489,7 +489,6 @@ class WrapFrame: public WrapObject {
 		});
 	});
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Frame, constructor, {
 			JS_SET_CLASS_METHOD(fetch, fetch);

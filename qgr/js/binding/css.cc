@@ -309,15 +309,16 @@ class WrapStyleSheets: public WrapObject {
 		self->set_background(out);
 	});
 	
-#define set_background_attrs(block) { \
-	auto bg = as_background_image(self);\
-	int i = 0;\
-	while(bg) {\
-		block; \
-		i++;\
-		bg = bg->next() ? bg->next()->as_image(): nullptr; \
-	} \
-}
+	#define set_background_attrs(block) { \
+		auto bg = as_background_image(self);\
+		int i = 0;\
+		while(bg) {\
+			block; \
+			i++;\
+			bg = bg->next() ? bg->next()->as_image(): nullptr; \
+		} \
+	}
+
 	def_property_from_type3(background_repeat, Array<Repeat>, Repeats, {
 		set_background_attrs({
 			bg->set_repeat(out[i]);
@@ -359,15 +360,13 @@ class WrapStyleSheets: public WrapObject {
 		});
 	});
 	
-public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->binding_module("qgr_value");
 		
 		// PROPERTY
-# define xx_def_property(ENUM, TYPE, NAME) \
-	JS_SET_PROPERTY(ENUM, ENUM);
+	 #define xx_def_property(ENUM, TYPE, NAME) JS_SET_PROPERTY(ENUM, ENUM);
 		XX_EACH_PROPERTY_TABLE(xx_def_property)
-# undef xx_def_property
+	 #undef xx_def_property
 		
 		JS_SET_PROPERTY(PROPERTY_TIME, -1);
 		JS_SET_PROPERTY(PROPERTY_TRANSLATE, -2);

@@ -305,7 +305,7 @@ inline static bool is_valid_texture(uint handle) {
 }
 
 XX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
-public:
+ public:
 	/**
 	 * @func load_mipmap_data 通过像素数据载入mipmap纹理到GPU,如果成功返回true
 	 */
@@ -314,7 +314,9 @@ public:
 		if (!ctx) return false;
 		uint size = 0;
 		uint size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
-		
+
+		XX_CHECK_RENDER_THREAD();
+
 		for (uint i = 0; i < mipmap_data.length(); i++) {
 			auto data = mipmap_data[i];
 			size += data.width() * data.height() * size_pixel;
@@ -351,6 +353,8 @@ public:
 	void generate_texture() {
 		auto ctx = draw_ctx();
 		if (!ctx) return;
+
+		XX_CHECK_RENDER_THREAD();
 		
 		m_status |= TEXTURE_LOADING;
 		int status = TEXTURE_NO_LOADED;
@@ -407,13 +411,20 @@ public:
 			XX_TRIGGER(change, status);
 		}, this));
 	}
-	
+
 	void clear() {
 		auto ctx = draw_ctx();
+		bool post_to_render = ctx ? !ctx->host()->has_current_render_thread(): false;
+		Array<uint> post_to_render_handles;
+
 		for (int i = 0; i < 8; i++) {
 			if (is_valid_texture(m_handle[i])) {
 				if (ctx) {
-					ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
+					if (post_to_render) {
+						post_to_render_handles.push(m_handle[i]);
+					} else {
+						ctx->del_texture(m_handle[i]); // 从GPU中删除纹理数据
+					}
 					set_texture_total_data_size(tex_pool(), -m_data_size[i]);
 				}
 				m_handle[i] = 0;
@@ -422,6 +433,18 @@ public:
 				m_repeat[i] = Repeat::NONE;
 			}
 		}
+
+		if (post_to_render_handles.length()) {
+			ctx->host()->render_loop()->post(Cb([post_to_render_handles](Se& e) {
+				auto ctx = draw_ctx();
+				if (ctx) {
+					for (auto i : post_to_render_handles) {
+						ctx->del_texture(i.value());
+					}
+				}
+			}));
+		}
+
 		m_status &= ~TEXTURE_HARDWARE_MIPMAP;
 	}
 };
@@ -536,7 +559,9 @@ bool TextureYUV::load_yuv(cPixelData& data) {
 	set_texture_total_data_size(pool, -old_size);
 	int size = data.width() * data.height();
 	int new_size = size + size / 2;
-	
+
+	XX_CHECK_RENDER_THREAD();
+
 	if (draw_ctx()->adjust_texture_memory(new_size)) {
 		if ( draw_ctx()->set_yuv_texture(this, data) ) {
 			m_data_size[0] = size;
@@ -690,6 +715,8 @@ void FileTexture::load(Level level) {
 }
 
 bool FileTexture::unload(Level level) {
+	XX_CHECK_RENDER_THREAD();
+
 	if (level == LEVEL_NONE) { // unload all
 		if (m_status & TEXTURE_LOADING) {
 			m_status &= ~TEXTURE_LOADING;
@@ -732,8 +759,8 @@ bool FileTexture::unload(Level level) {
 }
 
 XX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
-public:
-#define _inl_pool(self) static_cast<TexturePool::Inl*>(self)
+ public:
+	#define _inl_pool(self) static_cast<TexturePool::Inl*>(self)
 	
 	void texture_change_handle(Event<int, Texture>& evt) {
 		int status = *evt.data();
@@ -777,6 +804,7 @@ public:
 };
 
 static void set_texture_total_data_size(TexturePool* pool, int size) {
+	XX_ASSERT(pool);
 	_inl_pool(pool)->set_texture_total_data_size(size);
 }
 
@@ -839,6 +867,8 @@ float TexturePool::progress() const {
 }
 
 void TexturePool::clear(bool full) {
+	XX_CHECK_RENDER_THREAD();
+
 	bool del_mark = false;
 	
 	if (full) {

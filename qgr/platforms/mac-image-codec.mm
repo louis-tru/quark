@@ -48,11 +48,11 @@ static PixelData image_decode(cBuffer& data) {
                                         length:data.length()
                                   freeWhenDone:NO];
   UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
- #if XX_OSX
+#if XX_OSX
   CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
- #else
+#else 
 	CGImageRef image = [uiimg CGImage];
- #endif
+#endif 
   
 	if (image) {
 		CGColorSpaceRef color_space = CGImageGetColorSpace(image);
@@ -109,11 +109,11 @@ static PixelData image_decode_header(cBuffer& data) {
                                         length:data.length()
                                   freeWhenDone:NO];
   UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
- #if XX_OSX
+#if XX_OSX
 	CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
- #else
+#else 
 	CGImageRef image = [uiimg CGImage];
- #endif
+#endif 
 	
 	if (image) {
 		int width = (int)CGImageGetWidth(image);

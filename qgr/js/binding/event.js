@@ -79,10 +79,10 @@ class Event {
 	/**
 	 * @constructor
 	 */
-	constructor(data) {
+	constructor(data, return_value) {
 		this.m_noticer = null;
-		this.m_return_value = 0;
 		this.m_data = data;
+		this.m_return_value = return_value || 0;
 	}
 	// @end
 }

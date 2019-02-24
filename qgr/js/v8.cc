@@ -168,13 +168,17 @@ class WorkerIMPL: public IMPL {
 	WorkerIMPL(node::Environment* env)
 		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
 	{
+#if HAVE_NODE
 		m_env = env;
 		isolate_ = env->isolate();
 		context_ = env->context();
+#else
+		XX_UNREACHABLE();
+#endif
 	}
 
 	virtual ~WorkerIMPL() {
-		Release(m_value_program); m_value_program = nullptr;
+		Release(m_values); m_values = nullptr;
 		Release(m_strs); m_strs = nullptr;
 		delete m_classs; m_classs = nullptr;
 		m_native_modules.Reset();
@@ -298,7 +302,11 @@ class WorkerIMPL: public IMPL {
 			out.push(sourceline_string); out.push('\n');
 			int start = message->GetStartColumn(context).FromJust();
 			for (int i = 0; i < start; i++) {
-				out.push( ' ' );
+				if (sourceline_string[i] == 9) { // \t
+					out.push( '\t' );
+				} else {
+					out.push( ' ' );
+				}
 			}
 			int end = message->GetEndColumn(context).FromJust();
 			for (int i = start; i < end; i++) {
@@ -339,30 +347,28 @@ class WorkerIMPL: public IMPL {
 	}
 
 	static void PromiseRejectCallback(PromiseRejectMessage message) {
-		// Local<Promise> promise = message.GetPromise();
-		// Isolate* isolate = promise->GetIsolate();
-		// Local<Value> value = message.GetValue();
-		// Local<Integer> event = Integer::New(isolate, message.GetEvent());
-
-		// Environment* env = Environment::GetCurrent(isolate);
-		// Local<Function> callback = env->promise_reject_function();
-
-		// if (value.IsEmpty())
-		// 	value = Undefined(isolate);
-
-		// Local<Value> args[] = { event, promise, value };
-		// Local<Object> process = env->process_object();
-
-		// callback->Call(process, arraysize(args), args);
+		if (message.GetEvent() == v8::kPromiseRejectWithNoHandler) {
+			current()->unhandled_rejection(message);
+		}
 	}
 
 	void uncaught_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		// TODO ...
-		print_exception(message, error);
+		if ( !TriggerUncaughtException(Cast(error)) ) {
+			print_exception(message, error);
+			qgr::exit(ERR_UNCAUGHT_EXCEPTION);
+		}
 	}
 
-	void unhandled_rejection(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		// TODO ...
+	void unhandled_rejection(PromiseRejectMessage& message) {
+		v8::Local<v8::Promise> promise = message.GetPromise();
+		v8::Local<v8::Value> reason = message.GetValue();
+		if (reason.IsEmpty())
+			reason = v8::Undefined(isolate_);
+		if ( !TriggerUnhandledRejection(Cast(reason), Cast(promise)) ) {
+			v8::HandleScope scope(isolate_);
+			v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate_, reason);
+			print_exception(message, reason);
+		}
 	}
 
 };
@@ -497,14 +503,14 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 }
 
 Local<JSValue> IMPL::binding_node_module(cString& name) {
- #if HAVE_NODE
+#if HAVE_NODE
 	if (m_env) {
 		Local<JSValue> argv = m_host->New(name);
 		Local<JSValue> binding = Cast<JSObject>(
 			m_env->process_object())->GetProperty(m_host, "binding");
 		return binding.To<JSFunction>()->Call(m_host, 1, &argv);
 	}
- #endif
+#endif 
 	return Local<JSValue>();
 }
 
@@ -1285,7 +1291,7 @@ Local<JSClass> Worker::NewClass(uint64 id, cString& name,
 	return rv;
 }
 
-void Worker::print_exception(TryCatch* try_catch) {
+void Worker::report_exception(TryCatch* try_catch) {
 	TryCatchWrap* wrap = *reinterpret_cast<TryCatchWrap**>(try_catch);
 	WORKER(this)->print_exception(wrap->try_.Message(), wrap->try_.Exception());
 }
@@ -1332,7 +1338,7 @@ int IMPL::start(int argc, char** argv) {
 	v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 
-	int code = 0;
+	int rc = 0;
 	{
 		Handle<Worker> worker = IMPL::create();
 		{
@@ -1341,11 +1347,14 @@ int IMPL::start(int argc, char** argv) {
 					EXT_native_js_code_module_, 
 					EXT_native_js_code_module_count_), "module.js"
 			);
-			XX_CHECK(!module.IsEmpty(), "Cannot start worker");
+			XX_CHECK(!module.IsEmpty(), "Can't start worker");
 
 			Local<JSValue> r = module.To()->
 				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
-			XX_CHECK(!r.IsEmpty(), "Cannot call runMain()");
+			if (r.IsEmpty()) {
+				XX_ERR("ERROR: Can't call runMain()");
+				return ERR_RUN_MAIN_EXCEPTION;
+			}
 		}
 
 		do {
@@ -1354,21 +1363,21 @@ int IMPL::start(int argc, char** argv) {
 			 This may cause a process to run in the background for a long time, so force break here */
 			if (RunLoop::is_process_exit()) break;
 
-			worker->m_inl->OnBeforeExit();
+			rc = worker->m_inl->TriggerBeforeExit(rc);
 
 			// Emit `beforeExit` if the loop became alive either after emitting
 			// event, or after running some callbacks.
 		} while (uv_loop_alive(RunLoop::main_loop()->uv_loop()));
 
 		if (!RunLoop::is_process_exit())
-			code = worker->m_inl->OnExit();
+			rc = worker->m_inl->TriggerExit(rc);
 	}
 
 	v8::V8::ShutdownPlatform();
 	v8::V8::Dispose();
 	delete platform;
 
-	return code;
+	return rc;
 }
 
 JS_END

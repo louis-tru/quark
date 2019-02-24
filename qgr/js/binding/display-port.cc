@@ -203,7 +203,7 @@ class WrapDisplayPort: public WrapObject {
 	static void scale_value(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(DisplayPort);
-		JS_RETURN( worker->value_program()->New(self->scale_value()) );
+		JS_RETURN( worker->values()->New(self->scale_value()) );
 	}
 	
 	/**
@@ -212,7 +212,7 @@ class WrapDisplayPort: public WrapObject {
 	static void root_matrix(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(DisplayPort);
-		JS_RETURN( worker->value_program()->New(self->root_matrix()) );
+		JS_RETURN( worker->values()->New(self->root_matrix()) );
 	}
 	
 	/**
@@ -342,7 +342,6 @@ class WrapDisplayPort: public WrapObject {
 		JS_RETURN( DisplayPort::default_status_bar_height() );
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_ACCESSOR(defaultAtomPixel, default_atom_pixel);
 		JS_SET_ACCESSOR(defaultStatusBarHeight, default_status_bar_height);

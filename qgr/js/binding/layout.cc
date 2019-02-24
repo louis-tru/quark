@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapLayout
  */
 class WrapLayout: public WrapObject {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
 		JS_THROW_ERR("Forbidden access abstract");
@@ -60,7 +61,6 @@ class WrapLayout: public WrapObject {
 		JS_RETURN( self->client_height() );
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS_NO_EXPORTS(Layout, constructor, {
 			JS_SET_CLASS_ACCESSOR(clientWidth, client_width);

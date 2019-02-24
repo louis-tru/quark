@@ -29,16 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "qgr/base/os/android-jni.h"
+#include "qgr/utils/os/android-jni.h"
 
 XX_NS(qgr)
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
 
-class APICore {
+class API {
  public:
-	APICore() {
+	API() {
 		ScopeENV env;
 		clazz_              = JNI::find_clazz("org/qgr/Android");
 		clazz_build_        = JNI::find_clazz("android.os.Build");
@@ -69,7 +69,7 @@ class APICore {
 																									"(Ljava/lang/String;Ljava/lang/String;"
 																									"Ljava/lang/String;Ljava/lang/String;"
 																									"Ljava/lang/String;)V");
-		start_path_         = JNI::find_static_method(clazz_, "start_path", "()Ljava/lang/String;");
+		start_cmd_         = JNI::find_static_method(clazz_, "start_cmd", "()Ljava/lang/String;");
 		network_status_     = JNI::find_static_method(clazz_, "network_status", "()I");
 		is_ac_power_        = JNI::find_static_method(clazz_, "is_ac_power", "()Z");
 		is_battery_         = JNI::find_static_method(clazz_, "is_battery", "()Z");
@@ -82,7 +82,7 @@ class APICore {
 		clazz_build_ = (jclass)env->NewGlobalRef(clazz_build_);
 	}
 
-	~APICore() {
+	~API() {
 		ScopeENV env;
 		env->DeleteGlobalRef(clazz_);
 		env->DeleteGlobalRef(clazz_build_);
@@ -106,7 +106,7 @@ class APICore {
 	jmethodID set_volume_down_;
 	jmethodID open_url_;
 	jmethodID send_email_;
-	jmethodID start_path_;
+	jmethodID start_cmd_;
 	jmethodID package_code_path_;
 	jmethodID files_dir_path_;
 	jmethodID cache_dir_path_;
@@ -125,11 +125,11 @@ class APICore {
 
 #define clazz_ _core->clazz_
 
-static APICore* _core = nullptr;
+static API* _core = nullptr;
 
 void Android::initialize() {
 	if ( !_core ) {
-		_core = new APICore();
+		_core = new API();
 	}
 }
 // ------------------------------- gui -------------------------------
@@ -206,9 +206,9 @@ void Android::send_email(cString& recipient,
 	);
 }
 // ------------------------------- util -------------------------------
-String Android::start_path() {
+String Android::start_cmd() {
 	ScopeENV env;
-	jobject obj = env->CallStaticObjectMethod(clazz_, _core->start_path_);
+	jobject obj = env->CallStaticObjectMethod(clazz_, _core->start_cmd_);
 	return JNI::jstring_to_string((jstring)obj, *env);
 }
 String Android::package_code_path() {

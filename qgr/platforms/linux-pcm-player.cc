@@ -56,7 +56,7 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		, m_volume(1)
 		, m_mute(false)
 	{
-	 #if DEBUG
+#if DEBUG
 		char* PCM_PERIODS = getenv("PCM_PERIODS");
 		char* PCM_PERIOD_SIZE = getenv("PCM_PERIOD_SIZE");
 		if (PCM_PERIODS) {
@@ -65,7 +65,7 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		if (PCM_PERIOD_SIZE) {
 			m_periods = String(PCM_PERIOD_SIZE).to_uint();
 		}
-	 #endif
+#endif
 	}
 
 	virtual ~LinuxPCMPlayer() {

@@ -47,11 +47,11 @@ using namespace qgr::value;
 #define js_parse_value(Type, value, desc) js_parse_value2(Type, Type, value, desc)
 #define js_parse_value2(Type, Name, value, desc) \
 	Type out; \
-	if ( !worker->value_program()->parse##Name(value, out, desc)) \
+	if ( !worker->values()->parse##Name(value, out, desc)) \
 	{ return; /*JS_THROW_ERR("Bad argument.");*/ }
 
 #define js_throw_value_err(value, msg, ...)\
-	worker->value_program()->throwError(t, msg, ##__VA_ARGS__)
+	worker->values()->throwError(t, msg, ##__VA_ARGS__)
 
 // ------------- values -------------
 

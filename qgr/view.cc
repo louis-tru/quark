@@ -51,8 +51,8 @@ public:
  * @class View::Inl
  */
 XX_DEFINE_INLINE_MEMBERS(View, Inl) {
-public:
-#define _inl(self) static_cast<View::Inl*>(self)
+ public:
+	#define _inl(self) static_cast<View::Inl*>(self)
 	
 	/**
 	 * @func delete_mark 从原来的位置删除

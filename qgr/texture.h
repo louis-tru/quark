@@ -81,7 +81,7 @@ class XX_EXPORT Texture: public Reference {
 	XX_HIDDEN_ALL_COPY(Texture);
  public:
 	typedef PixelData::Format PixelFormat;
-	
+
 	enum Level {
 		LEVEL_0 = 0, // raw image
 		LEVEL_1,
@@ -93,32 +93,32 @@ class XX_EXPORT Texture: public Reference {
 		LEVEL_7,
 		LEVEL_NONE,
 	};
-	
+
 	/**
 	 * @event onchange 纹理变化事件,比如尺寸了生了变化
 	 */
 	XX_EVENT(change, Event<int, Texture>);
-	
+
 	/**
 	 * @func create() 通过图像数据创建一个新的纹理对像,如果成功返回纹理对像
 	 */
 	static Texture* create(cPixelData& data);
-	
+
 	/**
 	 * @func create() 通过mipmap图像数据创建一个新的纹理对像,如果成功返回纹理对像
 	 */
 	static Texture* create(const Array<PixelData>& data);
-	
+
 	/**
 	 * @func get_texture_level()
 	 */
 	static Level get_texture_level(uint ratio);
-	
+
 	/**
 	 * @func get_texture_level_from_convex_quadrilateral(vertex)
 	 */
 	Level get_texture_level_from_convex_quadrilateral(Vec2 vertex[4]);
-	
+
 	/**
 	 * @destructor
 	 */
@@ -128,13 +128,13 @@ class XX_EXPORT Texture: public Reference {
 	 * @func id() 纹理id
 	 */
 	virtual String id() const;
-	
+
 	/**
 	 * @func load() 载入纹理数据到GPU,载入成功后触发change事件.
 	 */
 	virtual void load(Level level = LEVEL_NONE) {}
 	virtual bool unload(Level level = LEVEL_NONE) { return false; }
-	
+
 	/**
 	 * @func use()  绑定纹理到指定槽,成功返回true,否则返回false并调用load尝试加载纹理到GPU
 	 */
@@ -151,19 +151,19 @@ class XX_EXPORT Texture: public Reference {
 	inline int height() const { return m_height; }
 	inline int diagonal() const { return m_diagonal; }
 	inline PixelFormat format() const { return m_format; }
-	
+
  protected:
-	
+
 	/**
 	 * @constructor
 	 */
 	Texture();
-	
+
 	/**
 	 * @func load_data() 通过像素数据载入纹理到GPU,如果成功返回true
 	 */
 	bool load_data(cPixelData& data);
-	
+
 	int   m_status;
 	uint  m_handle[8];
 	uint  m_data_size[8];
@@ -173,7 +173,7 @@ class XX_EXPORT Texture: public Reference {
 	int   m_height;
 	uint  m_diagonal;
 	PixelFormat m_format;
-	
+
 	friend class GLDraw;
 	XX_DEFINE_INLINE_CLASS(Inl);
 };

@@ -257,7 +257,7 @@ class LinuxApplication {
 				m_host->refresh_display(); // 刷新显示
 			} else {
 				m_is_init = 1;
-				gl_draw_context->create_surface(m_win);
+				XX_CHECK(gl_draw_context->create_surface(m_win));
 				gl_draw_context->initialize();
 				m_host->onLoad();
 				m_host->onForeground();
@@ -275,10 +275,10 @@ class LinuxApplication {
 	}
 
 	void initialize(cJSON& options) {
-		XX_CHECK(XInitThreads(), "Cannot init X threads");
+		XX_CHECK(XInitThreads(), "Error: Can't init X threads");
 
 		m_dpy = XOpenDisplay(nullptr);
-		XX_CHECK(m_dpy, "Cannot connect to display");
+		XX_CHECK(m_dpy, "Error: Can't open display");
 		m_root = XDefaultRootWindow(m_dpy);
 		m_screen = DefaultScreen(m_dpy);
 

@@ -52,13 +52,13 @@ class WrapInput: public WrapViewBase {
 	static void type(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Input);
-		JS_RETURN( worker->value_program()->New(self->type()) );
+		JS_RETURN( worker->values()->New(self->type()) );
 	}
 	
 	static void return_type(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Input);
-		JS_RETURN( worker->value_program()->New(self->return_type()) );
+		JS_RETURN( worker->values()->New(self->return_type()) );
 	}
 	
 	static void placeholder(Local<JSString> name, PropertyCall args) {
@@ -70,7 +70,7 @@ class WrapInput: public WrapViewBase {
 	static void placeholder_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Input);
-		JS_RETURN( worker->value_program()->New(self->placeholder_color()) );
+		JS_RETURN( worker->values()->New(self->placeholder_color()) );
 	}
 	
 	static void security(Local<JSString> name, PropertyCall args) {

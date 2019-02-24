@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapBox
  */
 class WrapBox: public WrapObject {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
 		JS_THROW_ERR("Forbidden access abstract");
@@ -54,7 +55,7 @@ class WrapBox: public WrapObject {
 	static void width(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->width()) );
+		JS_RETURN( worker->values()->New(self->width()) );
 	}
 
 	/**
@@ -63,7 +64,7 @@ class WrapBox: public WrapObject {
 	static void height(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->height()) );
+		JS_RETURN( worker->values()->New(self->height()) );
 	}
 
 	/**
@@ -72,7 +73,7 @@ class WrapBox: public WrapObject {
 	static void margin_left(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->margin_left()) );
+		JS_RETURN( worker->values()->New(self->margin_left()) );
 	}
 
 	/**
@@ -81,7 +82,7 @@ class WrapBox: public WrapObject {
 	static void margin_top(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->margin_top()) );
+		JS_RETURN( worker->values()->New(self->margin_top()) );
 	}
 
 	/**
@@ -90,7 +91,7 @@ class WrapBox: public WrapObject {
 	static void margin_right(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->margin_right()) );
+		JS_RETURN( worker->values()->New(self->margin_right()) );
 	}
 
 	/**
@@ -99,7 +100,7 @@ class WrapBox: public WrapObject {
 	static void margin_bottom(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->margin_bottom()) );
+		JS_RETURN( worker->values()->New(self->margin_bottom()) );
 	}
 
 	/**
@@ -108,7 +109,7 @@ class WrapBox: public WrapObject {
 	static void border_left(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_left()) );
+		JS_RETURN( worker->values()->New(self->border_left()) );
 	}
 
 	/**
@@ -117,7 +118,7 @@ class WrapBox: public WrapObject {
 	static void border_top(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_top()) );
+		JS_RETURN( worker->values()->New(self->border_top()) );
 	}
 
 	/**
@@ -126,7 +127,7 @@ class WrapBox: public WrapObject {
 	static void border_right(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_right()) );
+		JS_RETURN( worker->values()->New(self->border_right()) );
 	}
 
 	/**
@@ -135,7 +136,7 @@ class WrapBox: public WrapObject {
 	static void border_bottom(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_bottom()) );
+		JS_RETURN( worker->values()->New(self->border_bottom()) );
 	}
 
 	/**
@@ -180,7 +181,7 @@ class WrapBox: public WrapObject {
 	static void border_left_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_left().color) );
+		JS_RETURN( worker->values()->New(self->border_left().color) );
 	}
 
 	/**
@@ -189,7 +190,7 @@ class WrapBox: public WrapObject {
 	static void border_top_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_top().color) );
+		JS_RETURN( worker->values()->New(self->border_top().color) );
 	}
 
 	/**
@@ -198,7 +199,7 @@ class WrapBox: public WrapObject {
 	static void border_right_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_right().color) );
+		JS_RETURN( worker->values()->New(self->border_right().color) );
 	}
 
 	/**
@@ -207,7 +208,7 @@ class WrapBox: public WrapObject {
 	static void border_bottom_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->border_bottom().color) );
+		JS_RETURN( worker->values()->New(self->border_bottom().color) );
 	}
 
 	/**
@@ -668,7 +669,7 @@ class WrapBox: public WrapObject {
 	static void background_color(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Box);
-		JS_RETURN( worker->value_program()->New(self->background_color()) );
+		JS_RETURN( worker->values()->New(self->background_color()) );
 	}
 	
 	/**
@@ -763,7 +764,7 @@ class WrapBox: public WrapObject {
 		JS_WORKER(args);
 		JS_SELF(Box);
 		auto img = as_background_image(self);
-		JS_RETURN( worker->value_program()->New(img ? img->repeat() : Repeat::NONE) );
+		JS_RETURN( worker->values()->New(img ? img->repeat() : Repeat::NONE) );
 	}
 	
 	static void background_position_x(Local<JSString> name, PropertyCall args) {
@@ -771,7 +772,7 @@ class WrapBox: public WrapObject {
 		JS_SELF(Box);
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->position_x()) );
+			JS_RETURN( worker->values()->New(img->position_x()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -782,7 +783,7 @@ class WrapBox: public WrapObject {
 		JS_SELF(Box);
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->position_y()) );
+			JS_RETURN( worker->values()->New(img->position_y()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -793,7 +794,7 @@ class WrapBox: public WrapObject {
 		JS_SELF(Box);
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->size_x()) );
+			JS_RETURN( worker->values()->New(img->size_x()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -804,7 +805,7 @@ class WrapBox: public WrapObject {
 		JS_SELF(Box);
 		auto img = as_background_image(self);
 		if (img) {
-			JS_RETURN( worker->value_program()->New(img->size_y()) );
+			JS_RETURN( worker->values()->New(img->size_y()) );
 		} else {
 			JS_RETURN_NULL();
 		}
@@ -901,7 +902,6 @@ auto bg = get_background_image(self);\
 	
 	/**********************************/
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS_NO_EXPORTS(Box, constructor, {
 			JS_SET_CLASS_ACCESSOR(width, width, set_width);

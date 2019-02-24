@@ -94,10 +94,10 @@ class Worker::IMPL {
 	Local<JSFunction> GenConstructor(Local<JSClass> cls);
 	Local<JSValue> binding_node_module(cString& name);
 
-	int  OnExit();
-	void OnBeforeExit();
-	void OnUncaughtException();
-	void OnUnhandledRejection();
+	int  TriggerExit(int code);
+	int  TriggerBeforeExit(int code);
+	bool TriggerUncaughtException(Local<JSValue> err);
+	bool TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise);
 
 	static int start(int argc, char** argv);
 	
@@ -106,7 +106,7 @@ class Worker::IMPL {
 	friend class NativeValue;
 	Worker*         m_host;
 	ThreadID        m_thread_id;
-	ValueProgram*   m_value_program;
+	ValueProgram*   m_values;
 	CommonStrings*  m_strs;
 	JSClassStore*   m_classs;
 	Local<JSObject> m_global;

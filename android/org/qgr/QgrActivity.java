@@ -147,7 +147,7 @@ public class QgrActivity extends NativeActivity implements View.OnSystemUiVisibi
 		super.onConfigurationChanged(newConfig);
 	}
 	
-	protected String startPath() {
+	protected String startCommand() {
 		return "";
 	}
 

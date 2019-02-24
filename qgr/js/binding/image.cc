@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapImage
  */
 class WrapImage: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
@@ -74,7 +75,6 @@ class WrapImage: public WrapViewBase {
 		JS_RETURN( self->source_height() );
 	}
 
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Image, constructor, {
 			JS_SET_CLASS_ACCESSOR(src, src, set_src);

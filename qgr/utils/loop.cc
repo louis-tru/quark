@@ -113,9 +113,9 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 	}
 
 	static void run2(Exec body, SimpleThread* thread) {
-		#if XX_ANDROID
+#if XX_ANDROID
 			JNI::ScopeENV scope;
-		#endif
+#endif
 		set_thread_specific_data(thread);
 		if ( !thread->m_abort ) {
 			body(*thread);

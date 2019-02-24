@@ -29,27 +29,29 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "qgr/js/qgr.h"
-#include "qgr/app.h"
-#include "qgr/utils/fs.h"
 
 using namespace qgr;
 
-#define USE_REMOTE 1
 #define IP_REMOTE "127.0.0.1"
+#define USE_REMOTE 1
 #define USE_INSPECT 0
+#define USE_NODE 0
+
+#if USE_NODE
+# define NODE_FLAG "--node "
+#else
+# define NODE_FLAG ""
+#endif
 
 void test_qgr(int argc, char **argv) {
-#if USE_REMOTE
-# if USE_INSPECT
-	js::start("--node --inspect-brk=0.0.0.0:9229 http://" IP_REMOTE ":1026/test/test-qgr");
-# else
-	js::start("--node http://" IP_REMOTE ":1026/test/test-qgr --dev");
-# endif
-#else
-# if USE_INSPECT
-	js::start("--node --inspect-brk=0.0.0.0:9229 test-qgr");
-# else
-	js::start("--node test-qgr --dev");
-# endif
+	String cmd = "qgr " NODE_FLAG;
+#if USE_INSPECT
+	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #endif
+#if USE_REMOTE
+	cmd += "http://" IP_REMOTE ":1026/test/test-qgr --dev";
+#else
+	cmd += "test-qgr --dev";
+#endif
+	js::Start(cmd);
 }

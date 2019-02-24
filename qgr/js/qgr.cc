@@ -34,9 +34,7 @@
 #include "qgr/js/qgr.h"
 #include "qgr/utils/http.h"
 #include "binding/event-1.h"
-#if XX_ANDROID
-# include "android/android.h"
-#endif
+#include "android/android.h"
 #include "native-ext-js.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
@@ -97,7 +95,6 @@ bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id)
 	if ( i.is_null() ) {
 		return false;
 	}
-	
 	GUIEventName name = i.value();
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
 	
@@ -195,45 +192,49 @@ Array<char*>* _qgr_argv = nullptr;
 int _qgr_have_node = 0;
 
 // parse argv
-static void parse_argv(cString& argv_in, Array<char*>& argv, Array<char*>& qgr_argv) {
-	static String argv_str = argv_in.trim();
-	// add prefix
-	if (argv_in.index_of("qgr") != 0) {
-		argv_str = String("qgr ") + argv_str;
-	}
-	Array<String> argv_ls = argv_str.split(' ');
+static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& qgr_argv) {
+	static String argv_str;
+
+	XX_CHECK(argv_in.length(), "Bad start argument");
 	_qgr_have_node = 0;
-	argv_str = String();
-	
-	for (auto& i : argv_ls) {
-		argv_str += i.value().trim() + ' ';
+	argv_str = argv_in[0];
+
+	Array<int> indexs = {-1};
+	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
+		if (!_qgr_have_node && argv_in[i] == "--node") {
+			_qgr_have_node = 1;
+		} else {
+			argv_str.push(' ').push(argv_in[i]);
+			indexs.push(index);
+			index += argv_in[i].length() + 1;
+		}
 	}
-	argv_str = argv_str.trim_right();
-	
+
 	char* str_c = const_cast<char*>(*argv_str);
 	argv.push(str_c);
 	qgr_argv.push(str_c);
-	
-	int qgr_ok = 0;
-	int index = 0;
-	while ((index = argv_str.index_of(" ", index)) != -1) {
+
+	for (int i = 1, qgr_ok = 1; i < indexs.length(); i++) {
+		int index = indexs[i];
 		str_c[index] = '\0';
-		index++;
-		char* arg = str_c + index;
-		if (qgr_ok) {
-			qgr_argv.push(arg);
-		} else if (arg[0] != '-') {
+		char* arg = str_c + index + 1;
+		if (qgr_ok || arg[0] != '-') {
 			qgr_ok = 1;
 			qgr_argv.push(arg);
-		} else if (strstr(arg, "--node") == arg) {
-			_qgr_have_node = 1;
-			continue;
 		}
 		argv.push(arg);
 	}
 }
 
-int start(cString& argv_str) {
+int Start(cString& cmd) {
+	Array<String> argv_in;
+	for (auto& i : cmd.trim().split(' ')) {
+		argv_in.push(i.value().trim());
+	}
+	return Start(argv_in);
+}
+
+int Start(const Array<String>& argv_in) {
 	static int is_start_initializ = 0;
 	if ( is_start_initializ++ == 0 ) {
 		HttpHelper::initialize();
@@ -241,61 +242,72 @@ int start(cString& argv_str) {
 			object_allocator_alloc, object_allocator_release, object_allocator_retain,
 		};
 		qgr::set_object_allocator(&allocator);
-	 #if HAVE_NODE
+#if HAVE_NODE
 		node::set_qgr_api(new QgrApiImpl);
 		qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
-	 #endif
+#endif
 	}
-
-	RunLoop* loop = RunLoop::main_loop();
+	XX_CHECK(!_qgr_argv);
 	
 	Array<char*> argv, qgr_argv;
-	parse_argv(argv_str, argv, qgr_argv);
+	parseArgv(argv_in, argv, qgr_argv);
 
-	XX_CHECK(!_qgr_argv);
 	_qgr_argv = &qgr_argv;
-	int code;
-	
- // #if HAVE_NODE
-	// if (_qgr_have_node) {
-	// 	code = node::Start(argv.length(), const_cast<char**>(&argv[0]));
-	// } else 
- // #endif
+	int rc;
+	int argc = argv.length();
+	char** argv_c = const_cast<char**>(&argv[0]);
+
+	// Mark the current main thread and check current thread
+	XX_CHECK(RunLoop::main_loop() == RunLoop::current());
+
+#if HAVE_NODE
+	if (_qgr_have_node)
+	{
+		rc = node::Start(argc, argv_c);
+	} else 
+#endif
 	{
 		_qgr_have_node = 0;
-		code = IMPL::start(argv.length(), const_cast<char**>(&argv[0]));
+		rc = IMPL::start(argc, argv_c);
 	}
 	_qgr_argv = nullptr;
 
-	return code;
+	return rc;
+}
+
+int Start(int argc, char** argv) {
+	Array<String> argv_in;
+	for (int i = 0; i < argc; i++) {
+		argv_in.push(argv[i]);
+	}
+	return Start(argv_in);
 }
 
 /**
  * @func __default_main
  */
 int __default_main(int argc, char** argv) {
-	String path;
+	String cmd;
 
- #if XX_ANDROID
-	path = Android::start_path();
-	if ( path.is_empty() )
- #endif
+#if XX_ANDROID
+	cmd = Android::start_cmd();
+	if ( cmd.is_empty() )
+#endif 
 	{
 		FileReader* reader = FileReader::shared();
-		path = Path::resources("index");
-		Array<String> ls = String(reader->read_file_sync( path )).split('\n');
-		path = String();
+		String index = Path::resources("index");
+		Array<String> ls = String(reader->read_file_sync( index )).split('\n');
 	
-		for ( uint i = 0; i < ls.length(); i++ ) {
+		for ( int i = 0; i < ls.length(); i++ ) {
 			String s = ls[i].trim();
 			if ( s[0] != '#' ) {
-				path = s;
+				cmd = s;
 				break;
 			}
 		}
 	}
-	if ( ! path.is_empty() ) {
-		return start(path);
+	if ( ! cmd.is_empty() ) {
+		return Start(cmd);
 	}
 
 	return 0;

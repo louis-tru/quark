@@ -39,7 +39,7 @@ const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
 				isLocal, isLocalZip, 
-				isNetwork, assert, stripBOM } = _pkgutil;
+				isNetwork, assert, stripBOM, Module, NativeModule } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = requireNative('_reader');
@@ -50,7 +50,6 @@ const debug = _pkgutil.debug('PKG');
 var ignore_local_package, ignore_all_local_package;
 var keys = null, config = null;
 var instance = null;
-var Module, NativeModule;
 
 function parse_keys(content) {
 	if ( !keys ) {
@@ -180,10 +179,8 @@ global.__extend = extendEntries;
 
 // -------------------------- Module extensions --------------------------
 
-var Module_extensions = {};
-
 // Native extension for .js
-Module_extensions['.js'] = function(module, rawFilename) {
+Module._extensions['.js'] = function(module, rawFilename) {
 	var content = read_text_sync(rawFilename);
 	var pkg = module.package;
 	var filename = rawFilename.replace(/\?.*$/, '');
@@ -197,7 +194,7 @@ Module_extensions['.js'] = function(module, rawFilename) {
 };
 
 // Native extension for .jsx
-Module_extensions['.jsx'] = function(module, rawFilename) {
+Module._extensions['.jsx'] = function(module, rawFilename) {
 	var content = read_text_sync(rawFilename);
 	var pkg = module.package;
 	var filename = rawFilename.replace(/\?.*$/, '');
@@ -209,13 +206,13 @@ Module_extensions['.jsx'] = function(module, rawFilename) {
 };
 
 // Native extension for .json
-Module_extensions['.json'] = function(module, filename) {
+Module._extensions['.json'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	module.exports = parseJSON(content, filename);
 };
 
 // Native extension for .keys
-Module_extensions['.keys'] = function(module, filename) {
+Module._extensions['.keys'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	try {
 		module.exports = parse_keys(content);
@@ -227,7 +224,7 @@ Module_extensions['.keys'] = function(module, filename) {
 
 if (haveNode) {
 	//Native extension for .node
-	Module_extensions['.node'] = function(module, filename) {
+	Module._extensions['.node'] = function(module, filename) {
 		filename = fallbackPath(filename);
 		return process.dlopen(module, path._makeLong(filename));
 	};
@@ -1039,6 +1036,100 @@ function Packages_require_before(self, async, cb) {
 	}
 }
 
+function Packages_require_parse_argv(self) {
+	var args = [];
+
+	if (_util.argv.length > 1) {
+		if ( String(_util.argv[1])[0] != '-' ) {
+			self.m_main_startup_path = String(_util.argv[1] || '');
+			args = _util.argv.slice(2);
+		} else {
+			args = _util.argv.slice(1);
+		}
+	}
+
+	for (var i = 0; i < args.length; i++) {
+		var item = args[i];
+		var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
+		if (mat) {
+			var name = mat[1].replace(/-/gm, '_');
+			var val = mat[2] || 1;
+			var raw_val = options[name];
+			if ( raw_val ) {
+				if ( Array.isArray(raw_val) ) {
+					raw_val.push(val);
+				} else {
+					options[name] = [raw_val, val];
+				}
+			} else {
+				options[name] = val;
+			}
+		}
+	}
+
+	if (haveNode) {
+		if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
+			options.dev = 1;
+		}
+	}
+
+	_pkgutil.__dev = options.dev = !!options.dev;
+	
+	if ( !('url_arg' in options) ) {
+		options.url_arg = '';
+	}
+
+	if ('no_cache' in options || options.dev) {
+		if (options.url_arg) {
+			options.url_arg += '&__nocache';
+		} else {
+			options.url_arg = '__nocache';
+		}
+	}
+
+	ignore_local_package = options.ignore_local || [];
+	ignore_all_local_package = false;
+	if ( typeof ignore_local_package == 'string' ) {
+		if ( ignore_local_package == '' || ignore_local_package == '*' ) {
+			ignore_all_local_package = true;
+		} else {
+			ignore_local_package = [ ignore_local_package ];
+		}
+	} else {
+		ignore_all_local_package = ignore_local_package.indexOf('*') != -1;
+	}
+}
+
+function Packages_require_add_main_search_path(self) {
+	var main = self.m_main_startup_path;
+
+	if (isNetwork(main)) {
+		if (options.dev) {
+			Packages_require_before(instance); // load packages
+			// 这是一个网络启动并为调式状态时,尝试从调式服务器`/libs` load `package`
+			var mat = main.match(/^https?:\/\/[^\/]+/);
+			assert(mat, 'Unknown err');
+			instance.addPackageSearchPath(mat[0] + '/libs');
+		}
+	}
+	else { // local
+		if (_path.extname(main) == '') { // package
+			instance.addPackageSearchPath(main + '/libs');
+			instance.addPackageSearchPath(main + '/../libs');
+		} else {
+			instance.addPackageSearchPath(_path.dirname(main) + '/libs');
+			instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
+		}
+	}
+
+	[
+		_path.resources(), 
+		_path.resources('libs'),
+	].concat(Module.globalPaths).forEach(function(path) {
+		instance.addPackageSearchPath(path);
+	});
+}
+
 /**
  * @class Packages
  */
@@ -1053,6 +1144,9 @@ class Packages {
 		this.m_async_cb = [];        //
 		this.m_is_ready = true;      // 是否已准备就绪
 		this.m_main_module = null;
+		this.m_main_startup_path = '';
+		Packages_require_parse_argv(this); // parse argv
+		Packages_require_add_main_search_path(this);
 	}
 
 	/**
@@ -1234,18 +1328,9 @@ class Packages {
 	 * # startup run
 	 * # parse args ready run
 	 */
-	_startup(_Module, _NativeModule) {
-		assert(_Module);
-		exports.Module = Module = _Module;
-		exports.NativeModule = NativeModule = _NativeModule || null;
-		Object.assign(Module._extensions, Module_extensions);
-
-		parse_argv(); // parse argv
-
-		var main = _util.argv[1];
+	_startup() {
+		var main = this.m_main_startup_path;
 		if (main) { // start
-			add_main_search_path(main);
-			
 			if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
 				inl_require(main, null);
 			} else {
@@ -1375,90 +1460,7 @@ function inl_require_without_err(pathname, parent) {
 	} catch(e) {}
 }
 
-function parse_argv() {
-	// console.log('parse_argv', _util.argv);
-
-	var args = _util.argv.slice(2);
-	
-	for (var i = 0; i < args.length; i++) {
-		var item = args[i];
-		var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
-		if (mat) {
-			var name = mat[1].replace(/-/gm, '_');
-			var val = mat[2] || 1;
-			var raw_val = options[name];
-			if ( raw_val ) {
-				if ( Array.isArray(raw_val) ) {
-					raw_val.push(val);
-				} else {
-					options[name] = [raw_val, val];
-				}
-			} else {
-				options[name] = val;
-			}
-		}
-	}
-
-	if (haveNode) {
-		if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
-			options.dev = 1;
-		}
-	}
-
-	_pkgutil.__dev = options.dev = !!options.dev;
-	
-	if ( !('url_arg' in options) ) {
-		options.url_arg = '';
-	}
-
-	if ('no_cache' in options || options.dev) {
-		if (options.url_arg) {
-			options.url_arg += '&__nocache';
-		} else {
-			options.url_arg = '__nocache';
-		}
-	}
-
-	ignore_local_package = options.ignore_local || [];
-	ignore_all_local_package = false;
-	if ( typeof ignore_local_package == 'string' ) {
-		if ( ignore_local_package == '' || ignore_local_package == '*' ) {
-			ignore_all_local_package = true;
-		} else {
-			ignore_local_package = [ ignore_local_package ];
-		}
-	} else {
-		ignore_all_local_package = ignore_local_package.indexOf('*') != -1;
-	}
-}
-
-function add_main_search_path(main) {
-
-	if (isNetwork(main)) {
-		if (options.dev) {
-			Packages_require_before(instance); // load packages
-			// 这是一个网络启动并为调式状态时,尝试从调式服务器`/libs` load `package`
-			var mat = main.match(/^https?:\/\/[^\/]+/);
-			assert(mat, 'Unknown err');
-			instance.addPackageSearchPath(mat[0] + '/libs');
-		}
-	}
-	else { // local
-		if (_path.extname(main) == '') { // package
-			instance.addPackageSearchPath(main + '/libs');
-			instance.addPackageSearchPath(main + '/../libs');
-		} else {
-			instance.addPackageSearchPath(_path.dirname(main) + '/libs');
-			instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
-		}
-	}
-
-	[
-		_path.resources(), 
-		_path.resources('libs'),
-	].concat(Module.globalPaths).forEach(function(path) {
-		instance.addPackageSearchPath(path);
-	});
-}
-
+exports.Module = Module;
+exports.NativeModule = NativeModule;
 exports.packages = new Packages();
+exports.instance = exports.packages;

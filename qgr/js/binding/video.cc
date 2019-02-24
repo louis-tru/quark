@@ -50,7 +50,8 @@ extern Local<JSValue> inl_track_to_jsvalue(const TrackInfo* track, Worker* worke
  * @class WrapVideo
  */
 class WrapVideo: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
@@ -222,7 +223,6 @@ class WrapVideo: public WrapViewBase {
 		JS_RETURN( self->video_height() );
 	}
 
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->binding_module("_value");
 

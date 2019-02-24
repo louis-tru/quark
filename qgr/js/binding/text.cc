@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapText
  */
 class WrapText: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
@@ -80,7 +81,6 @@ class WrapText: public WrapViewBase {
 		JS_RETURN( self->text_height() );
 	}
 
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Text, constructor, {
 			JS_SET_CLASS_ACCESSOR(length, length);

@@ -190,7 +190,7 @@ class InlJSON {
 			Local<JSObject> o = arg.To<JSObject>();
 			if (worker->has_buffer(arg)) {
 				rv = stringify_buffer(o);
-			} else if (worker->value_program() && worker->value_program()->isBase(arg)) {
+			} else if (worker->values() && worker->values()->isBase(arg)) {
 				_rv->push(Quotes);
 				_rv->push( o->ToStringValue(worker) );
 				_rv->push(Quotes);

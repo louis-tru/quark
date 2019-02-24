@@ -205,9 +205,9 @@ void DisplayPort::render_frame() {
 			r->draw(m_draw_ctx); // 开始绘图
 			_inl(this)->solve_next_frame();
 			
-		 #if DEBUG && PRINT_RENDER_FRAME_TIME
+#if DEBUG && PRINT_RENDER_FRAME_TIME
 			int64 st = sys::time();
-		 #endif
+#endif
 			/*
 			 * commit_render()非常耗时,渲染线程长时间占用`GUILock`会柱塞主线程。
 			 * 所以这里释放`GUILock`，commit_render()主要是绘图相关的函数调用,
@@ -216,14 +216,14 @@ void DisplayPort::render_frame() {
 			Inl2_RunLoop(m_host->render_loop())->independent_mutex_unlock();
 			m_draw_ctx->commit_render();
 			Inl2_RunLoop(m_host->render_loop())->independent_mutex_lock();
-		 #if DEBUG && PRINT_RENDER_FRAME_TIME
+#if DEBUG && PRINT_RENDER_FRAME_TIME
 			int64 ts2 = (sys::time() - st) / 1e3;
 			if (ts2 > 16) {
 				LOG("ts: %ld -------------- ", ts2);
 			} else {
 				LOG("ts: %ld", ts2);
 			}
-		 #endif
+#endif
 			return;
 		}
 	}

@@ -50,22 +50,22 @@ template<class T> class WrapLimit: public WrapViewBase {
 	static void min_width(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(T);
-		JS_RETURN( worker->value_program()->New(self->min_width()) );
+		JS_RETURN( worker->values()->New(self->min_width()) );
 	}
 	static void min_height(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(T);
-		JS_RETURN( worker->value_program()->New(self->min_height()) );
+		JS_RETURN( worker->values()->New(self->min_height()) );
 	}
 	static void max_width(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(T);
-		JS_RETURN( worker->value_program()->New(self->max_width()) );
+		JS_RETURN( worker->values()->New(self->max_width()) );
 	}
 	static void max_height(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(T);
-		JS_RETURN( worker->value_program()->New(self->max_height()) );
+		JS_RETURN( worker->values()->New(self->max_height()) );
 	}
 	static void set_min_width(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;

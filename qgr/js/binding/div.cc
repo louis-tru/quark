@@ -42,7 +42,8 @@ JS_BEGIN
  * @class WrapDiv
  */
 class WrapDiv: public WrapViewBase {
-	
+ public:
+
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
@@ -52,7 +53,7 @@ class WrapDiv: public WrapViewBase {
 	static void content_align(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Div);
-		JS_RETURN( worker->value_program()->New(self->content_align()) );
+		JS_RETURN( worker->values()->New(self->content_align()) );
 	}
 	
 	static void set_content_align(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -62,7 +63,6 @@ class WrapDiv: public WrapViewBase {
 		self->set_content_align(out);
 	}
 	
- public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Div, constructor, {
 			JS_SET_CLASS_ACCESSOR(contentAlign, content_align, set_content_align);

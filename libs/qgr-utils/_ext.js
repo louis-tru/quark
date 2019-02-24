@@ -310,11 +310,24 @@ extend(Date, {
 
 });
 
-const rawDateToString = Date.prototype.toString;
-
 extend(Date.prototype, {
 
-	...(Date.prototype.rawToString ? {}: {
+	/**
+	 * @func addMs 给当前Date时间追加毫秒,改变时间值
+	 * @arg ms {Number}  要添追加的毫秒值
+	 * @ret {Date}
+	 */
+	addMs: function(ms) {
+		this.setMilliseconds(this.getMilliseconds() + ms);
+		return this;
+	},
+
+});
+
+if (!Date.prototype.rawToString) {
+	var rawDateToString = Date.prototype.toString;
+
+	extend(Date.prototype, {
 		/**
 		* 给定日期格式返回日期字符串
 		* <pre><code>
@@ -355,19 +368,8 @@ extend(Date.prototype, {
 			}
 		},
 		rawToString: rawDateToString,
-	}),
-
-	/**
-	 * @func addMs 给当前Date时间追加毫秒,改变时间值
-	 * @arg ms {Number}  要添追加的毫秒值
-	 * @ret {Date}
-	 */
-	addMs: function(ms) {
-		this.setMilliseconds(this.getMilliseconds() + ms);
-		return this;
-	},
-
-});
+	});
+}
 
 extend(Error, {
 

@@ -31,11 +31,11 @@
 #ifndef __qgr__android__android__
 #define __qgr__android__android__
 
-#include "qgr/base/util.h"
+#include "qgr/utils/util.h"
 
 #if XX_ANDROID
 
-#include "qgr/base/string.h"
+#include "qgr/utils/string.h"
 
 XX_NS(qgr)
 
@@ -65,7 +65,7 @@ public:
 												 cString& subject,
 												 cString& cc, cString& bcc, cString& body);
 	// util
-	static String start_path();
+	static String start_cmd();
 	static String package_code_path();
 	static String files_dir_path();
 	static String cache_dir_path();

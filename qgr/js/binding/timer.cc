@@ -195,7 +195,7 @@ class WrapTimer: public WrapObject {
 	}
 
 	// global function
-	
+
 	static void run_timer_(FunctionCall args, int loop) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || !args[0]->IsFunction(worker)) {
@@ -215,15 +215,15 @@ class WrapTimer: public WrapObject {
 			JS_RETURN( wrap->that() );
 		}
 	}
-	
+
 	static void setTimeout(FunctionCall args) {
 		run_timer_(args, 1);
 	}
-	
+
 	static void setInterval(FunctionCall args) {
 		run_timer_(args, -1);
 	}
-	
+
 	static void clearTimeout(FunctionCall args) {
 		JS_WORKER(args);
 		if ( args.Length() == 0 || ! worker->has_instance<Timer>(args[0]) ) {
@@ -231,7 +231,7 @@ class WrapTimer: public WrapObject {
 		}
 		Wrap<Timer>::unpack(args[0].To<JSObject>())->self()->stop();
 	}
-	
+
 	static void clearInterval(FunctionCall args) {
 		clearTimeout(args);
 	}

@@ -120,9 +120,9 @@ uint64 FileStat::birthtime() const {
  * @func get C file flga
  */
 int inl__file_flag_mask(int flag) {
- #if XX_POSIX || XX_UNIX
+#if XX_POSIX || XX_UNIX
 	return flag;
- #else
+#else 
 	int r_flag = flag & ~(O_ACCMODE | O_WRONLY | O_RDWR | 
 		O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | O_APPEND | O_NONBLOCK);
 	if (FOPEN_ACCMODE & flag) r_flag =| O_ACCMODE;
@@ -135,7 +135,7 @@ int inl__file_flag_mask(int flag) {
 	if (FOPEN_APPEND & flag) r_flag =| O_APPEND;
 	if (FOPEN_NONBLOCK & flag) r_flag =| O_NONBLOCK;
 	return r_flag;
- #endif
+#endif 
 }
 
 cchar* inl__file_flag_str(int flag) {

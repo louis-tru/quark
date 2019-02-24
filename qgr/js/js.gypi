@@ -9,6 +9,7 @@
 		'include_dirs': [
 			'../../out', 
 			'../..',
+			'../../depe/node/deps/uv/include',
 		],
 		'dependencies': [
 			'qgr-utils', 
@@ -95,7 +96,6 @@
 			['node_enable==1', {
 				'include_dirs': [
 					'../../depe/node/src',
-					'../../depe/node/deps/uv/include',
 					'../../depe/node/deps/cares/include',
 				],
 				'dependencies': [
