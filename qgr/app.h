@@ -249,6 +249,7 @@ class XX_EXPORT GUIApplication: public Object {
 	bool  m_is_run, m_is_load;
 	RunLoop  *m_render_loop, *m_main_loop;
 	KeepLoop *m_render_keep, *m_main_keep;
+	ThreadID m_render_id, m_main_id;
 	Draw*                m_draw_ctx;         // 绘图上下文
 	DisplayPort*         m_display_port;     // 显示端口
 	Root*                m_root;             // 根视图

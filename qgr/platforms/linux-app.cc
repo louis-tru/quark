@@ -250,7 +250,7 @@ class LinuxApplication {
 
 		m_w_width = attrs.width;
 		m_w_height = attrs.height;
-    //if (!m_is_init) 
+		//if (!m_is_init)
 		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
 			if (m_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
@@ -427,15 +427,15 @@ class LinuxApplication {
 	}
 
 	void destroy() {
+		auto id = m_main_loop->thread_id();
+
 		m_render_looper->stop();
 		m_host->exit();
-		do {
-			// TODO potential safety hazard
-			m_main_loop->stop();
-			SimpleThread::wait_end(m_main_loop->thread_id(), 1e5/*100ms*/); // wait main loop end
-		} while(m_main_loop->is_alive());
+
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
-		XCloseDisplay(m_dpy); m_dpy = nullptr;  // disconnect x display
+		XCloseDisplay(m_dpy); m_dpy = nullptr; // disconnect x display
+
+		SimpleThread::wait_end(id);
 	}
 
 	float get_monitor_dpi() {

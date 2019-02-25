@@ -95,8 +95,10 @@ void AppInl::refresh_display() {
 }
 
 void AppInl::onLoad() {
-	m_is_load = true;
-	m_main_loop->post(Cb([&](Se& d) { GUILock lock; XX_TRIGGER(load); }));
+	if (!m_is_load) {
+		m_is_load = true;
+		m_main_loop->post(Cb([&](Se& d) { GUILock lock; XX_TRIGGER(load); }));
+	}
 }
 
 void AppInl::onRender() {
@@ -136,6 +138,7 @@ void AppInl::onUnload() {
 		}));
 	}
 }
+
 /**
  * @func set_root
  */
@@ -193,20 +196,27 @@ void GUIApplication::start(int argc, char* argv[]) {
  */
 void GUIApplication::run() {
 	XX_CHECK(!m_is_run, "GUI program has been running");
-	
+
 	m_is_run = true;
 	m_main_loop = RunLoop::main_loop();
-	m_main_keep = m_main_loop->keep_alive();
 	m_render_loop = RunLoop::current(); // 当前消息队列
 	m_render_keep = m_render_loop->keep_alive(); // 保持
+	m_main_id = m_main_loop->thread_id();
+	m_render_id = m_render_loop->thread_id();
+
 	if (m_main_loop != m_render_loop) {
+		m_main_keep = m_main_loop->keep_alive();
 		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->gui_thread_mutex);
 	}
 	tctr->root_thread_awaken(); // 根线程继续运行
-	
+
 	XX_CHECK(!m_render_loop->runing());
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 	XX_CHECK(m_render_keep == nullptr);
+
+	if (m_main_keep) {
+		Release(m_main_keep); m_main_keep = nullptr; // cancel main loop keep
+	}
 	m_is_run = false;
 	m_render_loop = nullptr;
 	m_main_loop = nullptr;
@@ -216,11 +226,13 @@ void GUIApplication::exit() {
 	XX_ASSERT(m_main_loop);
 	if (m_render_keep) {
 		_inl_app(this)->onUnload();
-		Release(m_render_keep); // stop render loop
-		m_render_keep = nullptr;
+		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
 	}
-	m_render_loop->stop();
-	m_main_loop->stop();
+	do {
+		RunLoop::stop(m_render_id);
+		RunLoop::stop(m_main_id);
+		SimpleThread::wait_end(m_main_id, 1e5/*100ms*/); // wait main loop end
+	} while(RunLoop::is_alive(m_main_id));
 }
 
 GUIApplication::GUIApplication()

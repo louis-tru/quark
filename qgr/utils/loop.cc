@@ -49,8 +49,8 @@ template<> uint Compare<ThreadID>::hash(const ThreadID& key) {
 	size_t* t = reinterpret_cast<size_t*>(p);
 	return (*t) % Uint::max;
 }
-template<> bool Compare<ThreadID>::equals(const ThreadID& a,
-																					const ThreadID& b, uint ha, uint hb) {
+template<> bool Compare<ThreadID>::equals(
+	const ThreadID& a, const ThreadID& b, uint ha, uint hb) {
 	return a == b;
 }
 
@@ -72,7 +72,7 @@ int process_exit = 0;
 XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
  public:
 	#define _inl_t(self) static_cast<SimpleThread::Inl*>(self)
-	
+
 	static void thread_destructor(void* ptr) {
 		auto thread = reinterpret_cast<SimpleThread*>(ptr);
 		if (process_exit == 0) { // no process exit
@@ -83,29 +83,29 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 		}
 		delete thread;
 	}
-	
+
 	static void thread_initialize() {
 		all_threads = new Map<ThreadID, SimpleThread*>();
-		all_threads_mutex = new Mutex;
+		all_threads_mutex = new Mutex();
 		all_thread_end_listens = new List<ListenSignal*>();
 		int err = pthread_key_create(&specific_key, thread_destructor);
 		XX_CHECK(err == 0);
 	}
-	
+
 	static void set_thread_specific_data(SimpleThread* thread) {
 		XX_CHECK(!pthread_getspecific(specific_key));
 		pthread_setspecific(specific_key, thread);
 	}
-	
+
 	static inline SimpleThread* get_thread_specific_data() {
 		return reinterpret_cast<SimpleThread*>(pthread_getspecific(specific_key));
 	}
-	
+
 	void set_run_loop(RunLoop* loop) {
 		XX_CHECK(!m_loop);
 		m_loop = loop;
 	}
-	
+
 	void del_run_loop(RunLoop* loop) {
 		XX_CHECK(m_loop);
 		XX_CHECK(m_loop == loop);
@@ -114,7 +114,7 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 
 	static void run2(Exec body, SimpleThread* thread) {
 #if XX_ANDROID
-			JNI::ScopeENV scope;
+		JNI::ScopeENV scope;
 #endif
 		set_thread_specific_data(thread);
 		if ( !thread->m_abort ) {
@@ -132,7 +132,7 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 			all_threads->del(thread->id());
 		}
 	}
-	
+
 	static ThreadID run(Exec exec, uint gid, cString& name) {
 		if ( process_exit ) {
 			return ThreadID();
@@ -151,7 +151,7 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 			return thread->m_id;
 		}
 	}
-	
+
 	static void abort_group(uint gid) {
 		ScopeLock scope(*all_threads_mutex);
 		for ( auto& i : *all_threads ) {
@@ -163,7 +163,7 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 			}
 		}
 	}
-	
+
 	static void awaken_group(uint gid) {
 		ScopeLock scope(*all_threads_mutex);
 		for ( auto& i : *all_threads ) {
@@ -174,7 +174,7 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 			}
 		}
 	}
-	
+
 	static void atexit_exec() {
 		process_exit++; // exit
 		Array<ThreadID> ths;
@@ -183,9 +183,8 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 			for ( auto& i : *all_threads ) {
 				auto t = i.value();
 				ScopeLock scope(t->m_mutex);
-				if (t->m_loop) {
+				if (t->m_loop)
 					t->m_loop->stop();
-				}
 				t->m_abort = true;
 				t->m_cond.notify_one(); // awaken sleep status
 				ths.push(t->id());
@@ -199,8 +198,11 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 			}
 		}
 	}
-	
+
 };
+
+SimpleThread::SimpleThread(){}
+SimpleThread::~SimpleThread(){}
 
 void* SimpleThread::get_specific_data(char id) {
 	return Inl::get_thread_specific_data()->m_data[byte(id)];
@@ -603,7 +605,7 @@ RunLoop::~RunLoop() {
  */
 RunLoop* RunLoop::current() {
 	auto t = SimpleThread::Inl::get_thread_specific_data();
-	XX_CHECK(t);
+	XX_CHECK(t, "Can't get thread specific data");
 	auto loop = t->loop();
 	if (!loop) {
 		 loop = new RunLoop(t);
@@ -629,7 +631,10 @@ RunLoop* RunLoop::main_loop() {
  */
 bool RunLoop::is_main_loop() {
 	if (main_loop_obj) {
-		return main_loop_obj == current();
+		auto t = SimpleThread::Inl::get_thread_specific_data();
+		if (t) {
+			return main_loop_obj == t->loop();
+		}
 	}
 	return false;
 }
@@ -754,17 +759,21 @@ KeepLoop* RunLoop::keep_alive(bool declear) {
 	return rv;
 }
 
+static RunLoop* loop_2(ThreadID id) {
+	auto i = all_threads->find(id);
+	if (i.is_null()) {
+		return nullptr;
+	}
+	return i.value()->loop();
+}
+
 /**
  * @func loop(id) 通过线程获取
  * @ret {RunLoop*}
  */
 RunLoop* RunLoop::loop(ThreadID id) {
 	ScopeLock scope(*all_threads_mutex);
-	auto i = all_threads->find(id);
-	if (i.is_null()) {
-		return nullptr;
-	}
-	return i.value()->loop();
+	return loop_2(id);
 }
 
 /**
@@ -788,6 +797,29 @@ void RunLoop::next_tick(cCb& cb) throw(Error) {
 	} else { // 没有消息队列 post to io loop
 		XX_THROW(ERR_NOT_RUN_LOOP, "Unable to obtain thread io run loop");
 	}
+}
+
+/**
+ * @func stop() 停止循环
+ */
+void RunLoop::stop(ThreadID id) {
+	ScopeLock scope(*all_threads_mutex);
+	auto loop = loop_2(id);
+	if (loop) {
+		loop->stop();
+	}
+}
+
+/**
+ * @func is_alive()
+ */
+bool RunLoop::is_alive(ThreadID id) {
+	ScopeLock scope(*all_threads_mutex);
+	auto loop = loop_2(id);
+	if (loop) {
+		return loop->is_alive();
+	}
+	return false;
 }
 
 KeepLoop::~KeepLoop() {

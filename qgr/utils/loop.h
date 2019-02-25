@@ -65,14 +65,18 @@ template<> bool Compare<ThreadID>::equals(const ThreadID& a, const ThreadID& b, 
 class RunLoop;
 class KeepLoop;
 
+#define XX_THREAD_LOCK(__t, block, ...) {\
+	ScopeLock __t##_lock(__t.mutex()); \
+	if (!__t.is_abort()) { block; } else { __VA_ARGS__; } \
+}
+
 /**
  * @class SimpleThread
  */
 class XX_EXPORT SimpleThread {
+	XX_HIDDEN_ALL_COPY(SimpleThread);
  public:
 	typedef NonObjectTraits Traits;
- #define XX_THREAD_LOCK(__t, block, ...) {\
-	ScopeLock __t##_lock(__t.mutex()); if (!__t.is_abort()) { block; } else { __VA_ARGS__; } }
 	typedef std::function<void(SimpleThread& thread)> Exec;
 	inline bool is_abort() const { return m_abort; }
 	inline Mutex& mutex() { return m_mutex; }
@@ -80,8 +84,8 @@ class XX_EXPORT SimpleThread {
 	inline String name() const { return m_name; }
 	inline RunLoop* loop() const { return m_loop; }
 	static ThreadID detach(Exec exec, cString& name);
-	static void sleep_for(uint64 timeUs = 0);
 	static ThreadID current_id();
+	static void sleep_for(uint64 timeUs = 0);
 	static SimpleThread* current();
 	static void* get_specific_data(char id);
 	static void set_specific_data(char id, void* data);
@@ -89,6 +93,8 @@ class XX_EXPORT SimpleThread {
 	static void wait_end(ThreadID id, int64 timeoutUs = 0);
 	static void awaken(ThreadID id);
  private:
+	SimpleThread();
+	~SimpleThread();
 	XX_DEFINE_INLINE_CLASS(Inl);
 	bool  m_abort;
 	Mutex m_mutex;
@@ -161,7 +167,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	 *   并且确保`KeepLoop`都已释放,`RunLoop`在销毁时会检查`keep_count`
 	 */
 	void stop();
-	
+
 	/**
 	 * @func work(cb[,done])
 	 */
@@ -224,6 +230,16 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	 * @func is_process_exit
 	 */
 	static bool is_process_exit();
+
+	/**
+	 * @func stop() 停止循环
+	 */
+	static void stop(ThreadID id);
+
+	/**
+	 * @func is_alive()
+	 */
+	static bool is_alive(ThreadID id);
 	
  private:
 	/**
@@ -246,12 +262,11 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	RecursiveMutex* m_independent_mutex;
 	SimpleThread* m_thread;
 	ThreadID m_tid;
-	uint  m_keep_count;
+	uint m_keep_count;
 	uv_loop_t* m_uv_loop;
 	uv_async_t* m_uv_async;
 	uv_timer_t* m_uv_timer;
-	int64 m_timeout;
-	int64 m_record_timeout;
+	int64 m_timeout, m_record_timeout;
 };
 
 /**
