@@ -28,54 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_path');
+/**************************************************************************/
 
-/**
- * @func basename(path)
- * @arg path {String}
- * @ret {String}
- *
- * @func dirname(path)
- * @arg path {String}
- * @ret {String}
- *
- * @func extname(path)
- * @arg path {String}
- * @ret {String}
- *
- * @func executable()
- * @ret {String}
- *
- * @func documents([path])
- * @arg path {String}
- * @ret {String}
- *
- * @func temp([path])
- * @arg path {String}
- * @ret {String}
- *
- * @func resources([path])
- * @arg path {String}
- * @ret {String}
- *
- * @func is_local_absolute(path)
- * @arg path {String}
- * @ret {String}
- *
- * @func fallbackPath(path)
- * @arg path {String}
- * @ret {String}
- *
- * @func cwd()
- * @ret {String}
- *
- * @func chdir(path)
- * @arg path {String}
- * @ret {bool}
- *
- */
+const _path = requireNative('_path');
+const _pkgutil = requireNative('_pkgutil');
 
-const _pkg = requireNative('_pkg').packages;
+/**************************************************************************/
 
 function split_path(self) {
 	if (self._is_split) return;
@@ -102,7 +60,7 @@ function split_path(self) {
 			val = value;
 		}
 	}
-	self._value = _pkg.resolve(val);
+	self._value = _pkgutil.resolve(val);
 }
 
 function parse_base_ext_name(self) {
@@ -193,22 +151,7 @@ function stringify_params(prefix, params) {
 /**
  * @class URL
  */
-export class URL {
-	_is_split = false;
-	_is_parse = false;
-	_value = '';
-	_hostname = '';
-	_port = '';
-	_protocol = '';
-	_search = '';
-	_hash = '';
-	_origin = '';
-	_filename = '';
-	_dirname = '';
-	_basename = -1;
-	_extname = -1;
-	_params = null;
-	_hash_params = null;
+class URL {
 	
 	/**
 		* @arg [path] {String}
@@ -390,21 +333,41 @@ export class URL {
 	// @end
 }
 
+URL.prototype._is_split = false;
+URL.prototype._is_parse = false;
+URL.prototype._value = '';
+URL.prototype._hostname = '';
+URL.prototype._port = '';
+URL.prototype._protocol = '';
+URL.prototype._search = '';
+URL.prototype._hash = '';
+URL.prototype._origin = '';
+URL.prototype._filename = '';
+URL.prototype._dirname = '';
+URL.prototype._basename = -1;
+URL.prototype._extname = -1;
+URL.prototype._params = null;
+URL.prototype._hash_params = null;
+
 function get_path(path) {
 	return new URL(path);
 }
 
-export {
+module.exports = {
+
+	..._path,
+
+	URL: URL,
 
 	/** 
 	 * @func isAbsolute(path) is absolute path
 	 */
-	isAbsolute: _pkg.isAbsolute, // func
+	isAbsolute: _pkgutil.isAbsolute, // func
 	
 	/**
 	 * @func resolve(path) resolve path 
 	 */
-	resolve: _pkg.resolve, // func
+	resolve: _pkgutil.resolve, // func
 
 	/**
 	 * full filename

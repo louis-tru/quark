@@ -28,10 +28,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const win32 = process.platform == 'win32';
+if (typeof requireNative != 'function') { // qgr
+	require('./_ext');
+}
+
+var haveNode = !!global.process;
+var haveQgr = !!global.requireNative;
+var haveWeb = !!global.location;
+
 const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
 const assign = Object.assign;
+
+if (haveQgr) {
+	var _util = requireNative('_util');
+	var platform = _util.platform;
+} else if (haveNode) {
+	var platform = process.platform;
+} else if (haveWeb) {
+	var platform = 'web';
+}
 
 /**
  * defined class members func
@@ -100,13 +116,22 @@ function hash(data) {
 	return retValue;
 }
 
-function unrealized() {	
+function unrealized() {
 	throw new Error('Unrealized');
 }
 
+var nextTick = haveNode ? process.nextTick: function(cb, ...args) {
+	if (typeof cb != 'function')
+		throw new Error('callback must be a function');
+	if (haveQgr) {
+		_util.nextTick(e=>cb(...args));
+	} else {
+		setTimeout(e=>cb(...args), 1);
+	}
+};
+
 module.exports = {
-	fatal: unrealized,
-	hashCode: unrealized,
+	unrealized: unrealized,
 	version: unrealized,
 	addNativeEventListener: unrealized,
 	removeNativeEventListener: unrealized,
@@ -114,16 +139,13 @@ module.exports = {
 	runScript: unrealized,
 	transformJsx: unrealized,
 	transformJs: unrealized,
-	executable: unrealized,
-	documents: unrealized,
-	temp: unrealized,
-	resources: unrealized,
-	fallbackPath: unrealized,
-	cwd: process.cwd,
-	chdir: process.chdir,
-	log: unrealized,
 	hashCode: hashCode,
 	hash: hash,
 	class: $class,
 	_eval: eval,
+	nextTick: nextTick,
+	platform: platform,
+	haveNode: haveNode,
+	haveQgr: haveQgr,
+	haveWeb: haveWeb,
 };

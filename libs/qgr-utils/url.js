@@ -28,9 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const util = require('./util');
-const pkg = require('./_pkg');
-const path = require('path');
+/**************************************************************************/
+
+const _path = require('./_path');
+const _pkgutil = require('./_pkgutil');
+
+/**************************************************************************/
 
 function split_path(self) {
 	if (self._is_split) return;
@@ -57,7 +60,7 @@ function split_path(self) {
 			val = value;
 		}
 	}
-	self._value = pkg.resolve(val);
+	self._value = _pkgutil.resolve(val);
 }
 
 function parse_base_ext_name(self) {
@@ -149,21 +152,6 @@ function stringify_params(prefix, params) {
  * @class URL
  */
 class URL {
-	// _is_split = false;
-	// _is_parse = false;
-	// _value = '';
-	// _hostname = '';
-	// _port = '';
-	// _protocol = '';
-	// _search = '';
-	// _hash = '';
-	// _origin = '';
-	// _filename = '';
-	// _dirname = '';
-	// _basename = -1;
-	// _extname = -1;
-	// _params = null;
-	// _hash_params = null;
 	
 	/**
 		* @arg [path] {String}
@@ -187,7 +175,7 @@ class URL {
 		parse_path(this);
 		return  this._filename;
 	}
-
+	
 	/**
 	 * @get path /a/b/s/test.html?aaaaa=100
 	 */
@@ -345,70 +333,41 @@ class URL {
 	// @end
 }
 
+URL.prototype._is_split = false;
+URL.prototype._is_parse = false;
+URL.prototype._value = '';
+URL.prototype._hostname = '';
+URL.prototype._port = '';
+URL.prototype._protocol = '';
+URL.prototype._search = '';
+URL.prototype._hash = '';
+URL.prototype._origin = '';
+URL.prototype._filename = '';
+URL.prototype._dirname = '';
+URL.prototype._basename = -1;
+URL.prototype._extname = -1;
+URL.prototype._params = null;
+URL.prototype._hash_params = null;
+
 function get_path(path) {
 	return new URL(path);
 }
 
 module.exports = {
 
+	..._path,
+
 	URL: URL,
 
-	/**
-	 * @func executable()
-	 * @ret {String}
-	 */
-	executable: util.executable,
-
-	/**
-	 * @func documents([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	documents: util.documents,
-
-	/**
-	 * @func temp([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	temp: util.temp,
-
-	/**
-	 * @func resources([path])
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	resources: util.resources,
-
-	/**
-	 * @func fallback(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	fallback: util.fallback,
-
-	/**
-	 * @func cwd()
-	 * @ret {String}
-	 */
-	cwd: util.cwd,
-
-	/**
-	 * @func chdir(path)
-	 * @arg path {String}
-	 * @ret {bool}
-	 */
-	chdir: util.chdir,
-
 	/** 
-	 * @func isAbsolute() is absolute path
+	 * @func isAbsolute(path) is absolute path
 	 */
-	isAbsolute: pkg.isAbsolute, // func
+	isAbsolute: _pkgutil.isAbsolute, // func
 	
 	/**
-	 * @func resolve() resolve path 
+	 * @func resolve(path) resolve path 
 	 */
-	resolve: pkg.resolve, // func
+	resolve: _pkgutil.resolve, // func
 
 	/**
 	 * full filename
@@ -424,21 +383,6 @@ module.exports = {
 		return get_path(path).path;
 	},
 	
-	// dirname path dir 
-	dirname: function (name) {
-		return path.dirname(name);
-	},
-		
-	// base name
-	basename: function (name) {
-		return path.basename(name);
-	},
-	
-	// path extname
-	extname: function (name) {
-		return path.extname(name);
-	},
-
 	search: function (path) {
 		return get_path(path).search;
 	},
@@ -529,21 +473,3 @@ module.exports = {
 	},
 	
 };
-
-URL.prototype._is_split = false;
-URL.prototype._is_parse = false;
-URL.prototype._value = '';
-URL.prototype._hostname = '';
-URL.prototype._port = '';
-URL.prototype._protocol = '';
-URL.prototype._search = '';
-URL.prototype._hash = '';
-URL.prototype._origin = '';
-URL.prototype._filename = '';
-URL.prototype._dirname = '';
-URL.prototype._basename = -1;
-URL.prototype._extname = -1;
-URL.prototype._params = null;
-URL.prototype._hash_params = null;
-	
-

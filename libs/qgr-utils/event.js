@@ -30,7 +30,7 @@
 
 Object.assign(exports, require('./_event'));
 
-const util = require('./util');
+const _util = require('./_util');
 const EventNoticer = exports.EventNoticer;
 const PREFIX = 'on';
 const REG = new RegExp('^' + PREFIX);
@@ -72,7 +72,7 @@ class Notification {
 			if ( typeof func2 == 'function' ) {
 				return this.getNoticer(name).on(func2, 0); // default id 0
 			} else {
-				throw util.err(`Cannot find a function named "${func}"`);
+				throw Error.new(`Cannot find a function named "${func}"`);
 			}
 		} else {
 			return this.getNoticer(name).on(func, 0); // default id 0

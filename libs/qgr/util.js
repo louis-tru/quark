@@ -28,9 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**************************************************************************/
+
 import { Event, Notification } from './event';
-var _pkg = requireNative('_pkg').packages;
 var _util = requireNative('_util');
+var _pkg = requireNative('_pkg').packages;
 var { haveNode } = _util;
 
 function next_tick(cb, ...args) {
@@ -200,7 +202,6 @@ function extendClass(cls, ...extds) {
 
 exports = module.exports = assign(utils, _util, {
 
-	// @func fatal()
 	// @func hashCode()
 	// @func hash()
 	// @func version()
@@ -210,14 +211,6 @@ exports = module.exports = assign(utils, _util, {
 	// @func runScript()
 	// @func transformJsx()
 	// @func transformJs()
-	// @func executable()
-	// @func documents()
-	// @func temp()
-	// @func resources()
-	// @func fallbackPath()
-	// @func cwd()
-	// @func chdir()
-	// @func log()
 
 	/**
 	 * @current timezone

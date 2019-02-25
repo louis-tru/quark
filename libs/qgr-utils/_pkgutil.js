@@ -28,13 +28,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var keys = require('./_keys');
-var path = require('path');
-var fs = require('fs');
-var options = {};  // start options
+const keys = require('./_keys');
+const _util = require('./_util');
+const options = {};  // start options
+const {haveNode, haveQgr, haveWeb} = _util;
+const PREFIX = 'file:///';
+const path = require('path');
+
 var ignore_local_package;var ignore_all_local_package;
 var config = null;
-var win32 = process.platform == 'win32';
+
+if (haveQgr) {
+	var fs = requireNative('_fs');
+	var win32 = requireNative('_util').platform == 'win32';
+	var _cwd = requireNative('_path').cwd;
+} else if (haveNode) {
+	var fs = require('fs');
+	var win32 = process.platform == 'win32';
+	var _cwd = win32 ? function() {
+		return PREFIX + process.cwd().replace(/\\/g, '/');
+	}: function() {
+		return PREFIX + process.cwd().substr(1);
+	};
+} else if (haveWeb) { // web
+	var _cwd = function() {
+		// TODO ...
+	};
+}
+
+const fallbackPath = win32 ? function(url) {
+	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
+} : function(url) {
+	return url.replace(/^file:\/\//i, '');
+};
 
 const join_path = win32 ? function(args) {
 	for (var i = 0, ls = []; i < args.length; i++) {
@@ -52,18 +78,18 @@ const join_path = win32 ? function(args) {
 
 const matchs = win32 ? {
 	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	is_absolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	is_local: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
+	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
 } : {
 	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	is_absolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	is_local: /^(\/|(file|zip):\/\/\/)/i,
+	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^(\/|(file|zip):\/\/\/)/i,
 };
 
 /** 
  * format part 
  */
-function resolve_path_level(path, retain_up) {
+function resolvePathLevel(path, retain_up) {
 	var ls = path.split('/');
 	var rev = [];
 	var up = 0;
@@ -83,8 +109,6 @@ function resolve_path_level(path, retain_up) {
 	return (retain_up ? new Array(up + 1).join('../') + path : path);
 }
 
-const PREFIX = (win32 ? process.cwd().match(/^([a-z]:)/i)[1] : '') + '/';
-
 /**
  * return format path
  */
@@ -94,14 +118,14 @@ function resolve() {
 	// Find absolute path
 	var mat = path.match(matchs.resolve);
 	var slash = '';
-
+	
 	// resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
 	// resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
 	
 	if (mat) {
 		if (mat[2]) { // local absolute path /
 			if (win32 && mat[2] != '/') { // windows d:\
-				prefix = /*PREFIX+*/ mat[2] + '/';
+				prefix = PREFIX + mat[2] + '/';
 				path = path.substr(2);
 			} else {
 				prefix = PREFIX; //'file:///';
@@ -118,12 +142,17 @@ function resolve() {
 			path = path.substr(prefix.length);
 		}
 	} else { // Relative path, no network protocol
-		var cwd = process.cwd();
-		prefix = PREFIX; // 'file:///';
-		path = (win32 ? cwd.substr(3) : cwd) + '/' + path;
+		var cwd = _cwd();
+		if (win32) {
+			prefix += cwd.substr(0,10) + '/'; // 'file:///d:/';
+			path = cwd.substr(11) + '/' + path;
+		} else {
+			prefix = PREFIX; // 'file:///';
+			path = cwd.substr(8) + '/' + path;
+		}
 	}
 
-	path = resolve_path_level(path);
+	path = resolvePathLevel(path);
 
 	return path ? prefix + slash + path : prefix;
 }
@@ -131,22 +160,22 @@ function resolve() {
 /**
  * @func is_absolute # 是否为绝对路径
  */
-function is_absolute(path) {
+function isAbsolute(path) {
 	return matchs.is_absolute.test(path);
 }
 
 /**
  * @func is_local # 是否为本地路径
  */
-function is_local(path) {
+function isLocal(path) {
 	return matchs.is_local.test(path);
 }
 
-function is_local_zip(path) {
+function isLocalZip(path) {
 	return /^zip:\/\/\//i.test(path);
 }
 
-function is_network(path) {
+function isNetwork(path) {
 	return /^(https?):\/\/[^\/]+/i.test(path);
 }
 
@@ -155,6 +184,18 @@ function extendEntries(obj, extd) {
 		obj[item[0]] = item[1];
 	}
 	return obj;
+}
+
+if (haveNode && !haveQgr) {
+	require('module').Module._extensions['.keys'] = function(module, filename) {
+		var content = fs.readFileSync(filename, 'utf8');
+		try {
+			module.exports = keys.parse(stripBOM(content));
+		} catch (err) {
+			err.message = filename + ': ' + err.message;
+			throw err;
+		}
+	};
 }
 
 /**
@@ -168,16 +209,6 @@ function stripBOM(content) {
 	}
 	return content;
 }
-
-require('module').Module._extensions['.keys'] = function(module, filename) {
-	var content = fs.readFileSync(filename, 'utf8');
-	try {
-		module.exports = keys.parse(stripBOM(content));
-	} catch (err) {
-		err.message = filename + ': ' + err.message;
-		throw err;
-	}
-};
 
 function parse_argv() {
 	var args = process.argv.slice(2);
@@ -235,40 +266,47 @@ function parse_argv() {
 	}
 }
 
-parse_argv();
-
 function read_config(pathname) {
 	try {
 		return require(pathname);
 	} catch(e) {}
 }
 
+function get_config() {
+	if (!config) {
+		config = {};
+		var mainModule = process.mainModule;
+		if (mainModule) {
+			config = 
+				read_config(path.dirname(mainModule.filename) + '/config') ||
+				read_config(path.dirname(mainModule.filename) + '/.config') ||
+				read_config(_cwd() + '/config') ||
+				read_config(_cwd() + '/.config') || {};
+		} else {
+			config = 
+				read_config(_cwd() + '/config') || 
+				read_config(_cwd() + '/.config') || {};
+		}
+	}
+	return config;
+}
+
+parse_argv();
+
 module.exports = {
-	resolve: resolve, 				// func pkg
-	isAbsolute: is_absolute, 	// func pkg
-	isLocal: is_local,				// 
-	isLocalZip: is_local_zip,
-	isNetwork: is_network,
-	extendEntries: extendEntries,
+	fallbackPath,
+	resolvePathLevel,
+	resolve, 				// func pkg
+	isAbsolute, 	// func pkg
+	isLocal,				// 
+	isLocalZip,
+	isNetwork,
+	extendEntries,
 	get options() {
 		return options;
 	},
 	get config() {
-		if (!config) {
-			config = {};
-			var mainModule = process.mainModule;
-			if (mainModule) {
-				config = 
-					read_config(path.dirname(mainModule.filename) + '/config') ||
-					read_config(path.dirname(mainModule.filename) + '/.config') ||
-					read_config(process.cwd() + '/config') ||
-					read_config(process.cwd() + '/.config') || {};
-			} else {
-				config = 
-					read_config(process.cwd() + '/config') || 
-					read_config(process.cwd() + '/.config') || {};
-			}
-		}
-		return config;
+		return get_config();
 	},
+	cwd: _cwd,
 };

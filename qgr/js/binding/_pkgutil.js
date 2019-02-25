@@ -35,36 +35,8 @@ const _util = requireNative('_util');
 const win32 = _util.platform == 'win32';
 const { readFileSync, isFileSync } = requireNative('_reader');
 const { haveNode } = _util;
-
-const fallbackPath = win32 ? function(url) {
-	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
-} : function(url) {
-	return url.replace(/^file:\/\//i, '');
-};
-
-const join_path = win32 ? function(args) {
-	for (var i = 0, ls = []; i < args.length; i++) {
-		var item = args[i];
-		if (item) ls.push(item.replace(/\\/g, '/'));
-	}
-	return ls.join('/');
-}: function(args) {
-	for (var i = 0, ls = []; i < args.length; i++) {
-		var item = args[i];
-		if (item) ls.push(item);
-	}
-	return ls.join('/');
-};
-
-const matchs = win32 ? {
-	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
-} : {
-	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
-	isLocal: /^(\/|(file|zip):\/\/\/)/i,
-};
+const PREFIX = 'file:///';
+const _cwd = _path.cwd;
 
 if (!haveNode) {
 	const _console = requireNative('_console');
@@ -101,6 +73,36 @@ if (!haveNode) {
 	global.clearImmediate = _timer.clearTimeout;
 }
 
+const fallbackPath = win32 ? function(url) {
+	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
+} : function(url) {
+	return url.replace(/^file:\/\//i, '');
+};
+
+const join_path = win32 ? function(args) {
+	for (var i = 0, ls = []; i < args.length; i++) {
+		var item = args[i];
+		if (item) ls.push(item.replace(/\\/g, '/'));
+	}
+	return ls.join('/');
+}: function(args) {
+	for (var i = 0, ls = []; i < args.length; i++) {
+		var item = args[i];
+		if (item) ls.push(item);
+	}
+	return ls.join('/');
+};
+
+const matchs = win32 ? {
+	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
+} : {
+	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
+	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
+	isLocal: /^(\/|(file|zip):\/\/\/)/i,
+};
+
 /** 
  * format part 
  */
@@ -123,8 +125,6 @@ function resolvePathLevel(path, retain_up) {
 
 	return (retain_up ? new Array(up + 1).join('../') + path : path);
 }
-
-const PREFIX = 'file:///';
 
 /**
  * return format path
@@ -159,7 +159,7 @@ function resolve() {
 			path = path.substr(prefix.length);
 		}
 	} else { // Relative path, no network protocol
-		var cwd = _path.cwd();
+		var cwd = _cwd();
 		if (win32) {
 			prefix += cwd.substr(0,10) + '/'; // 'file:///d:/';
 			path = cwd.substr(11) + '/' + path;
@@ -194,6 +194,18 @@ function isLocalZip(path) {
 
 function isNetwork(path) {
 	return /^(https?):\/\/[^\/]+/i.test(path);
+}
+
+/**
+ * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+ * because the buffer-to-string conversion in `fs.readFileSync()`
+ * translates it to FEFF, the UTF-16 BOM.
+ */
+function stripBOM(content) {
+	if (content.charCodeAt(0) === 0xFEFF) {
+		content = content.slice(1);
+	}
+	return content;
 }
 
 function resolveMainPath(path) {
@@ -291,18 +303,6 @@ function debug(TAG = 'PKG') {
 			}
 		}
 	}
-}
-
-/**
- * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
- * because the buffer-to-string conversion in `fs.readFileSync()`
- * translates it to FEFF, the UTF-16 BOM.
- */
-function stripBOM(content) {
-	if (content.charCodeAt(0) === 0xFEFF) {
-		content = content.slice(1);
-	}
-	return content;
 }
 
 Object.assign(exports, {

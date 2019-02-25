@@ -28,6 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+if (typeof window == 'object') { // web
+	if (typeof global != 'object') {
+		window.global = window;
+	}
+}
+
 var currentTimezone = new Date().getTimezoneOffset() / -60;
 var slice = Array.prototype.slice;
 

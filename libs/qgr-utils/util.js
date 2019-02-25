@@ -28,13 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-if (!global.requireNative && typeof global.requireNative != 'function') { // qgr
-	require('./_ext');
-}
-var _pkg = require('./_pkg');
-var _util = require('./_util');
+/**************************************************************************/
 
-var next_tick = process.nextTick;
+var _util = require('./_util');
+var _pkg = require('./_pkgutil');
+
+var next_tick = _util.nextTick;
 var utils = {};
 
 /**************************************************************************/
@@ -125,7 +124,6 @@ function extendClass(cls, ...extds) {
 
 exports = module.exports = assign(utils, _util, {
 
-	// @func fatal()
 	// @func hashCode()
 	// @func hash()
 	// @func version()
@@ -135,14 +133,6 @@ exports = module.exports = assign(utils, _util, {
 	// @func runScript()
 	// @func transformJsx()
 	// @func transformJs()
-	// @func executable()
-	// @func documents()
-	// @func temp()
-	// @func resources()
-	// @func fallbackPath()
-	// @func cwd()
-	// @func chdir()
-	// @func log()
 
 	/**
 	 * @current timezone
