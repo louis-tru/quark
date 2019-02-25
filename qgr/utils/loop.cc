@@ -346,14 +346,15 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	static void resolve_queue_before(uv_handle_t* handle) {
-    bool Continue;
+		bool Continue;
 		do {
-      Continue = ((Inl*)handle->data)->resolve_queue();
-    } while (Continue);
+			Continue = ((Inl*)handle->data)->resolve_queue();
+		} while (Continue);
 	}
 	
 	bool is_alive() {
 		// m_uv_async 外是否还有活着的`handle`与请求
+		// uv_loop_alive(uv_loop*)
 		uv_loop_t* loop = m_uv_loop;
 		return m_uv_loop->active_handles > 1 ||
 					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
@@ -373,6 +374,7 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	bool resolve_queue_after(int64 timeout_ms) {
+		bool Continue = 0;
 		if (m_uv_loop->stop_flag != 0) { // 循环停止标志
 			close_uv_async();
 		}
@@ -392,7 +394,7 @@ class RunLoop::Inl: public RunLoop {
 						}
 					} else {
 						int64 timeout = m_timeout / 1000;
-						if (timeout > 0) { // 需要等待超时
+						if (timeout > 0) { // 需要等待超时
 							m_record_timeout = sys::time_monotonic(); // 开始记录超时
 							uv_timer_req(timeout);
 						} else {
@@ -405,13 +407,13 @@ class RunLoop::Inl: public RunLoop {
 			if (timeout_ms > 0) { // > 0, delay
 				uv_timer_req(timeout_ms);
 			} else { // == 0
-				// uv_async_send(m_uv_async);
 				/* Do a cheap read first. */
-				return 1; // continue
+				// uv_async_send(m_uv_async);
+				Continue = 1; // continue
 			}
 			m_record_timeout = 0; // 取消超时记录
 		}
-		return 0;
+		return Continue;
 	}
 	
 	void resolve_queue(List<Queue>& queue) {

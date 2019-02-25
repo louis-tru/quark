@@ -41,11 +41,14 @@ function next_tick(cb, ...args) {
 	});
 }
 
+var _exiting = false;
+
 var listeners = {
 	BeforeExit: function(noticer, code = 0) {
 		return noticer.triggerWithEvent(new Event(code, code));
 	},
 	Exit: function(noticer, code = 0) {
+		_exiting = true;
 		return noticer.triggerWithEvent(new Event(code, code));
 	},
 	UncaughtException: function(noticer, err) {
@@ -81,6 +84,29 @@ class Utils extends Notification {
 			this['__on' + name] = noticer = new event.EventNoticer(name, this);
 		}
 		return noticer;
+	}
+
+	exit(code) {
+		if (!_exiting) {
+			_exiting = true;
+			delete Utils.prototype.exit;
+			code = code || 0;
+			if (haveNode) {
+				try {
+					process.exit(code); return;
+				} catch(err) {
+					console.error(err);
+				}
+				_util.reallyExit(code);
+			} else {
+				try {
+					this.trigger('Exit', code);
+				} catch(err) {
+					console.error(err);
+				}
+				_util.reallyExit(code);
+			}
+		}
 	}
 }
 

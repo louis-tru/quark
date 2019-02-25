@@ -1353,17 +1353,22 @@ int IMPL::start(int argc, char** argv) {
 			}
 		}
 
+		auto loop = RunLoop::main_loop();
+
 		do {
-			RunLoop::main_loop()->run();
+			loop->run();
 			/* IOS forces the process to terminate, but it does not quit immediately.
 			 This may cause a process to run in the background for a long time, so force break here */
 			if (RunLoop::is_process_exit()) break;
+
+			if (loop->is_alive())
+				continue;
 
 			rc = worker->m_inl->TriggerBeforeExit(rc);
 
 			// Emit `beforeExit` if the loop became alive either after emitting
 			// event, or after running some callbacks.
-		} while (uv_loop_alive(RunLoop::main_loop()->uv_loop()));
+		} while (loop->is_alive());
 
 		if (!RunLoop::is_process_exit())
 			rc = worker->m_inl->TriggerExit(rc);

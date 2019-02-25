@@ -298,7 +298,7 @@ class NativeUtil {
 		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(transformJsx, transformJsx);
 		JS_SET_METHOD(transformJs, transformJs);
-		JS_SET_METHOD(exit, exit);
+		JS_SET_METHOD(reallyExit, exit);
 		JS_SET_PROPERTY(platform, qgr::platform());
 		JS_SET_PROPERTY(haveNode, __qgr_have_node);
 		JS_SET_PROPERTY(dev, __qgr_have_dev);
