@@ -242,6 +242,9 @@ http请求头`Authorization`密码
 ### Get: HttpClientRequest.statusCode
 * {[`int`]}
 
+### Get: HttpClientRequest.httpResponseVersion
+* {[`String`]}
+
 ### Get: HttpClientRequest.url
 * {[`String`]}
 
@@ -300,6 +303,9 @@ cl2.send();
 
 ### RequestOptions.upload
 * {[`String`]}
+
+### RequestOptions.timeout
+* {[`Number`]}
 
 ### RequestOptions.disableSslVerify
 * {[`bool`]}

@@ -135,6 +135,35 @@ Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 	}
 }
 
+template<class Err = Error>
+Callback get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
+	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
+		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
+		
+		return Cb([worker, func](Se& d) {
+			XX_ASSERT(!func.IsEmpty());
+			HandleScope scope(worker);
+			
+			Local<JSFunction> f = func.local();
+			
+			if ( d.error ) {
+				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
+				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
+			} else {
+				HttpHelper::ResponseData* data = static_cast<HttpHelper::ResponseData*>(d.data);
+				Local<JSObject> arg = worker->NewObject();
+				arg->Set(worker, worker->strs()->data(), worker->New(data->data) );
+				arg->Set(worker, worker->strs()->httpVersion(), worker->New(data->http_version) );
+				arg->Set(worker, worker->strs()->statusCode(), worker->New(data->status_code) );
+				arg->Set(worker, worker->strs()->responseHeaders(), worker->New(data->response_headers) );
+				f->Call(worker, 1, reinterpret_cast<Local<JSValue>*>(&arg));
+			}
+		});
+	} else {
+		return 0;
+	}
+}
+
 Callback get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
@@ -160,6 +189,10 @@ Callback get_callback_for_buffer(Worker* worker, Local<JSValue> cb, Encoding enc
 
 Callback get_callback_for_buffer_http_error(Worker* worker, Local<JSValue> cb, Encoding encoding) {
 	return get_callback_for_buffer2<HttpError>(worker, cb, encoding);
+}
+
+Callback get_callback_for_response_data_http_error(Worker* worker, Local<JSValue> cb) {
+	return get_callback_for_response_data2<HttpError>(worker, cb);
 }
 
 Callback get_callback_for_io_stream(Worker* worker, Local<JSValue> cb) {

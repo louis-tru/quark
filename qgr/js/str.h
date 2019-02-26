@@ -67,7 +67,6 @@ F(toJSON) \
 F(___mark_json_stringify__) \
 F(stack) \
 F(get_path) \
-F(_uncaught_exception) \
 F(_exit) \
 F(__view_) \
 F(triggerRemoveView) \
@@ -96,6 +95,9 @@ F(Buffer) \
 F(data) \
 F(total) \
 F(complete) \
+F(httpVersion) \
+F(statusCode) \
+F(responseHeaders) \
 
 JS_BEGIN
 

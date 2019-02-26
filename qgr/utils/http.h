@@ -154,8 +154,9 @@ class XX_EXPORT HttpClientRequest: public Object, public SimpleStream {
 	int64 upload_size() const;
 	int64 download_total() const;
 	int64 download_size() const;
+	String http_response_version() const;
 	HttpReadyState ready_state() const;
-	uint status_code() const;
+	int status_code() const;
 	String url() const;
 	
 	/**
@@ -212,9 +213,16 @@ class XX_EXPORT HttpHelper {
 		Buffer              post_data;  /* Non post requests ignore this option */
 		String              save;       /* save body content to local disk */
 		String              upload;     /* upload loacl file */
+		uint64              timeout;    /* request timeout time, default no timeout "0" */
 		bool                disable_ssl_verify;
 		bool                disable_cache;
 		bool                disable_cookie;
+	};
+	struct ResponseData: public Object {
+		Buffer              data;
+		String              http_version;
+		int                 status_code;
+		Map<String, String> response_headers;
 	};
 	static uint request(RequestOptions& options, cCb& cb = 0) throw(HttpError);
 	static uint request_stream(RequestOptions& options, cCb& cb = 0) throw(HttpError);

@@ -44,6 +44,7 @@ static cString const_headers("headers");
 static cString const_post_data("postData");
 static cString const_save("save");
 static cString const_upload("upload");
+static cString const_timeout("timeout");
 static cString const_disable_ssl_verify("disableSslVerify");
 static cString const_disable_cache("disableCache");
 static cString const_disable_cookie("disableCookie");
@@ -563,6 +564,12 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		JS_RETURN( self->status_code() );
 	}
 
+	static void http_response_version(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_SELF(HttpClientRequest);
+		JS_RETURN( self->http_response_version() );
+	}
+
 	/**
 	 * @get url {String}
 	 */
@@ -620,7 +627,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		JS_SELF(HttpClientRequest);
 		self->abort();
 	}
-	
+
 	/**
 	 * @func binding
 	 */
@@ -651,6 +658,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(readyState, ready_state);
 			JS_SET_CLASS_ACCESSOR(statusCode, status_code);
 			JS_SET_CLASS_ACCESSOR(url, url);
+			JS_SET_CLASS_ACCESSOR(httpResponseVersion, http_response_version);
 			JS_SET_CLASS_METHOD(send, send);
 			JS_SET_CLASS_METHOD(pause, pause);
 			JS_SET_CLASS_METHOD(resume, resume);
@@ -667,6 +675,7 @@ public:
 	typedef HttpHelper::RequestOptions RequestOptions;
 
 	static bool get_options(Worker* worker, Local<JSValue> arg, RequestOptions& opt) {
+		JS_HANDLE_SCOPE();
 		Local<JSObject> obj = arg.To<JSObject>();
 		
 		opt = {
@@ -717,6 +726,12 @@ public:
 		if ( value->IsString(worker) ) {
 			opt.upload = value->ToStringValue(worker);
 		}
+
+		value = obj->Get(worker, worker->New(const_timeout,1));
+		if ( value.IsEmpty() ) return false;
+		if ( value->IsUint32(worker) ) {
+			opt.timeout = value->ToUint32Value(worker) * 1e3;
+		}
 		
 		value = obj->Get(worker, worker->New(const_disable_ssl_verify,1));
 		if ( value.IsEmpty() ) return false;
@@ -748,7 +763,7 @@ public:
 		
 		if ( args.Length() > 1 ) {
 			cb = stream ? get_callback_for_io_stream_http_error(worker, args[1]) :
-										get_callback_for_buffer_http_error(worker, args[1]);
+										get_callback_for_response_data_http_error(worker, args[1]);
 		}
 
 		JS_TRY_CATCH({
@@ -840,7 +855,7 @@ public:
 		Callback cb;
 		
 		if ( args.Length() > 2 ) {
-			cb = get_callback_for_buffer_http_error(worker, args[2]);
+			cb = get_callback_for_response_data_http_error(worker, args[2]);
 		}
 		JS_TRY_CATCH({
 			rev = HttpHelper::download(url, save, cb);
@@ -893,7 +908,7 @@ public:
 		Callback cb;
 		
 		if ( args.Length() > 2 ) {
-			cb = get_callback_for_buffer_http_error(worker, args[2]);
+			cb = get_callback_for_response_data_http_error(worker, args[2]);
 		}
 		JS_TRY_CATCH({
 			rev = HttpHelper::upload(url, file, cb);
@@ -935,7 +950,7 @@ public:
 		
 		if ( args.Length() > 1 ) {
 			cb = stream ? get_callback_for_io_stream_http_error(worker, args[1]) :
-										get_callback_for_buffer_http_error(worker, args[1]);
+										get_callback_for_response_data_http_error(worker, args[1]);
 		}
 		
 		if ( stream ) {
@@ -1001,7 +1016,7 @@ public:
 		Callback cb;
 		
 		if ( args.Length() > 2 ) {
-			cb = get_callback_for_buffer_http_error(worker, args[2]);
+			cb = get_callback_for_response_data_http_error(worker, args[2]);
 		}
 		
 		JS_TRY_CATCH({
@@ -1142,7 +1157,7 @@ public:
 	static void clear_cookie(FunctionCall args) {
 		HttpHelper::clear_cookie();
 	}
-	
+
 // /**
 //  * @func ssl_cacert_file()
 //  * @ret {String} return cacert file path

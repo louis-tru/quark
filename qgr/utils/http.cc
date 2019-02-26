@@ -238,11 +238,15 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		static int on_status(http_parser* parser, const char *at, size_t length) {
 			//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint(length)).c());
 			Connect* self = static_cast<Connect*>(parser->data);
-			uint status_code = String(at - 4, 3).to_uint();
+			int status_code = String(at - 4, 3).to_uint();
 			if (status_code == 200) {
 				self->m_client->m_write_cache_flag = 2; // set write cache flag
 			}
+			XX_ASSERT(status_code == parser->status_code);
+			// LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 			self->m_client->m_status_code = status_code;
+			self->m_client->m_http_response_version = 
+				String(parser->http_major) + '.' + parser->http_minor;
 			return 0;
 		}
 		
@@ -1388,6 +1392,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_download_total = 0; m_download_size = 0;
 		m_status_code = 0;
 		m_response_header.clear();
+		m_http_response_version = String();
 		
 		if ( is_disable_cache() ) { // check cache
 			send_http();
@@ -1431,7 +1436,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	int64      m_download_total;  /* 需下载数据总量 */
 	int64      m_download_size;   /* 已下载数据量 */
 	HttpReadyState m_ready_state; /* 请求状态 */
-	uint        m_status_code;    /* 服务器响应http状态码 */
+	int         m_status_code;    /* 服务器响应http状态码 */
 	HttpMethod  m_method;
 	URI         m_uri;
 	String      m_save_path;
@@ -1445,6 +1450,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	String      m_username;
 	String      m_password;
 	String      m_cache_path;
+	String      m_http_response_version;
 	bool        m_disable_cache;
 	bool        m_disable_cookie;
 	bool        m_disable_send_cookie;
@@ -1599,7 +1605,7 @@ HttpReadyState HttpClientRequest::ready_state() const {
 	return m_inl->m_ready_state;
 }
 
-uint HttpClientRequest::status_code() const {
+int HttpClientRequest::status_code() const {
 	return m_inl->m_status_code;
 }
 
@@ -1625,6 +1631,10 @@ void HttpClientRequest::resume() { // thread safe
 
 void HttpClientRequest::abort() { // thread safe
 	m_inl->abort();
+}
+
+String HttpClientRequest::http_response_version() const {
+	return m_inl->m_http_response_version;
 }
 
 XX_END

@@ -50,11 +50,12 @@ String inl__get_http_cache_path() {
 }
 
 typedef HttpHelper::RequestOptions RequestOptions;
+typedef HttpHelper::ResponseData ResponseData;
 
 static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(HttpError) {
 	
 	class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public SimpleStream {
-	public:
+	 public:
 		Callback      cb;
 		bool          stream;
 		bool          full_data;
@@ -77,7 +78,14 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 			sync_callback(cb, &e);
 			abort(); // abort and release
 		}
-		
+
+		virtual void trigger_http_timeout(HttpClientRequest* req) {
+			HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
+									String("http request timeout") + ", " + req->url().c(), 0, req->url());
+			sync_callback(cb, &e);
+			abort(); // abort and release
+		}
+
 		virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
 			if ( stream ) {
 				// TODO 现在还不支持暂停与恢复功能
@@ -115,7 +123,12 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 					sync_callback(cb, nullptr, &data);
 				} else {
 					Buffer buff = data.to_buffer();
-					sync_callback(cb, nullptr, &buff);
+					ResponseData rdata;
+					rdata.data = data.to_buffer();
+					rdata.http_version = client->http_response_version();
+					rdata.status_code = client->status_code();
+					rdata.response_headers = client->get_all_response_headers();
+					sync_callback(cb, nullptr, &rdata);
 				}
 			}
 			abort(); // abort and release
@@ -128,7 +141,6 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 		virtual void trigger_http_write(HttpClientRequest* req) {}
 		virtual void trigger_http_header(HttpClientRequest* req) {}
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
-		virtual void trigger_http_timeout(HttpClientRequest* req) {}
 		
 		virtual void abort() {
 			Release(client); client = nullptr;
@@ -152,6 +164,7 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 	try {
 		req->set_url(options.url);
 		req->set_method(options.method);
+		req->set_timeout(options.timeout);
 		req->disable_cache(options.disable_cache);
 		req->disable_ssl_verify(options.disable_ssl_verify);
 		req->disable_cookie(options.disable_cookie);
@@ -208,12 +221,19 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	class Client: public HttpClientRequest, public HttpClientRequest::Delegate {
 	 public:
 		Client(RunLoop* loop): HttpClientRequest(loop)
-		, full_data(1), is_error(0), ok(0), m_loop(loop) {
+		, full_data(1), is_error(0), ok(0), m_loop(loop), error(0, "", 0, "") {
 			set_delegate(this);
 		}
 		virtual void trigger_http_error(HttpClientRequest* req, cError& err) {
 			XX_DEBUG("request_sync %s err", *url());
-			end(&err);
+			HttpError e(err.code(),
+									err.message() + ", " + req->url().c(), 0, req->url());
+			end(&e);
+		}
+		virtual void trigger_http_timeout(HttpClientRequest* req) {
+			HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
+									String("http request timeout") + ", " + req->url().c(), 0, req->url());
+			end(&e);
 		}
 		virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
 			XX_DEBUG("request_sync %s data ..", *url());
@@ -231,13 +251,12 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 		virtual void trigger_http_write(HttpClientRequest* req) {}
 		virtual void trigger_http_header(HttpClientRequest* req) {}
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
-		virtual void trigger_http_timeout(HttpClientRequest* req) {}
 
-		void end(cError* err) {
+		void end(HttpError* err) {
 			ScopeLock scope(mutex);
 			if (err) {
 				is_error = 1;
-				error = *err;
+				error = move(*err);
 			}
 			ok = 1;
 			cond.notify_one();
@@ -250,7 +269,9 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 				XX_DEBUG("request_sync %s send", *url());
 				try {
 					send(post_data);
-				} catch (Error& e) {
+				} catch (Error& err) {
+					HttpError e(err.code(),
+											err.message() + ", " + url().c(), 0, url());
 					end(&e);
 				}
 			}));
@@ -258,13 +279,13 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 				cond.wait(lock); // wait done
 			}
 			if (is_error) {
-				throw HttpError(move(error));
+				throw error;
 			}
 		}
 		bool					full_data, is_error, ok;
 		RunLoop*			m_loop;
 		Buffer				post_data;
-		Error 				error;
+		HttpError 		error;
 		StringBuilder data;
 		Condition			cond;
 		Mutex 				mutex;
@@ -284,6 +305,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	try {
 		cli.set_url(options.url);
 		cli.set_method(options.method);
+		cli.set_timeout(options.timeout);
 		cli.disable_cache(options.disable_cache);
 		cli.disable_ssl_verify(options.disable_ssl_verify);
 		
@@ -331,6 +353,7 @@ static RequestOptions default_request_options(cString& url) {
 		Buffer(),
 		String(),
 		String(),
+		0,
 		false,
 		false,
 		false,

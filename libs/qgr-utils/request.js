@@ -31,18 +31,25 @@
 var util = require('./util');
 var { haveQgr, haveNode, haveWeb } = util;
 var url = require('./url');
-var user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) \
+var errno = require('./errno');
+var default_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) \
 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36';
 
 if (haveQgr) {
+	var user_agent = default_user_agent;
 	var http = requireNative('_http');
+	var Buffer = requireNative('_buffer').Buffer;
+} else if (haveNode) {
+	var user_agent = default_user_agent;
+	var http = require('http');
+	var https = require('https');
+	var Buffer = require('buffer').Buffer;
+} else if (haveWeb) {
+	var user_agent = navigator.userAgent;
+} else {
+	throw 'Unimplementation';
 }
-var http = require('http');
-var https = require('https');
 
-var Buffer = require('buffer').Buffer;
-var querystring = require('querystring');
-var errno = require('./errno');
 var shared = null;
 
 var defaultOptions = {
@@ -54,6 +61,138 @@ var defaultOptions = {
 	timeout: 18e4,
 };
 
+function stringifyPrimitive(v) {
+	if (typeof v === 'string')
+		return v;
+	if (typeof v === 'number' && isFinite(v))
+		return '' + v;
+	if (typeof v === 'boolean')
+		return v ? 'true' : 'false';
+	return '';
+}
+
+function querystring_stringify(obj, sep, eq) {
+	sep = sep || '&';
+	eq = eq || '=';
+	var encode = encodeURIComponent;
+
+	if (obj !== null && typeof obj === 'object') {
+		var keys = Object.keys(obj);
+		var len = keys.length;
+		var flast = len - 1;
+		var fields = '';
+		for (var i = 0; i < len; ++i) {
+			var k = keys[i];
+			var v = obj[k];
+			var ks = encode(stringifyPrimitive(k)) + eq;
+
+			if (Array.isArray(v)) {
+				var vlen = v.length;
+				var vlast = vlen - 1;
+				for (var j = 0; j < vlen; ++j) {
+					fields += ks + encode(stringifyPrimitive(v[j]));
+					if (j < vlast)
+						fields += sep;
+				}
+				if (vlen && i < flast)
+					fields += sep;
+			} else {
+				fields += ks + encode(stringifyPrimitive(v));
+				if (i < flast)
+					fields += sep;
+			}
+		}
+		return fields;
+	}
+	return '';
+}
+
+var _request_platform = // request implementation
+
+// qgr implementation
+haveQgr ? function(options, soptions, resolve, reject, is_https, method, post_data) {
+	var url = is_https ? 'https://': 'http://';
+	url += soptions.hostname;
+	url += send_options.port != (is_https: 443: 80) : send_options.port: '';
+	url += path;
+
+	http.request({
+		url: url,
+		method: method == 'POST'? http.HTTP_METHOD_POST: http.HTTP_METHOD_GET,
+		headers: soptions.headers,
+		postData: post_data
+		timeout: soptions.timeout,
+		disableCache: true,
+		disableSslVerify: true,
+	}, function(data) {
+		// TODO ...
+	}.catch(err) {
+		// TODO ...
+	});
+}
+
+// node implementation
+: haveNode ? function(options, soptions, resolve, reject, is_https, method, post_data) {
+
+	var lib = is_https ? https: http;
+
+	if (is_https) {
+		soptions.agent = new https.Agent(soptions);
+	}
+
+	if (method == 'POST') {
+		soptions.headers['Content-Length'] = post_data ? Buffer.byteLength(post_data) : 0;
+	}
+
+	var req = lib.request(soptions, (res)=> {
+		// console.log(`STATUS: ${res.statusCode}`);
+		// console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+		// res.setEncoding('utf8');
+		var data = null;
+		res.on('data', (chunk)=> {
+			// console.log(`BODY: ${chunk}`);
+			if (data) {
+				data = Buffer.concat([data, chunk]);
+			} else {
+				data = chunk;
+			}
+		});
+		res.on('end', ()=> {
+			// console.log('No more data in response.');
+			resolve({
+				data: data,
+				headers: res.headers,
+				statusCode: res.statusCode,
+				httpVersion: res.httpVersion,
+				requestHeaders: soptions.headers,
+				requestData: options.params,
+			});
+		});
+	});
+
+	req.on('abort', e=>console.log('request abort'));
+	req.on('error', (e)=>reject(e));
+	req.on('timeout', e=>{
+		reject(Error.new(errno.ERR_REQUEST_TIMEOUT));
+		req.abort();
+	});
+
+	// write data to request body
+	if (method == 'POST') {
+		if (post_data)
+			req.write(post_data);
+	}
+
+	req.end();
+
+}
+
+// web implementation
+: haveWeb ? function(options, soptions, resolve, reject, is_https, method, post_data) {
+	// TODO ...
+}
+: util.unrealized;
+
 /**
  * @func request
  */
@@ -63,7 +202,6 @@ function request(pathname, options) {
 	return new Promise((resolve, reject)=> {
 		var uri = new url.URL(pathname);
 		var is_https = uri.protocol == 'https:';
-		var lib =	is_https ? https: http;
 		var hostname = uri.hostname;
 		var port = Number(uri.port) || (is_https ? 443: 80);
 		var path = uri.path;
@@ -82,7 +220,6 @@ function request(pathname, options) {
 			if (proxy && /^https?:\/\//.test(proxy)) {
 				proxy = new url.URL(proxy);
 				is_https = proxy.protocol == 'https:';
-				lib =	is_https ? https: http;
 				hostname = proxy.hostname;
 				port = Number(proxy.port) || (is_https ? 443: 80);
 				path = pathname;
@@ -97,7 +234,7 @@ function request(pathname, options) {
 			if (options.urlencoded) {
 				headers['Content-Type'] = 'application/x-www-form-urlencoded';
 				if (params) {
-					post_data = querystring.stringify(params);
+					post_data = querystring_stringify(params);
 				}
 			} else {
 				headers['Content-Type'] = 'application/json';
@@ -105,10 +242,9 @@ function request(pathname, options) {
 					post_data = JSON.stringify(params);
 				}
 			}
-			headers['Content-Length'] = post_data ? Buffer.byteLength(post_data) : 0;
 		} else {
 			if (params) {
-				path += (uri.search ? '&' : '?') + querystring.stringify(params);
+				path += (uri.search ? '&' : '?') + querystring_stringify(params);
 			}
 		}
 
@@ -124,49 +260,7 @@ function request(pathname, options) {
 			timeout: timeout > -1 ? timeout: defaultOptions.timeout,
 		};
 
-		if (is_https) {
-			send_options.agent = new https.Agent(send_options);
-		}
-
-		var req = lib.request(send_options, (res)=> {
-			// console.log(`STATUS: ${res.statusCode}`);
-			// console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-			// res.setEncoding('utf8');
-			var data = null;
-			res.on('data', (chunk)=> {
-				// console.log(`BODY: ${chunk}`);
-				if (data) {
-					data = Buffer.concat([data, chunk]);
-				} else {
-					data = chunk;
-				}
-			});
-			res.on('end', ()=> {
-				// console.log('No more data in response.');
-				resolve({
-					data: data,
-					headers: res.headers,
-					statusCode: res.statusCode,
-					httpVersion: res.httpVersion,
-					requestHeaders: send_options.headers,
-					requestData: options.params,
-				});
-			});
-		});
-
-		req.on('abort', e=>console.log('request abort'));
-		req.on('error', (e)=>reject(e));
-		req.on('timeout', e=>{
-			reject(Error.new(errno.ERR_REQUEST_TIMEOUT));
-			req.abort();
-		});
-
-		// write data to request body
-		if (method == 'POST') {
-			if (post_data)
-				req.write(post_data);
-		}
-		req.end();
+		_request_platform(options, send_options, resolve, reject, is_https, method, post_data);
 	});
 }
 
@@ -326,6 +420,11 @@ class Request {
 module.exports = {
 	
 	Request: Request,
+
+	/**
+	 * @func querystringStringify()
+	 */
+	querystringStringify: querystring_stringify
 
 	/**
 	 * @get userAgent

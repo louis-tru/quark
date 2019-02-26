@@ -39,6 +39,8 @@ XX_NS(qgr)
 
 String inl__format_part_path(cString& path);
 
+typedef HttpHelper::ResponseData ResponseData;
+
 class FileReader::Core {
  public:
 	
@@ -189,7 +191,14 @@ class FileReader::Core {
 					if ( stream ) {
 						id = HttpHelper::get_stream(path, cb);
 					} else {
-						id = HttpHelper::get(path, cb);
+						id = HttpHelper::get(path, Cb([cb](Se& e){
+							ResponseData* data = static_cast<ResponseData*>(e.data);
+							if (e.error) {
+								sync_callback(cb, e.error);
+							} else {
+								sync_callback(cb, nullptr, &data->data);
+							}
+						}));
 					}
 				} catch(cError& err) {
 					async_err_callback(cb, Error(err), RunLoop::current());

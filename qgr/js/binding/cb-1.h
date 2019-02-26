@@ -46,6 +46,7 @@ Callback get_callback_for_buffer(Worker* worker,
 	Local<JSValue> cb, Encoding encoding = Encoding::unknown);
 Callback get_callback_for_buffer_http_error(Worker* worker, 
 	Local<JSValue> cb, Encoding encoding = Encoding::unknown);
+Callback get_callback_for_response_data_http_error(Worker* worker, Local<JSValue> cb);
 Callback get_callback_for_io_stream(Worker* worker, Local<JSValue> cb);
 Callback get_callback_for_io_stream_http_error(Worker* worker, Local<JSValue> cb);
 Callback get_callback_for_none(Worker* worker, Local<JSValue> cb);
