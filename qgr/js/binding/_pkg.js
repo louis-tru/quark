@@ -151,7 +151,6 @@ function throw_err(e, cb) {
 // add url args
 function set_url_args(path, arg) {
 	if (/^(https?):\/\//i.test(path)) {
-		var args = [];
 		var url_arg = arg || options.url_arg;
 		if ( url_arg ) {
 			return path + (path.indexOf('?') == -1 ? '?' : '&') + url_arg;
@@ -254,7 +253,8 @@ function Package_install3(self, path, cb) {
 	if (self.m_build || isNetwork(path)) {
 		// 读取package内部资源文件版本信息
 		var versions_json = path + '/versions.json';
-		var path2 = set_url_args(versions_json, self.m_version_code);
+		// 这里如果非build状态,不使用缓存
+		var path2 = set_url_args(versions_json, self.m_build ? self.m_version_code: '__nocache');
 
 		var read_versions_ok = function(data) {
 			data = parseJSON(data, versions_json);
@@ -296,6 +296,13 @@ function Package_install_remote(self, cb) {
 		self.m_pkg_path = `zip:///${pathname_ver.substr(8)}@`;  // file:///
 		Package_install3(self, self.m_pkg_path, cb);
 	} else {
+		if (!self.m_build) {
+			// 这个远程包被标记非build状态，这可能导致不能正确载入
+			print_warn(
+				'This remote package is marked in a non-build state, ' +
+				'which may result in incorrect loading'
+			);
+		}
 		var url = set_url_args(`${self.m_path}/${self.m_name}.pkg`, version_code);
 		var tmp = pathname_ver + '.~';
 		// TODO 文件比较大时需要断点续传下载
@@ -395,7 +402,7 @@ function Package_install2(self, cb) {
 				}
 			} else {
 
-				if (self.m_origin) { 
+				if (self.m_origin) {
 					// 可能由于网络原因导致没有调用`Package_attempt_enable_origin()`启用源检测
 					// 但本地可能存在原先下载的origin包,检测原先下载的远程包是否可用
 					var path = _path.temp(`${self.m_name}.pkg`);
@@ -447,6 +454,8 @@ function Package_install(self, cb) {
 		Package_install2(self);
 	}
 }
+
+// ------------ install package end ------------ 
 
 function throw_MODULE_NOT_FOUND(request) {
 	var err = new Error(`Cannot find module or file '${request}'`);
@@ -827,7 +836,7 @@ function Packages_parse_new_pkgs_json(self, node_path, content, local) {
 			}
 			var version_code = String(info.version_code || ''); // pkg version code
 			// is pkg build, 是否为build过的代码
-			// 指定一个最终build的版本代码也可视目标pkg为build过后的代码
+			// 最终的version_code与_build属性都存在才能被视为build状态
 			var is_build = '_build' in info ? !!info._build : !!version_code;
 			var origin = info.origin || '';
 			
@@ -868,7 +877,9 @@ function Packages_verification_is_need_load_pkg(self, register, is_warn) {
 function Packages_parse_new_pkg_json(self, register, content) {
 	var info = parseJSON(content, register.path + '/package.json');
 	var version_code = String(info.version_code || '');
-	var is_build = '_build' in info ? !!info._build : !!version_code;
+	// is pkg build, 是否为build过的代码
+	// 最终的version_code与_build属性都存在才能被视为build状态
+	var is_build = !!(info._build && version_code);
 	var origin = register.disable_origin ? '' : register.origin || info.origin || '';
 	
 	register.ready = 2; // 完成
