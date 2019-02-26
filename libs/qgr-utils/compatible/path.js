@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright © 2015-2016, xuewen.chu
+ * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_buffer');
+module.exports = require('../path');

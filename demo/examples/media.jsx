@@ -1,7 +1,7 @@
 import { Div, Button } from 'qgr';
 import { AudioPlayer, Video } from 'qgr/media';
 import { Mynavpage } from './public';
-import * as aaaa from 'qgr/url';
+import * as aaaa from 'qgr/path';
 
 // const src_720 = 'http://quickgr.org/media/2017-09-11_15_41_19.mp4';
 const src_720 = 'http://quickgr.org/media/piper720p.mp4';

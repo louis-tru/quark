@@ -36,7 +36,7 @@ var http = require('http');
 var https = require('https');
 var { PacketParser, Hybi } = require('./hybi');
 var { Notification } = require('./event');
-var { URL } = require('./url');
+var url = require('./url');
 var { Buffer } = require('buffer');
 var errno = require('./errno');
 var crypto = require('crypto');
@@ -235,8 +235,8 @@ var WSConversation = util.class('WSConversation', Conversation, {
 		this.m_message = [];
 		path = path || util.config.web_service || 'ws://localhost';
 		util.assert(path, 'Server path is not correct');
-		path = util.resolve(path);
-		this.m_url = new URL(path.replace(/^http/, 'ws'));
+		path = url.resolve(path);
+		this.m_url = new url.URL(path.replace(/^http/, 'ws'));
 	},
 	
 	/** 

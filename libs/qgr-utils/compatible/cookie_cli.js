@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-module.exports = require('../cookie');
+module.exports = require('../cookie_cli');

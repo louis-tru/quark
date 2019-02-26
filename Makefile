@@ -134,7 +134,7 @@ doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
 
 web server:
-	@$(NODE) tools/server.js
+	@$(NODE) --inspect=0.0.0.0:9229 tools/server.js
 
 clean:
 	@rm -rfv out/$(OS).*

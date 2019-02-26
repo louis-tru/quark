@@ -28,14 +28,38 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('fs');
+var util = require('./util');
+var url = require('./url');
+var DelayCall = require('./delay_call').DelayCall;
+var { haveNode, haveQgr, haveWeb } = util;
+
+if (haveQgr) {
+	var fs = requireNative('_fs');
+} else if (haveNode) {
+	var fs = require('fs');
+}
+
 var shared = null;
-var { DelayCall } = require('./delay_call');
 
 function sync_local(self) {
-	if (self.m_change) {
+	if (!haveWeb && self.m_change) {
 		fs.writeFileSync(self.m_path, JSON.stringify(self.m_value, null, 2));
 		self.m_change = false;
+	}
+}
+
+function format_key(self, key) {
+	if (haveWeb) {
+		return self.m_prefix + key;
+	} else {
+		return key;
+	}
+}
+
+function commit(self) {
+	if (!haveWeb) {
+		self.m_change = true;
+		self.m_sync.notice();
 	}
 }
 
@@ -44,51 +68,70 @@ function sync_local(self) {
  */
 class Storage {
 
-	constructor(path = process.cwd() + '/' + '.storage') {
-		this.m_path = path;
-		this.m_value = {};
+	constructor(path = util.cwd() + '/' + '.storage') {
+		this.m_path = url.fallbackPath(path);
+		this.m_prefix = '';
 		this.m_change = false;
-		this.m_sync = new DelayCall(e=>sync_local(this), 100); // 100ms后保存到文件
 
-		if (fs.existsSync(path)) {
-			try {
-				this.m_value = JSON.parse(fs.readFileSync(path, 'utf-8')) || {};
-			} catch(e) {}
+		if (haveWeb) {
+			this.m_sync = { notice: util.noop };
+			this.m_prefix = util.hash(this.m_path || 'default') + '_':
+			this.m_value = localStorage;
+		} else {
+			this.m_sync = new DelayCall(e=>sync_local(this), 100); // 100ms后保存到文件
+			if (fs.existsSync(this.m_path)) {
+				try {
+					this.m_value = JSON.parse(fs.readFileSync(this.m_path, 'utf-8')) || {};
+				} catch(e) {}
+			}
 		}
 	}
 
 	get(key, defaultValue) {
+		key = format_key(this, key);
 		if (key in this.m_value) {
 			return this.m_value[key];
 		} else {
 			if (defaultValue !== undefined) {
 				this.m_value[key] = defaultValue;
-				this.m_sync.notice();
+				commit(this);
 				return defaultValue;
 			}
 		}
 	}
 
 	has(key) {
+		key = format_key(this, key);
 		return key in this.m_value;
 	}
 
 	set(key, value) {
-		this.m_change = true;
+		key = format_key(this, key);
 		this.m_value[key] = value;
-		this.m_sync.notice();
+		commit(this);
 	}
 
 	del(key) {
-		this.m_change = true;
+		key = format_key(this, key);
 		delete this.m_value[key];
-		this.m_sync.notice();
+		commit(this);
 	}
 
 	claer() {
-		this.m_change = true;
-		this.m_value = {};
-		this.m_sync.notice();
+		if (haveWeb) {
+			var keys = [];
+			for (var i in this.m_value) {
+				if (i.substr(0, this.m_prefix.length) == this.m_prefix) {
+					keys.push(this.m_value);
+				}
+			}
+			for (var key of keys) {
+				delete this.m_value[key];
+			}
+		} else {
+			this.m_value = {};
+		}
+		commit(this);
 	}
 
 	save() {
@@ -102,6 +145,9 @@ module.exports = {
 	Storage: Storage,
 
 	get shared() {
+		if (!shared) {
+			shared = new Storage();
+		}
 		return shared;
 	},
 
@@ -134,5 +180,3 @@ module.exports = {
 	},
 
 };
-
-

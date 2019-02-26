@@ -115,7 +115,7 @@ class ViewController extends HttpService {
 	view(name, data) {
 		var self = this;
 		var ext = path.extname(name);
-		var filename = util.resolve(ext ? name: name + '.ejs');
+		var filename = path.resolve(ext ? name: name + '.ejs');
 		data = data || {};
 		
 		try {

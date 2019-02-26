@@ -28,12 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var http = require('http');
-var https = require('https');
-var url = require('url');
 var util = require('./util');
+var { haveQgr, haveNode, haveWeb } = util;
+var url = require('./url');
 var user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) \
 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36';
+
+if (haveQgr) {
+	var http = requireNative('_http');
+}
+var http = require('http');
+var https = require('https');
+
 var Buffer = require('buffer').Buffer;
 var querystring = require('querystring');
 var errno = require('./errno');
@@ -42,11 +48,11 @@ var shared = null;
 var defaultOptions = {
 	method: 'GET',
 	params: '',
-	headers : {}, 
-	urlencoded : true, 
+	headers : {},
+	urlencoded : true,
 	user_agent : user_agent,
 	timeout: 18e4,
-}
+};
 
 /**
  * @func request
@@ -55,7 +61,7 @@ function request(pathname, options) {
 	options = Object.assign({}, defaultOptions, options);
 
 	return new Promise((resolve, reject)=> {
-		var uri = url.parse(pathname);
+		var uri = new url.URL(pathname);
 		var is_https = uri.protocol == 'https:';
 		var lib =	is_https ? https: http;
 		var hostname = uri.hostname;
@@ -70,18 +76,20 @@ function request(pathname, options) {
 		var post_data = null;
 		var { params, method, timeout } = options;
 
-		// set proxy
-		var proxy = process.env.HTTP_PROXY || process.env.http_proxy;
-		if (proxy && /^https?:\/\//.test(proxy)) {
-			proxy = url.parse(proxy);
-			is_https = proxy.protocol == 'https:';
-			lib =	is_https ? https: http;
-			hostname = proxy.hostname;
-			port = Number(proxy.port) || (is_https ? 443: 80);
-			path = pathname;
-			headers.host = uri.hostname;
-			if (uri.port) {
-				headers.host += ':' + uri.port;
+		if (!haveWeb) {
+			// set proxy
+			var proxy = process.env.HTTP_PROXY || process.env.http_proxy;
+			if (proxy && /^https?:\/\//.test(proxy)) {
+				proxy = new url.URL(proxy);
+				is_https = proxy.protocol == 'https:';
+				lib =	is_https ? https: http;
+				hostname = proxy.hostname;
+				port = Number(proxy.port) || (is_https ? 443: 80);
+				path = pathname;
+				headers.host = uri.hostname;
+				if (uri.port) {
+					headers.host += ':' + uri.port;
+				}
 			}
 		}
 
@@ -115,7 +123,7 @@ function request(pathname, options) {
 			rejectUnauthorized: false,
 			timeout: timeout > -1 ? timeout: defaultOptions.timeout,
 		};
-		
+
 		if (is_https) {
 			send_options.agent = new https.Agent(send_options);
 		}
@@ -210,13 +218,21 @@ class Request {
 
 	constructor(serverURL, mock, mockSwitch) {
 		this.m_user_agent = user_agent;
-		this.m_server_url = serverURL || util.config.web_service || 'http://localhost';
+		this.m_server_url = serverURL || util.config.web_service;
 		this.m_mock = mock || {};
 		this.m_mock_switch = mockSwitch;
 		this.m_urlencoded = true;
 		this.m_enable_strict_response_data = true;
 		this.m_cache = new Cache();
 		this.m_timeout = defaultOptions.timeout;
+
+		if (!this.m_server_url) {
+			if (haveWeb) {
+				this.m_server_url = location.origin;
+			} else {
+				this.m_server_url = 'http://localhost';
+			}
+		}
 	}
 
 	get userAgent() { return this.m_user_agent }
@@ -255,8 +271,8 @@ class Request {
 			var { headers, timeout } = options || {};
 			var url = this.m_server_url + '/' + name;
 			var result = await request(url, {
-				method, 
-				params, 
+				method,
+				params,
 				headers,
 				timeout: timeout || this.m_timeout,
 				urlencoded: this.m_urlencoded,

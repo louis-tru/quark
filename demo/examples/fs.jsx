@@ -1,10 +1,10 @@
 import { Div, Button, Input } from 'qgr';
 import 'qgr/fs';
-import 'qgr/url';
+import 'qgr/path';
 import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
-const filename = url.documents('test.txt');
+const filename = path.documents('test.txt');
 
 function WriteFile(evt) {
 	fs.writeFile(filename, evt.sender.topCtr.find('input').value, function(err) {

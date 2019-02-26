@@ -29,8 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var http = require('http');
-var path = require('qgr-utils/url');
-var util = require('qgr-utils');
+var path = require('qgr-utils/path');
 var querystring = require('querystring');
 var remote_log_uri = null;
 
@@ -63,7 +62,7 @@ function remote_log_print_with_post(data) {
 function remote_log_print(args) {
 	var uri = remote_log_uri;
 	if ( uri ) {
-		var url = util.resolve(uri.href, '/$console/log');
+		var url = path.resolve(uri.href, '/$console/log');
 		http.get(url + '/' + args, function() { });
 	}
 }

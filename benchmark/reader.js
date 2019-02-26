@@ -1,6 +1,6 @@
 
 import 'qgr/fs';
-import 'qgr/url';
+import * as url from 'qgr/path';
 import 'qgr/reader';
 import './uu';
 

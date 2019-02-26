@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var util = require('./util');
+var path = require('path');
 var fs = require('./fs');
 var event = require('./event');
 var Router = require('./router').Router;
@@ -163,8 +164,8 @@ function config_server(self, config) {
 	var gzip      = config.gzip;
 
 	self.port     = parseInt(process.env.WEB_SERVER_PORT) || self.port;
-	self.root     = root ? util.resolve(root) : self.root;
-	self.temp     = temp ? util.resolve(temp) : self.temp;
+	self.root     = root ? path.resolve(root) : self.root;
+	self.temp     = temp ? path.resolve(temp) : self.temp;
 	
 	if (disable) {
 		if (Array.isArray(disable)) 

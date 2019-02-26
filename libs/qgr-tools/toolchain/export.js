@@ -31,7 +31,7 @@
 var util = require('qgr-utils/util');
 var paths = require('./paths');
 var fs = require('qgr-utils/fs');
-var path = require('qgr-utils/url');
+var path = require('qgr-utils/path');
 var keys = require('qgr-utils/keys');
 var sys = require('os');
 var { QgrBuild } = require('./build');
@@ -314,10 +314,10 @@ var Package = util.class('Package', {
 		 */
 		for ( var pathname in pkg_json.native_deps ) {
 			var target = pkg_json.native_deps[pathname];
-			if ( !util.isAbsolute(pathname) ) {
+			if ( !path.isAbsolute(pathname) ) {
 				pathname = cur_pkg_source + '/' + pathname;
 			}
-			this.includes.push(util.resolve(pathname, '/native.gypi'));
+			this.includes.push(path.resolveLocal(pathname, '/native.gypi'));
 			if ( target ) {
 				if ( Array.isArray(target) ) {
 					this.dependencies = this.dependencies.concat(target);
@@ -389,7 +389,7 @@ var Package = util.class('Package', {
 });
 
 function solve_pkg(self, pathname, is_app, ignore_depe) {
-	var source_path = util.resolve(pathname);
+	var source_path = path.resolveLocal(pathname);
 	var name = path.basename(source_path);
 	
 	// ignore network pkg 
@@ -711,10 +711,10 @@ var QgrExport = util.class('QgrExport', {
 
 	constructor: function (source, os) {
 		var self = this;
-		this.m_source = util.resolve(source);
-		this.m_output = util.resolve(source, 'out');
+		this.m_source = path.resolveLocal(source);
+		this.m_output = path.resolveLocal(source, 'out');
 		this.m_os = os;
-		this.m_proj_out = util.resolve(source, 'Project', os);
+		this.m_proj_out = path.resolveLocal(source, 'Project', os);
 		this.m_pkg_output = { };
 		this.m_default_includes = { };
 

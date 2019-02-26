@@ -35,6 +35,8 @@ const _pkgutil = requireNative('_pkgutil');
 
 /**************************************************************************/
 
+const haveWeb = typeof global.window == 'object';
+
 function split_path(self) {
 	if (self._is_split) return;
 	self._is_split = true;
@@ -158,6 +160,9 @@ class URL {
 		* @constructor
 		*/
 	constructor(path = '') {
+		if (!path && haveWeb) {
+			path = location.href;
+		}
 		this._value = path;
 	}
 	
@@ -353,6 +358,10 @@ function get_path(path) {
 	return new URL(path);
 }
 
+function resolveLocal(...args) {
+	return _path.fallbackPath(_pkgutil.resolve(...args));
+}
+
 module.exports = {
 
 	..._path,
@@ -368,6 +377,32 @@ module.exports = {
 	 * @func resolve(path) resolve path 
 	 */
 	resolve: _pkgutil.resolve, // func
+
+	/**
+	 * @func resolveLocal()
+	 */
+	resolveLocal: resolveLocal,
+
+	/**
+	 * full filename
+	 */
+	basename: function (path) {
+		return get_path(path).basename;
+	},
+
+	/**
+	 * full filename
+	 */
+	dirname: function (path) {
+		return get_path(path).dirname;
+	},
+
+	/**
+	 * full filename
+	 */
+	extname: function (path) {
+		return get_path(path).extname;
+	},
 
 	/**
 	 * full filename

@@ -30,30 +30,41 @@
 
 const keys = require('./_keys');
 const _util = require('./_util');
-const options = {};  // start options
 const {haveNode, haveQgr, haveWeb} = _util;
 const PREFIX = 'file:///';
-const path = require('path');
+const options = {};  // start options
 
-var ignore_local_package;var ignore_all_local_package;
+var ignore_local_package, ignore_all_local_package;
 var config = null;
+var _pkgutil = exports;
 
 if (haveQgr) {
-	var fs = requireNative('_fs');
+	var _pkg = requireNative('_pkg');
 	var win32 = requireNative('_util').platform == 'win32';
-	var _cwd = requireNative('_path').cwd;
+	var _path = requireNative('_path');
+	var cwd = _path.cwd;
+	var _cwd = cwd;
+	var chdir = _path.chdir;
 } else if (haveNode) {
-	var fs = require('fs');
 	var win32 = process.platform == 'win32';
+	var _path = require('path');
+	var cwd = process.cwd;
 	var _cwd = win32 ? function() {
-		return PREFIX + process.cwd().replace(/\\/g, '/');
+		return PREFIX + cwd.replace(/\\/g, '/');
 	}: function() {
-		return PREFIX + process.cwd().substr(1);
+		return PREFIX + cwd.substr(1);
+	};
+	var chdir = function(cwd) {
+		return process.chdir(fallbackPath(cwd));
 	};
 } else if (haveWeb) { // web
-	var _cwd = function() {
-		// TODO ...
-	};
+	var origin = location.origin;
+	var pathname = location.pathname;
+	var dirname = pathname.substr(0, pathname.lastIndexOf('/'));
+	var cwdPath = origin + dirname;
+	var cwd = function() { return cwdPath };
+	var _cwd = function() { return cwdPath };
+	var chdir = function() {};
 }
 
 const fallbackPath = win32 ? function(url) {
@@ -143,12 +154,17 @@ function resolve() {
 		}
 	} else { // Relative path, no network protocol
 		var cwd = _cwd();
-		if (win32) {
-			prefix += cwd.substr(0,10) + '/'; // 'file:///d:/';
-			path = cwd.substr(11) + '/' + path;
+		if (haveWeb) {
+			prefix = origin + '/';
+			path = cwd.substr(prefix.length) + '/' + path;
 		} else {
-			prefix = PREFIX; // 'file:///';
-			path = cwd.substr(8) + '/' + path;
+			if (win32) {
+				prefix += cwd.substr(0,10) + '/'; // 'file:///d:/';
+				path = cwd.substr(11) + '/' + path;
+			} else {
+				prefix = PREFIX; // 'file:///';
+				path = cwd.substr(8) + '/' + path;
+			}
 		}
 	}
 
@@ -187,10 +203,12 @@ function extendEntries(obj, extd) {
 }
 
 if (haveNode && !haveQgr) {
+	var fs = require('fs');
+	var _keys = require('./_keys');
 	require('module').Module._extensions['.keys'] = function(module, filename) {
 		var content = fs.readFileSync(filename, 'utf8');
 		try {
-			module.exports = keys.parse(stripBOM(content));
+			module.exports = _keys.parse(stripBOM(content));
 		} catch (err) {
 			err.message = filename + ': ' + err.message;
 			throw err;
@@ -210,9 +228,18 @@ function stripBOM(content) {
 	return content;
 }
 
-function parse_argv() {
-	var args = process.argv.slice(2);
-	
+function Packages_require_parse_argv(self) {
+	var args = [];
+
+	if (_util.argv.length > 1) {
+		if ( String(_util.argv[1])[0] != '-' ) {
+			self.m_main_startup_path = String(_util.argv[1] || '');
+			args = _util.argv.slice(2);
+		} else {
+			args = _util.argv.slice(1);
+		}
+	}
+
 	for (var i = 0; i < args.length; i++) {
 		var item = args[i];
 		var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
@@ -234,12 +261,13 @@ function parse_argv() {
 
 	// options.dev = _util.dev;
 
-	if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0) || 
-			process.argv.some(s=>(s+'').indexOf('--inspect') == 0)) {
-		options.dev = 1;
+	if (haveNode) {
+		if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
+			options.dev = 1;
+		}
 	}
 
-	/*_pkgutil.dev = */options.dev = !!options.dev;
+	_pkgutil.dev = options.dev = !!options.dev;
 	
 	if ( !('url_arg' in options) ) {
 		options.url_arg = '';
@@ -266,47 +294,50 @@ function parse_argv() {
 	}
 }
 
-function read_config(pathname) {
+function inl_require_without_err(pathname) {
 	try {
 		return require(pathname);
 	} catch(e) {}
 }
 
 function get_config() {
+	if (haveQgr) {
+		return _pkg.config;
+	}
 	if (!config) {
-		config = {};
-		var mainModule = process.mainModule;
-		if (mainModule) {
-			config = 
-				read_config(path.dirname(mainModule.filename) + '/config') ||
-				read_config(path.dirname(mainModule.filename) + '/.config') ||
-				read_config(_cwd() + '/config') ||
-				read_config(_cwd() + '/.config') || {};
+		if (haveNode) {
+			var mainModule = process.mainModule;
+			if (mainModule) {
+				config = 
+					inl_require_without_err(_path.dirname(mainModule.filename) + '/config') ||
+					inl_require_without_err(_path.dirname(mainModule.filename) + '/.config') ||
+					inl_require_without_err(cwd() + '/config') ||
+					inl_require_without_err(cwd() + '/.config') || {};
+			} else {
+				config = 
+					inl_require_without_err(cwd() + '/config') || 
+					inl_require_without_err(cwd() + '/.config') || {};
+			}
 		} else {
-			config = 
-				read_config(_cwd() + '/config') || 
-				read_config(_cwd() + '/.config') || {};
+			config = {};
 		}
 	}
 	return config;
 }
 
-parse_argv();
+Packages_require_parse_argv({});
 
 module.exports = {
 	fallbackPath,
 	resolvePathLevel,
 	resolve, 				// func pkg
-	isAbsolute, 	// func pkg
+	isAbsolute, 		// func pkg
 	isLocal,				// 
 	isLocalZip,
 	isNetwork,
 	extendEntries,
-	get options() {
-		return options;
-	},
-	get config() {
-		return get_config();
-	},
+	get options() { return options },
+	get config() { return get_config() },
 	cwd: _cwd,
+	chdir,
 };

@@ -32,7 +32,7 @@
 
 import { Event, Notification } from './event';
 var _util = requireNative('_util');
-var _pkg = requireNative('_pkg').packages;
+var _pkg = requireNative('_pkg');
 var { haveNode } = _util;
 
 function next_tick(cb, ...args) {

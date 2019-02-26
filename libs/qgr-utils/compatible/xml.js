@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-module.exports = require('../url');
+module.exports = require('../xml/index');

@@ -32,7 +32,7 @@ var util = require('qgr-utils');
 var fs = require('qgr-utils/fs');
 var child_process = require('child_process');
 var keys = require('qgr-utils/keys');
-var path = require('qgr-utils/url');
+var path = require('qgr-utils/path');
 var Buffer = require('buffer').Buffer;
 var paths = require('./paths');
 var uglify = require('../uglify');
@@ -197,7 +197,7 @@ function action_pkg(self, pathname, ignore_depe) {
 
 // build pkg item
 function action_pkg1(self, pathname, target_local, target_public, ignore_public, ignore_depe) {
-	var source_path = util.resolve(pathname);
+	var source_path = path.resolveLocal(pathname);
 	var name = path.basename(source_path);
 	var target_local_path = target_local + '/' + name;
 	var target_public_path = target_public + '/' + name;
@@ -234,9 +234,9 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 	var target_public_src = target_public_path;
 	
 	if ( pkg_json.src ) {
-		source_src = util.resolve(source_src, pkg_json.src);
-		target_local_src = util.resolve(target_local_src, pkg_json.src);
-		target_public_src = util.resolve(target_public_src, pkg_json.src);
+		source_src = path.resolveLocal(source_src, pkg_json.src);
+		target_local_src = path.resolveLocal(target_local_src, pkg_json.src);
+		target_public_src = path.resolveLocal(target_public_src, pkg_json.src);
 	}
 	
 	self.m_cur_pkg_name             = name;
@@ -292,7 +292,7 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 	if ( !ignore_depe ) {
 		// depe
 		function solve_external_depe(pathname) {
-			var paths = action_pkg(self, util.isAbsolute(pathname) ? 
+			var paths = action_pkg(self, path.isAbsolute(pathname) ? 
 														 pathname : source_path + '/' + pathname);
 			local_depe[paths.absolute_path] = '';
 			public_depe[paths.relative_path] = '';
@@ -344,7 +344,7 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 		fs.writeFileSync(target_public_path + '/package.json', JSON.stringify(pkg_json, null, 2));
 
 		if ( skip_install ) {
-			var skip_install = util.resolve(target_local_path, '../../skip_install');
+			var skip_install = path.resolveLocal(target_local_path, '../../skip_install');
 			fs.mkdir_p_sync(skip_install);
 			fs.rm_r_sync(skip_install + '/' + name);
 			fs.renameSync(target_local_path, skip_install + '/' + name);
@@ -395,9 +395,9 @@ function action_build_file(self, pathname) {
 			return;
 		}
 	}
-	var source        = util.resolve(self.m_cur_pkg_source_src, pathname);
-	var target_local  = util.resolve(self.m_cur_pkg_target_local_src, pathname);
-	var target_public = util.resolve(self.m_cur_pkg_target_public_src, pathname);
+	var source        = path.resolveLocal(self.m_cur_pkg_source_src, pathname);
+	var target_local  = path.resolveLocal(self.m_cur_pkg_target_local_src, pathname);
+	var target_public = path.resolveLocal(self.m_cur_pkg_target_public_src, pathname);
 	var extname       = path.extname(pathname).toLowerCase();
 	var data          = null;
 	var is_detach     = false;
@@ -485,7 +485,7 @@ function action_build_file(self, pathname) {
 
 function action_each_pkg_dir(self, pathname) {
 	
-	var path2 = util.resolve(self.m_cur_pkg_source_src, pathname);
+	var path2 = path.resolveLocal(self.m_cur_pkg_source_src, pathname);
 	var ls = fs.ls_sync(path2);
 	
 	for (var i = 0; i < ls.length; i++) {
@@ -597,9 +597,9 @@ var QgrBuild = util.class('QgrBuild', {
 		this.skip               = [];
 		this.detach             = [];
 		this.m_output_pkgs      = {};
-		this.m_source           = util.resolve(source);
-		this.m_target_local     = util.resolve(target, 'install');
-		this.m_target_public    = util.resolve(target, 'public');
+		this.m_source           = path.resolveLocal(source);
+		this.m_target_local     = path.resolveLocal(target, 'install');
+		this.m_target_public    = path.resolveLocal(target, 'public');
 		
 		util.assert(fs.existsSync(this.m_source), 'Build source does not exist ,{0}', this.m_source);
 	},

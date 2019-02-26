@@ -29,10 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 var utils = require('./util');
-var fs = require('./fs');
 var path = require('path');
 var { Notification } = require('./event');
 var { log, error, dir, warn } = console;
+var { haveNode, haveQgr, haveWeb } = utils;
+
+if (haveQgr) {
+	var fs = requireNative('_fs');
+} else if (haveNode) {
+	var fs = require('./fs');
+}
 
 function print(self, TAG, func, ...args) {
 	args.unshift(new Date().toString('yyyy-MM-dd hh:mm:ss.fff'));
@@ -68,8 +74,12 @@ class Console extends Notification {
 	constructor(pathname) {
 		super();
 		if (pathname) {
-			fs.mkdir_p_sync(path.dirname(pathname));
-			this.m_fd = fs.openSync(pathname, 'a');
+			if (!haveWeb) {
+				fs.mkdirpSync(path.dirname(pathname));
+				this.m_fd = fs.openSync(pathname, 'a');
+			} else {
+				this.m_fd = 0;
+			}
 			this.m_pathname = pathname;
 		} else {
 			this.m_fd = 0;
@@ -164,11 +174,46 @@ class Console extends Notification {
 
 }
 
-module.exports = {
+exports = module.exports = {
 
 	Console: Console,
 
+	log: (...args)=>{
+		exports.defaultConsole.log(...args);
+	},
+
+	warn: (...args)=>{
+		exports.defaultConsole.warn(...args);
+	},
+
+	error: (...args)=>{
+		exports.defaultConsole.error(...args);
+	},
+
+	dir: (...args)=>{
+		exports.defaultConsole.dir(...args);
+	},
+
+	dlog: (...args)=>{
+		exports.defaultConsole.dlog(...args);
+	},
+
+	time: (...args)=>{
+		exports.defaultConsole.time(...args);
+	},
+
+	timeline: (...args)=>{
+		exports.defaultConsole.timeline(...args);
+	},
+
+	timeEnd: (...args)=>{
+		exports.defaultConsole.timeEnd(...args);
+	},
+
 	get defaultConsole() {
+		if (!default_console) {
+			default_console = new Console();
+		}
 		return default_console;
 	},
 

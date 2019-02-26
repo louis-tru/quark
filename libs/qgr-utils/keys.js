@@ -31,6 +31,13 @@
 var util = require('./util');
 var reader = require('fs');
 var parse_keys = require('./_keys').parse;
+var { haveQgr, haveNode, haveWeb } = util;
+
+if (haveQgr) {
+	var reader = requireNative('_reader');
+} else if (haveNode) {
+	var reader = require('fs');
+}
 
 function write_data(self, value) {
 	self.m_out.push(
@@ -153,7 +160,11 @@ module.exports = {
 	 * @ret {Object}
 	 */
 	parseFile: function(path) {
-		return parse_keys( reader.readFileSync(path, 'utf8') );
+		if (haveWeb) {
+			util.unrealized();
+		} else {
+			return parse_keys( reader.readFileSync(path, 'utf8') );
+		}
 	},
 
 	/**

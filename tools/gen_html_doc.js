@@ -30,7 +30,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var fs = require('qgr-utils/fs');
-var path = require('qgr-utils/url');
+var path = require('path');
 var marked_html = require('qgr-tools/marked/html');
 var marked = require('qgr-tools/node_modules/marked/index');
 var read_qgr_version = require('./read_version').read_qgr_version;

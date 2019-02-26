@@ -30,7 +30,8 @@
 
 var util = require('../libs/qgr-utils');
 var fs = require('../libs/qgr-utils/fs');
-var path = require('../libs/qgr-utils/url');
+var url = require('../libs/qgr-utils/url');
+var path = require('path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
 var argument = require('../libs/qgr-utils/arguments');
@@ -404,9 +405,9 @@ function configure_node(opts, variables, configuration) {
 		variables.icu_endianness = config.icu_endianness;
 		variables.icu_locales = config.icu_locales;
 		variables.icu_gyp_path = 
-			path.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_gyp_path}`);
+			url.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_gyp_path}`);
 		variables.icu_path = 
-			path.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_path}`);
+			url.relative(__dirname + '/../out', `${__dirname}/../node/${config.icu_path}`);
 		variables.icu_small = 'true';
 	}
 }

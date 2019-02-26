@@ -32,10 +32,9 @@ if (typeof requireNative != 'function') { // qgr
 	require('./_ext');
 }
 
-var haveNode = !!global.process;
-var haveQgr = !!global.requireNative;
-var haveWeb = !!global.location;
-
+const haveNode = !!global.process;
+const haveQgr = !!global.requireNative;
+const haveWeb = !!global.location;
 const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
 const assign = Object.assign;
@@ -43,10 +42,44 @@ const assign = Object.assign;
 if (haveQgr) {
 	var _util = requireNative('_util');
 	var platform = _util.platform;
-} else if (haveNode) {
+	var argv = _util.argv;
+}
+else if (haveNode) {
 	var platform = process.platform;
-} else if (haveWeb) {
+	var argv = process.argv;
+}
+else if (haveWeb) {
 	var platform = 'web';
+	var argv = [];
+
+	var flags = function() {
+		var USER_AGENT = navigator.userAgent;
+		var mat = USER_AGENT.match(/\(i[^;]+?; (U; )?CPU.+?OS (\d).+?Mac OS X/);
+		var ios = !!mat;
+		return {
+			windows: USER_AGENT.indexOf('Windows') > -1,
+			windowsPhone: USER_AGENT.indexOf('Windows Phone') > -1,
+			linux: USER_AGENT.indexOf('Linux') > -1,
+			android: /Android|Adr/.test(USER_AGENT),
+			macos: USER_AGENT.indexOf('Mac OS X') > -1,
+			ios: ios,
+			ios5Down: ios5_down,
+			iphone: USER_AGENT.indexOf('iPhone') > -1,
+			ipad: USER_AGENT.indexOf('iPad') > -1,
+			ipod: USER_AGENT.indexOf('iPod') > -1,
+			mobile: USER_AGENT.indexOf('Mobile') > -1 || 'ontouchstart' in global,
+			touch: 'ontouchstart' in global,
+			//--
+			trident: !!USER_AGENT.match(/Trident|MSIE/),
+			presto: !!USER_AGENT.match(/Presto|Opera/),
+			webkit: 
+			USER_AGENT.indexOf('AppleWebKit') > -1 || 
+			!!global.WebKitCSSKeyframeRule,
+			gecko:
+			USER_AGENT.indexOf('Gecko') > -1 &&
+			USER_AGENT.indexOf('KHTML') == -1 || !!global.MozCSSKeyframeRule
+		};
+	}();
 }
 
 /**
@@ -148,4 +181,6 @@ module.exports = {
 	haveNode: haveNode,
 	haveQgr: haveQgr,
 	haveWeb: haveWeb,
+	argv: argv,
+	flags: flags || {},
 };

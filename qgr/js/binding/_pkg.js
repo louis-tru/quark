@@ -477,26 +477,38 @@ function Package_get_path(self, pathname) {
 		}
 	} else { // 没有扩展名,尝试使用多个扩展名查找 .js .jsx .json .keys
 		var extnames = Object.keys(Module._extensions);
-		// 尝试使用尝试默认扩展名不同的扩展名查找
-		for (var ext of extnames) {
-			ver = self.m_versions[pathname + ext];
-			if (ver !== undefined) {
-				pathname += ext;
-				break;
-			}
-		}
-		if ( ver === undefined ) {
-			if (isLocal(self.m_src)) { // 尝试访问本地文件系统,是否能找到文件信息
-				for (var ext of extnames) {
-					var src = self.m_src + '/' + pathname + ext;
-					if ( isFileSync(src) ) {
-						pathname += ext;
-						ver = ''; break;
-					}
+		var raw_pathname = pathname;
+		var pathnames = [pathname, pathname + '/index'];
+
+		// 尝试使用尝试默认扩展名不同的扩展名查找, and `${pathname}/index`
+		for (var j = 0; j < 2; j++) {
+			pathname = pathnames[j];
+			for (var ext of extnames) {
+				ver = self.m_versions[pathname + ext];
+				if (ver !== undefined) {
+					pathname += ext;
+					break;
 				}
 			}
-			if (ver === undefined) {
-				throw_MODULE_NOT_FOUND(pathname);
+			if ( ver === undefined ) {
+				if (isLocal(self.m_src)) { // 尝试访问本地文件系统,是否能找到文件信息
+					for (var ext of extnames) {
+						var src = self.m_src + '/' + pathname + ext;
+						if ( isFileSync(src) ) {
+							pathname += ext;
+							ver = '';
+							break;
+						}
+					}
+				}
+				if (ver === undefined) {
+					if (j)
+						throw_MODULE_NOT_FOUND(raw_pathname);
+				} else {
+					break;
+				}
+			} else {
+				break;
 			}
 		}
 	}
@@ -518,6 +530,9 @@ function Package_get_path(self, pathname) {
 	}
 
 	self.m_path_cache[pathname] = rv = set_url_args(rv, ver);
+
+	print_warn('Package_get_path: ' + rv)
+
 	return rv;
 }
 
@@ -1125,9 +1140,9 @@ function Packages_require_add_main_search_path(self) {
 	}
 
 	[
-		_path.resources(), 
+		_path.resources(),
 		_path.resources('libs'),
-		_path.cwd(), 
+		_path.cwd(),
 		_path.cwd() + '/libs',
 	].concat(Module.globalPaths).forEach(function(path) {
 		instance.addPackageSearchPath(path);
@@ -1303,7 +1318,6 @@ class Packages {
 	 */ 
 	get config() {
 		if (!config) {
-			config = {};
 			var pkg = this.mainPackage;
 			if (pkg) {
 				config = 
@@ -1464,7 +1478,6 @@ function inl_require_without_err(pathname, parent) {
 	} catch(e) {}
 }
 
+exports = module.exports = new Packages();
 exports.Module = Module;
 exports.NativeModule = NativeModule;
-exports.packages = new Packages();
-exports.instance = exports.packages;

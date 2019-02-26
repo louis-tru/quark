@@ -194,68 +194,83 @@ class WrapBuffer: public WrapObject {
 	/**
 	 * @func write_()
 	 */
-	static void write_(FunctionCall args, cchar* err_msg) {
+	static int write_(Buffer* self, FunctionCall args, 
+		cchar* err_msg, int index = 0, bool parse_all_args = true) 
+	{
 		JS_WORKER(args);
 		
-		if (args.Length() == 0 || !(args[0]->IsString(worker) ||
-																args[0]->IsArrayBuffer(worker) ||
-																args[0]->IsArray(worker) ||
-																worker->has_buffer(args[0])
+		if (args.Length() > index || !(args[index]->IsString(worker) ||
+																	args[index]->IsArrayBuffer(worker) ||
+																	args[index]->IsArray(worker) ||
+																	worker->has_buffer(args[index])
 																)
 		) { // 参数错误
-			JS_THROW_ERR( err_msg );
+			worker->throw_err( worker->NewError(err_msg) );
+			return -1;
 		}
-		
-		JS_SELF(Buffer);
 		
 		int  to = -1;
 		int  size = -1;
 		uint form = 0;
 		Encoding en = Encoding::utf8;
 		
-		if ( args.Length() > 1 ) {
-			if ( args[1]->IsInt32(worker) ) { // 写入到目标位置
-				to = args[1]->ToInt32Value(worker);
-				if ( args.Length() > 2 ) {
-					if ( args[2]->IsInt32(worker) ) { // 写入大小
-						size = args[2]->ToInt32Value(worker);
-						if ( args.Length() > 3 ) { // 编码格式
-							if ( args[3]->IsUint32(worker) ) {
-								form = args[3]->ToInt32Value(worker);
+		if (index == 0) {
+			if (parse_all_args) {
+				if ( args.Length() > 1 ) {
+					if ( args[1]->IsInt32(worker) ) { // 写入到目标位置
+						to = args[1]->ToInt32Value(worker);
+						if ( args.Length() > 2 ) {
+							if ( args[2]->IsInt32(worker) ) { // 写入大小
+								size = args[2]->ToInt32Value(worker);
+								if ( args.Length() > 3 ) { // 编码格式
+									if ( args[3]->IsUint32(worker) ) {
+										form = args[3]->ToInt32Value(worker);
+									}
+								}
+							} else if (args[2]->IsString(worker)) { // 编码格式
+								if ( ! parse_encoding(args, args[2], en) ) return -1;
 							}
 						}
-					} else if (args[2]->IsString(worker)) { // 编码格式
-						if ( ! parse_encoding(args, args[2], en) ) return;
+					} else if (args[1]->IsString(worker)) { // 编码格式
+						if ( ! parse_encoding(args, args[1], en) ) return -1;
 					}
 				}
-			} else if (args[1]->IsString(worker)) { // 编码格式
-				if ( ! parse_encoding(args, args[1], en) ) return;
+			}
+		} else { // parse encoding
+			if (parse_all_args) {
+				if (args.Length() > index + 1) {
+					if (args[index + 1]->IsString(worker)) { // 编码格式
+						if ( ! parse_encoding(args, args[index + 1], en) ) return -1;
+					}
+				}
 			}
 		}
 		
-		if ( args[0]->IsString(worker) ) { // 写入字符串
-			Buffer buff = args[0]->ToBuffer(worker, en);
-			JS_RETURN( self->write(buff, to) );
+		if ( args[index]->IsString(worker) ) { // 写入字符串
+			Buffer buff = args[index]->ToBuffer(worker, en);
+			return( self->write(buff, to) );
 		}
-		else if (args[0]->IsArrayBuffer(worker)) { // 写入原生 ArrayBuffer
-			Local<JSArrayBuffer> ab = args[0].To<JSArrayBuffer>();
+		else if (args[index]->IsArrayBuffer(worker)) { // 写入原生 ArrayBuffer
+			Local<JSArrayBuffer> ab = args[index].To<JSArrayBuffer>();
 			WeakBuffer buff(ab->Data(worker), ab->ByteLength(worker));
-			JS_RETURN( self->write(buff, to, size, form) );
+			return( self->write(buff, to, size, form) );
 		}
-		else if ( args[0]->IsArray(worker) ) { // 写入数组 [ 0...255 ]
+		else if ( args[index]->IsArray(worker) ) { // 写入数组 [ 0...255 ]
 			Buffer buff;
-			if (args[0].To<JSArray>()->ToBufferMaybe(worker).To(buff)) {
-				JS_RETURN( self->write(buff, to, size, form) );
+			if (args[index].To<JSArray>()->ToBufferMaybe(worker).To(buff)) {
+				return( self->write(buff, to, size, form) );
 			}
 		}
 		else { // Buffer
-			Buffer* buff = Wrap<Buffer>::unpack(args[0].To<JSObject>())->self();
-			JS_RETURN( self->write(*buff, to, size, form) );
+			Buffer* buff = Wrap<Buffer>::unpack(args[index].To<JSObject>())->self();
+			return( self->write(*buff, to, size, form) );
 		}
 	}
 
 
 	static void write(FunctionCall args) {
+		JS_WORKER(args);
+
 		cchar* err_msg =
 		"* @func write(src[,to[,size[,form]][,encoding]][,encoding])\n"
 		"* @arg src {String|Buffer|ArrayBuffer|Array}\n"
@@ -263,10 +278,16 @@ class WrapBuffer: public WrapObject {
 		"* @arg [size=-1]  {int} 需要写入项目数量,超过要写入数据的长度自动取写入数据长度,-1为src源长度\n"
 		"* @arg [form=0]   {uint} 从要写入数据的form位置开始取数据,默认为0\n"
 		"* @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
-		"* @ret {uint} return new length\n";
-		write_(args, err_msg);
+		"* @ret {uint} return writed length\n";
+
+		JS_SELF(Buffer);
+
+		int i = write_(self, args, err_msg);
+		if (i !=-1) {
+			JS_RETURN( i );
+		}
 	}
-	
+
 	/**
 	 * @func push(item[,encoding])
 	 * @arg src {String|Buffer|ArrayBuffer|Array}
@@ -277,18 +298,55 @@ class WrapBuffer: public WrapObject {
 		JS_WORKER(args);
 		
 		cchar* err_msg =
-		"* @func push(item[,encoding])\n"
+		"* @func push(item[,...items])\n"
 		"* @arg item {String|Buffer|ArrayBuffer|Array}\n"
-		"* @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
-		"* @ret {uint} return buffer length\n";
+		"* @arg [...item]\n"
+		// "* @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
+		"* @ret {uint} return push length\n";
 		
-		if ( args.Length() > 1 ) {
-			if ( !args[1]->IsString(worker) ) { // non encoding
-				JS_THROW_ERR(err_msg);
+		// if ( args.Length() > 1 ) {
+		// 	if ( !args[1]->IsString(worker) ) { // non encoding
+		// 		JS_THROW_ERR(err_msg);
+		// 	}
+		// }
+
+		JS_SELF(Buffer);
+
+		int result = 0;
+
+		for (int i = 0; i < args.Length(); i++) {
+			int r = write_(self, args, err_msg, i, 0);
+			if (r == -1) {
+				return;
+			} else {
+				result += r;
 			}
 		}
 		
-		write_(args, err_msg);
+		JS_RETURN( result );
+	}
+
+	static void concat(FunctionCall args) {
+		JS_WORKER(args);
+		
+		cchar* err_msg =
+		"* @func concat(item[,...items])\n"
+		"* @arg item {String|Buffer|ArrayBuffer|Array}\n"
+		"* @arg [...item]\n"
+		"* @ret {Buffer} return new buffer\n";
+
+		JS_SELF(Buffer);
+
+		Buffer buffer = self->copy();
+
+		for (int i = 0; i < args.Length(); i++) {
+			int r = write_(&buffer, args, err_msg, i, 0);
+			if (r == -1) {
+				return;
+			}
+		}
+
+		JS_RETURN( buffer );
 	}
 	
 	/**
@@ -452,7 +510,7 @@ class WrapBuffer: public WrapObject {
 		JS_SELF(Buffer);
 		JS_RETURN( to_array_(worker, *self) );
 	}
-	
+
 	/**
 	 * @func fill(value)
 	 * @arg value {uint}
@@ -671,9 +729,10 @@ class WrapBuffer: public WrapObject {
 			JS_SET_CLASS_METHOD(filter, filter);
 			JS_SET_CLASS_METHOD(some, some);
 			JS_SET_CLASS_METHOD(every, every);
-			//JS_SET_CLASS_METHOD(push, push);
-			//JS_SET_CLASS_METHOD(pop, pop);
-			//JS_SET_CLASS_METHOD(toArray, to_array);
+			JS_SET_CLASS_METHOD(push, push);
+			JS_SET_CLASS_METHOD(pop, pop);
+			JS_SET_CLASS_METHOD(toArray, to_array);
+			JS_SET_CLASS_METHOD(concat, concat);
 		}, nullptr);
 	}
 };

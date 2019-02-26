@@ -36,7 +36,7 @@ module.exports = {
 	documents: unrealized,
 	temp: unrealized,
 	resources: unrealized,
-	chdir: unrealized,
 	fallbackPath: _pkgutil.fallbackPath,
+	chdir: _pkgutil.chdir,
 	cwd: _pkgutil.cwd,
 };

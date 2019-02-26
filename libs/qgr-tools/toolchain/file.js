@@ -32,7 +32,7 @@ var util = require('qgr-utils/util');
 var service = require('qgr-utils/service');
 var HttpService = require('qgr-utils/http_service').HttpService;
 var StaticService = require('qgr-utils/static_service').StaticService;
-var path = require('qgr-utils/url');
+var path = require('qgr-utils/path');
 var fs = require('qgr-utils/fs');
 var keys = require('qgr-utils/keys');
 var Buffer = require('buffer').Buffer;
@@ -58,7 +58,8 @@ var File = util.class('File', HttpService, {
 	},
 
 	marked_assets: function({pathname}) {
-		this.returnFile(path.resolve(__dirname, '../marked/assets', pathname));
+		// console.log('marked_assets', pathname);
+		this.returnFile(path.resolveLocal(__dirname, '../marked/assets', pathname));
 	},
 
 	marked: function({pathname}) {
@@ -111,7 +112,7 @@ var File = util.class('File', HttpService, {
 
 	packages_json: function({pathname}) {
 		var self = this;
-		var dir = path.resolve(this.server.root, path.dirname(pathname));
+		var dir = path.resolveLocal(this.server.root, path.dirname(pathname));
 		var res = self.response;
 
 		if (fs.existsSync(dir + '/packages.json')) {
@@ -143,7 +144,7 @@ var File = util.class('File', HttpService, {
 
 	versions_json: function({pathname}) {
 		var self = this;
-		var dir = path.resolve(this.server.root, path.dirname(pathname));
+		var dir = path.resolveLocal(this.server.root, path.dirname(pathname));
 		var res = self.response;
 
 		if (fs.existsSync(dir + '/versions.json')) {
@@ -156,7 +157,7 @@ var File = util.class('File', HttpService, {
 				var config = JSON.parse(fs.readFileSync(pkg, 'utf8'));
 				var versions = { };
 
-				dir = path.resolve(dir, config.src || '');
+				dir = path.resolveLocal(dir, config.src || '');
 
 				fs.ls_sync(dir, true, function(stat, pathname) {
 					if ( stat.isFile() ) {
