@@ -274,16 +274,16 @@ Map<Key, Value, Compare>& Map<Key, Value, Compare>::operator=(const Map& value) 
 		m_nodes.realloc(value.m_length);
 		m_length = value.m_length;
 		
-		const Node* i = *value.m_nodes;
-		const Node* end = i + value.m_nodes.capacity();
-		Node* buk = *m_nodes;
+		const Node* node = *value.m_nodes;
+		const Node* node_end = node + value.m_nodes.capacity();
+		Node* mynode = *m_nodes;
 
-		while ( i < end ) {
-			if ( i->first ) {
-				Item* item = i->first;
-				Item* s_item = buk->first = new Item(*item); // 复制
+		while ( node < node_end ) {
+			if ( node->first ) {
+				Item* item = node->first;
+				Item* s_item = mynode->first = new Item(*item); // 复制
 				s_item->next = NULL;
-				buk->last = s_item;
+				mynode->last = s_item;
 				item = item->next;
 				
 				while (item) {
@@ -291,13 +291,13 @@ Map<Key, Value, Compare>& Map<Key, Value, Compare>::operator=(const Map& value) 
 					s_item->next = i_item;
 					i_item->prev = s_item;
 					i_item->next = NULL;
-					buk->last = i_item;
+					mynode->last = i_item;
 					//
 					s_item = i_item;
 					item = item->next;
 				}
 			}
-			buk++; i++;
+			mynode++; node++;
 		}
 	}
 

@@ -89,6 +89,13 @@ class XX_EXPORT Map: public Object {
 		Item* first, *last;
 	};
 	
+	class NodeList: public Container<Node> {
+	 public:
+		void realloc(uint capacity);
+		void auto_realloc();
+		Map* _host;
+	};
+	
 	struct IteratorData {
 	 public:
 		typedef TValue Value;
@@ -109,13 +116,6 @@ class XX_EXPORT Map: public Object {
 		friend class Map;
 		friend class ConstIteratorTemplate<IteratorData>;
 		friend class IteratorTemplate<IteratorData>;
-	};
-	
-	class NodeList: public Container<Node> {
-	 public:
-		void realloc(uint capacity);
-		void auto_realloc();
-		Map* _host;
 	};
 	
 	typedef Array<Item*> Marks;
