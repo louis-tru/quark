@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var utils = require('./util');
-var path = require('path');
+var path = require('./path');
 var { Notification } = require('./event');
 var { log, error, dir, warn } = console;
 var { haveNode, haveQgr, haveWeb } = utils;
