@@ -200,7 +200,7 @@ function extendClass(cls, ...extds) {
 	}
 }
 
-exports = module.exports = assign(utils, _util, {
+module.exports = exports = extend(extend(utils, _util), {
 
 	// @func hashCode()
 	// @func hash()

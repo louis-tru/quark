@@ -269,35 +269,38 @@ Map<Key, Value, Compare>::~Map() {
 template<class Key, class Value, class Compare>
 Map<Key, Value, Compare>& Map<Key, Value, Compare>::operator=(const Map& value) {
 	clear();
-	
-	if (value.m_length) {
-		m_nodes.realloc(value.m_length);
-		m_length = value.m_length;
-		
-		const Node* node = *value.m_nodes;
-		const Node* node_end = node + value.m_nodes.capacity();
-		Node* mynode = *m_nodes;
 
-		while ( node < node_end ) {
+	if (value.m_length) {
+		m_nodes.realloc(value.m_nodes.capacity());
+		m_length = value.m_length;
+
+		const Node* node = *value.m_nodes;
+		const Node* end = node + value.m_nodes.capacity();
+		Node* node_1 = *m_nodes;
+
+		while ( node < end ) {
 			if ( node->first ) {
 				Item* item = node->first;
-				Item* s_item = mynode->first = new Item(*item); // 复制
-				s_item->next = NULL;
-				mynode->last = s_item;
+				Item* item_1 = new Item(*item); // 复制
+
+				item_1->mark = false;
+				item_1->prev = item_1->next = NULL;
+				node_1->first = node_1->last = item_1;
 				item = item->next;
-				
+
 				while (item) {
-					Item* i_item = new Item(*item);
-					s_item->next = i_item;
-					i_item->prev = s_item;
-					i_item->next = NULL;
-					mynode->last = i_item;
+					Item* item_2 = new Item(*item); // 复制
+					item_2->mark = false;
+					item_1->next = item_2;
+					item_2->prev = item_1;
+					item_2->next = NULL;
+					node_1->last = item_2;
 					//
-					s_item = i_item;
+					item_1 = item_2;
 					item = item->next;
 				}
 			}
-			mynode++; node++;
+			node++; node_1++;
 		}
 	}
 

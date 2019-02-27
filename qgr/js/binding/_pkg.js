@@ -540,7 +540,7 @@ function Package_get_path(self, pathname) {
 
 	self.m_path_cache[pathname] = rv = set_url_args(rv, ver);
 
-	print_warn('Package_get_path: ' + rv)
+	// print_warn('Package_get_path: ' + rv)
 
 	return rv;
 }

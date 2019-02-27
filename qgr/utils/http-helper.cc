@@ -127,7 +127,6 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 					rdata.http_version = client->http_response_version();
 					rdata.status_code = client->status_code();
 					rdata.response_headers = client->get_all_response_headers();
-					LOG("AAAAAAAaaaaaaaaaaaaaaaaaasssssssasasasas");
 					sync_callback(cb, nullptr, &rdata);
 				}
 			}

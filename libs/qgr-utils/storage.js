@@ -75,7 +75,7 @@ class Storage {
 
 		if (haveWeb) {
 			this.m_sync = { notice: util.noop };
-			this.m_prefix = util.hash(this.m_path || 'default') + '_':
+			this.m_prefix = util.hash(this.m_path || 'default') + '_';
 			this.m_value = localStorage;
 		} else {
 			this.m_sync = new DelayCall(e=>sync_local(this), 100); // 100ms后保存到文件

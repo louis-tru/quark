@@ -244,6 +244,22 @@ var HttpService = util.class('HttpService', StaticService, {
 	 * @overwrite
 	 */
 	action: async function(info) {
+
+		var self = this;
+		var action = info.action;
+
+		if (self.request.method == 'OPTIONS') {
+			if (self.server.allowOrigin == '*') {
+				self.response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+				self.response.setHeader('Access-Control-Allow-Headers', 
+					'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
+			}
+			self.setDefaultHeader();
+			self.response.writeHead(200);
+			self.response.end();
+			return;
+		}
+
 		/*
 		 * Note:
 		 * The network fault tolerance,
@@ -251,9 +267,6 @@ var HttpService = util.class('HttpService', StaticService, {
 		 * this error only occurs on the server restart,
 		 * the BUG caused by the request can not respond to
 		 */
-
-		var self = this;
-		var action = info.action;
 
 		if ( action == 'multiple' ) {
 			return action_multiple(this, info);

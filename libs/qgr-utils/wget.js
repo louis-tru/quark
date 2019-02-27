@@ -192,7 +192,7 @@ function wget(www, save, options) { // 206
 			req.on('abort', e=>error(errno.ERR_REQUEST_ABORT));
 			req.on('error', e=>error(e));
 			req.on('timeout', e=>{
-				error(Error.new(errno.ERR_REQUEST_TIMEOUT));
+				error(Error.new(errno.ERR_HTTP_REQUEST_TIMEOUT));
 				req.abort();
 			});
 			req.end(); // send

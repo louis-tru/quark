@@ -57,6 +57,7 @@ if (haveQgr) {
 	var chdir = function(cwd) {
 		return process.chdir(fallbackPath(cwd));
 	};
+	process.execArgv = process.execArgv || [];
 } else if (haveWeb) { // web
 	var origin = location.origin;
 	var pathname = location.pathname;

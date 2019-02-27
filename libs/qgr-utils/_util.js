@@ -63,7 +63,6 @@ else if (haveWeb) {
 			android: /Android|Adr/.test(USER_AGENT),
 			macos: USER_AGENT.indexOf('Mac OS X') > -1,
 			ios: ios,
-			ios5Down: ios5_down,
 			iphone: USER_AGENT.indexOf('iPhone') > -1,
 			ipad: USER_AGENT.indexOf('iPad') > -1,
 			ipod: USER_AGENT.indexOf('iPod') > -1,

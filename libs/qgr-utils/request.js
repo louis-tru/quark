@@ -38,19 +38,32 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36';
 if (haveQgr) {
 	var user_agent = default_user_agent;
 	var http = requireNative('_http');
-	var Buffer = requireNative('_buffer').Buffer;
-} else if (haveNode) {
+} 
+else if (haveNode) {
 	var user_agent = default_user_agent;
 	var http = require('http');
 	var https = require('https');
 	var Buffer = require('buffer').Buffer;
-} else if (haveWeb) {
+} 
+else if (haveWeb) {
 	var user_agent = navigator.userAgent;
+	var XMLHttpRequest = global.XMLHttpRequest;
+
+	var Buffer = class Buffer {
+		constructor(arraybuffer, text = '') {
+			this.buffer = arraybuffer;
+			this.text = text;
+		}
+		toString(type) {
+			return this.text;
+		}
+	};
 } else {
 	throw 'Unimplementation';
 }
 
 var shared = null;
+var __id = 1;
 
 var defaultOptions = {
 	method: 'GET',
@@ -109,29 +122,36 @@ function querystring_stringify(obj, sep, eq) {
 
 var _request_platform = // request implementation
 
-// qgr implementation
+// Qgr implementation
 haveQgr ? function(options, soptions, resolve, reject, is_https, method, post_data) {
 	var url = is_https ? 'https://': 'http://';
 	url += soptions.hostname;
-	url += send_options.port != (is_https: 443: 80) : send_options.port: '';
-	url += path;
+	url += soptions.port != (is_https? 443: 80) ? ':'+soptions.port: '';
+	url += soptions.path;
 
 	http.request({
 		url: url,
 		method: method == 'POST'? http.HTTP_METHOD_POST: http.HTTP_METHOD_GET,
 		headers: soptions.headers,
-		postData: post_data
+		postData: post_data,
 		timeout: soptions.timeout,
 		disableCache: true,
 		disableSslVerify: true,
-	}, function(data) {
-		// TODO ...
-	}.catch(err) {
-		// TODO ...
-	});
+	}, function(res) {
+		resolve({
+			data: res.data,
+			headers: res.responseHeaders,
+			statusCode: res.statusCode,
+			httpVersion: res.httpVersion,
+			requestHeaders: soptions.headers,
+			requestData: options.params,
+		});
+	}.catch(err=>{
+		reject(err);
+	}));
 }
 
-// node implementation
+// Node implementation
 : haveNode ? function(options, soptions, resolve, reject, is_https, method, post_data) {
 
 	var lib = is_https ? https: http;
@@ -173,7 +193,7 @@ haveQgr ? function(options, soptions, resolve, reject, is_https, method, post_da
 	req.on('abort', e=>console.log('request abort'));
 	req.on('error', (e)=>reject(e));
 	req.on('timeout', e=>{
-		reject(Error.new(errno.ERR_REQUEST_TIMEOUT));
+		reject(Error.new(errno.ERR_HTTP_REQUEST_TIMEOUT));
 		req.abort();
 	});
 
@@ -184,12 +204,45 @@ haveQgr ? function(options, soptions, resolve, reject, is_https, method, post_da
 	}
 
 	req.end();
-
 }
 
-// web implementation
+// Web implementation
 : haveWeb ? function(options, soptions, resolve, reject, is_https, method, post_data) {
-	// TODO ...
+	var url = is_https ? 'https://': 'http://';
+	url += soptions.hostname;
+	url += soptions.port != (is_https? 443: 80) ? ':'+soptions.port: '';
+	url += soptions.path;
+	url += `${soptions.path.indexOf('?')==-1?'?':'&'}_=${__id++}`;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open(method, url, true);
+	//xhr.responseType = 'arraybuffer';
+	xhr.responseType = 'text';
+	xhr.timeout = soptions.timeout;
+
+	delete soptions.headers['User-Agent'];
+
+	for (var key in soptions.headers) {
+		xhr.setRequestHeader(key, soptions.headers[key]);
+	}
+	xhr.onload = ()=>{
+		resolve({
+			data: new Buffer(/*xhr.response*/null, xhr.responseText),
+			headers: xhr.getAllResponseHeaders(),
+			statusCode: xhr.status,
+			httpVersion: '1.1',
+			requestHeaders: soptions.headers,
+			requestData: options.params,
+		});
+	};
+	xhr.onerror = (e)=>{
+		var err = Error.new(e.message);
+		reject(err);
+	};
+	xhr.ontimeout = e=>{
+		reject(Error.new(errno.ERR_HTTP_REQUEST_TIMEOUT));
+	};
+	xhr.send(post_data);
 }
 : util.unrealized;
 
@@ -209,8 +262,9 @@ function request(pathname, options) {
 		var headers = {
 			'User-Agent': options.user_agent,
 			'Accept': 'application/json',
-			...options.headers,
 		};
+		Object.assign(headers, options.headers);
+
 		var post_data = null;
 		var { params, method, timeout } = options;
 
@@ -339,8 +393,8 @@ class Request {
 	set mock(v) { this.m_mock = v }
 	get mockSwitch() { return this.m_mock_switch }
 	set mockSwitch(v) { this.m_mock_switch = v }
-	get enableStrictResponseData() { return this.m_enable_strict_response_data }
-	set enableStrictResponseData(value) { this.m_enable_strict_response_data = value }
+	get strictResponseData() { return this.m_enable_strict_response_data }
+	set strictResponseData(value) { this.m_enable_strict_response_data = value }
 	get timeout() { return this.m_timeout }
 	set timeout(value) { this.m_timeout = value }
 
@@ -360,7 +414,7 @@ class Request {
 
 	async request(name, method = 'GET', params = '', options = {}) {
 		if (this.m_mock[name] && (!this.m_mock_switch || this.m_mock_switch[name])) {
-			return { data: { ...this.m_mock[name] } };
+			return { data: Object.create(this.m_mock[name]) };
 		} else {
 			var { headers, timeout } = options || {};
 			var url = this.m_server_url + '/' + name;
@@ -394,7 +448,7 @@ class Request {
 		var cache = this.m_cache.get(key);
 		if (cacheTime) {
 			if (cache) {
-				return { ...cache.data, cached: true };
+				return Object.assign({}, cache.data, { cached: true });
 			}
 			var data = await this.request(name, 'GET', params, options);
 			this.m_cache.set(key, data, cacheTime);
@@ -424,7 +478,7 @@ module.exports = {
 	/**
 	 * @func querystringStringify()
 	 */
-	querystringStringify: querystring_stringify
+	querystringStringify: querystring_stringify,
 
 	/**
 	 * @get userAgent

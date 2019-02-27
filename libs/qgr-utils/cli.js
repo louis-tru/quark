@@ -31,21 +31,31 @@
 var util = require('./util');
 var event = require('./event');
 var { userAgent } = require('./request');
-var net = require('net');
-var http = require('http');
-var https = require('https');
-var { PacketParser, Hybi } = require('./hybi');
 var { Notification } = require('./event');
 var url = require('./url');
-var { Buffer } = require('buffer');
 var errno = require('./errno');
-var crypto = require('crypto');
+var { haveQgr, haveNode, haveWeb } = util;
+
+if (haveNode) {
+	var net = require('net');
+	var http = require('http');
+	var https = require('https');
+	var Buffer = require('buffer').Buffer;
+	var crypto = require('crypto');
+	var { PacketParser, Hybi } = require('./hybi');
+}
+else if (haveWeb) {
+	var WebSocket = global.WebSocket;
+}
+else {
+	throw 'Unimplementation';
+}
 
 var KEEP_ALIVE_TIME = 5e4; // 50s
 var METHOD_CALL_TIMEOUT = 12e4; // 120s
 
 /**
- * @class Conversation
+ * @class Conversation 
  */
 var Conversation = util.class('Conversation', {
 
@@ -53,20 +63,9 @@ var Conversation = util.class('Conversation', {
 	m_connect: false, // 是否尝试连接中
 	m_is_open: false, // open status
 	m_clients: null, // client list
-	m_socket: null, // web socket connection
-	m_response: null,
 	m_token: '',
-	
-	/**
-	 * @get response
-	 */
-	get response() { return this.m_response },
 
-	/**
-	 * @get socket
-	 */
-	get socket() { return this.m_socket },
-
+	// @public:
 	/**
 	 * @get token
 	 */
@@ -82,19 +81,10 @@ var Conversation = util.class('Conversation', {
 	 */
 	constructor: function() {
 		event.initEvents(this, 'Open', 'Message', 'Error', 'Close');
-
-		this.onClose.on(()=>{
-			this.m_is_open = false;
-			this.m_connect = false;
-			this.m_socket = null;
-			this.m_response = null;
-			this.m_token = '';
-		});
 		this.onError.on((e)=>this.m_connect = false);
-
 		this.m_clients = {};
 	},
-	
+
 	/**
 	 * @get isOpen # 获取是否打开连接
 	 */
@@ -128,7 +118,20 @@ var Conversation = util.class('Conversation', {
 	get clients() {
 		return this.m_clients;
 	},
-	
+
+	_open: function() {
+		util.assert(!this.m_is_open);
+		util.assert(this.m_connect);
+		this.m_is_open = true;
+		this.m_connect = false;
+		this.onOpen.trigger();
+	},
+
+	_error: function(err) {
+		this.m_connect = false;
+		this.onError.trigger(err);
+	},
+
 	/**
 	 * @fun connect # connercion server
 	 */
@@ -176,8 +179,16 @@ var Conversation = util.class('Conversation', {
 	/**
 	 * @fun close # close conversation connection
 	 */
-	close: function() {},
-	
+	close: function() {
+		if (this.m_connect)
+			this.m_connect = false;
+		if (this.m_is_open) {
+			this.m_is_open = false;
+			this.m_token = '';
+			this.onClose.trigger();
+		}
+	},
+
 	/**
 	 * @fun send # send message to server
 	 * @arg [data] {Object}
@@ -187,14 +198,42 @@ var Conversation = util.class('Conversation', {
 	/**
 	 * @func ping()
 	 */
-	ping: function() { },
+	ping: function() {},
 
 	// @end
+});
+
+/**
+ * @class WSConversationBasic
+ */
+var WSConversationBasic = util.class('WSConversationBasic', Conversation, {
+
+	m_url: null,
+	m_message: null,
+
+	/**
+	 * @get url
+	 */
+	get url() { return this.m_url },
+
+	// @public:
+	/**
+	 * @constructor
+	 * @arg path {String} ws://192.168.1.101:8091/
+	 */
+	constructor: function(path) {
+		Conversation.call(this, path);
+		path = path || util.config.web_service || 'ws://localhost';
+		util.assert(path, 'Server path is not correct');
+		path = url.resolve(path);
+		this.m_url = new url.URL(path.replace(/^http/, 'ws'));
+		this.m_message = [];
+	},
 
 });
 
 // private:
-function handshakes(self, res, key) {
+function handshakes(res, key) {
 	var accept = res.headers['sec-websocket-accept'];
 	if (accept) {
 		var shasum = crypto.createHash('sha1');
@@ -208,43 +247,34 @@ function handshakes(self, res, key) {
 /**
  * @class WSConversation
  */
-var WSConversation = util.class('WSConversation', Conversation, {
+var WSConversation = 
+
+// Node implementation
+haveNode ? util.class('WSConversation', WSConversationBasic, {
 
 	// @private:
 	m_req: null,
-	m_url: null,
-	m_message: null,
+	m_socket: null, // web socket connection
+	m_response: null,
 
-	/**
-	 * @get url
-	 */
-	get url() { return this.m_url },
-
-	/**
-	 * @get token
-	 */
-	get token() { return this.m_token },
-	
 	// @public:
+
 	/**
-	 * @constructor
-	 * @arg path {String} ws://192.168.1.101:8091/
+	 * @get response
 	 */
-	constructor: function(path) {
-		Conversation.call(this);
-		this.m_message = [];
-		path = path || util.config.web_service || 'ws://localhost';
-		util.assert(path, 'Server path is not correct');
-		path = url.resolve(path);
-		this.m_url = new url.URL(path.replace(/^http/, 'ws'));
-	},
+	get response() { return this.m_response },
+
+	/**
+	 * @get socket
+	 */
+	get socket() { return this.m_socket },
 	
 	/** 
 	 * @ovrewrite 
 	 */
 	initialize: function() {
 		util.assert(!this.m_req, 'No need to repeat open');
-		// self.m_socket
+
 		var self = this;
 		var url = this.m_url;
 		var bind_client_services = Object.keys(this.clients).join(',');
@@ -271,7 +301,7 @@ var WSConversation = util.class('WSConversation', Conversation, {
 				'Sec-Websocket-Version': 13,
 				'Sec-Websocket-Key': key,
 			},
-			rejectUnauthorized: false
+			rejectUnauthorized: false,
 		};
 
 		if (isSSL) {
@@ -281,16 +311,16 @@ var WSConversation = util.class('WSConversation', Conversation, {
 		var req = this.m_req = lib.request(options);
 
 		req.on('upgrade', function(res, socket, upgradeHead) {
+			if ( !self.m_connect || !handshakes(res, key) ) {
+				socket.end();
+				self.close(); return;
+			}
 			self.m_response = res;
 			self.m_socket = socket;
 			self.m_token = res.headers['session-token'] || '';
 
-			if (!handshakes(self, res, key)) {
-				socket.end(); return;
-			}
-
 			var parser = new PacketParser();
-			
+
 			socket.setTimeout(0);
 			socket.setKeepAlive(true, KEEP_ALIVE_TIME);
 			
@@ -300,11 +330,11 @@ var WSConversation = util.class('WSConversation', Conversation, {
 			socket.on('data', d=>parser.add(d));
 
 			socket.on('error', function(e) {
-				var socket = self.m_socket;
-				self.onError.trigger(e);
+				var s = self.m_socket;
+				self._error(e);
 				self.close();
-				if (socket)
-					socket.destroy();
+				if (s)
+					s.destroy();
 			});
 
 			parser.onText.on(e=>self.handlePacket(0, e.data));
@@ -312,24 +342,19 @@ var WSConversation = util.class('WSConversation', Conversation, {
 			parser.onClose.on(e=>self.close());
 
 			parser.onError.on(function(e) {
-				self.onError.trigger(e.data);
+				self._error(e.data);
 				self.close();
 			});
 
-			self.m_is_open = true;
-			self.m_connect = false;
-
 			var message = self.m_message;
-
 			self.m_message = [];
-			self.onOpen.trigger();
+			self._open();
 
-			message.forEach(m=>self.send(m));
+			message.forEach(e=>e.cancel||self.send(e));
 		});
 
 		req.on('error', function(e) {
-			self.m_req = null;
-			self.onError.trigger(e);
+			self._error(e);
 			self.close();
 		});
 
@@ -342,7 +367,6 @@ var WSConversation = util.class('WSConversation', Conversation, {
 	close: function() {
 		var socket = this.m_socket;
 		if (socket) {
-			this.m_req = null;
 			this.m_socket = null;
 			socket.removeAllListeners('end');
 			socket.removeAllListeners('close');
@@ -351,31 +375,31 @@ var WSConversation = util.class('WSConversation', Conversation, {
 			if (socket.writable)
 				socket.end();
 			if (!this.isOpen) {
-				this.onError.trigger(Error.new(errno.ERR_REQUEST_AUTH_FAIL));
+				this._error(Error.new(errno.ERR_REQUEST_AUTH_FAIL));
+			}
+		} else {
+			if (this.m_req) {
+				this.m_req.abort();
 			}
 		}
-		if (this.isOpen) {
-			this.onClose.trigger();
-		}
+		this.m_req = null;
+		this.m_socket = null;
+		this.m_response = null;
+		Conversation.members.close.call(this);
 	},
 	
 	/**
 	 * @ovrewrite
 	 */
-	send: function(msg) {
+	send: function(data) {
 		if (this.isOpen) {
-			try {
-				if (this.m_socket) {
-					Hybi.sendDataPacket(this.m_socket, msg);
-				} else {
-					console.error('cannot find function `this.m_socket`');
-				}
-			} catch (e) {
-				console.error(e);
-				this.close();
+			if (this.m_socket) {
+				Hybi.sendDataPacket(this.m_socket, data);
+			} else {
+				console.error('cannot call function `this.m_socket`');
 			}
 		} else {
-			this.m_message.push(msg);
+			this.m_message.push(data);
 			this.connect(); // 尝试连接
 		}
 	},
@@ -395,7 +419,101 @@ var WSConversation = util.class('WSConversation', Conversation, {
 		}
 	},
 	
-});
+})
+
+// Web implementation
+: haveWeb ? util.class('WSConversation', WSConversationBasic, {
+
+	m_req: null,
+	m_message: null,
+
+	/**
+	 * @ovrewrite 
+	 */
+	initialize: function() {
+		util.assert(!this.m_req, 'No need to repeat open');
+
+		var self = this;
+		var url = this.m_url;
+		var bind_client_services = Object.keys(this.clients).join(',');
+
+		url.setParam('bind_client_services', bind_client_services);
+
+		var req = this.m_req = new WebSocket(url.href);
+
+		req.onopen = function(e) {
+			if (!self.m_connect) {
+				self.m_req.close();
+				self.close(); return;
+			}
+			// self.m_token = res.headers['session-token'] || '';
+
+			req.onmessage = function(e) {
+				var data = e.data;
+				if (data instanceof ArrayBuffer) {
+					self.handlePacket(1, data);
+				} else { // string
+					self.handlePacket(0, data);
+				}
+			};
+
+			req.onclose = function(e) {
+				self.close();
+			};
+
+			var message = self.m_message;
+			self.m_message = [];
+			self._open();
+
+			message.forEach(e=>e.cancel||self.send(e));
+		};
+
+		req.onerror = function(e) {
+			self._error(e);
+			self.close();
+		};
+	},
+
+	/**
+	 * @ovrewrite 
+	 */
+	close: function() {
+		this.m_req = null;
+		Conversation.members.close.call(this);
+	},
+
+	/**
+	 * @ovrewrite 
+	 */
+	send: function(data) {
+		if (this.isOpen) {
+			if (data instanceof ArrayBuffer) {
+				this.m_req.send(data);
+			} else if (data && data.buffer instanceof ArrayBuffer) {
+				this.m_req.send(data.buffer);
+			} else { // send json string message
+				data = '\ufffe' + JSON.stringify(data);
+				this.m_req.send(data);
+			}
+		} else {
+			this.m_message.push(data);
+			this.connect(); // 尝试连接
+		}
+	},
+
+	/**
+	 * @ovrewrite 
+	 */
+	ping: function() {
+		if (this.isOpen) {
+			// TODO ...
+		} else {
+			this.connect(); // 尝试连接
+		}
+	},
+
+})
+: util.unrealized;
 
 /**
  * @class Client
@@ -420,7 +538,7 @@ var Client = util.class('Client', Notification, {
 	get conv() {
 		return this.m_conv;
 	},
-	
+
 	/**
 	 * @constructor constructor(service_name, conv)
 	 */
@@ -437,7 +555,8 @@ var Client = util.class('Client', Notification, {
 			this.m_callbacks = {};
 			var err = Error.new(errno.ERR_CONNECTION_DISCONNECTION);
 			for (var i in callbacks) {
-				callbacks[i].err(err);
+				var callback = callbacks[i];
+				callback.err(err);
 			}
 		});
 
@@ -476,16 +595,17 @@ var Client = util.class('Client', Notification, {
 		return new Promise((resolve, reject)=>{
 			var id = util.id;
 			var timeid = 0;
-			if (timeout) {
-				timeid = setTimeout(e=>{
-					// console.error(`method call timeout, ${this.name}/${name}`);
-					reject(Error.new([...errno.ERR_METHOD_CALL_TIMEOUT,
-						`method call timeout, ${this.name}/${name}`]));
-				}, timeout);
-			}
 
-			this.m_callbacks[id] = { 
-				id: id, 
+			var msg = {
+				service: this.name,
+				type: 'call',
+				name: name,
+				data: data,
+				callback: id,
+			};
+
+			var callback = {
+				id: id,
 				ok: (e)=>{
 					if (timeid)
 						clearTimeout(timeid);
@@ -498,13 +618,18 @@ var Client = util.class('Client', Notification, {
 				},
 			};
 
-			this.m_conv.send({ 
-				service: this.name, 
-				type: 'call', 
-				name: name, 
-				data: data, 
-				callback: id,
-			});
+			if (timeout) {
+				timeid = setTimeout(e=>{
+					// console.error(`method call timeout, ${this.name}/${name}`);
+					reject(Error.new([...errno.ERR_METHOD_CALL_TIMEOUT,
+						`method call timeout, ${this.name}/${name}`]));
+					msg.cancel = true;
+					delete this.m_callbacks[id];
+				}, timeout);
+			}
+
+			this.m_callbacks[id] = callback;
+			this.m_conv.send(msg);
 		});
 	},
 

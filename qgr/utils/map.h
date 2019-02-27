@@ -76,7 +76,7 @@ class XX_EXPORT Map: public Object {
 	typedef TKey Key;
 	typedef TValue Value;
  private:
-	
+
 	struct Item {
 		Key   key;
 		Value value;
@@ -84,18 +84,18 @@ class XX_EXPORT Map: public Object {
 		uint  hash;
 		bool  mark;
 	};
-	
+
 	struct Node {
 		Item* first, *last;
 	};
-	
+
 	class NodeList: public Container<Node> {
 	 public:
 		void realloc(uint capacity);
 		void auto_realloc();
 		Map* _host;
 	};
-	
+
 	struct IteratorData {
 	 public:
 		typedef TValue Value;
@@ -117,12 +117,12 @@ class XX_EXPORT Map: public Object {
 		friend class ConstIteratorTemplate<IteratorData>;
 		friend class IteratorTemplate<IteratorData>;
 	};
-	
+
 	typedef Array<Item*> Marks;
-	
+
 	friend class NodeList;
 	friend class iterator;
-	
+
  public:
 	struct Initializer {
 		Key key;
@@ -131,7 +131,7 @@ class XX_EXPORT Map: public Object {
 	typedef std::initializer_list<Initializer> InitializerList;
 	typedef ConstIteratorTemplate<IteratorData> ConstIterator;
 	typedef IteratorTemplate<IteratorData> Iterator;
-	
+
 	Map();
 	Map(const Map& map);
 	Map(Map&& map);

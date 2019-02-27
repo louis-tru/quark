@@ -37,7 +37,7 @@ module.exports = {
 	ERR_METHOD_CALL_TIMEOUT: [-30006, 'method call timeout'],
 	ERR_DOWNLOAD_FAIL: [-30007, 'Download fail'],
 	ERR_ILLEGAL_ACCESS: [-30008, 'Illegal access'],
-	ERR_REQUEST_TIMEOUT: [-30009, 'request timeout'],
 	ERR_REQUEST_AUTH_FAIL: [-30010, 'request auth fail'],
 	ERR_REQUEST_ABORT: [-30011, 'request abort'],
+	ERR_HTTP_REQUEST_TIMEOUT: [-10045, 'http request timeout'],
 };

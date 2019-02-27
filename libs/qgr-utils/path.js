@@ -362,9 +362,9 @@ function resolveLocal(...args) {
 	return _path.fallbackPath(_pkgutil.resolve(...args));
 }
 
-module.exports = {
+Object.assign(exports, _path);
 
-	..._path,
+Object.assign(exports, {
 
 	URL: URL,
 
@@ -507,4 +507,4 @@ module.exports = {
 			return get_path().relative(path);
 	},
 	
-};
+});
