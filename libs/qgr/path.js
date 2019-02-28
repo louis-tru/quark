@@ -460,17 +460,17 @@ Object.assign(exports, {
 	},
 	
 	// get path param
-	getParam: function (path, name) {
+	getParam: function (name, path) {
 		return get_path(path).getParam(name);
 	},
 	
 	// set path param
-	setParam: function (path, name, value) {
+	setParam: function (name, value, path) {
 		return get_path(path).setParam(name, value).href;
 	},
 	
 	// del path param
-	deleteParam: function (path, name) {
+	deleteParam: function (name, path) {
 		return get_path(path).deleteParam(name).href;
 	},
 	
@@ -480,17 +480,17 @@ Object.assign(exports, {
 	},
 	
 	// get hash param
-	getHash: function (path, name) {
+	getHash: function (name, path) {
 		return get_path(path).getHash(name);
 	},
 	
 	// set hash param
-	setHash: function (path, name, value) {
+	setHash: function (name, value, path) {
 		return get_path(path).setHash(name, value).href;
 	},
 	
 	// del hash param
-	deleteHash: function (path, name) {
+	deleteHash: function (name, path) {
 		return get_path(path).deleteHash(name).href;
 	},
 	
