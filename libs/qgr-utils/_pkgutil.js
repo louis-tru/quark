@@ -50,9 +50,9 @@ if (haveQgr) {
 	var _path = require('path');
 	var cwd = process.cwd;
 	var _cwd = win32 ? function() {
-		return PREFIX + cwd.replace(/\\/g, '/');
+		return PREFIX + cwd().replace(/\\/g, '/');
 	}: function() {
-		return PREFIX + cwd.substr(1);
+		return PREFIX + cwd().substr(1);
 	};
 	var chdir = function(cwd) {
 		return process.chdir(fallbackPath(cwd));
