@@ -110,7 +110,8 @@ function spawn(cmd, args = [], onData = on_data, onError = on_error) {
 	};
 
 	ch.on('error', function(err) {
-		reject(Error.new(err));
+		error = Error.new(err);
+		reject(error);
 	});
 
 	ch.stdout.on('data', function(e) {
