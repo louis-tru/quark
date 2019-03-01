@@ -72,6 +72,7 @@ class Storage {
 		this.m_path = url.fallbackPath(path);
 		this.m_prefix = '';
 		this.m_change = false;
+		this.m_value = {};
 
 		if (haveWeb) {
 			this.m_sync = { notice: util.noop };
