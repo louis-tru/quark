@@ -421,7 +421,8 @@ extend(Error, {
 				e = new Error(e);
 			}
 		}
-		e.code = Number(code || e.code) || -1;
+		e.rawCode = code || e.code;
+		e.code = Number(e.rawCode) || -1;
 		return e;
 	},
 
