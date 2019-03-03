@@ -93,7 +93,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	
 	Inl(HttpClientRequest* host, RunLoop* loop)
 	: m_host(host)
-	, m_keep(loop->keep_alive(false))
+	, m_keep(loop->keep_alive("HttpClientRequest::Inl", false))
 	, m_delegate(this)
 	, m_upload_total(0)
 	, m_upload_size(0)

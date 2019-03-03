@@ -76,11 +76,20 @@
 // ------------------------------------------------------------------
 
 #define XX_CHECK(cond, ...)	if(!(cond)) qgr::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+
 #if DEBUG
 # define XX_ASSERT(cond, ...) XX_CHECK(cond, ##__VA_ARGS__)
-# define XX_DEBUG(msg, ...) qgr::console::log(msg, ##__VA_ARGS__)
 #else
 # define XX_ASSERT(cond, ...) ((void)0)
+#endif
+
+#ifndef XX_MORE_LOG
+#define XX_MORE_LOG 0
+#endif
+
+#if DEBUG || XX_MORE_LOG
+# define XX_DEBUG(msg, ...) qgr::console::log(msg, ##__VA_ARGS__)
+#else
 # define XX_DEBUG(msg, ...) ((void)0)
 #endif
 

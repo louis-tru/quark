@@ -70,14 +70,14 @@ class XX_EXPORT Array: public Object {
 		Array* _host;
 		int _index;
 		friend class Array;
-		friend class ConstIteratorTemplate<IteratorData>;
+		friend class IteratorTemplateConst<IteratorData>;
 		friend class IteratorTemplate<IteratorData>;
 	};
 	
 	Array(T* data, uint length, uint capacity);
 
  public:
-	typedef ConstIteratorTemplate<IteratorData> ConstIterator;
+	typedef IteratorTemplateConst<IteratorData> IteratorConst;
 	typedef IteratorTemplate<IteratorData> Iterator;
 	
 	Array(const Array&);
@@ -114,8 +114,8 @@ class XX_EXPORT Array: public Object {
 	uint write(const T* src, int to, uint size);
 	void clear();
 	String join(cString& sp) const;
-	ConstIterator begin() const;
-	ConstIterator end() const;
+	IteratorConst begin() const;
+	IteratorConst end() const;
 	Iterator begin();
 	Iterator end();
 	uint length() const;

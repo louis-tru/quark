@@ -176,13 +176,14 @@ void GUIApplication::start(int argc, char* argv[]) {
 	XX_CHECK(!is_initialize++, "Cannot multiple calls.");
 	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
-	SimpleThread::detach([argc, argv](SimpleThread& t) {
+	Thread::spawn([argc, argv](Thread& t) {
 		XX_CHECK( __xx_default_gui_main );
 		auto main = __XX_GUI_MAIN ? __XX_GUI_MAIN : __xx_default_gui_main;
 		__xx_default_gui_main = nullptr;
 		__XX_GUI_MAIN = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
 		qgr::exit(rc); // if sub thread end then exit
+		return rc;
 	}, "gui");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
@@ -199,13 +200,13 @@ void GUIApplication::run() {
 
 	m_is_run = true;
 	m_main_loop = RunLoop::main_loop();
+	m_main_keep = m_main_loop->keep_alive("GUIApplication::run, main_keep");
 	m_render_loop = RunLoop::current(); // 当前消息队列
-	m_render_keep = m_render_loop->keep_alive(); // 保持
+	m_render_keep = m_render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
 	m_main_id = m_main_loop->thread_id();
 	m_render_id = m_render_loop->thread_id();
 
 	if (m_main_loop != m_render_loop) {
-		m_main_keep = m_main_loop->keep_alive();
 		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->gui_thread_mutex);
 	}
 	tctr->root_thread_awaken(); // 根线程继续运行
@@ -214,9 +215,8 @@ void GUIApplication::run() {
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 	XX_CHECK(m_render_keep == nullptr);
 
-	if (m_main_keep) {
-		Release(m_main_keep); m_main_keep = nullptr; // cancel main loop keep
-	}
+	Release(m_main_keep); m_main_keep = nullptr; // cancel main loop keep
+
 	m_is_run = false;
 	m_render_loop = nullptr;
 	m_main_loop = nullptr;
@@ -231,8 +231,9 @@ void GUIApplication::exit() {
 	do {
 		RunLoop::stop(m_render_id);
 		RunLoop::stop(m_main_id);
-		SimpleThread::wait_end(m_main_id, 1e5/*100ms*/); // wait main loop end
-	} while(RunLoop::is_alive(m_main_id));
+		Thread::join(m_render_id, 5e4/*50ms*/); // wait render loop end
+		Thread::join(m_main_id, 5e4/*50ms*/); // wait main loop end
+	} while(RunLoop::is_alive(m_render_id) || RunLoop::is_alive(m_main_id));
 }
 
 GUIApplication::GUIApplication()
@@ -311,7 +312,7 @@ void GUIApplication::initialize(cJSON& options) throw(Error) {
  * @func has_current_render_thread()
  */
 bool GUIApplication::has_current_render_thread() const {
-	return m_render_loop && m_render_loop->thread_id() == SimpleThread::current_id();
+	return m_render_loop && m_render_loop->thread_id() == Thread::current_id();
 }
 
 /**

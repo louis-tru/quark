@@ -52,7 +52,7 @@ class XX_EXPORT BasicStringBuilder: public List<BasicString<Char, Container>, It
  public:
 	typedef BasicString<Char, Container> Item;
 	typedef typename List<Item, ItemAllocator>::Iterator Iterator;
-	typedef typename List<Item, ItemAllocator>::ConstIterator ConstIterator;
+	typedef typename List<Item, ItemAllocator>::IteratorConst IteratorConst;
 	
 	BasicStringBuilder();
 	BasicStringBuilder(const BasicStringBuilder&);
@@ -70,9 +70,9 @@ class XX_EXPORT BasicStringBuilder: public List<BasicString<Char, Container>, It
 	void unshift(BasicStringBuilder&& ls);
 	void pop();
 	void shift();
-	void insert(ConstIterator it, const Item& item);
-	void insert(ConstIterator it, Item&& item);
-	void del(ConstIterator it);
+	void insert(IteratorConst it, const Item& item);
+	void insert(IteratorConst it, Item&& item);
+	void del(IteratorConst it);
 	void clear();
 	String join(cString& sp) const;
 	virtual String to_string() const;

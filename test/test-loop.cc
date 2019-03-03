@@ -39,20 +39,21 @@ static void message_cb(Se& ev, RunLoop* loop) {
 
 void test_loop(int argc, char **argv) {
 	RunLoop* loop = RunLoop::current();
-	KeepLoop* keep = loop->keep_alive();
-	SimpleThread::detach([&](SimpleThread& e) {
+	KeepLoop* keep = loop->keep_alive("test_loop");
+	Thread::spawn([&](Thread& e) {
 		for ( int i = 0; i < 5; i++) {
-			e.sleep_for(1e6);
+			Thread::sleep(1e6);
 			loop->post(Cb(message_cb, loop));
 		}
 		delete keep;
+		return 0;
 	}, "test");
 	
 	loop->run(10e6);
 	
 	int id = loop->work(Cb([&](Se& e){
 		for (int i = 0; i < 5; i++) {
-			SimpleThread::sleep_for(1e6);
+			Thread::sleep(1e6);
 			LOG("Exec work");
 			loop->post(Cb(message_cb, loop));
 		}

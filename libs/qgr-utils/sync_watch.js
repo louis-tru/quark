@@ -9,7 +9,7 @@ var { execSync } = require('./syscall');
 defOpts('help', 0,									'--help, --help print help info');
 defOpts('u', 'louis',								'-u username [{0}]');
 defOpts('h', '192.168.0.115',				'-h host [{0}]');
-defOpts('t', '~/Project/qgr/qgr',	'-t target directory [{0}]');
+defOpts('t', '~/qgr',               '-t target directory [{0}]');
 defOpts('i', '',										'-i ignore directory or file');
 
 if (options.help) {

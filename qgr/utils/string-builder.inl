@@ -137,19 +137,19 @@ void BasicStringBuilder<Char, Container, Allocator>::shift() {
 }
 
 template <class Char, class Container, class Allocator>
-void BasicStringBuilder<Char, Container, Allocator>::insert(ConstIterator it, const Item& item) {
+void BasicStringBuilder<Char, Container, Allocator>::insert(IteratorConst it, const Item& item) {
 	m_string_length += item.length();
 	List<Item, Allocator>::insert(it, item);
 }
 
 template <class Char, class Container, class Allocator>
-void BasicStringBuilder<Char, Container, Allocator>::insert(ConstIterator it, Item&& item) {
+void BasicStringBuilder<Char, Container, Allocator>::insert(IteratorConst it, Item&& item) {
 	m_string_length += item.length();
 	List<Item, Allocator>::insert(it, move(item));
 }
 
 template <class Char, class Container, class Allocator>
-void BasicStringBuilder<Char, Container, Allocator>::del(ConstIterator it) {
+void BasicStringBuilder<Char, Container, Allocator>::del(IteratorConst it) {
 	m_string_length -= it.value().length();
 	List<Item, Allocator>::del(it);
 }

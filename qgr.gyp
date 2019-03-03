@@ -9,13 +9,22 @@
 	'variables': {
 		'qgr_product_dir%': '<(output)/../qgr-tools/product',
 		'qgr_product_so_subdir%': '<(os)/<(arch)',
+		'more_log%': 0,
 		'conditions': [
 			['os=="android"', {
 				'qgr_product_so_subdir': '<(os)/jniLibs/<(android_abi)'
 			}],
 		],
 	},
-	
+
+	'target_defaults': {
+		'conditions': [
+			['more_log==1', {
+				'defines': [ 'XX_MORE_LOG=1' ],
+			}]
+		],
+	},
+
 	'targets': [{
 		'target_name': 'qgr-lib',
 		'product_name': 'qgr',
@@ -205,4 +214,5 @@
 			],
 		}],
 	],
+	
 }

@@ -57,27 +57,29 @@ template<> bool Compare<ThreadID>::equals(
 // ----------------------------------------------------------
 
 struct ListenSignal {
-	SimpleThread* thread;
+	Thread* thread;
 	Mutex mutex;
 	Condition cond;
 };
 
-static Mutex* all_threads_mutex;
-static Map<ThreadID, SimpleThread*>* all_threads = nullptr;
-static List<ListenSignal*>* all_thread_end_listens = nullptr;
+static Mutex* threads_mutex;
+static Map<ThreadID, Thread*>* threads = nullptr;
+static List<ListenSignal*>* threads_end_listens = nullptr;
 static RunLoop* main_loop_obj = nullptr;
+static ThreadID main_loop_id;
 static pthread_key_t specific_key;
-int process_exit = 0;
+int __is_process_exit = 0;
 
-XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
+XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
  public:
-	#define _inl_t(self) static_cast<SimpleThread::Inl*>(self)
+	#define _inl_t(self) static_cast<Thread::Inl*>(self)
 
 	static void thread_destructor(void* ptr) {
-		auto thread = reinterpret_cast<SimpleThread*>(ptr);
-		if (process_exit == 0) { // no process exit
+		auto thread = reinterpret_cast<Thread*>(ptr);
+		if (__is_process_exit == 0) { // no process exit
 			if (main_loop_obj == thread->m_loop) {
 				main_loop_obj = nullptr;
+				main_loop_id = ThreadID();
 			}
 			Release(thread->m_loop);
 		}
@@ -85,20 +87,20 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 	}
 
 	static void thread_initialize() {
-		all_threads = new Map<ThreadID, SimpleThread*>();
-		all_threads_mutex = new Mutex();
-		all_thread_end_listens = new List<ListenSignal*>();
+		threads = new Map<ID, Thread*>();
+		threads_mutex = new Mutex();
+		threads_end_listens = new List<ListenSignal*>();
 		int err = pthread_key_create(&specific_key, thread_destructor);
 		XX_CHECK(err == 0);
 	}
 
-	static void set_thread_specific_data(SimpleThread* thread) {
+	static void set_thread_specific_data(Thread* thread) {
 		XX_CHECK(!pthread_getspecific(specific_key));
 		pthread_setspecific(specific_key, thread);
 	}
 
-	static inline SimpleThread* get_thread_specific_data() {
-		return reinterpret_cast<SimpleThread*>(pthread_getspecific(specific_key));
+	static inline Thread* get_thread_specific_data() {
+		return reinterpret_cast<Thread*>(pthread_getspecific(specific_key));
 	}
 
 	void set_run_loop(RunLoop* loop) {
@@ -112,207 +114,173 @@ XX_DEFINE_INLINE_MEMBERS(SimpleThread, Inl) {
 		m_loop = nullptr;
 	}
 
-	static void run2(Exec body, SimpleThread* thread) {
+	static void run_2(Exec exec, Thread* thread) {
 #if XX_ANDROID
 		JNI::ScopeENV scope;
 #endif
 		set_thread_specific_data(thread);
 		if ( !thread->m_abort ) {
-			body(*thread);
+			int rc = exec(*thread);
+			thread->m_abort = true;
 		}
 		{
-			ScopeLock scope(*all_threads_mutex);
-			for (auto& i : *all_thread_end_listens) {
+			ScopeLock scope(*threads_mutex);
+			for (auto& i : *threads_end_listens) {
 				ListenSignal* s = i.value();
 				if (s->thread == thread) {
 					ScopeLock scope(s->mutex);
 					s->cond.notify_one();
 				}
 			}
-			all_threads->del(thread->id());
+			threads->del(thread->id());
 		}
 	}
 
-	static ThreadID run(Exec exec, uint gid, cString& name) {
-		if ( process_exit ) {
-			return ThreadID();
+	static ID run(Exec exec, cString& name) {
+		if ( __is_process_exit ) {
+			return ID();
 		} else {
-			ScopeLock scope(*all_threads_mutex);
-			SimpleThread* thread = new SimpleThread();
-			std::thread t(run2, exec, thread);
-			thread->m_gid = gid;
+			ScopeLock scope(*threads_mutex);
+			Thread* thread = new Thread();
+			std::thread t(run_2, exec, thread);
 			thread->m_id = t.get_id();
 			thread->m_name = name;
 			thread->m_abort = false;
 			thread->m_loop = nullptr;
 			memset(thread->m_data, 0, sizeof(void*[256]));
-			all_threads->set(thread->m_id, thread);
+			threads->set(thread->m_id, thread);
 			t.detach();
 			return thread->m_id;
 		}
 	}
 
-	static void abort_group(uint gid) {
-		ScopeLock scope(*all_threads_mutex);
-		for ( auto& i : *all_threads ) {
-			auto thread = i.value();
-			if ( thread->m_gid == gid ) {
-				ScopeLock lock(thread->m_mutex);
-				thread->m_abort = true;
-				thread->m_cond.notify_one(); // awaken sleep status
-			}
-		}
-	}
-
-	static void awaken_group(uint gid) {
-		ScopeLock scope(*all_threads_mutex);
-		for ( auto& i : *all_threads ) {
-			auto thread = i.value();
-			if (thread->m_gid == gid) {
-				ScopeLock lock(thread->m_mutex);
-				thread->m_cond.notify_one(); // awaken sleep status
-			}
-		}
-	}
-
 	static void atexit_exec() {
-		process_exit++; // exit
-		Array<ThreadID> ths;
+		__is_process_exit++; // exit
+		Array<ID> ths;
 		{ //
-			ScopeLock scope(*all_threads_mutex);
-			for ( auto& i : *all_threads ) {
-				auto t = i.value();
-				ScopeLock scope(t->m_mutex);
-				if (t->m_loop)
-					t->m_loop->stop();
-				t->m_abort = true;
-				t->m_cond.notify_one(); // awaken sleep status
-				ths.push(t->id());
+			ScopeLock scope(*threads_mutex);
+			for ( auto& i : *threads ) {
+			 _inl_t(i.value())->awaken(true); // awaken sleep status and abort
+				ths.push(i.value()->id());
 			}
 		}
-		ThreadID id = current_id();
+		ID cur_id = current_id();
 		for ( auto& i: ths ) {
-			if (i.value() != id) {
+			if (i.value() != cur_id) {
 				// 在这里等待这个线程的结束,这个时间默认为1秒钟
-				wait_end(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
+				join(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
 			}
 		}
+	}
+
+	void awaken(bool abort = 0) {
+		ScopeLock scope(m_mutex);
+		if (abort) {
+			m_abort = true;
+			if (m_loop)
+				m_loop->stop();
+		}
+		m_cond.notify_one(); // awaken sleep status
 	}
 
 };
 
-SimpleThread::SimpleThread(){}
-SimpleThread::~SimpleThread(){}
+Thread::Thread(){}
+Thread::~Thread(){}
 
-void* SimpleThread::get_specific_data(char id) {
-	return Inl::get_thread_specific_data()->m_data[byte(id)];
+ThreadID Thread::spawn(Exec exec, cString& name) {
+	return Inl::run(exec, name);
 }
 
-void SimpleThread::set_specific_data(char id, void* data) {
-	Inl::get_thread_specific_data()->m_data[byte(id)] = data;
-}
-
-ThreadID SimpleThread::detach(Exec exec, cString& name) {
-	return Inl::run(exec, 0, name);
-}
-
-void SimpleThread::abort(ThreadID id, int64 wait_end_timeoutUs) {
-	Lock lock(*all_threads_mutex);
-	auto i = all_threads->find(id);
-	if ( !i.is_null() ) {
-		auto t = i.value();
-		auto& t2 = *t;
-		XX_THREAD_LOCK(t2, {
-			t->m_abort = true;
-			t->m_cond.notify_one(); // awaken sleep status
-		});
-		if ( wait_end_timeoutUs ) {
-			ListenSignal signal = { t };
-			auto it = all_thread_end_listens->push(&signal);
-			{ //
-				Lock l(signal.mutex);
-				lock.unlock();
-				if (wait_end_timeoutUs > 0) {
-					signal.cond.wait_for(l, std::chrono::microseconds(wait_end_timeoutUs)); // wait
-				} else {
-					signal.cond.wait(l); // wait
-				}
-			}
-			lock.lock();
-			all_thread_end_listens->del(it);
-		}
+void Thread::join(ID id, int64 timeoutUs) {
+	if (id == current_id()) {
+		XX_WARN("Thread::join(), cannot join self");
+		return;
 	}
-}
-
-void SimpleThread::wait_end(ThreadID id, int64 timeoutUs) {
-	Lock lock(*all_threads_mutex);
-	auto i = all_threads->find(id);
+	Lock lock(*threads_mutex);
+	auto i = threads->find(id);
 	if ( !i.is_null() ) {
 		ListenSignal signal = { i.value() };
-		auto it = all_thread_end_listens->push(&signal);
+		auto it = threads_end_listens->push(&signal);
 		{ //
 			Lock l(signal.mutex);
 			lock.unlock();
 			if (timeoutUs > 0) {
 				signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
 			} else {
-				signal.cond.wait(l); // wait
+				signal.cond.wait(l); // permanent wait
 			}
 		}
 		lock.lock();
-		all_thread_end_listens->del(it);
+		threads_end_listens->del(it);
 	}
 }
 
 /**
- * @func sleep_for
+ * @func sleep
  */
-void SimpleThread::sleep_for(uint64 timeUs) {
+void Thread::sleep(int64 timeoutUs) {
+	if ( timeoutUs > 0 && timeoutUs < 5e5 /*500ms*/ ) {
+		std::this_thread::sleep_for(std::chrono::microseconds(timeoutUs));
+		return;
+	}
 	auto cur = current();
 	if ( cur ) {
 		Lock lock(cur->m_mutex);
 		if ( !cur->m_abort ) {
-			if (timeUs == 0) {
+			if (timeoutUs < 1) {
 				cur->m_cond.wait(lock); // wait
 			} else {
-				cur->m_cond.wait_for(lock, std::chrono::microseconds(timeUs));
+				cur->m_cond.wait_for(lock, std::chrono::microseconds(timeoutUs));
 			}
+		} else {
+			XX_WARN("Thread aborted, cannot sleep");
 		}
 	} else {
-		std::this_thread::sleep_for(std::chrono::microseconds(timeUs));
+		XX_WARN("Cannot find current qgr::Thread handle, use std::this_thread::sleep_for()");
+		if (timeoutUs > 0) {
+			std::this_thread::sleep_for(std::chrono::microseconds(timeoutUs));
+		}
+	}
+}
+
+/**
+ * @func awaken
+ */
+void Thread::awaken(ID id) {
+	ScopeLock lock(*threads_mutex);
+	auto i = threads->find(id);
+	if ( !i.is_null() ) {
+		_inl_t(i.value())->awaken(); // awaken sleep status
+	}
+}
+
+void Thread::abort(ID id) {
+	ScopeLock lock(*threads_mutex);
+	auto i = threads->find(id);
+	if ( !i.is_null() ) {
+		_inl_t(i.value())->awaken(true); // awaken sleep status and abort
 	}
 }
 
 /**
  * @func current_id
  */
-ThreadID SimpleThread::current_id() {
+ThreadID Thread::current_id() {
 	return std::this_thread::get_id();
 }
 
 /**
  * @func current
  */
-SimpleThread* SimpleThread::current() {
+Thread* Thread::current() {
 	return Inl::get_thread_specific_data();
 }
 
-/**
- * @func awaken
- */
-void SimpleThread::awaken(ThreadID id) {
-	ScopeLock lock(*all_threads_mutex);
-	auto i = all_threads->find(id);
-	if ( !i.is_null() ) {
-		ScopeLock scope(i.value()->m_mutex);
-		i.value()->m_cond.notify_one(); // awaken sleep status
-	}
-}
-
 XX_INIT_BLOCK(thread_init_once) {
-	XX_DEBUG("thread_init_once");
-	atexit(SimpleThread::Inl::atexit_exec);
-	SimpleThread::Inl::thread_initialize();
+	DLOG("thread_init_once");
+	atexit(Thread::Inl::atexit_exec);
+	Thread::Inl::thread_initialize();
 }
 
 // --------------------- ThreadRunLoop ---------------------
@@ -322,11 +290,12 @@ class RunLoop::Inl: public RunLoop {
  #define _inl(self) static_cast<RunLoop::Inl*>(self)
 	
 	void run(int64 timeout) {
-		if (process_exit) return;
+		if (__is_process_exit) return;
 		uv_async_t uv_async;
 		uv_timer_t uv_timer;
 		{ //
 			ScopeLock lock(m_mutex);
+			XX_CHECK(Thread::current_id() == m_tid, "Must run on the target thread");
 			XX_CHECK(!m_uv_async);
 			m_timeout = XX_MAX(timeout, 0);
 			m_record_timeout = 0;
@@ -345,7 +314,10 @@ class RunLoop::Inl: public RunLoop {
 			m_timeout = 0;
 			m_record_timeout = 0;
 		}
+		stop_after_print_message();
 	}
+
+	void stop_after_print_message();
 	
 	static void resolve_queue_before(uv_handle_t* handle) {
 		bool Continue;
@@ -381,7 +353,7 @@ class RunLoop::Inl: public RunLoop {
 			close_uv_async();
 		}
 		else if (timeout_ms == -1) { //
-			if (m_keep_count == 0 && m_work.length() == 0) {
+			if (m_keeps.length() == 0 && m_works.length() == 0) {
 				// RunLoop 已经没有需要处理的消息
 				if (is_alive()) { // 如果uv还有其它活着,那么间隔一秒测试一次
 					uv_timer_req(1000);
@@ -410,8 +382,8 @@ class RunLoop::Inl: public RunLoop {
 				uv_timer_req(timeout_ms);
 			} else { // == 0
 				/* Do a cheap read first. */
-				// uv_async_send(m_uv_async);
-				Continue = 1; // continue
+				uv_async_send(m_uv_async);
+				// Continue = 1; // continue
 			}
 			m_record_timeout = 0; // 取消超时记录
 		}
@@ -423,8 +395,7 @@ class RunLoop::Inl: public RunLoop {
 		for (auto i = queue.begin(), e = queue.end(); i != e; ) {
 			auto t = i++;
 			if (now >= t.value().time) { //
-				SimpleEvent data = { 0, this, 0 };
-				t.value().resolve->call(data);
+				sync_callback(t.value().resolve, nullptr, this);
 				queue.del(t);
 			}
 		}
@@ -470,6 +441,10 @@ class RunLoop::Inl: public RunLoop {
 	 * @func post()
 	 */
 	uint post(cCb& exec, uint group, uint64 delay_us) {
+		if (m_thread->is_abort()) {
+			DLOG("RunLoop::post, m_thread->is_abort() == true");
+			return 0;
+		}
 		ScopeLock lock(m_mutex);
 		uint id = iid32();
 		if (delay_us) {
@@ -483,15 +458,21 @@ class RunLoop::Inl: public RunLoop {
 	}
 
 	void post_sync(cCb& exec, uint group, uint64 delay_us) {
-		if (SimpleThread::current_id() == m_thread->id()) { // 相同的线程立即执行
-			SimpleEvent data = { 0, this, 0 };
-			exec->call(data);
+		if (Thread::current_id() == m_thread->id()) { // 相同的线程立即执行
+			sync_callback(exec, nullptr, this);
 		} else {
+			if (m_thread->is_abort()) {
+				DLOG("RunLoop::post_sync, m_thread->is_abort() == true");
+				return;
+			}
+
 			struct Ctx { 
 				bool end; Condition cond; 
 			} ctx = {false};
+
 			Lock lock(m_mutex);
 			Ctx* ctxp = &ctx;
+
 			m_queue.push({ 
 				0, group, 0, 
 				Callback([exec, ctxp, this](Se& e) {
@@ -502,18 +483,19 @@ class RunLoop::Inl: public RunLoop {
 				})
 			});
 			activate_loop(); // 通知继续
+
 			do {
 				ctx.cond.wait(lock);
 			} while(!ctx.end);
 		}
 	}
 	
-	inline void abort_group(uint group) {
+	inline void cancel_group(uint group) {
 		ScopeLock lock(m_mutex);
-		abort_group_non_lock(group);
+		cancel_group_non_lock(group);
 	}
 
-	void abort_group_non_lock(uint group) {
+	void cancel_group_non_lock(uint group) {
 		for (auto i = m_queue.begin(), e = m_queue.end(); i != e; ) {
 			auto j = i++;
 			if (j.value().group == group) {
@@ -530,7 +512,7 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	inline void delete_work(List<Work*>::Iterator it) {
-		m_work.del(it);
+		m_works.del(it);
 	}
 };
 
@@ -545,10 +527,10 @@ struct RunLoop::Work {
 	Callback work;
 	Callback done;
 	uv_work_t uv_req;
+	String name;
 	static void uv_work_cb(uv_work_t* req) {
 		Work* self = (Work*)req->data;
-		Se e = { 0, self->host, 0 };
-		self->work->call(e);
+		sync_callback(self->work, nullptr, self->host);
 	}
 	static void uv_after_work_cb(uv_work_t* req, int status) {
 		Handle<Work> self = (Work*)req->data;
@@ -562,21 +544,29 @@ struct RunLoop::Work {
 	void done_work(int status) {
 		_inl(host)->delete_work(it);
 		if (UV_ECANCELED != status) { // cancel
-			Se e = { 0, host, 0 };
-			done->call(e);
+			sync_callback(done, nullptr, host);
 		}
 		_inl(host)->activate_loop();
 	}
 };
 
+void RunLoop::Inl::stop_after_print_message() {
+	ScopeLock lock(m_mutex);
+	for (auto& i: m_keeps) {
+		DLOG("RunLoop keep not release \"%s\"", *i.value()->m_name);
+	}
+	for (auto& i: m_works) {
+		DLOG("RunLoop work not complete: \"%s\"", *i.value()->name);
+	}
+}
+
 /**
  * @constructor
  */
-RunLoop::RunLoop(SimpleThread* t)
+RunLoop::RunLoop(Thread* t)
 : m_independent_mutex(nullptr)
 , m_thread(t)
 , m_tid(t->id())
-, m_keep_count(0)
 , m_uv_loop(nullptr)
 , m_uv_async(nullptr)
 , m_uv_timer(nullptr)
@@ -591,9 +581,19 @@ RunLoop::RunLoop(SimpleThread* t)
  * @destructor
  */
 RunLoop::~RunLoop() {
-	XX_CHECK(m_keep_count == 0);
-	XX_CHECK(m_work.length() == 0);
 	XX_CHECK(m_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+
+	{
+		ScopeLock lock(m_mutex);
+		for (auto& i: m_keeps) {
+			XX_FATAL("RunLoop keep not release \"%s\"", *i.value()->m_name);
+		}
+		for (auto& i: m_works) {
+			XX_WARN("RunLoop work not complete: \"%s\"", *i.value()->name);
+			delete i.value();
+		}
+	}
+
 	if (m_uv_loop != uv_default_loop()) {
 		uv_loop_delete(m_uv_loop);
 	}
@@ -604,11 +604,18 @@ RunLoop::~RunLoop() {
  * @func current() 获取当前线程消息队列
  */
 RunLoop* RunLoop::current() {
-	auto t = SimpleThread::Inl::get_thread_specific_data();
+	auto t = Thread::Inl::get_thread_specific_data();
 	XX_CHECK(t, "Can't get thread specific data");
 	auto loop = t->loop();
 	if (!loop) {
-		 loop = new RunLoop(t);
+		ScopeLock scope(*threads_mutex);
+		loop = new RunLoop(t);
+		if (!main_loop_obj) {
+			main_loop_obj = loop;
+			main_loop_id = t->id();
+			uv_loop_delete(loop->m_uv_loop);
+			loop->m_uv_loop = uv_default_loop();
+		}
 	}
 	return loop;
 }
@@ -617,11 +624,10 @@ RunLoop* RunLoop::current() {
  * @func main_loop();
  */
 RunLoop* RunLoop::main_loop() {
+	// TODO 小心线程安全,最好先确保已调用过`current()`
 	if (!main_loop_obj) {
-		ScopeLock scope(*all_threads_mutex);
-		main_loop_obj = current();
-		uv_loop_delete(main_loop_obj->m_uv_loop);
-		main_loop_obj->m_uv_loop = uv_default_loop();
+		current();
+		XX_CHECK(main_loop_obj);
 	}
 	return main_loop_obj;
 }
@@ -630,23 +636,11 @@ RunLoop* RunLoop::main_loop() {
  * @func is_main_loop 当前线程是为主循环
  */
 bool RunLoop::is_main_loop() {
-	if (main_loop_obj) {
-		auto t = SimpleThread::Inl::get_thread_specific_data();
-		if (t) {
-			return main_loop_obj == t->loop();
-		}
-	}
-	return false;
+	return main_loop_id == Thread::current_id();
 }
 
 /**
- * @func is_process_exit
- */
-bool RunLoop::is_process_exit() {
-	return process_exit;
-}
-
-/**
+ * TODO Be careful about thread security issues
  * @func runing()
  */
 bool RunLoop::runing() const {
@@ -654,13 +648,15 @@ bool RunLoop::runing() const {
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @func is_alive
  */
 bool RunLoop::is_alive() const {
-	return uv_loop_alive(m_uv_loop);
+	return uv_loop_alive(m_uv_loop) || m_keeps.length()/* || m_works.length()*/;
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @func sync # 延时
  */
 uint RunLoop::post(cCb& cb, uint64 delay_us) {
@@ -668,6 +664,7 @@ uint RunLoop::post(cCb& cb, uint64 delay_us) {
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @func post_sync(cb)
  */
 void RunLoop::post_sync(cCb& cb) {
@@ -675,30 +672,40 @@ void RunLoop::post_sync(cCb& cb) {
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @func work()
  */
-uint RunLoop::work(cCb& cb, cCb& done) {
+uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
+	if (m_thread->is_abort()) {
+		DLOG("RunLoop::work, m_thread->is_abort() == true");
+		return 0;
+	}
+
 	Work* work = new Work();
 	work->id = iid32();
 	work->work = cb;
 	work->done = done;
 	work->uv_req.data = work;
 	work->host = this;
+	work->name = name;
+
 	post(Cb([work, this](Se& ev) {
 		int r = uv_queue_work(m_uv_loop, &work->uv_req,
 													Work::uv_work_cb, Work::uv_after_work_cb);
 		XX_ASSERT(!r);
-		work->it = m_work.push(work);
+		work->it = m_works.push(work);
 	}));
+
 	return work->id;
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @func cancel_work(id)
  */
 void RunLoop::cancel_work(uint id) {
 	post(Cb([=](Se& ev) {
-		for (auto& i : m_work) {
+		for (auto& i : m_works) {
 			if (i.value()->id == id) {
 				int r = uv_cancel((uv_req_t*)&i.value()->uv_req);
 				XX_ASSERT(!r);
@@ -709,6 +716,7 @@ void RunLoop::cancel_work(uint id) {
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @overwrite
  */
 uint RunLoop::post_message(cCb& cb, uint64 delay_us) {
@@ -716,9 +724,10 @@ uint RunLoop::post_message(cCb& cb, uint64 delay_us) {
 }
 
 /**
- * @func abort # 中止同步
+ * TODO Be careful about thread security issues
+ * @func cancel # 取消同步
  */
-void RunLoop::abort(uint id) {
+void RunLoop::cancel(uint id) {
 	ScopeLock lock(m_mutex);
 	for (auto& i : m_queue) {
 		if (i.value().id == id) {
@@ -737,6 +746,7 @@ void RunLoop::run(uint64 timeout) {
 }
 
 /**
+ * TODO Be careful about thread security issues
  * @func stop
  */
 void RunLoop::stop() {
@@ -748,19 +758,20 @@ void RunLoop::stop() {
 }
 
 /**
+ * TODO Be careful about thread security issues
  * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
  * @func keep_alive
  */
-KeepLoop* RunLoop::keep_alive(bool declear) {
+KeepLoop* RunLoop::keep_alive(cString& name, bool declear) {
 	ScopeLock lock(m_mutex);
-	m_keep_count++;  // 增加一个引用计数
-	KeepLoop* rv = new KeepLoop(declear);
-	rv->m_loop = this;
-	return rv;
+	auto keep = new KeepLoop(name, declear);
+	keep->m_id = m_keeps.push(keep);
+	keep->m_loop = this;
+	return keep;
 }
 
 static RunLoop* loop_2(ThreadID id) {
-	auto i = all_threads->find(id);
+	auto i = threads->find(id);
 	if (i.is_null()) {
 		return nullptr;
 	}
@@ -768,21 +779,21 @@ static RunLoop* loop_2(ThreadID id) {
 }
 
 /**
- * @func loop(id) 通过线程获取
+ * @func get_loop_with_id(id) 通过线程获取,目标线程没有创建过实体返回`nullptr`
  * @ret {RunLoop*}
  */
-RunLoop* RunLoop::loop(ThreadID id) {
-	ScopeLock scope(*all_threads_mutex);
+static RunLoop* get_loop_with_id(ThreadID id) {
+	ScopeLock scope(*threads_mutex);
 	return loop_2(id);
 }
 
 /**
  * @func keep_alive_current 保持当前循环活跃并返回代理
  */
-KeepLoop* RunLoop::keep_alive_current(bool declear) {
+KeepLoop* RunLoop::keep_alive_current(cString& name, bool declear) {
 	RunLoop* loop = current();
 	if ( loop ) {
-		return loop->keep_alive(declear);
+		return loop->keep_alive(name, declear);
 	}
 	return nullptr;
 }
@@ -803,7 +814,7 @@ void RunLoop::next_tick(cCb& cb) throw(Error) {
  * @func stop() 停止循环
  */
 void RunLoop::stop(ThreadID id) {
-	ScopeLock scope(*all_threads_mutex);
+	ScopeLock scope(*threads_mutex);
 	auto loop = loop_2(id);
 	if (loop) {
 		loop->stop();
@@ -814,7 +825,7 @@ void RunLoop::stop(ThreadID id) {
  * @func is_alive()
  */
 bool RunLoop::is_alive(ThreadID id) {
-	ScopeLock scope(*all_threads_mutex);
+	ScopeLock scope(*threads_mutex);
 	auto loop = loop_2(id);
 	if (loop) {
 		return loop->is_alive();
@@ -822,17 +833,23 @@ bool RunLoop::is_alive(ThreadID id) {
 	return false;
 }
 
+KeepLoop::KeepLoop(cString& name, bool destructor_clear)
+: m_group(iid32()), m_name(name), m_declear(destructor_clear) {
+}
+
 KeepLoop::~KeepLoop() {
 	ScopeLock lock(m_loop->m_mutex);
 	if ( m_declear ) {
-		_inl(m_loop)->abort_group_non_lock(m_group);
+		_inl(m_loop)->cancel_group_non_lock(m_group);
 	}
-	if (m_loop->m_keep_count > 0) { // 减少一个引用计数
-		m_loop->m_keep_count--;
-	}
-	if (m_loop->m_keep_count == 0) { // 可以结束了
+	XX_CHECK(m_loop->m_keeps.length());
+
+	m_loop->m_keeps.del(m_id); // 减少一个引用计数
+
+	if (m_loop->m_keeps.length() == 0 && !m_loop->m_uv_loop->stop_flag) { // 可以结束了
 		_inl(m_loop)->activate_loop(); // 激活循环状态,不再等待
 	}
+	// XX_ERR("Keep already invalid \"%s\", RunLoop already stop and release", *m_name);
 }
 
 uint KeepLoop::post(cCb& exec, uint64 delay_us) {
@@ -843,18 +860,18 @@ uint KeepLoop::post_message(cCb& cb, uint64 delay_us) {
 	return _inl(m_loop)->post(cb, m_group, delay_us);
 }
 
-void KeepLoop::clear() {
-	_inl(m_loop)->abort_group(m_group); // abort all
+void KeepLoop::cancel_all() {
+	_inl(m_loop)->cancel_group(m_group); // abort all
 }
 
 /**
  * @constructor
  */
-ParallelWorking::ParallelWorking() : ParallelWorking(RunLoop::current()) { }
+ParallelWorking::ParallelWorking() : ParallelWorking(RunLoop::current()) {}
 
-ParallelWorking::ParallelWorking(RunLoop* loop) : m_proxy(nullptr), m_gid(iid32()) {
+ParallelWorking::ParallelWorking(RunLoop* loop) : m_proxy(nullptr) {
 	XX_CHECK(loop, "Can not find current thread run loop.");
-	m_proxy = loop->keep_alive();
+	m_proxy = loop->keep_alive("ParallelWorking()");
 }
 
 /**
@@ -868,8 +885,16 @@ ParallelWorking::~ParallelWorking() {
 /**
  * @func run
  */
-ThreadID ParallelWorking::detach_child(Exec exec, cString& name) {
-	return SimpleThread::Inl::run(exec, m_gid, name);
+ThreadID ParallelWorking::spawn_child(Exec exec, cString& name) {
+	ScopeLock scope(m_mutex2);
+	auto id = Thread::Inl::run([this, exec](Thread& t) {
+		int rc = exec(t);
+		ScopeLock scope(m_mutex2);
+		m_childs.del(t.id());
+		return rc;
+	}, name);
+	m_childs.set(id, 1);
+	return id;
 }
 
 /**
@@ -877,9 +902,27 @@ ThreadID ParallelWorking::detach_child(Exec exec, cString& name) {
  */
 void ParallelWorking::abort_child(ThreadID id) {
 	if ( id == ThreadID() ) {
-		SimpleThread::Inl::abort_group(m_gid);
+		Map<ThreadID, int> childs;
+		{
+			ScopeLock scope(m_mutex2);
+			childs = m_childs;
+		}
+		for (auto& i : childs) {
+			Thread::abort(i.key());
+		}
+		for (auto& i : childs) {
+			Thread::join(i.key());
+		}
+		DLOG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 	} else {
-		SimpleThread::abort(id);
+		{
+			ScopeLock scope(m_mutex2);
+			XX_CHECK(m_childs.has(id), 
+				"Only subthreads belonging to \"ParallelWorking\" can be aborted");
+		}
+		Thread::abort(id);
+		Thread::join(id);
+		DLOG("ParallelWorking::abort_child(id) ok");
 	}
 }
 
@@ -887,10 +930,15 @@ void ParallelWorking::abort_child(ThreadID id) {
  * @func awaken
  */
 void ParallelWorking::awaken_child(ThreadID id) {
+	ScopeLock scope(m_mutex2);
 	if ( id == ThreadID() ) {
-		SimpleThread::Inl::awaken_group(m_gid);
+		for (auto& i : m_childs) {
+			Thread::awaken(i.key());
+		}
 	} else {
-		SimpleThread::awaken(id);
+		XX_CHECK(m_childs.has(id), 
+			"Only subthreads belonging to \"ParallelWorking\" can be awaken");
+		Thread::awaken(id);
 	}
 }
 
@@ -909,13 +957,13 @@ uint ParallelWorking::post(cCb& exec, uint64 delayUs) {
 }
 
 /**
- * @func abort
+ * @func cancel
  */
-void ParallelWorking::abort(uint id) {
+void ParallelWorking::cancel(uint id) {
 	if ( id ) {
-		m_proxy->abort(id);
+		m_proxy->cancel(id);
 	} else {
-		m_proxy->clear();
+		m_proxy->cancel_all();
 	}
 }
 

@@ -65,7 +65,11 @@ MultimediaSource::TrackInfo::TrackInfo() {
 MultimediaSource::MultimediaSource(cString& uri, RunLoop* loop): m_inl(nullptr) {
 	m_inl = new Inl(this, uri, loop);
 }
-MultimediaSource::~MultimediaSource() { Release(m_inl); m_inl = nullptr; }
+
+MultimediaSource::~MultimediaSource() { 
+	Release(m_inl); m_inl = nullptr; 
+}
+
 void MultimediaSource::set_delegate(Delegate* delegate) { m_inl->set_delegate(delegate); }
 const URI& MultimediaSource::uri() const { return m_inl->m_uri; }
 MultimediaSourceStatus MultimediaSource::status() const {

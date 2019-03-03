@@ -44,7 +44,7 @@ make_compile=\
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
 .PHONY: $(STYLES) jsa-shell install install-dev install-tools \
-	help all clean clean-all build web server ios android linux osx doc test2
+	help all clean clean-all build web server ios android linux osx doc test2 watch
 
 .SECONDEXPANSION:
 
@@ -130,6 +130,8 @@ install-tools:
 	@$(NODE) ./tools/cp-qgr-tools.js
 	@$(TOOLS_OUT)/install
 
+#################################################
+
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
 
@@ -154,3 +156,6 @@ test2: $(GYPFILES)
 	#make -C test -f test2.mk
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
+
+watch:
+	@./tools/sync_watch

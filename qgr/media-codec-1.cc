@@ -312,7 +312,7 @@ BitRateInfo Inl::read_bit_rate_info(AVFormatContext* fmt_ctx, int start, int siz
 	return info;
 }
 
-#define ABORT() { XX_THREAD_LOCK(t, { trigger_error(e); }); return; }
+#define ABORT() { if (!t.is_abort()) trigger_error(e); return 0; }
 
 /**
 * @func start
@@ -337,7 +337,7 @@ void Inl::start() {
 	
 	String uri = Path::fallback_c(m_uri.href());
 
-	detach_child([this, uri](SimpleThread& t) {
+	spawn_child([this, uri](Thread& t) {
 		
 		AVFormatContext* fmt_ctx = nullptr;
 		
@@ -393,29 +393,27 @@ void Inl::start() {
 		}
 		
 		int bit_rate_index;
-		
-		XX_THREAD_LOCK(t, {
-			{
-				ScopeLock scope(mutex());
-				m_bit_rate = move(bit_rate);
-				m_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
-				m_fmt_ctx = fmt_ctx;
-			}
-			bit_rate_index = bit_rate.length() / 2; // default value
-			select_bit_rate(bit_rate_index);
-			select_multi_bit_rate2(bit_rate_index);
 
-			post(Cb([this](Se& d) {
-				{ ScopeLock scope(mutex());
-					m_status = MULTIMEDIA_SOURCE_STATUS_READY;
-				}
-				m_delegate->multimedia_source_ready(m_host);
-			}));
-		}, {
-			return;
-		});
+		{
+			ScopeLock scope(mutex());
+			m_bit_rate = move(bit_rate);
+			m_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
+			m_fmt_ctx = fmt_ctx;
+		}
+		bit_rate_index = bit_rate.length() / 2; // default value
+		select_bit_rate(bit_rate_index);
+		select_multi_bit_rate2(bit_rate_index);
+
+		post(Cb([this](Se& d) {
+			{ ScopeLock scope(mutex());
+				m_status = MULTIMEDIA_SOURCE_STATUS_READY;
+			}
+			m_delegate->multimedia_source_ready(m_host);
+		}));
 		
 		read_stream(t, fmt_ctx, uri, bit_rate_index);
+
+		return 0;
 	}, "ffmpeg_read_source");
 }
 
@@ -630,7 +628,7 @@ bool Inl::extractor_advance(Extractor* ex) {
 /**
  * @func read_stream
  * */
-void Inl::read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index) {
+void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index) {
 	
 	Array<double> tbns;
 	
@@ -654,69 +652,66 @@ void Inl::read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, u
 		/* read frames from the file */
 		ok = av_read_frame(fmt_ctx, &pkt);
 		
-		tag1:
+	 TAG1:
 		sleep = 0;
-		{ //
-			ScopeLock scope(t.mutex());
-			
-			if ( t.is_abort() ) {
-				XX_DEBUG("read_frame() abort break;"); break;
+
+		if (t.is_abort()) {
+			XX_DEBUG("read_frame() abort break;"); break;
+		}
+
+		if ( ok < 0 ) { // err or end
+			if ( AVERROR_EOF == ok ) {
+				XX_DEBUG("read_frame() eof break;");
+				
+				post(Cb([this](Se& d) {
+					ScopeLock scope(mutex());
+					m_read_eof = 1;
+					m_fmt_ctx = nullptr;
+				}));
+				
+			} else {
+				XX_DEBUG("read_frame() error break;");
+				
+				char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
+				av_make_error_string(err_desc, AV_ERROR_MAX_STRING_SIZE, ok);
+				
+				XX_ERR("%s", err_desc);
+				
+				Error err(ERR_MEDIA_NETWORK_ERROR,
+									"Read source error `%s`, `%s`", err_desc, *uri);
+				trigger_error(err);
 			}
-			
-			if ( ok < 0 ) { // err or end
-				if ( AVERROR_EOF == ok ) {
-					XX_DEBUG("read_frame() eof break;");
-					
-					post(Cb([this](Se& d) {
-						ScopeLock scope(mutex());
-						m_read_eof = 1;
-						m_fmt_ctx = nullptr;
-					}));
-					
-				} else {
-					XX_DEBUG("read_frame() error break;");
-					
-					char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
-					av_make_error_string(err_desc, AV_ERROR_MAX_STRING_SIZE, ok);
-					
-					XX_ERR("%s", err_desc);
-					
-					Error err(ERR_MEDIA_NETWORK_ERROR,
-										"Read source error `%s`, `%s`", err_desc, *uri);
-					trigger_error(err);
-				}
-				break;
+			break;
+		}
+
+		if ( pkt.size ) { //
+			ScopeLock scope(mutex());
+
+			if ( bit_rate_index != m_bit_rate_index ) { // bit_rate_index change
+				bit_rate_index = m_bit_rate_index;
+				select_multi_bit_rate2(m_bit_rate_index);
 			}
 
-			if ( pkt.size ) { //
-				ScopeLock scope(mutex());
-
-				if ( bit_rate_index != m_bit_rate_index ) { // bit_rate_index change
-					bit_rate_index = m_bit_rate_index;
-					select_multi_bit_rate2(m_bit_rate_index);
-				}
-
-				if ( has_valid_extractor() ) {
-					uint stream = pkt.stream_index; // stream index
-					
-					Extractor *ex = valid_extractor(fmt_ctx->streams[stream]->codecpar->codec_type);
-					if (ex) {
-						if (ex->track().track == stream) { // 是否为选中的轨道,比如有多路声音轨道
-							if ( !extractor_push(ex, pkt, fmt_ctx->streams[stream], tbns[stream]) ) {
-								sleep = 1; // 添加不成功休眠
-							}
+			if ( has_valid_extractor() ) {
+				uint stream = pkt.stream_index; // stream index
+				
+				Extractor *ex = valid_extractor(fmt_ctx->streams[stream]->codecpar->codec_type);
+				if (ex) {
+					if (ex->track().track == stream) { // 是否为选中的轨道,比如有多路声音轨道
+						if ( !extractor_push(ex, pkt, fmt_ctx->streams[stream], tbns[stream]) ) {
+							sleep = 1; // 添加不成功休眠
 						}
 					}
-				} else { // 没有有效的ex
-					sleep = 1; // sleep
 				}
+			} else { // 没有有效的ex
+				sleep = 1; // sleep
 			}
 		}
-		
+
 		if ( pkt.size ) {
 			if (sleep) {
-				SimpleThread::sleep_for(200000); // sleep 200ms
-				goto tag1;
+				Thread::sleep(2e5); // sleep 200ms
+				goto TAG1;
 			}
 			av_packet_unref(&pkt);
 		}

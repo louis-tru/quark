@@ -125,7 +125,7 @@ class MultimediaSource::Inl: public ParallelWorking {
 	void extractor_flush(Extractor* ex);
 	BitRateInfo read_bit_rate_info(AVFormatContext* fmt_ctx, int i, int size);
 	void select_multi_bit_rate2(uint index);
-	void read_stream(SimpleThread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index);
+	void read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index);
 	bool extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn);
 	bool extractor_advance(Extractor* ex);
 	bool extractor_advance_no_wait(Extractor* ex);
@@ -135,6 +135,7 @@ class MultimediaSource::Inl: public ParallelWorking {
 	void trigger_wait_buffer();
 	void trigger_ready_buffer();
 	void trigger_eof();
+	inline Mutex& mutex() { return m_mutex; }
 	
 	friend class MultimediaSource;
 	friend class Extractor;
@@ -150,6 +151,7 @@ class MultimediaSource::Inl: public ParallelWorking {
 	Map<int, Extractor*>        m_extractors;
 	uint64                      m_duration;
 	AVFormatContext*            m_fmt_ctx;
+	Mutex                       m_mutex;
 	bool                        m_read_eof;
 	bool                        m_disable_wait_buffer;
 };

@@ -350,13 +350,13 @@ template<class T, class Container> void Array<T, Container>::clear() {
 }
 
 template<class T, class Container>
-typename Array<T, Container>::ConstIterator Array<T, Container>::begin() const {
-	return ConstIterator(IteratorData(const_cast<Array*>(this), 0));
+typename Array<T, Container>::IteratorConst Array<T, Container>::begin() const {
+	return IteratorConst(IteratorData(const_cast<Array*>(this), 0));
 }
 
 template<class T, class Container>
-typename Array<T, Container>::ConstIterator Array<T, Container>::end() const {
-	return ConstIterator(IteratorData(const_cast<Array*>(this), _length));
+typename Array<T, Container>::IteratorConst Array<T, Container>::end() const {
+	return IteratorConst(IteratorData(const_cast<Array*>(this), _length));
 }
 
 template<class T, class Container>

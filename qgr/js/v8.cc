@@ -1359,7 +1359,7 @@ int IMPL::start(int argc, char** argv) {
 			loop->run();
 			/* IOS forces the process to terminate, but it does not quit immediately.
 			 This may cause a process to run in the background for a long time, so force break here */
-			if (RunLoop::is_process_exit()) break;
+			if (is_exit()) break;
 
 			if (loop->is_alive())
 				continue;
@@ -1370,7 +1370,7 @@ int IMPL::start(int argc, char** argv) {
 			// event, or after running some callbacks.
 		} while (loop->is_alive());
 
-		if (!RunLoop::is_process_exit())
+		if (!is_exit())
 			rc = worker->m_inl->TriggerExit(rc);
 	}
 

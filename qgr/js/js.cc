@@ -294,7 +294,7 @@ void IMPL::release() {
 
 IMPL::IMPL()
 : m_host(nullptr)
-, m_thread_id(SimpleThread::current_id())
+, m_thread_id(Thread::current_id())
 , m_values(nullptr), m_strs(nullptr)
 , m_classs(nullptr), m_env(nullptr) {
 	m_host = new Worker(this);

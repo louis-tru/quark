@@ -36,43 +36,41 @@
 XX_NS(qgr)
 
 /**
- * @class ConstIteratorTemplate
+ * @class IteratorTemplateConst
  * @template<class IteratorData>
  */
-template<class IteratorData> class ConstIteratorTemplate {
+template<class IteratorData> class IteratorTemplateConst {
  public:
 	typedef typename IteratorData::Value Value;
-	
-	inline ConstIteratorTemplate(): data_() { }
-	inline ConstIteratorTemplate(const IteratorData& data): data_(data) { }
+
+	inline IteratorTemplateConst(): data_() {}
+	inline IteratorTemplateConst(const IteratorData& data): data_(data) {}
 	
 	inline const Value& value() const { return data_.value(); }
 	inline const IteratorData& operator*() const { return data_; }
 	inline const IteratorData& data() const { return data_; }
-	//
-	inline bool operator==(const ConstIteratorTemplate& it) const { return data_.equals(it.data_); }
-	inline bool operator!=(const ConstIteratorTemplate& it) const { return !data_.equals(it.data_); }
-	//
+	inline bool operator==(const IteratorTemplateConst& it) { return data_.equals(it.data_); }
+	inline bool operator!=(const IteratorTemplateConst& it) { return !data_.equals(it.data_); }
 	inline bool is_null() const { return data_.is_null(); }
 	
-	inline ConstIteratorTemplate operator++() { // ++i
+	inline IteratorTemplateConst operator++() { // ++i
 		data_.next();
 		return *this;
 	}
 	
-	inline ConstIteratorTemplate operator--() { // --i
+	inline IteratorTemplateConst operator--() { // --i
 		data_.prev();
 		return *this;
 	}
 	
-	inline ConstIteratorTemplate operator++(int) { // i++
-		ConstIteratorTemplate rev(*this);
+	inline IteratorTemplateConst operator++(int) { // i++
+		IteratorTemplateConst rev(*this);
 		data_.next();
 		return rev;
 	}
 	
-	inline ConstIteratorTemplate operator--(int) { // i--
-		ConstIteratorTemplate rev(*this);
+	inline IteratorTemplateConst operator--(int) { // i--
+		IteratorTemplateConst rev(*this);
 		data_.prev();
 		return rev;
 	}
@@ -86,20 +84,18 @@ template<class IteratorData> class ConstIteratorTemplate {
  * @template<class Iterator, class Value>
  */
 template<class IteratorData>
-class IteratorTemplate: public ConstIteratorTemplate<IteratorData> {
+class IteratorTemplate: public IteratorTemplateConst<IteratorData> {
  public:
 	typedef typename IteratorData::Value Value;
 	
-	inline IteratorTemplate(): ConstIteratorTemplate<IteratorData>() { }
-	inline IteratorTemplate(const IteratorData& data): ConstIteratorTemplate<IteratorData>(data) { }
+	inline IteratorTemplate(): IteratorTemplateConst<IteratorData>() {}
+	inline IteratorTemplate(const IteratorData& data): IteratorTemplateConst<IteratorData>(data) {}
 	
 	inline const Value& value() const { return this->data_.value(); }
-	inline Value& value() { return this->data_.value(); }
-	//
 	inline const IteratorData& operator*() const { return this->data_; }
-	inline IteratorData& operator*() { return this->data_; }
-	//
 	inline const IteratorData& data() const { return this->data_; }
+	inline Value& value() { return this->data_.value(); }
+	inline IteratorData& operator*() { return this->data_; }
 	inline IteratorData& data() { return this->data_; }
 	
 	inline IteratorTemplate operator++() { // ++i

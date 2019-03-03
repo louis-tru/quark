@@ -73,6 +73,7 @@ def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
 def_opts('without-embed-bitcode', 0, 
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
 def_opts('without-node', 0,     '--without-node disable node [{0}]');
+def_opts('more-log',     0,     '--more-log print more log message [{0}]');
 
 function arm() {
 	return opts.arch.match(/^arm/) ? 1 : 0;
@@ -463,6 +464,7 @@ function configure() {
 			OS: get_OS(opts.os),
 			os: opts.os,
 			use_v8: opts.use_v8,
+			more_log: opts.use_v8,
 			clang: opts.clang,
 			library: 'static_library',
 			library_output: opts.library + '_library',

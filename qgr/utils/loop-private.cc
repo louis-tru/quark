@@ -33,7 +33,7 @@
 
 XX_NS(qgr)
 
-extern int process_exit;
+extern int __is_process_exit;
 
 /**
  * @class PrivateLoop
@@ -43,42 +43,48 @@ class PrivateLoop {
 	inline PrivateLoop(): m_loop(nullptr) {  }
 	
 	inline bool has_current_thread() {
-		return SimpleThread::current_id() == m_thread_id;
+		return Thread::current_id() == m_thread_id;
+	}
+
+	bool is_continue(Thread& t) {
+		ScopeLock scope(m_mutex);
+		if (!t.is_abort()) {
+			/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
+			 * 200毫秒后没有向队列发送新消息结束线程
+			 * * *
+			 * 这里休眠200毫秒给外部线程足够时间往队列发送消息
+			 */
+			Thread::sleep(2e5);
+			if ( m_loop->is_alive() && !t.is_abort() ) {
+				return true; // 继续运行
+			}
+		}
+		m_loop = nullptr;
+		m_thread_id = ThreadID();
+		return false;
 	}
 	
 	RunLoop* loop() {
 		Lock lock(m_mutex);
-		if (process_exit) return nullptr;
-		if (m_loop) return m_loop;
+		if (__is_process_exit)
+			return nullptr;
+		if (m_loop)
+			return m_loop;
 		
-		SimpleThread::detach([this](SimpleThread& t) {
-			{ //
-				ScopeLock scope(m_mutex);
-				m_loop = RunLoop::current();
-				m_thread_id = t.id();
-				m_cond.notify_all();
-			}
-		 loop:
-			m_loop->run(2e7); // 20秒后没有新消息结束线程
-			{ //
-				ScopeLock scope(m_mutex);
-				XX_THREAD_LOCK(t, {
-					/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
-					 * 200毫秒后没有向队列发送新消息结束线程
-					 * * *
-					 * 这里休眠200毫秒给外部线程足够时间往队列发送消息
-					 */
-					std::this_thread::sleep_for(std::chrono::microseconds(200 * 1000));
-					if ( m_loop->is_alive() && !t.is_abort() ) {
-						goto loop; // 继续运行
-					}
-				});
-				m_loop = nullptr;
-				m_thread_id = ThreadID();
-			}
+		Thread::spawn([this](Thread& t) {
+			m_mutex.lock();
+			m_thread_id = t.id();
+			m_loop = RunLoop::current();
+			m_cond.notify_all();
+			m_mutex.unlock();
+			do {
+				m_loop->run(2e7); // 20秒后没有新消息结束线程
+			} while(is_continue(t));
+			return 0;
 		}, "private_loop");
 		
 		m_cond.wait(lock); // wait
+
 		return m_loop;
 	}
 	

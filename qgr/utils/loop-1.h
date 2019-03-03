@@ -45,21 +45,20 @@ XX_NS(qgr)
 class ParallelWorking: public Object {
 	XX_HIDDEN_ALL_COPY(ParallelWorking);
  public:
-	typedef SimpleThread::Exec Exec;
+	typedef Thread::Exec Exec;
 	ParallelWorking();
 	ParallelWorking(RunLoop* loop);
 	virtual ~ParallelWorking();
-	ThreadID detach_child(Exec exec, cString& name);
-	void abort_child(ThreadID id = ThreadID());   // default abort all child
+	ThreadID spawn_child(Exec exec, cString& name);
 	void awaken_child(ThreadID id = ThreadID());  // default awaken all child
+	void abort_child(ThreadID id = ThreadID());   // default abort all child
 	uint post(cCb& cb); // post message to main thread
 	uint post(cCb& cb, uint64 delay_us);
-	void abort(uint id = 0);
-	inline Mutex& mutex() { return m_mutex; }
+	void cancel(uint id = 0); // cancel message
  private:
-	KeepLoop*  m_proxy;
-	Mutex m_mutex;
-	uint  m_gid;
+	KeepLoop* m_proxy;
+	Mutex m_mutex2;
+	Map<ThreadID, int> m_childs;
 };
 
 XX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {

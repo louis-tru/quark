@@ -65,42 +65,34 @@ template<> bool Compare<ThreadID>::equals(const ThreadID& a, const ThreadID& b, 
 class RunLoop;
 class KeepLoop;
 
-#define XX_THREAD_LOCK(__t, block, ...) {\
-	ScopeLock __t##_lock(__t.mutex()); \
-	if (!__t.is_abort()) { block; } else { __VA_ARGS__; } \
-}
-
 /**
- * @class SimpleThread
+ * @class Thread
  */
-class XX_EXPORT SimpleThread {
-	XX_HIDDEN_ALL_COPY(SimpleThread);
+class XX_EXPORT Thread {
+	XX_HIDDEN_ALL_COPY(Thread);
  public:
+ 	typedef ThreadID ID;
 	typedef NonObjectTraits Traits;
-	typedef std::function<void(SimpleThread& thread)> Exec;
+	typedef std::function<int(Thread&)> Exec;
 	inline bool is_abort() const { return m_abort; }
-	inline Mutex& mutex() { return m_mutex; }
-	inline ThreadID id() const { return m_id; }
+	inline ID id() const { return m_id; }
 	inline String name() const { return m_name; }
 	inline RunLoop* loop() const { return m_loop; }
-	static ThreadID detach(Exec exec, cString& name);
-	static ThreadID current_id();
-	static void sleep_for(uint64 timeUs = 0);
-	static SimpleThread* current();
-	static void* get_specific_data(char id);
-	static void set_specific_data(char id, void* data);
-	static void abort(ThreadID id, int64 wait_end_timeoutUs = 0);
-	static void wait_end(ThreadID id, int64 timeoutUs = 0);
-	static void awaken(ThreadID id);
+	static ID spawn(Exec exec, cString& name);
+	static ID current_id();
+	static Thread* current();
+	static void sleep(int64 timeoutUs = 0 /*小于1永久等待*/);
+	static void join(ID id, int64 timeoutUs = 0 /*小于1永久等待*/);
+	static void awaken(ID id);
+	static void abort(ID id);
  private:
-	SimpleThread();
-	~SimpleThread();
+	Thread();
+	~Thread();
 	XX_DEFINE_INLINE_CLASS(Inl);
 	bool  m_abort;
 	Mutex m_mutex;
 	Condition m_cond;
-	ThreadID  m_id;
-	uint  m_gid;
+	ID    m_id;
 	String  m_name;
 	void* m_data[256];
 	RunLoop* m_loop;
@@ -120,10 +112,6 @@ class XX_EXPORT PostMessage {
 class XX_EXPORT RunLoop: public Object, public PostMessage {
 	XX_HIDDEN_ALL_COPY(RunLoop);
  public:
-	/**
-	 * @destructor
-	 */
-	virtual ~RunLoop();
 	
 	/**
 	 * @func runing()
@@ -151,9 +139,9 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	virtual uint post_message(cCb& cb, uint64 delay_us = 0);
 	
 	/**
-	 * @func abort(id) abort message with id
+	 * @func cancel(id) cancel message with id
 	 */
-	void abort(uint id);
+	void cancel(uint id);
 	
 	/**
 	 * @func run() 运行消息循环
@@ -169,22 +157,23 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	void stop();
 
 	/**
-	 * @func work(cb[,done])
+	 * @func work(cb[,done[,name]])
 	 */
-	uint work(cCb& cb, cCb& done = 0);
+	uint work(cCb& cb, cCb& done = 0, cString& name = String());
 	
 	/**
 	 * @func cancel_work(id)
 	 */
 	void cancel_work(uint id);
-	
+
 	/**
 	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
 	 * @func keep_alive(declear)
+	 * @arg name {cString&} 名称
 	 * @arg [declear=true] {bool} KeepLoop 释放时是否清理由keekloop发起并未完成的`post`消息
 	 */
-	KeepLoop* keep_alive(bool declear = true);
-	
+	KeepLoop* keep_alive(cString& name, bool declear = true);
+
 	/**
 	 * @func uv_loop()
 	 */
@@ -203,13 +192,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	/**
 	 * @func keep_alive_current(declear) 保持当前循环活跃并返回`KeepLoop`实体
 	 */
-	static KeepLoop* keep_alive_current(bool declear = true);
-	
-	/**
-	 * @func loop(id) 通过线程获取,目标线程没有创建过实体返回`nullptr`
-	 * @ret {RunLoop*}
-	 */
-	static RunLoop* loop(ThreadID id);
+	static KeepLoop* keep_alive_current(cString& name, bool declear = true);
 	
 	/**
 	 * @func next_tick
@@ -217,6 +200,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	static void next_tick(cCb& cb) throw(Error);
 	
 	/**
+	 * Be careful with thread safety. It's best to ensure that `current()` has been invoked first.
 	 * @func main_loop()
 	 */
 	static RunLoop* main_loop();
@@ -225,11 +209,6 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	 * @func is_main_loop() 当前线程是为主循环
 	 */
 	static bool is_main_loop();
-	
-	/**
-	 * @func is_process_exit
-	 */
-	static bool is_process_exit();
 
 	/**
 	 * @func stop() 停止循环
@@ -245,7 +224,11 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	/**
 	 * @constructor 私有构造每个线程只能创建一个通过`current()`来获取当前实体
 	 */
-	RunLoop(SimpleThread* t);
+	RunLoop(Thread* t);
+	/**
+	 * @destructor
+	 */
+	virtual ~RunLoop();
 	
 	XX_DEFINE_INLINE_CLASS(Inl);
 	XX_DEFINE_INLINE_CLASS(Inl2);
@@ -257,12 +240,12 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	};
 	struct Work;
 	List<Queue> m_queue;
-	List<Work*> m_work;
+	List<Work*> m_works;
+	List<KeepLoop*> m_keeps;
 	Mutex m_mutex;
 	RecursiveMutex* m_independent_mutex;
-	SimpleThread* m_thread;
+	Thread* m_thread;
 	ThreadID m_tid;
-	uint m_keep_count;
 	uv_loop_t* m_uv_loop;
 	uv_async_t* m_uv_async;
 	uv_timer_t* m_uv_timer;
@@ -283,21 +266,22 @@ class XX_EXPORT KeepLoop: public Object, public PostMessage {
 	uint post(cCb& cb, uint64 delay_us = 0);
 	virtual uint post_message(cCb& cb, uint64 delay_us = 0);
 	/**
-	 * @func clear() 取消之前`post`的所有消息
+	 * @func cancel_all() 取消之前`post`的所有消息
 	 */
-	void clear();
-	inline void abort(uint id) { m_loop->abort(id); }
+	void cancel_all();
+	inline void cancel(uint id) { m_loop->cancel(id); }
 	inline RunLoop* host() { return m_loop; }
  private:
+ 	typedef List<KeepLoop*>::Iterator Iterator;
 	/**
 	 * @constructor `declear=true`时表示析构时会进行清理
 	 */
-	inline KeepLoop(bool destructor_clear)
-	: m_group(iid32()), m_declear(destructor_clear) {
-	}
+	KeepLoop(cString& name, bool destructor_clear);
 	RunLoop* m_loop;
-	uint  m_group;
-	bool  m_declear;
+	uint     m_group;
+	Iterator m_id;
+	String   m_name;
+	bool     m_declear;
 	friend class RunLoop;
 };
 

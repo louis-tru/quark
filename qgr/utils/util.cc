@@ -109,6 +109,8 @@ int clock_gettime2(clockid_t id, struct timespec *tspec) {
 
 XX_NS(qgr)
 
+extern int __is_process_exit;
+
 #define define_number(T) \
 template<> const T Number<T>::min(std::numeric_limits<T>::min());\
 template<> const T Number<T>::max(std::numeric_limits<T>::max());
@@ -448,11 +450,15 @@ String platform() {
 }
 
 void exit(int rc) {
-	if (!RunLoop::is_process_exit()) {
+	if (!__is_process_exit) {
 		::exit(rc);
 	} else {
 		XX_ERR("The program has exited");
 	}
+}
+
+bool is_exit() {
+	return __is_process_exit;
 }
 
 namespace sys {

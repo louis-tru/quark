@@ -60,23 +60,23 @@ class XX_EXPORT JSON {
 		//! Iterator type itself
 		typedef MemberIterator Iterator;
 		//! Constant iterator type
-		typedef MemberIterator<const Member>  ConstIterator;
+		typedef MemberIterator<const Member>  IteratorConst;
 		//! Non-constant iterator type
-		typedef MemberIterator<Member>        NonConstIterator;
+		typedef MemberIterator<Member>        NonIteratorConst;
 		
 		//! Pointer to (const) GenericMember
 		typedef typename BaseType::pointer         Pointer;
 		//! Reference to (const) GenericMember
 		typedef typename BaseType::reference       Reference;
 		
-		MemberIterator(const NonConstIterator& it) : ptr_(it.ptr_) { }
+		MemberIterator(const NonIteratorConst& it) : ptr_(it.ptr_) { }
 		
 		MemberIterator& operator++();    // ++i
 		MemberIterator& operator--();    // --i
 		MemberIterator  operator++(int); // i++
 		MemberIterator  operator--(int); // i--
-		bool operator==(ConstIterator that) const { return ptr_ == that.ptr_; }
-		bool operator!=(ConstIterator that) const { return ptr_ != that.ptr_; }
+		bool operator==(IteratorConst that) const { return ptr_ == that.ptr_; }
+		bool operator!=(IteratorConst that) const { return ptr_ != that.ptr_; }
 		
 		Reference operator*() const { return *ptr_; }
 		Pointer   operator->() const { return ptr_; }
@@ -89,9 +89,9 @@ class XX_EXPORT JSON {
  public:
 	
 	typedef MemberIterator<Member>        Iterator;
-	typedef MemberIterator<const Member>  ConstIterator;
+	typedef MemberIterator<const Member>  IteratorConst;
 	typedef JSON*                         ArrayIterator;
-	typedef const JSON*                   ConstArrayIterator;
+	typedef const JSON*                   ArrayIteratorConst;
 	
 	//! Type of JSON value
 	enum Type {
@@ -210,17 +210,17 @@ class XX_EXPORT JSON {
 	
 	void remove(cchar* key);
 	void remove(cString& key);
-	void remove(ConstIterator it);
-	void remove(ConstArrayIterator it);
+	void remove(IteratorConst it);
+	void remove(ArrayIteratorConst it);
 	
 	Iterator begin();
 	Iterator end();
-	ConstIterator begin() const;
-	ConstIterator end() const;
+	IteratorConst begin() const;
+	IteratorConst end() const;
 	ArrayIterator begin_array();
 	ArrayIterator end_array();
-	ConstArrayIterator begin_array() const;
-	ConstArrayIterator end_array() const;
+	ArrayIteratorConst begin_array() const;
+	ArrayIteratorConst end_array() const;
 	
 	/**
 	 * 把JSON格式的字符串转换为Json对像

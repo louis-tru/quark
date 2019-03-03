@@ -294,13 +294,13 @@ if ((*it)._item->_prev) {\
 
 template<class Item, class Allocator>
 typename List<Item, Allocator>::Iterator
-List<Item, Allocator>::before(ConstIterator it, const Item& item) {
+List<Item, Allocator>::before(IteratorConst it, const Item& item) {
 	list_before_item_( new ItemWrap({ item, (*it)._item->_prev, (*it)._item }) );
 }
 
 template<class Item, class Allocator>
 typename List<Item, Allocator>::Iterator
-List<Item, Allocator>::before(ConstIterator it, Item&& item) {
+List<Item, Allocator>::before(IteratorConst it, Item&& item) {
 	list_before_item_( new ItemWrap({ move(item), (*it)._item->_prev, (*it)._item }) );
 }
 
@@ -317,13 +317,13 @@ if ((*it)._item->_next) {\
 
 template<class Item, class Allocator>
 typename List<Item, Allocator>::Iterator
-List<Item, Allocator>::after(ConstIterator it, const Item& item) {
+List<Item, Allocator>::after(IteratorConst it, const Item& item) {
 	list_after_item_( new ItemWrap({ item, (*it)._item, (*it)._item->_next }) );
 }
 
 template<class Item, class Allocator>
 typename List<Item, Allocator>::Iterator
-List<Item, Allocator>::after(ConstIterator it, Item&& item) {
+List<Item, Allocator>::after(IteratorConst it, Item&& item) {
 	list_after_item_( new ItemWrap({ move(item), (*it)._item, (*it)._item->_next }) );
 }
 
@@ -333,7 +333,7 @@ List<Item, Allocator>::after(ConstIterator it, Item&& item) {
 #undef list_after_item_
 
 template<class Item, class Allocator>
-void List<Item, Allocator>::del(ConstIterator it) {
+void List<Item, Allocator>::del(IteratorConst it) {
 	ItemWrap* item = it.data()._item;
 	if (item) {
 		XX_ASSERT( it.data()._host == this);
@@ -379,7 +379,7 @@ if (offset < _length) { \
 return end()
 
 template<class Item, class Allocator>
-typename List<Item, Allocator>::ConstIterator
+typename List<Item, Allocator>::IteratorConst
 List<Item, Allocator>::find(uint offset) const {
 	list_find_iterator0_(offset);
 }
@@ -416,15 +416,15 @@ if (offset > 0) { \
 }
 
 template<class Item, class Allocator>
-typename List<Item, Allocator>::ConstIterator
-List<Item, Allocator>::find(ConstIterator it, int offset) const {
+typename List<Item, Allocator>::IteratorConst
+List<Item, Allocator>::find(IteratorConst it, int offset) const {
 	list_find_iterator_(it, offset);
-	return ConstIterator(IteratorData(this, item));
+	return IteratorConst(IteratorData(this, item));
 }
 
 template<class Item, class Allocator>
 typename List<Item, Allocator>::Iterator
-List<Item, Allocator>::find(ConstIterator it, int offset) {
+List<Item, Allocator>::find(IteratorConst it, int offset) {
 	list_find_iterator_(it, offset);
 	return Iterator(IteratorData(this, item));
 }
@@ -473,15 +473,15 @@ Item& List<Item, Allocator>::last() {
 }
 
 template<class Item, class Allocator>
-typename List<Item, Allocator>::ConstIterator
+typename List<Item, Allocator>::IteratorConst
 List<Item, Allocator>::begin() const {
-	return ConstIterator(IteratorData(const_cast<List*>(this), _first));
+	return IteratorConst(IteratorData(const_cast<List*>(this), _first));
 }
 
 template<class Item, class Allocator>
-typename List<Item, Allocator>::ConstIterator
+typename List<Item, Allocator>::IteratorConst
 List<Item, Allocator>::end() const {
-	return ConstIterator(IteratorData(const_cast<List*>(this), NULL));
+	return IteratorConst(IteratorData(const_cast<List*>(this), NULL));
 }
 
 template<class Item, class Allocator>

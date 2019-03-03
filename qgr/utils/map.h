@@ -69,12 +69,12 @@ template<class T> class XX_EXPORT PrtKey {
  * @class Map Hash map
  * @template<class Key, class Value>
  */
-template<class TKey, class TValue,
-				class Compare = Compare<TKey>>
+template<class _Key, class _Value,
+				class Compare = Compare<_Key>>
 class XX_EXPORT Map: public Object {
  public:
-	typedef TKey Key;
-	typedef TValue Value;
+	typedef _Key Key;
+	typedef _Value Value;
  private:
 
 	struct Item {
@@ -98,7 +98,7 @@ class XX_EXPORT Map: public Object {
 
 	struct IteratorData {
 	 public:
-		typedef TValue Value;
+		typedef _Value Value;
 		const Key& key() const;
 		const Value& value() const;
 		Key& key();
@@ -114,7 +114,7 @@ class XX_EXPORT Map: public Object {
 		Map* _host;
 		Item* _item;
 		friend class Map;
-		friend class ConstIteratorTemplate<IteratorData>;
+		friend class IteratorTemplateConst<IteratorData>;
 		friend class IteratorTemplate<IteratorData>;
 	};
 
@@ -129,7 +129,7 @@ class XX_EXPORT Map: public Object {
 		Value value;
 	};
 	typedef std::initializer_list<Initializer> InitializerList;
-	typedef ConstIteratorTemplate<IteratorData> ConstIterator;
+	typedef IteratorTemplateConst<IteratorData> IteratorConst;
 	typedef IteratorTemplate<IteratorData> Iterator;
 
 	Map();
@@ -142,7 +142,7 @@ class XX_EXPORT Map: public Object {
 	const Value& operator[](const Key& key) const;
 	Value& operator[](const Key& key);
 	Value& operator[](Key&& key);
-	ConstIterator find(const Key& key) const;
+	IteratorConst find(const Key& key) const;
 	Iterator find(const Key& key);
 	bool has(const Key& key) const;
 	Array<Key> keys() const;
@@ -155,13 +155,13 @@ class XX_EXPORT Map: public Object {
 	Value& set(Key&& key, const Value& value);
 	Value& set(const Key& key, Value&& value);
 	bool del(const Key& key);
-	bool del(ConstIterator it);
+	bool del(IteratorConst it);
 	void clear();
 	void mark(const Key& key);
-	void mark(ConstIterator it);
+	void mark(IteratorConst it);
 	void del_mark();
-	ConstIterator begin() const;
-	ConstIterator end() const;
+	IteratorConst begin() const;
+	IteratorConst end() const;
 	Iterator begin();
 	Iterator end();
 	uint length() const;

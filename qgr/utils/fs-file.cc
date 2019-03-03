@@ -233,7 +233,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 	: m_path(path)
 	, m_fp(0)
 	, m_opening(false)
-	, m_keep(loop->keep_alive(false))
+	, m_keep(loop->keep_alive("AsyncFile::Inl", false))
 	, m_delegate(nullptr)
 	, m_host(host)
 	{

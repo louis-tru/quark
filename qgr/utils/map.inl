@@ -59,7 +59,7 @@ template<> XX_EXPORT bool Compare<float>::equals(const float& a, const float& b,
 template<> XX_EXPORT bool Compare<double>::equals(const double& a, const double& b, uint ha, uint hb);
 template<> XX_EXPORT bool Compare<bool>::equals(const bool& a, const bool& b, uint ha, uint hb);
 
-// ConstIterator
+// IteratorConst
 
 template<class Key, class Value, class Compare>
 void Map<Key, Value, Compare>::NodeList::realloc(uint capacity) {
@@ -412,10 +412,10 @@ Map<Key, Value, Compare>::find_set(const Key& key, bool* is_new) {
 }
 
 template<class Key, class Value, class Compare>
-typename Map<Key, Value, Compare>::ConstIterator
+typename Map<Key, Value, Compare>::IteratorConst
 Map<Key, Value, Compare>::find(const Key& key) const {
 	Item* item = const_cast<Map*>(this)->find2(key);
-	return ConstIterator(IteratorData(const_cast<Map*>(this), item));
+	return IteratorConst(IteratorData(const_cast<Map*>(this), item));
 }
 
 template<class Key, class Value, class Compare>
@@ -541,7 +541,7 @@ bool Map<Key, Value, Compare>::del(const Key& key) {
 }
 
 template<class Key, class Value, class Compare>
-bool Map<Key, Value, Compare>::del(ConstIterator it) {
+bool Map<Key, Value, Compare>::del(IteratorConst it) {
 	Item* item = it.data()._item;
 	if (item) {
 		del2(item); return 1;
@@ -580,7 +580,7 @@ void Map<Key, Value, Compare>::mark(const Key& key) {
 }
 
 template<class Key, class Value, class Compare>
-void Map<Key, Value, Compare>::mark(ConstIterator it) {
+void Map<Key, Value, Compare>::mark(IteratorConst it) {
 	const IteratorData& data = it.data();
 	Item* item = data._item;
 	if (item && !item->mark) {
@@ -600,14 +600,14 @@ void Map<Key, Value, Compare>::del_mark() {
 }
 
 template<class Key, class Value, class Compare>
-typename Map<Key, Value, Compare>::ConstIterator Map<Key, Value, Compare>::begin() const {
+typename Map<Key, Value, Compare>::IteratorConst Map<Key, Value, Compare>::begin() const {
 	IteratorData it(const_cast<Map*>(this), NULL); it.begen();
-	return ConstIterator(it);
+	return IteratorConst(it);
 }
 
 template<class Key, class Value, class Compare>
-typename Map<Key, Value, Compare>::ConstIterator Map<Key, Value, Compare>::end() const {
-	return ConstIterator(IteratorData(const_cast<Map*>(this), NULL));
+typename Map<Key, Value, Compare>::IteratorConst Map<Key, Value, Compare>::end() const {
+	return IteratorConst(IteratorData(const_cast<Map*>(this), NULL));
 }
 
 template<class Key, class Value, class Compare>

@@ -212,6 +212,7 @@
 					'-Wno-unused-result',
 					'-Wno-deprecated',
 					'-Wno-missing-field-initializers',
+					'-Wno-unused-function',
 					# '-Wno-implicit-fallthrough',
 					# '-Wno-misleading-indentation',
 					'-march=<(arch_name)',

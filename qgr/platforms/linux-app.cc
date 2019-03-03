@@ -50,7 +50,7 @@ static LinuxApplication* application = nullptr;
 static GLDrawProxy* gl_draw_context = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
-#if DEBUG
+#if DEBUG || XX_MORE_LOG
 cchar* MOUSE_KEYS[] = {
 	"left",
 	"second (or middle)",
@@ -435,7 +435,7 @@ class LinuxApplication {
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr; // disconnect x display
 
-		SimpleThread::wait_end(id);
+		Thread::join(id);
 	}
 
 	float get_monitor_dpi() {

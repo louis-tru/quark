@@ -69,12 +69,12 @@ class XX_EXPORT List: public Object {
 		List* _host;
 		ItemWrap* _item;
 		friend class List;
-		friend class ConstIteratorTemplate<IteratorData>;
+		friend class IteratorTemplateConst<IteratorData>;
 		friend class IteratorTemplate<IteratorData>;
 	};
 	
  public:
-	typedef ConstIteratorTemplate<IteratorData> ConstIterator;
+	typedef IteratorTemplateConst<IteratorData> IteratorConst;
 	typedef IteratorTemplate<IteratorData> Iterator;
 	
 	List();
@@ -96,23 +96,23 @@ class XX_EXPORT List: public Object {
 	void shift();
 	void pop(uint count);
 	void shift(uint count);
-	Iterator before(ConstIterator it, const Item& item);
-	Iterator before(ConstIterator it, Item&& item);
-	Iterator after(ConstIterator it, const Item& item);
-	Iterator after(ConstIterator it, Item&& item);
-	void del(ConstIterator it);
+	Iterator before(IteratorConst it, const Item& item);
+	Iterator before(IteratorConst it, Item&& item);
+	Iterator after(IteratorConst it, const Item& item);
+	Iterator after(IteratorConst it, Item&& item);
+	void del(IteratorConst it);
 	void clear();
 	const Item& first()const;
 	const Item& last()const;
 	Item& first();
 	Item& last();
-	ConstIterator find(uint offset) const;
+	IteratorConst find(uint offset) const;
 	Iterator find(uint offset);
-	ConstIterator find(ConstIterator it, int offset = 0) const;
-	Iterator find(ConstIterator it, int offset = 0);
+	IteratorConst find(IteratorConst it, int offset = 0) const;
+	Iterator find(IteratorConst it, int offset = 0);
 	String join(cString& sp) const;
-	ConstIterator begin() const;
-	ConstIterator end() const;
+	IteratorConst begin() const;
+	IteratorConst end() const;
 	Iterator begin();
 	Iterator end();
 	uint length() const;

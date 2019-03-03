@@ -117,7 +117,7 @@ class Timer: public Reference {
 	
 	void stop() {
 		if ( _loop && _timer_id ) {
-			_run_loop->abort( _timer_id );
+			_run_loop->cancel( _timer_id );
 			_loop = 0;
 			_timer_id = 0;
 			_cb2 = Callback(); // destroy callback

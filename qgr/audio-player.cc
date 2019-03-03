@@ -158,7 +158,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 		int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
 		int64 sleep_st = frame_interval - sys::time_monotonic() + sys_time;
 		if ( sleep_st > 0 ) {
-			SimpleThread::sleep_for(sleep_st);
+			Thread::sleep(sleep_st);
 		}
 
 		goto loop;
@@ -252,9 +252,10 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 			m_pcm->set_volume(m_volume);
 			m_pcm->set_mute(m_mute);
 			
-			SimpleThread::detach([this](SimpleThread& t) {
+			Thread::spawn([this](Thread& t) {
 				ScopeLock scope(m_audio_loop_mutex);
 				Inl_AudioPlayer(this)->play_audio();
+				return 0;
 			}, "audio");
 		} else {
 			stop2(lock, true);
@@ -378,9 +379,10 @@ void AudioPlayer::set_src(cString& value) {
 		}
 		Inl_AudioPlayer(this)->stop_and_release(lock, true);
 	}
-	auto loop = main_loop(); XX_CHECK(loop, "Cannot find main run loop");
+	auto loop = main_loop();
+	XX_CHECK(loop, "Cannot find main run loop");
 	m_source = new MultimediaSource(src, loop);
-	m_keep = loop->keep_alive();
+	m_keep = loop->keep_alive("AudioPlayer::set_src");
 	m_source->set_delegate(this);
 	m_source->disable_wait_buffer(m_disable_wait_buffer);
 	m_source->start();

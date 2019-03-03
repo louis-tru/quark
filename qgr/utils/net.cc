@@ -80,7 +80,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	Inl(Socket* host, RunLoop* loop) 
 	: m_host(host)
 	, m_delegate(this)
-	, m_keep(loop->keep_alive(false))
+	, m_keep(loop->keep_alive("Socket::Inl", false))
 	, m_uv_handle(nullptr)
 	, m_is_open(false)
 	, m_is_opening(false)

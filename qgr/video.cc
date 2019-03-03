@@ -229,7 +229,7 @@ public:
 		int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
 		int64 sleep_st = frame_interval - sys::time_monotonic() + sys_time;
 		if ( sleep_st > 0 ) {
-			SimpleThread::sleep_for(sleep_st);
+			Thread::sleep(sleep_st);
 		}
 
 		goto loop;
@@ -338,9 +338,10 @@ public:
 			m_pcm->set_volume(m_volume);
 			m_pcm->set_mute(m_mute);
 			
-			SimpleThread::detach([this](SimpleThread& t){
+			Thread::spawn([this](Thread& t){
 				ScopeLock scope(m_audio_loop_mutex);
 				Inl_Video(this)->play_audio();
+				return 0;
 			}, "audio");
 		}
 		
@@ -478,7 +479,7 @@ void Video::set_source(cString& value) {
 	}
 	auto loop = main_loop(); XX_CHECK(loop, "Cannot find main run loop");
 	m_source = new MultimediaSource(src, loop);
-	m_keep = loop->keep_alive();
+	m_keep = loop->keep_alive("Video::set_source");
 	m_source->set_delegate(this);
 	m_source->disable_wait_buffer(m_disable_wait_buffer);
 	m_source->start();

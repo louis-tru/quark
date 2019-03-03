@@ -125,8 +125,9 @@ class SoftwareMediaCodec: public MediaCodec {
 					}
 					
 					if ( m_background_run ) { // background_run
-						m_background_run_id = SimpleThread::detach([this](SimpleThread& t) {
+						m_background_run_id = Thread::spawn([this](Thread& t) {
 							background_run(t);
+							return 0;
 						}, "x_decoder_background_run_thread");
 					}
 				}
@@ -147,7 +148,8 @@ class SoftwareMediaCodec: public MediaCodec {
 			
 			if ( m_background_run ) {
 				lock.unlock();
-				SimpleThread::abort(m_background_run_id, true);
+				Thread::abort(m_background_run_id);
+				Thread::join(m_background_run_id);
 				lock.lock();
 			}
 			if ( avcodec_close(m_codec_ctx) >= 0 ) {
@@ -177,20 +179,12 @@ class SoftwareMediaCodec: public MediaCodec {
 	/**
 	 * @func background_run
 	 */
-	void background_run(SimpleThread& t) {
-	 loop:
-		bool ok = 0;
-		{ //
-			ScopeLock scope(t.mutex());
-			if (t.is_abort())
-				return;
-			ok = advance2();
+	void background_run(Thread& t) {
+		while ( !t.is_abort() ) {
+			if ( !advance2() ) {
+				Thread::sleep(10000); // sleep 10ms
+			}
 		}
-		
-		if ( !ok ) {
-			SimpleThread::sleep_for(10000); // sleep 10ms
-		}
-		goto loop;
 	}
 	
 	/**

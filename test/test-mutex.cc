@@ -75,21 +75,21 @@ void test_mutex(int argc, char **argv) {
 	{
 		run_flag = true;
 		std::thread thr(test_mutex0);
-		SimpleThread::sleep_for(1e6);
+		Thread::sleep(1e6);
 		run_flag = false;
 		thr.join();
 	}
 	{
 		run_flag = true;
 		std::thread thr(test_recursive_mutex);
-		SimpleThread::sleep_for(1e6);
+		Thread::sleep(1e6);
 		run_flag = false;
 		thr.join();
 	}
 	{
 		run_flag = true;
 		std::thread thr(test_idle);
-		SimpleThread::sleep_for(1e6);
+		Thread::sleep(1e6);
 		run_flag = false;
 		thr.join();
 	}

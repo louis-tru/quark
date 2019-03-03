@@ -44,7 +44,7 @@ struct JPEGClientData {
 static void jpeg_error_output(j_common_ptr cinfo) {
 	XX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
 	JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
-	longjmp(data->jmpbuf, 0);
+	longjmp(data->jmpbuf, 1);
 }
 
 Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
