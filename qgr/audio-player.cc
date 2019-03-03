@@ -169,7 +169,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 		Notification::trigger(type, **evt);
 	}
 	
-	bool stop2(Lock& lock, bool is_event) {
+	bool stop_2(Lock& lock, bool is_event) {
 		if ( m_status != PLAYER_STATUS_STOP ) {
 			m_status = PLAYER_STATUS_STOP;
 			m_uninterrupted_play_start_time = 0;
@@ -211,7 +211,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 			m_task_id = 0;
 		}
 		
-		stop2(lock, is_event);
+		stop_2(lock, is_event);
 		
 		Release(m_audio); m_audio = nullptr;
 		Release(m_source); m_source = nullptr;
@@ -258,7 +258,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 				return 0;
 			}, "audio");
 		} else {
-			stop2(lock, true);
+			stop_2(lock, true);
 		}
 	}
 	
@@ -414,7 +414,7 @@ void AudioPlayer::start() {
  * */
 void AudioPlayer::stop() {
 	Lock lock(m_mutex);
-	Inl_AudioPlayer(this)->stop2(lock, true);
+	Inl_AudioPlayer(this)->stop_2(lock, true);
 }
 
 /**

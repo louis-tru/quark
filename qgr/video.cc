@@ -240,7 +240,7 @@ public:
 		View::trigger(name, **evt);
 	}
 	
-	bool stop2(Lock& lock, bool is_event) {
+	bool stop_2(Lock& lock, bool is_event) {
 		
 		if ( m_status != PLAYER_STATUS_STOP ) {
 			
@@ -292,7 +292,7 @@ public:
 			m_task_id = 0;
 		}
 		
-		stop2(lock, is_event);
+		stop_2(lock, is_event);
 		
 		Release(m_audio); m_audio = nullptr;
 		Release(m_video); m_video = nullptr;
@@ -326,7 +326,7 @@ public:
 			m_video->flush();
 			m_video->extractor()->set_disable(false);
 		} else {
-			stop2(lock, true);
+			stop_2(lock, true);
 			XX_ERR("Unable to open video decoder"); return;
 		}
 		
@@ -513,7 +513,7 @@ void Video::start() {
  * */
 void Video::stop() {
 	Lock lock(m_mutex);
-	if ( Inl_Video(this)->stop2(lock, true) ) {
+	if ( Inl_Video(this)->stop_2(lock, true) ) {
 		mark(M_TEXTURE);
 	}
 }

@@ -194,7 +194,7 @@ ThreadID Thread::spawn(Exec exec, cString& name) {
 
 void Thread::join(ID id, int64 timeoutUs) {
 	if (id == current_id()) {
-		XX_WARN("Thread::join(), cannot join self");
+		DLOG("Thread::join(), cannot join self");
 		return;
 	}
 	Lock lock(*threads_mutex);
