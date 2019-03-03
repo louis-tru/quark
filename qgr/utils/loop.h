@@ -167,7 +167,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	void cancel_work(uint id);
 
 	/**
-	 * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
+	 * 保持run状态并返回一个代理对像,只要不删除`KeepLoop`或调用`stop()`消息队列会一直保持run状态
 	 * @func keep_alive(declear)
 	 * @arg name {cString&} 名称
 	 * @arg [declear=true] {bool} KeepLoop 释放时是否清理由keekloop发起并未完成的`post`消息
@@ -253,7 +253,8 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 };
 
 /**
- * @class KeepLoop 这个对像能保持RunLoop的循环不自动终止
+ * 这个对像能保持RunLoop的循环不自动终止,除非调用`RunLoop::stop()`
+ * @class KeepLoop
  */
 class XX_EXPORT KeepLoop: public Object, public PostMessage {
 	XX_HIDDEN_ALL_COPY(KeepLoop);
@@ -263,13 +264,25 @@ class XX_EXPORT KeepLoop: public Object, public PostMessage {
 	 * @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
 	 */
 	virtual ~KeepLoop();
-	uint post(cCb& cb, uint64 delay_us = 0);
+	/**
+	 * @func post_message(cb[,delay_us])
+	 */
 	virtual uint post_message(cCb& cb, uint64 delay_us = 0);
+	/**
+	 * @func post(cb[,delay_us])
+	 */
+	uint post(cCb& cb, uint64 delay_us = 0);
 	/**
 	 * @func cancel_all() 取消之前`post`的所有消息
 	 */
 	void cancel_all();
-	inline void cancel(uint id) { m_loop->cancel(id); }
+	/**
+	 * @func cancel(id)
+	 */
+	void cancel(uint id);
+	/**
+	 * @func host() 如果目标线程已经结束会返回`nullptr`
+	 */
 	inline RunLoop* host() { return m_loop; }
  private:
  	typedef List<KeepLoop*>::Iterator Iterator;

@@ -77,14 +77,21 @@
 
 #define XX_CHECK(cond, ...)	if(!(cond)) qgr::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 
+#ifndef XX_MORE_LOG
+# define XX_MORE_LOG 0
+#endif
+
+#if XX_MORE_LOG
+# undef  DEBUG
+# define DEBUG 1
+# undef  XX_MEMORY_TRACE_MARK
+# define XX_MEMORY_TRACE_MARK 1
+#endif
+
 #if DEBUG
 # define XX_ASSERT(cond, ...) XX_CHECK(cond, ##__VA_ARGS__)
 #else
 # define XX_ASSERT(cond, ...) ((void)0)
-#endif
-
-#ifndef XX_MORE_LOG
-#define XX_MORE_LOG 0
 #endif
 
 #if DEBUG || XX_MORE_LOG

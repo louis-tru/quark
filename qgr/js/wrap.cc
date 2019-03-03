@@ -34,9 +34,6 @@
 
 JS_BEGIN
 
-//#undef XX_MEMORY_TRACE_MARK
-//#define XX_MEMORY_TRACE_MARK 1
-
 #if XX_MEMORY_TRACE_MARK
 static int record_wrap_count = 0;
 static int record_strong_count = 0;

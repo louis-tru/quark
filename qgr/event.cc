@@ -611,8 +611,8 @@ XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 				}
 			}
 			if (view) {
-				auto evt = NewMouseEvent(old, x, y);
-				_inl_view(old)->bubble_trigger(GUI_EVENT_MOUSE_OVER, **evt);
+				auto evt = NewMouseEvent(view, x, y);
+				_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_OVER, **evt);
 
 				if (evt->is_default()) {
 					evt->return_value = RETURN_VALUE_MASK_ALL;

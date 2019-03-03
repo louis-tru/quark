@@ -553,10 +553,10 @@ struct RunLoop::Work {
 void RunLoop::Inl::stop_after_print_message() {
 	ScopeLock lock(m_mutex);
 	for (auto& i: m_keeps) {
-		DLOG("RunLoop keep not release \"%s\"", *i.value()->m_name);
+		DLOG("Print: RunLoop keep not release \"%s\"", *i.value()->m_name);
 	}
 	for (auto& i: m_works) {
-		DLOG("RunLoop work not complete: \"%s\"", *i.value()->name);
+		DLOG("Print: RunLoop work not complete: \"%s\"", *i.value()->name);
 	}
 }
 
@@ -581,12 +581,14 @@ RunLoop::RunLoop(Thread* t)
  * @destructor
  */
 RunLoop::~RunLoop() {
+	ScopeLock lock(*threads_mutex);
 	XX_CHECK(m_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 
 	{
 		ScopeLock lock(m_mutex);
 		for (auto& i: m_keeps) {
-			XX_FATAL("RunLoop keep not release \"%s\"", *i.value()->m_name);
+			XX_WARN("RunLoop keep not release \"%s\"", *i.value()->m_name);
+			i.value()->m_loop = nullptr;
 		}
 		for (auto& i: m_works) {
 			XX_WARN("RunLoop work not complete: \"%s\"", *i.value()->name);
@@ -624,7 +626,7 @@ RunLoop* RunLoop::current() {
  * @func main_loop();
  */
 RunLoop* RunLoop::main_loop() {
-	// TODO 小心线程安全,最好先确保已调用过`current()`
+	// TODO: 小心线程安全,最好先确保已调用过`current()`
 	if (!main_loop_obj) {
 		current();
 		XX_CHECK(main_loop_obj);
@@ -640,7 +642,7 @@ bool RunLoop::is_main_loop() {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func runing()
  */
 bool RunLoop::runing() const {
@@ -648,15 +650,15 @@ bool RunLoop::runing() const {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func is_alive
  */
 bool RunLoop::is_alive() const {
-	return uv_loop_alive(m_uv_loop) || m_keeps.length()/* || m_works.length()*/;
+	return uv_loop_alive(m_uv_loop) /*|| m_keeps.length() || m_works.length()*/;
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func sync # 延时
  */
 uint RunLoop::post(cCb& cb, uint64 delay_us) {
@@ -664,7 +666,7 @@ uint RunLoop::post(cCb& cb, uint64 delay_us) {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func post_sync(cb)
  */
 void RunLoop::post_sync(cCb& cb) {
@@ -672,7 +674,7 @@ void RunLoop::post_sync(cCb& cb) {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func work()
  */
 uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
@@ -700,7 +702,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func cancel_work(id)
  */
 void RunLoop::cancel_work(uint id) {
@@ -716,7 +718,7 @@ void RunLoop::cancel_work(uint id) {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @overwrite
  */
 uint RunLoop::post_message(cCb& cb, uint64 delay_us) {
@@ -724,7 +726,7 @@ uint RunLoop::post_message(cCb& cb, uint64 delay_us) {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func cancel # 取消同步
  */
 void RunLoop::cancel(uint id) {
@@ -746,7 +748,7 @@ void RunLoop::run(uint64 timeout) {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * @func stop
  */
 void RunLoop::stop() {
@@ -758,7 +760,7 @@ void RunLoop::stop() {
 }
 
 /**
- * TODO Be careful about thread security issues
+ * TODO: Be careful about thread security issues
  * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
  * @func keep_alive
  */
@@ -833,41 +835,66 @@ bool RunLoop::is_alive(ThreadID id) {
 	return false;
 }
 
+// ************** KeepLoop **************
+
 KeepLoop::KeepLoop(cString& name, bool destructor_clear)
 : m_group(iid32()), m_name(name), m_declear(destructor_clear) {
 }
 
 KeepLoop::~KeepLoop() {
-	ScopeLock lock(m_loop->m_mutex);
-	if ( m_declear ) {
-		_inl(m_loop)->cancel_group_non_lock(m_group);
-	}
-	XX_CHECK(m_loop->m_keeps.length());
+	ScopeLock lock(*threads_mutex);
 
-	m_loop->m_keeps.del(m_id); // 减少一个引用计数
+	if (m_loop) {
+		ScopeLock lock(m_loop->m_mutex);
+		if ( m_declear ) {
+			_inl(m_loop)->cancel_group_non_lock(m_group);
+		}
+		XX_CHECK(m_loop->m_keeps.length());
 
-	if (m_loop->m_keeps.length() == 0 && !m_loop->m_uv_loop->stop_flag) { // 可以结束了
-		_inl(m_loop)->activate_loop(); // 激活循环状态,不再等待
+		m_loop->m_keeps.del(m_id); // 减少一个引用计数
+
+		if (m_loop->m_keeps.length() == 0 && !m_loop->m_uv_loop->stop_flag) { // 可以结束了
+			_inl(m_loop)->activate_loop(); // 激活循环状态,不再等待
+		}
+	} else {
+		DLOG("Keep already invalid \"%s\", RunLoop already stop and release", *m_name);
 	}
-	// XX_ERR("Keep already invalid \"%s\", RunLoop already stop and release", *m_name);
 }
 
 uint KeepLoop::post(cCb& exec, uint64 delay_us) {
-	return _inl(m_loop)->post(exec, m_group, delay_us);
+	// TODO: Be careful about thread security issues
+	if (m_loop)
+		return _inl(m_loop)->post(exec, m_group, delay_us);
+	else
+		return 0;
 }
 
 uint KeepLoop::post_message(cCb& cb, uint64 delay_us) {
-	return _inl(m_loop)->post(cb, m_group, delay_us);
+	// TODO: Be careful about thread security issues
+	if (m_loop)
+		return _inl(m_loop)->post(cb, m_group, delay_us);
+	else
+		return 0;
 }
 
 void KeepLoop::cancel_all() {
-	_inl(m_loop)->cancel_group(m_group); // abort all
+	// TODO: Be careful about thread security issues
+	if (m_loop)
+		_inl(m_loop)->cancel_group(m_group); // abort all
 }
+
+void KeepLoop::cancel(uint id) {
+	// TODO: Be careful about thread security issues
+	if (m_loop)
+		m_loop->cancel(id);
+}
+
+// ************** ParallelWorking **************
 
 /**
  * @constructor
  */
-ParallelWorking::ParallelWorking() : ParallelWorking(RunLoop::current()) {}
+ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
 
 ParallelWorking::ParallelWorking(RunLoop* loop) : m_proxy(nullptr) {
 	XX_CHECK(loop, "Can not find current thread run loop.");

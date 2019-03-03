@@ -229,6 +229,10 @@ void GUIApplication::exit() {
 		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
 	}
 	do {
+		/*
+		 * TODO 这里暂时只被动等待`is_alive`变成`false`(非活跃状态),
+		 *  如果当前还有`node libuv io`没有完成,那么这个循环便不会结束
+		 */
 		RunLoop::stop(m_render_id);
 		RunLoop::stop(m_main_id);
 		Thread::join(m_render_id, 5e4/*50ms*/); // wait render loop end
