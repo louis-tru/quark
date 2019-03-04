@@ -198,8 +198,9 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 	static void exit(int rc, bool reallyExit) {
-		static int is_exit = 0;
-		if (!is_exit++) {
+		static int is_exited = 0;
+		if (!is_exited++) {
+
 			KeepLoop* keep = nullptr;
 			if (main_loop_obj->runing()) {
 				keep = main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
@@ -212,15 +213,15 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 				rc = __xx_exit_hook(rc);
 			DLOG("Inl::exit(), 2");
 
+			Release(keep); keep = nullptr;
+
 			if (current_id() == main_loop_id && main_loop_obj->runing()) {
 				main_loop_obj->post(Cb([rc, reallyExit](Se& e) {
 					_reallyExit(rc, reallyExit);
 				}));
-				Release(keep); keep = nullptr;
-				std::this_thread::sleep_for(std::chrono::microseconds(1000));
-				_reallyExit(rc, reallyExit);
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				// _reallyExit(rc, reallyExit);
 			} else {
-				Release(keep); keep = nullptr;
 				_reallyExit(rc, reallyExit);
 			}
 		} else {
@@ -333,7 +334,7 @@ void exit(int rc) {
 	Thread::Inl::exit(rc, 1);
 }
 
-bool is_exit() {
+bool is_exited() {
 	return __is_process_exit;
 }
 

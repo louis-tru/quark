@@ -173,6 +173,8 @@ class LinuxApplication {
 		do {
 			XNextEvent(m_dpy, &event);
 
+			if (is_exited()) break;
+
 			resolved_queue(); // resolved message queue
 
 			if (XFilterEvent(&event, None)) {
@@ -427,7 +429,10 @@ class LinuxApplication {
 	}
 
 	void destroy() {
-		qgr::_exit(0, 0);
+		if (!is_exited()) {
+			m_render_looper->stop();
+			qgr::_exit(0, 0);
+		}
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr; // disconnect x display
 		DLOG("LinuxApplication Exit");
