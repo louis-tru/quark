@@ -231,15 +231,6 @@ class WrapNativeGUIApplication: public WrapObject {
 	}
 
 	/**
-	 * @exit()
-	 */
-	static void exit(FunctionCall args) {
-		JS_WORKER(args);
-		JS_SELF(GUIApplication);
-		self->exit();
-	}
-
-	/**
 	 * @get is_load {bool}
 	 */
 	static void is_load(Local<JSString> name, PropertyCall args) {
@@ -495,7 +486,6 @@ class WrapNativeGUIApplication: public WrapObject {
 			JS_SET_CLASS_METHOD(setMaxTextureMemoryLimit, set_max_texture_memory_limit);
 			JS_SET_CLASS_METHOD(usedMemory, used_texture_memory);
 			JS_SET_CLASS_METHOD(pending, pending);
-			JS_SET_CLASS_METHOD(exit, exit);
 			JS_SET_CLASS_ACCESSOR(isLoad, is_load);
 			JS_SET_CLASS_ACCESSOR(displayPort, display_port);
 			JS_SET_CLASS_ACCESSOR(root, root);

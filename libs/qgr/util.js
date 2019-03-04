@@ -69,14 +69,14 @@ class Utils extends Notification {
 			var listener = listeners[name];
 			if (listener) {
 				if (haveNode) {
-					process.on(name.substr(0, 1).toLowerCase() + name.substr(1), function(...args) {
+					var event = name.substr(0, 1).toLowerCase() + name.substr(1);
+					process.on(event, function(...args) {
 						return listener(noticer, ...args);
 					});
-				} else {
-					_util[`__on${name}_native`] = function(...args) {
-						return listener(noticer, ...args);
-					};
 				}
+				_util[`__on${name}_native`] = function(...args) {
+					return listener(noticer, ...args);
+				};
 			} else {
 				// bind native event
 				_util[`__on${name}_native`] = function(data) {
@@ -92,22 +92,17 @@ class Utils extends Notification {
 		if (!_exiting) {
 			_exiting = true;
 			delete Utils.prototype.exit;
-			code = code || 0;
 			if (haveNode) {
+				process._exiting = true;
+				if (code || code === 0)
+					process.exitCode = code;
 				try {
-					process.exit(code); return;
+					process.emit('exit', process.exitCode || 0);
 				} catch(err) {
 					console.error(err);
 				}
-				_util.reallyExit(code);
-			} else {
-				try {
-					this.trigger('Exit', code);
-				} catch(err) {
-					console.error(err);
-				}
-				_util.reallyExit(code);
 			}
+			_util._exit(code || 0);
 		}
 	}
 }

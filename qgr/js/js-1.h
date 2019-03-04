@@ -101,6 +101,10 @@ class Worker::IMPL {
 	bool TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise);
 
 	static int start(int argc, char** argv);
+
+	static inline IMPL* inl(Worker* worker) {
+		return worker->m_inl;
+	}
 	
  protected:
 	friend class Worker;

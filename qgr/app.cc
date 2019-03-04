@@ -38,9 +38,11 @@
 #include "css.h"
 
 XX_EXPORT int (*__xx_default_gui_main)(int, char**) = nullptr;
-XX_EXPORT int (*__XX_GUI_MAIN)(int, char**) = nullptr;
+XX_EXPORT int (*__xx_gui_main)(int, char**) = nullptr;
 
 XX_NS(qgr)
+
+extern int (*__xx_exit_app_hook)(int code);
 
 typedef GUIApplication::Inl AppInl;
 
@@ -130,9 +132,11 @@ void AppInl::onUnload() {
 	if (m_is_load) {
 		m_is_load = false;
 		m_main_loop->post_sync(Cb([&](Se& d) {
+			DLOG("AppInl::onUnload()");
 			XX_TRIGGER(unload);
 			if (m_root) {
 				GUILock lock;
+				Inl2_RunLoop(m_render_loop)->set_independent_mutex(nullptr);
 				m_root->remove();
 			}
 		}));
@@ -178,13 +182,14 @@ void GUIApplication::start(int argc, char* argv[]) {
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	Thread::spawn([argc, argv](Thread& t) {
 		XX_CHECK( __xx_default_gui_main );
-		auto main = __XX_GUI_MAIN ? __XX_GUI_MAIN : __xx_default_gui_main;
+		auto main = __xx_gui_main ? __xx_gui_main : __xx_default_gui_main;
 		__xx_default_gui_main = nullptr;
-		__XX_GUI_MAIN = nullptr;
+		__xx_gui_main = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
+		DLOG("GUIApplication::start Exit");
 		qgr::exit(rc); // if sub thread end then exit
 		return rc;
-	}, "gui");
+	}, "main");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
 	while (!m_shared || !m_shared->m_is_run) {
@@ -199,11 +204,8 @@ void GUIApplication::run() {
 	XX_CHECK(!m_is_run, "GUI program has been running");
 
 	m_is_run = true;
-	m_main_loop = RunLoop::main_loop();
-	m_main_keep = m_main_loop->keep_alive("GUIApplication::run, main_keep");
 	m_render_loop = RunLoop::current(); // 当前消息队列
 	m_render_keep = m_render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
-	m_main_id = m_main_loop->thread_id();
 	m_render_id = m_render_loop->thread_id();
 
 	if (m_main_loop != m_render_loop) {
@@ -216,30 +218,27 @@ void GUIApplication::run() {
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 
 	Release(m_render_keep); m_render_keep = nullptr;
-	Release(m_main_keep); m_main_keep = nullptr;
 
 	m_render_loop = nullptr;
-	m_main_loop = nullptr;
 	m_is_run = false;
 }
 
-void GUIApplication::exit() {
-	if (m_main_keep) {
-		_inl_app(this)->onUnload();
-
-		Release(m_main_keep); m_main_keep = nullptr; // stop main loop
-		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
-		do {
-			/*
-			 * TODO 这里暂时只被动等待`is_alive`变成`false`(非活跃状态),
-			 *  如果当前还有`node libuv io`没有完成,那么这个循环便不会结束
-			 */
-			RunLoop::stop(m_render_id);
-			RunLoop::stop(m_main_id);
-			Thread::join(m_render_id, 5e4/*50ms*/); // wait render loop end
-			Thread::join(m_main_id, 5e4/*50ms*/); // wait main loop end
-		} while(RunLoop::is_alive(m_render_id) || RunLoop::is_alive(m_main_id));
+static int __xx_exit_app_hook__(int rc) {
+	if (app()) {
+		return _inl_app(app())->onExit(rc);
 	}
+	return rc;
+}
+
+int AppInl::onExit(int code) {
+	if (m_render_keep) {
+		onUnload();
+		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
+		Release(m_main_keep); m_main_keep = nullptr; // stop main loop
+		Thread::abort(m_render_id);
+		DLOG("GUIApplication onExit");
+	}
+	return code;
 }
 
 GUIApplication::GUIApplication()
@@ -253,7 +252,7 @@ GUIApplication::GUIApplication()
 , m_is_run(false)
 , m_is_load(false)
 , m_render_loop(nullptr)
-, m_main_loop(nullptr)
+, m_main_loop(RunLoop::main_loop())
 , m_render_keep(nullptr)
 , m_main_keep(nullptr)
 , m_draw_ctx(nullptr)
@@ -273,6 +272,9 @@ GUIApplication::GUIApplication()
 , m_dispatch(nullptr)
 , m_action_center(nullptr)
 {
+	m_main_keep = m_main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
+	m_main_id = m_main_loop->thread_id();
+	__xx_exit_app_hook = __xx_exit_app_hook__;
 }
 
 GUIApplication::~GUIApplication() {
@@ -291,6 +293,7 @@ GUIApplication::~GUIApplication() {
 	Release(m_display_port);  m_display_port = nullptr;
 	Release(m_render_keep);   m_render_keep = nullptr;
 	Release(m_main_keep);     m_main_keep = nullptr;
+	__xx_exit_app_hook = nullptr;
 	m_render_loop = nullptr;
 	m_main_loop = nullptr;
 	m_shared = nullptr;

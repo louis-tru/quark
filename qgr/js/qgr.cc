@@ -49,6 +49,7 @@ extern int (*__xx_default_gui_main)(int, char**);
 #include "openssl/ssl.h"
 #include "depe/node/src/qgr.h"
 namespace qgr {
+	extern int (*__xx_exit_hook)(int code);
 	void set_ssl_root_x509_store_function(X509_STORE* (*)());
 }
 namespace node {
@@ -188,25 +189,25 @@ class QgrApiImpl: public node::QgrApi {
 #endif
 
 // startup argv
-Array<char*>* __qgr_argv = nullptr;
-int __qgr_have_node = 0;
-int __qgr_have_dev = 0;
+Array<char*>* __xx_qgr_argv = nullptr;
+int __xx_qgr_have_node = 0;
+int __xx_qgr_have_dev = 0;
 
 // parse argv
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& qgr_argv) {
 	static String argv_str;
 
 	XX_CHECK(argv_in.length(), "Bad start argument");
-	__qgr_have_node = 0;
-	__qgr_have_dev = 0;
+	__xx_qgr_have_node = 0;
+	__xx_qgr_have_dev = 0;
 	argv_str = argv_in[0];
 
 	Array<int> indexs = {-1};
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-		if (!__qgr_have_node && argv_in[i] == "--node") {
-			__qgr_have_node = 1;
-		} else if (!__qgr_have_dev && argv_in[i] == "--dev") {
-			__qgr_have_dev = 1;
+		if (!__xx_qgr_have_node && argv_in[i] == "--node") {
+			__xx_qgr_have_node = 1;
+		} else if (!__xx_qgr_have_dev && argv_in[i] == "--dev") {
+			__xx_qgr_have_dev = 1;
 		} else {
 			argv_str.push(' ').push(argv_in[i]);
 			indexs.push(index);
@@ -230,6 +231,19 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 	}
 }
 
+static int __xx_exit_hook__(int rc) {
+	if (RunLoop::main_loop()->runing()) {
+		RunLoop::main_loop()->post_sync(Cb([&](Se& e) {
+			auto worker = Worker::worker();
+			DLOG("__xx_exit_hook__");
+			if (worker) {
+				rc = IMPL::inl(worker)->TriggerExit(rc);
+			}
+		}));
+	}
+	return rc;
+}
+
 int Start(cString& cmd) {
 	Array<String> argv_in;
 	for (auto& i : cmd.trim().split(' ')) {
@@ -251,13 +265,14 @@ int Start(const Array<String>& argv_in) {
 		qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
 #endif
 	}
-	XX_CHECK(!__qgr_argv);
+	XX_CHECK(!__xx_qgr_argv);
 	
 	Array<char*> argv, qgr_argv;
 	parseArgv(argv_in, argv, qgr_argv);
 
-	__qgr_argv = &qgr_argv;
-	int rc;
+	__xx_exit_hook = __xx_exit_hook__;
+	__xx_qgr_argv = &qgr_argv;
+	int rc = 0;
 	int argc = argv.length();
 	char** argv_c = const_cast<char**>(&argv[0]);
 
@@ -265,16 +280,17 @@ int Start(const Array<String>& argv_in) {
 	XX_CHECK(RunLoop::main_loop() == RunLoop::current());
 
 #if HAVE_NODE
-	if (__qgr_have_node)
+	if (__xx_qgr_have_node)
 	{
 		rc = node::Start(argc, argv_c);
 	} else 
 #endif
 	{
-		__qgr_have_node = 0;
+		__xx_qgr_have_node = 0;
 		rc = IMPL::start(argc, argv_c);
 	}
-	__qgr_argv = nullptr;
+	__xx_qgr_argv = nullptr;
+	__xx_exit_hook = nullptr;
 
 	return rc;
 }

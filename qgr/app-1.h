@@ -110,6 +110,11 @@ XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
 	 * @func ime_keyboard_spot_location
 	 */
 	void ime_keyboard_spot_location(Vec2 location);
+
+	/**
+	 * @func onExit(code)
+	 */
+	int onExit(int code);
 	
 };
 
@@ -130,6 +135,8 @@ class RenderLooper {
 	AppInl* m_host;
 	int* m_id;
 };
+
+void _exit(int rc, bool reallyExit);
 
 XX_END
 

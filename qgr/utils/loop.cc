@@ -69,6 +69,8 @@ static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
 static pthread_key_t specific_key;
 int __is_process_exit = 0;
+int (*__xx_exit_app_hook)(int rc) = nullptr;
+int (*__xx_exit_hook)(int rc) = nullptr;
 
 XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
  public:
@@ -125,6 +127,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 		{
 			ScopeLock scope(*threads_mutex);
+			DLOG("Thread end ..., %s", *thread->name());
 			for (auto& i : *threads_end_listens) {
 				ListenSignal* s = i.value();
 				if (s->thread == thread) {
@@ -132,6 +135,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 					s->cond.notify_one();
 				}
 			}
+			DLOG("Thread end  ok, %s", *thread->name());
 			threads->del(thread->id());
 		}
 	}
@@ -154,22 +158,6 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 	}
 
-	static void atexit_exec() {
-		__is_process_exit++; // exit
-		Array<ID> ths;
-		{ //
-			ScopeLock scope(*threads_mutex);
-			for ( auto& i : *threads ) {
-			 _inl_t(i.value())->awaken(true); // awaken sleep status and abort
-				ths.push(i.value()->id());
-			}
-		}
-		for ( auto& i: ths ) {
-			// 在这里等待这个线程的结束,这个时间默认为1秒钟
-			join(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
-		}
-	}
-
 	void awaken(bool abort = 0) {
 		ScopeLock scope(m_mutex);
 		if (abort) {
@@ -178,6 +166,66 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			m_abort = true;
 		}
 		m_cond.notify_one(); // awaken sleep status
+	}
+
+	static void atexit_exec() {
+		if (!__is_process_exit++) { // exit
+			Array<ID> threads_id;
+			{
+				ScopeLock scope(*threads_mutex);
+				DLOG("threads count, %d", threads->length());
+				for ( auto& i : *threads ) {
+					DLOG("atexit_exec,name, %p, %s", i.value()->id(), *i.value()->name());
+					_inl_t(i.value())->awaken(true); // awaken sleep status and abort
+					threads_id.push(i.value()->id());
+				}
+			}
+			for ( auto& i: threads_id ) {
+				// 在这里等待这个线程的结束,这个时间默认为1秒钟
+				DLOG("atexit_exec,join, %p", i.value());
+				join(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
+			}
+		}
+	}
+
+	static void _reallyExit(int rc, bool reallyExit) {
+		if (!__is_process_exit) {
+			atexit_exec();
+			DLOG("Inl::reallyExit()");
+			if (reallyExit)
+				::exit(rc);
+		}
+	}
+
+	static void exit(int rc, bool reallyExit) {
+		static int is_exit = 0;
+		if (!is_exit++) {
+			KeepLoop* keep = nullptr;
+			if (main_loop_obj->runing()) {
+				keep = main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
+			}
+			DLOG("Inl::exit(), 0");
+			if (__xx_exit_app_hook)
+				rc = __xx_exit_app_hook(rc);
+			DLOG("Inl::exit(), 1");
+			if (__xx_exit_hook) 
+				rc = __xx_exit_hook(rc);
+			DLOG("Inl::exit(), 2");
+
+			if (current_id() == main_loop_id && main_loop_obj->runing()) {
+				main_loop_obj->post(Cb([rc, reallyExit](Se& e) {
+					_reallyExit(rc, reallyExit);
+				}));
+				Release(keep); keep = nullptr;
+				std::this_thread::sleep_for(std::chrono::microseconds(1000));
+				_reallyExit(rc, reallyExit);
+			} else {
+				Release(keep); keep = nullptr;
+				_reallyExit(rc, reallyExit);
+			}
+		} else {
+			DLOG("The program has exited");
+		}
 	}
 
 };
@@ -202,11 +250,14 @@ void Thread::join(ID id, int64 timeoutUs) {
 		{ //
 			Lock l(signal.mutex);
 			lock.unlock();
+			String name = i.value()->name();
+			DLOG("Thread::join, ..., %p, %s", id, *name);
 			if (timeoutUs > 0) {
 				signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
 			} else {
 				signal.cond.wait(l); // permanent wait
 			}
+			DLOG("Thread::join, end, %p, %s", id, *name);
 		}
 		lock.lock();
 		threads_end_listens->del(it);
@@ -274,6 +325,18 @@ Thread* Thread::current() {
 	return Inl::get_thread_specific_data();
 }
 
+void _exit(int rc, bool reallyExit) {
+	Thread::Inl::exit(rc, reallyExit);
+}
+
+void exit(int rc) {
+	Thread::Inl::exit(rc, 1);
+}
+
+bool is_exit() {
+	return __is_process_exit;
+}
+
 XX_INIT_BLOCK(thread_init_once) {
 	DLOG("thread_init_once");
 	atexit(Thread::Inl::atexit_exec);
@@ -287,7 +350,14 @@ class RunLoop::Inl: public RunLoop {
  #define _inl(self) static_cast<RunLoop::Inl*>(self)
 	
 	void run(int64 timeout) {
-		if (__is_process_exit || m_thread->is_abort()) return;
+		if (__is_process_exit) {
+			DLOG("cannot run RunLoop, __is_process_exit != 0");
+			return;
+		}
+		if (m_thread->is_abort()) {
+			DLOG("cannot run RunLoop, m_thread->is_abort() == true");
+			return;
+		}
 		uv_async_t uv_async;
 		uv_timer_t uv_timer;
 		{ //
@@ -463,19 +533,17 @@ class RunLoop::Inl: public RunLoop {
 				return;
 			}
 
-			struct Ctx { 
-				bool end; Condition cond; 
-			} ctx = {false};
+			struct Ctx { bool ok; Condition cond; } ctx = {false};
 
 			Lock lock(m_mutex);
 			Ctx* ctxp = &ctx;
 
-			m_queue.push({ 
-				0, group, 0, 
+			m_queue.push({
+				0, group, 0,
 				Callback([exec, ctxp, this](Se& e) {
 					exec->call(e);
 					ScopeLock scope(m_mutex);
-					ctxp->end = true;
+					ctxp->ok = true;
 					ctxp->cond.notify_all();
 				})
 			});
@@ -483,7 +551,7 @@ class RunLoop::Inl: public RunLoop {
 
 			do {
 				ctx.cond.wait(lock);
-			} while(!ctx.end);
+			} while(!ctx.ok);
 		}
 	}
 	
@@ -826,6 +894,7 @@ void RunLoop::stop(ThreadID id) {
 bool RunLoop::is_alive(ThreadID id) {
 	ScopeLock scope(*threads_mutex);
 	auto loop = loop_2(id);
+	DLOG("RunLoop::is_alive, %p, %p", loop, id);
 	if (loop) {
 		return loop->is_alive();
 	}

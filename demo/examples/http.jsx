@@ -60,6 +60,7 @@ export const vx = (
 			<Button class="long_btn" onClick=GetSync>GetSync</Button>
 			<Button class="long_btn" onClick=PostSync>PostSync</Button>
 			<Button class="long_btn" onClick=util.garbageCollection>GC</Button>
+			<Button class="long_btn" onClick=util.exit>Exit</Button>
 		</Div>
 	</Mynavpage>
 )

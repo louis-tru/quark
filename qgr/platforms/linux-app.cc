@@ -427,15 +427,10 @@ class LinuxApplication {
 	}
 
 	void destroy() {
-		auto id = m_main_loop->thread_id();
-
-		m_render_looper->stop();
-		m_host->exit();
-
+		qgr::_exit(0, 0);
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr; // disconnect x display
-
-		Thread::join(id);
+		DLOG("LinuxApplication Exit");
 	}
 
 	float get_monitor_dpi() {

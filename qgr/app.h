@@ -38,9 +38,9 @@
 #include "qgr/value.h"
 
 #define XX_GUI_MAIN() \
-	int __XX_GUI_MAIN__(int, char**); \
-	XX_INIT_BLOCK(__XX_GUI_MAIN__) { __XX_GUI_MAIN = __XX_GUI_MAIN__; } \
-	int __XX_GUI_MAIN__(int argc, char** argv)
+	int __xx_gui_main__(int, char**); \
+	XX_INIT_BLOCK(__xx_gui_main__) { __xx_gui_main = __xx_gui_main__; } \
+	int __xx_gui_main__(int argc, char** argv)
 
 #define XX_CHECK_RENDER_THREAD() XX_CHECK(app()->has_current_render_thread())
 #define XX_ASSERT_RENDER_THREAD() XX_ASSERT(app()->has_current_render_thread())
@@ -48,7 +48,7 @@
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
  */
-XX_EXPORT extern int (*__XX_GUI_MAIN)(int, char**);
+XX_EXPORT extern int (*__xx_gui_main)(int, char**);
 
 /**
  * @ns trurh::gui
@@ -118,22 +118,17 @@ class XX_EXPORT GUIApplication: public Object {
 	 * @func run 运行消息循环
 	 */
 	void run();
-	
+
 	/**
 	 * @func clear 清理垃圾回收内存资源, full=true 清理全部资源
 	 */
 	void clear(bool full = false);
-	
+
 	/**
 	 * @func pending() 挂起应用进程
 	 */
 	void pending();
 
-	/**
-	 * @exit()
-	 */
-	void exit();
-	
 	/**
 	 * @func is_load
 	 */
@@ -272,7 +267,6 @@ class XX_EXPORT GUIApplication: public Object {
 	
 	friend GUIApplication*  app();
 	friend Root*            root();
-	friend RunLoop*         main_loop();
 	friend DisplayPort*     display_port();
 };
 
@@ -286,7 +280,7 @@ inline DisplayPort* display_port() {
 	return GUIApplication::m_shared ? GUIApplication::m_shared->m_display_port : nullptr;
 }
 inline RunLoop* main_loop() {
-	return GUIApplication::m_shared ? GUIApplication::m_shared->m_main_loop : nullptr;
+	return RunLoop::main_loop();
 }
 
 XX_END
