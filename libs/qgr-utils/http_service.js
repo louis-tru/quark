@@ -45,7 +45,12 @@ var StaticService_action = StaticService.prototype.action;
  */
 function returnJSON(self, data) {
 	var type = self.server.getMime(self.jsonpCallback ? 'js' : 'json');
-	var rev = JSON.stringify(data);
+	try {
+		var rev = JSON.stringify(data);
+	} catch(err) {
+		self.returnError(err);
+		return;
+	}
 	if (self.jsonpCallback) {
 		data = self.jsonpCallback + '(' + rev + ')';
 	}
