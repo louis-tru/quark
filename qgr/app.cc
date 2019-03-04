@@ -212,32 +212,34 @@ void GUIApplication::run() {
 	tctr->root_thread_awaken(); // 根线程继续运行
 
 	XX_CHECK(!m_render_loop->runing());
+
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
-	XX_CHECK(m_render_keep == nullptr);
 
-	Release(m_main_keep); m_main_keep = nullptr; // cancel main loop keep
+	Release(m_render_keep); m_render_keep = nullptr;
+	Release(m_main_keep); m_main_keep = nullptr;
 
-	m_is_run = false;
 	m_render_loop = nullptr;
 	m_main_loop = nullptr;
+	m_is_run = false;
 }
 
 void GUIApplication::exit() {
-	XX_ASSERT(m_main_loop);
-	if (m_render_keep) {
+	if (m_main_keep) {
 		_inl_app(this)->onUnload();
+
+		Release(m_main_keep); m_main_keep = nullptr; // stop main loop
 		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
+		do {
+			/*
+			 * TODO 这里暂时只被动等待`is_alive`变成`false`(非活跃状态),
+			 *  如果当前还有`node libuv io`没有完成,那么这个循环便不会结束
+			 */
+			RunLoop::stop(m_render_id);
+			RunLoop::stop(m_main_id);
+			Thread::join(m_render_id, 5e4/*50ms*/); // wait render loop end
+			Thread::join(m_main_id, 5e4/*50ms*/); // wait main loop end
+		} while(RunLoop::is_alive(m_render_id) || RunLoop::is_alive(m_main_id));
 	}
-	do {
-		/*
-		 * TODO 这里暂时只被动等待`is_alive`变成`false`(非活跃状态),
-		 *  如果当前还有`node libuv io`没有完成,那么这个循环便不会结束
-		 */
-		RunLoop::stop(m_render_id);
-		RunLoop::stop(m_main_id);
-		Thread::join(m_render_id, 5e4/*50ms*/); // wait render loop end
-		Thread::join(m_main_id, 5e4/*50ms*/); // wait main loop end
-	} while(RunLoop::is_alive(m_render_id) || RunLoop::is_alive(m_main_id));
 }
 
 GUIApplication::GUIApplication()

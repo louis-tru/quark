@@ -164,21 +164,18 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 				ths.push(i.value()->id());
 			}
 		}
-		ID cur_id = current_id();
 		for ( auto& i: ths ) {
-			if (i.value() != cur_id) {
-				// 在这里等待这个线程的结束,这个时间默认为1秒钟
-				join(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
-			}
+			// 在这里等待这个线程的结束,这个时间默认为1秒钟
+			join(i.value(), XX_ATEXIT_WAIT_TIMEOUT); // wait 1s
 		}
 	}
 
 	void awaken(bool abort = 0) {
 		ScopeLock scope(m_mutex);
 		if (abort) {
-			m_abort = true;
 			if (m_loop)
 				m_loop->stop();
+			m_abort = true;
 		}
 		m_cond.notify_one(); // awaken sleep status
 	}
@@ -290,7 +287,7 @@ class RunLoop::Inl: public RunLoop {
  #define _inl(self) static_cast<RunLoop::Inl*>(self)
 	
 	void run(int64 timeout) {
-		if (__is_process_exit) return;
+		if (__is_process_exit || m_thread->is_abort()) return;
 		uv_async_t uv_async;
 		uv_timer_t uv_timer;
 		{ //
