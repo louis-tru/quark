@@ -646,7 +646,7 @@ function configure() {
 			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
 				var cmd = `find /usr/bin -name arm-linux*${e}*`;
 				var [,r] = syscall(cmd).stdout.sort((a,b)=>a.length - b.length);
-				util.assert(r, `${e} cross compilation was not found`);
+				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
 			});
 		} else {
