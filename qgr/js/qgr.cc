@@ -182,7 +182,7 @@ class QgrApiImpl: public node::QgrApi {
 	}
 
 	bool is_process_exit() {
-		return is_exit();
+		return is_exited();
 	}
 };
 

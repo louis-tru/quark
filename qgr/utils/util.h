@@ -156,7 +156,7 @@ XX_EXPORT int64  parse_time(cString& str);
 XX_EXPORT String gmt_time_string(int64 second);
 XX_EXPORT String platform();
 XX_EXPORT void exit(int rc);
-XX_EXPORT bool is_exit();
+XX_EXPORT bool is_exited();
 
 namespace _right_reference {
 	// remove_reference

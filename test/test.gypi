@@ -101,6 +101,7 @@
 				'test-sizeof.cc',
 				'test-util.cc',
 				'test-alsa-ff.cc',
+				'test-linux-input.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {

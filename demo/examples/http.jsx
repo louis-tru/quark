@@ -9,8 +9,8 @@ function url(evt) {
 }
 
 function Get(evt) {
-	http.get(url(evt), function(buf) {
-		var content = buf.toString('utf-8');
+	http.get(url(evt), function({ data }) {
+		var content = data.toString('utf-8');
 		alert(content.substr(0, 200).trim() + '...');
 	}.catch(function(err) {
 		alert(err.message);
@@ -18,8 +18,8 @@ function Get(evt) {
 }
 
 function Post(evt) {
-	http.post(url(evt), 'post data', function(buf) {
-		alert(buf.toString('utf-8').substr(0, 200).trim() + '...');
+	http.post(url(evt), 'post data', function({ data }) {
+		alert(data.toString('utf-8').substr(0, 200).trim() + '...');
 	}.catch(function(err) {
 		alert(err.message);
 	}));

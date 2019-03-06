@@ -136,7 +136,6 @@ void AppInl::onUnload() {
 			XX_TRIGGER(unload);
 			if (m_root) {
 				GUILock lock;
-				Inl2_RunLoop(m_render_loop)->set_independent_mutex(nullptr);
 				m_root->remove();
 			}
 		}));
