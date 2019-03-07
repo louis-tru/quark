@@ -34,6 +34,7 @@
 		'use_v8%': 1,
 		'without_visibility_hidden%': 0,
 		'without_embed_bitcode%': 0,
+		'cross_compiling%': 0,
 
 		############################# dependents set ##################
 		
@@ -218,13 +219,14 @@
 					'-march=<(arch_name)',
 				],
 				'ldflags': [ 
-					'-pthread', 
+					'-pthread',
 					#'-rdynamic',
 				],
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
 					['arch=="x64"', { 'cflags': [ '-m64' ] }],
 					['gcc_version>="7.0"', { 'cflags': [ '-Wno-implicit-fallthrough' ] }],
+					['cross_compiling==1', { 'ldflags': ['-L<(build_tools)/linux/lib/<(arch_name)' ] }],
 				],
 			}],
 			['os=="ios"', {

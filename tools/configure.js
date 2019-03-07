@@ -641,14 +641,24 @@ function configure() {
 			variables.arch_name = arch == 'x86' ? 'i386' : 'x86-64';
 		}
 
-		// check compiler
+		// check compiler and set sysroot
 		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
+
 			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
 				var cmd = `find /usr/bin -name arm-linux*${e}*`;
 				var [,r] = syscall(cmd).stdout.sort((a,b)=>a.length - b.length);
 				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
 			});
+
+			if (fs.existsSync('/usr/arm-linux-gnueabihf')) {
+				variables.build_sysroot = '/usr/arm-linux-gnueabihf';
+				variables.build_bin = '/usr/arm-linux-gnueabihf/bin';
+			} else if (fs.existsSync('/usr/arm-linux-gnueabi')) {
+				variables.build_sysroot = '/usr/arm-linux-gnueabi';
+				variables.build_bin = '/usr/arm-linux-gnueabi/bin';
+			}
+
 		} else {
 			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
 				util.assert(!execSync('which ' + e).code, `${e} command was not found`);
