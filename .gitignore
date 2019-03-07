@@ -10,3 +10,4 @@ libs/qgr-tools/linux
 depe/glsl-optimizer
 depe/glslang
 .idea
+tools/linux/lib
