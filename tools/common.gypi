@@ -200,7 +200,7 @@
 			}],
 			['os=="linux"', {
 				'include_dirs': [
-					'linux/usr/include',
+					'linux/<(arch_name)/usr/include',
 				],
 				'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
@@ -218,15 +218,14 @@
 					# '-Wno-misleading-indentation',
 					'-march=<(arch_name)',
 				],
-				'ldflags': [ 
-					'-pthread',
-					#'-rdynamic',
+				'ldflags': [
+					'-pthread', #'-rdynamic',
+					'-L<(build_tools)/linux/<(arch_name)/usr/lib',
 				],
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
 					['arch=="x64"', { 'cflags': [ '-m64' ] }],
 					['gcc_version>="7.0"', { 'cflags': [ '-Wno-implicit-fallthrough' ] }],
-					['cross_compiling==1', { 'ldflags': ['-L<(build_tools)/linux/lib/<(arch_name)' ] }],
 				],
 			}],
 			['os=="ios"', {
