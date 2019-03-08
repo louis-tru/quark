@@ -220,6 +220,7 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 	var attributes = [];
 
 	[vert_code, frag_code].forEach(function(glsl_code, index) {
+		glsl_code = glsl_code.replace(/^\s+/mg, '');
 		var type_vp = !index;
 		var es2_glsl_code = transformation_to_es2(glsl_code, type_vp);
 
