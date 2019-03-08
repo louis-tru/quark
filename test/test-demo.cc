@@ -78,7 +78,7 @@ void test_demo(int argc, char **argv) {
 
 char* examples = nullptr;
 for (int i = 0; i < argc; i++) {
-	if (String(argv[i]).indexOf('http') == 0) {
+	if (argv[i][0] == 'h' && argv[i][1] == 't' && argv[i][2] == 't' && argv[i][3] == 'p') {
 		examples = argv[i];
 		break;
 	}
