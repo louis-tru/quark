@@ -6,6 +6,8 @@ ubuntu
 # apt install libgles2-mesa-dev
 # apt install systemtap-sdt-dev
 	* dtrace
+# apt install autoconf
+	* autoconf
 
 # apt install g++-arm-linux-gnueabihf
 
