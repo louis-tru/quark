@@ -645,8 +645,12 @@ function configure() {
 		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
 
 			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
-				var cmd = `find /usr/bin -name arm-linux*${e}*`;
-				var [,r] = syscall(cmd).stdout.sort((a,b)=>a.length - b.length);
+				var [,r] = syscall(`find /usr/bin -name arm-linux-gnueabihf*${e}*`)
+					.stdout.sort((a,b)=>a.length - b.length);
+				if (!r) {
+					r = syscall(`find /usr/bin -name arm-linux*${e}*`)
+						.stdout.sort((a,b)=>a.length - b.length)[1];
+				}
 				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
 			});
