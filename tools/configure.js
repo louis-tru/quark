@@ -464,7 +464,7 @@ function configure() {
 			OS: get_OS(opts.os),
 			os: opts.os,
 			use_v8: opts.use_v8,
-			more_log: opts.use_v8,
+			more_log: opts.more_log,
 			clang: opts.clang,
 			library: 'static_library',
 			library_output: opts.library + '_library',
