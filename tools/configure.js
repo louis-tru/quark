@@ -734,7 +734,7 @@ function configure() {
 		variables.ranlib = 'ranlib';
 		variables.strip = 'strip';
 		variables.build_bin = `${XCODEDIR}/Toolchains/XcodeDefault.xctoolchain/usr/bin`;
-	} 
+	}
 	else {
 		console.error(`do not support ${os} os`);
 		return;
