@@ -200,7 +200,7 @@
 			}],
 			['os=="linux"', {
 				'include_dirs': [
-					'linux/<(arch_name)/usr/include',
+					'linux/usr/include',
 				],
 				'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
@@ -220,7 +220,7 @@
 				],
 				'ldflags': [
 					'-pthread', #'-rdynamic',
-					'-L<(build_tools)/linux/<(arch_name)/usr/lib',
+					'-L<(build_tools)/linux/usr/lib/<(arch_name)',
 				],
 				'conditions': [
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
