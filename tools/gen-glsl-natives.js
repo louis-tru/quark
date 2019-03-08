@@ -175,7 +175,7 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 		return;
 	}
 
-	var date = new Date().valueOf();
+	var date = new Date().valueOf() + name;
 	var hpp = [
 		'#ifndef __shader_natives_' + date + '__',
 		'#define __shader_natives_' + date + '__',
