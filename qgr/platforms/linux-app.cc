@@ -87,6 +87,7 @@ class LinuxApplication {
 	, m_ime(nullptr)
 	, m_mixer(nullptr)
 	, m_element(nullptr)
+	, m_is_fullscreen(0)
 	{
 		XX_ASSERT(!application); application = this;
 	}
@@ -156,7 +157,8 @@ class LinuxApplication {
 
 		DLOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
 
-		// request_fullscreen(true);
+		if (m_is_fullscreen)
+			request_fullscreen(true);
 
 		XX_CHECK(m_win, "Cannot create XWindow");
 
@@ -324,6 +326,7 @@ class LinuxApplication {
 		cJSON& o_h = options["height"];
 		cJSON& o_b = options["background"];
 		cJSON& o_t = options["title"];
+		cJSON& o_fc = options["fullscreen"];
 
 		if (o_w.is_uint()) m_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
 		if (o_h.is_uint()) m_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
@@ -331,6 +334,8 @@ class LinuxApplication {
 		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
 		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
 		if (o_t.is_string()) m_title = o_t.to_string();
+		if (o_fc.is_bool()) m_is_fullscreen = o_fc.to_bool();
+		if (o_fc.is_int()) m_is_fullscreen = o_fc.to_int();
 
 		initialize_master_volume_control();
 	}
@@ -478,6 +483,7 @@ class LinuxApplication {
 	Mutex m_queue_mutex;
 	snd_mixer_t* m_mixer;
 	snd_mixer_elem_t* m_element;
+	bool m_is_fullscreen;
 };
 
 Vec2 __get_window_size() {

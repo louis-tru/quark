@@ -136,9 +136,10 @@ const bug_feedback_vx = (
 )
 
 var app = new GUIApplication({
-	multisample: 4, 
-	width: 420, 
-	height: 800, 
+	multisample: 4,
+	width: 420,
+	height: 800,
+	fullscreen: 1,
 	background: 0xffffff,
 	title: 'Qgr Examples',
 }).start(
