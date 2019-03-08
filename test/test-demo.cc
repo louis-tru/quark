@@ -75,22 +75,23 @@ void test_demo(int argc, char **argv) {
 		}
 	}
 #endif
+
+char* examples = nullptr;
+for (int i = 0; i < argc; i++) {
+	if (String(argv[i]).indexOf('http') == 0) {
+		examples = argv[i];
+		break;
+	}
+}
+if (examples) {
+	cmd += examples;
+} else {
 #if USE_REMOTE
 	cmd += "http://" IP_REMOTE ":1026/demo/examples ";
 #else
-	char* examples = nullptr;
-	for (int i = 0; i < argc; i++) {
-		if (String(argv[i]).indexOf('http') == 0) {
-			examples = argv[i];
-			break;
-		}
-	}
-	if (examples)
-		cmd += examples;
-	} else {
-		cmd += "examples ";
-	}
+	cmd += "examples ";
 #endif
+}
 	js::Start(cmd);
 }
 
