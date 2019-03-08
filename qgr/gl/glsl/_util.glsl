@@ -1,4 +1,3 @@
-
 #include "_version.glsl"
 
 //precision mediump float;
