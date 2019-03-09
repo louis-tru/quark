@@ -10,6 +10,7 @@ ubuntu
 	* autoconf
 
 # apt install g++-arm-linux-gnueabihf
+# apt install g++-aarch64-linux-gnu
 
 # armv7-a
 # ln -s /lib/arm-linux-gnueabihf/libz.so.1 libz.so
