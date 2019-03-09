@@ -645,8 +645,15 @@ function configure() {
 		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
 
 			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
-				var [,r] = syscall(`find /usr/bin -name arm-linux-gnueabihf*${e}*`)
-					.stdout.sort((a,b)=>a.length - b.length);
+				var r;
+				if (arch == 'arm64') {
+					r = syscall(`find /usr/bin -name aarch64-linux-gnu*${e}*`)
+						.stdout.sort((a,b)=>a.length - b.length)[1];
+				}
+				if (!r) {
+					r = syscall(`find /usr/bin -name arm-linux-gnueabihf*${e}*`)
+						.stdout.sort((a,b)=>a.length - b.length)[1];
+				}
 				if (!r) {
 					r = syscall(`find /usr/bin -name arm-linux*${e}*`)
 						.stdout.sort((a,b)=>a.length - b.length)[1];
@@ -654,14 +661,6 @@ function configure() {
 				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
 			});
-
-			if (fs.existsSync('/usr/arm-linux-gnueabihf')) {
-				variables.build_sysroot = '/usr/arm-linux-gnueabihf';
-				variables.build_bin = '/usr/arm-linux-gnueabihf/bin';
-			} else if (fs.existsSync('/usr/arm-linux-gnueabi')) {
-				variables.build_sysroot = '/usr/arm-linux-gnueabi';
-				variables.build_bin = '/usr/arm-linux-gnueabi/bin';
-			}
 
 		} else {
 			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
