@@ -81,8 +81,7 @@
 				}], # copies
 			}],
 			# output mac shared library for "qgr.framework"
-			['debug==0 and library_output=="shared_library" \
-								and OS in "mac" and project=="make"', {
+			['debug==0 and library_output=="shared_library" and OS in "mac" and project=="make"', {
 				'actions': [{
 					'action_name': 'qgr_apple_dylib',
 					'variables': {

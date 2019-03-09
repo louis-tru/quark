@@ -38,7 +38,7 @@
 
 #include <qgr/utils/util.h>
 
-#if XX_LINUX
+#if XX_LINUX && !XX_ANDROID
 
 #include <stdio.h>
 #include <stdlib.h>

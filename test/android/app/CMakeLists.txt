@@ -14,239 +14,251 @@ include_directories(../../../depe/libwebp)
 include_directories(../../../depe/ffmpeg)
 include_directories(../../../depe/tinyxml2)
 include_directories(../../../depe/curl/include)
-include_directories(../../../node/src)
-include_directories(../../../node/deps/cares/include)
-include_directories(../../../node/deps/zlib/contrib/minizip)
-include_directories(../../../node/deps/openssl/openssl/include)
-include_directories(../../../node/deps/uv/include)
-include_directories(../../../node/deps/http_parser)
-include_directories(../../../v8-link/include)
+include_directories(../../../depe/node/src)
+include_directories(../../../depe/node/deps/cares/include)
+include_directories(../../../depe/node/deps/zlib/contrib/minizip)
+include_directories(../../../depe/node/deps/openssl/openssl/include)
+include_directories(../../../depe/node/deps/uv/include)
+include_directories(../../../depe/node/deps/http_parser)
+include_directories(../../../depe/v8-link/include)
 include_directories(../../../out)
 link_directories(src/main/jniLibs/${ANDROID_ABI})
 link_directories(../../../out/jniLibs/${ANDROID_ABI})
 
 add_definitions(
-   -DDEBUG
-   -D__STDC_CONSTANT_MACROS
-   -DXX_BUILDING_SHARED
-   -DNODE_WANT_INTERNALS=1
-   -DHAVE_OPENSSL=1
-   -DHAVE_INSPECTOR=1
+	-DDEBUG
+	-D__STDC_CONSTANT_MACROS
+	-DXX_BUILDING_SHARED
+	-DNODE_WANT_INTERNALS=1
+	-DHAVE_OPENSSL=1
+	-DHAVE_INSPECTOR=1
 )
 
 add_definitions(
-  -DCHROME_PNG_WRITE_SUPPORT
-  -DPNG_USER_CONFIG
+	-DCHROME_PNG_WRITE_SUPPORT
+	-DPNG_USER_CONFIG
 )
 
-add_library(qgr-base SHARED
-            ../../../android/android.cc
-            ../../../qgr/utils/object.cc
-            ../../../qgr/utils/string.cc
-            ../../../qgr/utils/string-builder.cc
-            ../../../qgr/utils/array.cc
-            ../../../qgr/utils/codec.cc
-            ../../../qgr/utils/error.cc
-            ../../../qgr/utils/http.cc
-            ../../../qgr/utils/http-uri.cc
-            ../../../qgr/utils/http-helper.cc
-            ../../../qgr/utils/fs.cc
-            ../../../qgr/utils/fs-file.cc
-            ../../../qgr/utils/fs-sync.cc
-            ../../../qgr/utils/fs-async.cc
-            ../../../qgr/utils/fs-search.cc
-            ../../../qgr/utils/fs-reader.cc
-            ../../../qgr/utils/buffer.cc
-            ../../../qgr/utils/json.cc
-            ../../../qgr/utils/map.cc
-            ../../../qgr/utils/util.cc
-            ../../../qgr/utils/zlib.cc
-            ../../../qgr/utils/loop.cc
-            ../../../qgr/utils/loop-private.cc
-            ../../../qgr/utils/jsx.cc
-            ../../../qgr/utils/sys.cc
-            ../../../qgr/utils/net.cc
-            ../../../qgr/utils/cb.cc
-            ../../../qgr/utils/date.cc
-            ../../../qgr/utils/http-cookie.cc
-            ../../../qgr/utils/localstorage.cc
-            ../../../qgr/utils/android-jni.cc
-            ../../../qgr/utils/android-log.cc
-            ../../../qgr/utils/android-sys.cc
-            ../../../qgr/utils/android-fs.cc
-           )
+add_library(qgr-utils SHARED
+	../../../android/android.cc
+	../../../qgr/utils/_android.cc
+	../../../qgr/utils/android-jni.cc
+	../../../qgr/utils/android-log.cc
+	../../../qgr/utils/object.cc
+	../../../qgr/utils/string.cc
+	../../../qgr/utils/string-builder.cc
+	../../../qgr/utils/array.cc
+	../../../qgr/utils/codec.cc
+	../../../qgr/utils/error.cc
+	../../../qgr/utils/http.cc
+	../../../qgr/utils/http-uri.cc
+	../../../qgr/utils/http-helper.cc
+	../../../qgr/utils/fs.cc
+	../../../qgr/utils/fs-file.cc
+	../../../qgr/utils/fs-sync.cc
+	../../../qgr/utils/fs-async.cc
+	../../../qgr/utils/fs-search.cc
+	../../../qgr/utils/fs-reader.cc
+	../../../qgr/utils/buffer.cc
+	../../../qgr/utils/json.cc
+	../../../qgr/utils/map.cc
+	../../../qgr/utils/util.cc
+	../../../qgr/utils/zlib.cc
+	../../../qgr/utils/loop.cc
+	../../../qgr/utils/loop-private.cc
+	../../../qgr/utils/jsx.cc
+	../../../qgr/utils/net.cc
+	../../../qgr/utils/cb.cc
+	../../../qgr/utils/date.cc
+	../../../qgr/utils/http-cookie.cc
+	../../../qgr/utils/localstorage.cc
+)
 
 add_library(qgr-gui SHARED
-            ../../../out/glsl-sprite.cc
-            ../../../out/glsl-box-image.cc
-            ../../../out/glsl-box-yuv420p-image.cc
-            ../../../out/glsl-box-yuv420sp-image.cc
-            ../../../out/glsl-box-border.cc
-            ../../../out/glsl-box-color.cc
-            ../../../out/glsl-box-shadow.cc
-            ../../../out/glsl-box-image-radius.cc
-            ../../../out/glsl-box-border-radius.cc
-            ../../../out/glsl-box-color-radius.cc
-            ../../../out/glsl-text-box-color.cc
-            ../../../out/glsl-text-texture.cc
-            ../../../out/glsl-text-vertex.cc
-            ../../../out/glsl-gen-texture.cc
-            ../../../out/font-native.cc
-            ../../../qgr/action.cc
-            ../../../qgr/app.cc
-            ../../../qgr/audio-player.cc
-            ../../../qgr/div.cc
-            ../../../qgr/indep.cc
-            ../../../qgr/gradient.cc
-            ../../../qgr/box-shadow.cc
-            ../../../qgr/limit.cc
-            ../../../qgr/limit-indep.cc
-            ../../../qgr/image.cc
-            ../../../qgr/bezier.cc
-            ../../../qgr/event.cc
-            ../../../qgr/display-port.cc
-            ../../../qgr/font/font.cc
-            ../../../qgr/image/codec.cc
-            ../../../qgr/image/codec-tga.cc
-            ../../../qgr/image/codec-pvrtc.cc
-            ../../../qgr/pre-render.cc
-            ../../../qgr/mathe.cc
-            ../../../qgr/media-codec.cc
-            ../../../qgr/media-codec-1.cc
-            ../../../qgr/media-codec-software.cc
-            ../../../qgr/label.cc
-            ../../../qgr/layout.cc
-            ../../../qgr/box.cc
-            ../../../qgr/text-rows.cc
-            ../../../qgr/view.cc
-            ../../../qgr/draw.cc
-            ../../../qgr/gl/gl.cc
-            ../../../qgr/gl/gl-draw.cc
-            ../../../qgr/gl/gl-texture.cc
-            ../../../qgr/gl/gl-font.cc
-            ../../../qgr/root.cc
-            ../../../qgr/sprite.cc
-            ../../../qgr/scroll.cc
-            ../../../qgr/span.cc
-            ../../../qgr/hybrid.cc
-            ../../../qgr/text-font.cc
-            ../../../qgr/text-node.cc
-            ../../../qgr/texture.cc
-            ../../../qgr/video.cc
-            ../../../qgr/value.cc
-            ../../../qgr/select-panel.cc
-            ../../../qgr/button.cc
-            ../../../qgr/keyboard.cc
-            ../../../qgr/css.cc
-            ../../../qgr/property.cc
-            ../../../qgr/text.cc
-            ../../../qgr/clip.cc
-            ../../../qgr/input.cc
-            ../../../qgr/textarea.cc
-            ../../../qgr/platforms/android-gl.cc
-            ../../../qgr/platforms/android-app.cc
-            ../../../qgr/platforms/android-media-codec.cc
-            ../../../qgr/platforms/android-pcm-player.cc
-            ../../../qgr/platforms/android-pcm-audio-track.cc
-            ../../../qgr/platforms/android-keyboard.cc
-            ../../../qgr/image/codec-gif.cc
-            ../../../qgr/image/codec-jpeg.cc
-            ../../../qgr/image/codec-png.cc
-            ../../../qgr/image/codec-webp.cc
-          )
-
-add_library(qgr-js SHARED
-            ../../../out/native-core-js.cc
-            ../../../qgr/js/js.cc
-            ../../../qgr/js/js-class.cc
-            ../../../qgr/js/test.cc
-            ../../../qgr/js/v8.cc
-            ../../../qgr/js/v8.cc
-            ../../../qgr/js/log.cc
-            ../../../qgr/js/binding/utils/event.cc
-            ../../../qgr/js/binding/utils/reader.cc
-            ../../../qgr/js/binding/utils/fs.cc
-            ../../../qgr/js/binding/utils/http.cc
-            ../../../qgr/js/binding/utils/json.cc
-            ../../../qgr/js/binding/utils/keys.cc
-            ../../../qgr/js/binding/utils/storage.cc
-            ../../../qgr/js/binding/utils/sys.cc
-            ../../../qgr/js/binding/utils/util.cc
-            ../../../qgr/js/binding/action.cc
-            ../../../qgr/js/binding/app.cc
-            ../../../qgr/js/binding/audio-player.cc
-            ../../../qgr/js/binding/box.cc
-            ../../../qgr/js/binding/button.cc
-            ../../../qgr/js/binding/clip.cc
-            ../../../qgr/js/binding/css.cc
-            ../../../qgr/js/binding/display-port.cc
-            ../../../qgr/js/binding/div.cc
-            ../../../qgr/js/binding/font.cc
-            ../../../qgr/js/binding/qgr.cc
-            ../../../qgr/js/binding/hybrid.cc
-            ../../../qgr/js/binding/image.cc
-            ../../../qgr/js/binding/indep.cc
-            ../../../qgr/js/binding/input.cc
-            ../../../qgr/js/binding/label.cc
-            ../../../qgr/js/binding/layout.cc
-            ../../../qgr/js/binding/limit.cc
-            ../../../qgr/js/binding/media.cc
-            ../../../qgr/js/binding/root.cc
-            ../../../qgr/js/binding/scroll.cc
-            ../../../qgr/js/binding/select-panel.cc
-            ../../../qgr/js/binding/span.cc
-            ../../../qgr/js/binding/sprite.cc
-            ../../../qgr/js/binding/text-font.cc
-            ../../../qgr/js/binding/text-node.cc
-            ../../../qgr/js/binding/text.cc
-            ../../../qgr/js/binding/value.cc
-            ../../../qgr/js/binding/video.cc
-            ../../../qgr/js/binding/view.cc
-          )
-
-add_library(qgr-demo SHARED ../../../test/demo.cc)
-
-add_library(qgr-test SHARED
-            ../../../test/test.cc
-            ../../../test/test-fs.cc
-            ../../../test/test-fs2.cc
-            ../../../test/test-gui.cc
-            ../../../test/test-freetype.cc
-            ../../../test/test-json.cc
-            ../../../test/test-string.cc
-            ../../../test/test-list.cc
-            ../../../test/test-map.cc
-            ../../../test/test-event.cc
-            ../../../test/test-zlib.cc
-            ../../../test/test-curl.cc
-            ../../../test/test-curl2.cc
-            ../../../test/test-http.cc
-            ../../../test/test-https.cc
-            ../../../test/test-thread.cc
-            ../../../test/test-ffmpeg.cc
-            ../../../test/test-number.cc
-            ../../../test/test-uv.cc
-            ../../../test/test-net.cc
-            ../../../test/test-fs-async.cc
-            ../../../test/test-ssl.cc
-            ../../../test/test-http2.cc
-            ../../../test/test-net-ssl.cc
-            ../../../test/test-http-cookie.cc
-            ../../../test/test-localstorage.cc
-            ../../../test/test-buffer.cc
-            ../../../test/test-qgr.cc
-            ../../../test/test-demo.cc
-            ../../../test/test-jsc.cc
-            ../../../test/test-v8.cc
-            ../../../test/test-loop.cc
-            ../../../test/test-sys.cc
-            ../../../test/test-mutex.cc
-            ../../../test/test-ios-run-loop.cc
-            ../../../test/test-benchmark.cc
+	../../../out/glsl-sprite.cc
+	../../../out/glsl-box-image.cc
+	../../../out/glsl-box-yuv420p-image.cc
+	../../../out/glsl-box-yuv420sp-image.cc
+	../../../out/glsl-box-border.cc
+	../../../out/glsl-box-border-radius.cc
+	../../../out/glsl-box-background-image.cc
+	../../../out/glsl-box-color.cc
+	../../../out/glsl-box-shadow.cc
+	../../../out/glsl-text-box-color.cc
+	../../../out/glsl-text-texture.cc
+	../../../out/glsl-text-vertex.cc
+	../../../out/glsl-gen-texture.cc
+	../../../out/font-native.cc
+	../../../qgr/action.cc
+	../../../qgr/app.cc
+	../../../qgr/audio-player.cc
+	../../../qgr/div.cc
+	../../../qgr/indep.cc
+	../../../qgr/box-shadow.cc
+	../../../qgr/limit.cc
+	../../../qgr/limit-indep.cc
+	../../../qgr/image.cc
+	../../../qgr/bezier.cc
+	../../../qgr/event.cc
+	../../../qgr/display-port.cc
+	../../../qgr/font/font.cc
+	../../../qgr/image/codec.cc
+	../../../qgr/image/codec-tga.cc
+	../../../qgr/image/codec-pvrtc.cc
+	../../../qgr/pre-render.cc
+	../../../qgr/mathe.cc
+	../../../qgr/media-codec.cc
+	../../../qgr/media-codec-1.cc
+	../../../qgr/media-codec-software.cc
+	../../../qgr/label.cc
+	../../../qgr/layout.cc
+	../../../qgr/box.cc
+	../../../qgr/text-rows.cc
+	../../../qgr/view.cc
+	../../../qgr/draw.cc
+	../../../qgr/gl/gl.cc
+	../../../qgr/gl/gl-draw.cc
+	../../../qgr/gl/gl-texture.cc
+	../../../qgr/gl/gl-font.cc
+	../../../qgr/root.cc
+	../../../qgr/sprite.cc
+	../../../qgr/scroll.cc
+	../../../qgr/span.cc
+	../../../qgr/hybrid.cc
+	../../../qgr/text-font.cc
+	../../../qgr/text-node.cc
+	../../../qgr/texture.cc
+	../../../qgr/video.cc
+	../../../qgr/value.cc
+	../../../qgr/panel.cc
+	../../../qgr/button.cc
+	../../../qgr/keyboard.cc
+	../../../qgr/css.cc
+	../../../qgr/property.cc
+	../../../qgr/text.cc
+	../../../qgr/input.cc
+	../../../qgr/textarea.cc
+	../../../qgr/background.cc
+	../../../qgr/render-looper.cc
+	../../../qgr/sys.cc
+	../../../qgr/platforms/android-gl.cc
+	../../../qgr/platforms/android-app.cc
+	../../../qgr/platforms/android-media-codec.cc
+	../../../qgr/platforms/android-pcm-player.cc
+	../../../qgr/platforms/android-pcm-audio-track.cc
+	../../../qgr/platforms/android-keyboard.cc
+	../../../qgr/platforms/android-sys.cc
 )
 
-target_link_libraries(qgr-base atomic z android log qgr_depes)
-target_link_libraries(qgr-gui  qgr-base OpenSLES GLESv3 EGL mediandk qgr_depes)
-target_link_libraries(qgr-js   qgr-base qgr-gui qgr_depes)
-target_link_libraries(qgr-demo qgr-base qgr-gui qgr-js qgr_depes)
-target_link_libraries(qgr-test qgr-base qgr-gui qgr-js qgr_depes)
+add_library(qgr-js SHARED
+	../../../out/native-core-js.cc
+	../../../out/native-ext-js.cc
+	../../../qgr/js/js-cls.cc
+	../../../qgr/js/js.cc
+	../../../qgr/js/qgr.cc
+	../../../qgr/js/str.cc
+	../../../qgr/js/v8.cc
+	../../../qgr/js/wrap.cc
+	# binding qgr-utils
+	../../../qgr/js/binding/cb.cc
+	../../../qgr/js/binding/fs.cc
+	../../../qgr/js/binding/fs-reader.cc
+	../../../qgr/js/binding/fs-path.cc
+	../../../qgr/js/binding/http.cc
+	../../../qgr/js/binding/util.cc
+	../../../qgr/js/binding/storage.cc
+	../../../qgr/js/binding/json.cc
+	../../../qgr/js/binding/event.cc
+	../../../qgr/js/binding/sys.cc
+	../../../qgr/js/binding/event.cc
+	../../../qgr/js/binding/timer.cc
+	../../../qgr/js/binding/console.cc
+	../../../qgr/js/binding/buffer.cc
+	# binding qgr-gui
+	../../../qgr/js/binding/value.cc
+	../../../qgr/js/binding/qgr-binding.cc
+	../../../qgr/js/binding/action.cc
+	../../../qgr/js/binding/action-frame.cc
+	../../../qgr/js/binding/app.cc
+	../../../qgr/js/binding/audio-player.cc
+	../../../qgr/js/binding/video.cc
+	../../../qgr/js/binding/media.cc
+	../../../qgr/js/binding/div.cc
+	../../../qgr/js/binding/display-port.cc
+	../../../qgr/js/binding/indep.cc
+	../../../qgr/js/binding/image.cc
+	../../../qgr/js/binding/layout.cc
+	../../../qgr/js/binding/box.cc
+	../../../qgr/js/binding/view.cc
+	../../../qgr/js/binding/root.cc
+	../../../qgr/js/binding/span.cc
+	../../../qgr/js/binding/sprite.cc
+	../../../qgr/js/binding/hybrid.cc
+	../../../qgr/js/binding/text-font.cc
+	../../../qgr/js/binding/text-node.cc
+	../../../qgr/js/binding/label.cc
+	../../../qgr/js/binding/limit.cc
+	../../../qgr/js/binding/panel.cc
+	../../../qgr/js/binding/button.cc
+	../../../qgr/js/binding/scroll.cc
+	../../../qgr/js/binding/css.cc
+	../../../qgr/js/binding/font.cc
+	../../../qgr/js/binding/text.cc
+	../../../qgr/js/binding/input.cc
+	../../../qgr/js/binding/background.cc
+)
+
+add_library(qgr-demo SHARED
+	../../../test/demo.cc
+)
+
+add_library(qgr-test SHARED
+	../../../test/test.cc
+	../../../test/test-qgr.cc
+	../../../test/test-fs.cc
+	../../../test/test-fs2.cc
+	../../../test/test-gui.cc
+	../../../test/test-freetype.cc
+	../../../test/test-json.cc
+	../../../test/test-string.cc
+	../../../test/test-list.cc
+	../../../test/test-map.cc
+	../../../test/test-event.cc
+	../../../test/test-zlib.cc
+	../../../test/test-curl.cc
+	../../../test/test-curl2.cc
+	../../../test/test-http.cc
+	../../../test/test-http2.cc
+	../../../test/test-http3.cc
+	../../../test/test-https.cc
+	../../../test/test-thread.cc
+	../../../test/test-ffmpeg.cc
+	../../../test/test-number.cc
+	../../../test/test-uv.cc
+	../../../test/test-net.cc
+	../../../test/test-fs-async.cc
+	../../../test/test-ssl.cc
+	../../../test/test-net-ssl.cc
+	../../../test/test-http-cookie.cc
+	../../../test/test-localstorage.cc
+	../../../test/test-buffer.cc
+	../../../test/test-demo.cc
+	../../../test/test-jsc.cc
+	../../../test/test-v8.cc
+	../../../test/test-loop.cc
+	../../../test/test-sys.cc
+	../../../test/test-mutex.cc
+	../../../test/test-ios-run-loop.cc
+	../../../test/test-benchmark.cc
+	../../../test/test-sizeof.cc
+	../../../test/test-util.cc
+	../../../test/test-alsa-ff.cc
+	../../../test/test-linux-input.cc
+	../../../test/test-linux-input2.cc
+)
+
+target_link_libraries(qgr-utils atomic z android log qgr-depes-test)
+target_link_libraries(qgr-gui  qgr-utils OpenSLES GLESv3 EGL mediandk qgr-depes-test)
+target_link_libraries(qgr-js   qgr-utils qgr-gui qgr-depes-test)
+target_link_libraries(qgr-demo qgr-utils qgr-gui qgr-js qgr-depes-test)
+target_link_libraries(qgr-test qgr-utils qgr-gui qgr-js qgr-depes-test)

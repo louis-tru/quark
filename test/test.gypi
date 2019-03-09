@@ -102,6 +102,7 @@
 				'test-util.cc',
 				'test-alsa-ff.cc',
 				'test-linux-input.cc',
+				'test-linux-input2.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {
@@ -156,10 +157,11 @@
 	],
 
 	'conditions': [
+		# gen android test depes `libqgr-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'qgr_depes',
+				'target_name': 'qgr-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
 					'depe/curl/curl.gyp:curl',
@@ -212,11 +214,11 @@
 			}, {
 				'target_name': 'qgr_depes_copy',
 				'type': 'none',
-				'dependencies': [ 'qgr_depes' ],
+				'dependencies': [ 'qgr-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libqgr_depes.so',
+						'<(output)/lib.target/libqgr-depes-test.so',
 					],
 				}],
 			}],

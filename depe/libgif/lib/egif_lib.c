@@ -53,13 +53,16 @@ static int EGifBufferedOutput(GifFileType * GifFile, GifByteType * Buf,
 GifFileType *
 EGifOpenFileName(const char *FileName, const bool TestExistence, int *Error)
 {
-
+#if defined(__ANDROID__)
+# define S_IREAD S_IRUSR
+# define S_IWRITE S_IWUSR
+#endif
     int FileHandle;
     GifFileType *GifFile;
 
     if (TestExistence)
         FileHandle = open(FileName, O_WRONLY | O_CREAT | O_EXCL, 
-			  S_IREAD | S_IWRITE); // `S_IREAD | S_IWRITE` linux系统上这个参数是必需的
+			  S_IREAD | S_IWRITE);
     else
         FileHandle = open(FileName, O_WRONLY | O_CREAT | O_TRUNC, 
 			  S_IREAD | S_IWRITE);
