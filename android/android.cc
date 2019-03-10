@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "qgr/utils/os/android-jni.h"
+#include "qgr/utils/android-jni.h"
 
 XX_NS(qgr)
 

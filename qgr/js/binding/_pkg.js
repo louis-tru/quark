@@ -865,7 +865,7 @@ function Packages_verification_is_need_load_pkg(self, register, is_warn) {
 		if ( !Package_is_can_check_origin(pkg, register.path) ) { // 不需要check
 			register.ready = -1; // 忽略
 			if ( is_warn ) {
-				throw register;
+				// throw register;
 				print_warn('Ignore, Lib has been created and cannot be replaced,', register.path);
 			}
 			return false;

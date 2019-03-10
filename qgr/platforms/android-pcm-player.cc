@@ -31,7 +31,7 @@
 #include "qgr/pcm-player.h"
 #include "qgr/utils/handle.h"
 #include "qgr/utils/loop.h"
-#include "qgr/utils/os/android-jni.h"
+#include "qgr/utils/android-jni.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 

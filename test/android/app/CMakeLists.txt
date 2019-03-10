@@ -32,6 +32,7 @@ add_definitions(
 	-DNODE_WANT_INTERNALS=1
 	-DHAVE_OPENSSL=1
 	-DHAVE_INSPECTOR=1
+	-DHAVE_NODE=1
 )
 
 add_definitions(
@@ -141,13 +142,17 @@ add_library(qgr-gui SHARED
 	../../../qgr/background.cc
 	../../../qgr/render-looper.cc
 	../../../qgr/sys.cc
-	../../../qgr/platforms/android-gl.cc
+	../../../qgr/platforms/linux-gl.cc
 	../../../qgr/platforms/android-app.cc
 	../../../qgr/platforms/android-media-codec.cc
 	../../../qgr/platforms/android-pcm-player.cc
 	../../../qgr/platforms/android-pcm-audio-track.cc
 	../../../qgr/platforms/android-keyboard.cc
 	../../../qgr/platforms/android-sys.cc
+	../../../qgr/image/codec-gif.cc
+  ../../../qgr/image/codec-jpeg.cc
+  ../../../qgr/image/codec-png.cc
+  ../../../qgr/image/codec-webp.cc
 )
 
 add_library(qgr-js SHARED
@@ -254,7 +259,7 @@ add_library(qgr-test SHARED
 	../../../test/test-util.cc
 	../../../test/test-alsa-ff.cc
 	../../../test/test-linux-input.cc
-	../../../test/test-linux-input2.cc
+	../../../test/test-linux-input-2.cc
 )
 
 target_link_libraries(qgr-utils atomic z android log qgr-depes-test)

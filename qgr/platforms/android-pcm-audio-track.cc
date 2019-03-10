@@ -30,7 +30,7 @@
 
 #include "qgr/pcm-player.h"
 #include "qgr/utils/handle.h"
-#include "qgr/utils/os/android-jni.h"
+#include "qgr/utils/android-jni.h"
 
 XX_NS(qgr)
 

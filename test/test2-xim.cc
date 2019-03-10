@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#if defined(__linux__)
+#if defined(__linux__) and !defined(__ANDROID__)
 
 #include <stdio.h>
 #include <stdlib.h>

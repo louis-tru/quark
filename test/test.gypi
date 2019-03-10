@@ -102,7 +102,7 @@
 				'test-util.cc',
 				'test-alsa-ff.cc',
 				'test-linux-input.cc',
-				'test-linux-input2.cc',
+				'test-linux-input-2.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {

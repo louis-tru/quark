@@ -33,7 +33,7 @@
 using namespace qgr;
 
 #define IP_REMOTE "127.0.0.1"
-#define USE_REMOTE 1
+#define USE_REMOTE 0
 #define USE_INSPECT 0
 #define USE_NODE 0
 #define USE_DEV 0
@@ -76,22 +76,22 @@ void test_demo(int argc, char **argv) {
 	}
 #endif
 
-char* examples = nullptr;
-for (int i = 0; i < argc; i++) {
-	if (argv[i][0] == 'h' && argv[i][1] == 't' && argv[i][2] == 't' && argv[i][3] == 'p') {
-		examples = argv[i];
-		break;
+	char* examples = nullptr;
+	for (int i = 0; i < argc; i++) {
+		if (argv[i][0] == 'h' && argv[i][1] == 't' && argv[i][2] == 't' && argv[i][3] == 'p') {
+			examples = argv[i];
+			break;
+		}
 	}
-}
-if (examples) {
-	cmd += examples;
-} else {
+	if (examples) {
+		cmd += examples;
+	} else {
 #if USE_REMOTE
-	cmd += "http://" IP_REMOTE ":1026/demo/examples ";
+		cmd += "http://" IP_REMOTE ":1026/demo/examples ";
 #else
-	cmd += "examples ";
+		cmd += "examples ";
 #endif
-}
+	}
 	js::Start(cmd);
 }
 

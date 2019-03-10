@@ -33,7 +33,7 @@
 #include "qgr/utils/loop.h"
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_linux_input
+#define TEST_FUNC_NAME test_demo
 #endif
 
 using namespace qgr;

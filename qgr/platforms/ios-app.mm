@@ -443,6 +443,7 @@ void AppInl::initialize(cJSON& options) {
 	XX_ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
+	XX_ASSERT(m_draw_ctx);
 }
 
 /**
@@ -534,8 +535,9 @@ float DisplayPort::status_bar_height() {
 float DisplayPort::default_status_bar_height() {
 	if (app_delegate && app_delegate.app) {
 		return app_delegate.app->display_port()->status_bar_height();
+	} else {
+		return 20;
 	}
-	return 0;
 }
 
 /**

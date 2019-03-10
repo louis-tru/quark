@@ -52,7 +52,7 @@
  
 struct input_event event;
 
-int test_linux_input_2(int argc, char **argv)
+void test_linux_input_2(int argc, char **argv)
 {
 	char          name[64];           /* RATS: Use ok, but could be better */
 	char          buf[256] = { 0, };  /* RATS: Use ok */
@@ -184,9 +184,8 @@ int test_linux_input_2(int argc, char **argv)
 			close(fd);
 		}
 	}
-	return 0;
 }
 
 #else
-int test_linux_input_2(int argc, char **argv) {return 0;}
+void test_linux_input_2(int argc, char **argv) {}
 #endif

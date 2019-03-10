@@ -45,6 +45,10 @@
 #include <unistd.h>
 #endif
 
+#if XX_ANDROID
+#include <android/android.h>
+#endif
+
 #if XX_APPLE
 #include <mach/mach_time.h>
 #include <mach/mach.h>

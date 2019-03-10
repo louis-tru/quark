@@ -49,7 +49,6 @@ extern int (*__xx_default_gui_main)(int, char**);
 #include "openssl/ssl.h"
 #include "depe/node/src/qgr.h"
 namespace qgr {
-	extern int (*__xx_exit_hook)(int code);
 	void set_ssl_root_x509_store_function(X509_STORE* (*)());
 }
 namespace node {
@@ -58,6 +57,10 @@ namespace node {
 	}
 }
 #endif
+
+namespace qgr {
+	extern int (*__xx_exit_hook)(int code);
+}
 
 /**
  * @ns qgr::js
@@ -82,6 +85,9 @@ static void add_event_listener_1(
 		if (cast) 
 			ev->set_private_data(cast); // set data cast func
 		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
+		
+		DLOG("add_event_listener_1, %s, EventType: %s", *func, *evt.name());
+
 		// call js trigger func
 		Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
 	};
@@ -133,6 +139,9 @@ bool WrapViewBase::remove_event_listener(cString& name, int id) {
 	if ( i.is_null() ) {
 		return false;
 	}
+	
+	DLOG("remove_event_listener, name:%s, id:%d", *name, id);
+	
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
 	wrap->self()->remove_event_listener(i.value(), id); // off event listener
 	return true;
@@ -326,7 +335,9 @@ int __default_main(int argc, char** argv) {
 			}
 		}
 	}
-	if ( ! cmd.is_empty() ) {
+	if ( cmd.is_empty() ) {
+		return Start(argc, argv);
+	} else {
 		return Start(cmd);
 	}
 

@@ -33,7 +33,7 @@
 #include "qgr/event.h"
 #include "qgr/display-port.h"
 #include "linux-gl-1.h"
-#include "qgr/utils/os/android-jni.h"
+#include "qgr/utils/android-jni.h"
 #include "android/android.h"
 #include <android/native_activity.h>
 #include <android/native_window.h>
@@ -473,7 +473,7 @@ void GUIApplication::send_email(cString& recipient,
 	Android::send_email(recipient, subject, cc, bcc, body);
 }
 
-void AppInl::initialize(const Map<String, int>& options) {
+void AppInl::initialize(cJSON& options) {
 	XX_ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
@@ -549,8 +549,9 @@ float DisplayPort::status_bar_height() {
 float DisplayPort::default_status_bar_height() {
 	if (application && application->host()) {
 		return application->host()->display_port()->status_bar_height();
+	} else {
+		return 20;
 	}
-	return 0;
 }
 
 /**

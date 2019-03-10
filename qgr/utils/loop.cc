@@ -202,7 +202,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		if (!is_exited++) {
 
 			KeepLoop* keep = nullptr;
-			if (main_loop_obj->runing()) {
+			if (main_loop_obj && main_loop_obj->runing()) {
 				keep = main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
 			}
 			DLOG("Inl::exit(), 0");
@@ -215,7 +215,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 
 			Release(keep); keep = nullptr;
 
-			if (current_id() == main_loop_id && main_loop_obj->runing()) {
+			if (main_loop_obj && current_id() == main_loop_id && main_loop_obj->runing()) {
 				main_loop_obj->post(Cb([rc, reallyExit](Se& e) {
 					_reallyExit(rc, reallyExit);
 				}));

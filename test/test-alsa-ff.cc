@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#if defined(__linux__)
+#if defined(__linux__) and !defined(__ANDROID__)
 
 extern "C" {
 #include <libavutil/avutil.h>
@@ -262,5 +262,6 @@ int test_alsa_ff(int argc, char **argv)
 
 	return 0;
 }
-
+#else
+int test_alsa_ff(int argc, char **argv){return 0;}
 #endif

@@ -77,7 +77,7 @@ class BasicScroll::Task: public PreRender::Task {
 			immediate_end();
 		} else {
 			int64 now = sys::time_monotonic();
-			if ( uint(now) >= m_start_time + m_duration ) {
+			if ( now >= m_start_time + m_duration ) {
 				end();
 			} else {
 				if ( m_is_inl_ease_out ) {

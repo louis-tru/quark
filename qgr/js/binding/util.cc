@@ -170,7 +170,7 @@ class NativeUtil {
 		{ HandleScope scope(worker);
 			WrapObject* wrap = WrapObject::unpack(args[0].To<JSObject>());
 			String name = args[1]->ToStringValue(worker,1);
-			String func = String("__on").push(name).push("_native").push(id);
+			String func = String("__on").push(name).push("_native").push(String(id));
 			bool ok = wrap->add_event_listener(name, func, id);
 			if (ok) {
 				wrap->set(worker->New(func,1), args[2]);
@@ -196,7 +196,7 @@ class NativeUtil {
 			WrapObject* wrap = WrapObject::unpack(args[0].To<JSObject>());
 			bool ok = wrap->remove_event_listener(name, id);
 			if ( ok ) {
-				String func = String("__on").push(name).push("_native").push(id);
+				String func = String("__on").push(name).push("_native").push(String(id));
 				wrap->del( worker->New(func) );
 			}
 			JS_RETURN(ok);

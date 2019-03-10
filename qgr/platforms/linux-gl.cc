@@ -46,7 +46,7 @@
 
 XX_NS(qgr)
 
-#if XX_LINUX
+#if !XX_ANDROID
 extern Vec2 __get_window_size();
 extern Display* __get_x11_display();
 #endif

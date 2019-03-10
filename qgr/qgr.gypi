@@ -182,8 +182,8 @@
 		'conditions': [
 			['os=="android"', {
 				'sources': [
-					'platforms/android-gl-1.h',
-					'platforms/android-gl.cc',
+					'platforms/linux-gl-1.h',
+					'platforms/linux-gl.cc',
 					'platforms/android-app.cc',
 					'platforms/android-media-codec.cc',
 					'platforms/android-pcm-player.cc',
