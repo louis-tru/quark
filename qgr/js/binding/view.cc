@@ -656,12 +656,12 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
-	 * @get topCtr {ViewController}
+	 * @get owner {ViewController}
 	 */
-	static void top_ctr(Local<JSString> name, PropertyCall args) {
+	static void owner(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(View);
-		ViewController* controller = self->top_ctr();
+		ViewController* controller = self->owner();
 		if ( ! controller) JS_RETURN( worker->NewNull() );
 		auto wrap = pack(controller);
 		JS_RETURN( wrap->that() );
@@ -1285,7 +1285,7 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_ACCESSOR(controller, controller);
 			JS_SET_CLASS_ACCESSOR(ctr, controller);
 			JS_SET_CLASS_ACCESSOR(top, top);
-			JS_SET_CLASS_ACCESSOR(topCtr, top_ctr);
+			JS_SET_CLASS_ACCESSOR(owner, owner);
 			JS_SET_CLASS_ACCESSOR(parent, parent);
 			JS_SET_CLASS_ACCESSOR(prev, prev);
 			JS_SET_CLASS_ACCESSOR(next, next);

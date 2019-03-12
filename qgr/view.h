@@ -377,10 +377,10 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	inline View* top() { return m_top; }
 	
 	/**
-	 * @func top_ctr 该视图的上层控制器
+	 * @func owner 该视图的上层控制器`owner`
 	 */
-	inline ViewController* top_ctr() { 
-		return m_top ? m_top->m_ctr : nullptr; 
+	inline ViewController* owner() {
+		return m_top ? m_top->m_ctr : nullptr;
 	}
 	
 	/**

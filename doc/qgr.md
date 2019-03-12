@@ -356,7 +356,7 @@ Callback: cb()
 
 获取或设置`id`,这个`id`在同一个视图控制器作作用域中不可以重复
 
-可以通过`topCtr.find(id)`获取这个视图
+可以通过`owner.find(id)`获取这个视图
 
 * {[`String`]}
 
@@ -369,7 +369,7 @@ Callback: cb()
 
 关键视图下面所有后代视图以及子视图控制器都属于这个作用域中的成员，
 
-成员视图的`top`属性都指向当前关键视图,成员视图的`topCtr`以及子视图控制器的`parent`都指向成员视图控制器属性，
+成员视图的`top`属性都指向当前关键视图,成员视图的`owner`以及子视图控制器的`parent`都指向成员视图控制器属性，
 
 如果这些成员有具名的`id`,可以通过成员视图控制器`ViewController.find(id)`找到这些成员
 
@@ -381,7 +381,7 @@ Callback: cb()
 
 * {[`View`]}
 
-### Get: View.topCtr 
+### Get: View.owner 
 
 指向成员视图控制器
 
