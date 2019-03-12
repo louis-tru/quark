@@ -7,12 +7,12 @@ import { Mynavpage } from './public';
 import review_vx from './review';
 
 function view_code(evt) {
-	evt.sender.topCtr.collection.push(review_vx, 1);
+	evt.sender.owner.collection.push(review_vx, 1);
 }
 
 function highlighted(evt) {
-	var img1 = evt.sender.topCtr.find('img1');
-	var img2 = evt.sender.topCtr.find('img2');
+	var img1 = evt.sender.owner.find('img1');
+	var img2 = evt.sender.owner.find('img2');
 	var speed = 1;
 	if ( evt.status == HIGHLIGHTED_DOWN ) {
 		speed = img1 === evt.sender ? 2 : 0.5;

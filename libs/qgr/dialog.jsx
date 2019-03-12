@@ -299,7 +299,7 @@ export function confirm(msg, cb = util.noop) {
 }
 
 function handle_prompt_enter(ev) {
-	var dag = ev.sender.topCtr;
+	var dag = ev.sender.owner;
 	dag.trigger('ClickButton', 1);
 	close(dag);
 }

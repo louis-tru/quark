@@ -11,7 +11,7 @@ var audio_player = null;
 
 function PlayVideo(evt) {
 	StopAudio(evt);
-	var v = evt.sender.topCtr.find('video');
+	var v = evt.sender.owner.find('video');
 	v.src = src_720;
 	v.start();
 }
@@ -26,7 +26,7 @@ function PlayAudio(evt) {
 }
 
 function StopVideo(evt) {
-	evt.sender.topCtr.find('video').stop();
+	evt.sender.owner.find('video').stop();
 }
 
 function StopAudio(evt) {
@@ -45,7 +45,7 @@ function Seek(evt) {
 	if ( audio_player ) {
 		audio_player.seek(10000); // 10s
 	} else {
-		evt.sender.topCtr.find('video').seek(100000); // 100s
+		evt.sender.owner.find('video').seek(100000); // 100s
 	}
 }
 

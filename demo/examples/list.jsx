@@ -3,12 +3,12 @@ import { List } from 'qgr/list';
 import { Mynavpage } from './public';
 
 function add(evt) {
-	var text = evt.sender.topCtr.find('input').value;
-	evt.sender.topCtr.find('list').push({ text: text });
+	var text = evt.sender.owner.find('input').value;
+	evt.sender.owner.find('list').push({ text: text });
 }
 
 function remove(evt) {
-	evt.sender.topCtr.find('list').pop();
+	evt.sender.owner.find('list').pop();
 }
 
 function keyenter(evt) {

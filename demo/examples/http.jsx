@@ -5,7 +5,7 @@ import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
 function url(evt) {
-	return evt.sender.topCtr.find('input').value;
+	return evt.sender.owner.find('input').value;
 }
 
 function Get(evt) {

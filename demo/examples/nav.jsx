@@ -6,23 +6,23 @@ import { Navbar, Toolbar } from 'qgr/nav';
 import review_vx from './review';
 
 function hide_show_navbar(evt) {
-	var navbar = evt.sender.topCtr.navbar;
+	var navbar = evt.sender.owner.navbar;
 	var hidden = !navbar.hidden
 	navbar.setHidden(hidden, true);
 	evt.sender.prev.transition({ height: hidden ? 20 : 0, time: 400 });
 }
 
 function hide_show_toolbar(evt) {
-	var toolbar = evt.sender.topCtr.toolbar;
+	var toolbar = evt.sender.owner.toolbar;
 	toolbar.setHidden(!toolbar.hidden, true);
 }
 
 function nav_pop(evt) {
-	evt.sender.topCtr.collection.pop(1);
+	evt.sender.owner.collection.pop(1);
 }
 
 function view_code(evt) {
-	evt.sender.topCtr.collection.push(review_vx, 1);
+	evt.sender.owner.collection.push(review_vx, 1);
 }
 
 const navbar_vx = (

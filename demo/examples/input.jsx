@@ -2,7 +2,7 @@ import { Div, Button, Text, Input, Textarea, qgr, Label } from 'qgr';
 import { Mynavpage } from './public';
 
 function start_input(evt) {
-	evt.sender.topCtr.find('input1').focus();
+	evt.sender.owner.find('input1').focus();
 }
 
 function end_input(evt) {

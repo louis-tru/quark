@@ -127,7 +127,7 @@ class View extends event.NativeNotification {
 			} else {
 				var ctr = this.controller;
 				if ( !ctr ) {
-					ctr = this.topCtr; // top view ctr
+					ctr = this.owner; // top view ctr
 				}
 				while (ctr) {
 					func2 = ctr[func];
@@ -279,7 +279,7 @@ class View extends event.NativeNotification {
 	* @get controller {ViewController}
 	* @get ctr {ViewController}
 	* @get top {View}
-	* @get topCtr {ViewController}
+	* @get owner {ViewController}
 	* @get parent {View}
 	* @get prev {View}
 	* @get next {View}

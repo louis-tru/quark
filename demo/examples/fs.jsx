@@ -7,7 +7,7 @@ import { Mynavpage } from './public';
 const filename = path.documents('test.txt');
 
 function WriteFile(evt) {
-	fs.writeFile(filename, evt.sender.topCtr.find('input').value, function(err) {
+	fs.writeFile(filename, evt.sender.owner.find('input').value, function(err) {
 		if (err)
 			alert(err.message);
 		else
@@ -17,7 +17,7 @@ function WriteFile(evt) {
 
 function WriteFileSync(evt) {
 	try {
-		var txt = evt.sender.topCtr.find('input').value;
+		var txt = evt.sender.owner.find('input').value;
 		// console.log('WriteFileSync', txt);
 		fs.writeFileSync(filename, txt);
 		alert('Write file OK.');

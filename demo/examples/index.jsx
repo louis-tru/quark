@@ -65,7 +65,7 @@ CSS({
 })
 
 function review_code(evt) {
-	evt.sender.topCtr.collection.push(review_vx, 1);
+	evt.sender.owner.collection.push(review_vx, 1);
 }
 
 const qgr_tools = 'https://www.npmjs.com/package/qgr-tools';
