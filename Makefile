@@ -44,7 +44,7 @@ make_compile=\
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
 .PHONY: $(STYLES) jsa-shell install install-dev install-tools \
-	help all clean clean-all build web server ios android linux osx doc test2 watch
+	help all clean build web ios android osx doc test2 watch
 
 .SECONDEXPANSION:
 
@@ -101,8 +101,6 @@ android:
 	@$(MAKE)
 	@$(MAKE) out/android.classs.qgr.jar
 
-linux:
-
 out/android.classs.qgr.jar: android/org/qgr/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
@@ -135,20 +133,17 @@ install-tools:
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
 
-web server:
+web:
 	@$(NODE) --inspect=0.0.0.0:9229 tools/server.js
 
 clean:
 	@rm -rfv out/$(OS).*
 	@rm -rfv out/product/qgr/product/$(OS)
 
-clean-all:
-	@rm -rfv out
-
 help:
 	@echo
-	@echo exec \"make\" or \"make build\" start compile
-	@echo exec \"make xcode\" output xcode project file
+	@echo Run \"make\" start compile
+	@echo Run \"make xcode\" output xcode project file
 	@echo You must first call before calling make \"./configure\"
 	@echo
 
