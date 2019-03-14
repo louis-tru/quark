@@ -306,6 +306,7 @@ class LinuxApplication {
 	}
 
 	void XHandleXinput2Event(XGenericEventCookie* cookie) {
+
 		XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
 		Vec2 scale = m_host->display_port()->scale();
 
