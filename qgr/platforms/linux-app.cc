@@ -461,6 +461,7 @@ class LinuxApplication {
 		return dpi;
 	}
 
+ private:
 	// @methods data:
 	AppInl* m_host;
 	Display* m_dpy;

@@ -139,7 +139,7 @@ var app = new GUIApplication({
 	multisample: 4,
 	width: 420,
 	height: 800,
-	fullscreen: 1,
+	fullscreen: 0,
 	background: 0xffffff,
 	title: 'Qgr Examples',
 }).start(

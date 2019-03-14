@@ -108,13 +108,13 @@ int test_linux_input2()
 		这些都可以在linux/input.h里面找到，然后value就是在type和code的前提下的值，
 		比如type为EV_ABS，code为ABS_X，那么value就代表触摸点的x轴绝对值。
 
-		timeS=3143,timeUS=415046,type=3,code=0,value=325  触摸x轴值                       
-		timeS=3143,timeUS=415082,type=3,code=1,value=599  触摸y轴值                              
-		timeS=3143,timeUS=415092,type=3,code=24,value=1   按下                              
-		timeS=3143,timeUS=415098,type=0,code=0,value=0    同步                              
-		timeS=3143,timeUS=430129,type=3,code=0,value=323  触摸x轴值                              
-		timeS=3143,timeUS=430169,type=3,code=1,value=592  触摸y轴值                              
-		timeS=3143,timeUS=430183,type=0,code=0,value=0    同步                              
+		timeS=3143,timeUS=415046,type=3,code=0,value=325  触摸x轴值
+		timeS=3143,timeUS=415082,type=3,code=1,value=599  触摸y轴值
+		timeS=3143,timeUS=415092,type=3,code=24,value=1   按下
+		timeS=3143,timeUS=415098,type=0,code=0,value=0    同步
+		timeS=3143,timeUS=430129,type=3,code=0,value=323  触摸x轴值
+		timeS=3143,timeUS=430169,type=3,code=1,value=592  触摸y轴值
+		timeS=3143,timeUS=430183,type=0,code=0,value=0    同步
 		timeS=3143,timeUS=445130,type=3,code=24,value=0   松开
 	*/
 

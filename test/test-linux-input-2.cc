@@ -96,7 +96,7 @@ void test_linux_input_2(int argc, char **argv)
 			close(fd);
 		}
 	}
- 
+
 	if (argc > 1) {
 		sprintf(name, "/dev/input/event%d", atoi(argv[1]));
 		if ((fd = open(name, O_RDWR, 0)) >= 0) {
