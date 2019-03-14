@@ -32,8 +32,8 @@
 #include "qgr/app-1.h"
 #include "qgr/event.h"
 #include "qgr/display-port.h"
-#include "linux-gl-1.h"
 #include "qgr/utils/android-jni.h"
+#include "linux-gl-1.h"
 #include "android/android.h"
 #include <android/native_activity.h>
 #include <android/native_window.h>
