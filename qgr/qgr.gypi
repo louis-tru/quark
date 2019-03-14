@@ -273,7 +273,7 @@
 				],
 				'link_settings': { 
 					'libraries': [ 
-						'-lGLESv2', '-lEGL', '-lX11', '-lasound',
+						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lasound',
 					],
 				},
 			}],

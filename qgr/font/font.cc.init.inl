@@ -233,6 +233,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans CJK");
 	second.push("Noto Sans CJK JP");
 	second.push("Noto Sans SC");
+	second.push("Source Han Sans CN");
 	second.push("AR PL UMing CN");
 	third.push("Droid Sans Fallback");
 #endif

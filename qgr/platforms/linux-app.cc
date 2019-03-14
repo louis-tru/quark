@@ -39,6 +39,9 @@
 #include "linux-ime-helper-1.h"
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
+#include <X11/extensions/XInput.h>
+#include <X11/extensions/XInput2.h>
+#include <X11/Xatom.h>
 #include <signal.h>
 #include <unistd.h>
 #include <alsa/asoundlib.h>
@@ -86,6 +89,7 @@ class LinuxApplication {
 	, m_main_loop(0)
 	, m_ime(nullptr)
 	, m_mixer(nullptr)
+	, m_multitouch_device(nullptr)
 	, m_element(nullptr)
 	, m_is_fullscreen(0)
 	{
@@ -138,36 +142,85 @@ class LinuxApplication {
 		XSendEvent(m_dpy, m_win, false, NoEventMask, (XEvent*)&event);
 	}
 
-	void run() {
-		m_host = Inl_GUIApplication(app());
-		m_dispatch = m_host->dispatch();
-		m_render_looper = new RenderLooper(m_host);
-		m_main_loop = m_host->main_loop();
+	/**
+	 * create x11 window
+	 */
+	Window create_xwindow () {
 
-		// create x11 window
-		m_win = XCreateWindow(
+		m_xset.event_mask = NoEventMask
+			| KeyPressMask
+			| KeyReleaseMask
+			| EnterWindowMask   // EnterNotify
+			| LeaveWindowMask   // LeaveNotify
+			| KeymapStateMask
+			| ExposureMask
+			| FocusChangeMask   // FocusIn, FocusOut
+		;
+
+		if (!m_multitouch_device) {
+			m_xset.event_mask |= NoEventMask
+				| ButtonPressMask
+				| ButtonReleaseMask
+				| PointerMotionMask // MotionNotify
+				| Button1MotionMask // Motion
+				| Button2MotionMask // Motion
+				| Button3MotionMask // Motion
+				| Button4MotionMask // Motion
+				| Button5MotionMask // Motion
+				| ButtonMotionMask  // Motion
+			;
+		}
+
+		DLOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
+
+		Window win = XCreateWindow(
 			m_dpy, m_root,
 			m_x, m_y,
 			m_width, m_height, 0,
 			DefaultDepth(m_dpy, 0),
 			InputOutput,
 			DefaultVisual(m_dpy, 0),
-			CWBackPixel|CWEventMask|CWBorderPixel|CWColormap, &m_xset
+			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &m_xset
 		);
 
-		DLOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
+		XX_CHECK(win, "Cannot create XWindow");
 
-		if (m_is_fullscreen)
-			request_fullscreen(true);
+		if (m_multitouch_device) {
+			DLOG("m_multitouch_device");
 
-		XX_CHECK(m_win, "Cannot create XWindow");
+			XIEventMask eventmask;
+			byte mask[3] = { 0,0,0 };
 
+			eventmask.deviceid = XIAllMasterDevices;
+			eventmask.mask_len = sizeof(mask);
+			eventmask.mask = mask;
+
+			XISetMask(mask, XI_TouchBegin);
+			XISetMask(mask, XI_TouchUpdate);
+			XISetMask(mask, XI_TouchEnd);
+
+			XISelectEvents(m_dpy, win, &eventmask, 1);
+		}
+
+		XStoreName(m_dpy, win, *m_title); // set window title name
+		XSetWMProtocols(m_dpy, win, &m_wm_delete_window, True);
+
+		return win;
+	}
+
+	void run() {
+		m_host = Inl_GUIApplication(app());
+		m_dispatch = m_host->dispatch();
+		m_render_looper = new RenderLooper(m_host);
+		m_main_loop = m_host->main_loop();
+		m_win = create_xwindow();
 		m_ime = new LINUXIMEHelper(m_host, m_dpy, m_win);
 
-		// XSelectInput(m_dpy, m_win, PointerMotionMask);
-		XStoreName(m_dpy, m_win, *m_title); // set window title name
-		XSetWMProtocols(m_dpy, m_win, &m_wm_delete_window, True);
 		XMapWindow(m_dpy, m_win); // Activate window
+
+		if (m_is_fullscreen) {
+			request_fullscreen(true);
+		}
 
 		XEvent event;
 
@@ -179,11 +232,9 @@ class LinuxApplication {
 
 			resolved_queue(); // resolved message queue
 
-			if (XFilterEvent(&event, None)) {
-				continue;
-			}
+			if (XFilterEvent(&event, None)) continue;
 
-			switch(event.type) {
+			switch (event.type) {
 				case Expose:
 					handle_expose(event);
 					break;
@@ -238,6 +289,13 @@ class LinuxApplication {
 						m_exit = 1; // exit
 					}
 					break;
+				case GenericEvent:
+					/* event is a union, so cookie == &event, but this is type safe. */
+					if (XGetEventData(m_dpy, &event.xcookie)) {
+						XHandleXinput2Event(&event.xcookie);
+						XFreeEventData(m_dpy, &event.xcookie);
+					}
+					break;
 				default:
 					DLOG("event, %d", event.type);
 					break;
@@ -247,6 +305,41 @@ class LinuxApplication {
 		destroy();
 	}
 
+	void XHandleXinput2Event(XGenericEventCookie* cookie) {
+		XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
+		Vec2 scale = m_host->display_port()->scale();
+
+		List<GUITouch> touchs = {
+			{
+				uint(xev->detail + 20170820),
+				0, 0,
+				float(xev->event_x / scale.x()),
+				float(xev->event_y / scale.y()),
+				0,
+				false,
+				nullptr,
+			}
+		};
+
+		switch(cookie->evtype) {
+			case XI_TouchBegin:
+				DLOG("event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
+				m_dispatch->dispatch_touchstart( move(touchs) );
+				break;
+			case XI_TouchEnd:
+				DLOG("event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
+				m_dispatch->dispatch_touchend( move(touchs) );
+				break;
+			case XI_TouchUpdate:
+				DLOG("event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
+					xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
+				m_dispatch->dispatch_touchmove( move(touchs) );
+				break;
+		}
+	}
+
 	void handle_expose(XEvent& event) {
 		DLOG("event, Expose");
 		XWindowAttributes attrs;
@@ -254,7 +347,7 @@ class LinuxApplication {
 
 		m_w_width = attrs.width;
 		m_w_height = attrs.height;
-		//if (!m_is_init)
+
 		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
 			if (m_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
@@ -282,14 +375,29 @@ class LinuxApplication {
 	void initialize(cJSON& options) {
 		XX_CHECK(XInitThreads(), "Error: Can't init X threads");
 
+		cJSON& o_x = options["x"];
+		cJSON& o_y = options["y"];
+		cJSON& o_w = options["width"];
+		cJSON& o_h = options["height"];
+		cJSON& o_b = options["background"];
+		cJSON& o_t = options["title"];
+		cJSON& o_fc = options["fullScreen"];
+		cJSON& o_et = options["enableTouch"]; int is_enable_touch = 0;
+
+		if (o_t.is_string()) m_title = o_t.to_string();
+		if (o_fc.is_bool()) m_is_fullscreen = o_fc.to_bool();
+		if (o_fc.is_int()) m_is_fullscreen = o_fc.to_int();
+		if (o_et.is_bool()) is_enable_touch = o_et.to_int();
+		if (o_et.is_int()) is_enable_touch = o_et.to_int();
+
 		m_dpy = XOpenDisplay(nullptr);
 		XX_CHECK(m_dpy, "Error: Can't open display");
+
 		m_root = XDefaultRootWindow(m_dpy);
 		m_screen = DefaultScreen(m_dpy);
 
 		m_w_width = m_width = m_s_width   = XDisplayWidth(m_dpy, m_screen);
 		m_w_height = m_height = m_s_height = XDisplayHeight(m_dpy, m_screen);
-
 		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
 		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
 		m_xft_dpi = get_monitor_dpi();
@@ -301,43 +409,55 @@ class LinuxApplication {
 		m_xset.border_pixel = 0;
 		m_xset.background_pixmap = None;
 		m_xset.border_pixmap = None;
-		m_xset.event_mask = (NoEventMask
-			| ExposureMask
-			| KeyPressMask
-			| KeyRelease
-			| ButtonPressMask
-			| ButtonReleaseMask
-			| PointerMotionMask // MotionNotify
-			| Button1MotionMask // Motion
-			| Button2MotionMask // Motion
-			| Button3MotionMask // Motion
-			| Button4MotionMask // Motion
-			| Button5MotionMask // Motion
-			| ButtonMotionMask  // Motion
-			| EnterWindowMask   // EnterNotify
-			| LeaveWindowMask   // LeaveNotify
-			| FocusChangeMask   // FocusIn, FocusOut
-		);
+		m_xset.event_mask = NoEventMask;
 		m_xset.do_not_propagate_mask = NoEventMask;
 
-		cJSON& o_x = options["x"];
-		cJSON& o_y = options["y"];
-		cJSON& o_w = options["width"];
-		cJSON& o_h = options["height"];
-		cJSON& o_b = options["background"];
-		cJSON& o_t = options["title"];
-		cJSON& o_fc = options["fullscreen"];
-
+		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
 		if (o_w.is_uint()) m_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
 		if (o_h.is_uint()) m_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
 		if (o_x.is_uint()) m_x = o_x.to_uint() * m_xwin_scale; else m_x = (m_s_width - m_width) / 2;
 		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
-		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
-		if (o_t.is_string()) m_title = o_t.to_string();
-		if (o_fc.is_bool()) m_is_fullscreen = o_fc.to_bool();
-		if (o_fc.is_int()) m_is_fullscreen = o_fc.to_int();
+
+		if (is_enable_touch)
+			initialize_multitouch();
 
 		initialize_master_volume_control();
+	}
+
+	void initialize_multitouch() {
+		XX_ASSERT(!m_multitouch_device);
+
+		Atom touchAtom = XInternAtom(m_dpy, "TOUCHSCREEN", true);
+		if (touchAtom == None) {
+			touchAtom = XInternAtom(m_dpy, XI_TOUCHSCREEN, false);
+			if (touchAtom == None) return;
+		}
+
+		int inputDeviceCount = 0;
+		XDeviceInfo* devices = XListInputDevices(m_dpy, &inputDeviceCount);
+		XDeviceInfo* touchInfo = nullptr;
+
+		for (int i = 0; i < inputDeviceCount; i++) {
+			if (devices[i].type == touchAtom) {
+				touchInfo = devices + i;
+				break;
+			}
+		}
+		if (!touchInfo) {
+			return;
+		}
+
+		m_multitouch_device =  XOpenDevice(m_dpy, touchInfo->id);
+		if (!m_multitouch_device)
+			return;
+
+		DLOG("X11 Touch enable active for device «%s»", touchInfo->name);
+
+		Atom enabledAtom = XInternAtom(m_dpy, "Device Enabled", false);
+
+		byte enabled = 1;
+		XChangeDeviceProperty(m_dpy, m_multitouch_device,
+			enabledAtom, XA_INTEGER, 8, PropModeReplace, &enabled, 1);
 	}
 
 	int get_master_volume() {
@@ -371,7 +491,7 @@ class LinuxApplication {
 	}
 
 	void request_fullscreen(bool fullscreen) {
-		int mask = CWBackPixel|CWEventMask|CWBorderPixel|CWColormap;
+		int mask = CWBackPixel | CWEventMask | CWBorderPixel | CWColormap;
 		int x, y, width, height;
 		if (fullscreen) {
 			XWindowAttributes attrs;
@@ -483,6 +603,7 @@ class LinuxApplication {
 	List<Callback> m_queue;
 	Mutex m_queue_mutex;
 	snd_mixer_t* m_mixer;
+	XDevice* m_multitouch_device;
 	snd_mixer_elem_t* m_element;
 	bool m_is_fullscreen;
 };

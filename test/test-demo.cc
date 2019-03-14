@@ -44,6 +44,15 @@ using namespace qgr;
 # define NODE_FLAG ""
 #endif
 
+static bool has_argv(cchar* name, int argc, char **argv) {
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], name) == 0) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void test_demo(int argc, char **argv) {
 	String cmd = "qgr ";
 #if USE_NODE
@@ -58,21 +67,17 @@ void test_demo(int argc, char **argv) {
 #if USE_INSPECT
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #else
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--inspect") == 0) {
-			cmd += "--inspect=0.0.0.0:9229 "; break;
-		} else if (strcmp(argv[i], "--inspect-brk") == 0) {
-			cmd += "--inspect-brk=0.0.0.0:9229 "; break;
-		}
+	if (has_argv("--inspect", argc, argv)) {
+		cmd += "--inspect=0.0.0.0:9229 ";
+	} else if (has_argv("--inspect-brk", argc, argv)) {
+		cmd += "--inspect-brk=0.0.0.0:9229 ";
 	}
 #endif
 #if USE_DEV
 	cmd += "--dev ";
 #else
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--dev") == 0) {
-			cmd += "--dev "; break;
-		}
+	if (has_argv("--dev", argc, argv)) {
+		cmd += "--dev ";
 	}
 #endif
 
@@ -85,6 +90,7 @@ void test_demo(int argc, char **argv) {
 	}
 	if (examples) {
 		cmd += examples;
+		cmd += ' ';
 	} else {
 #if USE_REMOTE
 		cmd += "http://" IP_REMOTE ":1026/demo/examples ";
@@ -92,6 +98,13 @@ void test_demo(int argc, char **argv) {
 		cmd += "examples ";
 #endif
 	}
+
+	if (has_argv("--full-screen", argc, argv)) {
+		cmd += "--full-screen ";
+	}
+
+	LOG(cmd);
+
 	js::Start(cmd);
 }
 
