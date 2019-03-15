@@ -106,13 +106,16 @@ function stripBOM(content) {
 
 function readSource(pathname) {
 	var ext = path.extname(pathname);
-	if (ext == '.js' || ext == '.jsx') {
+	if (/*pathname.indexOf('value.js') == -1 && */(ext == '.js' || ext == '.jsx')) {
 		console.log('jsa-shell', pathname);
 		syscall.syscall(`${__dirname}/../libs/qgr-tools/bin/${host_os}/jsa-shell `
 											+ pathname + ' ' + pathname + '~');
 		var result = fs.readFileSync(pathname + '~').toJSON().data;
-		// console.log(result);
+		// if (pathname.indexOf('value.js') != -1) {
+		// 	console.log(fs.readFileSync(pathname + '~', 'utf-8'));
+		// } else {
 		fs.unlinkSync(pathname + '~');
+		// }
 		return result;
 	} else {
 		return fs.readFileSync(pathname).toJSON().data;

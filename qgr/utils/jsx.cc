@@ -694,6 +694,7 @@ class Scanner : public Object {
 				if (c0_ < 0 || !scan_string_escape()) {
 					token = ILLEGAL; break;
 				}
+				continue;
 			} else if (c == '$') { // js字符串内部指令开始必须以}结束
 				// ${ command }
 				if (c0_ == '{') {         // COMMAND
@@ -1203,12 +1204,11 @@ class Scanner : public Object {
 			}
 		}
 		else { // < <= << <<=
-			advance();
-			if (c0_ == '=') {
+			if (c0_ == '=') { // <=
 				return select(LTE);
-			} else if (c0_ == '<') {
+			} else if (c0_ == '<') { // <<= or <<
 				return select('=', ASSIGN_SHL, SHL);
-			} else {
+			} else { // <
 				return LT;
 			}
 		}
@@ -1877,7 +1877,11 @@ public:
 				if (is_legal_literal_begin(false)) {
 					parse_regexp_expression();
 				} else {
-					out_code(_DIV);
+					if (token() == DIV) {
+						out_code(_DIV);
+					} else {
+						out_code(_ASSIGN_DIV);
+					}
 				}
 				break;
 			case ILLEGAL:                 // illegal

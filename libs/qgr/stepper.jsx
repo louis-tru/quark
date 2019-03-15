@@ -30,7 +30,7 @@
 
 import { 
 	CSS, Div, Hybrid, Button, ViewController, atomPixel 
-} from 'qgr';
+} from 'qgr/qgr';
 
 CSS({
 	
