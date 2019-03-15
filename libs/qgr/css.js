@@ -30,8 +30,8 @@
 
 export requireNative('_css');
 
-import './util';
-import './value';
+import 'qgr/util';
+import 'qgr/value';
 
 const dev = util.dev;
 const _priv = value._priv;

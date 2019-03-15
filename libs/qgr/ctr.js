@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import { EventNoticer, NativeNotification } from './event';
+import 'qgr/util';
+import { EventNoticer, NativeNotification } from 'qgr/event';
 
 var _qgr = requireNative('_qgr');
 var View = _qgr.View;
@@ -580,7 +580,7 @@ export class ViewController extends _qgr.NativeViewController {
 	event onBlur;
 	event onHighlighted;
 	event onFocusMove;
-	event onScroll;  
+	event onScroll;
 	event onActionKeyframe;
 	event onActionLoop;
 	event onWaitBuffer; // player

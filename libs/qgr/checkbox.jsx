@@ -30,7 +30,7 @@
 
 import { 
 	CSS, ViewController, Div, Button, Indep, TextNode 
-} from './qgr';
+} from 'qgr';
 
 CSS({
 	

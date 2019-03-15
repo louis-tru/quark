@@ -36,7 +36,7 @@
 #include "qgr/view.h"
 #include "js-1.h"
 #include "wrap.h"
-#include "native-ext-js.h"
+#include "native-inl-js.h"
 #include <uv.h>
 #include "value.h"
 
@@ -506,7 +506,9 @@ Local<JSValue> IMPL::binding_node_module(cString& name) {
 			m_env->process_object())->GetProperty(m_host, "binding");
 		return binding.To<JSFunction>()->Call(m_host, 1, &argv);
 	}
-#endif 
+#endif
+	// error
+	m_host->throw_err(m_host->NewError("Cannot find module %s", *name));
 	return Local<JSValue>();
 }
 
@@ -1340,8 +1342,8 @@ int IMPL::start(int argc, char** argv) {
 		{
 			HandleScope scope(*worker);
 			Local<JSValue> module = worker->run_native_script(WeakBuffer((char*)
-					EXT_native_js_code_module_, 
-					EXT_native_js_code_module_count_), "module.js"
+					INL_native_js_code_module_, 
+					INL_native_js_code_module_count_), "module.js"
 			);
 			XX_CHECK(!module.IsEmpty(), "Can't start worker");
 

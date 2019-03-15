@@ -31,7 +31,7 @@
 import { 
 	ViewController, Div, Hybrid, New, 
 	Text, TextNode, Label, isViewXml, EMPTY_VIEW_XML
-} from './qgr';
+} from 'qgr/qgr';
 
 function get_child_text_type(vx) {
 	if ( isViewXml(vx, Div) ) {

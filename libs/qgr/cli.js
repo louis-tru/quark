@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './http';
-import { URL, resolve: format } from './url';
-import { Notification } from './event';
+import 'qgr/util';
+import 'qgr/http';
+import { URL, resolve: format } from 'qgr/url';
+import { Notification } from 'qgr/event';
 
 /**
  * @class CallRequest

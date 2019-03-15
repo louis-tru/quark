@@ -30,13 +30,16 @@
 
 var fs = require('fs');
 var path = require('path');
+var syscall = require('../libs/qgr-utils/syscall');
 var inputs = process.argv.slice(2);
 var output_cc = inputs.pop();
 var output_h = inputs.pop();
 var is_wrap = inputs.pop() == 'wrap';
 var type = inputs.pop();
+var suffix = inputs.pop();
 var Buffer = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
+var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 
 /*
 console.log(inputs);
@@ -79,8 +82,7 @@ var wrap_len = is_wrap ? wrap_s.length + wrap_e.length : 0;
 function write(fd) {
 	for (var i = 1; i < arguments.length; i++) {
 		fs.writeSync(fd, arguments[i], 'utf-8');
-		//if ( !no_line_feed )
-			fs.writeSync(fd, '\n', 'utf-8');
+		fs.writeSync(fd, '\n', 'utf-8');
 	}
 }
 
@@ -90,21 +92,48 @@ function write_no_line_feed(fd) {
 	}
 }
 
+/**
+ * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+ * because the buffer-to-string conversion in `fs.readFileSync()`
+ * translates it to FEFF, the UTF-16 BOM.
+ */
+function stripBOM(content) {
+	if (content.charCodeAt(0) === 0xFEFF) {
+		content = content.slice(1);
+	}
+	return content;
+}
+
+function readSource(pathname) {
+	var ext = path.extname(pathname);
+	if (ext == '.js' || ext == '.jsx') {
+		console.log('jsa-shell', pathname);
+		syscall.syscall(`${__dirname}/../libs/qgr-tools/bin/${host_os}/jsa-shell `
+											+ pathname + ' ' + pathname + '~');
+		var result = fs.readFileSync(pathname + '~').toJSON().data;
+		// console.log(result);
+		fs.unlinkSync(pathname + '~');
+		return result;
+	} else {
+		return fs.readFileSync(pathname).toJSON().data;
+	}
+}
+
 function main() {
 
-	if ( !check_file_is_change(inputs, [output_h, output_cc]) ) {
+	if ( !check_file_is_change(inputs.concat([__filename]), [output_h, output_cc]) ) {
 		return;
 	}
-	
+
 	var fd_h = fs.openSync(output_h, 'w');
 	var fd_cc = fs.openSync(output_cc, 'w');
-	
+
 	if (!fd_h || !fd_cc) {
 		throw "Output error";
 	}
-	
+
 	var h_name = output_h.replace(/[-\.\/]/gm, '_');
-	
+
 	write(fd_h,
 				'#ifndef __native__js__' + h_name + '__',
 				'#define __native__js__' + h_name + '__',
@@ -113,34 +142,36 @@ function main() {
 				' int count;',
 				' const char* code;',
 				' const char* name;',
+				' const char* ext;',
 				'};'
-				);
-	
+	);
+
 	write(fd_cc,
 				'#include "' + output_h.replace(/^.+\/([^\/]+)$/, '$1') + '"',
 				'namespace native_js {'
-				);
-	
+	);
+
 	var js = [];
-	
+
 	for (var i = 0; i < inputs.length; i++) {
-		
+
 		var filename = inputs[i];
+		var extname = path.extname(filename);
 		var basename = path.basename(filename).replace(/\..*$/gm, '').replace(/-/gm, '_');
 		var name = format_string('{0}_native_js_code_{1}_', type, basename);
 		var count_name = format_string('{0}_native_js_code_{1}_count_', type, basename);
-		var arr = fs.readFileSync(filename).toJSON().data;
+		var arr = readSource(filename);
 		var length = arr.length + wrap_len;
-		
-		js.push({ name: name, count: length, basename: basename });
-		
+
+		js.push({ name: name, count: length, basename: suffix + basename, extname: extname });
+
 		// h
 		write(fd_h, format_string('extern const int {0};', count_name));
 		write(fd_h, format_string('extern const unsigned char {0}[];', name));
 		// cc
 		write(fd_cc, format_string('const int {0} = {1};', count_name, length));
 		write(fd_cc, format_string('const unsigned char {0}[] = {', name));
-		
+
 		if (is_wrap) {
 			write_no_line_feed(fd_cc, wrap_s.join(','), ',');
 		}
@@ -150,17 +181,16 @@ function main() {
 		}
 		write(fd_cc, ',0', '};');
 	}
-	
+
 	write(fd_h, format_string('extern const int {0}_native_js_count_;', type));
 	write(fd_h, format_string('extern const {0}_NativeJSCode {0}_native_js_[];', type));
 	write(fd_cc, format_string('const int {0}_native_js_count_ = {1};', type, js.length));
 	write(fd_cc, format_string('const {0}_NativeJSCode {0}_native_js_[] = {', type));
-	
-	for (var i = 0; i < js.length; i++) {
-		write(fd_cc, '{ ' + js[i].count + ', (const char*)' + js[i].name + 
-										', "' + js[i].basename + '" },');
+
+	for (var { count, name, basename, extname } of js) {
+		write(fd_cc, `{ ${count}, (const char*)${name}, "${basename}", "${extname}" },`);
 	}
-	
+
 	write(fd_h, '}\n#endif');
 	write(fd_cc, '};\n}');
 	fs.closeSync(fd_h);

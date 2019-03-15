@@ -30,8 +30,8 @@
 
 import {
 	View, Div, Text, Clip, Indep, qgr
-} from './qgr';
-import { Navigation } from './nav';
+} from 'qgr/qgr';
+import { Navigation } from 'qgr/nav';
 
 var arrow_size = { width: 30, height: 12 };
 

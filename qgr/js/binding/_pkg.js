@@ -38,7 +38,7 @@ const _pkgutil = requireNative('_pkgutil');
 const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
-				isLocal, isLocalZip, 
+				isLocal, isLocalZip, extendEntries, extendModuleCodes,
 				isNetwork, assert, stripBOM, Module, NativeModule } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
@@ -46,6 +46,7 @@ const { readFile,
 const { haveNode } = _util;
 const options = {};  // start options
 const external_cache = {};
+const extend_cache = {};
 const debug = _pkgutil.debug('PKG');
 var ignore_local_package, ignore_all_local_package;
 var keys = null, config = null;
@@ -73,46 +74,6 @@ function print_err(err) {
 
 function print_warn(err) {
 	console.warn.apply(console, format_msg(arguments));
-}
-
-function extendEntries(obj, extd) {
-	for (var item of Object.entries(extd)) {
-		obj[item[0]] = item[1];
-	}
-	return obj;
-}
-
-function __vx(raw_vx, attrs, vdata) {
-	if (!raw_vx || raw_vx.vx !== 0) {
-		throw new TypeError('Raw View xml type error.');
-	}
-	
-	// { vx:0, v:[tag,attrs,childs,vdata] }
-
-	var v = raw_vx.v.slice();
-	var r = { vx: 0, v: v };
-	
-	if (vdata) {
-		v[3] = vdata;
-	}
-	
-	if (attrs.length != 0) {
-		var raw_attrs = v[1];
-		var attrs_map = {};
-		v[1] = attrs; // new attrs
-		for (var attr of attrs) {
-			attrs_map[attr[0].join('.')] = 1; // mark current attr
-		}
-		for (var attr of raw_attrs) {
-			var name = attr[0].join('.');
-			if (!(name in attrs_map)) {
-				attrs.push(attr);
-				attrs_map[name] = 1;
-			}
-		}
-	}
-
-	return r;
 }
 
 /**
@@ -172,9 +133,6 @@ function read_text(path, cb) {
 function read_text_sync(path) {
 	return readFileSync(path, 'utf8');
 }
-
-global.__vx = __vx;
-global.__extend = extendEntries;
 
 // -------------------------- Module extensions --------------------------
 
@@ -608,12 +566,10 @@ function Package_require(self, parent, request) {
 	name = name.substr(0, name.length - _path.extname(name).length).replace(/[\.\-]/g, '_');
 	var exports = module.exports[name] = module.exports;
 
-	var threw = true;
 	try {
 		module.load(pathname);
-		threw = false;
 	} finally {
-		if (threw) {
+		if (!module.loaded) {
 			delete self.m_modules[pathname];
 		}
 	}
@@ -1131,22 +1087,24 @@ function Packages_require_parse_argv(self) {
 function Packages_require_add_main_search_path(self) {
 	var main = self.m_main_startup_path;
 
-	if (isNetwork(main)) {
-		if (options.dev) {
-			Packages_require_before(instance); // load packages
-			// 这是一个网络启动并为调式状态时,尝试从调式服务器`/libs` load `package`
-			var mat = main.match(/^https?:\/\/[^\/]+/);
-			assert(mat, 'Unknown err');
-			instance.addPackageSearchPath(mat[0] + '/libs');
+	if (main) {
+		if (isNetwork(main)) {
+			if (options.dev) {
+				Packages_require_before(instance); // load packages
+				// 这是一个网络启动并为调式状态时,尝试从调式服务器`/libs` load `package`
+				var mat = main.match(/^https?:\/\/[^\/]+/);
+				assert(mat, 'Unknown err');
+				instance.addPackageSearchPath(mat[0] + '/libs');
+			}
 		}
-	}
-	else { // local
-		if (_path.extname(main) == '') { // package
-			instance.addPackageSearchPath(main + '/libs');
-			instance.addPackageSearchPath(main + '/../libs');
-		} else {
-			instance.addPackageSearchPath(_path.dirname(main) + '/libs');
-			instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
+		else { // local
+			if (_path.extname(main) == '') { // package
+				instance.addPackageSearchPath(main + '/libs');
+				instance.addPackageSearchPath(main + '/../libs');
+			} else {
+				instance.addPackageSearchPath(_path.dirname(main) + '/libs');
+				instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
+			}
 		}
 	}
 
@@ -1402,7 +1360,7 @@ Packages.prototype.isLocalZip = isLocalZip;
 Packages.prototype.isNetwork = isNetwork;
 
 // require absolute path file
-function inl_require_external(path) {
+function inl_require_external(path, parent) {
 	var r = instance.getPackageWithAbsolutePath(path);
 	if (r) { // 重新require
 		return inl_require(r.package, '', r.path);
@@ -1413,18 +1371,52 @@ function inl_require_external(path) {
 		return external_cache[path].exports;
 	}
 
-	var module = new Module(path, null, null);
+	var module = new Module(path, parent, null);
 	external_cache[path] = module;
 
-	var threw = true;
 	try {
 		module.load(set_url_args(path));
-		threw = false;
 	} finally {
-		if (threw) {
+		if (!module.loaded) {
 			delete external_cache[path];
 		}
 	}
+	return module.exports;
+}
+
+/**
+ * @func inl_require_extend(path)
+ */
+function inl_require_extend(path, parent) {
+
+	if (extend_cache[path]) {
+		return extend_cache[path].exports;
+	}
+	if (!extendModuleCodes[path]) {
+		return;
+	}
+
+	var { filename, extname, content } = extendModuleCodes[path];
+	var module = new Module(filename, parent, null);
+	extend_cache[path] = module;
+	module.filename = filename;
+	module.paths = [];
+
+	try {
+		if (extname == '.json') {
+			module.exports = parseJSON(content, filename);
+		} else if (extname == '.keys') {
+			module.exports = parse_keys(content);
+		} else {
+			module._compile(content, filename, filename);
+		}
+		module.loaded = true;
+	} finally {
+		if (!module.loaded) {
+			delete extend_cache[path];
+		}
+	}
+
 	return module.exports;
 }
 
@@ -1454,9 +1446,8 @@ function inl_require(request, parent) {
 	}
 
 	if (request.length > 2 && 
-			request.charCodeAt(0) === 46/*.*/ &&  (
-			request.charCodeAt(1) === 46/*.*/ || 
-			request.charCodeAt(1) === 47/*/*/)
+			request.charCodeAt(0) === 46/*.*/ && (
+			request.charCodeAt(1) === 46/*.*/ || request.charCodeAt(1) === 47/*/*/)
 	) {
 		// path in package
 	} else if (isAbsolute(request)) { // absolute path
@@ -1472,13 +1463,18 @@ function inl_require(request, parent) {
 			}
 		}
 	}
-	
+
 	request = dir ? dir + '/' + request : request; // 包内路径
 
 	if (pkg) {
 		return Package_require(pkg, parent, request).exports;
-	} else { // 外部导入 `inl_require_external`
-		return inl_require_external(resolve(request));
+	} else {
+		var result = inl_require_extend(request, parent);
+		if (result) { // 扩展 ext
+			return result;
+		} else { // 外部导入 `inl_require_external`
+			return inl_require_external(resolve(request), parent);
+		}
 	}
 }
 

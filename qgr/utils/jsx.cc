@@ -133,6 +133,7 @@ static cUcs2String _CHILDS_COMMENT(String("/*childs*/"));
 static cUcs2String _TYPE(String("vx"));
 static cUcs2String _VALUE2(String("v"));
 static cUcs2String _MULTIPLE(String("m"));
+static cUcs2String _STATIC(String("static"));
 
 //LF
 static inline bool is_carriage_return(int c) {
@@ -318,6 +319,7 @@ enum Token {
 	ELSE,                   // else
 	GET,                    // get
 	SET,                    // set
+	STATIC,                 // static
 	/* Illegal token - not able to scan. */
 	ILLEGAL,                // illegal
 	/* Scanner-internal use only. */
@@ -338,13 +340,13 @@ inline static bool isBinaryOrCompareOp(Token op){
 class Scanner : public Object {
  public:
 	
-	Scanner(const uint16* code, uint size)
+	Scanner(const uint16* code, uint size, bool clean_comment)
 	: code_(code)
 	, size_(size)
 	, pos_(0)
 	, line_(0)
 	, current_(new TokenDesc())
-	, next_(new TokenDesc())
+	, next_(new TokenDesc()), clean_comment_(clean_comment)
 	{ //
 		c0_ = size_ == 0 ? -1: *code_;
 		strip_bom();
@@ -1067,6 +1069,7 @@ class Scanner : public Object {
 			KEYWORD("return", RETURN) \
 			KEYWORD_GROUP('s')  \
 			KEYWORD("set", SET) \
+			KEYWORD("static", STATIC) \
 			KEYWORD_GROUP('t')  \
 			KEYWORD("typeof", TYPEOF) \
 			KEYWORD_GROUP('v')  \
@@ -1129,16 +1132,31 @@ class Scanner : public Object {
 								} else {
 									next_->string_value.push('-');
 									next_->string_value.push('-');
-									next_->string_value.push(c0_ == '*' ? 'x' : c0_);
+									if (clean_comment_) {
+										if (c0_ == '\n')
+											next_->string_value.push(c0_);
+									}
+									else
+										next_->string_value.push(c0_ == '*' ? 'x' : c0_);
 								}
 							} else break;
 						} else {
 							next_->string_value.push('-');
-							next_->string_value.push(c0_ == '*' ? 'x' : c0_);
+							if (clean_comment_) {
+								if (c0_ == '\n')
+									next_->string_value.push(c0_);
+							}
+							else
+								next_->string_value.push(c0_ == '*' ? 'x' : c0_);
 						}
 					} else break;
 				} else {
-					next_->string_value.push(c0_ == '*' ? 'x' : c0_);
+					if (clean_comment_) {
+						if (c0_ == '\n')
+							next_->string_value.push(c0_);
+					}
+					else
+						next_->string_value.push(c0_ == '*' ? 'x' : c0_);
 				}
 				advance();
 			}
@@ -1244,9 +1262,12 @@ class Scanner : public Object {
 	
 	Token skip_multi_line_comment() {
 		advance();
-		
-		next_->string_space.push('/');
-		next_->string_space.push('*');
+
+		if (!clean_comment_) {
+			next_->string_space.push('/');
+			next_->string_space.push('*');
+		}
+
 		while (c0_ >= 0) {
 			int ch = c0_;
 			advance();
@@ -1255,11 +1276,18 @@ class Scanner : public Object {
 			// multi-line comments are treated as whitespace.
 			if (ch == '*' && c0_ == '/') {
 				advance();
-				next_->string_space.push('*');
-				next_->string_space.push('/');
+				if (!clean_comment_) {
+					next_->string_space.push('*');
+					next_->string_space.push('/');
+				}
 				return WHITESPACE;
 			} else {
-				next_->string_space.push(ch);
+				if (clean_comment_) {
+					if (ch == '\n')
+						next_->string_space.push(ch);
+				}
+				else
+					next_->string_space.push(ch);
 			}
 		}
 		// Unterminated multi-line comment.
@@ -1273,10 +1301,13 @@ class Scanner : public Object {
 		// to be part of the single-line comment; it is recognized
 		// separately by the lexical grammar and becomes part of the
 		// stream of input elements for the syntactic grammar (see
-		next_->string_space.push('/');
-		next_->string_space.push('/');
+		if (!clean_comment_) {
+			next_->string_space.push('/');
+			next_->string_space.push('/');
+		}
 		while (c0_ >= 0 && !is_line_terminator(c0_)) {
-			next_->string_space.push(c0_);
+			if (!clean_comment_)
+				next_->string_space.push(c0_);
 			advance();
 		}
 		return WHITESPACE;
@@ -1565,6 +1596,7 @@ class Scanner : public Object {
 	TokenDesc*      current_;
 	TokenDesc*      next_;
 	Token           prev_;
+	bool            clean_comment_;
 };
 
 /**
@@ -1582,10 +1614,9 @@ public:
 	, _is_xml_attribute_expression(false)
 	, _single_if_expression_before(false)
 	, _has_export_default(false)
+	, _clean_comment(1)
 	{
-		//String str = in.to_string();
-		//LOG(str);
-		_scanner = new Scanner(*in, in.length());
+		_scanner = new Scanner(*in, in.length(), _clean_comment);
 		_out = &_top_out;
 	}
 	
@@ -2188,6 +2219,7 @@ public:
 			switch(tok) {
 				case GET:
 				case SET:
+				 get_set:
 					if ( is_class_member_identifier(peek()) ) {
 						// Property accessor
 						// get identifier() { ... }
@@ -2241,14 +2273,30 @@ public:
 						UNEXPECTED_TOKEN_ERROR();
 					}
 					break;
-				case MUL: // * generator function
-					out_code(_MUL);
-					if ( !is_class_member_identifier(next()) ) {
+				case STATIC: // static
+					fetch_code(); // fetch static
+					if (next() == GET || _scanner->token() == SET) {
+						tok = _scanner->token();
+						goto get_set;
+					} else if (_scanner->token() == ASYNC) {
+						goto async;
+					} else if ( is_class_member_identifier(_scanner->token()) ) {
+						goto function;
+					} else if (_scanner->token() == MUL) {
+						goto mul;
+					}
+					UNEXPECTED_TOKEN_ERROR();
+				case ASYNC: // async function
+				 async:
+					fetch_code(); // fetch async
+					if ( is_class_member_identifier(next()) ) {
+						goto function;
+					} else if (_scanner->token() != MUL) {
 						UNEXPECTED_TOKEN_ERROR();
 					}
-					goto function;
-				case ASYNC: // async function
-					fetch_code(); // fetch async
+				case MUL: // * generator function
+				 mul:
+					out_code(_MUL);
 					if ( !is_class_member_identifier(next()) ) {
 						UNEXPECTED_TOKEN_ERROR();
 					}
@@ -2289,7 +2337,7 @@ public:
 			};
 		}
 		
-	end:
+	 end:
 		out_code(_RBRACE); // {
 	}
 	
@@ -2829,7 +2877,8 @@ public:
 	void complete_xml_content_string(Ucs2StringBuilder& str,
 																	 Ucs2StringBuilder& space,
 																	 bool& is_once_comma,
-																	 bool before_comma, bool ignore_space) {
+																	 bool before_comma, bool ignore_space) 
+	{
 		if (str.string_length()) {
 			Ucs2String s = str.to_basic_string();
 			if ( !ignore_space || ! s.is_blank() ) {
@@ -3061,6 +3110,7 @@ public:
 	bool              _is_xml_attribute_expression;
 	bool  _single_if_expression_before;
 	bool  _has_export_default;
+	bool  _clean_comment;
 };
 
 Ucs2String Jsx::transform_jsx(cUcs2String& in, cString& path) throw(Error) {

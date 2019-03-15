@@ -34,7 +34,7 @@
 #include "qgr/js/value.h"
 #include "qgr/font.h"
 #include "qgr/draw.h"
-#include "native-ext-js.h"
+#include "native-inl-js.h"
 
 /**
  * @ns qgr::js
@@ -1111,8 +1111,8 @@ class NativeValue {
 			TryCatch try_catch;
 
 			if (worker->run_native_script(WeakBuffer((char*)
-							native_js::EXT_native_js_code_value_,
-							native_js::EXT_native_js_code_value_count_), "value.js", exports).IsEmpty()) {
+							native_js::INL_native_js_code_value_,
+							native_js::INL_native_js_code_value_count_), "value.js", exports).IsEmpty()) {
 				if ( try_catch.HasCaught() ) {
 					worker->report_exception(&try_catch);
 				}

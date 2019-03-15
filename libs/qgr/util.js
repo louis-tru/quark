@@ -30,7 +30,7 @@
 
 /**************************************************************************/
 
-import { Event, Notification } from './event';
+import { Event, Notification } from 'qgr/event';
 var _util = requireNative('_util');
 var _pkg = requireNative('_pkg');
 var { haveNode } = _util;

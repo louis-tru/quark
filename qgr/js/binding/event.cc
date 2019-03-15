@@ -37,7 +37,7 @@
 #include "qgr/keyboard.h"
 #include "qgr/js/str.h"
 #include "event-1.h"
-#include "native-ext-js.h"
+#include "native-inl-js.h"
 
 /**
  * @ns qgr::js
@@ -680,8 +680,8 @@ class BindingNativeEvent {
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->run_native_script(WeakBuffer((char*)
-															EXT_native_js_code_event_,
-															EXT_native_js_code_event_count_), "event.js", exports);
+															INL_native_js_code_event_,
+															INL_native_js_code_event_count_), "event.js", exports);
 		// Enum: HighlightedStatus
 		JS_SET_PROPERTY(HIGHLIGHTED_NORMAL, HIGHLIGHTED_NORMAL);
 		JS_SET_PROPERTY(HIGHLIGHTED_HOVER, HIGHLIGHTED_HOVER);

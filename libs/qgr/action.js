@@ -30,8 +30,8 @@
 
 export requireNative('_action');
 
-import './util';
-import './value';
+import 'qgr/util';
+import 'qgr/value';
 
 const { Action, SpawnAction, SequenceAction, KeyframeAction } = exports;
 

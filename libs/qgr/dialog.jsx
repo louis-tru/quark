@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
  
-import './util';
+import 'qgr/util';
 import { 
 	CSS, New, Indep, Hybrid, Clip, Input, Span,
 	LimitIndep, Div, Limit, Text, Button, Panel, atomPixel, qgr
-} from './qgr';
-import { Navigation } from './nav';
+} from 'qgr';
+import { Navigation } from 'qgr/nav';
 
 CSS({
 	

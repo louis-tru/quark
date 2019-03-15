@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('./util');
-var reader = require('./reader');
+var util = require('qgr/util');
+var reader = require('qgr/reader');
 var parse_keys = requireNative('_keys').parse;
 
 function write_data(self, value) {

@@ -30,13 +30,13 @@
 
 export requireNative('_qgr');
 
-import './util';
-import './event';
-import './app';
-import './action';
-import './ctr';
-import './display_port';
-import './css';
+import 'qgr/util';
+import 'qgr/event';
+import 'qgr/app';
+import 'qgr/action';
+import 'qgr/ctr';
+import 'qgr/display_port';
+import 'qgr/css';
 
 /**
 	* @class View

@@ -35,7 +35,7 @@
 #include "qgr/utils/http.h"
 #include "binding/event-1.h"
 #include "android/android.h"
-#include "native-ext-js.h"
+#include "native-inl-js.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
 

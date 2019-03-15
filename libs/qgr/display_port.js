@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './app';
-import { NativeNotification } from './event';
+import 'qgr/util';
+import 'qgr/app';
+import { NativeNotification } from 'qgr/event';
 export requireNative('_display_port');
 
 /**

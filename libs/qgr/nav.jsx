@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './sys';
-import { List, KEYCODE_MENU } from './event';
+import 'qgr/util';
+import 'qgr/sys';
+import { List, KEYCODE_MENU } from 'qgr/event';
 import { 
 	ViewController, View, Div, Indep, 
 	Limit, Button, Text, TextNode, Clip, 

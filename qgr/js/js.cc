@@ -30,8 +30,8 @@
 
 #include "qgr/utils/string.h"
 #include "js-1.h"
-#include "native-ext-js.h"
-#include "native-core-js.h"
+#include "native-inl-js.h"
+#include "native-inl2-js.h"
 #include "qgr.h"
 #include "qgr/utils/http.h"
 #include "qgr/utils/codec.h"
@@ -249,7 +249,7 @@ struct NativeModule {
 	String name;
 	String file;
 	Worker::BindingCallback binding;
-	const CORE_NativeJSCode* native_code;
+	const INL2_NativeJSCode* native_code;
 };
 
 static Map<String, NativeModule>* native_modules = nullptr;
@@ -278,8 +278,8 @@ void IMPL::initialize() {
 	m_global.local()->SetMethod(m_host, "requireNative", require_native);
 	
 	Local<JSValue> ext = m_host->run_native_script(WeakBuffer((char*)
-			EXT_native_js_code_ext_, 
-			EXT_native_js_code_ext_count_), "ext.js"
+			INL_native_js_code_ext_, 
+			INL_native_js_code_ext_count_), "ext.js"
 	);
 	XX_CHECK(!ext.IsEmpty(), "Cannot initialize worker ext");
 }
@@ -369,30 +369,32 @@ void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
 Local<JSValue> Worker::binding_module(cString& name) {
 	Local<JSValue> str = New(name);
 	Local<JSValue> r = m_inl->m_native_modules.local()->Get(this, str);
-	
+
 	if (!r->IsUndefined()) {
 		return r.To<JSObject>();
 	}
+
 	auto it = native_modules->find(name);
 	if (it.is_null()) {
 		return m_inl->binding_node_module(name);
-	} else {
-		NativeModule& mod = it.value();
-		Local<JSObject> exports = NewObject();
-		if (mod.binding) {
-			mod.binding(exports, this);
-		} else if (mod.native_code) {
-			exports = run_native_script(WeakBuffer((char*)
-				mod.native_code->code, 
-				mod.native_code->count), name, exports
-			).To();
-			if ( exports.IsEmpty() ) {
-				return exports;
-			}
-		}
-		m_inl->m_native_modules.local()->Set(this, str, exports);
-		return exports;
 	}
+
+	NativeModule& mod = it.value();
+	Local<JSObject> exports = NewObject();
+
+	if (mod.binding) {
+		mod.binding(exports, this);
+	} else if (mod.native_code) {
+		exports = run_native_script(WeakBuffer((char*)
+			mod.native_code->code, 
+			mod.native_code->count), name, exports
+		).To();
+		if ( exports.IsEmpty() ) { // error
+			return exports;
+		}
+	}
+	m_inl->m_native_modules.local()->Set(this, str, exports);
+	return exports;
 }
 
 Worker::Worker(IMPL* inl): m_inl(inl) {
@@ -402,8 +404,8 @@ Worker::Worker(IMPL* inl): m_inl(inl) {
 		if (!native_modules) {
 			native_modules = new Map<String, NativeModule>();
 		}
-		for (int i = 0; i < CORE_native_js_count_; i++) {
-			const CORE_NativeJSCode* code = CORE_native_js_ + i;
+		for (int i = 0; i < INL2_native_js_count_; i++) {
+			const INL2_NativeJSCode* code = INL2_native_js_ + i;
 			native_modules->set(code->name, { code->name, code->name, 0, code });
 		}
 	}

@@ -37,7 +37,7 @@ using namespace qgr;
 #define DEBUG_JSA 0
 #define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/qgr_ace/ace/Makefile.dryice.js"
 
-#define error(err) { XX_ERR(err); return 1; }
+#define error(err, ...) { XX_ERR(err, ##__VA_ARGS__); return 1; }
 
 bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx) {
 #if DEBUG_JSA
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 #endif
 	
 	if ( ! FileHelper::exists_sync(src) ) {
-		error("Bad argument.");
+		error("Bad argument. cannot find %s", *src);
 	}
 	
 	String extname = Path::extname(src).lower_case();

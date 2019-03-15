@@ -305,6 +305,48 @@ function debug(TAG = 'PKG') {
 	}
 }
 
+function extendEntries(obj, extd) {
+	for (var item of Object.entries(extd)) {
+		obj[item[0]] = item[1];
+	}
+	return obj;
+}
+
+function extendViewXml(raw_vx, attrs, vdata) {
+	if (!raw_vx || raw_vx.vx !== 0) {
+		throw new TypeError('Raw View xml type error.');
+	}
+	
+	// { vx:0, v:[tag,attrs,childs,vdata] }
+
+	var v = raw_vx.v.slice();
+	var r = { vx: 0, v: v };
+	
+	if (vdata) {
+		v[3] = vdata;
+	}
+	
+	if (attrs.length != 0) {
+		var raw_attrs = v[1];
+		var attrs_map = {};
+		v[1] = attrs; // new attrs
+		for (var attr of attrs) {
+			attrs_map[attr[0].join('.')] = 1; // mark current attr
+		}
+		for (var attr of raw_attrs) {
+			var name = attr[0].join('.');
+			if (!(name in attrs_map)) {
+				attrs.push(attr);
+				attrs_map[name] = 1;
+			}
+		}
+	}
+
+	return r;
+}
+
+var extendModuleCodes = {};
+
 Object.assign(exports, {
 	fallbackPath,
 	resolvePathLevel,
@@ -319,4 +361,6 @@ Object.assign(exports, {
 	stripShebang,
 	stripBOM,
 	assert, debug,
+	extendEntries,
+	extendViewXml, extendModuleCodes,
 });

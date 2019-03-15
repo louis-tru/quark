@@ -65,10 +65,15 @@ jsa-shell: $(GYPFILES)
 	@mkdir -p $(TOOLS)/bin/$(OS)
 	@cp $(LIBS_DIR)/jsa-shell $(TOOLS)/bin/$(OS)/jsa-shell
 
+test2: $(GYPFILES)
+	#make -C test -f test2.mk
+	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
+	@$(call make_compile,$(MAKE))
+
 #################################################
 
 # build all ios platform and output to product dir
-ios:
+ios: $(TOOLS)/bin/${OS}/jsa-shell
 	#@./configure --os=ios --arch=arm --library=shared
 	#@$(MAKE)   # armv7 say goodbye 
 	@./configure --os=ios --arch=x64 --library=shared
@@ -92,7 +97,7 @@ ios:
 					 ./out/ios.arm64.v8.Release/libqgr.dylib
 
 # build all android platform and output to product dir
-android:
+android: $(TOOLS)/bin/${OS}/jsa-shell
 	@./configure --os=android --arch=x86 --library=shared
 	@$(MAKE)
 	@./configure --os=android --arch=arm64 --library=shared
@@ -109,12 +114,14 @@ out/android.classs.qgr.jar: android/org/qgr/*.java
 	@mkdir -p $(TOOLS_OUT)/product/android/libs
 	@cp out/android.classs/qgr.jar $(TOOLS_OUT)/product/android/libs
 
+$(TOOLS)/bin/${OS}/jsa-shell:
+	@./configure --media=0
+	@$(MAKE) jsa-shell
+
 # install qgr command
 install:
 	@$(MAKE) ios
 	@$(MAKE) android
-	@./configure --media=0
-	@$(MAKE) jsa-shell
 	@$(MAKE) install-tools
 
 # debug install qgr command
@@ -146,11 +153,6 @@ help:
 	@echo Run \"make xcode\" output xcode project file
 	@echo You must first call before calling make \"./configure\"
 	@echo
-
-test2: $(GYPFILES)
-	#make -C test -f test2.mk
-	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
-	@$(call make_compile,$(MAKE))
 
 watch:
 	@./tools/sync_watch

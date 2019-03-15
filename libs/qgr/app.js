@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './display_port';
-import { NativeNotification } from './event';
-import { ViewController, isViewXml, EMPTY_VIEW_XML } from './ctr';
+import 'qgr/util';
+import 'qgr/display_port';
+import { NativeNotification } from 'qgr/event';
+import { ViewController, isViewXml, EMPTY_VIEW_XML } from 'qgr/ctr';
 
 var _qgr = requireNative('_qgr');
 var Root = _qgr.Root;

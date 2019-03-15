@@ -30,8 +30,8 @@
 
 export requireNative('_http');
 
-import './util';
-import { NativeNotification } from './event';
+import 'qgr/util';
+import { NativeNotification } from 'qgr/event';
 
  /**
 	* @enum HttpMethod
