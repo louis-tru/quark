@@ -1416,8 +1416,7 @@ function inl_require_extend(require, parent) {
 	module.filename = filename;
 	module.paths = [];
 
-	var name = _path.basename(filename);
-	name = name.substr(0, name.length - extname.length).replace(/[\.\-]/g, '_');
+	var name = _path.basename(require).replace(/[\.\-]/g, '_');
 	var exports = module.exports[name] = module.exports;
 
 	try {
