@@ -500,7 +500,7 @@ void HttpHelper::set_cache_path(cString& path) {
 void HttpHelper::clear_cache() {
 	// delete cache files
 	if ( ! http_cache_path.is_empty() ) {
-		FileHelper::rm_r_sync(http_cache_path);
+		FileHelper::remove_r_sync(http_cache_path);
 		set_cache_path(http_cache_path);
 	}
 }

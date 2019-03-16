@@ -46,6 +46,11 @@ extern int inl__file_flag_mask(int flag);
 
 // ---------------------------------------FileHelper------------------------------------------
 
+static void uv_error(int err, cchar* msg = nullptr) throw(Error) {
+	throw Error((int)err, "%s, %s, %s",
+							 uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
+}
+
 static bool each_sync(Array<Dirent>& ls, cCb& cb, bool internal) {
 	for ( auto& i : ls ) {
 		Dirent& dirent = i.value();
@@ -55,7 +60,7 @@ static bool each_sync(Array<Dirent>& ls, cCb& cb, bool internal) {
 			}
 		}
 		if ( dirent.type == FTYPE_DIR ) { // 目录
-			auto ls = FileHelper::ls_sync(dirent.pathname);
+			auto ls = FileHelper::readdir_sync(dirent.pathname);
 			if ( !each_sync(ls, cb, internal) ) { // 停止遍历
 				return false;
 			}
@@ -78,6 +83,135 @@ bool FileHelper::each_sync(cString& path, cCb& cb, bool internal) {
 	ls.push(Dirent(Path::basename(path), Path::format("%s", *path), stat.type()));
 	
 	return qgr::each_sync(ls, cb, internal);
+}
+
+void FileHelper::chmod_sync(cString& path, uint mode) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_chmod(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
+	if (r != 0) {
+		uv_error(r, *path);
+	}
+}
+
+void FileHelper::chown_sync(cString& path, uint owner, uint group) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_chown(uv_default_loop(), &req, Path::fallback_c(path), owner, group, nullptr);
+	if (r != 0) {
+		uv_error(r, *path);
+	}
+}
+
+static bool default_stop_signal = false;
+
+void FileHelper::mkdir_sync(cString& path, uint mode) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_mkdir(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
+	if (r != 0) {
+		uv_error(r, *path);
+	}
+}
+
+void FileHelper::rename_sync(cString& name, cString& new_name) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_rename(uv_default_loop(), &req,
+											Path::fallback_c(name), Path::fallback_c(new_name), nullptr);
+	if (r != 0) {
+		uv_error(r, *String::format("rename %s to %s", *name, *new_name));
+	}
+}
+
+void FileHelper::link_sync(cString& path, cString& newPath) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_link(
+		uv_default_loop(), &req,
+		Path::fallback_c(path),
+		Path::fallback_c(newPath), nullptr
+	);
+	if (r != 0) {
+		uv_error(r, *String::format("link %s to %s", *path, *newPath));
+	}
+}
+
+void FileHelper::unlink_sync(cString& path) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_unlink(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
+	if ( r != 0 ) {
+		uv_error(r, *path);
+	}
+}
+
+void FileHelper::rmdir_sync(cString& path) throw(Error) {
+	uv_fs_t req;
+	int r = uv_fs_rmdir(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
+	if ( r != 0 ) {
+		uv_error(r, *path);
+	}
+}
+
+Array<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
+	Array<Dirent> ls;
+	uv_fs_t req;
+	String p = Path::format("%s", *path) + '/';
+	int r = uv_fs_scandir(uv_default_loop(), &req, Path::fallback_c(path), 1, nullptr);
+	if ( r > 0 ) {
+		uv_dirent_t ent;
+		while ( uv_fs_scandir_next(&req, &ent) == 0 ) {
+			ls.push( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
+		}
+	} else if ( r < 0) {
+		uv_error(r, *path);
+	}
+	uv_fs_req_cleanup(&req);
+	return ls;
+}
+
+FileStat FileHelper::stat_sync(cString& path) throw(Error) {
+	FileStat stat;
+	uv_fs_t req;
+	int r = uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
+	if (r == 0) {
+		inl__set_file_stat(&stat, &req.statbuf);
+	} else {
+		uv_error(r, *path);
+	}
+	return stat;
+}
+
+bool FileHelper::exists_sync(cString& path) {
+	uv_fs_t req;
+	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), F_OK, nullptr) == 0;
+}
+
+bool FileHelper::is_file_sync(cString& path) {
+	uv_fs_t req;
+	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
+		return !S_ISDIR(req.statbuf.st_mode);
+	}
+	return false;
+}
+
+bool FileHelper::is_directory_sync(cString& path) {
+	uv_fs_t req;
+	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
+		return S_ISDIR(req.statbuf.st_mode);
+	}
+	return false;
+}
+
+bool FileHelper::readable_sync(cString& path) {
+	uv_fs_t req;
+	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
+}
+
+bool FileHelper::writable_sync(cString& path) {
+	uv_fs_t req;
+	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
+}
+
+bool FileHelper::executable_sync(cString& path) {
+	uv_fs_t req;
+	int r = uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), X_OK, nullptr);
+	return (r == 0);
 }
 
 bool FileHelper::mkdir_p_sync(cString& path, uint mode) {
@@ -146,18 +280,6 @@ bool FileHelper::mkdir_p_sync(cString& path, uint mode) {
 	return false;
 }
 
-bool FileHelper::chmod_sync(cString& path, uint mode) {
-	uv_fs_t req;
-	return uv_fs_chmod(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr) == 0;
-}
-
-bool FileHelper::chown_sync(cString& path, uint owner, uint group) {
-	uv_fs_t req;
-	return uv_fs_chown(uv_default_loop(), &req, Path::fallback_c(path), owner, group, nullptr) == 0;
-}
-
-static bool default_stop_signal = false;
-
 bool FileHelper::chmod_r_sync(cString& path, uint mode, bool* stop_signal) {
 	
 	if ( stop_signal == nullptr ) {
@@ -198,41 +320,7 @@ bool FileHelper::chown_r_sync(cString& path, uint owner, uint group, bool* stop_
 	}));
 }
 
-bool FileHelper::mkdir_sync(cString& path, uint mode) {
-	uv_fs_t req;
-	return uv_fs_mkdir(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr) == 0;
-}
-
-bool FileHelper::rename_sync(cString& name, cString& new_name) {
-	uv_fs_t req;
-	return uv_fs_rename(uv_default_loop(), &req,
-											Path::fallback_c(name), Path::fallback_c(new_name), nullptr) == 0;
-}
-
-bool FileHelper::mv_sync(cString& name, cString& new_name) {
-	return rename_sync(name, new_name);
-}
-
-bool FileHelper::link_sync(cString& path, cString& newPath) {
-	uv_fs_t req;
-	return uv_fs_link(
-		uv_default_loop(), &req,
-		Path::fallback_c(path),
-		Path::fallback_c(newPath), nullptr
-	) == 0;
-}
-
-bool FileHelper::unlink_sync(cString& path) {
-	uv_fs_t req;
-	return uv_fs_unlink(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0;
-}
-
-bool FileHelper::rmdir_sync(cString& path) {
-	uv_fs_t req;
-	return uv_fs_rmdir(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0;
-}
-
-bool FileHelper::rm_r_sync(cString& path, bool* stop_signal) {
+bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) {
 	
 	if ( stop_signal == nullptr ) {
 		stop_signal = &default_stop_signal;
@@ -282,11 +370,11 @@ static bool cp_sync2(cString& source, cString& target, bool* stop_signal) {
 	return false;
 }
 
-bool FileHelper::cp_sync(cString& source, cString& target, bool* stop_signal) {
+bool FileHelper::copy_sync(cString& source, cString& target, bool* stop_signal) {
 	return cp_sync2(source, target, stop_signal ? stop_signal : &default_stop_signal);
 }
 
-bool FileHelper::cp_r_sync(cString& source, cString& target, bool* stop_signal) {
+bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal) {
 	
 	if ( !is_directory_sync(Path::dirname(target)) ) { // 没有父目录,无法复制
 		return false;
@@ -306,7 +394,12 @@ bool FileHelper::cp_r_sync(cString& source, cString& target, bool* stop_signal) 
 		
 		switch (dirent->type) {
 			case FTYPE_DIR:
-				d.return_value = mkdir_sync(target); /* create dir */
+				try {
+					mkdir_sync(target); /* create dir */
+					d.return_value = 1;
+				} catch(cError& err) {
+					XX_ERR(err.message());
+				}
 				break;
 			case FTYPE_FILE:
 				d.return_value = cp_sync2(dirent->pathname, target, stop_signal);
@@ -319,92 +412,22 @@ bool FileHelper::cp_r_sync(cString& source, cString& target, bool* stop_signal) 
 	}));
 }
 
-Array<Dirent> FileHelper::readdir_sync(cString& path) {
-	return ls_sync(path);
-}
-
-Array<Dirent> FileHelper::ls_sync(cString& path) {
-	Array<Dirent> ls;
-	uv_fs_t req;
-	String p = Path::format("%s", *path) + '/';
-	if ( uv_fs_scandir(uv_default_loop(), &req, Path::fallback_c(path), 1, nullptr) ) {
-		uv_dirent_t ent;
-		while ( uv_fs_scandir_next(&req, &ent) == 0 ) {
-			ls.push( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
-		}
-	}
-	uv_fs_req_cleanup(&req);
-	return ls;
-}
-
-FileStat FileHelper::stat_sync(cString& path) {
-	FileStat stat;
-	uv_fs_t req;
-	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
-		inl__set_file_stat(&stat, &req.statbuf);
-	}
-	return stat;
-}
-
-bool FileHelper::exists_sync(cString& path) {
-	uv_fs_t req;
-	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), F_OK, nullptr) == 0;
-}
-
-bool FileHelper::is_file_sync(cString& path) {
-	uv_fs_t req;
-	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
-		return !S_ISDIR(req.statbuf.st_mode);
-	}
-	return false;
-}
-
-bool FileHelper::is_directory_sync(cString& path) {
-	uv_fs_t req;
-	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
-		return S_ISDIR(req.statbuf.st_mode);
-	}
-	return false;
-}
-
-bool FileHelper::readable_sync(cString& path) {
-	uv_fs_t req;
-	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
-}
-
-bool FileHelper::writable_sync(cString& path) {
-	uv_fs_t req;
-	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
-}
-
-bool FileHelper::executable_sync(cString& path) {
-	uv_fs_t req;
-	int r = uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), X_OK, nullptr);
-	return (r == 0);
-}
-
 // --------------- file read write ---------------
 
 // read file
 
-Buffer FileHelper::read_file_sync(cString& path, int64 size, int* err) {
-	
+Buffer FileHelper::read_file_sync(cString& path, int64 size) throw(Error) {
+
 	int64 offset = -1;
-	
+
 	Buffer buff;
 	uv_fs_t req;
-	int fd = uv_fs_open(uv_default_loop(), &req, Path::fallback_c(path), O_RDONLY, 0, nullptr);
+	int fp = open_sync(path, O_RDONLY);
 	int r = 0;
 
-	// DLOG("read_file_sync, %d", fd);
-	
 	while (1) {
-		if ( fd < 0 ) {
-			r = fd;
-			break;
-		}
 		if ( size < 0 ) {
-			r = uv_fs_fstat(uv_default_loop(), &req, fd, nullptr);
+			r = uv_fs_fstat(uv_default_loop(), &req, fp, nullptr);
 			if ( r < 0 )
 				break;
 			size = req.statbuf.st_size;
@@ -414,7 +437,7 @@ Buffer FileHelper::read_file_sync(cString& path, int64 size, int* err) {
 			uv_buf_t buf;
 			buf.base = buffer;
 			buf.len = size;
-			r = uv_fs_read(uv_default_loop(), &req, fd, &buf, 1, offset, nullptr);
+			r = uv_fs_read(uv_default_loop(), &req, fp, &buf, 1, offset, nullptr);
 			
 			if ( r > 0 ) {
 				buffer[r] = '\0';
@@ -426,25 +449,30 @@ Buffer FileHelper::read_file_sync(cString& path, int64 size, int* err) {
 		break;
 	}
 	
-	if ( fd > 0 ) {
-		uv_fs_close(uv_default_loop(), &req, fd, nullptr);
+	if ( fp > 0 ) {
+		close_sync(fp);
 	}
-	if ( err ) {
-		*err = r < 0 ? r : 0;
+
+	if ( r < 0 ) {
+		uv_error(r, *path);
 	}
+
 	return buff;
 }
 
 // write file
 
-int FileHelper::write_file_sync(cString& path, cString& str) {
+int FileHelper::write_file_sync(cString& path, cString& str) throw(Error) {
 	return write_file_sync(path, *str, str.length() );
 }
-int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) {
+int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) throw(Error) {
 	uv_fs_t req;
 	int fp = uv_fs_open(uv_default_loop(), &req,
 											Path::fallback_c(path),
 											O_WRONLY | O_CREAT | O_TRUNC, default_mode, nullptr);
+	if (fp == 0) {
+		// TODO ...
+	}
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
 	buf.len = size < 0 ? 0 : size;
@@ -453,33 +481,44 @@ int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) {
 	return r;
 }
 // open/close file fd
-int FileHelper::open_sync(cString& path, int flag) {
+int FileHelper::open_sync(cString& path, int flag) throw(Error) {
 	uv_fs_t req;
-	int fd = uv_fs_open(uv_default_loop(), &req,
+	int fp = uv_fs_open(uv_default_loop(), &req,
 											Path::fallback_c(path),
 											inl__file_flag_mask(flag), default_mode, nullptr);
-	return fd;
+	if ( fp < 0 ) {
+		uv_error(fp, *path);
+	}
+	return fp;
 }
-int FileHelper::close_sync(int fd) {
+void FileHelper::close_sync(int fd) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_close(uv_default_loop(), &req, fd, nullptr);
-	return r;
+	if (r != 0) {
+		uv_error(r);
+	}
 }
 // read with fd
-int FileHelper::read_sync(int fd, void* buffer, int64 size, int64 offset) {
+int FileHelper::read_sync(int fd, void* buffer, int64 size, int64 offset) throw(Error) {
 	uv_fs_t req;
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
 	buf.len = size;
 	int r = uv_fs_read(uv_default_loop(), &req, fd, &buf, 1, offset, nullptr);
+	if (r < 0) {
+		uv_error(r);
+	}
 	return r;
 }
-int FileHelper::write_sync(int fd, const void* buffer, int64 size, int64 offset) {
+int FileHelper::write_sync(int fd, const void* buffer, int64 size, int64 offset) throw(Error) {
 	uv_fs_t req;
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
 	buf.len = size;
 	int r = uv_fs_write(uv_default_loop(), &req, fd, &buf, 1, offset, nullptr);
+	if (r < 0) {
+		uv_error(r);
+	}
 	return r;
 }
 

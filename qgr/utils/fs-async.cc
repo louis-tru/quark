@@ -72,19 +72,17 @@ private:
 
 typedef AsyncReqNonCtx<uv_fs_t, String> FileReq;
 
-static Error uv_error(uv_fs_t* req) {
-	return Error((int)req->result, "%s, %s",
-							 uv_err_name((int)req->result), uv_strerror((int)req->result));
+static Error uv_error(uv_fs_t* req, cchar* msg = nullptr) {
+	return Error((int)req->result, "%s, %s, %s",
+							 uv_err_name((int)req->result), uv_strerror((int)req->result), msg ? msg: "");
 }
 
-static void async_err_callback2(FileReq* req) {
-	async_err_callback(req->cb(), uv_error(req->req()));
+static void async_err_callback2(FileReq* req, cchar* msg = nullptr) {
+	async_err_callback(req->cb(), uv_error(req->req(), msg));
 }
 
-static void async_err_callback2(cCb& cb, uv_fs_t* req) {
-	Error err((int)req->result, "%s, %s",
-						uv_err_name((int)req->result), uv_strerror((int)req->result));
-	async_err_callback(cb, uv_error(req));
+static void async_err_callback2(cCb& cb, uv_fs_t* req, cchar* msg = nullptr) {
+	async_err_callback(cb, uv_error(req, msg));
 }
 
 static void uv_fs_async_cb(uv_fs_t* req) {
@@ -542,10 +540,6 @@ void FileHelper::rename(cString& name, cString& new_name, cCb& cb) {
 							 Path::fallback_c(new_name), &uv_fs_async_cb);
 }
 
-void FileHelper::mv(cString& name, cString& new_name, cCb& cb) {
-	rename(name, new_name, cb);
-}
-
 void FileHelper::link(cString& path, cString& newPath, cCb& cb) {
 	link2(path, newPath, cb, LOOP);
 }
@@ -558,7 +552,7 @@ void FileHelper::rmdir(cString& path, cCb& cb) {
 	rmdir2(path, cb, LOOP);
 }
 
-uint FileHelper::rm_r(cString& path, cCb& cb) {
+uint FileHelper::remove_r(cString& path, cCb& cb) {
 	auto each = NewRetain<AsyncEach>(path, Cb([cb](Se& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain();
@@ -584,11 +578,11 @@ uint FileHelper::rm_r(cString& path, cCb& cb) {
 	return each->start();
 }
 
-uint FileHelper::cp(cString& source, cString& target, cCb& cb) {
+uint FileHelper::copy(cString& source, cString& target, cCb& cb) {
 	return cp2(source, target, cb, LOOP)->id();
 }
 
-uint FileHelper::cp_r(cString& source, cString& target, cCb& cb) {
+uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 	
 	class Task: public AsyncEach {
 	public:
@@ -686,10 +680,6 @@ uint FileHelper::cp_r(cString& source, cString& target, cCb& cb) {
 
 void FileHelper::readdir(cString& path, cCb& cb) {
 	ls2(path, cb, LOOP);
-}
-
-void FileHelper::ls(cString& path, cCb& cb) {
-	readdir(path, cb);
 }
 
 void FileHelper::stat(cString& path, cCb& cb) {
@@ -801,7 +791,7 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 			
 			if ( uv_req->result < 0 ) { // error
 				ctx->abort();
-				async_err_callback2(req->cb(), uv_req);
+				async_err_callback2(req->cb(), uv_req, *ctx->m_path);
 				uv_fs_close(ctx->uv_loop(), uv_req, ctx->m_fd, &fs_close_cb); // close
 			} else {
 				if ( uv_req->result ) {
@@ -852,7 +842,7 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 				req->ctx()->read_advance(req);
 			} else { // err
 				req->ctx()->abort();
-				async_err_callback2(req->ctx()->m_cb, uv_req);
+				async_err_callback2(req->ctx()->m_cb, uv_req, *req->ctx()->m_path);
 				uv_fs_close(req->ctx()->uv_loop(), uv_req, req->ctx()->m_fd, &fs_close_cb); // close
 			}
 		}
@@ -866,7 +856,7 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 			} else { // open file fail
 				Handle<FileReq> handle(req);
 				req->ctx()->abort();
-				async_err_callback2(req->ctx()->m_cb, uv_req);
+				async_err_callback2(req->ctx()->m_cb, uv_req, *req->ctx()->m_path);
 			}
 		}
 		
@@ -910,7 +900,7 @@ void FileHelper::read_file(cString& path, cCb& cb, int64 size) {
 				req->data().size = uv_req->statbuf.st_size;
 				start_read(req);
 			} else { // err
-				async_err_callback2(req->cb(), uv_req);
+				async_err_callback2(req->cb(), uv_req, *req->data().path);
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 			}
 		}
@@ -919,7 +909,7 @@ void FileHelper::read_file(cString& path, cCb& cb, int64 size) {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			if ( uv_req->result < 0 ) { // error
-				async_err_callback2(req->cb(), uv_req);
+				async_err_callback2(req->cb(), uv_req, *req->data().path);
 			} else {
 				Buffer& buff = req->data().buff;
 				buff.value()[uv_req->result] = '\0';
@@ -956,7 +946,7 @@ void FileHelper::read_file(cString& path, cCb& cb, int64 size) {
 				}
 			} else { // open file fail
 				Handle<FileReq> handle(req);
-				async_err_callback2(req->cb(), uv_req);
+				async_err_callback2(req->cb(), uv_req, *req->data().path);
 			}
 		}
 		
@@ -991,7 +981,7 @@ void FileHelper::write_file(cString& path, Buffer buffer, cCb& cb) {
 			FileReq* req = FileReq::cast(uv_req);
 			Buffer& buff = req->data().buff;
 			if ( uv_req->result < 0 ) {
-				async_callback(req->cb(), uv_error(uv_req), move(buff));
+				async_callback(req->cb(), uv_error(uv_req, *req->data().path), move(buff));
 			} else {
 				async_callback(req->cb(), move(buff));
 			}
@@ -1009,7 +999,7 @@ void FileHelper::write_file(cString& path, Buffer buffer, cCb& cb) {
 				uv_fs_write(req->uv_loop(), uv_req, (uv_file)uv_req->result, &buf, 1, -1, &fs_write_cb);
 			} else { // open file fail
 				Handle<FileReq> handle(req);
-				async_callback(req->cb(), uv_error(uv_req), move(req->data().buff));
+				async_callback(req->cb(), uv_error(uv_req, *req->data().path), move(req->data().buff));
 			}
 		}
 		
@@ -1046,7 +1036,7 @@ void FileHelper::open(cString& path, int flag, cCb& cb) {
 				int fd = (int)uv_req->result;
 				async_callback(req->cb(), Int(fd));
 			} else { // open file fail
-				async_err_callback2(req->cb(), uv_req);
+				async_err_callback2(req->cb(), uv_req, *req->data().path);
 			}
 		}
 		

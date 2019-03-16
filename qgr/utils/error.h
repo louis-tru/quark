@@ -68,6 +68,7 @@ class XX_EXPORT Error: public Object {
 	virtual int code() const throw();
 	void set_code(int value);
 	void set_message(cString& value);
+  virtual String to_string() const;
 
  private:
 	int     m_code;

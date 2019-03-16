@@ -6,20 +6,23 @@ import { Mynavpage } from './public';
 
 const filename = path.documents('test.txt');
 
+//fs.mkdirpSync(path.dirname(filename));
+
 function WriteFile(evt) {
-	fs.writeFile(filename, evt.sender.owner.find('input').value, function(err) {
-		if (err)
-			alert(err.message);
-		else
-			alert('Write file OK.');
-	});
+	console.log('------------', filename);
+	fs.writeFile(filename, evt.sender.owner.find('input').value, function() {
+		alert('Write file OK.');
+	}.catch(err=>{
+		alert(err.message);
+	}));
 }
 
 function WriteFileSync(evt) {
 	try {
 		var txt = evt.sender.owner.find('input').value;
 		// console.log('WriteFileSync', txt);
-		fs.writeFileSync(filename, txt);
+		var r = fs.writeFileSync(filename, txt);
+		console.log(r);
 		alert('Write file OK.');
 	} catch (err) {
 		alert(err.message);
@@ -27,17 +30,17 @@ function WriteFileSync(evt) {
 }
 
 function ReadFile(evt) {
-	fs.readFile(filename, function(err, buf) {
-		if (err) 
-			alert(err.message);
-		else 
-			alert(buf.toString('utf-8'));
-	});
+	console.log('------------', filename);
+	fs.readFile(filename, function(buf) {
+		alert(buf.toString('utf-8'));
+	}.catch(err=>{
+		alert(err.message);
+	}));
 }
 
 function Remove(evt) {
 	try {
-		fs.removeSyncR(filename);
+		fs.removerSync(filename);
 		alert('Remove file OK.');
 	} catch (err) {
 		alert(err.message);

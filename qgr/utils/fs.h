@@ -200,46 +200,42 @@ class XX_EXPORT FileHelper {
 	/**
 	 * @func chmod_sync
 	 */
-	static bool chmod_sync(cString& path, uint mode = default_mode);
+	static void chmod_sync(cString& path, uint mode = default_mode) throw(Error);
 	
 	/**
 	 * @func chmod_p  # 递归设置
 	 *                # 多线程中,设置stop_signal值为true来终止操作
 	 */
-	static bool chmod_r_sync(cString& path, uint mode = default_mode, bool* stop_signal = nullptr);
-	static bool chown_sync(cString& path, uint owner, uint group);
-	static bool chown_r_sync(cString& path, uint owner, uint group, bool* stop_signal = nullptr);
-	static bool mkdir_sync(cString& path, uint mode = default_mode);
-	static bool mkdir_p_sync(cString& path, uint mode = default_mode);
-	static bool rename_sync(cString& name, cString& new_name);
-	static bool mv_sync(cString& name, cString& new_name);
-	static bool link_sync(cString& path, cString& newPath);
-	static bool unlink_sync(cString& path);
-	static bool rmdir_sync(cString& path);
-	static bool rm_r_sync(cString& path, bool* stop_signal = nullptr);
-	static bool cp_sync(cString& source, cString& target, bool* stop_signal = nullptr);
-	static bool cp_r_sync(cString& source, cString& target, bool* stop_signal = nullptr);
-	static Array<Dirent> readdir_sync(cString& path);
-	static Array<Dirent> ls_sync(cString& path);
-	static FileStat stat_sync(cString& path);
+	static void chown_sync(cString& path, uint owner, uint group) throw(Error);
+	static void mkdir_sync(cString& path, uint mode = default_mode) throw(Error);
+	static void rename_sync(cString& name, cString& new_name) throw(Error);
+	static void link_sync(cString& path, cString& newPath) throw(Error);
+	static void unlink_sync(cString& path) throw(Error);
+	static void rmdir_sync(cString& path) throw(Error);
+	static Array<Dirent> readdir_sync(cString& path) throw(Error);
+	static FileStat stat_sync(cString& path) throw(Error);
 	static bool exists_sync(cString& path);
 	static bool is_file_sync(cString& path);
 	static bool is_directory_sync(cString& path);
 	static bool readable_sync(cString& path);
 	static bool writable_sync(cString& path);
 	static bool executable_sync(cString& path);
+	// recursion
+	static bool chmod_r_sync(cString& path, uint mode = default_mode, bool* stop_signal = nullptr);
+	static bool chown_r_sync(cString& path, uint owner, uint group, bool* stop_signal = nullptr);
+	static bool mkdir_p_sync(cString& path, uint mode = default_mode);
+	static bool remove_r_sync(cString& path, bool* stop_signal = nullptr);
+	static bool copy_sync(cString& source, cString& target, bool* stop_signal = nullptr);
+	static bool copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr);
 	// async
 	static void chmod(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static void chown(cString& path, uint owner, uint group, cCb& cb = 0);
 	static void mkdir(cString& path, uint mode = default_mode, cCb& cb = 0);
-	static void mkdir_p(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static void rename(cString& name, cString& new_name, cCb& cb = 0);
-	static void mv(cString& name, cString& new_name, cCb& cb = 0);
 	static void link(cString& path, cString& newPath, cCb& cb = 0);
 	static void unlink(cString& path, cCb& cb = 0);
 	static void rmdir(cString& path, cCb& cb = 0);
 	static void readdir(cString& path, cCb& cb = 0);
-	static void ls(cString& path, cCb& cb = 0);
 	static void stat(cString& path, cCb& cb = 0);
 	static void exists(cString& path, cCb& cb = 0);
 	static void is_file(cString& path, cCb& cb = 0);
@@ -247,31 +243,33 @@ class XX_EXPORT FileHelper {
 	static void readable(cString& path, cCb& cb = 0);
 	static void writable(cString& path, cCb& cb = 0);
 	static void executable(cString& path, cCb& cb = 0);
+	// recursion
+	static void mkdir_p(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static uint chmod_r(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static uint chown_r(cString& path, uint owner, uint group, cCb& cb = 0);
-	static uint rm_r(cString& path, cCb& cb = 0);
-	static uint cp(cString& source, cString& target, cCb& cb = 0);
-	static uint cp_r(cString& source, cString& target, cCb& cb = 0);
+	static uint remove_r(cString& path, cCb& cb = 0);
+	static uint copy(cString& source, cString& target, cCb& cb = 0);
+	static uint copy_r(cString& source, cString& target, cCb& cb = 0);
 	static void abort(uint id);
 	// read stream
 	static uint read_stream(cString& path, cCb& cb = 0);
 	// read file
-	static Buffer read_file_sync(cString& path, int64 size = -1, int* err = nullptr);
+	static Buffer read_file_sync(cString& path, int64 size = -1) throw(Error);
 	static void read_file(cString& path, cCb& cb = 0, int64 size = -1);
 	// write file
-	static int  write_file_sync(cString& path, cString& str);
-	static int  write_file_sync(cString& path, const void* data, int64 size);
+	static int  write_file_sync(cString& path, cString& str) throw(Error);
+	static int  write_file_sync(cString& path, const void* data, int64 size) throw(Error);
 	static void write_file(cString& path, cString& str, cCb& cb = 0);
 	static void write_file(cString& path, Buffer buffer, cCb& cb = 0);
 	// open file fd
-	static int  open_sync(cString& path, int flag = FOPEN_R);
+	static int  open_sync(cString& path, int flag = FOPEN_R) throw(Error);
 	static void open(cString& path, int flag = FOPEN_R, cCb& cb = 0);
 	static void open(cString& path, cCb& cb = 0);
-	static int  close_sync(int fd);
+	static void close_sync(int fd) throw(Error);
 	static void close(int fd, cCb& cb = 0);
 	// read with fd
-	static int  read_sync(int fd, void* data, int64 size, int64 offset = -1);
-	static int  write_sync(int fd, const void* data, int64 size, int64 offset = -1);
+	static int  read_sync(int fd, void* data, int64 size, int64 offset = -1) throw(Error);
+	static int  write_sync(int fd, const void* data, int64 size, int64 offset = -1) throw(Error);
 	static void read(int fd, Buffer buffer, cCb& cb);
 	static void read(int fd, Buffer buffer, int64 offset = -1, cCb& cb = 0);
 	static void write(int fd, Buffer buffer, cCb& cb);

@@ -402,7 +402,7 @@ class NativeFileHelper {
 	 * @arg [mode=default_mode] {uint}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void chmod(FunctionCall args) {
+	static void chmod(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -428,7 +428,11 @@ class NativeFileHelper {
 			args_index++;
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::chmod_sync(args[0]->ToStringValue(worker), mode) );
+			try {
+				FileHelper::chmod_sync(args[0]->ToStringValue(worker), mode);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -453,7 +457,7 @@ class NativeFileHelper {
 	 * @arg [cb] {Function}
 	 * @ret {uint} return id
 	 */
-	template<bool sync> static void chmod_r(FunctionCall args) {
+	static void chmod_r(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -505,7 +509,7 @@ class NativeFileHelper {
 	 * @arg group {uint}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void chown(FunctionCall args) {
+	static void chown(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 3 ||
 				!args[0]->IsString(worker) ||
@@ -530,10 +534,13 @@ class NativeFileHelper {
 		}
 		
 		if ( sync ) {
-			
-			JS_RETURN( FileHelper::chown_sync(args[0]->ToStringValue(worker),
-																				args[1]->ToUint32Value(worker),
-																				args[2]->ToUint32Value(worker)) );
+			try {
+				FileHelper::chown_sync(args[0]->ToStringValue(worker),
+															args[1]->ToUint32Value(worker),
+															args[2]->ToUint32Value(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > 3 ) {
@@ -561,7 +568,7 @@ class NativeFileHelper {
 	 * @arg [cb] {Function}
 	 * @ret {uint} return id
 	 */
-	template<bool sync> static void chown_r(FunctionCall args) {
+	static void chown_r(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if ( args.Length() < 3 ||
 				!args[0]->IsString(worker) ||
@@ -614,7 +621,7 @@ class NativeFileHelper {
 	 * @arg [mode=default_mode] {uint}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void mkdir(FunctionCall args) {
+	static void mkdir(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -640,7 +647,11 @@ class NativeFileHelper {
 			args_index++;
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::mkdir_sync(args[0]->ToStringValue(worker), mode) );
+			try {
+				FileHelper::mkdir_sync(args[0]->ToStringValue(worker), mode);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -664,7 +675,7 @@ class NativeFileHelper {
 	 * @arg [cb] {Function}
 	 * @ret {uint} return id
 	 */
-	template<bool sync> static void mkdir_p(FunctionCall args) {
+	static void mkdir_p(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ){
@@ -714,7 +725,7 @@ class NativeFileHelper {
 	 * @arg new_name {String}
 	 * @arg [cb] {Function}
 	 */  
-	template<bool sync> static void rename(FunctionCall args) {
+	static void rename(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
@@ -736,8 +747,12 @@ class NativeFileHelper {
 		}
 
 		if ( sync ) {
-			JS_RETURN( FileHelper::rename_sync(args[0]->ToStringValue(worker),
-																					args[1]->ToStringValue(worker)) );
+			try {
+				FileHelper::rename_sync(args[0]->ToStringValue(worker),
+																args[1]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
@@ -760,7 +775,7 @@ class NativeFileHelper {
 	 * @arg newPath {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void link(FunctionCall args) {
+	static void link(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
 			if ( sync ) {
@@ -778,10 +793,14 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::link_sync(
-				args[0]->ToStringValue(worker),
-				args[1]->ToStringValue(worker))
-			);
+			try {
+				FileHelper::link_sync(
+					args[0]->ToStringValue(worker),
+					args[1]->ToStringValue(worker)
+				);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
@@ -802,7 +821,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void unlink(FunctionCall args) {
+	static void unlink(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -820,7 +839,11 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::unlink_sync(args[0]->ToStringValue(worker)) );
+			try {
+				FileHelper::unlink_sync(args[0]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
@@ -841,7 +864,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void rmdir(FunctionCall args) {
+	static void rmdir(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -859,7 +882,11 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::rmdir_sync(args[0]->ToStringValue(worker)) );
+			try {
+				FileHelper::rmdir_sync(args[0]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
@@ -881,7 +908,7 @@ class NativeFileHelper {
 	 * @arg [cb] {Function}
 	 * @ret {uint} return id
 	 */
-	template<bool sync> static void rm_r(FunctionCall args) {
+	static void remove_r(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -900,13 +927,13 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::rm_r_sync(args[0]->ToStringValue(worker)) );
+			JS_RETURN( FileHelper::remove_r_sync(args[0]->ToStringValue(worker)) );
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_none(worker, args[1]);
 			}
-			JS_RETURN( FileHelper::rm_r(args[0]->ToStringValue(worker), cb) );
+			JS_RETURN( FileHelper::remove_r(args[0]->ToStringValue(worker), cb) );
 		}
 	}
 	
@@ -924,7 +951,7 @@ class NativeFileHelper {
 	 * @arg [cb] {Function}
 	 * @ret {uint} return id
 	 */
-	template<bool sync> static void cp(FunctionCall args) {
+	static void copy(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
 			if ( sync ) {
@@ -945,15 +972,15 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::cp_sync(args[0]->ToStringValue(worker),
+			JS_RETURN( FileHelper::copy_sync(args[0]->ToStringValue(worker),
 																			args[1]->ToStringValue(worker)) );
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
 				cb = get_callback_for_none(worker, args[2]);
 			}
-			JS_RETURN( FileHelper::cp(args[0]->ToStringValue(worker),
-																 args[1]->ToStringValue(worker), cb) );
+			JS_RETURN( FileHelper::copy(args[0]->ToStringValue(worker),
+																  args[1]->ToStringValue(worker), cb) );
 		}
 	}
 	
@@ -971,7 +998,7 @@ class NativeFileHelper {
 	 * @arg [cb] {Function}
 	 * @ret {uint} return id
 	 */
-	template<bool sync> static void cp_r(FunctionCall args) {
+	static void copy_r(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
 			if ( sync ) {
@@ -992,15 +1019,15 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::cp_r_sync(args[0]->ToStringValue(worker),
-																				args[1]->ToStringValue(worker)) );
+			JS_RETURN( FileHelper::copy_r_sync(args[0]->ToStringValue(worker),
+																				 args[1]->ToStringValue(worker)) );
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
 				cb = get_callback_for_none(worker, args[2]);
 			}
-			JS_RETURN( FileHelper::cp_r(args[0]->ToStringValue(worker),
-																	 args[1]->ToStringValue(worker), cb) );
+			JS_RETURN( FileHelper::copy_r(args[0]->ToStringValue(worker),
+																		args[1]->ToStringValue(worker), cb) );
 		}
 	}
 	
@@ -1014,7 +1041,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void readdir(FunctionCall args) {
+	static void readdir(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || !args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1032,7 +1059,13 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::readdir_sync(args[0]->ToStringValue(worker)) );
+			Array<Dirent> r;
+			try {
+				r = FileHelper::readdir_sync(args[0]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
@@ -1053,7 +1086,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void stat(FunctionCall args) {
+	static void stat(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1071,7 +1104,13 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::stat_sync( args[0]->ToStringValue(worker) ) );
+			FileStat r;
+			try {
+				r = FileHelper::stat_sync( args[0]->ToStringValue(worker) );
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
@@ -1092,7 +1131,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void exists(FunctionCall args) {
+	static void exists(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1131,7 +1170,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void is_file(FunctionCall args) {
+	static void is_file(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1170,7 +1209,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void is_directory(FunctionCall args) {
+	static void is_directory(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1209,7 +1248,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void readable(FunctionCall args) {
+	static void readable(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1248,7 +1287,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void writable(FunctionCall args) {
+	static void writable(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1287,7 +1326,7 @@ class NativeFileHelper {
 	 * @arg path {String}
 	 * @arg [cb] {Function}
 	 */
-	template<bool sync> static void executable(FunctionCall args) {
+	static void executable(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			if ( sync ) {
@@ -1378,13 +1417,13 @@ class NativeFileHelper {
 		}
 
 		if ( sync ) {
-			int err = 0;
-			Buffer r = FileHelper::read_file_sync(path, -1, &err);
-			if ( err < 0 ) {
-				JS_RETURN_NULL();
-			} else {
-				JS_RETURN( convert_buffer(worker, r, encoding) );
+			Buffer r;
+			try {
+				r = FileHelper::read_file_sync(path, -1);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
 			}
+			JS_RETURN( convert_buffer(worker, r, encoding) );
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -1461,7 +1500,13 @@ class NativeFileHelper {
 		if (!parse_file_write_params(args, sync, args_index, keep, buff, size, raw_buff)) return;
 		
 		if ( sync ) {
-			JS_RETURN( FileHelper::write_file_sync(path, buff, size) );
+			int r;
+			try {
+				r = FileHelper::write_file_sync(path, buff, size);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			
 			Callback cb;
@@ -1532,7 +1577,13 @@ class NativeFileHelper {
 		}
 		
 		if ( sync ) {
-			JS_RETURN( FileHelper::open_sync(args[0]->ToStringValue(worker), flag) );
+			int r;
+			try {
+				r = FileHelper::open_sync(args[0]->ToStringValue(worker), flag);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -1574,7 +1625,11 @@ class NativeFileHelper {
 		int fd = args[0]->ToInt32Value(worker);
 		
 		if ( sync ) {
-			JS_RETURN( FileHelper::close_sync(fd) );
+			try {
+				FileHelper::close_sync(fd);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
@@ -1651,7 +1706,12 @@ class NativeFileHelper {
 		}
 		
 		if ( sync ) {
-			int r = FileHelper::read_sync(fd, **raw_buf, size, offset);
+			int r;
+			try {
+				r = FileHelper::read_sync(fd, **raw_buf, size, offset);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 			JS_RETURN( r );
 		} else {
 			Callback cb;
@@ -1759,7 +1819,13 @@ class NativeFileHelper {
 		}
 		
 		if ( sync ) {
-			JS_RETURN( FileHelper::write_sync(fd, buff, size, offset) );
+			int r;
+			try {
+				r = FileHelper::write_sync(fd, buff, size, offset);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -1800,6 +1866,27 @@ class NativeFileHelper {
 	}
 	
 	// sync
+	static void chmod_sync(FunctionCall args) { chmod(args, 1); }
+	static void chown_sync(FunctionCall args) { chown(args, 1); }
+	static void mkdir_sync(FunctionCall args) { mkdir(args, 1); }
+	static void rename_sync(FunctionCall args) { rename(args, 1); }
+	static void link_sync(FunctionCall args) { link(args, 1); }
+	static void unlink_sync(FunctionCall args) { unlink(args, 1); }
+	static void rmdir_sync(FunctionCall args) { rmdir(args, 1); }
+	static void readdir_sync(FunctionCall args) { readdir(args, 1); }
+	static void stat_sync(FunctionCall args) { stat(args, 1); }
+	static void exists_sync(FunctionCall args) { exists(args, 1); }
+	static void is_file_sync(FunctionCall args) { is_file(args, 1); }
+	static void is_directory_sync(FunctionCall args) { is_directory(args, 1); }
+	static void readable_sync(FunctionCall args) { readable(args, 1); }
+	static void writable_sync(FunctionCall args) { writable(args, 1); }
+	static void executable_sync(FunctionCall args) { executable(args, 1); }
+	static void copy_sync(FunctionCall args) { copy(args, 1); }
+	static void chmod_r_sync(FunctionCall args) { chmod_r(args, 1); }
+	static void chown_r_sync(FunctionCall args) { chown_r(args, 1); }
+	static void mkdir_p_sync(FunctionCall args) { mkdir_p(args, 1); }
+	static void remove_r_sync(FunctionCall args) { remove_r(args, 1); }
+	static void copy_r_sync(FunctionCall args) { copy_r(args, 1); }
 	static void write_file_sync(FunctionCall args) { write_file(args, 1); }
 	static void read_file_sync(FunctionCall args) { read_file(args, 1); }
 	static void open_sync(FunctionCall args) { open(args, 1); }
@@ -1807,6 +1894,27 @@ class NativeFileHelper {
 	static void read_sync(FunctionCall args) { read(args, 1); }
 	static void write_sync(FunctionCall args) { write(args, 1); }
 	// async
+	static void chmod_async(FunctionCall args) { chmod(args, 0); }
+	static void chown_async(FunctionCall args) { chown(args, 0); }
+	static void mkdir_async(FunctionCall args) { mkdir(args, 0); }
+	static void rename_async(FunctionCall args) { rename(args, 0); }
+	static void link_async(FunctionCall args) { link(args, 0); }
+	static void unlink_async(FunctionCall args) { unlink(args, 0); }
+	static void rmdir_async(FunctionCall args) { rmdir(args, 0); }
+	static void readdir_async(FunctionCall args) { readdir(args, 0); }
+	static void stat_async(FunctionCall args) { stat(args, 0); }
+	static void exists_async(FunctionCall args) { exists(args, 0); }
+	static void is_file_async(FunctionCall args) { is_file(args, 0); }
+	static void is_directory_async(FunctionCall args) { is_directory(args, 0); }
+	static void readable_async(FunctionCall args) { readable(args, 0); }
+	static void writable_async(FunctionCall args) { writable(args, 0); }
+	static void executable_async(FunctionCall args) { executable(args, 0); }
+	static void copy_async(FunctionCall args) { copy(args, 0); }
+	static void chmod_r_async(FunctionCall args) { chmod_r(args, 0); }
+	static void chown_r_async(FunctionCall args) { chown_r(args, 0); }
+	static void mkdir_p_async(FunctionCall args) { mkdir_p(args, 0); }
+	static void remove_r_async(FunctionCall args) { remove_r(args, 0); }
+	static void copy_r_async(FunctionCall args) { copy_r(args, 0); }
 	static void write_file_async(FunctionCall args) { write_file(args, 0); }
 	static void read_file_async(FunctionCall args) { read_file(args, 0); }
 	static void open_async(FunctionCall args) { open(args, 0); }
@@ -1842,52 +1950,54 @@ class NativeFileHelper {
 		JS_SET_PROPERTY(FTYPE_CHAR, FTYPE_CHAR);
 		JS_SET_PROPERTY(FTYPE_BLOCK, FTYPE_BLOCK);
 		JS_SET_PROPERTY(DEFAULT_MODE, FileHelper::default_mode);
+
 		// api sync
-		JS_SET_METHOD(chmodSync, chmod<true>);
-		JS_SET_METHOD(chownSync, chown<true>);
-		JS_SET_METHOD(mkdirSync, mkdir<true>);
-		JS_SET_METHOD(renameSync, rename<true>);
-		JS_SET_METHOD(linkSync, link<true>);
-		JS_SET_METHOD(unlinkSync, unlink<true>);
-		JS_SET_METHOD(rmdirSync, rmdir<true>);
-		JS_SET_METHOD(readdirSync, readdir<true>);
-		JS_SET_METHOD(statSync, stat<true>);
-		JS_SET_METHOD(existsSync, exists<true>);
-		JS_SET_METHOD(isFileSync, is_file<true>);
-		JS_SET_METHOD(isDirectorySync, is_directory<true>);
-		JS_SET_METHOD(readableSync, readable<true>);
-		JS_SET_METHOD(writableSync, writable<true>);
-		JS_SET_METHOD(executableSync, executable<true>);
-		JS_SET_METHOD(copySync, cp<true>);
-		JS_SET_METHOD(chmodrSync, chmod_r<true>);
-		JS_SET_METHOD(chownrSync, chown_r<true>);
-		JS_SET_METHOD(mkdirpSync, mkdir_p<true>);
-		JS_SET_METHOD(removerSync, rm_r<true>);
-		JS_SET_METHOD(copyrSync, cp_r<true>);
+		JS_SET_METHOD(chmodSync, chmod_sync);
+		JS_SET_METHOD(chownSync, chown_sync);
+		JS_SET_METHOD(mkdirSync, mkdir_sync);
+		JS_SET_METHOD(renameSync, rename_sync);
+		JS_SET_METHOD(linkSync, link_sync);
+		JS_SET_METHOD(unlinkSync, unlink_sync);
+		JS_SET_METHOD(rmdirSync, rmdir_sync);
+		JS_SET_METHOD(readdirSync, readdir_sync);
+		JS_SET_METHOD(statSync, stat_sync);
+		JS_SET_METHOD(existsSync, exists_sync);
+		JS_SET_METHOD(isFileSync, is_file_sync);
+		JS_SET_METHOD(isDirectorySync, is_directory_sync);
+		JS_SET_METHOD(readableSync, readable_sync);
+		JS_SET_METHOD(writableSync, writable_sync);
+		JS_SET_METHOD(executableSync, executable_sync);
+		JS_SET_METHOD(copySync, copy_sync);
+		JS_SET_METHOD(chmodrSync, chmod_r_sync);
+		JS_SET_METHOD(chownrSync, chown_r_sync);
+		JS_SET_METHOD(mkdirpSync, mkdir_p_sync);
+		JS_SET_METHOD(removerSync, remove_r_sync);
+		JS_SET_METHOD(copyrSync, copy_r_sync);
 		// async
-		JS_SET_METHOD(chmod, chmod<false>);
-		JS_SET_METHOD(chown, chown<false>);
-		JS_SET_METHOD(mkdir, mkdir<false>);
-		JS_SET_METHOD(rename, rename<false>);
-		JS_SET_METHOD(link, link<false>);
-		JS_SET_METHOD(unlink, unlink<false>);
-		JS_SET_METHOD(rmdir, rmdir<false>);
-		JS_SET_METHOD(readdir, readdir<false>);
-		JS_SET_METHOD(stat, stat<false>);
-		JS_SET_METHOD(exists, exists<false>);
-		JS_SET_METHOD(isFile, is_file<false>);
-		JS_SET_METHOD(isDirectory, is_directory<false>);
-		JS_SET_METHOD(readable, readable<false>);
-		JS_SET_METHOD(writable, writable<false>);
-		JS_SET_METHOD(executable, executable<false>);
-		JS_SET_METHOD(copy, cp<false>);
-		JS_SET_METHOD(chmodr, chmod_r<false>);
-		JS_SET_METHOD(chownr, chown_r<false>);
-		JS_SET_METHOD(mkdirp, mkdir_p<false>);
-		JS_SET_METHOD(remover, rm_r<false>);
-		JS_SET_METHOD(copyr, cp_r<false>);
+		JS_SET_METHOD(chmod, chmod_async);
+		JS_SET_METHOD(chown, chown_async);
+		JS_SET_METHOD(mkdir, mkdir_async);
+		JS_SET_METHOD(rename, rename_async);
+		JS_SET_METHOD(link, link_async);
+		JS_SET_METHOD(unlink, unlink_async);
+		JS_SET_METHOD(rmdir, rmdir_async);
+		JS_SET_METHOD(readdir, readdir_async);
+		JS_SET_METHOD(stat, stat_async);
+		JS_SET_METHOD(exists, exists_async);
+		JS_SET_METHOD(isFile, is_file_async);
+		JS_SET_METHOD(isDirectory, is_directory_async);
+		JS_SET_METHOD(readable, readable_async);
+		JS_SET_METHOD(writable, writable_async);
+		JS_SET_METHOD(executable, executable_async);
+		JS_SET_METHOD(copy, copy_async);
+		JS_SET_METHOD(chmodr, chmod_r_async);
+		JS_SET_METHOD(chownr, chown_r_async);
+		JS_SET_METHOD(mkdirp, mkdir_p_async);
+		JS_SET_METHOD(remover, remove_r_async);
+		JS_SET_METHOD(copyr, copy_r_async);
 		JS_SET_METHOD(readStream, read_stream);
 		JS_SET_METHOD(abort, abort);
+
 		// read/write file sync
 		JS_SET_METHOD(writeFileSync, write_file_sync);
 		JS_SET_METHOD(readFileSync, read_file_sync);

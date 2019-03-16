@@ -93,5 +93,9 @@ void Error::set_code(int value) {
 	m_code = value;
 }
 
+String Error::to_string() const {
+  return String::format("message: %d, code: %d", **m_message, m_code);
+}
+
 #endif
 XX_END

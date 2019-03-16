@@ -213,7 +213,7 @@ class FileReader::Core {
 	 */
 	Buffer read_sync(cString& path) throw(Error) {
 		Buffer rv;
-		
+
 		switch ( protocol(path) ) {
 			default:
 			case FILE:
@@ -233,7 +233,8 @@ class FileReader::Core {
 				if ( read->jump(inl_path) ) {
 					rv = read->read();
 				} else {
-					XX_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS, "Zip package internal file does not exist, %s", *path);
+					XX_THROW(ERR_ZIP_IN_FILE_NOT_EXISTS, 
+						"Zip package internal file does not exist, %s", *path);
 				}
 				break;
 			}
@@ -284,7 +285,7 @@ class FileReader::Core {
 		return false;
 	}
 	
-	Array<Dirent> readdir_sync(cString& path) {
+	Array<Dirent> readdir_sync(cString& path) throw(Error) {
 		Array<Dirent> rv;
 		switch ( protocol(path) ) {
 			default:
@@ -403,7 +404,12 @@ bool FileReader::is_directory_sync(cString& path) {
 	return m_core->exists_sync(path, 0, 1);
 }
 Array<Dirent> FileReader::readdir_sync(cString& path) {
-	return m_core->readdir_sync(path);
+  try {
+    return m_core->readdir_sync(path);
+  } catch(cError& err) {
+    XX_ERR(err.to_string());
+  }
+  return Array<Dirent>();
 }
 String FileReader::format(cString& path) {
 	return m_core->format(path);
