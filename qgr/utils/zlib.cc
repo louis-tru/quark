@@ -145,26 +145,26 @@ bool GZip::is_open() {
 extern cchar* inl__file_flag_str(int flag);
 
 // Override
-bool GZip::open(int flag) {
+int GZip::open(int flag) {
 	XX_ASSERT(!m_gzfp);
-	if(m_gzfp){ // 已经打开了
-		return true;
-	}
+	if (m_gzfp) // 已经打开了
+		return 0;
 	m_gzfp = gzopen(Path::fallback_c(m_path), inl__file_flag_str(flag));
-	if(m_gzfp){
-		return true;
+	if (m_gzfp) {
+		return 0;
 	}
-	return false;
+	return -1;
 }
 
 // Override
-bool GZip::close() {
+int GZip::close() {
+	if (!m_gzfp) return 0;
 	int i = gzclose((gzFile)m_gzfp);
-	if(i == 0){
+	if (i == 0) {
 		m_gzfp = NULL;
-		return true;
+		return 0;
 	}
-	return false;
+	return i;
 }
 
 // Override

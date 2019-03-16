@@ -39,8 +39,8 @@ function ReadFile(evt) {
 
 function Remove(evt) {
 	try {
-		fs.removerSync(filename);
-		alert('Remove file OK.');
+		var a = fs.removerSync(filename);
+		alert('Remove file OK. ' + a);
 	} catch (err) {
 		alert(err.message + ', ' + err.code);
 	}

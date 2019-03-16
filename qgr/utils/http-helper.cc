@@ -489,8 +489,11 @@ String HttpHelper::cache_path() {
  * @func set_cache_path 设置缓存文件路径
  */
 void HttpHelper::set_cache_path(cString& path) {
-	if ( FileHelper::mkdir_p_sync(path) ) {
+	try {
+		FileHelper::mkdir_p_sync(path);
 		http_cache_path = path;
+	} catch(cError& err) {
+		XX_ERR(err.to_string());
 	}
 }
 

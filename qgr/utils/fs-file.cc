@@ -58,7 +58,8 @@ FileStat& FileStat::operator=(FileStat&& stat) {
 	if ( m_stat ) {
 		free(m_stat);
 	}
-	stat.m_stat = stat.m_stat;
+	m_stat = stat.m_stat;
+	stat.m_stat = nullptr;
 	return *this;
 }
 
@@ -158,31 +159,29 @@ bool File::is_open() {
 	return m_fp;
 }
 
-bool File::open(int flag) {
+int File::open(int flag) {
 	if ( m_fp ) { // 文件已经打开
-		XX_ERR( "file already open" );
-		return false;
+		XX_WARN( "file already open" );
+		return 0;
 	}
 	uv_fs_t req;
 	m_fp = uv_fs_open(uv_default_loop(), &req,
 										Path::fallback_c(m_path),
 										inl__file_flag_mask(flag), FileHelper::default_mode, nullptr);
 	if ( m_fp > 0 ) {
-		return true;
+		return 0;
 	}
-	return false;
+	return m_fp;
 }
 
-bool File::close() {
-	if ( m_fp ) {
-		uv_fs_t req;
-		if ( uv_fs_close(uv_default_loop(), &req, m_fp, nullptr) == 0 ) {
-			m_fp = 0;
-		} else {
-			return false;
-		}
+int File::close() {
+	if ( !m_fp ) return 0;
+	uv_fs_t req;
+	int r = uv_fs_close(uv_default_loop(), &req, m_fp, nullptr);
+	if ( r == 0 ) {
+		m_fp = 0;
 	}
-	return true;
+	return r;
 }
 
 int File::read(void* buffer, int64 size, int64 offset) {

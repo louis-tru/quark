@@ -480,7 +480,7 @@ uint FileHelper::chmod_r(cString& path, uint mode, cCb& cb) {
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
 					each->abort();
-					async_err_callback(cb, Error(*evt.error));
+					sync_callback(cb, evt.error);
 				} else {
 					each->advance();
 				}
@@ -503,7 +503,7 @@ uint FileHelper::chown_r(cString& path, uint owner, uint group, cCb& cb) {
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
 					each->abort();
-					async_err_callback(cb, Error(*evt.error));
+					sync_callback(cb, evt.error);
 				} else {
 					each->advance();
 				}
@@ -520,14 +520,15 @@ void FileHelper::mkdir(cString& path, uint mode, cCb& cb) {
 void FileHelper::mkdir_p(cString& path, uint mode, cCb& cb) {
 	exists2(path, Cb([=](Se& evt) {
 		if ( static_cast<Bool*>(evt.data)->value ) { // ok
-			async_callback(cb);
+			sync_callback(cb);
 		} else {
-			if ( mkdir_p_sync(path, mode) ) {
-				async_callback(cb);
-			} else {
-				Error e(ERR_UNKNOWN_ERROR, "unknown error");
-				async_err_callback(cb, move(e));
+			try {
+				mkdir_p_sync(path, mode);
+			} catch(cError& err) {
+				sync_callback(cb, &err);
+				return;
 			}
+			sync_callback(cb);
 		}
 	}), LOOP);
 }
@@ -562,7 +563,7 @@ uint FileHelper::remove_r(cString& path, cCb& cb) {
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
 					each->abort();
-					async_err_callback(cb, Error(*evt.error));
+					sync_callback(cb, evt.error);
 				} else {
 					each->advance();
 				}

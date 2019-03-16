@@ -145,8 +145,8 @@ class XX_EXPORT File: public Object {
 	virtual ~File();
 	inline  String path() const { return m_path; }
 	virtual bool is_open();
-	virtual bool open(int flag = FOPEN_R);
-	virtual bool close();
+	virtual int open(int flag = FOPEN_R);
+	virtual int close();
 	virtual int read(void* buffer, int64 size, int64 offset = -1);
 	virtual int write(const void* buffer, int64 size, int64 offset = -1);
  private:
@@ -194,7 +194,7 @@ class XX_EXPORT FileHelper {
 	/**
 	 * @func each_sync 递归遍历子文件与子目录, 遍历回调回返0停止遍历
 	 */
-	static bool each_sync(cString& path, cCb& cb, bool internal = false);
+	static bool each_sync(cString& path, cCb& cb, bool internal = false) throw(Error);
 	
 	// sync
 	/**
@@ -221,12 +221,12 @@ class XX_EXPORT FileHelper {
 	static bool writable_sync(cString& path);
 	static bool executable_sync(cString& path);
 	// recursion
-	static bool chmod_r_sync(cString& path, uint mode = default_mode, bool* stop_signal = nullptr);
-	static bool chown_r_sync(cString& path, uint owner, uint group, bool* stop_signal = nullptr);
-	static bool mkdir_p_sync(cString& path, uint mode = default_mode);
-	static bool remove_r_sync(cString& path, bool* stop_signal = nullptr);
-	static bool copy_sync(cString& source, cString& target, bool* stop_signal = nullptr);
-	static bool copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr);
+	static bool chmod_r_sync(cString& path, uint mode = default_mode, bool* stop_signal = nullptr) throw(Error);
+	static bool chown_r_sync(cString& path, uint owner, uint group, bool* stop_signal = nullptr) throw(Error);
+	static void mkdir_p_sync(cString& path, uint mode = default_mode) throw(Error);
+	static bool remove_r_sync(cString& path, bool* stop_signal = nullptr) throw(Error);
+	static bool copy_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
+	static bool copy_r_sync(cString& source, cString& target, bool* stop_signal = nullptr) throw(Error);
 	// async
 	static void chmod(cString& path, uint mode = default_mode, cCb& cb = 0);
 	static void chown(cString& path, uint owner, uint group, cCb& cb = 0);

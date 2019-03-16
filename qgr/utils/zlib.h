@@ -105,12 +105,12 @@ class XX_EXPORT GZip: public Object {
 	 * BOTH and BOTH_NEW and BOTH_END_NEW cannot use
 	 * @override
 	 */
-	virtual bool open(int flag = FOPEN_R);
+	virtual int open(int flag = FOPEN_R);
 	
 	/**
 	 * @override
 	 */
-	virtual bool close();
+	virtual int close();
 	virtual int read(void* buffer, int64 size, int64 offset = -1);
 	virtual int write(const void* buffer, int64 size, int64 offset = -1);
 	

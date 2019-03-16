@@ -484,7 +484,13 @@ class NativeFileHelper {
 			args_index++;
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::chmod_r_sync(args[0]->ToStringValue(worker), mode) );
+			bool r;
+			try {
+				r = FileHelper::chmod_r_sync(args[0]->ToStringValue(worker), mode);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -594,9 +600,15 @@ class NativeFileHelper {
 		}
 		
 		if ( sync ) {
-			JS_RETURN( FileHelper::chown_r_sync(args[0]->ToStringValue(worker),
-																					 args[1]->ToUint32Value(worker),
-																					 args[2]->ToUint32Value(worker)) );
+			bool r;
+			try {
+				r = FileHelper::chown_r_sync(args[0]->ToStringValue(worker),
+																		args[1]->ToUint32Value(worker),
+																		args[2]->ToUint32Value(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb; 
 			if ( args.Length() > 3 ) {
@@ -702,7 +714,11 @@ class NativeFileHelper {
 			args_index++;
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::mkdir_p_sync(args[0]->ToStringValue(worker), mode) );
+			try {
+				FileHelper::mkdir_p_sync(args[0]->ToStringValue(worker), mode);
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
 		} else {
 			Callback cb;
 			if ( args.Length() > args_index ) {
@@ -927,7 +943,13 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::remove_r_sync(args[0]->ToStringValue(worker)) );
+			bool r;
+			try {
+				r = FileHelper::remove_r_sync(args[0]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > 1 ) {
@@ -972,8 +994,14 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::copy_sync(args[0]->ToStringValue(worker),
-																			args[1]->ToStringValue(worker)) );
+			bool r;
+			try {
+				r = FileHelper::copy_sync(args[0]->ToStringValue(worker),
+																	args[1]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
@@ -1019,8 +1047,14 @@ class NativeFileHelper {
 			}
 		}
 		if ( sync ) {
-			JS_RETURN( FileHelper::copy_r_sync(args[0]->ToStringValue(worker),
-																				 args[1]->ToStringValue(worker)) );
+			bool r;
+			try {
+				r = FileHelper::copy_r_sync(args[0]->ToStringValue(worker),
+																		args[1]->ToStringValue(worker));
+			} catch(cError& err) {
+				JS_THROW_ERR(err);
+			}
+			JS_RETURN( r );
 		} else {
 			Callback cb;
 			if ( args.Length() > 2 ) {
