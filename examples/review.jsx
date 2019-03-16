@@ -18,7 +18,7 @@ export default const vx = (
 		toolbar.hidden=true 
 		backgroundColor="#333" onForeground=foreground>
 		<Scroll width="full" height="full" bounceLock=0>
-			<Text width="full" id="text" textColor="#fff" textSize=14 margin=5 />
+			<Text width="full" id="text" textColor="#fff" textSize=12 margin=5 />
 		</Scroll>
 	</Mynavpage>
 )

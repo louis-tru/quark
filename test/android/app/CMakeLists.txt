@@ -156,7 +156,8 @@ add_library(qgr-gui SHARED
 )
 
 add_library(qgr-js SHARED
-	../../../out/native-core-js.cc
+	../../../out/native-inl-js.cc
+	../../../out/native-inl2-js.cc
 	../../../out/native-ext-js.cc
 	../../../qgr/js/js-cls.cc
 	../../../qgr/js/js.cc
