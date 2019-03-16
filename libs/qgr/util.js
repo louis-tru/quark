@@ -114,7 +114,7 @@ var utils = new Utils();
 var currentTimezone = new Date().getTimezoneOffset() / -60; // 当前时区
 var default_throw = Function.prototype.throw;
 var id = 10;
-var extendEntries = _pkg.extendEntries;
+var extendObject = _pkg.extendObject;
 var assign = Object.assign;
 var AsyncFunctionConstructor = (async function() {}).constructor;
 
@@ -264,9 +264,9 @@ module.exports = exports = extend(extend(utils, _util), {
 	extend: extend,
 
 	/**
-	 * @func extendEntries(obj, extd)
+	 * @func extendObject(obj, extd)
 	 */
-	extendEntries: extendEntries,
+	extendObject: extendObject,
 	
 	/**
 	 * @get id

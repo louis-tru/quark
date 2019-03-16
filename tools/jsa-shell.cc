@@ -39,19 +39,19 @@ using namespace qgr;
 
 #define error(err, ...) { XX_ERR(err, ##__VA_ARGS__); return 1; }
 
-bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx) {
+bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx, bool clean_comment) {
 #if DEBUG_JSA
 	if ( jsx ) {
-		out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src));
+		out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src, clean_comment));
 	} else {
-		out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src));
+		out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src, clean_comment));
 	}
 #else
 	try {
 		if ( jsx ) {
-			out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src));
+			out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src, clean_comment));
 		} else {
-			out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src));
+			out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src, clean_comment));
 		}
 	} catch(Error& err) {
 		error(err.message());
@@ -81,15 +81,22 @@ int main(int argc, char* argv[]) {
 		
 	Ucs2String in;
 	Buffer out;
+	bool clean_comment = 0;
+
+	if (argc > 3) {
+		if (strcmp(argv[3], "--clean-comment") == 0) {
+			clean_comment = 1;
+		}
+	}
 	
 	in = Codec::decoding_to_uint16(Encoding::utf8, FileHelper::read_file_sync(src));
 	
 	int r = 0;
 		
 	if ( extname == ".js" ) {
-		r = transform_js(src, in, out, false);
+		r = transform_js(src, in, out, false, clean_comment);
 	} else if ( extname == ".jsx" ) {
-		r = transform_js(src, in, out, true);
+		r = transform_js(src, in, out, true, clean_comment);
 	} else {
 		error("Bad argument.");
 	}

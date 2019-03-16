@@ -78,10 +78,9 @@ ios: $(TOOLS)/bin/${OS}/jsa-shell
 	#@$(MAKE)   # armv7 say goodbye 
 	@./configure --os=ios --arch=x64 --library=shared
 	@$(MAKE)
-	@./configure --os=ios --arch=arm64 --library=shared
+	@./configure --os=ios --arch=arm64 --library=shared --without-embed-bitcode
 	@$(MAKE)
-	@./configure --os=ios --arch=arm64 --library=shared \
-		-v8 --suffix=arm64.v8 --without-embed-bitcode
+	@./configure --os=ios --arch=arm64 --library=shared --without-embed-bitcode -v8 --suffix=arm64.v8
 	@$(MAKE)
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \

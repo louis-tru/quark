@@ -35,7 +35,7 @@ import {
 	ViewController, View, Div, Indep, 
 	Limit, Button, Text, TextNode, Clip, 
 	New, isViewXml, Panel, qgr, isEmptyViewXml
-} from './qgr';
+} from 'qgr/qgr';
 
 export const FOREGROUND_ACTION_INIT = 0;
 export const FOREGROUND_ACTION_RESUME = 1;

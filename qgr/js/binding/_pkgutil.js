@@ -241,7 +241,7 @@ function makeRequireFunction(mod) {
 
 	resolve.paths = paths;
 
-	require.main = mod.package.mainModule;
+	require.main = mod.package && mod.package.mainModule;
 
 	// Enable support to add extra extension types.
 	require.extensions = Module._extensions;
@@ -305,7 +305,7 @@ function debug(TAG = 'PKG') {
 	}
 }
 
-function extendEntries(obj, extd) {
+function extendObject(obj, extd) {
 	for (var item of Object.entries(extd)) {
 		obj[item[0]] = item[1];
 	}
@@ -345,8 +345,6 @@ function extendViewXml(raw_vx, attrs, vdata) {
 	return r;
 }
 
-var extendModuleCodes = {};
-
 Object.assign(exports, {
 	fallbackPath,
 	resolvePathLevel,
@@ -361,6 +359,6 @@ Object.assign(exports, {
 	stripShebang,
 	stripBOM,
 	assert, debug,
-	extendEntries,
-	extendViewXml, extendModuleCodes,
+	extendObject,
+	extendViewXml,
 });

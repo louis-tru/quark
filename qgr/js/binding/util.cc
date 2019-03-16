@@ -34,12 +34,15 @@
 #include "qgr/utils/loop.h"
 #include "qgr/js/qgr.h"
 #include "qgr/utils/jsx.h"
+#include "native-ext-js.h"
 
 /**
  * @ns qgr::js
  */
 
 JS_BEGIN
+
+using namespace native_js;
 
 extern Array<char*>* __xx_qgr_argv;
 extern int __xx_qgr_have_node;
@@ -284,10 +287,26 @@ class NativeUtil {
 		qgr::exit(code);
 	}
 
+	static void __getExtendModuleContent(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
+			JS_THROW_ERR("Bad argument");
+		}
+		String path = args[0]->ToStringValue(worker);
+		for (int i = 0; i < EXT_native_js_count_; i++) {
+			const EXT_NativeJSCode* code = EXT_native_js_ + i;
+			if (path == code->name) {
+				JS_RETURN( worker->NewString(code->code, code->count) );
+			}
+		}
+		JS_RETURN_NULL();
+	}
+
 	/**
 	 * @func binding
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
+
 		JS_SET_METHOD(hashCode, hashCode);
 		JS_SET_METHOD(hash, hash);
 		JS_SET_METHOD(version, version);
@@ -302,13 +321,28 @@ class NativeUtil {
 		JS_SET_PROPERTY(platform, qgr::platform());
 		JS_SET_PROPERTY(haveNode, __xx_qgr_have_node);
 		JS_SET_PROPERTY(dev, __xx_qgr_have_dev);
+
+		// argv
 		Local<JSArray> argv = worker->NewArray();
 		if (__xx_qgr_argv) {
-			for (int i = 0; i < __xx_qgr_argv->length(); i++) {
+			for (uint i = 0; i < __xx_qgr_argv->length(); i++) {
 				argv->Set(worker, i, worker->New(__xx_qgr_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);
+
+		// extendModule
+		Local<JSObject> __extendModule = worker->NewObject();
+		for (int i = 0; i < EXT_native_js_count_; i++) {
+			Local<JSObject> module = worker->NewObject();
+			const EXT_NativeJSCode* code = EXT_native_js_ + i;
+			module->SetProperty(worker, "filename", String(code->name) + code->ext);
+			module->SetProperty(worker, "extname", code->ext);
+			__extendModule->SetProperty(worker, code->name, module);
+		}
+		JS_SET_PROPERTY(__extendModule, __extendModule);
+		JS_SET_METHOD(__getExtendModuleContent, __getExtendModuleContent);
+
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);
 	}

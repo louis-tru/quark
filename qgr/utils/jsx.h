@@ -41,8 +41,10 @@ XX_NS(qgr)
  */
 class XX_EXPORT Jsx {
  public:
-	static Ucs2String transform_jsx(cUcs2String& in, cString& path) throw(Error);
-	static Ucs2String transform_js(cUcs2String& in, cString& path) throw(Error);
+	static Ucs2String transform_jsx(cUcs2String& source, 
+		cString& path, bool clean_comment = 0) throw(Error);
+	static Ucs2String transform_js(cUcs2String& source, 
+		cString& path, bool clean_comment = 0) throw(Error);
 };
 
 XX_END

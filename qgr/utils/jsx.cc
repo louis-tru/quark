@@ -1605,7 +1605,7 @@ class Scanner : public Object {
 class Parser: public Object {
 public:
 	
-	Parser(cUcs2String& in, cString& path, bool is_jsx)
+	Parser(cUcs2String& in, cString& path, bool is_jsx, bool clean_comment)
 	: _out(nullptr)
 	, _path(path)
 	, _level(0)
@@ -1614,7 +1614,7 @@ public:
 	, _is_xml_attribute_expression(false)
 	, _single_if_expression_before(false)
 	, _has_export_default(false)
-	, _clean_comment(1)
+	, _clean_comment(clean_comment)
 	{
 		_scanner = new Scanner(*in, in.length(), _clean_comment);
 		_out = &_top_out;
@@ -3117,12 +3117,12 @@ public:
 	bool  _clean_comment;
 };
 
-Ucs2String Jsx::transform_jsx(cUcs2String& in, cString& path) throw(Error) {
-	return Parser(in, path, true).transform();
+Ucs2String Jsx::transform_jsx(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
+	return Parser(in, path, true, clean_comment).transform();
 }
 
-Ucs2String Jsx::transform_js(cUcs2String& in, cString& path) throw(Error) {
-	return Parser(in, path, false).transform();
+Ucs2String Jsx::transform_js(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
+	return Parser(in, path, false, clean_comment).transform();
 }
 
 XX_END

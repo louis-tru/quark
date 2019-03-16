@@ -131,6 +131,7 @@
 					'<(node)',
 					'<@(_inputs)',
 					'',
+					'-',
 					'INL',
 					'wrap',
 					'<@(_outputs)',
@@ -157,13 +158,14 @@
 					'<(node)',
 					'<@(_inputs)',
 					'',
+					'-',
 					'INL2',
 					'wrap',
 					'<@(_outputs)',
 				],
 			},
 			{
-				'action_name': 'gen_ext_js_natives',
+				'action_name': 'gen_ext_js_natives_',
 				'variables': {
 					'files': [
 						'../../libs/qgr/action.js',
@@ -208,7 +210,8 @@
 				'action': [
 					'<(node)',
 					'<@(_inputs)',
-					'qgr/',
+					'qgr',
+					'qgr.js',
 					'EXT',
 					'',
 					'<@(_outputs)',

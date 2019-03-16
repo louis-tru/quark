@@ -65,7 +65,7 @@
 
 空操作,调用后什么也不会做
 
-## extendEntries(obj, extd)
+## extendObject(obj, extd)
 
 递归`extd`对像属性并扩展到`obj`对像上
 

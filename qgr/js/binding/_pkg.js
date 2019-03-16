@@ -38,12 +38,12 @@ const _pkgutil = requireNative('_pkgutil');
 const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
-				isLocal, isLocalZip, extendEntries, extendModuleCodes,
+				isLocal, isLocalZip, extendObject,
 				isNetwork, assert, stripBOM, Module, NativeModule } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
 				isDirectorySync, readdirSync } = requireNative('_reader');
-const { haveNode } = _util;
+const { haveNode, __extendModule, __getExtendModuleContent } = _util;
 const options = {};  // start options
 const external_cache = {};
 const extend_cache = {};
@@ -84,7 +84,7 @@ function print_warn(err) {
 function new_err(e) {
 	if (! (e instanceof Error)) {
 		if (typeof e == 'object') {
-			e = extendEntries(new Error(e.message || 'Unknown error'), e);
+			e = extendObject(new Error(e.message || 'Unknown error'), e);
 		} else {
 			e = new Error(e);
 		}
@@ -341,7 +341,7 @@ function Package_install2(self, cb) {
 				let install_remote_ok = function(){ cb && cb() }.catch(err=>{
 					// 不能安装远程包,
 					print_err(err);
-					extendEntries(self, old); // 恢复
+					extendObject(self, old); // 恢复
 					self.m_old = null;
 					cb && cb();
 				});
@@ -1352,7 +1352,7 @@ class Packages {
 /**
  * @func extend(obj, extd)
  */
-Packages.prototype.extendEntries = extendEntries;
+Packages.prototype.extendObject = extendObject;
 Packages.prototype.resolve = resolve;
 Packages.prototype.isAbsolute = isAbsolute;
 Packages.prototype.isLocal = isLocal;
@@ -1385,24 +1385,43 @@ function inl_require_external(path, parent) {
 }
 
 /**
- * @func inl_require_extend(path)
+ * @func inl_require_extend(require)
  */
-function inl_require_extend(path, parent) {
+function inl_require_extend(require, parent) {
 
-	if (extend_cache[path]) {
-		return extend_cache[path].exports;
+	if (extend_cache[require]) {
+		return extend_cache[require].exports;
 	}
-	if (!extendModuleCodes[path]) {
+
+	var require_extname = _path.extname(require);
+	if (require_extname) {
+		require = require.substr(0, require.length - require_extname.length);
+	}
+
+	if (!__extendModule[require]) {
 		return;
 	}
 
-	var { filename, extname, content } = extendModuleCodes[path];
+	var { filename, extname } = __extendModule[require];
+	if (require_extname) {
+		if (require_extname != extname) {
+			return;
+		}
+	}
+
+	var content = __getExtendModuleContent(require);
 	var module = new Module(filename, parent, null);
-	extend_cache[path] = module;
+	extend_cache[require] = module;
+	extend_cache[require + extname] = module;
 	module.filename = filename;
 	module.paths = [];
 
+	var name = _path.basename(filename);
+	name = name.substr(0, name.length - extname.length).replace(/[\.\-]/g, '_');
+	var exports = module.exports[name] = module.exports;
+
 	try {
+		// console.log('----------------------', content)
 		if (extname == '.json') {
 			module.exports = parseJSON(content, filename);
 		} else if (extname == '.keys') {
@@ -1413,11 +1432,17 @@ function inl_require_extend(path, parent) {
 		module.loaded = true;
 	} finally {
 		if (!module.loaded) {
-			delete extend_cache[path];
+			delete extend_cache[require];
 		}
 	}
 
-	return module.exports;
+	exports = module.exports;
+
+	if (!(name in exports)) {
+		exports[name] = exports;
+	}
+
+	return exports;
 }
 
 /**
@@ -1450,17 +1475,26 @@ function inl_require(request, parent) {
 			request.charCodeAt(1) === 46/*.*/ || request.charCodeAt(1) === 47/*/*/)
 	) {
 		// path in package
+		if (!pkg) {
+			throw throw_err(`require module error, cannot find "${request}"`);
+		}
 	} else if (isAbsolute(request)) { // absolute path
 		return inl_require_external(resolve(request));
 	} else {
 		var mat = request.match(/^([a-z\-_\$]+)(\/(.+))?$/i);
 		if (mat) { // 导入一个新的package的名称,如果pkg不存在会抛出异常
 			pkg = instance.getPackage(mat[1]);
+
+			if (!pkg) { // 这是错误的, require('test/xx'); 这个 test package 必须存在
+				var result = inl_require_extend(request, parent);
+				if (result) {
+					return result;
+				} else {
+					throw throw_err(`require module error, "${mat[1]}" pkg not register`);
+				}
+			}
 			request = mat[3] || '';
 			dir = '';
-			if (!pkg) { // 这是错误的, require('test/xx'); 这个 test package 必须存在
-				throw throw_err(`require error, "${mat[1]}" pkg not register`);
-			}
 		}
 	}
 
