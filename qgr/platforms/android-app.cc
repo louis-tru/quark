@@ -597,23 +597,23 @@ void DisplayPort::set_orientation(Orientation orientation) {
 
 extern "C" {
 
-	XX_EXPORT void Java_org_qgr_IMEReceiver_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
+	XX_EXPORT void Java_org_qgr_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
 		_inl_app(app())->dispatch()->dispatch_ime_delete(count);
 	}
 
-	XX_EXPORT void Java_org_qgr_IMEReceiver_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
+	XX_EXPORT void Java_org_qgr_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
 		_inl_app(app())->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 	}
 
-	XX_EXPORT void Java_org_qgr_IMEReceiver_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
+	XX_EXPORT void Java_org_qgr_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
 		_inl_app(app())->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 	}
 
-	XX_EXPORT void Java_org_qgr_IMEReceiver_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
+	XX_EXPORT void Java_org_qgr_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
 		_inl_app(app())->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 	}
 	
-	XX_EXPORT void Java_org_qgr_IMEReceiver_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
+	XX_EXPORT void Java_org_qgr_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 		jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
 		_inl_app(app())->dispatch()->keyboard_adapter()->
 			dispatch(keycode, ascii, down, repeat, device, source);

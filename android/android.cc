@@ -41,7 +41,7 @@ class API {
 	API() {
 		ScopeENV env;
 		clazz_              = JNI::find_clazz("org/qgr/Android");
-		clazz_build_        = JNI::find_clazz("android.os.Build");
+		//clazz_build_        = JNI::find_clazz("android.os.Build");
 		// utils
 		version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
 		brand_              = JNI::find_static_method(clazz_, "brand", "()Ljava/lang/String;");
@@ -79,16 +79,16 @@ class API {
 		memory_             = JNI::find_static_method(clazz_, "memory", "()J");
 		used_memory_        = JNI::find_static_method(clazz_, "used_memory", "()J");
 		clazz_ = (jclass)env->NewGlobalRef(clazz_);
-		clazz_build_ = (jclass)env->NewGlobalRef(clazz_build_);
+		//clazz_build_ = (jclass)env->NewGlobalRef(clazz_build_);
 	}
 
 	~API() {
 		ScopeENV env;
 		env->DeleteGlobalRef(clazz_);
-		env->DeleteGlobalRef(clazz_build_);
+		// env->DeleteGlobalRef(clazz_build_);
 	}
 
-	jclass    clazz_build_;
+	//jclass    clazz_build_;
 	jclass    clazz_;
 	jmethodID ime_keyboard_open_;
 	jmethodID ime_keyboard_can_backspace_;
