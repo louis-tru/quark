@@ -49,26 +49,26 @@ typedef GUIApplication::Inl AppInl;
 // global shared gui application 
 GUIApplication* GUIApplication::m_shared = nullptr;
 
-struct thread_control {
-	Mutex root_thread_mutex;
-	Condition root_thread_cond;
+struct external_thread_control_t {
+	Mutex thread_mutex;
+	Condition thread_cond;
 	RecursiveMutex gui_thread_mutex;
 
-	void root_thread_awaken() {
-		ScopeLock scope(root_thread_mutex);
-		root_thread_cond.notify_one();
+	void awaken() {
+		ScopeLock scope(thread_mutex);
+		thread_cond.notify_all();
 	}
 
-	void root_thread_sleep(bool* ok = nullptr) {
-		Lock lock(root_thread_mutex);
+	void sleep(bool* ok = nullptr) {
+		Lock lock(thread_mutex);
 		do {
-			root_thread_cond.wait(lock);
+			thread_cond.wait(lock);
 		} while(ok && !*ok);
 	}
 
 };
 
-static auto *tctr = new thread_control();
+static auto *tctr = new external_thread_control_t();
 
 GUILock::GUILock(): m_d(nullptr) {
 	lock();
@@ -192,7 +192,7 @@ void GUIApplication::start(int argc, char* argv[]) {
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
 	while (!m_shared || !m_shared->m_is_run) {
-		tctr->root_thread_sleep();
+		tctr->sleep();
 	}
 }
 
@@ -209,8 +209,9 @@ void GUIApplication::run() {
 
 	if (m_main_loop != m_render_loop) {
 		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->gui_thread_mutex);
+		Thread::awaken(m_main_id); // main loop awaken
 	}
-	tctr->root_thread_awaken(); // 根线程继续运行
+	tctr->awaken(); // 外部线程继续运行
 
 	XX_CHECK(!m_render_loop->runing());
 
@@ -220,6 +221,17 @@ void GUIApplication::run() {
 
 	m_render_loop = nullptr;
 	m_is_run = false;
+}
+
+void GUIApplication::run_indep() {
+	XX_ASSERT(RunLoop::is_main_loop()); // main loop call
+	Thread::spawn([this](Thread& t) {
+		DLOG("run render loop ...");
+		run(); // run gui main thread loop
+		DLOG("run render loop end");
+		return 0;
+	}, "render_loop");
+	Thread::sleep(); // main loop sleep
 }
 
 static int __xx_exit_app_hook__(int rc) {

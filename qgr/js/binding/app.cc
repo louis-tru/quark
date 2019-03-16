@@ -127,7 +127,6 @@ class WrapNativeGUIApplication: public WrapObject {
 		JS_WORKER(args);
 		
 		JSON options;
-		
 		if ( args.Length() > 0 && args[0]->IsObject(worker) ) {
 			if (!args[0].To<JSObject>()->ToJSON(worker).To(options))
 				return;
@@ -138,17 +137,11 @@ class WrapNativeGUIApplication: public WrapObject {
 			Handle<GUIApplication> h = new GUIApplication();
 			h->initialize(options);
 			auto app = h.collapse();
-			wrap = New<WrapNativeGUIApplication>(args, app);
 			app->XX_ON(memorywarning,
 								 &WrapNativeGUIApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeGUIApplication*>(wrap));
-			Thread::spawn([app](Thread& t) {
-				XX_DEBUG("run render loop ...");
-				app->run(); // run gui main thread loop
-				XX_DEBUG("run render loop end");
-				return 0;
-			}, "render_loop");
-			
+			app->run_indep();
+			wrap = New<WrapNativeGUIApplication>(args, app);
 		} catch(cError& err) {
 			if ( wrap )
 				delete wrap;

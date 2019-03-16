@@ -46,7 +46,7 @@ XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 	
 	void handle_surface_size_change(Event<>& evt) {
 		m_phy_size = m_draw_ctx->selected_region().size;
-		update_display_port_r();
+		update_display_port_rl();
 	}
 	
 	void update_root_size() {
@@ -57,7 +57,7 @@ XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 		}
 	}
 	
-	void update_display_port_r() {
+	void update_display_port_rl() {
 		
 		if (m_lock_size.width() == 0 && m_lock_size.height() == 0) { // 使用系统默认的最合适的尺寸
 			m_size = { m_phy_size.width() / m_draw_ctx->best_display_scale(),
@@ -171,8 +171,8 @@ void DisplayPort::lock_size(float width, float height) {
 		if (m_lock_size.width() != width || m_lock_size.height() != height) {
 			m_lock_size = { width, height };
 			XX_CHECK(m_host->render_loop());
-			m_host->render_loop()->post_sync(Cb([this](Se& e) {
-				_inl(this)->update_display_port_r();
+			m_host->render_loop()->post(Cb([this](Se& e) {
+				_inl(this)->update_display_port_rl();
 			}));
 		}
 	} else {

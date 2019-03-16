@@ -467,12 +467,7 @@ int FileHelper::write_file_sync(cString& path, cString& str) throw(Error) {
 }
 int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) throw(Error) {
 	uv_fs_t req;
-	int fp = uv_fs_open(uv_default_loop(), &req,
-											Path::fallback_c(path),
-											O_WRONLY | O_CREAT | O_TRUNC, default_mode, nullptr);
-	if (fp == 0) {
-		// TODO ...
-	}
+	int fp = open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
 	buf.len = size < 0 ? 0 : size;

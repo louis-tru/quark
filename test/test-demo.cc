@@ -99,8 +99,16 @@ void test_demo(int argc, char **argv) {
 #endif
 	}
 
-	if (has_argv("--full-screen", argc, argv)) {
-		cmd += "--full-screen ";
+	for (int i = 1; i < argc; i++) {
+		// LOG("%s, %s", argv[i], strstr(argv[i], "--"));
+		if (strstr(argv[i], "--") == argv[i] && 
+			strcmp(argv[i], "--dev") != 0 && 
+			strcmp(argv[i], "--node") != 0 && 
+			strstr(argv[i], "--inspect") != argv[i]) 
+		{
+			cmd += argv[i];
+			cmd += ' ';
+		}
 	}
 
 	LOG(cmd);

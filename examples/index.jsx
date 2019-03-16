@@ -182,3 +182,10 @@ var app = new GUIApplication({
 		</NavpageCollection>
 	</Root>
 )
+
+// console.log(app.displayPort.phyWidth)
+
+var lock = Number(util.options.lock);
+if (lock) {
+	app.displayPort.lockSize(lock);
+}

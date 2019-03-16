@@ -117,7 +117,12 @@ class XX_EXPORT GUIApplication: public Object {
 	/**
 	 * @func run 运行消息循环
 	 */
-	void run();
+	void run();	
+
+	/**
+	 * @func run_indep 在独立的纯种运行消息循环
+	 */
+	void run_indep();
 
 	/**
 	 * @func clear 清理垃圾回收内存资源, full=true 清理全部资源

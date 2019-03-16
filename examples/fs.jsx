@@ -6,26 +6,25 @@ import { Mynavpage } from './public';
 
 const filename = path.documents('test.txt');
 
-//fs.mkdirpSync(path.dirname(filename));
+fs.mkdirpSync(path.dirname(filename));
 
 function WriteFile(evt) {
 	console.log('------------', filename);
 	fs.writeFile(filename, evt.sender.owner.find('input').value, function() {
 		alert('Write file OK.');
 	}.catch(err=>{
-		alert(err.message);
+		alert(err.message + ', ' + err.code);
 	}));
 }
 
 function WriteFileSync(evt) {
 	try {
 		var txt = evt.sender.owner.find('input').value;
-		// console.log('WriteFileSync', txt);
 		var r = fs.writeFileSync(filename, txt);
 		console.log(r);
 		alert('Write file OK.');
 	} catch (err) {
-		alert(err.message);
+		alert(err.message + ', ' + err.code);
 	}
 }
 
@@ -34,7 +33,7 @@ function ReadFile(evt) {
 	fs.readFile(filename, function(buf) {
 		alert(buf.toString('utf-8'));
 	}.catch(err=>{
-		alert(err.message);
+		alert(err.message + ', ' + err.code);
 	}));
 }
 
@@ -43,7 +42,7 @@ function Remove(evt) {
 		fs.removerSync(filename);
 		alert('Remove file OK.');
 	} catch (err) {
-		alert(err.message);
+		alert(err.message + ', ' + err.code);
 	}
 }
 
