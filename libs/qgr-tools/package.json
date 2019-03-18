@@ -34,7 +34,7 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"qgr-utils": "~0.7.15"
+		"qgr-utils": "~0.8.11"
 	},
 	"license": "BSD-2-Clause",
 	"bugs": {
