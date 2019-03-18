@@ -152,7 +152,8 @@ function get_skip_files(self, pkg_json, name) {
 		rev.push('native');
 	}
 	rev.push('node_modules');
-	rev.push('package.keys');
+	rev.push('libs');
+	rev.push('package.json');
 	rev.push('versions.json');
 	
 	var reg = new RegExp('^:?' + name + '$');
@@ -189,14 +190,14 @@ function get_detach_files(self, pkg_json, name) {
 	return rev;
 }
 
-function action_pkg(self, pathname, ignore_depe) {
-	return action_pkg1(self, pathname, 
+function build_pkg(self, pathname, ignore_depe) {
+	return build_pkg1(self, pathname, 
 		self.m_target_local, 
 		self.m_target_public, 0, ignore_depe);
 }
 
 // build pkg item
-function action_pkg1(self, pathname, target_local, target_public, ignore_public, ignore_depe) {
+function build_pkg1(self, pathname, target_local, target_public, ignore_public, ignore_depe) {
 	var source_path = path.resolveLocal(pathname);
 	var name = path.basename(source_path);
 	var target_local_path = target_local + '/' + name;
@@ -246,8 +247,8 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 	self.m_cur_pkg_json             = pkg_json;
 	self.m_cur_pkg_no_syntax_preprocess = !!pkg_json.no_syntax_preprocess;
 	self.m_cur_pkg_qgr_syntax      = !!pkg_json.qgr_syntax;
-	self.m_cur_pkg_files            = { };
-	self.m_cur_pkg_pkg_files        = { };
+	self.m_cur_pkg_files            = {};
+	self.m_cur_pkg_pkg_files        = {};
 	self.m_cur_pkg_skip_file        = get_skip_files(self, pkg_json, name);
 	self.m_cur_pkg_detach_file      = get_detach_files(self, pkg_json, name);
 	
@@ -257,7 +258,7 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 	}
 	
 	if ( self.minify == -1 ) { // 使用package.json定义
-		// package.json 默认启用 `minify`
+		// package.json 默认不启用 `minify`
 		self.m_cur_pkg_enable_minify = 'minify' in pkg_json ? !!pkg_json.minify : false;
 	} else {
 		self.m_cur_pkg_enable_minify = !!self.minify;
@@ -271,7 +272,7 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 	}
 	
 	// each dir
-	action_each_pkg_dir(self, '');
+	build_each_pkg_dir(self, '');
 	
 	var hash = new Hash();
 	for (var i in self.m_cur_pkg_files) {  // 计算 version code
@@ -292,7 +293,7 @@ function action_pkg1(self, pathname, target_local, target_public, ignore_public,
 	if ( !ignore_depe ) {
 		// depe
 		function solve_external_depe(pathname) {
-			var paths = action_pkg(self, path.isAbsolute(pathname) ? 
+			var paths = build_pkg(self, path.isAbsolute(pathname) ? 
 														 pathname : source_path + '/' + pathname);
 			local_depe[paths.absolute_path] = '';
 			public_depe[paths.relative_path] = '';
@@ -387,7 +388,7 @@ function read_file_text(self, pathname) {
 	};
 }
 
-function action_build_file(self, pathname) {
+function build_file(self, pathname) {
 	// 跳过文件
 	for (var i = 0; i < self.m_cur_pkg_skip_file.length; i++) {
 		var name = self.m_cur_pkg_skip_file[i];
@@ -483,7 +484,7 @@ function action_build_file(self, pathname) {
 	}
 }
 
-function action_each_pkg_dir(self, pathname) {
+function build_each_pkg_dir(self, pathname) {
 	
 	var path2 = path.resolveLocal(self.m_cur_pkg_source_src, pathname);
 	var ls = fs.ls_sync(path2);
@@ -494,9 +495,9 @@ function action_each_pkg_dir(self, pathname) {
 			var path3 = pathname ? pathname + '/' + stat.name : stat.name; 
 			
 			if ( stat.isFile() ) {
-				action_build_file(self, path3);
+				build_file(self, path3);
 			} else if ( stat.isDirectory() ) {
-				action_each_pkg_dir(self, path3);
+				build_each_pkg_dir(self, path3);
 			}
 		}
 	}
@@ -546,7 +547,7 @@ function copy_outer_file(self, items) {
 	}
 }
 
-function action_result(self) {
+function build_result(self) {
 	var result = { };
 	var ok = 0;
 	for ( var name in self.m_output_pkgs ) {
@@ -609,12 +610,12 @@ var QgrBuild = util.class('QgrBuild', {
 	 */
 	build: function() { 
 		var self = this;
-		var keys_path = self.m_source + '/app.keys';
+		var keys_path = self.m_source + '/proj.keys';
 
 		fs.mkdir_p_sync(this.m_target_local);
 		fs.mkdir_p_sync(this.m_target_public);
 		
-		if ( !fs.existsSync(keys_path) ) { // No exists app.keys file
+		if ( !fs.existsSync(keys_path) ) { // No exists proj.keys file
 			// build pkgs
 			// scan each current target directory
 			fs.ls_sync(self.m_source).forEach(function(stat) {
@@ -622,10 +623,10 @@ var QgrBuild = util.class('QgrBuild', {
 						 stat.isDirectory() && 
 						 fs.existsSync( self.m_source + '/' + stat.name + '/package.json' )
 				) {
-					action_pkg(self, self.m_source + '/' + stat.name);
+					build_pkg(self, self.m_source + '/' + stat.name);
 				}
 			});
-			action_result(self);
+			build_result(self);
 
 			return;
 		}
@@ -636,21 +637,20 @@ var QgrBuild = util.class('QgrBuild', {
 		for (var name in keys_object) {
 			if (name[0] != '@') {
 				apps.push(name);
-			} else if (name == '@copy') {
+			} else if (name == '@Copy') {
 				copy_outer_file(self, keys_object[name]);
 			}
 		}
 
 		// npm install
-
-		console.log(`Install dependencies ...`);
-		syscall(`npm install ${apps.join(' ')} qgr`);
-		apps.forEach(e=>fs.unlinkSync('node_modules/' + e));
-		fs.rm_r_sync('package-lock.json');
+		// console.log(`Install dependencies ...`);
+		// syscall(`npm install ${apps.join(' ')} qgr`);
+		// apps.forEach(e=>fs.unlinkSync('node_modules/' + e));
+		// fs.rm_r_sync('package-lock.json');
 
 		// build application pkgs
 		
-		var pkgs_path = self.m_source + '/node_modules';
+		var pkgs_path = self.m_source + '/libs';
 
 		if ( fs.existsSync(pkgs_path) && fs.statSync(pkgs_path).isDirectory() ) {
 
@@ -660,16 +660,16 @@ var QgrBuild = util.class('QgrBuild', {
 			fs.ls_sync(pkgs_path).forEach(function(stat) {
 				var source = pkgs_path + '/' + stat.name;
 				if ( stat.isDirectory() && fs.existsSync(source + '/package.json') ) {
-					action_pkg1(self, source, target_local, self.m_target_public, false, true);
+					build_pkg1(self, source, target_local, self.m_target_public, false, true);
 				}
 			});
 		}
 		
 		// build apps
 
-		apps.forEach(e=>action_pkg(self, self.m_source + '/' + e));
+		apps.forEach(e=>build_pkg(self, self.m_source + '/' + e));
 
-		action_result(self);
+		build_result(self);
 	},
 
 	/**
@@ -677,12 +677,12 @@ var QgrBuild = util.class('QgrBuild', {
 	 */
 	initialize: function() {
 		var project_name = path.basename(process.cwd()) || 'qgrproj';
-		var app_keys = this.m_source + '/app.keys';
-		var app = { '@project_name': project_name, };
+		var app_keys = this.m_source + '/proj.keys';
+		var app = { '@ProjectName': project_name, };
 		var default_modules = paths.default_modules;
 
 		if ( default_modules && default_modules.length ) {
-			var pkgs_dirname = this.m_source + '/node_modules';
+			var pkgs_dirname = this.m_source + '/libs';
 			fs.mkdir_p_sync(pkgs_dirname); // create pkgs dir
 			// copy default pkgs
 			default_modules.forEach(function(pkg) { 
@@ -693,7 +693,7 @@ var QgrBuild = util.class('QgrBuild', {
 			});
 		}
 
-		if (fs.existsSync(app_keys)) { // 如果当前目录存在app.keys文件附加到当前
+		if (fs.existsSync(app_keys)) { // 如果当前目录存在proj.keys文件附加到当前
 			app = util.assign(app, keys.parseFile(app_keys));
 		} else {
 			if (!fs.existsSync(project_name)) {
@@ -727,7 +727,7 @@ new GUIApplication().start(
 			app[project_name] = '';
 		}
 		
-		// write new app.keys
+		// write new proj.keys
 		fs.writeFileSync(app_keys, keys.stringify(app));
 	},
 	

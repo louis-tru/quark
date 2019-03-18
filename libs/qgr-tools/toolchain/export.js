@@ -765,7 +765,7 @@ var QgrExport = util.class('QgrExport', {
 			librarys.map(copy);
 		}
 
-		var app_keys = this.m_source + '/app.keys';
+		var app_keys = this.m_source + '/proj.keys';
 
 		util.assert(fs.existsSync(app_keys), 'Export source does not exist ,{0}', app_keys);
 		
@@ -786,7 +786,7 @@ var QgrExport = util.class('QgrExport', {
 		// export pkgs
 
 		var default_modules = [];
-		var pkgs_path = self.m_source + '/node_modules';
+		var pkgs_path = self.m_source + '/libs';
 
 		if ( fs.existsSync(pkgs_path) && fs.statSync(pkgs_path).isDirectory() ) {
 			fs.ls_sync(pkgs_path).forEach(function(stat) {
@@ -799,11 +799,11 @@ var QgrExport = util.class('QgrExport', {
 
 		// export apps
 
-		var app_keys = keys.parseFile(this.m_source + '/app.keys');
+		var app_keys = keys.parseFile(this.m_source + '/proj.keys');
 		
 		for ( var name in app_keys ) {
 			if (name[0] == '@') { // 忽略 @
-				if ( name == '@project_name' ) {
+				if ( name == '@ProjectName' ) {
 					this.m_project_name = app_keys[name];
 				}
 			} else {

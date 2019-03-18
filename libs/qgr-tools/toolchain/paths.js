@@ -37,7 +37,7 @@ if ( fs.existsSync(__dirname + '/../product/qgr.gypi') ) {
 		qgr_gyp: '',
 		includes_gypi: [ resolve(__dirname + '/../product/qgr.gypi') ],
 		default_modules: [ 
-			resolve(__dirname + '/../product/libs/qgr'),
+			//resolve(__dirname + '/../product/libs/qgr'),
 		],
 		examples: resolve(__dirname + '/../product/examples'),
 		bundle_resources: [ /*resolve(__dirname + '/../product/cacert.pem')*/ ],
@@ -55,7 +55,7 @@ if ( fs.existsSync(__dirname + '/../product/qgr.gypi') ) {
 			__dirname + '/../../../tools/common.gypi',		
 		],
 		default_modules: [],
-		examples: __dirname + '/../../../demo/examples',
+		examples: __dirname + '/../../../examples',
 		bundle_resources: [ /*__dirname + '/../../../qgrutil/cacert.pem'*/ ],
 		includes: [],
 		librarys: {},
