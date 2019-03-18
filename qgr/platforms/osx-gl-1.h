@@ -33,7 +33,7 @@
 #ifndef __qgr__osx_gl__
 #define __qgr__osx_gl__
 
-#import "qgr/utils/macros.h"
+#import "qgr/macros.h"
 
 #if XX_OSX
 

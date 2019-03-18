@@ -24,7 +24,7 @@
 		'defines': [ 'NODE_WANT_INTERNALS=1' ],
 		'sources': [
 			'../../out/native-inl-js.cc',
-			'../../out/native-inl2-js.cc',
+			'../../out/native-lib-js.cc',
 			'../../out/native-ext-js.cc',
 			'js-1.h',
 			'js-cls.cc',
@@ -138,7 +138,7 @@
 				],
 			},
 			{
-				'action_name': 'gen_inl2_js_natives',
+				'action_name': 'gen_lib_js_natives',
 				'variables': {
 					'files': [
 						'binding/_keys.js',
@@ -151,15 +151,15 @@
 					'<@(files)',
 				],
 				'outputs': [
-					'../../out/native-inl2-js.h',
-					'../../out/native-inl2-js.cc',
+					'../../out/native-lib-js.h',
+					'../../out/native-lib-js.cc',
 				],
 				'action': [
 					'<(node)',
 					'<@(_inputs)',
 					'',
 					'-',
-					'INL2',
+					'LIB',
 					'wrap',
 					'<@(_outputs)',
 				],

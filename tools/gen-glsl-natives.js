@@ -31,12 +31,11 @@
 var fs      = require('fs');
 var path    = require('path');
 var inputs  = process.argv.slice(2);
-var output  = inputs.pop() || path.resolve(__dirname, '../out');
 var prefix  = inputs.pop();
+var output_cc = inputs.pop();
+var output_h = inputs.pop();
 var Buffer  = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
-
-var inl_inputs = [__filename];
 
 var round = `
 float xx_round(float num) {
@@ -57,6 +56,19 @@ function format_string() {
 	for (var i = 1, len = arguments.length; i < len; i++)
 		rev = rev.replace(new RegExp('\\{' + (i - 1) + '\\}', 'g'), arguments[i]);
 	return rev;
+}
+
+function write(fp) {
+	for (var i = 1; i < arguments.length; i++) {
+		fs.writeSync(fp, arguments[i], 'utf-8');
+		fs.writeSync(fp, '\n', 'utf-8');
+	}
+}
+
+function write_no_line_feed(fp) {
+	for (var i = 1; i < arguments.length; i++) {
+		fs.writeSync(fp, arguments[i], 'utf-8');
+	}
 }
 
 function strip_comment(code) {
@@ -167,22 +179,12 @@ function find_uniforms_attributes(glsl_code, uniforms, uniform_blocks, attribute
 	}
 }
 
-function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
-	var output_hpp = path.resolve(output, filename + '.h');
-	var output_cpp = path.resolve(output, filename + '.cc');
+function resolve_glsl(name, vert_code, frag_code, hpp, cpp) {
 
-	if ( !check_file_is_change([pathname].concat(inl_inputs), [output_hpp, output_cpp]) ) {
-		return;
-	}
+	console.log(`gen-glsl ${name}`);
 
-	var date = new Date().valueOf() + name;
-	var hpp = [
-		'#ifndef __shader_natives_' + date + '__',
-		'#define __shader_natives_' + date + '__',
-		'namespace qgr {',
-		'namespace shader {',
-		'#pragma pack(push,4)',
-			format_string('struct struct_{0} {', name),
+	write(hpp,
+		`struct struct_${name} {`,
 			'  const char* name;',
 			'  const unsigned char* source_vp;',
 			'  const  unsigned long source_vp_len;',
@@ -196,15 +198,8 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 			'  const char* shader_uniform_blocks;',
 			'  const char* shader_attributes;',
 			'  unsigned int shader;',
-			'  const int is_test;',
-	];
-	
-	var cpp = [
-		format_string('#include "{0}"', filename + '.h'),
-		'#include "qgr/gl/gl.h"',
-		'namespace qgr {',
-		'namespace shader {',
-	];
+			'  const int is_test;'
+	);
 
 	var source_vp;
 	var source_vp_len;
@@ -246,67 +241,79 @@ function resolve_glsl(pathname, filename, name, vert_code, frag_code) {
 	// ---------------- output hpp ---------------- 
 
 	uniforms.concat(uniform_blocks).forEach(function(uniform) {
-		hpp.push(format_string('  int {0};', uniform));
+		write(hpp, `  int ${uniform};`);
 	});
 	attributes.forEach(function(attribute) {
-		hpp.push(format_string('  unsigned int {0};', attribute));
+		write(hpp, `  unsigned int ${attribute};`);
 	});
-	hpp.push(format_string('} extern {0};', name));
-	hpp.push('#pragma pack(pop)');
-	hpp.push('}', '}', '#endif');
-
+	write(hpp, format_string('} extern {0};', name));
+	
 	// ---------------- output cpp ---------------- 
 
-	cpp.push(format_string('const unsigned char source_vp[] = { {0} };', source_vp));
-	cpp.push(format_string('const unsigned char source_fp[] = { {0} };', source_fp));
-	cpp.push(format_string('const unsigned char es2_source_vp[] = { {0} };', es2_source_vp));
-	cpp.push(format_string('const unsigned char es2_source_fp[] = { {0} };', es2_source_fp));
-	cpp.push(format_string('struct struct_{0} {0} = {', name)),
-	cpp.push(format_string('  "{0}",', name));
-	cpp.push(format_string('  source_vp,{0},', source_vp_len));
-	cpp.push(format_string('  source_fp,{0},', source_fp_len));
-	cpp.push(format_string('  es2_source_vp,{0},', es2_source_vp_len));
-	cpp.push(format_string('  es2_source_fp,{0},', es2_source_fp_len));
-	cpp.push(format_string('  "{0}",', uniforms.join(',')));
-	cpp.push(format_string('  "{0}",', uniform_blocks.join(',')));
-	cpp.push(format_string('  "{0}",', attributes.join(',')));
-	cpp.push('  0,');
-	cpp.push(is_test ? '  1,' : '  0,');
+	write(cpp, format_string('const unsigned char {0}_source_vp[] = { {1} };', name, source_vp));
+	write(cpp, format_string('const unsigned char {0}_source_fp[] = { {1} };', name, source_fp));
+	write(cpp, format_string('const unsigned char {0}_es2_source_vp[] = { {1} };', name, es2_source_vp));
+	write(cpp, format_string('const unsigned char {0}_es2_source_fp[] = { {1} };', name, es2_source_fp));
+	write(cpp, format_string('struct struct_{0} {0} = {', name)),
+	write(cpp, format_string('  "{0}",', name));
+	write(cpp, format_string('  {0}_source_vp,{1},', name, source_vp_len));
+	write(cpp, format_string('  {0}_source_fp,{1},', name, source_fp_len));
+	write(cpp, format_string('  {0}_es2_source_vp,{1},', name, es2_source_vp_len));
+	write(cpp, format_string('  {0}_es2_source_fp,{1},', name, es2_source_fp_len));
+	write(cpp, format_string('  "{0}",', uniforms.join(',')));
+	write(cpp, format_string('  "{0}",', uniform_blocks.join(',')));
+	write(cpp, format_string('  "{0}",', attributes.join(',')));
+	write(cpp, '  0,');
+	write(cpp, is_test ? '  1,' : '  0,');
 
 	uniforms.concat(uniform_blocks).forEach(function(uniform) {
-		cpp.push('  0,');
+		write(cpp, '  0,');
 	});
 	attributes.forEach(function(attribute, i) {
-		cpp.push('  ' + i + ',');
+		write(cpp, '  ' + i + ',');
 	});
-	cpp.push('};');
-
-	// init block
-	cpp.push(format_string('XX_INIT_BLOCK({0}) {', name));
-	cpp.push(format_string('  GLDraw::register_gl_shader((qgr::GLShader*)(&{0}));', name));
-	cpp.push('}');
-
-	cpp.push('}', '}');
-	fs.writeFileSync(output_hpp, hpp.join('\n'));
-	fs.writeFileSync(output_cpp, cpp.join('\n'));
+	write(cpp, '};');
 }
 
 function main() {
+
+	if ( !check_file_is_change(inputs.concat([__filename]), [output_h, output_cc]) ) {
+		return;
+	}
+
+	console.log(process.cwd(), output_h, output_cc);
+
+	var hpp = fs.openSync(output_h, 'w');
+	var cpp = fs.openSync(output_cc, 'w');
 	var main_inputs = [];
 
 	inputs.forEach(function(input) {
 		var mat = input.match(/[\/\\](inl\-|_)?([^\/\\]+?)(_)?\.glsl$/i);
 		if ( mat && !mat[1] && !mat[3] ) {
 			main_inputs.push({ input: input, filename: mat[2] });
-		} else {
-			inl_inputs.push(input);
 		}
 	});
 
-	main_inputs.forEach(function(input) {
-		var filename = input.filename;
-		input = input.input;
-		var name = filename.replace(/[\.-]/gm, '_');
+	write(hpp,
+		'#ifndef __shader_natives_' + Date.now() + '__',
+		'#define __shader_natives_' + Date.now() + '__',
+		'namespace qgr {',
+		'namespace shader {',
+		'#pragma pack(push,4)',
+	);
+
+	write(cpp,
+		`#include "./${path.basename(output_h)}"`,
+		'#include "qgr/gl/gl.h"',
+		'namespace qgr {',
+		'namespace shader {',
+	);
+
+	var names = [];
+
+	main_inputs.forEach(function(e) {
+		var input = e.input;
+		var name = e.filename.replace(/[\.-]/gm, '_');
 		var code = strip_comment(fs.readFileSync(input).toString('utf8'));
 		var codes = { vert: '', frag: '' };
 
@@ -327,11 +334,27 @@ function main() {
 			codes[prev.type] += code.substring(prev.index, code.length);
 		}
 		if ( codes.vert && codes.frag ) {
+			names.push(name);
 			codes.vert = resolve_include(input, {}, codes.vert);
 			codes.frag = resolve_include(input, {}, codes.frag);
-			resolve_glsl(input, prefix + filename, name, codes.vert, codes.frag);
+			resolve_glsl(name, codes.vert, codes.frag, hpp, cpp);
 		}
 	});
+
+	write(hpp, '#pragma pack(pop)');
+	write(hpp, '}', '}', '#endif'); // end
+
+	// init block
+	var name = path.basename(output_cc).replace(/[\.-]/gm, '_');
+	write(cpp, `XX_INIT_BLOCK(${name}) {`);
+	names.forEach(e=>{
+		write(cpp, `  GLDraw::register_gl_shader((qgr::GLShader*)(&${e}));`)
+	});
+	write(cpp, '}');
+	write(cpp, '}', '}');
+
+	fs.closeSync(hpp);
+	fs.closeSync(cpp);
 }
 
 main();

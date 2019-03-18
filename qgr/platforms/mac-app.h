@@ -31,7 +31,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "qgr/utils/macros.h"
+#import "qgr/macros.h"
 
 #if XX_IOS || XX_OSX
 

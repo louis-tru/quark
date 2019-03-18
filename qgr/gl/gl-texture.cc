@@ -31,7 +31,7 @@
 #include "qgr/texture.h"
 #include "qgr/gl/gl.h"
 #include "qgr/sys.h"
-#include "glsl-gen-texture.h"
+#include "native-glsl.h"
 
 XX_NS(qgr)
 

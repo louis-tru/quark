@@ -31,7 +31,7 @@
 #include "qgr/sys.h"
 #include "qgr/utils/buffer.h"
 #include "font-1.h"
-#include "font-native.h"
+#include "native-font.h"
 #include "qgr/bezier.h"
 #include "qgr/texture.h"
 #include "qgr/display-port.h"

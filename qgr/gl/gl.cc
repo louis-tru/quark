@@ -31,9 +31,7 @@
 #include "qgr/gl/gl.h"
 #include "qgr/texture.h"
 #include "qgr/font/font-1.h"
-#include "glsl-text-texture.h"
-#include "glsl-box-yuv420p-image.h"
-#include "glsl-box-yuv420sp-image.h"
+#include "native-glsl.h"
 
 #define gl_  glshaders(this)
 

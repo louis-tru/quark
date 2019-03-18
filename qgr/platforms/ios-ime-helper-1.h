@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/macros.h"
+#include "qgr/macros.h"
 
 #if XX_IOS
 

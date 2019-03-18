@@ -31,7 +31,7 @@
 #ifndef __qgr__utils__object__
 #define __qgr__utils__object__
 
-#include "qgr/utils/macros.h"
+#include "qgr/macros.h"
 #include <atomic>
 #include <vector>
 

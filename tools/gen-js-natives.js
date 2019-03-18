@@ -83,16 +83,16 @@ var wrap_s = new Buffer('(function(exports,module,global){').toJSON().data;
 var wrap_e = new Buffer('})').toJSON().data;
 var wrap_len = is_wrap ? wrap_s.length + wrap_e.length : 0;
 
-function write(fd) {
+function write(fp) {
 	for (var i = 1; i < arguments.length; i++) {
-		fs.writeSync(fd, arguments[i], 'utf-8');
-		fs.writeSync(fd, '\n', 'utf-8');
+		fs.writeSync(fp, arguments[i], 'utf-8');
+		fs.writeSync(fp, '\n', 'utf-8');
 	}
 }
 
-function write_no_line_feed(fd) {
+function write_no_line_feed(fp) {
 	for (var i = 1; i < arguments.length; i++) {
-		fs.writeSync(fd, arguments[i], 'utf-8');
+		fs.writeSync(fp, arguments[i], 'utf-8');
 	}
 }
 

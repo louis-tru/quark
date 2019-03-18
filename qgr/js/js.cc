@@ -31,7 +31,7 @@
 #include "qgr/utils/string.h"
 #include "js-1.h"
 #include "native-inl-js.h"
-#include "native-inl2-js.h"
+#include "native-lib-js.h"
 #include "qgr.h"
 #include "qgr/utils/http.h"
 #include "qgr/utils/codec.h"
@@ -249,7 +249,7 @@ struct NativeModule {
 	String name;
 	String file;
 	Worker::BindingCallback binding;
-	const INL2_NativeJSCode* native_code;
+	const LIB_NativeJSCode* native_code;
 };
 
 static Map<String, NativeModule>* native_modules = nullptr;
@@ -404,8 +404,8 @@ Worker::Worker(IMPL* inl): m_inl(inl) {
 		if (!native_modules) {
 			native_modules = new Map<String, NativeModule>();
 		}
-		for (int i = 0; i < INL2_native_js_count_; i++) {
-			const INL2_NativeJSCode* code = INL2_native_js_ + i;
+		for (int i = 0; i < LIB_native_js_count_; i++) {
+			const LIB_NativeJSCode* code = LIB_native_js_ + i;
 			native_modules->set(code->name, { code->name, code->name, 0, code });
 		}
 	}

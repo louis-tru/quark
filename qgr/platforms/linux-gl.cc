@@ -32,7 +32,7 @@
 #include "qgr/app-1.h"
 #include "qgr/display-port.h"
 #include "linux-gl-1.h"
-#include "glsl-box-color.h"
+#include "native-glsl.h"
 #if XX_ANDROID
 # include "android/android.h"
 #include <android/native_window.h>

@@ -31,7 +31,7 @@
 #ifndef __qgr__ios_gl__
 #define __qgr__ios_gl__
 
-#import "qgr/utils/macros.h"
+#import "qgr/macros.h"
 
 #if XX_IOS
 

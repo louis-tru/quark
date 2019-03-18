@@ -47,21 +47,7 @@
 #include "qgr/input.h"
 #include "qgr/textarea.h"
 #include "qgr/background.h"
-
-// glsl
-#include "glsl-sprite.h"
-#include "glsl-box-image.h"
-#include "glsl-box-yuv420p-image.h"
-#include "glsl-box-yuv420sp-image.h"
-#include "glsl-box-border.h"
-#include "glsl-box-color.h"
-#include "glsl-box-shadow.h"
-#include "glsl-box-border-radius.h"
-#include "glsl-text-box-color.h"
-#include "glsl-text-texture.h"
-#include "glsl-text-vertex.h"
-#include "glsl-gen-texture.h"
-#include "glsl-box-background-image.h"
+#include "native-glsl.h"
 
 #define SIZEOF(T) sizeof(T) / sizeof(float)
 #define xx_ctx_data(view, T)       static_cast<CtxDataWrap<T>*>(view->m_ctx_data)->value()

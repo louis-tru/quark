@@ -31,7 +31,7 @@
 #ifndef __qgr__linux_gl_1__
 #define __qgr__linux_gl_1__
 
-#include "qgr/utils/macros.h"
+#include "qgr/macros.h"
 
 #if XX_LINUX || XX_ANDROID
 
