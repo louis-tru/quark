@@ -49,7 +49,7 @@ static int           _localstorage_initializ_ok = 0;
 #if DEBUG
 static void assert_sqlite3_func(int c) {
 	if ( c == SQLITE_ERROR ) {
-		LOG(sqlite3_errmsg(_db));
+		XX_ERR(sqlite3_errmsg(_db));
 		XX_ASSERT(0);
 	}
 }
@@ -76,7 +76,7 @@ static void localstorage_close() {
 
 static bool initializ_check(int c) {
 	if ( c == SQLITE_ERROR ) {
-		LOG(sqlite3_errmsg(_db));
+		XX_ERR(sqlite3_errmsg(_db));
 		localstorage_close();
 		return 1;
 	}
@@ -185,8 +185,7 @@ void localstorage_transaction(cCb& cb) {
 			ScopeLock scope(mutex);
 			r = sqlite3_exec(_db, "begin;", 0, 0, 0); check(r);
 		}
-		SimpleEvent ev = { 0,0,0 };
-		cb->call(ev);
+		sync_callback(cb);
 		{
 			ScopeLock scope(mutex);
 			r = sqlite3_exec(_db, "commit;", 0, 0, 0); check(r);

@@ -63,7 +63,7 @@ static const String SECURE("secure");
 #if DEBUG
 static void assert_sqlite3_func(int c) {
 	if ( c == SQLITE_ERROR ) {
-		LOG(sqlite3_errmsg(_db));
+		XX_ERR(sqlite3_errmsg(_db));
 		XX_ASSERT(0);
 	}
 }
@@ -96,7 +96,7 @@ static void http_cookie_close() {
 
 static bool initializ_check(int c) {
 	if ( c == SQLITE_ERROR ) {
-		LOG(sqlite3_errmsg(_db));
+		XX_ERR(sqlite3_errmsg(_db));
 		http_cookie_close();
 		XX_FATAL("Cannot initializ http cookie sqlite database!");
 		return 0;
