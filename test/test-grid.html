@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+	<head>
+		
+		<style>
+
+
+		.container {
+			/*width: 400px;*/
+			height: 400px;
+			display: grid;
+			background: #f00;
+			border: solid 1px #000;
+			grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+			grid-template-rows: auto;
+			grid-template-areas: 
+				"header header header . ."
+				"main main . sidebar ."
+				"footer footer footer footer .";
+			grid-column-gap: 5px;
+			grid-row-gap: 5px;
+		}
+
+		.container > * {
+			background: #0ff;
+			border: solid 1px #000;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.item-a {
+			grid-area: header;
+		}
+
+		.item-b {
+			grid-area: main;
+		}
+
+		.item-c {
+			grid-area: sidebar;
+			background: #f0f;
+		}
+
+		.item-d {
+			grid-area: footer;
+		}
+
+		</style>
+
+	</head>
+	<body>
+		
+		<div class="container">
+			<div class="item-a">ITEM-A</div>
+			<div class="item-b">ITEM-B</div>
+			<div class="item-c">ITEM-C</div>
+			<div class="item-d">ITEM-D</div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+
+		</div>
+
+	</body>
+</html>
