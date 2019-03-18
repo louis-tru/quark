@@ -812,8 +812,11 @@ function configure() {
 	}
 
 	touch_file([ 
-		'out/native-core-js.cc',
-		'out/font-native.cc',
+		'out/native-inl-js.cc',
+		'out/native-ext-js.cc',
+		'out/native-lib-js.cc',
+		'out/native-font.cc',
+		'out/native-glsl.cc',
 	]);
 	
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
