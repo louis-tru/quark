@@ -16,6 +16,7 @@
 			'qgr-gui', 
 			'depe/v8-link/v8-link.gyp:v8-link',
 			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
+			'depe/node/deps/openssl/openssl.gyp:openssl',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -101,7 +102,6 @@
 				],
 				'dependencies': [
 					'depe/node/node.gyp:node',
-					'depe/node/deps/openssl/openssl.gyp:openssl',
 				],
 				'defines': ['HAVE_NODE=1'],
 			}, {
