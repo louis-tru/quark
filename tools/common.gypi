@@ -171,7 +171,14 @@
 			}
 		},
 		'cflags!': ['-Werror'],
-		'include_dirs': [ '..' ],
+		'include_dirs': [
+			'..',
+			'../depe/node/deps/uv/include',
+			'../depe/node/deps/openssl/openssl/include',
+			'../depe/node/deps/zlib',
+			'../depe/node/deps/http_parser',
+			'../depe/v8-link/include',
+		],
 		'conditions': [
 			['os=="android"', {
 				'ldflags': [

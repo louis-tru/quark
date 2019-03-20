@@ -17,8 +17,8 @@
 			],
 		},
 		'include_dirs': [
-			'../../depe/rapidjson/include',
 			'../..',
+			'../../depe/rapidjson/include',
 		],
 		'sources': [
 			'../../Makefile',

@@ -25,14 +25,14 @@
 		],
 	},
 
-	'targets': [{
-		'target_name': 'qgr-lib',
-		'product_name': 'qgr',
+	'targets': [
+	{
+		'target_name': 'qgr',
 		'type': 'none',
 		'dependencies': [
-			'qgr-utils', 
-			'qgr', 
-			'qgr-js', 
+			'qgr-utils',
+			'qgr-gui',
+			'qgr-js',
 		],
 		'conditions': [
 			['library_output=="shared_library" and OS not in "mac"', {
@@ -65,10 +65,25 @@
 				}],
 			],
 		}, # direct_dependent_settings
-	}, {
+	},
+	{
+		'target_name': 'qgr-node',
+		'type': 'none',
+		'dependencies': [
+			'qgr',
+			'qgr-js',
+			'depe/node/node.gyp:node',
+		],
+		'conditions': [
+			['library_output=="shared_library" and OS not in "mac"', {
+				'type': 'shared_library',
+			}],
+		],
+	},
+	{
 		'target_name': 'qgr_copy_so', 
 		'type': 'none',
-		'dependencies': [ 'qgr-lib' ],
+		'dependencies': [ 'qgr' ],
 		
 		'conditions': [
 			# copy libqgr.so to product directory
@@ -144,8 +159,9 @@
 					],
 					'action': [ 'sh', '-c', 
 						'cd <(output);'
-						'find obj.target/qgr-utils ' 
-						'obj.target/qgr '
+						'find '
+						'obj.target/qgr-utils ' 
+						'obj.target/qgr-gui '
 						'obj.target/qgr-js '
 						'<(LinkFileList_node) '
 						'-name *.o > qgr.LinkFileList;'

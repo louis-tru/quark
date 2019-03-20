@@ -19,10 +19,10 @@
 				'../out',
 			],
 			'dependencies': [
-				'qgr-lib',
 				'qgr-utils',
-				'qgr',
+				'qgr-gui',
 				'qgr-js',
+				'qgr',
 				'depe/tess2/tess2.gyp:tess2',
 				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
@@ -111,7 +111,7 @@
 			'target_name': 'qgr-demo',
 			'type': 'executable',
 			'dependencies': [ 
-				'qgr-lib',
+				'qgr',
 				# 'depe/node/node.gyp:node',
 			],
 			'mac_bundle': 1,

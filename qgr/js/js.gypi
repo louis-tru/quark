@@ -6,16 +6,16 @@
 		'target_name': 'qgr-js',
 		'type': '<(library)',
 		'include_dirs': [
-			'../../out', 
 			'../..',
+			'../../out',
 			'../../depe/node/deps/uv/include',
+			'../../depe/node/deps/openssl/openssl/include',
 		],
 		'dependencies': [
-			'qgr-utils', 
-			'qgr', 
+			'qgr-utils',
+			'qgr-gui',
 			'depe/v8-link/v8-link.gyp:v8-link',
 			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
-			'depe/node/deps/openssl/openssl.gyp:openssl',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -94,18 +94,6 @@
 			['v8_enable_inspector==1', { 'defines': [ 'HAVE_INSPECTOR=1' ] }],
 			['node_use_openssl=="true"', { 'defines': [ 'HAVE_OPENSSL=1' ] }],
 			['node_use_dtrace=="true"', { 'defines': [ 'HAVE_DTRACE=1' ] }],
-			# ['node_enable==1', {
-			# 	'include_dirs': [
-			# 		# '../../depe/node/src',
-			# 		# '../../depe/node/deps/cares/include',
-			# 	],
-			# 	'dependencies': [
-			# 		# 'depe/node/node.gyp:node',
-			# 	],
-			# 	'defines': ['HAVE_NODE=1'],
-			# }, {
-			# 	'defines': ['HAVE_NODE=0'],
-			# }],
 		],
 		'actions': [
 			{
