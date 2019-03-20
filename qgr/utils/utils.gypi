@@ -5,8 +5,8 @@
 		'type': '<(library)',
 		'dependencies': [ 
 			'qgr/utils/minizip.gyp:minizip',
-			'depe/node/deps/openssl/openssl.gyp:openssl',
 			'depe/node/deps/uv/uv.gyp:libuv',
+			'depe/node/deps/openssl/openssl.gyp:openssl',
 			'depe/node/deps/http_parser/http_parser.gyp:http_parser',
 			'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
 		],

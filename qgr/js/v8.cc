@@ -43,7 +43,7 @@
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
-#define ENV(...) \
+#define JSC_ENV(...) \
 auto isolate = ISOLATE(__VA_ARGS__); \
 auto ctx = v8::javascriptcore_context(isolate); \
 JSValueRef ex = nullptr
@@ -607,7 +607,7 @@ Local<JSBoolean> JSValue::ToBoolean(Worker* worker) const {
 
 #if USE_JSC
 String JSValue::ToStringValue(Worker* worker, bool ascii) const {
-	ENV(worker);
+	JSC_ENV(worker);
 	v8::JSCStringPtr s = JSValueToStringCopy(ctx, reinterpret_cast<JSValueRef>(this),
 																					 OK(unknown));
 	size_t len = JSStringGetMaximumUTF8CStringSize(*s);
@@ -650,7 +650,7 @@ String JSValue::ToStringValue(Worker* worker, bool ascii) const {
 
 #if USE_JSC
 Ucs2String JSValue::ToUcs2StringValue(Worker* worker) const {
-	ENV(worker);
+	JSC_ENV(worker);
 	v8::JSCStringPtr s = JSValueToStringCopy(ctx, reinterpret_cast<JSValueRef>(this),
 																					 OK(unknown_ucs2));
 	size_t len = JSStringGetLength(*s);

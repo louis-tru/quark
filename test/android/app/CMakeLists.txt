@@ -32,10 +32,6 @@ add_definitions(
 	-DNODE_WANT_INTERNALS=1
 	-DHAVE_OPENSSL=1
 	-DHAVE_INSPECTOR=1
-	-DHAVE_NODE=1
-)
-
-add_definitions(
 	-DCHROME_PNG_WRITE_SUPPORT
 	-DPNG_USER_CONFIG
 )
@@ -76,20 +72,8 @@ add_library(qgr-utils SHARED
 )
 
 add_library(qgr-gui SHARED
-	../../../out/glsl-sprite.cc
-	../../../out/glsl-box-image.cc
-	../../../out/glsl-box-yuv420p-image.cc
-	../../../out/glsl-box-yuv420sp-image.cc
-	../../../out/glsl-box-border.cc
-	../../../out/glsl-box-border-radius.cc
-	../../../out/glsl-box-background-image.cc
-	../../../out/glsl-box-color.cc
-	../../../out/glsl-box-shadow.cc
-	../../../out/glsl-text-box-color.cc
-	../../../out/glsl-text-texture.cc
-	../../../out/glsl-text-vertex.cc
-	../../../out/glsl-gen-texture.cc
-	../../../out/font-native.cc
+	../../../out/native-glsl.cc
+	../../../out/native-font.cc
 	../../../qgr/action.cc
 	../../../qgr/app.cc
 	../../../qgr/audio-player.cc
@@ -157,7 +141,7 @@ add_library(qgr-gui SHARED
 
 add_library(qgr-js SHARED
 	../../../out/native-inl-js.cc
-	../../../out/native-inl2-js.cc
+	../../../out/native-lib-js.cc
 	../../../out/native-ext-js.cc
 	../../../qgr/js/js-cls.cc
 	../../../qgr/js/js.cc

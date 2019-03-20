@@ -4,9 +4,8 @@
 		'other_ldflags': [
 			'-Wl,--whole-archive',
 			'<(output)/obj.target/libqgr-utils.a',
-			'<(output)/obj.target/libqgr.a',
+			'<(output)/obj.target/libqgr-gui.a',
 			'<(output)/obj.target/libqgr-js.a',
-			# '<(output)/obj.target/depe/node/libnode.a',
 			'-Wl,--no-whole-archive',
 		],
 
@@ -22,17 +21,16 @@
 				'qgr-utils',
 				'qgr-gui',
 				'qgr-js',
-				'qgr',
 				'depe/tess2/tess2.gyp:tess2',
 				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
 				'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
-				'depe/node/deps/openssl/openssl.gyp:openssl',
 				'depe/v8-link/v8-link.gyp:v8-link',
 				'depe/v8-link/v8-link.gyp:v8_libplatform-link',
+				'depe/node/deps/openssl/openssl.gyp:openssl',
 				'depe/node/deps/uv/uv.gyp:libuv',
 				'depe/node/deps/http_parser/http_parser.gyp:http_parser',
-				# 'depe/node/node.gyp:node',
+				'depe/node/node.gyp:node',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -103,7 +101,12 @@
 					},
 				}],
 				['os in "linux android"', {
-					'ldflags': [ '<@(other_ldflags)' ],
+					'ldflags': [ 
+						'<@(other_ldflags)',
+						'-Wl,--whole-archive',
+						'<(output)/obj.target/depe/node/libnode.a',
+						'-Wl,--no-whole-archive',
+					],
 				}],
 			],
 		},
@@ -112,7 +115,6 @@
 			'type': 'executable',
 			'dependencies': [ 
 				'qgr',
-				# 'depe/node/node.gyp:node',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -149,8 +151,8 @@
 				'target_name': 'qgr-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'depe/curl/curl.gyp:curl',
 					'qgr/utils/minizip.gyp:minizip',
+					'depe/curl/curl.gyp:curl',
 					'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
@@ -160,40 +162,25 @@
 					'depe/libpng/libpng.gyp:libpng',
 					'depe/libwebp/libwebp.gyp:libwebp',
 					'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
-					# 'depe/node/node.gyp:node',
+					'depe/v8-link/v8-link.gyp:v8-link',
+					'depe/v8-link/v8-link.gyp:v8_libplatform-link',
+					'depe/node/deps/uv/uv.gyp:libuv',
+					'depe/node/deps/openssl/openssl.gyp:openssl',
+					'depe/node/deps/http_parser/http_parser.gyp:http_parser',
+					'depe/node/node.gyp:node',
 				],
-				'link_settings': { 'libraries': [ '-lz' ] },
-				'ldflags': [ 
+				'link_settings': { 
+					'libraries': [ '-lz' ],
+				},
+				'ldflags': [
 					'-s',
 					'-Wl,--whole-archive',
 					'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					'-Wl,--no-whole-archive',
 				],
-				'direct_dependent_settings': {
-					'include_dirs': [ 
-						'../depe/v8-link/include', 
-						'../depe/node/deps/http_parser', 
-						'../depe/node/deps/uv/include', 
-						'../depe/node/deps/openssl/openssl/include', 
-						'../depe/ffmpeg', 
-						'../depe/tinyxml2', 
-						'../depe/tess2/include', 
-						'../depe/sqlite-amalgamation', 
-						'../depe/freetype2/include', 
-						'../depe/libgif/lib', 
-						'../depe/libjpeg-turbo', 
-						'../depe/libpng', 
-						'../depe/libwebp', 
-						'../depe/rapidjson/include',
-					],
-					'defines': [ 
-						'__STDC_CONSTANT_MACROS', 
-						'CHROME_PNG_WRITE_SUPPORT',
-						'PNG_USER_CONFIG',
-					],
-				},
-			}, {
-				'target_name': 'qgr_depes_copy',
+			},
+			{
+				'target_name': 'qgr-depes-copy',
 				'type': 'none',
 				'dependencies': [ 'qgr-depes-test' ],
 				'copies': [{
