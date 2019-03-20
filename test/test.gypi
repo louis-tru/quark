@@ -1,25 +1,15 @@
 { 
 	'variables': {
-		'node_enable%': 0,
 		'without_visibility_hidden%': 0,
 		'other_ldflags': [
 			'-Wl,--whole-archive',
 			'<(output)/obj.target/libqgr-utils.a',
-			'<(output)/obj.target/libqgr-gui.a',
+			'<(output)/obj.target/libqgr.a',
 			'<(output)/obj.target/libqgr-js.a',
-			# '<(output)/obj.target/depe/node/deps/v8/src/libv8_base.a',
-			# '<(output)/obj.target/depe/node/deps/openssl/libopenssl.a',
+			# '<(output)/obj.target/depe/node/libnode.a',
 			'-Wl,--no-whole-archive',
 		],
-		'conditions': [
-			['node_enable==1', {
-				'other_ldflags+': [ 
-					'-Wl,--whole-archive', 
-					'<(output)/obj.target/depe/node/libnode.a', 
-					'-Wl,--no-whole-archive', 
-				],
-			}],
-		],
+
 	},
 	'targets': [
 		{
@@ -27,12 +17,11 @@
 			'type': 'executable',
 			'include_dirs': [ 
 				'../out',
-				'../depe/node/src',
 			],
 			'dependencies': [
 				'qgr-lib',
 				'qgr-utils',
-				'qgr-gui',
+				'qgr',
 				'qgr-js',
 				'depe/tess2/tess2.gyp:tess2',
 				'depe/freetype2/freetype2.gyp:ft2',
@@ -43,21 +32,20 @@
 				'depe/v8-link/v8-link.gyp:v8_libplatform-link',
 				'depe/node/deps/uv/uv.gyp:libuv',
 				'depe/node/deps/http_parser/http_parser.gyp:http_parser',
+				# 'depe/node/node.gyp:node',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
 				'test-qgr',
-				'../libs/qgr',
-				'../demo/examples',
+				'../examples',
 				'../benchmark',
 			],
 			'xcode_settings': {
 				'OTHER_LDFLAGS': '-all_load',
 			},
 			'sources': [
-				'../demo/examples',
-				'../demo/README.md',
+				'../examples',
 				'../libs/qgr',
 				'../libs/qgr-tools',
 				'../libs/qgr-utils',
@@ -117,9 +105,6 @@
 				['os in "linux android"', {
 					'ldflags': [ '<@(other_ldflags)' ],
 				}],
-				['node_enable==1', {
-					'dependencies': ['depe/node/node.gyp:node'],
-				}],
 			],
 		},
 		{
@@ -127,11 +112,11 @@
 			'type': 'executable',
 			'dependencies': [ 
 				'qgr-lib',
+				# 'depe/node/node.gyp:node',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
-				'../demo/examples',
-				'../libs/qgr',
+				'../examples',
 			],
 			'xcode_settings': {
 				'OTHER_LDFLAGS': '-all_load',
@@ -175,6 +160,7 @@
 					'depe/libpng/libpng.gyp:libpng',
 					'depe/libwebp/libwebp.gyp:libwebp',
 					'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
+					# 'depe/node/node.gyp:node',
 				],
 				'link_settings': { 'libraries': [ '-lz' ] },
 				'ldflags': [ 
@@ -206,11 +192,6 @@
 						'PNG_USER_CONFIG',
 					],
 				},
-				'conditions': [
-					['node_enable==1', {
-						'dependencies': ['depe/node/node.gyp:node'],
-					}],
-				],
 			}, {
 				'target_name': 'qgr_depes_copy',
 				'type': 'none',

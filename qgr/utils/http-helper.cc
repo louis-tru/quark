@@ -37,7 +37,6 @@
 
 XX_NS(qgr)
 
-static uint   http_initialized = 0;
 static String http_cache_path = String();
 static String http_user_agent = "Mozilla/5.0 qgr/" QGR_VERSION " (KHTML, like Gecko)";
 
@@ -457,6 +456,7 @@ void HttpHelper::abort(uint id) {
  * @func initialize
  */
 void HttpHelper::initialize() {
+	static int http_initialized = 0;
 	if ( ! http_initialized++ ) {
 		http_user_agent = String::format("Mozilla/5.0 (%s/%s) qgr/"
 																		 QGR_VERSION " (KHTML, like Gecko)", *sys::name(), *sys::version());

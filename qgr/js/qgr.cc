@@ -36,30 +36,15 @@
 #include "binding/event-1.h"
 #include "android/android.h"
 #include "native-inl-js.h"
+#include "depe/node/src/qgr.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
 
-#ifndef HAVE_NODE
-#define HAVE_NODE 0
-#endif
-
-#if HAVE_NODE
-#include "node.h"
-#include "qgr/utils/codec.h"
-#include "openssl/ssl.h"
-#include "depe/node/src/qgr.h"
-namespace qgr {
-	void set_ssl_root_x509_store_function(X509_STORE* (*)());
-}
-namespace node {
-	namespace crypto {
-		X509_STORE* NewRootCertStore();
-	}
-}
-#endif
-
 namespace qgr {
 	extern int (*__xx_exit_hook)(int code);
+}
+namespace node {
+	NodeAPI* qgr_node_api = nullptr;
 }
 
 /**
@@ -153,50 +138,6 @@ void* object_allocator_alloc(size_t size);
 void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
-#if HAVE_NODE
-/**
- * @class QgrApiImpl
- */
-class QgrApiImpl: public node::QgrApi {
- public:
-
-	Worker* create_worker(node::Environment* env, bool is_inspector,
-												int argc, const char* const* argv) {
-		return IMPL::createWithNode(env);
-	}
-
-	void delete_worker(Worker* worker) {
-		Release(worker);
-	}
-
-	void run_loop() {
-		RunLoop::main_loop()->run();
-	}
-
-	char* encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
-		auto buff = Codec::encoding(Encoding::UTF8, src, length);
-		*out_len = buff.length();
-		return buff.collapse();
-	}
-
-	uint16_t* decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
-		auto buff = Codec::decoding_to_uint16(Encoding::UTF8, src, length);
-		*out_len = buff.length();
-		return buff.collapse();
-	}
-
-	void print(const char* msg, ...) {
-		XX_STRING_FORMAT(msg, str);
-		LOG(str);
-	}
-
-	bool is_process_exit() {
-		return is_exited();
-	}
-};
-
-#endif
-
 // startup argv
 Array<char*>* __xx_qgr_argv = nullptr;
 int __xx_qgr_have_node = 0;
@@ -269,13 +210,9 @@ int Start(const Array<String>& argv_in) {
 			object_allocator_alloc, object_allocator_release, object_allocator_retain,
 		};
 		qgr::set_object_allocator(&allocator);
-#if HAVE_NODE
-		node::set_qgr_api(new QgrApiImpl());
-		qgr::set_ssl_root_x509_store_function(node::crypto::NewRootCertStore);
-#endif
 	}
 	XX_CHECK(!__xx_qgr_argv);
-	
+
 	Array<char*> argv, qgr_argv;
 	parseArgv(argv_in, argv, qgr_argv);
 
@@ -288,13 +225,15 @@ int Start(const Array<String>& argv_in) {
 	// Mark the current main thread and check current thread
 	XX_CHECK(RunLoop::main_loop() == RunLoop::current());
 
-#if HAVE_NODE
-	if (__xx_qgr_have_node)
-	{
-		rc = node::Start(argc, argv_c);
-	} else 
-#endif
-	{
+	if (__xx_qgr_have_node ) {
+		if (node::qgr_node_api) {
+			rc = node::qgr_node_api->Start(argc, argv_c);
+		} else {
+			XX_WARN("Not node library loaded");
+			goto no_node_start;
+		}
+	} else {
+	 no_node_start:
 		__xx_qgr_have_node = 0;
 		rc = IMPL::start(argc, argv_c);
 	}

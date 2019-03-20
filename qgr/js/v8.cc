@@ -39,11 +39,7 @@
 #include "native-inl-js.h"
 #include <uv.h>
 #include "value.h"
-
-#if HAVE_NODE
-#include "env.h"
-#include "env-inl.h"
-#endif
+#include "depe/node/src/qgr.h"
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
@@ -144,6 +140,7 @@ class WorkerIMPL: public IMPL {
 	{
 		Isolate::CreateParams params;
 		params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+		m_is_node = 0;
 		isolate_ = Isolate::New(params);
 		locker_ = new Locker(isolate_);
 		isolate_->Enter();
@@ -155,22 +152,19 @@ class WorkerIMPL: public IMPL {
 		isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
 	}
 
-	WorkerIMPL(node::Environment* env)
+	// use node
+	WorkerIMPL(void* v8_isolate, void* v8_context)
 		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
 	{
-#if HAVE_NODE
-		m_env = env;
-		isolate_ = env->isolate();
-		context_ = env->context();
-#else
-		XX_UNREACHABLE();
-#endif
+		m_is_node = 1;
+		isolate_ = reinterpret_cast<Isolate*>(v8_isolate);
+		context_ = *reinterpret_cast<v8::Local<v8::Context>*>(v8_context);
 	}
 
 	virtual void initialize() {
 		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
 		m_global.Reset(m_host, Cast<JSObject>(context_->Global()) );
-		if (!m_env) {
+		if (!m_is_node) {
 			handle_scope_seal_ = new Wrap<v8::SealHandleScope>(isolate_);
 		}
 		IMPL::initialize();
@@ -178,7 +172,7 @@ class WorkerIMPL: public IMPL {
 
 	virtual void release() {
 		IMPL::release();
-		if (!m_env) {
+		if (!m_is_node) {
 			context_->Exit();
 			context_.Clear();
 			delete handle_scope_seal_; handle_scope_seal_ = nullptr;
@@ -377,13 +371,13 @@ Worker* Worker::worker() {
 Worker* IMPL::create() {
 	auto inl = new WorkerIMPL();
 	inl->initialize();
-	return inl->m_host;
+	return inl->host();
 }
 
-Worker* IMPL::createWithNode(node::Environment* env) {
-	auto inl = new WorkerIMPL(env);
+Worker* IMPL::createWithNode(void* isolate, void* ctx) {
+	auto inl = new WorkerIMPL(isolate, ctx);
 	inl->initialize();
-	return inl->m_host;
+	return inl->host();
 }
 
 WrapObject* IMPL::GetObjectPrivate(Local<JSObject> object) {
@@ -499,15 +493,11 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 }
 
 Local<JSValue> IMPL::binding_node_module(cString& name) {
-#if HAVE_NODE
-	if (m_env) {
-		Local<JSValue> argv = m_host->New(name);
-		Local<JSValue> binding = Cast<JSObject>(
-			m_env->process_object())->GetProperty(m_host, "binding");
-		return binding.To<JSFunction>()->Call(m_host, 1, &argv);
+	if (node::qgr_node_api) {
+		void* r = node::qgr_node_api->binding_node_module(*name);
+		auto _ = reinterpret_cast<Local<JSValue>*>(&r);
+		return *_;
 	}
-#endif
-	// error
 	m_host->throw_err(m_host->NewError("Cannot find module %s", *name));
 	return Local<JSValue>();
 }

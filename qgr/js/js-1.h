@@ -42,10 +42,6 @@
 #define js_bind_common_native_event(name) \
 	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
 
-namespace node {
-	class Environment;
-}
-
 /**
  * @ns qgr::js
  */
@@ -66,13 +62,15 @@ class WeakCallbackInfo {
  */
 class Worker::IMPL {
  public:
+
 	IMPL();
 	virtual ~IMPL();
 	virtual void initialize();
 	virtual void release();
+
 	static Worker* create();
-	static Worker* createWithNode(node::Environment* env);
-	
+	static Worker* createWithNode(void* isolate, void* ctx);
+
 	template<class T = IMPL>
 	inline static T* current(Worker* worker = Worker::worker()) {
 		return static_cast<T*>(worker->m_inl);
@@ -82,12 +80,12 @@ class Worker::IMPL {
 	}
 	inline Worker* host() { return m_host; }
 	inline JSClassStore* js_class() { return m_classs; }
-	
+
 	static WrapObject* GetObjectPrivate(Local<JSObject> object);
 	static bool SetObjectPrivate(Local<JSObject> object, WrapObject* value);
-	
+
 	bool IsWeak(PersistentBase<JSObject>& handle);
-	
+
 	void SetWeak(PersistentBase<JSObject>& handle,
 							 WrapObject* ptr, WeakCallbackInfo::Callback callback);
 	void ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr);
@@ -105,7 +103,7 @@ class Worker::IMPL {
 	static inline IMPL* inl(Worker* worker) {
 		return worker->m_inl;
 	}
-	
+
  protected:
 	friend class Worker;
 	friend class NativeValue;
@@ -116,7 +114,7 @@ class Worker::IMPL {
 	JSClassStore*   m_classs;
 	Persistent<JSObject> m_global;
 	Persistent<JSObject> m_native_modules;
-	node::Environment* m_env;
+	int m_is_node;
 };
 
 typedef Worker::IMPL IMPL;

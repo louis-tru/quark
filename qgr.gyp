@@ -31,7 +31,7 @@
 		'type': 'none',
 		'dependencies': [
 			'qgr-utils', 
-			'qgr-gui', 
+			'qgr', 
 			'qgr-js', 
 		],
 		'conditions': [
@@ -123,7 +123,7 @@
 					},
 					'inputs': [
 						'<(output)/libqgr-utils.a', 
-						'<(output)/libqgr-gui.a', 
+						'<(output)/libqgr.a', 
 						'<(output)/libqgr-js.a',
 						'<(output)/libminizip.a',
 						'<(output)/libopenssl.a',
@@ -145,7 +145,7 @@
 					'action': [ 'sh', '-c', 
 						'cd <(output);'
 						'find obj.target/qgr-utils ' 
-						'obj.target/qgr-gui '
+						'obj.target/qgr '
 						'obj.target/qgr-js '
 						'<(LinkFileList_node) '
 						'-name *.o > qgr.LinkFileList;'

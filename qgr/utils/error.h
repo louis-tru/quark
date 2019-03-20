@@ -81,6 +81,8 @@ XX_END
 
 #else
 
+#error Exceptions must be turned on
+
 #define XX_THROW qgr::fatal()
 #define XX_ASSERT_ERR(cond, ...) if(!(cond)) qgr::fatal()
 #define XX_IGNORE_ERR(block) block ((void) 0)

@@ -25,7 +25,7 @@
 		],
 	},
 	'targets':[{
-		'target_name': 'qgr-gui',
+		'target_name': 'qgr',
 		'type': '<(library)',
 		'include_dirs': [
 			'..',
