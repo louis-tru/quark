@@ -1,26 +1,30 @@
 { 
 	'variables': {
 		'without_visibility_hidden%': 0,
-		'other_ldflags': [
-			'-Wl,--whole-archive',
-			'<(output)/obj.target/libqgr-utils.a',
-			'<(output)/obj.target/libqgr-gui.a',
-			'<(output)/obj.target/libqgr-js.a',
-			'-Wl,--no-whole-archive',
+		'other_ldflags': [],
+		'conditions': [
+			['library_output=="static_library"', {
+				'other_ldflags+': [
+					'-Wl,--whole-archive',
+					'<(output)/obj.target/libqgr-utils.a',
+					'<(output)/obj.target/libqgr-gui.a',
+					'<(output)/obj.target/libqgr-js_static.a',
+					'-Wl,--no-whole-archive',
+				],
+			}],
 		],
-
 	},
 	'targets': [
 		{
 			'target_name': 'test',
 			'type': 'executable',
-			'include_dirs': [ 
+			'include_dirs': [
 				'../out',
 			],
 			'dependencies': [
-				'qgr-utils',
-				'qgr-gui',
+				'qgr',
 				'qgr-js',
+				'qgr-node',
 				'depe/tess2/tess2.gyp:tess2',
 				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
@@ -30,7 +34,6 @@
 				'depe/node/deps/openssl/openssl.gyp:openssl',
 				'depe/node/deps/uv/uv.gyp:libuv',
 				'depe/node/deps/http_parser/http_parser.gyp:http_parser',
-				'depe/node/node.gyp:node',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -92,7 +95,7 @@
 			],
 			'conditions': [
 				['os in "ios osx"', {
-					'sources': [ 
+					'sources': [
 						'test-<(os).plist',
 						'Storyboard-<(os).storyboard',
 					],
@@ -100,7 +103,7 @@
 						'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
 					},
 				}],
-				['os in "linux android"', {
+				['os in "linux android" and library_output=="static_library"', {
 					'ldflags': [ 
 						'<@(other_ldflags)',
 						'-Wl,--whole-archive',
@@ -113,8 +116,8 @@
 		{
 			'target_name': 'qgr-demo',
 			'type': 'executable',
-			'dependencies': [ 
-				'qgr',
+			'dependencies': [
+				'qgr-js',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [

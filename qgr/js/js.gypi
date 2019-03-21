@@ -3,7 +3,8 @@
 		'use_v8%': 0,
 	},
 	'targets': [{
-		'target_name': 'qgr-js',
+		'target_name': 'qgr-js_static',
+		# 'product_name': 'qgr-js',
 		'type': '<(library)',
 		'include_dirs': [
 			'../..',

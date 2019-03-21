@@ -32,15 +32,6 @@
 		'dependencies': [
 			'qgr-utils',
 			'qgr-gui',
-			'qgr-js',
-		],
-		'conditions': [
-			['library_output=="shared_library" and OS not in "mac"', {
-				'type': 'shared_library',
-				'direct_dependent_settings': {
-					'defines': [ 'XX_USIXX_SHARED' ],
-				},
-			}],
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '.' ],
@@ -48,7 +39,7 @@
 			 'OTHER_LDFLAGS': '-all_load',
 			},
 			'mac_bundle_resources': [
-				'libs/qgr',
+				# 'libs/qgr',
 			],
 			'conditions': [
 				['cplusplus_exceptions==1', {
@@ -65,48 +56,26 @@
 				}],
 			],
 		}, # direct_dependent_settings
-	},
-	{
-		'target_name': 'qgr-node',
-		'type': 'none',
-		'dependencies': [
-			'qgr',
-			'qgr-js',
-			'depe/node/node.gyp:node',
-		],
+
 		'conditions': [
 			['library_output=="shared_library" and OS not in "mac"', {
 				'type': 'shared_library',
-			}],
-		],
-	},
-	{
-		'target_name': 'qgr_copy_so', 
-		'type': 'none',
-		'dependencies': [ 'qgr' ],
-		
-		'conditions': [
-			# copy libqgr.so to product directory
-			['debug==0 and library_output=="shared_library" and OS not in "mac"', {
-				'copies': [{
-					'destination': '<(qgr_product_dir)/<(qgr_product_so_subdir)',
-					'files': [
-						'<(output)/lib.target/libqgr.so',
-					],
-				}], # copies
+				'direct_dependent_settings': {
+					'defines': [ 'XX_USIXX_SHARED' ],
+				},
 			}],
 			# output mac shared library for "qgr.framework"
 			['debug==0 and library_output=="shared_library" and OS in "mac" and project=="make"', {
 				'actions': [{
-					'action_name': 'qgr_apple_dylib',
+					'action_name': 'mk_qgr_dylib',
 					'variables': {
 						'embed_bitcode': '',
-						'inputs_node': '',
-						'LinkFileList_node': '',
-						'link_node': '',
+						# 'inputs_node': '',
+						# 'LinkFileList_node': '',
+						# 'link_node': '',
 						'conditions': [
 							['arch in "arm arm64" and without_embed_bitcode==0', {
-								'embed_bitcode': '-fembed-bitcode',
+								# 'embed_bitcode': '-fembed-bitcode',
 							}],
 							['use_v8==0 and os=="ios"', {
 								'v8libs': [ '<(output)/libv8-link.a', ],
@@ -129,17 +98,17 @@
 														'-lv8_nosnapshot '
 														'-lv8_libplatform ',
 							}],
-							['node_enable==1', {
-								'inputs_node': '<(output)/libnode.a',
-								'LinkFileList_node': 'obj.target/node/depe/node',
-								'link_node': '-lnode',
-							}],
+							# ['node_enable==1', {
+							# 	'inputs_node': '<(output)/libnode.a',
+							# 	'LinkFileList_node': 'obj.target/node/depe/node',
+							# 	'link_node': '-lnode',
+							# }],
 						],
 					},
 					'inputs': [
 						'<(output)/libqgr-utils.a', 
-						'<(output)/libqgr.a', 
-						'<(output)/libqgr-js.a',
+						'<(output)/libqgr-gui.a', 
+						'<(output)/libqgr-js_static.a',
 						'<(output)/libminizip.a',
 						'<(output)/libopenssl.a',
 						'<(output)/libuv.a',
@@ -149,7 +118,7 @@
 						'<(output)/libft2.a',
 						'<(output)/libtinyxml2.a',
 						'<(output)/obj.target/depe/ffmpeg/libffmpeg.a',
-						'<(inputs_node)',
+						# '<(inputs_node)',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
 						'<@(v8libs)',
@@ -163,7 +132,7 @@
 						'obj.target/qgr-utils ' 
 						'obj.target/qgr-gui '
 						'obj.target/qgr-js '
-						'<(LinkFileList_node) '
+						# '<(LinkFileList_node) '
 						'-name *.o > qgr.LinkFileList;'
 						'clang++ '
 						'-arch <(arch_name) -dynamiclib '
@@ -193,7 +162,7 @@
 						'-lft2 '
 						'-ltinyxml2 '
 						'-lffmpeg '
-						'<(link_node) '
+						# '<(link_node) '
 						'-lnghttp2 '
 						'-lcares '
 						'<(v8libs_l) '
@@ -218,8 +187,64 @@
 				}]
 			}],
 		], # conditions
-	}],
-	
+	},
+	{
+		'target_name': 'qgr-media',
+		'type': 'none',
+	},
+	{
+		'target_name': 'qgr-js',
+		'type': 'none',
+		'dependencies': [
+			'qgr',
+			'qgr-js_static',
+		],
+		'direct_dependent_settings': {
+			'include_dirs': [ '.' ],
+		},
+		'conditions': [
+			['library_output=="shared_library" and OS not in "mac"', {
+				'type': 'shared_library',
+			}],
+		],
+	},
+	{
+		'target_name': 'qgr-node',
+		'type': 'none',
+		'dependencies': [
+			'qgr-js',
+			'depe/node/node.gyp:node',
+		],
+		'direct_dependent_settings': {
+			'include_dirs': [ '.' ],
+		},
+		'conditions': [
+			['library_output=="shared_library" and OS not in "mac"', {
+				'type': 'shared_library',
+			}],
+		],
+	},
+	{
+		'target_name': 'qgr_copy_so', 
+		'type': 'none',
+		'dependencies': [ 'qgr', 'qgr-js', 'qgr-node', 'qgr-media' ],
+		'__conditions': [
+			# copy libqgr.so to product directory
+			['debug==0 and library_output=="shared_library" and OS not in "mac"', {
+				'copies': [{
+					'destination': '<(qgr_product_dir)/<(qgr_product_so_subdir)',
+					'files': [
+						'<(output)/lib.target/libqgr.so',
+						'<(output)/lib.target/libqgr-media.so',
+						'<(output)/lib.target/libqgr-js.so',
+						'<(output)/lib.target/libqgr-node.so',
+					],
+				}], # copies
+			}],
+		], # conditions
+	},
+	],
+
 	'conditions': [
 		['os not in "ios osx" or project=="xcode"', {
 			'includes': [

@@ -99,7 +99,7 @@
 		'debug_http2%': 'false',
 		'debug_nghttp2%': 'false',
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
-		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/deps/v8/src/libv8_base.a',
+		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/depe/node/deps/v8/src/libv8_base.a',
 
 		# conditions
 		'conditions': [
@@ -192,7 +192,7 @@
 					}],
 					['arch=="arm"', { 'ldflags': [ '-Wl,--icf=safe' ] }], # Remove Duplicated Code
 				],
-				'defines': [ 
+				'defines': [
 					'_GLIBCXX_USE_C99', 
 					'_GLIBCXX_USE_C99_MATH', 
 					'_GLIBCXX_USE_C99_MATH_TR1',
@@ -234,6 +234,9 @@
 					['arch=="x64"', { 'cflags': [ '-m64' ] }],
 					['gcc_version>="7.0"', { 'cflags': [ '-Wno-implicit-fallthrough' ] }],
 				],
+			}],
+			['os in "linux android" and library_output=="shared_library"', {
+				'cflags': [ '-fPIC' ],
 			}],
 			['os=="ios"', {
 				'cflags': [ 
