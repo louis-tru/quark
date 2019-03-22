@@ -322,13 +322,14 @@ class XX_EXPORT Scroll: public Panel, public BasicScroll {
 	XX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
 	
 	Scroll();
-	
+
 	/**
 	 * @overwrite
 	 */
 	virtual Vec2 layout_in_offset();
-	virtual bool is_clip() { return true; }
-	
+	// virtual bool is_clip() { return true; }
+	virtual BasicScroll* as_basic_scroll() { return this; }
+
 	/**
 	 * @func focus_margin_left get
 	 */

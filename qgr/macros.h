@@ -31,14 +31,6 @@
 #ifndef __qgr__utils__macros__
 #define __qgr__utils__macros__
 
-#if !defined(__cplusplus)
-# error "Please use the c++ compiler"
-#endif
-
-#if __cplusplus < 201103L
-# error "The compiler does not support c++ 11"
-#endif
-
 #include "env.h"
 
 // This macro allows to test for the version of the GNU C++ compiler.

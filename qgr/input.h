@@ -67,6 +67,11 @@ class XX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	virtual void remove_all_child();
 	virtual bool run_task(int64 sys_time);
 	virtual bool can_become_focus();
+
+	/**
+	 * @overwrite
+	 */
+	virtual ITextInput* as_itext_input() { return this; }
 	
 	/**
 	 * @func type

@@ -61,6 +61,7 @@ class XX_EXPORT Hybrid: public Box, public TextLayout {
 	virtual View* view() { return this; }
 	virtual View* append_text(cUcs2String& str) throw(Error);
 	virtual void set_visible(bool value);
+	virtual Object* to_object() { return this; }
 	
 	/**
 	 * @func text_align

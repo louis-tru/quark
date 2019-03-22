@@ -631,7 +631,7 @@ void DisplayPort::set_orientation(Orientation orientation) {
 	}
 }
 
-extern "C" int main(int argc, char* argv[]) {
+extern "C" XX_EXPORT int main(int argc, char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start GUI Application ************/

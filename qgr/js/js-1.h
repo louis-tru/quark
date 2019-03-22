@@ -69,7 +69,6 @@ class Worker::IMPL {
 	virtual void release();
 
 	static Worker* create();
-	static Worker* createWithNode(void* isolate, void* ctx);
 
 	template<class T = IMPL>
 	inline static T* current(Worker* worker = Worker::worker()) {

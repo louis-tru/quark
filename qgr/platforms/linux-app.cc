@@ -798,7 +798,7 @@ XX_END
 
 using namespace qgr;
 
-extern "C" int main(int argc, char* argv[]) {
+extern "C" XX_EXPORT int main(int argc, char* argv[]) {
 	Handle<LinuxApplication> h = new LinuxApplication();
 
 	/**************************************************/

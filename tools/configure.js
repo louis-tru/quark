@@ -70,7 +70,7 @@ def_opts('without-inspector', 0,'--without-inspector disable the V8 inspector pr
 def_opts('without-visibility-hidden', 0, 
 																'--without-visibility-hidden without visibility hidden [{0}]');
 def_opts('suffix', '',          '--suffix=VAL Compile directory suffix [{0}]');
-def_opts('without-embed-bitcode', 0, 
+def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
 def_opts('without-node', 0,     '--without-node disable node [{0}]');
 def_opts('more-log',     0,     '--more-log print more log message [{0}]');

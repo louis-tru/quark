@@ -43,9 +43,6 @@ extern int (*__xx_default_gui_main)(int, char**);
 namespace qgr {
 	extern int (*__xx_exit_hook)(int code);
 }
-namespace node {
-	NodeAPI* qgr_node_api = nullptr;
-}
 
 /**
  * @ns qgr::js

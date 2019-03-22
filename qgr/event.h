@@ -319,9 +319,8 @@ class XX_EXPORT GUIFocusMoveEvent: public GUIEvent {
 /**
  * @class ITextInput
  */
-class XX_EXPORT ITextInput {
+class XX_EXPORT ITextInput: public Protocol {
  public:
-	typedef ProtocolTraits Traits;
 	virtual void input_delete(int count) = 0;
 	virtual void input_insert(cString& text) = 0;
 	virtual void input_marked(cString& text) = 0;

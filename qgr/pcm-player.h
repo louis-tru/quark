@@ -43,9 +43,8 @@ XX_NS(qgr)
 /**
  * @class PCMPlayer
  */
-class PCMPlayer {
+class PCMPlayer: public Protocol {
  public:
-	typedef ProtocolTraits Traits;
 
 	/**
 	 * @func write

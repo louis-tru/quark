@@ -26,7 +26,7 @@
 			'libswresample/swresample.h',
 			'libavcodec/avcodec.h',
 		],
-		'link_settings': { 
+		'link_settings': {
 			'libraries': [ 
 				'<(ff_product_path)',
 			]

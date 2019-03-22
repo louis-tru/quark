@@ -39,7 +39,7 @@
 JS_BEGIN
 
 #define js_scroll_self() \
-BasicScroll* self = dynamic_cast<BasicScroll*>(Wrap<View>::unpack(args.This())->self())
+BasicScroll* self = Wrap<View>::unpack(args.This())->self()->as_basic_scroll()
 
 class WrapBasicScroll {
  public:

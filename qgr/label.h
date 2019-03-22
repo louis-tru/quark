@@ -64,6 +64,7 @@ class XX_EXPORT Label: public View, public TextFont {
 	virtual View* view() { return this; }
 	virtual CGRect screen_rect();
 	virtual bool overlap_test(Vec2 point);
+	virtual Object* to_object() { return this; }
 	
 	/**
 	 * @func value

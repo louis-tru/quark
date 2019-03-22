@@ -54,6 +54,7 @@ class CSSViewClasss;
 class StyleSheetsScope;
 class BasicScroll;
 class Background;
+class ITextInput;
 
 #define XX_EACH_VIEWS(F)  \
 	F(LAYOUT, Layout, layout) \
@@ -72,6 +73,8 @@ class Background;
 	F(TEXT_NODE, TextNode, text_node) \
 	F(SPAN, Span, span) \
 	F(TEXT_FONT, TextFont, text_font) \
+	F(BASIC_SCROLL, BasicScroll, basic_scroll) \
+	F(ITEXT_INPUT, ITextInput, itext_input) \
 	F(TEXT_LAYOUT, TextLayout, text_layout) \
 	F(LABEL, Label, label) \
 	F(BUTTON, Button, button) \
@@ -100,7 +103,7 @@ class XX_EXPORT Member {
 	 * @func as_view
 	 */
 	virtual View* as_view() { return nullptr; };
-	
+
 	/**
 	 * @func as_ctr
 	 */
@@ -227,15 +230,14 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	
  #define xx_def_view_type(enum, type, name)  \
 	virtual type* as_##name() { return nullptr; }
-	// as type
-	XX_EACH_VIEWS(xx_def_view_type)
+	XX_EACH_VIEWS(xx_def_view_type) // as type
  #undef xx_def_view_type
-	
+
 	/**
 	 * @overwrite
 	 */
 	virtual View* as_view() { return this; };
-	
+
 	/**
 	 * @enum MarkValue
 	 */

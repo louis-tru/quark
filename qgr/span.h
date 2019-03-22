@@ -49,7 +49,7 @@ class XX_EXPORT Span: public Layout, public TextLayout {
 	XX_DEFINE_GUI_VIEW(SPAN, Span, span);
 	
 	typedef ReferenceTraits Traits;
-	
+
 	Span();
 
 	/**
@@ -61,6 +61,7 @@ class XX_EXPORT Span: public Layout, public TextLayout {
 	virtual void set_visible(bool value);
 	virtual View* append_text(cUcs2String& str) throw(Error);
 	virtual Vec2 layout_offset();
+	virtual Object* to_object() { return this; }
 	
  protected:
 	

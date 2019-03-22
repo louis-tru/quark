@@ -123,11 +123,14 @@
 			}, {
 				'OPENSSL_PRODUCT': 'libopenssl.a',
 			}],
+			['library_output=="shared_library"', {
+				'node_shared': 'true',
+			}],
 		],
 
 		##########################################################
 	},
-
+	#-fvisibility=hidden
 	'target_defaults': {
 		'variables': {
 			'host_os': '<(host_os)',
@@ -171,6 +174,7 @@
 			}
 		},
 		'cflags!': ['-Werror'],
+		'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
 		'include_dirs': [
 			'..',
 			'../depe/node/deps/uv/include',
@@ -218,12 +222,11 @@
 					'-Wno-unused-variable',
 					'-Wno-unused-but-set-variable',
 					'-Wno-unused-result',
+					'-Wno-unused-function',
 					'-Wno-deprecated',
 					'-Wno-missing-field-initializers',
-					'-Wno-unused-function',
-					# '-Wno-implicit-fallthrough',
-					# '-Wno-misleading-indentation',
 					'-march=<(arch_name)',
+					# '-Wno-misleading-indentation',
 				],
 				'ldflags': [
 					'-pthread', #'-rdynamic',
@@ -233,10 +236,8 @@
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
 					['arch=="x64"', { 'cflags': [ '-m64' ] }],
 					['gcc_version>="7.0"', { 'cflags': [ '-Wno-implicit-fallthrough' ] }],
+					['gcc_version>="8.0"', { 'cflags': [ '-Wno-cast-function-type' ] }],
 				],
-			}],
-			['os in "linux android" and library_output=="shared_library"', {
-				'cflags': [ '-fPIC' ],
 			}],
 			['os=="ios"', {
 				'cflags': [ 
@@ -304,17 +305,12 @@
 					'-mmacosx-version-min=<(version_min)',
 					'-arch <(arch_name)',
 				],
-				'ldflags!': [ 
-					'-pthread', 
-					'-s',
-				],
+				'ldflags!': [ '-pthread', '-s' ],
 				'conditions': [
 					['cplusplus11==1', { 'cflags_cc': [ '-stdlib=libc++' ] }],
 				],
 				'link_settings': { 
-					'libraries!': [ 
-						'-lm',
-					],
+					'libraries!': [ '-lm' ],
 					'libraries': [ 
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
@@ -343,6 +339,28 @@
 			}],
 			['OS=="mac"', {
 				'libraries!': ['-framework CoreFoundation'],
+				'xcode_settings': {
+					'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions
+					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
+				},
+			}],
+			['library_output=="shared_library"', {
+				'conditions': [
+					['os in "linux android"', {
+						'cflags': [ '-fPIC' ],
+					}]
+				],
+				'target_conditions': [
+					['_target_name in "uv"', {
+						'defines': [ 'BUILDING_UV_SHARED=1' ],
+					}],
+					['_target_name in "v8_libplatform v8_libbase v8_base "', {
+						'defines': [ 
+							'BUILDING_V8_SHARED=1', 
+							'BUILDING_V8_PLATFORM_SHARED=1',
+						],
+					}],
+				],
 			}],
 			['cplusplus11==1', {
 				'xcode_settings': {
@@ -351,6 +369,11 @@
 					 # 'GCC_C_LANGUAGE_STANDARD': 'c99',
 				},
 				'cflags_cc': [ '-std=c++0x' ], 
+			}],
+		],
+		'target_conditions': [
+			['_target_name in "openssl http_parser zlib"', {
+				'cflags!': ['-fvisibility=hidden'],
 			}],
 		],
 	},

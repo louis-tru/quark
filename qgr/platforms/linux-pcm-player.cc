@@ -47,6 +47,8 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
  public:
 	typedef DefaultTraits Traits;
 
+	virtual Object* to_object() { return this; }
+
 	LinuxPCMPlayer()
 		: m_pcm(NULL)
 		, m_hw_params(NULL), m_sw_params(NULL), m_mixer(NULL)

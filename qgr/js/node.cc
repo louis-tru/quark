@@ -1,4 +1,4 @@
-	/* ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, xuewen.chu
@@ -28,28 +28,40 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/app.h"
-#include "qgr/sys.h"
+#include "qgr/js/js-1.h"
 #include "qgr/utils/loop.h"
-#include "../depe/node/src/qgr.h"
+#include "qgr/utils/codec.h"
+#include "depe/node/src/qgr.h"
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test_demo
-#endif
+namespace node {
 
-using namespace qgr;
+	QgrEnvironment* qgr_env = nullptr;
+	NodeAPI* qgr_node_api = nullptr;
 
-void TEST_FUNC_NAME(int argc, char** argv);
+	QgrEnvironment::~QgrEnvironment() {
+		qgr::Release(m_worker);
+		m_worker = nullptr;
+		qgr_env = nullptr;
+	}
 
-XX_GUI_MAIN() {
+	void QgrEnvironment::run_loop() {
+		qgr::RunLoop::main_loop()->run();
+	}
 
-	// node::QgrEnvironment::test();
+	char* QgrEnvironment::encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
+		auto buff = qgr::Codec::encoding(qgr::Encoding::UTF8, src, length);
+		*out_len = buff.length();
+		return buff.collapse();
+	}
 
-	uint64 st = sys::time();
-	
-	TEST_FUNC_NAME(argc, argv);
-	
-	LOG("eclapsed time:%dms", (sys::time() - st) / 1000);
+	uint16_t* QgrEnvironment::decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
+		auto buff = qgr::Codec::decoding_to_uint16(qgr::Encoding::UTF8, src, length);
+		*out_len = buff.length();
+		return buff.collapse();
+	}
 
-	return 0;
+	bool QgrEnvironment::is_exited() {
+		return qgr::is_exited();
+	}
+
 }

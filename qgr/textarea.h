@@ -48,7 +48,8 @@ class XX_EXPORT Textarea: public Input, public BasicScroll {
 	/**
 	 * @overwrite
 	 */
-	virtual bool is_clip() { return true; }
+	// virtual bool is_clip() { return true; }
+	virtual BasicScroll* as_basic_scroll() { return this; }
 	
  protected:
 	

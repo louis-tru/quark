@@ -47,9 +47,8 @@ class Layout;
 /**
  * @class TextFont
  */
-class XX_EXPORT TextFont {
+class XX_EXPORT TextFont: public Protocol {
  public:
-	typedef ProtocolTraits Traits;
 	typedef FontGlyph::TexureLevel TexureLevel;
 	
 	TextFont();

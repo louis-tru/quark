@@ -547,27 +547,24 @@ Orientation DisplayPort::orientation() {
 void DisplayPort::set_orientation(Orientation orientation) {
 }
 
-extern "C" {
-	int main(int argc, char* argv[]) {
-		/**************************************************/
-		/**************************************************/
-		/*************** Start GUI Application ************/
-		/**************************************************/
-		/**************************************************/
-		AppInl::start(argc, argv);
-		
-		@autoreleasepool {
-			[UIApplication sharedApplication];
-			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-			if ( [app_delegate_name isEqual:@""] ) {
-				[UIApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
-			} else {
-				Class cls = NSClassFromString(app_delegate_name);
-				[UIApplication.sharedApplication setDelegate:[[cls alloc] init]];
-			}
-			[UIApplication.sharedApplication run];
+extern "C" XX_EXPORT int main(int argc, char* argv[]) {
+	/**************************************************/
+	/**************************************************/
+	/*************** Start GUI Application ************/
+	/**************************************************/
+	/**************************************************/
+	AppInl::start(argc, argv);
+	
+	@autoreleasepool {
+		[UIApplication sharedApplication];
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+		if ( [app_delegate_name isEqual:@""] ) {
+			[UIApplication.sharedApplication setDelegate:[[ApplicationDelegate alloc] init]];
+		} else {
+			Class cls = NSClassFromString(app_delegate_name);
+			[UIApplication.sharedApplication setDelegate:[[cls alloc] init]];
 		}
-		return 0;
+		[UIApplication.sharedApplication run];
 	}
+	return 0;
 }
-

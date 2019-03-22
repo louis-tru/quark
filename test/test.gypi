@@ -8,7 +8,7 @@
 					'-Wl,--whole-archive',
 					'<(output)/obj.target/libqgr-utils.a',
 					'<(output)/obj.target/libqgr-gui.a',
-					'<(output)/obj.target/libqgr-js_static.a',
+					'<(output)/obj.target/libqgr-js_0.a',
 					'-Wl,--no-whole-archive',
 				],
 			}],
@@ -23,8 +23,11 @@
 			],
 			'dependencies': [
 				'qgr',
+				'qgr-utils',
+				'qgr-gui',
 				'qgr-js',
 				'qgr-node',
+				'qgr-media',
 				'depe/tess2/tess2.gyp:tess2',
 				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
@@ -104,7 +107,7 @@
 					},
 				}],
 				['os in "linux android" and library_output=="static_library"', {
-					'ldflags': [ 
+					'ldflags': [
 						'<@(other_ldflags)',
 						'-Wl,--whole-archive',
 						'<(output)/obj.target/depe/node/libnode.a',

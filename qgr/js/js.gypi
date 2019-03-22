@@ -3,7 +3,7 @@
 		'use_v8%': 0,
 	},
 	'targets': [{
-		'target_name': 'qgr-js_static',
+		'target_name': 'qgr-js_0',
 		# 'product_name': 'qgr-js',
 		'type': '<(library)',
 		'include_dirs': [
@@ -39,6 +39,7 @@
 			'value.h',
 			'wrap.h',
 			'wrap.cc',
+			'node.cc',
 			# binding qgr-utils
 			'binding/cb-1.h',
 			'binding/cb.cc',

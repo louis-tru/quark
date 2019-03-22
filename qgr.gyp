@@ -23,6 +23,9 @@
 				'defines': [ 'XX_MORE_LOG=1' ],
 			}]
 		],
+		'direct_dependent_settings': {
+			'include_dirs': [ '.' ],
+		},
 	},
 
 	'targets': [
@@ -34,13 +37,9 @@
 			'qgr-gui',
 		],
 		'direct_dependent_settings': {
-			'include_dirs': [ '.' ],
 			'xcode_settings': {
 			 'OTHER_LDFLAGS': '-all_load',
 			},
-			'mac_bundle_resources': [
-				# 'libs/qgr',
-			],
 			'conditions': [
 				['cplusplus_exceptions==1', {
 					'xcode_settings': {
@@ -75,7 +74,7 @@
 						# 'link_node': '',
 						'conditions': [
 							['arch in "arm arm64" and without_embed_bitcode==0', {
-								# 'embed_bitcode': '-fembed-bitcode',
+								'embed_bitcode': '-fembed-bitcode',
 							}],
 							['use_v8==0 and os=="ios"', {
 								'v8libs': [ '<(output)/libv8-link.a', ],
@@ -108,7 +107,7 @@
 					'inputs': [
 						'<(output)/libqgr-utils.a', 
 						'<(output)/libqgr-gui.a', 
-						'<(output)/libqgr-js_static.a',
+						'<(output)/libqgr-js_0.a',
 						'<(output)/libminizip.a',
 						'<(output)/libopenssl.a',
 						'<(output)/libuv.a',
@@ -197,11 +196,8 @@
 		'type': 'none',
 		'dependencies': [
 			'qgr',
-			'qgr-js_static',
+			'qgr-js_0',
 		],
-		'direct_dependent_settings': {
-			'include_dirs': [ '.' ],
-		},
 		'conditions': [
 			['library_output=="shared_library" and OS not in "mac"', {
 				'type': 'shared_library',
@@ -215,9 +211,21 @@
 			'qgr-js',
 			'depe/node/node.gyp:node',
 		],
-		'direct_dependent_settings': {
-			'include_dirs': [ '.' ],
-		},
+		'conditions': [
+			['library_output=="shared_library" and OS not in "mac"', {
+				'type': 'shared_library',
+			}],
+		],
+	},
+	{
+		'target_name': 'qgr-all',
+		'type': 'none',
+		'dependencies': [
+			'qgr-utils',
+			'qgr-gui',
+			'qgr-js_0',
+			'depe/node/node.gyp:node',
+		],
 		'conditions': [
 			['library_output=="shared_library" and OS not in "mac"', {
 				'type': 'shared_library',

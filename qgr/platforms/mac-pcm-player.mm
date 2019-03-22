@@ -44,6 +44,8 @@ XX_NS(qgr)
 class ApplePCMPlayer: public Object, public PCMPlayer {
  public:
 	typedef DefaultTraits Traits;
+
+	virtual Object* to_object() { return this; }
 	
 	struct WaitWriteBuffer {
 		Buffer  data;

@@ -114,6 +114,8 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
  public:
 	typedef DefaultTraits Traits;
 
+	virtual Object* to_object() { return this; }
+
 	AndroidPCMOpenSLES()
 					: m_max_volume_level(100)
 					, bqPlayerObject(NULL)

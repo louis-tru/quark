@@ -74,19 +74,16 @@ virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this
 class Object;
 class Reference;
 
-struct DefaultAllocator {
+struct XX_EXPORT DefaultAllocator {
 	static void* alloc(size_t size);
 	static void* realloc(void* ptr, size_t size);
 	static void free(void* ptr);
 };
 
 struct ObjectAllocator {
-	typedef void* (*Alloc)(size_t size);
-	Alloc alloc;
-	typedef void (*Release)(Object* obj);
-	Release release;
-	typedef void (*Retain)(Object* obj);
-	Retain retain;
+	void* (*alloc)(size_t size);
+	void (*release)(Object* obj);
+	void (*retain)(Object* obj);
 };
 
 template<class T, class A = DefaultAllocator> class Container;
@@ -114,6 +111,7 @@ XX_INLINE T* NewRetain(Args... args) {
 
 class DefaultTraits;
 class ReferenceTraits;
+class ProtocolTraits;
 
 /**
  * @class Object
@@ -160,6 +158,15 @@ class XX_EXPORT Reference: public Object {
 };
 
 /**
+ * @class Protocol
+ */
+class XX_EXPORT Protocol {
+ public:
+	typedef ProtocolTraits Traits;
+	virtual Object* to_object() = 0;
+};
+
+/**
  * @class DefaultTraits
  */
 class XX_EXPORT DefaultTraits {
@@ -184,10 +191,10 @@ class XX_EXPORT ReferenceTraits: public DefaultTraits {
 class XX_EXPORT ProtocolTraits {
  public:
 	template<class T> inline static bool Retain(T* obj) {
-		return obj ? dynamic_cast<Object*>(obj)->retain() : 0;
+		return obj ? obj->to_object()->retain() : 0;
 	}
 	template<class T> inline static void Release(T* obj) {
-		if (obj) dynamic_cast<Object*>(obj)->release();
+		if (obj) obj->to_object()->release();
 	}
 	static constexpr bool is_reference = false;
 };

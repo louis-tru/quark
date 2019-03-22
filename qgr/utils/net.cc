@@ -987,7 +987,7 @@ void Socket::write(Buffer buffer, int mark) {
 	m_inl->write(buffer, size, mark);
 }
 
-void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
+XX_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
 	XX_CHECK(func);
 	new_root_cert_store = func;
 }

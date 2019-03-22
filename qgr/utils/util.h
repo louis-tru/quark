@@ -31,6 +31,14 @@
 #ifndef __qgr__utils__util__
 #define __qgr__utils__util__
 
+#if !defined(__cplusplus)
+# error "Please use the c++ compiler"
+#endif
+
+#if __cplusplus < 201103L
+# error "The compiler does not support c++ 11"
+#endif
+
 #include "qgr/utils/object.h"
 
 /**

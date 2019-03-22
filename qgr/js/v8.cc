@@ -374,8 +374,8 @@ Worker* IMPL::create() {
 	return inl->host();
 }
 
-Worker* IMPL::createWithNode(void* isolate, void* ctx) {
-	auto inl = new WorkerIMPL(isolate, ctx);
+XX_EXPORT Worker* createWorkerWithNode(void* isolate, void* context) {
+	auto inl = new WorkerIMPL(isolate, context);
 	inl->initialize();
 	return inl->host();
 }
