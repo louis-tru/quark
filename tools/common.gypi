@@ -236,7 +236,10 @@
 					['arch=="x86"', { 'cflags': [ '-m32' ], 'cflags!': [ '-march=<(arch_name)' ] }],
 					['arch=="x64"', { 'cflags': [ '-m64' ] }],
 					['gcc_version>="7.0"', { 'cflags': [ '-Wno-implicit-fallthrough' ] }],
-					['gcc_version>="8.0"', { 'cflags': [ '-Wno-cast-function-type' ] }],
+					['gcc_version>="8.0"', { 
+						'cflags': [ '-Wno-cast-function-type' ],
+						'cflags_cc': [ '-Wno-class-memaccess' ],
+					}],
 				],
 			}],
 			['os=="ios"', {

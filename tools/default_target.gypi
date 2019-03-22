@@ -29,8 +29,8 @@
 				'xcode_settings': {
 					'GCC_ENABLE_CPP_RTTI': 'YES',         # -frtti / -fno-rtti
 				},
-				'cflags_cc': [ '-fno-rtti' ],
-				# 'cflags_cc': [ '-frtti', ],
+				'cflags_cc!': [ '-fno-rtti' ],
+				'cflags_cc': [ '-frtti', ],
 			}, {
 				'xcode_settings': {
 					'GCC_ENABLE_CPP_RTTI': 'NO',          # -frtti / -fno-rtti

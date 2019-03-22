@@ -44,9 +44,9 @@ XX_NS(qgr)
 /**
  * @class BasicScroll
  */
-class XX_EXPORT BasicScroll {
+class XX_EXPORT BasicScroll: public Protocol {
  public:
-	
+
 	BasicScroll(Box* box);
 	
 	/**
@@ -318,8 +318,10 @@ class XX_EXPORT BasicScroll {
  * @class Scroll
  */
 class XX_EXPORT Scroll: public Panel, public BasicScroll {
- public:
 	XX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
+ public:
+
+	typedef ReferenceTraits Traits;
 	
 	Scroll();
 
@@ -329,6 +331,7 @@ class XX_EXPORT Scroll: public Panel, public BasicScroll {
 	virtual Vec2 layout_in_offset();
 	// virtual bool is_clip() { return true; }
 	virtual BasicScroll* as_basic_scroll() { return this; }
+	virtual Object* to_object() { return this; }
 
 	/**
 	 * @func focus_margin_left get

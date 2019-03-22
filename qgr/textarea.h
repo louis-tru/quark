@@ -42,6 +42,8 @@ XX_NS(qgr)
 class XX_EXPORT Textarea: public Input, public BasicScroll {
 	XX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
  public:
+
+	typedef ReferenceTraits Traits;
 	
 	Textarea();
 	
@@ -50,6 +52,7 @@ class XX_EXPORT Textarea: public Input, public BasicScroll {
 	 */
 	// virtual bool is_clip() { return true; }
 	virtual BasicScroll* as_basic_scroll() { return this; }
+	virtual Object* to_object() { return this; }
 	
  protected:
 	
