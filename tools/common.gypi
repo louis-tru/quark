@@ -193,9 +193,9 @@
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
 					},{
 						'cflags!': [ '-Wno-old-style-declaration' ],
+						'cflags': [ '-fPIC' ],
 					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
-					['arch=="arm" and clang==1', { 'cflags': [ '-fPIC' ] }],
 					['arch=="arm" and arm_vfp!="none"', {
 						'cflags': [ '-mfpu=<(arm_vfp)', '-mfloat-abi=softfp' ],
 					}],

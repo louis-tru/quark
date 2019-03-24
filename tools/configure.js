@@ -130,7 +130,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		'--disable-protocols',
 		'--disable-devices',
 		'--disable-filters',
-
 		// enable decoders
 		'--enable-decoder=aac',
 		'--enable-decoder=aac_fixed',
@@ -148,7 +147,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		'--enable-decoder=h263',
 		'--enable-decoder=h264',
 		'--enable-decoder=hevc',
-
 		// enable parsers
 		'--enable-parser=aac',
 		'--enable-parser=aac_latm',
@@ -160,7 +158,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		'--enable-parser=mpeg4video',
 		'--enable-parser=mpegaudio',
 		'--enable-parser=mpegvideo',
-
 		// enable demuxers
 		'--enable-demuxer=aac',
 		'--enable-demuxer=ac3',
@@ -178,7 +175,6 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		'--enable-demuxer=mpegts',
 		'--enable-demuxer=mpegtsraw',
 		'--enable-demuxer=mpegvideo',
-
 		// enable protocols
 		'--enable-protocol=hls',
 		'--enable-protocol=http',
@@ -201,7 +197,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		var cc = variables.cc;
 		var cflags = '-ffunction-sections -fdata-sections ';
 
-		if ( ! clang ) { // use gcc 
+		if ( !clang ) { // use gcc 
 			cflags += '-funswitch-loops ';
 		}
 
@@ -266,6 +262,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 		ff_opts.push('--disable-logging');
 		ff_opts.push('--disable-debug'); 
 		ff_opts.push('--strip');
+		// ff_opts.push('--optflags="-O3"');
 	}
 
 	cmd += ff_opts.join(' ');

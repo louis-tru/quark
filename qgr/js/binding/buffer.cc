@@ -265,6 +265,8 @@ class WrapBuffer: public WrapObject {
 			Buffer* buff = Wrap<Buffer>::unpack(args[index].To<JSObject>())->self();
 			return( self->write(*buff, to, size, form) );
 		}
+
+		return 0;
 	}
 
 
