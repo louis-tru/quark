@@ -41,7 +41,7 @@ class BackgroundGradient;
 /**
  * @class Background
  */
-class Background: public Reference {
+class XX_EXPORT Background: public Reference {
  public:
 	
 	enum Type {
@@ -139,7 +139,7 @@ typedef Background* BackgroundPtr;
 /**
  * @class BackgroundImage
  */
-class BackgroundImage: public Background {
+class XX_EXPORT BackgroundImage: public Background {
  public:
 	BackgroundImage();
 	virtual ~BackgroundImage();
@@ -182,7 +182,7 @@ class BackgroundImage: public Background {
 /**
  * @class BackgroundGradient
  */
-class BackgroundGradient: public Background {
+class XX_EXPORT BackgroundGradient: public Background {
  public:
 	BackgroundGradient();
 	virtual Type type() const { return M_GRADIENT; }

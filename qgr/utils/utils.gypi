@@ -2,7 +2,7 @@
 	'targets': [
 	{
 		'target_name': 'qgr-utils',
-		'type': '<(library)',
+		'type': 'static_library',
 		'dependencies': [ 
 			'qgr/utils/minizip.gyp:minizip',
 			'depe/node/deps/uv/uv.gyp:libuv',

@@ -1,56 +1,66 @@
 #!/bin/sh
 #/Users/louis/install/dev/android-sdk/ndk-bundle
  
-if [ $2 ] && [ -d $2 ]; then
- 
-	cd tools
+base=$(dirname "$0")
+cd $base
 
-	arch="arm"
-	dir="arm"
-	toolchain="arm-linux-androideabi-4.9"
+ndk=$ANDROID_HOME/ndk-bundle
+level="21"
+arch="arm"
+dir="arm"
+toolchain="arm-linux-androideabi-4.9"
+
+if [ $1 ]; then
+	ndk=$1
+fi
+
+if [ ! -d $ndk ]; then
+	echo No ndk directory " ./tools/install-android-toolchain [NDK-DIR] [level] [arm|arm64|mips|mips64|x86|x64]"
+	exit 1
+fi
+
+if [ $2 ]; then
+	level=$2
+fi
+
+p3="$3"
+
+if [ "$3" = "arm64" ]; then
+	arch="arm64"
+	dir="arm64"
+	toolchain="aarch64-linux-android-4.9"
+elif [ "$3" = "mips" ]; then
+	arch="mips"
+	dir="mips"
+	toolchain="mipsel-linux-android-4.9"
+elif [ "$3" = "mips64" ]; then
+	arch="mips64"
+	dir="mips64"
+	toolchain="mips64el-linux-android-4.9"
+elif [ "$3" = "x86" ] || [ "$3" = "ia32" ] || [ "$3" = "i386" ]; then
+	arch="x86"
+	dir="x86"
+	toolchain="x86-4.9"
+elif [ "$3" = "x64" ] || [ "$3" = "x86_64" ] || [ "$3" = "ia64" ]; then
+	arch="x86_64"
+	dir="x64"
+	toolchain="x86_64-4.9"
+fi
+
+echo $ndk, $level, $arch, $toolchain
+
+DIR=$PWD/android-toolchain/$dir
+
+if [ ! -f $DIR/bin/clang ]; then
+
+	$ndk/build/tools/make-standalone-toolchain.sh \
+		--toolchain=$toolchain \
+		--install-dir=$DIR \
+		--platform=android-$level \
+		--arch=$arch \
+		--force
 	
-	echo $1
-	
-	if [ $1 = "arm64" ]; then
-		arch="arm64"
-		dir="arm64"
-		toolchain="aarch64-linux-android-4.9"
-	elif [ $1 = "mips" ]; then
-		arch="mips"
-		dir="mips"
-		toolchain="mipsel-linux-android-4.9"
-	elif [ $1 = "mips64" ]; then
-		arch="mips64"
-		dir="mips64"
-		toolchain="mips64el-linux-android-4.9"
-	elif [ $1 = "x86" ] || [ $1 = "ia32" ] || [ $1 = "i386" ]; then
-		arch="x86"
-		dir="x86"
-		toolchain="x86-4.9"
-	elif [ $1 = "x64" ] || [ $1 = "x86_64" ] || [ $1 = "ia64" ]; then
-		arch="x86_64"
-		dir="x64"
-		toolchain="x86_64-4.9"
+	if [ `which python` ]; then 
+	 rm -rf $DIR/bin/python
 	fi
-	
-	echo  $arch, $toolchain
-	
-	DIR=$PWD/android-toolchain/$dir
-	
-	if [ ! -f $DIR/bin/clang ]; then
-		
-		$2/build/tools/make-standalone-toolchain.sh \
-			--arch=$arch \
-			--toolchain=$toolchain \
-			--install-dir=$DIR \
-			--platform=android-21 \
-			# --force
-		
-		if [ `which python` ]; then 
-		 rm -rf $DIR/bin/python
-		fi
-	fi
- 
-else
-	echo No ndk directory " ./tools/install-android-toolchain arm|arm64|mipsel|mips64|x86|x64 NDK-DIR"
 fi

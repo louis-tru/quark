@@ -69,8 +69,8 @@ static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
 static pthread_key_t specific_key;
 int __is_process_exit = 0;
-int (*__xx_exit_app_hook)(int rc) = nullptr;
-int (*__xx_exit_hook)(int rc) = nullptr;
+XX_EXPORT int (*__xx_exit_app_hook)(int rc) = nullptr;
+XX_EXPORT int (*__xx_exit_hook)(int rc) = nullptr;
 
 XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
  public:

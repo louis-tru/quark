@@ -71,7 +71,7 @@ class CSSManager;
  * 注意: 如果`main loop`与`render loop`运行在不同的线程,
  * 那么在主线程调用任何GUI-API函数必须加锁。
  */
-class GUILock {
+class XX_EXPORT GUILock {
  public:
 	GUILock();
 	~GUILock();

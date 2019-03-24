@@ -134,6 +134,7 @@ function swri_oldapi_conv_fltp_to_s16_nch_neon, export=1
         itt             lt
         ldrlt           r1,  [r1]
         blt             X(swri_oldapi_conv_flt_to_s16_neon)
+        it              eq
         beq             X(swri_oldapi_conv_fltp_to_s16_2ch_neon)
 
         push            {r4-r8, lr}

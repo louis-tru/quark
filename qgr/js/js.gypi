@@ -2,10 +2,23 @@
 	'variables': {
 		'use_v8%': 0,
 	},
-	'targets': [{
-		'target_name': 'qgr-js_0',
-		# 'product_name': 'qgr-js',
-		'type': '<(library)',
+	'targets': [
+	{
+		'target_name': 'qgr-v8',
+		'type': 'none',
+		'conditions': [
+			['library_output=="shared_library"',{
+				'type': 'shared_library',
+			}]
+		],
+		'dependencies': [
+			'depe/v8-link/v8-link.gyp:v8-link',
+			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
+		],
+	},
+	{
+		'target_name': 'qgr-js',
+		'type': '<(library_output)',
 		'include_dirs': [
 			'../..',
 			'../../out',
@@ -13,10 +26,8 @@
 			'../../depe/node/deps/openssl/openssl/include',
 		],
 		'dependencies': [
-			'qgr-utils',
-			'qgr-gui',
-			'depe/v8-link/v8-link.gyp:v8-link',
-			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
+			'qgr',
+			'qgr-v8',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -207,5 +218,49 @@
 				],
 			},
 		],
-	}]
+	},
+	{
+		'target_name': 'qgr-node',
+		'type': '<(library_output)',
+		'dependencies': [
+			'qgr-js',
+			'depe/node/node.gyp:node',
+		],
+	},
+	{
+		'target_name': 'qgr_exec',
+		'product_name': 'qgr',
+		'type': 'executable',
+		'dependencies': [
+			'qgr',
+			'qgr-js',
+			'qgr-node',
+			'qgr-media',
+		],
+		'mac_bundle': 1,
+		'mac_bundle_resources': [
+			'../examples',
+		],
+		'xcode_settings': {
+			'OTHER_LDFLAGS': '-all_load',
+		},
+		'sources': [
+			'main.cc',
+		],
+		'conditions': [
+			['os in "ios osx"', {
+				'sources': [
+					'test-<(os).plist',
+					'Storyboard-<(os).storyboard',
+				],
+				'xcode_settings': {
+					'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
+				},
+			}],
+			['os in "linux android"', {
+				'ldflags': [ '<@(other_ldflags)' ],
+			}],
+		],
+	},
+	]
 }

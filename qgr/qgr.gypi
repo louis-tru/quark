@@ -24,15 +24,16 @@
 			'font/icomoon.ttf',
 		],
 	},
-	'targets':[{
-		'target_name': 'qgr-gui',
-		'type': '<(library)',
+	'targets':[
+	{
+		'target_name': 'qgr',
+		'type': '<(library_output)',
 		'include_dirs': [
 			'..',
 			'../out',
 		],
 		'dependencies': [
-			'qgr-utils', 
+			'qgr-utils',
 			'depe/tess2/tess2.gyp:tess2', 
 			'depe/freetype2/freetype2.gyp:ft2',
 			'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
@@ -40,7 +41,24 @@
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '..' ],
-		},
+			'xcode_settings': {
+			 'OTHER_LDFLAGS': '-all_load',
+			},
+			'conditions': [
+				['cplusplus_exceptions==1', {
+					'xcode_settings': {
+						'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+					},
+					'cflags_cc': [ '-fexceptions' ], 
+				}],
+				['cplusplus_rtti==1', {
+					'xcode_settings': { 
+						'GCC_ENABLE_CPP_RTTI': 'YES', 
+					},
+					'cflags_cc': [ '-frtti', ], 
+				}],
+			],
+		}, # direct_dependent_settings
 		'sources': [
 			'../out/native-glsl.cc',
 			'../out/native-font.cc',

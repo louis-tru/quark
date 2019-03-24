@@ -130,7 +130,6 @@
 
 		##########################################################
 	},
-	#-fvisibility=hidden
 	'target_defaults': {
 		'variables': {
 			'host_os': '<(host_os)',
@@ -138,7 +137,7 @@
 		'default_configuration': 'Release',
 		'configurations': {
 			'Debug': {
-				'defines': [ 'DEBUG', '_DEBUG' ],
+				'defines': [ 'DEBUG=1', '_DEBUG' ],
 				'cflags': [ '-g', '-O0' ],
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '0',
@@ -163,7 +162,7 @@
 					'ONLY_ACTIVE_ARCH': 'NO',
 				},
 				'conditions': [
-					['os=="android"', {
+					['os=="android" and clang==0', {
 						'cflags!': [ '-O3' ],
 						'cflags': [ '-O2' ],
 					}],
@@ -190,7 +189,13 @@
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 				],
 				'conditions': [
+					['clang==0', {
+						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
+					},{
+						'cflags!': [ '-Wno-old-style-declaration' ],
+					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
+					['arch=="arm" and clang==1', { 'cflags': [ '-fPIC' ] }],
 					['arch=="arm" and arm_vfp!="none"', {
 						'cflags': [ '-mfpu=<(arm_vfp)', '-mfloat-abi=softfp' ],
 					}],
@@ -201,12 +206,6 @@
 					'_GLIBCXX_USE_C99_MATH', 
 					'_GLIBCXX_USE_C99_MATH_TR1',
 					'_GLIBCXX_HAVE_WCSTOF',
-				],
-			}],
-			['os=="android" and clang==0', {
-				'cflags': [
-					'-funswitch-loops', 
-					'-finline-limit=64', 
 				],
 			}],
 			['os=="linux"', {
@@ -354,13 +353,9 @@
 					}]
 				],
 				'target_conditions': [
-					['_target_name in "uv"', {
-						'defines': [ 'BUILDING_UV_SHARED=1' ],
-					}],
-					['_target_name in "v8_libplatform v8_libbase v8_base "', {
+					['_target_name in "node"', {
 						'defines': [ 
-							'BUILDING_V8_SHARED=1', 
-							'BUILDING_V8_PLATFORM_SHARED=1',
+							'NODE_SHARED_MODE=1', 
 						],
 					}],
 				],
@@ -375,8 +370,18 @@
 			}],
 		],
 		'target_conditions': [
+			# shared all public symbol
 			['_target_name in "openssl http_parser zlib"', {
 				'cflags!': ['-fvisibility=hidden'],
+			}],
+			['_target_name in "uv"', {
+				'defines': [ 'BUILDING_UV_SHARED=1' ],
+			}],
+			['_target_name in "v8_libplatform v8_libbase v8_base"', {
+				'defines': [ 
+					'BUILDING_V8_SHARED=1', 
+					'BUILDING_V8_PLATFORM_SHARED=1',
+				],
 			}],
 		],
 	},

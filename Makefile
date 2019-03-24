@@ -7,15 +7,16 @@ BUILDTYPE			?= Release
 V							?= 0
 CXX						?= g++
 LINK					?= g++
+SHARED				?=
 ENV						?=
 NODE					?= node
 ANDROID_SDK		?= $(ANDROID_HOME)
-ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-23/android.jar
+ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-24/android.jar
 JAVAC					?= javac
 JAR						?= jar
 TOOLS					= ./libs/qgr-tools
 GYP						= $(TOOLS)/gyp/gyp
-LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)
+LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)$(if $(SHARED),.$(SHARED))
 TOOLS_OUT			= out/qgr-tools
 BUILD_STYLE 	=	make
 
@@ -78,9 +79,9 @@ ios: $(TOOLS)/bin/${OS}/jsa-shell
 	#@$(MAKE)   # armv7 say goodbye 
 	@./configure --os=ios --arch=x64 --library=shared
 	@$(MAKE)
-	@./configure --os=ios --arch=arm64 --library=shared --without-embed-bitcode
+	@./configure --os=ios --arch=arm64 --library=shared
 	@$(MAKE)
-	@./configure --os=ios --arch=arm64 --library=shared --without-embed-bitcode -v8 --suffix=arm64.v8
+	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8
 	@$(MAKE)
 	@$(NODE) ./tools/gen_apple_framework.js ios \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
@@ -143,8 +144,8 @@ web:
 	@$(NODE) --inspect=0.0.0.0:9229 tools/server.js
 
 clean:
-	@rm -rfv out/$(OS).*
-	@rm -rfv out/product/qgr/product/$(OS)
+	@rm -rfv $(LIBS_DIR)
+	@rm -rfv $(TOOLS_OUT)/product/$(OS)
 
 help:
 	@echo

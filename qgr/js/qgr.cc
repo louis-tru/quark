@@ -37,6 +37,7 @@
 #include "android/android.h"
 #include "native-inl-js.h"
 #include "depe/node/src/qgr.h"
+#include "uv.h"
 
 extern int (*__xx_default_gui_main)(int, char**);
 
@@ -226,8 +227,20 @@ int Start(const Array<String>& argv_in) {
 		if (node::qgr_node_api) {
 			rc = node::qgr_node_api->Start(argc, argv_c);
 		} else {
-			XX_WARN("Not node library loaded");
+#if XX_LINUX
+			// try loading qgr-node
+			uv_lib_t lib;
+			int err = uv_dlopen("libqgr-node.so", &lib);
+			if (err != 0) {
+				XX_WARN("No node library loaded, %s", uv_dlerror(&lib));
+				goto no_node_start;
+			} else {
+				rc = node::qgr_node_api->Start(argc, argv_c);
+			}
+#else
+			XX_WARN("No node library loaded");
 			goto no_node_start;
+#endif
 		}
 	} else {
 	 no_node_start:

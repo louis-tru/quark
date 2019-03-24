@@ -1,18 +1,6 @@
 { 
 	'variables': {
 		'without_visibility_hidden%': 0,
-		'other_ldflags': [],
-		'conditions': [
-			['library_output=="static_library"', {
-				'other_ldflags+': [
-					'-Wl,--whole-archive',
-					'<(output)/obj.target/libqgr-utils.a',
-					'<(output)/obj.target/libqgr-gui.a',
-					'<(output)/obj.target/libqgr-js_0.a',
-					'-Wl,--no-whole-archive',
-				],
-			}],
-		],
 	},
 	'targets': [
 		{
@@ -23,20 +11,13 @@
 			],
 			'dependencies': [
 				'qgr',
-				'qgr-utils',
-				'qgr-gui',
 				'qgr-js',
 				'qgr-node',
+				'qgr-v8',
 				'qgr-media',
-				'depe/tess2/tess2.gyp:tess2',
-				'depe/freetype2/freetype2.gyp:ft2',
 				'depe/curl/curl.gyp:curl',
 				'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
-				'depe/v8-link/v8-link.gyp:v8-link',
-				'depe/v8-link/v8-link.gyp:v8_libplatform-link',
-				'depe/node/deps/openssl/openssl.gyp:openssl',
-				'depe/node/deps/uv/uv.gyp:libuv',
-				'depe/node/deps/http_parser/http_parser.gyp:http_parser',
+				'depe/freetype2/freetype2.gyp:ft2',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -107,12 +88,7 @@
 					},
 				}],
 				['os in "linux android" and library_output=="static_library"', {
-					'ldflags': [
-						'<@(other_ldflags)',
-						'-Wl,--whole-archive',
-						'<(output)/obj.target/depe/node/libnode.a',
-						'-Wl,--no-whole-archive',
-					],
+					'ldflags': [ '<@(other_ldflags)' ],
 				}],
 			],
 		},
@@ -120,7 +96,10 @@
 			'target_name': 'qgr-demo',
 			'type': 'executable',
 			'dependencies': [
+				'qgr',
 				'qgr-js',
+				'qgr-node',
+				'qgr-media',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [

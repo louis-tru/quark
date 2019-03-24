@@ -10,6 +10,7 @@ ifeq ($(OS),Linux)
 endif
 
 # -ffunction-sections -fdata-sections 
+
 INCLUDES	= -I. $(if $(LINUX),-I../tools/linux/usr/include)
 FLAGS 		= -Wall -g -O0 $(INCLUDES) '-DDEBUG' '-D_DEBUG'
 CXXFLAGS 	= -std=c++0x -fexceptions -frtti

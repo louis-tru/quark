@@ -40,6 +40,7 @@ var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
 var default_arch = host_arch || 'x86';
+var android_api_level = 21;
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
@@ -96,7 +97,7 @@ function touch_file(pathnames) {
 	});
 }
 
-function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_dir) {
+function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
 	var cmd = '';
@@ -200,15 +201,11 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 		var cc = variables.cc;
 		var cflags = '-ffunction-sections -fdata-sections ';
 
-		if ( use_gcc ) { // use gcc 
-			cc = `${variables.cross_prefix}gcc`;
+		if ( ! clang ) { // use gcc 
 			cflags += '-funswitch-loops ';
 		}
-		if ( arch == 'arm' || arch == 'arm64' ) {
-			cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
-		} else {
-			cmd += `--cc='${cc} ${cflags}' `;
-		}
+
+		cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
 	} 
 	else if ( os=='linux' ) {
 		cmd = `\
@@ -296,6 +293,7 @@ function configure_ffmpeg(opts, variables, configuration, use_gcc, ff_install_di
 	`);
 
 	console.log('FFMpeg Configuration:\n');
+	console.log(`export PATH=${__dirname}:${variables.build_bin}:$PATH`);
 	console.log(cmd, '\n');
 
 	var log = syscall(
@@ -435,6 +433,7 @@ function configure() {
 	var use_dtrace = is_use_dtrace();
 	/* 交叉编译时需要单独的工具集来生成v8-js快照,所以交叉编译暂时不使用v8-js快照*/
 	var v8_use_snapshot = !opts.without_snapshot && !cross_compiling && !modile;
+	var shared = opts.library == 'shared' ? 'shared': '';
 
 	if ( os == 'ios' ) {
 		if ( opts.use_v8 == 'auto' ) { // ios默认使用 javascriptcore
@@ -544,29 +543,39 @@ function configure() {
 	// ----------------------- android/linux/ios/osx ----------------------- 
 
 	if ( os == 'android' ) {
-		// check android toolchain
+		var api = android_api_level;
 
+		// check android toolchain
 		var toolchain_dir = `${__dirname}/android-toolchain/${arch}`;
 		if (!fs.existsSync(toolchain_dir)) {
-			var ndk_path = opts.ndk_path || `${process.env.ANDROID_HOME}/ndk-bundle`;
-			if ( ndk_path && fs.existsSync(ndk_path) ) {
-				syscall(`./tools/install-android-toolchain ${arch} ${ndk_path}`); // install tool
+			var toolchain_dir2 = `${__dirname}/android-toolchain/arm`;
+			// chech ndk r19
+			if ( fs.existsSync(`${toolchain_dir2}/bin/armv7a-linux-androideabi${api}-clang`) ) {
+				opts.clang = 1; // use clang
+				variables.clang = 1;
+				toolchain_dir = toolchain_dir2;
 			} else {
-				console.error(
-					`Please run "./tools/install-android-toolchain ${arch} NDK-DIR" ` +
-					'to install android toolchain!');
-				process.exit(1);
+				var ndk_path = opts.ndk_path || `${process.env.ANDROID_HOME}/ndk-bundle`;
+				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
+					syscall(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`);
+				} else {
+					console.error(
+						`Please run "./tools/install-android-toolchain NDK-DIR" ` +
+						'to install android toolchain!');
+					process.exit(1);
+				}
 			}
 		}
-		
+
 		var tools = {
-			'arm': { cross_prefix: 'arm-linux-androideabi-', arch_name: 'armv6', abi: 'armeabi' },
-			'arm64': { cross_prefix: 'aarch64-linux-android-', arch_name: 'arm64', abi: 'arm64-v8a' },
-			'mips': { cross_prefix: 'mipsel-linux-android-', arch_name: 'mips', abi: 'mips' },
-			'mips64': { cross_prefix: 'mips64el-linux-android-', arch_name: 'mips64', abi: 'mips64' },
-			'x86': { cross_prefix: 'i686-linux-android-', arch_name: 'x86', abi: 'x86' },
-			'x64':  { cross_prefix: 'x86_64-linux-android-', arch_name: 'x64', abi: 'x86_64' },
+			'arm': { cross_prefix: `arm-linux-androideabi-`, arch_name: 'armv6', abi: 'armeabi' },
+			'arm64': { cross_prefix: `aarch64-linux-android-`, arch_name: 'armv8-a', abi: 'arm64-v8a' },
+			// 'mips': { cross_prefix: `mipsel-linux-android`, arch_name: 'mips2', abi: 'mips' },
+			// 'mips64': { cross_prefix: `mips64el-linux-android`, arch_name: 'mips64r6', abi: 'mips64' },
+			'x86': { cross_prefix: `i686-linux-android-`, arch_name: 'i686', abi: 'x86' },
+			'x64':  { cross_prefix: `x86_64-linux-android-`, arch_name: 'x86-64', abi: 'x86_64' },
 		};
+
 		var tool = tools[arch];
 		if (!tool) {
 			console.error(`do not support android os and ${arch} cpu architectures`);
@@ -579,30 +588,61 @@ function configure() {
 			tool.abi = 'armeabi-v7a';
 		}
 
+		var cc_prefix = tool.cross_prefix;
+		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
+
+		if (fs.existsSync(`${cc_path.replace(/-$/, '')}${api}-clang`)) {
+			cc_prefix = cc_prefix.replace(/-$/, '') + api + '-';
+			cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
+		}
+
 		variables.cross_prefix = tool.cross_prefix;
 		variables.arch_name = tool.arch_name;
 		variables.android_abi = tool.abi;
-		
-		if ( opts.clang ) { // use clang
-			variables.cc = `${tool.cross_prefix}clang`;
-			variables.cxx = `${tool.cross_prefix}clang++`;
-			variables.ld = `${tool.cross_prefix}clang++`;
-		} else {
-			variables.cc = `${tool.cross_prefix}gcc`;
-			variables.cxx = `${tool.cross_prefix}g++`;
-			// variables.ld = `${tool.cross_prefix}g++`;
-			/* 
-			 * 这里使用g++进行链接会导致无法运行,
-			 * 这可能是g++默认链接的stl库有问题.不再追究更多细节,使用clang++进行链接
-			 */
-			variables.ld = `${tool.cross_prefix}clang++`;
+
+		if (!fs.existsSync(`${cc_path}gcc`) || 
+				!execSync(`${cc_path}gcc --version| grep -i gcc`).stdout[0]
+			) {
+			// cannot find gcc compiler, use clang
+			opts.clang = 1;
+			variables.clang = 1; // use clang
 		}
-		variables.ar = `${tool.cross_prefix}ar`;
-		variables.as = `${tool.cross_prefix}as`;
-		variables.ranlib = `${tool.cross_prefix}ranlib`;
-		variables.strip = `${tool.cross_prefix}strip`;
+
+		if ( opts.clang ) { // use clang
+			util.assert(fs.existsSync(`${cc_path}clang`), 
+				`"${cc_prefix}clang" or "${cc_prefix}gcc" cross compilation was not found\n`);
+			variables.cc = `${cc_prefix}clang`;
+			variables.cxx = `${cc_prefix}clang++`;
+			variables.ld = `${cc_prefix}clang++`;
+		} else {
+			variables.cc = `${cc_prefix}gcc`;
+			variables.cxx = `${cc_prefix}g++`;
+			variables.ld = `${cc_prefix}g++`;
+
+			if (fs.existsSync(`${cc_path}clang++`)) {
+				/* 
+				 * 这里使用g++进行链接会导致无法运行,
+				 * 这可能是g++默认链接的stl库有问题.不再追究更多细节,使用clang++进行链接
+				 */
+				variables.ld = `${cc_prefix}clang++`;
+			}
+		}
+		variables.ar = `${variables.cross_prefix}ar`;
+		variables.as = `${variables.cross_prefix}as`;
+		variables.ranlib = `${variables.cross_prefix}ranlib`;
+		variables.strip = `${variables.cross_prefix}strip`;
 		variables.build_bin = `${toolchain_dir}/bin`;
 		variables.build_sysroot = `${toolchain_dir}/sysroot`;
+
+		if (opts.clang) {
+			var llvm_version = execSync(`${cc_path}clang \
+				--version`).stdout[0].match(/LLVM (\d+\.\d+(\.\d+)?)/i);
+			variables.llvm_version = llvm_version && llvm_version[1] || 0;
+		} else {
+			var gcc_version = execSync(`${cc_path}gcc \
+				--version| grep -i gcc | awk '{ print $3 }'`).stdout[0];
+			variables.gcc_version = gcc_version ? gcc_version.replace(/\.x/, '') : 0;
+		}
 	}
 	else if ( os == 'linux' ) {
 
@@ -695,10 +735,9 @@ function configure() {
 		var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
 
 		try {
-			variables.xcode_version = 
-				syscall('xcodebuild -version').stdout[0].match(/\d+.\d+$/)[0];
+			variables.xcode_version = syscall('xcodebuild -version').stdout[0].match(/\d+.\d+$/)[0];
 			variables.llvm_version = 
-				syscall('cc --version').stdout[0].match(/clang-(\d+\.\d+(\.\d+)?)/)[1];
+				syscall('cc --version').stdout[0].match(/clang-(\d+\.\d+(\.\d+)?)/i)[1];
 		} catch(e) {}
 
 		if ( arch == 'arm' ) {
@@ -743,9 +782,13 @@ function configure() {
 	variables.output = path.resolve(`${__dirname}/../out/${os}.${suffix}.${configuration}`);
 	variables.suffix = suffix;
 
+	if (shared) 
+		variables.output += '.' + shared;
+
 	config_mk.push('SUFFIX=' + suffix);
 	config_mk.push('CXX=' + variables.cxx);
 	config_mk.push('LINK=' + variables.ld);
+	config_mk.push('SHARED=' + shared);
 
 	ENV.push('export CC=' + variables.cc);
 	ENV.push('export CXX=' + variables.cxx);
@@ -781,7 +824,7 @@ function configure() {
 		}
 
 		if ( ff_rebuild ) { // rebuild ffmpeg
-		 if ( !configure_ffmpeg(opts, variables, configuration, 1, ff_install_dir) ) {
+		 if ( !configure_ffmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
 			 return;
 		 }
 		}
