@@ -107,10 +107,10 @@ class SoftwareMediaCodec: public MediaCodec {
 			const AVCodec* codec = get_avcodec(); XX_ASSERT(codec);
 			
 			if ( m_threads > 1 ) { // set threads
-				if ((codec->capabilities & CODEC_CAP_FRAME_THREADS)
-						&& !(m_codec_ctx->flags & CODEC_FLAG_TRUNCATED)
-						&& !(m_codec_ctx->flags & CODEC_FLAG_LOW_DELAY)
-						&& !(m_codec_ctx->flags2 & CODEC_FLAG2_CHUNKS)) {
+				if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
+						&& !(m_codec_ctx->flags & AV_CODEC_FLAG_TRUNCATED)
+						&& !(m_codec_ctx->flags & AV_CODEC_FLAG_LOW_DELAY)
+						&& !(m_codec_ctx->flags2 & AV_CODEC_FLAG2_CHUNKS)) {
 					m_codec_ctx->thread_count = m_threads;
 					m_codec_ctx->active_thread_type = FF_THREAD_FRAME;
 				}
