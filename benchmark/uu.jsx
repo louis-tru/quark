@@ -8,12 +8,12 @@ var ts = 0;
 
 function start(...args) {
 	ts = new Date().valueOf();
-	util.log('start:', ...args);
+	console.log('start:', ...args);
 }
 
 function log(...args) {
 	var ts2 = new Date().valueOf();
-	util.log('time:', ts2 - ts, ...args);
+	console.log('time:', ts2 - ts, ...args);
 	ts = ts2;
 }
 
