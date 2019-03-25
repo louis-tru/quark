@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qgr-utils/util');
-var service = require('qgr-utils/service');
-var HttpService = require('qgr-utils/http_service').HttpService;
-var StaticService = require('qgr-utils/static_service').StaticService;
-var path = require('qgr-utils/path');
-var fs = require('qgr-utils/fs');
-var keys = require('qgr-utils/keys');
+var util = require('qkit/util');
+var service = require('qkit/service');
+var HttpService = require('qkit/http_service').HttpService;
+var StaticService = require('qkit/static_service').StaticService;
+var path = require('qkit/path');
+var fs = require('qkit/fs');
+var keys = require('qkit/keys');
 var Buffer = require('buffer').Buffer;
 var remote_log = require('./remote_log');
 var gen_html = require('../marked/html').gen_html;

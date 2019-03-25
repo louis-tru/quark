@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qgr-utils');
-var service = require('qgr-utils/service');
+var util = require('qkit');
+var service = require('qkit/service');
 var remote_log = require('./remote_log');
-var HttpService = require('qgr-utils/http_service').HttpService;
+var HttpService = require('qkit/http_service').HttpService;
 
 var Console = util.class('Console', HttpService, {
 

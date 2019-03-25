@@ -29,7 +29,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('qgr-utils/fs');
+var fs = require('qkit/fs');
 var path = require('path');
 var marked_html = require('qmake/marked/html');
 var marked = require('qmake/node_modules/marked/index');

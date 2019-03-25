@@ -28,15 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qgr-utils');
-var fs = require('qgr-utils/fs');
+var util = require('qkit');
+var fs = require('qkit/fs');
 var child_process = require('child_process');
-var keys = require('qgr-utils/keys');
-var path = require('qgr-utils/path');
+var keys = require('qkit/keys');
+var path = require('qkit/path');
 var Buffer = require('buffer').Buffer;
 var paths = require('./paths');
 var uglify = require('../uglify');
-var { syscall } = require('qgr-utils/syscall');
+var { syscall } = require('qkit/syscall');
 
 var base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');

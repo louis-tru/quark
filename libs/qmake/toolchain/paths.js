@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var path = require('qgr-utils/url');
-var fs = require('qgr-utils/fs');
+var path = require('qkit/url');
+var fs = require('qkit/fs');
 var resolve = require('path').resolve;
 
 if ( fs.existsSync(__dirname + '/../product/qgr.gypi') ) {

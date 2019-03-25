@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qgr-utils');
-var fs = require('../libs/qgr-utils/fs');
-var keys = require('../libs/qgr-utils/keys');
-var service = require('../libs/qgr-utils/service');
-var HttpService = require('../libs/qgr-utils/http_service').HttpService;
+var util = require('../libs/qkit');
+var fs = require('../libs/qkit/fs');
+var keys = require('../libs/qkit/keys');
+var service = require('../libs/qkit/service');
+var HttpService = require('../libs/qkit/http_service').HttpService;
 var server = require('../libs/qmake/toolchain/server');
 require('./test-multiple-service');
 

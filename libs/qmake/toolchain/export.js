@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qgr-utils/util');
+var util = require('qkit/util');
 var paths = require('./paths');
-var fs = require('qgr-utils/fs');
-var path = require('qgr-utils/path');
-var keys = require('qgr-utils/keys');
+var fs = require('qkit/fs');
+var path = require('qkit/path');
+var keys = require('qkit/keys');
 var sys = require('os');
 var { QgrBuild } = require('./build');
-var { getLocalNetworkHost } = require('qgr-utils/network_host');
-var { syscall } = require('qgr-utils/syscall');
+var { getLocalNetworkHost } = require('qkit/network_host');
+var { syscall } = require('qkit/syscall');
 var child_process = require('child_process');
-var large_file_merge = require('qgr-utils/large_file_cut').merge;
+var large_file_merge = require('qkit/large_file_cut').merge;
 
 var native_source = [
 	'.c',

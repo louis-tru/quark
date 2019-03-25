@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var http = require('http');
-var path = require('qgr-utils/path');
+var path = require('qkit/path');
 var querystring = require('querystring');
 var remote_log_uri = null;
 

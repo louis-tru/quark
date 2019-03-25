@@ -30,11 +30,11 @@
 
 require('./console');
 require('./file');
-var path = require('qgr-utils/url');
-var keys = require('qgr-utils/keys');
-var server = require('qgr-utils/server');
+var path = require('qkit/url');
+var keys = require('qkit/keys');
+var server = require('qkit/server');
 var remote_log = require('./remote_log');
-var getLocalNetworkHost = require('qgr-utils/network_host').getLocalNetworkHost;
+var getLocalNetworkHost = require('qkit/network_host').getLocalNetworkHost;
 
 function start_server(options) {
 	options = options || {};

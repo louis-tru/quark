@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qgr-utils');
-var service = require('../libs/qgr-utils/service');
-var HttpService = require('../libs/qgr-utils/http_service').HttpService;
+var util = require('../libs/qkit');
+var service = require('../libs/qkit/service');
+var HttpService = require('../libs/qkit/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

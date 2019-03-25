@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var util = require('qgr-utils');
-var fs = require('qgr-utils/fs');
+var util = require('qkit');
+var fs = require('qkit/fs');
 var { QgrBuild } = require('../toolchain/build');
 var { QgrExport } = require('../toolchain/export');
 var server = require('../toolchain/server');
-var arguments = require('qgr-utils/arguments');
+var arguments = require('qkit/arguments');
 var args = process.argv.slice(2);
 var cmd = args.shift();
 var opts = arguments.options;
