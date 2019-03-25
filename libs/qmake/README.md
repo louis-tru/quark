@@ -1,4 +1,4 @@
-Qgr Tools
+Qmake
 ===============
 
 A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL

@@ -33,7 +33,7 @@ var fs = require('../libs/qgr-utils/fs');
 var keys = require('../libs/qgr-utils/keys');
 var service = require('../libs/qgr-utils/service');
 var HttpService = require('../libs/qgr-utils/http_service').HttpService;
-var server = require('../libs/qgr-tools/toolchain/server');
+var server = require('../libs/qmake/toolchain/server');
 require('./test-multiple-service');
 
 var opt = {

@@ -1,5 +1,5 @@
 {
-	"name": "qgr-tools",
+	"name": "qmake",
 	"version": "0.4.3",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "",
@@ -9,7 +9,7 @@
 		"url": "http://quickgr.org/"
 	},
 	"bin": {
-		"qgr": "bin/shell.js"
+		"qmake": "bin/shell.js"
 	},
 	"keywords": [
 		"jsx",
@@ -34,7 +34,7 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"qgr-utils": "~0.8.11"
+		"qgr-utils": "~0.8.12"
 	},
 	"license": "BSD-2-Clause",
 	"bugs": {

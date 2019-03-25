@@ -112,7 +112,7 @@ function readSource(pathname) {
 	var ext = path.extname(pathname);
 	if (/*pathname.indexOf('value.js') == -1 && */(ext == '.js' || ext == '.jsx')) {
 		console.log('jsa-shell', pathname);
-		syscall.syscall(`${__dirname}/../libs/qgr-tools/bin/${host_os}/jsa-shell ` +
+		syscall.syscall(`${__dirname}/../libs/qmake/bin/${host_os}/jsa-shell ` +
 										`${pathname} ${pathname}~ --clean-comment`);
 		var result = fs.readFileSync(pathname + '~').toJSON().data;
 		// if (pathname.indexOf('value.js') != -1) {
