@@ -29,10 +29,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('qkit/fs');
+var fs = require('../libs/qkit/fs');
 var path = require('path');
-var marked_html = require('qmake/marked/html');
-var marked = require('qmake/node_modules/marked/index');
+var marked_html = require('../libs/qmake/marked/html');
+var marked = require('../libs/qmake/node_modules/marked/index');
 var read_qgr_version = require('./read_version').read_qgr_version;
 var argv = process.argv.slice(2);
 var template = null;

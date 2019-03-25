@@ -14,10 +14,10 @@ ANDROID_SDK		?= $(ANDROID_HOME)
 ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-24/android.jar
 JAVAC					?= javac
 JAR						?= jar
-TOOLS					= ./libs/qgr-tools
+TOOLS					= ./libs/qmake
 GYP						= $(TOOLS)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)$(if $(SHARED),.$(SHARED))
-TOOLS_OUT			= out/qgr-tools
+TOOLS_OUT			= out/qkit
 BUILD_STYLE 	=	make
 
 #######################

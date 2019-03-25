@@ -1,6 +1,7 @@
 {
 	'includes': [
 		'qgr/utils/utils.gypi',
+		'tools/default_target.gypi',
 	],
 	'conditions': [
 		['os != "ios" or project == "xcode"', {

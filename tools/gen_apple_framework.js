@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('qkit/fs');
+var fs = require('../libs/qkit/fs');
 var path = require('path');
-var syscall = require('qkit/syscall').syscall;
+var syscall = require('../libs/qkit/syscall').syscall;
 var copy_header = require('./cp-header').copy_header;
-var large_file_cut = require('qkit/large_file_cut').cut;
+var large_file_cut = require('../libs/qkit/large_file_cut').cut;
 var read_qgr_version = require('./read_version').read_qgr_version
 var argv = process.argv.slice(2);
 var os = argv.shift();

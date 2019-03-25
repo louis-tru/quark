@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qkit/util');
-var fs = require('qkit/fs');
+var util = require('../libs/qkit/util');
+var fs = require('../libs/qkit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
 
