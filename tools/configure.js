@@ -97,11 +97,11 @@ function touch_file(pathnames) {
 	});
 }
 
-function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir) {
+function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
 	var cmd = '';
-	var source = __dirname + '/../depe/ffmpeg';
+	var source = __dirname + '/../depe/FFmpeg';
 
 	var ff_opts = [
 		`--prefix=${ff_install_dir}`,
@@ -268,9 +268,9 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	cmd += ff_opts.join(' ');
 
 	// clean
-	execSync(`cd depe/ffmpeg; make clean; find . -name *.o|xargs rm; `);
+	execSync(`cd depe/FFmpeg; make clean; find . -name *.o|xargs rm; `);
 	syscall(`
-		rm -rf ${variables.output}/obj.target/depe/ffmpeg/*;
+		rm -rf ${variables.output}/obj.target/depe/FFmpeg/*;
 		rm -rf ${ff_install_dir}; \
 		rm -rf \
 		${source}/compat/strtod.d \
@@ -294,7 +294,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	console.log(cmd, '\n');
 
 	var log = syscall(
-		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/ffmpeg; ${cmd};`
+		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/FFmpeg; ${cmd};`
 	);
 	console.error(log.stderr.join('\n'));
 	console.log(log.stdout.join('\n'));
@@ -801,12 +801,12 @@ function configure() {
 		config_mk.push(`JAR=${java_home}/bin/jar`);
 	}
 	
-	// -------------------------- configure ffmpeg --------------------------
+	// -------------------------- configure FFmpeg --------------------------
 
-	{ // configure ffmpeg
-		var ff_install_dir = `${variables.output}/obj.target/ffmpeg`;
+	{ // configure FFmpeg
+		var ff_install_dir = `${variables.output}/obj.target/FFmpeg`;
 		var ff_rebuild = false;
-		var ff_product_path = `${ff_install_dir}/libffmpeg.a`;
+		var ff_product_path = `${ff_install_dir}/libFFmpeg.a`;
 
 		if ( opts.media == 'auto' ) { // auto
 			if ( !fs.existsSync(`${ff_product_path}`) &&
@@ -815,13 +815,13 @@ function configure() {
 			}
 			variables.media = 1;
 		} else {
-			if ( opts.media ) { // Force rebuild ffmpeg
+			if ( opts.media ) { // Force rebuild FFmpeg
 				ff_rebuild = true;
 			}
 		}
 
-		if ( ff_rebuild ) { // rebuild ffmpeg
-		 if ( !configure_ffmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
+		if ( ff_rebuild ) { // rebuild FFmpeg
+		 if ( !configure_FFmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
 			 return;
 		 }
 		}

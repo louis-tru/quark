@@ -36,7 +36,7 @@
 			'qgr-utils',
 			'depe/tess2/tess2.gyp:tess2', 
 			'depe/freetype2/freetype2.gyp:ft2',
-			'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
+			'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
 			'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
 		],
 		'direct_dependent_settings': {

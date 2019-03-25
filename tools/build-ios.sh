@@ -21,7 +21,7 @@ build() {
 													obj.target/tess2 \
 													obj.target/libuv \
 													obj.target/tinyxml2 \
-													obj.target/ffmpeg/libs \
+													obj.target/FFmpeg/libs \
 													-name *.o|xargs`
 	ranlib libqgr.a
 

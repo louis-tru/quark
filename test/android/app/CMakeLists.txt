@@ -11,9 +11,8 @@ include_directories(../../../depe/libgif/lib)
 include_directories(../../../depe/libjpeg-turbo)
 include_directories(../../../depe/libpng)
 include_directories(../../../depe/libwebp)
-include_directories(../../../depe/ffmpeg)
+include_directories(../../../depe/FFmpeg)
 include_directories(../../../depe/tinyxml2)
-include_directories(../../../depe/curl/include)
 include_directories(../../../depe/node/src)
 include_directories(../../../depe/node/deps/cares/include)
 include_directories(../../../depe/node/deps/zlib/contrib/minizip)
@@ -215,8 +214,6 @@ add_library(qgr-test SHARED
 	../../../test/test-map.cc
 	../../../test/test-event.cc
 	../../../test/test-zlib.cc
-	../../../test/test-curl.cc
-	../../../test/test-curl2.cc
 	../../../test/test-http.cc
 	../../../test/test-http2.cc
 	../../../test/test-http3.cc
