@@ -44,13 +44,15 @@ fs.rm_r_sync(target + '/product/examples');
 
 fs.cp_sync(root + '/libs/qmake', target);
 fs.chmodSync(target + '/install', 0755);
-// fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
-fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);
+if (fs.existsSync(target + '/bin/linux/jsa-shell'))
+	fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
+if (fs.existsSync(target + '/bin/osx/jsa-shell'))
+	fs.chmodSync(target + '/bin/osx/jsa-shell', 0755);
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
 copy_header(root + '/qgr', include);
 
-fs.cp_sync(root + '/demo/examples', target + '/product/examples');
-fs.cp_sync(root + '/libs/qgr', target + '/product/libs/qgr');
+fs.cp_sync(root + '/examples', target + '/product/examples');
+// fs.cp_sync(root + '/libs/qgr', target + '/product/libs/qgr');
 fs.cp_sync(root + '/tools/product.gypi', target + '/product/qgr.gypi');
 

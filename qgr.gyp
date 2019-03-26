@@ -8,7 +8,7 @@
 
 	'variables': {
 		'more_log%': 0,
-		'qgr_product_dir%': '<(output)/../qgr-tools/product',
+		'qgr_product_dir%': '<(output)/../qmake/product',
 		'qgr_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
 		'conditions': [

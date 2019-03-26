@@ -3,6 +3,7 @@ include out/config.mk
 ARCH					?= x64
 SUFFIX				?= $(ARCH)
 OS						?= `uname`
+HO_STOS				?= `uname`
 BUILDTYPE			?= Release
 V							?= 0
 CXX						?= g++
@@ -17,8 +18,13 @@ JAR						?= jar
 TOOLS					= ./libs/qmake
 GYP						= $(TOOLS)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)$(if $(SHARED),.$(SHARED))
-TOOLS_OUT			= out/qkit
+TOOLS_OUT			= out/qmake
 BUILD_STYLE 	=	make
+JSA_SHELL 		= $(TOOLS)/bin/${HO_STOS}/jsa-shell
+
+ifneq ($(USER),root)
+	SUDO = "sudo"
+endif
 
 #######################
 
@@ -44,8 +50,8 @@ make_compile=\
 	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
-.PHONY: $(STYLES) jsa-shell install install-dev install-tools \
-	help all clean build web ios android osx doc test2 watch
+.PHONY: $(STYLES) jsa-shell install install-qmake-link install-qmake \
+	help all clean build web ios android osx doc test2 watch build-linux-all
 
 .SECONDEXPANSION:
 
@@ -71,41 +77,6 @@ test2: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
-#################################################
-
-# build all ios platform and output to product dir
-ios: $(TOOLS)/bin/${OS}/jsa-shell
-	#@./configure --os=ios --arch=arm --library=shared
-	#@$(MAKE)   # armv7 say goodbye 
-	@./configure --os=ios --arch=x64 --library=shared
-	@$(MAKE)
-	@./configure --os=ios --arch=arm64 --library=shared
-	@$(MAKE)
-	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8
-	@$(MAKE)
-	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
-					 ./out/ios.x64.Release/libqgr.dylib 
-	# @$(NODE) ./tools/gen_apple_framework.js ios \
-	# 				 $(TOOLS_OUT)/product/ios/iphonesimulator/Debug/Frameworks \
-	# 				 ./out/ios.x64.Release/libqgr.dylib 
-	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
-					 ./out/ios.arm64.Release/libqgr.dylib # out/ios.armv7.Release/libqgr.dylib
-	@$(NODE) ./tools/gen_apple_framework.js ios \
-					 $(TOOLS_OUT)/product/ios/iphoneos/Debug/Frameworks \
-					 ./out/ios.arm64.v8.Release/libqgr.dylib
-
-# build all android platform and output to product dir
-android: $(TOOLS)/bin/${OS}/jsa-shell
-	@./configure --os=android --arch=x86 --library=shared
-	@$(MAKE)
-	@./configure --os=android --arch=arm64 --library=shared
-	@$(MAKE)
-	@./configure --os=android --arch=arm --library=shared
-	@$(MAKE)
-	@$(MAKE) out/android.classs.qgr.jar
-
 out/android.classs.qgr.jar: android/org/qgr/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
@@ -114,28 +85,60 @@ out/android.classs.qgr.jar: android/org/qgr/*.java
 	@mkdir -p $(TOOLS_OUT)/product/android/libs
 	@cp out/android.classs/qgr.jar $(TOOLS_OUT)/product/android/libs
 
-$(TOOLS)/bin/${OS}/jsa-shell:
+$(JSA_SHELL):
 	@./configure --media=0
 	@$(MAKE) jsa-shell
-
-# install qgr command
-install:
-	@$(MAKE) ios
-	@$(MAKE) android
-	@$(MAKE) install-tools
-
-# debug install qgr command
-install-dev:
-	@./configure --media=0
-	@$(MAKE) jsa-shell
-	@./$(TOOLS)/install link
-
-install-tools:
-	@sudo rm -rf ./out/qgr-tools/bin/shell.js
-	@$(NODE) ./tools/cp-qgr-tools.js
-	@$(TOOLS_OUT)/install
 
 #################################################
+
+# build all ios platform and output to product dir
+ios: $(JSA_SHELL)
+	#@./configure --os=ios --arch=arm --library=shared && $(MAKE) # armv7 say goodbye 
+	@./configure --os=ios --arch=x64 --library=shared && $(MAKE)
+	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE)
+	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE)
+	@$(NODE) ./tools/gen_apple_framework.js ios \
+					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
+					 ./out/ios.x64.Release/libqgr.dylib
+	@$(NODE) ./tools/gen_apple_framework.js ios \
+					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
+					 ./out/ios.arm64.Release/libqgr.dylib # out/ios.armv7.Release/libqgr.dylib
+	@$(NODE) ./tools/gen_apple_framework.js ios \
+					 $(TOOLS_OUT)/product/ios/iphoneos/Debug/Frameworks \
+					 ./out/ios.arm64.v8.Release/libqgr.dylib
+
+# build all android platform and output to product dir
+android: $(JSA_SHELL) out/android.classs.qgr.jar
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE)
+	@./configure --os=android --arch=arm64 --library=shared && $(MAKE)
+	@./configure --os=android --arch=arm   --library=shared && $(MAKE)
+
+install-qmake:
+	@$(NODE) ./tools/cp-qmake.js
+	@$(SUDO) ./$(TOOLS_OUT)/install
+
+# debug install qgr
+install-qmake-link: $(JSA_SHELL)
+	@$(SUDO) ./$(TOOLS)/install link
+
+# install qgr
+install: ios android install-qmake
+
+#################################################
+
+build-linux-all: $(JSA_SHELL)
+	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE)
+	@./configure --os=linux   --arch=x64                    && $(MAKE)
+	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE)
+	@./configure --os=linux   --arch=arm                    && $(MAKE)
+	@./configure --os=android --arch=x86                    && $(MAKE)
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE)
+	@./configure --os=android --arch=x64                    && $(MAKE)
+	@./configure --os=android --arch=x64   --library=shared && $(MAKE)
+	@./configure --os=android --arch=arm                    && $(MAKE)
+	@./configure --os=android --arch=arm   --library=shared && $(MAKE)
+	@./configure --os=android --arch=arm64                  && $(MAKE)
+	@./configure --os=android --arch=arm64 --library=shared && $(MAKE)
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

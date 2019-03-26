@@ -9,12 +9,12 @@ if ( /win/i.test(process.platform) && process.platform != 'darwin' ) {
 	if ( process.argv[2] == 'link' ) {
 		child_process.execSync('npm link ' + __dirname);
 	} else {
-		child_process.execSync('npm install -g ' + __dirname);
+		child_process.execSync('npm install -gf ' + __dirname);
 	}
 } else {
 	if ( process.argv[2] == 'link' ) {
-		child_process.execSync(`cd ${__dirname}; sudo npm link`);
+		child_process.execSync(`cd ${__dirname}; npm link`);
 	} else {
-		child_process.execSync(`cd ${__dirname}; sudo npm install -g`);
+		child_process.execSync(`cd ${__dirname}; npm install -gf`);
 	}
 }
