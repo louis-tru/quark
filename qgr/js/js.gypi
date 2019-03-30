@@ -1,16 +1,4 @@
 {
-	'variables': {
-		'use_v8%': 0,
-	},
-	'target_defaults': {
-		'conditions': [
-			['use_v8==0 and os=="ios"', {
-				'defines': [ 'USE_JSC=1' ],
-			},{
-				'defines': [ 'USE_JSC=0' ],
-			}]
-		]
-	},
 	'targets': [
 	{
 		'target_name': 'qgr-v8',

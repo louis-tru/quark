@@ -368,6 +368,11 @@
 				},
 				'cflags_cc': [ '-std=c++0x' ], 
 			}],
+			['use_v8==0 and os=="ios"', {
+				'defines': [ 'USE_JSC=1' ],
+			},{
+				'defines': [ 'USE_JSC=0' ],
+			}],
 		],
 		'target_conditions': [
 			# shared all public symbol
