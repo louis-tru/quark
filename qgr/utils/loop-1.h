@@ -42,7 +42,7 @@ XX_NS(qgr)
 /**
  * @class ParallelWorking
  */
-class ParallelWorking: public Object {
+class XX_EXPORT ParallelWorking: public Object {
 	XX_HIDDEN_ALL_COPY(ParallelWorking);
  public:
 	typedef Thread::Exec Exec;

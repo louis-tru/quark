@@ -50,9 +50,6 @@
 		},
 		'defines': [ 'NODE_WANT_INTERNALS=1' ],
 		'sources': [
-			'../../out/native-inl-js.cc',
-			'../../out/native-lib-js.cc',
-			'../../out/native-ext-js.cc',
 			'js-1.h',
 			'js-cls.cc',
 			'js.cc',
@@ -151,6 +148,7 @@
 					'wrap',
 					'<@(_outputs)',
 				],
+				'process_outputs_as_sources': 1,
 			},
 			{
 				'action_name': 'gen_lib_js_natives',
@@ -178,6 +176,7 @@
 					'wrap',
 					'<@(_outputs)',
 				],
+				'process_outputs_as_sources': 1,
 			},
 			{
 				'action_name': 'gen_ext_js_natives_',
@@ -231,6 +230,7 @@
 					'',
 					'<@(_outputs)',
 				],
+				'process_outputs_as_sources': 1,
 			},
 		],
 	},

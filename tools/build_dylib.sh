@@ -19,8 +19,8 @@ fi
 link_dylib() {
 	name=$1
 	dirs=$2
-	link=$3
-	framework=$4
+	links=$3
+	frameworks=$4
 
 	find $dirs -name *.o > $name.LinkFileList
 
@@ -41,7 +41,7 @@ link_dylib() {
 		$embed_bitcode \
 		-dead_strip \
 		-fobjc-arc \
-		-fobjc-link-runtime $link $framework
+		-fobjc-link-runtime $links $frameworks
 }
 
 framework() {

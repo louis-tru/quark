@@ -58,16 +58,43 @@
 					'variables': {
 						'embed_bitcode%': 0,
 						'use_v8_link%': 0,
+						'lib_v8_a%': [ 
+							'<(output)/libv8_base.a', 
+							'<(output)/libv8_libbase.a',
+							'<(output)/libv8_libsampler.a',
+							'<(output)/libv8_builtins_setup.a',
+							'<(output)/libv8_nosnapshot.a',
+							'<(output)/libv8_libplatform.a',
+						],
 						'conditions': [
 							['arch in "arm arm64" and without_embed_bitcode==0', {
 								'embed_bitcode': 1,
 							}],
 							['use_v8==0 and os=="ios"', {
 								'use_v8_link': 1,
+								'lib_v8_a': [ '<(output)/libv8-link.a' ],
 							}],
 						],
 					},
-					'inputs': [],
+					'inputs': [
+						'<(output)/libuv.a',
+						'<(output)/libopenssl.a',
+						'<(output)/libhttp_parser.a',
+						'<(output)/libminizip.a',
+						'<(output)/libreachability.a',
+						'<(output)/libtess2.a',
+						'<(output)/libft2.a',
+						'<(output)/libtinyxml2.a',
+						'<(output)/libqgr-utils.a',
+						'<(output)/libqgr.a',
+						'<(output)/obj.target/FFmpeg/libFFmpeg.a',
+						'<(output)/libqgr-media.a',
+						'<@(lib_v8_a)',
+						'<(output)/libqgr-js.a',
+						'<(output)/libnghttp2.a',
+						'<(output)/libcares.a',
+						'<(output)/libnode.a',
+					],
 					'outputs': [
 						'<(output)/libqgr.dylib',
 						'<(output)/libqgr-media.dylib',
@@ -83,6 +110,7 @@
 						'<(sysroot) '
 						'<(version_min) '
 					],
+					# 'process_outputs_as_sources': 1,
 				}]
 			}],
 		], # conditions

@@ -59,8 +59,6 @@
 			],
 		}, # direct_dependent_settings
 		'sources': [
-			'../out/native-glsl.cc',
-			'../out/native-font.cc',
 			'div.h',
 			'indep.h',
 			'image.h',
@@ -268,6 +266,7 @@
 					'<@(_outputs)',
 					'',
 				],
+				'process_outputs_as_sources': 1,
 			},
 			{
 				'action_name': 'gen_font_natives',
@@ -284,6 +283,7 @@
 					'<@(_inputs)',
 					'<@(_outputs)',
 				],
+				'process_outputs_as_sources': 1,
 			},
 		],
 		# end
