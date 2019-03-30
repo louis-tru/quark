@@ -27,8 +27,7 @@
 	'targets':[
 	{
 		'target_name': 'qgr',
-		'type': '<(library_output)',
-		# 'type': 'static_library',
+		'type': '<(library_output_type)',
 		'include_dirs': [
 			'..',
 			'../out',
@@ -37,7 +36,6 @@
 			'qgr-utils',
 			'depe/tess2/tess2.gyp:tess2', 
 			'depe/freetype2/freetype2.gyp:ft2',
-			'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
 			'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
 		],
 		'direct_dependent_settings': {
@@ -63,8 +61,6 @@
 		'sources': [
 			'../out/native-glsl.cc',
 			'../out/native-font.cc',
-			'player.h',
-			'audio-player.h',
 			'div.h',
 			'indep.h',
 			'image.h',
@@ -78,7 +74,6 @@
 			'text-font.h',
 			'pre-render.h',
 			'mathe.h',
-			'media-codec.h',
 			'view.h',
 			'draw.h',
 			'root.h',
@@ -90,14 +85,12 @@
 			'texture.h',
 			'video.h',
 			'value.h',
-			'pcm-player.h',
 			'action.h',
 			'action.cc.inl',
 			'action.cc',
 			'app.h',
 			'app.cc',
 			'app-1.h',
-			'audio-player.cc',
 			'div.cc',
 			'indep.cc',
 			'box-shadow-1.h',
@@ -121,10 +114,6 @@
 			'image/codec-pvrtc.cc',
 			'pre-render.cc',
 			'mathe.cc',
-			'media-codec.cc',
-			'media-codec-1.h',
-			'media-codec-1.cc',
-			'media-codec-software.cc',
 			'label.cc',
 			'layout.cc',
 			'box.cc',
@@ -145,7 +134,6 @@
 			'text-font.cc',
 			'text-node.cc',
 			'texture.cc',
-			'video.cc',
 			'value.cc',
 			'panel.h',
 			'panel.cc',
@@ -176,9 +164,6 @@
 					'platforms/linux-gl-1.h',
 					'platforms/linux-gl.cc',
 					'platforms/android-app.cc',
-					'platforms/android-media-codec.cc',
-					'platforms/android-pcm-player.cc',
-					'platforms/android-pcm-audio-track.cc',
 					'platforms/android-keyboard.cc',
 					'platforms/android-sys.cc',
 					'../android/com/qgr/QgrActivity.java',
@@ -186,7 +171,7 @@
 					'../android/com/qgr/IMEHelper.java',
 				],
 				'link_settings': { 
-					'libraries': [ '-lGLESv3', '-lEGL', '-lOpenSLES', '-lmediandk' ],
+					'libraries': [ '-lGLESv3', '-lEGL', ],
 				},
 			}],
 			['OS!="mac"', {
@@ -210,8 +195,6 @@
 				'sources':[
 					'platforms/mac-app.h',
 					'platforms/mac-image-codec.mm',
-					'platforms/mac-media-codec.mm',
-					'platforms/mac-pcm-player.mm',
 					'platforms/mac-keyboard.mm',
 					'platforms/mac-sys.mm',
 				],
@@ -257,14 +240,12 @@
 					'platforms/linux-app.cc',
 					'platforms/linux-gl.cc',
 					'platforms/linux-keyboard.cc',
-					'platforms/linux-media-codec.cc',
-					'platforms/linux-pcm-player.cc',
 					'platforms/linux-ime-helper.cc',
 					'platforms/linux-sys.cc',
 				],
 				'link_settings': { 
 					'libraries': [ 
-						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lasound',
+						'-lGLESv2', '-lEGL', '-lX11', '-lXi',
 					],
 				},
 			}],
@@ -306,5 +287,55 @@
 			},
 		],
 		# end
-	}]
+	},
+	{
+		'target_name': 'qgr-media',
+		'type': '<(library_output_type)',
+		'dependencies': [
+			'qgr',
+			'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
+		],
+		'sources': [
+			'pcm-player.h',
+			'player.h',
+			'audio-player.h',
+			'audio-player.cc',
+			'video.cc',
+			'media-codec.h',
+			'media-codec.cc',
+			'media-codec-1.h',
+			'media-codec-1.cc',
+			'media-codec-software.cc',
+		],
+		'conditions': [
+			['os=="android"', {
+				'sources': [
+					'platforms/android-media-codec.cc',
+					'platforms/android-pcm-player.cc',
+					'platforms/android-pcm-audio-track.cc',
+				],
+				'link_settings': { 
+					'libraries': [ '-lOpenSLES', '-lmediandk' ],
+				},
+			}],
+			['OS=="mac"', {
+				'sources':[
+					'platforms/mac-media-codec.mm',
+					'platforms/mac-pcm-player.mm',
+				],
+			}],
+			['os=="linux"', {
+				'sources': [
+					'platforms/linux-media-codec.cc',
+					'platforms/linux-pcm-player.cc',
+				],
+				'link_settings': { 
+					'libraries': [ 
+						'-lasound',
+					],
+				},
+			}],
+		],
+	},
+	]
 }

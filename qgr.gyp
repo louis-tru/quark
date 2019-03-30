@@ -175,19 +175,6 @@
 	# 	], # conditions
 	# },
 	{
-		'target_name': 'qgr-media',
-		'type': 'none',
-	# 	'dependencies': [
-	# 		'qgr-js',
-	# 		'depe/node/node.gyp:node',
-	# 	],
-	# 	'conditions': [
-	# 		['library_output=="shared_library" and OS not in "mac"', {
-	# 			'type': 'shared_library',
-	# 		}],
-	# 	],
-	},
-	{
 		'target_name': 'qgr_copy_so', 
 		'type': 'none',
 		'dependencies': [ 'qgr', 'qgr-js', 'qgr-node', 'qgr-media' ],
@@ -198,7 +185,7 @@
 					'destination': '<(qgr_product_dir)/<(qgr_product_so_subdir)',
 					'files': [
 						'<(output)/lib.target/libqgr.so',
-						# '<(output)/lib.target/libqgr-media.so',
+						'<(output)/lib.target/libqgr-media.so',
 						'<(output)/lib.target/libqgr-js.so',
 						'<(output)/lib.target/libqgr-v8.so',
 						'<(output)/lib.target/libqgr-node.so',

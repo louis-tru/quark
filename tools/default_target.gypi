@@ -3,6 +3,12 @@
 		'cplusplus_exceptions%': 1,
 		'cplusplus_rtti%': 1,
 		'library_output%': 'static_library',
+		'library_output_type%': '<(library_output)',
+		'conditions': [
+			['library_output=="shared_library" and OS=="mac"',{
+				'library_output_type': 'static_library',
+			}]
+		],
 	},
 	
 	'target_defaults': {

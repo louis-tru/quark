@@ -375,7 +375,7 @@ function configure_node(opts, variables, configuration) {
 		node_use_v8_platform: bs(opts.use_v8),
 		node_use_bundled_v8: 'false',
 		node_without_node_options: 'false',
-		shlib_suffix: '',
+		shlib_suffix: 'a',
 		v8_enable_i18n_support: bi(opts.use_v8 && opts.with_intl),
 	};
 

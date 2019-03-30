@@ -7,8 +7,8 @@
 		'target_name': 'qgr-v8',
 		'type': 'none',
 		'conditions': [
-			['library_output=="shared_library"',{
-				'type': 'shared_library',
+			['library_output_type=="shared_library"',{
+				'type': '<(library_output_type)',
 			}]
 		],
 		'dependencies': [
@@ -17,8 +17,21 @@
 		],
 	},
 	{
+		'target_name': 'qgr-node',
+		'type': 'none',
+		'conditions': [
+			['library_output_type=="shared_library"',{
+				'type': '<(library_output_type)',
+			}]
+		],
+		'dependencies': [
+			'qgr-js',
+			'depe/node/node.gyp:node',
+		],
+	},
+	{
 		'target_name': 'qgr-js',
-		'type': '<(library_output)',
+		'type': '<(library_output_type)',
 		'include_dirs': [
 			'../..',
 			'../../out',
@@ -27,6 +40,7 @@
 		],
 		'dependencies': [
 			'qgr',
+			'qgr-media',
 			'qgr-v8',
 		],
 		'direct_dependent_settings': {
@@ -217,19 +231,6 @@
 					'<@(_outputs)',
 				],
 			},
-		],
-	},
-	{
-		'target_name': 'qgr-node',
-		'type': 'none',
-		'conditions': [
-			['library_output=="shared_library"',{
-				'type': 'shared_library',
-			}]
-		],
-		'dependencies': [
-			'qgr-js',
-			'depe/node/node.gyp:node',
 		],
 	},
 	{
