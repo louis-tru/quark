@@ -5,23 +5,23 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>qgr</string>
+	<string>xxxxxxxxxx</string>
 	<key>CFBundleExecutable</key>
-	<string>qgr</string>
+	<string>xxxxxxxxxx</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.qgr.qgr</string>
+	<string>org.qgr.xxxxxxxxxx</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>qgr</string>
+	<string>xxxxxxxxxx</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.11.11</string>
+	<string>11.11.11</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.1.0</string>
+	<string>11.11.11</string>
 	<key>MinimumOSVersion</key>
 	<string>10.0</string>
 	<key>NSPrincipalClass</key>

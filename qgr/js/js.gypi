@@ -233,40 +233,26 @@
 			},
 		],
 	},
-	{
-		'target_name': 'qgr_exec',
-		'product_name': 'qgr',
-		'type': 'executable',
-		'dependencies': [
-			'qgr',
-			'qgr-js',
-			'qgr-node',
-			'qgr-media',
-		],
-		'mac_bundle': 1,
-		'mac_bundle_resources': [
-			'../../examples',
-		],
-		'xcode_settings': {
-			'OTHER_LDFLAGS': '-all_load',
-		},
-		'sources': [
-			'main.cc',
-		],
-		'conditions': [
-			['os in "ios osx"', {
-				'sources': [
-					'../../test/test-<(os).plist',
-					'../../test/Storyboard-<(os).storyboard',
+	],
+
+	'conditions': [
+		['os!="ios"', {
+			'targets+': [
+			{
+				'target_name': 'qgr_exec',
+				'product_name': 'qgr',
+				'type': 'executable',
+				'dependencies': [
+					'qgr',
+					'qgr-js',
+					'qgr-node',
+					'qgr-media',
 				],
-				'xcode_settings': {
-					'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
-				},
-			}],
-			['os in "linux android"', {
+				'sources': [
+					'main.cc',
+				],
 				'ldflags': [ '<@(other_ldflags)' ],
 			}],
-		],
-	},
-	]
+		}]
+	],
 }

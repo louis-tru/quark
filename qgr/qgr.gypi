@@ -41,7 +41,7 @@
 		'direct_dependent_settings': {
 			'include_dirs': [ '..' ],
 			'xcode_settings': {
-			 'OTHER_LDFLAGS': '-all_load',
+			 # 'OTHER_LDFLAGS': '-all_load',
 			},
 			'conditions': [
 				['cplusplus_exceptions==1', {

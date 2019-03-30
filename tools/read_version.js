@@ -37,13 +37,13 @@ function read_qgr_version() {
 	var PATCH = 0;
 	var mat;
 
-	if ( (mat = /#define\s+qgr_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+QGR_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MAJOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+qgr_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+QGR_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MINOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+qgr_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+QGR_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {

@@ -1,3 +1,4 @@
+#!/bin/sh
 
 OBJS_DIR=$INSTALL_DIR/objs
 

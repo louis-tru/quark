@@ -97,13 +97,13 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=x64 --library=shared && $(MAKE)
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE)
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE)
-	@$(NODE) ./tools/gen_apple_framework.js ios \
+	@$(NODE) ./tools/gen_apple_framework.js ios qgr \
 					 $(TOOLS_OUT)/product/ios/iphonesimulator/Release/Frameworks \
 					 ./out/ios.x64.Release/libqgr.dylib
-	@$(NODE) ./tools/gen_apple_framework.js ios \
+	@$(NODE) ./tools/gen_apple_framework.js ios qgr \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Release/Frameworks \
 					 ./out/ios.arm64.Release/libqgr.dylib # out/ios.armv7.Release/libqgr.dylib
-	@$(NODE) ./tools/gen_apple_framework.js ios \
+	@$(NODE) ./tools/gen_apple_framework.js ios qgr \
 					 $(TOOLS_OUT)/product/ios/iphoneos/Debug/Frameworks \
 					 ./out/ios.arm64.v8.Release/libqgr.dylib
 

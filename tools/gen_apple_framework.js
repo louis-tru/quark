@@ -36,7 +36,11 @@ var large_file_cut = require('../libs/qkit/large_file_cut').cut;
 var read_qgr_version = require('./read_version').read_qgr_version
 var argv = process.argv.slice(2);
 var os = argv.shift();
-var framework_dir = path.resolve(argv.shift() + '/qgr.framework');
+var name = argv.shift();
+var cut = argv.shift(); // is cut
+var inc = argv.shift(); // copy include files
+var out_dir = argv.shift();
+var framework_dir = path.resolve(`${out_dir}/${name}.framework`);
 var source = __dirname + '/..';
 
 if ( argv.length == 0 ) {
@@ -45,37 +49,42 @@ if ( argv.length == 0 ) {
 
 function read_qgr_version_str() {
 	var versions = read_qgr_version();
-	var a = versions[0];
+	var a = versions[0] < 10 ? '0' + versions[0] : versions[0];
 	var b = versions[1] < 10 ? '0' + versions[1] : versions[1];
 	var c = versions[2] < 10 ? '0' + versions[2] : versions[2];
 	return `${a}.${b}.${c}`;
 }
 
-function read_plist_and_replace_version(version) {
-	var buf = fs.readFileSync(__dirname + '/framework.plist.binary');
-	var reg = new RegExp(new Buffer('1.11.11').toString('hex'), 'gm');
-	var hex_str = buf.toString('hex').replace(reg, new Buffer(String(version)).toString('hex'));
-	var buf2 = new Buffer(hex_str, 'hex');
-	return buf2;
-	// var buf = fs.readFileSync(__dirname + '/qgr.framework.plist');
-	// return buf.toString('utf8').replace(/{version}/mg, function() {
-	// 	return version;
-	// });
+var version = read_qgr_version_str();
+
+function read_plist_and_replace_version() {
+	var placeholder_name = 'xxxxxxxxxx';
+	var l = Math.max(0, placeholder_name.length - name.length + 1);
+	var r_name = name + new Array(l).join(' ');
+	var str = fs.readFileSync(`${__dirname}/${os}-framework.plist`).toString('hex');
+	str = str.replace(new RegExp(new Buffer('11.11.11').toString('hex'), 'gm'),
+										new Buffer(version).toString('hex'));
+	str = str.replace(new RegExp(new Buffer(placeholder_name).toString('hex'), 'gm'), 
+										new Buffer(r_name).toString('hex'));
+	return new Buffer(str, 'hex');
 }
 
 fs.mkdir_p_sync(framework_dir);
 
-var version = read_qgr_version_str();
-
 // write plist
-fs.writeFileSync(framework_dir + '/Info.plist', read_plist_and_replace_version(version));
+fs.writeFileSync(framework_dir + '/Info.plist', read_plist_and_replace_version());
 // copy header
-copy_header(source + '/qgr', framework_dir + '/Headers');
+if (inc != 'no-inc') {
+	var src = inc || source + '/qgr';
+	copy_header(src, framework_dir + '/Headers');
+}
 // Merge dynamic library
-syscall(`lipo -create ${argv.join(' ')} -output ${framework_dir}/qgr`);
+syscall(`lipo -create ${argv.join(' ')} -output ${framework_dir}/${name}`);
 
-if ( fs.statSync(`${framework_dir}/qgr`).size > 1024 * 1024 * 50 ) { // > 50mb
-	large_file_cut(`${framework_dir}/qgr`, 4);
-	fs.rm_r(`${framework_dir}/qgr`);
+if (cut === 'cut') {
+	if ( fs.statSync(`${framework_dir}/qgr`).size > 1024 * 1024 * 50 ) { // > 50mb
+		large_file_cut(`${framework_dir}/qgr`, 4);
+		fs.rm_r(`${framework_dir}/qgr`);
+	}
 }
 

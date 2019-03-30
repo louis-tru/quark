@@ -440,7 +440,7 @@ function solve_pkg(self, pathname, is_app, ignore_depe) {
 		}
 	}
 	if ( dependencies.length == 0 ) {
-		dependencies = [ '<@(qgr-lib)' ];
+		dependencies = [ '<@(libqgr)' ];
 	}
 	if ( bundle_resources.length == 0 ) {
 		bundle_resources = self.m_bundle_resources.concat();
@@ -563,7 +563,7 @@ function export_result(self) {
 	var gyp = 
 	{
 		'variables': {
-			'qgr-lib': [ qgr_gyp ? path.relative(source, qgr_gyp) + ':qgr-lib': 'qgr-lib' ],
+			'libqgr': [ qgr_gyp ? path.relative(source, qgr_gyp) + ':libqgr': 'libqgr' ],
 		},
 		'includes': includes,
 	};
@@ -632,7 +632,7 @@ function export_result_android(self) {
 				var gyp = 
 				{
 					'variables': {
-						'qgr-lib': [ qgr_gyp ? path.relative(source, qgr_gyp) + ':qgr-lib': 'qgr-lib' ],
+						'libqgr': [ qgr_gyp ? path.relative(source, qgr_gyp) + ':libqgr': 'libqgr' ],
 					},
 					'includes': includes,
 				};
