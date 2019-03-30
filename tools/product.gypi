@@ -8,7 +8,7 @@
 		'default_configuration': 'Release',
 		'configurations': {
 			'Debug': {
-				'defines': [ 'DEBUG', '_DEBUG' ],
+				'defines': [ 'DEBUG=1', '_DEBUG' ],
 				'cflags': [ '-g', '-O0' ],
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '0',
@@ -38,9 +38,12 @@
 				},
 				'conditions': [
 				 ['os=="android"', {
-					 'cflags!': [ '-O3' ],
-					 'cflags': [ '-O2' ],
-				 }]
+						'cflags!': [ '-O3' ],
+						'cflags': [ '-O2' ],
+				 }],
+				 ['os=="ios"', {
+						'defines': [ 'USE_JSC=1' ],
+				 }],
 				],
 			},
 		},
@@ -151,20 +154,20 @@
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-media.framework',
-						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/Release/qgr-v8.framework',
+						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-v8.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-js.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-node.framework',
 					],
 				},
 				'direct_dependent_settings': {
 					'mac_framework_dirs': [
-						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/Frameworks',
 						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/Frameworks/$(CONFIGURATION)',
+						'<(DEPTH)/out/libs/ios/$(PLATFORM_NAME)/Frameworks',
 					],
 					'mac_bundle_frameworks': [
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-media.framework',
-						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/Release/qgr-v8.framework',
+						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-v8.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-js.framework',
 						'<(DEPTH)/out/libs/ios/iphoneos/Frameworks/qgr-node.framework',
 					],

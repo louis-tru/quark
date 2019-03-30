@@ -22,10 +22,11 @@
 		'conditions': [
 			['library_output_type=="shared_library"',{
 				'type': '<(library_output_type)',
-			}]
+			}],
 		],
 		'dependencies': [
 			'qgr-js',
+			'qgr-v8',
 			'depe/node/node.gyp:node',
 		],
 	},
