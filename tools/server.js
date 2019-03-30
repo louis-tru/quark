@@ -33,7 +33,7 @@ var fs = require('../libs/qkit/fs');
 var keys = require('../libs/qkit/keys');
 var service = require('../libs/qkit/service');
 var HttpService = require('../libs/qkit/http_service').HttpService;
-var server = require('../libs/qmake/toolchain/server');
+var server = require('../libs/qmake/server');
 require('./test-multiple-service');
 
 var opt = {

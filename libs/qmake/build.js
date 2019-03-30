@@ -35,7 +35,7 @@ var keys = require('qkit/keys');
 var path = require('qkit/path');
 var Buffer = require('buffer').Buffer;
 var paths = require('./paths');
-var uglify = require('../uglify');
+var uglify = require('./uglify');
 var { syscall } = require('qkit/syscall');
 
 var base64_chars =

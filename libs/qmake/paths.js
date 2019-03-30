@@ -32,31 +32,31 @@ var path = require('qkit/url');
 var fs = require('qkit/fs');
 var resolve = require('path').resolve;
 
-if ( fs.existsSync(__dirname + '/../product/qgr.gypi') ) {
+if ( fs.existsSync(__dirname + '/product/qgr.gypi') ) {
 	module.exports = {
 		qgr_gyp: '',
-		includes_gypi: [ resolve(__dirname + '/../product/qgr.gypi') ],
+		includes_gypi: [ resolve(__dirname + '/product/qgr.gypi') ],
 		default_modules: [ 
-			//resolve(__dirname + '/../product/libs/qgr'),
+			//resolve(__dirname + '/product/libs/qgr'),
 		],
-		examples: resolve(__dirname + '/../product/examples'),
-		bundle_resources: [ /*resolve(__dirname + '/../product/cacert.pem')*/ ],
-		includes: [ resolve(__dirname + '/../product/include') ],
+		examples: resolve(__dirname + '/product/examples'),
+		bundle_resources: [ /*resolve(__dirname + '/product/cacert.pem')*/ ],
+		includes: [ resolve(__dirname + '/product/include') ],
 		librarys: {
-			ios: [ resolve(__dirname + '/../product/ios') ],
-			android: [ resolve(__dirname + '/../product/android') ],
+			ios: [ resolve(__dirname + '/product/ios') ],
+			android: [ resolve(__dirname + '/product/android') ],
 		},
 	};
 } else { // debug
 	module.exports = {
-		qgr_gyp: __dirname + '/../../../qgr.gyp',
+		qgr_gyp: __dirname + '/../../qgr.gyp',
 		includes_gypi: [
-			__dirname + '/../../../out/config.gypi',
-			__dirname + '/../../../tools/common.gypi',		
+			__dirname + '/../../out/config.gypi',
+			__dirname + '/../../tools/common.gypi',		
 		],
 		default_modules: [],
-		examples: __dirname + '/../../../examples',
-		bundle_resources: [ /*__dirname + '/../../../qgrutil/cacert.pem'*/ ],
+		examples: __dirname + '/../../examples',
+		bundle_resources: [ /*__dirname + '/../../qgrutil/cacert.pem'*/ ],
 		includes: [],
 		librarys: {},
 	};

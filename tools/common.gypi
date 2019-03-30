@@ -340,7 +340,7 @@
 				},
 			}],
 			['OS=="mac"', {
-				'libraries!': ['-framework CoreFoundation'],
+				'libraries!': ['-framework CoreFoundation', '-lz'],
 				'xcode_settings': {
 					'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',   # -fno-exceptions
 					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti

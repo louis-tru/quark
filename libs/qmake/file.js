@@ -37,7 +37,7 @@ var fs = require('qkit/fs');
 var keys = require('qkit/keys');
 var Buffer = require('buffer').Buffer;
 var remote_log = require('./remote_log');
-var gen_html = require('../marked/html').gen_html;
+var gen_html = require('./marked/html').gen_html;
 
 var File = util.class('File', HttpService, {
 

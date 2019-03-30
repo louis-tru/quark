@@ -30,9 +30,8 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/qgr',
-				'../libs/qgr-tools',
-				'../libs/qgr-utils',
+				'../libs/qmake',
+				'../libs/qkit',
 				'test.cc',
 				'test-qgr.cc',
 				'test-fs.cc',

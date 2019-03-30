@@ -2,9 +2,9 @@
 
 var util = require('qkit');
 var fs = require('qkit/fs');
-var { QgrBuild } = require('../toolchain/build');
-var { QgrExport } = require('../toolchain/export');
-var server = require('../toolchain/server');
+var { QgrBuild } = require('../build');
+var { QgrExport } = require('../export');
+var server = require('../server');
 var arguments = require('qkit/arguments');
 var args = process.argv.slice(2);
 var cmd = args.shift();

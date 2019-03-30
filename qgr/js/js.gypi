@@ -221,7 +221,12 @@
 	},
 	{
 		'target_name': 'qgr-node',
-		'type': '<(library_output)',
+		'type': 'none',
+		'conditions': [
+			['library_output=="shared_library"',{
+				'type': 'shared_library',
+			}]
+		],
 		'dependencies': [
 			'qgr-js',
 			'depe/node/node.gyp:node',
@@ -239,7 +244,7 @@
 		],
 		'mac_bundle': 1,
 		'mac_bundle_resources': [
-			'../examples',
+			'../../examples',
 		],
 		'xcode_settings': {
 			'OTHER_LDFLAGS': '-all_load',
@@ -250,8 +255,8 @@
 		'conditions': [
 			['os in "ios osx"', {
 				'sources': [
-					'test-<(os).plist',
-					'Storyboard-<(os).storyboard',
+					'../../test/test-<(os).plist',
+					'../../test/Storyboard-<(os).storyboard',
 				],
 				'xcode_settings': {
 					'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',

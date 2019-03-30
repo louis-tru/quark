@@ -28,6 +28,7 @@
 	{
 		'target_name': 'qgr',
 		'type': '<(library_output)',
+		# 'type': 'static_library',
 		'include_dirs': [
 			'..',
 			'../out',
