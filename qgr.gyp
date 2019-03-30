@@ -32,7 +32,7 @@
 		'conditions': [
 			['more_log==1', {
 				'defines': [ 'XX_MORE_LOG=1' ],
-			}]
+			}],
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '.' ],

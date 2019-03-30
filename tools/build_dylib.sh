@@ -66,13 +66,12 @@ link_dylib qgr-media "$obj/qgr-media" "-liconv -lbz2 -lz -lFFmpeg" \
 framework qgr-media no-inc
 
 # qgr-v8
-if [ $use_v8_link ]; then
+if [ "$use_v8_link" = "1" ]; then
 	link_dylib qgr-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
 else
-	# $obj/v8_builtins_generators
-	link_dylib qgr-v8 
-		"$obj/v8_base $obj/v8_libbase $obj/v8_libsampler \
-		$obj/v8_builtins_setup $obj/v8_nosnapshot $obj/v8_libplatform" "" ""
+	link_dylib qgr-v8 \
+		"$obj/v8_base $obj/v8_libplatform" \
+		"-lv8_libbase -lv8_builtins_generators -lv8_libsampler -lv8_builtins_setup -lv8_nosnapshot" ""
 fi
 framework qgr-v8 $out/../../depe/v8-link/include
 
