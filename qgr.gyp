@@ -77,6 +77,7 @@
 						],
 					},
 					'inputs': [
+						'tools/build_dylib.sh',
 						'<(output)/libuv.a',
 						'<(output)/libopenssl.a',
 						'<(output)/libhttp_parser.a',

@@ -82,9 +82,9 @@ if (inc != 'no-inc') {
 syscall(`lipo -create ${argv.join(' ')} -output ${framework_dir}/${name}`);
 
 if (cut === 'cut') {
-	if ( fs.statSync(`${framework_dir}/qgr`).size > 1024 * 1024 * 50 ) { // > 50mb
-		large_file_cut(`${framework_dir}/qgr`, 4);
-		fs.rm_r(`${framework_dir}/qgr`);
+	if ( fs.statSync(`${framework_dir}/${name}`).size > 1024 * 1024 * 50 ) { // > 50mb
+		large_file_cut(`${framework_dir}/${name}`, 4);
+		fs.rm_r(`${framework_dir}/${name}`);
 	}
 }
 

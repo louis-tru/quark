@@ -42,6 +42,8 @@ link_dylib() {
 		-dead_strip \
 		-fobjc-arc \
 		-fobjc-link-runtime $links $frameworks
+
+	strip -S lib$name.dylib
 }
 
 framework() {
@@ -69,9 +71,11 @@ framework qgr-media no-inc
 if [ "$use_v8_link" = "1" ]; then
 	link_dylib qgr-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
 else
-	link_dylib qgr-v8 \
-		"$obj/v8_base $obj/v8_libplatform" \
-		"-lv8_libbase -lv8_builtins_generators -lv8_libsampler -lv8_builtins_setup -lv8_nosnapshot" ""
+	# $obj/v8_base/depe/node/deps/v8/src/api.o
+	# $obj/v8_base/depe/node/deps/v8/src/inspector
+	link_dylib qgr-v8 "$obj/v8_base $obj/v8_libplatform" \
+		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
+		-lv8_nosnapshot -lv8_builtins_generators" ""
 fi
 framework qgr-v8 $out/../../depe/v8-link/include
 

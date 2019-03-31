@@ -21,7 +21,6 @@ LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)$(if $(SHARED),.$(SHARED))
 TOOLS_OUT			= out/qmake
 BUILD_STYLE 	=	make
 JSA_SHELL 		= $(TOOLS)/bin/${HO_STOS}/jsa-shell
-gen_framework = $(NODE) ./tools/gen_apple_framework.js
 
 ifneq ($(USER),root)
 	SUDO = "sudo"
@@ -92,6 +91,11 @@ $(JSA_SHELL):
 
 #################################################
 
+gen_framework=\
+	$(NODE) ./tools/gen_apple_framework.js ios $(1) "cut" "$(2)" \
+	$(TOOLS_OUT)/product/ios/$(3)/Frameworks/$(4) \
+	$(foreach i,$(5), out/ios.$(i).Release.shared/lib$(1).dylib)
+
 # build all ios platform and output to product dir
 ios: $(JSA_SHELL)
 	#@./configure --os=ios --arch=arm --library=shared && $(MAKE) # armv7 say goodbye 
@@ -99,35 +103,21 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE)
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE)
 
-	@$(gen_framework) ios qgr "cut" "" \
-		$(TOOLS_OUT)/product/ios/iphonesimulator/Frameworks ./out/ios.x64.Release/libqgr.dylib
-	@$(gen_framework) ios qgr-media "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphonesimulator/Frameworks ./out/ios.x64.Release/libqgr-media.dylib
-	@$(gen_framework) ios qgr-v8 "cut" "depe/v8-link/include" \
-		$(TOOLS_OUT)/product/ios/iphonesimulator/Frameworks ./out/ios.x64.Release/libqgr-v8.dylib
-	@$(gen_framework) ios qgr-js "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphonesimulator/Frameworks ./out/ios.x64.Release/libqgr-js.dylib
-	@$(gen_framework) ios qgr-node "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphonesimulator/Frameworks ./out/ios.x64.Release/libqgr-node.dylib
+	@$(call gen_framework,qgr,,iphonesimulator,,x64)
+	@$(call gen_framework,qgr-media,no-inc,iphonesimulator,,x64)
+	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphonesimulator,,x64)
+	@$(call gen_framework,qgr-js,no-inc,iphonesimulator,,x64)
+	@$(call gen_framework,qgr-node,no-inc,iphonesimulator,,x64)
 
-	@$(gen_framework) ios qgr "cut" "" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks ./out/ios.arm64.Release/libqgr.dylib # out/ios.armv7.Release/libqgr.dylib
-	@$(gen_framework) ios qgr-media "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks ./out/ios.arm64.Release/libqgr-media.dylib
-	@$(gen_framework) ios qgr-v8 "cut" "depe/v8-link/include" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks ./out/ios.arm64.Release/libqgr-v8.dylib
-	@$(gen_framework) ios qgr-js "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks ./out/ios.arm64.Release/libqgr-js.dylib
-	@$(gen_framework) ios qgr-node "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks ./out/ios.arm64.Release/libqgr-node.dylib
+	@$(call gen_framework,qgr,,iphoneos,,arm64) # arm64 armv7
+	@$(call gen_framework,qgr-media,no-inc,iphoneos,,arm64)
+	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos,,arm64)
+	@$(call gen_framework,qgr-js,no-inc,iphoneos,,arm64)
+	@$(call gen_framework,qgr-node,no-inc,iphoneos,,arm64)
 
-	@$(gen_framework) ios qgr-v8 "cut" "depe/v8-link/include" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks/Debug ./out/ios.arm64.v8.Release/libqgr-v8.dylib
-	@$(gen_framework) ios qgr-js "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks/Debug ./out/ios.arm64.v8.Release/libqgr-js.dylib
-	@$(gen_framework) ios qgr-node "cut" "no-inc" \
-		$(TOOLS_OUT)/product/ios/iphoneos/Frameworks/Debug ./out/ios.arm64.v8.Release/libqgr-node.dylib
-
+	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos,Debug,arm64.v8)
+	@$(call gen_framework,qgr-js,no-inc,iphoneos,Debug,arm64.v8)
+	@$(call gen_framework,qgr-node,no-inc,iphoneos,Debug,arm64.v8)
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL) out/android.classs.qgr.jar
