@@ -135,7 +135,9 @@ install-qmake-link: $(JSA_SHELL)
 	@cd $(QMAKE_OUT) && $(SUDO) npm link -g
 
 # install qgr
-install: ios android install-qmake
+install: install-qmake
+	@$(MAKE) ios
+	@$(MAKE) android
 
 #################################################
 
