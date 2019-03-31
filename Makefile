@@ -15,12 +15,12 @@ ANDROID_SDK		?= $(ANDROID_HOME)
 ANDROID_JAR		?= $(ANDROID_SDK)/platforms/android-24/android.jar
 JAVAC					?= javac
 JAR						?= jar
-TOOLS					= ./libs/qmake
-GYP						= $(TOOLS)/gyp/gyp
+QMAKE					= ./libs/qmake
+GYP						= $(QMAKE)/gyp/gyp
 LIBS_DIR 			= out/$(OS).$(SUFFIX).$(BUILDTYPE)$(if $(SHARED),.$(SHARED))
-TOOLS_OUT			= out/qmake
+QMAKE_OUT			= out/qmake
 BUILD_STYLE 	=	make
-JSA_SHELL 		= $(TOOLS)/bin/${HO_STOS}/jsa-shell
+JSA_SHELL 		= $(QMAKE)/bin/${HO_STOS}/jsa-shell
 
 ifneq ($(USER),root)
 	SUDO = "sudo"
@@ -69,8 +69,8 @@ build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 jsa-shell: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
 	@$(call make_compile,$(MAKE))
-	@mkdir -p $(TOOLS)/bin/$(OS)
-	@cp $(LIBS_DIR)/jsa-shell $(TOOLS)/bin/$(OS)/jsa-shell
+	@mkdir -p $(QMAKE)/bin/$(OS)
+	@cp $(LIBS_DIR)/jsa-shell $(QMAKE)/bin/$(OS)/jsa-shell
 
 test2: $(GYPFILES)
 	#make -C test -f test2.mk
@@ -82,8 +82,8 @@ out/android.classs.qgr.jar: android/org/qgr/*.java
 	@rm -rf out/android.classs/*
 	@$(JAVAC) -bootclasspath $(ANDROID_JAR) -d out/android.classs android/org/qgr/*.java
 	@cd out/android.classs; $(JAR) cfv qgr.jar .
-	@mkdir -p $(TOOLS_OUT)/product/android/libs
-	@cp out/android.classs/qgr.jar $(TOOLS_OUT)/product/android/libs
+	@mkdir -p $(QMAKE_OUT)/product/android/libs
+	@cp out/android.classs/qgr.jar $(QMAKE_OUT)/product/android/libs
 
 $(JSA_SHELL):
 	@./configure --media=0
@@ -93,7 +93,7 @@ $(JSA_SHELL):
 
 gen_framework=\
 	$(NODE) ./tools/gen_apple_framework.js ios $(1) "cut" "$(2)" \
-	$(TOOLS_OUT)/product/ios/$(3)/Frameworks/$(4) \
+	$(QMAKE_OUT)/product/ios/$(3)/Frameworks/$(4) \
 	$(foreach i,$(5), out/ios.$(i).Release.shared/lib$(1).dylib)
 
 # build all ios platform and output to product dir
@@ -127,11 +127,12 @@ android: $(JSA_SHELL) out/android.classs.qgr.jar
 
 install-qmake:
 	@$(NODE) ./tools/cp-qmake.js
-	@$(SUDO) ./$(TOOLS_OUT)/install
+	@cd $(QMAKE_OUT) && npm i -f
+	@cd $(QMAKE_OUT) && $(SUDO) npm i -g
 
 # debug install qgr
 install-qmake-link: $(JSA_SHELL)
-	@$(SUDO) ./$(TOOLS)/install link
+	@cd $(QMAKE_OUT) && $(SUDO) npm link -g
 
 # install qgr
 install: ios android install-qmake
@@ -160,7 +161,7 @@ web:
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv $(TOOLS_OUT)/product/$(OS)
+	@rm -rfv $(QMAKE_OUT)/product/$(OS)
 
 help:
 	@echo

@@ -42,8 +42,8 @@ fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
 
-fs.cp_sync(root + '/libs/qmake', target);
-fs.chmodSync(target + '/install', 0755);
+fs.cp_sync(root + '/libs/qmake', target, {ignore_hide:1});
+
 if (fs.existsSync(target + '/bin/linux/jsa-shell'))
 	fs.chmodSync(target + '/bin/linux/jsa-shell', 0755);
 if (fs.existsSync(target + '/bin/osx/jsa-shell'))
