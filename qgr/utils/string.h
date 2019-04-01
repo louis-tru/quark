@@ -44,7 +44,7 @@ XX_NS(qgr)
  * @bases Object
  * @template <class Char = char, class Container = Container<char>>
  */
-template <class _Char, class _Container>
+template <typename _Char, class _Container>
 class XX_EXPORT BasicString: public Object {
  public:
 	typedef _Char Char;
@@ -64,6 +64,8 @@ class XX_EXPORT BasicString: public Object {
 	BasicString(ArrayBuffer<Char>&& data);
 	BasicString(ArrayBuffer<Char>& data) = delete;
 	BasicString(const Object& o);
+	template<typename Char2>
+	BasicString(const Char2* s);
 	virtual ~BasicString();
 	static String format(cchar* format, ...);
 	inline bool is_empty() const;
@@ -104,7 +106,6 @@ class XX_EXPORT BasicString: public Object {
 	bool operator<(const BasicString& s) const;
 	bool operator>=(const BasicString& s) const;
 	bool operator<=(const BasicString& s) const;
-	BasicString(const Char* s);
 	int index_of(const Char* s, uint start = 0) const;
 	int last_index_of(const Char* s, int start) const;
 	int last_index_of(const Char* s) const;

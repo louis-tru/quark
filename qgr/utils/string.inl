@@ -35,7 +35,7 @@
 
 XX_NS(qgr)
 
-template <class Char, class Char2>
+template <typename Char, typename Char2>
 static void _memcpy(Char* s, const Char2* s2, uint len) {
 	Char* s_end = s + len;
 	while (s < s_end) {
@@ -44,7 +44,7 @@ static void _memcpy(Char* s, const Char2* s2, uint len) {
 	}
 }
 
-template<class Char>
+template<typename Char>
 static uint _strlen(const Char* s) {
 	uint rev = 0;
 	while (*s != 0) {
@@ -53,7 +53,7 @@ static uint _strlen(const Char* s) {
 	return rev;
 }
 
-template<class Char, class Char2>
+template<typename Char, typename Char2>
 static int _memcmp(const Char* s1, const Char2* s2, uint len) {
 	const Char* s1_end = s1 + len;
 	Char rev = 0;
@@ -89,7 +89,8 @@ template<> XX_INLINE int _memcmp<char, char>(cchar* s1, cchar* s2, uint len) {
 
 template <class BasicString>
 static int _index_of(const BasicString* self,
-										 const typename BasicString::Char* s, uint len, uint start) {
+										 const typename BasicString::Char* s, uint len, uint start)
+{
 	typedef typename BasicString::Char Char;
 	
 	uint self_len = self->length();
@@ -114,7 +115,8 @@ static int _index_of(const BasicString* self,
 
 template <class BasicString>
 static int _last_index_of(const BasicString* self,
-													const typename BasicString::Char* s, int len, int start) {
+													const typename BasicString::Char* s, int len, int start)
+{
 	// typedef typename BasicString::Char Char;
 	int slen = self->length();
 	if ( start + len > len )
@@ -130,7 +132,8 @@ static int _last_index_of(const BasicString* self,
 template <class BasicString>
 BasicString replace_(const BasicString* self,
 										 const typename BasicString::Char* s, uint s_len,
-										 const typename BasicString::Char* rep, uint rep_len) {
+										 const typename BasicString::Char* rep, uint rep_len)
+{
 	int index = _index_of(self, s, s_len, 0);
 	if (index != -1) {
 		String rev(self->c(), index, rep, rep_len);
@@ -144,7 +147,8 @@ BasicString replace_(const BasicString* self,
 template <class BasicString>
 BasicString replace_all_(const BasicString* self,
 												 const typename BasicString::Char* s, uint s_len,
-												 const typename BasicString::Char* rep, uint rep_len) {
+												 const typename BasicString::Char* rep, uint rep_len)
+{
 	const typename BasicString::Char* self_s = self->c();
 	int prev = 0;
 	int index;
@@ -165,12 +169,11 @@ XX_INLINE static int _compare(const BasicString* self, const typename BasicStrin
 	return _memcmp(self->c(), s, self->length() + 1);
 }
 
-
 /**
  * @class BasicString::StringCore
  * @private
  */
-template <class Char, class Container>
+template <typename Char, class Container>
 class BasicString<Char, Container>::StringCore {
  public:
 
@@ -242,17 +245,16 @@ class BasicString<Char, Container>::StringCore {
 
 // ** BasicString::StringCore END **
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(StringCore* core): m_core(core) {
-
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString() {
 	m_core = StringCore::empty();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(const Char* a, uint a_len, const Char* b, uint b_len)
 : m_core(new StringCore(a_len + b_len))
 {
@@ -260,28 +262,28 @@ BasicString<Char, Container>::BasicString(const Char* a, uint a_len, const Char*
 	_memcpy(m_core->value() + a_len, b, b_len);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(const Char* s, uint len)
 : m_core(len ? new StringCore(len) : StringCore::empty()) {
 	_memcpy(m_core->value(), s, len);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(const BasicString& s): m_core(s.m_core) {
 	m_core->retain();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(BasicString&& v): m_core(v.m_core) {
 	v.m_core = StringCore::empty();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(char c): m_core(new StringCore(1)) {
 	*(m_core->value()) = c;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(ArrayBuffer<Char>&& data) {
 	
 	uint len = data.length();
@@ -293,7 +295,7 @@ BasicString<Char, Container>::BasicString(ArrayBuffer<Char>&& data) {
 	}
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString (int i) {
 	char s[11];
 	sprintf(s, "%d", i);
@@ -302,7 +304,7 @@ BasicString<Char, Container>::BasicString (int i) {
 	_memcpy(m_core->value(), s, size);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString (uint i) {
 	char s[11];
 	sprintf(s, "%u", i);
@@ -311,7 +313,7 @@ BasicString<Char, Container>::BasicString (uint i) {
 	_memcpy(m_core->value(), s, size);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString (int64 i) {
 	char s[20];
 #if XX_ARCH_64BIT
@@ -324,7 +326,7 @@ BasicString<Char, Container>::BasicString (int64 i) {
 	_memcpy(m_core->value(), s, size);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString (uint64 i) {
 	char s[20];
 #if XX_ARCH_64BIT
@@ -337,7 +339,7 @@ BasicString<Char, Container>::BasicString (uint64 i) {
 	_memcpy(m_core->value(), s, size);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString (float f) {
 	char s[20];
 	sprintf(s, "%f", f);
@@ -346,7 +348,7 @@ BasicString<Char, Container>::BasicString (float f) {
 	_memcpy(m_core->value(), s, size);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString (double f) {
 	char s[20];
 	sprintf(s, "%g", f);
@@ -355,84 +357,98 @@ BasicString<Char, Container>::BasicString (double f) {
 	_memcpy(m_core->value(), s, size);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>::BasicString(const Object& data) {
 	XX_UNIMPLEMENTED();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
+template <typename Char2>
+BasicString<Char, Container>::BasicString(const Char2* s) {
+	if (s) {
+		uint len = _strlen(s);
+		if (len) {
+			m_core = new StringCore(len);
+			_memcpy(m_core->value(), s, len);
+			return;
+		}
+	}
+	m_core = StringCore::empty();
+}
+
+template <typename Char, class Container>
 BasicString<Char, Container>::~BasicString() {
 	m_core->release();
 	m_core = nullptr;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::is_empty() const { 
 	return m_core->length == 0; 
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 const Char* BasicString<Char, Container>::c() const {
 	return m_core->value();
 }
 	
-template <class Char, class Container>
+template <typename Char, class Container>
 const Char* BasicString<Char, Container>::operator*() const {
 	return m_core->value();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 Char BasicString<Char, Container>::operator[](uint index) const {
 	return m_core->value()[index];
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 uint BasicString<Char, Container>::capacity() const {
 	return m_core->capacity();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 uint BasicString<Char, Container>::length() const {
 	return m_core->length;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::substr(uint start, uint length) const {
 	return BasicString(c() + start, length);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::substr(uint start) const {
 	return substr(start, length() - start);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::substring(uint start, uint end) const {
 	return BasicString(c() + start, end - start);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::substring(uint start) const {
 	return substring(start, length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::full_copy() const {
 	return BasicString(new StringCore(*m_core));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& 
 BasicString<Char, Container>::operator+=(const BasicString& s) {
 	return push(*s, s.length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::operator+(const BasicString& s) const {
 	return BasicString(c(), length(), *s, s.length());
@@ -442,7 +458,7 @@ template<> BasicString<char, Container<char>>::BasicString(const Object& o);
 template<> BasicString<uint16, Container<uint16>>::BasicString(const Object& o);
 template<> BasicString<uint32, Container<uint32>>::BasicString(const Object& o);
 
-template <class Char, class Container>
+template <typename Char, class Container>
 Array<BasicString<Char, Container>>
 BasicString<Char, Container>::split(const BasicString& sp) const { // Not Thread safe
 	Array<BasicString> rev;
@@ -464,7 +480,7 @@ static const char ws[8] = {
 /**
  * @func is_blank
  */
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::is_blank() const { // Not Thread safe
 	
 	uint len = length();
@@ -482,7 +498,7 @@ bool BasicString<Char, Container>::is_blank() const { // Not Thread safe
 	return true;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::trim () const { // Not Thread safe
 	uint len = length();
@@ -509,7 +525,7 @@ BasicString<Char, Container>::trim () const { // Not Thread safe
 	return substring(start, end);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::trim_left () const { // Not Thread safe
 	uint len = length();
@@ -526,7 +542,7 @@ BasicString<Char, Container>::trim_left () const { // Not Thread safe
 	return BasicString();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> 
 BasicString<Char, Container>::trim_right () const { // Not Thread safe
 	uint len = length();
@@ -543,7 +559,7 @@ BasicString<Char, Container>::trim_right () const { // Not Thread safe
 	return BasicString();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& 
 BasicString<Char, Container>::upper_case () { // Not Thread safe
 	m_core->modify(this);
@@ -556,7 +572,7 @@ BasicString<Char, Container>::upper_case () { // Not Thread safe
 	return *this;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& 
 BasicString<Char, Container>::lower_case () { // Not Thread safe
 	m_core->modify(this);
@@ -569,17 +585,17 @@ BasicString<Char, Container>::lower_case () { // Not Thread safe
 	return *this;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> BasicString<Char, Container>::to_upper_case() const { // Not Thread safe
 	return String(*this).upper_case();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> BasicString<Char, Container>::to_lower_case() const { // Not Thread safe
 	return String(*this).lower_case();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 Char* BasicString<Char, Container>::collapse() { // Not Thread safe
 	Char* rev = nullptr;
 	if ( m_core->ref() == 1 ) {
@@ -594,48 +610,48 @@ Char* BasicString<Char, Container>::collapse() { // Not Thread safe
 	return rev;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 ArrayBuffer<Char> BasicString<Char, Container>::collapse_buffer() { // Not Thread safe
 	uint len = m_core->length;
 	return ArrayBuffer<Char>(collapse(), len);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 ArrayBuffer<Char> BasicString<Char, Container>::copy_buffer () const { // Not Thread safe
 	return WeakArrayBuffer<Char>(*m_core->container, m_core->length).copy();
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::index_of(const BasicString& s, uint start) const { // Not Thread safe
 	return _index_of(this, *s, s.length(), start);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::last_index_of(const BasicString& s, 
 																								int start) const { // Not Thread safe
 	return _last_index_of(this, *s, s.length(), start);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::last_index_of(const BasicString& s) const { // Not Thread safe
 	return _last_index_of(this, *s, s.length(), length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>
 BasicString<Char, Container>::replace(const BasicString& s,
 																			const BasicString& rep) const { // Not Thread safe
 	return replace_(this, s.c(), s.length(), *rep, rep.length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>
 BasicString<Char, Container>::replace_all(const BasicString& s, 
 																					const BasicString& rep) const { // Not Thread safe
 	return replace_all_(this, s.c(), s.length(), *rep, rep.length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& 
 BasicString<Char, Container>::push(const Char* s, uint len) { // Not Thread safe
 	if (len > 0) {
@@ -661,17 +677,17 @@ BasicString<Char, Container>::push(const Char* s, uint len) { // Not Thread safe
 	return *this;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::push(const BasicString& s) { // Not Thread safe
 	return push(s.c(), s.length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::push(Char s) { // Not Thread safe
 	return push(&s, 1);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::assign(const Char* s, uint len) { // Not Thread safe
 
 	if (m_core->ref() > 1) { // 当前不是唯一引用,抛弃核心创建一个新的核心
@@ -688,7 +704,7 @@ BasicString<Char, Container>& BasicString<Char, Container>::assign(const Char* s
 	return *this;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::operator=(const BasicString& s) { // Not Thread safe
 	auto old_co = m_core;
 	m_core = s.m_core;
@@ -697,7 +713,7 @@ BasicString<Char, Container>& BasicString<Char, Container>::operator=(const Basi
 	return *this;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::operator=(BasicString&& s) { // Not Thread safe
 	auto core = s.m_core;
 	s.m_core = StringCore::empty();
@@ -707,133 +723,120 @@ BasicString<Char, Container>& BasicString<Char, Container>::operator=(BasicStrin
 	return *this;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator==(const BasicString& s) const {
 	return _compare(this, s.c()) == 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator!=(const BasicString& s) const {
 	return _compare(this, s.c()) != 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator>(const BasicString& s) const {
 	return _compare(this, s.c()) > 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator<(const BasicString& s) const {
 	return _compare(this, s.c()) < 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator>=(const BasicString& s) const {
 	return _compare(this, s.c()) >= 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator<=(const BasicString& s) const {
 	return _compare(this, s.c()) <= 0;
 }
 
-template <class Char, class Container>
-BasicString<Char, Container>::BasicString (const Char* s) {
-	if (s) {
-		uint len = _strlen(s);
-		if (len) {
-			m_core = new StringCore(len);
-			_memcpy(m_core->value(), s, len);
-			return;
-		}
-	}
-	m_core = StringCore::empty();
-}
-
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::index_of (const Char* s, uint start) const {
 	return _index_of(this, s, _strlen(s), start);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::last_index_of(const Char* s, int start) const {
 	return _last_index_of(this, s, _strlen(s), start);
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::last_index_of(const Char* s) const {
 	return _last_index_of(this, s, _strlen(s), length());
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>
 BasicString<Char, Container>::replace (const Char* s, const Char* rep) const {
 	return replace_(this, s, _strlen(s), rep, _strlen(rep));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>
 BasicString<Char, Container>::replace_all(const Char* s, const Char* rep) const {
 	return replace_all_(this, s, _strlen(s), rep, _strlen(rep));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::push(const Char* s) {
 	return push(s, _strlen(s));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::operator+=(const Char* s) {
 	return push(s, _strlen(s));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container> BasicString<Char, Container>::operator+(const Char* s) const {
 	return BasicString(c(), length(), s, _strlen(s));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 BasicString<Char, Container>& BasicString<Char, Container>::operator=(const Char* s) {
 	return assign(s, _strlen(s));
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator==(const Char* s) const {
 	return _compare(this, s) == 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator!=(const Char* s) const {
 	return _compare(this, s) != 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator>(const Char* s) const {
 	return _compare(this, s) > 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator<(const Char* s) const {
 	return _compare(this, s) < 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator>=(const Char* s) const {
 	return _compare(this, s) >= 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::operator<=(const Char* s) const {
 	return _compare(this, s) <= 0;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 uint BasicString<Char, Container>::hash_code() const {
 	return qgr::hash_code(reinterpret_cast<cchar*>(m_core->value()),
 														m_core->length * sizeof(Char));
 }
 
-template<class Char, class Container>
+template<typename Char, class Container>
 String BasicString<Char, Container>::to_string() const {
 	static String str("[String]");
 	return str;
@@ -843,7 +846,7 @@ template<> String BasicString<char, Container<char>>::to_string() const;
 template<> String BasicString<uint16, Container<uint16>>::to_string() const;
 template<> String BasicString<uint32, Container<uint32>>::to_string() const;
 
-template<class Char>
+template<typename Char>
 static int _sscanf(const Char* s, cchar* f, void* out, uint len) {
 	char str[21];
 	_memcpy(str, s, XX_MIN(len + 1, 21));
@@ -854,21 +857,21 @@ template<> XX_INLINE int _sscanf<char>(cchar* s, cchar* f, void* out, uint len) 
 	return sscanf( s, f, out );
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int BasicString<Char, Container>::to_int() const {
 	int i;
 	_sscanf( c(), "%d", &i, length() );
 	return i;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 uint BasicString<Char, Container>::to_uint() const {
 	uint i;
 	_sscanf( c(), "%u", &i, length() );
 	return i;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 int64 BasicString<Char, Container>::to_int64() const {
 	int64 i;
 #if XX_ARCH_64BIT
@@ -879,7 +882,7 @@ int64 BasicString<Char, Container>::to_int64() const {
 	return i;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 uint64 BasicString<Char, Container>::to_uint64() const {
 	uint64 i;
 #if XX_ARCH_64BIT
@@ -890,21 +893,21 @@ uint64 BasicString<Char, Container>::to_uint64() const {
 	return i;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 float BasicString<Char, Container>::to_float() const {
 	float i;
 	_sscanf( c(), "%fd", &i, length() );
 	return i;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 double BasicString<Char, Container>::to_double() const {
 	double i;
 	_sscanf( c(), "%lf", &i, length() );
 	return i;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_bool() const {
 	if (_memcmp(c(), "true", 5) == 0) {
 		return true;
@@ -912,17 +915,17 @@ bool BasicString<Char, Container>::to_bool() const {
 	return false;
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_int(int* out) const {
 	return _sscanf( c(), "%d", out, length() );
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_uint(uint* out) const {
 	return _sscanf( c(), "%u", out, length() );
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_int64(int64* out) const {
 #if XX_ARCH_64BIT
 	return _sscanf( c(), "%ld", out, length() );
@@ -931,7 +934,7 @@ bool BasicString<Char, Container>::to_int64(int64* out) const {
 #endif
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_uint64(uint64* out) const {
 #if XX_ARCH_64BIT
 	return _sscanf( c(), "%lu", out, length() );
@@ -940,17 +943,17 @@ bool BasicString<Char, Container>::to_uint64(uint64* out) const {
 #endif
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_float(float* out) const {
 	return _sscanf( c(), "%fd", out, length() );
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_double(double* out) const {
 	return _sscanf( c(), "%lf", out, length() );
 }
 
-template <class Char, class Container>
+template <typename Char, class Container>
 bool BasicString<Char, Container>::to_bool(bool* out) const {
 	if (_memcmp(c(), "true", 5) == 0) {
 		*out = true;
@@ -987,7 +990,7 @@ if (__len) {  \
 va_end(__arg)
 #endif
 
-template <class Char, class Container>
+template <typename Char, class Container>
 String BasicString<Char, Container>::format(cchar* format, ...) {
 	XX_STRING_FORMAT(format, str);
 	return str;

@@ -15,13 +15,13 @@
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * THI_S SOFTWARE I_S PROVIDED BY THE COPYRIGHT HOLDER_S AND CONTRIBUTOR_S "A_S IS" AND
+ * ANY EXPRES_S OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIE_S OF MERCHANTABILITY AND FITNES_S FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL xuewen.chu BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOOD_S OR SERVICES;
+ * LOS_S OF USE, DATA, OR PROFITS; OR BUSINES_S INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -49,91 +49,104 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 
 #define ASSERT(con, ...) if(!con) error(__VA_ARGS__)
 
-static cUcs2String _SPACE(' ');
-static cUcs2String _INDENT(String("  "));
-static cUcs2String _LT('<');
-static cUcs2String _GT('>');
-static cUcs2String _ADD('+');
-static cUcs2String _SUB('-');
-static cUcs2String _DIV('/');
-static cUcs2String _ASSIGN('=');
-static cUcs2String _INC(String("++"));
-static cUcs2String _DEC(String("--"));
-static cUcs2String _ASSIGN_BIT_OR(String("|="));
-static cUcs2String _ASSIGN_BIT_XOR(String("^="));
-static cUcs2String _ASSIGN_BIT_AND(String("&="));
-static cUcs2String _ASSIGN_SHL(String("<<="));
-static cUcs2String _ASSIGN_SAR(String(">>="));
-static cUcs2String _ASSIGN_SHR(String(">>>="));
-static cUcs2String _ASSIGN_ADD(String("+="));
-static cUcs2String _ASSIGN_SUB(String("-="));
-static cUcs2String _ASSIGN_MUL(String("*="));
-static cUcs2String _ASSIGN_POWER(String("**="));
-static cUcs2String _ASSIGN_DIV(String("/="));
-static cUcs2String _ASSIGN_MOD(String("%="));
-static cUcs2String _OR(String("||"));
-static cUcs2String _AND(String("&&"));
-static cUcs2String _SHL(String("<<"));
-static cUcs2String _SAR(String(">>"));
-static cUcs2String _SHR(String(">>>"));
-static cUcs2String _EQ(String("=="));
-static cUcs2String _NE(String("!="));
-static cUcs2String _EQ_STRICT(String("==="));
-static cUcs2String _NE_STRICT(String("!=="));
-static cUcs2String _LTE(String("<="));
-static cUcs2String _GTE(String(">="));
-static cUcs2String _PERIOD('.');
-static cUcs2String _COMMAND(String("${"));
-static cUcs2String _LBRACE('{');
-static cUcs2String _RBRACE('}');
-static cUcs2String _LBRACK('[');
-static cUcs2String _RBRACK(']');
-static cUcs2String _LPAREN('(');
-static cUcs2String _RPAREN(')');
-static cUcs2String _CONDITIONAL('?');
-static cUcs2String _NOT('!');
-static cUcs2String _BIT_OR('|');
-static cUcs2String _BIT_NOT('~');
-static cUcs2String _BIT_XOR('^');
-static cUcs2String _MUL('*');
-static cUcs2String _POWER(String("**"));
-static cUcs2String _BIT_AND('&');
-static cUcs2String _MOD('%');
-static cUcs2String _AT('@');
-static cUcs2String _QUOTES('"');
-static cUcs2String _NEWLINE('\n');
-static cUcs2String _CONST(String("const")); // const
-static cUcs2String _VAR(String("var"));     // var
-static cUcs2String _REQUIRE(String("require"));   // require
-static cUcs2String _COMMA(',');
-static cUcs2String _COLON(':');
-static cUcs2String _SEMICOLON(';');
-static cUcs2String _VX(String("vx"));       // vx
-static cUcs2String __VX(String("__vx"));
-static cUcs2String _VALUE(String("value"));
-static cUcs2String _DATA_BIND_FUNC(String("($,ctr)=>{return")); // ($,ctr)=>{return
-static cUcs2String _XML_COMMENT(String("/***"));
-static cUcs2String _XML_COMMENT_END(String("**/"));
-static cUcs2String _COMMENT(String("/*"));
-static cUcs2String _COMMENT_END(String("*/"));
-static cUcs2String _EXPORT_COMMENT(String("/*export*/"));
-static cUcs2String _EXPORTS(String("exports"));
-static cUcs2String _EXPORT_DEFAULT(String("exports.default"));
-static cUcs2String _MODULE_EXPORT(String("module._export"));
-static cUcs2String _DEFAULT(String("default"));
-static cUcs2String __EXTEND(String("__extend"));
-static cUcs2String __PROTOTYPE(String("prototype"));
-static cUcs2String _NUMBER_0(String("0"));
-static cUcs2String _NUMBER_1(String("1"));
-static cUcs2String _NUMBER_2(String("2"));
-static cUcs2String _NUMBER_3(String("3"));
-static cUcs2String _VDATA(String("vdata"));
-static cUcs2String _ATTRS_COMMENT(String("/*attrs*/"));
-static cUcs2String _CHILDS_COMMENT(String("/*childs*/"));
-static cUcs2String _TYPE(String("vx"));
-static cUcs2String _VALUE2(String("v"));
-static cUcs2String _MULTIPLE(String("m"));
-static cUcs2String _STATIC(String("static"));
+#define DEF_STATIC_STR_LIST(F) \
+	F(SPACE, ' ') \
+	F(INDENT, "  ") \
+	F(LT, '<') \
+	F(GT, '>') \
+	F(ADD, '+') \
+	F(SUB, '-') \
+	F(DIV, '/') \
+	F(ASSIGN, '=') \
+	F(INC, "++") \
+	F(DEC, "--") \
+	F(ASSIGN_BIT_OR, "|=") \
+	F(ASSIGN_BIT_XOR, "^=") \
+	F(ASSIGN_BIT_AND, "&=") \
+	F(ASSIGN_SHL, "<<=") \
+	F(ASSIGN_SAR, ">>=") \
+	F(ASSIGN_SHR, ">>>=") \
+	F(ASSIGN_ADD, "+=") \
+	F(ASSIGN_SUB, "-=") \
+	F(ASSIGN_MUL, "*=") \
+	F(ASSIGN_POWER, "**=") \
+	F(ASSIGN_DIV, "/=") \
+	F(ASSIGN_MOD, "%=") \
+	F(OR, "||") \
+	F(AND, "&&") \
+	F(SHL, "<<") \
+	F(SAR, ">>") \
+	F(SHR, ">>>") \
+	F(EQ, "==") \
+	F(NE, "!=") \
+	F(EQ_STRICT, "===") \
+	F(NE_STRICT, "!==") \
+	F(LTE, "<=") \
+	F(GTE, ">=") \
+	F(PERIOD, '.') \
+	F(COMMAND, "${") \
+	F(LBRACE, '{') \
+	F(RBRACE, '}') \
+	F(LBRACK, '[') \
+	F(RBRACK, ']') \
+	F(LPAREN, '(') \
+	F(RPAREN, ')') \
+	F(CONDITIONAL, '?') \
+	F(NOT, '!') \
+	F(BIT_OR, '|') \
+	F(BIT_NOT, '~') \
+	F(BIT_XOR, '^') \
+	F(MUL, '*') \
+	F(POWER, "**") \
+	F(BIT_AND, '&') \
+	F(MOD, '%') \
+	F(AT, '@') \
+	F(QUOTES, '"') \
+	F(NEWLINE, '\n') \
+	F(CONST, "const"); /*const*/ \
+	F(VAR, "var");     /*var*/ \
+	F(REQUIRE, "require");   /*require*/ \
+	F(COMMA, ',') \
+	F(COLON, ':') \
+	F(SEMICOLON, ';') \
+	F(VX, "vx")       /*v*/ \
+	F(__VX, "__vx") \
+	F(VALUE, "value") \
+	F(DATA_BIND_FUNC, "($,ctr)=>{return") /* ($,ctr)=>{return*/ \
+	F(XML_COMMENT, "/***") \
+	F(XML_COMMENT_END, "**/") \
+	F(COMMENT, "/*") \
+	F(COMMENT_END, "*/") \
+	F(EXPORT_COMMENT, "/*export*/") \
+	F(EXPORTS, "exports") \
+	F(EXPORT_DEFAULT, "exports.default") \
+	F(MODULE_EXPORT, "module._export") \
+	F(DEFAULT, "default") \
+	F(__EXTEND, "__extend") \
+	F(PROTOTYPE, "prototype") \
+	F(NUMBER_0, "0") \
+	F(NUMBER_1, "1") \
+	F(NUMBER_2, "2") \
+	F(NUMBER_3, "3") \
+	F(VDATA, "vdata") \
+	F(ATTRS_COMMENT, "/*attrs*/") \
+	F(CHILDS_COMMENT, "/*childs*/") \
+	F(TYPE, "vx") \
+	F(VALUE2, "v") \
+	F(MULTIPLE, "m") \
+	F(STATIC, "static") \
+
+// #define F(N,V) static cUcs2String _##N(V);
+// DEF_STATIC_STR_LIST(F)
+// #undef F
+
+struct _static_str_list_t {
+#define F(N,V) Ucs2String N = V;
+DEF_STATIC_STR_LIST(F)
+#undef F
+} *_static_str_list = nullptr;
+
+#define _S _static_str_list->
 
 //LF
 static inline bool is_carriage_return(int c) {
@@ -1657,49 +1670,49 @@ public:
 		// class member data
 		for ( auto& i : _class_member_data_expression ) {
 			if ( i.value().expressions.length() ) {
-				out_code(_NEWLINE);   // \n
-				out_code(__EXTEND);   // __extend
-				out_code(_LPAREN);    // (
+				out_code(_S NEWLINE);   // \n
+				out_code(_S __EXTEND);   // __extend
+				out_code(_S LPAREN);    // (
 				out_code(i.value().class_name);    // class_name
-				out_code(_PERIOD);    // .
-				out_code(__PROTOTYPE);  // prototype
-				out_code(_COMMA);     // ,
-				out_code(_LBRACE);    // {
-				out_code(_NEWLINE);   // \n
+				out_code(_S PERIOD);    // .
+				out_code(_S PROTOTYPE);  // prototype
+				out_code(_S COMMA);     // ,
+				out_code(_S LBRACE);    // {
+				out_code(_S NEWLINE);   // \n
 				for ( auto& j : i.value().expressions ) {
-					out_code(_INDENT);    // \t
+					out_code(_S INDENT);    // \t
 					out_code(j.key());    // identifier
-					out_code(_COLON);     // :
+					out_code(_S COLON);     // :
 					out_code(j.value().to_basic_string());  // expression
-					out_code(_COMMA);     // ,
-					out_code(_NEWLINE);   // \n
+					out_code(_S COMMA);     // ,
+					out_code(_S NEWLINE);   // \n
 				}
-				out_code(_RBRACE);    // }
-				out_code(_COMMA);     // ,
-				out_code(_NUMBER_1);  // 1
-				out_code(_RPAREN);    // )
-				out_code(_SEMICOLON); // ;
+				out_code(_S RBRACE);    // }
+				out_code(_S COMMA);     // ,
+				out_code(_S NUMBER_1);  // 1
+				out_code(_S RPAREN);    // )
+				out_code(_S SEMICOLON); // ;
 			}
 		}
 		
 		// export
 		for (uint i = 0; i < _exports.length(); i++) {
-			out_code(_NEWLINE);
-			out_code(_EXPORTS);    // exports.xxx=xxx;
-			out_code(_PERIOD);     // .
+			out_code(_S NEWLINE);
+			out_code(_S EXPORTS);    // exports.xxx=xxx;
+			out_code(_S PERIOD);     // .
 			out_code(_exports[i]); // xxx
-			out_code(_ASSIGN);     // =
+			out_code(_S ASSIGN);     // =
 			out_code(_exports[i]); // xxx
-			out_code(_SEMICOLON);  // ;
+			out_code(_S SEMICOLON);  // ;
 		}
 		
 		// export default
 		if (_has_export_default && !_export_default.is_empty()) {
-			out_code(_NEWLINE);
-			out_code(_EXPORT_DEFAULT);  // exports.default=xxx;
-			out_code(_ASSIGN);          // =
+			out_code(_S NEWLINE);
+			out_code(_S EXPORT_DEFAULT);  // exports.default=xxx;
+			out_code(_S ASSIGN);          // =
 			out_code(_export_default);  // xxx
-			out_code(_SEMICOLON);       // ;
+			out_code(_S SEMICOLON);       // ;
 		}
 		
 		out_code(_NEWLINE);
@@ -1742,7 +1755,7 @@ public:
 			case IF:  // if
 				fetch_code();
 				ASSERT_NEXT(LPAREN);        // (
-				out_code(_LPAREN);
+				out_code(_S LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
 				out_code(_RPAREN);
 				if ( peek() != LBRACE ) { // {
@@ -1753,89 +1766,89 @@ public:
 				}
 				break;
 			case LT:                      // <
-				out_code(_LT); break;
+				out_code(_S LT); break;
 			case GT:                      // >
-				out_code(_GT); break;
+				out_code(_S GT); break;
 			case ASSIGN:                  // =
-				out_code(_ASSIGN); break;
+				out_code(_S ASSIGN); break;
 			case PERIOD:                  // .
-				out_code(_PERIOD); break;
+				out_code(_S PERIOD); break;
 			case ADD:                     // +
-				out_code(_ADD); break;
+				out_code(_S ADD); break;
 			case SUB:                     // -
-				out_code(_SUB); break;
+				out_code(_S SUB); break;
 			case COMMA:                   // ,
-				out_code(_COMMA); break;
+				out_code(_S COMMA); break;
 			case COLON:                   // :
-				out_code(_COLON); break;
+				out_code(_S COLON); break;
 			case SEMICOLON:               // ;
-				out_code(_SEMICOLON); break;
+				out_code(_S SEMICOLON); break;
 			case CONDITIONAL:             // ?
-				out_code(_CONDITIONAL); break;
+				out_code(_S CONDITIONAL); break;
 			case NOT:                     // !
-				out_code(_NOT); break;
+				out_code(_S NOT); break;
 			case BIT_OR:                  // |
-				out_code(_BIT_OR); break;
+				out_code(_S BIT_OR); break;
 			case BIT_NOT:                 // ~
-				out_code(_BIT_NOT); break;
+				out_code(_S BIT_NOT); break;
 			case BIT_XOR:                 // ^
-				out_code(_BIT_XOR); break;
+				out_code(_S BIT_XOR); break;
 			case MUL:                     // *
-				out_code(_MUL); break;
+				out_code(_S MUL); break;
 			case POWER:                     // **
-				out_code(_POWER); break;
+				out_code(_S POWER); break;
 			case BIT_AND:                 // &
-				out_code(_BIT_AND); break;
+				out_code(_S BIT_AND); break;
 			case MOD:                     // %
-				out_code(_MOD); break;
+				out_code(_S MOD); break;
 			case INC:                    // ++
-				out_code(_INC); break;
+				out_code(_S INC); break;
 			case DEC:                    // --
-				out_code(_DEC); break;
+				out_code(_S DEC); break;
 			case ASSIGN_BIT_OR:          // |=
-				out_code(_ASSIGN_BIT_OR); break;
+				out_code(_S ASSIGN_BIT_OR); break;
 			case ASSIGN_BIT_XOR:         // ^=
-				out_code(_ASSIGN_BIT_XOR); break;
+				out_code(_S ASSIGN_BIT_XOR); break;
 			case ASSIGN_BIT_AND:         // &=
-				out_code(_ASSIGN_BIT_AND); break;
+				out_code(_S ASSIGN_BIT_AND); break;
 			case ASSIGN_SHL:             // <<=
-				out_code(_ASSIGN_SHL); break;
+				out_code(_S ASSIGN_SHL); break;
 			case ASSIGN_SAR:             // >>=
-				out_code(_ASSIGN_SAR); break;
+				out_code(_S ASSIGN_SAR); break;
 			case ASSIGN_SHR:             // >>>=
-				out_code(_ASSIGN_SHR); break;
+				out_code(_S ASSIGN_SHR); break;
 			case ASSIGN_ADD:             // +=
-				out_code(_ASSIGN_ADD); break;
+				out_code(_S ASSIGN_ADD); break;
 			case ASSIGN_SUB:             // -=
-				out_code(_ASSIGN_SUB); break;
+				out_code(_S ASSIGN_SUB); break;
 			case ASSIGN_MUL:             // *=
-				out_code(_ASSIGN_MUL); break;
+				out_code(_S ASSIGN_MUL); break;
 			case ASSIGN_POWER:             // **=
-				out_code(_ASSIGN_POWER); break;
+				out_code(_S ASSIGN_POWER); break;
 			case ASSIGN_MOD:             // %=
-				out_code(_ASSIGN_MOD); break;
+				out_code(_S ASSIGN_MOD); break;
 			case OR:                     // ||
-				out_code(_OR); break;
+				out_code(_S OR); break;
 			case AND:                    // &&
-				out_code(_AND); break;
+				out_code(_S AND); break;
 			case SHL:                    // <<
-				out_code(_SHL); break;
+				out_code(_S SHL); break;
 			case SAR:                    // >>
-				out_code(_SAR); break;
+				out_code(_S SAR); break;
 			case SHR:                    // >>>
-				out_code(_SHR); break;
+				out_code(_S SHR); break;
 			case EQ:                     // ==
-				out_code(_EQ); break;
+				out_code(_S EQ); break;
 			case NE:                     // !=
-				out_code(_NE); break;
+				out_code(_S NE); break;
 			case EQ_STRICT:              // ===
-				out_code(_EQ_STRICT); break;
+				out_code(_S EQ_STRICT); break;
 			case NE_STRICT:              // !==
-				out_code(_NE_STRICT); break;
+				out_code(_S NE_STRICT); break;
 			case LTE:                    // <=
-				out_code(_LTE); break;
+				out_code(_S LTE); break;
 			case GTE:                    // >=
-				out_code(_GTE); break;
+				out_code(_S GTE); break;
 			case XML_ELEMENT_TAG:         // <xml
 				if ( _is_xml_attribute_expression ) {
 					UNEXPECTED_TOKEN_ERROR();
@@ -1960,7 +1973,7 @@ public:
 			case INC:            // ++
 			case DEC:            // --
 				if ( is_declaration_identifier(peek()) ) {
-					out_code(tok == INC ? _INC : _DEC);
+					out_code(tok == INC ? _S INC : _S DEC);
 					parse_single_expression();
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
@@ -2072,7 +2085,7 @@ public:
 		while(true) {
 			switch(peek()) {
 				case PERIOD:     // .
-					next(); out_code( _PERIOD ); // .
+					next(); out_code( _S PERIOD ); // .
 					next();
 					ASSERT(is_declaration_identifier(token()));
 					fetch_code(); // identifier
@@ -2704,38 +2717,38 @@ public:
 				// __vx(tag,[attrs],vdata)
 				// final result:
 				// {vx:0,v:[tag,[attrs],[child],vdata]}
-				out_code(__VX);     // __vx
+				out_code(_S _VX);     // __vx
 				out_code(_LPAREN);  // (
 				out_code(suffix);   // tag
 				out_code(_COMMA);   // ,
 				vx_com = true;
 			} else {                // <prefix:suffix
 				// {vx:1,v:[prefix,suffix,[attrs],[child],vdata]}
-				out_code(_LBRACE);    // {
-				out_code(_TYPE);      // t
-				out_code(_COLON);     // :
-				out_code(_NUMBER_1);  // 1
-				out_code(_COMMA);     // ,
-				out_code(_VALUE2);    // v
-				out_code(_COLON);     // :
-				out_code(_LBRACK);    // [
+				out_code(_S LBRACE);    // {
+				out_code(_S TYPE);      // t
+				out_code(_S COLON);     // :
+				out_code(_S NUMBER_1);  // 1
+				out_code(_S COMMA);     // ,
+				out_code(_S VALUE2);    // v
+				out_code(_S COLON);     // :
+				out_code(_S LBRACK);    // [
 				out_code(prefix);     // prefix
-				out_code(_COMMA);     // ,
+				out_code(_S COMMA);     // ,
 				out_code(suffix);     // suffix
-				out_code(_COMMA);     // ,
+				out_code(_S COMMA);     // ,
 			}
 		} else {              // <tag
 			// {vx:0,v:[tag,[attrs],[child],vdata]}
-			out_code(_LBRACE);    // {
-			out_code(_TYPE);      // t
-			out_code(_COLON);     // :
-			out_code(_NUMBER_0);  // 0
-			out_code(_COMMA);     // ,
-			out_code(_VALUE2);    // v
-			out_code(_COLON);     // :
-			out_code(_LBRACK);    // [
+			out_code(_S LBRACE);    // {
+			out_code(_S TYPE);      // t
+			out_code(_S COLON);     // :
+			out_code(_S NUMBER_0);  // 0
+			out_code(_S COMMA);     // ,
+			out_code(_S VALUE2);    // v
+			out_code(_S COLON);     // :
+			out_code(_S LBRACK);    // [
 			out_code(tag_name);   // tag
-			out_code(_COMMA);     // ,
+			out_code(_S COMMA);     // ,
 		}
 		
 		Map<Ucs2String, bool> attrs;
@@ -2752,7 +2765,7 @@ public:
 			collapse_scape();  // scape
 			
 			if (!start_parse_attrs) {
-				out_code(_LBRACK);    // [ parse attributes start
+				out_code(_S LBRACK);    // [ parse attributes start
 				//out_code(_ATTRS_COMMENT); // add comment
 				start_parse_attrs = true;
 			}
@@ -2760,28 +2773,28 @@ public:
 			// 添加属性
 			Ucs2StringBuilder* raw_out = _out;
 			Ucs2String attribute_name;
-			bool is_vdata = (_scanner->string_value() == _VDATA && peek() != PERIOD);
+			bool is_vdata = (_scanner->string_value() == _S VDATA && peek() != PERIOD);
 			if (is_vdata) {
 				_out = &vdata;
 			}
-			out_code(_LBRACK); // [ // attribute start
-			out_code(_LBRACK); // [ // attribute name start
+			out_code(_S LBRACK); // [ // attribute start
+			out_code(_S LBRACK); // [ // attribute name start
 			
 			do { // .
-				out_code(_QUOTES); // "
-				out_code(_scanner->string_value());
-				out_code(_QUOTES); // "
+				out_code(_S QUOTES); // "
+				out_code(_S scanner->string_value());
+				out_code(_S QUOTES); // "
 				attribute_name.push(_scanner->string_value());
 				token = next();
 				if (token != PERIOD) break;
 				if (!is_object_property_identifier(next())) {
 					error("Xml Syntax error");
 				}
-				out_code(_COMMA);   // ,
+				out_code(_S COMMA);   // ,
 			} while (true);
 			
-			out_code(_RBRACK); // ] // attribute name end
-			out_code(_COMMA);  // ,
+			out_code(_S RBRACK); // ] // attribute name end
+			out_code(_S COMMA);  // ,
 			
 			if (attrs.has(attribute_name)) {
 				error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
@@ -2796,19 +2809,19 @@ public:
 				} else if (peek() == COMMAND_DATA_BIND_ONCE) { // %{
 					parse_xml_attribute_data_bind(true);
 				} else {
-					out_code(_NUMBER_0);  // 0
-					out_code(_COMMA);     // ,
+					out_code(_S NUMBER_0);  // 0
+					out_code(_S COMMA);     // ,
 					parse_expression(); // 解析属性值表达式
 				}
 				_is_xml_attribute_expression = false;
 				token = _scanner->next();
 			} else { // 没有值设置为 ""
-				out_code(_NUMBER_0);  // 0
-				out_code(_COMMA);     // ,
-				out_code(_QUOTES);    // "
-				out_code(_QUOTES);    // "
+				out_code(_S NUMBER_0);  // 0
+				out_code(_S COMMA);     // ,
+				out_code(_S QUOTES);    // "
+				out_code(_S QUOTES);    // "
 			}
-			out_code(_RBRACK); // ] // attribute end
+			out_code(_S RBRACK); // ] // attribute end
 			
 			if (is_vdata) {
 				_out = raw_out;
@@ -2816,21 +2829,21 @@ public:
 			
 			if (is_object_property_identifier(token)) {
 				if (!is_vdata) {
-					out_code(_COMMA);   // ,
+					out_code(_S COMMA);   // ,
 				}
 				goto attr; // 重新开始新属性
 			}
 		} else {
-			out_code(_LBRACK);  // [ parse attributes start
+			out_code(_S LBRACK);  // [ parse attributes start
 		}
-		out_code(_RBRACK);    // ] parse attributes end
+		out_code(_S RBRACK);    // ] parse attributes end
 		
 		// 解析xml内容
 		if (token == DIV) {      // /  没有内容结束
 			if ( !vx_com ) {  // add chileren
-				out_code(_COMMA);    // ,
-				out_code(_LBRACK);   // [
-				out_code(_RBRACK);   // ]
+				out_code(_S COMMA);    // ,
+				out_code(_S LBRACK);   // [
+				out_code(_S RBRACK);   // ]
 			}
 			collapse_scape();
 			if (_scanner->next() != GT) { // >  语法错误
@@ -2847,34 +2860,34 @@ public:
 		}
 		
 		if (vdata.length()) {
-			out_code(_COMMA);    // ,
+			out_code(_S COMMA);    // ,
 			out_code(move(vdata));
 		}
 		
 		if (vx_com) { // __vx(tag,[attrs],vdata)
-			out_code(_RPAREN); // )
+			out_code(_S RPAREN); // )
 		} else {      // {vx:0,v:[tag,[attrs],[child],vdata]}
-			out_code(_RBRACK); // ]
-			out_code(_RBRACE); // }
+			out_code(_S RBRACK); // ]
+			out_code(_S RBRACE); // }
 		}
 	}
 	
 	void parse_xml_attribute_data_bind(bool once) {
-		out_code(_NUMBER_3);  // 2
-		out_code(_COMMA);     // ,
+		out_code(_S NUMBER_3);  // 2
+		out_code(_S COMMA);     // ,
 		next();
 		XX_ASSERT(peek() == LBRACE);
 		XX_ASSERT(_scanner->string_value().is_empty());
 		// %{val}
-		out_code(_DATA_BIND_FUNC); // ($,ctr)=>{return
+		out_code(_S DATA_BIND_FUNC); // ($,ctr)=>{return
 		next();
-		out_code(_LPAREN);  // (
+		out_code(_S LPAREN);  // (
 		parse_brace_expression(LBRACE, RBRACE);
-		out_code(_RPAREN);  // )
-		out_code(_RBRACE);  // }
+		out_code(_S RPAREN);  // )
+		out_code(_S RBRACE);  // }
 		if (!once) {
-			out_code(_COMMA);     // ,
-			out_code(_NUMBER_1);  // 1
+			out_code(_S COMMA);     // ,
+			out_code(_S NUMBER_1);  // 1
 		}
 	}
 	
@@ -2888,17 +2901,17 @@ public:
 			if ( !ignore_space || ! s.is_blank() ) {
 				add_xml_children_cut_comma(is_once_comma);
 				// {vx:2,v:"s"}
-				out_code(_LBRACE);   // {
-				out_code(_TYPE);     // t
-				out_code(_COLON);    // :
-				out_code(_NUMBER_2); // 2
-				out_code(_COMMA);    // ,
-				out_code(_VALUE2);   // v
-				out_code(_COLON);    // :
-				out_code(_QUOTES);   // "
+				out_code(_S LBRACE);   // {
+				out_code(_S TYPE);     // t
+				out_code(_S COLON);    // :
+				out_code(_S NUMBER_2); // 2
+				out_code(_S COMMA);    // ,
+				out_code(_S VALUE2);   // v
+				out_code(_S COLON);    // :
+				out_code(_S QUOTES);   // "
 				out_code(s);
-				out_code(_QUOTES);   // "
-				out_code(_RBRACE);   // }
+				out_code(_S QUOTES);   // "
+				out_code(_S RBRACE);   // }
 			}
 			str.clear();
 		}
@@ -2914,7 +2927,7 @@ public:
 		if (is_once_comma) {
 			is_once_comma = false;
 		} else {
-			out_code(_COMMA);     // ,
+			out_code(_S COMMA);     // ,
 		}
 	}
 	
@@ -2922,10 +2935,10 @@ public:
 		XX_ASSERT(_scanner->token() == GT);  // >
 		
 		// add chileren
-		out_code(_COMMA);    // ,
+		out_code(_S COMMA);    // ,
 		collapse_scape();
-		out_code(_LBRACK);   // [
-		// out_code(_CHILDS_COMMENT); // add comment
+		out_code(_S LBRACK);   // [
+		// out_code(_S CHILDS_COMMENT); // add comment
 		
 		Token token;// prev = ILLEGAL;
 		Ucs2StringBuilder str, scape;
@@ -2940,9 +2953,9 @@ public:
 			switch (token) {
 				case XML_COMMENT:    // <!-- comment -->
 					/* ignore comment */
-					scape.push(_XML_COMMENT);
+					scape.push(_S XML_COMMENT);
 					scape.push(_scanner->next_string_value());
-					scape.push(_XML_COMMENT_END);
+					scape.push(_S XML_COMMENT_END);
 					break;
 					
 				case XML_ELEMENT_TAG: // <xml
@@ -2959,7 +2972,7 @@ public:
 																 *to_utf8_string(tag_name),
 																 *to_utf8_string(_scanner->next_string_value())) );
 					}
-					out_code(_RBRACK);     // ]
+					out_code(_S RBRACK);     // ]
 					_scanner->next();
 					return;
 					
@@ -2977,25 +2990,25 @@ public:
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
 					_scanner->next();     // command %% or %
 					_scanner->next();     // next {
-					out_code(_LBRACE);    // {
-					out_code(_TYPE);      // t
-					out_code(_COLON);     // :
-					out_code(_NUMBER_3);  // 3
-					out_code(_COMMA);     // ,
-					out_code(_VALUE2);    // v
-					out_code(_COLON);     // :
-					out_code(_DATA_BIND_FUNC);      // ($,ctr)=>{return
-					out_code(_LPAREN);  // (
+					out_code(_S LBRACE);    // {
+					out_code(_S TYPE);      // t
+					out_code(_S COLON);     // :
+					out_code(_S NUMBER_3);  // 3
+					out_code(_S COMMA);     // ,
+					out_code(_S VALUE2);    // v
+					out_code(_S COLON);     // :
+					out_code(_S DATA_BIND_FUNC);      // ($,ctr)=>{return
+					out_code(_S LPAREN);  // (
 					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(_RPAREN);  // )
-					out_code(_RBRACE);  // }
+					out_code(_S RPAREN);  // )
+					out_code(_S RBRACE);  // }
 					if (token == COMMAND_DATA_BIND) { // MULTIPLE
-						out_code(_COMMA);     // ,
-						out_code(_MULTIPLE);  // m
-						out_code(_COLON);     // :
-						out_code(_NUMBER_1);  // 1
+						out_code(_S COMMA);     // ,
+						out_code(_S MULTIPLE);  // m
+						out_code(_S COLON);     // :
+						out_code(_S NUMBER_1);  // 1
 					}
-					out_code(_RBRACE);  // }
+					out_code(_S RBRACE);  // }
 					pos = _scanner->location().end_pos;
 					break;
 					
@@ -3003,9 +3016,9 @@ public:
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
 					_scanner->next();     // command ${
 					_scanner->next();     // next {
-					out_code(_LPAREN);    // (
+					out_code(_S LPAREN);    // (
 					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(_RPAREN);    // )
+					out_code(_S RPAREN);    // )
 					pos = _scanner->location().end_pos;
 					break;
 					
