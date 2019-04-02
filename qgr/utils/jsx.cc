@@ -15,13 +15,13 @@
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
- * THI_S SOFTWARE I_S PROVIDED BY THE COPYRIGHT HOLDER_S AND CONTRIBUTOR_S "A_S IS" AND
- * ANY EXPRES_S OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIE_S OF MERCHANTABILITY AND FITNES_S FOR A PARTICULAR PURPOSE ARE
+ * THIS.SOFTWARE IS.PROVIDED BY THE COPYRIGHT HOLDERS.AND CONTRIBUTORS."AS.IS" AND
+ * ANY EXPRESS.OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES.OF MERCHANTABILITY AND FITNESS.FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL xuewen.chu BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOOD_S OR SERVICES;
- * LOS_S OF USE, DATA, OR PROFITS; OR BUSINES_S INTERRUPTION) HOWEVER CAUSED AND
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS.OR SERVICES;
+ * LOSS.OF USE, DATA, OR PROFITS; OR BUSINESS.INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -31,7 +31,7 @@
 #include "qgr/utils/jsx.h"
 #include "qgr/utils/string.h"
 #include "qgr/utils/string-builder.h"
-#include "qgr/utils/codec.h"
+#include "qgr/utils/map.h"
 #include "qgr/utils/fs.h"
 
 XX_NS(qgr)
@@ -136,17 +136,13 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 	F(MULTIPLE, "m") \
 	F(STATIC, "static") \
 
-// #define F(N,V) static cUcs2String _##N(V);
-// DEF_STATIC_STR_LIST(F)
-// #undef F
-
-struct _static_str_list_t {
+struct static_str_list_t {
 #define F(N,V) Ucs2String N = V;
 DEF_STATIC_STR_LIST(F)
 #undef F
-} *_static_str_list = nullptr;
+} static *static_str_list = nullptr;
 
-#define _S _static_str_list->
+#define S (*static_str_list)
 
 //LF
 static inline bool is_carriage_return(int c) {
@@ -1050,69 +1046,68 @@ class Scanner : public Object {
 		
 		// ----------------------------------------------------------------------------
 		// Keyword Matcher
-		
-		#define KEYWORDS(KEYWORD_GROUP, KEYWORD)  \
-			KEYWORD_GROUP('a')  \
-			KEYWORD("as", AS) \
-			KEYWORD("async", ASYNC) \
-			KEYWORD_GROUP('c')  \
-			KEYWORD("class", CLASS) \
-			KEYWORD("const", CONST) \
-			KEYWORD_GROUP('d')  \
-			KEYWORD("default", DEFAULT) \
-			KEYWORD_GROUP('e')  \
-			KEYWORD("export", EXPORT) \
-			KEYWORD("extends", EXTENDS) \
-			KEYWORD("event", EVENT) \
-			KEYWORD("else", ELSE) \
-			KEYWORD_GROUP('f')  \
-			KEYWORD("from", FROM) \
-			KEYWORD("function", FUNCTION) \
-			KEYWORD_GROUP('g')  \
-			KEYWORD("get", GET) \
-			KEYWORD_GROUP('i')  \
-			KEYWORD("instanceof", INSTANCEOF) \
-			KEYWORD("import", IMPORT) \
-			KEYWORD("in", IN) \
-			KEYWORD("if", IF) \
-			KEYWORD_GROUP('l')  \
-			KEYWORD("let", LET) \
-			KEYWORD_GROUP('o')  \
-			KEYWORD("of", OF) \
-			KEYWORD_GROUP('r')  \
-			KEYWORD("return", RETURN) \
-			KEYWORD_GROUP('s')  \
-			KEYWORD("set", SET) \
-			KEYWORD("static", STATIC) \
-			KEYWORD_GROUP('t')  \
-			KEYWORD("typeof", TYPEOF) \
-			KEYWORD_GROUP('v')  \
-			KEYWORD("var", VAR) \
+#define KEYWORDS(KEYWORD_GROUP, KEYWORD)  \
+	KEYWORD_GROUP('a')  \
+	KEYWORD("as", AS) \
+	KEYWORD("async", ASYNC) \
+	KEYWORD_GROUP('c')  \
+	KEYWORD("class", CLASS) \
+	KEYWORD("const", CONST) \
+	KEYWORD_GROUP('d')  \
+	KEYWORD("default", DEFAULT) \
+	KEYWORD_GROUP('e')  \
+	KEYWORD("export", EXPORT) \
+	KEYWORD("extends", EXTENDS) \
+	KEYWORD("event", EVENT) \
+	KEYWORD("else", ELSE) \
+	KEYWORD_GROUP('f')  \
+	KEYWORD("from", FROM) \
+	KEYWORD("function", FUNCTION) \
+	KEYWORD_GROUP('g')  \
+	KEYWORD("get", GET) \
+	KEYWORD_GROUP('i')  \
+	KEYWORD("instanceof", INSTANCEOF) \
+	KEYWORD("import", IMPORT) \
+	KEYWORD("in", IN) \
+	KEYWORD("if", IF) \
+	KEYWORD_GROUP('l')  \
+	KEYWORD("let", LET) \
+	KEYWORD_GROUP('o')  \
+	KEYWORD("of", OF) \
+	KEYWORD_GROUP('r')  \
+	KEYWORD("return", RETURN) \
+	KEYWORD_GROUP('s')  \
+	KEYWORD("set", SET) \
+	KEYWORD("static", STATIC) \
+	KEYWORD_GROUP('t')  \
+	KEYWORD("typeof", TYPEOF) \
+	KEYWORD_GROUP('v')  \
+	KEYWORD("var", VAR) \
 		
 		switch (input[0]) {
 			default:
-			#define KEYWORD_GROUP_CASE(ch) break; case ch:
-			#define KEYWORD(keyword, token)                         \
-			{                                                       \
-			/* 'keyword' is a char array, so sizeof(keyword) is */  \
-			/* strlen(keyword) plus 1 for the NUL char. */          \
-				const int keyword_length = sizeof(keyword) - 1;       \
-				XX_ASSERT(keyword_length >= kMinLength);               \
-				XX_ASSERT(keyword_length <= kMaxLength);               \
-				if (input_length == keyword_length &&                 \
-					input[1] == keyword[1] &&                           \
-					(keyword_length <= 2 || input[2] == keyword[2]) &&  \
-					(keyword_length <= 3 || input[3] == keyword[3]) &&  \
-					(keyword_length <= 4 || input[4] == keyword[4]) &&  \
-					(keyword_length <= 5 || input[5] == keyword[5]) &&  \
-					(keyword_length <= 6 || input[6] == keyword[6]) &&  \
-					(keyword_length <= 7 || input[7] == keyword[7]) &&  \
-					(keyword_length <= 8 || input[8] == keyword[8]) &&  \
-					(keyword_length <= 9 || input[9] == keyword[9])) {  \
-					return token;                                       \
-				}                                                     \
-			}
-			KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
+#define KEYWORD_GROUP_CASE(ch) break; case ch:
+#define KEYWORD(keyword, token)                         \
+{                                                       \
+/* 'keyword' is a char array, so sizeof(keyword) is */  \
+/* strlen(keyword) plus 1 for the NUL char. */          \
+	const int keyword_length = sizeof(keyword) - 1;       \
+	XX_ASSERT(keyword_length >= kMinLength);               \
+	XX_ASSERT(keyword_length <= kMaxLength);               \
+	if (input_length == keyword_length &&                 \
+		input[1] == keyword[1] &&                           \
+		(keyword_length <= 2 || input[2] == keyword[2]) &&  \
+		(keyword_length <= 3 || input[3] == keyword[3]) &&  \
+		(keyword_length <= 4 || input[4] == keyword[4]) &&  \
+		(keyword_length <= 5 || input[5] == keyword[5]) &&  \
+		(keyword_length <= 6 || input[6] == keyword[6]) &&  \
+		(keyword_length <= 7 || input[7] == keyword[7]) &&  \
+		(keyword_length <= 8 || input[8] == keyword[8]) &&  \
+		(keyword_length <= 9 || input[9] == keyword[9])) {  \
+		return token;                                       \
+	}                                                     \
+}
+KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 		}
 		return Token::IDENTIFIER;
 	}
@@ -1601,15 +1596,12 @@ class Scanner : public Object {
 		return c0_ == next ? advance(), then: else_;
 	}
 	
-	const uint16*   code_;
-	uint            size_;
-	uint            pos_;
-	uint            line_;
-	int             c0_;
-	TokenDesc*      current_;
-	TokenDesc*      next_;
-	Token           prev_;
-	bool            clean_comment_;
+	const uint16 *code_;
+	uint size_, pos_, line_;
+	int c0_;
+	TokenDesc *current_, *next_;
+	Token prev_;
+	bool clean_comment_;
 };
 
 /**
@@ -1629,6 +1621,9 @@ public:
 	, _has_export_default(false)
 	, _clean_comment(clean_comment)
 	{
+		if (!static_str_list) {
+			static_str_list = new static_str_list_t();
+		}
 		_scanner = new Scanner(*in, in.length(), _clean_comment);
 		_out = &_top_out;
 	}
@@ -1670,52 +1665,52 @@ public:
 		// class member data
 		for ( auto& i : _class_member_data_expression ) {
 			if ( i.value().expressions.length() ) {
-				out_code(_S NEWLINE);   // \n
-				out_code(_S __EXTEND);   // __extend
-				out_code(_S LPAREN);    // (
+				out_code(S.NEWLINE);   // \n
+				out_code(S.__EXTEND);   // __extend
+				out_code(S.LPAREN);    // (
 				out_code(i.value().class_name);    // class_name
-				out_code(_S PERIOD);    // .
-				out_code(_S PROTOTYPE);  // prototype
-				out_code(_S COMMA);     // ,
-				out_code(_S LBRACE);    // {
-				out_code(_S NEWLINE);   // \n
+				out_code(S.PERIOD);    // .
+				out_code(S.PROTOTYPE);  // prototype
+				out_code(S.COMMA);     // ,
+				out_code(S.LBRACE);    // {
+				out_code(S.NEWLINE);   // \n
 				for ( auto& j : i.value().expressions ) {
-					out_code(_S INDENT);    // \t
+					out_code(S.INDENT);    // \t
 					out_code(j.key());    // identifier
-					out_code(_S COLON);     // :
+					out_code(S.COLON);     // :
 					out_code(j.value().to_basic_string());  // expression
-					out_code(_S COMMA);     // ,
-					out_code(_S NEWLINE);   // \n
+					out_code(S.COMMA);     // ,
+					out_code(S.NEWLINE);   // \n
 				}
-				out_code(_S RBRACE);    // }
-				out_code(_S COMMA);     // ,
-				out_code(_S NUMBER_1);  // 1
-				out_code(_S RPAREN);    // )
-				out_code(_S SEMICOLON); // ;
+				out_code(S.RBRACE);    // }
+				out_code(S.COMMA);     // ,
+				out_code(S.NUMBER_1);  // 1
+				out_code(S.RPAREN);    // )
+				out_code(S.SEMICOLON); // ;
 			}
 		}
 		
 		// export
 		for (uint i = 0; i < _exports.length(); i++) {
-			out_code(_S NEWLINE);
-			out_code(_S EXPORTS);    // exports.xxx=xxx;
-			out_code(_S PERIOD);     // .
+			out_code(S.NEWLINE);
+			out_code(S.EXPORTS);    // exports.xxx=xxx;
+			out_code(S.PERIOD);     // .
 			out_code(_exports[i]); // xxx
-			out_code(_S ASSIGN);     // =
+			out_code(S.ASSIGN);     // =
 			out_code(_exports[i]); // xxx
-			out_code(_S SEMICOLON);  // ;
+			out_code(S.SEMICOLON);  // ;
 		}
 		
 		// export default
 		if (_has_export_default && !_export_default.is_empty()) {
-			out_code(_S NEWLINE);
-			out_code(_S EXPORT_DEFAULT);  // exports.default=xxx;
-			out_code(_S ASSIGN);          // =
+			out_code(S.NEWLINE);
+			out_code(S.EXPORT_DEFAULT);  // exports.default=xxx;
+			out_code(S.ASSIGN);          // =
 			out_code(_export_default);  // xxx
-			out_code(_S SEMICOLON);       // ;
+			out_code(S.SEMICOLON);       // ;
 		}
 		
-		out_code(_NEWLINE);
+		out_code(S.NEWLINE);
 	}
 
 	void parse_advance() {
@@ -1755,9 +1750,9 @@ public:
 			case IF:  // if
 				fetch_code();
 				ASSERT_NEXT(LPAREN);        // (
-				out_code(_S LPAREN);
+				out_code(S.LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
-				out_code(_RPAREN);
+				out_code(S.RPAREN);
 				if ( peek() != LBRACE ) { // {
 					next();
 					_single_if_expression_before = true;
@@ -1766,89 +1761,89 @@ public:
 				}
 				break;
 			case LT:                      // <
-				out_code(_S LT); break;
+				out_code(S.LT); break;
 			case GT:                      // >
-				out_code(_S GT); break;
+				out_code(S.GT); break;
 			case ASSIGN:                  // =
-				out_code(_S ASSIGN); break;
+				out_code(S.ASSIGN); break;
 			case PERIOD:                  // .
-				out_code(_S PERIOD); break;
+				out_code(S.PERIOD); break;
 			case ADD:                     // +
-				out_code(_S ADD); break;
+				out_code(S.ADD); break;
 			case SUB:                     // -
-				out_code(_S SUB); break;
+				out_code(S.SUB); break;
 			case COMMA:                   // ,
-				out_code(_S COMMA); break;
+				out_code(S.COMMA); break;
 			case COLON:                   // :
-				out_code(_S COLON); break;
+				out_code(S.COLON); break;
 			case SEMICOLON:               // ;
-				out_code(_S SEMICOLON); break;
+				out_code(S.SEMICOLON); break;
 			case CONDITIONAL:             // ?
-				out_code(_S CONDITIONAL); break;
+				out_code(S.CONDITIONAL); break;
 			case NOT:                     // !
-				out_code(_S NOT); break;
+				out_code(S.NOT); break;
 			case BIT_OR:                  // |
-				out_code(_S BIT_OR); break;
+				out_code(S.BIT_OR); break;
 			case BIT_NOT:                 // ~
-				out_code(_S BIT_NOT); break;
+				out_code(S.BIT_NOT); break;
 			case BIT_XOR:                 // ^
-				out_code(_S BIT_XOR); break;
+				out_code(S.BIT_XOR); break;
 			case MUL:                     // *
-				out_code(_S MUL); break;
+				out_code(S.MUL); break;
 			case POWER:                     // **
-				out_code(_S POWER); break;
+				out_code(S.POWER); break;
 			case BIT_AND:                 // &
-				out_code(_S BIT_AND); break;
+				out_code(S.BIT_AND); break;
 			case MOD:                     // %
-				out_code(_S MOD); break;
+				out_code(S.MOD); break;
 			case INC:                    // ++
-				out_code(_S INC); break;
+				out_code(S.INC); break;
 			case DEC:                    // --
-				out_code(_S DEC); break;
+				out_code(S.DEC); break;
 			case ASSIGN_BIT_OR:          // |=
-				out_code(_S ASSIGN_BIT_OR); break;
+				out_code(S.ASSIGN_BIT_OR); break;
 			case ASSIGN_BIT_XOR:         // ^=
-				out_code(_S ASSIGN_BIT_XOR); break;
+				out_code(S.ASSIGN_BIT_XOR); break;
 			case ASSIGN_BIT_AND:         // &=
-				out_code(_S ASSIGN_BIT_AND); break;
+				out_code(S.ASSIGN_BIT_AND); break;
 			case ASSIGN_SHL:             // <<=
-				out_code(_S ASSIGN_SHL); break;
+				out_code(S.ASSIGN_SHL); break;
 			case ASSIGN_SAR:             // >>=
-				out_code(_S ASSIGN_SAR); break;
+				out_code(S.ASSIGN_SAR); break;
 			case ASSIGN_SHR:             // >>>=
-				out_code(_S ASSIGN_SHR); break;
+				out_code(S.ASSIGN_SHR); break;
 			case ASSIGN_ADD:             // +=
-				out_code(_S ASSIGN_ADD); break;
+				out_code(S.ASSIGN_ADD); break;
 			case ASSIGN_SUB:             // -=
-				out_code(_S ASSIGN_SUB); break;
+				out_code(S.ASSIGN_SUB); break;
 			case ASSIGN_MUL:             // *=
-				out_code(_S ASSIGN_MUL); break;
+				out_code(S.ASSIGN_MUL); break;
 			case ASSIGN_POWER:             // **=
-				out_code(_S ASSIGN_POWER); break;
+				out_code(S.ASSIGN_POWER); break;
 			case ASSIGN_MOD:             // %=
-				out_code(_S ASSIGN_MOD); break;
+				out_code(S.ASSIGN_MOD); break;
 			case OR:                     // ||
-				out_code(_S OR); break;
+				out_code(S.OR); break;
 			case AND:                    // &&
-				out_code(_S AND); break;
+				out_code(S.AND); break;
 			case SHL:                    // <<
-				out_code(_S SHL); break;
+				out_code(S.SHL); break;
 			case SAR:                    // >>
-				out_code(_S SAR); break;
+				out_code(S.SAR); break;
 			case SHR:                    // >>>
-				out_code(_S SHR); break;
+				out_code(S.SHR); break;
 			case EQ:                     // ==
-				out_code(_S EQ); break;
+				out_code(S.EQ); break;
 			case NE:                     // !=
-				out_code(_S NE); break;
+				out_code(S.NE); break;
 			case EQ_STRICT:              // ===
-				out_code(_S EQ_STRICT); break;
+				out_code(S.EQ_STRICT); break;
 			case NE_STRICT:              // !==
-				out_code(_S NE_STRICT); break;
+				out_code(S.NE_STRICT); break;
 			case LTE:                    // <=
-				out_code(_S LTE); break;
+				out_code(S.LTE); break;
 			case GTE:                    // >=
-				out_code(_S GTE); break;
+				out_code(S.GTE); break;
 			case XML_ELEMENT_TAG:         // <xml
 				if ( _is_xml_attribute_expression ) {
 					UNEXPECTED_TOKEN_ERROR();
@@ -1858,27 +1853,27 @@ public:
 				break;
 			case XML_COMMENT:             // <!-- comment -->
 				if (_is_jsx && !_is_xml_attribute_expression) {
-					out_code(_XML_COMMENT);
+					out_code(S.XML_COMMENT);
 					out_code(_scanner->string_value());
-					out_code(_XML_COMMENT_END);
+					out_code(S.XML_COMMENT_END);
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 				break;
 			case LPAREN:                  // (
-				out_code(_LPAREN);
+				out_code(S.LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
-				out_code(_RPAREN);
+				out_code(S.RPAREN);
 				break;
 			case LBRACK:                  // [
-				out_code(_LBRACK);
+				out_code(S.LBRACK);
 				parse_brace_expression(LBRACK, RBRACK);
-				out_code(_RBRACK);
+				out_code(S.RBRACK);
 				break;
 			case LBRACE:                  // {
-				out_code(_LBRACE);
+				out_code(S.LBRACE);
 				parse_brace_expression(LBRACE, RBRACE);
-				out_code(_RBRACE);
+				out_code(S.RBRACE);
 				break;
 			case COMMAND:                 // `str${
 				parse_command_string();
@@ -1891,9 +1886,9 @@ public:
 					parse_regexp_expression();
 				} else {
 					if (token() == DIV) {
-						out_code(_DIV);
+						out_code(S.DIV);
 					} else {
-						out_code(_ASSIGN_DIV);
+						out_code(S.ASSIGN_DIV);
 					}
 				}
 				break;
@@ -1943,37 +1938,37 @@ public:
 			case XML_COMMENT:             // <!-- comment -->
 				if (_is_jsx && !_is_xml_attribute_expression) {              //
 					if ( _is_class_member_data_expression ) { // 结束原先的多行注释
-						_out->push(_COMMENT_END); // */
+						_out->push(S.COMMENT_END); // */
 					}
-					out_code(_XML_COMMENT);
+					out_code(S.XML_COMMENT);
 					out_code(_scanner->string_value());
-					out_code(_XML_COMMENT_END);
+					out_code(S.XML_COMMENT_END);
 					if ( _is_class_member_data_expression ) { // 重新开始多行注释
-						_out->push(_COMMENT); // /*
+						_out->push(S.COMMENT); // /*
 					}
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 				break;
 			case LPAREN:                  // (
-				out_code(_LPAREN);
+				out_code(S.LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
-				out_code(_RPAREN);
+				out_code(S.RPAREN);
 				break;
 			case LBRACK:                  // [
-				out_code(_LBRACK);
+				out_code(S.LBRACK);
 				parse_brace_expression(LBRACK, RBRACK);
-				out_code(_RBRACK);
+				out_code(S.RBRACK);
 				break;
 			case LBRACE:                  // {
-				out_code(_LBRACE);
+				out_code(S.LBRACE);
 				parse_brace_expression(LBRACE, RBRACE);
-				out_code(_RBRACE);
+				out_code(S.RBRACE);
 				break;
 			case INC:            // ++
 			case DEC:            // --
 				if ( is_declaration_identifier(peek()) ) {
-					out_code(tok == INC ? _S INC : _S DEC);
+					out_code(tok == INC ? S.INC : S.DEC);
 					parse_single_expression();
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
@@ -1982,13 +1977,13 @@ public:
 			case TYPEOF:         // typeof
 				fetch_code(); parse_single_expression(); break;
 			case ADD:            // +
-				out_code(_ADD); parse_single_expression(); break;
+				out_code(S.ADD); parse_single_expression(); break;
 			case SUB:            // -
-				out_code(_SUB); parse_single_expression(); break;
+				out_code(S.SUB); parse_single_expression(); break;
 			case NOT:            // !
-				out_code(_NOT); parse_single_expression(); break;
+				out_code(S.NOT); parse_single_expression(); break;
 			case BIT_NOT:        // ~
-				out_code(_BIT_NOT); parse_single_expression(); break;
+				out_code(S.BIT_NOT); parse_single_expression(); break;
 			default:
 				UNEXPECTED_TOKEN_ERROR(); break;
 		}
@@ -2025,7 +2020,7 @@ public:
 				if ( op == XML_ELEMENT_TAG ) { // <tag
 					// parse with compare
 					next();
-					out_code(_LT);  // <
+					out_code(S.LT);  // <
 					fetch_code();   // identifier
 					op = peek();
 				} else { // 就此终结
@@ -2038,10 +2033,10 @@ public:
 	
 	void parse_conditional_expression() {
 		ASSERT_NEXT(CONDITIONAL); // ?
-		out_code(_CONDITIONAL); // ?
+		out_code(S.CONDITIONAL); // ?
 		parse_expression();
 		ASSERT_NEXT(COLON); // :
-		out_code(_COLON); // ?
+		out_code(S.COLON); // ?
 		parse_expression();
 	}
 	
@@ -2085,7 +2080,7 @@ public:
 		while(true) {
 			switch(peek()) {
 				case PERIOD:     // .
-					next(); out_code( _S PERIOD ); // .
+					next(); out_code( S.PERIOD ); // .
 					next();
 					ASSERT(is_declaration_identifier(token()));
 					fetch_code(); // identifier
@@ -2102,10 +2097,10 @@ public:
 		
 		switch (peek()) {
 			case INC:    // ++
-				next(); out_code(_INC);
+				next(); out_code(S.INC);
 				return;
 			case DEC:    // --
-				next(); out_code(_DEC);
+				next(); out_code(S.DEC);
 				return;
 			case LPAREN: // ( function call
 				break;
@@ -2116,9 +2111,9 @@ public:
 		// parse function call
 		
 		next();
-		out_code(_LPAREN); // (
+		out_code(S.LPAREN); // (
 		parse_brace_expression(LPAREN, RPAREN);
-		out_code(_RPAREN); // )
+		out_code(S.RPAREN); // )
 	}
 	
 	void parse_command_string() {
@@ -2129,11 +2124,11 @@ public:
 		while(true) {
 			XX_ASSERT(peek() == LBRACE);
 			out_code(_scanner->string_value());
-			out_code(_COMMAND);  // ${
+			out_code(S.COMMAND);  // ${
 			_scanner->next();
 			parse_command_string_block(); // parse { block }
 			XX_ASSERT(peek() == RBRACE);
-			out_code(_RBRACE);   // }
+			out_code(S.RBRACE);   // }
 			_scanner->scan_command_string(_scanner->next_location().end_pos);
 			Token tok = _scanner->next();
 			if (tok == COMMAND_END) {
@@ -2228,7 +2223,7 @@ public:
 		
 		XX_ASSERT(_scanner->token() == LBRACE); // {
 		
-		out_code(_LBRACE); // {
+		out_code(S.LBRACE); // {
 		
 		while(true) {
 			Token tok = next();
@@ -2245,7 +2240,7 @@ public:
 						next(); // identifier
 						fetch_code(); // fetch identifier
 						if ( next() == LPAREN ) { // (
-							out_code(_LPAREN); // (
+							out_code(S.LPAREN); // (
 							if ( tok == SET ) {
 								if ( is_declaration_identifier(next()) ) { // param identifier
 									fetch_code(); // fetch set param identifier
@@ -2254,11 +2249,11 @@ public:
 								}
 							}
 							if ( next() == RPAREN ) { // )
-								out_code(_RPAREN); // )
+								out_code(S.RPAREN); // )
 								if ( next() == LBRACE ) {
-									out_code(_LBRACE); // {
+									out_code(S.LBRACE); // {
 									parse_brace_expression(LBRACE, RBRACE);
-									out_code(_RBRACE); // }
+									out_code(S.RBRACE); // }
 									break; // ok
 								}
 							}
@@ -2274,18 +2269,18 @@ public:
 					if ( peek() == LPAREN ) { // (
 						goto function;
 					} else if ( member_data && peek() == ASSIGN ) { // = class member data
-						out_code(_COMMENT); // /*
+						out_code(S.COMMENT); // /*
 						Ucs2String identifier = _scanner->string_value();
 						fetch_code(); // identifier
 						next(); // =
-						out_code(_ASSIGN); // =
+						out_code(S.ASSIGN); // =
 						_out_class_member_data_expression.clear();
 						_is_class_member_data_expression = true;
 						parse_expression();
 						_is_class_member_data_expression = false;
 						ASSERT_NEXT(SEMICOLON); // ;
 						member_data->expressions.set(identifier, move(_out_class_member_data_expression));
-						out_code(_COMMENT_END); // */
+						out_code(S.COMMENT_END); // */
 					} else {
 						UNEXPECTED_TOKEN_ERROR();
 					}
@@ -2313,20 +2308,20 @@ public:
 					}
 				case MUL: // * generator function
 				 mul:
-					out_code(_MUL);
+					out_code(S.MUL);
 					if ( !is_class_member_identifier(next()) ) {
 						UNEXPECTED_TOKEN_ERROR();
 					}
 				 function:
 					fetch_code(); // fetch function identifier
 					if ( next() == LPAREN ) { // arguments
-						out_code(_LPAREN); // (
+						out_code(S.LPAREN); // (
 						parse_brace_expression(LPAREN, RPAREN);
-						out_code(_RPAREN); // )
+						out_code(S.RPAREN); // )
 						if ( next() == LBRACE ) { // function body
-							out_code(_LBRACE); // {
+							out_code(S.LBRACE); // {
 							parse_brace_expression(LBRACE, RBRACE); //
-							out_code(_RBRACE); // }
+							out_code(S.RBRACE); // }
 							break; // ok
 						}
 					}
@@ -2346,7 +2341,7 @@ public:
 					break;
 				}
 				case SEMICOLON: //;
-					out_code(_SEMICOLON); break;
+					out_code(S.SEMICOLON); break;
 				case RBRACE: // }
 					goto end;  // Class end
 				default:
@@ -2355,7 +2350,7 @@ public:
 		}
 		
 	 end:
-		out_code(_RBRACE); // {
+		out_code(S.RBRACE); // {
 	}
 	
 	void parse_export() {
@@ -2378,7 +2373,7 @@ public:
 		
 		switch (tok) {
 			case ASYNC:
-				out_code(_EXPORT_COMMENT);
+				out_code(S.EXPORT_COMMENT);
 				fetch_code();
 				ASSERT_NEXT(FUNCTION);
 				tok = token();
@@ -2388,7 +2383,7 @@ public:
 			case FUNCTION:  // function
 			case LET:       // let
 			case CONST:     // const
-				out_code(_EXPORT_COMMENT);
+				out_code(S.EXPORT_COMMENT);
 			 identifier:
 				if ( is_declaration_identifier(peek()) ) {
 					if (has_export_default) {
@@ -2409,11 +2404,11 @@ public:
 				if ( is_declaration_identifier(tok) ) {
 				 _export:
 					if (has_export_default) {
-						out_code(_EXPORT_DEFAULT); // exports.default = expression
+						out_code(S.EXPORT_DEFAULT); // exports.default = expression
 					} else {
-						out_code(_MODULE_EXPORT);  // module._export = expression
+						out_code(S.MODULE_EXPORT);  // module._export = expression
 					}
-					out_code(_ASSIGN); // =
+					out_code(S.ASSIGN); // =
 					parse_advance();   // expression
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
@@ -2427,7 +2422,7 @@ public:
 		Token tok = _scanner->next();
 
 		if (is_import_declaration_identifier(tok)) { // identifier
-			out_code(_CONST); // const
+			out_code(S.CONST); // const
 			collapse_scape();
 			Ucs2String id = _scanner->string_value();
 			tok = _scanner->next();
@@ -2435,67 +2430,67 @@ public:
 			if (tok == FROM) { // import default
 				// import app from 'qgr/app';
 				out_code(id);      // app
-				out_code(_ASSIGN); // =
+				out_code(S.ASSIGN); // =
 				ASSERT_NEXT(STRIXX_LITERAL);
-				out_code(_REQUIRE); // require('qgr/app').default;
-				out_code(_LPAREN); // (
+				out_code(S.REQUIRE); // require('qgr/app').default;
+				out_code(S.LPAREN); // (
 				fetch_code();
-				out_code(_RPAREN); // )
-				out_code(_PERIOD); // .
-				out_code(_DEFAULT); // default
+				out_code(S.RPAREN); // )
+				out_code(S.PERIOD); // .
+				out_code(S.DEFAULT); // default
 			} else if (tok == COMMA) { // ,
 				// import app, { GUIApplication } from 'qgr/app';
 				// Not support `as` keyword `import app, { GUIApplication as App } from 'qgr/app'`
-				out_code(_LBRACE);
+				out_code(S.LBRACE);
 				ASSERT_NEXT(LBRACE); // {
-				out_code(_DEFAULT);  // default
-				out_code(_COLON);    // :
+				out_code(S.DEFAULT);  // default
+				out_code(S.COLON);    // :
 				out_code(id);        // app
-				out_code(_COMMA);    // :
+				out_code(S.COMMA);    // :
 				parse_brace_expression(LBRACE, RBRACE);
-				out_code(_RBRACE); // }
+				out_code(S.RBRACE); // }
 				ASSERT_NEXT(FROM);
-				out_code(_ASSIGN); // =
+				out_code(S.ASSIGN); // =
 				ASSERT_NEXT(STRIXX_LITERAL);
-				out_code(_REQUIRE); // require('qgr/app');
-				out_code(_LPAREN); // (
+				out_code(S.REQUIRE); // require('qgr/app');
+				out_code(S.LPAREN); // (
 				fetch_code();
-				out_code(_RPAREN); // )
+				out_code(S.RPAREN); // )
 			}
 			else {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
 		else if (tok == MUL) {  // import * as app from 'qgr/app';
-			out_code(_CONST); // const
+			out_code(S.CONST); // const
 			ASSERT_NEXT(AS);      // as
 			tok = _scanner->next();
 			if (is_import_declaration_identifier(tok)) {
 				fetch_code();
 				ASSERT_NEXT(FROM);
-				out_code(_ASSIGN);  // =
+				out_code(S.ASSIGN);  // =
 				ASSERT_NEXT(STRIXX_LITERAL);
-				out_code(_REQUIRE); // require('qgr/app');
-				out_code(_LPAREN); // (
+				out_code(S.REQUIRE); // require('qgr/app');
+				out_code(S.LPAREN); // (
 				fetch_code();
-				out_code(_RPAREN); // )
+				out_code(S.RPAREN); // )
 			} else {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
 		else if (tok == LBRACE) { // {
-			out_code(_CONST); // var
+			out_code(S.CONST); // var
 			collapse_scape();
 			// import { GUIApplication } from 'qgr/app';
 			// Not support `as` keyword `import { GUIApplication as App } from 'qgr/app'`
 			parse_advance();
 			ASSERT_NEXT(FROM);
-			out_code(_ASSIGN); // =
+			out_code(S.ASSIGN); // =
 			ASSERT_NEXT(STRIXX_LITERAL);
-			out_code(_REQUIRE); // require('qgr/app');
-			out_code(_LPAREN); // (
+			out_code(S.REQUIRE); // require('qgr/app');
+			out_code(S.LPAREN); // (
 			fetch_code();
-			out_code(_RPAREN); // )
+			out_code(S.RPAREN); // )
 		}
 		else if (tok == STRIXX_LITERAL) {
 			// qgr private syntax
@@ -2504,18 +2499,18 @@ public:
 			if (peek() == AS) {
 				// import 'test_gui.jsx' as gui;
 				
-				out_code(_CONST); // var
+				out_code(S.CONST); // var
 				collapse_scape();
 				next(); // as
 				if ( is_import_declaration_identifier(peek()) ) {
 					out_code(_scanner->next_string_value());
-					out_code(_SPACE); //
-					out_code(_ASSIGN); // =
+					out_code(S.SPACE); //
+					out_code(S.ASSIGN); // =
 					next(); // IDENTIFIER
-					out_code(_REQUIRE); // require('qgr/app');
-					out_code(_LPAREN); // (
+					out_code(S.REQUIRE); // require('qgr/app');
+					out_code(S.LPAREN); // (
 					out_code(str);
-					out_code(_RPAREN); // )
+					out_code(S.RPAREN); // )
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
 				}
@@ -2544,17 +2539,17 @@ public:
 				}
 				
 				if (!basename.is_empty()) {
-					out_code(_CONST); // const
-					out_code(_SPACE); //
+					out_code(S.CONST); // const
+					out_code(S.SPACE); //
 					out_code(Coder::decoding_to_uint16(Encoding::utf8, basename)); // identifier
-					out_code(_SPACE); //
-					out_code(_ASSIGN); // =
-					out_code(_SPACE);  //
+					out_code(S.SPACE); //
+					out_code(S.ASSIGN); // =
+					out_code(S.SPACE);  //
 				}
-				out_code(_REQUIRE); // require('qgr/app');
-				out_code(_LPAREN); // (
+				out_code(S.REQUIRE); // require('qgr/app');
+				out_code(S.LPAREN); // (
 				out_code(str);
-				out_code(_RPAREN); // )
+				out_code(S.RPAREN); // )
 				collapse_scape();
 			}
 		}
@@ -2689,13 +2684,13 @@ public:
 		XX_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
 		
 		if (!_is_jsx || (!xml_inl && !is_legal_literal_begin(true)) ) {
-			out_code(_LT);
+			out_code(S.LT);
 			fetch_code();
 			return;
 		} else {
 			Token token = peek();
 			if ( token == PERIOD || token == COLON ) { // not xml
-				out_code(_LT);
+				out_code(S.LT);
 				fetch_code();
 				return;
 			}
@@ -2713,42 +2708,42 @@ public:
 			Ucs2String prefix = tag_name.substr(0, index);
 			Ucs2String suffix = tag_name.substr(index + 1);
 			
-			if (prefix == _VX) {  // <vx:tag
+			if (prefix == S.VX) {  // <vx:tag
 				// __vx(tag,[attrs],vdata)
 				// final result:
 				// {vx:0,v:[tag,[attrs],[child],vdata]}
-				out_code(_S _VX);     // __vx
-				out_code(_LPAREN);  // (
+				out_code(S.__VX);     // __vx
+				out_code(S.LPAREN);  // (
 				out_code(suffix);   // tag
-				out_code(_COMMA);   // ,
+				out_code(S.COMMA);   // ,
 				vx_com = true;
 			} else {                // <prefix:suffix
 				// {vx:1,v:[prefix,suffix,[attrs],[child],vdata]}
-				out_code(_S LBRACE);    // {
-				out_code(_S TYPE);      // t
-				out_code(_S COLON);     // :
-				out_code(_S NUMBER_1);  // 1
-				out_code(_S COMMA);     // ,
-				out_code(_S VALUE2);    // v
-				out_code(_S COLON);     // :
-				out_code(_S LBRACK);    // [
+				out_code(S.LBRACE);    // {
+				out_code(S.TYPE);      // t
+				out_code(S.COLON);     // :
+				out_code(S.NUMBER_1);  // 1
+				out_code(S.COMMA);     // ,
+				out_code(S.VALUE2);    // v
+				out_code(S.COLON);     // :
+				out_code(S.LBRACK);    // [
 				out_code(prefix);     // prefix
-				out_code(_S COMMA);     // ,
+				out_code(S.COMMA);     // ,
 				out_code(suffix);     // suffix
-				out_code(_S COMMA);     // ,
+				out_code(S.COMMA);     // ,
 			}
 		} else {              // <tag
 			// {vx:0,v:[tag,[attrs],[child],vdata]}
-			out_code(_S LBRACE);    // {
-			out_code(_S TYPE);      // t
-			out_code(_S COLON);     // :
-			out_code(_S NUMBER_0);  // 0
-			out_code(_S COMMA);     // ,
-			out_code(_S VALUE2);    // v
-			out_code(_S COLON);     // :
-			out_code(_S LBRACK);    // [
+			out_code(S.LBRACE);    // {
+			out_code(S.TYPE);      // t
+			out_code(S.COLON);     // :
+			out_code(S.NUMBER_0);  // 0
+			out_code(S.COMMA);     // ,
+			out_code(S.VALUE2);    // v
+			out_code(S.COLON);     // :
+			out_code(S.LBRACK);    // [
 			out_code(tag_name);   // tag
-			out_code(_S COMMA);     // ,
+			out_code(S.COMMA);     // ,
 		}
 		
 		Map<Ucs2String, bool> attrs;
@@ -2765,7 +2760,7 @@ public:
 			collapse_scape();  // scape
 			
 			if (!start_parse_attrs) {
-				out_code(_S LBRACK);    // [ parse attributes start
+				out_code(S.LBRACK);    // [ parse attributes start
 				//out_code(_ATTRS_COMMENT); // add comment
 				start_parse_attrs = true;
 			}
@@ -2773,28 +2768,28 @@ public:
 			// 添加属性
 			Ucs2StringBuilder* raw_out = _out;
 			Ucs2String attribute_name;
-			bool is_vdata = (_scanner->string_value() == _S VDATA && peek() != PERIOD);
+			bool is_vdata = (_scanner->string_value() == S.VDATA && peek() != PERIOD);
 			if (is_vdata) {
 				_out = &vdata;
 			}
-			out_code(_S LBRACK); // [ // attribute start
-			out_code(_S LBRACK); // [ // attribute name start
+			out_code(S.LBRACK); // [ // attribute start
+			out_code(S.LBRACK); // [ // attribute name start
 			
 			do { // .
-				out_code(_S QUOTES); // "
-				out_code(_S scanner->string_value());
-				out_code(_S QUOTES); // "
+				out_code(S.QUOTES); // "
+				out_code(_scanner->string_value());
+				out_code(S.QUOTES); // "
 				attribute_name.push(_scanner->string_value());
 				token = next();
 				if (token != PERIOD) break;
 				if (!is_object_property_identifier(next())) {
 					error("Xml Syntax error");
 				}
-				out_code(_S COMMA);   // ,
+				out_code(S.COMMA);   // ,
 			} while (true);
 			
-			out_code(_S RBRACK); // ] // attribute name end
-			out_code(_S COMMA);  // ,
+			out_code(S.RBRACK); // ] // attribute name end
+			out_code(S.COMMA);  // ,
 			
 			if (attrs.has(attribute_name)) {
 				error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
@@ -2809,19 +2804,19 @@ public:
 				} else if (peek() == COMMAND_DATA_BIND_ONCE) { // %{
 					parse_xml_attribute_data_bind(true);
 				} else {
-					out_code(_S NUMBER_0);  // 0
-					out_code(_S COMMA);     // ,
+					out_code(S.NUMBER_0);  // 0
+					out_code(S.COMMA);     // ,
 					parse_expression(); // 解析属性值表达式
 				}
 				_is_xml_attribute_expression = false;
 				token = _scanner->next();
 			} else { // 没有值设置为 ""
-				out_code(_S NUMBER_0);  // 0
-				out_code(_S COMMA);     // ,
-				out_code(_S QUOTES);    // "
-				out_code(_S QUOTES);    // "
+				out_code(S.NUMBER_0);  // 0
+				out_code(S.COMMA);     // ,
+				out_code(S.QUOTES);    // "
+				out_code(S.QUOTES);    // "
 			}
-			out_code(_S RBRACK); // ] // attribute end
+			out_code(S.RBRACK); // ] // attribute end
 			
 			if (is_vdata) {
 				_out = raw_out;
@@ -2829,21 +2824,21 @@ public:
 			
 			if (is_object_property_identifier(token)) {
 				if (!is_vdata) {
-					out_code(_S COMMA);   // ,
+					out_code(S.COMMA);   // ,
 				}
 				goto attr; // 重新开始新属性
 			}
 		} else {
-			out_code(_S LBRACK);  // [ parse attributes start
+			out_code(S.LBRACK);  // [ parse attributes start
 		}
-		out_code(_S RBRACK);    // ] parse attributes end
+		out_code(S.RBRACK);    // ] parse attributes end
 		
 		// 解析xml内容
 		if (token == DIV) {      // /  没有内容结束
 			if ( !vx_com ) {  // add chileren
-				out_code(_S COMMA);    // ,
-				out_code(_S LBRACK);   // [
-				out_code(_S RBRACK);   // ]
+				out_code(S.COMMA);    // ,
+				out_code(S.LBRACK);   // [
+				out_code(S.RBRACK);   // ]
 			}
 			collapse_scape();
 			if (_scanner->next() != GT) { // >  语法错误
@@ -2860,34 +2855,34 @@ public:
 		}
 		
 		if (vdata.length()) {
-			out_code(_S COMMA);    // ,
+			out_code(S.COMMA);    // ,
 			out_code(move(vdata));
 		}
 		
 		if (vx_com) { // __vx(tag,[attrs],vdata)
-			out_code(_S RPAREN); // )
+			out_code(S.RPAREN); // )
 		} else {      // {vx:0,v:[tag,[attrs],[child],vdata]}
-			out_code(_S RBRACK); // ]
-			out_code(_S RBRACE); // }
+			out_code(S.RBRACK); // ]
+			out_code(S.RBRACE); // }
 		}
 	}
 	
 	void parse_xml_attribute_data_bind(bool once) {
-		out_code(_S NUMBER_3);  // 2
-		out_code(_S COMMA);     // ,
+		out_code(S.NUMBER_3);  // 2
+		out_code(S.COMMA);     // ,
 		next();
 		XX_ASSERT(peek() == LBRACE);
 		XX_ASSERT(_scanner->string_value().is_empty());
 		// %{val}
-		out_code(_S DATA_BIND_FUNC); // ($,ctr)=>{return
+		out_code(S.DATA_BIND_FUNC); // ($,ctr)=>{return
 		next();
-		out_code(_S LPAREN);  // (
+		out_code(S.LPAREN);  // (
 		parse_brace_expression(LBRACE, RBRACE);
-		out_code(_S RPAREN);  // )
-		out_code(_S RBRACE);  // }
+		out_code(S.RPAREN);  // )
+		out_code(S.RBRACE);  // }
 		if (!once) {
-			out_code(_S COMMA);     // ,
-			out_code(_S NUMBER_1);  // 1
+			out_code(S.COMMA);     // ,
+			out_code(S.NUMBER_1);  // 1
 		}
 	}
 	
@@ -2901,17 +2896,17 @@ public:
 			if ( !ignore_space || ! s.is_blank() ) {
 				add_xml_children_cut_comma(is_once_comma);
 				// {vx:2,v:"s"}
-				out_code(_S LBRACE);   // {
-				out_code(_S TYPE);     // t
-				out_code(_S COLON);    // :
-				out_code(_S NUMBER_2); // 2
-				out_code(_S COMMA);    // ,
-				out_code(_S VALUE2);   // v
-				out_code(_S COLON);    // :
-				out_code(_S QUOTES);   // "
+				out_code(S.LBRACE);   // {
+				out_code(S.TYPE);     // t
+				out_code(S.COLON);    // :
+				out_code(S.NUMBER_2); // 2
+				out_code(S.COMMA);    // ,
+				out_code(S.VALUE2);   // v
+				out_code(S.COLON);    // :
+				out_code(S.QUOTES);   // "
 				out_code(s);
-				out_code(_S QUOTES);   // "
-				out_code(_S RBRACE);   // }
+				out_code(S.QUOTES);   // "
+				out_code(S.RBRACE);   // }
 			}
 			str.clear();
 		}
@@ -2927,7 +2922,7 @@ public:
 		if (is_once_comma) {
 			is_once_comma = false;
 		} else {
-			out_code(_S COMMA);     // ,
+			out_code(S.COMMA);     // ,
 		}
 	}
 	
@@ -2935,10 +2930,10 @@ public:
 		XX_ASSERT(_scanner->token() == GT);  // >
 		
 		// add chileren
-		out_code(_S COMMA);    // ,
+		out_code(S.COMMA);    // ,
 		collapse_scape();
-		out_code(_S LBRACK);   // [
-		// out_code(_S CHILDS_COMMENT); // add comment
+		out_code(S.LBRACK);   // [
+		// out_code(S.CHILDS_COMMENT); // add comment
 		
 		Token token;// prev = ILLEGAL;
 		Ucs2StringBuilder str, scape;
@@ -2953,9 +2948,9 @@ public:
 			switch (token) {
 				case XML_COMMENT:    // <!-- comment -->
 					/* ignore comment */
-					scape.push(_S XML_COMMENT);
+					scape.push(S.XML_COMMENT);
 					scape.push(_scanner->next_string_value());
-					scape.push(_S XML_COMMENT_END);
+					scape.push(S.XML_COMMENT_END);
 					break;
 					
 				case XML_ELEMENT_TAG: // <xml
@@ -2972,7 +2967,7 @@ public:
 																 *to_utf8_string(tag_name),
 																 *to_utf8_string(_scanner->next_string_value())) );
 					}
-					out_code(_S RBRACK);     // ]
+					out_code(S.RBRACK);     // ]
 					_scanner->next();
 					return;
 					
@@ -2990,25 +2985,25 @@ public:
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
 					_scanner->next();     // command %% or %
 					_scanner->next();     // next {
-					out_code(_S LBRACE);    // {
-					out_code(_S TYPE);      // t
-					out_code(_S COLON);     // :
-					out_code(_S NUMBER_3);  // 3
-					out_code(_S COMMA);     // ,
-					out_code(_S VALUE2);    // v
-					out_code(_S COLON);     // :
-					out_code(_S DATA_BIND_FUNC);      // ($,ctr)=>{return
-					out_code(_S LPAREN);  // (
+					out_code(S.LBRACE);    // {
+					out_code(S.TYPE);      // t
+					out_code(S.COLON);     // :
+					out_code(S.NUMBER_3);  // 3
+					out_code(S.COMMA);     // ,
+					out_code(S.VALUE2);    // v
+					out_code(S.COLON);     // :
+					out_code(S.DATA_BIND_FUNC);      // ($,ctr)=>{return
+					out_code(S.LPAREN);  // (
 					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(_S RPAREN);  // )
-					out_code(_S RBRACE);  // }
+					out_code(S.RPAREN);  // )
+					out_code(S.RBRACE);  // }
 					if (token == COMMAND_DATA_BIND) { // MULTIPLE
-						out_code(_S COMMA);     // ,
-						out_code(_S MULTIPLE);  // m
-						out_code(_S COLON);     // :
-						out_code(_S NUMBER_1);  // 1
+						out_code(S.COMMA);     // ,
+						out_code(S.MULTIPLE);  // m
+						out_code(S.COLON);     // :
+						out_code(S.NUMBER_1);  // 1
 					}
-					out_code(_S RBRACE);  // }
+					out_code(S.RBRACE);  // }
 					pos = _scanner->location().end_pos;
 					break;
 					
@@ -3016,9 +3011,9 @@ public:
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
 					_scanner->next();     // command ${
 					_scanner->next();     // next {
-					out_code(_S LPAREN);    // (
+					out_code(S.LPAREN);    // (
 					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(_S RPAREN);    // )
+					out_code(S.RPAREN);    // )
 					pos = _scanner->location().end_pos;
 					break;
 					
@@ -3121,20 +3116,20 @@ public:
 	Array<Ucs2String> _exports;
 	Ucs2String        _export_default;
 	Array<MemberDataExpression> _class_member_data_expression;
-	uint              _level;
-	bool              _is_jsx;
-	bool              _is_class_member_data_expression;
-	bool              _is_xml_attribute_expression;
-	bool  _single_if_expression_before;
-	bool  _has_export_default;
-	bool  _clean_comment;
+	uint _level;
+	bool _is_jsx;
+	bool _is_class_member_data_expression;
+	bool _is_xml_attribute_expression;
+	bool _single_if_expression_before;
+	bool _has_export_default;
+	bool _clean_comment;
 };
 
-Ucs2String Jsx::transform_jsx(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
+Ucs2String javascript_transform_x(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
 	return Parser(in, path, true, clean_comment).transform();
 }
 
-Ucs2String Jsx::transform_js(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
+Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comment) throw(Error) {
 	return Parser(in, path, false, clean_comment).transform();
 }
 

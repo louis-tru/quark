@@ -261,9 +261,9 @@ class NativeUtil {
 		String path = args[1]->ToStringValue(worker);
 		JS_TRY_CATCH({
 			if (jsx) {
-				rv = Jsx::transform_jsx(in, path);
+				rv = javascript_transform_x(in, path);
 			} else {
-				rv = Jsx::transform_js(in, path);
+				rv = javascript_transform(in, path);
 			}
 		}, Error);
 		

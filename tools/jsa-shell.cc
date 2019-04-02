@@ -42,16 +42,16 @@ using namespace qgr;
 bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx, bool clean_comment) {
 #if DEBUG_JSA
 	if ( jsx ) {
-		out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src, clean_comment));
+		out = Codec::encoding(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
 	} else {
-		out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src, clean_comment));
+		out = Codec::encoding(Encoding::utf8, javascript_transform(in, src, clean_comment));
 	}
 #else
 	try {
 		if ( jsx ) {
-			out = Codec::encoding(Encoding::utf8, Jsx::transform_jsx(in, src, clean_comment));
+			out = Codec::encoding(Encoding::utf8, javascript_transform_x(in, src, clean_comment));
 		} else {
-			out = Codec::encoding(Encoding::utf8, Jsx::transform_js(in, src, clean_comment));
+			out = Codec::encoding(Encoding::utf8, javascript_transform(in, src, clean_comment));
 		}
 	} catch(Error& err) {
 		error(err.message());
