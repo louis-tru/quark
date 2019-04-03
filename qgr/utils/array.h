@@ -52,13 +52,13 @@ template<class T> class WeakArrayBuffer;
 template<class T, class Container>
 class XX_EXPORT Array: public Object {
  private:
+
 	struct Wrap { T _item; };
-	
 	struct IteratorData {
 	 public:
 		typedef T Value;
 		const T& value() const;
-		T& value();
+					T& value();
 		inline int index() const { return _index; }
 	 private:
 		IteratorData();
@@ -73,7 +73,7 @@ class XX_EXPORT Array: public Object {
 		friend class IteratorTemplateConst<IteratorData>;
 		friend class IteratorTemplate<IteratorData>;
 	};
-	
+
 	Array(T* data, uint length, uint capacity);
 
  public:
@@ -120,8 +120,8 @@ class XX_EXPORT Array: public Object {
 	Iterator end();
 	uint length() const;
 	uint capacity() const;
-	
  private:
+
 	template<class S> friend class ArrayBuffer;
 	template<class S> friend class WeakArrayBuffer;
 	uint        _length;
