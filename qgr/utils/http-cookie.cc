@@ -290,7 +290,8 @@ Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool sec
 
 static void http_cookie_set2(String domain,
 														 cString& name,
-														 cString& value, int64 expires, cString& path, bool secure) {
+														 cString& value, int64 expires, cString& path, bool secure) 
+{
 	int r;
 	
 	r = sqlite3_bind_text(_http_cookie_has, 1, *domain, domain.length(), nullptr); assert_sqlite3(r);
@@ -391,7 +392,8 @@ void http_cookie_set_with_expression(cString& domain, cString& expression) {
 
 void http_cookie_set(cString& domain,
 										 cString& name,
-										 cString& value, int64 expires, cString& path, bool secure) {
+										 cString& value, int64 expires, cString& path, bool secure) 
+{
 	ScopeLock scope(mutex);
 	http_cookie_initialize();
 	if ( _db ) {

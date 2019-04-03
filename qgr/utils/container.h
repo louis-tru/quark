@@ -49,7 +49,7 @@ XX_NS(qgr)
 /**
  * @class Container
  */
-template <class T, class Allocator> class XX_EXPORT Container {
+template <typename T, class Allocator> class XX_EXPORT Container {
  public:
 	
 	~Container() {

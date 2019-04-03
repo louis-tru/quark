@@ -86,10 +86,10 @@ struct ObjectAllocator {
 	void (*retain)(Object* obj);
 };
 
-template<class T, class A = DefaultAllocator> class Container;
+template<typename T, class A = DefaultAllocator> class Container;
 template<class T, class Container = Container<T>> class Array;
 template<class Item, class ItemAllocator = DefaultAllocator> class List;
-template<class Char = char, class Container = Container<Char>> class BasicString;
+template<typename Char = char, class Container = Container<Char>> class BasicString;
 typedef BasicString<> String;
 typedef const String cString;
 typedef BasicString<uint16, Container<uint16>> Ucs2String;

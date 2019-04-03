@@ -37,7 +37,7 @@
 
 XX_NS(qgr)
 
-template <class Char,
+template <typename Char,
 					class Container,
 					class ItemAllocator = DefaultAllocator>
 class BasicStringBuilder;
@@ -47,7 +47,7 @@ typedef BasicStringBuilder<uint16, Container<uint16>> Ucs2StringBuilder;
 /**
  * @class BasicLongString 字符串链表
  */
-template <class Char, class Container, class ItemAllocator>
+template <typename Char, class Container, class ItemAllocator>
 class XX_EXPORT BasicStringBuilder: public List<BasicString<Char, Container>, ItemAllocator> {
  public:
 	typedef BasicString<Char, Container> Item;
