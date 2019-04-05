@@ -93,7 +93,7 @@ jsa-shell: $(GYPFILES)
 	@cp $(LIBS_DIR)/jsa-shell $(QMAKE)/bin/$(OS)/jsa-shell
 
 test2: $(GYPFILES)
-	#make -C test -f test2.mk
+	@#make -C test -f test2.mk
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
