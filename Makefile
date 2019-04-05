@@ -71,7 +71,7 @@ git_fetch_deps=echo fetch deps \
 	)
 
 .PHONY: $(STYLES) jsa-shell install install-qmake-link install-qmake \
-	help all clean build web ios android osx doc test2 watch build-linux-all fetch
+	help all clean build web ios android osx doc test2 watch build-linux-all fetch pull
 
 .SECONDEXPANSION:
 
@@ -195,6 +195,6 @@ help:
 watch:
 	@./tools/sync_watch
 
-fetch:
+fetch pull:
 	@git fetch
 	@$(call git_fetch_deps)
