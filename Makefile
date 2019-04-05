@@ -28,6 +28,7 @@ endif
 
 #######################
 
+DEPS			= libs/qkit libs/qmake/gyp.qgr depe/v8-link depe/FFmpeg.qgr depe/node.qgr
 STYLES		= make xcode msvs make-linux cmake-linux cmake
 GYPFILES	= Makefile qgr.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS	= -Goutput_dir="out" \
@@ -50,8 +51,27 @@ make_compile=\
 	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
+git_fetch=sh -c "\
+	if [ ! -f $(1)/.git/config ]; then \
+		git clone $(3) $(1) && cd $(1) && git checkout $(2) && echo git clone $(3) ok; \
+	else \
+		cd $(1) && git checkout $(2) && git fetch && echo git fetch $(3) ok; \
+	fi"
+
+#https://github.com/louis-tru/qgr.git
+#https://gitee.com/louis-tru/qgr.git
+
+git_fetch_deps=echo fetch deps \
+	$(foreach i,$(DEPS),&& \
+		$(call git_fetch,\
+			$(call basename,$(i)),\
+			$(if $(call suffix,$(i)),$(call subst,.,,$(call suffix,$(i))),master),\
+			https://github.com/louis-tru/$(call subst,$(call suffix,$(i)),,$(call notdir,$(i))).git\
+		) \
+	)
+
 .PHONY: $(STYLES) jsa-shell install install-qmake-link install-qmake \
-	help all clean build web ios android osx doc test2 watch build-linux-all
+	help all clean build web ios android osx doc test2 watch build-linux-all fetch
 
 .SECONDEXPANSION:
 
@@ -174,3 +194,7 @@ help:
 
 watch:
 	@./tools/sync_watch
+
+fetch:
+	@git fetch
+	@$(call git_fetch_deps)
