@@ -61,7 +61,7 @@ git_pull=sh -c "\
 #https://github.com/louis-tru/qgr.git
 #https://gitee.com/louis-tru/qgr.git
 
-git_pull_deps=echo fetch deps \
+git_pull_deps=echo pull deps \
 	$(foreach i,$(DEPS),&& \
 		$(call git_pull,\
 			$(call basename,$(i)),\
@@ -71,7 +71,7 @@ git_pull_deps=echo fetch deps \
 	)
 
 .PHONY: $(STYLES) jsa-shell install install-qmake-link install-qmake \
-	help all clean build web ios android osx doc test2 watch build-linux-all fetch pull
+	help all clean build web ios android osx doc test2 watch build-linux-all pull
 
 .SECONDEXPANSION:
 
