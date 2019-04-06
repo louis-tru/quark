@@ -55,7 +55,7 @@ git_fetch=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
 		git clone $(3) $(1) && cd $(1) && git checkout $(2) && echo git clone $(3) ok; \
 	else \
-		cd $(1) && git checkout $(2) && git fetch && echo git fetch $(1) ok; \
+		cd $(1) && git checkout $(2) && git fetch && echo git fetch $(3) ok; \
 	fi"
 
 #https://github.com/louis-tru/qgr.git
