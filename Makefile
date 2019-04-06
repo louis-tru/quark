@@ -51,19 +51,19 @@ make_compile=\
 	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
-git_fetch=sh -c "\
+git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
 		git clone $(3) $(1) && cd $(1) && git checkout $(2) && echo git clone $(3) ok; \
 	else \
-		cd $(1) && git checkout $(2) && git fetch && echo git fetch $(3) ok; \
+		cd $(1) && git checkout $(2) && git pull && echo git fetch $(3) ok; \
 	fi"
 
 #https://github.com/louis-tru/qgr.git
 #https://gitee.com/louis-tru/qgr.git
 
-git_fetch_deps=echo fetch deps \
+git_pull_deps=echo fetch deps \
 	$(foreach i,$(DEPS),&& \
-		$(call git_fetch,\
+		$(call git_pull,\
 			$(call basename,$(i)),\
 			$(if $(call suffix,$(i)),$(call subst,.,,$(call suffix,$(i))),master),\
 			https://github.com/louis-tru/$(call subst,$(call suffix,$(i)),,$(call notdir,$(i))).git\
@@ -195,6 +195,6 @@ help:
 watch:
 	@./tools/sync_watch
 
-fetch pull:
-	@git fetch
-	@$(call git_fetch_deps)
+pull:
+	@git pull
+	@$(call git_pull_deps)
