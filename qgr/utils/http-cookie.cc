@@ -400,7 +400,7 @@ void http_cookie_delete_all(cString& domain, bool secure) {
 					i.value().length(), (char*)*i.value(),
 				};
 				r = bp_remove(_db, &key); assert_r(r);
-				LOG("http_cookie_delete_all 2, %s", key.value);
+				//LOG("http_cookie_delete_all 2, %s", key.value);
 			}
 		}
 	}
