@@ -6,6 +6,8 @@ import {
 } from 'qgr';
 import 'qgr/util';
 
+var resolve = require.resolve;
+
 // CSS(<Style>
 //   .long_btn {
 //     margin: 10;

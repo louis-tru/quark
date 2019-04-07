@@ -10,6 +10,8 @@ import './http';
 import './zlib';
 import './storage';
 
+var resolve = require.resolve;
+
 export const vx = (
 
 	<Mynavpage title="Examples" source=resolve(__filename)>

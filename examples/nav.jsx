@@ -5,6 +5,8 @@ import { Mynavpage } from './public';
 import { Navbar, Toolbar } from 'qgr/nav';
 import review_vx from './review';
 
+var resolve = require.resolve;
+
 function hide_show_navbar(evt) {
 	var navbar = evt.sender.owner.navbar;
 	var hidden = !navbar.hidden

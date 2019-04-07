@@ -7,6 +7,8 @@ import * as aaaa from 'qgr/path';
 const src_720 = 'http://quickgr.org/media/piper720p.mp4';
 const audio_src = 'http://quickgr.org/media/all_we_know.mp3';
 
+var resolve = require.resolve;
+
 var audio_player = null;
 
 function PlayVideo(evt) {

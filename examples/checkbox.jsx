@@ -2,6 +2,9 @@ import { Div, Text, CSS, atomPixel } from 'qgr';
 import { Switch, Checkbox } from 'qgr/checkbox';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
+
 CSS({
 	'.checkbox_page': {
 		width: 'full',

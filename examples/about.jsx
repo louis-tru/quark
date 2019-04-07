@@ -1,6 +1,8 @@
 import { Div, Button, Text, Scroll } from 'qgr';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 export default const vx = (
 	<Mynavpage title="About" source=resolve(__filename)>
 		<Scroll width="full" height="full">

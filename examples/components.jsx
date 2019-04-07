@@ -7,6 +7,8 @@ import './nav';
 import './dialog';
 import './list';
 
+var resolve = require.resolve;
+
 export const vx = (
 	<Mynavpage title="Components" source=resolve(__filename)>
 		<Scroll width="full" height="full" bounceLock=0>

@@ -2,6 +2,8 @@ import { Div, Text, CSS, atomPixel } from 'qgr';
 import { Stepper } from 'qgr/stepper';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 CSS({
 	'.strpper_page': {
 		width: 'full',

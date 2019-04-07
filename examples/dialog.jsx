@@ -2,6 +2,8 @@ import { Div, Button, TextNode } from 'qgr';
 import { Mynavpage } from './public';
 import 'qgr/dialog';
 
+var resolve = require.resolve;
+
 function alert() {
 	dialog.alert('Hello alert.');
 }

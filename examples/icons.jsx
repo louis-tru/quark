@@ -3,6 +3,8 @@ import {
 } from 'qgr';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 class IconsPanel extends ViewController {
 	
 	loadView(vx) {

@@ -4,6 +4,8 @@ import 'qgr/http';
 import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 function url(evt) {
 	return evt.sender.owner.find('input').value;
 }

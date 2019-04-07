@@ -1,6 +1,8 @@
 import { Div, Button, Text, Input, Textarea, qgr, Label } from 'qgr';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 function start_input(evt) {
 	evt.sender.owner.find('input1').focus();
 }

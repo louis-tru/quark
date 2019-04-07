@@ -4,6 +4,8 @@ import 'qgr/path';
 import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 const filename = path.documents('test.txt');
 
 fs.mkdirpSync(path.dirname(filename));

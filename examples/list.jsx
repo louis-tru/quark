@@ -2,6 +2,8 @@ import { Div, Button, CSS, Input, Text, atomPixel } from 'qgr';
 import { List } from 'qgr/list';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 function add(evt) {
 	var text = evt.sender.owner.find('input').value;
 	evt.sender.owner.find('list').push({ text: text });

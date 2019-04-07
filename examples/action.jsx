@@ -6,6 +6,8 @@ import { Toolbar } from 'qgr/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 
+var resolve = require.resolve;
+
 function view_code(evt) {
 	evt.sender.owner.collection.push(review_vx, 1);
 }

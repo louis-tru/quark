@@ -3,6 +3,8 @@ import 'qgr/storage';
 import { alert } from 'qgr/dialog';
 import { Mynavpage } from './public';
 
+var resolve = require.resolve;
+
 const key = 'test';
 
 function keyenter(evt) {

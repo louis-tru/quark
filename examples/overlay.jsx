@@ -2,6 +2,8 @@ import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'qgr';
 import { Navbutton, Mynavpage } from './public';
 import { Overlay } from 'qgr/overlay';
 
+var resolve = require.resolve;
+
 function show_overlay(evt) {
 	New(
 		<Overlay>

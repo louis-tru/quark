@@ -10,6 +10,8 @@ import './examples';
 import about_vx from './about';
 import review_vx from './review';
 
+var resolve = require.resolve;
+
 CSS({
 	
 	'.category_title': {
