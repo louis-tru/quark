@@ -145,6 +145,7 @@
 				},
 			},
 			'Release': {
+				'defines': [ 'NDEBUG' ],
 				'cflags': [
 					'-O3', 
 					'-ffunction-sections', 

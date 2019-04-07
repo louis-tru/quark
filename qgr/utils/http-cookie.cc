@@ -30,311 +30,195 @@
 
 #include "qgr/utils/http-cookie.h"
 #include "qgr/utils/fs.h"
-#include <sqlite3.h>
+#include "qgr/utils/json.h"
+#include <bplus.h>
 
 XX_NS(qgr)
 
 #define _db _http_cookie_db
+#define assert_r(c) XX_ASSERT(c == BP_OK)
 
 static Mutex mutex;
-static sqlite3* _http_cookie_db = nullptr;
-static sqlite3_stmt* _http_cookie_get = nullptr;
-static sqlite3_stmt* _http_cookie_get_all = nullptr;
-static sqlite3_stmt* _http_cookie_has = nullptr;
-static sqlite3_stmt* _http_cookie_add = nullptr;
-static sqlite3_stmt* _http_cookie_set = nullptr;
-static sqlite3_stmt* _http_cookie_del = nullptr;
-static sqlite3_stmt* _http_cookie_del_all = nullptr;
-static sqlite3_stmt* _http_cookie_clear = nullptr;
-static int64         _http_cookie_date = 0;
-static int           _http_cookie_initializ_ok = 0;
-static const String DEFAULT_PATH('/');
-static const String SET_PATH_START('^');
-static const String PERIOD('.');
-static const String DIV('/');
+static bp_db_t* _http_cookie_db = nullptr;
+static int _has_initialize = 0;
+static int _http_cookie_date = 0;
 static const String EXPIRES("expires");
 static const String MAX_AGE("max-age");
 static const String PATH("path");
 static const String DOMAIN_STR("domain");
 static const String SECURE("secure");
 
-#define check(c) if ( !initializ_check(c) ) return
-
-#if DEBUG
-static void assert_sqlite3_func(int c) {
-	if ( c == SQLITE_ERROR ) {
-		XX_ERR(sqlite3_errmsg(_db));
-		XX_ASSERT(0);
-	}
+static String get_db_filename() {
+	return Path::temp(".cookie.dp");
 }
-# define assert_sqlite3(c) assert_sqlite3_func(c)
-#else
-# define assert_sqlite3(c) ((void)0)
-#endif
 
 static void http_cookie_close() {
-	sqlite3* __db = _db;
+	bp_db_t* __db = _http_cookie_db;
 	_db = nullptr;
-	if ( _http_cookie_get ) sqlite3_finalize(_http_cookie_get); 
-	_http_cookie_get = nullptr;
-	if ( _http_cookie_get_all ) sqlite3_finalize(_http_cookie_get_all); 
-	_http_cookie_get_all = nullptr;
-	if ( _http_cookie_has ) sqlite3_finalize(_http_cookie_has); 
-	_http_cookie_has = nullptr;
-	if ( _http_cookie_add ) sqlite3_finalize(_http_cookie_add); 
-	_http_cookie_add = nullptr;
-	if ( _http_cookie_set ) sqlite3_finalize(_http_cookie_set); 
-	_http_cookie_set = nullptr;
-	if ( _http_cookie_del ) sqlite3_finalize(_http_cookie_del); 
-	_http_cookie_del = nullptr;
-	if ( _http_cookie_del_all ) sqlite3_finalize(_http_cookie_del_all); 
-	_http_cookie_del_all = nullptr;
-	if ( _http_cookie_clear ) sqlite3_finalize(_http_cookie_clear); 
-	_http_cookie_clear = nullptr;
-	if ( __db ) sqlite3_close(__db);
+	if ( __db ) bp_close(__db);
 }
 
-static bool initializ_check(int c) {
-	if ( c == SQLITE_ERROR ) {
-		XX_ERR(sqlite3_errmsg(_db));
-		http_cookie_close();
-		XX_FATAL("Cannot initializ http cookie sqlite database!");
-		return 0;
+static int bp__fuzz_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b) 
+{
+	uint32_t len = a->length < b->length ? a->length : b->length;
+
+	for (uint32_t i = 0; i < len; i++) {
+		if (a->value[i] != b->value[i])
+			return (uint8_t) a->value[i] > (uint8_t) b->value[i] ? 1 : -1;
 	}
+	return 0;
+}
+
+static int bp__default_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b)
+{
+	int r = bp__fuzz_compare_cb(arg, a, b);
+	if (r == 0) {
+		return a->length - b->length;	
+	}
+	return r;
+}
+
+static int bp__default_filter_cb(void *arg, const bp_key_t *key)
+{
+	/* default filter accepts all keys */
 	return 1;
 }
 
-static int get_domain_level(cString& domain) {
-	int i = -1;
-	int count = -1;
-	do {
-		i = domain.index_of(PERIOD, i + 1);
-		count++;
-	} while ( i != -1 );
-	
-	return count;
-}
-
-static int get_path_level(cString& path) {
-	if ( path.length() == 1 ) {
-		return 0;
-	}
-	int i = -1;
-	int count = -1;
-	do {
-		i = path.index_of(DIV, i + 1);
-		count++;
-	} while ( i != -1 );
-	
-	return count;
-}
-
-static void http_cookie_initialize() {
-	if ( _http_cookie_initializ_ok++ == 0 ) {
-		sqlite3_initialize();
-		
-		_http_cookie_date = sys::time();
-		
-		int r = sqlite3_open(Path::fallback_c(Path::temp(".cookie.db")), &_db);
-		
-		if ( r == SQLITE_OK ) {
-			
-			static char* errmsg = nullptr;
-			
-			r = sqlite3_exec(_db,
-											 "create table if not exists Cookie("
-											 "  domain  Text, "
-											 "  path    Text, "
-											 "  name    Text, "
-											 "  value   Text, "
-											 "  expires INTEGER, "
-											 "  date    INTEGER, "
-											 "  secure  INTEGER, "
-											 "  domain_level INTEGER, "
-											 "  path_level INTEGER, "
-											 "  ext     Text"
-											 ")"
-											 , nullptr, nullptr, &errmsg);
-			check(r);
-			
-			cchar* sql_get =
-			"select value from Cookie "
-			"where name=? "
-			"and instr(?,domain)!=0 "
-			"and instr(?,path)=1 "
-			"and (expires>? or (expires=-1 and date=?)) "
-			"and (secure=0 or ?=1) "
-			"order by domain_level desc, path_level desc";
-			
-			cchar* sql_get_all =
-			"select * from (select name,value from Cookie "
-			"where instr(?,domain)!=0 "
-			"and instr(?,path)=1 "
-			"and (expires>? or (expires=-1 and date=?)) "
-			"and (secure=0 or ?=1) "
-			"order by domain_level, path_level) group by name";
-			
-			cchar* sql_has = "select value from Cookie where domain=? and path=? and name=?";
-			
-			cchar* sql_add =
-			"insert into Cookie(domain,path,name,value,expires,date,secure,domain_level,path_level,ext) "
-			"values(?1,?2,?3,?4,?5,?6,?7,?8,?9,'')";
-			
-			cchar* sql_set = "update Cookie set value=?4,expires=?5,date=?6,secure=?7 where domain=?1 and path=?2 and name=?3";
-			cchar* sql_del = "delete from Cookie where domain=? and path=? and name=?";
-			cchar* sql_del_all = "delete from Cookie where domain=?";
-			cchar* sql_clear = "delete from Cookie";
-			
-			r = sqlite3_prepare(_db, sql_get, int(strlen(sql_get)), &_http_cookie_get, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_get_all, int(strlen(sql_get_all)), &_http_cookie_get_all, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_has, int(strlen(sql_has)), &_http_cookie_has, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_add, int(strlen(sql_add)), &_http_cookie_add, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_set, int(strlen(sql_set)), &_http_cookie_set, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_del, int(strlen(sql_del)), &_http_cookie_del, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_del_all, int(strlen(sql_del_all)), &_http_cookie_del_all, nullptr); check(r);
-			r = sqlite3_prepare(_db, sql_clear, int(strlen(sql_clear)), &_http_cookie_clear, nullptr); check(r);
-			
-			atexit(http_cookie_close);
+static void http_cookie_open() {
+	if ( _db == nullptr ) {
+		int r = bp_open(&_db, Path::fallback_c(get_db_filename()));
+		if ( r == BP_OK ) {
+			bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
+			if (_has_initialize++ == 0) {
+				_http_cookie_date = sys::time_monotonic();
+				atexit(http_cookie_close);
+			}
 		} else {
 			_db = nullptr;
-			XX_ERR(sqlite3_errstr(r));
 		}
 	}
 }
 
-static String get_storage_domain_value(cString& domain) {
-	String str = (domain[0] == '.' ? domain.substr(1) : domain);
-	if ( domain[domain.length() - 1] != '$' ) {
-		str.push("$", 1);
+static String get_storage_key_prefix(bool secure, cString& domain) {
+	String r(secure ? '1': '0'); 
+	r.push('.');
+	auto domains = domain.split('.');
+	for (int i = domains.length() - 1; i > -1; i--) {
+		if (!domains[i].is_empty())
+			r.push(domains[i]).push('.');
 	}
-	return str;
+
+	return  r;
+}
+
+static String get_storage_key(cString& domain, 
+	cString& name, cString& path, bool secure) {
+	String r = get_storage_key_prefix(secure, domain);
+
+	if (!path.is_empty()) {
+		if (path[0] != '/')
+			r.push('/');
+		r.push(path);
+		if (r[r.length() - 1] != '/')
+			r.push('/');
+	}
+	else {
+		r.push('/');
+	}
+
+	r.push('@');
+	r.push(name);
+	return r;
+}
+
+static int http_cookie_fuzz_query_compare_cb(void* arg, const bp_key_t *a, const bp_key_t *b) {
+	auto cur = (Buffer*)arg;
+	int r = bp__fuzz_compare_cb(arg, a, b);
+	if (r != 0) return r;
+	if (b->length > a->length) return -1;
+	// LOG("a: %s, b: %s", a->value, b->value);
+	cur->write(a->value, 0, a->length);
+	return 0;
+};
+
+static int http_cookie_fuzz_query(cString& domain, bool secure, Buffer *buf) 
+{
+	String _key = get_storage_key_prefix(secure, domain);
+	bp_key_t key = { _key.length(), (char*)*_key };
+	bp_value_t value;
+	int r;
+
+	// fuzz query begin end node 
+	bp_set_compare_cb(_db, http_cookie_fuzz_query_compare_cb, buf);
+	r = bp_get(_db, &key, &value); assert_r(r);
+
+	if (r != BP_OK) goto end;
+
+	bp_set_compare_cb(_db, http_cookie_fuzz_query_compare_cb, buf+1);
+	r = bp_get_reverse(_db, &key, &value); assert_r(r);
+
+	if (r != BP_OK) goto end;
+
+end:
+	bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
+
+	return r;
 }
 
 String http_cookie_get(cString& domain, cString& name, cString& path, bool secure) {
-	ScopeLock scope(mutex);
-	http_cookie_initialize();
-	String result;
+	http_cookie_open();
+
 	if ( _db ) {
-		String domain_ = get_storage_domain_value(domain);
-		String path_ = path.is_empty() ? DEFAULT_PATH : path;
-		
-		int r;
-		
-		r = sqlite3_bind_text(_http_cookie_get, 1, *name, name.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_get, 2, *domain_, domain_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_get, 3, *path_, path_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_get, 4, sys::time()); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_get, 5, _http_cookie_date); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_get, 6, secure); assert_sqlite3(r);
-		r = sqlite3_step(_http_cookie_get); assert_sqlite3(r);
-		if ( r == SQLITE_ROW ) {
-			result = (cchar*)sqlite3_column_text(_http_cookie_get, 0);
+		String _key = get_storage_key(domain, name, path, secure);
+		bp_key_t key = { _key.length(), (char*)*_key };
+		bp_key_t val;
+
+		if (bp_get_reverse(_db, &key, &val) == BP_OK) {
+			try { 
+				JSON json = JSON::parse(Buffer(val.value, val.length));
+				int64 expires = json[0].to_int64();
+				int64 date = json[1].to_int64();
+
+				if ((expires == -1 && date == _http_cookie_date) || expires > sys::time()) {
+					return json[2].to_string();
+				}
+			} catch(cError& err) {
+				XX_ERR(err);
+			}
 		}
-		r = sqlite3_reset(_http_cookie_get); assert_sqlite3(r);
 	}
-	return result;
+	return String();
 }
 
-String http_cookie_get_all_string(cString& domain, cString& path, bool secure) {
-	ScopeLock scope(mutex);
-	http_cookie_initialize();
-	Array<String> result;
-	if ( _db ) {
-		String domain_ = get_storage_domain_value(domain);
-		String path_ = path.is_empty() ? DEFAULT_PATH : path;
-		
-		int r;
-		
-		r = sqlite3_bind_text(_http_cookie_get_all, 1, *domain_, domain_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_get_all, 2, *path_, path_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_get_all, 3, sys::time()); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_get_all, 4, _http_cookie_date); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_get_all, 5, secure); assert_sqlite3(r);
-		
-		while ( sqlite3_step(_http_cookie_get_all) == SQLITE_ROW ) {
-			String str;
-			str.push((cchar*)sqlite3_column_text(_http_cookie_get_all, 0));
-			str.push("=", 1);
-			str.push((cchar*)sqlite3_column_text(_http_cookie_get_all, 1));
-			result.push(str);
-		}
-		r = sqlite3_reset(_http_cookie_get_all); assert_sqlite3(r);
-	}
-	return result.join( "; " );
-}
-
-Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool secure) {
-	ScopeLock scope(mutex);
-	http_cookie_initialize();
-	Map<String, String> result;
-	if ( _db ) {
-		String domain_ = get_storage_domain_value(domain);
-		String path_ = path.is_empty() ? DEFAULT_PATH : path;
-		
-		int r;
-		
-		r = sqlite3_bind_text(_http_cookie_get_all, 1, *domain_, domain_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_get_all, 2, *path_, path_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_get_all, 3, sys::time()); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_get_all, 4, _http_cookie_date); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_get_all, 5, secure); assert_sqlite3(r);
-		
-		while ( sqlite3_step(_http_cookie_get_all) == SQLITE_ROW ) {
-			result.set((cchar*)sqlite3_column_text(_http_cookie_get_all, 0),
-								 (cchar*)sqlite3_column_text(_http_cookie_get_all, 1));
-		}
-		r = sqlite3_reset(_http_cookie_get_all); assert_sqlite3(r);
-	}
-	return result;
-}
-
-static void http_cookie_set2(String domain,
-														 cString& name,
-														 cString& value, int64 expires, cString& path, bool secure) 
+static void http_cookie_set2(String& _key, cString& value, int64 expires) 
 {
 	int r;
-	
-	r = sqlite3_bind_text(_http_cookie_has, 1, *domain, domain.length(), nullptr); assert_sqlite3(r);
-	r = sqlite3_bind_text(_http_cookie_has, 2, *path, path.length(), nullptr); assert_sqlite3(r);
-	r = sqlite3_bind_text(_http_cookie_has, 3, *name, name.length(), nullptr); assert_sqlite3(r);
-	
-	r = sqlite3_step(_http_cookie_has); assert_sqlite3(r); sqlite3_reset(_http_cookie_has);
-	
-	if ( r == SQLITE_ROW ) { // update
-		r = sqlite3_bind_text(_http_cookie_set, 1, *domain, domain.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_set, 2, *path, path.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_set, 3, *name, name.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_set, 4, *value, value.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_set, 5, expires); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_set, 6, _http_cookie_date); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_set, 7, secure); assert_sqlite3(r);
-		r = sqlite3_step(_http_cookie_set); assert_sqlite3(r);
-		r = sqlite3_reset(_http_cookie_set); assert_sqlite3(r);
-	} else { // insert
-		r = sqlite3_bind_text(_http_cookie_add, 1, *domain, domain.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_add, 2, *path, path.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_add, 3, *name, name.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_add, 4, *value, value.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_add, 5, expires); assert_sqlite3(r);
-		r = sqlite3_bind_int64(_http_cookie_add, 6, _http_cookie_date); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_add, 7, secure); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_add, 8, get_domain_level(domain)); assert_sqlite3(r);
-		r = sqlite3_bind_int(_http_cookie_add, 9, get_path_level(path)); assert_sqlite3(r);
-		r = sqlite3_step(_http_cookie_add); assert_sqlite3(r);
-		r = sqlite3_reset(_http_cookie_add); assert_sqlite3(r);
-	}
+
+	JSON json = JSON::array();
+	json[0] = expires;
+	json[1] = _http_cookie_date;
+	json[2] = value;
+
+	String _val = JSON::stringify(json);
+	// LOG("---- %s, %d", *_val, _val.length());
+
+	bp_key_t key = { _key.length(), (char*)*_key };
+	bp_value_t val = { _val.length(), (char*)*_val };
+
+	r = bp_set(_db, &key, &val); assert_r(r);
 }
 
-void http_cookie_set_with_expression(cString& domain, cString& expression) {
-	ScopeLock scope(mutex);
+void http_cookie_set_with_expression(cString& domain, cString& expression) 
+{
 	//Set-Cookie: BAIDU_WISE_UID=bd_1491295526_455; expires=Thu, 04-Apr-2019 08:45:26 GMT; path=/; domain=baidu.com
 	//Set-Cookie: BAIDUID=C9DD3739AD81A91137099489A6DA4C2F:FG=1; expires=Wed, 04-Apr-18 08:45:27 GMT; max-age=31536000; path=/; domain=.baidu.com; version=1
-	http_cookie_initialize();
+	http_cookie_open();
+
 	if ( _db ) {
 		String name, value;
-		String domain_ = get_storage_domain_value(domain);
-		String path_ = DEFAULT_PATH;
-		
+		String domain_ = domain;
+		String path('/');
+
 		Map<String, String> options;
 		for ( auto& i : expression.split("; ") ) {
 			int j = i.value().index_of('=');
@@ -358,7 +242,7 @@ void http_cookie_set_with_expression(cString& domain, cString& expression) {
 		auto it = options.find(DOMAIN_STR);
 		
 		if ( it != end ) {
-			String new_domain = get_storage_domain_value(it.value());
+			String new_domain = it.value();
 			if ( domain_.index_of(new_domain) == -1 ) {
 				return; // Illegal operation
 			} else {
@@ -368,7 +252,7 @@ void http_cookie_set_with_expression(cString& domain, cString& expression) {
 		
 		it = options.find(PATH);
 		if ( it != end ) {
-			path_ = it.value();
+			path = it.value();
 		}
 		
 		it = options.find(MAX_AGE);
@@ -385,8 +269,9 @@ void http_cookie_set_with_expression(cString& domain, cString& expression) {
 		}
 		
 		bool secure = options.has(SECURE);
+		String key = get_storage_key(domain_, name, path, secure);
 		
-		http_cookie_set2(domain_, name, value, expires, path_, secure);
+		http_cookie_set2(key, value, expires);
 	}
 }
 
@@ -394,49 +279,141 @@ void http_cookie_set(cString& domain,
 										 cString& name,
 										 cString& value, int64 expires, cString& path, bool secure) 
 {
-	ScopeLock scope(mutex);
-	http_cookie_initialize();
+	http_cookie_open();
 	if ( _db ) {
-		String domain_ = get_storage_domain_value(domain);
-		String path_ = path.is_empty() ? DEFAULT_PATH : path;
-		http_cookie_set2(get_storage_domain_value(domain), name, value, expires, path_, secure);
+		String key = get_storage_key(domain, name, path, secure);
+		http_cookie_set2(key, value, expires);
 	}
 }
 
-void http_cookie_delete(cString& domain, cString& name, cString& path) {
-	ScopeLock scope(mutex);
-	http_cookie_initialize();
+void http_cookie_delete(cString& domain, cString& name, cString& path, bool secure) {
+	http_cookie_open();
 	if ( _db ) {
-		String domain_ = get_storage_domain_value(domain);
-		String path_ = path.is_empty() ? DEFAULT_PATH : path;
 		int r;
-		r = sqlite3_bind_text(_http_cookie_del, 1, *domain_, domain_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_del, 2, *path_, path_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_bind_text(_http_cookie_del, 3, *name, name.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_step(_http_cookie_del); assert_sqlite3(r);
-		r = sqlite3_reset(_http_cookie_del); assert_sqlite3(r);
+
+		String _key = get_storage_key(domain, name, path, secure);
+		bp_key_t key = { _key.length(), (char*)*_key };
+
+		r =  bp_remove(_db, &key); assert_r(r);
 	}
 }
 
-void http_cookie_delete_all(cString& domain) {
+String http_cookie_get_all_string(cString& domain, cString& path, bool secure) {
+
+	Map<String, String> all = http_cookie_get_all(domain, path, secure);
+
+	if (all.length()) {
+		Array<String> result;
+		for (auto& i : all) {
+			result.push(move(String(i.key()).push('=').push(i.value())));
+		}
+		return result.join( "; " );
+	}
+
+	return String();
+}
+
+Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool secure) {
 	ScopeLock scope(mutex);
-	http_cookie_initialize();
+	http_cookie_open();
+	Map<String, String> result;
+
 	if ( _db ) {
-		String domain_ = get_storage_domain_value(domain);
-		int r;
-		r = sqlite3_bind_text(_http_cookie_del_all, 1, *domain_, domain_.length(), nullptr); assert_sqlite3(r);
-		r = sqlite3_step(_http_cookie_del_all); assert_sqlite3(r);
-		r = sqlite3_reset(_http_cookie_del_all); assert_sqlite3(r);
+
+		Buffer buf[2];
+		int r = http_cookie_fuzz_query(domain, secure, buf);
+
+		if (r == BP_OK) {
+			bp_key_t start = { buf[0].length(), buf[0].value() };
+			bp_key_t end = { buf[1].length(), buf[1].value() };
+
+			struct tmp_data_t {
+				Map<String, String> *result;
+				String path;
+			} _tmp = { &result, path.is_empty() ? String('/'): path };
+
+			r = bp_get_filtered_range(_db, &start, &end, [](void* arg, const bp_key_t *key) {
+				auto path = &reinterpret_cast<tmp_data_t*>(arg)->path;
+				char* s = strchr(key->value, '/');
+				if (s) {
+					int i = 0, t_len = path->length();
+					cchar* t = path->c();
+
+					// LOG("bp_get_filtered_range, %s, %s", s, t);
+
+					while(s[i] != '@') {
+						if (s[i] != t[i] || i >= t_len) {
+							return 0;
+						}
+						i++;
+					}
+					return 1;
+				}
+				return 0;
+			},
+			[](void *arg, const bp_key_t *key, const bp_value_t *val) {
+				auto m = reinterpret_cast<tmp_data_t*>(arg)->result;
+				try { 
+					JSON json = JSON::parse(WeakBuffer(val->value, val->length));
+					int64 expires = json[0].to_int64();
+					int64 date = json[1].to_int64();
+
+					if ((expires == -1 && date == _http_cookie_date) || expires > sys::time()) {
+						char* s = strchr(key->value, '@') + 1;
+						m->set(String(s, key->length - (s - key->value)), json[2].to_string());
+					}
+				} catch(cError& err) {
+					XX_ERR(err);
+				}
+			}, &_tmp);
+		}
+	}
+	return result;
+}
+
+void http_cookie_delete_all(cString& domain, bool secure) {
+	ScopeLock scope(mutex);
+	http_cookie_open();
+	if ( _db ) {
+
+		Buffer buf[2];
+		int r = http_cookie_fuzz_query(domain, secure, buf);
+
+		if (r == BP_OK) {
+			bp_key_t start = { buf[0].length(), buf[0].value() };
+			bp_key_t end = { buf[1].length(), buf[1].value() };
+			Array<String> rms;
+
+			//LOG("http_cookie_delete_all, %s, %s", start.value, end.value);
+
+			r = bp_get_range(_db, &start, &end, [](void *arg,
+														const bp_key_t *key,
+														const bp_value_t *value) {
+				//LOG("http_cookie_delete_all 1, %s", value->value);
+				reinterpret_cast<Array<String>*>(arg)->push(String(key->value, key->length));
+			}, &rms);
+
+			assert_r(r);
+
+			for (auto& i : rms) {
+				bp_key_t key = { 
+					i.value().length(), (char*)*i.value(),
+				};
+				r = bp_remove(_db, &key); assert_r(r);
+				LOG("http_cookie_delete_all 2, %s", key.value);
+			}
+		}
 	}
 }
 
 void http_cookie_clear() {
-	ScopeLock scope(mutex);
-	http_cookie_initialize();
-	if ( _db ) {
-		int r;
-		r = sqlite3_step(_http_cookie_clear); assert_sqlite3(r);
-		r = sqlite3_reset(_http_cookie_clear); assert_sqlite3(r);
+	if ( !_db ) {
+		if (FileHelper::is_file_sync(get_db_filename())) {
+			FileHelper::unlink_sync(get_db_filename());
+		}
+	} else {
+		http_cookie_close();
+		FileHelper::unlink_sync(get_db_filename());
 	}
 }
 

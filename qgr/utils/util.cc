@@ -39,6 +39,7 @@
 #include "qgr/utils/string.h"
 #include "qgr/utils/codec.h"
 #include "qgr/utils/loop.h"
+#include "qgr/utils/error.h"
 
 #if XX_UNIX
 #include <sys/utsname.h>
@@ -324,6 +325,11 @@ namespace console {
 	
 	void error(cString& str) {
 		default_console()->error(str);
+	}
+
+	void error(const Error& err) {
+		String str = String::format("Error: %d \n message:\n\t%s", err.code(), *err.message());
+		default_console()->error(err.message());
 	}
 	
 	void tag(cchar* tag, cchar* format, ...) {

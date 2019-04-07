@@ -39,21 +39,25 @@ void test_http_cookie(int argc, char **argv) {
 	
 	http_cookie_set("quickgr.org", "test", "quickgr.org");
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG("A, %s", *http_cookie_get("quickgr.org", "test"));
 	
-	LOG(http_cookie_get("www.quickgr.org", "test"));
+	LOG("B, %s", *http_cookie_get("www.quickgr.org", "test"));
+
+	http_cookie_set("www.quickgr.org", "test", "$");
+
+	LOG("B2, %s", *http_cookie_get("www.quickgr.org", "test"));
+
+	http_cookie_set("quickgr.org", "test2", "*");
 	
-	http_cookie_set("www.quickgr.org", "test2", "*********************************");
+	LOG("D, %s", *http_cookie_get("quickgr.org", "test2"));
 	
-	LOG(http_cookie_get("quickgr.org", "test2"));
-	
-	LOG(http_cookie_get("www.quickgr.org", "test2"));
+	LOG("E, %s", *http_cookie_get("www.quickgr.org", "test2"));
 	
 	http_cookie_set("quickgr.org", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG(http_cookie_get("quickgr.org", "test2"));
+	LOG("F, %s", *http_cookie_get("quickgr.org", "test2"));
 	
-	LOG(http_cookie_get("quickgr.org", "test2", "/AA"));
+	LOG("H, %s", *http_cookie_get("quickgr.org", "test2", "/AA"));
 	
 	LOG(http_cookie_get_all_string("www.quickgr.org", "/AA"));
 	
@@ -63,7 +67,8 @@ void test_http_cookie(int argc, char **argv) {
 	
 	LOG(http_cookie_get("quickgr.org", "test3", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.quickgr.org", "/AA"));
+	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.quickgr.org", "/AA"));
+	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("quickgr.org", "/AA"));
 	
 	// test delete
 	
@@ -71,9 +76,16 @@ void test_http_cookie(int argc, char **argv) {
 	
 	LOG(http_cookie_get("quickgr.org", "test"));
 	
-	http_cookie_set("quickgr.org", "test", "quickgr.org");
+	http_cookie_set("quickgr.org", "test", "quickgr.org2");
+	http_cookie_set("quickgr.org", "test9", "quickgr.org3");
+	http_cookie_set("quickgr.org", "test8", "quickgr.org4");
+	http_cookie_set("www.quickgr.org", "test7", "quickgr.org5");
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG("E, %s", *http_cookie_get("quickgr.org", "test"));
+
+	http_cookie_set("quickgr.orh", "test--------A", "quickgr.org%", -1, "KKK/MMM");
+
+	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("quickgr.org"));
 	
 	http_cookie_delete_all("quickgr.org");
 	
@@ -81,7 +93,7 @@ void test_http_cookie(int argc, char **argv) {
 	
 	http_cookie_set("quickgr.org", "test", "quickgr.org");
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG("F, %s", *http_cookie_get("quickgr.org", "test--------A", "KKK/MMM", 1));
 	
 	http_cookie_clear();
 	

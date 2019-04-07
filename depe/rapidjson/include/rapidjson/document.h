@@ -1810,9 +1810,9 @@ public:
         \param str Read-only zero-terminated string to be parsed.
     */
     template <unsigned parseFlags, typename SourceEncoding>
-    GenericDocument& Parse(const Ch* str) {
+    GenericDocument& Parse(const Ch* str, int64_t len = 0xFFFFFFFFFFFFFFF) {
         RAPIDJSON_ASSERT(!(parseFlags & kParseInsituFlag));
-        GenericStringStream<SourceEncoding> s(str);
+        GenericStringStream<SourceEncoding> s(str, len);
         return ParseStream<parseFlags, SourceEncoding>(s);
     }
 
@@ -1821,15 +1821,15 @@ public:
         \param str Read-only zero-terminated string to be parsed.
     */
     template <unsigned parseFlags>
-    GenericDocument& Parse(const Ch* str) {
-        return Parse<parseFlags, Encoding>(str);
+    GenericDocument& Parse(const Ch* str, int64_t len = 0xFFFFFFFFFFFFFFF) {
+        return Parse<parseFlags, Encoding>(str, len);
     }
 
     //! Parse JSON text from a read-only string (with \ref kParseDefaultFlags)
     /*! \param str Read-only zero-terminated string to be parsed.
     */
-    GenericDocument& Parse(const Ch* str) {
-        return Parse<kParseDefaultFlags>(str);
+    GenericDocument& Parse(const Ch* str, int64_t len = 0xFFFFFFFFFFFFFFF) {
+        return Parse<kParseDefaultFlags>(str, len);
     }
     //!@}
 

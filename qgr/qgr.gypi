@@ -36,10 +36,10 @@
 			'../depe/tinyxml2',
 		],
 		'dependencies': [
-			# 'qgr-utils',
-			# 'depe/tess2/tess2.gyp:tess2', 
-			# 'depe/freetype2/freetype2.gyp:ft2',
-			# 'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
+			'qgr-utils',
+			'depe/tess2/tess2.gyp:tess2', 
+			'depe/freetype2/freetype2.gyp:ft2',
+			'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '..' ],

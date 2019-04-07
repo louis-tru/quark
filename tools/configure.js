@@ -232,7 +232,8 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 		// -fembed-bitcode-marker
 		var f_embed_bitcode = opts.without_embed_bitcode ?  '' : '-fembed-bitcode';
 
-		cmd += `--cc='clang -miphoneos-version-min=10.0 -arch ${variables.arch_name} ${f_embed_bitcode}' `; 
+		cmd += `--cc='clang -miphoneos-version-min=${variables.version_min} `+
+						`-arch ${variables.arch_name} ${f_embed_bitcode}' `; 
 		if (arch == 'x86' || arch == 'x64') {
 			cmd += '--sysroot=$(xcrun --sdk iphonesimulator --show-sdk-path) ';
 		} else {
@@ -245,7 +246,8 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 			--target-os=darwin \
 			--arch=${arch} \
 		`;
-		cmd += `--cc='clang -mmacosx-version-min=10.7 -arch ${variables.arch_name} ' `;
+		cmd += `--cc='clang -mmacosx-version-min=${variables.version_min}` +
+					` -arch ${variables.arch_name} ' `;
 		cmd += '--sysroot=$(xcrun --sdk macosx --show-sdk-path) ';
 	}
 	
@@ -755,7 +757,7 @@ function configure() {
 			variables.version_min = '10.0';
 		} else { // osx
 			variables.build_sysroot = `${XCODEDIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk`;
-			variables.version_min = '10.7';
+			variables.version_min = '10.8';
 		}
 		
 		variables.cc = 'clang';

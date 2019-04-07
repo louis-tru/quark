@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#define XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, Container) \
+#define XX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, Container, append_zero) \
 \
 template<> Array<T, Container<T>>::Array(uint length, uint capacity) \
 : _length(length), _container(XX_MAX(length, capacity)) { \
@@ -47,10 +47,11 @@ template<> Array<T, Container<T>>::Array(const std::initializer_list<T>& list) \
 template<> uint Array<T, Container<T>>::push(const Array& arr) { \
 	if (arr._length) { \
 		_length += arr._length; \
-		_container.realloc(_length); \
+		_container.realloc(_length + append_zero); \
 		const T* item = *arr._container; \
 		T* begin = (*_container) + _length - arr._length; \
 		memcpy((void*)begin, item, arr._length * sizeof(T)); \
+		if (append_zero) begin[_length] = 0; \
 	} \
 	return _length; \
 }\

@@ -28,7 +28,8 @@ endif
 
 #######################
 
-DEPS			= libs/qkit libs/qmake/gyp.qgr depe/v8-link depe/FFmpeg.qgr depe/node.qgr
+DEPS			= libs/qkit libs/qmake/gyp.qgr depe/v8-link \
+						depe/FFmpeg.qgr depe/node.qgr depe/bplus-tree
 STYLES		= make xcode msvs make-linux cmake-linux cmake
 GYPFILES	= Makefile qgr.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS	= -Goutput_dir="out" \

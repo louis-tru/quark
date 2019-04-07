@@ -3,13 +3,13 @@
 	{
 		'target_name': 'qgr-utils',
 		'type': 'static_library',
-		'type': '<(library_output_type)',
+		# 'type': '<(library_output_type)',
 		'dependencies': [
 			'qgr/utils/minizip.gyp:minizip',
+			'depe/bplus-tree/bplus-tree.gyp:bplus-tree',
 			'depe/node/deps/uv/uv.gyp:libuv',
 			'depe/node/deps/openssl/openssl.gyp:openssl',
 			'depe/node/deps/http_parser/http_parser.gyp:http_parser',
-			'depe/sqlite-amalgamation/sqlite3.gyp:sqlite3',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -19,7 +19,7 @@
 		'include_dirs': [
 			'../..',
 			'../../depe/rapidjson/include',
-			'../../depe/sqlite-amalgamation',
+			'../../depe/bplus-tree/include',
 			'../../depe/node/deps/zlib',
 			'../../depe/node/deps/zlib/contrib/minizip',
 		],

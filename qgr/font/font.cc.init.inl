@@ -146,7 +146,10 @@ static bool get_system_font_family_cache() {
 	if ( check_code != hash(json_str) ) { // 验证文件是否被改动或损坏
 		return false;
 	}
-	JSON json = JSON::parse(json_str);
+	JSON json;
+	try {
+		json = JSON::parse(json_str);
+	} catch(cError& err) { return false;}
 	String sys_id = hash(sys::info()); // 系统标识
 	String lib_version = QGR_VERSION;
 

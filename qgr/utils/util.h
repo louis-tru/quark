@@ -47,6 +47,8 @@
 
 XX_NS(qgr)
 
+class Error;
+
 namespace console {
 	XX_EXPORT void log(char);
 	XX_EXPORT void log(byte);
@@ -66,6 +68,7 @@ namespace console {
 	XX_EXPORT void warn(cString&);
 	XX_EXPORT void error(cchar*, ...);
 	XX_EXPORT void error(cString&);
+	XX_EXPORT void error(const Error&);
 	XX_EXPORT void tag(cchar*, cchar*, ...);
 	XX_EXPORT void print(cchar*, ...);
 	XX_EXPORT void print(cString&);

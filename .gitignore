@@ -4,9 +4,10 @@ out
 *.DS_Store
 node_modules/.bin
 qgr.sublime-workspace
-libs/qgr-tools/osx
-libs/qgr-tools/linux
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang
 .idea
+*.o
+*.a
+*.so

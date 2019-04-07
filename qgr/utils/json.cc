@@ -404,22 +404,26 @@ JSON::ArrayIteratorConst JSON::end_array() const {
 	return reinterpret_cast<ArrayIteratorConst>(reinterpret_cast<CRValue*>(this)->End());
 }
 
-JSON JSON::parse(cBuffer& data){
-	return parse(*data);
-}
-
-JSON JSON::parse(cString& json){
-	return parse(*json);
-}
-
-JSON JSON::parse(cchar* json){
+static JSON parse_for(cchar* json, int64 len = 0xFFFFFFFFFFFFFFF) throw(Error) {
 	RDocument doc(&shareMemoryPoolAllocator);
-	doc.Parse(json);
+	doc.Parse(json, len);
 	XX_ASSERT_ERR(!doc.HasParseError(),
-								"json parse error, offset: %lu, code: %d\n%s",
+								"json parse error, offset: %lu, code: %d\n%s, %p, %ld",
 								doc.GetErrorOffset(),
-								doc.GetParseError(), json);
+								doc.GetParseError(), json, json, len);
 	return *reinterpret_cast<JSON*>(&doc);
+}
+
+JSON JSON::parse(cString& json) throw(Error) {
+	return parse_for(*json, json.length());
+}
+
+JSON JSON::parse(cBuffer& data) throw(Error) {
+	return parse_for(*data, data.length());
+}
+
+JSON JSON::parse(cchar* json) throw(Error) {
+	return parse_for(json);
 }
 
 String JSON::stringify(cJSON& json){

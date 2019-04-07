@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "b+tree.h"
+#include "test-b+tree.h"
 
 /* 5 node caches are needed at least for self, left and right sibling, sibling
  * of sibling, parent and node seeking */
@@ -33,6 +33,8 @@
 #define list_for_each_safe(pos, n, head) \
 	for (pos = (head)->next, n = pos->next; pos != (head); \
 		pos = n, n = pos->next)
+
+typedef struct list_head_s list_head_t;
 
 typedef struct list_head_s {
 	list_head_t *prev, *next;

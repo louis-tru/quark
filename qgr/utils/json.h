@@ -227,21 +227,21 @@ class XX_EXPORT JSON {
 	 * @param  {Data} data
 	 * @return {JSON}
 	 */
-	static JSON parse(cBuffer& data);
+	static JSON parse(cBuffer& data) throw(Error);
 	
 	/**
 	 * 把JSON格式的字符串转换为Json对像
 	 * @param  {cString&} json_str
 	 * @return {JSON}
 	 */
-	static JSON parse(cString& json_str);
+	static JSON parse(cString& json_str) throw(Error);
 	
 	/**
 	 * 把JSON格式的字符串转换为Json对像
 	 * @param  {cchar*} json_str
 	 * @return {JSON}
 	 */
-	static JSON parse(cchar* json_str);
+	static JSON parse(cchar* json_str) throw(Error);
 	
 	/**
 	 * 把Json对像转换为字符串

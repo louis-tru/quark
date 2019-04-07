@@ -16,3 +16,4 @@
 /usr/bin/arm-linux-gnueabihf-g++ -pthread -L/home/louis/Project/qgr/tools/linux/usr/lib/armv7-a -Wl,-rpath=\$ORIGIN/obj.target -s -o /home/louis/Project/qgr/out/linux.armv7.Release.shared/qgr-demo -Wl,--start-group /home/louis/Project/qgr/out/linux.armv7.Release.shared/obj.target/qgr-demo/test/demo.o /home/louis/Project/qgr/out/linux.armv7.Release.shared/obj.target/libqgr-js.so /home/louis/Project/qgr/out/linux.armv7.Release.shared/obj.target/libqgr.so -Wl,--end-group -lqgr-js -lGLESv2 -lEGL -lX11 -lXi -lasound
  
 gcc -shared -s -Wl,-soname=libunqlite.so -o ./libunqlite.so -Wl,--whole-archive libunqlite.a -Wl,--no-whole-archive
+gcc -shared -s -Wl,-soname=libbplustree.so -o ./libbplustree.so -Wl,--whole-archive test-b+tree.o -Wl,--no-whole-archive
