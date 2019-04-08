@@ -558,6 +558,7 @@ function configure() {
 				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
 					syscall(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`);
 				} else {
+					// todo auto download android ndk ...
 					console.error(
 						`Please run "./tools/install-android-toolchain NDK-DIR" ` +
 						'to install android toolchain!');
@@ -700,7 +701,8 @@ function configure() {
 
 		} else {
 			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
-				util.assert(!execSync('which ' + e).code, `${e} command was not found`);
+				// todo auto install compile command ?
+				util.assert(!execSync('which ' + e).code, `${e} compile command was not found`);
 			});
 		}
 
@@ -732,6 +734,9 @@ function configure() {
 		}
 
 		var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
+
+		util.assert(XCODEDIR, 'The Xode installation directory could not be found. '+
+			'Make sure that Xcode is installed correctly');
 
 		try {
 			variables.xcode_version = syscall('xcodebuild -version').stdout[0].match(/\d+.\d+$/)[0];
