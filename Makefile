@@ -132,7 +132,9 @@ linux: $(JSA_SHELL)
 	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) build
 
-build-linux-all: android linux
+build-linux-all:
+	@$(MAKE) android
+	@$(MAKE) linux
 	@./configure --os=android --arch=x86   && $(MAKE) build
 	@./configure --os=android --arch=x64   && $(MAKE) build
 	@./configure --os=android --arch=arm   && $(MAKE) build
