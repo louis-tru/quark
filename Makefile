@@ -100,7 +100,7 @@ $(ANDROID_JAR): android/org/qgr/*.java
 # It can only run in MAC system.
 ios: $(JSA_SHELL)
 	@$(call check_osx,$@)
-	#@./configure --os=ios --arch=arm --library=shared && $(MAKE) # armv7 say goodbye 
+	#@./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build
