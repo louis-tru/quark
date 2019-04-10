@@ -32,12 +32,14 @@ git_pull=sh -c "\
 		cd $(1) && git checkout $(2) && git pull && echo git pull $(1) ok; \
 	fi"
 
+git_push=sh -c "cd $(1) && git push && echo git push $(1) ok"
+
 #https://github.com/louis-tru/qgr.git
 #https://gitee.com/louis-tru/qgr.git
 
-git_pull_deps=echo pull deps \
+git_pull_deps=echo $(1) deps \
 	$(foreach i,$(DEPS),&& \
-		$(call git_pull,\
+		$(call git_$(1),\
 			$(call basename,$(i)),\
 			$(if $(call suffix,$(i)),$(call subst,.,,$(call suffix,$(i))),master),\
 			https://github.com/louis-tru/$(call subst,$(call suffix,$(i)),,$(call notdir,$(i))).git\
@@ -60,7 +62,7 @@ check_osx=\
 
 .PHONY: all $(FORWARD) jsa ios android linux \
 	install install-qmake-link install-qmake \
-	help web doc watch build-linux-all pull
+	help web doc watch build-linux-all pull push
 
 .SECONDEXPANSION:
 
@@ -164,4 +166,8 @@ watch:
 
 pull:
 	@git pull
-	@$(call git_pull_deps)
+	@$(call git_pull_deps,pull)
+
+push:
+	@git push
+	@$(call git_pull_deps,push)
