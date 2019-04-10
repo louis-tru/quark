@@ -8,6 +8,7 @@ JAVAC         ?= javac
 JAR            = jar
 QMAKE          = ./libs/qmake
 QMAKE_OUT      = out/qmake
+GIT_repository := `git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1`
 
 ifneq ($(USER),root)
 	SUDO = "sudo"
@@ -15,6 +16,10 @@ endif
 
 ifeq ($(HOST_OS),Darwin)
 	HOST_OS = osx
+endif
+
+ifeq ($(GIT_repository),)
+	GIT_repository = https://github.com/louis-tru
 endif
 
 JSA_SHELL = $(QMAKE)/bin/${HOST_OS}/jsa-shell
@@ -34,15 +39,12 @@ git_pull=sh -c "\
 
 git_push=sh -c "cd $(1) && git push && echo git push $(1) ok"
 
-#https://github.com/louis-tru/qgr.git
-#https://gitee.com/louis-tru/qgr.git
-
 git_pull_deps=echo $(1) deps \
 	$(foreach i,$(DEPS),&& \
 		$(call git_$(1),\
 			$(call basename,$(i)),\
 			$(if $(call suffix,$(i)),$(call subst,.,,$(call suffix,$(i))),master),\
-			https://github.com/louis-tru/$(call subst,$(call suffix,$(i)),,$(call notdir,$(i))).git\
+			$(GIT_repository)/$(call subst,$(call suffix,$(i)),,$(call notdir,$(i))).git\
 		) \
 	)
 
