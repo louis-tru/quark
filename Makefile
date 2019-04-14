@@ -134,8 +134,7 @@ all: pull
 build-osx-all:
 	@$(MAKE) android
 	@$(MAKE) ios
-	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=ios     --arch=x64   && $(MAKE) build
+	@#./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86   && $(MAKE) build
