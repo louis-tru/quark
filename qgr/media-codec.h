@@ -36,6 +36,7 @@
 #include "qgr/utils/buffer.h"
 #include "qgr/utils/http.h"
 #include "qgr/image-codec.h"
+#include "qgr/media.h"
 
 typedef struct AVStream AVStream;
 

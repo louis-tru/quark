@@ -158,6 +158,10 @@
 			'render-looper.cc',
 			'sys.h',
 			'sys.cc',
+			'sys.h',
+			'sys.cc',
+			'media.h',
+			'media.cc',
 		],
 		'conditions': [
 			['os=="android"', {
@@ -300,7 +304,6 @@
 		],
 		'sources': [
 			'pcm-player.h',
-			'player.h',
 			'audio-player.h',
 			'audio-player.cc',
 			'video.cc',
@@ -309,6 +312,7 @@
 			'media-codec-1.h',
 			'media-codec-1.cc',
 			'media-codec-software.cc',
+			'media-init.cc',
 		],
 		'conditions': [
 			['os=="android"', {
@@ -333,9 +337,7 @@
 					'platforms/linux-pcm-player.cc',
 				],
 				'link_settings': { 
-					'libraries': [ 
-						'-lasound',
-					],
+					'libraries': [ '-lasound' ],
 				},
 			}],
 		],

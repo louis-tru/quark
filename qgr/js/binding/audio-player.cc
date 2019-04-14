@@ -30,7 +30,6 @@
 
 #include "event-1.h"
 #include "qgr/js/qgr.h"
-#include "qgr/player.h"
 #include "qgr/media-codec.h"
 #include "qgr/audio-player.h"
 
@@ -164,11 +163,17 @@ class WrapAudioPlayer: public WrapObject {
 	 */
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
+
+		AudioPlayer* player = nullptr;
 		if ( args.Length() > 0 && args[0]->IsString(worker) ) {
-			New<WrapAudioPlayer>(args, new AudioPlayer(args[0]->ToStringValue(worker)));
+			player = create_audio_player(args[0]->ToStringValue(worker));
 		} else {
-			New<WrapAudioPlayer>(args, new AudioPlayer());
+			player = create_audio_player();
 		}
+		if (!player) {
+			JS_THROW_ERR("create AudioPlayer fail");
+		}
+		New<WrapAudioPlayer>(args, player);
 	}
 	
 	/**

@@ -38,7 +38,6 @@
 		],
 		'dependencies': [
 			'qgr',
-			'qgr-media',
 			'qgr-v8',
 		],
 		'direct_dependent_settings': {

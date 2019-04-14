@@ -31,7 +31,6 @@
 #ifndef __qgr__video__
 #define __qgr__video__
 
-#include "qgr/player.h"
 #include "qgr/image.h"
 #include "qgr/pre-render.h"
 #include "qgr/media-codec.h"
@@ -53,18 +52,18 @@ class XX_EXPORT Video: public Image,
 											 public MultimediaSource::Delegate {
  public:
 	XX_DEFINE_GUI_VIEW(VIDEO, Video, video);
-	
+
 	Video();
-	
+
 	/**
 	 * @destructor
 	 */
 	virtual ~Video();
-	
+
 	typedef MediaCodec::OutputBuffer OutputBuffer;
 	typedef MultimediaSource::TrackInfo TrackInfo;
 	typedef PreRender::Task::ID TaskID;
-	
+
 	/**
 	 * @overwrite
 	 */
@@ -74,148 +73,148 @@ class XX_EXPORT Video: public Image,
 	virtual void multimedia_source_eof(MultimediaSource* src);
 	virtual void multimedia_source_error(MultimediaSource* src, cError& err);
 	virtual void remove();
-	
+
 	/**
 	 * @overwrite
 	 */
 	virtual void set_texture(Texture* value);
-	
+
 	/**
 	 * @func auto_play
 	 */
 	inline bool auto_play() const { return m_auto_play; }
-	
+
 	/**
 	 * @func set_auto_play # setting auto play
 	 */
-	void set_auto_play(bool value);
-	
+	XX_MEDIA_DYNAMIC void set_auto_play(bool value);
+
 	/**
 	 * @func source_status
 	 * */
-	MultimediaSourceStatus source_status();
-	
+	XX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
+
 	/**
 	 * @func video_width
 	 */
-	uint video_width();
-	
+	XX_MEDIA_DYNAMIC uint video_width();
+
 	/**
 	 * @func video_height
 	 */
-	uint video_height();
-	
+	XX_MEDIA_DYNAMIC uint video_height();
+
 	/**
 	 * @func status getting play status
 	 */
-	PlayerStatus status();
-	
+	XX_MEDIA_DYNAMIC PlayerStatus status();
+
 	/**
 	 * @func mute getting mute status
 	 * */
 	inline bool mute() const { return m_mute; }
-	
+
 	/**
 	 * @func mute setting mute status
 	 * */
-	void set_mute(bool value);
-	
+	XX_MEDIA_DYNAMIC void set_mute(bool value);
+
 	/**
 	 * @func volume
 	 */
 	inline uint volume() { return m_volume; }
-	
+
 	/**
 	 * @func volume
 	 */
-	void set_volume(uint value);
-	
+	XX_MEDIA_DYNAMIC void set_volume(uint value);
+
 	/**
 	 * @func time
 	 * */
-	uint64 time();
-	
+	XX_MEDIA_DYNAMIC uint64 time();
+
 	/**
 	 * @func duration
 	 * */
-	uint64 duration();
-	
+	XX_MEDIA_DYNAMIC uint64 duration();
+
 	/**
 	 * @func audio_track_count
 	 */
-	uint audio_track_count();
-	
+	XX_MEDIA_DYNAMIC uint audio_track_count();
+
 	/**
 	 * @func audio_track
 	 */
-	uint audio_track_index();
-	
+	XX_MEDIA_DYNAMIC uint audio_track_index();
+
 	/**
 	 * @func audio_track
 	 */
-	const TrackInfo* audio_track();
-	
+	XX_MEDIA_DYNAMIC const TrackInfo* audio_track();
+
 	/**
 	 * @func audio_track
 	 */
-	const TrackInfo* audio_track(uint index);
-	
+	XX_MEDIA_DYNAMIC const TrackInfo* audio_track(uint index);
+
 	/**
 	 * @func video_track
 	 * */
-	const TrackInfo* video_track();
-	
+	XX_MEDIA_DYNAMIC const TrackInfo* video_track();
+
 	/**
 	 * @func select_audio_track
 	 * */
-	void select_audio_track(uint index);
-	
+	XX_MEDIA_DYNAMIC void select_audio_track(uint index);
+
 	/**
 	 * @func start play
 	 */
-	void start();
-	
+	XX_MEDIA_DYNAMIC void start();
+
 	/**
 	 * @func seek to target time
 	 */
-	bool seek(uint64 timeUs);
-	
+	XX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
+
 	/**
 	 * @func pause play
 	 * */
-	void pause();
-	
+	XX_MEDIA_DYNAMIC void pause();
+
 	/**
 	 * @func resume play
 	 * */
-	void resume();
-	
+	XX_MEDIA_DYNAMIC void resume();
+
 	/**
 	 * @func stop play
 	 * */
-	void stop();
-	
+	XX_MEDIA_DYNAMIC void stop();
+
 	/**
 	 * @func disable_wait_buffer
 	 */
-	void disable_wait_buffer(bool value);
-	
+	XX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
+
 	/**
 	 * @func disable_wait_buffer
 	 */
 	inline bool disable_wait_buffer() const { return m_disable_wait_buffer; }
-	
+
  protected:
-	
+
 	/**
 	 * @overwrite
 	 */
 	virtual String source() const;
 	virtual void set_source(cString& value);
 	virtual void draw(Draw* draw);
-	
+
  private:
-	
+
 	MultimediaSource* m_source;
 	MediaCodec*   m_audio;
 	MediaCodec*   m_video;
@@ -238,7 +237,7 @@ class XX_EXPORT Video: public Image,
 	bool    m_mute;
 	bool    m_disable_wait_buffer;
 	bool    m_waiting_buffer;
-	
+
 	XX_DEFINE_INLINE_CLASS(Inl);
 };
 

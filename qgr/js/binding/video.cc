@@ -32,7 +32,6 @@
 #include "event-1.h"
 #include "qgr/js/qgr.h"
 #include "qgr/video.h"
-#include "qgr/player.h"
 #include "qgr/media-codec.h"
 
 /**
@@ -55,7 +54,12 @@ class WrapVideo: public WrapViewBase {
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
-		New<WrapVideo>(args, new Video());
+		auto player = create_video();
+		if (!player) {
+			JS_WORKER(args);
+			JS_THROW_ERR("create Video fail");
+		}
+		New<WrapVideo>(args, player);
 	}
 	
 	static void auto_play(Local<JSString> name, PropertyCall args) {
