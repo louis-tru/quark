@@ -111,7 +111,8 @@ ios: $(JSA_SHELL)
 	@$(call gen_framework,qgr-node,no-inc,iphoneos,Debug,arm64.v8)
 
 # build all android platform and output to product dir
-android: $(JSA_SHELL) $(ANDROID_JAR)
+android: $(JSA_SHELL)
+	@$(MAKE) $(ANDROID_JAR)
 	@./configure --os=android --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) build
 

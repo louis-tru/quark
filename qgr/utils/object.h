@@ -33,10 +33,13 @@
 
 #include "qgr/macros.h"
 #include <atomic>
-#include <vector>
 
 #ifndef XX_MEMORY_TRACE_MARK
 # define XX_MEMORY_TRACE_MARK 0
+#endif
+
+#if XX_MEMORY_TRACE_MARK
+# include <vector>
 #endif
 
 /**
@@ -63,6 +66,8 @@ typedef unsigned long int uint64;
 typedef long long int int64;
 typedef unsigned long long int uint64;
 #endif
+
+typedef std::size_t size_t;
 
 #define XX_DEFAULT_ALLOCATOR()  \
 static void* operator new(std::size_t size) { return ::operator new(size); } \
