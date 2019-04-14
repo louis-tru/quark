@@ -100,6 +100,7 @@ function touch_file(pathnames) {
 function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
+	var arch_name = variables.arch_name;
 	var cmd = '';
 	var source = __dirname + '/../depe/FFmpeg';
 
@@ -201,7 +202,7 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 			cflags += '-funswitch-loops ';
 		}
 
-		cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
+		cmd += `--cc='${cc} ${cflags} -march=${arch_name}' `;
 	} 
 	else if ( os=='linux' ) {
 		cmd = `\
@@ -216,7 +217,7 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 		var cflags = '-ffunction-sections -fdata-sections -funswitch-loops ';
 
 		if ( arch == 'arm' || arch == 'arm64' ) {
-			cmd += `--cc='${cc} ${cflags} -march=${variables.arch_name}' `;
+			cmd += `--cc='${cc} ${cflags} -march=${arch_name}' `;
 		} else {
 			cmd += `--cc='${cc} ${cflags}' `;
 		}
@@ -228,15 +229,20 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 			--arch=${arch} \
 			--enable-cross-compile \
 		`;
-		// apple marker
+
 		// -fembed-bitcode-marker
 		var f_embed_bitcode = opts.without_embed_bitcode ?  '' : '-fembed-bitcode';
+		var cc = `clang -miphoneos-version-min=${variables.version_min} `+
+						`-arch ${arch_name} ${f_embed_bitcode}`;
+		cmd += `--cc='${cc}' `;
 
-		cmd += `--cc='clang -miphoneos-version-min=${variables.version_min} `+
-						`-arch ${variables.arch_name} ${f_embed_bitcode}' `; 
 		if (arch == 'x86' || arch == 'x64') {
 			cmd += '--sysroot=$(xcrun --sdk iphonesimulator --show-sdk-path) ';
 		} else {
+			if (arch == 'arm') {
+				var as = `${__dirname}/gas-preprocessor.pl -arch arm -as-type apple-clang -- ${cc}`;
+				cmd += `--as='${as}' `;
+			}
 			cmd += '--sysroot=$(xcrun --sdk iphoneos --show-sdk-path) ';
 		}
 	} 
@@ -247,7 +253,7 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 			--arch=${arch} \
 		`;
 		cmd += `--cc='clang -mmacosx-version-min=${variables.version_min}` +
-					` -arch ${variables.arch_name} ' `;
+					` -arch ${arch_name} ' `;
 		cmd += '--sysroot=$(xcrun --sdk macosx --show-sdk-path) ';
 	}
 	
