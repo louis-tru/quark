@@ -6,7 +6,7 @@
 		# 'type': '<(library_output_type)',
 		'dependencies': [
 			'qgr/utils/minizip.gyp:minizip',
-			'depe/bplus-tree/bplus-tree.gyp:bplus-tree',
+			'depe/bplus/bplus.gyp:bplus',
 			'depe/node/deps/uv/uv.gyp:libuv',
 			'depe/node/deps/openssl/openssl.gyp:openssl',
 			'depe/node/deps/http_parser/http_parser.gyp:http_parser',
@@ -19,7 +19,7 @@
 		'include_dirs': [
 			'../..',
 			'../../depe/rapidjson/include',
-			'../../depe/bplus-tree/include',
+			'../../depe/bplus/include',
 			'../../depe/node/deps/zlib',
 			'../../depe/node/deps/zlib/contrib/minizip',
 		],

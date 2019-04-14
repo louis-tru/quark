@@ -54,7 +54,7 @@ framework() {
 
 # qgr
 link_dylib qgr "$obj/qgr-utils $obj/qgr $obj/libuv $obj/openssl $obj/http_parser " \
-	"-lminizip -lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 -lbplus-tree -lz" \
+	"-lminizip -lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 -lbplus -lz" \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 	-framework CoreGraphics -framework CoreGraphics -framework UIKit -framework QuartzCore \
 	-framework MessageUI "

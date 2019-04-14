@@ -23,7 +23,7 @@ JSA_SHELL = $(QMAKE)/bin/${HOST_OS}/jsa-shell
 #######################
 
 DEPS = libs/qkit libs/qmake/gyp.qgr depe/v8-link \
-	depe/FFmpeg.qgr depe/node.qgr depe/bplus-tree
+	depe/FFmpeg.qgr depe/node.qgr depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake build build-jsa $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
