@@ -1,5 +1,7 @@
 import 'qgr/util';
 import 'qgr/sys';
+import 'qgr/reader';
+import 'qgr/font';
 import {
 	GUIApplication, Root, Scroll, CSS, atomPixel: px,
 	Div, Hybrid, Clip, Text, Button, TextNode: T, qgr
@@ -49,7 +51,7 @@ CSS({
 
 	'.toolbar_btn': {
 		margin: 8,
-		textFamily: 'icon',
+		textFamily: 'icomoon-ultimate',
 		textSize: 24,
 	},
 
@@ -74,6 +76,8 @@ const qgr_tools = 'https://www.npmjs.com/package/qgr-tools';
 const qgr_tools_issues_url = 'https://github.com/louis-tru/qgr/issues';
 const examples_source = 'https://github.com/louis-tru/qgr.git';
 const documents = 'http://quickgr.org/';
+
+// registerFont
 
 function handle_go_to(evt) {
 	var url = evt.sender.url;
@@ -184,6 +188,9 @@ var app = new GUIApplication({
 		</NavpageCollection>
 	</Root>
 )
+
+// register font icomoon-ultimate
+font.registerFont( reader.readFileSync(resolve('./icomoon.ttf')) );
 
 // console.log(app.displayPort.phyWidth)
 

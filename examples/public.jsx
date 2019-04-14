@@ -104,7 +104,7 @@ export class Navbutton extends ViewController {
 				borderBottom=`${px} #c8c7cc`>
 				<Text marginLeft=16 marginRight=50>${vx}</Text>
 				<Indep x=-10 alignX="right" alignY="center">
-					<Text value="\uedbe" textFamily="icon" textColor="#aaa" />
+					<Text value="\uedbe" textFamily="icomoon-ultimate" textColor="#aaa" />
 				</Indep>
 			</Button>
 		);

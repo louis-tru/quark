@@ -20,7 +20,7 @@ class IconsPanel extends ViewController {
 			if (unicode > 255) {
 				New(
 					<Hybrid marginBottom=10 textAlign="center" width="25%">
-						<TextNode textSize=28 textFamily="icon">${str[i]}</TextNode>
+						<TextNode textSize=28 textFamily="icomoon-ultimate">${str[i]}</TextNode>
 						<TextNode textColor="#555">@@ ${unicode.toString(16)}</TextNode>
 					</Hybrid>
 				, view)

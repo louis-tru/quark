@@ -20,8 +20,8 @@
 			'gl/glsl/gen-texture.glsl',
 		],
 		'gui_default_font_files': [
-			'font/DejaVuSerif.ttf',
-			# 'font/icomoon.ttf',
+			'font/qgrinl.ttf',
+			'font/iconfont.ttf',
 		],
 	},
 	'targets':[

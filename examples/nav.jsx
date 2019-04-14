@@ -30,7 +30,7 @@ function view_code(evt) {
 const navbar_vx = (
 	<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
 		<Indep alignX="right" alignY="center" x=-10>
-			<Button textFamily="icon" textColor="#fff" textSize=20>\ued63</Button>
+			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize=20>\ued63</Button>
 		</Indep>
 	</Navbar>
 )
