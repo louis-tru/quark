@@ -1,21 +1,17 @@
 
-HOST_OS       ?= `uname`
+HOST_OS       ?= $(shell uname)
 NODE          ?= node
-ANDROID_SDK   ?= $(ANDROID_HOME)
-ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
 ANDROID_JAR    = out/android.classs.qgr.jar
-JAVAC         ?= javac
-JAR            = jar
 QMAKE          = ./libs/qmake
 QMAKE_OUT      = out/qmake
-GIT_repository := `git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1`
+GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 
 ifneq ($(USER),root)
-	SUDO = "sudo"
+	SUDO := "sudo"
 endif
 
 ifeq ($(HOST_OS),Darwin)
-	HOST_OS = osx
+	HOST_OS := osx
 endif
 
 ifeq ($(GIT_repository),)
@@ -28,7 +24,7 @@ JSA_SHELL = $(QMAKE)/bin/${HOST_OS}/jsa-shell
 
 DEPS = libs/qkit libs/qmake/gyp.qgr depe/v8-link \
 	depe/FFmpeg.qgr depe/node.qgr depe/bplus-tree
-FORWARD = make xcode msvs make-linux cmake-linux cmake build build-jsa test2 clean
+FORWARD = make xcode msvs make-linux cmake-linux cmake build build-jsa $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
@@ -92,19 +88,11 @@ $(FORWARD):
 
 $(JSA_SHELL): jsa
 
-$(ANDROID_JAR): android/org/qgr/*.java
-	@mkdir -p out/android.classs
-	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/qgr/*.java
-	@cd out/android.classs; $(JAR) cfv qgr.jar .
-	@mkdir -p $(QMAKE_OUT)/product/android/libs
-	@cp out/android.classs/qgr.jar $(QMAKE_OUT)/product/android/libs
-
 # build all ios platform and output to product dir
 # It can only run in MAC system.
 ios: $(JSA_SHELL)
 	@$(call check_osx,$@)
-	#@./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
+	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build
