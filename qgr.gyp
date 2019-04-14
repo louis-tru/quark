@@ -142,7 +142,6 @@
 		['os not in "ios osx" or project=="xcode"', {
 			'includes': [
 				'test/test.gypi',
-				'test/test2.gypi',
 				'tools/tools.gypi',
 			],
 		}],

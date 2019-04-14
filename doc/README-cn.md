@@ -30,21 +30,21 @@ new GUIApplication().start(
 
 如果你从来没有使用过`Qgr`你可以从这里开始，一步步创建你的`Qgr`程序。
 
-## Install qgr-tools
+## Install qmake
 
 首先你需要安装`Qgr`提供的工具包
 
-* 使用 nodejs `npm` 安装 `qgr-tools`
+* 使用 nodejs `npm` 安装 `qmake`
 
 * 打开`Terminal`并执行以下命令：
 
 ```sh
 # shell
-$ sudo npm install -g qgr-tools
+$ sudo npm install -g qmake
 
 ```
 	
-* 运行`qgr-tools` 需要依赖`nodejs`与`python2.7`
+* 运行`qmake` 需要依赖`nodejs`与`python2.7`
 
 * 并且不能运行在`windows`系统, 暂时只能在`mac`或`linux`下使用
 
@@ -56,7 +56,7 @@ $ sudo npm install -g qgr-tools
 # shell
 $ mkdir myproject
 $ cd myproject
-$ qgr init
+$ qmake init
 ```
 
 ## Build project
@@ -65,7 +65,7 @@ $ qgr init
 
 ```sh
 # shell
-$ qgr build
+$ qmake build
 ```
 
 ## Export project
@@ -75,9 +75,9 @@ $ qgr build
 ```sh
 # shell
 # export xcode ios project
-$ qgr export ios
+$ qmake export ios
 # export android studio project
-$ qgr export android
+$ qmake export android
 ```
 
 导出工程后，接下来你可以使用[Xcode]与[Android Studio]打开它
@@ -85,13 +85,13 @@ $ qgr export android
 
 ## Qgr test http server
 
-`qgr-tools`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
+`qmake`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
 
 执行下面的代码可以启动它：
 
 ```sh
 # shell
-$ qgr
+$ qmake
 ```
 
 # Downloads
@@ -105,7 +105,7 @@ $ qgr
 [Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [Android Studio]: https://developer.android.com/studio/projects/create-project.html
 [Android APK]: https://github.com/louis-tru/qgr/releases/download/v0.1.0/examples-release.apk
-[NPM]: https://www.npmjs.com/package/qgr-tools
+[NPM]: https://www.npmjs.com/package/qmake
 [Source code]: https://github.com/louis-tru/qgr
 
 

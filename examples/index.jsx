@@ -72,7 +72,7 @@ function review_code(evt) {
 	evt.sender.owner.collection.push(review_vx, 1);
 }
 
-const qgr_tools = 'https://www.npmjs.com/package/qgr-tools';
+const qgr_tools = 'https://www.npmjs.com/package/qmake';
 const qgr_tools_issues_url = 'https://github.com/louis-tru/qgr/issues';
 const examples_source = 'https://github.com/louis-tru/qgr.git';
 const documents = 'http://quickgr.org/';

@@ -2,7 +2,7 @@
 # [`Qgr`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/qgr-tools)
+* [`Tools`](https://www.npmjs.com/package/qmake)
 * [`Examples`](https://github.com/louis-tru/qgr/tree/master/demo)
 
 # Course
@@ -30,7 +30,7 @@
 * [`qgr/fs`](fs.md)
 * [`qgr/http`](http.md)
 * [`qgr/keys`](keys.md)
-* [`qgr/url`](url.md)
+* [`qgr/path`](path.md)
 * [`qgr/reader`](reader.md)
 * [`qgr/storage`](storage.md)
 * [`qgr/sys`](sys.md)

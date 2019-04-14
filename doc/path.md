@@ -1,4 +1,4 @@
-# `qgr/url`
+# `qgr/path`
 
 
 ## executable()
@@ -12,7 +12,7 @@ Example:
 ```js
 // Prints:
 // file:///var/containers/Bundle/Application/4F1BD659-601D-4932-8484-D0D1F978F0BE/test.app/test
-console.log(url.executable());
+console.log(path.executable());
 ```
 
 ## documents([appendPath])
@@ -27,10 +27,10 @@ Example:
 ```js
 // Prints:
 // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents
-console.log(url.documents());
+console.log(path.documents());
 // Prints 设置追加路径参数的结果:
 // file:///var/mobile/Containers/Data/Application/89A576FE-7BB9-4F26-A456-E9D7F8AD053D/Documents/aa.jpeg
-console.log(url.documents('aa.jpeg'));
+console.log(path.documents('aa.jpeg'));
 ```
 
 ## temp([appendPath])
@@ -58,7 +58,7 @@ Example:
 
 ```js
 // Prints: /var/data/test.js
-console.log(url.fallback('file:///var/data/test.js'));
+console.log(path.fallback('file:///var/data/test.js'));
 ```
 
 ## cwd()
@@ -89,9 +89,9 @@ Example:
 // true
 // true
 // false
-console.log(url.isAbsolute('/var/kk'));
-console.log(url.isAbsolute('http://quickgr.org/'));
-console.log(url.isAbsolute('index.jsx'));
+console.log(path.isAbsolute('/var/kk'));
+console.log(path.isAbsolute('http://quickgr.org/'));
+console.log(path.isAbsolute('index.jsx'));
 ```
 
 ## resolve(path,[...partPaths])
@@ -106,12 +106,12 @@ Example:
 
 ```js
 // Prints: http://quickgr.org/A/C/test.js
-console.log(url.resolve('http://quickgr.org/home', "..", "A", "B", "..", "C", "test.js"));
+console.log(path.resolve('http://quickgr.org/home', "..", "A", "B", "..", "C", "test.js"));
 // Prints: 
 // true
 // file:///var/data/aaa/cc/ddd/kk.jpg
-console.log(url.chdir('/var/data'));
-console.log(url.resolve('aaa/bbb/../cc/.///ddd/kk.jpg'));
+console.log(path.chdir('/var/data'));
+console.log(path.resolve('aaa/bbb/../cc/.///ddd/kk.jpg'));
 ```
 
 ## `Class: URL`

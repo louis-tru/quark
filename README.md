@@ -18,22 +18,22 @@ Goal: developing GUI applications on this basis can take into account both the s
 |--|--|--|
 
 
-Build and install qgr-tools
+Build and install qmake
 ===============
 
 1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
 
 2. Setting environment variable `JAVA_HOME` and `ANDROID_HOME`
 
-Compile and install qgr tools `make install`, It takes a long time.
+Compile and install qmake `make install`, It takes a long time.
 
-use qgr tools create project.
+use qmake tools create project.
 
 first create an empty file directory, then execute in the directory
 
-`qgr init`
+`qmake init`
 
-export ios xcode project `qgr export ios`
+export ios xcode project `qmake export ios`
 
 
 # Simple Examples
@@ -53,33 +53,33 @@ You can get a more detailed [`Examples`]
 
 If you've never used qgr before, you can start from here and build your qgr program step by step.
 
-## Install qgr-tools
+## Install qmake
 
-First, you need to install the toolkit provided by `qgr`
+First, you need to install the toolkit provided by `qmake`
 
-* Install `qgr-tools` using nodejs `npm` 
+* Install `qmake` using nodejs `npm` 
 
 * Open `Terminal` and execute the following command：
 
 ```sh
 # shell
-$ sudo npm install -g qgr-tools
+$ sudo npm install -g qmake
 
 ```
 	
-* Running `qgr-tools` requires dependency on `nodejs` and `python2.7`
+* Running `qmake` requires dependency on `nodejs` and `python2.7`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
 ## Create new project
 
-Create a new `qgr` project using the following `shell` command：
+Create a new `qmake` project using the following `shell` command：
 
 ```sh
 # shell
 $ mkdir myproject
 $ cd myproject
-$ qgr init
+$ qmake init
 ```
 
 ## Build project
@@ -89,7 +89,7 @@ If this is a new project, you can skip this step and go directly to the next ste
 
 ```js
 # shell
-$ qgr build
+$ qmake build
 ```
 
 ## Export project
@@ -99,22 +99,22 @@ This step exports [`Xcode`] or [`Android Studio`] project，because you eventual
 ```js
 # shell
 # export xcode ios project
-$ qgr export ios
+$ qmake export ios
 # export android studio project
-$ qgr export android
+$ qmake export android
 ```
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
-## qgr test http server
+## qmake test http server
 
-`qgr-tools` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+`qmake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
 Execute the following code to start it：
 
 ```js
 # shell
-$ qgr
+$ qmake
 ```
 
 # Downloads
@@ -128,5 +128,5 @@ $ qgr
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
 [`Android APK`]: https://github.com/louis-tru/qgr/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/qgr-tools
+[`NPM`]: https://www.npmjs.com/package/qmake
 [`Source code`]: https://github.com/louis-tru/qgr
