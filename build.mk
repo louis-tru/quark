@@ -2,7 +2,8 @@ include out/config.mk
 
 ARCH          ?= x64
 SUFFIX        ?= $(ARCH)
-OS            ?= $(shell uname)
+HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
+OS            ?= $(HOST_OS)
 BUILDTYPE     ?= Release
 V             ?= 0
 CXX           ?= g++

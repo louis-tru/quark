@@ -1,5 +1,5 @@
 
-HOST_OS       ?= $(shell uname)
+HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
 ANDROID_JAR    = out/android.classs.qgr.jar
 QMAKE          = ./libs/qmake
@@ -10,7 +10,7 @@ ifneq ($(USER),root)
 	SUDO := "sudo"
 endif
 
-ifeq ($(HOST_OS),Darwin)
+ifeq ($(HOST_OS),darwin)
 	HOST_OS := osx
 endif
 
@@ -58,18 +58,15 @@ check_osx=\
 		exit 1; \
 	fi
 
-.PHONY: all $(FORWARD) jsa ios android linux \
+.PHONY: all $(FORWARD) jsa ios android linux osx \
 	install install-qmake-link install-qmake \
-	help web doc watch build-linux-all pull push
+	help web doc watch build-linux-all build-osx-all pull push
 
 .SECONDEXPANSION:
 
-all: install
-
 # install qgr
 # It can only run in MAC system.
-install:
-	@$(MAKE) pull
+install: pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-qmake
@@ -95,7 +92,7 @@ ios: $(JSA_SHELL)
 	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
-	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build
+	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
 
 	@$(call gen_framework,qgr,,iphonesimulator,,x64)
 	@$(call gen_framework,qgr-media,no-inc,iphonesimulator,,x64)
@@ -115,18 +112,42 @@ ios: $(JSA_SHELL)
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL) $(ANDROID_JAR)
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) build
-	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
 
 linux: $(JSA_SHELL)
 	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) build
 
+osx:
+	@echo Unsupported
+
+all: pull
+	@if [ "$(HOST_OS)" = "osx" ]; then \
+		$(MAKE) build-osx-all; \
+	elif [ "$(HOST_OS)" = "linux" ]; then \
+		$(MAKE) build-linux-all; \
+	else \
+		echo Unsupported current System "$(HOST_OS)"; \
+	fi
+
+build-osx-all:
+	@$(MAKE) android
+	@$(MAKE) ios
+	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=ios     --arch=x64   && $(MAKE) build
+	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x86   && $(MAKE) build
+	@./configure --os=android --arch=x64   && $(MAKE) build
+	@./configure --os=android --arch=arm   && $(MAKE) build
+	@./configure --os=android --arch=arm64 && $(MAKE) build
+
 build-linux-all:
 	@$(MAKE) android
 	@$(MAKE) linux
+	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86   && $(MAKE) build
 	@./configure --os=android --arch=x64   && $(MAKE) build
 	@./configure --os=android --arch=arm   && $(MAKE) build
