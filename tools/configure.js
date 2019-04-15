@@ -446,12 +446,12 @@ async function exec_check(check, cmds) {
 
 async function install_linux_depe(opts, variables) {
 	var arch = opts.arch;
-	var os = opts.arch;
+	var os = opts.os;
 
 	if (execSync('which apt-get').code == 0) {
 		var dpkg = {
-			dtrace: '*apt-get install systemtap-sdt-dev',
-			autoconf: '*apt-get install autoconf',
+			dtrace: '*apt-get install systemtap-sdt-dev -y',
+			autoconf: '*apt-get install autoconf -y',
 		};
 
 		if (arch == 'x86' || arch == 'x64') {
@@ -462,15 +462,15 @@ async function install_linux_depe(opts, variables) {
 		}
 		if (os == 'linux') {
 			if (arch == 'arm') {
-				dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf';
+				dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf -y';
 			} else if (arch == 'arm64') {
-				dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu';
+				dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu -y';
 			} else { // x86 or x64
-				dpkg['g++'] = '*apt-get install g++';
+				dpkg['g++'] = '*apt-get install g++ -y';
 			}
 		} else if (os == 'android') {
 			// dpkg.javac = '*apt-get install default-jdk';
-			dpkg.javac = '*apt-get install openjdk-8-jdk';
+			dpkg.javac = '*apt-get install openjdk-8-jdk -y';
 		}
 
 		for (var i in dpkg) {
