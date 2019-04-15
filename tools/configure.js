@@ -444,7 +444,8 @@ async function install_linux_compile_depe(opts, variables) {
 		var dpkg = {
 			'systemtap-sdt-dev': 'dtrace',
 			'autoconf': 'autoconf',
-			'default-jdk': 'javac',
+			// 'default-jdk': 'javac',
+			'openjdk-8-jdk': 'javac',
 		};
 		if (arch == 'arm') {
 			dpkg['g++-arm-linux-gnueabihf'] = 'arm-linux-gnueabihf-g++';
