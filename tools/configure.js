@@ -35,7 +35,7 @@ var path = require('path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
 var argument = require('../libs/qkit/arguments');
-var { syscall, execSync } = require('../libs/qkit/syscall');
+var { syscall, execSync, exec, spawn } = require('../libs/qkit/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
@@ -415,7 +415,53 @@ function configure_node(opts, variables, configuration) {
 	}
 }
 
-function configure() {
+async function linux_syscall(cmd, check) {
+	if (check.indexOf('/') != -1) { // file
+		if (fs.existsSync(check)) return;
+	} else {
+		if (execSync(`which ${check}`).code == 0) return;
+	}
+
+	if (process.env.USER != 'root') {
+		cmd = 'sudo ' + cmd;
+	}
+	// process.stdin.setRawMode(true);
+	process.stdin.resume();
+
+	var r = await exec(cmd, {
+		stdout: process.stdout,
+		stderr: process.stderr, stdin: process.stdin,
+	});
+	if (r.code != 0) {
+		throw Error.new(`Run fail, "${cmd}"`);
+	}
+}
+
+async function install_linux_compile_depe(opts, variables) {
+	var arch = opts.arch;
+
+	if (execSync('which apt-get').code == 0) {
+		var dpkg = {
+			'systemtap-sdt-dev': 'dtrace',
+			'autoconf': 'autoconf',
+			'default-jdk': 'javac',
+		};
+		if (arch == 'arm') {
+			dpkg['g++-arm-linux-gnueabihf'] = 'arm-linux-gnueabihf-g++';
+		} else if (arch == 'arm64') {
+			dpkg['g++-aarch64-linux-gnu'] = 'aarch64-linux-gnu-g++';
+		} else { // x86 or x64
+			dpkg['g++'] = 'g++';
+		}
+		for (var i in dpkg) {
+			await linux_syscall(`apt-get install ${i}`, dpkg[i]);
+		}
+	} else {
+		throw Error.new(`Cannot install compile depe for linux arch = ${arch}`);
+	}
+}
+
+async function configure() {
 
 	if (opts.help || opts.h) { // print help info
 		console.log('');
@@ -427,6 +473,7 @@ function configure() {
 		console.log('  ' + help_info.join('\n  '));
 		return;
 	}
+
 	// 
 	opts.arch = arch_format(opts.arch);
 	var os = opts.os;
@@ -550,7 +597,7 @@ function configure() {
 	if ( os == 'android' ) {
 		var api = android_api_level;
 
-		// check android toolchain
+		// check android ndk toolchain
 		var toolchain_dir = `${__dirname}/android-toolchain/${arch}`;
 		if (!fs.existsSync(toolchain_dir)) {
 			var toolchain_dir2 = `${__dirname}/android-toolchain/arm`;
@@ -571,6 +618,11 @@ function configure() {
 					process.exit(1);
 				}
 			}
+		}
+		// todo check android sdk ...
+
+		if (host_os == 'linux') {
+			await install_linux_compile_depe(opts, variables);
 		}
 
 		var tools = {
@@ -668,6 +720,8 @@ function configure() {
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
 
+		await install_linux_compile_depe(opts, variables);
+
 		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
 			if (arch == 'arm') {
 				if (opts.armv7) {
@@ -686,8 +740,8 @@ function configure() {
 
 		// check compiler and set sysroot
 		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
-
-			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
+			var i = 0;
+			for (var e of ['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip']) {
 				var r;
 				if (arch == 'arm64') {
 					r = syscall(`find /usr/bin -name aarch64-linux-gnu*${e}*`)
@@ -703,13 +757,13 @@ function configure() {
 				}
 				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
-			});
+				i++;
+			}
 
 		} else {
-			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
-				// todo auto install compile command ?
+			for (var e of ['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip']) {
 				util.assert(!execSync('which ' + e).code, `${e} compile command was not found`);
-			});
+			}
 		}
 
 		// gcc version
@@ -877,4 +931,9 @@ function configure() {
 	}
 }
 
-configure();
+configure().then(e=>{
+	process.exit(0);
+}).catch(e=>{
+	console.error(e);
+	process.exit(1);
+});
