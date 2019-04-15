@@ -415,25 +415,32 @@ function configure_node(opts, variables, configuration) {
 	}
 }
 
-async function linux_syscall(cmd, check) {
+async function linux_syscall(check, cmds) {
 	if (check.indexOf('/') != -1) { // file
 		if (fs.existsSync(check)) return;
 	} else {
 		if (execSync(`which ${check}`).code == 0) return;
 	}
+	if (typeof cmds == 'string') cmds = [cmds];
 
-	if (process.env.USER != 'root') {
-		cmd = 'sudo ' + cmd;
-	}
-	// process.stdin.setRawMode(true);
-	process.stdin.resume();
+	for (var cmd of cmds) {
+		if (cmd[0] == '*') {
+			if (process.env.USER != 'root') {
+				cmd = 'sudo ' + cmd.substr(1);
+			} else {
+				cmd = cmd.substr(1);
+			}
+		}
+		// process.stdin.setRawMode(true);
+		process.stdin.resume();
 
-	var r = await exec(cmd, {
-		stdout: process.stdout,
-		stderr: process.stderr, stdin: process.stdin,
-	});
-	if (r.code != 0) {
-		throw Error.new(`Run fail, "${cmd}"`);
+		var r = await exec(cmd, {
+			stdout: process.stdout,
+			stderr: process.stderr, stdin: process.stdin,
+		});
+		if (r.code != 0) {
+			throw Error.new(`Run fail, "${cmd}"`);
+		}
 	}
 }
 
@@ -442,20 +449,24 @@ async function install_linux_compile_depe(opts, variables) {
 
 	if (execSync('which apt-get').code == 0) {
 		var dpkg = {
-			'systemtap-sdt-dev': 'dtrace',
-			'autoconf': 'autoconf',
-			// 'default-jdk': 'javac',
-			'openjdk-8-jdk': 'javac',
+			dtrace: '*apt-get install systemtap-sdt-dev',
+			autoconf: '*apt-get install autoconf',
+			// javac: '*apt-get install default-jdk',
+			javac: '*apt-get install openjdk-8-jdk',
+			yasm: [
+				`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
+				`*make -C ${__dirname}/yasm install`,
+			],
 		};
 		if (arch == 'arm') {
-			dpkg['g++-arm-linux-gnueabihf'] = 'arm-linux-gnueabihf-g++';
+			dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf';
 		} else if (arch == 'arm64') {
-			dpkg['g++-aarch64-linux-gnu'] = 'aarch64-linux-gnu-g++';
+			dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu';
 		} else { // x86 or x64
-			dpkg['g++'] = 'g++';
+			dpkg['g++'] = '*apt-get install g++';
 		}
 		for (var i in dpkg) {
-			await linux_syscall(`apt-get install ${i}`, dpkg[i]);
+			await linux_syscall(i, dpkg[i]);
 		}
 	} else {
 		throw Error.new(`Cannot install compile depe for linux arch = ${arch}`);
@@ -880,6 +891,8 @@ async function configure() {
 			if ( !fs.existsSync(`${ff_product_path}`) &&
 					 !fs.existsSync(`${ff_install_dir}/objs`) ) {
 				ff_rebuild = true;
+			} else {
+				ff_rebuild = !fs.existsSync(__dirname + '/../depe/FFmpeg/config.h')
 			}
 			variables.media = 1;
 		} else {
