@@ -445,8 +445,8 @@ async function exec_check(check, cmds) {
 }
 
 async function install_linux_depe(opts, variables) {
-	var arch = opts.arch;
-	var os = opts.os;
+	var {os,arch} = opts;
+	var {cross_compiling} = variables;
 
 	if (execSync('which apt-get').code == 0) {
 		var dpkg = {
@@ -461,10 +461,14 @@ async function install_linux_depe(opts, variables) {
 			];
 		}
 		if (os == 'linux') {
-			if (arch == 'arm') {
-				dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf -y';
-			} else if (arch == 'arm64') {
-				dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu -y';
+			if (cross_compiling) {
+				if (arch == 'arm') {
+					dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf -y';
+				} else if (arch == 'arm64') {
+					dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu -y';
+				} else {
+					throw new Error(`do not support cross compiling to "${arch}"`);
+				}
 			} else { // x86 or x64
 				dpkg['g++'] = '*apt-get install g++ -y';
 			}
@@ -760,8 +764,8 @@ async function configure() {
 
 		// check compiler and set sysroot
 		if ( (host_arch == 'x86' || host_arch == 'x64') && (arch == 'arm' || arch == 'arm64') ) {
-			var i = 0;
-			for (var e of ['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip']) {
+
+			['gcc', 'g++', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach((e,i)=>{
 				var r;
 				if (arch == 'arm64') {
 					r = syscall(`find /usr/bin -name aarch64-linux-gnu*${e}*`)
@@ -777,13 +781,12 @@ async function configure() {
 				}
 				util.assert(r, `"arm-linux-${e}" cross compilation was not found\n`);
 				variables[['cc', 'cxx', 'ld', 'ar', 'as', 'ranlib', 'strip'][i]] = r;
-				i++;
-			}
+			});
 
 		} else {
-			for (var e of ['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip']) {
+			['gcc', 'g++', 'ar', 'as', 'ranlib', 'strip'].forEach(e=>{
 				util.assert(!execSync('which ' + e).code, `${e} compile command was not found`);
-			}
+			});
 		}
 
 		// gcc version

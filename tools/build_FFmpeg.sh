@@ -2,10 +2,9 @@
 
 OBJS_DIR=$INSTALL_DIR/objs
 
-mkdir -p $INSTALL_DIR
-
 if [ ! -d $OBJS_DIR ] || [ ! -f $PRODUCT_PATH ]; then
-
+	rm -rf $INSTALL_DIR/*
+	mkdir -p $INSTALL_DIR
 	mkdir $OBJS_DIR
 	make install -j2 || exit 1
 
