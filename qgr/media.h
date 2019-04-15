@@ -52,14 +52,14 @@ enum PlayerStatus {
 	PLAYER_STATUS_PAUSED,
 };
 
-class PCMPlayer;
-class AudioPlayer;
-class Video;
+typedef struct {
+	Object* (*const create)(void* arg);
+	const uint64 tid;
+} module_info_t;
 
 XX_EXPORT int initialize_media();
-XX_EXPORT PCMPlayer* create_pcm_player(uint channel_count, uint sample_rate);
-XX_EXPORT AudioPlayer* create_audio_player(cString& uri = String());
-XX_EXPORT Video* create_video();
+XX_EXPORT extern module_info_t* module_audio_player;
+XX_EXPORT extern module_info_t* module_video;
 
 XX_END
 #endif

@@ -71,15 +71,18 @@
 	}
 
 // define class macro
-#define JS_NEW_CLASS(name, constructor, block, base) \
+#define JS_NEW_CLASS_FROM_ID(name, id, constructor, block, base) \
 	struct Attach { static void Callback(WrapObject* o) { \
 	static_assert(sizeof(WrapObject)==sizeof(Wrap##name), \
 		"Derived wrap class pairs cannot declare data members"); new(o) Wrap##name(); \
 	}}; \
-	auto cls = worker->NewClass(JS_TYPEID(name), #name, \
+	auto cls = worker->NewClass(id, #name, \
 	constructor, &Attach::Callback, base); \
 	cls->SetInstanceInternalFieldCount(1); \
 	block; ((void)0) 
+
+#define JS_NEW_CLASS(name, constructor, block, base) \
+	JS_NEW_CLASS_FROM_ID(name, JS_TYPEID(name), constructor, block, base)
 
 #define JS_DEFINE_CLASS(name, constructor, block, base) \
 	JS_NEW_CLASS(name, constructor, block, JS_TYPEID(base)); \

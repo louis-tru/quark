@@ -166,9 +166,10 @@ class WrapAudioPlayer: public WrapObject {
 
 		AudioPlayer* player = nullptr;
 		if ( args.Length() > 0 && args[0]->IsString(worker) ) {
-			player = create_audio_player(args[0]->ToStringValue(worker));
+			String uri = args[0]->ToStringValue(worker);
+			player = static_cast<AudioPlayer*>(module_audio_player->create(&uri));
 		} else {
-			player = create_audio_player();
+			player = static_cast<AudioPlayer*>(module_audio_player->create(nullptr));
 		}
 		if (!player) {
 			JS_THROW_ERR("create AudioPlayer fail");
@@ -411,7 +412,7 @@ class WrapAudioPlayer: public WrapObject {
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		
-		JS_DEFINE_CLASS(AudioPlayer, constructor, {
+		JS_NEW_CLASS_FROM_ID(AudioPlayer, module_audio_player->tid, constructor, {
 			JS_SET_CLASS_ACCESSOR(autoPlay, auto_play, set_auto_play);
 			JS_SET_CLASS_ACCESSOR(sourceStatus, source_status);
 			JS_SET_CLASS_ACCESSOR(status, status);
@@ -431,7 +432,8 @@ class WrapAudioPlayer: public WrapObject {
 			JS_SET_CLASS_METHOD(pause, pause);
 			JS_SET_CLASS_METHOD(resume, resume);
 			JS_SET_CLASS_METHOD(stop, stop);
-		}, nullptr);
+		}, 0);
+		cls->Export(worker, "AudioPlayer", exports);
 	}
 };
 

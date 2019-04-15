@@ -54,7 +54,7 @@ class WrapVideo: public WrapViewBase {
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		JS_CHECK_APP();
-		auto player = create_video();
+		auto player = static_cast<Video*>(module_video->create(nullptr));
 		if (!player) {
 			JS_WORKER(args);
 			JS_THROW_ERR("create Video fail");
@@ -230,7 +230,7 @@ class WrapVideo: public WrapViewBase {
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->binding_module("_value");
 
-		JS_DEFINE_CLASS(Video, constructor, {
+		JS_NEW_CLASS_FROM_ID(Video, module_video->tid, constructor, {
 			JS_SET_CLASS_ACCESSOR(autoPlay, auto_play, set_auto_play);
 			JS_SET_CLASS_ACCESSOR(sourceStatus, source_status);
 			JS_SET_CLASS_ACCESSOR(status, status);
@@ -251,8 +251,9 @@ class WrapVideo: public WrapViewBase {
 			JS_SET_CLASS_METHOD(pause, pause);
 			JS_SET_CLASS_METHOD(resume, resume);
 			JS_SET_CLASS_METHOD(stop, stop);
-		}, Image);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Video), View::VIDEO);
+		}, JS_TYPEID(Image));
+		cls->Export(worker, "Video", exports);
+		IMPL::js_class(worker)->set_class_alias(module_video->tid, View::VIDEO);
 	}
 };
 

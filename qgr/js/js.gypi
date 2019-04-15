@@ -242,8 +242,6 @@
 				'dependencies': [
 					'qgr',
 					'qgr-js',
-					'qgr-node',
-					'qgr-media',
 				],
 				'sources': [
 					'main.cc',

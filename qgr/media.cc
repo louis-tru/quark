@@ -33,16 +33,11 @@
 
 XX_NS(qgr)
 
-typedef PCMPlayer* (*create_pcm_player_f)(uint channel_count, uint sample_rate);
-typedef AudioPlayer* (*create_audio_player_f)(cString& uri);
-typedef Video* (*create_video_f)();
-
-XX_EXPORT create_pcm_player_f __create_pcm_player_f = nullptr;
-XX_EXPORT create_audio_player_f __create_audio_player_f = nullptr;
-XX_EXPORT create_video_f __create_video_f = nullptr;
+module_info_t* module_audio_player = nullptr;
+module_info_t* module_video = nullptr;
 
 static int is_loaded_lib() {
-	return __create_pcm_player_f && __create_audio_player_f && __create_video_f;
+	return module_audio_player && module_video;
 }
 
 int initialize_media() {
@@ -63,18 +58,6 @@ int initialize_media() {
 	}
 
 	return 0;
-}
-
-PCMPlayer* create_pcm_player(uint channel_count, uint sample_rate) {
-	return __create_pcm_player_f(channel_count, sample_rate);
-}
-
-AudioPlayer* create_audio_player(cString& uri) {
-	return __create_audio_player_f(uri);
-}
-
-Video* create_video() {
-	return __create_video_f();
 }
 
 XX_END

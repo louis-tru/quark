@@ -34,18 +34,22 @@
 
 XX_NS(qgr)
 
-typedef PCMPlayer* (*create_pcm_player_f)(uint channel_count, uint sample_rate);
-typedef AudioPlayer* (*create_audio_player_f)(cString& uri);
-typedef Video* (*create_video_f)();
-
-extern create_pcm_player_f __create_pcm_player_f;
-extern create_audio_player_f __create_audio_player_f;
-extern create_video_f __create_video_f;
-
 XX_INIT_BLOCK(media_init) {
-	__create_pcm_player_f = &PCMPlayer::create;
-	__create_audio_player_f = [](cString& uri) { return new AudioPlayer(uri); };
-	__create_video_f =  []() { return new Video(); };
+
+	static module_info_t audio_player = {
+		[](void* arg) -> Object* {
+			return new AudioPlayer(arg ? *(String*)arg: String());
+		},
+		typeid(AudioPlayer).hash_code(),
+	};
+
+	static module_info_t video = {
+		[](void* arg) -> Object* { return new Video(); },
+		typeid(Video).hash_code(),
+	};
+
+	module_audio_player = &audio_player;
+	module_video = &video;
 }
 
 XX_END
