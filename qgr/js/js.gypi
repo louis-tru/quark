@@ -241,7 +241,9 @@
 				'type': 'executable',
 				'dependencies': [
 					'qgr',
+					'qgr-media',
 					'qgr-js',
+					'qgr-node',
 				],
 				'sources': [
 					'main.cc',

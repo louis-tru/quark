@@ -21,6 +21,7 @@
 					'<(output)/obj.target/libqgr.a',
 					'<(output)/obj.target/libqgr-utils.a',
 					'<(output)/obj.target/libqgr-js.a',
+					'<(output)/obj.target/libqgr-media.a',
 					'<(output)/obj.target/depe/node/libnode.a',
 					'-Wl,--no-whole-archive',
 				],
