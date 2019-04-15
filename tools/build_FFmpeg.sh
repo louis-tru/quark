@@ -4,9 +4,10 @@ OBJS_DIR=$INSTALL_DIR/objs
 
 mkdir -p $INSTALL_DIR
 
-if [ ! -d $OBJS_DIR ]; then
+if [ ! -d $OBJS_DIR ] || [ ! -f $PRODUCT_PATH ]; then
+
 	mkdir $OBJS_DIR
-	make install -j2
+	make install -j2 || exit 1
 
 	OBJS=`find libavutil libavformat libswresample libavcodec compat -name *.o|xargs`
 
