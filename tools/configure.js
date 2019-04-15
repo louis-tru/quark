@@ -415,7 +415,7 @@ function configure_node(opts, variables, configuration) {
 	}
 }
 
-async function linux_syscall(check, cmds) {
+async function exec_check(check, cmds) {
 	if (check.indexOf('/') != -1) { // file
 		if (fs.existsSync(check)) return;
 	} else {
@@ -444,29 +444,37 @@ async function linux_syscall(check, cmds) {
 	}
 }
 
-async function install_linux_compile_depe(opts, variables) {
+async function install_linux_depe(opts, variables) {
 	var arch = opts.arch;
+	var os = opts.arch;
 
 	if (execSync('which apt-get').code == 0) {
 		var dpkg = {
 			dtrace: '*apt-get install systemtap-sdt-dev',
 			autoconf: '*apt-get install autoconf',
-			// javac: '*apt-get install default-jdk',
-			javac: '*apt-get install openjdk-8-jdk',
-			yasm: [
+		};
+
+		if (arch == 'x86' || arch == 'x64') {
+			dpkg.yasm = [
 				`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
 				`*make -C ${__dirname}/yasm install`,
-			],
-		};
-		if (arch == 'arm') {
-			dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf';
-		} else if (arch == 'arm64') {
-			dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu';
-		} else { // x86 or x64
-			dpkg['g++'] = '*apt-get install g++';
+			];
 		}
+		if (os == 'linux') {
+			if (arch == 'arm') {
+				dpkg['arm-linux-gnueabihf-g++'] = '*apt-get install g++-arm-linux-gnueabihf';
+			} else if (arch == 'arm64') {
+				dpkg['aarch64-linux-gnu-g++'] = '*apt-get install g++-aarch64-linux-gnu';
+			} else { // x86 or x64
+				dpkg['g++'] = '*apt-get install g++';
+			}
+		} else if (os == 'android') {
+			// dpkg.javac = '*apt-get install default-jdk';
+			dpkg.javac = '*apt-get install openjdk-8-jdk';
+		}
+
 		for (var i in dpkg) {
-			await linux_syscall(i, dpkg[i]);
+			await exec_check(i, dpkg[i]);
 		}
 	} else {
 		throw Error.new(`Cannot install compile depe for linux arch = ${arch}`);
@@ -634,7 +642,7 @@ async function configure() {
 		// todo check android sdk ...
 
 		if (host_os == 'linux') {
-			await install_linux_compile_depe(opts, variables);
+			await install_linux_depe(opts, variables);
 		}
 
 		var tools = {
@@ -732,7 +740,7 @@ async function configure() {
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
 
-		await install_linux_compile_depe(opts, variables);
+		await install_linux_depe(opts, variables);
 
 		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
 			if (arch == 'arm') {
