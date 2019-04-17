@@ -38,7 +38,7 @@ XX_NS(qgr)
 #define assert_r(c) XX_ASSERT(c == BP_OK)
 
 static bp_db_t* _localstorage_db = nullptr;
-static int _has_initialize = 0;
+static int64 _has_initialize = 0;
 
 static String get_db_filename() {
 	return Path::temp(".localstorage.bp");

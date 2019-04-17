@@ -36,6 +36,10 @@ var server = require('qkit/server');
 var remote_log = require('./remote_log');
 var getLocalNetworkHost = require('qkit/network_host').getLocalNetworkHost;
 
+process.on('unhandledRejection', (err, promise) => {
+	throw err;
+});
+
 function start_server(options) {
 	options = options || {};
 	var config = keys.parseFile(__dirname + '/config.keys');

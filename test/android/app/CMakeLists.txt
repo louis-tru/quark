@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.4.1)
 
 include_directories(../../..)
 include_directories(../../../depe/rapidjson/include)
-include_directories(../../../depe/sqlite-amalgamation)
 include_directories(../../../depe/freetype2/include)
 include_directories(../../../depe/tess2/Include)
 include_directories(../../../depe/libwebp)
@@ -20,12 +19,12 @@ include_directories(../../../depe/node/deps/openssl/openssl/include)
 include_directories(../../../depe/node/deps/uv/include)
 include_directories(../../../depe/node/deps/http_parser)
 include_directories(../../../depe/v8-link/include)
+include_directories(../../../depe/bplus/include)
 include_directories(../../../out)
 link_directories(src/main/jniLibs/${ANDROID_ABI})
 link_directories(../../../out/jniLibs/${ANDROID_ABI})
 
 add_definitions(
-	-DDEBUG
 	-D__STDC_CONSTANT_MACROS
 	-DXX_BUILDING_SHARED
 	-DNODE_WANT_INTERNALS=1
@@ -35,7 +34,25 @@ add_definitions(
 	-DPNG_USER_CONFIG
 )
 
-add_library(qgr-utils SHARED
+set(TARGET "bplus")
+set(TOOLSET "target")
+add_library(bplus STATIC
+	../../../depe/bplus/bplus.c
+	../../../depe/bplus/pages.c
+	../../../depe/bplus/utils.c
+	../../../depe/bplus/values.c
+	../../../depe/bplus/writer.c
+)
+set_target_properties(bplus PROPERTIES COMPILE_DEFINITIONS 
+	"_LARGEFILE_SOURCE;_FILE_OFFSET_BITS=64;_XOPEN_SOURCE=500;_DARWIN_C_SOURCE;NDEBUG")
+set_target_properties(bplus PROPERTIES COMPILE_FLAGS "-std=c99 -pedantic -pthread -O3")
+unset(TOOLSET)
+unset(TARGET)
+
+add_definitions(-DDEBUG)
+
+add_library(qgr SHARED
+	# qgr-utils
 	../../../android/android.cc
 	../../../qgr/utils/_android.cc
 	../../../qgr/utils/android-jni.cc
@@ -68,14 +85,11 @@ add_library(qgr-utils SHARED
 	../../../qgr/utils/date.cc
 	../../../qgr/utils/http-cookie.cc
 	../../../qgr/utils/localstorage.cc
-)
-
-add_library(qgr-gui SHARED
+	# qgr
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
 	../../../qgr/action.cc
 	../../../qgr/app.cc
-	../../../qgr/audio-player.cc
 	../../../qgr/div.cc
 	../../../qgr/indep.cc
 	../../../qgr/box-shadow.cc
@@ -91,9 +105,6 @@ add_library(qgr-gui SHARED
 	../../../qgr/image/codec-pvrtc.cc
 	../../../qgr/pre-render.cc
 	../../../qgr/mathe.cc
-	../../../qgr/media-codec.cc
-	../../../qgr/media-codec-1.cc
-	../../../qgr/media-codec-software.cc
 	../../../qgr/label.cc
 	../../../qgr/layout.cc
 	../../../qgr/box.cc
@@ -112,7 +123,6 @@ add_library(qgr-gui SHARED
 	../../../qgr/text-font.cc
 	../../../qgr/text-node.cc
 	../../../qgr/texture.cc
-	../../../qgr/video.cc
 	../../../qgr/value.cc
 	../../../qgr/panel.cc
 	../../../qgr/button.cc
@@ -127,15 +137,25 @@ add_library(qgr-gui SHARED
 	../../../qgr/sys.cc
 	../../../qgr/platforms/linux-gl.cc
 	../../../qgr/platforms/android-app.cc
-	../../../qgr/platforms/android-media-codec.cc
-	../../../qgr/platforms/android-pcm-player.cc
-	../../../qgr/platforms/android-pcm-audio-track.cc
 	../../../qgr/platforms/android-keyboard.cc
 	../../../qgr/platforms/android-sys.cc
 	../../../qgr/image/codec-gif.cc
   ../../../qgr/image/codec-jpeg.cc
   ../../../qgr/image/codec-png.cc
   ../../../qgr/image/codec-webp.cc
+  ../../../qgr/media.cc
+)
+
+add_library(qgr-media SHARED
+	../../../qgr/audio-player.cc
+	../../../qgr/video.cc
+	../../../qgr/media-codec.cc
+	../../../qgr/media-codec-1.cc
+	../../../qgr/media-codec-software.cc
+	../../../qgr/media-init.cc
+	../../../qgr/platforms/android-media-codec.cc
+	../../../qgr/platforms/android-pcm-player.cc
+	../../../qgr/platforms/android-pcm-audio-track.cc
 )
 
 add_library(qgr-js SHARED
@@ -148,6 +168,7 @@ add_library(qgr-js SHARED
 	../../../qgr/js/str.cc
 	../../../qgr/js/v8.cc
 	../../../qgr/js/wrap.cc
+	../../../qgr/js/node.cc
 	# binding qgr-utils
 	../../../qgr/js/binding/cb.cc
 	../../../qgr/js/binding/fs.cc
@@ -197,10 +218,6 @@ add_library(qgr-js SHARED
 	../../../qgr/js/binding/background.cc
 )
 
-add_library(qgr-demo SHARED
-	../../../test/demo.cc
-)
-
 add_library(qgr-test SHARED
 	../../../test/test.cc
 	../../../test/test-qgr.cc
@@ -244,8 +261,7 @@ add_library(qgr-test SHARED
 	../../../test/test-linux-input-2.cc
 )
 
-target_link_libraries(qgr-utils atomic z android log qgr-depes-test)
-target_link_libraries(qgr-gui  qgr-utils OpenSLES GLESv3 EGL mediandk qgr-depes-test)
-target_link_libraries(qgr-js   qgr-utils qgr-gui qgr-depes-test)
-target_link_libraries(qgr-demo qgr-utils qgr-gui qgr-js qgr-depes-test)
-target_link_libraries(qgr-test qgr-utils qgr-gui qgr-js qgr-depes-test)
+target_link_libraries(qgr       atomic z android log OpenSLES GLESv3 EGL mediandk qgr-depes-test)
+target_link_libraries(qgr-media qgr OpenSLES GLESv3 EGL mediandk qgr-depes-test)
+target_link_libraries(qgr-js    qgr qgr-depes-test)
+target_link_libraries(qgr-test  qgr qgr-js qgr-depes-test)

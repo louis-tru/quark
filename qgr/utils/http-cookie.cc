@@ -41,7 +41,7 @@ XX_NS(qgr)
 static Mutex mutex;
 static bp_db_t* _http_cookie_db = nullptr;
 static int _has_initialize = 0;
-static int _http_cookie_date = 0;
+static int64 _http_cookie_date = 0;
 static const String EXPIRES("expires");
 static const String MAX_AGE("max-age");
 static const String PATH("path");
@@ -150,12 +150,12 @@ static int http_cookie_fuzz_query(cString& domain, bool secure, Buffer *buf)
 
 	// fuzz query begin end node 
 	bp_set_compare_cb(_db, http_cookie_fuzz_query_compare_cb, buf);
-	r = bp_get(_db, &key, &value); assert_r(r);
+	r = bp_get(_db, &key, &value);
 
 	if (r != BP_OK) goto end;
 
 	bp_set_compare_cb(_db, http_cookie_fuzz_query_compare_cb, buf+1);
-	r = bp_get_reverse(_db, &key, &value); assert_r(r);
+	r = bp_get_reverse(_db, &key, &value);
 
 	if (r != BP_OK) goto end;
 
@@ -205,7 +205,8 @@ static void http_cookie_set2(String& _key, cString& value, int64 expires)
 	bp_key_t key = { _key.length(), (char*)*_key };
 	bp_value_t val = { _val.length(), (char*)*_val };
 
-	r = bp_set(_db, &key, &val); assert_r(r);
+	r = bp_set(_db, &key, &val);
+	assert_r(r);
 }
 
 void http_cookie_set_with_expression(cString& domain, cString& expression) 

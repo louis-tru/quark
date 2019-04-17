@@ -69,17 +69,17 @@ var File = util.class('File', HttpService, {
 		fs.stat(filename, function (err, stat) {
 			
 			if (err) {
-				return self.returnStatus(404);
+				return self.returnErrorStatus(404);
 			}
 			
 			if (!stat.isFile()) {
-				return self.returnStatus(404);
+				return self.returnErrorStatus(404);
 			}
 			
 			//for file
 			if (stat.size > Math.min(self.server.maxFileSize, 5 * 1024 * 1024)) { 
 				//File size exceeds the limit
-				return self.returnStatus(403);
+				return self.returnErrorStatus(403);
 			}
 			
 			var mtime = stat.mtime;
@@ -98,7 +98,7 @@ var File = util.class('File', HttpService, {
 			
 			fs.readFile(filename, function(err, data) {
 				if (err) {
-					return self.returnStatus(404);
+					return self.returnErrorStatus(404);
 				}
 				// template, title, text_md, no_index
 				var res = self.response;
@@ -137,7 +137,7 @@ var File = util.class('File', HttpService, {
 				res.writeHead(200);
 				res.end(data);
 			} else {
-				this.returnStatus(404);
+				this.returnErrorStatus(404);
 			}
 		}
 	},
@@ -171,7 +171,7 @@ var File = util.class('File', HttpService, {
 				res.writeHead(200);
 				res.end(data);
 			} else {
-				this.returnStatus(404);
+				this.returnErrorStatus(404);
 			}
 		}
 	}

@@ -147,6 +147,7 @@
 					'depe/node/deps/openssl/openssl.gyp:openssl',
 					'depe/node/deps/http_parser/http_parser.gyp:http_parser',
 					'depe/node/node.gyp:node',
+					'depe/bplus/bplus.gyp:bplus',
 				],
 				'link_settings': { 
 					'libraries': [ '-lz' ],
