@@ -131,9 +131,6 @@
 		##########################################################
 	},
 	'target_defaults': {
-		'variables': {
-			'host_os': '<(host_os)',
-		},
 		'default_configuration': 'Release',
 		'configurations': {
 			'Debug': {
@@ -186,7 +183,7 @@
 		'conditions': [
 			['os=="android"', {
 				'ldflags': [
-					'-shared', 
+					'-shared',
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 				],
 				'conditions': [
@@ -279,7 +276,6 @@
 					'ARCHS': [ '$(ARCHS_STANDARD)' ],   # 'ARCHS': [ '$(ARCHS_STANDARD_32_BIT)' ],
 					'SKIP_INSTALL': 'YES',
 					'DEBUG_INFORMATION_FORMAT': 'dwarf', # dwarf-with-dsym
-					#'ENABLE_BITCODE': 'YES',
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 					'VALID_ARCHS': '<(arch_name)',
 					'conditions': [

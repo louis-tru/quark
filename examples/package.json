@@ -1,8 +1,8 @@
 {
 	"name": "examples",
-	"app_name":	"Qgr-Examples",
+	"appName":	"Qgr-Examples",
 	"id": "org.qgr.examples",
 	"main":	"index.jsx",
 	"version": "1.0.0",
-	"qgr_syntax": true
+	"qgrSyntax": true
 }

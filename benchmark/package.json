@@ -1,8 +1,9 @@
 {
 	"name": "benchmark",
-	"app_name":	"Qgr-Benchmark",
+	"appName":	"Qgr-Benchmark",
 	"id": "org.qgr.benchmark",
 	"version": "0.1.0",
 	"main": "action.jsx",
-	"qgr_syntax": true
+	"qgrSyntax": true,
+	"detach": [ "img", "img2" ]
 }

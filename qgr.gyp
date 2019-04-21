@@ -42,6 +42,17 @@
 
 	'targets': [
 	{
+		'target_name': 'libqgr',
+		'type': 'none',
+		'dependencies': [
+			'qgr',
+			'qgr-media',
+			'qgr-v8',
+			'qgr-js',
+			'qgr-node',
+		],
+	},
+	{
 		'target_name': 'qgr_mac_dylib',
 		'type': 'none',
 		'dependencies': [

@@ -91,7 +91,7 @@ function Package_gen_ios_gypi(self) {
 	var host = self.host;
 	var sources = self.sources;
 	var id = self.pkg_json.id || 'com.mycompany.${PRODUCT_NAME:rfc1034identifier}';
-	var app_name = self.pkg_json.app_name || '${EXECUTABLE_NAME}';
+	var app_name = self.pkg_json.appName || '${EXECUTABLE_NAME}';
 	var version = self.pkg_json.version;
 	var xcode_settings = {};
 
@@ -180,7 +180,7 @@ function Package_gen_android_gypi(self) {
 	var host = self.host;
 	var sources = self.sources;
 	var id = (self.pkg_json.id || 'com.mycompany.' + name).replace(/-/gm, '_');
-	var app_name = self.pkg_json.app_name || name;
+	var app_name = self.pkg_json.appName || name;
 	var version = self.pkg_json.version;
 	var java_pkg = id.replace(/\./mg, '/');
 	var so_pkg = self.native || self.native_deps ? name : 'qgr';
@@ -394,6 +394,7 @@ function solve_pkg(self, pathname, is_app, ignore_depe) {
 	
 	// ignore network pkg 
 	if ( /^https?:\/\//i.test(source_path) ) { 
+		console.warn(`ignore extern network Dependencies pkg`);
 		return null;
 	}
 
@@ -416,8 +417,8 @@ function solve_pkg(self, pathname, is_app, ignore_depe) {
 	var bundle_resources = [];
 	var native_deps = false;
 
-	if ( !ignore_depe ) {
-		function solve_external_depe(pathname) {
+	if ( !ignore_depe && pkg_json.externDependencies == 'object' ) {
+		function solveExternDependencie(pathname) {
 			pathname = util.isAbsolute(pathname) ? pathname : source_path + '/' + pathname;
 			var pkg2 = solve_pkg(self, pathname, false, false);
 			if ( pkg2 ) {
@@ -431,12 +432,8 @@ function solve_pkg(self, pathname, is_app, ignore_depe) {
 				}
 			}
 		}
-		if (Array.isArray(pkg_json.external_deps)) {
-			pkg_json.external_deps.forEach(solve_external_depe);
-		} else {
-			for (var pathname in pkg_json.external_deps) {
-				solve_external_depe(pathname);
-			}
+		for (var name in pkg_json.externDependencies) {
+			solveExternDependencie(pkg_json.externDependencies[name]);
 		}
 	}
 	if ( dependencies.length == 0 ) {
@@ -491,7 +488,7 @@ function filter_repeat(array, ignore) {
 
 function gen_project_file(self, project_name) {
 
-	var gyp_exec = __dirname + (is_windows_env() ? '/../gyp/gyp.bat' :  '/../gyp/gyp');
+	var gyp_exec = __dirname + (is_windows_env() ? '/gyp/gyp.bat' :  '/gyp/gyp');
 
 	var os = self.m_os;
 	var source = self.m_source;
@@ -576,7 +573,11 @@ function export_result(self) {
 	var out = gen_project_file(self, project_name); // gen target project 
 
 	try {
-		child_process.execSync('open ' + out[0]); // open project
+		if (process.platform == 'darwin') {
+			child_process.execSync('open ' + out[0]); // open project
+		} else {
+			child_process.execSync('xdg-open ' + out[0]); // open project
+		}
 	} catch (e) {
 		// 
 	}
@@ -688,7 +689,11 @@ function export_result_android(self) {
 	fs.writeFileSync(proj_out + '/gradle.properties', str);
 
 	try {
-		child_process.execSync('open Project/android'); // open project
+		if (process.platform == 'darwin') {
+			child_process.execSync('open Project/android'); // open project
+		} else {
+			child_process.execSync('xdg-open Project/android'); // open project
+		}
 	} catch (e) {
 		// 
 	}
@@ -723,51 +728,15 @@ var QgrExport = util.class('QgrExport', {
 			fs.cp_sync(source, target, { replace: false });
 			return path.relative(self.m_output, target);
 		}
+
 		// copy bundle resources and includes and librarys
+		if (paths.librarys[os])
+			paths.librarys[os].map(copy);
+		paths.includes.map(copy);
 		this.m_bundle_resources = paths.bundle_resources.map(copy);
 
-		paths.includes.map(copy);
-
-		var librarys = paths.librarys[os] || [];
-		if ( os == 'ios' ) {
-			librarys.map(function(source) {
-				var basename = path.basename(source);
-				var target = self.m_output + '/libs/' + basename;
-				if ( basename == 'ios' ) { // merge Framework
-					fs.cp_sync(source, target, {
-						replace: false, 
-						check: function(path) {
-							return path.indexOf('qgr.framework/qgr.') == -1;
-						},
-					});
-					// merge qgr.framework/qgr 
-					[ 'iphonesimulator/Release', /*'iphonesimulator/Debug',*/
-						'iphoneos/Release', 'iphoneos/Debug'
-					].forEach(function(sdk) {
-						var pathname = `${target}/${sdk}/Frameworks/qgr.framework/qgr`;
-						if (!fs.existsSync(pathname)) { // 目标不存在进行合并
-							large_file_merge(`${source}/${sdk}/Frameworks/qgr.framework/qgr`, 
-															 { target: pathname });
-						}
-					});
-					var iphonesimulatorRelease = target + 
-						'/iphonesimulator/Release/Frameworks/qgr.framework';
-					var iphonesimulatorDebug = target + 
-						'/iphonesimulator/Debug/Frameworks/qgr.framework';
-					fs.mkdir_p_sync(target + '/iphonesimulator/Debug/Frameworks');
-					fs.rm_r_sync(iphonesimulatorDebug);
-					fs.symlinkSync(iphonesimulatorRelease, iphonesimulatorDebug);
-				} else {
-					fs.cp_sync(source, target, { replace: false });
-				}
-			});
-		} else {
-			librarys.map(copy);
-		}
-
-		var app_keys = this.m_source + '/proj.keys';
-
-		util.assert(fs.existsSync(app_keys), 'Export source does not exist ,{0}', app_keys);
+		var proj_keys = this.m_source + '/proj.keys';
+		util.assert(fs.existsSync(proj_keys), 'Export source does not exist ,{0}', proj_keys);
 		
 		fs.mkdir_p_sync(this.m_output);
 		fs.mkdir_p_sync(this.m_output + '/public');
@@ -780,8 +749,7 @@ var QgrExport = util.class('QgrExport', {
 
 		util.assert(
 			os == 'android' || 
-			os == 'ios', 
-			'Do not support {0} os', os);
+			os == 'ios', 'Do not support {0} os export', os);
 
 		// export pkgs
 
@@ -799,21 +767,21 @@ var QgrExport = util.class('QgrExport', {
 
 		// export apps
 
-		var app_keys = keys.parseFile(this.m_source + '/proj.keys');
+		var proj = keys.parseFile(this.m_source + '/proj.keys');
 		
-		for ( var name in app_keys ) {
-			if (name[0] == '@') { // 忽略 @
-				if ( name == '@ProjectName' ) {
-					this.m_project_name = app_keys[name];
+		for ( var key in proj ) {
+			if ( key == '@projectName' ) {
+				this.m_project_name = proj['@projectName'];
+			} else if ( key == '@apps' ) {
+				for (var name in proj['@apps']) {
+					if ( ! fs.existsSync(this.m_output + '/install/' + name) ) {
+						new QgrBuild(this.m_source, this.m_output).build();
+					}
+					util.assert(fs.existsSync(this.m_output + '/install/' + name), 
+											'Installation directory not found');
+					solve_pkg(this, this.m_source + '/' + name, true, false);
+					add_default_dependencies(this, name, default_modules);
 				}
-			} else {
-				if ( ! fs.existsSync(this.m_output + '/install/' + name) ) {
-					new QgrBuild(this.m_source, this.m_output).build();
-				}
-				util.assert(fs.existsSync(this.m_output + '/install/' + name), 
-										'Installation directory not found');
-				solve_pkg(this, this.m_source + '/' + name, true, false);
-				add_default_dependencies(this, name, default_modules);
 			}
 		}
 

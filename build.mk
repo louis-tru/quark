@@ -45,7 +45,7 @@ make_compile=\
 	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
-.PHONY: $(STYLES) all build build-jsa test2 clean
+.PHONY: $(STYLES) all build tools test2 clean
 
 .SECONDEXPANSION:
 
@@ -60,7 +60,7 @@ $(STYLES): $(GYPFILES)
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
 
-build-jsa: $(GYPFILES)
+tools: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
 	@$(call make_compile,$(MAKE))
 	@mkdir -p $(QMAKE)/bin/$(OS)

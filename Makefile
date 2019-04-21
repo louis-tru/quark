@@ -24,7 +24,7 @@ JSA_SHELL = $(QMAKE)/bin/${HOST_OS}/jsa-shell
 
 DEPS = libs/qkit libs/qmake/gyp.qgr depe/v8-link \
 	depe/FFmpeg.qgr depe/node.qgr depe/bplus
-FORWARD = make xcode msvs make-linux cmake-linux cmake build build-jsa $(ANDROID_JAR) test2 clean
+FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
@@ -44,10 +44,15 @@ git_pull_deps=echo $(1) deps \
 		) \
 	)
 
+# gen_framework=\
+# 	$(NODE) ./tools/gen_apple_framework.js ios $(1) "cut" "$(2)" \
+# 	$(QMAKE_OUT)/product/ios/$(3)/Frameworks/$(4) \
+# 	$(foreach i,$(5), out/ios.$(i).Release.shared/lib$(1).dylib)
+
 gen_framework=\
-	$(NODE) ./tools/gen_apple_framework.js ios $(1) "cut" "$(2)" \
-	$(QMAKE_OUT)/product/ios/$(3)/Frameworks/$(4) \
-	$(foreach i,$(5), out/ios.$(i).Release.shared/lib$(1).dylib)
+	$(NODE) ./tools/gen_apple_framework.js ios $(1) "no-cut" "$(2)" \
+	$(QMAKE_OUT)/product/ios/Frameworks/$(3) \
+	$(foreach i,$(4), out/ios.$(i).Release.shared/lib$(1).dylib)
 
 check_osx=\
 	if [ "$(HOST_OS)" != "osx" ]; then \
@@ -78,7 +83,7 @@ install-qmake: $(JSA_SHELL)
 
 # debug install qgr
 install-qmake-link: $(JSA_SHELL)
-	@cd $(QMAKE_OUT) && $(SUDO) npm link -g
+	@cd $(QMAKE) && $(SUDO) npm link
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -94,21 +99,15 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
 
-	@$(call gen_framework,qgr,,iphonesimulator,,x64)
-	@$(call gen_framework,qgr-media,no-inc,iphonesimulator,,x64)
-	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphonesimulator,,x64)
-	@$(call gen_framework,qgr-js,no-inc,iphonesimulator,,x64)
-	@$(call gen_framework,qgr-node,no-inc,iphonesimulator,,x64)
+	@$(call gen_framework,qgr,,,x64 arm64) # x64 arm64 armv7
+	@$(call gen_framework,qgr-media,no-inc,,x64 arm64)
+	@$(call gen_framework,qgr-v8,depe/v8-link/include,,x64 arm64)
+	@$(call gen_framework,qgr-js,no-inc,,x64 arm64)
+	@$(call gen_framework,qgr-node,no-inc,,x64 arm64)
 
-	@$(call gen_framework,qgr,,iphoneos,,arm64) # arm64 armv7
-	@$(call gen_framework,qgr-media,no-inc,iphoneos,,arm64)
-	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos,,arm64)
-	@$(call gen_framework,qgr-js,no-inc,iphoneos,,arm64)
-	@$(call gen_framework,qgr-node,no-inc,iphoneos,,arm64)
-
-	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos,Debug,arm64.v8)
-	@$(call gen_framework,qgr-js,no-inc,iphoneos,Debug,arm64.v8)
-	@$(call gen_framework,qgr-node,no-inc,iphoneos,Debug,arm64.v8)
+	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos/Debug,arm64.v8)
+	@$(call gen_framework,qgr-js,no-inc,iphoneos/Debug,arm64.v8)
+	@$(call gen_framework,qgr-node,no-inc,iphoneos/Debug,arm64.v8)
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)
@@ -157,7 +156,7 @@ build-linux-all:
 
 jsa:
 	@./configure --media=0
-	@$(MAKE) build-jsa
+	@$(MAKE) tools
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

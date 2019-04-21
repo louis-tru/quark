@@ -52,7 +52,7 @@ if ( fs.existsSync(__dirname + '/product/qgr.gypi') ) {
 		qgr_gyp: __dirname + '/../../qgr.gyp',
 		includes_gypi: [
 			__dirname + '/../../out/config.gypi',
-			__dirname + '/../../tools/common.gypi',		
+			__dirname + '/../../tools/common.gypi',
 		],
 		default_modules: [],
 		examples: __dirname + '/../../examples',

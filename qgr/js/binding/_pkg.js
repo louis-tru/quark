@@ -141,7 +141,7 @@ Module._extensions['.js'] = function(module, rawFilename) {
 	var content = read_text_sync(rawFilename);
 	var pkg = module.package;
 	var filename = rawFilename.replace(/\?.*$/, '');
-	if (pkg && pkg.m_info.qgr_syntax) {
+	if (pkg && pkg.m_info.qgrSyntax) {
 		if ( !pkg.m_build || 
 			pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
 			content = _util.transformJs(content, filename);
@@ -369,8 +369,8 @@ function Package_install2(self, cb) {
 						// 读取包内package.json文件内容
 						var package_json = pkg_path + '/package.json';
 						var info = parseJSON(read_text_sync(package_json), package_json);
-						if (info.version_code != self.m_version_code && 
-							info.build_time > self.m_info.build_time) { // 版本号不相同，并且时间比本地包新
+						if (info.versionCode != self.m_version_code && 
+							info.buildTime > self.m_info.buildTime) { // 版本号不相同，并且时间比本地包新
 							self.m_old = {
 								m_path: self.m_path,
 								m_version_code: self.m_version_code,
@@ -623,9 +623,9 @@ class Package {
 	get name() { return this.m_name }   // pkg 名称
 	get path() { return this.m_path }   // pkg 路径
 	get src() { return this.m_src }
-	get has_build() { return this.m_build }             // build
+	get hasBuild() { return this.m_build }             // build
 	get versions() { return this.m_versions }           // 资源版本
-	get version_code() { return this.m_version_code }   // 版本代码
+	get versionCode() { return this.m_version_code }   // 版本代码
 	
 	/**
 	 * @constructor
@@ -730,7 +730,7 @@ function Packages_disable_origin(self, path, disable) {
 	assert_origin(self, path).disable_origin = !!disable;
 }
 
-function Packages_depe_pkg(self, path, depe) {
+function Packages_depe_pkg(self, path, deps) {
 	function add_depe(pathname) {
 		if ( isAbsolute(i) ) {
 			Packages_register_path(self, pathname);
@@ -738,20 +738,16 @@ function Packages_depe_pkg(self, path, depe) {
 			Packages_register_path(self, path + '/' + pathname);
 		}
 	}
-	if ( typeof depe == 'object' ) {
-		if ( Array.isArray(depe)) {
-			depe.forEach(add_depe);
-		} else {
-			for ( var i in depe ) { // 添加依赖路径
-				add_depe(i);
-			}
+	if ( typeof deps == 'object' ) {
+		for ( var name in deps ) { // 添加依赖路径
+			add_depe(deps[name]);
 		}
 	}
 }
 
 function Packages_new_pkg(self, path, name, is_build, info, version_code, origin) {
-	if (typeof info.build_time != 'number') {
-		info.build_time = 0;
+	if (typeof info.buildTime != 'number') {
+		info.buildTime = 0;
 	}
 	info.src = info.src || '';
 	var pkg = self.m_pkgs[name];
@@ -790,10 +786,10 @@ function Packages_parse_new_pkgs_json(self, node_path, content, local) {
 				path = resolve(isAbsolute(info.path) ? 
 					info.path : node_path + '/' + info.path);
 			}
-			var version_code = String(info.version_code || ''); // pkg version code
+			var version_code = String(info.versionCode || ''); // pkg version code
 			// is pkg build, 是否为build过的代码
 			// 最终的version_code与_build属性都存在才能被视为build状态
-			var is_build = '_build' in info ? !!info._build : !!version_code;
+			var is_build = '_build' in info ? !!info._Build : !!version_code;
 			var origin = info.origin || '';
 			
 			var register = self.m_pkgs_register[path];
@@ -805,7 +801,7 @@ function Packages_parse_new_pkgs_json(self, node_path, content, local) {
 
 			if ( Packages_verification_is_need_load_pkg(self, register, false) ) {
 				register.ready = 2;
-				Packages_depe_pkg(self, path, info.external_deps);
+				Packages_depe_pkg(self, path, info.externDependencies);
 				Packages_new_pkg(self, path, name, is_build, info, version_code, origin);
 			}
 		}
@@ -832,15 +828,15 @@ function Packages_verification_is_need_load_pkg(self, register, is_warn) {
 
 function Packages_parse_new_pkg_json(self, register, content) {
 	var info = parseJSON(content, register.path + '/package.json');
-	var version_code = String(info.version_code || '');
+	var version_code = String(info.versionCode || '');
 	// is pkg build, 是否为build过的代码
 	// 最终的version_code与_build属性都存在才能被视为build状态
-	var is_build = !!(info._build && version_code);
+	var is_build = !!(info._Build && version_code);
 	var origin = register.disable_origin ? '' : register.origin || info.origin || '';
 	
 	register.ready = 2; // 完成
 	
-	Packages_depe_pkg(self, register.path, info.external_deps);
+	Packages_depe_pkg(self, register.path, info.externDependencies);
 	Packages_new_pkg(self, register.path, 
 		info.name, is_build, info, version_code, origin);
 }
@@ -1101,9 +1097,13 @@ function Packages_require_add_main_search_path(self) {
 			if (_path.extname(main) == '') { // package
 				instance.addPackageSearchPath(main + '/libs');
 				instance.addPackageSearchPath(main + '/../libs');
+				instance.addPackageSearchPath(main + '/node_modules');
+				instance.addPackageSearchPath(main + '/../node_modules');
 			} else {
 				instance.addPackageSearchPath(_path.dirname(main) + '/libs');
 				instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
+				instance.addPackageSearchPath(_path.dirname(main) + '/node_modules');
+				instance.addPackageSearchPath(_path.dirname(main) + '/../node_modules');
 			}
 		}
 	}
@@ -1113,6 +1113,8 @@ function Packages_require_add_main_search_path(self) {
 		_path.resources('libs'),
 		_path.cwd(),
 		_path.cwd() + '/libs',
+		_path.resources('node_modules'),
+		_path.cwd() + '/node_modules',
 	].concat(Module.globalPaths).forEach(function(path) {
 		instance.addPackageSearchPath(path);
 	});
