@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/platforms/ios-app.h>
-#include <qgr/js/js.h>
+#include <qgr/platforms/mac-app.h>
+#include <qgr/js/qgr.h>
 
 using namespace qgr;
 
@@ -48,9 +48,9 @@ XX_GUI_MAIN() {
   [ApplicationDelegate set_application_delegate:NSStringFromClass(MyApplication.class)];
 	
 #if DEBUG
-	js::start("ARGV_DEBUG");
+	js::Start("ARGV_DEBUG");
 #else
-	js::start("ARGV_RELEASE");
+	js::Start("ARGV_RELEASE");
 #endif
   
   return 0;

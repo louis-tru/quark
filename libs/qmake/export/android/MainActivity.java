@@ -43,7 +43,7 @@ public class MainActivity extends QgrActivity {
 	}
 
 	@Override
-	protected String startPath() {
+	protected String startCommand() {
 		if ( isDebugger() ) {
 			return "ARGV_DEBUG";
 		} else {

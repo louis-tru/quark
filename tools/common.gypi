@@ -10,7 +10,7 @@
 		'host_node%': 'node',
 		'node%': '<(host_node)',
 		'debug%': 0,
-		'project%': '',
+		'project%': 'make',
 		'media%': 1,
 		'cplusplus11%': 1,
 		'gcc_version%': 0,

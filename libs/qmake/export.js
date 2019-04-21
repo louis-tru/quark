@@ -147,9 +147,9 @@ function Package_gen_ios_gypi(self) {
 
 	// create gypi json data
 
-	var type = is_app ? 'executable' : self.native ? 'static_pkgrary' : 'none';
+	var type = is_app ? 'executable' : self.native ? 'static_library' : 'none';
 	var gypi = 
-	{	
+	{
 		'targets': [
 			{
 				'variables': is_app ? { 
@@ -246,7 +246,7 @@ function Package_gen_android_gypi(self) {
 			}
 		}
 	} else if ( self.native ) {
-		type = 'static_pkgrary';
+		type = 'static_library';
 	}
 
 	var gypi = 

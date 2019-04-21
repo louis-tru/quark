@@ -15,6 +15,7 @@
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '0',
 					'ONLY_ACTIVE_ARCH': 'YES',      # Build Active Architecture Only
+					# 'GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]': [ 'USE_JSC=0' ],
 				},
 			},
 			'Release': {
@@ -160,15 +161,6 @@
 			},
 			'cflags_cc': [ '-fexceptions', '-frtti', ], 
 		},
-		'configurations': {
-			'Debug': {
-				'direct_dependent_settings': {
-					'xcode_settings': {
-						'GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]': [ 'USE_JSC=0' ],
-					},
-				},
-			},
-		},
 		'conditions': [
 			['os=="android"', {
 				'link_settings': { 
@@ -193,24 +185,25 @@
 				'link_settings': {
 					'libraries': [ 
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-v8.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-node.framework',
 					],
 				},
 				'direct_dependent_settings': {
 					'mac_framework_dirs': [
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)',
 						'<(DEPTH)/out/libs/ios/Frameworks',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-v8.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/qgr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-node.framework',
 					],
 				},
 			}],

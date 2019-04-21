@@ -74,7 +74,7 @@ function unzip(self, source, target) {
 
 function jsa_shell(source, target) {
 	var os = process.platform == 'darwin' ? 'osx': process.platform;
-	var jsa_shell = `${__dirname}/bin/${os}/jsa-shell`;
+	var jsa_shell = `${__dirname}/bin/${os}-jsa-shell`;
 	if ( fs.existsSync(jsa_shell) ) {
 		exec_cmd(`${jsa_shell} ${source} ${target} --clean-comment`);
 	} else {

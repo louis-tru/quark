@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var fs = require('../libs/qkit/fs');
+var path = require('path');
 
 function copy_header(source, target) {
 	fs.ls_sync(source).forEach(function(stat) {
@@ -39,8 +40,14 @@ function copy_header(source, target) {
 		if ( stat.isDirectory() ) {
 			copy_header(source1, target1);
 		} else if ( stat.isFile() ) {
-			if ( /[a-zA-Z][0-9]?\.h(\.inl)?$/.test(name) ) {
-				fs.cp_sync(source1, target1);
+			if ( /[a-zA-Z][0-9]?\.(h|inl)$/.test(name) ) {
+				if (path.extname(name) == '.inl') {
+					if (fs.existsSync(source + '/' + name.replace(/.inl$/, '.h'))) {
+						fs.cp_sync(source1, target1);
+					}
+				} else {
+					fs.cp_sync(source1, target1);
+				}
 			}
 		}
 	});
