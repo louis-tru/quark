@@ -45,26 +45,31 @@ fs.rm_r_sync(target + '/product/examples');
 
 fs.cp_sync(root + '/libs/qmake', target, {ignore_hide:1});
 
-if (fs.existsSync(target + '/bin/linux-jsa-shell')) {
-	fs.chmodSync(target + '/bin/linux-jsa-shell', 0755);
-} else {
+if (!fs.existsSync(target + '/bin/linux-jsa-shell')) {
 	var {code} = execSync('scp louis@192.168.0.115:~/Project/qgr/libs/qmake/bin/linux-jsa-shell ' +
 		target + '/bin');
-	if (!code)
-		fs.chmodSync(target + '/bin/linux-jsa-shell', 0755);
-	else
+	if (code) {
 		console.warn('Cannot copy linux-jsa-shell, not find linux-jsa-shell');
+	} else {
+		fs.chmodSync(target + '/bin/linux-jsa-shell', 0755);
+	}
+} else {
+	fs.chmodSync(target + '/bin/linux-jsa-shell', 0755);
 }
-if (fs.existsSync(target + '/bin/osx-jsa-shell'))
-	fs.chmodSync(target + '/bin/osx-jsa-shell', 0755);
+if (!fs.existsSync(target + '/bin/osx-jsa-shell')) {
+	console.warn('Cannot copy osx-jsa-shell, not find osx-jsa-shell');
+} else {
+	fs.chmodSync(target + '/bin/osx-jsa-shell', 0755);	
+}
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
 copy_header(root + '/qgr', `${include}/qgr`);
 copy_header(`${root}/depe/v8-link/include`, include);
-copy_header(`${root}/depe/node/deps/openssl/include/openssl`, `${include}/openssl`);
+copy_header(`${root}/depe/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
+copy_header(`${root}/depe/node/deps/openssl/config/archs`, `${include}/openssl/archs`);
 copy_header(`${root}/depe/node/deps/uv/include`, include);
-copy_header(`${root}/depe/node/deps/zlib/include/zlib.h`, `${include}/zlib.h`);
-copy_header(`${root}/depe/node/deps/zlib/include/zconf.h`, `${include}/zconf.h`);
+copy_header(`${root}/depe/node/deps/zlib/zlib.h`, `${include}/zlib.h`);
+copy_header(`${root}/depe/node/deps/zlib/zconf.h`, `${include}/zconf.h`);
 copy_header(`${root}/depe/node/src/node_api.h`, `${include}/node_api.h`);
 copy_header(`${root}/depe/node/src/node_api_types.h`, `${include}/node_api_types.h`);
 copy_header(`${root}/depe/node/src/node_buffer.h`, `${include}/node_buffer.h`);
@@ -72,7 +77,8 @@ copy_header(`${root}/depe/node/src/node.h`, `${include}/node.h`);
 copy_header(`${root}/depe/node/src/node_object_wrap.h`, `${include}/node_object_wrap.h`);
 copy_header(`${root}/depe/node/src/node_version.h`, `${include}/node_version.h`);
 
-fs.cp_sync(root + '/examples', target + '/product/examples');
 // fs.cp_sync(root + '/libs/qgr', target + '/product/libs/qgr');
+fs.cp_sync(root + '/examples', target + '/product/examples');
 fs.cp_sync(root + '/tools/product.gypi', target + '/product/qgr.gypi');
-
+// fs.cp_sync(root + '/tools/common.gypi', target + '/product/common.gypi');
+// fs.cp_sync(root + '/out/config.gypi', target + '/product/config.gypi');

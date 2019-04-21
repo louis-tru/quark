@@ -110,10 +110,10 @@ ios: $(JSA_SHELL)
 	@$(call gen_framework,qgr-js,no-inc,iphoneos/Debug,arm64.v8)
 	@$(call gen_framework,qgr-node,no-inc,iphoneos/Debug,arm64.v8)
 
-	@echo '#undef USE_JSC\n#define USE_JSC 0' > 
-		$(QMAKE_OUT)/product/ios/iphoneos/Debug/qgr-v8.framework/Headers/jsc_cfg.h
-	@echo '#undef USE_JSC\n#define USE_JSC 1' > 
-		$(QMAKE_OUT)/product/ios/iphoneos/qgr-v8.framework/Headers/jsc_cfg.h
+	@echo '#undef USE_JSC\n#define USE_JSC 0' > \
+		$(QMAKE_OUT)/product/ios/Frameworks/iphoneos/Debug/qgr-v8.framework/Headers/v8-jsccfg.h
+	@echo '#undef USE_JSC\n#define USE_JSC 1' > \
+		$(QMAKE_OUT)/product/ios/Frameworks/iphoneos/qgr-v8.framework/Headers/v8-jsccfg.h
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)

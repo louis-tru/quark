@@ -32,17 +32,14 @@ var fs = require('../libs/qkit/fs');
 var path = require('path');
 
 function copy_header(source, target) {
-	fs.ls_sync(source).forEach(function(stat) {
-		var name = stat.name;
-		var source1 = source + '/' + name;
-		var target1 = target + '/' + name;
+	fs.ls_sync(source, true, function(stat, pathname) {
+		if ( stat.isFile() ) {
+			var source1 = path.join(source, pathname);
+			var target1 = path.join(target, pathname);
 
-		if ( stat.isDirectory() ) {
-			copy_header(source1, target1);
-		} else if ( stat.isFile() ) {
-			if ( /[a-zA-Z][0-9]?\.(h|inl)$/.test(name) ) {
-				if (path.extname(name) == '.inl') {
-					if (fs.existsSync(source + '/' + name.replace(/.inl$/, '.h'))) {
+			if ( /[a-zA-Z][0-9]?\.(h|inl)$/.test(stat.name) ) {
+				if (path.extname(stat.name) == '.inl') {
+					if (fs.existsSync(source + '/' + stat.name.replace(/.inl$/, '.h'))) {
 						fs.cp_sync(source1, target1);
 					}
 				} else {
