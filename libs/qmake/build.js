@@ -221,7 +221,7 @@ function build_pkg1(self, pathname, target_local, target_public, ignore_public, 
 
 	self.m_output_pkgs[name] = out = { pkg_json: pkg_json };
 
-	var skip_install = pkg_json.skip_install && pkg_json.origin;
+	var skip_install = pkg_json.skipInstall && pkg_json.origin;
 
 	if ( skip_install ) {
 		out.absolute_path = pkg_json.origin;
@@ -614,6 +614,25 @@ var QgrBuild = util.class('QgrBuild', {
 
 		fs.mkdir_p_sync(this.m_target_local);
 		fs.mkdir_p_sync(this.m_target_public);
+
+		if (!fs.existsSync(`${self.m_source}/.gitignore`)) {
+			fs.writeFileSync(`${self.m_source}/.gitignore`, 'out\n');
+		}
+
+		if (fs.existsSync(`${self.m_source}/.editorconfig`)) {
+			fs.writeFileSync(`${self.m_source}/.editorconfig`,
+`
+# top-most EditorConfig file  
+root = true  
+  
+# all files  
+[*]  
+indent_style = tab  
+indent_size = 2
+
+`
+			);
+		}
 		
 		if ( !fs.existsSync(keys_path) ) { // No exists proj.keys file
 			// build pkgs

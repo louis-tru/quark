@@ -66,13 +66,11 @@ function Package_get_start_argv(self) {
 		var name = self.name;
 		var pkg_json = self.pkg_json;
 		var start_argv = name;
-		var inspect = '--inspect=0.0.0.0:9229 ';
+		var inspect = '--node --inspect=0.0.0.0:9229 --dev ';
 		var start_argv_debug = 'http://' + getLocalNetworkHost()[0] + ':1026/' + 
-														name + ' --dev --ignore-local=*';
-		//if (self.host.m_os != 'ios') {
+														name + ' --ignore-local=*';
 		start_argv_debug = inspect + start_argv_debug;
-		//}
-		if ( pkg_json.skip_install ) {
+		if ( pkg_json.skipInstall ) {
 			if ( !pkg_json.origin || !/^https?:\/\//.test(String(pkg_json.origin)) ) {
 				console.error( 'Application', name, 'no valid boot parameters.' );
 				// start_argv = JSON.stringify(String(pkg_json.origin || ''));
@@ -80,7 +78,7 @@ function Package_get_start_argv(self) {
 				start_argv = JSON.stringify(pkg_json.origin);
 			}
 		}
-		return [start_argv, start_argv_debug];
+		return [start_argv, start_argv_debug].map(e=>`qgr ${e}`);
 	}
 	return null;
 }
@@ -363,7 +361,7 @@ var Package = util.class('Package', {
 			}
 		});
 
-		if ( !pkg_json.skip_install ) { // no skip install pkg
+		if ( !pkg_json.skipInstall ) { // no skip install pkg
 			this.bundle_resources.push('install/' + this.name);
 		}
 
@@ -728,12 +726,12 @@ var QgrExport = util.class('QgrExport', {
 			fs.cp_sync(source, target, { replace: false });
 			return path.relative(self.m_output, target);
 		}
-
 		// copy bundle resources and includes and librarys
+		this.m_bundle_resources = paths.bundle_resources.map(copy);
+
 		if (paths.librarys[os])
 			paths.librarys[os].map(copy);
 		paths.includes.map(copy);
-		this.m_bundle_resources = paths.bundle_resources.map(copy);
 
 		var proj_keys = this.m_source + '/proj.keys';
 		util.assert(fs.existsSync(proj_keys), 'Export source does not exist ,{0}', proj_keys);

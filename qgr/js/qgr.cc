@@ -195,7 +195,9 @@ static int __xx_exit_hook__(int rc) {
 int Start(cString& cmd) {
 	Array<String> argv_in;
 	for (auto& i : cmd.trim().split(' ')) {
-		argv_in.push(i.value().trim());
+		String arg = i.value().trim();
+		if (!arg.is_empty())
+			argv_in.push(arg);
 	}
 	return Start(argv_in);
 }

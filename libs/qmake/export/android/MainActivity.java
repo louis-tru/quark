@@ -35,7 +35,7 @@ import android.os.Bundle;
 
 public class MainActivity extends QgrActivity {
 
-	private static final String LIBRARY = "qgr";
+	private static final String LIBRARY = "qgr-js";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

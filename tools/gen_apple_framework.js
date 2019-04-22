@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+// console.log(process.argv)
+
 var fs = require('../libs/qkit/fs');
 var path = require('path');
 var syscall = require('../libs/qkit/syscall').syscall;
@@ -58,21 +60,21 @@ function read_qgr_version_str() {
 var version = read_qgr_version_str();
 
 function read_plist_and_replace_version() {
-	var placeholder_name = 'xxxxxxxxxx';
-	var l = Math.max(0, placeholder_name.length - name.length + 1);
-	var r_name = name + new Array(l).join(' ');
-	var str = fs.readFileSync(`${__dirname}/${os}-framework.plist`).toString('hex');
-	str = str.replace(new RegExp(new Buffer('11.11.11').toString('hex'), 'gm'),
-										new Buffer(version).toString('hex'));
-	str = str.replace(new RegExp(new Buffer(placeholder_name).toString('hex'), 'gm'), 
-										new Buffer(r_name).toString('hex'));
-	return new Buffer(str, 'hex');
+	var en = 'utf-8';
+	var str = fs.readFileSync(`${__dirname}/${os}-framework.plist`, en);//.toString(en);
+	str = str.replace(new RegExp(new Buffer('11.11.11').toString(en), 'gm'),
+										new Buffer(version).toString(en));
+	str = str.replace(new RegExp(new Buffer('xxxxxxxxxx').toString(en), 'gm'), 
+										new Buffer(name).toString(en));
+	return new Buffer(str, en);
 }
 
 fs.mkdir_p_sync(framework_dir);
 
 // write plist
-fs.writeFileSync(framework_dir + '/Info.plist', read_plist_and_replace_version());
+fs.writeFileSync(`${framework_dir}/Info.plist`, read_plist_and_replace_version());
+syscall(`plutil -convert binary1 ${framework_dir}/Info.plist`); // convert binary
+
 // copy header
 if (inc != 'no-inc') {
 	var src = inc || source + '/qgr';
@@ -80,6 +82,18 @@ if (inc != 'no-inc') {
 }
 // Merge dynamic library
 syscall(`lipo -create ${argv.join(' ')} -output ${framework_dir}/${name}`);
+
+function sign() { // SING:
+	var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
+	// Signing Identity: "iPhone Developer: xuewen chu (6RGZX563Q6)"
+	//    533B431519212ED8D9723111DAA1BFD5280AED85
+	syscall(
+	`CODESIGN_ALLOCATE=${XCODEDIR}/Toolchains/XcodeDefault.xctoolchain/usr/bin/codesign_allocate \
+	codesign --force --sign 533B431519212ED8D9723111DAA1BFD5280AED85 --timestamp=none ${framework_dir}
+	`);
+}
+
+// sign();
 
 if (cut === 'cut') {
 	if ( fs.statSync(`${framework_dir}/${name}`).size > 1024 * 1024 * 50 ) { // > 50mb

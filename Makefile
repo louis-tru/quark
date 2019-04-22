@@ -44,11 +44,6 @@ git_pull_deps=echo $(1) deps \
 		) \
 	)
 
-gen_framework=\
-	$(NODE) ./tools/gen_apple_framework.js ios $(1) "no-cut" "$(2)" \
-	$(QMAKE_OUT)/product/ios/Frameworks/$(3) \
-	$(foreach i,$(4), out/ios.$(i).Release.shared/lib$(1).dylib)
-
 check_osx=\
 	if [ "$(HOST_OS)" != "osx" ]; then \
 		echo ;\
@@ -93,27 +88,7 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
-
-	@$(call gen_framework,qgr,,iphonesimulator,x64)
-	@$(call gen_framework,qgr-media,no-inc,iphonesimulator,x64)
-	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphonesimulator,x64)
-	@$(call gen_framework,qgr-js,no-inc,iphonesimulator,x64)
-	@$(call gen_framework,qgr-node,no-inc,iphonesimulator,x64)
-
-	@$(call gen_framework,qgr,,iphoneos,arm64) # x64 arm64 armv7
-	@$(call gen_framework,qgr-media,no-inc,iphoneos,arm64)
-	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos,arm64)
-	@$(call gen_framework,qgr-js,no-inc,iphoneos,arm64)
-	@$(call gen_framework,qgr-node,no-inc,iphoneos,arm64)
-
-	@$(call gen_framework,qgr-v8,depe/v8-link/include,iphoneos/Debug,arm64.v8)
-	@$(call gen_framework,qgr-js,no-inc,iphoneos/Debug,arm64.v8)
-	@$(call gen_framework,qgr-node,no-inc,iphoneos/Debug,arm64.v8)
-
-	@echo '#undef USE_JSC\n#define USE_JSC 0' > \
-		$(QMAKE_OUT)/product/ios/Frameworks/iphoneos/Debug/qgr-v8.framework/Headers/v8-jsccfg.h
-	@echo '#undef USE_JSC\n#define USE_JSC 1' > \
-		$(QMAKE_OUT)/product/ios/Frameworks/iphoneos/qgr-v8.framework/Headers/v8-jsccfg.h
+	@$(shell ./tools/gen_apple_frameworks.sh $(QMAKE_OUT) ios)
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)

@@ -183,27 +183,25 @@
 			}],
 			['os=="ios"', {
 				'link_settings': {
-					'libraries': [ 
+					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-v8.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-node.framework',
 					],
 				},
 				'direct_dependent_settings': {
 					'mac_framework_dirs': [
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)',
-						'<(DEPTH)/out/libs/ios/Frameworks',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-v8.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/iphoneos/qgr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/qgr-node.framework',
 					],
 				},
 			}],

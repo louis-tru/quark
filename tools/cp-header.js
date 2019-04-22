@@ -39,7 +39,7 @@ function copy_header(source, target) {
 
 			if ( /[a-zA-Z][0-9]?\.(h|inl)$/.test(stat.name) ) {
 				if (path.extname(stat.name) == '.inl') {
-					if (fs.existsSync(source + '/' + stat.name.replace(/.inl$/, '.h'))) {
+					if (fs.existsSync(path.dirname(source1) + '/' + stat.name.replace(/.inl$/, '.h'))) {
 						fs.cp_sync(source1, target1);
 					}
 				} else {

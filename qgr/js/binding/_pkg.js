@@ -1014,17 +1014,26 @@ function Packages_require_before(self, async, cb) {
 	}
 }
 
-function Packages_require_parse_argv(self) {
-	var args = [];
-
+function Packages_require_parse_main_startup(self) {
 	if (_util.argv.length > 1) {
 		if ( String(_util.argv[1])[0] != '-' ) {
 			self.m_main_startup_path = String(_util.argv[1] || '');
-			args = _util.argv.slice(2);
+			return _util.argv.slice(2);
 		} else {
-			args = _util.argv.slice(1);
+			if (String(_util.argv[1]).indexOf('--inspect') == 0) {
+				if ( String(_util.argv[2])[0] != '-' ) {
+					self.m_main_startup_path = String(_util.argv[2] || '');
+					return _util.argv.slice(3);
+				}
+			}
 		}
 	}
+	// console.error('Cannot find main startup path arg');
+	return _util.argv.slice(1);
+}
+
+function Packages_require_parse_argv(self) {
+	var args = Packages_require_parse_main_startup(self);
 
 	for (var i = 0; i < args.length; i++) {
 		var item = args[i];
