@@ -18,8 +18,8 @@
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/libqgr.a',
 					'<(output)/obj.target/libqgr-utils.a',
+					'<(output)/obj.target/libqgr.a',
 					'<(output)/obj.target/libqgr-js.a',
 					'<(output)/obj.target/libqgr-media.a',
 					'<(output)/obj.target/depe/node/libnode.a',
@@ -46,10 +46,10 @@
 		'type': 'none',
 		'dependencies': [
 			'qgr',
-			'qgr-media',
-			'qgr-v8',
 			'qgr-js',
+			'qgr-media',
 			'qgr-node',
+			'qgr-v8',
 		],
 	},
 	{
@@ -57,10 +57,10 @@
 		'type': 'none',
 		'dependencies': [
 			'qgr',
-			'qgr-media',
-			'qgr-v8',
 			'qgr-js',
+			'qgr-media',
 			'qgr-node',
+			'qgr-v8',
 		],
 		'conditions': [
 			# output mac shared library for "qgr.framework"
@@ -98,22 +98,22 @@
 						'<(output)/libtess2.a',
 						'<(output)/libft2.a',
 						'<(output)/libtinyxml2.a',
-						'<(output)/libqgr-utils.a',
-						'<(output)/libqgr.a',
 						'<(output)/obj.target/FFmpeg/libFFmpeg.a',
-						'<(output)/libqgr-media.a',
-						'<@(lib_v8_a)',
-						'<(output)/libqgr-js.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
+						'<(output)/libqgr-utils.a',
+						'<(output)/libqgr.a',
+						'<(output)/libqgr-js.a',
+						'<(output)/libqgr-media.a',
 						'<(output)/libnode.a',
+						'<@(lib_v8_a)',
 					],
 					'outputs': [
 						'<(output)/libqgr.dylib',
-						'<(output)/libqgr-media.dylib',
-						'<(output)/libqgr-v8.dylib',
 						'<(output)/libqgr-js.dylib',
+						'<(output)/libqgr-media.dylib',
 						'<(output)/libqgr-node.dylib',
+						'<(output)/libqgr-v8.dylib',
 					],
 					'action': [ 
 						'sh', '-c', 
@@ -131,7 +131,7 @@
 	{
 		'target_name': 'qgr_copy_so', 
 		'type': 'none',
-		'dependencies': [ 'qgr', 'qgr-media', 'qgr-js', 'qgr-node' ],
+		'dependencies': [ 'qgr', 'qgr-js', 'qgr-media', 'qgr-node', 'qgr-v8' ],
 		'conditions': [
 			# copy libqgr.so to product directory
 			['debug==0 and library_output=="shared_library" and OS!="mac"', {
@@ -139,10 +139,10 @@
 					'destination': '<(qgr_product_dir)/<(qgr_product_so_subdir)',
 					'files': [
 						'<(output)/lib.target/libqgr.so',
-						'<(output)/lib.target/libqgr-media.so',
 						'<(output)/lib.target/libqgr-js.so',
-						'<(output)/lib.target/libqgr-v8.so',
+						'<(output)/lib.target/libqgr-media.so',
 						'<(output)/lib.target/libqgr-node.so',
+						'<(output)/lib.target/libqgr-v8.so',
 					],
 				}], # copies
 			}],

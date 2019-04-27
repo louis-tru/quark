@@ -3,7 +3,6 @@
 	{
 		'target_name': 'qgr-utils',
 		'type': 'static_library',
-		# 'type': '<(library_output_type)',
 		'dependencies': [
 			'qgr/utils/minizip.gyp:minizip',
 			'depe/bplus/bplus.gyp:bplus',
@@ -129,5 +128,13 @@
 				],
 			}],
 		]
-	},],
+	}, 
+	{
+		'target_name': 'qgr-utils_so',
+		# 'product_prefix': '',
+		# 'product_ext': 'so',
+		'product_name': 'qgr-utils',
+		'type': '<(output_shared)',
+		'dependencies': [ 'qgr-utils' ],
+	}],
 }

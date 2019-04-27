@@ -11,8 +11,8 @@
 			],
 			'dependencies': [
 				'qgr',
-				'qgr-media',
 				'qgr-js',
+				'qgr-media',
 				'qgr-node',
 				'qgr-v8',
 				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
@@ -93,9 +93,10 @@
 			'type': 'executable',
 			'dependencies': [
 				'qgr',
-				'qgr-media',
 				'qgr-js',
+				'qgr-media',
 				'qgr-node',
+				'qgr-v8',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [

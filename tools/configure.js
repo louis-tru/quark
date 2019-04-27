@@ -196,11 +196,11 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 			// --enable-mediacodec \
 
 		var cc = variables.cc;
-		var cflags = '-ffunction-sections -fdata-sections ';
-
+		var cflags = `-ffunction-sections -fdata-sections `;
 		if ( !clang ) { // use gcc 
 			cflags += '-funswitch-loops ';
 		}
+		cflags += `-D__ANDROID_API__=${android_api_level} `;
 
 		cmd += `--cc='${cc} ${cflags} -march=${arch_name}' `;
 	} 
@@ -627,9 +627,8 @@ async function configure() {
 		if (!fs.existsSync(toolchain_dir)) {
 			var toolchain_dir2 = `${__dirname}/android-toolchain/arm`;
 			// chech ndk r19
-			if ( fs.existsSync(`${toolchain_dir2}/bin/armv7a-linux-androideabi${api}-clang`) ) {
-				opts.clang = 1; // use clang
-				variables.clang = 1;
+			if ( opts.clang && // can use clang 
+					fs.existsSync(`${toolchain_dir2}/bin/armv7a-linux-androideabi${api}-clang`) ) {
 				toolchain_dir = toolchain_dir2;
 			} else {
 				var ndk_path = opts.ndk_path || `${process.env.ANDROID_HOME}/ndk-bundle`;
@@ -652,10 +651,10 @@ async function configure() {
 		}
 
 		var tools = {
-			'arm': { cross_prefix: `arm-linux-androideabi-`, arch_name: 'armv6', abi: 'armeabi' },
-			'arm64': { cross_prefix: `aarch64-linux-android-`, arch_name: 'armv8-a', abi: 'arm64-v8a' },
 			// 'mips': { cross_prefix: `mipsel-linux-android`, arch_name: 'mips2', abi: 'mips' },
 			// 'mips64': { cross_prefix: `mips64el-linux-android`, arch_name: 'mips64r6', abi: 'mips64' },
+			'arm': { cross_prefix: `arm-linux-androideabi-`, arch_name: 'armv6', abi: 'armeabi' },
+			'arm64': { cross_prefix: `aarch64-linux-android-`, arch_name: 'armv8-a', abi: 'arm64-v8a' },
 			'x86': { cross_prefix: `i686-linux-android-`, arch_name: 'i686', abi: 'x86' },
 			'x64':  { cross_prefix: `x86_64-linux-android-`, arch_name: 'x86-64', abi: 'x86_64' },
 		};
@@ -672,29 +671,31 @@ async function configure() {
 			tool.abi = 'armeabi-v7a';
 		}
 
-		var cc_prefix = tool.cross_prefix;
-		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
-
-		if (fs.existsSync(`${cc_path.replace(/-$/, '')}${api}-clang`)) {
-			cc_prefix = cc_prefix.replace(/-$/, '') + api + '-';
-			cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
-		}
-
 		variables.cross_prefix = tool.cross_prefix;
 		variables.arch_name = tool.arch_name;
 		variables.android_abi = tool.abi;
 
+		var cc_prefix = tool.cross_prefix;
+		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
+
 		if (!fs.existsSync(`${cc_path}gcc`) || 
-				!execSync(`${cc_path}gcc --version| grep -i gcc`).stdout[0]
+				!execSync(`${cc_path}gcc --version| grep -i gcc`).stdout[0] || opts.clang
 			) {
-			// cannot find gcc compiler, use clang
-			opts.clang = 1;
-			variables.clang = 1; // use clang
+			if (!fs.existsSync(`${cc_path}clang`)) {
+				cc_prefix = cc_prefix.replace(/-$/, '') + api + '-';
+				cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
+				util.assert(fs.existsSync(`${cc_path}clang`), 
+					`"gcc" or "clang" cross compilation was not found\n`);
+			}
+			if (!opts.clang) {
+				// cannot find gcc compiler, use clang
+				opts.clang = 1;
+				variables.clang = 1; // use clang
+				console.warn('\n ************ Only clang compiler can be used ************ ');
+			}
 		}
 
 		if ( opts.clang ) { // use clang
-			util.assert(fs.existsSync(`${cc_path}clang`), 
-				`"${cc_prefix}clang" or "${cc_prefix}gcc" cross compilation was not found\n`);
 			variables.cc = `${cc_prefix}clang`;
 			variables.cxx = `${cc_prefix}clang++`;
 			variables.ld = `${cc_prefix}clang++`;

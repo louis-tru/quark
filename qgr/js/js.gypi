@@ -2,12 +2,7 @@
 	'targets': [
 	{
 		'target_name': 'qgr-v8',
-		'type': 'none',
-		'conditions': [
-			['library_output_type=="shared_library"',{
-				'type': '<(library_output_type)',
-			}]
-		],
+		'type': '<(output_shared)',
 		'dependencies': [
 			'depe/v8-link/v8-link.gyp:v8-link',
 			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
@@ -15,13 +10,9 @@
 	},
 	{
 		'target_name': 'qgr-node',
-		'type': 'none',
-		'conditions': [
-			['library_output_type=="shared_library"',{
-				'type': '<(library_output_type)',
-			}],
-		],
+		'type': '<(output_shared)',
 		'dependencies': [
+			'qgr',
 			'qgr-js',
 			'qgr-v8',
 			'depe/node/node.gyp:node',
@@ -29,7 +20,7 @@
 	},
 	{
 		'target_name': 'qgr-js',
-		'type': '<(library_output_type)',
+		'type': '<(output_type)',
 		'include_dirs': [
 			'../..',
 			'../../out',
@@ -241,9 +232,10 @@
 				'type': 'executable',
 				'dependencies': [
 					'qgr',
-					'qgr-media',
 					'qgr-js',
+					'qgr-media',
 					'qgr-node',
+					'qgr-v8',
 				],
 				'sources': [
 					'main.cc',

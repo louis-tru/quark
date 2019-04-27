@@ -57,7 +57,7 @@ typedef struct {
 	const uint64 tid;
 } module_info_t;
 
-XX_EXPORT int initialize_media();
+XX_EXPORT extern int initialize_media();
 XX_EXPORT extern module_info_t* module_audio_player;
 XX_EXPORT extern module_info_t* module_video;
 

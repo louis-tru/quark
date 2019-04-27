@@ -27,7 +27,7 @@
 	'targets':[
 	{
 		'target_name': 'qgr',
-		'type': '<(library_output_type)',
+		'type': '<(output_type)',
 		'include_dirs': [
 			'..',
 			'../out',
@@ -176,7 +176,10 @@
 					'../android/com/qgr/IMEHelper.java',
 				],
 				'link_settings': { 
-					'libraries': [ '-lGLESv3', '-lEGL', ],
+					'libraries': [
+						'-lGLESv3',
+						'-lEGL',
+					],
 				},
 			}],
 			['OS!="mac"', {
@@ -191,7 +194,10 @@
 					'image/codec-jpeg.cc',
 					'image/codec-png.cc',
 					'image/codec-webp.cc',
-				]
+				],
+				'link_settings': {
+					'libraries': [ '-lz' ]
+				},
 			}],
 			['OS=="mac"', {
 				'dependencies': [
@@ -205,6 +211,7 @@
 				],
 				'link_settings': {
 					'libraries': [
+						'$(SDKROOT)/usr/lib/libz.tbd',
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
 					]
@@ -297,7 +304,7 @@
 	},
 	{
 		'target_name': 'qgr-media',
-		'type': '<(library_output_type)',
+		'type': '<(output_type)',
 		'dependencies': [
 			'qgr',
 			'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
