@@ -66,3 +66,5 @@ cd ../Release
 [ ! -L qgr-v8.framework ] && ln -s ../qgr-v8.framework
 [ ! -L qgr-js.framework ] && ln -s ../qgr-js.framework
 [ ! -L qgr-node.framework ] && ln -s ../qgr-node.framework
+
+exit 0
