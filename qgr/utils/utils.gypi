@@ -98,6 +98,9 @@
 		],
 		'conditions': [
 			['os=="android"', {
+				'conditions': [['<(android_api_level)<24', {
+					'defines!': [ '_FILE_OFFSET_BITS=64' ],
+				}]],
 				'sources':[
 					'../../android/android.h',
 					'../../android/android.cc',

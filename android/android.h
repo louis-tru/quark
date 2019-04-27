@@ -42,7 +42,7 @@ XX_NS(qgr)
 /**
  * @class Android
 */
-class Android {
+class XX_EXPORT Android {
 public:
 	static void initialize();
 	// gui

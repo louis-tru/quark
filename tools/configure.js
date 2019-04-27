@@ -562,6 +562,7 @@ async function configure() {
 			gcc_version: 0,
 			ranlib: 'ranlib',
 			strip: 'strip',
+			android_api_level: android_api_level,
 			build_sysroot: '/',
 			build_bin: '/usr/bin',
 			build_tools: __dirname,
@@ -633,6 +634,7 @@ async function configure() {
 			} else {
 				var ndk_path = opts.ndk_path || `${process.env.ANDROID_HOME}/ndk-bundle`;
 				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
+					// console.log(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`)
 					syscall(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`);
 				} else {
 					// todo auto download android ndk ...

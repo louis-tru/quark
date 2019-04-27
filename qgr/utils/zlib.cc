@@ -28,12 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <zlib.h>
-#include <zip.h>
-#include <unzip.h>
+
 #include "qgr/utils/zlib.h"
 #include "qgr/utils/handle.h"
 #include "qgr/utils/error.h"
+
+#include <zip.h>
+#include <zlib.h>
+#include <unzip.h>
 
 XX_NS(qgr)
 

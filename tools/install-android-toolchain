@@ -47,7 +47,7 @@ elif [ "$3" = "x64" ] || [ "$3" = "x86_64" ] || [ "$3" = "ia64" ]; then
 	toolchain="x86_64-4.9"
 fi
 
-echo $ndk, $level, $arch, $toolchain
+echo ndk=$ndk, level=$level, arch=$arch, toolchain=$toolchain
 
 DIR=$PWD/android-toolchain/$dir
 

@@ -27,6 +27,7 @@
 		'ar%': 'ar', 
 		'ranlib%': 'ranlib', 
 		'strip%': 'strip',
+		'android_api_level%': 21,
 		'output%': '<(PRODUCT_DIR)',
 		'version_min%': '',
 		'android_abi%': '',
@@ -204,6 +205,7 @@
 					'_GLIBCXX_USE_C99_MATH', 
 					'_GLIBCXX_USE_C99_MATH_TR1',
 					'_GLIBCXX_HAVE_WCSTOF',
+					'__ANDROID_API__=<(android_api_level)',
 				],
 			}],
 			['os=="linux"', {

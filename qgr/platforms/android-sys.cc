@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "qgr/sys.h"
 #include "android/android.h"
 
 XX_NS(qgr)
