@@ -88,7 +88,7 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
-	@$(shell ./tools/gen_apple_frameworks.sh $(QMAKE_OUT) ios)
+	@./tools/gen_apple_frameworks.sh $(QMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)

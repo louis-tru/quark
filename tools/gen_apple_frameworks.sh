@@ -2,7 +2,7 @@
 
 base=$(dirname $0)
 cd $base/..
-qout=$1
+out=$1
 os=$2
 gen=./tools/gen_apple_framework.js
 
@@ -11,7 +11,7 @@ gen_framework() {
 	for i in $4; do
 		arr=$arr"out/$os."$i".Release.shared/lib"$1".dylib "
 	done
-	node $gen $os $1 "no-cut" "$2" $qout/product/$os/Frameworks/$3 $arr
+	node $gen $os $1 "no-cut" "$2" $out/product/$os/Frameworks/$3 $arr
 }
 
 gen_framework qgr       ""                   iphonesimulator "x64"
@@ -30,13 +30,13 @@ gen_framework qgr-v8    depe/v8-link/include iphoneos/Debug "arm64.v8"
 gen_framework qgr-js    no-inc               iphoneos/Debug "arm64.v8"
 gen_framework qgr-node  no-inc               iphoneos/Debug "arm64.v8"
 
-cd $qout/product/ios/Frameworks/iphoneos
+cd $out/product/ios/Frameworks/iphoneos
 echo '#undef USE_JSC\n#define USE_JSC 0' > Debug/qgr-v8.framework/Headers/v8-jsccfg.h
 echo '#undef USE_JSC\n#define USE_JSC 1' > qgr-v8.framework/Headers/v8-jsccfg.h
 
-cd ../iphonesimulator
-mkdir -p Debug
-mkdir -p Release
+
+cd ../iphonesimulator && mkdir -p Debug Release
+# iphonesimulator
 
 cd Debug
 [ ! -L qgr.framework ] && ln -s ../qgr.framework
@@ -52,9 +52,9 @@ cd ../Release
 [ ! -L qgr-js.framework ] && ln -s ../qgr-js.framework
 [ ! -L qgr-node.framework ] && ln -s ../qgr-node.framework
 
-cd ../../iphoneos
-mkdir -p Debug
-mkdir -p Release
+
+cd ../../iphoneos && mkdir -p Debug Release
+# iphoneos
 
 cd Debug
 [ ! -L qgr.framework ] && ln -s ../qgr.framework
