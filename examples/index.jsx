@@ -134,7 +134,7 @@ var qgr_tools_vx = (
 	<Mynavpage title="Qgr Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g qgr</T>.
+@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g qmake</T>.
 2. Or get the node modules from Github.@@
 			</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=qgr_tools>Go Github</Button>
