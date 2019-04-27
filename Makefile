@@ -143,7 +143,7 @@ doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
 
 web:
-	@$(NODE) --inspect=0.0.0.0:9229 tools/server.js
+	@$(NODE) --inspect=0.0.0.0:9228 tools/server.js
 
 help:
 	@echo

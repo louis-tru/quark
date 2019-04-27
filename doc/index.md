@@ -3,7 +3,7 @@
 
 * [`About`](README.md)
 * [`Tools`](https://www.npmjs.com/package/qmake)
-* [`Examples`](https://github.com/louis-tru/qgr/tree/master/demo)
+* [`Examples`](https://github.com/louis-tru/qgr/tree/master/examples)
 
 # Course
 
