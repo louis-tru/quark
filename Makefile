@@ -55,7 +55,7 @@ check_osx=\
 
 .PHONY: all $(FORWARD) jsa ios android linux osx \
 	install install-qmake-link install-qmake \
-	help web doc watch build-linux-all build-osx-all pull push androidtest
+	help web doc watch build-linux-all build-osx-all pull push
 
 .SECONDEXPANSION:
 
@@ -139,13 +139,6 @@ jsa:
 	@./configure --media=0
 	@$(MAKE) tools
 
-androidtest:
-	@if [ ! -f test/android/app/app.iml ]; then \
-		cp test/android/app/.app.iml test/android/app/app.iml; \
-	fi
-	@if [ $(HOST_OS) = "linux" ]; then xdg-open test/android; fi
-	@if [ $(HOST_OS) = "osx" ]; then open test/android; fi
-
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
 
@@ -164,6 +157,9 @@ watch:
 
 pull:
 	@git pull
+	@if [ ! -f test/android/app/app.iml ]; then \
+		cp test/android/app/.app.iml test/android/app/app.iml; \
+	fi
 	@$(call git_pull_deps,pull)
 
 push:
