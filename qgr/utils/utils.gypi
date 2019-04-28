@@ -129,12 +129,13 @@
 			}],
 		]
 	}, 
-	{
-		'target_name': 'qgr-utils_so',
-		# 'product_prefix': '',
-		# 'product_ext': 'so',
-		'product_name': 'qgr-utils',
-		'type': '<(output_shared)',
-		'dependencies': [ 'qgr-utils' ],
-	}],
+	# {
+	# 	'target_name': 'qgr-utils_so',
+	# 	# 'product_prefix': '',
+	# 	# 'product_ext': 'so',
+	# 	'product_name': 'qgr-utils',
+	# 	'type': '<(output_shared)',
+	# 	'dependencies': [ 'qgr-utils' ],
+	# },
+	],
 }

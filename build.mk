@@ -3,23 +3,25 @@ include out/config.mk
 ARCH          ?= x64
 SUFFIX        ?= $(ARCH)
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
+BRAND         ?=
+SHARED        ?=
 OS            ?= $(HOST_OS)
 BUILDTYPE     ?= Release
 V             ?= 0
 CXX           ?= g++
 LINK          ?= g++
-SHARED        ?=
 ANDROID_SDK   ?= $(ANDROID_HOME)
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
 ANDROID_JAR    = out/android.classs.qgr.jar
 JAVAC         ?= javac
-JAR           = jar
+JAR            = jar
 ENV           ?=
-QMAKE         = ./libs/qmake
-QMAKE_OUT     = out/qmake
-GYP           = $(QMAKE)/gyp/gyp
-LIBS_DIR      = out/$(OS).$(SUFFIX).$(BUILDTYPE)$(if $(SHARED),.$(SHARED))
-BUILD_STYLE   = make
+QMAKE          = ./libs/qmake
+QMAKE_OUT      = out/qmake
+GYP            = $(QMAKE)/gyp/gyp
+OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
+LIBS_DIR       = out/$(OUTPUT)
+BUILD_STYLE    = make
 
 #######################
 

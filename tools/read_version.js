@@ -52,4 +52,17 @@ function read_qgr_version() {
 	return [MAJOR, MINOR, PATCH];
 }
 
+function update_qgr_version() {
+	var vers = read_qgr_version().join('.');
+	var pkgs = [
+		__dirname + '/../libs/qgr/package.json',
+		__dirname + '/../libs/qmake/package.json',
+	].forEach(e=>{
+		var json = fs.readFileSync(e, 'utf-8');
+		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
+		fs.writeFileSync(e, json);
+	});
+}
+
 exports.read_qgr_version = read_qgr_version;
+exports.update_qgr_version = update_qgr_version;

@@ -57,9 +57,8 @@ function read_qgr_version_str() {
 	return `${a}.${b}.${c}`;
 }
 
-var version = read_qgr_version_str();
-
 function read_plist_and_replace_version() {
+	var version = read_qgr_version_str();
 	var en = 'utf-8';
 	var str = fs.readFileSync(`${__dirname}/${os}-framework.plist`, en);//.toString(en);
 	str = str.replace(new RegExp(new Buffer('11.11.11').toString(en), 'gm'),

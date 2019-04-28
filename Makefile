@@ -65,6 +65,7 @@ install: pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-qmake
+	@-./tools/gen_releases_lib.sh
 
 install-qmake: $(JSA_SHELL)
 	@$(NODE) ./tools/cp-qmake.js

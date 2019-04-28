@@ -33,6 +33,7 @@ var fs = require('../libs/qkit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
 var {execSync} = require('../libs/qkit/syscall');
+var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
@@ -42,6 +43,8 @@ var include = target + '/product/include';
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
+
+read_version.update_qgr_version();
 
 fs.cp_sync(root + '/libs/qmake', target, {ignore_hide:1});
 

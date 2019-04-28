@@ -537,6 +537,7 @@ async function configure() {
 			debug: opts.debug,
 			OS: get_OS(opts.os),
 			os: opts.os,
+			brand: '',
 			use_v8: opts.use_v8,
 			more_log: opts.more_log,
 			clang: opts.clang,
@@ -747,6 +748,15 @@ async function configure() {
 			console.warn('The Linux system calls the clang compiler to use GCC.');
 		}
 
+		var [uname] = syscall('uname -a').stdout;
+		if (/ubuntu/i.test(uname)) {
+			variables.brand = 'ubuntu';
+		} else if (/debian/i.test(uname)) {
+			variables.brand = 'debian';
+		} else {
+			console.warn('Unknown Linux distribution');
+		}
+
 		await install_linux_depe(opts, variables);
 
 		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
@@ -869,16 +879,20 @@ async function configure() {
 		suffix = String(opts.suffix);
 	}
 
-	variables.output = path.resolve(`${__dirname}/../out/${os}.${suffix}.${configuration}`);
-	variables.suffix = suffix;
+	var brand = variables.brand;
+	var output = `${os}${brand&&'-'+brand}.${suffix}.${configuration}`;
 
 	if (shared) 
-		variables.output += '.' + shared;
+		output += '.' + shared;
+	variables.output = path.resolve(`${__dirname}/../out/${output}`);
+	variables.suffix = suffix;
 
 	config_mk.push('SUFFIX=' + suffix);
 	config_mk.push('CXX=' + variables.cxx);
 	config_mk.push('LINK=' + variables.ld);
 	config_mk.push('SHARED=' + shared);
+	config_mk.push('BRAND=' + brand);
+	config_mk.push('OUTPUT=' + output);
 
 	ENV.push('export CC=' + variables.cc);
 	ENV.push('export CXX=' + variables.cxx);

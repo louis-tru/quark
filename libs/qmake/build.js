@@ -725,7 +725,7 @@ indent_size = 2
 	initialize: function() {
 		var project_name = path.basename(process.cwd()) || 'qgrproj';
 		var proj_keys = this.m_source + '/proj.keys';
-		var proj = { '@projectName': project_name, };
+		var proj = { '@projectName': project_name };
 		var default_modules = paths.default_modules;
 
 		if ( default_modules && default_modules.length ) {
@@ -743,6 +743,8 @@ indent_size = 2
 		if (fs.existsSync(proj_keys)) { // 如果当前目录存在proj.keys文件附加到当前
 			proj = util.assign(proj, keys.parseFile(proj_keys));
 		} else {
+			proj['@apps'] = {};
+
 			if (!fs.existsSync(project_name)) {
 				var json = {
 					name: project_name,
@@ -766,12 +768,17 @@ new GUIApplication().start(
 
 `);
 			}
-			if (!fs.existsSync('examples')) {
-				// copy examples pkg
+			if (!fs.existsSync('examples')) { // copy examples pkg
 				fs.cp_sync(paths.examples, this.m_source + '/examples');
 			}
 			proj['@projectName'] = project_name;
-			proj['@apps'] = { examples: '' };
+
+			if (fs.existsSync('examples/package.json')) {
+				proj['@apps']['examples'] = '';
+			}
+			if (fs.existsSync(project_name + '/package.json')) {
+				proj['@apps'][project_name] = '';
+			}
 		}
 		
 		// write new proj.keys
