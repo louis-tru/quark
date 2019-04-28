@@ -181,7 +181,7 @@ function Package_gen_android_gypi(self) {
 	var app_name = self.pkg_json.appName || name;
 	var version = self.pkg_json.version;
 	var java_pkg = id.replace(/\./mg, '/');
-	var so_pkg = self.native || self.native_deps ? name : 'qgr-jsa';
+	var so_pkg = self.native || self.native_deps ? name : 'qgr-js';
 	
 	if ( is_app ) { // copy platfoem file
 		var proj_out = host.m_proj_out;
