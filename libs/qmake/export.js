@@ -181,7 +181,7 @@ function Package_gen_android_gypi(self) {
 	var app_name = self.pkg_json.appName || name;
 	var version = self.pkg_json.version;
 	var java_pkg = id.replace(/\./mg, '/');
-	var so_pkg = self.native || self.native_deps ? name : 'qgr';
+	var so_pkg = self.native || self.native_deps ? name : 'qgr-jsa';
 	
 	if ( is_app ) { // copy platfoem file
 		var proj_out = host.m_proj_out;
@@ -214,8 +214,8 @@ function Package_gen_android_gypi(self) {
 		// AndroidManifest.xml
 		str = fs.readFileSync(AndroidManifest_xml).toString('utf8');
 		str = str.replace(/package\=\"[^\"]+\"/mg, `package="${id}"`);
-		str = str.replace(/android\:name\=\"android\.app\.pkg_name\"\s+android\:value\=\"[^\"]+\"/, 
-											`android:name="android.app.pkg_name" android:value="${so_pkg}"`);
+		str = str.replace(/android\:name\=\"android\.app\.lib_name\"\s+android\:value\=\"[^\"]+\"/, 
+											`android:name="android.app.lib_name" android:value="${so_pkg}"`);
 		fs.writeFileSync(AndroidManifest_xml, str);
 
 		// strings.xml
