@@ -100,6 +100,8 @@ android: $(JSA_SHELL)
 linux: $(JSA_SHELL)
 	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=linux   --arch=x64                    && $(MAKE) build
+	@./configure --os=linux   --arch=arm                    && $(MAKE) build
 
 osx:
 	@echo Unsupported
@@ -118,22 +120,19 @@ build-osx-all:
 	@$(MAKE) ios
 	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86   && $(MAKE) build
-	@./configure --os=android --arch=x64   && $(MAKE) build
-	@./configure --os=android --arch=arm   && $(MAKE) build
-	@./configure --os=android --arch=arm64 && $(MAKE) build
+	@./configure --os=android --arch=x86                    && $(MAKE) build
+	@./configure --os=android --arch=x64                    && $(MAKE) build
+	@./configure --os=android --arch=arm                    && $(MAKE) build
+	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
 build-linux-all:
 	@$(MAKE) android
 	@$(MAKE) linux
-	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86   && $(MAKE) build
-	@./configure --os=android --arch=x64   && $(MAKE) build
-	@./configure --os=android --arch=arm   && $(MAKE) build
-	@./configure --os=android --arch=arm64 && $(MAKE) build
-	@./configure --os=linux   --arch=x64   && $(MAKE) build
-	@./configure --os=linux   --arch=arm   && $(MAKE) build
+	@./configure --os=android --arch=x86                    && $(MAKE) build
+	@./configure --os=android --arch=x64                    && $(MAKE) build
+	@./configure --os=android --arch=arm                    && $(MAKE) build
+	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
 jsa:
 	@./configure --media=0
