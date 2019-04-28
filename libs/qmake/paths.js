@@ -28,23 +28,44 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var path = require('qkit/url');
+var url = require('qkit/url');
 var fs = require('qkit/fs');
-var resolve = require('path').resolve;
+var path = require('path');
 
-if ( fs.existsSync(__dirname + '/product/qgr.gypi') ) {
+function resolve(name) {
+	return path.resolve(__dirname + '/' + name);
+}
+
+if ( fs.existsSync(resolve('product/qgr.gypi')) ) {
 	module.exports = {
 		qgr_gyp: '',
-		includes_gypi: [ resolve(__dirname + '/product/qgr.gypi') ],
-		default_modules: [ 
-			//resolve(__dirname + '/product/libs/qgr'),
-		],
-		examples: resolve(__dirname + '/product/examples'),
-		bundle_resources: [ /*resolve(__dirname + '/product/cacert.pem')*/ ],
-		includes: [ resolve(__dirname + '/product/include') ],
+		includes_gypi: [ resolve('product/qgr.gypi') ],
+		default_modules: [ /*resolve('product/libs/qgr'),*/ ],
+		examples: resolve('product/examples'),
+		bundle_resources: [ /*resolve('product/cacert.pem')*/ ],
+		includes: [ resolve('product/include') ],
 		librarys: {
-			ios: [ resolve(__dirname + '/product/ios') ],
-			android: [ resolve(__dirname + '/product/android') ],
+			ios: [
+				resolve('product/ios'),
+				'ios/Frameworks/iphoneos/Debug/qgr-media.framework ../qgr-media.framework',
+				'ios/Frameworks/iphoneos/Debug/qgr.framework ../qgr.framework',
+				'ios/Frameworks/iphoneos/Release/qgr.framework ../qgr.framework',
+				'ios/Frameworks/iphoneos/Release/qgr-js.framework ../qgr-js.framework',
+				'ios/Frameworks/iphoneos/Release/qgr-v8.framework ../qgr-v8.framework',
+				'ios/Frameworks/iphoneos/Release/qgr-node.framework ../qgr-node.framework',
+				'ios/Frameworks/iphoneos/Release/qgr-media.framework ../qgr-media.framework',
+				'ios/Frameworks/iphonesimulator/Debug/qgr.framework ../qgr.framework',
+				'ios/Frameworks/iphonesimulator/Debug/qgr-js.framework ../qgr-js.framework',
+				'ios/Frameworks/iphonesimulator/Debug/qgr-v8.framework ../qgr-v8.framework',
+				'ios/Frameworks/iphonesimulator/Debug/qgr-node.framework ../qgr-node.framework',
+				'ios/Frameworks/iphonesimulator/Debug/qgr-media.framework ../qgr-media.framework',
+				'ios/Frameworks/iphonesimulator/Release/qgr.framework ../qgr.framework',
+				'ios/Frameworks/iphonesimulator/Release/qgr-js.framework ../qgr-js.framework',
+				'ios/Frameworks/iphonesimulator/Release/qgr-v8.framework ../qgr-v8.framework',
+				'ios/Frameworks/iphonesimulator/Release/qgr-node.framework ../qgr-node.framework',
+				'ios/Frameworks/iphonesimulator/Release/qgr-media.framework ../qgr-media.framework',
+			],
+			android: [ resolve('product/android') ],
 		},
 	};
 } else { // debug

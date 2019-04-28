@@ -718,20 +718,30 @@ var QgrExport = util.class('QgrExport', {
 		this.m_output = path.resolveLocal(source, 'out');
 		this.m_os = os;
 		this.m_proj_out = path.resolveLocal(source, 'Project', os);
-		this.m_pkg_output = { };
-		this.m_default_includes = { };
+		this.m_pkg_output = {};
+		this.m_default_includes = {};
 
-		function copy(source) {
-			var target = self.m_output + '/libs/' + path.basename(source);
-			fs.cp_sync(source, target, { replace: false });
-			return path.relative(self.m_output, target);
+		function copy_libs(source) {
+			var [source, symlink] = source.split(/\s+/);
+			var libs = self.m_output + '/libs/';
+			if (symlink) {
+				source = libs + source;
+				fs.mkdir_p_sync(path.dirname(source));
+				if ( !fs.existsSync(source) ) {
+					fs.symlinkSync(symlink, source);
+				}
+			} else {
+				var target = libs + path.basename(source);
+				fs.cp_sync(source, target, { replace: false });
+				return path.relative(self.m_output, target);
+			}
 		}
 		// copy bundle resources and includes and librarys
-		this.m_bundle_resources = paths.bundle_resources.map(copy);
+		this.m_bundle_resources = paths.bundle_resources.map(copy_libs);
 
 		if (paths.librarys[os])
-			paths.librarys[os].map(copy);
-		paths.includes.map(copy);
+			paths.librarys[os].map(copy_libs);
+		paths.includes.map(copy_libs);
 
 		var proj_keys = this.m_source + '/proj.keys';
 		util.assert(fs.existsSync(proj_keys), 'Export source does not exist ,{0}', proj_keys);
