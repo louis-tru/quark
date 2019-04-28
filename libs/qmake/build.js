@@ -665,13 +665,20 @@ indent_size = 2
 
 		// npm install
 		console.log(`Install dependencies ...`);
-		fs.rm_r_sync('node_modules');
+		var exists_package = fs.existsSync('package.json');
+		var exists_node_modules = fs.existsSync('node_modules');
+		if (exists_package)
+			fs.renameSync('package.json', '.package.json.bk');
+		if (exists_node_modules)
+			fs.renameSync('node_modules', '.node_modules.bk');
 		if (fs.existsSync('libs'))
 			fs.renameSync('libs', 'node_modules');
-		syscall(`npm install ${apps.join(' ')}`);
-		// delete uselse file
-		apps.forEach(e=>fs.unlinkSync('node_modules/' + e));
-		fs.rm_r_sync('libs');
+
+		fs.writeFileSync('package.json', '{}');
+		syscall(`npm install ${apps.join(' ')} --save=.`);
+
+		apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
+
 		if (fs.existsSync('node_modules')) {
 			if (fs.readdirSync('node_modules').length) {
 				fs.renameSync('node_modules', 'libs');
@@ -680,9 +687,16 @@ indent_size = 2
 			}
 		}
 		fs.rm_r_sync('package-lock.json');
+		fs.rm_r_sync('package.json');
+
+		if (exists_package)
+			fs.renameSync('.package.json.bk', 'package.json');
+		if (exists_node_modules)
+			fs.renameSync('.node_modules.bk', 'node_modules');
+
 
 		// build application pkgs
-		
+
 		var pkgs_path = self.m_source + '/libs';
 
 		if ( fs.existsSync(pkgs_path) && fs.statSync(pkgs_path).isDirectory() ) {
