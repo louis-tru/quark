@@ -59,13 +59,14 @@ static String split_path(cString& path, bool basename) {
 #endif 
 	int start = path.length();
 	if (path[start - 1] == '/') {
+		s = s.substr(0, start - 1);
 		start -= 2;
 	}
 	
 	int index = s.last_index_of('/', start);
 	if (index != -1) {
 		if (basename) {
-			return s.substring(index + 1, start);
+			return s.substring(index + 1);
 		} else { // dirname
 			return s.substring(0, index);
 		}

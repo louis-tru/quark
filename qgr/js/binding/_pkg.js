@@ -1332,7 +1332,10 @@ class Packages {
 			if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
 				inl_require(main, null);
 			} else {
-				var mat = main.match( /^(.+\/)?([a-z_$][a-z0-9_\-$]*)$/i );
+				if (main[main.length - 1] == '/') {
+					main = main.substr(0, main.length - 1);
+				}
+				var mat = main.match( /^(.+\/)?([a-z_$][a-z0-9_\-$]*(\.[a-z0-9_\-$]*)?)$/i );
 				if ( !mat) { // pkg
 					throw new Error(`Could not start, invalid package path "${main}"`);
 				}

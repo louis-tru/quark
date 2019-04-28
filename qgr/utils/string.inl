@@ -119,7 +119,7 @@ static int _last_index_of(const BasicString* self,
 {
 	// typedef typename BasicString::Char Char;
 	int slen = self->length();
-	if ( start + len > len )
+	if ( start + len > slen )
 		start = slen - len;
 	for ( ; start > -1; start--) {
 		if (_memcmp(self->c() + start, s, len) == 0) {
