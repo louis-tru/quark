@@ -138,7 +138,7 @@
 					'depe/freetype2/freetype2.gyp:ft2',
 					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',
 					'depe/libgif/libgif.gyp:libgif', 
-					'depe/libjpeg-turbo/libjpeg.gyp:libjpeg', 
+					'depe/libjpeg/libjpeg.gyp:libjpeg', 
 					'depe/libpng/libpng.gyp:libpng',
 					'depe/libwebp/libwebp.gyp:libwebp',
 					'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
