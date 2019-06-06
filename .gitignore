@@ -11,3 +11,4 @@ depe/glslang
 *.o
 *.a
 *.so
+.vscode
