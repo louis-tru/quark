@@ -54,14 +54,14 @@ check_osx=\
 	fi
 
 .PHONY: all $(FORWARD) jsa ios android linux osx \
-	install install-qmake-link install-qmake \
+	compile install-qmake-link install-qmake \
 	help web doc watch build-linux-all build-osx-all pull push
 
 .SECONDEXPANSION:
 
-# install qgr
+# compile qgr and install
 # It can only run in MAC system.
-install: pull
+compile: pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-qmake
@@ -107,7 +107,7 @@ linux: $(JSA_SHELL)
 osx:
 	@echo Unsupported
 
-all: pull
+build-all:
 	@if [ "$(HOST_OS)" = "osx" ]; then \
 		$(MAKE) build-osx-all; \
 	elif [ "$(HOST_OS)" = "linux" ]; then \
@@ -116,7 +116,7 @@ all: pull
 		echo Unsupported current System "$(HOST_OS)"; \
 	fi
 
-build-osx-all:
+build-osx-all: pull
 	@$(MAKE) android
 	@$(MAKE) ios
 	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
@@ -126,7 +126,7 @@ build-osx-all:
 	@./configure --os=android --arch=arm                    && $(MAKE) build
 	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
-build-linux-all:
+build-linux-all: pull
 	@$(MAKE) android
 	@$(MAKE) linux
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
