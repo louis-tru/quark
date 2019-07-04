@@ -4,9 +4,9 @@ import { P, M } from './test'
 
 console.log('\nOutputs:\n');
 
-var uri = new url.URL('http://quickgr.org/home/index.html?a=a&b=b#c=c&d=d');
+var uri = new url.URL('http://langou.org/home/index.html?a=a&b=b#c=c&d=d');
 
-// new url.URL('http://quickgr.org:/home/index.html?a=a&b=b#c=c&d=d').href;
+// new url.URL('http://langou.org:/home/index.html?a=a&b=b#c=c&d=d').href;
 
 for ( var i in uri ) {
 	var r = uri[i];
@@ -42,7 +42,7 @@ M(uri, 'getHash', ['a']);
 M(uri, 'setHash', ['k', 'K'], 'href');
 M(uri, 'setHash', ['k', 'K'], 'href');
 M(uri, 'clearHash', [], 'href');
-M(uri, 'relative', ['http://quickgr.org/A/B/C/test.js']);
+M(uri, 'relative', ['http://langou.org/A/B/C/test.js']);
 
 console.log('\nMethods:\n');
 
@@ -54,39 +54,39 @@ M(url, 'restore', [url.resources()]);
 M(url, 'cwd');
 M(url, 'chdir', ['/']);
 M(url, 'cwd');
-M(url, 'search', ['http://quickgr.org/?a=100']);
-M(url, 'hash', ['http://quickgr.org/?a=100&b=test#a=200&b=300']);
+M(url, 'search', ['http://langou.org/?a=100']);
+M(url, 'hash', ['http://langou.org/?a=100&b=test#a=200&b=300']);
 M(url, 'filename', ['file:///a/b/c/kk.jsx']);
 M(url, 'dirname', ['file:///a/b/c/kk.jsx']);
 M(url, 'host', ['a/b/c/kk.jsx']);
-M(url, 'host', ['http://quickgr.org/a/b/c/kk.jsx']);
+M(url, 'host', ['http://langou.org/a/b/c/kk.jsx']);
 M(url, 'hostname', ['a/b/c/kk.jsx']);
-M(url, 'hostname', ['http://quickgr.org/a/b/c/kk.jsx']);
+M(url, 'hostname', ['http://langou.org/a/b/c/kk.jsx']);
 M(url, 'origin', ['a/b/c/kk.jsx']);
-M(url, 'origin', ['http://quickgr.org/a/b/c/kk.jsx']);
+M(url, 'origin', ['http://langou.org/a/b/c/kk.jsx']);
 M(url, 'basename', ['a/b/c/kk.jsx']);
 M(url, 'extname', ['a/b/c/kk.jsx']);
-M(url, 'port', ['http://quickgr.org:81/a/b/c/kk.jsx']);
+M(url, 'port', ['http://langou.org:81/a/b/c/kk.jsx']);
 M(url, 'protocol', ['a/b/c/kk.jsx']);
-M(url, 'protocol', ['http://quickgr.org/a/b/c/kk.jsx']);
+M(url, 'protocol', ['http://langou.org/a/b/c/kk.jsx']);
 M(url, 'protocol', ['lib://util/fs']);
 M(url, 'protocol', [':util/fs']);
 M(url, 'protocol', ['zip:///var/data/test.apk@/assets/index']);
-M(url, 'params', ['http://quickgr.org/?a=100&b=test#a=200&b=300']);
-M(url, 'hashParams', ['http://quickgr.org/?a=100&b=test#a=200&b=300']);
-M(url, 'get', ['http://quickgr.org/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'set', ['http://quickgr.org/?a=100&b=test#a=200&b=300', 'a', 'A']);
-M(url, 'del', ['http://quickgr.org/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'clearParam', ['http://quickgr.org/?a=100&b=test#a=200&b=300']);
-M(url, 'getHash', ['http://quickgr.org/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'setHash', ['http://quickgr.org/?a=100&b=test#a=200&b=300', 'a', 'H']);
-M(url, 'delHash', ['http://quickgr.org/?a=100&b=test#a=200&b=300', 'a']);
-M(url, 'clearHash', ['http://quickgr.org/?a=100&b=test#a=200&b=300']);
-M(url, 'relative', ['http://quickgr.org/home', 'http://quickgr.org/A/B/C/test.js']);
-M(url, 'isAbsolute', ['http://quickgr.org/home/index.html']);
+M(url, 'params', ['http://langou.org/?a=100&b=test#a=200&b=300']);
+M(url, 'hashParams', ['http://langou.org/?a=100&b=test#a=200&b=300']);
+M(url, 'get', ['http://langou.org/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'set', ['http://langou.org/?a=100&b=test#a=200&b=300', 'a', 'A']);
+M(url, 'del', ['http://langou.org/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'clearParam', ['http://langou.org/?a=100&b=test#a=200&b=300']);
+M(url, 'getHash', ['http://langou.org/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'setHash', ['http://langou.org/?a=100&b=test#a=200&b=300', 'a', 'H']);
+M(url, 'delHash', ['http://langou.org/?a=100&b=test#a=200&b=300', 'a']);
+M(url, 'clearHash', ['http://langou.org/?a=100&b=test#a=200&b=300']);
+M(url, 'relative', ['http://langou.org/home', 'http://langou.org/A/B/C/test.js']);
+M(url, 'isAbsolute', ['http://langou.org/home/index.html']);
 M(url, 'isAbsolute', ['file:///a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['file:///d:/a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['/a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['d:/a/b/c/kk.jsx']);
 M(url, 'isAbsolute', ['c/kk.jsx']);
-M(url, 'resolve', ['http://quickgr.org/home', '..', 'A', 'B', '..', 'C', 'test.js']);
+M(url, 'resolve', ['http://langou.org/home', '..', 'A', 'B', '..', 'C', 'test.js']);

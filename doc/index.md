@@ -36,4 +36,4 @@
 * [`langou/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Langou`]: http://quickgr.org/
+[`Langou`]: http://langou.org/

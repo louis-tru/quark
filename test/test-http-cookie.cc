@@ -35,72 +35,72 @@ using namespace langou;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG(http_cookie_get("langou.org", "test"));
 	
-	http_cookie_set("quickgr.org", "test", "quickgr.org");
+	http_cookie_set("langou.org", "test", "langou.org");
 	
-	LOG("A, %s", *http_cookie_get("quickgr.org", "test"));
+	LOG("A, %s", *http_cookie_get("langou.org", "test"));
 	
-	LOG("B, %s", *http_cookie_get("www.quickgr.org", "test"));
+	LOG("B, %s", *http_cookie_get("www.langou.org", "test"));
 
-	http_cookie_set("www.quickgr.org", "test", "$");
+	http_cookie_set("www.langou.org", "test", "$");
 
-	LOG("B2, %s", *http_cookie_get("www.quickgr.org", "test"));
+	LOG("B2, %s", *http_cookie_get("www.langou.org", "test"));
 
-	http_cookie_set("quickgr.org", "test2", "*");
+	http_cookie_set("langou.org", "test2", "*");
 	
-	LOG("D, %s", *http_cookie_get("quickgr.org", "test2"));
+	LOG("D, %s", *http_cookie_get("langou.org", "test2"));
 	
-	LOG("E, %s", *http_cookie_get("www.quickgr.org", "test2"));
+	LOG("E, %s", *http_cookie_get("www.langou.org", "test2"));
 	
-	http_cookie_set("quickgr.org", "test2", "-----------------------------", -1, "/AA");
+	http_cookie_set("langou.org", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG("F, %s", *http_cookie_get("quickgr.org", "test2"));
+	LOG("F, %s", *http_cookie_get("langou.org", "test2"));
 	
-	LOG("H, %s", *http_cookie_get("quickgr.org", "test2", "/AA"));
+	LOG("H, %s", *http_cookie_get("langou.org", "test2", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.quickgr.org", "/AA"));
+	LOG(http_cookie_get_all_string("www.langou.org", "/AA"));
 	
-	http_cookie_set_with_expression("quickgr.org", "test3=HHHH--l; path=/AA; max-age=60");
+	http_cookie_set_with_expression("langou.org", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	LOG(http_cookie_get("quickgr.org", "test3"));
+	LOG(http_cookie_get("langou.org", "test3"));
 	
-	LOG(http_cookie_get("quickgr.org", "test3", "/AA"));
+	LOG(http_cookie_get("langou.org", "test3", "/AA"));
 	
-	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.quickgr.org", "/AA"));
-	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("quickgr.org", "/AA"));
+	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.langou.org", "/AA"));
+	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("langou.org", "/AA"));
 	
 	// test delete
 	
-	http_cookie_delete("quickgr.org", "test");
+	http_cookie_delete("langou.org", "test");
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG(http_cookie_get("langou.org", "test"));
 	
-	http_cookie_set("quickgr.org", "test", "quickgr.org2");
-	http_cookie_set("quickgr.org", "test9", "quickgr.org3");
-	http_cookie_set("quickgr.org", "test8", "quickgr.org4");
-	http_cookie_set("www.quickgr.org", "test7", "quickgr.org5");
+	http_cookie_set("langou.org", "test", "langou.org2");
+	http_cookie_set("langou.org", "test9", "langou.org3");
+	http_cookie_set("langou.org", "test8", "langou.org4");
+	http_cookie_set("www.langou.org", "test7", "langou.org5");
 	
-	LOG("E, %s", *http_cookie_get("quickgr.org", "test"));
+	LOG("E, %s", *http_cookie_get("langou.org", "test"));
 
-	http_cookie_set("quickgr.orh", "test--------A", "quickgr.org%", -1, "KKK/MMM");
+	http_cookie_set("langou.orh", "test--------A", "langou.org%", -1, "KKK/MMM");
 
-	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("quickgr.org"));
+	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("langou.org"));
 	
-	http_cookie_delete_all("quickgr.org");
+	http_cookie_delete_all("langou.org");
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG(http_cookie_get("langou.org", "test"));
 	
-	http_cookie_set("quickgr.org", "test", "quickgr.org");
+	http_cookie_set("langou.org", "test", "langou.org");
 	
-	LOG("F, %s", *http_cookie_get("quickgr.org", "test--------A", "KKK/MMM", 1));
+	LOG("F, %s", *http_cookie_get("langou.org", "test--------A", "KKK/MMM", 1));
 	
 	http_cookie_clear();
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG(http_cookie_get("langou.org", "test"));
 	
-	http_cookie_set("quickgr.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
+	http_cookie_set("langou.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
 	
-	LOG(http_cookie_get("quickgr.org", "test"));
+	LOG(http_cookie_get("langou.org", "test"));
 	
 }

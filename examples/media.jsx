@@ -33,9 +33,9 @@ import { AudioPlayer, Video } from 'langou/media';
 import { Mynavpage } from './public';
 import * as aaaa from 'langou/path';
 
-// const src_720 = 'http://quickgr.org/media/2017-09-11_15_41_19.mp4';
-const src_720 = 'http://quickgr.org/media/piper720p.mp4';
-const audio_src = 'http://quickgr.org/media/all_we_know.mp3';
+// const src_720 = 'http://langou.org/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://langou.org/media/piper720p.mp4';
+const audio_src = 'http://langou.org/media/all_we_know.mp3';
 
 var resolve = require.resolve;
 

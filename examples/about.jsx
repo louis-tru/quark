@@ -52,7 +52,7 @@ https://github.com/louis-tru/langou.git
 
 Support
 ===============
-http://quickgr.org
+http://langou.org
 louistru@hotmail.com
 
 

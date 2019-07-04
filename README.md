@@ -12,9 +12,9 @@ Goal: developing GUI applications on this basis can take into account both the s
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 
-* From here, [`Go API Index`](http://quickgr.org/doc/) can go to `API Documents Index`
+* From here, [`Go API Index`](http://langou.org/doc/) can go to `API Documents Index`
 
-| ![Screenshot](http://quickgr.org/img/0x0ss.jpg) | ![Screenshot](http://quickgr.org/img/0x0ss_3.jpg) | ![Screenshot](http://quickgr.org/img/0x0ss_4.jpg) |
+| ![Screenshot](http://langou.org/img/0x0ss.jpg) | ![Screenshot](http://langou.org/img/0x0ss_3.jpg) | ![Screenshot](http://langou.org/img/0x0ss_4.jpg) |
 |--|--|--|
 
 

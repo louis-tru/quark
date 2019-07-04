@@ -105,7 +105,7 @@ function review_code(evt) {
 const langou_tools = 'https://www.npmjs.com/package/lmake';
 const langou_tools_issues_url = 'https://github.com/louis-tru/langou/issues';
 const examples_source = 'https://github.com/louis-tru/langou.git';
-const documents = 'http://quickgr.org/';
+const documents = 'http://langou.org/';
 
 // registerFont
 
@@ -154,7 +154,7 @@ const examples_source_vx = (
 var documents_vx = (
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff">quickgr.org</T> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff">langou.org</T> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
 		</Div>
 	</Mynavpage>

@@ -36,7 +36,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test2"));
 	
-	localstorage_set("test", "quickgr.org");
+	localstorage_set("test", "langou.org");
 	
 	LOG(localstorage_get("test"));
 	
@@ -44,7 +44,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test"));
 	
-	localstorage_set("test", "quickgr.org");
+	localstorage_set("test", "langou.org");
 	
 	LOG(localstorage_get("test"));
 	

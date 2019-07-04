@@ -209,19 +209,19 @@ class URL {
 		return this._hash;
 	}
 	
-	// host: "quickgr.org:81"
+	// host: "langou.org:81"
 	get host() {
 		parse_path(this);
 		return this._hostname + (this._port ? ':' + this._port : '');
 	}
 	
-	// hostname: "quickgr.org"
+	// hostname: "langou.org"
 	get hostname() {
 		parse_path(this);
 		return this._hostname;
 	}
 	
-	// origin: "http://quickgr.org:81"
+	// origin: "http://langou.org:81"
 	get origin() {
 		parse_path(this);
 		return this._origin;

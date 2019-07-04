@@ -15,7 +15,7 @@ Langou的目标：在此基础上开发GUI应用程序可拥有开发WEB应用�
 
 * [`开源跨平台移动项目Langou【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Langou API 文档`](http://quickgr.org/doc/)
+* [`Langou API 文档`](http://langou.org/doc/)
 
 # 什么是Action动作
 
@@ -172,13 +172,13 @@ view.transition({
 
 * `View.onActionLoop`动作循环开始时触发，第一次执行动作并不会触发。同样它也会有延时，也同样记录在`delay`。
 
-[Action]: https://quickgr.org/doc/action.html#class-action
-[GroupAction]: https://quickgr.org/doc/action.html#class-groupaction
-[SpawnAction]: https://quickgr.org/doc/action.html#class-spawnaction
-[SequenceAction]: https://quickgr.org/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://quickgr.org/doc/action.html#class-keyframeaction
-[Frame]: https://quickgr.org/doc/action.html#class-frame
-[View]: https://quickgr.org/doc/langou.html#class-view
-[Div]: https://quickgr.org/doc/langou.html#class-div
-[View.action]: https://quickgr.org/doc/langou.html#set-view-action
-[View.transition()]: https://quickgr.org/doc/langou.html#view-transition-style-delay-cb-
+[Action]: https://langou.org/doc/action.html#class-action
+[GroupAction]: https://langou.org/doc/action.html#class-groupaction
+[SpawnAction]: https://langou.org/doc/action.html#class-spawnaction
+[SequenceAction]: https://langou.org/doc/action.html#class-sequenceaction
+[KeyframeAction]: https://langou.org/doc/action.html#class-keyframeaction
+[Frame]: https://langou.org/doc/action.html#class-frame
+[View]: https://langou.org/doc/langou.html#class-view
+[Div]: https://langou.org/doc/langou.html#class-div
+[View.action]: https://langou.org/doc/langou.html#set-view-action
+[View.transition()]: https://langou.org/doc/langou.html#view-transition-style-delay-cb-
