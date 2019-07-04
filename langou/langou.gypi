@@ -20,7 +20,7 @@
 			'gl/glsl/gen-texture.glsl',
 		],
 		'gui_default_font_files': [
-			'font/langouinl.ttf',
+			'font/langou.ttf',
 			'font/iconfont.ttf',
 		],
 	},

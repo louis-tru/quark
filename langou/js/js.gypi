@@ -71,7 +71,7 @@
 			'binding/buffer.cc',
 			# binding langou
 			'binding/value.cc',
-			'binding/langou-binding.cc',
+			'binding/binding.cc',
 			'binding/action.cc',
 			'binding/action-frame.cc',
 			'binding/app.cc',
