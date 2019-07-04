@@ -1,4 +1,4 @@
-# `qgr/storage`
+# `langou/storage`
 
 在这里设置的值，退出程序后依然存在，称呼其为本地存储 localStorage 适合小容量数据的快速存取
 

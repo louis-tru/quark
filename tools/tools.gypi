@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'jsa-shell',
 		'type': 'executable',
-		'dependencies': [ 'qgr-utils' ],
+		'dependencies': [ 'langou-utils' ],
 		'sources': [
 			'jsa-shell.cc',
 		],

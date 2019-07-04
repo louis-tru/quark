@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/fs.h>
+#include <langou/utils/fs.h>
 #include <pwd.h>
 
-using namespace qgr;
+using namespace langou;
 
 void test_fs(int argc, char **argv) {
 	

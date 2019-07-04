@@ -36,7 +36,7 @@
  */
 
 
-#include <qgr/utils/util.h>
+#include <langou/utils/util.h>
 
 #if XX_LINUX && !XX_ANDROID
 

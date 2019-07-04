@@ -1,5 +1,5 @@
 
-import { GUIApplication, Root, Indep, Text, Div } from 'qgr';
+import { GUIApplication, Root, Indep, Text, Div } from 'langou';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root>

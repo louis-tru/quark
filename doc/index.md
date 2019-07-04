@@ -1,9 +1,9 @@
 
-# [`Qgr`]
+# [`Langou`]
 
 * [`About`](README.md)
 * [`Tools`](https://www.npmjs.com/package/qmake)
-* [`Examples`](https://github.com/louis-tru/qgr/tree/master/examples)
+* [`Examples`](https://github.com/louis-tru/langou/tree/master/examples)
 
 # Course
 
@@ -15,25 +15,25 @@
 
 # Modules
 
-* [`qgr`](qgr.md)
+* [`langou`](langou.md)
 * [`pkg`](pkg.md)
-* [`qgr/action`](action.md)
-* [`qgr/app`](app.md)
-* [`qgr/css`](css.md)
-* [`qgr/ctr`](ctr.md)
-* [`qgr/display_port`](display_port.md)
-* [`qgr/font`](font.md)
-* [`qgr/media`](media.md)
-* [`qgr/value`](value.md)
-* [`qgr/util`](util.md)
-* [`qgr/event`](event.md)
-* [`qgr/fs`](fs.md)
-* [`qgr/http`](http.md)
-* [`qgr/keys`](keys.md)
-* [`qgr/path`](path.md)
-* [`qgr/reader`](reader.md)
-* [`qgr/storage`](storage.md)
-* [`qgr/sys`](sys.md)
+* [`langou/action`](action.md)
+* [`langou/app`](app.md)
+* [`langou/css`](css.md)
+* [`langou/ctr`](ctr.md)
+* [`langou/display_port`](display_port.md)
+* [`langou/font`](font.md)
+* [`langou/media`](media.md)
+* [`langou/value`](value.md)
+* [`langou/util`](util.md)
+* [`langou/event`](event.md)
+* [`langou/fs`](fs.md)
+* [`langou/http`](http.md)
+* [`langou/keys`](keys.md)
+* [`langou/path`](path.md)
+* [`langou/reader`](reader.md)
+* [`langou/storage`](storage.md)
+* [`langou/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Qgr`]: http://quickgr.org/
+[`Langou`]: http://quickgr.org/

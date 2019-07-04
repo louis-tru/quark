@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/localstorage.h"
+#include "langou/utils/localstorage.h"
 
-using namespace qgr;
+using namespace langou;
 
 void test_localstorage(int argc, char **argv) {
 	

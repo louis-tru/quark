@@ -1,4 +1,4 @@
-# `qgr`
+# `langou`
 
 
 ## `Class: GUIApplication`
@@ -97,15 +97,15 @@
 Example:
 
 ```js
-import { View, Div, qgr } from 'qgr'
+import { View, Div, langou } from 'langou'
 
 var v = new View();
 v.x = 100;
 v.y = 100;
-qgr.root.append(v);
+langou.root.append(v);
 
 // jsx语法只能存在于.jsx文件中
-var v2 = qgr.New(<Div width=100 height=100 backgroundColor="#f00" />, v);
+var v2 = langou.New(<Div width=100 height=100 backgroundColor="#f00" />, v);
 v2.onClick.on(function(ev) {
 	console.log('div click');
 })
@@ -1805,38 +1805,38 @@ console.log(view.class);
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus
 [`Notification`]: event.md#class-notification
-[`TextFont`]: qgr.md#class-textfont
-[`TextLayout`]: qgr.md#class-textlayout
-[`View`]: qgr.md#class-view
-[`Sprite`]: qgr.md#class-sprite
-[`Layout`]: qgr.md#class-layout
-[`Span`]: qgr.md#class-span
-[`Box`]: qgr.md#class-box
-[`Div`]: qgr.md#class-div
-[`Hybrid`]:  qgr.md#class-hybrid
-[`Limit`]:  qgr.md#class-limit
-[`Indep`]:  qgr.md#class-indep
-[`LimitIndep`]:  qgr.md#class-limitindep
-[`Image`]:  qgr.md#class-image
-[`Panel`]:  qgr.md#class-panel
-[`Root`]:  qgr.md#class-root
-[`BasicScroll`]: qgr.md#class-basicscroll
-[`Scroll`]: qgr.md#class-scroll
-[`Button`]: qgr.md#class-button
-[`Text`]: qgr.md#class-text
-[`Input`]: qgr.md#class-input
-[`Textarea`]: qgr.md#class-textarea
-[`TextNode`]: qgr.md#class-textnode
-[`Label`]: qgr.md#class-label
-[`Trap in Layout`]: qgr.md#trap-in-layout
+[`TextFont`]: langou.md#class-textfont
+[`TextLayout`]: langou.md#class-textlayout
+[`View`]: langou.md#class-view
+[`Sprite`]: langou.md#class-sprite
+[`Layout`]: langou.md#class-layout
+[`Span`]: langou.md#class-span
+[`Box`]: langou.md#class-box
+[`Div`]: langou.md#class-div
+[`Hybrid`]:  langou.md#class-hybrid
+[`Limit`]:  langou.md#class-limit
+[`Indep`]:  langou.md#class-indep
+[`LimitIndep`]:  langou.md#class-limitindep
+[`Image`]:  langou.md#class-image
+[`Panel`]:  langou.md#class-panel
+[`Root`]:  langou.md#class-root
+[`BasicScroll`]: langou.md#class-basicscroll
+[`Scroll`]: langou.md#class-scroll
+[`Button`]: langou.md#class-button
+[`Text`]: langou.md#class-text
+[`Input`]: langou.md#class-input
+[`Textarea`]: langou.md#class-textarea
+[`TextNode`]: langou.md#class-textnode
+[`Label`]: langou.md#class-label
+[`Trap in Layout`]: langou.md#trap-in-layout
 [`reader`]: reader.md
 [`$(path)`]: global.md#_Path-path-
 [`Repeat`]: value.md#class-repeat
 [`ContentAlign`]: value.md#class-contentalign
-[`Limit.minWidth`]: qgr.md#limit-minWidth
-[`Limit.minHeight`]: qgr.md#limit-minHeight
-[`Limit.maxWidth`]: qgr.md#limit-maxWidth
-[`Limit.maxHeight`]: qgr.md#limit-maxHeight
+[`Limit.minWidth`]: langou.md#limit-minWidth
+[`Limit.minHeight`]: langou.md#limit-minHeight
+[`Limit.maxWidth`]: langou.md#limit-maxWidth
+[`Limit.maxHeight`]: langou.md#limit-maxHeight
 [`Curve`]: value.md#class-curve
 [`TextColor`]: value.md#class-textcolor
 [`TextSize`]: value.md#class-textsize

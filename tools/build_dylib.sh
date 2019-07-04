@@ -52,40 +52,40 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# qgr
-link_dylib qgr "$obj/qgr-utils $obj/qgr $obj/libuv $obj/openssl $obj/http_parser " \
+# langou
+link_dylib langou "$obj/langou-utils $obj/langou $obj/libuv $obj/openssl $obj/http_parser " \
 	"-lminizip -lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 -lbplus -lz" \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 	-framework CoreGraphics -framework CoreGraphics -framework UIKit -framework QuartzCore \
 	-framework MessageUI "
 # gen temp framework
-framework qgr
+framework langou
 
-# qgr-media
-link_dylib qgr-media "$obj/qgr-media" "-liconv -lbz2 -lz -lFFmpeg" \
+# langou-media
+link_dylib langou-media "$obj/langou-media" "-liconv -lbz2 -lz -lFFmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-	-framework CoreMedia -framework qgr"
-framework qgr-media no-inc
+	-framework CoreMedia -framework langou"
+framework langou-media no-inc
 
-# qgr-v8
+# langou-v8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib qgr-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
+	link_dylib langou-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
 else
 	# $obj/v8_base/depe/node/deps/v8/src/api.o
 	# $obj/v8_base/depe/node/deps/v8/src/inspector
-	link_dylib qgr-v8 "$obj/v8_base $obj/v8_libplatform" \
+	link_dylib langou-v8 "$obj/v8_base $obj/v8_libplatform" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
 		-lv8_nosnapshot -lv8_builtins_generators" ""
 fi
-framework qgr-v8 $out/../../depe/v8-link/include
+framework langou-v8 $out/../../depe/v8-link/include
 
-# qgr-js
-link_dylib qgr-js "$obj/qgr-js" "" "-framework qgr -framework qgr-media \
-	-framework qgr-v8 -framework JavaScriptCore"
-framework qgr-js no-inc
+# langou-js
+link_dylib langou-js "$obj/langou-js" "" "-framework langou -framework langou-media \
+	-framework langou-v8 -framework JavaScriptCore"
+framework langou-js no-inc
 
-# qgr-node
-link_dylib qgr-node "$obj/node" "-lnghttp2 -lcares -lz" \
-	"-framework qgr -framework qgr-js -framework qgr-v8"
-framework qgr-node no-inc
+# langou-node
+link_dylib langou-node "$obj/node" "-lnghttp2 -lcares -lz" \
+	"-framework langou -framework langou-js -framework langou-v8"
+framework langou-node no-inc
 

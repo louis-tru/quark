@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Navpage } from 'qgr/nav';
+import { Navpage } from 'langou/nav';
 import { 
 	ViewController, Button, CSS,
 	Text, TextNode, atomPixel: px, 
-	Indep, isViewXml, Panel, Scroll, qgr, Style
-} from 'qgr';
-import 'qgr/util';
+	Indep, isViewXml, Panel, Scroll, langou, Style
+} from 'langou';
+import 'langou/util';
 
 var resolve = require.resolve;
 
@@ -162,7 +162,7 @@ export class Mynavpage extends Navpage {
 		this.backgroundColor = "#f8f8f8";
 		<!-- White title -->
 		<!--
-			qgr.displayPort.setStatusBarStyle(1);
+			langou.displayPort.setStatusBarStyle(1);
 			this.navbar.backgroundColor = '#f9f9f9';
 			this.navbar.titleTextColor = '#000';
 			this.navbar.backTextColor = '#0079ff';
@@ -183,7 +183,7 @@ export class Mynavpage extends Navpage {
 			btn = first.first_button();
 		}
 		if ( !btn ) {
-			btn = qgr.root.first_button();
+			btn = langou.root.first_button();
 		}
 		if ( btn ) {
 			btn.focus();

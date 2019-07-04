@@ -1,5 +1,5 @@
 
-import 'qgr/storage';
+import 'langou/storage';
 import './uu';
 
 storage.transaction(function() {

@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <qgr/utils/string.h>
-#include <qgr/utils/codec.h>
+#include <langou/utils/string.h>
+#include <langou/utils/codec.h>
 
 using namespace std;
-using namespace qgr;
+using namespace langou;
 
 class Str {
  private:

@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'qgr';
-import 'qgr/font' as f;
-import 'qgr/url';
-import 'qgr/app';
+import { GUIApplication, Root } from 'langou';
+import 'langou/font' as f;
+import 'langou/url';
+import 'langou/app';
 
 new GUIApplication().start(<Root/>).onLoad = function() {
 	const a = this;

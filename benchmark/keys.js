@@ -1,7 +1,7 @@
 
-import 'qgr/keys';
-import 'qgr/fs';
-import 'qgr/url';
+import 'langou/keys';
+import 'langou/fs';
+import 'langou/url';
 import './uu';
 
 uu.start();

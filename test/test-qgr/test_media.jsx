@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'qgr';
-import 'qgr/media';
+import { GUIApplication, Root } from 'langou';
+import 'langou/media';
 
 new GUIApplication().start(<Root/>).onLoad = function() {
 

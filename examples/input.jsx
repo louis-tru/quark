@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, qgr, Label } from 'qgr';
+import { Div, Button, Text, Input, Textarea, langou, Label } from 'langou';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;
@@ -38,7 +38,7 @@ function start_input(evt) {
 }
 
 function end_input(evt) {
-	qgr.app.focusView.blur();
+	langou.app.focusView.blur();
 }
 
 export const vx = (

@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'qgr/utils/utils.gypi',
+		'langou/utils/utils.gypi',
 		'tools/default_target.gypi',
 	],
 	'conditions': [

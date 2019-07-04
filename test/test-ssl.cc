@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/net.h"
-#include "qgr/utils/fs.h"
+#include "langou/utils/net.h"
+#include "langou/utils/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace qgr;
+using namespace langou;
 
 #define error_report printf
 #define info_report printf

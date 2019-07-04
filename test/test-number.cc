@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/util.h>
-#include <qgr/utils/loop.h>
-#include <qgr/utils/array.h>
-#include <qgr/sys.h>
+#include <langou/utils/util.h>
+#include <langou/utils/loop.h>
+#include <langou/utils/array.h>
+#include <langou/sys.h>
 
-using namespace qgr;
+using namespace langou;
 
 template<class T>
 void test_operation_add(const char* name) {

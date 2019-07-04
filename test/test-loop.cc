@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/loop.h>
+#include <langou/utils/loop.h>
 
-using namespace qgr;
+using namespace langou;
 
 static void message_cb(Se& ev, RunLoop* loop) {
 	static int i = 0;

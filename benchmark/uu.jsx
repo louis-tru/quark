@@ -1,8 +1,8 @@
 
-import 'qgr/http';
-import 'qgr/util';
-import 'qgr/sys';
-import { Indep, qgr, New, Text } from 'qgr';
+import 'langou/http';
+import 'langou/util';
+import 'langou/sys';
+import { Indep, langou, New, Text } from 'langou';
 
 var ts = 0;
 
@@ -19,7 +19,7 @@ function log(...args) {
 
 function show_fsp_ok() {
 
-	var displayPort = qgr.displayPort;
+	var displayPort = langou.displayPort;
 	var fsp = null;
 	var priv_fsp_value = 0;
 	var priv_cpu_usage = 0;
@@ -35,7 +35,7 @@ function show_fsp_ok() {
 	}
 
 	setTimeout(function() {
-		var root = qgr.root;
+		var root = langou.root;
 		if (root) {
 			fsp = New(
 				<Indep alignY="bottom" x=5 y=-5>
@@ -50,7 +50,7 @@ function show_fsp_ok() {
 }
 
 function show_fsp() {
-	var app = qgr.app;
+	var app = langou.app;
 	util.assert(app);
 
 	if (app.isLoad) {

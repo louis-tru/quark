@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/js/qgr.h"
+#include "langou/js/langou.h"
 
-using namespace qgr;
+using namespace langou;
 
 #define IP_REMOTE "127.0.0.1"
 

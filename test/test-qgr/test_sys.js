@@ -1,5 +1,5 @@
 
-import 'qgr/sys'
+import 'langou/sys'
 import { P, M } from './test'
 
 M(sys, 'time');

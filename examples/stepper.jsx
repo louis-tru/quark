@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, CSS, atomPixel } from 'qgr';
-import { Stepper } from 'qgr/stepper';
+import { Div, Text, CSS, atomPixel } from 'langou';
+import { Stepper } from 'langou/stepper';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

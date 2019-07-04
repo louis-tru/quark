@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/js/qgr.h"
+#include "langou/js/langou.h"
 
-using namespace qgr;
+using namespace langou;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 1
@@ -43,15 +43,15 @@ using namespace qgr;
 # define NODE_FLAG ""
 #endif
 
-void test_qgr(int argc, char **argv) {
-	String cmd = "qgr " NODE_FLAG;
+void test_langou(int argc, char **argv) {
+	String cmd = "langou " NODE_FLAG;
 #if USE_INSPECT
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #endif
 #if USE_REMOTE
-	cmd += "--dev http://" IP_REMOTE ":1026/test/test-qgr";
+	cmd += "--dev http://" IP_REMOTE ":1026/test/test-langou";
 #else
-	cmd += "--dev test-qgr";
+	cmd += "--dev test-langou";
 #endif
 	js::Start(cmd);
 }

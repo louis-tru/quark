@@ -1,4 +1,4 @@
-# `qgr/css`
+# `langou/css`
 
 * `css`样式表类似于html `css`样式表，支持使用多级样式表，但只支持`class`类
 
@@ -36,9 +36,9 @@
 Example:
 
 ```js
-import CSS from 'qgr/css'
-import { GUIApplication, Root, Div } from 'qgr'
-import 'qgr/dialog'
+import CSS from 'langou/css'
+import { GUIApplication, Root, Div } from 'langou'
+import 'langou/dialog'
 // 样式表都是全局的
 CSS({
 	'.test': {
@@ -168,7 +168,7 @@ new GUIApplication().start(
 
 [`KeyframeAction`]: action.md#class-keyframeaction
 [`Frame`]: action.md#class-frame
-[`HIGHLIGHTED_NORMAL`]: qgr.md#highlighted_normal
-[`HIGHLIGHTED_HOVER`]: qgr.md#highlighted_hover
-[`HIGHLIGHTED_DOWN`]: qgr.md#highlighted_down
-[`View.onHighlighted`]: qgr.md#view-onhighlighted
+[`HIGHLIGHTED_NORMAL`]: langou.md#highlighted_normal
+[`HIGHLIGHTED_HOVER`]: langou.md#highlighted_hover
+[`HIGHLIGHTED_DOWN`]: langou.md#highlighted_down
+[`View.onHighlighted`]: langou.md#view-onhighlighted

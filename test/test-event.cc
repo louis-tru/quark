@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/map.h>
-#include <qgr/utils/array.h>
-#include <qgr/utils/list.h>
-#include <qgr/utils/string.h>
-#include <qgr/utils/event.h>
+#include <langou/utils/map.h>
+#include <langou/utils/array.h>
+#include <langou/utils/list.h>
+#include <langou/utils/string.h>
+#include <langou/utils/event.h>
 
-using namespace qgr;
+using namespace langou;
 
 void test_event(int argc, char **argv) {
 	

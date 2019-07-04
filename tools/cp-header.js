@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/qkit/fs');
+var fs = require('../libs/langoukit/fs');
 var path = require('path');
 
 function copy_header(source, target) {

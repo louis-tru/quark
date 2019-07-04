@@ -1,4 +1,4 @@
-# `qgr/value`
+# `langou/value`
 
 
 ## `Class: TextAlign`

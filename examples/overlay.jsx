@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'qgr';
+import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'langou';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'qgr/overlay';
+import { Overlay } from 'langou/overlay';
 
 var resolve = require.resolve;
 

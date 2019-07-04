@@ -12,7 +12,7 @@ CXX           ?= g++
 LINK          ?= g++
 ANDROID_SDK   ?= $(ANDROID_HOME)
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
-ANDROID_JAR    = out/android.classs.qgr.jar
+ANDROID_JAR    = out/android.classs.langou.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
@@ -26,7 +26,7 @@ BUILD_STYLE    = make
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile qgr.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
+GYPFILES	= Makefile langou.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -57,7 +57,7 @@ all: build
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call gen_project,$@,qgr.gyp)
+	@$(call gen_project,$@,langou.gyp)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
@@ -72,13 +72,13 @@ test2: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
-$(ANDROID_JAR): android/org/qgr/*.java
+$(ANDROID_JAR): android/org/langou/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/qgr/*.java
-	@cd out/android.classs; $(JAR) cfv qgr.jar .
+	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/langou/*.java
+	@cd out/android.classs; $(JAR) cfv langou.jar .
 	@mkdir -p $(QMAKE_OUT)/product/android/libs
-	@cp out/android.classs/qgr.jar $(QMAKE_OUT)/product/android/libs
+	@cp out/android.classs/langou.jar $(QMAKE_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)

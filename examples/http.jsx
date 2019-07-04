@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input } from 'qgr';
-import 'qgr/util';
-import 'qgr/http';
-import { alert } from 'qgr/dialog';
+import { Div, Button, Input } from 'langou';
+import 'langou/util';
+import 'langou/http';
+import { alert } from 'langou/dialog';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

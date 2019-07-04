@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Buffer } from 'buffer';
-import 'qgr/http';
-import 'qgr/value';
-import 'qgr/sys';
+import 'langou/http';
+import 'langou/value';
+import 'langou/sys';
 
 console.log('args:', process.argv, process.mainModule.filename);
 

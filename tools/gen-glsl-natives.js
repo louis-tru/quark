@@ -297,15 +297,15 @@ function main() {
 	write(hpp,
 		'#ifndef __shader_natives_' + Date.now() + '__',
 		'#define __shader_natives_' + Date.now() + '__',
-		'namespace qgr {',
+		'namespace langou {',
 		'namespace shader {',
 		'#pragma pack(push,4)',
 	);
 
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
-		'#include "qgr/gl/gl.h"',
-		'namespace qgr {',
+		'#include "langou/gl/gl.h"',
+		'namespace langou {',
 		'namespace shader {',
 	);
 
@@ -348,7 +348,7 @@ function main() {
 	var name = path.basename(output_cc).replace(/[\.-]/gm, '_');
 	write(cpp, `XX_INIT_BLOCK(${name}) {`);
 	names.forEach(e=>{
-		write(cpp, `  GLDraw::register_gl_shader((qgr::GLShader*)(&${e}));`)
+		write(cpp, `  GLDraw::register_gl_shader((langou::GLShader*)(&${e}));`)
 	});
 	write(cpp, '}');
 	write(cpp, '}', '}');

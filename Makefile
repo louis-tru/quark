@@ -1,7 +1,7 @@
 
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
-ANDROID_JAR    = out/android.classs.qgr.jar
+ANDROID_JAR    = out/android.classs.langou.jar
 QMAKE          = ./libs/qmake
 QMAKE_OUT      = out/qmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
@@ -22,8 +22,8 @@ JSA_SHELL = $(QMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
-DEPS = libs/qkit libs/qmake/gyp.qgr depe/v8-link \
-	depe/FFmpeg.qgr depe/node.qgr depe/bplus
+DEPS = libs/qkit libs/qmake/gyp.langou depe/v8-link \
+	depe/FFmpeg.langou depe/node.langou depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
@@ -59,7 +59,7 @@ check_osx=\
 
 .SECONDEXPANSION:
 
-# compile qgr and install
+# compile langou and install
 # It can only run in MAC system.
 compile: pull
 	@$(MAKE) ios
@@ -72,7 +72,7 @@ install-qmake: $(JSA_SHELL)
 	@cd $(QMAKE_OUT) && npm i -f
 	@cd $(QMAKE_OUT) && $(SUDO) npm i -g
 
-# debug install qgr
+# debug install langou
 install-qmake-link: $(JSA_SHELL)
 	@cd $(QMAKE) && $(SUDO) npm link
 

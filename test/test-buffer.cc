@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/util.h"
-#include "qgr/utils/buffer.h"
+#include "langou/utils/util.h"
+#include "langou/utils/buffer.h"
 
-using namespace qgr;
+using namespace langou;
 
 void test_buffer(int argc, char **argv) {
 	

@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.qgr.test;
+package org.langou.test;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import org.qgr.QgrActivity;
+import org.langou.LangouActivity;
 
-public class MainActivity extends QgrActivity {
+public class MainActivity extends LangouActivity {
 
   static {
-    System.loadLibrary("qgr-js");
+    System.loadLibrary("langou-js");
   }
 
 	@Override
@@ -49,7 +49,7 @@ public class MainActivity extends QgrActivity {
 	protected String startCommand() {
 		//return "examples";
 		//--inspect-brk=0.0.0.0:9229
-		return "qgr --dev http://192.168.0.11:1026/examples --ignore-local=*";
+		return "langou --dev http://192.168.0.11:1026/examples --ignore-local=*";
 	}
 
 }

@@ -1,6 +1,6 @@
 
 import 'fs'
-import 'qgr/keys'
+import 'langou/keys'
 import { M } from './test'
 
 //M(keys, 'parseFile', [ resolve('lib.keys') ])

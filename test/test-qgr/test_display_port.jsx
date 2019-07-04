@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, AM, VM, VP, CA } from './test';
-import { GUIApplication, Root, Div, Image } from 'qgr';
-import 'qgr/display_port' as dp;
+import { GUIApplication, Root, Div, Image } from 'langou';
+import 'langou/display_port' as dp;
 
 new GUIApplication().start(
 	<Root>

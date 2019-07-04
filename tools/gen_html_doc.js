@@ -29,11 +29,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/qkit/fs');
+var fs = require('../libs/langoukit/fs');
 var path = require('path');
 var marked_html = require('../libs/qmake/marked/html');
 var marked = require('../libs/qmake/node_modules/marked/index');
-var read_qgr_version = require('./read_version').read_qgr_version;
+var read_langou_version = require('./read_version').read_langou_version;
 var argv = process.argv.slice(2);
 var template = null;
 var indexs = { };
@@ -50,7 +50,7 @@ if ( fs.existsSync(source + '/index.md') ) { // 存在索引
 	md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 	var r = marked_html.gen_html(md, '', '__placeholder_body__');
 	template = fs.readFileSync(__dirname + '/doc_template.html').toString();
-	template = template.replace('__placeholder_version__', 'v' + read_qgr_version().join('.'));
+	template = template.replace('__placeholder_version__', 'v' + read_langou_version().join('.'));
 	template = template.replace('__placeholder_index__', r.html);
 }
 

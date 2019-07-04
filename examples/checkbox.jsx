@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, CSS, atomPixel } from 'qgr';
-import { Switch, Checkbox } from 'qgr/checkbox';
+import { Div, Text, CSS, atomPixel } from 'langou';
+import { Switch, Checkbox } from 'langou/checkbox';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

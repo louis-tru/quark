@@ -28,16 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __qgr__android__android__
-#define __qgr__android__android__
+#ifndef __langou__android__android__
+#define __langou__android__android__
 
-#include "qgr/utils/util.h"
+#include "langou/utils/util.h"
 
 #if XX_ANDROID
 
-#include "qgr/utils/string.h"
+#include "langou/utils/string.h"
 
-XX_NS(qgr)
+XX_NS(langou)
 
 /**
  * @class Android

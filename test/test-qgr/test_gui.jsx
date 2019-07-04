@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'qgr/sys';
-import 'qgr/dialog';
+import 'langou/sys';
+import 'langou/dialog';
 import {
 	GUIApplication,
 	Root, Div, Image, Sprite,
 	Text, Label, Limit, Hybrid,
-	Span, Video, Panel, Button, TextNode, Scroll, qgr: gui
-} from 'qgr';
+	Span, Video, Panel, Button, TextNode, Scroll, langou: gui
+} from 'langou';
 
 const action1 = {
 	delay: 1,

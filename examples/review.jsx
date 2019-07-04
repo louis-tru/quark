@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text } from 'qgr';
+import { Scroll, Text } from 'langou';
 import { Mynavpage } from './public';
-import { Toolbar } from 'qgr/nav';
-import 'qgr/reader';
+import { Toolbar } from 'langou/nav';
+import 'langou/reader';
 
 function foreground(evt) {
 	var navpage = evt.sender;

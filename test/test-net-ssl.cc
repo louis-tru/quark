@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/net.h"
+#include "langou/utils/net.h"
 #include <uv.h>
 
-using namespace qgr;
+using namespace langou;
 
 class MySSLSocket: public SSLSocket, public Socket::Delegate {
  public:
@@ -49,7 +49,7 @@ class MySSLSocket: public SSLSocket, public Socket::Delegate {
 		"_Connection: keep-alive\r\n"
 		"Connection: close\r\n"
 		"Accept: */*\r\n"
-		"User-Agent: Mozilla/5.0 AppleWebKit qgr Net Test\r\n\r\n";
+		"User-Agent: Mozilla/5.0 AppleWebKit langou Net Test\r\n\r\n";
 		
 		write(header.collapse_buffer());
 	}

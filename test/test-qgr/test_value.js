@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import 'qgr/value' as v;
+import 'langou/value' as v;
 
 LOG('\nTest Enum Value:\n')
 

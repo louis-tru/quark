@@ -1,21 +1,21 @@
-Qgr简介
+Langou简介
 ===============
 
 这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL，这也是第一个在移动端Android/iOS融合NodeJS的前端GUI项目，至此JavaScript成为了真正意义上前后端通吃的语言。
 
-Qgr的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
+Langou的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
 
-* [`开源跨平台移动项目Qgr【简介】`](http://www.jianshu.com/p/2104b885eae6)
+* [`开源跨平台移动项目Langou【简介】`](http://www.jianshu.com/p/2104b885eae6)
 
-* [`开源跨平台移动项目Qgr【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
+* [`开源跨平台移动项目Langou【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
 
-* [`开源跨平台移动项目Qgr【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
+* [`开源跨平台移动项目Langou【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
 
-* [`开源跨平台移动项目Qgr【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
+* [`开源跨平台移动项目Langou【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
 
-* [`开源跨平台移动项目Qgr【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
+* [`开源跨平台移动项目Langou【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Qgr API 文档`](http://quickgr.org/doc/)
+* [`Langou API 文档`](http://quickgr.org/doc/)
 
 # Benchmark
 

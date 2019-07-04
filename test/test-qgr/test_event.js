@@ -1,6 +1,6 @@
 
 import { LOG, AM, M, P, VM, VP, LOG } from './test'
-import { Event, EventNoticer, Notification, event } from 'qgr/event';
+import { Event, EventNoticer, Notification, event } from 'langou/event';
 
 LOG('\nTest event:\n')
 

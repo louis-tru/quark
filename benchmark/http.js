@@ -1,5 +1,5 @@
 
-import 'qgr/http';
+import 'langou/http';
 
 var i = 0;
 

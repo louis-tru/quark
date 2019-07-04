@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/util.h>
-#include <qgr/utils/string.h>
-#include <qgr/utils/map.h>
-#include <qgr/utils/fs.h>
-#include <qgr/sys.h>
+#include <langou/utils/util.h>
+#include <langou/utils/string.h>
+#include <langou/utils/map.h>
+#include <langou/utils/fs.h>
+#include <langou/sys.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -44,17 +44,17 @@
 #include <chrono>
 
 //
-#include "qgr/image-codec.h"
-#include "qgr/texture.h"
-#include "qgr/image.h"
-#include "qgr/sprite.h"
-#include "qgr/box.h"
-#include "qgr/app.h"
-#include "qgr/display-port.h"
-#include "qgr/root.h"
-#include "qgr/gl/gl.h"
+#include "langou/image-codec.h"
+#include "langou/texture.h"
+#include "langou/image.h"
+#include "langou/sprite.h"
+#include "langou/box.h"
+#include "langou/app.h"
+#include "langou/display-port.h"
+#include "langou/root.h"
+#include "langou/gl/gl.h"
 
-using namespace qgr;
+using namespace langou;
 
 void each_fonts () {
 	

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Clip, Text, qgr } from 'qgr';
+import { Scroll, Clip, Text, langou } from 'langou';
 import { Navbutton, Mynavpage } from './public';
 import './checkbox';
 import './overlay';

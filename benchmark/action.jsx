@@ -1,15 +1,15 @@
 
-import { GUIApplication, Root, Div, Indep, qgr, New, lock } from 'qgr';
-import { Color } from 'qgr/value';
-import { random, log } from 'qgr/util';
+import { GUIApplication, Root, Div, Indep, langou, New, lock } from 'langou';
+import { Color } from 'langou/value';
+import { random, log } from 'langou/util';
 import './uu';
 
-new GUIApplication({ multisample: 4, title: 'Qgr benchmark' }).start(
+new GUIApplication({ multisample: 4, title: 'Langou benchmark' }).start(
 	<Root backgroundColor="#000">
 		%{
 			(()=>{
-				var w = qgr.displayPort.width;
-				var h = qgr.displayPort.height;
+				var w = langou.displayPort.width;
+				var h = langou.displayPort.height;
 				console.log(w,h);
 				var r = [];
 				for (var i = 0; i < 4000; i++) {

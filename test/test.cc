@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/app.h"
-#include "qgr/sys.h"
-#include "qgr/utils/loop.h"
-#include "../depe/node/src/qgr.h"
+#include "langou/app.h"
+#include "langou/sys.h"
+#include "langou/utils/loop.h"
+#include "../depe/node/src/langou.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_http_cookie
 #endif
 
-using namespace qgr;
+using namespace langou;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
 XX_GUI_MAIN() {
 
-	// node::QgrEnvironment::test();
+	// node::LangouEnvironment::test();
 
 	uint64 st = sys::time();
 	

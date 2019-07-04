@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qkit');
-var fs = require('../libs/qkit/fs');
-var url = require('../libs/qkit/url');
+var util = require('../libs/langoukit');
+var fs = require('../libs/langoukit/fs');
+var url = require('../libs/langoukit/url');
 var path = require('path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('../libs/qkit/arguments');
-var { syscall, execSync, exec, spawn } = require('../libs/qkit/syscall');
+var argument = require('../libs/langoukit/arguments');
+var { syscall, execSync, exec, spawn } = require('../libs/langoukit/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

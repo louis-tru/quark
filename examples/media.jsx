@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button } from 'qgr';
-import { AudioPlayer, Video } from 'qgr/media';
+import { Div, Button } from 'langou';
+import { AudioPlayer, Video } from 'langou/media';
 import { Mynavpage } from './public';
-import * as aaaa from 'qgr/path';
+import * as aaaa from 'langou/path';
 
 // const src_720 = 'http://quickgr.org/media/2017-09-11_15_41_19.mp4';
 const src_720 = 'http://quickgr.org/media/piper720p.mp4';

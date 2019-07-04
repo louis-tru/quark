@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/util.h>
-#include <qgr/utils/http.h>
-#include <qgr/utils/string.h>
-#include <qgr/utils/fs.h>
+#include <langou/utils/util.h>
+#include <langou/utils/http.h>
+#include <langou/utils/string.h>
+#include <langou/utils/fs.h>
 
-using namespace qgr;
+using namespace langou;
 
 class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
  public:

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/js/qgr.h"
+#include "langou/js/langou.h"
 
-using namespace qgr;
+using namespace langou;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
@@ -54,7 +54,7 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 }
 
 void test_demo(int argc, char **argv) {
-	String cmd = "qgr ";
+	String cmd = "langou ";
 #if USE_NODE
 	String cmd += USE_NODE;
 #else
@@ -119,10 +119,10 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if XX_ANDROID
-#include <qgr/utils/android-jni.h>
+#include <langou/utils/android-jni.h>
 	JNIEXPORT extern void
-	Java_org_qgr_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		LOG("Java_org_qgr_examples_MainActivity_test");
+	Java_org_langou_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		LOG("Java_org_langou_examples_MainActivity_test");
 	}
 #endif
 }

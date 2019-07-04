@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/array.h>
-#include <qgr/utils/list.h>
-#include <qgr/utils/string.h>
+#include <langou/utils/array.h>
+#include <langou/utils/list.h>
+#include <langou/utils/string.h>
 #include <map>
 
-using namespace qgr;
+using namespace langou;
 
 class Test{
 	String str;

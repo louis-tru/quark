@@ -1,6 +1,6 @@
 
-import { GUIApplication: App, Root, Image, Scroll } from 'qgr';
-import 'qgr/reader';
+import { GUIApplication: App, Root, Image, Scroll } from 'langou';
+import 'langou/reader';
 import 'path';
 
 new App({ multisample: 2 }).start(

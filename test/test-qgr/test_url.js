@@ -1,5 +1,5 @@
 
-import 'qgr/url'
+import 'langou/url'
 import { P, M } from './test'
 
 console.log('\nOutputs:\n');

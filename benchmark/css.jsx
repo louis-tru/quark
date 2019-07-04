@@ -1,8 +1,8 @@
 
-import { GUIApplication, Root, Div, Indep, qgr, New } from 'qgr';
-import { Color } from 'qgr/value';
-import { random } from 'qgr/util';
-import 'qgr/css';
+import { GUIApplication, Root, Div, Indep, langou, New } from 'langou';
+import { Color } from 'langou/value';
+import { random } from 'langou/util';
+import 'langou/css';
 import './uu';
 
 var test_count = 100000;
@@ -14,8 +14,8 @@ css.create({
 });
 
 new GUIApplication({ multisample: 2 }).start(<Root />).onLoad = function() {
-	var w = qgr.displayPort.width;
-	var h = qgr.displayPort.height;
+	var w = langou.displayPort.width;
+	var h = langou.displayPort.height;
 	var csss = {};
 
 	for (var i = 0; i < test_count; i++) {

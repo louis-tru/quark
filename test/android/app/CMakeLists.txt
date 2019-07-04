@@ -51,176 +51,176 @@ unset(TARGET)
 
 add_definitions(-DDEBUG)
 
-add_library(qgr SHARED
-	# qgr-utils
+add_library(langou SHARED
+	# langou-utils
 	../../../android/android.cc
-	../../../qgr/utils/_android.cc
-	../../../qgr/utils/android-jni.cc
-	../../../qgr/utils/android-log.cc
-	../../../qgr/utils/object.cc
-	../../../qgr/utils/string.cc
-	../../../qgr/utils/string-builder.cc
-	../../../qgr/utils/array.cc
-	../../../qgr/utils/codec.cc
-	../../../qgr/utils/error.cc
-	../../../qgr/utils/http.cc
-	../../../qgr/utils/http-uri.cc
-	../../../qgr/utils/http-helper.cc
-	../../../qgr/utils/fs.cc
-	../../../qgr/utils/fs-file.cc
-	../../../qgr/utils/fs-sync.cc
-	../../../qgr/utils/fs-async.cc
-	../../../qgr/utils/fs-search.cc
-	../../../qgr/utils/fs-reader.cc
-	../../../qgr/utils/buffer.cc
-	../../../qgr/utils/json.cc
-	../../../qgr/utils/map.cc
-	../../../qgr/utils/util.cc
-	../../../qgr/utils/zlib.cc
-	../../../qgr/utils/loop.cc
-	../../../qgr/utils/loop-private.cc
-	../../../qgr/utils/jsx.cc
-	../../../qgr/utils/net.cc
-	../../../qgr/utils/cb.cc
-	../../../qgr/utils/date.cc
-	../../../qgr/utils/http-cookie.cc
-	../../../qgr/utils/localstorage.cc
-	# qgr
+	../../../langou/utils/_android.cc
+	../../../langou/utils/android-jni.cc
+	../../../langou/utils/android-log.cc
+	../../../langou/utils/object.cc
+	../../../langou/utils/string.cc
+	../../../langou/utils/string-builder.cc
+	../../../langou/utils/array.cc
+	../../../langou/utils/codec.cc
+	../../../langou/utils/error.cc
+	../../../langou/utils/http.cc
+	../../../langou/utils/http-uri.cc
+	../../../langou/utils/http-helper.cc
+	../../../langou/utils/fs.cc
+	../../../langou/utils/fs-file.cc
+	../../../langou/utils/fs-sync.cc
+	../../../langou/utils/fs-async.cc
+	../../../langou/utils/fs-search.cc
+	../../../langou/utils/fs-reader.cc
+	../../../langou/utils/buffer.cc
+	../../../langou/utils/json.cc
+	../../../langou/utils/map.cc
+	../../../langou/utils/util.cc
+	../../../langou/utils/zlib.cc
+	../../../langou/utils/loop.cc
+	../../../langou/utils/loop-private.cc
+	../../../langou/utils/jsx.cc
+	../../../langou/utils/net.cc
+	../../../langou/utils/cb.cc
+	../../../langou/utils/date.cc
+	../../../langou/utils/http-cookie.cc
+	../../../langou/utils/localstorage.cc
+	# langou
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
-	../../../qgr/action.cc
-	../../../qgr/app.cc
-	../../../qgr/div.cc
-	../../../qgr/indep.cc
-	../../../qgr/box-shadow.cc
-	../../../qgr/limit.cc
-	../../../qgr/limit-indep.cc
-	../../../qgr/image.cc
-	../../../qgr/bezier.cc
-	../../../qgr/event.cc
-	../../../qgr/display-port.cc
-	../../../qgr/font/font.cc
-	../../../qgr/image/codec.cc
-	../../../qgr/image/codec-tga.cc
-	../../../qgr/image/codec-pvrtc.cc
-	../../../qgr/pre-render.cc
-	../../../qgr/mathe.cc
-	../../../qgr/label.cc
-	../../../qgr/layout.cc
-	../../../qgr/box.cc
-	../../../qgr/text-rows.cc
-	../../../qgr/view.cc
-	../../../qgr/draw.cc
-	../../../qgr/gl/gl.cc
-	../../../qgr/gl/gl-draw.cc
-	../../../qgr/gl/gl-texture.cc
-	../../../qgr/gl/gl-font.cc
-	../../../qgr/root.cc
-	../../../qgr/sprite.cc
-	../../../qgr/scroll.cc
-	../../../qgr/span.cc
-	../../../qgr/hybrid.cc
-	../../../qgr/text-font.cc
-	../../../qgr/text-node.cc
-	../../../qgr/texture.cc
-	../../../qgr/value.cc
-	../../../qgr/panel.cc
-	../../../qgr/button.cc
-	../../../qgr/keyboard.cc
-	../../../qgr/css.cc
-	../../../qgr/property.cc
-	../../../qgr/text.cc
-	../../../qgr/input.cc
-	../../../qgr/textarea.cc
-	../../../qgr/background.cc
-	../../../qgr/render-looper.cc
-	../../../qgr/sys.cc
-	../../../qgr/platforms/linux-gl.cc
-	../../../qgr/platforms/android-app.cc
-	../../../qgr/platforms/android-keyboard.cc
-	../../../qgr/platforms/android-sys.cc
-	../../../qgr/image/codec-gif.cc
-  ../../../qgr/image/codec-jpeg.cc
-  ../../../qgr/image/codec-png.cc
-  ../../../qgr/image/codec-webp.cc
-  ../../../qgr/media.cc
+	../../../langou/action.cc
+	../../../langou/app.cc
+	../../../langou/div.cc
+	../../../langou/indep.cc
+	../../../langou/box-shadow.cc
+	../../../langou/limit.cc
+	../../../langou/limit-indep.cc
+	../../../langou/image.cc
+	../../../langou/bezier.cc
+	../../../langou/event.cc
+	../../../langou/display-port.cc
+	../../../langou/font/font.cc
+	../../../langou/image/codec.cc
+	../../../langou/image/codec-tga.cc
+	../../../langou/image/codec-pvrtc.cc
+	../../../langou/pre-render.cc
+	../../../langou/mathe.cc
+	../../../langou/label.cc
+	../../../langou/layout.cc
+	../../../langou/box.cc
+	../../../langou/text-rows.cc
+	../../../langou/view.cc
+	../../../langou/draw.cc
+	../../../langou/gl/gl.cc
+	../../../langou/gl/gl-draw.cc
+	../../../langou/gl/gl-texture.cc
+	../../../langou/gl/gl-font.cc
+	../../../langou/root.cc
+	../../../langou/sprite.cc
+	../../../langou/scroll.cc
+	../../../langou/span.cc
+	../../../langou/hybrid.cc
+	../../../langou/text-font.cc
+	../../../langou/text-node.cc
+	../../../langou/texture.cc
+	../../../langou/value.cc
+	../../../langou/panel.cc
+	../../../langou/button.cc
+	../../../langou/keyboard.cc
+	../../../langou/css.cc
+	../../../langou/property.cc
+	../../../langou/text.cc
+	../../../langou/input.cc
+	../../../langou/textarea.cc
+	../../../langou/background.cc
+	../../../langou/render-looper.cc
+	../../../langou/sys.cc
+	../../../langou/platforms/linux-gl.cc
+	../../../langou/platforms/android-app.cc
+	../../../langou/platforms/android-keyboard.cc
+	../../../langou/platforms/android-sys.cc
+	../../../langou/image/codec-gif.cc
+  ../../../langou/image/codec-jpeg.cc
+  ../../../langou/image/codec-png.cc
+  ../../../langou/image/codec-webp.cc
+  ../../../langou/media.cc
 )
 
-add_library(qgr-media SHARED
-	../../../qgr/audio-player.cc
-	../../../qgr/video.cc
-	../../../qgr/media-codec.cc
-	../../../qgr/media-codec-1.cc
-	../../../qgr/media-codec-software.cc
-	../../../qgr/media-init.cc
-	../../../qgr/platforms/android-media-codec.cc
-	../../../qgr/platforms/android-pcm-player.cc
-	../../../qgr/platforms/android-pcm-audio-track.cc
+add_library(langou-media SHARED
+	../../../langou/audio-player.cc
+	../../../langou/video.cc
+	../../../langou/media-codec.cc
+	../../../langou/media-codec-1.cc
+	../../../langou/media-codec-software.cc
+	../../../langou/media-init.cc
+	../../../langou/platforms/android-media-codec.cc
+	../../../langou/platforms/android-pcm-player.cc
+	../../../langou/platforms/android-pcm-audio-track.cc
 )
 
-add_library(qgr-js SHARED
+add_library(langou-js SHARED
 	../../../out/native-inl-js.cc
 	../../../out/native-lib-js.cc
 	../../../out/native-ext-js.cc
-	../../../qgr/js/js-cls.cc
-	../../../qgr/js/js.cc
-	../../../qgr/js/qgr.cc
-	../../../qgr/js/str.cc
-	../../../qgr/js/v8.cc
-	../../../qgr/js/wrap.cc
-	../../../qgr/js/node.cc
-	# binding qgr-utils
-	../../../qgr/js/binding/cb.cc
-	../../../qgr/js/binding/fs.cc
-	../../../qgr/js/binding/fs-reader.cc
-	../../../qgr/js/binding/fs-path.cc
-	../../../qgr/js/binding/http.cc
-	../../../qgr/js/binding/util.cc
-	../../../qgr/js/binding/storage.cc
-	../../../qgr/js/binding/json.cc
-	../../../qgr/js/binding/event.cc
-	../../../qgr/js/binding/sys.cc
-	../../../qgr/js/binding/event.cc
-	../../../qgr/js/binding/timer.cc
-	../../../qgr/js/binding/console.cc
-	../../../qgr/js/binding/buffer.cc
-	# binding qgr-gui
-	../../../qgr/js/binding/value.cc
-	../../../qgr/js/binding/qgr-binding.cc
-	../../../qgr/js/binding/action.cc
-	../../../qgr/js/binding/action-frame.cc
-	../../../qgr/js/binding/app.cc
-	../../../qgr/js/binding/audio-player.cc
-	../../../qgr/js/binding/video.cc
-	../../../qgr/js/binding/media.cc
-	../../../qgr/js/binding/div.cc
-	../../../qgr/js/binding/display-port.cc
-	../../../qgr/js/binding/indep.cc
-	../../../qgr/js/binding/image.cc
-	../../../qgr/js/binding/layout.cc
-	../../../qgr/js/binding/box.cc
-	../../../qgr/js/binding/view.cc
-	../../../qgr/js/binding/root.cc
-	../../../qgr/js/binding/span.cc
-	../../../qgr/js/binding/sprite.cc
-	../../../qgr/js/binding/hybrid.cc
-	../../../qgr/js/binding/text-font.cc
-	../../../qgr/js/binding/text-node.cc
-	../../../qgr/js/binding/label.cc
-	../../../qgr/js/binding/limit.cc
-	../../../qgr/js/binding/panel.cc
-	../../../qgr/js/binding/button.cc
-	../../../qgr/js/binding/scroll.cc
-	../../../qgr/js/binding/css.cc
-	../../../qgr/js/binding/font.cc
-	../../../qgr/js/binding/text.cc
-	../../../qgr/js/binding/input.cc
-	../../../qgr/js/binding/background.cc
+	../../../langou/js/js-cls.cc
+	../../../langou/js/js.cc
+	../../../langou/js/langou.cc
+	../../../langou/js/str.cc
+	../../../langou/js/v8.cc
+	../../../langou/js/wrap.cc
+	../../../langou/js/node.cc
+	# binding langou-utils
+	../../../langou/js/binding/cb.cc
+	../../../langou/js/binding/fs.cc
+	../../../langou/js/binding/fs-reader.cc
+	../../../langou/js/binding/fs-path.cc
+	../../../langou/js/binding/http.cc
+	../../../langou/js/binding/util.cc
+	../../../langou/js/binding/storage.cc
+	../../../langou/js/binding/json.cc
+	../../../langou/js/binding/event.cc
+	../../../langou/js/binding/sys.cc
+	../../../langou/js/binding/event.cc
+	../../../langou/js/binding/timer.cc
+	../../../langou/js/binding/console.cc
+	../../../langou/js/binding/buffer.cc
+	# binding langou-gui
+	../../../langou/js/binding/value.cc
+	../../../langou/js/binding/langou-binding.cc
+	../../../langou/js/binding/action.cc
+	../../../langou/js/binding/action-frame.cc
+	../../../langou/js/binding/app.cc
+	../../../langou/js/binding/audio-player.cc
+	../../../langou/js/binding/video.cc
+	../../../langou/js/binding/media.cc
+	../../../langou/js/binding/div.cc
+	../../../langou/js/binding/display-port.cc
+	../../../langou/js/binding/indep.cc
+	../../../langou/js/binding/image.cc
+	../../../langou/js/binding/layout.cc
+	../../../langou/js/binding/box.cc
+	../../../langou/js/binding/view.cc
+	../../../langou/js/binding/root.cc
+	../../../langou/js/binding/span.cc
+	../../../langou/js/binding/sprite.cc
+	../../../langou/js/binding/hybrid.cc
+	../../../langou/js/binding/text-font.cc
+	../../../langou/js/binding/text-node.cc
+	../../../langou/js/binding/label.cc
+	../../../langou/js/binding/limit.cc
+	../../../langou/js/binding/panel.cc
+	../../../langou/js/binding/button.cc
+	../../../langou/js/binding/scroll.cc
+	../../../langou/js/binding/css.cc
+	../../../langou/js/binding/font.cc
+	../../../langou/js/binding/text.cc
+	../../../langou/js/binding/input.cc
+	../../../langou/js/binding/background.cc
 )
 
-add_library(qgr-test SHARED
+add_library(langou-test SHARED
 	../../../test/test.cc
-	../../../test/test-qgr.cc
+	../../../test/test-langou.cc
 	../../../test/test-fs.cc
 	../../../test/test-fs2.cc
 	../../../test/test-gui.cc
@@ -261,7 +261,7 @@ add_library(qgr-test SHARED
 	../../../test/test-linux-input-2.cc
 )
 
-target_link_libraries(qgr       atomic z android log OpenSLES GLESv3 EGL mediandk qgr-depes-test)
-target_link_libraries(qgr-media qgr OpenSLES GLESv3 EGL mediandk qgr-depes-test)
-target_link_libraries(qgr-js    qgr qgr-depes-test)
-target_link_libraries(qgr-test  qgr qgr-js qgr-depes-test)
+target_link_libraries(langou       atomic z android log OpenSLES GLESv3 EGL mediandk langou-depes-test)
+target_link_libraries(langou-media langou OpenSLES GLESv3 EGL mediandk langou-depes-test)
+target_link_libraries(langou-js    langou langou-depes-test)
+target_link_libraries(langou-test  langou langou-js langou-depes-test)

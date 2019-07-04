@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode } from 'qgr';
+import { Div, Button, TextNode } from 'langou';
 import { Mynavpage } from './public';
-import 'qgr/dialog';
+import 'langou/dialog';
 
 var resolve = require.resolve;
 

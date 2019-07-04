@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/util.h>
-#include <qgr/image.h>
-#include <qgr/sprite.h>
-#include <qgr/div.h>
-#include <qgr/app.h>
-#include <qgr/display-port.h>
-#include <qgr/root.h>
-#include <qgr/utils/fs.h>
-#include <qgr/gl/gl.h>
+#include <langou/utils/util.h>
+#include <langou/image.h>
+#include <langou/sprite.h>
+#include <langou/div.h>
+#include <langou/app.h>
+#include <langou/display-port.h>
+#include <langou/root.h>
+#include <langou/utils/fs.h>
+#include <langou/gl/gl.h>
 
-using namespace qgr;
-using qgr::value::ValueType;
-using qgr::value::Value;
+using namespace langou;
+using langou::value::ValueType;
+using langou::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

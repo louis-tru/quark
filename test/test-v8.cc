@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/util.h"
-#include "qgr/utils/string.h"
+#include "langou/utils/util.h"
+#include "langou/utils/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>
 #include <istream>
 
 using namespace v8;
-namespace n = qgr;
+namespace n = langou;
 
 MaybeLocal<v8::Value> run_script(Isolate* isolate, v8::Local<v8::String> source_string,
 																 v8::Local<v8::String> name,

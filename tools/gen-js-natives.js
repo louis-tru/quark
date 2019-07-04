@@ -30,7 +30,7 @@
 
 var fs = require('fs');
 var path = require('path');
-var syscall = require('../libs/qkit/syscall');
+var syscall = require('../libs/langoukit/syscall');
 var inputs = process.argv.slice(2);
 var output_cc = inputs.pop();
 var output_h = inputs.pop();

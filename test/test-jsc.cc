@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "qgr/utils/util.h"
-#include "qgr/utils/string-builder.h"
-#include "qgr/utils/buffer.h"
-#include "qgr/utils/loop.h"
+#include "langou/utils/util.h"
+#include "langou/utils/string-builder.h"
+#include "langou/utils/buffer.h"
+#include "langou/utils/loop.h"
 
-using namespace qgr;
+using namespace langou;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;

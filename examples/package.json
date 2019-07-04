@@ -1,8 +1,8 @@
 {
 	"name": "examples",
-	"appName":	"Qgr-Examples",
-	"id": "org.qgr.examples",
+	"appName":	"Langou-Examples",
+	"id": "org.langou.examples",
 	"main":	"index.jsx",
 	"version": "1.0.0",
-	"qgrSyntax": true
+	"langouSyntax": true
 }

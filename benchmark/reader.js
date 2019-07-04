@@ -1,7 +1,7 @@
 
-import 'qgr/fs';
-import * as url from 'qgr/path';
-import 'qgr/reader';
+import 'langou/fs';
+import * as url from 'langou/path';
+import 'langou/reader';
 import './uu';
 
 var path = url.documents('benchmark.txt');

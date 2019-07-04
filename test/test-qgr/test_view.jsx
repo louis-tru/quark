@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { Vec2, value } from 'qgr/value';
-import KeyframeAction from 'qgr/action';
+import { Vec2, value } from 'langou/value';
+import KeyframeAction from 'langou/action';
 import {
 	GUIApplication,
 	CSS,
@@ -53,9 +53,9 @@ import {
 	Clip,
 	Input,
 	Textarea,
-	qgr: gui,
-} from 'qgr';
-import { Video } from 'qgr/media';
+	langou: gui,
+} from 'langou';
+import { Video } from 'langou/media';
 
 CSS({
 	'.test': {

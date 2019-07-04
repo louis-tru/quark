@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input } from 'qgr';
-import 'qgr/storage';
-import { alert } from 'qgr/dialog';
+import { Div, Button, Input } from 'langou';
+import 'langou/storage';
+import { alert } from 'langou/dialog';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

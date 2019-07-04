@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/fs.h"
-#include "qgr/utils/jsx.h"
-#include "qgr/utils/codec.h" 
+#include "langou/utils/fs.h"
+#include "langou/utils/jsx.h"
+#include "langou/utils/codec.h" 
 
-using namespace qgr;
+using namespace langou;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/qgr_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/langou_ace/ace/Makefile.dryice.js"
 
 #define error(err, ...) { XX_ERR(err, ##__VA_ARGS__); return 1; }
 

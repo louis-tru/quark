@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/http-cookie.h"
-#include "qgr/sys.h"
+#include "langou/utils/http-cookie.h"
+#include "langou/sys.h"
 
-using namespace qgr;
+using namespace langou;
 
 void test_http_cookie(int argc, char **argv) {
 	

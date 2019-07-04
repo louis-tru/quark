@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/env.h>
+#include <langou/env.h>
 
 #if XX_IOS
 
-#include <qgr/utils/util.h>
+#include <langou/utils/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
 #include <stdio.h>

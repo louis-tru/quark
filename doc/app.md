@@ -1,4 +1,4 @@
-# `qgr/app`
+# `langou/app`
 
 
 ## `Class: GUIApplication`
@@ -20,8 +20,8 @@
 Example:
 
 ```jsx
-import GUIApplication from 'qgr/app'
-import Root from 'qgr'
+import GUIApplication from 'langou/app'
+import Root from 'langou'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
@@ -211,6 +211,6 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
 [`DisplayPort`]: display_port.md#class-displayport
-[`Root`]: qgr.md#class-root
-[`View`]: qgr.md#class-view
+[`Root`]: langou.md#class-root
+[`View`]: langou.md#class-view
 [`clear()`]: app.md#guiapplication-clear

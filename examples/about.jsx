@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Scroll } from 'qgr';
+import { Div, Button, Text, Scroll } from 'langou';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;
@@ -37,7 +37,7 @@ export default const vx = (
 	<Mynavpage title="About" source=resolve(__filename)>
 		<Scroll width="full" height="full">
 			<Text width="full" margin=10>
-@@Qgr
+@@Langou
 ===============
 
 Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
@@ -46,9 +46,9 @@ Goal: developing GUI applications on this basis can take into account both the s
 使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
 目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
 
-Qgr Source 
+Langou Source 
 ===============
-https://github.com/louis-tru/qgr.git
+https://github.com/louis-tru/langou.git
 
 Support
 ===============

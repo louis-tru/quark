@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/zlib.h>
+#include <langou/utils/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace qgr;
+using namespace langou;
 
 void test_zlib (int argc, char **argv) {
 	

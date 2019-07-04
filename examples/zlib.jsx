@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button } from 'qgr';
+import { Div, Button } from 'langou';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

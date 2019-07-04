@@ -30,9 +30,9 @@
 
 import { 
 	Div, Indep, Button, Text, Hybrid
-} from 'qgr';
+} from 'langou';
 import { Mynavpage } from './public';
-import { Navbar, Toolbar } from 'qgr/nav';
+import { Navbar, Toolbar } from 'langou/nav';
 import review_vx from './review';
 
 var resolve = require.resolve;

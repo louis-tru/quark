@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/sys.h"
+#include "langou/sys.h"
 
-using namespace qgr;
+using namespace langou;
 
 class TestSizeOf {
  private:

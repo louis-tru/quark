@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/json.h>
-#include <qgr/utils/string.h>
-#include <qgr/utils/event.h>
+#include <langou/utils/json.h>
+#include <langou/utils/string.h>
+#include <langou/utils/event.h>
 #include <map>
 
-using namespace qgr;
+using namespace langou;
 
 void test_json(int argc, char **argv) {
 	

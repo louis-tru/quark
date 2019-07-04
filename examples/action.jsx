@@ -30,9 +30,9 @@
 
 import { 
 	Div, Hybrid, Text, Button, Image, Indep, Clip,
-} from 'qgr';
-import { HIGHLIGHTED_DOWN } from 'qgr/event';
-import { Toolbar } from 'qgr/nav';
+} from 'langou';
+import { HIGHLIGHTED_DOWN } from 'langou/event';
+import { Toolbar } from 'langou/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

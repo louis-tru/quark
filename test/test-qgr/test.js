@@ -1,5 +1,5 @@
 
-import 'qgr/util';
+import 'langou/util';
 
 function json_stringify(value, whitelist) {
 

@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'qgr/util';
-import 'qgr/sys';
-import 'qgr/reader';
-import 'qgr/font';
+import 'langou/util';
+import 'langou/sys';
+import 'langou/reader';
+import 'langou/font';
 import {
 	GUIApplication, Root, Scroll, CSS, atomPixel: px,
-	Div, Hybrid, Clip, Text, Button, TextNode: T, qgr
-} from 'qgr';
-import { NavpageCollection, Toolbar } from 'qgr/nav';
+	Div, Hybrid, Clip, Text, Button, TextNode: T, langou
+} from 'langou';
+import { NavpageCollection, Toolbar } from 'langou/nav';
 import { Navbutton, Mynavpage } from './public';
 import './examples';
 import about_vx from './about';
@@ -102,9 +102,9 @@ function review_code(evt) {
 	evt.sender.owner.collection.push(review_vx, 1);
 }
 
-const qgr_tools = 'https://www.npmjs.com/package/qmake';
-const qgr_tools_issues_url = 'https://github.com/louis-tru/qgr/issues';
-const examples_source = 'https://github.com/louis-tru/qgr.git';
+const langou_tools = 'https://www.npmjs.com/package/qmake';
+const langou_tools_issues_url = 'https://github.com/louis-tru/langou/issues';
+const examples_source = 'https://github.com/louis-tru/langou.git';
 const documents = 'http://quickgr.org/';
 
 // registerFont
@@ -112,12 +112,12 @@ const documents = 'http://quickgr.org/';
 function handle_go_to(evt) {
 	var url = evt.sender.url;
 	if ( url ) {
-		qgr.app.openUrl(url);
+		langou.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	qgr.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	langou.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 var default_toolbar_vx = (
@@ -130,14 +130,14 @@ var default_toolbar_vx = (
 	</Toolbar>
 )
 
-var qgr_tools_vx = (
-	<Mynavpage title="Qgr Tools" source=resolve(__filename)>
+var langou_tools_vx = (
+	<Mynavpage title="Langou Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
 @@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g qmake</T>.
 2. Or get the node modules from Github.@@
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=qgr_tools>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -164,7 +164,7 @@ const bug_feedback_vx = (
 	<Mynavpage title="Bug Feedback" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=qgr_tools_issues_url>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools_issues_url>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_bug_feedback>Send email</Button>
 		</Div>
@@ -178,7 +178,7 @@ var app = new GUIApplication({
 	fullScreen: util.options.full_screen || 0,
 	enableTouch: 1,
 	background: 0xffffff,
-	title: 'Qgr Examples',
+	title: 'Langou Examples',
 }).start(
 	<Root>
 
@@ -190,7 +190,7 @@ var app = new GUIApplication({
 					<Text class="hello">Hello.</Text>
 					<Div class="category">
 						<Hybrid class="codepre">
-@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'qgr'</T>
+@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'langou'</T>
 <T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
 	\<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
 )@@
@@ -201,7 +201,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=qgr_tools_vx view.borderWidth=0>Qgr Tools</Navbutton>
+						<Navbutton next=langou_tools_vx view.borderWidth=0>Langou Tools</Navbutton>
 					</Clip>
 					
 					<Text class="category_title" />

@@ -10,18 +10,18 @@
 				'../out',
 			],
 			'dependencies': [
-				'qgr',
-				'qgr-js',
-				'qgr-media',
-				'qgr-node',
-				'qgr-v8',
+				'langou',
+				'langou-js',
+				'langou-media',
+				'langou-node',
+				'langou-v8',
 				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
 				'depe/freetype2/freetype2.gyp:ft2',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-qgr',
+				'test-langou',
 				'../examples',
 				'../benchmark',
 			],
@@ -33,7 +33,7 @@
 				'../libs/qmake',
 				'../libs/qkit',
 				'test.cc',
-				'test-qgr.cc',
+				'test-langou.cc',
 				'test-fs.cc',
 				'test-fs2.cc',
 				'test-gui.cc',
@@ -89,14 +89,14 @@
 			],
 		},
 		{
-			'target_name': 'qgr-demo',
+			'target_name': 'langou-demo',
 			'type': 'executable',
 			'dependencies': [
-				'qgr',
-				'qgr-js',
-				'qgr-media',
-				'qgr-node',
-				'qgr-v8',
+				'langou',
+				'langou-js',
+				'langou-media',
+				'langou-node',
+				'langou-v8',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -126,14 +126,14 @@
 	],
 
 	'conditions': [
-		# gen android test depes `libqgr-depes-test.so`
+		# gen android test depes `liblangou-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'qgr-depes-test',
+				'target_name': 'langou-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'qgr/utils/minizip.gyp:minizip',
+					'langou/utils/minizip.gyp:minizip',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
 					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',
@@ -161,13 +161,13 @@
 				],
 			},
 			{
-				'target_name': 'qgr-depes-copy',
+				'target_name': 'langou-depes-copy',
 				'type': 'none',
-				'dependencies': [ 'qgr-depes-test' ],
+				'dependencies': [ 'langou-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libqgr-depes-test.so',
+						'<(output)/lib.target/liblangou-depes-test.so',
 					],
 				}],
 			}],
@@ -175,7 +175,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'QgrTest',
+				'target_name': 'LangouTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],

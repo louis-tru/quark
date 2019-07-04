@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qkit');
-var fs = require('../libs/qkit/fs');
-var keys = require('../libs/qkit/keys');
-var service = require('../libs/qkit/service');
-var HttpService = require('../libs/qkit/http_service').HttpService;
+var util = require('../libs/langoukit');
+var fs = require('../libs/langoukit/fs');
+var keys = require('../libs/langoukit/keys');
+var service = require('../libs/langoukit/service');
+var HttpService = require('../libs/langoukit/http_service').HttpService;
 var server = require('../libs/qmake/server');
 require('./test-multiple-service');
 

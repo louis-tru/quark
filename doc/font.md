@@ -1,4 +1,4 @@
-# `qgr/font`
+# `langou/font`
 
 
 ## setDefaultFonts(fonts)

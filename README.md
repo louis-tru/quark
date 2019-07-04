@@ -1,4 +1,4 @@
-qgr
+langou
 ===============
 
 A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL
@@ -41,7 +41,7 @@ export ios xcode project `qmake export ios`
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { GUIApplication, Root } from 'qgr'
+import { GUIApplication, Root } from 'langou'
 new GUIApplication().start(
 	<Root>hello world!</Root>
 )
@@ -51,7 +51,7 @@ You can get a more detailed [`Examples`]
 
 # Start Usage
 
-If you've never used qgr before, you can start from here and build your qgr program step by step.
+If you've never used langou before, you can start from here and build your langou program step by step.
 
 ## Install qmake
 
@@ -124,9 +124,9 @@ $ qmake
 * Project [`Source code`] from `Github`
 
 
-[`Examples`]: https://github.com/louis-tru/qgr/tree/master/demo
+[`Examples`]: https://github.com/louis-tru/langou/tree/master/demo
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/qgr/releases/download/v0.1.0/examples-release.apk
+[`Android APK`]: https://github.com/louis-tru/langou/releases/download/v0.1.0/examples-release.apk
 [`NPM`]: https://www.npmjs.com/package/qmake
-[`Source code`]: https://github.com/louis-tru/qgr
+[`Source code`]: https://github.com/louis-tru/langou

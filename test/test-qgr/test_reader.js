@@ -1,8 +1,8 @@
 
 import { P, M, LOG, AM } from './test'
-import 'qgr/fs';
-import 'qgr/reader';
-import 'qgr/url';
+import 'langou/fs';
+import 'langou/reader';
+import 'langou/url';
 
 const DIR = url.documents('test');
 const FILE = DIR + '/test_file.txt';

@@ -1,6 +1,6 @@
 
 import { LOG, M } from './test'
-import 'qgr/storage'
+import 'langou/storage'
 
 LOG('\nTest Storage:\n')
 

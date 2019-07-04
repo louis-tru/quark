@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/utils/util.h"
-#include "qgr/utils/fs.h"
+#include "langou/utils/util.h"
+#include "langou/utils/fs.h"
 
-using namespace qgr;
+using namespace langou;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
  public:

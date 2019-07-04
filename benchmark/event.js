@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'qgr/event';
+import { EventNoticer } from 'langou/event';
 import './uu';
 
 uu.start();

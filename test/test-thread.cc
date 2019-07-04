@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/util.h>
+#include <langou/utils/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace qgr;
+using namespace langou;
 
 class Foo {
  public:

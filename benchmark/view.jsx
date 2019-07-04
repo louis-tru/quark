@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Div, Scroll, New, CSS } from 'qgr';
-import { Color } from 'qgr/value';
-import { random } from 'qgr/util';
+import { GUIApplication, Root, Div, Scroll, New, CSS } from 'langou';
+import { Color } from 'langou/value';
+import { random } from 'langou/util';
 import './uu';
 
 CSS({

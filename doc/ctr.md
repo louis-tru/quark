@@ -1,4 +1,4 @@
-# `qgr/ctr`
+# `langou/ctr`
 
 ## empty
 
@@ -21,8 +21,8 @@
 Example:
 
 ```jsx
-import { GUIApplication, ViewController, Root, Div } from 'qgr'
-import 'qgr/http'
+import { GUIApplication, ViewController, Root, Div } from 'langou'
+import 'langou/http'
 class MyCtr extends ViewController {
 	loadView() {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>{
@@ -222,18 +222,18 @@ new GUIApplication().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: qgr.md#class-view
+[`View`]: langou.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: qgr.md#get-view-action
-[`View.style`]: qgr.md#view-style
-[`View.visible`]: qgr.md#view-visible
-[`View.receive`]: qgr.md#view-receive
-[`View.class`]: qgr.md#get-view-class
-[`View.transition()`]: qgr.md#view-transition-style-delay-cb-
-[`View.show()`]: qgr.md#view-show-
-[`View.hide()`]: qgr.md#view-hide-
-[`View.addClass()`]: qgr.md#view-addClass-name-
-[`View.removeClass()`]: qgr.md#view-removeclass-name-
-[`View.toggleClass()`]: qgr.md#view-toggleclass-name-
-[`View.remove()`]: qgr.md#view-remove-
+[`View.action`]: langou.md#get-view-action
+[`View.style`]: langou.md#view-style
+[`View.visible`]: langou.md#view-visible
+[`View.receive`]: langou.md#view-receive
+[`View.class`]: langou.md#get-view-class
+[`View.transition()`]: langou.md#view-transition-style-delay-cb-
+[`View.show()`]: langou.md#view-show-
+[`View.hide()`]: langou.md#view-hide-
+[`View.addClass()`]: langou.md#view-addClass-name-
+[`View.removeClass()`]: langou.md#view-removeclass-name-
+[`View.toggleClass()`]: langou.md#view-toggleclass-name-
+[`View.remove()`]: langou.md#view-remove-

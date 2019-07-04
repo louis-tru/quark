@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/qkit/fs');
+var fs = require('../libs/langoukit/fs');
 
-function read_qgr_version() {
-	var str = fs.readFileSync(__dirname + '/../qgr/version.h').toString('utf-8');
+function read_langou_version() {
+	var str = fs.readFileSync(__dirname + '/../langou/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
@@ -47,15 +47,15 @@ function read_qgr_version() {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse qgr version number form qgr/version.h');
+		throw new Error('Cannot parse langou version number form langou/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-function update_qgr_version() {
-	var vers = read_qgr_version().join('.');
+function update_langou_version() {
+	var vers = read_langou_version().join('.');
 	var pkgs = [
-		__dirname + '/../libs/qgr/package.json',
+		__dirname + '/../libs/langou/package.json',
 		__dirname + '/../libs/qmake/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
@@ -64,5 +64,5 @@ function update_qgr_version() {
 	});
 }
 
-exports.read_qgr_version = read_qgr_version;
-exports.update_qgr_version = update_qgr_version;
+exports.read_langou_version = read_langou_version;
+exports.update_langou_version = update_langou_version;

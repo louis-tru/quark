@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/fs.h>
-#include <qgr/utils/loop.h>
+#include <langou/utils/fs.h>
+#include <langou/utils/loop.h>
 
-using namespace qgr;
+using namespace langou;
 
 static String write_str;
 
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	
-	write_str = f_reader()->read_file_sync(Path::resources("qgr/ctr.js"));
+	write_str = f_reader()->read_file_sync(Path::resources("langou/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 

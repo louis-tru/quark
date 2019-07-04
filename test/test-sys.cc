@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "qgr/sys.h"
-#include "qgr/utils/string.h"
+#include "langou/sys.h"
+#include "langou/utils/string.h"
 
-using namespace qgr;
+using namespace langou;
 
 void test_sys(int argc, char **argv) {
 	LOG(sys::info());

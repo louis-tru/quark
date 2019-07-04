@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root, Div, Button, Indep, Image } from 'qgr';
-import 'qgr/action';
-import 'qgr/css';
+import { GUIApplication, Root, Div, Button, Indep, Image } from 'langou';
+import 'langou/action';
+import 'langou/css';
 
 new GUIApplication().start(
 	<Root>

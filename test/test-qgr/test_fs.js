@@ -1,7 +1,7 @@
 
 import { P, M, LOG, AM, VM, VP, CA } from './test'
-import 'qgr/fs';
-import 'qgr/url';
+import 'langou/fs';
+import 'langou/url';
 import { Buffer } from 'buffer';
 
 // init

@@ -80,16 +80,16 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __qgr__native__',
-		'#define __qgr__native__',
-	 'namespace qgr{',
+		'#ifndef __langou__native__',
+		'#define __langou__native__',
+	 'namespace langou{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace qgr{');
+	write(cc_fd, 'namespace langou{');
 	
 	var fonts = [];
 	

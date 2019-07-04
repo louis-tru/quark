@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/qkit/util');
-var fs = require('../libs/qkit/fs');
+var util = require('../libs/langoukit/util');
+var fs = require('../libs/langoukit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
-var {execSync} = require('../libs/qkit/syscall');
+var {execSync} = require('../libs/langoukit/syscall');
 var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
@@ -44,12 +44,12 @@ fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
 
-read_version.update_qgr_version();
+read_version.update_langou_version();
 
 fs.cp_sync(root + '/libs/qmake', target, {ignore_hide:1});
 
 if (!fs.existsSync(target + '/bin/linux-jsa-shell')) {
-	var {code} = execSync('scp louis@192.168.0.115:~/Project/qgr/libs/qmake/bin/linux-jsa-shell ' +
+	var {code} = execSync('scp louis@192.168.0.115:~/Project/langou/libs/qmake/bin/linux-jsa-shell ' +
 		target + '/bin');
 	if (code) {
 		console.warn('Cannot copy linux-jsa-shell, not find linux-jsa-shell');
@@ -66,7 +66,7 @@ if (!fs.existsSync(target + '/bin/osx-jsa-shell')) {
 }
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
-copy_header(root + '/qgr', `${include}/qgr`);
+copy_header(root + '/langou', `${include}/langou`);
 copy_header(`${root}/depe/v8-link/include`, include);
 copy_header(`${root}/depe/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
 copy_header(`${root}/depe/node/deps/openssl/config/archs`, `${include}/openssl/archs`);
@@ -80,8 +80,8 @@ copy_header(`${root}/depe/node/src/node.h`, `${include}/node.h`);
 copy_header(`${root}/depe/node/src/node_object_wrap.h`, `${include}/node_object_wrap.h`);
 copy_header(`${root}/depe/node/src/node_version.h`, `${include}/node_version.h`);
 
-// fs.cp_sync(root + '/libs/qgr', target + '/product/libs/qgr');
+// fs.cp_sync(root + '/libs/langou', target + '/product/libs/langou');
 fs.cp_sync(root + '/examples', target + '/product/examples');
-fs.cp_sync(root + '/tools/product.gypi', target + '/product/qgr.gypi');
+fs.cp_sync(root + '/tools/product.gypi', target + '/product/langou.gypi');
 // fs.cp_sync(root + '/tools/common.gypi', target + '/product/common.gypi');
 // fs.cp_sync(root + '/out/config.gypi', target + '/product/config.gypi');

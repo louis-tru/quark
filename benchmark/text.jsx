@@ -1,5 +1,5 @@
 
-import { Image } from 'qgr';
+import { Image } from 'langou';
 import './print';
 
 

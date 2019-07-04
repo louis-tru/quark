@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, CSS, Input, Text, atomPixel } from 'qgr';
-import { List } from 'qgr/list';
+import { Div, Button, CSS, Input, Text, atomPixel } from 'langou';
+import { List } from 'langou/list';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

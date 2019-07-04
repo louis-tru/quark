@@ -1,5 +1,5 @@
 {
-	"name": "test-qgr",
+	"name": "test-langou",
 	"main": "test_gui.jsx",
-	"qgrSyntax": true
+	"langouSyntax": true
 }

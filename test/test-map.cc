@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <qgr/utils/array.h>
-#include <qgr/utils/list.h>
-#include <qgr/utils/string.h>
-#include <qgr/utils/map.h>
+#include <langou/utils/array.h>
+#include <langou/utils/list.h>
+#include <langou/utils/string.h>
+#include <langou/utils/map.h>
 #include <map>
 
-using namespace qgr;
+using namespace langou;
 
 void test_map(int argc, char **argv) {
 	

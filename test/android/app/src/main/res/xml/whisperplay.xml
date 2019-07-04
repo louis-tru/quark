@@ -2,7 +2,7 @@
 <whisperplay>
   <dial>
     <application>
-      <dialid>qgrTemplate</dialid>
+      <dialid>langouTemplate</dialid>
       <startAction>android.intent.action.MAIN</startAction>
     </application>
   </dial>
