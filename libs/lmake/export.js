@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qkit/util');
+var util = require('langoukit/util');
 var paths = require('./paths');
-var fs = require('qkit/fs');
-var path = require('qkit/path');
-var keys = require('qkit/keys');
+var fs = require('langoukit/fs');
+var path = require('langoukit/path');
+var keys = require('langoukit/keys');
 var sys = require('os');
 var { LangouBuild } = require('./build');
-var { getLocalNetworkHost } = require('qkit/network_host');
-var { syscall } = require('qkit/syscall');
+var { getLocalNetworkHost } = require('langoukit/network_host');
+var { syscall } = require('langoukit/syscall');
 var child_process = require('child_process');
-var large_file_merge = require('qkit/large_file_cut').merge;
+var large_file_merge = require('langoukit/large_file_cut').merge;
 
 var native_source = [
 	'.c',

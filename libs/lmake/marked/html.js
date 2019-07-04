@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('qkit/fs');
+var fs = require('langoukit/fs');
 var marked = require('marked');
 var renderer = new marked.Renderer();
 

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var url = require('qkit/url');
-var fs = require('qkit/fs');
+var url = require('langoukit/url');
+var fs = require('langoukit/fs');
 var path = require('path');
 
 function resolve(name) {

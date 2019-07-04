@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qkit/util');
-var service = require('qkit/service');
-var HttpService = require('qkit/http_service').HttpService;
-var StaticService = require('qkit/static_service').StaticService;
-var path = require('qkit/path');
-var fs = require('qkit/fs');
-var keys = require('qkit/keys');
+var util = require('langoukit/util');
+var service = require('langoukit/service');
+var HttpService = require('langoukit/http_service').HttpService;
+var StaticService = require('langoukit/static_service').StaticService;
+var path = require('langoukit/path');
+var fs = require('langoukit/fs');
+var keys = require('langoukit/keys');
 var Buffer = require('buffer').Buffer;
 var remote_log = require('./remote_log');
 var gen_html = require('./marked/html').gen_html;

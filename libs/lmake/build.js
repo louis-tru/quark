@@ -28,15 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qkit');
-var fs = require('qkit/fs');
+var util = require('langoukit');
+var fs = require('langoukit/fs');
 var child_process = require('child_process');
-var keys = require('qkit/keys');
-var path = require('qkit/path');
+var keys = require('langoukit/keys');
+var path = require('langoukit/path');
 var Buffer = require('buffer').Buffer;
 var paths = require('./paths');
 var uglify = require('./uglify');
-var { syscall } = require('qkit/syscall');
+var { syscall } = require('langoukit/syscall');
 
 var base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');

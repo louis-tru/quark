@@ -30,11 +30,11 @@
 
 require('./console');
 require('./file');
-var path = require('qkit/url');
-var keys = require('qkit/keys');
-var server = require('qkit/server');
+var path = require('langoukit/url');
+var keys = require('langoukit/keys');
+var server = require('langoukit/server');
 var remote_log = require('./remote_log');
-var getLocalNetworkHost = require('qkit/network_host').getLocalNetworkHost;
+var getLocalNetworkHost = require('langoukit/network_host').getLocalNetworkHost;
 
 process.on('unhandledRejection', (err, promise) => {
 	throw err;

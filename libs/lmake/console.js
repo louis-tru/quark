@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('qkit');
-var service = require('qkit/service');
+var util = require('langoukit');
+var service = require('langoukit/service');
 var remote_log = require('./remote_log');
-var HttpService = require('qkit/http_service').HttpService;
+var HttpService = require('langoukit/http_service').HttpService;
 
 var Console = util.class('Console', HttpService, {
 

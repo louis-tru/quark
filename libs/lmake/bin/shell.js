@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var util = require('qkit');
-var fs = require('qkit/fs');
+var util = require('langoukit');
+var fs = require('langoukit/fs');
 var { LangouBuild } = require('../build');
 var { LangouExport } = require('../export');
 var server = require('../server');
-var arguments = require('qkit/arguments');
+var arguments = require('langoukit/arguments');
 var args = process.argv.slice(2);
 var cmd = args.shift();
 var opts = arguments.options;
