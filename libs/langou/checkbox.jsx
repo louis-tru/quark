@@ -64,7 +64,7 @@ CSS({
 		
 	'.x_checkbox .mark': {
 		visible: 0,
-		textFamily: 'icon',
+		textFamily: 'iconfont',
 		textColor: '#fff',
 		textSize: 14,
 		textLineHeight: 20,

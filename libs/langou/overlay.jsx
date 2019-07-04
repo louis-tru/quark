@@ -281,7 +281,7 @@ export class Overlay extends Navigation {
 		super.loadView(
 			<Indep visible=0 width="full" height="full" backgroundColor="#0003" opacity=0>
 				<Div width="full" height="full" 
-					onTouchStart="fadeOut" id="mask" />
+					onTouchStart="fadeOut" onMouseDown="fadeOut" id="mask" />
 				<Indep id="inl">
 
 					<Indep id="arrow" 
@@ -290,7 +290,7 @@ export class Overlay extends Navigation {
 						originX=(arrow_size.width/2) originY=(arrow_size.height/2)>
 						<Text id="arrow_text" 
 							y=-10 x=-3
-							textFamily='icon' 
+							textFamily='iconfont' 
 							textLineHeight="auto"
 							textSize=36 textColor="#fff" value="\uedc7" />
 					</Indep>
