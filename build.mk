@@ -16,9 +16,9 @@ ANDROID_JAR    = out/android.classs.langou.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-QMAKE          = ./libs/lmake
-QMAKE_OUT      = out/lmake
-GYP            = $(QMAKE)/gyp/gyp
+LMAKE          = ./libs/lmake
+LMAKE_OUT      = out/lmake
+GYP            = $(LMAKE)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
 BUILD_STYLE    = make
@@ -65,7 +65,7 @@ build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 tools: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
 	@$(call make_compile,$(MAKE))
-	@cp $(LIBS_DIR)/jsa-shell $(QMAKE)/bin/$(OS)-jsa-shell
+	@cp $(LIBS_DIR)/jsa-shell $(LMAKE)/bin/$(OS)-jsa-shell
 
 test2: $(GYPFILES)
 	@#make -C test -f test2.mk
@@ -77,8 +77,8 @@ $(ANDROID_JAR): android/org/langou/*.java
 	@rm -rf out/android.classs/*
 	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/langou/*.java
 	@cd out/android.classs; $(JAR) cfv langou.jar .
-	@mkdir -p $(QMAKE_OUT)/product/android/libs
-	@cp out/android.classs/langou.jar $(QMAKE_OUT)/product/android/libs
+	@mkdir -p $(LMAKE_OUT)/product/android/libs
+	@cp out/android.classs/langou.jar $(LMAKE_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)

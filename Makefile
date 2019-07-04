@@ -2,8 +2,8 @@
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
 ANDROID_JAR    = out/android.classs.langou.jar
-QMAKE          = ./libs/lmake
-QMAKE_OUT      = out/lmake
+LMAKE          = ./libs/lmake
+LMAKE_OUT      = out/lmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 
 ifneq ($(USER),root)
@@ -18,7 +18,7 @@ ifeq ($(GIT_repository),)
 	GIT_repository = https://github.com/louis-tru
 endif
 
-JSA_SHELL = $(QMAKE)/bin/${HOST_OS}-jsa-shell
+JSA_SHELL = $(LMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
@@ -69,12 +69,12 @@ compile: pull
 
 install-lmake: $(JSA_SHELL)
 	@$(NODE) ./tools/cp-lmake.js
-	@cd $(QMAKE_OUT) && npm i -f
-	@cd $(QMAKE_OUT) && $(SUDO) npm i -g
+	@cd $(LMAKE_OUT) && npm i -f
+	@cd $(LMAKE_OUT) && $(SUDO) npm i -g
 
 # debug install langou
 install-lmake-link: $(JSA_SHELL)
-	@cd $(QMAKE) && $(SUDO) npm link
+	@cd $(LMAKE) && $(SUDO) npm link
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -89,7 +89,7 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
-	@./tools/gen_apple_frameworks.sh $(QMAKE_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(LMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)
