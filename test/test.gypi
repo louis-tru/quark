@@ -30,7 +30,7 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/qmake',
+				'../libs/lmake',
 				'../libs/qkit',
 				'test.cc',
 				'test-langou.cc',

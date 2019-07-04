@@ -2,8 +2,8 @@
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
 ANDROID_JAR    = out/android.classs.langou.jar
-QMAKE          = ./libs/qmake
-QMAKE_OUT      = out/qmake
+QMAKE          = ./libs/lmake
+QMAKE_OUT      = out/lmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 
 ifneq ($(USER),root)
@@ -22,7 +22,7 @@ JSA_SHELL = $(QMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
-DEPS = libs/qkit libs/qmake/gyp.langou depe/v8-link \
+DEPS = libs/qkit libs/lmake/gyp.langou depe/v8-link \
 	depe/FFmpeg.langou depe/node.langou depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
@@ -54,7 +54,7 @@ check_osx=\
 	fi
 
 .PHONY: all $(FORWARD) jsa ios android linux osx \
-	compile install-qmake-link install-qmake \
+	compile install-lmake-link install-lmake \
 	help web doc watch build-linux-all build-osx-all pull push
 
 .SECONDEXPANSION:
@@ -64,16 +64,16 @@ check_osx=\
 compile: pull
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(MAKE) install-qmake
+	@$(MAKE) install-lmake
 	@-./tools/gen_releases_lib.sh
 
-install-qmake: $(JSA_SHELL)
-	@$(NODE) ./tools/cp-qmake.js
+install-lmake: $(JSA_SHELL)
+	@$(NODE) ./tools/cp-lmake.js
 	@cd $(QMAKE_OUT) && npm i -f
 	@cd $(QMAKE_OUT) && $(SUDO) npm i -g
 
 # debug install langou
-install-qmake-link: $(JSA_SHELL)
+install-lmake-link: $(JSA_SHELL)
 	@cd $(QMAKE) && $(SUDO) npm link
 
 $(FORWARD):

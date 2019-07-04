@@ -31,8 +31,8 @@
 
 var fs = require('../libs/langoukit/fs');
 var path = require('path');
-var marked_html = require('../libs/qmake/marked/html');
-var marked = require('../libs/qmake/node_modules/marked/index');
+var marked_html = require('../libs/lmake/marked/html');
+var marked = require('../libs/lmake/node_modules/marked/index');
 var read_langou_version = require('./read_version').read_langou_version;
 var argv = process.argv.slice(2);
 var template = null;
@@ -94,6 +94,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(__dirname + '/../libs/qmake/marked/assets', output + '/assets');
+fs.cp_sync(__dirname + '/../libs/lmake/marked/assets', output + '/assets');
 
 each_dir('', output);

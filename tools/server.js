@@ -33,7 +33,7 @@ var fs = require('../libs/langoukit/fs');
 var keys = require('../libs/langoukit/keys');
 var service = require('../libs/langoukit/service');
 var HttpService = require('../libs/langoukit/http_service').HttpService;
-var server = require('../libs/qmake/server');
+var server = require('../libs/lmake/server');
 require('./test-multiple-service');
 
 var opt = {

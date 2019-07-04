@@ -102,7 +102,7 @@ function review_code(evt) {
 	evt.sender.owner.collection.push(review_vx, 1);
 }
 
-const langou_tools = 'https://www.npmjs.com/package/qmake';
+const langou_tools = 'https://www.npmjs.com/package/lmake';
 const langou_tools_issues_url = 'https://github.com/louis-tru/langou/issues';
 const examples_source = 'https://github.com/louis-tru/langou.git';
 const documents = 'http://quickgr.org/';
@@ -134,7 +134,7 @@ var langou_tools_vx = (
 	<Mynavpage title="Langou Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g qmake</T>.
+@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g lmake</T>.
 2. Or get the node modules from Github.@@
 			</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools>Go Github</Button>

@@ -56,7 +56,7 @@ function update_langou_version() {
 	var vers = read_langou_version().join('.');
 	var pkgs = [
 		__dirname + '/../libs/langou/package.json',
-		__dirname + '/../libs/qmake/package.json',
+		__dirname + '/../libs/lmake/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);

@@ -37,7 +37,7 @@ var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/qmake';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/lmake';
 var include = target + '/product/include';
 
 fs.rm_r_sync(include);
@@ -46,10 +46,10 @@ fs.rm_r_sync(target + '/product/examples');
 
 read_version.update_langou_version();
 
-fs.cp_sync(root + '/libs/qmake', target, {ignore_hide:1});
+fs.cp_sync(root + '/libs/lmake', target, {ignore_hide:1});
 
 if (!fs.existsSync(target + '/bin/linux-jsa-shell')) {
-	var {code} = execSync('scp louis@192.168.0.115:~/Project/langou/libs/qmake/bin/linux-jsa-shell ' +
+	var {code} = execSync('scp louis@192.168.0.115:~/Project/langou/libs/lmake/bin/linux-jsa-shell ' +
 		target + '/bin');
 	if (code) {
 		console.warn('Cannot copy linux-jsa-shell, not find linux-jsa-shell');

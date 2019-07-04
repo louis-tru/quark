@@ -9,7 +9,7 @@
 		"url": "http://langou.org/"
 	},
 	"bin": {
-		"qmake": "bin/shell.js"
+		"lmake": "bin/shell.js"
 	},
 	"keywords": [
 		"jsx",

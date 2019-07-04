@@ -18,18 +18,18 @@ def_opts(['remote', 'r'], '', 	'--remote=ADDRESS,-r ADDRESS Remote console addre
 
 if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) { 
 	console.log('');
-	console.log('Usage: qmake COMMAND [OS]');
-	console.log('Usage: qmake [OPTION]...');
+	console.log('Usage: lmake COMMAND [OS]');
+	console.log('Usage: lmake [OPTION]...');
 	console.log('');
 	console.log('Examples:');
-	console.log('`qmake init`');
-	console.log('`qmake build`');
-	console.log('`qmake rebuild`');
-	console.log('`qmake export ios`');
-	console.log('`qmake export android`');
-	console.log('`qmake clear`');
-	console.log('`qmake`');
-	console.log('`qmake -r http://192.168.1.124:1026`');
+	console.log('`lmake init`');
+	console.log('`lmake build`');
+	console.log('`lmake rebuild`');
+	console.log('`lmake export ios`');
+	console.log('`lmake export android`');
+	console.log('`lmake clear`');
+	console.log('`lmake`');
+	console.log('`lmake -r http://192.168.1.124:1026`');
 	console.log('');
 	console.log('Defaults for the options are specified in brackets.');
 	console.log('');
@@ -39,7 +39,7 @@ if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) {
 	return;
 } 
 else if ( cmd == 'export' ) {
-	util.assert(args.length, 'export Bad argument. system name required, for example "qmake export ios"');
+	util.assert(args.length, 'export Bad argument. system name required, for example "lmake export ios"');
 	new LangouExport(process.cwd(), args[0]).export();
 } 
 else if ( cmd == 'build' || cmd == 'rebuild' || cmd == 'init' ) {

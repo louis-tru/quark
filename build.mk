@@ -16,8 +16,8 @@ ANDROID_JAR    = out/android.classs.langou.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-QMAKE          = ./libs/qmake
-QMAKE_OUT      = out/qmake
+QMAKE          = ./libs/lmake
+QMAKE_OUT      = out/lmake
 GYP            = $(QMAKE)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
@@ -82,4 +82,4 @@ $(ANDROID_JAR): android/org/langou/*.java
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/qmake/product/$(OS)
+	@rm -rfv out/lmake/product/$(OS)

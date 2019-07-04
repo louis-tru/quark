@@ -8,7 +8,7 @@
 
 	'variables': {
 		'more_log%': 0,
-		'langou_product_dir%': '<(output)/../qmake/product',
+		'langou_product_dir%': '<(output)/../lmake/product',
 		'langou_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
 		'conditions': [

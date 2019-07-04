@@ -30,21 +30,21 @@ You can get a more detailed [`Examples`]
 
 If you've never used Langou before, you can start from here and build your Langou program step by step.
 
-## Install qmake
+## Install lmake
 
 First, you need to install the toolkit provided by `Langou`
 
-* Install `qmake` using nodejs `npm` 
+* Install `lmake` using nodejs `npm` 
 
 * Open `Terminal` and execute the following command：
 
 ```sh
 # shell
-$ sudo npm install -g qmake
+$ sudo npm install -g lmake
 
 ```
 	
-* Running `qmake` requires dependency on `nodejs` and `python2.7`
+* Running `lmake` requires dependency on `nodejs` and `python2.7`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
@@ -56,7 +56,7 @@ Create a new `Langou` project using the following `shell` command：
 # shell
 $ mkdir myproject
 $ cd myproject
-$ qmake init
+$ lmake init
 ```
 
 ## Build project
@@ -66,7 +66,7 @@ If this is a new project, you can skip this step and go directly to the next ste
 
 ```js
 # shell
-$ qmake build
+$ lmake build
 ```
 
 ## Export project
@@ -76,22 +76,22 @@ This step exports [`Xcode`] or [`Android Studio`] project，because you eventual
 ```js
 # shell
 # export xcode ios project
-$ qmake export ios
+$ lmake export ios
 # export android studio project
-$ qmake export android
+$ lmake export android
 ```
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
 ## Langou test http server
 
-`qmake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+`lmake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
 Execute the following code to start it：
 
 ```js
 # shell
-$ qmake
+$ lmake
 ```
 
 # Downloads
@@ -105,7 +105,7 @@ $ qmake
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
 [`Android APK`]: https://github.com/louis-tru/langou/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/qmake
+[`NPM`]: https://www.npmjs.com/package/lmake
 [`Source code`]: https://github.com/louis-tru/langou
 
 <script>

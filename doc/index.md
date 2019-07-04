@@ -2,7 +2,7 @@
 # [`Langou`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/qmake)
+* [`Tools`](https://www.npmjs.com/package/lmake)
 * [`Examples`](https://github.com/louis-tru/langou/tree/master/examples)
 
 # Course
