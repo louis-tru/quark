@@ -2074,7 +2074,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     })
   elif flavor == 'zos':
     copy_archive_arguments = '-fPR'
-    makedep_arguments = '-lmakedep=gcc'
+    makedep_arguments = '-qmakedep=gcc'
     header_params.update({
         'copy_archive_args': copy_archive_arguments,
         'makedep_args': makedep_arguments,

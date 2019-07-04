@@ -22,7 +22,7 @@ JSA_SHELL = $(QMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
-DEPS = libs/qkit libs/lmake/gyp.langou depe/v8-link \
+DEPS = libs/langoukit libs/lmake/gyp.langou depe/v8-link \
 	depe/FFmpeg.langou depe/node.langou depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
