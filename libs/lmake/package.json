@@ -1,6 +1,6 @@
 {
 	"name": "lmake",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "",
 	"author": {
@@ -34,7 +34,7 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"langoukit": "~0.8.47"
+		"langoukit": "~0.8.48"
 	},
 	"license": "BSD-2-Clause",
 	"bugs": {
