@@ -101,7 +101,7 @@ $ lmake
 * Project [Source code] from `Github`
 
 
-[Examples]: https://github.com/louis-tru/langou/tree/master/demo
+[Examples]: https://github.com/louis-tru/langou/tree/master/examples
 [Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [Android Studio]: https://developer.android.com/studio/projects/create-project.html
 [Android APK]: https://github.com/louis-tru/langou/releases/download/v0.1.0/examples-release.apk
