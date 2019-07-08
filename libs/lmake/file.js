@@ -59,7 +59,7 @@ var File = util.class('File', HttpService, {
 
 	marked_assets: function({pathname}) {
 		// console.log('marked_assets', pathname);
-		this.returnFile(path.resolveLocal(__dirname, '../marked/assets', pathname));
+		this.returnFile(path.resolveLocal(__dirname, 'marked/assets', pathname));
 	},
 
 	marked: function({pathname}) {
