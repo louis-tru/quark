@@ -2416,6 +2416,10 @@ public:
 				break;
 		}
 	}
+
+	void parse_import_block() {
+		// TODO ...
+	}
 	
 	void parse_import() {
 		XX_ASSERT(_scanner->token() == IMPORT);

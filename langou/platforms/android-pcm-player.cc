@@ -352,7 +352,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 /**
  * @func _inl_create_android_audio_track
  */
-extern PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate);
+PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate);
 
 /**
  * @func create
