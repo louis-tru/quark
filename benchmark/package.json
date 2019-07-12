@@ -3,7 +3,7 @@
 	"appName":	"Langou-Benchmark",
 	"id": "org.langou.benchmark",
 	"version": "0.1.0",
-	"main": "action.jsx",
+	"main": "action",
 	"langouSyntax": true,
 	"detach": [ "img", "img2" ]
 }

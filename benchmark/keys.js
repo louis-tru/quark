@@ -1,7 +1,7 @@
 
 import 'langou/keys';
 import 'langou/fs';
-import 'langou/url';
+import 'langou/path';
 import './uu';
 
 uu.start();
@@ -17,14 +17,14 @@ for (var i = 0; i < 10000; i++) {
 	});
 }
 
-uu.time('init');
+uu.log('init');
 
 var str = keys.stringify(json);
 
-uu.time('keys.stringify(json)');
+uu.log('keys.stringify(json)');
 
-fs.writeFileSync(url.documents('benchmark-keys.keys'), str);
+fs.writeFileSync(path.documents('benchmark-keys.keys'), str);
 
-var json2 = keys.parseFile(url.documents('benchmark-keys.keys'));
+var json2 = keys.parseFile(path.documents('benchmark-keys.keys'));
 
-uu.time('keys.parseFile(benchmark-keys.keys)');
+uu.log('keys.parseFile(benchmark-keys.keys)');

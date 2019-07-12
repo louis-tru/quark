@@ -16,12 +16,11 @@ for (var j = 0; j < 10000; j++) {
 	reader.readFileSync(path);
 }
 
-uu.time();
+uu.log();
 
 for (var j = 0; j < 10000; j++) {
 	reader.readFile(path, function(bf) {
-
 	}.catch(e=>console.log('err', ++i)));
 }
 
-uu.time();
+uu.log();

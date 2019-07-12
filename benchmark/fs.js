@@ -12,13 +12,13 @@ var i = 0;
 uu.start();
 
 for (var j = 0; j < 1000; j++) {
-	fs.copySyncR(path, path + '.' + j);
+	fs.copyrSync(path, path + '.' + j);
 }
 
-uu.time();
+uu.log();
 
 for (var j = 0; j < 1000; j++) {
-	fs.copyR(path, path + '.' + j, function(err) {
+	fs.copyr(path, path + '.' + j, function(err) {
 		if (err) {
 			console.log('copy err', ++i);
 		}
@@ -28,27 +28,19 @@ for (var j = 0; j < 1000; j++) {
 var stat = fs.statSync(path);
 
 for (var j = 0; j < 1000; j++) {
-	fs.chmodR(path + '.' + j, stat.mode, function(err) {
-		if (err) {
-			console.log('chmodR err', ++i);
-		}
-	});
+	fs.chmodr(path + '.' + j, stat.mode(), function() {
+	}.catch(e=>console.log('chmodr err', ++i)));
 }
 
 for (var j = 0; j < 1000; j++) {
-	fs.chownR(path + '.' + j, stat.uid, stat.gid, function(err) {
-		if (err) {
-			console.log('chownR err', ++i);
-		}
-	});
+	fs.chownr(path + '.' + j, stat.owner(), stat.group(), function() {
+	}.catch(e=>console.log('chownr err', ++i)));
 }
 
 for (var j = 0; j < 1000; j++) {
-	fs.isFile(path + '.' + j, function(err, ok) {
-		if (err) {
-			console.log('isFile err', ++i);
-		}
-	});
+	fs.isFile(path + '.' + j, function(ok) {
+		// console.log('isFile ok', ok);
+	}.catch(e=>console.log('isFile err', ++i)));
 }
 
-uu.time();
+uu.log();
