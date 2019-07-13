@@ -391,12 +391,12 @@ FontPool::FontPool(Draw* ctx)
 			_inl_pool(this)->register_font(font_data, i == 1 ? "icon" : String());
 		}
 		
-		if ( m_familys.has("qgrinl") ) {
+		if ( m_familys.has("langou") ) {
 			// 这个内置字体必须载入成功,否则退出程序
 			// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
-			m_spare_family = m_familys["qgrinl"];
+			m_spare_family = m_familys["langou"];
 		} else {
-			XX_FATAL("Unable to initialize font");
+			XX_FATAL("Unable to initialize langou font");
 		}
 	}
 	
