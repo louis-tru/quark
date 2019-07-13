@@ -62,7 +62,7 @@ function gen(src, target) {
 		md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 		var tmp = template.replace('__placeholder_src__', src.substr(1).replace(/.(md|mdown)/i, '.html'));
 		tmp = tmp.replace('__placeholder_relative__', new Array(src.split('/').length - 1).join('../'));
-		var r = marked_html.gen_html(md, indexs[src] || 'QuickGR API Documentation', tmp);
+		var r = marked_html.gen_html(md, indexs[src] || 'Langou API Documentation', tmp);
 		fs.writeFileSync(save, r.html);
 	}
 }
