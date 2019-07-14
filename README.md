@@ -1,14 +1,7 @@
 langou
 ===============
 
-A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL
-
-Goal: developing GUI applications on this basis can take into account both the simplicity and speed of developing WEB applications, as well as the performance and experience of Native applications.
-
-一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL
-
-目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验
-
+Langou is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 

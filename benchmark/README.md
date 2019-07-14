@@ -1,9 +1,7 @@
 Langou简介
 ===============
 
-这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL，这也是第一个在移动端Android/iOS融合NodeJS的前端GUI项目，至此JavaScript成为了真正意义上前后端通吃的语言。
-
-Langou的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
+Langou是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
 
 * [`开源跨平台移动项目Langou【简介】`](http://www.jianshu.com/p/2104b885eae6)
 
@@ -19,14 +17,12 @@ Langou的目标：在此基础上开发GUI应用程序可拥有开发WEB应用�
 
 # Benchmark
 
-距离项目第一个版本发布已有一段时间，虽然有做基准测试，但这段时间忙着找工作与外包的事情，一直没有向大家报告测试结果。
-总体测试结果还算比较满意，基本达到当初开发这个库的初衷，但也有不足的地方。
 在`iPhone6`上创建10万个Div并对相关属性进行设置需要10秒以上的时间，但在`Android`上这个时间会减少到1/2，
 因为`Android`使用的V8，而iOS上是使用的`JSC`并通过胶水层粘合到`V8`的API，所以JS性能不如`Android`。
 
 对于2d绘图GPU不是主要瓶颈，主要瓶颈集中在CPU，但可优化的空间还很大。
 
-测试主要集中在图形方面，这包括JS调用API的时间开销，图形绘制的帧率，CPU的运行百分占比。对于文件IO以以及网络方面的测试相对比较少，这里也不做陈述，因为库本身是基于`NodeJS`基本没有任何改动，相信大家对`NodeJS`的大名已如雷贯耳。
+测试主要集中在图形方面，这包括JS调用API的时间开销，图形绘制的帧率，CPU的运行百分占比。对于文件IO以以及网络方面的测试相对比较少，因为库IO本身是基于`NodeJS`基本没有任何改动。
 
 下面的数据是对`iPhone6`、 `Google Nexus6` 、`iPad mini2`的测试结果。
 
@@ -55,7 +51,7 @@ Div视图是自动布局的，所以10万个Div不会在屏幕中同时出现。
 
 * 这是iPhone6截图：
 
-![这是iPhone6截图](http://img.blog.csdn.net/20171218003235571?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvd2VpeGluXzM5ODgwNzMy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+[图片上传失败...(image-ad6c8d-1563122073468)]
 
 * 下面是主要的测试源码:
 
@@ -96,7 +92,7 @@ new GUIApplication({ multisample: 2 }).start(
 
 * 下面是iPhone6截图：
 
-![这是iPhone6截图](http://img.blog.csdn.net/20171219093959974?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvd2VpeGluXzM5ODgwNzMy/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+[图片上传失败...(image-1490f2-1563122073469)]
 
 ## CSS
 

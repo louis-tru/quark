@@ -1,15 +1,13 @@
 Langou简介
 ===============
 
-这是一个GUI的排版显示引擎和跨平台的GUI应用程序开发框架，基于NodeJS/OpenGL，这也是第一个在移动端Android/iOS融合NodeJS的前端GUI项目，至此JavaScript成为了真正意义上前后端通吃的语言。
-
-Langou的目标：在此基础上开发GUI应用程序可拥有开发WEB应用般简单与速度同时兼顾Native应用程序的性能与体验。
+Langou是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
 * 从这里[`Go API Index`](http://langou.org/doc/)可以到 `API Documents Index`
 
-| ![Screenshot](http://langou.org/img/0x0ss.jpg) | ![Screenshot](http://langou.org/img/0x0ss_3.jpg) | ![Screenshot](http://langou.org/img/0x0ss_4.jpg) |
+| ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-a053c44f45adcaca.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-93fd936d3d3fdc03.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-056a731d62180993.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) |
 |--|--|--|
 
 
@@ -107,6 +105,7 @@ $ lmake
 [Android APK]: https://github.com/louis-tru/langou/releases/download/v0.1.0/examples-release.apk
 [NPM]: https://www.npmjs.com/package/lmake
 [Source code]: https://github.com/louis-tru/langou
+
 
 
 <script>
