@@ -688,7 +688,12 @@ function export_result_android(self) {
 
 	try {
 		if (process.platform == 'darwin') {
-			child_process.execSync('open Project/android'); // open project
+			// open project
+			if (fs.existsSync('/Applications/Android Studio.app')) { // check is install 'Android Studio'
+				child_process.execSync('open -a "/Applications/Android Studio.app" Project/android');
+			} else {
+				child_process.execSync('open Project/android'); // open project
+			}
 		} else {
 			child_process.execSync('xdg-open Project/android'); // open project
 		}

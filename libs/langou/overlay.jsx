@@ -291,8 +291,8 @@ export class Overlay extends Navigation {
 						<Text id="arrow_text" 
 							y=-10 x=-3
 							textFamily='iconfont' 
-							textLineHeight="auto"
-							textSize=36 textColor="#fff" value="\uedc7" />
+							textLineHeight=36
+							textSize=36 textColor="#fff" value="\uedcb" />
 					</Indep>
 
 					<Clip id="content" backgroundColor="#fff" borderRadius=8>

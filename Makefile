@@ -65,7 +65,7 @@ compile: pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-lmake
-	@-./tools/gen_releases_lib.sh
+	@#-./tools/gen_releases_lib.sh
 
 install-lmake: $(JSA_SHELL)
 	@$(NODE) ./tools/cp-lmake.js
