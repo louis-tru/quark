@@ -51,7 +51,7 @@ Div视图是自动布局的，所以10万个Div不会在屏幕中同时出现。
 
 * 这是iPhone6截图：
 
-[图片上传失败...(image-ad6c8d-1563122073468)]
+![这是iPhone6截图](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcxMjE4MDAzMjM1NTcx)
 
 * 下面是主要的测试源码:
 
@@ -92,7 +92,7 @@ new GUIApplication({ multisample: 2 }).start(
 
 * 下面是iPhone6截图：
 
-[图片上传失败...(image-1490f2-1563122073469)]
+![这是iPhone6截图](https://imgconvert.csdnimg.cn/aHR0cDovL2ltZy5ibG9nLmNzZG4ubmV0LzIwMTcxMjE5MDkzOTU5OTc0)
 
 ## CSS
 
