@@ -421,86 +421,102 @@ function throw_MODULE_NOT_FOUND(request) {
 	throw err;
 }
 
+function Package_get_path_details_result(self, pathname, version) {
+
+	var rv = { pathname: self.m_src + '/' + pathname, path: pathname };
+	if ( self.m_pkg_files[pathname] ) { // 使用.pkg
+		rv = { pathname: self.m_pkg_path + '/' + pathname, path: pathname };
+	}
+	if (self.m_old) { // 读取本地旧文件
+		var old = self.m_old;
+		// 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
+		if ( old.m_versions[pathname] === version ) {
+			if ( old.m_pkg_files[pathname] ) {
+				rv = { pathname: old.m_pkg_path + '/' + pathname, path: pathname };
+			} else {
+				rv = { pathname: old.m_src + '/' + pathname, path: pathname };
+			}
+		}
+	}
+
+	rv.version = version;
+	rv.pathname = set_url_args(rv.pathname, version);
+
+	self.m_path_cache[pathname] = rv;
+
+	// print_warn('Package_get_path: ' + rv)
+
+	return rv;
+}
+
 // 获取当前pkg内路径
-function Package_get_path(self, pathname) {
+function Package_get_path_details(self, pathname) {
 
 	var rv = self.m_path_cache[pathname];
 	if (rv) {
 		return rv;
 	}
-	var ver;
+	var ver, file_pathnames;
+	
 	if (_path.extname(pathname)) {
 		ver = self.m_versions[pathname];
 		if ( ver === undefined ) { // 找不到版本信息
 			if (isLocal(self.m_src)) {
 				var src = self.m_src + '/' + pathname;
 				if (isFileSync(src)) { // 尝试访问文件系统,是否能找到文件信息
-					ver = '';
+					return Package_get_path_details_result(self, pathname, '');
 				}
 			}
-			if (ver !== '') {
-				throw_MODULE_NOT_FOUND(pathname);
-			}
+			// throw_MODULE_NOT_FOUND(pathname);
+			file_pathnames = [pathname + '/index']; // 尝试做为目录使用
+		} else {
+			return Package_get_path_details_result(self, pathname, ver);
 		}
-	} else { // 没有扩展名,尝试使用多个扩展名查找 .js .jsx .json .keys
-		var extnames = Object.keys(Module._extensions);
-		var raw_pathname = pathname;
-		var pathnames = [pathname, pathname + '/index'];
+	} else {
+		// 没有扩展名,尝试使用多个扩展名查找 .js .jsx .json .keys
+		file_pathnames = [pathname, pathname + '/index'];
+	}
+	
+	var extnames = Object.keys(Module._extensions);
+	var raw_pathname = pathname;
 
-		// 尝试使用尝试默认扩展名不同的扩展名查找, and `${pathname}/index`
-		for (var j = 0; j < 2; j++) {
-			pathname = pathnames[j];
-			for (var ext of extnames) {
-				ver = self.m_versions[pathname + ext];
-				if (ver !== undefined) {
-					pathname += ext;
-					break;
-				}
-			}
-			if ( ver === undefined ) {
-				if (isLocal(self.m_src)) { // 尝试访问本地文件系统,是否能找到文件信息
-					for (var ext of extnames) {
-						var src = self.m_src + '/' + pathname + ext;
-						if ( isFileSync(src) ) {
-							pathname += ext;
-							ver = '';
-							break;
-						}
-					}
-				}
-				if (ver === undefined) {
-					if (j)
-						throw_MODULE_NOT_FOUND(raw_pathname);
-				} else {
-					break;
-				}
-			} else {
+	// 尝试使用尝试默认扩展名不同的扩展名查找, and `${pathname}/index`
+	for (var j = 0; j < file_pathnames.length; j++) {
+		pathname = file_pathnames[j];
+		for (var ext of extnames) {
+			ver = self.m_versions[pathname + ext];
+			if (ver !== undefined) {
+				pathname += ext;
 				break;
 			}
 		}
-	}
-
-	rv = self.m_src + '/' + pathname;
-	if ( self.m_pkg_files[pathname] ) { // 使用.pkg
-		rv = self.m_pkg_path + '/' + pathname;
-	}
-	if (self.m_old) { // 读取本地旧文件
-		var old = self.m_old;
-		// 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
-		if ( old.m_versions[pathname] === ver ) {
-			if ( old.m_pkg_files[pathname] ) {
-				rv = old.m_pkg_path + '/' + pathname;
-			} else {
-				rv = old.m_src + '/' + pathname;
+		if ( ver === undefined ) {
+			if (isLocal(self.m_src)) { // 尝试访问本地文件系统,是否能找到文件信息
+				for (var ext of extnames) {
+					var src = self.m_src + '/' + pathname + ext;
+					if ( isFileSync(src) ) {
+						pathname += ext;
+						ver = '';
+						break;
+					}
+				}
 			}
+			if (ver === undefined) {
+				if (j === file_pathnames.length - 1)
+					throw_MODULE_NOT_FOUND(raw_pathname);
+			} else {
+				break;
+			}
+		} else {
+			break;
 		}
 	}
 
-	self.m_path_cache[pathname] = rv = set_url_args(rv, ver);
+	return Package_get_path_details_result(self, pathname, ver);
+}
 
-	// print_warn('Package_get_path: ' + rv)
-
-	return rv;
+function Package_get_path() {
+	return Package_get_path_details(self, pathname).pathname;
 }
 
 function resolve_filename(request) {
@@ -553,16 +569,16 @@ function Package_require(self, parent, request) {
 		request = self.m_info.main || 'index';
 	}
 	request = resolvePathLevel(request, true);
-	var pathname = Package_get_path(self, request);
+	var {pathname,path} = Package_get_path_details(self, request);
 	var module = self.m_modules[pathname];
 	if (module) return module;
 
-	module = new Module(self.m_src + '/' + request, parent, self);
-	module.file = request;
-	module.dir = _path.dirname(request);
+	module = new Module(self.m_src + '/' + path, parent, self);
+	module.file = path;
+	module.dir = _path.dirname(path);
 	self.m_modules[pathname] = module;
 
-	var name = _path.basename(request);
+	var name = _path.basename(path);
 	name = name.substr(0, name.length - _path.extname(name).length).replace(/[\.\-]/g, '_');
 	var exports = module.exports[name] = module.exports;
 
@@ -1487,15 +1503,14 @@ function inl_require(request, parent) {
 	if (request.length > 2 && 
 			request.charCodeAt(0) === 46/*.*/ && (
 			request.charCodeAt(1) === 46/*.*/ || request.charCodeAt(1) === 47/*/*/)
-	) {
-		// path in package
+	) { // path in package
 		if (!pkg) {
 			throw throw_err(`require module error, cannot find "${request}"`);
 		}
 	} else if (isAbsolute(request)) { // absolute path
 		return inl_require_external(resolve(request));
-	} else {
-		var mat = request.match(/^([a-z\-_\$]+)(\/(.+))?$/i);
+	} else { // depe package
+		var mat = request.match(/^([a-z_\$][a-z0-9\-_\.\$]*)(\/(.+))?$/i);
 		if (mat) { // 导入一个新的package的名称,如果pkg不存在会抛出异常
 			pkg = instance.getPackage(mat[1]);
 
