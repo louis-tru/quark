@@ -183,6 +183,8 @@ class LinuxApplication {
 			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &m_xset
 		);
 
+		// DLOG("m_xset.background_pixel 3, %d", m_xset.background_pixel);
+
 		XX_CHECK(win, "Cannot create XWindow");
 
 		if (m_multitouch_device) {
@@ -413,11 +415,15 @@ class LinuxApplication {
 		m_xset.event_mask = NoEventMask;
 		m_xset.do_not_propagate_mask = NoEventMask;
 
+		// DLOG("m_xset.background_pixel 1, %d", m_xset.background_pixel);
+
 		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
 		if (o_w.is_uint()) m_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
 		if (o_h.is_uint()) m_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
 		if (o_x.is_uint()) m_x = o_x.to_uint() * m_xwin_scale; else m_x = (m_s_width - m_width) / 2;
 		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
+
+		// DLOG("m_xset.background_pixel 2, %d", m_xset.background_pixel);
 
 		if (is_enable_touch)
 			initialize_multitouch();
