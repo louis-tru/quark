@@ -36,7 +36,7 @@ var path = require('langoukit/path');
 var Buffer = require('buffer').Buffer;
 var paths = require('./paths');
 var uglify = require('./uglify');
-var { syscall } = require('langoukit/syscall');
+var { syscall, exec } = require('langoukit/syscall');
 
 var base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
@@ -604,11 +604,71 @@ var LangouBuild = util.class('LangouBuild', {
 		
 		util.assert(fs.existsSync(this.m_source), 'Build source does not exist ,{0}', this.m_source);
 	},
+
+	install_depe: async function() {
+		var self = this;
+		var keys_path = self.m_source + '/proj.keys';		
+		if ( !fs.existsSync(keys_path) ) return;
+
+		var keys_object = keys.parseFile( keys_path );
+		var apps = [];
+
+		for (var key in keys_object) {
+			if (key == '@apps') {
+				for (var name in keys_object['@apps']) {
+					apps.push(name);
+				}
+			}
+		}
+
+		// npm install
+		console.log(`Install dependencies ...`);
+		var exists_package = fs.existsSync('package.json');
+		var exists_node_modules = fs.existsSync('node_modules');
+		if (exists_package)
+			fs.renameSync('package.json', '.package.json.bk');
+		if (exists_node_modules)
+			fs.renameSync('node_modules', '.node_modules.bk');
+		if (fs.existsSync('libs'))
+			fs.renameSync('libs', 'node_modules');
+
+		fs.writeFileSync('package.json', '{}');
+		// syscall(`npm install ${apps.join(' ')} --save=. --only=prod`);
+
+		process.stdin.resume();
+
+		var r = await exec(`npm install ${apps.join(' ')} --save=. --only=prod`, {
+			stdout: process.stdout,
+			stderr: process.stderr, stdin: process.stdin,
+		});
+		process.stdin.pause();
+
+		util.assert(r.code === 0);
+
+		apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
+
+		if (fs.existsSync('node_modules')) {
+			if (fs.readdirSync('node_modules').length) {
+				fs.renameSync('node_modules', 'libs');
+			} else {
+				fs.rmdirSync('node_modules');
+			}
+		}
+		fs.rm_r_sync('package-lock.json');
+		fs.rm_r_sync('package.json');
+
+		if (exists_package)
+			fs.renameSync('.package.json.bk', 'package.json');
+		if (exists_node_modules)
+			fs.renameSync('.node_modules.bk', 'node_modules');
+
+		return apps;		
+	},
 	
 	/**
 	 * action
 	 */
-	build: function() { 
+	build: async function() { 
 		var self = this;
 		var keys_path = self.m_source + '/proj.keys';
 
@@ -619,7 +679,7 @@ var LangouBuild = util.class('LangouBuild', {
 			fs.writeFileSync(`${self.m_source}/.gitignore`, 'out\n');
 		}
 
-		if (fs.existsSync(`${self.m_source}/.editorconfig`)) {
+		if (!fs.existsSync(`${self.m_source}/.editorconfig`)) {
 			fs.writeFileSync(`${self.m_source}/.editorconfig`,
 `
 # top-most EditorConfig file  
@@ -651,49 +711,13 @@ indent_size = 2
 		}
 
 		var keys_object = keys.parseFile( keys_path );
-		var apps = [];
-
-		for (var key in keys_object) {
-			if (key == '@apps') {
-				for (var name in keys_object['@apps']) {
-					apps.push(name);
-				}
-			} else if (key == '@copy') {
+		for (var key in keys.parseFile( keys_path )) {
+			if (key == '@copy') {
 				copy_outer_file(self, keys_object['@copy']);
 			}
 		}
 
-		// npm install
-		console.log(`Install dependencies ...`);
-		var exists_package = fs.existsSync('package.json');
-		var exists_node_modules = fs.existsSync('node_modules');
-		if (exists_package)
-			fs.renameSync('package.json', '.package.json.bk');
-		if (exists_node_modules)
-			fs.renameSync('node_modules', '.node_modules.bk');
-		if (fs.existsSync('libs'))
-			fs.renameSync('libs', 'node_modules');
-
-		fs.writeFileSync('package.json', '{}');
-		syscall(`npm install ${apps.join(' ')} --save=.`);
-
-		apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
-
-		if (fs.existsSync('node_modules')) {
-			if (fs.readdirSync('node_modules').length) {
-				fs.renameSync('node_modules', 'libs');
-			} else {
-				fs.rmdirSync('node_modules');
-			}
-		}
-		fs.rm_r_sync('package-lock.json');
-		fs.rm_r_sync('package.json');
-
-		if (exists_package)
-			fs.renameSync('.package.json.bk', 'package.json');
-		if (exists_node_modules)
-			fs.renameSync('.node_modules.bk', 'node_modules');
-
+		var apps = await this.install_depe();
 
 		// build application pkgs
 

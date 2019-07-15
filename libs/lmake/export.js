@@ -756,7 +756,7 @@ var LangouExport = util.class('LangouExport', {
 		fs.mkdir_p_sync(this.m_proj_out);
 	},
 
-	export: function() {
+	export: async function() {
 		var self = this;
 		var os = this.m_os;
 
@@ -788,7 +788,7 @@ var LangouExport = util.class('LangouExport', {
 			} else if ( key == '@apps' ) {
 				for (var name in proj['@apps']) {
 					if ( ! fs.existsSync(this.m_output + '/install/' + name) ) {
-						new LangouBuild(this.m_source, this.m_output).build();
+						await (new LangouBuild(this.m_source, this.m_output).build());
 					}
 					util.assert(fs.existsSync(this.m_output + '/install/' + name), 
 											'Installation directory not found');

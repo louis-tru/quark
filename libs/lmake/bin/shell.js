@@ -27,6 +27,7 @@ if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) {
 	console.log('`lmake rebuild`');
 	console.log('`lmake export ios`');
 	console.log('`lmake export android`');
+	console.log('`lmake install`');
 	console.log('`lmake clear`');
 	console.log('`lmake`');
 	console.log('`lmake -r http://192.168.1.124:1026`');
@@ -54,6 +55,9 @@ else if ( cmd == 'build' || cmd == 'rebuild' || cmd == 'init' ) {
 	} else {
 		build.build();
 	}
+}
+else if (cmd == 'install') {
+	new LangouBuild(process.cwd(), process.cwd() + '/out').install_depe();
 } 
 else if ( cmd == 'clear' ) {
 	fs.rm_r_sync(process.cwd() + '/out');
