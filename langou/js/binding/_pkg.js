@@ -671,7 +671,7 @@ function Packages_register_path(self, path, optional) {
 	var path2 = resolve(path);
 	var register = self.m_pkgs_register[path2];
 	if ( !register ) {
-		var mat = path2.match(/^(.+?\/)(?:([^\/]+)\/)?([a-z_$][a-z0-9\-_$]*)$/i);
+		var mat = path2.match(/^(.+?\/)(?:([^\/]+)\/)?([a-z_\$][a-z0-9\-_\.\$]*)$/i);
 		if ( mat ) {
 			if ( mat[2] ) { // add libs
 				Packages_add_pkg_search_path(self, mat[1] + mat[2]);

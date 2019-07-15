@@ -277,13 +277,13 @@ bool ZipReader::open() {
 	
 	unzFile unzp = unzOpen(Path::fallback_c(m_path));
 	if ( !unzp ) {
-		XX_ERR("Cannot open file reader, %s", *m_path);
+		XX_ERR("Cannot open file ZipReader, %s", *m_path);
 		return false;
 	}
 	
 	ScopeClear clear([&]() {
 		if ( unzClose((unzFile) unzp) != UNZ_OK ) {
-			XX_ERR("Cannot close file reader, %s", *m_path);
+			XX_ERR("Cannot close file ZipReader, %s", *m_path);
 		}
 	});
 	
@@ -331,7 +331,7 @@ bool ZipReader::close() {
 		if ( unzClose((unzFile)m_unzp) == UNZ_OK ) {
 			m_unzp = nullptr;
 		} else {
-			XX_ERR("Cannot close file reader, %s", *m_path);
+			XX_ERR("Cannot close file ZipReader, %s", *m_path);
 		}
 		m_file_info.clear();
 		m_dir_info.clear();
@@ -449,7 +449,7 @@ bool ZipWriter::open(OpenMode mode) {
 	m_zipp = zipOpen(Path::fallback_c(m_path), m_open_mode);
 	
 	if ( !m_zipp ) {
-		XX_ERR("Cannot open file writer, %s", *m_path);
+		XX_ERR("Cannot open file ZipWriter, %s", *m_path);
 		return false;
 	}
 	return true;
@@ -464,7 +464,7 @@ bool ZipWriter::close() {
 		if ( zipClose((zipFile*)m_zipp, NULL) == ZIP_OK ) {
 			m_zipp = nullptr;
 		} else {
-			XX_ERR("Cannot close zip writer, %s", *m_path);
+			XX_ERR("Cannot close zip ZipWriter, %s", *m_path);
 		}
 	}
 	return !m_zipp;

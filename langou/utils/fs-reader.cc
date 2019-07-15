@@ -266,6 +266,7 @@ class FileReader::Core {
 					return true;
 				if ( dir  && FileHelper::is_directory_sync(path) )
 					return true;
+				return false;
 			case ZIP: {
 				String zip = zip_path(path);
 				if ( !zip.is_empty() ) {
