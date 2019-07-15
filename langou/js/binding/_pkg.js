@@ -1100,19 +1100,20 @@ function Packages_require_add_main_search_path(self) {
 				var mat = main.match(/^https?:\/\/[^\/]+/);
 				assert(mat, 'Unknown err');
 				instance.addPackageSearchPath(mat[0] + '/libs');
+				instance.addPackageSearchPath(mat[0] + '/node_modules');
 			}
 		}
 		else { // local
-			if (_path.extname(main) == '') { // package
-				instance.addPackageSearchPath(main + '/libs');
-				instance.addPackageSearchPath(main + '/../libs');
-				instance.addPackageSearchPath(main + '/node_modules');
-				instance.addPackageSearchPath(main + '/../node_modules');
-			} else {
+			if (_path.extname(main) == '.js' || _path.extname(main) == '.jsx') {
 				instance.addPackageSearchPath(_path.dirname(main) + '/libs');
 				instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
 				instance.addPackageSearchPath(_path.dirname(main) + '/node_modules');
 				instance.addPackageSearchPath(_path.dirname(main) + '/../node_modules');
+			} else { // package
+				instance.addPackageSearchPath(main + '/libs');
+				instance.addPackageSearchPath(main + '/../libs');
+				instance.addPackageSearchPath(main + '/node_modules');
+				instance.addPackageSearchPath(main + '/../node_modules');
 			}
 		}
 	}
