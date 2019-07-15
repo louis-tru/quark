@@ -181,9 +181,12 @@ Module._extensions['.keys'] = function(module, filename) {
 
 if (haveNode) {
 	//Native extension for .node
+	var _node_path;
 	Module._extensions['.node'] = function(module, filename) {
 		filename = fallbackPath(filename);
-		return process.dlopen(module, path._makeLong(filename));
+		if (!_node_path)
+		_node_path = NativeModule.require('path');
+		return process.dlopen(module, _node_path._makeLong(filename));
 	};
 }
 
@@ -592,7 +595,7 @@ function Package_require(self, parent, request) {
 
 	exports = module.exports;
 
-	if (!(name in exports)) {
+	if (exports && typeof exports == 'object' && !(name in exports)) {
 		exports[name] = exports;
 	}
 

@@ -129,11 +129,11 @@
 
 // Setup for Linux shared library export.
 #if XX_HAS_ATTRIBUTE_VISIBILITY
-# ifdef XX_BUILDING_SHARED
+// # ifdef XX_BUILDING_SHARED
 #  define XX_EXPORT __attribute__ ((visibility("default")))
-# else
-#  define XX_EXPORT
-# endif
+// # else
+// #  define XX_EXPORT
+// # endif
 #else
 # define XX_EXPORT
 #endif

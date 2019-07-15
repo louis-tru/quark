@@ -183,16 +183,25 @@
 		],
 		'conditions': [
 			['os=="android"', {
+				'cflags': [
+					'-fPIE',
+					'-fPIC',
+					'-pthread',
+				],
 				'ldflags': [
 					'-shared',
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
+					'-fPIE',
+					'-pie',
+					'-rdynamic',
+					'-pthread',
 				],
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
 					},{
 						'cflags!': [ '-Wno-old-style-declaration' ],
-						'cflags': [ '-fPIC' ],
+						# 'cflags': [ '-fPIC' ],
 					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
 					['arch=="arm" and arm_vfp!="none"', {
@@ -214,6 +223,7 @@
 				],
 				'defines': [ '__STDC_LIMIT_MACROS' ],
 				'cflags': [
+					'-fPIC',
 					'-Wall',
 					'-Wextra',
 					'-Wno-unused-parameter',
@@ -228,7 +238,8 @@
 					# '-Wno-misleading-indentation',
 				],
 				'ldflags': [
-					'-pthread', #'-rdynamic',
+					'-pthread',
+					'-rdynamic',
 					'-L<(build_tools)/linux/usr/lib/<(arch_name)',
 				],
 				'conditions': [
@@ -345,20 +356,20 @@
 					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
 				},
 			}],
-			['library_output=="shared_library"', {
-				'conditions': [
-					['os in "linux android"', {
-						'cflags': [ '-fPIC' ],
-					}]
-				],
-				'target_conditions': [
-					['_target_name in "node"', {
-						'defines': [ 
-							'NODE_SHARED_MODE=1', 
-						],
-					}],
-				],
-			}],
+			# ['library_output=="shared_library"', {
+			# 	'conditions': [
+			# 		['os in "linux android"', {
+			# 			'cflags': [ '-fPIC' ],
+			# 		}]
+			# 	],
+			# 	'target_conditions': [
+			# 		['_target_name in "node"', {
+			# 			'defines': [ 
+			# 				'NODE_SHARED_MODE=1', 
+			# 			],
+			# 		}],
+			# 	],
+			# }],
 			['cplusplus11==1', {
 				'xcode_settings': {
 					'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',    # -std=c++0x
@@ -375,6 +386,9 @@
 		],
 		'target_conditions': [
 			# shared all public symbol
+			['_target_name in "node"', {
+				'defines': [ 'NODE_SHARED_MODE=1' ],
+			}],
 			['_target_name in "openssl http_parser zlib"', {
 				'cflags!': ['-fvisibility=hidden'],
 			}],
