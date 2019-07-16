@@ -33,8 +33,6 @@
 
 XX_NS(langou)
 
-extern int __is_process_exit;
-
 /**
  * @class PrivateLoop
  */
@@ -66,7 +64,7 @@ class PrivateLoop {
 	
 	RunLoop* loop() {
 		Lock lock(m_mutex);
-		if (__is_process_exit)
+		if (is_exited())
 			return nullptr;
 		if (m_loop)
 			return m_loop;

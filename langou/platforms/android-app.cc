@@ -187,7 +187,7 @@ class AndroidApplication {
 			/*************** Start GUI Application ************/
 			/**************************************************/
 			/**************************************************/
-			AppInl::start(0, nullptr); // run gui application
+			AppInl::runMain(0, nullptr); // run gui application
 
 			application->m_host = Inl_GUIApplication(app());
 			application->m_dispatch = application->m_host->dispatch();

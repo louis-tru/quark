@@ -68,9 +68,8 @@ static List<ListenSignal*>* threads_end_listens = nullptr;
 static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
 static pthread_key_t specific_key;
-int __is_process_exit = 0;
-XX_EXPORT int (*__xx_exit_app_hook)(int rc) = nullptr;
-XX_EXPORT int (*__xx_exit_hook)(int rc) = nullptr;
+static int is_process_exit = 0;
+static EventNoticer<>* on_before_process_exit = nullptr;
 
 XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
  public:
@@ -78,7 +77,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 
 	static void thread_destructor(void* ptr) {
 		auto thread = reinterpret_cast<Thread*>(ptr);
-		if (__is_process_exit == 0) { // no process exit
+		if (is_process_exit == 0) { // no process exit
 			if (main_loop_obj == thread->m_loop) {
 				main_loop_obj = nullptr;
 				main_loop_id = ThreadID();
@@ -92,6 +91,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		threads = new Map<ID, Thread*>();
 		threads_mutex = new Mutex();
 		threads_end_listens = new List<ListenSignal*>();
+		on_before_process_exit = new EventNoticer<>("BeforeProcessExit", nullptr);
 		int err = pthread_key_create(&specific_key, thread_destructor);
 		XX_CHECK(err == 0);
 	}
@@ -141,7 +141,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 	static ID run(Exec exec, cString& name) {
-		if ( __is_process_exit ) {
+		if ( is_process_exit ) {
 			return ID();
 		} else {
 			ScopeLock scope(*threads_mutex);
@@ -169,7 +169,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 	static void atexit_exec() {
-		if (!__is_process_exit++) { // exit
+		if (!is_process_exit++) { // exit
 			Array<ID> threads_id;
 			{
 				ScopeLock scope(*threads_mutex);
@@ -188,16 +188,16 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 	}
 
-	static void _reallyExit(int rc, bool reallyExit) {
-		if (!__is_process_exit) {
+	static void _reallyExit(int rc, bool forceExit) {
+		if (!is_process_exit) {
 			atexit_exec();
 			DLOG("Inl::reallyExit()");
-			if (reallyExit)
+			if (forceExit)
 				::exit(rc);
 		}
 	}
 
-	static void exit(int rc, bool reallyExit) {
+	static void exit(int rc, bool forceExit = 0) {
 		static int is_exited = 0;
 		if (!is_exited++) {
 
@@ -205,24 +205,21 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			if (main_loop_obj && main_loop_obj->runing()) {
 				keep = main_loop_obj->keep_alive("Thread::Inl::exit()"); // keep main loop
 			}
+
 			DLOG("Inl::exit(), 0");
-			if (__xx_exit_app_hook)
-				rc = __xx_exit_app_hook(rc);
+			rc = Thread::XX_TRIGGER(BeforeProcessExit, Event<>(Int(rc), move(rc)));
 			DLOG("Inl::exit(), 1");
-			if (__xx_exit_hook) 
-				rc = __xx_exit_hook(rc);
-			DLOG("Inl::exit(), 2");
 
 			Release(keep); keep = nullptr;
 
 			if (main_loop_obj && current_id() == main_loop_id && main_loop_obj->runing()) {
-				main_loop_obj->post(Cb([rc, reallyExit](Se& e) {
-					_reallyExit(rc, reallyExit);
+				main_loop_obj->post(Cb([rc, forceExit](Se& e) {
+					_reallyExit(rc, forceExit);
 				}));
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				// _reallyExit(rc, reallyExit);
+				// _reallyExit(rc, forceExit);
 			} else {
-				_reallyExit(rc, reallyExit);
+				_reallyExit(rc, forceExit);
 			}
 		} else {
 			DLOG("The program has exited");
@@ -230,6 +227,10 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 };
+
+EventNoticer<>& Thread::onBeforeProcessExit() {
+	return *on_before_process_exit;
+}
 
 Thread::Thread(){}
 Thread::~Thread(){}
@@ -326,8 +327,8 @@ Thread* Thread::current() {
 	return Inl::get_thread_specific_data();
 }
 
-void _exit(int rc, bool reallyExit) {
-	Thread::Inl::exit(rc, reallyExit);
+void safeExit(int rc) {
+	Thread::Inl::exit(rc);
 }
 
 void exit(int rc) {
@@ -335,7 +336,7 @@ void exit(int rc) {
 }
 
 bool is_exited() {
-	return __is_process_exit;
+	return is_process_exit;
 }
 
 XX_INIT_BLOCK(thread_init_once) {
@@ -351,8 +352,8 @@ class RunLoop::Inl: public RunLoop {
  #define _inl(self) static_cast<RunLoop::Inl*>(self)
 	
 	void run(int64 timeout) {
-		if (__is_process_exit) {
-			DLOG("cannot run RunLoop, __is_process_exit != 0");
+		if (is_process_exit) {
+			DLOG("cannot run RunLoop, is_process_exit != 0");
 			return;
 		}
 		if (m_thread->is_abort()) {

@@ -41,10 +41,6 @@
 
 extern int (*__xx_default_gui_main)(int, char**);
 
-namespace langou {
-	extern int (*__xx_exit_hook)(int code);
-}
-
 /**
  * @ns langou::js
  */
@@ -138,8 +134,8 @@ void  object_allocator_retain(Object* obj);
 
 // startup argv
 Array<char*>* __xx_langou_argv = nullptr;
-int __xx_langou_have_node = 0;
-int __xx_langou_have_dev = 0;
+int           __xx_langou_have_node = 0;
+int           __xx_langou_have_dev = 0;
 
 // parse argv
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& langou_argv) {
@@ -179,17 +175,18 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 	}
 }
 
-static int __xx_exit_hook__(int rc) {
+static void on_before_process_exit_handle(Event<>& e, Object* data) {
+	int rc = static_cast<const Int*>(e.data())->value;
 	if (RunLoop::main_loop()->runing()) {
 		RunLoop::main_loop()->post_sync(Cb([&](Se& e) {
 			auto worker = Worker::worker();
-			DLOG("__xx_exit_hook__");
+			DLOG("on_before_process_exit_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
 		}));
 	}
-	return rc;
+	e.return_value = rc;
 }
 
 int Start(cString& cmd) {
@@ -216,7 +213,8 @@ int Start(const Array<String>& argv_in) {
 	Array<char*> argv, langou_argv;
 	parseArgv(argv_in, argv, langou_argv);
 
-	__xx_exit_hook = __xx_exit_hook__;
+	Thread::XX_ON(BeforeProcessExit, on_before_process_exit_handle);
+
 	__xx_langou_argv = &langou_argv;
 	int rc = 0;
 	int argc = argv.length();
@@ -250,7 +248,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__xx_langou_argv = nullptr;
-	__xx_exit_hook = nullptr;
+	Thread::XX_OFF(BeforeProcessExit, on_before_process_exit_handle);
 
 	return rc;
 }

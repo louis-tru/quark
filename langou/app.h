@@ -120,7 +120,7 @@ class XX_EXPORT GUIApplication: public Object {
 	void run();	
 
 	/**
-	 * @func run_indep 在独立的纯种运行消息循环
+	 * @func run_indep 在独立的线程运行消息循环
 	 */
 	void run_indep();
 
@@ -239,9 +239,9 @@ class XX_EXPORT GUIApplication: public Object {
  protected:
 	
 	/**
-	 * @func start(argc, argv) create sub gui thread, call by system
+	 * @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 	 */
-	static void start(int argc, char* argv[]);
+	static void runMain(int argc, char* argv[]);
 
  private:
 	

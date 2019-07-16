@@ -563,7 +563,7 @@ class LinuxApplication {
 	void destroy() {
 		if (!is_exited()) {
 			m_render_looper->stop();
-			langou::_exit(0, 0);
+			langou::safeExit(0);
 		}
 		XDestroyWindow(m_dpy, m_win); m_win = 0;
 		XCloseDisplay(m_dpy); m_dpy = nullptr; // disconnect x display
@@ -812,7 +812,7 @@ extern "C" XX_EXPORT int main(int argc, char* argv[]) {
 	/************** Start GUI Application *************/
 	/**************************************************/
 	/**************************************************/
-	AppInl::start(argc, argv);
+	AppInl::runMain(argc, argv);
 
 	if ( app() ) {
 		h->run();

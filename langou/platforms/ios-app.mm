@@ -637,7 +637,7 @@ extern "C" XX_EXPORT int main(int argc, char* argv[]) {
 	/*************** Start GUI Application ************/
 	/**************************************************/
 	/**************************************************/
-	AppInl::start(argc, argv);
+	AppInl::runMain(argc, argv);
 	
 	if ( app() ) {
 		@autoreleasepool {

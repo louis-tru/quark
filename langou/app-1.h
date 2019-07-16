@@ -75,10 +75,10 @@ XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
 	void set_root(Root* value) throw(Error);
 	
 	/**
-	 * @func start
+	 * @func runMain
 	 */
-	inline static void start(int argc, char* argv[]) {
-		GUIApplication::start(argc, argv);
+	inline static void runMain(int argc, char* argv[]) {
+		GUIApplication::runMain(argc, argv);
 	}
 	
 	/**
@@ -136,7 +136,7 @@ class RenderLooper {
 	int* m_id;
 };
 
-void _exit(int rc, bool reallyExit);
+void safeExit(int rc);
 
 XX_END
 

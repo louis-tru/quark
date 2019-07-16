@@ -42,17 +42,17 @@ XX_EXPORT int (*__xx_gui_main)(int, char**) = nullptr;
 
 XX_NS(langou)
 
-extern int (*__xx_exit_app_hook)(int code);
-
 typedef GUIApplication::Inl AppInl;
 
-// global shared gui application 
-GUIApplication* GUIApplication::m_shared = nullptr;
-
-struct external_thread_control_t {
+class ThreadHelper {
 	Mutex thread_mutex;
 	Condition thread_cond;
-	RecursiveMutex gui_thread_mutex;
+	RecursiveMutex _global_gui_lock_mutex;
+
+ public:
+	RecursiveMutex* global_gui_lock_mutex() {
+		return &_global_gui_lock_mutex;
+	}
 
 	void awaken() {
 		ScopeLock scope(thread_mutex);
@@ -65,10 +65,12 @@ struct external_thread_control_t {
 			thread_cond.wait(lock);
 		} while(ok && !*ok);
 	}
-
 };
 
-static auto *tctr = new external_thread_control_t();
+// thread helper
+static auto *thelper = new ThreadHelper();
+// global shared gui application 
+GUIApplication* GUIApplication::m_shared = nullptr;
 
 GUILock::GUILock(): m_d(nullptr) {
 	lock();
@@ -80,8 +82,8 @@ GUILock::~GUILock() {
 
 void GUILock::lock() {
 	if (!m_d) {
-		m_d = &tctr->gui_thread_mutex;
-		tctr->gui_thread_mutex.lock();
+		m_d = thelper->global_gui_lock_mutex();
+		thelper->global_gui_lock_mutex()->lock();
 	}
 }
 
@@ -172,9 +174,9 @@ bool AppInl::set_focus_view(View* view) {
 }
 
 /**
- * @func start()
+ * @func runMain()
  */
-void GUIApplication::start(int argc, char* argv[]) {
+void GUIApplication::runMain(int argc, char* argv[]) {
 	static int is_initialize = 0;
 	XX_CHECK(!is_initialize++, "Cannot multiple calls.");
 	
@@ -192,7 +194,7 @@ void GUIApplication::start(int argc, char* argv[]) {
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
 	while (!m_shared || !m_shared->m_is_run) {
-		tctr->sleep();
+		thelper->sleep();
 	}
 }
 
@@ -208,10 +210,10 @@ void GUIApplication::run() {
 	m_render_id = m_render_loop->thread_id();
 
 	if (m_main_loop != m_render_loop) {
-		Inl2_RunLoop(m_render_loop)->set_independent_mutex(&tctr->gui_thread_mutex);
+		Inl2_RunLoop(m_render_loop)->set_independent_mutex(thelper->global_gui_lock_mutex());
 		Thread::awaken(m_main_id); // main loop awaken
 	}
-	tctr->awaken(); // 外部线程继续运行
+	thelper->awaken(); // 外部线程继续运行
 
 	XX_CHECK(!m_render_loop->runing());
 
@@ -234,11 +236,11 @@ void GUIApplication::run_indep() {
 	Thread::sleep(); // main loop sleep
 }
 
-static int __xx_exit_app_hook__(int rc) {
+static void on_before_process_exit_handle(Event<>& e, Object* data) {
+	int rc = static_cast<const Int*>(e.data())->value;
 	if (app()) {
-		return _inl_app(app())->onExit(rc);
+		e.return_value = _inl_app(app())->onExit(rc);
 	}
-	return rc;
 }
 
 int AppInl::onExit(int code) {
@@ -285,7 +287,7 @@ GUIApplication::GUIApplication()
 {
 	m_main_keep = m_main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
 	m_main_id = m_main_loop->thread_id();
-	__xx_exit_app_hook = __xx_exit_app_hook__;
+	Thread::XX_ON(BeforeProcessExit, on_before_process_exit_handle);
 }
 
 GUIApplication::~GUIApplication() {
@@ -304,10 +306,12 @@ GUIApplication::~GUIApplication() {
 	Release(m_display_port);  m_display_port = nullptr;
 	Release(m_render_keep);   m_render_keep = nullptr;
 	Release(m_main_keep);     m_main_keep = nullptr;
-	__xx_exit_app_hook = nullptr;
+
 	m_render_loop = nullptr;
 	m_main_loop = nullptr;
 	m_shared = nullptr;
+
+	Thread::XX_OFF(BeforeProcessExit, on_before_process_exit_handle);
 }
 
 /**
