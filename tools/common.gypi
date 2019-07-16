@@ -192,7 +192,7 @@
 					'-shared',
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-fPIE',
-					'-pie',
+					# '-pie',
 					'-rdynamic',
 					'-pthread',
 				],
