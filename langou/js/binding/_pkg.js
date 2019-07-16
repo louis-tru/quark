@@ -518,7 +518,7 @@ function Package_get_path_details(self, pathname) {
 	return Package_get_path_details_result(self, pathname, ver);
 }
 
-function Package_get_path() {
+function Package_get_path(self, pathname) {
 	return Package_get_path_details(self, pathname).pathname;
 }
 

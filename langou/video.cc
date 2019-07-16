@@ -74,7 +74,7 @@ Video::Video()
  * @class Video::Inl
  */
 XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
-public:
+ public:
 
 	bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
 		Array<WeakBuffer> body(3);
