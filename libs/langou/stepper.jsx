@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { 
-	CSS, Div, Hybrid, Button, ViewController, atomPixel 
-} from 'langou/langou';
+	CSS, Hybrid, Button, ViewController, atomPixel 
+} from './langou';
 
 CSS({
 	

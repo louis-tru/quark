@@ -28,9 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import 'langou/util';
-import 'langou/app';
-import { NativeNotification } from 'langou/event';
+import './util';
+import './app';
+import { NativeNotification } from './event';
+
 export requireNative('_display_port');
 
 /**

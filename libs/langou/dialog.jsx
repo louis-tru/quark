@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
  
-import 'langou/util';
+import './util';
 import { 
 	CSS, New, Indep, Hybrid, Clip, Input, Span,
-	LimitIndep, Div, Limit, Text, Button, Panel, atomPixel, langou
-} from 'langou/langou';
-import { Navigation } from 'langou/nav';
+	LimitIndep, Button, atomPixel, langou
+} from './langou';
+import { Navigation } from './nav';
 
 CSS({
 	

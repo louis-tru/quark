@@ -30,8 +30,8 @@
 
 import {
 	View, Div, Text, Clip, Indep, langou
-} from 'langou/langou';
-import { Navigation } from 'langou/nav';
+} from './langou';
+import { Navigation } from './nav';
 
 var arrow_size = { width: 30, height: 12 };
 
