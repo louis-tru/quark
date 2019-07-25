@@ -27,7 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
+
 import './util';
 import { 
 	CSS, New, Indep, Hybrid, Clip, Input, Span,
