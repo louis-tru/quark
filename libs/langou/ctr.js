@@ -553,7 +553,7 @@ export class ViewController extends _langou.NativeViewController {
 	/**
 	 * @event onViewData
 	 */
-	event onViewData;
+	event onViewData; // event onViewModel;
 	
 	/**
 	 * @event onLoadView
@@ -587,7 +587,7 @@ export class ViewController extends _langou.NativeViewController {
 	event onReady;
 	event onStartPlay;
 	event onError;
-	event onSourceEof;
+	event onSourceEOF;
 	event onPause;
 	event onResume;
 	event onStop;
@@ -634,7 +634,7 @@ export class ViewController extends _langou.NativeViewController {
 	/**
 	 * @constructor()
 	 */
-	constructor() { 
+	constructor() {
 		super();
 		this.m_vdata = {};
 	}
@@ -782,7 +782,7 @@ const event_mapping_table = {
 	Focus: 1, Blur: 1, Highlighted: 1, FocusMove: 1, Scroll: 1,
 	ActionKeyframe: 1, ActionLoop: 1,
 	WaitBuffer: 1, Ready: 1, StartPlay: 1, Error: 1,
-	SourceEof: 1, Pause: 1, Resume: 1, Stop: 1, Seek: 1,
+	SourceEOF: 1, Pause: 1, Resume: 1, Stop: 1, Seek: 1,
 };
 
 function add_event_mapping(self, noticer, name) {

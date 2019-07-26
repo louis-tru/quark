@@ -177,7 +177,7 @@ class Video {
 	event onReady;
 	event onStartPlay;
 	event onError;
-	event onSourceEof;
+	event onSourceEOF;
 	event onPause;
 	event onResume;
 	event onStop;
