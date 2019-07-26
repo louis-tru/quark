@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'langou/util';
-import { EventNoticer, NativeNotification } from 'langou/event';
+import './util';
+import { EventNoticer, NativeNotification } from './event';
 
 var _langou = requireNative('_langou');
 var View = _langou.View;
@@ -293,7 +293,7 @@ function load_child_view(self, parent, vx) {
 			break;
 		case 1: // <prefix:suffix />
 			throw new TypeError('Unimplemented <prefix:suffix />');
-			break;
+			// break;
 		case 2: // string
 			parent.appendText(v);
 			break;
@@ -317,20 +317,20 @@ function load_child_view(self, parent, vx) {
 	}
 }
 
-function load_view0(self, vx) {
+function load_view_0(self, vx) {
 	var view;
 	var {vx:t,v} = vx;
 	
 	switch(t) {
 		case 0: // <tag />
-			var [tag] = v;
-			view = new tag(); // 这里必需为视图，不可以为控制器
+			var [Tag] = v;
+			view = new Tag(); // 这里必需为视图，不可以为控制器
 			self.view = view;
 			load_view(self, view, vx);
 			break;
 		case 1: // <prefix:suffix />
 			throw new TypeError('Unimplemented <prefix:suffix />');
-			break;
+			// break;
 		case 2: // string
 			view = new Text();
 			view.value = v;
@@ -339,8 +339,8 @@ function load_view0(self, vx) {
 		case 3: // %%{xx} or %{xx}
 			var vx2 = v(self.m_vdata, self); // 这里返回的数据必须都为元数据
 			// util.assert(isViewXml(vx2));
-			var [tag] = vx2.v;
-			view = new tag(); // tag必须为View
+			var [Tag] = vx2.v;
+			view = new Tag(); // tag必须为View
 			self.view = view;
 			load_view(self, view, vx2);
 			if (vx.m) { // multiple bind
@@ -349,7 +349,7 @@ function load_view0(self, vx) {
 			break;
 		default: // Unknown
 			if (Array.isArray(vx)) {
-				view = load_view0(self, vx[0]);
+				view = load_view_0(self, vx[0]);
 			} else {
 				view = new Text();
 				view.value = vx;
@@ -424,9 +424,9 @@ function load_child_view_no_ctr(parent, vx) {
 	var {vx:t,v} = vx;
 
 	switch (t) {
-		case 0: // <tag />
-			let [tag] = v;
-			let obj = new tag();
+		case 0: // <Tag />
+			let [Tag] = v;
+			let obj = new Tag();
 			if (obj instanceof ViewController) {
 				load_subctr_no_ctr(obj, vx, parent);
 			} else { // view
@@ -436,13 +436,13 @@ function load_child_view_no_ctr(parent, vx) {
 			break;
 		case 1: // <prefix:suffix />
 			throw new TypeError('Unimplemented <prefix:suffix />');
-			break;
+			// break;
 		case 2: // string
 			parent.appendText(v);
 			break;
 		case 3: // %%{xx} or %{xx}
 			throw new TypeError('Bad argument. Cannot bind data');
-			break;
+			// break;
 		default: 
 			if (Array.isArray(vx)) {
 				for (var item of vx) {
@@ -644,7 +644,7 @@ export class ViewController extends _langou.NativeViewController {
 	 * @arg vx {Object}
 	 */
 	loadView(vx) {
-		load_view0(this, vx);
+		load_view_0(this, vx);
 		// reset event mapping
 		var mapping = this.m_mapping;
 		if (mapping) { // unbind mapping

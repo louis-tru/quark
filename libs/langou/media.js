@@ -30,8 +30,8 @@
 
 export requireNative('_media');
 
-import 'langou/util';
-import { NativeNotification } from 'langou/event';
+import './util';
+import { NativeNotification } from './event';
 
  /**
 	* @enum MediaType
@@ -122,7 +122,7 @@ export class AudioPlayer extends exports.AudioPlayer {
 	event onReady;
 	event onStartPlay;
 	event onError;
-	event onSourceEof;
+	event onSourceEOF;
 	event onPause;
 	event onResume;
 	event onStop;

@@ -30,13 +30,13 @@
 
 export requireNative('_langou');
 
-import 'langou/util';
-import 'langou/event';
-import 'langou/app';
-import 'langou/action';
-import 'langou/ctr';
-import 'langou/display_port';
-import 'langou/css';
+import './util';
+import './event';
+import './app';
+import './action';
+import './ctr';
+import './display_port';
+import './css';
 
 /**
 	* @class View

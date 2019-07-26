@@ -30,8 +30,8 @@
 
 export requireNative('_http');
 
-import 'langou/util';
-import { NativeNotification } from 'langou/event';
+import './util';
+import { NativeNotification } from './event';
 
  /**
 	* @enum HttpMethod

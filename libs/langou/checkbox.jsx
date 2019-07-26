@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { 
-	CSS, ViewController, Div, Button, Indep, TextNode 
-} from 'langou/langou';
+	CSS, ViewController, Button, Indep, TextNode 
+} from './langou';
 
 CSS({
 	

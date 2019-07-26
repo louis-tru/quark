@@ -166,7 +166,7 @@ class URL {
 		this._value = path;
 	}
 	
-	// href: "http://xxxx.xxx:81/v1.1.0/langou/path.js?sasasas&asasasa#sdsdsd"
+	// href: "http://xxxx.xxx:81/v1.1.0/./path.js?sasasas&asasasa#sdsdsd"
 	get href() {
 		parse_path(this);
 		return this._origin + this._filename + this._search + this._hash;

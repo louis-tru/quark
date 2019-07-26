@@ -30,8 +30,8 @@
 
 export requireNative('_css');
 
-import 'langou/util';
-import 'langou/value';
+import './util';
+import './value';
 
 const dev = util.dev;
 const _priv = value._priv;
