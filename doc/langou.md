@@ -219,13 +219,6 @@ v2.onClick.on(function(ev) {
 * @arg `[upper=parent]` {[`View`]}
 * @ret {[`Vec2`]}
 
-### View.children(index)
-
-通过索引获取子视图
-
-* @arg `index` {[`uint`]}
-* @ret {[`View`]}
-
 ### View.getAction()
 
 获取当前视图动作
@@ -337,12 +330,6 @@ Callback: cb()
 切换`class`样式选择器
 
 * @arg `name` {[`String`]}
-
-### Get: View.childrenCount 
-
-返回子视图数量
-
-* {[`uint`]}
 
 ### View.innerText 
 

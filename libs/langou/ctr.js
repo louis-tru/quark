@@ -44,7 +44,7 @@ function reset_data_bind_attrs(responder /* ViewController or View */ ) {
 
 function unregister_data_bind(self, id, responder) {
 	delete responder.__bind;
-	self.onViewData.off(id);
+	self.onViewModel.off(id);
 }
 
 function register_data_bind(self, responder/* ViewController or View */) {
@@ -67,7 +67,7 @@ function register_data_bind(self, responder/* ViewController or View */) {
 		unregister_data_bind(self, id, responder);
 	});
 	
-	self.onViewData.on2(function(responder) {
+	self.onViewModel.on2(function(responder) {
 		var bind = responder.__bind;
 		var replace = bind.replace;
 		
@@ -81,7 +81,7 @@ function register_data_bind(self, responder/* ViewController or View */) {
 				relation_views.forEach(v=>v.remove());
 				load_view_from_bind_data(self, parent, next, vx);
 			} else if (replace.mode == 2) { // replace ctr.view
-				var {vx:t,v} = exec(self.m_vdata, self); // 这里返回的数据必须都为元数据
+				var {vx:t,v} = exec(self.m_vmodel, self); // 这里返回的数据必须都为元数据
 				util.assert(t === 0);
 				let [tag] = v;
 				let view = new tag();
@@ -89,7 +89,7 @@ function register_data_bind(self, responder/* ViewController or View */) {
 				load_view(self, view, value);
 				register_data_bind_2(self, view, 2, vx, [view]); //
 			} else { // replace inner text string
-				responder.innerText = exec(self.m_vdata, self);
+				responder.innerText = exec(self.m_vmodel, self);
 			}
 		} else { // attributes bind
 			bind.attrs.forEach(function(attr_vx) {
@@ -100,7 +100,7 @@ function register_data_bind(self, responder/* ViewController or View */) {
 				for (var i = 0; i < len; i++) {
 					target = target[names[i]];
 				}
-				target[name] = exec(self.m_vdata, self);
+				target[name] = exec(self.m_vmodel, self);
 			});
 		}
 	}, responder, id);
@@ -126,7 +126,7 @@ function set_attrbute(self, responder, attr_vx) {
 	if (type === 0)  {
 		target[name] = value;
 	} else if (type == 3) { // data bind
-		target[name] = value(self.m_vdata, self);
+		target[name] = value(self.m_vmodel, self);
 		if (multiple) { // multiple bind
 			register_data_bind(self, responder).attrs.push(attr_vx);
 		}
@@ -141,7 +141,7 @@ function set_attrbute(self, responder, attr_vx) {
 function load_view_from_bind_data(self, parent, next, raw_vx) {
 	// The data returned from the data binding must all be metadata
 	var {v:exec} = raw_vx;
-	var vx = exec(self.m_vdata, self); // 返回的数据必须都为元数据，不能返回{vx:3}的数据
+	var vx = exec(self.m_vmodel, self); // 返回的数据必须都为元数据，不能返回{vx:3}的数据
 	var out = { responder: null, mode: 0, relation_views: [] };
 	load_view_from_bind_data_2(self, parent, next, vx);
 	register_data_bind_2(self, out.responder, out.mode, raw_vx, out.relation_views.reverse());
@@ -153,8 +153,8 @@ function load_view_from_bind_data_2(self, parent, next, vx, out) {
 
 	switch(t) {
 		case 0:
-			var [tag] = v;
-			var responder = new tag();
+			var [Tag] = v;
+			var responder = new Tag();
 			if (responder instanceof ViewController) { // ctr
 				load_subctr(self, responder, vx, parent, next);
 				r_view = responder.view;
@@ -222,7 +222,7 @@ export function isEmptyViewXml(vx) {
 	* @ret {[`bool`]}
 	*/
 export function isViewXml(vx, type) {
-	// {vx:0,v:[tag,[attrs],[child],vdata]}
+	// {vx:0,v:[tag,[attrs],[child],vmodel]}
 	if (vx && vx.vx === 0) {
 		var v = vx.v;
 		if (v) {
@@ -240,10 +240,10 @@ export function isViewXml(vx, type) {
 }
 
 function load_subctr(self, subctr, vx, parent, next) {
-	var [,attrs,childs,vdata] = vx.v;
+	var [,attrs,childs,vmodel] = vx.v;
 	
-	if (vdata) {
-		set_attrbute(self, subctr, vdata);
+	if (vmodel) {
+		set_attrbute(self, subctr, vmodel);
 	}
 	
 	if (childs.length) {
@@ -274,8 +274,8 @@ function load_child_view(self, parent, vx) {
 	var {vx:t,v} = vx;
 
 	// View xml data format info
-	// {vx:0,v:[tag,[attrs],[child],vdata]}           <tag />
-	// {vx:1,v:[prefix,suffix,[attrs],[child],vdata]} <prefix:suffix />
+	// {vx:0,v:[tag,[attrs],[child],vmodel]}           <tag />
+	// {vx:1,v:[prefix,suffix,[attrs],[child],vmodel]} <prefix:suffix />
 	// {vx:2,v:"string"}                              string
 	// {vx:3,v:exec,m:1}                              %{xx} or %%{xx}
 	// {vx:4,v:value}                                 ${xx}
@@ -301,7 +301,7 @@ function load_child_view(self, parent, vx) {
 			if (vx.m) { // %%{xx} multiple
 				load_view_from_bind_data(self, parent, null, vx);
 			} else { // %{xx}
-				let vx = v(self.m_vdata, self); // exec
+				let vx = v(self.m_vmodel, self); // exec
 				load_child_view(self, parent, vx);
 			}
 			break;
@@ -337,7 +337,7 @@ function load_view_0(self, vx) {
 			self.view = view;
 			break;
 		case 3: // %%{xx} or %{xx}
-			var vx2 = v(self.m_vdata, self); // 这里返回的数据必须都为元数据
+			var vx2 = v(self.m_vmodel, self); // 这里返回的数据必须都为元数据
 			// util.assert(isViewXml(vx2));
 			var [Tag] = vx2.v;
 			view = new Tag(); // tag必须为View
@@ -394,10 +394,10 @@ function set_attrbute_no_ctr(obj, attr_vx) {
 }
 
 function load_subctr_no_ctr(subctr, vx, parent) {
-	var [,attrs,childs,vdata] = vx.v;
+	var [,attrs,childs,vmodel] = vx.v;
 
-	if (vdata) {
-		set_attrbute_no_ctr(subctr, vdata);
+	if (vmodel) {
+		set_attrbute_no_ctr(subctr, vmodel);
 	}
 	
 	if (childs.length) {
@@ -547,13 +547,13 @@ export function New(vx, parent, ...args) {
  */
 export class ViewController extends _langou.NativeViewController {
 
-	m_vdata = null; // 视图数据
+	m_vmodel = null; // 视图数据
 	m_mapping = null;
 
 	/**
-	 * @event onViewData
+	 * @event onViewModel
 	 */
-	event onViewData; // event onViewModel;
+	event onViewModel; // event onViewModel;
 	
 	/**
 	 * @event onLoadView
@@ -594,17 +594,17 @@ export class ViewController extends _langou.NativeViewController {
 	event onSeek;
 	
 	/**
-	 * @get vdata {Object}
+	 * @get vmodel {Object}
 	 */
-	get vdata() { return this.m_vdata }
+	get vmodel() { return this.m_vmodel }
 
 	/**
-	 * @set set vdata {Object}
+	 * @set set vmodel {Object}
 	 */
-	set vdata(value) {
+	set vmodel(value) {
 		if (typeof value == 'object') {
-			extend(this.m_vdata, value);
-			this.triggerViewData();
+			extend(this.m_vmodel, value);
+			this.triggerViewModel();
 		}
 	}
 
@@ -636,7 +636,7 @@ export class ViewController extends _langou.NativeViewController {
 	 */
 	constructor() {
 		super();
-		this.m_vdata = {};
+		this.m_vmodel = {};
 	}
 	
 	/**

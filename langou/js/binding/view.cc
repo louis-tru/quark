@@ -432,29 +432,6 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
-	 * @func children(index)
-	 * @arg index {uint}
-	 * @ret {View}
-	 */
-	static void children(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() < 1 || !args[0]->IsUint32(worker)) {
-			JS_THROW_ERR("* @func children(index)\n"
-										"* @arg index {uint}\n"
-										"* @ret {View}\n"
-										);
-		}
-		JS_SELF(View);
-		View* view = self->children( args[0]->ToUint32Value(worker) );
-		if ( view ) {
-			Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-			JS_RETURN( wrap->that() );
-		} else {
-			JS_RETURN( worker->NewNull() );
-		}
-	}
-
-	/**
 	 * @func getAction()
 	 * @ret {Action}
 	 */
@@ -603,15 +580,6 @@ class WrapView: public WrapViewBase {
 	}
 	
 	// ----------------------------- get --------------------------------
-	
-	/**
-	 * @get childrenCount {uint}
-	 */
-	static void children_count(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->children_count() );
-	}
 
 	/**
 	 * @get innerText {String}
@@ -1265,7 +1233,6 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_METHOD(blur, blur);
 			JS_SET_CLASS_METHOD(layoutOffset, layout_offset);
 			JS_SET_CLASS_METHOD(layoutOffsetFrom, layout_offset_from);
-			JS_SET_CLASS_METHOD(children, children);
 			JS_SET_CLASS_METHOD(getAction, get_action);
 			JS_SET_CLASS_METHOD(setAction, set_action);
 			JS_SET_CLASS_METHOD(screenRect, screen_rect);
@@ -1280,7 +1247,6 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_METHOD(hasChild, has_child);
 			// property
 			JS_SET_CLASS_ACCESSOR(innerText, inner_text, set_inner_text);
-			JS_SET_CLASS_ACCESSOR(childrenCount, children_count);
 			JS_SET_CLASS_ACCESSOR(id, id, set_id);
 			JS_SET_CLASS_ACCESSOR(controller, controller);
 			JS_SET_CLASS_ACCESSOR(ctr, controller);

@@ -274,7 +274,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	};
 	
 	/**
-	 & @get inner_text {Ucs2String}
+	 * @get inner_text {Ucs2String}
 	 */
 	Ucs2String inner_text() const;
 	
@@ -347,16 +347,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	 * #func remove_all_child # 删除所有子视图
 	 */
 	virtual void remove_all_child();
-	
-	/**
-	 * @func children
-	 */
-	View* children(uint index);
-	
-	/**
-	 * @func children_count
-	 */
-	uint children_count();
 	
 	/**
 	 * @func id 获取当前视图id
@@ -870,7 +860,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	ViewController* m_ctr;        /* ViewController */
 	DrawData*       m_ctx_data;   /* 绘图上下文需要的数据 */
 	Action*         m_action;
-	Array<View*>*   m_children;   /* 子视图索引 */
 	
 	XX_DEFINE_INLINE_CLASS(Inl);
 	XX_DEFINE_INLINE_CLASS(EventInl);

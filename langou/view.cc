@@ -91,7 +91,6 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		while (m_first) {
 			m_first->remove();
 		}
-		clear_children();
 	}
 	
 	/**
@@ -116,8 +115,7 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 */
 	void clear_parent() {
 		if (m_parent) {
-			_inl(m_parent)->clear_children();
-			
+
 			/* 当前为第一个子视图 */
 			if (m_parent->m_first == this) {
 				m_parent->m_first = m_next;
@@ -307,46 +305,6 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		offset.y( offset.y() + m_origin.y() + m_translate.y() - layout_in.y() );
 		// 更新基础矩阵
 		m_matrix = Mat(offset, m_scale, -m_rotate_z, m_skew);
-	}
-	
-	/**
-	 * @func clear_children
-	 */
-	void clear_children() {
-		if ( m_children ) {
-			m_children->clear();
-		}
-	}
-	
-	/**
-	 * @func gen_children
-	 */
-	void gen_children() {
-		View* view = this->m_first;
-		while (view) {
-			m_children->push(view);
-			view = view->m_next;
-		}
-	}
-
-	/**
-	 * @func gen_children2
-	 */
-	void gen_children2() {
-		if ( m_first ) {
-			if ( m_children ) {
-				if ( m_children->length() == 0 ) {
-					_inl(this)->gen_children();
-				}
-			} else {
-				m_children = new Array<View*>();
-				_inl(this)->gen_children();
-			}
-		} else {
-			if ( !m_children ) {
-				m_children = new Array<View*>();
-			}
-		}
 	}
 	
 	/**
@@ -627,7 +585,6 @@ View::View()
 , m_ctr(nullptr)
 , m_ctx_data(nullptr)
 , m_action(nullptr)
-, m_children(nullptr)
 {
 	
 }
@@ -655,7 +612,6 @@ View::~View() {
 	if ((size_t)m_ctx_data > 0x1) {
 		delete m_ctx_data; m_ctx_data = nullptr;
 	}
-	Release(m_children); m_children = nullptr;
 	Release(m_classs); m_classs = nullptr;
 }
 
@@ -953,25 +909,6 @@ void View::move_to_last() {
  */
 void View::remove_all_child() {
 	_inl(this)->inl_remove_all_child();
-}
-
-/**
- * @func children
- */
-View* View::children(uint index) {
-	_inl(this)->gen_children2();
-	if ( index < m_children->length() ) {
-		return (*m_children)[index];
-	}
-	return nullptr;
-}
-
-/**
- * @func children_count
- */
-uint View::children_count() {
-	_inl(this)->gen_children2();
-	return m_children->length();
 }
 
 void View::set_x(float value) {

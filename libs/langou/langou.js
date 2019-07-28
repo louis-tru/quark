@@ -232,10 +232,6 @@ class View extends event.NativeNotification {
 	* @arg [upper=parent] {View}
 	* @ret {Vec2}
 	*
-	* @func children(index)
-	* @arg index {uint}
-	* @ret {View}
-	*
 	* @func getAction()
 	* @ret {Action}
 	*
@@ -273,7 +269,6 @@ class View extends event.NativeNotification {
 	* @func hasChild(view)
 	* @ret {bool}
 	*
-	* @get childrenCount {uint}
 	* @get,set innerText {String}
 	* @get,set id {String}
 	* @get controller {ViewController}
