@@ -31,30 +31,48 @@
 import { EventNoticer, Notification } from './event';
 
 /**
+ * @func render
+ */
+function render(self, parent, next) {
+	var vchildren = self.m_vchildren || [];
+	var vdom = self.render(...vchildren);
+}
+
+/**
  * @class ViewController
  */
 export class ViewController extends Notification {
 
-	get vmodle() {
-		return this.m_vm;
-	}
-
-	set vmodle(vm) {
-		// TODO ...
-	}
+	m_view = null;
+	m_vmodle = null; // vmodle
+	m_vdom = null; // vdom
+	m_vchildren = null;
 
 	get view() {
 		return this.m_view;
 	}
 
-	set view(value) {
+	get vmodle() {
+		return this.m_vmodle;
+	}
+
+	set vmodle(vm) {
 		// TODO ...
+		Object.assign(this.m_vmodle, vm);
 	}
 
 	/**
-	 * @func render(...children)
+	 * @constructor
 	 */
-	render(...children) {
+	constructor(...props) {
+		super();
+		this.m_vmodle = {};
+	}
+
+	/**
+	 * @func render(...vchildren)
+	 */
+	render(...vchildren) {
 		return null;
 	}
 
