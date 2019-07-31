@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import { EventNoticer, NativeNotification } from './event';
+import 'langou/util';
+import { EventNoticer, NativeNotification } from 'langou/event';
 
 var _langou = requireNative('_langou');
 var View = _langou.View;

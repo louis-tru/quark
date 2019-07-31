@@ -30,8 +30,8 @@
 
 export requireNative('_action');
 
-import './util';
-import './value';
+import 'langou/util';
+import 'langou/value';
 
 const { Action, SpawnAction, SequenceAction, KeyframeAction } = exports;
 

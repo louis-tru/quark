@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('./util');
-var reader = require('./reader');
+var util = require('langou/util');
+var reader = require('langou/reader');
 var parse_keys = requireNative('_keys').parse;
 
 function write_data(self, value) {

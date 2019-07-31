@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './display_port';
-import { NativeNotification } from './event';
-import { ViewController, isViewXml, EMPTY_VIEW_XML } from './ctr';
+import 'langou/util';
+import 'langou/display_port';
+import { NativeNotification } from 'langou/event';
+import { ViewController, isViewXml, EMPTY_VIEW_XML } from 'langou/ctr';
 
 var _langou = requireNative('_langou');
 var Root = _langou.Root;

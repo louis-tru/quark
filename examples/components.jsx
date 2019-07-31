@@ -35,7 +35,6 @@ import './overlay';
 import './stepper';
 import './nav';
 import './dialog';
-import './list';
 
 var resolve = require.resolve;
 
@@ -49,8 +48,7 @@ export const vx = (
 				<Navbutton next=checkbox.vx>Checkbox</Navbutton>
 				<Navbutton next=stepper.vx>Stepper</Navbutton>
 				<Navbutton next=overlay.vx>Overlay</Navbutton>
-				<Navbutton next=dialog.vx>Dialog</Navbutton>
-				<Navbutton next=list.vx view.borderWidth=0>List</Navbutton>
+				<Navbutton next=dialog.vx view.borderWidth=0>Dialog</Navbutton>
 			</Clip>
 			
 		</Scroll>

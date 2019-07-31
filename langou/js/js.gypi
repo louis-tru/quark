@@ -183,7 +183,6 @@
 						'../../libs/langou/fs.js',
 						'../../libs/langou/http.js',
 						'../../libs/langou/keys.js',
-						'../../libs/langou/list.jsx',
 						'../../libs/langou/media.js',
 						'../../libs/langou/nav.jsx',
 						'../../libs/langou/overlay.jsx',

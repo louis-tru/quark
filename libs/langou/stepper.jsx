@@ -30,7 +30,7 @@
 
 import { 
 	CSS, Hybrid, Button, ViewController, atomPixel 
-} from './langou';
+} from 'langou/langou';
 
 CSS({
 	

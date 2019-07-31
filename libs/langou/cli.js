@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './http';
-import { URL, resolve: format } from './url';
-import { Notification } from './event';
+import 'langou/util';
+import 'langou/http';
+import { URL, resolve: format } from 'langou/path';
+import { Notification } from 'langou/event';
 
 /**
  * @class CallRequest

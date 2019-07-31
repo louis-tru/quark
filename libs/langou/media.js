@@ -30,8 +30,8 @@
 
 export requireNative('_media');
 
-import './util';
-import { NativeNotification } from './event';
+import 'langou/util';
+import { NativeNotification } from 'langou/event';
 
  /**
 	* @enum MediaType

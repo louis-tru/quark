@@ -28,14 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { EventNoticer, Notification } from './event';
+import { EventNoticer, Notification } from 'langou/event';
 
 /**
  * @func render
  */
-function render(self, parent, next) {
-	var vchildren = self.m_vchildren || [];
+function render(self, parent, prev) {
+	var vchildren = self.m_vchildren;
 	var vdom = self.render(...vchildren);
+	var vdom_raw = self.m_vdom;
+
+	if (vdom === vdom_raw) {
+		
+	}
 }
 
 /**
@@ -67,6 +72,7 @@ export class ViewController extends Notification {
 	constructor(...props) {
 		super();
 		this.m_vmodle = {};
+		this.m_vchildren = [];
 	}
 
 	/**

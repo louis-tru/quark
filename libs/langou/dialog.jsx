@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
+import 'langou/util';
 import { 
 	CSS, New, Indep, Hybrid, Clip, Input, Span,
 	LimitIndep, Button, atomPixel, langou
-} from './langou';
-import { Navigation } from './nav';
+} from 'langou/langou';
+import { Navigation } from 'langou/nav';
 
 CSS({
 	
@@ -184,10 +184,11 @@ export class Dialog extends Navigation {
 	
 	get buttons() {
 		var btns = this.find('m_btns');
-		var count = btns.childrenCount;
+		var btn = btns.first;
 		var rv = [];
-		for ( var i = 0; i < count; i++ ) {
-			rv.push( btns.children(i) );
+		while (btn) {
+			rv.push(btn);
+			btn = btn.next;
 		}
 		return rv;
 	}

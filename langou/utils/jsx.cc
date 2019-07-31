@@ -2724,7 +2724,7 @@ public:
 			} else {                // <prefix:suffix
 				// {vx:1,v:[prefix,suffix,[attrs],[child],vdata]}
 				out_code(S.LBRACE);    // {
-				out_code(S.TYPE);      // t
+				out_code(S.TYPE);      // vx
 				out_code(S.COLON);     // :
 				out_code(S.NUMBER_1);  // 1
 				out_code(S.COMMA);     // ,
@@ -2739,7 +2739,7 @@ public:
 		} else {              // <tag
 			// {vx:0,v:[tag,[attrs],[child],vdata]}
 			out_code(S.LBRACE);    // {
-			out_code(S.TYPE);      // t
+			out_code(S.TYPE);      // vx
 			out_code(S.COLON);     // :
 			out_code(S.NUMBER_0);  // 0
 			out_code(S.COMMA);     // ,
@@ -2901,7 +2901,7 @@ public:
 				add_xml_children_cut_comma(is_once_comma);
 				// {vx:2,v:"s"}
 				out_code(S.LBRACE);   // {
-				out_code(S.TYPE);     // t
+				out_code(S.TYPE);     // vx
 				out_code(S.COLON);    // :
 				out_code(S.NUMBER_2); // 2
 				out_code(S.COMMA);    // ,
@@ -2990,7 +2990,7 @@ public:
 					_scanner->next();     // command %% or %
 					_scanner->next();     // next {
 					out_code(S.LBRACE);    // {
-					out_code(S.TYPE);      // t
+					out_code(S.TYPE);      // vx
 					out_code(S.COLON);     // :
 					out_code(S.NUMBER_3);  // 3
 					out_code(S.COMMA);     // ,

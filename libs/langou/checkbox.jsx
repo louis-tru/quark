@@ -30,7 +30,7 @@
 
 import { 
 	CSS, ViewController, Button, Indep, TextNode 
-} from './langou';
+} from 'langou/langou';
 
 CSS({
 	

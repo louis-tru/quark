@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import './util';
-import './sys';
-import { List, KEYCODE_MENU } from './event';
+import 'langou/util';
+import 'langou/sys';
+import { List, KEYCODE_MENU } from 'langou/event';
 import { 
 	ViewController, View, Div, Indep, 
 	Limit, Button, Text, TextNode, Clip, 
 	New, isViewXml, langou, isEmptyViewXml
-} from './langou';
+} from 'langou/langou';
 
 export const FOREGROUND_ACTION_INIT = 0;
 export const FOREGROUND_ACTION_RESUME = 1;
