@@ -29,18 +29,55 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { EventNoticer, Notification } from 'langou/event';
+// 
+import { Div, Hybrid, Button } from 'langou';
+
+// examples
+const bug_feedback_vx = (
+	[Mynavpage, [["title","Bug Feedback"],["source",resolve(__filename)]],[
+		[Div, [["width","full"]],[
+			[Hybrid, [["class","category_title"]],["Now go to Github issues list?"]],
+			[Button, [["class","long_btn rm_margin_top"], ["onClick",handle_go_to], ["url",langou_tools_issues_url]],["Go Github Issues"]],
+			[Hybrid, [["class","category_title"]],["Or you can send me email, too."]],
+			[Button, [["class","long_btn rm_margin_top"], ["onClick",handle_bug_feedback]],["Send email"]]
+		]]
+	]]
+)
+
+function load(self) {
+	
+}
+
+function diff(self, vdom_c, vdom) {
+	if (vdom_c) {
+		if (!vdom) {
+			// del
+		}
+	} else {
+		if (vdom) {
+			// add
+		}
+	}
+
+	var Type1 = vdom_c[0];
+	var Type2 = vdom[0];
+
+	if (Type1 === Type2) {
+		// up
+	} else {
+		// del cur, add 
+	}
+
+}
 
 /**
  * @func render
  */
 function render(self, parent, prev) {
-	var vchildren = self.m_vchildren;
-	var vdom = self.render(...vchildren);
-	var vdom_raw = self.m_vdom;
+	var vdom_c = self.m_vdom;
+	var vdom = self.render();
 
-	if (vdom === vdom_raw) {
-		
-	}
+	diff(self, vdom_c, vdom);
 }
 
 /**
@@ -48,13 +85,23 @@ function render(self, parent, prev) {
  */
 export class ViewController extends Notification {
 
-	m_view = null;
+	m_parent = null; // parent controller
+	m_view = null;   // children view or controller
+	m_id = null;
 	m_vmodle = null; // vmodle
 	m_vdom = null; // vdom
 	m_vchildren = null;
 
+	get parent() {
+		return this.m_parent;
+	}
+
 	get view() {
 		return this.m_view;
+	}
+
+	get id() {
+		return this.m_id;
 	}
 
 	get vmodle() {
@@ -64,15 +111,6 @@ export class ViewController extends Notification {
 	set vmodle(vm) {
 		// TODO ...
 		Object.assign(this.m_vmodle, vm);
-	}
-
-	/**
-	 * @constructor
-	 */
-	constructor(...props) {
-		super();
-		this.m_vmodle = {};
-		this.m_vchildren = [];
 	}
 
 	/**
