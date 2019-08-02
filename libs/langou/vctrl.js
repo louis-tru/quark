@@ -28,34 +28,112 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+import 'langou/util';
 import { EventNoticer, Notification } from 'langou/event';
 // 
-import { Div, Hybrid, Button } from 'langou';
+import { Div, Hybrid, Button, TextNode } from 'langou';
+
+function hashCodeFromString(data) {
+	var _hash = 5381;
+	var len = data.length;
+	while (len--) 
+		_hash += (_hash << 5) + data.charCodeAt(len);
+	return _hash & 0x7FFFFFFF
+}
+
+const G_hashCodeMap = new WeakMap();
+
+Object.prototype.hashCode = function() {
+	
+};
+
+Function.prototype.hashCode = function() {
+
+};
+
+function hashCode(value) {
+	if (value) {
+		if (typeof value == 'string') {
+			return hashCodeFromString(value);
+		}
+		var code = G_hashCodeMap.set(value);	
+	} else {
+		return 5381;
+	}
+}
+
+/**
+ * @class VirtualDOM
+ */
+class VirtualDOM {
+	m_props_hash = 0;
+	m_type = null;
+	constructor(Type, props, children) {
+		// TODO ...
+		this.m_type = Type;
+		for (var prop of props) {
+
+		}
+	}
+}
+
+/**
+ * @class DOMCollection
+ */
+class DOMCollection {
+
+	m_doms = null;
+
+	appendTo(parent) {
+		// TODO ...
+	}
+
+	remove() {
+		// TODO ...
+	}
+}
+
+export function VDom(Type, props, children) {
+	return new VirtualDOM(Type, props, children);
+}
+
+export function VDomS(value) {
+	return new VirtualDOM(TextNode, { value });
+}
+
+const TEXT_NODE_SET = new Set(['function', 'string', 'number', 'boolean']);
+
+export function VDomD(value) {
+	if (TEXT_NODE_SET.has(typeof value)) {
+		return VDomS(value);
+	} else if (Array.isArray(value)) {
+		return new VirtualDOM(DOMCollection, [], value.map(VDomD));
+	} else {
+		return value;
+	}
+}
 
 // examples
 const bug_feedback_vx = (
-	[Mynavpage, [["title","Bug Feedback"],["source",resolve(__filename)]],[
-		[Div, [["width","full"]],[
-			[Hybrid, [["class","category_title"]],["Now go to Github issues list?"]],
-			[Button, [["class","long_btn rm_margin_top"], ["onClick",handle_go_to], ["url",langou_tools_issues_url]],["Go Github Issues"]],
-			[Hybrid, [["class","category_title"]],["Or you can send me email, too."]],
-			[Button, [["class","long_btn rm_margin_top"], ["onClick",handle_bug_feedback]],["Send email"]]
-		]]
-	]]
+	VDom(Mynavpage, [["title","Bug Feedback"],["source",resolve(__filename)]],[
+		VDom(Div, [["width","full"]],[
+			VDom(Hybrid, [["class","category_title"]],[VDomS("Now go to Github issues list?"), VDomD('A')]),
+			VDom(Button, [["class","long_btn rm_margin_top"], ["onClick",handle_go_to], ["url",langou_tools_issues_url]],[VDomS("Go Github Issues")]),
+			VDom(Hybrid, [["class","category_title"]],[VDomS("Or you can send me email, too.")]),
+			VDom(Button, [["class","long_btn rm_margin_top"], ["onClick",handle_bug_feedback]],[VDomS("Send email")])
+		])
+	])
 )
-
-function load(self) {
-	
-}
 
 function diff(self, vdom_c, vdom) {
 	if (vdom_c) {
 		if (!vdom) {
-			// del
+			vdom_c[3].remove(); // del dom
 		}
 	} else {
 		if (vdom) {
 			// add
+			// new vdom[0]();
 		}
 	}
 
@@ -67,17 +145,13 @@ function diff(self, vdom_c, vdom) {
 	} else {
 		// del cur, add 
 	}
-
 }
 
 /**
  * @func render
  */
 function render(self, parent, prev) {
-	var vdom_c = self.m_vdom;
-	var vdom = self.render();
-
-	diff(self, vdom_c, vdom);
+	diff(self, self.m_vdom, VDomD(self.render()));
 }
 
 /**
