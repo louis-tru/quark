@@ -1350,7 +1350,7 @@ class Packages {
 		var main = this.m_main_startup_path;
 		if (main) { // start
 			if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
-				inl_require(main, null);
+				inl_require(resolve(main), null);
 			} else {
 				if (main[main.length - 1] == '/') {
 					main = main.substr(0, main.length - 1);

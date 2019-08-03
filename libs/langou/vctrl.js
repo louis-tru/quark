@@ -33,47 +33,35 @@ import { EventNoticer, Notification } from 'langou/event';
 // 
 import { Div, Hybrid, Button, TextNode } from 'langou';
 
-function hashCodeFromString(data) {
-	var _hash = 5381;
-	var len = data.length;
-	while (len--) 
-		_hash += (_hash << 5) + data.charCodeAt(len);
-	return _hash & 0x7FFFFFFF
-}
-
-const G_hashCodeMap = new WeakMap();
-
-Object.prototype.hashCode = function() {
-	
-};
-
-Function.prototype.hashCode = function() {
-
-};
-
-function hashCode(value) {
-	if (value) {
-		if (typeof value == 'string') {
-			return hashCodeFromString(value);
-		}
-		var code = G_hashCodeMap.set(value);	
-	} else {
-		return 5381;
-	}
-}
-
 /**
  * @class VirtualDOM
  */
 class VirtualDOM {
-	m_props_hash = 0;
-	m_type = null;
-	constructor(Type, props, children) {
-		// TODO ...
-		this.m_type = Type;
-		for (var prop of props) {
+	propsHashCode = 0;
+	props = null;
+	type = null;
+	children = null;
 
+	constructor(Type, props, children) {
+		var _hash = 0;
+		var _props = {};
+		for (var prop of props) {
+			var [keys,value] = prop;
+			var hashCode = 0;
+			for (var key of keys) {
+				hashCode += (hashCode << 5) + key.hashCode();
+			}
+			if (value) {
+				hashCode += (hashCode << 5) + value.hashCode();
+			}
+			prop[2] = hashCode;
+			_hash += (_hash << 5) + hashCode;
+			_props[prop[0].join('.')] = prop;
 		}
+		this.type = Type;
+		this.props = _props;
+		this.propsHashCode = _hash;
+		this.children = children;
 	}
 }
 
@@ -98,7 +86,7 @@ export function VDom(Type, props, children) {
 }
 
 export function VDomS(value) {
-	return new VirtualDOM(TextNode, { value });
+	return new VirtualDOM(TextNode, [[['value'],value]], []);
 }
 
 const TEXT_NODE_SET = new Set(['function', 'string', 'number', 'boolean']);
@@ -115,12 +103,12 @@ export function VDomD(value) {
 
 // examples
 const bug_feedback_vx = (
-	VDom(Mynavpage, [["title","Bug Feedback"],["source",resolve(__filename)]],[
-		VDom(Div, [["width","full"]],[
-			VDom(Hybrid, [["class","category_title"]],[VDomS("Now go to Github issues list?"), VDomD('A')]),
-			VDom(Button, [["class","long_btn rm_margin_top"], ["onClick",handle_go_to], ["url",langou_tools_issues_url]],[VDomS("Go Github Issues")]),
-			VDom(Hybrid, [["class","category_title"]],[VDomS("Or you can send me email, too.")]),
-			VDom(Button, [["class","long_btn rm_margin_top"], ["onClick",handle_bug_feedback]],[VDomS("Send email")])
+	VDom(Div, [[["title"],"Bug Feedback"],[["source"],require.resolve(__filename)]],[
+		VDom(Div, [[["width"],"full"]],[
+			VDom(Hybrid, [[["class"],"category_title"]],[VDomS("Now go to Github issues list?"), VDomD('A')]),
+			VDom(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_go_to"], [["url"],"langou_tools_issues_url"]],[VDomS("Go Github Issues")]),
+			VDom(Hybrid, [[["class"],"category_title"]],[VDomS("Or you can send me email, too.")]),
+			VDom(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_bug_feedback"]],[VDomS("Send email")])
 		])
 	])
 )
