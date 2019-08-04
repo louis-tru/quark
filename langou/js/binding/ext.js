@@ -37,7 +37,7 @@ if (typeof window == 'object') { // web
 var currentTimezone = new Date().getTimezoneOffset() / -60;
 var G_slice = Array.prototype.slice;
 var G_hash_code_id = 1;
-var G_hash_code_map = new WeakMap();
+var G_hash_code_set = new WeakSet();
 
 function illegal_operation() {
 	throw new Error('Illegal operation');
@@ -60,14 +60,14 @@ extend(Object.prototype, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		if (G_hash_code_map.has(this)) 
+		if (G_hash_code_set.has(this)) 
 			return 0;
-		G_hash_code_map.set(this);
+		G_hash_code_set.add(this);
 		var _hash = 5381;
 		for (var key in this) {
 			_hash += (_hash << 5) + (key.hashCode() + this[key].hashCode());
 		}
-		G_hash_code_map.delete(this);
+		G_hash_code_set.delete(this);
 		return _hash;
 	},
 
@@ -138,16 +138,16 @@ extend(Array.prototype, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		if (G_hash_code_map.has(this)) 
+		if (G_hash_code_set.has(this)) 
 			return 0;
-		G_hash_code_map.set(this);
+		G_hash_code_set.add(this);
 		var _hash = 5381;
 		for (var item of this) {
 			if (item) {
 				_hash += (_hash << 5) + item.hashCode();
 			}
 		}
-		G_hash_code_map.delete(this);
+		G_hash_code_set.delete(this);
 		return _hash;
 	},
 

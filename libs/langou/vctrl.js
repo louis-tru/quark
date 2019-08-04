@@ -31,7 +31,26 @@
 import 'langou/util';
 import { EventNoticer, Notification } from 'langou/event';
 // 
-import { Div, Hybrid, Button, TextNode } from 'langou';
+import { Div, Hybrid, Button, TextNode, View } from 'langou';
+
+const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
+
+// 标记需要重新渲染的控制器
+function markRerender(vctrl) {
+	// TODO ...
+}
+
+// examples
+const bug_feedback_vx = (
+	_VV(Div, [[["title"],"Bug Feedback"],[["source"],require.resolve(__filename)]],[
+		_VV(Div, [[["width"],"full"]],[
+			_VV(Hybrid, [[["class"],"category_title"]],[_VVT("Now go to Github issues list?"), _VVD('A')]),
+			_VV(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_go_to"], [["url"],"langou_tools_issues_url"]],[_VVT("Go Github Issues")]),
+			_VV(Hybrid, [[["class"],"category_title"]],[_VVT("Or you can send me email, too.")]),
+			_VV(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_bug_feedback"]],[_VVT("Send email")])
+		])
+	])
+)
 
 /**
  * @class VirtualDOM
@@ -41,6 +60,7 @@ class VirtualDOM {
 	props = null;
 	type = null;
 	children = null;
+	dom = null;
 
 	constructor(Type, props, children) {
 		var _hash = 0;
@@ -63,107 +83,199 @@ class VirtualDOM {
 		this.propsHashCode = _hash;
 		this.children = children;
 	}
+
+	assignProps() {
+		// TODO ...
+	}
+
+	instance(vctrl) {
+		util.assert(!this.dom);
+		var dom = new this.type();
+		this.dom = dom;
+		dom.m_owner = vctrl;
+		var children = this.children;
+
+		if (dom.isViewController()) { // ctrl
+			var placeholder = new View();
+			dom.m_vchildren = children;
+			dom.m_placeholder = placeholder;
+			markRerender(dom); // mark render
+		} else {
+			for (var vdom of children) {
+				if (vdom)
+					vdom.instance(vctrl).appendTo(dom);
+			}
+		}
+		this.assignProps(); // after set props
+	
+		return dom;
+	}
+
 }
 
 /**
- * @class DOMCollection
+ * @class VirtualDOMCollection
  */
-class DOMCollection {
+class VirtualDOMCollection extends VirtualDOM {
+	m_vdoms = null;
 
-	m_doms = null;
+	constructor(vdoms) {
+		super(ViewCollection, [], []);
+		this.m_vdoms = vdoms;
+	}
 
-	appendTo(parent) {
-		// TODO ...
+	instance(vctrl) {
+		util.assert(!this.dom);
+		var dom = new ViewCollection();
+		var collection = [];
+		this.dom = dom;
+		dom.m_owner = vctrl;
+		dom.m_collection = collection;
+
+		for (var vdom of this.m_vdoms) {
+			if (vdom)
+				collection.push(vdom.instance(vctrl));
+		}
+		if (!collection.length) {
+			dom.m_placeholder = new View();
+		}
+
+		return dom;
+	}
+
+}
+
+/**
+ * @class ViewCollection DOM
+ */
+class ViewCollection {
+
+	m_placeholder = null; // view placeholder	
+	m_collection = null;
+	m_owner = null;
+
+	get __view__() {
+		return this.m_placeholder ? this.m_placeholder: this.m_collection.last(0).__view__;
+	}
+
+	get collection() {
+		return this.m_collection;
 	}
 
 	remove() {
-		// TODO ...
+		if (this.m_placeholder) {
+			this.m_placeholder.remove();
+		} else {
+			for (var view of this.m_collection) {
+				view.remove();
+			}
+		}
 	}
+
+	isViewController() {
+		return false;
+	}
+
+	appendTo(parentView) {
+		if (this.m_placeholder) {
+			this.m_placeholder.appendTo(parentView);
+		} else {
+			for (var view of this.m_collection) {
+				view.appendTo(parentView);
+			}
+		}
+	}
+
+	afterTo(prevView) {
+		if (this.m_placeholder) {
+			this.m_placeholder.afterTo(prevView);
+		} else {
+			for (var view of this.m_collection) {
+				view.afterTo(prevView);
+				prevView = view;
+			}
+		}
+	}
+
 }
 
-export function VDom(Type, props, children) {
-	return new VirtualDOM(Type, props, children);
-}
-
-export function VDomS(value) {
-	return new VirtualDOM(TextNode, [[['value'],value]], []);
-}
-
-const TEXT_NODE_SET = new Set(['function', 'string', 'number', 'boolean']);
-
-export function VDomD(value) {
-	if (TEXT_NODE_SET.has(typeof value)) {
-		return VDomS(value);
-	} else if (Array.isArray(value)) {
-		return new VirtualDOM(DOMCollection, [], value.map(VDomD));
+/*
+	* @func diff()
+	*/
+function diff(self, vdom_c, vdom, prev) {
+	if (vdom_c.type === vdom.type) {
+		// diff props and children ...
 	} else {
-		return value;
+		vdom.instance(self).afterTo(prev); // add new
+		vdom_c.dom.remove(); // del cur
+		self.m_dom = vdom.dom;
+		self.m_vdom = vdom;
 	}
 }
 
-// examples
-const bug_feedback_vx = (
-	VDom(Div, [[["title"],"Bug Feedback"],[["source"],require.resolve(__filename)]],[
-		VDom(Div, [[["width"],"full"]],[
-			VDom(Hybrid, [[["class"],"category_title"]],[VDomS("Now go to Github issues list?"), VDomD('A')]),
-			VDom(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_go_to"], [["url"],"langou_tools_issues_url"]],[VDomS("Go Github Issues")]),
-			VDom(Hybrid, [[["class"],"category_title"]],[VDomS("Or you can send me email, too.")]),
-			VDom(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_bug_feedback"]],[VDomS("Send email")])
-		])
-	])
-)
-
-function diff(self, vdom_c, vdom) {
+/**
+ * @func rerender() rerender dom
+ */
+function rerender(self) {
+	var vdom_c = self.m_vdom;
+	var vdom = _VVD(self.render());
 	if (vdom_c) {
 		if (!vdom) {
-			vdom_c[3].remove(); // del dom
+			var dom = self.m_dom;
+			var view = dom.__view__;
+			util.assert(view);
+			var placeholder = new View();
+			placeholder.afterTo(view);
+			util.assert(!self.m_placeholder);
+			self.m_placeholder = placeholder;
+			self.m_dom = null;
+			self.m_vdom = null;
+			dom.remove(); // del dom
+		} else {
+			diff(self, vdom_c, vdom, self.__view__); // diff
 		}
 	} else {
 		if (vdom) {
-			// add
-			// new vdom[0]();
+			util.assert(self.m_placeholder);
+			vdom.instance(self).afterTo(self.m_placeholder); // add
+			self.m_placeholder.remove();
+			self.m_placeholder = null;
+			self.m_dom = vdom.dom;
+			self.m_vdom = vdom;
 		}
 	}
-
-	var Type1 = vdom_c[0];
-	var Type2 = vdom[0];
-
-	if (Type1 === Type2) {
-		// up
-	} else {
-		// del cur, add 
-	}
 }
 
 /**
- * @func render
- */
-function render(self, parent, prev) {
-	diff(self, self.m_vdom, VDomD(self.render()));
-}
-
-/**
- * @class ViewController
+ * @class ViewController DOM
  */
 export class ViewController extends Notification {
 
-	m_parent = null; // parent controller
-	m_view = null;   // children view or controller
-	m_id = null;
+	m_id = null;    // id
+	m_owner = null;  // owner controller
+	m_dom = null;   // children view or controller or 
+	m_placeholder = null; // view placeholder	
 	m_vmodle = null; // vmodle
 	m_vdom = null; // vdom
 	m_vchildren = null;
 
-	get parent() {
-		return this.m_parent;
+	get __view__() {
+		return this.m_dom ? this.m_dom.__view__: this.m_placeholder;
 	}
 
-	get view() {
-		return this.m_view;
-	}
+	event onRemove; // @event onRemove
+	event onLoad;   // @event onLoad
 
 	get id() {
 		return this.m_id;
+	}
+
+	get owner() {
+		return this.m_owner;
+	}
+
+	get dom() {
+		return this.m_dom;
 	}
 
 	get vmodle() {
@@ -171,15 +283,66 @@ export class ViewController extends Notification {
 	}
 
 	set vmodle(vm) {
-		// TODO ...
+		// TODO diff vmodle ...
 		Object.assign(this.m_vmodle, vm);
 	}
 
+	get vchildren() {
+		return this.m_vchildren;
+	}
+
+	isViewController() {
+		return true;
+	}
+
+	appendTo(parentView) {
+		(this.m_dom || this.m_placeholder).appendTo(parentView);
+	}
+
+	afterTo(prevView) {
+		(this.m_dom || this.m_placeholder).afterTo(prevView);
+	}
+
 	/**
-	 * @func render(...vchildren)
+	 * @func render()
 	 */
-	render(...vchildren) {
+	render() {
 		return null;
 	}
 
+	remove() {
+		var dom = this.m_dom || this.m_placeholder;
+		if (dom) {
+			var owner = this.m_owner;
+			if (owner) {
+				util.assert(owner.m_dom !== this, 'Illegal call');
+			}
+			this.m_dom = null;
+			this.m_placeholder = null;
+			this.triggerRemove();
+			dom.remove();
+		}
+	}
+
+}
+
+// create virtual view
+export function _VV(Type, props, children) {
+	return new VirtualDOM(Type, props, children);
+}
+
+// create virtual view TextNode
+export function _VVT(value) {
+	return new VirtualDOM(TextNode, [[['value'],value]], []);
+}
+
+// create virtual view dynamic
+export function _VVD(value) {
+	if (TEXT_NODE_VALUE_TYPE.has(typeof value)) {
+		return _VVT(value);
+	} else if (Array.isArray(value)) {
+		return new VirtualDOMCollection(value.map(_VVD));
+	} else {
+		return value;
+	}
 }
