@@ -830,8 +830,8 @@ void View::set_id(cString& value) throw(Error) {
  * @arg view {View*} # 要插入的元素
  */
 void View::before(View* view) throw(Error) {
-	
 	if (m_parent) {
+		if (view == this) return;
 		if (view->m_parent == m_parent)
 			_inl(view)->clear_parent();  // 清除关联
 		else
@@ -853,6 +853,7 @@ void View::before(View* view) throw(Error) {
  */
 void View::after(View* view) throw(Error) {
 	if (m_parent) {
+		if (view == this) return;
 		if (view->m_parent == m_parent)
 			_inl(view)->clear_parent(); // 清除关联
 		else

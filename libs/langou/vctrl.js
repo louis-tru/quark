@@ -88,25 +88,29 @@ class VirtualDOM {
 		// TODO ...
 	}
 
-	instance(vctrl) {
-		util.assert(!this.dom);
-		var dom = new this.type();
+	newInstance(vctrl) {
+		// util.assert(!this.dom);
+		var Type = this.type;
+		var dom = new Type();
 		this.dom = dom;
 		dom.m_owner = vctrl;
 		var children = this.children;
 
-		if (dom.isViewController()) { // ctrl
+		if (Type.isViewController()) { // ctrl
 			var placeholder = new View();
+			dom.m_ids = {};
 			dom.m_vchildren = children;
 			dom.m_placeholder = placeholder;
+			this.assignProps(); // before set props
+			dom.triggerLoad(); // trigger event Load
 			markRerender(dom); // mark render
 		} else {
 			for (var vdom of children) {
 				if (vdom)
-					vdom.instance(vctrl).appendTo(dom);
+					vdom.newInstance(vctrl).appendTo(dom);
 			}
+			this.assignProps(); // after set props
 		}
-		this.assignProps(); // after set props
 	
 		return dom;
 	}
@@ -124,17 +128,18 @@ class VirtualDOMCollection extends VirtualDOM {
 		this.m_vdoms = vdoms;
 	}
 
-	instance(vctrl) {
-		util.assert(!this.dom);
+	newInstance(vctrl) {
+		// util.assert(!this.dom);
 		var dom = new ViewCollection();
 		var collection = [];
 		this.dom = dom;
 		dom.m_owner = vctrl;
 		dom.m_collection = collection;
+		dom.m_vdoms = this.m_vdoms;
 
 		for (var vdom of this.m_vdoms) {
 			if (vdom)
-				collection.push(vdom.instance(vctrl));
+				collection.push(vdom.newInstance(vctrl));
 		}
 		if (!collection.length) {
 			dom.m_placeholder = new View();
@@ -153,9 +158,14 @@ class ViewCollection {
 	m_placeholder = null; // view placeholder	
 	m_collection = null;
 	m_owner = null;
+	m_vdoms = null;
 
 	get __view__() {
 		return this.m_placeholder ? this.m_placeholder: this.m_collection.last(0).__view__;
+	}
+
+	get owner() {
+		return this.m_owner;
 	}
 
 	get collection() {
@@ -166,50 +176,134 @@ class ViewCollection {
 		if (this.m_placeholder) {
 			this.m_placeholder.remove();
 		} else {
-			for (var view of this.m_collection) {
-				view.remove();
+			for (var vdom of this.m_vdoms) {
+				if (vdom) {
+					removeDOM(this.m_owner, vdom);
+				}
 			}
+			this.m_collection = [];
 		}
 	}
 
-	isViewController() {
+	static isViewController() {
 		return false;
 	}
 
 	appendTo(parentView) {
 		if (this.m_placeholder) {
-			this.m_placeholder.appendTo(parentView);
+			return this.m_placeholder.appendTo(parentView);
 		} else {
 			for (var view of this.m_collection) {
 				view.appendTo(parentView);
 			}
+			return this.m_collection.last(0);
 		}
 	}
 
 	afterTo(prevView) {
 		if (this.m_placeholder) {
-			this.m_placeholder.afterTo(prevView);
+			return this.m_placeholder.afterTo(prevView);
 		} else {
 			for (var view of this.m_collection) {
 				view.afterTo(prevView);
 				prevView = view;
 			}
+			return this.m_collection.last(0);
 		}
 	}
 
 }
 
+/**
+ * @func removeSubctrl()
+ */
+function removeSubctrl(self, vdom) {
+	for (var vdom of vdom.children) {
+		if (vdom) {
+			if (vdom.type.isViewController()) {
+				vdom.dom.remove(); // remove ctrl
+			} else {
+				removeSubctrl(self, vdom);
+			}
+		}
+	}
+	var id = vdom.dom.id;
+	if (id) {
+		if (self.m_ids[id] === vdom.dom) {
+			delete self.m_ids[id];
+		}
+	}
+}
+
+/**
+ * @func removeDOM()
+ */
+function removeDOM(self, vdom) {
+	removeSubctrl(self, vdom);
+	vdom.dom.remove();
+}
+
+/**
+ * @func setVDOM()
+ */
+function setVDOM(self, vdom) {
+	self.m_vdom = vdom;
+	self.m_dom = vdom ? vdom.dom: null;
+}
+
 /*
-	* @func diff()
-	*/
+ * @func diff()
+ * @return {View}
+ */
 function diff(self, vdom_c, vdom, prev) {
-	if (vdom_c.type === vdom.type) {
-		// diff props and children ...
+
+	if (vdom_c.type !== vdom.type) {
+		prev = vdom.newInstance(self).afterTo(prev); // add new
+		removeDOM(self, vdom_c); // del dom
+		return prev;
 	} else {
-		vdom.instance(self).afterTo(prev); // add new
-		vdom_c.dom.remove(); // del cur
-		self.m_dom = vdom.dom;
-		self.m_vdom = vdom;
+		var dom = vdom_c.dom;
+		vdom.dom = dom;
+
+		// diff props
+		if (vdom_c.propsHashCode != vdom.propsHashCode) {
+			// TODO ...
+		}
+
+		// diff children
+		var children_c = vdom_c.children;
+		var children = vdom.children;
+		var childrenCount = Math.max(children_c.length, children.length);
+		var view = dom.__view__;
+		var tmpPrev;
+
+		prev = children_c.find(e=>e);
+
+		if ( !prev ) {
+			tmpPrev = prev = (new View).appendTo(view);
+		}
+
+		for (var i = 0, j = 0; i < childrenCount; i++) {
+			vdom_c = children_c[i];
+			vdom = children[i];
+			if (vdom_c) {
+				if (!vdom) {
+					removeDOM(self, vdom_c); // remove
+				} else {
+					prev = diff(self, vdom_c, vdom, prev); // diff
+				}
+			} else {
+				if (vdom) {
+					prev = vdom.newInstance(self).afterTo(prev); // add
+				}
+			}
+		}
+
+		if (tmpPrev) {
+			tmpPrev.remove();
+		}
+
+		return view;
 	}
 }
 
@@ -228,20 +322,19 @@ function rerender(self) {
 			placeholder.afterTo(view);
 			util.assert(!self.m_placeholder);
 			self.m_placeholder = placeholder;
-			self.m_dom = null;
-			self.m_vdom = null;
-			dom.remove(); // del dom
+			setVDOM(self, null);
+			removeDOM(self, vdom_c); // del dom
 		} else {
 			diff(self, vdom_c, vdom, self.__view__); // diff
+			setVDOM(self, vdom); // set new vdom
 		}
 	} else {
 		if (vdom) {
 			util.assert(self.m_placeholder);
-			vdom.instance(self).afterTo(self.m_placeholder); // add
+			vdom.newInstance(self).afterTo(self.m_placeholder); // add
 			self.m_placeholder.remove();
 			self.m_placeholder = null;
-			self.m_dom = vdom.dom;
-			self.m_vdom = vdom;
+			setVDOM(self, vdom);
 		}
 	}
 }
@@ -251,23 +344,42 @@ function rerender(self) {
  */
 export class ViewController extends Notification {
 
-	m_id = null;    // id
+	// @private:
+	m_id = null;     // id
+	m_ids = null;
 	m_owner = null;  // owner controller
-	m_dom = null;   // children view or controller or 
 	m_placeholder = null; // view placeholder	
 	m_vmodle = null; // vmodle
-	m_vdom = null; // vdom
+	m_vdom = null;   // vdom
+	m_dom = null;    // children view or controller or 
 	m_vchildren = null;
 
 	get __view__() {
 		return this.m_dom ? this.m_dom.__view__: this.m_placeholder;
 	}
 
+	// @public:
+
 	event onRemove; // @event onRemove
 	event onLoad;   // @event onLoad
 
 	get id() {
 		return this.m_id;
+	}
+
+	set id(value) {
+		if (value != this.m_id) {
+			if (this.m_owner) {
+				if (this.m_owner.m_ids[this.m_id] === this) {
+					this.m_owner.m_ids[value] = this;
+				}
+			}
+			this.m_id = value;
+		}
+	}
+
+	get IDs() {
+		return this.m_ids;
 	}
 
 	get owner() {
@@ -291,16 +403,16 @@ export class ViewController extends Notification {
 		return this.m_vchildren;
 	}
 
-	isViewController() {
+	static isViewController() {
 		return true;
 	}
 
 	appendTo(parentView) {
-		(this.m_dom || this.m_placeholder).appendTo(parentView);
+		return (this.m_dom || this.m_placeholder).appendTo(parentView);
 	}
 
 	afterTo(prevView) {
-		(this.m_dom || this.m_placeholder).afterTo(prevView);
+		return (this.m_dom || this.m_placeholder).afterTo(prevView);
 	}
 
 	/**
@@ -311,16 +423,24 @@ export class ViewController extends Notification {
 	}
 
 	remove() {
-		var dom = this.m_dom || this.m_placeholder;
-		if (dom) {
+		var vdom = this.m_vdom;
+		var placeholder = this.m_placeholder;
+
+		if (vdom || placeholder) {
 			var owner = this.m_owner;
 			if (owner) {
 				util.assert(owner.m_dom !== this, 'Illegal call');
 			}
-			this.m_dom = null;
 			this.m_placeholder = null;
+			this.m_vdom = null;
+			this.m_dom = null;
+			
+			if (vdom) {
+				removeDOM(this, vdom);
+			} else {
+				placeholder.remove();
+			}
 			this.triggerRemove();
-			dom.remove();
 		}
 	}
 
@@ -342,7 +462,8 @@ export function _VVD(value) {
 		return _VVT(value);
 	} else if (Array.isArray(value)) {
 		return new VirtualDOMCollection(value.map(_VVD));
-	} else {
-		return value;
+	} else if (!(value instanceof VirtualDOM)) {
+		return _VVT(String(value));
 	}
+	return value;
 }

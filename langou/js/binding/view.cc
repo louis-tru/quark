@@ -292,6 +292,8 @@ class WrapView: public WrapViewBase {
 		
 		try { self->append_to(parent); }
 		catch (cError& err) { JS_THROW_ERR(err); }
+
+		JS_RETURN( args.This() );
 	}
 
 	/**
@@ -328,6 +330,8 @@ class WrapView: public WrapViewBase {
 		View* brother = Wrap<View>::unpack(args[0].To())->self();
 		try { self->after(brother); }
 		catch (cError& err) { JS_THROW_ERR(err); }
+
+		JS_RETURN( args.This() );
 	}
 
 	/**
