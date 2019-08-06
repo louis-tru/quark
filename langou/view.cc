@@ -42,11 +42,6 @@ XX_NS(langou)
 #define is_mark_pre m_prev_pre_mark
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
 
-XX_DEFINE_INLINE_MEMBERS(ViewController, Inl) {
-public:
-	inline void set_view(View* view) { m_view = view; }
-};
-
 /**
  * @class View::Inl
  */
@@ -94,23 +89,6 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	}
 	
 	/**
-	 * @func clear_top # 清理top信息
-	 */
-	void clear_top() { // 清除弱引用
-		if (m_top) {
-			if ( ! m_id.is_empty() ) {
-				m_top->controller()->del_member(m_id);
-			}
-			if (m_ctr) {
-				String id = m_ctr->id();
-				if ( ! id.is_empty() ) {
-					m_top->controller()->del_member(id);
-				}
-			}
-		}
-	}
-
-	/**
 	 * @func clear_parent # 清理关联视图信息
 	 */
 	void clear_parent() {
@@ -133,52 +111,6 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		}
 	}
 
-	/**
-	 * @func del_old_top
-	 * @arg old_top {View*}
-	 */
-	void del_old_top(View* old_top) throw(Error) {
-		// 普通视图不允许单独离开原控制器,只有ViewController视图才可以.
-		XX_ASSERT_ERR(controller(),
-								 "Ordinary views are not allowed to leave the original controller alone, "
-								 "Only Controller views can.");
-		if ( ! m_id.is_empty() ) { // delete view id ref
-			old_top->controller()->del_member(m_id);
-		}
-		String id = m_ctr->id();
-		if ( ! id.is_empty() ) { // delete controller id ref
-			old_top->controller()->del_member(id);
-		}
-	}
-	
-	/**
-	 * @func set_top # 设置Top视图
-	 */
-	void set_top(View* top) throw(Error) {
-		View* old_top = m_top;
-		
-		if (top) {
-			if (old_top != top) {
-				if (old_top) {
-					del_old_top(old_top);
-				}
-				if ( ! m_id.is_empty()) { // 设置视图在所属控制器中的id引用
-					top->controller()->set_member(m_id, this);
-				}
-				if (m_ctr) { // 设置控制器在所属控制器中的id引用
-					String id = m_ctr->id();
-					if ( ! id.is_empty() ) {
-						top->controller()->set_member(id, m_ctr);
-					}
-				}
-				m_top = top;
-			}
-		} else if (old_top) {
-			del_old_top(old_top);
-			m_top = NULL;
-		}
-	}
-	
 	/**
 	 * @func set_level_and_visible # settings level and final visible
 	 * @arg {int} level
@@ -264,34 +196,6 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 				view = view->m_next;
 			}
 		}
-	}
-	
-	void set_ctr(ViewController* ctr) throw(Error) {
-		/*
-		 * 在这里控制器视图必须为空.这可能是由于在事件中循环设置视图控制器造成的
-		 */
-		XX_ASSERT_ERR(ctr->view() == nullptr, ERR_CONTROLLER_LOOP_SET_VIEW_ERROR,
-									"Loop settings view controller error");
-		/*
-		 * 一个视图最多只能有一个控制器并且不允许更换。但控制器可以更换不同的视图,视图被更换时旧的视图被删除。
-		 * 与视图一样视图控制器也由父视图所保持,当所属的视图从父视图删除时,视图控制器也将被调用release()
-		 */
-		XX_ASSERT_ERR(m_ctr == nullptr, ERR_ONLY_VIEW_CONTROLLER_ERROR,
-									"Views allow only a unique controller and are not allowed to change");
-		
-		m_ctr = ctr;
-		Inl_ViewController(m_ctr)->set_view(this);
-		
-		if ( m_parent ) {
-			ctr->retain(); // 被父视图保持
-		}
-	}
-	
-	void del_ctr() {
-		XX_ASSERT( m_ctr );
-		XX_ASSERT( m_ctr->view() == this );
-		Inl_ViewController(m_ctr)->set_view(nullptr);
-		m_ctr = nullptr;
 	}
 	
 	/**
@@ -411,157 +315,12 @@ void _view_inl__safe_delete_mark(View* view) {
 	_inl(view)->safe_delete_mark();
 }
 
-inline static ViewController* get_parent_controller(View* view) {
-	if (view) {
-		view = view->top();
-		if (view) {
-			return view->controller();
-		}
-	}
-	return nullptr;
-}
-
-/**
- * @func parent
- */
-ViewController* ViewController::parent() {
-	return get_parent_controller(view());
-}
-
-/**
- * @func load_view
- */
-void ViewController::load_view(ViewXML* vx) {
-	XX_WARN("unimplemented native load_view");
-	XX_UNIMPLEMENTED();
-}
-
-ViewController::ViewController(): m_view(nullptr) {
-	XX_ASSERT(RunLoop::is_main_loop());
-	// LOG("ViewController");
-}
-
-ViewController::~ViewController() {
-	if ( m_view ) {
-		XX_ASSERT( m_view->m_ctr == this );
-		// 控制器是由父视图所保持,如果这里还存在父视图那么这是错误的,被保持的对像不应该被析构
-		XX_ASSERT( m_view->m_parent == nullptr );
-		
-		m_view->remove();
-		if ( m_view ) {
-			m_view->m_ctr = nullptr;
-			m_view = nullptr;
-		}
-	}
-}
-
-/**
- * @func set_view
- */
-void ViewController::view(View* view) throw(Error) {
-	XX_ASSERT_ERR(view, ERR_CONTROLLER_VIEW_ERROR, "View cannot be empty");
-	
-	if ( view != m_view ) {
-		View* old = m_view; m_view = nullptr;
-		if (old) {
-			if ( old->next() ) {
-				Handle<ViewController> handle(this);
-				View* next = old->next();
-				old->remove();  // remove
-				_inl(view)->set_ctr(this);
-				next->before(view);
-			} else if ( old->parent() ) {
-				Handle<ViewController> handle(this);
-				View* parent = old->parent();
-				old->remove();  // remove
-				_inl(view)->set_ctr(this);
-				parent->append(view);
-			} else {
-				_inl(old)->remove();
-				_inl(view)->set_ctr(this);
-			}
-		} else {
-			_inl(view)->set_ctr(this);
-		}
-	}
-}
-
-String ViewController::id() const { return m_id; }
-
-void ViewController::set_id(cString& value) throw(Error) {
-	ViewController* ctr = get_parent_controller(view());
-	if (ctr) {
-		if ( value != m_id ) {
-			ctr->del_member(m_id);
-			m_id = value;
-			if ( ! m_id.is_empty() ) {
-				ctr->set_member(value, this);
-			}
-		}
-	} else {
-		m_id = value;
-	}
-}
-
-/**
- * @overwrite
- */
-Member* ViewController::find(cString& id) {
-	XX_ASSERT(RunLoop::is_main_loop());
-	auto i = m_members.find(id);
-	if (i != m_members.end()) {
-		return i.value();
-	}
-	return NULL;
-}
-
-/**
- * @overwrite
- */
-void ViewController::set_member(cString& id, Member* member) throw(Error) {
-	XX_ASSERT(RunLoop::is_main_loop());
-	auto i = m_members.find(id);
-	if (i != m_members.end()) {
-		XX_ASSERT_ERR(member != i.value(), "ID member of the \"%s\" already exists", *id);
-	} else {
-		m_members.set(id, member);
-	}
-}
-
-/**
- * @overwrite
- */
-void ViewController::del_member(cString& id, Member* member) {
-	XX_ASSERT(RunLoop::is_main_loop());
-	if (member) {
-		auto i = m_members.find(id);
-		if (i != m_members.end()) {
-			if (i.value() == member) {
-				m_members.del(i);
-			}
-		}
-	} else {
-		m_members.del(id);
-	}
-}
-
-/**
- * @func remove
- */
-void ViewController::remove() {
-	if ( m_view ) {
-		m_view->remove();
-	}
-}
-
 View::View()
-: m_top(nullptr)
-, m_parent(nullptr)
+: m_parent(nullptr)
 , m_prev(nullptr)
 , m_next(nullptr)
 , m_first(nullptr)
 , m_last(nullptr)
-, m_id()
 , m_translate()
 , m_scale(1)
 , m_skew(0)
@@ -582,29 +341,24 @@ View::View()
 , m_need_draw(true)
 , m_child_change_flag(false)
 , m_receive(false)
-, m_ctr(nullptr)
 , m_ctx_data(nullptr)
 , m_action(nullptr)
-{
-	
+{	
 }
 
 /**
  * @destructor
  */
 View::~View() {
-	
+
 	XX_ASSERT(m_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 	
 	blur();
 	
 	action(nullptr); // del action
-	
+
 	_inl(this)->inl_remove_all_child(); // 删除子视图
 	
-	if ( m_ctr ) {
-		_inl(this)->del_ctr();
-	}
 	if ( is_mark_pre ) { // 删除标记
 		_inl(this)->delete_mark();
 	}
@@ -621,14 +375,10 @@ View::~View() {
 void View::set_parent(View* parent) throw(Error) {
 	// clear parent
 	if (parent != m_parent) {
-		// set top
-		_inl(this)->set_top(parent->controller() ? parent : parent->m_top);
 		_inl(this)->clear_parent();
 		
 		if ( !m_parent ) {
 			retain(); // link to parent and retain ref
-			if ( m_ctr )
-				m_ctr->retain();
 		}
 		m_parent = parent;
 		
@@ -657,51 +407,30 @@ void View::set_parent(View* parent) throw(Error) {
 /**
  * #func remove # 删除当前视图,并不从内存清空视图数据
  */
-void View::remove() {
-	if ( !(mark_value & M_REMOVING) ) {
-		mark_value |= M_REMOVING;
+void View::remove() {		
+	if (m_parent) {
+
+		blur(); // 辞去焦点
 		
-		if (m_parent) {
-			
-			if ( m_ctr ) {
-				XX_ASSERT( m_ctr->view() == this );
-				m_ctr->trigger_remove_view(this); // 通知控制器
-			}
-			_inl(this)->inl_remove_all_child(); // 删除子视图
-			
-			blur(); // 辞去焦点
-			
-			trigger(GUI_EVENT_REMOVE_VIEW, true); // trigger remove view event
-			
-			if ( is_mark_pre ) { // 删除标记
-				_inl(this)->full_delete_mark();
-			}
-			
-			action(nullptr); // del action
-			
-			_inl(this)->clear_top();
-			_inl(this)->clear_parent();
-			
-			ViewController* ctr = m_ctr;
-			if (ctr) {
-				_inl(this)->del_ctr();
-				ctr->release();
-			}
-			
-			remove_event_listener();
-			m_level = 0;
-			m_parent = m_top = m_prev = m_next = nullptr;
-			revoke_mark_value(mark_value, M_REMOVING);
-			release(); // Disconnect from parent view strong reference
+		action(nullptr); // del action
+
+		_inl(this)->inl_remove_all_child(); // 删除子视图
+		
+		if ( is_mark_pre ) { // 删除标记
+			_inl(this)->full_delete_mark();
 		}
-		else {
-			// remove_event_listener();
-			action(nullptr); // del action
-			_inl(this)->inl_remove_all_child(); // 删除子视图
-			if ( m_ctr ) 
-				_inl(this)->del_ctr();
-			revoke_mark_value(mark_value, M_REMOVING);
-		}
+		
+		_inl(this)->clear_parent();
+					
+		remove_event_listener();
+		m_level = 0;
+		m_parent = m_prev = m_next = nullptr;
+		release(); // Disconnect from parent view strong reference
+	}
+	else {
+		// remove_event_listener();
+		action(nullptr); // del action
+		_inl(this)->inl_remove_all_child(); // 删除子视图
 	}
 }
 
@@ -726,30 +455,10 @@ Ucs2String View::inner_text() const {
 }
 
 /**
- * @func inner_text
- */
-void View::inner_text(cUcs2String& str) throw(Error) {
-	remove_all_child();
-	append_text( str );
-}
-
-/**
- * @func append_text
- */
-View* View::append_text(cUcs2String& str) throw(Error) {
-	Ucs2String str2 = str.trim();
-	Label* label = New<Label>();
-	append(label);
-	label->set_value( str2 );
-	return label;
-}
-
-/**
  * @func prepend # 前置元素
  * @arg child {View*} # 要前置的元素
  */
 void View::prepend(View* child) throw(Error) {
-	
 	if (this == child->m_parent)
 		_inl(child)->clear_parent();
 	else
@@ -774,7 +483,6 @@ void View::prepend(View* child) throw(Error) {
  * @arg child {View*} # 要追加的元素
  */
 void View::append(View* child) throw(Error) {
-	
 	if (this == child->m_parent)
 		_inl(child)->clear_parent();
 	else
@@ -791,29 +499,6 @@ void View::append(View* child) throw(Error) {
 		child->m_next = NULL;
 		m_first = child;
 		m_last = child;
-	}
-}
-
-/**
- * @get id {cString&} # 获取当前视图id
- * @const
- */
-String View::id() const { return m_id; }
-
-/**
- * @func set_id # 设置视图ID,会同时设置top控制器查询句柄.
- */
-void View::set_id(cString& value) throw(Error) {
-	if (m_top) {
-		if (value != m_id) {
-			m_top->controller()->del_member(m_id);
-			m_id = value;
-			if (!m_id.is_empty()) {
-				m_top->controller()->set_member(value, this);
-			}
-		}
-	} else {
-		m_id = value;
 	}
 }
 

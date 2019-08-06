@@ -202,8 +202,7 @@ class InlJSON {
 					_rv->push(OBJECT);
 				}
 			}
-			else if (worker->has_instance(arg, View::VIEW) ||
-							worker->has_instance<ViewController>(arg)) {
+			else if (worker->has_instance(arg, View::VIEW)) {
 				rv = stringify_view(o);
 			}
 			else if ( arg->IsDate(worker) ) {

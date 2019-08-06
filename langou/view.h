@@ -46,7 +46,6 @@ class DrawData;
 class Draw;
 class GLDraw;
 class View;
-class ViewController;
 class PreRender;
 class ViewXML;
 class Texture;
@@ -94,114 +93,9 @@ XX_EACH_VIEWS(XX_DEFINE_CLASS);
 	virtual ViewType view_type() const { return enum; }
 
 /**
- * @interface Member
- */
-class XX_EXPORT Member {
- public:
-	
-	/**
-	 * @func as_view
-	 */
-	virtual View* as_view() { return nullptr; };
-
-	/**
-	 * @func as_ctr
-	 */
-	virtual ViewController* as_ctr() { return nullptr; };
-	
-	/**
-	 * @func id
-	 */
-	virtual String id() const = 0;
-	
-};
-
-/**
- * @class ViewController
- */
-class XX_EXPORT ViewController: public Reference, public Member {
- public:
-	
-	ViewController();
-	
-	/**
-	 * @destructor
-	 */
-	virtual ~ViewController();
-	
-	/**
-	 * @func load_view
-	 */
-	virtual void load_view(ViewXML* vx = nullptr);
-	
-	/**
-	 * @func trigger_remove_view view被删除时
-	 */
-	virtual void trigger_remove_view(View* view) { }
-	
-	/**
-	 * @func as_ctr
-	 */
-	virtual ViewController* as_ctr() { return this; };
-	
-	/**
-	 * @func parent
-	 */
-	ViewController* parent();
-	
-	/**
-	 * @func view
-	 */
-	inline View* view() { return m_view; }
-	
-	/**
-	 * @func view  set
-	 */
-	void view(View* view) throw(Error);
-	
-	/**
-	 * @overwrite
-	 */
-	virtual String id() const;
-	
-	/**
-	 * @func id set id
-	 */
-	void set_id(cString& value) throw(Error);
-	
-	/**
-	 * @func find # 可通过ID查询控制器下的成员
-	 */
-	virtual Member* find(cString& id);
-	
-	/**
-	 * @func set_member # 可通过ID设置控制器下的成员
-	 */
-	virtual void set_member(cString& id, Member* member) throw(Error);
-	
-	/**
-	 * @func del_member # 可通过ID删除控制器下的成员
-	 * 注意: 只会删除弱引用并不从内存移除
-	 */
-	virtual void del_member(cString& id, Member* member = nullptr);
-	
-	/**
-	 * @func remove
-	 */
-	void remove();
-	
- private:
-	View*  m_view;
-	String m_id;
-	Map<String, Member*> m_members;
-	
-	XX_DEFINE_INLINE_CLASS(Inl);
-};
-
-/**
  * @class View
  */
-class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, public Member {
+class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	XX_HIDDEN_ALL_COPY(View);
  public:
 	
@@ -234,11 +128,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
  #undef xx_def_view_type
 
 	/**
-	 * @overwrite
-	 */
-	virtual View* as_view() { return this; };
-
-	/**
 	 * @enum MarkValue
 	 */
 	enum : uint {
@@ -267,7 +156,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 		M_INPUT_STATUS          = (1 << 19),  // 文本输入状态改变
 		M_CLIP                  = (1 << 20),  // 溢出内容修剪
 		M_BACKGROUND            = (1 << 21),  // 背景变化
-		M_REMOVING              = (1 << 29),  // 从父视图删除过程中
 		M_STYLE_CLASS           = (1 << 30),  /* 变化class引起的样式变化 */
 		M_STYLE_FULL            = (uint(1) << 31),  /* 所有后后代视图都受到影响 */
 		M_STYLE                 = (M_STYLE_CLASS | M_STYLE_FULL),
@@ -277,11 +165,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	 * @get inner_text {Ucs2String}
 	 */
 	Ucs2String inner_text() const;
-	
-	/**
-	 * @set inner_text {Ucs2String}
-	 */
-	void inner_text(cUcs2String& str) throw(Error);
 	
 	/**
 	 * @func prepend # 前置元素
@@ -294,11 +177,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	 * @arg child {View*} # 要追加的元素
 	 */
 	virtual void append(View* child) throw(Error);
-	
-	/**
-	 * @func append_text # 追加文本到结尾
-	 */
-	virtual View* append_text(cUcs2String& str) throw(Error);
 
 	/**
 	 * @func before # 插入前
@@ -313,41 +191,14 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	void after(View* view) throw(Error);
 
 	/**
-	 * #func remove # 删除当前视图,从内存清除
+	 * @func remove # 删除当前视图,从内存清除
 	 */
 	virtual void remove();
 	
 	/**
-	 * #func remove_all_child # 删除所有子视图
+	 * @func remove_all_child # 删除所有子视图
 	 */
 	virtual void remove_all_child();
-	
-	/**
-	 * @func id 获取当前视图id
-	 */
-	virtual String id() const;
-	
-	/**
-	 * @func set_id 设置视图ID,会同时设置top控制器查询句柄.
-	 */
-	void set_id(cString& value) throw(Error);
-	
-	/**
-	 * @func controller 视图控制器
-	 */
-	inline ViewController* controller() { return m_ctr; }
-	
-	/**
-	 * @func top 该视图的上层控制器视图
-	 */
-	inline View* top() { return m_top; }
-	
-	/**
-	 * @func owner 该视图的上层控制器`owner`
-	 */
-	inline ViewController* owner() {
-		return m_top ? m_top->m_ctr : nullptr;
-	}
 	
 	/**
 	 * @func parent # 父级视图
@@ -782,13 +633,11 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	
  private:
 
-	View*   m_top;        /* Top视图/Top视图一定有 ViewController */
 	View*   m_parent;     /* 父视图 */
 	View*   m_prev;       /* 上一个兄弟视图,通过这些属性组成了一个双向链表 */
 	View*   m_next;       /* 下一个兄视图 */
 	View*   m_first;      /* 第一个子视图 */
 	View*   m_last;       /* 最后一个子视图 */
-	String  m_id;         /* 视图ID/可以通过ID快速索引视图 */
 	Vec2    m_translate;  /* 平移向量 */
 	Vec2    m_scale;      /* 缩放向量 */
 	Vec2    m_skew;       /* 倾斜向量 */
@@ -831,7 +680,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	bool m_need_draw;             /* 忽略视图visible值,强制绘制子视图 */
 	bool m_child_change_flag;     /* 子视图有变化标记,调用draw后重置 */
 	bool m_receive;               /* 是否接收事件 */
-	ViewController* m_ctr;        /* ViewController */
 	DrawData*       m_ctx_data;   /* 绘图上下文需要的数据 */
 	Action*         m_action;
 	
@@ -843,7 +691,6 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	friend class TextFont;
 	friend class Layout;
 	friend class PreRender;
-	friend class ViewController;
 	friend class GLDraw;
 	friend class GUIEventDispatch;
 	friend class DisplayPort;

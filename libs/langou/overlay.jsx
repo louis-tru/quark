@@ -277,8 +277,8 @@ export class Overlay extends Navigation {
 	/**
 	 * @overwrite
 	 */
-	loadView(vx) {
-		super.loadView(
+	render() {
+		return (
 			<Indep visible=0 width="full" height="full" backgroundColor="#0003" opacity=0>
 				<Div width="full" height="full" 
 					onTouchStart="fadeOut" onMouseDown="fadeOut" id="mask" />
@@ -296,7 +296,7 @@ export class Overlay extends Navigation {
 					</Indep>
 
 					<Clip id="content" backgroundColor="#fff" borderRadius=8>
-						${vx}
+						${this.vchildren}
 					</Clip>
 
 				</Indep>

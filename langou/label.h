@@ -58,9 +58,7 @@ class XX_EXPORT Label: public View, public TextFont {
 	 */
 	virtual void prepend(View* child) throw(Error);
 	virtual void append(View* child) throw(Error);
-	virtual View* append_text(cUcs2String& str) throw(Error);
 	virtual TextFont* as_text_font() { return this; }
-	virtual void remove_all_child();
 	virtual View* view() { return this; }
 	virtual CGRect screen_rect();
 	virtual bool overlap_test(Vec2 point);

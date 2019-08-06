@@ -154,23 +154,20 @@ export class Dialog extends Navigation {
 	/**
 	 * @overwrite
 	 */
-	loadView(vx) {
-		
-		super.loadView(
+	render() {
+		return (
 			<Indep 
 				width="full" 
 				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="m_main" class="x_dialog" alignX="center" alignY="center">
 					<Hybrid id="m_title" class="title" />
-					<Hybrid id="m_con" class="content">${vx}</Hybrid>
+					<Hybrid id="m_con" class="content">${this.vchildren}</Hybrid>
 					<Clip id="m_btns" class="buttons" />
 				</LimitIndep>
 			</Indep>
 		);
-		
-		this.view.appendTo(langou.root);
 	}
-	
+
 	get title() { return this.find('m_title').innerText }
 	get content() { return this.find('m_con').innerText }
 	set title(value) {
@@ -217,7 +214,7 @@ export class Dialog extends Navigation {
 	
 	show() {
 		if (!this.visible) {
-			this.view.appendTo(langou.root);
+			this.appendTo(langou.root);
 			this.visible = 1;
 			
 			langou.nextFrame(()=>{

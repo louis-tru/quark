@@ -64,7 +64,6 @@ class XX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	// @end
 	virtual void set_value(cUcs2String& str);
 	virtual View* append_text(cUcs2String& str) throw(Error);
-	virtual void remove_all_child();
 	virtual bool run_task(int64 sys_time);
 	virtual bool can_become_focus();
 	virtual Object* to_object() { return this; }

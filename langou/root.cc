@@ -102,36 +102,6 @@ void Root::draw(Draw* draw) {
 /**
  * @overwrite
  */
-void Root::prepend(View* child) throw(Error) {
-	if ( ! m_ctr ) { // set default controller
-		(new ViewController())->view(this);
-	}
-	Box::prepend(child);
-}
-
-/**
- * @overwrite
- */
-void Root::append(View* child) throw(Error) {
-	if ( ! m_ctr) { // set default controller
-		(new ViewController())->view(this);
-	}
-	Box::append(child);
-}
-
-/**
- * @overwrite
- */
-View* Root::append_text(cUcs2String& str) throw(Error) {
-	if ( ! m_ctr) { // set default controller
-		(new ViewController())->view(this);
-	}
-	return Box::append_text(str);
-}
-
-/**
- * @overwrite
- */
 void Root::set_parent(View* parent) throw(Error) {
 	XX_UNREACHABLE();
 }

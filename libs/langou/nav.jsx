@@ -153,12 +153,12 @@ export class Navigation extends Basic {
 		return null;
 	}
 	
-	triggerRemoveView(ev) {
+	triggerRemove(ev) {
 		if ( this.m_iterator ) {
 			navigationStack.del(this.m_iterator);
 			this.m_iterator = null;
 		}
-		super.triggerRemoveView(ev);
+		super.triggerRemove(ev);
 	}
 
 	/**
@@ -1115,14 +1115,14 @@ export class Navpage extends Navigation {
 	}
 
 	// @overwrite  
-	triggerRemoveView(ev) {
+	triggerRemove(ev) {
 		if (this.m_navbar) {
 			this.m_navbar.remove();
 		}
 		if (this.m_toolbar && !this.m_toolbar.isDefault) {
 			this.m_toolbar.remove();
 		}
-		super.triggerRemoveView(ev);
+		super.triggerRemove(ev);
 	}
 
 	// @overwrite

@@ -557,13 +557,6 @@ View* Input::append_text(cUcs2String& str) throw(Error) {
 	return r;
 }
 
-void Input::remove_all_child() {
-	Text::remove_all_child();
-	marked_text_ = Ucs2String();
-	cursor_ = m_data.string.length();
-	Inl_Input(this)->trigger_change();
-}
-
 bool Input::run_task(int64 sys_time) {
 	
 	if ( flag_ > 2 ) {

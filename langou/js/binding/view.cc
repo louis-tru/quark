@@ -43,156 +43,6 @@
 
 JS_BEGIN
 
-class NativeViewController: public ViewController {
- public:
-	virtual void trigger_remove_view(View* view) {
-		Wrap<NativeViewController>* wrap = WrapObject::pack(this);
-		HandleScope scope(wrap->worker());
-		Wrap<View>* wrap_view = Wrap<View>::pack(view, view->view_type());
-		Local<JSValue> arg = wrap_view->that();
-		wrap->call(wrap->worker()->strs()->triggerRemoveView(), 1, &arg); // trigger event
-	}
-};
-
-/**
- * @class WrapController
- */
-class WrapNativeViewController: public WrapObject {
-	
-	static void constructor(FunctionCall args) {
-		JS_ATTACH(args);
-		JS_WORKER(args);
-		New<WrapNativeViewController>(args, new NativeViewController());
-	}
-	
-	static void load_view(FunctionCall args) {
-		// TODO ...
-	}
-	
-	static void trigger_remove_view(FunctionCall args) { 
-
-	}
-	
-	static void parent(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(ViewController);
-		ViewController* ctr = self->parent();
-		if ( ctr) {
-			auto wrap = pack(ctr);
-			JS_RETURN( wrap->that() );
-		} else {
-			JS_RETURN( worker->NewNull() );
-		}
-	}
-	
-	static void view(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(ViewController);
-		View* view = self->view();
-		if ( view ) {
-			Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-			JS_RETURN( wrap->that() );
-		} else {
-			JS_RETURN( worker->NewNull() );
-		}
-	}
-	
-	/**
-	 * @set view {View}
-	 */
-	static void set_view(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		if ( ! worker->has_instance(value, View::VIEW)) {
-			JS_THROW_ERR("* @set view {View}");
-		}
-		JS_UNPACK(ViewController);
-		
-		JS_TRY_CATCH({
-			wrap->self()->view( unpack<View>(value.To<JSObject>())->self() );
-		}, Error);
-		
-		// 让视图与控制器相互建立引用,确保不被CLR错误的回收,这样只要持有一个对像另一个对像会在弱引用下继续保持
-		wrap->set(worker->strs()->__view_(), value);
-		value.To<JSObject>()->Set(worker, worker->strs()->__controller_(), wrap->that());
-	}
-	
-	/**
-	 * @func find(id)
-	 * @arg id {uint}
-	 * @ret {View|ViewController}
-	 */
-	static void find(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() < 1) {
-			JS_THROW_ERR(
-				"* @func find(id)\n"
-				"* @arg id {uint}\n"
-				"* @ret {View|ViewController}\n"
-			);
-		}
-		JS_SELF(ViewController);
-		
-		Member* member = self->find( args[0]->ToStringValue(worker) );
-		if ( member ) {
-			View* view = member->as_view();
-			WrapObject* wrap = nullptr;
-			if ( view ) {
-				wrap = Wrap<View>::pack(view, view->view_type());
-			} else {
-				wrap = pack(member->as_ctr());
-			}
-			JS_RETURN( wrap->that() );
-		} else {
-			JS_RETURN( worker->NewNull() );
-		}
-	}
-	
-	/**
-	 * @get id {String}
-	 */
-	static void id(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(ViewController);
-		JS_RETURN( self->id() );
-	}
-	
-	/**
-	 * @set id {String}
-	 */
-	static void set_id(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(ViewController);
-		JS_TRY_CATCH({
-			self->set_id(value->ToStringValue(worker));
-		}, Error);
-	}
-	
-	/**
-	 * @func remove() 
-	 */
-	static void remove(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(ViewController);
-		self->remove();
-	}
-	
- public:
-	
-	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_DEFINE_CLASS(NativeViewController, constructor, {
-			JS_SET_CLASS_METHOD(loadView, load_view);
-			JS_SET_CLASS_METHOD(triggerRemoveView, trigger_remove_view);
-			JS_SET_CLASS_ACCESSOR(parent, parent);
-			JS_SET_CLASS_ACCESSOR(view, view, set_view);
-			JS_SET_CLASS_ACCESSOR(id, id, set_id);
-			JS_SET_CLASS_METHOD(find, find);
-			JS_SET_CLASS_METHOD(remove, remove);
-		}, nullptr);
-		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(NativeViewController), JS_TYPEID(ViewController));
-	}
-
-};
-
 // ================= View ================
 
 /**
@@ -244,35 +94,6 @@ class WrapView: public WrapViewBase {
 		View* child = unpack<View>(args[0].To<JSObject>())->self();
 		try { self->append(child); }
 		catch (cError& err) { JS_THROW_ERR(err); }
-	}
-
-	/**
-	 * @func appendText(text)
-	 * @arg text {String}
-	 * @ret {View}
-	 */
-	static void append_text(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		if ( args.Length() < 1 ) {
-			JS_THROW_ERR(
-				"* @func appendText(text)\n"
-				"* @arg text {String}\n"
-				"* @ret {View}\n"
-			);
-		}
-		JS_SELF(View);
-		View* view = nullptr;
-		
-		JS_TRY_CATCH({
-			view = self->append_text( args[0]->ToUcs2StringValue(worker) );
-		}, Error);
-		
-		if (view) {
-			Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
-			JS_RETURN( wrap->that() );
-		} else {
-			JS_RETURN( worker->NewNull() );
-		}
 	}
 
 	/**
@@ -542,42 +363,6 @@ class WrapView: public WrapViewBase {
 		JS_WORKER(args);
 		JS_SELF(View);
 		JS_RETURN( self->id() );
-	}
-
-	/**
-	 * @get controller {ViewController}
-	 */
-	static void controller(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		ViewController* controller = self->controller();
-		if ( ! controller) JS_RETURN( worker->NewNull() );
-		Wrap<ViewController>* wrap = pack(controller);
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get top {View}
-	 */
-	static void top(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		View* view = self->top();
-		if ( ! view) JS_RETURN( worker->NewNull() );
-		auto wrap = Wrap<View>::pack(view, view->view_type());
-		JS_RETURN( wrap->that() );
-	}
-
-	/**
-	 * @get owner {ViewController}
-	 */
-	static void owner(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		ViewController* controller = self->owner();
-		if ( ! controller) JS_RETURN( worker->NewNull() );
-		auto wrap = pack(controller);
-		JS_RETURN( wrap->that() );
 	}
 
 	/**
@@ -872,18 +657,6 @@ class WrapView: public WrapViewBase {
 	}
 	
 	// ------------------------------------ set ----------------------------------
-	
-	/**
-	 * @set innerText {String}
-	 */
-	static void set_inner_text(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(View);
-		Ucs2String str = value->ToUcs2StringValue(worker);
-		JS_TRY_CATCH({
-			self->inner_text(str);
-		}, Error);
-	}
 
 	/**
 	 * @set id {String}
@@ -1164,7 +937,6 @@ class WrapView: public WrapViewBase {
 			// method
 			JS_SET_CLASS_METHOD(prepend, prepend);
 			JS_SET_CLASS_METHOD(append, append);
-			JS_SET_CLASS_METHOD(appendText, append_text);
 			JS_SET_CLASS_METHOD(before, before);
 			JS_SET_CLASS_METHOD(after, after);
 			JS_SET_CLASS_METHOD(remove, remove);
@@ -1186,12 +958,7 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_METHOD(firstButton, first_button);
 			JS_SET_CLASS_METHOD(hasChild, has_child);
 			// property
-			JS_SET_CLASS_ACCESSOR(innerText, inner_text, set_inner_text);
-			JS_SET_CLASS_ACCESSOR(id, id, set_id);
-			JS_SET_CLASS_ACCESSOR(controller, controller);
-			JS_SET_CLASS_ACCESSOR(ctr, controller);
-			JS_SET_CLASS_ACCESSOR(top, top);
-			JS_SET_CLASS_ACCESSOR(owner, owner);
+			JS_SET_CLASS_ACCESSOR(innerText, inner_text);
 			JS_SET_CLASS_ACCESSOR(parent, parent);
 			JS_SET_CLASS_ACCESSOR(prev, prev);
 			JS_SET_CLASS_ACCESSOR(next, next);
@@ -1228,7 +995,6 @@ class WrapView: public WrapViewBase {
 };
 
 void binding_view(Local<JSObject> exports, Worker* worker) {
-	WrapNativeViewController::binding(exports, worker);
 	WrapView::binding(exports, worker);
 }
 

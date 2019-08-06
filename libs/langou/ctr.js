@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import 'langou/util';
-import { EventNoticer, Notification, List } from 'langou/event';
+import { Notification, List } from 'langou/event';
 const { TextNode, View, Root } = requireNative('_langou');
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
@@ -530,23 +530,27 @@ export default class ViewController extends Notification {
 		return this.m_id;
 	}
 
-	set id(value) {
-		var id = this.m_id;
+	static setID(dom, id) {
+		var id = dom.m_id;
 		if (value != id) {
-			if (this.m_owner) {
-				var ids = this.m_owner.m_ids;
-				if (ids[id] === this) {
+			if (dom.m_owner) {
+				var ids = dom.m_owner.m_ids;
+				if (ids[id] === dom) {
 					delete ids[id];
 				}
 				if (value) {
 					if (value in ids) {
 						throw new Error('Identifier reference duplication in controller, = ' + value);
 					}
-					ids[value] = this;
+					ids[value] = dom;
 				}
 			}
-			this.m_id = value;
+			dom.m_id = value;
 		}
+	}
+
+	set id(value) {
+		ViewController.setID(this, value);
 	}
 
 	get IDs() {

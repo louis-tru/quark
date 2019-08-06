@@ -61,9 +61,6 @@ class XX_EXPORT Root: public Panel {
 	/**
 	 * @overwrite
 	 */
-	virtual void prepend(View* child) throw(Error);
-	virtual void append(View* child) throw(Error);
-	virtual View* append_text(cUcs2String& str) throw(Error);
 	virtual Vec2 layout_offset();
 	virtual void draw(Draw* draw);
 	virtual bool can_become_focus();

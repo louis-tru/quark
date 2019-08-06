@@ -68,7 +68,6 @@ F(___mark_json_stringify__) \
 F(stack) \
 F(get_path) \
 F(_exit) \
-F(__view_) \
 F(triggerRemoveView) \
 F(code) \
 F(message) \
@@ -90,7 +89,6 @@ F(name) \
 F(pathname) \
 F(styles) \
 F(sender) \
-F(__controller_) \
 F(Buffer) \
 F(data) \
 F(total) \

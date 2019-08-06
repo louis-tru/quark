@@ -49,9 +49,9 @@ export class AudioPlayer extends exports.AudioPlayer {
 }
 
  /**
-	* @class Video
+	* @class VideoExtend
 	*/
-class Video {
+class VideoExtend {
 	event onWaitBuffer;
 	event onReady;
 	event onStartPlay;
@@ -63,5 +63,5 @@ class Video {
 	event onSeek;
 }
 
-util.extendClass(exports.Video, Video);
+util.extendClass(exports.Video, VideoExtend);
 util.extendClass(AudioPlayer, NativeNotification);

@@ -39,13 +39,18 @@ import 'langou/display_port';
 import 'langou/css';
 
 /**
-	* @class View
+	* @class ViewExtend
 	*/
-class View extends event.NativeNotification {
+class ViewExtend extends event.NativeNotification {
 
 	// @private:
+	m_id = null;
 	m_owner = null;
 	
+	get __view__() {
+		return this;
+	}
+
 	// @public:
 	// @events
 	event onKeyDown;
@@ -71,8 +76,19 @@ class View extends event.NativeNotification {
 	event onHighlighted;
 	event onActionKeyframe;
 	event onActionLoop;
-	event onRemoveView;
-	
+
+	get id() {
+		return this.m_id;
+	}
+
+	set id(value) {
+		ViewController.setID(this, value);
+	}
+
+	get owner() {
+		return this.m_owner;
+	}
+
 	/**
 	 * @overwrite
 	 */
@@ -92,6 +108,23 @@ class View extends event.NativeNotification {
 		}
 	}
 	
+	/**
+	 * @overwrite
+	 */
+	hashCode() {
+		return Function.prototype.hashCode.call(this);
+	}
+
+	appendTo(parentView) {
+		parentView.append(this);
+		return this;
+	}
+
+	afterTo(prevView) {
+		prevView.after(this);
+		return this;
+	}
+
 	/**
 	 * @get action {Action}
 	 */
@@ -132,23 +165,32 @@ class View extends event.NativeNotification {
 	}
 }
 
- /**
-	* @class Panel
+util.extend(exports.View, {
+	/**
+	 * @func isViewController()
+	 * @static
 	*/
-class Panel {
+	isViewController: function() {
+		return false;
+	}
+});
+
+ /**
+	* @class PanelExtend
+	*/
+class PanelExtend {
 	event onFocusMove;
 }
 
  /**
-	* @class Scroll
+	* @class ScrollExtend
 	*/
-class Scroll {
+class ScrollExtend {
 	event onScroll;
 }
 
 /**
 	* @class Button
-	* @bases Hybrid
 	*/
 export class Button extends exports.Button {
 	
@@ -207,13 +249,12 @@ export class Button extends exports.Button {
 	}
 }
 
-util.extendClass(exports.View, View);
-util.extendClass(exports.Panel, Panel);
-util.extendClass(exports.Scroll, Scroll);
+util.extendClass(exports.View, ViewExtend);
+util.extendClass(exports.Panel, PanelExtend);
+util.extendClass(exports.Scroll, ScrollExtend);
 
 /**
  * @class Clip
- * @extends Div
  */
 export class Clip extends exports.Div {
 	constructor() {
