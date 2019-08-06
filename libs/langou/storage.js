@@ -30,24 +30,6 @@
 
 export requireNative('_storage');
 
- /**
-	* @func get(key)
-	* @arg key {String}
-	* @ret {String}
-	*
-	* @func set(key, value)
-	* @arg key {String}
-	* @arg value {String}
-	*
-	* @func del(key)
-	* @arg key {String}
-	*
-	* @func claer()
-	*
-	* @func transaction(cb)
-	* @arg cb {Function}
-	*/
-
 export function getJSON(key, value) {
 	var rv = exports.get(`__json_${key}`);
 	if ( rv ) {

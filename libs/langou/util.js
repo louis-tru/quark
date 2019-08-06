@@ -244,6 +244,10 @@ module.exports = exports = extend(extend(utils, _util), {
 		return is_async(func);
 	},
 
+	isNull: function(value) {
+		return value === null || value === undefined
+	},
+
 	/**
 	 * @func nextTick(cb)
 	 */

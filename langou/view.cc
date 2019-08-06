@@ -795,14 +795,6 @@ void View::append(View* child) throw(Error) {
 }
 
 /**
- * #func append_to # 追加自身至父视图结尾
- * @arg parent {View*} # 父视图
- */
-void View::append_to(View* parent) throw(Error) {
-	parent->append(this);
-}
-
-/**
  * @get id {cString&} # 获取当前视图id
  * @const
  */
@@ -865,43 +857,6 @@ void View::after(View* view) throw(Error) {
 		view->m_prev = this;
 		view->m_next = m_next;
 		m_next = view;
-	}
-
-}
-
-/**
- * @func move_to_before # 移动视图到上一个视图上面
- */
-void View::move_to_before() {
-	if (m_prev) {
-		m_prev->before(this);
-	}
-}
-
-/**
- * @func move_to_after # 移动视图到下一个视图下面
- */
-void View::move_to_after() {
-	if (m_next) {
-		m_next->after(this);
-	}
-}
-
-/**
- * @func move_to_first # 移动视图到所有视图的上面
- */
-void View::move_to_first() {
-	if (m_parent && m_parent->m_first) {
-		m_parent->m_first->before(this);
-	}
-}
-
-/**
- * @func move_to_last # 移动视图到所有视图的下面
- */
-void View::move_to_last() {
-	if (m_parent && m_parent->m_last) {
-		m_parent->m_last->after(this);
 	}
 }
 

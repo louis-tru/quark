@@ -54,6 +54,16 @@ function extend(obj, extd) {
 	}
 }
 
+extend(Object, {
+
+	/**
+	 * @func hashCode(obj)
+	*/
+	hashCode: function(obj) {
+		return obj === null ? -1354856: obj === undefined ? -3387255 : obj.hashCode();
+	},
+});
+
 extend(Object.prototype, {
 
 	/**
@@ -207,7 +217,7 @@ extend(Number.prototype, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		return this;
+		return this << 1;
 	},
 
 	/**
@@ -229,6 +239,16 @@ extend(Number.prototype, {
 		}
 	}
 
+});
+
+extend(Boolean.prototype, {
+
+	/**
+	 * @func hashCode()
+	 */
+	hashCode: function() {
+		return this ? -1186256: -23547257;
+	},
 });
 
 // index of
@@ -254,7 +274,7 @@ extend(Date, {
 	 * @ret {Date}              返回新时间
 	 */
 	parseDate: function(date_str, format, timezone) {
-		var s = date_str.replace(/[^0-9]/gm, '');
+		var s = String(date_str).replace(/[^0-9]/gm, '');
 		var f = '';
 
 		format = format || 'yyyyMMddhhmmssfff';

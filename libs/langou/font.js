@@ -29,36 +29,3 @@
  * ***** END LICENSE BLOCK ***** */
 
 export requireNative('_font');
-
- /**
-	* @func setDefaultFonts(fonts)
-	* @arg fonts {String|Array}
-	*
-	* @func defaultFontNames()
-	* @ret {Array}
-	*
-	* @func familyNames()
-	* @ret {Array}
-	*
-	* @func fontNames(family)
-	* @arg family {String}
-	* @ret {Array}
-	*
-	* @func test(name) test font or family
-	* @arg name {String} font name or family name
-	* @ret {bool}
-	*
-	* @func registerFont(font_data[,alias])
-	* @arg font_data {Buffer} 
-	* @arg alias {String}
-	* @ret {bool}
-	*
-	* @func registerFontFile(path[,alias])
-	* @arg path {String}
-	* @arg alias {String}
-	* @ret {bool}
-	*
-	* @func setFamilyAlias(family, alias)
-	* @arg family {String}
-	* @arg alias {String}
-	*/

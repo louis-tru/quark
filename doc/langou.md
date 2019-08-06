@@ -166,22 +166,6 @@ v2.onClick.on(function(ev) {
 
 * @arg `next` {[`View`]}
 
-### View.moveToBefore();
-
-移动到上一个兄弟视图前面
-
-### View.moveToAfter();
-
-移动到下一个兄弟视图后面
-
-### View.moveToFirst();
-
-移动到第一个
-
-### View.moveToLast();
-
-移动到最后一个
-
 ### View.remove()
 
 从父视图删除

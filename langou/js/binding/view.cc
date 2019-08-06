@@ -276,27 +276,6 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
-	 * @func appendTo(parent)
-	 * @arg parent {View}
-	 */
-	static void append_to(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		if (args.Length() < 1 || ! worker->has_instance(args[0], View::VIEW)) {
-			JS_THROW_ERR(
-				"* @func appendTo(parent)\n"
-				"* @arg parent {View}\n"
-			);
-		}
-		JS_SELF(View);
-		View* parent = Wrap<View>::unpack(args[0].To<JSObject>())->self();
-		
-		try { self->append_to(parent); }
-		catch (cError& err) { JS_THROW_ERR(err); }
-
-		JS_RETURN( args.This() );
-	}
-
-	/**
 	 * @func before(prev)
 	 * @arg prev {View}
 	 */
@@ -330,44 +309,6 @@ class WrapView: public WrapViewBase {
 		View* brother = Wrap<View>::unpack(args[0].To())->self();
 		try { self->after(brother); }
 		catch (cError& err) { JS_THROW_ERR(err); }
-
-		JS_RETURN( args.This() );
-	}
-
-	/**
-	 * @func moveToBefore();
-	 */
-	static void move_to_before(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(View);
-		self->move_to_before();
-	}
-
-	/**
-	 * @func moveToAfter();
-	 */
-	static void move_to_after(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(View);
-		self->move_to_after();
-	}
-
-	/**
-	 * @func moveToFirst();
-	 */
-	static void move_to_first(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(View);
-		self->move_to_first();
-	}
-
-	/**
-	 * @func moveToLast();
-	 */
-	static void move_to_last(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(View);
-		self->move_to_last();
 	}
 
 	/**
@@ -1224,13 +1165,8 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_METHOD(prepend, prepend);
 			JS_SET_CLASS_METHOD(append, append);
 			JS_SET_CLASS_METHOD(appendText, append_text);
-			JS_SET_CLASS_METHOD(appendTo, append_to);
 			JS_SET_CLASS_METHOD(before, before);
 			JS_SET_CLASS_METHOD(after, after);
-			JS_SET_CLASS_METHOD(moveToBefore, move_to_before);
-			JS_SET_CLASS_METHOD(moveToAfter, move_to_after);
-			JS_SET_CLASS_METHOD(moveToFirst, move_to_first);
-			JS_SET_CLASS_METHOD(moveToLast, move_to_last);
 			JS_SET_CLASS_METHOD(remove, remove);
 			JS_SET_CLASS_METHOD(removeAllChild, remove_all_child);
 			JS_SET_CLASS_METHOD(focus, focus);

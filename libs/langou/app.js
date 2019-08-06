@@ -31,83 +31,11 @@
 import 'langou/util';
 import 'langou/display_port';
 import { NativeNotification } from 'langou/event';
-import { ViewController, isViewXml, EMPTY_VIEW_XML } from 'langou/ctr';
+import ViewController from 'langou/ctr';
 
 var _langou = requireNative('_langou');
-var Root = _langou.Root;
 var cur = null;
-var cur_root = null;
 var cur_root_ctr = null;
-
-function start(self, vx) {
-	var [tag,attrs,childs,vdata] = vx.v;
-	cur_root_ctr = new tag();
-	
-	if (vdata) {
-		cur_root_ctr.vdata = vdata;
-	}
-	
-	if (childs.length) {
-		cur_root_ctr.loadView(...childs);
-	} else {
-		cur_root_ctr.loadView(EMPTY_VIEW_XML);
-	}
-	
-	cur_root = cur_root_ctr.view;
-	
-	util.assert(cur_root instanceof Root, 
-		'Bad vx data. Root controller view must be Root');
-
-	// TODO set view controller arts
-	for (var attr of attrs) {
-		util.set(attr[0], attr[2], cur_root_ctr); // none bind data
-	}
-}
-
- /**
-	* @class NativeGUIApplication
-	*
-	* @constructor([options])
-	* @arg [options] {Object} { anisotropic {bool}, mipmap {bool}, multisample {0-4} }
-	*
-	* @func clear() clear gui application resources
-	*
-	* @func openUrl(url)
-	* @arg url {String}
-	*
-	* @func sendEmail(recipient[,subject[,cc[,bcc[,body]]]])
-	* @arg recipient {String}
-	* @arg subject {String}
-	* @arg [cc] {String}
-	* @arg [bcc] {String}
-	* @arg [body] {String}
-	*
-	* @func maxTextureMemoryLimit()
-	* @ret {uint64}
-	*
-	* @func setMaxTextureMemoryLimit(limit)
-	* @arg limit {uint64}
-	*
-	* @func usedTextureMemory()
-	* @ret {uint64}
-	*
-	* @get isLoad {bool}
-	* @get displayPort {DisplayPort}
-	* @get root {Root}
-	* @get focusView {View}
-	* @get,set defaultTextBackgroundColor {TextColor}
-	* @get,set defaultTextColor {TextColor}
-	* @get,set defaultTextSize {TextSize}
-	* @get,set defaultTextStyle {TextStyle}
-	* @get,set defaultTextFamily {TextFamily}
-	* @get,set defaultTextShadow {TextShadow}
-	* @get,set defaultTextLineHeight {TextLineHeight}
-	* @get,set defaultTextDecoration {TextDecoration}
-	* @get,set defaultTextOverflow {TextOverflow}
-	* @get,set defaultTextWhiteSpace {TextWhiteSpace}
-	*
-	* @end
-	*/
 
 /**
  * @class GUIApplication
@@ -133,40 +61,22 @@ export class GUIApplication extends _langou.NativeGUIApplication {
 	}
 	
 	/**
-	 * @func start(vx)
-	 * @arg vx {Object}
+	 * @func start(vdom)
+	 * @arg vdom {Object}
 	 */
-	start(vx) {
-		util.assert(isViewXml(vx), 'Bad argument.');
-		var [tag] = vx.v;
-		
-		if (util.equalsClass(Root, tag)) {
-			if ( this.isLoad ) {
-				langou.lock(()=>{
-					cur_root_ctr = new ViewController();
-					cur_root_ctr.loadView(vx);
-					cur_root = cur_root_ctr.view;
-				});
-			} else {
-				this.onLoad.on(()=>{
-					cur_root_ctr = new ViewController();
-					cur_root_ctr.loadView(vx);
-					cur_root = cur_root_ctr.view;
-				});
-			}
-		}
-		else if (util.equalsClass(ViewController, tag)) {
-			if ( this.isLoad ) {
-				start(this, vx);
-			} else {
-				this.onLoad.on(()=>{ start(this, vx) });
-			}
+	start(vdom) {
+		if ( this.isLoad ) {
+			_langou.lock(()=>{
+				cur_root_ctr = ViewController.render(vdom);
+			});
 		} else {
-			throw new TypeError('Bad argument.');
+			this.onLoad.on(()=>{
+				cur_root_ctr = ViewController.render(vdom);
+			});
 		}
 		return this;
 	}
-	
+
 	//@end
 }
 
@@ -182,7 +92,7 @@ export {
 	/**
 	 * @get root {Root} 
 	 */
-	get root() { return cur_root },
+	get root() { return cur_root_ctr.dom },
 
 	/**
 	 * @get rootCtr {ViewController}

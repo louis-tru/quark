@@ -178,6 +178,7 @@ class List {
 
 	pop() {
 		if ( this._length ) {
+			var r = this._last;
 			if ( this._length > 1 ) {
 				this._first = null;
 				this._last = null;
@@ -186,11 +187,13 @@ class List {
 				this._last = this._last._prev;
 			}
 			this._length--;
+			return r._value;
 		}
 	}
 
 	shift() {
 		if ( this._length ) {
+			var r = this._first;
 			if ( this._length > 1 ) {
 				this._first = null;
 				this._last = null;
@@ -199,6 +202,7 @@ class List {
 				this._first = this._first._next;
 			}
 			this._length--;
+			return r._value;
 		}
 	}
 

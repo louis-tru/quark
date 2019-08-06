@@ -143,13 +143,12 @@ class Basic extends ViewController {
 	
 	event onChange;
 
-	loadView(vx) {
-		super.loadView(vx);
-		this.view.onClick.on(()=>{
-			if ( !this.m_disable ) {
+	triggerLoad(ev) {
+		this.dom.onClick.on(()=>{
+			if ( !this.m_disable )
 				this.selected = !this.selected;
-			}
 		});
+		return super.triggerLoad(ev);
 	}
 	
 	get disable() {
@@ -188,12 +187,12 @@ class Basic extends ViewController {
  */
 export class Checkbox extends Basic {
 
-	loadView(vx) {
-		super.loadView(
+	render() {
+		return (
 			<Button class="x_checkbox" defaultHighlighted=0>
 				<TextNode class="mark" value="\ued71" />
 			</Button>
-		);
+		)
 	}
 }
 
@@ -202,8 +201,8 @@ export class Checkbox extends Basic {
  */
 export class Switch extends Basic {
 
-	loadView(vx) {
-		super.loadView(
+	render(vx) {
+		return (
 			<Button class="x_switch" defaultHighlighted=0>
 				<Indep class="background" />
 				<Indep class="button" />

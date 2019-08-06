@@ -299,45 +299,19 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference>, pu
 	 * @func append_text # 追加文本到结尾
 	 */
 	virtual View* append_text(cUcs2String& str) throw(Error);
-	
-	/**
-	 * @func append_to # 追加自身至父视图结尾
-	 * @arg parent {View*} # 父视图
-	 */
-	virtual void append_to(View* parent) throw(Error);
-	
+
 	/**
 	 * @func before # 插入前
 	 * @arg view {View*} # 要插入的元素
 	 */
 	void before(View* view) throw(Error);
-	
+
 	/**
 	 * @func after # 插入后
 	 * @arg view {View*} # 要插入的元素
 	 */
 	void after(View* view) throw(Error);
-	
-	/**
-	 * @func move_to_before # 移动视图到上一个视图上面
-	 */
-	void move_to_before();
-	
-	/**
-	 * @func down # 移动视图到下一个视图下面
-	 */
-	void move_to_after();
-	
-	/**
-	 * @func move_to_first # 移动视图到所有视图的上面
-	 */
-	void move_to_first();
-	
-	/**
-	 * @func move_to_last # 移动视图到所有视图的下面
-	 */
-	void move_to_last();
-	
+
 	/**
 	 * #func remove # 删除当前视图,从内存清除
 	 */
