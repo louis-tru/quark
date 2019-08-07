@@ -18,13 +18,18 @@ function log(...args) {
 }
 
 class FSP extends ViewController {
-	priv_fsp_value = 0;
-	priv_cpu_usage = 0;
+
+	constructor() {
+		super();
+		this.modle = { fsp_value: 0, cpu_usage: 0 };
+	}
 
 	render() {
+		var { fsp_value, cpu_usage } = this.modle;
+		var value = 'FSP: ' + fsp_value + ', CPU: ' + (cpu_usage * 100).toFixed(0)
 		return (
 			<Indep alignY="bottom" x=5 y=-5>
-				<Text textColor="#f00" value=(this.modle.fsp || '') />
+				<Text textColor="#f00" value=value />
 			</Indep>
 		);
 	}
@@ -32,11 +37,7 @@ class FSP extends ViewController {
 	up_fsp() {
 		var fsp_value = langou.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
-		if (this.priv_fsp_value != fsp_value || this.priv_cpu_usage != cpu_usage) {
-			this.priv_fsp_value = fsp_value;
-			this.priv_cpu_usage = cpu_usage;
-			this.modle = { fsp : 'FSP: ' + fsp_value + ', CPU: ' + (cpu_usage * 100).toFixed(0) };
-		}
+		this.modle = { fsp_value, cpu_usage };
 		setTimeout(e=>this.up_fsp(), 1000);
 	}
 
