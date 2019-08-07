@@ -38,7 +38,7 @@ import './dialog';
 
 var resolve = require.resolve;
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Components" source=resolve(__filename)>
 		<Scroll width="full" height="full" bounceLock=0>
 		

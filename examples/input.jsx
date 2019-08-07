@@ -41,7 +41,7 @@ function end_input(evt) {
 	langou.app.focusView.blur();
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Input" source=resolve(__filename)>
 		<Div width="full">
 			<Text margin=10 origin="10 10" textBackgroundColor="#000" textColor="#fff">Examples Input</Text>

@@ -120,17 +120,19 @@ function handle_bug_feedback() {
 	langou.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
-var default_toolbar_vx = (
-	<Toolbar>
-		<Hybrid textAlign="center" width="full" height="full">
-			<Button onClick=review_code>
-				<Text class="toolbar_btn">\ue9ab</Text>
-			</Button>
-		</Hybrid>
-	</Toolbar>
-)
+class DefaultToolbar extends Toolbar {
+	render() {
+		return super.render(
+			<Hybrid textAlign="center" width="full" height="full">
+				<Button onClick=review_code>
+					<Text class="toolbar_btn">\ue9ab</Text>
+				</Button>
+			</Hybrid>
+		);
+	}
+}
 
-var langou_tools_vx = (
+const langou_tools_vx = ()=>(
 	<Mynavpage title="Langou Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
@@ -142,7 +144,7 @@ var langou_tools_vx = (
 	</Mynavpage>
 )
 
-const examples_source_vx = (
+const examples_source_vx = ()=>(
 	<Mynavpage title="Examples Source" source=resolve(__filename)>
 		<Div width="full">
 			<Text class="category_title">You can get the full examples source code from Github.</Text>
@@ -151,7 +153,7 @@ const examples_source_vx = (
 	</Mynavpage>
 )
 
-var documents_vx = (
+const documents_vx = ()=>(
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to <T textColor="#0079ff">langou.org</T> to view the document?</Hybrid>
@@ -160,7 +162,7 @@ var documents_vx = (
 	</Mynavpage>
 )
 
-const bug_feedback_vx = (
+const bug_feedback_vx = ()=>(
 	<Mynavpage title="Bug Feedback" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
@@ -182,7 +184,7 @@ var app = new GUIApplication({
 }).start(
 	<Root>
 
-		<NavpageCollection id="npc" defaultToolbar=default_toolbar_vx>
+		<NavpageCollection id="npc" defaultToolbar=DefaultToolbar>
 			<Mynavpage title="Home" source=resolve(__filename)>
 
 				<Scroll width="full" height="full" bounceLock=0>
@@ -201,14 +203,14 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=langou_tools_vx view.borderWidth=0>Langou Tools</Navbutton>
+						<Navbutton next=LangouTools style={borderWidth:0}>Langou Tools</Navbutton>
 					</Clip>
 					
 					<Text class="category_title" />
 					<Clip class="category">
 						<Navbutton next=about_vx>About</Navbutton>
 						<Navbutton next=documents_vx>Documents</Navbutton>
-						<Navbutton next=bug_feedback_vx view.borderWidth=0>Bug Feedback</Navbutton>
+						<Navbutton next=bug_feedback_vx style={borderWidth:0}>Bug Feedback</Navbutton>
 					</Clip>
 
 					<Div height=32 width="full" />

@@ -42,7 +42,7 @@ import './storage';
 
 var resolve = require.resolve;
 
-export const vx = (
+export const vx = ()=>(
 
 	<Mynavpage title="Examples" source=resolve(__filename)>
 

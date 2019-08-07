@@ -201,7 +201,7 @@ export class Checkbox extends Basic {
  */
 export class Switch extends Basic {
 
-	render(vx) {
+	render() {
 		return (
 			<Button class="x_switch" defaultHighlighted=0>
 				<Indep class="background" />

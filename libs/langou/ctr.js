@@ -223,11 +223,9 @@ class VirtualDOM {
  */
 class VirtualDOMCollection extends VirtualDOM {
 	vdoms = null;
-	keys = {};
 
 	constructor(vdoms) {
 		super(DOMCollection, [], [], {});
-		this.keys = {};
 		this.vdoms = vdoms.filter(e=>e);
 		this.vdoms.forEach(e=>(this.hash += (this.hash << 5) + e.hash));
 	}
@@ -239,9 +237,11 @@ class VirtualDOMCollection extends VirtualDOM {
 		}
 	}
 
-	diffProps({vdoms, keys, hash}) {
-		var { keys: keys_c, dom } = this.keys;
+	diffProps({vdoms, hash}) {
+		var dom = this.dom;
 		var doms = [];
+		var keys = {};
+		var keys_c = dom.keys;
 		var ctr = dom.owner;
 		var prev = dom.m_doms[0] || dom.m_placeholder; // DOMCollection placeholder or doms[0]
 
@@ -292,8 +292,9 @@ class VirtualDOMCollection extends VirtualDOM {
 
 		this.hash = hash;
 		this.vdoms = vdoms;
-		this.keys = keys;
 		dom.m_doms = doms;
+		dom.m_vdoms = vdoms;
+		dom.m_keys = keys;
 
 		for (var key in keys_c) {
 			removeDOM(ctr, keys_c[key]);
@@ -302,9 +303,9 @@ class VirtualDOMCollection extends VirtualDOM {
 
 	newInstance(ctr) {
 		util.assert(!this.dom);
-		var keys = this.keys;
-		var doms = [];
 		var vdoms = this.vdoms;
+		var doms = [];
+		var keys = {};
 		var style = this.style;
 
 		for (var i = 0; i < vdoms.length; i++) {
@@ -324,7 +325,7 @@ class VirtualDOMCollection extends VirtualDOM {
 			doms.push(cell);
 		}
 
-		return (this.dom = new DOMCollection(ctr, this, doms));
+		return (this.dom = new DOMCollection(ctr, vdoms, doms, keys));
 	}
 
 }
@@ -348,8 +349,9 @@ class DOMCollection {
 
 	// @private:
 	m_owner = null;
-	m_vdom = null;
+	m_vdoms = null;
 	m_doms = null;
+	m_keys = null;
 	m_style = null;
 	m_placeholder = null; // view placeholder	
 
@@ -366,10 +368,11 @@ class DOMCollection {
 		return this.m_doms;
 	}
 
-	constructor(ctr, vdom, doms) {
+	constructor(ctr, vdoms, doms, keys) {
 		this.m_owner = ctr;
-		this.m_vdom = vdom;
+		this.m_vdoms = vdoms;
 		this.m_doms = doms;
+		this.m_keys = keys;
 		if (!doms.length) {
 			this.m_placeholder = new View();
 		}
@@ -383,16 +386,17 @@ class DOMCollection {
 			this.m_placeholder.remove();
 			this.m_placeholder = null;
 		}
-		else if (this.m_vdom) {
-			var keys = this.m_vdom.keys;
-			this.m_vdom.vdoms.forEach(vdom=>{
+		else if (this.m_vdoms) {
+			var keys = this.m_keys;
+			this.m_vdoms.forEach(vdom=>{
 				var key = vdom.key;
 				if (key) {
 					delete keys[key];
 				}
 				removeDOM(this.m_owner, vdom);
 			});
-			this.m_vdom = null;
+			this.m_vdoms = null;
+			this.m_keys = null;
 			this.m_doms = [];
 		}
 	}
@@ -513,7 +517,7 @@ function diff(self, vdom_c, vdom, prevView) {
 
 function rerender(self) {
 	var vdom_c = self.m_vdom;
-	var vdom = _VVD(self.render());
+	var vdom = _VVD(self.render(self.m_vchildren));
 	var update = false;
 
 	if (vdom) {
@@ -576,7 +580,7 @@ export default class ViewController extends Notification {
 	m_dataHash = null; // modle and props hash
 	m_vdom = null;   // vdom
 	m_dom = null;    // children view or controller or 
-	m_vchildren = null;
+	m_vchildren = null; // outer vdom children
 	m_loaded = false;
 	m_mounted = false;
 	m_style = null;
@@ -665,10 +669,6 @@ export default class ViewController extends Notification {
 		}
 	}
 
-	get vchildren() {
-		return this.m_vchildren;
-	}
-
 	constructor() {
 		super();
 		this.m_IDs = {};
@@ -711,10 +711,10 @@ export default class ViewController extends Notification {
 	}
 
 	/**
-	 * @func render()
+	 * @func render(vc)
 	 */
-	render() {
-		return this.vchildren;
+	render(vc) {
+		return vc;
 	}
 
 	remove() {
@@ -806,17 +806,21 @@ export default class ViewController extends Notification {
 	}
 
 	/**
-	 * @func typeof(vdom, Type)
+	 * @func typeOf(obj, [Type=class ViewController])
+	 * @arg obj {VirtualDOM|View|ViewController|class View|class ViewController}
 	 * @static
 	 */
-	static typeOf(vdom, Type) {
-		if (vdom instanceof ViewController || vdom instanceof View) {
-			if (vdom instanceof Type)
-				return 2;
-		}
-		if (vdom instanceof VirtualDOM) {
-			if (vdom.type instanceof Type)
-				return 1;
+	static typeOf(obj, Type) {
+		Type = Type || ViewController;
+		if (util.equalsClass(ViewController, Type) || util.equalsClass(View, Type)) {
+			if (obj instanceof Type)
+				return 3; // dom instance
+			if (obj instanceof VirtualDOM) { 
+				if (util.equalsClass(Type, obj.type))
+					return 2; // vdom instance
+			}
+			if (util.equalsClass(Type, obj))
+				return 1; // class
 		}
 		return 0;
 	}
@@ -829,10 +833,9 @@ export default class ViewController extends Notification {
 export class RootViewController extends ViewController {
 
 	//@overwrite
-	render() {
-		var vchildren = this.vchildren;
-		if (vchildren.length) {
-			var first = this.vchildren[0];
+	render(vc) {
+		if (vc && vc.length) {
+			var first = vc[0];
 			util.assert(util.equalsClass(Root, first.type), 'RootViewController first children must be Root view');
 			return first;
 		} else {
@@ -852,16 +855,22 @@ util.extend(ViewController, {
 	},
 
 	/**
-	 * @func render(vdom, [parentView])
+	 * @func render(obj, [parentView])
+	 * @arg obj {VirtualDOM|View|ViewController|class View|class ViewController}
 	 */
-	render: function(vdom, parentView) {
-		if (vdom instanceof ViewController || vdom instanceof View) {
-			var dom = vdom;
+	render: function(obj, parentView) {
+		var dom;
+		var owner = parentView ? parentView.owner: null;
+
+		if (obj instanceof ViewController || obj instanceof View) {
+			dom = obj;
+		} else if (util.equalsClass(ViewController, obj) || util.equalsClass(View, obj)) {
+			obj = _VV(obj, [], []);
+			dom = obj.newInstance(owner);
 		} else {
-			vdom = _VVD(vdom);
-			util.assert(vdom instanceof VirtualDOM, 'Bad argument');
-			var owner = parentView ? parentView.owner: null;
-			var dom = vdom.newInstance(owner);
+			obj = _VVD(obj);
+			util.assert(obj instanceof VirtualDOM, 'Bad argument');
+			dom = obj.newInstance(owner);
 		}
 		if (parentView) {
 			dom.appendTo(parentView);

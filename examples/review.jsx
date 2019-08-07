@@ -39,7 +39,7 @@ function foreground(evt) {
 	navpage.find('text').value = reader.readFileSync(navpage.prevPage.source, 'utf8');
 }
 
-export default const vx = (
+export default const vx = ()=>(
 	<Mynavpage 
 		navbar.backgroundColor="#333"
 		navbar.backTextColor="#fff" 

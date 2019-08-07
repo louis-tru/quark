@@ -277,7 +277,7 @@ export class Overlay extends Navigation {
 	/**
 	 * @overwrite
 	 */
-	render() {
+	render(vc) {
 		return (
 			<Indep visible=0 width="full" height="full" backgroundColor="#0003" opacity=0>
 				<Div width="full" height="full" 
@@ -295,9 +295,7 @@ export class Overlay extends Navigation {
 							textSize=36 textColor="#fff" value="\uedcb" />
 					</Indep>
 
-					<Clip id="content" backgroundColor="#fff" borderRadius=8>
-						${this.vchildren}
-					</Clip>
+					<Clip id="content" backgroundColor="#fff" borderRadius=8>${vc}</Clip>
 
 				</Indep>
 			</Indep>

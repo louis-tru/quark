@@ -82,7 +82,7 @@ function keyenter(evt) {
 	evt.sender.blur();
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="File System" source=resolve(__filename)>
 		<Div width="full">
 			<Input class="input" id="input" 

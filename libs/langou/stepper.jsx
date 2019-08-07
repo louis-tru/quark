@@ -86,7 +86,7 @@ export class Stepper extends ViewController {
 		this.value = this.m_value + this.step;
 	}
 	
-	render(vx) {
+	render() {
 		return (
 			<Hybrid class="x_stepper">
 				<Button class="minus" 

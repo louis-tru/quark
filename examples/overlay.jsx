@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, CSS, atomPixel, Button, Indep, New } from 'langou';
+import { Div, Text, CSS, atomPixel, Button, Indep, render } from 'langou';
 import { Navbutton, Mynavpage } from './public';
 import { Overlay } from 'langou/overlay';
 
 var resolve = require.resolve;
 
 function show_overlay(evt) {
-	New(
+	render(
 		<Overlay>
 			<Div>
 				<Navbutton>Menu A</Navbutton>
@@ -48,7 +48,7 @@ function show_overlay(evt) {
 }
 
 function show_overlay2(evt) {
-	var com = New(
+	var com = render(
 		<Overlay>
 			<Div>
 				<Navbutton>Hello.</Navbutton>
@@ -62,7 +62,7 @@ function show_overlay2(evt) {
 }
 
 function show_overlay3(evt) {
-	var com = New(
+	var com = render(
 		<Overlay>
 			<Div>
 				<Navbutton view.textColor="#fff">Hello.</Navbutton>
@@ -77,7 +77,7 @@ function show_overlay3(evt) {
 	com.showOverlayWithView(evt.sender);
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Overlay" source=resolve(__filename)>
 		<Div width="full" height="full">
 			<Indep alignY="top" width="full">

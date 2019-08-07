@@ -424,11 +424,11 @@ export class NavpageCollection extends ViewController {
 		var prev = this.current;
 		
 		if ( page ) {
-			if ( page instanceof Navpage ) {
+			if ( page instanceof Navpage ) { // dom
 				util.assert(!page.collection, 'Navpage can only be a new entity');
 				render(page, this.IDs.page);
 			} else {
-				if (ViewController.typeOf(page)) {
+				if (ViewController.typeOf(page, Navpage)) {
 					page = render(page, this.IDs.page);
 				} else {
 					page = render(<Navpage>${page}</Navpage>, this.IDs.page);
@@ -719,12 +719,12 @@ export class Navbar extends Bar {
 	/**
 	 * @overwrite
 	 */
-	render() {
+	render(vc) {
 		var height = this.height;
 		var textSize = 16;
 		return (
 			<Indep width="100%" height=height visible=0 alignY="bottom">
-				${this.vchildren}
+				${vc}
 				<Indep id="title_panel" width="full" height="100%" visible=0>
 					<Div id="back_text_panel" height="full">
 						<Limit maxWidth="100%">
@@ -852,9 +852,9 @@ export class Toolbar extends Bar {
 	/**
 	 * @overwrite
 	 */
-	render() {
+	render(vc) {
 		return (
-			<Indep width="100%" height="full" visible=0>${this.vchildren}</Indep>
+			<Indep width="100%" height="full" visible=0>${vc}</Indep>
 		);
 	}
 	
@@ -1013,9 +1013,9 @@ export class Navpage extends Navigation {
 	}
 	
 	// @overwrite
-	render() {
+	render(vc) {
 		return (
-			<Indep width="100%" height="full" backgroundColor="#fff" visible=0>${this.vchildren}</Indep>
+			<Indep width="100%" height="full" backgroundColor="#fff" visible=0>${vc}</Indep>
 		);
 	}
 	

@@ -61,7 +61,7 @@ class IconsPanel extends ViewController {
 	}
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Icons" source=resolve(__filename)>
 		<Scroll width="full" height="full" bounceLock=0>
 			<IconsPanel>

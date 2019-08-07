@@ -65,7 +65,7 @@ function Clear(evt) {
 	alert('Delete All local data OK.');
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Local Storage" source=resolve(__filename)>
 		<Div width="full">
 			<Input class="input" id="input" 

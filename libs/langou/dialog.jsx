@@ -154,14 +154,14 @@ export class Dialog extends Navigation {
 	/**
 	 * @overwrite
 	 */
-	render() {
+	render(vc) {
 		return (
 			<Indep 
 				width="full" 
 				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
 					<Hybrid id="title" class="title" />
-					<Hybrid id="con" class="content">${this.vchildren}</Hybrid>
+					<Hybrid id="con" class="content">${vc}</Hybrid>
 					<Clip id="btns" class="buttons" />
 				</LimitIndep>
 			</Indep>

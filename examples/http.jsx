@@ -79,7 +79,7 @@ function keyenter(evt) {
 
 //console.log('-------------', String(util.garbage_collection), typeof util.garbage_collection);
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Http" source=resolve(__filename)>
 		<Div width="full">
 			<Input class="input" id="input" 

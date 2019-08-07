@@ -53,7 +53,7 @@ function change_handle(evt) {
 	stepper.view.prev.value = stepper.value;
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Stepper" source=resolve(__filename)>
 		<Div width="full" class="strpper_page">
 			<Div class="item">

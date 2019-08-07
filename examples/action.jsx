@@ -53,7 +53,7 @@ function highlighted(evt) {
 	img2.action.speed = speed;
 }
 
-const toolbar_vx = (
+const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
 			<Button onClick=view_code>
@@ -63,12 +63,12 @@ const toolbar_vx = (
 	</Toolbar>
 )
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage 
 		navbar.backgroundColor="#333"
 		navbar.backTextColor="#fff" 
 		navbar.titleTextColor="#fff"
-		toolbar=toolbar_vx
+		toolbar=(toolbar_vx())
 		backgroundColor="#333"
 		title="Action" source=resolve(__filename)>
 		<Clip width="full" height="full">

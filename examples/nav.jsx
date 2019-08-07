@@ -57,7 +57,7 @@ function view_code(evt) {
 	evt.sender.owner.collection.push(review_vx, 1);
 }
 
-const navbar_vx = (
+const navbar_vx = ()=>(
 	<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
 		<Indep alignX="right" alignY="center" x=-10>
 			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize=20>\ued63</Button>
@@ -65,7 +65,7 @@ const navbar_vx = (
 	</Navbar>
 )
 
-const toolbar_vx = (
+const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
 			<Button onClick=view_code>
@@ -75,10 +75,10 @@ const toolbar_vx = (
 	</Toolbar>
 )
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage 
 		title="Nav" source=resolve(__filename) 
-		backgroundColor="#333" navbar=navbar_vx toolbar=toolbar_vx>
+		backgroundColor="#333" navbar=(navbar_vx()) toolbar=(toolbar_vx())>
 		<Div width="full">
 			<Div width="full" height=0 />
 			<Button class="long_btn2" onClick=hide_show_navbar>Hide/Show Navbar</Button>

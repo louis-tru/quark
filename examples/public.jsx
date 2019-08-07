@@ -31,8 +31,8 @@
 import { Navpage } from 'langou/nav';
 import { 
 	ViewController, Button, CSS,
-	Text, TextNode, atomPixel: px, 
-	Indep, isViewXml, Panel, Scroll, langou, Style
+	Text, atomPixel: px, 
+	Indep, Panel, Scroll, langou
 } from 'langou';
 import 'langou/util';
 
@@ -123,16 +123,16 @@ CSS({
 
 export class Navbutton extends ViewController {
 	
-	loadView(vx) {
+	render() {
 		//util.log('---------------------', px);
-		super.loadView(
+		return (
 			<Button
 				onClick="handle_click"
 				class="next_btn"
 				textColor="#0079ff"
 				defaultHighlighted=0
 				borderBottom=`${px} #c8c7cc`>
-				<Text marginLeft=16 marginRight=50>${vx}</Text>
+				<Text marginLeft=16 marginRight=50>${this.vchildren}</Text>
 				<Indep x=-10 alignX="right" alignY="center">
 					<Text value="\uedbe" textFamily="icomoon-ultimate" textColor="#aaa" />
 				</Indep>
@@ -141,13 +141,14 @@ export class Navbutton extends ViewController {
 	}
 	
 	handle_click(evt) {
-		if ( isViewXml(this.next) ) {
-			var ctr = this.parent;
+		var next = this.next();
+		if ( ViewController.typeOf(next, Mynavpage) ) {
+			var ctr = this.owner;
 			while (ctr) {
 				if ( ctr instanceof Mynavpage ) {
-					ctr.collection.push(this.next, 1); break;
+					ctr.collection.push(next, 1); break;
 				}
-				ctr = ctr.parent;
+				ctr = ctr.owner;
 			}
 		}
 		// console.log('nav button click');
@@ -157,8 +158,7 @@ export class Navbutton extends ViewController {
 export class Mynavpage extends Navpage {
 	source = resolve(__filename);
 	
-	loadView(vx) {
-		super.loadView(vx);
+	triggerMounted(e) {
 		this.backgroundColor = "#f8f8f8";
 		<!-- White title -->
 		<!--
@@ -167,6 +167,7 @@ export class Mynavpage extends Navpage {
 			this.navbar.titleTextColor = '#000';
 			this.navbar.backTextColor = '#0079ff';
 		-->
+		super.triggerMounted(e);
 	}
 
 	triggerForeground(e) {

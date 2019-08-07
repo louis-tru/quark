@@ -56,7 +56,7 @@ function change_handle(evt) {
 	checkbox.view.prev.value = str;
 }
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Checkbox" source=resolve(__filename)>
 		<Div width="full" class="checkbox_page">
 			<Div class="item">

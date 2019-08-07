@@ -33,7 +33,7 @@ import { Mynavpage } from './public';
 
 var resolve = require.resolve;
 
-export const vx = (
+export const vx = ()=>(
 	<Mynavpage title="Zlib" source=resolve(__filename)>
 		<Div width="full">
 			<Button class="long_btn">OK</Button>
