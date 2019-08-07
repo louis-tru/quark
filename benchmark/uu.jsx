@@ -19,13 +19,8 @@ function log(...args) {
 
 class FSP extends ViewController {
 
-	constructor() {
-		super();
-		this.modle = { fsp_value: 0, cpu_usage: 0 };
-	}
-
 	render() {
-		var { fsp_value, cpu_usage } = this.modle;
+		var { fsp_value: 0, cpu_usage: 0 } = this.modle;
 		var value = 'FSP: ' + fsp_value + ', CPU: ' + (cpu_usage * 100).toFixed(0)
 		return (
 			<Indep alignY="bottom" x=5 y=-5>
