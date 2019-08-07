@@ -174,6 +174,15 @@ void Label::append(View* child) throw(Error) {
 }
 
 /**
+ * @overwrite
+ */
+View* Label::append_text(cUcs2String& str) throw(Error) {
+	m_data.string.push(str);
+	mark( Layout::M_CONTENT_OFFSET );
+	return nullptr;
+}
+
+/**
  * @set set_value
  */
 void Label::set_value(cUcs2String& str) {

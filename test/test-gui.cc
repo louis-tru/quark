@@ -51,7 +51,7 @@ void onload_handle (Event<>& evt, void* user) {
 	sp0->set_translate(Vec2(100, 500));
 	sp0->set_rotate_z(10);
 	sp0->set_scale(Vec2(0.5, 0.5));
-	sp0->append_to(r);
+	r->append(sp0);
 	
 	// div sprite
 	
@@ -67,11 +67,11 @@ void onload_handle (Event<>& evt, void* user) {
 	div->set_border_top_color(Color(0, 255, 0));
 	div->set_border_right_color(Color(0, 0, 255));
 	div->set_border_bottom_color(Color(255, 0, 255));
-	div->append_to(r);
+	r->append(div);
 	
 	Sprite* sp1 = Sprite::create(Path::resources("res/bb.pvr"), {512, 512});
 	sp1->set_scale(Vec2(0.5, 0.5));
-	sp1->append_to(div);
+	div->append(sp1);
 	
 	// box sprite
 	
@@ -80,14 +80,14 @@ void onload_handle (Event<>& evt, void* user) {
 	div2->set_margin_top(30);
 	div2->set_width({ ValueType::MINUS, 296 });
 	div2->set_height(100);
-	div2->append_to(r);
+	r->append(div2);
 	
 	Sprite* sp = Sprite::create(Path::resources("res/cc.pvr"), {1024, 1024});
 	//  sp->translate(-450, -450);
 	sp->set_scale(0.3);
 	//  sp->origin(500, 500);
 	//  sp->rotate(-45);
-	sp->append_to(div2);
+	sp->append(div2);
 	
 	// Image
 	
@@ -114,7 +114,7 @@ void onload_handle (Event<>& evt, void* user) {
 	//  img->border_bottom_color(Color(0, 0, 255));
 	//  img->border_left_color(Color(255, 0, 0));
 	//  img->border_bottom_width(0);
-	img->append_to(r);
+	r->append(img);
 	
 }
 

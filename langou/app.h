@@ -135,9 +135,9 @@ class XX_EXPORT GUIApplication: public Object {
 	void pending();
 
 	/**
-	 * @func is_load
+	 * @func is_loaded
 	 */
-	inline bool is_load() const { return m_is_load; }
+	inline bool is_loaded() const { return m_is_load; }
 	
 	/**
 	 * @func draw_ctx 绘图上下文

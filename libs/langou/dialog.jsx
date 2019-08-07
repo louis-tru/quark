@@ -31,7 +31,7 @@
 import 'langou/util';
 import { 
 	CSS, New, Indep, Hybrid, Clip, Input, Span,
-	LimitIndep, Button, atomPixel, langou
+	LimitIndep, Button, atomPixel, langou, render
 } from 'langou/langou';
 import { Navigation } from 'langou/nav';
 
@@ -111,7 +111,7 @@ function compute_buttons_width(self) {
 	if ( btns.length == 1 ) {
 		btns[0].width = 'full';
 	} else {
-		var main_width = self.find('m_main').finalWidth;
+		var main_width = self.IDs.main.finalWidth;
 		if ( main_width ) {
 			for ( var btn of btns ) {
 				btn.width = (main_width / btns.length) - ((btns.length - 1) * atomPixel);
@@ -159,28 +159,28 @@ export class Dialog extends Navigation {
 			<Indep 
 				width="full" 
 				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
-				<LimitIndep id="m_main" class="x_dialog" alignX="center" alignY="center">
-					<Hybrid id="m_title" class="title" />
-					<Hybrid id="m_con" class="content">${this.vchildren}</Hybrid>
-					<Clip id="m_btns" class="buttons" />
+				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
+					<Hybrid id="title" class="title" />
+					<Hybrid id="con" class="content">{this.vchildren}</Hybrid>
+					<Clip id="btns" class="buttons" />
 				</LimitIndep>
 			</Indep>
 		);
 	}
 
-	get title() { return this.find('m_title').innerText }
-	get content() { return this.find('m_con').innerText }
+	get title() { return this.IDs.title.innerText }
+	get content() { return this.IDs.con.innerText }
 	set title(value) {
-		this.find('m_title').removeAllChild();
-		this.find('m_title').appendText(value || '');
+		this.IDs.title.removeAllChild();
+		this.IDs.title.appendText(value || '');
 	}
-	set content(value) { 
-		this.find('m_con').removeAllChild();
-		this.find('m_con').appendText(value || '');
+	set content(value) {
+		this.IDs.con.removeAllChild();
+		this.IDs.con.appendText(value || '');
 	}
 	
 	get buttons() {
-		var btns = this.find('m_btns');
+		var btns = this.IDs.btns;
 		var btn = btns.first;
 		var rv = [];
 		while (btn) {
@@ -192,18 +192,18 @@ export class Dialog extends Navigation {
 	
 	set buttons(btns) {
 		if ( Array.isArray(btns) ) {
-			this.find('m_btns').removeAllChild();
+			this.IDs.btns.removeAllChild();
 			this.m_btns_count = btns.length;
 
 			for ( var i = 0; i < btns.length; i++ ) {
-				var btn = New(
+				var btn = render(
 					<Button 
 						index=i
 						class="button" 
 						width="full"
 						onClick="triggerClickButton"
 						defaultHighlighted=0>${btns[i]}</Button>,
-					this.find('m_btns')
+					this.IDs.btns)
 				);
 			}
 			if ( this.visible ) {
@@ -219,12 +219,12 @@ export class Dialog extends Navigation {
 			
 			langou.nextFrame(()=>{
 				compute_buttons_width(this);
-				var main = this.find('m_main');
+				var main = this.IDs.main;
 				main.originX = main.finalWidth / 2;
 				main.originY = main.finalHeight / 2;
 				main.scale = '0.3 0.3';
 				main.transition({ scale : '1 1', time: 200 });
-				this.view.opacity = 0.3;
+				this.dom.opacity = 0.3;
 				this.transition({ opacity : 1, time: 200 });
 			});
 			this.registerNavigation(0);
@@ -233,7 +233,7 @@ export class Dialog extends Navigation {
 	
 	close() {
 		if ( this.visible ) {
-			var main = this.find('m_main');
+			var main = this.IDs.main;
 			main.originX = main.finalWidth / 2;
 			main.originY = main.finalHeight / 2;
 			main.transition({ scale : '0.5 0.5', time: 200 });
@@ -265,7 +265,7 @@ export class Dialog extends Navigation {
 	 * @overwrite 
 	 */
 	navigationEnter(focus) {
-		if ( !this.view.hasChild(focus) ) {
+		if ( !this.dom.hasChild(focus) ) {
 			if ( this.length ) {
 				this.trigger('ClickButton', this.length - 1);
 			}
@@ -281,7 +281,7 @@ export const CONSTS = {
 };
 
 export function alert(msg, cb = util.noop) {
-	var dag = New(
+	var dag = render(
 		<Dialog buttons=[CONSTS.OK] onClickButton=(e=>cb(e.data))>${msg}</Dialog>
 	);
 	dag.show();
@@ -289,7 +289,7 @@ export function alert(msg, cb = util.noop) {
 }
 
 export function confirm(msg, cb = util.noop) {
-	var dag = New(
+	var dag = render(
 		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data))>${msg}</Dialog>
 	);
 	dag.show();
@@ -307,9 +307,9 @@ export function prompt(msg, text = '', cb = util.noop) {
 		cb = text;
 		text = '';
 	}
-	var dag = New(
+	var dag = render(
 		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] 
-			onClickButton=(e=>cb(e.data, e.data ? dag.find('m_input').value: ''))>
+			onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
 				${msg}
 				<Input id="m_input" class="prompt"
@@ -319,12 +319,12 @@ export function prompt(msg, text = '', cb = util.noop) {
 		</Dialog>
 	);
 	dag.show();
-	dag.find('m_input').focus();
+	dag.onMounted.once(e=>dag.IDs.input.focus());
 	return dag;
 }
 
 export function show(title, msg, buttons, cb = ()=>{ }) {
-	var dag = New(
+	var dag = render(
 		<Dialog title=title buttons=buttons onClickButton=(e=>cb(e.data))>${msg}</Dialog>
 	);
 	dag.show();

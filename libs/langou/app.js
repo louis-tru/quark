@@ -34,6 +34,7 @@ import { NativeNotification } from 'langou/event';
 import ViewController from 'langou/ctr';
 
 var _langou = requireNative('_langou');
+var Root = _langou.Root;
 var cur = null;
 var cur_root_ctr = null;
 
@@ -65,15 +66,24 @@ export class GUIApplication extends _langou.NativeGUIApplication {
 	 * @arg vdom {Object}
 	 */
 	start(vdom) {
-		if ( this.isLoad ) {
+		util.assert(vdom.isViewController(), 'The "ViewController" must be used to start the application');
+
+		function handleMounted(e) {
+			util.assert(cur_root_ctr.dom instanceof Root, 'Root view controller first children must be Root view');
+		}
+
+		if ( this.isLoaded ) {
 			_langou.lock(()=>{
 				cur_root_ctr = ViewController.render(vdom);
+				cur_root_ctr.onMounted.on(handleMounted);
 			});
 		} else {
 			this.onLoad.on(()=>{
 				cur_root_ctr = ViewController.render(vdom);
+				cur_root_ctr.onMounted.on(handleMounted);
 			});
 		}
+
 		return this;
 	}
 

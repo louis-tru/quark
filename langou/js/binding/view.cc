@@ -357,15 +357,6 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
-	 * @get id {String}
-	 */
-	static void id(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		JS_RETURN( self->id() );
-	}
-
-	/**
 	 * @get parent {View}
 	 */
 	static void parent(Local<JSString> name, PropertyCall args) {
@@ -657,17 +648,6 @@ class WrapView: public WrapViewBase {
 	}
 	
 	// ------------------------------------ set ----------------------------------
-
-	/**
-	 * @set id {String}
-	 */
-	static void set_id(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		JS_SELF(View);
-		JS_TRY_CATCH({
-			self->set_id(value->ToStringValue(worker));
-		}, Error);
-	}
 
 	/**
 	 * @set x {float}

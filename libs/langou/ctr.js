@@ -36,6 +36,20 @@ const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']
 const G_renderQueueSet = new Set();
 const G_renderQueue = new List();
 var   G_renderQueueWorking = false;
+const G_warnRecord = new WeakSet();
+const G_warnDefine = {
+	UndefinedDOMKey: 'DOM key no defined in DOM Collection',
+};
+
+function warn(id, msg) {
+	var def = G_warnDefine[id];
+	if (def) {
+		if (!G_warnRecord.has(id)) {
+			G_warnRecord.add(id);
+			console.warn(def, msg);
+		}
+	}
+}
 
 // mark controller rerender
 function markRerender(ctr) {
@@ -173,7 +187,7 @@ class VirtualDOM {
 			dom.m_vchildren = children;
 			dom.m_placeholder = placeholder;
 			this.assignProps(); // before set props
-			var r = dom.triggerBeforeLoad(); // trigger event before Load
+			var r = dom.triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
 				r.then(e=>dom.m_loaded = true);
 			} else {
@@ -221,7 +235,7 @@ class VirtualDOMCollection extends VirtualDOM {
 			var key = vdom.key;
 
 			if (!vdom.hasKey) {
-				console.warn('DOM key no defined in DOM Collection');
+				warn('UndefinedDOMKey');
 				vdom.options.key = key = '_$auto' + i; // auto key
 			}
 			if (keys[key]) {
@@ -280,7 +294,7 @@ class VirtualDOMCollection extends VirtualDOM {
 			var cell = vdom.newInstance(ctr);
 			var key = vdom.key;
 			if (!vdom.hasKey) {
-				console.warn('DOM key no defined in DOM Collection');
+				warn('DOMCollectionKey');
 				vdom.options.key = key = '_$auto' + i; // auto key
 			}
 			if (keys[key]) {
@@ -343,7 +357,8 @@ class DOMCollection {
 		if (this.m_placeholder) {
 			this.m_placeholder.remove();
 			this.m_placeholder = null;
-		} else if (this.m_vdom) {
+		}
+		else if (this.m_vdom) {
 			var keys = this.m_vdom.keys;
 			this.m_vdom.vdoms.forEach(vdom=>{
 				var key = vdom.key;
@@ -463,11 +478,14 @@ function diff(self, vdom_c, vdom, prevView) {
 function rerender(self) {
 	var vdom_c = self.m_vdom;
 	var vdom = _VVD(self.render());
+	var update = false;
+
 	if (vdom_c) {
 		if (vdom) {
 			if (vdom_c.hash != vdom.hash) {
 				diff(self, vdom_c, vdom, self.__view__); // diff
 				setVDOM(self, vdom); // set new vdom
+				update = true;
 			}
 		} else {
 			var dom = self.m_dom;
@@ -479,6 +497,7 @@ function rerender(self) {
 			self.m_placeholder = placeholder;
 			setVDOM(self, null);
 			removeDOM(self, vdom_c); // del dom
+			update = true;
 		}
 	} else {
 		if (vdom) {
@@ -487,12 +506,16 @@ function rerender(self) {
 			self.m_placeholder.remove();
 			self.m_placeholder = null;
 			setVDOM(self, vdom);
+			update = true;
 		}
 	}
 
 	if (!self.m_mounted) {
 		self.m_mounted = true;
-		self.triggerLoad();
+		self.triggerMounted();
+	}
+	if (update) {
+		self.triggerUpdate();
 	}
 }
 
@@ -510,7 +533,7 @@ export default class ViewController extends Notification {
 	m_ids = null;
 	m_owner = null;  // owner controller
 	m_placeholder = null; // view placeholder	
-	m_vmodle = null; // vmodle
+	m_modle = null;  // view modle
 	m_vdom = null;   // vdom
 	m_dom = null;    // children view or controller or 
 	m_vchildren = null;
@@ -522,9 +545,11 @@ export default class ViewController extends Notification {
 	}
 
 	// @public:
-	event onBeforeLoad; // @event onLoad
-	event onLoad;       // @event onLoad
-	event onRemove;     // @event onRemove
+	event onLoad;    // @event onLoad
+	event onMounted; // @event onMounted
+	event onUpdate;  // @event onUpdate
+	event onRemove;  // @event onRemove
+	event onRemoved; // @event onRemoved
 
 	get id() {
 		return this.m_id;
@@ -573,23 +598,23 @@ export default class ViewController extends Notification {
 		return this.m_mounted;
 	}
 
-	get vmodle() {
-		return this.m_vmodle.value;
+	get modle() {
+		return this.m_modle.value;
 	}
 
-	set vmodle(vm) {
-		var change = false;
-		var { value, hash } = this.m_vmodle;
-		for (var key in vm) {
-			var item = vm[key];
+	set modle(modle) {
+		var update = false;
+		var { value, hash } = this.m_modle;
+		for (var key in modle) {
+			var item = modle[key];
 			var hashCode = Object.hashCode(item);
 			if (hashCode != hash[key]) {
 				value[key] = item;
 				hash[key] = hashCode;
-				change = true;
+				update = true;
 			}
 		}
-		if (change) {
+		if (update) {
 			markRerender(this); // mark render
 		}
 	}
@@ -601,7 +626,7 @@ export default class ViewController extends Notification {
 	constructor() {
 		super();
 		this.m_ids = {};
-		this.m_vmodle = {
+		this.m_modle = {
 			value: {}, hash: {},
 		};
 	}
@@ -662,14 +687,17 @@ export default class ViewController extends Notification {
 			}
 			this.m_placeholder = null;
 			this.m_vdom = null;
+
+			this.triggerRemove(); // trigger Remove event
+
 			this.m_dom = null;
-			
+
 			if (vdom) {
 				removeDOM(this, vdom);
 			} else {
 				placeholder.remove();
 			}
-			this.triggerRemove();
+			this.triggerRemoved(); // trigger Removed
 		}
 	}
 
@@ -707,9 +735,9 @@ util.extend(ViewController, {
 	 * @func render(vdom, [parentView])
 	 */
 	render: function(vdom, parentView) {
-		util.assert(vdom, 'Bad argument');
-		util.assert(vdom.type.isViewController(), 'VDOM must be viewController');
-		var dom = vdom.newInstance(null);
+		util.assert(vdom instanceof VirtualDOM, 'Bad argument');
+		var owner = parentView ? parentView.owner: null;
+		var dom = vdom.newInstance(owner);
 		if (parentView) {
 			dom.appendTo(parentView);
 		}
@@ -730,12 +758,16 @@ export function _VVT(value) {
 
 // create virtual view dynamic
 export function _VVD(value) {
-	if (TEXT_NODE_VALUE_TYPE.has(typeof value)) {
+	if (value instanceof VirtualDOM) {
+		return value
+	} else if (TEXT_NODE_VALUE_TYPE.has(typeof value)) {
 		return _VVT(value);
 	} else if (Array.isArray(value)) {
-		return new VirtualDOMCollection(value.map(_VVD));
-	} else if (!(value instanceof VirtualDOM)) {
-		return _VVT(String(value));
+		if (value.length) {
+			return value.length == 1 ? _VVD(value[0]): new VirtualDOMCollection(value.map(_VVD));
+		} else {
+			return null;
+		}
 	}
-	return value;
+	return value && _VVT(String(value)); // null or TextNode
 }

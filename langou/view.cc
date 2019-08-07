@@ -455,6 +455,17 @@ Ucs2String View::inner_text() const {
 }
 
 /**
+ * @func append_text
+ */
+View* View::append_text(cUcs2String& str) throw(Error) {
+	Ucs2String str2 = str.trim();
+	Label* label = New<Label>();
+	append(label);
+	label->set_value( str2 );
+	return label;
+}
+
+/**
  * @func prepend # 前置元素
  * @arg child {View*} # 要前置的元素
  */

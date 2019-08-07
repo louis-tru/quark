@@ -140,30 +140,30 @@ CSS({
 class Basic extends ViewController {
 	m_selected = false;
 	m_disable = false;
-	
+
 	event onChange;
 
-	triggerLoad(ev) {
+	triggerMounted(e) {
 		this.dom.onClick.on(()=>{
 			if ( !this.m_disable )
 				this.selected = !this.selected;
-		});
-		return super.triggerLoad(ev);
+		}, 1);
+		return super.triggerMounted(e);
 	}
-	
+
 	get disable() {
 		return this.m_disable;
 	}
-	
+
 	set disable(value) {
 		this.receive = !value;
 		this.m_disable = !!value;
 	}
-	
+
 	get selected() {
 		return this.m_selected;
 	}
-	
+
 	set selected(value) {
 		
 		value = !!value;

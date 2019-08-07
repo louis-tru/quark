@@ -292,7 +292,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	img->set_texture(tex);
 	
-	img->append_to(r);
+	r->append(img);
 	
 	FT_Done_Face(face);
 	FT_Done_FreeType(library);

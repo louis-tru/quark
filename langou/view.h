@@ -179,6 +179,11 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	virtual void append(View* child) throw(Error);
 
 	/**
+	 * @func append_text # 追加文本到结尾
+	 */
+	virtual View* append_text(cUcs2String& str) throw(Error);
+
+	/**
 	 * @func before # 插入前
 	 * @arg view {View*} # 要插入的元素
 	 */
