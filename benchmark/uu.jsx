@@ -2,7 +2,7 @@
 import 'langou/http';
 import 'langou/util';
 import 'langou/sys';
-import { Indep, langou, New, Text } from 'langou';
+import { Indep, langou, ViewController, render, Text } from 'langou';
 
 var ts = 0;
 
@@ -17,49 +17,50 @@ function log(...args) {
 	ts = ts2;
 }
 
-function show_fsp_ok() {
+class FSP extends ViewController {
+	priv_fsp_value = 0;
+	priv_cpu_usage = 0;
 
-	var displayPort = langou.displayPort;
-	var fsp = null;
-	var priv_fsp_value = 0;
-	var priv_cpu_usage = 0;
+	render() {
+		return (
+			<Indep alignY="bottom" x=5 y=-5>
+				<Text textColor="#f00" value=(this.modle.fsp || '') />
+			</Indep>
+		);
+	}
 
-	function up_fsp() {
-		var fsp_value = displayPort.fsp();
+	up_fsp() {
+		var fsp_value = langou.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
-		if (priv_fsp_value != fsp_value || priv_cpu_usage != cpu_usage) {
-			fsp.value = 'FSP: ' + fsp_value + ', CPU: ' + (cpu_usage * 100).toFixed(0);
-			priv_fsp_value = fsp_value;
+		if (this.priv_fsp_value != fsp_value || this.priv_cpu_usage != cpu_usage) {
+			this.priv_fsp_value = fsp_value;
+			this.priv_cpu_usage = cpu_usage;
+			this.modle = { fsp : 'FSP: ' + fsp_value + ', CPU: ' + (cpu_usage * 100).toFixed(0) };
 		}
-		setTimeout(up_fsp, 1000);
+		setTimeout(e=>this.up_fsp(), 1000);
 	}
-
-	setTimeout(function() {
-		var root = langou.root;
-		if (root) {
-			fsp = New(
-				<Indep alignY="bottom" x=5 y=-5>
-					<Text textColor="#f00" />
-				</Indep>
-			, root).first;
-
-			up_fsp();
-		}
-	}, 1000);
 
 }
 
-function show_fsp() {
-	var app = langou.app;
-	util.assert(app);
+var fsp;
 
-	if (app.isLoad) {
-		show_fsp_ok();
+exports.show_fsp = function() {
+	util.assert(!fsp);
+	util.assert(langou.app);
+
+	function show_fsp_ok() {
+		if (langou.root) {
+			fsp = render(<FSP />, langou.root);
+			fsp.up_fsp();
+		}
+	}
+
+	if (langou.app.isLoaded) {
+		show_fsp_ok.setTimeout(1000);
 	} else {
-		app.onLoad.on(show_fsp_ok);
+		langou.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
 	}
-}
+};
 
 exports.start = start;
 exports.log = log;
-exports.show_fsp = show_fsp;

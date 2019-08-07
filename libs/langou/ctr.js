@@ -193,9 +193,7 @@ class VirtualDOM {
 		var children = this.children;
 
 		if (Type.isViewController()) { // ctrl
-			var placeholder = new View();
 			dom.m_vchildren = children;
-			dom.m_placeholder = placeholder;
 			this.assignProps(); // before set props
 			var r = dom.triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
@@ -674,6 +672,7 @@ export default class ViewController extends Notification {
 		this.m_IDs = {};
 		this.m_modle = {};
 		this.m_dataHash = {};
+		this.m_placeholder = new View();
 	}
 
 	/**
