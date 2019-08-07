@@ -97,6 +97,35 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
+	 * @func appendText(text)
+	 * @arg text {String}
+	 * @ret {View}
+	 */
+	static void append_text(FunctionCall args) {
+		JS_WORKER(args); GUILock lock;
+		if ( args.Length() < 1 ) {
+			JS_THROW_ERR(
+				"* @func appendText(text)\n"
+				"* @arg text {String}\n"
+				"* @ret {View}\n"
+			);
+		}
+		JS_SELF(View);
+		View* view = nullptr;
+		
+		JS_TRY_CATCH({
+			view = self->append_text( args[0]->ToUcs2StringValue(worker) );
+		}, Error);
+		
+		if (view) {
+			Wrap<View>* wrap = Wrap<View>::pack(view, view->view_type());
+			JS_RETURN( wrap->that() );
+		} else {
+			JS_RETURN( worker->NewNull() );
+		}
+	}
+
+	/**
 	 * @func before(prev)
 	 * @arg prev {View}
 	 */
@@ -624,14 +653,6 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
-	 * @get style {Object}
-	 */
-	static void style(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_RETURN( args.This() );
-	}
-
-	/**
 	 * @get classs {Object}
 	 */
 	static void classs(Local<JSString> name, PropertyCall args) {
@@ -846,28 +867,6 @@ class WrapView: public WrapViewBase {
 	}
 
 	/**
-	 * @set style {Object}
-	 */
-	static void set_style(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args);
-		JS_HANDLE_SCOPE();
-		
-		if ( value->IsObject(worker) && ! value->IsNull(worker) ) {
-			Local<JSObject> arg = value.To<JSObject>();
-			Local<JSArray> names = arg->GetPropertyNames(worker);
-			Local<JSObject> handle = args.This();
-			
-			for ( uint i = 0, len = names->Length(worker); i < len; i++ ) {
-				Local<JSValue> key = names->Get(worker, i);
-				Local<JSValue> val = arg->Get(worker, key);
-				if ( val.IsEmpty() || !handle->Set(worker, key, val) ) { // js error
-					return;
-				}
-			}
-		}
-	}
-
-	/**
 	 * @set class {String}
 	 */
 	static void set_class(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
@@ -917,6 +916,7 @@ class WrapView: public WrapViewBase {
 			// method
 			JS_SET_CLASS_METHOD(prepend, prepend);
 			JS_SET_CLASS_METHOD(append, append);
+			JS_SET_CLASS_METHOD(append_text, append_text);
 			JS_SET_CLASS_METHOD(before, before);
 			JS_SET_CLASS_METHOD(after, after);
 			JS_SET_CLASS_METHOD(remove, remove);
@@ -967,7 +967,6 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_ACCESSOR(receive, receive, set_receive);
 			JS_SET_CLASS_ACCESSOR(isFocus, is_focus, set_is_focus);
 			JS_SET_CLASS_ACCESSOR(viewType, view_type);
-			JS_SET_CLASS_ACCESSOR(style, style, set_style);
 			JS_SET_CLASS_ACCESSOR(class, classs, set_class);
 		}, nullptr);
 		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(View), View::VIEW);

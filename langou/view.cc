@@ -1065,9 +1065,9 @@ Button* View::first_button() {
 /**
  * @func has_child(child)
  */
-bool View::has_child(View* view) {
-	if ( view && view->m_level < m_level ) {
-		View* parent = view->m_parent;
+bool View::has_child(View* child) {
+	if ( child && child->m_level < m_level ) {
+		View* parent = child->m_parent;
 		while (parent) {
 			if ( parent == this ) {
 				return true;

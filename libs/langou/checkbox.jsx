@@ -173,9 +173,9 @@ class Basic extends ViewController {
 			this.m_selected = value;
 			
 			if (value) {
-				this.view.addClass('on');
+				this.dom.addClass('on');
 			} else {
-				this.view.removeClass('on');
+				this.dom.removeClass('on');
 			}
 			this.triggerChange();
 		}

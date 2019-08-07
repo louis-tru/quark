@@ -52,7 +52,6 @@ class XX_EXPORT Text: public Hybrid {
 	virtual void  prepend(View* child) throw(Error);
 	virtual void  append(View* child) throw(Error);
 	virtual View* append_text(cUcs2String& str) throw(Error);
-	virtual void remove_all_child();
 	
 	/**
 	 * @get value

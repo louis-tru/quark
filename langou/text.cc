@@ -88,11 +88,6 @@ View* Text::append_text(cUcs2String& str) throw(Error) {
 	return nullptr;
 }
 
-void Text::remove_all_child() {
-	m_data.cells.clear(); // 清除布局
-	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
-}
-
 void Text::set_value(cUcs2String& str) {
 	m_data.string = str;
 	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化

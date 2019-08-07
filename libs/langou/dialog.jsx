@@ -30,7 +30,7 @@
 
 import 'langou/util';
 import { 
-	CSS, New, Indep, Hybrid, Clip, Input, Span,
+	CSS, Indep, Hybrid, Clip, Input, Span,
 	LimitIndep, Button, atomPixel, langou, render
 } from 'langou/langou';
 import { Navigation } from 'langou/nav';
@@ -161,7 +161,7 @@ export class Dialog extends Navigation {
 				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
 					<Hybrid id="title" class="title" />
-					<Hybrid id="con" class="content">{this.vchildren}</Hybrid>
+					<Hybrid id="con" class="content">${this.vchildren}</Hybrid>
 					<Clip id="btns" class="buttons" />
 				</LimitIndep>
 			</Indep>
@@ -211,7 +211,7 @@ export class Dialog extends Navigation {
 			}
 		}
 	}
-	
+
 	show() {
 		if (!this.visible) {
 			this.appendTo(langou.root);
@@ -308,8 +308,7 @@ export function prompt(msg, text = '', cb = util.noop) {
 		text = '';
 	}
 	var dag = render(
-		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] 
-			onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
+		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
 				${msg}
 				<Input id="m_input" class="prompt"

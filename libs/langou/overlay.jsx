@@ -42,7 +42,7 @@ function get_left(self, x, offset_x) {
 	
 	x -= 10; // 留出10像素边距
 	var screen_width = langou.displayPort.width - 20;
-	var width = self.find('inl').clientWidth;
+	var width = self.IDs.inl.clientWidth;
 	
 	if (screen_width < width) {
 		return (screen_width - width) / 2 + 10;
@@ -66,7 +66,7 @@ function get_top(self, y, offset_y) {
 
 	y -= 10; // 留出10像素边距
 	var screen_height = langou.displayPort.height - 20;
-	var height = self.find('inl').clientHeight;
+	var height = self.IDs.inl.clientHeight;
 	
 	if (screen_height < height) {
 		return (screen_height - height) / 2 + 10;
@@ -87,7 +87,7 @@ function get_top(self, y, offset_y) {
  * 获取arrowtop
  */
 function get_arrow_top(self, top, y, offset_y) {
-	var height = self.find('inl').clientHeight;
+	var height = self.IDs.inl.clientHeight;
 	y += offset_y / 2;
 	var min = 8 + arrow_size.width / 2;
 	var max = height - 8 - arrow_size.width / 2;
@@ -101,7 +101,7 @@ function get_arrow_top(self, top, y, offset_y) {
  * 获取arrowleft
  */
 function get_arrow_left(self, left, x, offset_x) {
-	var width = self.find('inl').clientWidth;
+	var width = self.IDs.inl.clientWidth;
 	x += offset_x / 2;
 	var min = 8 + arrow_size.width / 2;
 	var max = width - 8 - arrow_size.width / 2;
@@ -116,14 +116,14 @@ function get_arrow_left(self, left, x, offset_x) {
  */
 function attempt_top(self, x, y, offset_x, offset_y, force) {
 
-	var height = self.find('inl').clientHeight;
+	var height = self.IDs.inl.clientHeight;
 	var top = y - height - arrow_size.height;
 	
 	if (top - 10 > 0 || force) {
 		var left = get_left(self, x, offset_x);
 		var arrow_left = get_arrow_left(self, left, x, offset_x) - arrow_size.width / 2;
-		self.find('inl').style = { y: top, x: left };
-		self.find('arrow').style = { 
+		self.IDs.inl.style = { y: top, x: left };
+		self.IDs.arrow.style = { 
 			alignX: 'left',
 			alignY: 'bottom',
 			y: arrow_size.height,// + 0.5, 
@@ -140,15 +140,15 @@ function attempt_top(self, x, y, offset_x, offset_y, force) {
  */
 function attempt_right(self, x, y, offset_x, offset_y, force) {
 	
-	var width = self.find('inl').clientWidth;
+	var width = self.IDs.inl.clientWidth;
 	
 	var left = x + offset_x + arrow_size.height;
 	
 	if (left + width + 10 <= langou.displayPort.width || force) {
 		var top = get_top(self, y, offset_y);
 		var arrow_top = get_arrow_top(self, top, y, offset_y) - arrow_size.height / 2;
-		self.find('inl').style = { y: top, x: left };
-		self.find('arrow').style = { 
+		self.IDs.inl.style = { y: top, x: left };
+		self.IDs.arrow.style = { 
 			alignX: 'left',
 			alignY: 'top',
 			x: -(arrow_size.width / 2 + arrow_size.height / 2),
@@ -165,15 +165,15 @@ function attempt_right(self, x, y, offset_x, offset_y, force) {
  */
 function attempt_bottom(self, x, y, offset_x, offset_y, force){
 	
-	var height = self.find('inl').clientHeight;
+	var height = self.IDs.inl.clientHeight;
 	
 	var top = y + offset_y + arrow_size.height;
 	
 	if (top + height + 10 <= langou.displayPort.height || force) {
 		var left = get_left(self, x, offset_x);
 		var arrow_left = get_arrow_left(self, left, x, offset_x) - arrow_size.width / 2;
-		self.find('inl').style = { y: top, x: left };
-		self.find('arrow').style = {
+		self.IDs.inl.style = { y: top, x: left };
+		self.IDs.arrow.style = {
 			alignX: 'left',
 			alignY: 'top',
 			x: arrow_left,
@@ -190,15 +190,15 @@ function attempt_bottom(self, x, y, offset_x, offset_y, force){
  */
 function attempt_left(self, x, y, offset_x, offset_y, force) { 
 	
-	var width = self.find('inl').clientWidth;
+	var width = self.IDs.inl.clientWidth;
 	var left = x - width - arrow_size.height;
 	
 	if (left - 10 > 0 || force) {
 		
 		var top = get_top(self, y, offset_y);
 		var arrow_top = get_arrow_top(self, top, y, offset_y) - arrow_size.height / 2;
-		self.find('inl').style = { y: top, x: left };
-		self.find('arrow').style = {
+		self.IDs.inl.style = { y: top, x: left };
+		self.IDs.arrow.style = {
 			alignX: 'right',
 			alignY: 'top',
 			x: arrow_size.width / 2 + arrow_size.height / 2,
@@ -267,11 +267,11 @@ export class Overlay extends Navigation {
 	priority = 'bottom'; // top | right | bottom | left
 	
 	get backgroundColor() { 
-		return this.find('content').backgroundColor; 
+		return this.IDs.content.backgroundColor; 
 	}
 	set backgroundColor(value) { 
-		this.find('arrow_text').textColor = value;
-		this.find('content').backgroundColor = value;
+		this.IDs.arrow_text.textColor = value;
+		this.IDs.content.backgroundColor = value;
 	}
 	
 	/**
@@ -302,16 +302,19 @@ export class Overlay extends Navigation {
 				</Indep>
 			</Indep>
 		);
-		
+	}
+
+	triggerMounted(e) {
 		//langou.displayPort.onChange.on(self.remove, self);
-		
-		this.find('inl').onClick.on(()=>{
+
+		this.IDs.inl.onClick.on(()=>{
 			if ( this.frail ) {
 				this.fadeOut();
 			}
 		});
-		
-		this.view.appendTo(langou.root);
+		this.appendTo(langou.root);
+
+		super.triggerMounted(e);
 	}
 	
 	fadeOut() {

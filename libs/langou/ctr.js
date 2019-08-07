@@ -111,6 +111,7 @@ class VirtualDOM {
 	type = null;
 	children = null;
 	dom = null;
+	style = null;
 	options = null;
 
 	constructor(Type, props, children, options) {
@@ -147,6 +148,12 @@ class VirtualDOM {
 		this.options = options;
 	}
 
+	setStyle(style) {
+		if (style) {
+			this.style = style;
+		}
+	}
+
 	get key() {
 		return this.options.key;
 	}
@@ -156,6 +163,8 @@ class VirtualDOM {
 	}
 
 	assignProps() {
+		if (this.style)
+			this.dom.style = style;
 		var props = this.props;
 		for (var key in props) {
 			assignProp(this, props[key]);
@@ -164,7 +173,8 @@ class VirtualDOM {
 
 	diffProps(vdom) {
 		if (this.propsHash != vdom.propsHash) {
-			var props0 = this.props, props1 = vdom.props;
+			var props0 = this.props;
+			var props1 = vdom.props;
 			for (var key in props1) {
 				var prop0 = props0[key], prop1 = props1[key];
 				if (!prop0 || prop0[2] != prop1[2]) {
@@ -220,6 +230,13 @@ class VirtualDOMCollection extends VirtualDOM {
 		this.keys = {};
 		this.vdoms = vdoms.filter(e=>e);
 		this.vdoms.forEach(e=>(this.hash += (this.hash << 5) + e.hash));
+	}
+
+	setStyle(style) {
+		if (style) {
+			this.style = style;
+			this.vdoms.forEach(e=>e.setStyle(style));
+		}
 	}
 
 	diffProps({vdoms, keys, hash}) {
@@ -288,9 +305,11 @@ class VirtualDOMCollection extends VirtualDOM {
 		var keys = this.keys;
 		var doms = [];
 		var vdoms = this.vdoms;
+		var style = this.style;
 
 		for (var i = 0; i < vdoms.length; i++) {
 			var vdom = vdoms[i];
+			vdom.style = style;
 			var cell = vdom.newInstance(ctr);
 			var key = vdom.key;
 			if (!vdom.hasKey) {
@@ -310,7 +329,7 @@ class VirtualDOMCollection extends VirtualDOM {
 
 }
 
-function domAction(self, active, view) {
+function callDOMsFunc(self, active, view) {
 	if (self.m_placeholder) {
 		return self.m_placeholder[active](view);
 	} else {
@@ -327,15 +346,18 @@ function domAction(self, active, view) {
  */
 class DOMCollection {
 
+	// @private:
 	m_owner = null;
 	m_vdom = null;
 	m_doms = null;
+	m_style = null;
 	m_placeholder = null; // view placeholder	
 
 	get __view__() {
 		return this.m_placeholder ? this.m_placeholder: this.m_doms.last(0).__view__;
 	}
 
+	// @public:
 	get owner() {
 		return this.m_owner;
 	}
@@ -350,6 +372,9 @@ class DOMCollection {
 		this.m_doms = doms;
 		if (!doms.length) {
 			this.m_placeholder = new View();
+		}
+		if (vdom.style) {
+			this.m_style = vdom.style;
 		}
 	}
 
@@ -377,11 +402,22 @@ class DOMCollection {
 	}
 
 	appendTo(parentView) {
-		return domAction(this, 'appendTo', parentView);
+		return callDOMsFunc(this, 'appendTo', parentView);
 	}
 
 	afterTo(prevView) {
-		return domAction(this, 'afterTo', prevView);
+		return callDOMsFunc(this, 'afterTo', prevView);
+	}
+
+	get style() {
+		return this.m_style;
+	}
+
+	set style(style) {
+		if (style) {
+			this.m_style = style;
+			this.m_doms.forEach(e=>e.style=style);
+		}
 	}
 
 }
@@ -398,8 +434,8 @@ function removeSubctr(self, vdom) {
 	}
 	var id = vdom.dom.id;
 	if (id) {
-		if (self.m_ids[id] === vdom.dom) {
-			delete self.m_ids[id];
+		if (self.m_IDs[id] === vdom.dom) {
+			delete self.m_IDs[id];
 		}
 	}
 }
@@ -480,6 +516,10 @@ function rerender(self) {
 	var vdom = _VVD(self.render());
 	var update = false;
 
+	if (vdom) {
+		vdom.setStyle(this.m_style);
+	}
+
 	if (vdom_c) {
 		if (vdom) {
 			if (vdom_c.hash != vdom.hash) {
@@ -519,7 +559,7 @@ function rerender(self) {
 	}
 }
 
-function domInCtrl(self) {
+function domInCtr(self) {
 	return this.m_dom || this.m_placeholder;
 }
 
@@ -527,18 +567,19 @@ function domInCtrl(self) {
  * @class ViewController DOM
  */
 export default class ViewController extends Notification {
-
 	// @private:
 	m_id = null;     // id
-	m_ids = null;
+	m_IDs = null;		 // 
 	m_owner = null;  // owner controller
 	m_placeholder = null; // view placeholder	
 	m_modle = null;  // view modle
+	m_dataHash = null; // modle and props hash
 	m_vdom = null;   // vdom
 	m_dom = null;    // children view or controller or 
 	m_vchildren = null;
 	m_loaded = false;
 	m_mounted = false;
+	// m_domProps = null;
 
 	get __view__() {
 		return this.m_dom ? this.m_dom.__view__: this.m_placeholder;
@@ -559,7 +600,7 @@ export default class ViewController extends Notification {
 		var id = dom.m_id;
 		if (value != id) {
 			if (dom.m_owner) {
-				var ids = dom.m_owner.m_ids;
+				var ids = dom.m_owner.m_IDs;
 				if (ids[id] === dom) {
 					delete ids[id];
 				}
@@ -579,7 +620,7 @@ export default class ViewController extends Notification {
 	}
 
 	get IDs() {
-		return this.m_ids;
+		return this.m_IDs;
 	}
 
 	get owner() {
@@ -599,12 +640,17 @@ export default class ViewController extends Notification {
 	}
 
 	get modle() {
-		return this.m_modle.value;
+		return this.m_modle;
 	}
 
 	set modle(modle) {
+		this.setModle(modle);
+	}
+
+	setModle(modle) {
 		var update = false;
-		var { value, hash } = this.m_modle;
+		var value = this.m_modle;
+		var hash = this.m_dataHash;
 		for (var key in modle) {
 			var item = modle[key];
 			var hashCode = Object.hashCode(item);
@@ -625,14 +671,9 @@ export default class ViewController extends Notification {
 
 	constructor() {
 		super();
-		this.m_ids = {};
-		this.m_modle = {
-			value: {}, hash: {},
-		};
-	}
-
-	static isViewController() {
-		return true;
+		this.m_IDs = {};
+		this.m_modle = {};
+		this.m_dataHash = {};
 	}
 
 	/**
@@ -643,11 +684,11 @@ export default class ViewController extends Notification {
 	}
 
 	appendTo(parentView) {
-		return domInCtrl(this).appendTo(parentView);
+		return domInCtr(this).appendTo(parentView);
 	}
 
 	afterTo(prevView) {
-		return domInCtrl(this).afterTo(prevView);
+		return domInCtr(this).afterTo(prevView);
 	}
 
 	/**
@@ -701,6 +742,85 @@ export default class ViewController extends Notification {
 		}
 	}
 
+	/**
+	 * @get style
+	 */
+	get style() {
+		return this.m_style;
+	}
+
+	/**
+	 * @set style
+	 */
+	set style(style) {
+		this.m_style = style;
+		if (this.m_dom) {
+			this.m_dom.style = style;
+		}
+	}
+
+	// @static:
+
+	/**
+	 * @func isViewController()
+	 */
+	static isViewController() {
+		return true;
+	}
+
+	/**
+	 * @func defineProps(props, [controllerClass])
+	 * <pre>
+	 * 	class MyViewController extends ViewController {
+	 * 		render() {
+	 * 			return (
+	 * 				<Div width=this.width height=this.height>Hello</Div>
+	 * 			);
+	 * 		}
+	 * 	}
+	 *  MyViewController.defineProps(['width', height', 'prop1'])
+	 * </pre>
+	 */
+	static defineProps(props, controllerClass) {
+		controllerClass = controllerClass || this;
+		util.assert(util.equalsClass(ViewController, controllerClass), 'Type error');
+
+		for (let prop of props) {
+			Object.defineProperty(controllerClass.prototype, prop, {
+				get() {
+					return this['M_' + prop];
+				},
+				set(value) {
+					var hashCode = Object.hashCode(value);
+					var hash = this.m_dataHash;
+					if (hash['__Prop_' + prop] != hashCode) {
+						hash['__Prop_' + prop] = hashCode;
+						this['M_' + prop] = value;
+						markRerender(this); // mark render
+					}
+				},
+				configurable: true,
+				enumerable: false,
+			});
+		}
+	}
+
+	/**
+	 * @func typeof(vdom, Type)
+	 * @static
+	 */
+	static typeOf(vdom, Type) {
+		if (vdom instanceof ViewController || vdom instanceof View) {
+			if (vdom instanceof Type)
+				return 2;
+		}
+		if (vdom instanceof VirtualDOM) {
+			if (vdom.type instanceof Type)
+				return 1;
+		}
+		return 0;
+	}
+
 }
 
 /**
@@ -735,11 +855,17 @@ util.extend(ViewController, {
 	 * @func render(vdom, [parentView])
 	 */
 	render: function(vdom, parentView) {
-		util.assert(vdom instanceof VirtualDOM, 'Bad argument');
-		var owner = parentView ? parentView.owner: null;
-		var dom = vdom.newInstance(owner);
+		if (vdom instanceof ViewController || vdom instanceof View) {
+			var dom = vdom;
+		} else {
+			vdom = _VVD(vdom);
+			util.assert(vdom instanceof VirtualDOM, 'Bad argument');
+			var owner = parentView ? parentView.owner: null;
+			var dom = vdom.newInstance(owner);
+		}
 		if (parentView) {
 			dom.appendTo(parentView);
+			dom.m_owner = owner;
 		}
 		return dom;
 	},
@@ -764,7 +890,8 @@ export function _VVD(value) {
 		return _VVT(value);
 	} else if (Array.isArray(value)) {
 		if (value.length) {
-			return value.length == 1 ? _VVD(value[0]): new VirtualDOMCollection(value.map(_VVD));
+			return value.length == 1 ?
+				_VVD(value[0]): new VirtualDOMCollection(value.map(_VVD));
 		} else {
 			return null;
 		}

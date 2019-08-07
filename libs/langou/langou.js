@@ -47,9 +47,7 @@ class ViewExtend extends event.NativeNotification {
 	m_id = null;
 	m_owner = null;
 	
-	get __view__() {
-		return this;
-	}
+	get __view__() { return this }
 
 	// @public:
 	// @events
@@ -138,7 +136,23 @@ class ViewExtend extends event.NativeNotification {
 	set action(value) { // set action
 		this.setAction(action.create(value));
 	}
-	
+
+	/**
+	 * @get style {Object}
+	 */	
+	get style() {
+		return this;
+	}
+
+	/**
+	 * @set style {Object}
+	 */
+	set style(value) {
+		for (var key in value) {
+			this[key] = value;
+		}
+	}
+
 	/**
 	 * @func transition(style[,delay[,cb]][,cb])
 	 * @arg style {Object}
@@ -163,6 +177,7 @@ class ViewExtend extends event.NativeNotification {
 	hide() {
 		this.visible = false; 
 	}
+
 }
 
 util.extend(exports.View, {
@@ -283,7 +298,7 @@ export {
 
 	/**
 	 * @func render(vdom[,parent])
-	 * @arg vdom {Object}
+	 * @arg vdom {VDOM}
 	 * @arg [parent] {View}
 	 * @ret {DOM}
 	 */

@@ -53,6 +53,7 @@ class XX_EXPORT TextNode: public Span {
 	 */
 	virtual void prepend(View* child) throw(Error);
 	virtual void append(View* child) throw(Error);
+	virtual View* append_text(cUcs2String& str) throw(Error);
 	virtual Vec2 layout_offset();
 	virtual bool overlap_test(Vec2 point);
 	virtual CGRect screen_rect();

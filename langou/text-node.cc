@@ -172,6 +172,12 @@ void TextNode::accept_text(Ucs2StringBuilder& output) const {
 	output.push(m_data.string);
 }
 
+View* TextNode::append_text(cUcs2String& str) throw(Error) {
+	m_data.string.push(str);
+	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
+	return nullptr;
+}
+
 /**
  * @set value
  */
