@@ -579,7 +579,7 @@ export default class ViewController extends Notification {
 	m_vchildren = null;
 	m_loaded = false;
 	m_mounted = false;
-	// m_domProps = null;
+	m_style = null;
 
 	get __view__() {
 		return this.m_dom ? this.m_dom.__view__: this.m_placeholder;
