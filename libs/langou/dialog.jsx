@@ -161,7 +161,7 @@ export class Dialog extends Navigation {
 				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
 					<Hybrid id="title" class="title" />
-					<Hybrid id="con" class="content">${vc}</Hybrid>
+					<Hybrid id="con" class="content">{vc}</Hybrid>
 					<Clip id="btns" class="buttons" />
 				</LimitIndep>
 			</Indep>
@@ -203,7 +203,7 @@ export class Dialog extends Navigation {
 						width="full"
 						onClick="triggerClickButton"
 						defaultHighlighted=0>${btns[i]}</Button>,
-					this.IDs.btns)
+					this.IDs.btns
 				);
 			}
 			if ( this.visible ) {

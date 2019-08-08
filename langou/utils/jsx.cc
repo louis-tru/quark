@@ -112,7 +112,6 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 	F(VX, "vx")       /*v*/ \
 	F(__VX, "__vx") \
 	F(VALUE, "value") \
-	F(DATA_BIND_FUNC, "($,ctr)=>{return") /* ($,ctr)=>{return*/ \
 	F(XML_COMMENT, "/***") \
 	F(XML_COMMENT_END, "**/") \
 	F(COMMENT, "/*") \
@@ -128,13 +127,13 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 	F(NUMBER_1, "1") \
 	F(NUMBER_2, "2") \
 	F(NUMBER_3, "3") \
-	F(VDATA, "vdata") \
-	F(ATTRS_COMMENT, "/*attrs*/") \
-	F(CHILDS_COMMENT, "/*childs*/") \
 	F(TYPE, "vx") \
-	F(VALUE2, "v") \
 	F(MULTIPLE, "m") \
 	F(STATIC, "static") \
+	F(IMPORT_JSX_HEADER, "const { _VV, _VVT, _VVT } = require('langou/ctr');") \
+	F(_VV, "_VV") \
+	F(_VVT, "_VVT") \
+	F(_VVD, "_VVD") \
 
 struct static_str_list_t {
 #define F(N,V) Ucs2String N = V;
@@ -212,7 +211,7 @@ static inline bool is_identifier_start(int c) {
 }
 
 static inline bool is_xml_element_start(int c) {
-	return is_identifier_start(c);
+	return is_in_range(ascii_alpha_to_lower(c), 'a', 'z');
 }
 
 static inline bool is_identifier_part(int c) {
@@ -239,12 +238,10 @@ enum Token {
 	/* Xml */
 	XML_ELEMENT_TAG,        // <xml
 	XML_ELEMENT_TAG_END,    // </xml>
-	XML_NO_IGNORE_SPACE,    // @@
+	XML_NO_IGNORE_SPACE,    // `
 	XML_COMMENT,            // <!-- comment -->
-	COMMAND,                // `str${
-	COMMAND_DATA_BIND,      // `str%%{
-	COMMAND_DATA_BIND_ONCE, // `str%{
-	COMMAND_END,            // str`
+	COMMAND,                // `str ${
+	COMMAND_END,            //  str`
 	/* Punctuators. */
 	LPAREN,                 // (
 	RPAREN,                 // )
@@ -344,16 +341,14 @@ inline static bool isBinaryOrCompareOp(Token op){
 }
 
 /**
- * @class Scanner jsx 简易词法分析器
+ * @class Scanner jsx 词法分析器
  */
 class Scanner : public Object {
  public:
 	
 	Scanner(const uint16* code, uint size, bool clean_comment)
-	: code_(code)
-	, size_(size)
-	, pos_(0)
-	, line_(0)
+	: code_(code), size_(size)
+	, pos_(0), line_(0)
 	, current_(new TokenDesc())
 	, next_(new TokenDesc()), clean_comment_(clean_comment)
 	{ //
@@ -361,7 +356,7 @@ class Scanner : public Object {
 		strip_bom();
 		current_->token = ILLEGAL;
 		
-		// skip shell header
+		// scan shell header
 		// #!/bin/sh
 		if ( c0_ == '#' ) {
 			advance();
@@ -377,7 +372,7 @@ class Scanner : public Object {
 				return;
 			}
 		}
-		
+
 		scan();
 	}
 	
@@ -391,10 +386,6 @@ class Scanner : public Object {
 		uint end_pos;
 		uint line;
 	};
-	
-	void skip_shell_header() {
-		
-	}
 	
 	Token next() {
 		
@@ -536,7 +527,8 @@ class Scanner : public Object {
 		next_ = tok;
 		next_->location.beg_pos = pos_;
 		next_->location.line = line_;
-		next_->string_space = next_->string_value = Ucs2String();
+		next_->string_space = Ucs2String();
+		next_->string_value = Ucs2String();
 		next_->before_line_feed = false;
 		
 		if ((uint)c0_ <= 0x7f) {
@@ -552,10 +544,8 @@ class Scanner : public Object {
 		return current_->token;
 	}
 	
-	Token scan_xml_content(bool ignore_space, uint pos) {
+	Token scan_xml_content(bool ignore_space, uint pos) { // TODO A
 		if ( !set_pos(pos) ) {
-			next_->location = { pos_, pos_, line_ };
-			next_->token = ILLEGAL;
 			return ILLEGAL;
 		}
 		
@@ -566,62 +556,28 @@ class Scanner : public Object {
 		Token token = ILLEGAL;
 		
 		if (c0_ == '<') {
-			// <!-- xml comment --> or <xml or </xml> or < <= << <<=
+			// <!-- xml comment --> OR <xml OR </xml> OR < <= << <<=
 			token = scan_lt_and_xml_element();
 		}
-		else if (c0_ == '$') {  // command block
-			//  ${ command }
+		else if (c0_ == '{') {  // jsx xml command block
 			advance();
-			if (c0_ == '{') {                       // COMMAND
-				token = COMMAND;                      //
-			} else {
-				token = STRIXX_LITERAL;
-				next_->string_value.push('$');
-			}
+			token = COMMAND;
 		}
-		else if (c0_ == '%') { // Data bind command block
-			// %{ command } %%{ command }
+		else if (c0_ == '`') { // xml文本转义,不忽略内容文本中的空格以及制表符
 			advance();
-			if ( c0_ == '{' ) { // COMMAND_DATA_BIND_ONCE
-				token = COMMAND_DATA_BIND_ONCE;
-			} else if ( c0_ == '%' ) {
-				int c = c0_;
-				advance();
-				if ( c0_ == '{' ) { // COMMAND_DATA_BIND
-					token = COMMAND_DATA_BIND;
-				} else {
-					token = STRIXX_LITERAL;
-					next_->string_value.push('%');
-					next_->string_value.push(c);
-				}
-			}
-			else {
-				token = STRIXX_LITERAL;
-				next_->string_value.push('%');
-			}
+			token = XML_NO_IGNORE_SPACE;
 		}
-		else if (c0_ == '@') { // xml文本转义,不忽略内容文本中的空格以及制表符
-			advance();
-			if (c0_ == '@') {
-				advance();
-				token = XML_NO_IGNORE_SPACE;  //
-			} else {
-				token = STRIXX_LITERAL;
-				next_->string_value.push('@');
-			}
-		}
-		else {
+		else { // string
 			token = scan_xml_content_string(ignore_space);
 		}
 		next_->location.end_pos = pos_;
 		next_->token = token;
-		return token;
+
+		return next();
 	}
 	
-	Token scan_regexp(uint pos) {
+	Token scan_regexp_content(uint pos) {
 		if ( !set_pos(pos) ) {
-			next_->location = { pos_, pos_, line_ };
-			next_->token = ILLEGAL;
 			return ILLEGAL;
 		}
 		
@@ -682,13 +638,12 @@ class Scanner : public Object {
 		
 		next_->location.end_pos = pos_;
 		next_->token = token;
-		return token;
+
+		return next();
 	}
 	
 	Token scan_command_string(uint pos) {
 		if ( ! set_pos(pos) ) {
-			next_->location = { pos_, pos_, line_ };
-			next_->token = ILLEGAL;
 			return ILLEGAL;
 		}
 		
@@ -696,7 +651,7 @@ class Scanner : public Object {
 		next_->location.beg_pos = pos_;
 		next_->location.line = line_;
 		
-		while ( c0_ != '`' && c0_ >= 0 /*&& !is_line_terminator(c0_)*/ ) {
+		while ( c0_ != '`' && c0_ >= 0 ) {
 			int c = c0_;
 			advance();
 			if (c == '\\') { // 转义符
@@ -707,6 +662,7 @@ class Scanner : public Object {
 			} else if (c == '$') { // js字符串内部指令开始必须以}结束
 				// ${ command }
 				if (c0_ == '{') {         // COMMAND
+					advance();
 					token = COMMAND; break;
 				}
 			}
@@ -715,6 +671,7 @@ class Scanner : public Object {
 			}
 			next_->string_value.push(c);
 		}
+
 		if (c0_ == '`') {
 			advance();  // consume quote
 			next_->string_value.push('`');
@@ -724,6 +681,7 @@ class Scanner : public Object {
 		
 		next_->location.end_pos = pos_;
 		next_->token = token;
+
 		return token;
 	}
 	
@@ -754,7 +712,8 @@ class Scanner : public Object {
 	void scan() { // scan javascript code
 		
 		Token token;
-		next_->string_value = next_->string_space = Ucs2String();
+		next_->string_value = Ucs2String();
+		next_->string_space = Ucs2String();
 		next_->before_line_feed = false;
 		
 		do {
@@ -782,7 +741,7 @@ class Scanner : public Object {
 					token = scan_string();
 					break;
 					
-				case '`': // 检查指令字符串内部是否有 ${
+				case '`': // 检查指令字符串内部是否有 `str ${
 					advance();
 					next_->string_value.push('`');
 					token = scan_command_string(pos_);
@@ -791,36 +750,10 @@ class Scanner : public Object {
 					}
 					break;
 					
-				case '$':
-					advance();
-					if (c0_ == '{') {                       // COMMAND
-						// ${ command }
-						token = COMMAND;                      //
-					} else {
-						back(); token = scan_identifier();
-					}
-					break;
-					
 				case '%':
-					// % %= %{ %%{
+					// % %=
 					advance();
-					if ( c0_ == '{' ) {         // %{ COMMAND_DATA_BIND_ONCE
-						// %{ command }
-						token = COMMAND_DATA_BIND_ONCE;
-					} else if ( c0_ == '%' ) { // %%
-						advance();
-						if ( c0_ == '{' ) {      // %%{ COMMAND_DATA_BIND
-							// %%{ command }
-							token = COMMAND_DATA_BIND;
-						} else {
-							back();
-							goto mod;
-						}
-					} else {
-						// % %=
-					mod:
-						token = select('=', ASSIGN_MOD, MOD);
-					}
+					token = select('=', ASSIGN_MOD, MOD);
 					break;
 					
 				case '<':
@@ -1115,19 +1048,23 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 	// <!-- xml comment --> or <xml or </xml> or < <= << <<=
 	Token scan_lt_and_xml_element() {
 		advance();
+
 		if (c0_ == '!') { // <!-- xml comment -->
 			
 			advance();
+
 			if (c0_ != '-') {
 				back(); return LT;
 			}
 			
 			advance();
+
 			if (c0_ != '-') {
 				back(); back(); return LT;
 			}
 			
 			advance();
+
 			while (c0_ >= 0) {
 				if (c0_ == '-') {
 					advance();
@@ -1177,7 +1114,9 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 			
 			scan_xml_tag_identifier();
 			
-			int c = c0_; advance();
+			int c = c0_;
+			advance();
+			
 			if (c == ':' && is_xml_element_start(c0_)) {
 				next_->string_value.push(':');
 				scan_xml_tag_identifier();
@@ -1185,7 +1124,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 				back();
 			}
 			return XML_ELEMENT_TAG;
-			
+
 		}
 		else if (c0_ == '/') { // </xml>
 			advance();
@@ -1231,7 +1170,8 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 				next_->string_value.push('.');
 				scan_identifier();
 			} else {
-				back(); break;
+				back();
+				break;
 			}
 		}
 	}
@@ -1257,7 +1197,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 				next_->string_value.push('\\'); // 转义
 				next_->string_value.push('"');
 				advance();
-			} else if (c0_ == '<' || c0_ == '$' || c0_ == '%' || c0_ == '@') {
+			} else if (c0_ == '<' || c0_ == '{' || c0_ == '`') {
 				break;
 			} else {
 				next_->string_value.push(c0_);
@@ -1344,6 +1284,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 		return STRIXX_LITERAL;
 	}
 	
+	// 扫描字符串转义
 	bool scan_string_escape() {
 		int c = c0_;
 		advance();
@@ -1567,6 +1508,8 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 				}
 			}
 		} else {
+			next_->location = { pos_, pos_, line_ };
+			next_->token = ILLEGAL;
 			return false;
 		}
 		return true;
@@ -1624,6 +1567,7 @@ public:
 		if (!static_str_list) {
 			static_str_list = new static_str_list_t();
 		}
+
 		_scanner = new Scanner(*in, in.length(), _clean_comment);
 		_out = &_top_out;
 	}
@@ -1652,7 +1596,13 @@ public:
 			fetch_code();
 			token = next();
 		}
-		
+
+		if (_is_jsx) {
+			// add jsx header code
+			// import { _VV, _VVT, _VVT } from 'langou/ctr';
+			out_code(S.IMPORT_JSX_HEADER);
+		}
+
 		while (token != EOS) {
 			if (token == EXPORT) {
 				parse_export();
@@ -1875,7 +1825,7 @@ public:
 				parse_brace_expression(LBRACE, RBRACE);
 				out_code(S.RBRACE);
 				break;
-			case COMMAND:                 // `str${
+			case COMMAND:                 // `str ${
 				parse_command_string();
 				break;
 			case IMPORT:                  // import
@@ -1897,12 +1847,12 @@ public:
 		}
 	}
 	
-	void parse_expression() {
+	void parse_expression() { // 表达式
 		parse_single_expression();
 		parse_operation_expression();
 	}
 	
-	void parse_single_expression() {
+	void parse_single_expression() { // 简单表达式
 		
 		Token tok = next();
 		
@@ -1919,7 +1869,7 @@ public:
 			case STRIXX_LITERAL: // "String"
 				fetch_code();
 				break;
-			case COMMAND:     // `str${
+			case COMMAND:     // `str ${
 				// command string start
 				parse_command_string();
 				break;
@@ -1989,12 +1939,25 @@ public:
 		}
 	}
 	
-	void parse_operation_expression() {
+	void parse_operation_expression() { // 运算符表达式
 		
 		Token op = peek();
 		
 		if ( isAssignmentOp(op) ) {
-			// 无法确定左边表达式是否为一个变量表达式,所以暂时不处理,
+			// ASSIGN,                 // =
+			// ASSIGN_BIT_OR,          // |=
+			// ASSIGN_BIT_XOR,         // ^=
+			// ASSIGN_BIT_AND,         // &=
+			// ASSIGN_SHL,             // <<=
+			// ASSIGN_SAR,             // >>=
+			// ASSIGN_SHR,             // >>>=
+			// ASSIGN_ADD,             // +=
+			// ASSIGN_SUB,             // -=
+			// ASSIGN_MUL,             // *=
+			// ASSIGN_POWER,           // **=
+			// ASSIGN_DIV,             // /=
+			// ASSIGN_MOD,             // %=
+			// 无法确定左边表达式是否为一个变量表达式,所以暂时不处理,
 			UNEXPECTED_TOKEN_ERROR();
 		}
 		
@@ -2031,7 +1994,7 @@ public:
 		
 	}
 	
-	void parse_conditional_expression() {
+	void parse_conditional_expression() { // 三元表达式
 		ASSERT_NEXT(CONDITIONAL); // ?
 		out_code(S.CONDITIONAL); // ?
 		parse_expression();
@@ -2040,18 +2003,17 @@ public:
 		parse_expression();
 	}
 	
-	void parse_regexp_expression() {
+	void parse_regexp_expression() { // 正则表达式
 		XX_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 		
-		if (_scanner->scan_regexp(_scanner->location().beg_pos) == REGEXP_LITERAL) {
-			_scanner->next();
+		if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
 			fetch_code();
 		} else {
 			error("RegExp Syntax error");
 		}
 	}
 	
-	void parse_brace_expression(Token begin, Token end) {
+	void parse_brace_expression(Token begin, Token end) { // 括号表达式
 		XX_ASSERT( _scanner->token() == begin );
 		uint level = _level;
 		_level++;
@@ -2072,7 +2034,7 @@ public:
 		collapse_scape();
 	}
 	
-	void parse_variable_visit_expression() {
+	void parse_variable_visit_expression() { // 属性访问表达式
 		XX_ASSERT( is_declaration_identifier(token()) );
 		
 		fetch_code(); // identifier
@@ -2093,7 +2055,7 @@ public:
 		}
 	}
 	
-	void parse_identifier_expression() {
+	void parse_identifier_expression() { // 
 		
 		switch (peek()) {
 			case INC:    // ++
@@ -2129,8 +2091,8 @@ public:
 			parse_command_string_block(); // parse { block }
 			XX_ASSERT(peek() == RBRACE);
 			out_code(S.RBRACE);   // }
-			_scanner->scan_command_string(_scanner->next_location().end_pos);
-			Token tok = _scanner->next();
+			Token tok = _scanner->scan_command_string(_scanner->next_location().end_pos);
+			// Token tok = _scanner->next();
 			if (tok == COMMAND_END) {
 				fetch_code(); break;
 			} else if (tok != COMMAND) {
@@ -2563,25 +2525,26 @@ public:
 		}
 	}
 
-	bool is_legal_literal_begin(bool xml) {
+	// 是否为合法字面量开始
+	bool is_legal_literal_begin(bool isXml) {
 		Token tok = _scanner->prev();
-		
-		if ( xml ) {
+
+		if ( isXml ) {
 			switch (tok) {
-				case INC:         // ++ //if (i++<a.length) { }
-				case DEC:         // -- //if (i--<a.length) { }
+				// 这是一个合法js语法，但不是一个合法的xml字面量的开始
+				case INC:         // if (i++<a.length) {}
+				case DEC:         // if (i--<a.length) {}
 					return false;
-					break;
 				default: break;
 			}
 		}
-		
-		// 上一个词为这些时,下一个词可以为 literal expression
-		
+
+		// 上一个词为这些时,下一个词可以为字面量(literal expression)
+
 		if ( ASSIGN <= tok && tok <= TYPEOF ) {
 			return true;
 		}
-		
+
 		switch (tok) {
 			case OF:              // of
 			case LBRACE:          // {
@@ -2606,7 +2569,7 @@ public:
 				}
 			default: break;
 		}
-		
+
 		return false;
 	}
 	
@@ -2683,77 +2646,56 @@ public:
 				return true;
 		}
 	}
+
+	bool is_xml_element_legal_start(bool inXml/*是否在xml内部*/) {
+		if (!_is_jsx)
+			return false;
+
+		if (!inXml) { // 非xml内部
+			if (!is_legal_literal_begin(true)) // 
+				return false;
+		}
+
+		Token token = peek();
+
+		if (token == PERIOD || /* . */ token == COLON /* : */) { // not xml
+			return false;
+		}
+
+		return true;
+	}
 	
-	void parse_xml_element(bool xml_inl) {
+	void parse_xml_element(bool inXml) {
 		XX_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
-		
-		if (!_is_jsx || (!xml_inl && !is_legal_literal_begin(true)) ) {
+
+		if ( !is_xml_element_legal_start(inXml) ) { // 是否为合法的xml开始
 			out_code(S.LT);
 			fetch_code();
 			return;
-		} else {
-			Token token = peek();
-			if ( token == PERIOD || token == COLON ) { // not xml
-				out_code(S.LT);
-				fetch_code();
-				return;
-			}
 		}
-		
+
 		collapse_scape(); // push scape
-		
-		// 转换xml为json对像:
+	
+		// 转换xml为json对像: _VV(Tag,[attrs],[children])
 		
 		Ucs2String tag_name = _scanner->string_value();
 		int index = tag_name.index_of(':');
-		bool vx_com = false;
-		
+
 		if (index != -1) {
-			Ucs2String prefix = tag_name.substr(0, index);
-			Ucs2String suffix = tag_name.substr(index + 1);
-			
-			if (prefix == S.VX) {  // <vx:tag
-				// __vx(tag,[attrs],vdata)
-				// final result:
-				// {vx:0,v:[tag,[attrs],[child],vdata]}
-				out_code(S.__VX);     // __vx
-				out_code(S.LPAREN);  // (
-				out_code(suffix);   // tag
-				out_code(S.COMMA);   // ,
-				vx_com = true;
-			} else {                // <prefix:suffix
-				// {vx:1,v:[prefix,suffix,[attrs],[child],vdata]}
-				out_code(S.LBRACE);    // {
-				out_code(S.TYPE);      // vx
-				out_code(S.COLON);     // :
-				out_code(S.NUMBER_1);  // 1
-				out_code(S.COMMA);     // ,
-				out_code(S.VALUE2);    // v
-				out_code(S.COLON);     // :
-				out_code(S.LBRACK);    // [
-				out_code(prefix);     // prefix
-				out_code(S.COMMA);     // ,
-				out_code(suffix);     // suffix
-				out_code(S.COMMA);     // ,
-			}
-		} else {              // <tag
-			// {vx:0,v:[tag,[attrs],[child],vdata]}
-			out_code(S.LBRACE);    // {
-			out_code(S.TYPE);      // vx
-			out_code(S.COLON);     // :
-			out_code(S.NUMBER_0);  // 0
-			out_code(S.COMMA);     // ,
-			out_code(S.VALUE2);    // v
-			out_code(S.COLON);     // :
-			out_code(S.LBRACK);    // [
+			error(
+				"Xml Syntax error, "
+				"<prefix:suffix><prefix:suffix>"
+				" grammar is not supported", _scanner->next_location());
+		} else {              	// <tag
+			out_code(S._VV);    	// _VV
+			out_code(S.LPAREN);   // (
 			out_code(tag_name);   // tag
-			out_code(S.COMMA);     // ,
+			out_code(S.COMMA);    // ,
 		}
 		
 		Map<Ucs2String, bool> attrs;
-		Ucs2StringBuilder vdata;
-		Token token = _scanner->next();
 		bool start_parse_attrs = false;
+		Token token = _scanner->next();
 		
 		// 解析xml属性
 		if (is_object_property_identifier(token)) {
@@ -2765,17 +2707,12 @@ public:
 			
 			if (!start_parse_attrs) {
 				out_code(S.LBRACK);    // [ parse attributes start
-				//out_code(_ATTRS_COMMENT); // add comment
 				start_parse_attrs = true;
 			}
 			
 			// 添加属性
 			Ucs2StringBuilder* raw_out = _out;
 			Ucs2String attribute_name;
-			bool is_vdata = (_scanner->string_value() == S.VDATA && peek() != PERIOD);
-			if (is_vdata) {
-				_out = &vdata;
-			}
 			out_code(S.LBRACK); // [ // attribute start
 			out_code(S.LBRACK); // [ // attribute name start
 			
@@ -2803,114 +2740,58 @@ public:
 			if (token == ASSIGN) { // =
 				// 有=符号,属性必须要有值,否则为异常
 				_is_xml_attribute_expression = true;
-				if ( peek() == COMMAND_DATA_BIND ) { // %%{
-					parse_xml_attribute_data_bind(false);
-				} else if (peek() == COMMAND_DATA_BIND_ONCE) { // %{
-					parse_xml_attribute_data_bind(true);
-				} else {
-					out_code(S.NUMBER_0);  // 0
-					out_code(S.COMMA);     // ,
-					parse_expression(); // 解析属性值表达式
-				}
+				parse_expression(); // 解析属性值表达式
 				_is_xml_attribute_expression = false;
 				token = _scanner->next();
 			} else { // 没有值设置为 ""
-				out_code(S.NUMBER_0);  // 0
-				out_code(S.COMMA);     // ,
 				out_code(S.QUOTES);    // "
 				out_code(S.QUOTES);    // "
 			}
 			out_code(S.RBRACK); // ] // attribute end
 			
-			if (is_vdata) {
-				_out = raw_out;
-			}
-			
 			if (is_object_property_identifier(token)) {
-				if (!is_vdata) {
-					out_code(S.COMMA);   // ,
-				}
+				out_code(S.COMMA);   // ,
 				goto attr; // 重新开始新属性
 			}
-		} else {
+		} else { // attrs empty
 			out_code(S.LBRACK);  // [ parse attributes start
 		}
 		out_code(S.RBRACK);    // ] parse attributes end
 		
 		// 解析xml内容
-		if (token == DIV) {      // /  没有内容结束
-			if ( !vx_com ) {  // add chileren
-				out_code(S.COMMA);    // ,
-				out_code(S.LBRACK);   // [
-				out_code(S.RBRACK);   // ]
-			}
+		if (token == DIV) {      //    /  没有内容结束
+			// add empty children
+			out_code(S.COMMA);    // ,
+			out_code(S.LBRACK);   // [
+			out_code(S.RBRACK);   // ]
 			collapse_scape();
 			if (_scanner->next() != GT) { // >  语法错误
 				error("Xml Syntax error");
 			}
 		} else if (token == GT) {       //   >  闭合标签,开始解析内容
-			if ( vx_com ) { // view xml component cannot have child views.
-				error("View xml component cannot have child views.");
-			} else { // 解析子内容以及子节点
-				parse_xml_element_context(tag_name);
-			}
+			parse_xml_element_context(tag_name);
 		} else {
 			error("Xml Syntax error");
 		}
 		
-		if (vdata.length()) {
-			out_code(S.COMMA);    // ,
-			out_code(move(vdata));
-		}
-		
-		if (vx_com) { // __vx(tag,[attrs],vdata)
-			out_code(S.RPAREN); // )
-		} else {      // {vx:0,v:[tag,[attrs],[child],vdata]}
-			out_code(S.RBRACK); // ]
-			out_code(S.RBRACE); // }
-		}
+		out_code(S.RPAREN); // )
 	}
 	
-	void parse_xml_attribute_data_bind(bool once) {
-		out_code(S.NUMBER_3);  // 2
-		out_code(S.COMMA);     // ,
-		next();
-		XX_ASSERT(peek() == LBRACE);
-		XX_ASSERT(_scanner->string_value().is_empty());
-		// %{val}
-		out_code(S.DATA_BIND_FUNC); // ($,ctr)=>{return
-		next();
-		out_code(S.LPAREN);  // (
-		parse_brace_expression(LBRACE, RBRACE);
-		out_code(S.RPAREN);  // )
-		out_code(S.RBRACE);  // }
-		if (!once) {
-			out_code(S.COMMA);     // ,
-			out_code(S.NUMBER_1);  // 1
-		}
-	}
-	
-	void complete_xml_content_string(Ucs2StringBuilder& str,
-																	 Ucs2StringBuilder& space,
-																	 bool& is_once_comma,
-																	 bool before_comma, bool ignore_space) 
+	void complete_xml_content_string(
+		Ucs2StringBuilder& str, Ucs2StringBuilder& space, 
+		bool& is_once_comma, bool before_comma, bool ignore_space) 
 	{
 		if (str.string_length()) {
 			Ucs2String s = str.to_basic_string();
 			if ( !ignore_space || ! s.is_blank() ) {
 				add_xml_children_cut_comma(is_once_comma);
-				// {vx:2,v:"s"}
-				out_code(S.LBRACE);   // {
-				out_code(S.TYPE);     // vx
-				out_code(S.COLON);    // :
-				out_code(S.NUMBER_2); // 2
-				out_code(S.COMMA);    // ,
-				out_code(S.VALUE2);   // v
-				out_code(S.COLON);    // :
+				// _VVT("str")
+				out_code(S._VVT);   // _VVT
+				out_code(S.LPAREN); // (
 				out_code(S.QUOTES);   // "
 				out_code(s);
 				out_code(S.QUOTES);   // "
-				out_code(S.RBRACE);   // }
+				out_code(S.RPAREN); // (
 			}
 			str.clear();
 		}
@@ -2937,7 +2818,6 @@ public:
 		out_code(S.COMMA);    // ,
 		collapse_scape();
 		out_code(S.LBRACK);   // [
-		// out_code(S.CHILDS_COMMENT); // add comment
 		
 		Token token;// prev = ILLEGAL;
 		Ucs2StringBuilder str, scape;
@@ -2946,89 +2826,73 @@ public:
 		bool is_once_comma = true;
 		
 		while(true) {
+			// <!-- xml comment --> OR <xml OR </xml> OR < <= << <<= OR ` OR block
 			token = _scanner->scan_xml_content(ignore_space, pos);
-			pos = _scanner->next_location().end_pos;
+			// pos = _scanner->next_location().end_pos;
+			pos = _scanner->location().end_pos;
 
 			switch (token) {
 				case XML_COMMENT:    // <!-- comment -->
 					/* ignore comment */
 					scape.push(S.XML_COMMENT);
-					scape.push(_scanner->next_string_value());
+					// scape.push(_scanner->next_string_value());
+					scape.push(_scanner->string_value());
 					scape.push(S.XML_COMMENT_END);
 					break;
 					
 				case XML_ELEMENT_TAG: // <xml
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					_scanner->next();
+					// _scanner->next();
 					parse_xml_element(true);
 					pos = _scanner->location().end_pos;
 					break;
 					
 				case XML_ELEMENT_TAG_END:    // </xml>
 					complete_xml_content_string(str, scape, is_once_comma, false, ignore_space);
-					if (tag_name != _scanner->next_string_value()) {
+					// if (tag_name != _scanner->next_string_value()) {
+					if (tag_name != _scanner->string_value()) {
 						error(String::format("Xml Syntax error, The end of the unknown, <%s> ... </%s>",
 																 *to_utf8_string(tag_name),
 																 *to_utf8_string(_scanner->next_string_value())) );
 					}
 					out_code(S.RBRACK);     // ]
-					_scanner->next();
+					// _scanner->next();
 					return;
 					
-				case XML_NO_IGNORE_SPACE: // @@
+				case LT: // <
+					// str.push(_scanner->next_string_value());
+					str.push(_scanner->string_value());
+					break;
+
+				case XML_NO_IGNORE_SPACE: // `
 					complete_xml_content_string(str, scape, is_once_comma, false, ignore_space);
 					ignore_space = !ignore_space;
 					break;
 					
-				case LT: // <
-					str.push(_scanner->next_string_value());
-					break;
-					
-				case COMMAND_DATA_BIND: // %%{command}
-				case COMMAND_DATA_BIND_ONCE: // %{command}
+				case COMMAND: // {command block}
+					// _VVD(block)
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					_scanner->next();     // command %% or %
-					_scanner->next();     // next {
-					out_code(S.LBRACE);    // {
-					out_code(S.TYPE);      // vx
-					out_code(S.COLON);     // :
-					out_code(S.NUMBER_3);  // 3
-					out_code(S.COMMA);     // ,
-					out_code(S.VALUE2);    // v
-					out_code(S.COLON);     // :
-					out_code(S.DATA_BIND_FUNC);      // ($,ctr)=>{return
-					out_code(S.LPAREN);  // (
+					// _scanner->next();     // command {
+					// _scanner->next();     // next {
+					out_code(S._VVD);     // _VVD
+					out_code(S.LPAREN);   // (
 					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(S.RPAREN);  // )
-					out_code(S.RBRACE);  // }
-					if (token == COMMAND_DATA_BIND) { // MULTIPLE
-						out_code(S.COMMA);     // ,
-						out_code(S.MULTIPLE);  // m
-						out_code(S.COLON);     // :
-						out_code(S.NUMBER_1);  // 1
-					}
-					out_code(S.RBRACE);  // }
-					pos = _scanner->location().end_pos;
-					break;
-					
-				case COMMAND: // ${command}
-					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					_scanner->next();     // command ${
-					_scanner->next();     // next {
-					out_code(S.LPAREN);    // (
-					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(S.RPAREN);    // )
+					out_code(S.RPAREN);   // )
 					pos = _scanner->location().end_pos;
 					break;
 					
 				case STRIXX_LITERAL:   // xml context text
-					if (!_scanner->next_string_space().is_empty())
-						scape.push(_scanner->next_string_space());
-					str.push(_scanner->next_string_value());
+					// if (!_scanner->next_string_space().is_empty())
+					if (!_scanner->string_space().is_empty())
+						// scape.push(_scanner->next_string_space());
+						scape.push(_scanner->string_space());
+					// str.push(_scanner->next_string_value());
+					str.push(_scanner->string_value());
 					break;
 					
-				default:
-					error("Xml Syntax error", _scanner->next_location());
+				default: // <= << <<=
+					// error("Xml Syntax error", _scanner->next_location());
+					error("Xml Syntax error", _scanner->location());
 					break;
 			}
 		}
