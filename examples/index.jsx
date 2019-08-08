@@ -136,8 +136,8 @@ const langou_tools_vx = ()=>(
 	<Mynavpage title="Langou Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-@@1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g lmake</T>.
-2. Or get the node modules from Github.@@
+`1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g lmake</T>.
+2. Or get the node modules from Github.`
 			</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools>Go Github</Button>
 		</Div>
@@ -192,10 +192,10 @@ var app = new GUIApplication({
 					<Text class="hello">Hello.</Text>
 					<Div class="category">
 						<Hybrid class="codepre">
-@@<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'langou'</T>
+`<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'langou'</T>
 <T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
 	\<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
-)@@
+)`
 						</Hybrid>
 					</Div>
 

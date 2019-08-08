@@ -109,9 +109,6 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 	F(COMMA, ',') \
 	F(COLON, ':') \
 	F(SEMICOLON, ';') \
-	F(VX, "vx")       /*v*/ \
-	F(__VX, "__vx") \
-	F(VALUE, "value") \
 	F(XML_COMMENT, "/***") \
 	F(XML_COMMENT_END, "**/") \
 	F(COMMENT, "/*") \
@@ -121,16 +118,14 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 	F(EXPORT_DEFAULT, "exports.default") \
 	F(MODULE_EXPORT, "module._export") \
 	F(DEFAULT, "default") \
-	F(__EXTEND, "__extend") \
+	F(EXTEND, "Object.assign") \
 	F(PROTOTYPE, "prototype") \
 	F(NUMBER_0, "0") \
 	F(NUMBER_1, "1") \
 	F(NUMBER_2, "2") \
 	F(NUMBER_3, "3") \
-	F(TYPE, "vx") \
-	F(MULTIPLE, "m") \
 	F(STATIC, "static") \
-	F(IMPORT_JSX_HEADER, "const { _VV, _VVT, _VVT } = require('langou/ctr');") \
+	F(IMPORT_JSX_HEADER, "const { _VV, _VVT, _VVD } = require('langou/ctr');") \
 	F(_VV, "_VV") \
 	F(_VVT, "_VVT") \
 	F(_VVD, "_VVD") \
@@ -238,7 +233,6 @@ enum Token {
 	/* Xml */
 	XML_ELEMENT_TAG,        // <xml
 	XML_ELEMENT_TAG_END,    // </xml>
-	XML_NO_IGNORE_SPACE,    // `
 	XML_COMMENT,            // <!-- comment -->
 	COMMAND,                // `str ${
 	COMMAND_END,            //  str`
@@ -367,6 +361,10 @@ class Scanner : public Object {
 					next_->string_value.push(c0_);
 					advance();
 				} while(c0_ != '\n' && c0_ != EOS);
+				if (c0_ == '\n') {
+					advance();
+					next_->string_value.push('\n');
+				}
 				next_->location.beg_pos = 0;
 				next_->location.end_pos = pos_;
 				return;
@@ -521,10 +519,10 @@ class Scanner : public Object {
 			Token::ILLEGAL
 		};
 		
-		TokenDesc* tok = current_;
-		prev_ = tok->token;
+		TokenDesc* cur = current_;
+		prev_ = cur->token;
 		current_ = next_;
-		next_ = tok;
+		next_ = cur;
 		next_->location.beg_pos = pos_;
 		next_->location.line = line_;
 		next_->string_space = Ucs2String();
@@ -544,7 +542,7 @@ class Scanner : public Object {
 		return current_->token;
 	}
 	
-	Token scan_xml_content(bool ignore_space, uint pos) { // TODO A
+	Token scan_xml_content(uint pos, bool& ignore_space) {
 		if ( !set_pos(pos) ) {
 			return ILLEGAL;
 		}
@@ -560,12 +558,7 @@ class Scanner : public Object {
 			token = scan_lt_and_xml_element();
 		}
 		else if (c0_ == '{') {  // jsx xml command block
-			advance();
 			token = COMMAND;
-		}
-		else if (c0_ == '`') { // xml文本转义,不忽略内容文本中的空格以及制表符
-			advance();
-			token = XML_NO_IGNORE_SPACE;
 		}
 		else { // string
 			token = scan_xml_content_string(ignore_space);
@@ -573,7 +566,7 @@ class Scanner : public Object {
 		next_->location.end_pos = pos_;
 		next_->token = token;
 
-		return next();
+		return token;
 	}
 	
 	Token scan_regexp_content(uint pos) {
@@ -639,7 +632,7 @@ class Scanner : public Object {
 		next_->location.end_pos = pos_;
 		next_->token = token;
 
-		return next();
+		return token;
 	}
 	
 	Token scan_command_string(uint pos) {
@@ -662,7 +655,6 @@ class Scanner : public Object {
 			} else if (c == '$') { // js字符串内部指令开始必须以}结束
 				// ${ command }
 				if (c0_ == '{') {         // COMMAND
-					advance();
 					token = COMMAND; break;
 				}
 			}
@@ -1176,7 +1168,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 		}
 	}
 	
-	Token scan_xml_content_string(bool ignore_space) {
+	Token scan_xml_content_string(bool& ignore_space) {
 		do {
 			if ( ignore_space && skip_white_space(true) ) {
 				next_->string_value.push(' ');
@@ -1197,7 +1189,12 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 				next_->string_value.push('\\'); // 转义
 				next_->string_value.push('"');
 				advance();
-			} else if (c0_ == '<' || c0_ == '{' || c0_ == '`') {
+			}
+			else if (c0_ == '`') {
+				advance();
+				ignore_space = !ignore_space;
+			} 
+			else if (c0_ == '<' || c0_ == '{') {
 				break;
 			} else {
 				next_->string_value.push(c0_);
@@ -1567,7 +1564,6 @@ public:
 		if (!static_str_list) {
 			static_str_list = new static_str_list_t();
 		}
-
 		_scanner = new Scanner(*in, in.length(), _clean_comment);
 		_out = &_top_out;
 	}
@@ -1578,7 +1574,9 @@ public:
 	
 	Ucs2String transform() {
 		parse_document();
+
 		Ucs2String rv = _out->to_basic_string();
+
 		//if ( _path.index_of("test.js") != -1 ) {
 		//  String str = rv.to_string();
 		//  LOG(str);
@@ -1590,18 +1588,18 @@ public:
 	
 	void parse_document() {
 		
-		Token token = next();
-		
-		if ( token == SHELL_HEADER ) {
-			fetch_code();
-			token = next();
+		if ( peek() == SHELL_HEADER ) {
+			next();
+			fetch_code(); // #!/bin/sh
 		}
 
 		if (_is_jsx) {
 			// add jsx header code
-			// import { _VV, _VVT, _VVT } from 'langou/ctr';
+			// import { _VV, _VVT, _VVD } from 'langou/ctr';
 			out_code(S.IMPORT_JSX_HEADER);
 		}
+
+		Token token = next();
 
 		while (token != EOS) {
 			if (token == EXPORT) {
@@ -1616,7 +1614,7 @@ public:
 		for ( auto& i : _class_member_data_expression ) {
 			if ( i.value().expressions.length() ) {
 				out_code(S.NEWLINE);   // \n
-				out_code(S.__EXTEND);   // __extend
+				out_code(S.EXTEND);   // Object.assign
 				out_code(S.LPAREN);    // (
 				out_code(i.value().class_name);    // class_name
 				out_code(S.PERIOD);    // .
@@ -1633,8 +1631,6 @@ public:
 					out_code(S.NEWLINE);   // \n
 				}
 				out_code(S.RBRACE);    // }
-				out_code(S.COMMA);     // ,
-				out_code(S.NUMBER_1);  // 1
 				out_code(S.RPAREN);    // )
 				out_code(S.SEMICOLON); // ;
 			}
@@ -2007,6 +2003,7 @@ public:
 		XX_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 		
 		if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
+			next();
 			fetch_code();
 		} else {
 			error("RegExp Syntax error");
@@ -2082,7 +2079,6 @@ public:
 		if ( _scanner->string_value().is_empty()) {
 			UNEXPECTED_TOKEN_ERROR();
 		}
-		
 		while(true) {
 			XX_ASSERT(peek() == LBRACE);
 			out_code(_scanner->string_value());
@@ -2091,8 +2087,8 @@ public:
 			parse_command_string_block(); // parse { block }
 			XX_ASSERT(peek() == RBRACE);
 			out_code(S.RBRACE);   // }
-			Token tok = _scanner->scan_command_string(_scanner->next_location().end_pos);
-			// Token tok = _scanner->next();
+			_scanner->scan_command_string(_scanner->next_location().end_pos);
+			Token tok = next();
 			if (tok == COMMAND_END) {
 				fetch_code(); break;
 			} else if (tok != COMMAND) {
@@ -2104,9 +2100,8 @@ public:
 	void parse_command_string_block() {
 		XX_ASSERT( _scanner->token() == LBRACE );
 		while(true) {
-			if (peek() == RBRACE) {
+			if (peek() == RBRACE)
 				break;
-			}
 			if (next() == EOS) {
 				UNEXPECTED_TOKEN_ERROR();
 			} else {
@@ -2783,13 +2778,13 @@ public:
 	{
 		if (str.string_length()) {
 			Ucs2String s = str.to_basic_string();
-			if ( !ignore_space || ! s.is_blank() ) {
+			if ( !ignore_space || !s.is_blank() ) {
 				add_xml_children_cut_comma(is_once_comma);
 				// _VVT("str")
 				out_code(S._VVT);   // _VVT
 				out_code(S.LPAREN); // (
 				out_code(S.QUOTES);   // "
-				out_code(s);
+				out_code(move(s));
 				out_code(S.QUOTES);   // "
 				out_code(S.RPAREN); // (
 			}
@@ -2827,53 +2822,44 @@ public:
 		
 		while(true) {
 			// <!-- xml comment --> OR <xml OR </xml> OR < <= << <<= OR ` OR block
-			token = _scanner->scan_xml_content(ignore_space, pos);
-			// pos = _scanner->next_location().end_pos;
-			pos = _scanner->location().end_pos;
+			token = _scanner->scan_xml_content(pos, ignore_space);
+			pos = _scanner->next_location().end_pos;
 
 			switch (token) {
 				case XML_COMMENT:    // <!-- comment -->
 					/* ignore comment */
 					scape.push(S.XML_COMMENT);
-					// scape.push(_scanner->next_string_value());
-					scape.push(_scanner->string_value());
+					scape.push(_scanner->next_string_value());
 					scape.push(S.XML_COMMENT_END);
 					break;
 					
 				case XML_ELEMENT_TAG: // <xml
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					// _scanner->next();
+					_scanner->next();
 					parse_xml_element(true);
 					pos = _scanner->location().end_pos;
 					break;
 					
 				case XML_ELEMENT_TAG_END:    // </xml>
 					complete_xml_content_string(str, scape, is_once_comma, false, ignore_space);
-					// if (tag_name != _scanner->next_string_value()) {
-					if (tag_name != _scanner->string_value()) {
+					if (tag_name != _scanner->next_string_value()) {
 						error(String::format("Xml Syntax error, The end of the unknown, <%s> ... </%s>",
 																 *to_utf8_string(tag_name),
 																 *to_utf8_string(_scanner->next_string_value())) );
 					}
 					out_code(S.RBRACK);     // ]
-					// _scanner->next();
+					_scanner->next();
 					return;
 					
 				case LT: // <
-					// str.push(_scanner->next_string_value());
-					str.push(_scanner->string_value());
+					str.push(_scanner->next_string_value());
 					break;
 
-				case XML_NO_IGNORE_SPACE: // `
-					complete_xml_content_string(str, scape, is_once_comma, false, ignore_space);
-					ignore_space = !ignore_space;
-					break;
-					
 				case COMMAND: // {command block}
 					// _VVD(block)
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					// _scanner->next();     // command {
-					// _scanner->next();     // next {
+					_scanner->next();     // {
+					_scanner->next();
 					out_code(S._VVD);     // _VVD
 					out_code(S.LPAREN);   // (
 					parse_brace_expression(LBRACE, RBRACE); //
@@ -2882,17 +2868,13 @@ public:
 					break;
 					
 				case STRIXX_LITERAL:   // xml context text
-					// if (!_scanner->next_string_space().is_empty())
-					if (!_scanner->string_space().is_empty())
-						// scape.push(_scanner->next_string_space());
-						scape.push(_scanner->string_space());
-					// str.push(_scanner->next_string_value());
-					str.push(_scanner->string_value());
+					if (!_scanner->next_string_space().is_empty())
+						scape.push(_scanner->next_string_space());
+					str.push(_scanner->next_string_value());
 					break;
 					
 				default: // <= << <<=
-					// error("Xml Syntax error", _scanner->next_location());
-					error("Xml Syntax error", _scanner->location());
+					error("Xml Syntax error", _scanner->next_location());
 					break;
 			}
 		}
@@ -2914,6 +2896,10 @@ public:
 		XX_THROW(ERR_SYNTAX_ERROR,
 						 "%s\nline:%d, pos:%d, %s",
 						 *msg, loc.line + 1, loc.end_pos, *_path);
+		// // ERR_SYNTAX_ERROR
+		// XX_FATAL(
+		// 				 "%s\nline:%d, pos:%d, %s",
+		// 				 *msg, loc.line + 1, loc.end_pos, *_path);
 	}
 	
 	Token next() {

@@ -202,7 +202,7 @@ export class Dialog extends Navigation {
 						class="button" 
 						width="full"
 						onClick="triggerClickButton"
-						defaultHighlighted=0>${btns[i]}</Button>,
+						defaultHighlighted=0>{btns[i]}</Button>,
 					this.IDs.btns
 				);
 			}
@@ -282,7 +282,7 @@ export const CONSTS = {
 
 export function alert(msg, cb = util.noop) {
 	var dag = render(
-		<Dialog buttons=[CONSTS.OK] onClickButton=(e=>cb(e.data))>${msg}</Dialog>
+		<Dialog buttons=[CONSTS.OK] onClickButton=(e=>cb(e.data))>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
@@ -290,7 +290,7 @@ export function alert(msg, cb = util.noop) {
 
 export function confirm(msg, cb = util.noop) {
 	var dag = render(
-		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data))>${msg}</Dialog>
+		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data))>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
@@ -310,7 +310,7 @@ export function prompt(msg, text = '', cb = util.noop) {
 	var dag = render(
 		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
-				${msg}
+				{msg}
 				<Input id="m_input" class="prompt"
 					returnType="done" onKeyEnter=handle_prompt_enter
 					value=text placeholder=CONSTS.placeholder />
@@ -324,7 +324,7 @@ export function prompt(msg, text = '', cb = util.noop) {
 
 export function show(title, msg, buttons, cb = ()=>{ }) {
 	var dag = render(
-		<Dialog title=title buttons=buttons onClickButton=(e=>cb(e.data))>${msg}</Dialog>
+		<Dialog title=title buttons=buttons onClickButton=(e=>cb(e.data))>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;

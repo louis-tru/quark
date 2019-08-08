@@ -295,12 +295,14 @@ export class Overlay extends Navigation {
 							textSize=36 textColor="#fff" value="\uedcb" />
 					</Indep>
 
-					<Clip id="content" backgroundColor="#fff" borderRadius=8>${vc}</Clip>
+					<Clip id="content" backgroundColor="#fff" borderRadius=8>{vc}</Clip>
 
 				</Indep>
 			</Indep>
 		);
 	}
+
+	// 
 
 	triggerMounted(e) {
 		//langou.displayPort.onChange.on(self.remove, self);
