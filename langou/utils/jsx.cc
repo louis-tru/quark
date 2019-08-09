@@ -38,16 +38,13 @@ XX_NS(langou)
 
 #define UNEXPECTED_TOKEN_ERROR() error()
 
-#define ASSERT_NEXT(tok, ...) \
-if(next() != tok) error(__VA_ARGS__)
+#define CHECK_NEXT(tok, ...) if (next() != tok) error(__VA_ARGS__)
 
-#define ASSERT_TOKEN(tok, ...)         \
-if(_scanner->token() != tok) error(__VA_ARGS__)
+#define CHECK_TOKEN(tok, ...) if (_scanner->token() != tok) error(__VA_ARGS__)
 
-#define ASSERT_PEEK(tok, ...)          \
-if(_scanner->peek() != tok) error(__VA_ARGS__)
+#define CHECK_PEEK(tok, ...) if (_scanner->peek() != tok) error(__VA_ARGS__)
 
-#define ASSERT(con, ...) if(!con) error(__VA_ARGS__)
+#define CHECK(con, ...) if(!con) error(__VA_ARGS__)
 
 #define DEF_STATIC_STR_LIST(F) \
 	F(SPACE, ' ') \
@@ -125,10 +122,12 @@ if(_scanner->peek() != tok) error(__VA_ARGS__)
 	F(NUMBER_2, "2") \
 	F(NUMBER_3, "3") \
 	F(STATIC, "static") \
-	F(IMPORT_JSX_HEADER, "const { _VV, _VVT, _VVD } = require('langou/ctr');") \
+	F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('langou/ctr');") \
 	F(_VV, "_VV") \
 	F(_VVT, "_VVT") \
 	F(_VVD, "_VVD") \
+	F(AS, "as") \
+	F(ARROW, "=>") \
 
 struct static_str_list_t {
 #define F(N,V) Ucs2String N = V;
@@ -228,14 +227,6 @@ static inline int64 int64_multiplication(int64 i, int multiple, int add) {
 enum Token {
 	/* End of source indicator. */
 	EOS,                    // eos
-	SHELL_HEADER,           // !#/bin/sh
-	AT,                     // @
-	/* Xml */
-	XML_ELEMENT_TAG,        // <xml
-	XML_ELEMENT_TAG_END,    // </xml>
-	XML_COMMENT,            // <!-- comment -->
-	COMMAND,                // `str ${
-	COMMAND_END,            //  str`
 	/* Punctuators. */
 	LPAREN,                 // (
 	RPAREN,                 // )
@@ -324,6 +315,15 @@ enum Token {
 	ILLEGAL,                // illegal
 	/* Scanner-internal use only. */
 	WHITESPACE,             // space
+	/* Other */
+	SHELL_HEADER,           // !#/bin/sh
+	AT,                     // @
+	XML_ELEMENT_TAG,        // <xml
+	XML_ELEMENT_TAG_END,    // </xml>
+	XML_COMMENT,            // <!-- comment -->
+	COMMAND,                // `str ${
+	COMMAND_END,            //  str`
+	ARROW,									// =>
 };
 
 inline static bool isAssignmentOp(Token tok) {
@@ -688,8 +688,8 @@ class Scanner : public Object {
 	inline Ucs2String&  next_string_space() { return next_->string_space; }
 	inline Ucs2String&  next_string_value() { return next_->string_value; }
 	inline bool         next_before_line_feed() { return next_->before_line_feed; }
-	inline bool         has_scape_before()  { return !current_->string_space.is_empty(); }
-	inline bool         has_scape_before_next() { return !next_->string_space.is_empty(); }
+	inline bool         has_scape_before()  { return current_->before_scape; }
+	inline bool         has_scape_before_next() { return next_->before_scape; }
 	
  private:
 
@@ -698,7 +698,8 @@ class Scanner : public Object {
 		Location location;
 		Ucs2String string_space;
 		Ucs2String string_value;
-		bool  before_line_feed;
+		bool before_line_feed;
+		bool before_scape;
 	};
 	
 	void scan() { // scan javascript code
@@ -707,6 +708,7 @@ class Scanner : public Object {
 		next_->string_value = Ucs2String();
 		next_->string_space = Ucs2String();
 		next_->before_line_feed = false;
+		next_->before_scape = false;
 		
 		do {
 			// Remember the position of the next token
@@ -717,12 +719,14 @@ class Scanner : public Object {
 				case ' ':
 				case '\t':
 					next_->string_space.push(c0_);
+					next_->before_scape = true;
 					advance();
 					token = Token::WHITESPACE;
 					break;
 					
 				case '\n':
 					next_->string_space.push(c0_);
+					next_->before_scape = true;
 					advance();
 					next_->before_line_feed = true;
 					token = WHITESPACE;
@@ -774,9 +778,11 @@ class Scanner : public Object {
 					break;
 					
 				case '=':
-					// = == ===
+					// = => == ===
 					advance();
-					if (c0_ == '=') {
+					if (c0_ == '>') { // =>
+						token = select(ARROW);
+					} else if (c0_ == '=') {
 						token = select('=', EQ_STRICT, EQ);
 					} else {
 						token = ASSIGN;
@@ -1551,15 +1557,15 @@ class Parser: public Object {
 public:
 	
 	Parser(cUcs2String& in, cString& path, bool is_jsx, bool clean_comment)
-	: _out(nullptr)
-	, _path(path)
-	, _level(0)
-	, _is_jsx(is_jsx)
-	, _is_class_member_data_expression(false)
-	, _is_xml_attribute_expression(false)
-	, _single_if_expression_before(false)
-	, _has_export_default(false)
-	, _clean_comment(clean_comment)
+		: _out(nullptr)
+		, _path(path)
+		, _level(0)
+		, _is_jsx(is_jsx)
+		, _is_class_member_data_expression(false)
+		, _is_xml_attribute_expression(false)
+		, _single_if_expression_before(false)
+		, _has_export_default(false)
+		, _clean_comment(clean_comment)
 	{
 		if (!static_str_list) {
 			static_str_list = new static_str_list_t();
@@ -1574,14 +1580,7 @@ public:
 	
 	Ucs2String transform() {
 		parse_document();
-
-		Ucs2String rv = _out->to_basic_string();
-
-		//if ( _path.index_of("test.js") != -1 ) {
-		//  String str = rv.to_string();
-		//  LOG(str);
-		//}
-		return rv;
+		return _out->to_basic_string();
 	}
 	
  private:
@@ -1590,115 +1589,141 @@ public:
 		
 		if ( peek() == SHELL_HEADER ) {
 			next();
-			fetch_code(); // #!/bin/sh
+			fetch(); // #!/bin/sh
 		}
 
 		if (_is_jsx) {
 			// add jsx header code
 			// import { _VV, _VVT, _VVD } from 'langou/ctr';
-			out_code(S.IMPORT_JSX_HEADER);
+			append(S.JSX_HEADER);
 		}
 
-		Token token = next();
-
-		while (token != EOS) {
-			if (token == EXPORT) {
-				parse_export();
-			} else {
-				parse_advance();
-			}
-			token = next();
+		Token tok = next();
+		while (tok != EOS) {
+			parse_advance();
+			tok = next();
 		}
-		
+
+		// parse end
 		// class member data
 		for ( auto& i : _class_member_data_expression ) {
 			if ( i.value().expressions.length() ) {
-				out_code(S.NEWLINE);   // \n
-				out_code(S.EXTEND);   // Object.assign
-				out_code(S.LPAREN);    // (
-				out_code(i.value().class_name);    // class_name
-				out_code(S.PERIOD);    // .
-				out_code(S.PROTOTYPE);  // prototype
-				out_code(S.COMMA);     // ,
-				out_code(S.LBRACE);    // {
-				out_code(S.NEWLINE);   // \n
+				append(S.NEWLINE);   // \n
+				append(S.EXTEND);   // Object.assign
+				append(S.LPAREN);    // (
+				append(i.value().class_name);    // class_name
+				append(S.PERIOD);    // .
+				append(S.PROTOTYPE);  // prototype
+				append(S.COMMA);     // ,
+				append(S.LBRACE);    // {
+				append(S.NEWLINE);   // \n
 				for ( auto& j : i.value().expressions ) {
-					out_code(S.INDENT);    // \t
-					out_code(j.key());    // identifier
-					out_code(S.COLON);     // :
-					out_code(j.value().to_basic_string());  // expression
-					out_code(S.COMMA);     // ,
-					out_code(S.NEWLINE);   // \n
+					append(S.INDENT);    // \t
+					append(j.key());    // identifier
+					append(S.COLON);     // :
+					append(j.value().to_basic_string());  // expression
+					append(S.COMMA);     // ,
+					append(S.NEWLINE);   // \n
 				}
-				out_code(S.RBRACE);    // }
-				out_code(S.RPAREN);    // )
-				out_code(S.SEMICOLON); // ;
+				append(S.RBRACE);    // }
+				append(S.RPAREN);    // )
+				append(S.SEMICOLON); // ;
 			}
 		}
 		
 		// export
 		for (uint i = 0; i < _exports.length(); i++) {
-			out_code(S.NEWLINE);
-			out_code(S.EXPORTS);    // exports.xxx=xxx;
-			out_code(S.PERIOD);     // .
-			out_code(_exports[i]); // xxx
-			out_code(S.ASSIGN);     // =
-			out_code(_exports[i]); // xxx
-			out_code(S.SEMICOLON);  // ;
+			append(S.NEWLINE);
+			append(S.EXPORTS);    // exports.xxx=xxx;
+			append(S.PERIOD);     // .
+			append(_exports[i]); // xxx
+			append(S.ASSIGN);     // =
+			append(_exports[i]); // xxx
+			append(S.SEMICOLON);  // ;
 		}
 		
 		// export default
 		if (_has_export_default && !_export_default.is_empty()) {
-			out_code(S.NEWLINE);
-			out_code(S.EXPORT_DEFAULT);  // exports.default=xxx;
-			out_code(S.ASSIGN);          // =
-			out_code(_export_default);  // xxx
-			out_code(S.SEMICOLON);       // ;
+			append(S.NEWLINE);
+			append(S.EXPORT_DEFAULT);  // exports.default=xxx;
+			append(S.ASSIGN);          // =
+			append(_export_default);  // xxx
+			append(S.SEMICOLON);       // ;
 		}
 		
-		out_code(S.NEWLINE);
+		append(S.NEWLINE);
+	}
+
+	void parse_function() {
+		XX_ASSERT(token() == FUNCTION);
+		// function f(arg) { block }
+		fetch(); // function
+		if ( is_declaration_identifier(next()) ) {
+			fetch(); // identifier
+			next();
+		}
+		CHECK_TOKEN(LPAREN); // (
+		append(S.LPAREN);  // (
+		parse_brace_expression(LPAREN, RPAREN); // ()
+		append(S.RPAREN);  // (
+		CHECK_NEXT(LBRACE); // {
+		append(S.LBRACE);  // {
+		parse_brace_expression(LBRACE, RBRACE); // {}
+		append(S.RBRACE);  // }
+	}
+
+	void parse_arrow_function() {
+		XX_ASSERT(token() == ARROW);
+		// TODO ...
 	}
 
 	void parse_advance() {
-		
-		collapse_scape();
-		
-		switch(token()) {
+
+		switch (token()) {
+			case EXPORT:
+				parse_export(); break;
 			case WHITESPACE:  // space
 			case INSTANCEOF:  // instanceof
 			case TYPEOF:  // typeof
-			case IDENTIFIER:  // identifier
-			case IN:  // in
-			case AS:  // as
-			case ASYNC: // async
-			case FROM:  // from
-			case OF:  // of
+			case IN:  // in			
 			case RETURN:  // return
 			case VAR: // var
-			case FUNCTION:  // function
 			case LET: // let
 			case DEFAULT: // default
 			case CONST: // const
-			case EVENT: // event
 			case ELSE:  // else
-			case GET: // get
-			case SET: // set
 			case NUMBER_LITERAL:  // number
 			case STRIXX_LITERAL:  // string
-				fetch_code(); break;
+				fetch();
+				break;
+			case IDENTIFIER:  // identifier
+			case AS:  // as
+			case OF:  // of
+			case FROM:  // from
+			case EVENT: // event
+			case GET: // get
+			case SET: // set
+				fetch();
+				break;
+			case ARROW: // =>
+				append(S.ARROW);
+				break;
+			case ASYNC: // async
+				fetch();
+				break;
 			case CLASS: // class
 				if ( _scanner->prev() == PERIOD ) { // .class
-					fetch_code();
+					fetch();
 				} else {
 					parse_class(); // class xxxx { }
 				}
 				break;
 			case IF:  // if
-				fetch_code();
-				ASSERT_NEXT(LPAREN);        // (
-				out_code(S.LPAREN);
+				fetch();
+				CHECK_NEXT(LPAREN);        // (
+				append(S.LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
-				out_code(S.RPAREN);
+				append(S.RPAREN);
 				if ( peek() != LBRACE ) { // {
 					next();
 					_single_if_expression_before = true;
@@ -1706,90 +1731,92 @@ public:
 					_single_if_expression_before = false;
 				}
 				break;
+			case FUNCTION:  // function
+				parse_function(); break;
 			case LT:                      // <
-				out_code(S.LT); break;
+				append(S.LT); break;
 			case GT:                      // >
-				out_code(S.GT); break;
+				append(S.GT); break;
 			case ASSIGN:                  // =
-				out_code(S.ASSIGN); break;
+				append(S.ASSIGN); break;
 			case PERIOD:                  // .
-				out_code(S.PERIOD); break;
+				append(S.PERIOD); break;
 			case ADD:                     // +
-				out_code(S.ADD); break;
+				append(S.ADD); break;
 			case SUB:                     // -
-				out_code(S.SUB); break;
+				append(S.SUB); break;
 			case COMMA:                   // ,
-				out_code(S.COMMA); break;
+				append(S.COMMA); break;
 			case COLON:                   // :
-				out_code(S.COLON); break;
+				append(S.COLON); break;
 			case SEMICOLON:               // ;
-				out_code(S.SEMICOLON); break;
+				append(S.SEMICOLON); break;
 			case CONDITIONAL:             // ?
-				out_code(S.CONDITIONAL); break;
+				append(S.CONDITIONAL); break;
 			case NOT:                     // !
-				out_code(S.NOT); break;
+				append(S.NOT); break;
 			case BIT_OR:                  // |
-				out_code(S.BIT_OR); break;
+				append(S.BIT_OR); break;
 			case BIT_NOT:                 // ~
-				out_code(S.BIT_NOT); break;
+				append(S.BIT_NOT); break;
 			case BIT_XOR:                 // ^
-				out_code(S.BIT_XOR); break;
+				append(S.BIT_XOR); break;
 			case MUL:                     // *
-				out_code(S.MUL); break;
-			case POWER:                     // **
-				out_code(S.POWER); break;
+				append(S.MUL); break;
+			case POWER:                   // **
+				append(S.POWER); break;
 			case BIT_AND:                 // &
-				out_code(S.BIT_AND); break;
+				append(S.BIT_AND); break;
 			case MOD:                     // %
-				out_code(S.MOD); break;
+				append(S.MOD); break;
 			case INC:                    // ++
-				out_code(S.INC); break;
+				append(S.INC); break;
 			case DEC:                    // --
-				out_code(S.DEC); break;
+				append(S.DEC); break;
 			case ASSIGN_BIT_OR:          // |=
-				out_code(S.ASSIGN_BIT_OR); break;
+				append(S.ASSIGN_BIT_OR); break;
 			case ASSIGN_BIT_XOR:         // ^=
-				out_code(S.ASSIGN_BIT_XOR); break;
+				append(S.ASSIGN_BIT_XOR); break;
 			case ASSIGN_BIT_AND:         // &=
-				out_code(S.ASSIGN_BIT_AND); break;
+				append(S.ASSIGN_BIT_AND); break;
 			case ASSIGN_SHL:             // <<=
-				out_code(S.ASSIGN_SHL); break;
+				append(S.ASSIGN_SHL); break;
 			case ASSIGN_SAR:             // >>=
-				out_code(S.ASSIGN_SAR); break;
+				append(S.ASSIGN_SAR); break;
 			case ASSIGN_SHR:             // >>>=
-				out_code(S.ASSIGN_SHR); break;
+				append(S.ASSIGN_SHR); break;
 			case ASSIGN_ADD:             // +=
-				out_code(S.ASSIGN_ADD); break;
+				append(S.ASSIGN_ADD); break;
 			case ASSIGN_SUB:             // -=
-				out_code(S.ASSIGN_SUB); break;
+				append(S.ASSIGN_SUB); break;
 			case ASSIGN_MUL:             // *=
-				out_code(S.ASSIGN_MUL); break;
-			case ASSIGN_POWER:             // **=
-				out_code(S.ASSIGN_POWER); break;
+				append(S.ASSIGN_MUL); break;
+			case ASSIGN_POWER:           // **=
+				append(S.ASSIGN_POWER); break;
 			case ASSIGN_MOD:             // %=
-				out_code(S.ASSIGN_MOD); break;
+				append(S.ASSIGN_MOD); break;
 			case OR:                     // ||
-				out_code(S.OR); break;
+				append(S.OR); break;
 			case AND:                    // &&
-				out_code(S.AND); break;
+				append(S.AND); break;
 			case SHL:                    // <<
-				out_code(S.SHL); break;
+				append(S.SHL); break;
 			case SAR:                    // >>
-				out_code(S.SAR); break;
+				append(S.SAR); break;
 			case SHR:                    // >>>
-				out_code(S.SHR); break;
+				append(S.SHR); break;
 			case EQ:                     // ==
-				out_code(S.EQ); break;
+				append(S.EQ); break;
 			case NE:                     // !=
-				out_code(S.NE); break;
+				append(S.NE); break;
 			case EQ_STRICT:              // ===
-				out_code(S.EQ_STRICT); break;
+				append(S.EQ_STRICT); break;
 			case NE_STRICT:              // !==
-				out_code(S.NE_STRICT); break;
+				append(S.NE_STRICT); break;
 			case LTE:                    // <=
-				out_code(S.LTE); break;
+				append(S.LTE); break;
 			case GTE:                    // >=
-				out_code(S.GTE); break;
+				append(S.GTE); break;
 			case XML_ELEMENT_TAG:         // <xml
 				if ( _is_xml_attribute_expression ) {
 					UNEXPECTED_TOKEN_ERROR();
@@ -1799,42 +1826,41 @@ public:
 				break;
 			case XML_COMMENT:             // <!-- comment -->
 				if (_is_jsx && !_is_xml_attribute_expression) {
-					out_code(S.XML_COMMENT);
-					out_code(_scanner->string_value());
-					out_code(S.XML_COMMENT_END);
+					append(S.XML_COMMENT);
+					append(_scanner->string_value());
+					append(S.XML_COMMENT_END);
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 				break;
 			case LPAREN:                  // (
-				out_code(S.LPAREN);
+				append(S.LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
-				out_code(S.RPAREN);
+				append(S.RPAREN);
 				break;
 			case LBRACK:                  // [
-				out_code(S.LBRACK);
+				append(S.LBRACK);
 				parse_brace_expression(LBRACK, RBRACK);
-				out_code(S.RBRACK);
+				append(S.RBRACK);
 				break;
 			case LBRACE:                  // {
-				out_code(S.LBRACE);
+				append(S.LBRACE);
 				parse_brace_expression(LBRACE, RBRACE);
-				out_code(S.RBRACE);
+				append(S.RBRACE);
 				break;
 			case COMMAND:                 // `str ${
-				parse_command_string();
-				break;
+				parse_command_string(); break;
 			case IMPORT:                  // import
-				 parse_import(); break;
-			case DIV:                     // / regexp
+				parse_import(); break;
+			case DIV:                     // / OR regexp
 			case ASSIGN_DIV:              // /=
 				if (is_legal_literal_begin(false)) {
 					parse_regexp_expression();
 				} else {
 					if (token() == DIV) {
-						out_code(S.DIV);
+						append(S.DIV);
 					} else {
-						out_code(S.ASSIGN_DIV);
+						append(S.ASSIGN_DIV);
 					}
 				}
 				break;
@@ -1842,28 +1868,50 @@ public:
 			default: UNEXPECTED_TOKEN_ERROR(); break;
 		}
 	}
+
+	void parse_brace_expression(Token begin, Token end) { // 括号表达式
+		XX_ASSERT( token() == begin );
+		uint level = _level;
+		_level++;
+
+		while(true) {
+			if (next() == end) {
+				break;
+			} else if (token() == EOS) {
+				UNEXPECTED_TOKEN_ERROR();
+			} else {
+				parse_advance();
+			}
+		}
+		_level--;
+		if ( _level != level ) {
+			UNEXPECTED_TOKEN_ERROR();
+		}
+	}
 	
 	void parse_expression() { // 表达式
 		parse_single_expression();
 		parse_operation_expression();
 	}
-	
+
 	void parse_single_expression() { // 简单表达式
-		
+
 		Token tok = next();
-		
+
 		if ( is_declaration_identifier(tok) ) {
 			parse_variable_visit_expression();
 			parse_identifier_expression();
 			return;
 		}
-		
+
 		switch (tok) {
-			case FUNCTION: // 暂不处理函数表达式
-				UNEXPECTED_TOKEN_ERROR(); break;
+			// case ASYNC:
+			case FUNCTION:
+				parse_function();
+				break;
 			case NUMBER_LITERAL: // 10
 			case STRIXX_LITERAL: // "String"
-				fetch_code();
+				fetch();
 				break;
 			case COMMAND:     // `str ${
 				// command string start
@@ -1886,9 +1934,9 @@ public:
 					if ( _is_class_member_data_expression ) { // 结束原先的多行注释
 						_out->push(S.COMMENT_END); // */
 					}
-					out_code(S.XML_COMMENT);
-					out_code(_scanner->string_value());
-					out_code(S.XML_COMMENT_END);
+					append(S.XML_COMMENT);
+					append(_scanner->string_value());
+					append(S.XML_COMMENT_END);
 					if ( _is_class_member_data_expression ) { // 重新开始多行注释
 						_out->push(S.COMMENT); // /*
 					}
@@ -1897,44 +1945,44 @@ public:
 				}
 				break;
 			case LPAREN:                  // (
-				out_code(S.LPAREN);
+				append(S.LPAREN);
 				parse_brace_expression(LPAREN, RPAREN);
-				out_code(S.RPAREN);
+				append(S.RPAREN);
 				break;
 			case LBRACK:                  // [
-				out_code(S.LBRACK);
+				append(S.LBRACK);
 				parse_brace_expression(LBRACK, RBRACK);
-				out_code(S.RBRACK);
+				append(S.RBRACK);
 				break;
 			case LBRACE:                  // {
-				out_code(S.LBRACE);
+				append(S.LBRACE);
 				parse_brace_expression(LBRACE, RBRACE);
-				out_code(S.RBRACE);
+				append(S.RBRACE);
 				break;
 			case INC:            // ++
 			case DEC:            // --
 				if ( is_declaration_identifier(peek()) ) {
-					out_code(tok == INC ? S.INC : S.DEC);
+					append(tok == INC ? S.INC : S.DEC);
 					parse_single_expression();
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 				break;
 			case TYPEOF:         // typeof
-				fetch_code(); parse_single_expression(); break;
+				fetch(); parse_single_expression(); break;
 			case ADD:            // +
-				out_code(S.ADD); parse_single_expression(); break;
+				append(S.ADD); parse_single_expression(); break;
 			case SUB:            // -
-				out_code(S.SUB); parse_single_expression(); break;
+				append(S.SUB); parse_single_expression(); break;
 			case NOT:            // !
-				out_code(S.NOT); parse_single_expression(); break;
+				append(S.NOT); parse_single_expression(); break;
 			case BIT_NOT:        // ~
-				out_code(S.BIT_NOT); parse_single_expression(); break;
+				append(S.BIT_NOT); parse_single_expression(); break;
 			default:
 				UNEXPECTED_TOKEN_ERROR(); break;
 		}
 	}
-	
+
 	void parse_operation_expression() { // 运算符表达式
 		
 		Token op = peek();
@@ -1971,7 +2019,7 @@ public:
 			/* Not two Binary operators or Compare operators. */
 			if (isBinaryOrCompareOp(op)) {
 				
-				next(); fetch_code();
+				next(); fetch();
 				parse_single_expression();
 				op = peek();
 			} else {
@@ -1979,8 +2027,8 @@ public:
 				if ( op == XML_ELEMENT_TAG ) { // <tag
 					// parse with compare
 					next();
-					out_code(S.LT);  // <
-					fetch_code();   // identifier
+					append(S.LT);  // <
+					fetch();   // identifier
 					op = peek();
 				} else { // 就此终结
 					return;
@@ -1989,60 +2037,39 @@ public:
 		}
 		
 	}
-	
+
 	void parse_conditional_expression() { // 三元表达式
-		ASSERT_NEXT(CONDITIONAL); // ?
-		out_code(S.CONDITIONAL); // ?
+		CHECK_NEXT(CONDITIONAL); // ?
+		append(S.CONDITIONAL); // ?
 		parse_expression();
-		ASSERT_NEXT(COLON); // :
-		out_code(S.COLON); // ?
+		CHECK_NEXT(COLON); // :
+		append(S.COLON); // ?
 		parse_expression();
 	}
-	
+
 	void parse_regexp_expression() { // 正则表达式
 		XX_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 		
 		if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
 			next();
-			fetch_code();
+			fetch();
 		} else {
 			error("RegExp Syntax error");
 		}
 	}
-	
-	void parse_brace_expression(Token begin, Token end) { // 括号表达式
-		XX_ASSERT( _scanner->token() == begin );
-		uint level = _level;
-		_level++;
-		while(true) {
-			Token token = next();
-			if (token == end) {
-				break;
-			} else if (token == EOS) {
-				UNEXPECTED_TOKEN_ERROR();
-			} else {
-				parse_advance();
-			}
-		}
-		_level--;
-		if ( _level != level ) {
-			UNEXPECTED_TOKEN_ERROR();
-		}
-		collapse_scape();
-	}
-	
+
 	void parse_variable_visit_expression() { // 属性访问表达式
 		XX_ASSERT( is_declaration_identifier(token()) );
-		
-		fetch_code(); // identifier
-		
+
+		fetch(); // identifier
+
 		while(true) {
 			switch(peek()) {
 				case PERIOD:     // .
-					next(); out_code( S.PERIOD ); // .
+					next(); append( S.PERIOD ); // .
 					next();
-					ASSERT(is_declaration_identifier(token()));
-					fetch_code(); // identifier
+					CHECK( is_declaration_identifier(token()) );
+					fetch(); // identifier
 					break;
 				case LBRACK:     // [
 					parse_single_expression();
@@ -2051,15 +2078,15 @@ public:
 			}
 		}
 	}
-	
+
 	void parse_identifier_expression() { // 
 		
 		switch (peek()) {
 			case INC:    // ++
-				next(); out_code(S.INC);
+				next(); append(S.INC);
 				return;
 			case DEC:    // --
-				next(); out_code(S.DEC);
+				next(); append(S.DEC);
 				return;
 			case LPAREN: // ( function call
 				break;
@@ -2070,33 +2097,34 @@ public:
 		// parse function call
 		
 		next();
-		out_code(S.LPAREN); // (
+		append(S.LPAREN); // (
 		parse_brace_expression(LPAREN, RPAREN);
-		out_code(S.RPAREN); // )
+		append(S.RPAREN); // )
 	}
-	
+
 	void parse_command_string() {
 		if ( _scanner->string_value().is_empty()) {
 			UNEXPECTED_TOKEN_ERROR();
 		}
 		while(true) {
 			XX_ASSERT(peek() == LBRACE);
-			out_code(_scanner->string_value());
-			out_code(S.COMMAND);  // ${
-			_scanner->next();
+			append(_scanner->string_value());
+			append(S.COMMAND);  // ${
+			// next();
+			next();
 			parse_command_string_block(); // parse { block }
 			XX_ASSERT(peek() == RBRACE);
-			out_code(S.RBRACE);   // }
+			append(S.RBRACE);   // }
 			_scanner->scan_command_string(_scanner->next_location().end_pos);
 			Token tok = next();
 			if (tok == COMMAND_END) {
-				fetch_code(); break;
+				fetch(); break;
 			} else if (tok != COMMAND) {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
 	}
-	
+
 	void parse_command_string_block() {
 		XX_ASSERT( _scanner->token() == LBRACE );
 		while(true) {
@@ -2108,7 +2136,6 @@ public:
 				parse_advance();
 			}
 		}
-		collapse_scape();
 	}
 
 	Ucs2String to_event_js_code(cUcs2String& name) {
@@ -2134,17 +2161,17 @@ public:
 	}
 
 	void parse_class() {
-		XX_ASSERT(_scanner->token() == CLASS);
-		
-		fetch_code();
-		
+		XX_ASSERT(token() == CLASS);
+	
+		fetch();
+	
 		Ucs2String class_name;
 		MemberDataExpression* member_data = nullptr;
 		
 		Token tok = next();
 		if (is_declaration_identifier(tok)) {
-			fetch_code();
-			
+			fetch();
+
 			class_name = _scanner->string_value();
 			
 			if ( _level == 0 ) {
@@ -2154,7 +2181,7 @@ public:
 			
 			tok = next();
 			if (tok == EXTENDS) {
-				fetch_code();
+				fetch();
 				
 				while(true) { // find {
 					tok = next();
@@ -2171,16 +2198,16 @@ public:
 			}
 		}
 		else if (tok == EXTENDS) {  // extends
-			fetch_code();
+			fetch();
 			// parse_member_data = false; // Anonymous class not parse member data
-			ASSERT_NEXT(LBRACE); // {
+			CHECK_NEXT(LBRACE); // {
 		} else {
-			ASSERT_TOKEN(LBRACE); // {
+			CHECK_TOKEN(LBRACE); // {
 		}
 		
 		XX_ASSERT(_scanner->token() == LBRACE); // {
 		
-		out_code(S.LBRACE); // {
+		append(S.LBRACE); // {
 		
 		while(true) {
 			Token tok = next();
@@ -2193,24 +2220,24 @@ public:
 						// Property accessor
 						// get identifier() { ... }
 						// set identifier(identifier) { ... }
-						fetch_code(); // fetch get or set identifier
-						next(); // identifier
-						fetch_code(); // fetch identifier
+						fetch(); // fetch get or set identifier
+						next();	// identifier
+						fetch(); // fetch identifier
 						if ( next() == LPAREN ) { // (
-							out_code(S.LPAREN); // (
+							append(S.LPAREN); // (
 							if ( tok == SET ) {
 								if ( is_declaration_identifier(next()) ) { // param identifier
-									fetch_code(); // fetch set param identifier
+									fetch(); // fetch set param identifier
 								} else {
 									error("syntax error, define set property accessor");
 								}
 							}
 							if ( next() == RPAREN ) { // )
-								out_code(S.RPAREN); // )
+								append(S.RPAREN); // )
 								if ( next() == LBRACE ) {
-									out_code(S.LBRACE); // {
+									append(S.LBRACE); // {
 									parse_brace_expression(LBRACE, RBRACE);
-									out_code(S.RBRACE); // }
+									append(S.RBRACE); // }
 									break; // ok
 								}
 							}
@@ -2226,24 +2253,24 @@ public:
 					if ( peek() == LPAREN ) { // (
 						goto function;
 					} else if ( member_data && peek() == ASSIGN ) { // = class member data
-						out_code(S.COMMENT); // /*
+						append(S.COMMENT); // /*
 						Ucs2String identifier = _scanner->string_value();
-						fetch_code(); // identifier
+						fetch(); // identifier
 						next(); // =
-						out_code(S.ASSIGN); // =
+						append(S.ASSIGN); // =
 						_out_class_member_data_expression.clear();
 						_is_class_member_data_expression = true;
 						parse_expression();
 						_is_class_member_data_expression = false;
-						ASSERT_NEXT(SEMICOLON); // ;
+						CHECK_NEXT(SEMICOLON); // ;
 						member_data->expressions.set(identifier, move(_out_class_member_data_expression));
-						out_code(S.COMMENT_END); // */
+						append(S.COMMENT_END); // */
 					} else {
 						UNEXPECTED_TOKEN_ERROR();
 					}
 					break;
 				case STATIC: // static
-					fetch_code(); // fetch static
+					fetch(); // fetch static
 					if (next() == GET || _scanner->token() == SET) {
 						tok = _scanner->token();
 						goto get_set;
@@ -2257,7 +2284,7 @@ public:
 					UNEXPECTED_TOKEN_ERROR();
 				case ASYNC: // async function
 				 async:
-					fetch_code(); // fetch async
+					fetch(); // fetch async
 					if ( is_class_member_identifier(next()) ) {
 						goto function;
 					} else if (_scanner->token() != MUL) {
@@ -2265,40 +2292,40 @@ public:
 					}
 				case MUL: // * generator function
 				 mul:
-					out_code(S.MUL);
+					append(S.MUL);
 					if ( !is_class_member_identifier(next()) ) {
 						UNEXPECTED_TOKEN_ERROR();
 					}
 				 function:
-					fetch_code(); // fetch function identifier
+					fetch(); // fetch function identifier
 					if ( next() == LPAREN ) { // arguments
-						out_code(S.LPAREN); // (
+						append(S.LPAREN); // (
 						parse_brace_expression(LPAREN, RPAREN);
-						out_code(S.RPAREN); // )
+						append(S.RPAREN); // )
 						if ( next() == LBRACE ) { // function body
-							out_code(S.LBRACE); // {
+							append(S.LBRACE); // {
 							parse_brace_expression(LBRACE, RBRACE); //
-							out_code(S.RBRACE); // }
+							append(S.RBRACE); // }
 							break; // ok
 						}
 					}
 					UNEXPECTED_TOKEN_ERROR();
 				case EVENT: {
 					// Event declaration
-					ASSERT_NEXT(IDENTIFIER); // event onevent
+					CHECK_NEXT(IDENTIFIER); // event onevent
 					Ucs2String event = _scanner->string_value();
 					if (event.length() > 2 &&
 							event[0] == 'o' &&
 							event[1] == 'n' && is_xml_element_start(event[2])) {
-						out_code(to_event_js_code(event.substr(2)));
-						ASSERT_NEXT(SEMICOLON); // ;
+						append(to_event_js_code(event.substr(2)));
+						CHECK_NEXT(SEMICOLON); // ;
 					} else {
 						error("Syntax error, event name incorrect");
 					}
 					break;
 				}
 				case SEMICOLON: //;
-					out_code(S.SEMICOLON); break;
+					append(S.SEMICOLON); break;
 				case RBRACE: // }
 					goto end;  // Class end
 				default:
@@ -2307,14 +2334,14 @@ public:
 		}
 		
 	 end:
-		out_code(S.RBRACE); // {
+		append(S.RBRACE); // {
 	}
-	
+
 	void parse_export() {
 		XX_ASSERT(_scanner->token() == EXPORT);
+		CHECK(_level == 0);
 		
-		collapse_scape();
-		Token tok = _scanner->next();
+		Token tok = next();
 		bool has_export_default = false;
 		
 		if (tok == DEFAULT) {
@@ -2324,15 +2351,14 @@ public:
 				_has_export_default = true;
 				has_export_default = true;
 			}
-			collapse_scape();
-			tok = _scanner->next();
+			tok = next();
 		}
 		
 		switch (tok) {
 			case ASYNC:
-				out_code(S.EXPORT_COMMENT);
-				fetch_code();
-				ASSERT_NEXT(FUNCTION);
+				append(S.EXPORT_COMMENT);
+				fetch();
+				CHECK_NEXT(FUNCTION);
 				tok = token();
 				goto identifier;
 			case VAR:       // var
@@ -2340,7 +2366,7 @@ public:
 			case FUNCTION:  // function
 			case LET:       // let
 			case CONST:     // const
-				out_code(S.EXPORT_COMMENT);
+				append(S.EXPORT_COMMENT);
 			 identifier:
 				if ( is_declaration_identifier(peek()) ) {
 					if (has_export_default) {
@@ -2361,11 +2387,11 @@ public:
 				if ( is_declaration_identifier(tok) ) {
 				 _export:
 					if (has_export_default) {
-						out_code(S.EXPORT_DEFAULT); // exports.default = expression
+						append(S.EXPORT_DEFAULT); // exports.default = expression
 					} else {
-						out_code(S.MODULE_EXPORT);  // module._export = expression
+						append(S.MODULE_EXPORT);  // module._export = expression
 					}
-					out_code(S.ASSIGN); // =
+					append(S.ASSIGN); // =
 					parse_advance();   // expression
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
@@ -2374,111 +2400,127 @@ public:
 		}
 	}
 
-	void parse_import_block() {
-		// TODO ...
+	void parse_import_block(Ucs2String* defaultId) {
+		// import { GUIApplication } from 'langou/app';
+		// import { GUIApplication as App } from 'langou/app';
+		// import app, { GUIApplication as App } from 'langou/app';
+
+		XX_ASSERT(token() == LBRACE);
+		append(S.LBRACE);     // {
+
+		if (defaultId) {
+			append(S.DEFAULT);  // default
+			append(S.COLON);    // :
+			append(*defaultId); // app
+			append(S.COMMA);    // ,
+		}
+
+		while (true) {
+			CHECK( is_import_declaration_identifier(next()) );
+			fetch();
+			if (next() == AS) { // as
+				append(S.COLON); // : 
+				CHECK( is_import_declaration_identifier(next()) );
+				fetch();   // IDENTIFIER
+				next();
+			}
+			if (token() == COMMA) { // ,
+				append(S.COMMA);   // ,
+				if (peek() == RBRACE) { // }
+					next();
+					break;
+				}
+			} else {
+				break;
+			}
+		}
+
+		CHECK_TOKEN(RBRACE); // }
+		append(S.RBRACE); // }
 	}
-	
+
 	void parse_import() {
 		XX_ASSERT(_scanner->token() == IMPORT);
-		Token tok = _scanner->next();
+		Token tok = next();
 
 		if (is_import_declaration_identifier(tok)) { // identifier
-			out_code(S.CONST); // const
-			collapse_scape();
+			append(S.CONST); // const
 			Ucs2String id = _scanner->string_value();
-			tok = _scanner->next();
+			tok = next();
 			
-			if (tok == FROM) { // import default
-				// import app from 'langou/app';
-				out_code(id);      // app
-				out_code(S.ASSIGN); // =
-				ASSERT_NEXT(STRIXX_LITERAL);
-				out_code(S.REQUIRE); // require('langou/app').default;
-				out_code(S.LPAREN); // (
-				fetch_code();
-				out_code(S.RPAREN); // )
-				out_code(S.PERIOD); // .
-				out_code(S.DEFAULT); // default
-			} else if (tok == COMMA) { // ,
-				// import app, { GUIApplication } from 'langou/app';
-				// Not support `as` keyword `import app, { GUIApplication as App } from 'langou/app'`
-				out_code(S.LBRACE);
-				ASSERT_NEXT(LBRACE); // {
-				out_code(S.DEFAULT);  // default
-				out_code(S.COLON);    // :
-				out_code(id);        // app
-				out_code(S.COMMA);    // :
-				parse_brace_expression(LBRACE, RBRACE);
-				out_code(S.RBRACE); // }
-				ASSERT_NEXT(FROM);
-				out_code(S.ASSIGN); // =
-				ASSERT_NEXT(STRIXX_LITERAL);
-				out_code(S.REQUIRE); // require('langou/app');
-				out_code(S.LPAREN); // (
-				fetch_code();
-				out_code(S.RPAREN); // )
+			if (tok == FROM) { // import app from 'langou/app';
+				append(id);       // app   // TODO ... developer evn modify id
+				append(S.ASSIGN); // =
+				CHECK_NEXT(STRIXX_LITERAL);
+				append(S.REQUIRE); // require('langou/app').default;
+				append(S.LPAREN); // (
+				fetch();
+				append(S.RPAREN); // )
+				append(S.PERIOD); // .
+				append(S.DEFAULT); // default
+			} else if (tok == COMMA) { // import app, { GUIApplication as App } from 'langou/app';
+				CHECK_NEXT(LBRACE);
+				parse_import_block(&id);
+				CHECK_NEXT(FROM);
+				append(S.ASSIGN); // =
+				CHECK_NEXT(STRIXX_LITERAL);
+				append(S.REQUIRE); // require('langou/app');
+				append(S.LPAREN); // (
+				fetch();
+				append(S.RPAREN); // )
 			}
 			else {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
 		else if (tok == MUL) {  // import * as app from 'langou/app';
-			out_code(S.CONST); // const
-			ASSERT_NEXT(AS);      // as
-			tok = _scanner->next();
+			append(S.CONST);    // const
+			CHECK_NEXT(AS);       // as
+			tok = next();
 			if (is_import_declaration_identifier(tok)) {
-				fetch_code();
-				ASSERT_NEXT(FROM);
-				out_code(S.ASSIGN);  // =
-				ASSERT_NEXT(STRIXX_LITERAL);
-				out_code(S.REQUIRE); // require('langou/app');
-				out_code(S.LPAREN); // (
-				fetch_code();
-				out_code(S.RPAREN); // )
+				fetch();
+				CHECK_NEXT(FROM);
+				append(S.ASSIGN);  // =
+				CHECK_NEXT(STRIXX_LITERAL);
+				append(S.REQUIRE); // require('langou/app');
+				append(S.LPAREN); // (
+				fetch();
+				append(S.RPAREN); // )
 			} else {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
-		else if (tok == LBRACE) { // {
-			out_code(S.CONST); // var
-			collapse_scape();
-			// import { GUIApplication } from 'langou/app';
-			// Not support `as` keyword `import { GUIApplication as App } from 'langou/app'`
-			parse_advance();
-			ASSERT_NEXT(FROM);
-			out_code(S.ASSIGN); // =
-			ASSERT_NEXT(STRIXX_LITERAL);
-			out_code(S.REQUIRE); // require('langou/app');
-			out_code(S.LPAREN); // (
-			fetch_code();
-			out_code(S.RPAREN); // )
+		else if (tok == LBRACE) { // import { GUIApplication as app } from 'langou/app';
+			append(S.CONST); // const
+			parse_import_block(nullptr);
+			CHECK_NEXT(FROM);  // from
+			append(S.ASSIGN); // =
+			CHECK_NEXT(STRIXX_LITERAL);
+			append(S.REQUIRE);// require('langou/app');
+			append(S.LPAREN); // (
+			fetch();
+			append(S.RPAREN); // )
 		}
-		else if (tok == STRIXX_LITERAL) {
-			// langou private syntax
-		
+		else if (tok == STRIXX_LITERAL) { // langou private syntax
+
 			Ucs2String str = _scanner->string_value();
-			if (peek() == AS) {
-				// import 'test_gui.jsx' as gui;
-				
-				out_code(S.CONST); // var
-				collapse_scape();
+			if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
+				append(S.CONST); // var
 				next(); // as
 				if ( is_import_declaration_identifier(peek()) ) {
-					out_code(_scanner->next_string_value());
-					out_code(S.SPACE); //
-					out_code(S.ASSIGN); // =
+					append(_scanner->next_string_value());
+					append(S.SPACE); //
+					append(S.ASSIGN); // =
 					next(); // IDENTIFIER
-					out_code(S.REQUIRE); // require('langou/app');
-					out_code(S.LPAREN); // (
-					out_code(str);
-					out_code(S.RPAREN); // )
+					append(S.REQUIRE); // require('langou/app');
+					append(S.LPAREN); // (
+					append(str);
+					append(S.RPAREN); // )
 				} else {
 					UNEXPECTED_TOKEN_ERROR();
 				}
-			} else {
-				// import 'test_gui.jsx';
+			} else { // import 'test_gui.jsx';   ---->>>>    import * as test_gui from 'test_gui.jsx';
 				// find identifier
-				
 				Ucs2String path = str.substr(1, str.length() - 2).trim();
 				String basename = Path::basename(path);
 				int i = basename.last_index_of('.');
@@ -2500,23 +2542,21 @@ public:
 				}
 				
 				if (!basename.is_empty()) {
-					out_code(S.CONST); // const
-					out_code(S.SPACE); //
-					out_code(Coder::decoding_to_uint16(Encoding::utf8, basename)); // identifier
-					out_code(S.SPACE); //
-					out_code(S.ASSIGN); // =
-					out_code(S.SPACE);  //
+					append(S.CONST); // const
+					append(S.SPACE); //
+					append(Coder::decoding_to_uint16(Encoding::utf8, basename)); // identifier
+					append(S.SPACE); //
+					append(S.ASSIGN); // =
 				}
-				out_code(S.REQUIRE); // require('langou/app');
-				out_code(S.LPAREN); // (
-				out_code(str);
-				out_code(S.RPAREN); // )
-				collapse_scape();
+				append(S.REQUIRE); // require('langou/app');
+				append(S.LPAREN); // (
+				append(str);
+				append(S.RPAREN); // )
 			}
 		}
 		else { // 这可能是个函数调用,不理会
 			// import();
-			fetch_code();
+			fetch();
 		}
 	}
 
@@ -2664,12 +2704,10 @@ public:
 		XX_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
 
 		if ( !is_xml_element_legal_start(inXml) ) { // 是否为合法的xml开始
-			out_code(S.LT);
-			fetch_code();
+			append(S.LT);
+			fetch();
 			return;
 		}
-
-		collapse_scape(); // push scape
 	
 		// 转换xml为json对像: _VV(Tag,[attrs],[children])
 		
@@ -2682,15 +2720,15 @@ public:
 				"<prefix:suffix><prefix:suffix>"
 				" grammar is not supported", _scanner->next_location());
 		} else {              	// <tag
-			out_code(S._VV);    	// _VV
-			out_code(S.LPAREN);   // (
-			out_code(tag_name);   // tag
-			out_code(S.COMMA);    // ,
+			append(S._VV);    	// _VV
+			append(S.LPAREN);   // (
+			append(tag_name);   // tag
+			append(S.COMMA);    // ,
 		}
 		
 		Map<Ucs2String, bool> attrs;
 		bool start_parse_attrs = false;
-		Token token = _scanner->next();
+		Token token = next();
 		
 		// 解析xml属性
 		if (is_object_property_identifier(token)) {
@@ -2698,34 +2736,33 @@ public:
 			if (!_scanner->has_scape_before()) { // xml属性之间必须要有空白符号
 				error("Xml Syntax error");
 			}
-			collapse_scape();  // scape
 			
 			if (!start_parse_attrs) {
-				out_code(S.LBRACK);    // [ parse attributes start
+				append(S.LBRACK);    // [ parse attributes start
 				start_parse_attrs = true;
 			}
 			
 			// 添加属性
 			Ucs2StringBuilder* raw_out = _out;
 			Ucs2String attribute_name;
-			out_code(S.LBRACK); // [ // attribute start
-			out_code(S.LBRACK); // [ // attribute name start
+			append(S.LBRACK); // [ // attribute start
+			append(S.LBRACK); // [ // attribute name start
 			
 			do { // .
-				out_code(S.QUOTES); // "
-				out_code(_scanner->string_value());
-				out_code(S.QUOTES); // "
+				append(S.QUOTES); // "
+				append(_scanner->string_value());
+				append(S.QUOTES); // "
 				attribute_name.push(_scanner->string_value());
 				token = next();
 				if (token != PERIOD) break;
 				if (!is_object_property_identifier(next())) {
 					error("Xml Syntax error");
 				}
-				out_code(S.COMMA);   // ,
+				append(S.COMMA);   // ,
 			} while (true);
 			
-			out_code(S.RBRACK); // ] // attribute name end
-			out_code(S.COMMA);  // ,
+			append(S.RBRACK); // ] // attribute name end
+			append(S.COMMA);  // ,
 			
 			if (attrs.has(attribute_name)) {
 				error(String("Xml Syntax error, attribute repeat: ") + attribute_name.to_string());
@@ -2737,30 +2774,29 @@ public:
 				_is_xml_attribute_expression = true;
 				parse_expression(); // 解析属性值表达式
 				_is_xml_attribute_expression = false;
-				token = _scanner->next();
+				token = next();
 			} else { // 没有值设置为 ""
-				out_code(S.QUOTES);    // "
-				out_code(S.QUOTES);    // "
+				append(S.QUOTES);    // "
+				append(S.QUOTES);    // "
 			}
-			out_code(S.RBRACK); // ] // attribute end
+			append(S.RBRACK); // ] // attribute end
 			
 			if (is_object_property_identifier(token)) {
-				out_code(S.COMMA);   // ,
+				append(S.COMMA);   // ,
 				goto attr; // 重新开始新属性
 			}
 		} else { // attrs empty
-			out_code(S.LBRACK);  // [ parse attributes start
+			append(S.LBRACK);  // [ parse attributes start
 		}
-		out_code(S.RBRACK);    // ] parse attributes end
+		append(S.RBRACK);    // ] parse attributes end
 		
 		// 解析xml内容
 		if (token == DIV) {      //    /  没有内容结束
 			// add empty children
-			out_code(S.COMMA);    // ,
-			out_code(S.LBRACK);   // [
-			out_code(S.RBRACK);   // ]
-			collapse_scape();
-			if (_scanner->next() != GT) { // >  语法错误
+			append(S.COMMA);    // ,
+			append(S.LBRACK);   // [
+			append(S.RBRACK);   // ]
+			if (next() != GT) { // >  语法错误
 				error("Xml Syntax error");
 			}
 		} else if (token == GT) {       //   >  闭合标签,开始解析内容
@@ -2769,7 +2805,7 @@ public:
 			error("Xml Syntax error");
 		}
 		
-		out_code(S.RPAREN); // )
+		append(S.RPAREN); // )
 	}
 	
 	void complete_xml_content_string(
@@ -2781,12 +2817,12 @@ public:
 			if ( !ignore_space || !s.is_blank() ) {
 				add_xml_children_cut_comma(is_once_comma);
 				// _VVT("str")
-				out_code(S._VVT);   // _VVT
-				out_code(S.LPAREN); // (
-				out_code(S.QUOTES);   // "
-				out_code(move(s));
-				out_code(S.QUOTES);   // "
-				out_code(S.RPAREN); // (
+				append(S._VVT);   // _VVT
+				append(S.LPAREN); // (
+				append(S.QUOTES);   // "
+				append(move(s));
+				append(S.QUOTES);   // "
+				append(S.RPAREN); // (
 			}
 			str.clear();
 		}
@@ -2802,7 +2838,7 @@ public:
 		if (is_once_comma) {
 			is_once_comma = false;
 		} else {
-			out_code(S.COMMA);     // ,
+			append(S.COMMA);     // ,
 		}
 	}
 	
@@ -2810,9 +2846,8 @@ public:
 		XX_ASSERT(_scanner->token() == GT);  // >
 		
 		// add chileren
-		out_code(S.COMMA);    // ,
-		collapse_scape();
-		out_code(S.LBRACK);   // [
+		append(S.COMMA);    // ,
+		append(S.LBRACK);   // [
 		
 		Token token;// prev = ILLEGAL;
 		Ucs2StringBuilder str, scape;
@@ -2835,7 +2870,7 @@ public:
 					
 				case XML_ELEMENT_TAG: // <xml
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					_scanner->next();
+					next();
 					parse_xml_element(true);
 					pos = _scanner->location().end_pos;
 					break;
@@ -2847,8 +2882,8 @@ public:
 																 *to_utf8_string(tag_name),
 																 *to_utf8_string(_scanner->next_string_value())) );
 					}
-					out_code(S.RBRACK);     // ]
-					_scanner->next();
+					append(S.RBRACK);     // ]
+					next();
 					return;
 					
 				case LT: // <
@@ -2858,12 +2893,12 @@ public:
 				case COMMAND: // {command block}
 					// _VVD(block)
 					complete_xml_content_string(str, scape, is_once_comma, true, ignore_space);
-					_scanner->next();     // {
-					_scanner->next();
-					out_code(S._VVD);     // _VVD
-					out_code(S.LPAREN);   // (
+					next();             // {
+					next();
+					append(S._VVD);     // _VVD
+					append(S.LPAREN);   // (
 					parse_brace_expression(LBRACE, RBRACE); //
-					out_code(S.RPAREN);   // )
+					append(S.RPAREN);   // )
 					pos = _scanner->location().end_pos;
 					break;
 					
@@ -2884,11 +2919,11 @@ public:
 		return Coder::encoding(Encoding::utf8, s);
 	}
 	
-	void error() {
+	inline void error() {
 		error("SyntaxError: Unexpected token", _scanner->location());
 	}
 	
-	void error(cString& msg) {
+	inline void error(cString& msg) {
 		error(msg, _scanner->location());
 	}
 	
@@ -2896,27 +2931,24 @@ public:
 		XX_THROW(ERR_SYNTAX_ERROR,
 						 "%s\nline:%d, pos:%d, %s",
 						 *msg, loc.line + 1, loc.end_pos, *_path);
-		// // ERR_SYNTAX_ERROR
-		// XX_FATAL(
-		// 				 "%s\nline:%d, pos:%d, %s",
-		// 				 *msg, loc.line + 1, loc.end_pos, *_path);
 	}
 	
 	Token next() {
+		_collapse_scape_();
 		Token tok = _scanner->next();
-		collapse_scape();
+		_collapse_scape_();
 		return tok;
 	}
-	
-	Token token() {
+
+	inline Token token() {
 		return _scanner->token();
 	}
 	
-	Token peek() {
+	inline Token peek() {
 		return _scanner->peek();
 	}
-	
-	void collapse_scape() {
+
+	void _collapse_scape_() {
 		if (!_scanner->string_space().is_empty()) {
 			if ( _is_class_member_data_expression ) {
 				_out_class_member_data_expression.push(_scanner->string_space());
@@ -2925,12 +2957,12 @@ public:
 		}
 	}
 	
-	void fetch_code() {
-		collapse_scape();
-		out_code(_scanner->string_value());
+	void fetch() {
+		_collapse_scape_();
+		append(_scanner->string_value());
 	}
 	
-	void out_code(cUcs2String& code) {
+	void append(cUcs2String& code) {
 		if ( code.length() ) {
 			if ( _is_class_member_data_expression ) {
 				_out_class_member_data_expression.push(code);
@@ -2939,7 +2971,7 @@ public:
 		}
 	}
 	
-	void out_code(Ucs2String&& code) {
+	void append(Ucs2String&& code) {
 		if ( code.length() ) {
 			if ( _is_class_member_data_expression ) {
 				_out_class_member_data_expression.push(code);
@@ -2948,7 +2980,7 @@ public:
 		}
 	}
 	
-	void out_code(Ucs2StringBuilder&& code) {
+	void append(Ucs2StringBuilder&& code) {
 		if ( code.string_length() ) {
 			if ( _is_class_member_data_expression ) {
 				_out_class_member_data_expression.push(code);

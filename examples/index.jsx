@@ -33,8 +33,8 @@ import 'langou/sys';
 import 'langou/reader';
 import 'langou/font';
 import {
-	GUIApplication, Root, Scroll, CSS, atomPixel: px,
-	Div, Hybrid, Clip, Text, Button, TextNode: T, langou
+	GUIApplication, Root, Scroll, CSS, atomPixel as px,
+	Div, Hybrid, Clip, Text, Button, TextNode as T, langou
 } from 'langou';
 import { NavpageCollection, Toolbar } from 'langou/nav';
 import { Navbutton, Mynavpage } from './public';
@@ -188,11 +188,11 @@ var app = new GUIApplication({
 			<Mynavpage title="Home" source=resolve(__filename)>
 
 				<Scroll width="full" height="full" bounceLock=0>
-					
+
 					<Text class="hello">Hello.</Text>
 					<Div class="category">
 						<Hybrid class="codepre">
-`<T class="keywork">import</T> { <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> } <T class="keywork">from</T> <T class="str">'langou'</T>
+`<T class="keywork">import</T> \{ <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> \} <T class="keywork">from</T> <T class="str">'langou'</T>
 <T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
 	\<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
 )`
@@ -205,7 +205,7 @@ var app = new GUIApplication({
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
 						<Navbutton next=LangouTools style={borderWidth:0}>Langou Tools</Navbutton>
 					</Clip>
-					
+
 					<Text class="category_title" />
 					<Clip class="category">
 						<Navbutton next=about_vx>About</Navbutton>
