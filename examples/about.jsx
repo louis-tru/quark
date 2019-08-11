@@ -37,7 +37,7 @@ export default const vx = ()=>(
 	<Mynavpage title="About" source=resolve(__filename)>
 		<Scroll width="full" height="full">
 			<Text width="full" margin=10>
-@@Langou
+`Langou
 ===============
 
 Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework

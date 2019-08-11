@@ -490,7 +490,9 @@ module.exports = exports = extend(extend(utils, _util), {
 		if (baseclass === subclass) return true;
 		
 		var prototype = baseclass.prototype;
-		var obj = subclass.prototype.__proto__;
+		var subprototype = subclass.prototype;
+		if (!subprototype) return false;
+		var obj = subprototype.__proto__;
 		
 		while (obj) {
 			if (prototype === obj)

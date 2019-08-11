@@ -20,7 +20,7 @@ class RootViewController extends ViewController {
 
 		render(
 			<Scroll width="full" height="full">
-				${
+				{
 					Array.from({ length: 10000 }, ()=>{
 						var color = new Color(random(0, 255), 
 							random(0, 255), random(0, 255), 255);

@@ -12,8 +12,8 @@ class RootViewController extends ViewController {
 
 		return (
 			<Root backgroundColor="#000">
-				${
-					Array.from({ length: 4000 }).map((e,i)=>{
+				{
+					Array.from({ length: 10000 }).map((e,i)=>{
 						var color = new Color(random(0, 255), random(0, 255), random(0, 255), 255);
 						var s = random(20, 30);
 						var s2 = s / 2;

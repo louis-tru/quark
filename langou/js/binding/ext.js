@@ -217,7 +217,7 @@ extend(Number.prototype, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		return this << 1;
+		return this;
 	},
 
 	/**

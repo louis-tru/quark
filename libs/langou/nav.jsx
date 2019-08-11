@@ -271,8 +271,8 @@ function refresh_bar_style(self, time) {
 		var toolbar_height = toolbarHidden ? 0 : toolbar.height + toolbar.border;
 		
 		if ( time ) {
-			if ( !navbarHidden ) self.IDs.navbar.show();
-			if ( !toolbarHidden ) self.IDs.toolbar.show();
+			if ( !navbarHidden ) self.IDs.navbar.dom.show();
+			if ( !toolbarHidden ) self.IDs.toolbar.dom.show();
 			langou.lock(()=>{
 				self.IDs.navbar.transition({
 					height: Math.max(0, navbar_height - navbar.border), 
@@ -288,8 +288,8 @@ function refresh_bar_style(self, time) {
 					time: time,
 				});
 				self.IDs.page.transition({ height: navbar_height + toolbar_height + '!', time: time }, ()=>{
-					if ( navbarHidden ) self.IDs.navbar.hide();
-					if ( toolbarHidden ) self.IDs.toolbar.hide();
+					if ( navbarHidden ) self.IDs.navbar.dom.hide();
+					if ( toolbarHidden ) self.IDs.toolbar.dom.hide();
 				});
 			});
 		} else {
@@ -394,7 +394,8 @@ export class NavpageCollection extends ViewController {
 		this.m_pages = [];
 	}
 
-	render() {
+	render(vchildren) {
+		this.m_vchildren = vchildren;
 		return (
 			<Clip width="100%" height="100%">
 				<Div id="navbar" width="100%" />
@@ -405,12 +406,12 @@ export class NavpageCollection extends ViewController {
 	}
 
 	triggerMounted(e) {
-		if (this.vchildren.length) {
+		if (this.m_vchildren.length) {
 			/* delay 因为是第一次加载,布局系统还未初始化
 			 * 无法正确的获取数值来进行title bar的排版计算
 			 * 所以这里延时一帧画面
 			 */
-			langou.nextFrame(e=>this.push(this.vchildren));
+			langou.nextFrame(e=>this.push(this.m_vchildren[0]));
 		}
 		super.triggerMounted(e);
 	}
@@ -431,7 +432,7 @@ export class NavpageCollection extends ViewController {
 				if (ViewController.typeOf(page, Navpage)) {
 					page = render(page, this.IDs.page);
 				} else {
-					page = render(<Navpage>${page}</Navpage>, this.IDs.page);
+					page = render(<Navpage>{page}</Navpage>, this.IDs.page);
 				}
 			}
 		}
@@ -724,12 +725,13 @@ export class Navbar extends Bar {
 		var textSize = 16;
 		return (
 			<Indep width="100%" height=height visible=0 alignY="bottom">
-				${vc}
+				{vc}
 				<Indep id="title_panel" width="full" height="100%" visible=0>
 					<Div id="back_text_panel" height="full">
 						<Limit maxWidth="100%">
 							<!--textColor="#0079ff"-->
 							<Button id="back_text_btn" 
+								onClick=(e=>this.collection.pop(true))
 								textColor="#fff"
 								width="full" 
 								textLineHeight=height 
@@ -760,11 +762,6 @@ export class Navbar extends Bar {
 		);
 	}
 
-	triggerMounted(e) {
-		this.IDs.back_text_btn.onClick.on(e=>{ this.collection.pop(true) });
-		super.triggerMounted(e);
-	}
-
 	/**
 	 * @fun setBackText # set navbar back text
 	 */
@@ -792,16 +789,16 @@ export class Navbar extends Bar {
 					x: -this.m_back_panel_width + back_icon_width, time: time,
 				});
 			}
-			this.transition({ opacity: 0, time: time }, ()=>{ this.hide() });
+			this.transition({ opacity: 0, time: time }, ()=>{ this.dom.hide() });
 		} else {
 			this.dom.opacity = 0;
-			this.hide();
+			this.dom.hide();
 		}
 		super.intoBackground(time);
 	}
 	
 	intoForeground(time, action, data) { 
-		this.show(); // show
+		this.dom.show(); // show
 		if ( time ) {
 			if ( this.$defaultStyle ) {
 				var back_icon_width = 0; // this.IDs.back_text0.visible ? 20 : 0;
@@ -854,7 +851,7 @@ export class Toolbar extends Bar {
 	 */
 	render(vc) {
 		return (
-			<Indep width="100%" height="full" visible=0>${vc}</Indep>
+			<Indep width="100%" height="full" visible=0>{vc}</Indep>
 		);
 	}
 	
@@ -865,12 +862,12 @@ export class Toolbar extends Bar {
 		if ( time ) {
 			var page = (this.page.nextPage || this.page.prevPage);
 			if (!page || page.toolbar !== this) {
-				this.show();
+				this.dom.show();
 				this.dom.opacity = 0;
 				this.transition({ opacity: 1, time: time });
 			}
 		} else {
-			this.show();
+			this.dom.show();
 			this.dom.opacity = 1;
 		}
 		super.intoForeground(time, action, data);
@@ -879,10 +876,10 @@ export class Toolbar extends Bar {
 	intoBackground(time) {
 		if ( this.collection.current.toolbar !== this ) {
 			if ( time ) {
-				this.transition({ opacity: 0, time: time }, ()=>{ this.hide() });
+				this.transition({ opacity: 0, time: time }, ()=>{ this.dom.hide() });
 			} else {
 				this.dom.opacity = 0;
-				this.hide();
+				this.dom.hide();
 			}
 		}
 		super.intoBackground(time);
@@ -895,7 +892,7 @@ export class Toolbar extends Bar {
 					if ( this.collection.defaultToolbar !== this ) {
 						this.remove();
 					} else {
-						this.hide();
+						this.dom.hide();
 					}
 				});
 			
@@ -903,7 +900,7 @@ export class Toolbar extends Bar {
 				if ( this.collection.defaultToolbar !== this ) {
 					this.remove();
 				} else {
-					this.hide();
+					this.dom.hide();
 				}
 			}
 		}
@@ -1015,7 +1012,7 @@ export class Navpage extends Navigation {
 	// @overwrite
 	render(vc) {
 		return (
-			<Indep width="100%" height="full" backgroundColor="#fff" visible=0>${vc}</Indep>
+			<Indep width="100%" height="full" backgroundColor="#fff" visible=0>{vc}</Indep>
 		);
 	}
 	

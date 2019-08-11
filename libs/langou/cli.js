@@ -30,7 +30,7 @@
 
 import 'langou/util';
 import 'langou/http';
-import { URL, resolve: format } from 'langou/path';
+import { URL, resolve as format } from 'langou/path';
 import { Notification } from 'langou/event';
 
 /**

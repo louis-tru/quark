@@ -180,11 +180,11 @@ class List {
 		if ( this._length ) {
 			var r = this._last;
 			if ( this._length > 1 ) {
-				this._first = null;
-				this._last = null;
-			} else {
 				this._last._prev._next = null;
 				this._last = this._last._prev;
+			} else {
+				this._first = null;
+				this._last = null;
 			}
 			this._length--;
 			return r._value;
@@ -195,11 +195,11 @@ class List {
 		if ( this._length ) {
 			var r = this._first;
 			if ( this._length > 1 ) {
-				this._first = null;
-				this._last = null;
-			} else {
 				this._first._next._prev = null;
 				this._first = this._first._next;
+			} else {
+				this._first = null;
+				this._last = null;
 			}
 			this._length--;
 			return r._value;

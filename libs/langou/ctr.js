@@ -29,12 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 import 'langou/util';
-import { Notification, List } from 'langou/event';
+import { Notification } from 'langou/event';
 const { TextNode, View, Root } = requireNative('_langou');
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
 const G_renderQueueSet = new Set();
-const G_renderQueue = new List();
 var   G_renderQueueWorking = false;
 const G_warnRecord = new WeakSet();
 const G_warnDefine = {
@@ -56,15 +55,13 @@ function markRerender(ctr) {
 	var size = G_renderQueueSet.size;
 	G_renderQueueSet.add(ctr);
 	if (size == G_renderQueueSet.size) return;
-	G_renderQueue.push(ctr);
 	if (G_renderQueueWorking) return;
 
 	util.nextTick(function() {
 		G_renderQueueWorking = true;
 		var item;
 		try {
-			while( (item = G_renderQueue.shift()) ) {
-				G_renderQueueSet.delete(item);
+			for( var item of G_renderQueueSet ) {
 				rerender(item);
 			}
 		} finally {
@@ -186,14 +183,12 @@ class VirtualDOM {
 
 	newInstance(ctr) {
 		util.assert(!this.dom);
-		var Type = this.type;
-		var dom = new Type();
+		var dom = new this.type();
 		this.dom = dom;
 		dom.m_owner = ctr;
-		var children = this.children;
 
-		if (Type.isViewController()) { // ctrl
-			dom.m_vchildren = children;
+		if (this.type.isViewController) { // ctrl
+			dom.m_vchildren = this.children;
 			this.assignProps(); // before set props
 			var r = dom.triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
@@ -201,9 +196,12 @@ class VirtualDOM {
 			} else {
 				dom.m_loaded = true
 			}
-			markRerender(dom); // mark render
+			rerender(dom); // rerender
+			if (!dom.vdom) {
+				dom.m_placeholder = new View();
+			}
 		} else {
-			for (var vdom of children) {
+			for (var vdom of this.children) {
 				if (vdom)
 					vdom.newInstance(ctr).appendTo(dom);
 			}
@@ -323,7 +321,7 @@ class VirtualDOMCollection extends VirtualDOM {
 			doms.push(cell);
 		}
 
-		return (this.dom = new DOMCollection(ctr, vdoms, doms, keys));
+		return (this.dom = new DOMCollection(ctr, vdom, doms, keys));
 	}
 
 }
@@ -366,9 +364,9 @@ class DOMCollection {
 		return this.m_doms;
 	}
 
-	constructor(ctr, vdoms, doms, keys) {
+	constructor(ctr, vdom, doms, keys) {
 		this.m_owner = ctr;
-		this.m_vdoms = vdoms;
+		this.m_vdoms = vdom.vdoms;
 		this.m_doms = doms;
 		this.m_keys = keys;
 		if (!doms.length) {
@@ -399,10 +397,6 @@ class DOMCollection {
 		}
 	}
 
-	static isViewController() {
-		return false;
-	}
-
 	appendTo(parentView) {
 		return callDOMsFunc(this, 'appendTo', parentView);
 	}
@@ -427,7 +421,7 @@ class DOMCollection {
 function removeSubctr(self, vdom) {
 	for (var vdom of vdom.children) {
 		if (vdom) {
-			if (vdom.type.isViewController()) {
+			if (vdom.type.isViewController) {
 				vdom.dom.remove(); // remove ctrl
 			} else {
 				removeSubctr(self, vdom);
@@ -472,10 +466,10 @@ function diff(self, vdom_c, vdom, prevView) {
 	var children_c = vdom_c.children;
 	var children = vdom.children;
 
-	if ( vdom.type.isViewController() ) {
+	if ( vdom.type.isViewController ) {
 		if ( children_c.length || children.length ) {
 			dom.m_vchildren = children;
-			markRerender(dom); // mark ctrl render
+			rerender(dom); // mark ctrl render
 		}
 	} else {
 		var childrenCount = Math.max(children_c.length, children.length);
@@ -508,12 +502,14 @@ function diff(self, vdom_c, vdom, prevView) {
 				}
 			}
 		}
-	} // if (vdom.type.isViewController()) end
+	} // if (vdom.type.isViewController) end
 
 	return view;
 }
 
 function rerender(self) {
+	G_renderQueueSet.delete(self); // delete mark
+
 	var vdom_c = self.m_vdom;
 	var vdom = _VVD(self.render(self.m_vchildren));
 	var update = false;
@@ -543,10 +539,12 @@ function rerender(self) {
 		}
 	} else {
 		if (vdom) {
-			util.assert(self.m_placeholder);
-			vdom.newInstance(self).afterTo(self.m_placeholder); // add
-			self.m_placeholder.remove();
-			self.m_placeholder = null;
+			vdom.newInstance(self);
+			if (self.m_placeholder) {
+				vdom.dom.afterTo(self.m_placeholder);
+				self.m_placeholder.remove();
+				self.m_placeholder = null;
+			}
 			setVDOM(self, vdom);
 			update = true;
 		}
@@ -562,7 +560,7 @@ function rerender(self) {
 }
 
 function domInCtr(self) {
-	return this.m_dom || this.m_placeholder;
+	return self.m_dom || self.m_placeholder;
 }
 
 /**
@@ -599,21 +597,21 @@ export default class ViewController extends Notification {
 	}
 
 	static setID(dom, id) {
-		var id = dom.m_id;
-		if (value != id) {
+		var idRaw = dom.m_id;
+		if (idRaw != id) {
 			if (dom.m_owner) {
 				var ids = dom.m_owner.m_IDs;
-				if (ids[id] === dom) {
-					delete ids[id];
+				if (ids[idRaw] === dom) {
+					delete ids[idRaw];
 				}
-				if (value) {
-					if (value in ids) {
+				if (id) {
+					if (id in ids) {
 						throw new Error('Identifier reference duplication in controller, = ' + value);
 					}
-					ids[value] = dom;
+					ids[id] = dom;
 				}
 			}
-			dom.m_id = value;
+			dom.m_id = id;
 		}
 	}
 
@@ -672,7 +670,13 @@ export default class ViewController extends Notification {
 		this.m_IDs = {};
 		this.m_modle = {};
 		this.m_dataHash = {};
-		this.m_placeholder = new View();
+	}
+
+	/*
+	 * @func markRerender()
+	 */
+	markRerender() {
+		markRerender(this);
 	}
 
 	/**
@@ -697,7 +701,7 @@ export default class ViewController extends Notification {
 		if ( typeof func == 'string' ) {
 			var owner = this, func2;
 			do {
-				func2 = owner[func];  // find func
+				var func2 = owner[func];  // find func
 				if ( typeof func2 == 'function' ) {
 					return this.getNoticer(name).on(func2, owner, 0); // default id 0
 				}
@@ -763,7 +767,7 @@ export default class ViewController extends Notification {
 	/**
 	 * @func isViewController()
 	 */
-	static isViewController() {
+	static get isViewController() {
 		return true;
 	}
 

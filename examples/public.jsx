@@ -31,7 +31,7 @@
 import { Navpage } from 'langou/nav';
 import { 
 	ViewController, Button, CSS,
-	Text, atomPixel: px, 
+	Text, atomPixel as px, 
 	Indep, Panel, Scroll, langou
 } from 'langou';
 import 'langou/util';

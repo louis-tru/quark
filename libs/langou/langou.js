@@ -94,7 +94,7 @@ class ViewExtend extends event.NativeNotification {
 		if ( typeof func == 'string' ) { // find func 
 			var owner = this;
 			do {
-				func2 = owner[func];
+				var func2 = owner[func];
 				if ( typeof func2 == 'function' ) {
 					return this.getNoticer(name).on(func2, owner, 0); // default id 0
 				}
@@ -149,7 +149,7 @@ class ViewExtend extends event.NativeNotification {
 	 */
 	set style(value) {
 		for (var key in value) {
-			this[key] = value;
+			this[key] = value[key];
 		}
 	}
 
@@ -179,16 +179,6 @@ class ViewExtend extends event.NativeNotification {
 	}
 
 }
-
-util.extend(exports.View, {
-	/**
-	 * @func isViewController()
-	 * @static
-	*/
-	isViewController: function() {
-		return false;
-	}
-});
 
  /**
 	* @class PanelExtend

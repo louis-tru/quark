@@ -203,7 +203,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=LangouTools style={borderWidth:0}>Langou Tools</Navbutton>
+						<Navbutton next=langou_tools_vx style={borderWidth:0}>Langou Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />
