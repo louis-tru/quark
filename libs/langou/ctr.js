@@ -661,7 +661,7 @@ export default class ViewController extends Notification {
 			}
 		}
 		if (update) {
-			markRerender(this); // mark render
+			this.markRerender(); // mark render
 		}
 	}
 
@@ -799,7 +799,7 @@ export default class ViewController extends Notification {
 					if (hash['__Prop_' + prop] != hashCode) {
 						hash['__Prop_' + prop] = hashCode;
 						this['M_' + prop] = value;
-						markRerender(this); // mark render
+						this.markRerender(); // mark render
 					}
 				},
 				configurable: true,
