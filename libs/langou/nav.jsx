@@ -406,14 +406,21 @@ export class NavpageCollection extends ViewController {
 	}
 
 	triggerMounted(e) {
-		if (this.m_vchildren.length) {
+		var vc = this.m_vchildren;
+		if (vc && vc.length) {
 			/* delay 因为是第一次加载,布局系统还未初始化
 			 * 无法正确的获取数值来进行title bar的排版计算
 			 * 所以这里延时一帧画面
 			 */
-			langou.nextFrame(e=>this.push(this.m_vchildren[0]));
+			langou.nextFrame(e=>this.push(vc[0]));
 		}
 		super.triggerMounted(e);
+	}
+
+	triggerRemove(e) {
+		this.m_pages.forEach(e=>e.remove());
+		this.m_pages = [];
+		super.triggerRemove(e);
 	}
 	
 	push(page, animate) {
@@ -594,6 +601,7 @@ class Bar extends Basic {
 			}
 		}
 	}
+
 }
 
 /**
