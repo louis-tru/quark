@@ -197,9 +197,6 @@ class VirtualDOM {
 				dom.m_loaded = true
 			}
 			rerender(dom); // rerender
-			if (!dom.vdom) {
-				dom.m_placeholder = new View();
-			}
 		} else {
 			for (var vdom of this.children) {
 				if (vdom)
@@ -447,6 +444,8 @@ function setVDOM(self, vdom) {
 }
 
 function diff(self, vdom_c, vdom, prevView) {
+	util.assert(prevView);
+
 	// diff type
 	if (vdom_c.type !== vdom.type) {
 		var r = vdom.newInstance(self).afterTo(prevView); // add new
@@ -521,18 +520,18 @@ function rerender(self) {
 	if (vdom_c) {
 		if (vdom) {
 			if (vdom_c.hash != vdom.hash) {
-				diff(self, vdom_c, vdom, self.__view__); // diff
+				var prev = self.m_dom.__view__;
+				util.assert(prev);
+				diff(self, vdom_c, vdom, prev); // diff
 				setVDOM(self, vdom); // set new vdom
 				update = true;
 			}
 		} else {
-			var dom = self.m_dom;
-			var view = dom.__view__;
-			util.assert(view);
-			var placeholder = new View();
-			placeholder.afterTo(view);
+			var prev = self.m_dom.__view__;
+			util.assert(prev);
 			util.assert(!self.m_placeholder);
-			self.m_placeholder = placeholder;
+			self.m_placeholder = new View();
+			self.m_placeholder.afterTo(prev);
 			setVDOM(self, null);
 			removeDOM(self, vdom_c); // del dom
 			update = true;
@@ -547,6 +546,10 @@ function rerender(self) {
 			}
 			setVDOM(self, vdom);
 			update = true;
+		} else {
+			if (!self.m_placeholder) {
+				self.m_placeholder = new View();
+			}
 		}
 	}
 
