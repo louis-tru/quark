@@ -5,6 +5,7 @@ ANDROID_JAR    = out/android.classs.langou.jar
 LMAKE          = ./libs/lmake
 LMAKE_OUT      = out/lmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
+REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
 	SUDO := "sudo"
@@ -65,7 +66,7 @@ compile: pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-lmake
-	@#-./tools/gen_releases_lib.sh
+	@#-./tools/gen_releases_lib.sh $(REMOTE_COMPILE_HOST)
 
 install-lmake: $(JSA_SHELL)
 	@$(NODE) ./tools/cp-lmake.js
@@ -153,7 +154,7 @@ help:
 	@echo
 
 watch:
-	@./tools/sync_watch
+	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
 
 pull:
 	@git pull

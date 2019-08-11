@@ -3,7 +3,7 @@
 base=$(dirname $0)
 cd $base/../out
 
-host=louis@192.168.0.115
+host=192.168.0.115
 
 if [ "$1" ]; then
 	host="$1"

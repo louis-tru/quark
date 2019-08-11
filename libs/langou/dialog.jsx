@@ -157,7 +157,7 @@ export class Dialog extends Navigation {
 	render(vc) {
 		return (
 			<Indep 
-				width="full" 
+				width="full"
 				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
 					<Hybrid id="title" class="title" />
@@ -199,7 +199,7 @@ export class Dialog extends Navigation {
 				var btn = render(
 					<Button 
 						index=i
-						class="button" 
+						class="button"
 						width="full"
 						onClick="triggerClickButton"
 						defaultHighlighted=0>{btns[i]}</Button>,

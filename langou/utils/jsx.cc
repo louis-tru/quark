@@ -681,6 +681,7 @@ class Scanner : public Object {
 	inline Location     location()          { return current_->location; }
 	inline Ucs2String&  string_space()      { return current_->string_space; }
 	inline Ucs2String&  string_value()      { return current_->string_value; }
+	inline bool         has_scape_before()  { return current_->before_scape; }
 	inline bool         before_line_feed()  { return current_->before_line_feed; }
 	inline Token        prev()              { return prev_; }
 	inline Token        peek()              { return next_->token; }
@@ -688,7 +689,6 @@ class Scanner : public Object {
 	inline Ucs2String&  next_string_space() { return next_->string_space; }
 	inline Ucs2String&  next_string_value() { return next_->string_value; }
 	inline bool         next_before_line_feed() { return next_->before_line_feed; }
-	inline bool         has_scape_before()  { return current_->before_scape; }
 	inline bool         has_scape_before_next() { return next_->before_scape; }
 	
  private:
@@ -727,8 +727,8 @@ class Scanner : public Object {
 				case '\n':
 					next_->string_space.push(c0_);
 					next_->before_scape = true;
-					advance();
 					next_->before_line_feed = true;
+					advance();
 					token = WHITESPACE;
 					break;
 					
@@ -942,6 +942,7 @@ class Scanner : public Object {
 					} else if (is_decimal_digit(c0_)) {
 						token = scan_number(false);
 					} else if (skip_white_space()) {
+						next_->before_scape = true;
 						token = WHITESPACE;
 					} else if (c0_ < 0) {
 						token = EOS;
@@ -1554,7 +1555,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
  * @class Parser
  */
 class Parser: public Object {
-public:
+ public:
 	
 	Parser(cUcs2String& in, cString& path, bool is_jsx, bool clean_comment)
 		: _out(nullptr)
@@ -2734,7 +2735,7 @@ public:
 		if (is_object_property_identifier(token)) {
 		 attr:
 			if (!_scanner->has_scape_before()) { // xml属性之间必须要有空白符号
-				error("Xml Syntax error");
+				error("Xml Syntax error, attribute name no scape before");
 			}
 			
 			if (!start_parse_attrs) {
