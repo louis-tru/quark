@@ -774,7 +774,8 @@ export default class ViewController extends Notification {
 		for (let [prop,value] of props) {
 			prototype['m_' + prop] = value;
 			var desc = Object.getOwnPropertyDescriptor(prototype, 'prop');
-			Object.defineProperty(controllerClass.prototype, prop, {
+			
+			Object.defineProperty(prototype, prop, {
 				get: desc && desc.get ? desc.get: function() {
 					return this['m_' + prop];
 				},
