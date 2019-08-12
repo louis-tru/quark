@@ -108,7 +108,6 @@ class VirtualDOM {
 	type = null;
 	children = null;
 	dom = null;
-	outerStyle = null;
 	options = null;
 
 	constructor(Type, props, children, options) {
@@ -121,9 +120,7 @@ class VirtualDOM {
 			for (var key of keys) {
 				hashCode += (hashCode << 5) + key.hashCode();
 			}
-			if (value) {
-				hashCode += (hashCode << 5) + value.hashCode();
-			}
+			hashCode += (hashCode << 5) + Object.hashCode(value);
 			prop[2] = hashCode;
 			_propsHash += (_propsHash << 5) + hashCode;
 			_props[prop[0].join('.')] = prop;
@@ -145,9 +142,14 @@ class VirtualDOM {
 		this.options = options;
 	}
 
-	setOuterStyle(style) {
+	setDefaultStyle(style) {
 		if (style) {
-			this.outerStyle = style;
+			if (!this.props.hasOwnProperty('style')) {
+				var hashCode = ('style'.hashCode() << 5) + style.hashCode();
+				this.props.style = [['style'], style, hashCode];
+				this.propsHash += (this.propsHash << 5) + hashCode;
+				this.hash += (this.hash << 5) + hashCode;
+			}
 		}
 	}
 
@@ -163,9 +165,6 @@ class VirtualDOM {
 		var props = this.props;
 		for (var key in props) {
 			assignProp(this, props[key]);
-		}
-		if (this.outerStyle) {
-			this.dom.style = this.outerStyle;
 		}
 	}
 
@@ -228,12 +227,7 @@ class VirtualDOMCollection extends VirtualDOM {
 		this.vdoms.forEach(e=>(this.hash += (this.hash << 5) + e.hash));
 	}
 
-	setOuterStyle(style) {
-		if (style) {
-			this.style = style;
-			this.vdoms.forEach(e=>e.setOuterStyle(style));
-		}
-	}
+	setDefaultStyle(style) {}
 
 	diffProps({vdoms, hash}) {
 		var dom = this.dom;
@@ -407,17 +401,6 @@ class DOMCollection {
 		return callDOMsFunc(this, 'afterTo', prevView);
 	}
 
-	get style() {
-		return this.m_style;
-	}
-
-	set style(style) {
-		if (style) {
-			this.m_style = style;
-			this.m_doms.forEach(e=>e.style=style);
-		}
-	}
-
 }
 
 function removeSubctr(self, vdom) {
@@ -519,7 +502,7 @@ function rerender(self) {
 	var update = false;
 
 	if (vdom) {
-		vdom.setOuterStyle(self.m_style);
+		vdom.setDefaultStyle(self.m_style);
 	}
 
 	if (vdom_c) {
@@ -757,21 +740,10 @@ export default class ViewController extends Notification {
 	 * @get style
 	 */
 	get style() {
-		return this.m_style;
-	}
-
-	/**
-	 * @set style
-	 */
-	set style(style) {
-		this.m_style = style;
-		if (this.m_dom) {
-			this.m_dom.style = style;
-		}
+		return this.m_style || {};
 	}
 
 	// @static:
-
 	/**
 	 * @get isViewController
 	 * @static
@@ -797,11 +769,13 @@ export default class ViewController extends Notification {
 		controllerClass = controllerClass || this;
 		util.assert(util.equalsClass(ViewController, controllerClass), 'Type error');
 		props = Array.isArray(props) ? props.map(e=>[e]): Object.entries(props);
+		var prototype = controllerClass.prototype;
 
 		for (let [prop,value] of props) {
-			controllerClass.prototype['m_' + prop] = value;
+			prototype['m_' + prop] = value;
+			var desc = Object.getOwnPropertyDescriptor(prototype, 'prop');
 			Object.defineProperty(controllerClass.prototype, prop, {
-				get () {
+				get: desc && desc.get ? desc.get: function() {
 					return this['m_' + prop];
 				},
 				set(value) {
@@ -840,6 +814,11 @@ export default class ViewController extends Notification {
 	}
 
 }
+
+/**
+ * @set style {Object}
+ */
+ViewController.defineProps(['style']);
 
 /**
  * @class RootViewController DOM

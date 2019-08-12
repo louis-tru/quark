@@ -3,8 +3,11 @@
 base=$(dirname $0)
 cd $base/../out
 
-host=192.168.0.115
+host="192.168.0.115"
 
+if [ "$REMOTE_COMPILE_HOST" ]; then
+	host=$REMOTE_COMPILE_HOST
+fi
 if [ "$1" ]; then
 	host="$1"
 fi
