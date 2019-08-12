@@ -395,7 +395,7 @@ export class NavpageCollection extends ViewController {
 		this.m_pages = [];
 	}
 
-	render(vchildren) {
+	render(...vchildren) {
 		this.m_vchildren = vchildren;
 		return (
 			<Clip width="100%" height="100%">
