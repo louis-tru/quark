@@ -55,7 +55,7 @@ function prompt() {
 function custom() {
 	dialog.show('蓝牙已关闭', 
 	'CarPlay将只能通过USB使用。您希望同时启用无线CarPlay吗？', 
-	[<TextNode textStyle='bold'>仅USB</TextNode>, '无线蓝牙'], (num)=>{
+	[<TextNode textStyle='bold' value="仅USB"/>, '无线蓝牙'], (num)=>{
 		if ( num == 0 ) {
 			dialog.alert('仅USB');
 		} else {

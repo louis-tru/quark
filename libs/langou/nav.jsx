@@ -35,6 +35,7 @@ import {
 	ViewController, View, Div, Indep, 
 	Limit, Button, Text, TextNode, Clip, render, langou
 } from 'langou/langou';
+import {Color,parseColor} from 'langou/value';
 
 export const FOREGROUND_ACTION_INIT = 0;
 export const FOREGROUND_ACTION_RESUME = 1;
@@ -271,8 +272,8 @@ function refresh_bar_style(self, time) {
 		var toolbar_height = toolbarHidden ? 0 : toolbar.height + toolbar.border;
 		
 		if ( time ) {
-			if ( !navbarHidden ) self.IDs.navbar.dom.show();
-			if ( !toolbarHidden ) self.IDs.toolbar.dom.show();
+			if ( !navbarHidden ) self.IDs.navbar.show();
+			if ( !toolbarHidden ) self.IDs.toolbar.show();
 			langou.lock(()=>{
 				self.IDs.navbar.transition({
 					height: Math.max(0, navbar_height - navbar.border), 
@@ -288,8 +289,8 @@ function refresh_bar_style(self, time) {
 					time: time,
 				});
 				self.IDs.page.transition({ height: navbar_height + toolbar_height + '!', time: time }, ()=>{
-					if ( navbarHidden ) self.IDs.navbar.dom.hide();
-					if ( toolbarHidden ) self.IDs.toolbar.dom.hide();
+					if ( navbarHidden ) self.IDs.navbar.hide();
+					if ( toolbarHidden ) self.IDs.toolbar.hide();
 				});
 			});
 		} else {
@@ -587,17 +588,17 @@ class Bar extends Basic {
 	}
 	
 	get visible() {
-		return super.visible;
+		return this.dom.visible;
 	}
 	
 	set visible(value) {
 		if ( value ) {
 			if (this.isCurrent) {
-				super.visible = 1;
+				this.dom.visible = 1;
 			}
 		} else {
 			if (!this.isCurrent) {
-				super.visible = 0;
+				this.dom.visible = 0;
 			}
 		}
 	}
@@ -688,8 +689,6 @@ export class Navbar extends Bar {
 	get backIconVisible() { return this.$backIconVisible }
 	get defaultStyle() { return this.$defaultStyle }
 	get titleMenuWidth() { return this.$titleMenuWidth }
-	get backTextColor() { return this.IDs.back_text_btn.textColor }
-	get titleTextColor() { return this.IDs.title_text_panel.textColor }
 	
 	set backIconVisible(value) {
 		this.$backIconVisible = !!value;
@@ -706,15 +705,7 @@ export class Navbar extends Bar {
 		this.$titleMenuWidth = value;
 		navbar_compute_title_layout(this);
 	}
-	
-	set backTextColor(value) {
-		this.IDs.back_text_btn.textColor = value;
-	}
 
-	set titleTextColor(value) {
-		this.IDs.title_text_panel.textColor = value;
-	}
-	
 	refreshStyle(time) {
 		if (this.isCurrent) {
 			this.dom.alignY = 'bottom';
@@ -740,7 +731,7 @@ export class Navbar extends Bar {
 							<!--textColor="#0079ff"-->
 							<Button id="back_text_btn" 
 								onClick=(e=>this.collection.pop(true))
-								textColor="#fff"
+								textColor=this.backTextColor
 								width="full" 
 								textLineHeight=height 
 								textSize=textSize
@@ -759,7 +750,7 @@ export class Navbar extends Bar {
 					
 					<Text id="title_text_panel" 
 						height="full"
-						textColor="#fff"
+						textColor=this.titleTextColor
 						textLineHeight=height 
 						textSize=textSize
 						textWhiteSpace="no_wrap" 
@@ -797,7 +788,7 @@ export class Navbar extends Bar {
 					x: -this.m_back_panel_width + back_icon_width, time: time,
 				});
 			}
-			this.transition({ opacity: 0, time: time }, ()=>{ this.dom.hide() });
+			this.dom.transition({ opacity: 0, time: time }, ()=>{ this.dom.hide() });
 		} else {
 			this.dom.opacity = 0;
 			this.dom.hide();
@@ -821,7 +812,7 @@ export class Navbar extends Bar {
 				this.IDs.title_text_panel.x = 0;
 			}
 			this.dom.opacity = 0;
-			this.transition({ opacity: 1, time: time });
+			this.dom.transition({ opacity: 1, time: time });
 		} else {
 			this.dom.opacity = 1;
 			this.IDs.back_text1.x = 0;
@@ -839,13 +830,15 @@ export class Navbar extends Bar {
 					x: this.m_title_panel_width + this.$titleMenuWidth, time: time,
 				});
 			}
-			this.transition({ opacity: 0, time: time }, ()=>{ this.remove() });
+			this.dom.transition({ opacity: 0, time: time }, ()=>{ this.remove() });
 		} else {
 			this.remove();
 		}
 		super.intoLeave(time);
 	}
 }
+
+Navbar.defineProps({ backTextColor: '#fff', titleTextColor: '#fff' }, Navbar);
 
 /**
  * @class Toolbar
@@ -872,7 +865,7 @@ export class Toolbar extends Bar {
 			if (!page || page.toolbar !== this) {
 				this.dom.show();
 				this.dom.opacity = 0;
-				this.transition({ opacity: 1, time: time });
+				this.dom.transition({ opacity: 1, time: time });
 			}
 		} else {
 			this.dom.show();
@@ -884,7 +877,7 @@ export class Toolbar extends Bar {
 	intoBackground(time) {
 		if ( this.collection.current.toolbar !== this ) {
 			if ( time ) {
-				this.transition({ opacity: 0, time: time }, ()=>{ this.dom.hide() });
+				this.dom.transition({ opacity: 0, time: time }, ()=>{ this.dom.hide() });
 			} else {
 				this.dom.opacity = 0;
 				this.dom.hide();
@@ -896,7 +889,7 @@ export class Toolbar extends Bar {
 	intoLeave(time) {
 		if ( this.collection.current.toolbar !== this ) {
 			if ( this.status == 0 && time ) {
-				this.transition({ opacity: 0, time: time }, ()=>{
+				this.dom.transition({ opacity: 0, time: time }, ()=>{
 					if ( this.collection.defaultToolbar !== this ) {
 						this.remove();
 					} else {
@@ -924,7 +917,7 @@ export class Toolbar extends Bar {
  * @func backgroundColorReverse
  */
 function backgroundColorReverse(self) {
-	var color = self.backgroundColor.reverse();
+	var color = self.dom.backgroundColor.reverse();
 	color.a = 255 * 0.6;
 	return color;
 }
@@ -963,12 +956,7 @@ export class Navpage extends Navigation {
 	get prevPage() { return this.m_prevPage }
 	get nextPage() { return this.m_nextPage }
 	get isCurrent() { return this.m_collection && this.m_collection.current === this }
-	get backgroundColor() { return this.dom.backgroundColor }
-	
-	set backgroundColor(value) {
-		this.dom.backgroundColor = value;
-	}
-	
+
 	set title(value) {
 		this.m_title = String(value);
 		if (this.m_navbar) {
@@ -1020,7 +1008,7 @@ export class Navpage extends Navigation {
 	// @overwrite
 	render(vc) {
 		return (
-			<Indep width="100%" height="full" backgroundColor="#fff" visible=0>{vc}</Indep>
+			<Indep width="100%" height="full" backgroundColor=this.backgroundColor visible=0>{vc}</Indep>
 		);
 	}
 	
@@ -1033,9 +1021,9 @@ export class Navpage extends Navigation {
 		this.toolbar.intoBackground(time);
 		if ( this.status != 1 ) {
 			if ( time && this.dom.parent.finalVisible ) {
-				this.transition({ x: this.dom.parent.finalWidth / -3, visible: false, time: time });
+				this.dom.transition({ x: this.dom.parent.finalWidth / -3, visible: false, time: time });
 			} else {
-				this.style = { x: (this.dom.parent.finalWidth || 100) / -3, visible: false };
+				this.dom.style = { x: (this.dom.parent.finalWidth || 100) / -3, visible: false };
 			}
 		}
 		super.intoBackground(time);
@@ -1049,26 +1037,26 @@ export class Navpage extends Navigation {
 		this.m_nextPage = null;
 		if ( this.status == -1 ) {
 			if ( time && this.dom.parent.finalVisible ) {
-				this.style = { 
+				this.dom.style = { 
 					borderLeftColor: backgroundColorReverse(this), 
 					borderLeftWidth: langou.atomPixel, 
 					x: this.dom.parent.finalWidth, 
 					visible: 1,
 				};
-				this.transition({ x: 0, time: time }, ()=>{ 
+				this.dom.transition({ x: 0, time: time }, ()=>{ 
 					this.dom.borderLeftWidth = 0;
 				});
 			} else {
-				this.style = { x: 0, borderLeftWidth: 0, visible: 1 };
+				this.dom.style = { x: 0, borderLeftWidth: 0, visible: 1 };
 			}
 			this.m_toolbar.m_page = this;
 		} 
 		else if ( this.status == 1 ) {
 			if ( time && this.dom.parent.finalVisible ) {
-				this.visible = 1;
-				this.transition({ x: 0, time: time });
+				this.dom.visible = 1;
+				this.dom.transition({ x: 0, time: time });
 			} else {
-				this.style = { x: 0, visible: 1 };
+				this.dom.style = { x: 0, visible: 1 };
 			}
 			this.m_toolbar.m_page = this;
 		}
@@ -1081,11 +1069,11 @@ export class Navpage extends Navigation {
 		this.toolbar.intoLeave(time);
 		if ( this.status == 0 ) {
 			if ( time && this.dom.parent.finalVisible ) {
-				this.style = { 
+				this.dom.style = { 
 					borderLeftColor: backgroundColorReverse(this), 
 					borderLeftWidth: langou.atomPixel, 
 				};
-				this.transition({ x: this.dom.parent.finalWidth, visible: 0, time: time }, ()=>{
+				this.dom.transition({ x: this.dom.parent.finalWidth, visible: 0, time: time }, ()=>{
 					this.remove();
 				});
 				super.intoLeave(time);
@@ -1117,3 +1105,5 @@ export class Navpage extends Navigation {
 		}
 	}
 }
+
+Navpage.defineProps({ backgroundColor: '#fff' });

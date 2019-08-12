@@ -161,11 +161,11 @@ class TextNode::Inl: public TextNode {
 TextNode::TextNode(): m_valid_layout_offset(false) { }
 
 void TextNode::prepend(View* child) throw(Error) {
-	XX_ERR("%s", "TextNode can not have a child view");
+	XX_ERR("%s", "Error: TextNode can not have a child view");
 }
 
 void TextNode::append(View* child) throw(Error) {
-	XX_ERR("%s", "TextNode can not have a child view");
+	XX_ERR("%s", "Error: TextNode can not have a child view");
 }
 
 void TextNode::accept_text(Ucs2StringBuilder& output) const {

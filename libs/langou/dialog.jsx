@@ -105,19 +105,21 @@ CSS({
 })
 
 function compute_buttons_width(self) {
+	var len = self.length;
+	if (!len || !self.dom.visible) return;
 	
-	var btns = self.buttons;
-	
-	if ( btns.length == 1 ) {
-		btns[0].width = 'full';
-	} else {
+	if ( len == 1 ) {
+		self.IDs.btns.first.width = 'full';
+	} else  {
 		var main_width = self.IDs.main.finalWidth;
 		if ( main_width ) {
-			for ( var btn of btns ) {
-				btn.width = (main_width / btns.length) - ((btns.length - 1) * atomPixel);
+			var btn = self.IDs.btns.first;
+			while (btn) {
+				btn.width = (main_width / len) - ((len - 1) * atomPixel);
 				btn.borderLeft = `${atomPixel} #9da1a0`;
+				btn = btn.next;
 			}
-			btns[0].borderLeftWidth = 0;
+			self.IDs.btns.first.borderLeftWidth = 0;
 		}
 	}
 }
@@ -131,8 +133,7 @@ function close(self) {
  * @class Dialog
  */
 export class Dialog extends Navigation {
-
-	m_btns_count = 0;
+	m_buttons = null;
 	
 	/**
 	 * @event onClickButton
@@ -148,75 +149,58 @@ export class Dialog extends Navigation {
 	 * @get length btns
 	 */
 	get length() {
-		return this.m_btns_count;
+		return this.m_buttons.length;
 	}
-	
+
+	constructor() {
+		super();
+		this.m_buttons = [];
+	}
+
 	/**
 	 * @overwrite
 	 */
 	render(vc) {
 		return (
-			<Indep 
-				width="full"
-				height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
+			<Indep width="full" height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
-					<Hybrid id="title" class="title" />
-					<Hybrid id="con" class="content">{vc}</Hybrid>
-					<Clip id="btns" class="buttons" />
+					<Hybrid id="title" class="title">{this.title}</Hybrid>
+					<Hybrid id="con" class="content">{this.content||vc}</Hybrid>
+					<Clip id="btns" class="buttons">
+					{
+						this.m_buttons.map((e, i)=>(
+							<Button 
+								index=i
+								class="button"
+								onClick="triggerClickButton"
+								defaultHighlighted=0>{e}</Button>
+						))
+					}
+					</Clip>
 				</LimitIndep>
 			</Indep>
 		);
 	}
-
-	get title() { return this.IDs.title.innerText }
-	get content() { return this.IDs.con.innerText }
-	set title(value) {
-		this.IDs.title.removeAllChild();
-		this.IDs.title.appendText(value || '');
-	}
-	set content(value) {
-		this.IDs.con.removeAllChild();
-		this.IDs.con.appendText(value || '');
-	}
 	
 	get buttons() {
-		var btns = this.IDs.btns;
-		var btn = btns.first;
-		var rv = [];
-		while (btn) {
-			rv.push(btn);
-			btn = btn.next;
-		}
-		return rv;
+		return this.m_buttons;
 	}
-	
-	set buttons(btns) {
-		if ( Array.isArray(btns) ) {
-			this.IDs.btns.removeAllChild();
-			this.m_btns_count = btns.length;
-
-			for ( var i = 0; i < btns.length; i++ ) {
-				var btn = render(
-					<Button 
-						index=i
-						class="button"
-						width="full"
-						onClick="triggerClickButton"
-						defaultHighlighted=0>{btns[i]}</Button>,
-					this.IDs.btns
-				);
-			}
-			if ( this.visible ) {
-				compute_buttons_width(this);
-			}
+	set buttons(value) {
+		if ( Array.isArray(value) ) {
+			this.m_buttons = value;
+			this.markRerender();
 		}
+	}
+
+	triggerUpdate(e) {
+		compute_buttons_width(this);
+		super.triggerUpdate(e);
 	}
 
 	show() {
-		if (!this.visible) {
+		if (!this.dom.visible) {
 			this.appendTo(langou.root);
-			this.visible = 1;
-			
+			this.dom.visible = 1;
 			langou.nextFrame(()=>{
 				compute_buttons_width(this);
 				var main = this.IDs.main;
@@ -225,19 +209,19 @@ export class Dialog extends Navigation {
 				main.scale = '0.3 0.3';
 				main.transition({ scale : '1 1', time: 200 });
 				this.dom.opacity = 0.3;
-				this.transition({ opacity : 1, time: 200 });
+				this.dom.transition({ opacity : 1, time: 200 });
 			});
 			this.registerNavigation(0);
 		}
 	}
 	
 	close() {
-		if ( this.visible ) {
+		if ( this.dom.visible ) {
 			var main = this.IDs.main;
 			main.originX = main.finalWidth / 2;
 			main.originY = main.finalHeight / 2;
 			main.transition({ scale : '0.5 0.5', time: 200 });
-			this.transition({ opacity : 0.15, time: 200 }, ()=>{ this.remove() });
+			this.dom.transition({ opacity : 0.15, time: 200 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0, null);
 		} else {
 			this.unregisterNavigation(0, null);
@@ -273,6 +257,8 @@ export class Dialog extends Navigation {
 		}
 	}
 }
+
+Dialog.defineProps({title: '', content: ''});
 
 export const CONSTS = {
 	OK: 'OK',
@@ -311,7 +297,7 @@ export function prompt(msg, text = '', cb = util.noop) {
 		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
 				{msg}
-				<Input id="m_input" class="prompt"
+				<Input id="input" class="prompt"
 					returnType="done" onKeyEnter=handle_prompt_enter
 					value=text placeholder=CONSTS.placeholder />
 			</Span>

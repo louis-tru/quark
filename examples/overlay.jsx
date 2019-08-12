@@ -41,7 +41,7 @@ function show_overlay(evt) {
 				<Navbutton>Menu A</Navbutton>
 				<Navbutton>Menu B------C</Navbutton>
 				<Navbutton>Menu C</Navbutton>
-				<Navbutton view.borderWidth=0>Menu D</Navbutton>
+				<Navbutton style={borderWidth:0}>Menu D</Navbutton>
 			</Div>
 		</Overlay>
 	).showOverlayWithView(evt.sender);
@@ -53,7 +53,7 @@ function show_overlay2(evt) {
 			<Div>
 				<Navbutton>Hello.</Navbutton>
 				<Navbutton>Who are you going to?</Navbutton>
-				<Navbutton view.borderWidth=0>Do I know you?</Navbutton>
+				<Navbutton style={borderWidth:0}>Do I know you?</Navbutton>
 			</Div>
 		</Overlay>
 	);
@@ -65,10 +65,10 @@ function show_overlay3(evt) {
 	var com = render(
 		<Overlay>
 			<Div>
-				<Navbutton view.textColor="#fff">Hello.</Navbutton>
-				<Navbutton view.textColor="#fff">Who are you going to?</Navbutton>
-				<Navbutton view.textColor="#fff">Do I know you?</Navbutton>
-				<Navbutton view.textColor="#fff" view.borderWidth=0>What country are you from?</Navbutton>
+				<Navbutton style={textColor:"#fff"}>Hello.</Navbutton>
+				<Navbutton style={textColor:"#fff"}>Who are you going to?</Navbutton>
+				<Navbutton style={textColor:"#fff"}>Do I know you?</Navbutton>
+				<Navbutton style={textColor:"#fff", borderWidth:0}>What country are you from?</Navbutton>
 			</Div>
 		</Overlay>
 	);

@@ -266,22 +266,13 @@ export class Overlay extends Navigation {
 	 */
 	priority = 'bottom'; // top | right | bottom | left
 	
-	get backgroundColor() { 
-		return this.IDs.content.backgroundColor; 
-	}
-	set backgroundColor(value) { 
-		this.IDs.arrow_text.textColor = value;
-		this.IDs.content.backgroundColor = value;
-	}
-	
 	/**
 	 * @overwrite
 	 */
 	render(vc) {
 		return (
 			<Indep visible=0 width="full" height="full" backgroundColor="#0003" opacity=0>
-				<Div width="full" height="full" 
-					onTouchStart="fadeOut" onMouseDown="fadeOut" id="mask" />
+				<Div width="full" height="full" onTouchStart="fadeOut" onMouseDown="fadeOut" id="mask" />
 				<Indep id="inl">
 
 					<Indep id="arrow" 
@@ -292,10 +283,10 @@ export class Overlay extends Navigation {
 							y=-10 x=-3
 							textFamily='iconfont' 
 							textLineHeight=36
-							textSize=36 textColor="#fff" value="\uedcb" />
+							textSize=36 textColor=this.backgroundColor value="\uedcb" />
 					</Indep>
 
-					<Clip id="content" backgroundColor="#fff" borderRadius=8>{vc}</Clip>
+					<Clip id="content" backgroundColor=this.backgroundColor borderRadius=8>{vc}</Clip>
 
 				</Indep>
 			</Indep>
@@ -318,7 +309,7 @@ export class Overlay extends Navigation {
 	}
 	
 	fadeOut() {
-		this.transition({ opacity: 0, time: 200 }, ()=>{
+		this.dom.transition({ opacity: 0, time: 200 }, ()=>{
 			this.remove();
 		});
 		this.unregisterNavigation(0, null);
@@ -351,7 +342,7 @@ export class Overlay extends Navigation {
 		offset_x = offset_x || 0;
 		offset_y = offset_y || 0;
 		
-		self.show();
+		self.dom.show();
 		
 		self.m_x = x;
 		self.m_y = y;
@@ -360,7 +351,7 @@ export class Overlay extends Navigation {
 		
 		langou.nextFrame(function() {
 			showOverlay(self, x, y, offset_x, offset_y);
-			self.transition({ opacity: 1, time: 200 });
+			self.dom.transition({ opacity: 1, time: 200 });
 		});
 		
 		self.m_is_activate = true;
@@ -392,3 +383,5 @@ export class Overlay extends Navigation {
 
 	}
 }
+
+Overlay.defineProps({ backgroundColor: '#fff' });

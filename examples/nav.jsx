@@ -54,7 +54,7 @@ function nav_pop(evt) {
 }
 
 function view_code(evt) {
-	evt.sender.owner.collection.push(review_vx, 1);
+	evt.sender.owner.collection.push(review_vx(), 1);
 }
 
 const navbar_vx = ()=>(
@@ -69,7 +69,7 @@ const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
 			<Button onClick=view_code>
-				<Text class="toolbar_btn" textColor="#fff">\ue9ab</Text>
+				<Text class="toolbar_btn" textColor="#fff" value="\ue9ab" />
 			</Button>
 		</Hybrid>
 	</Toolbar>

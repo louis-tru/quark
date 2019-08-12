@@ -163,14 +163,14 @@ Label::Label()
  * @overwrite
  */
 void Label::prepend(View* child) throw(Error) {
-	XX_ERR("%s", "Label can not have a child view");
+	XX_ERR("%s", "Error: Label can not have a child view");
 }
 
 /**
  * @overwrite
  */
 void Label::append(View* child) throw(Error) {
-	XX_ERR("%s", "Label can not have a child view");
+	XX_ERR("%s", "Error: Label can not have a child view");
 }
 
 /**

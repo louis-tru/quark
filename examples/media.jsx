@@ -43,7 +43,7 @@ var audio_player = null;
 
 function PlayVideo(evt) {
 	StopAudio(evt);
-	var v = evt.sender.owner.find('video');
+	var v = evt.sender.owner.IDs.video;
 	v.src = src_720;
 	v.start();
 }
@@ -58,7 +58,7 @@ function PlayAudio(evt) {
 }
 
 function StopVideo(evt) {
-	evt.sender.owner.find('video').stop();
+	evt.sender.owner.IDs.video.stop();
 }
 
 function StopAudio(evt) {
@@ -77,7 +77,7 @@ function Seek(evt) {
 	if ( audio_player ) {
 		audio_player.seek(10000); // 10s
 	} else {
-		evt.sender.owner.find('video').seek(100000); // 100s
+		evt.sender.owner.IDs.video.seek(100000); // 100s
 	}
 }
 

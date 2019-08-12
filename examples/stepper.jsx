@@ -50,18 +50,18 @@ CSS({
 
 function change_handle(evt) {
 	var stepper = evt.sender;
-	stepper.view.prev.value = stepper.value;
+	stepper.dom.prev.value = stepper.value;
 }
 
 export const vx = ()=>(
 	<Mynavpage title="Stepper" source=resolve(__filename)>
 		<Div width="full" class="strpper_page">
 			<Div class="item">
-				<Text class="text" />
+				<Text class="text" value="10" />
 				<Stepper onChange=change_handle style={margin:10} value=10 />
 			</Div>
 			<Div class="item">
-				<Text class="text" />
+				<Text class="text" value="6" />
 				<Stepper onChange=change_handle style={margin:10} max=10 min=5 value=6 />
 			</Div>
 			<Div class="item">

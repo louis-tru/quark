@@ -42,13 +42,13 @@ export const vx = ()=>(
 	<Mynavpage title="Components" source=resolve(__filename)>
 		<Scroll width="full" height="full" bounceLock=0>
 		
-			<Text class="category_title">Components.</Text>
+			<Text class="category_title" value="Components." />
 			<Clip class="category">
 				<Navbutton next=nav.vx>Nav</Navbutton>
 				<Navbutton next=checkbox.vx>Checkbox</Navbutton>
 				<Navbutton next=stepper.vx>Stepper</Navbutton>
 				<Navbutton next=overlay.vx>Overlay</Navbutton>
-				<Navbutton next=dialog.vx view.borderWidth=0>Dialog</Navbutton>
+				<Navbutton next=dialog.vx>Dialog</Navbutton>
 			</Clip>
 			
 		</Scroll>

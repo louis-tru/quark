@@ -34,7 +34,7 @@ import { Mynavpage } from './public';
 var resolve = require.resolve;
 
 function start_input(evt) {
-	evt.sender.owner.find('input1').focus();
+	evt.sender.owner.IDs.input1.focus();
 }
 
 function end_input(evt) {
@@ -44,7 +44,7 @@ function end_input(evt) {
 export const vx = ()=>(
 	<Mynavpage title="Input" source=resolve(__filename)>
 		<Div width="full">
-			<Text margin=10 origin="10 10" textBackgroundColor="#000" textColor="#fff">Examples Input</Text>
+			<Text margin=10 origin="10 10" textBackgroundColor="#000" textColor="#fff" value="Examples Input" />
 			
 			<Input id="input0" margin=10 
 				width="full" 

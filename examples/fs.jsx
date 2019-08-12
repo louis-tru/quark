@@ -42,7 +42,7 @@ fs.mkdirpSync(path.dirname(filename));
 
 function WriteFile(evt) {
 	console.log('------------', filename);
-	fs.writeFile(filename, evt.sender.owner.find('input').value, function() {
+	fs.writeFile(filename, evt.sender.owner.IDs.input.value, function() {
 		alert('Write file OK.');
 	}.catch(err=>{
 		alert(err.message + ', ' + err.code);
@@ -51,7 +51,7 @@ function WriteFile(evt) {
 
 function WriteFileSync(evt) {
 	try {
-		var txt = evt.sender.owner.find('input').value;
+		var txt = evt.sender.owner.IDs.input.value;
 		var r = fs.writeFileSync(filename, txt);
 		console.log(r);
 		alert('Write file OK.');

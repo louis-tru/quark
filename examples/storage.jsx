@@ -51,7 +51,7 @@ function Get(evt) {
 }
 
 function Set(evt) {
-	storage.set(key, evt.sender.owner.find('input').value);
+	storage.set(key, evt.sender.owner.IDs.input.value);
 	alert('Save local data OK.');
 }
 

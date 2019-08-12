@@ -29,42 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { 
-	Div, Scroll, Text, TextNode, Hybrid, ViewController, New 
+	Div, Scroll, Text, TextNode, Hybrid, ViewController 
 } from 'langou';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;
-
-class IconsPanel extends ViewController {
-	
-	loadView(vx) {
-		super.loadView(<Div margin=10 width="full" />);
-
-		var ts = new Date();
-		
-		var {v:str} = vx;
-		var view = this.view;
-		
-		for ( var i = 0; i < str.length; i++ ) {
-			var unicode = str.charCodeAt(i);
-			if (unicode > 255) {
-				New(
-					<Hybrid marginBottom=10 textAlign="center" width="25%">
-						<TextNode textSize=28 textFamily="icomoon-ultimate">${str[i]}</TextNode>
-						<TextNode textColor="#555">@@ ${unicode.toString(16)}</TextNode>
-					</Hybrid>
-				, view)
-			}
-		}
-		
-		console.log(new Date() - ts);
-	}
-}
-
-export const vx = ()=>(
-	<Mynavpage title="Icons" source=resolve(__filename)>
-		<Scroll width="full" height="full" bounceLock=0>
-			<IconsPanel>
+var icon_str = `
 \ue900
 \ue901
 \ue902
@@ -1675,7 +1645,34 @@ export const vx = ()=>(
 \uef47
 \uef48
 \uef49
-			</IconsPanel>
-		</Scroll>
-	</Mynavpage>
-)
+`;
+
+class Controller extends Mynavpage {
+	source = resolve(__filename);
+	m_title = 'Icons';
+	render() {
+		return super.render(
+			<Scroll width="full" height="full" bounceLock=0>
+				<Div margin=10 width="full">
+					{
+						Array.from({length: icon_str.length}).map((e,i)=>{
+							var unicode = icon_str.charCodeAt(i);
+							if (unicode > 255) {
+								return (
+									<Hybrid marginBottom=10 textAlign="center" width="25%">
+										<TextNode textSize=28 textFamily="icomoon-ultimate" value=icon_str[i] />
+										<TextNode textColor="#555" value=` ${unicode.toString(16)}` />
+									</Hybrid>
+								);
+							}
+						})
+					}
+				</Div>
+			</Scroll>
+		);
+	}
+}
+
+export const vx = ()=>{
+	return Controller;
+}

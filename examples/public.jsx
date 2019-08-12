@@ -30,7 +30,7 @@
 
 import { Navpage } from 'langou/nav';
 import { 
-	ViewController, Button, CSS,
+	ViewController, Button, CSS, Hybrid,
 	Text, atomPixel as px, 
 	Indep, Panel, Scroll, langou
 } from 'langou';
@@ -123,7 +123,7 @@ CSS({
 
 export class Navbutton extends ViewController {
 	
-	render() {
+	render(vc) {
 		//util.log('---------------------', px);
 		return (
 			<Button
@@ -132,7 +132,7 @@ export class Navbutton extends ViewController {
 				textColor="#0079ff"
 				defaultHighlighted=0
 				borderBottom=`${px} #c8c7cc`>
-				<Text marginLeft=16 marginRight=50>${this.vchildren}</Text>
+				<Hybrid marginLeft=16 marginRight=50>{vc}</Hybrid>
 				<Indep x=-10 alignX="right" alignY="center">
 					<Text value="\uedbe" textFamily="icomoon-ultimate" textColor="#aaa" />
 				</Indep>
@@ -141,6 +141,7 @@ export class Navbutton extends ViewController {
 	}
 	
 	handle_click(evt) {
+		if (!this.next) return;
 		var next = this.next();
 		if ( ViewController.typeOf(next, Mynavpage) ) {
 			var ctr = this.owner;
@@ -157,18 +158,7 @@ export class Navbutton extends ViewController {
 
 export class Mynavpage extends Navpage {
 	source = resolve(__filename);
-	
-	triggerMounted(e) {
-		this.backgroundColor = "#f8f8f8";
-		<!-- White title -->
-		<!--
-			langou.displayPort.setStatusBarStyle(1);
-			this.navbar.backgroundColor = '#f9f9f9';
-			this.navbar.titleTextColor = '#000';
-			this.navbar.backTextColor = '#0079ff';
-		-->
-		super.triggerMounted(e);
-	}
+	m_backgroundColor = '#f8f8f8';
 
 	triggerForeground(e) {
 		super.triggerForeground(e);

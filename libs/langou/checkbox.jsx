@@ -165,19 +165,12 @@ class Basic extends ViewController {
 	}
 
 	set selected(value) {
-		
 		value = !!value;
-		
 		if(value != this.m_selected) {
-			
+			this.markRerender();
 			this.m_selected = value;
-			
-			if (value) {
-				this.dom.addClass('on');
-			} else {
-				this.dom.removeClass('on');
-			}
-			this.triggerChange();
+			if (this.isMounted)
+				this.triggerChange();
 		}
 	}
 }
@@ -189,7 +182,7 @@ export class Checkbox extends Basic {
 
 	render() {
 		return (
-			<Button class="x_checkbox" defaultHighlighted=0>
+			<Button class=`x_checkbox ${this.selected ? 'on': ''}` defaultHighlighted=0>
 				<TextNode class="mark" value="\ued71" />
 			</Button>
 		)
@@ -203,7 +196,7 @@ export class Switch extends Basic {
 
 	render() {
 		return (
-			<Button class="x_switch" defaultHighlighted=0>
+			<Button class=`x_switch ${this.selected ? 'on': ''}` defaultHighlighted=0>
 				<Indep class="background" />
 				<Indep class="button" />
 			</Button>

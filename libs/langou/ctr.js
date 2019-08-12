@@ -108,7 +108,7 @@ class VirtualDOM {
 	type = null;
 	children = null;
 	dom = null;
-	style = null;
+	outerStyle = null;
 	options = null;
 
 	constructor(Type, props, children, options) {
@@ -145,9 +145,9 @@ class VirtualDOM {
 		this.options = options;
 	}
 
-	setStyle(style) {
+	setOuterStyle(style) {
 		if (style) {
-			this.style = style;
+			this.outerStyle = style;
 		}
 	}
 
@@ -160,11 +160,12 @@ class VirtualDOM {
 	}
 
 	assignProps() {
-		if (this.style)
-			this.dom.style = style;
 		var props = this.props;
 		for (var key in props) {
 			assignProp(this, props[key]);
+		}
+		if (this.outerStyle) {
+			this.dom.style = this.outerStyle;
 		}
 	}
 
@@ -208,6 +209,10 @@ class VirtualDOM {
 		return dom;
 	}
 
+	hashCode() {
+		return this.hash;
+	}
+
 }
 
 /**
@@ -223,10 +228,10 @@ class VirtualDOMCollection extends VirtualDOM {
 		this.vdoms.forEach(e=>(this.hash += (this.hash << 5) + e.hash));
 	}
 
-	setStyle(style) {
+	setOuterStyle(style) {
 		if (style) {
 			this.style = style;
-			this.vdoms.forEach(e=>e.setStyle(style));
+			this.vdoms.forEach(e=>e.setOuterStyle(style));
 		}
 	}
 
@@ -369,8 +374,8 @@ class DOMCollection {
 		if (!doms.length) {
 			this.m_placeholder = new View();
 		}
-		if (vdom.style) {
-			this.m_style = vdom.style;
+		if (vdom.defaultStyle) {
+			this.m_style = vdom.defaultStyle;
 		}
 	}
 
@@ -416,12 +421,12 @@ class DOMCollection {
 }
 
 function removeSubctr(self, vdom) {
-	for (var vdom of vdom.children) {
-		if (vdom) {
-			if (vdom.type.isViewController) {
-				vdom.dom.remove(); // remove ctrl
+	for (var e of vdom.children) {
+		if (e) {
+			if (e.type.isViewController) {
+				e.dom.remove(); // remove ctrl
 			} else {
-				removeSubctr(self, vdom);
+				removeSubctr(self, e);
 			}
 		}
 	}
@@ -514,7 +519,7 @@ function rerender(self) {
 	var update = false;
 
 	if (vdom) {
-		vdom.setStyle(this.m_style);
+		vdom.setOuterStyle(self.m_style);
 	}
 
 	if (vdom_c) {
@@ -768,7 +773,8 @@ export default class ViewController extends Notification {
 	// @static:
 
 	/**
-	 * @func isViewController()
+	 * @get isViewController
+	 * @static
 	 */
 	static get isViewController() {
 		return true;
@@ -790,18 +796,20 @@ export default class ViewController extends Notification {
 	static defineProps(props, controllerClass) {
 		controllerClass = controllerClass || this;
 		util.assert(util.equalsClass(ViewController, controllerClass), 'Type error');
+		props = Array.isArray(props) ? props.map(e=>[e]): Object.entries(props);
 
-		for (let prop of props) {
+		for (let [prop,value] of props) {
+			controllerClass.prototype['m_' + prop] = value;
 			Object.defineProperty(controllerClass.prototype, prop, {
-				get() {
-					return this['M_' + prop];
+				get () {
+					return this['m_' + prop];
 				},
 				set(value) {
 					var hashCode = Object.hashCode(value);
 					var hash = this.m_dataHash;
-					if (hash['__Prop_' + prop] != hashCode) {
-						hash['__Prop_' + prop] = hashCode;
-						this['M_' + prop] = value;
+					if (hash['__prop_' + prop] != hashCode) {
+						hash['__prop_' + prop] = hashCode;
+						this['m_' + prop] = value;
 						this.markRerender(); // mark render
 					}
 				},

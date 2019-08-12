@@ -37,7 +37,7 @@ import { Mynavpage } from './public';
 var resolve = require.resolve;
 
 function url(evt) {
-	return evt.sender.owner.find('input').value;
+	return evt.sender.owner.IDs.input.value;
 }
 
 function Get(evt) {

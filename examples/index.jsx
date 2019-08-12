@@ -75,8 +75,9 @@ CSS({
 	'.category': {
 		width: 'full',
 		borderTop: `${px} #c8c7cc`,
-		borderBottom: `${px} #c8c7cc`,
+		// borderBottom: `${px} #c8c7cc`,
 		backgroundColor: '#fff',
+		// borderBottomWidth: 0,
 	},
 
 	'.toolbar_btn': {
@@ -99,7 +100,7 @@ CSS({
 })
 
 function review_code(evt) {
-	evt.sender.owner.collection.push(review_vx, 1);
+	evt.sender.owner.collection.push(review_vx(), 1);
 }
 
 const langou_tools = 'https://www.npmjs.com/package/lmake';
@@ -125,7 +126,7 @@ class DefaultToolbar extends Toolbar {
 		return super.render(
 			<Hybrid textAlign="center" width="full" height="full">
 				<Button onClick=review_code>
-					<Text class="toolbar_btn">\ue9ab</Text>
+					<Text class="toolbar_btn" value="\ue9ab" />
 				</Button>
 			</Hybrid>
 		);
@@ -136,7 +137,7 @@ const langou_tools_vx = ()=>(
 	<Mynavpage title="Langou Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-`1. You can use nodejs <T textBackgroundColor="#ddd">npm install -g lmake</T>.
+`1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g lmake" />.
 2. Or get the node modules from Github.`
 			</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools>Go Github</Button>
@@ -147,7 +148,7 @@ const langou_tools_vx = ()=>(
 const examples_source_vx = ()=>(
 	<Mynavpage title="Examples Source" source=resolve(__filename)>
 		<Div width="full">
-			<Text class="category_title">You can get the full examples source code from Github.</Text>
+			<Text class="category_title" value="You can get the full examples source code from Github" />
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=examples_source>Go Github</Button>
 		</Div>
 	</Mynavpage>
@@ -156,7 +157,7 @@ const examples_source_vx = ()=>(
 const documents_vx = ()=>(
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff">langou.org</T> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="langou.org" /> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
 		</Div>
 	</Mynavpage>
@@ -189,12 +190,11 @@ var app = new GUIApplication({
 
 				<Scroll width="full" height="full" bounceLock=0>
 
-					<Text class="hello">Hello.</Text>
-					<Div class="category">
-						<Hybrid class="codepre">
-`<T class="keywork">import</T> \{ <T class="identifier">GUIApplication</T>, <T class="identifier">Root</T> \} <T class="keywork">from</T> <T class="str">'langou'</T>
-<T class="keywork">new</T> <T class="identifier">GUIApplication</T>()<T class="keywork">.</T><T class="identifier">start</T>(
-	\<<T class="tag_name">Root</T>\>hello world!\</<T class="tag_name">Root</T>\>
+					<Text class="hello" value="Hello." />
+					<Div class="category" borderBottom=`${px} #c8c7cc`>
+						<Hybrid class="codepre">`<T class="keywork" value="import"/> \{ <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> \} <T class="keywork" value="from" /> <T class="str" value="'langou'" />
+<T class="keywork" value="new"/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>(
+	\<<T class="tag_name" value="Root" />\>hello world!\</<T class="tag_name" value="Root" />\>
 )`
 						</Hybrid>
 					</Div>
@@ -203,17 +203,18 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=langou_tools_vx style={borderWidth:0}>Langou Tools</Navbutton>
+						<Navbutton next=langou_tools_vx>Langou Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />
 					<Clip class="category">
 						<Navbutton next=about_vx>About</Navbutton>
 						<Navbutton next=documents_vx>Documents</Navbutton>
-						<Navbutton next=bug_feedback_vx style={borderWidth:0}>Bug Feedback</Navbutton>
+						<Navbutton next=bug_feedback_vx>Bug Feedback</Navbutton>
 					</Clip>
 
 					<Div height=32 width="full" />
+
 				</Scroll>
 
 			</Mynavpage>

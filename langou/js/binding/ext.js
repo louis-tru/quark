@@ -54,14 +54,15 @@ function extend(obj, extd) {
 	}
 }
 
-extend(Object, {
+function hashCode(obj) {
+	return obj === null ? -1354856: obj === undefined ? -3387255 : obj.hashCode();
+}
 
+extend(Object, {
 	/**
 	 * @func hashCode(obj)
 	*/
-	hashCode: function(obj) {
-		return obj === null ? -1354856: obj === undefined ? -3387255 : obj.hashCode();
-	},
+	hashCode: hashCode,
 });
 
 extend(Object.prototype, {
@@ -75,7 +76,7 @@ extend(Object.prototype, {
 		G_hash_code_set.add(this);
 		var _hash = 5381;
 		for (var key in this) {
-			_hash += (_hash << 5) + (key.hashCode() + this[key].hashCode());
+			_hash += (_hash << 5) + (key.hashCode() + hashCode(this[key]));
 		}
 		G_hash_code_set.delete(this);
 		return _hash;

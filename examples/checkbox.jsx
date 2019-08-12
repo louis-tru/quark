@@ -53,7 +53,7 @@ function change_handle(evt) {
 	var checkbox = evt.sender;
 	var str = checkbox.selected ? 'YES' : 'NO';
 	str += checkbox.disable ? ',Disable' : '';
-	checkbox.view.prev.value = str;
+	checkbox.dom.prev.value = str;
 }
 
 export const vx = ()=>(

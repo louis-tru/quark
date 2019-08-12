@@ -36,7 +36,8 @@ import 'langou/reader';
 function foreground(evt) {
 	var navpage = evt.sender;
 	navpage.title = 'Source';
-	navpage.find('text').value = reader.readFileSync(navpage.prevPage.source, 'utf8');
+	var text = reader.readFileSync(navpage.prevPage.source, 'utf8');
+	navpage.IDs.text.value = text;
 }
 
 export default const vx = ()=>(

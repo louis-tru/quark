@@ -75,11 +75,11 @@ public:
 };
 
 void Text::prepend(View* child) throw(Error) {
-	XX_ERR("%s", "TextNode can not have a child view");
+	XX_ERR("%s", "Error: Text can not have a child view");
 }
 
 void Text::append(View* child) throw(Error) {
-	XX_ERR("%s", "TextNode can not have a child view");
+	XX_ERR("%s", "Error: Text can not have a child view");
 }
 
 View* Text::append_text(cUcs2String& str) throw(Error) {
