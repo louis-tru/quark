@@ -73,20 +73,15 @@ export class GUIApplication extends _langou.NativeGUIApplication {
 			vdom = _VV(ViewController, [], [_VVD(vdom)]);
 		}
 
-		function handleMounted(e) {
+		function render(e) {
+			cur_root_ctr = ViewController.render(vdom);
 			util.assert(cur_root_ctr.dom instanceof Root, 'Root view controller first children must be Root view');
 		}
 
 		if ( this.isLoaded ) {
-			_langou.lock(()=>{
-				cur_root_ctr = ViewController.render(vdom);
-				cur_root_ctr.onMounted.on(handleMounted);
-			});
+			_langou.lock(render);
 		} else {
-			this.onLoad.on(()=>{
-				cur_root_ctr = ViewController.render(vdom);
-				cur_root_ctr.onMounted.on(handleMounted);
-			});
+			this.onLoad.on(render);
 		}
 
 		return this;
