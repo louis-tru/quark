@@ -1,6 +1,6 @@
 {
 	"name": "lmake",
-	"version": "0.5.3",
+	"version": "0.6.0",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "",
 	"author": {

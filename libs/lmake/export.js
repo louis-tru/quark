@@ -581,6 +581,8 @@ function export_result(self) {
 	}
 
 	fs.rm_sync(gyp_file); // write gyp file
+
+	console.log('export complete');
 }
 
 function write_cmake_depe_to_android_build_gradle(self, pkg, cmake, add) {
@@ -695,11 +697,12 @@ function export_result_android(self) {
 				child_process.execSync('open Project/android'); // open project
 			}
 		} else {
-			child_process.execSync('xdg-open Project/android'); // open project
+			child_process.exec('xdg-open Project/android'); // open project
 		}
 	} catch (e) {
 		// 
 	}
+	console.log('export complete');
 }
 
 /**
