@@ -719,12 +719,12 @@ export class Navbar extends Bar {
 	/**
 	 * @overwrite
 	 */
-	render(vc) {
+	render(...vdoms) {
 		var height = this.height;
 		var textSize = 16;
 		return (
 			<Indep width="100%" height=height visible=0 alignY="bottom">
-				{vc}
+				{vdoms}
 				<Indep id="title_panel" width="full" height="100%" visible=0>
 					<Div id="back_text_panel" height="full">
 						<Limit maxWidth="100%">
@@ -850,9 +850,9 @@ export class Toolbar extends Bar {
 	/**
 	 * @overwrite
 	 */
-	render(vc) {
+	render(...vdoms) {
 		return (
-			<Indep width="100%" height="full" visible=0>{vc}</Indep>
+			<Indep width="100%" height="full" visible=0>{vdoms}</Indep>
 		);
 	}
 	
@@ -1006,9 +1006,9 @@ export class Navpage extends Navigation {
 	}
 	
 	// @overwrite
-	render(vc) {
+	render(...vdoms) {
 		return (
-			<Indep width="100%" height="full" backgroundColor=this.backgroundColor visible=0>{vc}</Indep>
+			<Indep width="100%" height="full" backgroundColor=this.backgroundColor visible=0>{vdoms}</Indep>
 		);
 	}
 	

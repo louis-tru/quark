@@ -160,12 +160,12 @@ export class Dialog extends Navigation {
 	/**
 	 * @overwrite
 	 */
-	render(vc) {
+	render(...vdoms) {
 		return (
 			<Indep width="full" height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
 					<Hybrid id="title" class="title">{this.title}</Hybrid>
-					<Hybrid id="con" class="content">{this.content||vc}</Hybrid>
+					<Hybrid id="con" class="content">{this.content||vdoms}</Hybrid>
 					<Clip id="btns" class="buttons">
 					{
 						this.m_buttons.map((e, i)=>(

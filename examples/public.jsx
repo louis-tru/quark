@@ -123,7 +123,7 @@ CSS({
 
 export class Navbutton extends ViewController {
 	
-	render(vc) {
+	render(...vdoms) {
 		//util.log('---------------------', px);
 		return (
 			<Button
@@ -132,7 +132,7 @@ export class Navbutton extends ViewController {
 				textColor="#0079ff"
 				defaultHighlighted=0
 				borderBottom=`${px} #c8c7cc`>
-				<Hybrid marginLeft=16 marginRight=50>{vc}</Hybrid>
+				<Hybrid marginLeft=16 marginRight=50>{vdoms}</Hybrid>
 				<Indep x=-10 alignX="right" alignY="center">
 					<Text value="\uedbe" textFamily="icomoon-ultimate" textColor="#aaa" />
 				</Indep>

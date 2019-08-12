@@ -1,21 +1,11 @@
 # `langou/ctr`
 
-## empty
+## static ViewController::render(vdom[,parentView) 
 
-* 这是一个常量空`view xml`，描述一个无子视图的[`View`]
+* 通过`vdom`创建视图或视图控制器`DOM对像`
 
-## isEmpty(vx)
-
-* `vx`是否等于`empty`空视图数据
-
-## New(vx[,parent[,...args]]) 
-## New(vx[,...args])
-
-* 通过`vx`描述数据创建视图或视图控制器
-
-* @arg `vx` {Object} 			`view xml`描述数据
-* @arg `[parent]` {View} 	传入父视图时将新创建的视图加入到它的结尾
-* @arg `[...args]`				视图的构造参数
+* @arg `vdom` {Object} 			`VDOM`描述数据
+* @arg `[parentView]` {[`View`]} 	传入父视图时将新创建的视图加入到它的结尾
 * @ret {[`View`]|[`ViewController`]}
 
 Example:
@@ -24,177 +14,110 @@ Example:
 import { GUIApplication, ViewController, Root, Div } from 'langou'
 import 'langou/http'
 class MyCtr extends ViewController {
-	loadView() {
-		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>{
-			super.loadView(
-				<Div width=100 height=100 backgroundColor="#f00">
-					${bf.toString('utf8')}
-				</Div>
-			)
-		})
+	triggerLoad(e) {
+		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
+	}
+	render() {
+		return (
+			<Div width=100 height=100 backgroundColor="#f00">
+				{this.modle.bf&&this.modle.bf.toString('utf8')}
+			</Div>
+		)
 	}
 }
 new GUIApplication().start(
-	<Root>
-		<ViewController vdata={ divWidth: 200, divCon: 'Hello' }>
-			<Div width=%{vd.divWidth} height=100 backgroundColor="#000">
-				%{vd.divCon}
-			</Div>
-		</ViewController>
-		<MyCtr message={param:10} />
-	</Root>
+	<GUIApplication>
+		<Root>
+			<MyCtr message={param:10} />
+		</Root>
+	</GUIApplication>
 );
-
 ```
 
 ## `Class: ViewController`
 * `extends` [`Notification`]
 
-视图控制器，与视图绑定后视图变成关键视图，当前控制器有可称为成员视图控制器，
+### ViewController.onLoad
 
-关键视图下面所有后代视图以及子视图控制器都属于这个作用域中的成员，
+* 开始第一次调用render时触发
 
-成员视图的`top`属性都指向当前绑定的关键视图,成员视图的`owner`以及子视图控制器的`parent`都指向当前视图控制器，
+### ViewController.onMounted
 
-如果这些成员有具名的`id`,可以通过当前视图控制器`find(id)`找到这些成员
+* 第一次完成render调用后触发
 
-### ViewController.onLoadView
+### ViewController.onRemove
 
-* 载入视图完成时触发
+* 调用删除remove()时触发
 
-### ViewController.onViewData
+### ViewController.onRemoved
 
-* 视图数据变化时触发，如果有视图关注这个数据，那么它也会发生改变
+* 调用删除remove()后触发
 
-### ViewController.onRemoveView
+### ViewController.onUpdate
 
-* 绑定的视图从父视图删除时触发
+* DOM内容被更新时触发
 
-### ViewController.constructor([msg])
+### ViewController.modle 
 
-* 构造函数
-
-* @arg `[msg]` {[`Object`]} 传入可选的消息对像
-
-### ViewController.find(id)
-
-* 通过`id`查找成员视图或成员控制器
-
-* @arg `id` {[`String`]}
-* @ret {[`View`]|[`ViewController`])
-
-### ViewController.message 
-
-* 控制器消息对像
+* 控制器视图模型
 
 * {[`Object`]}
 
-### ViewController.vdata 
-
-* 控制器视图数据
-
-* {[`Object`]}
-
-### Get: ViewController.parent 
+### Get: ViewController.owner 
 
 * 获取父控制器
 
 * {[`ViewController`]}
 
-### ViewController.view 
+### Get: ViewController.dom 
 
-* 获取或设置当前控制器绑定的视图
+* 获取当前控制器绑定的DOM对像
 
-* {[`View`]}
+* {[`View`]|[`ViewController`]}
 
 ### ViewController.id 
 
-* 获取或设置一个`id`，这个`id`在同一个作用域中不能重复
+* 获取或设置一个`id`，这个`id`在同一个控制器内部不能重复
 
-* 可通过`id`在父视图控制器中查询子控制器
+* 可通过`IDs.id`在父视图控制器中查询子控制器
 
-* {[`uint`]}
+* {[`String`]}
 
-### ViewController.loadView(vx)
+### Get: ViewController.IDs
 
-* 通过`vx`数据载入视图，这是个相当重要的方法，所有`gui`视图载入创建以及视图数据的绑定都在这个方法中完成，
+* 控制器内部所有具名id子dom的索引
+
+* {[`Object`]}
+
+### Get: ViewController.isLoaded
+
+* 触发onLoad后会设置成`true`
+
+* {[`Boolean`]}
+
+### Get: ViewController.isMounted
+
+* 控制器挂载后会设置在`true`
+
+* {[`Boolean`]}
+
+### ViewController.render(...vdoms)
+
+* 通过`vdom`数据载入视图，这是个相当重要的方法，所有`gui`视图载入创建以及视图数据的绑定都在这个方法中完成，
 
 	重写[`ViewController`]类与该方法来实现自定义组件。
 
-* 这个方法调用完成会触发`onloadView`事件
+* @arg `vdom` {[`VDOM`]}
 
-* @arg `vx` {[`Object`]}
+* @ret {VDOM}
 
-### `View proxy events`
-
-* 这些事件都为代理视图的快捷方式，需要绑定的视图支持这些事件
-
-#### ViewController.onBack
-#### ViewController.onClick
-#### ViewController.onTouchStart
-#### ViewController.onTouchMove
-#### ViewController.onTouchEnd
-#### ViewController.onTouchCancel
-#### ViewController.onKeyDown
-#### ViewController.onKeyPress
-#### ViewController.onKeyUp
-#### ViewController.onKeyEnter
-#### ViewController.onFocus
-#### ViewController.onBlur
-#### ViewController.onHighlighted
-#### ViewController.onFocusMove
-#### ViewController.onScroll
-#### ViewController.onActionKeyframe
-#### ViewController.onActionLoop
-#### ViewController.onWaitBuffer
-#### ViewController.onReady
-#### ViewController.onStartPlay
-#### ViewController.onError
-#### ViewController.onSourceEof
-#### ViewController.onPause
-#### ViewController.onResume
-#### ViewController.onStop
-#### ViewController.onSeek
-
-### `View proxy methods and properties`
-
-* 代理视图的快捷方法与属性
-
-#### ViewController.action
-* --> [`View.action`]
-
-#### ViewController.style
+### ViewController.style
 * --> [`View.style`]
 
-#### ViewController.visible
-* --> [`View.visible`]
+### ViewController.remove()
 
-#### ViewController.receive
-* --> [`View.receive`]
+* 删除控制器,同时会触发`onRemove`事件
 
-#### ViewController.class
-* --> [`View.class`]
-
-#### ViewController.transition(style[,delay[,cb]])
-#### ViewController.transition(style[,cb])
-* --> [`View.transition()`]
-
-#### ViewController.show()
-* --> [`View.show()`]
-
-#### ViewController.hide()
-* --> [`View.hide()`]
-
-#### ViewController.addClass(name)
-* --> [`View.addClass()`]
-
-#### ViewController.removeClass(name)
-* --> [`View.removeClass()`]
-
-#### ViewController.toggleClass(name)
-* --> [`View.toggleClass()`]
-
-#### ViewController.remove()
 * --> [`View.remove()`]
 
 

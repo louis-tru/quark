@@ -13,24 +13,13 @@
 
 渲染下一帧画面后执行，快捷方式 --> [`nextFrame(cb)`]
 
-## New(vx[,parent[,...args]])
-## New(vx[,...args])
+## render(vx[,parentView])
 
-通过`vx`描述数据创建视图或视图控制器，快捷方式 --> [`New()`]
+通过`vdom`描述数据创建视图或视图控制器，快捷方式 --> [`render()`]
 
 ## CSS(sheets)
 
 定义样式表，快捷方式 --> [`CSS()`]
-
-## isViewXml(vx[,type])
-
-测试参数`vx`是否为视图描述数据并且为`type`类型
-
-如果不传入`type`不检测类型
-
-* @arg `vx` {[`Object`]}
-* @arg `[type]` {[`Class`]}
-* @ret {[`bool`]}
 
 ## Get: app
 
@@ -105,7 +94,7 @@ v.y = 100;
 langou.root.append(v);
 
 // jsx语法只能存在于.jsx文件中
-var v2 = langou.New(<Div width=100 height=100 backgroundColor="#f00" />, v);
+var v2 = langou.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
 v2.onClick.on(function(ev) {
 	console.log('div click');
 })
@@ -153,6 +142,12 @@ v2.onClick.on(function(ev) {
 追加到父视图结尾
 
 * @arg `parent` {[`View`]}
+
+### View.afterTo(prevView)
+
+追加上一个视图的后面
+
+* @arg `prevView` {[`View`]}
 
 ### View.before(prev)
 
@@ -327,34 +322,13 @@ Callback: cb()
 
 获取或设置`id`,这个`id`在同一个视图控制器作作用域中不可以重复
 
-可以通过`owner.find(id)`获取这个视图
+可以通过`owner.IDs.id`获取这个视图
 
 * {[`String`]}
 
-### Get: View.controller 
-### Get: View.ctr 
-
-如果这个视图拥有[`ViewController`]可通过`ctr`或`controller`获取它，
-
-这个视图称之为关键视图，[`ViewController`]称之为成员视图控制器，
-
-关键视图下面所有后代视图以及子视图控制器都属于这个作用域中的成员，
-
-成员视图的`top`属性都指向当前关键视图,成员视图的`owner`以及子视图控制器的`parent`都指向成员视图控制器属性，
-
-如果这些成员有具名的`id`,可以通过成员视图控制器`ViewController.find(id)`找到这些成员
-
-* {[`ViewController`]}
-
-### Get: View.top 
-
-指向关键视图
-
-* {[`View`]}
-
 ### Get: View.owner 
 
-指向成员视图控制器
+指向视图控制器 `owner`
 
 * {[`ViewController`]}
 
@@ -1769,7 +1743,7 @@ console.log(view.class);
 [`action.transition(view,style,delay,cb)`]: action.md#transition-view-style-delay-cb-
 [`atomPixel`]: display_port.md#get-atompixel
 [`nextFrame(cb)`]: display_port.md#nextFrame-cb-
-[`New()`]: ctr.md#new-vx-parent-args-
+[`render()`]: ctr.md#static-viewcontroller-render-vdom-parentview-
 [`CSS()`]: css.md#css-sheets-
 [`DisplayPort`]: display_port.md#class-displayport
 [`GUIApplication`]: app.md#class-guiapplication

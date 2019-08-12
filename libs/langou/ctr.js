@@ -515,7 +515,7 @@ function rerender(self) {
 	G_renderQueueSet.delete(self); // delete mark
 
 	var vdom_c = self.m_vdom;
-	var vdom = _VVD(self.render(self.m_vchildren));
+	var vdom = _VVD(self.render(...self.m_vchildren));
 	var update = false;
 
 	if (vdom) {
@@ -722,10 +722,10 @@ export default class ViewController extends Notification {
 	}
 
 	/**
-	 * @func render(vc)
+	 * @func render(...vdoms)
 	 */
-	render(vc) {
-		return vc;
+	render(...vdoms) {
+		return vdoms;
 	}
 
 	remove() {
@@ -847,11 +847,10 @@ export default class ViewController extends Notification {
 export class RootViewController extends ViewController {
 
 	//@overwrite
-	render(vc) {
-		if (vc && vc.length) {
-			var first = vc[0];
-			util.assert(util.equalsClass(Root, first.type), 'RootViewController first children must be Root view');
-			return first;
+	render(vdom) {
+		if (vdom) {
+			util.assert(util.equalsClass(Root, vdom.type), 'RootViewController first children must be Root view');
+			return vdom;
 		} else {
 			return _VV(Root, [], []); // return Root
 		}

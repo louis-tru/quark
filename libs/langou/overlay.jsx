@@ -269,7 +269,7 @@ export class Overlay extends Navigation {
 	/**
 	 * @overwrite
 	 */
-	render(vc) {
+	render(...vdoms) {
 		return (
 			<Indep visible=0 width="full" height="full" backgroundColor="#0003" opacity=0>
 				<Div width="full" height="full" onTouchStart="fadeOut" onMouseDown="fadeOut" id="mask" />
@@ -286,7 +286,7 @@ export class Overlay extends Navigation {
 							textSize=36 textColor=this.backgroundColor value="\uedcb" />
 					</Indep>
 
-					<Clip id="content" backgroundColor=this.backgroundColor borderRadius=8>{vc}</Clip>
+					<Clip id="content" backgroundColor=this.backgroundColor borderRadius=8>{vdoms}</Clip>
 
 				</Indep>
 			</Indep>
