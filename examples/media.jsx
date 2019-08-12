@@ -82,7 +82,7 @@ function Seek(evt) {
 }
 
 export const vx = ()=>(
-	<Mynavpage title="Media" source=resolve(__filename) onRemoveView=StopAudio>
+	<Mynavpage title="Media" source=resolve(__filename) onRemove=StopAudio>
 		<Div width="full">
 			<Button class="long_btn" onClick=PlayVideo>Play Video</Button>
 			<Button class="long_btn" onClick=PlayAudio>Play Audio</Button>

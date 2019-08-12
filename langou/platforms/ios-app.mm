@@ -424,15 +424,20 @@ static NSArray<NSString*>* split_ns_array(cString& str) {
 void GUIApplication::send_email(cString& recipient,
 																cString& subject,
 																cString& cc, cString& bcc, cString& body) {
-	MFMailComposeViewController* mail = [MFMailComposeViewController new];
-	[mail setToRecipients:split_ns_array(recipient)];
-	[mail setSubject:[NSString stringWithUTF8String:*subject]];
-	[mail setCcRecipients:split_ns_array(cc)];
-	[mail setBccRecipients:split_ns_array(bcc)];
-	[mail setMessageBody:[NSString stringWithUTF8String:*body] isHTML:NO];
-	mail.mailComposeDelegate = app_delegate;
+	id recipient_ = split_ns_array(recipient);
+	id subject_ = [NSString stringWithUTF8String:*subject];
+	id cc_ = split_ns_array(cc);
+	id bcc_ = split_ns_array(bcc);
+	id body_ = [NSString stringWithUTF8String:*body];
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[app_delegate.root_ctr presentViewController:mail animated:YES completion:nil];
+		MFMailComposeViewController* mail = [MFMailComposeViewController new];
+		[mail setToRecipients:recipient_];
+		[mail setSubject:subject_];
+		[mail setCcRecipients:cc_];
+		[mail setBccRecipients:bcc_];
+		[mail setMessageBody:body_ isHTML:NO];
+		mail.mailComposeDelegate = app_delegate;
+			[app_delegate.root_ctr presentViewController:mail animated:YES completion:nil];
 	});
 }
 
