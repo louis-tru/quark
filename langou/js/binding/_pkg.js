@@ -1397,7 +1397,7 @@ Packages.prototype.isNetwork = isNetwork;
 function inl_require_external(path, parent) {
 	var r = instance.getPackageWithAbsolutePath(path);
 	if (r) { // 重新require
-		return inl_require(r.package, '', r.path);
+		return Package_require(r.package, null, r.path).exports;
 	}
 	// 文件不在pkg内部,这是一个外部文件
 	// 是否载入过这个文件
