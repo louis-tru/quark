@@ -26,11 +26,9 @@ class MyCtr extends ViewController {
 	}
 }
 new GUIApplication().start(
-	<GUIApplication>
-		<Root>
-			<MyCtr message={param:10} />
-		</Root>
-	</GUIApplication>
+	<Root>
+		<MyCtr message={param:10} />
+	</Root>
 );
 ```
 
