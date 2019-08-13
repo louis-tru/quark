@@ -37,7 +37,7 @@ function copy_header(source, target) {
 			var source1 = path.join(source, pathname);
 			var target1 = path.join(target, pathname);
 
-			if ( /[a-zA-Z][0-9]?\.(h|inl)$/.test(stat.name) ) {
+			if ( /[a-z][0-9]?\.(h|inl)$/i.test(stat.name) ) {
 				if (path.extname(stat.name) == '.inl') {
 					if (fs.existsSync(path.dirname(source1) + '/' + stat.name.replace(/.inl$/, '.h'))) {
 						fs.cp_sync(source1, target1);
