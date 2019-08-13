@@ -371,7 +371,17 @@ class LinuxApplication {
 		return m_ime;
 	}
 
+	void initialize_display() {
+		if (!m_dpy) {
+			m_dpy = XOpenDisplay(nullptr);
+			XX_CHECK(m_dpy, "Error: Can't open display");
+			m_xft_dpi = get_monitor_dpi();
+			m_xwin_scale = m_xft_dpi / 96.0;
+		}
+	}
+
 	inline float xwin_scale() {
+		initialize_display(); // init display
 		return m_xwin_scale;
 	}
 
@@ -393,8 +403,7 @@ class LinuxApplication {
 		if (o_et.is_bool()) is_enable_touch = o_et.to_int();
 		if (o_et.is_int()) is_enable_touch = o_et.to_int();
 
-		m_dpy = XOpenDisplay(nullptr);
-		XX_CHECK(m_dpy, "Error: Can't open display");
+		initialize_display(); // init display
 
 		m_root = XDefaultRootWindow(m_dpy);
 		m_screen = DefaultScreen(m_dpy);
@@ -403,8 +412,6 @@ class LinuxApplication {
 		m_w_height = m_height = m_s_height = XDisplayHeight(m_dpy, m_screen);
 		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
 		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
-		m_xft_dpi = get_monitor_dpi();
-		m_xwin_scale = m_xft_dpi / 96.0;
 
 		DLOG("screen width: %d, height: %d, dpi scale: %f", m_s_width, m_s_height, m_xwin_scale);
 		
@@ -741,7 +748,7 @@ void AppInl::set_volume_down() {
  * @func default_atom_pixel
  */
 float DisplayPort::default_atom_pixel() {
-	// TODO ..
+	// LOG(application->xwin_scale());
 	return 1.0 / application->xwin_scale();
 }
 
