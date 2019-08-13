@@ -34,9 +34,10 @@ import 'langou/util';
 import 'langou/event';
 import 'langou/app';
 import 'langou/action';
-import ViewController from 'langou/ctr';
 import 'langou/display_port';
 import 'langou/css';
+
+import ViewController from 'langou/ctr';
 
 /**
 	* @class ViewExtend

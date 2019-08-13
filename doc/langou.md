@@ -1606,25 +1606,25 @@ console.log(view.class);
 
 普通文本与字体属性,这是个抽象类型并没有构造函数
 
-### View.textBackgroundColor 
+### TextFont.textBackgroundColor 
 
 文本背景颜色 **Default** `inherit`
 
 * {[`TextColor`]}
 
-### View.textColor 
+### TextFont.textColor 
 
 文本颜色 **Default** `inherit`
 
 * {[`TextColor`]}
 
-### View.textSize 
+### TextFont.textSize 
 
 文本字号大小 **Default** `inherit`
 
 * {[`TextSize`]}
 
-### View.textStyle 
+### TextFont.textStyle 
 
 文本样式 **Default** `inherit`
 
@@ -1636,19 +1636,19 @@ console.log(view.class);
 
 * {[`TextStyle`]}
 
-### View.textFamily 
+### TextFont.textFamily 
 
 文本字体家族名称列表字符串，多个使用逗号分割 **Default** `inherit`
 
 * {[`TextFamily`]}
 
-### View.textShadow 
+### TextFont.textShadow 
 
 文本阴影 **Default** `inherit`
 
 * {[`TextShadow`]}
 
-### View.textLineHeight 
+### TextFont.textLineHeight 
 
 文本行高 **Default** `inherit`
 
@@ -1660,7 +1660,7 @@ console.log(view.class);
 
 * {[`TextLineHeight`]}
 
-### View.textDecoration 
+### TextFont.textDecoration 
 
 文本装饰 **Default** `inherit`
 
@@ -1679,7 +1679,7 @@ console.log(view.class);
 
 布局文本字体属性,这是个抽象类型并没有构造函数
 
-### View.textOverflow 
+### TextFont.textOverflow 
 
 文本溢出动作  **Default** `inherit`
 
@@ -1691,7 +1691,7 @@ console.log(view.class);
 
 * {[`TextOverflow`]}
 
-### View.textWhiteSpace 
+### TextFont.textWhiteSpace 
 
 文本空格处理方式  **Default** `inherit`
 

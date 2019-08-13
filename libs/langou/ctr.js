@@ -796,7 +796,7 @@ export default class ViewController extends Notification {
 
 	/**
 	 * @func typeOf(obj, [Type=class ViewController])
-	 * @arg obj {VirtualDOM|View|ViewController|class View|class ViewController}
+	 * @arg obj {VirtualDOM|View|ViewController|class}
 	 * @static
 	 */
 	static typeOf(obj, Type) {
@@ -849,19 +849,20 @@ util.extend(ViewController, {
 
 	/**
 	 * @func render(obj, [parentView])
-	 * @arg obj {VirtualDOM|View|ViewController|class View|class ViewController}
+	 * @arg obj {VirtualDOM|View|ViewController|class}
+	 * @ret {DOM} return dom instance
 	 */
 	render: function(obj, parentView) {
 		var dom;
 		var owner = parentView ? parentView.owner: null;
 
 		if (obj instanceof ViewController || obj instanceof View) {
-			dom = obj;
+			dom = obj; // dom instance
 		} else if (util.equalsClass(ViewController, obj) || util.equalsClass(View, obj)) {
-			obj = _VV(obj, [], []);
+			obj = _VV(obj, [], []); // create vdom
 			dom = obj.newInstance(owner);
 		} else {
-			obj = _VVD(obj);
+			obj = _VVD(obj); // format vdom
 			util.assert(obj instanceof VirtualDOM, 'Bad argument');
 			dom = obj.newInstance(owner);
 		}
