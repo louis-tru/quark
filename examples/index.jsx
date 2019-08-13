@@ -36,7 +36,7 @@ import {
 	GUIApplication, Root, Scroll, CSS, atomPixel as px,
 	Div, Hybrid, Clip, Text, Button, TextNode as T, langou
 } from 'langou';
-import { NavpageCollection, Toolbar } from 'langou/nav';
+import { NavPageCollection, Toolbar } from 'langou/nav';
 import { Navbutton, Mynavpage } from './public';
 import './examples';
 import about_vx from './about';
@@ -185,7 +185,7 @@ var app = new GUIApplication({
 }).start(
 	<Root>
 
-		<NavpageCollection id="npc" defaultToolbar=DefaultToolbar>
+		<NavPageCollection id="npc" defaultToolbar=DefaultToolbar>
 			<Mynavpage title="Home" source=resolve(__filename)>
 
 				<Scroll width="full" height="full" bounceLock=0>
@@ -218,7 +218,7 @@ var app = new GUIApplication({
 				</Scroll>
 
 			</Mynavpage>
-		</NavpageCollection>
+		</NavPageCollection>
 	</Root>
 )
 

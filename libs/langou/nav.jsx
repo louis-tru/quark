@@ -314,9 +314,9 @@ function refresh_bar_style(self, time) {
 }
 
 /**
- * @class NavpageCollection
+ * @class NavPageCollection
  */
-export class NavpageCollection extends ViewController {
+export class NavPageCollection extends ViewController {
 	m_padding = langou.statusBarHeight; // ios/android, 20
 	m_pages = null;
 	m_default_toolbar = null;
@@ -433,21 +433,21 @@ export class NavpageCollection extends ViewController {
 		var prev = this.current;
 		
 		if ( page ) {
-			if ( page instanceof Navpage ) { // dom
-				util.assert(!page.collection, 'Navpage can only be a new entity');
+			if ( page instanceof NavPage ) { // dom
+				util.assert(!page.collection, 'NavPage can only be a new entity');
 				render(page, this.IDs.page);
 			} else {
-				if (ViewController.typeOf(page, Navpage)) {
+				if (ViewController.typeOf(page, NavPage)) {
 					page = render(page, this.IDs.page);
 				} else {
-					page = render(<Navpage>{page}</Navpage>, this.IDs.page);
+					page = render(<NavPage>{page}</NavPage>, this.IDs.page);
 				}
 			}
 		}
 
-		util.assert(page instanceof Navpage, 
+		util.assert(page instanceof NavPage, 
 			'The argument navpage is not of the correct type, '+
-			'Only for Navpage entities or Navpage VX data.');
+			'Only for NavPage entities or NavPage VX data.');
 		
 		// set page
 		page.m_collection = this;
@@ -924,9 +924,9 @@ function backgroundColorReverse(self) {
 
 // Basic
 /**
- * @class Navpage
+ * @class NavPage
  */
-export class Navpage extends Navigation {
+export class NavPage extends Navigation {
 	m_title = '';
 	m_navbar = null;
 	m_toolbar = null;
@@ -1106,4 +1106,4 @@ export class Navpage extends Navigation {
 	}
 }
 
-Navpage.defineProps({ backgroundColor: '#fff' });
+NavPage.defineProps({ backgroundColor: '#fff' });

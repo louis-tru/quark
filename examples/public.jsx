@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Navpage } from 'langou/nav';
+import { NavPage } from 'langou/nav';
 import { 
 	ViewController, Button, CSS, Hybrid,
 	Text, atomPixel as px, 
@@ -156,7 +156,7 @@ export class Navbutton extends ViewController {
 	}
 }
 
-export class Mynavpage extends Navpage {
+export class Mynavpage extends NavPage {
 	source = resolve(__filename);
 	m_backgroundColor = '#f8f8f8';
 
