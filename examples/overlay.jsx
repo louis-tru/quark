@@ -44,7 +44,7 @@ function show_overlay(evt) {
 				<Navbutton style={borderWidth:0}>Menu D</Navbutton>
 			</Div>
 		</Overlay>
-	).showOverlayWithView(evt.sender);
+	).showOverlayFromView(evt.sender);
 }
 
 function show_overlay2(evt) {
@@ -58,7 +58,7 @@ function show_overlay2(evt) {
 		</Overlay>
 	);
 	com.priority = 'left';
-	com.showOverlayWithView(evt.sender);
+	com.showOverlayFromView(evt.sender);
 }
 
 function show_overlay3(evt) {
@@ -74,7 +74,7 @@ function show_overlay3(evt) {
 	);
 	com.priority = 'left';
 	com.backgroundColor = '#000';
-	com.showOverlayWithView(evt.sender);
+	com.showOverlayFromView(evt.sender);
 }
 
 export const vx = ()=>(

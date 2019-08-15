@@ -316,11 +316,11 @@ export class Overlay extends Navigation {
 	}
 	
 	/**
-	 * @fun showOverlayWithView(target_view[,offset_x[,offset_y]])  通过目标视图显示 Overlay
+	 * @fun showOverlayFromView(target_view[,offset_x[,offset_y]])  通过目标视图显示 Overlay
 	 * @arg target_view {View} # 参数可提供要显示的位置信息
 	 * @arg [offset] {Object} # 显示目标位置的偏移
 	 */
-	showOverlayWithView(target_view, offset_x, offset_y) {
+	showOverlayFromView(target_view, offset_x, offset_y) {
 		offset_x = offset_x || 0;
 		offset_y = offset_y || 0;
 		var rect = target_view.screenRect();
