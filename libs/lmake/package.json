@@ -34,7 +34,7 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"langoukit": "~0.8.51"
+		"langoukit": "~0.8.52"
 	},
 	"license": "BSD-2-Clause",
 	"bugs": {

@@ -121,7 +121,7 @@ CSS({
 
 })
 
-export class Navbutton extends ViewController {
+export class NavButton extends ViewController {
 	
 	render(...vdoms) {
 		//util.log('---------------------', px);
@@ -156,30 +156,15 @@ export class Navbutton extends ViewController {
 	}
 }
 
-export class Mynavpage extends NavPage {
+export class Page extends NavPage {
 	source = resolve(__filename);
-	m_backgroundColor = '#f8f8f8';
 
-	triggerForeground(e) {
-		super.triggerForeground(e);
-		/*
-		// test TV keyboard
-		var btn = null;
-		var first = this.view.first;
-		if (first && first instanceof Panel) {
-			first.allow_leave = true;
-			if ( first instanceof Scroll ) {
-				first.enable_switch_scroll = true;
-			}
-			btn = first.first_button();
-		}
-		if ( !btn ) {
-			btn = langou.root.first_button();
-		}
-		if ( btn ) {
-			btn.focus();
-		}
-		*/
+	constructor() {
+		super();
+		this.backgroundColor = '#f8f8f8';
 	}
 
 }
+
+export var Navbutton = NavButton;
+export var Mynavpage = Page;

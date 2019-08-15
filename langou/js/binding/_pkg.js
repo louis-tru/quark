@@ -751,7 +751,7 @@ function Packages_disable_origin(self, path, disable) {
 
 function Packages_depe_pkg(self, path, deps) {
 	function add_depe(pathname) {
-		if ( isAbsolute(i) ) {
+		if ( isAbsolute(pathname) ) {
 			Packages_register_path(self, pathname);
 		} else {
 			Packages_register_path(self, path + '/' + pathname);
@@ -971,11 +971,15 @@ function Packages_require_before(self, async, cb) {
 						Packages_try_parse_new_pkgs_json(self, node_path, false, true);
 					} else { // no packages.json
 						readdirSync(node_path.path).forEach(function(dirent) {
-							if (dirent.type === 2 && ignore_local_package.indexOf(dirent.name) == -1) {
-								if ( isFileSync(dirent.pathname + '/package.json') ) {
-									var register = Packages_register_path(self, dirent.pathname);
-									if (register.ready === 0)
-										Packages_load_pkg_json(self, register, false, false);
+							// if (dirent.name == 'langou')
+							// 	console.log('readdirSync', dirent);
+							if (dirent.type == 2/*dir*/ || (dirent.type == 3/*link*/ && isDirectorySync(dirent.pathname))) {
+								if (ignore_local_package.indexOf(dirent.name) == -1) {
+									if ( isFileSync(dirent.pathname + '/package.json') ) {
+										var register = Packages_register_path(self, dirent.pathname);
+										if (register.ready === 0)
+											Packages_load_pkg_json(self, register, false, false);
+									}
 								}
 							}
 						});
@@ -1124,13 +1128,9 @@ function Packages_require_add_main_search_path(self) {
 		}
 		else { // local
 			if (_path.extname(main) == '.js' || _path.extname(main) == '.jsx') {
-				instance.addPackageSearchPath(_path.dirname(main) + '/libs');
-				instance.addPackageSearchPath(_path.dirname(main) + '/../libs');
 				instance.addPackageSearchPath(_path.dirname(main) + '/node_modules');
 				instance.addPackageSearchPath(_path.dirname(main) + '/../node_modules');
 			} else { // package
-				instance.addPackageSearchPath(main + '/libs');
-				instance.addPackageSearchPath(main + '/../libs');
 				instance.addPackageSearchPath(main + '/node_modules');
 				instance.addPackageSearchPath(main + '/../node_modules');
 			}
@@ -1139,10 +1139,8 @@ function Packages_require_add_main_search_path(self) {
 
 	[
 		_path.resources(),
-		_path.resources('libs'),
-		_path.cwd(),
-		_path.cwd() + '/libs',
 		_path.resources('node_modules'),
+		_path.cwd(),
 		_path.cwd() + '/node_modules',
 	].concat(Module.globalPaths).forEach(function(path) {
 		instance.addPackageSearchPath(path);

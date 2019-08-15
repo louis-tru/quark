@@ -52,7 +52,7 @@ var File = util.class('File', HttpService, {
 			return this.packages_json({pathname:this.pathname});
 		}
 		else if ( /\/versions.json$/.test(this.pathname) ) {
-			return this.versions_json({pathname:this.pathname});
+			return this.versions_json({ pathname:this.pathname });
 		}
 		HttpService.members.action.call(this, info);
 	},

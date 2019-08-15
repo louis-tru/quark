@@ -731,7 +731,7 @@ var LangouExport = util.class('LangouExport', {
 
 		function copy_libs(source) {
 			var [source, symlink] = source.split(/\s+/);
-			var libs = self.m_output + '/libs/';
+			var libs = self.m_output + '/node_modules/';
 			if (symlink) {
 				source = libs + source;
 				fs.mkdir_p_sync(path.dirname(source));
@@ -770,7 +770,7 @@ var LangouExport = util.class('LangouExport', {
 		// export pkgs
 
 		var default_modules = [];
-		var pkgs_path = self.m_source + '/libs';
+		var pkgs_path = self.m_source + '/node_modules';
 
 		if ( fs.existsSync(pkgs_path) && fs.statSync(pkgs_path).isDirectory() ) {
 			fs.ls_sync(pkgs_path).forEach(function(stat) {

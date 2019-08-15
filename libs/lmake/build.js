@@ -152,7 +152,6 @@ function get_skip_files(self, pkg_json, name) {
 		rev.push('native');
 	}
 	rev.push('node_modules');
-	rev.push('libs');
 	rev.push('package.json');
 	rev.push('versions.json');
 	
@@ -191,9 +190,7 @@ function get_detach_files(self, pkg_json, name) {
 }
 
 function build_pkg(self, pathname, ignore_depe) {
-	return build_pkg1(self, pathname, 
-		self.m_target_local, 
-		self.m_target_public, 0, ignore_depe);
+	return build_pkg1(self, pathname, self.m_target_local, self.m_target_public, 0, ignore_depe);
 }
 
 // build pkg item
@@ -298,11 +295,10 @@ function build_pkg1(self, pathname, target_local, target_public, ignore_public, 
 			local_depe[paths.absolute_path] = '';
 			public_depe[paths.relative_path] = '';
 		}
-		if (Array.isArray(pkg_json.externDependencies)) {
-			pkg_json.externDependencies.forEach(solve_external_depe);
-		} else {
-			for ( var i in pkg_json.externDependencies ) {
-				solve_external_depe(i);
+		var deps = pkg_json.externDependencies;
+		if (typeof deps == 'object') {
+			for ( var i in deps ) {
+				solve_external_depe(deps[i]);
 			}
 		}
 		//
@@ -623,17 +619,7 @@ var LangouBuild = util.class('LangouBuild', {
 
 		// npm install
 		console.log(`Install dependencies ...`);
-		var exists_package = fs.existsSync('package.json');
-		var exists_node_modules = fs.existsSync('node_modules');
-		if (exists_package)
-			fs.renameSync('package.json', '.package.json.bk');
-		if (exists_node_modules)
-			fs.renameSync('node_modules', '.node_modules.bk');
-		if (fs.existsSync('libs'))
-			fs.renameSync('libs', 'node_modules');
-
 		fs.writeFileSync('package.json', '{}');
-		// syscall(`npm install ${apps.join(' ')} --save=. --only=prod`);
 
 		process.stdin.resume();
 
@@ -647,20 +633,8 @@ var LangouBuild = util.class('LangouBuild', {
 
 		apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
 
-		if (fs.existsSync('node_modules')) {
-			if (fs.readdirSync('node_modules').length) {
-				fs.renameSync('node_modules', 'libs');
-			} else {
-				fs.rmdirSync('node_modules');
-			}
-		}
 		fs.rm_r_sync('package-lock.json');
 		fs.rm_r_sync('package.json');
-
-		if (exists_package)
-			fs.renameSync('.package.json.bk', 'package.json');
-		if (exists_node_modules)
-			fs.renameSync('.node_modules.bk', 'node_modules');
 
 		return apps;		
 	},
@@ -721,7 +695,7 @@ indent_size = 2
 
 		// build application pkgs
 
-		var pkgs_path = self.m_source + '/libs';
+		var pkgs_path = self.m_source + '/node_modules';
 
 		if ( fs.existsSync(pkgs_path) && fs.statSync(pkgs_path).isDirectory() ) {
 
@@ -753,7 +727,7 @@ indent_size = 2
 		var default_modules = paths.default_modules;
 
 		if ( default_modules && default_modules.length ) {
-			var pkgs_dirname = this.m_source + '/libs';
+			var pkgs_dirname = this.m_source + '/node_modules';
 			fs.mkdir_p_sync(pkgs_dirname); // create pkgs dir
 			// copy default pkgs
 			default_modules.forEach(function(pkg) { 

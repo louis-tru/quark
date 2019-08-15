@@ -642,24 +642,22 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func m_touch_start_handle
 	 */
 	void m_touch_start_handle(GUIEvent& e) {
-		GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
-		if ( !m_touch_id ) {
-			m_touch_id = evt->changed_touches()[0].id;
+		if ( !m_action_id ) {
+			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
+			m_action_id = evt->changed_touches()[0].id;
 			move_start(Vec2( evt->changed_touches()[0].x, evt->changed_touches()[0].y ));
 		}
 	}
-	
+
 	/**
 	 * @func m_touch_move_handle
 	 */
 	void m_touch_move_handle(GUIEvent& e) {
-		if ( e.return_value ) {
+		if ( m_action_id && e.return_value ) {
 			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
-			if ( m_touch_id ) {
-				for ( auto& i : evt->changed_touches() ) {
-					if (i.value().id == m_touch_id) {
-						move(Vec2( i.value().x, i.value().y )); break;
-					}
+			for ( auto& i : evt->changed_touches() ) {
+				if (i.value().id == m_action_id) {
+					move(Vec2( i.value().x, i.value().y )); break;
 				}
 			}
 		}
@@ -669,15 +667,38 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func m_touch_end_handle
 	 */
 	void m_touch_end_handle(GUIEvent& e) {
-		GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
-		if ( m_touch_id ) {
+		if ( m_action_id ) {
+			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
 			for ( auto& i : evt->changed_touches() ) {
-				if (i.value().id == m_touch_id) {
+				if (i.value().id == m_action_id) {
 					move_end(Vec2( i.value().x, i.value().y ));
-					m_touch_id = 0;
+					m_action_id = 0;
 					break;
 				}
 			}
+		}
+	}
+	
+	void m_mouse_down_handle(GUIEvent& e) {
+		if ( !m_action_id ) {
+			GUIMouseEvent* evt = static_cast<GUIMouseEvent*>(&e);
+			m_action_id = 1;
+			move_start(Vec2( evt->x(), evt->y() ));
+		}
+	}
+
+	void m_mouse_move_handle(GUIEvent& e) {
+		if ( m_action_id && e.return_value ) {
+			GUIMouseEvent* evt = static_cast<GUIMouseEvent*>(&e);
+			move(Vec2( evt->x(), evt->y() ));
+		}
+	}
+
+	void m_mouse_up_handle(GUIEvent& e) {
+		if ( m_action_id ) {
+			GUIMouseEvent* evt = static_cast<GUIMouseEvent*>(&e);
+			move_end(Vec2( evt->x(), evt->y() ));
+			m_action_id = 0;
 		}
 	}
 	
@@ -687,7 +708,7 @@ BasicScroll::BasicScroll(Box* box)
 : m_box(box)
 , m_move_start_time(0)
 , m_catch_position(1,1)
-, m_touch_id(0)
+, m_action_id(0)
 , m_scrollbar_color(140, 140, 140, 200)
 , m_scrollbar_width(0)
 , m_scrollbar_margin(0)
@@ -708,10 +729,15 @@ BasicScroll::BasicScroll(Box* box)
 , m_momentum(true)
 , m_scrollbar(true)
 {
+	// bind touch event
 	box->add_event_listener(GUI_EVENT_TOUCH_START, &Inl::m_touch_start_handle, _inl(this));
 	box->add_event_listener(GUI_EVENT_TOUCH_MOVE, &Inl::m_touch_move_handle, _inl(this));
 	box->add_event_listener(GUI_EVENT_TOUCH_END, &Inl::m_touch_end_handle, _inl(this));
 	box->add_event_listener(GUI_EVENT_TOUCH_CANCEL, &Inl::m_touch_end_handle, _inl(this));
+	// bind mouse event
+	box->add_event_listener(GUI_EVENT_MOUSE_DOWN, &Inl::m_mouse_down_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_MOUSE_MOVE, &Inl::m_mouse_move_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_MOUSE_UP, &Inl::m_mouse_up_handle, _inl(this));
 	
 	XX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
 }

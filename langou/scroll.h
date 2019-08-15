@@ -297,7 +297,7 @@ class XX_EXPORT BasicScroll: public Protocol {
 	Vec2 m_move_point, m_move_dist;
 	Vec2 m_catch_position;
 	Vec2 m_h_scrollbar_position, m_v_scrollbar_position;
-	uint m_touch_id;
+	uint m_action_id;
 	Color m_scrollbar_color;
 	float m_scrollbar_width, m_scrollbar_margin, m_scrollbar_opacity;
 	float m_resistance;     /* 阻力 */
