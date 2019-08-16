@@ -55,7 +55,8 @@ function extend(obj, extd) {
 }
 
 function hashCode(obj) {
-	return obj === null ? -1354856: obj === undefined ? -3387255 : obj.hashCode();
+	return 	obj === null ? -1354856:
+					obj === undefined ? -3387255: obj.hashCode();
 }
 
 extend(Object, {
@@ -90,7 +91,7 @@ extend(Function.prototype, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		if (!this.M_hashCode) {
+		if (!this.hasOwnProperty('M_hashCode')) {
 			Object.defineProperty(this, 'M_hashCode', { 
 				enumerable: false, configurable: false, writable: false, value: G_hash_code_id++
 			});
@@ -248,7 +249,7 @@ extend(Boolean.prototype, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		return this ? -1186256: -23547257;
+		return this == true ? -1186256: -23547257;
 	},
 });
 

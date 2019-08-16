@@ -30,7 +30,7 @@
 
 import 'langou/util';
 import { Notification } from 'langou/event';
-const { TextNode, View, Root } = requireNative('_langou');
+const { TextNode, View, Root, lock } = requireNative('_langou');
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
 const G_renderQueueSet = new Set();
@@ -56,9 +56,9 @@ function markRerender(ctr) {
 	G_renderQueueSet.add(ctr);
 	if (size == G_renderQueueSet.size) return;
 	if (G_renderQueueWorking) return;
+	G_renderQueueWorking = true;
 
 	util.nextTick(function() {
-		G_renderQueueWorking = true;
 		var item;
 		try {
 			for( var item of G_renderQueueSet ) {
@@ -844,7 +844,7 @@ util.extend(ViewController, {
 	 * @func hashCode()
 	 */
 	hashCode: function() {
-		return Function.prototype.hashCode.call(ViewController);
+		return Function.prototype.hashCode.call(this);
 	},
 
 	/**

@@ -421,7 +421,7 @@ void View::remove() {
 		}
 		
 		_inl(this)->clear_parent();
-					
+		
 		remove_event_listener();
 		m_level = 0;
 		m_parent = m_prev = m_next = nullptr;

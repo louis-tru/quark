@@ -34,18 +34,20 @@ import {
 import { Navigation } from 'langou/nav';
 
 var arrow_size = { width: 30, height: 12 };
+var border = 5;
+var border_arrow = 0;
 
 /**
  * 获取left
  */
 function get_left(self, x, offset_x) {
 	
-	x -= 10; // 留出10像素边距
-	var screen_width = langou.displayPort.width - 20;
+	x -= border; // 留出10像素边距
+	var screen_width = langou.displayPort.width - border * 2;
 	var width = self.IDs.inl.clientWidth;
 	
 	if (screen_width < width) {
-		return (screen_width - width) / 2 + 10;
+		return (screen_width - width) / 2 + border;
 	}
 	else {
 		var left = x + offset_x / 2 - width / 2;
@@ -55,7 +57,7 @@ function get_left(self, x, offset_x) {
 		else if(left + width > screen_width){
 			left = screen_width - width;
 		}
-		return left + 10;
+		return left + border;
 	}
 }
 
@@ -64,12 +66,12 @@ function get_left(self, x, offset_x) {
  */
 function get_top(self, y, offset_y) {
 
-	y -= 10; // 留出10像素边距
-	var screen_height = langou.displayPort.height - 20;
+	y -= border; // 留出10像素边距
+	var screen_height = langou.displayPort.height - border * 2;
 	var height = self.IDs.inl.clientHeight;
 	
 	if (screen_height < height) {
-		return (screen_height - height) / 2 + 10;
+		return (screen_height - height) / 2 + border;
 	}
 	else{
 		var top = y + offset_y / 2 - height / 2;
@@ -79,7 +81,7 @@ function get_top(self, y, offset_y) {
 		else if (top + height > screen_height) {
 			top = screen_height - height;
 		}
-		return top + 10;
+		return top + border;
 	}
 }
 
@@ -89,8 +91,8 @@ function get_top(self, y, offset_y) {
 function get_arrow_top(self, top, y, offset_y) {
 	var height = self.IDs.inl.clientHeight;
 	y += offset_y / 2;
-	var min = 8 + arrow_size.width / 2;
-	var max = height - 8 - arrow_size.width / 2;
+	var min = border_arrow + arrow_size.width / 2;
+	var max = height - border_arrow - arrow_size.width / 2;
 	if (min > max) {
 		return height / 2;
 	}
@@ -103,8 +105,8 @@ function get_arrow_top(self, top, y, offset_y) {
 function get_arrow_left(self, left, x, offset_x) {
 	var width = self.IDs.inl.clientWidth;
 	x += offset_x / 2;
-	var min = 8 + arrow_size.width / 2;
-	var max = width - 8 - arrow_size.width / 2;
+	var min = border_arrow + arrow_size.width / 2;
+	var max = width - border_arrow - arrow_size.width / 2;
 	if (min > max) {
 		return width / 2;
 	}
@@ -119,7 +121,7 @@ function attempt_top(self, x, y, offset_x, offset_y, force) {
 	var height = self.IDs.inl.clientHeight;
 	var top = y - height - arrow_size.height;
 	
-	if (top - 10 > 0 || force) {
+	if (top - border > 0 || force) {
 		var left = get_left(self, x, offset_x);
 		var arrow_left = get_arrow_left(self, left, x, offset_x) - arrow_size.width / 2;
 		self.IDs.inl.style = { y: top, x: left };
@@ -144,7 +146,7 @@ function attempt_right(self, x, y, offset_x, offset_y, force) {
 	
 	var left = x + offset_x + arrow_size.height;
 	
-	if (left + width + 10 <= langou.displayPort.width || force) {
+	if (left + width + border <= langou.displayPort.width || force) {
 		var top = get_top(self, y, offset_y);
 		var arrow_top = get_arrow_top(self, top, y, offset_y) - arrow_size.height / 2;
 		self.IDs.inl.style = { y: top, x: left };
@@ -169,7 +171,7 @@ function attempt_bottom(self, x, y, offset_x, offset_y, force){
 	
 	var top = y + offset_y + arrow_size.height;
 	
-	if (top + height + 10 <= langou.displayPort.height || force) {
+	if (top + height + border <= langou.displayPort.height || force) {
 		var left = get_left(self, x, offset_x);
 		var arrow_left = get_arrow_left(self, left, x, offset_x) - arrow_size.width / 2;
 		self.IDs.inl.style = { y: top, x: left };
@@ -193,7 +195,7 @@ function attempt_left(self, x, y, offset_x, offset_y, force) {
 	var width = self.IDs.inl.clientWidth;
 	var left = x - width - arrow_size.height;
 	
-	if (left - 10 > 0 || force) {
+	if (left - border > 0 || force) {
 		
 		var top = get_top(self, y, offset_y);
 		var arrow_top = get_arrow_top(self, top, y, offset_y) - arrow_size.height / 2;

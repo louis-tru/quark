@@ -262,7 +262,7 @@ Dialog.defineProps({title: '', content: ''});
 
 export const CONSTS = {
 	OK: 'OK',
-	Cancel: 'Cancel',
+	CANCEL: 'Cancel',
 	placeholder: 'Please enter..',
 };
 
@@ -276,7 +276,7 @@ export function alert(msg, cb = util.noop) {
 
 export function confirm(msg, cb = util.noop) {
 	var dag = render(
-		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data))>{msg}</Dialog>
+		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onClickButton=(e=>cb(e.data))>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
@@ -294,7 +294,7 @@ export function prompt(msg, text = '', cb = util.noop) {
 		text = '';
 	}
 	var dag = render(
-		<Dialog buttons=[CONSTS.Cancel, CONSTS.OK] onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
+		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
 				{msg}
 				<Input id="input" class="prompt"

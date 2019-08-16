@@ -111,7 +111,7 @@ class ViewExtend extends event.NativeNotification {
 	 * @overwrite
 	 */
 	hashCode() {
-		return Function.prototype.hashCode.call(this);
+		return this.viewType + 18766898;
 	}
 
 	appendTo(parentView) {
