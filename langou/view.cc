@@ -89,23 +89,20 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	}
 	
 	/**
-	 * @func clear_parent # 清理关联视图信息
+	 * @func clear # 清理关联视图信息
 	 */
-	void clear_parent() {
+	void clear() {
 		if (m_parent) {
-
 			/* 当前为第一个子视图 */
 			if (m_parent->m_first == this) {
 				m_parent->m_first = m_next;
-			}
-			else {
+			} else {
 				m_prev->m_next = m_next;
 			}
 			/* 当前为最后一个子视图 */
 			if (m_parent->m_last == this) {
 				m_parent->m_last = m_prev;
-			}
-			else {
+			} else {
 				m_next->m_prev = m_prev;
 			}
 		}
@@ -375,7 +372,7 @@ View::~View() {
 void View::set_parent(View* parent) throw(Error) {
 	// clear parent
 	if (parent != m_parent) {
-		_inl(this)->clear_parent();
+		_inl(this)->clear();
 		
 		if ( !m_parent ) {
 			retain(); // link to parent and retain ref
@@ -420,7 +417,7 @@ void View::remove() {
 			_inl(this)->full_delete_mark();
 		}
 		
-		_inl(this)->clear_parent();
+		_inl(this)->clear();
 		
 		remove_event_listener();
 		m_level = 0;
@@ -471,7 +468,7 @@ View* View::append_text(cUcs2String& str) throw(Error) {
  */
 void View::prepend(View* child) throw(Error) {
 	if (this == child->m_parent)
-		_inl(child)->clear_parent();
+		_inl(child)->clear();
 	else
 		child->set_parent(this);
 	
@@ -495,7 +492,7 @@ void View::prepend(View* child) throw(Error) {
  */
 void View::append(View* child) throw(Error) {
 	if (this == child->m_parent)
-		_inl(child)->clear_parent();
+		_inl(child)->clear();
 	else
 		child->set_parent(this);
 	
@@ -521,11 +518,13 @@ void View::before(View* view) throw(Error) {
 	if (m_parent) {
 		if (view == this) return;
 		if (view->m_parent == m_parent)
-			_inl(view)->clear_parent();  // 清除关联
+			_inl(view)->clear();  // 清除关联
 		else
 			view->set_parent(m_parent);
 		
-		if (!m_prev) { // 上面没有兄弟
+		if (m_prev) {
+			m_prev->m_next = view;
+		} else { // 上面没有兄弟
 			m_parent->m_first = view;
 		}
 		view->m_prev = m_prev;
@@ -543,11 +542,13 @@ void View::after(View* view) throw(Error) {
 	if (m_parent) {
 		if (view == this) return;
 		if (view->m_parent == m_parent)
-			_inl(view)->clear_parent(); // 清除关联
+			_inl(view)->clear(); // 清除关联
 		else
 			view->set_parent(m_parent);
 		
-		if (!m_next) { // 下面没有兄弟
+		if (m_next) {
+			m_next->m_prev = view;
+		} else { // 下面没有兄弟
 			m_parent->m_last = view;
 		}
 		view->m_prev = this;
