@@ -112,9 +112,9 @@
 				'action_name': 'gen_inl_js_natives',
 				'variables': {
 					'files': [
-						'binding/ext.js',
-						'binding/event.js',
-						'binding/value.js',
+						'binding/_ext.js',
+						'binding/_event.js',
+						'binding/_value.js',
 						'../../depe/node/lib/module.js',
 					],
 				},

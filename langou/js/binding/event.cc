@@ -680,8 +680,8 @@ class BindingNativeEvent {
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->run_native_script(WeakBuffer((char*)
-															INL_native_js_code_event_,
-															INL_native_js_code_event_count_), "event.js", exports);
+															INL_native_js_code__event_,
+															INL_native_js_code__event_count_), "_event.js", exports);
 		// Enum: HighlightedStatus
 		JS_SET_PROPERTY(HIGHLIGHTED_NORMAL, HIGHLIGHTED_NORMAL);
 		JS_SET_PROPERTY(HIGHLIGHTED_HOVER, HIGHLIGHTED_HOVER);

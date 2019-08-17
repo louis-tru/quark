@@ -278,8 +278,8 @@ void IMPL::initialize() {
 	m_global.local()->SetMethod(m_host, "requireNative", require_native);
 	
 	Local<JSValue> ext = m_host->run_native_script(WeakBuffer((char*)
-			INL_native_js_code_ext_, 
-			INL_native_js_code_ext_count_), "ext.js"
+			INL_native_js_code__ext_, 
+			INL_native_js_code__ext_count_), "_ext.js"
 	);
 	XX_CHECK(!ext.IsEmpty(), "Cannot initialize worker ext");
 }
