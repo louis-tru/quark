@@ -79,7 +79,7 @@ CSS({
 		// borderLeftColor: '#f00',
 		// borderRightColor: '#f00',
 	},
-		
+
 	'.long_btn2': {
 		margin: 10,
 		marginBottom: 0,
