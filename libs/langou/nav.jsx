@@ -32,29 +32,36 @@ import 'langou/util';
 import 'langou/sys';
 import { List, KEYCODE_MENU } from 'langou/event';
 import { 
-	ViewController, View, Div, Indep, 
+	ViewController, Div, Indep, 
 	Limit, Button, Text, TextNode, Clip, render, langou
 } from 'langou/langou';
-import {Color,parseColor} from 'langou/value';
+// import {Color,parseColor} from 'langou/value';
 
 export const FOREGROUND_ACTION_INIT = 0;
 export const FOREGROUND_ACTION_RESUME = 1;
 const DEFAULT_TRANSITION_TIME = 400;
 
-const navigationStack = new List();
-var navigationInit_ok = false;
+const G_navigationStack = new List();
+var G_navigationInit_ok = false;
 
 function get_valid_focus(nav, focus_move) {
+	if (!nav) return null;
 	var view = nav.__view__;
 	return view.hasChild(focus_move) ? view.firstButton() : focus_move;
 }
 
-function navigationInit(root) {
+function G_navigationInit(nav) {
+	if ( nav.m_stack !== G_navigationStack || G_navigationInit_ok || !langou.root) {
+		return;
+	}
+
 	// initialize
-	navigationInit_ok = true;
+	G_navigationInit_ok = true;
+
+	var root = langou.root;
 
 	root.onBack.on(function(ev) {
-		var last = navigationStack.last;
+		var last = G_navigationStack.last;
 		while(last) {
 			if ( last.value.navigationBack() ) {
 				ev.cancelDefault(); // 取消默认动作
@@ -67,7 +74,7 @@ function navigationInit(root) {
 	root.onClick.on(function(ev) {
 		// console.log('onClick--', ev.keyboard );
 		if ( ev.keyboard ) { // 需要键盘产生的事件
-			var last = navigationStack.last;
+			var last = G_navigationStack.last;
 			if ( last ) {
 				last.value.navigationEnter(ev.sender);
 			}
@@ -75,7 +82,7 @@ function navigationInit(root) {
 	});
 
 	root.onKeyDown.on(function(ev) {
-		var last = navigationStack.last;
+		var last = G_navigationStack.last;
 		if ( last ) {
 			var focus_move = ev.focusMove;
 			var nav = last.value;
@@ -103,9 +110,9 @@ function navigationInit(root) {
 }
 
 /**
- * @class Basic
+ * @class Status
  */
-class Basic extends ViewController {
+class Status extends ViewController {
 	m_status = -1; // 1=background,0=foreground,-1=init or exit
 	// @public
 	get status() { return this.m_status }
@@ -117,8 +124,9 @@ class Basic extends ViewController {
 /**
  * @class Navigation
  */
-export class Navigation extends Basic {
+export class Navigation extends Status {
 	
+	m_stack = G_navigationStack;
 	m_iterator = null;
 	m_focus_resume = null;
 	
@@ -155,7 +163,7 @@ export class Navigation extends Basic {
 	
 	triggerRemove(e) {
 		if ( this.m_iterator ) {
-			navigationStack.del(this.m_iterator);
+			this.m_stack.del(this.m_iterator);
 			this.m_iterator = null;
 		}
 		super.triggerRemove(e);
@@ -166,14 +174,9 @@ export class Navigation extends Basic {
 	 */
 	registerNavigation(time) {
 		if ( !this.m_iterator ) { // No need to repeat it
-			if ( !navigationInit_ok ) { // init
-				var r = langou.root;
-				if ( r ) {
-					navigationInit(r);
-				}
-			}
-			this.m_iterator = navigationStack.push(this);
-			// console.log('push_navigation()-----', navigationStack.length);
+			G_navigationInit(this);
+			this.m_iterator = this.m_stack.push(this);
+			// console.log('push_navigation()-----', this.m_stack.length);
 			langou.lock(()=>{
 				var prev = this.m_iterator.prev;
 				if ( prev ) {
@@ -196,11 +199,14 @@ export class Navigation extends Basic {
 	unregisterNavigation(time, data) {
 		if ( this.m_iterator ) {
 			// util.assert(this.m_iterator, 'Bad iterator!');
-			navigationStack.del(this.m_iterator);
+			var last = this.m_stack.last;
+			this.m_stack.del(this.m_iterator);
 			this.m_iterator = null;
+			if (!last || last.value !== this) return;
+			
 			langou.lock(()=>{
 				this.intoLeave(time);
-				var last = navigationStack.last;
+				var last = this.m_stack.last;
 				if ( last ) {
 					if (last.value.m_focus_resume) {
 						last.value.m_focus_resume.focus();
@@ -316,9 +322,10 @@ function refresh_bar_style(self, time) {
 /**
  * @class NavPageCollection
  */
-export class NavPageCollection extends ViewController {
+export class NavPageCollection extends Navigation {
 	m_padding = langou.statusBarHeight; // ios/android, 20
 	m_pages = null;
+	m_stack = null;
 	m_default_toolbar = null;
 	m_animating = false;
 	$navbarHidden = false;
@@ -393,6 +400,7 @@ export class NavPageCollection extends ViewController {
 	constructor() {
 		super();
 		this.m_pages = [];
+		this.m_stack = new List();
 	}
 
 	render(...vchildren) {
@@ -423,7 +431,7 @@ export class NavPageCollection extends ViewController {
 		this.m_pages = [];
 		super.triggerRemove(e);
 	}
-	
+
 	push(page, animate) {
 		
 		if ( this.m_animating ) {
@@ -450,6 +458,7 @@ export class NavPageCollection extends ViewController {
 			'Only for NavPage entities or NavPage VX data.');
 		
 		// set page
+		page.m_stack = this.m_stack;
 		page.m_collection = this;
 		page.m_prevPage = prev;
 		
@@ -526,12 +535,46 @@ export class NavPageCollection extends ViewController {
 			next.unregisterNavigation(time, null);
 		}
 	}
+
+	// @overwrite
+	navigationBack() {
+		if (this.m_pages.length)
+			return this.m_pages.last(0).navigationBack();
+		return false;
+	}
+	// @overwrite
+	navigationEnter(focus) {
+		if (this.m_pages.length) 
+			this.m_pages.last(0).navigationEnter(focus);
+	}
+	// @overwrite
+	navigationTop(focus_move) {
+		return get_valid_focus(this.m_pages.last(0), focus_move);
+	}
+	// @overwrite
+	navigationDown(focus_move) {
+		return get_valid_focus(this.m_pages.last(0), focus_move);
+	}
+	// @overwrite
+	navigationLeft(focus_move) {
+		return get_valid_focus(this.m_pages.last(0), focus_move);
+	}
+	// @overwrite
+	navigationRight(focus_move) {
+		return get_valid_focus(this.m_pages.last(0), focus_move);
+	}
+	// @overwrite
+	navigationMenu() {
+		if (this.m_pages.length) 
+			this.m_pages.last(0).navigationEnter(focus);
+	}
+
 }
 
 /**
  * @class Bar
  */
-class Bar extends Basic {
+class Bar extends Status {
 	$height = 44;
 	$hidden = false;
 	$border = langou.atomPixel;

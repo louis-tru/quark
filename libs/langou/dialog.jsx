@@ -31,13 +31,16 @@
 import 'langou/util';
 import { 
 	CSS, Indep, Hybrid, Clip, Input, Span,
-	LimitIndep, Button, atomPixel, langou, render
+	LimitIndep, Button, atomPixel as px, langou, render
 } from 'langou/langou';
 import { Navigation } from 'langou/nav';
 
 CSS({
 	
 	'.x_dialog': {
+	},
+
+	'.x_dialog.main': {
 		minWidth: 380,
 		maxWidth: '40!',
 		maxHeight: '40!',
@@ -45,6 +48,12 @@ CSS({
 		alignY: 'center',
 		backgroundColor: '#fff',
 		borderRadius: 12,
+	},
+	
+	'.x_dialog.sheet': {
+		width: 'full',
+		margin: 10,
+		alignY: 'bottom',
 	},
 	
 	'.x_dialog .title': {
@@ -73,17 +82,28 @@ CSS({
 		borderRadiusLeftBottom: 12,
 		borderRadiusRightBottom: 12,
 	},
+
+	'.x_dialog.sheet .buttons': {
+		borderRadius: 12,
+		backgroundColor: '#fff',
+		marginTop: 10,
+	},
 	
 	'.x_dialog .button': {
 		height: 43,
-		borderTop: `${atomPixel*0.7} #9da1a0`,
+		// borderTop: `${px} #9da1a0`,
+		borderTopColor: `#9da1a0`,
 		textSize: 18,
 		textLineHeight: 43,
 		textColor:"#0079ff",
 	},
-	
+
+	'.x_dialog .button.gray': {
+		textColor:"#000",
+	},
+
 	'.x_dialog .button:normal': {
-		backgroundColor: '#fff0', time: 180
+		backgroundColor: '#fff', time: 180
 	},
 	
 	'.x_dialog .button:hover': {
@@ -115,8 +135,9 @@ function compute_buttons_width(self) {
 		if ( main_width ) {
 			var btn = self.IDs.btns.first;
 			while (btn) {
-				btn.width = (main_width / len) - ((len - 1) * atomPixel);
-				btn.borderLeft = `${atomPixel} #9da1a0`;
+				btn.width = (main_width / len) - ((len - 1) * px);
+				btn.borderLeft = `${px} #9da1a0`;
+				btn.borderTopWidth = px;
 				btn = btn.next;
 			}
 			self.IDs.btns.first.borderLeftWidth = 0;
@@ -124,8 +145,8 @@ function compute_buttons_width(self) {
 	}
 }
 
-function close(self) {
-	if ( self.defaultClose ) 
+function actionClose(self) {
+	if (self.actionClose) 
 		self.close();
 }
 
@@ -136,14 +157,14 @@ export class Dialog extends Navigation {
 	m_buttons = null;
 	
 	/**
-	 * @event onClickButton
+	 * @event onAction
 	 */
-	event onClickButton;
+	event onAction;
 	
 	/**
-	 * @defaultClose
+	 * @actionClose
 	 */
-	defaultClose = true;
+	actionClose = true;
 
 	/**
 	 * @get length btns
@@ -162,8 +183,8 @@ export class Dialog extends Navigation {
 	 */
 	render(...vdoms) {
 		return (
-			<Indep width="full" height="full" backgroundColor="#0005" receive=1 visible=0 opacity=0>
-				<LimitIndep id="main" class="x_dialog" alignX="center" alignY="center">
+			<Indep width="100%" height="100%" backgroundColor="#0005" receive=1 visible=0 opacity=0>
+				<LimitIndep id="main" class="x_dialog main">
 					<Hybrid id="title" class="title">{this.title}</Hybrid>
 					<Hybrid id="con" class="content">{this.content||vdoms}</Hybrid>
 					<Clip id="btns" class="buttons">
@@ -172,7 +193,8 @@ export class Dialog extends Navigation {
 							<Button 
 								index=i
 								class="button"
-								onClick="triggerClickButton"
+								borderTopWidth=px
+								onClick="triggerAction"
 								defaultHighlighted=0>{e}</Button>
 						))
 					}
@@ -185,6 +207,7 @@ export class Dialog extends Navigation {
 	get buttons() {
 		return this.m_buttons;
 	}
+
 	set buttons(value) {
 		if ( Array.isArray(value) ) {
 			this.m_buttons = value;
@@ -229,9 +252,9 @@ export class Dialog extends Navigation {
 		}
 	}
 
-	triggerClickButton(evt) {
-		this.trigger('ClickButton', evt.sender.index);
-		close(this);
+	triggerAction(evt) {
+		this.trigger('Action', evt.sender.index);
+		actionClose(this);
 	}
 
 	/**
@@ -239,9 +262,9 @@ export class Dialog extends Navigation {
 	 */
 	navigationBack() {
 		if ( this.length ) {
-			this.trigger('ClickButton', 0);
+			this.trigger('Action', 0);
 		}
-		close(this);
+		actionClose(this);
 		return true;
 	}
 
@@ -251,14 +274,84 @@ export class Dialog extends Navigation {
 	navigationEnter(focus) {
 		if ( !this.dom.hasChild(focus) ) {
 			if ( this.length ) {
-				this.trigger('ClickButton', this.length - 1);
+				this.trigger('Action', this.length - 1);
 			}
-			close(this);
+			actionClose(this);
 		}
 	}
 }
 
 Dialog.defineProps({title: '', content: ''});
+
+/**
+ * @class Sheet
+ */
+export class Sheet extends Dialog {
+
+	triggerUpdate(e) {
+		return Navigation.prototype.triggerUpdate.call(this, e);
+	}
+
+	render(...vdoms) {
+		return (
+			<Indep width="100%" height="100%" backgroundColor="#0005" onClick="navigationBack" visible=0 opacity=0>
+				<Indep id="main" class="x_dialog sheet">
+					<Clip class="buttons">
+					{
+						this.m_buttons.slice().reverse().map((e, i)=>(
+							<Button 
+								index=(this.length-i)
+								class="button"
+								width="100%"
+								onClick="triggerAction"
+								borderTopWidth=(!this.length?0:px)
+								defaultHighlighted=0>{e}</Button>
+						))
+					}
+					</Clip>
+					<Clip class="buttons">
+						<Button 
+							index=0
+							class="button gray"
+							width="100%"
+							onClick="triggerAction"
+							defaultHighlighted=0>{CONSTS.CANCEL}</Button>
+					</Clip>
+				</Indep>
+			</Indep>
+		);
+	}
+
+	show() {
+		if (!this.dom.visible) {
+			this.appendTo(langou.root);
+			this.dom.visible = 1;
+			langou.nextFrame(()=>{
+				var main = this.IDs.main;
+				var height = main.finalHeight;
+				main.y = height;
+				main.transition({ y: 0, time: 200 });
+				this.dom.opacity = 0.3;
+				this.dom.transition({ opacity : 1, time: 200 });
+			});
+			this.registerNavigation(0);
+		}
+	}
+	
+	close() {
+		if ( this.dom.visible ) {
+			var main = this.IDs.main;
+			var height = main.finalHeight;
+			main.transition({ y: height, time: 200 });
+			this.dom.transition({ opacity : 0.15, time: 200 }, ()=>{ this.remove() });
+			this.unregisterNavigation(0, null);
+		} else {
+			this.unregisterNavigation(0, null);
+			this.remove();
+		}
+	}
+
+}
 
 export const CONSTS = {
 	OK: 'OK',
@@ -268,7 +361,7 @@ export const CONSTS = {
 
 export function alert(msg, cb = util.noop) {
 	var dag = render(
-		<Dialog buttons=[CONSTS.OK] onClickButton=(e=>cb(e.data))>{msg}</Dialog>
+		<Dialog buttons=[CONSTS.OK] onAction=(e=>cb(e.data))>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
@@ -276,7 +369,7 @@ export function alert(msg, cb = util.noop) {
 
 export function confirm(msg, cb = util.noop) {
 	var dag = render(
-		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onClickButton=(e=>cb(e.data))>{msg}</Dialog>
+		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onAction=(e=>cb(e.data))>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
@@ -284,8 +377,8 @@ export function confirm(msg, cb = util.noop) {
 
 function handle_prompt_enter(ev) {
 	var dag = ev.sender.owner;
-	dag.trigger('ClickButton', 1);
-	close(dag);
+	dag.trigger('Action', 1);
+	actionClose(dag);
 }
 
 export function prompt(msg, text = '', cb = util.noop) {
@@ -294,7 +387,7 @@ export function prompt(msg, text = '', cb = util.noop) {
 		text = '';
 	}
 	var dag = render(
-		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onClickButton=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
+		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onAction=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
 				{msg}
 				<Input id="input" class="prompt"
@@ -308,9 +401,17 @@ export function prompt(msg, text = '', cb = util.noop) {
 	return dag;
 }
 
-export function show(title, msg, buttons, cb = ()=>{ }) {
+export function show(title, msg, buttons, cb = util.noop) {
 	var dag = render(
-		<Dialog title=title buttons=buttons onClickButton=(e=>cb(e.data))>{msg}</Dialog>
+		<Dialog title=title buttons=buttons onAction=(e=>cb(e.data))>{msg}</Dialog>
+	);
+	dag.show();
+	return dag;
+}
+
+export function sheet(buttons, cb = util.noop) {
+	var dag = render(
+		<Sheet buttons=buttons onAction=(e=>cb(e.data)) />
 	);
 	dag.show();
 	return dag;
