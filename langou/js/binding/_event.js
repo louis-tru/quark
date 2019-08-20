@@ -79,10 +79,8 @@ class Event {
 	/**
 	 * @constructor
 	 */
-	constructor(data, return_value) {
-		this.m_noticer = null;
+	constructor(data) {
 		this.m_data = data;
-		this.m_return_value = return_value || 0;
 	}
 	// @end
 }
@@ -220,10 +218,6 @@ List.prototype._length = 0;
 
 /* @fun add # Add event listen */
 function add(self, origin, listen, scope, id) {
-	if ( !self.m_event ) {
-		self.m_event = new Event(null);
-		self.m_event.m_noticer = self;
-	}
 
 	var listens_map = self.m_listens_map;
 	if ( !listens_map ) {
@@ -291,7 +285,6 @@ class EventNoticer {
 
 	// m_name: ''
 	// m_sender: null
-	// m_event: null
 	// m_listens: null
 	// m_listens_map: null
 	// m_length: 0
@@ -341,7 +334,6 @@ class EventNoticer {
 	constructor (name, sender) {
 		this.m_name = name;
 		this.m_sender = sender;
-		this.m_event = null;
 		this.m_listens = null;
 		this.m_listens_map = null;
 		this.m_length = 0;
@@ -424,10 +416,8 @@ class EventNoticer {
 	 */
 	trigger(data) {
 		if ( this.m_enable && this.m_length ) {
-			var evt = this.m_event;
-			evt.m_data = data; // 设置数据
-			evt.m_return_value = 0; // 重置返回值
-			
+			var evt = new Event(data);
+			evt.m_noticer = this;
 			var item = this.m_listens._first;
 			while ( item ) {
 				var value = item._value;
@@ -438,6 +428,7 @@ class EventNoticer {
 					item = this.m_listens.del(item);
 				}
 			}
+			evt.m_noticer = null;
 			return evt.m_return_value;
 		}
 		return 0;
@@ -452,7 +443,6 @@ class EventNoticer {
 		if ( this.m_enable && this.m_length ) {
 			evt.m_noticer = this;
 			var item = this.m_listens._first;
-
 			while ( item ) {
 				var value = item._value;
 				if ( value ) {
@@ -463,7 +453,8 @@ class EventNoticer {
 				}
 			}
 		}
-		return evt.m_return_value;
+		evt.m_noticer = null;
+		return evt.returnValue;
 	}
 	
 	/**
@@ -544,7 +535,7 @@ class EventNoticer {
 				item = item._next;
 			}
 			this.m_length = 0;
-			this.m_listens_map = { };
+			this.m_listens_map = {};
 		}
 	}
 

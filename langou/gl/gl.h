@@ -82,7 +82,7 @@ struct GLShader {
 /**
  * @class GLDraw
  */
-class GLDraw: public Draw {
+class XX_EXPORT GLDraw: public Draw {
  public:
 	
 	/**

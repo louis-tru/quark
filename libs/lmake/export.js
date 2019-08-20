@@ -671,9 +671,10 @@ function export_result_android(self) {
 				var basename = path.basename(res);
 				var source = path.relative(android_assets, output + '/' + res);
 				var target = `${android_assets}/${basename}`;
-				if ( fs.existsSync(target) ) {
+				try {
+					// if ( fs.existsSync(target) )
 					fs.unlinkSync(target);
-				}
+				} catch(e) {}
 				fs.symlinkSync(source, target);
 			});
 		}
@@ -698,6 +699,7 @@ function export_result_android(self) {
 			}
 		} else {
 			child_process.exec('xdg-open Project/android'); // open project
+			setTimeout(e=>process.exit(0),1e3); // force exit
 		}
 	} catch (e) {
 		// 
@@ -731,7 +733,7 @@ var LangouExport = util.class('LangouExport', {
 
 		function copy_libs(source) {
 			var [source, symlink] = source.split(/\s+/);
-			var libs = self.m_output + '/node_modules/';
+			var libs = self.m_output + '/libs/';
 			if (symlink) {
 				source = libs + source;
 				fs.mkdir_p_sync(path.dirname(source));
