@@ -35,12 +35,12 @@ const { TextNode, View, Root, lock } = requireNative('_langou');
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
 const G_renderQueueSet = new Set();
 var   G_renderQueueWorking = false;
-const G_warnRecord = new WeakSet();
+const G_warnRecord = new Set();
 const G_warnDefine = {
 	UndefinedDOMKey: 'DOM key no defined in DOM Collection',
 };
 
-function warn(id, msg) {
+function warn(id, msg = '') {
 	var def = G_warnDefine[id];
 	if (def) {
 		if (!G_warnRecord.has(id)) {
@@ -108,9 +108,8 @@ class VirtualDOM {
 	type = null;
 	children = null;
 	dom = null;
-	options = null;
 
-	constructor(Type, props, children, options) {
+	constructor(Type, props, children) {
 		var _propsHash = 0;
 		var _props = {};
 
@@ -139,7 +138,6 @@ class VirtualDOM {
 		this.hash = _hash;
 		this.propsHash = _propsHash;
 		this.children = children;
-		this.options = options;
 	}
 
 	setDefaultStyle(style) {
@@ -153,12 +151,13 @@ class VirtualDOM {
 		}
 	}
 
-	get key() {
-		return this.options.key;
+	getProp(name) {
+		var prop = this.props[name];
+		return prop ? prop[1]: null;
 	}
 
-	get hasKey() {
-		return 'key' in this.options;
+	hasProp(name) {
+		return name in this.props;
 	}
 
 	assignProps() {
@@ -233,19 +232,19 @@ class VirtualDOMCollection extends VirtualDOM {
 		var dom = this.dom;
 		var doms = [];
 		var keys = {};
-		var keys_c = dom.keys;
+		var keys_c = dom.m_keys; // private props visit
 		var ctr = dom.owner;
 		var prev = dom.m_doms[0] || dom.m_placeholder; // DOMCollection placeholder or doms[0]
 
 		util.assert(prev);
 
 		for (var i = 0; i < vdoms.length; i++) {
-			var vdom = vdoms[i];
-			var key = vdom.key;
-
-			if (!vdom.hasKey) {
+			var vdom = vdoms[i], key;
+			if (vdom.hasProp('key')) {
+				key = vdom.getProp('key');
+			} else {
 				warn('UndefinedDOMKey');
-				vdom.options.key = key = '_$auto' + i; // auto key
+				key = '_$auto' + i; // auto key
 			}
 			if (keys[key]) {
 				throw new Error('DOM Key definition duplication in DOM Collection, = ' + key);
@@ -259,12 +258,12 @@ class VirtualDOMCollection extends VirtualDOM {
 					prev = diff(ctr, vdom_c, vdom, prev); // diff
 					doms.push(vdom.dom);
 				} else { // use old dom
-					delete keys_c[key];
 					keys[key] = vdom_c;
 					vdoms[i] = vdom_c;
 					prev = vdom_c.dom.afterTo(prev);
 					doms.push(vdom_c.dom);
 				}
+				delete keys_c[key];
 			} else { // no key
 				var cell = vdom.newInstance(ctr);
 				prev = cell.afterTo(prev);
@@ -284,6 +283,7 @@ class VirtualDOMCollection extends VirtualDOM {
 
 		this.hash = hash;
 		this.vdoms = vdoms;
+
 		dom.m_doms = doms;
 		dom.m_vdoms = vdoms;
 		dom.m_keys = keys;
@@ -301,13 +301,14 @@ class VirtualDOMCollection extends VirtualDOM {
 		var style = this.style;
 
 		for (var i = 0; i < vdoms.length; i++) {
-			var vdom = vdoms[i];
+			var vdom = vdoms[i], key;
 			vdom.style = style;
 			var cell = vdom.newInstance(ctr);
-			var key = vdom.key;
-			if (!vdom.hasKey) {
-				warn('DOMCollectionKey');
-				vdom.options.key = key = '_$auto' + i; // auto key
+			if (vdom.hasProp('key')) {
+				key = vdom.getProp('key');
+			} else {
+				warn('UndefinedDOMKey');
+				key = '_$auto' + i; // auto key
 			}
 			if (keys[key]) {
 				throw new Error('DOM Key definition duplication in DOM Collection, = ' + key);
@@ -876,8 +877,8 @@ util.extend(ViewController, {
 });
 
 // create virtual view
-export function _VV(Type, props, children, options) {
-	return new VirtualDOM(Type, props, children, options || {});
+export function _VV(Type, props, children) {
+	return new VirtualDOM(Type, props, children);
 }
 
 // create virtual view TextNode
