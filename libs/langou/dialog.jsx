@@ -304,7 +304,7 @@ export class Sheet extends Dialog {
 								class="button"
 								width="100%"
 								onClick="triggerAction"
-								borderTopWidth=(!this.length?0:px)
+								borderTopWidth=(i?px:0)
 								defaultHighlighted=0>{e}</Button>
 						))
 					}

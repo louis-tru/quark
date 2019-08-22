@@ -33,6 +33,7 @@ import { Notification } from 'langou/event';
 const { TextNode, View, Root, lock } = requireNative('_langou');
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
+const G_removeSet = new WeakSet();
 const G_renderQueueSet = new Set();
 var   G_renderQueueWorking = false;
 const G_warnRecord = new Set();
@@ -230,11 +231,10 @@ class VirtualDOMCollection extends VirtualDOM {
 
 	diffProps({vdoms, hash}) {
 		var dom = this.dom;
-		var doms = [];
 		var keys = {};
 		var keys_c = dom.m_keys; // private props visit
 		var ctr = dom.owner;
-		var prev = dom.m_doms[0] || dom.m_placeholder; // DOMCollection placeholder or doms[0]
+		var prev = dom.m_vdoms.length ? dom.m_vdoms[0].dom: dom.m_placeholder; // DOMCollection placeholder or doms[0]
 
 		util.assert(prev);
 
@@ -256,22 +256,19 @@ class VirtualDOMCollection extends VirtualDOM {
 			if (vdom_c) {
 				if (vdom_c.hash != vdom.hash) {
 					prev = diff(ctr, vdom_c, vdom, prev); // diff
-					doms.push(vdom.dom);
 				} else { // use old dom
 					keys[key] = vdom_c;
 					vdoms[i] = vdom_c;
 					prev = vdom_c.dom.afterTo(prev);
-					doms.push(vdom_c.dom);
 				}
 				delete keys_c[key];
 			} else { // no key
 				var cell = vdom.newInstance(ctr);
 				prev = cell.afterTo(prev);
-				doms.push(cell);
 			}
 		}
 
-		if (doms.length) {
+		if (vdoms.length) {
 			if (dom.m_placeholder) {
 				dom.m_placeholder.remove();
 				dom.m_placeholder = null;
@@ -284,7 +281,6 @@ class VirtualDOMCollection extends VirtualDOM {
 		this.hash = hash;
 		this.vdoms = vdoms;
 
-		dom.m_doms = doms;
 		dom.m_vdoms = vdoms;
 		dom.m_keys = keys;
 
@@ -296,14 +292,12 @@ class VirtualDOMCollection extends VirtualDOM {
 	newInstance(ctr) {
 		util.assert(!this.dom);
 		var vdoms = this.vdoms;
-		var doms = [];
 		var keys = {};
-		var style = this.style;
+		this.dom = new DOMCollection(ctr, vdoms, keys);
 
 		for (var i = 0; i < vdoms.length; i++) {
 			var vdom = vdoms[i], key;
-			vdom.style = style;
-			var cell = vdom.newInstance(ctr);
+			vdom.newInstance(ctr);
 			if (vdom.hasProp('key')) {
 				key = vdom.getProp('key');
 			} else {
@@ -315,10 +309,9 @@ class VirtualDOMCollection extends VirtualDOM {
 			} else {
 				keys[key] = vdom;
 			}
-			doms.push(cell);
 		}
 
-		return (this.dom = new DOMCollection(ctr, vdom, doms, keys));
+		return this.dom;
 	}
 
 }
@@ -327,10 +320,10 @@ function callDOMsFunc(self, active, view) {
 	if (self.m_placeholder) {
 		return self.m_placeholder[active](view);
 	} else {
-		for (var cellView of self.m_doms) {
-			cellView[active](view);
+		for (var cellView of self.m_vdoms) {
+			cellView.dom[active](view);
 		}
-		return self.m_doms.last(0);
+		return self.m_vdoms.last(0).dom;
 	}
 }
 
@@ -343,13 +336,11 @@ class DOMCollection {
 	// @private:
 	m_owner = null;
 	m_vdoms = null;
-	m_doms = null;
 	m_keys = null;
-	m_style = null;
 	m_placeholder = null; // view placeholder	
 
 	get __view__() {
-		return this.m_placeholder ? this.m_placeholder: this.m_doms.last(0).__view__;
+		return this.m_placeholder ? this.m_placeholder: this.m_vdoms.last(0).dom.__view__;
 	}
 
 	// @public:
@@ -357,20 +348,17 @@ class DOMCollection {
 		return this.m_owner;
 	}
 
-	get doms() {
-		return this.m_doms;
+	get collection() {
+		return this.m_vdoms.map(e=>e.dom);
 	}
 
-	constructor(ctr, vdom, doms, keys) {
+	constructor(ctr, vdoms, keys) {
 		this.m_owner = ctr;
-		this.m_vdoms = vdom.vdoms;
-		this.m_doms = doms;
+		this.m_vdoms = vdoms;
 		this.m_keys = keys;
-		if (!doms.length) {
+
+		if (!vdoms.length) {
 			this.m_placeholder = new View();
-		}
-		if (vdom.defaultStyle) {
-			this.m_style = vdom.defaultStyle;
 		}
 	}
 
@@ -390,7 +378,6 @@ class DOMCollection {
 			});
 			this.m_vdoms = null;
 			this.m_keys = null;
-			this.m_doms = [];
 		}
 	}
 
@@ -425,11 +412,6 @@ function removeSubctr(self, vdom) {
 function removeDOM(self, vdom) {
 	removeSubctr(self, vdom);
 	vdom.dom.remove();
-}
-
-function setVDOM(self, vdom) {
-	self.m_vdom = vdom;
-	self.m_dom = vdom ? vdom.dom: null;
 }
 
 function diff(self, vdom_c, vdom, prevView) {
@@ -509,31 +491,31 @@ function rerender(self) {
 	if (vdom_c) {
 		if (vdom) {
 			if (vdom_c.hash != vdom.hash) {
-				var prev = self.m_dom.__view__;
+				var prev = vdom_c.dom.__view__;
 				util.assert(prev);
+				self.m_vdom = vdom;
 				diff(self, vdom_c, vdom, prev); // diff
-				setVDOM(self, vdom); // set new vdom
 				update = true;
 			}
 		} else {
-			var prev = self.m_dom.__view__;
+			var prev = vdom_c.dom.__view__;
 			util.assert(prev);
 			util.assert(!self.m_placeholder);
 			self.m_placeholder = new View();
 			self.m_placeholder.afterTo(prev);
-			setVDOM(self, null);
+			self.m_vdom = null;
 			removeDOM(self, vdom_c); // del dom
 			update = true;
 		}
 	} else {
 		if (vdom) {
+			self.m_vdom = vdom;
 			vdom.newInstance(self);
 			if (self.m_placeholder) {
 				vdom.dom.afterTo(self.m_placeholder);
 				self.m_placeholder.remove();
 				self.m_placeholder = null;
 			}
-			setVDOM(self, vdom);
 			update = true;
 		} else {
 			if (!self.m_placeholder) {
@@ -552,7 +534,7 @@ function rerender(self) {
 }
 
 function domInCtr(self) {
-	return self.m_dom || self.m_placeholder;
+	return self.m_vdom ? self.m_vdom.dom: self.m_placeholder;
 }
 
 /**
@@ -566,15 +548,14 @@ export default class ViewController extends Notification {
 	m_placeholder = null; // view placeholder	
 	m_modle = null;  // view modle
 	m_dataHash = null; // modle and props hash
-	m_vdom = null;   // vdom
-	m_dom = null;    // children view or controller or 
+	m_vdom = null;     // children vdom
 	m_vchildren = null; // outer vdom children
 	m_loaded = false;
 	m_mounted = false;
 	m_style = null;
 
 	get __view__() {
-		return this.m_dom ? this.m_dom.__view__: this.m_placeholder;
+		return this.m_vdom ? this.m_vdom.dom.__view__: this.m_placeholder;
 	}
 
 	// @public:
@@ -620,7 +601,7 @@ export default class ViewController extends Notification {
 	}
 
 	get dom() {
-		return this.m_dom;
+		return this.m_vdom ? this.m_vdom.dom: null;
 	}
 
 	get isLoaded() {
@@ -717,16 +698,22 @@ export default class ViewController extends Notification {
 		var placeholder = this.m_placeholder;
 
 		if (vdom || placeholder) {
+
 			var owner = this.m_owner;
 			if (owner) {
-				util.assert(owner.m_dom !== this, 'Illegal call');
+				util.assert(owner.dom !== this, 'Illegal call');
 			}
+
+			if (G_removeSet.has(this)) return;
+			G_removeSet.add(this);
+			try {
+				this.triggerRemove(); // trigger Remove event
+			} finally {
+				G_removeSet.delete(this);
+			}
+
 			this.m_placeholder = null;
 			this.m_vdom = null;
-
-			this.triggerRemove(); // trigger Remove event
-
-			this.m_dom = null;
 
 			if (vdom) {
 				removeDOM(this, vdom);
