@@ -84,6 +84,7 @@ void Hybrid::set_layout_content_offset() {
 		while ( view ) {
 			Layout* layout = view->as_layout();
 			if (layout) {
+				// LOG("BBBB-0, %f", m_height.value);
 				layout->set_offset_in_hybrid(&m_rows, m_limit, this);
 			}
 			view = view->next();
@@ -184,13 +185,14 @@ void Hybrid::set_layout_content_offset_after() {
 			size_change = true;
 		}
 	}
-	
+
 	if ( size_change ) { //
 		mark( M_SHAPE ); // 高度或宽度被挤压即形状发生变化
 		
 		// 被挤压会影响到所有的兄弟视图的偏移值, 所以标记父视图 M_CONTENT_OFFSET
 		Layout* layout = parent()->as_layout();
 		if (layout) {
+			//LOG("AAA-1, %f", m_height.value);
 			layout->mark_pre( M_CONTENT_OFFSET );
 		} else { // 父视图只是个普通视图,默认将偏移设置为0
 			set_default_offset_value();

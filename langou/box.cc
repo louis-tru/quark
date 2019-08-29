@@ -677,10 +677,11 @@ public:
 			m_draw_visible = false;
 			set_default_offset_value(); return;
 		}
-				
+
 		TextRows::Row* row = rows->last();
 		float offset_end_x = row->offset_end.x() + m_raw_client_width;
 		Vec2  old_offset_start = m_offset_start;
+		Vec2  old_offset_end = m_offset_end;
 		
 		bool newline = m_newline;
 		bool monopoly_line = false;
@@ -706,7 +707,6 @@ public:
 			rows->push_row(m_raw_client_height, 0);
 			row = rows->last();
 			offset_end_x = m_raw_client_width;
-			
 		} else {
 			rows->update_row(m_raw_client_height, 0);
 		}
@@ -717,8 +717,10 @@ public:
 		row->offset_end.x(offset_end_x); // 设置offset_end.x
 		m_offset_end.y(row->baseline);
 		m_offset_start.y(row->baseline - m_raw_client_height);
+
+		// LOG("x:%f,x1:%f,y:%f,y2:%f", old_offset_end[0], m_offset_end[0], old_offset_end[1], m_offset_end[1]);
 		
-		if ( old_offset_start != m_offset_start ) {
+		if ( old_offset_start != m_offset_start || old_offset_end != m_offset_end ) {
 			// 偏移值发生改变,还需计算最终的变换矩阵,所以这里标记变换做进一步处理.
 			mark(M_MATRIX);
 		}
