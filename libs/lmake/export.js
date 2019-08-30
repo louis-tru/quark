@@ -670,6 +670,7 @@ function export_result_android(self) {
 			pkg.bundle_resources.forEach(function(res) {
 				var basename = path.basename(res);
 				var source = path.relative(android_assets, output + '/' + res);
+				if (!fs.existsSync(output + '/' + res)) return;
 				var target = `${android_assets}/${basename}`;
 				try {
 					// if ( fs.existsSync(target) )

@@ -298,9 +298,9 @@ export class Sheet extends Dialog {
 				<Indep id="main" class="x_dialog sheet">
 					<Clip class="buttons">
 					{
-						this.m_buttons.slice().reverse().map((e, i)=>(
+						this.m_buttons.slice().map((e, i)=>(
 							<Button 
-								index=(this.length-i)
+								index=(i+1)
 								class="button"
 								width="100%"
 								onClick="triggerAction"
