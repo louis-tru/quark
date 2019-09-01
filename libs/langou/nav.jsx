@@ -566,7 +566,7 @@ export class NavPageCollection extends Navigation {
 	// @overwrite
 	navigationMenu() {
 		if (this.m_pages.length) 
-			this.m_pages.last(0).navigationEnter(focus);
+			this.m_pages.last(0).navigationMenu();
 	}
 
 }
