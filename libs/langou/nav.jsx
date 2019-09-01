@@ -162,7 +162,7 @@ export class Navigation extends Status {
 	}
 	
 	triggerRemove(e) {
-		if ( this.m_iterator ) {
+		if ( this.m_iterator ) { // force delete global nav stack
 			this.m_stack.del(this.m_iterator);
 			this.m_iterator = null;
 		}
@@ -325,7 +325,7 @@ function refresh_bar_style(self, time) {
 export class NavPageCollection extends Navigation {
 	m_padding = langou.statusBarHeight; // ios/android, 20
 	m_pages = null;
-	m_stack = null;
+	m_substack = null;
 	m_default_toolbar = null;
 	m_animating = false;
 	$navbarHidden = false;
@@ -400,7 +400,7 @@ export class NavPageCollection extends Navigation {
 	constructor() {
 		super();
 		this.m_pages = [];
-		this.m_stack = new List();
+		this.m_substack = new List();
 	}
 
 	render(...vchildren) {
@@ -424,6 +424,7 @@ export class NavPageCollection extends Navigation {
 			langou.nextFrame(e=>this.push(vc[0]));
 		}
 		super.triggerMounted(e);
+		langou.nextFrame(e=>this.registerNavigation(0));
 	}
 
 	triggerRemove(e) {
@@ -458,7 +459,7 @@ export class NavPageCollection extends Navigation {
 			'Only for NavPage entities or NavPage VX data.');
 		
 		// set page
-		page.m_stack = this.m_stack;
+		page.m_stack = this.m_substack;
 		page.m_collection = this;
 		page.m_prevPage = prev;
 		
