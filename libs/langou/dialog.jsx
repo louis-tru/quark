@@ -64,6 +64,7 @@ CSS({
 		textAlign: 'center',
 		textStyle: 'bold',
 		textSize: 18,
+		// textSize: 16,
 		textOverflow: 'ellipsis',
 		textWhiteSpace: 'no_wrap',
 	},
@@ -96,6 +97,11 @@ CSS({
 		textSize: 18,
 		textLineHeight: 43,
 		textColor:"#0079ff",
+	},
+
+	'.x_dialog.sheet .button': {
+		height: 45,
+		textLineHeight: 45,
 	},
 
 	'.x_dialog .button.gray': {
@@ -360,8 +366,12 @@ export const CONSTS = {
 };
 
 export function alert(msg, cb = util.noop) {
+	if (typeof msg == 'string') {
+		msg = {msg};
+	}
+	var {msg='',title=''} = msg;
 	var dag = render(
-		<Dialog buttons=[CONSTS.OK] onAction=(e=>cb(e.data))>{msg}</Dialog>
+		<Dialog buttons=[CONSTS.OK] onAction=(e=>cb(e.data)) title=title>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
