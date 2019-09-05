@@ -48,9 +48,17 @@ read_version.update_langou_version();
 
 fs.cp_sync(root + '/libs/lmake', target, {ignore_hide:1});
 
+var host = "192.168.0.115";
+
+if (process.env.REMOTE_COMPILE_HOST) {
+	host = process.env.REMOTE_COMPILE_HOST
+}
+// if [ "$1" ]; then
+// 	host="$1"
+// fi
+
 if (!fs.existsSync(target + '/bin/linux-jsa-shell')) {
-	var {code} = execSync('scp louis@192.168.0.115:~/Project/langou/libs/lmake/bin/linux-jsa-shell ' +
-		target + '/bin');
+	var {code} = execSync(`scp louis@${host}:~/Project/langou/libs/lmake/bin/linux-jsa-shell ${target}/bin`);
 	if (code) {
 		console.warn('Cannot copy linux-jsa-shell, not find linux-jsa-shell');
 	} else {
