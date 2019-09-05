@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/version.h"
-#include "langou/utils/json.h"
+#include "lutils/json.h"
 #include "tinyxml2.h"
 
 XX_NS(langou)

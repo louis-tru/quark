@@ -32,7 +32,7 @@
 #define __langou__bezier__
 
 #include "langou/mathe.h"
-#include "langou/utils/buffer.h"
+#include "lutils/buffer.h"
 
 /**
  * @ns langou

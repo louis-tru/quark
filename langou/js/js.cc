@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/string.h"
+#include "lutils/string.h"
 #include "js-1.h"
 #include "native-inl-js.h"
 #include "native-lib-js.h"
 #include "langou.h"
-#include "langou/utils/http.h"
-#include "langou/utils/codec.h"
+#include "lutils/http.h"
+#include "lutils/codec.h"
 #include "value.h"
 
 /**

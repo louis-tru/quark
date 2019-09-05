@@ -37,7 +37,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 #include "langou/media-codec.h"
-#include "langou/utils/loop-1.h"
+#include "lutils/loop-1.h"
 
 XX_NS(langou)
 

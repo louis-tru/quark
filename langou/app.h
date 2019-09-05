@@ -31,10 +31,10 @@
 #ifndef __langou__app__
 #define __langou__app__
 
-#include "langou/utils/util.h"
-#include "langou/utils/event.h"
-#include "langou/utils/loop.h"
-#include "langou/utils/json.h"
+#include "lutils/util.h"
+#include "lutils/event.h"
+#include "lutils/loop.h"
+#include "lutils/json.h"
 #include "langou/value.h"
 
 #define XX_GUI_MAIN() \

@@ -31,7 +31,7 @@
 #ifndef __langou__js__json__
 #define __langou__js__json__
 
-#include "langou/utils/string-builder.h"
+#include "lutils/string-builder.h"
 #include "langou/js/js.h"
 
 /**

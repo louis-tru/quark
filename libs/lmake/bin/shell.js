@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var util = require('langoukit');
-var fs = require('langoukit/fs');
+var util = require('lkit');
+var fs = require('lkit/fs');
 var { LangouBuild } = require('../build');
 var { LangouExport } = require('../export');
 var server = require('../server');
-var arguments = require('langoukit/arguments');
+var arguments = require('lkit/arguments');
 var args = process.argv.slice(2);
 var cmd = args.shift();
 var opts = arguments.options;

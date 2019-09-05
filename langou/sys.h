@@ -31,7 +31,7 @@
 #ifndef __langou__utils__sys__
 #define __langou__utils__sys__
 
-#include "langou/utils/util.h"
+#include "lutils/util.h"
 
 XX_NS(langou)
 XX_NS(sys)

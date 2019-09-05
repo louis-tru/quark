@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/util.h>
-#include <langou/utils/http.h>
-#include <langou/utils/string.h>
-#include <langou/utils/fs.h>
+#include <lutils/util.h>
+#include <lutils/http.h>
+#include <lutils/string.h>
+#include <lutils/fs.h>
 
 using namespace langou;
 

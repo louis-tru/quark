@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('langoukit/util');
-var service = require('langoukit/service');
-var HttpService = require('langoukit/http_service').HttpService;
-var StaticService = require('langoukit/static_service').StaticService;
-var path = require('langoukit/path');
-var fs = require('langoukit/fs');
-var keys = require('langoukit/keys');
+var util = require('lkit/util');
+var service = require('lkit/service');
+var HttpService = require('lkit/http_service').HttpService;
+var StaticService = require('lkit/static_service').StaticService;
+var path = require('lkit/path');
+var fs = require('lkit/fs');
+var keys = require('lkit/keys');
 var Buffer = require('buffer').Buffer;
 var remote_log = require('./remote_log');
 var gen_html = require('./marked/html').gen_html;

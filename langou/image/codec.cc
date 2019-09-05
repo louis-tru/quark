@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/image-codec.h"
-#include "langou/utils/string.h"
+#include "lutils/string.h"
 
 XX_NS(langou)
 

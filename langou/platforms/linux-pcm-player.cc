@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/pcm-player.h"
-#include "langou/utils/handle.h"
-#include "langou/utils/string.h"
+#include "lutils/handle.h"
+#include "lutils/string.h"
 #include <alsa/asoundlib.h>
 #include <stdlib.h>
 #include <stdio.h>

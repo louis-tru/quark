@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ios-ime-helper-1.h"
-#import "langou/utils/util.h"
+#import "lutils/util.h"
 #import "langou/event.h"
 #import "langou/app-1.h"
 

@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'jsa-shell',
 		'type': 'executable',
-		'dependencies': [ 'langou-utils' ],
+		'dependencies': [ 'lutils' ],
 		'sources': [
 			'jsa-shell.cc',
 		],

@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/langoukit');
-var fs = require('../libs/langoukit/fs');
-var keys = require('../libs/langoukit/keys');
-var service = require('../libs/langoukit/service');
-var HttpService = require('../libs/langoukit/http_service').HttpService;
+var util = require('../libs/lkit');
+var fs = require('../libs/lkit/fs');
+var keys = require('../libs/lkit/keys');
+var service = require('../libs/lkit/service');
+var HttpService = require('../libs/lkit/http_service').HttpService;
 var server = require('../libs/lmake/server');
 require('./test-multiple-service');
 

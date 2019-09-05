@@ -31,7 +31,7 @@
 #ifndef __langou__mathe__
 #define __langou__mathe__
 
-#include "langou/utils/util.h"
+#include "lutils/util.h"
 
 /**
  * @ns langou

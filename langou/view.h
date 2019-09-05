@@ -31,9 +31,9 @@
 #ifndef __langou__view__
 #define __langou__view__
 
-#include "langou/utils/array.h"
-#include "langou/utils/string.h"
-#include "langou/utils/string-builder.h"
+#include "lutils/array.h"
+#include "lutils/string.h"
+#include "lutils/string-builder.h"
 #include "langou/event.h"
 
 /**

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/net.h"
+#include "lutils/net.h"
 #include <uv.h>
 
 using namespace langou;

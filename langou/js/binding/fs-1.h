@@ -33,7 +33,7 @@
 #define __langou__js__fs_1__
 
 #include "langou/js/js.h"
-#include "langou/utils/codec.h"
+#include "lutils/codec.h"
 
 /**
  * @ns langou::js

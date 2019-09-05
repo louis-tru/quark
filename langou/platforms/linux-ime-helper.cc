@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "linux-ime-helper-1.h"
-#include "langou/utils/cb.h"
+#include "lutils/cb.h"
 #include "langou/keyboard.h"
 #include "langou/display-port.h"
 #include <X11/keysym.h>

@@ -35,7 +35,8 @@
 #include "draw.h"
 #include "pcm-player.h"
 #include "media-codec.h"
-#include "utils/loop.h"
+#include "lutils/loop.h"
+#include "langou/errno.h"
 
 XX_NS(langou)
 

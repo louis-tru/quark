@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/loop.h"
+#include "lutils/loop.h"
 #include "langou/app-1.h"
 #include "langou/event.h"
 #include "langou/display-port.h"
-#include "langou/utils/android-jni.h"
+#include "lutils/android-jni.h"
 #include "linux-gl-1.h"
 #include "android/android.h"
 #include <android/native_activity.h>

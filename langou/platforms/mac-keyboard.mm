@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "langou/keyboard.h"
-#import "langou/utils/map.h"
+#import "lutils/map.h"
 
 XX_NS(langou)
 

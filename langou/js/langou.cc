@@ -32,7 +32,7 @@
 #include "langou/app.h"
 #include "langou/view.h"
 #include "langou/js/langou.h"
-#include "langou/utils/http.h"
+#include "lutils/http.h"
 #include "binding/event-1.h"
 #include "android/android.h"
 #include "native-inl-js.h"

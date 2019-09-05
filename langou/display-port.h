@@ -31,12 +31,12 @@
 #ifndef __langou__display_port__
 #define __langou__display_port__
 
-#include "langou/utils/util.h"
-#include "langou/utils/event.h"
-#include "langou/utils/list.h"
+#include "lutils/util.h"
+#include "lutils/event.h"
+#include "lutils/list.h"
 #include "langou/mathe.h"
 #include "langou/value.h"
-#include "langou/utils/cb.h"
+#include "lutils/cb.h"
 
 /**
  * @ns langou

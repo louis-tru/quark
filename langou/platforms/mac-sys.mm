@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "langou/sys.h"
-#import "langou/utils/string.h"
-#import "langou/utils/array.h"
+#import "lutils/string.h"
+#import "lutils/array.h"
 #import <Foundation/Foundation.h>
 #if XX_IOS
 # import <UIKit/UIKit.h>

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/http-cookie.h"
+#include "lutils/http-cookie.h"
 #include "langou/sys.h"
 
 using namespace langou;

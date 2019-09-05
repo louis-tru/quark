@@ -30,7 +30,7 @@
 
 #include "langou/app.h"
 #include "langou/sys.h"
-#include "langou/utils/loop.h"
+#include "lutils/loop.h"
 #include "../depe/node/src/langou.h"
 
 #ifndef TEST_FUNC_NAME

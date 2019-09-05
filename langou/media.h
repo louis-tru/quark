@@ -31,7 +31,7 @@
 #ifndef __langou__media__
 #define __langou__media__
 
-#include "langou/utils/string.h"
+#include "lutils/string.h"
 
 #ifndef XX_NO_MEDIA_DYNAMIC_LIB
 # define XX_MEDIA_DYNAMIC virtual

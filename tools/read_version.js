@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/langoukit/fs');
+var fs = require('../libs/lkit/fs');
 
 function read_langou_version() {
 	var str = fs.readFileSync(__dirname + '/../langou/version.h').toString('utf-8');

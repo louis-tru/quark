@@ -36,7 +36,7 @@
  */
 
 
-#include <langou/utils/util.h>
+#include <lutils/util.h>
 
 #if XX_LINUX && !XX_ANDROID
 

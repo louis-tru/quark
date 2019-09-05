@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "utils/loop-1.h"
-#include "utils/http.h"
+#include "lutils/loop-1.h"
+#include "lutils/http.h"
 #include "draw.h"
 #include "root.h"
 #include "display-port.h"

@@ -31,10 +31,10 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "langou/utils/util.h"
-#include "langou/utils/string-builder.h"
-#include "langou/utils/buffer.h"
-#include "langou/utils/loop.h"
+#include "lutils/util.h"
+#include "lutils/string-builder.h"
+#include "lutils/buffer.h"
+#include "lutils/loop.h"
 
 using namespace langou;
 

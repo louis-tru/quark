@@ -31,7 +31,7 @@
 #ifndef __langou__linux_gl_1__
 #define __langou__linux_gl_1__
 
-#include "langou/macros.h"
+#include "lutils/macros.h"
 
 #if XX_LINUX || XX_ANDROID
 

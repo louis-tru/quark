@@ -31,11 +31,11 @@
 #ifndef __langou__texture__
 #define __langou__texture__
 
-#include "langou/utils/map.h"
-#include "langou/utils/event.h"
-#include "langou/utils/string.h"
-#include "langou/utils/handle.h"
-#include "langou/utils/buffer.h"
+#include "lutils/map.h"
+#include "lutils/event.h"
+#include "lutils/string.h"
+#include "lutils/handle.h"
+#include "lutils/buffer.h"
 #include "langou/image-codec.h"
 #include "langou/value.h"
 

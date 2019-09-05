@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "app-1.h"
-#include "utils/loop.h"
+#include "lutils/loop.h"
 
 XX_NS(langou)
 

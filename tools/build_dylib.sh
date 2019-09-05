@@ -52,19 +52,24 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
+# lutils
+link_dylib lutils "$obj/lutils $obj/libuv $obj/openssl $obj/http_parser " \
+	"-lminizip -lbplus -lz " "-framework Foundation -framework UIKit "
+framework lutils $out/../../lutils
+
 # langou
-link_dylib langou "$obj/langou-utils $obj/langou $obj/libuv $obj/openssl $obj/http_parser " \
-	"-lminizip -lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 -lbplus -lz" \
+link_dylib langou "$obj/lutils $obj/langou $obj/libuv $obj/openssl $obj/http_parser " \
+	"-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
-	-framework CoreGraphics -framework CoreGraphics -framework UIKit -framework QuartzCore \
-	-framework MessageUI "
+	-framework CoreGraphics -framework QuartzCore -framework UIKit \
+	-framework MessageUI -framework lutils "
 # gen temp framework
 framework langou
 
 # langou-media
 link_dylib langou-media "$obj/langou-media" "-liconv -lbz2 -lz -lFFmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-	-framework CoreMedia -framework langou"
+	-framework CoreMedia -framework lutils -framework langou"
 framework langou-media no-inc
 
 # langou-v8
@@ -80,12 +85,13 @@ fi
 framework langou-v8 $out/../../depe/v8-link/include
 
 # langou-js
-link_dylib langou-js "$obj/langou-js" "" "-framework langou -framework langou-media \
+link_dylib langou-js "$obj/langou-js" "" \
+	"-framework lutils -framework langou -framework langou-media \
 	-framework langou-v8 -framework JavaScriptCore"
 framework langou-js no-inc
 
 # langou-node
 link_dylib langou-node "$obj/node" "-lnghttp2 -lcares -lz" \
-	"-framework langou -framework langou-js -framework langou-v8"
+	"-framework lutils -framework langou -framework langou-js -framework langou-v8"
 framework langou-node no-inc
 

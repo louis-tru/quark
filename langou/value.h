@@ -31,8 +31,8 @@
 #ifndef __langou__value__
 #define __langou__value__
 
-#include "langou/utils/util.h"
-#include "langou/utils/array.h"
+#include "lutils/util.h"
+#include "lutils/array.h"
 #include "langou/mathe.h"
 
 /**

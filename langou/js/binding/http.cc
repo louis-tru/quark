@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/http.h"
+#include "lutils/http.h"
 #include "langou/js/wrap.h"
 #include "cb-1.h"
 

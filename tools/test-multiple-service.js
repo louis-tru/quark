@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/langoukit');
-var service = require('../libs/langoukit/service');
-var HttpService = require('../libs/langoukit/http_service').HttpService;
+var util = require('../libs/lkit');
+var service = require('../libs/lkit/service');
+var HttpService = require('../libs/lkit/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

@@ -10,6 +10,7 @@
 				'../out',
 			],
 			'dependencies': [
+				'lutils',
 				'langou',
 				'langou-js',
 				'langou-media',
@@ -31,7 +32,7 @@
 			'sources': [
 				'../examples',
 				'../libs/lmake',
-				'../libs/qkit',
+				'../libs/lkit',
 				'test.cc',
 				'test-langou.cc',
 				'test-fs.cc',
@@ -92,6 +93,7 @@
 			'target_name': 'langou-demo',
 			'type': 'executable',
 			'dependencies': [
+				'lutils',
 				'langou',
 				'langou-js',
 				'langou-media',
@@ -133,7 +135,7 @@
 				'target_name': 'langou-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'langou/utils/minizip.gyp:minizip',
+					'lutils/minizip.gyp:minizip',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
 					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',

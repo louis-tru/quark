@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/map.h>
-#include <langou/utils/array.h>
-#include <langou/utils/list.h>
-#include <langou/utils/string.h>
-#include <langou/utils/event.h>
+#include <lutils/map.h>
+#include <lutils/array.h>
+#include <lutils/list.h>
+#include <lutils/string.h>
+#include <lutils/event.h>
 
 using namespace langou;
 

@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "langou/pcm-player.h"
-#import "langou/utils/handle.h"
-#import "langou/utils/loop.h"
+#import "lutils/handle.h"
+#import "lutils/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
 XX_NS(langou)

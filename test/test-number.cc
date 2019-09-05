@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/util.h>
-#include <langou/utils/loop.h>
-#include <langou/utils/array.h>
+#include <lutils/util.h>
+#include <lutils/loop.h>
+#include <lutils/array.h>
 #include <langou/sys.h>
 
 using namespace langou;

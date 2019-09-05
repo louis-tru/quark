@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/util.h"
-#include "langou/utils/string.h"
+#include "lutils/util.h"
+#include "lutils/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>

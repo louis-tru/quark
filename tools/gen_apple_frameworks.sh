@@ -14,12 +14,14 @@ gen_framework() {
 	node $gen $os $1 "no-cut" "$2" $out/product/$os/Frameworks/$3 $arr
 }
 
+gen_framework lutils       lutils               iphonesimulator "x64"
 gen_framework langou       ""                   iphonesimulator "x64"
 gen_framework langou-media no-inc               iphonesimulator "x64"
 gen_framework langou-v8    depe/v8-link/include iphonesimulator "x64"
 gen_framework langou-js    no-inc               iphonesimulator "x64"
 gen_framework langou-node  no-inc               iphonesimulator "x64"
 
+gen_framework lutils       lutils               iphoneos "arm64"
 gen_framework langou       ""                   iphoneos "arm64" # x64 arm64 armv7
 gen_framework langou-media no-inc               iphoneos "arm64"
 gen_framework langou-v8    depe/v8-link/include iphoneos "arm64"
@@ -39,6 +41,7 @@ cd ../iphonesimulator && mkdir -p Debug Release
 # iphonesimulator
 
 cd Debug
+[ ! -L lutils.framework ] && ln -s ../lutils.framework
 [ ! -L langou.framework ] && ln -s ../langou.framework
 [ ! -L langou-media.framework ] && ln -s ../langou-media.framework
 [ ! -L langou-v8.framework ] && ln -s ../langou-v8.framework
@@ -46,6 +49,7 @@ cd Debug
 [ ! -L langou-node.framework ] && ln -s ../langou-node.framework
 
 cd ../Release
+[ ! -L lutils.framework ] && ln -s ../lutils.framework
 [ ! -L langou.framework ] && ln -s ../langou.framework
 [ ! -L langou-media.framework ] && ln -s ../langou-media.framework
 [ ! -L langou-v8.framework ] && ln -s ../langou-v8.framework
@@ -57,10 +61,12 @@ cd ../../iphoneos && mkdir -p Debug Release
 # iphoneos
 
 cd Debug
+[ ! -L lutils.framework ] && ln -s ../lutils.framework
 [ ! -L langou.framework ] && ln -s ../langou.framework
 [ ! -L langou-media.framework ] && ln -s ../langou-media.framework
 
 cd ../Release
+[ ! -L lutils.framework ] && ln -s ../lutils.framework
 [ ! -L langou.framework ] && ln -s ../langou.framework
 [ ! -L langou-media.framework ] && ln -s ../langou-media.framework
 [ ! -L langou-v8.framework ] && ln -s ../langou-v8.framework

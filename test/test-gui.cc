@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/util.h>
+#include <lutils/util.h>
 #include <langou/image.h>
 #include <langou/sprite.h>
 #include <langou/div.h>
 #include <langou/app.h>
 #include <langou/display-port.h>
 #include <langou/root.h>
-#include <langou/utils/fs.h>
+#include <lutils/fs.h>
 #include <langou/gl/gl.h>
 
 using namespace langou;

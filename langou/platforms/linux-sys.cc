@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/sys.h"
-#include "langou/utils/string.h"
-#include "langou/utils/array.h"
-#include "langou/utils/fs.h"
-#include "langou/utils/buffer.h"
+#include "lutils/string.h"
+#include "lutils/array.h"
+#include "lutils/fs.h"
+#include "lutils/buffer.h"
 #include <unistd.h>
 
 XX_NS(langou)

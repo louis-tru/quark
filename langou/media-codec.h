@@ -31,10 +31,10 @@
 #ifndef __langou__media_codec__
 #define __langou__media_codec__
 
-#include "langou/utils/util.h"
-#include "langou/utils/string.h"
-#include "langou/utils/buffer.h"
-#include "langou/utils/http.h"
+#include "lutils/util.h"
+#include "lutils/string.h"
+#include "lutils/buffer.h"
+#include "lutils/http.h"
 #include "langou/image-codec.h"
 #include "langou/media.h"
 

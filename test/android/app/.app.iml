@@ -61,8 +61,8 @@
     <content url="file://$MODULE_DIR$/../../../langou/platforms">
       <sourceFolder url="file://$MODULE_DIR$/../../../langou/platforms" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../langou/utils">
-      <sourceFolder url="file://$MODULE_DIR$/../../../langou/utils" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../lutils">
+      <sourceFolder url="file://$MODULE_DIR$/../../../lutils" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../..">
       <sourceFolder url="file://$MODULE_DIR$/../.." isTestSource="false" />

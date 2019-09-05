@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/util.h"
+#include "lutils/util.h"
 #include "langou/app-1.h"
 #include "langou/display-port.h"
 #include "linux-gl-1.h"

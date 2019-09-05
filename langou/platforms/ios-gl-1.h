@@ -31,7 +31,7 @@
 #ifndef __langou__ios_gl__
 #define __langou__ios_gl__
 
-#import "langou/macros.h"
+#import "lutils/macros.h"
 
 #if XX_IOS
 

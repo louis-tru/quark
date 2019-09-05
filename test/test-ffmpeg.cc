@@ -38,8 +38,8 @@ extern "C" {
 	// #include <libavcodec/fft.h>
 }
 
-#include <langou/utils/util.h>
-#include <langou/utils/fs.h>
+#include <lutils/util.h>
+#include <lutils/fs.h>
 
 using namespace langou;
 

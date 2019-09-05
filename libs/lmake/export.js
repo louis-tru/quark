@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('langoukit/util');
+var util = require('lkit/util');
 var paths = require('./paths');
-var fs = require('langoukit/fs');
-var path = require('langoukit/path');
-var keys = require('langoukit/keys');
+var fs = require('lkit/fs');
+var path = require('lkit/path');
+var keys = require('lkit/keys');
 var sys = require('os');
 var { LangouBuild } = require('./build');
-var { getLocalNetworkHost } = require('langoukit/network_host');
-var { syscall } = require('langoukit/syscall');
+var { getLocalNetworkHost } = require('lkit/network_host');
+var { syscall } = require('lkit/syscall');
 var child_process = require('child_process');
-var large_file_merge = require('langoukit/large_file_cut').merge;
+var large_file_merge = require('lkit/large_file_cut').merge;
 
 var native_source = [
 	'.c',

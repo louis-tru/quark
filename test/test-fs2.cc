@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/fs.h>
-#include <langou/utils/loop.h>
+#include <lutils/fs.h>
+#include <lutils/loop.h>
 
 using namespace langou;
 

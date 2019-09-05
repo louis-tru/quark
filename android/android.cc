@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "langou/utils/android-jni.h"
+#include "lutils/android-jni.h"
 
 XX_NS(langou)
 

@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/langoukit/util');
-var fs = require('../libs/langoukit/fs');
+var util = require('../libs/lkit/util');
+var fs = require('../libs/lkit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
-var {execSync} = require('../libs/langoukit/syscall');
+var {execSync} = require('../libs/lkit/syscall');
 var read_version = require('./read_version');
 
 var args = process.argv.slice(2);

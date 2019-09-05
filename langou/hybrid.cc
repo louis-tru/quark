@@ -31,7 +31,7 @@
 #include "hybrid.h"
 #include "text.h"
 #include "text-node.h"
-#include "utils/codec.h"
+#include "lutils/codec.h"
 
 XX_NS(langou)
 

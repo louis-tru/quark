@@ -31,9 +31,9 @@
 #ifndef __langou__pre_render__
 #define __langou__pre_render__
 
-#include "langou/utils/util.h"
-#include "langou/utils/array.h"
-#include "langou/utils/list.h"
+#include "lutils/util.h"
+#include "lutils/array.h"
+#include "lutils/list.h"
 
 /**
  * @ns langou

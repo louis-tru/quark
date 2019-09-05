@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('langoukit/fs');
+var fs = require('lkit/fs');
 var marked = require('marked');
 var renderer = new marked.Renderer();
 

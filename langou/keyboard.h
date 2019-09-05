@@ -31,8 +31,8 @@
 #ifndef __langou__keyboard__
 #define __langou__keyboard__
 
-#include "langou/utils/util.h"
-#include "langou/utils/map.h"
+#include "lutils/util.h"
+#include "lutils/map.h"
 
 XX_NS(langou)
 

@@ -31,6 +31,7 @@
 #include "langou/action.h"
 #include "langou/view.h"
 #include "langou/app.h"
+#include "langou/errno.h"
 
 XX_NS(langou)
 

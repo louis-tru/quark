@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/js/wrap.h"
-#include "langou/utils/buffer.h"
+#include "lutils/buffer.h"
 #include "langou/js/str.h"
 
 /**

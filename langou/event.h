@@ -31,8 +31,8 @@
 #ifndef __langou__event__
 #define __langou__event__
 
-#include "langou/utils/event.h"
-#include "langou/utils/array.h"
+#include "lutils/event.h"
+#include "lutils/array.h"
 #include "langou/sys.h"
 #include "langou/mathe.h"
 #include "langou/value.h"

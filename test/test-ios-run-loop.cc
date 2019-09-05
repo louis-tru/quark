@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/env.h>
+#include <lutils/env.h>
 
 #if XX_IOS
 
-#include <langou/utils/util.h>
+#include <lutils/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
 #include <stdio.h>

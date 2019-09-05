@@ -28,15 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('langoukit');
-var fs = require('langoukit/fs');
+var util = require('lkit');
+var fs = require('lkit/fs');
 var child_process = require('child_process');
-var keys = require('langoukit/keys');
-var path = require('langoukit/path');
+var keys = require('lkit/keys');
+var path = require('lkit/path');
 var Buffer = require('buffer').Buffer;
 var paths = require('./paths');
 var uglify = require('./uglify');
-var { syscall, exec } = require('langoukit/syscall');
+var { syscall, exec } = require('lkit/syscall');
 
 var base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');

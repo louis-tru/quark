@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var http = require('http');
-var path = require('langoukit/path');
+var path = require('lkit/path');
 var querystring = require('querystring');
 var remote_log_uri = null;
 

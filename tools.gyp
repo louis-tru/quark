@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'langou/utils/utils.gypi',
+		'lutils/lutils.gypi',
 		'tools/default_target.gypi',
 	],
 	'conditions': [

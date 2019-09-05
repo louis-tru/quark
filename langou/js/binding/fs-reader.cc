@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/fs.h"
+#include "lutils/fs.h"
 #include "langou/js/js.h"
 #include "langou/js/str.h"
-#include "langou/utils/codec.h"
+#include "lutils/codec.h"
 #include "cb-1.h"
 #include "fs-1.h"
 

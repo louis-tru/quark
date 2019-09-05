@@ -31,8 +31,8 @@
 #ifndef __langou__font__
 #define __langou__font__
 
-#include "langou/utils/array.h"
-#include "langou/utils/map.h"
+#include "lutils/array.h"
+#include "lutils/map.h"
 #include "langou/draw.h"
 #include "langou/value.h"
 

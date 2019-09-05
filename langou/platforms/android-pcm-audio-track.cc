@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/pcm-player.h"
-#include "langou/utils/handle.h"
-#include "langou/utils/android-jni.h"
+#include "lutils/handle.h"
+#include "lutils/android-jni.h"
 
 XX_NS(langou)
 

@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/js/js-1.h"
-#include "langou/utils/loop.h"
-#include "langou/utils/codec.h"
+#include "lutils/loop.h"
+#include "lutils/codec.h"
 #include "depe/node/src/langou.h"
 
 namespace node {

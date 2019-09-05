@@ -30,6 +30,7 @@
 
 #include "audio-player.h"
 #include "app.h"
+#include "errno.h"
 
 XX_NS(langou)
 

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/sys.h"
-#include "langou/utils/string.h"
+#include "lutils/string.h"
 
 using namespace langou;
 

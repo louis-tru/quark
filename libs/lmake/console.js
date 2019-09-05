@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('langoukit');
-var service = require('langoukit/service');
+var util = require('lkit');
+var service = require('lkit/service');
 var remote_log = require('./remote_log');
-var HttpService = require('langoukit/http_service').HttpService;
+var HttpService = require('lkit/http_service').HttpService;
 
 var Console = util.class('Console', HttpService, {
 

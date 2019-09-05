@@ -12,6 +12,7 @@
 		'target_name': 'langou-node',
 		'type': '<(output_shared)',
 		'dependencies': [
+			'lutils',
 			'langou',
 			'langou-js',
 			'langou-v8',
@@ -28,6 +29,7 @@
 			'../../depe/node/deps/openssl/openssl/include',
 		],
 		'dependencies': [
+			'lutils',
 			'langou',
 			'langou-v8',
 		],
@@ -230,6 +232,7 @@
 				'product_name': 'langou',
 				'type': 'executable',
 				'dependencies': [
+					'lutils',
 					'langou',
 					'langou-js',
 					'langou-media',

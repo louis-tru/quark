@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/fs.h"
-#include "langou/utils/http.h"
+#include "lutils/fs.h"
+#include "lutils/http.h"
 #include "langou/js/wrap.h"
 #include "langou/js/str.h"
 #include "cb-1.h"

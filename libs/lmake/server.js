@@ -30,11 +30,11 @@
 
 require('./console');
 require('./file');
-var path = require('langoukit/url');
-var keys = require('langoukit/keys');
-var server = require('langoukit/server');
+var path = require('lkit/url');
+var keys = require('lkit/keys');
+var server = require('lkit/server');
 var remote_log = require('./remote_log');
-var getLocalNetworkHost = require('langoukit/network_host').getLocalNetworkHost;
+var getLocalNetworkHost = require('lkit/network_host').getLocalNetworkHost;
 
 process.on('unhandledRejection', (err, promise) => {
 	throw err;

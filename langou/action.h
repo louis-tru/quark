@@ -31,9 +31,9 @@
 #ifndef __langou__action__
 #define __langou__action__
 
-#include "langou/utils/array.h"
-#include "langou/utils/list.h"
-#include "langou/utils/map.h"
+#include "lutils/array.h"
+#include "lutils/list.h"
+#include "lutils/map.h"
 #include "langou/value.h"
 #include "langou/bezier.h"
 #include "langou/event.h"

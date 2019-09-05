@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/loop.h>
+#include <lutils/loop.h>
 
 using namespace langou;
 

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var url = require('langoukit/url');
-var fs = require('langoukit/fs');
+var url = require('lkit/url');
+var fs = require('lkit/fs');
 var path = require('path');
 
 function resolve(name) {
@@ -47,18 +47,22 @@ if ( fs.existsSync(resolve('product/langou.gypi')) ) {
 		librarys: {
 			ios: [
 				resolve('product/ios'),
-				'ios/Frameworks/iphoneos/Debug/langou-media.framework ../langou-media.framework',
+				'ios/Frameworks/iphoneos/Debug/lutils.framework ../lutils.framework',
 				'ios/Frameworks/iphoneos/Debug/langou.framework ../langou.framework',
+				'ios/Frameworks/iphoneos/Debug/langou-media.framework ../langou-media.framework',
+				'ios/Frameworks/iphoneos/Release/lutils.framework ../lutils.framework',
 				'ios/Frameworks/iphoneos/Release/langou.framework ../langou.framework',
 				'ios/Frameworks/iphoneos/Release/langou-js.framework ../langou-js.framework',
 				'ios/Frameworks/iphoneos/Release/langou-v8.framework ../langou-v8.framework',
 				'ios/Frameworks/iphoneos/Release/langou-node.framework ../langou-node.framework',
 				'ios/Frameworks/iphoneos/Release/langou-media.framework ../langou-media.framework',
+				'ios/Frameworks/iphonesimulator/Debug/lutils.framework ../lutils.framework',
 				'ios/Frameworks/iphonesimulator/Debug/langou.framework ../langou.framework',
 				'ios/Frameworks/iphonesimulator/Debug/langou-js.framework ../langou-js.framework',
 				'ios/Frameworks/iphonesimulator/Debug/langou-v8.framework ../langou-v8.framework',
 				'ios/Frameworks/iphonesimulator/Debug/langou-node.framework ../langou-node.framework',
 				'ios/Frameworks/iphonesimulator/Debug/langou-media.framework ../langou-media.framework',
+				'ios/Frameworks/iphonesimulator/Release/lutils.framework ../lutils.framework',
 				'ios/Frameworks/iphonesimulator/Release/langou.framework ../langou.framework',
 				'ios/Frameworks/iphonesimulator/Release/langou-js.framework ../langou-js.framework',
 				'ios/Frameworks/iphonesimulator/Release/langou-v8.framework ../langou-v8.framework',

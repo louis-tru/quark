@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/loop.h"
+#include "lutils/loop.h"
 #include "langou/app-1.h"
 #include "langou/event.h"
 #include "langou/display-port.h"
-#include "langou/utils/loop.h"
-#include "langou/utils/http.h"
+#include "lutils/loop.h"
+#include "lutils/http.h"
 #include "langou/sys.h"
 #include "linux-gl-1.h"
 #include "linux-ime-helper-1.h"

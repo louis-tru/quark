@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/zlib.h>
+#include <lutils/zlib.h>
 #include <zlib.h>
 #include <map>
 

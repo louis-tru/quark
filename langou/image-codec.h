@@ -31,9 +31,9 @@
 #ifndef __langou__image_codec__
 #define __langou__image_codec__
 
-#include "utils/handle.h"
-#include "utils/array.h"
-#include "utils/buffer.h"
+#include "lutils/handle.h"
+#include "lutils/array.h"
+#include "lutils/buffer.h"
 
 /**
  * @ns langou

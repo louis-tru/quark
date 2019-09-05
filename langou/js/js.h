@@ -31,13 +31,13 @@
 #ifndef __langou__js__js__
 #define __langou__js__js__
 
-#include "langou/utils/util.h"
-#include "langou/utils/string.h"
-#include "langou/utils/buffer.h"
-#include "langou/utils/map.h"
-#include "langou/utils/error.h"
-#include "langou/utils/fs.h"
-#include "langou/utils/json.h"
+#include "lutils/util.h"
+#include "lutils/string.h"
+#include "lutils/buffer.h"
+#include "lutils/map.h"
+#include "lutils/error.h"
+#include "lutils/fs.h"
+#include "lutils/json.h"
 
 // ------------- js common macro -------------
 

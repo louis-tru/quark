@@ -32,6 +32,7 @@
 #include "texture.h"
 #include "draw.h"
 #include "display-port.h"
+#include "errno.h"
 
 XX_NS(langou)
 

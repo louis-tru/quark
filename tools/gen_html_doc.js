@@ -29,7 +29,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/langoukit/fs');
+var fs = require('../libs/lkit/fs');
 var path = require('path');
 var marked_html = require('../libs/lmake/marked/html');
 var marked = require('../libs/lmake/node_modules/marked/index');

@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <langou/utils/string.h>
-#include <langou/utils/codec.h>
+#include <lutils/string.h>
+#include <lutils/codec.h>
 
 using namespace std;
 using namespace langou;

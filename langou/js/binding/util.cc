@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/string.h"
-#include "langou/utils/fs.h"
+#include "lutils/string.h"
+#include "lutils/fs.h"
 #include "langou/sys.h"
-#include "langou/utils/loop.h"
+#include "lutils/loop.h"
 #include "langou/js/langou.h"
-#include "langou/utils/jsx.h"
+#include "lutils/jsx.h"
 #include "native-ext-js.h"
 
 /**

@@ -31,8 +31,8 @@
 #ifndef __langou__pcm_player__
 #define __langou__pcm_player__
 
-#include "langou/utils/util.h"
-#include "langou/utils/buffer.h"
+#include "lutils/util.h"
+#include "lutils/buffer.h"
 
 /**
  * @ns langou

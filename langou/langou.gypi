@@ -36,7 +36,7 @@
 			'../depe/tinyxml2',
 		],
 		'dependencies': [
-			'langou-utils',
+			'lutils',
 			'depe/tess2/tess2.gyp:tess2', 
 			'depe/freetype2/freetype2.gyp:ft2',
 			'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
@@ -306,6 +306,7 @@
 		'target_name': 'langou-media',
 		'type': '<(output_type)',
 		'dependencies': [
+			'lutils',
 			'langou',
 			'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
 		],

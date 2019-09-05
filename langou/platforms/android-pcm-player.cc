@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/pcm-player.h"
-#include "langou/utils/handle.h"
-#include "langou/utils/loop.h"
-#include "langou/utils/android-jni.h"
+#include "lutils/handle.h"
+#include "lutils/loop.h"
+#include "lutils/android-jni.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/js/js.h"
-#include "langou/utils/localstorage.h"
+#include "lutils/localstorage.h"
 #include "cb-1.h"
 
 /**

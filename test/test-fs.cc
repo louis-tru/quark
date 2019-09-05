@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/fs.h>
+#include <lutils/fs.h>
 #include <pwd.h>
 
 using namespace langou;

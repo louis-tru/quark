@@ -30,7 +30,7 @@
 
 #include "json-1.h"
 #include "langou/js/js.h"
-#include "langou/utils/string-builder.h"
+#include "lutils/string-builder.h"
 
 /**
  * @ns langou::js

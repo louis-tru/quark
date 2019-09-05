@@ -29,8 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "media-codec-1.h"
-#include "utils/loop.h"
+#include "lutils/loop.h"
 #include "langou/app.h"
+#include "langou/errno.h"
 
 XX_NS(langou)
 

@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "sys.h"
-#include "utils/array.h"
-#include "utils/string.h"
-#include "utils/fs.h"
+#include "lutils/array.h"
+#include "lutils/string.h"
+#include "lutils/fs.h"
 #include <string.h>
 #include <atomic>
 #include <unistd.h>

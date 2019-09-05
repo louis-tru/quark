@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "langou/sys.h"
-#include "langou/utils/buffer.h"
+#include "lutils/buffer.h"
 #include "font-1.h"
 #include "native-font.h"
 #include "langou/bezier.h"

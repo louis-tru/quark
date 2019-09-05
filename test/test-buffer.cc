@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/util.h"
-#include "langou/utils/buffer.h"
+#include "lutils/util.h"
+#include "lutils/buffer.h"
 
 using namespace langou;
 

@@ -31,11 +31,11 @@
 #ifndef __langou__android__android__
 #define __langou__android__android__
 
-#include "langou/utils/util.h"
+#include "lutils/util.h"
 
 #if XX_ANDROID
 
-#include "langou/utils/string.h"
+#include "lutils/string.h"
 
 XX_NS(langou)
 

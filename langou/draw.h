@@ -31,10 +31,10 @@
 #ifndef __langou__draw__
 #define __langou__draw__
 
-#include "langou/utils/array.h"
-#include "langou/utils/util.h"
-#include "langou/utils/string.h"
-#include "langou/utils/event.h"
+#include "lutils/array.h"
+#include "lutils/util.h"
+#include "lutils/string.h"
+#include "lutils/event.h"
 #include "langou/image-codec.h"
 #include "langou/mathe.h"
 #include "langou/value.h"

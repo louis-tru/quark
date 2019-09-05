@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/utils/fs.h"
-#include "langou/utils/jsx.h"
-#include "langou/utils/codec.h" 
+#include "lutils/fs.h"
+#include "lutils/jsx.h"
+#include "lutils/codec.h" 
 
 using namespace langou;
 

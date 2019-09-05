@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'langou/utils/utils.gypi',
+		'lutils/lutils.gypi',
 		'langou/langou.gypi',
 		'langou/js/js.gypi',
 		'tools/default_target.gypi',
@@ -18,7 +18,7 @@
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/liblangou-utils.a',
+					'<(output)/obj.target/liblutils.a',
 					'<(output)/obj.target/liblangou.a',
 					'<(output)/obj.target/liblangou-js.a',
 					'<(output)/obj.target/liblangou-media.a',
@@ -45,6 +45,7 @@
 		'target_name': 'liblangou',
 		'type': 'none',
 		'dependencies': [
+			'lutils',
 			'langou',
 			'langou-js',
 			'langou-media',
@@ -56,6 +57,7 @@
 		'target_name': 'langou_mac_dylib',
 		'type': 'none',
 		'dependencies': [
+			'lutils',
 			'langou',
 			'langou-js',
 			'langou-media',
@@ -101,7 +103,7 @@
 						'<(output)/obj.target/FFmpeg/libFFmpeg.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
-						'<(output)/liblangou-utils.a',
+						'<(output)/liblutils.a',
 						'<(output)/liblangou.a',
 						'<(output)/liblangou-js.a',
 						'<(output)/liblangou-media.a',
@@ -109,6 +111,7 @@
 						'<@(lib_v8_a)',
 					],
 					'outputs': [
+						'<(output)/liblutils.dylib',
 						'<(output)/liblangou.dylib',
 						'<(output)/liblangou-js.dylib',
 						'<(output)/liblangou-media.dylib',
@@ -131,13 +134,21 @@
 	{
 		'target_name': 'langou_copy_so', 
 		'type': 'none',
-		'dependencies': [ 'langou', 'langou-js', 'langou-media', 'langou-node', 'langou-v8' ],
+		'dependencies': [
+			'lutils',
+			'langou',
+			'langou-js',
+			'langou-media',
+			'langou-node',
+			'langou-v8',
+		],
 		'conditions': [
 			# copy liblangou.so to product directory
 			['debug==0 and library_output=="shared_library" and OS!="mac"', {
 				'copies': [{
 					'destination': '<(langou_product_dir)/<(langou_product_so_subdir)',
 					'files': [
+						'<(output)/lib.target/liblutils.so',
 						'<(output)/lib.target/liblangou.so',
 						'<(output)/lib.target/liblangou-js.so',
 						'<(output)/lib.target/liblangou-media.so',

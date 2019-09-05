@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <langou/utils/util.h>
-#include <langou/utils/string.h>
-#include <langou/utils/map.h>
-#include <langou/utils/fs.h>
+#include <lutils/util.h>
+#include <lutils/string.h>
+#include <lutils/map.h>
+#include <lutils/fs.h>
 #include <langou/sys.h>
 
 #include <ft2build.h>
