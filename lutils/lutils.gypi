@@ -112,11 +112,12 @@
 					'android-log.cc',
 					'_android.cc',
 				],
-				'link_settings': { 
-					'libraries': [ 
+				'link_settings': {
+					'libraries': [
 						'-latomic', 
 						'-llog', 
 						'-landroid',
+						'-lz',
 					],
 				},
 			}],
@@ -124,11 +125,21 @@
 				'sources': [
 					'_linux.cc',
 				],
+				'link_settings': {
+					'libraries': [
+						'-lz',
+					]
+				},
 			}],
-			['os in "ios osx"', {
+			['OS=="mac"', {
 				'sources': [
 					'_mac.mm',
 				],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/usr/lib/libz.tbd',
+					]
+				},
 			}],
 		],
 	}, 

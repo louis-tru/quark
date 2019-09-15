@@ -21,7 +21,7 @@
 		],
 		'conditions': [
 			['os in "osx ios" and use_system_zlib==1', {
-				'link_settings': { 
+				'link_settings': {
 					'libraries': [ '$(SDKROOT)/usr/lib/libz.tbd' ],
 					'libraries!': [ '-lz' ],
 				},

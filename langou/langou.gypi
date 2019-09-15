@@ -196,7 +196,9 @@
 					'image/codec-webp.cc',
 				],
 				'link_settings': {
-					'libraries': [ '-lz' ]
+					'libraries': [
+						# '-lz',
+					]
 				},
 			}],
 			['OS=="mac"', {
@@ -211,7 +213,7 @@
 				],
 				'link_settings': {
 					'libraries': [
-						'$(SDKROOT)/usr/lib/libz.tbd',
+						# '$(SDKROOT)/usr/lib/libz.tbd',
 						'$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
 						'$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
 					]

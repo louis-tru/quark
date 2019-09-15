@@ -58,7 +58,7 @@ link_dylib lutils "$obj/lutils $obj/libuv $obj/openssl $obj/http_parser " \
 framework lutils $out/../../lutils
 
 # langou
-link_dylib langou "$obj/lutils $obj/langou $obj/libuv $obj/openssl $obj/http_parser " \
+link_dylib langou "$obj/langou " \
 	"-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 	-framework CoreGraphics -framework QuartzCore -framework UIKit \
