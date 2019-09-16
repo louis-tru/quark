@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'langou';
-import 'langou/font' as f;
-import 'langou/url';
-import 'langou/app';
+import { GUIApplication, Root } from 'ngui';
+import 'ngui/font' as f;
+import 'ngui/url';
+import 'ngui/app';
 
 new GUIApplication().start(<Root/>).onLoad = function() {
 	const a = this;

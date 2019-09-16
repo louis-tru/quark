@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/net.h"
-#include "lutils/fs.h"
+#include "niutils/net.h"
+#include "niutils/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace langou;
+using namespace ngui;
 
 #define error_report printf
 #define info_report printf

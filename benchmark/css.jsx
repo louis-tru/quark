@@ -1,8 +1,8 @@
 
-import { GUIApplication, Root, Div, Indep, langou, render } from 'langou';
-import { Color } from 'langou/value';
-import { random } from 'langou/util';
-import 'langou/css';
+import { GUIApplication, Root, Div, Indep, ngui, render } from 'ngui';
+import { Color } from 'ngui/value';
+import { random } from 'ngui/util';
+import 'ngui/css';
 import './uu';
 
 var test_count = 100000;
@@ -18,8 +18,8 @@ class RootViewController extends ViewController {
 	triggerMounted(e) {
 		super.triggerMounted(e);
 
-		var w = langou.displayPort.width;
-		var h = langou.displayPort.height;
+		var w = ngui.displayPort.width;
+		var h = ngui.displayPort.height;
 		var csss = {};
 	
 		for (var i = 0; i < test_count; i++) {

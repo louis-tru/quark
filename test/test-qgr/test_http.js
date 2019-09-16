@@ -1,8 +1,8 @@
 
 import { P, M, AM, VM, VP, LOG, CA } from './test'
-import 'langou/http'
+import 'ngui/http'
 import { Buffer } from 'buffer'
-import 'langou/url'
+import 'ngui/url'
 import 'fs'
 
 LOG('\nhttp:\n');
@@ -157,7 +157,7 @@ async function async_test_helper() {
 		headers: { 'test': 'test' },
 		//postData: 'a=AA',
 		save: url.documents('test_request_save.html'),
-		upload: url.resources('langou/base.js'),
+		upload: url.resources('ngui/base.js'),
 	}, d=>1])
 	VM(fs, 'existsSync', [url.documents('test_request_save.html')], true);
 	VM(http, 'getSync', ['http://192.168.1.100:1026/out/temp/util.js'], d=>d instanceof Buffer);
@@ -181,11 +181,11 @@ async function async_test_helper() {
 	//M(http, 'downloadSync', ['https://www.baidu.com/', url.documents('down2.html')]);
 	//VM(fs, 'existsSync', [url.documents('down2.html')], true);
 	await AM(http, 'upload', [
-		'http://192.168.1.100:1026/Tools/upload_file', url.resources('langou/http.js'), d=>1]);
+		'http://192.168.1.100:1026/Tools/upload_file', url.resources('ngui/http.js'), d=>1]);
 	VM(http, 'requestSync', 
 		[{url:'http://192.168.1.100:1026/out/temp/http.js',disable_cache:1}], d=>d instanceof Buffer);
 	//M(http, 'uploadSync', [
-	//	'http://192.168.1.100:1026/Tools/upload_file', url.resources('langou/url.js')]);
+	//	'http://192.168.1.100:1026/Tools/upload_file', url.resources('ngui/url.js')]);
 	//VM(http, 'requestSync', 
 	//	[{url:'http://192.168.1.100:1026/out/temp/path.js',disable_cache:1}], d=>d instanceof Buffer);
 	await AM(http, 'get', ['http://192.168.1.100:1026/out/temp/http.js', d=>1]);

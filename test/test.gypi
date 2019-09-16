@@ -10,19 +10,19 @@
 				'../out',
 			],
 			'dependencies': [
-				'lutils',
-				'langou',
-				'langou-js',
-				'langou-media',
-				'langou-node',
-				'langou-v8',
+				'niutils',
+				'ngui',
+				'ngui-js',
+				'ngui-media',
+				'ngui-node',
+				'ngui-v8',
 				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
 				'depe/freetype2/freetype2.gyp:ft2',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-langou',
+				'test-ngui',
 				'../examples',
 				'../benchmark',
 			],
@@ -31,10 +31,10 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/lmake',
-				'../libs/lkit',
+				'../libs/nimake',
+				'../libs/nikit',
 				'test.cc',
-				'test-langou.cc',
+				'test-ngui.cc',
 				'test-fs.cc',
 				'test-fs2.cc',
 				'test-gui.cc',
@@ -90,15 +90,15 @@
 			],
 		},
 		{
-			'target_name': 'langou-demo',
+			'target_name': 'ngui-demo',
 			'type': 'executable',
 			'dependencies': [
-				'lutils',
-				'langou',
-				'langou-js',
-				'langou-media',
-				'langou-node',
-				'langou-v8',
+				'niutils',
+				'ngui',
+				'ngui-js',
+				'ngui-media',
+				'ngui-node',
+				'ngui-v8',
 			],
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
@@ -128,14 +128,14 @@
 	],
 
 	'conditions': [
-		# gen android test depes `liblangou-depes-test.so`
+		# gen android test depes `libngui-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'langou-depes-test',
+				'target_name': 'ngui-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'lutils/minizip.gyp:minizip',
+					'niutils/minizip.gyp:minizip',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
 					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',
@@ -163,13 +163,13 @@
 				],
 			},
 			{
-				'target_name': 'langou-depes-copy',
+				'target_name': 'ngui-depes-copy',
 				'type': 'none',
-				'dependencies': [ 'langou-depes-test' ],
+				'dependencies': [ 'ngui-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/liblangou-depes-test.so',
+						'<(output)/lib.target/libngui-depes-test.so',
 					],
 				}],
 			}],
@@ -177,7 +177,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'LangouTest',
+				'target_name': 'NguiTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],

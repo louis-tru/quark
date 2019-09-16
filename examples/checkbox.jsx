@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, CSS, atomPixel } from 'langou';
-import { Switch, Checkbox } from 'langou/checkbox';
+import { Div, Text, CSS, atomPixel } from 'ngui';
+import { Switch, Checkbox } from 'ngui/checkbox';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

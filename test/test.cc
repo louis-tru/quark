@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/app.h"
-#include "langou/sys.h"
-#include "lutils/loop.h"
-#include "../depe/node/src/langou.h"
+#include "ngui/app.h"
+#include "ngui/sys.h"
+#include "niutils/loop.h"
+#include "../depe/node/src/ngui.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_http_cookie
 #endif
 
-using namespace langou;
+using namespace ngui;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
 XX_GUI_MAIN() {
 
-	// node::LangouEnvironment::test();
+	// node::NguiEnvironment::test();
 
 	uint64 st = sys::time();
 	

@@ -3,7 +3,7 @@ out
 .DS_Store
 *.DS_Store
 node_modules/.bin
-langou.sublime-workspace
+ngui.sublime-workspace
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang

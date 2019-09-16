@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/sys.h"
-#include "lutils/string.h"
+#include "ngui/sys.h"
+#include "niutils/string.h"
 
-using namespace langou;
+using namespace ngui;
 
 void test_sys(int argc, char **argv) {
 	LOG(sys::info());

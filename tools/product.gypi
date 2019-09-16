@@ -146,7 +146,7 @@
 	},
 
 	'targets': [{
-		'target_name': 'liblangou',
+		'target_name': 'libngui',
 		'type': 'none',
 		'direct_dependent_settings': {
 			'defines': [ 
@@ -167,12 +167,12 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-llutils',
-						'-llangou',
-						'-llangou-media',
-						'-llangou-v8',
-						'-llangou-js',
-						'-llangou-node',
+						'-lniutils',
+						'-lngui',
+						'-lngui-media',
+						'-lngui-v8',
+						'-lngui-js',
+						'-lngui-node',
 					],
 					'library_dirs': [
 						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
@@ -186,12 +186,12 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/lutils.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-v8.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/niutils.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-node.framework',
 					],
 				},
 				'direct_dependent_settings': {
@@ -199,12 +199,12 @@
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/lutils.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-v8.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/langou-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/niutils.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-node.framework',
 					],
 				},
 			}],

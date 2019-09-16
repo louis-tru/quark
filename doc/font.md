@@ -1,4 +1,4 @@
-# `langou/font`
+# `ngui/font`
 
 
 ## setDefaultFonts(fonts)

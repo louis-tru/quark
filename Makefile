@@ -1,9 +1,9 @@
 
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
-ANDROID_JAR    = out/android.classs.langou.jar
-LMAKE          = ./libs/lmake
-LMAKE_OUT      = out/lmake
+ANDROID_JAR    = out/android.classs.ngui.jar
+NIMAKE          = ./libs/nimake
+NIMAKE_OUT      = out/nimake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
@@ -19,12 +19,12 @@ ifeq ($(GIT_repository),)
 	GIT_repository = https://github.com/louis-tru
 endif
 
-JSA_SHELL = $(LMAKE)/bin/${HOST_OS}-jsa-shell
+JSA_SHELL = $(NIMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
-DEPS = libs/lkit libs/lmake/gyp.langou depe/v8-link \
-	depe/FFmpeg.langou depe/node.langou depe/bplus
+DEPS = libs/nikit libs/nimake/gyp.ngui depe/v8-link \
+	depe/FFmpeg.ngui depe/node.ngui depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
@@ -55,27 +55,27 @@ check_osx=\
 	fi
 
 .PHONY: all $(FORWARD) jsa ios android linux osx \
-	compile install-lmake-link install-lmake \
+	compile install-nimake-link install-nimake \
 	help web doc watch build-linux-all build-osx-all pull push
 
 .SECONDEXPANSION:
 
-# compile langou and install
+# compile ngui and install
 # It can only run in MAC system.
 compile: pull
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(MAKE) install-lmake
+	@$(MAKE) install-nimake
 	@#-./tools/gen_releases_lib.sh
 
-install-lmake: $(JSA_SHELL)
-	@$(NODE) ./tools/cp-lmake.js
-	@cd $(LMAKE_OUT) && npm i -f
-	@cd $(LMAKE_OUT) && $(SUDO) npm i -g
+install-nimake: $(JSA_SHELL)
+	@$(NODE) ./tools/cp-nimake.js
+	@cd $(NIMAKE_OUT) && npm i -f
+	@cd $(NIMAKE_OUT) && $(SUDO) npm i -g
 
-# debug install langou
-install-lmake-link: $(JSA_SHELL)
-	@cd $(LMAKE) && $(SUDO) npm link
+# debug install ngui
+install-nimake-link: $(JSA_SHELL)
+	@cd $(NIMAKE) && $(SUDO) npm link
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -90,7 +90,7 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
-	@./tools/gen_apple_frameworks.sh $(LMAKE_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(NIMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)

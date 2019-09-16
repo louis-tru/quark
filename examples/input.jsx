@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, langou, Label } from 'langou';
+import { Div, Button, Text, Input, Textarea, ngui, Label } from 'ngui';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;
@@ -38,7 +38,7 @@ function start_input(evt) {
 }
 
 function end_input(evt) {
-	langou.app.focusView.blur();
+	ngui.app.focusView.blur();
 }
 
 export const vx = ()=>(

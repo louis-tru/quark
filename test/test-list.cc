@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/array.h>
-#include <lutils/list.h>
-#include <lutils/string.h>
+#include <niutils/array.h>
+#include <niutils/list.h>
+#include <niutils/string.h>
 #include <map>
 
-using namespace langou;
+using namespace ngui;
 
 class Test{
 	String str;

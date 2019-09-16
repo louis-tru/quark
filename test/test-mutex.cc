@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
-#include <lutils/loop.h>
+#include <niutils/util.h>
+#include <niutils/loop.h>
 
-using namespace langou;
+using namespace ngui;
 
 volatile bool run_flag = false;
 Mutex mtx;

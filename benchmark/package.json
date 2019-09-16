@@ -1,9 +1,9 @@
 {
 	"name": "benchmark",
-	"appName":	"Langou-Benchmark",
-	"id": "org.langou.benchmark",
+	"appName":	"Ngui-Benchmark",
+	"id": "org.ngui.benchmark",
 	"version": "0.1.0",
 	"main": "action",
-	"langouSyntax": true,
+	"nguiSyntax": true,
 	"detach": [ "img", "img2" ]
 }

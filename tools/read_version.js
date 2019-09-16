@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/lkit/fs');
+var fs = require('../libs/nikit/fs');
 
-function read_langou_version() {
-	var str = fs.readFileSync(__dirname + '/../langou/version.h').toString('utf-8');
+function read_ngui_version() {
+	var str = fs.readFileSync(__dirname + '/../ngui/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
@@ -47,16 +47,16 @@ function read_langou_version() {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse langou version number form langou/version.h');
+		throw new Error('Cannot parse ngui version number form ngui/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-function update_langou_version() {
-	var vers = read_langou_version().join('.');
+function update_ngui_version() {
+	var vers = read_ngui_version().join('.');
 	var pkgs = [
-		__dirname + '/../libs/langou/package.json',
-		__dirname + '/../libs/lmake/package.json',
+		__dirname + '/../libs/ngui/package.json',
+		__dirname + '/../libs/nimake/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
@@ -64,5 +64,5 @@ function update_langou_version() {
 	});
 }
 
-exports.read_langou_version = read_langou_version;
-exports.update_langou_version = update_langou_version;
+exports.read_ngui_version = read_ngui_version;
+exports.update_ngui_version = update_ngui_version;

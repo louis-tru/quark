@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
+#include <niutils/util.h>
 
 #if XX_LINUX && !XX_ANDROID
 

@@ -30,7 +30,7 @@
 
 import { 
 	Div, Scroll, Text, TextNode, Hybrid, ViewController 
-} from 'langou';
+} from 'ngui';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

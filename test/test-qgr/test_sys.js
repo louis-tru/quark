@@ -1,5 +1,5 @@
 
-import 'langou/sys'
+import 'ngui/sys'
 import { P, M } from './test'
 
 M(sys, 'time');

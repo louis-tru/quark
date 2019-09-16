@@ -1,5 +1,5 @@
 
-import 'langou/util';
+import 'ngui/util';
 
 function json_stringify(value, whitelist) {
 

@@ -1,13 +1,13 @@
 
-import { GUIApplication, ViewController, Root, Div, Indep, langou, New, lock } from 'langou';
-import { Color } from 'langou/value';
-import { random, log } from 'langou/util';
+import { GUIApplication, ViewController, Root, Div, Indep, ngui, New, lock } from 'ngui';
+import { Color } from 'ngui/value';
+import { random, log } from 'ngui/util';
 import './uu';
 
 class RootViewController extends ViewController {
 	render() {
-		var w = langou.displayPort.width;
-		var h = langou.displayPort.height;
+		var w = ngui.displayPort.width;
+		var h = ngui.displayPort.height;
 		console.log(w,h);
 
 		return (
@@ -42,6 +42,6 @@ class RootViewController extends ViewController {
 	}
 }
 
-new GUIApplication({ multisample: 4, title: 'Langou benchmark' }).start(<RootViewController />);
+new GUIApplication({ multisample: 4, title: 'Ngui benchmark' }).start(<RootViewController />);
 
 uu.show_fsp();

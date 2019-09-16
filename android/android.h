@@ -28,16 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __langou__android__android__
-#define __langou__android__android__
+#ifndef __ngui__android__android__
+#define __ngui__android__android__
 
-#include "lutils/util.h"
+#include "niutils/util.h"
 
 #if XX_ANDROID
 
-#include "lutils/string.h"
+#include "niutils/string.h"
 
-XX_NS(langou)
+XX_NS(ngui)
 
 /**
  * @class Android

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/util.h"
-#include "lutils/buffer.h"
+#include "niutils/util.h"
+#include "niutils/buffer.h"
 
-using namespace langou;
+using namespace ngui;
 
 void test_buffer(int argc, char **argv) {
 	

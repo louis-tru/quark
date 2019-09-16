@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/loop.h>
+#include <niutils/loop.h>
 
-using namespace langou;
+using namespace ngui;
 
 static void message_cb(Se& ev, RunLoop* loop) {
 	static int i = 0;

@@ -52,46 +52,46 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# lutils
-link_dylib lutils "$obj/lutils $obj/libuv $obj/openssl $obj/http_parser " \
+# niutils
+link_dylib niutils "$obj/niutils $obj/libuv $obj/openssl $obj/http_parser " \
 	"-lminizip -lbplus -lz " "-framework Foundation -framework UIKit "
-framework lutils $out/../../lutils
+framework niutils $out/../../niutils
 
-# langou
-link_dylib langou "$obj/langou " \
+# ngui
+link_dylib ngui "$obj/ngui " \
 	"-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 	-framework CoreGraphics -framework QuartzCore -framework UIKit \
-	-framework MessageUI -framework lutils "
+	-framework MessageUI -framework niutils "
 # gen temp framework
-framework langou
+framework ngui
 
-# langou-media
-link_dylib langou-media "$obj/langou-media" "-liconv -lbz2 -lz -lFFmpeg" \
+# ngui-media
+link_dylib ngui-media "$obj/ngui-media" "-liconv -lbz2 -lz -lFFmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-	-framework CoreMedia -framework lutils -framework langou"
-framework langou-media no-inc
+	-framework CoreMedia -framework niutils -framework ngui"
+framework ngui-media no-inc
 
-# langou-v8
+# ngui-v8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib langou-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
+	link_dylib ngui-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
 else
 	# $obj/v8_base/depe/node/deps/v8/src/api.o
 	# $obj/v8_base/depe/node/deps/v8/src/inspector
-	link_dylib langou-v8 "$obj/v8_base $obj/v8_libplatform" \
+	link_dylib ngui-v8 "$obj/v8_base $obj/v8_libplatform" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
 		-lv8_nosnapshot -lv8_builtins_generators" ""
 fi
-framework langou-v8 $out/../../depe/v8-link/include
+framework ngui-v8 $out/../../depe/v8-link/include
 
-# langou-js
-link_dylib langou-js "$obj/langou-js" "" \
-	"-framework lutils -framework langou -framework langou-media \
-	-framework langou-v8 -framework JavaScriptCore"
-framework langou-js no-inc
+# ngui-js
+link_dylib ngui-js "$obj/ngui-js" "" \
+	"-framework niutils -framework ngui -framework ngui-media \
+	-framework ngui-v8 -framework JavaScriptCore"
+framework ngui-js no-inc
 
-# langou-node
-link_dylib langou-node "$obj/node" "-lnghttp2 -lcares -lz" \
-	"-framework lutils -framework langou -framework langou-js -framework langou-v8"
-framework langou-node no-inc
+# ngui-node
+link_dylib ngui-node "$obj/node" "-lnghttp2 -lcares -lz" \
+	"-framework niutils -framework ngui -framework ngui-js -framework ngui-v8"
+framework ngui-node no-inc
 

@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button } from 'langou';
-import { AudioPlayer, Video } from 'langou/media';
+import { Div, Button } from 'ngui';
+import { AudioPlayer, Video } from 'ngui/media';
 import { Mynavpage } from './public';
-import * as aaaa from 'langou/path';
+import * as aaaa from 'ngui/path';
 
-// const src_720 = 'http://langou.org/media/2017-09-11_15_41_19.mp4';
-const src_720 = 'http://langou.org/media/piper720p.mp4';
-const audio_src = 'http://langou.org/media/all_we_know.mp3';
+// const src_720 = 'http://ngui.fun/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://ngui.fun/media/piper720p.mp4';
+const audio_src = 'http://ngui.fun/media/all_we_know.mp3';
 
 var resolve = require.resolve;
 

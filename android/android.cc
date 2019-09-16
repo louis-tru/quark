@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "lutils/android-jni.h"
+#include "niutils/android-jni.h"
 
-XX_NS(langou)
+XX_NS(ngui)
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
@@ -40,7 +40,7 @@ class API {
  public:
 	API() {
 		ScopeENV env;
-		clazz_              = JNI::find_clazz("org/langou/Android");
+		clazz_              = JNI::find_clazz("org/ngui/Android");
 		//clazz_build_        = JNI::find_clazz("android.os.Build");
 		// utils
 		version_            = JNI::find_static_method(clazz_, "version", "()Ljava/lang/String;");
@@ -49,7 +49,7 @@ class API {
 		package_code_path_  = JNI::find_static_method(clazz_, "package_code_path", "()Ljava/lang/String;");
 		cache_dir_path_     = JNI::find_static_method(clazz_, "cache_dir_path", "()Ljava/lang/String;");
 		files_dir_path_     = JNI::find_static_method(clazz_, "files_dir_path", "()Ljava/lang/String;");
-		// langou
+		// ngui
 		ime_keyboard_open_  = JNI::find_static_method(clazz_, "ime_keyboard_open", "(ZII)V");
 		ime_keyboard_can_backspace_ = JNI::find_static_method(clazz_, "ime_keyboard_can_backspace", "(ZZ)V");
 		ime_keyboard_close_ = JNI::find_static_method(clazz_, "ime_keyboard_close", "()V");

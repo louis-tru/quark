@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, CSS, atomPixel, Button, Indep, render } from 'langou';
+import { Div, Text, CSS, atomPixel, Button, Indep, render } from 'ngui';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'langou/overlay';
+import { Overlay } from 'ngui/overlay';
 
 var resolve = require.resolve;
 

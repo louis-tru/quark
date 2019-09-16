@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
+#include <niutils/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace langou;
+using namespace ngui;
 
 class Foo {
  public:

@@ -1,7 +1,7 @@
 
 import { P, M, LOG, AM, VM, VP, CA } from './test'
-import 'langou/fs';
-import 'langou/url';
+import 'ngui/fs';
+import 'ngui/url';
 import { Buffer } from 'buffer';
 
 // init

@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'langou/event';
+import { EventNoticer } from 'ngui/event';
 import './uu';
 
 uu.start();

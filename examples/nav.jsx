@@ -30,9 +30,9 @@
 
 import { 
 	Div, Indep, Button, Text, Hybrid
-} from 'langou';
+} from 'ngui';
 import { Mynavpage } from './public';
-import { Navbar, Toolbar } from 'langou/nav';
+import { Navbar, Toolbar } from 'ngui/nav';
 import review_vx from './review';
 
 var resolve = require.resolve;

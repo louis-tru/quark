@@ -1,5 +1,5 @@
 
-#include <lutils/env.h>
+#include <niutils/env.h>
 
 /* jconfigint.h.  Generated from jconfigint.h.in by configure.  */
 /* libjpeg-turbo build number */

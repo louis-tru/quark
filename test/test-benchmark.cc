@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/js/langou.h"
+#include "ngui/js/ngui.h"
 
-using namespace langou;
+using namespace ngui;
 
 #define IP_REMOTE "127.0.0.1"
 

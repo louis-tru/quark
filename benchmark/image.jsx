@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Image, Scroll } from 'langou';
-import 'langou/reader';
-import 'langou/path';
+import { GUIApplication, Root, Image, Scroll } from 'ngui';
+import 'ngui/reader';
+import 'ngui/path';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root backgroundColor="#000">

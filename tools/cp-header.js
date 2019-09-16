@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/lkit/fs');
+var fs = require('../libs/nikit/fs');
 var path = require('path');
 
 function copy_header(source, target) {

@@ -1,5 +1,5 @@
 
-import 'langou/http';
+import 'ngui/http';
 
 var i = 0;
 

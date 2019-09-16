@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
-#include <langou/image.h>
-#include <langou/sprite.h>
-#include <langou/div.h>
-#include <langou/app.h>
-#include <langou/display-port.h>
-#include <langou/root.h>
-#include <lutils/fs.h>
-#include <langou/gl/gl.h>
+#include <niutils/util.h>
+#include <ngui/image.h>
+#include <ngui/sprite.h>
+#include <ngui/div.h>
+#include <ngui/app.h>
+#include <ngui/display-port.h>
+#include <ngui/root.h>
+#include <niutils/fs.h>
+#include <ngui/gl/gl.h>
 
-using namespace langou;
-using langou::value::ValueType;
-using langou::value::Value;
+using namespace ngui;
+using ngui::value::ValueType;
+using ngui::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

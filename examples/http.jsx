@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input } from 'langou';
-import 'langou/util';
-import 'langou/http';
-import { alert } from 'langou/dialog';
+import { Div, Button, Input } from 'ngui';
+import 'ngui/util';
+import 'ngui/http';
+import { alert } from 'ngui/dialog';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;

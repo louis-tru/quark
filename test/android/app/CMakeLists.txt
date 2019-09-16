@@ -51,176 +51,176 @@ unset(TARGET)
 
 add_definitions(-DDEBUG)
 
-add_library(langou SHARED
-	# langou-utils
+add_library(ngui SHARED
+	# ngui-utils
 	../../../android/android.cc
-	../../../lutils/_android.cc
-	../../../lutils/android-jni.cc
-	../../../lutils/android-log.cc
-	../../../lutils/object.cc
-	../../../lutils/string.cc
-	../../../lutils/string-builder.cc
-	../../../lutils/array.cc
-	../../../lutils/codec.cc
-	../../../lutils/error.cc
-	../../../lutils/http.cc
-	../../../lutils/http-uri.cc
-	../../../lutils/http-helper.cc
-	../../../lutils/fs.cc
-	../../../lutils/fs-file.cc
-	../../../lutils/fs-sync.cc
-	../../../lutils/fs-async.cc
-	../../../lutils/fs-search.cc
-	../../../lutils/fs-reader.cc
-	../../../lutils/buffer.cc
-	../../../lutils/json.cc
-	../../../lutils/map.cc
-	../../../lutils/util.cc
-	../../../lutils/zlib.cc
-	../../../lutils/loop.cc
-	../../../lutils/loop-private.cc
-	../../../lutils/jsx.cc
-	../../../lutils/net.cc
-	../../../lutils/cb.cc
-	../../../lutils/date.cc
-	../../../lutils/http-cookie.cc
-	../../../lutils/localstorage.cc
-	# langou
+	../../../niutils/_android.cc
+	../../../niutils/android-jni.cc
+	../../../niutils/android-log.cc
+	../../../niutils/object.cc
+	../../../niutils/string.cc
+	../../../niutils/string-builder.cc
+	../../../niutils/array.cc
+	../../../niutils/codec.cc
+	../../../niutils/error.cc
+	../../../niutils/http.cc
+	../../../niutils/http-uri.cc
+	../../../niutils/http-helper.cc
+	../../../niutils/fs.cc
+	../../../niutils/fs-file.cc
+	../../../niutils/fs-sync.cc
+	../../../niutils/fs-async.cc
+	../../../niutils/fs-search.cc
+	../../../niutils/fs-reader.cc
+	../../../niutils/buffer.cc
+	../../../niutils/json.cc
+	../../../niutils/map.cc
+	../../../niutils/util.cc
+	../../../niutils/zlib.cc
+	../../../niutils/loop.cc
+	../../../niutils/loop-private.cc
+	../../../niutils/jsx.cc
+	../../../niutils/net.cc
+	../../../niutils/cb.cc
+	../../../niutils/date.cc
+	../../../niutils/http-cookie.cc
+	../../../niutils/localstorage.cc
+	# ngui
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
-	../../../langou/action.cc
-	../../../langou/app.cc
-	../../../langou/div.cc
-	../../../langou/indep.cc
-	../../../langou/box-shadow.cc
-	../../../langou/limit.cc
-	../../../langou/limit-indep.cc
-	../../../langou/image.cc
-	../../../langou/bezier.cc
-	../../../langou/event.cc
-	../../../langou/display-port.cc
-	../../../langou/font/font.cc
-	../../../langou/image/codec.cc
-	../../../langou/image/codec-tga.cc
-	../../../langou/image/codec-pvrtc.cc
-	../../../langou/pre-render.cc
-	../../../langou/mathe.cc
-	../../../langou/label.cc
-	../../../langou/layout.cc
-	../../../langou/box.cc
-	../../../langou/text-rows.cc
-	../../../langou/view.cc
-	../../../langou/draw.cc
-	../../../langou/gl/gl.cc
-	../../../langou/gl/gl-draw.cc
-	../../../langou/gl/gl-texture.cc
-	../../../langou/gl/gl-font.cc
-	../../../langou/root.cc
-	../../../langou/sprite.cc
-	../../../langou/scroll.cc
-	../../../langou/span.cc
-	../../../langou/hybrid.cc
-	../../../langou/text-font.cc
-	../../../langou/text-node.cc
-	../../../langou/texture.cc
-	../../../langou/value.cc
-	../../../langou/panel.cc
-	../../../langou/button.cc
-	../../../langou/keyboard.cc
-	../../../langou/css.cc
-	../../../langou/property.cc
-	../../../langou/text.cc
-	../../../langou/input.cc
-	../../../langou/textarea.cc
-	../../../langou/background.cc
-	../../../langou/render-looper.cc
-	../../../langou/sys.cc
-	../../../langou/platforms/linux-gl.cc
-	../../../langou/platforms/android-app.cc
-	../../../langou/platforms/android-keyboard.cc
-	../../../langou/platforms/android-sys.cc
-	../../../langou/image/codec-gif.cc
-  ../../../langou/image/codec-jpeg.cc
-  ../../../langou/image/codec-png.cc
-  ../../../langou/image/codec-webp.cc
-  ../../../langou/media.cc
+	../../../ngui/action.cc
+	../../../ngui/app.cc
+	../../../ngui/div.cc
+	../../../ngui/indep.cc
+	../../../ngui/box-shadow.cc
+	../../../ngui/limit.cc
+	../../../ngui/limit-indep.cc
+	../../../ngui/image.cc
+	../../../ngui/bezier.cc
+	../../../ngui/event.cc
+	../../../ngui/display-port.cc
+	../../../ngui/font/font.cc
+	../../../ngui/image/codec.cc
+	../../../ngui/image/codec-tga.cc
+	../../../ngui/image/codec-pvrtc.cc
+	../../../ngui/pre-render.cc
+	../../../ngui/mathe.cc
+	../../../ngui/label.cc
+	../../../ngui/layout.cc
+	../../../ngui/box.cc
+	../../../ngui/text-rows.cc
+	../../../ngui/view.cc
+	../../../ngui/draw.cc
+	../../../ngui/gl/gl.cc
+	../../../ngui/gl/gl-draw.cc
+	../../../ngui/gl/gl-texture.cc
+	../../../ngui/gl/gl-font.cc
+	../../../ngui/root.cc
+	../../../ngui/sprite.cc
+	../../../ngui/scroll.cc
+	../../../ngui/span.cc
+	../../../ngui/hybrid.cc
+	../../../ngui/text-font.cc
+	../../../ngui/text-node.cc
+	../../../ngui/texture.cc
+	../../../ngui/value.cc
+	../../../ngui/panel.cc
+	../../../ngui/button.cc
+	../../../ngui/keyboard.cc
+	../../../ngui/css.cc
+	../../../ngui/property.cc
+	../../../ngui/text.cc
+	../../../ngui/input.cc
+	../../../ngui/textarea.cc
+	../../../ngui/background.cc
+	../../../ngui/render-looper.cc
+	../../../ngui/sys.cc
+	../../../ngui/platforms/linux-gl.cc
+	../../../ngui/platforms/android-app.cc
+	../../../ngui/platforms/android-keyboard.cc
+	../../../ngui/platforms/android-sys.cc
+	../../../ngui/image/codec-gif.cc
+  ../../../ngui/image/codec-jpeg.cc
+  ../../../ngui/image/codec-png.cc
+  ../../../ngui/image/codec-webp.cc
+  ../../../ngui/media.cc
 )
 
-add_library(langou-media SHARED
-	../../../langou/audio-player.cc
-	../../../langou/video.cc
-	../../../langou/media-codec.cc
-	../../../langou/media-codec-1.cc
-	../../../langou/media-codec-software.cc
-	../../../langou/media-init.cc
-	../../../langou/platforms/android-media-codec.cc
-	../../../langou/platforms/android-pcm-player.cc
-	../../../langou/platforms/android-pcm-audio-track.cc
+add_library(ngui-media SHARED
+	../../../ngui/audio-player.cc
+	../../../ngui/video.cc
+	../../../ngui/media-codec.cc
+	../../../ngui/media-codec-1.cc
+	../../../ngui/media-codec-software.cc
+	../../../ngui/media-init.cc
+	../../../ngui/platforms/android-media-codec.cc
+	../../../ngui/platforms/android-pcm-player.cc
+	../../../ngui/platforms/android-pcm-audio-track.cc
 )
 
-add_library(langou-js SHARED
+add_library(ngui-js SHARED
 	../../../out/native-inl-js.cc
 	../../../out/native-lib-js.cc
 	../../../out/native-ext-js.cc
-	../../../langou/js/js-cls.cc
-	../../../langou/js/js.cc
-	../../../langou/js/langou.cc
-	../../../langou/js/str.cc
-	../../../langou/js/v8.cc
-	../../../langou/js/wrap.cc
-	../../../langou/js/node.cc
-	# binding langou-utils
-	../../../langou/js/binding/cb.cc
-	../../../langou/js/binding/fs.cc
-	../../../langou/js/binding/fs-reader.cc
-	../../../langou/js/binding/fs-path.cc
-	../../../langou/js/binding/http.cc
-	../../../langou/js/binding/util.cc
-	../../../langou/js/binding/storage.cc
-	../../../langou/js/binding/json.cc
-	../../../langou/js/binding/event.cc
-	../../../langou/js/binding/sys.cc
-	../../../langou/js/binding/event.cc
-	../../../langou/js/binding/timer.cc
-	../../../langou/js/binding/console.cc
-	../../../langou/js/binding/buffer.cc
-	# binding langou-gui
-	../../../langou/js/binding/value.cc
-	../../../langou/js/binding/langou-binding.cc
-	../../../langou/js/binding/action.cc
-	../../../langou/js/binding/action-frame.cc
-	../../../langou/js/binding/app.cc
-	../../../langou/js/binding/audio-player.cc
-	../../../langou/js/binding/video.cc
-	../../../langou/js/binding/media.cc
-	../../../langou/js/binding/div.cc
-	../../../langou/js/binding/display-port.cc
-	../../../langou/js/binding/indep.cc
-	../../../langou/js/binding/image.cc
-	../../../langou/js/binding/layout.cc
-	../../../langou/js/binding/box.cc
-	../../../langou/js/binding/view.cc
-	../../../langou/js/binding/root.cc
-	../../../langou/js/binding/span.cc
-	../../../langou/js/binding/sprite.cc
-	../../../langou/js/binding/hybrid.cc
-	../../../langou/js/binding/text-font.cc
-	../../../langou/js/binding/text-node.cc
-	../../../langou/js/binding/label.cc
-	../../../langou/js/binding/limit.cc
-	../../../langou/js/binding/panel.cc
-	../../../langou/js/binding/button.cc
-	../../../langou/js/binding/scroll.cc
-	../../../langou/js/binding/css.cc
-	../../../langou/js/binding/font.cc
-	../../../langou/js/binding/text.cc
-	../../../langou/js/binding/input.cc
-	../../../langou/js/binding/background.cc
+	../../../ngui/js/js-cls.cc
+	../../../ngui/js/js.cc
+	../../../ngui/js/ngui.cc
+	../../../ngui/js/str.cc
+	../../../ngui/js/v8.cc
+	../../../ngui/js/wrap.cc
+	../../../ngui/js/node.cc
+	# binding ngui-utils
+	../../../ngui/js/binding/cb.cc
+	../../../ngui/js/binding/fs.cc
+	../../../ngui/js/binding/fs-reader.cc
+	../../../ngui/js/binding/fs-path.cc
+	../../../ngui/js/binding/http.cc
+	../../../ngui/js/binding/util.cc
+	../../../ngui/js/binding/storage.cc
+	../../../ngui/js/binding/json.cc
+	../../../ngui/js/binding/event.cc
+	../../../ngui/js/binding/sys.cc
+	../../../ngui/js/binding/event.cc
+	../../../ngui/js/binding/timer.cc
+	../../../ngui/js/binding/console.cc
+	../../../ngui/js/binding/buffer.cc
+	# binding ngui-gui
+	../../../ngui/js/binding/value.cc
+	../../../ngui/js/binding/ngui-binding.cc
+	../../../ngui/js/binding/action.cc
+	../../../ngui/js/binding/action-frame.cc
+	../../../ngui/js/binding/app.cc
+	../../../ngui/js/binding/audio-player.cc
+	../../../ngui/js/binding/video.cc
+	../../../ngui/js/binding/media.cc
+	../../../ngui/js/binding/div.cc
+	../../../ngui/js/binding/display-port.cc
+	../../../ngui/js/binding/indep.cc
+	../../../ngui/js/binding/image.cc
+	../../../ngui/js/binding/layout.cc
+	../../../ngui/js/binding/box.cc
+	../../../ngui/js/binding/view.cc
+	../../../ngui/js/binding/root.cc
+	../../../ngui/js/binding/span.cc
+	../../../ngui/js/binding/sprite.cc
+	../../../ngui/js/binding/hybrid.cc
+	../../../ngui/js/binding/text-font.cc
+	../../../ngui/js/binding/text-node.cc
+	../../../ngui/js/binding/label.cc
+	../../../ngui/js/binding/limit.cc
+	../../../ngui/js/binding/panel.cc
+	../../../ngui/js/binding/button.cc
+	../../../ngui/js/binding/scroll.cc
+	../../../ngui/js/binding/css.cc
+	../../../ngui/js/binding/font.cc
+	../../../ngui/js/binding/text.cc
+	../../../ngui/js/binding/input.cc
+	../../../ngui/js/binding/background.cc
 )
 
-add_library(langou-test SHARED
+add_library(ngui-test SHARED
 	../../../test/test.cc
-	../../../test/test-langou.cc
+	../../../test/test-ngui.cc
 	../../../test/test-fs.cc
 	../../../test/test-fs2.cc
 	../../../test/test-gui.cc
@@ -261,7 +261,7 @@ add_library(langou-test SHARED
 	../../../test/test-linux-input-2.cc
 )
 
-target_link_libraries(langou       atomic z android log OpenSLES GLESv3 EGL mediandk langou-depes-test)
-target_link_libraries(langou-media langou OpenSLES GLESv3 EGL mediandk langou-depes-test)
-target_link_libraries(langou-js    langou langou-depes-test)
-target_link_libraries(langou-test  langou langou-js langou-depes-test)
+target_link_libraries(ngui       atomic z android log OpenSLES GLESv3 EGL mediandk ngui-depes-test)
+target_link_libraries(ngui-media ngui OpenSLES GLESv3 EGL mediandk ngui-depes-test)
+target_link_libraries(ngui-js    ngui ngui-depes-test)
+target_link_libraries(ngui-test  ngui ngui-js ngui-depes-test)

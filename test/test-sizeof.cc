@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/sys.h"
+#include "ngui/sys.h"
 
-using namespace langou;
+using namespace ngui;
 
 class TestSizeOf {
  private:

@@ -1,18 +1,18 @@
-Langou Examples
+Ngui Examples
 ===============
 
-* 这是一个`Langou`演示工程，请使用`lmake`命令导出到`xcode`或`android studio`
+* 这是一个`Ngui`演示工程，请使用`nimake`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`lmake`
+## 获取`nimake`
 
-* 使用 nodejs `npm`安装`lmake`
+* 使用 nodejs `npm`安装`nimake`
 
 
 ```sh
 # shell
-sudo npm install -g lmake
+sudo npm install -g nimake
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g lmake
 
 ```sh
 # shell
-lmake export ios
-lmake export android
+nimake export ios
+nimake export android
 ```
 
 导出后使用`xcode`或`android studio`打开`Project`文件夹下的工程文件

@@ -1,4 +1,4 @@
-# `langou/display_port`
+# `ngui/display_port`
 
 
 ## `Enum: Orientation`
@@ -223,7 +223,7 @@ Callback: cb()
 [`Color`]: value.md#class-color
 
 [`app.displayPort`]: app.md#get-guiapplication-displayport
-[`gui.displayPort`]: langou.md#get-displayport
+[`gui.displayPort`]: ngui.md#get-displayport
 
 [`Orientation`]: display_port.md#enum-orientation
 [`StatusBarStyle`]: display_port.md#enum-statusbarstyle

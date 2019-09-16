@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode } from 'langou';
+import { Div, Button, TextNode } from 'ngui';
 import { Mynavpage } from './public';
-import 'langou/dialog';
+import 'ngui/dialog';
 
 var resolve = require.resolve;
 

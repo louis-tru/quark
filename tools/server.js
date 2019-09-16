@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/lkit');
-var fs = require('../libs/lkit/fs');
-var keys = require('../libs/lkit/keys');
-var service = require('../libs/lkit/service');
-var HttpService = require('../libs/lkit/http_service').HttpService;
-var server = require('../libs/lmake/server');
+var util = require('../libs/nikit');
+var fs = require('../libs/nikit/fs');
+var keys = require('../libs/nikit/keys');
+var service = require('../libs/nikit/service');
+var HttpService = require('../libs/nikit/http_service').HttpService;
+var server = require('../libs/nimake/server');
 require('./test-multiple-service');
 
 var opt = {

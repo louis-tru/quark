@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/fs.h"
-#include "lutils/jsx.h"
-#include "lutils/codec.h" 
+#include "niutils/fs.h"
+#include "niutils/jsx.h"
+#include "niutils/codec.h" 
 
-using namespace langou;
+using namespace ngui;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/langou_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/ngui_ace/ace/Makefile.dryice.js"
 
 #define error(err, ...) { XX_ERR(err, ##__VA_ARGS__); return 1; }
 

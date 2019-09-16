@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/util.h"
-#include "lutils/fs.h"
-#include "lutils/loop.h"
+#include "niutils/util.h"
+#include "niutils/fs.h"
+#include "niutils/loop.h"
 #include <uv.h>
 
-using namespace langou;
+using namespace ngui;
 
 static uv_loop_t* uv_loop = nullptr;
 

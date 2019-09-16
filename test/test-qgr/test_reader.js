@@ -1,8 +1,8 @@
 
 import { P, M, LOG, AM } from './test'
-import 'langou/fs';
-import 'langou/reader';
-import 'langou/url';
+import 'ngui/fs';
+import 'ngui/reader';
+import 'ngui/url';
 
 const DIR = url.documents('test');
 const FILE = DIR + '/test_file.txt';

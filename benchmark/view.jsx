@@ -1,7 +1,7 @@
 
-import { GUIApplication, ViewController, Root, Div, Scroll, render, CSS } from 'langou';
-import { Color } from 'langou/value';
-import { random } from 'langou/util';
+import { GUIApplication, ViewController, Root, Div, Scroll, render, CSS } from 'ngui';
+import { Color } from 'ngui/value';
+import { random } from 'ngui/util';
 import './uu';
 
 CSS({

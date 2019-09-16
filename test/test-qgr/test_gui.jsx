@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'langou/sys';
-import 'langou/dialog';
+import 'ngui/sys';
+import 'ngui/dialog';
 import {
 	GUIApplication,
 	Root, Div, Image, Sprite,
 	Text, Label, Limit, Hybrid,
-	Span, Video, Panel, Button, TextNode, Scroll, langou: gui
-} from 'langou';
+	Span, Video, Panel, Button, TextNode, Scroll, ngui: gui
+} from 'ngui';
 
 const action1 = {
 	delay: 1,

@@ -30,9 +30,9 @@
 
 import { 
 	Div, Hybrid, Text, Button, Image, Indep, Clip,
-} from 'langou';
-import { HIGHLIGHTED_DOWN } from 'langou/event';
-import { Toolbar } from 'langou/nav';
+} from 'ngui';
+import { HIGHLIGHTED_DOWN } from 'ngui/event';
+import { Toolbar } from 'ngui/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

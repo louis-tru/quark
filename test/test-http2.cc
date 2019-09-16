@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
-#include <lutils/http.h>
-#include <lutils/string.h>
-#include <lutils/fs.h>
+#include <niutils/util.h>
+#include <niutils/http.h>
+#include <niutils/string.h>
+#include <niutils/fs.h>
 
-using namespace langou;
+using namespace ngui;
 
 class MyClient: public HttpClientRequest, HttpClientRequest::Delegate {
  public:

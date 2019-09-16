@@ -1,6 +1,6 @@
 
 import 'fs'
-import 'langou/keys'
+import 'ngui/keys'
 import { M } from './test'
 
 //M(keys, 'parseFile', [ resolve('lib.keys') ])

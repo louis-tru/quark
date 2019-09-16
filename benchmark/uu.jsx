@@ -1,8 +1,8 @@
 
-import 'langou/http';
-import 'langou/util';
-import 'langou/sys';
-import { Indep, langou, ViewController, render, Text } from 'langou';
+import 'ngui/http';
+import 'ngui/util';
+import 'ngui/sys';
+import { Indep, ngui, ViewController, render, Text } from 'ngui';
 
 var ts = 0;
 
@@ -30,7 +30,7 @@ class FSP extends ViewController {
 	}
 
 	up_fsp() {
-		var fsp_value = langou.displayPort.fsp();
+		var fsp_value = ngui.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
 		this.modle = { fsp_value, cpu_usage };
 		setTimeout(e=>this.up_fsp(), 1000);
@@ -42,19 +42,19 @@ var fsp;
 
 exports.show_fsp = function() {
 	util.assert(!fsp);
-	util.assert(langou.app);
+	util.assert(ngui.app);
 
 	function show_fsp_ok() {
-		if (langou.root) {
-			fsp = render(<FSP />, langou.root);
+		if (ngui.root) {
+			fsp = render(<FSP />, ngui.root);
 			fsp.up_fsp();
 		}
 	}
 
-	if (langou.app.isLoaded) {
+	if (ngui.app.isLoaded) {
 		show_fsp_ok.setTimeout(1000);
 	} else {
-		langou.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
+		ngui.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
 	}
 };
 

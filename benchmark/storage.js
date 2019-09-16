@@ -1,5 +1,5 @@
 
-import 'langou/storage';
+import 'ngui/storage';
 import './uu';
 
 storage.transaction(function() {

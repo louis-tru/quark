@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
-#include <lutils/string.h>
-#include <lutils/map.h>
-#include <lutils/fs.h>
-#include <langou/sys.h>
+#include <niutils/util.h>
+#include <niutils/string.h>
+#include <niutils/map.h>
+#include <niutils/fs.h>
+#include <ngui/sys.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -44,17 +44,17 @@
 #include <chrono>
 
 //
-#include "langou/image-codec.h"
-#include "langou/texture.h"
-#include "langou/image.h"
-#include "langou/sprite.h"
-#include "langou/box.h"
-#include "langou/app.h"
-#include "langou/display-port.h"
-#include "langou/root.h"
-#include "langou/gl/gl.h"
+#include "ngui/image-codec.h"
+#include "ngui/texture.h"
+#include "ngui/image.h"
+#include "ngui/sprite.h"
+#include "ngui/box.h"
+#include "ngui/app.h"
+#include "ngui/display-port.h"
+#include "ngui/root.h"
+#include "ngui/gl/gl.h"
 
-using namespace langou;
+using namespace ngui;
 
 void each_fonts () {
 	

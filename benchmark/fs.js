@@ -1,6 +1,6 @@
 
-import 'langou/fs';
-import * as url from 'langou/path';
+import 'ngui/fs';
+import * as url from 'ngui/path';
 import './uu';
 
 var path = url.documents('benchmark.txt');

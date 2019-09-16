@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/lkit');
-var service = require('../libs/lkit/service');
-var HttpService = require('../libs/lkit/http_service').HttpService;
+var util = require('../libs/nikit');
+var service = require('../libs/nikit/service');
+var HttpService = require('../libs/nikit/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

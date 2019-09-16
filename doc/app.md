@@ -1,4 +1,4 @@
-# `langou/app`
+# `ngui/app`
 
 
 ## `Class: GUIApplication`
@@ -20,8 +20,8 @@
 Example:
 
 ```jsx
-import GUIApplication from 'langou/app'
-import Root from 'langou'
+import GUIApplication from 'ngui/app'
+import Root from 'ngui'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
@@ -211,6 +211,6 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
 [`DisplayPort`]: display_port.md#class-displayport
-[`Root`]: langou.md#class-root
-[`View`]: langou.md#class-view
+[`Root`]: ngui.md#class-root
+[`View`]: ngui.md#class-view
 [`clear()`]: app.md#guiapplication-clear

@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/array.h>
-#include <lutils/list.h>
-#include <lutils/string.h>
-#include <lutils/map.h>
+#include <niutils/array.h>
+#include <niutils/list.h>
+#include <niutils/string.h>
+#include <niutils/map.h>
 #include <map>
 
-using namespace langou;
+using namespace ngui;
 
 void test_map(int argc, char **argv) {
 	

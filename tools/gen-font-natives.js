@@ -80,16 +80,16 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __langou__native__',
-		'#define __langou__native__',
-	 'namespace langou{',
+		'#ifndef __ngui__native__',
+		'#define __ngui__native__',
+	 'namespace ngui{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace langou{');
+	write(cc_fd, 'namespace ngui{');
 	
 	var fonts = [];
 	

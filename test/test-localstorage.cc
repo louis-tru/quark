@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/localstorage.h"
+#include "niutils/localstorage.h"
 
-using namespace langou;
+using namespace ngui;
 
 void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test2"));
 	
-	localstorage_set("test", "langou.org");
+	localstorage_set("test", "ngui.fun");
 	
 	LOG(localstorage_get("test"));
 	
@@ -44,7 +44,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test"));
 	
-	localstorage_set("test", "langou.org");
+	localstorage_set("test", "ngui.fun");
 	
 	LOG(localstorage_get("test"));
 	

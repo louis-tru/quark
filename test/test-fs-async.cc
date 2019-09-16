@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/util.h"
-#include "lutils/fs.h"
+#include "niutils/util.h"
+#include "niutils/fs.h"
 
-using namespace langou;
+using namespace ngui;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
  public:

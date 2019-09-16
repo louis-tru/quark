@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/json.h>
-#include <lutils/string.h>
-#include <lutils/event.h>
+#include <niutils/json.h>
+#include <niutils/string.h>
+#include <niutils/event.h>
 #include <map>
 
-using namespace langou;
+using namespace ngui;
 
 void test_json(int argc, char **argv) {
 	

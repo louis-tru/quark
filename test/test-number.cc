@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/util.h>
-#include <lutils/loop.h>
-#include <lutils/array.h>
-#include <langou/sys.h>
+#include <niutils/util.h>
+#include <niutils/loop.h>
+#include <niutils/array.h>
+#include <ngui/sys.h>
 
-using namespace langou;
+using namespace ngui;
 
 template<class T>
 void test_operation_add(const char* name) {

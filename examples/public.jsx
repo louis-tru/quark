@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { NavPage } from 'langou/nav';
+import { NavPage } from 'ngui/nav';
 import { 
 	ViewController, Button, CSS, Hybrid,
 	Text, atomPixel as px, 
-	Indep, Panel, Scroll, langou
-} from 'langou';
-import 'langou/util';
+	Indep, Panel, Scroll, ngui
+} from 'ngui';
+import 'ngui/util';
 
 var resolve = require.resolve;
 

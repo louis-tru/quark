@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <lutils/string.h>
-#include <lutils/codec.h>
+#include <niutils/string.h>
+#include <niutils/codec.h>
 
 using namespace std;
-using namespace langou;
+using namespace ngui;
 
 class Str {
  private:

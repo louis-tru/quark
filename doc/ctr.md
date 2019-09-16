@@ -1,4 +1,4 @@
-# `langou/ctr`
+# `ngui/ctr`
 
 ## static ViewController::render(vdom[,parentView) 
 
@@ -11,8 +11,8 @@
 Example:
 
 ```jsx
-import { GUIApplication, ViewController, Root, Div } from 'langou'
-import 'langou/http'
+import { GUIApplication, ViewController, Root, Div } from 'ngui'
+import 'ngui/http'
 class MyCtr extends ViewController {
 	triggerLoad(e) {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
@@ -143,18 +143,18 @@ new GUIApplication().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: langou.md#class-view
+[`View`]: ngui.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: langou.md#get-view-action
-[`View.style`]: langou.md#view-style
-[`View.visible`]: langou.md#view-visible
-[`View.receive`]: langou.md#view-receive
-[`View.class`]: langou.md#get-view-class
-[`View.transition()`]: langou.md#view-transition-style-delay-cb-
-[`View.show()`]: langou.md#view-show-
-[`View.hide()`]: langou.md#view-hide-
-[`View.addClass()`]: langou.md#view-addClass-name-
-[`View.removeClass()`]: langou.md#view-removeclass-name-
-[`View.toggleClass()`]: langou.md#view-toggleclass-name-
-[`View.remove()`]: langou.md#view-remove-
+[`View.action`]: ngui.md#get-view-action
+[`View.style`]: ngui.md#view-style
+[`View.visible`]: ngui.md#view-visible
+[`View.receive`]: ngui.md#view-receive
+[`View.class`]: ngui.md#get-view-class
+[`View.transition()`]: ngui.md#view-transition-style-delay-cb-
+[`View.show()`]: ngui.md#view-show-
+[`View.hide()`]: ngui.md#view-hide-
+[`View.addClass()`]: ngui.md#view-addClass-name-
+[`View.removeClass()`]: ngui.md#view-removeclass-name-
+[`View.toggleClass()`]: ngui.md#view-toggleclass-name-
+[`View.remove()`]: ngui.md#view-remove-

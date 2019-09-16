@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "lutils/util.h"
-#include "lutils/string.h"
+#include "niutils/util.h"
+#include "niutils/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>
 #include <istream>
 
 using namespace v8;
-namespace n = langou;
+namespace n = ngui;
 
 MaybeLocal<v8::Value> run_script(Isolate* isolate, v8::Local<v8::String> source_string,
 																 v8::Local<v8::String> name,

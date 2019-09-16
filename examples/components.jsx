@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Clip, Text, langou } from 'langou';
+import { Scroll, Clip, Text, ngui } from 'ngui';
 import { Navbutton, Mynavpage } from './public';
 import './checkbox';
 import './overlay';

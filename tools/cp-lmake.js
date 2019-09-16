@@ -28,25 +28,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/lkit/util');
-var fs = require('../libs/lkit/fs');
+var util = require('../libs/nikit/util');
+var fs = require('../libs/nikit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
-var {execSync} = require('../libs/lkit/syscall');
+var {execSync} = require('../libs/nikit/syscall');
 var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/lmake';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/nimake';
 var include = target + '/product/include';
 
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
 
-read_version.update_langou_version();
+read_version.update_ngui_version();
 
-fs.cp_sync(root + '/libs/lmake', target, {ignore_hide:1});
+fs.cp_sync(root + '/libs/nimake', target, {ignore_hide:1});
 
 var host = "192.168.0.115";
 
@@ -58,7 +58,7 @@ if (process.env.REMOTE_COMPILE_HOST) {
 // fi
 
 if (!fs.existsSync(target + '/bin/linux-jsa-shell')) {
-	var {code} = execSync(`scp louis@${host}:~/Project/langou/libs/lmake/bin/linux-jsa-shell ${target}/bin`);
+	var {code} = execSync(`scp louis@${host}:~/Project/ngui/libs/nimake/bin/linux-jsa-shell ${target}/bin`);
 	if (code) {
 		console.warn('Cannot copy linux-jsa-shell, not find linux-jsa-shell');
 	} else {
@@ -74,8 +74,8 @@ if (!fs.existsSync(target + '/bin/osx-jsa-shell')) {
 }
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
-copy_header(root + '/langou', `${include}/langou`);
-copy_header(root + '/lutils', `${include}/lutils`);
+copy_header(root + '/ngui', `${include}/ngui`);
+copy_header(root + '/niutils', `${include}/niutils`);
 copy_header(`${root}/depe/v8-link/include`, include);
 copy_header(`${root}/depe/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
 copy_header(`${root}/depe/node/deps/openssl/config/archs`, `${include}/openssl/archs`);
@@ -89,8 +89,8 @@ copy_header(`${root}/depe/node/src/node.h`, `${include}/node.h`);
 copy_header(`${root}/depe/node/src/node_object_wrap.h`, `${include}/node_object_wrap.h`);
 copy_header(`${root}/depe/node/src/node_version.h`, `${include}/node_version.h`);
 
-// fs.cp_sync(root + '/libs/langou', target + '/product/libs/langou');
+// fs.cp_sync(root + '/libs/ngui', target + '/product/libs/ngui');
 fs.cp_sync(root + '/examples', target + '/product/examples');
-fs.cp_sync(root + '/tools/product.gypi', target + '/product/langou.gypi');
+fs.cp_sync(root + '/tools/product.gypi', target + '/product/ngui.gypi');
 // fs.cp_sync(root + '/tools/common.gypi', target + '/product/common.gypi');
 // fs.cp_sync(root + '/out/config.gypi', target + '/product/config.gypi');

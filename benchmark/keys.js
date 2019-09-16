@@ -1,7 +1,7 @@
 
-import 'langou/keys';
-import 'langou/fs';
-import 'langou/path';
+import 'ngui/keys';
+import 'ngui/fs';
+import 'ngui/path';
 import './uu';
 
 uu.start();

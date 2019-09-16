@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/zlib.h>
+#include <niutils/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace langou;
+using namespace ngui;
 
 void test_zlib (int argc, char **argv) {
 	

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/fs.h>
+#include <niutils/fs.h>
 #include <pwd.h>
 
-using namespace langou;
+using namespace ngui;
 
 void test_fs(int argc, char **argv) {
 	

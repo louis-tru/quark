@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Buffer } from 'buffer';
-import 'langou/http';
-import 'langou/value';
-import 'langou/sys';
+import 'ngui/http';
+import 'ngui/value';
+import 'ngui/sys';
 
 console.log('args:', process.argv, process.mainModule.filename);
 

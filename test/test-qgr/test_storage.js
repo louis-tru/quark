@@ -1,6 +1,6 @@
 
 import { LOG, M } from './test'
-import 'langou/storage'
+import 'ngui/storage'
 
 LOG('\nTest Storage:\n')
 

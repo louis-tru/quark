@@ -12,13 +12,13 @@ CXX           ?= g++
 LINK          ?= g++
 ANDROID_SDK   ?= $(ANDROID_HOME)
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
-ANDROID_JAR    = out/android.classs.langou.jar
+ANDROID_JAR    = out/android.classs.ngui.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-LMAKE          = ./libs/lmake
-LMAKE_OUT      = out/lmake
-GYP            = $(LMAKE)/gyp/gyp
+NIMAKE          = ./libs/nimake
+NIMAKE_OUT      = out/nimake
+GYP            = $(NIMAKE)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
 BUILD_STYLE    = make
@@ -26,7 +26,7 @@ BUILD_STYLE    = make
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile langou.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
+GYPFILES	= Makefile ngui.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -57,7 +57,7 @@ all: build
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call gen_project,$@,langou.gyp)
+	@$(call gen_project,$@,ngui.gyp)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
@@ -65,21 +65,21 @@ build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 tools: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
 	@$(call make_compile,$(MAKE))
-	@cp $(LIBS_DIR)/jsa-shell $(LMAKE)/bin/$(OS)-jsa-shell
+	@cp $(LIBS_DIR)/jsa-shell $(NIMAKE)/bin/$(OS)-jsa-shell
 
 test2: $(GYPFILES)
 	@#make -C test -f test2.mk
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
-$(ANDROID_JAR): android/org/langou/*.java
+$(ANDROID_JAR): android/org/ngui/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/langou/*.java
-	@cd out/android.classs; $(JAR) cfv langou.jar .
-	@mkdir -p $(LMAKE_OUT)/product/android/libs
-	@cp out/android.classs/langou.jar $(LMAKE_OUT)/product/android/libs
+	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/ngui/*.java
+	@cd out/android.classs; $(JAR) cfv ngui.jar .
+	@mkdir -p $(NIMAKE_OUT)/product/android/libs
+	@cp out/android.classs/ngui.jar $(NIMAKE_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/lmake/product/$(OS)
+	@rm -rfv out/nimake/product/$(OS)

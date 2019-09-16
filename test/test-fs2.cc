@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/fs.h>
-#include <lutils/loop.h>
+#include <niutils/fs.h>
+#include <niutils/loop.h>
 
-using namespace langou;
+using namespace ngui;
 
 static String write_str;
 
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	
-	write_str = f_reader()->read_file_sync(Path::resources("langou/ctr.js"));
+	write_str = f_reader()->read_file_sync(Path::resources("ngui/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 

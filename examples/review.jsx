@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text } from 'langou';
+import { Scroll, Text } from 'ngui';
 import { Mynavpage } from './public';
-import { Toolbar } from 'langou/nav';
-import 'langou/reader';
+import { Toolbar } from 'ngui/nav';
+import 'ngui/reader';
 
 function foreground(evt) {
 	var navpage = evt.sender;

@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "lutils/util.h"
-#include "lutils/string-builder.h"
-#include "lutils/buffer.h"
-#include "lutils/loop.h"
+#include "niutils/util.h"
+#include "niutils/string-builder.h"
+#include "niutils/buffer.h"
+#include "niutils/loop.h"
 
-using namespace langou;
+using namespace ngui;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;

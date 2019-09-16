@@ -1,5 +1,5 @@
 {
-	"name": "test-langou",
+	"name": "test-ngui",
 	"main": "test_gui.jsx",
-	"langouSyntax": true
+	"nguiSyntax": true
 }

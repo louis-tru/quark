@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "langou/js/langou.h"
+#include "ngui/js/ngui.h"
 
-using namespace langou;
+using namespace ngui;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
@@ -54,7 +54,7 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 }
 
 void test_demo(int argc, char **argv) {
-	String cmd = "langou ";
+	String cmd = "ngui ";
 #if USE_NODE
 	String cmd += USE_NODE;
 #else
@@ -119,10 +119,10 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if XX_ANDROID
-#include <lutils/android-jni.h>
+#include <niutils/android-jni.h>
 	JNIEXPORT extern void
-	Java_org_langou_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		LOG("Java_org_langou_examples_MainActivity_test");
+	Java_org_ngui_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		LOG("Java_org_ngui_examples_MainActivity_test");
 	}
 #endif
 }

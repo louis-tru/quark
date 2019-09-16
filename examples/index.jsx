@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'langou/util';
-import 'langou/sys';
-import 'langou/reader';
-import 'langou/font';
+import 'ngui/util';
+import 'ngui/sys';
+import 'ngui/reader';
+import 'ngui/font';
 import {
 	GUIApplication, Root, Scroll, CSS, atomPixel as px,
-	Div, Hybrid, Clip, Text, Button, TextNode as T, langou
-} from 'langou';
-import { NavPageCollection, Toolbar } from 'langou/nav';
+	Div, Hybrid, Clip, Text, Button, TextNode as T, ngui
+} from 'ngui';
+import { NavPageCollection, Toolbar } from 'ngui/nav';
 import { Navbutton, Mynavpage } from './public';
 import './examples';
 import about_vx from './about';
@@ -103,22 +103,22 @@ function review_code(evt) {
 	evt.sender.owner.collection.push(review_vx(), 1);
 }
 
-const langou_tools = 'https://www.npmjs.com/package/lmake';
-const langou_tools_issues_url = 'https://github.com/louis-tru/langou/issues';
-const examples_source = 'https://github.com/louis-tru/langou.git';
-const documents = 'http://langou.org/';
+const ngui_tools = 'https://www.npmjs.com/package/nimake';
+const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui/issues';
+const examples_source = 'https://github.com/louis-tru/ngui.git';
+const documents = 'http://ngui.fun/';
 
 // registerFont
 
 function handle_go_to(evt) {
 	var url = evt.sender.url;
 	if ( url ) {
-		langou.app.openUrl(url);
+		ngui.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	langou.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	ngui.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 class DefaultToolbar extends Toolbar {
@@ -133,14 +133,14 @@ class DefaultToolbar extends Toolbar {
 	}
 }
 
-const langou_tools_vx = ()=>(
-	<Mynavpage title="Langou Tools" source=resolve(__filename)>
+const ngui_tools_vx = ()=>(
+	<Mynavpage title="Ngui Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-`1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g lmake" />.
+`1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g nimake" />.
 2. Or get the node modules from Github.`
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -157,7 +157,7 @@ const examples_source_vx = ()=>(
 const documents_vx = ()=>(
 	<Mynavpage title="Documents" source=resolve(__filename)>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="langou.org" /> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="ngui.fun" /> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
 		</Div>
 	</Mynavpage>
@@ -167,7 +167,7 @@ const bug_feedback_vx = ()=>(
 	<Mynavpage title="Bug Feedback" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=langou_tools_issues_url>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools_issues_url>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_bug_feedback>Send email</Button>
 		</Div>
@@ -181,7 +181,7 @@ var app = new GUIApplication({
 	fullScreen: util.options.full_screen || 0,
 	enableTouch: 1,
 	background: 0xffffff,
-	title: 'Langou Examples',
+	title: 'Ngui Examples',
 }).start(
 	<Root>
 
@@ -192,7 +192,7 @@ var app = new GUIApplication({
 
 					<Text class="hello" value="Hello." />
 					<Div class="category" borderBottom=`${px} #c8c7cc`>
-						<Hybrid class="codepre">`<T class="keywork" value="import"/> \{ <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> \} <T class="keywork" value="from" /> <T class="str" value="'langou'" />
+						<Hybrid class="codepre">`<T class="keywork" value="import"/> \{ <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> \} <T class="keywork" value="from" /> <T class="str" value="'ngui'" />
 <T class="keywork" value="new"/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>(
 	\<<T class="tag_name" value="Root" />\>hello world!\</<T class="tag_name" value="Root" />\>
 )`
@@ -203,7 +203,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next=examples.vx>Examples</Navbutton>
 						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=langou_tools_vx>Langou Tools</Navbutton>
+						<Navbutton next=ngui_tools_vx>Ngui Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />

@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <lutils/map.h>
-#include <lutils/array.h>
-#include <lutils/list.h>
-#include <lutils/string.h>
-#include <lutils/event.h>
+#include <niutils/map.h>
+#include <niutils/array.h>
+#include <niutils/list.h>
+#include <niutils/string.h>
+#include <niutils/event.h>
 
-using namespace langou;
+using namespace ngui;
 
 void test_event(int argc, char **argv) {
 	

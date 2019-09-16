@@ -5,15 +5,15 @@
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
 CFG=freetype - Win32 Debug Singlethreaded
-!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE This is not a valid makefile. To build this project using NIMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE
-!MESSAGE NMAKE /f "freetype.mak".
+!MESSAGE NIMAKE /f "freetype.mak".
 !MESSAGE
-!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE You can specify a configuration when running NIMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE
-!MESSAGE NMAKE /f "freetype.mak" CFG="freetype - Win32 Debug Singlethreaded"
+!MESSAGE NIMAKE /f "freetype.mak" CFG="freetype - Win32 Debug Singlethreaded"
 !MESSAGE
 !MESSAGE Possible choices for configuration are:
 !MESSAGE

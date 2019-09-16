@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root, Div, Button, Indep, Image } from 'langou';
-import 'langou/action';
-import 'langou/css';
+import { GUIApplication, Root, Div, Button, Indep, Image } from 'ngui';
+import 'ngui/action';
+import 'ngui/css';
 
 new GUIApplication().start(
 	<Root>

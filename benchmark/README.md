@@ -1,19 +1,19 @@
-Langou简介
+Ngui简介
 ===============
 
-Langou是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
+Ngui是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
 
-* [`开源跨平台移动项目Langou【简介】`](http://www.jianshu.com/p/2104b885eae6)
+* [`开源跨平台移动项目Ngui【简介】`](http://www.jianshu.com/p/2104b885eae6)
 
-* [`开源跨平台移动项目Langou【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
+* [`开源跨平台移动项目Ngui【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
 
-* [`开源跨平台移动项目Langou【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
+* [`开源跨平台移动项目Ngui【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
 
-* [`开源跨平台移动项目Langou【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
+* [`开源跨平台移动项目Ngui【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
 
-* [`开源跨平台移动项目Langou【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
+* [`开源跨平台移动项目Ngui【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Langou API 文档`](http://langou.org/doc/)
+* [`Ngui API 文档`](http://ngui.fun/doc/)
 
 # Benchmark
 

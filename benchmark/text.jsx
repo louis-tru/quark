@@ -1,5 +1,5 @@
 
-import { Image } from 'langou';
+import { Image } from 'ngui';
 import './print';
 
 
