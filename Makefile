@@ -2,8 +2,8 @@
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
 ANDROID_JAR    = out/android.classs.ngui.jar
-NIMAKE          = ./libs/nxmake
-NIMAKE_OUT      = out/nxmake
+NXMAKE          = ./libs/nxmake
+NXMAKE_OUT      = out/nxmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
@@ -19,7 +19,7 @@ ifeq ($(GIT_repository),)
 	GIT_repository = https://github.com/louis-tru
 endif
 
-JSA_SHELL = $(NIMAKE)/bin/${HOST_OS}-jsa-shell
+JSA_SHELL = $(NXMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
@@ -70,12 +70,12 @@ compile: pull
 
 install-nxmake: $(JSA_SHELL)
 	@$(NODE) ./tools/cp-nxmake.js
-	@cd $(NIMAKE_OUT) && npm i -f
-	@cd $(NIMAKE_OUT) && $(SUDO) npm i -g
+	@cd $(NXMAKE_OUT) && npm i -f
+	@cd $(NXMAKE_OUT) && $(SUDO) npm i -g
 
 # debug install ngui
 install-nxmake-link: $(JSA_SHELL)
-	@cd $(NIMAKE) && $(SUDO) npm link
+	@cd $(NXMAKE) && $(SUDO) npm link
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -90,7 +90,7 @@ ios: $(JSA_SHELL)
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
-	@./tools/gen_apple_frameworks.sh $(NIMAKE_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(NXMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)
