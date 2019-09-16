@@ -31,10 +31,10 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "niutils/util.h"
-#include "niutils/string-builder.h"
-#include "niutils/buffer.h"
-#include "niutils/loop.h"
+#include "nxutils/util.h"
+#include "nxutils/string-builder.h"
+#include "nxutils/buffer.h"
+#include "nxutils/loop.h"
 
 using namespace ngui;
 

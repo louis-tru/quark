@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/util.h"
-#include "niutils/fs.h"
-#include "niutils/loop.h"
+#include "nxutils/util.h"
+#include "nxutils/fs.h"
+#include "nxutils/loop.h"
 #include <uv.h>
 
 using namespace ngui;

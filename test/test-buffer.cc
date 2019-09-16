@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/util.h"
-#include "niutils/buffer.h"
+#include "nxutils/util.h"
+#include "nxutils/buffer.h"
 
 using namespace ngui;
 

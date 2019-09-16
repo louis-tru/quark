@@ -52,39 +52,39 @@ unset(TARGET)
 add_definitions(-DDEBUG)
 
 add_library(ngui SHARED
-	# ngui-utils
+	# nxutils
 	../../../android/android.cc
-	../../../niutils/_android.cc
-	../../../niutils/android-jni.cc
-	../../../niutils/android-log.cc
-	../../../niutils/object.cc
-	../../../niutils/string.cc
-	../../../niutils/string-builder.cc
-	../../../niutils/array.cc
-	../../../niutils/codec.cc
-	../../../niutils/error.cc
-	../../../niutils/http.cc
-	../../../niutils/http-uri.cc
-	../../../niutils/http-helper.cc
-	../../../niutils/fs.cc
-	../../../niutils/fs-file.cc
-	../../../niutils/fs-sync.cc
-	../../../niutils/fs-async.cc
-	../../../niutils/fs-search.cc
-	../../../niutils/fs-reader.cc
-	../../../niutils/buffer.cc
-	../../../niutils/json.cc
-	../../../niutils/map.cc
-	../../../niutils/util.cc
-	../../../niutils/zlib.cc
-	../../../niutils/loop.cc
-	../../../niutils/loop-private.cc
-	../../../niutils/jsx.cc
-	../../../niutils/net.cc
-	../../../niutils/cb.cc
-	../../../niutils/date.cc
-	../../../niutils/http-cookie.cc
-	../../../niutils/localstorage.cc
+	../../../nxutils/_android.cc
+	../../../nxutils/android-jni.cc
+	../../../nxutils/android-log.cc
+	../../../nxutils/object.cc
+	../../../nxutils/string.cc
+	../../../nxutils/string-builder.cc
+	../../../nxutils/array.cc
+	../../../nxutils/codec.cc
+	../../../nxutils/error.cc
+	../../../nxutils/http.cc
+	../../../nxutils/http-uri.cc
+	../../../nxutils/http-helper.cc
+	../../../nxutils/fs.cc
+	../../../nxutils/fs-file.cc
+	../../../nxutils/fs-sync.cc
+	../../../nxutils/fs-async.cc
+	../../../nxutils/fs-search.cc
+	../../../nxutils/fs-reader.cc
+	../../../nxutils/buffer.cc
+	../../../nxutils/json.cc
+	../../../nxutils/map.cc
+	../../../nxutils/util.cc
+	../../../nxutils/zlib.cc
+	../../../nxutils/loop.cc
+	../../../nxutils/loop-private.cc
+	../../../nxutils/jsx.cc
+	../../../nxutils/net.cc
+	../../../nxutils/cb.cc
+	../../../nxutils/date.cc
+	../../../nxutils/http-cookie.cc
+	../../../nxutils/localstorage.cc
 	# ngui
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
@@ -169,7 +169,7 @@ add_library(ngui-js SHARED
 	../../../ngui/js/v8.cc
 	../../../ngui/js/wrap.cc
 	../../../ngui/js/node.cc
-	# binding ngui-utils
+	# binding nxutils
 	../../../ngui/js/binding/cb.cc
 	../../../ngui/js/binding/fs.cc
 	../../../ngui/js/binding/fs-reader.cc

@@ -52,24 +52,24 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# niutils
-link_dylib niutils "$obj/niutils $obj/libuv $obj/openssl $obj/http_parser " \
+# nxutils
+link_dylib nxutils "$obj/nxutils $obj/libuv $obj/openssl $obj/http_parser " \
 	"-lminizip -lbplus -lz " "-framework Foundation -framework UIKit "
-framework niutils $out/../../niutils
+framework nxutils $out/../../nxutils
 
 # ngui
 link_dylib ngui "$obj/ngui " \
 	"-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 	-framework CoreGraphics -framework QuartzCore -framework UIKit \
-	-framework MessageUI -framework niutils "
+	-framework MessageUI -framework nxutils "
 # gen temp framework
 framework ngui
 
 # ngui-media
 link_dylib ngui-media "$obj/ngui-media" "-liconv -lbz2 -lz -lFFmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-	-framework CoreMedia -framework niutils -framework ngui"
+	-framework CoreMedia -framework nxutils -framework ngui"
 framework ngui-media no-inc
 
 # ngui-v8
@@ -86,12 +86,12 @@ framework ngui-v8 $out/../../depe/v8-link/include
 
 # ngui-js
 link_dylib ngui-js "$obj/ngui-js" "" \
-	"-framework niutils -framework ngui -framework ngui-media \
+	"-framework nxutils -framework ngui -framework ngui-media \
 	-framework ngui-v8 -framework JavaScriptCore"
 framework ngui-js no-inc
 
 # ngui-node
 link_dylib ngui-node "$obj/node" "-lnghttp2 -lcares -lz" \
-	"-framework niutils -framework ngui -framework ngui-js -framework ngui-v8"
+	"-framework nxutils -framework ngui -framework ngui-js -framework ngui-v8"
 framework ngui-node no-inc
 

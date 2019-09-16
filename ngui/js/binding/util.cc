@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/string.h"
-#include "niutils/fs.h"
+#include "nxutils/string.h"
+#include "nxutils/fs.h"
 #include "ngui/sys.h"
-#include "niutils/loop.h"
+#include "nxutils/loop.h"
 #include "ngui/js/ngui.h"
-#include "niutils/jsx.h"
+#include "nxutils/jsx.h"
 #include "native-ext-js.h"
 
 /**

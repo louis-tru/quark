@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "app-1.h"
-#include "niutils/loop.h"
+#include "nxutils/loop.h"
 
 XX_NS(ngui)
 

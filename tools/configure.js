@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/nikit');
-var fs = require('../libs/nikit/fs');
-var url = require('../libs/nikit/url');
+var util = require('../libs/nxkit');
+var fs = require('../libs/nxkit/fs');
+var url = require('../libs/nxkit/url');
 var path = require('path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('../libs/nikit/arguments');
-var { syscall, execSync, exec, spawn } = require('../libs/nikit/syscall');
+var argument = require('../libs/nxkit/arguments');
+var { syscall, execSync, exec, spawn } = require('../libs/nxkit/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

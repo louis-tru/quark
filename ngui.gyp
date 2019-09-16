@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'niutils/niutils.gypi',
+		'nxutils/nxutils.gypi',
 		'ngui/ngui.gypi',
 		'ngui/js/js.gypi',
 		'tools/default_target.gypi',
@@ -8,7 +8,7 @@
 
 	'variables': {
 		'more_log%': 0,
-		'ngui_product_dir%': '<(output)/../nimake/product',
+		'ngui_product_dir%': '<(output)/../nxmake/product',
 		'ngui_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
 		'conditions': [
@@ -18,7 +18,7 @@
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/libniutils.a',
+					'<(output)/obj.target/libnxutils.a',
 					'<(output)/obj.target/libngui.a',
 					'<(output)/obj.target/libngui-js.a',
 					'<(output)/obj.target/libngui-media.a',
@@ -45,7 +45,7 @@
 		'target_name': 'libngui',
 		'type': 'none',
 		'dependencies': [
-			'niutils',
+			'nxutils',
 			'ngui',
 			'ngui-js',
 			'ngui-media',
@@ -57,7 +57,7 @@
 		'target_name': 'ngui_mac_dylib',
 		'type': 'none',
 		'dependencies': [
-			'niutils',
+			'nxutils',
 			'ngui',
 			'ngui-js',
 			'ngui-media',
@@ -103,7 +103,7 @@
 						'<(output)/obj.target/FFmpeg/libFFmpeg.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
-						'<(output)/libniutils.a',
+						'<(output)/libnxutils.a',
 						'<(output)/libngui.a',
 						'<(output)/libngui-js.a',
 						'<(output)/libngui-media.a',
@@ -111,7 +111,7 @@
 						'<@(lib_v8_a)',
 					],
 					'outputs': [
-						'<(output)/libniutils.dylib',
+						'<(output)/libnxutils.dylib',
 						'<(output)/libngui.dylib',
 						'<(output)/libngui-js.dylib',
 						'<(output)/libngui-media.dylib',
@@ -135,7 +135,7 @@
 		'target_name': 'ngui_copy_so', 
 		'type': 'none',
 		'dependencies': [
-			'niutils',
+			'nxutils',
 			'ngui',
 			'ngui-js',
 			'ngui-media',
@@ -148,7 +148,7 @@
 				'copies': [{
 					'destination': '<(ngui_product_dir)/<(ngui_product_so_subdir)',
 					'files': [
-						'<(output)/lib.target/libniutils.so',
+						'<(output)/lib.target/libnxutils.so',
 						'<(output)/lib.target/libngui.so',
 						'<(output)/lib.target/libngui-js.so',
 						'<(output)/lib.target/libngui-media.so',

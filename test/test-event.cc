@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/map.h>
-#include <niutils/array.h>
-#include <niutils/list.h>
-#include <niutils/string.h>
-#include <niutils/event.h>
+#include <nxutils/map.h>
+#include <nxutils/array.h>
+#include <nxutils/list.h>
+#include <nxutils/string.h>
+#include <nxutils/event.h>
 
 using namespace ngui;
 

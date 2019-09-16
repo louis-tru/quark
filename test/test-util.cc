@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/util.h>
-#include <niutils/string.h>
+#include <nxutils/util.h>
+#include <nxutils/string.h>
 
 using namespace ngui;
 

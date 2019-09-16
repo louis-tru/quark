@@ -31,7 +31,7 @@
 #include "hybrid.h"
 #include "text.h"
 #include "text-node.h"
-#include "niutils/codec.h"
+#include "nxutils/codec.h"
 
 XX_NS(ngui)
 

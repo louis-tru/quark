@@ -30,9 +30,9 @@
 
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#include "niutils/util.h"
-#include "niutils/http.h"
-#include "niutils/string-builder.h"
+#include "nxutils/util.h"
+#include "nxutils/http.h"
+#include "nxutils/string-builder.h"
 #include "ngui/view.h"
 #include "ngui/errno.h"
 #include "js-1.h"

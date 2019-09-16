@@ -33,7 +33,7 @@
 #define __ngui__js__fs_1__
 
 #include "ngui/js/js.h"
-#include "niutils/codec.h"
+#include "nxutils/codec.h"
 
 /**
  * @ns ngui::js

@@ -119,7 +119,7 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if XX_ANDROID
-#include <niutils/android-jni.h>
+#include <nxutils/android-jni.h>
 	JNIEXPORT extern void
 	Java_org_ngui_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
 		LOG("Java_org_ngui_examples_MainActivity_test");

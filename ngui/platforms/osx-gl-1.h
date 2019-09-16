@@ -33,7 +33,7 @@
 #ifndef __ngui__osx_gl__
 #define __ngui__osx_gl__
 
-#import "niutils/macros.h"
+#import "nxutils/macros.h"
 
 #if XX_OSX
 

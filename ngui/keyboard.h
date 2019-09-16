@@ -31,8 +31,8 @@
 #ifndef __ngui__keyboard__
 #define __ngui__keyboard__
 
-#include "niutils/util.h"
-#include "niutils/map.h"
+#include "nxutils/util.h"
+#include "nxutils/map.h"
 
 XX_NS(ngui)
 

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "media-codec-1.h"
-#include "niutils/loop.h"
+#include "nxutils/loop.h"
 #include "ngui/app.h"
 #include "ngui/errno.h"
 

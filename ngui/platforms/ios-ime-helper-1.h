@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/macros.h"
+#include "nxutils/macros.h"
 
 #if XX_IOS
 

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/nikit');
-var service = require('../libs/nikit/service');
-var HttpService = require('../libs/nikit/http_service').HttpService;
+var util = require('../libs/nxkit');
+var service = require('../libs/nxkit/service');
+var HttpService = require('../libs/nxkit/http_service').HttpService;
 
 var TestMultipleService = util.class('TestMultipleService', HttpService, {
 

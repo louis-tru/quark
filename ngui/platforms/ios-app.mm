@@ -30,7 +30,7 @@
 
 #import <UIKit/UIKit.h>
 #import <OpenGLES/ES2/glext.h>
-#import "niutils/loop.h"
+#import "nxutils/loop.h"
 #import "ios-gl-1.h"
 #import "ios-ime-helper-1.h"
 #import "mac-app.h"

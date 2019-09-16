@@ -31,7 +31,7 @@
 #ifndef __ngui__mathe__
 #define __ngui__mathe__
 
-#include "niutils/util.h"
+#include "nxutils/util.h"
 
 /**
  * @ns ngui

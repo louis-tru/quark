@@ -36,7 +36,7 @@
  */
 
 
-#include <niutils/util.h>
+#include <nxutils/util.h>
 
 #if XX_LINUX && !XX_ANDROID
 

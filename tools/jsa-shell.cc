@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/fs.h"
-#include "niutils/jsx.h"
-#include "niutils/codec.h" 
+#include "nxutils/fs.h"
+#include "nxutils/jsx.h"
+#include "nxutils/codec.h" 
 
 using namespace ngui;
 

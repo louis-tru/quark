@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/zlib.h>
+#include <nxutils/zlib.h>
 #include <zlib.h>
 #include <map>
 

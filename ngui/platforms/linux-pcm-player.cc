@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/pcm-player.h"
-#include "niutils/handle.h"
-#include "niutils/string.h"
+#include "nxutils/handle.h"
+#include "nxutils/string.h"
 #include <alsa/asoundlib.h>
 #include <stdlib.h>
 #include <stdio.h>

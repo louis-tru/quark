@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/pcm-player.h"
-#include "niutils/handle.h"
-#include "niutils/loop.h"
-#include "niutils/android-jni.h"
+#include "nxutils/handle.h"
+#include "nxutils/loop.h"
+#include "nxutils/android-jni.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 

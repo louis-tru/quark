@@ -29,10 +29,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/nikit/fs');
+var fs = require('../libs/nxkit/fs');
 var path = require('path');
-var marked_html = require('../libs/nimake/marked/html');
-var marked = require('../libs/nimake/node_modules/marked/index');
+var marked_html = require('../libs/nxmake/marked/html');
+var marked = require('../libs/nxmake/node_modules/marked/index');
 var read_ngui_version = require('./read_version').read_ngui_version;
 var argv = process.argv.slice(2);
 var template = null;
@@ -94,6 +94,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(__dirname + '/../libs/nimake/marked/assets', output + '/assets');
+fs.cp_sync(__dirname + '/../libs/nxmake/marked/assets', output + '/assets');
 
 each_dir('', output);

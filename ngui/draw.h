@@ -31,10 +31,10 @@
 #ifndef __ngui__draw__
 #define __ngui__draw__
 
-#include "niutils/array.h"
-#include "niutils/util.h"
-#include "niutils/string.h"
-#include "niutils/event.h"
+#include "nxutils/array.h"
+#include "nxutils/util.h"
+#include "nxutils/string.h"
+#include "nxutils/event.h"
 #include "ngui/image-codec.h"
 #include "ngui/mathe.h"
 #include "ngui/value.h"

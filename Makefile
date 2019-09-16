@@ -2,8 +2,8 @@
 HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE          ?= node
 ANDROID_JAR    = out/android.classs.ngui.jar
-NIMAKE          = ./libs/nimake
-NIMAKE_OUT      = out/nimake
+NIMAKE          = ./libs/nxmake
+NIMAKE_OUT      = out/nxmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
@@ -23,7 +23,7 @@ JSA_SHELL = $(NIMAKE)/bin/${HOST_OS}-jsa-shell
 
 #######################
 
-DEPS = libs/nikit libs/nimake/gyp.ngui depe/v8-link \
+DEPS = libs/nxkit libs/nxmake/gyp.ngui depe/v8-link \
 	depe/FFmpeg.ngui depe/node.ngui depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
@@ -55,7 +55,7 @@ check_osx=\
 	fi
 
 .PHONY: all $(FORWARD) jsa ios android linux osx \
-	compile install-nimake-link install-nimake \
+	compile install-nxmake-link install-nxmake \
 	help web doc watch build-linux-all build-osx-all pull push
 
 .SECONDEXPANSION:
@@ -65,16 +65,16 @@ check_osx=\
 compile: pull
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(MAKE) install-nimake
+	@$(MAKE) install-nxmake
 	@#-./tools/gen_releases_lib.sh
 
-install-nimake: $(JSA_SHELL)
-	@$(NODE) ./tools/cp-nimake.js
+install-nxmake: $(JSA_SHELL)
+	@$(NODE) ./tools/cp-nxmake.js
 	@cd $(NIMAKE_OUT) && npm i -f
 	@cd $(NIMAKE_OUT) && $(SUDO) npm i -g
 
 # debug install ngui
-install-nimake-link: $(JSA_SHELL)
+install-nxmake-link: $(JSA_SHELL)
 	@cd $(NIMAKE) && $(SUDO) npm link
 
 $(FORWARD):

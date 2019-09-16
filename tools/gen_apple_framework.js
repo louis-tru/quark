@@ -30,11 +30,11 @@
 
 // console.log(process.argv)
 
-var fs = require('../libs/nikit/fs');
+var fs = require('../libs/nxkit/fs');
 var path = require('path');
-var syscall = require('../libs/nikit/syscall').syscall;
+var syscall = require('../libs/nxkit/syscall').syscall;
 var copy_header = require('./cp-header').copy_header;
-var large_file_cut = require('../libs/nikit/large_file_cut').cut;
+var large_file_cut = require('../libs/nxkit/large_file_cut').cut;
 var read_ngui_version = require('./read_version').read_ngui_version
 var argv = process.argv.slice(2);
 var os = argv.shift();

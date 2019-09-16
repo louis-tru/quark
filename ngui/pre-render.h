@@ -31,9 +31,9 @@
 #ifndef __ngui__pre_render__
 #define __ngui__pre_render__
 
-#include "niutils/util.h"
-#include "niutils/array.h"
-#include "niutils/list.h"
+#include "nxutils/util.h"
+#include "nxutils/array.h"
+#include "nxutils/list.h"
 
 /**
  * @ns ngui

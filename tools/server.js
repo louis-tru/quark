@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/nikit');
-var fs = require('../libs/nikit/fs');
-var keys = require('../libs/nikit/keys');
-var service = require('../libs/nikit/service');
-var HttpService = require('../libs/nikit/http_service').HttpService;
-var server = require('../libs/nimake/server');
+var util = require('../libs/nxkit');
+var fs = require('../libs/nxkit/fs');
+var keys = require('../libs/nxkit/keys');
+var service = require('../libs/nxkit/service');
+var HttpService = require('../libs/nxkit/http_service').HttpService;
+var server = require('../libs/nxmake/server');
 require('./test-multiple-service');
 
 var opt = {

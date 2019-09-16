@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/loop.h"
+#include "nxutils/loop.h"
 #include "ngui/app-1.h"
 #include "ngui/event.h"
 #include "ngui/display-port.h"
-#include "niutils/android-jni.h"
+#include "nxutils/android-jni.h"
 #include "linux-gl-1.h"
 #include "android/android.h"
 #include <android/native_activity.h>

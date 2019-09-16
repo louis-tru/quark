@@ -28,21 +28,21 @@ new GUIApplication().start(
 
 如果你从来没有使用过`Ngui`你可以从这里开始，一步步创建你的`Ngui`程序。
 
-## Install nimake
+## Install nxmake
 
 首先你需要安装`Ngui`提供的工具包
 
-* 使用 nodejs `npm` 安装 `nimake`
+* 使用 nodejs `npm` 安装 `nxmake`
 
 * 打开`Terminal`并执行以下命令：
 
 ```sh
 # shell
-$ sudo npm install -g nimake
+$ sudo npm install -g nxmake
 
 ```
 	
-* 运行`nimake` 需要依赖`nodejs`与`python2.7`
+* 运行`nxmake` 需要依赖`nodejs`与`python2.7`
 
 * 并且不能运行在`windows`系统, 暂时只能在`mac`或`linux`下使用
 
@@ -54,7 +54,7 @@ $ sudo npm install -g nimake
 # shell
 $ mkdir myproject
 $ cd myproject
-$ nimake init
+$ nxmake init
 ```
 
 ## Build project
@@ -63,7 +63,7 @@ $ nimake init
 
 ```sh
 # shell
-$ nimake build
+$ nxmake build
 ```
 
 ## Export project
@@ -73,9 +73,9 @@ $ nimake build
 ```sh
 # shell
 # export xcode ios project
-$ nimake export ios
+$ nxmake export ios
 # export android studio project
-$ nimake export android
+$ nxmake export android
 ```
 
 导出工程后，接下来你可以使用[Xcode]与[Android Studio]打开它
@@ -83,13 +83,13 @@ $ nimake export android
 
 ## Ngui test http server
 
-`nimake`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
+`nxmake`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
 
 执行下面的代码可以启动它：
 
 ```sh
 # shell
-$ nimake
+$ nxmake
 ```
 
 # Downloads
@@ -103,7 +103,7 @@ $ nimake
 [Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [Android Studio]: https://developer.android.com/studio/projects/create-project.html
 [Android APK]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
-[NPM]: https://www.npmjs.com/package/nimake
+[NPM]: https://www.npmjs.com/package/nxmake
 [Source code]: https://github.com/louis-tru/ngui
 
 

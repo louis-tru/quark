@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/util.h>
-#include <niutils/loop.h>
-#include <niutils/array.h>
+#include <nxutils/util.h>
+#include <nxutils/loop.h>
+#include <nxutils/array.h>
 #include <ngui/sys.h>
 
 using namespace ngui;

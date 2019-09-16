@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/js/wrap.h"
-#include "niutils/buffer.h"
+#include "nxutils/buffer.h"
 #include "ngui/js/str.h"
 
 /**

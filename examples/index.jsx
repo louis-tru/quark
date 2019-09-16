@@ -103,7 +103,7 @@ function review_code(evt) {
 	evt.sender.owner.collection.push(review_vx(), 1);
 }
 
-const ngui_tools = 'https://www.npmjs.com/package/nimake';
+const ngui_tools = 'https://www.npmjs.com/package/nxmake';
 const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui/issues';
 const examples_source = 'https://github.com/louis-tru/ngui.git';
 const documents = 'http://ngui.fun/';
@@ -137,7 +137,7 @@ const ngui_tools_vx = ()=>(
 	<Mynavpage title="Ngui Tools" source=resolve(__filename)>
 		<Div width="full">
 			<Hybrid class="category_title">
-`1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g nimake" />.
+`1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g nxmake" />.
 2. Or get the node modules from Github.`
 			</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools>Go Github</Button>

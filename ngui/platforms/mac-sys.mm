@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ngui/sys.h"
-#import "niutils/string.h"
-#import "niutils/array.h"
+#import "nxutils/string.h"
+#import "nxutils/array.h"
 #import <Foundation/Foundation.h>
 #if XX_IOS
 # import <UIKit/UIKit.h>

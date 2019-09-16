@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/util.h>
-#include <niutils/http.h>
-#include <niutils/string.h>
-#include <niutils/fs.h>
+#include <nxutils/util.h>
+#include <nxutils/http.h>
+#include <nxutils/string.h>
+#include <nxutils/fs.h>
 
 using namespace ngui;
 

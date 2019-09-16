@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ngui/pcm-player.h"
-#import "niutils/handle.h"
-#import "niutils/loop.h"
+#import "nxutils/handle.h"
+#import "nxutils/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
 XX_NS(ngui)

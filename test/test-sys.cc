@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/sys.h"
-#include "niutils/string.h"
+#include "nxutils/string.h"
 
 using namespace ngui;
 

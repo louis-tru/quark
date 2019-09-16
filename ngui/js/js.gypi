@@ -12,7 +12,7 @@
 		'target_name': 'ngui-node',
 		'type': '<(output_shared)',
 		'dependencies': [
-			'niutils',
+			'nxutils',
 			'ngui',
 			'ngui-js',
 			'ngui-v8',
@@ -29,7 +29,7 @@
 			'../../depe/node/deps/openssl/openssl/include',
 		],
 		'dependencies': [
-			'niutils',
+			'nxutils',
 			'ngui',
 			'ngui-v8',
 		],
@@ -52,7 +52,7 @@
 			'wrap.h',
 			'wrap.cc',
 			'node.cc',
-			# binding ngui-utils
+			# binding nxutils
 			'binding/cb-1.h',
 			'binding/cb.cc',
 			'binding/fs-1.h',
@@ -232,7 +232,7 @@
 				'product_name': 'ngui',
 				'type': 'executable',
 				'dependencies': [
-					'niutils',
+					'nxutils',
 					'ngui',
 					'ngui-js',
 					'ngui-media',

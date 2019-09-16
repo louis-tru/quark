@@ -28,21 +28,21 @@ You can get a more detailed [`Examples`]
 
 If you've never used Ngui before, you can start from here and build your Ngui program step by step.
 
-## Install nimake
+## Install nxmake
 
 First, you need to install the toolkit provided by `Ngui`
 
-* Install `nimake` using nodejs `npm` 
+* Install `nxmake` using nodejs `npm` 
 
 * Open `Terminal` and execute the following command：
 
 ```sh
 # shell
-$ sudo npm install -g nimake
+$ sudo npm install -g nxmake
 
 ```
 	
-* Running `nimake` requires dependency on `nodejs` and `python2.7`
+* Running `nxmake` requires dependency on `nodejs` and `python2.7`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
@@ -54,7 +54,7 @@ Create a new `Ngui` project using the following `shell` command：
 # shell
 $ mkdir myproject
 $ cd myproject
-$ nimake init
+$ nxmake init
 ```
 
 ## Build project
@@ -64,7 +64,7 @@ If this is a new project, you can skip this step and go directly to the next ste
 
 ```js
 # shell
-$ nimake build
+$ nxmake build
 ```
 
 ## Export project
@@ -74,22 +74,22 @@ This step exports [`Xcode`] or [`Android Studio`] project，because you eventual
 ```js
 # shell
 # export xcode ios project
-$ nimake export ios
+$ nxmake export ios
 # export android studio project
-$ nimake export android
+$ nxmake export android
 ```
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
 ## Ngui test http server
 
-`nimake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+`nxmake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
 Execute the following code to start it：
 
 ```js
 # shell
-$ nimake
+$ nxmake
 ```
 
 # Downloads
@@ -103,7 +103,7 @@ $ nimake
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
 [`Android APK`]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/nimake
+[`NPM`]: https://www.npmjs.com/package/nxmake
 [`Source code`]: https://github.com/louis-tru/ngui
 
 <script>

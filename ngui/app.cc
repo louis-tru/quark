@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/loop-1.h"
-#include "niutils/http.h"
+#include "nxutils/loop-1.h"
+#include "nxutils/http.h"
 #include "draw.h"
 #include "root.h"
 #include "display-port.h"

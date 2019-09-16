@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/array.h>
-#include <niutils/list.h>
-#include <niutils/string.h>
+#include <nxutils/array.h>
+#include <nxutils/list.h>
+#include <nxutils/string.h>
 #include <map>
 
 using namespace ngui;

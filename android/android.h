@@ -31,11 +31,11 @@
 #ifndef __ngui__android__android__
 #define __ngui__android__android__
 
-#include "niutils/util.h"
+#include "nxutils/util.h"
 
 #if XX_ANDROID
 
-#include "niutils/string.h"
+#include "nxutils/string.h"
 
 XX_NS(ngui)
 

@@ -16,8 +16,8 @@ ANDROID_JAR    = out/android.classs.ngui.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-NIMAKE          = ./libs/nimake
-NIMAKE_OUT      = out/nimake
+NIMAKE          = ./libs/nxmake
+NIMAKE_OUT      = out/nxmake
 GYP            = $(NIMAKE)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
@@ -82,4 +82,4 @@ $(ANDROID_JAR): android/org/ngui/*.java
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/nimake/product/$(OS)
+	@rm -rfv out/nxmake/product/$(OS)

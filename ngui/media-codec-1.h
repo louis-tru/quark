@@ -37,7 +37,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 #include "ngui/media-codec.h"
-#include "niutils/loop-1.h"
+#include "nxutils/loop-1.h"
 
 XX_NS(ngui)
 

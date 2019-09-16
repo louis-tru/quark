@@ -1,18 +1,18 @@
 Ngui Examples
 ===============
 
-* 这是一个`Ngui`演示工程，请使用`nimake`命令导出到`xcode`或`android studio`
+* 这是一个`Ngui`演示工程，请使用`nxmake`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`nimake`
+## 获取`nxmake`
 
-* 使用 nodejs `npm`安装`nimake`
+* 使用 nodejs `npm`安装`nxmake`
 
 
 ```sh
 # shell
-sudo npm install -g nimake
+sudo npm install -g nxmake
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g nimake
 
 ```sh
 # shell
-nimake export ios
-nimake export android
+nxmake export ios
+nxmake export android
 ```
 
 导出后使用`xcode`或`android studio`打开`Project`文件夹下的工程文件

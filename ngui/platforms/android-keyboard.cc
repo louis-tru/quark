@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/keyboard.h"
-#include "niutils/map.h"
+#include "nxutils/map.h"
 #include <android/keycodes.h>
 
 XX_NS(ngui)

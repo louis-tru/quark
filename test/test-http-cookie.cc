@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "niutils/http-cookie.h"
+#include "nxutils/http-cookie.h"
 #include "ngui/sys.h"
 
 using namespace ngui;

@@ -31,12 +31,12 @@
 #ifndef __ngui__display_port__
 #define __ngui__display_port__
 
-#include "niutils/util.h"
-#include "niutils/event.h"
-#include "niutils/list.h"
+#include "nxutils/util.h"
+#include "nxutils/event.h"
+#include "nxutils/list.h"
 #include "ngui/mathe.h"
 #include "ngui/value.h"
-#include "niutils/cb.h"
+#include "nxutils/cb.h"
 
 /**
  * @ns ngui

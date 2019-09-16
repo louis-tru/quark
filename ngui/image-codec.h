@@ -31,9 +31,9 @@
 #ifndef __ngui__image_codec__
 #define __ngui__image_codec__
 
-#include "niutils/handle.h"
-#include "niutils/array.h"
-#include "niutils/buffer.h"
+#include "nxutils/handle.h"
+#include "nxutils/array.h"
+#include "nxutils/buffer.h"
 
 /**
  * @ns ngui

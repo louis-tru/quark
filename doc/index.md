@@ -2,7 +2,7 @@
 # [`Ngui`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/nimake)
+* [`Tools`](https://www.npmjs.com/package/nxmake)
 * [`Examples`](https://github.com/louis-tru/ngui/tree/master/examples)
 
 # Course

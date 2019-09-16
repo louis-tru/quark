@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <niutils/util.h>
+#include <nxutils/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>

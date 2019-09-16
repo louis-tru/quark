@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/nikit/fs');
+var fs = require('../libs/nxkit/fs');
 
 function read_ngui_version() {
 	var str = fs.readFileSync(__dirname + '/../ngui/version.h').toString('utf-8');
@@ -56,7 +56,7 @@ function update_ngui_version() {
 	var vers = read_ngui_version().join('.');
 	var pkgs = [
 		__dirname + '/../libs/ngui/package.json',
-		__dirname + '/../libs/nimake/package.json',
+		__dirname + '/../libs/nxmake/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
