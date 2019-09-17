@@ -31,8 +31,8 @@
 #ifndef __ngui__value__
 #define __ngui__value__
 
-#include "nxutils/util.h"
-#include "nxutils/array.h"
+#include "nutils/util.h"
+#include "nutils/array.h"
 #include "ngui/mathe.h"
 
 /**

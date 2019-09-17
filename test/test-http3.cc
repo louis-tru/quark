@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/http.h>
+#include <nutils/http.h>
 
 using namespace ngui;
 

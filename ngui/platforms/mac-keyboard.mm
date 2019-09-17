@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ngui/keyboard.h"
-#import "nxutils/map.h"
+#import "nutils/map.h"
 
 XX_NS(ngui)
 

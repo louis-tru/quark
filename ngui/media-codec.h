@@ -31,10 +31,10 @@
 #ifndef __ngui__media_codec__
 #define __ngui__media_codec__
 
-#include "nxutils/util.h"
-#include "nxutils/string.h"
-#include "nxutils/buffer.h"
-#include "nxutils/http.h"
+#include "nutils/util.h"
+#include "nutils/string.h"
+#include "nutils/buffer.h"
+#include "nutils/http.h"
 #include "ngui/image-codec.h"
 #include "ngui/media.h"
 

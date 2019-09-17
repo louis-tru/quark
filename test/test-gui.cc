@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/util.h>
+#include <nutils/util.h>
 #include <ngui/image.h>
 #include <ngui/sprite.h>
 #include <ngui/div.h>
 #include <ngui/app.h>
 #include <ngui/display-port.h>
 #include <ngui/root.h>
-#include <nxutils/fs.h>
+#include <nutils/fs.h>
 #include <ngui/gl/gl.h>
 
 using namespace ngui;

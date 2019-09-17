@@ -31,7 +31,7 @@
 #ifndef __ngui__media__
 #define __ngui__media__
 
-#include "nxutils/string.h"
+#include "nutils/string.h"
 
 #ifndef XX_NO_MEDIA_DYNAMIC_LIB
 # define XX_MEDIA_DYNAMIC virtual

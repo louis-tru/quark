@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxutils/util.h"
-#include "nxutils/fs.h"
+#include "nutils/util.h"
+#include "nutils/fs.h"
 
 using namespace ngui;
 

@@ -31,8 +31,8 @@
 #include "app.h"
 #include "texture.h"
 #include "draw.h"
-#include "nxutils/fs.h"
-#include "nxutils/buffer.h"
+#include "nutils/fs.h"
+#include "nutils/buffer.h"
 #include "display-port.h"
 
 XX_NS(ngui)

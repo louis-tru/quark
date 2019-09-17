@@ -52,39 +52,39 @@ unset(TARGET)
 add_definitions(-DDEBUG)
 
 add_library(ngui SHARED
-	# nxutils
+	# nutils
 	../../../android/android.cc
-	../../../nxutils/_android.cc
-	../../../nxutils/android-jni.cc
-	../../../nxutils/android-log.cc
-	../../../nxutils/object.cc
-	../../../nxutils/string.cc
-	../../../nxutils/string-builder.cc
-	../../../nxutils/array.cc
-	../../../nxutils/codec.cc
-	../../../nxutils/error.cc
-	../../../nxutils/http.cc
-	../../../nxutils/http-uri.cc
-	../../../nxutils/http-helper.cc
-	../../../nxutils/fs.cc
-	../../../nxutils/fs-file.cc
-	../../../nxutils/fs-sync.cc
-	../../../nxutils/fs-async.cc
-	../../../nxutils/fs-search.cc
-	../../../nxutils/fs-reader.cc
-	../../../nxutils/buffer.cc
-	../../../nxutils/json.cc
-	../../../nxutils/map.cc
-	../../../nxutils/util.cc
-	../../../nxutils/zlib.cc
-	../../../nxutils/loop.cc
-	../../../nxutils/loop-private.cc
-	../../../nxutils/jsx.cc
-	../../../nxutils/net.cc
-	../../../nxutils/cb.cc
-	../../../nxutils/date.cc
-	../../../nxutils/http-cookie.cc
-	../../../nxutils/localstorage.cc
+	../../../nutils/_android.cc
+	../../../nutils/android-jni.cc
+	../../../nutils/android-log.cc
+	../../../nutils/object.cc
+	../../../nutils/string.cc
+	../../../nutils/string-builder.cc
+	../../../nutils/array.cc
+	../../../nutils/codec.cc
+	../../../nutils/error.cc
+	../../../nutils/http.cc
+	../../../nutils/http-uri.cc
+	../../../nutils/http-helper.cc
+	../../../nutils/fs.cc
+	../../../nutils/fs-file.cc
+	../../../nutils/fs-sync.cc
+	../../../nutils/fs-async.cc
+	../../../nutils/fs-search.cc
+	../../../nutils/fs-reader.cc
+	../../../nutils/buffer.cc
+	../../../nutils/json.cc
+	../../../nutils/map.cc
+	../../../nutils/util.cc
+	../../../nutils/zlib.cc
+	../../../nutils/loop.cc
+	../../../nutils/loop-private.cc
+	../../../nutils/jsx.cc
+	../../../nutils/net.cc
+	../../../nutils/cb.cc
+	../../../nutils/date.cc
+	../../../nutils/http-cookie.cc
+	../../../nutils/localstorage.cc
 	# ngui
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
@@ -169,7 +169,7 @@ add_library(ngui-js SHARED
 	../../../ngui/js/v8.cc
 	../../../ngui/js/wrap.cc
 	../../../ngui/js/node.cc
-	# binding nxutils
+	# binding nutils
 	../../../ngui/js/binding/cb.cc
 	../../../ngui/js/binding/fs.cc
 	../../../ngui/js/binding/fs-reader.cc

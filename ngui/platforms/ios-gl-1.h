@@ -31,7 +31,7 @@
 #ifndef __ngui__ios_gl__
 #define __ngui__ios_gl__
 
-#import "nxutils/macros.h"
+#import "nutils/macros.h"
 
 #if XX_IOS
 

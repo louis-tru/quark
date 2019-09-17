@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxutils/fs.h"
-#include "nxutils/http.h"
+#include "nutils/fs.h"
+#include "nutils/http.h"
 #include "ngui/js/wrap.h"
 #include "ngui/js/str.h"
 #include "cb-1.h"

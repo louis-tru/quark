@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/image-codec.h"
-#include "nxutils/string.h"
+#include "nutils/string.h"
 
 XX_NS(ngui)
 

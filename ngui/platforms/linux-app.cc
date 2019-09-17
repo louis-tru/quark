@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxutils/loop.h"
+#include "nutils/loop.h"
 #include "ngui/app-1.h"
 #include "ngui/event.h"
 #include "ngui/display-port.h"
-#include "nxutils/loop.h"
-#include "nxutils/http.h"
+#include "nutils/loop.h"
+#include "nutils/http.h"
 #include "ngui/sys.h"
 #include "linux-gl-1.h"
 #include "linux-ime-helper-1.h"

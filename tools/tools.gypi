@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'jsa-shell',
 		'type': 'executable',
-		'dependencies': [ 'nxutils' ],
+		'dependencies': [ 'nutils' ],
 		'sources': [
 			'jsa-shell.cc',
 		],

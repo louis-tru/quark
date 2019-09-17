@@ -31,7 +31,7 @@
 #ifndef __ngui__utils__sys__
 #define __ngui__utils__sys__
 
-#include "nxutils/util.h"
+#include "nutils/util.h"
 
 XX_NS(ngui)
 XX_NS(sys)

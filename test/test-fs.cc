@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/fs.h>
+#include <nutils/fs.h>
 #include <pwd.h>
 
 using namespace ngui;

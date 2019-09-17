@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/util.h>
-#include <nxutils/string.h>
-#include <nxutils/map.h>
-#include <nxutils/fs.h>
+#include <nutils/util.h>
+#include <nutils/string.h>
+#include <nutils/map.h>
+#include <nutils/fs.h>
 #include <ngui/sys.h>
 
 #include <ft2build.h>

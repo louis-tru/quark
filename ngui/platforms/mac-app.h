@@ -31,7 +31,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "nxutils/macros.h"
+#import "nutils/macros.h"
 
 #if XX_IOS || XX_OSX
 

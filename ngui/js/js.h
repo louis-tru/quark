@@ -31,13 +31,13 @@
 #ifndef __ngui__js__js__
 #define __ngui__js__js__
 
-#include "nxutils/util.h"
-#include "nxutils/string.h"
-#include "nxutils/buffer.h"
-#include "nxutils/map.h"
-#include "nxutils/error.h"
-#include "nxutils/fs.h"
-#include "nxutils/json.h"
+#include "nutils/util.h"
+#include "nutils/string.h"
+#include "nutils/buffer.h"
+#include "nutils/map.h"
+#include "nutils/error.h"
+#include "nutils/fs.h"
+#include "nutils/json.h"
 
 // ------------- js common macro -------------
 

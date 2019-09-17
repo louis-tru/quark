@@ -31,9 +31,9 @@
 #ifndef __ngui__view__
 #define __ngui__view__
 
-#include "nxutils/array.h"
-#include "nxutils/string.h"
-#include "nxutils/string-builder.h"
+#include "nutils/array.h"
+#include "nutils/string.h"
+#include "nutils/string-builder.h"
 #include "ngui/event.h"
 
 /**

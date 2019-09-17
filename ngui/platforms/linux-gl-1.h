@@ -31,7 +31,7 @@
 #ifndef __ngui__linux_gl_1__
 #define __ngui__linux_gl_1__
 
-#include "nxutils/macros.h"
+#include "nutils/macros.h"
 
 #if XX_LINUX || XX_ANDROID
 

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/array.h>
-#include <nxutils/list.h>
-#include <nxutils/string.h>
-#include <nxutils/map.h>
+#include <nutils/array.h>
+#include <nutils/list.h>
+#include <nutils/string.h>
+#include <nutils/map.h>
 #include <map>
 
 using namespace ngui;

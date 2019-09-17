@@ -31,8 +31,8 @@
 #ifndef __ngui__property__
 #define __ngui__property__
 
-#include "nxutils/util.h"
-#include "nxutils/map.h"
+#include "nutils/util.h"
+#include "nutils/map.h"
 
 XX_NS(ngui)
 

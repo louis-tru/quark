@@ -11,7 +11,7 @@ build() {
 	rm -f libngui.a libv8.a
 	
 	ar rc libngui.a `find obj.target/ngui-gui \
-													obj.target/nxutils \
+													obj.target/nutils \
 													obj.target/ngui-js \
 													obj.target/zlib \
 													obj.target/ft2 \

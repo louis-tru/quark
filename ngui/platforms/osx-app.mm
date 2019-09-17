@@ -31,7 +31,7 @@
 // ******************** U n r e a l i z e d ********************
 
 #import <AppKit/AppKit.h>
-#import "nxutils/loop.h"
+#import "nutils/loop.h"
 #import "mac-app.h"
 #import "osx-gl-1.h"
 #import "ngui/app.h"

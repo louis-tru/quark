@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'nxutils/nxutils.gypi',
+		'nutils/nutils.gypi',
 		'tools/default_target.gypi',
 	],
 	'conditions': [

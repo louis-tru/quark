@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxutils/http.h"
+#include "nutils/http.h"
 #include "ngui/js/wrap.h"
 #include "cb-1.h"
 

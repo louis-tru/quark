@@ -31,9 +31,9 @@
 #ifndef __ngui__action__
 #define __ngui__action__
 
-#include "nxutils/array.h"
-#include "nxutils/list.h"
-#include "nxutils/map.h"
+#include "nutils/array.h"
+#include "nutils/list.h"
+#include "nutils/map.h"
 #include "ngui/value.h"
 #include "ngui/bezier.h"
 #include "ngui/event.h"

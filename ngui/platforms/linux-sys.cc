@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/sys.h"
-#include "nxutils/string.h"
-#include "nxutils/array.h"
-#include "nxutils/fs.h"
-#include "nxutils/buffer.h"
+#include "nutils/string.h"
+#include "nutils/array.h"
+#include "nutils/fs.h"
+#include "nutils/buffer.h"
 #include <unistd.h>
 
 XX_NS(ngui)

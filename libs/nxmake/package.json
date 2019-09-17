@@ -9,7 +9,8 @@
 		"url": "http://ngui.fun/"
 	},
 	"bin": {
-		"nxmake": "bin/shell.js"
+		"nxmake": "bin/shell.js",
+		"nx-make": "bin/shell.js"
 	},
 	"keywords": [
 		"jsx",

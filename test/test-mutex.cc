@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/util.h>
-#include <nxutils/loop.h>
+#include <nutils/util.h>
+#include <nutils/loop.h>
 
 using namespace ngui;
 

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxutils/env.h>
+#include <nutils/env.h>
 
 #if XX_IOS
 
-#include <nxutils/util.h>
+#include <nutils/util.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <dispatch/dispatch.h>
 #include <stdio.h>

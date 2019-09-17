@@ -30,7 +30,7 @@
 
 #include "ngui/app.h"
 #include "ngui/sys.h"
-#include "nxutils/loop.h"
+#include "nutils/loop.h"
 #include "../depe/node/src/ngui.h"
 
 #ifndef TEST_FUNC_NAME

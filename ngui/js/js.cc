@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxutils/string.h"
+#include "nutils/string.h"
 #include "js-1.h"
 #include "native-inl-js.h"
 #include "native-lib-js.h"
 #include "ngui.h"
-#include "nxutils/http.h"
-#include "nxutils/codec.h"
+#include "nutils/http.h"
+#include "nutils/codec.h"
 #include "value.h"
 
 /**

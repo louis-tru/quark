@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ios-ime-helper-1.h"
-#import "nxutils/util.h"
+#import "nutils/util.h"
 #import "ngui/event.h"
 #import "ngui/app-1.h"
 

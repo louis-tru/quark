@@ -10,7 +10,7 @@
 				'../out',
 			],
 			'dependencies': [
-				'nxutils',
+				'nutils',
 				'ngui',
 				'ngui-js',
 				'ngui-media',
@@ -93,7 +93,7 @@
 			'target_name': 'ngui-demo',
 			'type': 'executable',
 			'dependencies': [
-				'nxutils',
+				'nutils',
 				'ngui',
 				'ngui-js',
 				'ngui-media',
@@ -135,7 +135,7 @@
 				'target_name': 'ngui-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'nxutils/minizip.gyp:minizip',
+					'nutils/minizip.gyp:minizip',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
 					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',

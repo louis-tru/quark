@@ -32,7 +32,7 @@
 #define __ngui__bezier__
 
 #include "ngui/mathe.h"
-#include "nxutils/buffer.h"
+#include "nutils/buffer.h"
 
 /**
  * @ns ngui

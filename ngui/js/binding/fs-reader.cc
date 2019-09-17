@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxutils/fs.h"
+#include "nutils/fs.h"
 #include "ngui/js/js.h"
 #include "ngui/js/str.h"
-#include "nxutils/codec.h"
+#include "nutils/codec.h"
 #include "cb-1.h"
 #include "fs-1.h"
 

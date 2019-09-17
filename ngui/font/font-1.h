@@ -35,7 +35,7 @@
 #include <freetype/freetype.h>
 #include <freetype/ftoutln.h>
 #include <tesselator.h>
-#include "nxutils/fs.h"
+#include "nutils/fs.h"
 #include "ngui/font.h"
 #include "ngui/bezier.h"
 #include "ngui/draw.h"

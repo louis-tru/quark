@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/pcm-player.h"
-#include "nxutils/handle.h"
-#include "nxutils/android-jni.h"
+#include "nutils/handle.h"
+#include "nutils/android-jni.h"
 
 XX_NS(ngui)
 
