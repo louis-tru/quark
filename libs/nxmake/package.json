@@ -10,7 +10,7 @@
 	},
 	"bin": {
 		"nxmake": "bin/shell.js",
-		"nx-make": "bin/shell.js"
+		"ngui-make": "bin/shell.js"
 	},
 	"keywords": [
 		"jsx",
