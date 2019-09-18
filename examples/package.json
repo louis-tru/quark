@@ -1,8 +1,8 @@
 {
 	"name": "examples",
-	"appName":	"Ngui-Examples",
+	"app": "Ngui-Examples",
 	"id": "org.ngui.examples",
 	"main":	"index.jsx",
 	"version": "1.0.0",
-	"nguiSyntax": true
+	"extendSyntax": true
 }

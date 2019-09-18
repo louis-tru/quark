@@ -243,7 +243,7 @@ function build_pkg1(self, pathname, target_local, target_public, ignore_public, 
 	self.m_cur_pkg_target_public_src= target_public_src;
 	self.m_cur_pkg_json             = pkg_json;
 	self.m_cur_pkg_no_syntax_preprocess = !!pkg_json.no_syntax_preprocess;
-	self.m_cur_pkg_ngui_syntax      = !!pkg_json.nguiSyntax;
+	self.m_cur_pkg_ngui_syntax      = !!pkg_json.extendSyntax;
 	self.m_cur_pkg_files            = {};
 	self.m_cur_pkg_pkg_files        = {};
 	self.m_cur_pkg_skip_file        = get_skip_files(self, pkg_json, name);
@@ -746,11 +746,11 @@ indent_size = 2
 			if (!fs.existsSync(project_name)) {
 				var json = {
 					name: project_name,
-					appName: project_name,
+					app: project_name,
 					id: `org.ngui.${project_name}`,
 					main: 'index.jsx',
 					version: '1.0.0',
-					nguiSyntax: true,
+					extendSyntax: true,
 				};
 				fs.mkdirSync(project_name);
 				fs.writeFileSync(project_name + '/package.json', JSON.stringify(json, null, 2));

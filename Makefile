@@ -1,7 +1,7 @@
 
-HOST_OS       ?= $(shell uname|tr '[A-Z]' '[a-z]')
-NODE          ?= node
-ANDROID_JAR    = out/android.classs.ngui.jar
+HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
+NODE           ?= node
+ANDROID_JAR     = out/android.classs.ngui.jar
 NXMAKE          = ./libs/nxmake
 NXMAKE_OUT      = out/nxmake
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)

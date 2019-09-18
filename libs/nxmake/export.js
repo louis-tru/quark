@@ -89,7 +89,7 @@ function Package_gen_ios_gypi(self) {
 	var host = self.host;
 	var sources = self.sources;
 	var id = self.pkg_json.id || 'com.mycompany.${PRODUCT_NAME:rfc1034identifier}';
-	var app_name = self.pkg_json.appName || '${EXECUTABLE_NAME}';
+	var app_name = self.pkg_json.app || '${EXECUTABLE_NAME}';
 	var version = self.pkg_json.version;
 	var xcode_settings = {};
 
@@ -178,7 +178,7 @@ function Package_gen_android_gypi(self) {
 	var host = self.host;
 	var sources = self.sources;
 	var id = (self.pkg_json.id || 'com.mycompany.' + name).replace(/-/gm, '_');
-	var app_name = self.pkg_json.appName || name;
+	var app_name = self.pkg_json.app || name;
 	var version = self.pkg_json.version;
 	var java_pkg = id.replace(/\./mg, '/');
 	var so_pkg = self.native || self.native_deps ? name : 'ngui-js';

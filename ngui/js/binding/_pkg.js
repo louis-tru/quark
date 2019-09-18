@@ -141,7 +141,7 @@ Module._extensions['.js'] = function(module, rawFilename) {
 	var content = read_text_sync(rawFilename);
 	var pkg = module.package;
 	var filename = rawFilename.replace(/\?.*$/, '');
-	if (pkg && pkg.m_info.nguiSyntax) {
+	if (pkg && pkg.m_info.extendSyntax) {
 		if ( !pkg.m_build || 
 			pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
 			content = _util.transformJs(content, filename);
