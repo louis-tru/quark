@@ -579,7 +579,7 @@ export default class ViewController extends Notification {
 				}
 				if (id) {
 					if (id in ids) {
-						throw new Error('Identifier reference duplication in controller, = ' + value);
+						throw new Error('Identifier reference duplication in controller, = ' + id);
 					}
 					ids[id] = dom;
 				}

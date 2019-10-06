@@ -3,7 +3,7 @@
 	"version": "0.6.2",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "ngui.js",
-	"nguiSyntax": true,
+	"extendSyntax": true,
 	"author": {
 		"name": "xuewen.chu",
 		"email": "louistru@hotmail.com",
