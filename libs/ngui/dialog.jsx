@@ -76,6 +76,7 @@ CSS({
 		marginBottom: 20,
 		textAlign: 'center',
 		textSize: 14,
+		textColor: '#333',
 	},
 	
 	'.x_dialog .buttons': {
@@ -129,6 +130,12 @@ CSS({
 	},
 	
 })
+
+export const CONSTS = {
+	OK: 'OK',
+	CANCEL: 'Cancel',
+	placeholder: 'Please enter..',
+};
 
 function compute_buttons_width(self) {
 	var len = self.length;
@@ -189,7 +196,7 @@ export class Dialog extends Navigation {
 	 */
 	render(...vdoms) {
 		return (
-			<Indep width="100%" height="100%" backgroundColor="#0005" receive=1 visible=0 opacity=0>
+			<Indep width="100%" height="100%" backgroundColor="#0008" receive=1 visible=0 opacity=0>
 				<LimitIndep id="main" class="x_dialog main">
 					<Hybrid id="title" class="title">{this.title}</Hybrid>
 					<Hybrid id="con" class="content">{this.content||vdoms}</Hybrid>
@@ -223,7 +230,7 @@ export class Dialog extends Navigation {
 
 	triggerUpdate(e) {
 		compute_buttons_width(this);
-		super.triggerUpdate(e);
+		return super.triggerUpdate(e);
 	}
 
 	show() {
@@ -235,10 +242,10 @@ export class Dialog extends Navigation {
 				var main = this.IDs.main;
 				main.originX = main.finalWidth / 2;
 				main.originY = main.finalHeight / 2;
-				main.scale = '0.3 0.3';
-				main.transition({ scale : '1 1', time: 200 });
-				this.dom.opacity = 0.3;
-				this.dom.transition({ opacity : 1, time: 200 });
+				main.scale = '0.2 0.2';
+				main.transition({ scale : '1 1', time: 250 });
+				this.dom.opacity = 0.2;
+				this.dom.transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
@@ -249,8 +256,8 @@ export class Dialog extends Navigation {
 			var main = this.IDs.main;
 			main.originX = main.finalWidth / 2;
 			main.originY = main.finalHeight / 2;
-			main.transition({ scale : '0.5 0.5', time: 200 });
-			this.dom.transition({ opacity : 0.15, time: 200 }, ()=>{ this.remove() });
+			main.transition({ scale : '0.2 0.2', time: 300 });
+			this.dom.transition({ opacity : 0.05, time: 300 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0, null);
 		} else {
 			this.unregisterNavigation(0, null);
@@ -299,20 +306,31 @@ export class Sheet extends Dialog {
 	}
 
 	render(...vdoms) {
+		var length = this.length;
+		var content = this.content ? this.content : vdoms.length ? vdoms: null;
 		return (
-			<Indep width="100%" height="100%" backgroundColor="#0005" onClick="navigationBack" visible=0 opacity=0>
+			<Indep width="100%" height="100%" backgroundColor="#0008" onClick="navigationBack" visible=0 opacity=0>
+			{content?
+				<Indep id="main" class="x_dialog sheet">{content}</Indep>:
 				<Indep id="main" class="x_dialog sheet">
 					<Clip class="buttons">
 					{
-						this.m_buttons.slice().map((e, i)=>(
+						length?
+						this.buttons.slice().map((e,i)=>(
 							<Button 
-								index=(i+1)
+								index=(length-i)
 								class="button"
 								width="100%"
 								onClick="triggerAction"
 								borderTopWidth=(i?px:0)
 								defaultHighlighted=0>{e}</Button>
-						))
+						)):
+						<Button 
+							index=1
+							class="button"
+							width="100%"
+							onClick="triggerAction"
+							defaultHighlighted=0>{CONSTS.OK}</Button>
 					}
 					</Clip>
 					<Clip class="buttons">
@@ -324,6 +342,7 @@ export class Sheet extends Dialog {
 							defaultHighlighted=0>{CONSTS.CANCEL}</Button>
 					</Clip>
 				</Indep>
+			}
 			</Indep>
 		);
 	}
@@ -336,9 +355,9 @@ export class Sheet extends Dialog {
 				var main = this.IDs.main;
 				var height = main.finalHeight;
 				main.y = height;
-				main.transition({ y: 0, time: 200 });
+				main.transition({ y: 0, time: 250 });
 				this.dom.opacity = 0.3;
-				this.dom.transition({ opacity : 1, time: 200 });
+				this.dom.transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
@@ -348,8 +367,8 @@ export class Sheet extends Dialog {
 		if ( this.dom.visible ) {
 			var main = this.IDs.main;
 			var height = main.finalHeight;
-			main.transition({ y: height, time: 200 });
-			this.dom.transition({ opacity : 0.15, time: 200 }, ()=>{ this.remove() });
+			main.transition({ y: height, time: 250 });
+			this.dom.transition({ opacity : 0.15, time: 250 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0, null);
 		} else {
 			this.unregisterNavigation(0, null);
@@ -358,12 +377,6 @@ export class Sheet extends Dialog {
 	}
 
 }
-
-export const CONSTS = {
-	OK: 'OK',
-	CANCEL: 'Cancel',
-	placeholder: 'Please enter..',
-};
 
 export function alert(msg, cb = util.noop) {
 	if (typeof msg == 'string') {
@@ -385,12 +398,6 @@ export function confirm(msg, cb = util.noop) {
 	return dag;
 }
 
-function handle_prompt_enter(ev) {
-	var dag = ev.sender.owner;
-	dag.trigger('Action', 1);
-	actionClose(dag);
-}
-
 export function prompt(msg, text = '', cb = util.noop) {
 	if ( typeof text == 'function' ) {
 		cb = text;
@@ -401,13 +408,17 @@ export function prompt(msg, text = '', cb = util.noop) {
 			<Span>
 				{msg}
 				<Input id="input" class="prompt"
-					returnType="done" onKeyEnter=handle_prompt_enter
+					returnType="done" onKeyEnter=(ev=>{
+						// var dag = ev.sender.owner;
+						dag.trigger('Action', 1);
+						actionClose(dag);
+					})
 					value=text placeholder=CONSTS.placeholder />
 			</Span>
 		</Dialog>
 	);
-	dag.show();
 	dag.onMounted.once(e=>dag.IDs.input.focus());
+	dag.show();
 	return dag;
 }
 
@@ -419,7 +430,15 @@ export function show(title, msg, buttons, cb = util.noop) {
 	return dag;
 }
 
-export function sheet(buttons, cb = util.noop) {
+export function sheet(content) {
+	var dag = render(
+		<Sheet content=content />
+	);
+	dag.show();
+	return dag;
+}
+
+export function sheetConfirm(buttons, cb = util.noop) {
 	var dag = render(
 		<Sheet buttons=buttons onAction=(e=>cb(e.data)) />
 	);
