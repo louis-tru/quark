@@ -66,7 +66,7 @@ function Package_get_start_argv(self) {
 		var name = self.name;
 		var pkg_json = self.pkg_json;
 		var start_argv = name;
-		var inspect = '--node --inspect=0.0.0.0:9229 ';
+		var inspect = '--inspect=0.0.0.0:9229 ';
 		var start_argv_debug = 'http://' + getLocalNetworkHost()[0] + ':1026/' + 
 														name + ' --ignore-local=*';
 		start_argv_debug = inspect + start_argv_debug;

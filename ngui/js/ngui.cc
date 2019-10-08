@@ -134,7 +134,7 @@ void  object_allocator_retain(Object* obj);
 
 // startup argv
 Array<char*>* __xx_ngui_argv = nullptr;
-int           __xx_ngui_have_node = 0;
+int           __xx_ngui_have_node = 1;
 int           __xx_ngui_have_dev = 0;
 
 // parse argv
@@ -142,13 +142,15 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 	static String argv_str;
 
 	XX_CHECK(argv_in.length(), "Bad start argument");
-	__xx_ngui_have_node = 0;
+	__xx_ngui_have_node = 1;
 	__xx_ngui_have_dev = 0;
 	argv_str = argv_in[0];
 
 	Array<int> indexs = {-1};
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-		if (!__xx_ngui_have_node && argv_in[i] == "--node") {
+		if (__xx_ngui_have_node && argv_in[i] == "--no-node") {
+			__xx_ngui_have_node = 0;
+		} else if (!__xx_ngui_have_node && argv_in[i] == "--node") {
 			__xx_ngui_have_node = 1;
 		} else if (!__xx_ngui_have_dev && argv_in[i] == "--dev") {
 			__xx_ngui_have_dev = 1;
