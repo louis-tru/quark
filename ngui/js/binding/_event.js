@@ -140,6 +140,7 @@ class List {
 				this._last = prev;
 			}
 			
+			item._host = null;
 			this._length--;
 			return next;
 		}
