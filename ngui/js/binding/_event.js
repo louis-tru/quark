@@ -186,6 +186,7 @@ class List {
 				this._last = null;
 			}
 			this._length--;
+			r._host = null;
 			return r._value;
 		}
 	}
@@ -201,6 +202,7 @@ class List {
 				this._last = null;
 			}
 			this._length--;
+			r._host = null;
 			return r._value;
 		}
 	}

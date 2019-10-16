@@ -30,10 +30,10 @@
 
 /**************************************************************************/
 
-import { Event, Notification } from 'ngui/event';
+var { Event, Notification, List } = require('ngui/event');
 var _util = requireNative('_util');
 var _pkg = requireNative('_pkg');
-var { haveNode } = _util;
+var haveNode = _util.haveNode;
 
 function next_tick(cb, ...args) {
 	if (typeof cb != 'function')
@@ -117,6 +117,7 @@ var id = 10;
 var extendObject = _pkg.extendObject;
 var assign = Object.assign;
 var AsyncFunctionConstructor = (async function() {}).constructor;
+var scopeLockQueue = new Map();
 
 function is_async(func) {
 	return func && func.constructor === AsyncFunctionConstructor;
@@ -193,6 +194,32 @@ function extendClass(cls, ...extds) {
 		}
 		extend(proto, extd);
 	}
+	return cls;
+}
+
+async function scopeLockDequeue(mutex) {
+	var item, queue = scopeLockQueue.get(mutex);
+	while( item = queue.shift() ) {
+		try {
+			item.resolve(await item.cb());
+		} catch(err) {
+			item.reject(err);
+		}
+	}
+	scopeLockQueue.delete(mutex);
+}
+
+function scopeLock(mutex, cb) {
+	exports.assert(mutex, 'Bad argument');
+	exports.assert(typeof cb == 'funciton', 'Bad argument');
+	return new Promise((resolve, reject)=>{
+		if (scopeLockQueue.has(mutex)) {
+			scopeLockQueue.get(mutex).push({resolve, reject, cb});
+		} else {
+			scopeLockQueue.set(mutex, new List().push({resolve, reject, cb}).host);
+			scopeLockDequeue(); // dequeue
+		}
+	})
 }
 
 module.exports = exports = extend(extend(utils, _util), {
@@ -221,7 +248,7 @@ module.exports = exports = extend(extend(utils, _util), {
 	 * @start argv options
 	 */
 	options: _pkg.options,
-	
+
 	/**
 	 * @func resolve(...args)
 	 */
@@ -291,7 +318,7 @@ module.exports = exports = extend(extend(utils, _util), {
 	err: function(e, code) {
 		return Error.new(e, code);
 	},
-
+	
 	/**
 	 * @fun cb # return default callback
 	 * @ret {Function}
@@ -299,7 +326,7 @@ module.exports = exports = extend(extend(utils, _util), {
 	cb: function(cb) {
 		return cb || function () { };
 	},
-
+	
 	/**
 	 * @fun throw # 抛出异常
 	 * @arg err {Object}
@@ -380,7 +407,7 @@ module.exports = exports = extend(extend(utils, _util), {
 		end = end || 1E8;
 		return Math.floor(start + r * (end - start + 1));
 	},
-
+	
 	/**
 	* @fun fixRandom # 固定随机值,指定几率返回常数
 	* @arg args.. {Number} # 输入百分比
@@ -486,7 +513,7 @@ module.exports = exports = extend(extend(utils, _util), {
 	 * @arg subclass {class}
 	 */
 	equalsClass: function(baseclass, subclass) {
-		if (!baseclass || !subclass) return false;
+		if (!baseclass || !subclass || !subclass.prototype) return false;
 		if (baseclass === subclass) return true;
 		
 		var prototype = baseclass.prototype;
@@ -540,6 +567,11 @@ module.exports = exports = extend(extend(utils, _util), {
 	sleep: function(time, defaultValue) {
 		return new Promise((ok, err)=>setTimeout(e=>ok(defaultValue), time));
 	},
+
+	/**
+	 * @func scopeLock(mutex, cb)
+	 */
+	scopeLock: scopeLock,
 	
 	// @end
 });
