@@ -217,7 +217,7 @@ function scopeLock(mutex, cb) {
 			scopeLockQueue.get(mutex).push({resolve, reject, cb});
 		} else {
 			scopeLockQueue.set(mutex, new List().push({resolve, reject, cb}).host);
-			scopeLockDequeue(); // dequeue
+			scopeLockDequeue(mutex); // dequeue
 		}
 	})
 }
@@ -572,6 +572,23 @@ module.exports = exports = extend(extend(utils, _util), {
 	 * @func scopeLock(mutex, cb)
 	 */
 	scopeLock: scopeLock,
-	
+
+	/**
+	 * @func promise(cb)
+	 */
+	promise: function(cb) {
+		return new Promise(function(resolve, reject) {
+			if (is_async(cb)) {
+				cb(resolve, reject).catch(reject);
+			} else {
+				try{
+					cb(resolve, reject);
+				} catch(err) {
+					reject(err);
+				}
+			}
+		});
+	},
+
 	// @end
 });
