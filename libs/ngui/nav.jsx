@@ -403,8 +403,8 @@ export class NavPageCollection extends Navigation {
 		this.m_substack = new List();
 	}
 
-	render(...vchildren) {
-		this.m_vchildren = vchildren;
+	render(...vdoms) {
+		this.m_default_page = vdoms.find(e=>e);
 		return (
 			<Clip width="100%" height="100%">
 				<Div id="navbar" width="100%" />
@@ -415,13 +415,12 @@ export class NavPageCollection extends Navigation {
 	}
 
 	triggerMounted(e) {
-		var vc = this.m_vchildren;
-		if (vc && vc.length) {
+		if (this.m_default_page) {
 			/* delay 因为是第一次加载,布局系统还未初始化
 			 * 无法正确的获取数值来进行title bar的排版计算
 			 * 所以这里延时一帧画面
 			 */
-			ngui.nextFrame(e=>this.push(vc[0]));
+			ngui.nextFrame(e=>this.push(this.m_default_page));
 		}
 		super.triggerMounted(e);
 		ngui.nextFrame(e=>this.registerNavigation(0));
