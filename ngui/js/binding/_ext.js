@@ -86,7 +86,7 @@ extend(Object.prototype, {
 });
 
 extend(Function.prototype, {
-	
+
 	/**
 	 * @func hashCode()
 	 */
@@ -99,6 +99,20 @@ extend(Function.prototype, {
 		return this.M_hashCode;
 	},
 
+	/**
+		* @func setTimeout 延迟执行函数单位毫秒
+		* @arg time {Number}  要延迟时间长度单位(毫秒)
+		* @arg ...args        提前传入的参数1
+		*/
+	setTimeout: function(time/*, ...args*/) {
+		var self = this;
+		var args = G_slice.call(arguments, 1);
+		return setTimeout(function() {
+			self.apply(null, args);
+		}, time);
+	},
+
+	// Discard: catch,err,throw
 	catch: function(catch_func) {
 		this.throw = catch_func;
 		this.catch = illegal_operation;
@@ -121,19 +135,6 @@ extend(Function.prototype, {
 	 */
 	throw: function(e) {
 		throw e;
-	},
-
-	/**
-		* @func setTimeout 延迟执行函数单位毫秒
-		* @arg time {Number}  要延迟时间长度单位(毫秒)
-		* @arg ...args        提前传入的参数1
-		*/
-	setTimeout: function(time/*, ...args*/) {
-		var self = this;
-		var args = G_slice.call(arguments, 1);
-		return setTimeout(function() {
-			self.apply(null, args);
-		}, time);
 	},
 
 });

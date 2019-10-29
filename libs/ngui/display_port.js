@@ -30,14 +30,14 @@
 
 import 'ngui/util';
 import 'ngui/app';
-import { NativeNotification } from 'ngui/event';
+import 'ngui/event';
 
 export requireNative('_display_port');
 
 /**
  * @class DisplayPort
  */
-class DisplayPort extends NativeNotification {
+class DisplayPort extends event.NativeNotification {
 	event onChange;
 	event onOrientation;
 }

@@ -143,7 +143,6 @@
 				'action_name': 'gen_lib_js_natives',
 				'variables': {
 					'files': [
-						'binding/_keys.js',
 						'binding/_pkg.js',
 						'binding/_pkgutil.js',
 					],
@@ -184,7 +183,6 @@
 						'../../libs/ngui/font.js',
 						'../../libs/ngui/fs.js',
 						'../../libs/ngui/http.js',
-						'../../libs/ngui/keys.js',
 						'../../libs/ngui/media.js',
 						'../../libs/ngui/nav.jsx',
 						'../../libs/ngui/overlay.jsx',

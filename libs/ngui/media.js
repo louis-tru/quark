@@ -31,7 +31,7 @@
 export requireNative('_media');
 
 import 'ngui/util';
-import { NativeNotification } from 'ngui/event';
+import 'ngui/event';
 
  /**
 	* @class AudioPlayer
@@ -64,4 +64,4 @@ class VideoExtend {
 }
 
 util.extendClass(exports.Video, VideoExtend);
-util.extendClass(AudioPlayer, NativeNotification);
+util.extendClass(AudioPlayer, event.NativeNotification);

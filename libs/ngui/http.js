@@ -31,7 +31,7 @@
 export requireNative('_http');
 
 import 'ngui/util';
-import { NativeNotification } from 'ngui/event';
+import 'ngui/event';
 
 /**
  * @class HttpClientRequest
@@ -48,4 +48,4 @@ export class HttpClientRequest extends exports.NativeHttpClientRequest {
 	event onAbort;
 }
 
-util.extendClass(HttpClientRequest, NativeNotification);
+util.extendClass(HttpClientRequest, event.NativeNotification);

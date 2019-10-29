@@ -30,7 +30,7 @@
 
 import 'ngui/util';
 import 'ngui/display_port';
-import { NativeNotification } from 'ngui/event';
+import 'ngui/event';
 import ViewController, { _VV, _VVD } from 'ngui/ctr';
 
 var _ngui = requireNative('_ngui');
@@ -90,7 +90,7 @@ export class GUIApplication extends _ngui.NativeGUIApplication {
 	//@end
 }
 
-util.extendClass(GUIApplication, NativeNotification);
+util.extendClass(GUIApplication, event.NativeNotification);
 
 export {
 
