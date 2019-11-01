@@ -45,7 +45,7 @@ function next_tick(cb, ...args) {
 
 var _exiting = false;
 
-var listeners = {
+var handles = {
 	BeforeExit: function(noticer, code = 0) {
 		return noticer.triggerWithEvent(new Event(code, code));
 	},
@@ -59,23 +59,23 @@ var listeners = {
 	UnhandledRejection: function(noticer, reason, promise) {
 		return noticer.length && noticer.trigger({ reason, promise }) === 0;
 	},
-}
+};
 
 class Utils extends Notification {
 
 	getNoticer(name) {
 		var noticer = this['__on' + name];
 		if ( ! noticer ) {
-			var listener = listeners[name];
-			if (listener) {
+			var handle = handles[name];
+			if (handle) {
 				if (haveNode) {
 					var event = name.substr(0, 1).toLowerCase() + name.substr(1);
 					process.on(event, function(...args) {
-						return listener(noticer, ...args);
+						return handle(noticer, ...args);
 					});
 				}
 				_util[`__on${name}_native`] = function(...args) {
-					return listener(noticer, ...args);
+					return handle(noticer, ...args);
 				};
 			} else {
 				// bind native event

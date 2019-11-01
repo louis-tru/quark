@@ -139,7 +139,11 @@ class Notification {
 	$trigger(name, event, is_event) {
 		var noticer = this[PREFIX + name];
 		if (noticer) {
-			return noticer.$trigger(event, is_event);
+			if ( is_event || (event && event.__has_event) ) {
+				return this.triggerWithEvent(event)
+			} else {
+				return this.trigger(event)
+			}
 		}
 		return 0;
 	}

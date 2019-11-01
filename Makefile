@@ -4,7 +4,7 @@ NODE           ?= node
 ANDROID_JAR     = out/android.classs.ngui.jar
 NXMAKE          = ./libs/nxmake
 NXMAKE_OUT      = out/nxmake
-GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
+GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
@@ -18,6 +18,9 @@ endif
 ifeq ($(GIT_repository),)
 	GIT_repository = https://github.com/louis-tru
 endif
+
+a:
+	echo $(GIT_repository)
 
 JSA_SHELL = $(NXMAKE)/bin/${HOST_OS}-jsa-shell
 

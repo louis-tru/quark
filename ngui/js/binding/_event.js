@@ -461,17 +461,6 @@ class EventNoticer {
 	}
 	
 	/**
-	 * @func $trigger(event, is_event)
-	 */
-	$trigger(event, is_event) {
-		if ( is_event || (event && event.__has_event) ) {
-			return this.triggerWithEvent(event)
-		} else {
-			return this.trigger(event)
-		}
-	}
-	
-	/**
 	 * @fun off # 卸载侦听器(函数)
 	 * @arg [func] {Object}   # 可以是侦听函数,id,如果不传入参数卸载所有侦听器
 	 * @arg [scope] {Object}  # scope
