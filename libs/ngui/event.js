@@ -140,9 +140,9 @@ class Notification {
 		var noticer = this[PREFIX + name];
 		if (noticer) {
 			if ( is_event || (event && event.__has_event) ) {
-				return this.triggerWithEvent(event)
+				return this.triggerWithEvent(name, event);
 			} else {
-				return this.trigger(event)
+				return this.trigger(name, event);
 			}
 		}
 		return 0;
