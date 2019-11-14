@@ -255,9 +255,9 @@ function add(self, origin, listen, scope, id) {
 	return id;
 }
 
-function chack_add(self, origin, listen, scope, id) {
+function check_add(self, origin, listen, scope, id) {
 	if ( typeof origin == 'function' ) {
-		add(self, origin, listen, scope, id);
+		return add(self, origin, listen, scope, id);
 	} else {
 		throw new Error('Event listener function type is incorrect ');
 	}
@@ -353,7 +353,7 @@ class EventNoticer {
 		if (listen instanceof EventNoticer) {
 			return add_on_noticer(this, listen, scope);
 		}
-		return chack_add(this, listen, listen, scope, id);
+		return check_add(this, listen, listen, scope, id);
 	}
 	
 	/**
@@ -367,7 +367,7 @@ class EventNoticer {
 			return add_once_noticer(this, listen);
 		}
 		var self = this;
-		var _id = chack_add(this, listen, {
+		var _id = check_add(this, listen, {
 			call: function (scope, evt) {
 				self.off(_id); listen.call(scope, evt);
 			}
@@ -387,7 +387,7 @@ class EventNoticer {
 		if(listen instanceof EventNoticer){
 			return add_on_noticer(this, listen);
 		}
-		return chack_add(this, listen, { call: listen }, scope, id);
+		return check_add(this, listen, { call: listen }, scope, id);
 	}
 
 	/**
@@ -403,7 +403,7 @@ class EventNoticer {
 			return add_once_noticer(this, listen, scope);
 		}
 		var self = this;
-		var _id = chack_add(this, listen, {
+		var _id = check_add(this, listen, {
 			call: function (scope, evt) {
 				self.off(_id); listen(scope, evt);
 			}
