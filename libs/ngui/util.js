@@ -578,14 +578,13 @@ module.exports = exports = extend(extend(utils, _util), {
 	 */
 	promise: function(cb) {
 		return new Promise(function(resolve, reject) {
-			if (is_async(cb)) {
-				cb(resolve, reject).catch(reject);
-			} else {
-				try{
-					cb(resolve, reject);
-				} catch(err) {
-					reject(err);
+			try {
+				var r = cb(resolve, reject);
+				if (r instanceof Promise) {
+					r.catch(reject);
 				}
+			} catch(err) {
+				reject(err);
 			}
 		});
 	},
