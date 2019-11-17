@@ -86,7 +86,7 @@ extend(Object.prototype, {
 });
 
 extend(Function.prototype, {
-
+	
 	/**
 	 * @func hashCode()
 	 */
@@ -440,16 +440,16 @@ extend(Error, {
 			} else if ( typeof err == 'number' ) {
 				return { message: 'unknown error', code: err, name: '', description: '' };
 			} else {
-				var r = Object.assign(Object.create(err), err);
+				var r = Object.assign({}, err);
 				if (typeof r.code == 'string') {
-					r.rawCode = r.code;
+					r.rawCode = err.code;
 					r.code = -1;
 				}
-				r.code = Number(r.code) || -1;
-				r.name = r.name || '';
-				r.description = r.description || '';
-				r.message = r.message || 'unknown error';
-				r.stack = r.stack || '';
+				r.code = Number(err.code) || -1;
+				r.name = err.name || '';
+				r.description = err.description || '';
+				r.message = err.message || 'unknown error';
+				r.stack = err.stack || '';
 				return r;
 			}
 		} else {
@@ -475,8 +475,10 @@ extend(Error, {
 				e = new Error(e);
 			}
 		}
-		e.rawCode = code || e.code;
-		e.code = Number(e.rawCode) || -1;
+		code = code || e.code;
+		if (code)
+			e.rawCode = code;
+		e.code = Number(code) || -1;
 		return e;
 	},
 
