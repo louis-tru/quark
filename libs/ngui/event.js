@@ -65,17 +65,21 @@ class Notification {
 	 * @func addDefaultListener
 	 */
 	addDefaultListener(name, func) {
-		
 		if ( typeof func == 'string' ) {
 			var func2 = this[func]; // find func 
-			
 			if ( typeof func2 == 'function' ) {
 				return this.getNoticer(name).on(func2, 0); // default id 0
 			} else {
 				throw Error.new(`Cannot find a function named "${func}"`);
 			}
 		} else {
-			return this.getNoticer(name).on(func, 0); // default id 0
+			if (func) {
+				return this.getNoticer(name).on(func, 0); // default id 0
+			} else { // delete default listener
+				if (this.hasNoticer(name)) {
+					this.getNoticer(name).off(0);
+				}
+			}
 		}
 	}
 	

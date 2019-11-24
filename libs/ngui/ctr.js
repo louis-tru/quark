@@ -682,7 +682,7 @@ export default class ViewController extends Notification {
 			} while(owner);
 			throw util.err(`Cannot find a function named "${func}"`);
 		} else {
-			return this.getNoticer(name).on(func, 0); // default id 0
+			return super.addDefaultListener(name, func);
 		}
 	}
 

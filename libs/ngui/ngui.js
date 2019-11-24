@@ -39,10 +39,12 @@ import 'ngui/css';
 
 import ViewController from 'ngui/ctr';
 
+const {NativeNotification} = event;
+
 /**
 	* @class ViewExtend
 	*/
-class ViewExtend extends event.NativeNotification {
+class ViewExtend extends NativeNotification {
 
 	// @private:
 	m_id = null;
@@ -103,7 +105,7 @@ class ViewExtend extends event.NativeNotification {
 			} while(owner);
 			throw util.err(`Cannot find a function named "${func}"`);
 		} else {
-			return this.getNoticer(name).on(func, 0); // default id 0
+			return NativeNotification.prototype.addDefaultListener.call(this, name, func);
 		}
 	}
 	

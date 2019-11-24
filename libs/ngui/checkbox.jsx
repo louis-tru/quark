@@ -170,7 +170,7 @@ class Basic extends ViewController {
 			this.markRerender();
 			this.m_selected = value;
 			if (this.isMounted)
-				this.triggerChange();
+				this.triggerChange(value);
 		}
 	}
 }
