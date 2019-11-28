@@ -66,52 +66,60 @@ class Notification {
 	 * @func addDefaultListener
 	 */
 	addDefaultListener(name, func) {
-		
 		if ( typeof func == 'string' ) {
 			var func2 = this[func]; // find func 
-			
 			if ( typeof func2 == 'function' ) {
-				return this.getNoticer(name).on(func2, 0); // default id 0
+				return this.addEventListener(name, func2, 0); // default id 0
 			} else {
 				throw Error.new(`Cannot find a function named "${func}"`);
 			}
 		} else {
 			if (func) {
-				return this.getNoticer(name).on(func, 0); // default id 0
+				return this.addEventListener(name, func, 0); // default id 0
 			} else { // delete default listener
-				if (this.hasNoticer(name)) {
-					this.getNoticer(name).off(0);
-				}
+				this.removeEventListener(name, 0)
 			}
 		}
 	}
-	
+
 	/**
-	 * @func removeEventListener(name, listen[,scope[,id]])
+	 * @func addEventListener(name, listen[,scope[,id]])
 	 */
 	addEventListener(name, ...args) {
-		return this.getNoticer(name).on(...args);
+		var del = this.getNoticer(name);
+		var r = del.on(...args);
+		this.triggerListenerChange(name, del.length, 1);
+		return r;
 	}
 
 	/**
 	 * @func addEventListenerOnce(name, listen[,scope[,id]])
 	 */
 	addEventListenerOnce(name, ...args) {
-		return this.getNoticer(name).once(...args);
+		var del = this.getNoticer(name);
+		var r = del.once(...args);
+		this.triggerListenerChange(name, del.length, 1);
+		return r;
 	}
 
 	/**
 	 * @func addEventListener2(name, listen[,scope[,id]])
 	 */
 	addEventListener2(name, ...args) {
-		return this.getNoticer(name).on2(...args);
+		var del = this.getNoticer(name);
+		var r = del.on2(...args);
+		this.triggerListenerChange(name, del.length, 1);
+		return r;
 	}
 
 	/**
 	 * @func addEventListenerOnce2(name, listen[,scope[,id]])
 	 */
 	addEventListenerOnce2(name, ...args) {
-		return this.getNoticer(name).once2(...args);
+		var del = this.getNoticer(name);
+		var r = del.once2(...args);
+		this.triggerListenerChange(name, del.length, 1);
+		return r;
 	}
 
 	/**
@@ -158,9 +166,10 @@ class Notification {
 		var noticer = this[PREFIX + name];
 		if (noticer) {
 			noticer.off(...args);
+			this.triggerListenerChange(name, noticer.length, -1);
 		}
 	}
-	
+
 	/**
 	 * @func removeEventListenerWithScope(scope) 卸载notification上所有与scope相关的侦听器
 	 * @arg scope {Object}
@@ -168,9 +177,10 @@ class Notification {
 	removeEventListenerWithScope(scope) {
 		for ( let noticer of this.allNoticers() ) {
 			noticer.off(scope);
+			this.triggerListenerChange(name, noticer.length, -1);
 		}
 	}
-	
+
 	/**
 	 * @func allNoticers() # Get all event noticer
 	 * @ret {Array}
@@ -178,6 +188,11 @@ class Notification {
 	allNoticers() {
 		return allNoticers(this);
 	}
+
+	/**
+	 * @func triggerListenerChange
+	 */
+	triggerListenerChange(name, count, change) {}
 
 }
 

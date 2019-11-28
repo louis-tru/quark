@@ -99,7 +99,7 @@ class ViewExtend extends NativeNotification {
 			do {
 				var func2 = owner[func];
 				if ( typeof func2 == 'function' ) {
-					return this.getNoticer(name).on(func2, owner, 0); // default id 0
+					return this.addEventListener(name, func2, owner, 0); // default id 0
 				}
 				owner = owner.m_owner;
 			} while(owner);
