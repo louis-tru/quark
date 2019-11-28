@@ -43,15 +43,21 @@ function next_tick(cb, ...args) {
 	});
 }
 
+function event(data) {
+	var evt = new Event(data);
+	evt.returnValue = data;
+	return evt;
+}
+
 var _exiting = false;
 
 var handles = {
 	BeforeExit: function(noticer, code = 0) {
-		return noticer.triggerWithEvent(new Event(code, code));
+		return noticer.triggerWithEvent(event(code));
 	},
 	Exit: function(noticer, code = 0) {
 		_exiting = true;
-		return noticer.triggerWithEvent(new Event(code, code));
+		return noticer.triggerWithEvent(event(code));
 	},
 	UncaughtException: function(noticer, err) {
 		return noticer.length && noticer.trigger(err) === 0;

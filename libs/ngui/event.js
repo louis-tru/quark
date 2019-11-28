@@ -31,11 +31,12 @@
 Object.assign(exports, requireNative('_event'));
 
 const _util = requireNative('_util');
-const EventNoticer = exports.EventNoticer;
 const PREFIX = '__on';
-const REG = new RegExp('^' + PREFIX);
 
 /**********************************************************************************/
+
+const {EventNoticer,Event} = exports;
+const REG = new RegExp('^' + PREFIX);
 
 /**
  * @class Notification
@@ -53,9 +54,9 @@ class Notification {
 		}
 		return noticer;
 	}
-	
+
 	/**
-	 * @func getNoticer
+	 * @func hasNoticer
 	 */
 	hasNoticer(name) {
 		return (PREFIX + name) in this;
@@ -65,8 +66,10 @@ class Notification {
 	 * @func addDefaultListener
 	 */
 	addDefaultListener(name, func) {
+		
 		if ( typeof func == 'string' ) {
 			var func2 = this[func]; // find func 
+			
 			if ( typeof func2 == 'function' ) {
 				return this.getNoticer(name).on(func2, 0); // default id 0
 			} else {
@@ -117,13 +120,9 @@ class Notification {
 	* @arg data {Object}       要发送的消数据
 	*/
 	trigger(name, data) {
-		var noticer = this[PREFIX + name];
-		if (noticer) {
-			return noticer.trigger(data);
-		}
-		return 0;
+		return this.triggerWithEvent(name, new Event(data));
 	}
-	
+
 	/**
 	* @func triggerWithEvent 通知事监听器
 	* @arg name {String}       事件名称
@@ -134,7 +133,7 @@ class Notification {
 		if (noticer) {
 			return noticer.triggerWithEvent(event);
 		}
-		return 0;
+		return event.returnValue;
 	}
 
 	/**
@@ -143,10 +142,10 @@ class Notification {
 	$trigger(name, event, is_event) {
 		var noticer = this[PREFIX + name];
 		if (noticer) {
-			if ( is_event || (event && event.__has_event) ) {
-				return this.triggerWithEvent(name, event);
+			if ( is_event ) {
+				return this.triggerWithEvent(name, event)
 			} else {
-				return this.trigger(name, event);
+				return this.trigger(name, event)
 			}
 		}
 		return 0;

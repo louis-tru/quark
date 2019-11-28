@@ -122,6 +122,11 @@ class WrapNativeEvent: public WrapObject {
 		}
 		JS_RETURN_NULL();
 	}
+
+	static void origin(Local<JSString> name, PropertyCall args) {
+		JS_WORKER(args);
+		JS_RETURN_NULL();
+	}
 	
 	static void return_value(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
@@ -146,6 +151,7 @@ class WrapNativeEvent: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(sender, sender);
 			JS_SET_CLASS_ACCESSOR(data, data);
 			JS_SET_CLASS_ACCESSOR(name, name);
+			JS_SET_CLASS_ACCESSOR(origin, origin);
 			JS_SET_CLASS_ACCESSOR(returnValue, return_value, set_return_value);
 		}, exports->GetProperty(worker, "Event").To<JSFunction>());
 		

@@ -39,26 +39,25 @@ class Event {
 	// m_noticer: null;
 	// m_return_value: 0;
 	// __has_event: 1;
-	
-	/**
-	 * name
-	 */
+
 	get name () {
 		return this.m_noticer.name;
 	}
-	
-	/**
-	 * 事件数据
-	 */
+
 	get data () {
 		return this.m_data;
 	}
-	
-	/**
-	 * 发送者
-	 */
+
 	get sender () {
 		return this.m_noticer.sender;
+	}
+
+	get origin () {
+		return this.m_origin;
+	}
+
+	set origin(value) {
+		this.m_origin = value;
 	}
 
 	get noticer () {
@@ -89,6 +88,7 @@ Event.prototype.m_data = null;
 Event.prototype.m_noticer = null;
 Event.prototype.m_return_value = 0;
 Event.prototype.__has_event = 1;
+Event.prototype.m_origin = null;
 
 class LiteItem {
 	constructor(host, prev, next, value) {
@@ -320,7 +320,7 @@ class EventNoticer {
 	get sender () {
 		return this.m_sender;
 	}
-	
+
 	/**
 	 * 
 	 * @get {int} # 添加的事件侦听数量
@@ -418,25 +418,9 @@ class EventNoticer {
 	 * @ret {Object}
 	 */
 	trigger(data) {
-		if ( this.m_enable && this.m_length ) {
-			var evt = new Event(data);
-			evt.m_noticer = this;
-			var item = this.m_listens._first;
-			while ( item ) {
-				var value = item._value;
-				if ( value ) {
-					value.listen.call(value.scope, evt);
-					item = item._next;
-				} else {
-					item = this.m_listens.del(item);
-				}
-			}
-			evt.m_noticer = null;
-			return evt.m_return_value;
-		}
-		return 0;
+		return this.triggerWithEvent(new Event(data));
 	}
-	
+
 	/**
 	 * @fun triggerWithEvent # 通知所有观察者
 	 * @arg data {Object} 要发送的event
@@ -459,7 +443,7 @@ class EventNoticer {
 		evt.m_noticer = null;
 		return evt.returnValue;
 	}
-	
+
 	/**
 	 * @fun off # 卸载侦听器(函数)
 	 * @arg [func] {Object}   # 可以是侦听函数,id,如果不传入参数卸载所有侦听器
