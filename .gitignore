@@ -12,3 +12,4 @@ depe/glslang
 *.a
 *.so
 .vscode
+libs/nxkit
