@@ -1147,6 +1147,14 @@ function Packages_require_add_main_search_path(self) {
 	});
 }
 
+function read_config_file(pathname, pathname2) {
+	var c = inl_require_without_err(pathname);
+	var c2 = inl_require_without_err(pathname2);
+	if (c || c2) {
+		return Object.assign({}, c, c2);
+	}
+}
+
 /**
  * @class Packages
  */
@@ -1319,14 +1327,10 @@ class Packages {
 			var pkg = this.mainPackage;
 			if (pkg) {
 				config = 
-					inl_require_without_err(pkg.name + '/config') ||
-					inl_require_without_err(pkg.name + '/.config') ||
-					inl_require_without_err(_path.cwd() + '/config') || 
-					inl_require_without_err(_path.cwd() + '/.config') || {};
+					read_config_file(pkg.name + '/.config', pkg.name + '/config') ||
+					read_config_file(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
 			} else {
-				config = 
-					inl_require_without_err(_path.cwd() + '/config') || 
-					inl_require_without_err(_path.cwd() + '/.config') || {};
+				config = read_config_file(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
 			}
 		}
 		return config;
@@ -1544,9 +1548,7 @@ function inl_require(request, parent) {
 
 // without error
 function inl_require_without_err(pathname, parent) {
-	try {
-		return inl_require(pathname, parent);
-	} catch(e) {}
+	try { return inl_require(pathname, parent) } catch(e) {}
 }
 
 exports = module.exports = new Packages();
