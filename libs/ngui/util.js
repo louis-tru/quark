@@ -408,9 +408,11 @@ module.exports = exports = extend(extend(utils, _util), {
 	 * @ret {Number}
 	 */
 	random: function(start, end) {
+		if (start == end)
+			return start;
 		var r = Math.random();
 		start = start || 0;
-		end = end || 1E8;
+		end = end || (end===0?0:1E8);
 		return Math.floor(start + r * (end - start + 1));
 	},
 	
