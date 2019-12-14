@@ -28,7 +28,7 @@ JSA_SHELL = $(NXMAKE)/bin/${HOST_OS}-jsa-shell
 
 DEPS = libs/nxkit libs/nxmake/gyp.ngui depe/v8-link \
 	depe/FFmpeg.ngui depe/node.ngui depe/bplus
-FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
+FORWARD = make xcode msvs make-linux cmake-linux cmake compile tools $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
@@ -57,15 +57,15 @@ check_osx=\
 		exit 1; \
 	fi
 
-.PHONY: all $(FORWARD) jsa ios android linux osx \
-	compile install-nxmake-link install-nxmake \
-	help web doc watch build-linux-all build-osx-all pull push
+.PHONY: $(FORWARD) jsa ios android linux osx \
+	product install-nxmake-link install-nxmake \
+	help web doc watch build _host_linux _host_osx pull push
 
 .SECONDEXPANSION:
 
-# compile ngui and install
+# compile product ngui and install
 # It can only run in MAC system.
-compile: pull
+product: pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-nxmake
@@ -89,55 +89,57 @@ $(JSA_SHELL): jsa
 # It can only run in MAC system.
 ios: $(JSA_SHELL)
 	@$(call check_osx,$@)
-	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
-	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
-	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
-	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
+	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) compile # armv7 say goodbye 
+	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) compile
+	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) compile
+	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) compile # handy debug
 	@./tools/gen_apple_frameworks.sh $(NXMAKE_OUT) ios
 
 # build all android platform and output to product dir
 android: $(JSA_SHELL)
 	@$(MAKE) $(ANDROID_JAR)
-	@./configure --os=android --arch=x64   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x64   --library=shared && $(MAKE) compile
+	@./configure --os=android --arch=arm   --library=shared && $(MAKE) compile
+	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) compile
 
 linux: $(JSA_SHELL)
-	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build
-	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=linux   --arch=x64                    && $(MAKE) build
-	@./configure --os=linux   --arch=arm                    && $(MAKE) build
+	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) compile
+	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) compile
+	@./configure --os=linux   --arch=x64                    && $(MAKE) compile
+	@./configure --os=linux   --arch=arm                    && $(MAKE) compile
 
 osx:
 	@echo Unsupported
 
-build-all:
+# build all from current system platform
+
+build:
 	@if [ "$(HOST_OS)" = "osx" ]; then \
-		$(MAKE) build-osx-all; \
+		$(MAKE) _host_osx; \
 	elif [ "$(HOST_OS)" = "linux" ]; then \
-		$(MAKE) build-linux-all; \
+		$(MAKE) _host_linux; \
 	else \
 		echo Unsupported current System "$(HOST_OS)"; \
 	fi
 
-build-osx-all: pull
+_host_osx: pull
 	@$(MAKE) android
 	@$(MAKE) ios
-	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86                    && $(MAKE) build
-	@./configure --os=android --arch=x64                    && $(MAKE) build
-	@./configure --os=android --arch=arm                    && $(MAKE) build
-	@./configure --os=android --arch=arm64                  && $(MAKE) build
+	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) compile
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE) compile
+	@./configure --os=android --arch=x86                    && $(MAKE) compile
+	@./configure --os=android --arch=x64                    && $(MAKE) compile
+	@./configure --os=android --arch=arm                    && $(MAKE) compile
+	@./configure --os=android --arch=arm64                  && $(MAKE) compile
 
-build-linux-all: pull
+_host_linux: pull
 	@$(MAKE) android
 	@$(MAKE) linux
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
-	@./configure --os=android --arch=x86                    && $(MAKE) build
-	@./configure --os=android --arch=x64                    && $(MAKE) build
-	@./configure --os=android --arch=arm                    && $(MAKE) build
-	@./configure --os=android --arch=arm64                  && $(MAKE) build
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE) compile
+	@./configure --os=android --arch=x86                    && $(MAKE) compile
+	@./configure --os=android --arch=x64                    && $(MAKE) compile
+	@./configure --os=android --arch=arm                    && $(MAKE) compile
+	@./configure --os=android --arch=arm64                  && $(MAKE) compile
 
 jsa:
 	@./configure --media=0
