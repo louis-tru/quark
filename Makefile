@@ -65,7 +65,7 @@ check_osx=\
 
 # compile product ngui and install
 # It can only run in MAC system.
-product: pull
+product: # pull
 	@$(MAKE) ios
 	@$(MAKE) android
 	@$(MAKE) install-nxmake
@@ -122,7 +122,7 @@ build:
 		echo Unsupported current System "$(HOST_OS)"; \
 	fi
 
-_host_osx: pull
+_host_osx: # pull
 	@$(MAKE) android
 	@$(MAKE) ios
 	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) compile
@@ -132,7 +132,7 @@ _host_osx: pull
 	@./configure --os=android --arch=arm                    && $(MAKE) compile
 	@./configure --os=android --arch=arm64                  && $(MAKE) compile
 
-_host_linux: pull
+_host_linux: # pull
 	@$(MAKE) android
 	@$(MAKE) linux
 	@./configure --os=android --arch=x86   --library=shared && $(MAKE) compile
