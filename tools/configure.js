@@ -680,7 +680,7 @@ async function configure() {
 		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
 
 		if (!fs.existsSync(`${cc_path}gcc`) || 
-				!execSync(`${cc_path}gcc --version| grep -i gcc`).stdout[0] || opts.clang
+				!execSync(`${cc_path}gcc --version| grep -i gcc`).first || opts.clang
 			) {
 			if (!fs.existsSync(`${cc_path}clang`)) {
 				cc_prefix = cc_prefix.replace(/-$/, '') + api + '-';
@@ -722,11 +722,11 @@ async function configure() {
 
 		if (opts.clang) {
 			var llvm_version = execSync(`${cc_path}clang \
-				--version`).stdout[0].match(/LLVM (\d+\.\d+(\.\d+)?)/i);
+				--version`).first.match(/LLVM (\d+\.\d+(\.\d+)?)/i);
 			variables.llvm_version = llvm_version && llvm_version[1] || 0;
 		} else {
 			var gcc_version = execSync(`${cc_path}gcc \
-				--version| grep -i gcc | awk '{ print $3 }'`).stdout[0];
+				--version| grep -i gcc | awk '{ print $3 }'`).first;
 			variables.gcc_version = gcc_version ? gcc_version.replace(/\.x/, '') : 0;
 		}
 	}
@@ -804,7 +804,7 @@ async function configure() {
 
 		// gcc version
 		var gcc_version = execSync(`${variables.cc} \
-			--version| grep gcc | awk '{ print $4 }'`).stdout[0];
+			--version| grep gcc | awk '{ print $4 }'`).first;
 		variables.gcc_version = gcc_version || 0;
 	}
 	else if (os == 'ios' || os == 'osx') {
@@ -829,15 +829,15 @@ async function configure() {
 			console.warn('******************** Unrealized MacOSX Protform ********************');
 		}
 
-		var XCODEDIR = syscall('xcode-select --print-path').stdout[0];
+		var XCODEDIR = syscall('xcode-select --print-path').first;
 
 		util.assert(XCODEDIR, 'The Xode installation directory could not be found. '+
 			'Make sure that Xcode is installed correctly');
 
 		try {
-			variables.xcode_version = syscall('xcodebuild -version').stdout[0].match(/\d+.\d+$/)[0];
+			variables.xcode_version = syscall('xcodebuild -version').first.match(/\d+.\d+$/)[0];
 			variables.llvm_version = 
-				syscall('cc --version').stdout[0].match(/clang-(\d+\.\d+(\.\d+)?)/i)[1];
+				syscall('cc --version').first.match(/clang-(\d+\.\d+(\.\d+)?)/i)[1];
 		} catch(e) {}
 
 		if ( arch == 'arm' ) {
@@ -851,9 +851,9 @@ async function configure() {
 
 		if ( os == 'ios' ) {
 			if (arch == 'x86' || arch == 'x64') {
-				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path').stdout[0];
+				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path').first;
 			} else {
-				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path').stdout[0];
+				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path').first;
 			}
 			variables.version_min = '10.0';
 		} else { // osx
