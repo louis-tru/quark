@@ -379,9 +379,8 @@ export class Sheet extends Dialog {
 }
 
 export function alert(msg, cb = util.noop) {
-	if (typeof msg == 'string') {
+	if (typeof msg == 'string')
 		msg = {msg};
-	}
 	var {msg='',title=''} = msg;
 	var dag = render(
 		<Dialog buttons=[CONSTS.OK] onAction=(e=>cb(e.data)) title=title>{msg}</Dialog>
@@ -398,22 +397,21 @@ export function confirm(msg, cb = util.noop) {
 	return dag;
 }
 
-export function prompt(msg, text = '', cb = util.noop) {
-	if ( typeof text == 'function' ) {
-		cb = text;
-		text = '';
-	}
+export function prompt(msg, cb = util.noop) {
+	if (typeof msg == 'string')
+		msg = {msg};
+	var { msg = '', text = '', placeholder = CONSTS.placeholder, security = false } = msg;
 	var dag = render(
 		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onAction=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
 			<Span>
 				{msg}
-				<Input id="input" class="prompt"
+				<Input security=security id="input" class="prompt"
 					returnType="done" onKeyEnter=(ev=>{
 						// var dag = ev.sender.owner;
 						dag.trigger('Action', 1);
 						actionClose(dag);
 					})
-					value=text placeholder=CONSTS.placeholder />
+					value=text placeholder=placeholder />
 			</Span>
 		</Dialog>
 	);
