@@ -82,6 +82,7 @@ var enum_keys = [
 	[ 'NO_SPACE',           'no_space' ],
 	[ 'PRE',                'pre' ],
 	[ 'PRE_LINE',           'pre_line' ],
+	[ 'WRAP',               'wrap' ],
 	// keyboard type
 	[ 'ASCII',              'ascii' ],
 	[ 'NUMBER',             'number' ],
@@ -193,6 +194,7 @@ text_white_space[enum_object.no_wrap] = 1;
 text_white_space[enum_object.no_space] = 1;
 text_white_space[enum_object.pre] = 1;
 text_white_space[enum_object.pre_line] = 1;
+text_white_space[enum_object.wrap] = 1;
 // Align
 align[enum_object.left] = 1;
 align[enum_object.right] = 1;

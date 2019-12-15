@@ -99,6 +99,7 @@ namespace value {
 	F(NO_SPACE,           no_space) \
 	F(PRE,                pre) \
 	F(PRE_LINE,           pre_line) \
+	F(WRAP,               wrap) \
 	/* keyboard type */ \
 	F(ASCII,              ascii) \
 	F(NUMBER,             number) \
@@ -245,6 +246,7 @@ namespace value {
 	F(TextWhiteSpaceEnum, NO_SPACE)         /* 合并空白序列,使用自动wrap */ \
 	F(TextWhiteSpaceEnum, PRE)              /* 保留所有空白,不使用自动wrap */ \
 	F(TextWhiteSpaceEnum, PRE_LINE)         /* 合并空白符序列,但保留换行符,使用自动wrap */ \
+	F(TextWhiteSpaceEnum, WRAP)             /* 保留所有空白,强制使用自动wrap */ \
 		
 	/**
 	 * @enum TextAlign 文本对齐方式

@@ -178,6 +178,7 @@ class XX_EXPORT TextLayout: public TextFont {
 			bool  auto_wrap;        // 使用自动wrap(自动换行)
 			bool  merge_space;      // 合并空白序列
 			bool  merge_line_feed;  // 合并换行符
+			bool  force_wrap;       // 强制wrap(忽略英文单词)
 		} space_wrap;
 		TextOverflowEnum    overflow;
 		TextLineHeightValue text_line_height; // 行高

@@ -524,7 +524,7 @@ public:
 				
 				goto common;
 				
-			} else if ( has_english_char(unicode) ) {
+			} else if ( !opts.force_wrap && has_english_char(unicode) ) {
 				uint count = 0;
 				float offset = offset_start;
 				do {
@@ -711,11 +711,12 @@ TextLayout::Options TextLayout::get_options(TextLayout* hybrid) {
 	Options opts;
 	
 	switch (hybrid ? hybrid->m_text_white_space.value : m_text_white_space.value) {
-		default:                            opts.space_wrap = { true, false, false }; break;
-		case TextWhiteSpaceEnum::NO_WRAP:   opts.space_wrap = { false, true, true }; break;
-		case TextWhiteSpaceEnum::NO_SPACE:  opts.space_wrap = { true, true, true }; break;
-		case TextWhiteSpaceEnum::PRE:       opts.space_wrap = { false, false, false }; break;
-		case TextWhiteSpaceEnum::PRE_LINE:  opts.space_wrap = { true, true, false }; break;
+		default:                            opts.space_wrap = { true, false, false, false }; break;
+		case TextWhiteSpaceEnum::NO_WRAP:   opts.space_wrap = { false, true, true, false }; break;
+		case TextWhiteSpaceEnum::NO_SPACE:  opts.space_wrap = { true, true, true, false }; break;
+		case TextWhiteSpaceEnum::PRE:       opts.space_wrap = { false, false, false, false }; break;
+		case TextWhiteSpaceEnum::PRE_LINE:  opts.space_wrap = { true, true, false, false }; break;
+		case TextWhiteSpaceEnum::WRAP:      opts.space_wrap = { true, false, false, true }; break;
 	}
 	
 	opts.overflow = m_text_overflow.value;
