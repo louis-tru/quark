@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_fs');
+export __requireNgui__('_fs');
