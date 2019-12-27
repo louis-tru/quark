@@ -38,7 +38,7 @@
 namespace ngui {
 
 	enum {
-		ERR_UNKNOWN_ERROR         = -1,
+		ERR_UNKNOWN_ERROR         = -10000,
 		ERR_HTTP_STATUS_ERROR     = -10001,
 		ERR_INL_ERROR             = -10003,
 		ERR_INVALID_PATH          = -10004,
