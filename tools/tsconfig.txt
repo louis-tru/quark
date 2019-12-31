@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"allowJs": false,
+		"checkJs": false,
+		"build": false,
+		"target": "ESNext",
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"sourceMap": false,
+		"outDir": "out/dphoto-magic",
+		"baseUrl": ".",
+		// "paths": {
+		// 	"*": ["node_modules/*"],
+		// },
+		// "allowUnreachableCode": true,
+		// "declaration": true,
+		// "declarationDir": "out/@types",
+		// "esModuleInterop": true,
+		// "allowSyntheticDefaultImports": true,
+		// "emitDecoratorMetadata": true, // 给源码里的装饰器声明加上设计类型元数据
+		// "experimentalDecorators": true,// 启用实验性的ES装饰器
+		// "typeRoots" : ["@types", "node_modules/@types"],
+		// "types": ["nxkit", "node"],
+	},
+	// "files": [ "_test.ts" ],
+	"include": [
+		"**/*",
+	],
+	"exclude": [
+		"out",
+		"node_modules",
+		"var",
+		"@types",
+	]
+}
