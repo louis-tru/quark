@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_storage');
+export __requireNgui__('_storage');
 
 export function getJSON(key, value) {
 	var rv = exports.get(`__json_${key}`);

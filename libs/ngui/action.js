@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_action');
+export * from __requireNgui__('_action');
 
 import 'ngui/util';
 import 'ngui/value';
@@ -39,7 +39,7 @@ const { Action, SpawnAction, SequenceAction, KeyframeAction } = exports;
 	* @func create(json[,parent])
 	* @arg json {Object|Action}
 	* @arg [parent] {GroupAction}
-	* @ret {Action}  
+	* @ret {Action}
 	*/
 export function create(json, parent) {
 	var action = null;

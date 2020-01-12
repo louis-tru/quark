@@ -28,4 +28,4 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_pkg');
+export __requireNgui__('_pkg');

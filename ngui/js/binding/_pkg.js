@@ -30,11 +30,11 @@
 
 'use strict';
 
-const _util = requireNative('_util');
-const _path = requireNative('_path');
-const _fs = requireNative('_fs');
-const _http = requireNative('_http');
-const _pkgutil = requireNative('_pkgutil');
+const _util = __requireNgui__('_util');
+const _path = __requireNgui__('_path');
+const _fs = __requireNgui__('_fs');
+const _http = __requireNgui__('_http');
+const _pkgutil = __requireNgui__('_pkgutil');
 const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
@@ -42,7 +42,7 @@ const { fallbackPath,
 				isNetwork, assert, stripBOM, Module, NativeModule } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
-				isDirectorySync, readdirSync } = requireNative('_reader');
+				isDirectorySync, readdirSync } = __requireNgui__('_reader');
 const { haveNode, __extendModule, __getExtendModuleContent } = _util;
 const options = {};  // start options
 const external_cache = {};
@@ -51,13 +51,6 @@ const debug = _pkgutil.debug('PKG');
 var ignore_local_package, ignore_all_local_package;
 var keys = null, config = null;
 var instance = null;
-
-function parse_keys(content) {
-	if ( !keys ) {
-		keys = requireNative('_keys');
-	}
-	return keys.parse(content);
-}
 
 function format_msg(args) {
 	var msg = [];
@@ -166,17 +159,6 @@ Module._extensions['.jsx'] = function(module, rawFilename) {
 Module._extensions['.json'] = function(module, filename) {
 	var content = read_text_sync(filename);
 	module.exports = parseJSON(content, filename);
-};
-
-// Native extension for .keys
-Module._extensions['.keys'] = function(module, filename) {
-	var content = read_text_sync(filename);
-	try {
-		module.exports = parse_keys(content);
-	} catch (err) {
-		err.message = filename + ': ' + err.message;
-		throw err;
-	}
 };
 
 if (haveNode) {
@@ -1459,8 +1441,6 @@ function inl_require_extend(require, parent) {
 		// console.log('----------------------', content)
 		if (extname == '.json') {
 			module.exports = parseJSON(content, filename);
-		} else if (extname == '.keys') {
-			module.exports = parse_keys(content);
 		} else {
 			module._compile(content, filename, filename);
 		}

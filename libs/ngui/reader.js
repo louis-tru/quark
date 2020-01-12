@@ -28,4 +28,4 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_reader');
+export __requireNgui__('_reader');

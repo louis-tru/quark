@@ -30,7 +30,7 @@
 
 import 'ngui/util';
 import { Notification } from 'ngui/event';
-const { TextNode, View, Root, lock } = requireNative('_ngui');
+const { TextNode, View, Root } = __requireNgui__('_ngui');
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
 const G_removeSet = new WeakSet();

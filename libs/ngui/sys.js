@@ -28,4 +28,4 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_sys');
+export __requireNgui__('_sys');

@@ -30,17 +30,17 @@
 
 'use strict';
 
-const _path = requireNative('_path');
-const _util = requireNative('_util');
+const _path = __requireNgui__('_path');
+const _util = __requireNgui__('_util');
 const win32 = _util.platform == 'win32';
-const { readFileSync, isFileSync } = requireNative('_reader');
+const { readFileSync, isFileSync } = __requireNgui__('_reader');
 const { haveNode } = _util;
 const PREFIX = 'file:///';
 const _cwd = _path.cwd;
 
 if (!haveNode) {
-	const _console = requireNative('_console');
-	const _timer = requireNative('_timer');
+	const _console = __requireNgui__('_console');
+	const _timer = __requireNgui__('_timer');
 	global.console = _console;
 
 	function setTimeout(cb, timeout, ...args) {

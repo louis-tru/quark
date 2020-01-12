@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_buffer');
+export __requireNgui__('_buffer');

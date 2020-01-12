@@ -33,7 +33,7 @@ import 'ngui/display_port';
 import 'ngui/event';
 import ViewController, { _VV, _VVD } from 'ngui/ctr';
 
-var _ngui = requireNative('_ngui');
+var _ngui = __requireNgui__('_ngui');
 var Root = _ngui.Root;
 var cur = null;
 var cur_root_ctr = null;

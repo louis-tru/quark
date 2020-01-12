@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-module.exports = requireNative('_value');
+module.exports = __requireNgui__('_value');

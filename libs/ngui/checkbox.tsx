@@ -182,7 +182,7 @@ export class Checkbox extends Basic {
 
 	render() {
 		return (
-			<Button class=`x_checkbox ${this.selected ? 'on': ''}` defaultHighlighted=0>
+			<Button class={`x_checkbox ${this.selected ? 'on': ''}`} defaultHighlighted={0}>
 				<TextNode class="mark" value="\ued71" />
 			</Button>
 		)
@@ -196,7 +196,7 @@ export class Switch extends Basic {
 
 	render() {
 		return (
-			<Button class=`x_switch ${this.selected ? 'on': ''}` defaultHighlighted=0>
+			<Button class={`x_switch ${this.selected ? 'on': ''}`} defaultHighlighted={0}>
 				<Indep class="background" />
 				<Indep class="button" />
 			</Button>

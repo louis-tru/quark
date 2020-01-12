@@ -28,4 +28,4 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_timer');
+export __requireNgui__('_timer');

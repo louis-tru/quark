@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_css');
+export __requireNgui__('_css');
 
 import 'ngui/util';
 import 'ngui/value';

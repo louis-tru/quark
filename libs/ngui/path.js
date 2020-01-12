@@ -30,8 +30,8 @@
 
 /**************************************************************************/
 
-const _path = requireNative('_path');
-const _pkgutil = requireNative('_pkgutil');
+const _path = __requireNgui__('_path');
+const _pkgutil = __requireNgui__('_pkgutil');
 
 /**************************************************************************/
 

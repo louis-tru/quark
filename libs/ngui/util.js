@@ -30,9 +30,11 @@
 
 /**************************************************************************/
 
+require('ngui/_ext');
+
 var { Event, Notification, List } = require('ngui/event');
-var _util = requireNative('_util');
-var _pkg = requireNative('_pkg');
+var _util = __requireNgui__('_util');
+var _pkg = __requireNgui__('_pkg');
 var haveNode = _util.haveNode;
 
 function next_tick(cb, ...args) {

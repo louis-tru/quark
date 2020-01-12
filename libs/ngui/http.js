@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_http');
+export __requireNgui__('_http');
 
 import 'ngui/util';
 import 'ngui/event';

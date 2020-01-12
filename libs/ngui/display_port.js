@@ -32,7 +32,7 @@ import 'ngui/util';
 import 'ngui/app';
 import 'ngui/event';
 
-export requireNative('_display_port');
+export __requireNgui__('_display_port');
 
 /**
  * @class DisplayPort

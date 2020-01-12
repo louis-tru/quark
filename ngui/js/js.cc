@@ -254,7 +254,7 @@ struct NativeModule {
 
 static Map<String, NativeModule>* native_modules = nullptr;
 
-// @private requireNative
+// @private __requireNgui__
 static void require_native(FunctionCall args) {
 	JS_WORKER(args);
 	JS_HANDLE_SCOPE();
@@ -275,13 +275,7 @@ void IMPL::initialize() {
 	m_strs = new CommonStrings(m_host);
 	XX_CHECK(m_global.local()->IsObject(m_host));
 	m_global.local()->SetProperty(m_host, "global", m_global.local());
-	m_global.local()->SetMethod(m_host, "requireNative", require_native);
-	
-	Local<JSValue> ext = m_host->run_native_script(WeakBuffer((char*)
-			INL_native_js_code__ext_, 
-			INL_native_js_code__ext_count_), "_ext.js"
-	);
-	XX_CHECK(!ext.IsEmpty(), "Cannot initialize worker ext");
+	m_global.local()->SetMethod(m_host, "__requireNgui__", require_native);
 }
 
 void IMPL::release() {

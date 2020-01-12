@@ -28,4 +28,4 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export requireNative('_font');
+export __requireNgui__('_font');

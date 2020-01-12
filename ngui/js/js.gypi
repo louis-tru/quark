@@ -114,7 +114,6 @@
 				'action_name': 'gen_inl_js_natives',
 				'variables': {
 					'files': [
-						'binding/_ext.js',
 						'binding/_event.js',
 						'binding/_value.js',
 						'../../depe/node/lib/module.js',
@@ -170,11 +169,11 @@
 				'action_name': 'gen_ext_js_natives_',
 				'variables': {
 					'files': [
+						'../../libs/ngui/_ext.js',
 						'../../libs/ngui/action.js',
 						'../../libs/ngui/app.js',
 						'../../libs/ngui/buffer.js',
 						'../../libs/ngui/checkbox.jsx',
-						'../../libs/ngui/cli.js',
 						'../../libs/ngui/css.js',
 						'../../libs/ngui/ctr.js',
 						'../../libs/ngui/dialog.jsx',

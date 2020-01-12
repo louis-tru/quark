@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Object.assign(exports, requireNative('_event'));
+Object.assign(exports, __requireNgui__('_event'));
 
-const _util = requireNative('_util');
+const _util = __requireNgui__('_util');
 const PREFIX = '__on';
 
 /**********************************************************************************/

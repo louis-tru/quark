@@ -287,7 +287,7 @@ class NativeUtil {
 		ngui::exit(code);
 	}
 
-	static void __getExtendModuleContent(FunctionCall args) {
+	static void getExtendModuleContent(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
@@ -332,16 +332,16 @@ class NativeUtil {
 		JS_SET_PROPERTY(argv, argv);
 
 		// extendModule
-		Local<JSObject> __extendModule = worker->NewObject();
+		Local<JSObject> extendModule = worker->NewObject();
 		for (int i = 0; i < EXT_native_js_count_; i++) {
 			Local<JSObject> module = worker->NewObject();
 			const EXT_NativeJSCode* code = EXT_native_js_ + i;
 			module->SetProperty(worker, "filename", String(code->name) + code->ext);
 			module->SetProperty(worker, "extname", code->ext);
-			__extendModule->SetProperty(worker, code->name, module);
+			extendModule->SetProperty(worker, code->name, module);
 		}
-		JS_SET_PROPERTY(__extendModule, __extendModule);
-		JS_SET_METHOD(__getExtendModuleContent, __getExtendModuleContent);
+		JS_SET_PROPERTY(__extendModule, extendModule);
+		JS_SET_METHOD(__getExtendModuleContent, getExtendModuleContent);
 
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);
