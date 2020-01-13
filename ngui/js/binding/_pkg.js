@@ -38,7 +38,7 @@ const _pkgutil = __requireNgui__('_pkgutil');
 const { fallbackPath,
 				resolvePathLevel,
 				resolve, isAbsolute,
-				isLocal, isLocalZip, extendObject,
+				isLocal, isLocalZip,
 				isNetwork, assert, stripBOM, Module, NativeModule } = _pkgutil;
 const { readFile, 
 				readFileSync, isFileSync,
@@ -49,7 +49,7 @@ const external_cache = {};
 const extend_cache = {};
 const debug = _pkgutil.debug('PKG');
 var ignore_local_package, ignore_all_local_package;
-var keys = null, config = null;
+var config = null;
 var instance = null;
 
 function format_msg(args) {
@@ -77,7 +77,7 @@ function print_warn(err) {
 function new_err(e) {
 	if (! (e instanceof Error)) {
 		if (typeof e == 'object') {
-			e = extendObject(new Error(e.message || 'Unknown error'), e);
+			e = Object.assign(new Error(e.message || 'Unknown error'), e);
 		} else {
 			e = new Error(e);
 		}
@@ -326,7 +326,7 @@ function Package_install2(self, cb) {
 				let install_remote_ok = function(){ cb && cb() }.catch(err=>{
 					// 不能安装远程包,
 					print_err(err);
-					extendObject(self, old); // 恢复
+					Object.assign(self, old); // 恢复
 					self.m_old = null;
 					cb && cb();
 				});
@@ -1063,11 +1063,11 @@ function Packages_require_parse_argv(self) {
 
 	if (haveNode) {
 		if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
-			options.dev = 1;
+			options.dev = true;
 		}
 	}
 
-	_pkgutil.dev = options.dev = !!options.dev;
+	self.dev = _pkgutil.dev = options.dev = !!options.dev;
 	
 	if ( !('url_arg' in options) ) {
 		options.url_arg = '';
@@ -1367,10 +1367,6 @@ class Packages {
 
 }
 
-/**
- * @func extend(obj, extd)
- */
-Packages.prototype.extendObject = extendObject;
 Packages.prototype.resolve = resolve;
 Packages.prototype.isAbsolute = isAbsolute;
 Packages.prototype.isLocal = isLocal;

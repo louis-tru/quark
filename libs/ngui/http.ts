@@ -28,24 +28,24 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_http');
+export * from __requireNgui__('_http');
 
 import 'ngui/util';
-import 'ngui/event';
+import event, {EventNoticer} from './event';
 
 /**
  * @class HttpClientRequest
  * @bases NativeHttpClientRequest
  */
 export class HttpClientRequest extends exports.NativeHttpClientRequest {
-	event onError;
-	event onwrite;
-	event onHeader;
-	event onData;
-	event onEnd;
-	event onReadystateChange;
-	event onTimeout;
-	event onAbort;
+	@event onError: EventNoticer;
+	@event onwrite: EventNoticer;
+	@event onHeader: EventNoticer;
+	@event onData: EventNoticer;
+	@event onEnd: EventNoticer;
+	@event onReadystateChange: EventNoticer;
+	@event onTimeout: EventNoticer;
+	@event onAbort: EventNoticer;
 }
 
-util.extendClass(HttpClientRequest, event.NativeNotification);
+// util.extendClass(HttpClientRequest, event.NativeNotification);

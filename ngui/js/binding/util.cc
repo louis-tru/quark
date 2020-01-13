@@ -319,8 +319,8 @@ class NativeUtil {
 		JS_SET_METHOD(transformJs, transformJs);
 		JS_SET_METHOD(_exit, exit);
 		JS_SET_PROPERTY(platform, ngui::platform());
-		JS_SET_PROPERTY(haveNode, __xx_ngui_have_node);
-		JS_SET_PROPERTY(dev, __xx_ngui_have_dev);
+		JS_SET_PROPERTY(haveNode, !!__xx_ngui_have_node);
+		JS_SET_PROPERTY(dev, !!__xx_ngui_have_dev);
 
 		// argv
 		Local<JSArray> argv = worker->NewArray();

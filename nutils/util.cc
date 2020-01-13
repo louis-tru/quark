@@ -352,6 +352,7 @@ String SimpleHash::digest() {
 	do {
 		rev += I64BIT_TABLE[_hash & 0x3F];
 	} while (_hash >>= 6);
+	_hash = 5381;
 	return rev;
 }
 

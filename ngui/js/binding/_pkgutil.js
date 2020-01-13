@@ -305,13 +305,6 @@ function debug(TAG = 'PKG') {
 	}
 }
 
-function extendObject(obj, extd) {
-	for (var item of Object.entries(extd)) {
-		obj[item[0]] = item[1];
-	}
-	return obj;
-}
-
 Object.assign(exports, {
 	fallbackPath,
 	resolvePathLevel,
@@ -326,5 +319,4 @@ Object.assign(exports, {
 	stripShebang,
 	stripBOM,
 	assert, debug,
-	extendObject,
 });
