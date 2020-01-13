@@ -28,14 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import _util from './_util';
-import * as _common from './_common';
 const _pkg = __requireNgui__('_pkg');
+import _util, {_process} from './_util';
+import * as _common from './_common';
+import {EventNoticer} from './event';
 
 export default {
 	..._util, ..._common,
-	get id() { return _common.getId },
+	get id() { return _common.getId() },
 	get options() { return _pkg.options },
 	get config() { return _pkg.config },
 	get dev() { return _pkg.dev },
+	// events
+	get onBeforeExit(): EventNoticer<number> { return _process.getNoticer('BeforeExit') },
+	get onExit(): EventNoticer<number> { return _process.getNoticer('BeforeExit') },
+	get onUncaughtException(): EventNoticer<Error> { return _process.getNoticer('UncaughtException') },
+	get onUnhandledRejection(): EventNoticer<{reason: Error, promise: Promise<any>}> { return _process.getNoticer('UnhandledRejection') },
 }

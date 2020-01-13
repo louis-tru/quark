@@ -236,7 +236,7 @@ void GUIApplication::run_indep() {
 	Thread::sleep(); // main loop sleep
 }
 
-static void on_before_process_exit_handle(Event<>& e, Object* data) {
+static void on_process_safe_handle(Event<>& e, Object* data) {
 	int rc = static_cast<const Int*>(e.data())->value;
 	if (app()) {
 		e.return_value = _inl_app(app())->onExit(rc);
@@ -287,7 +287,7 @@ GUIApplication::GUIApplication()
 {
 	m_main_keep = m_main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
 	m_main_id = m_main_loop->thread_id();
-	Thread::XX_ON(BeforeProcessExit, on_before_process_exit_handle);
+	Thread::XX_ON(ProcessSafeExit, on_process_safe_handle);
 }
 
 GUIApplication::~GUIApplication() {
@@ -311,7 +311,7 @@ GUIApplication::~GUIApplication() {
 	m_main_loop = nullptr;
 	m_shared = nullptr;
 
-	Thread::XX_OFF(BeforeProcessExit, on_before_process_exit_handle);
+	Thread::XX_OFF(ProcessSafeExit, on_process_safe_handle);
 }
 
 /**

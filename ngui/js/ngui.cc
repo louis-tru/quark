@@ -177,12 +177,12 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 	}
 }
 
-static void on_before_process_exit_handle(Event<>& e, Object* data) {
+static void on_process_safe_handle(Event<>& e, Object* data) {
 	int rc = static_cast<const Int*>(e.data())->value;
 	if (RunLoop::main_loop()->runing()) {
 		RunLoop::main_loop()->post_sync(Cb([&](Se& e) {
 			auto worker = Worker::worker();
-			DLOG("on_before_process_exit_handle");
+			DLOG("on_process_safe_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
@@ -215,7 +215,7 @@ int Start(const Array<String>& argv_in) {
 	Array<char*> argv, ngui_argv;
 	parseArgv(argv_in, argv, ngui_argv);
 
-	Thread::XX_ON(BeforeProcessExit, on_before_process_exit_handle);
+	Thread::XX_ON(ProcessSafeExit, on_process_safe_handle);
 
 	__xx_ngui_argv = &ngui_argv;
 	int rc = 0;
@@ -250,7 +250,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__xx_ngui_argv = nullptr;
-	Thread::XX_OFF(BeforeProcessExit, on_before_process_exit_handle);
+	Thread::XX_OFF(ProcessSafeExit, on_process_safe_handle);
 
 	return rc;
 }

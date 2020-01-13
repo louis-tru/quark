@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export * from __requireNgui__('_action');
+const _action = __requireNgui__('_action');
 
-import 'ngui/util';
-import 'ngui/value';
+// import 'ngui/util';
+// import 'ngui/value';
 
-const { Action, SpawnAction, SequenceAction, KeyframeAction } = exports;
+const { Action, SpawnAction, SequenceAction, KeyframeAction } = _action;
 
  /**
 	* @func create(json[,parent])

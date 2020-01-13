@@ -85,7 +85,7 @@ class XX_EXPORT Thread {
 	static void join(ID id, int64 timeoutUs = 0 /*小于1永久等待*/);
 	static void awaken(ID id);
 	static void abort(ID id);
-	static EventNoticer<>& onBeforeProcessExit();
+	static EventNoticer<>& onProcessSafeExit();
  private:
 	Thread();
 	~Thread();

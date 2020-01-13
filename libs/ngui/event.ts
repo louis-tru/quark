@@ -69,16 +69,16 @@ export declare class Event<Data = any, Return = number, Sender = any> {
 	private m_origin;
 	get name(): string;
 	get data(): Data;
-	get sender(): any;
+	get sender(): Sender;
 	get origin(): any;
 	set origin(value: any);
 	get noticer(): EventNoticer<Data, Return, Sender> | null;
-	get returnValue(): Return | null;
-	set returnValue(value: Return | null);
+	get returnValue(): Return | undefined;
+	set returnValue(value: Return | undefined);
 	/**
 	 * @constructor
 	 */
-	constructor(data: Data);
+	constructor(data: Data, returnValue?: Return);
 }
 
 declare type DefaultEvent = Event;
@@ -168,13 +168,13 @@ export declare class EventNoticer<Data = any, Return = number, Sender = any> {
 	 * @arg data {Object} # 要发送的数据
 	 * @ret {Object}
 	 */
-	trigger(data: Data): Return | null;
+	trigger(data: Data): Return | undefined;
 	/**
 	 * @fun triggerWithEvent # 通知所有观察者
 	 * @arg data {Object} 要发送的event
 	 * @ret {Object}
 	 */
-	triggerWithEvent(evt: Event<Data, Return, Sender>): Return | null;
+	triggerWithEvent(evt: Event<Data, Return, Sender>): Return | undefined;
 	/**
 	 * @fun off # 卸载侦听器(函数)
 	 * @arg [func] {Object}   # 可以是侦听函数,id,如果不传入参数卸载所有侦听器
@@ -222,13 +222,13 @@ export declare class Notification<Data = any, Return = number, Sender = any> {
 	* @arg name {String}       事件名称
 	* @arg data {Object}       要发送的消数据
 	*/
-	trigger(name: string, data: Data): Return | null;
+	trigger(name: string, data: Data): Return | undefined;
 	/**
 	* @func triggerWithEvent 通知事监听器
 	* @arg name {String}       事件名称
 	* @arg event {Event}       Event
 	*/
-	triggerWithEvent(name: string, event: Event<Data, Return, Sender>): Return | null;
+	triggerWithEvent(name: string, event: Event<Data, Return, Sender>): Return | undefined;
 	/**
 	 * @func removeEventListener(name,[func[,scope]])
 	 */

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import './_ext';
-import {Event,Notification, EventNoticer} from './event';
+import {Event, Notification, EventNoticer} from './event';
 
 const _util = __requireNgui__('_util');
 
@@ -41,6 +41,10 @@ function nextTick<A extends any[], R>(cb: (...args: A) => R, ...args: A): void {
 	_util.nextTick(()=>cb(...args));
 }
 
+function unrealized() {
+	throw new Error('Unrealized function');
+}
+
 export declare class SimpleHash {
 	hashCode(): number;
 	update(data: string | Uint8Array): void;
@@ -48,69 +52,55 @@ export declare class SimpleHash {
 	clear(): void;
 }
 
-function event(data) {
-	var evt = new Event(data);
-	evt.returnValue = data;
-	return evt;
-}
-
-var _exiting = false;
-
-var handles = {
-	BeforeExit: function(noticer: EventNoticer, code = 0) {
-		return noticer.triggerWithEvent(event(code));
-	},
-	Exit: function(noticer: EventNoticer, code = 0) {
-		_exiting = true;
-		return noticer.triggerWithEvent(event(code));
-	},
-	UncaughtException: function(noticer: EventNoticer, err: Error) {
-		return noticer.length && noticer.trigger(err) === 0;
-	},
-	UnhandledRejection: function(noticer: EventNoticer, reason: Error, promise: Promise<any>) {
-		return noticer.length && noticer.trigger({ reason, promise }) === 0;
-	},
-};
-
-var _nodeProcess = (globalThis as any).process
+const _nodeProcess = (globalThis as any).process
 
 class Process extends Notification {
+
+	private _exiting = false;
+
+	private _handles = {
+		BeforeExit: (noticer: EventNoticer, code = 0)=>{
+			return noticer.triggerWithEvent(new Event(code, code));
+		},
+		Exit: (noticer: EventNoticer, code = 0)=>{
+			this._exiting = true;
+			return noticer.triggerWithEvent(new Event(code, code));
+		},
+		UncaughtException: (noticer: EventNoticer, err: Error)=>{
+			return noticer.length && noticer.triggerWithEvent(new Event(err, 0)) === 0;
+		},
+		UnhandledRejection: (noticer: EventNoticer, reason: Error, promise: Promise<any>)=>{
+			return noticer.length && noticer.triggerWithEvent(new Event({ reason, promise }, 0)) === 0;
+		},
+	};
 
 	getNoticer(name: string) {
 		if (!this.hasNoticer(name)) {
 			var noticer = super.getNoticer(name);
-			var handle = (handles as any)[name];
+			var handle = (this._handles as any)[name];
 			if (handle) {
 				if (_util.haveNode) {
-					var event = name.substr(0, 1).toLowerCase() + name.substr(1);
-					_nodeProcess.on(event, function(...args: any[]) {
+					_nodeProcess.on(name.substr(0, 1).toLowerCase() + name.substr(1), function(...args: any[]) {
 						return handle(noticer, ...args);
 					});
 				}
 				_util[`__on${name}_native`] = function(...args: any[]) {
 					return handle(noticer, ...args);
 				};
-			} else {
-				// bind native event
-				_util[`__on${name}_native`] = function(data: any[]) {
-					return noticer.trigger(data);
-				};
 			}
-			// this['__on' + name] = noticer = new event.EventNoticer(name, this);
 		}
 		return super.getNoticer(name);
 	}
 
-	exit(code) {
-		if (!_exiting) {
-			_exiting = true;
-			delete Utils.prototype.exit;
-			if (haveNode) {
-				globalThis.process._exiting = true;
+	exit(code?: number) {
+		if (!this._exiting) {
+			this._exiting = true;
+			if (_util.haveNode) {
+				_nodeProcess._exiting = true;
 				if (code || code === 0)
-					process.exitCode = code;
+					_nodeProcess.exitCode = code;
 				try {
-					process.emit('exit', process.exitCode || 0);
+					_nodeProcess.emit('exit', _nodeProcess.exitCode || 0);
 				} catch(err) {
 					console.error(err);
 				}
@@ -120,28 +110,7 @@ class Process extends Notification {
 	}
 }
 
-
-// class _Util {
-// 	version = _util.version as ()=>string;
-// 	addNativeEventListener = _util.addNativeEventListener as (target: Object, event: string, fn: (event: Event)=>void, id?: number)=>boolean;
-// 	removeNativeEventListener = _util.removeNativeEventListener as (target: Object, event: string, id?: number)=>boolean;
-// 	gc = _util.garbageCollection as ()=>void;
-// 	runScript = _util.runScript as (source: string, name?: string, sandbox?: any)=>any;
-// 	hashCode = _util.hashCode as (obj: any)=>number;
-// 	hash = _util.hash as (obj: any)=>string;
-// 	nextTick = nextTick;
-// 	platform = _util.platform as Platform;
-// 	haveNode = _util.haveNode as boolean;
-// 	haveNgui = true;
-// 	haveWeb = false;
-// 	argv = _util.argv as string[];
-// 	webFlags = null;
-// 	exit = _util.exit as (code?: number)=>void;
-// 	// 
-// 	SimpleHash = _util.SimpleHash as typeof SimpleHash;
-// }
-
-// export default new _Util();
+export const _process = new Process();
 
 export default {
 	version: _util.version as ()=>string,
@@ -158,7 +127,8 @@ export default {
 	haveWeb: false,
 	argv: _util.argv as string[],
 	webFlags: null,
-	exit: _util.exit as (code?: number)=>void,
-	// 
+	exit: (code?: number)=>{ _process.exit(code) },
+	unrealized: unrealized,
+	// hash
 	SimpleHash: _util.SimpleHash as typeof SimpleHash,
 };

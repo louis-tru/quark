@@ -68,7 +68,7 @@ static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
 static pthread_key_t specific_key;
 static int is_process_exit = 0;
-static EventNoticer<>* on_before_process_exit = nullptr;
+static EventNoticer<>* on_process_safe_exit = nullptr;
 
 XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
  public:
@@ -90,7 +90,7 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		threads = new Map<ID, Thread*>();
 		threads_mutex = new Mutex();
 		threads_end_listens = new List<ListenSignal*>();
-		on_before_process_exit = new EventNoticer<>("BeforeProcessExit", nullptr);
+		on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
 		int err = pthread_key_create(&specific_key, thread_destructor);
 		XX_CHECK(err == 0);
 	}
@@ -187,18 +187,18 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 	}
 
-	static void _reallyExit(int rc, bool forceExit) {
+	static void _exit(int rc, bool forceExit) {
 		if (!is_process_exit) {
 			atexit_exec();
 			DLOG("Inl::reallyExit()");
 			if (forceExit)
-				::exit(rc);
+				::exit(rc); // foece reallyExit
 		}
 	}
 
-	static void exit(int rc, bool forceExit = 0) {
+	static void safeExit(int rc, bool forceExit = 0) {
 		static int is_exited = 0;
-		if (!is_exited++) {
+		if (!is_exited++ && !is_process_exit) {
 
 			KeepLoop* keep = nullptr;
 			if (main_loop_obj && main_loop_obj->runing()) {
@@ -206,20 +206,20 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			}
 
 			DLOG("Inl::exit(), 0");
-			rc = Thread::XX_TRIGGER(BeforeProcessExit, Event<>(Int(rc), move(rc)));
+			rc = Thread::XX_TRIGGER(ProcessSafeExit, Event<>(Int(rc), move(rc)));
 			DLOG("Inl::exit(), 1");
 
 			Release(keep); keep = nullptr;
 
-			if (main_loop_obj && current_id() == main_loop_id && main_loop_obj->runing()) {
-				main_loop_obj->post(Cb([rc, forceExit](Se& e) {
-					_reallyExit(rc, forceExit);
-				}));
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				// _reallyExit(rc, forceExit);
-			} else {
-				_reallyExit(rc, forceExit);
-			}
+			// if (main_loop_obj && current_id() == main_loop_id && main_loop_obj->runing()) {
+			// 	main_loop_obj->post(Cb([rc, forceExit](Se& e) {
+			// 		_exit(rc, forceExit);
+			// 	}));
+			// 	// std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			// 	// exit(rc, forceExit);
+			// } else {
+			_exit(rc, forceExit);
+			// }
 		} else {
 			DLOG("The program has exited");
 		}
@@ -227,8 +227,8 @@ XX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 
 };
 
-EventNoticer<>& Thread::onBeforeProcessExit() {
-	return *on_before_process_exit;
+EventNoticer<>& Thread::onProcessSafeExit() {
+	return *on_process_safe_exit;
 }
 
 Thread::Thread(){}
@@ -327,11 +327,11 @@ Thread* Thread::current() {
 }
 
 XX_EXPORT void safeExit(int rc) {
-	Thread::Inl::exit(rc);
+	Thread::Inl::safeExit(rc);
 }
 
 void exit(int rc) {
-	Thread::Inl::exit(rc, 1);
+	Thread::Inl::safeExit(rc, 1);
 }
 
 bool is_exited() {

@@ -359,6 +359,7 @@ class WorkerIMPL: public IMPL {
 			v8::HandleScope scope(isolate_);
 			v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate_, reason);
 			print_exception(message, reason);
+			ngui::exit(ERR_UNHANDLED_REJECTION);
 		}
 	}
 
@@ -1352,7 +1353,8 @@ int IMPL::start(int argc, char** argv) {
 			loop->run();
 			/* IOS forces the process to terminate, but it does not quit immediately.
 			 This may cause a process to run in the background for a long time, so force break here */
-			if (is_exited()) break;
+			if (is_exited())
+				break;
 
 			if (loop->is_alive())
 				continue;
