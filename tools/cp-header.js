@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/nxkit/fs');
+var fs = require('../libs/nxkit/out/nxkit/fs');
 var path = require('path');
 
 function copy_header(source, target) {

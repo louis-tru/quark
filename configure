@@ -1,3 +1,5 @@
-#!/usr/bin/env node
+#!/bin/sh
 
-require('./tools/configure.js');
+set -e
+
+node tools/configure.js "$@"

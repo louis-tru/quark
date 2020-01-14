@@ -251,33 +251,6 @@ class NativeUtil {
 		}));
 	}
 
-	static void transform_js(FunctionCall args, bool jsx) {
-		JS_WORKER(args);
-		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR("Bad argument");
-		}
-		Ucs2String rv;
-		Ucs2String in = args[0]->ToUcs2StringValue(worker);
-		String path = args[1]->ToStringValue(worker);
-		JS_TRY_CATCH({
-			if (jsx) {
-				rv = javascript_transform_x(in, path);
-			} else {
-				rv = javascript_transform(in, path);
-			}
-		}, Error);
-		
-		JS_RETURN( rv );
-	}
-	
-	static void transformJsx(FunctionCall args) {
-		transform_js(args, true);
-	}
-	
-	static void transformJs(FunctionCall args) {
-		transform_js(args, false);
-	}
-	
 	static void exit(FunctionCall args) {
 		JS_WORKER(args);
 		int code = 0;
@@ -315,8 +288,6 @@ class NativeUtil {
 		JS_SET_METHOD(runScript, run_script);
 		JS_SET_METHOD(garbageCollection, garbageCollection);
 		JS_SET_METHOD(nextTick, next_tick);
-		JS_SET_METHOD(transformJsx, transformJsx);
-		JS_SET_METHOD(transformJs, transformJs);
 		JS_SET_METHOD(_exit, exit);
 		JS_SET_PROPERTY(platform, ngui::platform());
 		JS_SET_PROPERTY(haveNode, !!__xx_ngui_have_node);

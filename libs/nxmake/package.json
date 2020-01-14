@@ -9,8 +9,8 @@
 		"url": "http://ngui.fun/"
 	},
 	"bin": {
-		"nxmake": "bin/shell.js",
-		"ngui-make": "bin/shell.js"
+		"nxmake": "shell.js",
+		"ngui-make": "shell.js"
 	},
 	"keywords": [
 		"jsx",
@@ -35,7 +35,8 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"nxkit": "~0.8.52"
+		"nxkit": "~0.10.21",
+		"typescript": "~3.7.3"
 	},
 	"license": "BSD-2-Clause",
 	"bugs": {

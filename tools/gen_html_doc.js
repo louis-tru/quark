@@ -29,7 +29,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/nxkit/fs');
+var fs = require('../libs/nxkit/out/nxkit/fs');
 var path = require('path');
 var marked_html = require('../libs/nxmake/marked/html');
 var marked = require('../libs/nxmake/node_modules/marked/index');
@@ -56,7 +56,7 @@ if ( fs.existsSync(source + '/index.md') ) { // 存在索引
 
 function gen(src, target) {
 	var extname = path.extname(src).toLowerCase();
-	if ( extname == '.md' || extname == '.mdown' ) {		
+	if ( extname == '.md' || extname == '.mdown' ) {
 		var md = fs.readFileSync(source + src).toString();
 		var save = target.substr(0, target.length - extname.length) + '.html';
 		md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');

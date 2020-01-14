@@ -249,6 +249,26 @@ export declare class Notification<Data = any, Return = number, Sender = any> {
 	triggerListenerChange(name: string, count: number, change: number): void;
 }
 
+// ======================== interface ========================
+
+export interface Notification<Data = any, Return = number, Sender = any> {
+	getNoticer(name: string): EventNoticer<Data, Return, Sender>;
+	hasNoticer(name: string): boolean;
+	addDefaultListener(name: string, listen: Listen<Event<Data, Return, Sender>> | string): string | undefined;
+	addEventListener<Scope>(name: string, listen: Listen<Event<Data, Return, Sender>, Scope>, scope?: Scope | string, id?: string): string;
+	addEventListenerOnce<Scope>(name: string, listen: Listen<Event<Data, Return, Sender>, Scope>, scope?: Scope | string, id?: string): string;
+	addEventListener2<Scope>(name: string, listen: Listen2<Event<Data, Return, Sender>, Scope>, scope?: Scope | string, id?: string): string;
+	addEventListenerOnce2<Scope>(name: string, listen: Listen2<Event<Data, Return, Sender>, Scope>, scope?: Scope | string, id?: string): string;
+	addEventForward(name: string, noticer: EventNoticer<Data, Return, Sender>, id?: string): string;
+	addEventForwardOnce(noticer: EventNoticer<Data, Return, Sender>, id?: string): string;
+	trigger(name: string, data: Data): Return | undefined;
+	triggerWithEvent(name: string, event: Event<Data, Return, Sender>): Return | undefined;
+	removeEventListener(name: string, listen?: string | Function | Object, scope?: any): void;
+	removeEventListenerWithScope(scope: any): void;
+	allNoticers(): EventNoticer<Data, Return, Sender>[];
+	triggerListenerChange(name: string, count: number, change: number): void;
+}
+
 // ======================== IMPL ========================
 
 const _event = __requireNgui__('_event');

@@ -28,12 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/nxkit');
-var fs = require('../libs/nxkit/fs');
-var keys = require('../libs/nxkit/keys');
-var service = require('../libs/nxkit/service');
-var HttpService = require('../libs/nxkit/http_service').HttpService;
+var util = require('../libs/nxkit/out/nxkit').default;
+var fs = require('../libs/nxkit/out/nxkit/fs');
+var keys = require('../libs/nxkit/out/nxkit/keys').default;
+var service = require('../libs/nxkit/out/nxkit/service').default;
+var HttpService = require('../libs/nxkit/out/nxkit/http_service').HttpService;
 var server = require('../libs/nxmake/server');
+
 require('./test-multiple-service');
 
 var opt = {

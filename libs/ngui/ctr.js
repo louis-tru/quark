@@ -559,11 +559,11 @@ export default class ViewController extends Notification {
 	}
 
 	// @public:
-	event onLoad;    // @event onLoad
-	event onMounted; // @event onMounted
-	event onUpdate;  // @event onUpdate
-	event onRemove;  // @event onRemove
-	event onRemoved; // @event onRemoved
+	@event onLoad;    // @event onLoad
+	@event onMounted; // @event onMounted
+	@event onUpdate;  // @event onUpdate
+	@event onRemove;  // @event onRemove
+	@event onRemoved; // @event onRemoved
 
 	get id() {
 		return this.m_id;

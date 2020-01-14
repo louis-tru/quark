@@ -62,7 +62,7 @@ Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 
 Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding) {
 	Local<JSValue> result;
-	Buffer* data = &buffer; //static_cast<Buffer*>(buffer.data);
+	// Buffer* data = &buffer; //static_cast<Buffer*>(buffer.data);
 	switch (encoding) {
 		case Encoding::hex: // 编码
 		case Encoding::base64: {

@@ -4,6 +4,8 @@
 		'type': 'executable',
 		'dependencies': [ 'nutils' ],
 		'sources': [
+			'jsx.h',
+			'jsx.cc',
 			'jsa-shell.cc',
 		],
 	}],

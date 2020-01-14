@@ -65,7 +65,7 @@ compile: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 tools: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
 	@$(call make_compile,$(MAKE))
-	@cp $(LIBS_DIR)/jsa-shell $(NXMAKE)/bin/$(OS)-jsa-shell
+	@#cp $(LIBS_DIR)/jsa-shell $(NXMAKE)/bin/$(OS)-jsa-shell
 
 test2: $(GYPFILES)
 	@#make -C test -f test2.mk

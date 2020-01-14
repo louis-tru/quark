@@ -85,8 +85,6 @@
 			'loop-1.h',
 			'loop.cc',
 			'loop-private.cc',
-			'jsx.h',
-			'jsx.cc',
 			'net.h',
 			'net.cc',
 			'uv-1.h',

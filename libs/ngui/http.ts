@@ -28,16 +28,57 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export * from __requireNgui__('_http');
+import utils from './util';
+import event, {EventNoticer, NativeNotification, Notification} from './event';
 
-import 'ngui/util';
-import event, {EventNoticer} from './event';
+const _http = __requireNgui__('_http');
+
+export declare class HttpClientRequest extends Notification {
+	onError: EventNoticer;
+	onwrite: EventNoticer;
+	onHeader: EventNoticer;
+	onData: EventNoticer;
+	onEnd: EventNoticer;
+	onReadystateChange: EventNoticer;
+	onTimeout: EventNoticer;
+	onAbort: EventNoticer;
+
+	// JS_SET_CLASS_METHOD(setMethod, set_method);
+	// JS_SET_CLASS_METHOD(setUrl, set_url);
+	// JS_SET_CLASS_METHOD(setSavePath, set_save_path);
+	// JS_SET_CLASS_METHOD(setUsername, set_username);
+	// JS_SET_CLASS_METHOD(setPassword, set_password);
+	// JS_SET_CLASS_METHOD(disableCache, disable_cache);
+	// JS_SET_CLASS_METHOD(disableCookie, disable_cookie);
+	// JS_SET_CLASS_METHOD(disableSendCookie, disable_send_cookie);
+	// JS_SET_CLASS_METHOD(disableSslVerify, disable_ssl_verify);
+	// JS_SET_CLASS_METHOD(setKeepAlive, set_keep_alive);
+	// JS_SET_CLASS_METHOD(setTimeout, set_timeout);
+	// JS_SET_CLASS_METHOD(setRequestHeader, set_request_header);
+	// JS_SET_CLASS_METHOD(setForm, set_form);
+	// JS_SET_CLASS_METHOD(setUploadFile, set_upload_file);
+	// JS_SET_CLASS_METHOD(clearRequestHeader, clear_request_header);
+	// JS_SET_CLASS_METHOD(clearFormData, clear_form_data);
+	// JS_SET_CLASS_METHOD(getResponseHeader, get_response_header);
+	// JS_SET_CLASS_METHOD(getAllResponseHeaders, get_all_response_headers);
+	// JS_SET_CLASS_ACCESSOR(uploadTotal, upload_total);
+	// JS_SET_CLASS_ACCESSOR(uploadSize, upload_size);
+	// JS_SET_CLASS_ACCESSOR(downloadTotal, download_total);
+	// JS_SET_CLASS_ACCESSOR(downloadSize, download_size);
+	// JS_SET_CLASS_ACCESSOR(readyState, ready_state);
+	// JS_SET_CLASS_ACCESSOR(statusCode, status_code);
+	// JS_SET_CLASS_ACCESSOR(url, url);
+	// JS_SET_CLASS_ACCESSOR(httpResponseVersion, http_response_version);
+	// JS_SET_CLASS_METHOD(send, send);
+	// JS_SET_CLASS_METHOD(pause, pause);
+	// JS_SET_CLASS_METHOD(resume, resume);
+	// JS_SET_CLASS_METHOD(abort, abort);
+}
 
 /**
- * @class HttpClientRequest
- * @bases NativeHttpClientRequest
+ * @class HttpClientRequestIMPL
  */
-export class HttpClientRequest extends exports.NativeHttpClientRequest {
+class HttpClientRequestIMPL extends _http.NativeHttpClientRequest {
 	@event onError: EventNoticer;
 	@event onwrite: EventNoticer;
 	@event onHeader: EventNoticer;
@@ -48,4 +89,6 @@ export class HttpClientRequest extends exports.NativeHttpClientRequest {
 	@event onAbort: EventNoticer;
 }
 
-// util.extendClass(HttpClientRequest, event.NativeNotification);
+utils.extendClass(HttpClientRequestIMPL, NativeNotification);
+
+exports.HttpClientRequest = HttpClientRequestIMPL;

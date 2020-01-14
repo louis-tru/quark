@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require('../libs/nxkit/sync_watch');
+require('../libs/nxkit/out/nxkit/sync_watch');

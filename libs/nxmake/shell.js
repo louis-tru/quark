@@ -2,9 +2,9 @@
 
 var util = require('nxkit');
 var fs = require('nxkit/fs');
-var { NguiBuild } = require('../build');
-var { NguiExport } = require('../export');
-var server = require('../server');
+var { NguiBuild } = require('./build');
+var { NguiExport } = require('./export');
+var server = require('./server');
 var arguments = require('nxkit/arguments');
 var args = process.argv.slice(2);
 var cmd = args.shift();

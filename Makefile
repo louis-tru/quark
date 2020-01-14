@@ -19,11 +19,6 @@ ifeq ($(GIT_repository),)
 	GIT_repository = https://github.com/louis-tru
 endif
 
-# a:
-# 	@echo $(GIT_repository)
-
-JSA_SHELL = $(NXMAKE)/bin/${HOST_OS}-jsa-shell
-
 #######################
 
 DEPS = libs/nxkit libs/nxmake/gyp.ngui depe/v8-link \
@@ -57,8 +52,8 @@ check_osx=\
 		exit 1; \
 	fi
 
-.PHONY: $(FORWARD) jsa ios android linux osx \
-	product install-nxmake-link install-nxmake \
+.PHONY: $(FORWARD) ios android linux osx \
+	product install install-nxmake \
 	help web doc watch build _host_linux _host_osx pull push
 
 .SECONDEXPANSION:
@@ -68,26 +63,21 @@ check_osx=\
 product: # pull
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(MAKE) install-nxmake
-	@#-./tools/gen_releases_lib.sh
 
-install-nxmake: $(JSA_SHELL)
+install: product
+	@$(MAKE) install-nxmake
+
+install-nxmake:
 	@$(NODE) ./tools/cp-nxmake.js
 	@cd $(NXMAKE_OUT) && npm i -f
 	@cd $(NXMAKE_OUT) && $(SUDO) npm i -g
 
-# debug install ngui
-install-nxmake-link: $(JSA_SHELL)
-	@cd $(NXMAKE) && $(SUDO) npm link
-
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
 
-$(JSA_SHELL): jsa
-
 # build all ios platform and output to product dir
 # It can only run in MAC system.
-ios: $(JSA_SHELL)
+ios:
 	@$(call check_osx,$@)
 	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) compile # armv7 say goodbye 
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) compile
@@ -96,13 +86,13 @@ ios: $(JSA_SHELL)
 	@./tools/gen_apple_frameworks.sh $(NXMAKE_OUT) ios
 
 # build all android platform and output to product dir
-android: $(JSA_SHELL)
+android:
 	@$(MAKE) $(ANDROID_JAR)
 	@./configure --os=android --arch=x64   --library=shared && $(MAKE) compile
 	@./configure --os=android --arch=arm   --library=shared && $(MAKE) compile
 	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) compile
 
-linux: $(JSA_SHELL)
+linux:
 	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) compile
 	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) compile
 	@./configure --os=linux   --arch=x64                    && $(MAKE) compile
@@ -140,10 +130,6 @@ _host_linux: # pull
 	@./configure --os=android --arch=x64                    && $(MAKE) compile
 	@./configure --os=android --arch=arm                    && $(MAKE) compile
 	@./configure --os=android --arch=arm64                  && $(MAKE) compile
-
-jsa:
-	@./configure --media=0
-	@$(MAKE) tools
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc

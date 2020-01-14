@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/jsx.h"
+#include "./jsx.h"
 #include "nutils/string.h"
 #include "nutils/string-builder.h"
 #include "nutils/map.h"
