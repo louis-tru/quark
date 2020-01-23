@@ -98,7 +98,7 @@ function new_cb(cb) {
  * @arg err {Object}
  * @arg [cb] {Function} # 异步回调
  */
-function throw_err(e, cb) {
+function throwError(e, cb) {
 	new_cb(cb).throw(new_err(e));
 }
 
@@ -189,7 +189,7 @@ function Package_install3(self, path, cb) {
 	info.src  = info.src || '';
 	self.m_src  = resolve(self.m_path, info.src);
 	if (info.name != self.m_name) {
-		return throw_err('Lib name must be ' +
+		return throwError('Lib name must be ' +
 										 `consistent with the folder name, ${self.m_name} != ${info.name}`, cb);
 	}
 	
@@ -1004,7 +1004,7 @@ function Packages_require_before(self, async, cb) {
 		} else if (register.ready === 1) {
 			is_loading = true;
 		} else if ( register.ready == 3 ) { // err
-			throw_err(`Load pkg fail "${register.path}"\n${register.error.message}`, cb);
+			throwError(`Load pkg fail "${register.path}"\n${register.error.message}`, cb);
 			return;
 		}
 	}
@@ -1290,7 +1290,7 @@ class Packages {
 			for (var i = 0; i < len; i++) {
 				var pkg = self.getPackage(packageNames[i]);
 				if ( ! pkg) {
-					return throw_err(`Lib "${packageNames[i]}" does not exist`, cb);
+					return throwError(`Lib "${packageNames[i]}" does not exist`, cb);
 				}
 				Package_install(pkg, callback);
 			}
@@ -1486,7 +1486,7 @@ function inl_require(request, parent) {
 			request.charCodeAt(1) === 46/*.*/ || request.charCodeAt(1) === 47/*/*/)
 	) { // path in package
 		if (!pkg) {
-			throw throw_err(`require module error, cannot find "${request}"`);
+			throw throwError(`require module error, cannot find "${request}"`);
 		}
 	} else if (isAbsolute(request)) { // absolute path
 		return inl_require_external(resolve(request));
@@ -1500,7 +1500,7 @@ function inl_require(request, parent) {
 				if (result) {
 					return result;
 				} else {
-					throw throw_err(`require module error, "${mat[1]}" pkg not register`);
+					throw throwError(`require module error, "${mat[1]}" pkg not register`);
 				}
 			}
 			request = mat[3] || '';

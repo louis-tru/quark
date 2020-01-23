@@ -203,16 +203,6 @@ class JSClassStore {
 	bool instanceof(Local<JSValue> val, uint64 id);
 	
 	/**
-	 * @func is_buffer(val)
-	 */
-	bool is_buffer(Local<JSValue> val);
-	
-	/**
-	 * @func get_buffer_constructor
-	 */
-	Local<JSFunction> get_buffer_constructor();
-
-	/**
 	 * @func has
 	 */
 	inline bool has(uint64 id) {
@@ -230,7 +220,6 @@ class JSClassStore {
 	Map<uint64, Desc*> values_;
 	WrapObject* current_attach_object_;
 	Worker* worker_;
-	Desc* buffer_value_;
 	
 	friend class WrapObject;
 };

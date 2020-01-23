@@ -131,7 +131,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	inline RunLoop* loop() { return m_keep->host(); }
 	inline uv_loop_t* uv_loop() { return loop()->uv_loop(); }
 	
-	void report_err_from_loop(Se& evt) {
+	void report_err_from_loop(Cbd& evt) {
 		m_delegate->trigger_socket_error(m_host, *evt.error);
 	}
 	
@@ -159,7 +159,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		report_err(Error(ERR_NOT_OPTN_TCP_CONNECT, "not tcp connect or open connecting"), async);
 	}
 	
-	void timeout_cb2(Se& evt) {
+	void timeout_cb2(Cbd& evt) {
 		m_delegate->trigger_socket_timeout(m_host);
 	}
 	
@@ -653,7 +653,7 @@ class SSL_INL: public Socket::Inl {
 		Inl::shutdown();
 	}
 	
-	static void trigger_socket_write_from_loop(Se& evt, SSLSocketWriteReq* req) {
+	static void trigger_socket_write_from_loop(Cbd& evt, SSLSocketWriteReq* req) {
 		Handle<SSLSocketWriteReq> req_(req);
 		req->ctx()->m_delegate->trigger_socket_write(req->ctx()->m_host, req->data().raw_buffer,
 																								 req->data().mark);

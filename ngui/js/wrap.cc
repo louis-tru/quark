@@ -130,15 +130,15 @@ WrapObject::~WrapObject() {
 	self()->~Object();
 }
 
-Object* WrapObject::private_data() {
+Object* WrapObject::privateData() {
 	Local<JSValue> data = get(worker()->strs()->__native_private_data());
-	if ( worker()->has_instance(data, JS_TYPEID(Object)) ) {
+	if ( worker()->hasInstance(data, JS_TYPEID(Object)) ) {
 		return unpack<Object>(data.To<JSObject>())->self();
 	}
 	return nullptr;
 }
 
-bool WrapObject::set_private_data(Object* data, bool trusteeship) {
+bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
 	XX_ASSERT(data);
 	auto p = pack(data, JS_TYPEID(Object));
 	if (p) {
@@ -149,7 +149,7 @@ bool WrapObject::set_private_data(Object* data, bool trusteeship) {
 				_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
 			}
 		}
-		XX_ASSERT(private_data());
+		XX_ASSERT(privateData());
 	}
 	return p;
 }
@@ -160,7 +160,7 @@ Local<JSValue> WrapObject::call(Local<JSValue> name, int argc, Local<JSValue> ar
 	if ( func->IsFunction(worker()) ) {
 		return func.To<JSFunction>()->Call(worker(), argc, argv, o);
 	} else {
-		worker()->throw_err("Function not found, \"%s\"", *name->ToStringValue(worker()));
+		worker()->throwError("Function not found, \"%s\"", *name->ToStringValue(worker()));
 		return Local<JSValue>();
 	}
 }
@@ -169,7 +169,7 @@ Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) 
 	return call(worker()->New(name), argc, argv);
 }
 
-bool WrapObject::is_pack(Local<JSObject> object) {
+bool WrapObject::isPack(Local<JSObject> object) {
 	XX_ASSERT(!object.IsEmpty());
 	return IMPL::GetObjectPrivate(object);
 }

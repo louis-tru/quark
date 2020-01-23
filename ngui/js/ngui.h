@@ -60,12 +60,12 @@ class XX_EXPORT WrapViewBase: public WrapObject {
 	/**
 	 * @func overwrite
 	 */
-	virtual bool add_event_listener(cString& name, cString& func, int id);
+	virtual bool addEventListener(cString& name, cString& func, int id);
 	
 	/**
 	 * @func overwrite
 	 */
-	virtual bool remove_event_listener(cString& name, int id);
+	virtual bool removeEventListener(cString& name, int id);
 	
 	/**
 	 * @func inherit_text_font

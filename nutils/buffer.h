@@ -72,12 +72,12 @@ class XX_EXPORT BufferContainer: public Container<T> {
 			this->m_capacity = container.capacity();
 			this->m_value = const_cast<T*>(*container);
 		} else {
-			Container<T>::operator=(container);
+			Container<T>::operator=(container); // copy
 			m_allow_shrink_capacity = container.m_allow_shrink_capacity;
 		}
 		return *this;
 	}
-	
+
 	BufferContainer& operator=(BufferContainer&& container) {
 		if ( m_weak ) {
 			this->m_capacity = container.capacity();
@@ -119,10 +119,10 @@ class XX_EXPORT BufferContainer: public Container<T> {
 	}
 	
  private:
-	
+
 	bool m_weak;
 	bool m_allow_shrink_capacity;
-	
+
 	friend class ArrayBuffer<T>;
 	friend class WeakArrayBuffer<T>;
 	
@@ -167,7 +167,7 @@ class XX_EXPORT ArrayBuffer: public Array<T, BufferContainer<T>> {
 	inline ArrayBuffer(ArrayBuffer&& arr): Array<T, BufferContainer<T>>( move(arr) ) {}
 	
 	inline ArrayBuffer(const std::initializer_list<T>& list)
-	: Array<T, BufferContainer<T>>(list) { }
+	: Array<T, BufferContainer<T>>(list) {}
 
 	inline ArrayBuffer& operator=(ArrayBuffer& arr) {
 		Array<T, BufferContainer<T>>::operator=(ngui::move(arr));
@@ -247,12 +247,12 @@ template<class T> class XX_EXPORT WeakArrayBuffer: public ArrayBuffer<T> {
 	WeakArrayBuffer(): ArrayBuffer<T>(nullptr, 0) {
 		this->_container.m_weak = true;
 	}
-	
+
 	WeakArrayBuffer(const T* data, uint length)
 	: ArrayBuffer<T>(const_cast<T*>(data), length) {
 		this->_container.m_weak = true;
 	}
-	
+
 	WeakArrayBuffer(const WeakArrayBuffer<T>& arr) 
 	: ArrayBuffer<T>(
 		const_cast<T*>(*arr._container), 
@@ -260,7 +260,7 @@ template<class T> class XX_EXPORT WeakArrayBuffer: public ArrayBuffer<T> {
 	) {
 		this->_container.m_weak = true;
 	}
-	
+
 	template<class T2>
 	WeakArrayBuffer(const Array<T, T2>& arr) {
 		this->_container.m_weak = true;
@@ -270,7 +270,7 @@ template<class T> class XX_EXPORT WeakArrayBuffer: public ArrayBuffer<T> {
 	WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
 		return operator=(*static_cast<const Array<T, BufferContainer<T>>*>(&arr));
 	}
-	
+
 	template<class T2>
 	WeakArrayBuffer& operator=(const Array<T, T2>& arr) {
 		this->_length = arr._length;

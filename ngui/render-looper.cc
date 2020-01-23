@@ -45,10 +45,10 @@ RenderLooper::~RenderLooper() {
 struct LooperData: Object {
 	int id;
 	AppInl* host;
-	Callback cb;
+	Callback<> cb;
 };
 
-void looper(Se& ev, LooperData* data) {
+void looper(Cbd& ev, LooperData* data) {
 	if ( data->id && !is_exited() ) {
 		// 60fsp
 		data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
@@ -60,7 +60,7 @@ void looper(Se& ev, LooperData* data) {
 }
 
 void RenderLooper::start() {
-	m_host->render_loop()->post_sync(Cb([this](Se &ev) {
+	m_host->render_loop()->post_sync(Cb([this](Cbd &ev) {
 		if (!m_id) {
 			LooperData* data = new LooperData();
 			data->id = iid32();
@@ -73,7 +73,7 @@ void RenderLooper::start() {
 }
 
 void RenderLooper::stop() {
-	m_host->render_loop()->post_sync(Cb([this](Se& ev) {
+	m_host->render_loop()->post_sync(Cb([this](Cbd& ev) {
 		if (m_id) {
 			*m_id = 0;
 			m_id = nullptr;

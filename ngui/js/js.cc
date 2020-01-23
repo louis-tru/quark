@@ -63,6 +63,24 @@ Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 	}
 }
 
+
+bool JSValue::IsBuffer() const {
+  return IsTypedArray() || IsArrayBuffer();
+}
+
+bool JSValue::IsBuffer(Worker *worker) const {
+  return IsBuffer();
+}
+
+WeakBuffer JSValue::AsBuffer(Worker *worker) {
+  if (IsTypedArray(worker)) {
+    return static_cast<JSTypedArray*>(this)->weakBuffer(worker);
+  } else if (IsArrayBuffer()) {
+    return static_cast<JSArrayBuffer*>(this)->weakBuffer(worker);
+  }
+  return WeakBuffer();
+}
+
 Maybe<Map<String, int>> JSObject::ToIntegerMap(Worker* worker) {
 	Map<String, int> r;
 	
@@ -180,14 +198,18 @@ Maybe<Buffer> JSArray::ToBufferMaybe(Worker* worker) {
 	return Maybe<Buffer>(move(rv));
 }
 
-WeakBuffer JSArrayBuffer::weak_buffer(Worker* worker) {
+WeakBuffer JSArrayBuffer::weakBuffer(Worker* worker) {
 	int size = ByteLength(worker);
 	char* data = Data(worker);
 	return WeakBuffer(data, size);
 }
 
-WeakBuffer JSTypedArray::weak_buffer(Worker* worker) {
-	return Buffer(worker)->weak_buffer(worker);
+WeakBuffer JSTypedArray::weakBuffer(Worker* worker) {
+  auto buffer = Buffer(worker);
+  char* data = buffer->Data(worker);
+  int offset = ByteOffset(worker);
+  int len = ByteLength(worker);
+  return WeakBuffer(data + offset, len);
 }
 
 void JSClass::Export(Worker* worker, cString& name, Local<JSObject> exports) {
@@ -262,7 +284,7 @@ static void require_native(FunctionCall args) {
 		JS_THROW_ERR("Bad argument.");
 	}
 	String name = args[0]->ToStringValue(worker);
-	Local<JSValue> r = worker->binding_module(name);
+	Local<JSValue> r = worker->bindingModule(name);
 	if (!r.IsEmpty()) {
 		JS_RETURN(r);
 	}
@@ -301,7 +323,7 @@ IMPL::~IMPL() {
 static Local<JSValue> TriggerEventFromUtil(Worker* worker,
 	cString& name, int argc = 0, Local<JSValue> argv[] = 0)
 {
-	Local<JSObject> _util = worker->binding_module("_util").To();
+	Local<JSObject> _util = worker->bindingModule("_util").To();
 	XX_ASSERT(!_util.IsEmpty());
 
 	Local<JSValue> func = _util->GetProperty(worker, String("__on").push(name).push("_native"));
@@ -353,14 +375,14 @@ Worker* Worker::create() {
 	return IMPL::create();
 }
 
-void Worker::reg_module(cString& name, BindingCallback binding, cchar* file) {
+void Worker::registerModule(cString& name, BindingCallback binding, cchar* file) {
 	if (!native_modules) {
 		native_modules = new Map<String, NativeModule>();
 	}
 	native_modules->set(name, { name, file ? file : __FILE__, binding });
 }
 
-Local<JSValue> Worker::binding_module(cString& name) {
+Local<JSValue> Worker::bindingModule(cString& name) {
 	Local<JSValue> str = New(name);
 	Local<JSValue> r = m_inl->m_native_modules.local()->Get(this, str);
 
@@ -379,7 +401,7 @@ Local<JSValue> Worker::binding_module(cString& name) {
 	if (mod.binding) {
 		mod.binding(exports, this);
 	} else if (mod.native_code) {
-		exports = run_native_script(WeakBuffer((char*)
+		exports = runNativeScript(WeakBuffer((char*)
 			mod.native_code->code, 
 			mod.native_code->count), name, exports
 		).To();
@@ -417,7 +439,7 @@ CommonStrings* Worker::strs() {
 	return m_inl->m_strs; 
 }
 
-ThreadID Worker::thread_id() {
+ThreadID Worker::threadId() {
 	return m_inl->m_thread_id;
 }
 
@@ -443,7 +465,7 @@ Local<JSObject> Worker::New(const HttpError& err) {
 
 Local<JSArray> Worker::New(Array<Dirent>& ls) { return New(move(ls)); }
 Local<JSArray> Worker::New(Array<FileStat>& ls) { return New(move(ls)); }
-Local<JSObject> Worker::New(Buffer& buff) { return New(move(buff)); }
+Local<JSUint8Array> Worker::New(Buffer& buff) { return New(move(buff)); }
 Local<JSObject> Worker::New(FileStat& stat) { return New(move(stat)); }
 Local<JSObject> Worker::NewError(cError& err) { return New(err); }
 Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
@@ -462,47 +484,33 @@ Local<JSObject> Worker::NewInstance(uint64 id, uint argc, Local<JSValue>* argv) 
 	return func->NewInstance(this, argc, argv);
 }
 
-Local<JSObject> Worker::NewBuffer(Local<JSString> str, Encoding en) {
+Local<JSUint8Array> Worker::NewUint8Array(Local<JSString> str, Encoding en) {
 	Buffer buff = str->ToBuffer(this, en);
 	return New(buff);
 }
 
-void Worker::throw_err(cchar* errmsg, ...) {
+Local<JSUint8Array> Worker::NewUint8Array(int size, char fill) {
+  auto ab = NewArrayBuffer(size);
+  if (fill)
+    memset(ab->Data(this), fill, size);
+  return NewUint8Array(ab);
+}
+
+Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab) {
+  return NewUint8Array(ab, 0, ab->ByteLength(this));
+}
+
+void Worker::throwError(cchar* errmsg, ...) {
 	XX_STRING_FORMAT(errmsg, str);
-	throw_err(NewError(*str));
+	throwError(NewError(*str));
 }
 
-bool Worker::has_buffer(Local<JSValue> val) {
-	return m_inl->m_classs->is_buffer(val);
-}
-
-bool Worker::has_typed_buffer(Local<JSValue> val) {
-	return val->IsTypedArray(this) || val->IsArrayBuffer(this);
-}
-
-bool Worker::has_view(Local<JSValue> val) {
+bool Worker::hasView(Local<JSValue> val) {
 	return m_inl->m_classs->instanceof(val, ngui::View::VIEW);
 }
 
-bool Worker::has_instance(Local<JSValue> val, uint64 id) {
+bool Worker::hasInstance(Local<JSValue> val, uint64 id) {
 	return m_inl->m_classs->instanceof(val, id);
-}
-
-WeakBuffer Worker::as_buffer(Local<JSValue> val) {
-	if ( m_inl->m_classs->is_buffer(val) ) {
-		Buffer* bf = Wrap<Buffer>::unpack(val.To<JSObject>())->self();
-		return WeakBuffer(bf->value(), bf->length());
-	}
-	return WeakBuffer();
-}
-
-WeakBuffer Worker::as_typed_buffer(Local<JSValue> val) {
-	if (val->IsTypedArray(this)) {
-		return val.To<JSTypedArray>()->weak_buffer(this);
-	} else if (val->IsArrayBuffer()) {
-		return val.To<JSArrayBuffer>()->weak_buffer(this);
-	}
-	return WeakBuffer();
 }
 
 JS_END

@@ -237,7 +237,7 @@ class XX_EXPORT RunLoop: public Object, public PostMessage {
 	struct Queue {
 		uint id, group;
 		int64 time;
-		Callback resolve;
+		Callback<> resolve;
 	};
 	struct Work;
 	List<Queue> m_queue;

@@ -71,18 +71,18 @@ class XX_EXPORT WrapObject {
 	static WrapObject* attach(FunctionCall args);
 
  public:
-	virtual bool add_event_listener(cString& name, cString& func, int id) {
+	virtual bool addEventListener(cString& name, cString& func, int id) {
 		return false;
 	}
-	virtual bool remove_event_listener(cString& name, int id) {
+	virtual bool removeEventListener(cString& name, int id) {
 		return false;
 	}
-	
+  
 	inline Worker* worker() {
 		return handle_.worker_;
 	}
-	Object* private_data();
-	bool set_private_data(Object* data, bool trusteeship = false);
+	Object* privateData();
+	bool setPrivateData(Object* data, bool trusteeship = false);
 	
 	inline Persistent<JSObject>& handle() {
 		return handle_;
@@ -100,6 +100,7 @@ class XX_EXPORT WrapObject {
 		return handle_.local()->Delete(worker(), key);
 	}
 	
+  // call member func
 	Local<JSValue> call(Local<JSValue> name, int argc = 0, Local<JSValue> argv[] = nullptr);
 	Local<JSValue> call(cString& name, int argc = 0, Local<JSValue> argv[] = nullptr);
 	
@@ -110,7 +111,7 @@ class XX_EXPORT WrapObject {
 	
 	// static
 	
-	static bool is_pack(Local<JSObject> object);
+	static bool isPack(Local<JSObject> object);
 	
 	template<class T = Object>
 	static inline Wrap<T>* unpack(Local<JSObject> value) {

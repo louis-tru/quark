@@ -74,6 +74,7 @@ class XX_EXPORT Event: public Object {
 	Event(cSendData& data = SendData()): return_value(), m_noticer(nullptr), m_data(&data) {}
 	Event(cSendData& data, ReturnValue&& r_value): return_value(move(r_value)), m_noticer(nullptr), m_data(&data) {}
 
+  // "new" method alloc can call，Otherwise, fatal exception will be caused
 	virtual void release() {
 		m_noticer = nullptr;
 		m_data = nullptr;

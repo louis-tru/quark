@@ -290,22 +290,15 @@ export class NativeNotification<Data = any, Return = number, Sender = any> exten
 		var noticer = (this as any)[PREFIX + name] as EventNoticer<Data, Return, Sender>;
 		if ( ! noticer ) {
 			// bind native event
-			var trigger = (this as any)['trigger' + name];
-			if ( trigger ) {
-				// bind native
-				_util.addNativeEventListener(this, name, (event: Event<Data, Return, Sender>) => {
-					//console.log('_util.addNativeEventListener', name);
-					// new Event<Data, Return, Sender>(data)
-					var ok = trigger.call(this, event);
-					//console.log('_util.addNativeEventListener', name, ok, String(trigger));
-					return ok;
-				}, -1);
-			} else {
-				// bind native
-				_util.addNativeEventListener(this, name, (event: Event<Data, Return, Sender>) => {
-					return this.triggerWithEvent(name, event);
-				}, -1);
-			}
+			var func = (this as any)['trigger' + name];
+			// bind native
+			_util.addNativeEventListener(this, name, (event?: any, isEvent?: boolean) => {
+				//console.log('_util.addNativeEventListener', name);
+				var evt = event && isEvent ? event: new _event.Event(event);
+				var ok = func ? func.call(this, evt): this.triggerWithEvent(name, evt);
+				//console.log('_util.addNativeEventListener', name, ok, String(trigger));
+				return ok;
+			}, -1);
 			(this as any)[PREFIX + name] = noticer = new EventNoticer<Data, Return, Sender>(name, this as any);
 		}
 		return noticer;

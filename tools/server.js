@@ -28,14 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/nxkit/out/nxkit').default;
-var fs = require('../libs/nxkit/out/nxkit/fs');
-var keys = require('../libs/nxkit/out/nxkit/keys').default;
-var service = require('../libs/nxkit/out/nxkit/service').default;
-var HttpService = require('../libs/nxkit/out/nxkit/http_service').HttpService;
-var server = require('../libs/nxmake/server');
-
-require('./test-multiple-service');
+var util = require('nxkit').default;
+var fs = require('nxkit/fs');
+var service = require('nxkit/service').default;
+var HttpService = require('nxkit/http_service').HttpService;
+var server = require('nxmake/server');
 
 var opt = {
 	// remote: 'http://192.168.1.124:1026/',

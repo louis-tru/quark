@@ -206,7 +206,7 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
  */
 @implementation ApplicationDelegate
 
-static void render_exec_func(Se& evt, Object* ctx) {
+static void render_exec_func(Cb& evt, Object* ctx) {
 	app_delegate.render_task_count--;
 	_inl_app(app_delegate.app)->onRender();
 }
@@ -226,7 +226,7 @@ static void render_exec_func(Se& evt, Object* ctx) {
 
 - (void)refresh_surface_size_with_rect:(::CGRect)rect {
 	if (!_loaded) return;
-	_app->render_loop()->post(Cb([self, rect](Se& d) {
+	_app->render_loop()->post(Cb([self, rect](Cb& d) {
 		gl_draw_context->refresh_surface_size(rect);
 	}));
 	LOG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
@@ -282,7 +282,7 @@ static void render_exec_func(Se& evt, Object* ctx) {
 - (void)initialize {
 	NSOpenGLContext* context = self.glview.openGLContext;
 	::CGRect rect = self.glview.frame;
-	_app->render_loop()->post_sync(Cb([self, rect, context](Se& d) {
+	_app->render_loop()->post_sync(Cb([self, rect, context](Cb& d) {
 		gl_draw_context->initialize(self.glview, context);
 		gl_draw_context->refresh_surface_size(rect);
 		_inl_app(_app)->onLoad();

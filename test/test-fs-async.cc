@@ -42,7 +42,7 @@ class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
 	
 	virtual ~AsyncFileRead() {
 		LOG("Delete");
-		FileHelper::read_file(Path::resources("res/bg.svg"), Cb([](Se& evt) {
+		FileHelper::read_file(Path::resources("res/bg.svg"), Cb([](Cbd& evt) {
 			if ( evt.error ) {
 				LOG("ERR, %s", evt.error->message().c());
 			} else {

@@ -116,7 +116,7 @@ class WrapNativeEvent: public WrapObject {
 	static void data(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_UNPACK(Type);
-		Cast* cast = static_cast<Cast*>(wrap->private_data());
+		Cast* cast = static_cast<Cast*>(wrap->privateData());
 		if ( cast ) {
 			JS_RETURN( cast->cast(*wrap->self()->data(), worker) );
 		}
@@ -423,7 +423,7 @@ class WrapGUIKeyEvent: public WrapObject {
 		JS_WORKER(args);
 		JS_SELF(Type);
 		View* view = nullptr;
-		if ( worker->has_instance(value, View::VIEW) ) {
+		if ( worker->hasInstance(value, View::VIEW) ) {
 			view = WrapObject::unpack<Button>(value.To<JSObject>())->self();
 		} else if ( ! value->IsNull(worker) ) {
 			JS_THROW_ERR("Bad argument.");
@@ -685,7 +685,7 @@ class BindingNativeEvent {
  public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->run_native_script(WeakBuffer((char*)
+		worker->runNativeScript(WeakBuffer((char*)
 															INL_native_js_code__event_,
 															INL_native_js_code__event_count_), "_event.js", exports);
 		// Enum: HighlightedStatus

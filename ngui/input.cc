@@ -125,7 +125,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 				flag_ = 1;
 				int64 timeout = activate_touchmove_selectd_timeout();
 				if ( timeout ) {
-					main_loop()->post(Cb([this](Se& evt) { // delay
+					main_loop()->post(Cb([this](Cbd& evt) { // delay
 						GUILock lock;
 						if ( flag_ == 1 ) {
 							flag_ = 3; // 激活光标定位
@@ -511,7 +511,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	}
 	
 	void trigger_change() {
-		main_loop()->post(Cb([this](Se& e){
+		main_loop()->post(Cb([this](Cbd& e){
 			Handle<GUIEvent> evt = New<GUIEvent>(this);
 			trigger(GUI_EVENT_CHANGE, **evt); // trigger event
 		}, this));

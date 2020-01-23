@@ -322,7 +322,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		}
 	}
 		
-	void fs_error_cb(Se& evt) {
+	void fs_error_cb(Cbd& evt) {
 		m_delegate->trigger_async_file_error(m_host, *evt.error);
 	}
 	

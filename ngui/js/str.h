@@ -64,11 +64,9 @@ F(w) \
 F(size) \
 F(color) \
 F(toJSON) \
-F(___mark_json_stringify__) \
 F(stack) \
 F(get_path) \
 F(_exit) \
-F(triggerRemoveView) \
 F(code) \
 F(message) \
 F(status) \

@@ -309,7 +309,7 @@ export class Sheet extends Dialog {
 		var length = this.length;
 		var content = this.content ? this.content : vdoms.length ? vdoms: null;
 		return (
-			<Indep width="100%" height="100%" backgroundColor="#0008" onClick="navigationBack" visible=0 opacity=0>
+			<Indep width="100%" height="100%" backgroundColor="#0008" onClick="navigationBack" visible={0} opacity={0}>ABCD
 			{content?
 				<Indep id="main" class="x_dialog sheet">{content}</Indep>:
 				<Indep id="main" class="x_dialog sheet">
@@ -422,7 +422,7 @@ export function prompt(msg, cb = util.noop) {
 
 export function show(title, msg, buttons, cb = util.noop) {
 	var dag = render(
-		<Dialog title=title buttons=buttons onAction=(e=>cb(e.data))>{msg}</Dialog>
+		<Dialog title={title} buttons={buttons} onAction={e=>cb(e.data)}>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
@@ -430,7 +430,7 @@ export function show(title, msg, buttons, cb = util.noop) {
 
 export function sheet(content) {
 	var dag = render(
-		<Sheet content=content />
+		<Sheet content={content} />
 	);
 	dag.show();
 	return dag;
@@ -438,7 +438,7 @@ export function sheet(content) {
 
 export function sheetConfirm(buttons, cb = util.noop) {
 	var dag = render(
-		<Sheet buttons=buttons onAction=(e=>cb(e.data)) />
+		<Sheet buttons=buttons onAction={e=>cb(e.data)} />
 	);
 	dag.show();
 	return dag;

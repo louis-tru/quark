@@ -48,7 +48,7 @@ void test_http(int argc, char **argv) {
 	
 	LOG(FileHelper::read_file_sync(Path::documents("baidu3.htm")));
 	
-	HttpHelper::get_stream(url, Cb([](Se& d) {
+	HttpHelper::get_stream(url, Cb([](Cbd& d) {
 		if ( d.error ) {
 			LOG(d.error->message());
 		} else {

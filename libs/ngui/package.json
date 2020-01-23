@@ -2,12 +2,16 @@
 	"name": "ngui",
 	"version": "0.6.2",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
-	"main": "ngui.js",
+	"main": "index.js",
+	"types": "index.ts",
 	"extendSyntax": true,
 	"author": {
 		"name": "xuewen.chu",
 		"email": "louistru@hotmail.com",
 		"url": "http://ngui.fun/"
+	},
+	"scripts": {
+		"build": "tsc && cp LICENSE *.md out/ngui && node _build.js"
 	},
 	"keywords": [
 		"jsx",

@@ -33,7 +33,6 @@ var path = require('path');
 var inputs = process.argv.slice(2);
 var output_cc = inputs.pop();
 var output_h = inputs.pop();
-var Buffer = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
 
 function format_string() {

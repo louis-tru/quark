@@ -134,17 +134,17 @@ class WrapNativeHttpClientRequest: public WrapObject {
 	};
 	
 	Delegate* del() {
-		return static_cast<Delegate*>(private_data());
+		return static_cast<Delegate*>(privateData());
 	}
 	
-	virtual bool add_event_listener(cString& name, cString& func, int id) {
+	virtual bool addEventListener(cString& name, cString& func, int id) {
 		
 		Delegate* _del = del();
 		if (!_del) {
 			_del = new Delegate();
 			_del->_host = this;
 			self<Type>()->set_delegate(_del);
-			set_private_data(_del, true);
+			setPrivateData(_del, true);
 		}
 		
 		if ( id != -1 ) return 0; // 只接收id==-1的监听器
@@ -171,7 +171,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		return true;
 	}
 	
-	virtual bool remove_event_listener(cString& name, int id) {
+	virtual bool removeEventListener(cString& name, int id) {
 		
 		Delegate* _del = del();
 		
@@ -594,8 +594,8 @@ class WrapNativeHttpClientRequest: public WrapObject {
 					self->send( args[0]->ToStringValue(worker).collapse_buffer() );
 				}, Error);
 			}
-			else if (worker->has_buffer(args[0])) {
-				WeakBuffer buff = worker->as_buffer(args[0]);
+			else if ( args[0]->IsBuffer() ) {
+				WeakBuffer buff = args[0]->AsBuffer(worker);
 				JS_TRY_CATCH({ self->send(buff.copy()); }, Error);
 			}
 			else {
@@ -711,8 +711,8 @@ public:
 		if ( value->IsString(worker) ) {
 			opt.post_data = value->ToStringValue(worker).collapse_buffer();
 		}
-		else if (worker->has_buffer(value)) {
-			opt.post_data = worker->as_buffer(value).copy();
+		else if ( value->IsBuffer() ) {
+			opt.post_data = value->AsBuffer(worker).copy();
 		}
 		
 		value = obj->Get(worker, worker->New(const_save,1));
@@ -759,7 +759,7 @@ public:
 		if (!get_options(worker, args[0], opt))
 			return;
 		
-		Callback cb;
+		Cb cb;
 		
 		if ( args.Length() > 1 ) {
 			cb = stream ? get_callback_for_io_stream_http_error(worker, args[1]) :
@@ -852,7 +852,7 @@ public:
 		uint rev = 0;
 		String url = args[0]->ToStringValue(worker);
 		String save = args[1]->ToStringValue(worker);
-		Callback cb;
+		Cb cb;
 		
 		if ( args.Length() > 2 ) {
 			cb = get_callback_for_response_data_http_error(worker, args[2]);
@@ -905,7 +905,7 @@ public:
 		uint rev = 0;
 		String url = args[0]->ToStringValue(worker);
 		String file = args[1]->ToStringValue(worker);
-		Callback cb;
+		Cb cb;
 		
 		if ( args.Length() > 2 ) {
 			cb = get_callback_for_response_data_http_error(worker, args[2]);
@@ -946,7 +946,7 @@ public:
 		}
 		uint rev = 0;
 		String url = args[0]->ToStringValue(worker);
-		Callback cb;
+		Cb cb;
 		
 		if ( args.Length() > 1 ) {
 			cb = stream ? get_callback_for_io_stream_http_error(worker, args[1]) :
@@ -1001,7 +1001,7 @@ public:
 	static void post(FunctionCall args) {
 		JS_WORKER(args);
 		if ( args.Length() < 2 || ! args[0]->IsString(worker) ||
-				!(args[1]->IsString(worker) || worker->has_buffer(args[1]))
+				!(args[1]->IsString(worker) || args[1]->IsBuffer() )
 		) {
 			JS_THROW_ERR(
 				"* @func post(url,data[,cb])\n"
@@ -1013,7 +1013,7 @@ public:
 		}
 		uint rev = 0;
 		String url = args[0]->ToStringValue(worker);
-		Callback cb;
+		Cb cb;
 		
 		if ( args.Length() > 2 ) {
 			cb = get_callback_for_response_data_http_error(worker, args[2]);
@@ -1024,7 +1024,7 @@ public:
 				rev = HttpHelper::post(url, args[1]->ToStringValue(worker).collapse_buffer(), cb);
 			} 
 			else {
-				WeakBuffer buff = worker->as_buffer(args[1]);
+				WeakBuffer buff = args[1]->AsBuffer(worker);
 				rev = HttpHelper::post(url, buff.copy(), cb);
 			}
 		}, HttpError);
@@ -1058,8 +1058,8 @@ public:
 	static void post_sync(FunctionCall args) {
 		JS_WORKER(args);
 		if (  args.Length() < 2 || !args[0]->IsString(worker) ||
-				!(args[1]->IsString(worker) || worker->has_buffer(args[1])
-				)
+				!(args[1]->IsString(worker) || args[1]->IsBuffer()
+      )
 		) {
 			JS_THROW_ERR(
 				"* @func postSync(url,data)\n"
@@ -1077,7 +1077,7 @@ public:
 				rev = HttpHelper::post_sync(url, args[1]->ToStringValue(worker).collapse_buffer());
 			}
 			else {
-				WeakBuffer buff = worker->as_buffer(args[1]);
+				WeakBuffer buff = args[1]->AsBuffer(worker);
 				rev = HttpHelper::post_sync(url, buff.copy());
 			}
 		}, HttpError);
@@ -1213,7 +1213,7 @@ public:
 //  }
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("_buffer");
+		worker->bindingModule("_buffer");
 		WrapNativeHttpClientRequest::binding(exports, worker);
 		// HTTP_METHOD
 		JS_SET_PROPERTY(HTTP_METHOD_GET, HTTP_METHOD_GET);

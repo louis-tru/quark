@@ -221,7 +221,7 @@ class WorkerIMPL: public IMPL {
 		return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 	}
 	
-	v8::MaybeLocal<v8::Value> run_script(v8::Local<v8::String> source_string,
+	v8::MaybeLocal<v8::Value> runScript(v8::Local<v8::String> source_string,
 																	 v8::Local<v8::String> name, v8::Local<v8::Object> sandbox) 
 	{
 		v8::ScriptCompiler::Source source(source_string, ScriptOrigin(name));
@@ -244,13 +244,13 @@ class WorkerIMPL: public IMPL {
 		return result;
 	}
 	
-	Local<JSValue> run_native_script(cBuffer& source, cString& name, Local<JSObject> exports) {
+	Local<JSValue> runNativeScript(cBuffer& source, cString& name, Local<JSObject> exports) {
 		v8::Local<v8::Value> _name = Back(m_host->New(String::format("%s", *name)));
 		v8::Local<v8::Value> _souece = Back(m_host->NewString(source));
 		
 		v8::MaybeLocal<v8::Value> rv;
 		
-		rv = run_script(_souece.As<v8::String>(),
+		rv = runScript(_souece.As<v8::String>(),
 										_name.As<v8::String>(), v8::Local<v8::Object>());
 		if ( !rv.IsEmpty() ) {
 			Local<JSObject> module = m_host->NewObject();
@@ -500,7 +500,7 @@ Local<JSValue> IMPL::binding_node_module(cString& name) {
 		auto _ = reinterpret_cast<Local<JSValue>*>(&r);
 		return *_;
 	}
-	m_host->throw_err(m_host->NewError("Cannot find module %s", *name));
+	m_host->throwError(m_host->NewError("Cannot find module %s", *name));
 	return Local<JSValue>();
 }
 
@@ -559,7 +559,10 @@ bool JSValue::IsArrayBuffer() const {
 	return reinterpret_cast<const v8::Value*>(this)->IsArrayBuffer();
 }
 bool JSValue::IsTypedArray() const {
-	return reinterpret_cast<const v8::Value*>(this)->IsArrayBufferView();
+  return reinterpret_cast<const v8::Value*>(this)->IsArrayBufferView();
+}
+bool JSValue::IsUint8Array() const {
+  return reinterpret_cast<const v8::Value*>(this)->IsUint8Array();
 }
 bool JSValue::Equals(Local<JSValue> val) const {
 	return reinterpret_cast<const v8::Value*>(this)->Equals(Back(val));
@@ -580,6 +583,7 @@ bool JSValue::IsInt32(Worker* worker) const { return IsInt32(); }
 bool JSValue::IsFunction(Worker* worker) const { return IsFunction(); }
 bool JSValue::IsArrayBuffer(Worker* worker) const { return IsArrayBuffer(); }
 bool JSValue::IsTypedArray(Worker* worker) const { return IsTypedArray(); }
+bool JSValue::IsUint8Array(Worker* worker) const { return IsUint8Array(); }
 bool JSValue::Equals(Worker* worker, Local<JSValue> val) const { return Equals(val); }
 bool JSValue::StrictEquals(Worker* worker, Local<JSValue> val) const { return StrictEquals(val); }
 
@@ -600,7 +604,7 @@ Local<JSUint32> JSValue::ToUint32(Worker* worker) const {
 }
 
 Local<JSObject> JSValue::ToObject(Worker* worker) const {
-	return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject());
+  return Cast<JSObject>(reinterpret_cast<const v8::Value*>(this)->ToObject());
 }
 
 Local<JSBoolean> JSValue::ToBoolean(Worker* worker) const {
@@ -851,15 +855,51 @@ int JSArrayBuffer::ByteLength(Worker* worker) const {
 char* JSArrayBuffer::Data(Worker* worker) {
 	return (char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
 }
-Local<JSArrayBuffer> JSArrayBuffer::New(Worker* worker, char* buff, uint len) {
-	return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(worker), buff, len));
-}
 Local<JSArrayBuffer> JSTypedArray::Buffer(Worker* worker) {
 	auto ab = reinterpret_cast<v8::ArrayBufferView*>(this);
 	v8::Local<v8::ArrayBuffer> ab2 = ab->Buffer();
 	return Cast<JSArrayBuffer>(ab2);
 }
 
+int JSTypedArray::ByteLength(Worker* worker) {
+  auto ab = reinterpret_cast<v8::ArrayBufferView*>(this);
+  return (uint)ab->ByteLength();
+}
+
+int JSTypedArray::ByteOffset(Worker* worker) {
+  auto ab = reinterpret_cast<v8::ArrayBufferView*>(this);
+  return (uint)ab->ByteOffset();
+}
+
+MaybeLocal<JSSet> JSSet::Add(Worker* worker, Local<JSValue> key) {
+  auto set = reinterpret_cast<v8::Set*>(this);
+  v8::Local<v8::Set> out;
+  if ( set->Add(CONTEXT(worker), Back(key)).ToLocal(&out) ) {
+     return MaybeLocal<JSSet>(Cast<JSSet>(out));
+  }
+  return MaybeLocal<JSSet>();
+}
+  
+Maybe<bool> JSSet::Has(Worker* worker, Local<JSValue> key) {
+  auto set = reinterpret_cast<v8::Set*>(this);
+  v8::Local<v8::Set> out;
+  bool v;
+  if (set->Has(CONTEXT(worker), Back(key)).To(&v)) {
+    return Maybe<bool>(v);
+  }
+  return Maybe<bool>();
+}
+  
+Maybe<bool> JSSet::Delete(Worker* worker, Local<JSValue> key) {
+  auto set = reinterpret_cast<v8::Set*>(this);
+  v8::Local<v8::Set> out;
+  bool v;
+  if (set->Delete(CONTEXT(worker), Back(key)).To(&v)) {
+    return Maybe<bool>(v);
+  }
+  return Maybe<bool>();
+}
+  
 bool JSClass::HasInstance(Worker* worker, Local<JSValue> val) {
 	return reinterpret_cast<V8JSClass*>(this)->Template()->HasInstance(Back(val));
 }
@@ -1095,8 +1135,9 @@ Local<JSNumber> Worker::New(uint64 data) {
 	return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 }
 
-Local<JSString> Worker::New(cchar* data) {
-	return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this), data, v8::String::kNormalString));
+Local<JSString> Worker::New(cchar* data, int len) {
+  return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
+                                                data, v8::String::kNormalString, len < 0? -1: len));
 }
 
 Local<JSString> Worker::New(cString& data, bool is_ascii) {
@@ -1174,7 +1215,20 @@ Local<JSValue> Worker::New(const PersistentBase<JSValue>& value) {
 		reinterpret_cast<const v8::PersistentBase<v8::Value>*>(&value)->Get(ISOLATE(this));
 	return Cast(r);
 }
-
+Local<JSArrayBuffer> Worker::NewArrayBuffer(char* use_buff, uint len) {
+  return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
+}
+Local<JSArrayBuffer> Worker::NewArrayBuffer(uint len) {
+  return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), len));
+}
+Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab, uint offset, uint size) {
+  auto ab2 = Back<v8::ArrayBuffer>(ab);
+  offset = XX_MIN((uint)ab2->ByteLength(), offset);
+  if (size + offset > ab2->ByteLength()) {
+    size = (uint)ab2->ByteLength() - offset;
+  }
+  return Cast<JSUint8Array>(v8::Uint8Array::New(ab2, offset, size));
+}
 Local<JSObject> Worker::NewObject() {
 	return Cast<JSObject>(v8::Object::New(ISOLATE(this)));
 }
@@ -1191,16 +1245,22 @@ Local<JSValue> Worker::NewUndefined() {
 	return Cast(v8::Undefined(ISOLATE(this)));
 }
 
+Local<JSSet> Worker::NewSet() {
+  return Cast<JSSet>(v8::Set::New(ISOLATE(this)));
+}
+
 Local<JSString> Worker::NewString(const Buffer& data) {
 	return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
 																								*data, v8::String::kNormalString,
 																								data.length()));
 }
 
-Local<JSString> Worker::NewString(cchar* str, uint len) {
-	return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
-																								str, v8::String::kNormalString, len));
+Local<JSString> Worker::NewAscii(cchar* str) {
+  return Cast<JSString>(v8::String::NewFromOneByte(ISOLATE(this),
+                                                   (const uint8_t *)str, v8::String::kNormalString));
 }
+  
+  Local<JSString> NewAscii(cchar* str);
 
 Local<JSObject> Worker::NewRangeError(cchar* errmsg, ...) {
 	XX_STRING_FORMAT(errmsg, str);
@@ -1241,15 +1301,22 @@ Local<JSObject> Worker::NewError(Local<JSObject> value) {
 	return Cast<JSObject>(e);
 }
 
-Local<JSObject> Worker::New(Buffer&& buff) {
-	Local<JSFunction> func = m_inl->m_classs->get_buffer_constructor();
-	XX_ASSERT( !func.IsEmpty() );
-	Local<JSObject> bf = func->NewInstance(this);
-	*Wrap<Buffer>::unpack(bf)->self() = move(buff);
-	return bf;
+Local<JSUint8Array> Worker::New(Buffer&& buff) {
+  size_t offset = 0;
+  size_t len = buff.length();
+  v8::Local<v8::ArrayBuffer> ab;
+
+  if (buff.length()) {
+    size_t len = buff.length();
+    char* data = buff.collapse();
+    ab = v8::ArrayBuffer::New(ISOLATE(this), data, len);
+  } else {
+    ab = v8::ArrayBuffer::New(ISOLATE(this), 0);
+  }
+  return Cast<JSUint8Array>(v8::Uint8Array::New(ab, offset, len));
 }
 
-void Worker::throw_err(Local<JSValue> exception) {
+void Worker::throwError(Local<JSValue> exception) {
 	ISOLATE(this)->ThrowException(Back(exception));
 }
 
@@ -1281,38 +1348,38 @@ Local<JSClass> Worker::NewClass(uint64 id, cString& name,
 	return rv;
 }
 
-void Worker::report_exception(TryCatch* try_catch) {
+void Worker::reportException(TryCatch* try_catch) {
 	TryCatchWrap* wrap = *reinterpret_cast<TryCatchWrap**>(try_catch);
 	WORKER(this)->print_exception(wrap->try_.Message(), wrap->try_.Exception());
 }
 
-Local<JSValue> Worker::run_script(Local<JSString> source,
+Local<JSValue> Worker::runScript(Local<JSString> source,
 																	Local<JSString> name, Local<JSObject> sandbox) {
-	v8::MaybeLocal<v8::Value> r = WORKER(this)->run_script(Back<v8::String>(source),
+	v8::MaybeLocal<v8::Value> r = WORKER(this)->runScript(Back<v8::String>(source),
 																												Back<v8::String>(name),
 																												Back<v8::Object>(sandbox));
 	return Cast(r.FromMaybe(v8::Local<v8::Value>()));
 }
 
-Local<JSValue> Worker::run_script(cString& source,
+Local<JSValue> Worker::runScript(cString& source,
 																	cString& name, Local<JSObject> sandbox) {
-	return run_script(New(source), New(name), sandbox);
+	return runScript(New(source), New(name), sandbox);
 }
 
-Local<JSValue> Worker::run_native_script(
+Local<JSValue> Worker::runNativeScript(
 	cBuffer& source, cString& name, Local<JSObject> exports) {
 	v8::EscapableHandleScope scope(ISOLATE(this));
 	if (exports.IsEmpty()) {
 		exports = NewObject();
 	}
-	Local<JSValue> r = WORKER(this)->run_native_script(source, name, exports);
+	Local<JSValue> r = WORKER(this)->runNativeScript(source, name, exports);
 	return Cast(scope.Escape(Back(r)));
 }
 
 /**
  * @func garbage_collection()
  */
-void Worker::garbage_collection() {
+void Worker::garbageCollection() {
 	ISOLATE(this)->LowMemoryNotification();
 }
 
@@ -1333,7 +1400,7 @@ int IMPL::start(int argc, char** argv) {
 		Handle<Worker> worker = IMPL::create();
 		{
 			HandleScope scope(*worker);
-			Local<JSValue> module = worker->run_native_script(WeakBuffer((char*)
+			Local<JSValue> module = worker->runNativeScript(WeakBuffer((char*)
 					INL_native_js_code_module_, 
 					INL_native_js_code_module_count_), "module.js"
 			);

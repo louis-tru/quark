@@ -361,7 +361,7 @@ class WrapStyleSheets: public WrapObject {
 	});
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("_value");
+		worker->bindingModule("_value");
 		
 		// PROPERTY
 	 #define xx_def_property(ENUM, TYPE, NAME) JS_SET_PROPERTY(ENUM, ENUM);

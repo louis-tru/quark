@@ -19,16 +19,19 @@
 		"strictPropertyInitialization": false,
 		"emitDecoratorMetadata": false,
 		"experimentalDecorators": true,
+		"removeComments": true,
+		"jsx": "react",
+		"jsxFactory": "_VVD",
 	},
 	"include": [
 		"**/*",
 	],
 	"exclude": [
 		"out",
-		"node_modules",
 		"var",
 		".git",
 		".svn",
+		"node_modules",
 		"_build.js",
 	]
 }

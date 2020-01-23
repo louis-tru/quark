@@ -62,9 +62,9 @@ class WrapNativeGUIApplication: public WrapObject {
 	typedef GUIApplication Type;
 
 	/**
-	 * @func add_event_listener
+	 * @func addEventListener
 	 */
-	virtual bool add_event_listener(cString& name, cString& func, int id)
+	virtual bool addEventListener(cString& name, cString& func, int id)
 	{
 		if ( name == load ) {
 			self<Type>()->js_bind_common_native_event(load);
@@ -87,9 +87,9 @@ class WrapNativeGUIApplication: public WrapObject {
 	}
 	
 	/**
-	 * @func remove_event_listener
+	 * @func removeEventListener
 	 */
-	virtual bool remove_event_listener(cString& name, int id)
+	virtual bool removeEventListener(cString& name, int id)
 	{
 		if ( name == load ) {
 			self<Type>()->js_unbind_native_event(load);
@@ -112,7 +112,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	}
 	
 	void memorywarning_handle(Event<>& evt) {
-		worker()->garbage_collection(); // 清理内存
+		worker()->garbageCollection(); // 清理内存
 #if XX_MEMORY_TRACE_MARK
 		uint count = Object::mark_objects_count();
 		LOG("All unrelease heap objects count: %d", count);

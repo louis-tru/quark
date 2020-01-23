@@ -672,7 +672,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		
 		struct connect_req {
 			Client* client;
-			Callback cb;
+			Callback<> cb;
 			uint wait_id;
 			String  hostname;
 			uint16  port;
@@ -688,7 +688,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			for (auto& i : m_pool) {
 				auto con = i.value();
 				con->m_id = ConnectID();
-				con->m_loop->post(Cb([con](Se& e){
+				con->m_loop->post(Cb([con](Cbd& e){
 					Release(con);
 				}));
 			}
@@ -728,7 +728,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 			}
 			if (conn) {
-				Se evt = { 0, conn };
+				Cbd evt = { 0, conn };
 				cb->call(evt);
 			}
 		}
@@ -766,7 +766,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 						connect_count--;
 						m_pool.del(conn2->m_id);
 						conn2->m_id = ConnectID();
-						conn2->loop()->post(Cb([conn2](Se& e) {
+						conn2->loop()->post(Cb([conn2](Cbd& e) {
 							conn2->release();
 						}));
 					}
@@ -809,10 +809,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 					Connect* conn = get_connect2(req);
 					if ( conn ) {
 						conn->m_use = true;
-						Callback cb = req.cb;
+						Cb cb = req.cb;
 						m_connect_req.del(i);
 						lock.unlock(); // unlock
-						Se evt = { 0, conn };
+						Cbd evt = { 0, conn };
 						cb->call( evt );
 						break;
 					}
@@ -1303,7 +1303,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		XX_ASSERT(m_sending);
 		XX_ASSERT(!m_connect);
 		XX_ASSERT(m_pool_ptr);
-		m_pool_ptr->get_connect(this, Cb([this](Se& evt) {
+		m_pool_ptr->get_connect(this, Cb([this](Cbd& evt) {
 			if ( m_wait_connect_id ) {
 				if ( evt.error ) {
 					report_error_and_abort(*evt.error);
@@ -1316,7 +1316,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}, this));
 	}
 	
-	void cache_file_stat_cb(Se& evt) {
+	void cache_file_stat_cb(Cbd& evt) {
 		if ( m_sending ) {
 			if ( evt.error ) { //
 				send_http();

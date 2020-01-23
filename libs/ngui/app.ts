@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import 'ngui/util';
-import 'ngui/display_port';
-import 'ngui/event';
-import ViewController, { _VV, _VVD } from 'ngui/ctr';
+import utils from './util';
+import './display_port';
+import event, {EventNoticer} from './event';
+import ViewController, { _VV, _VVD } from './ctr';
 
 var _ngui = __requireNgui__('_ngui');
 var Root = _ngui.Root;
@@ -44,13 +44,13 @@ var cur_root_ctr = null;
  */
 export class GUIApplication extends _ngui.NativeGUIApplication {
 	
-	event onLoad;
-	event onUnload;
-	event onBackground;
-	event onForeground;
-	event onPause;
-	event onResume;
-	event onMemoryWarning;
+	@event onLoad: EventNoticer;
+	@event onUnload: EventNoticer;
+	@event onBackground: EventNoticer;
+	@event onForeground: EventNoticer;
+	@event onPause: EventNoticer;
+	@event onResume: EventNoticer;
+	@event onMemoryWarning: EventNoticer;
 	
 	/**
 	 * @constructor([options])
@@ -66,16 +66,16 @@ export class GUIApplication extends _ngui.NativeGUIApplication {
 	 * @arg vdom {Object}
 	 */
 	start(vdom) {
-		// util.assert(util.equalsClass(ViewController, vdom.type), 
+		// utils.assert(utils.equalsClass(ViewController, vdom.type), 
 		// 	'The "ViewController" must be used to start the application');
 
-		if (!util.equalsClass(ViewController, vdom.type)) {
+		if (!utils.equalsClass(ViewController, vdom.type)) {
 			vdom = _VV(ViewController, [], [_VVD(vdom)]);
 		}
 
 		function render(e) {
 			cur_root_ctr = ViewController.render(vdom);
-			util.assert(cur_root_ctr.dom instanceof Root, 'Root view controller first children must be Root view');
+			utils.assert(cur_root_ctr.dom instanceof Root, 'Root view controller first children must be Root view');
 		}
 
 		if ( this.isLoaded ) {

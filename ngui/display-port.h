@@ -231,7 +231,7 @@ class XX_EXPORT DisplayPort: public Reference {
 	float             m_atom_pixel;
 	List<Region>      m_draw_region;
 	GUIApplication*   m_host;
-	List<Callback>    m_next_frame;
+	List<Callback<>>  m_next_frame;
 	uint  m_fsp, m_record_fsp;
 	int64 m_record_fsp_time;
 	

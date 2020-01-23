@@ -405,7 +405,7 @@ class BasicScroll::Inl: public BasicScroll {
 			
 			m_box->mark(View::M_SCROLL); // mark
 			
-			main_loop()->post(Cb([this](SimpleEvent& se) {
+			main_loop()->post(Cb([this](Cbd& se) {
 				Handle<GUIEvent> evt = New<GUIEvent>(m_box);
 				m_box->trigger(GUI_EVENT_SCROLL, **evt); // trigger event
 			}, m_box));

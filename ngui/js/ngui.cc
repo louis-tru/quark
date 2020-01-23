@@ -53,7 +53,7 @@ void WrapViewBase::destroy() {
 }
 
 template<class T, class Self>
-static void add_event_listener_1(
+static void addEventListener_1(
 	Wrap<Self>* wrap, const GUIEventName& type, cString& func, int id, Cast* cast = nullptr) 
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
@@ -62,10 +62,10 @@ static void add_event_listener_1(
 		// arg event
 		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
 		if (cast) 
-			ev->set_private_data(cast); // set data cast func
+			ev->setPrivateData(cast); // set data cast func
 		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
 		
-		DLOG("add_event_listener_1, %s, EventType: %s", *func, *evt.name());
+		DLOG("addEventListener_1, %s, EventType: %s", *func, *evt.name());
 
 		// call js trigger func
 		Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
@@ -75,7 +75,7 @@ static void add_event_listener_1(
 	self->add_event_listener(type, f, id);
 }
 
-bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id) 
+bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
 {
 	auto i = GUI_EVENT_TABLE.find(name_s);
 	if ( i.is_null() ) {
@@ -83,43 +83,43 @@ bool WrapViewBase::add_event_listener(cString& name_s, cString& func, int id)
 	}
 	GUIEventName name = i.value();
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
-	
+  
 	switch ( name.category() ) {
 		case GUI_EVENT_CATEGORY_CLICK:
-			add_event_listener_1<GUIClickEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUIClickEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_KEYBOARD:
-			add_event_listener_1<GUIKeyEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUIKeyEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_MOUSE:
-		 add_event_listener_1<GUIMouseEvent>(wrap, name, func, id); break;
+		 addEventListener_1<GUIMouseEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_TOUCH:
-			add_event_listener_1<GUITouchEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUITouchEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_HIGHLIGHTED:
-			add_event_listener_1<GUIHighlightedEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUIHighlightedEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_ACTION:
-			add_event_listener_1<GUIActionEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUIActionEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_FOCUS_MOVE:
-			add_event_listener_1<GUIFocusMoveEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUIFocusMoveEvent>(wrap, name, func, id); break;
 		case GUI_EVENT_CATEGORY_ERROR:
-			add_event_listener_1<GUIEvent>(wrap, name, func, id, Cast::entity<Error>()); break;
+			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Error>()); break;
 		case GUI_EVENT_CATEGORY_FLOAT:
-			add_event_listener_1<GUIEvent>(wrap, name, func, id, Cast::entity<Float>()); break;
+			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Float>()); break;
 		case GUI_EVENT_CATEGORY_UINT64:
-			add_event_listener_1<GUIEvent>(wrap, name, func, id, Cast::entity<Uint64>()); break;
+			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
 		case GUI_EVENT_CATEGORY_DEFAULT:
-			add_event_listener_1<GUIEvent>(wrap, name, func, id); break;
+			addEventListener_1<GUIEvent>(wrap, name, func, id); break;
 		default:
 			return false;
 	}
 	return true;
 }
 
-bool WrapViewBase::remove_event_listener(cString& name, int id) {
+bool WrapViewBase::removeEventListener(cString& name, int id) {
 	auto i = GUI_EVENT_TABLE.find(name);
 	if ( i.is_null() ) {
 		return false;
 	}
 	
-	DLOG("remove_event_listener, name:%s, id:%d", *name, id);
+	DLOG("removeEventListener, name:%s, id:%d", *name, id);
 	
 	auto wrap = reinterpret_cast<Wrap<View>*>(this);
 	wrap->self()->remove_event_listener(i.value(), id); // off event listener
@@ -180,7 +180,7 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 static void on_process_safe_handle(Event<>& e, Object* data) {
 	int rc = static_cast<const Int*>(e.data())->value;
 	if (RunLoop::main_loop()->runing()) {
-		RunLoop::main_loop()->post_sync(Cb([&](Se& e) {
+		RunLoop::main_loop()->post_sync(Cb([&](Cbd& e) {
 			auto worker = Worker::worker();
 			DLOG("on_process_safe_handle");
 			if (worker) {

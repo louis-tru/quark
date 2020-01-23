@@ -30,7 +30,7 @@
 
 var fs = require('fs');
 var path = require('path');
-var syscall = require('../libs/nxkit/out/nxkit/syscall');
+// var syscall = require('nxkit/syscall');
 var inputs = process.argv.slice(2);
 var output_cc = inputs.pop();
 var output_h = inputs.pop();
@@ -109,21 +109,21 @@ function stripBOM(content) {
 }
 
 function readSource(pathname) {
-	var ext = path.extname(pathname);
-	if (/*pathname.indexOf('value.js') == -1 && */(ext == '.js' || ext == '.jsx')) {
-		console.log('jsa-shell', pathname);
-		syscall.syscall(`${__dirname}/../libs/nxmake/bin/${host_os}-jsa-shell ` +
-										`${pathname} ${pathname}~ --clean-comment`);
-		var result = fs.readFileSync(pathname + '~').toJSON().data;
-		// if (pathname.indexOf('value.js') != -1) {
-		// 	console.log(fs.readFileSync(pathname + '~', 'utf-8'));
-		// } else {
-		fs.unlinkSync(pathname + '~');
-		// }
-		return result;
-	} else {
-		return fs.readFileSync(pathname).toJSON().data;
-	}
+	// var ext = path.extname(pathname);
+	// if (/*pathname.indexOf('value.js') == -1 && */(ext == '.js' || ext == '.jsx')) {
+	// 	console.log('jsa-shell', pathname);
+	// 	syscall.syscall(`${__dirname}/../libs/nxmake/bin/${host_os}-jsa-shell ` +
+	// 									`${pathname} ${pathname}~ --clean-comment`);
+	// 	var result = fs.readFileSync(pathname + '~').toJSON().data;
+	// 	// if (pathname.indexOf('value.js') != -1) {
+	// 	// 	console.log(fs.readFileSync(pathname + '~', 'utf-8'));
+	// 	// } else {
+	// 	fs.unlinkSync(pathname + '~');
+	// 	// }
+	// 	return result;
+	// } else {
+	return fs.readFileSync(pathname).toJSON().data;
+	// }
 }
 
 function write_file_item(filename, fd_h, fd_cc, pkgname, read) {

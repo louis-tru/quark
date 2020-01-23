@@ -864,7 +864,7 @@ util.extend(ViewController, {
 });
 
 // create virtual view
-export function _VV(Type, props, children) {
+export function _VV(Type, props, ...children: any[]) {
 	return new VirtualDOM(Type, props, children);
 }
 

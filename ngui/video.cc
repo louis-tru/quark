@@ -103,7 +103,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 				if ( m_video_buffer.total ) {
 					if ( m_waiting_buffer ) {
 						m_waiting_buffer = false;
-						m_keep->post(Cb([this](Se& e){
+						m_keep->post(Cb([this](Cbd& e){
 							trigger(GUI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
 						}));
 					}
@@ -112,7 +112,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 					if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
 						if ( m_waiting_buffer == false ) {
 							m_waiting_buffer = true;
-							m_keep->post(Cb([this](Se& e){
+							m_keep->post(Cb([this](Cbd& e){
 								trigger(GUI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
 							}));
 						}
@@ -158,7 +158,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 				if ( m_status == PLAYER_STATUS_START ) {
 					ScopeLock scope(m_mutex);
 					m_status = PLAYER_STATUS_PLAYING;
-					m_keep->post(Cb([this](Se& e){
+					m_keep->post(Cb([this](Cbd& e){
 						trigger(GUI_EVENT_START_PLAY); // trigger start_play event
 					}));
 				}
@@ -275,7 +275,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 				ScopeLock scope(m_audio_loop_mutex);
 			}
 			if ( is_event ) {
-				m_keep->post(Cb([this](Se& e){
+				m_keep->post(Cb([this](Cbd& e){
 					trigger(GUI_EVENT_STOP); // trigger stop event
 				}));
 			}
@@ -408,7 +408,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
 	
 	// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 	
-	m_task_id = m_keep->host()->work(Cb([=](Se& d) {
+	m_task_id = m_keep->host()->work(Cb([=](Cbd& d) {
 		if (m_source != src) return; // 源已被更改,所以取消
 		
 		MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, m_source);
@@ -429,7 +429,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
 			m_audio = audio;
 			m_video = video;
 		}
-	}, this/*保持Video*/), Cb([=](Se& d) {
+	}, this/*保持Video*/), Cb([=](Cbd& d) {
 		m_task_id = 0;
 		if ( m_source != src ) return;
 		if ( !m_audio) XX_ERR("Unable to create audio decoder");
@@ -542,7 +542,7 @@ bool Video::seek(uint64 timeUs) {
 			if ( m_pcm ) {
 				m_pcm->flush();
 			}
-			m_keep->post(Cb([this](SimpleEvent& e){
+			m_keep->post(Cb([this](Cbd& e){
 				Inl_Video(this)->trigger(GUI_EVENT_SEEK, Uint64(m_time)); // trigger seek event
 			}));
 			return true;
@@ -559,7 +559,7 @@ void Video::pause() {
 	if ( m_status == PLAYER_STATUS_PLAYING && m_duration /* 没有长度信息不能暂停*/ ) {
 		m_status = PLAYER_STATUS_PAUSED;
 		m_uninterrupted_play_start_systime = 0;
-		m_keep->post(Cb([this](SimpleEvent& e){
+		m_keep->post(Cb([this](Cbd& e){
 			Inl_Video(this)->trigger(GUI_EVENT_PAUSE); // trigger pause event
 		}));
 	}
@@ -573,7 +573,7 @@ void Video::resume() {
 	if ( m_status == PLAYER_STATUS_PAUSED ) {
 		m_status = PLAYER_STATUS_PLAYING;
 		m_uninterrupted_play_start_systime = 0;
-		m_keep->post(Cb([this](SimpleEvent& e){
+		m_keep->post(Cb([this](Cbd& e){
 			Inl_Video(this)->trigger(GUI_EVENT_RESUME); // trigger resume event
 		}));
 	}

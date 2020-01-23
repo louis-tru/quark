@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('../libs/nxkit/out/nxkit/fs');
+var fs = require('nxkit/fs');
 
 function read_ngui_version() {
 	var str = fs.readFileSync(__dirname + '/../ngui/version.h').toString('utf-8');

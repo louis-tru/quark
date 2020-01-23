@@ -86,7 +86,7 @@ Local<JSValue> inl_track_to_jsvalue(const TrackInfo* track, Worker* worker) {
 }
 
 template<class T, class Self>
-static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type, 
+static void addEventListener_1(Wrap<Self>* wrap, const GUIEventName& type, 
 																 cString& func, int id, Cast* cast = nullptr) 
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
@@ -96,7 +96,7 @@ static void add_event_listener_1(Wrap<Self>* wrap, const GUIEventName& type,
 		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
 		
 		if (cast)
-			ev->set_private_data(cast); // set data cast func
+			ev->setPrivateData(cast); // set data cast func
 		
 		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
 		// call js trigger func
@@ -123,7 +123,7 @@ class WrapAudioPlayer: public WrapObject {
 	/**
 	 * @func overwrite
 	 */
-	virtual bool add_event_listener(cString& name_s, cString& func, int id) {
+	virtual bool addEventListener(cString& name_s, cString& func, int id) {
 		auto i = GUI_EVENT_TABLE.find(name_s);
 		if ( i.is_null() || !(i.value().flag() & GUI_EVENT_FLAG_PLAYER) ) {
 			return false;
@@ -134,20 +134,20 @@ class WrapAudioPlayer: public WrapObject {
 		
 		switch ( name.category() ) {
 			case GUI_EVENT_CATEGORY_ERROR:
-				add_event_listener_1<Event<>>(wrap, name, func, id, Cast::entity<Error>()); break;
+				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Error>()); break;
 			case GUI_EVENT_CATEGORY_FLOAT:
-				add_event_listener_1<Event<>>(wrap, name, func, id, Cast::entity<Float>()); break;
+				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Float>()); break;
 			case GUI_EVENT_CATEGORY_UINT64:
-				add_event_listener_1<Event<>>(wrap, name, func, id, Cast::entity<Uint64>()); break;
+				addEventListener_1<Event<>>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
 			case GUI_EVENT_CATEGORY_DEFAULT:
-				add_event_listener_1<Event<>>(wrap, name, func, id); break;
+				addEventListener_1<Event<>>(wrap, name, func, id); break;
 			default:
 				return false;
 		}
 		return true;
 	}
 	
-	virtual bool remove_event_listener(cString& name, int id) {
+	virtual bool removeEventListener(cString& name, int id) {
 		auto i = GUI_EVENT_TABLE.find(name);
 		if ( i.is_null() || !(i.value().flag() & GUI_EVENT_FLAG_PLAYER) ) {
 			return false;

@@ -14,3 +14,4 @@ depe/glslang
 .vscode
 libs/nxkit
 node_modules
+libs/ngui/out

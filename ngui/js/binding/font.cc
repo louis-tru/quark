@@ -137,7 +137,7 @@ class WrapFontStatic {
 	static void register_font(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_CHECK_APP();
-		if ( args.Length() < 1 || !worker->has_buffer(args[0]) ) {
+		if ( args.Length() < 1 || !args[0]->IsBuffer() ) {
 			JS_THROW_ERR(
 				"* @func registerFont(font_data)\n"
 				"* @arg font_data {Buffer}\n"
@@ -145,13 +145,14 @@ class WrapFontStatic {
 				"* @ret {bool}\n"
 			);
 		}
-		Wrap<Buffer>* wrap = Wrap<Buffer>::unpack(args[0].To());
+
+    auto buf = args[0]->AsBuffer(worker);
 		String alias;
 		
 		if ( args.Length() > 1 ) {
 			alias = args[1]->ToStringValue(worker);
 		}
-		JS_RETURN( font_pool()->register_font(*wrap->self(), alias) );
+		JS_RETURN( font_pool()->register_font(buf, alias) );
 	}
 	
 	/**

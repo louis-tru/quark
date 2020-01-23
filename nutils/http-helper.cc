@@ -55,7 +55,7 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 	
 	class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public SimpleStream {
 	 public:
-		Callback      cb;
+		Callback<>      cb;
 		bool          stream;
 		bool          full_data;
 		StringBuilder data;
@@ -263,7 +263,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 		void send_sync(Buffer buffer) throw(HttpError) {
 			Lock lock(mutex);
 			post_data = buffer;
-			m_loop->post(Cb([this](Se&) {
+			m_loop->post(Cb([this](Cbd&) {
 				XX_DEBUG("request_sync %s send", *url());
 				try {
 					send(post_data);
@@ -295,7 +295,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	Client& cli = *cli_ptr;
 	
 	ScopeClear scope([cli_ptr, loop](){
-		loop->post(Cb([cli_ptr](Se& e){
+		loop->post(Cb([cli_ptr](Cbd& e){
 			cli_ptr->release();
 		}));
 	});

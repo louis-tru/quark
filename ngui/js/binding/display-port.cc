@@ -50,7 +50,7 @@ class WrapDisplayPort: public WrapObject {
 	/**
 	 * @func bind_event
 	 */
-	bool add_event_listener(cString& name, cString& func, int id) {
+	bool addEventListener(cString& name, cString& func, int id) {
 		if ( name == change ) {
 			self<Type>()->js_bind_common_native_event(change);
 		}
@@ -66,7 +66,7 @@ class WrapDisplayPort: public WrapObject {
 	/**
 	 * @func unbind_event
 	 */
-	bool remove_event_listener(cString& name, int id) {
+	bool removeEventListener(cString& name, int id) {
 		if ( name == change ) {
 			self<Type>()->js_unbind_native_event(change);
 		}
@@ -135,7 +135,7 @@ class WrapDisplayPort: public WrapObject {
 		
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 
-		self->next_frame(Cb([func, worker](Se& evt) {
+		self->next_frame(Cb([func, worker](Cbd& evt) {
 			XX_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			func.local()->Call(worker);

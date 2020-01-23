@@ -337,7 +337,7 @@ static void parse_error_throw(Worker* worker, Local<JSValue> value,
 	} else {
 		err = worker->NewTypeError("Bad argument. %s. Examples: %s", *msg2, *help_str);
 	}
-	worker->throw_err(err);
+	worker->throwError(err);
 }
 
 void ValueProgram::throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> help) {
@@ -1048,7 +1048,7 @@ bool ValueProgram::isBackgroundSize(Local<JSValue> value) {
 	return value->InstanceOf(worker, _constructorBackgroundSize.local());
 }
 bool ValueProgram::isBackground(Local<JSValue> value) {
-	return worker->has_instance<Background>(value);
+	return worker->hasInstance<Background>(value);
 }
 bool ValueProgram::isTextColor(Local<JSValue> value) {
 	return value->InstanceOf(worker, _constructorTextColor.local());
@@ -1110,11 +1110,11 @@ class NativeValue {
 		{
 			TryCatch try_catch;
 
-			if (worker->run_native_script(WeakBuffer((char*)
+			if (worker->runNativeScript(WeakBuffer((char*)
 							native_js::INL_native_js_code__value_,
 							native_js::INL_native_js_code__value_count_), "_value.js", exports).IsEmpty()) {
 				if ( try_catch.HasCaught() ) {
-					worker->report_exception(&try_catch);
+					worker->reportException(&try_catch);
 				}
 				XX_FATAL("Could not initialize native/_value.js");
 			}

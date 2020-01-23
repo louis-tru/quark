@@ -127,6 +127,7 @@ class XX_EXPORT Object {
 	virtual String to_string() const;
 	virtual bool is_reference() const;
 	virtual bool retain();
+  // "new" method alloc can call，Otherwise, fatal exception will be caused
 	virtual void release();
 	static void* operator new(std::size_t size);
 	static void* operator new(std::size_t size, void* p);

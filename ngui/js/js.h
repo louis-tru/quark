@@ -51,7 +51,7 @@
 #define JS_HANDLE_SCOPE() HandleScope scope(worker)
 
 #define JS_THROW_ERROR(Error, err, ...) \
-	return worker->throw_err(worker->New##Error((err), ##__VA_ARGS__))
+	return worker->throwError(worker->New##Error((err), ##__VA_ARGS__))
 
 #define JS_THROW_ERR(err, ...) JS_THROW_ERROR(Error, err, ##__VA_ARGS__)
 #define JS_TRY_CATCH(block, Error) try block catch(const Error& e) { JS_THROW_ERR(e); }
@@ -59,7 +59,7 @@
 #define JS_REG_MODULE(name, cls) \
 	XX_INIT_BLOCK(JS_REG_MODULE_##name) { \
 		XX_DEBUG("%s", "JS_REG_MODULE "#name""); \
-		ngui::js::Worker::reg_module(#name, cls::binding, __FILE__); \
+		ngui::js::Worker::registerModule(#name, cls::binding, __FILE__); \
 	}
 
 #define JS_TYPEID(t) (typeid(t).hash_code())
@@ -153,7 +153,8 @@ class XX_EXPORT Maybe {
 	XX_INLINE bool Ok() const { return val_ok_; }
 	XX_INLINE bool To(T& out) {
 		if ( val_ok_ ) {
-			out = move(val_); return true;
+			out = move(val_);
+      return true;
 		}
 		return false;
 	}
@@ -385,32 +386,36 @@ class XX_EXPORT HandleScope: public NoCopy {
 
 class XX_EXPORT JSValue: public NoCopy {
  public:
-	bool IsUndefined() const;
+  bool IsUndefined() const;
+  bool IsNull() const;
+  bool IsString() const;
+  bool IsBoolean() const;
+  bool IsObject() const;
+  bool IsArray() const;
+  bool IsDate() const;
+  bool IsNumber() const;
+  bool IsUint32() const;
+  bool IsInt32() const;
+  bool IsFunction() const;
+  bool IsArrayBuffer() const;
+  bool IsTypedArray() const;
+  bool IsUint8Array() const;
+  bool IsBuffer() const; // IsTypedArray or IsArrayBuffer
 	bool IsUndefined(Worker* worker) const;
-	bool IsNull() const;
 	bool IsNull(Worker* worker) const;
-	bool IsString() const;
 	bool IsString(Worker* worker) const;
-	bool IsBoolean() const;
 	bool IsBoolean(Worker* worker) const;
-	bool IsObject() const;
 	bool IsObject(Worker* worker) const;
-	bool IsArray() const;
 	bool IsArray(Worker* worker) const;
-	bool IsDate() const;
 	bool IsDate(Worker* worker) const;
-	bool IsNumber() const;
 	bool IsNumber(Worker* worker) const;
-	bool IsUint32() const;
 	bool IsUint32(Worker* worker) const;
-	bool IsInt32() const;
 	bool IsInt32(Worker* worker) const;
-	bool IsFunction() const;
 	bool IsFunction(Worker* worker) const;
-	bool IsArrayBuffer() const;
 	bool IsArrayBuffer(Worker* worker) const;
-	bool IsTypedArray() const;
 	bool IsTypedArray(Worker* worker) const;
+  bool IsUint8Array(Worker* worker) const;
+  bool IsBuffer(Worker* worker) const;
 	bool Equals(Local<JSValue> val) const;
 	bool Equals(Worker* worker, Local<JSValue> val) const;
 	bool StrictEquals(Local<JSValue> val) const;
@@ -430,8 +435,9 @@ class XX_EXPORT JSValue: public NoCopy {
 	Maybe<double> ToNumberMaybe(Worker* worker) const;
 	Maybe<int> ToInt32Maybe(Worker* worker) const;
 	Maybe<uint> ToUint32Maybe(Worker* worker) const;
-	Buffer ToBuffer(Worker* worker, Encoding en) const;
 	bool InstanceOf(Worker* worker, Local<JSObject> value);
+  Buffer ToBuffer(Worker* worker, Encoding en) const;
+  WeakBuffer AsBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 };
 
 class XX_EXPORT JSString: public JSValue {
@@ -517,14 +523,25 @@ class XX_EXPORT JSArrayBuffer: public JSObject {
  public:
 	int ByteLength(Worker* worker) const;
 	char* Data(Worker* worker);
-	WeakBuffer weak_buffer(Worker* worker);
-	static Local<JSArrayBuffer> New(Worker* worker, char* buff, uint len);
+	WeakBuffer weakBuffer(Worker* worker);
 };
 
 class XX_EXPORT JSTypedArray: public JSObject {
  public:
-	Local<JSArrayBuffer> Buffer(Worker* worker);
-	WeakBuffer weak_buffer(Worker* worker);
+  Local<JSArrayBuffer> Buffer(Worker* worker);
+  WeakBuffer weakBuffer(Worker* worker);
+  int ByteLength(Worker* worker);
+  int ByteOffset(Worker* worker);
+};
+
+class XX_EXPORT JSUint8Array: public JSTypedArray {
+};
+
+class XX_EXPORT JSSet: public JSObject {
+ public:
+  MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
+  Maybe<bool> Has(Worker* worker, Local<JSValue> key);
+  Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
 };
 
 class XX_EXPORT JSClass: public NoCopy {
@@ -567,7 +584,7 @@ class XX_EXPORT Worker: public Object {
  public:
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
-	
+
 	Worker* create();
 	
 	/**
@@ -586,15 +603,15 @@ class XX_EXPORT Worker: public Object {
 	}
 	
 	/**
-	 * @func reg_module
+	 * @func registerModule
 	 */
-	static void reg_module(cString& name,
-												 BindingCallback binding, cchar* file = nullptr);
+	static void registerModule(cString& name,
+                             BindingCallback binding, cchar* file = nullptr);
 
 	/**
-	 * @func binding_module
+	 * @func bindingModule
 	 */
-	Local<JSValue> binding_module(cString& name);
+	Local<JSValue> bindingModule(cString& name);
 	
 	/**
 	 * @func New()
@@ -610,7 +627,7 @@ class XX_EXPORT Worker: public Object {
 	Local<JSUint32> New(uint data);
 	Local<JSNumber> New(int64 data);
 	Local<JSNumber> New(uint64 data);
-	Local<JSString> New(cchar* data);
+	Local<JSString> New(cchar* data, int len = -1);
 	Local<JSString> New(cString& data, bool is_ascii = false);
 	Local<JSString> New(cUcs2String& data);
 	Local<JSObject> New(cError& data);
@@ -619,13 +636,25 @@ class XX_EXPORT Worker: public Object {
 	Local<JSArray>  New(Array<FileStat>& data);
 	Local<JSArray>  New(Array<FileStat>&& data);
 	Local<JSObject> New(const Map<String, String>& data);
-	Local<JSObject> New(Buffer& buff);
-	Local<JSObject> New(Buffer&& buff);
+	Local<JSUint8Array> New(Buffer& buff);
+	Local<JSUint8Array> New(Buffer&& buff);
 	Local<JSObject> New(FileStat& stat);
 	Local<JSObject> New(FileStat&& stat);
 	Local<JSObject> New(const Dirent& dir);
 	Local<JSArray>  New(Array<Dirent>& data);
 	Local<JSArray>  New(Array<Dirent>&& data);
+  
+  inline Local<JSBoolean> New(const Bool& v) { return New(v.value); }
+  inline Local<JSNumber>  New(const Float& v) { return New(v.value); }
+  inline Local<JSNumber>  New(const Double& v) { return New(v.value); }
+  inline Local<JSInt32>   New(const Char& v) { return New(v.value); }
+  inline Local<JSUint32>  New(const Byte& v) { return New(v.value); }
+  inline Local<JSInt32>   New(const Int16& v) { return New(v.value); }
+  inline Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
+  inline Local<JSInt32>   New(const Int& v) { return New(v.value); }
+  inline Local<JSUint32>  New(const Uint& v) { return New(v.value); }
+  inline Local<JSNumber>  New(const Int64& v) { return New(v.value); }
+  inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
 	
 	template <class T>
 	XX_INLINE Local<T> New(Local<T> val) { return val; }
@@ -638,11 +667,16 @@ class XX_EXPORT Worker: public Object {
 	}
 	
 	Local<JSValue> New(const PersistentBase<JSValue>& value);
-	
+
 	Local<JSObject> NewInstance(uint64 id, uint argc = 0, Local<JSValue>* argv = nullptr);
 	Local<JSString> NewString(cBuffer& data);
-	Local<JSString> NewString(cchar* str, uint len);
-	Local<JSObject> NewBuffer(Local<JSString> str, Encoding enc = Encoding::utf8);
+  Local<JSString> NewAscii(cchar* str);
+  Local<JSArrayBuffer> NewArrayBuffer(char* use_buff, uint len);
+  Local<JSArrayBuffer> NewArrayBuffer(uint len);
+	Local<JSUint8Array> NewUint8Array(Local<JSString> str, Encoding enc = Encoding::utf8);
+  Local<JSUint8Array> NewUint8Array(int size, char fill = 0);
+  Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab);
+  Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab, uint offset, uint size);
 	Local<JSObject> NewRangeError(cchar* errmsg, ...);
 	Local<JSObject> NewReferenceError(cchar* errmsg, ...);
 	Local<JSObject> NewSyntaxError(cchar* errmsg, ...);
@@ -655,71 +689,40 @@ class XX_EXPORT Worker: public Object {
 	Local<JSArray>  NewArray(uint len = 0);
 	Local<JSValue>  NewNull();
 	Local<JSValue>  NewUndefined();
-	
-	inline Local<JSBoolean> New(const Bool& v) { return New(v.value); }
-	inline Local<JSNumber>  New(const Float& v) { return New(v.value); }
-	inline Local<JSNumber>  New(const Double& v) { return New(v.value); }
-	inline Local<JSInt32>   New(const Char& v) { return New(v.value); }
-	inline Local<JSUint32>  New(const Byte& v) { return New(v.value); }
-	inline Local<JSInt32>   New(const Int16& v) { return New(v.value); }
-	inline Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
-	inline Local<JSInt32>   New(const Int& v) { return New(v.value); }
-	inline Local<JSUint32>  New(const Uint& v) { return New(v.value); }
-	inline Local<JSNumber>  New(const Int64& v) { return New(v.value); }
-	inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
+  Local<JSSet>    NewSet();
 	
 	template<class T>
 	static inline Local<JSValue> New(const Object& obj, Worker* worker) {
-		return worker->New( static_cast<const T*>(&obj) );
+		return worker->New( *static_cast<const T*>(&obj) );
 	}
 	
 	/**
-	 * @func throw_err
+	 * @func throwError
 	 */
-	void throw_err(Local<JSValue> exception);
-	void throw_err(cchar* errmsg, ...);
+	void throwError(Local<JSValue> exception);
+	void throwError(cchar* errmsg, ...);
 	
 	/**
-	 * @func has_instance
+	 * @func hasInstance
 	 */
-	bool has_instance(Local<JSValue> val, uint64 id);
-	
+	bool hasInstance(Local<JSValue> val, uint64 id);
+  
 	/**
-	 * @func has_buffer has javascript ArrayBufferView or ArrayBuffer
+	 * @func hasView() has View type
 	 */
-	bool has_buffer(Local<JSValue> val);
-	
-	/**
-	 * @func has_typed_buffer() has javascript TypedArray or ArrayBuffer
-	 */
-	bool has_typed_buffer(Local<JSValue> val);
-	
-	/**
-	 * @func has_view() has View type
-	 */
-	bool has_view(Local<JSValue> val);
+	bool hasView(Local<JSValue> val);
 
 	/**
-	 * @func as_buffer()
+	 * @func hasInstance
 	 */
-	WeakBuffer as_buffer(Local<JSValue> val);
-	
-	/**
-	 * @func as_buffer TypedArray or ArrayBuffer to WeakBuffer
-	 */
-	WeakBuffer as_typed_buffer(Local<JSValue> val);
-	
-	/**
-	 * @func has_instance
-	 */
-	template<class T> inline bool has_instance(Local<JSValue> val) {
-		return has_instance(val, JS_TYPEID(T));
+	template<class T> inline bool hasInstance(Local<JSValue> val) {
+		return hasInstance(val, JS_TYPEID(T));
 	}
 	
 	/**
-	 * @func js_class(id) find class
+	 * @func jsClass(id) find class
 	 */
-	Local<JSClass> js_class(uint id);
+	Local<JSClass> jsClass(uint id);
 	
 	/**
 	 * @func result
@@ -765,21 +768,21 @@ class XX_EXPORT Worker: public Object {
 													FunctionCallback constructor,
 													WrapAttachCallback attach_callback, Local<JSFunction> base);
 	/**
-	 * @func run_script
+	 * @func runScript
 	 */
-	Local<JSValue> run_script(cString& source,
+	Local<JSValue> runScript(cString& source,
 														cString& name,
 														Local<JSObject> sandbox = Local<JSObject>());
 	/**
-	 * @func run_script
+	 * @func runScript
 	 */
-	Local<JSValue> run_script(Local<JSString> source,
+	Local<JSValue> runScript(Local<JSString> source,
 														Local<JSString> name,
 														Local<JSObject> sandbox = Local<JSObject>());
 	/**
-	 * @func run_native_script
+	 * @func runNativeScript
 	 */
-	Local<JSValue> run_native_script(
+	Local<JSValue> runNativeScript(
 		cBuffer& source, cString& name, 
 		Local<JSObject> exports = Local<JSObject>());
 
@@ -794,9 +797,9 @@ class XX_EXPORT Worker: public Object {
 	CommonStrings* strs();
 	
 	/**
-	 * @func thread_id
+	 * @func threadId
 	 */
-	ThreadID thread_id();
+	ThreadID threadId();
 	
 	/**
 	 * @func global()
@@ -804,14 +807,14 @@ class XX_EXPORT Worker: public Object {
 	Local<JSObject> global();
 	
 	/**
-	 * @func report_exception
+	 * @func reportException
 	 */
-	void report_exception(TryCatch* try_catch);
+	void reportException(TryCatch* try_catch);
 	
 	/**
-	 * @func garbage_collection()
+	 * @func garbageCollection()
 	 */
-	void garbage_collection();
+	void garbageCollection();
 	
  private:
 

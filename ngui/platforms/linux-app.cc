@@ -789,7 +789,7 @@ void DisplayPort::set_status_bar_style(StatusBarStyle style) {
  * @func request_fullscreen(fullscreen)
  */
 void DisplayPort::request_fullscreen(bool fullscreen) {
-	__dispatch_x11_async(Cb([fullscreen](Se& e) {
+	__dispatch_x11_async(Cb([fullscreen](Cb& e) {
 		application->request_fullscreen(fullscreen);
 	}));
 }

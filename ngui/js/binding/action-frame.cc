@@ -90,7 +90,7 @@ class WrapFrame: public WrapObject {
 	static void fetch(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		View* view = nullptr;
-		if ( args.Length() > 0 && worker->has_instance(args[0], View::VIEW) ) {
+		if ( args.Length() > 0 && worker->hasInstance(args[0], View::VIEW) ) {
 			view = Wrap<View>::unpack(args[0].To<JSObject>())->self();
 		}
 		JS_SELF(Frame);

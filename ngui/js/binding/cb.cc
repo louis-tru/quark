@@ -37,22 +37,22 @@
 JS_BEGIN
 
 template<class Type, class Err = Error>
-Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
-		return Cb([worker, func](Se& d) {
+		return Cb([worker, func](Cbd& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			Local<JSFunction> f = func.local();
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg, f);
 			} else {
 				Type* data = static_cast<Type*>(d.data);
-				Local<JSValue> arg = worker->New(*data);
-				f->Call(worker, 1, &arg);
+        Local<JSValue> args[2] = { worker->NewNull(), worker->New(*data) };
+				f->Call(worker, 2, args);
 			}
 		});
 	} else {
@@ -62,7 +62,6 @@ Callback get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 
 Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding) {
 	Local<JSValue> result;
-	// Buffer* data = &buffer; //static_cast<Buffer*>(buffer.data);
 	switch (encoding) {
 		case Encoding::hex: // 编码
 		case Encoding::base64: {
@@ -83,22 +82,22 @@ Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding)
 }
 
 template<class Err = Error>
-Callback get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding encoding) {
+Cb get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding encoding) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 
-		return Cb([worker, func, encoding](Se& d) {
+		return Cb([worker, func, encoding](Cbd& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			Local<JSFunction> f = func.local();
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
+        f->Call(worker, 1, &arg, f);
 			} else {
 				Buffer* bf = static_cast<Buffer*>(d.data);
-				Local<JSValue> arg = convert_buffer(worker, *bf, encoding);
-				f->Call(worker, 1, &arg);
+        Local<JSValue> args[2] = { worker->NewNull(), convert_buffer(worker, *bf, encoding) };
+				f->Call(worker, 2, args);
 			}
 		});
 	} else {
@@ -107,11 +106,11 @@ Callback get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding en
 }
 
 template<class Err = Error>
-Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
-		return Cb([worker, func](Se& d) {
+		return Cb([worker, func](Cbd& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			
@@ -119,7 +118,7 @@ Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg, f);
 			} else {
 				IOStreamData* data = static_cast<IOStreamData*>(d.data);
 				Local<JSObject> arg = worker->NewObject();
@@ -127,7 +126,8 @@ Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 				arg->Set(worker, worker->strs()->complete(), worker->New(data->complete()) );
 				arg->Set(worker, worker->strs()->size(), worker->New(data->size()) );
 				arg->Set(worker, worker->strs()->total(), worker->New(data->total()) );
-				f->Call(worker, 1, reinterpret_cast<Local<JSValue>*>(&arg));
+        Local<JSValue> args[2] = { worker->NewNull(), arg };
+				f->Call(worker, 2, args);
 			}
 		});
 	} else {
@@ -136,11 +136,11 @@ Callback get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 }
 
 template<class Err = Error>
-Callback get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
-		return Cb([worker, func](Se& d) {
+		return Cb([worker, func](Cbd& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			
@@ -148,7 +148,7 @@ Callback get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg, f);
 			} else {
 				HttpHelper::ResponseData* data = static_cast<HttpHelper::ResponseData*>(d.data);
 				Local<JSObject> arg = worker->NewObject();
@@ -156,7 +156,8 @@ Callback get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 				arg->Set(worker, worker->strs()->httpVersion(), worker->New(data->http_version) );
 				arg->Set(worker, worker->strs()->statusCode(), worker->New(data->status_code) );
 				arg->Set(worker, worker->strs()->responseHeaders(), worker->New(data->response_headers) );
-				f->Call(worker, 1, reinterpret_cast<Local<JSValue>*>(&arg));
+        Local<JSValue> args[2] = { worker->NewNull(), arg };
+        f->Call(worker, 2, args);
 			}
 		});
 	} else {
@@ -164,16 +165,16 @@ Callback get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 	}
 }
 
-Callback get_callback_for_none(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
-		return Cb([worker, func](Se& d) {
+		return Cb([worker, func](Cbd& d) {
 			XX_ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			Local<JSFunction> f = func.local();
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Error*>(d.error));
-				f->Get(worker, worker->strs()->Throw()).To<JSFunction>()->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg, f);
 			} else {
 				f->Call(worker);
 			}
@@ -183,39 +184,39 @@ Callback get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 	}
 }
 
-Callback get_callback_for_buffer(Worker* worker, Local<JSValue> cb, Encoding encoding) {
+Cb get_callback_for_buffer(Worker* worker, Local<JSValue> cb, Encoding encoding) {
 	return get_callback_for_buffer2(worker, cb, encoding);
 }
 
-Callback get_callback_for_buffer_http_error(Worker* worker, Local<JSValue> cb, Encoding encoding) {
+Cb get_callback_for_buffer_http_error(Worker* worker, Local<JSValue> cb, Encoding encoding) {
 	return get_callback_for_buffer2<HttpError>(worker, cb, encoding);
 }
 
-Callback get_callback_for_response_data_http_error(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_response_data_http_error(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_response_data2<HttpError>(worker, cb);
 }
 
-Callback get_callback_for_io_stream(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_io_stream(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_io_stream2(worker, cb);
 }
 
-Callback get_callback_for_io_stream_http_error(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_io_stream_http_error(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_io_stream2<HttpError>(worker, cb);
 }
 
-Callback get_callback_for_array_dirent(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_array_dirent(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_type<Array<Dirent>>(worker, cb);
 }
 
-Callback get_callback_for_bool(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_bool(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_type<Bool>(worker, cb);
 }
 
-Callback get_callback_for_int(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_int(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_type<Int>(worker, cb);
 }
 
-Callback get_callback_for_file_stat(Worker* worker, Local<JSValue> cb) {
+Cb get_callback_for_file_stat(Worker* worker, Local<JSValue> cb) {
 	return get_callback_for_type<FileStat>(worker, cb);
 }
 

@@ -291,7 +291,7 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
 		
 		AsyncFile* m_source_file;
 		AsyncFile* m_target_file;
-		Callback   m_end;
+		Callback<>   m_end;
 		Buffer     m_buffer[2];
 		int        m_reading_count;
 		int        m_writeing_count;
@@ -414,7 +414,7 @@ private:
 		ls2(path, Cb(&AsyncEach::into_cb, this), nullptr);
 	}
 	
-	void into_cb(Se& evt) {
+	void into_cb(Cbd& evt) {
 		if ( !is_abort() ) {
 			if ( evt.error ) { // err
 				abort();
@@ -427,7 +427,7 @@ private:
 		}
 	}
 	
-	void start_cb(Se& evt) {
+	void start_cb(Cbd& evt) {
 		if ( !is_abort() ) {
 			if ( evt.error ) { // err
 				abort();
@@ -452,8 +452,8 @@ private:
 private:
 	
 	String m_path;
-	Callback m_cb;
-	Callback m_end;
+	Callback<> m_cb;
+	Callback<> m_end;
 	Array<DirentList> m_stack;
 	Dirent* m_dirent;
 	DirentList* m_last;
@@ -470,12 +470,12 @@ void FileHelper::chmod(cString& path, uint mode, cCb& cb) {
 }
 
 uint FileHelper::chmod_r(cString& path, uint mode, cCb& cb) {
-	auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](Se& evt) {
+	auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](Cbd& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain(); // chmod2 回调前都保持each不被释放
 		const Dirent& dirent = each->dirent();
 		String pathname = dirent.pathname;
-		chmod2(dirent.pathname, mode, Cb([each, cb, pathname](Se& evt) {
+		chmod2(dirent.pathname, mode, Cb([each, cb, pathname](Cbd& evt) {
 			Handle<AsyncEach> handle(each); each->release();
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
@@ -495,10 +495,10 @@ void FileHelper::chown(cString& path, uint owner, uint group, cCb& cb) {
 }
 
 uint FileHelper::chown_r(cString& path, uint owner, uint group, cCb& cb) {
-	auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](Se& evt) {
+	auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](Cbd& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain();
-		chown2(each->dirent().pathname, owner, group, Cb([each, cb](Se& evt) {
+		chown2(each->dirent().pathname, owner, group, Cb([each, cb](Cbd& evt) {
 			Handle<AsyncEach> handle(each); each->release();
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
@@ -518,7 +518,7 @@ void FileHelper::mkdir(cString& path, uint mode, cCb& cb) {
 }
 
 void FileHelper::mkdir_p(cString& path, uint mode, cCb& cb) {
-	exists2(path, Cb([=](Se& evt) {
+	exists2(path, Cb([=](Cbd& evt) {
 		if ( static_cast<Bool*>(evt.data)->value ) { // ok
 			sync_callback(cb);
 		} else {
@@ -554,11 +554,11 @@ void FileHelper::rmdir(cString& path, cCb& cb) {
 }
 
 uint FileHelper::remove_r(cString& path, cCb& cb) {
-	auto each = NewRetain<AsyncEach>(path, Cb([cb](Se& evt) {
+	auto each = NewRetain<AsyncEach>(path, Cb([cb](Cbd& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain();
 
-		Callback cb2([each, cb](Se& evt) {
+		Cb cb2([each, cb](Cbd& evt) {
 			Handle<AsyncEach> handle(each); each->release();
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
@@ -594,7 +594,7 @@ uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 		, m_path(Path::format("%s", *target))
 		, m_copy_task(nullptr)
 		{ //
-			is_dir2(Path::dirname(target), Cb([this](Se& ev) {
+			is_dir2(Path::dirname(target), Cb([this](Cbd& ev) {
 				if ( is_abort() ) return;
 				if ( static_cast<Bool*>(ev.data)->value ) {
 					start();
@@ -610,7 +610,7 @@ uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 			return m_path + dirent().pathname.substr(m_s_len); // 目标文件
 		}
 		
-		static void each_cb(Se& d, Object* self) {
+		static void each_cb(Cbd& d, Object* self) {
 			Task* t = static_cast<Task*>(self);
 			const Dirent& ent = t->dirent();
 			
@@ -618,7 +618,7 @@ uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 				case FTYPE_DIR:
 					exists2(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
 				case FTYPE_FILE:
-					t->m_copy_task = cp2(ent.pathname, t->target(), Cb([t](Se& ev) {
+					t->m_copy_task = cp2(ent.pathname, t->target(), Cb([t](Cbd& ev) {
 						t->m_copy_task = nullptr;
 						if ( !t->is_abort() ) {
 							if ( ev.error ) {
@@ -634,12 +634,12 @@ uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 			}
 		}
 		
-		void error(Se& ev) {
+		void error(Cbd& ev) {
 			abort();
 			async_err_callback(m_end, Error(*ev.error));
 		}
 		
-		void is_directory_cb(Se& evt) {
+		void is_directory_cb(Cbd& evt) {
 			if ( is_abort() ) return;
 			if ( evt.error ) {
 				error(evt);
@@ -648,7 +648,7 @@ uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 					advance(); return;
 				}
 				/* create dir */
-				mkdir2(target(), default_mode, Cb([this](Se& ev) {
+				mkdir2(target(), default_mode, Cb([this](Cbd& ev) {
 					if ( !is_abort() ) {
 						if ( ev.error ) {
 							error(ev);
@@ -670,7 +670,7 @@ uint FileHelper::copy_r(cString& source, cString& target, cCb& cb) {
 		
 	private:
 		
-		Callback m_end;
+		Callback<> m_end;
 		uint   m_s_len;
 		String m_path;
 		AsyncIOTask* m_copy_task;
@@ -740,7 +740,7 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 		String     m_path;
 		int64      m_offset;
 		int        m_fd;
-		Callback   m_cb;
+		Callback<> m_cb;
 		Buffer     m_buffer;
 		bool       m_pause;
 		int        m_read_count;

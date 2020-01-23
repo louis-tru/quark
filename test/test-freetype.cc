@@ -73,7 +73,7 @@ void each_fonts () {
 	//  String path0 = Path::format("%s/res/SF-UI", *Path::resources_dir());
 	String path0 = "/System/Library/Fonts";
 	
-	FileHelper::each_sync(path0, Cb([&](Se& d) {
+	FileHelper::each_sync(path0, Cb([&](Cbd   & d) {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		

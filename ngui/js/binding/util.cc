@@ -33,7 +33,7 @@
 #include "ngui/sys.h"
 #include "nutils/loop.h"
 #include "ngui/js/ngui.h"
-#include "nutils/jsx.h"
+//#include "nutils/jsx.h"
 #include "native-ext-js.h"
 
 /**
@@ -82,7 +82,7 @@ class WrapSimpleHash: public WrapObject {
 	static void update(FunctionCall args) {
 		JS_WORKER(args);
 		if (  args.Length() < 1 ||
-				!(args[0]->IsString(worker) || worker->has_buffer(args[0]))
+				!(args[0]->IsString(worker) || args[0]->IsBuffer(worker))
 		) {
 			JS_THROW_ERR("Bad argument");
 		}
@@ -93,7 +93,7 @@ class WrapSimpleHash: public WrapObject {
 			self->update(*str, str.length());
 		}
 		else { // Buffer
-			WeakBuffer buff = worker->as_buffer(args[0]);
+			WeakBuffer buff = args[0]->AsBuffer(worker);
 			self->update(*buff, buff.length());
 		}
 	}
@@ -163,7 +163,7 @@ class NativeUtil {
 				!args[1]->IsString(worker) || !args[2]->IsFunction(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		if ( ! WrapObject::is_pack(args[0].To<JSObject>()) ) {
+		if ( ! WrapObject::isPack(args[0].To<JSObject>()) ) {
 			JS_THROW_ERR("Bad argument");
 		}
 		int id = 0;
@@ -174,7 +174,7 @@ class NativeUtil {
 			WrapObject* wrap = WrapObject::unpack(args[0].To<JSObject>());
 			String name = args[1]->ToStringValue(worker,1);
 			String func = String("__on").push(name).push("_native").push(String(id));
-			bool ok = wrap->add_event_listener(name, func, id);
+			bool ok = wrap->addEventListener(name, func, id);
 			if (ok) {
 				wrap->set(worker->New(func,1), args[2]);
 			}
@@ -187,7 +187,7 @@ class NativeUtil {
 		if ( args.Length() < 2 || !args[0]->IsObject(worker) || !args[1]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		if ( ! WrapObject::is_pack(args[0].To<JSObject>()) ) {
+		if ( ! WrapObject::isPack(args[0].To<JSObject>()) ) {
 			JS_THROW_ERR("Bad argument");
 		}
 		int id = 0;
@@ -197,7 +197,7 @@ class NativeUtil {
 		{ HandleScope scope(worker);
 			String name = args[1]->ToStringValue(worker,1);
 			WrapObject* wrap = WrapObject::unpack(args[0].To<JSObject>());
-			bool ok = wrap->remove_event_listener(name, id);
+			bool ok = wrap->removeEventListener(name, id);
 			if ( ok ) {
 				String func = String("__on").push(name).push("_native").push(String(id));
 				wrap->del( worker->New(func) );
@@ -208,7 +208,7 @@ class NativeUtil {
 
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		worker->garbage_collection();
+		worker->garbageCollection();
 #if XX_MEMORY_TRACE_MARK
 		std::vector<Object*> objs = Object::mark_objects();
 		Object** objs2 = &objs[0];
@@ -216,7 +216,7 @@ class NativeUtil {
 #endif
 	}
 	
-	static void run_script(FunctionCall args) {
+	static void runScript(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
@@ -232,7 +232,7 @@ class NativeUtil {
 		if (args.Length() > 2 && args[2]->IsObject(worker)) {
 			sandbox = args[2].To<JSObject>();
 		}
-		Local<JSValue> rv = worker->run_script(args[0].To<JSString>(), name, sandbox);
+		Local<JSValue> rv = worker->runScript(args[0].To<JSString>(), name, sandbox);
 		if ( !rv.IsEmpty() ) { // 没有值可能有异常
 			JS_RETURN( rv );
 		}
@@ -244,7 +244,7 @@ class NativeUtil {
 			JS_THROW_ERR("Bad argument");
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
-		RunLoop::next_tick(Callback([worker, func](Se& e) {
+		RunLoop::next_tick(Cb([worker, func](Cbd& e) {
 			XX_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			func.local()->Call(worker);
@@ -269,7 +269,7 @@ class NativeUtil {
 		for (int i = 0; i < EXT_native_js_count_; i++) {
 			const EXT_NativeJSCode* code = EXT_native_js_ + i;
 			if (path == code->name) {
-				JS_RETURN( worker->NewString(code->code, code->count) );
+				JS_RETURN( worker->New(code->code, code->count) );
 			}
 		}
 		JS_RETURN_NULL();
@@ -285,7 +285,7 @@ class NativeUtil {
 		JS_SET_METHOD(version, version);
 		JS_SET_METHOD(addNativeEventListener, addNativeEventListener);
 		JS_SET_METHOD(removeNativeEventListener, removeNativeEventListener);
-		JS_SET_METHOD(runScript, run_script);
+		JS_SET_METHOD(runScript, runScript);
 		JS_SET_METHOD(garbageCollection, garbageCollection);
 		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(_exit, exit);

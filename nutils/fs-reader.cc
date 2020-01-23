@@ -172,7 +172,7 @@ class FileReader::Core {
 					async_err_callback(cb, Error("Invalid file path, \"%s\"", *path), RunLoop::current());
 				} else {
 					RunLoop* loop = RunLoop::current();
-					loop->work(Cb([this, loop, zip, path, stream, cb](Se& evt) {
+					loop->work(Cb([this, loop, zip, path, stream, cb](Cbd& evt) {
 						read_from_zip(loop, zip, path, stream, cb);
 					}));
 				}
@@ -191,7 +191,7 @@ class FileReader::Core {
 					if ( stream ) {
 						id = HttpHelper::get_stream(path, cb);
 					} else {
-						id = HttpHelper::get(path, Cb([cb](Se& e){
+						id = HttpHelper::get(path, Cb([cb](Cbd& e){
 							ResponseData* data = static_cast<ResponseData*>(e.data);
 							if (e.error) {
 								sync_callback(cb, e.error);

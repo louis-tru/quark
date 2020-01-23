@@ -541,7 +541,7 @@ class RunLoop::Inl: public RunLoop {
 
 			m_queue.push({
 				0, group, 0,
-				Callback([exec, ctxp, this](Se& e) {
+				Cb([exec, ctxp, this](Cbd& e) {
 					exec->call(e);
 					ScopeLock scope(m_mutex);
 					ctxp->ok = true;
@@ -590,8 +590,8 @@ struct RunLoop::Work {
 	RunLoop* host;
 	uint id;
 	List<Work*>::Iterator it;
-	Callback work;
-	Callback done;
+	Callback<> work;
+	Callback<> done;
 	uv_work_t uv_req;
 	String name;
 	static void uv_work_cb(uv_work_t* req) {
@@ -757,7 +757,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
 	work->host = this;
 	work->name = name;
 
-	post(Cb([work, this](Se& ev) {
+	post(Cb([work, this](Cbd& ev) {
 		int r = uv_queue_work(m_uv_loop, &work->uv_req,
 													Work::uv_work_cb, Work::uv_after_work_cb);
 		XX_ASSERT(!r);
@@ -772,7 +772,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
  * @func cancel_work(id)
  */
 void RunLoop::cancel_work(uint id) {
-	post(Cb([=](Se& ev) {
+	post(Cb([=](Cbd& ev) {
 		for (auto& i : m_works) {
 			if (i.value()->id == id) {
 				int r = uv_cancel((uv_req_t*)&i.value()->uv_req);
@@ -819,7 +819,7 @@ void RunLoop::run(uint64 timeout) {
  */
 void RunLoop::stop() {
 	if ( runing() ) {
-		post(Cb([this](Se& se) {
+		post(Cb([this](Cbd& se) {
 			uv_stop(m_uv_loop);
 		}));
 	}

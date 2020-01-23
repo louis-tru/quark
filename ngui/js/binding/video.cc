@@ -228,7 +228,7 @@ class WrapVideo: public WrapViewBase {
 	}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("_value");
+		worker->bindingModule("_value");
 
 		JS_NEW_CLASS_FROM_ID(Video, module_video->tid, constructor, {
 			JS_SET_CLASS_ACCESSOR(autoPlay, auto_play, set_auto_play);

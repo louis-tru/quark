@@ -307,7 +307,7 @@ class WrapGroupAction: public WrapObject {
 	 */
 	static void append(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		if ( args.Length() < 1 || !worker->has_instance<Action>(args[0]) ) {
+		if ( args.Length() < 1 || !worker->hasInstance<Action>(args[0]) ) {
 			JS_THROW_ERR(
 				"* @func append(child)\n"
 				"* @arg child {Action}\n"
@@ -326,7 +326,7 @@ class WrapGroupAction: public WrapObject {
 	static void insert(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		if (args.Length() < 2 || !args[0]->IsUint32(worker) || 
-				!worker->has_instance<Action>(args[1]) ) {
+				!worker->hasInstance<Action>(args[1]) ) {
 			JS_THROW_ERR(
 				"* @func insert(index, child)\n"
 				"* @arg index {uint}\n"
@@ -630,7 +630,7 @@ void binding_frame(Local<JSObject> exports, Worker* worker);
 class BindingAction {
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("_value");
+		worker->bindingModule("_value");
 		
 		// CubicBezier const
 		JS_SET_PROPERTY(LINEAR, 0);

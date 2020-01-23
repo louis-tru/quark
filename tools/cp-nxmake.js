@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('../libs/nxkit/out/nxkit/util').default;
-var fs = require('../libs/nxkit/out/nxkit/fs');
+var util = require('nxkit/util').default;
+var fs = require('nxkit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
-var {execSync} = require('../libs/nxkit/out/nxkit/syscall');
+var {execSync} = require('nxkit/syscall');
 var read_version = require('./read_version');
 
 var args = process.argv.slice(2);

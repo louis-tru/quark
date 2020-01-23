@@ -67,7 +67,7 @@ class InlJSON {
 	uint _indent;
 	StringBuilder* _rv;
 	Worker* worker;
-	Local<JSValue> _mark_key;
+	Persistent<JSSet> _set;
 	
 	void push_indent() {
 		for (uint i = 0; i < _indent; i++) {
@@ -82,17 +82,15 @@ class InlJSON {
 			_indent += 2;
 			for (int i = 0, j = 0; i < names->Length(worker); i++) {
 				Local<JSValue> key = names->Get(worker, i);
-				if ( ! key->Equals(_mark_key) ) {
-					if (j > 0) _rv->push(Comma); // ,
-					_rv->push(Newline); push_indent();
-					//  _rv->push(Quotes);
-					_rv->push(key->ToStringValue(worker));
-					//  _rv->push(Quotes);
-					_rv->push(COLON); _rv->push(Space);
-					bool rv = stringify( arg->Get(worker, key), false ); // value
-					if ( ! rv ) return false;
-					j++;
-				}
+        if (j > 0) _rv->push(Comma); // ,
+        _rv->push(Newline); push_indent();
+        //  _rv->push(Quotes);
+        _rv->push(key->ToStringValue(worker));
+        //  _rv->push(Quotes);
+        _rv->push(COLON); _rv->push(Space);
+        bool rv = stringify( arg->Get(worker, key), false ); // value
+        if ( ! rv ) return false;
+        j++;
 			}
 			_indent -= 2;
 			_rv->push(Newline); push_indent();
@@ -124,12 +122,11 @@ class InlJSON {
 		return true;
 	}
 	
-	bool stringify_buffer(Local<JSObject> arg) {
-		Buffer* buf = WrapObject::unpack<Buffer>(arg)->self();
+	bool stringify_buffer(WeakBuffer buf) {
 		_rv->push(BufferPrefix);
 		cchar* hex = "0123456789abcdef";
-		byte* s = (byte*)buf->value();
-		for (uint i = 0; i < buf->length(); i++) {
+		byte* s = (byte*)buf.value();
+		for (uint i = 0; i < buf.length(); i++) {
 			byte ch = s[i];
 			_rv->push(Space);
 			_rv->push( hex[ch >> 4] );
@@ -149,17 +146,15 @@ class InlJSON {
 			_indent += 2;
 			for (int i = 0, j = 0; i < names->Length(worker); i++) {
 				Local<JSValue> key = names->Get(worker, i);
-				if ( ! key->Equals(_mark_key) ) {
-					if (j > 0) _rv->push(Comma); // ,
-					_rv->push(Newline); push_indent();
-					//  _rv->push(Quotes);
-					_rv->push(key->ToStringValue(worker));
-					//  _rv->push(Quotes);
-					_rv->push(COLON); _rv->push(Space);
-					bool rv = stringify( arg->Get(worker, key), true ); // value
-					if ( ! rv ) return false;
-					j++;
-				}
+        if (j > 0) _rv->push(Comma); // ,
+        _rv->push(Newline); push_indent();
+        //  _rv->push(Quotes);
+        _rv->push(key->ToStringValue(worker));
+        //  _rv->push(Quotes);
+        _rv->push(COLON); _rv->push(Space);
+        bool rv = stringify( arg->Get(worker, key), true ); // value
+        if ( ! rv ) return false;
+        j++;
 			}
 			_indent -= 2;
 			_rv->push(Newline); push_indent();
@@ -188,8 +183,8 @@ class InlJSON {
 		else if (arg->IsObject(worker)) {
 			
 			Local<JSObject> o = arg.To<JSObject>();
-			if (worker->has_buffer(arg)) {
-				rv = stringify_buffer(o);
+			if (arg->IsUint8Array(worker)) {
+				rv = stringify_buffer(o->AsBuffer(worker));
 			} else if (worker->values() && worker->values()->isBase(arg)) {
 				_rv->push(Quotes);
 				_rv->push( o->ToStringValue(worker) );
@@ -202,25 +197,26 @@ class InlJSON {
 					_rv->push(OBJECT);
 				}
 			}
-			else if (worker->has_instance(arg, View::VIEW)) {
+			else if (worker->hasInstance(arg, View::VIEW)) {
 				rv = stringify_view(o);
 			}
 			else if ( arg->IsDate(worker) ) {
 				_rv->push( arg->ToStringValue(worker) );
 			}
 			else {
-				if ( o->Has(worker, _mark_key) ) {
+				if ( _set.local()->Has(worker, o).FromMaybe(true) ) {
 					_rv->push( Circular ); return true;
 				}
-				o->Set(worker, _mark_key, worker->New(true) );
-				//
+
+        if ( _set.local()->Add(worker, o).IsEmpty() ) return false;
+        
 				if (arg->IsArray(worker)) {
 					rv = stringify_array(o.To<JSArray>());
 				} else {
 					rv = stringify_object(o);
 				}
-				//
-				o->Delete(worker, _mark_key);
+
+        return _set.local()->Delete(worker, o).FromMaybe(false);
 			}
 		}
 		else if(arg->IsInt32(worker)) {
@@ -254,9 +250,13 @@ class InlJSON {
 	
  public:
 	InlJSON(Worker* worker) : _indent(0), _rv(NULL), worker(worker) {
-		_mark_key = worker->strs()->___mark_json_stringify__();
+    _set.Reset(worker, worker->NewSet());
 	}
-	
+  
+  ~InlJSON() {
+    _set.Reset();
+  }
+
 	bool stringify_console_styled(Local<JSValue> arg, StringBuilder* out) {
 		HandleScope scope(worker);
 		_rv = out;

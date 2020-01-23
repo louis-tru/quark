@@ -54,13 +54,13 @@ class UVRequestWrap: public Object {
 		return (UVRequestWrap*)req->data;
 	}
 	inline Context* ctx() { return m_ctx; }
-	inline Callback& cb() { return m_cb; }
+	inline Callback<>& cb() { return m_cb; }
 	inline uv_req* req() { return &m_req; }
 	inline Data& data() { return m_data; }
  private:
 	uv_req    m_req;
 	Context*  m_ctx;
-	Callback  m_cb;
+	Callback<>  m_cb;
 	Data      m_data;
 };
 

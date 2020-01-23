@@ -263,7 +263,7 @@ public:
 			Handle<GUIEvent> evt = New<GUIEvent>(this, err);
 			trigger(GUI_EVENT_ERROR, **evt);
 		} else if (status & TEXTURE_COMPLETE) {
-			display_port()->next_frame(Cb([this](Se& e) {
+			display_port()->next_frame(Cb([this](Cbd& e) {
 				trigger(GUI_EVENT_LOAD);
 			}, this));
 		}

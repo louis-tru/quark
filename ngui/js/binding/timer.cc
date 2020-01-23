@@ -46,16 +46,16 @@ class Timer: public Reference {
 	uint64    _timeout;   // 超时时间
 	int       _loop;      // -1 为无限循环
 	RunLoop*  _run_loop;  // 消息队列
-	Callback    _cb;
+	Callback<> _cb;
 	CallbackPtr _cb_ptr;
-	Callback  _cb2;
+	Callback<> _cb2;
 	
-	void _run_cb(SimpleEvent& d) {
+	void _run_cb(Cbd& d) {
 		
 		if ( _cb_ptr ) {
 			_cb_ptr(this);
 		} else {
-			SimpleEvent evt = { 0, this }; _cb->call(evt);
+			Cbd evt = { 0, this }; _cb->call(evt);
 		}
 		
 		_timer_id = 0;
@@ -66,7 +66,7 @@ class Timer: public Reference {
 		if (_loop) {
 			_run();
 		} else {
-			_cb2 = Callback(); // destroy callback
+			_cb2 = Cb(); // destroy callback
 		}
 	}
 	
@@ -76,7 +76,7 @@ class Timer: public Reference {
 		}
 	}
 	
-	Timer(RunLoop* loop, Callback cb)
+	Timer(RunLoop* loop, Cb cb)
 	: _timer_id(0)
 	, _timeout(0)
 	, _loop(1)
@@ -110,7 +110,7 @@ class Timer: public Reference {
 		_timeout = timeout;
 		_loop = loop;
 		if ( !_timer_id ) {
-			_cb2 = Callback(&Timer::_run_cb, this);
+			_cb2 = Cb(&Timer::_run_cb, this);
 			_run();
 		}
 	}
@@ -120,7 +120,7 @@ class Timer: public Reference {
 			_run_loop->cancel( _timer_id );
 			_loop = 0;
 			_timer_id = 0;
-			_cb2 = Callback(); // destroy callback
+			_cb2 = Cb(); // destroy callback
 		}
 	}
 
@@ -226,7 +226,7 @@ class WrapTimer: public WrapObject {
 
 	static void clearTimeout(FunctionCall args) {
 		JS_WORKER(args);
-		if ( args.Length() == 0 || ! worker->has_instance<Timer>(args[0]) ) {
+		if ( args.Length() == 0 || ! worker->hasInstance<Timer>(args[0]) ) {
 			JS_THROW_ERR("Bad argument");
 		}
 		Wrap<Timer>::unpack(args[0].To<JSObject>())->self()->stop();

@@ -76,8 +76,8 @@ class NativeNgui {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->binding_module("_value");	XX_DEBUG("binding ngui_value ok");
-		worker->binding_module("_event");	XX_DEBUG("binding ngui_event ok");
+		worker->bindingModule("_value");	XX_DEBUG("binding ngui_value ok");
+		worker->bindingModule("_event");	XX_DEBUG("binding ngui_event ok");
 		binding_app(exports, worker); 			XX_DEBUG("binding app ok");
 		binding_view(exports, worker); 			XX_DEBUG("binding view ok");
 		binding_sprite(exports, worker); 		XX_DEBUG("binding sprite ok");

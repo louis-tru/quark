@@ -2,4 +2,51 @@
 
 set -e
 
+# install depes
+
+if [ "$USER" != "root" ]; then
+	SUDO="sudo"
+fi
+
+if [ "`which tsc`" == "" ]; then
+	$SUDO npm install typescript -g;
+fi
+
+if   [ ! -d libs/nxkit ] \
+	|| [ ! -d libs/nxmake/gyp ] \
+	|| [ ! -d depe/v8-link ] \
+	|| [ ! -d depe/FFmpeg ] \
+	|| [ ! -d depe/node ] \
+	|| [ ! -d depe/bplus ] \
+; then
+	make pull
+fi
+
+if [ ! -f libs/nxkit/out/nxkit/package.json ]; then
+	cd libs/nxkit
+	npm i
+	npm run build
+	cd ../..
+fi
+
+if [ ! -d libs/nxmake/node_modules ]; then
+	cd libs/nxmake
+	npm i
+	rm -rf node_modules/nxkit
+	cd node_modules
+	ln -s ../../nxkit/out/nxkit
+	cd ../../..
+fi
+
+if   [ ! -d tools/node_modules/nxkit ] \
+	|| [ ! -d tools/node_modules/nxmake ] \
+; then
+	rm -rf tools/node_modules/*
+	mkdir -p tools/node_modules
+	cd tools/node_modules
+	ln -s ../../libs/nxkit/out/nxkit
+	ln -s ../../libs/nxmake
+	cd ../..
+fi
+
 node tools/configure.js "$@"

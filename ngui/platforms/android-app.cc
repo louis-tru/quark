@@ -173,7 +173,7 @@ class AndroidApplication {
 	static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
 		// ScopeLock scope(application->m_mutex);
 		application->m_window = nullptr;
-		application->m_host->render_loop()->post_sync(Cb([window](Se& ev) {
+		application->m_host->render_loop()->post_sync(Cb([window](Cb& ev) {
 			gl_draw_context->destroy_surface(window);
 			application->stop_render_task();
 		}));
@@ -228,7 +228,7 @@ class AndroidApplication {
 			gl_draw_context->refresh_surface_size(&application->m_rect);
 
 			if ( targger_orientation ) { // 触发方向变化事件
-				application->m_host->main_loop()->post(Cb([](Se& e) {
+				application->m_host->main_loop()->post(Cb([](Cb& e) {
 					application->m_host->display_port()->XX_TRIGGER(orientation);
 				}));
 			}
@@ -620,7 +620,7 @@ extern "C" {
 	}
 
 	XX_EXPORT void Java_org_ngui_NguiActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
-		application->host()->main_loop()->post(Cb([](Se& ev){
+		application->host()->main_loop()->post(Cb([](Cb& ev){
 			application->host()->display_port()->XX_TRIGGER(change);
 		}));
 	}

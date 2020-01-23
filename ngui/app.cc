@@ -101,7 +101,7 @@ void AppInl::refresh_display() {
 void AppInl::onLoad() {
 	if (!m_is_load) {
 		m_is_load = true;
-		m_main_loop->post(Cb([&](Se& d) { GUILock lock; XX_TRIGGER(load); }));
+		m_main_loop->post(Cb([&](Cbd& d) { GUILock lock; XX_TRIGGER(load); }));
 	}
 }
 
@@ -110,30 +110,30 @@ void AppInl::onRender() {
 }
 
 void AppInl::onPause() {
-	m_main_loop->post(Cb([&](Se& d) { XX_TRIGGER(pause); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(pause); }));
 }
 
 void AppInl::onResume() {
-	m_main_loop->post(Cb([&](Se& d) { XX_TRIGGER(resume); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(resume); }));
 }
 
 void AppInl::onBackground() {
-	m_main_loop->post(Cb([&](Se& d) { XX_TRIGGER(background); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(background); }));
 }
 
 void AppInl::onForeground() {
-	m_main_loop->post(Cb([&](Se& d) { XX_TRIGGER(foreground); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(foreground); }));
 }
 
 void AppInl::onMemorywarning() {
 	clear();
-	m_main_loop->post(Cb([&](Se&){ XX_TRIGGER(memorywarning); }));
+	m_main_loop->post(Cb([&](Cbd&){ XX_TRIGGER(memorywarning); }));
 }
 
 void AppInl::onUnload() {
 	if (m_is_load) {
 		m_is_load = false;
-		m_main_loop->post_sync(Cb([&](Se& d) {
+		m_main_loop->post_sync(Cb([&](Cbd& d) {
 			DLOG("AppInl::onUnload()");
 			XX_TRIGGER(unload);
 			if (m_root) {
@@ -343,7 +343,7 @@ bool GUIApplication::has_current_render_thread() const {
  * @func clear([full]) 清理不需要使用的资源
  */
 void GUIApplication::clear(bool full) {
-	m_render_loop->post(Cb([&, full](Se& e){ m_draw_ctx->clear(full); }));
+	m_render_loop->post(Cb([&, full](Cbd& e){ m_draw_ctx->clear(full); }));
 }
 
 void GUIApplication::set_default_text_background_color(TextColor value) {

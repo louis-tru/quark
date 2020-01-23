@@ -315,7 +315,7 @@ bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) 
 	String s = arg->ToStringValue(worker);
 	en = Coder::parse_encoding( s );
 	if ( en == Encoding::unknown ) {
-		worker->throw_err( 
+		worker->throwError( 
 			"Unknown encoding \"%s\", the optional value is "
 			"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s );
 		return false;
@@ -323,19 +323,13 @@ bool parse_encoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) 
 	return true;
 }
 
-static bool parse_file_write_params(FunctionCall args, bool sync, int& args_index
-																		, Buffer& keep
-																		, void*& buff
-																		, int64& size
-																		, Buffer*& raw_buff
-																		)
+static bool parse_file_write_params(FunctionCall args, bool sync, int& args_index,
+                                    Buffer& buffer, void*& data, int64& size, bool& afterCollapse)
 {
 	JS_WORKER(args);
-	
-	buff = nullptr;
+
 	size = 0;
 	args_index = 2;
-	raw_buff = nullptr;
 	
 	if ( args[1]->IsString(worker) ) { // 写入字符串
 		
@@ -346,35 +340,29 @@ static bool parse_file_write_params(FunctionCall args, bool sync, int& args_inde
 			}
 			args_index++;
 		}
-		keep = args[1]->ToBuffer(worker, en);
-		buff = keep.value();
-		size = keep.length();
+		buffer = args[1]->ToBuffer(worker, en);
+    size = buffer.length();
+    data = buffer.value();
 	}
-	else {
-		if ( args[1]->IsArrayBuffer(worker) ) { // 写入原生 ArrayBuffer
-			Local<JSArrayBuffer> ab = args[1].To<JSArrayBuffer>();
-			buff = ab->Data(worker);
-			size = ab->ByteLength(worker);
-			raw_buff = (Buffer*)0x1;
-			if ( !sync ) { // move data
-				// 这是一个危险的操作,一定要确保keep不能被释放否则会导致致命错误
-				keep = Buffer((char*)buff, (uint)size);
-			}
-		} else {
-			Buffer* src = Wrap<Buffer>::unpack(args[1].To<JSObject>())->self();
-			buff = src->value();
-			size = src->length();
-			raw_buff = src;
-			if ( !sync ) { // move data
-				keep = *src;
-			}
-		}
-		
+	else { // ArrayBuffer or TypedArray
+    auto wb = args[1]->AsBuffer(worker);
+
+    if (!sync) {
+      // 这是一个危险的操作,一定要确保buffer不能被释放否则会导致致命错误
+      buffer = Buffer(*wb, wb.length());
+      // buffer = wb.copy(); // copy data
+      afterCollapse = true;
+    }
+    data = *wb;
+    size = wb.length();
+    
 		if ( args.Length() > 2 && args[2]->IsInt32(worker) ) { // size
 			int num = args[2]->ToInt32Value(worker);
 			if ( num >= 0 ) {
 				size = XX_MIN( num, size );
-				keep.realloc((uint)size);
+        if (!sync) {
+          buffer.realloc((uint)size);
+        }
 			}
 			args_index++;
 		}
@@ -434,7 +422,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_none(worker, args[args_index]);
 			}
@@ -492,7 +480,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_none(worker, args[args_index]);
 			}
@@ -548,7 +536,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 3 ) {
 				cb = get_callback_for_none(worker, args[3]);
 			}
@@ -610,7 +598,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb; 
+			Cb cb;
 			if ( args.Length() > 3 ) {
 				cb = get_callback_for_none(worker, args[3]);
 			}
@@ -665,7 +653,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_none(worker, args[args_index]);
 			}
@@ -720,7 +708,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_none(worker, args[args_index]);
 			}
@@ -770,7 +758,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 2 ) {
 				cb = get_callback_for_none(worker, args[2]);
 			}
@@ -818,7 +806,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 2 ) {
 				cb = get_callback_for_none(worker, args[2]);
 			}
@@ -861,7 +849,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_none(worker, args[1]);
 			}
@@ -904,7 +892,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_none(worker, args[1]);
 			}
@@ -951,7 +939,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_none(worker, args[1]);
 			}
@@ -1003,7 +991,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 2 ) {
 				cb = get_callback_for_none(worker, args[2]);
 			}
@@ -1056,7 +1044,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 2 ) {
 				cb = get_callback_for_none(worker, args[2]);
 			}
@@ -1101,7 +1089,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_array_dirent(worker, args[1]);
 			}
@@ -1146,7 +1134,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_file_stat(worker, args[1]);
 			}
@@ -1185,7 +1173,7 @@ class NativeFileHelper {
 		if ( sync ) {
 			JS_RETURN( FileHelper::exists_sync(args[0]->ToStringValue(worker)) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_bool(worker, args[1]);
 			}
@@ -1224,7 +1212,7 @@ class NativeFileHelper {
 		if ( sync ) {
 			JS_RETURN( FileHelper::is_file_sync(args[0]->ToStringValue(worker)) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_bool(worker, args[1]);
 			}
@@ -1263,7 +1251,7 @@ class NativeFileHelper {
 		if ( sync ) {
 			JS_RETURN( FileHelper::is_directory_sync(args[0]->ToStringValue(worker)) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_bool(worker, args[1]);
 			}
@@ -1302,7 +1290,7 @@ class NativeFileHelper {
 		if ( sync ) {
 			JS_RETURN( FileHelper::readable_sync(args[0]->ToStringValue(worker)) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_bool(worker, args[1]);
 			}
@@ -1341,7 +1329,7 @@ class NativeFileHelper {
 		if ( sync ) {
 			JS_RETURN( FileHelper::writable_sync(args[0]->ToStringValue(worker)) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_bool(worker, args[1]);
 			}
@@ -1380,7 +1368,7 @@ class NativeFileHelper {
 		if ( sync ) {
 			JS_RETURN( FileHelper::executable_sync(args[0]->ToStringValue(worker)) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_bool(worker, args[1]);
 			}
@@ -1404,7 +1392,7 @@ class NativeFileHelper {
 		}
 		String path = args[0]->ToStringValue(worker);
 		
-		Callback cb;
+		Cb cb;
 		if ( args.Length() > 1 ) {
 			cb = get_callback_for_io_stream(worker, args[1]);
 		}
@@ -1459,7 +1447,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( convert_buffer(worker, r, encoding) );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_buffer(worker, args[args_index], encoding);
 			}
@@ -1493,10 +1481,9 @@ class NativeFileHelper {
 		
 		if ( args.Length() < 2 || !args[0]->IsString(worker) ||
 				!(args[1]->IsString(worker) ||
-					args[1]->IsArrayBuffer(worker) ||
-					worker->has_buffer(args[1])
-					)
-				) { // 参数错误
+					args[1]->IsBuffer()
+        )
+    ) { // 参数错误
 			if ( sync ) {
 				JS_THROW_ERR(
 											"* @func writeSileSync(path,buffer[,size])\n"
@@ -1525,25 +1512,26 @@ class NativeFileHelper {
 		
 		String path = args[0]->ToStringValue(worker);
 		
-		Buffer keep;
-		void*  buff;
+    int args_index;
+		Buffer buffer;
+    void* data;
 		int64 size;
-		Buffer* raw_buff;
-		int args_index;
+    bool afterCollapse = false;
 		
-		if (!parse_file_write_params(args, sync, args_index, keep, buff, size, raw_buff)) return;
+		if (!parse_file_write_params(args, sync, args_index, buffer, data, size, afterCollapse))
+      return;
 		
 		if ( sync ) {
 			int r;
 			try {
-				r = FileHelper::write_file_sync(path, buff, size);
+				r = FileHelper::write_file_sync(path, data, size);
 			} catch(cError& err) {
 				JS_THROW_ERR(err);
 			}
 			JS_RETURN( r );
 		} else {
 			
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_none(worker, args[args_index]);
 			}
@@ -1551,16 +1539,12 @@ class NativeFileHelper {
 			// keep raw buffer Persistent javascript value
 			CopyablePersistentValue persistent(worker, args[1]);
 			
-			FileHelper::write_file(path, keep, Callback([persistent, raw_buff, cb](SimpleEvent& ev) {
+			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb](Cbd& ev) {
 				XX_ASSERT( ev.data );
-				if (raw_buff) { // restore raw buffer
-					if ( raw_buff == (Buffer*)0x1 ) { // 这是ArrayBuffer,
-						// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
-						static_cast<Buffer*>(ev.data)->collapse();
-					} else {
-						*raw_buff = *static_cast<Buffer*>(ev.data);
-					}
-				}
+        if (afterCollapse) {
+          // collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
+          static_cast<Buffer*>(ev.data)->collapse();
+        }
 				cb->call(ev);
 			}));
 		}
@@ -1619,7 +1603,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_int(worker, args[args_index]);
 			}
@@ -1665,7 +1649,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > 1 ) {
 				cb = get_callback_for_none(worker, args[1]);
 			}
@@ -1695,16 +1679,16 @@ class NativeFileHelper {
 	static void read(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		
-		if ( args.Length() < 2 || !args[0]->IsInt32(worker) || !worker->has_buffer(args[1]) ) {
+		if ( args.Length() < 2 || !args[0]->IsInt32(worker) || !args[1]->IsUint8Array() ) {
 			if ( sync ) {
-				JS_THROW_ERR(
-											"* @func readSync(fd,buffer[,size[,offset]])\n"
-											"* @arg fd {int} file handle\n"
-											"* @arg buffer {Buffer} output buffer\n"
-											"* @arg [size=-1] {int}\n"
-											"* @arg [offset=-1] {int}\n"
-											"* @ret {int} return err code `success >= 0`\n"
-											);
+        JS_THROW_ERR(
+                     "* @func readSync(fd,buffer[,size[,offset]])\n"
+                     "* @arg fd {int} file handle\n"
+                     "* @arg buffer {Buffer} output buffer\n"
+                     "* @arg [size=-1] {int}\n"
+                     "* @arg [offset=-1] {int}\n"
+                     "* @ret {int} return err code `success >= 0`\n"
+                     );
 			} else {
 				JS_THROW_ERR(
 											"* @func read(fd,buffer[,size[,offset[,cb]]])\n"
@@ -1719,13 +1703,14 @@ class NativeFileHelper {
 			}
 		}
 		
-		Buffer* raw_buf = Wrap<Buffer>::unpack(args[1].To())->self();
+    auto raw_buf = args[1]->AsBuffer(worker);
 		
 		int fd = args[0]->ToInt32Value(worker);
-		uint size = raw_buf->length();
+		uint size = raw_buf.length();
 		int64 offset = -1;
 		uint args_index = 2;
 		
+    // size
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
 			int num = args[args_index]->ToInt32Value(worker);
 			if ( num >= 0 ) {
@@ -1733,6 +1718,8 @@ class NativeFileHelper {
 			}
 			args_index++;
 		}
+    
+    // offset
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
 			offset = args[args_index]->ToInt32Value(worker);
 			if ( offset < 0 ) offset = -1;
@@ -1742,27 +1729,24 @@ class NativeFileHelper {
 		if ( sync ) {
 			int r;
 			try {
-				r = FileHelper::read_sync(fd, **raw_buf, size, offset);
+				r = FileHelper::read_sync(fd, *raw_buf, size, offset);
 			} catch(cError& err) {
 				JS_THROW_ERR(err);
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_int(worker, args[args_index]);
 			}
 			
 			// keep war buffer Persistent javascript object
 			CopyablePersistentValue persistent(worker, args[1]);
-			uint raw_buff_len = raw_buf->length();
 			
-			FileHelper::read(fd, raw_buf->realloc(size), offset,
-											 Callback([persistent, raw_buf, raw_buff_len, cb](SimpleEvent& ev) {
+			FileHelper::read(fd, WeakBuffer(*raw_buf, size), offset,
+											 Cb([persistent, cb](Cbd& ev) {
 				XX_ASSERT( ev.data );
 				Int read_len(static_cast<Buffer*>(ev.data)->length());
-				// restore raw buffer
-				*raw_buf = static_cast<Buffer*>(ev.data)->realloc(raw_buff_len);
 				ev.data = &read_len;
 				cb->call(ev);
 			}));
@@ -1800,8 +1784,8 @@ class NativeFileHelper {
 		
 		if (args.Length() < 2 || !args[0]->IsInt32(worker) ||
 			!(args[1]->IsString(worker) ||
-				args[1]->IsArrayBuffer(worker) ||
-				worker->has_buffer(args[1]) )
+        // args[1]->IsArrayBuffer(worker) ||
+				args[1]->IsBuffer(worker) )
 		) { // 参数错误
 			if ( sync ) {
 				JS_THROW_ERR(
@@ -1836,14 +1820,15 @@ class NativeFileHelper {
 		
 		int fd = args[0]->ToInt32Value(worker);
 
-		Buffer keep;
-		void*  buff;
+		Buffer buffer;
+		void*  data;
 		int64 size;
 		int64 offset = -1;
-		Buffer* raw_buff;
+		bool afterCollapse = false;
 		int args_index;
 		
-		if (!parse_file_write_params(args, sync, args_index, keep, buff, size, raw_buff)) return;
+		if (!parse_file_write_params(args, sync, args_index, buffer, data, size, afterCollapse))
+      return;
 		
 		if (args.Length() > args_index && args[args_index]->IsInt32()) { // offset
 			offset = args[args_index]->ToInt32Value(worker);
@@ -1855,29 +1840,25 @@ class NativeFileHelper {
 		if ( sync ) {
 			int r;
 			try {
-				r = FileHelper::write_sync(fd, buff, size, offset);
+				r = FileHelper::write_sync(fd, data, size, offset);
 			} catch(cError& err) {
 				JS_THROW_ERR(err);
 			}
 			JS_RETURN( r );
 		} else {
-			Callback cb;
+			Cb cb;
 			if ( args.Length() > args_index ) {
 				cb = get_callback_for_none(worker, args[args_index]);
 			}
-			
+
 			// keep raw buffer Persistent javascript value
 			CopyablePersistentValue persistent(worker, args[1]);
 			
-			FileHelper::write(fd, keep, offset, Callback([persistent, raw_buff, cb](SimpleEvent& ev) {
+			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb](Cbd& ev) {
 				XX_ASSERT( ev.data );
-				if (raw_buff) { // restore raw buffer
-					if ( raw_buff == (Buffer*)0x1 ) { // 这是ArrayBuffer,
-						// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
-						static_cast<Buffer*>(ev.data)->collapse();
-					} else {
-						*raw_buff = *static_cast<Buffer*>(ev.data);
-					}
+				if (afterCollapse) { // restore raw buffer
+          // collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
+          static_cast<Buffer*>(ev.data)->collapse();
 				}
 				cb->call(ev);
 			}));

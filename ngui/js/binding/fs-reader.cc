@@ -51,7 +51,7 @@ class NativeFileReader {
 		}
 		
 		String path = args[0]->ToStringValue(worker);
-		Callback cb;
+		Cb cb;
 		
 		Encoding encoding = Encoding::unknown;
 		int args_index = 1;
@@ -62,8 +62,8 @@ class NativeFileReader {
 		}
 		if ( args.Length() > args_index ) {
 			cb = stream ?
-			get_callback_for_io_stream(worker, args[args_index]) :
-			get_callback_for_buffer(worker, args[args_index], encoding);
+        get_callback_for_io_stream(worker, args[args_index]) :
+        get_callback_for_buffer(worker, args[args_index], encoding);
 		}
 		if ( stream ) {
 			JS_RETURN( f_reader()->read_stream( path, cb ) );

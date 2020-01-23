@@ -36,29 +36,29 @@
 
 XX_NS(ngui)
 
-class StaticCallback2: public CallbackCore {
+class DefaultStaticCallback: public CallbackCore<Object> {
  public:
 	virtual bool retain() { return 1; }
 	virtual void release() { }
-	virtual void call(Se& event) const { }
+	virtual void call(Cbd& event) const { }
 };
 
-static StaticCallback2* default_callback_p = nullptr;
+static DefaultStaticCallback* default_callback_p = nullptr;
 static Mutex mutex;
 
-static inline StaticCallback2* default_callback() {
+static inline DefaultStaticCallback* default_callback() {
 	if ( !default_callback_p ) {
 		ScopeLock scope(mutex);
-		default_callback_p = NewRetain<StaticCallback2>();
+		default_callback_p = NewRetain<DefaultStaticCallback>();
 	}
 	return default_callback_p;
 }
 
-Callback::Callback(int type): Handle(default_callback()) {
-	//
+template<>
+Callback<Object>::Callback(int type): Handle<CallbackCore<Object>>(default_callback()) {
 }
 
-class WrapCallback: public CallbackCore {
+class WrapCallback: public CallbackCore<Object> {
  public:
 	inline WrapCallback(cCb& cb, Error* err, Object* data)
 	: m_inl_cb(cb), m_err(err), m_data(data) {
@@ -67,13 +67,13 @@ class WrapCallback: public CallbackCore {
 		Release(m_err);
 		Release(m_data);
 	}
-	virtual void call(Se& evt) const {
+	virtual void call(Cbd& evt) const {
 		evt.error = m_err;
 		evt.data = m_data;
 		m_inl_cb->call(evt);
 	}
  private:
-	Callback m_inl_cb;
+	Callback<> m_inl_cb;
 	Error* m_err;
 	Object* m_data;
 };
@@ -86,7 +86,7 @@ void async_callback_and_dealloc(cCb& cb, Error* e, Object* d, PostMessage* loop)
  * @func sync_callback
  */
 int sync_callback(cCb& cb, cError* err, Object* data) {
-	Se evt = { err, data, 0 };
+	Cbd evt = { err, data, 0 };
 	cb->call(evt);
 	return evt.return_value;
 }
@@ -134,7 +134,7 @@ void AsyncIOTask::safe_abort(uint id) {
 		auto i = tasks->values.find(id);
 		if (i.is_null()) return;
 		
-		i.value()->m_loop->post(Cb([id](Se& e) {
+		i.value()->m_loop->post(Cb([id](Cbd& e) {
 			AsyncIOTask* task = nullptr;
 			{ //
 				ScopeLock scope(tasks->mutex);

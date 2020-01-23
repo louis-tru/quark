@@ -66,7 +66,7 @@ class WrapView: public WrapViewBase {
 	 */
 	static void prepend(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		if (args.Length() < 1 || ! worker->has_instance(args[0], View::VIEW)) {
+		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
 			JS_THROW_ERR(
 				"* @func prepend(child)\n"
 				"* @arg child {View}\n"
@@ -84,7 +84,7 @@ class WrapView: public WrapViewBase {
 	 */
 	static void append(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		if (args.Length() < 1 || ! worker->has_instance(args[0], View::VIEW)) {
+		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
 			JS_THROW_ERR(
 				"* @func append(child)\n"
 				"* @arg child {View}\n"
@@ -131,7 +131,7 @@ class WrapView: public WrapViewBase {
 	 */
 	static void before(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		if (args.Length() < 1 || ! worker->has_instance(args[0], View::VIEW)) {
+		if (args.Length() < 1 || ! worker->hasInstance(args[0], View::VIEW)) {
 			JS_THROW_ERR(
 				"* @func before(prev)\n"
 				"* @arg prev {View}\n"
@@ -149,7 +149,7 @@ class WrapView: public WrapViewBase {
 	 */
 	static void after(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		if (args.Length() < 1 || !worker->has_view(args[0])) {
+		if (args.Length() < 1 || !worker->hasView(args[0])) {
 			JS_THROW_ERR(
 				"* @func after(next)\n"
 				"* @arg next {View}\n"
@@ -218,7 +218,7 @@ class WrapView: public WrapViewBase {
 	static void layout_offset_from(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		View* target = nullptr;
-		if ( args.Length() > 0 && worker->has_view(args[0]) ) {
+		if ( args.Length() > 0 && worker->hasView(args[0]) ) {
 			target = Wrap<View>::unpack(args[0].To())->self();
 		}
 		JS_SELF(View);
@@ -250,7 +250,7 @@ class WrapView: public WrapViewBase {
 		Action* action = nullptr;
 		
 		if ( args.Length() > 0 ) {
-			if (worker->has_instance<Action>(args[0])) {
+			if (worker->hasInstance<Action>(args[0])) {
 				action = unpack<Action>(args[0].To())->self();
 			} else if ( !args[0]->IsNull(worker) ) {
 				JS_THROW_ERR(
@@ -898,7 +898,7 @@ class WrapView: public WrapViewBase {
 		if ( args.Length() == 0 ) {
 			JS_THROW_ERR("Bad argument.");
 		}
-		if ( !worker->has_instance(args[0], View::VIEW) ) {
+		if ( !worker->hasInstance(args[0], View::VIEW) ) {
 			JS_RETURN_NULL();
 		}
 		JS_SELF(View);

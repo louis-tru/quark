@@ -46,7 +46,7 @@ class Cast: public Object {
  public:
 	typedef Local<JSValue> (*CastFunc)(const Object& object, Worker* worker);
 	Local<JSValue> cast(const Object& object, Worker* worker);
-	template<class T> static Cast* entity() {
+	template<class T> static Cast* Entity() {
 		static Cast value(&Worker::New<T>);
 		return &value;
 	}
