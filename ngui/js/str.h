@@ -75,6 +75,7 @@ F(id) \
 F(startX) \
 F(startY) \
 F(force) \
+F(clickIn) \
 F(view) \
 F(m_noticer) \
 F(point1X) \

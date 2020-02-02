@@ -154,7 +154,7 @@ class WrapTextarea: public WrapViewBase {
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Textarea, constructor, {
-			WrapViewBase::inherit_scroll(cls, worker);
+			WrapViewBase::inheritScroll(cls, worker);
 		}, Input);
 		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Textarea), View::TEXTAREA);
 	}

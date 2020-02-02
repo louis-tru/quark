@@ -233,17 +233,17 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
  */
 class XX_EXPORT GUIClickEvent: public GUIEvent {
  public:
-	enum Mode { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
-	inline GUIClickEvent(View* origin, float x, float y, Mode mode, uint count = 1)
-		: GUIEvent(origin), x_(x), y_(y), count_(count), mode_(mode) { }
+	enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
+	inline GUIClickEvent(View* origin, float x, float y, Type type, uint count = 1)
+		: GUIEvent(origin), x_(x), y_(y), count_(count), type_(type) { }
 	inline float x() const { return x_; }
 	inline float y() const { return y_; }
 	inline uint count() const { return count_; }
-	inline Mode mode() const { return mode_; }
+	inline Type type() const { return type_; }
  private:
 	float x_, y_;
 	uint count_;
-	Mode mode_;
+	Type type_;
 };
 
 /**
@@ -279,18 +279,19 @@ class XX_EXPORT GUIHighlightedEvent: public GUIEvent {
  */
 class XX_EXPORT GUITouchEvent: public GUIEvent {
  public:
-	struct Touch { // touch event point
+	struct TouchPoint { // touch event point
 		uint    id;
 		float   start_x, start_y;
 		float   x, y, force;
 		bool    click_in;
 		View*   view;
 	};
-	inline GUITouchEvent(View* origin, Array<Touch>& touches)
+	typedef TouchPoint Touch;
+	inline GUITouchEvent(View* origin, Array<TouchPoint>& touches)
 		: GUIEvent(origin), m_change_touches(touches) { }
-	inline Array<Touch>& changed_touches() { return m_change_touches; }
+	inline Array<TouchPoint>& changed_touches() { return m_change_touches; }
  private:
-	Array<Touch> m_change_touches;
+	Array<TouchPoint> m_change_touches;
 };
 
 typedef GUITouchEvent::Touch GUITouch;

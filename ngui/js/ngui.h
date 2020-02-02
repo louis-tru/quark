@@ -68,19 +68,19 @@ class XX_EXPORT WrapViewBase: public WrapObject {
 	virtual bool removeEventListener(cString& name, int id);
 	
 	/**
-	 * @func inherit_text_font
+	 * @func inheritTextFont
 	 */
-	static void inherit_text_font(Local<JSClass> cls, Worker* worker);
+	static void inheritTextFont(Local<JSClass> cls, Worker* worker);
 	
 	/**
-	 * @func inherit_text_layout
+	 * @func inheritTextLayout
 	 */
-	static void inherit_text_layout(Local<JSClass> cls, Worker* worker);
+	static void inheritTextLayout(Local<JSClass> cls, Worker* worker);
 	
 	/**
-	 * @func inherit_scroll
+	 * @func inheritScroll
 	 */
-	static void inherit_scroll(Local<JSClass> cls, Worker* worker);
+	static void inheritScroll(Local<JSClass> cls, Worker* worker);
 	
 };
 

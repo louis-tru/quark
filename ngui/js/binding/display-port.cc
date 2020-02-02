@@ -327,24 +327,24 @@ class WrapDisplayPort: public WrapObject {
 	}
 	
 	/**
-	 * @static default_atom_pixel {float} 
+	 * @func default_atom_pixel() {float} 
 	 */
-	static void default_atom_pixel(Local<JSString> name, PropertyCall args) {
+	static void default_atom_pixel(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_RETURN( DisplayPort::default_atom_pixel() );
 	}
 	
 	/**
-	 * @static default_status_bar_height {float}
+	 * @func default_status_bar_height() {float}
 	 */
-	static void default_status_bar_height(Local<JSString> name, PropertyCall args) {
+	static void default_status_bar_height(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_RETURN( DisplayPort::default_status_bar_height() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_ACCESSOR(defaultAtomPixel, default_atom_pixel);
-		JS_SET_ACCESSOR(defaultStatusBarHeight, default_status_bar_height);
+		JS_SET_METHOD(defaultAtomPixel, default_atom_pixel);
+		JS_SET_METHOD(defaultStatusBarHeight, default_status_bar_height);
 		
 		// emun Orientation
 		JS_SET_PROPERTY(ORIENTATION_INVALID, DisplayPort::ORIENTATION_INVALID);

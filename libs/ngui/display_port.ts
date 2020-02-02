@@ -28,48 +28,96 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import 'ngui/util';
-import 'ngui/app';
-import 'ngui/event';
+import utils from './util';
+import app from './app';
+import event, { EventNoticer, NativeNotification, Notification } from './event';
 
-export __requireNgui__('_display_port');
+const _display_port = __requireNgui__('_display_port');
 
 /**
  * @class DisplayPort
  */
-class DisplayPort extends event.NativeNotification {
-	event onChange;
-	event onOrientation;
+class DisplayPortExt extends NativeNotification {
+	@event onChange: EventNoticer;
+	@event onOrientation: EventNoticer;
 }
 
-util.extendClass(exports.DisplayPort, DisplayPort);
+utils.extendClass(_display_port.DisplayPort, DisplayPortExt);
 
-export {
+export enum Orientation {
+	ORIENTATION_INVALID = _display_port.ORIENTATION_INVALID as number,
+	ORIENTATION_PORTRAIT = _display_port.ORIENTATION_PORTRAIT as number,
+	ORIENTATION_LANDSCAPE = _display_port.ORIENTATION_LANDSCAPE as number,
+	ORIENTATION_REVERSE_PORTRAIT = _display_port.ORIENTATION_REVERSE_PORTRAIT as number,
+	ORIENTATION_REVERSE_LANDSCAPE = _display_port.ORIENTATION_REVERSE_LANDSCAPE as number,
+	ORIENTATION_USER = _display_port.ORIENTATION_USER as number,
+	ORIENTATION_USER_PORTRAIT = _display_port.ORIENTATION_USER_PORTRAIT as number,
+	ORIENTATION_USER_LANDSCAPE = _display_port.ORIENTATION_USER_LANDSCAPE as number,
+	ORIENTATION_USER_LOCKED = _display_port.ORIENTATION_USER_LOCKED as number,
+}
+
+export enum StatusBarStyle {
+	STATUS_BAR_STYLE_WHITE = _display_port.STATUS_BAR_STYLE_WHITE as number,
+	STATUS_BAR_STYLE_BLACK = _display_port.STATUS_BAR_STYLE_BLACK as number,
+}
+
+export declare class DisplayPort extends Notification {
+	onChange: EventNoticer;
+	onOrientation: EventNoticer;
+	lockSize(width?: number, height?: number): void;
+	nextFrame(cb: ()=>void): void;
+	keepScreen(keep: boolean): void;
+	statusBarHeight(): number;
+	setVisibleStatusBar(visible: boolean): void;
+	setStatusBarStyle(style: StatusBarStyle): void;
+	requestFullscreen(fullscreen: boolean): void;
+	orientation(): Orientation;
+	setOrientation(orientation: Orientation): void;
+	fsp(): number;
+	width: number;
+	height: number;
+	phyWidth: number;
+	phyHeight: number;
+	bestScale: number;
+	scale: number;
+	scaleValue: number;
+	rootMatrix: any; //Mat4;
+	atomPixel: number;
+}
+
+export default {
+
+	get defaultAtomPixel(): number { return _display_port.defaultAtomPixel() },
+	get defaultStatusBarHeight(): number { return _display_port.defaultStatusBarHeight() },
 
 	/**
 	 * @get current {DisplayPort}
 	 */
-	get current() { return app.current.displayPort; },
+	get current(): DisplayPort { return app.current.displayPort; },
 
 	/**
 	 * @get atomPixel {float}
 	 */
-	get atomPixel() {
-		return app.current ? app.current.displayPort.atomPixel: exports.defaultAtomPixel;
+	get atomPixel(): number {
+		return app.current ? 
+			app.current.displayPort.atomPixel: 
+			_display_port.defaultAtomPixel();
 	},
 
 	/**
 	 * @get statusBarHeight {float}
 	 */
-	get statusBarHeight() {
-		return app.current ? app.current.displayPort.statusBarHeight(): exports.defaultStatusBarHeight;
+	get statusBarHeight(): number {
+		return app.current ? 
+			app.current.displayPort.statusBarHeight(): 
+			_display_port.defaultStatusBarHeight();
 	},
 
 	/**
 	 * @func nextFrame(cb)
 	 * @arg cb {Function}
 	 */
-	nextFrame: function(cb) {
+	nextFrame(cb: ()=>void) {
 		if ( app.current ) {
 			app.current.displayPort.nextFrame(cb);
 		} else {

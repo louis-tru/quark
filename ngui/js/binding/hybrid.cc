@@ -66,7 +66,7 @@ class WrapHybrid: public WrapViewBase {
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Hybrid, constructor, {
 			JS_SET_CLASS_ACCESSOR(textAlign, text_align, set_text_align);
-			WrapViewBase::inherit_text_layout(cls, worker);
+			WrapViewBase::inheritTextLayout(cls, worker);
 		}, Box);
 		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Hybrid), View::HYBRID);
 	}

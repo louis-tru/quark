@@ -1,3 +1,5 @@
+import ViewController from "ctr";
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -280,6 +282,97 @@ Object.assign(exports, _event);
 export default (exports.event as (target: any, name: string)=>void);
 
 // ======================================================
+
+// GUI EVENT 
+
+type View = any;
+type Action = any;
+
+export enum ClickType { 
+	TOUCH = 1, KEYBOARD = 2, MOUSE = 3,
+};
+
+export enum HighlightedStatus {
+	HIGHLIGHTED_NORMAL = 1,
+	HIGHLIGHTED_HOVER,
+	HIGHLIGHTED_DOWN,
+};
+
+export enum ReturnValueMask {
+	RETURN_VALUE_MASK_DEFAULT = (1 << 0),
+	RETURN_VALUE_MASK_BUBBLE = (1 << 1),
+	RETURN_VALUE_MASK_ALL = (RETURN_VALUE_MASK_DEFAULT | RETURN_VALUE_MASK_BUBBLE),
+};
+
+declare class NativeEvent<Sender = any> extends Event<any, number, Sender> {
+	get returnValue(): number;
+	set returnValue(value: number);
+}
+
+export declare class GUIEvent extends NativeEvent<View> {
+	readonly origin: View;
+	readonly timestamp: number;
+	readonly isDefault: boolean;
+	readonly isBubble: boolean;
+	cancelDefault(): void;
+	cancelBubble(): void;
+}
+
+export declare class GUIActionEvent extends GUIEvent {
+	readonly action: Action;
+	readonly delay: number;
+	readonly frame: number;
+	readonly loop: number;
+}
+
+export declare class GUIKeyEvent extends GUIEvent {
+	readonly keycode: number;
+	readonly repeat: number;
+	readonly shift: boolean;
+	readonly ctrl: boolean;
+	readonly alt: boolean;
+	readonly command: boolean;
+	readonly capsLock: boolean;
+	readonly device: number;
+	readonly source: number;
+	readonly focusMove: View | null;
+}
+
+export declare class GUIClickEvent extends GUIEvent {
+	readonly x: number;
+	readonly y: number;
+	readonly count: number;
+	readonly type: ClickType;
+}
+
+export declare class GUIHighlightedEvent extends GUIEvent {
+	readonly status: HighlightedStatus;
+}
+
+export declare class GUIMouseEvent extends GUIEvent {
+	readonly x: number;
+	readonly y: number;
+}
+
+export interface TouchPoint {
+	readonly id: number;
+	readonly startX: number;
+	readonly startY: number;
+	readonly x: number; 
+	readonly y: number;
+	readonly force: number;
+	readonly clickIn: boolean;
+	readonly view: View;
+}
+
+export declare class GUITouchEvent extends GUIEvent {
+	readonly changedTouches: TouchPoint[];
+}
+
+export declare class GUIFocusMoveEvent extends GUIEvent {
+	readonly focus: View | null;
+	readonly focusMove: View | null;
+}
 
 /**
  * @class NativeNotification

@@ -208,11 +208,11 @@ class WrapTextLayout {
 	}
 };
 
-void WrapViewBase::inherit_text_font(Local<JSClass> cls, Worker* worker) {
+void WrapViewBase::inheritTextFont(Local<JSClass> cls, Worker* worker) {
 	WrapTextFont::inherit(cls, worker);
 }
 
-void WrapViewBase::inherit_text_layout(Local<JSClass> cls, Worker* worker) {
+void WrapViewBase::inheritTextLayout(Local<JSClass> cls, Worker* worker) {
 	WrapTextLayout::inherit(cls, worker);
 }
 

@@ -63,7 +63,6 @@ Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 	}
 }
 
-
 bool JSValue::IsBuffer() const {
   return IsTypedArray() || IsArrayBuffer();
 }

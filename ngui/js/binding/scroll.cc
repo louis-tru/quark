@@ -526,7 +526,7 @@ class WrapScroll: public WrapViewBase {
 	}
 };
 
-void WrapViewBase::inherit_scroll(Local<JSClass> cls, Worker* worker) {
+void WrapViewBase::inheritScroll(Local<JSClass> cls, Worker* worker) {
 	WrapBasicScroll::inherit(cls, worker);
 }
 

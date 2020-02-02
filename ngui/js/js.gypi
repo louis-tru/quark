@@ -165,14 +165,14 @@
 				],
 				'process_outputs_as_sources': 1,
 			},
-			# {
-			# 	'action_name': 'build_ngui_',
-			# 	'inputs': [
-			# 		'../../libs/ngui/tsconfig.json',
-			# 	],
-			# 	'outputs': [],
-			# 	'action': [ 'sh', '-c', 'cd libs/ngui && npm run build' ]
-			# },
+			{
+				'action_name': 'build_ngui_',
+				'inputs': [
+					'../../libs/ngui/tsconfig.json',
+				],
+				'outputs': [],
+				'action': [ 'sh', '-c', 'cd libs/ngui && npm run build' ]
+			},
 			{
 				'action_name': 'gen_ext_js_natives_',
 				'variables': {

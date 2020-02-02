@@ -29,14 +29,19 @@
  * ***** END LICENSE BLOCK ***** */
 
 import utils from './util';
-import './display_port';
-import event, {EventNoticer} from './event';
+import * as display_port from './display_port';
+import event, {EventNoticer, NativeNotification} from './event';
 import ViewController, { _VV, _VVD } from './ctr';
 
-var _ngui = __requireNgui__('_ngui');
-var Root = _ngui.Root;
-var cur = null;
-var cur_root_ctr = null;
+const _ngui = __requireNgui__('_ngui');
+const Root = _ngui.Root;
+var cur: GUIApplication | null = null;
+var cur_root_ctr: any = null;
+
+export interface Options {
+	anisotropic?: boolean;
+	multisample?: 0|1|2|3|4;
+}
 
 /**
  * @class GUIApplication
@@ -56,11 +61,11 @@ export class GUIApplication extends _ngui.NativeGUIApplication {
 	 * @constructor([options])
 	 * @arg [options] {Object} { anisotropic {bool}, multisample {0-4} }
 	 */
-	constructor(options) {
+	constructor(options?: Options) {
 		super(options);
 		cur = this;
 	}
-	
+
 	/**
 	 * @func start(vdom)
 	 * @arg vdom {Object}
@@ -90,14 +95,14 @@ export class GUIApplication extends _ngui.NativeGUIApplication {
 	//@end
 }
 
-util.extendClass(GUIApplication, event.NativeNotification);
+utils.extendClass(GUIApplication, NativeNotification);
 
-export {
+export default {
 
 	/**
 	 * @get currend {GUIApplication} 
 	 */
-	get current() { return cur },
+	get current() { return cur as GUIApplication },
 
 	/**
 	 * @get root {Root} 

@@ -610,6 +610,7 @@ class WrapGUITouchEvent: public WrapObject {
 				item->Set(worker,worker->strs()->x(), worker->New(i.value().x));
 				item->Set(worker,worker->strs()->y(), worker->New(i.value().y));
 				item->Set(worker,worker->strs()->force(), worker->New(i.value().force));
+				item->Set(worker,worker->strs()->clickIn(), worker->New(i.value().click_in));
 				item->Set(worker,worker->strs()->view(), view->that());
 				//
 				arr->Set(worker, j, item);
