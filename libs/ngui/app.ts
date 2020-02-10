@@ -48,7 +48,7 @@ export interface Options {
  * @bases NativeGUIApplication,NativeNotification
  */
 export class GUIApplication extends _ngui.NativeGUIApplication {
-	
+
 	@event onLoad: EventNoticer;
 	@event onUnload: EventNoticer;
 	@event onBackground: EventNoticer;

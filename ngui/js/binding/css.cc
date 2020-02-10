@@ -198,10 +198,6 @@ class WrapStyleSheets: public WrapObject {
 	
 	// -------------------- get/set Non meta attribute --------------------
 	
-	inline static BackgroundImage* as_background_image(StyleSheets* self) {
-		return self->background()->as_image();
-	}
-	
 	def_property_from_type2(translate, Vec2, {
 		self->set_x(out.x()); self->set_y(out.y());
 	});
@@ -304,62 +300,7 @@ class WrapStyleSheets: public WrapObject {
 		self->set_ratio_x(out.x());
 		self->set_ratio_y(out.y());
 	});
-	def_property_from_type3(background_image, BackgroundPtr, BackgroundImage, {
-		out->set_holder_mode(Background::M_DISABLE); // 禁止被持有
-		self->set_background(out);
-	});
-	
-	#define set_background_attrs(block) { \
-		auto bg = as_background_image(self);\
-		int i = 0;\
-		while(bg) {\
-			block; \
-			i++;\
-			bg = bg->next() ? bg->next()->as_image(): nullptr; \
-		} \
-	}
 
-	def_property_from_type3(background_repeat, Array<Repeat>, Repeats, {
-		set_background_attrs({
-			bg->set_repeat(out[i]);
-		});
-	});
-	def_property_from_type3(background_position,
-													Array<BackgroundPositionCollection>, BackgroundPositions, {
-		set_background_attrs({
-			bg->set_position_x(out[i].x);
-			bg->set_position_y(out[i].y);
-		});
-	});
-	def_property_from_type3(background_position_x,
-													Array<BackgroundPositionCollection>, BackgroundPositions, {
-		set_background_attrs({
-			bg->set_position_x(out[i].x);
-		});
-	});
-	def_property_from_type3(background_position_y,
-													Array<BackgroundPositionCollection>, BackgroundPositions, {
-		set_background_attrs({
-			bg->set_position_y(out[i].x);
-		});
-	});
-	def_property_from_type3(background_size, Array<BackgroundSizeCollection>, BackgroundSizes, {
-		set_background_attrs({
-			bg->set_size_x(out[i].x);
-			bg->set_size_y(out[i].y);
-		});
-	});
-	def_property_from_type3(background_size_x, Array<BackgroundSizeCollection>, BackgroundSizes, {
-		set_background_attrs({
-			bg->set_size_x(out[i].x);
-		});
-	});
-	def_property_from_type3(background_size_y, Array<BackgroundSizeCollection>, BackgroundSizes, {
-		set_background_attrs({
-			bg->set_size_y(out[i].x);
-		});
-	});
-	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
 		
@@ -387,14 +328,7 @@ class WrapStyleSheets: public WrapObject {
 		JS_SET_PROPERTY(PROPERTY_MIN_HEIGHT, -17);
 		JS_SET_PROPERTY(PROPERTY_START, -18);
 		JS_SET_PROPERTY(PROPERTY_RATIO, -19);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_IMAGE, -20);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_REPEAT, -21);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION, -22);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_X, -23);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_POSITION_Y, -24);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE, -25);
-		JS_SET_PROPERTY(PROPERTY_BACKGROUND_SIZE_X, -26);
-		JS_SET_PROPERTY(PROPERTY_ALIGN, -27);
+		JS_SET_PROPERTY(PROPERTY_ALIGN, -20);
 		
 		JS_DEFINE_CLASS(StyleSheets, constructor, {
 			JS_SET_CLASS_ACCESSOR(time, time, set_time);
@@ -474,14 +408,6 @@ class WrapStyleSheets: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(start, nullptr, set_start);
 			JS_SET_CLASS_ACCESSOR(ratio, nullptr, set_ratio);
 			JS_SET_CLASS_ACCESSOR(align, nullptr, set_align);
-			JS_SET_CLASS_ACCESSOR(backgroundImage, nullptr, set_background_image);
-			JS_SET_CLASS_ACCESSOR(backgroundRepeat, nullptr, set_background_repeat);
-			JS_SET_CLASS_ACCESSOR(backgroundPosition, nullptr, set_background_position);
-			JS_SET_CLASS_ACCESSOR(backgroundPositionX, nullptr, set_background_position_x);
-			JS_SET_CLASS_ACCESSOR(backgroundPositionY, nullptr, set_background_position_y);
-			JS_SET_CLASS_ACCESSOR(backgroundSize, nullptr, set_background_size);
-			JS_SET_CLASS_ACCESSOR(backgroundSizeX, nullptr, set_background_size_x);
-			JS_SET_CLASS_ACCESSOR(backgroundSizeY, nullptr, set_background_size_y);
 		}, nullptr);
 		
 		JS_SET_METHOD(create, create);

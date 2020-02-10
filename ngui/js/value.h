@@ -95,9 +95,8 @@ F(BackgroundSize, BackgroundSize) \
 F(Values, Array<Value>) \
 F(Floats, Array<float>) \
 F(Aligns, Array<Align>) \
-F(Repeats, Array<Repeat>) \
-F(BackgroundPositions, Array<BackgroundPositionCollection>) \
-F(BackgroundSizes, Array<BackgroundSizeCollection>) \
+F(BackgroundPositionCollection, BackgroundPositionCollection) \
+F(BackgroundSizeCollection, BackgroundSizeCollection) \
 
 /**
  * @class ValueProgram
@@ -106,25 +105,17 @@ class XX_EXPORT ValueProgram: public Object {
  public:
 	#define def_attr_fn(Name, Type)           \
 		Local<JSValue> New(const Type& value);  \
-		bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg); \
-		bool is##Name(Local<JSValue> value);
-	
+		bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg = nullptr);
 	#define def_attr(Name, Type) \
-		Persistent<JSFunction> _constructor##Name; \
 		Persistent<JSFunction> _parse##Name; \
-		Persistent<JSFunction> _parse##Name##Help; \
 		Persistent<JSFunction> _##Name;
-	
 	ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
 	virtual ~ValueProgram();
-	void throwError(Local<JSValue> value, cchar* msg, Local<JSFunction> help = Local<JSFunction>());
-	bool isBase(Local<JSValue> value);
-	bool parseBackgroundImage(Local<JSValue> in, BackgroundPtr& out, cchar* err_msg);
+	void throwError(Local<JSValue> value, cchar* msg = nullptr, cchar* help = nullptr);
 	js_value_table(def_attr_fn);
  private:
 	js_value_table(def_attr)
 	Worker* worker;
-	Persistent<JSFunction> _isBase;
 	#undef def_attr_fn
 	#undef def_attr
 };

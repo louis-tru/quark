@@ -28,69 +28,69 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import utils from './util';
-import event, { EventNoticer, NativeNotification, Event, Listen } from './event';
-import action from './action';
-
-const _ngui = __requireNgui__('_ngui');
-
-type Matrix = any;
+import {
+	Notification, EventNoticer, GUIEvent,
+	GUIHighlightedEvent, GUIKeyEvent,
+	GUIClickEvent, GUITouchEvent,
+	GUIMouseEvent, GUIActionEvent,
+} from './event';
+import {Mat,Vec2,Rect} from './value';
+import ViewController from './ctr';
+import {Action, Options as ActionOpt} from './_action';
 
 /**
  * @class View
  */
-export declare class View {
-
-	onKeyDown: EventNoticer;
-	onKeyPress: EventNoticer;
-	onKeyUp: EventNoticer;
-	onKeyEnter: EventNoticer;
-	onBack: EventNoticer;
-	onClick: EventNoticer;
-	onTouchStart: EventNoticer;
-	onTouchMove: EventNoticer;
-	onTouchEnd: EventNoticer;
-	onTouchCancel: EventNoticer;
-	onMouseOver: EventNoticer;
-	onMouseOut: EventNoticer;
-	onMouseLeave: EventNoticer;
-	onMouseEnter: EventNoticer;
-	onMouseMove: EventNoticer;
-	onMouseDown: EventNoticer;
-	onMouseUp: EventNoticer;
-	onMouseWheel: EventNoticer;
-	onFocus: EventNoticer;
-	onBlur: EventNoticer;
-	onHighlighted: EventNoticer;
-	onActionKeyframe: EventNoticer;
-	onActionLoop: EventNoticer;
-
+export declare class View extends Notification<GUIEvent> {
+	// events
+	readonly onKeyDown: EventNoticer<GUIKeyEvent>;
+	readonly onKeyPress: EventNoticer<GUIKeyEvent>;
+	readonly onKeyUp: EventNoticer<GUIKeyEvent>;
+	onKeyEnter: EventNoticer<GUIKeyEvent>;
+	onBack: EventNoticer<GUIClickEvent>;
+	onClick: EventNoticer<GUIClickEvent>;
+	onTouchStart: EventNoticer<GUITouchEvent>;
+	onTouchMove: EventNoticer<GUITouchEvent>;
+	onTouchEnd: EventNoticer<GUITouchEvent>;
+	onTouchCancel: EventNoticer<GUITouchEvent>;
+	onMouseOver: EventNoticer<GUIMouseEvent>;
+	onMouseOut: EventNoticer<GUIMouseEvent>;
+	onMouseLeave: EventNoticer<GUIMouseEvent>;
+	onMouseEnter: EventNoticer<GUIMouseEvent>;
+	onMouseMove: EventNoticer<GUIMouseEvent>;
+	onMouseDown: EventNoticer<GUIMouseEvent>;
+	onMouseUp: EventNoticer<GUIMouseEvent>;
+	onMouseWheel: EventNoticer<GUIMouseEvent>;
+	onFocus: EventNoticer<GUIEvent>;
+	onBlur: EventNoticer<GUIEvent>;
+	onHighlighted: EventNoticer<GUIHighlightedEvent>;
+	onActionKeyframe: EventNoticer<GUIActionEvent>;
+	onActionLoop: EventNoticer<GUIActionEvent>;
+	// methods
 	prepend(view: View): void;
 	append(view: View): void;
-	append_text(str: string): void;
+	appendText(str: string): void;
 	before(view: View): void;
 	after(view: View): void;
 	remove(): void;
 	removeAllChild(): void;
-	focus(): void;
-	blur(): void;
-	layoutOffset(): void;
-	layoutOffsetFrom(): void;
-	getAction(): void;
-	setAction(): void;
-	screenRect(): void;
-	finalMatrix(): void;
-	finalOpacity(): void;
-	position(): void;
-	overlapTest(): void;
+	focus(): boolean;
+	blur(): boolean;
+	layoutOffset(): Vec2;
+	layoutOffsetFrom(parents: View): Vec2;
+	getAction(): Action | null;
+	private _setAction(action: Action | null): void;
+	screenRect(): Rect;
+	finalMatrix(): Mat;
+	finalOpacity(): number;
+	position(): Vec2;
+	overlapTest(): boolean;
 	addClass(cls: string): void;
 	removeClass(): void;
 	toggleClass(): void;
-	firstButton(): void;
+	firstButton(): View | null;
 	hasChild(): boolean;
-
-	id?: string;
-
+	// props
 	readonly innerText: string;
 	readonly parent: View | null;
 	readonly prev: View | null;
@@ -108,158 +108,31 @@ export declare class View {
 	visible: boolean;
 	readonly finalVisible: boolean;
 	readonly drawVisible: boolean;
-	readonly translate: any; //, translate, set_translate);
-	readonly scale: any; //, scale, set_scale);
-	readonly skew: any; //, skew, set_skew);
+	translate: Vec2;
+	scale: Vec2;
+	skew: Vec2;
 	originX: number;
 	originY: number;
-	readonly origin: any; //, origin, set_origin);
-	readonly matrix: Matrix;
+	origin: Vec2;
+	readonly matrix: Mat;
 	readonly level: number;
 	needDraw: boolean;
 	receive: boolean;
 	isFocus: boolean;
-	readonly viewType: number; //, view_type);
-	readonly class: any; //, classs, set_class);
+	readonly viewType: number;
+	class: string;
+	// ext
+	id: string;
+	readonly owner: ViewController | null;
+	action: Action | null;
+	style: Dict;
+	setAction(action: ActionOpt | null): void;
+	hashCode(): number;
+	appendTo(parentView: View): this;
+	afterTo(prevView: View): this;
+	transition(style: Dict, delay?: number, cb?: (e: GUIActionEvent)=>void): Action;
+	show(): void;
+	hide(): void;
 }
 
-class ViewX extends NativeNotification {
-
-	// @private:
-	m_id?: string;
-	m_owner = null;
-	
-	get __view__() { return this }
-
-	@event onKeyDown: EventNoticer;
-	@event onKeyPress: EventNoticer;
-	@event onKeyUp: EventNoticer;
-	@event onKeyEnter: EventNoticer;
-	@event onBack: EventNoticer;
-	@event onClick: EventNoticer;
-	@event onTouchStart: EventNoticer;
-	@event onTouchMove: EventNoticer;
-	@event onTouchEnd: EventNoticer;
-	@event onTouchCancel: EventNoticer;
-	@event onMouseOver: EventNoticer;
-	@event onMouseOut: EventNoticer;
-	@event onMouseLeave: EventNoticer;
-	@event onMouseEnter: EventNoticer;
-	@event onMouseMove: EventNoticer;
-	@event onMouseDown: EventNoticer;
-	@event onMouseUp: EventNoticer;
-	@event onMouseWheel: EventNoticer;
-	@event onFocus: EventNoticer;
-	@event onBlur: EventNoticer;
-	@event onHighlighted: EventNoticer;
-	@event onActionKeyframe: EventNoticer;
-	@event onActionLoop: EventNoticer;
-
-	get id() {
-		return this.m_id;
-	}
-
-	set id(value) {
-		ViewController.setID(this, value);
-	}
-
-	get owner() {
-		return this.m_owner;
-	}
-
-	/**
-	 * @overwrite
-	 */
-	addDefaultListener(name: string, listen: Listen<Event<any, number, View>> | string) {
-		if ( typeof listen == 'string' ) { // find func 
-			var owner: any = this;
-			do {
-				var func2 = owner[listen];
-				if ( typeof func2 == 'function' ) {
-					return this.addEventListener(name, func2, owner, '0'); // default id 0
-				}
-				owner = owner.m_owner;
-			} while(owner);
-			throw Error.new(`Cannot find a function named "${listen}"`);
-		} else {
-			return NativeNotification.prototype.addDefaultListener.call(this, name, listen);
-		}
-	}
-	
-	/**
-	 * @overwrite
-	 */
-	hashCode() {
-		return (this as unknown as View).viewType + 18766898;
-	}
-
-	appendTo(parentView: View) {
-		(parentView as View).append(this as unknown as View);
-		return this;
-	}
-
-	afterTo(prevView: View) {
-		(prevView as View).after(this as unknown as View);
-		return this;
-	}
-
-	/**
-	 * @get action {Action}
-	 */
-	get action() { // get action object
-		return (this as unknown as View).getAction(); 
-	}
-
-	/**
-	 * @set action {Action}
-	 */
-	set action(value) { // set action
-		(this as unknown as View).setAction(action.create(value));
-	}
-
-	/**
-	 * @get style {Object}
-	 */	
-	get style() {
-		return this as unknown as View;
-	}
-
-	/**
-	 * @set style {Object}
-	 */
-	set style(value: Dict) {
-		for (var key in value) {
-			(this as any)[key] = value[key];
-		}
-	}
-
-	/**
-	 * @func transition(style[,delay[,cb]][,cb])
-	 * @arg style {Object}
-	 * @arg [delay] {uint} ms
-	 * @arg [cb] {Funcion}
-	 * @ret {KeyframeAction}
-	 */
-	transition(style: Dict, delay?: number, cb?: ()=>void) { // transition animate
-		return action.transition(this, style, delay, cb);
-	}
-	
-	/**
-	 * @func show()
-	 */
-	show() {
-		(this as unknown as View).visible = true;
-	}
-
-	/**
-	 * @func hide()
-	 */
-	hide() {
-		(this as unknown as View).visible = false; 
-	}
-
-}
-
-utils.extendClass(_ngui.View, ViewX);
-
-exports.View = _ngui.View;
+exports.View = __requireNgui__('_ngui').View;

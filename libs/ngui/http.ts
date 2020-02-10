@@ -33,16 +33,7 @@ import event, {EventNoticer, NativeNotification, Notification} from './event';
 
 const _http = __requireNgui__('_http');
 
-export declare class HttpClientRequest extends Notification {
-	onError: EventNoticer;
-	onwrite: EventNoticer;
-	onHeader: EventNoticer;
-	onData: EventNoticer;
-	onEnd: EventNoticer;
-	onReadystateChange: EventNoticer;
-	onTimeout: EventNoticer;
-	onAbort: EventNoticer;
-
+declare class NativeHttpClientRequest extends Notification {
 	// JS_SET_CLASS_METHOD(setMethod, set_method);
 	// JS_SET_CLASS_METHOD(setUrl, set_url);
 	// JS_SET_CLASS_METHOD(setSavePath, set_save_path);
@@ -78,7 +69,7 @@ export declare class HttpClientRequest extends Notification {
 /**
  * @class HttpClientRequestIMPL
  */
-class HttpClientRequestIMPL extends _http.NativeHttpClientRequest {
+export class HttpClientRequest extends (_http.NativeHttpClientRequest as typeof NativeHttpClientRequest) {
 	@event onError: EventNoticer;
 	@event onwrite: EventNoticer;
 	@event onHeader: EventNoticer;
@@ -89,6 +80,4 @@ class HttpClientRequestIMPL extends _http.NativeHttpClientRequest {
 	@event onAbort: EventNoticer;
 }
 
-utils.extendClass(HttpClientRequestIMPL, NativeNotification);
-
-exports.HttpClientRequest = HttpClientRequestIMPL;
+utils.extendClass(HttpClientRequest, NativeNotification);

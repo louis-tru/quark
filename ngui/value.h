@@ -195,11 +195,11 @@ namespace value {
 	F(ValueType, PERCENT)   /* 百分比  % */ \
 
 	/**
-	 * @enum TextAttrType
+	 * @enum TextValueType
 	 */
-#define XX_TEXT_ATTR_TYPE(F) \
-	F(TextAttrType, INHERIT) \
-	F(TextAttrType, VALUE) \
+#define XX_TEXT_VALUE_TYPE(F) \
+	F(TextValueType, INHERIT) \
+	F(TextValueType, VALUE) \
 
 	/**
 	 * @enum TextStyleEnum
@@ -229,7 +229,7 @@ namespace value {
 	 * @enum TextDecorationEnum
 	 */
 #define XX_TEXT_DECORATION_ENUM(F) \
-	F(TextDecoration,  NONE)           /* 没有 */ \
+	F(TextDecoration, NONE)           /* 没有 */ \
 	F(TextDecoration, OVERLINE)       /* 上划线 */ \
 	F(TextDecoration, LINE_THROUGH)   /* 中划线 */ \
 	F(TextDecoration, UNDERLINE)      /* 下划线 */ \
@@ -322,8 +322,8 @@ namespace value {
 		XX_BACKGROUND_SIZE_TYPE(DEF_ENUM)
 	};
 	
-	enum class TextAttrType: byte {
-		XX_TEXT_ATTR_TYPE(DEF_ENUM)
+	enum class TextValueType: byte {
+		XX_TEXT_VALUE_TYPE(DEF_ENUM)
 	};
 
 	enum class TextStyleEnum: byte {
@@ -429,7 +429,7 @@ namespace value {
 	 * @struct TextColor
 	 */
 	struct XX_EXPORT TextColor {
-		TextAttrType type;
+		TextValueType type;
 		Color value;
 	};
 	
@@ -437,7 +437,7 @@ namespace value {
 	 * @struct TextSize
 	 */
 	struct XX_EXPORT TextSize {
-		TextAttrType type;
+		TextValueType type;
 		float value;
 	};
 	
@@ -445,9 +445,9 @@ namespace value {
 	 * @struct TextFamily
 	 */
 	struct XX_EXPORT TextFamily {
-		TextFamily(TextAttrType type = TextAttrType::INHERIT);
-		TextFamily(TextAttrType type, const FontFamilysID* cffid);
-		TextAttrType type;
+		TextFamily(TextValueType type = TextValueType::INHERIT);
+		TextFamily(TextValueType type, const FontFamilysID* cffid);
+		TextValueType type;
 		const FontFamilysID* value;
 		cString& name() const;
 		const Array<String>& names() const;
@@ -457,7 +457,7 @@ namespace value {
 	 * @struct TextStyle
 	 */
 	struct XX_EXPORT TextStyle {
-		TextAttrType type;
+		TextValueType type;
 		TextStyleEnum value;
 	};
 	
@@ -465,7 +465,7 @@ namespace value {
 	 * @struct TextShadow
 	 */
 	struct XX_EXPORT TextShadow {
-		TextAttrType type;
+		TextValueType type;
 		Shadow  value;
 	};
 	
@@ -488,7 +488,7 @@ namespace value {
 	 * @struct TextLineHeight
 	 */
 	struct XX_EXPORT TextLineHeight {
-		TextAttrType  type;
+		TextValueType  type;
 		TextLineHeightValue value;
 	};
 	
@@ -496,7 +496,7 @@ namespace value {
 	 * @struct TextDecoration
 	 */
 	struct XX_EXPORT TextDecoration {
-		TextAttrType  type;
+		TextValueType  type;
 		TextDecorationEnum  value;
 	};
 	
@@ -504,7 +504,7 @@ namespace value {
 	 * @struct TextOverflow
 	 */
 	struct XX_EXPORT TextOverflow {
-		TextAttrType  type;
+		TextValueType  type;
 		TextOverflowEnum  value;
 	};
 	
@@ -512,7 +512,7 @@ namespace value {
 	 * @struct TextWhiteSpace
 	 */
 	struct XX_EXPORT TextWhiteSpace {
-		TextAttrType  type;
+		TextValueType  type;
 		TextWhiteSpaceEnum  value;
 	};
 	
@@ -522,7 +522,7 @@ using value::Direction;
 using value::ValueType;
 using value::BackgroundPositionType;
 using value::BackgroundSizeType;
-using value::TextAttrType;
+using value::TextValueType;
 using value::TextDecorationEnum;
 using value::TextOverflowEnum;
 using value::TextWhiteSpaceEnum;

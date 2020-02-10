@@ -161,7 +161,7 @@ class XX_EXPORT BackgroundImage: public Background {
 	void set_position_y(BackgroundPosition value);
 	void set_size_x(BackgroundSize value);
 	void set_size_y(BackgroundSize value);
-	bool get_background_image_data(Box* host, Vec2& size, Vec2& position, int& level);
+	bool get_background_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
  protected:
 	virtual Background* copy(Background* to);
  private:

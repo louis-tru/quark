@@ -30,19 +30,10 @@
 
 import utils from './util';
 import app from './app';
+import {Mat4} from './value';
 import event, { EventNoticer, NativeNotification, Notification } from './event';
 
 const _display_port = __requireNgui__('_display_port');
-
-/**
- * @class DisplayPort
- */
-class DisplayPortExt extends NativeNotification {
-	@event onChange: EventNoticer;
-	@event onOrientation: EventNoticer;
-}
-
-utils.extendClass(_display_port.DisplayPort, DisplayPortExt);
 
 export enum Orientation {
 	ORIENTATION_INVALID = _display_port.ORIENTATION_INVALID as number,
@@ -81,9 +72,17 @@ export declare class DisplayPort extends Notification {
 	bestScale: number;
 	scale: number;
 	scaleValue: number;
-	rootMatrix: any; //Mat4;
+	rootMatrix: Mat4;
 	atomPixel: number;
 }
+
+class _DisplayPort extends NativeNotification {
+	@event onChange: EventNoticer;
+	@event onOrientation: EventNoticer;
+}
+
+utils.extendClass(_display_port.DisplayPort, _DisplayPort);
+exports.DisplayPort = _display_port.DisplayPort;
 
 export default {
 

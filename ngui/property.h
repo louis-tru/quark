@@ -52,18 +52,18 @@ F(PROPERTY_OPACITY, float, opacity) \
 F(PROPERTY_VISIBLE, bool, visible) \
 F(PROPERTY_WIDTH, Value, width)  /* box / Value */ \
 F(PROPERTY_HEIGHT, Value, height) /* Value */ \
-F(PROPERTY_MARGIN_LEFT, Value, margin_left) \
 F(PROPERTY_MARGIN_TOP, Value, margin_top) \
 F(PROPERTY_MARGIN_RIGHT, Value, margin_right) \
 F(PROPERTY_MARGIN_BOTTOM, Value, margin_bottom) \
-F(PROPERTY_BORDER_LEFT_WIDTH, float, border_left_width) \
+F(PROPERTY_MARGIN_LEFT, Value, margin_left) \
 F(PROPERTY_BORDER_TOP_WIDTH, float, border_top_width) \
 F(PROPERTY_BORDER_RIGHT_WIDTH, float, border_right_width) \
 F(PROPERTY_BORDER_BOTTOM_WIDTH, float, border_bottom_width) \
-F(PROPERTY_BORDER_LEFT_COLOR, Color, border_left_color) \
+F(PROPERTY_BORDER_LEFT_WIDTH, float, border_left_width) \
 F(PROPERTY_BORDER_TOP_COLOR, Color, border_top_color) \
 F(PROPERTY_BORDER_RIGHT_COLOR, Color, border_right_color) \
 F(PROPERTY_BORDER_BOTTOM_COLOR, Color, border_bottom_color) \
+F(PROPERTY_BORDER_LEFT_COLOR, Color, border_left_color) \
 F(PROPERTY_BORDER_RADIUS_LEFT_TOP, float, border_radius_left_top) \
 F(PROPERTY_BORDER_RADIUS_RIGHT_TOP, float, border_radius_right_top) \
 F(PROPERTY_BORDER_RADIUS_RIGHT_BOTTOM, float, border_radius_right_bottom) \
@@ -76,7 +76,7 @@ F(PROPERTY_CONTENT_ALIGN, ContentAlign, content_align) /* div*/ \
 F(PROPERTY_TEXT_ALIGN, TextAlign, text_align) /* text / label */ \
 F(PROPERTY_MAX_WIDTH, Value, max_width) /* limit / limit-indep */ \
 F(PROPERTY_MAX_HEIGHT, Value, max_height) \
-F(PROPERTY_START_X, float, start_x) \
+F(PROPERTY_START_X, float, start_x) /* sprite */ \
 F(PROPERTY_START_Y, float, start_y) \
 F(PROPERTY_RATIO_X, float, ratio_x) \
 F(PROPERTY_RATIO_Y, float, ratio_y) \

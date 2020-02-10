@@ -700,9 +700,9 @@ class BindingNativeEvent {
 		JS_SET_PROPERTY(RETURN_VALUE_MASK_ALL, RETURN_VALUE_MASK_ALL);
 		
 		// Emun: KeyboardKeyName
-	 #define def_enum_keyboard_key_name(Name, Code) JS_SET_PROPERTY(Name, Name);
-		xx_each_keyboard_key_name_table(def_enum_keyboard_key_name)
-	 #undef def_enum_keyboard_key_name
+	//  #define def_enum_keyboard_key_name(Name, Code) JS_SET_PROPERTY(Name, Name);
+	// 	xx_each_keyboard_key_name_table(def_enum_keyboard_key_name)
+	//  #undef def_enum_keyboard_key_name
 		
 		WrapNativeEvent::binding(exports, worker);
 		WrapGUIEvent::binding(exports, worker);

@@ -30,8 +30,8 @@
 
 export __requireNgui__('_media');
 
-import 'ngui/util';
-import 'ngui/event';
+import utils from './util';
+import event from 'ngui/event';
 
  /**
 	* @class AudioPlayer
@@ -51,7 +51,7 @@ export class AudioPlayer extends exports.AudioPlayer {
  /**
 	* @class VideoExtend
 	*/
-class VideoExtend {
+class _Video {
 	event onWaitBuffer;
 	event onReady;
 	event onStartPlay;
@@ -63,5 +63,5 @@ class VideoExtend {
 	event onSeek;
 }
 
-util.extendClass(exports.Video, VideoExtend);
-util.extendClass(AudioPlayer, event.NativeNotification);
+utils.extendClass(exports.Video, _Video);
+utils.extendClass(AudioPlayer, event.NativeNotification);

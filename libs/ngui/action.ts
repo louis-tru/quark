@@ -28,12 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+import {View} from './_view';
+import {Action,Options} from './_action';
+import {GUIActionEvent} from './event';
+
 const _action = __requireNgui__('_action');
 
-// import 'ngui/util';
-// import 'ngui/value';
-
-const { Action, SpawnAction, SequenceAction, KeyframeAction } = _action;
+const { _Action, SpawnAction, SequenceAction, KeyframeAction } = _action;
 
  /**
 	* @func create(json[,parent])
@@ -41,60 +42,61 @@ const { Action, SpawnAction, SequenceAction, KeyframeAction } = _action;
 	* @arg [parent] {GroupAction}
 	* @ret {Action}
 	*/
-export function create(json, parent) {
-	var action = null;
-	if ( typeof json == 'object' ) {
-		if ( json instanceof Action ) {
-			action = json;
+export function create(opt: Options, parent?: Action) {
+	if ( typeof opt != 'object' ) {
+		throw new Error('Bad argument.');
+	}
+	var action: Action;
+	if ( opt instanceof Action ) {
+		action = opt;
+	} else {
+		// create
+		if ( Array.isArray(opt) ) { // KeyframeAction
+			action = new KeyframeAction();
+			for (var i of opt)
+				action.add(i);
 		} else {
-			// create
-			if ( Array.isArray(json) ) { // KeyframeAction
+			if (opt.seq) { // SequenceAction
+				action = new SequenceAction();
+				for (let i in opt) 
+					action[i] = opt[i];
+				var seq = opt.seq;
+				if (Array.isArray(seq)) {
+					for (var i of seq) {
+						create(i, action);
+					}
+				} else {
+					create(seq, action);
+				}
+			} else if (opt.spawn) { // SpawnAction
+				action = new SpawnAction();
+				for (let i in opt) 
+					action[i] = opt[i];
+				var spawn = opt.spawn;
+				if (Array.isArray(spawn)) {
+					for (var i of spawn) {
+						create(i, action);
+					}
+				} else {
+					create(spawn, action);
+				}
+			} else { // KeyframeAction
 				action = new KeyframeAction();
-				for (var i of json)
-					action.add(i);
-			} else {
-				if (json.seq) { // SequenceAction
-					action = new SequenceAction();
-					for (var i in json) 
-						action[i] = json[i];
-					var seq = json.seq;
-					if (Array.isArray(seq)) {
-						for (var i of seq) {
-							create(i, action);
-						}
-					} else {
-						create(seq, action);
-					}
-				} else if (json.spawn) { // SpawnAction
-					action = new SpawnAction();
-					for (var i in json) 
-						action[i] = json[i];
-					var spawn = json.spawn;
-					if (Array.isArray(spawn)) {
-						for (var i of spawn) {
-							create(i, action);
-						}
-					} else {
-						create(spawn, action);
-					}
-				} else { // KeyframeAction
-					action = new KeyframeAction();
-					for (var i in json) 
-						action[i] = json[i];
-					var frame = json.keyframe;
-					if ( Array.isArray(frame) ) {
-						for (var i of frame) 
-							action.add(i);
-					} else {
-						action.add(frame);
-					}
+				for (let i in opt) 
+					action[i] = opt[i];
+				var frame = opt.keyframe;
+				if ( Array.isArray(frame) ) {
+					for (let i of frame) 
+						action.add(i);
+				} else {
+					action.add(frame);
 				}
 			}
-			// end craete
 		}
-		if ( parent ) { // Cannot be KeyframeAction type
-			parent.append(action);
-		}
+		// end craete
+	}
+	if ( parent ) { // Cannot be KeyframeAction type
+		parent.append(action);
 	}
 	return action;
 }
@@ -107,8 +109,8 @@ export function create(json, parent) {
 	* @arg [cb]     {Function}
 	* @ret {KeyframeAction}
 	*/
-export function transition(view, style, delay, cb) {
-	var action = new KeyframeAction();
+export function transition(view: View, style: Dict, delay?: number, cb?: (e: GUIActionEvent)=>void) {
+	var action = new KeyframeAction() as Action;
 	if ( typeof delay == 'number' ) {
 		action.delay = delay;
 	} else if ( typeof delay == 'function' ) {
@@ -124,12 +126,12 @@ export function transition(view, style, delay, cb) {
 			//console.log('onActionKeyframe');
 			if ( evt.action === action ) {
 				if (evt.frame != 1) return;
-				cb(evt); // end
+				(cb as any)(evt); // end
 			}
 			view.onActionKeyframe.off(-1);
 		}, -1);
 	}
 
 	action.play(); // start play
-	return action;
+	return action as Action;
 }

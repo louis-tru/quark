@@ -300,12 +300,12 @@ template<>
 void Property2<TextColor>::transition(uint f1, uint f2, float x, float t, Action* root) {
 	if ( m_set_property_func ) {
 		TextColor v1 = m_frames[f1], v2 = m_frames[f2];
-		if ( v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE ) {
+		if ( v1.type == TextValueType::VALUE && v2.type == TextValueType::VALUE ) {
 			Color color(v1.value.r() - (v1.value.r() - v2.value.r()) * t,
 									v1.value.g() - (v1.value.g() - v2.value.g()) * t,
 									v1.value.b() - (v1.value.b() - v2.value.b()) * t,
 									v1.value.a() - (v1.value.a() - v2.value.a()) * t);
-			m_transition = { TextAttrType::VALUE, color };
+			m_transition = { TextValueType::VALUE, color };
 		} else {
 			m_transition = x < 1.0 ? v1 : v2;
 		}
@@ -316,8 +316,8 @@ template<>
 void Property2<TextSize>::transition(uint f1, uint f2, float x, float t, Action* root) {
 	if ( m_set_property_func ) {
 		TextSize v1 = m_frames[f1], v2 = m_frames[f2];
-		if ( v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE ) {
-			m_transition = { TextAttrType::VALUE, v1.value - (v1.value - v2.value) * t };
+		if ( v1.type == TextValueType::VALUE && v2.type == TextValueType::VALUE ) {
+			m_transition = { TextValueType::VALUE, v1.value - (v1.value - v2.value) * t };
 		} else {
 			m_transition = x < 1.0 ? v1 : v2;
 		}
@@ -342,9 +342,9 @@ template<>
 void Property2<TextLineHeight>::transition(uint f1, uint f2, float x, float t, Action* root) {
 	if ( m_set_property_func ) {
 		TextLineHeight v1 = m_frames[f1], v2 = m_frames[f2];
-		if (v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE) {
+		if (v1.type == TextValueType::VALUE && v2.type == TextValueType::VALUE) {
 			m_transition = {
-				TextAttrType::VALUE,
+				TextValueType::VALUE,
 				v1.value.height - (v1.value.height - v2.value.height) * t
 			};
 		} else {
@@ -357,7 +357,7 @@ template<>
 void Property2<TextShadow>::transition(uint f1, uint f2, float x, float t, Action* root) {
 	if ( m_set_property_func ) {
 		TextShadow v1 = m_frames[f1], v2 = m_frames[f2];
-		if ( v1.type == TextAttrType::VALUE && v2.type == TextAttrType::VALUE ) {
+		if ( v1.type == TextValueType::VALUE && v2.type == TextValueType::VALUE ) {
 			float offset_x = v1.value.offset_x - (v1.value.offset_x - v2.value.offset_x) * t;
 			float offset_y = v1.value.offset_y - (v1.value.offset_y - v2.value.offset_y) * t;
 			float size = v1.value.size - (v1.value.size - v2.value.size) * t;

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'ngui/util';
-import { Notification } from 'ngui/event';
-const { TextNode, View, Root } = __requireNgui__('_ngui');
+import util from './util';
+import event, { Notification, EventNoticer, Listen, Event } from './event';
+import { TextNode, View, Root } from './_view';
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
 const G_removeSet = new WeakSet();
@@ -540,30 +540,28 @@ function domInCtr(self) {
 /**
  * @class ViewController DOM
  */
-export default class ViewController extends Notification {
-	// @private:
-	m_id = null;     // id
-	m_IDs = null;		 // 
-	m_owner = null;  // owner controller
-	m_placeholder = null; // view placeholder	
-	m_modle = null;  // view modle
-	m_dataHash = null; // modle and props hash
-	m_vdom = null;     // children vdom
-	m_vchildren = null; // outer vdom children
-	m_loaded = false;
-	m_mounted = false;
-	m_style = null;
+export class ViewController extends Notification<Event<any, ViewController>> {
+	private m_id = null;     // id
+	private m_IDs = {};		 // 
+	private m_owner = null;  // owner controller
+	private m_placeholder = null; // view placeholder	
+	private m_modle = {};  // view modle
+	private m_dataHash = {}; // modle and props hash
+	private m_vdom: VirtualDOM | null; // = null;     // children vdom
+	private m_vchildren = null; // outer vdom children
+	private m_loaded = false;
+	private m_mounted = false;
+	private m_style = null;
 
-	get __view__() {
+	private get __view__() {
 		return this.m_vdom ? this.m_vdom.dom.__view__: this.m_placeholder;
 	}
 
-	// @public:
-	@event onLoad;    // @event onLoad
-	@event onMounted; // @event onMounted
-	@event onUpdate;  // @event onUpdate
-	@event onRemove;  // @event onRemove
-	@event onRemoved; // @event onRemoved
+	@event onLoad: EventNoticer;    // @event onLoad
+	@event onMounted: EventNoticer; // @event onMounted
+	@event onUpdate: EventNoticer;  // @event onUpdate
+	@event onRemove: EventNoticer;  // @event onRemove
+	@event onRemoved: EventNoticer; // @event onRemoved
 
 	get id() {
 		return this.m_id;
@@ -638,12 +636,12 @@ export default class ViewController extends Notification {
 		}
 	}
 
-	constructor() {
-		super();
-		this.m_IDs = {};
-		this.m_modle = {};
-		this.m_dataHash = {};
-	}
+	// constructor() {
+	// 	super();
+		// this.m_IDs = {};
+		// this.m_modle = {};
+		// this.m_dataHash = {};
+	// }
 
 	/*
 	 * @func markRerender()
@@ -659,20 +657,20 @@ export default class ViewController extends Notification {
 		return Function.prototype.hashCode.call(this);
 	}
 
-	appendTo(parentView) {
+	appendTo(parentView: View) {
 		return domInCtr(this).appendTo(parentView);
 	}
 
-	afterTo(prevView) {
+	afterTo(prevView: View) {
 		return domInCtr(this).afterTo(prevView);
 	}
 
 	/**
 	 * @overwrite
 	 */
-	addDefaultListener(name, func) {
+	addDefaultListener(name: string, func: Listen<Event<any, ViewController>> | string) {
 		if ( typeof func == 'string' ) {
-			var owner = this, func2;
+			var owner = this as any, func2;
 			do {
 				var func2 = owner[func];  // find func
 				if ( typeof func2 == 'function' ) {
@@ -731,7 +729,6 @@ export default class ViewController extends Notification {
 		return this.m_style || {};
 	}
 
-	// @static:
 	/**
 	 * @get isViewController
 	 * @static
@@ -753,7 +750,7 @@ export default class ViewController extends Notification {
 	 *  MyViewController.defineProps(['width', height', 'prop1'])
 	 * </pre>
 	 */
-	static defineProps(props, controllerClass) {
+	static defineProps(props: any, controllerClass: any) {
 		controllerClass = controllerClass || this;
 		util.assert(util.equalsClass(ViewController, controllerClass), 'Type error');
 		props = Array.isArray(props) ? props.map(e=>[e]): Object.entries(props);
@@ -787,7 +784,7 @@ export default class ViewController extends Notification {
 	 * @arg obj {VirtualDOM|View|ViewController|class}
 	 * @static
 	 */
-	static typeOf(obj, Type) {
+	static typeOf(obj: any, Type: any) {
 		Type = Type || ViewController;
 		if (util.equalsClass(ViewController, Type) || util.equalsClass(View, Type)) {
 			if (obj instanceof Type)
@@ -802,7 +799,39 @@ export default class ViewController extends Notification {
 		return 0;
 	}
 
+	/**
+	 * @func render(obj, [parentView])
+	 * @arg obj {VirtualDOM|View|ViewController|class}
+	 * @ret {DOM} return dom instance
+	 */
+	static render(obj: any, parentView?: any) {
+		var dom;
+		var owner = parentView ? parentView.owner: null;
+
+		if (obj instanceof ViewController || obj instanceof View) {
+			dom = obj; // dom instance
+		} else if (util.equalsClass(ViewController, obj) || util.equalsClass(View, obj)) {
+			obj = _VV(obj, [], []); // create vdom
+			dom = obj.newInstance(owner);
+		} else {
+			obj = _VVD(obj); // format vdom
+			util.assert(obj instanceof VirtualDOM, 'Bad argument');
+			dom = obj.newInstance(owner);
+		}
+		if (parentView) {
+			dom.appendTo(parentView);
+			dom.m_owner = owner;
+		}
+		return dom;
+	}
+
+	static hashCode() {
+		return Function.prototype.hashCode.call(this);
+	}
+
 }
+
+export default ViewController;
 
 /**
  * @set style {Object}
@@ -824,44 +853,6 @@ export class RootViewController extends ViewController {
 		}
 	}
 }
-
-// extend static method
-util.extend(ViewController, {
-
-	/**
-	 * @func hashCode()
-	 */
-	hashCode: function() {
-		return Function.prototype.hashCode.call(this);
-	},
-
-	/**
-	 * @func render(obj, [parentView])
-	 * @arg obj {VirtualDOM|View|ViewController|class}
-	 * @ret {DOM} return dom instance
-	 */
-	render: function(obj, parentView) {
-		var dom;
-		var owner = parentView ? parentView.owner: null;
-
-		if (obj instanceof ViewController || obj instanceof View) {
-			dom = obj; // dom instance
-		} else if (util.equalsClass(ViewController, obj) || util.equalsClass(View, obj)) {
-			obj = _VV(obj, [], []); // create vdom
-			dom = obj.newInstance(owner);
-		} else {
-			obj = _VVD(obj); // format vdom
-			util.assert(obj instanceof VirtualDOM, 'Bad argument');
-			dom = obj.newInstance(owner);
-		}
-		if (parentView) {
-			dom.appendTo(parentView);
-			dom.m_owner = owner;
-		}
-		return dom;
-	},
-
-});
 
 // create virtual view
 export function _VV(Type, props, ...children: any[]) {

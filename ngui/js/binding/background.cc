@@ -80,7 +80,7 @@ class WrapBackground: public WrapObject {
 };
 
 class WrapBackgroundImage: public WrapObject {
-public:
+ public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -135,6 +135,12 @@ public:
 		JS_SELF(BackgroundImage);
 		self->set_src( value->ToStringValue(worker) );
 	}
+	// static void set_src_base64(Local<JSString> name, PropertySetCall args) {
+	static void set_src_base64(FunctionCall args) {
+		// JS_WORKER(args); GUILock lock;
+		// JS_SELF(BackgroundImage);
+		// self->set_src( value->ToStringValue(worker) );
+	}
 	static void set_repeat(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(BackgroundImage);
@@ -184,8 +190,9 @@ public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(BackgroundImage, constructor, {
+			// JS_SET_CLASS_ACCESSOR(setBase64Source, set_src_base64);
 			JS_SET_CLASS_ACCESSOR(src, src, set_src);
-			JS_SET_CLASS_ACCESSOR(hasBase64, has_base64);
+			// JS_SET_CLASS_ACCESSOR(hasBase64, has_base64);
 			JS_SET_CLASS_ACCESSOR(repeat, repeat, set_repeat);
 			JS_SET_CLASS_ACCESSOR(position, position, set_position);
 			JS_SET_CLASS_ACCESSOR(positionX, position_x, set_position_x);
@@ -198,7 +205,7 @@ public:
 };
 
 class WrapBackgroundGradient: public WrapObject {
-public:
+ public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

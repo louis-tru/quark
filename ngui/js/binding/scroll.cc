@@ -501,14 +501,18 @@ class WrapScroll: public WrapViewBase {
 		JS_RETURN( self->enable_fixed_scroll_size() );
 	}
 	
-	static void set_enable_fixed_scroll_size(Local<JSString> name,
-																					 Local<JSValue> value, PropertySetCall args) {
+	static void set_enable_fixed_scroll_size(Local<JSString> name, FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		js_parse_value(Vec2, value, "BasicScroll.enableFixedScrollSize = %s");
+		if ( args.Length() < 1 ) {
+			JS_THROW_ERR(
+				"* @func BasicScroll.setFixedScrollSize(size: Vec2)\n"
+			);
+		}
+		js_parse_value(Vec2, args[0], "BasicScroll.enableFixedScrollSize = %s");
 		JS_SELF(Scroll);
 		self->set_enable_fixed_scroll_size( out );
 	}
-	
+
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Scroll, constructor, {
 			JS_SET_CLASS_ACCESSOR(focusMarginLeft, focus_margin_left, set_focus_margin_left);
@@ -518,8 +522,8 @@ class WrapScroll: public WrapViewBase {
 			JS_SET_CLASS_ACCESSOR(focusAlignX, focus_align_x, set_focus_align_x);
 			JS_SET_CLASS_ACCESSOR(focusAlignY, focus_align_y, set_focus_align_y);
 			JS_SET_CLASS_ACCESSOR(enableFocusAlign, enable_focus_align, set_enable_focus_align);
-			JS_SET_CLASS_ACCESSOR(enableFixedScrollSize,
-													enable_fixed_scroll_size, set_enable_fixed_scroll_size);
+			JS_SET_CLASS_ACCESSOR(isFixedScrollSize, enable_fixed_scroll_size);
+			JS_SET_CLASS_METHOD(setFixedScrollSize, set_enable_fixed_scroll_size);
 			WrapBasicScroll::inherit(cls, worker);
 		}, Panel);
 		IMPL::js_class(worker)->set_class_alias(JS_TYPEID(Scroll), View::SCROLL);

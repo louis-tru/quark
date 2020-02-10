@@ -223,28 +223,28 @@ void Label::draw(Draw* draw) {
 		if ( mark_value ) {
 			
 			if ( mark_value & M_TEXT_FONT ) {
-				if (m_text_background_color.type == TextAttrType::INHERIT) {
+				if (m_text_background_color.type == TextValueType::INHERIT) {
 					m_text_background_color.value = app()->default_text_background_color().value;
 				}
-				if (m_text_color.type == TextAttrType::INHERIT) {
+				if (m_text_color.type == TextValueType::INHERIT) {
 					m_text_color.value = app()->default_text_color().value;
 				}
-				if (m_text_size.type == TextAttrType::INHERIT) {
+				if (m_text_size.type == TextValueType::INHERIT) {
 					m_text_size.value = app()->default_text_size().value;
 				}
-				if (m_text_style.type == TextAttrType::INHERIT) {
+				if (m_text_style.type == TextValueType::INHERIT) {
 					m_text_style.value = app()->default_text_style().value;
 				}
-				if (m_text_family.type == TextAttrType::INHERIT) {
+				if (m_text_family.type == TextValueType::INHERIT) {
 					m_text_family.value = app()->default_text_family().value;
 				}
-				if (m_text_line_height.type == TextAttrType::INHERIT) {
+				if (m_text_line_height.type == TextValueType::INHERIT) {
 					m_text_line_height.value = app()->default_text_line_height().value;
 				}
-				if (m_text_shadow.type == TextAttrType::INHERIT) {
+				if (m_text_shadow.type == TextValueType::INHERIT) {
 					m_text_shadow.value = app()->default_text_shadow().value;
 				}
-				if (m_text_decoration.type == TextAttrType::INHERIT) {
+				if (m_text_decoration.type == TextValueType::INHERIT) {
 					m_text_decoration.value = app()->default_text_decoration().value;
 				}
 			}

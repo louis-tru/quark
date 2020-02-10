@@ -370,12 +370,12 @@ class XX_EXPORT Box: public Layout {
 	 * @func set_clip(bool)
 	 */
 	void set_clip(bool value);
-	
+
 	/**
 	 * @func background()
 	 */
 	inline Background* background() { return m_background; }
-	
+
 	/**
 	 * @func set_background(value)
 	 */
@@ -462,18 +462,18 @@ class XX_EXPORT Box: public Layout {
 	
 	Value     m_width;  // width 宽度
 	Value     m_height; // height 高度
-	Value     m_margin_left;  // 左边缘距离
 	Value     m_margin_top;   // 顶边缘距离
 	Value     m_margin_right; // 右边缘距离
 	Value     m_margin_bottom; // 底边缘距离
-	Color     m_border_left_color;
+	Value     m_margin_left;  // 左边缘距离
 	Color     m_border_top_color;
 	Color     m_border_right_color;
 	Color     m_border_bottom_color;
-	float     m_border_left_width;
+	Color     m_border_left_color;
 	float     m_border_top_width;
 	float     m_border_right_width;
 	float     m_border_bottom_width;
+	float     m_border_left_width;
 	float     m_border_radius_left_top; // 左上圆角
 	float     m_border_radius_right_top; // 右上圆角
 	float     m_border_radius_right_bottom; // 右下圆角
@@ -483,10 +483,10 @@ class XX_EXPORT Box: public Layout {
  protected:
 	float     m_final_width; // 最终的宽度
 	float     m_final_height; // 最终的高度
-	float     m_final_margin_left; // 最终的左边距
 	float     m_final_margin_top; // 最终的顶边距
 	float     m_final_margin_right; // 最终的右边距
 	float     m_final_margin_bottom; // 最终的底边距
+	float     m_final_margin_left; // 最终的左边距
 	float     m_final_border_radius_left_top; // 最终的左上圆角
 	float     m_final_border_radius_right_top; // 最终的右上圆角
 	float     m_final_border_radius_right_bottom; // 最终的右下圆角

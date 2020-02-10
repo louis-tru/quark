@@ -111,11 +111,19 @@
 		],
 		'actions': [
 			{
+				'action_name': 'build_ngui_',
+				'inputs': [
+					'../../libs/ngui/tsconfig.json',
+				],
+				'outputs': [],
+				'action': [ 'sh', '-c', 'cd libs/ngui && npm run build' ]
+			},
+			{
 				'action_name': 'gen_inl_js_natives',
 				'variables': {
 					'files': [
-						'binding/_event.js',
-						'binding/_value.js',
+						'../../out/_event.js',
+						'../../out/_value.js',
 						'../../depe/node/lib/module.js',
 					],
 				},
@@ -142,8 +150,8 @@
 				'action_name': 'gen_lib_js_natives',
 				'variables': {
 					'files': [
-						'binding/_pkg.js',
-						'binding/_pkgutil.js',
+						'../../out/_pkg.js',
+						'../../out/_pkgutil.js',
 					],
 				},
 				'inputs': [
@@ -166,22 +174,14 @@
 				'process_outputs_as_sources': 1,
 			},
 			{
-				'action_name': 'build_ngui_',
-				'inputs': [
-					'../../libs/ngui/tsconfig.json',
-				],
-				'outputs': [],
-				'action': [ 'sh', '-c', 'cd libs/ngui && npm run build' ]
-			},
-			{
 				'action_name': 'gen_ext_js_natives_',
 				'variables': {
 					'NGUI': 'libs/ngui/out/ngui',
 					'files': [
 						'<(NGUI)/_common.js',
 						'../../libs/ngui/out/ngui/_ext.js',
-						'../../libs/ngui/out/ngui/_globals.js',
 						'../../libs/ngui/out/ngui/_util.js',
+						'../../libs/ngui/out/ngui/_pkgutil.js',
 						'../../libs/ngui/out/ngui/action.js',
 						'../../libs/ngui/out/ngui/app.js',
 						'../../libs/ngui/out/ngui/buffer.js',

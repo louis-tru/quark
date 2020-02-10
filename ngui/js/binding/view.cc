@@ -660,11 +660,12 @@ class WrapView: public WrapViewBase {
 		JS_SELF(View);
 		CSSViewClasss* classs = self->classs();
 		if ( classs ) {
-			Local<JSValue> rv = worker->NewObject();
-			rv.To<JSObject>()->Set(worker, worker->strs()->name(), worker->New(classs->name()) );
-			JS_RETURN( rv );
+			// Local<JSValue> rv = worker->NewObject();
+			// rv.To<JSObject>()->Set(worker, worker->strs()->name(), worker->New(classs->name()) );
+			JS_RETURN( classs->name() );
 		} else {
-			JS_RETURN_NULL();
+			// JS_RETURN_NULL();
+			JS_RETURN( JSString::Empty(worker) );
 		}
 	}
 	
@@ -885,7 +886,7 @@ class WrapView: public WrapViewBase {
 		JS_WORKER(args);
 		JS_SELF(View);
 		Button* btn = self->first_button();
-		if ( ! btn) JS_RETURN( worker->NewNull() );
+		if ( ! btn) JS_RETURN_NULL();
 		Wrap<Button>* wrap = Wrap<Button>::pack(btn, btn->view_type());
 		JS_RETURN( wrap->that() );
 	}
@@ -908,15 +909,15 @@ class WrapView: public WrapViewBase {
 	
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
-	 #define SET_FIELD(enum, class, name) JS_SET_PROPERTY(enum, View::enum);
-		XX_EACH_VIEWS(SET_FIELD)
-	 #undef SET_FIELD
+	//  #define SET_FIELD(enum, class, name) JS_SET_PROPERTY(enum, View::enum);
+	// 	XX_EACH_VIEWS(SET_FIELD)
+	//  #undef SET_FIELD
 
 		JS_DEFINE_CLASS(View, constructor, {
 			// method
 			JS_SET_CLASS_METHOD(prepend, prepend);
 			JS_SET_CLASS_METHOD(append, append);
-			JS_SET_CLASS_METHOD(append_text, append_text);
+			JS_SET_CLASS_METHOD(appendText, append_text);
 			JS_SET_CLASS_METHOD(before, before);
 			JS_SET_CLASS_METHOD(after, after);
 			JS_SET_CLASS_METHOD(remove, remove);
@@ -926,7 +927,7 @@ class WrapView: public WrapViewBase {
 			JS_SET_CLASS_METHOD(layoutOffset, layout_offset);
 			JS_SET_CLASS_METHOD(layoutOffsetFrom, layout_offset_from);
 			JS_SET_CLASS_METHOD(getAction, get_action);
-			JS_SET_CLASS_METHOD(setAction, set_action);
+			JS_SET_CLASS_METHOD(_setAction, set_action);
 			JS_SET_CLASS_METHOD(screenRect, screen_rect);
 			JS_SET_CLASS_METHOD(finalMatrix, final_matrix);
 			JS_SET_CLASS_METHOD(finalOpacity, final_opacity);

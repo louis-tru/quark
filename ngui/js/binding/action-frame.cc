@@ -45,6 +45,7 @@ typedef KeyframeAction::Frame Frame;
 	JS_WORKER(args);\
 	JS_SELF(Frame);\
 	if (self->host()) block;\
+	else JS_THROW_ERR("No host property, unbind `KeyframeAction`");\
 }
 #define def_set_property_from_type0(Name, Type, Parser, block)\
 static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {\
@@ -212,7 +213,6 @@ class WrapFrame: public WrapObject {
 	def_property_from_type(shadow, Shadow);
 	def_property_from_type(src, String);
 	
-	// 
 	def_property_from_type3(background, BackgroundPtr, Background, {
 		auto bg = self->background();
 		if (bg) {
@@ -251,7 +251,12 @@ class WrapFrame: public WrapObject {
 		self->set_origin_y(out.y());
 	});
 	def_property_from_type3(margin, Array<Value>, Values, {
-		JS_RETURN_NULL();
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->margin_top()) );
+		arr->Set(worker, 1, worker->values()->New(self->margin_right()) );
+		arr->Set(worker, 2, worker->values()->New(self->margin_bottom()) );
+		arr->Set(worker, 3, worker->values()->New(self->margin_left()) );
+		JS_RETURN( arr );
 	},{ // set
 		switch(out.length()) {
 			case 1:
@@ -281,16 +286,21 @@ class WrapFrame: public WrapObject {
 		}
 	});
 	def_property_from_type2(border, Border, {
-		JS_RETURN_NULL();
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New({ self->border_top_width(), self->border_top_color() }) );
+		arr->Set(worker, 1, worker->values()->New({ self->border_right_width(), self->border_right_color() }) );
+		arr->Set(worker, 2, worker->values()->New({ self->border_bottom_width(), self->border_bottom_color() }) );
+		arr->Set(worker, 3, worker->values()->New({ self->border_left_width(), self->border_left_color() }) );
+		JS_RETURN( arr );
 	}, { // set
-		self->set_border_left_color(out.color);
 		self->set_border_top_color(out.color);
 		self->set_border_right_color(out.color);
 		self->set_border_bottom_color(out.color);
-		self->set_border_left_width(out.width);
+		self->set_border_left_color(out.color);
 		self->set_border_top_width(out.width);
 		self->set_border_right_width(out.width);
 		self->set_border_bottom_width(out.width);
+		self->set_border_left_width(out.width);
 	});
 	def_property_from_type2(border_left, Border, {
 		Border border(self->border_left_width(), self->border_left_color());
@@ -321,23 +331,38 @@ class WrapFrame: public WrapObject {
 		self->set_border_bottom_width(out.width);
 	});
 	def_property_from_type2(border_width, float, {
-		JS_RETURN_NULL();
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->border_top_width()) );
+		arr->Set(worker, 1, worker->values()->New(self->border_right_width()) );
+		arr->Set(worker, 2, worker->values()->New(self->border_bottom_width()) );
+		arr->Set(worker, 3, worker->values()->New(self->border_left_width()) );
+		JS_RETURN( arr );
 	}, { // set
-		self->set_border_left_width(out);
-		self->set_border_top_width(out);
 		self->set_border_right_width(out);
 		self->set_border_bottom_width(out);
+		self->set_border_left_width(out);
+		self->set_border_top_width(out);
 	});
 	def_property_from_type2(border_color, Color, {
-		JS_RETURN_NULL();
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->border_top_color()) );
+		arr->Set(worker, 1, worker->values()->New(self->border_right_color()) );
+		arr->Set(worker, 2, worker->values()->New(self->border_bottom_color()) );
+		arr->Set(worker, 3, worker->values()->New(self->border_left_color()) );
+		JS_RETURN( arr );
 	}, { // set
-		self->set_border_left_color(out);
 		self->set_border_top_color(out);
 		self->set_border_right_color(out);
 		self->set_border_bottom_color(out);
+		self->set_border_left_color(out);
 	});
 	def_property_from_type2(border_radius, float, {
-		JS_RETURN_NULL();
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->border_radius_left_top()) );
+		arr->Set(worker, 1, worker->values()->New(self->border_radius_right_top()) );
+		arr->Set(worker, 2, worker->values()->New(self->border_radius_left_bottom()) );
+		arr->Set(worker, 3, worker->values()->New(self->border_radius_right_bottom()) );
+		JS_RETURN( arr );
 	}, {
 		self->set_border_radius_left_top(out);
 		self->set_border_radius_right_top(out);
@@ -367,126 +392,13 @@ class WrapFrame: public WrapObject {
 		self->set_ratio_y(out.y());
 	});
 	def_property_from_type3(align, Array<Align>, Aligns, {
-		JS_RETURN_NULL();
+		auto arr = worker->NewArray();
+		arr->Set(worker, 0, worker->values()->New(self->align_x()) );
+		arr->Set(worker, 1, worker->values()->New(self->align_y()) );
+		JS_RETURN( arr );
 	}, {
 		self->set_align_x(out[0]);
 		self->set_align_y(out[1]);
-	});
-	
-	/********************************** background *****************************************/
-	
-	static inline BackgroundImage* as_background_image(Frame* self) {
-		return self->background() ? self->background()->as_image() : nullptr;
-	}
-	
-	static BackgroundImage* get_background_image(Frame* self) {
-		auto bg = self->background();
-		if (bg) {
-			return bg->as_image();
-		} else {
-			auto img = new BackgroundImage();
-			self->set_background(img);
-			return img;
-		}
-	}
-	
-	//-------------------------------------
-	
-	def_property_from_type3(background_image, BackgroundPtr, Background, {
-		auto img = as_background_image(self);
-		if (img) {
-			JS_RETURN( img->src() );
-		} else {
-			JS_RETURN( JSString::Empty(worker) );
-		}
-	}, {
-		out->set_holder_mode(Background::M_DISABLE);
-		self->set_background(out);
-	});
-	
-#define set_background_attrs(block) { \
-	auto bg = get_background_image(self);\
-	int i = 0;\
-	while(bg) {\
-		block; \
-		i++;\
-		bg = bg->next() ? bg->next()->as_image(): nullptr; \
-	} \
-}
-	def_property_from_type3(background_repeat, Array<Repeat>, Repeats, {
-		auto img = as_background_image(self);
-		JS_RETURN( worker->values()->New( img ? img->repeat() : Repeat::NONE) );
-	}, {
-		set_background_attrs({
-			bg->set_repeat(out[i]);
-		});
-	});
-	def_property_from_type3(background_position,
-													Array<BackgroundPositionCollection>, BackgroundPositions, {
-		JS_RETURN_NULL();
-	}, {
-		set_background_attrs({
-			bg->set_position_x(out[i].x);
-			bg->set_position_y(out[i].y);
-		});
-	});
-	def_property_from_type3(background_position_x,
-													Array<BackgroundPositionCollection>, BackgroundPositions, {
-		auto img = as_background_image(self);
-		if (img) {
-			JS_RETURN( worker->values()->New(img->position_x()) );
-		} else {
-			JS_RETURN_NULL();
-		}
-	}, {
-		set_background_attrs({
-			bg->set_position_x(out[i].x);
-		});
-	});
-	def_property_from_type3(background_position_y,
-													Array<BackgroundPositionCollection>, BackgroundPositions, {
-		auto img = as_background_image(self);
-		if (img) {
-			JS_RETURN( worker->values()->New(img->position_y()) );
-		} else {
-			JS_RETURN_NULL();
-		}
-	}, {
-		set_background_attrs({
-			bg->set_position_y(out[i].x);
-		});
-	});
-	def_property_from_type3(background_size, Array<BackgroundSizeCollection>, BackgroundSizes, {
-		JS_RETURN_NULL();
-	}, {
-		set_background_attrs({
-			bg->set_size_x(out[i].x);
-			bg->set_size_y(out[i].y);
-		});
-	});
-	def_property_from_type3(background_size_x, Array<BackgroundSizeCollection>, BackgroundSizes, {
-		auto img = as_background_image(self);
-		if (img) {
-			JS_RETURN( worker->values()->New(img->size_x()) );
-		} else {
-			JS_RETURN_NULL();
-		}
-	}, {
-		set_background_attrs({
-			bg->set_size_x(out[i].x);
-		});
-	});
-	def_property_from_type3(background_size_y, Array<BackgroundSizeCollection>, BackgroundSizes, {
-		auto img = as_background_image(self);
-		if (img) {
-			JS_RETURN( worker->values()->New(img->size_y()) );
-		} else {
-			JS_RETURN_NULL();
-		}
-	}, {
-		set_background_attrs({
-			bg->set_size_y(out[i].x);
-		});
 	});
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
@@ -573,14 +485,6 @@ class WrapFrame: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(start, start, set_start);
 			JS_SET_CLASS_ACCESSOR(ratio, ratio, set_ratio);
 			JS_SET_CLASS_ACCESSOR(align, align, set_align);
-			JS_SET_CLASS_ACCESSOR(backgroundImage, background_image, set_background_image);
-			JS_SET_CLASS_ACCESSOR(backgroundRepeat, background_repeat, set_background_repeat);
-			JS_SET_CLASS_ACCESSOR(backgroundPosition, background_position, set_background_position);
-			JS_SET_CLASS_ACCESSOR(backgroundPositionX, background_position_x, set_background_position_x);
-			JS_SET_CLASS_ACCESSOR(backgroundPositionY, background_position_y, set_background_position_y);
-			JS_SET_CLASS_ACCESSOR(backgroundSize, background_size, set_background_size);
-			JS_SET_CLASS_ACCESSOR(backgroundSizeX, background_size_x, set_background_size_x);
-			JS_SET_CLASS_ACCESSOR(backgroundSizeY, background_size_y, set_background_size_y);
 		}, nullptr);
 	}
 };

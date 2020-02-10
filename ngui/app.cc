@@ -272,16 +272,16 @@ GUIApplication::GUIApplication()
 , m_display_port(nullptr)
 , m_root(nullptr)
 , m_focus_view(nullptr)
-, m_default_text_background_color({ TextAttrType::VALUE, Color(0, 0, 0, 0) })
-, m_default_text_color({ TextAttrType::VALUE, Color(0, 0, 0) })
-, m_default_text_size({ TextAttrType::VALUE, 16 })
-, m_default_text_style({ TextAttrType::VALUE, TextStyleEnum::REGULAR })
-, m_default_text_family(TextAttrType::VALUE, FontPool::get_font_familys_id(String()))
-, m_default_text_shadow({ TextAttrType::VALUE, { 0, 0, 0, Color(0, 0, 0) } })
-, m_default_text_line_height({ TextAttrType::VALUE, { 0 } })
-, m_default_text_decoration({ TextAttrType::VALUE, TextDecorationEnum::NONE })
-, m_default_text_overflow({ TextAttrType::VALUE, TextOverflowEnum::NORMAL })
-, m_default_text_white_space({ TextAttrType::VALUE, TextWhiteSpaceEnum::NORMAL })
+, m_default_text_background_color({ TextValueType::VALUE, Color(0, 0, 0, 0) })
+, m_default_text_color({ TextValueType::VALUE, Color(0, 0, 0) })
+, m_default_text_size({ TextValueType::VALUE, 16 })
+, m_default_text_style({ TextValueType::VALUE, TextStyleEnum::REGULAR })
+, m_default_text_family(TextValueType::VALUE, FontPool::get_font_familys_id(String()))
+, m_default_text_shadow({ TextValueType::VALUE, { 0, 0, 0, Color(0, 0, 0) } })
+, m_default_text_line_height({ TextValueType::VALUE, { 0 } })
+, m_default_text_decoration({ TextValueType::VALUE, TextDecorationEnum::NONE })
+, m_default_text_overflow({ TextValueType::VALUE, TextOverflowEnum::NORMAL })
+, m_default_text_white_space({ TextValueType::VALUE, TextWhiteSpaceEnum::NORMAL })
 , m_dispatch(nullptr)
 , m_action_center(nullptr)
 {
@@ -347,52 +347,52 @@ void GUIApplication::clear(bool full) {
 }
 
 void GUIApplication::set_default_text_background_color(TextColor value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_background_color = value;
 	}
 }
 void GUIApplication::set_default_text_color(TextColor value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_color = value;
 	}
 }
 void GUIApplication::set_default_text_size(TextSize value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_size = value;
 	}
 }
 void GUIApplication::set_default_text_style(TextStyle value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_style = value;
 	}
 }
 void GUIApplication::set_default_text_family(TextFamily value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_family = value;
 	}
 }
 void GUIApplication::set_default_text_shadow(TextShadow value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_shadow = value;
 	}
 }
 void GUIApplication::set_default_text_line_height(TextLineHeight value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_line_height = value;
 	}
 }
 void GUIApplication::set_default_text_decoration(TextDecoration value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_decoration = value;
 	}
 }
 void GUIApplication::set_default_text_overflow(TextOverflow value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_overflow = value;
 	}
 }
 void GUIApplication::set_default_text_white_space(TextWhiteSpace value) {
-	if ( value.type == TextAttrType::VALUE ) {
+	if ( value.type == TextValueType::VALUE ) {
 		m_default_text_white_space = value;
 	}
 }

@@ -54,14 +54,14 @@ TextFont::Data::Data()
  * @constructor
  */
 TextFont::TextFont()
-: m_text_background_color({ TextAttrType::INHERIT })
-, m_text_color({ TextAttrType::INHERIT })
-, m_text_size({ TextAttrType::INHERIT })
-, m_text_style({ TextAttrType::INHERIT })
-, m_text_family(TextAttrType::INHERIT)
-, m_text_line_height({ TextAttrType::INHERIT })
-, m_text_shadow({ TextAttrType::INHERIT })
-, m_text_decoration({ TextAttrType::INHERIT })
+: m_text_background_color({ TextValueType::INHERIT })
+, m_text_color({ TextValueType::INHERIT })
+, m_text_size({ TextValueType::INHERIT })
+, m_text_style({ TextValueType::INHERIT })
+, m_text_family(TextValueType::INHERIT)
+, m_text_line_height({ TextValueType::INHERIT })
+, m_text_shadow({ TextValueType::INHERIT })
+, m_text_decoration({ TextValueType::INHERIT })
 { }
 
 /**
@@ -211,24 +211,24 @@ float TextFont::simple_layout_width(cString& text) {
 float TextFont::simple_layout_width(cUcs2String& text) {
 	View* v = view();
 	
-	TextFamily family = { TextAttrType::INHERIT, app()->default_text_family().value };
-	TextStyle style = { TextAttrType::INHERIT, app()->default_text_style().value };
-	TextSize size = { TextAttrType::INHERIT, app()->default_text_size().value };
+	TextFamily family = { TextValueType::INHERIT, app()->default_text_family().value };
+	TextStyle style = { TextValueType::INHERIT, app()->default_text_style().value };
+	TextSize size = { TextValueType::INHERIT, app()->default_text_size().value };
 	int ok = 0;
 	
 	do {
 		TextFont* text = v->as_text_font();
 		if ( text ) {
-			if (family.type == TextAttrType::INHERIT &&
-					text->m_text_family.type != TextAttrType::INHERIT) {
+			if (family.type == TextValueType::INHERIT &&
+					text->m_text_family.type != TextValueType::INHERIT) {
 				family = text->m_text_family; ok++;
 			}
-			if (style.type == TextAttrType::INHERIT &&
-					text->m_text_style.type != TextAttrType::INHERIT) {
+			if (style.type == TextValueType::INHERIT &&
+					text->m_text_style.type != TextValueType::INHERIT) {
 				style = text->m_text_style; ok++;
 			}
-			if (size.type == TextAttrType::INHERIT &&
-					text->m_text_size.type != TextAttrType::INHERIT) {
+			if (size.type == TextValueType::INHERIT &&
+					text->m_text_size.type != TextValueType::INHERIT) {
 				size = text->m_text_size; ok++;
 			}
 		}
@@ -418,34 +418,34 @@ public:
 	 */
 	void solve_text_layout_mark(TextLayout* parent) {
 		
-		if (m_text_background_color.type == TextAttrType::INHERIT) {
+		if (m_text_background_color.type == TextValueType::INHERIT) {
 			m_text_background_color.value = parent->m_text_background_color.value;
 		}
-		if (m_text_color.type == TextAttrType::INHERIT) {
+		if (m_text_color.type == TextValueType::INHERIT) {
 			m_text_color.value = parent->m_text_color.value;
 		}
-		if (m_text_size.type == TextAttrType::INHERIT) {
+		if (m_text_size.type == TextValueType::INHERIT) {
 			m_text_size.value = parent->m_text_size.value;
 		}
-		if (m_text_style.type == TextAttrType::INHERIT) {
+		if (m_text_style.type == TextValueType::INHERIT) {
 			m_text_style.value = parent->m_text_style.value;
 		}
-		if (m_text_family.type == TextAttrType::INHERIT) {
+		if (m_text_family.type == TextValueType::INHERIT) {
 			m_text_family.value = parent->m_text_family.value;
 		}
-		if (m_text_line_height.type == TextAttrType::INHERIT) {
+		if (m_text_line_height.type == TextValueType::INHERIT) {
 			m_text_line_height.value = parent->m_text_line_height.value;
 		}
-		if (m_text_shadow.type == TextAttrType::INHERIT) {
+		if (m_text_shadow.type == TextValueType::INHERIT) {
 			m_text_shadow.value = parent->m_text_shadow.value;
 		}
-		if (m_text_decoration.type == TextAttrType::INHERIT) {
+		if (m_text_decoration.type == TextValueType::INHERIT) {
 			m_text_decoration.value = parent->m_text_decoration.value;
 		}
-		if (m_text_overflow.type == TextAttrType::INHERIT) {
+		if (m_text_overflow.type == TextValueType::INHERIT) {
 			m_text_overflow.value = parent->m_text_overflow.value;
 		}
-		if (m_text_white_space.type == TextAttrType::INHERIT) {
+		if (m_text_white_space.type == TextValueType::INHERIT) {
 			m_text_white_space.value = parent->m_text_white_space.value;
 		}
 		
@@ -702,8 +702,8 @@ public:
 };
 
 TextLayout::TextLayout(): TextFont()
-, m_text_overflow({ TextAttrType::INHERIT })
-, m_text_white_space({ TextAttrType::INHERIT }) {
+, m_text_overflow({ TextValueType::INHERIT })
+, m_text_white_space({ TextValueType::INHERIT }) {
 	
 }
 
@@ -837,65 +837,65 @@ void TextLayout::solve_text_layout_mark() {
 	TextLayout* parent = view()->parent()->as_text_layout();
 	
 	if (parent) {
-		if (m_text_background_color.type == TextAttrType::INHERIT) {
+		if (m_text_background_color.type == TextValueType::INHERIT) {
 			m_text_background_color.value = parent->m_text_background_color.value;
 		}
-		if (m_text_color.type == TextAttrType::INHERIT) {
+		if (m_text_color.type == TextValueType::INHERIT) {
 			m_text_color.value = parent->m_text_color.value;
 		}
-		if (m_text_size.type == TextAttrType::INHERIT) {
+		if (m_text_size.type == TextValueType::INHERIT) {
 			m_text_size.value = parent->m_text_size.value;
 		}
-		if (m_text_style.type == TextAttrType::INHERIT) {
+		if (m_text_style.type == TextValueType::INHERIT) {
 			m_text_style.value = parent->m_text_style.value;
 		}
-		if (m_text_family.type == TextAttrType::INHERIT) {
+		if (m_text_family.type == TextValueType::INHERIT) {
 			m_text_family.value = parent->m_text_family.value;
 		}
-		if (m_text_line_height.type == TextAttrType::INHERIT) {
+		if (m_text_line_height.type == TextValueType::INHERIT) {
 			m_text_line_height.value = parent->m_text_line_height.value;
 		}
-		if (m_text_shadow.type == TextAttrType::INHERIT) {
+		if (m_text_shadow.type == TextValueType::INHERIT) {
 			m_text_shadow.value = parent->m_text_shadow.value;
 		}
-		if (m_text_decoration.type == TextAttrType::INHERIT) {
+		if (m_text_decoration.type == TextValueType::INHERIT) {
 			m_text_decoration.value = parent->m_text_decoration.value;
 		}
-		if (m_text_overflow.type == TextAttrType::INHERIT) {
+		if (m_text_overflow.type == TextValueType::INHERIT) {
 			m_text_overflow.value = parent->m_text_overflow.value;
 		}
-		if (m_text_white_space.type == TextAttrType::INHERIT) {
+		if (m_text_white_space.type == TextValueType::INHERIT) {
 			m_text_white_space.value = parent->m_text_white_space.value;
 		}
 	} else { // 没有父视图使用全局默认值
-		if (m_text_background_color.type == TextAttrType::INHERIT) {
+		if (m_text_background_color.type == TextValueType::INHERIT) {
 			m_text_background_color.value = app()->default_text_background_color().value;
 		}
-		if (m_text_color.type == TextAttrType::INHERIT) {
+		if (m_text_color.type == TextValueType::INHERIT) {
 			m_text_color.value = app()->default_text_color().value;
 		}
-		if (m_text_size.type == TextAttrType::INHERIT) {
+		if (m_text_size.type == TextValueType::INHERIT) {
 			m_text_size.value = app()->default_text_size().value;
 		}
-		if (m_text_style.type == TextAttrType::INHERIT) {
+		if (m_text_style.type == TextValueType::INHERIT) {
 			m_text_style.value = app()->default_text_style().value;
 		}
-		if (m_text_family.type == TextAttrType::INHERIT) {
+		if (m_text_family.type == TextValueType::INHERIT) {
 			m_text_family.value = app()->default_text_family().value;
 		}
-		if (m_text_line_height.type == TextAttrType::INHERIT) {
+		if (m_text_line_height.type == TextValueType::INHERIT) {
 			m_text_line_height.value = app()->default_text_line_height().value;
 		}
-		if (m_text_shadow.type == TextAttrType::INHERIT) {
+		if (m_text_shadow.type == TextValueType::INHERIT) {
 			m_text_shadow.value = app()->default_text_shadow().value;
 		}
-		if (m_text_decoration.type == TextAttrType::INHERIT) {
+		if (m_text_decoration.type == TextValueType::INHERIT) {
 			m_text_decoration.value = app()->default_text_decoration().value;
 		}
-		if (m_text_overflow.type == TextAttrType::INHERIT) {
+		if (m_text_overflow.type == TextValueType::INHERIT) {
 			m_text_overflow.value = app()->default_text_overflow().value;
 		}
-		if (m_text_white_space.type == TextAttrType::INHERIT) {
+		if (m_text_white_space.type == TextValueType::INHERIT) {
 			m_text_white_space.value = app()->default_text_white_space().value;
 		}
 	}

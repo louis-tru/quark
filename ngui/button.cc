@@ -233,7 +233,7 @@ class Button::Inl: public Button {
 
 Button::Button() {
 	m_text_align = TextAlign::CENTER;
-	m_text_size = { TextAttrType::VALUE, 16 };
+	m_text_size = { TextValueType::VALUE, 16 };
 }
 
 /**
