@@ -28,21 +28,23 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_storage');
+const _storage = __requireNgui__('_storage');
 
-export function getJSON(key, value) {
-	var rv = exports.get(`__json_${key}`);
+export function get(key: string) {
+	var rv = _storage.get(`__${key}`);
 	if ( rv ) {
 		return JSON.parse(rv);
-	} else {
-		return null;
 	}
 }
 
-export function setJSON(key, value) {
-	exports.set(`__json_${key}`, JSON.stringify(value));
+export function set(key: string, value: any) {
+	_storage.set(`__${key}`, JSON.stringify(value));
 }
 
-export function delJSON(key, value) {
-	exports.del(`__json_${key}`);
+export function del(key: string) {
+	_storage.del(`__${key}`);
+}
+
+export function clear() {
+	_storage.clear();
 }

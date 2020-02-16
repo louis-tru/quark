@@ -28,17 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const _timer = __requireNgui__('_timer');
+const _path = __requireNgui__('_path');
 
-export declare class Timer {
-	loop: boolean;
-	run(arg: number, loop?: number/* -1 is infinite cycle, default is 1. */): void;
-	stop(): boolean;
-}
-
-export declare function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): Timer;
-export declare function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): Timer;
-export declare function clearTimeout(timer: Timer): void;
-export declare function clearInterval(timer: Timer): void;
-
-Object.assign(exports, _timer);
+export default {
+	executable: _path.executable as ()=>string,
+	documents: _path.documents as (path?: string)=>string,
+	temp: _path.temp as (path?: string)=>string,
+	resources: _path.resources as (path?: string)=>string,
+	cwd: _path.cwd as ()=>string,
+	chdir: _path.chdir as (path: string)=>boolean,
+};

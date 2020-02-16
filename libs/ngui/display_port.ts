@@ -82,6 +82,7 @@ class _DisplayPort extends NativeNotification {
 }
 
 utils.extendClass(_display_port.DisplayPort, _DisplayPort);
+
 exports.DisplayPort = _display_port.DisplayPort;
 
 export default {

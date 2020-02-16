@@ -41,51 +41,52 @@ const _cwd = _path.cwd;
 if (!haveNode) {
 	const _console = __requireNgui__('_console');
 	const _timer = __requireNgui__('_timer');
-	global.console = _console;
 
-	function setTimeout(cb, timeout, ...args) {
+	globalThis.console = _console;
+
+	function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): any {
 		if (typeof cb != 'function') {
 			throw TypeError('"callback" argument must be a function');
 		}
 		if (args.length) {
-			return _timer.setTimeout(e=>cb(...args), timeout);
+			return _timer.setTimeout(()=>cb(...args), timeout || 0);
 		} else {
-			return _timer.setTimeout(cb, timeout);
+			return _timer.setTimeout(cb, timeout || 0);
 		}
 	}
 
-	function setInterval(cb, timeout, ...args) {
+	function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): any {
 		if (typeof cb != 'function') {
 			throw TypeError('"callback" argument must be a function');
 		}
 		if (args.length) {
-			return _timer.setInterval(e=>cb(...args), timeout);
+			return _timer.setInterval(()=>cb(...args), timeout || 0);
 		} else {
-			return _timer.setInterval(cb, timeout);
+			return _timer.setInterval(cb, timeout || 0);
 		}
 	}
 
-	global.setTimeout = setTimeout;
-	global.setInterval = setInterval;
-	global.clearTimeout = _timer.clearTimeout;
-	global.clearInterval = _timer.clearInterval;
-	global.setImmediate = (cb, ...args)=>setTimeout(cb, 0, ...args);
-	global.clearImmediate = _timer.clearTimeout;
+	globalThis.setTimeout = setTimeout as any;
+	globalThis.setInterval = setInterval as any;
+	globalThis.clearTimeout = _timer.clearTimeout;
+	globalThis.clearInterval = _timer.clearInterval;
+	globalThis.setImmediate = <A extends any[]>(cb: (...args: A)=>void, ...args: A)=>setTimeout(cb, 0, ...args);
+	globalThis.clearImmediate = _timer.clearTimeout;
 }
 
-const fallbackPath = win32 ? function(url) {
+const fallbackPath = win32 ? function(url: string) {
 	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
-} : function(url) {
+} : function(url: string) {
 	return url.replace(/^file:\/\//i, '');
 };
 
-const join_path = win32 ? function(args) {
+const join_path = win32 ? function(args: any[]) {
 	for (var i = 0, ls = []; i < args.length; i++) {
 		var item = args[i];
 		if (item) ls.push(item.replace(/\\/g, '/'));
 	}
 	return ls.join('/');
-}: function(args) {
+}: function(args: any[]) {
 	for (var i = 0, ls = []; i < args.length; i++) {
 		var item = args[i];
 		if (item) ls.push(item);
@@ -106,7 +107,7 @@ const matchs = win32 ? {
 /** 
  * format part 
  */
-function resolvePathLevel(path, retain_up) {
+function resolvePathLevel(path: string, retain_up?: boolean) {
 	var ls = path.split('/');
 	var rev = [];
 	var up = 0;
@@ -129,8 +130,8 @@ function resolvePathLevel(path, retain_up) {
 /**
  * return format path
  */
-function resolve() {
-	var path = join_path(arguments);
+function resolve(...args: string[]) {
+	var path = join_path(args);
 	var prefix = '';
 	// Find absolute path
 	var mat = path.match(matchs.resolve);
@@ -154,7 +155,8 @@ function resolve() {
 				prefix = mat[0];
 				slash = '/';
 			}
-			if (prefix == path.length) // file:///
+			// if (prefix == path.length)
+			if (prefix == path) // file:///
 				return prefix;
 			path = path.substr(prefix.length);
 		}
@@ -177,22 +179,22 @@ function resolve() {
 /**
  * @func isAbsolute # 是否为绝对路径
  */
-function isAbsolute(path) {
+function isAbsolute(path: string) {
 	return matchs.isAbsolute.test(path);
 }
 
 /**
  * @func isLocal # 是否为本地路径
  */
-function isLocal(path) {
+function isLocal(path: string) {
 	return matchs.isLocal.test(path);
 }
 
-function isLocalZip(path) {
+function isLocalZip(path: string) {
 	return /^zip:\/\/\//i.test(path);
 }
 
-function isNetwork(path) {
+function isNetwork(path: string) {
 	return /^(https?):\/\/[^\/]+/i.test(path);
 }
 
@@ -201,14 +203,14 @@ function isNetwork(path) {
  * because the buffer-to-string conversion in `fs.readFileSync()`
  * translates it to FEFF, the UTF-16 BOM.
  */
-function stripBOM(content) {
+function stripBOM(content: string) {
 	if (content.charCodeAt(0) === 0xFEFF) {
 		content = content.slice(1);
 	}
 	return content;
 }
 
-function resolveMainPath(path) {
+function resolveMainPath(path: string) {
 	if (path) {
 		if ( !isAbsolute(path) ) {
 			// 非绝对路径,优先查找资源路径
@@ -222,20 +224,22 @@ function resolveMainPath(path) {
 	return path;
 }
 
-function makeRequireFunction(mod) {
+require.resolve
+
+function makeRequireFunction(mod: any): NguiRequire {
 	const Module = mod.constructor;
 
-	function require(path) {
+	function require(path: string) {
 		return mod.require(path);
 	}
 
-	function resolve(request, options) {
+	function resolve(request: string, options?: { paths?: string[]; }) {
 		return Module._resolveFilename(request, mod, false, options);
 	}
 
 	require.resolve = resolve;
 
-	function paths(request) {
+	function paths(request: string) {
 		return Module._resolveLookupPaths(request, mod, true);
 	}
 
@@ -254,7 +258,7 @@ function makeRequireFunction(mod) {
 /**
  * Find end of shebang line and slice it off
  */
-function stripShebang(content) {
+function stripShebang(content: string) {
 	// Remove shebang
 	var contLen = content.length;
 	if (contLen >= 2) {
@@ -285,14 +289,14 @@ function stripShebang(content) {
 	return content;
 }
 
-function assert(value, message) {
+function assert(value: any, message?: string) {
 	if (!value) {
 		throw new Error('assert fail, ' + (message || ''));
 	}
 }
 
 function debug(TAG = 'PKG') {
-	return function(...args) {
+	return function(...args: any[]) {
 		if (exports.dev) {
 			if (args.length > 1) {
 				var str = args.shift();
@@ -305,7 +309,7 @@ function debug(TAG = 'PKG') {
 	}
 }
 
-Object.assign(exports, {
+export default {
 	fallbackPath,
 	resolvePathLevel,
 	resolve,
@@ -319,4 +323,4 @@ Object.assign(exports, {
 	stripShebang,
 	stripBOM,
 	assert, debug,
-});
+};

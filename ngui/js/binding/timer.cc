@@ -39,9 +39,7 @@ JS_BEGIN
 
 class Timer: public Reference {
  public:
-	
 	typedef void (*CallbackPtr)(Timer* timer);
-	
 	uint      _timer_id;  // id
 	uint64    _timeout;   // 超时时间
 	int       _loop;      // -1 为无限循环
@@ -103,7 +101,7 @@ class Timer: public Reference {
 	}
 	
 	void loop(int loop) {
-		_loop = loop;
+		_loop = XX_MAX(-1, loop);
 	}
 	
 	void run(uint64 timeout, int loop = 1) {
@@ -247,6 +245,7 @@ class WrapTimer: public WrapObject {
 		JS_SET_METHOD(clearTimeout, clearTimeout);
 		JS_SET_METHOD(clearInterval, clearInterval);
 	}
+
 };
 
 JS_REG_MODULE(_timer, WrapTimer)

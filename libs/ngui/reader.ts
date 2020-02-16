@@ -28,4 +28,45 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_reader');
+import { AsyncTask, StreamData, Encoding, Dirent } from './fs';
+
+const _reader = __requireNgui__('_reader');
+
+export declare function readFile(path: string): AsyncTask<Uint8Array>;
+export declare function readFile(path: string, encoding: Encoding): AsyncTask<string>;
+export declare function readFileSync(path: string): Uint8Array;
+export declare function readFileSync(path: string, encoding: Encoding): string;
+export declare function existsSync(path: string): boolean;
+export declare function isFileSync(path: string): boolean;
+export declare function isDirectorySync(path: string): boolean;
+export declare function readdirSync(path: string): Dirent[];
+export declare function abort(id: number): void;
+export declare function clear(): void; // clear cache
+
+Object.assign(exports, _reader);
+
+export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncTask<void> {
+	return new AsyncTask<void>(function(resolve, reject): number {
+		return _reader.readStream(path, function(err?: Error, r?: StreamData) {
+			if (err) {
+				reject(err);
+			} else {
+				var stream = r as StreamData;
+				cb(stream);
+				if (stream.complete) {
+					resolve();
+				}
+			}
+		});
+	});
+}
+
+exports.readFile = function() {
+	return new AsyncTask<any>(function(resolve, reject) {
+		return _reader.readFile(...arguments, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+	});
+};
+
+exports.readFileSync = function() {
+	return _reader.readFileSync(...arguments);
+};

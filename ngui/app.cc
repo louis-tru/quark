@@ -101,7 +101,7 @@ void AppInl::refresh_display() {
 void AppInl::onLoad() {
 	if (!m_is_load) {
 		m_is_load = true;
-		m_main_loop->post(Cb([&](Cbd& d) { GUILock lock; XX_TRIGGER(load); }));
+		m_main_loop->post(Cb([&](Cbd& d) { GUILock lock; XX_TRIGGER(Load); }));
 	}
 }
 
@@ -110,24 +110,24 @@ void AppInl::onRender() {
 }
 
 void AppInl::onPause() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(pause); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Pause); }));
 }
 
 void AppInl::onResume() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(resume); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Resume); }));
 }
 
 void AppInl::onBackground() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(background); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Background); }));
 }
 
 void AppInl::onForeground() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(foreground); }));
+	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Foreground); }));
 }
 
 void AppInl::onMemorywarning() {
 	clear();
-	m_main_loop->post(Cb([&](Cbd&){ XX_TRIGGER(memorywarning); }));
+	m_main_loop->post(Cb([&](Cbd&){ XX_TRIGGER(Memorywarning); }));
 }
 
 void AppInl::onUnload() {
@@ -135,7 +135,7 @@ void AppInl::onUnload() {
 		m_is_load = false;
 		m_main_loop->post_sync(Cb([&](Cbd& d) {
 			DLOG("AppInl::onUnload()");
-			XX_TRIGGER(unload);
+			XX_TRIGGER(Unload);
 			if (m_root) {
 				GUILock lock;
 				m_root->remove();
@@ -255,13 +255,13 @@ int AppInl::onExit(int code) {
 }
 
 GUIApplication::GUIApplication()
-: XX_INIT_EVENT(load)
-, XX_INIT_EVENT(unload)
-, XX_INIT_EVENT(background)
-, XX_INIT_EVENT(foreground)
-, XX_INIT_EVENT(pause)
-, XX_INIT_EVENT(resume)
-, XX_INIT_EVENT(memorywarning)
+: XX_INIT_EVENT(Load)
+, XX_INIT_EVENT(Unload)
+, XX_INIT_EVENT(Background)
+, XX_INIT_EVENT(Foreground)
+, XX_INIT_EVENT(Pause)
+, XX_INIT_EVENT(Resume)
+, XX_INIT_EVENT(Memorywarning)
 , m_is_run(false)
 , m_is_load(false)
 , m_render_loop(nullptr)

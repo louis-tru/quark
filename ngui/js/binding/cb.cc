@@ -48,10 +48,10 @@ Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg);
 			} else {
 				Type* data = static_cast<Type*>(d.data);
-        Local<JSValue> args[2] = { worker->NewNull(), worker->New(*data) };
+				Local<JSValue> args[2] = { worker->NewNull(), worker->New(*data) };
 				f->Call(worker, 2, args);
 			}
 		});
@@ -62,17 +62,17 @@ Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 
 Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding) {
 	Local<JSValue> result;
-	switch (encoding) {
-		case Encoding::hex: // 编码
-		case Encoding::base64: {
-			Buffer buff = Coder::encoding(encoding, buffer);
-			result = worker->NewString(buff);
-			break;
-		}
+	switch (encoding) { // buffer
 		case Encoding::unknown:
 			result = worker->New(buffer);
 			break;
-		default: {// 解码 to ucs2
+		case Encoding::hex: // 编码
+		case Encoding::base64: { // string
+			String str = Coder::encoding(encoding, buffer).collapse_string();
+			result = worker->New(str);
+			break;
+		}
+		default: { // string
 			Ucs2String str(Coder::decoding_to_uint16(encoding, buffer));
 			result = worker->New(str);
 			break;
@@ -93,10 +93,10 @@ Cb get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding encoding
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-        f->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg);
 			} else {
 				Buffer* bf = static_cast<Buffer*>(d.data);
-        Local<JSValue> args[2] = { worker->NewNull(), convert_buffer(worker, *bf, encoding) };
+				Local<JSValue> args[2] = { worker->NewNull(), convert_buffer(worker, *bf, encoding) };
 				f->Call(worker, 2, args);
 			}
 		});
@@ -118,7 +118,7 @@ Cb get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg);
 			} else {
 				IOStreamData* data = static_cast<IOStreamData*>(d.data);
 				Local<JSObject> arg = worker->NewObject();
@@ -126,7 +126,7 @@ Cb get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 				arg->Set(worker, worker->strs()->complete(), worker->New(data->complete()) );
 				arg->Set(worker, worker->strs()->size(), worker->New(data->size()) );
 				arg->Set(worker, worker->strs()->total(), worker->New(data->total()) );
-        Local<JSValue> args[2] = { worker->NewNull(), arg };
+				Local<JSValue> args[2] = { worker->NewNull(), arg };
 				f->Call(worker, 2, args);
 			}
 		});
@@ -148,7 +148,7 @@ Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 			
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Err*>(d.error));
-				f->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg);
 			} else {
 				HttpHelper::ResponseData* data = static_cast<HttpHelper::ResponseData*>(d.data);
 				Local<JSObject> arg = worker->NewObject();
@@ -156,8 +156,8 @@ Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 				arg->Set(worker, worker->strs()->httpVersion(), worker->New(data->http_version) );
 				arg->Set(worker, worker->strs()->statusCode(), worker->New(data->status_code) );
 				arg->Set(worker, worker->strs()->responseHeaders(), worker->New(data->response_headers) );
-        Local<JSValue> args[2] = { worker->NewNull(), arg };
-        f->Call(worker, 2, args);
+				Local<JSValue> args[2] = { worker->NewNull(), arg };
+				f->Call(worker, 2, args);
 			}
 		});
 	} else {
@@ -174,7 +174,7 @@ Cb get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 			Local<JSFunction> f = func.local();
 			if ( d.error ) {
 				Local<JSValue> arg = worker->New(*static_cast<const Error*>(d.error));
-				f->Call(worker, 1, &arg, f);
+				f->Call(worker, 1, &arg);
 			} else {
 				f->Call(worker);
 			}

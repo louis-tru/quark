@@ -44,45 +44,6 @@ class NativePath {
  public:
 
 	/**
-	 * @func basename(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void basename(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( JSString::Empty(worker) );
-		}
-		JS_RETURN( Path::basename( args[0]->ToStringValue(worker)) );
-	}
-
-	/**
-	 * @func dirname(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void dirname(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( JSString::Empty(worker) );
-		}
-		JS_RETURN( Path::dirname( args[0]->ToStringValue(worker)) );
-	}
-
-	/**
-	 * @func extname(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void extname(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( JSString::Empty(worker) );
-		}
-		JS_RETURN( Path::extname( args[0]->ToStringValue(worker)) );
-	}
-
-	/**
 	 * @func executable()
 	 * @ret {String}
 	 */
@@ -131,36 +92,6 @@ class NativePath {
 	}
 
 	/**
-	 * @func is_local_absolute(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void is_local_absolute(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_RETURN( false );
-		}
-		JS_RETURN( Path::is_local_absolute(args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
-	 * @func fallbackPath(path)
-	 * @arg path {String}
-	 * @ret {String}
-	 */
-	static void fallbackPath(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
-									 "* @func fallbackPath(path)\n"
-									 "* @arg path {String}\n"
-									 "* @ret {String}\n"
-									 );
-		}
-		JS_RETURN( Path::fallback(args[0]->ToStringValue(worker)) );
-	}
-	
-	/**
 	 * @func cwd()
 	 * @ret {String}
 	 */
@@ -183,15 +114,10 @@ class NativePath {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		JS_SET_METHOD(basename, basename);
-		JS_SET_METHOD(dirname, dirname);
-		JS_SET_METHOD(extname, extname);
 		JS_SET_METHOD(executable, executable);
 		JS_SET_METHOD(documents, documents);
 		JS_SET_METHOD(temp, temp);
 		JS_SET_METHOD(resources, resources);
-		JS_SET_METHOD(isLocalAbsolute, is_local_absolute);
-		JS_SET_METHOD(fallbackPath, fallbackPath);
 		JS_SET_METHOD(cwd, cwd);
 		JS_SET_METHOD(chdir, chdir);
 	}

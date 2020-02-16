@@ -830,259 +830,6 @@ public:
 			JS_RETURN( HttpHelper::request_sync(opt) );
 		}, HttpError);
 	}
-	
-	/**
-	 * @func download(url,save[,cb])
-	 * @arg url {String}
-	 * @arg save {String}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return req id
-	 */
-	static void download(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR(
-				"* @func download(url,save[,cb])\n"
-				"* @arg url {String}\n"
-				"* @arg save {String}\n"
-				"* @arg [cb] {Function}\n"
-				"* @ret {uint} return req id\n"
-			);
-		}
-		uint rev = 0;
-		String url = args[0]->ToStringValue(worker);
-		String save = args[1]->ToStringValue(worker);
-		Cb cb;
-		
-		if ( args.Length() > 2 ) {
-			cb = get_callback_for_response_data_http_error(worker, args[2]);
-		}
-		JS_TRY_CATCH({
-			rev = HttpHelper::download(url, save, cb);
-		}, HttpError);
-		JS_RETURN( rev );
-	}
-	
-	/**
-	 * @func download_sync(url,save)
-	 * @arg url {String}
-	 * @arg save {String}
-	 */
-	static void download_sync(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR(
-				"* @func downloadSync(url,save)\n"
-				"* @arg url {String}\n"
-				"* @arg save {String}\n"
-			);
-		}
-		String url = args[0]->ToStringValue(worker);
-		String save = args[1]->ToStringValue(worker);
-		JS_TRY_CATCH({
-			HttpHelper::download_sync(url, save);
-		}, HttpError);
-	}
-		
-	/**
-	 * @func upload(url,local_path[,cb])
-	 * @arg url {String}
-	 * @arg local_path {String}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return req id
-	 */
-	static void upload(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR(
-				"* @func upload(url,local_path[,cb])\n"
-				"* @arg url {String}\n"
-				"* @arg local_path {String}\n"
-				"* @arg [cb] {Function}\n"
-				"* @ret {uint} return req id\n"
-			);
-		}
-		uint rev = 0;
-		String url = args[0]->ToStringValue(worker);
-		String file = args[1]->ToStringValue(worker);
-		Cb cb;
-		
-		if ( args.Length() > 2 ) {
-			cb = get_callback_for_response_data_http_error(worker, args[2]);
-		}
-		JS_TRY_CATCH({
-			rev = HttpHelper::upload(url, file, cb);
-		}, HttpError);
-		JS_RETURN( rev );
-	}
-	
-	/**
-	 * @func upload_sync(url,local_path)
-	 * @arg url {String}
-	 * @arg local_path {String}
-	 * @ret {Buffer}
-	 */
-	static void upload_sync(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() < 2 || !args[0]->IsString(worker) || !args[1]->IsString(worker)) {
-			JS_THROW_ERR(
-				"* @func uploadSync(url,local_path)\n"
-				"* @arg url {String}\n"
-				"* @arg local_path {String}\n"
-				"* @ret {Buffer}\n"
-			);
-		}
-		String url = args[0]->ToStringValue(worker);
-		String file = args[1]->ToStringValue(worker);
-		JS_TRY_CATCH({
-			JS_RETURN( HttpHelper::upload_sync(url, file) );
-		}, HttpError);
-	}
-	
-	template<bool stream> static void get(FunctionCall args, cchar* argument) {
-		JS_WORKER(args);
-		if (args.Length() < 1 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(argument);
-		}
-		uint rev = 0;
-		String url = args[0]->ToStringValue(worker);
-		Cb cb;
-		
-		if ( args.Length() > 1 ) {
-			cb = stream ? get_callback_for_io_stream_http_error(worker, args[1]) :
-										get_callback_for_response_data_http_error(worker, args[1]);
-		}
-		
-		if ( stream ) {
-			JS_TRY_CATCH({ rev = HttpHelper::get_stream(url, cb); }, HttpError);
-		} else {
-			JS_TRY_CATCH({ rev = HttpHelper::get(url, cb); }, HttpError);
-		}
-		JS_RETURN( rev );
-	}
-
-	/**
-	 * @func get(url[,cb])
-	 * @arg url {String}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return req id
-	 */
-	static void get(FunctionCall args) {
-		get<false>(args, 
-			"* @func get(url[,cb])\n"
-			"* @arg url {String}\n"
-			"* @arg [cb] {Function}\n"
-			"* @ret {uint} return req id\n"
-							 );
-	}
-	
-	/**
-	 * @func get_stream(url[,cb])
-	 * @arg url {String}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return req id
-	 */
-	static void get_stream(FunctionCall args) {
-		get<true>(args, 
-			"* @func getStream(url[,cb])\n"
-			"* @arg url {String}\n"
-			"* @arg [cb] {Function}\n"
-			"* @ret {uint} return req id\n"
-							);
-	}
-
-	/**
-	 * @func post(url,data[,cb])
-	 * @arg url {String}
-	 * @arg data {String|ArrayBuffer|Buffer}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return req id
-	 */
-	static void post(FunctionCall args) {
-		JS_WORKER(args);
-		if ( args.Length() < 2 || ! args[0]->IsString(worker) ||
-				!(args[1]->IsString(worker) || args[1]->IsBuffer() )
-		) {
-			JS_THROW_ERR(
-				"* @func post(url,data[,cb])\n"
-				"* @arg url {String}\n"
-				"* @arg data {String|ArrayBuffer|Buffer}\n"
-				"* @arg [cb] {Function}\n"
-				"* @ret {uint} return req id\n"
-			);
-		}
-		uint rev = 0;
-		String url = args[0]->ToStringValue(worker);
-		Cb cb;
-		
-		if ( args.Length() > 2 ) {
-			cb = get_callback_for_response_data_http_error(worker, args[2]);
-		}
-		
-		JS_TRY_CATCH({
-			if (args[1]->IsString(worker)) {
-				rev = HttpHelper::post(url, args[1]->ToStringValue(worker).collapse_buffer(), cb);
-			} 
-			else {
-				WeakBuffer buff = args[1]->AsBuffer(worker);
-				rev = HttpHelper::post(url, buff.copy(), cb);
-			}
-		}, HttpError);
-		JS_RETURN( rev );
-	}
-
-	/**
-	 * @func get_sync(url)
-	 * @arg url {String}
-	 * @ret {Buffer}
-	 */
-	static void get_sync(FunctionCall args) {
-		JS_WORKER(args);
-		if (args.Length() == 0 || !args[0]->IsString(worker)) {
-			JS_THROW_ERR(
-				"* @func getSync(url)\n"
-				"* @arg url {String}\n"
-				"* @ret {Buffer}\n"
-			);
-		}
-		String url = args[0]->ToStringValue(worker);
-		JS_TRY_CATCH({ JS_RETURN( HttpHelper::get_sync(url) ); }, HttpError);
-	}
-	
-	/**
-	 * @func post_sync(url,data)
-	 * @arg url {String}
-	 * @arg data {String|ArrayBuffer|Buffer}
-	 * @ret {Buffer}
-	 */
-	static void post_sync(FunctionCall args) {
-		JS_WORKER(args);
-		if (  args.Length() < 2 || !args[0]->IsString(worker) ||
-				!(args[1]->IsString(worker) || args[1]->IsBuffer()
-      )
-		) {
-			JS_THROW_ERR(
-				"* @func postSync(url,data)\n"
-				"* @arg url {String}\n"
-				"* @arg data {String|ArrayBuffer|Buffer}\n"
-				"* @ret {Buffer}\n"
-			);
-		}
-		
-		String url = args[0]->ToStringValue(worker);
-		Buffer rev;
-		
-		JS_TRY_CATCH({
-			if (args[1]->IsString(worker)) {
-				rev = HttpHelper::post_sync(url, args[1]->ToStringValue(worker).collapse_buffer());
-			}
-			else {
-				WeakBuffer buff = args[1]->AsBuffer(worker);
-				rev = HttpHelper::post_sync(url, buff.copy());
-			}
-		}, HttpError);
-		JS_RETURN( move(rev) );
-	}
 
 	/**
 	 * @func abort(id)
@@ -1216,28 +963,22 @@ public:
 		worker->bindingModule("_buffer");
 		WrapNativeHttpClientRequest::binding(exports, worker);
 		// HTTP_METHOD
-		JS_SET_PROPERTY(HTTP_METHOD_GET, HTTP_METHOD_GET);
-		JS_SET_PROPERTY(HTTP_METHOD_POST, HTTP_METHOD_POST);
-		JS_SET_PROPERTY(HTTP_METHOD_HEAD, HTTP_METHOD_HEAD);
-		JS_SET_PROPERTY(HTTP_METHOD_DELETE, HTTP_METHOD_DELETE);
-		JS_SET_PROPERTY(HTTP_METHOD_PUT, HTTP_METHOD_PUT);
-		// HTTP_READY
-		JS_SET_PROPERTY(HTTP_READY_STATE_INITIAL, HTTP_READY_STATE_INITIAL);
-		JS_SET_PROPERTY(HTTP_READY_STATE_READY, HTTP_READY_STATE_READY);
-		JS_SET_PROPERTY(HTTP_READY_STATE_SENDING, HTTP_READY_STATE_SENDING);
-		JS_SET_PROPERTY(HTTP_READY_STATE_RESPONSE, HTTP_READY_STATE_RESPONSE);
-		JS_SET_PROPERTY(HTTP_READY_STATE_COMPLETED, HTTP_READY_STATE_COMPLETED);
+		// JS_SET_PROPERTY(HTTP_METHOD_GET, HTTP_METHOD_GET);
+		// JS_SET_PROPERTY(HTTP_METHOD_POST, HTTP_METHOD_POST);
+		// JS_SET_PROPERTY(HTTP_METHOD_HEAD, HTTP_METHOD_HEAD);
+		// JS_SET_PROPERTY(HTTP_METHOD_DELETE, HTTP_METHOD_DELETE);
+		// JS_SET_PROPERTY(HTTP_METHOD_PUT, HTTP_METHOD_PUT);
+		// // HTTP_READY
+		// JS_SET_PROPERTY(HTTP_READY_STATE_INITIAL, HTTP_READY_STATE_INITIAL);
+		// JS_SET_PROPERTY(HTTP_READY_STATE_READY, HTTP_READY_STATE_READY);
+		// JS_SET_PROPERTY(HTTP_READY_STATE_SENDING, HTTP_READY_STATE_SENDING);
+		// JS_SET_PROPERTY(HTTP_READY_STATE_RESPONSE, HTTP_READY_STATE_RESPONSE);
+		// JS_SET_PROPERTY(HTTP_READY_STATE_COMPLETED, HTTP_READY_STATE_COMPLETED);
+
 		// FUNC
 		JS_SET_METHOD(request, request);
 		JS_SET_METHOD(requestStream, request_stream);
 		JS_SET_METHOD(requestSync, request_sync);
-		JS_SET_METHOD(download, download);
-		JS_SET_METHOD(upload, upload);
-		JS_SET_METHOD(get, get);
-		JS_SET_METHOD(getStream, get_stream);
-		JS_SET_METHOD(post, post);
-		JS_SET_METHOD(getSync, get_sync);
-		JS_SET_METHOD(postSync, post_sync);
 		JS_SET_METHOD(abort, abort);
 		JS_SET_METHOD(userAgent, user_agent);
 		JS_SET_METHOD(setUserAgent, set_user_agent);
@@ -1245,8 +986,7 @@ public:
 		JS_SET_METHOD(setCachePath, set_cache_path);
 		JS_SET_METHOD(clearCache, clear_cache);
 		JS_SET_METHOD(clearCookie, clear_cookie);
-		JS_SET_METHOD(downloadSync, download_sync);
-		JS_SET_METHOD(uploadSync, upload_sync);
+
 		//JS_SET_METHOD(sslCacertFile, ssl_cacert_file);
 		//JS_SET_METHOD(setSslCacertFile, set_ssl_cacert_file);
 		//JS_SET_METHOD(setSslClientKeyFile, set_ssl_client_key_file);

@@ -102,7 +102,7 @@ export function create(opt: Options, parent?: Action) {
 }
 
  /**
-	* @func transition(view,style[,delay[,cb]][,cb])
+	* @func transition(view,style,delay?,cb?)
 	* @arg view 	{View}
 	* @arg style  {Object}
 	* @arg [delay]  {uint} ms
@@ -113,8 +113,6 @@ export function transition(view: View, style: Dict, delay?: number, cb?: (e: GUI
 	var action = new KeyframeAction() as Action;
 	if ( typeof delay == 'number' ) {
 		action.delay = delay;
-	} else if ( typeof delay == 'function' ) {
-		cb = delay;
 	}
 	action.add(); // add frame 0
 	action.add(style); // add frame 1
@@ -128,8 +126,8 @@ export function transition(view: View, style: Dict, delay?: number, cb?: (e: GUI
 				if (evt.frame != 1) return;
 				(cb as any)(evt); // end
 			}
-			view.onActionKeyframe.off(-1);
-		}, -1);
+			view.onActionKeyframe.off('transition-1');
+		}, 'transition-1');
 	}
 
 	action.play(); // start play

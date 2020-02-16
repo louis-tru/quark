@@ -62,8 +62,8 @@ class NativeFileReader {
 		}
 		if ( args.Length() > args_index ) {
 			cb = stream ?
-        get_callback_for_io_stream(worker, args[args_index]) :
-        get_callback_for_buffer(worker, args[args_index], encoding);
+				get_callback_for_io_stream(worker, args[args_index]) :
+				get_callback_for_buffer(worker, args[args_index], encoding);
 		}
 		if ( stream ) {
 			JS_RETURN( f_reader()->read_stream( path, cb ) );

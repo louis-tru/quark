@@ -29,55 +29,167 @@
  * ***** END LICENSE BLOCK ***** */
 
 import utils from './util';
-import event, {EventNoticer, NativeNotification, Notification} from './event';
+import {ReadStream, AsyncTask, StreamData} from './fs';
+import event, {
+	EventNoticer, NativeNotification, Notification, Event,
+} from './event';
 
 const _http = __requireNgui__('_http');
 
-declare class NativeHttpClientRequest extends Notification {
-	// JS_SET_CLASS_METHOD(setMethod, set_method);
-	// JS_SET_CLASS_METHOD(setUrl, set_url);
-	// JS_SET_CLASS_METHOD(setSavePath, set_save_path);
-	// JS_SET_CLASS_METHOD(setUsername, set_username);
-	// JS_SET_CLASS_METHOD(setPassword, set_password);
-	// JS_SET_CLASS_METHOD(disableCache, disable_cache);
-	// JS_SET_CLASS_METHOD(disableCookie, disable_cookie);
-	// JS_SET_CLASS_METHOD(disableSendCookie, disable_send_cookie);
-	// JS_SET_CLASS_METHOD(disableSslVerify, disable_ssl_verify);
-	// JS_SET_CLASS_METHOD(setKeepAlive, set_keep_alive);
-	// JS_SET_CLASS_METHOD(setTimeout, set_timeout);
-	// JS_SET_CLASS_METHOD(setRequestHeader, set_request_header);
-	// JS_SET_CLASS_METHOD(setForm, set_form);
-	// JS_SET_CLASS_METHOD(setUploadFile, set_upload_file);
-	// JS_SET_CLASS_METHOD(clearRequestHeader, clear_request_header);
-	// JS_SET_CLASS_METHOD(clearFormData, clear_form_data);
-	// JS_SET_CLASS_METHOD(getResponseHeader, get_response_header);
-	// JS_SET_CLASS_METHOD(getAllResponseHeaders, get_all_response_headers);
-	// JS_SET_CLASS_ACCESSOR(uploadTotal, upload_total);
-	// JS_SET_CLASS_ACCESSOR(uploadSize, upload_size);
-	// JS_SET_CLASS_ACCESSOR(downloadTotal, download_total);
-	// JS_SET_CLASS_ACCESSOR(downloadSize, download_size);
-	// JS_SET_CLASS_ACCESSOR(readyState, ready_state);
-	// JS_SET_CLASS_ACCESSOR(statusCode, status_code);
-	// JS_SET_CLASS_ACCESSOR(url, url);
-	// JS_SET_CLASS_ACCESSOR(httpResponseVersion, http_response_version);
-	// JS_SET_CLASS_METHOD(send, send);
-	// JS_SET_CLASS_METHOD(pause, pause);
-	// JS_SET_CLASS_METHOD(resume, resume);
-	// JS_SET_CLASS_METHOD(abort, abort);
+export enum HttpMethod {
+	HTTP_METHOD_GET,
+	HTTP_METHOD_POST,
+	HTTP_METHOD_HEAD,
+	HTTP_METHOD_DELETE,
+	HTTP_METHOD_PUT,
+}
+
+export enum HttpReadyState {
+	HTTP_READY_STATE_INITIAL,
+	HTTP_READY_STATE_READY,
+	HTTP_READY_STATE_SENDING,
+	HTTP_READY_STATE_RESPONSE,
+	HTTP_READY_STATE_COMPLETED,
+}
+
+declare class NativeHttpClientRequest extends Notification<Event<any, HttpClientRequest>> implements ReadStream {
+	setMethod(method: HttpMethod): void;
+	setUrl(url: string): void;
+	setSavePath(path: string): void;
+	setUsername(user: string): void;
+	setPassword(pwd: string): void;
+	disableCache(disable: boolean): void;
+	disableCookie(disable: boolean): void;
+	disableSendCookie(disable: boolean): void;
+	disableSslVerify(disable: boolean): void;
+	setKeepAlive(keepAlive: boolean): void;
+	setTimeout(timeoutMs: number): void;
+	setRequestHeader(name: string, value: string): void;
+	setForm(formName: string, value: string): void;
+	setUploadFile(formName: string, localPath: string): void;
+	clearRequestHeader(): void;
+	clearFormData(): void;
+	getResponseHeader(headerName: string): string;
+	getAllResponseHeaders(): Dict<string>;
+	readonly uploadTotal: number;
+	readonly uploadSize: number;
+	readonly downloadTotal: number;
+	readonly downloadSize: number;
+	readonly readyState: HttpReadyState;
+	readonly statusCode: number;
+	readonly url: string;
+	readonly httpResponseVersion: string;
+	send(data?: string | Uint8Array): void;
+	pause(): void;
+	resume(): void;
+	abort(): void;
 }
 
 /**
- * @class HttpClientRequestIMPL
+ * @class HttpClientRequest
  */
 export class HttpClientRequest extends (_http.NativeHttpClientRequest as typeof NativeHttpClientRequest) {
-	@event onError: EventNoticer;
-	@event onwrite: EventNoticer;
-	@event onHeader: EventNoticer;
-	@event onData: EventNoticer;
-	@event onEnd: EventNoticer;
-	@event onReadystateChange: EventNoticer;
-	@event onTimeout: EventNoticer;
-	@event onAbort: EventNoticer;
+	@event readonly onError: EventNoticer<Event<Error, HttpClientRequest>>;
+	@event readonly onWrite: EventNoticer<Event<void, HttpClientRequest>>;
+	@event readonly onHeader: EventNoticer<Event<void, HttpClientRequest>>;
+	@event readonly onData: EventNoticer<Event<Uint8Array, HttpClientRequest>>;
+	@event readonly onEnd: EventNoticer<Event<void, HttpClientRequest>>;
+	@event readonly onReadystateChange: EventNoticer<Event<void, HttpClientRequest>>;
+	@event readonly onTimeout: EventNoticer<Event<void, HttpClientRequest>>;
+	@event readonly onAbort: EventNoticer<Event<void, HttpClientRequest>>;
 }
 
 utils.extendClass(HttpClientRequest, NativeNotification);
+
+Object.assign(exports, _http);
+delete exports.NativeHttpClientRequest;
+
+export interface RequestOptions {
+	url?: string;
+	method?: HttpMethod;
+	headers?: Dict<string>;          /* setting custom request headers */
+	postData?: string | Uint8Array;  /* Non post requests ignore this option */
+	save?: string;                   /* save body content to local disk */
+	upload?: string;                 /* upload loacl file */
+	timeout?: number;                /* request timeout time, default no timeout "0" */
+	disableSslVerify?: boolean;
+	disableCache?: boolean;
+	disableCookie?: boolean;
+}
+
+export interface RequestResult {
+	data: Uint8Array;
+	httpVersion: string;
+	statusCode: number;
+	responseHeaders: Dict<string>;
+}
+
+export function request(options: RequestOptions): AsyncTask<RequestResult> {
+	return new AsyncTask<RequestResult>(function(resolve, reject) {
+		return _http.request(options, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+	});
+}
+
+export function requestStream(options: RequestOptions, cb: (stream: StreamData)=>void) {
+	return new AsyncTask<void>(function(resolve, reject): number {
+		return _http.requestStream(options, function(err?: Error, r?: StreamData) {
+			if (err) {
+				reject(err);
+			} else {
+				var stream = r as StreamData;
+				cb(stream);
+				if (stream.complete) {
+					resolve();
+				}
+			}
+		});
+	});
+};
+
+export function requestSync(options: RequestOptions): Uint8Array {
+	return _http.requestSync(options);
+}
+
+export function download(url: string, save: string) {
+	return request({ url, save });
+}
+
+export function upload(url: string, localPath: string) {
+	return request({ url, upload: localPath, method: HttpMethod.HTTP_METHOD_POST, disableCache: true });
+}
+
+export function get(url: string) {
+	return request({ url });
+}
+
+export function getStream(url: string, cb: (stream: StreamData)=>void) {
+	return requestStream({ url }, cb);
+}
+
+export function post(url: string, data: string | Uint8Array) {
+	return request({ url, postData: data, method: HttpMethod.HTTP_METHOD_POST });
+};
+
+export function getSync(url: string) {
+	return requestSync({ url });
+}
+
+export function postSync(url: string, data: string | Uint8Array) {
+	return requestSync({ url, postData: data, method: HttpMethod.HTTP_METHOD_POST });
+}
+
+export function downloadSync(url: string, save: string) {
+	return requestSync({ url, save });
+}
+
+export function uploadSync(url: string, localPath: string) {
+	return requestSync({ url, upload: localPath, method: HttpMethod.HTTP_METHOD_POST, disableCache: true });
+}
+
+export declare function abort(id: number): void;
+export declare function userAgent(): string;
+export declare function setUserAgent(ua: string): void;
+export declare function cachePath(): string;
+export declare function setCachePath(path: string): void;
+export declare function clearCache(): void;
+export declare function clearCookie(): void;

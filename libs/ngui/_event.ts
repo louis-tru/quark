@@ -171,7 +171,7 @@ export class List<T> {
 /**
 	* @class Event
 	*/
-export class Event<Data = any, Sender = any> {
+export class Event<Data = any, Sender extends object = object> {
 	private m_data: Data;
 	private m_return_value: number; // = 0
 	protected m_noticer: EventNoticer<Event<Data, Sender>> | null; // = null;
@@ -186,7 +186,7 @@ export class Event<Data = any, Sender = any> {
 	}
 
 	get sender(): Sender {
-		return (this.m_noticer as EventNoticer<Event<Data, Sender>>).sender;
+		return (this.m_noticer as EventNoticer<Event<Data, Sender>>).sender as Sender;
 	}
 
 	get origin () {
@@ -222,12 +222,12 @@ export class Event<Data = any, Sender = any> {
 
 type DefaultEvent = Event;
 
-export interface Listen<Event = DefaultEvent, Scope = any> {
-	(evt: Event): any;
+export interface Listen<Event = DefaultEvent, Scope extends object = object> {
+	(this: Scope, evt: Event): any;
 }
 
-export interface Listen2<Event = DefaultEvent, Scope = any> {
-	(scope: Scope, evt: Event): any;
+export interface Listen2<Event = DefaultEvent, Scope extends object = object> {
+	(self: Scope, evt: Event): any;
 }
 
 interface ListenItem {
@@ -257,7 +257,7 @@ function forwardNoticeNoticer<E>(forward_noticer: EventNoticer<E>, evt: E) {
 export class EventNoticer<E = Event> {
 
 	private m_name: string;
-	private m_sender: any;
+	private m_sender: object;
 	private m_listens: List<ListenItem> | null = null;
 	private m_listens_map: Map<string, LiteItem<ListenItem>> | null = null
 	private m_length: number = 0
@@ -342,7 +342,7 @@ export class EventNoticer<E = Event> {
 	 * @arg name   {String} # 事件名称
 	 * @arg sender {Object} # 事件发起者
 	 */
-	constructor (name: string, sender: any) {
+	constructor (name: string, sender: object) {
 		this.m_name = name;
 		this.m_sender = sender;
 	}
@@ -353,9 +353,9 @@ export class EventNoticer<E = Event> {
 	 * @arg [scope] {Object}   # 重新指定侦听函数this
 	 * @arg [id]  {String}     # 侦听器别名,可通过id删除
 	 */
-	on<Scope>(listen: Listen<E, Scope>, scope: Scope | string = this.m_sender, id?: string): string {
+	on<Scope extends object>(listen: Listen<E, Scope>, scopeOrId?: Scope | string, id?: string): string {
 		check_fun(listen);
-		return this._add(listen, listen, scope, id);
+		return this._add(listen, listen, scopeOrId, id);
 	}
 
 	/**
@@ -364,7 +364,7 @@ export class EventNoticer<E = Event> {
 	 * @arg [scope] {Object}  #         重新指定侦听函数this
 	 * @arg [id] {String}     #         侦听器别名,可通过id删除
 	 */
-	once<Scope>(listen: Listen<E, Scope>, scope: Scope | string = this.m_sender, id?: string): string {
+	once<Scope extends object>(listen: Listen<E, Scope>, scopeOrId?: Scope | string, id?: string): string {
 		check_fun(listen);
 		var self = this;
 		var _id = this._add(listen, {
@@ -372,7 +372,7 @@ export class EventNoticer<E = Event> {
 				self.off(_id);
 				listen.call(scope, evt);
 			}
-		}, scope, id);
+		}, scopeOrId, id);
 		return _id;
 	}
 
@@ -384,9 +384,9 @@ export class EventNoticer<E = Event> {
 	 * @arg [scope] {Object}   #      重新指定侦听函数this
 	 * @arg [id] {String}     #     侦听器别名,可通过id删除
 	 */
-	on2<Scope>(listen: Listen2<E, Scope>, scope: Scope | string = this.m_sender, id?: string): string {
+	on2<Scope extends object>(listen: Listen2<E, Scope>, scopeOrId?: Scope | string, id?: string): string {
 		check_fun(listen);
-		return this._add(listen, { call: listen }, scope, id);
+		return this._add(listen, { call: listen }, scopeOrId, id);
 	}
 
 	/**
@@ -397,7 +397,7 @@ export class EventNoticer<E = Event> {
 	 * @arg [scope] {Object}      # 重新指定侦听函数this
 	 * @arg [id] {String}         # 侦听器id,可通过id删除
 	 */
-	once2<Scope>(listen: Listen2<E, Scope>, scope: Scope | string = this.m_sender, id?: string): string {
+	once2<Scope extends object>(listen: Listen2<E, Scope>, scopeOrId?: Scope | string, id?: string): string {
 		check_fun(listen);
 		var self = this;
 		var _id = this._add(listen, {
@@ -405,7 +405,7 @@ export class EventNoticer<E = Event> {
 				self.off(_id);
 				listen(scope, evt);
 			}
-		}, scope, id);
+		}, scopeOrId, id);
 		return _id;
 	}
 
@@ -462,13 +462,13 @@ export class EventNoticer<E = Event> {
 	 * @arg [func] {Object}   # 可以是侦听函数,id,如果不传入参数卸载所有侦听器
 	 * @arg [scope] {Object}  # scope
 	 */
-	off(listen?: string | Function | Object, scope?: any): number {
+	off(listen?: string | Function | object, scope?: object): number {
 		if ( !this.m_length ) {
 			return 0;
 		}
 		var r = 0;
 		if (listen) {
-			if ( typeof listen == 'string' || typeof listen == 'number' ) { // by id delete 
+			if ( typeof listen == 'string' ) { // by id delete 
 				var name = String(listen);
 				let listens_map = <Map<string, LiteItem<ListenItem>>>this.m_listens_map;
 				let item = listens_map.get(name);
@@ -530,7 +530,7 @@ export class EventNoticer<E = Event> {
 					item = item.next;
 				}
 			} else { //
-				throw new Error('Param err');
+				throw new Error('Bad argument.');
 			}
 		} else { // 全部删除
 			let listens = <List<ListenItem>>this.m_listens;
@@ -598,9 +598,9 @@ export class Notification<E = Event> {
 	/**
 	 * @func addEventListener(name, listen[,scope[,id]])
 	 */
-	addEventListener<Scope>(name: string, listen: Listen<E, Scope>, scope?: Scope | string, id?: string) {
+	addEventListener<Scope extends object>(name: string, listen: Listen<E, Scope>, scopeOrId?: Scope | string, id?: string) {
 		var del = this.getNoticer(name);
-		var r = del.on(listen, scope, id);
+		var r = del.on(listen, scopeOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
 		return r;
 	}
@@ -608,9 +608,9 @@ export class Notification<E = Event> {
 	/**
 	 * @func addEventListenerOnce(name, listen[,scope[,id]])
 	 */
-	addEventListenerOnce<Scope>(name: string, listen: Listen<E, Scope>, scope?: Scope | string, id?: string) {
+	addEventListenerOnce<Scope extends object>(name: string, listen: Listen<E, Scope>, scopeOrId?: Scope | string, id?: string) {
 		var del = this.getNoticer(name);
-		var r = del.once(listen, scope, id);
+		var r = del.once(listen, scopeOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
 		return r;
 	}
@@ -618,9 +618,9 @@ export class Notification<E = Event> {
 	/**
 	 * @func addEventListener2(name, listen[,scope[,id]])
 	 */
-	addEventListener2<Scope>(name: string, listen: Listen2<E, Scope>, scope?: Scope | string, id?: string) {
+	addEventListener2<Scope extends object>(name: string, listen: Listen2<E, Scope>, scopeOrId?: Scope | string, id?: string) {
 		var del = this.getNoticer(name);
-		var r = del.on2(listen, scope, id);
+		var r = del.on2(listen, scopeOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
 		return r;
 	}
@@ -628,9 +628,9 @@ export class Notification<E = Event> {
 	/**
 	 * @func addEventListenerOnce2(name, listen[,scope[,id]])
 	 */
-	addEventListenerOnce2<Scope>(name: string, listen: Listen2<E, Scope>, scope?: Scope | string, id?: string) {
+	addEventListenerOnce2<Scope extends object>(name: string, listen: Listen2<E, Scope>, scopeOrId?: Scope | string, id?: string) {
 		var del = this.getNoticer(name);
-		var r = del.once2(listen, scope, id);
+		var r = del.once2(listen, scopeOrId, id);
 		this.triggerListenerChange(name, del.length, 1);
 		return r;
 	}
@@ -674,7 +674,7 @@ export class Notification<E = Event> {
 	/**
 	 * @func removeEventListener(name,[func[,scope]])
 	 */
-	removeEventListener(name: string, listen?: string | Function | Object, scope?: any) {
+	removeEventListener(name: string, listen?: string | Function | object, scope?: object) {
 		var noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
 		if (noticer) {
 			noticer.off(listen, scope);
@@ -686,7 +686,7 @@ export class Notification<E = Event> {
 	 * @func removeEventListenerWithScope(scope) 卸载notification上所有与scope相关的侦听器
 	 * @arg scope {Object}
 	 */
-	removeEventListenerWithScope(scope: any) {
+	removeEventListenerWithScope(scope: object) {
 		for ( let noticer of this.allNoticers() ) {
 			noticer.off(scope);
 			this.triggerListenerChange(name, noticer.length, -1);

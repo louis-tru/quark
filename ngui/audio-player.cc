@@ -335,7 +335,7 @@ void AudioPlayer::multimedia_source_wait_buffer(MultimediaSource* so, float proc
 }
 
 void AudioPlayer::multimedia_source_eof(MultimediaSource* so) {
-	Inl_AudioPlayer(this)->trigger(GUI_EVENT_SOURCE_EOF); // trigger event eof
+	Inl_AudioPlayer(this)->trigger(GUI_EVENT_SOURCE_END); // trigger event eof
 }
 
 void AudioPlayer::multimedia_source_error(MultimediaSource* so, cError& err) {

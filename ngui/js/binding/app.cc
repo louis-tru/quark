@@ -67,19 +67,19 @@ class WrapNativeGUIApplication: public WrapObject {
 	virtual bool addEventListener(cString& name, cString& func, int id)
 	{
 		if ( name == load ) {
-			self<Type>()->js_bind_common_native_event(load);
+			self<Type>()->js_bind_common_native_event(Load);
 		} else if ( name == unload ) {
-			self<Type>()->js_bind_common_native_event(unload);
+			self<Type>()->js_bind_common_native_event(Unload);
 		} else if ( name == background ) {
-			self<Type>()->js_bind_common_native_event(background);
+			self<Type>()->js_bind_common_native_event(Background);
 		} else if ( name == foreground ) {
-			self<Type>()->js_bind_common_native_event(foreground);
+			self<Type>()->js_bind_common_native_event(Foreground);
 		} else if ( name == pause ) {
-			self<Type>()->js_bind_common_native_event(pause);
+			self<Type>()->js_bind_common_native_event(Pause);
 		} else if ( name == resume ) {
-			self<Type>()->js_bind_common_native_event(resume);
+			self<Type>()->js_bind_common_native_event(Resume);
 		} else if ( name == memorywarning ) {
-			self<Type>()->js_bind_common_native_event(memorywarning);
+			self<Type>()->js_bind_common_native_event(Memorywarning);
 		} else {
 			return false;
 		}
@@ -92,19 +92,19 @@ class WrapNativeGUIApplication: public WrapObject {
 	virtual bool removeEventListener(cString& name, int id)
 	{
 		if ( name == load ) {
-			self<Type>()->js_unbind_native_event(load);
+			self<Type>()->js_unbind_native_event(Load);
 		} else if ( name == unload ) {
-			self<Type>()->js_unbind_native_event(unload);
+			self<Type>()->js_unbind_native_event(Unload);
 		} else if ( name == background ) {
-			self<Type>()->js_unbind_native_event(background);
+			self<Type>()->js_unbind_native_event(Background);
 		} else if ( name == foreground ) {
-			self<Type>()->js_unbind_native_event(foreground);
+			self<Type>()->js_unbind_native_event(Foreground);
 		} else if ( name == pause ) {
-			self<Type>()->js_unbind_native_event(pause);
+			self<Type>()->js_unbind_native_event(Pause);
 		} else if ( name == resume ) {
-			self<Type>()->js_unbind_native_event(resume);
+			self<Type>()->js_unbind_native_event(Resume);
 		} else if ( name == memorywarning ) {
-			self<Type>()->js_unbind_native_event(memorywarning);
+			self<Type>()->js_unbind_native_event(Memorywarning);
 		} else {
 			return false;
 		}
@@ -137,7 +137,7 @@ class WrapNativeGUIApplication: public WrapObject {
 			Handle<GUIApplication> h = new GUIApplication();
 			h->initialize(options);
 			auto app = h.collapse();
-			app->XX_ON(memorywarning,
+			app->XX_ON(Memorywarning,
 								 &WrapNativeGUIApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeGUIApplication*>(wrap));
 			app->run_indep();
@@ -175,19 +175,19 @@ class WrapNativeGUIApplication: public WrapObject {
 	}
 	
 	/**
-	 * @func send_email(recipient,title[,cc[,bcc[,body]]])
+	 * @func send_email(recipient,title,body[,cc[,bcc]])
 	 */
 	static void send_email(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		if ( args.Length() < 2 ) {
-			JS_THROW_ERR("@func sendEmail(recipient,title[,cc[,bcc[,body]]])");
+			JS_THROW_ERR("@func sendEmail(recipient,title,body[,cc[,bcc])");
 		}
 		String recipient = args[0]->ToStringValue(worker);
 		String title = args[1]->ToStringValue(worker);
-		String cc, bcc, body;
+		String body, cc, bcc;
 		if ( args.Length() > 2 ) cc = args[2]->ToStringValue(worker);
-		if ( args.Length() > 3 ) bcc = args[3]->ToStringValue(worker);
-		if ( args.Length() > 4 ) body = args[4]->ToStringValue(worker);
+		if ( args.Length() > 3 ) cc = args[3]->ToStringValue(worker);
+		if ( args.Length() > 4 ) bcc = args[4]->ToStringValue(worker);
 		
 		JS_SELF(GUIApplication);
 		self->send_email( recipient, title, cc, bcc, body );

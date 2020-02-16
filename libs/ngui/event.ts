@@ -37,7 +37,7 @@ export default (exports.event as (target: any, name: string)=>void);
 
 // GUI EVENT 
 
-export enum ClickType { 
+export enum ClickType {
 	TOUCH = 1, KEYBOARD = 2, MOUSE = 3,
 };
 
@@ -53,9 +53,9 @@ export enum ReturnValueMask {
 	RETURN_VALUE_MASK_ALL = (RETURN_VALUE_MASK_DEFAULT | RETURN_VALUE_MASK_BUBBLE),
 };
 
-declare class NativeEvent<Sender = any> extends Event<any, Sender> {}
+declare class NativeEvent<Data, Sender extends object> extends Event<Data, Sender> {}
 
-export declare class GUIEvent extends NativeEvent<View> {
+export declare class GUIEvent<Data = void> extends NativeEvent<Data, View> {
 	readonly origin: View;
 	readonly timestamp: number;
 	readonly isDefault: boolean;
@@ -126,10 +126,10 @@ const PREFIX = 'm_on';
 /**
  * @class NativeNotification
  */
-export class NativeNotification<Data = any, Return = number, Sender = any> extends Notification<GUIEvent>  {
+export class NativeNotification<E = Event> extends Notification<E> {
 
 	getNoticer(name: string) {
-		var noticer = (this as any)[PREFIX + name] as EventNoticer<GUIEvent>;
+		var noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
 		if ( ! noticer ) {
 			// bind native event
 			var func = (this as any)['trigger' + name];
@@ -141,7 +141,7 @@ export class NativeNotification<Data = any, Return = number, Sender = any> exten
 				//console.log('_util.addNativeEventListener', name, ok, String(trigger));
 				return ok;
 			}, -1);
-			(this as any)[PREFIX + name] = noticer = new EventNoticer<GUIEvent>(name, this as any);
+			(this as any)[PREFIX + name] = noticer = new EventNoticer<E>(name, this as any);
 		}
 		return noticer;
 	}

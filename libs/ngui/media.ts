@@ -28,40 +28,163 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_media');
-
 import utils from './util';
-import event from 'ngui/event';
+import event, {
+	EventNoticer, NativeNotification, Notification, Event, GUIEvent,
+} from './event';
+import { Image } from './_view';
 
- /**
-	* @class AudioPlayer
-	*/
-export class AudioPlayer extends exports.AudioPlayer {
-	event onWaitBuffer;
-	event onReady;
-	event onStartPlay;
-	event onError;
-	event onSourceEOF;
-	event onPause;
-	event onResume;
-	event onStop;
-	event onSeek;
+const _media = __requireNgui__('_media');
+
+export enum MediaType {
+	MEDIA_TYPE_AUDIO,
+	MEDIA_TYPE_VIDEO,
 }
 
- /**
-	* @class VideoExtend
-	*/
+export enum PlayerStatus {
+	PLAYER_STATUS_STOP = 0,
+	PLAYER_STATUS_START,
+	PLAYER_STATUS_PLAYING,
+	PLAYER_STATUS_PAUSED,
+};
+
+export enum MultimediaSourceStatus {
+	MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED = 0,
+	MULTIMEDIA_SOURCE_STATUS_READYING,
+	MULTIMEDIA_SOURCE_STATUS_READY,
+	MULTIMEDIA_SOURCE_STATUS_WAIT,
+	MULTIMEDIA_SOURCE_STATUS_FAULT,
+	MULTIMEDIA_SOURCE_STATUS_EOF,
+}
+
+export enum VideoColorFormat {
+	VIDEO_COLOR_FORMAT_YUV420P = 18,
+	VIDEO_COLOR_FORMAT_YUV420SP = 19,
+	VIDEO_COLOR_FORMAT_YUV411P = 20,
+	VIDEO_COLOR_FORMAT_YUV411SP = 21,
+	VIDEO_COLOR_FORMAT_INVALID = 200000
+}
+
+export enum AudioChannelMask {
+	CH_INVALID                = 0,
+	CH_FRONT_LEFT             = 0x00000001,
+	CH_FRONT_RIGHT            = 0x00000002,
+	CH_FRONT_CENTER           = 0x00000004,
+	CH_LOW_FREQUENCY          = 0x00000008,
+	CH_BACK_LEFT              = 0x00000010,
+	CH_BACK_RIGHT             = 0x00000020,
+	CH_FRONT_LEFT_OF_CENTER   = 0x00000040,
+	CH_FRONT_RIGHT_OF_CENTER  = 0x00000080,
+	CH_BACK_CENTER            = 0x00000100,
+	CH_SIDE_LEFT              = 0x00000200,
+	CH_SIDE_RIGHT             = 0x00000400,
+	CH_TOP_CENTER             = 0x00000800,
+	CH_TOP_FRONT_LEFT         = 0x00001000,
+	CH_TOP_FRONT_CENTER       = 0x00002000,
+	CH_TOP_FRONT_RIGHT        = 0x00004000,
+	CH_TOP_BACK_LEFT          = 0x00008000,
+	CH_TOP_BACK_CENTER        = 0x00010000,
+	CH_TOP_BACK_RIGHT         = 0x00020000,
+}
+
+export interface TrackInfo {
+	type: MediaType;
+	mime: string;
+	codecId: number;
+	codecTag: number;
+	format: number;
+	profile: number;
+	level: number;
+	width: number;
+	height: number;
+	language: string;
+	bitrate: number;
+	sampleRate: number;
+	channelCount: number;
+	channelLayout: number;
+	frameInterval: number;
+}
+
+declare class NativeAudioPlayer extends Notification<Event<any, AudioPlayer>> {
+	src: string;
+	autoPlay: boolean;
+	readonly sourceStatus: MultimediaSourceStatus;
+	readonly status: PlayerStatus;
+	mute: boolean;
+	volume: number; // 0-100
+	readonly time: number;
+	readonly duration: number;
+	readonly audioTrackIndex: number;
+	readonly audioTrackCount: number;
+	disableWaitBuffer: boolean;
+	selectAudioTrack(index: number): void;
+	audioTrack(index?: number): TrackInfo | null;
+	start(): void;
+	seek(timeMs: number): boolean;
+	pause(): void;
+	resume(): void;
+	stop(): void;
+}
+
+/**
+ * @class Video
+ */
+export declare class Video extends Image {
+	readonly onWaitBuffer: EventNoticer<GUIEvent<number>>;
+	readonly onReady: EventNoticer<GUIEvent<void>>;
+	readonly onStartPlay: EventNoticer<GUIEvent<void>>;
+	readonly onSourceEnd: EventNoticer<GUIEvent<void>>;
+	readonly onPause: EventNoticer<GUIEvent<void>>;
+	readonly onResume: EventNoticer<GUIEvent<void>>;
+	readonly onStop: EventNoticer<GUIEvent<void>>;
+	readonly onSeek: EventNoticer<GUIEvent<number>>;
+	readonly videoWidth: number;
+	readonly videoHeight: number;
+	videoTrack(): TrackInfo | null;
+	autoPlay: boolean;
+	readonly sourceStatus: MultimediaSourceStatus;
+	readonly status: PlayerStatus;
+	mute: boolean;
+	volume: number; // 0-100
+	readonly time: number;
+	readonly duration: number;
+	readonly audioTrackIndex: number;
+	readonly audioTrackCount: number;
+	disableWaitBuffer: boolean;
+	selectAudioTrack(index: number): void;
+	audioTrack(index?: number): TrackInfo | null;
+	start(): void;
+	seek(timeMs: number): boolean;
+	pause(): void;
+	resume(): void;
+	stop(): void;
+}
+
+/**
+ * @class AudioPlayer
+ */
+export class AudioPlayer extends (_media.AudioPlayer as typeof NativeAudioPlayer) {
+	@event readonly onWaitBuffer: EventNoticer<Event<number, AudioPlayer>>;
+	@event readonly onReady: EventNoticer<Event<void, AudioPlayer>>;
+	@event readonly onStartPlay: EventNoticer<Event<void, AudioPlayer>>;
+	@event readonly onError: EventNoticer<Event<Error, AudioPlayer>>;
+	@event readonly onSourceEnd: EventNoticer<Event<void, AudioPlayer>>;
+	@event readonly onPause: EventNoticer<Event<void, AudioPlayer>>;
+	@event readonly onResume: EventNoticer<Event<void, AudioPlayer>>;
+	@event readonly onStop: EventNoticer<Event<void, AudioPlayer>>;
+	@event readonly onSeek: EventNoticer<Event<number, AudioPlayer>>;
+}
+
 class _Video {
-	event onWaitBuffer;
-	event onReady;
-	event onStartPlay;
-	event onError;
-	event onSourceEOF;
-	event onPause;
-	event onResume;
-	event onStop;
-	event onSeek;
+	@event readonly onWaitBuffer: EventNoticer;
+	@event readonly onReady: EventNoticer;
+	@event readonly onStartPlay: EventNoticer;
+	@event readonly onSourceEnd: EventNoticer;
+	@event readonly onPause: EventNoticer;
+	@event readonly onResume: EventNoticer;
+	@event readonly onStop: EventNoticer;
+	@event readonly onSeek: EventNoticer;
 }
 
-utils.extendClass(exports.Video, _Video);
-utils.extendClass(AudioPlayer, event.NativeNotification);
+utils.extendClass(_media.Video, _Video);
+utils.extendClass(AudioPlayer, NativeNotification);

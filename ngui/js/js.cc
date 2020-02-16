@@ -297,6 +297,11 @@ void IMPL::initialize() {
 	XX_CHECK(m_global.local()->IsObject(m_host));
 	m_global.local()->SetProperty(m_host, "global", m_global.local());
 	m_global.local()->SetMethod(m_host, "__requireNgui__", require_native);
+
+	auto globalThis = m_host->New("globalThis");
+	if ( !m_global.local()->Has(m_host, globalThis) ) {
+		m_global.local()->Set(m_host, globalThis, m_global.local());
+	}
 }
 
 void IMPL::release() {

@@ -30,7 +30,7 @@
 
 import { 
 	CSS, ViewController, Button, Indep, TextNode 
-} from 'ngui/ngui';
+} from './index';
 
 CSS({
 	

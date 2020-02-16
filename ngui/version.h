@@ -32,8 +32,8 @@
 #define __ngui__version__
 
 #define QGR_MAJOR_VERSION 0
-#define QGR_MINOR_VERSION 6
-#define QGR_PATCH_VERSION 2
+#define QGR_MINOR_VERSION 7
+#define QGR_PATCH_VERSION 0
 #define QGR_TAG ""
 
 #define __STRINGIFY(n) __STRINGIFY_HELPER(n)

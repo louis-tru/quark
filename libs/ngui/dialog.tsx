@@ -28,14 +28,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import 'ngui/util';
-import { 
-	CSS, Indep, Hybrid, Clip, Input, Span,
-	LimitIndep, Button, atomPixel as px, ngui, render
-} from 'ngui/ngui';
-import { Navigation } from 'ngui/nav';
+import util from './util';
+import ngui, {
+	Indep, Hybrid, Clip, Input, Span, LimitIndep, Button,
+} from './index';
+// CSS,  atomPixel as px, ngui, render, 
+import { Navigation } from './nav';
+import {_CVD} from './ctr';
+import { GUIActionEvent } from './event';
 
-CSS({
+const {atomPixel: px, render} = ngui;
+
+ngui.css({
 	
 	'.x_dialog': {
 	},
@@ -397,38 +401,38 @@ export function confirm(msg, cb = util.noop) {
 	return dag;
 }
 
-export function prompt(msg, cb = util.noop) {
+export function prompt(msg: string, cb = util.noop) {
 	if (typeof msg == 'string')
 		msg = {msg};
 	var { msg = '', text = '', placeholder = CONSTS.placeholder, security = false } = msg;
 	var dag = render(
-		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onAction=(e=>cb(e.data, e.data ? dag.IDs.input.value: ''))>
+		<Dialog action_time={100} buttons={[CONSTS.CANCEL, CONSTS.OK]} onAction={(e:any)=>cb(e.data, e.data ? dag.IDs.input.value: '')}>
 			<Span>
 				{msg}
-				<Input security=security id="input" class="prompt"
-					returnType="done" onKeyEnter=(ev=>{
+				<Input security={security} id="input" class="prompt"
+					returnType="done" onKeyEnter={(ev:any)=>{
 						// var dag = ev.sender.owner;
 						dag.trigger('Action', 1);
 						actionClose(dag);
-					})
-					value=text placeholder=placeholder />
+					}}
+					value={text} placeholder={placeholder} />
 			</Span>
 		</Dialog>
 	);
-	dag.onMounted.once(e=>dag.IDs.input.focus());
+	dag.onMounted.once((e:any)=>dag.IDs.input.focus());
 	dag.show();
 	return dag;
 }
 
-export function show(title, msg, buttons, cb = util.noop) {
+export function show(title: any, msg: any, buttons, cb = util.noop) {
 	var dag = render(
-		<Dialog title={title} buttons={buttons} onAction={e=>cb(e.data)}>{msg}</Dialog>
+		<Dialog title={title} buttons={buttons} onAction={(e: GUIActionEvent)=>cb(e.data)}>{msg}</Dialog>
 	);
 	dag.show();
 	return dag;
 }
 
-export function sheet(content) {
+export function sheet(content: any) {
 	var dag = render(
 		<Sheet content={content} />
 	);

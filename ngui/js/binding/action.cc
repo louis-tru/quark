@@ -631,14 +631,14 @@ class BindingAction {
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
-		
+
 		// CubicBezier const
-		JS_SET_PROPERTY(LINEAR, 0);
-		JS_SET_PROPERTY(EASE, 1);
-		JS_SET_PROPERTY(EASE_IN, 2);
-		JS_SET_PROPERTY(EASE_OUT, 3);
-		JS_SET_PROPERTY(EASE_IN_OUT, 4);
-		
+		// JS_SET_PROPERTY(LINEAR, 0);
+		// JS_SET_PROPERTY(EASE, 1);
+		// JS_SET_PROPERTY(EASE_IN, 2);
+		// JS_SET_PROPERTY(EASE_OUT, 3);
+		// JS_SET_PROPERTY(EASE_IN_OUT, 4);
+
 		WrapAction::binding(exports, worker);
 		WrapGroupAction::binding(exports, worker);
 		WrapSpawnAction::binding(exports, worker);

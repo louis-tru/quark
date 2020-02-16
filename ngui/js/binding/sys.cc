@@ -80,7 +80,7 @@ class NativeSys {
 		JS_WORKER(args);
 		JS_RETURN( sys::is_mobile() );
 	}
-	static void network_status(FunctionCall args) {
+	static void network_interface(FunctionCall args) {
 		JS_WORKER(args);
 		JS_RETURN( sys::network_status() );
 	}
@@ -124,7 +124,7 @@ class NativeSys {
 		JS_SET_METHOD(language, language);
 		JS_SET_METHOD(isWifi, is_wifi);
 		JS_SET_METHOD(isMobile, is_mobile);
-		JS_SET_METHOD(networkStatus, network_status);
+		JS_SET_METHOD(networkInterface, network_interface);
 		JS_SET_METHOD(isACPower, is_ac_power);
 		JS_SET_METHOD(isBattery, is_battery);
 		JS_SET_METHOD(batteryLevel, battery_level);

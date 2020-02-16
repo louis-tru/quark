@@ -31,7 +31,7 @@
 const _pkg = __requireNgui__('_pkg');
 import _util, {_process} from './_util';
 import * as _common from './_common';
-import {EventNoticer} from './event';
+import {EventNoticer, Event} from './event';
 
 export default {
 	..._util, ..._common,
@@ -40,8 +40,8 @@ export default {
 	get config() { return _pkg.config },
 	get dev() { return _pkg.dev },
 	// events
-	get onBeforeExit(): EventNoticer<number> { return _process.getNoticer('BeforeExit') },
-	get onExit(): EventNoticer<number> { return _process.getNoticer('BeforeExit') },
-	get onUncaughtException(): EventNoticer<Error> { return _process.getNoticer('UncaughtException') },
-	get onUnhandledRejection(): EventNoticer<{reason: Error, promise: Promise<any>}> { return _process.getNoticer('UnhandledRejection') },
+	get onBeforeExit(): EventNoticer<Event<number>> { return _process.getNoticer('BeforeExit') },
+	get onExit(): EventNoticer<Event<number>> { return _process.getNoticer('BeforeExit') },
+	get onUncaughtException(): EventNoticer<Event<Error>> { return _process.getNoticer('UncaughtException') },
+	get onUnhandledRejection(): EventNoticer<Event<{reason: Error, promise: Promise<any>}>> { return _process.getNoticer('UnhandledRejection') },
 }

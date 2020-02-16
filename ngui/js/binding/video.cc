@@ -101,7 +101,7 @@ class WrapVideo: public WrapViewBase {
 	static void volume(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(Video);
-		JS_RETURN( self->mute() );
+		JS_RETURN( self->volume() );
 	}
 	
 	static void set_volume(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {

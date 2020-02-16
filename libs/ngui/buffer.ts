@@ -28,4 +28,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_buffer');
+const _buffer = __requireNgui__('_buffer');
+
+export {};

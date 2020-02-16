@@ -28,16 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-/**************************************************************************/
+import _path from './_path';
+import _pkgutil from './_pkgutil';
 
-const _path = __requireNgui__('_path');
-const _pkgutil = __requireNgui__('_pkgutil');
+const haveWeb = typeof globalThis.window == 'object';
 
-/**************************************************************************/
-
-const haveWeb = typeof global.window == 'object';
-
-function split_path(self) {
+function split_path(self: any) {
 	if (self._is_split) return;
 	self._is_split = true;
 	
@@ -65,7 +61,7 @@ function split_path(self) {
 	self._value = _pkgutil.resolve(val);
 }
 
-function parse_base_ext_name(self) {
+function parse_base_ext_name(self: any) {
 	if (self._basename == -1) {
 		split_path(self);
 		var mat = self._value.match(/([^\/\\]+)?(\.[^\/\\\.]+)$|[^\/\\]+$/);
@@ -78,7 +74,7 @@ function parse_base_ext_name(self) {
 	}
 }
 
-function parse_path(self) {
+function parse_path(self: any) {
 	if (self._is_parse) return;
 	self._is_parse = true;
 	
@@ -107,12 +103,12 @@ function parse_path(self) {
 	}
 }
 
-function parse_params(self) {
+function parse_params(self: any) {
 	if (self._params) 
 		return;
 	split_path(self);
 	
-	var params = self._params = { };
+	var params: Dict = self._params = {};
 	
 	if (self._search[0] != '?') 
 		return;
@@ -125,12 +121,12 @@ function parse_params(self) {
 	}
 }
 
-function parse_hash_params(self) {
+function parse_hash_params(self: any) {
 	if (self._hash_params) 
 		return;
 	split_path(self);
 	
-	var params = self._hash_params = { };
+	var params: Dict = self._hash_params = {};
 	if (self._hash[0] != '#') 
 		return;
 		
@@ -142,7 +138,7 @@ function parse_hash_params(self) {
 	}
 }
 
-function stringify_params(prefix, params) {
+function stringify_params(prefix: string, params: Dict) {
 	var rev = [];
 	for (var i in params) {
 		rev.push(i + '=' + params[i]);
@@ -153,180 +149,182 @@ function stringify_params(prefix, params) {
 /**
  * @class URL
  */
-class URL {
+export class URL {
 	
 	/**
 		* @arg [path] {String}
 		* @constructor
 		*/
-	constructor(path = '') {
+	constructor(path: string = '') {
 		if (!path && haveWeb) {
 			path = location.href;
 		}
-		this._value = path;
+		(<any>this)._value = path;
 	}
 	
-	// href: "http://xxxx.xxx:81/v1.1.0/./path.js?sasasas&asasasa#sdsdsd"
-	get href() {
+	// href: "http://xxxx.xxx:81/v1.1.0/ngui/path.js?sasasas&asasasa#sdsdsd"
+	get href(): string {
 		parse_path(this);
-		return this._origin + this._filename + this._search + this._hash;
+		return (<any>this)._origin + (<any>this)._filename + (<any>this)._search + (<any>this)._hash;
 	}
 	
 	/**
 		* full path
 		* filename: "/D:/Documents/test.js"
 		*/
-	get filename() {
+	get filename(): string {
 		parse_path(this);
-		return  this._filename;
+		return  (<any>this)._filename;
 	}
 	
 	/**
 	 * @get path /a/b/s/test.html?aaaaa=100
 	 */
-	get path() {
-		return this._filename + this._search;
+	get path(): string {
+		parse_path(this);
+		return (<any>this)._filename + (<any>this)._search;
 	}
 	
 	/**
 		* full path dir
 		* dirname: "/D:/Documents"
 		*/
-	get dirname() {
+	get dirname(): string {
 		parse_path(this);
-		return this._dirname;
+		return (<any>this)._dirname;
 	}
 	
 	// search: "?sasasas&asasasa"
-	get search() {
+	get search(): string {
 		split_path(this);
-		return this._search;
+		return (<any>this)._search;
 	}
 	
 	// hash: "#sdsdsd"
-	get hash() {
+	get hash(): string {
 		split_path(this);
-		return this._hash;
+		return (<any>this)._hash;
 	}
 	
 	// host: "ngui.fun:81"
-	get host() {
+	get host(): string {
 		parse_path(this);
-		return this._hostname + (this._port ? ':' + this._port : '');
+		return (<any>this)._hostname + ((<any>this)._port ? ':' + (<any>this)._port : '');
 	}
 	
 	// hostname: "ngui.fun"
-	get hostname() {
+	get hostname(): string {
 		parse_path(this);
-		return this._hostname;
+		return (<any>this)._hostname;
 	}
 	
 	// origin: "http://ngui.fun:81"
-	get origin() {
+	get origin(): string {
 		parse_path(this);
-		return this._origin;
+		return (<any>this)._origin;
 	}
 
 	// get path base name 
-	get basename() {
+	get basename(): string {
 		parse_base_ext_name(this);
-		return this._basename;
+		return (<any>this)._basename;
 	}
 	
 	// path extname
-	get extname() {
+	get extname(): string {
 		parse_base_ext_name(this);
-		return this._extname;
+		return (<any>this)._extname;
 	}
 	
 	// port: "81"
-	get port() {
+	get port(): string {
 		parse_path(this);
-		return this._port;
+		return (<any>this)._port;
 	}
 	
 	// protocol: "http:"
-	get protocol() {
+	get protocol(): string {
 		parse_path(this);
-		return this._protocol;
+		return (<any>this)._protocol;
 	}
-	
-	get params() {
+
+	get params(): Dict<string> {
 		parse_params(this);
-		return this._params;
+		return (<any>this)._params;
 	}
 	
-	get hashParams() {
+	get hashParams(): Dict<string> {
 		parse_hash_params(this);
-		return this._hash_params;
+		return (<any>this)._hash_params;
 	}
 	
 	// get path param
-	getParam(name) {
-		return this.params[name];
+	getParam(name: string): string {
+		return (<any>this).params[name];
 	}
 	
 	// set path param
-	setParam(name, value) {
+	setParam(name: string, value: string): URL {
 		this.params[name] = value || '';
-		this._search = stringify_params('?', this._params);
+		(<any>this)._search = stringify_params('?', (<any>this)._params);
 		return this;
 	}
 	
 	// del path param
-	deleteParam(name) {
+	deleteParam(name: string): URL {
 		delete this.params[name];
-		this._search = stringify_params('?', this._params);
+		(<any>this)._search = stringify_params('?', (<any>this)._params);
 		return this;
 	}
 	
 	// del all prams
-	clearParam() {
-		this._params = { };
-		this._search = '';
+	clearParam(): URL {
+		(<any>this)._params = {};
+		(<any>this)._search = '';
 		return this;
 	}
 	
 	// get hash param
-	getHash(name) {
+	getHash(name: string): string {
 		return this.hashParams[name];
 	}
 	
 	// set hash param
-	setHash(name, value) {
+	setHash(name: string, value: string): URL {
 		this.hashParams[name] = value || '';
-		this._hash = stringify_params('#', this._hash_params);
+		(<any>this)._hash = stringify_params('#', (<any>this)._hash_params);
 		return this;
 	}
 	
 	// del hash param
-	deleteHash(name) {
+	deleteHash(name: string): URL {
 		delete this.hashParams[name];
-		this._hash = stringify_params('#', this._hash_params);
+		(<any>this)._hash = stringify_params('#', (<any>this)._hash_params);
 		return this;
 	}
 	
 	// del hash all params
-	clearHash(){
-		this._hash_params = { };
-		this._hash = '';
+	clearHash(): URL {
+		(<any>this)._hash_params = {};
+		(<any>this)._hash = '';
 		return this;
 	}
 	
 	// relative path
-	relative(target) {
-		target = new URL(target);
+	relative(targetPath: string): string {
+		var target = new URL(targetPath);
 		if ( this.origin != target.origin )
-			return this._origin + this._filename;
-		var ls  = this._filename == '/' ? [] : this._filename.split('/');
-		var ls2 = target._filename == '/' ? [] : target._filename.split('/');
+			return (<any>this)._origin + (<any>this)._filename;
+		var ls: string[]  = (<any>this)._filename == '/' ? [] : (<any>this)._filename.split('/');
+		var ls2: string[] = (<any>this)._filename == '/' ? [] : (<any>this)._filename.split('/');
 		var len = Math.max(ls.length, ls2.length);
 		
 		for (var i = 1; i < len; i++) {
 			if (ls[i] != ls2[i]) {
 				len = ls.length - i;
 				if (len > 0) {
-					for (var j = 0, ls = []; j < len; j++)
+					ls = [];
+					for (var j = 0; j < len; j++)
 						ls.push('..');
 					return ls.join('/') + '/' + ls2.splice(i).join('/');
 				}
@@ -335,36 +333,35 @@ class URL {
 		}
 		return '';
 	}
-	// @end
+
+	toJSON(): string {
+		return this.href;
+	}
 }
 
-URL.prototype._is_split = false;
-URL.prototype._is_parse = false;
-URL.prototype._value = '';
-URL.prototype._hostname = '';
-URL.prototype._port = '';
-URL.prototype._protocol = '';
-URL.prototype._search = '';
-URL.prototype._hash = '';
-URL.prototype._origin = '';
-URL.prototype._filename = '';
-URL.prototype._dirname = '';
-URL.prototype._basename = -1;
-URL.prototype._extname = -1;
-URL.prototype._params = null;
-URL.prototype._hash_params = null;
+(URL as any).prototype._is_split = false;
+(URL as any).prototype._is_parse = false;
+(URL as any).prototype._value = '';
+(URL as any).prototype._hostname = '';
+(URL as any).prototype._port = '';
+(URL as any).prototype._protocol = '';
+(URL as any).prototype._search = '';
+(URL as any).prototype._hash = '';
+(URL as any).prototype._origin = '';
+(URL as any).prototype._filename = '';
+(URL as any).prototype._dirname = '';
+(URL as any).prototype._basename = -1;
+(URL as any).prototype._extname = -1;
+(URL as any).prototype._params = null;
+(URL as any).prototype._hash_params = null;
 
-function get_path(path) {
+function get_path(path: string): URL {
 	return new URL(path);
 }
 
-function resolveLocal(...args) {
-	return _path.fallbackPath(_pkgutil.resolve(...args));
-}
+export default {
 
-Object.assign(exports, _path);
-
-Object.assign(exports, {
+	..._path,
 
 	URL: URL,
 
@@ -372,139 +369,139 @@ Object.assign(exports, {
 	 * @func isAbsolute(path) is absolute path
 	 */
 	isAbsolute: _pkgutil.isAbsolute, // func
-	
+
 	/**
 	 * @func resolve(path) resolve path 
 	 */
 	resolve: _pkgutil.resolve, // func
 
 	/**
-	 * @func resolveLocal()
+	 * @func fallbackPath()
 	 */
-	resolveLocal: resolveLocal,
+	fallbackPath: _pkgutil.fallbackPath,
 
 	/**
 	 * full filename
 	 */
-	basename: function (path) {
+	basename(path: string) {
 		return get_path(path).basename;
 	},
 
 	/**
 	 * full filename
 	 */
-	dirname: function (path) {
+	dirname(path: string) {
 		return get_path(path).dirname;
 	},
 
 	/**
 	 * full filename
 	 */
-	extname: function (path) {
+	extname(path: string) {
 		return get_path(path).extname;
 	},
 
 	/**
 	 * full filename
 	 */
-	filename: function (path) {
+	filename(path: string) {
 		return get_path(path).filename;
 	},
 
 	/**
 	 * full path
 	 */
-	path: function (path) {
+	path(path: string) {
 		return get_path(path).path;
 	},
-	
-	search: function (path) {
+
+	search(path: string) {
 		return get_path(path).search;
 	},
-	
-	hash: function (path) {
+
+	hash(path: string) {
 		return get_path(path).hash;
 	},
-	
-	host: function (path) {
+
+	host(path: string) {
 		return get_path(path).host;
 	},
-	
-	hostname: function (path) {
+
+	hostname(path: string) {
 		return get_path(path).hostname;
 	},
-	
+
 	// href origin
-	origin: function (path) {
+	origin(path: string) {
 		return get_path(path).origin;
 	},
-	
+
 	// port: "81"
-	port: function (path) {
+	port(path: string) {
 		return get_path(path).port;
 	},
-	
+
 	// protocol: "http:"
-	protocol: function (path) {
+	protocol(path: string) {
 		return get_path(path).protocol;
 	},
-	
+
 	// href params
-	params: function (path) {
+	params(path: string) {
 		return get_path(path).params;
 	},
-	
+
 	// hash params 
-	hashParams: function (path) {
+	hashParams(path: string) {
 		return get_path(path).hashParams;
 	},
-	
+
 	// get path param
-	getParam: function (name, path) {
+	getParam(name: string, path: string) {
 		return get_path(path).getParam(name);
 	},
-	
+
 	// set path param
-	setParam: function (name, value, path) {
+	setParam(name: string, value: string, path: string) {
 		return get_path(path).setParam(name, value).href;
 	},
-	
+
 	// del path param
-	deleteParam: function (name, path) {
+	deleteParam(name: string, path: string) {
 		return get_path(path).deleteParam(name).href;
 	},
-	
+
 	// del all hash param
-	clearParam: function (path) {
+	clearParam(path: string) {
 		return get_path(path).clearParam().href;
 	},
-	
+
 	// get hash param
-	getHash: function (name, path) {
+	getHash(name: string, path: string) {
 		return get_path(path).getHash(name);
 	},
-	
+
 	// set hash param
-	setHash: function (name, value, path) {
+	setHash(name: string, value: string, path: string) {
 		return get_path(path).setHash(name, value).href;
 	},
-	
+
 	// del hash param
-	deleteHash: function (name, path) {
+	deleteHash(name: string, path: string) {
 		return get_path(path).deleteHash(name).href;
 	},
-	
+
 	// del all hash param
-	clearHash: function (path) {
+	clearHash(path: string) {
 		return get_path(path).clearHash().href;
 	},
-	
+
 	// relative path
-	relative: function (path, target) {
+	relative(path: string, target: string) {
 		if (arguments.length > 1) 
 			return get_path(path).relative(target);
 		else 
-			return get_path().relative(path);
+			return get_path(path).relative(path);
 	},
-	
-});
+
+}

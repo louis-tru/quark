@@ -86,9 +86,9 @@ class XX_EXPORT IOStreamData: public Object {
 
 template<class T = Object>
 struct XX_EXPORT CallbackData {
-  cError* error;
-  T* data;
-  int return_value;
+	cError* error;
+	T* data;
+	int return_value;
 };
 
 template<class D>

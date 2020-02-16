@@ -421,12 +421,12 @@ class WrapAudioPlayer: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(src, src, set_src);
 			JS_SET_CLASS_ACCESSOR(time, time);
 			JS_SET_CLASS_ACCESSOR(duration, duration);
-			JS_SET_CLASS_ACCESSOR(trackIndex, track_index);
-			JS_SET_CLASS_ACCESSOR(trackCount, track_count);
+			JS_SET_CLASS_ACCESSOR(audioTrackIndex, track_index);
+			JS_SET_CLASS_ACCESSOR(audioTrackCount, track_count);
 			JS_SET_CLASS_ACCESSOR(disableWaitBuffer,
 														disable_wait_buffer, set_disable_wait_buffer);
-			JS_SET_CLASS_METHOD(selectTrack, select_track);
-			JS_SET_CLASS_METHOD(track, track);
+			JS_SET_CLASS_METHOD(selectAudioTrack, select_track);
+			JS_SET_CLASS_METHOD(audioTrack, track);
 			JS_SET_CLASS_METHOD(start, start);
 			JS_SET_CLASS_METHOD(seek, seek);
 			JS_SET_CLASS_METHOD(pause, pause);

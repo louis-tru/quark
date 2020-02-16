@@ -28,77 +28,120 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_css');
+import utils from './util';
+import * as value from './value';
 
-import 'ngui/util';
-import 'ngui/value';
+const _css = __requireNgui__('_css');
+const dev = utils.dev;
 
-const dev = util.dev;
-const _priv = value._priv;
-
-function parse_error_throw(val, msg, help) {
-	var help_str = '';
-	if (help) {
-		help_str = help();
-	}
-	msg = msg.replace('%s', '`' + val + '`');
-	if (help_str) {
-		throw new TypeError(`Bad argument. ${msg}. Examples: ${help_str}`);
-	} else {
-		throw new TypeError(`Bad argument. ${msg}.`);
-	}
+export enum Propery {
+	PROPERTY_X,
+	PROPERTY_Y,
+	PROPERTY_SCALE_X,
+	PROPERTY_SCALE_Y,
+	PROPERTY_SKEW_X,
+	PROPERTY_SKEW_Y,
+	PROPERTY_ROTATE_Z,
+	PROPERTY_ORIGIN_X,
+	PROPERTY_ORIGIN_Y,
+	PROPERTY_OPACITY,
+	PROPERTY_VISIBLE,
+	PROPERTY_WIDTH,
+	PROPERTY_HEIGHT,
+	PROPERTY_MARGIN_TOP,
+	PROPERTY_MARGIN_RIGHT,
+	PROPERTY_MARGIN_BOTTOM,
+	PROPERTY_MARGIN_LEFT,
+	PROPERTY_BORDER_TOP_WIDTH,
+	PROPERTY_BORDER_RIGHT_WIDTH,
+	PROPERTY_BORDER_BOTTOM_WIDTH,
+	PROPERTY_BORDER_LEFT_WIDTH,
+	PROPERTY_BORDER_TOP_COLOR,
+	PROPERTY_BORDER_RIGHT_COLOR,
+	PROPERTY_BORDER_BOTTOM_COLOR,
+	PROPERTY_BORDER_LEFT_COLOR,
+	PROPERTY_BORDER_RADIUS_LEFT_TOP,
+	PROPERTY_BORDER_RADIUS_RIGHT_TOP,
+	PROPERTY_BORDER_RADIUS_RIGHT_BOTTOM,
+	PROPERTY_BORDER_RADIUS_LEFT_BOTTOM,
+	PROPERTY_BACKGROUND_COLOR,
+	PROPERTY_BACKGROUND,
+	PROPERTY_NEWLINE,
+	PROPERTY_CLIP,
+	PROPERTY_CONTENT_ALIGN,
+	PROPERTY_TEXT_ALIGN,
+	PROPERTY_MAX_WIDTH,
+	PROPERTY_MAX_HEIGHT,
+	PROPERTY_START_X,
+	PROPERTY_START_Y,
+	PROPERTY_RATIO_X,
+	PROPERTY_RATIO_Y,
+	PROPERTY_REPEAT,
+	PROPERTY_TEXT_BACKGROUND_COLOR,
+	PROPERTY_TEXT_COLOR,
+	PROPERTY_TEXT_SIZE,
+	PROPERTY_TEXT_STYLE,
+	PROPERTY_TEXT_FAMILY,
+	PROPERTY_TEXT_LINE_HEIGHT,
+	PROPERTY_TEXT_SHADOW,
+	PROPERTY_TEXT_DECORATION,
+	PROPERTY_TEXT_OVERFLOW,
+	PROPERTY_TEXT_WHITE_SPACE,
+	PROPERTY_ALIGN_X,
+	PROPERTY_ALIGN_Y,
+	PROPERTY_SHADOW,
+	PROPERTY_SRC,
+	// ext
+	PROPERTY_TIME = -1,
+	PROPERTY_TRANSLATE = -2,
+	PROPERTY_SCALE = -3,
+	PROPERTY_SKEW = -4,
+	PROPERTY_ORIGIN = -5,
+	PROPERTY_MARGIN = -6,
+	PROPERTY_BORDER = -7,
+	PROPERTY_BORDER_WIDTH = -8,
+	PROPERTY_BORDER_COLOR = -9,
+	ROPERTY_BORDER_RADIUS = -10,
+	PROPERTY_BORDER_LEFT = -11,
+	PROPERTY_BORDER_TOP = -12,
+	PROPERTY_BORDER_RIGHT = -13,
+	PROPERTY_BORDER_BOTTOM = -14,
+	PROPERTY_BORDER_RADIUS = -15,
+	PROPERTY_MIN_WIDTH = -16,
+	PROPERTY_MIN_HEIGHT = -17,
+	PROPERTY_START = -18,
+	PROPERTY_RATIO = -19,
+	PROPERTY_ALIGN = -20,
 }
 
 /**
- * @func parseNumber(val, msg)
+ * @func parseValue(val, type, msg)
  */
-export function parseNumber(val, msg) {
-	if (typeof val == 'number') {
-		return number;
-	}
-	parse_error_throw(val, msg);
+export function parseValue(val: any, type: string, desc?: string) {
+	return (value as Dict)[`parse${type}`](val, desc);
 }
 
-/**
- * @func parseNumber(val, type, msg)
- */
-export function parseValue(val, type, msg) {
-	if (typeof val == 'string') {
-		var func = value[`parse${type}`];
-		var out = func(val);
-		if (out) {
-			return out;
-		}
-	} else if (val instanceof value[type]) {
-		return val;
-	}
-	parse_error_throw(val, msg, _priv[`_parse${type}Help`]);
-}
-
-/**
- * @func create(sheets) create style sheets
- * @arg sheets {Object}
- */
+export declare function create(sheets: Dict): void;
 
 /**
  * @func check(css_name)
  * @arg css_name {String}
  * @ret {bool}
  */
-export function check(css_name) {
-	var name = css_name.replace(/([A-Z_]+)/g, '_$1');
-	if ( !('PROPERTY_' + name.toUpperCase() in exports) ) {
-		console.warn( `---------- Invalid name "${css_name}" in CSS style sheet ` );
+export function check(cssName: string) {
+	var name = cssName.replace(/([A-Z_]+)/g, '_$1');
+	if ( !('PROPERTY_' + name.toUpperCase() in Propery) ) {
+		console.warn( `---------- Invalid name "${cssName}" in CSS style sheet ` );
 		return false;
 	}
 	return true;
 }
 
 /**
- * @func CSS(sheets)
+ * @func css(sheets)
  * @arg sheets {Object}
  */
-export function CSS(sheets) {
+export default function css(sheets: Dict) {
 	if ( dev ) {
 		for ( var cls in sheets ) {
 			for ( var name in sheets[cls] ) {
@@ -106,5 +149,5 @@ export function CSS(sheets) {
 			}
 		}
 	}
-	exports.create(sheets);
+	_css.create(sheets);
 }

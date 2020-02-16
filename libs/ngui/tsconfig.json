@@ -21,7 +21,7 @@
 		"experimentalDecorators": true,
 		"removeComments": true,
 		"jsx": "react",
-		"jsxFactory": "_VVD",
+		"jsxFactory": "_CVD",
 	},
 	"include": [
 		"**/*",

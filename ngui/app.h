@@ -94,26 +94,26 @@ class XX_EXPORT GUIApplication: public Object {
 	XX_HIDDEN_ALL_COPY(GUIApplication);
  public:
 
-	XX_EVENT(load);
-	XX_EVENT(unload);
-	XX_EVENT(background);
-	XX_EVENT(foreground);
-	XX_EVENT(pause);
-	XX_EVENT(resume);
-	XX_EVENT(memorywarning);
-	
+	XX_EVENT(Load);
+	XX_EVENT(Unload);
+	XX_EVENT(Background);
+	XX_EVENT(Foreground);
+	XX_EVENT(Pause);
+	XX_EVENT(Resume);
+	XX_EVENT(Memorywarning);
+
 	GUIApplication();
 	
 	/**
 	 * @destructor
 	 */
 	virtual ~GUIApplication();
-	
+
 	/**
 	 * @func initialize()
 	 */
 	void initialize(cJSON& options = JSON::object()) throw(Error);
-	
+
 	/**
 	 * @func run 运行消息循环
 	 */

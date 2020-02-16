@@ -28,7 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export declare class Action {
+export type Options = Action | Dict;
+
+export declare abstract class Action {
 	delay: number;
 	add(style?: Dict): void;
 	frame(index: number): any;
@@ -36,4 +38,13 @@ export declare class Action {
 	append(child: Action): void;
 }
 
-export type Options = Action | Dict;
+export declare abstract class GroupAction extends Action {
+}
+
+export declare class SpawnAction extends GroupAction {}
+
+export declare class SequenceAction extends GroupAction {}
+
+export declare class KeyframeAction {
+	
+}

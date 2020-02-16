@@ -30,11 +30,11 @@
 
 import 'ngui/util';
 import 'ngui/sys';
-import { List, KEYCODE_MENU } from 'ngui/event';
+import { List, KEYCODE_MENU } from './event';
 import { 
 	ViewController, Div, Indep, 
 	Limit, Button, Text, TextNode, Clip, render, ngui
-} from 'ngui/ngui';
+} from './index';
 // import {Color,parseColor} from 'ngui/value';
 
 export const FOREGROUND_ACTION_INIT = 0;

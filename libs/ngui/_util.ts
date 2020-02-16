@@ -110,6 +110,8 @@ class Process extends Notification {
 	}
 }
 
+exports.SimpleHash = _util.SimpleHash;
+
 export const _process = new Process();
 
 export default {

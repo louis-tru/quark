@@ -341,7 +341,7 @@ static void rmdir2(cString& path, cCb& cb, RunLoop* loop) {
  * @class AsyncEach
  */
 class AsyncEach: public AsyncIOTask {
-public:
+ public:
 	
 	AsyncEach(cString& path, cCb& cb, cCb& end, bool internal = false)
 	: m_path(Path::format(path))
@@ -408,7 +408,7 @@ public:
 		return id();
 	}
 	
-private:
+ private:
 	
 	inline void into(cString& path) {
 		ls2(path, Cb(&AsyncEach::into_cb, this), nullptr);
@@ -449,7 +449,7 @@ private:
 		int mask;
 	};
 	
-private:
+ private:
 	
 	String m_path;
 	Callback<> m_cb;
@@ -736,7 +736,7 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 	typedef UVRequestWrap<uv_fs_t, Task> FileReq;
 	
 	class Task: public AsyncIOTask, public SimpleStream {
-	public:
+	 public:
 		String     m_path;
 		int64      m_offset;
 		int        m_fd;

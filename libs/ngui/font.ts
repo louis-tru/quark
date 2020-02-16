@@ -28,4 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-export __requireNgui__('_font');
+export declare function setDefaultFonts(fontOrFamily: string | string[]): void;
+export declare function defaultFontNames(): string[];
+export declare function familyNames(): string[]; // get current load all family
+export declare function fontNames(family: string): string[]; // get font names for family
+export declare function test(fontOrFamily: string): boolean;
+export declare function registerFont(data: Uint8Array, alias?: string): boolean;
+export declare function registerFontFile(path: string, alias?: string): boolean;
+export declare function setFamilyAlias(family: string, alias?: string): void;
+
+Object.assign(exports, __requireNgui__('_font'));

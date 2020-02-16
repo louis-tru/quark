@@ -29,14 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 import utils from './util';
-import * as display_port from './display_port';
-import event, {EventNoticer, NativeNotification} from './event';
-import ViewController, { _VV, _VVD } from './ctr';
+import {DisplayPort} from './display_port';
+import { Root, View } from './_view';
+import * as value from './value';
+import event, {EventNoticer, Notification, NativeNotification, Event} from './event';
+import ViewController, { VirtualDOM, _CVD, _CVDD } from './ctr';
 
 const _ngui = __requireNgui__('_ngui');
-const Root = _ngui.Root;
+
 var cur: GUIApplication | null = null;
-var cur_root_ctr: any = null;
+var cur_root_ctr: ViewController | null = null;
 
 export interface Options {
 	anisotropic?: boolean;
@@ -44,23 +46,46 @@ export interface Options {
 }
 
 /**
- * @class GUIApplication
- * @bases NativeGUIApplication,NativeNotification
+ * @class NativeGUIApplication
  */
-export class GUIApplication extends _ngui.NativeGUIApplication {
+declare class NativeGUIApplication extends Notification {
+	constructor(options?: Options);
+	clear(full?: boolean): void;
+	openUrl(url: string): void;
+	sendEmail(recipient: string, title: string, body?: string, cc?: string, bcc?: string): void;
+	maxTextureMemoryLimit(): number;
+	setMaxTextureMemoryLimit(limit: number): void;
+	usedMemory(): number;
+	pending(): void;
+	readonly isLoaded: boolean;
+	readonly displayPort: DisplayPort;
+	readonly root: Root | null;
+	readonly focusView: View | null;
+	defaultTextBackgroundColor: value.TextColor;
+	defaultTextColor: value.TextColor;
+	defaultTextSize: value.TextSize;
+	defaultTextStyle: value.TextStyle;
+	defaultTextFamily: value.TextFamily;
+	defaultTextShadow: value.TextShadow;
+	defaultTextLineHeight: value.TextLineHeight;
+	defaultTextDecoration: value.TextDecoration;
+	defaultTextOverflow: value.TextOverflow;
+	defaultTextWhiteSpace: value.TextWhiteSpace;
+}
 
-	@event onLoad: EventNoticer;
-	@event onUnload: EventNoticer;
-	@event onBackground: EventNoticer;
-	@event onForeground: EventNoticer;
-	@event onPause: EventNoticer;
-	@event onResume: EventNoticer;
-	@event onMemoryWarning: EventNoticer;
+/**
+ * @class GUIApplication
+ */
+export class GUIApplication extends (_ngui.NativeGUIApplication as typeof NativeGUIApplication) {
+
+	@event readonly onLoad: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onUnload: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onBackground: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onForeground: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onPause: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onResume: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onMemoryWarning: EventNoticer<Event<void, GUIApplication>>;
 	
-	/**
-	 * @constructor([options])
-	 * @arg [options] {Object} { anisotropic {bool}, multisample {0-4} }
-	 */
 	constructor(options?: Options) {
 		super(options);
 		cur = this;
@@ -68,19 +93,17 @@ export class GUIApplication extends _ngui.NativeGUIApplication {
 
 	/**
 	 * @func start(vdom)
-	 * @arg vdom {Object}
 	 */
-	start(vdom) {
-		// utils.assert(utils.equalsClass(ViewController, vdom.type), 
-		// 	'The "ViewController" must be used to start the application');
+	start(vdom: VirtualDOM<typeof ViewController | typeof Root>) {
 
 		if (!utils.equalsClass(ViewController, vdom.type)) {
-			vdom = _VV(ViewController, [], [_VVD(vdom)]);
+			vdom = _CVD(ViewController, {}, _CVDD(vdom));
 		}
 
-		function render(e) {
-			cur_root_ctr = ViewController.render(vdom);
-			utils.assert(cur_root_ctr.dom instanceof Root, 'Root view controller first children must be Root view');
+		function render() {
+			var ctr = ViewController.render(vdom) as ViewController;
+			utils.assert(ctr.dom instanceof Root, 'Root view controller first children must be Root view');
+			cur_root_ctr = ctr;
 		}
 
 		if ( this.isLoaded ) {
@@ -92,25 +115,12 @@ export class GUIApplication extends _ngui.NativeGUIApplication {
 		return this;
 	}
 
-	//@end
 }
 
 utils.extendClass(GUIApplication, NativeNotification);
 
 export default {
-
-	/**
-	 * @get currend {GUIApplication} 
-	 */
 	get current() { return cur as GUIApplication },
-
-	/**
-	 * @get root {Root} 
-	 */
-	get root() { return cur_root_ctr.dom },
-
-	/**
-	 * @get rootCtr {ViewController}
-	 */
+	get root() { return (cur_root_ctr as ViewController).dom as unknown as Root },
 	get rootCtr() { return cur_root_ctr },
 };
