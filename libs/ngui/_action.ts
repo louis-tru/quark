@@ -28,23 +28,50 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+import {Propery} from './propery';
+import {Curve} from './value';
+
 export type Options = Action | Dict;
 
 export declare abstract class Action {
-	delay: number;
-	add(style?: Dict): void;
-	frame(index: number): any;
 	play(): void;
-	append(child: Action): void;
+	stop(): void;
+	seek(time: number): void;
+	seekPlay(time: number): void;
+	seekStop(time: number): void;
+	clear(): void;
+	readonly duration: number;
+	readonly parent: Action | null;
+	readonly looped: number;
+	readonly delayed: number;
+	playing: boolean;
+	loop: number;
+	delay: number;
+	speed: number;
 }
 
 export declare abstract class GroupAction extends Action {
+	readonly length: number;
+	append(child: Action): void;
+	insert(index: number, child: Action): void;
+	removeChild(index: number): void;
+	children(index: number): Action | null;
 }
 
 export declare class SpawnAction extends GroupAction {}
-
 export declare class SequenceAction extends GroupAction {}
 
-export declare class KeyframeAction {
-	
+export declare class KeyframeAction extends Action {
+	hasProperty(name: Propery): boolean;
+	matchProperty(name: Propery): boolean;
+	frame(index: number): Frame | null;
+	add(style: Dict): Frame;
+	add(time: number, curve?: Curve | string): Frame;
+	readonly first: Frame | null;
+	readonly last: Frame | null;
+	readonly length: number;
+	readonly position: number;
+	readonly time: number;
 }
+
+export declare abstract class Frame {}

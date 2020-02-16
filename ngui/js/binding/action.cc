@@ -134,12 +134,12 @@ class WrapAction: public WrapObject {
 	}
 	
 	/**
-	 * @get loopd {uint}
+	 * @get looped {uint}
 	 */
-	static void loopd(Local<JSString> name, PropertyCall args) {
+	static void looped(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(Action);
-		JS_RETURN( self->loopd() );
+		JS_RETURN( self->looped() );
 	}
 	
 	/** 
@@ -152,12 +152,12 @@ class WrapAction: public WrapObject {
 	}
 
 	/** 
-	 * @get delayd {int} ms
+	 * @get delayed {int} ms
 	 */
-	static void delayd(Local<JSString> name, PropertyCall args) {
+	static void delayed(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(Action);
-		JS_RETURN( self->delayd() / 1000 );
+		JS_RETURN( self->delayed() / 1000 );
 	}
 
 	/** 
@@ -170,7 +170,7 @@ class WrapAction: public WrapObject {
 	}
 
 	/** 
-	 * @get speed {bool}
+	 * @get playing {bool}
 	 */
 	static void playing(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
@@ -255,8 +255,7 @@ class WrapAction: public WrapObject {
 		self->speed( value->ToNumberValue(worker) );
 	}
 
-	static void null_set_accessor(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-	}
+	// static void null_set_accessor(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Action, constructor, {
@@ -270,13 +269,13 @@ class WrapAction: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(parent, parent);
 			JS_SET_CLASS_ACCESSOR(playing, playing, set_playing);
 			JS_SET_CLASS_ACCESSOR(loop, loop, set_loop);
-			JS_SET_CLASS_ACCESSOR(loopd, loopd);
+			JS_SET_CLASS_ACCESSOR(looped, looped);
 			JS_SET_CLASS_ACCESSOR(delay, delay, set_delay);
-			JS_SET_CLASS_ACCESSOR(delayd, delayd);
+			JS_SET_CLASS_ACCESSOR(delayed, delayed);
 			JS_SET_CLASS_ACCESSOR(speed, speed, set_speed);
-			JS_SET_CLASS_ACCESSOR(seq, nullptr, null_set_accessor);
-			JS_SET_CLASS_ACCESSOR(spawn, nullptr, null_set_accessor);
-			JS_SET_CLASS_ACCESSOR(keyframe, nullptr, null_set_accessor);
+			// JS_SET_CLASS_ACCESSOR(seq, nullptr, null_set_accessor);
+			// JS_SET_CLASS_ACCESSOR(spawn, nullptr, null_set_accessor);
+			// JS_SET_CLASS_ACCESSOR(keyframe, nullptr, null_set_accessor);
 		}, nullptr);
 	}
 };
@@ -493,7 +492,7 @@ class WrapKeyframeAction: public WrapObject {
 	}
 	
 	/**
-	 * @func add([time[,curve]][style])
+	 * @func add([time[,curve]]|[style])
 	 * arg [time=0] {uint}
 	 * arg [curve] {Curve}
 	 * arg [style] {Object}
@@ -644,6 +643,7 @@ class BindingAction {
 		WrapSpawnAction::binding(exports, worker);
 		WrapSequenceAction::binding(exports, worker);
 		WrapKeyframeAction::binding(exports, worker);
+
 		binding_frame(exports, worker);
 	}
 };

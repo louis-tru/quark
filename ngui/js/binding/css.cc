@@ -304,32 +304,6 @@ class WrapStyleSheets: public WrapObject {
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
 		
-		// PROPERTY
-	//  #define xx_def_property(ENUM, TYPE, NAME) JS_SET_PROPERTY(ENUM, ENUM);
-	// 	XX_EACH_PROPERTY_TABLE(xx_def_property)
-	//  #undef xx_def_property
-
-	// 	JS_SET_PROPERTY(PROPERTY_TIME, -1);
-	// 	JS_SET_PROPERTY(PROPERTY_TRANSLATE, -2);
-	// 	JS_SET_PROPERTY(PROPERTY_SCALE, -3);
-	// 	JS_SET_PROPERTY(PROPERTY_SKEW, -4);
-	// 	JS_SET_PROPERTY(PROPERTY_ORIGIN, -5);
-	// 	JS_SET_PROPERTY(PROPERTY_MARGIN, -6);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER, -7);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_WIDTH, -8);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_COLOR, -9);
-	// 	JS_SET_PROPERTY(ROPERTY_BORDER_RADIUS, -10);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_LEFT, -11);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_TOP, -12);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_RIGHT, -13);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_BOTTOM, -14);
-	// 	JS_SET_PROPERTY(PROPERTY_BORDER_RADIUS, -15);
-	// 	JS_SET_PROPERTY(PROPERTY_MIN_WIDTH, -16);
-	// 	JS_SET_PROPERTY(PROPERTY_MIN_HEIGHT, -17);
-	// 	JS_SET_PROPERTY(PROPERTY_START, -18);
-	// 	JS_SET_PROPERTY(PROPERTY_RATIO, -19);
-	// 	JS_SET_PROPERTY(PROPERTY_ALIGN, -20);
-		
 		// JS_DEFINE_CLASS
 		JS_DEFINE_CLASS_NO_EXPORTS(StyleSheets, constructor, {
 			// Meta attribute
@@ -390,7 +364,7 @@ class WrapStyleSheets: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(shadow, nullptr, set_shadow);
 			JS_SET_CLASS_ACCESSOR(src, nullptr, set_src);
 			// Non meta attribute
-			JS_SET_CLASS_ACCESSOR(time, time, set_time); // time
+			JS_SET_CLASS_ACCESSOR(time, time, set_time); // create action time
 			JS_SET_CLASS_ACCESSOR(translate, nullptr, set_translate);
 			JS_SET_CLASS_ACCESSOR(scale, nullptr, set_scale);
 			JS_SET_CLASS_ACCESSOR(skew, nullptr, set_skew);

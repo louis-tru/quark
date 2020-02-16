@@ -689,21 +689,6 @@ class BindingNativeEvent {
 		worker->runNativeScript(WeakBuffer((char*)
 															INL_native_js_code__event_,
 															INL_native_js_code__event_count_), "_event.js", exports);
-		// Enum: HighlightedStatus
-		JS_SET_PROPERTY(HIGHLIGHTED_NORMAL, HIGHLIGHTED_NORMAL);
-		JS_SET_PROPERTY(HIGHLIGHTED_HOVER, HIGHLIGHTED_HOVER);
-		JS_SET_PROPERTY(HIGHLIGHTED_DOWN, HIGHLIGHTED_DOWN);
-		
-		// Enum: ReturnValueMask
-		JS_SET_PROPERTY(RETURN_VALUE_MASK_DEFAULT, RETURN_VALUE_MASK_DEFAULT);
-		JS_SET_PROPERTY(RETURN_VALUE_MASK_BUBBLE, RETURN_VALUE_MASK_BUBBLE);
-		JS_SET_PROPERTY(RETURN_VALUE_MASK_ALL, RETURN_VALUE_MASK_ALL);
-		
-		// Emun: KeyboardKeyName
-	//  #define def_enum_keyboard_key_name(Name, Code) JS_SET_PROPERTY(Name, Name);
-	// 	xx_each_keyboard_key_name_table(def_enum_keyboard_key_name)
-	//  #undef def_enum_keyboard_key_name
-		
 		WrapNativeEvent::binding(exports, worker);
 		WrapGUIEvent::binding(exports, worker);
 		WrapGUIActionEvent::binding(exports, worker);

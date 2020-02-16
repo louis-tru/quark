@@ -104,8 +104,8 @@ class XX_EXPORT Action: public Reference {
 	/**
 	 * @func loopd get
 	 */
-	inline uint loopd() const { return m_loopd; }
-	
+	inline uint looped() const { return m_loopd; }
+
 	/**
 	 * @func delay get
 	 */
@@ -114,7 +114,7 @@ class XX_EXPORT Action: public Reference {
 	/**
 	 * @func delayd get
 	 */
-	int64 delayd() const { return m_delayd; }
+	int64 delayed() const { return m_delayd; }
 	
 	/**
 	 * @func speed get

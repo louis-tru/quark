@@ -52,21 +52,6 @@ class WrapPanel: public WrapViewBase {
 	}
 	
 	/**
-	 * @func first_button()
-	 * @ret {Button}
-	 */
-	// static void first_button(FunctionCall args) {
-	// 	JS_WORKER(args); GUILock lock;
-	// 	JS_SELF(Panel);
-	// 	Button* button = self->first_button();
-	// 	if ( button ) {
-	// 		JS_RETURN( Wrap<Button>::pack(button, View::BUTTON)->that() );
-	// 	} else {
-	// 		JS_RETURN_NULL();
-	// 	}
-	// }
-	
-	/**
 	 * @get allow_leave {bool}
 	 */
 	static void allow_leave(Local<JSString> name, PropertyCall args) {
@@ -167,7 +152,6 @@ class WrapPanel: public WrapViewBase {
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Panel, constructor, {
-			// JS_SET_CLASS_METHOD(firstButton, first_button);
 			JS_SET_CLASS_ACCESSOR(allowLeave, allow_leave, set_allow_leave);
 			JS_SET_CLASS_ACCESSOR(allowEntry, allow_entry, set_allow_entry);
 			JS_SET_CLASS_ACCESSOR(intervalTime,  interval_time, set_interval_time);
