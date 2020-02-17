@@ -644,7 +644,7 @@ class WrapBox: public WrapObject {
 	 */
 	static void set_border_radius_left_top(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
-		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderColor {float}");
+		if ( ! value->IsNumber(worker)) JS_THROW_ERR("* @set borderRadiusLeftTop {float}");
 		JS_SELF(Box);
 		self->set_border_radius_left_top( value->ToNumberValue(worker) );
 	}

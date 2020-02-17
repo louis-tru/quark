@@ -1156,7 +1156,7 @@ function _mat4(...value: any[]) {
 		_value: value,
 	} as unknown as Mat4;
 }
-function _value(type: ValueType, value: number) { 
+function _value(type: ValueType, value: number) {
 	return {
 		__proto__: Value.prototype,
 		_type: type,
@@ -1257,6 +1257,42 @@ function _text_white_space(type: TextValueType, value: TextWhiteSpaceEnum) {
 
 // parse
 
+export type TextAlignIn = string | TextAlign | number;
+export type AlignIn = string | Align | number;
+export type ContentAlignIn = string | ContentAlign | number;
+export type RepeatIn = string | Repeat | number;
+export type DirectionIn = string | Direction | number;
+export type KeyboardTypeIn = string | KeyboardType | number;
+export type KeyboardReturnTypeIn = string | KeyboardReturnType | number;
+export type BorderIn = string | Border;
+export type ShadowIn = string | Shadow;
+export type ColorIn = string | Color | number;
+export type Vec2In = string | Vec2 | number | [number, number?];
+export type Vec3In = string | Vec3 | number | [number, number?, number?];
+export type Vec4In = string | Vec4 | number | [number, number?, number?, number?];
+export type CurveIn = 'linear' | 'ease' | 'ease_in' | 'ease_out' | 'ease_in_out' | string | Curve;
+export type RectIn = string | Rect | number;
+export type MatIn = string | Mat | number;
+export type Mat4In = string | Mat4 | number;
+export type ValueIn = 'auto' | 'full' | string | Value | number;
+export type BackgroundPositionIn = 'left' | 'right' | 'center' | 'top' | 'bottom' | string | BackgroundPosition | number;
+export type BackgroundSizeIn = 'auto' | string | BackgroundSize | number;
+export type BackgroundIn = string | Background | BackgroundOptions;
+export type ValuesIn = string | Value[] | Value | number;
+export type AlignsIn = string | Align[] | Align | number;
+export type FloatsIn = string | number[] | number;
+export type BackgroundPositionCollectionIn = string | BackgroundPositionCollection | BackgroundPosition;
+export type BackgroundSizeCollectionIn = string | BackgroundSizeCollection | BackgroundSize;
+export type TextColorIn = string | TextColor | Color;
+export type TextSizeIn = string | TextSize | number;
+export type TextFamilyIn = string | TextFamily;
+export type TextStyleIn = string | TextStyle | TextStyleEnum | number;
+export type TextShadowIn = string | TextShadow | Shadow;
+export type TextLineHeightIn = string | TextLineHeight | number;
+export type TextDecorationIn = string | TextDecoration | TextDecorationEnum | number;
+export type TextOverflowIn = string | TextOverflow | TextOverflowEnum | number;
+export type TextWhiteSpaceIn = string | TextWhiteSpace | TextWhiteSpaceEnum | number;
+
 function error(value: any, desc?: string, reference?: any[], enum_value?: any){
 	var err: string;
 	var msg = String(desc || '%s').replace(/\%s/g, '`' + value + '`');
@@ -1269,7 +1305,7 @@ function error(value: any, desc?: string, reference?: any[], enum_value?: any){
 	return new Error(err);
 }
 
-export function parseTextAlign(str: string | TextAlign | number, desc?: string) { 
+export function parseTextAlign(str: TextAlignIn, desc?: string) { 
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(TextAlign, value)) {
@@ -1281,7 +1317,7 @@ export function parseTextAlign(str: string | TextAlign | number, desc?: string) 
 	throw error(str, desc, undefined, TextAlign);
 }
 
-export function parseAlign(str: string | Align | number, desc?: string) { 
+export function parseAlign(str: AlignIn, desc?: string) { 
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(Align, value)) {
@@ -1293,7 +1329,7 @@ export function parseAlign(str: string | Align | number, desc?: string) {
 	throw error(str, desc, undefined, Align);
 }
 
-export function parseContentAlign(str: string | Repeat | number, desc?: string) {
+export function parseContentAlign(str: ContentAlignIn, desc?: string) {
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(ContentAlign, value)) {
@@ -1305,7 +1341,7 @@ export function parseContentAlign(str: string | Repeat | number, desc?: string) 
 	throw error(str, desc, undefined, ContentAlign);
 }
 
-export function parseRepeat(str: string | Repeat | number, desc?: string) {
+export function parseRepeat(str: RepeatIn, desc?: string) {
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(Repeat, value)) {
@@ -1317,7 +1353,7 @@ export function parseRepeat(str: string | Repeat | number, desc?: string) {
 	throw error(str, desc, undefined, Repeat);
 }
 
-export function parseDirection(str: string | Direction | number, desc?: string) {
+export function parseDirection(str: DirectionIn, desc?: string) {
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(Direction, value)) {
@@ -1329,7 +1365,7 @@ export function parseDirection(str: string | Direction | number, desc?: string) 
 	throw error(str, desc, undefined, Direction);
 }
 
-export function parseKeyboardType(str: string | KeyboardType | number, desc?: string) {
+export function parseKeyboardType(str: KeyboardTypeIn, desc?: string) {
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(KeyboardType, value)) {
@@ -1341,7 +1377,7 @@ export function parseKeyboardType(str: string | KeyboardType | number, desc?: st
 	throw error(str, desc, undefined, KeyboardType);
 }
 
-export function parseKeyboardReturnType(str: string | KeyboardReturnType | number, desc?: string) {
+export function parseKeyboardReturnType(str: KeyboardReturnTypeIn, desc?: string) {
 	if (typeof str == 'string') {
 		var value = enum_object[str];
 		if (check_enum(KeyboardReturnType, value)) {
@@ -1353,7 +1389,7 @@ export function parseKeyboardReturnType(str: string | KeyboardReturnType | numbe
 	throw error(str, desc, undefined, KeyboardReturnType);
 }
 
-export function parseBorder(str: string | Border, desc?: string) { 
+export function parseBorder(str: BorderIn, desc?: string) { 
 	if (typeof str == 'string') {
 		// 10 #ff00ff
 		var m = str.match(/^ *((?:\d+)?\.?\d+)/);
@@ -1372,7 +1408,7 @@ export function parseBorder(str: string | Border, desc?: string) {
 	throw error(str, desc, ['10 #ff00aa', '10 rgba(255,255,0,255)']);
 }
 
-export function parseShadow(str: string | Shadow, desc?: string) { 
+export function parseShadow(str: ShadowIn, desc?: string) { 
 	if (typeof str == 'string') {
 		// 10 10 2 #ff00aa
 		var m = str.match(/^ *(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) +((?:\d+)?\.?\d+)/);
@@ -1393,7 +1429,7 @@ export function parseShadow(str: string | Shadow, desc?: string) {
 	throw error(str, desc, ['10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,255)']);
 }
 
-export function parseColor(str: string | Color | number, desc?: string) {
+export function parseColor(str: ColorIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (/^ *none *$/.test(str)) {
 			return _color(0, 0, 0, 0);
@@ -1448,7 +1484,7 @@ export function parseColor(str: string | Color | number, desc?: string) {
 	throw error(str, desc, ['rgba(255,255,255,255)', 'rgb(255,255,255)', '#ff0', '#ff00', '#ff00ff', '#ff00ffff']);
 }
 
-export function parseVec2(str: string | Vec2 | number | [number, number?], desc?: string) {
+export function parseVec2(str: Vec2In, desc?: string) {
 	if (typeof str == 'string') {
 		var m = str.match(/^ *(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) *$/) ||
 						str.match(/^ *vec2\( *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *\) *$/);
@@ -1467,7 +1503,7 @@ export function parseVec2(str: string | Vec2 | number | [number, number?], desc?
 	throw error(str, desc, ['vec2(1,1)', '1 1']);
 }
 
-export function parseVec3(str: string | Vec3 | number | [number, number?, number?], desc?: string) {
+export function parseVec3(str: Vec3In, desc?: string) {
 	if (typeof str == 'string') {
 		var m = str.match(/^ *(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) *$/) ||
 						str.match(/^ *vec3\( *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *\) *$/);
@@ -1487,7 +1523,7 @@ export function parseVec3(str: string | Vec3 | number | [number, number?, number
 	throw error(str, desc, ['vec3(0,0,1)', '0 0 1']);
 }
 
-export function parseVec4(str: string | Vec4 | number | [number, number?, number?, number?], desc?: string) {
+export function parseVec4(str: Vec4In, desc?: string) {
 	if (typeof str == 'string') {
 		var m = str.match(/^ *(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) *$/) ||
 		str.match(/^ *vec4\( *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *\) *$/);
@@ -1508,7 +1544,7 @@ export function parseVec4(str: string | Vec4 | number | [number, number?, number
 	throw error(str, desc, ['vec4(0,0,1,1)', '0 0 1 1']);
 }
 
-export function parseCurve(str: 'linear' | 'ease' | 'ease_in' | 'ease_out' | 'ease_in_out' | string | Curve, desc?: string) {
+export function parseCurve(str: CurveIn, desc?: string) {
 	if (typeof str == 'string') {
 		var s = ({
 			linear: [0, 0, 1, 1],
@@ -1531,7 +1567,7 @@ export function parseCurve(str: 'linear' | 'ease' | 'ease_in' | 'ease_out' | 'ea
 	throw error(str, desc, ['curve(0,0,1,1)', '0 0 1 1', 'linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out']);
 }
 
-export function parseRect(str: string | Rect | number, desc?: string) {
+export function parseRect(str: RectIn, desc?: string) {
 	if (typeof str == 'string') {
 		var m = str.match(/^ *(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) +(-?(?:\d+)?\.?\d+) *$/) ||
 						str.match(/^ *rect\( *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *, *(-?(?:\d+)?\.?\d+) *\) *$/);
@@ -1549,7 +1585,7 @@ export function parseRect(str: string | Rect | number, desc?: string) {
 const parse_mat_reg = new RegExp(`^ *mat\\( *${new Array(6).join('(-?(?:\\d+)?\\.?\\d+) *, *')}(-?(?:\\d+)?\\.?\\d+) *\\) *$`);
 const parse_mat4_reg = new RegExp(`^ *mat4\\( *${new Array(16).join('(-?(?:\\d+)?\\.?\\d+) *, *')}(-?(?:\\d+)?\\.?\\d+) *\\) *$`);
 
-export function parseMat(str: string | Mat | number, desc?: string) {
+export function parseMat(str: MatIn, desc?: string) {
 	if (typeof str == 'string') {
 		var m = parse_mat_reg.exec(str);
 		if (m) {
@@ -1571,7 +1607,7 @@ export function parseMat(str: string | Mat | number, desc?: string) {
 	throw error(str, desc, ['mat(1,0,0,1,0,1)']);
 }
 
-export function parseMat4(str: string | Mat4 | number, desc?: string) {
+export function parseMat4(str: Mat4In, desc?: string) {
 	if (typeof str == 'string') {
 		var m = parse_mat4_reg.exec(str);
 		if (m) {
@@ -1603,7 +1639,7 @@ export function parseMat4(str: string | Mat4 | number, desc?: string) {
 	throw error(str, desc, ['mat4(1,0,0,1,0,1,0,1,0,0,1,1,0,0,0,1)']);
 }
 
-export function parseValue(str: 'auto' | 'full' | string | Value | number, desc?: string) {
+export function parseValue(str: ValueIn, desc?: string) {
 	if (typeof str == 'string') {
 		// auto | full | 10.1 | 20% | 60!
 		var m = str.match(/^((auto)|(full)|(-?(?:\d+)?\.?\d+)(%|!)?)$/);
@@ -1642,7 +1678,7 @@ enum background_position_type_2 {
 	BOTTOM = Types.BOTTOM,
 }
 
-export function parseBackgroundPosition(str: 'left' | 'right' | 'center' | 'top' | 'bottom' | string | BackgroundPosition | number, desc?: string) {
+export function parseBackgroundPosition(str: BackgroundPositionIn, desc?: string) {
 	if (typeof str == 'string') {
 		// left | right | center | top | bottom | 10.1 | 20% 
 		var type = enum_object[str];
@@ -1668,7 +1704,7 @@ export function parseBackgroundPosition(str: 'left' | 'right' | 'center' | 'top'
 	throw error(str, desc, ['left', 'right', 'center', 'top', 'bottom', 10, '20%']);
 }
 
-export function parseBackgroundSize(str: 'auto' | string | BackgroundSize | number, desc?: string) { 
+export function parseBackgroundSize(str: BackgroundSizeIn, desc?: string) { 
 	if (typeof str == 'string') {
 		// auto | 10.1 | 20% 
 		var m = str.match(/^((auto)|(-?(?:\d+)?\.?\d+)(%)?)$/);
@@ -1776,7 +1812,7 @@ function parse_background_paren(scanner: BGScanner, desc?: string): string[] {
 	throw error(scanner.code, desc, [background_help]);
 }
 
-export function parseBackground(str: string | Background | BackgroundOptions, desc?: string): Background {
+export function parseBackground(str: BackgroundIn, desc?: string): Background {
 	// url(res/image.png) repeat(none,[repeat]) position(left,[20%]) size(auto,[10.1])
 	if (str instanceof Background) {
 		return str;
@@ -1864,7 +1900,7 @@ export function parseBackground(str: string | Background | BackgroundOptions, de
 	throw error(str, desc, [background_help]);
 }
 
-export function parseValues(str: string | Value[] | Value | number, desc?: string) {
+export function parseValues(str: ValuesIn, desc?: string) {
 	if (typeof str == 'string') {
 		var rev: Value[] = [];
 		for (var i of str.split(/\s+/)) {
@@ -1881,7 +1917,7 @@ export function parseValues(str: string | Value[] | Value | number, desc?: strin
 	throw error(str, desc, ['auto', 'full', 10, '20%', '60!']);
 }
 
-export function parseAligns(str: string | Align[] | Align | number, desc?: string) {
+export function parseAligns(str: AlignsIn, desc?: string) {
 	if (typeof str == 'string') {
 		var rev: Align[] = [];
 		for (var i of str.split(/\s+/)) {
@@ -1896,7 +1932,7 @@ export function parseAligns(str: string | Align[] | Align | number, desc?: strin
 	throw error(str, desc, ['left', 'top center']);
 }
 
-export function parseFloats(str: string | number[] | number, desc?: string) {
+export function parseFloats(str: FloatsIn, desc?: string) {
 	if (typeof str == 'string') {
 		var ls = str.split(/\s+/);
 		var rev: number[] = [];
@@ -1916,7 +1952,7 @@ export function parseFloats(str: string | number[] | number, desc?: string) {
 	throw error(str, desc, [10, '10 20 30 40']);
 }
 
-export function parseBackgroundPositionCollection(str: string | BackgroundPositionCollection | BackgroundPosition, desc?: string) { 
+export function parseBackgroundPositionCollection(str: BackgroundPositionCollectionIn, desc?: string) { 
 	if (typeof str == 'string') {
 		var items: BackgroundPosition[] = [];
 		for (var j of str.split(/\s+/))
@@ -1932,7 +1968,7 @@ export function parseBackgroundPositionCollection(str: string | BackgroundPositi
 	throw error(str, desc, [10, '20%', 'left', 'right', 'center', 'top', 'bottom']);
 }
 
-export function parseBackgroundSizeCollection(str: string | BackgroundSizeCollection | BackgroundSize, desc?: string) {
+export function parseBackgroundSizeCollection(str: BackgroundSizeCollectionIn, desc?: string) {
 	if (typeof str == 'string') {
 		var items: BackgroundSize[] = [];
 		for (var j of str.split(/\s+/))
@@ -1948,7 +1984,7 @@ export function parseBackgroundSizeCollection(str: string | BackgroundSizeCollec
 	throw error(str, desc, ['auto', 10, '50%']);
 }
 
-export function parseTextColor(str: string | TextColor | Color, desc?: string) {
+export function parseTextColor(str: TextColorIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextColor();
@@ -1966,7 +2002,7 @@ export function parseTextColor(str: string | TextColor | Color, desc?: string) {
 	throw error(str, desc, ['inherit', 'rgba(255,255,255,255)', 'rgb(255,255,255)', '#ff0', '#ff00', '#ff00ff', '#ff00ffff']);
 }
 
-export function parseTextSize(str: string | TextSize | number, desc?: string) {
+export function parseTextSize(str: TextSizeIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextSize();
@@ -1983,7 +2019,7 @@ export function parseTextSize(str: string | TextSize | number, desc?: string) {
 	throw error(str, desc, ['inherit', 12]);
 }
 
-export function parseTextFamily(str: string | TextFamily, desc?: string) {
+export function parseTextFamily(str: TextFamilyIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextFamily();
@@ -1996,7 +2032,7 @@ export function parseTextFamily(str: string | TextFamily, desc?: string) {
 	throw error(str, desc, ['inherit', 'Ubuntu Mono']);
 }
 
-export function parseTextStyle(str: string | TextStyle | TextStyleEnum | number, desc?: string) {
+export function parseTextStyle(str: TextStyleIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextStyle();
@@ -2014,7 +2050,7 @@ export function parseTextStyle(str: string | TextStyle | TextStyleEnum | number,
 	throw error(str, desc, ['inherit'], TextStyleEnum);
 }
 
-export function parseTextShadow(str: string | TextShadow | Shadow, desc?: string) {
+export function parseTextShadow(str: TextShadowIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextShadow();
@@ -2032,7 +2068,7 @@ export function parseTextShadow(str: string | TextShadow | Shadow, desc?: string
 	throw error(str, desc, ['inherit', '10 10 2 #ff00aa', '10 10 2 rgba(255,255,0,255)']);
 }
 
-export function parseTextLineHeight(str: string | TextLineHeight | number, desc?: string) {
+export function parseTextLineHeight(str: TextLineHeightIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextLineHeight();
@@ -2051,7 +2087,7 @@ export function parseTextLineHeight(str: string | TextLineHeight | number, desc?
 	throw error(str, desc, ['inherit', 24]);
 }
 
-export function parseTextDecoration(str: string | TextDecoration | TextDecorationEnum | number, desc?: string) {
+export function parseTextDecoration(str: TextDecorationIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextDecoration();
@@ -2069,7 +2105,7 @@ export function parseTextDecoration(str: string | TextDecoration | TextDecoratio
 	throw error(str, desc, ['inherit'], TextDecorationEnum);
 }
 
-export function parseTextOverflow(str: string | TextOverflow | TextOverflowEnum | number, desc?: string) {
+export function parseTextOverflow(str: TextOverflowIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextOverflow();
@@ -2087,7 +2123,7 @@ export function parseTextOverflow(str: string | TextOverflow | TextOverflowEnum 
 	throw error(str, desc, ['inherit'], TextOverflowEnum);
 }
 
-export function parseTextWhiteSpace(str: string | TextWhiteSpace | TextWhiteSpaceEnum | number, desc?: string) {
+export function parseTextWhiteSpace(str: TextWhiteSpaceIn, desc?: string) {
 	if (typeof str == 'string') {
 		if (str == 'inherit') {
 			return new TextWhiteSpace();
