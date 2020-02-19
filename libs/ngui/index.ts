@@ -54,7 +54,7 @@ class _View extends NativeNotification {
 	private m_id: string;
 	private m_owner: ViewController | null;
 
-	get __view__() { return this }
+	get view() { return this }
 
 	@event readonly onKeyDown: EventNoticer<GUIKeyEvent>;
 	@event readonly onKeyPress: EventNoticer<GUIKeyEvent>;

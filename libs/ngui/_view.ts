@@ -42,10 +42,19 @@ import { Action, ActionIn, KeyframeOptions } from './_action';
 
 const _ngui = __requireNgui__('_ngui');
 
+export interface DOM {
+	id: string;
+	readonly meta: View;
+	readonly owner: ViewController | null;
+	remove(): void;
+	appendTo(parentView: View): View;
+	afterTo(prevView: View): View;
+};
+
 /**
  * @class View
  */
-export declare class View extends Notification<GUIEvent> {
+export declare class View extends Notification<GUIEvent> implements DOM {
 	readonly onKeyDown: EventNoticer<GUIKeyEvent>;
 	readonly onKeyPress: EventNoticer<GUIKeyEvent>;
 	readonly onKeyUp: EventNoticer<GUIKeyEvent>;
@@ -123,6 +132,7 @@ export declare class View extends Notification<GUIEvent> {
 	readonly viewType: number;
 	class: string;
 	id: string; // ext
+	readonly meta: View;
 	readonly owner: ViewController | null;
 	action: Action | null;
 	style: StyleSheet;

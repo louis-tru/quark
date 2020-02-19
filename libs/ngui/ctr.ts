@@ -31,7 +31,7 @@
 import utils from './util';
 import { StyleSheet } from './css';
 import event, { Notification, EventNoticer, Listen, Event } from './event';
-import { TextNode, View } from './_view';
+import { TextNode, View, DOM } from './_view';
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
 const G_removeSet = new WeakSet<ViewController>();
@@ -71,62 +71,35 @@ function markRerender(ctr: ViewController) {
 	});
 }
 
-// examples
-/*
-const bug_feedback_vx = (
-	_VV(Div, [[["title"],"Bug Feedback"],[["source"],require.resolve(__filename)]],[
-		_VV(Div, [[["width"],"full"]],[
-			_VV(Hybrid, [[["class"],"category_title"]],[_VVT("Now go to Github issues list?"), _VVD('A')]),
-			_VV(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_go_to"], [["url"],"ngui_tools_issues_url"]],[_VVT("Go Github Issues")]),
-			_VV(Hybrid, [[["class"],"category_title"]],[_VVT("Or you can send me email, too.")]),
-			_VV(Button, [[["class"],"long_btn rm_margin_top"], [["onClick"],"handle_bug_feedback"]],[_VVT("Send email")])
-		])
-	])
-)*/
-
-function assignProp(self, [names, value]) {
-	var target = self.dom;
-	if (names.length == 1) {
-		target[names[0]] = value;
-	} else {
-		var len = names.length - 1;
-		var name = names[len];
-		for (var i = 0; i < len; i++) {
-			target = target[names[i]];
-		}
-		target[name] = value;
-	}
+export interface DOMConstructor {
+	new(...args: any[]): DOM;
+	readonly isViewController: boolean;
 }
 
 /**
  * @class VirtualDOM
- * @private
  */
-export class VirtualDOM<T = any> {
-	hash = 0;
-	propsHash = 0;
-	props = null;
-	type: T;
-	children = null;
-	dom = null;
+export class VirtualDOM {
+	readonly propsHash: number;
+	readonly props: Dict<[any,number]>;
+	readonly domConstructor: DOMConstructor;
+	readonly children: (VirtualDOM | null)[];
+	dom: DOM | null;
+	hash: number;
 
-	constructor(Type: T, props: Dict | null, children: any[]) {
+	constructor(domConstructor: DOMConstructor, props: Dict | null, children: (VirtualDOM | null)[]) {
 		var _propsHash = 0;
-		var _props = {};
+		var _props: Dict<[any,number]> = {};
 
 		for (var prop in props) {
-			var [keys,value] = prop;
 			var hashCode = 0;
-			for (var key of keys) {
-				hashCode += (hashCode << 5) + key.hashCode();
-			}
+			var value = props[prop];
+			hashCode += (hashCode << 5) + prop.hashCode();
 			hashCode += (hashCode << 5) + Object.hashCode(value);
-			prop[2] = hashCode;
+			_props[prop] = [value,hashCode];
 			_propsHash += (_propsHash << 5) + hashCode;
-			_props[prop[0].join('.')] = prop;
 		}
-
-		var _hash = (Type.hashCode() << 5) + _propsHash;
+		var _hash = (domConstructor.hashCode() << 5) + _propsHash;
 
 		for (var vdom of children) {
 			if (vdom) {
@@ -134,37 +107,26 @@ export class VirtualDOM<T = any> {
 			}
 		}
 
-		this.type = Type;
+		this.domConstructor = domConstructor;
 		this.props = _props;
 		this.hash = _hash;
 		this.propsHash = _propsHash;
 		this.children = children;
 	}
 
-	setDefaultStyle(style: Dict) {
-		if (style) {
-			if (!this.props.hasOwnProperty('style')) {
-				var hashCode = ('style'.hashCode() << 5) + style.hashCode();
-				this.props.style = [['style'], style, hashCode];
-				this.propsHash += (this.propsHash << 5) + hashCode;
-				this.hash += (this.hash << 5) + hashCode;
-			}
-		}
-	}
-
-	getProp(name) {
+	getProp(name: string) {
 		var prop = this.props[name];
-		return prop ? prop[1]: null;
+		return prop ? prop[0]: null;
 	}
 
-	hasProp(name) {
+	hasProp(name: string) {
 		return name in this.props;
 	}
 
 	assignProps() {
 		var props = this.props;
 		for (var key in props) {
-			assignProp(this, props[key]);
+			(this.dom as any)[key] = props[key][0]; // assignProp
 		}
 	}
 
@@ -174,29 +136,30 @@ export class VirtualDOM<T = any> {
 			var props1 = vdom.props;
 			for (var key in props1) {
 				var prop0 = props0[key], prop1 = props1[key];
-				if (!prop0 || prop0[2] != prop1[2]) {
-					assignProp(this, prop1);
+				if (!prop0 || prop0[1] != prop1[1]) {
+					(this.dom as any)[key] = prop1[0]; // assignProp
 				}
 			}
 		}
 	}
 
-	newInstance(ctr) {
+	newInstance(ctr: ViewController): DOM {
 		utils.assert(!this.dom);
-		var dom = new this.type();
+		var dom = new (this.domConstructor)();
 		this.dom = dom;
-		dom.m_owner = ctr;
+		(dom as any).m_owner = ctr;
 
-		if (this.type.isViewController) { // ctrl
-			dom.m_vchildren = this.children;
+		if (this.domConstructor.isViewController) { // ctrl
+			var newCtr = dom as ViewController;
+			(newCtr as any).m_vchildren = this.children;
 			this.assignProps(); // before set props
-			var r = dom.triggerLoad(); // trigger event Load
+			var r = newCtr.triggerLoad(); // trigger event Load
 			if (r instanceof Promise) {
-				r.then(e=>dom.m_loaded = true);
+				r.then(()=>(newCtr as any).m_loaded = true);
 			} else {
-				dom.m_loaded = true
+				(newCtr as any).m_loaded = true
 			}
-			rerender(dom); // rerender
+			rerender(newCtr); // rerender
 		} else {
 			for (var vdom of this.children) {
 				if (vdom)
@@ -211,14 +174,15 @@ export class VirtualDOM<T = any> {
 	hashCode() {
 		return this.hash;
 	}
-
 }
+
+(VirtualDOM as any).prototype.dom = null;
 
 /**
  * @class VirtualDOMCollection
  * @private
  */
-class VirtualDOMCollection extends VirtualDOM<typeof DOMCollection> {
+class VirtualDOMCollection extends VirtualDOM {
 	vdoms: VirtualDOM[];
 
 	constructor(vdoms: (VirtualDOM | null)[]) {
@@ -227,14 +191,14 @@ class VirtualDOMCollection extends VirtualDOM<typeof DOMCollection> {
 		this.vdoms.forEach(e=>(this.hash += (this.hash << 5) + e.hash));
 	}
 
-	setDefaultStyle(style: Dict) {}
-
-	diffProps({ vdoms, hash }: VirtualDOMCollection) {
-		var dom = this.dom;
+	diffProps(vdom: VirtualDOM<DOM>) {
+		var { vdoms, hash } = vdom as VirtualDOMCollection;
+		var dom = this.dom as DOMCollection;
 		var keys = {};
-		var keys_c = dom.m_keys; // private props visit
+		var keys_c = (dom as any).m_keys; // private props visit
 		var ctr = dom.owner;
-		var prev = dom.m_vdoms.length ? dom.m_vdoms[0].dom: dom.m_placeholder; // DOMCollection placeholder or doms[0]
+		var prev = (dom as any).m_vdoms.length ? 
+			(dom as any).m_vdoms[0].dom: (dom as any).m_placeholder; // DOMCollection placeholder or doms[0]
 
 		utils.assert(prev);
 
@@ -292,7 +256,7 @@ class VirtualDOMCollection extends VirtualDOM<typeof DOMCollection> {
 	newInstance(ctr: ViewController) {
 		utils.assert(!this.dom);
 		var vdoms = this.vdoms;
-		var keys = {};
+		var keys: Dict<VirtualDOM> = {};
 		this.dom = new DOMCollection(ctr, vdoms, keys);
 
 		for (var i = 0; i < vdoms.length; i++) {
@@ -327,25 +291,24 @@ function callDOMsFunc(self: DOMCollection, active: string, view: View) {
 	}
 }
 
-export type DOM = ViewController | View | DOMCollection;
-
 /**
  * @class DOMCollection DOM
  * @private
  */
-class DOMCollection {
+class DOMCollection implements DOM {
 
 	// @private:
 	private m_owner: ViewController;
-	private m_vdoms: DOM[];
-	private m_keys: string[];
-	private m_placeholder: View | null = null; // view placeholder	
+	private m_vdoms: VirtualDOM[];
+	private m_keys: Dict<VirtualDOM>;
+	private m_placeholder: View | null; // view placeholder	
 
-	private get __view__() {
-		return this.m_placeholder ? this.m_placeholder: this.m_vdoms.last(0).dom.__view__;
+	get meta() {
+		return this.m_placeholder ? this.m_placeholder: (this.m_vdoms.indexReverse(0).dom as DOM).meta;
 	}
 
-	// @public:
+	id = '';
+	
 	get owner() {
 		return this.m_owner;
 	}
@@ -354,11 +317,15 @@ class DOMCollection {
 		return this.m_vdoms.map(e=>e.dom);
 	}
 
-	constructor(owner: ViewController, vdoms: DOM[], keys: string[]) {
+	key(key: string) {
+		var vdom = this.m_keys[key];
+		// return this.m_keys[key];
+	}
+
+	constructor(owner: ViewController, vdoms: VirtualDOM[], keys: Dict<VirtualDOM>) {
 		this.m_owner = owner;
 		this.m_vdoms = vdoms;
 		this.m_keys = keys;
-
 		if (!vdoms.length) {
 			this.m_placeholder = new View();
 		}
@@ -369,17 +336,17 @@ class DOMCollection {
 			this.m_placeholder.remove();
 			this.m_placeholder = null;
 		}
-		else if (this.m_vdoms) {
-			var keys = this.m_keys;
+		else if (this.m_vdoms.length) {
+			// var keys = this.m_keys;
 			this.m_vdoms.forEach(vdom=>{
-				var key = vdom.key;
-				if (key) {
-					delete keys[key];
-				}
+				// var key = vdom.key;
+				// if (key) {
+				// 	delete keys[key];
+				// }
 				removeDOM(this.m_owner, vdom);
 			});
-			this.m_vdoms = null;
-			this.m_keys = null;
+			this.m_vdoms = [];
+			this.m_keys = {};
 		}
 	}
 
@@ -392,6 +359,8 @@ class DOMCollection {
 	}
 
 }
+
+(DOMCollection as any).prototype.m_placeholder = null;
 
 function removeSubctr(self: ViewController, vdom: VirtualDOM) {
 	for (var e of vdom.children) {
@@ -485,10 +454,6 @@ function rerender(self: ViewController) {
 	var vdom_c = self.m_vdom;
 	var vdom = _CVDD(self.render(...self.m_vchildren));
 	var update = false;
-
-	if (vdom) {
-		vdom.setDefaultStyle(self.m_style);
-	}
 
 	if (vdom_c) {
 		if (vdom) {
@@ -594,7 +559,7 @@ const _prop = exports.prop;
 /**
  * @class ViewController DOM
  */
-export class ViewController extends Notification<Event<any, ViewController>> {
+export class ViewController extends Notification<Event<any, ViewController>> implements DOM {
 	private m_IDs: Dict<ViewController | View> = {};
 	private m_vmodel: Dict = {}; // view modle
 	private m_dataHash: Dict<number> = {}; // modle and props hash
@@ -607,7 +572,7 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 	private m_mounted: boolean; // = false;
 	private m_style: Dict | null; // = null;
 
-	private get __view__() {
+	get meta(): View {
 		return this.m_vdom ? this.m_vdom.dom.__view__: this.m_placeholder;
 	}
 
@@ -617,28 +582,24 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 	@event readonly onRemove: EventNoticer<Event<void, ViewController>>;  // @event onRemove
 	@event readonly onRemoved: EventNoticer<Event<void, ViewController>>; // @event onRemoved
 
-	triggerLoad() {
+	triggerLoad(): any {
 		return this.trigger('Load');
 	}
 
-	triggerMounted() {
+	triggerMounted(): any {
 		return this.trigger('Mounted');
 	}
 
-	triggerUpdate() {
+	triggerUpdate(): any {
 		return this.trigger('Update');
 	}
 
-	triggerRemove() {
+	triggerRemove(): any {
 		return this.trigger('Remove');
 	}
 
-	triggerRemoved() {
+	triggerRemoved(): any {
 		return this.trigger('Removed');
-	}
-
-	get id() {
-		return this.m_id;
 	}
 
 	static setID(dom: ViewController | View, id: string) {
@@ -658,6 +619,10 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 			}
 			(dom as any).m_id = id;
 		}
+	}
+
+	get id() {
+		return this.m_id;
 	}
 
 	set id(value: string) {
@@ -783,7 +748,7 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 			if (vdom) {
 				removeDOM(this, vdom);
 			} else {
-				placeholder.remove();
+				(placeholder as View).remove();
 			}
 			this.triggerRemoved(); // trigger Removed
 		}
@@ -837,10 +802,10 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 		if (obj instanceof ViewController || obj instanceof View) {
 			dom = obj; // dom instance
 		} else if (utils.equalsClass(ViewController, obj) || utils.equalsClass(View, obj)) {
-			obj = _VV(obj, [], []); // create vdom
+			obj = _CVD(obj, null); // create vdom
 			dom = obj.newInstance(owner);
 		} else {
-			obj = _VVD(obj); // format vdom
+			obj = _CVDD(obj); // format vdom
 			utils.assert(obj instanceof VirtualDOM, 'Bad argument');
 			dom = obj.newInstance(owner);
 		}
