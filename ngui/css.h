@@ -269,9 +269,10 @@ class XX_EXPORT CSSViewClasss: public Object {
 class XX_EXPORT StyleSheetsScope: public Object {
 	XX_HIDDEN_ALL_COPY(StyleSheetsScope);
  public:
-	struct XX_EXPORT Scope {
+	struct Scope {
 		struct Wrap {
-			StyleSheets* sheets; int ref;
+			StyleSheets* sheets;
+			int ref;
 		};
 		Wrap* wrap;
 		int   ref;

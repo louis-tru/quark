@@ -255,7 +255,7 @@ class WrapAction: public WrapObject {
 		self->speed( value->ToNumberValue(worker) );
 	}
 
-	// static void null_set_accessor(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {}
+	static void null_set_accessor(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {}
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Action, constructor, {
@@ -273,9 +273,9 @@ class WrapAction: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(delay, delay, set_delay);
 			JS_SET_CLASS_ACCESSOR(delayed, delayed);
 			JS_SET_CLASS_ACCESSOR(speed, speed, set_speed);
-			// JS_SET_CLASS_ACCESSOR(seq, nullptr, null_set_accessor);
-			// JS_SET_CLASS_ACCESSOR(spawn, nullptr, null_set_accessor);
-			// JS_SET_CLASS_ACCESSOR(keyframe, nullptr, null_set_accessor);
+			JS_SET_CLASS_ACCESSOR(seq, nullptr, null_set_accessor);
+			JS_SET_CLASS_ACCESSOR(spawn, nullptr, null_set_accessor);
+			JS_SET_CLASS_ACCESSOR(keyframe, nullptr, null_set_accessor);
 		}, nullptr);
 	}
 };
@@ -630,13 +630,6 @@ class BindingAction {
  public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
-
-		// CubicBezier const
-		// JS_SET_PROPERTY(LINEAR, 0);
-		// JS_SET_PROPERTY(EASE, 1);
-		// JS_SET_PROPERTY(EASE_IN, 2);
-		// JS_SET_PROPERTY(EASE_OUT, 3);
-		// JS_SET_PROPERTY(EASE_IN_OUT, 4);
 
 		WrapAction::binding(exports, worker);
 		WrapGroupAction::binding(exports, worker);

@@ -37,7 +37,8 @@ import {
 } from './event';
 import * as value from './value';
 import ViewController from './ctr';
-import {Action, Options as ActionOpt} from './_action';
+import { StyleSheet } from './css';
+import { Action, ActionIn, KeyframeOptions } from './_action';
 
 const _ngui = __requireNgui__('_ngui');
 
@@ -121,16 +122,15 @@ export declare class View extends Notification<GUIEvent> {
 	isFocus: boolean;
 	readonly viewType: number;
 	class: string;
-	// ext
-	id: string;
+	id: string; // ext
 	readonly owner: ViewController | null;
 	action: Action | null;
-	style: Dict;
-	setAction(action: ActionOpt | null): void;
+	style: StyleSheet;
+	setAction(action: ActionIn | null): void;
 	hashCode(): number;
 	appendTo(parentView: View): this;
 	afterTo(prevView: View): this;
-	transition(style: Dict, delay?: number, cb?: (e: GUIActionEvent)=>void): Action;
+	transition(style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void): Action;
 	show(): void;
 	hide(): void;
 }

@@ -38,7 +38,7 @@ import event, {
 } from './event';
 import {View} from './_view';
 import {ViewController} from './ctr';
-import {Options as ActionOpt} from './_action';
+import { ActionIn, KeyframeOptions } from './_action';
 import * as action from './action';
 import app from  './app';
 import display_port from './display_port';
@@ -85,16 +85,13 @@ class _View extends NativeNotification {
 	}
 
 	set id(value) {
-		ViewController.setID(this, value);
+		ViewController.setID(this as unknown as View, value);
 	}
 
 	get owner() {
 		return this.m_owner;
 	}
 
-	/**
-	 * @overwrite
-	 */
 	addDefaultListener(name: string, listen: Listen<GUIEvent> | string) {
 		if ( typeof listen == 'string' ) { // find func 
 			var owner: any = this;
@@ -125,8 +122,8 @@ class _View extends NativeNotification {
 		return this;
 	}
 
-	setAction(opt: ActionOpt | null) {
-		(this as any)._setAction(opt && action.create(opt));
+	setAction(In: ActionIn | null) {
+		(this as any)._setAction(In && action.create(In));
 	}
 
 	get action() { // get action object
@@ -137,17 +134,15 @@ class _View extends NativeNotification {
 		(this as unknown as View).setAction(value);
 	}
 
-	get style() {
-		return this as unknown as View;
+	get style(): StyleSheet {
+		return this as unknown as StyleSheet;
 	}
 
-	set style(value: Dict) {
-		for (var key in value) {
-			(this as any)[key] = value[key];
-		}
+	set style(value: StyleSheet) {
+		Object.assign(this, value)
 	}
 
-	transition(style: Dict, delay?: number, cb?: (e: GUIActionEvent)=>void) { // transition animate
+	transition(style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void) { // transition animate
 		return action.transition(this as unknown as View, style, delay, cb);
 	}
 

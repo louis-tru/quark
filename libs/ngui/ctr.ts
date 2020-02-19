@@ -28,20 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import util from './util';
+import utils from './util';
+import { StyleSheet } from './css';
 import event, { Notification, EventNoticer, Listen, Event } from './event';
-import { TextNode, View, Root } from './_view';
+import { TextNode, View } from './_view';
 
 const TEXT_NODE_VALUE_TYPE = new Set(['function', 'string', 'number', 'boolean']);
-const G_removeSet = new WeakSet();
-const G_renderQueueSet = new Set();
+const G_removeSet = new WeakSet<ViewController>();
+const G_renderQueueSet = new Set<ViewController>();
 var   G_renderQueueWorking = false;
 const G_warnRecord = new Set();
 const G_warnDefine = {
 	UndefinedDOMKey: 'DOM key no defined in DOM Collection',
-};
+} as Dict<string>;
 
-function warn(id, msg = '') {
+function warn(id: string, msg = '') {
 	var def = G_warnDefine[id];
 	if (def) {
 		if (!G_warnRecord.has(id)) {
@@ -52,15 +53,14 @@ function warn(id, msg = '') {
 }
 
 // mark controller rerender
-function markRerender(ctr) {
+function markRerender(ctr: ViewController) {
 	var size = G_renderQueueSet.size;
 	G_renderQueueSet.add(ctr);
 	if (size == G_renderQueueSet.size) return;
 	if (G_renderQueueWorking) return;
 	G_renderQueueWorking = true;
 
-	util.nextTick(function() {
-		var item;
+	utils.nextTick(function() {
 		try {
 			for( var item of G_renderQueueSet ) {
 				rerender(item);
@@ -182,7 +182,7 @@ export class VirtualDOM<T = any> {
 	}
 
 	newInstance(ctr) {
-		util.assert(!this.dom);
+		utils.assert(!this.dom);
 		var dom = new this.type();
 		this.dom = dom;
 		dom.m_owner = ctr;
@@ -236,7 +236,7 @@ class VirtualDOMCollection extends VirtualDOM<typeof DOMCollection> {
 		var ctr = dom.owner;
 		var prev = dom.m_vdoms.length ? dom.m_vdoms[0].dom: dom.m_placeholder; // DOMCollection placeholder or doms[0]
 
-		util.assert(prev);
+		utils.assert(prev);
 
 		for (var i = 0; i < vdoms.length; i++) {
 			var vdom = vdoms[i], key;
@@ -290,7 +290,7 @@ class VirtualDOMCollection extends VirtualDOM<typeof DOMCollection> {
 	}
 
 	newInstance(ctr: ViewController) {
-		util.assert(!this.dom);
+		utils.assert(!this.dom);
 		var vdoms = this.vdoms;
 		var keys = {};
 		this.dom = new DOMCollection(ctr, vdoms, keys);
@@ -417,7 +417,7 @@ function removeDOM(self: ViewController, vdom: VirtualDOM) {
 }
 
 function diff(self: ViewController, vdom_c: VirtualDOM, vdom: VirtualDOM, prevView: View) {
-	util.assert(prevView);
+	utils.assert(prevView);
 
 	// diff type
 	if (vdom_c.type !== vdom.type) {
@@ -494,15 +494,15 @@ function rerender(self: ViewController) {
 		if (vdom) {
 			if (vdom_c.hash != vdom.hash) {
 				var prev = vdom_c.dom.__view__;
-				util.assert(prev);
+				utils.assert(prev);
 				self.m_vdom = vdom;
 				diff(self, vdom_c, vdom, prev); // diff
 				update = true;
 			}
 		} else {
 			var prev = vdom_c.dom.__view__;
-			util.assert(prev);
-			util.assert(!self.m_placeholder);
+			utils.assert(prev);
+			utils.assert(!self.m_placeholder);
 			self.m_placeholder = new View();
 			self.m_placeholder.afterTo(prev);
 			self.m_vdom = null;
@@ -535,16 +535,68 @@ function rerender(self: ViewController) {
 	}
 }
 
-function domInCtr(self) {
+function domInCtr(self: ViewController) {
 	return self.m_vdom ? self.m_vdom.dom: self.m_placeholder;
 }
+
+/**
+ * @func prop()
+ * <pre>
+ * 	class MyViewController extends ViewController {
+ *		@prop width: number = 100;
+ *		@prop height: number = 100;
+ * 		render() {
+ * 			return (
+ * 				<Div width=this.width height=this.height>Hello</Div>
+ * 			);
+ * 		}
+ * 	}
+ * </pre>
+ */
+
+function defineProp<T extends typeof ViewController.prototype>(target: T, name: string, defaultValue?: any) {
+	utils.assert(utils.equalsClass(ViewController, target.constructor), 'Type error');
+	Object.defineProperty(target, name, {
+		get: arguments.length < 3 ? function(this: any) {
+			return this['m_' + name];
+		}: typeof defaultValue == 'function' ? defaultValue: function(this: any) {
+			return this['m_' + name] || defaultValue;
+		},
+		set(this: any, value: any) {
+			var hashCode = Object.hashCode(value);
+			var hash = this.m_dataHash;
+			if (hash['__prop_' + name] != hashCode) {
+				hash['__prop_' + name] = hashCode;
+				this['m_' + name] = value;
+				this.markRerender(); // mark render
+			}
+		},
+		configurable: false,
+		enumerable: true,
+	});
+}
+
+export declare function prop<T extends typeof ViewController.prototype>(target: T, name: string): void;
+export declare function prop(defaultValue: (()=>any) | any): <T extends typeof ViewController.prototype>(target: T, name: string)=>void;
+
+exports.prop = function(defaultValueOrTarget: any, name?: string) {
+	if (arguments.length < 2) {
+		return function(target: any, name: any) {
+			defineProp(target, name, defaultValueOrTarget);
+		};
+	} else {
+		defineProp(defaultValueOrTarget, name as string);
+	}
+};
+
+const _prop = exports.prop;
 
 /**
  * @class ViewController DOM
  */
 export class ViewController extends Notification<Event<any, ViewController>> {
 	private m_IDs: Dict<ViewController | View> = {};
-	private m_modle: Dict = {}; // view modle
+	private m_vmodel: Dict = {}; // view modle
 	private m_dataHash: Dict<number> = {}; // modle and props hash
 	private m_id: string; // = null;     // id
 	private m_owner: ViewController | null; // = null;  // owner controller
@@ -565,23 +617,23 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 	@event readonly onRemove: EventNoticer<Event<void, ViewController>>;  // @event onRemove
 	@event readonly onRemoved: EventNoticer<Event<void, ViewController>>; // @event onRemoved
 
-	triggetLoad() {
+	triggerLoad() {
 		return this.trigger('Load');
 	}
 
-	triggetMounted() {
+	triggerMounted() {
 		return this.trigger('Mounted');
 	}
 
-	triggetUpdate() {
+	triggerUpdate() {
 		return this.trigger('Update');
 	}
 
-	triggetRemove() {
+	triggerRemove() {
 		return this.trigger('Remove');
 	}
 
-	triggetRemoved() {
+	triggerRemoved() {
 		return this.trigger('Removed');
 	}
 
@@ -632,17 +684,17 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 		return this.m_mounted;
 	}
 
-	get vmodle() {
-		return this.m_modle;
+	get model() {
+		return this.m_vmodel;
 	}
 
-	set vmodle(modle: Dict) {
-		this.m_setModle(modle);
+	set model(modle: Dict) {
+		this.setModel(modle);
 	}
 
-	private m_setModle(modle: Dict) {
+	setModel(modle: Dict) {
 		var update = false;
-		var value = this.m_modle;
+		var value = this.m_vmodel;
 		var hash = this.m_dataHash;
 		for (var key in modle) {
 			var item = modle[key];
@@ -714,7 +766,7 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 
 			var owner = this.m_owner;
 			if (owner) {
-				util.assert(owner.dom !== this, 'Illegal call');
+				utils.assert(owner.dom !== this, 'Illegal call');
 			}
 
 			if (G_removeSet.has(this)) return;
@@ -738,11 +790,12 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 	}
 
 	/**
-	 * @get style
+	 * @prop style
 	 */
-	get style() {
+	@_prop(function(this: ViewController) {
 		return this.m_style || {};
-	}
+	})
+	style: StyleSheet;
 
 	/**
 	 * @get isViewController
@@ -753,62 +806,20 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 	}
 
 	/**
-	 * @func defineProps(props, [controllerClass])
-	 * <pre>
-	 * 	class MyViewController extends ViewController {
-	 * 		render() {
-	 * 			return (
-	 * 				<Div width=this.width height=this.height>Hello</Div>
-	 * 			);
-	 * 		}
-	 * 	}
-	 *  MyViewController.defineProps(['width', height', 'prop1'])
-	 * </pre>
-	 */
-	static defineProps(props: any, controllerClass: any) {
-		controllerClass = controllerClass || this;
-		util.assert(util.equalsClass(ViewController, controllerClass), 'Type error');
-		props = Array.isArray(props) ? props.map(e=>[e]): Object.entries(props);
-		var prototype = controllerClass.prototype;
-
-		for (let [prop,value] of props) {
-			prototype['m_' + prop] = value;
-			var desc = Object.getOwnPropertyDescriptor(prototype, 'prop');
-			
-			Object.defineProperty(prototype, prop, {
-				get: desc && desc.get ? desc.get: function() {
-					return this['m_' + prop];
-				},
-				set(value) {
-					var hashCode = Object.hashCode(value);
-					var hash = this.m_dataHash;
-					if (hash['__prop_' + prop] != hashCode) {
-						hash['__prop_' + prop] = hashCode;
-						this['m_' + prop] = value;
-						this.markRerender(); // mark render
-					}
-				},
-				configurable: true,
-				enumerable: false,
-			});
-		}
-	}
-
-	/**
 	 * @func typeOf(obj, [Type=class ViewController])
 	 * @arg obj {VirtualDOM|View|ViewController|class}
 	 * @static
 	 */
 	static typeOf(obj: any, Type: any) {
 		Type = Type || ViewController;
-		if (util.equalsClass(ViewController, Type) || util.equalsClass(View, Type)) {
+		if (utils.equalsClass(ViewController, Type) || utils.equalsClass(View, Type)) {
 			if (obj instanceof Type)
 				return 3; // dom instance
 			if (obj instanceof VirtualDOM) { 
-				if (util.equalsClass(Type, obj.type))
+				if (utils.equalsClass(Type, obj.type))
 					return 2; // vdom instance
 			}
-			if (util.equalsClass(Type, obj))
+			if (utils.equalsClass(Type, obj))
 				return 1; // class
 		}
 		return 0;
@@ -825,12 +836,12 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 
 		if (obj instanceof ViewController || obj instanceof View) {
 			dom = obj; // dom instance
-		} else if (util.equalsClass(ViewController, obj) || util.equalsClass(View, obj)) {
+		} else if (utils.equalsClass(ViewController, obj) || utils.equalsClass(View, obj)) {
 			obj = _VV(obj, [], []); // create vdom
 			dom = obj.newInstance(owner);
 		} else {
 			obj = _VVD(obj); // format vdom
-			util.assert(obj instanceof VirtualDOM, 'Bad argument');
+			utils.assert(obj instanceof VirtualDOM, 'Bad argument');
 			dom = obj.newInstance(owner);
 		}
 		if (parentView) {
@@ -856,23 +867,6 @@ export class ViewController extends Notification<Event<any, ViewController>> {
 (ViewController as any).prototype.m_style = null;
 
 export default ViewController;
-
-/**
- * @set style {Object}
- */
-ViewController.defineProps(['style']);
-
-// export class RootViewController extends ViewController {
-// 	//@overwrite
-// 	render(vdom) {
-// 		if (vdom) {
-// 			util.assert(util.equalsClass(Root, vdom.type), 'RootViewController first children must be Root view');
-// 			return vdom;
-// 		} else {
-// 			return _VV(Root, [], []); // return Root
-// 		}
-// 	}
-// }
 
 // create virtual dom TextNode
 function _CVDT(value: string) {

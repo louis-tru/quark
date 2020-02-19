@@ -306,6 +306,8 @@ class WrapStyleSheets: public WrapObject {
 		
 		// JS_DEFINE_CLASS
 		JS_DEFINE_CLASS_NO_EXPORTS(StyleSheets, constructor, {
+			// action
+			JS_SET_CLASS_ACCESSOR(time, time, set_time);
 			// Meta attribute
 			JS_SET_CLASS_ACCESSOR(x, nullptr, set_x);
 			JS_SET_CLASS_ACCESSOR(y, nullptr, set_y);
@@ -364,7 +366,6 @@ class WrapStyleSheets: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(shadow, nullptr, set_shadow);
 			JS_SET_CLASS_ACCESSOR(src, nullptr, set_src);
 			// Non meta attribute
-			JS_SET_CLASS_ACCESSOR(time, time, set_time); // create action time
 			JS_SET_CLASS_ACCESSOR(translate, nullptr, set_translate);
 			JS_SET_CLASS_ACCESSOR(scale, nullptr, set_scale);
 			JS_SET_CLASS_ACCESSOR(skew, nullptr, set_skew);

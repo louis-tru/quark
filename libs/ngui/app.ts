@@ -122,5 +122,5 @@ utils.extendClass(GUIApplication, NativeNotification);
 export default {
 	get current() { return cur as GUIApplication },
 	get root() { return (cur_root_ctr as ViewController).dom as unknown as Root },
-	get rootCtr() { return cur_root_ctr },
+	get rootCtr() { return cur_root_ctr as ViewController },
 };

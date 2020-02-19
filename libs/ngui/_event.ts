@@ -724,7 +724,7 @@ export function event(target: any, name: string) {
 	var event = name.substr(2);
 	Object.defineProperty(target, name, {
 		configurable: false,
-		enumerable: false,
+		enumerable: true,
 		get() { return this.getNoticer(event) },
 		set(listen: Function | string) { this.addDefaultListener(event, listen) },
 	});

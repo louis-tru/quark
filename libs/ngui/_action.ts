@@ -28,10 +28,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import {Propery} from './propery';
-import {Curve} from './value';
+import { StyleSheet } from './css';
+import * as value from './value';
 
-export type Options = Action | Dict;
+exports.Action = __requireNgui__('_action').Action;
+
+export interface KeyframeOptions extends StyleSheet {
+	curve?: value.CurveIn;
+}
+
+export interface ActionOptions {
+	playing?: boolean;
+	loop?: number;
+	delay?: number;
+	speed?: number;
+	spawn?: ActionIn[];
+	seq?: ActionIn[];
+	keyframe?: KeyframeOptions[];
+}
+
+export type ActionIn = Action | ActionOptions | KeyframeOptions[];
 
 export declare abstract class Action {
 	play(): void;
@@ -49,29 +65,3 @@ export declare abstract class Action {
 	delay: number;
 	speed: number;
 }
-
-export declare abstract class GroupAction extends Action {
-	readonly length: number;
-	append(child: Action): void;
-	insert(index: number, child: Action): void;
-	removeChild(index: number): void;
-	children(index: number): Action | null;
-}
-
-export declare class SpawnAction extends GroupAction {}
-export declare class SequenceAction extends GroupAction {}
-
-export declare class KeyframeAction extends Action {
-	hasProperty(name: Propery): boolean;
-	matchProperty(name: Propery): boolean;
-	frame(index: number): Frame | null;
-	add(style: Dict): Frame;
-	add(time: number, curve?: Curve | string): Frame;
-	readonly first: Frame | null;
-	readonly last: Frame | null;
-	readonly length: number;
-	readonly position: number;
-	readonly time: number;
-}
-
-export declare abstract class Frame {}

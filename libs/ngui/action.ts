@@ -28,13 +28,127 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import {View} from './_view';
-import {Action,Options} from './_action';
-import {GUIActionEvent} from './event';
+import utils from './util';
+import { Propery } from './css';
+import * as value from './value';
+import { View } from './_view';
+import { Action, ActionIn, KeyframeOptions } from './_action';
+import { GUIActionEvent } from './event';
+export * from './_action';
 
 const _action = __requireNgui__('_action');
 
-const { _Action, SpawnAction, SequenceAction, KeyframeAction } = _action;
+Object.assign(exports, _action);
+
+export declare abstract class GroupAction extends Action {
+	readonly length: number;
+	append(child: Action): void;
+	insert(index: number, child: Action): void;
+	removeChild(index: number): void;
+	children(index: number): Action | null;
+}
+
+export declare class SpawnAction extends GroupAction {}
+export declare class SequenceAction extends GroupAction {}
+
+export declare class KeyframeAction extends Action {
+	hasProperty(name: Propery): boolean;
+	matchProperty(name: Propery): boolean;
+	frame(index: number): Frame | null;
+	add(style: KeyframeOptions): Frame;
+	add(time?: number, curve?: value.CurveIn): Frame;
+	readonly first: Frame | null;
+	readonly last: Frame | null;
+	readonly length: number;
+	readonly position: number;
+	readonly time: number;
+}
+
+// fetch style attribute by view
+export declare abstract class Frame {
+	fetch(view?: View): void; // fetch style attribute by view
+	flush(): void; // flush frame restore default values
+	readonly index: number;
+	readonly host: KeyframeAction | null;
+	time: number;
+	curve: value.Curve;
+	// Meta attribute
+	x: number;
+	y: number;
+	scaleX: number;
+	scaleY: number;
+	skewX: number;
+	skewY: number;
+	rotateZ: number;
+	originX: number;
+	originY: number;
+	opacity: number;
+	visible: boolean;
+	width: value.Value;
+	height: value.Value;
+	marginTop: value.Value;
+	marginRight: value.Value;
+	marginBottom: value.Value;
+	marginLeft: value.Value;
+	borderTopWidth: number;
+	borderRightWidth: number;
+	borderBottomWidth: number;
+	borderLeftWidth: number;
+	borderTopColor: value.Color;
+	borderRIghtColor: value.Color;
+	borderBottomColor: value.Color;
+	borderLeftColor: value.Color;
+	borderRadiusLeftTop: number;
+	borderRadiusRightTop: number;
+	borderRadiusRightBottom: number;
+	borderRadiusLeftBottom: number;
+	backgroundColor: value.Color;
+	background: value.Background;
+	newline: boolean;
+	clip: boolean;
+	contentAlign: value.ContentAlign;
+	textAlign: value.TextAlign;
+	maxWidth: value.Value;
+	maxHeight: value.Value;
+	startX: number;
+	startY: number;
+	ratioX: number;
+	ratioY: number;
+	repeat: value.Repeat;
+	textBackgroundColor: value.TextColor;
+	textColor: value.TextColor;
+	textSize: value.TextSize;
+	textStyle: value.TextStyle;
+	textFamily: value.TextFamily;
+	textLineHeight: value.TextLineHeight;
+	textShadow: value.TextShadow;
+	textDecoration: value.TextDecoration;
+	textOverflow: value.TextOverflow;
+	textWhiteSpace: value.TextWhiteSpace;
+	alignX: value.Align;
+	alignY: value.Align;
+	shadow: value.Shadow;
+	src: string;
+	// Non meta attribute
+	translate: value.Vec2;
+	scale: value.Vec2;
+	skew: value.Vec2;
+	origin: value.Vec2;
+	margin: value.Value[];
+	border: value.Border;
+	borderWidth: number;
+	borderColor: value.Color;
+	borderRadius: number;
+	borderLeft: value.Border;
+	borderTop: value.Border;
+	borderRight: value.Border;
+	borderBottom: value.Border;
+	minWidth: value.Value;
+	minHeight: value.Value;
+	start: value.Vec2;
+	ratio: value.Vec2;
+	align: value.Align[];
+}
 
  /**
 	* @func create(json[,parent])
@@ -42,54 +156,40 @@ const { _Action, SpawnAction, SequenceAction, KeyframeAction } = _action;
 	* @arg [parent] {GroupAction}
 	* @ret {Action}
 	*/
-export function create(opt: Options, parent?: Action) {
-	if ( typeof opt != 'object' ) {
+export function create(In: ActionIn, parent?: GroupAction) {
+	if ( typeof In != 'object' ) {
 		throw new Error('Bad argument.');
 	}
 	var action: Action;
-	if ( opt instanceof Action ) {
-		action = opt;
+	if ( In instanceof Action ) {
+		action = In;
 	} else {
 		// create
-		if ( Array.isArray(opt) ) { // KeyframeAction
-			action = new KeyframeAction();
-			for (var i of opt)
-				action.add(i);
+		if ( Array.isArray(In) ) { // KeyframeAction
+			action = new _action.KeyframeAction();
+			for (var sheet of In)
+				(action as KeyframeAction).add(sheet);
 		} else {
-			if (opt.seq) { // SequenceAction
-				action = new SequenceAction();
-				for (let i in opt) 
-					action[i] = opt[i];
-				var seq = opt.seq;
-				if (Array.isArray(seq)) {
-					for (var i of seq) {
-						create(i, action);
-					}
-				} else {
-					create(seq, action);
+			if (In.seq) { // SequenceAction
+				var seq = In.seq;
+				utils.assert(Array.isArray(seq));
+				action = Object.assign(new _action.SequenceAction(), In);
+				for (let i of seq) {
+					create(i, action as SequenceAction);
 				}
-			} else if (opt.spawn) { // SpawnAction
-				action = new SpawnAction();
-				for (let i in opt) 
-					action[i] = opt[i];
-				var spawn = opt.spawn;
-				if (Array.isArray(spawn)) {
-					for (var i of spawn) {
-						create(i, action);
-					}
-				} else {
-					create(spawn, action);
+			} else if (In.spawn) { // SpawnAction
+				var spawn = In.spawn;
+				utils.assert(Array.isArray(spawn));
+				action = Object.assign(new _action.SpawnAction(), In);
+				for (let i of spawn) {
+					create(i, action as SequenceAction);
 				}
 			} else { // KeyframeAction
-				action = new KeyframeAction();
-				for (let i in opt) 
-					action[i] = opt[i];
-				var frame = opt.keyframe;
-				if ( Array.isArray(frame) ) {
-					for (let i of frame) 
-						action.add(i);
-				} else {
-					action.add(frame);
+				action = Object.assign(new _action.KeyframeAction(), In);
+				var keyframe = In.keyframe;
+				if ( Array.isArray(keyframe) ) {
+					for (let i of keyframe) 
+						(action as KeyframeAction).add(i);
 				}
 			}
 		}
@@ -109,15 +209,15 @@ export function create(opt: Options, parent?: Action) {
 	* @arg [cb]     {Function}
 	* @ret {KeyframeAction}
 	*/
-export function transition(view: View, style: Dict, delay?: number, cb?: (e: GUIActionEvent)=>void) {
-	var action = new KeyframeAction() as Action;
+export function transition(view: View, style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void) {
+	var action = new _action.KeyframeAction() as KeyframeAction;
 	if ( typeof delay == 'number' ) {
 		action.delay = delay;
 	}
 	action.add(); // add frame 0
 	action.add(style); // add frame 1
 	view.setAction(action);
-	action.frame(0).fetch(); // fetch 0 frame style
+	(action.frame(0) as Frame).fetch(); // fetch frame style
 
 	if ( typeof cb == 'function' ) {
 		view.onActionKeyframe.on(function(evt) {
@@ -131,5 +231,6 @@ export function transition(view: View, style: Dict, delay?: number, cb?: (e: GUI
 	}
 
 	action.play(); // start play
-	return action as Action;
+
+	return action;
 }

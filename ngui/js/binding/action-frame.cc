@@ -466,7 +466,7 @@ class WrapFrame: public WrapObject {
 			JS_SET_CLASS_ACCESSOR(alignY, align_y, set_align_y);
 			JS_SET_CLASS_ACCESSOR(shadow, shadow, set_shadow);
 			JS_SET_CLASS_ACCESSOR(src, src, set_src);
-			// Non meta attribute
+			// Non meta attributecurve
 			JS_SET_CLASS_ACCESSOR(translate, translate, set_translate);
 			JS_SET_CLASS_ACCESSOR(scale, scale, set_scale);
 			JS_SET_CLASS_ACCESSOR(skew, skew, set_skew);
