@@ -309,7 +309,7 @@ export function select<T>(default_: T, value: any): T {
  * @arg baseclass {class}
  * @arg subclass {class}
  */
-export function equalsClass(baseclass: Function, subclass: Function): boolean {
+export function equalsClass(baseclass: any, subclass: any): boolean {
 	if (!baseclass || !subclass || !subclass.prototype)
 		return false;
 	if (baseclass === subclass)

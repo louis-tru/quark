@@ -37,14 +37,14 @@ import event, {
 	GUITouchEvent, GUIMouseEvent, GUIActionEvent,
 } from './event';
 import {View} from './_view';
-import {ViewController} from './ctr';
+import {ViewController,_CVD} from './ctr';
 import { ActionIn, KeyframeOptions } from './_action';
 import * as action from './action';
 import app from  './app';
 import display_port from './display_port';
 import css from './css';
 export * from './_view';
-export {ViewController} from './ctr';
+export {ViewController, VirtualDOM} from './ctr';
 export {GUIApplication} from './app';
 
 const _ngui = __requireNgui__('_ngui');
@@ -54,7 +54,7 @@ class _View extends NativeNotification {
 	private m_id: string;
 	private m_owner: ViewController | null;
 
-	get view() { return this }
+	get __meta__() { return this }
 
 	@event readonly onKeyDown: EventNoticer<GUIKeyEvent>;
 	@event readonly onKeyPress: EventNoticer<GUIKeyEvent>;
@@ -85,7 +85,7 @@ class _View extends NativeNotification {
 	}
 
 	set id(value) {
-		ViewController.setID(this as unknown as View, value);
+		ViewController._setID(this as unknown as View, value);
 	}
 
 	get owner() {
@@ -153,6 +153,8 @@ class _View extends NativeNotification {
 	hide() {
 		(this as unknown as View).visible = false; 
 	}
+
+	static get isViewController() { return false }
 
 }
 
@@ -247,11 +249,15 @@ export default {
 	render: ViewController.render,
 
 	/**
-	 * @func CSS(sheets)
+	 * @func css(sheets)
 	 * @arg sheets {Object}
 	 */
-	CSS: css,
 	css: css,
+
+	/**
+	 * @func CVD() create virtual dom
+	 */
+	CVD: _CVD,
 
 	/**
 	 * @get app {GUIApplication} get current application object

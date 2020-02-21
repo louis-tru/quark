@@ -81,10 +81,10 @@ export interface DOMConstructor {
  */
 export class VirtualDOM {
 	readonly propsHash: number;
-	readonly props: Dict<[any,number]>;
+	readonly props: Dict<[any/*value*/,number/*hash*/]>;
 	readonly domConstructor: DOMConstructor;
 	readonly children: (VirtualDOM | null)[];
-	dom: DOM | null;
+	dom: DOM;
 	hash: number;
 
 	constructor(domConstructor: DOMConstructor, props: Dict | null, children: (VirtualDOM | null)[]) {
@@ -143,27 +143,27 @@ export class VirtualDOM {
 		}
 	}
 
-	newInstance(ctr: ViewController): DOM {
+	newInstance(ctr: ViewController | null): DOM {
 		utils.assert(!this.dom);
-		var dom = new (this.domConstructor)();
+		var dom = new this.domConstructor();
 		this.dom = dom;
-		(dom as any).m_owner = ctr;
+		(dom as any).m_owner = ctr; // private props visit
 
 		if (this.domConstructor.isViewController) { // ctrl
 			var newCtr = dom as ViewController;
-			(newCtr as any).m_vchildren = this.children;
+			(newCtr as any).m_vchildren = this.children; // private props visit
 			this.assignProps(); // before set props
-			var r = newCtr.triggerLoad(); // trigger event Load
+			var r = (newCtr as any).triggerLoad(); // trigger event Load, private props visit
 			if (r instanceof Promise) {
-				r.then(()=>(newCtr as any).m_loaded = true);
+				r.then(()=>(newCtr as any).m_loaded = true); // private props visit
 			} else {
-				(newCtr as any).m_loaded = true
+				(newCtr as any).m_loaded = true; // private props visit
 			}
 			rerender(newCtr); // rerender
 		} else {
 			for (var vdom of this.children) {
 				if (vdom)
-					vdom.newInstance(ctr).appendTo(dom);
+					vdom.newInstance(ctr).appendTo(dom as View);
 			}
 			this.assignProps(); // after set props
 		}
@@ -176,14 +176,23 @@ export class VirtualDOM {
 	}
 }
 
-(VirtualDOM as any).prototype.dom = null;
+VirtualDOM.prototype.dom = {
+	id: '',
+	get __meta__(): View { throw Error.new('implemented') },
+	get owner(): ViewController { throw Error.new('implemented') },
+	remove() { throw Error.new('implemented') },
+	appendTo(){ throw Error.new('implemented') },
+	afterTo(){ throw Error.new('implemented')  },
+	style: {},
+};
 
 /**
  * @class VirtualDOMCollection
- * @private
  */
 class VirtualDOMCollection extends VirtualDOM {
 	vdoms: VirtualDOM[];
+	keys: Dict<VirtualDOM> = {};
+	placeholder: View | null = null; // view placeholder
 
 	constructor(vdoms: (VirtualDOM | null)[]) {
 		super(DOMCollection, {}, []);
@@ -191,14 +200,14 @@ class VirtualDOMCollection extends VirtualDOM {
 		this.vdoms.forEach(e=>(this.hash += (this.hash << 5) + e.hash));
 	}
 
-	diffProps(vdom: VirtualDOM<DOM>) {
+	diffProps(vdom: VirtualDOM) {
 		var { vdoms, hash } = vdom as VirtualDOMCollection;
 		var dom = this.dom as DOMCollection;
-		var keys = {};
-		var keys_c = (dom as any).m_keys; // private props visit
+		var keys: Dict<VirtualDOM> = {};
+		var keys_c = this.keys; // private props visit
 		var ctr = dom.owner;
-		var prev = (dom as any).m_vdoms.length ? 
-			(dom as any).m_vdoms[0].dom: (dom as any).m_placeholder; // DOMCollection placeholder or doms[0]
+		var prev: View = this.vdoms.length ? 
+			this.vdoms[0].dom.__meta__: this.placeholder as View; // DOMCollection placeholder or doms[0]
 
 		utils.assert(prev);
 
@@ -233,31 +242,29 @@ class VirtualDOMCollection extends VirtualDOM {
 		}
 
 		if (vdoms.length) {
-			if (dom.m_placeholder) {
-				dom.m_placeholder.remove();
-				dom.m_placeholder = null;
+			if (this.placeholder) {
+				this.placeholder.remove();
+				this.placeholder = null;
 			}
-		} else if (!dom.m_placeholder) {
-			dom.m_placeholder = new View();
-			dom.m_placeholder.afterTo(prev);
+		} else if (!this.placeholder) {
+			this.placeholder = new View();
+			this.placeholder.afterTo(prev);
 		}
 
 		this.hash = hash;
+		this.keys = keys;
 		this.vdoms = vdoms;
 
-		dom.m_vdoms = vdoms;
-		dom.m_keys = keys;
-
-		for (var key in keys_c) {
+		for (let key in keys_c) {
 			removeDOM(ctr, keys_c[key]);
 		}
 	}
 
-	newInstance(ctr: ViewController) {
+	newInstance(ctr: ViewController | null): DOM {
 		utils.assert(!this.dom);
 		var vdoms = this.vdoms;
-		var keys: Dict<VirtualDOM> = {};
-		this.dom = new DOMCollection(ctr, vdoms, keys);
+		var keys = this.keys;
+		this.dom = new DOMCollection(ctr, this);
 
 		for (var i = 0; i < vdoms.length; i++) {
 			var vdom = vdoms[i], key;
@@ -280,158 +287,148 @@ class VirtualDOMCollection extends VirtualDOM {
 
 }
 
-function callDOMsFunc(self: DOMCollection, active: string, view: View) {
-	if (self.m_placeholder) {
-		return self.m_placeholder[active](view);
-	} else {
-		for (var cellView of self.m_vdoms) {
-			cellView.dom[active](view);
-		}
-		return self.m_vdoms.last(0).dom;
-	}
-}
-
 /**
  * @class DOMCollection DOM
- * @private
  */
 class DOMCollection implements DOM {
 
-	// @private:
-	private m_owner: ViewController;
-	private m_vdoms: VirtualDOM[];
-	private m_keys: Dict<VirtualDOM>;
-	private m_placeholder: View | null; // view placeholder	
+	private m_owner: ViewController | null;
+	private m_vdoms: VirtualDOMCollection;
 
-	get meta() {
-		return this.m_placeholder ? this.m_placeholder: (this.m_vdoms.indexReverse(0).dom as DOM).meta;
+	private _callDOMsFunc(active: 'afterTo' | 'appendTo', view: View): View {
+		var self = this;
+		if (self.m_vdoms.placeholder) {
+			return self.m_vdoms.placeholder[active](view);
+		} else {
+			for (var cellView of self.m_vdoms.vdoms) {
+				cellView.dom[active](view);
+			}
+			return self.m_vdoms.vdoms.indexReverse(0).dom.__meta__;
+		}
+	}
+
+	get __meta__() {
+		return this.m_vdoms.placeholder ? this.m_vdoms.placeholder: this.m_vdoms.vdoms.indexReverse(0).dom.__meta__;
 	}
 
 	id = '';
-	
+
 	get owner() {
 		return this.m_owner;
 	}
 
 	get collection() {
-		return this.m_vdoms.map(e=>e.dom);
+		return this.m_vdoms.vdoms.map(e=>e.dom as DOM);
 	}
 
 	key(key: string) {
-		var vdom = this.m_keys[key];
-		// return this.m_keys[key];
+		var vdom = this.m_vdoms.keys[key];
+		return vdom ? vdom.dom: null;
 	}
 
-	constructor(owner: ViewController, vdoms: VirtualDOM[], keys: Dict<VirtualDOM>) {
+	constructor(owner: ViewController | null, vdoms: VirtualDOMCollection) {
 		this.m_owner = owner;
 		this.m_vdoms = vdoms;
-		this.m_keys = keys;
-		if (!vdoms.length) {
-			this.m_placeholder = new View();
-		}
 	}
 
+	get style() { return {} }
+	set style(value: StyleSheet) { }
+
 	remove() {
-		if (this.m_placeholder) {
-			this.m_placeholder.remove();
-			this.m_placeholder = null;
-		}
-		else if (this.m_vdoms.length) {
-			// var keys = this.m_keys;
-			this.m_vdoms.forEach(vdom=>{
-				// var key = vdom.key;
-				// if (key) {
-				// 	delete keys[key];
-				// }
+		if (this.m_vdoms.placeholder) {
+			this.m_vdoms.placeholder.remove();
+			this.m_vdoms.placeholder = null;
+		} else if (this.m_vdoms.vdoms.length) {
+			this.m_vdoms.vdoms.forEach(vdom=>{
 				removeDOM(this.m_owner, vdom);
 			});
-			this.m_vdoms = [];
-			this.m_keys = {};
+			this.m_vdoms.vdoms = [];
+			this.m_vdoms.keys = {};
 		}
 	}
 
 	appendTo(parentView: View) {
-		return callDOMsFunc(this, 'appendTo', parentView);
+		return this._callDOMsFunc('appendTo', parentView);
 	}
 
 	afterTo(prevView: View) {
-		return callDOMsFunc(this, 'afterTo', prevView);
+		return this._callDOMsFunc('afterTo', prevView);
 	}
+
+	static get isViewController() { return false; }
 
 }
 
-(DOMCollection as any).prototype.m_placeholder = null;
-
-function removeSubctr(self: ViewController, vdom: VirtualDOM) {
+function removeSubctr(ctr: ViewController | null, vdom: VirtualDOM) {
 	for (var e of vdom.children) {
 		if (e) {
-			if (e.type.isViewController) {
+			if (e.domConstructor.isViewController) {
 				e.dom.remove(); // remove ctrl
 			} else {
-				removeSubctr(self, e);
+				removeSubctr(ctr, e);
 			}
 		}
 	}
 	var id = vdom.dom.id;
-	if (id) {
-		if (self.m_IDs[id] === vdom.dom) {
-			delete self.m_IDs[id];
+	if (id && ctr) {
+		if ((ctr as any).m_IDs[id] === vdom.dom) {
+			delete (ctr as any).m_IDs[id];
 		}
 	}
 }
 
-function removeDOM(self: ViewController, vdom: VirtualDOM) {
-	removeSubctr(self, vdom);
+function removeDOM(ctr: ViewController | null, vdom: VirtualDOM) {
+	removeSubctr(ctr, vdom);
 	vdom.dom.remove();
 }
 
-function diff(self: ViewController, vdom_c: VirtualDOM, vdom: VirtualDOM, prevView: View) {
+function diff(ctr: ViewController | null, vdom_c: VirtualDOM, vdom: VirtualDOM, prevView: View) {
 	utils.assert(prevView);
 
 	// diff type
-	if (vdom_c.type !== vdom.type) {
-		var r = vdom.newInstance(self).afterTo(prevView); // add new
-		removeDOM(self, vdom_c); // del dom
+	if (vdom_c.domConstructor !== vdom.domConstructor) {
+		var r = vdom.newInstance(ctr).afterTo(prevView); // add new
+		removeDOM(ctr, vdom_c); // del dom
 		return r;
 	}
 
-	var dom = vdom_c.dom;
+	var dom = vdom_c.dom as DOM;
 	vdom.dom = dom;
 
 	// diff props
 	vdom_c.diffProps(vdom); 
 
-	var view = dom.__view__;
+	var view = dom.__meta__;
 
 	// diff children
 	var children_c = vdom_c.children;
 	var children = vdom.children;
 
-	if ( vdom.type.isViewController ) {
+	if ( vdom.domConstructor.isViewController ) {
 		if ( children_c.length || children.length ) {
-			dom.m_vchildren = children;
-			rerender(dom); // mark ctrl render
+			(dom as any).m_vchildren = children; // private props visit
+			rerender(dom as ViewController); // mark ctrl render
 		}
 	} else {
 		var childrenCount = Math.max(children_c.length, children.length);
 
 		for (var i = 0, prev = null; i < childrenCount; i++) {
-			vdom_c = children_c[i];
-			vdom = children[i];
+			let vdom_c = children_c[i];
+			let vdom = children[i];
 			if (vdom_c) {
 				if (vdom) {
 					if (vdom_c.hash != vdom.hash) {
-						prev = diff(self, vdom_c, vdom, prev || vdom_c.dom.__view__); // diff
+						prev = diff(ctr, vdom_c, vdom, prev || vdom_c.dom.__meta__); // diff
 					} else {
 						children[i] = vdom_c;
-						prev = vdom_c.dom.__view__;
+						prev = vdom_c.dom.__meta__;
 					}
 				} else {
-					removeDOM(self, vdom_c); // remove DOM
+					removeDOM(ctr, vdom_c); // remove DOM
 				}
 			} else {
 				if (vdom) {
-					var dom = vdom.newInstance(self);
+					var dom = vdom.newInstance(ctr);
 					if (prev)
 						prev = dom.afterTo(prev); // add
 					else {
@@ -448,60 +445,8 @@ function diff(self: ViewController, vdom_c: VirtualDOM, vdom: VirtualDOM, prevVi
 	return view;
 }
 
-function rerender(self: ViewController) {
-	G_renderQueueSet.delete(self); // delete mark
-
-	var vdom_c = self.m_vdom;
-	var vdom = _CVDD(self.render(...self.m_vchildren));
-	var update = false;
-
-	if (vdom_c) {
-		if (vdom) {
-			if (vdom_c.hash != vdom.hash) {
-				var prev = vdom_c.dom.__view__;
-				utils.assert(prev);
-				self.m_vdom = vdom;
-				diff(self, vdom_c, vdom, prev); // diff
-				update = true;
-			}
-		} else {
-			var prev = vdom_c.dom.__view__;
-			utils.assert(prev);
-			utils.assert(!self.m_placeholder);
-			self.m_placeholder = new View();
-			self.m_placeholder.afterTo(prev);
-			self.m_vdom = null;
-			removeDOM(self, vdom_c); // del dom
-			update = true;
-		}
-	} else {
-		if (vdom) {
-			self.m_vdom = vdom;
-			vdom.newInstance(self);
-			if (self.m_placeholder) {
-				vdom.dom.afterTo(self.m_placeholder);
-				self.m_placeholder.remove();
-				self.m_placeholder = null;
-			}
-			update = true;
-		} else {
-			if (!self.m_placeholder) {
-				self.m_placeholder = new View();
-			}
-		}
-	}
-
-	if (!self.m_mounted) {
-		self.m_mounted = true;
-		self.triggerMounted();
-	}
-	if (update) {
-		self.triggerUpdate();
-	}
-}
-
-function domInCtr(self: ViewController) {
-	return self.m_vdom ? self.m_vdom.dom: self.m_placeholder;
+function domInCtr(self: ViewController): DOM {
+	return (self as any).m_vdom ? (self as any).m_vdom.dom: (self as any).m_placeholder;
 }
 
 /**
@@ -519,14 +464,14 @@ function domInCtr(self: ViewController) {
  * </pre>
  */
 
-function defineProp<T extends typeof ViewController.prototype>(target: T, name: string, defaultValue?: any) {
+function defineProp<T extends any/*typeof ViewController.prototype*/>(target: T, name: string, defaultValue?: any) {
 	utils.assert(utils.equalsClass(ViewController, target.constructor), 'Type error');
 	Object.defineProperty(target, name, {
 		get: arguments.length < 3 ? function(this: any) {
 			return this['m_' + name];
-		}: typeof defaultValue == 'function' ? defaultValue: function(this: any) {
-			return this['m_' + name] || defaultValue;
-		},
+		}: typeof defaultValue == 'function' ? defaultValue: ((target['m_' + name] = defaultValue), function(this: any) {
+			return this['m_' + name];
+		}),
 		set(this: any, value: any) {
 			var hashCode = Object.hashCode(value);
 			var hash = this.m_dataHash;
@@ -541,8 +486,10 @@ function defineProp<T extends typeof ViewController.prototype>(target: T, name: 
 	});
 }
 
-export declare function prop<T extends typeof ViewController.prototype>(target: T, name: string): void;
-export declare function prop(defaultValue: (()=>any) | any): <T extends typeof ViewController.prototype>(target: T, name: string)=>void;
+// export declare function prop<T extends typeof ViewController.prototype>(target: T, name: string): void;
+// export declare function prop(defaultValue: (()=>any) | any): <T extends typeof ViewController.prototype>(target: T, name: string)=>void;
+export declare function prop<T extends object>(target: T, name: string): void;
+export declare function prop(defaultValue: (()=>any) | any): <T extends object>(target: T, name: string)=>void;
 
 exports.prop = function(defaultValueOrTarget: any, name?: string) {
 	if (arguments.length < 2) {
@@ -555,6 +502,16 @@ exports.prop = function(defaultValueOrTarget: any, name?: string) {
 };
 
 const _prop = exports.prop;
+
+function rerender(ctr: ViewController) {
+	(ViewController as any)._rerender(ctr);
+}
+
+export enum TypeOf {
+	NONE = 0,
+	DOM = 1,
+	VDOM = 2,
+}
 
 /**
  * @class ViewController DOM
@@ -572,8 +529,60 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 	private m_mounted: boolean; // = false;
 	private m_style: Dict | null; // = null;
 
-	get meta(): View {
-		return this.m_vdom ? this.m_vdom.dom.__view__: this.m_placeholder;
+	private static _rerender(self: ViewController) {
+		G_renderQueueSet.delete(self); // delete mark
+	
+		var vdom_c = self.m_vdom;
+		var vdom = _CVDD(self.render(...self.m_vchildren));
+		var update = false;
+	
+		if (vdom_c) {
+			if (vdom) {
+				if (vdom_c.hash != vdom.hash) {
+					var prev = vdom_c.dom.__meta__;
+					utils.assert(prev);
+					self.m_vdom = vdom;
+					diff(self, vdom_c, vdom, prev); // diff
+					update = true;
+				}
+			} else {
+				var prev = vdom_c.dom.__meta__;
+				utils.assert(prev);
+				utils.assert(!self.m_placeholder);
+				self.m_placeholder = new View();
+				self.m_placeholder.afterTo(prev);
+				self.m_vdom = null;
+				removeDOM(self, vdom_c); // del dom
+				update = true;
+			}
+		} else {
+			if (vdom) {
+				self.m_vdom = vdom;
+				vdom.newInstance(self);
+				if (self.m_placeholder) {
+					vdom.dom.afterTo(self.m_placeholder);
+					self.m_placeholder.remove();
+					self.m_placeholder = null;
+				}
+				update = true;
+			} else {
+				if (!self.m_placeholder) {
+					self.m_placeholder = new View();
+				}
+			}
+		}
+	
+		if (!self.m_mounted) {
+			self.m_mounted = true;
+			self.triggerMounted();
+		}
+		if (update) {
+			self.triggerUpdate();
+		}
+	}
+
+	get __meta__(): View {
+		return this.m_vdom ? this.m_vdom.dom.__meta__: this.m_placeholder as View;
 	}
 
 	@event readonly onLoad: EventNoticer<Event<void, ViewController>>;    // @event onLoad
@@ -582,31 +591,49 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 	@event readonly onRemove: EventNoticer<Event<void, ViewController>>;  // @event onRemove
 	@event readonly onRemoved: EventNoticer<Event<void, ViewController>>; // @event onRemoved
 
-	triggerLoad(): any {
+	protected triggerLoad(): any {
 		return this.trigger('Load');
 	}
 
-	triggerMounted(): any {
+	protected triggerMounted(): any {
 		return this.trigger('Mounted');
 	}
 
-	triggerUpdate(): any {
+	protected triggerUpdate(): any {
 		return this.trigger('Update');
 	}
 
-	triggerRemove(): any {
+	protected triggerRemove(): any {
 		return this.trigger('Remove');
 	}
 
-	triggerRemoved(): any {
+	protected triggerRemoved(): any {
 		return this.trigger('Removed');
 	}
 
-	static setID(dom: ViewController | View, id: string) {
-		var _id = (dom as any).m_id;
+	get id() {
+		return this.m_id;
+	}
+
+	set id(value: string) {
+		ViewController._setID(this, value);
+	}
+
+	get IDs() {
+		return this.m_IDs;
+	}
+
+	find<T extends View | ViewController = View>(id: string) {
+		var r = this.m_IDs[id];
+		utils.assert(r, 'ViewController.find<T>(id) = null');
+		return r as T;
+	}
+
+	static _setID(dom: DOM, id: string) {
+		var _id = (dom as any).m_id; // private props visit
 		if (_id != id) {
-			if ((dom as any).m_owner) {
-				var ids = (dom as any).m_owner.m_IDs;
+			if ((dom as any).m_owner) { // private props visit
+				var ids = (dom as any).m_owner.m_IDs; // private props visit
 				if (ids[_id] === dom) {
 					delete ids[_id];
 				}
@@ -617,20 +644,8 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 					ids[id] = dom;
 				}
 			}
-			(dom as any).m_id = id;
+			(dom as any).m_id = id; // private props visit
 		}
-	}
-
-	get id() {
-		return this.m_id;
-	}
-
-	set id(value: string) {
-		ViewController.setID(this, value);
-	}
-
-	get IDs() {
-		return this.m_IDs;
 	}
 
 	get owner() {
@@ -639,6 +654,14 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 
 	get dom(): DOM | null {
 		return this.m_vdom ? this.m_vdom.dom: null;
+	}
+
+	/**
+	 * Insecure access
+	 */
+	get view(): View {
+		utils.assert(this.m_vdom, 'ViewController.view = null');
+		return (this.m_vdom as VirtualDOM).dom as View;
 	}
 
 	get isLoaded() {
@@ -682,9 +705,6 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 		markRerender(this);
 	}
 
-	/**
-	 * @overwrite
-	 */
 	hashCode() {
 		return Function.prototype.hashCode.call(this);
 	}
@@ -719,7 +739,7 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 	/**
 	 * @func render(...vdoms)
 	 */
-	render(...vdoms: any[]): any {
+	protected render(...vdoms: any[]): any {
 		return vdoms;
 	}
 
@@ -775,43 +795,38 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 	 * @arg obj {VirtualDOM|View|ViewController|class}
 	 * @static
 	 */
-	static typeOf(obj: any, Type: any) {
+	static typeOf(obj: DOM | VirtualDOM, Type?: DOMConstructor/* = ViewController*/): TypeOf {
 		Type = Type || ViewController;
 		if (utils.equalsClass(ViewController, Type) || utils.equalsClass(View, Type)) {
 			if (obj instanceof Type)
-				return 3; // dom instance
-			if (obj instanceof VirtualDOM) { 
-				if (utils.equalsClass(Type, obj.type))
-					return 2; // vdom instance
+				return TypeOf.DOM; // dom instance
+			if (obj instanceof VirtualDOM) {
+				if (utils.equalsClass(Type, obj.domConstructor))
+					return TypeOf.VDOM; // vdom instance
 			}
-			if (utils.equalsClass(Type, obj))
-				return 1; // class
 		}
 		return 0;
 	}
 
 	/**
 	 * @func render(obj, [parentView])
-	 * @arg obj {VirtualDOM|View|ViewController|class}
+	 * @arg obj {DOM | DOMConstructor}
 	 * @ret {DOM} return dom instance
 	 */
-	static render(obj: any, parentView?: any) {
-		var dom;
+	static render(obj: DOM | VirtualDOM, parentView?: View) {
+		var dom: DOM;
 		var owner = parentView ? parentView.owner: null;
 
 		if (obj instanceof ViewController || obj instanceof View) {
 			dom = obj; // dom instance
-		} else if (utils.equalsClass(ViewController, obj) || utils.equalsClass(View, obj)) {
-			obj = _CVD(obj, null); // create vdom
-			dom = obj.newInstance(owner);
 		} else {
-			obj = _CVDD(obj); // format vdom
-			utils.assert(obj instanceof VirtualDOM, 'Bad argument');
-			dom = obj.newInstance(owner);
+			let vd = _CVDD(obj) as VirtualDOM; // format vdom
+			utils.assert(vd instanceof VirtualDOM, 'Bad argument');
+			dom = vd.newInstance(owner);
 		}
 		if (parentView) {
 			dom.appendTo(parentView);
-			dom.m_owner = owner;
+			// (dom as any).m_owner = owner; // private props visit
 		}
 		return dom;
 	}
@@ -820,6 +835,7 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 		return Function.prototype.hashCode.call(this);
 	}
 
+	static readonly CVD = _CVD;
 }
 
 (ViewController as any).prototype.m_id = '';
@@ -856,6 +872,6 @@ export function _CVDD(value: any): VirtualDOM | null {
 }
 
 // create virtual dom
-export function _CVD<T extends typeof ViewController | typeof View>(Type: T, props: Dict | null, ...children: any[]) {
+export function _CVD(Type: DOMConstructor, props: Dict | null, ...children: (VirtualDOM | null)[]) {
 	return new VirtualDOM(Type, props, children);
 }

@@ -34,7 +34,7 @@ export class LiteItem<T> {
 	private _host: List<T> | null;
 	private _prev: LiteItem<T> | null; 
 	private _next: LiteItem<T> | null;
-	private _value: T | null;
+	private _value: T;
 	constructor(host: List<T>, prev: LiteItem<T> | null, next: LiteItem<T> | null, value: T) {
 		this._host = host;
 		this._prev = prev;
@@ -44,8 +44,8 @@ export class LiteItem<T> {
 	get host() { return this._host }
 	get prev() { return this._prev }
 	get next() { return this._next }
-	get value(): T | null { return this._value }
-	set value(value: T | null) { this._value = value }
+	get value(): T { return this._value }
+	set value(value: T) { this._value = value }
 }
 
 /**
@@ -232,7 +232,7 @@ export interface Listen2<Event = DefaultEvent, Scope extends object = object> {
 
 interface ListenItem {
 	origin: any,
-	listen: any,
+	listen: Function | null,
 	scope: any,
 	id: string,
 }
@@ -445,7 +445,7 @@ export class EventNoticer<E = Event> {
 			var item = listens.first;
 			while ( item ) {
 				var value = item.value;
-				if ( value ) {
+				if ( value.listen ) {
 					value.listen.call(value.scope, evt);
 					item = item.next;
 				} else {
@@ -475,7 +475,7 @@ export class EventNoticer<E = Event> {
 				if ( item ) {
 					this.m_length--;
 					listens_map.delete(name);
-					item.value = null; // clear
+					item.value.listen = null; // clear
 					r++;
 				}
 			} else if ( listen instanceof Function ) { // 要卸载是一个函数
@@ -485,11 +485,11 @@ export class EventNoticer<E = Event> {
 				if (scope) { // 需比较范围
 					while ( item ) {
 						let value = item.value;
-						if ( value ) {
+						if ( value.listen ) {
 							if ( value.origin === listen && value.scope === scope ) {
 								this.m_length--;
 								listens_map.delete(value.id);
-								item.value = null;
+								item.value.listen = null;
 								r++;
 								break; // clear
 							}
@@ -500,11 +500,11 @@ export class EventNoticer<E = Event> {
 					let listens_map = <Map<string, LiteItem<ListenItem>>>this.m_listens_map;
 					while ( item ) {
 						let value = item.value;
-						if ( value ) {
+						if ( value.listen ) {
 							if ( value.origin === listen ) {
 								this.m_length--;
 								listens_map.delete(value.id);
-								item.value = null;
+								item.value.listen = null;
 								r++;
 								break; // clear
 							}
@@ -519,11 +519,11 @@ export class EventNoticer<E = Event> {
 				// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
 				while ( item ) {
 					var value = item.value;
-					if ( value ) {
+					if ( value.listen ) {
 						if ( value.scope === listen ) {
 							this.m_length--;
 							listens_map.delete(value.id);
-							item.value = null; // break; // clear
+							item.value.listen = null; // break; // clear
 							r++;
 						}
 					}
@@ -536,7 +536,7 @@ export class EventNoticer<E = Event> {
 			let listens = <List<ListenItem>>this.m_listens;
 			let item = listens.first;
 			while ( item ) {
-				item.value = null; // clear
+				item.value.listen = null; // clear
 				item = item.next;
 				r++;
 			}

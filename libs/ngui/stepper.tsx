@@ -28,11 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import { 
-	CSS, Hybrid, Button, ViewController, atomPixel 
-} from 'ngui/ngui';
+import ngui, { 
+	Hybrid, Button, ViewController
+} from './index';
+import {event, EventNoticer, Event } from './event';
 
-CSS({
+const {atomPixel: px} = ngui;
+
+ngui.css({
 	
 	'.x_stepper': {
 		width: 45 * 2 + 3,
@@ -45,7 +48,7 @@ CSS({
 	'.x_stepper .minus, .x_stepper .plus': {
 		width: 45,
 		height: 28,
-		border: `${atomPixel} #727272`,
+		border: `${px} #727272`,
 		borderColor: '#727272',
 		backgroundColor: '#fff',
 	},
@@ -70,33 +73,37 @@ CSS({
  * @class Stepper
  */
 export class Stepper extends ViewController {
-	m_value = 0;
-	
+	private m_value = 0;
+
 	min = 0;
 	max = Infinity;
 	step = 1;
 	
-	event onChange;
-	
-	m_minus_click_handle() {
-		this.value = this.m_value - this.step;
-	}
-	
-	m_plus_click_handle() {
-		this.value = this.m_value + this.step;
-	}
-	
-	render() {
-		return (
-			<Hybrid class="x_stepper">
-				<Button class="minus" onClick="m_minus_click_handle" defaultHighlighted=0>\ued5e</Button>
-				<Button class="plus" onClick="m_plus_click_handle" defaultHighlighted=0>\ued5d</Button>
-			</Hybrid>  
-		);
-	}
+	@event readonly onChange: EventNoticer<Event<void>>;
 	
 	get value() {
 		return this.m_value;
+	}
+
+	protected m_minus_click_handle() {
+		this.value = this.m_value - this.step;
+	}
+	
+	protected m_plus_click_handle() {
+		this.value = this.m_value + this.step;
+	}
+
+	protected triggerChange() {
+		this.trigger('Change');
+	}
+
+	render() {
+		return (
+			<Hybrid class="x_stepper">
+				<Button class="minus" onClick="m_minus_click_handle" defaultHighlighted={0}>\ued5e</Button>
+				<Button class="plus" onClick="m_plus_click_handle" defaultHighlighted={0}>\ued5d</Button>
+			</Hybrid>  
+		);
 	}
 	
 	set value(value) {

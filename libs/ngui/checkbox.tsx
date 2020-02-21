@@ -28,14 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import { 
-	CSS, ViewController, Button, Indep, TextNode 
-} from './index';
+import ngui, { ViewController, Button, Indep, TextNode } from './index';
+import event, {EventNoticer,Event} from './event';
 
-CSS({
-	
+ngui.css({
+
 	// checkbox
-	
+
 	'.x_checkbox': {
 		width: 20,
 		height: 20,
@@ -63,7 +62,7 @@ CSS({
 	},
 		
 	'.x_checkbox .mark': {
-		visible: 0,
+		visible: false,
 		textFamily: 'iconfont',
 		textColor: '#fff',
 		textSize: 14,
@@ -72,7 +71,7 @@ CSS({
 	},
 	
 	'.x_checkbox.on .mark': {
-		visible: 1,
+		visible: true,
 	},
 		
 	// switch
@@ -135,20 +134,24 @@ CSS({
 		time: 200,
 	},
 	
-})
+});
 
 class Basic extends ViewController {
-	m_selected = false;
-	m_disable = false;
+	private m_selected = false;
+	private m_disable = false;
 
-	event onChange;
+	@event readonly onChange: EventNoticer<Event<boolean, Basic>>;
 
-	triggerMounted(e) {
-		this.dom.onClick.on(()=>{
+	triggerMounted() {
+		this.view.onClick.on(()=>{
 			if ( !this.m_disable )
 				this.selected = !this.selected;
-		}, 1);
-		return super.triggerMounted(e);
+		}, '1');
+		return super.triggerMounted();
+	}
+
+	protected triggerChange(value: boolean) {
+		return this.trigger('Change', value);
 	}
 
 	get disable() {
@@ -156,7 +159,7 @@ class Basic extends ViewController {
 	}
 
 	set disable(value) {
-		this.receive = !value;
+		this.view.receive = !value;
 		this.m_disable = !!value;
 	}
 
@@ -164,7 +167,7 @@ class Basic extends ViewController {
 		return this.m_selected;
 	}
 
-	set selected(value) {
+	set selected(value: boolean) {
 		value = !!value;
 		if(value != this.m_selected) {
 			this.markRerender();

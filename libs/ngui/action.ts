@@ -209,17 +209,25 @@ export function create(In: ActionIn, parent?: GroupAction) {
 	* @arg [cb]     {Function}
 	* @ret {KeyframeAction}
 	*/
-export function transition(view: View, style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void) {
+export declare function transition(view: View, style: KeyframeOptions, cb?: (e: GUIActionEvent)=>void): KeyframeAction;
+export declare function transition(view: View, style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void): KeyframeAction;
+
+exports.transition = function(view: View, style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void) {
 	var action = new _action.KeyframeAction() as KeyframeAction;
-	if ( typeof delay == 'number' ) {
-		action.delay = delay;
+	if ( typeof delay == 'function' ) {
+		cb = delay;
+	} else {
+		if ( typeof delay == 'number' )
+			action.delay = delay;
+		if ( arguments.length > 2 && typeof cb != 'function' )
+			cb = undefined;
 	}
 	action.add(); // add frame 0
 	action.add(style); // add frame 1
 	view.setAction(action);
 	(action.frame(0) as Frame).fetch(); // fetch frame style
 
-	if ( typeof cb == 'function' ) {
+	if ( cb ) {
 		view.onActionKeyframe.on(function(evt) {
 			//console.log('onActionKeyframe');
 			if ( evt.action === action ) {

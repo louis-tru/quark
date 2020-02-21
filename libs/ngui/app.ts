@@ -94,10 +94,10 @@ export class GUIApplication extends (_ngui.NativeGUIApplication as typeof Native
 	/**
 	 * @func start(vdom)
 	 */
-	start(vdom: VirtualDOM<typeof ViewController | typeof Root>) {
+	start(vdom: VirtualDOM) {
 
-		if (!utils.equalsClass(ViewController, vdom.type)) {
-			vdom = _CVD(ViewController, {}, _CVDD(vdom));
+		if (!utils.equalsClass(ViewController, vdom.domConstructor)) {
+			vdom = _CVD(ViewController, null, _CVDD(vdom));
 		}
 
 		function render() {

@@ -44,11 +44,12 @@ const _ngui = __requireNgui__('_ngui');
 
 export interface DOM {
 	id: string;
-	readonly meta: View;
+	readonly __meta__: View;
 	readonly owner: ViewController | null;
 	remove(): void;
 	appendTo(parentView: View): View;
 	afterTo(prevView: View): View;
+	style: StyleSheet;
 };
 
 /**
@@ -100,7 +101,7 @@ export declare class View extends Notification<GUIEvent> implements DOM {
 	removeClass(): void;
 	toggleClass(): void;
 	firstButton(): Button | null;
-	hasChild(): boolean;
+	hasChild(child: View): boolean;
 	readonly innerText: string;
 	readonly parent: View | null;
 	readonly prev: View | null;
@@ -132,7 +133,7 @@ export declare class View extends Notification<GUIEvent> implements DOM {
 	readonly viewType: number;
 	class: string;
 	id: string; // ext
-	readonly meta: View;
+	readonly __meta__: View;
 	readonly owner: ViewController | null;
 	action: Action | null;
 	style: StyleSheet;
@@ -140,9 +141,11 @@ export declare class View extends Notification<GUIEvent> implements DOM {
 	hashCode(): number;
 	appendTo(parentView: View): this;
 	afterTo(prevView: View): this;
+	transition(style: KeyframeOptions, cb?: (e: GUIActionEvent)=>void): Action;
 	transition(style: KeyframeOptions, delay?: number, cb?: (e: GUIActionEvent)=>void): Action;
 	show(): void;
 	hide(): void;
+	static readonly isViewController: boolean;
 }
 
 type Texture = any;
@@ -162,7 +165,7 @@ export declare class Sprite extends View {
 }
 
 export interface TextFont {
-	simpleLayoutWidth(): number;
+	simpleLayoutWidth(str: string): number;
 	textBackgroundColor: value.TextColor;
 	textColor: value.TextColor;
 	textSize: value.TextSize;
@@ -224,7 +227,7 @@ export declare abstract class Box extends Layout {
 }
 
 export declare class Span extends Layout implements TextLayout {
-	simpleLayoutWidth(): number;
+	simpleLayoutWidth(str: string): number;
 	textBackgroundColor: value.TextColor;
 	textColor: value.TextColor;
 	textSize: value.TextSize;
@@ -360,7 +363,7 @@ export declare class LimitIndep extends Indep implements ILimit {
 export declare class Hybrid extends Box implements TextLayout {
 	textAlign: value.TextAlign;
 	// implements TextLayout
-	simpleLayoutWidth(): number;
+	simpleLayoutWidth(str: string): number;
 	textBackgroundColor: value.TextColor;
 	textColor: value.TextColor;
 	textSize: value.TextSize;
@@ -380,7 +383,7 @@ export declare class Label extends View implements TextFont {
 	readonly textHeight: number;
 	textAlign: value.TextAlign;
 	// implements TextFont
-	simpleLayoutWidth(): number;
+	simpleLayoutWidth(str: string): number;
 	textBackgroundColor: value.TextColor;
 	textColor: value.TextColor;
 	textSize: value.TextSize;

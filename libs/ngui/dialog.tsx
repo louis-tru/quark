@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import util from './util';
+import utils from './util';
 import ngui, {
-	Indep, Hybrid, Clip, Input, Span, LimitIndep, Button,
+	Indep, Hybrid, Clip, Input, Span, LimitIndep, Button, View,
 } from './index';
-// CSS,  atomPixel as px, ngui, render, 
 import { Navigation } from './nav';
-import {_CVD} from './ctr';
-import { GUIActionEvent } from './event';
+import { event, EventNoticer, Event, GUIClickEvent } from './event';
+import { prop } from './ctr';
+import * as value from './value';
 
 const {atomPixel: px, render} = ngui;
 
@@ -141,43 +141,45 @@ export const CONSTS = {
 	placeholder: 'Please enter..',
 };
 
-function compute_buttons_width(self) {
-	var len = self.length;
-	if (!len || !self.dom.visible) return;
-	
-	if ( len == 1 ) {
-		self.IDs.btns.first.width = 'full';
-	} else  {
-		var main_width = self.IDs.main.finalWidth;
-		if ( main_width ) {
-			var btn = self.IDs.btns.first;
-			while (btn) {
-				btn.width = (main_width / len) - ((len - 1) * px);
-				btn.borderLeft = `${px} #9da1a0`;
-				btn.borderTopWidth = px;
-				btn = btn.next;
-			}
-			self.IDs.btns.first.borderLeftWidth = 0;
-		}
-	}
-}
-
-function actionClose(self) {
-	if (self.actionClose) 
-		self.close();
-}
-
 /**
  * @class Dialog
  */
 export class Dialog extends Navigation {
-	m_buttons = null;
-	
-	/**
-	 * @event onAction
-	 */
-	event onAction;
-	
+	private m_buttons = [];
+
+	private _compute_buttons_width() {
+		var self = this;
+		var len = self.length;
+		if (!len || !self.view.visible)
+			return;
+		
+		if ( len == 1 ) {
+			(self.find<Clip>('btns').first as Button).width = value.parseValue('full');
+		} else  {
+			var main_width = self.find<Indep>('main').finalWidth;
+			if ( main_width ) {
+				var btn = self.find<Clip>('btns').first as Button;
+				while (btn) {
+					btn.width = new value.Value((main_width / len) - ((len - 1) * px));
+					btn.borderLeft = value.parseBorder(`${px} #9da1a0`);
+					btn.borderTopWidth = px;
+					btn = btn.next as Button;
+				}
+				(self.find<Clip>('btns').first as Button).borderLeftWidth = 0;
+			}
+		}
+	}
+
+	private _actionClose() {
+		var self = this;
+		if (self.actionClose) 
+			self.close();
+	}
+
+	@prop title = '';
+	@prop content = '';
+	@event readonly onAction: EventNoticer<Event<number>>;
+
 	/**
 	 * @actionClose
 	 */
@@ -190,17 +192,9 @@ export class Dialog extends Navigation {
 		return this.m_buttons.length;
 	}
 
-	constructor() {
-		super();
-		this.m_buttons = [];
-	}
-
-	/**
-	 * @overwrite
-	 */
-	render(...vdoms) {
+	render(...vdoms: any[]) {
 		return (
-			<Indep width="100%" height="100%" backgroundColor="#0008" receive=1 visible=0 opacity=0>
+			<Indep width="100%" height="100%" backgroundColor="#0008" receive={true} visible={false} opacity={0}>
 				<LimitIndep id="main" class="x_dialog main">
 					<Hybrid id="title" class="title">{this.title}</Hybrid>
 					<Hybrid id="con" class="content">{this.content||vdoms}</Hybrid>
@@ -208,11 +202,11 @@ export class Dialog extends Navigation {
 					{
 						this.m_buttons.map((e, i)=>(
 							<Button 
-								index=i
+								index={i}
 								class="button"
-								borderTopWidth=px
-								onClick="triggerAction"
-								defaultHighlighted=0>{e}</Button>
+								borderTopWidth={px}
+								onClick="m_handle_click"
+								defaultHighlighted={0}>{e}</Button>
 						))
 					}
 					</Clip>
@@ -232,36 +226,36 @@ export class Dialog extends Navigation {
 		}
 	}
 
-	triggerUpdate(e) {
-		compute_buttons_width(this);
-		return super.triggerUpdate(e);
+	protected triggerUpdate() {
+		this._compute_buttons_width();
+		return super.triggerUpdate();
 	}
 
 	show() {
-		if (!this.dom.visible) {
+		if (!this.view.visible) {
 			this.appendTo(ngui.root);
-			this.dom.visible = 1;
+			this.view.visible = true;
 			ngui.nextFrame(()=>{
-				compute_buttons_width(this);
-				var main = this.IDs.main;
+				this._compute_buttons_width();
+				var main = this.IDs.main as Indep;
 				main.originX = main.finalWidth / 2;
 				main.originY = main.finalHeight / 2;
-				main.scale = '0.2 0.2';
+				main.scale = new value.Vec2(0.2, 0.2);
 				main.transition({ scale : '1 1', time: 250 });
-				this.dom.opacity = 0.2;
-				this.dom.transition({ opacity : 1, time: 250 });
+				this.view.opacity = 0.2;
+				this.view.transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
 	}
-	
+
 	close() {
-		if ( this.dom.visible ) {
-			var main = this.IDs.main;
+		if ( this.view.visible ) {
+			var main = this.IDs.main as Indep;
 			main.originX = main.finalWidth / 2;
 			main.originY = main.finalHeight / 2;
 			main.transition({ scale : '0.2 0.2', time: 300 });
-			this.dom.transition({ opacity : 0.05, time: 300 }, ()=>{ this.remove() });
+			this.view.transition({ opacity : 0.05, time: 300 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0, null);
 		} else {
 			this.unregisterNavigation(0, null);
@@ -269,47 +263,43 @@ export class Dialog extends Navigation {
 		}
 	}
 
-	triggerAction(evt) {
-		this.trigger('Action', evt.sender.index);
-		actionClose(this);
+	protected triggerAction(index: number) {
+		this.trigger('Action', index);
 	}
 
-	/**
-	 * @overwrite 
-	 */
+	protected m_handle_click(evt: GUIClickEvent) {
+		this.triggerAction((evt.sender as any).index);
+		this._actionClose();
+	}
+
 	navigationBack() {
 		if ( this.length ) {
-			this.trigger('Action', 0);
+			this.triggerAction(0);
 		}
-		actionClose(this);
+		this._actionClose();
 		return true;
 	}
 
-	/**
-	 * @overwrite 
-	 */
-	navigationEnter(focus) {
-		if ( !this.dom.hasChild(focus) ) {
+	navigationEnter(focus: View) {
+		if ( !this.view.hasChild(focus) ) {
 			if ( this.length ) {
-				this.trigger('Action', this.length - 1);
+				this.triggerAction(this.length - 1);
 			}
-			actionClose(this);
+			this._actionClose();
 		}
 	}
 }
-
-Dialog.defineProps({title: '', content: ''});
 
 /**
  * @class Sheet
  */
 export class Sheet extends Dialog {
 
-	triggerUpdate(e) {
-		return Navigation.prototype.triggerUpdate.call(this, e);
+	protected triggerUpdate() {
+		return (Navigation as any).prototype.triggerUpdate.call(this);
 	}
 
-	render(...vdoms) {
+	render(...vdoms: any[]) {
 		var length = this.length;
 		var content = this.content ? this.content : vdoms.length ? vdoms: null;
 		return (
@@ -322,28 +312,28 @@ export class Sheet extends Dialog {
 						length?
 						this.buttons.slice().map((e,i)=>(
 							<Button 
-								index=(length-i)
+								index={length-i}
 								class="button"
 								width="100%"
 								onClick="triggerAction"
-								borderTopWidth=(i?px:0)
-								defaultHighlighted=0>{e}</Button>
+								borderTopWidth={i?px:0}
+								defaultHighlighted={0}>{e}</Button>
 						)):
 						<Button 
-							index=1
+							index={1}
 							class="button"
 							width="100%"
 							onClick="triggerAction"
-							defaultHighlighted=0>{CONSTS.OK}</Button>
+							defaultHighlighted={0}>{CONSTS.OK}</Button>
 					}
 					</Clip>
 					<Clip class="buttons">
 						<Button 
-							index=0
+							index={0}
 							class="button gray"
 							width="100%"
 							onClick="triggerAction"
-							defaultHighlighted=0>{CONSTS.CANCEL}</Button>
+							defaultHighlighted={0}>{CONSTS.CANCEL}</Button>
 					</Clip>
 				</Indep>
 			}
@@ -352,27 +342,27 @@ export class Sheet extends Dialog {
 	}
 
 	show() {
-		if (!this.dom.visible) {
+		if (!this.view.visible) {
 			this.appendTo(ngui.root);
-			this.dom.visible = 1;
+			this.view.visible = true;
 			ngui.nextFrame(()=>{
-				var main = this.IDs.main;
+				var main = this.IDs.main as Indep;
 				var height = main.finalHeight;
 				main.y = height;
 				main.transition({ y: 0, time: 250 });
-				this.dom.opacity = 0.3;
-				this.dom.transition({ opacity : 1, time: 250 });
+				this.view.opacity = 0.3;
+				this.view.transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
 	}
 	
 	close() {
-		if ( this.dom.visible ) {
-			var main = this.IDs.main;
+		if ( this.view.visible ) {
+			var main = this.IDs.main as Indep;
 			var height = main.finalHeight;
 			main.transition({ y: height, time: 250 });
-			this.dom.transition({ opacity : 0.15, time: 250 }, ()=>{ this.remove() });
+			this.view.transition({ opacity : 0.15, time: 250 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0, null);
 		} else {
 			this.unregisterNavigation(0, null);
@@ -382,52 +372,59 @@ export class Sheet extends Dialog {
 
 }
 
-export function alert(msg, cb = util.noop) {
+export function alert(msg: string | {msg?:string, title?:string}, cb = utils.noop) {
+	var message: any;
 	if (typeof msg == 'string')
-		msg = {msg};
-	var {msg='',title=''} = msg;
+		message = {msg};
+	var { msg: _msg = '', title = '' } = message;
 	var dag = render(
-		<Dialog buttons=[CONSTS.OK] onAction=(e=>cb(e.data)) title=title>{msg}</Dialog>
-	);
+		<Dialog buttons={[CONSTS.OK]} onAction={()=>cb()} title={title}>{_msg}</Dialog>
+	) as Dialog;
 	dag.show();
 	return dag;
 }
 
-export function confirm(msg, cb = util.noop) {
+export function confirm(msg: string, cb: (ok: boolean)=>void = utils.noop) {
 	var dag = render(
-		<Dialog buttons=[CONSTS.CANCEL, CONSTS.OK] onAction=(e=>cb(e.data))>{msg}</Dialog>
-	);
+		<Dialog buttons={[CONSTS.CANCEL, CONSTS.OK]} onAction={(e:any)=>cb(e.data)}>{msg}</Dialog>
+	) as Dialog;
 	dag.show();
 	return dag;
 }
 
-export function prompt(msg: string, cb = util.noop) {
+export function prompt(msg: string | { msg?: string, text?: string, placeholder?: string, security?: boolean },
+	cb: (ok: boolean, str: string)=>void = utils.noop) 
+{
+	var message: any;
 	if (typeof msg == 'string')
 		msg = {msg};
-	var { msg = '', text = '', placeholder = CONSTS.placeholder, security = false } = msg;
+	var { msg: _msg = '', text = '', placeholder = CONSTS.placeholder, security = false } = message;
 	var dag = render(
-		<Dialog action_time={100} buttons={[CONSTS.CANCEL, CONSTS.OK]} onAction={(e:any)=>cb(e.data, e.data ? dag.IDs.input.value: '')}>
+		<Dialog 
+			action_time={100} 
+			buttons={[CONSTS.CANCEL, CONSTS.OK]} 
+			onAction={(e:any)=>cb(e.data, e.data ? dag.find<Input>('input').value: '')}
+		>
 			<Span>
-				{msg}
+				{_msg}
 				<Input security={security} id="input" class="prompt"
-					returnType="done" onKeyEnter={(ev:any)=>{
-						// var dag = ev.sender.owner;
-						dag.trigger('Action', 1);
-						actionClose(dag);
+					returnType="done" onKeyEnter={()=>{
+						(dag as any).triggerAction(1);
+						(dag as any)._actionClose();
 					}}
 					value={text} placeholder={placeholder} />
 			</Span>
 		</Dialog>
-	);
-	dag.onMounted.once((e:any)=>dag.IDs.input.focus());
+	) as Dialog;
+	dag.onMounted.once((e:any)=>dag.find<Input>('input').focus());
 	dag.show();
 	return dag;
 }
 
-export function show(title: any, msg: any, buttons, cb = util.noop) {
+export function show(title: string, msg: string, buttons: string[] = [CONSTS.OK], cb: (index: number)=>void = utils.noop) {
 	var dag = render(
-		<Dialog title={title} buttons={buttons} onAction={(e: GUIActionEvent)=>cb(e.data)}>{msg}</Dialog>
-	);
+		<Dialog title={title} buttons={buttons} onAction={(e: Event<number>)=>cb(e.data)}>{msg}</Dialog>
+	) as Dialog;
 	dag.show();
 	return dag;
 }
@@ -435,15 +432,15 @@ export function show(title: any, msg: any, buttons, cb = util.noop) {
 export function sheet(content: any) {
 	var dag = render(
 		<Sheet content={content} />
-	);
+	) as Sheet;
 	dag.show();
 	return dag;
 }
 
-export function sheetConfirm(buttons, cb = util.noop) {
+export function sheetConfirm(buttons: string[] = [CONSTS.OK], cb: (index: number)=>void = utils.noop) {
 	var dag = render(
-		<Sheet buttons=buttons onAction={e=>cb(e.data)} />
-	);
+		<Sheet buttons={buttons} onAction={(e: Event<number>)=>cb(e.data)} />
+	) as Sheet;
 	dag.show();
 	return dag;
 }

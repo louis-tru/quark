@@ -54,14 +54,14 @@ export enum ReturnValueMask {
 };
 
 export enum KeyboardKeyName {
-	UNKNOWN =          0, 
-	MOUSE_LEFT =       1, 
-	MOUSE_CENTER =     2, 
-	MOUSE_RIGHT =      3, 
-	MOUSE_WHEEL_UP =   4, 
-	MOUSE_WHEEL_DOWN = 5, 
-	MOUSE_WHEEL_LEFT = 6, 
-	MOUSE_WHEEL_RIGHT =7, 
+	UNKNOWN =          0,
+	MOUSE_LEFT =       1,
+	MOUSE_CENTER =     2,
+	MOUSE_RIGHT =      3,
+	MOUSE_WHEEL_UP =   4,
+	MOUSE_WHEEL_DOWN = 5,
+	MOUSE_WHEEL_LEFT = 6,
+	MOUSE_WHEEL_RIGHT =7,
 	BACK_SPACE =       8,  /* back space */
 	TAB =              9,  /* tab */
 	CLEAR =            12, /* clear */
@@ -83,21 +83,21 @@ export enum KeyboardKeyName {
 	PAGE_DOWN =        34, /* page down */
 	MOVE_END =         35, /* end */
 	MOVE_HOME =        36, /* home */
-	SCROLL_LOCK =      145, 
-	BREAK =            19, 
-	SYSRQ =            42, 
-	HELP =             47, /* Help */ 
-	NUM_0 =            48, /* 0 ) */ 
-	NUM_1 =            49, /* 1 ! */ 
-	NUM_2 =            50, /* 2 @ */ 
-	NUM_3 =            51, /* 3 # */ 
-	NUM_4 =            52, /* 4 $ */ 
-	NUM_5 =            53, /* 5 % */ 
-	NUM_6 =            54, /* 6 ^ */ 
-	NUM_7 =            55, /* 7 & */ 
-	NUM_8 =            56, /* 8 * */ 
-	NUM_9 =            57, /* 9 ( */ 
-	A =                65, /* a-z */ 
+	SCROLL_LOCK =      145,
+	BREAK =            19,
+	SYSRQ =            42,
+	HELP =             47, /* Help */
+	NUM_0 =            48, /* 0 ) */
+	NUM_1 =            49, /* 1 ! */
+	NUM_2 =            50, /* 2 @ */
+	NUM_3 =            51, /* 3 # */
+	NUM_4 =            52, /* 4 $ */
+	NUM_5 =            53, /* 5 % */
+	NUM_6 =            54, /* 6 ^ */
+	NUM_7 =            55, /* 7 & */
+	NUM_8 =            56, /* 8 * */
+	NUM_9 =            57, /* 9 ( */
+	A =                65, /* a-z */
 	B =                66,
 	C =                67,
 	D =                68,
@@ -123,7 +123,7 @@ export enum KeyboardKeyName {
 	X =                88,
 	Y =                89,
 	Z =                90,
-	NUM_LOCK =         144, /* numpad */ 
+	NUM_LOCK =         144, /* numpad */
 	NUMPAD_0 =         96,
 	NUMPAD_1 =         97,
 	NUMPAD_2 =         98,
@@ -134,36 +134,36 @@ export enum KeyboardKeyName {
 	NUMPAD_7 =         103,
 	NUMPAD_8 =         104,
 	NUMPAD_9 =         105,
-	NUMPAD_DIVIDE =    111, /* / */ 
-	NUMPAD_MULTIPLY =  106,  /* * */ 
-	NUMPAD_SUBTRACT =  109,  /* - */ 
-	NUMPAD_ADD =       107, /* + */ 
-	NUMPAD_DOT =       110, /* . */ 
-	NUMPAD_ENTER =     108, /* enter */ 
-	F1 =               112, /* f1 - f24 */ 
-	F2 =               113, 
-	F3 =               114, 
-	F4 =               115, 
-	F5 =               116, 
-	F6 =               117, 
-	F7 =               118, 
-	F8 =               119, 
-	F9 =               120, 
-	F10 =              121, 
-	F11 =              122, 
-	F12 =              123, 
-	F13 =              124, 
-	F14 =              125, 
-	F15 =              126, 
-	F16 =              127, 
-	F17 =              128, 
-	F18 =              129, 
-	F19 =              130, 
-	F20 =              131, 
-	F21 =              132, 
-	F22 =              133, 
-	F23 =              134, 
-	F24 =              135, 
+	NUMPAD_DIVIDE =    111, /* / */
+	NUMPAD_MULTIPLY =  106,  /* * */
+	NUMPAD_SUBTRACT =  109,  /* - */
+	NUMPAD_ADD =       107, /* + */
+	NUMPAD_DOT =       110, /* . */
+	NUMPAD_ENTER =     108, /* enter */
+	F1 =               112, /* f1 - f24 */
+	F2 =               113,
+	F3 =               114,
+	F4 =               115,
+	F5 =               116,
+	F6 =               117,
+	F7 =               118,
+	F8 =               119,
+	F9 =               120,
+	F10 =              121,
+	F11 =              122,
+	F12 =              123,
+	F13 =              124,
+	F14 =              125,
+	F15 =              126,
+	F16 =              127,
+	F17 =              128,
+	F18 =              129,
+	F19 =              130,
+	F20 =              131,
+	F21 =              132,
+	F22 =              133,
+	F23 =              134,
+	F24 =              135,
 	SEMICOLON =        186,  /* ; : */
 	EQUALS =           187,  /* = + */
 	MINUS =            189,  /* - _ */
@@ -241,7 +241,7 @@ export declare class GUIKeyEvent extends GUIEvent {
 	readonly capsLock: boolean;
 	readonly device: number;
 	readonly source: number;
-	readonly focusMove: View | null;
+	focusMove: View | null;
 }
 
 export declare class GUIClickEvent extends GUIEvent {
