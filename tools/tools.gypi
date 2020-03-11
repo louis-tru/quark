@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'jsa-shell',
 		'type': 'executable',
-		'dependencies': [ 'nutils' ],
+		'dependencies': [ 'nxkit' ],
 		'sources': [
 			'jsx.h',
 			'jsx.cc',

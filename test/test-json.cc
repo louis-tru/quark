@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nutils/json.h>
-#include <nutils/string.h>
-#include <nutils/event.h>
+#include <nxkit/json.h>
+#include <nxkit/string.h>
+#include <nxkit/event.h>
 #include <map>
 
 using namespace ngui;

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/util.h"
-#include "nutils/string.h"
+#include "nxkit/util.h"
+#include "nxkit/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>

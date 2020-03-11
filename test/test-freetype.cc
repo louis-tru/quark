@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nutils/util.h>
-#include <nutils/string.h>
-#include <nutils/map.h>
-#include <nutils/fs.h>
+#include <nxkit/util.h>
+#include <nxkit/string.h>
+#include <nxkit/map.h>
+#include <nxkit/fs.h>
 #include <ngui/sys.h>
 
 #include <ft2build.h>
@@ -155,15 +155,15 @@ void each_glyph() {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	error = FT_Set_Char_Size(face, 0, 12 * 64, 300, 300);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	error = FT_Set_Pixel_Sizes(face, 0, 12);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	FT_GlyphSlot gl = face->glyph;
 	
@@ -171,7 +171,7 @@ void each_glyph() {
 	//  error = FT_Set_Charmap(face, face->charmaps[0]);
 	//  error = FT_Set_Charmap(face, face->charmaps[1]);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 楚学文�A
 	
@@ -198,7 +198,7 @@ void each_glyph() {
 	
 	error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	FT_Pos x, y;
 	
@@ -216,17 +216,17 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	float font_size = 16;
 	
 	error = FT_Set_Char_Size(face, 0, font_size * 64, 72, 72);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	//  error = FT_Set_Pixel_Sizes(face, 0, 64);
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	LOG("VERTICAL:%i", FT_HAS_VERTICAL(face));
 	
@@ -251,13 +251,13 @@ void onload_f(Event<>& evt, void* user) {
 	
 	error = FT_Get_Glyph( gl, &glyph );
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	FT_BBox bbox;
 	
 	FT_Glyph_Get_CBox( glyph, FT_LOAD_NO_SCALE, &bbox );
 	
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
 		FT_Outline_Embolden(&(gl->outline), 16); // 加粗轮廓线
@@ -265,7 +265,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	if (gl->format != FT_GLYPH_FORMAT_BITMAP) {
 		error = FT_Render_Glyph(gl, FT_RENDER_MODE_NORMAL);
-		XX_ASSERT(!error);
+		NX_ASSERT(!error);
 	}
 	
 	FT_Bitmap bit = gl->bitmap;
@@ -300,7 +300,7 @@ void onload_f(Event<>& evt, void* user) {
 
 void draw_char() {
 	GUIApplication app;
-	app.XX_ON(load, onload_f);
+	app.NX_ON(load, onload_f);
 	app.run();
 }
 

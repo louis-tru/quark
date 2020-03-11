@@ -30,7 +30,7 @@
 
 #include "test-demo.cc"
 
-XX_GUI_MAIN() {
+NX_GUI_MAIN() {
 	
 	test_demo(argc, argv);
 	

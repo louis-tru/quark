@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'nutils/nutils.gypi',
+		'nxkit/nxkit.gypi',
 		'tools/default_target.gypi',
 	],
 	'conditions': [

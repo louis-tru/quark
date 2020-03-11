@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nutils/fs.h>
-#include <nutils/loop.h>
+#include <nxkit/fs.h>
+#include <nxkit/loop.h>
 
 using namespace ngui;
 

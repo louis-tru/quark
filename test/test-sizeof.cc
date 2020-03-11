@@ -50,7 +50,7 @@ void test_sizeof(int argc, char **argv) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
 	
-	XX_CHECK(!of);
+	NX_CHECK(!of);
 	
 	LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }

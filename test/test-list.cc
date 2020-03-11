@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nutils/array.h>
-#include <nutils/list.h>
-#include <nutils/string.h>
+#include <nxkit/array.h>
+#include <nxkit/list.h>
+#include <nxkit/string.h>
 #include <map>
 
 using namespace ngui;

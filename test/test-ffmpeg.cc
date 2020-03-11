@@ -38,8 +38,8 @@ extern "C" {
 	// #include <libavcodec/fft.h>
 }
 
-#include <nutils/util.h>
-#include <nutils/fs.h>
+#include <nxkit/util.h>
+#include <nxkit/fs.h>
 
 using namespace ngui;
 

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/util.h"
-#include "nutils/fs.h"
-#include "nutils/loop.h"
+#include "nxkit/util.h"
+#include "nxkit/fs.h"
+#include "nxkit/loop.h"
 #include <uv.h>
 
 using namespace ngui;
@@ -54,7 +54,7 @@ void on_close(uv_fs_t *req) {
 
 void on_read(uv_fs_t *req) {
 	if (req->result < 0) {
-		XX_ERR("Read error: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
+		NX_ERR("Read error: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
 	}
 	else if (req->result == 0) {
 		// asynchronous
@@ -72,7 +72,7 @@ void on_open(uv_fs_t *req) {
 		uv_fs_read(uv_loop, &read_req, (int)open_req.result, &buffer, 1, -1, on_read);
 	}
 	else {
-		XX_ERR("error opening file: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
+		NX_ERR("error opening file: %s, %s\n", uv_err_name((int)req->result), uv_strerror((int)req->result));
 	}
 	uv_fs_req_cleanup(req);
 }

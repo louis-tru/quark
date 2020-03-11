@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/net.h"
-#include "nutils/fs.h"
+#include "nxkit/net.h"
+#include "nxkit/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>

@@ -31,18 +31,18 @@
 #ifndef __ngui__android__android__
 #define __ngui__android__android__
 
-#include "nutils/util.h"
+#include "nxkit/util.h"
 
-#if XX_ANDROID
+#if NX_ANDROID
 
-#include "nutils/string.h"
+#include "nxkit/string.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Android
 */
-class XX_EXPORT Android {
+class NX_EXPORT Android {
 public:
 	static void initialize();
 	// gui
@@ -82,7 +82,7 @@ public:
 	static uint64 used_memory();
 };
 
-XX_END
+NX_END
 
 #endif
 #endif

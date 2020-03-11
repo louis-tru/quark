@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'nutils/nutils.gypi',
+		'nxkit/nxkit.gypi',
 		'ngui/ngui.gypi',
 		'ngui/js/js.gypi',
 		'tools/default_target.gypi',
@@ -18,7 +18,7 @@
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/libnutils.a',
+					'<(output)/obj.target/libnxkit.a',
 					'<(output)/obj.target/libngui.a',
 					'<(output)/obj.target/libngui-js.a',
 					'<(output)/obj.target/libngui-media.a',
@@ -45,7 +45,7 @@
 		'target_name': 'libngui',
 		'type': 'none',
 		'dependencies': [
-			'nutils',
+			'nxkit',
 			'ngui',
 			'ngui-js',
 			'ngui-media',
@@ -57,7 +57,7 @@
 		'target_name': 'ngui_mac_dylib',
 		'type': 'none',
 		'dependencies': [
-			'nutils',
+			'nxkit',
 			'ngui',
 			'ngui-js',
 			'ngui-media',
@@ -103,7 +103,7 @@
 						'<(output)/obj.target/FFmpeg/libFFmpeg.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
-						'<(output)/libnutils.a',
+						'<(output)/libnxkit.a',
 						'<(output)/libngui.a',
 						'<(output)/libngui-js.a',
 						'<(output)/libngui-media.a',
@@ -111,7 +111,7 @@
 						'<@(lib_v8_a)',
 					],
 					'outputs': [
-						'<(output)/libnutils.dylib',
+						'<(output)/libnxkit.dylib',
 						'<(output)/libngui.dylib',
 						'<(output)/libngui-js.dylib',
 						'<(output)/libngui-media.dylib',
@@ -135,7 +135,7 @@
 		'target_name': 'ngui_copy_so', 
 		'type': 'none',
 		'dependencies': [
-			'nutils',
+			'nxkit',
 			'ngui',
 			'ngui-js',
 			'ngui-media',
@@ -148,7 +148,7 @@
 				'copies': [{
 					'destination': '<(ngui_product_dir)/<(ngui_product_so_subdir)',
 					'files': [
-						'<(output)/lib.target/libnutils.so',
+						'<(output)/lib.target/libnxkit.so',
 						'<(output)/lib.target/libngui.so',
 						'<(output)/lib.target/libngui-js.so',
 						'<(output)/lib.target/libngui-media.so',

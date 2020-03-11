@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/localstorage.h"
+#include "nxkit/localstorage.h"
 
 using namespace ngui;
 

@@ -30,7 +30,7 @@
 
 #include "ngui/app.h"
 #include "ngui/sys.h"
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "../depe/node/src/ngui.h"
 
 #ifndef TEST_FUNC_NAME
@@ -41,7 +41,7 @@ using namespace ngui;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-XX_GUI_MAIN() {
+NX_GUI_MAIN() {
 
 	// node::NguiEnvironment::test();
 

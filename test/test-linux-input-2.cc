@@ -36,9 +36,9 @@
  */
 
 
-#include <nutils/util.h>
+#include <nxkit/util.h>
 
-#if XX_LINUX && !XX_ANDROID
+#if NX_LINUX && !NX_ANDROID
 
 #include <stdio.h>
 #include <stdlib.h>

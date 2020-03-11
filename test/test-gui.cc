@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nutils/util.h>
+#include <nxkit/util.h>
 #include <ngui/image.h>
 #include <ngui/sprite.h>
 #include <ngui/div.h>
 #include <ngui/app.h>
 #include <ngui/display-port.h>
 #include <ngui/root.h>
-#include <nutils/fs.h>
+#include <nxkit/fs.h>
 #include <ngui/gl/gl.h>
 
 using namespace ngui;
@@ -120,6 +120,6 @@ void onload_handle (Event<>& evt, void* user) {
 
 void test_gui(int argc, char **argv) {
 	GUIApplication app;
-	app.XX_ON(load, onload_handle);
+	app.NX_ON(load, onload_handle);
 	app.run();
 }

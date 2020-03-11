@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/net.h"
+#include "nxkit/net.h"
 #include <uv.h>
 
 using namespace ngui;

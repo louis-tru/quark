@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "android.h"
-#include "nutils/android-jni.h"
+#include "nxkit/android-jni.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
@@ -274,4 +274,4 @@ uint64 Android::used_memory() {
 	return env->CallStaticLongMethod(clazz_, _core->used_memory_);
 }
 
-XX_END
+NX_END

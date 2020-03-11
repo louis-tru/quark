@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./jsx.h"
-#include "nutils/string.h"
-#include "nutils/string-builder.h"
-#include "nutils/map.h"
-#include "nutils/fs.h"
+#include "nxkit/string.h"
+#include "nxkit/string-builder.h"
+#include "nxkit/map.h"
+#include "nxkit/fs.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define UNEXPECTED_TOKEN_ERROR() error()
 
@@ -159,7 +159,7 @@ static inline int ascii_alpha_to_lower(int c) {
 }
 
 static inline bool is_in_range(int value, int lower_limit, int higher_limit) {
-	XX_ASSERT(lower_limit <= higher_limit);
+	NX_ASSERT(lower_limit <= higher_limit);
 	return (uint)(value - lower_limit) <= (uint)(higher_limit - lower_limit);
 }
 
@@ -287,7 +287,7 @@ enum Token {
 	TYPEOF,                 // typeof
 	/*  Literal */
 	NUMBER_LITERAL,         // number
-	STRIXX_LITERAL,         // string
+	STRINX_LITERAL,         // string
 	REGEXP_LITERAL,         // regexp
 	IDENTIFIER,             // identifier
 	/* KEYWORD */
@@ -579,7 +579,7 @@ class Scanner : public Object {
 		next_->location.line = line_;
 		next_->string_value = next_->string_space = Ucs2String();
 		
-		XX_ASSERT(c0_ == '/');
+		NX_ASSERT(c0_ == '/');
 		
 		advance();
 		if (c0_ == '/' || c0_ == '*') { // ILLEGAL
@@ -742,7 +742,7 @@ class Scanner : public Object {
 					next_->string_value.push('`');
 					token = scan_command_string(pos_);
 					if ( token == COMMAND_END ) {
-						token = STRIXX_LITERAL;
+						token = STRINX_LITERAL;
 					}
 					break;
 					
@@ -1024,8 +1024,8 @@ class Scanner : public Object {
 /* 'keyword' is a char array, so sizeof(keyword) is */  \
 /* strlen(keyword) plus 1 for the NUL char. */          \
 	const int keyword_length = sizeof(keyword) - 1;       \
-	XX_ASSERT(keyword_length >= kMinLength);               \
-	XX_ASSERT(keyword_length <= kMaxLength);               \
+	NX_ASSERT(keyword_length >= kMinLength);               \
+	NX_ASSERT(keyword_length <= kMaxLength);               \
 	if (input_length == keyword_length &&                 \
 		input[1] == keyword[1] &&                           \
 		(keyword_length <= 2 || input[2] == keyword[2]) &&  \
@@ -1209,7 +1209,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 			}
 		} while(c0_ >= 0);
 		
-		return STRIXX_LITERAL;
+		return STRINX_LITERAL;
 	}
 	
 	Token skip_multi_line_comment() {
@@ -1285,7 +1285,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 		next_->string_value.push(quote);
 		
 		advance();  // consume quote
-		return STRIXX_LITERAL;
+		return STRINX_LITERAL;
 	}
 	
 	// 扫描字符串转义
@@ -1313,7 +1313,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 	}
 	
 	int scan_hex_number(int expected_length) {
-		XX_ASSERT(expected_length <= 4);  // prevent overflow
+		NX_ASSERT(expected_length <= 4);  // prevent overflow
 		int x = 0;
 		for (int i = 0; i < expected_length; i++) {
 			
@@ -1495,7 +1495,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 	}
 	
 	bool set_pos(uint pos) {
-		XX_ASSERT(pos >= 0);
+		NX_ASSERT(pos >= 0);
 		
 		if ( pos < size_ ) {
 			if (pos > pos_) {
@@ -1656,7 +1656,7 @@ class Parser: public Object {
 	}
 
 	void parse_function() {
-		XX_ASSERT(token() == FUNCTION);
+		NX_ASSERT(token() == FUNCTION);
 		// function f(arg) { block }
 		fetch(); // function
 		if ( is_declaration_identifier(next()) ) {
@@ -1674,7 +1674,7 @@ class Parser: public Object {
 	}
 
 	void parse_arrow_function() {
-		XX_ASSERT(token() == ARROW);
+		NX_ASSERT(token() == ARROW);
 		// TODO ...
 	}
 
@@ -1694,7 +1694,7 @@ class Parser: public Object {
 			case CONST: // const
 			case ELSE:  // else
 			case NUMBER_LITERAL:  // number
-			case STRIXX_LITERAL:  // string
+			case STRINX_LITERAL:  // string
 				fetch();
 				break;
 			case IDENTIFIER:  // identifier
@@ -1871,7 +1871,7 @@ class Parser: public Object {
 	}
 
 	void parse_brace_expression(Token begin, Token end) { // 括号表达式
-		XX_ASSERT( token() == begin );
+		NX_ASSERT( token() == begin );
 		uint level = _level;
 		_level++;
 
@@ -1911,7 +1911,7 @@ class Parser: public Object {
 				parse_function();
 				break;
 			case NUMBER_LITERAL: // 10
-			case STRIXX_LITERAL: // "String"
+			case STRINX_LITERAL: // "String"
 				fetch();
 				break;
 			case COMMAND:     // `str ${
@@ -2049,7 +2049,7 @@ class Parser: public Object {
 	}
 
 	void parse_regexp_expression() { // 正则表达式
-		XX_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
+		NX_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 		
 		if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
 			next();
@@ -2060,7 +2060,7 @@ class Parser: public Object {
 	}
 
 	void parse_variable_visit_expression() { // 属性访问表达式
-		XX_ASSERT( is_declaration_identifier(token()) );
+		NX_ASSERT( is_declaration_identifier(token()) );
 
 		fetch(); // identifier
 
@@ -2108,13 +2108,13 @@ class Parser: public Object {
 			UNEXPECTED_TOKEN_ERROR();
 		}
 		while(true) {
-			XX_ASSERT(peek() == LBRACE);
+			NX_ASSERT(peek() == LBRACE);
 			append(_scanner->string_value());
 			append(S.COMMAND);  // ${
 			// next();
 			next();
 			parse_command_string_block(); // parse { block }
-			XX_ASSERT(peek() == RBRACE);
+			NX_ASSERT(peek() == RBRACE);
 			append(S.RBRACE);   // }
 			_scanner->scan_command_string(_scanner->next_location().end_pos);
 			Token tok = next();
@@ -2127,7 +2127,7 @@ class Parser: public Object {
 	}
 
 	void parse_command_string_block() {
-		XX_ASSERT( _scanner->token() == LBRACE );
+		NX_ASSERT( _scanner->token() == LBRACE );
 		while(true) {
 			if (peek() == RBRACE)
 				break;
@@ -2162,7 +2162,7 @@ class Parser: public Object {
 	}
 
 	void parse_class() {
-		XX_ASSERT(token() == CLASS);
+		NX_ASSERT(token() == CLASS);
 	
 		fetch();
 	
@@ -2206,7 +2206,7 @@ class Parser: public Object {
 			CHECK_TOKEN(LBRACE); // {
 		}
 		
-		XX_ASSERT(_scanner->token() == LBRACE); // {
+		NX_ASSERT(_scanner->token() == LBRACE); // {
 		
 		append(S.LBRACE); // {
 		
@@ -2249,7 +2249,7 @@ class Parser: public Object {
 				case AS:
 				case OF:
 				case FROM:
-				case STRIXX_LITERAL:
+				case STRINX_LITERAL:
 					//class member identifier
 					if ( peek() == LPAREN ) { // (
 						goto function;
@@ -2339,7 +2339,7 @@ class Parser: public Object {
 	}
 
 	void parse_export() {
-		XX_ASSERT(_scanner->token() == EXPORT);
+		NX_ASSERT(_scanner->token() == EXPORT);
 		CHECK(_level == 0);
 		
 		Token tok = next();
@@ -2406,7 +2406,7 @@ class Parser: public Object {
 		// import { GUIApplication as App } from 'ngui/app';
 		// import app, { GUIApplication as App } from 'ngui/app';
 
-		XX_ASSERT(token() == LBRACE);
+		NX_ASSERT(token() == LBRACE);
 		append(S.LBRACE);     // {
 
 		if (defaultId) {
@@ -2441,7 +2441,7 @@ class Parser: public Object {
 	}
 
 	void parse_import() {
-		XX_ASSERT(_scanner->token() == IMPORT);
+		NX_ASSERT(_scanner->token() == IMPORT);
 		Token tok = next();
 
 		if (is_import_declaration_identifier(tok)) { // identifier
@@ -2452,7 +2452,7 @@ class Parser: public Object {
 			if (tok == FROM) { // import app from 'ngui/app';
 				append(id);       // app   // TODO ... developer evn modify id
 				append(S.ASSIGN); // =
-				CHECK_NEXT(STRIXX_LITERAL);
+				CHECK_NEXT(STRINX_LITERAL);
 				append(S.REQUIRE); // require('ngui/app').default;
 				append(S.LPAREN); // (
 				fetch();
@@ -2464,7 +2464,7 @@ class Parser: public Object {
 				parse_import_block(&id);
 				CHECK_NEXT(FROM);
 				append(S.ASSIGN); // =
-				CHECK_NEXT(STRIXX_LITERAL);
+				CHECK_NEXT(STRINX_LITERAL);
 				append(S.REQUIRE); // require('ngui/app');
 				append(S.LPAREN); // (
 				fetch();
@@ -2482,7 +2482,7 @@ class Parser: public Object {
 				fetch();
 				CHECK_NEXT(FROM);
 				append(S.ASSIGN);  // =
-				CHECK_NEXT(STRIXX_LITERAL);
+				CHECK_NEXT(STRINX_LITERAL);
 				append(S.REQUIRE); // require('ngui/app');
 				append(S.LPAREN); // (
 				fetch();
@@ -2496,13 +2496,13 @@ class Parser: public Object {
 			parse_import_block(nullptr);
 			CHECK_NEXT(FROM);  // from
 			append(S.ASSIGN); // =
-			CHECK_NEXT(STRIXX_LITERAL);
+			CHECK_NEXT(STRINX_LITERAL);
 			append(S.REQUIRE);// require('ngui/app');
 			append(S.LPAREN); // (
 			fetch();
 			append(S.RPAREN); // )
 		}
-		else if (tok == STRIXX_LITERAL) { // ngui private syntax
+		else if (tok == STRINX_LITERAL) { // ngui private syntax
 
 			Ucs2String str = _scanner->string_value();
 			if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
@@ -2665,7 +2665,7 @@ class Parser: public Object {
 			case EVENT:
 			case GET:
 			case SET:
-			case STRIXX_LITERAL:
+			case STRINX_LITERAL:
 				return true;
 		}
 	}
@@ -2702,7 +2702,7 @@ class Parser: public Object {
 	}
 	
 	void parse_xml_element(bool inXml) {
-		XX_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
+		NX_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
 
 		if ( !is_xml_element_legal_start(inXml) ) { // 是否为合法的xml开始
 			append(S.LT);
@@ -2844,7 +2844,7 @@ class Parser: public Object {
 	}
 	
 	void parse_xml_element_context(cUcs2String& tag_name) {
-		XX_ASSERT(_scanner->token() == GT);  // >
+		NX_ASSERT(_scanner->token() == GT);  // >
 		
 		// add chileren
 		append(S.COMMA);    // ,
@@ -2903,7 +2903,7 @@ class Parser: public Object {
 					pos = _scanner->location().end_pos;
 					break;
 					
-				case STRIXX_LITERAL:   // xml context text
+				case STRINX_LITERAL:   // xml context text
 					if (!_scanner->next_string_space().is_empty())
 						scape.push(_scanner->next_string_space());
 					str.push(_scanner->next_string_value());
@@ -2929,7 +2929,7 @@ class Parser: public Object {
 	}
 	
 	void error(cString& msg, Scanner::Location loc) {
-		XX_THROW(ERR_SYNTAX_ERROR,
+		NX_THROW(ERR_SYNTAX_ERROR,
 						 "%s\nline:%d, pos:%d, %s",
 						 *msg, loc.line + 1, loc.end_pos, *_path);
 	}
@@ -3020,4 +3020,4 @@ Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comme
 	return Parser(in, path, false, clean_comment).transform();
 }
 
-XX_END
+NX_END

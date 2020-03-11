@@ -26,7 +26,7 @@ link_directories(../../../out/jniLibs/${ANDROID_ABI})
 
 add_definitions(
 	-D__STDC_CONSTANT_MACROS
-	-DXX_BUILDING_SHARED
+	-DNX_BUILDING_SHARED
 	-DNODE_WANT_INTERNALS=1
 	-DHAVE_OPENSSL=1
 	-DHAVE_INSPECTOR=1
@@ -52,39 +52,39 @@ unset(TARGET)
 add_definitions(-DDEBUG)
 
 add_library(ngui SHARED
-	# nutils
+	# nxkit
 	../../../android/android.cc
-	../../../nutils/_android.cc
-	../../../nutils/android-jni.cc
-	../../../nutils/android-log.cc
-	../../../nutils/object.cc
-	../../../nutils/string.cc
-	../../../nutils/string-builder.cc
-	../../../nutils/array.cc
-	../../../nutils/codec.cc
-	../../../nutils/error.cc
-	../../../nutils/http.cc
-	../../../nutils/http-uri.cc
-	../../../nutils/http-helper.cc
-	../../../nutils/fs.cc
-	../../../nutils/fs-file.cc
-	../../../nutils/fs-sync.cc
-	../../../nutils/fs-async.cc
-	../../../nutils/fs-search.cc
-	../../../nutils/fs-reader.cc
-	../../../nutils/buffer.cc
-	../../../nutils/json.cc
-	../../../nutils/map.cc
-	../../../nutils/util.cc
-	../../../nutils/zlib.cc
-	../../../nutils/loop.cc
-	../../../nutils/loop-private.cc
-	../../../nutils/jsx.cc
-	../../../nutils/net.cc
-	../../../nutils/cb.cc
-	../../../nutils/date.cc
-	../../../nutils/http-cookie.cc
-	../../../nutils/localstorage.cc
+	../../../nxkit/_android.cc
+	../../../nxkit/android-jni.cc
+	../../../nxkit/android-log.cc
+	../../../nxkit/object.cc
+	../../../nxkit/string.cc
+	../../../nxkit/string-builder.cc
+	../../../nxkit/array.cc
+	../../../nxkit/codec.cc
+	../../../nxkit/error.cc
+	../../../nxkit/http.cc
+	../../../nxkit/http-uri.cc
+	../../../nxkit/http-helper.cc
+	../../../nxkit/fs.cc
+	../../../nxkit/fs-file.cc
+	../../../nxkit/fs-sync.cc
+	../../../nxkit/fs-async.cc
+	../../../nxkit/fs-search.cc
+	../../../nxkit/fs-reader.cc
+	../../../nxkit/buffer.cc
+	../../../nxkit/json.cc
+	../../../nxkit/map.cc
+	../../../nxkit/util.cc
+	../../../nxkit/zlib.cc
+	../../../nxkit/loop.cc
+	../../../nxkit/loop-private.cc
+	../../../nxkit/jsx.cc
+	../../../nxkit/net.cc
+	../../../nxkit/cb.cc
+	../../../nxkit/date.cc
+	../../../nxkit/http-cookie.cc
+	../../../nxkit/localstorage.cc
 	# ngui
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
@@ -169,7 +169,7 @@ add_library(ngui-js SHARED
 	../../../ngui/js/v8.cc
 	../../../ngui/js/wrap.cc
 	../../../ngui/js/node.cc
-	# binding nutils
+	# binding nxkit
 	../../../ngui/js/binding/cb.cc
 	../../../ngui/js/binding/fs.cc
 	../../../ngui/js/binding/fs-reader.cc

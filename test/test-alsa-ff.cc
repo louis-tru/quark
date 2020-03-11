@@ -49,7 +49,7 @@ extern "C" {
 #include <libavutil/file.h>
 #include <libswresample/swresample.h>
 }
-#include "nutils/util.h"
+#include "nxkit/util.h"
 #include <alsa/asoundlib.h>
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000

@@ -31,10 +31,10 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "nutils/util.h"
-#include "nutils/string-builder.h"
-#include "nutils/buffer.h"
-#include "nutils/loop.h"
+#include "nxkit/util.h"
+#include "nxkit/string-builder.h"
+#include "nxkit/buffer.h"
+#include "nxkit/loop.h"
 
 using namespace ngui;
 
@@ -337,8 +337,8 @@ static void test_jsc_proxy(JSGlobalContextRef ctx, JSObjectRef global) {
 	JSProxy* p = reinterpret_cast<JSProxy*>(proxy);
 	
 	JSObjectCallAsFunction(ctx, revoke, proxy_warp, 0, 0, &ex);
-	XX_CHECK(ex == nullptr);
-	XX_CHECK(p->handle == Null);
+	NX_CHECK(ex == nullptr);
+	NX_CHECK(p->handle == Null);
 	
 	LOG("end");
 }
@@ -412,7 +412,7 @@ void test_jsc(int argc, char **argv) {
 	JSObjectSetProperty(ctx, global_wrapper, column_s, JSValueMakeNumber(ctx, 200), 0, 0);
 	JSValueRef JSObject = JSObjectGetProperty(ctx, global, Object_s, 0);
 	JSValueRef JSObject1 = JSObjectGetProperty(ctx1, global, Object_s, 0);
-	XX_CHECK(JSObject == JSObject1);
+	NX_CHECK(JSObject == JSObject1);
 	LOG(to_string_utf8(ctx, JSObjectGetProperty(ctx, global, column_s, 0)));
 	
 	JSCStringPtr js = JSStringCreateWithUTF8CString("var a = 100; b = 200; print(a, b)");

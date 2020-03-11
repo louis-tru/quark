@@ -1,7 +1,7 @@
 {
 	'targets': [
 	{
-		'target_name': 'nutils',
+		'target_name': 'nxkit',
 		# 'product_prefix': '',
 		# 'product_ext': 'so',
 		'type': '<(output_type)',
