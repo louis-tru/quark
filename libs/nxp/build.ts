@@ -544,7 +544,7 @@ function copy_outer_file(self, items) {
 }
 
 function build_result(self) {
-	var result = { };
+	var result = {};
 	var ok = 0;
 	for ( var name in self.m_output_pkgs ) {
 		result[name] = self.m_output_pkgs[name].pkg_json;
@@ -560,7 +560,8 @@ function build_result(self) {
 /**
  * @class NguiBuild
  */
-var NguiBuild = util.class('NguiBuild', {
+// var NguiBuild = 
+class NguiBuild {
 	
 	m_source                    : '',
 	m_target_local              : '',

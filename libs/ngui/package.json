@@ -10,7 +10,7 @@
 		"url": "http://ngui.fun/"
 	},
 	"scripts": {
-		"build": "tsc && cp LICENSE *.md out/ngui && node _build.js"
+		"build": "tsc && cp LICENSE *.md out/ngui && node _.js"
 	},
 	"keywords": [
 		"jsx",

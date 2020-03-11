@@ -12,16 +12,16 @@ CXX           ?= g++
 LINK          ?= g++
 ANDROID_SDK   ?= $(ANDROID_HOME)
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
-ANDROID_JAR    = out/android.classs.ngui.jar
+ANDROID_JAR   = out/android.classs.ngui.jar
 JAVAC         ?= javac
-JAR            = jar
+JAR           = jar
 ENV           ?=
-NXMAKE          = ./libs/nxmake
-NXMAKE_OUT      = out/nxmake
-GYP            = $(NXMAKE)/gyp/gyp
+NXP           = ./libs/nxp
+NXP_OUT       = out/nxp
+GYP           = $(NXP)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
-LIBS_DIR       = out/$(OUTPUT)
-BUILD_STYLE    = make
+LIBS_DIR      = out/$(OUTPUT)
+BUILD_STYLE   = make
 
 #######################
 
@@ -65,7 +65,7 @@ compile: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 tools: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
 	@$(call make_compile,$(MAKE))
-	@#cp $(LIBS_DIR)/jsa-shell $(NXMAKE)/bin/$(OS)-jsa-shell
+	@#cp $(LIBS_DIR)/jsa-shell $(NXP)/bin/$(OS)-jsa-shell
 
 test2: $(GYPFILES)
 	@#make -C test -f test2.mk
@@ -77,8 +77,8 @@ $(ANDROID_JAR): android/org/ngui/*.java
 	@rm -rf out/android.classs/*
 	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/ngui/*.java
 	@cd out/android.classs; $(JAR) cfv ngui.jar .
-	@mkdir -p $(NXMAKE_OUT)/product/android/libs
-	@cp out/android.classs/ngui.jar $(NXMAKE_OUT)/product/android/libs
+	@mkdir -p $(NXP_OUT)/product/android/libs
+	@cp out/android.classs/ngui.jar $(NXP_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)

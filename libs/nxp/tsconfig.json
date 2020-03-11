@@ -5,7 +5,7 @@
 		"target": "ES2018",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		"outDir": "out/ngui",
+		"outDir": "out/nxp",
 		"rootDir": ".",
 		"baseUrl": ".",
 		"declaration": true,
@@ -19,19 +19,16 @@
 		"strictPropertyInitialization": false,
 		"emitDecoratorMetadata": false,
 		"experimentalDecorators": true,
-		"removeComments": true,
-		"jsx": "react",
-		"jsxFactory": "_CVD",
 	},
 	"include": [
 		"**/*",
 	],
 	"exclude": [
 		"out",
+		"node_modules",
 		"var",
 		".git",
 		".svn",
-		"node_modules",
 		"_.js",
 	]
 }

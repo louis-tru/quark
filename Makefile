@@ -1,9 +1,9 @@
 
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR     = out/android.classs.ngui.jar
-NXMAKE          = ./libs/nxmake
-NXMAKE_OUT      = out/nxmake
+ANDROID_JAR    = out/android.classs.ngui.jar
+NXP            = ./libs/nxp
+NXP_OUT        = out/nxp
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
@@ -21,7 +21,7 @@ endif
 
 #######################
 
-DEPS = libs/nxkit libs/nxmake/gyp.ngui depe/v8-link \
+DEPS = libs/nxkit libs/nxp/gyp.ngui depe/v8-link \
 	depe/FFmpeg.ngui depe/node.ngui depe/bplus
 FORWARD = make xcode msvs make-linux cmake-linux cmake compile tools $(ANDROID_JAR) test2 clean
 
@@ -53,7 +53,7 @@ check_osx=\
 	fi
 
 .PHONY: $(FORWARD) ios android linux osx \
-	product install install-nxmake \
+	product install install-nxp \
 	help web doc watch build _host_linux _host_osx pull push
 
 .SECONDEXPANSION:
@@ -65,12 +65,12 @@ product: # pull
 	@$(MAKE) android
 
 install: product
-	@$(MAKE) install-nxmake
+	@$(MAKE) install-nxp
 
-install-nxmake:
-	@$(NODE) ./tools/cp-nxmake.js
-	@cd $(NXMAKE_OUT) && npm i -f
-	@cd $(NXMAKE_OUT) && $(SUDO) npm i -g
+install-nxp:
+	@$(NODE) ./tools/cp-nxp.js
+	@cd $(NXP_OUT) && npm i -f
+	@cd $(NXP_OUT) && $(SUDO) npm i -g
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -83,7 +83,7 @@ ios:
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) compile
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) compile
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) compile # handy debug
-	@./tools/gen_apple_frameworks.sh $(NXMAKE_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(NXP_OUT) ios
 
 # build all android platform and output to product dir
 android:
