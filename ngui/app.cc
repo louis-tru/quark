@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/loop-1.h"
-#include "nutils/http.h"
+#include "nxkit/loop-1.h"
+#include "nxkit/http.h"
 #include "draw.h"
 #include "root.h"
 #include "display-port.h"
@@ -37,10 +37,10 @@
 #include "action.h"
 #include "css.h"
 
-XX_EXPORT int (*__xx_default_gui_main)(int, char**) = nullptr;
-XX_EXPORT int (*__xx_gui_main)(int, char**) = nullptr;
+NX_EXPORT int (*__xx_default_gui_main)(int, char**) = nullptr;
+NX_EXPORT int (*__xx_gui_main)(int, char**) = nullptr;
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef GUIApplication::Inl AppInl;
 
@@ -101,7 +101,7 @@ void AppInl::refresh_display() {
 void AppInl::onLoad() {
 	if (!m_is_load) {
 		m_is_load = true;
-		m_main_loop->post(Cb([&](Cbd& d) { GUILock lock; XX_TRIGGER(Load); }));
+		m_main_loop->post(Cb([&](Cbd& d) { GUILock lock; NX_TRIGGER(Load); }));
 	}
 }
 
@@ -110,24 +110,24 @@ void AppInl::onRender() {
 }
 
 void AppInl::onPause() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Pause); }));
+	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Pause); }));
 }
 
 void AppInl::onResume() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Resume); }));
+	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Resume); }));
 }
 
 void AppInl::onBackground() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Background); }));
+	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Background); }));
 }
 
 void AppInl::onForeground() {
-	m_main_loop->post(Cb([&](Cbd& d) { XX_TRIGGER(Foreground); }));
+	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Foreground); }));
 }
 
 void AppInl::onMemorywarning() {
 	clear();
-	m_main_loop->post(Cb([&](Cbd&){ XX_TRIGGER(Memorywarning); }));
+	m_main_loop->post(Cb([&](Cbd&){ NX_TRIGGER(Memorywarning); }));
 }
 
 void AppInl::onUnload() {
@@ -136,7 +136,7 @@ void AppInl::onUnload() {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 		m_main_loop->post_sync(Cb([&](Cb::Data& d) {
 			DLOG("AppInl::onUnload()");
-			XX_TRIGGER(Unload);
+			NX_TRIGGER(Unload);
 			if (m_root) {
 				GUILock lock;
 				m_root->remove();
@@ -150,7 +150,7 @@ void AppInl::onUnload() {
  * @func set_root
  */
 void AppInl::set_root(Root* value) throw(Error) {
-	XX_ASSERT_ERR(!m_root, "Root view already exists");
+	NX_ASSERT_ERR(!m_root, "Root view already exists");
 	m_root = value;
 	m_root->retain();   // strong ref
 	set_focus_view(value);
@@ -180,11 +180,11 @@ bool AppInl::set_focus_view(View* view) {
  */
 void GUIApplication::runMain(int argc, char* argv[]) {
 	static int is_initialize = 0;
-	XX_CHECK(!is_initialize++, "Cannot multiple calls.");
+	NX_CHECK(!is_initialize++, "Cannot multiple calls.");
 	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	Thread::spawn([argc, argv](Thread& t) {
-		XX_CHECK( __xx_default_gui_main );
+		NX_CHECK( __xx_default_gui_main );
 		auto main = __xx_gui_main ? __xx_gui_main : __xx_default_gui_main;
 		__xx_default_gui_main = nullptr;
 		__xx_gui_main = nullptr;
@@ -204,7 +204,7 @@ void GUIApplication::runMain(int argc, char* argv[]) {
  * @func run()
  */
 void GUIApplication::run() {
-	XX_CHECK(!m_is_run, "GUI program has been running");
+	NX_CHECK(!m_is_run, "GUI program has been running");
 
 	m_is_run = true;
 	m_render_loop = RunLoop::current(); // 当前消息队列
@@ -217,7 +217,7 @@ void GUIApplication::run() {
 	}
 	thelper->awaken(); // 外部线程继续运行
 
-	XX_CHECK(!m_render_loop->runing());
+	NX_CHECK(!m_render_loop->runing());
 
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 
@@ -228,7 +228,7 @@ void GUIApplication::run() {
 }
 
 void GUIApplication::run_indep() {
-	XX_ASSERT(RunLoop::is_main_loop()); // main loop call
+	NX_ASSERT(RunLoop::is_main_loop()); // main loop call
 	Thread::spawn([this](Thread& t) {
 		DLOG("run render loop ...");
 		run(); // run gui main thread loop
@@ -257,13 +257,13 @@ int AppInl::onExit(int code) {
 }
 
 GUIApplication::GUIApplication()
-: XX_INIT_EVENT(Load)
-, XX_INIT_EVENT(Unload)
-, XX_INIT_EVENT(Background)
-, XX_INIT_EVENT(Foreground)
-, XX_INIT_EVENT(Pause)
-, XX_INIT_EVENT(Resume)
-, XX_INIT_EVENT(Memorywarning)
+: NX_INIT_EVENT(Load)
+, NX_INIT_EVENT(Unload)
+, NX_INIT_EVENT(Background)
+, NX_INIT_EVENT(Foreground)
+, NX_INIT_EVENT(Pause)
+, NX_INIT_EVENT(Resume)
+, NX_INIT_EVENT(Memorywarning)
 , m_is_run(false)
 , m_is_load(false)
 , m_render_loop(nullptr)
@@ -289,7 +289,7 @@ GUIApplication::GUIApplication()
 {
 	m_main_keep = m_main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
 	m_main_id = m_main_loop->thread_id();
-	Thread::XX_ON(ProcessSafeExit, on_process_safe_handle);
+	Thread::NX_ON(ProcessSafeExit, on_process_safe_handle);
 }
 
 GUIApplication::~GUIApplication() {
@@ -313,7 +313,7 @@ GUIApplication::~GUIApplication() {
 	m_main_loop = nullptr;
 	m_shared = nullptr;
 
-	Thread::XX_OFF(ProcessSafeExit, on_process_safe_handle);
+	Thread::NX_OFF(ProcessSafeExit, on_process_safe_handle);
 }
 
 /**
@@ -321,15 +321,15 @@ GUIApplication::~GUIApplication() {
  */
 void GUIApplication::initialize(cJSON& options) throw(Error) {
 	GUILock lock;
-	XX_CHECK_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
+	NX_CHECK_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
 	m_shared = this;
 	HttpHelper::initialize(); // 初始http
 	_inl_app(this)->initialize(options);
-	XX_DEBUG("Inl_GUIApplication initialize ok");
+	NX_DEBUG("Inl_GUIApplication initialize ok");
 	m_display_port = NewRetain<DisplayPort>(this); // strong ref
-	XX_DEBUG("NewRetain<DisplayPort> ok");
+	NX_DEBUG("NewRetain<DisplayPort> ok");
 	m_draw_ctx->font_pool()->set_display_port(m_display_port);
-	XX_DEBUG("m_draw_ctx->font_pool()->set_display_port() ok");
+	NX_DEBUG("m_draw_ctx->font_pool()->set_display_port() ok");
 	m_dispatch = new GUIEventDispatch(this);
 	m_action_center = new ActionCenter();
 }
@@ -411,4 +411,4 @@ uint64 GUIApplication::used_texture_memory() const {
 	return m_draw_ctx->used_texture_memory();
 }
 
-XX_END
+NX_END

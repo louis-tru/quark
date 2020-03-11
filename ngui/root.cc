@@ -33,13 +33,13 @@
 #include "root.h"
 #include "draw.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @destructor
  */
 Root::~Root() {
-	XX_DEBUG("destructor root");
+	NX_DEBUG("destructor root");
 }
 
 /**
@@ -47,7 +47,7 @@ Root::~Root() {
  */
 void Root::initialize() throw(Error) {
 	auto app = ngui::app();
-	XX_ASSERT_ERR(app, "Before you create a root, you need to create a GUIApplication");
+	NX_ASSERT_ERR(app, "Before you create a root, you need to create a GUIApplication");
 	m_background_color = Color(255, 255, 255); // 默认白色背景
 	m_level = 1; // 根视图为1
 	m_final_visible = true;
@@ -103,7 +103,7 @@ void Root::draw(Draw* draw) {
  * @overwrite
  */
 void Root::set_parent(View* parent) throw(Error) {
-	XX_UNREACHABLE();
+	NX_UNREACHABLE();
 }
 
 /**
@@ -176,4 +176,4 @@ Vec2 Root::layout_offset() {
 							m_offset_start.y() + m_final_margin_top + m_border_top_width);
 }
 
-XX_END
+NX_END

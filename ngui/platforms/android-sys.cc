@@ -31,8 +31,8 @@
 #include "ngui/sys.h"
 #include "android/android.h"
 
-XX_NS(ngui)
-XX_NS(sys)
+NX_NS(ngui)
+NX_NS(sys)
 
 int network_status() {
 	return Android::network_status();
@@ -62,4 +62,4 @@ uint64 available_memory() {
 	return Android::available_memory();
 }
 
-XX_END XX_END
+NX_END NX_END

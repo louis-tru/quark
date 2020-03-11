@@ -29,20 +29,20 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/version.h"
-#include "nutils/json.h"
+#include "nxkit/json.h"
 #include "tinyxml2.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 using namespace tinyxml2;
 
 #define xx_font_family_info_cache ".simple_font_family_cache"
 
-#if XX_IOS || XX_OSX
+#if NX_IOS || NX_OSX
 static String system_fonts_dir = "/System/Library/Fonts";
-#elif XX_ANDROID
+#elif NX_ANDROID
 static String system_fonts_dir = "/system/fonts";
-#elif XX_LINUX
+#elif NX_LINUX
 static String system_fonts_dir = "/usr/share/fonts";
 #endif
 typedef Array<FontPool::SimpleFontFamily> SimpleFontList;
@@ -54,7 +54,7 @@ static String system_second_font_family_name;
  * @func find_font_family_by_path(path)
  */
 static String find_font_family_by_path(cString& path) {
-	XX_ASSERT(system_font_family_list);
+	NX_ASSERT(system_font_family_list);
 	for ( auto& i : *system_font_family_list ) {
 		if (i.value().path == path) {
 			return i.value().family;
@@ -67,11 +67,11 @@ static String find_font_family_by_path(cString& path) {
  * @func parse_system_font_family_name()
  */
 static void parse_system_font_family_name() {
-	XX_ASSERT(system_font_family_list);
+	NX_ASSERT(system_font_family_list);
 
 	XMLDocument* config = nullptr;
 
-#if XX_ANDROID
+#if NX_ANDROID
 	config = new XMLDocument();
 
 	if (config->LoadFile("/system/etc/fonts.xml") == XML_NO_ERROR) {
@@ -116,8 +116,8 @@ static void parse_system_font_family_name() {
 			first = first->NextSiblingElement();
 		}
 	}
-#elif XX_LINUX 
-#endif // XX_ANDROID End
+#elif NX_LINUX 
+#endif // NX_ANDROID End
 
 	delete config;
 }
@@ -213,7 +213,7 @@ void FontPool::Inl::initialize_default_fonts() {
 		second.push(system_second_font_family_name);
 	}
 	
-#if XX_IOS || XX_OSX
+#if NX_IOS || NX_OSX
 	first.push("Helvetica Neue");
 	first.push("Helvetica");
 	first.push("Thonburi");
@@ -221,7 +221,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("HeitiFallback");
 	second.push("Heiti TC");
 	second.push(".HeitiFallback");
-#elif XX_ANDROID
+#elif NX_ANDROID
 	first.push("Roboto");
 	first.push("Droid Sans");
 	first.push("Droid Sans Mono");
@@ -229,7 +229,7 @@ void FontPool::Inl::initialize_default_fonts() {
 	second.push("Noto Sans CJK JP");
 	second.push("Noto Sans SC");
 	third.push("Droid Sans Fallback");
-#elif XX_LINUX
+#elif NX_LINUX
 	first.push("Roboto");
 	first.push("DejaVu Sans");
 	first.push("DejaVu Sans Mono");
@@ -319,4 +319,4 @@ const SimpleFontList& FontPool::system_font_family() {
 	return *system_font_family_list;
 }
 
-XX_END
+NX_END

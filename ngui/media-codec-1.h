@@ -37,9 +37,9 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 #include "ngui/media-codec.h"
-#include "nutils/loop-1.h"
+#include "nxkit/loop-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef MultimediaSource::BitRateInfo BitRateInfo;
 typedef MultimediaSource::Extractor   Extractor;
@@ -156,5 +156,5 @@ class MultimediaSource::Inl: public ParallelWorking {
 	bool                        m_disable_wait_buffer;
 };
 
-XX_END
+NX_END
 #endif

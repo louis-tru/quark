@@ -31,7 +31,7 @@
 #include "ngui/image-codec.h"
 #include <webp/decode.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
 	Array<PixelData> rv;
@@ -55,4 +55,4 @@ Buffer WEBPImageCodec::encode (const PixelData& pixel_data) {
 	return Buffer();
 }
 
-XX_END
+NX_END

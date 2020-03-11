@@ -31,16 +31,16 @@
 #ifndef __ngui__media_codec__
 #define __ngui__media_codec__
 
-#include "nutils/util.h"
-#include "nutils/string.h"
-#include "nutils/buffer.h"
-#include "nutils/http.h"
+#include "nxkit/util.h"
+#include "nxkit/string.h"
+#include "nxkit/buffer.h"
+#include "nxkit/http.h"
 #include "ngui/image-codec.h"
 #include "ngui/media.h"
 
 typedef struct AVStream AVStream;
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 enum MultimediaSourceStatus {
 	MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED = 0,
@@ -89,12 +89,12 @@ enum VideoColorFormat {
 /**
  * @class MultimediaSource
  */
-class XX_EXPORT MultimediaSource: public Object {
-	XX_HIDDEN_ALL_COPY(MultimediaSource);
-	XX_DEFINE_INLINE_CLASS(Inl);
+class NX_EXPORT MultimediaSource: public Object {
+	NX_HIDDEN_ALL_COPY(MultimediaSource);
+	NX_DEFINE_INLINE_CLASS(Inl);
  public:
 	
-	struct XX_EXPORT TrackInfo {
+	struct NX_EXPORT TrackInfo {
 		TrackInfo();
 		TrackInfo(const TrackInfo&);
 		uint        track;            /* 轨道在源中的索引 */
@@ -116,7 +116,7 @@ class XX_EXPORT MultimediaSource: public Object {
 		Buffer      extradata;        /* extradata */
 	};
 	
-	struct XX_EXPORT BitRateInfo {  /* 码率 */
+	struct NX_EXPORT BitRateInfo {  /* 码率 */
 		int     bandwidth;
 		uint    width;
 		uint    height;
@@ -124,7 +124,7 @@ class XX_EXPORT MultimediaSource: public Object {
 		Array<TrackInfo>  tracks;
 	};
 	
-	class XX_EXPORT Delegate {
+	class NX_EXPORT Delegate {
 	 public:
 		virtual void multimedia_source_ready(MultimediaSource* source) = 0;
 		virtual void multimedia_source_wait_buffer(MultimediaSource* source, float process) = 0;
@@ -135,8 +135,8 @@ class XX_EXPORT MultimediaSource: public Object {
 	/**
 	 * @class Extractor
 	 */
-	class XX_EXPORT Extractor: public Object {
-		XX_HIDDEN_ALL_COPY(Extractor);
+	class NX_EXPORT Extractor: public Object {
+		NX_HIDDEN_ALL_COPY(Extractor);
 	 public:
 		
 		/**
@@ -362,13 +362,13 @@ class XX_EXPORT MultimediaSource: public Object {
 /**
  * @class MediaCodec
  */
-class XX_EXPORT MediaCodec: public Object {
-	XX_HIDDEN_ALL_COPY(MediaCodec);
+class NX_EXPORT MediaCodec: public Object {
+	NX_HIDDEN_ALL_COPY(MediaCodec);
  public:
 
 	typedef MultimediaSource::Extractor Extractor;
 	
-	struct XX_EXPORT OutputBuffer {
+	struct NX_EXPORT OutputBuffer {
 		OutputBuffer();
 		OutputBuffer(const OutputBuffer& buffer);
 		byte*   data[8];      /* 数据Buffer */
@@ -378,7 +378,7 @@ class XX_EXPORT MediaCodec: public Object {
 		int     index;        /* 数据Buffer在解码器中的索引 */
 	};
 	
-	class XX_EXPORT Delegate {
+	class NX_EXPORT Delegate {
 	 public:
 		virtual void media_decoder_eof(MediaCodec* de, uint64 timeUs) { }
 		virtual void media_decoder_error(MediaCodec* de, cError& err) { }
@@ -511,5 +511,5 @@ class XX_EXPORT MediaCodec: public Object {
 	uint        m_frame_interval;
 };
 
-XX_END
+NX_END
 #endif

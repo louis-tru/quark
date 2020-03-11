@@ -32,9 +32,9 @@
 #include "display-port.h"
 #include "app.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(Text, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Text, Inl) {
 public:
 	
 	template<TextAlign T>
@@ -75,11 +75,11 @@ public:
 };
 
 void Text::prepend(View* child) throw(Error) {
-	XX_ERR("%s", "Error: Text can not have a child view");
+	NX_ERR("%s", "Error: Text can not have a child view");
 }
 
 void Text::append(View* child) throw(Error) {
-	XX_ERR("%s", "Error: Text can not have a child view");
+	NX_ERR("%s", "Error: Text can not have a child view");
 }
 
 View* Text::append_text(cUcs2String& str) throw(Error) {
@@ -173,4 +173,4 @@ void Text::set_draw_visible() {
 	compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, 0);
 }
 
-XX_END
+NX_END

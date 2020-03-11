@@ -33,14 +33,14 @@
 
 #include "ngui/box.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Div
  */
-class XX_EXPORT Div: public Box {
+class NX_EXPORT Div: public Box {
  public:
-	XX_DEFINE_GUI_VIEW(DIV, Div, div);
+	NX_DEFINE_GUI_VIEW(DIV, Div, div);
 	
 	Div();
 	
@@ -74,10 +74,10 @@ class XX_EXPORT Div: public Box {
 	// top|bottom, 垂直布局,一列高度不够向右挤压
 	ContentAlign m_content_align;
 
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 };
 
-XX_END
+NX_END
 
 #endif

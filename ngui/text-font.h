@@ -38,7 +38,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class TextRows;
 class View;
@@ -47,13 +47,13 @@ class Layout;
 /**
  * @class TextFont
  */
-class XX_EXPORT TextFont: public Protocol {
+class NX_EXPORT TextFont: public Protocol {
  public:
 	typedef FontGlyph::TexureLevel TexureLevel;
 	
 	TextFont();
 	
-	struct XX_EXPORT Cell {
+	struct NX_EXPORT Cell {
 		uint    line_num;       // 行号
 		float   baseline;       // 基线
 		float   offset_start;   // 偏移开始
@@ -63,7 +63,7 @@ class XX_EXPORT TextFont: public Protocol {
 		bool    reverse;        // 反向排列
 	};
 	
-	struct XX_EXPORT Data {
+	struct NX_EXPORT Data {
 		Data();
 		Array<Cell> cells;
 		Ucs2String  string;
@@ -162,7 +162,7 @@ class XX_EXPORT TextFont: public Protocol {
 /**
  * @class TextLayout
  */
-class XX_EXPORT TextLayout: public TextFont {
+class NX_EXPORT TextLayout: public TextFont {
  public:
 	
 	TextLayout();
@@ -173,7 +173,7 @@ class XX_EXPORT TextLayout: public TextFont {
 	void set_text_overflow(TextOverflow value);
 	void set_text_white_space(TextWhiteSpace value);
 	
-	struct XX_EXPORT Options {
+	struct NX_EXPORT Options {
 		struct SpaceWrap {
 			bool  auto_wrap;        // 使用自动wrap(自动换行)
 			bool  merge_space;      // 合并空白序列
@@ -234,9 +234,9 @@ class XX_EXPORT TextLayout: public TextFont {
 	TextOverflow    m_text_overflow;     // 文本溢出
 	TextWhiteSpace  m_text_white_space;  // 空白处理
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 };
 
-XX_END
+NX_END
 #endif

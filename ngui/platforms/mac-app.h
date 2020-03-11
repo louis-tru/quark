@@ -31,13 +31,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "nutils/macros.h"
+#import "nxkit/macros.h"
 
-#if XX_IOS || XX_OSX
+#if NX_IOS || NX_OSX
 
 #import <ngui/app.h>
 
-#if XX_OSX
+#if NX_OSX
  #import <AppKit/AppKit.h>
  #define UIResponder NSResponder
  #define UIApplicationDelegate NSApplicationDelegate

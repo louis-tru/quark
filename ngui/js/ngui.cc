@@ -32,7 +32,7 @@
 #include "ngui/app.h"
 #include "ngui/view.h"
 #include "ngui/js/ngui.h"
-#include "nutils/http.h"
+#include "nxkit/http.h"
 #include "binding/event-1.h"
 #include "android/android.h"
 #include "native-inl-js.h"
@@ -141,7 +141,7 @@ int           __xx_ngui_have_debug = 0;
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& ngui_argv) {
 	static String argv_str;
 
-	XX_CHECK(argv_in.length(), "Bad start argument");
+	NX_CHECK(argv_in.length(), "Bad start argument");
 	__xx_ngui_have_node = 1;
 	__xx_ngui_have_debug = 0;
 	argv_str = argv_in[0];
@@ -211,12 +211,12 @@ int Start(const Array<String>& argv_in) {
 		};
 		ngui::set_object_allocator(&allocator);
 	}
-	XX_CHECK(!__xx_ngui_argv);
+	NX_CHECK(!__xx_ngui_argv);
 
 	Array<char*> argv, ngui_argv;
 	parseArgv(argv_in, argv, ngui_argv);
 
-	Thread::XX_ON(ProcessSafeExit, on_process_safe_handle);
+	Thread::NX_ON(ProcessSafeExit, on_process_safe_handle);
 
 	__xx_ngui_argv = &ngui_argv;
 	int rc = 0;
@@ -224,24 +224,24 @@ int Start(const Array<String>& argv_in) {
 	char** argv_c = const_cast<char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	XX_CHECK(RunLoop::main_loop() == RunLoop::current());
+	NX_CHECK(RunLoop::main_loop() == RunLoop::current());
 
 	if (__xx_ngui_have_node ) {
 		if (node::ngui_node_api) {
 			rc = node::ngui_node_api->Start(argc, argv_c);
 		} else {
-#if XX_LINUX
+#if NX_LINUX
 			// try loading ngui-node
 			uv_lib_t lib;
 			int err = uv_dlopen("libngui-node.so", &lib);
 			if (err != 0) {
-				XX_WARN("No node library loaded, %s", uv_dlerror(&lib));
+				NX_WARN("No node library loaded, %s", uv_dlerror(&lib));
 				goto no_node_start;
 			} else {
 				rc = node::ngui_node_api->Start(argc, argv_c);
 			}
 #else
-			XX_WARN("No node library loaded");
+			NX_WARN("No node library loaded");
 			goto no_node_start;
 #endif
 		}
@@ -251,7 +251,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__xx_ngui_argv = nullptr;
-	Thread::XX_OFF(ProcessSafeExit, on_process_safe_handle);
+	Thread::NX_OFF(ProcessSafeExit, on_process_safe_handle);
 
 	return rc;
 }
@@ -270,7 +270,7 @@ int Start(int argc, char** argv) {
 int __default_main(int argc, char** argv) {
 	String cmd;
 
-#if XX_ANDROID
+#if NX_ANDROID
 	cmd = Android::start_cmd();
 	if ( cmd.is_empty() )
 #endif 
@@ -295,7 +295,7 @@ int __default_main(int argc, char** argv) {
 	}
 }
 
-XX_INIT_BLOCK(__default_main) {
+NX_INIT_BLOCK(__default_main) {
 	__xx_default_gui_main = __default_main;
 }
 

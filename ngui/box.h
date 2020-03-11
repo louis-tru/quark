@@ -33,7 +33,7 @@
 
 #include "ngui/layout.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class BasicScroll;
 class Background;
@@ -45,9 +45,9 @@ class Background;
  *  3.父视图高度可能受到挤压膨胀
  * @class Box
  */
-class XX_EXPORT Box: public Layout {
+class NX_EXPORT Box: public Layout {
  public:
-	XX_DEFINE_GUI_VIEW(BOX, Box, box);
+	NX_DEFINE_GUI_VIEW(BOX, Box, box);
 	
 	Box();
 	
@@ -505,7 +505,7 @@ class XX_EXPORT Box: public Layout {
 	bool      m_is_draw_border;   // 是否需要绘制边框
 	bool      m_is_draw_border_radius;  // 是否要绘制圆角
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class Div;
 	friend class Hybrid;
@@ -517,6 +517,6 @@ class XX_EXPORT Box: public Layout {
 	friend class BackgroundImage;
 };
 
-XX_END
+NX_END
 
 #endif

@@ -35,7 +35,7 @@
 #include "display-port.h"
 #include "button.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 static cCurve ease_in_out(0.3, 0.3, 0.3, 1);
 static cCurve ease_out(0, 0, 0.58, 1);
@@ -324,10 +324,10 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		float left_margin = scrollbar_margin();
 		float right_margin = m_v_scrollbar ? left_margin + scrollbar_width() : left_margin;
-		float h_scrollbar_max_size = XX_MAX(m_box->final_width() - left_margin - right_margin, 0);
+		float h_scrollbar_max_size = NX_MAX(m_box->final_width() - left_margin - right_margin, 0);
 		
 		float h_scrollbar_indicator_size = roundf(powf(h_scrollbar_max_size, 2) / m_scroll_size.x());
-		h_scrollbar_indicator_size = XX_MAX(h_scrollbar_indicator_size, 8);
+		h_scrollbar_indicator_size = NX_MAX(h_scrollbar_indicator_size, 8);
 		float h_scrollbar_max_scroll = h_scrollbar_max_size - h_scrollbar_indicator_size;
 		float h_scrollbar_prop = h_scrollbar_max_scroll / m_scroll_max.x();
 		
@@ -338,11 +338,11 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		if ( pos < 0 ) {
 			size = h_scrollbar_indicator_size + roundf(pos * 3);
-			size = XX_MAX(size, 8);
+			size = NX_MAX(size, 8);
 			pos = 0;
 		} else if ( pos > h_scrollbar_max_scroll ) {
 			size = h_scrollbar_indicator_size - roundf((pos - h_scrollbar_max_scroll) * 3);
-			size = XX_MAX(size, 8);
+			size = NX_MAX(size, 8);
 			pos = h_scrollbar_max_scroll + h_scrollbar_indicator_size - size;
 		}
 		
@@ -360,10 +360,10 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		float top_margin = scrollbar_margin();
 		float bottom_margin = m_h_scrollbar ? top_margin + scrollbar_width() : top_margin;
-		float v_scrollbar_max_size = XX_MAX(m_box->final_height() - top_margin - bottom_margin, 0);
+		float v_scrollbar_max_size = NX_MAX(m_box->final_height() - top_margin - bottom_margin, 0);
 		
 		float v_scrollbar_indicator_size = roundf(powf(v_scrollbar_max_size, 2) / m_scroll_size.y());
-		v_scrollbar_indicator_size = XX_MAX(v_scrollbar_indicator_size, 8);
+		v_scrollbar_indicator_size = NX_MAX(v_scrollbar_indicator_size, 8);
 		
 		float v_scrollbar_max_scroll = v_scrollbar_max_size - v_scrollbar_indicator_size;
 		float v_scrollbar_prop = v_scrollbar_max_scroll / m_scroll_max.y();
@@ -375,11 +375,11 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		if ( pos < 0 ) {
 			size = v_scrollbar_indicator_size + roundf(pos * 3);
-			size = XX_MAX(size, 8);
+			size = NX_MAX(size, 8);
 			pos = 0;
 		} else if ( pos > v_scrollbar_max_scroll ) {
 			size = v_scrollbar_indicator_size - roundf((pos - v_scrollbar_max_scroll) * 3);
-			size = XX_MAX(size, 8);
+			size = NX_MAX(size, 8);
 			pos = v_scrollbar_max_scroll + v_scrollbar_indicator_size - size;
 		}
 		
@@ -610,7 +610,7 @@ class BasicScroll::Inl: public BasicScroll {
 				new_x -= dist_x;
 				dist_x = fabsf(dist_x) * 1e4;
 				
-				momentum_x.time = XX_MAX(XX_MIN(dist_x, 3e5), momentum_x.time);
+				momentum_x.time = NX_MAX(NX_MIN(dist_x, 3e5), momentum_x.time);
 			}
 			
 			if ( new_y < 0 && new_y > m_scroll_max.y() && mod_y != 0 ) {
@@ -622,7 +622,7 @@ class BasicScroll::Inl: public BasicScroll {
 				new_y -= dist_y;
 				dist_y = fabsf(dist_y) * 1e4;
 				
-				momentum_y.time = XX_MAX(XX_MIN(dist_y, 3e5), momentum_y.time);
+				momentum_y.time = NX_MAX(NX_MIN(dist_y, 3e5), momentum_y.time);
 			}
 		}
 		
@@ -631,7 +631,7 @@ class BasicScroll::Inl: public BasicScroll {
 		//****************************************************************
 		
 		if ( momentum_x.time || momentum_y.time ) {
-			uint64 duration = XX_MAX(XX_MAX(momentum_x.time, momentum_y.time), 1e4);
+			uint64 duration = NX_MAX(NX_MAX(momentum_x.time, momentum_y.time), 1e4);
 			scroll_to_valid_scroll(Vec2(new_x, new_y), duration);
 		} else {
 			termination_recovery(3e5, ease_in_out);
@@ -739,7 +739,7 @@ BasicScroll::BasicScroll(Box* box)
 	box->add_event_listener(GUI_EVENT_MOUSE_MOVE, &Inl::m_mouse_move_handle, _inl(this));
 	box->add_event_listener(GUI_EVENT_MOUSE_UP, &Inl::m_mouse_up_handle, _inl(this));
 	
-	XX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
+	NX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
 }
 
 BasicScroll::~BasicScroll() {
@@ -803,7 +803,7 @@ void BasicScroll::set_scroll_y(float value) {
  * @func resistance set
  */
 void BasicScroll::set_resistance(float value) {
-	m_resistance = XX_MAX(0.5, value);
+	m_resistance = NX_MAX(0.5, value);
 }
 
 /**
@@ -853,8 +853,8 @@ void BasicScroll::set_scroll_size(Vec2 size) {
 		_inl(this)->immediate_end_all_task(); // change size immediate task
 		m_scroll_size = size;
 	}
-	m_scroll_max = Vec2(XX_MIN(m_box->final_width() - size.width(), 0),
-											XX_MIN(m_box->final_height() - size.height(), 0));
+	m_scroll_max = Vec2(NX_MIN(m_box->final_width() - size.width(), 0),
+											NX_MIN(m_box->final_height() - size.height(), 0));
 	
 	m_h_scroll = m_scroll_max.x() < 0;
 	m_v_scroll = ((!m_bounce_lock && !m_h_scroll) || m_scroll_max.y() < 0);
@@ -881,7 +881,7 @@ void BasicScroll::solve() {
 /**
  * @class Scroll::Inl
  */
-XX_DEFINE_INLINE_MEMBERS(Scroll, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Scroll, Inl) {
 public:
 	/**
 	 * @func handle_panel_focus_mode
@@ -1087,4 +1087,4 @@ void Scroll::set_layout_content_offset() {
 	}
 }
 
-XX_END
+NX_END

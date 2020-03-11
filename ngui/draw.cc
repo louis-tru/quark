@@ -33,7 +33,7 @@
 #include "texture.h"
 #include "display-port.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 static char empty_[4] = { 0, 0, 0, 0 };
 static cPixelData empty_pixel_data(WeakBuffer(empty_, 4), 1, 1, PixelData::RGBA8888);
@@ -45,7 +45,7 @@ class TextureEmpty: public Texture {
  public:
 	virtual void load() {
 		if (m_status == TEXTURE_NO_LOADED) {
-			XX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
+			NX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
 		}
 	}
 };
@@ -56,7 +56,7 @@ Draw* Draw::m_draw_ctx = nullptr; // 当前GL上下文
  * @constructor
  */
 Draw::Draw(GUIApplication* host, cJSON& options)
-: XX_INIT_EVENT(surface_size_change_r)
+: NX_INIT_EVENT(surface_size_change_r)
 , m_host(host)
 , m_multisample(0)
 , m_empty_texture( NewRetain<TextureEmpty>() )
@@ -66,12 +66,12 @@ Draw::Draw(GUIApplication* host, cJSON& options)
 , m_best_display_scale(1)
 , m_library(DRAW_LIBRARY_INVALID)
 {
-	XX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
+	NX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
 	m_draw_ctx = this;
 	
 	cJSON& msample = options["multisample"];
 	if (msample.is_uint()) 
-		m_multisample = XX_MAX(msample.to_uint(), 0);
+		m_multisample = NX_MAX(msample.to_uint(), 0);
 	
 	m_font_pool = new FontPool(this); // 初始字体池
 	m_tex_pool = new TexturePool(this); // 初始文件纹理池
@@ -95,7 +95,7 @@ bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
 		m_surface_size = surface_size;
 		m_selected_region = region;
 		refresh_buffer();
-		XX_TRIGGER(surface_size_change_r);
+		NX_TRIGGER(surface_size_change_r);
 		return true;
 	}
 	return false;
@@ -110,7 +110,7 @@ void Draw::clear(bool full) {
 }
 
 void Draw::set_max_texture_memory_limit(uint64 limit) {
-	m_max_texture_memory_limit = XX_MAX(limit, 64 * 1024 * 1024);
+	m_max_texture_memory_limit = NX_MAX(limit, 64 * 1024 * 1024);
 }
 
 uint64 Draw::used_texture_memory() const {
@@ -131,9 +131,9 @@ bool Draw::adjust_texture_memory(uint64 will_alloc_size) {
 		i++;
 	} while(i < 3);
 	
-	XX_WARN("Adjust texture memory fail");
+	NX_WARN("Adjust texture memory fail");
 	
 	return false;
 }
 
-XX_END
+NX_END

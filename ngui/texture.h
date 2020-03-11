@@ -31,11 +31,11 @@
 #ifndef __ngui__texture__
 #define __ngui__texture__
 
-#include "nutils/map.h"
-#include "nutils/event.h"
-#include "nutils/string.h"
-#include "nutils/handle.h"
-#include "nutils/buffer.h"
+#include "nxkit/map.h"
+#include "nxkit/event.h"
+#include "nxkit/string.h"
+#include "nxkit/handle.h"
+#include "nxkit/buffer.h"
 #include "ngui/image-codec.h"
 #include "ngui/value.h"
 
@@ -43,7 +43,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class Draw;
 class FileTexture;
@@ -77,8 +77,8 @@ enum TextureStatus {
 /**
  * @class Texture
  */
-class XX_EXPORT Texture: public Reference {
-	XX_HIDDEN_ALL_COPY(Texture);
+class NX_EXPORT Texture: public Reference {
+	NX_HIDDEN_ALL_COPY(Texture);
  public:
 	typedef PixelData::Format PixelFormat;
 
@@ -97,7 +97,7 @@ class XX_EXPORT Texture: public Reference {
 	/**
 	 * @event onchange 纹理变化事件,比如尺寸了生了变化
 	 */
-	XX_EVENT(change, Event<int, Texture>);
+	NX_EVENT(change, Event<int, Texture>);
 
 	/**
 	 * @func create() 通过图像数据创建一个新的纹理对像,如果成功返回纹理对像
@@ -175,10 +175,10 @@ class XX_EXPORT Texture: public Reference {
 	PixelFormat m_format;
 
 	friend class GLDraw;
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-class XX_EXPORT TextureYUV: public Texture {
+class NX_EXPORT TextureYUV: public Texture {
  public:
 	bool load_yuv(cPixelData& data);
 	virtual bool unload(Level level = LEVEL_NONE);
@@ -187,7 +187,7 @@ class XX_EXPORT TextureYUV: public Texture {
 /**
  * @class FileTexture
  */
-class XX_EXPORT FileTexture: public Texture {
+class NX_EXPORT FileTexture: public Texture {
  public:
 	typedef ImageCodec::ImageFormat ImageFormat;
 	
@@ -235,14 +235,14 @@ typedef Event<TexturePoolEventData, TexturePool> TexturePoolEvent;
 /**
  * @class TexturePool 统一管理纹理数据的池
  */
-class XX_EXPORT TexturePool: public Object {
-	XX_HIDDEN_ALL_COPY(TexturePool);
+class NX_EXPORT TexturePool: public Object {
+	NX_HIDDEN_ALL_COPY(TexturePool);
  public:
 	
 	/**
 	 * @event onchange 纹理载入变化事件
 	 */
-	XX_EVENT(change, TexturePoolEvent);
+	NX_EVENT(change, TexturePoolEvent);
 	
 	/**
 	 * @constructor
@@ -286,10 +286,10 @@ class XX_EXPORT TexturePool: public Object {
 	Map<PrtKey<Texture>, Texture*> m_completes;
 	uint64 m_total_data_size; /* 纹池当前数据总量 */
 	
-	XX_DEFINE_INLINE_CLASS(Inl)
+	NX_DEFINE_INLINE_CLASS(Inl)
 	
 	friend class Draw;
 };
 
-XX_END
+NX_END
 #endif

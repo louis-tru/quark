@@ -34,13 +34,13 @@
 #include "pre-render.h"
 #include "root.h"
 #include "action.h"
-#include "nutils/loop-1.h"
+#include "nxkit/loop-1.h"
 #include "sys.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 
-XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
+NX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
  public:
  #define _inl(self) static_cast<DisplayPort::Inl*>(self)
 	
@@ -107,7 +107,7 @@ XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 		};
 		
 		m_host->main_loop()->post(Cb([this](CbD& e){
-			XX_TRIGGER(change); // 通知事件
+			NX_TRIGGER(change); // 通知事件
 		}));
 	}
 	
@@ -131,8 +131,8 @@ XX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
  * @constructor
  */
 DisplayPort::DisplayPort(GUIApplication* host)
-: XX_INIT_EVENT(change)
-, XX_INIT_EVENT(orientation)
+: NX_INIT_EVENT(change)
+, NX_INIT_EVENT(orientation)
 , m_phy_size()
 , m_lock_size()
 , m_size()
@@ -149,9 +149,9 @@ DisplayPort::DisplayPort(GUIApplication* host)
 {
 	m_draw_region.push({ 0,0,0,0,0,0 });
 	// 侦听视口尺寸变化
-	XX_DEBUG("m_draw_ctx->XX_ON ...");
-	m_draw_ctx->XX_ON(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
-	XX_DEBUG("m_draw_ctx->XX_ON ok");
+	NX_DEBUG("m_draw_ctx->NX_ON ...");
+	m_draw_ctx->NX_ON(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
+	NX_DEBUG("m_draw_ctx->NX_ON ok");
 }
 
 /**
@@ -159,7 +159,7 @@ DisplayPort::DisplayPort(GUIApplication* host)
  */
 DisplayPort::~DisplayPort() {
 	Release(m_pre_render);
-	m_draw_ctx->XX_OFF(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
+	m_draw_ctx->NX_OFF(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 }
 
 float DisplayPort::best_scale() const {
@@ -170,13 +170,13 @@ void DisplayPort::lock_size(float width, float height) {
 	if (width >= 0.0 && height >= 0.0) {
 		if (m_lock_size.width() != width || m_lock_size.height() != height) {
 			m_lock_size = { width, height };
-			XX_CHECK(m_host->render_loop());
+			NX_CHECK(m_host->render_loop());
 			m_host->render_loop()->post(Cb([this](CbD& e) {
 				_inl(this)->update_display_port_rl();
 			}));
 		}
 	} else {
-		XX_WARN("Lock size value can not be less than zero\n");
+		NX_WARN("Lock size value can not be less than zero\n");
 	}
 }
 
@@ -285,5 +285,5 @@ void DisplayPort::next_frame(cCb& cb) {
 	m_next_frame.push(cb);
 }
 
-XX_END
+NX_END
 

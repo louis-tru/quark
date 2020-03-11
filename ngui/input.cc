@@ -32,9 +32,9 @@
 #include "textarea.h"
 #include "app-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Input, Inl) {
  public:
 	
 	/**
@@ -131,7 +131,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 							flag_ = 3; // 激活光标定位
 							set_cursor_with_screen_coord(point_);
 						}
-					}, this), XX_MIN(timeout, 1e6/*1s*/));
+					}, this), NX_MIN(timeout, 1e6/*1s*/));
 				} else { // 立即激活
 					flag_ = 3;
 				}
@@ -244,7 +244,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			switch ( static_cast<GUIKeyEvent*>(&evt)->keycode() ) {
 				default: break;
 				case KEYCODE_LEFT:
-					cursor_ = XX_MAX(0, int(cursor_ - 1));
+					cursor_ = NX_MAX(0, int(cursor_ - 1));
 					break;
 				case KEYCODE_UP: {
 					Vec2 location = spot_location();
@@ -253,7 +253,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 					break;
 				}
 				case KEYCODE_RIGHT:
-					cursor_ = XX_MIN(m_data.string.length(), cursor_ + 1);
+					cursor_ = NX_MIN(m_data.string.length(), cursor_ + 1);
 					break;
 				case KEYCODE_DOWN: {
 					Vec2 location = spot_location();
@@ -306,7 +306,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			if ( direction_y ) {
 				int linenum = cursor_linenum_;
 				linenum += direction_y;
-				linenum = XX_MIN(m_rows.last_num(), XX_MAX(linenum, 0));
+				linenum = NX_MIN(m_rows.last_num(), NX_MAX(linenum, 0));
 				point.y(pos.y() + m_rows[linenum].baseline + offset.y());
 			}
 			
@@ -320,13 +320,13 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 				
 				float reverse = m_data.cells[begin].reverse;
 				int cursor = cursor_ + (direction_x > 0 ? (reverse?-1:1): (reverse?1:-1));
-				cursor = XX_MIN(m_data.string.length(), XX_MAX(cursor, 0));
+				cursor = NX_MIN(m_data.string.length(), NX_MAX(cursor, 0));
 				
 				for ( int j = begin; j >= 0; j-- ) {
 					Cell* cell = &m_data.cells[j];
 					if ( cell->line_num == cursor_linenum_ ) {
 						if ( int(cell->begin) <= cursor ) {
-							float x = cell->offset[XX_MIN(cursor - cell->begin, cell->chars.length())];
+							float x = cell->offset[NX_MIN(cursor - cell->begin, cell->chars.length())];
 							x = cell->offset_start + (reverse ? -x : x);
 							point.x(pos.x() + offset.x() + x);
 							break;
@@ -375,7 +375,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			}
 		}
 		
-		XX_ASSERT(row);
+		NX_ASSERT(row);
 		
 		// find cell start and end
 		int cell_begin = -1, cell_end = -1;
@@ -499,7 +499,7 @@ XX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 											 old.length() - marked_text_idx_ - marked_text_.length());
 		
 		cursor_ += text.length() - marked_text_.length();
-		cursor_ = XX_MAX(marked_text_idx_, cursor_);
+		cursor_ = NX_MAX(marked_text_idx_, cursor_);
 		marked_text_ = text;
 		mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 	}
@@ -580,7 +580,7 @@ void Input::input_delete(int count) {
 		int cursor = cursor_;
 		if ( !marked_text_.length() ) {
 			if ( count < 0 ) {
-				count = XX_MIN(cursor, -count);
+				count = NX_MIN(cursor, -count);
 				if ( count ) {
 					Ucs2String old = m_data.string;
 					m_data.string = Ucs2String(*old, cursor - count,
@@ -589,7 +589,7 @@ void Input::input_delete(int count) {
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 				}
 			} else if ( count > 0 ) {
-				count = XX_MIN(int(length()) - cursor, count);
+				count = NX_MIN(int(length()) - cursor, count);
 				if ( count ) {
 					Ucs2String old = m_data.string;
 					m_data.string = Ucs2String(*old, cursor,
@@ -716,7 +716,7 @@ void Input::set_security(bool value) {
  * @func set_text_margin
  */
 void Input::set_text_margin(float value) {
-	text_margin_ = XX_MAX(0, value);
+	text_margin_ = NX_MAX(0, value);
 	mark_pre(M_CONTENT_OFFSET);
 }
 
@@ -985,4 +985,4 @@ void Input::refresh_cursor_screen_position() {
 	}
 }
 
-XX_END
+NX_END

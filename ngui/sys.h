@@ -31,21 +31,21 @@
 #ifndef __ngui__utils__sys__
 #define __ngui__utils__sys__
 
-#include "nutils/util.h"
+#include "nxkit/util.h"
 
-XX_NS(ngui)
-XX_NS(sys)
+NX_NS(ngui)
+NX_NS(sys)
 
-XX_EXPORT bool  is_wifi();
-XX_EXPORT bool  is_mobile();
-XX_EXPORT int   network_status();
-XX_EXPORT bool  is_ac_power();
-XX_EXPORT bool  is_battery();
-XX_EXPORT float battery_level();
-XX_EXPORT uint64 memory();
-XX_EXPORT uint64 used_memory();
-XX_EXPORT uint64 available_memory();
-XX_EXPORT float cpu_usage();
+NX_EXPORT bool  is_wifi();
+NX_EXPORT bool  is_mobile();
+NX_EXPORT int   network_status();
+NX_EXPORT bool  is_ac_power();
+NX_EXPORT bool  is_battery();
+NX_EXPORT float battery_level();
+NX_EXPORT uint64 memory();
+NX_EXPORT uint64 used_memory();
+NX_EXPORT uint64 available_memory();
+NX_EXPORT float cpu_usage();
 
-XX_END XX_END
+NX_END NX_END
 #endif

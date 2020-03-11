@@ -34,7 +34,7 @@
 #include "display-port.h"
 #include "errno.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 void _box_inl__solve_horizontal_size_with_full_width(Box* box, float parent);
 void _box_inl__solve_horizontal_size_with_explicit_width(Box* box, float parent);
@@ -130,7 +130,7 @@ public:
 					_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 					break;
 				default: // 减法值 (width=50not)
-					m_final_width = XX_MAX(parent_width - m_width.value, 0);
+					m_final_width = NX_MAX(parent_width - m_width.value, 0);
 					m_limit.width(m_final_width);
 					_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 					break;
@@ -205,7 +205,7 @@ public:
 					_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 					break;
 				default: // 减法值
-					m_final_height = XX_MAX(parent_height - m_height.value, 0);
+					m_final_height = NX_MAX(parent_height - m_height.value, 0);
 					m_limit.height(m_final_height);
 					_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 					break;
@@ -291,7 +291,7 @@ Image* Image::create(cString& src) {
  * @destructor
  */
 Image::~Image() {
-	m_texture->XX_OFF(change, &Inl::texture_change_handle, _inl(this));
+	m_texture->NX_OFF(change, &Inl::texture_change_handle, _inl(this));
 	m_texture->release(); // 释放纹理
 }
 
@@ -361,13 +361,13 @@ uint Image::source_height() const {
  * @func set_texture
  */
 void Image::set_texture(Texture* value) {
-	XX_ASSERT(value);
+	NX_ASSERT(value);
 	if (value == m_texture) return;
-	m_texture->XX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
+	m_texture->NX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
 	m_texture->release(); // 释放
 	m_texture = value;
 	m_texture->retain(); // 保持
-	m_texture->XX_ON(change, &Image::Inl::texture_change_handle, _inl(this));
+	m_texture->NX_ON(change, &Image::Inl::texture_change_handle, _inl(this));
 	mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXTURE);
 }
 
@@ -440,4 +440,4 @@ void Image::set_draw_visible() {
 	m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
 }
 
-XX_END
+NX_END

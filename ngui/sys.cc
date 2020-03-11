@@ -29,15 +29,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "sys.h"
-#include "nutils/array.h"
-#include "nutils/string.h"
-#include "nutils/fs.h"
+#include "nxkit/array.h"
+#include "nxkit/string.h"
+#include "nxkit/fs.h"
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
 
-XX_NS(ngui)
-XX_NS(sys)
+NX_NS(ngui)
+NX_NS(sys)
 
 bool is_wifi() {
 	return network_status() == 2;
@@ -47,7 +47,7 @@ bool is_mobile() {
 	return network_status() >= 3;
 }
 
-#if XX_LINUX || XX_ANDROID
+#if NX_LINUX || NX_ANDROID
 
 static std::atomic_int priv_cpu_total_count(0);
 static std::atomic_int priv_cpu_usage_count(0);
@@ -128,4 +128,4 @@ float cpu_usage() {
 
 #endif
 
-XX_END XX_END
+NX_END NX_END

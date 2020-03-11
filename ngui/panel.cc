@@ -32,9 +32,9 @@
 #include "button.h"
 #include "app-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
  public:
 	
 	static Button* first_button(View* v) {
@@ -102,4 +102,4 @@ Panel* Panel::parent_panel() {
 	return nullptr;
 }
 
-XX_END
+NX_END

@@ -106,7 +106,7 @@ class WrapPanel: public WrapViewBase {
 		}
 		JS_SELF(Panel);
 		int64 num = value->ToNumberValue(worker);
-		self->set_interval_time( uint64(1000) * XX_MIN(0, num) );
+		self->set_interval_time( uint64(1000) * NX_MIN(0, num) );
 	}
 	
 	/**

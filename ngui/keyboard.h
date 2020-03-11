@@ -31,10 +31,10 @@
 #ifndef __ngui__keyboard__
 #define __ngui__keyboard__
 
-#include "nutils/util.h"
-#include "nutils/map.h"
+#include "nxkit/util.h"
+#include "nxkit/map.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class GUIApplication;
 
@@ -206,7 +206,7 @@ enum KeyboardKeyName {
 /**
  * @class KeyboardAdapter
  */
-class XX_EXPORT KeyboardAdapter: public Object {
+class NX_EXPORT KeyboardAdapter: public Object {
  public:
 
 	KeyboardAdapter();
@@ -280,5 +280,5 @@ class XX_EXPORT KeyboardAdapter: public Object {
 	int   repeat_, device_, source_;
 };
 
-XX_END
+NX_END
 #endif

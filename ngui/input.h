@@ -34,14 +34,14 @@
 #include "ngui/text.h"
 #include "ngui/pre-render.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Input
  */
-class XX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
+class NX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
  public:
-	XX_DEFINE_GUI_VIEW(INPUT, Input, input);
+	NX_DEFINE_GUI_VIEW(INPUT, Input, input);
 	
 	typedef ReferenceTraits Traits;
 	
@@ -169,9 +169,9 @@ class XX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	KeyboardType  type_;
 	KeyboardReturnType  return_type_;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 
 #endif

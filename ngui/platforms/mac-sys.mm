@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ngui/sys.h"
-#import "nutils/string.h"
-#import "nutils/array.h"
+#import "nxkit/string.h"
+#import "nxkit/array.h"
 #import <Foundation/Foundation.h>
-#if XX_IOS
+#if NX_IOS
 # import <UIKit/UIKit.h>
 #else
 # import <AppKit/AppKit.h>
@@ -48,8 +48,8 @@
 #import <sys/sysctl.h>
 #import <mach/mach.h>
 
-XX_NS(ngui)
-XX_NS(sys)
+NX_NS(ngui)
+NX_NS(sys)
 
 int network_status() {
 	Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];
@@ -60,7 +60,7 @@ int network_status() {
 	return code;
 }
 
-#if XX_IOS
+#if NX_IOS
 
 bool is_ac_power() {
 	[UIDevice currentDevice].batteryMonitoringEnabled = YES;
@@ -212,4 +212,4 @@ float cpu_usage() {
 	return cpu_usage;
 }
 
-XX_END XX_END
+NX_END NX_END

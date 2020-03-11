@@ -37,16 +37,16 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 using value::Repeat;
 
 /**
  * @class Image
  */
-class XX_EXPORT Image: public Div {
+class NX_EXPORT Image: public Div {
  public:
-	XX_DEFINE_GUI_VIEW(IMAGE, Image, image);
+	NX_DEFINE_GUI_VIEW(IMAGE, Image, image);
 	
 	Image();
 	
@@ -111,8 +111,8 @@ class XX_EXPORT Image: public Div {
 	int       m_tex_level;
 	Texture*  m_texture; // 图像纹理数据
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif

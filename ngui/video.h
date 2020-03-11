@@ -39,7 +39,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class TextureYUV;
 class PCMPlayer;
@@ -47,11 +47,11 @@ class PCMPlayer;
 /**
  * @class Video
  */
-class XX_EXPORT Video: public Image,
+class NX_EXPORT Video: public Image,
 											 public PreRender::Task,
 											 public MultimediaSource::Delegate {
  public:
-	XX_DEFINE_GUI_VIEW(VIDEO, Video, video);
+	NX_DEFINE_GUI_VIEW(VIDEO, Video, video);
 
 	Video();
 
@@ -87,27 +87,27 @@ class XX_EXPORT Video: public Image,
 	/**
 	 * @func set_auto_play # setting auto play
 	 */
-	XX_MEDIA_DYNAMIC void set_auto_play(bool value);
+	NX_MEDIA_DYNAMIC void set_auto_play(bool value);
 
 	/**
 	 * @func source_status
 	 * */
-	XX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
+	NX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
 
 	/**
 	 * @func video_width
 	 */
-	XX_MEDIA_DYNAMIC uint video_width();
+	NX_MEDIA_DYNAMIC uint video_width();
 
 	/**
 	 * @func video_height
 	 */
-	XX_MEDIA_DYNAMIC uint video_height();
+	NX_MEDIA_DYNAMIC uint video_height();
 
 	/**
 	 * @func status getting play status
 	 */
-	XX_MEDIA_DYNAMIC PlayerStatus status();
+	NX_MEDIA_DYNAMIC PlayerStatus status();
 
 	/**
 	 * @func mute getting mute status
@@ -117,7 +117,7 @@ class XX_EXPORT Video: public Image,
 	/**
 	 * @func mute setting mute status
 	 * */
-	XX_MEDIA_DYNAMIC void set_mute(bool value);
+	NX_MEDIA_DYNAMIC void set_mute(bool value);
 
 	/**
 	 * @func volume
@@ -127,77 +127,77 @@ class XX_EXPORT Video: public Image,
 	/**
 	 * @func volume
 	 */
-	XX_MEDIA_DYNAMIC void set_volume(uint value);
+	NX_MEDIA_DYNAMIC void set_volume(uint value);
 
 	/**
 	 * @func time
 	 * */
-	XX_MEDIA_DYNAMIC uint64 time();
+	NX_MEDIA_DYNAMIC uint64 time();
 
 	/**
 	 * @func duration
 	 * */
-	XX_MEDIA_DYNAMIC uint64 duration();
+	NX_MEDIA_DYNAMIC uint64 duration();
 
 	/**
 	 * @func audio_track_count
 	 */
-	XX_MEDIA_DYNAMIC uint audio_track_count();
+	NX_MEDIA_DYNAMIC uint audio_track_count();
 
 	/**
 	 * @func audio_track
 	 */
-	XX_MEDIA_DYNAMIC uint audio_track_index();
+	NX_MEDIA_DYNAMIC uint audio_track_index();
 
 	/**
 	 * @func audio_track
 	 */
-	XX_MEDIA_DYNAMIC const TrackInfo* audio_track();
+	NX_MEDIA_DYNAMIC const TrackInfo* audio_track();
 
 	/**
 	 * @func audio_track
 	 */
-	XX_MEDIA_DYNAMIC const TrackInfo* audio_track(uint index);
+	NX_MEDIA_DYNAMIC const TrackInfo* audio_track(uint index);
 
 	/**
 	 * @func video_track
 	 * */
-	XX_MEDIA_DYNAMIC const TrackInfo* video_track();
+	NX_MEDIA_DYNAMIC const TrackInfo* video_track();
 
 	/**
 	 * @func select_audio_track
 	 * */
-	XX_MEDIA_DYNAMIC void select_audio_track(uint index);
+	NX_MEDIA_DYNAMIC void select_audio_track(uint index);
 
 	/**
 	 * @func start play
 	 */
-	XX_MEDIA_DYNAMIC void start();
+	NX_MEDIA_DYNAMIC void start();
 
 	/**
 	 * @func seek to target time
 	 */
-	XX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
+	NX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
 
 	/**
 	 * @func pause play
 	 * */
-	XX_MEDIA_DYNAMIC void pause();
+	NX_MEDIA_DYNAMIC void pause();
 
 	/**
 	 * @func resume play
 	 * */
-	XX_MEDIA_DYNAMIC void resume();
+	NX_MEDIA_DYNAMIC void resume();
 
 	/**
 	 * @func stop play
 	 * */
-	XX_MEDIA_DYNAMIC void stop();
+	NX_MEDIA_DYNAMIC void stop();
 
 	/**
 	 * @func disable_wait_buffer
 	 */
-	XX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
+	NX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
 
 	/**
 	 * @func disable_wait_buffer
@@ -238,9 +238,9 @@ class XX_EXPORT Video: public Image,
 	bool    m_disable_wait_buffer;
 	bool    m_waiting_buffer;
 
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif
 

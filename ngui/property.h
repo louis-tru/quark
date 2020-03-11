@@ -31,14 +31,14 @@
 #ifndef __ngui__property__
 #define __ngui__property__
 
-#include "nutils/util.h"
-#include "nutils/map.h"
+#include "nxkit/util.h"
+#include "nxkit/map.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class View;
 
-#define XX_EACH_PROPERTY_TABLE(F) \
+#define NX_EACH_PROPERTY_TABLE(F) \
 F(PROPERTY_X, float, x) /*view*/ \
 F(PROPERTY_Y, float, y) \
 F(PROPERTY_SCALE_X, float, scale_x) \
@@ -101,7 +101,7 @@ F(PROPERTY_SRC, String, src)    /* image */ \
  */
 enum PropertyName: uint {
 # define xx_def_enum(ENUM, TYPE, NAME) ENUM,
-	XX_EACH_PROPERTY_TABLE(xx_def_enum)
+	NX_EACH_PROPERTY_TABLE(xx_def_enum)
 # undef xx_def_enum
 };
 
@@ -118,13 +118,13 @@ Compare<PropertyName>::equals(const PropertyName& a,
 /**
  * @class PropertysAccessor
  */
-class XX_EXPORT PropertysAccessor: public Object {
+class NX_EXPORT PropertysAccessor: public Object {
  public:
 	
 	typedef void (View::*Func)();
 	typedef int ViewType;
 	
-	struct XX_EXPORT Accessor {
+	struct NX_EXPORT Accessor {
 		
 		inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) { }
 		
@@ -158,6 +158,6 @@ class XX_EXPORT PropertysAccessor: public Object {
 	Map<ViewType, Map<PropertyName, Accessor>> m_property_func_table;
 };
 
-XX_END
+NX_END
 
 #endif

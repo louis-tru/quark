@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/sys.h"
-#include "nutils/buffer.h"
+#include "nxkit/buffer.h"
 #include "font-1.h"
 #include "native-font.h"
 #include "ngui/bezier.h"
@@ -42,11 +42,11 @@
 #include "font.cc.levels.inl"
 #include "font.cc.all.inl"
 
-#ifndef XX_SUPPORT_MAX_TEXTURE_FONT_SIZE
-#define XX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
+#ifndef NX_SUPPORT_MAX_TEXTURE_FONT_SIZE
+#define NX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
 #endif
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 static String THIN_("thin");
 static String ULTRALIGHT_("ultralight"); static String BOOK_("book");
@@ -102,7 +102,7 @@ class FontPool::Inl: public FontPool {
 		String font_name_ = font_name;
 		
 		/*
-		XX_DEBUG("family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
+		NX_DEBUG("family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
 						 uint(FileHelper::stat_sync(path).size() / 1024),
 						 m_fonts.has(font_name) ? "+++++++++++": "");
 		 */
@@ -155,9 +155,9 @@ class FontPool::Inl: public FontPool {
 		FT_Error err = FT_New_Memory_Face((FT_Library)m_ft_lib, data, font_data->length, 0, &face);
 		
 		if (err) {
-			XX_ERR("Unable to load font, Freetype2 error code: %d", err);
+			NX_ERR("Unable to load font, Freetype2 error code: %d", err);
 		} else if (!face->family_name) {
-			XX_ERR("Unable to load font, not family name");
+			NX_ERR("Unable to load font, not family name");
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -200,7 +200,7 @@ class FontPool::Inl: public FontPool {
 				if (face_index < num_faces) {
 					err = FT_New_Memory_Face((FT_Library)m_ft_lib, data, font_data->length, face_index, &face);
 					if (err) {
-						XX_ERR("Unable to load font, Freetype2 error code: %d", err);
+						NX_ERR("Unable to load font, Freetype2 error code: %d", err);
 						return false;
 					}
 				} else {
@@ -223,7 +223,7 @@ class FontPool::Inl: public FontPool {
 	void display_port_change_handle(Event<>& evt) {
 
 		Vec2 scale_value = m_display_port->scale_value();
-		float scale = XX_MAX(scale_value[0], scale_value[1]);
+		float scale = NX_MAX(scale_value[0], scale_value[1]);
 		
 		if ( scale != m_display_port_scale ) {
 			
@@ -241,8 +241,8 @@ class FontPool::Inl: public FontPool {
 			uint font_size = sqrtf(size.width() * size.height()) / 10;
 			
 			// 最大纹理字体不能超过上下文支持的大小
-			if (font_size >= XX_SUPPORT_MAX_TEXTURE_FONT_SIZE) {
-				m_max_glyph_texture_size = XX_SUPPORT_MAX_TEXTURE_FONT_SIZE;
+			if (font_size >= NX_SUPPORT_MAX_TEXTURE_FONT_SIZE) {
+				m_max_glyph_texture_size = NX_SUPPORT_MAX_TEXTURE_FONT_SIZE;
 			} else {
 				m_max_glyph_texture_size = font_glyph_texture_levels_idx[font_size].max_font_size;
 			}
@@ -297,9 +297,9 @@ class FontPool::Inl: public FontPool {
 		FT_Error err = FT_New_Face(lib, Path::fallback_c(path), 0, &face);
 		
 		if (err) {
-			XX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
+			NX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err);
 		} else if (!face->family_name) {
-			XX_WARN("Unable to load font file \"%s\", not family name", *path);
+			NX_WARN("Unable to load font file \"%s\", not family name", *path);
 		} else {
 			
 			FT_Long num_faces = face->num_faces;
@@ -352,7 +352,7 @@ class FontPool::Inl: public FontPool {
 				if (face_index < num_faces) {
 					err = FT_New_Face(lib, Path::fallback_c(path), face_index, &face);
 					if (err) {
-						XX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
+						NX_WARN("Unable to load font file \"%s\", Freetype2 error code: %d", *path, err); break;
 					}
 				} else {
 					if (sff->fonts.length())
@@ -378,7 +378,7 @@ FontPool::FontPool(Draw* ctx)
 , m_max_glyph_texture_size(0)
 , m_display_port_scale(0)
 {
-	XX_ASSERT(m_draw_ctx);
+	NX_ASSERT(m_draw_ctx);
 	
 	FT_Init_FreeType((FT_Library*)&m_ft_lib);
 		
@@ -396,7 +396,7 @@ FontPool::FontPool(Draw* ctx)
 			// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
 			m_spare_family = m_familys["langou"];
 		} else {
-			XX_FATAL("Unable to initialize ngui font");
+			NX_FATAL("Unable to initialize ngui font");
 		}
 	}
 	
@@ -449,7 +449,7 @@ FontPool::~FontPool() {
 	FT_Done_FreeType((FT_Library)m_ft_lib); m_ft_lib = nullptr;
 	
 	if ( m_display_port ) {
-		m_display_port->XX_OFF(change, &Inl::display_port_change_handle, _inl_pool(this));
+		m_display_port->NX_OFF(change, &Inl::display_port_change_handle, _inl_pool(this));
 	}
 }
 
@@ -570,7 +570,7 @@ Font* FontPool::get_font(cString& name, TextStyleEnum style) {
  */
 FontGlyphTable* FontPool::get_table(cFFID ffid, TextStyleEnum style) {
 	
-	XX_ASSERT(ffid);
+	NX_ASSERT(ffid);
 	
 	uint code = ffid->code() + (uint)style;
 	
@@ -677,8 +677,8 @@ void FontPool::clear(bool full) {
  * @func set_display_port
  */
 void FontPool::set_display_port(DisplayPort* display_port) {
-	XX_ASSERT(!m_display_port);
-	display_port->XX_ON(change, &Inl::display_port_change_handle, _inl_pool(this));
+	NX_ASSERT(!m_display_port);
+	display_port->NX_ON(change, &Inl::display_port_change_handle, _inl_pool(this));
 	m_display_port = display_port;
 }
 
@@ -713,7 +713,7 @@ String FontPool::get_family_name(cString& path) const {
  * @func get_glyph_texture_level # 根据字体尺寸获取纹理等级
  */
 float FontPool::get_glyph_texture_size(FGTexureLevel leval) {
-	XX_ASSERT( leval < FontGlyph::LEVEL_NONE );
+	NX_ASSERT( leval < FontGlyph::LEVEL_NONE );
 	
 	const float glyph_texture_levels_size[13] = {
 		10, 12, 14, 16, 18, 20, 25, 32, 64, 128, 256, 512, 0
@@ -792,6 +792,6 @@ cFFID FontPool::get_font_familys_id(cString fonts) {
 	}
 }
 
-XX_END
+NX_END
 
 #include "font.cc.init.inl"

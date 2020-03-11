@@ -38,16 +38,16 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 using value::Repeat;
 
 /**
  * @class Sprite
  */
-class XX_EXPORT Sprite: public View {
+class NX_EXPORT Sprite: public View {
  public:
-	XX_DEFINE_GUI_VIEW(SPRITE, Sprite, sprite);
+	NX_DEFINE_GUI_VIEW(SPRITE, Sprite, sprite);
 	
 	Sprite(Vec2 size = Vec2());
 
@@ -256,9 +256,9 @@ class XX_EXPORT Sprite: public View {
 	Repeat    m_repeat;
 	Vec2      m_final_vertex[4];      //  最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif
 

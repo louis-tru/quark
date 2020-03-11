@@ -29,13 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "linux-ime-helper-1.h"
-#include "nutils/cb.h"
+#include "nxkit/cb.h"
 #include "ngui/keyboard.h"
 #include "ngui/display-port.h"
 #include <X11/keysym.h>
 #include <locale.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 extern void __dispatch_x11_async(cCb& cb); // sync to x11 main message loop
 
@@ -49,19 +49,19 @@ class LINUXIMEHelper::Inl {
 
 		char *locale = setlocale(LC_CTYPE, "");
 		if (locale == NULL) {
-			XX_ERR("Can't set locale");
+			NX_ERR("Can't set locale");
 			return nullptr;
 		}
 		DLOG("locale: %s", locale);
 
 		if (!XSupportsLocale()) {
-			XX_ERR("X does not support locale");
+			NX_ERR("X does not support locale");
 			return nullptr;
 		}
 
 		char *modifiers = XSetLocaleModifiers("");
 		if (modifiers == NULL) {
-			XX_ERR("Can't set locale modifiers");
+			NX_ERR("Can't set locale modifiers");
 			return nullptr;
 		}
 		DLOG("modifiers: %s", modifiers);
@@ -87,7 +87,7 @@ class LINUXIMEHelper::Inl {
 		m_fontset = XCreateFontSet(m_display, "*,*", 
 			&missing_list, &missing_count, &default_string);
 		if (m_fontset == NULL) {
-			XX_ERR("Can't create font set: %s", "*,*");
+			NX_ERR("Can't create font set: %s", "*,*");
 		}
 	}
 
@@ -352,7 +352,7 @@ class LINUXIMEHelper::Inl {
 	// for XIM interaction
 	void openIM()
 	{
-		XX_CHECK(!m_im);
+		NX_CHECK(!m_im);
 
 		m_im = XOpenIM(m_display, NULL, NULL, NULL);
 		if (m_im  == NULL) {
@@ -407,7 +407,7 @@ class LINUXIMEHelper::Inl {
 		if (m_im == NULL)
 			return;
 		
-		XX_CHECK(!m_ic);
+		NX_CHECK(!m_ic);
 
 		if ((m_input_style & XIMPreeditPosition) && m_fontset) {
 			XRectangle area = { 0,0,1,1 };
@@ -640,4 +640,4 @@ void LINUXIMEHelper::focus_out() {
 	m_inl->focus_out();
 }
 
-XX_END
+NX_END

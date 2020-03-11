@@ -39,14 +39,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Span
  */
-class XX_EXPORT Span: public Layout, public TextLayout {
+class NX_EXPORT Span: public Layout, public TextLayout {
  public:
-	XX_DEFINE_GUI_VIEW(SPAN, Span, span);
+	NX_DEFINE_GUI_VIEW(SPAN, Span, span);
 	
 	typedef ReferenceTraits Traits;
 
@@ -75,5 +75,5 @@ class XX_EXPORT Span: public Layout, public TextLayout {
 	
 };
 
-XX_END
+NX_END
 #endif

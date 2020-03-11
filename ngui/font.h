@@ -31,8 +31,8 @@
 #ifndef __ngui__font__
 #define __ngui__font__
 
-#include "nutils/array.h"
-#include "nutils/map.h"
+#include "nxkit/array.h"
+#include "nxkit/map.h"
 #include "ngui/draw.h"
 #include "ngui/value.h"
 
@@ -40,7 +40,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class GUIApplication;
 class DisplayPort;
@@ -57,7 +57,7 @@ typedef const FontFamilysID* cFFID;
 /**
  * @class FontFamilysID
  */
-class XX_EXPORT FontFamilysID {
+class NX_EXPORT FontFamilysID {
  public:
 	inline const Array<String>& names() const { return m_names; }
 	inline cString& name() const { return m_name; }
@@ -70,14 +70,14 @@ class XX_EXPORT FontFamilysID {
 	String          m_name;
 	uint            m_code;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class FontPool;
 };
 
 /**
  * @class BasicFont
  */
-class XX_EXPORT BasicFont: public Object {
+class NX_EXPORT BasicFont: public Object {
  public:
 	virtual cString& name() const = 0;
 	virtual Font* font(TextStyleEnum style= TextStyleEnum::REGULAR) = 0;
@@ -87,8 +87,8 @@ class XX_EXPORT BasicFont: public Object {
  * @class Font 矢量字体
  * 暂时只支持unicode编码中第0平面最常用的编码(0x0000-0xFFFF)
  */
-class XX_EXPORT Font: public BasicFont {
-	XX_HIDDEN_ALL_COPY(Font);
+class NX_EXPORT Font: public BasicFont {
+	NX_HIDDEN_ALL_COPY(Font);
  protected:
 
 	inline Font() { }
@@ -199,7 +199,7 @@ class XX_EXPORT Font: public BasicFont {
 	void*         m_ft_lib;       /* FT_Library */
 	void*         m_ft_face;      /* FT_Face */
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class FontGlyph;
 	friend class FontGlyphTable;
@@ -210,7 +210,7 @@ class XX_EXPORT Font: public BasicFont {
 /**
  * @class FontGlyph # 字体中一个文字的字型轮廓
  */
-class XX_EXPORT FontGlyph {
+class NX_EXPORT FontGlyph {
  public:
 	
 	/**
@@ -287,7 +287,7 @@ class XX_EXPORT FontGlyph {
 	 * @func has_tex_level
 	 */
 	inline bool has_texure_level(TexureLevel level) {
-		XX_ASSERT(level < LEVEL_NONE);
+		NX_ASSERT(level < LEVEL_NONE);
 		return m_textures[level];
 	}
 	
@@ -320,7 +320,7 @@ class XX_EXPORT FontGlyph {
 /**
  * @class FontGlyphTable
  */
-class XX_EXPORT FontGlyphTable: public Object {
+class NX_EXPORT FontGlyphTable: public Object {
  public:
 	
 	virtual ~FontGlyphTable();
@@ -383,7 +383,7 @@ class XX_EXPORT FontGlyphTable: public Object {
 	int           m_ascender;
 	int           m_descender;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class FontPool;
 };
@@ -391,8 +391,8 @@ class XX_EXPORT FontGlyphTable: public Object {
 /**
  * @class FontFamily 字体家族
  */
-class XX_EXPORT FontFamily: public BasicFont {
-	XX_HIDDEN_ALL_COPY(FontFamily);
+class NX_EXPORT FontFamily: public BasicFont {
+	NX_HIDDEN_ALL_COPY(FontFamily);
  public:
 	
 	/**
@@ -424,15 +424,15 @@ class XX_EXPORT FontFamily: public BasicFont {
 	Font*         m_fonts[19];
 	Array<Font*>  m_all_fonts;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class FontPool;
 };
 
 /**
  * @class FontPool 加载与管理所有字体、字型、字型表, 并在系统内存不足时能自动清理使用频率不高的字型数据
  */
-class XX_EXPORT FontPool: public Object {
-	XX_HIDDEN_ALL_COPY(FontPool);
+class NX_EXPORT FontPool: public Object {
+	NX_HIDDEN_ALL_COPY(FontPool);
  public:
 	
 	FontPool(Draw* ctx);
@@ -550,7 +550,7 @@ class XX_EXPORT FontPool: public Object {
 	 */
 	static cFFID get_font_familys_id(cString fonts);
 	
-	struct XX_EXPORT SimpleFont {
+	struct NX_EXPORT SimpleFont {
 		String  name;
 		TextStyleEnum style;
 		uint    num_glyphs;
@@ -562,7 +562,7 @@ class XX_EXPORT FontPool: public Object {
 		int     underline_thickness;
 	};
 	
-	struct XX_EXPORT SimpleFontFamily {
+	struct NX_EXPORT SimpleFontFamily {
 		typedef NonObjectTraits Traits;
 		String path;
 		String family;
@@ -600,7 +600,7 @@ class XX_EXPORT FontPool: public Object {
 	float                       m_max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
 	float                       m_display_port_scale;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class Font;
 	friend class FontGlyphTable;
@@ -609,5 +609,5 @@ class XX_EXPORT FontPool: public Object {
 	friend class GLDraw;
 };
 
-XX_END
+NX_END
 #endif

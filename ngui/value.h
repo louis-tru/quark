@@ -31,15 +31,15 @@
 #ifndef __ngui__value__
 #define __ngui__value__
 
-#include "nutils/util.h"
-#include "nutils/array.h"
+#include "nxkit/util.h"
+#include "nxkit/array.h"
 #include "ngui/mathe.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class FontFamilysID;
 
@@ -125,7 +125,7 @@ namespace value {
 	/**
 	 * @enum KeyboardType
 	 */
-#define XX_KEYBOARD_TYPE(F) \
+#define NX_KEYBOARD_TYPE(F) \
 	F(KeyboardType, NORMAL) \
 	F(KeyboardType, ASCII) \
 	F(KeyboardType, NUMBER) \
@@ -142,7 +142,7 @@ namespace value {
 	/**
 	 * @enum KeyboardReturnType
 	 */
-#define XX_KEYBOARD_RETURN_TYPE(F) \
+#define NX_KEYBOARD_RETURN_TYPE(F) \
 	F(KeyboardReturnType, NORMAL) \
 	F(KeyboardReturnType, GO) \
 	F(KeyboardReturnType, JOIN) \
@@ -157,7 +157,7 @@ namespace value {
 	/**
 	 * @enum Direction
 	 */
-#define XX_DIRECTION(F) \
+#define NX_DIRECTION(F) \
 	F(Direction, NONE) \
 	F(Direction, LEFT) \
 	F(Direction, RIGHT) \
@@ -167,7 +167,7 @@ namespace value {
 	/**
 	 * @enum ValueType
 	 */
-#define XX_VALUE_TYPE(F) \
+#define NX_VALUE_TYPE(F) \
  F(ValueType, AUTO)    /* 自动值  auto */ \
  F(ValueType, FULL)    /* 吸附到父视图(client边距与父视图重叠) full */ \
  F(ValueType, PIXEL)   /* 像素值  px */ \
@@ -177,7 +177,7 @@ namespace value {
 	/**
 	 * @enum BackgroundPositionType
 	 */
-#define XX_BACKGROUND_POSITION_TYPE(F) \
+#define NX_BACKGROUND_POSITION_TYPE(F) \
 	F(ValueType, PIXEL)     /* 像素值  px */ \
 	F(ValueType, PERCENT)   /* 百分比  % */ \
 	F(ValueType, LEFT)      /* 居左 */ \
@@ -189,7 +189,7 @@ namespace value {
 	/**
 	 * @enum BackgroundSizeType
 	 */
-#define XX_BACKGROUND_SIZE_TYPE(F) \
+#define NX_BACKGROUND_SIZE_TYPE(F) \
 	F(ValueType, AUTO)      /* 自动值  auto */ \
 	F(ValueType, PIXEL)     /* 像素值  px */ \
 	F(ValueType, PERCENT)   /* 百分比  % */ \
@@ -197,14 +197,14 @@ namespace value {
 	/**
 	 * @enum TextValueType
 	 */
-#define XX_TEXT_VALUE_TYPE(F) \
+#define NX_TEXT_VALUE_TYPE(F) \
 	F(TextValueType, INHERIT) \
 	F(TextValueType, VALUE) \
 
 	/**
 	 * @enum TextStyleEnum
 	 */
-#define XX_TEXT_STYLE_ENUM(F) \
+#define NX_TEXT_STYLE_ENUM(F) \
 	F(TextStyleEnum, THIN) \
 	F(TextStyleEnum, ULTRALIGHT) \
 	F(TextStyleEnum, LIGHT) \
@@ -228,19 +228,19 @@ namespace value {
 	/**
 	 * @enum TextDecorationEnum
 	 */
-#define XX_TEXT_DECORATION_ENUM(F) \
+#define NX_TEXT_DECORATION_ENUM(F) \
 	F(TextDecoration, NONE)           /* 没有 */ \
 	F(TextDecoration, OVERLINE)       /* 上划线 */ \
 	F(TextDecoration, LINE_THROUGH)   /* 中划线 */ \
 	F(TextDecoration, UNDERLINE)      /* 下划线 */ \
 	
-#define XX_TEXT_OVERFLOW_ENUM(F) \
+#define NX_TEXT_OVERFLOW_ENUM(F) \
 	F(TextOverflowEnum, NORMAL)          /* 不做任何处理 */ \
 	F(TextOverflowEnum, CLIP)            /* 剪切 */ \
 	F(TextOverflowEnum, ELLIPSIS)        /* 剪切并显示省略号 */ \
 	F(TextOverflowEnum, CENTER_ELLIPSIS) /* 剪切并居中显示省略号 */ \
 	
-#define XX_TEXT_WHITE_SPACE_ENUM(F) \
+#define NX_TEXT_WHITE_SPACE_ENUM(F) \
 	F(TextWhiteSpaceEnum, NORMAL)           /* 保留所有空白,使用自动wrap */ \
 	F(TextWhiteSpaceEnum, NO_WRAP)          /* 合并空白序列,不使用自动wrap */ \
 	F(TextWhiteSpaceEnum, NO_SPACE)         /* 合并空白序列,使用自动wrap */ \
@@ -251,7 +251,7 @@ namespace value {
 	/**
 	 * @enum TextAlign 文本对齐方式
 	 */
-#define XX_TEXT_ALIGN(F) \
+#define NX_TEXT_ALIGN(F) \
 	F(TextAlign, LEFT)           /* 左对齐 */ \
 	F(TextAlign, CENTER)         /* 居中 */ \
 	F(TextAlign, RIGHT)          /* 右对齐 */ \
@@ -262,7 +262,7 @@ namespace value {
 	/**
 	 * @enum Align 对齐方式
 	 */
-#define XX_ALIGN(F) \
+#define NX_ALIGN(F) \
 	F(Align, NONE) \
 	F(Align, LEFT) \
 	F(Align, RIGHT) \
@@ -273,7 +273,7 @@ namespace value {
 	/**
 	 * @enum ContentAlign div 内容对齐方式
 	 */
-#define XX_CONTENT_ALIGN(F) \
+#define NX_CONTENT_ALIGN(F) \
 	F(ContentAlign, LEFT)    /* 水平左对齐 */ \
 	F(ContentAlign, RIGHT)   /* 水平右对齐 */ \
 	F(ContentAlign, TOP)     /* 垂直上对齐 */ \
@@ -282,7 +282,7 @@ namespace value {
 	/**
 	 * @enum Repeat 纹理重复方式
 	 */
-#define XX_REPEAT(F) \
+#define NX_REPEAT(F) \
 	F(Repeat, NONE) \
 	F(Repeat, REPEAT) \
 	F(Repeat, REPEAT_X) \
@@ -299,63 +299,63 @@ namespace value {
 	};
 	
 	enum class KeyboardType: byte {
-		XX_KEYBOARD_TYPE(DEF_ENUM)
+		NX_KEYBOARD_TYPE(DEF_ENUM)
 	};
 
 	enum class KeyboardReturnType: byte {
-		XX_KEYBOARD_RETURN_TYPE(DEF_ENUM)
+		NX_KEYBOARD_RETURN_TYPE(DEF_ENUM)
 	};
 
 	enum class Direction: byte {
-		XX_DIRECTION(DEF_ENUM)
+		NX_DIRECTION(DEF_ENUM)
 	};
 
 	enum class ValueType: byte {
-		XX_VALUE_TYPE(DEF_ENUM)
+		NX_VALUE_TYPE(DEF_ENUM)
 	};
 
 	enum class BackgroundPositionType: byte {
-		XX_BACKGROUND_POSITION_TYPE(DEF_ENUM)
+		NX_BACKGROUND_POSITION_TYPE(DEF_ENUM)
 	};
 	
 	enum class BackgroundSizeType: byte {
-		XX_BACKGROUND_SIZE_TYPE(DEF_ENUM)
+		NX_BACKGROUND_SIZE_TYPE(DEF_ENUM)
 	};
 	
 	enum class TextValueType: byte {
-		XX_TEXT_VALUE_TYPE(DEF_ENUM)
+		NX_TEXT_VALUE_TYPE(DEF_ENUM)
 	};
 
 	enum class TextStyleEnum: byte {
-		XX_TEXT_STYLE_ENUM(DEF_ENUM)
+		NX_TEXT_STYLE_ENUM(DEF_ENUM)
 	};
 
 	enum class TextDecorationEnum: byte {
-		XX_TEXT_DECORATION_ENUM(DEF_ENUM)
+		NX_TEXT_DECORATION_ENUM(DEF_ENUM)
 	};
 	
 	enum class TextOverflowEnum: byte {
-		XX_TEXT_OVERFLOW_ENUM(DEF_ENUM)
+		NX_TEXT_OVERFLOW_ENUM(DEF_ENUM)
 	};
 	
 	enum class TextWhiteSpaceEnum: byte {
-		XX_TEXT_WHITE_SPACE_ENUM(DEF_ENUM)
+		NX_TEXT_WHITE_SPACE_ENUM(DEF_ENUM)
 	};
 
 	enum class TextAlign: byte {
-		XX_TEXT_ALIGN(DEF_ENUM)
+		NX_TEXT_ALIGN(DEF_ENUM)
 	};
 
 	enum class Align: byte {
-		XX_ALIGN(DEF_ENUM)
+		NX_ALIGN(DEF_ENUM)
 	};
 
 	enum class ContentAlign: byte {
-		XX_CONTENT_ALIGN(DEF_ENUM)
+		NX_CONTENT_ALIGN(DEF_ENUM)
 	};
 	
 	enum class Repeat: byte {
-		XX_REPEAT(DEF_ENUM)
+		NX_REPEAT(DEF_ENUM)
 	};
 
 	#undef DEF_ENUM_VALUE
@@ -375,7 +375,7 @@ namespace value {
 	/**
 	 * @struct Border
 	 */
-	struct XX_EXPORT Border {
+	struct NX_EXPORT Border {
 		float width;
 		Color color;
 		inline Border(float w = 0,
@@ -386,7 +386,7 @@ namespace value {
 	/**
 	 * @struct Shadow
 	 */
-	struct XX_EXPORT Shadow {
+	struct NX_EXPORT Shadow {
 		float   offset_x;
 		float   offset_y;
 		float   size;
@@ -401,7 +401,7 @@ namespace value {
 	 * @struct ValueTemplate
 	 */
 	template<typename Type, Type TypeInit, typename Value = float>
-	struct XX_EXPORT ValueTemplate {
+	struct NX_EXPORT ValueTemplate {
 		Type type;
 		Value value;
 		inline bool operator==(const ValueTemplate& val) const {
@@ -428,7 +428,7 @@ namespace value {
 	/**
 	 * @struct TextColor
 	 */
-	struct XX_EXPORT TextColor {
+	struct NX_EXPORT TextColor {
 		TextValueType type;
 		Color value;
 	};
@@ -436,7 +436,7 @@ namespace value {
 	/**
 	 * @struct TextSize
 	 */
-	struct XX_EXPORT TextSize {
+	struct NX_EXPORT TextSize {
 		TextValueType type;
 		float value;
 	};
@@ -444,7 +444,7 @@ namespace value {
 	/**
 	 * @struct TextFamily
 	 */
-	struct XX_EXPORT TextFamily {
+	struct NX_EXPORT TextFamily {
 		TextFamily(TextValueType type = TextValueType::INHERIT);
 		TextFamily(TextValueType type, const FontFamilysID* cffid);
 		TextValueType type;
@@ -456,7 +456,7 @@ namespace value {
 	/**
 	 * @struct TextStyle
 	 */
-	struct XX_EXPORT TextStyle {
+	struct NX_EXPORT TextStyle {
 		TextValueType type;
 		TextStyleEnum value;
 	};
@@ -464,7 +464,7 @@ namespace value {
 	/**
 	 * @struct TextShadow
 	 */
-	struct XX_EXPORT TextShadow {
+	struct NX_EXPORT TextShadow {
 		TextValueType type;
 		Shadow  value;
 	};
@@ -472,7 +472,7 @@ namespace value {
 	/**
 	 * @struct TextLineHeightValue
 	 */
-	struct XX_EXPORT TextLineHeightValue {
+	struct NX_EXPORT TextLineHeightValue {
 		float height;
 		inline void set_auto() { height = 0; }
 		inline bool is_auto() const { return height <= 0; }
@@ -487,7 +487,7 @@ namespace value {
 	/**
 	 * @struct TextLineHeight
 	 */
-	struct XX_EXPORT TextLineHeight {
+	struct NX_EXPORT TextLineHeight {
 		TextValueType  type;
 		TextLineHeightValue value;
 	};
@@ -495,7 +495,7 @@ namespace value {
 	/**
 	 * @struct TextDecoration
 	 */
-	struct XX_EXPORT TextDecoration {
+	struct NX_EXPORT TextDecoration {
 		TextValueType  type;
 		TextDecorationEnum  value;
 	};
@@ -503,7 +503,7 @@ namespace value {
 	/**
 	 * @struct TextOverflow
 	 */
-	struct XX_EXPORT TextOverflow {
+	struct NX_EXPORT TextOverflow {
 		TextValueType  type;
 		TextOverflowEnum  value;
 	};
@@ -511,7 +511,7 @@ namespace value {
 	/**
 	 * @struct TextWhiteSpace
 	 */
-	struct XX_EXPORT TextWhiteSpace {
+	struct NX_EXPORT TextWhiteSpace {
 		TextValueType  type;
 		TextWhiteSpaceEnum  value;
 	};
@@ -551,5 +551,5 @@ using value::TextDecoration;
 using value::TextOverflow;
 using value::TextWhiteSpace;
 
-XX_END
+NX_END
 #endif

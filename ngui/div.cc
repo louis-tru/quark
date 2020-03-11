@@ -31,13 +31,13 @@
 #include "div.h"
 #include "hybrid.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 extern void _view_inl__safe_delete_mark(View* view);
 extern void _box_inl__solve_final_horizontal_size_with_full_width(Box* box, float parent);
 extern void _box_inl__solve_final_vertical_size_with_full_height(Box* box, float parent);
 
-XX_DEFINE_INLINE_MEMBERS(Div, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Div, Inl) {
 public:
 	
 	void set_layout_three_times2(bool horizontal) {
@@ -159,7 +159,7 @@ void Div::set_layout_three_times(bool horizontal, bool hybrid) {
 	
 	if ( !m_visible ) { return; }
 	
-	XX_ASSERT(m_parent_layout);
+	NX_ASSERT(m_parent_layout);
 	
 	if ( horizontal ) { // horizontal layout
 		
@@ -173,7 +173,7 @@ void Div::set_layout_three_times(bool horizontal, bool hybrid) {
 				mark_pre(M_SHAPE);
 				
 				if ( hybrid ) { // update row offset
-					XX_ASSERT( m_linenum != -1 );
+					NX_ASSERT( m_linenum != -1 );
 					static_cast<Hybrid*>(m_parent_layout)->m_rows[m_linenum].offset_end.x(m_offset_end.x());
 				}
 				
@@ -201,4 +201,4 @@ void Div::set_layout_three_times(bool horizontal, bool hybrid) {
 	}
 }
 
-XX_END
+NX_END

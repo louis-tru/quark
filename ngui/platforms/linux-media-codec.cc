@@ -30,7 +30,7 @@
 
 #include "ngui/media-codec-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class LinuxHardwareMediaCodec
@@ -61,4 +61,4 @@ MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
 	return nullptr;
 }
 
-XX_END
+NX_END

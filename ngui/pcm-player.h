@@ -31,14 +31,14 @@
 #ifndef __ngui__pcm_player__
 #define __ngui__pcm_player__
 
-#include "nutils/util.h"
-#include "nutils/buffer.h"
+#include "nxkit/util.h"
+#include "nxkit/buffer.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class PCMPlayer
@@ -83,5 +83,5 @@ class PCMPlayer: public Protocol {
 
 };
 
-XX_END
+NX_END
 #endif

@@ -31,7 +31,7 @@
 #include "ngui/image-codec.h"
 #include <png.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 struct PngDataSource {
 	cBuffer* buff;
@@ -176,4 +176,4 @@ Buffer PNGImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-XX_END
+NX_END

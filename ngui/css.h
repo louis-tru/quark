@@ -31,15 +31,15 @@
 #ifndef __ngui__css__
 #define __ngui__css__
 
-#include "nutils/util.h"
-#include "nutils/map.h"
-#include "nutils/string.h"
-#include "nutils/list.h"
+#include "nxkit/util.h"
+#include "nxkit/map.h"
+#include "nxkit/string.h"
+#include "nxkit/list.h"
 #include "ngui/property.h"
 #include "ngui/value.h"
 #include "ngui/action.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class StyleSheets;
 class CSSViewClasss;
@@ -53,7 +53,7 @@ enum CSSPseudoClass { // pseudo class
 	CSS_PSEUDO_CLASS_DOWN,
 };
 
-class XX_EXPORT CSSName {
+class NX_EXPORT CSSName {
  public:
 	CSSName(const Array<String>& classs);
 	CSSName(cString& name);
@@ -67,8 +67,8 @@ class XX_EXPORT CSSName {
 /**
  * @class StyleSheets
  */
-class XX_EXPORT StyleSheets: public Object {
-	XX_HIDDEN_ALL_COPY(StyleSheets);
+class NX_EXPORT StyleSheets: public Object {
+	NX_HIDDEN_ALL_COPY(StyleSheets);
  protected:
 	
 	StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClass pseudo);
@@ -81,7 +81,7 @@ class XX_EXPORT StyleSheets: public Object {
  public:
 	typedef KeyframeAction::Frame Frame;
 	
-	class XX_EXPORT Property {
+	class NX_EXPORT Property {
 	public:
 		virtual ~Property() = default;
 		virtual void assignment(View* view) = 0;
@@ -91,7 +91,7 @@ class XX_EXPORT StyleSheets: public Object {
 	// -------------------- set property --------------------
 	
 # define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
-	XX_EACH_PROPERTY_TABLE(xx_def_property)
+	NX_EACH_PROPERTY_TABLE(xx_def_property)
 # undef xx_def_property
 	
 	/**
@@ -181,15 +181,15 @@ class XX_EXPORT StyleSheets: public Object {
 	bool           m_is_support_pseudo; // m_NORMAL | m_HOVER | m_DOWN
 	CSSPseudoClass m_pseudo;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class CSSManager;
 };
 
 /**
  * @class CSSViewClasss
  */
-class XX_EXPORT CSSViewClasss: public Object {
-	XX_HIDDEN_ALL_COPY(CSSViewClasss);
+class NX_EXPORT CSSViewClasss: public Object {
+	NX_HIDDEN_ALL_COPY(CSSViewClasss);
  public:
 	CSSViewClasss(View* host);
 	
@@ -260,14 +260,14 @@ class XX_EXPORT CSSViewClasss: public Object {
 	bool            m_once_apply;             // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
 	CSSPseudoClass  m_multiple_status;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
  * @class StyleSheetsScope
  */
-class XX_EXPORT StyleSheetsScope: public Object {
-	XX_HIDDEN_ALL_COPY(StyleSheetsScope);
+class NX_EXPORT StyleSheetsScope: public Object {
+	NX_HIDDEN_ALL_COPY(StyleSheetsScope);
  public:
 	struct Scope {
 		struct Wrap {
@@ -294,7 +294,7 @@ class XX_EXPORT StyleSheetsScope: public Object {
 /**
  * @class RootStyleSheets
  */
-class XX_EXPORT RootStyleSheets: public StyleSheets {
+class NX_EXPORT RootStyleSheets: public StyleSheets {
  public:
 	
 	RootStyleSheets();
@@ -316,13 +316,13 @@ class XX_EXPORT RootStyleSheets: public StyleSheets {
 	Map<uint, int>  m_all_css_names;
 	Map<uint, Array<uint>>  m_css_query_group_cache;
 
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_INLINE RootStyleSheets* root_styles() { 
+NX_INLINE RootStyleSheets* root_styles() { 
 	return RootStyleSheets::shared(); 
 }
 
-XX_END
+NX_END
 
 #endif

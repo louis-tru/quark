@@ -29,13 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/pcm-player.h"
-#include "nutils/handle.h"
-#include "nutils/string.h"
+#include "nxkit/handle.h"
+#include "nxkit/string.h"
 #include <alsa/asoundlib.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define DEFAULT_PCM_PERIOD_SIZE 4096
 #define DEFAULT_PCM_PERIODS 3
@@ -176,7 +176,7 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 
 	virtual bool set_volume(uint value) {
 		float fvalue = value / 100.0;
-		fvalue = XX_MIN(1.0, fvalue);
+		fvalue = NX_MIN(1.0, fvalue);
 		if (fvalue != m_volume || m_mute) {
 			if (!set_volume2(fvalue)) {
 				return false;
@@ -216,4 +216,4 @@ PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 	return NULL;
 }
 
-XX_END
+NX_END

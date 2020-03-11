@@ -32,6 +32,6 @@
 
 using namespace ngui::js;
 
-XX_GUI_MAIN() {
+NX_GUI_MAIN() {
 	return Start(argc, argv);
 }

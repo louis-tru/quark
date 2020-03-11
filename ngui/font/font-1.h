@@ -35,12 +35,12 @@
 #include <freetype/freetype.h>
 #include <freetype/ftoutln.h>
 #include <tesselator.h>
-#include "nutils/fs.h"
+#include "nxkit/fs.h"
 #include "ngui/font.h"
 #include "ngui/bezier.h"
 #include "ngui/draw.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef FontGlyph::TexureLevel FGTexureLevel;
 
@@ -184,5 +184,5 @@ public:
 	
 };
 
-XX_END
+NX_END
 #endif

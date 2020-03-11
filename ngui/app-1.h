@@ -37,9 +37,9 @@
  * @ns trurh::gui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
+NX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
  public:
 	struct KeyboardOptions {
 		bool               is_clear;
@@ -138,6 +138,6 @@ class RenderLooper {
 
 void safeExit(int rc);
 
-XX_END
+NX_END
 
 #endif

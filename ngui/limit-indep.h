@@ -38,14 +38,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class LimitIndep
  */
-class XX_EXPORT LimitIndep: public Indep {
+class NX_EXPORT LimitIndep: public Indep {
  public:
-	XX_DEFINE_GUI_VIEW(LIMIT_INDEP, LimitIndep, limit_indep);
+	NX_DEFINE_GUI_VIEW(LIMIT_INDEP, LimitIndep, limit_indep);
 	
 	friend class Limit::Inl<LimitIndep>;
 	
@@ -113,5 +113,5 @@ class XX_EXPORT LimitIndep: public Indep {
 	
 };
 
-XX_END
+NX_END
 #endif

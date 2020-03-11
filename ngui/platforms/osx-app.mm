@@ -31,7 +31,7 @@
 // ******************** U n r e a l i z e d ********************
 
 #import <AppKit/AppKit.h>
-#import "nutils/loop.h"
+#import "nxkit/loop.h"
 #import "mac-app.h"
 #import "osx-gl-1.h"
 #import "ngui/app.h"
@@ -184,8 +184,8 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
 	cJSON& o_b = options["background"];
 	cJSON& o_t = options["title"];
 	
-	if (o_w.is_uint()) _width = XX_MAX(1, o_w.to_uint());
-	if (o_h.is_uint()) _height = XX_MAX(1, o_h.to_uint());
+	if (o_w.is_uint()) _width = NX_MAX(1, o_w.to_uint());
+	if (o_h.is_uint()) _height = NX_MAX(1, o_h.to_uint());
 	if (o_x.is_uint()) _x = o_x.to_uint();
 	if (o_y.is_uint()) _y = o_y.to_uint();
 	if (o_t.is_string()) _title = o_t.to_string();
@@ -216,7 +216,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 		self.render_task_count++;
 		_app->render_loop()->post(_render_exec);
 	} else {
-		 XX_DEBUG("miss frame");
+		 NX_DEBUG("miss frame");
 	}
 }
 
@@ -244,7 +244,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 	if (_loaded && !_is_background) {
 		[self pause];
 		_is_background = YES;
-		XX_DEBUG("onBackground");
+		NX_DEBUG("onBackground");
 		_inl_app(_app)->onBackground();
 	}
 }
@@ -252,7 +252,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 - (void)foreground {
 	if (_loaded && _is_background) {
 		_is_background = NO;
-		XX_DEBUG("onForeground");
+		NX_DEBUG("onForeground");
 		_inl_app(_app)->onForeground();
 		[self resume];
 	}
@@ -260,7 +260,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 
 - (void)pause {
 	if (_loaded && !_is_pause) {
-		XX_DEBUG("onPause");
+		NX_DEBUG("onPause");
 		_is_pause = YES;
 		_inl_app(_app)->onPause();
 	}
@@ -268,7 +268,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 
 - (void)resume {
 	if (_loaded && _is_pause) {
-		XX_DEBUG("onResume");
+		NX_DEBUG("onResume");
 		_is_pause = NO;
 		_inl_app(_app)->onResume();
 		[self refresh_surface_size];
@@ -295,10 +295,10 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
 	UIApplication* app = UIApplication.sharedApplication;
-	XX_ASSERT(!app_delegate);
+	NX_ASSERT(!app_delegate);
 	app_delegate = self;
 	_app = Inl_GUIApplication(GUIApplication::shared());
-	XX_ASSERT(_app);
+	NX_ASSERT(_app);
 	
 	UIScreen* screen = UIScreen.mainScreen;
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
@@ -382,12 +382,12 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 }
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
-	XX_DEBUG("applicationWillTerminate");
+	NX_DEBUG("applicationWillTerminate");
 	_inl_app(_app)->onUnload();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-	XX_DEBUG("exit application");
+	NX_DEBUG("exit application");
 	return YES;
 }
 
@@ -443,9 +443,9 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	XX_ASSERT(!app_options);
+	NX_ASSERT(!app_options);
 	app_options = [[ApplicationOptions alloc] init:options];
-	XX_ASSERT(!gl_draw_context);
+	NX_ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
 }
@@ -549,7 +549,7 @@ Orientation DisplayPort::orientation() {
 void DisplayPort::set_orientation(Orientation orientation) {
 }
 
-extern "C" XX_EXPORT int main(int argc, char* argv[]) {
+extern "C" NX_EXPORT int main(int argc, char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start GUI Application ************/

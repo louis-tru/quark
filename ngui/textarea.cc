@@ -32,7 +32,7 @@
 #include "display-port.h"
 #include "app-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 Textarea::Textarea(): Input(), BasicScroll(this) {
 	
@@ -121,4 +121,4 @@ void Textarea::set_draw_visible() {
 		compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
 }
 
-XX_END
+NX_END

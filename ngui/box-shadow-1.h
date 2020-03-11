@@ -37,14 +37,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class BoxShadow
  */
-class XX_EXPORT BoxShadow: public Div {
+class NX_EXPORT BoxShadow: public Div {
  public:
-	XX_DEFINE_GUI_VIEW(BOX_SHADOW, BoxShadow, shadow);
+	NX_DEFINE_GUI_VIEW(BOX_SHADOW, BoxShadow, shadow);
 	
 	BoxShadow();
 	
@@ -110,5 +110,5 @@ class XX_EXPORT BoxShadow: public Div {
 	Shadow m_shadow;
 };
 
-XX_END
+NX_END
 #endif

@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/image-codec.h"
-#include "nutils/string.h"
+#include "nxkit/string.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 ImageCodec* tga_image_codec = nullptr;
 ImageCodec* jpeg_image_codec = nullptr;
@@ -193,4 +193,4 @@ ImageCodec* ImageCodec::shared(ImageFormat format) {
 	}
 }
 
-XX_END
+NX_END

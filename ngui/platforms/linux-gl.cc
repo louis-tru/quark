@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/util.h"
+#include "nxkit/util.h"
 #include "ngui/app-1.h"
 #include "ngui/display-port.h"
 #include "linux-gl-1.h"
 #include "native-glsl.h"
-#if XX_ANDROID
+#if NX_ANDROID
 # include "android/android.h"
 #include <android/native_window.h>
 #endif
@@ -44,9 +44,9 @@
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-#if !XX_ANDROID
+#if !NX_ANDROID
 extern Vec2 __get_window_size();
 extern Display* __get_x11_display();
 #endif
@@ -54,15 +54,15 @@ extern Display* __get_x11_display();
 static EGLDisplay egl_display() {
 	static EGLDisplay display = EGL_NO_DISPLAY;
 	if ( display == EGL_NO_DISPLAY ) { // get display and init it
-#if XX_ANDROID
+#if NX_ANDROID
 			display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 #else
 			display = eglGetDisplay(__get_x11_display());
 #endif
-		XX_DEBUG("eglGetDisplay, %p", display);
-		XX_ASSERT(display != EGL_NO_DISPLAY);
+		NX_DEBUG("eglGetDisplay, %p", display);
+		NX_ASSERT(display != EGL_NO_DISPLAY);
 		EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-		XX_CHECK(displayState, "Cannot initialize EGL");
+		NX_CHECK(displayState, "Cannot initialize EGL");
 	}
 	return display;
 }
@@ -76,7 +76,7 @@ static EGLConfig egl_config(
 
 	cJSON& msample = options["multisample"];
 	if (msample.is_uint()) 
-		multisample = XX_MAX(msample.to_uint(), 0);
+		multisample = NX_MAX(msample.to_uint(), 0);
 
 	// choose configuration
 	EGLint attribs[] = {
@@ -98,7 +98,7 @@ static EGLConfig egl_config(
 
 	// first we get size of all configurations
 	chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
-	XX_ASSERT(chooseConfigState);
+	NX_ASSERT(chooseConfigState);
 
 	if ( numConfigs == 0 ) {
 		// attempt disable multi sample
@@ -106,14 +106,14 @@ static EGLConfig egl_config(
 		attribs[19] = 0;
 		multisample = 0;
 		chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
-		XX_ASSERT(chooseConfigState);
+		NX_ASSERT(chooseConfigState);
 		
 		if (numConfigs == 0) {
-			XX_FATAL("We can't have EGLConfig array with zero size!");
+			NX_FATAL("We can't have EGLConfig array with zero size!");
 		}
 	}
 
-	XX_DEBUG("numConfigs,%d", numConfigs);
+	NX_DEBUG("numConfigs,%d", numConfigs);
 
 	// then we create array large enough to store all configs
 	ArrayBuffer<EGLConfig> supportedConfigs(numConfigs);
@@ -121,10 +121,10 @@ static EGLConfig egl_config(
 	// and load them
 	chooseConfigState = eglChooseConfig(display, attribs, 
 																			*supportedConfigs, numConfigs, &numConfigs);
-	XX_ASSERT(chooseConfigState);
+	NX_ASSERT(chooseConfigState);
 
 	if ( numConfigs == 0 ) {
-		XX_FATAL("Value of `numConfigs` must be positive");
+		NX_FATAL("Value of `numConfigs` must be positive");
 	}
 
 	EGLint configIndex = 0;
@@ -144,7 +144,7 @@ static EGLConfig egl_config(
 			&& (multisample <= 1 || sa >= multisample)
 		;
 		if ( hasMatch ) {
-			XX_DEBUG("hasMatch,%d", configIndex);
+			NX_DEBUG("hasMatch,%d", configIndex);
 			config = supportedConfigs[configIndex];
 			break;
 		}
@@ -223,7 +223,7 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 	} else {
 		ctx_attrs[1] = 2; // opengl es 2
 		ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-		XX_ASSERT(ctx);
+		NX_ASSERT(ctx);
 
 		rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 															 multisample_ok,
@@ -310,7 +310,7 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 
 void GLDrawProxy::initialize() {
 	m_host->initialize();
-#if XX_ANDROID
+#if NX_ANDROID
 	m_host->set_best_display_scale(Android::get_display_scale());
 #else 
 	m_host->set_best_display_scale(1.0 / DisplayPort::default_atom_pixel());
@@ -319,7 +319,7 @@ void GLDrawProxy::initialize() {
 }
 
 static Vec2 get_window_size(EGLNativeWindowType win) {
-#if XX_ANDROID
+#if NX_ANDROID
 	return Vec2(ANativeWindow_getWidth(win), ANativeWindow_getHeight(win));
 #else 
 	return __get_window_size();
@@ -327,12 +327,12 @@ static Vec2 get_window_size(EGLNativeWindowType win) {
 }
 
 bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-	XX_ASSERT(!m_window);
-	XX_ASSERT(!m_surface);
+	NX_ASSERT(!m_window);
+	NX_ASSERT(!m_surface);
 	EGLSurface surface = eglCreateWindowSurface(m_display, m_config, window, nullptr);
 
 	if ( !surface ) {
-		XX_ERR("Unable to create a drawing surface");
+		NX_ERR("Unable to create a drawing surface");
 		return false;
 	}
 
@@ -340,14 +340,14 @@ bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
 
  #define CHECK(ok) \
 	if ( !(ok) ) { \
-		XX_ERR("Unable to make egl current"); \
+		NX_ERR("Unable to make egl current"); \
 		eglDestroySurface(m_display, surface); \
 		return false; \
 	}
 
 	// m_host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 	// 	ok = eglMakeCurrent(m_display, surface, surface, m_context);
-	// 	XX_CHECK(ok);
+	// 	NX_CHECK(ok);
 	// }));
 	// CHECK(ok);
 	
@@ -362,7 +362,7 @@ bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
 
 void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 	if ( m_window ) {
-		XX_ASSERT(window == m_window);
+		NX_ASSERT(window == m_window);
 		if (m_surface) {
 			eglDestroySurface(m_display, m_surface);
 		}
@@ -397,7 +397,7 @@ void GLDrawProxy::refresh_surface_size(CGRect* rect) {
 
 void GLDrawProxy::refresh_virtual_keyboard_rect() {
 	// draw android virtual keyboard rect
-#if XX_ANDROID
+#if NX_ANDROID
 	m_virtual_keys_rect = CGRect();
 
 	Vec2 scale = m_host->host()->display_port()->scale_value();
@@ -440,13 +440,13 @@ void GLDrawProxy::refresh_buffer() {
 
 	// Test the framebuffer for completeness.
 	if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-		XX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+		NX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 	}
 
 	// Retrieve the height and width of the color renderbuffer.
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-	XX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+	NX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 }
 
 void GLDrawProxy::begin_render() {
@@ -498,4 +498,4 @@ void GLDrawProxy::initializ_gl_buffers() {
 	}
 }
 
-XX_END
+NX_END

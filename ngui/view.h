@@ -31,16 +31,16 @@
 #ifndef __ngui__view__
 #define __ngui__view__
 
-#include "nutils/array.h"
-#include "nutils/string.h"
-#include "nutils/string-builder.h"
+#include "nxkit/array.h"
+#include "nxkit/string.h"
+#include "nxkit/string-builder.h"
 #include "ngui/event.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class DrawData;
 class Draw;
@@ -55,7 +55,7 @@ class BasicScroll;
 class Background;
 class ITextInput;
 
-#define XX_EACH_VIEWS(F)  \
+#define NX_EACH_VIEWS(F)  \
 	F(LAYOUT, Layout, layout) \
 	F(BOX, Box, box)  \
 	F(DIV, Div, div)  \
@@ -82,11 +82,11 @@ class ITextInput;
 	F(INPUT, Input, input) \
 	F(TEXTAREA, Textarea, textarea) \
 
-#define XX_DEFINE_CLASS(enum, type, name) class type;
-XX_EACH_VIEWS(XX_DEFINE_CLASS);
-#undef XX_DEFINE_CLASS
+#define NX_DEFINE_CLASS(enum, type, name) class type;
+NX_EACH_VIEWS(NX_DEFINE_CLASS);
+#undef NX_DEFINE_CLASS
 
-#define XX_DEFINE_GUI_VIEW(enum, type, name) \
+#define NX_DEFINE_GUI_VIEW(enum, type, name) \
 	public: \
 	friend class GLDraw;  \
 	virtual type* as_##name() { return this; }  \
@@ -95,8 +95,8 @@ XX_EACH_VIEWS(XX_DEFINE_CLASS);
 /**
  * @class View
  */
-class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
-	XX_HIDDEN_ALL_COPY(View);
+class NX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
+	NX_HIDDEN_ALL_COPY(View);
  public:
 	
 	View();
@@ -113,7 +113,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 #define xx_def_view_type(enum, type, name) enum,
 		INVALID = 0,
 		VIEW,
-		XX_EACH_VIEWS(xx_def_view_type)
+		NX_EACH_VIEWS(xx_def_view_type)
 	 #undef xx_def_view_type
 	};
 
@@ -124,7 +124,7 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	
  #define xx_def_view_type(enum, type, name)  \
 	virtual type* as_##name() { return nullptr; }
-	XX_EACH_VIEWS(xx_def_view_type) // as type
+	NX_EACH_VIEWS(xx_def_view_type) // as type
  #undef xx_def_view_type
 
 	/**
@@ -688,9 +688,9 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	DrawData*       m_ctx_data;   /* 绘图上下文需要的数据 */
 	Action*         m_action;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
-	XX_DEFINE_INLINE_CLASS(EventInl);
-	XX_DEFINE_INLINE_CLASS(ActionInl);
+	NX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(EventInl);
+	NX_DEFINE_INLINE_CLASS(ActionInl);
 	
 	friend class TextLayout;
 	friend class TextFont;
@@ -707,5 +707,5 @@ class XX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	friend class Background;
 };
 
-XX_END
+NX_END
 #endif

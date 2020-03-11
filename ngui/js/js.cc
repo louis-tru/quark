@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/string.h"
+#include "nxkit/string.h"
 #include "js-1.h"
 #include "native-inl-js.h"
 #include "native-lib-js.h"
 #include "ngui.h"
-#include "nutils/http.h"
-#include "nutils/codec.h"
+#include "nxkit/http.h"
+#include "nxkit/codec.h"
 #include "value.h"
 
 /**
@@ -233,7 +233,7 @@ uint64 JSClass::ID() const {
 Local<JSObject> JSClass::NewInstance(uint argc, Local<JSValue>* argv) {
 	auto cls = reinterpret_cast<JSClassIMPL*>(this);
 	Local<JSFunction> func = IMPL::js_class(cls->worker())->get_constructor(cls->id());
-	XX_ASSERT( !func.IsEmpty() );
+	NX_ASSERT( !func.IsEmpty() );
 	return func->NewInstance(cls->worker(), argc, argv);
 }
 
@@ -252,7 +252,7 @@ void PersistentBase<JSClass>::Reset(Worker* worker, const Local<JSClass>& other)
 		worker_ = nullptr;
 	}
 	if ( !other.IsEmpty() ) {
-		XX_ASSERT(worker);
+		NX_ASSERT(worker);
 		val_ = *other;
 		worker_ = worker;
 		reinterpret_cast<JSClassIMPL*>(val_)->retain();
@@ -294,7 +294,7 @@ void IMPL::initialize() {
 	m_native_modules.Reset(m_host, m_host->NewObject());
 	m_classs = new JSClassStore(m_host);
 	m_strs = new CommonStrings(m_host);
-	XX_CHECK(m_global.local()->IsObject(m_host));
+	NX_CHECK(m_global.local()->IsObject(m_host));
 	m_global.local()->SetProperty(m_host, "global", m_global.local());
 	m_global.local()->SetMethod(m_host, "__requireNgui__", require_native);
 
@@ -328,7 +328,7 @@ static Local<JSValue> TriggerEventFromUtil(Worker* worker,
 	cString& name, int argc = 0, Local<JSValue> argv[] = 0)
 {
 	Local<JSObject> _util = worker->bindingModule("_util").To();
-	XX_ASSERT(!_util.IsEmpty());
+	NX_ASSERT(!_util.IsEmpty());
 
 	Local<JSValue> func = _util->GetProperty(worker, String("__on").push(name).push("_native"));
 	if (!func->IsFunction(worker)) {
@@ -452,7 +452,7 @@ Local<JSObject> Worker::global() {
 }
 
 Local<JSObject> Worker::NewError(cchar* errmsg, ...) {
-	XX_STRING_FORMAT(errmsg, str);
+	NX_STRING_FORMAT(errmsg, str);
 	Error err(ERR_UNKNOWN_ERROR, str);
 	return New(err);
 }
@@ -476,7 +476,7 @@ Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
 
 Local<JSObject> Worker::New(FileStat&& stat) {
 	Local<JSFunction> func = m_inl->m_classs->get_constructor(JS_TYPEID(FileStat));
-	XX_ASSERT( !func.IsEmpty() );
+	NX_ASSERT( !func.IsEmpty() );
 	Local<JSObject> r = func->NewInstance(this);
 	*Wrap<FileStat>::unpack(r)->self() = move(stat);
 	return r;
@@ -484,7 +484,7 @@ Local<JSObject> Worker::New(FileStat&& stat) {
 
 Local<JSObject> Worker::NewInstance(uint64 id, uint argc, Local<JSValue>* argv) {
 	Local<JSFunction> func = m_inl->m_classs->get_constructor(id);
-	XX_ASSERT( !func.IsEmpty() );
+	NX_ASSERT( !func.IsEmpty() );
 	return func->NewInstance(this, argc, argv);
 }
 
@@ -505,7 +505,7 @@ Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab) {
 }
 
 void Worker::throwError(cchar* errmsg, ...) {
-	XX_STRING_FORMAT(errmsg, str);
+	NX_STRING_FORMAT(errmsg, str);
 	throwError(NewError(*str));
 }
 

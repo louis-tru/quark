@@ -30,7 +30,7 @@
 
 #include "ngui/image-codec.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class TGAImageCodec::_Inl : public TGAImageCodec {
 #define _inl_tga(self) static_cast<TGAImageCodec::_Inl*>(self)
@@ -329,4 +329,4 @@ Buffer TGAImageCodec::encode(cPixelData& pixel_data) {
 	return Buffer();
 }
 
-XX_END
+NX_END

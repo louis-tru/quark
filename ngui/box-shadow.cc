@@ -31,7 +31,7 @@
 #include "box-shadow-1.h"
 #include "draw.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 BoxShadow::BoxShadow(): m_is_draw_shadow(false), m_shadow() {
 	
@@ -93,4 +93,4 @@ void BoxShadow::set_shadow(Shadow value) {
 	mark(M_BOX_SHADOW);
 }
 
-XX_END
+NX_END

@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ngui/keyboard.h"
-#import "nutils/map.h"
+#import "nxkit/map.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class AppleKeyboardAdapter
@@ -187,4 +187,4 @@ KeyboardAdapter* KeyboardAdapter::create() {
 	return new AppleKeyboardAdapter();
 }
 
-XX_END
+NX_END

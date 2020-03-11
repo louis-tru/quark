@@ -32,9 +32,9 @@
 #include "texture.h"
 #include "display-port.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(Background, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Background, Inl) {
 #define _inl(self) static_cast<Background::Inl*>(static_cast<Background*>(self))
 public:
 	
@@ -68,7 +68,7 @@ public:
 							left->release();
 						}
 						bool ok = new_left->retain();
-						XX_ASSERT(ok);
+						NX_ASSERT(ok);
 					}
 					return new_left;
 				}
@@ -109,7 +109,7 @@ Background::~Background() {
 void Background::set_next(Background* value) {
 	if (value != m_next) {
 		if (_inl(this)->check_loop_reference(value)) {
-			XX_ERR("Box background loop reference error");
+			NX_ERR("Box background loop reference error");
 		} else {
 			_inl(this)->set_next(value);
 		}
@@ -123,7 +123,7 @@ Background* Background::assign(Background* left, Background* right) {
 		return left;
 	} else {
 		if (left && right && _inl(left)->check_loop_reference(right->m_next)) {
-			XX_ERR("Box background loop reference error");
+			NX_ERR("Box background loop reference error");
 			return left;
 		} else {
 			return Inl::assign(left, right);
@@ -184,7 +184,7 @@ enum {
 	BI_flag_size_y = (1 << 6),
 };
 
-XX_DEFINE_INLINE_MEMBERS(BackgroundImage, Inl) {
+NX_DEFINE_INLINE_MEMBERS(BackgroundImage, Inl) {
 #define _inl2(self) static_cast<BackgroundImage::Inl*>(self)
 public:
 	void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
@@ -199,7 +199,7 @@ public:
 		auto pool = tex_pool();
 		if (pool) {
 			if (m_has_base64_src) {
-				XX_UNIMPLEMENTED(); // TODO ...
+				NX_UNIMPLEMENTED(); // TODO ...
 			} else {
 				set_texture(pool->get_texture(m_src));
 			}
@@ -240,7 +240,7 @@ BackgroundImage::BackgroundImage()
 
 BackgroundImage::~BackgroundImage() {
 	if (m_texture) {
-		m_texture->XX_OFF(change, &Inl::texture_change_handle, _inl2(this));
+		m_texture->NX_OFF(change, &Inl::texture_change_handle, _inl2(this));
 		m_texture->release(); // 释放纹理
 	}
 }
@@ -278,13 +278,13 @@ void BackgroundImage::set_src_base64(cString& value) {
 void BackgroundImage::set_texture(Texture* value) {
 	if (value != m_texture) {
 		if (m_texture) {
-			m_texture->XX_OFF(change, &Inl::texture_change_handle, _inl2(this));
+			m_texture->NX_OFF(change, &Inl::texture_change_handle, _inl2(this));
 			m_texture->release(); // 释放
 		}
 		m_texture = value;
 		if (value) {
 			m_texture->retain(); // 保持
-			m_texture->XX_ON(change, &Inl::texture_change_handle, _inl2(this));
+			m_texture->NX_ON(change, &Inl::texture_change_handle, _inl2(this));
 		}
 		mark(View::M_BACKGROUND);
 		m_attributes_flags |= BI_flag_texture;
@@ -432,8 +432,8 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	float tex_screen_width = final_size_x * box_screen_scale_width;
 	float tex_screen_height = final_size_y * box_screen_scale_height;
 	
-	float ratio = (tex->width() / XX_MAX(tex_screen_width, 16) +
-								 tex->height() / XX_MAX(tex_screen_height, 16)) / 2 / dpscale;
+	float ratio = (tex->width() / NX_MAX(tex_screen_width, 16) +
+								 tex->height() / NX_MAX(tex_screen_height, 16)) / 2 / dpscale;
 	
 	level = tex->get_texture_level(floorf(ratio));
 	
@@ -452,4 +452,4 @@ Background* BackgroundGradient::copy(Background* to) {
 	return target;
 }
 
-XX_END
+NX_END

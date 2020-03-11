@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/keyboard.h"
-#include "nutils/map.h"
+#include "nxkit/map.h"
 #include <android/keycodes.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class AndroidKeyboardAdapter
@@ -188,4 +188,4 @@ KeyboardAdapter* KeyboardAdapter::create() {
 	return new AndroidKeyboardAdapter();
 }
 
-XX_END
+NX_END

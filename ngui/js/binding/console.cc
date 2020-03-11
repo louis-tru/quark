@@ -30,7 +30,7 @@
 
 #include "json-1.h"
 #include "ngui/js/js.h"
-#include "nutils/string-builder.h"
+#include "nxkit/string-builder.h"
 
 /**
  * @ns ngui::js

@@ -292,7 +292,7 @@ export class Module implements NguiModule {
 
 		if (haveNode) {
 			var compiledWrapper = vm.runInThisContext(wrapper, {
-				filename: resolveFilename + '#-> ' + filename,
+				filename: filename + '#->' + resolveFilename,
 				lineOffset: 0,
 				displayErrors: true
 			});
@@ -322,7 +322,7 @@ export class Module implements NguiModule {
 			}
 		} else {
 			var wrapper = Module.wrap(content);
-			var compiledWrapper = _util.runScript(wrapper, filename);
+			var compiledWrapper = _util.runScript(wrapper, filename + '#->' + resolveFilename);
 			filename = fallbackPath(filename);
 			var dirname = _path.dirname(filename);
 			var require = makeRequireFunction(this, mainModule);

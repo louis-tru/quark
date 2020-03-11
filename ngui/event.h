@@ -31,8 +31,8 @@
 #ifndef __ngui__event__
 #define __ngui__event__
 
-#include "nutils/event.h"
-#include "nutils/array.h"
+#include "nxkit/event.h"
+#include "nxkit/array.h"
 #include "ngui/sys.h"
 #include "ngui/mathe.h"
 #include "ngui/value.h"
@@ -42,7 +42,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 // ----------- EVENT CATEGORY ----------- 
 
@@ -67,7 +67,7 @@ enum {
 };
 
 // NAME, STR_NAME, CATEGORY, FLAG
-#define XX_GUI_EVENT_TABLE(F) \
+#define NX_GUI_EVENT_TABLE(F) \
 /* can bubble event */ \
 F(CLICK, Click, CLICK, GUI_EVENT_FLAG_BUBBLE) \
 F(BACK, Back, CLICK, GUI_EVENT_FLAG_BUBBLE) \
@@ -119,9 +119,9 @@ enum ReturnValueMask {
 	RETURN_VALUE_MASK_ALL = (RETURN_VALUE_MASK_DEFAULT | RETURN_VALUE_MASK_BUBBLE),
 };
 
-class XX_EXPORT GUIEventName {
+class NX_EXPORT GUIEventName {
  public:
-	inline GUIEventName() { XX_UNREACHABLE(); }
+	inline GUIEventName() { NX_UNREACHABLE(); }
 	inline GUIEventName(cString& n, uint category, int flag)
 		: name_(n), code_(n.hash_code()), category_(category), flag_(flag) { }
 	inline uint hash_code() const { return code_; }
@@ -137,12 +137,12 @@ class XX_EXPORT GUIEventName {
 	int  flag_;
 };
 
-XX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_TABLE;
+NX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_TABLE;
 
-#define XX_FUN(NAME, STR, CATEGORY, FLAG) \
-XX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
-XX_GUI_EVENT_TABLE(XX_FUN)
-#undef XX_FUN
+#define NX_FUN(NAME, STR, CATEGORY, FLAG) \
+NX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
+NX_GUI_EVENT_TABLE(NX_FUN)
+#undef NX_FUN
 
 // -----------------------------------
 
@@ -155,9 +155,9 @@ class Button;
 /**
  * @func GUIEvent gui event
  */
-class XX_EXPORT GUIEvent: public Event<Object, View> {
+class NX_EXPORT GUIEvent: public Event<Object, View> {
  public:
-	inline GUIEvent(cSendData data): Event<Object, View>() { XX_UNREACHABLE(); }
+	inline GUIEvent(cSendData data): Event<Object, View>() { NX_UNREACHABLE(); }
 	inline GUIEvent(View* origin, cSendData data = SendData())
 		: Event(data), origin_(origin), time_(sys::time()), valid_(true) {
 		return_value = RETURN_VALUE_MASK_ALL;
@@ -181,7 +181,7 @@ class XX_EXPORT GUIEvent: public Event<Object, View> {
 /**
  * @class GUIActionEvent
  */
-class XX_EXPORT GUIActionEvent: public GUIEvent {
+class NX_EXPORT GUIActionEvent: public GUIEvent {
  public:
 	inline GUIActionEvent(Action* action, View* view, uint64 delay, uint frame, uint loop)
 		: GUIEvent(view), action_(action), delay_(delay), frame_(frame), loop_(loop) { }
@@ -199,7 +199,7 @@ class XX_EXPORT GUIActionEvent: public GUIEvent {
 /**
  * @func GUIKeyEvent keyboard event
  */
-class XX_EXPORT GUIKeyEvent: public GUIEvent {
+class NX_EXPORT GUIKeyEvent: public GUIEvent {
  public:
 	inline GUIKeyEvent(View* origin, uint keycode,
 										 bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
@@ -231,7 +231,7 @@ class XX_EXPORT GUIKeyEvent: public GUIEvent {
 /**
  * @class GUIClickEvent click event
  */
-class XX_EXPORT GUIClickEvent: public GUIEvent {
+class NX_EXPORT GUIClickEvent: public GUIEvent {
  public:
 	enum Type { TOUCH = 1, KEYBOARD = 2, MOUSE = 3 };
 	inline GUIClickEvent(View* origin, float x, float y, Type type, uint count = 1)
@@ -249,7 +249,7 @@ class XX_EXPORT GUIClickEvent: public GUIEvent {
 /**
  * @class GUIMouseEvent mouse event
  */
-class XX_EXPORT GUIMouseEvent: public GUIKeyEvent {
+class NX_EXPORT GUIMouseEvent: public GUIKeyEvent {
  public:
 	inline GUIMouseEvent(View* origin, float x, float y, uint keycode,
 											 bool shift, bool ctrl, bool alt, bool command, bool caps_lock,
@@ -265,7 +265,7 @@ class XX_EXPORT GUIMouseEvent: public GUIKeyEvent {
 /**
  * @class GUIHighlightedEvent status event
  */
-class XX_EXPORT GUIHighlightedEvent: public GUIEvent {
+class NX_EXPORT GUIHighlightedEvent: public GUIEvent {
  public:
 	inline GUIHighlightedEvent(View* origin, HighlightedStatus status)
 		: GUIEvent(origin), _status(status) { }
@@ -277,7 +277,7 @@ class XX_EXPORT GUIHighlightedEvent: public GUIEvent {
 /**
  * @class GUITouchEvent touch event
  */
-class XX_EXPORT GUITouchEvent: public GUIEvent {
+class NX_EXPORT GUITouchEvent: public GUIEvent {
  public:
 	struct TouchPoint { // touch event point
 		uint    id;
@@ -299,7 +299,7 @@ typedef GUITouchEvent::Touch GUITouch;
 /**
  * @class GUIFocusMoveEvent
  */
-class XX_EXPORT GUIFocusMoveEvent: public GUIEvent {
+class NX_EXPORT GUIFocusMoveEvent: public GUIEvent {
  public:
 	inline GUIFocusMoveEvent(View* origin, View* old_focus, View* new_focus)
 		: GUIEvent(origin), m_old_focus(old_focus), m_new_focus(new_focus) { }
@@ -319,7 +319,7 @@ class XX_EXPORT GUIFocusMoveEvent: public GUIEvent {
 /**
  * @class ITextInput
  */
-class XX_EXPORT ITextInput: public Protocol {
+class NX_EXPORT ITextInput: public Protocol {
  public:
 	virtual void input_delete(int count) = 0;
 	virtual void input_insert(cString& text) = 0;
@@ -336,7 +336,7 @@ class XX_EXPORT ITextInput: public Protocol {
 /**
  * @class GUIEventDispatch
  */
-class XX_EXPORT GUIEventDispatch: public Object {
+class NX_EXPORT GUIEventDispatch: public Object {
  public:
 	GUIEventDispatch(GUIApplication* app);
 	virtual ~GUIEventDispatch();
@@ -378,8 +378,8 @@ class XX_EXPORT GUIEventDispatch: public Object {
 	KeyboardAdapter*    m_keyboard;
 	ITextInput*         m_text_input;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif

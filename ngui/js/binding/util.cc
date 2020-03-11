@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/string.h"
-#include "nutils/fs.h"
+#include "nxkit/string.h"
+#include "nxkit/fs.h"
 #include "ngui/sys.h"
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "ngui/js/ngui.h"
-//#include "nutils/jsx.h"
+//#include "nxkit/jsx.h"
 #include "native-ext-js.h"
 
 /**
@@ -209,7 +209,7 @@ class NativeUtil {
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		worker->garbageCollection();
-#if XX_MEMORY_TRACE_MARK
+#if NX_MEMORY_TRACE_MARK
 		std::vector<Object*> objs = Object::mark_objects();
 		Object** objs2 = &objs[0];
 		LOG("All unrelease heap objects count: %d", objs.size());
@@ -245,7 +245,7 @@ class NativeUtil {
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Cb([worker, func](CbD& e) {
-			XX_ASSERT(!func.IsEmpty());
+			NX_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			func.local()->Call(worker);
 		}));

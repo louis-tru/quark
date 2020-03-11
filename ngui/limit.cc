@@ -31,7 +31,7 @@
 #include "limit.h"
 #include "limit-indep.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 void _box_inl__solve_horizontal_size_with_auto_width(Box* box, float parent);
 void _box_inl__solve_horizontal_size_with_full_width(Box* box, float parent);
@@ -138,7 +138,7 @@ public:
 						_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 						break;
 					case ValueType::MINUS:
-						this->m_final_width = XX_MAX(parent_width - this->m_width.value, 0);
+						this->m_final_width = NX_MAX(parent_width - this->m_width.value, 0);
 						this->m_limit_min_width = this->m_final_width;
 						this->m_limit.width(this->m_final_width);
 						_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
@@ -165,7 +165,7 @@ public:
 						this->m_limit_min_width = this->m_width.value * parent_width;
 						break;
 					case ValueType::MINUS:
-						this->m_limit_min_width = XX_MAX(parent_width - this->m_width.value, 0);
+						this->m_limit_min_width = NX_MAX(parent_width - this->m_width.value, 0);
 						break;
 				}
 				
@@ -184,7 +184,7 @@ public:
 						this->m_limit.width(this->m_max_width.value * parent_width);
 						break;
 					case ValueType::MINUS:
-						this->m_limit.width(XX_MAX(parent_width - this->m_max_width.value, 0));
+						this->m_limit.width(NX_MAX(parent_width - this->m_max_width.value, 0));
 						break;
 				}
 				
@@ -281,7 +281,7 @@ public:
 						_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 						break;
 					case ValueType::MINUS:
-						this->m_final_height = XX_MAX(parent_height - this->m_height.value, 0);
+						this->m_final_height = NX_MAX(parent_height - this->m_height.value, 0);
 						this->m_limit_min_height = this->m_final_height;
 						this->m_limit.height(this->m_final_height);
 						_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
@@ -308,7 +308,7 @@ public:
 						this->m_limit_min_height = this->m_height.value * parent_height;
 						break;
 					case ValueType::MINUS:
-						this->m_limit_min_height = XX_MAX(parent_height - this->m_height.value, 0);
+						this->m_limit_min_height = NX_MAX(parent_height - this->m_height.value, 0);
 						break;
 				}
 				
@@ -327,7 +327,7 @@ public:
 						this->m_limit.height(this->m_max_height.value * parent_height);
 						break;
 					case ValueType::MINUS:
-						this->m_limit.height(XX_MAX(parent_height - this->m_max_height.value, 0));
+						this->m_limit.height(NX_MAX(parent_height - this->m_max_height.value, 0));
 						break;
 				}
 				
@@ -555,4 +555,4 @@ void Limit::set_layout_three_times(bool horizontal, bool hybrid) {
 	// NOOP
 }
 
-XX_END
+NX_END

@@ -35,14 +35,14 @@ extern "C" {
 #include <jpeglib.h>
 }
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 struct JPEGClientData {
 	jmp_buf jmpbuf;
 };
 
 static void jpeg_error_output(j_common_ptr cinfo) {
-	XX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
+	NX_ERR("%s", "Invalid JPEG file structure: missing SOS marker");
 	JPEGClientData* data = (JPEGClientData*)cinfo->client_data;
 	longjmp(data->jmpbuf, 1);
 }
@@ -149,4 +149,4 @@ Buffer JPEGImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-XX_END
+NX_END

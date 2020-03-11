@@ -37,14 +37,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Text
  */
-class XX_EXPORT Text: public Hybrid {
+class NX_EXPORT Text: public Hybrid {
  public:
-	XX_DEFINE_GUI_VIEW(TEXT, Text, text);
+	NX_DEFINE_GUI_VIEW(TEXT, Text, text);
 	
 	/**
 	 * @overwrite
@@ -104,9 +104,9 @@ class XX_EXPORT Text: public Hybrid {
 	
 	Data  m_data;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class Hybrid;
 };
 
-XX_END
+NX_END
 #endif

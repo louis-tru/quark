@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "ngui/app-1.h"
 #include "ngui/event.h"
 #include "ngui/display-port.h"
-#include "nutils/android-jni.h"
+#include "nxkit/android-jni.h"
 #include "linux-gl-1.h"
 #include "android/android.h"
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class AndroidApplication;
 static AndroidApplication* application = nullptr;
@@ -62,7 +62,7 @@ class AndroidApplication {
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
 	, m_is_init_ok(false)
 	{
-		XX_ASSERT(!application); application = this;
+		NX_ASSERT(!application); application = this;
 		m_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 	}
 
@@ -117,7 +117,7 @@ class AndroidApplication {
 	}
 
 	static void onDestroy(ANativeActivity* activity) {
-		XX_ASSERT(application->m_activity);
+		NX_ASSERT(application->m_activity);
 
 		activity->callbacks->onDestroy                  = nullptr;
 		activity->callbacks->onStart                    = nullptr;
@@ -154,7 +154,7 @@ class AndroidApplication {
 				// ScopeLock scope(application->m_mutex);
 				if ( window == application->m_window ) {
 					ok = gl_draw_context->create_surface(window);
-					XX_CHECK(ok);
+					NX_CHECK(ok);
 				}
 			}
 			if ( ok ) {
@@ -197,9 +197,9 @@ class AndroidApplication {
 			application->m_dispatch = application->m_host->dispatch();
 			application->m_render_looper = new RenderLooper(application->m_host);
 
-			XX_ASSERT(application->m_activity);
-			XX_ASSERT(application->m_host);
-			XX_ASSERT(application->m_host->render_loop());
+			NX_ASSERT(application->m_activity);
+			NX_ASSERT(application->m_host);
+			NX_ASSERT(application->m_host->render_loop());
 		}
 		application->m_host->onForeground();
 		application->stop_render_task();
@@ -234,7 +234,7 @@ class AndroidApplication {
 
 			if ( targger_orientation ) { // 触发方向变化事件
 				application->m_host->main_loop()->post(Cb([](CbD& e) {
-					application->m_host->display_port()->XX_TRIGGER(orientation);
+					application->m_host->display_port()->NX_TRIGGER(orientation);
 				}));
 			}
 			ev.data->complete();
@@ -249,19 +249,19 @@ class AndroidApplication {
 	}
 
 	static void onWindowFocusChanged(ANativeActivity* activity, int hasFocus) {
-		XX_DEBUG("onWindowFocusChanged");
+		NX_DEBUG("onWindowFocusChanged");
 		application->start_render_task();
 	}
 
 	static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
-		XX_DEBUG("onNativeWindowRedrawNeeded");
+		NX_DEBUG("onNativeWindowRedrawNeeded");
 		application->start_render_task();
 	}
 
 	// ----------------------------------------------------------------------
 	
 	static void onLowMemory(ANativeActivity* activity) {
-		XX_DEBUG("onLowMemory");
+		NX_DEBUG("onLowMemory");
 		application->m_host->onMemorywarning();
 	}
 
@@ -280,11 +280,11 @@ class AndroidApplication {
 	}
 	
 	static void onConfigurationChanged(ANativeActivity* activity) {
-		XX_DEBUG("onConfigurationChanged");
+		NX_DEBUG("onConfigurationChanged");
 	}
 	
 	static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-		XX_DEBUG("onNativeWindowResized");
+		NX_DEBUG("onNativeWindowResized");
 	}
 
 	// --------------------------- Dispatch event ---------------------------
@@ -316,7 +316,7 @@ class AndroidApplication {
 				dispatch_event(event);
 				AInputQueue_finishEvent(queue, event, fd);
 			} else {
-				XX_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
+				NX_DEBUG("AInputQueue_preDispatchEvent(queue, event) != 0");
 			}
 		}
 		return 1;
@@ -335,7 +335,7 @@ class AndroidApplication {
 			int repeat = AKeyEvent_getRepeatCount(event);
 			int action = AKeyEvent_getAction(event);
 
-			XX_DEBUG("code:%d, repeat:%d, action:%d, "
+			NX_DEBUG("code:%d, repeat:%d, action:%d, "
 											 "flags:%d, scancode:%d, metastate:%d, downtime:%ld, time:%ld",
 							 code, repeat, action,
 							 AKeyEvent_getFlags(event),
@@ -355,7 +355,7 @@ class AndroidApplication {
 						dispatch->keyboard_adapter()->dispatch(code, 0, 0, repeat, device, source);
 					break;
 				case AKEY_EVENT_ACTION_MULTIPLE:
-					XX_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
+					NX_DEBUG("AKEY_EVENT_ACTION_MULTIPLE");
 					break;
 			}
 		}
@@ -383,7 +383,7 @@ class AndroidApplication {
 				case AMOTION_EVENT_ACTION_MOVE:
 					touchs = to_gui_touchs(event, true);
 					if ( touchs.length() ) {
-						// XX_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
+						// NX_DEBUG("AMOTION_EVENT_ACTION_MOVE, %d", touchs.length());
 						dispatch->dispatch_touchmove( move(touchs) );
 					}
 					break;
@@ -480,7 +480,7 @@ void GUIApplication::send_email(cString& recipient,
 }
 
 void AppInl::initialize(cJSON& options) {
-	XX_ASSERT(!gl_draw_context);
+	NX_ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
 }
@@ -603,39 +603,39 @@ void DisplayPort::set_orientation(Orientation orientation) {
 
 extern "C" {
 
-	XX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
+	NX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEDelete(JNIEnv* env, jclass clazz, jint count) {
 		_inl_app(app())->dispatch()->dispatch_ime_delete(count);
 	}
 
-	XX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
+	NX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEInsert(JNIEnv* env, jclass clazz, jstring text) {
 		_inl_app(app())->dispatch()->dispatch_ime_insert(JNI::jstring_to_string(text));
 	}
 
-	XX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
+	NX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEMarked(JNIEnv* env, jclass clazz, jstring text) {
 		_inl_app(app())->dispatch()->dispatch_ime_marked(JNI::jstring_to_string(text));
 	}
 
-	XX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
+	NX_EXPORT void Java_org_ngui_IMEHelper_dispatchIMEUnmark(JNIEnv* env, jclass clazz, jstring text) {
 		_inl_app(app())->dispatch()->dispatch_ime_unmark(JNI::jstring_to_string(text));
 	}
 	
-	XX_EXPORT void Java_org_ngui_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
+	NX_EXPORT void Java_org_ngui_IMEHelper_dispatchKeyboardInput(JNIEnv* env, jclass clazz,
 		jint keycode, jboolean ascii, jboolean down, jint repeat, jint device, jint source) {
 		_inl_app(app())->dispatch()->keyboard_adapter()->
 			dispatch(keycode, ascii, down, repeat, device, source);
 	}
 
-	XX_EXPORT void Java_org_ngui_NguiActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
+	NX_EXPORT void Java_org_ngui_NguiActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 		application->host()->main_loop()->post(Cb([](Cb& ev){
-			application->host()->display_port()->XX_TRIGGER(change);
+			application->host()->display_port()->NX_TRIGGER(change);
 		}));
 	}
 
-	XX_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
+	NX_EXPORT void ANativeActivity_onCreate(ANativeActivity* activity, 
 																					void* savedState, size_t savedStateSize)
 	{
 		AndroidApplication::onCreate(activity, savedState, savedStateSize);
 	}
 }
 
-XX_END
+NX_END

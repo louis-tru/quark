@@ -31,16 +31,16 @@
 #ifndef __ngui__linux_gl_1__
 #define __ngui__linux_gl_1__
 
-#include "nutils/macros.h"
+#include "nxkit/macros.h"
 
-#if XX_LINUX || XX_ANDROID
+#if NX_LINUX || NX_ANDROID
 
 #include "ngui/gl/gl.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class GLDrawProxy {
  public:
@@ -69,7 +69,7 @@ class GLDrawProxy {
 	GLDraw* m_host;
 };
 
-XX_END
+NX_END
 
 #endif
 #endif

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/fs.h"
+#include "nxkit/fs.h"
 #include "ngui/js/js.h"
 
 /**

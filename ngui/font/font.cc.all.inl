@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @get font {Font*}
@@ -172,10 +172,10 @@ void Font::Inl::del_glyph_data(GlyphContainer* container) {
 FontGlyph* Font::Inl::get_glyph(uint16 unicode, uint region,
 																uint index, FGTexureLevel level, bool vector) 
 {
-	XX_ASSERT(region < 512);
-	XX_ASSERT(index < 128);
+	NX_ASSERT(region < 512);
+	NX_ASSERT(index < 128);
 	
-	load(); XX_ASSERT(m_ft_face);
+	load(); NX_ASSERT(m_ft_face);
 	
 	GlyphContainerFlag* flags = m_flags[region];
 	
@@ -207,12 +207,12 @@ FontGlyph* Font::Inl::get_glyph(uint16 unicode, uint region,
 			
 			FT_Error error = FT_Set_Char_Size( (FT_Face)m_ft_face, 0, 64 * 64, 72, 72);
 			if (error) {
-				XX_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
+				NX_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 			}
 			
 			error = FT_Load_Glyph( (FT_Face)m_ft_face, glyph_index, FT_LOAD_NO_HINTING);
 			if (error) {
-				XX_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
+				NX_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 			}
 		
 			FT_GlyphSlot ft_glyph = (FT_GlyphSlot)m_ft_glyph;
@@ -345,7 +345,7 @@ void Font::Inl::clear(bool full) {
 					}
 				}
 				
-				XX_DEBUG("Font memory clear, %ld", del_data_size);
+				NX_DEBUG("Font memory clear, %ld", del_data_size);
 			}
 			// not full clear end
 		}
@@ -375,7 +375,7 @@ bool Font::load() {
 		install();
 		
 		if ( !m_ft_face ) {
-			XX_ERR("Unable to install font");
+			NX_ERR("Unable to install font");
 			return false;
 		}
 		
@@ -435,7 +435,7 @@ class FontFromData: public Font {
 	 * @overwrite
 	 */
 	void install() {
-		XX_ASSERT(!m_ft_face);
+		NX_ASSERT(!m_ft_face);
 		FT_New_Memory_Face((FT_Library)m_ft_lib,
 											 m_data->value,
 											 m_data->length,
@@ -457,7 +457,7 @@ class FontFromFile: public Font {
 	 * @overwrite
 	 */
 	void install() {
-		XX_ASSERT(!m_ft_face);
+		NX_ASSERT(!m_ft_face);
 		FT_New_Face((FT_Library)m_ft_lib,
 								Path::fallback_c(m_font_path),
 								m_face_index,
@@ -527,7 +527,7 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 				}
 			}
 		} else {
-			XX_ASSERT(m_ffid->name() == "icon");
+			NX_ASSERT(m_ffid->name() == "icon");
 		}
 		
 		// 查找最大高度与行高度
@@ -537,14 +537,14 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 		
 		for ( uint i = 0; i < m_fonts.length(); i++ ) {
 			Font* font = m_fonts[i];
-			m_height = XX_MAX(m_height, font->height());
-			m_ascender = XX_MAX(m_ascender, font->ascender());
-			m_descender = XX_MAX(m_descender, font->descender());
+			m_height = NX_MAX(m_height, font->height());
+			m_ascender = NX_MAX(m_ascender, font->ascender());
+			m_descender = NX_MAX(m_descender, font->descender());
 		}
 	}
 	
 	void set_glyph(uint region, uint index, FontGlyph* glyph) {
-		XX_ASSERT( glyph );
+		NX_ASSERT( glyph );
 		if ( !m_blocks[region] ) {
 			GlyphsBlock* block = new GlyphsBlock();
 			memset(block, 0, sizeof(GlyphsBlock));
@@ -621,7 +621,7 @@ FontGlyph* FontGlyphTable::glyph(uint16 unicode) {
  * @func use_texture_glyph 使用纹理字型
  */
 FontGlyph* FontGlyphTable::use_texture_glyph(uint16 unicode, FGTexureLevel level) {
-	XX_ASSERT(level < FontGlyph::LEVEL_NONE);
+	NX_ASSERT(level < FontGlyph::LEVEL_NONE);
 	
 	FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 	
@@ -762,4 +762,4 @@ Font* FontFamily::font(TextStyleEnum style) {
 	return font;
 }
 
-XX_END
+NX_END

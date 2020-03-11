@@ -31,7 +31,7 @@
 #ifndef __ngui__mathe__
 #define __ngui__mathe__
 
-#include "nutils/util.h"
+#include "nxkit/util.h"
 
 /**
  * @ns ngui
@@ -41,7 +41,7 @@
 #define T_PI_RATIO_180  0.017453292519943f      // PI / 180
 #define T_180_RATIO_PI 57.29577951308232f       // 180 / PI
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 template <typename T, int LEN>
 class MTVec {
@@ -86,7 +86,7 @@ class Vec: public MTVec<float, LEN> {
 	inline Vec(float f): MTVec<float, LEN>(f) { }
 };
 
-class XX_EXPORT Vec2: public Vec<2> {
+class NX_EXPORT Vec2: public Vec<2> {
  public:
 	inline Vec2(): Vec2(0) { }
 	inline Vec2(float a, float b) {
@@ -126,7 +126,7 @@ class XX_EXPORT Vec2: public Vec<2> {
 	float diagonal() const;
 };
 
-class XX_EXPORT Vec3: public Vec<3> {
+class NX_EXPORT Vec3: public Vec<3> {
  public:
 	inline Vec3(): Vec3(0) { }
 	inline Vec3(float a, float b, float c) {
@@ -158,7 +158,7 @@ class XX_EXPORT Vec3: public Vec<3> {
 	inline bool operator!=(const Vec3& b) const { return !operator==(b); }
 };
 
-class XX_EXPORT Vec4: public Vec<4> {
+class NX_EXPORT Vec4: public Vec<4> {
  public:
 	inline Vec4(): Vec4(0) { }
 	inline Vec4(float a, float b, float c, float d) {
@@ -197,7 +197,7 @@ class XX_EXPORT Vec4: public Vec<4> {
 /**
  * @class FloatColor
  */
-class XX_EXPORT FloatColor: public MTColor<float> {
+class NX_EXPORT FloatColor: public MTColor<float> {
  public:
 	inline FloatColor(): MTColor<float>(0, 0, 0, 1) { }
 	inline FloatColor(float r, float g, float b): MTColor<float>(r, g, b, 1) { }
@@ -209,7 +209,7 @@ class XX_EXPORT FloatColor: public MTColor<float> {
 /**
  * @class Color
  */
-class XX_EXPORT Color: public MTColor<byte> {
+class NX_EXPORT Color: public MTColor<byte> {
  public:
 	Color(uint color);
 	inline Color(): MTColor<byte>(0, 0, 0, 255) { }
@@ -225,7 +225,7 @@ class XX_EXPORT Color: public MTColor<byte> {
 /**
  * @class Mat
  */
-class XX_EXPORT Mat: public Vec<6> {
+class NX_EXPORT Mat: public Vec<6> {
  public:
 	inline Mat(): Mat(1) { }
 	Mat(float value);
@@ -312,7 +312,7 @@ class XX_EXPORT Mat: public Vec<6> {
 /**
  * @class Mat4
  */
-class XX_EXPORT Mat4: public Vec<16> {
+class NX_EXPORT Mat4: public Vec<16> {
  public:
 	inline Mat4(): Mat4(1) { }
 	Mat4(float value);
@@ -443,5 +443,5 @@ class XX_EXPORT Mat4: public Vec<16> {
 	static Mat4 ortho(float left, float right, float top, float bottom, float near, float far);
 };
 
-XX_END
+NX_END
 #endif

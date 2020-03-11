@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "app-1.h"
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 RenderLooper::RenderLooper(AppInl* host)
 : m_host(host), m_id(nullptr) {
@@ -86,4 +86,4 @@ void RenderLooper::stop() {
 	}));
 }
 
-XX_END
+NX_END

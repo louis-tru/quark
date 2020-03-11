@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/pcm-player.h"
-#include "nutils/handle.h"
-#include "nutils/android-jni.h"
+#include "nxkit/handle.h"
+#include "nxkit/android-jni.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
@@ -174,17 +174,17 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 														3, /* STREAM_MUSIC */
 														m_sample_rate,
 														get_channel_mask(m_channel_count),
-														2, /* ENCODIXX_PCM_16BIT */
+														2, /* ENCODINX_PCM_16BIT */
 														m_buffer_size * 2,
 														1  /* MODE_STREAM */
 		);
 
-		XX_ASSERT(m_self);
+		NX_ASSERT(m_self);
 
 		m_self = env->NewGlobalRef(m_self);
 
 		// new buffer swap area
-		uint size = XX_MAX(m_buffer_size, 1024 * 32);
+		uint size = NX_MAX(m_buffer_size, 1024 * 32);
 		m_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(malloc(size), size));
 
 		// audio track play
@@ -241,7 +241,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 	 * */
 	virtual bool set_volume(uint value) {
 		JNI::ScopeENV env;
-		m_volume = XX_MIN(100, value);
+		m_volume = NX_MIN(100, value);
 		jfloat f = m_volume / 100.0;
 		env->CallIntMethod(m_self, m_setVolume, f);
 		return true;
@@ -256,9 +256,9 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 
 	int min_buffer_size() {
 		JNI::ScopeENV env;
-		int mask = get_channel_mask(XX_MAX(m_channel_count, 2));
+		int mask = get_channel_mask(NX_MAX(m_channel_count, 2));
 		return env->CallStaticIntMethod(m_clazz, m_getMinBufferSize,
-																		m_sample_rate, mask, 2/*ENCODIXX_PCM_16BIT*/);
+																		m_sample_rate, mask, 2/*ENCODINX_PCM_16BIT*/);
 	}
 
  private:
@@ -295,4 +295,4 @@ PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate)
 	return NULL;
 }
 
-XX_END
+NX_END

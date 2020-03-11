@@ -33,14 +33,14 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <GLKit/GLKit.h>
 
-#if XX_OSX
+#if NX_OSX
 # import <AppKit/AppKit.h>
 # define UIImage NSImage
 #else
 # import <UIKit/UIKit.h>
 #endif
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 static PixelData image_decode(cBuffer& data) {
 
@@ -48,7 +48,7 @@ static PixelData image_decode(cBuffer& data) {
                                         length:data.length()
                                   freeWhenDone:NO];
   UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
-#if XX_OSX
+#if NX_OSX
   CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
 #else 
 	CGImageRef image = [uiimg CGImage];
@@ -109,7 +109,7 @@ static PixelData image_decode_header(cBuffer& data) {
                                         length:data.length()
                                   freeWhenDone:NO];
   UIImage* uiimg = [[UIImage alloc] initWithData:nsdata];
-#if XX_OSX
+#if NX_OSX
 	CGImageRef image = [uiimg CGImageForProposedRect:nil context:nil hints:nil];
 #else 
 	CGImageRef image = [uiimg CGImage];
@@ -144,7 +144,7 @@ PixelData JPEGImageCodec::decode_header(cBuffer& data) {
 }
 
 Buffer JPEGImageCodec::encode(cPixelData& data) {
-	XX_UNIMPLEMENTED();
+	NX_UNIMPLEMENTED();
 	return Buffer();
 }
 
@@ -158,7 +158,7 @@ PixelData GIFImageCodec::decode_header(cBuffer& data) {
 }
 
 Buffer GIFImageCodec::encode(cPixelData& data) {
-	XX_UNIMPLEMENTED();
+	NX_UNIMPLEMENTED();
 	return Buffer();
 }
 
@@ -172,7 +172,7 @@ PixelData PNGImageCodec::decode_header(cBuffer& data) {
 }
 
 Buffer PNGImageCodec::encode(cPixelData& data) {
-	XX_UNIMPLEMENTED();
+	NX_UNIMPLEMENTED();
 	return Buffer();
 }
 
@@ -186,8 +186,8 @@ PixelData WEBPImageCodec::decode_header(cBuffer& data) {
 }
 
 Buffer WEBPImageCodec::encode(cPixelData& data) {
-	XX_UNIMPLEMENTED();
+	NX_UNIMPLEMENTED();
 	return Buffer();
 }
 
-XX_END
+NX_END

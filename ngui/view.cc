@@ -37,7 +37,7 @@
 #include "css.h"
 #include "panel.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define is_mark_pre m_prev_pre_mark
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
@@ -45,7 +45,7 @@ XX_NS(ngui)
 /**
  * @class View::Inl
  */
-XX_DEFINE_INLINE_MEMBERS(View, Inl) {
+NX_DEFINE_INLINE_MEMBERS(View, Inl) {
  public:
 	#define _inl(self) static_cast<View::Inl*>(self)
 	
@@ -198,7 +198,7 @@ XX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	/**
 	 * @func compute_basic_transform_matrix
 	 */
-	XX_INLINE void compute_basic_transform_matrix() {
+	NX_INLINE void compute_basic_transform_matrix() {
 		// xy 布局偏移
 		Vec2 offset = layout_offset();
 		Vec2 layout_in = m_parent->layout_in_offset();
@@ -348,7 +348,7 @@ View::View()
  */
 View::~View() {
 
-	XX_ASSERT(m_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+	NX_ASSERT(m_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 	
 	blur();
 	
@@ -1079,4 +1079,4 @@ bool View::has_child(View* child) {
 	return false;
 }
 
-XX_END
+NX_END

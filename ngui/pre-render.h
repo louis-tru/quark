@@ -31,30 +31,30 @@
 #ifndef __ngui__pre_render__
 #define __ngui__pre_render__
 
-#include "nutils/util.h"
-#include "nutils/array.h"
-#include "nutils/list.h"
+#include "nxkit/util.h"
+#include "nxkit/array.h"
+#include "nxkit/list.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class View;
 
 /**
  * @class PreRender 预渲染
  */
-class XX_EXPORT PreRender: public Object {
-	XX_HIDDEN_ALL_COPY(PreRender);
+class NX_EXPORT PreRender: public Object {
+	NX_HIDDEN_ALL_COPY(PreRender);
  public:
 	
 	PreRender();
 	
 	virtual ~PreRender();
 	
-	class XX_EXPORT Task {
+	class NX_EXPORT Task {
 	 public:
 		typedef List<Task*>::Iterator ID;
 		inline Task(): m_timeout(0) { }
@@ -91,7 +91,7 @@ class XX_EXPORT PreRender: public Object {
 	
 	friend PreRender* pre_render();
 	
-	XX_DEFINE_INLINE_CLASS(Inl)
+	NX_DEFINE_INLINE_CLASS(Inl)
 };
 
 /**
@@ -101,6 +101,6 @@ inline PreRender* pre_render() {
 	return PreRender::m_pre_render;
 }
 
-XX_END
+NX_END
 #endif
 

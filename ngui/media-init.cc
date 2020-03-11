@@ -32,9 +32,9 @@
 #include "audio-player.h"
 #include "video.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_INIT_BLOCK(media_init) {
+NX_INIT_BLOCK(media_init) {
 
 	static module_info_t audio_player = {
 		[](void* arg) -> Object* {
@@ -52,4 +52,4 @@ XX_INIT_BLOCK(media_init) {
 	module_video = &video;
 }
 
-XX_END
+NX_END

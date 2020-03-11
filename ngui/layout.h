@@ -35,16 +35,16 @@
 #include "ngui/value.h"
 #include "ngui/text-font.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class TextRows;
 
 /**
  * @class Layout 布局排版抽象类
  */
-class XX_EXPORT Layout: public View {
+class NX_EXPORT Layout: public View {
  public:
-	XX_DEFINE_GUI_VIEW(LAYOUT, Layout, layout);
+	NX_DEFINE_GUI_VIEW(LAYOUT, Layout, layout);
 	
 	Layout();
 	
@@ -115,6 +115,6 @@ class XX_EXPORT Layout: public View {
 	friend class Scroll;
 };
 
-XX_END
+NX_END
 
 #endif

@@ -31,17 +31,17 @@
 #ifndef __ngui__ios_gl__
 #define __ngui__ios_gl__
 
-#import "nutils/macros.h"
+#import "nxkit/macros.h"
 
-#if XX_IOS
+#if NX_IOS
 
 #import "ngui/gl/gl.h"
 #import <UIKit/UIKit.h>
 #import <OpenGLES/EAGL.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-class XX_EXPORT GLDrawProxy {
+class NX_EXPORT GLDrawProxy {
  public:
 	GLDrawProxy(GLDraw* host, EAGLContext* ctx);
 	~GLDrawProxy();
@@ -59,7 +59,7 @@ class XX_EXPORT GLDrawProxy {
 	GLDraw*      m_host;
 };
 
-XX_END
+NX_END
 
 #endif
 #endif

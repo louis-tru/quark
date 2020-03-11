@@ -39,23 +39,23 @@
 #define xx_use_depth_test 0
 #endif
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 Array<GLShader*>* GLDraw::m_shaders = nullptr;
 
-XX_DEFINE_INLINE_MEMBERS(GLDraw, Inl) {
+NX_DEFINE_INLINE_MEMBERS(GLDraw, Inl) {
 public:
 	
 	/**
 	 * @func initializ_shader 初始化着色器程序
 	 */
 	void initializ_shader() {
-		XX_CHECK(m_shaders);
+		NX_CHECK(m_shaders);
 		
 		for (auto& i : *m_shaders) {
 			GLShader* shader = i.value();
 			GLuint handle = 0;
-			XX_CHECK(shader->shader == 0);
+			NX_CHECK(shader->shader == 0);
 			
 			if (m_library == DRAW_LIBRARY_GLES2) {
 				handle = compile_link_shader(shader->name,
@@ -70,7 +70,7 @@ public:
 			} else { // opengl
 				// TODO ...
 			}
-			XX_ASSERT(handle);
+			NX_ASSERT(handle);
 			shader->shader = handle;
 			
 			if ( *shader->shader_uniforms != '\0' ) {
@@ -115,10 +115,10 @@ public:
 	 */
 	void es2_initializ_indexd_vbo_and_ext_support() {
 		String info = (cchar*)glGetString(GL_EXTENSIONS);
-		XX_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
-		XX_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
-		XX_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
-		XX_DEBUG("OGL Info: %s", *info);
+		NX_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
+		NX_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
+		NX_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
+		NX_DEBUG("OGL Info: %s", *info);
 		
 		m_is_support_vao = info.index_of( "GL_OES_vertex_array_object" ) != -1;
 		m_is_support_instanced = info.index_of( "GL_EXT_draw_instanced" ) != -1;
@@ -333,13 +333,13 @@ void GLDraw::refresh_buffer() {
 	
 	// Test the framebuffer for completeness.
 	if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
-		XX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+		NX_ERR("failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 	}
 	
 	// Retrieve the height and width of the color renderbuffer.
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-	XX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
+	NX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 }
 
 void GLDraw::refresh_root_matrix(const Mat4& root, const Mat4& query) {
@@ -433,7 +433,7 @@ GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) 
 		char log[255] = { 0 };
 		cchar* c_name = *name;
 		glGetShaderInfoLog(shader_handle, 254, &ok, log);
-		XX_FATAL("Compile shader error. name: %s, \n%s", c_name, log);
+		NX_FATAL("Compile shader error. name: %s, \n%s", c_name, log);
 	}
 	return shader_handle;
 }
@@ -475,7 +475,7 @@ GLuint GLDraw::compile_link_shader(cString& name,
 		char log[255] = { 0 };
 		cchar* c_name = *name;
 		glGetProgramInfoLog(program_handle, 254, &ok, log);
-		XX_FATAL("Link shader error, name: %s, \n%s", c_name, log);
+		NX_FATAL("Link shader error, name: %s, \n%s", c_name, log);
 	}
 	return program_handle;
 }
@@ -492,4 +492,4 @@ void GLDraw::register_gl_shader(GLShader* shader) {
 	shaders.push(shader);
 }
 
-XX_END
+NX_END

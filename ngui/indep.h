@@ -33,14 +33,14 @@
 
 #include "ngui/div.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Indep
  */
-class XX_EXPORT Indep: public Div {
+class NX_EXPORT Indep: public Div {
  public:
-	XX_DEFINE_GUI_VIEW(INDEP, Indep, indep);
+	NX_DEFINE_GUI_VIEW(INDEP, Indep, indep);
 	
 	Indep();
 	
@@ -85,9 +85,9 @@ class XX_EXPORT Indep: public Div {
  private:
 	Align m_align_x, m_align_y;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
 
-XX_END
+NX_END
 #endif

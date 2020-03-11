@@ -31,9 +31,9 @@
 #ifndef __ngui__action__
 #define __ngui__action__
 
-#include "nutils/array.h"
-#include "nutils/list.h"
-#include "nutils/map.h"
+#include "nxkit/array.h"
+#include "nxkit/list.h"
+#include "nxkit/map.h"
 #include "ngui/value.h"
 #include "ngui/bezier.h"
 #include "ngui/event.h"
@@ -44,7 +44,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class View;
 class ActionCenter;
@@ -56,7 +56,7 @@ class KeyframeAction;
 /**
  * @class Action
  */
-class XX_EXPORT Action: public Reference {
+class NX_EXPORT Action: public Reference {
  public:
 
 	Action();
@@ -150,7 +150,7 @@ class XX_EXPORT Action: public Reference {
 	 * @func speed set
 	 */
 	inline void speed(float value) {
-		m_speed = XX_MIN(10, XX_MAX(value, 0.1));
+		m_speed = NX_MIN(10, NX_MAX(value, 0.1));
 	}
 	
 	/**
@@ -222,7 +222,7 @@ class XX_EXPORT Action: public Reference {
 	List<View*> m_views;
 	List<Wrap>::Iterator m_action_center_id;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	friend class ActionCenter;
 	friend class GroupAction;
@@ -234,7 +234,7 @@ class XX_EXPORT Action: public Reference {
 /**
  * @class GroupAction
  */
-class XX_EXPORT GroupAction: public Action {
+class NX_EXPORT GroupAction: public Action {
  public:
 	
 	/**
@@ -285,13 +285,13 @@ class XX_EXPORT GroupAction: public Action {
 	
 	friend class Action;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
  * @class SpawnAction
  */
-class XX_EXPORT SpawnAction: public GroupAction {
+class NX_EXPORT SpawnAction: public GroupAction {
  public:
 	
 	/**
@@ -321,7 +321,7 @@ class XX_EXPORT SpawnAction: public GroupAction {
 /**
  * @class SequenceAction
  */
-class XX_EXPORT SequenceAction: public GroupAction {
+class NX_EXPORT SequenceAction: public GroupAction {
  public:
 	
 	/**
@@ -356,10 +356,10 @@ class XX_EXPORT SequenceAction: public GroupAction {
 /**
  * @class KeyframeAction
  */
-class XX_EXPORT KeyframeAction: public Action {
+class NX_EXPORT KeyframeAction: public Action {
  public:
 	
-	class XX_EXPORT Property {
+	class NX_EXPORT Property {
 	 public:
 		virtual ~Property() { }
 		virtual void bind_view(int view_type) = 0;
@@ -371,8 +371,8 @@ class XX_EXPORT KeyframeAction: public Action {
 		virtual void default_value(uint frame) = 0;
 	};
 	
-	class XX_EXPORT Frame: public Object {
-		XX_HIDDEN_ALL_COPY(Frame);
+	class NX_EXPORT Frame: public Object {
+		NX_HIDDEN_ALL_COPY(Frame);
 	 public:
 		
 		inline Frame(KeyframeAction* host,
@@ -428,7 +428,7 @@ class XX_EXPORT KeyframeAction: public Action {
 		
 	 #define xx_def_property(ENUM, TYPE, NAME) \
 		void set_##NAME(TYPE value); TYPE NAME();
-		XX_EACH_PROPERTY_TABLE(xx_def_property)
+		NX_EACH_PROPERTY_TABLE(xx_def_property)
 	 #undef xx_def_property
 		
 	 private:
@@ -438,7 +438,7 @@ class XX_EXPORT KeyframeAction: public Action {
 		FixedCubicBezier  m_curve;
 		uint64            m_time;
 		
-		XX_DEFINE_INLINE_CLASS(Inl);
+		NX_DEFINE_INLINE_CLASS(Inl);
 		friend class KeyframeAction;
 	};
 	
@@ -535,13 +535,13 @@ class XX_EXPORT KeyframeAction: public Action {
 	int           m_bind_view_type;
 	Propertys     m_property;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
 /**
  * @class ActionCenter
  */
-class XX_EXPORT ActionCenter: public Object {
+class NX_EXPORT ActionCenter: public Object {
  public:
 	
 	ActionCenter();
@@ -568,8 +568,8 @@ class XX_EXPORT ActionCenter: public Object {
 	uint64  m_prev_sys_time;
 	Actions m_actions;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif

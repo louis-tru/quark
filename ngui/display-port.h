@@ -31,18 +31,18 @@
 #ifndef __ngui__display_port__
 #define __ngui__display_port__
 
-#include "nutils/util.h"
-#include "nutils/event.h"
-#include "nutils/list.h"
+#include "nxkit/util.h"
+#include "nxkit/event.h"
+#include "nxkit/list.h"
 #include "ngui/mathe.h"
 #include "ngui/value.h"
-#include "nutils/cb.h"
+#include "nxkit/cb.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class Draw;
 class Root;
@@ -53,8 +53,8 @@ class PreRender;
  * 提供的一些对显示与屏幕的常用方法属性与事件
  * @class DisplayPort
  */
-class XX_EXPORT DisplayPort: public Reference {
-	XX_HIDDEN_ALL_COPY(DisplayPort);
+class NX_EXPORT DisplayPort: public Reference {
+	NX_HIDDEN_ALL_COPY(DisplayPort);
  public:
 
 	enum Orientation {
@@ -84,12 +84,12 @@ class XX_EXPORT DisplayPort: public Reference {
 	/**
 	 * @event onchange 显示端口变化事件
 	 */
-	XX_EVENT(change);
+	NX_EVENT(change);
 
 	/**
 	 * @event onorientation 屏幕方向发生改变触发
 	 */
-	XX_EVENT(orientation);
+	NX_EVENT(orientation);
 	
 	/**
 	 * @func phy_size 视口在屏幕上所占的实际物理像素的尺寸
@@ -151,7 +151,7 @@ class XX_EXPORT DisplayPort: public Reference {
 	 * @func pop_draw_region
 	 */
 	inline void pop_draw_region() {
-		XX_ASSERT( m_draw_region.length() > 1 );
+		NX_ASSERT( m_draw_region.length() > 1 );
 		m_draw_region.pop();
 	}
 	
@@ -235,10 +235,10 @@ class XX_EXPORT DisplayPort: public Reference {
 	uint  m_fsp, m_record_fsp;
 	int64 m_record_fsp_time;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class  GUIApplication; // 友元类
 };
 
-XX_END
+NX_END
 #endif
 

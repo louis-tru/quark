@@ -33,7 +33,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef AppInl::KeyboardOptions KeyboardOptions;
 
@@ -57,4 +57,4 @@ class LINUXIMEHelper {
 	Inl* m_inl;
 };
 
-XX_END
+NX_END

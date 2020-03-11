@@ -29,14 +29,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/sys.h"
-#include "nutils/string.h"
-#include "nutils/array.h"
-#include "nutils/fs.h"
-#include "nutils/buffer.h"
+#include "nxkit/string.h"
+#include "nxkit/array.h"
+#include "nxkit/fs.h"
+#include "nxkit/buffer.h"
 #include <unistd.h>
 
-XX_NS(ngui)
-XX_NS(sys)
+NX_NS(ngui)
+NX_NS(sys)
 
 int network_status() {
 	return 1;
@@ -109,4 +109,4 @@ uint64 available_memory() {
 	return get_memory_info().MemAvailable;
 }
 
-XX_END XX_END
+NX_END NX_END

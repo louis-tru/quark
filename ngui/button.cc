@@ -31,7 +31,7 @@
 #include "button.h"
 #include "panel.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Button::Inl
@@ -265,4 +265,4 @@ bool Button::can_become_focus() {
 	return true;
 }
 
-XX_END
+NX_END

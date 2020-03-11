@@ -37,16 +37,16 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 
 /**
  * @class TextRows
  */
-class XX_EXPORT TextRows {
+class NX_EXPORT TextRows {
  public:
 	
-	struct XX_EXPORT Row {
+	struct NX_EXPORT Row {
 		Vec2 offset_start;
 		Vec2 offset_end;
 		float baseline;
@@ -81,5 +81,5 @@ class XX_EXPORT TextRows {
 	bool        m_is_clip;    // 修剪结束
 };
 
-XX_END
+NX_END
 #endif

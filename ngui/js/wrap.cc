@@ -34,7 +34,7 @@
 
 JS_BEGIN
 
-#if XX_MEMORY_TRACE_MARK
+#if NX_MEMORY_TRACE_MARK
 static int record_wrap_count = 0;
 static int record_strong_count = 0;
 
@@ -52,7 +52,7 @@ class WrapObject::Inl: public WrapObject {
  #define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
 	
 	void clear_weak() {
-#if XX_MEMORY_TRACE_MARK
+#if NX_MEMORY_TRACE_MARK
 		if (IMPL::current(worker())->IsWeak(handle_)) {
 			record_strong_count++;
 			print_wrap("mark_strong");
@@ -62,7 +62,7 @@ class WrapObject::Inl: public WrapObject {
 	}
 	
 	void make_weak() {
-#if XX_MEMORY_TRACE_MARK
+#if NX_MEMORY_TRACE_MARK
 		if (!IMPL::current(worker())->IsWeak(handle_)) {
 			record_strong_count--;
 			print_wrap("make_weak");
@@ -82,13 +82,13 @@ void WrapObject::destroy() {
 }
 
 void WrapObject::init2(FunctionCall args) {
-	XX_ASSERT(args.IsConstructCall());
+	NX_ASSERT(args.IsConstructCall());
 	Worker* worker_ = args.worker();
 	auto classs = IMPL::current(worker_)->js_class();
-	XX_ASSERT( !classs->current_attach_object_ );
+	NX_ASSERT( !classs->current_attach_object_ );
 	handle_.Reset(worker_, args.This());
-	bool ok = IMPL::SetObjectPrivate(args.This(), this); XX_ASSERT(ok);
-#if XX_MEMORY_TRACE_MARK
+	bool ok = IMPL::SetObjectPrivate(args.This(), this); NX_ASSERT(ok);
+#if NX_MEMORY_TRACE_MARK
 	record_wrap_count++; 
 	record_strong_count++;
 #endif 
@@ -104,13 +104,13 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 	auto classs = IMPL::current(worker)->js_class();
 	if ( classs->current_attach_object_ ) {
 		WrapObject* wrap = classs->current_attach_object_;
-		XX_ASSERT(!wrap->worker());
-		XX_ASSERT(args.IsConstructCall());
+		NX_ASSERT(!wrap->worker());
+		NX_ASSERT(args.IsConstructCall());
 		wrap->handle_.Reset(worker, args.This());
-		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); XX_ASSERT(ok);
+		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); NX_ASSERT(ok);
 		classs->current_attach_object_ = nullptr;
 		wrap->initialize();
-#if XX_MEMORY_TRACE_MARK
+#if NX_MEMORY_TRACE_MARK
 		record_wrap_count++; 
 		record_strong_count++;
 		print_wrap("External");
@@ -121,9 +121,9 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 }
 
 WrapObject::~WrapObject() {
-	XX_ASSERT(handle_.IsEmpty());
+	NX_ASSERT(handle_.IsEmpty());
 
-#if XX_MEMORY_TRACE_MARK
+#if NX_MEMORY_TRACE_MARK
 	record_wrap_count--;
 	print_wrap("~WrapObject");
 #endif 
@@ -139,7 +139,7 @@ Object* WrapObject::privateData() {
 }
 
 bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
-	XX_ASSERT(data);
+	NX_ASSERT(data);
 	auto p = pack(data, JS_TYPEID(Object));
 	if (p) {
 		set(worker()->strs()->__native_private_data(), p->that());
@@ -149,7 +149,7 @@ bool WrapObject::setPrivateData(Object* data, bool trusteeship) {
 				_inl_wrap(static_cast<WrapObject*>(p))->make_weak();
 			}
 		}
-		XX_ASSERT(privateData());
+		NX_ASSERT(privateData());
 	}
 	return p;
 }
@@ -170,12 +170,12 @@ Local<JSValue> WrapObject::call(cString& name, int argc, Local<JSValue> argv[]) 
 }
 
 bool WrapObject::isPack(Local<JSObject> object) {
-	XX_ASSERT(!object.IsEmpty());
+	NX_ASSERT(!object.IsEmpty());
 	return IMPL::GetObjectPrivate(object);
 }
 
 WrapObject* WrapObject::unpack2(Local<JSObject> object) {
-	XX_ASSERT(!object.IsEmpty());
+	NX_ASSERT(!object.IsEmpty());
 	return static_cast<WrapObject*>(IMPL::GetObjectPrivate(object));
 }
 
@@ -190,7 +190,7 @@ WrapObject* WrapObject::pack2(Object* object, uint64 type_id) {
 
 void* object_allocator_alloc(size_t size) {
 	WrapObject* o = (WrapObject*)::malloc(size + sizeof(WrapObject));
-	XX_ASSERT(o);
+	NX_ASSERT(o);
 	memset((void*)o, 0, sizeof(WrapObject));
 	return o + 1;
 }

@@ -33,14 +33,14 @@
 
 #include "ngui/hybrid.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Button
  */
-class XX_EXPORT Button: public Hybrid {
+class NX_EXPORT Button: public Hybrid {
  public:
-	XX_DEFINE_GUI_VIEW(BUTTON, Button, button)
+	NX_DEFINE_GUI_VIEW(BUTTON, Button, button)
 	
 	Button();
 	
@@ -61,10 +61,10 @@ class XX_EXPORT Button: public Hybrid {
 	
  private:
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 };
 
-XX_END
+NX_END
 
 #endif

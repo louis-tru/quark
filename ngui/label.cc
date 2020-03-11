@@ -34,14 +34,14 @@
 #include "display-port.h"
 #include "text-rows.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class Label::Inl: public Label {
 public:
 #define _inl(self) static_cast<Label::Inl*>(self)
 	
 	template<TextAlign T>
-	XX_INLINE void end_line(Cell& cell, float baseline, float descender, float max_offset) {
+	NX_INLINE void end_line(Cell& cell, float baseline, float descender, float max_offset) {
 		
 		uint count = cell.offset.length() - 1;
 		if ( count ) { /* 结束上一行 */
@@ -163,14 +163,14 @@ Label::Label()
  * @overwrite
  */
 void Label::prepend(View* child) throw(Error) {
-	XX_ERR("%s", "Error: Label can not have a child view");
+	NX_ERR("%s", "Error: Label can not have a child view");
 }
 
 /**
  * @overwrite
  */
 void Label::append(View* child) throw(Error) {
-	XX_ERR("%s", "Error: Label can not have a child view");
+	NX_ERR("%s", "Error: Label can not have a child view");
 }
 
 /**
@@ -321,4 +321,4 @@ void Label::set_parent(View* parent) throw(Error) {
 	}
 }
 
-XX_END
+NX_END

@@ -31,30 +31,30 @@
 #ifndef __ngui__app__
 #define __ngui__app__
 
-#include "nutils/util.h"
-#include "nutils/event.h"
-#include "nutils/loop.h"
-#include "nutils/json.h"
+#include "nxkit/util.h"
+#include "nxkit/event.h"
+#include "nxkit/loop.h"
+#include "nxkit/json.h"
 #include "ngui/value.h"
 
-#define XX_GUI_MAIN() \
+#define NX_GUI_MAIN() \
 	int __xx_gui_main__(int, char**); \
-	XX_INIT_BLOCK(__xx_gui_main__) { __xx_gui_main = __xx_gui_main__; } \
+	NX_INIT_BLOCK(__xx_gui_main__) { __xx_gui_main = __xx_gui_main__; } \
 	int __xx_gui_main__(int argc, char** argv)
 
-#define XX_CHECK_RENDER_THREAD() XX_CHECK(app()->has_current_render_thread())
-#define XX_ASSERT_RENDER_THREAD() XX_ASSERT(app()->has_current_render_thread())
+#define NX_CHECK_RENDER_THREAD() NX_CHECK(app()->has_current_render_thread())
+#define NX_ASSERT_RENDER_THREAD() NX_ASSERT(app()->has_current_render_thread())
 
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
  */
-XX_EXPORT extern int (*__xx_gui_main)(int, char**);
+NX_EXPORT extern int (*__xx_gui_main)(int, char**);
 
 /**
  * @ns trurh::gui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class DrawOption;
 class Draw;
@@ -71,7 +71,7 @@ class CSSManager;
  * 注意: 如果`main loop`与`render loop`运行在不同的线程,
  * 那么在主线程调用任何GUI-API函数必须加锁。
  */
-class XX_EXPORT GUILock {
+class NX_EXPORT GUILock {
  public:
 	GUILock();
 	~GUILock();
@@ -90,17 +90,17 @@ class XX_EXPORT GUILock {
 /**
  * @class GUIApplication
  */
-class XX_EXPORT GUIApplication: public Object {
-	XX_HIDDEN_ALL_COPY(GUIApplication);
+class NX_EXPORT GUIApplication: public Object {
+	NX_HIDDEN_ALL_COPY(GUIApplication);
  public:
 
-	XX_EVENT(Load);
-	XX_EVENT(Unload);
-	XX_EVENT(Background);
-	XX_EVENT(Foreground);
-	XX_EVENT(Pause);
-	XX_EVENT(Resume);
-	XX_EVENT(Memorywarning);
+	NX_EVENT(Load);
+	NX_EVENT(Unload);
+	NX_EVENT(Background);
+	NX_EVENT(Foreground);
+	NX_EVENT(Pause);
+	NX_EVENT(Resume);
+	NX_EVENT(Memorywarning);
 
 	GUIApplication();
 	
@@ -268,7 +268,7 @@ class XX_EXPORT GUIApplication: public Object {
 	ActionCenter*        m_action_center;
 	uint64 m_max_texture_memory_limit;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	friend GUIApplication*  app();
 	friend Root*            root();
@@ -288,5 +288,5 @@ inline RunLoop* main_loop() {
 	return RunLoop::main_loop();
 }
 
-XX_END
+NX_END
 #endif

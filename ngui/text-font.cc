@@ -35,7 +35,7 @@
 #include "text-rows.h"
 #include "font/font-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define equal(attr) if (value.type != attr.type || value.value != attr.value)
 
@@ -88,7 +88,7 @@ void TextFont::set_text_color(TextColor value) {
  * @set font_size {TextSize}
  */
 void TextFont::set_text_size(TextSize value) {
-	value.value = XX_MAX(value.value, 0);
+	value.value = NX_MAX(value.value, 0);
 	equal(m_text_size) {
 		m_text_size = value;
 		mark_text(View::M_LAYOUT |
@@ -126,7 +126,7 @@ void TextFont::set_text_family(TextFamily value) {
  * @set text_shadow {TextShadow}
  */
 void TextFont::set_text_shadow(TextShadow value) {
-	value.value.size = XX_MAX(value.value.size, 0);
+	value.value.size = NX_MAX(value.value.size, 0);
 	equal(m_text_shadow) {
 		m_text_shadow = value;
 		mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
@@ -137,7 +137,7 @@ void TextFont::set_text_shadow(TextShadow value) {
  * @set text_line_height {TextLineHeight}
  */
 void TextFont::set_text_line_height(TextLineHeight value) {
-	value.value.height = XX_MAX(value.value.height, 0);
+	value.value.height = NX_MAX(value.value.height, 0);
 	equal(m_text_line_height) {
 		m_text_line_height = value;
 		mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
@@ -165,7 +165,7 @@ FontGlyphTable* TextFont::get_font_glyph_table_and_height(Data& data,
 	//}
 	
 	FontGlyphTable* table = font_pool()->get_table(m_text_family.value, m_text_style.value);
-	XX_ASSERT(table);
+	NX_ASSERT(table);
 	
 	/* FontGlyph中获得的数据是 26.6 frac. 64pt 值, 所以这里需要除以这个比例 */
 	float ratio = 4096.0 / m_text_size.value; /* 64.0 * 64.0 = 4096.0 */
@@ -180,7 +180,7 @@ FontGlyphTable* TextFont::get_font_glyph_table_and_height(Data& data,
 	float descender, ascender;
 	
 	descender = max_descender + (line_height - max_height) / 2.0;
-	descender = XX_MAX(descender, 0);
+	descender = NX_MAX(descender, 0);
 	ascender = line_height - descender;
 	
 	data.text_ascender = ascender;
@@ -235,7 +235,7 @@ float TextFont::simple_layout_width(cUcs2String& text) {
 		v = v->parent();
 	} while(v && ok < 3);
 	
-	FontGlyphTable* table = font_pool()->get_table(family.value, style.value); XX_ASSERT(table);
+	FontGlyphTable* table = font_pool()->get_table(family.value, style.value); NX_ASSERT(table);
 	
 	float rv = 0;
 	float ratio = 4096.0 / size.value;
@@ -263,8 +263,8 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 	Region dre = display_port()->draw_region();
 	Region re = View::screen_region_from_convex_quadrilateral(vertex);
 	
-	if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
-			XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
+	if (NX_MAX( dre.y2, re.y2 ) - NX_MIN( dre.y, re.y ) <= re.h + dre.h &&
+			NX_MAX( dre.x2, re.x2 ) - NX_MIN( dre.x, re.x ) <= re.w + dre.w
 	) {
 		has_visible_draw_range = true;
 	} else {
@@ -294,7 +294,7 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 	Vec2  vertex2[4];
 	float y, y2;
 	
-	y2 = v->origin_y() - XX_MAX(0, data.text_height - data.text_hori_bearing) + in_offset_y;
+	y2 = v->origin_y() - NX_MAX(0, data.text_height - data.text_hori_bearing) + in_offset_y;
 	
 	y = data.cells[0].baseline - y2 - data.text_height;
 	
@@ -319,8 +319,8 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 			C = v->m_final_matrix * Vec2(end_x, y);
 			re = View::screen_region_from_convex_quadrilateral(vertex2);
 			
-			if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) < re.h + dre.h &&
-					XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) < re.w + dre.w
+			if (NX_MAX( dre.y2, re.y2 ) - NX_MIN( dre.y, re.y ) < re.h + dre.h &&
+					NX_MAX( dre.x2, re.x2 ) - NX_MIN( dre.x, re.x ) < re.w + dre.w
 			) {
 				if ( !is_cell_draw_begin ) {
 					is_cell_draw_begin = 1;
@@ -362,7 +362,7 @@ void TextFont::set_glyph_texture_level(Data& data) {
 
 // ----------------------------------- TextLayout -----------------------------------
 
-XX_INLINE bool has_space_char(uint16 unicode, bool space, bool line_feed) {
+NX_INLINE bool has_space_char(uint16 unicode, bool space, bool line_feed) {
 	switch(unicode) {
 		case 0x0A: // \n
 			return line_feed;
@@ -376,7 +376,7 @@ XX_INLINE bool has_space_char(uint16 unicode, bool space, bool line_feed) {
 	return false;
 }
 
-XX_INLINE bool has_english_char(uint16 unicode) {
+NX_INLINE bool has_english_char(uint16 unicode) {
 	switch(unicode) {
 		case 48: case 49: case 50: case 51: case 52:
 		case 53: case 54: case 55: case 56: case 57: // 0-9
@@ -465,7 +465,7 @@ public:
 	/**
 	 * @func new_row
 	 */
-	XX_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint begin) {
+	NX_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint begin) {
 		
 		/* 结束上一行 */
 		if ( cell.chars.length() ) {
@@ -485,7 +485,7 @@ public:
 	/**
 	 * @func read_word
 	 */
-	XX_INLINE bool read_word(Word* word, float offset_start,
+	NX_INLINE bool read_word(Word* word, float offset_start,
 													 FontGlyphTable* table, float ratio,
 													 Options::SpaceWrap opts, cUcs2String& string, uint begin, uint end) {
 		if ( begin < end ) {
@@ -912,4 +912,4 @@ void TextLayout::solve_text_layout_mark() {
 	view()->mark_value &= (~View::M_TEXT_FONT); // 删除这些标记
 }
 
-XX_END
+NX_END

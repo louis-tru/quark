@@ -32,16 +32,16 @@
 #include "hybrid.h"
 #include "limit-indep.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
 public:
 #define _inl(self) static_cast<Indep::Inl*>(static_cast<Indep*>(self))
 	
 	/**
 	 * @func set_indep_offset
 	 */
-	void set_indep_offset(Box* parent) { XX_ASSERT(parent);
+	void set_indep_offset(Box* parent) { NX_ASSERT(parent);
 		
 		if (m_align_x == Align::RIGHT) { // 水平右对齐
 			m_offset_start.x(parent->m_final_width - m_raw_client_width);
@@ -113,7 +113,7 @@ void Indep::set_layout_content_offset() {
 
 Box* Indep::set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* div) {
 	if ( m_visible ) {
-		m_parent_layout = div; XX_ASSERT(div);
+		m_parent_layout = div; NX_ASSERT(div);
 		mark_pre(M_LAYOUT_THREE_TIMES);
 	} else {
 		set_default_offset_value();
@@ -123,7 +123,7 @@ Box* Indep::set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* di
 
 Box* Indep::set_offset_vertical(Box* prev, Vec2& squeeze, float limit, Div* div) {
 	if ( m_visible ) {
-		m_parent_layout = div; XX_ASSERT(div);
+		m_parent_layout = div; NX_ASSERT(div);
 		mark_pre(M_LAYOUT_THREE_TIMES);
 	} else {
 		set_default_offset_value();
@@ -161,4 +161,4 @@ Vec2 Indep::layout_offset() {
 							 m_offset_start.y() + m_final_margin_top + m_border_top_width);
 }
 
-XX_END
+NX_END

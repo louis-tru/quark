@@ -40,14 +40,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Label
  */
-class XX_EXPORT Label: public View, public TextFont {
+class NX_EXPORT Label: public View, public TextFont {
  public:
-	XX_DEFINE_GUI_VIEW(LABEL, Label, label);
+	NX_DEFINE_GUI_VIEW(LABEL, Label, label);
 	
 	typedef ReferenceTraits Traits;
 	
@@ -123,8 +123,8 @@ class XX_EXPORT Label: public View, public TextFont {
 	float       m_box_offset_start;
 	Vec2        m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif

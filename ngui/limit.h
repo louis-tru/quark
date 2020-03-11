@@ -37,14 +37,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Limit
  */
-class XX_EXPORT Limit: public Div {
+class NX_EXPORT Limit: public Div {
  public:
-	XX_DEFINE_GUI_VIEW(LIMIT, Limit, limit);
+	NX_DEFINE_GUI_VIEW(LIMIT, Limit, limit);
 	
 	template<class T> class Inl; friend class Inl<Limit>;
 	
@@ -112,5 +112,5 @@ class XX_EXPORT Limit: public Div {
 	
 };
 
-XX_END
+NX_END
 #endif

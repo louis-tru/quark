@@ -31,13 +31,13 @@
 #include "keyboard.h"
 #include "app-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @constructor 
  */
 KeyboardAdapter::KeyboardAdapter(): app_(app()) {
-	XX_CHECK(app_);
+	NX_CHECK(app_);
 	
 	keyname_ = KEYCODE_UNKNOWN;
 	keypress_ = 0;
@@ -267,4 +267,4 @@ bool KeyboardAdapter::transformation(uint keycode, bool unicode, bool down) {
 	return unicode;
 }
 
-XX_END
+NX_END

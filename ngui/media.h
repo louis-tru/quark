@@ -31,19 +31,19 @@
 #ifndef __ngui__media__
 #define __ngui__media__
 
-#include "nutils/string.h"
+#include "nxkit/string.h"
 
-#ifndef XX_NO_MEDIA_DYNAMIC_LIB
-# define XX_MEDIA_DYNAMIC virtual
+#ifndef NX_NO_MEDIA_DYNAMIC_LIB
+# define NX_MEDIA_DYNAMIC virtual
 #else
-# define XX_MEDIA_DYNAMIC
+# define NX_MEDIA_DYNAMIC
 #endif
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 enum PlayerStatus {
 	PLAYER_STATUS_STOP = 0,
@@ -57,9 +57,9 @@ typedef struct {
 	const uint64 tid;
 } module_info_t;
 
-XX_EXPORT extern int initialize_media();
-XX_EXPORT extern module_info_t* module_audio_player;
-XX_EXPORT extern module_info_t* module_video;
+NX_EXPORT extern int initialize_media();
+NX_EXPORT extern module_info_t* module_audio_player;
+NX_EXPORT extern module_info_t* module_video;
 
-XX_END
+NX_END
 #endif

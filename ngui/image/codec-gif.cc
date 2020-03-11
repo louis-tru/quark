@@ -31,7 +31,7 @@
 #include "ngui/image-codec.h"
 #include <gif_lib.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 struct GifSource {
 	cBuffer* buff;
@@ -123,4 +123,4 @@ Buffer GIFImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-XX_END
+NX_END

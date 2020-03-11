@@ -32,7 +32,7 @@
 #include "app.h"
 #include "pre-render.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @constructor
@@ -94,4 +94,4 @@ void Layout::set_parent(View* parent) throw(Error) {
 	}
 }
 
-XX_END
+NX_END

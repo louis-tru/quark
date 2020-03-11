@@ -41,12 +41,12 @@
 #include "background.h"
 #include "texture.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Box::Inl
  */
-XX_DEFINE_INLINE_MEMBERS(Box, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 public:
 #define _inl(self) static_cast<Box::Inl*>(static_cast<Box*>(self))
 	
@@ -119,7 +119,7 @@ public:
 			case ValueType::FULL:   m_final_margin_left = 0; break;
 			case ValueType::PIXEL:  m_final_margin_left = m_margin_left.value; break;
 			case ValueType::PERCENT:m_final_margin_left = parent * m_margin_left.value; break;
-			default:                m_final_margin_left = XX_MAX(parent - m_margin_left.value, 0); break;
+			default:                m_final_margin_left = NX_MAX(parent - m_margin_left.value, 0); break;
 		}
 		
 		switch (m_margin_right.type) {
@@ -127,7 +127,7 @@ public:
 			case ValueType::FULL:   m_final_margin_right = 0; break;
 			case ValueType::PIXEL:  m_final_margin_right = m_margin_right.value; break;
 			case ValueType::PERCENT:m_final_margin_right = parent * m_margin_right.value; break;
-			default:                m_final_margin_right = XX_MAX(parent - m_margin_right.value, 0); break;
+			default:                m_final_margin_right = NX_MAX(parent - m_margin_right.value, 0); break;
 		}
 		
 		m_raw_client_width = m_final_margin_left + m_final_margin_right +
@@ -144,7 +144,7 @@ public:
 			case ValueType::FULL:   m_final_margin_left = 0; break;   // 宽度为FULL,边距就不能为FULL
 			case ValueType::PIXEL:  m_final_margin_left = m_margin_left.value; break;
 			case ValueType::PERCENT:m_final_margin_left = parent * m_margin_left.value; break;
-			default:                m_final_margin_left = XX_MAX(parent - m_margin_left.value, 0); break;
+			default:                m_final_margin_left = NX_MAX(parent - m_margin_left.value, 0); break;
 		}
 		
 		switch (m_margin_right.type) {
@@ -152,7 +152,7 @@ public:
 			case ValueType::FULL:   m_final_margin_right = 0; break;  // 宽度为FULL,边距就不能为FULL
 			case ValueType::PIXEL:  m_final_margin_right = m_margin_right.value; break;
 			case ValueType::PERCENT:m_final_margin_right = parent * m_margin_right.value; break;
-			default:                m_final_margin_right = XX_MAX(parent - m_margin_right.value, 0); break;
+			default:                m_final_margin_right = NX_MAX(parent - m_margin_right.value, 0); break;
 		}
 		
 		m_raw_client_width = m_final_margin_left +
@@ -179,15 +179,15 @@ public:
 		if (m_margin_left.type == ValueType::AUTO || m_margin_left.type == ValueType::FULL) {
 			if (m_margin_right.type == ValueType::AUTO || m_margin_right.type == ValueType::FULL) {
 				// 左右边距都为自动
-				m_final_margin_left = m_final_margin_right = XX_MAX(width / 2, 0);
+				m_final_margin_left = m_final_margin_right = NX_MAX(width / 2, 0);
 			} else { // 只有左边距为自动
 				switch(m_margin_right.type) {
 					case ValueType::PIXEL:   m_final_margin_right = m_margin_right.value; break;
 					case ValueType::PERCENT: m_final_margin_right = m_margin_right.value * parent; break;
-					default:                 m_final_margin_right = XX_MAX(parent - m_margin_right.value, 0);
+					default:                 m_final_margin_right = NX_MAX(parent - m_margin_right.value, 0);
 						break;
 				}
-				m_final_margin_left = XX_MAX(width - m_final_margin_right, 0);
+				m_final_margin_left = NX_MAX(width - m_final_margin_right, 0);
 			}
 		}
 		else if (m_margin_right.type == ValueType::AUTO || m_margin_right.type == ValueType::FULL) {
@@ -195,21 +195,21 @@ public:
 			switch(m_margin_left.type) {
 				case ValueType::PIXEL:   m_final_margin_left = m_margin_left.value; break;
 				case ValueType::PERCENT: m_final_margin_left = m_margin_left.value * parent; break;
-				default:                 m_final_margin_left = XX_MAX(parent - m_margin_left.value, 0); break;
+				default:                 m_final_margin_left = NX_MAX(parent - m_margin_left.value, 0); break;
 			}
-			m_final_margin_right = XX_MAX(width - m_final_margin_left, 0);
+			m_final_margin_right = NX_MAX(width - m_final_margin_left, 0);
 		}
 		else { // 左右边距都不为自动
 			switch(m_margin_left.type) {
 				case ValueType::PIXEL:    m_final_margin_left = m_margin_left.value; break;
 				case ValueType::PERCENT:  m_final_margin_left = m_margin_left.value * parent; break;
-				default:                  m_final_margin_left = XX_MAX(parent - m_margin_left.value, 0);
+				default:                  m_final_margin_left = NX_MAX(parent - m_margin_left.value, 0);
 					break;
 			}
 			switch(m_margin_right.type) {
 				case ValueType::PIXEL:   m_final_margin_right = m_margin_right.value; break;
 				case ValueType::PERCENT: m_final_margin_right = m_margin_right.value * parent; break;
-				default:                 m_final_margin_right = XX_MAX(parent - m_margin_right.value, 0);
+				default:                 m_final_margin_right = NX_MAX(parent - m_margin_right.value, 0);
 					break;
 			}
 		}
@@ -272,7 +272,7 @@ public:
 					solve_horizontal_size_with_explicit_width(parent_width);
 					break;
 				default:  // 减法值 (width=50!)
-					m_final_width = XX_MAX(parent_width - m_width.value, 0);
+					m_final_width = NX_MAX(parent_width - m_width.value, 0);
 					m_limit.width(m_final_width);
 					solve_horizontal_size_with_explicit_width(parent_width);
 					break;
@@ -327,7 +327,7 @@ public:
 			case ValueType::FULL: m_final_margin_top = 0; break;   // 高度为自动值,边距就不能为自动值
 			case ValueType::PIXEL:  m_final_margin_top = m_margin_top.value; break;
 			case ValueType::PERCENT:m_final_margin_top = parent * m_margin_top.value; break;
-			default:      m_final_margin_top = XX_MAX(parent - m_margin_top.value, 0); break;
+			default:      m_final_margin_top = NX_MAX(parent - m_margin_top.value, 0); break;
 		}
 		
 		switch (m_margin_bottom.type) {
@@ -335,7 +335,7 @@ public:
 			case ValueType::FULL: m_final_margin_bottom = 0; break;  // 高度为自动值,边距就不能为自动值
 			case ValueType::PIXEL:  m_final_margin_bottom = m_margin_bottom.value; break;
 			case ValueType::PERCENT:m_final_margin_bottom = parent * m_margin_bottom.value; break;
-			default:   m_final_margin_bottom = XX_MAX(parent - m_margin_bottom.value, 0); break;
+			default:   m_final_margin_bottom = NX_MAX(parent - m_margin_bottom.value, 0); break;
 		}
 		
 		m_raw_client_height = m_final_margin_top + m_final_margin_bottom +
@@ -352,7 +352,7 @@ public:
 			case ValueType::FULL:   m_final_margin_top = 0; break;   // 高度为自动值,边距就不能为自动值
 			case ValueType::PIXEL:  m_final_margin_top = m_margin_top.value; break;
 			case ValueType::PERCENT:m_final_margin_top = parent * m_margin_top.value; break;
-			default:                m_final_margin_top = XX_MAX(parent - m_margin_top.value, 0); break;
+			default:                m_final_margin_top = NX_MAX(parent - m_margin_top.value, 0); break;
 		}
 		
 		switch (m_margin_bottom.type) {
@@ -360,7 +360,7 @@ public:
 			case ValueType::FULL:   m_final_margin_bottom = 0; break;  // 高度为自动值,边距就不能为自动值
 			case ValueType::PIXEL:  m_final_margin_bottom = m_margin_bottom.value; break;
 			case ValueType::PERCENT:m_final_margin_bottom = parent * m_margin_bottom.value; break;
-			default:                m_final_margin_bottom = XX_MAX(parent - m_margin_bottom.value, 0);
+			default:                m_final_margin_bottom = NX_MAX(parent - m_margin_bottom.value, 0);
 				break;
 		}
 		
@@ -387,34 +387,34 @@ public:
 		
 		if (m_margin_top.type == ValueType::AUTO) {
 			if (m_margin_bottom.type == ValueType::AUTO) { // 上下边距都为自动
-				m_final_margin_top = m_final_margin_bottom = XX_MAX(height / 2, 0);
+				m_final_margin_top = m_final_margin_bottom = NX_MAX(height / 2, 0);
 			} else { // 只有上边距为自动
 				switch(m_margin_bottom.type) {
 					case ValueType::PIXEL:   m_final_margin_bottom = m_margin_bottom.value; break;
 					case ValueType::FULL: m_final_margin_bottom = m_margin_bottom.value * parent; break;
-					default: m_final_margin_bottom = XX_MAX(parent - m_margin_bottom.value, 0); break;
+					default: m_final_margin_bottom = NX_MAX(parent - m_margin_bottom.value, 0); break;
 				}
-				m_final_margin_top = XX_MAX(height - m_final_margin_bottom, 0);
+				m_final_margin_top = NX_MAX(height - m_final_margin_bottom, 0);
 			}
 		}
 		else if (m_margin_bottom.type == ValueType::AUTO) { // 只有下边距为自动
 			switch(m_margin_top.type) {
 				case ValueType::PIXEL:   m_final_margin_top = m_margin_top.value; break;
 				case ValueType::PERCENT: m_final_margin_top = m_margin_top.value * parent; break;
-				default: m_final_margin_top = XX_MAX(parent - m_margin_top.value, 0); break;
+				default: m_final_margin_top = NX_MAX(parent - m_margin_top.value, 0); break;
 			}
-			m_final_margin_bottom = XX_MAX(height - m_final_margin_top, 0);
+			m_final_margin_bottom = NX_MAX(height - m_final_margin_top, 0);
 		}
 		else { // 上下边距都不为自动
 			switch(m_margin_top.type) {
 				case ValueType::PIXEL:   m_final_margin_top = m_margin_top.value; break;
 				case ValueType::PERCENT: m_final_margin_top = m_margin_top.value * parent; break;
-				default: m_final_margin_top = XX_MAX(parent - m_margin_top.value, 0); break;
+				default: m_final_margin_top = NX_MAX(parent - m_margin_top.value, 0); break;
 			}
 			switch(m_margin_bottom.type) {
 				case ValueType::PIXEL:   m_final_margin_bottom = m_margin_bottom.value; break;
 				case ValueType::PERCENT: m_final_margin_bottom = m_margin_bottom.value * parent; break;
-				default: m_final_margin_bottom = XX_MAX(parent - m_margin_bottom.value, 0); break;
+				default: m_final_margin_bottom = NX_MAX(parent - m_margin_bottom.value, 0); break;
 			}
 		}
 		m_raw_client_height += (m_final_margin_top + m_final_margin_bottom);
@@ -463,7 +463,7 @@ public:
 					solve_vertical_size_with_explicit_height(parent_height);
 					break;
 				default: // 减法值
-					m_final_height = XX_MAX(parent_height - m_height.value, 0);
+					m_final_height = NX_MAX(parent_height - m_height.value, 0);
 					m_limit.height(m_final_height);
 					solve_vertical_size_with_explicit_height(parent_height);
 					break;
@@ -525,7 +525,7 @@ public:
 	
 	inline Box* set_offset_horizontal_(Box* prev, Vec2& squeeze,
 																		 float limit_width, Div* div, bool layout_three) {
-		XX_ASSERT(div);
+		NX_ASSERT(div);
 		
 		m_parent_layout = div;
 		
@@ -597,7 +597,7 @@ public:
 	
 	inline Box* set_offset_vertical_(Box* prev, Vec2& squeeze,
 																	 float limit_height, Div* div, bool layout_three) {
-		XX_ASSERT(div);
+		NX_ASSERT(div);
 		
 		m_parent_layout = div;
 		
@@ -998,11 +998,11 @@ void Box::solve() {
 	if ( mark_value & (View::M_BORDER_RADIUS | View::M_SHAPE) ) { // 圆角标记
 		float w = (m_final_width + m_border_left_width + m_border_right_width) / 2.0;
 		float h = (m_final_height + m_border_top_width + m_border_bottom_width) / 2.0;
-		float max = XX_MIN(w, h);
-		m_final_border_radius_left_top = XX_MIN(m_border_radius_left_top, max);
-		m_final_border_radius_right_top = XX_MIN(m_border_radius_right_top, max);
-		m_final_border_radius_right_bottom = XX_MIN(m_border_radius_right_bottom, max);
-		m_final_border_radius_left_bottom = XX_MIN(m_border_radius_left_bottom, max);
+		float max = NX_MIN(w, h);
+		m_final_border_radius_left_top = NX_MIN(m_border_radius_left_top, max);
+		m_final_border_radius_right_top = NX_MIN(m_border_radius_right_top, max);
+		m_final_border_radius_right_bottom = NX_MIN(m_border_radius_right_bottom, max);
+		m_final_border_radius_left_bottom = NX_MIN(m_border_radius_left_bottom, max);
 		m_is_draw_border_radius = (
 			m_final_border_radius_left_top != 0 ||
 			m_final_border_radius_right_top != 0 ||
@@ -1030,8 +1030,8 @@ void Box::set_draw_visible() {
 	Region dre = display_port()->draw_region();
 	Region re = get_screen_region();
 	
-	if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
-			XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
+	if (NX_MAX( dre.y2, re.y2 ) - NX_MIN( dre.y, re.y ) <= re.h + dre.h &&
+			NX_MAX( dre.x2, re.x2 ) - NX_MIN( dre.x, re.x ) <= re.w + dre.w
 	) {
 		m_draw_visible = true;
 	}
@@ -1058,7 +1058,7 @@ void Box::set_height(Value value) {
 }
 
 void Box::set_margin(Value value) {
-	value.value = XX_MAX(value.value, 0);
+	value.value = NX_MAX(value.value, 0);
 	m_margin_top = value;
 	m_margin_right = value;
 	m_margin_bottom = value;
@@ -1073,7 +1073,7 @@ void Box::set_margin(Value value) {
  * @arg value {Value}
  */
 void Box::set_margin_top(Value value) {
-	value.value = XX_MAX(value.value, 0);
+	value.value = NX_MAX(value.value, 0);
 	m_margin_top = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
@@ -1084,7 +1084,7 @@ void Box::set_margin_top(Value value) {
  * @arg value {Value}
  */
 void Box::set_margin_right(Value value) {
-	value.value = XX_MAX(value.value, 0);
+	value.value = NX_MAX(value.value, 0);
 	m_margin_right = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
@@ -1095,7 +1095,7 @@ void Box::set_margin_right(Value value) {
  * @arg value {Value}
  */
 void Box::set_margin_bottom(Value value) {
-	value.value = XX_MAX(value.value, 0);
+	value.value = NX_MAX(value.value, 0);
 	m_margin_bottom = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
@@ -1106,7 +1106,7 @@ void Box::set_margin_bottom(Value value) {
  * @arg value {Value}
  */
 void Box::set_margin_left(Value value) {
-	value.value = XX_MAX(value.value, 0);
+	value.value = NX_MAX(value.value, 0);
 	m_margin_left = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
@@ -1118,7 +1118,7 @@ void Box::set_margin_left(Value value) {
  * @set
  */
 void Box::set_border(Border value) {
-	float width = XX_MAX(value.width, 0);
+	float width = NX_MAX(value.width, 0);
 	m_border_top_color = value.color;
 	m_border_right_color = value.color;
 	m_border_bottom_color = value.color;
@@ -1135,7 +1135,7 @@ void Box::set_border(Border value) {
  * @arg value {Border}
  */
 void Box::set_border_top(Border value) {
-	m_border_top_width = XX_MAX(value.width, 0);
+	m_border_top_width = NX_MAX(value.width, 0);
 	m_border_top_color = value.color;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
@@ -1145,7 +1145,7 @@ void Box::set_border_top(Border value) {
  * @arg value {Border}
  */
 void Box::set_border_right(Border value) {
-	m_border_right_width = XX_MAX(value.width, 0);
+	m_border_right_width = NX_MAX(value.width, 0);
 	m_border_right_color = value.color;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
@@ -1155,7 +1155,7 @@ void Box::set_border_right(Border value) {
  * @arg value {Border}
  */
 void Box::set_border_bottom(Border value) {
-	m_border_bottom_width = XX_MAX(value.width, 0);
+	m_border_bottom_width = NX_MAX(value.width, 0);
 	m_border_bottom_color = value.color;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
@@ -1166,7 +1166,7 @@ void Box::set_border_bottom(Border value) {
  * @set
  */
 void Box::set_border_left(Border value) {
-	m_border_left_width = XX_MAX(value.width, 0);
+	m_border_left_width = NX_MAX(value.width, 0);
 	m_border_left_color = value.color;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
@@ -1176,7 +1176,7 @@ void Box::set_border_left(Border value) {
  * @type value {float}
  */
 void Box::set_border_width(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_top_width = value;
 	m_border_right_width = value;
 	m_border_bottom_width = value;
@@ -1189,7 +1189,7 @@ void Box::set_border_width(float value) {
  * @arg value {float}
  */
 void Box::set_border_top_width(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_top_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
@@ -1199,7 +1199,7 @@ void Box::set_border_top_width(float value) {
  * @arg value {float}
  */
 void Box::set_border_right_width(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_right_width = value;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
@@ -1209,7 +1209,7 @@ void Box::set_border_right_width(float value) {
  * @arg value {float}
  */
 void Box::set_border_bottom_width(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_bottom_width = value;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
@@ -1219,7 +1219,7 @@ void Box::set_border_bottom_width(float value) {
  * @arg value {float}
  */
 void Box::set_border_left_width(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_left_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
@@ -1277,7 +1277,7 @@ void Box::set_border_left_color(Color value) {
  * @arg value {float}
  */
 void Box::set_border_radius(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_radius_right_top = value;
 	m_border_radius_right_bottom = value;
 	m_border_radius_left_bottom = value;
@@ -1290,7 +1290,7 @@ void Box::set_border_radius(float value) {
  * @arg value {float}
  */
 void Box::set_border_radius_right_top(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_radius_right_top = value;
 	mark(M_BORDER_RADIUS);
 }
@@ -1300,7 +1300,7 @@ void Box::set_border_radius_right_top(float value) {
  * @arg value {float}
  */
 void Box::set_border_radius_right_bottom(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_radius_right_bottom = value;
 	mark(M_BORDER_RADIUS);
 }
@@ -1310,7 +1310,7 @@ void Box::set_border_radius_right_bottom(float value) {
  * @arg value {float}
  */
 void Box::set_border_radius_left_bottom(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_radius_left_bottom = value;
 	mark(M_BORDER_RADIUS);
 }
@@ -1320,7 +1320,7 @@ void Box::set_border_radius_left_bottom(float value) {
  * @arg value {float}
  */
 void Box::set_border_radius_left_top(float value) {
-	value = XX_MAX(value, 0);
+	value = NX_MAX(value, 0);
 	m_border_radius_left_top = value;
 	mark(M_BORDER_RADIUS);
 }
@@ -1329,7 +1329,7 @@ void Box::set_border_radius_left_top(float value) {
  * @func set_background_color
  */
 void Box::set_background_color(Color value) {
-	// XX_DEBUG("color,%d", value.a());
+	// NX_DEBUG("color,%d", value.a());
 	m_background_color = value;
 	mark(M_BACKGROUND_COLOR);
 }
@@ -1558,4 +1558,4 @@ void LimitIndep::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid
 	_inl(this)->set_offset_in_hybrid_(rows, limit, hybrid, 0);
 }
 
-XX_END
+NX_END

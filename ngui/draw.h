@@ -31,10 +31,10 @@
 #ifndef __ngui__draw__
 #define __ngui__draw__
 
-#include "nutils/array.h"
-#include "nutils/util.h"
-#include "nutils/string.h"
-#include "nutils/event.h"
+#include "nxkit/array.h"
+#include "nxkit/util.h"
+#include "nxkit/string.h"
+#include "nxkit/event.h"
 #include "ngui/image-codec.h"
 #include "ngui/mathe.h"
 #include "ngui/value.h"
@@ -44,7 +44,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class Texture;
 class TextureYUV;
@@ -80,7 +80,7 @@ enum DrawLibrary {
 /**
  * @class DrawData
  */
-class XX_EXPORT DrawData {
+class NX_EXPORT DrawData {
  public:
 	typedef NonObjectTraits Traits;
 	virtual ~DrawData() {}
@@ -89,8 +89,8 @@ class XX_EXPORT DrawData {
 /**
  * @class Draw
  */
-class XX_EXPORT Draw: public Object {
-	XX_HIDDEN_ALL_COPY(Draw);
+class NX_EXPORT Draw: public Object {
+	NX_HIDDEN_ALL_COPY(Draw);
  public:
 	
 	/**
@@ -107,7 +107,7 @@ class XX_EXPORT Draw: public Object {
 	/**
 	 * @event surface_size_change_r 绘图表面尺寸发生变化时从渲染线程触发
 	 */
-	XX_EVENT(surface_size_change_r);
+	NX_EVENT(surface_size_change_r);
 	
 	inline GUIApplication* host() const { return m_host; }
 	inline DrawLibrary library() { return m_library; }
@@ -200,15 +200,15 @@ class XX_EXPORT Draw: public Object {
 	friend class TextureYUV;
 };
 
-XX_INLINE Draw* draw_ctx() {
+NX_INLINE Draw* draw_ctx() {
 	return Draw::m_draw_ctx;
 }
-XX_INLINE FontPool* font_pool() {
+NX_INLINE FontPool* font_pool() {
 	return Draw::m_draw_ctx->m_font_pool;
 }
-XX_INLINE TexturePool* tex_pool() {
+NX_INLINE TexturePool* tex_pool() {
 	return Draw::m_draw_ctx->m_tex_pool;
 }
 
-XX_END
+NX_END
 #endif

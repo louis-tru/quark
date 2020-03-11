@@ -39,12 +39,12 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class BasicScroll
  */
-class XX_EXPORT BasicScroll: public Protocol {
+class NX_EXPORT BasicScroll: public Protocol {
  public:
 
 	BasicScroll(Box* box);
@@ -280,8 +280,8 @@ class XX_EXPORT BasicScroll: public Protocol {
 	
  private:
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
-	XX_DEFINE_INLINE_CLASS(Task);
+	NX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Task);
 	
 	friend class GLDraw;
 	
@@ -317,8 +317,8 @@ class XX_EXPORT BasicScroll: public Protocol {
 /**
  * @class Scroll
  */
-class XX_EXPORT Scroll: public Panel, public BasicScroll {
-	XX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
+class NX_EXPORT Scroll: public Panel, public BasicScroll {
+	NX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
  public:
 
 	typedef ReferenceTraits Traits;
@@ -423,7 +423,7 @@ class XX_EXPORT Scroll: public Panel, public BasicScroll {
 	
  private:
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 	float m_focus_margin_left;
 	float m_focus_margin_right;
@@ -436,5 +436,5 @@ class XX_EXPORT Scroll: public Panel, public BasicScroll {
 	
 };
 
-XX_END
+NX_END
 #endif

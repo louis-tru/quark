@@ -32,7 +32,7 @@
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define OUTPUT_BUFFER_NUM 12
 
@@ -188,8 +188,8 @@ class AppleVideoCodec: public MediaCodec {
 		OSStatus status;
 		const TrackInfo& track = m_extractor->track();
 		
-		XX_ASSERT(track.width);
-		XX_ASSERT(track.height);
+		NX_ASSERT(track.width);
+		NX_ASSERT(track.height);
 		
 		CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 		[NSDictionary dictionaryWithObjectsAndKeys:
@@ -197,7 +197,7 @@ class AppleVideoCodec: public MediaCodec {
 			kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange], (id)kCVPixelBufferPixelFormatTypeKey,
 			[NSNumber numberWithUnsignedInt:track.width], (id)kCVPixelBufferWidthKey,
 			[NSNumber numberWithUnsignedInt:track.height], (id)kCVPixelBufferHeightKey,
-#if XX_IOS
+#if NX_IOS
 			[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLESCompatibilityKey,
 #else
 			[NSNumber numberWithBool:NO], (id)kCVPixelBufferOpenGLCompatibilityKey,
@@ -211,7 +211,7 @@ class AppleVideoCodec: public MediaCodec {
 		};
 		status = VTDecompressionSessionCreate(NULL, m_format_desc, NULL, attrs, &cb, &m_session);
 		
-		XX_ASSERT(status >= 0);
+		NX_ASSERT(status >= 0);
 		
 		CFRetain(m_session);
 		
@@ -336,7 +336,7 @@ class AppleVideoCodec: public MediaCodec {
 				
 				if ( status == noErr ) {
 					if ( m_extractor->eof_flags() ) {
-						XX_DEBUG("%s", "eos flags");
+						NX_DEBUG("%s", "eos flags");
 					}
 					m_extractor->deplete_sample();
 					return true;
@@ -474,4 +474,4 @@ MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
 	return NULL;
 }
 
-XX_END
+NX_END

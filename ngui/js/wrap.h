@@ -41,8 +41,8 @@ template<class T> class Wrap;
 /**
  * @class WrapObject
  */
-class XX_EXPORT WrapObject {
-	XX_HIDDEN_ALL_COPY(WrapObject);
+class NX_EXPORT WrapObject {
+	NX_HIDDEN_ALL_COPY(WrapObject);
  protected:
 	
 	inline WrapObject() {}
@@ -133,12 +133,12 @@ class XX_EXPORT WrapObject {
 
  protected:
 	Persistent<JSObject> handle_;
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class Allocator;
 };
 
 template<class T = Object>
-class XX_EXPORT Wrap: public WrapObject {
+class NX_EXPORT Wrap: public WrapObject {
 	Wrap() = delete;
  public:
 	inline static Wrap<T>* unpack(Local<JSObject> value) {

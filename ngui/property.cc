@@ -43,7 +43,7 @@
 #include "sprite.h"
 #include "box-shadow-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define set_func(view, cls, Name, func) view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
@@ -191,4 +191,4 @@ bool PropertysAccessor::has_accessor(int view_type, PropertyName name) {
 	return m_property_func_table[view_type].has(name);
 }
 
-XX_END
+NX_END

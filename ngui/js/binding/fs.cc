@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/fs.h"
-#include "nutils/http.h"
+#include "nxkit/fs.h"
+#include "nxkit/http.h"
 #include "ngui/js/wrap.h"
 #include "ngui/js/str.h"
 #include "cb-1.h"
@@ -359,7 +359,7 @@ static bool parse_file_write_params(FunctionCall args, bool sync, int& args_inde
 		if ( args.Length() > 2 && args[2]->IsInt32(worker) ) { // size
 			int num = args[2]->ToInt32Value(worker);
 			if ( num >= 0 ) {
-				size = XX_MIN( num, size );
+				size = NX_MIN( num, size );
 				if (!sync) {
 					buffer.realloc((uint)size);
 				}
@@ -1530,7 +1530,7 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[1]);
 			
 			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb, size](CbD& ev) {
-				XX_ASSERT( ev.data );
+				NX_ASSERT( ev.data );
 				if (afterCollapse) {
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();
@@ -1706,7 +1706,7 @@ class NativeFileHelper {
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
 			int num = args[args_index]->ToInt32Value(worker);
 			if ( num >= 0 ) {
-				size = XX_MIN(size, num);
+				size = NX_MIN(size, num);
 			}
 			args_index++;
 		}
@@ -1737,7 +1737,7 @@ class NativeFileHelper {
 			
 			FileHelper::read(fd, WeakBuffer(*raw_buf, size), offset,
 											 Cb([persistent, cb](CbD& ev) {
-				XX_ASSERT( ev.data );
+				NX_ASSERT( ev.data );
 				Int read_len(static_cast<Buffer*>(ev.data)->length());
 				CbD r = { nullptr, &read_len, 0 };
 				cb->call(r);
@@ -1847,7 +1847,7 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[1]);
 			
 			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb, size](CbD& ev) {
-				XX_ASSERT( ev.data );
+				NX_ASSERT( ev.data );
 				if (afterCollapse) { // restore raw buffer
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();

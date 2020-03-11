@@ -34,19 +34,19 @@
 #include "button.h"
 #include "css.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-#define XX_FUN(NAME, STR, CATEGORY, FLAG) \
+#define NX_FUN(NAME, STR, CATEGORY, FLAG) \
 const GUIEventName GUI_EVENT_##NAME(#STR, GUI_EVENT_CATEGORY_##CATEGORY, FLAG);
-XX_GUI_EVENT_TABLE(XX_FUN)
-#undef XX_FUN
+NX_GUI_EVENT_TABLE(NX_FUN)
+#undef NX_FUN
 
 const Map<String, GUIEventName> GUI_EVENT_TABLE([]() -> Map<String, GUIEventName> {
 	Map<String, GUIEventName> r;
-#define XX_FUN(NAME, STR, CATEGORY, FLAG) \
+#define NX_FUN(NAME, STR, CATEGORY, FLAG) \
 r.set(GUI_EVENT_##NAME.to_string(), GUI_EVENT_##NAME);
-XX_GUI_EVENT_TABLE(XX_FUN)
-#undef XX_FUN
+NX_GUI_EVENT_TABLE(NX_FUN)
+#undef NX_FUN
 	return r;
 }());
 
@@ -57,7 +57,7 @@ static inline HighlightedStatus HOVER_or_NORMAL(View* view) {
 template<class T, typename... Args>
 inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
-XX_DEFINE_INLINE_MEMBERS(View, EventInl) {
+NX_DEFINE_INLINE_MEMBERS(View, EventInl) {
  public:
  #define _inl_view(self) static_cast<View::EventInl*>(static_cast<View*>(self))
 	
@@ -200,7 +200,7 @@ bool View::can_become_focus() {
  */
 class GUIEventDispatch::OriginTouche {
  public:
-	OriginTouche() { XX_UNREACHABLE(); }
+	OriginTouche() { NX_UNREACHABLE(); }
 	OriginTouche(View* view)
 	: _view(view)
 	, _start_position(view_position(view))
@@ -271,7 +271,7 @@ class GUIEventDispatch::MouseHandle {
 /**
  * @class GUIEventDispatch::Inl
  */
-XX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
+NX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
  public:
 	#define _inl_di(self) static_cast<GUIEventDispatch::Inl*>(self)
 	
@@ -961,4 +961,4 @@ void GUIEventDispatch::make_text_input(ITextInput* input) {
 	}
 }
 
-XX_END
+NX_END

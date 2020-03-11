@@ -33,7 +33,7 @@
 #include "ngui/sys.h"
 #include "native-glsl.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef PixelData::Format PixelFormat;
 
@@ -97,7 +97,7 @@ uint GLDraw::set_texture(const Array<PixelData>& data) {
 		return false;
 	}
 	
-	GLint format = get_gl_texture_pixel_format(pixel_format); XX_ASSERT(format);
+	GLint format = get_gl_texture_pixel_format(pixel_format); NX_ASSERT(format);
 	
 	// 启用各向异性
 #if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
@@ -230,7 +230,7 @@ static bool load_yuv_texture2(Draw* draw, uint handle,
 
 bool GLDraw::set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
 	PixelFormat format = data.format();
-	XX_ASSERT(format == PixelData::YUV420P || format == PixelData::YUV420SP ||
+	NX_ASSERT(format == PixelData::YUV420P || format == PixelData::YUV420SP ||
 					 format == PixelData::YUV411P || format == PixelData::YUV411SP);
 	
 	if ( format != PixelData::YUV420P && format != PixelData::YUV420SP ) {
@@ -251,7 +251,7 @@ bool GLDraw::set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
 		glGenTextures(1, &tex_uv);
 	}
 	
-#if XX_OSX
+#if NX_OSX
 #define GL_LUMINANCE GL_RED
 #define GL_LUMINANCE_ALPHA GL_RED
 #endif
@@ -347,4 +347,4 @@ void GLDraw::use_texture(uint id, uint slot) {
 	glBindTexture(GL_TEXTURE_2D, id);
 }
 
-XX_END
+NX_END

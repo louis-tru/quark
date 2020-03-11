@@ -30,7 +30,7 @@
 
 #include "limit-indep.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @constructor
@@ -61,4 +61,4 @@ void LimitIndep::set_max_height(Value value) {
 	set_vertical_active_mark();
 }
 
-XX_END
+NX_END

@@ -37,14 +37,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Root 这个类型的视图尺寸为显示端口的尺寸
  */
-class XX_EXPORT Root: public Panel {
+class NX_EXPORT Root: public Panel {
  public:
-	XX_DEFINE_GUI_VIEW(ROOT, Root, root);
+	NX_DEFINE_GUI_VIEW(ROOT, Root, root);
 	
 	inline Root() {}
 	
@@ -74,5 +74,5 @@ class XX_EXPORT Root: public Panel {
 	virtual void set_layout_content_offset();
 };
 
-XX_END
+NX_END
 #endif

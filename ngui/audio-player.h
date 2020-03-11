@@ -40,14 +40,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class AudioPlayer
  */
-class XX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
+class NX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
                              public MultimediaSource::Delegate {
-  XX_HIDDEN_ALL_COPY(AudioPlayer);
+  NX_HIDDEN_ALL_COPY(AudioPlayer);
  public:
 
   typedef MultimediaSource::TrackInfo TrackInfo;
@@ -71,12 +71,12 @@ class XX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
   /**
    * @func src get src
    */
-  XX_MEDIA_DYNAMIC String src();
+  NX_MEDIA_DYNAMIC String src();
   
   /**
    * @func set_src set src
    */
-  XX_MEDIA_DYNAMIC void set_src(cString& value);
+  NX_MEDIA_DYNAMIC void set_src(cString& value);
 
   /**
    * @func auto_play
@@ -86,17 +86,17 @@ class XX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
   /**
    * @func set_auto_play setting auto play
    */
-  XX_MEDIA_DYNAMIC void set_auto_play(bool value);
+  NX_MEDIA_DYNAMIC void set_auto_play(bool value);
 
   /**
    * @func source_status
    * */
-  XX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
+  NX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
 
   /**
    * @func status getting play status
    */
-  XX_MEDIA_DYNAMIC PlayerStatus status();
+  NX_MEDIA_DYNAMIC PlayerStatus status();
 
   /**
    * @func mute getting mute status
@@ -106,7 +106,7 @@ class XX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
   /**
    * @func set_mute setting mute status
    * */
-  XX_MEDIA_DYNAMIC void set_mute(bool value);
+  NX_MEDIA_DYNAMIC void set_mute(bool value);
 
   /**
    * @func volume
@@ -116,72 +116,72 @@ class XX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
   /**
    * @func set_volume
    */
-  XX_MEDIA_DYNAMIC void set_volume(uint value);
+  NX_MEDIA_DYNAMIC void set_volume(uint value);
 
   /**
    * @func time
    * */
-  XX_MEDIA_DYNAMIC uint64 time();
+  NX_MEDIA_DYNAMIC uint64 time();
 
   /**
    * @func duration
    * */
-  XX_MEDIA_DYNAMIC uint64 duration();
+  NX_MEDIA_DYNAMIC uint64 duration();
 
   /**
    * @func audio_track_count
    */
-  XX_MEDIA_DYNAMIC uint track_count();
+  NX_MEDIA_DYNAMIC uint track_count();
 
   /**
    * @func audio_track
    */
-  XX_MEDIA_DYNAMIC uint track_index();
+  NX_MEDIA_DYNAMIC uint track_index();
 
   /**
    * @func audio_track
    */
-  XX_MEDIA_DYNAMIC const TrackInfo* track();
+  NX_MEDIA_DYNAMIC const TrackInfo* track();
 
   /**
    * @func audio_track
    */
-  XX_MEDIA_DYNAMIC const TrackInfo* track(uint index);
+  NX_MEDIA_DYNAMIC const TrackInfo* track(uint index);
 
   /**
    * @func select_audio_track
    * */
-  XX_MEDIA_DYNAMIC void select_track(uint index);
+  NX_MEDIA_DYNAMIC void select_track(uint index);
 
   /**
    * @func start play
    */
-  XX_MEDIA_DYNAMIC void start();
+  NX_MEDIA_DYNAMIC void start();
 
   /**
    * @func seek to target time
    */
-  XX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
+  NX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
 
   /**
    * @func pause play
    * */
-  XX_MEDIA_DYNAMIC void pause();
+  NX_MEDIA_DYNAMIC void pause();
 
   /**
    * @func resume play
    * */
-  XX_MEDIA_DYNAMIC void resume();
+  NX_MEDIA_DYNAMIC void resume();
 
   /**
    * @func stop play
    * */
-  XX_MEDIA_DYNAMIC void stop();
+  NX_MEDIA_DYNAMIC void stop();
 
   /**
    * @func disable_wait_buffer
    */
-  XX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
+  NX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
 
   /**
    * @func disable_wait_buffer
@@ -208,8 +208,8 @@ class XX_EXPORT AudioPlayer: public Notification<Event<>, GUIEventName>,
   bool    m_disable_wait_buffer;
   bool    m_waiting_buffer;
 
-  XX_DEFINE_INLINE_CLASS(Inl);
+  NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif

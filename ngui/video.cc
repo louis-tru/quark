@@ -35,10 +35,10 @@
 #include "draw.h"
 #include "pcm-player.h"
 #include "media-codec.h"
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "ngui/errno.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 typedef MultimediaSource::TrackInfo TrackInfo;
 typedef PreRender::Task::ID TaskID;
@@ -74,7 +74,7 @@ Video::Video()
 /**
  * @class Video::Inl
  */
-XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Video, Inl) {
  public:
 
 	bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
@@ -91,7 +91,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	}
 	
 	bool advance_video(uint64 sys_time) {
-		XX_ASSERT(m_status != PLAYER_STATUS_STOP);
+		NX_ASSERT(m_status != PLAYER_STATUS_STOP);
 		
 		bool draw = false;
 		
@@ -151,7 +151,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 					draw = true;
 				}
 			} else { // start reander one frame
-				XX_DEBUG("Reset timing : prs: %lld, %lld, %lld",
+				NX_DEBUG("Reset timing : prs: %lld, %lld, %lld",
 								pts,
 								sys_time - m_prev_presentation_time, m_uninterrupted_play_start_systime);
 
@@ -315,9 +315,9 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	void start_run() {
 		Lock lock(m_mutex);
 		
-		XX_ASSERT( m_source && m_video );
-		XX_ASSERT( m_source->is_active() );
-		XX_ASSERT( m_status == PLAYER_STATUS_START );
+		NX_ASSERT( m_source && m_video );
+		NX_ASSERT( m_source->is_active() );
+		NX_ASSERT( m_status == PLAYER_STATUS_START );
 		
 		m_waiting_buffer = false;
 		
@@ -328,7 +328,7 @@ XX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 			m_video->extractor()->set_disable(false);
 		} else {
 			stop_2(lock, true);
-			XX_ERR("Unable to open video decoder"); return;
+			NX_ERR("Unable to open video decoder"); return;
 		}
 		
 		if ( m_audio && m_pcm && m_audio->open() ) {  // clear audio
@@ -393,7 +393,7 @@ String Video::source() const {
 }
 
 void Video::multimedia_source_ready(MultimediaSource* src) {
-	XX_ASSERT( m_source == src );
+	NX_ASSERT( m_source == src );
 	
 	if ( m_video ) {
 		Inl_Video(this)->trigger(GUI_EVENT_READY); // trigger event ready
@@ -403,8 +403,8 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
 		return;
 	}
 
-	XX_ASSERT(!m_video);
-	XX_ASSERT(!m_audio);
+	NX_ASSERT(!m_video);
+	NX_ASSERT(!m_audio);
 	
 	// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 	
@@ -432,7 +432,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
 	}, this/*保持Video*/), Cb([=](CbD& d) {
 		m_task_id = 0;
 		if ( m_source != src ) return;
-		if ( !m_audio) XX_ERR("Unable to create audio decoder");
+		if ( !m_audio) NX_ERR("Unable to create audio decoder");
 		if (m_video) {
 			{ //
 				ScopeLock scope(m_mutex);
@@ -455,7 +455,7 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
 			}
 		} else {
 			Error e(ERR_VIDEO_NEW_CODEC_FAIL, "Unable to create video decoder");
-			XX_ERR("%s", *e.message());
+			NX_ERR("%s", *e.message());
 			Inl_Video(this)->trigger(GUI_EVENT_ERROR, e); // trigger event error
 			stop();
 		} 
@@ -478,7 +478,7 @@ void Video::set_source(cString& value) {
 		}
 		Inl_Video(this)->stop_and_release(lock, true);
 	}
-	auto loop = main_loop(); XX_CHECK(loop, "Cannot find main run loop");
+	auto loop = main_loop(); NX_CHECK(loop, "Cannot find main run loop");
 	m_source = new MultimediaSource(src, loop);
 	m_keep = loop->keep_alive("Video::set_source");
 	m_source->set_delegate(this);
@@ -526,7 +526,7 @@ bool Video::seek(uint64 timeUs) {
 	ScopeLock scope(m_mutex);
 	
 	if ( Inl_Video(this)->is_active() && timeUs < m_duration ) {
-		XX_ASSERT( m_source );
+		NX_ASSERT( m_source );
 		
 		if ( m_source->seek(timeUs) ) {
 			m_uninterrupted_play_start_systime = 0;
@@ -597,7 +597,7 @@ void Video::set_mute(bool value) {
  */
 void Video::set_volume(uint value) {
 	ScopeLock scope(m_mutex);
-	value = XX_MIN(value, 100);
+	value = NX_MIN(value, 100);
 	m_volume = value;
 	if ( m_pcm ) {
 		m_pcm->set_volume(value);
@@ -716,7 +716,7 @@ bool Video::run_task(int64 sys_time) {
 	// video
 	bool draw = Inl_Video(this)->advance_video(sys_time);
 	
-	// XX_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
+	// NX_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
 	
 	{
 		ScopeLock scope(m_mutex);
@@ -742,7 +742,7 @@ void Video::disable_wait_buffer(bool value) {
 }
 
 void Video::set_texture(Texture* value) {
-	XX_WARN("Video cannot set this property");
+	NX_WARN("Video cannot set this property");
 }
 
 void Video::set_auto_play(bool value) {
@@ -770,4 +770,4 @@ void Video::remove() {
 	Image::remove();
 }
 
-XX_END
+NX_END

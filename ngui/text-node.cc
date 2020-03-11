@@ -30,13 +30,13 @@
 
 #include <math.h>
 #include "text-node.h"
-#include "nutils/codec.h"
+#include "nxkit/codec.h"
 #include "text-rows.h"
 #include "hybrid.h"
 #include "app.h"
 #include "display-port.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
 
@@ -161,11 +161,11 @@ class TextNode::Inl: public TextNode {
 TextNode::TextNode(): m_valid_layout_offset(false) { }
 
 void TextNode::prepend(View* child) throw(Error) {
-	XX_ERR("%s", "Error: TextNode can not have a child view");
+	NX_ERR("%s", "Error: TextNode can not have a child view");
 }
 
 void TextNode::append(View* child) throw(Error) {
-	XX_ERR("%s", "Error: TextNode can not have a child view");
+	NX_ERR("%s", "Error: TextNode can not have a child view");
 }
 
 void TextNode::accept_text(Ucs2StringBuilder& output) const {
@@ -272,4 +272,4 @@ void TextNode::set_draw_visible() {
 														0, m_offset_end.x() - m_offset_start.x(), m_offset_start.y());
 }
 
-XX_END
+NX_END

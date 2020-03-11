@@ -33,9 +33,9 @@
 #include "ngui/app.h"
 #include "ngui/errno.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
+NX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
  public:
 	inline ReturnValue& trigger(const NameType& name, GUIEvent& evt) {
 		return View::trigger(name, evt);
@@ -88,7 +88,7 @@ class Action::Inl: public Action {
 	void set_parent(Action* parent) throw(Error) {
 		
 		if ( m_parent || m_views.length() || !m_action_center_id.is_null() ) {
-			XX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+			NX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 		}
 		
 		retain(); // retain
@@ -211,12 +211,12 @@ class Action::Inl: public Action {
 	void add_view(View* view) throw(Error) {
 		
 		if ( m_parent ) {
-			XX_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
+			NX_THROW(ERR_ACTION_ILLEGAL_ROOT, "Cannot set non root action !");
 		}
 		View* first = first_view();
 		if ( first ) {
 			if ( first->view_type() != view->view_type() ) {
-				XX_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE, "Action can only be bound to the same type of view !");
+				NX_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE, "Action can only be bound to the same type of view !");
 			}
 		} else {
 			bind_view(view);
@@ -282,7 +282,7 @@ TYPE Frame::NAME() { \
 void Frame::set_##NAME(TYPE value) { \
 	_inl_frame(this)->set_property_value<ENUM>(value); \
 }
-XX_EACH_PROPERTY_TABLE(xx_def_property)
+NX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_accessor
 
 /**
@@ -337,7 +337,7 @@ class GroupAction::Inl: public GroupAction {
 		int64 new_duration = 0;
 		
 		for ( auto& i : m_actions ) {
-			new_duration = XX_MAX(i.value()->m_full_duration, new_duration);
+			new_duration = NX_MAX(i.value()->m_full_duration, new_duration);
 		}
 		new_duration += m_delay;
 		
@@ -360,7 +360,7 @@ void Frame::set_time(uint64 value) {
 		uint next = m_index + 1;
 		if ( next < m_host->length() ) {
 			uint64 max_time = m_host->frame(next)->time();
-			m_time = XX_MIN(value, max_time);
+			m_time = NX_MIN(value, max_time);
 		} else { // no next
 			m_time = value;
 		}
@@ -535,7 +535,7 @@ Action::Action()
  * @destructor
  */
 Action::~Action() {
-	XX_ASSERT( m_action_center_id.is_null() );
+	NX_ASSERT( m_action_center_id.is_null() );
 }
 
 /**
@@ -627,7 +627,7 @@ Action* GroupAction::operator[](uint index) {
  * @func append
  */
 void GroupAction::append(Action* action) throw(Error) {
-	XX_ASSERT(action);
+	NX_ASSERT(action);
 	_inl_action(action)->set_parent(this);
 	m_actions.push(action);
 	m_actions_index.clear();
@@ -638,7 +638,7 @@ void GroupAction::append(Action* action) throw(Error) {
  * @func insert
  */
 void GroupAction::insert(uint index, Action* action) throw(Error) {
-	XX_ASSERT(action);
+	NX_ASSERT(action);
 	if ( index == 0 ) {
 		_inl_action(action)->set_parent(this);
 		m_actions.unshift(action);
@@ -739,8 +739,8 @@ void SequenceAction::clear() {
  */
 void Action::seek(int64 time) {
 	time += m_delay;
-	time = XX_MIN(time, m_full_duration);
-	time = XX_MAX(time, 0);
+	time = NX_MIN(time, m_full_duration);
+	time = NX_MAX(time, 0);
 	if (m_parent) {
 		m_parent->seek_before(time, this);
 	} else {
@@ -790,7 +790,7 @@ void SequenceAction::seek_before(int64 time, Action* child) {
 }
 
 void KeyframeAction::seek_before(int64 time, Action* child) {
-	XX_UNIMPLEMENTED();
+	NX_UNIMPLEMENTED();
 }
 
 void SpawnAction::seek_time(uint64 time, Action* root) {
@@ -867,7 +867,7 @@ void KeyframeAction::seek_time(uint64 time, Action* root) {
 		}
 		
 		m_frame = frame->index();
-		m_time = XX_MIN(int64(time), m_full_duration - m_delay);
+		m_time = NX_MIN(int64(time), m_full_duration - m_delay);
 		
 		uint f1 = m_frame;
 		uint f2 = f1 + 1;
@@ -914,7 +914,7 @@ uint64 SpawnAction::advance(uint64 time_span, bool restart, Action* root) {
 	
 	for ( auto& i : m_actions ) {
 		uint64 time = i.value()->advance(time_span, restart, root);
-		surplus_time = XX_MIN(surplus_time, time);
+		surplus_time = NX_MIN(surplus_time, time);
 	}
 	
 	if ( surplus_time ) {
@@ -1156,7 +1156,7 @@ static ActionCenter* action_center_shared = nullptr;
 
 ActionCenter::ActionCenter()
 : m_prev_sys_time(0) {
-	XX_ASSERT(!action_center_shared); action_center_shared = this;
+	NX_ASSERT(!action_center_shared); action_center_shared = this;
 }
 
 ActionCenter::~ActionCenter() {
@@ -1208,4 +1208,4 @@ ActionCenter* ActionCenter::shared() {
 	return action_center_shared;
 }
 
-XX_END
+NX_END

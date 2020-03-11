@@ -30,7 +30,7 @@
 
 #include "text-rows.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 TextRows::TextRows() {
 	reset();
@@ -98,4 +98,4 @@ void TextRows::set_width(float value) {
 	}
 }
 
-XX_END
+NX_END

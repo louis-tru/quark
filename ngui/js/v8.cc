@@ -30,9 +30,9 @@
 
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#include "nutils/util.h"
-#include "nutils/http.h"
-#include "nutils/string-builder.h"
+#include "nxkit/util.h"
+#include "nxkit/http.h"
+#include "nxkit/string-builder.h"
 #include "ngui/view.h"
 #include "ngui/errno.h"
 #include "js-1.h"
@@ -87,13 +87,13 @@ typedef const v8::PropertyCallbackInfo<Value>& V8PropertyCall;
 typedef const v8::PropertyCallbackInfo<void>&  V8PropertySetCall;
 
 template<class T = JSValue, class S>
-XX_INLINE Local<T> Cast(v8::Local<S> o) {
+NX_INLINE Local<T> Cast(v8::Local<S> o) {
 	auto _ = reinterpret_cast<Local<T>*>(&o);
 	return *_;
 }
 
 template<class T = v8::Value, class S>
-XX_INLINE v8::Local<T> Back(Local<S> o) {
+NX_INLINE v8::Local<T> Back(Local<S> o) {
 	auto _ = reinterpret_cast<v8::Local<T>*>(&o);
 	return *_;
 }
@@ -208,16 +208,16 @@ class WorkerIMPL: public IMPL {
 		return worker;
 	}
 	
-	XX_INLINE v8::Local<v8::String> NewFromOneByte(cchar* str) {
+	NX_INLINE v8::Local<v8::String> NewFromOneByte(cchar* str) {
 		return v8::String::NewFromOneByte(isolate_, (byte*)str);
 	}
 	
-	XX_INLINE v8::Local<v8::String> NewFromUtf8(cchar* str) {
+	NX_INLINE v8::Local<v8::String> NewFromUtf8(cchar* str) {
 		return v8::String::NewFromUtf8(isolate_, str);
 	}
 	
 	template <class T, class M = NonCopyablePersistentTraits<T>>
-	XX_INLINE v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
+	NX_INLINE v8::Local<T> strong(const v8::Persistent<T, M>& persistent) {
 		return *reinterpret_cast<v8::Local<T>*>(const_cast<v8::Persistent<T, M>*>(&persistent));
 	}
 	
@@ -260,7 +260,7 @@ class WorkerIMPL: public IMPL {
 			rv = func->Call(CONTEXT(m_host), v8::Undefined(ISOLATE(this)), 3, args);
 			if (!rv.IsEmpty()) {
 				Local<JSValue> rv = module->Get(m_host, m_host->strs()->exports());
-				XX_ASSERT(rv->IsObject(m_host));
+				NX_ASSERT(rv->IsObject(m_host));
 				return rv;
 			}
 		}
@@ -322,14 +322,14 @@ class WorkerIMPL: public IMPL {
 	}
 	
 	void print_exception(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
-		XX_ERR( parse_exception_message(message, error) );
+		NX_ERR( parse_exception_message(message, error) );
 	}
 
 	static void OnFatalError(const char* location, const char* message) {
 		if (location) {
-			XX_FATAL("FATAL ERROR: %s %s\n", location, message);
+			NX_FATAL("FATAL ERROR: %s %s\n", location, message);
 		} else {
-			XX_FATAL("FATAL ERROR: %s\n", message);
+			NX_FATAL("FATAL ERROR: %s\n", message);
 		}
 	}
 
@@ -376,7 +376,7 @@ Worker* IMPL::create() {
 	return inl->host();
 }
 
-XX_EXPORT Worker* createWorkerWithNode(void* isolate, void* context) {
+NX_EXPORT Worker* createWorkerWithNode(void* isolate, void* context) {
 	auto inl = new WorkerIMPL(isolate, context);
 	inl->initialize();
 	return inl->host();
@@ -455,14 +455,14 @@ void* WeakCallbackInfo::GetParameter() const {
 }
 
 bool IMPL::IsWeak(PersistentBase<JSObject>& handle) {
-	XX_ASSERT( !handle.IsEmpty() );
+	NX_ASSERT( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	return h->IsWeak();
 }
 
 void IMPL::SetWeak(PersistentBase<JSObject>& handle,
 												WrapObject* ptr, WeakCallbackInfo::Callback callback) {
-	XX_ASSERT( !handle.IsEmpty() );
+	NX_ASSERT( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	h->MarkIndependent();
 	h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<WrapObject>::Callback>(callback),
@@ -470,7 +470,7 @@ void IMPL::SetWeak(PersistentBase<JSObject>& handle,
 }
 
 void IMPL::ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr) {
-	XX_ASSERT( !handle.IsEmpty() );
+	NX_ASSERT( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	h->ClearWeak();
 }
@@ -482,14 +482,14 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 		bool ok;
 		// function.__proto__ = base
 		// ok = f->SetPrototype(v8cls->ParentFromFunction());
-		// XX_ASSERT(ok);
+		// NX_ASSERT(ok);
 		// function.prototype.__proto__ = base.prototype
 		auto b = v8cls->ParentFromFunction();
 		auto s = Back(m_host->strs()->prototype());
 		auto p = f->Get(CONTEXT(m_host), s).ToLocalChecked().As<v8::Object>();
 		auto p2 = b->Get(CONTEXT(m_host), s).ToLocalChecked().As<v8::Object>();
 		ok = p->SetPrototype(p2);
-		XX_ASSERT(ok);
+		NX_ASSERT(ok);
 	}
 	return Cast<JSFunction>(f);
 }
@@ -956,7 +956,7 @@ template<> bool JSClass::SetStaticProperty<Local<JSValue>>
 	return true;
 }
 
-template <> XX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked() {
+template <> NX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked() {
 	return Cast(reinterpret_cast<v8::MaybeLocal<v8::Value>*>(this)->ToLocalChecked());
 }
 
@@ -1077,7 +1077,7 @@ template <> void PersistentBase<JSValue>::Reset() {
 
 template <> template <>
 void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other) {
-	XX_ASSERT(worker);
+	NX_ASSERT(worker);
 	reinterpret_cast<v8::PersistentBase<v8::Value>*>(this)->
 		Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 	worker_ = worker;
@@ -1085,7 +1085,7 @@ void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other)
 
 template<> template<>
 void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that) {
-	XX_ASSERT(that.worker_);
+	NX_ASSERT(that.worker_);
 	typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 	reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
 	worker_ = that.worker_;
@@ -1223,7 +1223,7 @@ Local<JSArrayBuffer> Worker::NewArrayBuffer(uint len) {
 }
 Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab, uint offset, uint size) {
   auto ab2 = Back<v8::ArrayBuffer>(ab);
-  offset = XX_MIN((uint)ab2->ByteLength(), offset);
+  offset = NX_MIN((uint)ab2->ByteLength(), offset);
   if (size + offset > ab2->ByteLength()) {
     size = (uint)ab2->ByteLength() - offset;
   }
@@ -1263,22 +1263,22 @@ Local<JSString> Worker::NewAscii(cchar* str) {
   Local<JSString> NewAscii(cchar* str);
 
 Local<JSObject> Worker::NewRangeError(cchar* errmsg, ...) {
-	XX_STRING_FORMAT(errmsg, str);
+	NX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::RangeError(Back(New(str))->ToString()));
 }
 
 Local<JSObject> Worker::NewReferenceError(cchar* errmsg, ...) {
-	XX_STRING_FORMAT(errmsg, str);
+	NX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::ReferenceError(Back(New(str))->ToString()));
 }
 
 Local<JSObject> Worker::NewSyntaxError(cchar* errmsg, ...) {
-	XX_STRING_FORMAT(errmsg, str);
+	NX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::SyntaxError( Back(New(str))->ToString() ));
 }
 
 Local<JSObject> Worker::NewTypeError(cchar* errmsg, ...) {
-	XX_STRING_FORMAT(errmsg, str);
+	NX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::TypeError( Back(New(str))->ToString() ));
 }
 
@@ -1401,12 +1401,12 @@ int IMPL::start(int argc, char** argv) {
 		{
 			HandleScope scope(*worker);
 			auto _pkg = worker->bindingModule("_pkg");
-			XX_CHECK(!_pkg.IsEmpty(), "Can't start worker");
+			NX_CHECK(!_pkg.IsEmpty(), "Can't start worker");
 			Local<JSValue> r = _pkg.To()->
 				GetProperty(*worker, "Module").To()->
 				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
 			if (r.IsEmpty()) {
-				XX_ERR("ERROR: Can't call runMain()");
+				NX_ERR("ERROR: Can't call runMain()");
 				return ERR_RUN_MAIN_EXCEPTION;
 			}
 		}

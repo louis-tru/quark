@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "ngui/js/wrap.h"
 
 /**
@@ -101,7 +101,7 @@ class Timer: public Reference {
 	}
 	
 	void loop(int loop) {
-		_loop = XX_MAX(-1, loop);
+		_loop = NX_MAX(-1, loop);
 	}
 	
 	void run(uint64 timeout, int loop = 1) {
@@ -177,7 +177,7 @@ class WrapTimer: public WrapObject {
 		if (args.Length() == 0 || ! args[0]->IsNumber(worker)) {
 			JS_THROW_ERR("Bad argument");
 		}
-		uint64 timeout = XX_MAX(0, args[0]->ToNumberValue(worker));
+		uint64 timeout = NX_MAX(0, args[0]->ToNumberValue(worker));
 		int loop = 1;
 		if (args.Length() > 1 && args[1]->IsInt32(worker)) {
 			loop = args[1]->ToInt32Value(worker);
@@ -201,7 +201,7 @@ class WrapTimer: public WrapObject {
 		}
 		uint64 timeout = 0;
 		if (args.Length() > 1 && args[1]->IsNumber(worker)) {
-			timeout = XX_MAX(0, args[1]->ToNumberValue(worker));
+			timeout = NX_MAX(0, args[1]->ToNumberValue(worker));
 		}
 		
 		Local<JSValue> cb = args[0];

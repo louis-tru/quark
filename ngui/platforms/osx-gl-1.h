@@ -33,9 +33,9 @@
 #ifndef __ngui__osx_gl__
 #define __ngui__osx_gl__
 
-#import "nutils/macros.h"
+#import "nxkit/macros.h"
 
-#if XX_OSX
+#if NX_OSX
 
 #import "ngui/gl/gl.h"
 #import <AppKit/AppKit.h>
@@ -43,9 +43,9 @@
 
 #define UIView NSView
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-class XX_EXPORT GLDrawProxy {
+class NX_EXPORT GLDrawProxy {
  public:
 	GLDrawProxy(GLDraw* host);
 	~GLDrawProxy();
@@ -62,7 +62,7 @@ class XX_EXPORT GLDrawProxy {
 	GLDraw* m_host;
 };
 
-XX_END
+NX_END
 
 #endif
 #endif

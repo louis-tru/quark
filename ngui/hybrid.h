@@ -40,14 +40,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Hybrid
  */
-class XX_EXPORT Hybrid: public Box, public TextLayout {
+class NX_EXPORT Hybrid: public Box, public TextLayout {
  public:
-	XX_DEFINE_GUI_VIEW(HYBRID, Hybrid, hybrid);
+	NX_DEFINE_GUI_VIEW(HYBRID, Hybrid, hybrid);
 	
 	typedef ReferenceTraits Traits;
 	
@@ -100,5 +100,5 @@ class XX_EXPORT Hybrid: public Box, public TextLayout {
 	
 };
 
-XX_END
+NX_END
 #endif

@@ -33,14 +33,14 @@
 
 #include "ngui/div.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Panel
  */
-class XX_EXPORT Panel: public Div {
+class NX_EXPORT Panel: public Div {
  public:
-	XX_DEFINE_GUI_VIEW(PANEL, Panel, panel)
+	NX_DEFINE_GUI_VIEW(PANEL, Panel, panel)
 	
 	Panel();
 	
@@ -101,10 +101,10 @@ class XX_EXPORT Panel: public Div {
 	uint64  m_interval_time;
 	bool  m_enable_select;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	
 };
 
-XX_END
+NX_END
 
 #endif

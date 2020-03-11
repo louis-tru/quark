@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/pcm-player.h"
-#include "nutils/handle.h"
-#include "nutils/loop.h"
-#include "nutils/android-jni.h"
+#include "nxkit/handle.h"
+#include "nxkit/loop.h"
+#include "nxkit/android-jni.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
@@ -39,7 +39,7 @@
 #define USE_ANDROID_OPENSLES_PCM_PLAYER 0
 #endif
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @func get_channel_mask
@@ -58,23 +58,23 @@ struct AudioEngine {
 
 		// create engine
 		result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL); 
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// realize the engine
 		result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get the engine interface, which is needed in order to create other objects
 		result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// create output mix,
 		result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// realize the output mix
 		result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 	}
 
 	~AudioEngine() {
@@ -224,37 +224,37 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 		result = (*engine->engineEngine)->CreateAudioPlayer(engine->engineEngine,
 																												&bqPlayerObject,
 																												&audioSrc, &audioSnk, 3, ids, req);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// realize the player
 		result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get the play interface
 		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get the buffer queue interface
 		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get the effect send interface
 		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_EFFECTSEND, &bqPlayerEffectSend);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get the volume interface
 		result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get max volume level
 		result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &m_max_volume_level);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
 		// set playing status
 		result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 
-		XX_DEBUG("createAudioPlayer finish");
+		NX_DEBUG("createAudioPlayer finish");
 
 		return true;
 	}
@@ -286,7 +286,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 		ScopeLock scope(m_lock);
 		// clear buffer
 		result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
-		XX_ASSERT(SL_RESULT_SUCCESS == result);
+		NX_ASSERT(SL_RESULT_SUCCESS == result);
 	}
 
 	/**
@@ -321,7 +321,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 		JNI::ScopeENV env;
 		JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
 		int r = env->CallStaticIntMethod(m.clazz(), m.method(), m_sample_rate,
-																		 get_channel_mask(m_channel_count), 2/*ENCODIXX_PCM_16BIT*/);
+																		 get_channel_mask(m_channel_count), 2/*ENCODINX_PCM_16BIT*/);
 		return r;
 	}
 
@@ -370,4 +370,4 @@ PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 #endif 
 }
 
-XX_END
+NX_END

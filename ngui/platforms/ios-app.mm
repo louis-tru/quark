@@ -30,7 +30,7 @@
 
 #import <UIKit/UIKit.h>
 #import <OpenGLES/ES2/glext.h>
-#import "nutils/loop.h"
+#import "nxkit/loop.h"
 #import "ios-gl-1.h"
 #import "ios-ime-helper-1.h"
 #import "mac-app.h"
@@ -137,7 +137,7 @@ static NSString* app_delegate_name = @"";
 			if (ori != app_delegate.current_orientation) {
 				app_delegate.current_orientation = ori;
 				main_loop()->post(Cb([](CbD& e) {
-					(app_delegate.app)->display_port()->XX_TRIGGER(orientation);
+					(app_delegate.app)->display_port()->NX_TRIGGER(orientation);
 				}));
 			}
 		}));
@@ -211,7 +211,7 @@ static NSString* app_delegate_name = @"";
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event {
-	// XX_DEBUG("touchesMoved, count: %d", touches.count);
+	// NX_DEBUG("touchesMoved, count: %d", touches.count);
 	_app->dispatch()->dispatch_touchmove( [self toGUITouchs:touches] );
 }
 
@@ -241,7 +241,7 @@ static void render_exec_func(CbD& evt, Object* ctx) {
 		self.render_task_count++;
 		_app->render_loop()->post(_render_exec);
 	} else {
-		XX_DEBUG("miss frame");
+		NX_DEBUG("miss frame");
 	}
 }
 
@@ -272,14 +272,14 @@ static void render_exec_func(CbD& evt, Object* ctx) {
 }
 
 - (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-	XX_ASSERT(!app_delegate); 
+	NX_ASSERT(!app_delegate); 
 	app_delegate = self;
 	
 	//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 	//[app setStatusBarHidden:NO];
 	
 	_app = Inl_GUIApplication(GUIApplication::shared()); 
-	XX_ASSERT(self.app);
+	NX_ASSERT(self.app);
 	_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	_is_background = NO;
 	_render_exec = Cb(render_exec_func);
@@ -445,10 +445,10 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	XX_ASSERT(!gl_draw_context);
+	NX_ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
-	XX_ASSERT(m_draw_ctx);
+	NX_ASSERT(m_draw_ctx);
 }
 
 /**
@@ -531,7 +531,7 @@ void DisplayPort::keep_screen(bool keep) {
  */
 float DisplayPort::status_bar_height() {
 	::CGRect rect = app_delegate.host.statusBarFrame;
-	return XX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / m_scale_value[1];
+	return NX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / m_scale_value[1];
 }
 
 /**
@@ -565,7 +565,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					main_loop()->post(Cb([this](CbD& e){
-						XX_TRIGGER(change);
+						NX_TRIGGER(change);
 					}));
 				}
 			}), 16000); /* 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 */
@@ -636,7 +636,7 @@ void DisplayPort::set_orientation(Orientation orientation) {
 	}
 }
 
-extern "C" XX_EXPORT int main(int argc, char* argv[]) {
+extern "C" NX_EXPORT int main(int argc, char* argv[]) {
 	/**************************************************/
 	/**************************************************/
 	/*************** Start GUI Application ************/

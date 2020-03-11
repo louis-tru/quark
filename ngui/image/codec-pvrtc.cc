@@ -30,7 +30,7 @@
 
 #include "ngui/image-codec.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 static const uint PVR2TEXTURE_FLAG_TYPE_MASK = 0xff;
 static const uint64 PVR3TEXTURE_PFHIGH_MASK = 0xffffffff00000000ULL;
@@ -239,9 +239,9 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		uint64 uiDataSize = 0;
 		
 		//Get the dimensions of the specified MIP Map level.
-		uint uiWidth = XX_MAX(1, header.width >> iMipLevel);
-		uint uiHeight = XX_MAX(1, header.height >> iMipLevel);
-		uint uiDepth = XX_MAX(1, header.depth >> iMipLevel);
+		uint uiWidth = NX_MAX(1, header.width >> iMipLevel);
+		uint uiHeight = NX_MAX(1, header.height >> iMipLevel);
+		uint uiDepth = NX_MAX(1, header.depth >> iMipLevel);
 		
 		//If pixel format is compressed, the dimensions need to be padded.
 		if (PixelFormatPartHigh == 0) {
@@ -338,8 +338,8 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 				
 				dataOffset += data_size;
 				
-				width = XX_MAX(width >> 1, 1);
-				height = XX_MAX(height >> 1, 1);
+				width = NX_MAX(width >> 1, 1);
+				height = NX_MAX(height >> 1, 1);
 			}
 		}
 		return rest;
@@ -385,8 +385,8 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 					LOG("TexurePVR: Invalid lenght");
 					return rest;
 				}
-				width = XX_MAX(width >> 1, 1);
-				height = XX_MAX(height >> 1, 1);
+				width = NX_MAX(width >> 1, 1);
+				height = NX_MAX(height >> 1, 1);
 			}
 		}
 		else {
@@ -404,7 +404,7 @@ Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
 	else if (_inl_pvr(this)->m_is_pvr_v3(data)) {
 		return _inl_pvr(this)->m_decode_pvr_v3(data);
 	}
-	XX_ERR("TexurePVR: Invalid data");
+	NX_ERR("TexurePVR: Invalid data");
 	return Array<PixelData>();
 }
 
@@ -448,8 +448,8 @@ PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 }
 
 Buffer PVRTCImageCodec::encode(cPixelData& data) {
-	XX_UNIMPLEMENTED();
+	NX_UNIMPLEMENTED();
 	return Buffer();
 }
 
-XX_END
+NX_END

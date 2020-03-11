@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ngui/js/wrap.h"
-#include "nutils/buffer.h"
+#include "nxkit/buffer.h"
 #include "ngui/js/str.h"
 
 /**
@@ -120,11 +120,11 @@ class NativeBuffer {
 			args_index++;
 		}
 		if (args.Length() > args_index && args[args_index]->ToUint32Maybe(worker).To(start)) {
-			start = XX_MIN(len, start);
+			start = NX_MIN(len, start);
 			args_index++;
 		}
 		if (args.Length() > args_index && args[args_index]->ToUint32Maybe(worker).To(end)) {
-			end = XX_MIN(len, end);
+			end = NX_MIN(len, end);
 			args_index++;
 		}
 

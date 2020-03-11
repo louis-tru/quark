@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/macros.h"
+#include "nxkit/macros.h"
 
-#if XX_IOS
+#if NX_IOS
 
 #import <UIKit/UIKit.h>
 #import "ngui/app.h"

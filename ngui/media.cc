@@ -31,7 +31,7 @@
 #include "media.h"
 #include <uv.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 module_info_t* module_audio_player = nullptr;
 module_info_t* module_video = nullptr;
@@ -49,15 +49,15 @@ int initialize_media() {
 	uv_lib_t lib;
 	int err = uv_dlopen("libngui-media.so", &lib);
 	if (err != 0) {
-		XX_WARN("No ngui-media library loaded, %s", uv_dlerror(&lib));
+		NX_WARN("No ngui-media library loaded, %s", uv_dlerror(&lib));
 	} else {
 		if (is_loaded_lib()) {
 			return 1;
 		}
-		XX_WARN("No ngui-media library loaded");
+		NX_WARN("No ngui-media library loaded");
 	}
 
 	return 0;
 }
 
-XX_END
+NX_END

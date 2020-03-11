@@ -33,17 +33,17 @@
 
 #include "ngui/draw.h"
 
-#if XX_IOS
+#if NX_IOS
 # include <OpenGLES/ES3/gl.h>
 # include <OpenGLES/ES3/glext.h>
-#elif XX_ANDROID
+#elif NX_ANDROID
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
-#elif XX_OSX
+#elif NX_OSX
 # include <OpenGL/gl3.h>
 # include <OpenGL/gl3ext.h>
-#elif XX_LINUX
+#elif NX_LINUX
 # define GL_GLEXT_PROTOTYPES
 # include <GLES3/gl3.h>
 # include <GLES3/gl3ext.h>
@@ -55,7 +55,7 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class  Font;
 class  FontGlyph;
@@ -82,7 +82,7 @@ struct GLShader {
 /**
  * @class GLDraw
  */
-class XX_EXPORT GLDraw: public Draw {
+class NX_EXPORT GLDraw: public Draw {
  public:
 	
 	/**
@@ -212,14 +212,14 @@ class XX_EXPORT GLDraw: public Draw {
 	
 	static Array<GLShader*>* m_shaders;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
-	XX_DEFINE_INLINE_CLASS(Inl2);
+	NX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl2);
 	
 	friend class GLShader;
 	friend class Texture;
 	friend class GLDrawProxy;
 };
 
-XX_END
+NX_END
 
 #endif

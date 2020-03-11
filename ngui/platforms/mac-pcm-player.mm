@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ngui/pcm-player.h"
-#import "nutils/handle.h"
-#import "nutils/loop.h"
+#import "nxkit/handle.h"
+#import "nxkit/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define QUEUE_BUFFER_COUNT 3
 #define WAIT_WRITE_BUFFER_COUNT 3
@@ -144,7 +144,7 @@ class ApplePCMPlayer: public Object, public PCMPlayer {
 						return;
 					}
 				} else {
-					XX_ERR("self->m_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
+					NX_ERR("self->m_buffer_size <= in->mAudioDataBytesCapacity, buffer Capacity Too small");
 				}
 			}
 			
@@ -259,7 +259,7 @@ class ApplePCMPlayer: public Object, public PCMPlayer {
 		OSStatus status;
 		AudioQueueParameterValue v;
 		
-		v = XX_MIN(value, 100) / 100.0;
+		v = NX_MIN(value, 100) / 100.0;
 		
 		status = AudioQueueSetParameter(m_queue, kAudioQueueParam_Volume, m_flush ? 0 : v);
 		
@@ -274,7 +274,7 @@ class ApplePCMPlayer: public Object, public PCMPlayer {
 	 * @overwrite
 	 * */
 	virtual uint buffer_size() {
-		return XX_MAX(4096, m_channel_count * m_sample_rate / 10);
+		return NX_MAX(4096, m_channel_count * m_sample_rate / 10);
 	}
 	
  private:
@@ -300,4 +300,4 @@ PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 	return NULL;
 }
 
-XX_END
+NX_END

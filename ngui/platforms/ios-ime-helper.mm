@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ios-ime-helper-1.h"
-#import "nutils/util.h"
+#import "nxkit/util.h"
 #import "ngui/event.h"
 #import "ngui/app-1.h"
 
@@ -271,7 +271,7 @@ using namespace ngui;
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
 		} else {
-			XX_ASSERT( keycode == _keyboard_up_keycode );
+			NX_ASSERT( keycode == _keyboard_up_keycode );
 		}
 		_app->dispatch()->dispatch_ime_insert([text UTF8String]);
 		_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 0, 0, -1, 0);

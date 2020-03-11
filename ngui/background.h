@@ -33,7 +33,7 @@
 
 #include "ngui/box.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class BackgroundImage;
 class BackgroundGradient;
@@ -41,7 +41,7 @@ class BackgroundGradient;
 /**
  * @class Background
  */
-class XX_EXPORT Background: public Reference {
+class NX_EXPORT Background: public Reference {
  public:
 	
 	enum Type {
@@ -129,7 +129,7 @@ class XX_EXPORT Background: public Reference {
 	Background* m_next;
 	Box*        m_host;
 	HolderMode  m_holder_mode;
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class Box;
 	friend class GLDraw;
 };
@@ -139,7 +139,7 @@ typedef Background* BackgroundPtr;
 /**
  * @class BackgroundImage
  */
-class XX_EXPORT BackgroundImage: public Background {
+class NX_EXPORT BackgroundImage: public Background {
  public:
 	BackgroundImage();
 	virtual ~BackgroundImage();
@@ -174,7 +174,7 @@ class XX_EXPORT BackgroundImage: public Background {
 	BackgroundSize      m_size_x;
 	BackgroundSize      m_size_y;
 	int m_attributes_flags;
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 	friend class Box;
 	friend class GLDraw;
 };
@@ -182,7 +182,7 @@ class XX_EXPORT BackgroundImage: public Background {
 /**
  * @class BackgroundGradient
  */
-class XX_EXPORT BackgroundGradient: public Background {
+class NX_EXPORT BackgroundGradient: public Background {
  public:
 	BackgroundGradient();
 	virtual Type type() const { return M_GRADIENT; }
@@ -192,6 +192,6 @@ class XX_EXPORT BackgroundGradient: public Background {
 	friend class GLDraw;
 };
 
-XX_END
+NX_END
 
 #endif

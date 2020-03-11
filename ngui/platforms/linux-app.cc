@@ -28,12 +28,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "ngui/app-1.h"
 #include "ngui/event.h"
 #include "ngui/display-port.h"
-#include "nutils/loop.h"
-#include "nutils/http.h"
+#include "nxkit/loop.h"
+#include "nxkit/http.h"
 #include "ngui/sys.h"
 #include "linux-gl-1.h"
 #include "linux-ime-helper-1.h"
@@ -46,14 +46,14 @@
 #include <unistd.h>
 #include <alsa/asoundlib.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class LinuxApplication;
 static LinuxApplication* application = nullptr;
 static GLDrawProxy* gl_draw_context = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
-#if DEBUG || XX_MORE_LOG
+#if DEBUG || NX_MORE_LOG
 cchar* MOUSE_KEYS[] = {
 	"left",
 	"second (or middle)",
@@ -93,7 +93,7 @@ class LinuxApplication {
 	, m_element(nullptr)
 	, m_is_fullscreen(0)
 	{
-		XX_ASSERT(!application); application = this;
+		NX_ASSERT(!application); application = this;
 	}
 
 	~LinuxApplication() {
@@ -118,7 +118,7 @@ class LinuxApplication {
 	}
 
 	void post_message(cCb& cb) {
-		XX_ASSERT(m_win);
+		NX_ASSERT(m_win);
 		{
 			ScopeLock lock(m_queue_mutex);
 			m_queue.push(cb);
@@ -185,7 +185,7 @@ class LinuxApplication {
 
 		// DLOG("m_xset.background_pixel 3, %d", m_xset.background_pixel);
 
-		XX_CHECK(win, "Cannot create XWindow");
+		NX_CHECK(win, "Cannot create XWindow");
 
 		if (m_multitouch_device) {
 			DLOG("m_multitouch_device");
@@ -359,7 +359,7 @@ class LinuxApplication {
 				m_host->refresh_display(); // 刷新显示
 			} else {
 				m_is_init = 1;
-				XX_CHECK(gl_draw_context->create_surface(m_win));
+				NX_CHECK(gl_draw_context->create_surface(m_win));
 				gl_draw_context->initialize();
 				m_host->onLoad();
 				m_host->onForeground();
@@ -376,7 +376,7 @@ class LinuxApplication {
 	void initialize_display() {
 		if (!m_dpy) {
 			m_dpy = XOpenDisplay(nullptr);
-			XX_CHECK(m_dpy, "Error: Can't open display");
+			NX_CHECK(m_dpy, "Error: Can't open display");
 			m_xft_dpi = get_monitor_dpi();
 			m_xwin_scale = m_xft_dpi / 96.0;
 		}
@@ -388,7 +388,7 @@ class LinuxApplication {
 	}
 
 	void initialize(cJSON& options) {
-		XX_CHECK(XInitThreads(), "Error: Can't init X threads");
+		NX_CHECK(XInitThreads(), "Error: Can't init X threads");
 
 		cJSON& o_x = options["x"];
 		cJSON& o_y = options["y"];
@@ -427,8 +427,8 @@ class LinuxApplication {
 		// DLOG("m_xset.background_pixel 1, %d", m_xset.background_pixel);
 
 		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
-		if (o_w.is_uint()) m_width = XX_MAX(1, o_w.to_uint()) * m_xwin_scale;
-		if (o_h.is_uint()) m_height = XX_MAX(1, o_h.to_uint()) * m_xwin_scale;
+		if (o_w.is_uint()) m_width = NX_MAX(1, o_w.to_uint()) * m_xwin_scale;
+		if (o_h.is_uint()) m_height = NX_MAX(1, o_h.to_uint()) * m_xwin_scale;
 		if (o_x.is_uint()) m_x = o_x.to_uint() * m_xwin_scale; else m_x = (m_s_width - m_width) / 2;
 		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
 
@@ -441,7 +441,7 @@ class LinuxApplication {
 	}
 
 	void initialize_multitouch() {
-		XX_ASSERT(!m_multitouch_device);
+		NX_ASSERT(!m_multitouch_device);
 
 		Atom touchAtom = XInternAtom(m_dpy, "TOUCHSCREEN", true);
 		if (touchAtom == None) {
@@ -485,8 +485,8 @@ class LinuxApplication {
 	}
 
 	void set_master_volume(int volume) {
-		volume = XX_MAX(0, volume);
-		volume = XX_MIN(100, volume);
+		volume = NX_MAX(0, volume);
+		volume = NX_MIN(100, volume);
 
 		const snd_mixer_selem_channel_id_t chs[] = {
 			SND_MIXER_SCHN_FRONT_LEFT,
@@ -540,7 +540,7 @@ class LinuxApplication {
 	}
 
 	void initialize_master_volume_control() {
-		XX_ASSERT(!m_mixer);
+		NX_ASSERT(!m_mixer);
 		snd_mixer_open(&m_mixer, 0);
 		snd_mixer_attach(m_mixer, "default");
 		snd_mixer_selem_register(m_mixer, NULL, NULL);
@@ -625,18 +625,18 @@ class LinuxApplication {
 };
 
 Vec2 __get_window_size() {
-	XX_CHECK(application);
+	NX_CHECK(application);
 	return application->get_window_size();
 }
 
 Display* __get_x11_display() {
-	XX_CHECK(application);
+	NX_CHECK(application);
 	return application->get_x11_display();
 }
 
 // sync to x11 main message loop
 void __dispatch_x11_async(cCb& cb) {
-	XX_ASSERT(application);
+	NX_ASSERT(application);
 	return application->post_message(cb);
 }
 
@@ -698,7 +698,7 @@ void GUIApplication::send_email(cString& recipient,
  */
 void AppInl::initialize(cJSON& options) {
 	DLOG("AppInl::initialize");
-	XX_ASSERT(!gl_draw_context);
+	NX_ASSERT(!gl_draw_context);
 	application->initialize(options);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
@@ -809,11 +809,11 @@ Orientation DisplayPort::orientation() {
 void DisplayPort::set_orientation(Orientation orientation) {
 }
 
-XX_END
+NX_END
 
 using namespace ngui;
 
-extern "C" XX_EXPORT int main(int argc, char* argv[]) {
+extern "C" NX_EXPORT int main(int argc, char* argv[]) {
 	Handle<LinuxApplication> h = new LinuxApplication();
 
 	/**************************************************/

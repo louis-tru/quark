@@ -38,7 +38,7 @@
 
 #define UIScreen NSScreen
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class MyGLDraw
@@ -149,4 +149,4 @@ bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
 	return false;
 }
 
-XX_END
+NX_END

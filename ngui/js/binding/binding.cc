@@ -76,28 +76,28 @@ class NativeNgui {
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->bindingModule("_value");	XX_DEBUG("binding ngui_value ok");
-		worker->bindingModule("_event");	XX_DEBUG("binding ngui_event ok");
-		binding_app(exports, worker); 			XX_DEBUG("binding app ok");
-		binding_view(exports, worker); 			XX_DEBUG("binding view ok");
-		binding_sprite(exports, worker); 		XX_DEBUG("binding sprite ok");
-		binding_layout(exports, worker); 		XX_DEBUG("binding layout ok");
-		binding_box(exports, worker); 			XX_DEBUG("binding box ok");
-		binding_div(exports, worker); 			XX_DEBUG("binding div ok");
-		binding_panel(exports, worker); 		XX_DEBUG("binding panel ok");
-		binding_hybrid(exports, worker); 		XX_DEBUG("binding hybrid ok");
-		binding_span(exports, worker); 			XX_DEBUG("binding span ok");
-		binding_text_node(exports, worker); XX_DEBUG("binding text_node ok");
-		binding_image(exports, worker); 		XX_DEBUG("binding image ok");
-		binding_indep_div(exports, worker); XX_DEBUG("binding indep_div ok");
-		binding_root(exports, worker); 			XX_DEBUG("binding root ok");
-		binding_label(exports, worker); 		XX_DEBUG("binding label ok");
-		binding_limit(exports, worker); 		XX_DEBUG("binding limit ok");
-		binding_scroll(exports, worker); 		XX_DEBUG("binding scroll ok");
-		binding_text(exports, worker); 			XX_DEBUG("binding text ok");
-		binding_button(exports, worker); 		XX_DEBUG("binding button ok");
-		binding_input(exports, worker); 		XX_DEBUG("binding input ok");
-		JS_SET_METHOD(lock, lock); 					XX_DEBUG("binding lock ok");
+		worker->bindingModule("_value");	NX_DEBUG("binding ngui_value ok");
+		worker->bindingModule("_event");	NX_DEBUG("binding ngui_event ok");
+		binding_app(exports, worker); 			NX_DEBUG("binding app ok");
+		binding_view(exports, worker); 			NX_DEBUG("binding view ok");
+		binding_sprite(exports, worker); 		NX_DEBUG("binding sprite ok");
+		binding_layout(exports, worker); 		NX_DEBUG("binding layout ok");
+		binding_box(exports, worker); 			NX_DEBUG("binding box ok");
+		binding_div(exports, worker); 			NX_DEBUG("binding div ok");
+		binding_panel(exports, worker); 		NX_DEBUG("binding panel ok");
+		binding_hybrid(exports, worker); 		NX_DEBUG("binding hybrid ok");
+		binding_span(exports, worker); 			NX_DEBUG("binding span ok");
+		binding_text_node(exports, worker); NX_DEBUG("binding text_node ok");
+		binding_image(exports, worker); 		NX_DEBUG("binding image ok");
+		binding_indep_div(exports, worker); NX_DEBUG("binding indep_div ok");
+		binding_root(exports, worker); 			NX_DEBUG("binding root ok");
+		binding_label(exports, worker); 		NX_DEBUG("binding label ok");
+		binding_limit(exports, worker); 		NX_DEBUG("binding limit ok");
+		binding_scroll(exports, worker); 		NX_DEBUG("binding scroll ok");
+		binding_text(exports, worker); 			NX_DEBUG("binding text ok");
+		binding_button(exports, worker); 		NX_DEBUG("binding button ok");
+		binding_input(exports, worker); 		NX_DEBUG("binding input ok");
+		JS_SET_METHOD(lock, lock); 					NX_DEBUG("binding lock ok");
 	}
 };
 

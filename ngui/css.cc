@@ -31,7 +31,7 @@
 #include "css.h"
 #include "view.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #include "css.cc.inl"
 
@@ -150,7 +150,7 @@ public:
 	 * @func assignment
 	 */
 	KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action) {
-		XX_ASSERT(view);
+		NX_ASSERT(view);
 		
 		if ( ! ignore_action && m_time ) { // 创建动作
 			
@@ -190,7 +190,7 @@ StyleSheets::StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClas
 , m_pseudo( parent ? parent->m_pseudo : CSS_PSEUDO_CLASS_NONE )
 {
 	if ( pseudo ) { // pseudo cls
-		XX_ASSERT( !m_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
+		NX_ASSERT( !m_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
 		m_pseudo = pseudo;
 	}
 }
@@ -213,7 +213,7 @@ StyleSheets::~StyleSheets() {
 void StyleSheets::set_##NAME(TYPE value) { \
 _inl_ss(this)->set_property_value<ENUM>(value); \
 }
-XX_EACH_PROPERTY_TABLE(xx_def_property)
+NX_EACH_PROPERTY_TABLE(xx_def_property)
 #undef xx_def_accessor
 
 template <> BackgroundPtr StyleSheets::Inl::
@@ -246,7 +246,7 @@ StyleSheets* StyleSheets::find(const CSSName& name) {
  * @func assignment
  */
 void StyleSheets::assignment(View* view) {
-	XX_ASSERT(view);
+	NX_ASSERT(view);
 	for ( auto& i : m_property ) {
 		i.value()->assignment(view);
 	}
@@ -256,7 +256,7 @@ void StyleSheets::assignment(View* view) {
  * @func assignment
  */
 void StyleSheets::assignment(Frame* frame) {
-	XX_ASSERT(frame);
+	NX_ASSERT(frame);
 	for ( auto& i : m_property ) {
 		i.value()->assignment(frame);
 	}
@@ -323,20 +323,20 @@ public:
 			CSSPseudoClass pseudo = CSS_PSEUDO_CLASS_NONE;
 			
 			if ( !verification_and_format(i.value().trim(), name, pseudo) ) {
-				XX_ERR("Invalid css name \"%s\"", *expression);
+				NX_ERR("Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
 			
-			XX_ASSERT( !name.value().is_empty() );
+			NX_ASSERT( !name.value().is_empty() );
 			
 			ss = _inl_ss(ss)->find2(name, pseudo);
 			
 			if ( ! ss ) {
-				XX_ERR("Invalid css name \"%s\"", *expression);
+				NX_ERR("Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
 		}
-		XX_ASSERT( ss != this );
+		NX_ASSERT( ss != this );
 		
 		return ss;
 	}
@@ -484,7 +484,7 @@ public:
 		m_child_style_sheets.clear();
 		m_is_support_pseudo = false;
 		
-		XX_DEBUG("CSSViewClasss apply, query group count: %d, style sheets count: %d, '%s'",
+		NX_DEBUG("CSSViewClasss apply, query group count: %d, style sheets count: %d, '%s'",
 						 m_query_group.length(), scope->style_sheets().length(), m_classs.join(' ').c());
 		
 		if ( m_query_group.length() ) {
@@ -571,7 +571,7 @@ CSSViewClasss::CSSViewClasss(View* host)
 , m_is_support_pseudo(false)
 , m_once_apply(true)
 , m_multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
-	XX_ASSERT(host);
+	NX_ASSERT(host);
 }
 
 /**
@@ -676,7 +676,7 @@ void CSSViewClasss::apply(StyleSheetsScope* scope) {
 }
 
 void CSSViewClasss::apply(StyleSheetsScope* scope, bool* effect_child) {
-	XX_ASSERT(effect_child);
+	NX_ASSERT(effect_child);
 	_inl_cvc(this)->apply<1>(scope, effect_child);
 }
 
@@ -693,11 +693,11 @@ StyleSheetsScope::StyleSheetsScope(View* scope) {
 		1
 	});
 	push_all_scope(this, scope);
-	XX_DEBUG("use StyleSheetsScope");
+	NX_DEBUG("use StyleSheetsScope");
 }
 
 void StyleSheetsScope::push_scope(View* scope) {
-	XX_ASSERT(scope);
+	NX_ASSERT(scope);
 	CSSViewClasss* classs = scope->classs();
 	if ( classs && classs->has_child() ) {
 		for ( auto& i : classs->child_style_sheets() ) {
@@ -720,9 +720,9 @@ void StyleSheetsScope::pop_scope() {
 		if ( classs && classs->has_child() ) {
 			int count = classs->child_style_sheets().length();
 			for ( int i = 0; i < count; i++ ) {
-				XX_ASSERT( m_style_sheets.length() > 1 );
+				NX_ASSERT( m_style_sheets.length() > 1 );
 				Scope scope = m_style_sheets.last();
-				XX_ASSERT( scope.wrap->ref == scope.ref );
+				NX_ASSERT( scope.wrap->ref == scope.ref );
 				if ( scope.ref == 1 ) {
 					m_style_sheets_map.del(scope.wrap->sheets);
 				} else {
@@ -771,4 +771,4 @@ RootStyleSheets* RootStyleSheets::shared() {
 	return root_style_sheets;
 }
 
-XX_END
+NX_END

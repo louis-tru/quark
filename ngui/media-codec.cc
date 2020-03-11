@@ -30,7 +30,7 @@
 
 #include "media-codec-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 static MediaCodec::Delegate default_media_decoder_delegate;
 
@@ -121,7 +121,7 @@ bool Extractor::select_track(uint index) {
  * */
 uint Extractor::deplete_sample(char* out, uint size) {
 	if ( m_sample_data.size ) {
-		size = XX_MIN(m_sample_data.size, size);
+		size = NX_MIN(m_sample_data.size, size);
 		memcpy(out, m_sample_data.data, size);
 		m_sample_data.data += size;
 		m_sample_data.size -= size;
@@ -144,7 +144,7 @@ uint Extractor::deplete_sample(Buffer& out) {
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(uint size) {
-	size = XX_MIN(size, m_sample_data.size);
+	size = NX_MIN(size, m_sample_data.size);
 	m_sample_data.size -= size;
 	m_sample_data.data += size;
 	return size;
@@ -176,7 +176,7 @@ MediaCodec::MediaCodec(Extractor* extractor)
  * @func set_delegate
  */
 void MediaCodec::set_delegate(Delegate* delegate) {
-	XX_ASSERT(delegate);
+	NX_ASSERT(delegate);
 	m_delegate = delegate;
 }
 
@@ -310,4 +310,4 @@ MediaCodec::OutputBuffer::OutputBuffer(const OutputBuffer& buffer) {
 	memcpy(this, &buffer, sizeof(OutputBuffer));
 }
 
-XX_END
+NX_END

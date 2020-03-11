@@ -34,13 +34,13 @@
 #include "ngui/input.h"
 #include "ngui/scroll.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class Textarea
  */
-class XX_EXPORT Textarea: public Input, public BasicScroll {
-	XX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
+class NX_EXPORT Textarea: public Input, public BasicScroll {
+	NX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
  public:
 
 	typedef ReferenceTraits Traits;
@@ -67,6 +67,6 @@ class XX_EXPORT Textarea: public Input, public BasicScroll {
 	virtual void set_draw_visible();
 };
 
-XX_END
+NX_END
 
 #endif

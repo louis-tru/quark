@@ -30,7 +30,7 @@
 
 #include "media-codec-1.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class SoftwareMediaCodec
@@ -54,7 +54,7 @@ class SoftwareMediaCodec: public MediaCodec {
 		, m_is_open(false)
 		, m_output_occupy(false)
 	{
-		m_frame = av_frame_alloc(); XX_ASSERT(m_frame);
+		m_frame = av_frame_alloc(); NX_ASSERT(m_frame);
 		
 		if (type() == MEDIA_TYPE_VIDEO) {
 			m_color_format = VIDEO_COLOR_FORMAT_YUV420P;
@@ -101,10 +101,10 @@ class SoftwareMediaCodec: public MediaCodec {
 			AVStream* stream = m_extractor->host()->get_stream(m_extractor->track());
 			if ( !stream ) {
 				stream = m_extractor->host()->get_stream(m_extractor->track());
-				XX_ASSERT( stream );
+				NX_ASSERT( stream );
 			}
 			
-			const AVCodec* codec = get_avcodec(); XX_ASSERT(codec);
+			const AVCodec* codec = get_avcodec(); NX_ASSERT(codec);
 			
 			if ( m_threads > 1 ) { // set threads
 				if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -337,7 +337,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * */
 	virtual void set_frame_size(uint size) {
 		if ( type() == MEDIA_TYPE_AUDIO ) {
-			m_audio_frame_size = XX_MAX(512, size);
+			m_audio_frame_size = NX_MAX(512, size);
 			if (m_audio_frame_size * 2 > m_audio_buffer.length()) {
 				m_audio_buffer = Buffer(m_audio_frame_size * 2);
 				m_audio_buffer_size = 0;
@@ -356,7 +356,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	virtual void set_threads(uint value) {
 		ScopeLock scope(m_mutex);
 		if ( !m_is_open ) {
-			m_threads = XX_MAX(1, XX_MIN(8, value));
+			m_threads = NX_MAX(1, NX_MIN(8, value));
 		}
 	}
 	
@@ -430,4 +430,4 @@ MediaCodec* MediaCodec::software(MediaType type, MultimediaSource* source) {
 	return rv;
 }
 
-XX_END
+NX_END

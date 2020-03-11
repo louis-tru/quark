@@ -31,15 +31,15 @@
 #ifndef __ngui__image_codec__
 #define __ngui__image_codec__
 
-#include "nutils/handle.h"
-#include "nutils/array.h"
-#include "nutils/buffer.h"
+#include "nxkit/handle.h"
+#include "nxkit/array.h"
+#include "nxkit/buffer.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 class PixelData;
 typedef const PixelData cPixelData;
@@ -47,7 +47,7 @@ typedef const PixelData cPixelData;
 /**
  * @class PixelData
  */
-class XX_EXPORT PixelData: public Object {
+class NX_EXPORT PixelData: public Object {
  public:
 
 	enum Format: uint64 {
@@ -173,7 +173,7 @@ class XX_EXPORT PixelData: public Object {
 /**
  * @class ImageCodec
  */
-class XX_EXPORT ImageCodec: public Object {
+class NX_EXPORT ImageCodec: public Object {
  public:
 	
 	enum ImageFormat {
@@ -222,7 +222,7 @@ class XX_EXPORT ImageCodec: public Object {
 /**
  * @class TGAImageCodec
  */
-class XX_EXPORT TGAImageCodec: public ImageCodec {
+class NX_EXPORT TGAImageCodec: public ImageCodec {
  public:
 	virtual Array<PixelData> decode(cBuffer& data);
 	virtual PixelData decode_header(cBuffer& data);
@@ -233,7 +233,7 @@ class XX_EXPORT TGAImageCodec: public ImageCodec {
 /**
  * @class JPEGImageCodec
  */
-class XX_EXPORT JPEGImageCodec: public ImageCodec {
+class NX_EXPORT JPEGImageCodec: public ImageCodec {
  public:
 	virtual Array<PixelData> decode(cBuffer& data);
 	virtual PixelData decode_header(cBuffer& data);
@@ -243,7 +243,7 @@ class XX_EXPORT JPEGImageCodec: public ImageCodec {
 /**
  * @class GIFImageCodec
  */
-class XX_EXPORT GIFImageCodec: public ImageCodec {
+class NX_EXPORT GIFImageCodec: public ImageCodec {
  public:
 	virtual Array<PixelData> decode(cBuffer& data);
 	virtual PixelData decode_header(cBuffer& data);
@@ -253,7 +253,7 @@ class XX_EXPORT GIFImageCodec: public ImageCodec {
 /**
  * @class PNGImageParser
  */
-class XX_EXPORT PNGImageCodec: public ImageCodec {
+class NX_EXPORT PNGImageCodec: public ImageCodec {
  public:
 	virtual Array<PixelData> decode(cBuffer& data);
 	virtual PixelData decode_header(cBuffer& data);
@@ -263,7 +263,7 @@ class XX_EXPORT PNGImageCodec: public ImageCodec {
 /**
  * @class WEBPImageCodec
  */
-class XX_EXPORT WEBPImageCodec: public ImageCodec {
+class NX_EXPORT WEBPImageCodec: public ImageCodec {
  public:
 	virtual Array<PixelData> decode(cBuffer& data);
 	virtual PixelData decode_header(cBuffer& data);
@@ -278,13 +278,13 @@ class XX_EXPORT WEBPImageCodec: public ImageCodec {
  * BC4/BC5/UYVY/YUY2/RGBG8888/GRGB8888/BW1BPP...
  * @class PVRTImageParser
  */
-class XX_EXPORT PVRTCImageCodec: public ImageCodec {
+class NX_EXPORT PVRTCImageCodec: public ImageCodec {
  public:
 	virtual Array<PixelData> decode(cBuffer& data);
 	virtual PixelData decode_header(cBuffer& data);
 	virtual Buffer encode(cPixelData& data);
-	XX_DEFINE_INLINE_CLASS(_Inl);
+	NX_DEFINE_INLINE_CLASS(_Inl);
 };
 
-XX_END
+NX_END
 #endif

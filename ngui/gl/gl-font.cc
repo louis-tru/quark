@@ -32,7 +32,7 @@
 #include "ngui/font/font-1.h"
 #include "ngui/display-port.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #if DEBUG
 void test__TESS_CONNECTED_POLYGONS() {
@@ -96,18 +96,18 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	
 	// TODO parse vbo data
 	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, 64 * 64, 72, 72);
-	XX_ASSERT(!error);
+	NX_ASSERT(!error);
 	
 	if ( error ) {
-		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+		NX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
 	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(),
 												FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
-	XX_ASSERT( ! error );
+	NX_ASSERT( ! error );
 	
 	if ( error ) {
-		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+		NX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
 	// 字的轮廓信息完全存储在outline中，下面的代码就是分解高阶曲线
@@ -131,7 +131,7 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	
 	error = FT_Outline_Decompose(&((FT_GlyphSlot)font->m_ft_glyph)->outline, &funcs, &data);
 	if ( error ) {
-		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+		NX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
 	tessAddContour(tess, 2, *data.vertex, sizeof(Vec2), data.length);
@@ -185,18 +185,18 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
 	
 	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, font_size * 64, 72, 72);
 	if (error) {
-		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+		NX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
 	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
 	if (error) {
-		XX_WARN("%s", "parse font glyph vbo data error"); return false;
+		NX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
 	if ( ((FT_GlyphSlot)font->m_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
 		error = FT_Render_Glyph((FT_GlyphSlot)font->m_ft_glyph, FT_RENDER_MODE_NORMAL);
 		if (error) {
-			XX_WARN("%s", "parse font glyph vbo data error"); return false;
+			NX_WARN("%s", "parse font glyph vbo data error"); return false;
 		}
 	}
 	
@@ -233,7 +233,7 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
 		};
 		
 		//uint16 unicode = glyph->unicode();
-		//XX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
+		//NX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
 		//        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
 		
 		_inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);
@@ -250,4 +250,4 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
 	return true;
 }
 
-XX_END
+NX_END

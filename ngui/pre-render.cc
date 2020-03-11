@@ -33,11 +33,11 @@
 #include "div.h"
 #include "css.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 PreRender* PreRender::m_pre_render(NULL);
 
-XX_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
+NX_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
 public:
 	
 	void delete_mark_pre(View* view) {
@@ -129,7 +129,7 @@ public:
 				while (begin != view) {
 					
 					Layout* layout = static_cast<Layout*>(view);
-					Layout* parent = layout->m_parent_layout; XX_ASSERT( parent );
+					Layout* parent = layout->m_parent_layout; NX_ASSERT( parent );
 					
 					if ( parent->as_div() ) { // in div
 						bool horizontal =
@@ -137,7 +137,7 @@ public:
 							 static_cast<Div*>(parent)->content_align() == ContentAlign::RIGHT);
 						layout->set_layout_three_times(horizontal, false);
 					} else {
-						XX_ASSERT( parent->as_hybrid() );
+						NX_ASSERT( parent->as_hybrid() );
 						layout->set_layout_three_times(true, true);
 					}
 					
@@ -187,7 +187,7 @@ class BeginView: public View { };
  * @constructor
  */
 PreRender::PreRender() {
-	XX_ASSERT(!m_pre_render); // "At the same time can only run a MarkManager entity"
+	NX_ASSERT(!m_pre_render); // "At the same time can only run a MarkManager entity"
 	m_pre_render = this;
 	BeginView* begin = new BeginView();
 	m_marks.push(begin);
@@ -278,4 +278,4 @@ void PreRender::Task::unregister_task() {
 	}
 }
 
-XX_END
+NX_END

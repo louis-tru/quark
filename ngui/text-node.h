@@ -37,14 +37,14 @@
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class TextNode
  */
-class XX_EXPORT TextNode: public Span {
+class NX_EXPORT TextNode: public Span {
  public:
-	XX_DEFINE_GUI_VIEW(TEXT_NODE, TextNode, text_node);
+	NX_DEFINE_GUI_VIEW(TEXT_NODE, TextNode, text_node);
 	
 	TextNode();
 	
@@ -108,8 +108,8 @@ class XX_EXPORT TextNode: public Span {
 	Data  m_data;
 	bool  m_valid_layout_offset;
 	Vec2  m_final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
-XX_END
+NX_END
 #endif

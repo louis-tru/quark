@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "media-codec-1.h"
-#include "nutils/loop.h"
+#include "nxkit/loop.h"
 #include "ngui/app.h"
 #include "ngui/errno.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 #define CACHE_DATA_TIME_SECOND 10
 
@@ -179,7 +179,7 @@ void Inl::select_multi_bit_rate2(uint index) {
 				fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_ALL;
 			}
 		}
-		AVProgram* program = fmt_ctx->programs[ XX_MIN(index, fmt_ctx->nb_programs - 1) ];
+		AVProgram* program = fmt_ctx->programs[ NX_MIN(index, fmt_ctx->nb_programs - 1) ];
 		for (uint j = 0; j < program->nb_stream_indexes; j++) {
 			fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_NONE;
 		}
@@ -346,7 +346,7 @@ void Inl::start() {
 			if ( fmt_ctx ) {
 				avformat_close_input(&fmt_ctx);
 			}
-			XX_DEBUG("free FFmpeg AVFormatContext");
+			NX_DEBUG("free FFmpeg AVFormatContext");
 		});
 		
 		int r;
@@ -455,7 +455,7 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
 			AVRational& rat = stream->avg_frame_rate.den ?
 												stream->avg_frame_rate : stream->r_frame_rate;
 			int len = rat.num * CACHE_DATA_TIME_SECOND / rat.den;
-			ex->m_sample_data_cache = Array<SampleData>(XX_MAX(len, 32));
+			ex->m_sample_data_cache = Array<SampleData>(NX_MAX(len, 32));
 		}
 	} else { // AUDIO
 		int len = ex->m_sample_data_cache.length();
@@ -473,7 +473,7 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
 			} else {
 				len = 256;
 			}
-			ex->m_sample_data_cache = Array<SampleData>(XX_MIN(XX_MAX(len, 32), 1024));
+			ex->m_sample_data_cache = Array<SampleData>(NX_MIN(NX_MAX(len, 32), 1024));
 			ex->m_sample_data_cache[0] = move(data);
 		}
 	}
@@ -505,7 +505,7 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
 			SampleData& d1 = ex->m_sample_data_cache[(i1 + len) % len];
 			data.time = d1.time + d1.time - d0.time;
 			data.d_time =  d1.d_time + d1.d_time - d0.d_time;
-			XX_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
+			NX_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
 		}
 		
 		if ( ex->type() == MEDIA_TYPE_VIDEO ) { // VIDEO
@@ -605,14 +605,14 @@ bool Inl::extractor_advance(Extractor* ex) {
 			ex->m_sample_data_cache[ex->m_sample_index_cache] = move(data);
 			ex->m_sample_index_cache = (ex->m_sample_index_cache + 1) % ex->m_sample_data_cache.length();
 			ex->m_sample_count_cache--;
-			// XX_DEBUG("extractor_advance(), m_sample_count_cache:%d", ex->m_sample_count_cache);
+			// NX_DEBUG("extractor_advance(), m_sample_count_cache:%d", ex->m_sample_count_cache);
 			if (ex->m_sample_count_cache == 0 && m_read_eof) {
 				ex->m_eof_flags = 1;
 			}
 		}
 
 	} else { // no data
-		// XX_DEBUG("extractor_advance(), no data ");
+		// NX_DEBUG("extractor_advance(), no data ");
 		
 		if ( m_read_eof ) { // eos
 			trigger_eof();
@@ -657,12 +657,12 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 		sleep = 0;
 
 		if (t.is_abort()) {
-			XX_DEBUG("read_frame() abort break;"); break;
+			NX_DEBUG("read_frame() abort break;"); break;
 		}
 
 		if ( ok < 0 ) { // err or end
 			if ( AVERROR_EOF == ok ) {
-				XX_DEBUG("read_frame() eof break;");
+				NX_DEBUG("read_frame() eof break;");
 				
 				post(Cb([this](CbD& d) {
 					ScopeLock scope(mutex());
@@ -671,12 +671,12 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 				}));
 				
 			} else {
-				XX_DEBUG("read_frame() error break;");
+				NX_DEBUG("read_frame() error break;");
 				
 				char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
 				av_make_error_string(err_desc, AV_ERROR_MAX_STRING_SIZE, ok);
 				
-				XX_ERR("%s", err_desc);
+				NX_ERR("%s", err_desc);
 				
 				Error err(ERR_MEDIA_NETWORK_ERROR,
 									"Read source error `%s`, `%s`", err_desc, *uri);
@@ -725,7 +725,7 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
  * @func trigger_error
  * */
 void Inl::trigger_error(cError& e) {
-	XX_DEBUG("Err, %s", *e.message());
+	NX_DEBUG("Err, %s", *e.message());
 	post(Cb([e, this](CbD& d) {
 		{ ScopeLock scope(mutex());
 			m_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
@@ -746,7 +746,7 @@ void Inl::trigger_wait_buffer() {
 			}
 			m_status = MULTIMEDIA_SOURCE_STATUS_WAIT;
 		}
-		XX_DEBUG("extractor_advance(), WAIT, 0");
+		NX_DEBUG("extractor_advance(), WAIT, 0");
 		m_delegate->multimedia_source_wait_buffer(m_host, 0);
 	}));
 }
@@ -760,7 +760,7 @@ void Inl::trigger_ready_buffer() {
 			if ( m_status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
 			m_status = MULTIMEDIA_SOURCE_STATUS_READY;
 		}
-		XX_DEBUG("extractor_advance(), WAIT, 1");
+		NX_DEBUG("extractor_advance(), WAIT, 1");
 		m_delegate->multimedia_source_wait_buffer(m_host, 1);
 	}));
 }
@@ -791,4 +791,4 @@ AVStream* Inl::get_stream(const TrackInfo& track) {
 	return NULL;
 }
 
-XX_END
+NX_END

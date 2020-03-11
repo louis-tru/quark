@@ -34,9 +34,9 @@
 #include "app.h"
 #include "display-port.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
-XX_DEFINE_INLINE_MEMBERS(Sprite, Inl) {
+NX_DEFINE_INLINE_MEMBERS(Sprite, Inl) {
  public:
 	
 	/**
@@ -68,7 +68,7 @@ Sprite::Sprite(Vec2 size)
  * @destructor
  */
 Sprite::~Sprite() {
-	m_texture->XX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	m_texture->NX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	m_texture->release(); // 释放对像
 }
 
@@ -114,7 +114,7 @@ void Sprite::set_src(cString& value) {
 
 void Sprite::set_texture(Texture* value) {
 	
-	XX_ASSERT(value);
+	NX_ASSERT(value);
 	
 	// 如果值相同,不做处理
 	if (value == m_texture) {
@@ -122,10 +122,10 @@ void Sprite::set_texture(Texture* value) {
 	}
 	
 	m_texture->release(); // 释放对像
-	m_texture->XX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	m_texture->NX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	m_texture = value;
 	m_texture->retain(); // 保持对像
-	m_texture->XX_ON(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	m_texture->NX_ON(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	
 	// 顶点座标数据受 origin、width、height 的影响
 	// 纹理座标数据受 startX、startY、width、height 的影响
@@ -244,12 +244,12 @@ void Sprite::set_draw_visible() {
 	
 	m_draw_visible = false;
 	
-	if (XX_MAX( dre.y2, re.y2 ) - XX_MIN( dre.y, re.y ) <= re.h + dre.h &&
-			XX_MAX( dre.x2, re.x2 ) - XX_MIN( dre.x, re.x ) <= re.w + dre.w
+	if (NX_MAX( dre.y2, re.y2 ) - NX_MIN( dre.y, re.y ) <= re.h + dre.h &&
+			NX_MAX( dre.x2, re.x2 ) - NX_MIN( dre.x, re.x ) <= re.w + dre.w
 	) {
 		m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
 		m_draw_visible = true;
 	}
 }
 
-XX_END
+NX_END

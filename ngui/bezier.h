@@ -32,18 +32,18 @@
 #define __ngui__bezier__
 
 #include "ngui/mathe.h"
-#include "nutils/buffer.h"
+#include "nxkit/buffer.h"
 
 /**
  * @ns ngui
  */
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class QuadraticBezier # 二次贝塞尔曲线
  */
-class XX_EXPORT QuadraticBezier {
+class NX_EXPORT QuadraticBezier {
  public:
 	
 	/**
@@ -81,7 +81,7 @@ class XX_EXPORT QuadraticBezier {
 /**
  * @class CubicBezier # 三次贝塞尔曲线
  */
-class XX_EXPORT CubicBezier {
+class NX_EXPORT CubicBezier {
  public:
 	
 	/**
@@ -130,7 +130,7 @@ class XX_EXPORT CubicBezier {
  * @class FixedCubicBezier
  * @bases CubicBezier
  */
-class XX_EXPORT FixedCubicBezier: public CubicBezier {
+class NX_EXPORT FixedCubicBezier: public CubicBezier {
  public:
 	
 	/**
@@ -188,17 +188,17 @@ class XX_EXPORT FixedCubicBezier: public CubicBezier {
 	Vec2 m_p1;
 	Vec2 m_p2;
 	
-	XX_DEFINE_INLINE_CLASS(Inl);
+	NX_DEFINE_INLINE_CLASS(Inl);
 };
 
 typedef FixedCubicBezier Curve;
 typedef const Curve cCurve;
 
-XX_EXPORT extern const FixedCubicBezier LINEAR;
-XX_EXPORT extern const FixedCubicBezier EASE;
-XX_EXPORT extern const FixedCubicBezier EASE_IN;
-XX_EXPORT extern const FixedCubicBezier EASE_OUT;
-XX_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+NX_EXPORT extern const FixedCubicBezier LINEAR;
+NX_EXPORT extern const FixedCubicBezier EASE;
+NX_EXPORT extern const FixedCubicBezier EASE_IN;
+NX_EXPORT extern const FixedCubicBezier EASE_OUT;
+NX_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
 
-XX_END
+NX_END
 #endif

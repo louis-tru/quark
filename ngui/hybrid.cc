@@ -31,9 +31,9 @@
 #include "hybrid.h"
 #include "text.h"
 #include "text-node.h"
-#include "nutils/codec.h"
+#include "nxkit/codec.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 extern void _view_inl__safe_delete_mark(View* v);
 extern void _box_inl__solve_final_horizontal_size_with_full_width(Box* box, float parent);
@@ -101,7 +101,7 @@ void Hybrid::set_layout_three_times(bool horizontal, bool hybrid) {
 	
 	if ( !m_visible ) { return; }
 	
-	XX_ASSERT(m_parent_layout);
+	NX_ASSERT(m_parent_layout);
 	
 	if ( horizontal ) { // horizontal layout
 		
@@ -115,7 +115,7 @@ void Hybrid::set_layout_three_times(bool horizontal, bool hybrid) {
 				mark_pre(M_SHAPE);
 				
 				if ( hybrid ) { // update row offset
-					XX_ASSERT( m_linenum != -1 );
+					NX_ASSERT( m_linenum != -1 );
 					static_cast<Hybrid*>(m_parent_layout)->m_rows[m_linenum].offset_end.x(m_offset_end.x());
 				}
 				
@@ -201,4 +201,4 @@ void Hybrid::set_layout_content_offset_after() {
 }
 
 #undef loop
-XX_END
+NX_END

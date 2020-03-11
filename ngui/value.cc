@@ -31,8 +31,8 @@
 #include "value.h"
 #include "font.h"
 
-XX_NS(ngui)
-XX_NS(value)
+NX_NS(ngui)
+NX_NS(value)
 
 bool Shadow::operator==(const Shadow& value) const {
 	return  (
@@ -60,5 +60,5 @@ const Array<String>& TextFamily::names() const {
 	return value->names();
 }
 
-XX_END
-XX_END
+NX_END
+NX_END

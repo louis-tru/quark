@@ -32,7 +32,7 @@
 #include "app.h"
 #include "errno.h"
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @constructor
@@ -63,14 +63,14 @@ typedef MultimediaSource::TrackInfo TrackInfo;
 /**
  * @class Video::Inl
  */
-XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
+NX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
  public:
 	
 	// set pcm ..
 	bool write_audio_pcm(uint64 st) {
 		bool r = m_pcm->write(WeakBuffer((char*)m_audio_buffer.data[0], m_audio_buffer.linesize[0]));
 		if ( !r ) {
-			XX_DEBUG("Discard, audio PCM frame, %lld", m_audio_buffer.time);
+			NX_DEBUG("Discard, audio PCM frame, %lld", m_audio_buffer.time);
 		} else {
 			m_prev_presentation_time = st;
 		}
@@ -238,9 +238,9 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 	void start_run() {
 		Lock lock(m_mutex);
 		
-		XX_ASSERT( m_source && m_audio && m_pcm );
-		XX_ASSERT( m_source->is_active() );
-		XX_ASSERT( m_status == PLAYER_STATUS_START );
+		NX_ASSERT( m_source && m_audio && m_pcm );
+		NX_ASSERT( m_source->is_active() );
+		NX_ASSERT( m_status == PLAYER_STATUS_START );
 		
 		m_waiting_buffer = false;
 		
@@ -266,7 +266,7 @@ XX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 };
 
 void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
-	XX_ASSERT(m_source == src);
+	NX_ASSERT(m_source == src);
 	
 	if (m_audio) {
 		Inl_AudioPlayer(this)->trigger(GUI_EVENT_READY); // trigger event ready
@@ -316,7 +316,7 @@ void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
 			}
 		} else {
 			Error e(ERR_AUDIO_NEW_CODEC_FAIL, "Unable to create video decoder");
-			XX_ERR("%s", *e.message());
+			NX_ERR("%s", *e.message());
 			Inl_AudioPlayer(this)->trigger(GUI_EVENT_ERROR, e); // trigger event error
 			stop();
 		}
@@ -381,7 +381,7 @@ void AudioPlayer::set_src(cString& value) {
 		Inl_AudioPlayer(this)->stop_and_release(lock, true);
 	}
 	auto loop = main_loop();
-	XX_CHECK(loop, "Cannot find main run loop");
+	NX_CHECK(loop, "Cannot find main run loop");
 	m_source = new MultimediaSource(src, loop);
 	m_keep = loop->keep_alive("AudioPlayer::set_src");
 	m_source->set_delegate(this);
@@ -451,7 +451,7 @@ PlayerStatus AudioPlayer::status() {
 bool AudioPlayer::seek(uint64 timeUs) {
 	ScopeLock scope(m_mutex);
 	if ( Inl_AudioPlayer(this)->is_active() && timeUs < m_duration ) {
-		XX_ASSERT(m_source);
+		NX_ASSERT(m_source);
 		if ( m_source->seek(timeUs) ) {
 			m_uninterrupted_play_start_systime = 0;
 			m_time = timeUs;
@@ -513,7 +513,7 @@ void AudioPlayer::set_mute(bool value) {
  */
 void AudioPlayer::set_volume(uint value) {
 	ScopeLock scope(m_mutex);
-	value = XX_MIN(value, 100);
+	value = NX_MIN(value, 100);
 	m_volume = value;
 	if ( m_pcm ) {
 		m_pcm->set_volume(value);
@@ -599,4 +599,4 @@ void AudioPlayer::select_track(uint index) {
 	}
 }
 
-XX_END
+NX_END

@@ -34,7 +34,7 @@
 #import "ngui/sys.h"
 #import <OpenGLES/ES2/glext.h>
 
-XX_NS(ngui)
+NX_NS(ngui)
 
 /**
  * @class MyGLDraw
@@ -72,14 +72,14 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 	if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
 		rv = (new MyGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES2, options))->proxy();
 	} else {
-		XX_FATAL("Unable to initialize OGL device does not support OpenGLES");
+		NX_FATAL("Unable to initialize OGL device does not support OpenGLES");
 	}
 	
 	return rv;
 }
 
 GLDrawProxy::GLDrawProxy(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
-	XX_CHECK([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+	NX_CHECK([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 	ctx.multiThreaded = NO;
 }
 
@@ -161,11 +161,11 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 }
 
 //void GLDrawProxy::set_current_context() {
-//  XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
+//  NX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 //}
 
 void GLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
-	XX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
+	NX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 	m_surface_view = view;
 	m_layer = layer;
 	m_host->set_best_display_scale(UIScreen.mainScreen.scale);
@@ -180,4 +180,4 @@ bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
 	return false;
 }
 
-XX_END
+NX_END
