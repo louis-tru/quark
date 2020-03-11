@@ -1,5 +1,3 @@
-/bin/osx*
-/bin/linux*
 out
 package-lock.json
 node_modules
