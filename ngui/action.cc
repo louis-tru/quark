@@ -153,7 +153,7 @@ class Action::Inl: public Action {
 			View* v = i.value();
 			if (v) {
 				auto evt = new GUIActionEvent(this, v, delay, 0, m_loop);
-				main_loop()->post(Cb([this, evt, v](Cbd& e) {
+				main_loop()->post(Cb([this, evt, v](CbD& e) {
 					Handle<GUIActionEvent> handle(evt);
 					ActionInl_View(v)->trigger(GUI_EVENT_ACTION_LOOP, *evt);
 				}, v));
@@ -172,7 +172,7 @@ class Action::Inl: public Action {
 			View* v = i.value();
 			if (v) {
 				auto evt = new GUIActionEvent(this, v, delay, frame_index, m_loop);
-				main_loop()->post(Cb([this, evt, v](Cbd& e) {
+				main_loop()->post(Cb([this, evt, v](CbD& e) {
 					Handle<GUIActionEvent> handle(evt);
 					ActionInl_View(v)->trigger(GUI_EVENT_ACTION_KEYFRAME, *evt);
 				}, v));

@@ -30,7 +30,7 @@
 
 import utils from './util';
 import ngui, {
-	Indep, Hybrid, Clip, Input, Span, LimitIndep, Button, View,
+	Indep, Hybrid, Clip, Input, Span, LimitIndep, Button, View, _CVD,
 } from './index';
 import { Navigation } from './nav';
 import { event, EventNoticer, Event, GUIClickEvent } from './event';
@@ -256,9 +256,9 @@ export class Dialog extends Navigation {
 			main.originY = main.finalHeight / 2;
 			main.transition({ scale : '0.2 0.2', time: 300 });
 			this.view.transition({ opacity : 0.05, time: 300 }, ()=>{ this.remove() });
-			this.unregisterNavigation(0, null);
+			this.unregisterNavigation(0);
 		} else {
-			this.unregisterNavigation(0, null);
+			this.unregisterNavigation(0);
 			this.remove();
 		}
 	}
@@ -363,9 +363,9 @@ export class Sheet extends Dialog {
 			var height = main.finalHeight;
 			main.transition({ y: height, time: 250 });
 			this.view.transition({ opacity : 0.15, time: 250 }, ()=>{ this.remove() });
-			this.unregisterNavigation(0, null);
+			this.unregisterNavigation(0);
 		} else {
-			this.unregisterNavigation(0, null);
+			this.unregisterNavigation(0);
 			this.remove();
 		}
 	}

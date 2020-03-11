@@ -48,7 +48,7 @@ struct LooperData: Object {
 	Callback<> cb;
 };
 
-void looper(Cbd& ev, LooperData* data) {
+void looper(CbD& ev, LooperData* data) {
 	if ( data->id && !is_exited() ) {
 		// 60fsp
 		data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
@@ -60,24 +60,29 @@ void looper(Cbd& ev, LooperData* data) {
 }
 
 void RenderLooper::start() {
-	m_host->render_loop()->post_sync(Cb([this](Cbd &ev) {
+	typedef Callback<RunLoop::PostSyncData> Cb;
+	m_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
 		if (!m_id) {
 			LooperData* data = new LooperData();
 			data->id = iid32();
 			data->host = m_host;
-			data->cb = Cb(&looper, data);
+			data->cb = Callback<>(&looper, data);
 			m_id = &data->id;
-			looper(ev, data);
+			Callback<>::Data d;
+			looper(d, data);
 		}
+		ev.data->complete();
 	}));
 }
 
 void RenderLooper::stop() {
-	m_host->render_loop()->post_sync(Cb([this](Cbd& ev) {
+	typedef Callback<RunLoop::PostSyncData> Cb;
+	m_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
 		if (m_id) {
 			*m_id = 0;
 			m_id = nullptr;
 		}
+		ev.data->complete();
 	}));
 }
 

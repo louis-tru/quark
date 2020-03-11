@@ -38,7 +38,7 @@ export default {
 	get id() { return _common.getId() },
 	get options() { return _pkg.options },
 	get config() { return _pkg.config },
-	get dev() { return _pkg.dev },
+	get debug() { return _pkg.debug },
 	// events
 	get onBeforeExit(): EventNoticer<Event<number>> { return _process.getNoticer('BeforeExit') },
 	get onExit(): EventNoticer<Event<number>> { return _process.getNoticer('BeforeExit') },

@@ -38,7 +38,7 @@ XX_NS(ngui)
  */
 class PrivateLoop {
  public:
-	inline PrivateLoop(): m_loop(nullptr) {  }
+	inline PrivateLoop(): m_loop(nullptr) {}
 	
 	inline bool has_current_thread() {
 		return Thread::current_id() == m_thread_id;

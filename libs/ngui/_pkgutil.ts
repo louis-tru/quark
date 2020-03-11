@@ -32,8 +32,6 @@
 
 const _path = __requireNgui__('_path');
 const _util = __requireNgui__('_util');
-const win32 = _util.platform == 'win32';
-const { readFileSync, isFileSync } = __requireNgui__('_reader');
 const { haveNode } = _util;
 const PREFIX = 'file:///';
 const _cwd = _path.cwd;
@@ -74,35 +72,41 @@ if (!haveNode) {
 	globalThis.clearImmediate = _timer.clearTimeout;
 }
 
-const fallbackPath = win32 ? function(url: string) {
-	return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
-} : function(url: string) {
-	return url.replace(/^file:\/\//i, '');
-};
-
-const join_path = win32 ? function(args: any[]) {
-	for (var i = 0, ls = []; i < args.length; i++) {
-		var item = args[i];
-		if (item) ls.push(item.replace(/\\/g, '/'));
-	}
-	return ls.join('/');
-}: function(args: any[]) {
-	for (var i = 0, ls = []; i < args.length; i++) {
-		var item = args[i];
-		if (item) ls.push(item);
-	}
-	return ls.join('/');
-};
-
-const matchs = win32 ? {
+const win32 = {
+	fallbackPath: function(url: string) {
+		return url.replace(/^file:\/\/(\/([a-z]:))?/i, '$3').replace(/\//g, '\\');
+	},
+	joinPath: function(args: any[]) {
+		for (var i = 0, ls = []; i < args.length; i++) {
+			var item = args[i];
+			if (item) ls.push(item.replace(/\\/g, '/'));
+		}
+		return ls.join('/');
+	},
 	resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
 	isAbsolute: /^([\/\\]|[a-z]:|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
 	isLocal: /^([\/\\]|[a-z]:|(file|zip):\/\/\/)/i,
-} : {
+	delimiter: ';',
+};
+
+const posix = {
+	fallbackPath: function(url: string) {
+		return url.replace(/^file:\/\//i, '');
+	},
+	joinPath: function(args: any[]) {
+		for (var i = 0, ls = []; i < args.length; i++) {
+			var item = args[i];
+			if (item) ls.push(item);
+		}
+		return ls.join('/');
+	},
 	resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
 	isAbsolute: /^(\/|[a-z]{2,}:\/\/[^\/]+|(file|zip):\/\/\/)/i,
 	isLocal: /^(\/|(file|zip):\/\/\/)/i,
+	delimiter: ':',
 };
+
+const utils = _util.platform == 'win32' ? win32: posix;
 
 /** 
  * format part 
@@ -131,15 +135,15 @@ function resolvePathLevel(path: string, retain_up?: boolean) {
  * return format path
  */
 function resolve(...args: string[]) {
-	var path = join_path(args);
+	var path = utils.joinPath(args);
 	var prefix = '';
 	// Find absolute path
-	var mat = path.match(matchs.resolve);
+	var mat = path.match(utils.resolve);
 	var slash = '';
-	
+
 	// resolve: /^((\/|[a-z]:)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
 	// resolve: /^((\/)|([a-z]{2,}:\/\/[^\/]+)|((file|zip):\/\/\/))/i,
-	
+
 	if (mat) {
 		if (mat[2]) { // local absolute path /
 			if (win32 && mat[2] != '/') { // windows d:\
@@ -180,14 +184,14 @@ function resolve(...args: string[]) {
  * @func isAbsolute # 是否为绝对路径
  */
 function isAbsolute(path: string) {
-	return matchs.isAbsolute.test(path);
+	return utils.isAbsolute.test(path);
 }
 
 /**
  * @func isLocal # 是否为本地路径
  */
 function isLocal(path: string) {
-	return matchs.isLocal.test(path);
+	return utils.isLocal.test(path);
 }
 
 function isLocalZip(path: string) {
@@ -210,23 +214,7 @@ function stripBOM(content: string) {
 	return content;
 }
 
-function resolveMainPath(path: string) {
-	if (path) {
-		if ( !isAbsolute(path) ) {
-			// 非绝对路径,优先查找资源路径
-			if (isFileSync(_path.resources(path + '/package.json'))) {
-				// 如果在资源中找到`package.json`文件
-				path = _path.resources(path);
-			}
-		}
-		path = fallbackPath(resolve(path));
-	}
-	return path;
-}
-
-require.resolve
-
-function makeRequireFunction(mod: any): NguiRequire {
+function makeRequireFunction(mod: any, main: any): NguiRequire {
 	const Module = mod.constructor;
 
 	function require(path: string) {
@@ -245,7 +233,7 @@ function makeRequireFunction(mod: any): NguiRequire {
 
 	resolve.paths = paths;
 
-	require.main = mod.package && mod.package.mainModule;
+	require.main = main;
 
 	// Enable support to add extra extension types.
 	require.extensions = Module._extensions;
@@ -295,13 +283,13 @@ function assert(value: any, message?: string) {
 	}
 }
 
-function debug(TAG = 'PKG') {
+function debugLog(TAG = 'PKG') {
 	return function(...args: any[]) {
-		if (exports.dev) {
+		if (_util.debug) {
 			if (args.length > 1) {
 				var str = args.shift();
 				for (var arg of args) {
-					str = str.replace(/\%(j|s)/, arg);
+					str = str.replace(/\%(j|s|d)/, arg);
 				}
 				console.log(TAG, str);
 			}
@@ -310,17 +298,16 @@ function debug(TAG = 'PKG') {
 }
 
 export default {
-	fallbackPath,
+	fallbackPath: utils.fallbackPath,
 	resolvePathLevel,
 	resolve,
 	isAbsolute,
 	isLocal,
 	isLocalZip,
 	isNetwork,
-	resolveMainPath,
-	readFileSync,
 	makeRequireFunction,
 	stripShebang,
 	stripBOM,
-	assert, debug,
+	assert, debugLog,
+	delimiter: utils.delimiter,
 };

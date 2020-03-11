@@ -269,7 +269,7 @@ const SimpleFontList& FontPool::system_font_family() {
 	
 	JSON font_familys = JSON::array();
 	
-	FileHelper::each_sync(system_fonts_dir, Cb([&](Cbd& d) {
+	FileHelper::each_sync(system_fonts_dir, Cb([&](CbD& d) {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		

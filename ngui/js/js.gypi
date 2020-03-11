@@ -124,7 +124,6 @@
 					'files': [
 						'../../out/_event.js',
 						'../../out/_value.js',
-						'../../depe/node/lib/module.js',
 					],
 				},
 				'inputs': [
@@ -139,7 +138,6 @@
 					'<(node)',
 					'<@(_inputs)',
 					'',
-					'-',
 					'INL',
 					'wrap',
 					'<@(_outputs)',
@@ -166,7 +164,6 @@
 					'<(node)',
 					'<@(_inputs)',
 					'',
-					'-',
 					'LIB',
 					'wrap',
 					'<@(_outputs)',
@@ -178,10 +175,14 @@
 				'variables': {
 					'NGUI': 'libs/ngui/out/ngui',
 					'files': [
-						'<(NGUI)/_common.js',
+						'../../libs/ngui/out/ngui/_action.js',
+						'../../libs/ngui/out/ngui/_common.js',
+						'../../libs/ngui/out/ngui/_event.js',
 						'../../libs/ngui/out/ngui/_ext.js',
-						'../../libs/ngui/out/ngui/_util.js',
+						'../../libs/ngui/out/ngui/_path.js',
 						'../../libs/ngui/out/ngui/_pkgutil.js',
+						'../../libs/ngui/out/ngui/_util.js',
+						'../../libs/ngui/out/ngui/_view.js',
 						'../../libs/ngui/out/ngui/action.js',
 						'../../libs/ngui/out/ngui/app.js',
 						'../../libs/ngui/out/ngui/buffer.js',
@@ -222,7 +223,6 @@
 					'<(node)',
 					'<@(_inputs)',
 					'ngui',
-					'ngui.js',
 					'EXT',
 					'',
 					'<@(_outputs)',

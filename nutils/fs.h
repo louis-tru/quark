@@ -474,7 +474,7 @@ class XX_EXPORT FileReader: public Object {
 	static void set_shared_instance(FileReader* reader);
 	static FileReader* shared();
  private:
-	class Core; 
+	class Core;
 	Core* m_core;
 };
 

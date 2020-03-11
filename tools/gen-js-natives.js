@@ -36,7 +36,6 @@ var output_cc = inputs.pop();
 var output_h = inputs.pop();
 var is_wrap = inputs.pop() == 'wrap';
 var suffix = inputs.pop();
-var pkg_main = inputs.pop();
 var pkgname = inputs.pop();
 var Buffer = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
@@ -48,7 +47,6 @@ console.log(inputs);
 console.log(suffix);
 console.log(output_h);
 console.log(output_cc);
-console.log(pkg_main);
 console.log(pkgname);
 */
 
@@ -198,15 +196,6 @@ function main() {
 
 	for (var i = 0; i < inputs.length; i++) {
 		js.push( write_file_item(inputs[i], fd_h, fd_cc, pkgname, readSource) );
-	}
-
-	if (pkg_main && pkgname) {
-		var extname = path.extname(pkg_main);
-		var main = path.basename(pkg_main).replace(/\..*$/gm, '').replace(/-/gm, '_');
-		var r = write_file_item(`${pkgname}${extname}`, fd_h, fd_cc, '', function() {
-			return new Buffer(`module.exports = require("${pkgname}/${main}")`).toJSON().data;
-		});
-		js.push(r);
 	}
 
 	write(fd_h, format_string('extern const int {0}_native_js_count_;', suffix));

@@ -32,7 +32,7 @@ import utils from './util';
 import { List, KeyboardKeyName, ClickType } from './event';
 import ngui, { 
 	ViewController, Div, Indep, View,
-	Limit, Button, Text, TextNode, Clip,
+	Limit, Button, Text, TextNode, Clip, _CVD,
 } from './index';
 import * as value from './value';
 import {prop} from './ctr';
@@ -69,9 +69,9 @@ export interface EventForegroundData {
 class NavigationStatus extends ViewController {
 	private m_status: Status = Status.INIT; // 1=background,0=foreground,-1=init or exit
 	get status() { return this.m_status }
-	intoBackground(time: number) { this.m_status = 1 }
-	intoForeground(time: number, action: NavigationForegroundAction) { this.m_status = 0 }
-	intoLeave(time: number) { this.m_status = -1 }
+	intoBackground(animate: number) { this.m_status = 1 }
+	intoForeground(animate: number, action: NavigationForegroundAction) { this.m_status = 0 }
+	intoLeave(animate: number) { this.m_status = -1 }
 }
 
 /**
@@ -153,13 +153,13 @@ export class Navigation extends NavigationStatus {
 		this.trigger('Foreground', data);
 	}
 
-	intoBackground(time: number) { 
-		super.intoBackground(time);
+	intoBackground(animate: number) { 
+		super.intoBackground(animate);
 		this.triggerBackground();
 	}
 
-	intoForeground(time: number, action: NavigationForegroundAction) {
-		super.intoForeground(time, action);
+	intoForeground(animate: number, action: NavigationForegroundAction) {
+		super.intoForeground(animate, action);
 		this.triggerForeground({ action: action });
 	}
 
@@ -181,7 +181,7 @@ export class Navigation extends NavigationStatus {
 	/**
 	 * @func registerNavigation()
 	 */
-	registerNavigation(time: number) {
+	registerNavigation(animate: number = 0) {
 		if ( !this.m_iterator ) { // No need to repeat it
 			Navigation._navigationInit(this);
 			this.m_iterator = this.m_stack.push(this);
@@ -191,13 +191,13 @@ export class Navigation extends NavigationStatus {
 				if ( prev ) {
 					var focus = ngui.app.focusView;
 					prev.value.m_focus_resume = focus && prev.value.__meta__.hasChild(focus) ? focus : null;
-					prev.value.intoBackground(time);
+					prev.value.intoBackground(animate);
 				}
 				var view = this.defaultFocus();
 				if ( view ) {
 					view.focus();
 				}
-				this.intoForeground(time, NavigationForegroundAction.INIT);
+				this.intoForeground(animate, NavigationForegroundAction.INIT);
 			});
 		}
 	}
@@ -205,7 +205,7 @@ export class Navigation extends NavigationStatus {
 	/**
 	 * @func unregisterNavigation(time, data)
 	 */
-	unregisterNavigation(time: number) {
+	unregisterNavigation(animate: number = 0) {
 		if ( this.m_iterator ) {
 			// utils.assert(this.m_iterator, 'Bad iterator!');
 			var last = this.m_stack.last;
@@ -214,13 +214,13 @@ export class Navigation extends NavigationStatus {
 			if (!last || last.value !== this) return;
 
 			ngui.lock(()=>{
-				this.intoLeave(time);
+				this.intoLeave(animate);
 				var last = this.m_stack.last;
 				if ( last ) {
 					if (last.value.m_focus_resume) {
 						last.value.m_focus_resume.focus();
 					}
-					last.value.intoForeground(time, NavigationForegroundAction.RESUME);
+					last.value.intoForeground(animate, NavigationForegroundAction.RESUME);
 				}
 			});
 		}

@@ -32,7 +32,7 @@ import utils from './util';
 import * as value from './value';
 
 const _css = __requireNgui__('_css');
-const dev = utils.dev;
+const debug = utils.debug;
 
 exports.create = _css.create;
 
@@ -217,7 +217,7 @@ export function check(cssName: string, selected: string = '') {
  * @func default(sheets)
  */
 export default function(sheets: Dict<StyleSheet>) {
-	if ( dev ) {
+	if ( debug ) {
 		for ( var cls in sheets ) {
 			for ( var name in sheets[cls] ) {
 				check(name, cls);

@@ -304,7 +304,7 @@ bool FileHelper::chmod_r_sync(cString& path, uint mode, bool* stop_signal) throw
 	
 	uv_fs_t req;
 	
-	return each_sync(path, Cb([&](Cbd& d) {
+	return each_sync(path, Cb([&](CbD& d) {
 		if ( *stop_signal ) { // 停止信号
 			d.return_value = false;
 		} else {
@@ -326,7 +326,7 @@ bool FileHelper::chown_r_sync(cString& path, uint owner, uint group, bool* stop_
 	}
 	uv_fs_t req;
 	
-	return each_sync(path, Cb([&](Cbd& d) {
+	return each_sync(path, Cb([&](CbD& d) {
 		if (*stop_signal) { // 停止信号
 			d.return_value = false;
 		} else {
@@ -348,7 +348,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 	}
 	uv_fs_t req;
 
-	return each_sync_1(path, Cb([&](Cbd& d) {
+	return each_sync_1(path, Cb([&](CbD& d) {
 		if ( *stop_signal ) { // 停止信号
 			d.return_value = 0;
 		} else {
@@ -421,7 +421,7 @@ bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal
 	uint s_len = Path::format("%s", *source).length();
 	String path = Path::format("%s", *target);
 	
-	return each_sync(source, Cb([&](Cbd& d) {
+	return each_sync(source, Cb([&](CbD& d) {
 		
 		Dirent* dirent = static_cast<Dirent*>(d.data);
 		String target = path + dirent->pathname.substr(s_len); // 目标文件

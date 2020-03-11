@@ -40,7 +40,7 @@ class DefaultStaticCallback: public CallbackCore<Object> {
  public:
 	virtual bool retain() { return 1; }
 	virtual void release() { }
-	virtual void call(Cbd& event) const { }
+	virtual void call(CbD& event) const { }
 };
 
 static DefaultStaticCallback* default_callback_p = nullptr;
@@ -67,7 +67,7 @@ class WrapCallback: public CallbackCore<Object> {
 		Release(m_err);
 		Release(m_data);
 	}
-	virtual void call(Cbd& evt) const {
+	virtual void call(CbD& evt) const {
 		evt.error = m_err;
 		evt.data = m_data;
 		m_inl_cb->call(evt);
@@ -86,7 +86,7 @@ void async_callback_and_dealloc(cCb& cb, Error* e, Object* d, PostMessage* loop)
  * @func sync_callback
  */
 int sync_callback(cCb& cb, cError* err, Object* data) {
-	Cbd evt = { err, data, 0 };
+	CbD evt = { err, data, 0 };
 	cb->call(evt);
 	return evt.return_value;
 }
@@ -134,7 +134,7 @@ void AsyncIOTask::safe_abort(uint id) {
 		auto i = tasks->values.find(id);
 		if (i.is_null()) return;
 		
-		i.value()->m_loop->post(Cb([id](Cbd& e) {
+		i.value()->m_loop->post(Cb([id](CbD& e) {
 			AsyncIOTask* task = nullptr;
 			{ //
 				ScopeLock scope(tasks->mutex);

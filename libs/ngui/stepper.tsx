@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import ngui, { 
-	Hybrid, Button, ViewController
+	Hybrid, Button, ViewController, _CVD
 } from './index';
 import {event, EventNoticer, Event } from './event';
 

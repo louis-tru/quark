@@ -351,7 +351,8 @@ class LinuxApplication {
 		m_w_width = attrs.width;
 		m_w_height = attrs.height;
 
-		m_host->render_loop()->post_sync(Cb([this](Se &ev) {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		m_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
 			if (m_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
 				gl_draw_context->refresh_surface_size(&rect);
@@ -364,6 +365,7 @@ class LinuxApplication {
 				m_host->onForeground();
 				m_render_looper->start();
 			}
+			ev.data->complete();
 		}));
 	}
 

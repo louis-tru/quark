@@ -43,7 +43,7 @@ typedef HttpHelper::ResponseData ResponseData;
 
 class FileReader::Core {
  public:
-	
+
 	enum Protocol {
 		FILE = 0,
 		ZIP,
@@ -53,14 +53,14 @@ class FileReader::Core {
 		FTPS,
 		Unknown,
 	};
-	
+
 	~Core() {
 		ScopeLock lock(zip_mutex_);
 		for (auto i = zips_.begin(), e = zips_.end(); i != e; i++) {
 			Release(i.value());
 		}
 	}
-	
+
 	Protocol protocol(cString& path) {
 		if ( Path::is_local_file( path ) ) {
 			return FILE;
@@ -101,7 +101,7 @@ class FileReader::Core {
 		}
 		return Unknown;
 	}
-	
+
 	String zip_path(cString& path) {
 		int  i = path.index_of('@');
 		if (i != -1) {
@@ -109,7 +109,7 @@ class FileReader::Core {
 		}
 		return String();
 	}
-	
+
 	ZipReader* get_zip_reader(cString& path) throw(Error) {
 		ZipReader* reader = zips_.get(path);
 		if (reader) {
@@ -172,7 +172,7 @@ class FileReader::Core {
 					async_err_callback(cb, Error("Invalid file path, \"%s\"", *path), RunLoop::current());
 				} else {
 					RunLoop* loop = RunLoop::current();
-					loop->work(Cb([this, loop, zip, path, stream, cb](Cbd& evt) {
+					loop->work(Cb([this, loop, zip, path, stream, cb](CbD& evt) {
 						read_from_zip(loop, zip, path, stream, cb);
 					}));
 				}
@@ -191,7 +191,7 @@ class FileReader::Core {
 					if ( stream ) {
 						id = HttpHelper::get_stream(path, cb);
 					} else {
-						id = HttpHelper::get(path, Cb([cb](Cbd& e){
+						id = HttpHelper::get(path, Cb([cb](CbD& e){
 							ResponseData* data = static_cast<ResponseData*>(e.data);
 							if (e.error) {
 								sync_callback(cb, e.error);
@@ -207,7 +207,7 @@ class FileReader::Core {
 		}
 		return id;
 	}
-	
+
 	/**
 	 * @func read_sync
 	 */
@@ -247,14 +247,14 @@ class FileReader::Core {
 		}
 		return rv;
 	}
-	
+
 	/**
 	 * @func abort
 	 */
 	void abort(uint id) {
 		AsyncIOTask::safe_abort(id);
 	}
-	
+
 	/**
 	 * @func exists_sync
 	 */
@@ -285,7 +285,7 @@ class FileReader::Core {
 		}
 		return false;
 	}
-	
+
 	Array<Dirent> readdir_sync(cString& path) throw(Error) {
 		Array<Dirent> rv;
 		switch ( protocol(path) ) {
@@ -307,7 +307,7 @@ class FileReader::Core {
 		}
 		return move(rv);
 	}
-	
+
 	/**
 	 * @func format
 	 */

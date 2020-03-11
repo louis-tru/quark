@@ -135,7 +135,7 @@ void  object_allocator_retain(Object* obj);
 // startup argv
 Array<char*>* __xx_ngui_argv = nullptr;
 int           __xx_ngui_have_node = 1;
-int           __xx_ngui_have_dev = 0;
+int           __xx_ngui_have_debug = 0;
 
 // parse argv
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& ngui_argv) {
@@ -143,18 +143,17 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 
 	XX_CHECK(argv_in.length(), "Bad start argument");
 	__xx_ngui_have_node = 1;
-	__xx_ngui_have_dev = 0;
+	__xx_ngui_have_debug = 0;
 	argv_str = argv_in[0];
 
 	Array<int> indexs = {-1};
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-		if (__xx_ngui_have_node && argv_in[i] == "--no-node") {
-			__xx_ngui_have_node = 0;
-		} else if (!__xx_ngui_have_node && argv_in[i] == "--node") {
-			__xx_ngui_have_node = 1;
-		} else if (!__xx_ngui_have_dev && argv_in[i] == "--dev") {
-			__xx_ngui_have_dev = 1;
+		if (__xx_ngui_have_node && argv_in[i].index_of("--no-node") == 0) { // ngui arg
+			__xx_ngui_have_node = 0; // disable node
 		} else {
+			if (!__xx_ngui_have_debug && argv_in[i].index_of("--inspect") == 0) {
+				__xx_ngui_have_debug = 1;
+			}
 			argv_str.push(' ').push(argv_in[i]);
 			indexs.push(index);
 			index += argv_in[i].length() + 1;
@@ -165,12 +164,12 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 	argv.push(str_c);
 	ngui_argv.push(str_c);
 
-	for (int i = 1, ngui_ok = 1; i < indexs.length(); i++) {
+	for (int i = 1, ngui_ok = 0; i < indexs.length(); i++) {
 		int index = indexs[i];
 		str_c[index] = '\0';
 		char* arg = str_c + index + 1;
 		if (ngui_ok || arg[0] != '-') {
-			ngui_ok = 1;
+			ngui_ok = 1; // ngui argv start
 			ngui_argv.push(arg);
 		}
 		argv.push(arg);
@@ -180,12 +179,14 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 static void on_process_safe_handle(Event<>& e, Object* data) {
 	int rc = static_cast<const Int*>(e.data())->value;
 	if (RunLoop::main_loop()->runing()) {
-		RunLoop::main_loop()->post_sync(Cb([&](Cbd& e) {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		RunLoop::main_loop()->post_sync(Cb([&](Cb::Data& e) {
 			auto worker = Worker::worker();
 			DLOG("on_process_safe_handle");
 			if (worker) {
 				rc = IMPL::inl(worker)->TriggerExit(rc);
 			}
+			e.data->complete();
 		}));
 	}
 	e.return_value = rc;
@@ -286,13 +287,12 @@ int __default_main(int argc, char** argv) {
 			}
 		}
 	}
+
 	if ( cmd.is_empty() ) {
 		return Start(argc, argv);
 	} else {
 		return Start(cmd);
 	}
-
-	return 0;
 }
 
 XX_INIT_BLOCK(__default_main) {

@@ -55,7 +55,7 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 	
 	class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public SimpleStream {
 	 public:
-		Callback<>      cb;
+		Callback<>    cb;
 		bool          stream;
 		bool          full_data;
 		StringBuilder data;
@@ -213,134 +213,34 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 										String::format("cannot send sync http request, %s"
 																	 , options.url.c()), 0, options.url);
 	}
-
 	XX_DEBUG("request_sync %s", options.url.c());
-	
-	class Client: public HttpClientRequest, public HttpClientRequest::Delegate {
-	 public:
-		Client(RunLoop* loop): HttpClientRequest(loop)
-		, full_data(1), is_error(0), ok(0), m_loop(loop), error(0, "", 0, "") {
-			set_delegate(this);
-		}
-		virtual void trigger_http_error(HttpClientRequest* req, cError& err) {
-			XX_DEBUG("request_sync %s err", *url());
-			HttpError e(err.code(),
-									err.message() + ", " + req->url().c(), 0, req->url());
-			end(&e);
-		}
-		virtual void trigger_http_timeout(HttpClientRequest* req) {
-			HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
-									String("http request timeout") + ", " + req->url().c(), 0, req->url());
-			end(&e);
-		}
-		virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
-			XX_DEBUG("request_sync %s data ..", *url());
-			if (full_data) {
-				data.push(buffer.collapse_string());
-			}
-		}
-		virtual void trigger_http_end(HttpClientRequest* req) {
-			XX_DEBUG("request_sync %s end", *url());
-			end(nullptr);
-		}
-		virtual void trigger_http_abort(HttpClientRequest* req) {
-			XX_DEBUG("request_sync %s abort", *url());
-		}
-		virtual void trigger_http_write(HttpClientRequest* req) {}
-		virtual void trigger_http_header(HttpClientRequest* req) {}
-		virtual void trigger_http_readystate_change(HttpClientRequest* req) {}
+	typedef Callback<RunLoop::PostSyncData> Cb_;
+	bool ok = false;
+	HttpError err(Error());
+	ResponseData data;
 
-		void end(HttpError* err) {
-			ScopeLock scope(mutex);
-			if (err) {
-				is_error = 1;
-				error = move(*err);
-			}
-			ok = 1;
-			cond.notify_one();
-		}
-		
-		void send_sync(Buffer buffer) throw(HttpError) {
-			Lock lock(mutex);
-			post_data = buffer;
-			m_loop->post(Cb([this](Cbd&) {
-				XX_DEBUG("request_sync %s send", *url());
-				try {
-					send(post_data);
-				} catch (Error& err) {
-					HttpError e(err.code(),
-											err.message() + ", " + url().c(), 0, url());
-					end(&e);
+	get_private_loop()->post_sync(Cb_([&](Cb_::Data& d) {
+		try {
+			request(options, Cb([&](CbD& ev) {
+				if (d.error) {
+					*const_cast<HttpError*>(&err) = move(*static_cast<const HttpError*>(ev.error));
+				} else {
+					*const_cast<ResponseData*>(&data) = move(*static_cast<ResponseData*>(ev.data));
+					*const_cast<bool*>(&ok) = true;
 				}
+				d.data->complete();
 			}));
-			while (!ok) {
-				cond.wait(lock); // wait done
-			}
-			if (is_error) {
-				throw error;
-			}
+		} catch(const HttpError& e) {
+			*const_cast<HttpError*>(&err) = e;
+			d.data->complete();
 		}
-		bool					full_data, is_error, ok;
-		RunLoop*			m_loop;
-		Buffer				post_data;
-		HttpError 		error;
-		StringBuilder data;
-		Condition			cond;
-		Mutex 				mutex;
-	};
-	
-	auto loop = get_private_loop();
-	
-	Client* cli_ptr = new Client(loop);
-	Client& cli = *cli_ptr;
-	
-	ScopeClear scope([cli_ptr, loop](){
-		loop->post(Cb([cli_ptr](Cbd& e){
-			cli_ptr->release();
-		}));
-	});
-	
-	try {
-		cli.set_url(options.url);
-		cli.set_method(options.method);
-		cli.set_timeout(options.timeout);
-		cli.disable_cache(options.disable_cache);
-		cli.disable_ssl_verify(options.disable_ssl_verify);
-		
-		if ( !options.upload.is_empty() ) { // 需要上传文件
-			cli.set_upload_file("file", options.upload);
-		}
-		if ( !options.save.is_empty() ) {
-			cli.full_data = 0;
-			cli.set_save_path(options.save);
-		}
-		for ( auto& i : options.headers ) {
-			cli.set_request_header(i.key(), i.value());
-		}
-	} catch(cError& e) {
-		throw HttpError(e);
-	}
+	}));
 
-	XX_DEBUG("request_sync %s ..", options.url.c());
-	
-	cli.send_sync(options.post_data);
-
-	XX_DEBUG("request_sync %s ok", options.url.c());
-	
-	if ( cli.is_error ) {
-		HttpError e(cli.error.code(),
-								cli.error.message() + ", " + cli.url().c(),
-								cli.status_code(), cli.url());
-		throw e;
+	if (ok) {
+		return data.data;
 	} else {
-		if ( cli.status_code() > 399 || cli.status_code() < 100 ) {
-			String msg = String::format("Http status error, status code:%d, %s",
-																	cli.status_code(), cli.url().c());
-			HttpError e(ERR_HTTP_STATUS_ERROR, msg, cli.status_code(), cli.url());
-			throw e;
-		}
+		throw err;
 	}
-	return cli.data.to_buffer();
 }
 
 static RequestOptions default_request_options(cString& url) {

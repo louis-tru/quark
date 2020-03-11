@@ -33,7 +33,7 @@ import {Event, Notification, EventNoticer} from './event';
 
 const _util = __requireNgui__('_util');
 
-type Platform = 'darwin' | 'linux' | 'win32';
+type Platform = 'darwin' | 'linux' | 'win32' | 'android';
 
 function nextTick<A extends any[], R>(cb: (...args: A) => R, ...args: A): void {
 	if (typeof cb != 'function')

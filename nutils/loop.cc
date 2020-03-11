@@ -525,29 +525,41 @@ class RunLoop::Inl: public RunLoop {
 		return id;
 	}
 
-	void post_sync(cCb& exec, uint group, uint64 delay_us) {
+	void post_sync(const Callback<RunLoop::PostSyncData>& exec, uint group, uint64 delay_us) {
 		if (Thread::current_id() == m_thread->id()) { // 相同的线程立即执行
-			sync_callback(exec, nullptr, this);
+			sync_callback(*reinterpret_cast<cCb*>(&exec), nullptr, this);
 		} else {
 			if (m_thread->is_abort()) {
 				DLOG("RunLoop::post_sync, m_thread->is_abort() == true");
 				return;
 			}
 
-			struct Ctx { bool ok; Condition cond; } ctx = {false};
+			struct Ctx: public RunLoop::PostSyncData {
+				virtual void complete() {
+					ScopeLock scope(inl->m_mutex);
+					ok = true;
+					cond.notify_all();
+				}
+				Inl* inl;
+				bool ok;
+				Condition cond;
+			} ctx;
 
 			Lock lock(m_mutex);
 			Ctx* ctxp = &ctx;
+			ctx.inl = this;
+			ctx.ok = false;
 
 			m_queue.push({
 				0, group, 0,
-				Cb([exec, ctxp, this](Cbd& e) {
-					exec->call(e);
-					ScopeLock scope(m_mutex);
-					ctxp->ok = true;
-					ctxp->cond.notify_all();
+				Cb([exec, ctxp, this](CbD& e) {
+					CallbackData<RunLoop::PostSyncData> evt = {
+						nullptr, ctxp, 0
+					};
+					exec->call(evt);
 				})
 			});
+
 			activate_loop(); // 通知继续
 
 			do {
@@ -735,7 +747,7 @@ uint RunLoop::post(cCb& cb, uint64 delay_us) {
  * TODO: Be careful about thread security issues
  * @func post_sync(cb)
  */
-void RunLoop::post_sync(cCb& cb) {
+void RunLoop::post_sync(const Callback<PostSyncData>& cb) {
 	_inl(this)->post_sync(cb, 0, 0);
 }
 
@@ -757,7 +769,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
 	work->host = this;
 	work->name = name;
 
-	post(Cb([work, this](Cbd& ev) {
+	post(Cb([work, this](CbD& ev) {
 		int r = uv_queue_work(m_uv_loop, &work->uv_req,
 													Work::uv_work_cb, Work::uv_after_work_cb);
 		XX_ASSERT(!r);
@@ -772,7 +784,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
  * @func cancel_work(id)
  */
 void RunLoop::cancel_work(uint id) {
-	post(Cb([=](Cbd& ev) {
+	post(Cb([=](CbD& ev) {
 		for (auto& i : m_works) {
 			if (i.value()->id == id) {
 				int r = uv_cancel((uv_req_t*)&i.value()->uv_req);
@@ -819,7 +831,7 @@ void RunLoop::run(uint64 timeout) {
  */
 void RunLoop::stop() {
 	if ( runing() ) {
-		post(Cb([this](Cbd& se) {
+		post(Cb([this](CbD& se) {
 			uv_stop(m_uv_loop);
 		}));
 	}

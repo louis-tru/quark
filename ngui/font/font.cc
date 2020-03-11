@@ -232,7 +232,7 @@ class FontPool::Inl: public FontPool {
 			}
 			m_display_port_scale = scale;
 			
-			m_draw_ctx->host()->render_loop()->post(Cb([this](Cbd& e) {
+			m_draw_ctx->host()->render_loop()->post(Cb([this](CbD& e) {
 				m_draw_ctx->refresh_font_pool(this);
 				_inl_app(m_draw_ctx->host())->refresh_display();
 			}));

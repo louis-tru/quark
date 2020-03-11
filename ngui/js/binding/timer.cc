@@ -48,12 +48,12 @@ class Timer: public Reference {
 	CallbackPtr _cb_ptr;
 	Callback<> _cb2;
 	
-	void _run_cb(Cbd& d) {
+	void _run_cb(CbD& d) {
 		
 		if ( _cb_ptr ) {
 			_cb_ptr(this);
 		} else {
-			Cbd evt = { 0, this }; _cb->call(evt);
+			CbD evt = { 0, this }; _cb->call(evt);
 		}
 		
 		_timer_id = 0;

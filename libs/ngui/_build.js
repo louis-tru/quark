@@ -17,14 +17,14 @@ fs.writeFileSync(
 
 const path = require('path');
 const out = path.resolve(__dirname, 'out', pkg.name);
-const nout = path.resolve(__dirname, '../../out');
+const out_ = path.resolve(__dirname, '../../out');
 
-if (!fs.existsSync(nout)) {
-	fs.mkdirSync(nout);
+if (!fs.existsSync(out_)) {
+	fs.mkdirSync(out_);
 }
 
 for ( var i of ['_event', 'value', 'pkg', '_pkgutil'] ) {
 	var j = i.substr(0, 1) == '_' ? i : '_' + i;
-	fs.writeFileSync(`${nout}/${j}.js`, fs.readFileSync(`${out}/${i}.js`));
+	fs.writeFileSync(`${out_}/${j}.js`, fs.readFileSync(`${out}/${i}.js`));
 	fs.writeFileSync(`${out}/${i}.js`, `module.exports=__requireNgui__('${j}')`);
 }

@@ -146,8 +146,9 @@ class AndroidApplication {
 
 	static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
 		// ScopeLock scope(application->m_mutex);
+		typedef Callback<RunLoop::PostSyncData> Cb;
 		application->m_window = window;
-		application->m_host->render_loop()->post_sync(Cb([window](Se &ev) {
+		application->m_host->render_loop()->post_sync(Cb([window](Cb::Data &ev) {
 			bool ok = false;
 			{ //
 				// ScopeLock scope(application->m_mutex);
@@ -167,15 +168,18 @@ class AndroidApplication {
 				}
 				application->start_render_task();
 			}
+			ev.data->complete();
 		}));
 	}
 	
 	static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
 		// ScopeLock scope(application->m_mutex);
 		application->m_window = nullptr;
-		application->m_host->render_loop()->post_sync(Cb([window](Cb& ev) {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		application->m_host->render_loop()->post_sync(Cb([window](Cb::Data& ev) {
 			gl_draw_context->destroy_surface(window);
 			application->stop_render_task();
+			ev.data->complete();
 		}));
 	}
 
@@ -218,7 +222,8 @@ class AndroidApplication {
 			application->m_current_orientation = orientation;
 		}
 
-		application->m_host->render_loop()->post_sync(Cb([targger_orientation](Se &ev) {
+		typedef Callback<RunLoop::PostSyncData> Cb_;
+		application->m_host->render_loop()->post_sync(Cb_([targger_orientation](Cb_::Data &ev) {
 			// NOTE: **********************************
 			// 这里有点奇怪，因为绘图表面反应迟钝，
 			// 也就是说 `ANativeWindow_getWidth()` 返回值可能与当前真实值不相同，
@@ -228,10 +233,11 @@ class AndroidApplication {
 			gl_draw_context->refresh_surface_size(&application->m_rect);
 
 			if ( targger_orientation ) { // 触发方向变化事件
-				application->m_host->main_loop()->post(Cb([](Cb& e) {
+				application->m_host->main_loop()->post(Cb([](CbD& e) {
 					application->m_host->display_port()->XX_TRIGGER(orientation);
 				}));
 			}
+			ev.data->complete();
 		}));
 	}
 

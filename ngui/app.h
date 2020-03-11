@@ -173,7 +173,7 @@ class XX_EXPORT GUIApplication: public Object {
 	 * @func has_current_render_thread()
 	 */
 	bool has_current_render_thread() const;
-	
+
 	/**
 	 * @func action_center
 	 */

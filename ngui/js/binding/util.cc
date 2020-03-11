@@ -46,7 +46,7 @@ using namespace native_js;
 
 extern Array<char*>* __xx_ngui_argv;
 extern int __xx_ngui_have_node;
-extern int __xx_ngui_have_dev;
+extern int __xx_ngui_have_debug;
 
 typedef Object NativeObject;
 
@@ -244,7 +244,7 @@ class NativeUtil {
 			JS_THROW_ERR("Bad argument");
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
-		RunLoop::next_tick(Cb([worker, func](Cbd& e) {
+		RunLoop::next_tick(Cb([worker, func](CbD& e) {
 			XX_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			func.local()->Call(worker);
@@ -260,7 +260,7 @@ class NativeUtil {
 		ngui::exit(code);
 	}
 
-	static void getExtendModuleContent(FunctionCall args) {
+	static void extendModuleContent(FunctionCall args) {
 		JS_WORKER(args);
 		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
 			JS_THROW_ERR("Bad argument");
@@ -290,10 +290,7 @@ class NativeUtil {
 		JS_SET_METHOD(nextTick, next_tick);
 		JS_SET_METHOD(_exit, exit);
 		JS_SET_PROPERTY(platform, ngui::platform());
-		JS_SET_PROPERTY(haveNode, !!__xx_ngui_have_node);
-		JS_SET_PROPERTY(dev, !!__xx_ngui_have_dev);
 
-		// argv
 		Local<JSArray> argv = worker->NewArray();
 		if (__xx_ngui_argv) {
 			for (uint i = 0; i < __xx_ngui_argv->length(); i++) {
@@ -301,6 +298,8 @@ class NativeUtil {
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);
+		JS_SET_PROPERTY(haveNode, !!__xx_ngui_have_node);
+		JS_SET_PROPERTY(debug, !!__xx_ngui_have_debug);
 
 		// extendModule
 		Local<JSObject> extendModule = worker->NewObject();
@@ -312,7 +311,7 @@ class NativeUtil {
 			extendModule->SetProperty(worker, code->name, module);
 		}
 		JS_SET_PROPERTY(__extendModule, extendModule);
-		JS_SET_METHOD(__getExtendModuleContent, getExtendModuleContent);
+		JS_SET_METHOD(__extendModuleContent, extendModuleContent);
 
 		WrapNativeObject::binding(exports, worker);
 		WrapSimpleHash::binding(exports, worker);

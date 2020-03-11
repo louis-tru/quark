@@ -37,21 +37,20 @@ using namespace ngui;
 #define USE_INSPECT 0
 #define USE_NODE 0
 
-#if USE_NODE
-# define NODE_FLAG "--node "
-#else
-# define NODE_FLAG ""
-#endif
-
 void test_ngui(int argc, char **argv) {
-	String cmd = "ngui " NODE_FLAG;
+	String cmd = "ngui ";
+#if USE_NODE
+	cmd += " ";
+#else
+	cmd += "--no-node ";
+#endif
 #if USE_INSPECT
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #endif
 #if USE_REMOTE
-	cmd += "--dev http://" IP_REMOTE ":1026/test/test-ngui";
+	cmd += "http://" IP_REMOTE ":1026/test/test-ngui";
 #else
-	cmd += "--dev test-ngui";
+	cmd += "test-ngui";
 #endif
 	js::Start(cmd);
 }

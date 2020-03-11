@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import ngui, {
-	View, Div, Text, Clip, Indep
+	View, Div, Text, Clip, Indep, _CVD
 } from './index';
 import { Navigation } from './nav';
 import { prop } from './ctr';
@@ -323,7 +323,7 @@ export class Overlay extends Navigation {
 		this.view.transition({ opacity: 0, time: 200 }, ()=>{
 			this.remove();
 		});
-		this.unregisterNavigation(0, null);
+		this.unregisterNavigation(0);
 	}
 	
 	/**

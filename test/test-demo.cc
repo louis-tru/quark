@@ -36,13 +36,6 @@ using namespace ngui;
 #define USE_REMOTE 0
 #define USE_INSPECT 0
 #define USE_NODE 0
-#define USE_DEV 0
-
-#if USE_NODE
-# define NODE_FLAG "--node "
-#else
-# define NODE_FLAG ""
-#endif
 
 static bool has_argv(cchar* name, int argc, char **argv) {
 	for (int i = 0; i < argc; i++) {
@@ -55,15 +48,17 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 
 void test_demo(int argc, char **argv) {
 	String cmd = "ngui ";
+
 #if USE_NODE
-	String cmd += USE_NODE;
+	cmd += " ";
 #else
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--node") == 0) {
-			cmd += "--node "; break;
+		if (strcmp(argv[i], "--no-node") == 0) {
+			cmd += "--no-node "; break;
 		}
 	}
 #endif
+
 #if USE_INSPECT
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #else
@@ -71,13 +66,6 @@ void test_demo(int argc, char **argv) {
 		cmd += "--inspect=0.0.0.0:9229 ";
 	} else if (has_argv("--inspect-brk", argc, argv)) {
 		cmd += "--inspect-brk=0.0.0.0:9229 ";
-	}
-#endif
-#if USE_DEV
-	cmd += "--dev ";
-#else
-	if (has_argv("--dev", argc, argv)) {
-		cmd += "--dev ";
 	}
 #endif
 
@@ -102,8 +90,7 @@ void test_demo(int argc, char **argv) {
 	for (int i = 1; i < argc; i++) {
 		// LOG("%s, %s", argv[i], strstr(argv[i], "--"));
 		if (strstr(argv[i], "--") == argv[i] && 
-			strcmp(argv[i], "--dev") != 0 && 
-			strcmp(argv[i], "--node") != 0 && 
+			strcmp(argv[i], "--no-node") != 0 && 
 			strstr(argv[i], "--inspect") != argv[i]) 
 		{
 			cmd += argv[i];

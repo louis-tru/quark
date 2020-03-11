@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import ngui, { ViewController, Button, Indep, TextNode } from './index';
+import ngui, { ViewController, Button, Indep, TextNode, _CVD } from './index';
 import event, {EventNoticer,Event} from './event';
 
 ngui.css({

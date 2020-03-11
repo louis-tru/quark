@@ -1400,13 +1400,10 @@ int IMPL::start(int argc, char** argv) {
 		Handle<Worker> worker = IMPL::create();
 		{
 			HandleScope scope(*worker);
-			Local<JSValue> module = worker->runNativeScript(WeakBuffer((char*)
-					INL_native_js_code_module_, 
-					INL_native_js_code_module_count_), "module.js"
-			);
-			XX_CHECK(!module.IsEmpty(), "Can't start worker");
-
-			Local<JSValue> r = module.To()->
+			auto _pkg = worker->bindingModule("_pkg");
+			XX_CHECK(!_pkg.IsEmpty(), "Can't start worker");
+			Local<JSValue> r = _pkg.To()->
+				GetProperty(*worker, "Module").To()->
 				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);
 			if (r.IsEmpty()) {
 				XX_ERR("ERROR: Can't call runMain()");

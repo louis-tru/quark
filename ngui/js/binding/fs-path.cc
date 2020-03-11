@@ -112,6 +112,27 @@ class NativePath {
 		}
 		JS_RETURN( Path::chdir(args[0]->ToStringValue(worker)) );
 	}
+
+	static void extname(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || !args[0]->IsString(worker))
+			JS_THROW_ERR( "Bad argument." );
+		JS_RETURN( Path::extname( args[0]->ToStringValue(worker)) );
+	}
+
+	static void dirname(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || !args[0]->IsString(worker))
+			JS_THROW_ERR( "Bad argument." );
+		JS_RETURN( Path::dirname( args[0]->ToStringValue(worker)) );
+	}
+
+	static void basename(FunctionCall args) {
+		JS_WORKER(args);
+		if (args.Length() == 0 || !args[0]->IsString(worker))
+			JS_THROW_ERR( "Bad argument." );
+		JS_RETURN( Path::basename( args[0]->ToStringValue(worker)) );
+	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_METHOD(executable, executable);
@@ -120,6 +141,9 @@ class NativePath {
 		JS_SET_METHOD(resources, resources);
 		JS_SET_METHOD(cwd, cwd);
 		JS_SET_METHOD(chdir, chdir);
+		JS_SET_METHOD(extname, extname); //
+		JS_SET_METHOD(dirname, dirname);
+		JS_SET_METHOD(basename, basename);
 	}
 };
 

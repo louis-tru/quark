@@ -135,7 +135,7 @@ class WrapDisplayPort: public WrapObject {
 		
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 
-		self->next_frame(Cb([func, worker](Cbd& evt) {
+		self->next_frame(Cb([func, worker](CbD& evt) {
 			XX_ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			func.local()->Call(worker);

@@ -476,7 +476,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			String search = m_client->m_uri.search();
 
 			if (m_client->m_url_no_cache_arg) {
-				search = search.replace("__nocache", "");
+				search = search.replace("__no_cache", "");
 				if (search.length() == 1) {
 					search = String();
 				}
@@ -688,7 +688,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			for (auto& i : m_pool) {
 				auto con = i.value();
 				con->m_id = ConnectID();
-				con->m_loop->post(Cb([con](Cbd& e){
+				con->m_loop->post(Cb([con](CbD& e){
 					Release(con);
 				}));
 			}
@@ -728,7 +728,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 			}
 			if (conn) {
-				Cbd evt = { 0, conn };
+				CbD evt = { 0, conn };
 				cb->call(evt);
 			}
 		}
@@ -766,7 +766,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 						connect_count--;
 						m_pool.del(conn2->m_id);
 						conn2->m_id = ConnectID();
-						conn2->loop()->post(Cb([conn2](Cbd& e) {
+						conn2->loop()->post(Cb([conn2](CbD& e) {
 							conn2->release();
 						}));
 					}
@@ -812,7 +812,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 						Cb cb = req.cb;
 						m_connect_req.del(i);
 						lock.unlock(); // unlock
-						Cbd evt = { 0, conn };
+						CbD evt = { 0, conn };
 						cb->call( evt );
 						break;
 					}
@@ -1303,7 +1303,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		XX_ASSERT(m_sending);
 		XX_ASSERT(!m_connect);
 		XX_ASSERT(m_pool_ptr);
-		m_pool_ptr->get_connect(this, Cb([this](Cbd& evt) {
+		m_pool_ptr->get_connect(this, Cb([this](CbD& evt) {
 			if ( m_wait_connect_id ) {
 				if ( evt.error ) {
 					report_error_and_abort(*evt.error);
@@ -1316,7 +1316,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}, this));
 	}
 	
-	void cache_file_stat_cb(Cbd& evt) {
+	void cache_file_stat_cb(CbD& evt) {
 		if ( m_sending ) {
 			if ( evt.error ) { //
 				send_http();
@@ -1380,7 +1380,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_cache_path = inl__get_http_cache_path() + '/' +
 			hash_code(m_uri.href().c(), m_uri.href().length());
 		
-		int i = m_uri.search().index_of("__nocache");
+		int i = m_uri.search().index_of("__no_cache");
 		if ( i != -1 && m_uri.search()[i+9] != '=' ) {
 			m_url_no_cache_arg = true;
 		}

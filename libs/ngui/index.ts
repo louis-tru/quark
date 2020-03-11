@@ -44,7 +44,7 @@ import app from  './app';
 import display_port from './display_port';
 import css from './css';
 export * from './_view';
-export {ViewController, VirtualDOM} from './ctr';
+export {ViewController, VirtualDOM,_CVD} from './ctr';
 export {GUIApplication} from './app';
 
 const _ngui = __requireNgui__('_ngui');

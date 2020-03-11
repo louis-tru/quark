@@ -282,11 +282,13 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 - (void)initialize {
 	NSOpenGLContext* context = self.glview.openGLContext;
 	::CGRect rect = self.glview.frame;
-	_app->render_loop()->post_sync(Cb([self, rect, context](Cb& d) {
+	typedef Callback<RunLoop::PostSyncData> Cb;
+	_app->render_loop()->post_sync(Cb([self, rect, context](Cb::Data& d) {
 		gl_draw_context->initialize(self.glview, context);
 		gl_draw_context->refresh_surface_size(rect);
 		_inl_app(_app)->onLoad();
 		_loaded = YES;
+		d.data->complete();
 	}));
 	[self foreground];
 }

@@ -32,24 +32,17 @@ const _util = __requireNgui__('_util');
 const _path = __requireNgui__('_path');
 const _fs = __requireNgui__('_fs');
 const _http = __requireNgui__('_http');
-const _pkgutil = __requireNgui__('_pkgutil');
+const _pkgutil = __requireNgui__('_pkgutil').default;
 const { fallbackPath,
-				resolvePathLevel,
-				resolve, isAbsolute,
-				isLocal, isLocalZip,
-				isNetwork, assert, stripBOM, Module, NativeModule } = _pkgutil;
-const { readFile, 
-				readFileSync, isFileSync,
-				isDirectorySync, readdirSync } = __requireNgui__('_reader');
-const { haveNode, __extendModule, __getExtendModuleContent } = _util;
-const options: Dict<string|string[]> = {};  // start options
-const external_cache = {};
-const extend_cache = {};
-const debug = _pkgutil.debug('PKG');
-var ignore_local_package: string[];
-var ignore_all_local_package: boolean;
-var config: Dict;
-var instance: Packages;
+				resolve, isAbsolute, isLocal, isLocalZip, stripShebang,
+				isNetwork, assert, stripBOM, makeRequireFunction } = _pkgutil;
+const { readFile, readFileSync, isFileSync, isDirectorySync, readdirSync } = __requireNgui__('_reader');
+const { haveNode } = _util;
+const isWindows = _util.platform == 'win32';
+const debug = _pkgutil.debugLog('PKG');
+const _debug = _util.debug as boolean;
+
+type Optopns = Dict<string|string[]>;
 
 function format_msg(args: any[]) {
 	var msg = [];
@@ -60,18 +53,11 @@ function format_msg(args: any[]) {
 	return msg;
 }
 
-function print_err(...args: any[]) {
-	console.error(...format_msg(args));
-}
-
 function print_warn(...args: any[]) {
 	console.warn(...format_msg(args));
 }
 
-/**
- * @fun new_err # create error object
- */
-function new_err(e: any) {
+function new_err(e: any, code?: string) {
 	if (! (e instanceof Error)) {
 		if (typeof e == 'object') {
 			e = Object.assign(new Error(e.message || 'Unknown error'), e);
@@ -79,24 +65,12 @@ function new_err(e: any) {
 			e = new Error(e);
 		}
 	}
-	return e as Error;
+	var err = e as Error;
+	if (code)
+		err.code = code;
+	return err;
 }
 
-/**
- * @fun new_cb() # return default callback
- */
-function new_cb(cb: any) {
-	return cb || function () {};
-}
-
-/**
- * @fun throwError() # 抛出异常
- */
-function throwError(e: any, cb: any) {
-	new_cb(cb).throw(new_err(e));
-}
-
-// add url args
 function set_url_args(path: string, arg?: string) {
 	if (/^(https?):\/\//i.test(path)) {
 		var url_arg = arg || options.url_arg;
@@ -107,72 +81,37 @@ function set_url_args(path: string, arg?: string) {
 	return path;
 }
 
-/**
- * @func read_text
- */
-function read_text(path: string, cb: any) {
-	return readFile(path, 'utf8', cb);
-}
-
-/**
- * @func read_text_sync
- */
-function read_text_sync(path: string) {
-	return readFileSync(path, 'utf8');
-}
-
-declare class Module {
-	
-}
-
-// -------------------------- Module extensions --------------------------
-
-// Native extension for .js
-Module._extensions['.js'] = function(module, rawFilename) {
-	var content = read_text_sync(rawFilename);
-	var pkg = module.package;
-	var filename = rawFilename.replace(/\?.*$/, '');
-	if (pkg && pkg.m_info.extendSyntax) {
-		if ( !pkg.m_build || 
-			pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
-			content = _util.transformJs(content, filename);
+function readText(path: string) {
+	return new Promise<string>(function(resolve, reject) {
+		if ('ext://' == path.substr(0, 6)) {
+			try {
+				return _util.__extendModuleContent(path.substr(6));
+			} catch(err) {
+				reject(err);
+			}
+		} else {
+			readFile(path, 'utf8', (err?: Error, r?: any)=>err?reject(err):resolve(r));
 		}
-	}
-	module._compile(stripBOM(content), filename, rawFilename);
-};
-
-// Native extension for .jsx
-Module._extensions['.jsx'] = function(module, rawFilename) {
-	var content = read_text_sync(rawFilename);
-	var pkg = module.package;
-	var filename = rawFilename.replace(/\?.*$/, '');
-	if ( !pkg || !pkg.m_build || 
-		pkg.m_info.no_syntax_preprocess /*配置明确声明为没有进行过预转换*/ ) {
-		content = _util.transformJsx(content, filename);
-	}
-	module._compile(stripBOM(content), filename, rawFilename);
-};
-
-// Native extension for .json
-Module._extensions['.json'] = function(module, filename) {
-	var content = read_text_sync(filename);
-	module.exports = parseJSON(content, filename);
-};
-
-if (haveNode) {
-	//Native extension for .node
-	var _node_path;
-	Module._extensions['.node'] = function(module, filename) {
-		filename = fallbackPath(filename);
-		if (!_node_path)
-		_node_path = NativeModule.require('path');
-		return process.dlopen(module, _node_path._makeLong(filename));
-	};
+	});
 }
 
-// -------------------------- Package private API --------------------------
+function readTextSync(path: string): string {
+	if ('ext://' == path.substr(0, 6)) {
+		return _util.__extendModuleContent(path.substr(6));
+	} else {
+		return readFileSync(path, 'utf8');
+	}
+}
 
-function parseJSON(source, filename) {
+function throwErr(err: any, cb?: Cb) {
+	err = new_err(err);
+	if (cb)
+		cb(err);
+	else
+		throw err;
+}
+
+function parseJSON(source: string, filename: string) {
 	try {
 		return JSON.parse(stripBOM(source));
 	} catch (err) {
@@ -181,1377 +120,1172 @@ function parseJSON(source, filename) {
 	}
 }
 
-function Package_install3(self, path, cb) {
-	// 读取package.json文件
-	var info = self.m_info;
-	info.src  = info.src || '';
-	self.m_src  = resolve(self.m_path, info.src);
-	if (info.name != self.m_name) {
-		return throwError('Lib name must be ' +
-										 `consistent with the folder name, ${self.m_name} != ${info.name}`, cb);
+function throw_MODULE_NOT_FOUND(request: string) {
+	var err = new Error(`Cannot find module or file '${request}'`);
+	err.code = 'MODULE_NOT_FOUND';
+	throw err;
+}
+
+interface Cb {
+	(err?: Error): void;
+}
+
+export interface PackageJson extends Dict {
+	name: string;
+	main: string;
+	version: string;
+	description?: string;
+	scripts?: Dict<string>;
+	author?: Dict<string>;
+	keywords?: string[];
+	license?: string;
+	bugs?: Dict<string>;
+	homepage?: string;
+	devDependencies?: Dict<string>;
+	dependencies?: Dict<string>;
+	bin?: string;
+	hash?: string;
+	id?: string;
+  app?: string;
+}
+
+class ModulePath {
+	readonly path: string;
+	readonly isNetwork: boolean;
+	private _networkPackageJsons: Dict<PackageJson> = {};
+	private _packageNames = new Set<string>();
+
+	constructor(path: string) {
+		assert(path);
+		assert(typeof path == 'string', 'Search Path type error');
+		this.path = resolve(path);
+		this.isNetwork = isNetwork(path);
 	}
-	
-	if (self.m_build || isNetwork(path)) {
-		// 读取package内部资源文件版本信息
-		var versions_json = path + '/versions.json';
-		// 这里如果非build状态,不使用缓存
-		var path2 = set_url_args(versions_json, self.m_build ? self.m_version_code: '__nocache');
 
-		var read_versions_ok = function(data) {
-			data = parseJSON(data, versions_json);
-			if (self.m_build) {
-				self.m_pkg_files = data.pkg_files || {};// .pkg 中包含的文件列表 
+	async load() {
+		if (isNetwork) {
+			// load packages.json `packages.json` 文件必须强制加载不使用缓存
+			var json_path_no_cache = set_url_args(this.path + '/packages.json', '__no_cache');
+			this._networkPackageJsons = parseJSON(await readText(json_path_no_cache), json_path_no_cache);
+			Object.keys(this._networkPackageJsons).forEach(e=>this._packageNames.add(e));
+		} else {
+			this.loadSync();
+		}
+	}
+
+	loadSync() {
+		if (isNetwork) {
+			// load packages.json `packages.json` 文件必须强制加载不使用缓存
+			var json_path_no_cache = set_url_args(this.path + '/packages.json', '__no_cache');
+			this._networkPackageJsons = parseJSON(readTextSync(json_path_no_cache), json_path_no_cache);
+			Object.keys(this._networkPackageJsons).forEach(e=>this._packageNames.add(e));
+		} else {
+			assert(isDirectorySync(this.path), `"${this.path}" is not a directory`);
+			for (var dirent of readdirSync(this.path) ) {
+				if (dirent.type == 2/*dir*/ || (dirent.type == 3/*link*/ && isDirectorySync(dirent.pathname))) {
+					if ( isFileSync(dirent.pathname + '/package.json') ) {
+						this._packageNames.add(dirent.name);
+					}
+				}
 			}
-			self.m_versions = data.versions || {};
-			self.m_install = true;
-			cb && cb(); // ok
-		}.catch(new_cb(cb).throw);
+		}
+	}
 
-		cb ? read_text(path2, read_versions_ok) : read_versions_ok(read_text_sync(path2));
+	hasPackage(name: string) {
+		return this._packageNames.has(name);
+	}
+
+	packageJson(name: string): PackageJson {
+		assert(this._packageNames.has(name), `package ${name} does not exist in ${this.path} path`);
+		if (this.isNetwork) {
+			return this._networkPackageJsons[name];
+		} else {
+			var path = `${this.path}/${name}/package.json`;
+			return parseJSON(readTextSync(path), path);
+		}
+	}
+
+}
+
+const modulePaths: string[] = [];
+const modulePathCache: Map<string, ModulePath> = new Map();
+const packages: Map<string, PackageIMPL> = new Map();
+const packageCaches: Map<string, {pkg: PackageIMPL, relativePath: string}> = new Map(); // absolute path cache
+const options: Optopns = {};
+var mainPath: string = '';
+var mainModule: Module | null = null;
+var config: Dict | null = null;
+
+if (haveNode) {
+	var NativeModule: any, vm: any, path: any;
+	var process = (globalThis as any).process;
+}
+
+const wrapper = [
+	'(function (exports, require, module, __filename, __dirname) { ', '\n})'
+];
+
+// 'node_modules' character codes reversed
+const nmChars = [ 115, 101, 108, 117, 100, 111, 109, 95, 101, 100, 111, 110 ];
+const nmLen = nmChars.length;
+const CHAR_FORWARD_SLASH = '/'.charCodeAt(0);
+
+function updateChildren(parent: Module, child: Module) {
+	var children = parent.children;
+	if (!children.includes(child))
+		children.push(child);
+}
+
+export class Module implements NguiModule {
+	id: string;
+	exports: any = {};
+	parent: Module | null;
+	package: Package | null;
+	filename: string = ''; // raw filename
+	dirname: string = ''; // raw dirname
+	loaded: boolean = false;
+	children: Module[] = [];
+	paths: string[] = [];
+
+	constructor(id: string, parent?: Module, pkg?: Package) {
+		this.id = id;
+		this.parent = parent || null;
+		this.package = pkg || null;
+		if (parent) {
+			parent.children.push(this);
+		}
+	}
+
+	// Given a file name, pass it to the proper extension handler.
+	load(resolveFilename: string, filename: string) {
+		debug('load %j for module %j', resolveFilename, this.id);
+
+		assert(!this.loaded);
+		this.filename = filename;
+		this.dirname = _path.dirname(filename);
+		this.paths = Module._nodeModulePaths(this.dirname);
+
+		var extension = _path.extname(filename) || '.js';
+		if (!Module._extensions[extension])
+			extension = '.js';
+		Module._extensions[extension](this, resolveFilename);
+		this.loaded = true;
+	}
+
+	require(path: string): any {
+		assert(path, 'missing path');
+		assert(typeof path === 'string', 'path must be a string');
+		return Module._load(path, this, /* isMain */ false);
+	}
+
+	// Run the file contents in the correct scope or sandbox. Expose
+	// the correct helper variables (require, module, exports) to
+	// the file.
+	// Returns exception, if any.
+	private _compile(content: string, resolveFilename: string) {
+		content = stripShebang(content);
+
+		var filename = this.filename;
+
+		// create wrapper function
+		var wrapper = Module.wrap(content);
+
+		if (haveNode) {
+			var compiledWrapper = vm.runInThisContext(wrapper, {
+				filename: resolveFilename + '#-> ' + filename,
+				lineOffset: 0,
+				displayErrors: true
+			});
+
+			var inspectorWrapper = null;
+			// needed for setting breakpoint when called with --inspect-brk
+			if (process._breakFirstLine && process._eval == null) {
+				// Set breakpoint on module start
+				if (resolveFilename == 'repl' || this.id == '.') {
+					delete process._breakFirstLine;
+					inspectorWrapper = process.binding('inspector').callAndPauseOnStart;
+					if (!inspectorWrapper) {
+						const Debug = vm.runInDebugContext('Debug');
+						Debug.setBreakPoint(compiledWrapper, 0, 0);
+					}
+				}
+			}
+
+			filename = fallbackPath(filename);
+			var dirname = path.dirname(filename);
+			var require = makeRequireFunction(this, mainModule);
+			var result;
+			if (inspectorWrapper) {
+				result = inspectorWrapper(compiledWrapper, this.exports, this.exports, require, this, filename, dirname);
+			} else {
+				result = compiledWrapper.call(this.exports, this.exports, require, this, filename, dirname);
+			}
+		} else {
+			var wrapper = Module.wrap(content);
+			var compiledWrapper = _util.runScript(wrapper, filename);
+			filename = fallbackPath(filename);
+			var dirname = _path.dirname(filename);
+			var require = makeRequireFunction(this, mainModule);
+			var result = compiledWrapper.call(this.exports, this.exports, require, this, filename, dirname);
+		}
+		return result;
+	}
+
+	private static _findPath(request: string, paths: string[], isMain?: boolean) {
+		return false;
+	}
+
+	private static _nodeModulePaths(from: string) {
+		if (isNetwork(from)) {
+			return [];
+		} else {
+			return slicePaths(resolve(from)).map(e=>e+'/node_modules');
+		}
+	}
+
+	private static _resolveLookupPaths(request: string, parent?: Module): string[] | null {
+		// Check for node modules paths.
+		if (request.charAt(0) !== '.' || // mod or .mode or file:/// or http:/// or / or d:/
+				(request.length > 1 &&
+				request.charAt(1) !== '.' &&
+				request.charAt(1) !== '/' &&
+				(!isWindows || request.charAt(1) !== '\\'))) {
+	
+			let paths = modulePaths;
+			if (parent != null && parent.paths && parent.paths.length) {
+				paths = parent.paths.concat(paths);
+			}
+
+			debug('looking for %j in %j', request, paths);
+			return paths.length > 0 ? paths : null;
+		}
+
+		// ./ or ..
+
+		// In REPL, parent.filename is null.
+		if (!parent || !parent.id || !parent.filename) {
+			// Make require('./path/to/foo') work - normally the path is taken
+			// from realpath(__filename) but in REPL there is no filename
+			const mainPaths = ['.'];
+	
+			debug('looking for %j in %j', request, mainPaths);
+			return mainPaths;
+		}
+
+		debug('RELATIVE: requested: %s from parent.id %s', request, parent.id);
+
+		const parentDir = [parent.dirname];
+		debug('looking for %j', parentDir);
+		return parentDir;
+	}
+
+	private static _resolveFilename(request: string, parent?: Module, isMain?: boolean, options?: { paths?: string[]; }) {
+		if (haveNode && NativeModule.nonInternalExists(request)) {
+			return request;
+		}
+		return resolveFilename(request, parent).resolve;
+	}
+
+	private static _load(request: string, parent?: Module, isMain?: boolean): any {
+		if (parent) {
+			debug('Module._load REQUEST %s parent: %s', request, parent.id);
+		}
+
+		if (haveNode && NativeModule.nonInternalExists(request)) {
+			debug('load native module %j', request);
+			return NativeModule.require(request);
+		}
+
+		var { filename, resolve, pkg } = resolveFilename(request, parent);
+
+		var cachedModule = Module._cache[filename];
+		if (cachedModule) {
+			if (parent)
+				updateChildren(parent, cachedModule);
+			return cachedModule.exports;
+		}
+
+		var module = new Module(filename, parent, pkg?.host);
+
+		if (isMain) {
+			assert(!mainModule);
+			if (haveNode)
+				process.mainModule = module;
+			module.id = '.';
+			mainModule = module;
+		}
+
+		Module._cache[filename] = module;
+
+		tryModuleLoad(module, resolve, filename);
+
+		return module.exports;
+	}
+
+	private static runMain() {
+		delete Module.runMain;
+		// Load the main module--the command line argument.
+
+		async function startup() {
+			var addModulePathWithoutErr = async (path: string)=>{
+				try {
+					if ( !modulePathCache.hasOwnProperty(path) ) {
+						var mp = new ModulePath(path);
+						await mp.load();
+						if ( !modulePathCache.hasOwnProperty(path) ) {
+							modulePaths.unshift(mp.path); // add First
+							modulePathCache.set(mp.path, mp);
+						}
+					}
+				} catch(err) {
+					print_warn(err);
+				}
+			};
+			await addModulePathWithoutErr(_path.resources());
+
+			var main = mainPath;
+			if (main) {
+				if (isNetwork(main)) { // 这是一个网络启动,添加一些默认搜索路径
+					if (_debug) {
+						// load `project/node_modules`
+						var mat = main.match(/^https?:\/\/[^\/]+/) as RegExpMatchArray;
+						await addModulePathWithoutErr(mat[0] + '/node_modules');
+					}
+					await addModulePathWithoutErr(resolve(main, '..'));
+				}
+				main = resolve(main);
+				var _lookup = lookup(main);
+				if (_lookup)
+					await _lookup.pkg.host.install();
+				Module._load(main, undefined, true);
+			}
+
+			if (haveNode)
+				// Handle any nextTicks added in the first tick of the program
+				process._tickCallback();
+		}
+
+		startup().catch(err=>{
+			throw err;
+		});
+	}
+
+	static _initPaths() {
+		if (!haveNode) return;
+		const isWindows = process.platform === 'win32';
+
+		var homeDir;
+		if (isWindows) {
+			homeDir = process.env.USERPROFILE;
+		} else {
+			homeDir = process.env.HOME;
+		}
+
+		// $PREFIX/lib/node, where $PREFIX is the root of the Node.js installation.
+		var prefixDir;
+		// process.execPath is $PREFIX/bin/node except on Windows where it is
+		// $PREFIX\node.exe.
+		if (isWindows) {
+			prefixDir = resolve(process.execPath, '..');
+		} else {
+			prefixDir = resolve(process.execPath, '..', '..');
+		}
+		var paths: string[] = [resolve(prefixDir, 'lib', 'node')];
+
+		if (homeDir) {
+			paths.unshift(resolve(homeDir, '.node_libraries'));
+			paths.unshift(resolve(homeDir, '.node_modules'));
+		}
+
+		var nodePath = process.env['NODE_PATH'];
+		if (nodePath) {
+			paths = nodePath.split(_pkgutil.delimiter).filter(function(path: string) {
+				return !!path;
+			}).concat(paths);
+		}
+
+		for (var path of paths) {
+			try {
+				if (!modulePathCache.hasOwnProperty(path)) {
+					var mp = new ModulePath(path);
+					mp.loadSync();
+					modulePaths.push(mp.path);
+					modulePathCache.set(mp.path, mp);
+				}
+			} catch(err) {}
+		}
+	}
+
+	static wrap(script: string) {
+		return wrapper[0] + script + wrapper[1];
+	}
+
+	static _preloadModules(requests: string[]) {
+		if (!Array.isArray(requests))
+			return;
+
+		// Preloaded modules have a dummy parent module which is deemed to exist
+		// in the current working directory. This seeds the search path for
+		// preloaded modules.
+		var parent = new Module('internal/preload');
+		try {
+			parent.paths = Module._nodeModulePaths(_path.cwd());
+		} catch (e) {
+			if (e.code !== 'ENOENT') {
+				throw e;
+			}
+		}
+		for (var n = 0; n < requests.length; n++)
+			parent.require(requests[n]);
+	}
+
+	private static _initNode(nm: any) {
+		delete Module._initNode;
+		if (haveNode) {
+			NativeModule = nm;
+			vm = NativeModule.require('vm');
+			path = NativeModule.require('path');
+
+			Object.keys(NativeModule._source)
+				.filter(NativeModule.nonInternalExists)
+				.forEach(e=>Module.builtinModules.push(e));
+			Object.freeze(Module.builtinModules);
+		}
+	}
+
+	static get globalPaths() {
+		return modulePaths.slice();
+	}
+	static readonly builtinModules: string[] = [];
+	static readonly wrapper = wrapper;
+	static readonly _cache: Dict<Module> = {};
+	static readonly _pathCache: Dict<string> = {};
+	static readonly _debug = _pkgutil.debugLog('module');
+
+	static readonly _extensions: NguiExtensions = {
+		'.js': function(module: NguiModule, filename: string) {
+			var content = readTextSync(filename);
+			(module as Module)._compile(stripBOM(content), filename);
+		},
+		'.json': function(module: NguiModule, filename: string) {
+			var content = readTextSync(filename);
+			module.exports = parseJSON(content, filename);
+		},
+		'.node': haveNode ? function(module: NguiModule, filename: string) {
+			return process.dlopen(module, path._makeLong(fallbackPath(filename)));
+		}: function() {
+			throw new Error('unrealized');
+		},
+	};
+}
+
+function tryModuleLoad(module: Module, filename: string, rawPathname: string) {
+	var threw = true;
+	try {
+		module.load(filename, rawPathname);
+		threw = false;
+	} finally {
+		if (threw) {
+			delete Module._cache[filename];
+		}
+	}
+}
+
+function resolveFilename(request: string, parent?: Module): { filename: string, resolve: string, pkg?: PackageIMPL } {
+	var _lookup = lookup(request, parent);
+	if (_lookup) {
+		var rr = _lookup.pkg.resolveRelative(_lookup.relativePath);
+		return { 
+			filename: _lookup.pkg.path + '/' + rr.pathname, 
+			resolve: rr.resolve,
+			pkg: _lookup.pkg,
+		};
 	} else {
-		self.m_install = true;
+		var filename = resolve(request);
+		var resolveFilename = filename;
+		if (isLocal(filename)) {
+			if (!isFileSync(filename)) {
+				if (!_path.extname(filename)) {
+					filename += '.js';
+					if (isFileSync(filename)) {
+						return { filename, resolve: filename };
+					}
+				}
+				throw_MODULE_NOT_FOUND(`Cannot find module '${request}'`);
+			}
+		} else {
+			resolveFilename = set_url_args(filename);
+		}
+		return {
+			filename, resolve: resolveFilename,
+		};
+	}
+}
+
+function slicePaths(from: string): string[] {
+	// Guarantee that 'from' is absolute.
+	// from = resolve(from);
+
+	var prefix: string;
+
+	if (isNetwork(from)) {
+		var index = from.indexOf('/', from[4] == 's' ? 9: 8);
+		if (index == -1) {
+			return [from];
+		} else {
+			prefix = from.substr(0, index);
+		}
+	} else if (isLocalZip(from)) {
+		// zip:///home/xxx/test.apk@/assets/bb.jpg
+		prefix = from.substr(0, from.indexOf('@') + 1);
+		if (!prefix)
+			return [];
+	} else {
+		prefix = (from.match(/^file:\/\/(\/[a-z]:\/)?/i) as RegExpMatchArray)[0];
+	}
+
+	from = from.substr(prefix.length);
+
+	// Return early not only to avoid unnecessary work, but to *avoid* returning
+	// an array of two items for a root: [ '//node_modules', '/node_modules' ]
+	if (from === '/')
+		return [prefix];
+
+	// note: this approach *only* works when the path is guaranteed
+	// to be absolute.  Doing a fully-edge-case-correct path.split
+	// that works on both Windows and Posix is non-trivial.
+	const paths = [];
+	for (let i = from.length - 1, p = 0, last = from.length; i >= 0; --i) {
+		const code = from.charCodeAt(i);
+		if (code === CHAR_FORWARD_SLASH) {
+			if (p !== nmLen)
+				paths.push(from.slice(0, last));
+			last = i;
+			p = 0;
+		} else if (p !== -1) {
+			if (nmChars[p] === code) {
+				++p;
+			} else {
+				p = -1;
+			}
+		}
+	}
+
+	// Append /node_modules to handle root paths.
+	paths.push('');
+
+	return paths.map(e=>prefix+e);
+}
+
+function lookup(request: string, parent?: Module): { pkg: PackageIMPL, relativePath: string } | null {
+
+	// Check for node modules paths.
+	if (request.charAt(0) !== '.' || // mod or .mode or file:/// or http:/// or / or d:/
+			(request.length > 1 &&
+			request.charAt(1) !== '.' &&
+			request.charAt(1) !== '/' &&
+			(!isWindows || request.charAt(1) !== '\\'))) {
+
+		if (isAbsolute(request)) { // file:/// or http:/// or / or d:/
+			request = resolve(request);
+
+			var cached = packageCaches.get(request);
+			if (cached)
+				return cached;
+
+			let paths = slicePaths(request);
+			paths.pop();
+
+			if (paths.length === 0) { // file:///aaa -> aaa module, file:/// -> No directory
+				return null;
+			}
+			var is_local = isLocal(request);
+
+			for (var path of paths) {
+				var pkg = packages.get(path);
+				if (!pkg) {
+					if (is_local) {
+						var json_path = path + '/package.json';
+						if (isFileSync(json_path)) {
+							pkg = new PackageIMPL(path, parseJSON(readTextSync(json_path), json_path));
+						}
+					} else { // network
+						var searchPath = path.substr(0, path.lastIndexOf('/'));
+						var modulePath = modulePathCache.get(searchPath);
+						if (modulePath) {
+							var name = path.substr(searchPath.length + 1);
+							if (modulePath.hasPackage(name)) {
+								var json = modulePath.packageJson(name);
+								pkg = new PackageIMPL(path, json);
+							}
+						}
+					}
+				}
+				if (pkg) {
+					var r = { pkg, relativePath: paths[0].substr(path.length + 1) };
+					packageCaches.set(request, r);
+					return r;
+				}
+			}
+		} else { // mod or .mode
+			let paths = modulePaths;
+			if (parent && parent.paths && parent.paths.length) {
+				paths = parent.paths.concat(paths);
+			}
+
+			debug('looking pkg for %j in %j', request, paths);
+
+			var moduleName = request;
+			var relativePath = '';
+			var index = request.indexOf('/');
+			if (index != -1) {
+				moduleName = request.substr(0, index);
+				relativePath = request.substr(index + 1);
+			}
+
+			for (var path of paths) {
+				var pkg = packages.get(path + '/' + moduleName);
+				if (!pkg) {
+					var modulePath = modulePathCache.get(path);
+					if (!modulePath) {
+						modulePath = new ModulePath(path);
+						modulePath.loadSync();
+						modulePathCache.set(path, modulePath);
+					}
+					if (modulePath.hasPackage(moduleName)) {
+						pkg = new PackageIMPL(path + '/' + moduleName, modulePath.packageJson(moduleName));
+					}
+				}
+				if (pkg)
+					return { pkg, relativePath };
+			}
+
+			// extend pkg
+			var pkg = packages.get('ext://' + moduleName);
+			if (pkg)
+				return { pkg, relativePath };
+		}
+
+	} else { // ./ or ..
+		if (parent) { // parent
+			return lookup(parent.dirname + '/' + request);
+		} else { // cwd()
+			return lookup(resolve(request));
+		}
+	}
+
+	return null;
+}
+
+// without error
+function requireWithoutErr(pathname: string) {
+	try { return (Module as any)._load(pathname) } catch(e) {}
+}
+
+function readConfigFile(pathname: string, pathname2: string) {
+	var c = requireWithoutErr(pathname);
+	var c2 = requireWithoutErr(pathname2);
+	if (c || c2) {
+		return Object.assign({}, c, c2);
+	}
+}
+
+class Exports {
+
+	get mainPackage() {
+		return mainModule && mainModule.package;
+	}
+
+	get mainModule() {
+		return mainModule;
+	}
+
+	get mainFilename() {
+		return mainModule ? mainModule.filename: '';
+	}
+
+	async addModulePath(path: string) {
+		if ( !modulePathCache.hasOwnProperty(path) ) {
+			var mp = new ModulePath(path);
+			await mp.load();
+			if ( !modulePathCache.hasOwnProperty(path) ) {
+				modulePaths.push(mp.path);
+				modulePathCache.set(mp.path, mp);
+			}
+		}
+	}
+
+	lookupPackage(name: string, parent?: Module): Package | null {
+		var _lookup = lookup(name, parent);
+		return _lookup ? _lookup.pkg.host: null;
+	}
+
+	get config() {
+		if (!config) {
+			var cfg: Dict | null = null;
+			var mod = mainModule;
+			if (mod) {
+				var pkg = mod.package;
+				if (pkg) {
+					cfg = readConfigFile(pkg.name + '/.config', pkg.name + '/config');
+				} else {
+					cfg = readConfigFile(mod.dirname + '/.config', mod.dirname + '/config');
+				}
+			}
+			config = cfg || readConfigFile(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
+		}
+		return config as Dict;
+	}
+
+}
+
+// -------------------------- Package --------------------------
+
+function resolveRelativeAfter(self: PackageIMPL, key: string, pathname: string, version: string) {
+
+	var resolve: string = '';
+
+	if (self.helper) { // 读取本地旧文件
+		var helper = self.helper;
+		// 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
+		if ( helper.versions[pathname] === version ) {
+			if ( helper.pkg_files.has(pathname) ) {
+				resolve = helper.pkg_path + '/' + pathname;
+			} else {
+				resolve = helper.path + '/' + pathname;
+			}
+		}
+	}
+
+	if (!resolve) {
+		if ( self.pkg_path && self.pkg_files.has(pathname) ) { // 使用.pkg
+			resolve = self.pkg_path + '/' + pathname;
+		} else {
+			resolve = self.path + '/' + pathname;
+		}
+	}
+
+	resolve = set_url_args(resolve, version);
+
+	self.path_cache.set(key, [pathname, resolve]);
+
+	return { pathname, resolve };
+}
+
+function installComplete(self: PackageIMPL, versions_path: string, cb?: Cb) {
+	// 读取package.json文件
+	var json = self.json;
+	if (json.name != self.name) {
+		return throwErr('Lib name must be ' +
+										 `consistent with the folder name, ${self.name} != ${json.name}`, cb);
+	}
+
+	if (self.build || isNetwork(versions_path)) {
+		// 读取package内部资源文件版本信息
+		var versions_json = versions_path + '/versions.json';
+		// 这里如果非build状态,不使用缓存
+		var versions_json_arg = set_url_args(versions_json, self.hash || '__no_cache');
+
+		var read_versions_ok = function(str: string) {
+			var data = parseJSON(str, versions_json);
+			self.versions = data.versions || {};
+			self.status = PackageStatus.INSTALLED;
+			if (self.pkg_path) {
+				for (var [file, ver] of Object.entries(self.versions)) {
+					if (ver.charCodeAt(0) != 46 /*.*/)
+						self.pkg_files.add(file); // .pkg 中包含的文件列表 
+				}
+			}
+			cb && cb(); // ok
+		};
+
+		if (cb)
+			readText(versions_json_arg).then(read_versions_ok).catch(cb);
+		else
+			read_versions_ok(readTextSync(versions_json_arg));
+	} else {
+		self.status = PackageStatus.INSTALLED;
 		cb && cb(); // ok
 	}
 }
 
-function Package_install_remote(self, cb) {
-	// 如果本地不存在相应版本的文件,下载远程.pkg文件到本地.
-	// 远程.pkg文件必须存在否则抛出异常,并且不使用备选2方式
-	var version_code = self.m_version_code;
-	var pathname = _path.temp(`${self.m_name}.pkg`);
-	var pathname_ver = `${pathname}.${version_code}`;
+function installNetwork(self: PackageIMPL, cb?: Cb) {
+	if (self.helper) {
+		if (self.hash == self.helper.hash) { // 完全相同的两个包
+			self.helperAll = true;
+			self.status = PackageStatus.INSTALLED;
+			return cb && cb();
+		}
+	}
+
+	// 如果本地不存在相应版本的文件,下载远程.pkg文件到本地
+	// 远程.pkg文件必须存在否则抛出异常
+	var hash = self.hash;
+	var path = _path.temp(`${self.name}.pkg`);
+	var pathname = `${path}.${hash}`;
 
 	// zip:///Users/pppp/sasa/aa.apk@/aaaaa/bbbb/aa.js
-	var has_pathname = _fs.existsSync(pathname);
 
-	if (_fs.existsSync(pathname_ver)) { // 文件存在,无需下载
+	if (_fs.existsSync(pathname)) { // 文件存在,无需下载
 		// 设置一个本地zip文件读取协议路径,使用这种路径可直接读取zip内部文件
-		if (has_pathname) {
-			if (_fs.statSync(pathname).ino != _fs.statSync(pathname_ver).ino) { // 文件id不相同
-				_fs.unlinkSync(pathname);
-				_fs.linkSync(pathname_ver, pathname); // 链接
+		self.pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
+		installComplete(self, self.pkg_path, cb);
+	} else { // downloading ...
+		var url = set_url_args(`${self.path}/${self.name}.pkg`, hash);
+		var save = pathname + '.~';
+
+		var tryOld = function() {
+			// TODO ... Try to query the old package
+			// TODO ...
+			if (self.helper) { // use helper pkg
+				self.helperAll = true;
+				self.status = PackageStatus.INSTALLED;
+				cb && cb();
+				return true;
 			}
-		} else {
-			_fs.linkSync(pathname_ver, pathname); // 链接
-		}
-		self.m_pkg_path = `zip:///${pathname_ver.substr(8)}@`;  // file:///
-		Package_install3(self, self.m_pkg_path, cb);
-	} else {
-		if (!self.m_build) {
-			// 这个远程包被标记非build状态，这可能导致不能正确载入
-			print_warn(
-				'This remote package is marked in a non-build state, ' +
-				'which may result in incorrect loading'
-			);
-		}
-		var url = set_url_args(`${self.m_path}/${self.m_name}.pkg`, version_code);
-		var tmp = pathname_ver + '.~';
+		};
+
 		// TODO 文件比较大时需要断点续传下载
 		// TODO 还应该使用读取数据流方式,实时回调通知下载进度
-		let doanload_ok = function() { // 下载成功
-			_fs.renameSync(tmp, pathname_ver);
-			if (has_pathname)
-				_fs.unlinkSync(pathname);
-			_fs.linkSync(pathname_ver, pathname); // 链接
-			self.m_pkg_path = `zip:///${pathname_ver.substr(8)}@`; // file:///
-			Package_install3(self, self.m_pkg_path, cb);
-		}.catch(function(err) {
-			if (has_pathname) { // 使用原来的包
-				print_err(err);
-				self.m_pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
-				Package_install3(self, self.m_pkg_path, cb);
+		var ok = function(err?: Error) { // 下载成功
+			if (err) {
+				if (!tryOld()) {
+					throwErr(err, cb);
+				}
 			} else {
-				new_cb(cb).throw(err);
+				_fs.renameSync(save, pathname);
+				self.pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
+				installComplete(self, self.pkg_path, cb);
 			}
-		});
+		};
 
 		if (cb) {
-			_http.download(url, tmp, doanload_ok);
+			_http.request({ url, save }, ok);
 		} else {
 			try {
-				_http.downloadSync(url, tmp);
-			} catch(err) {  
-				doanload_ok.throw(err); return;
+				_http.requestSync({ url, save });
+			} catch(err) {
+				ok(err); return;
 			}
-			doanload_ok();
+			ok();
 		}
 	}
 }
 
-function Package_install_local(self, receive, cb) {
-	var path = receive.m_path;
+function install(self: PackageIMPL, cb?: Cb) {
+	var path = self.path;
 
-	var install_ok = function() { // 保存旧文件版本信息
-		receive.m_src = resolve(path, self.m_info.src);
-		receive.m_versions = self.m_versions;
-		receive.m_pkg_files = self.m_pkg_files;
-		cb && cb();
-	}.catch(new_cb(cb).throw);
-	
-	receive.m_pkg_path = '';
+	if (self.status != PackageStatus.NO_INSTALL) {
+		return throwErr(`${path} package installing repeat call`, cb);
+	}
+	self.status = PackageStatus.INSTALLING;
+
+	if (!self.build) { // Not build
+		return installComplete(self, path, cb);
+	}
+
+	if (self.isNetwork) { // network
+		return installNetwork(self, cb);
+	}
+
+	// install local
 
 	/*
 	* build的pkg有两种格式
 	* 1.pkg根目录存在.pkg压缩文件,文件中包含全部文件版本信息与一部分源码文件以及资源文件.
 	* 2.pkg根目录不存在.pkg压缩文件,相比build前只多出文件版本信息,适用于android/ios安装包中存在.
 	*/
-	/* 文件读取器不能读取zip内的.pkg文件. 
-	* 比如无法android资源包中的.pkg文件 
-	* 所以这里的pkg不能存在.pkg格式文件只能为普通文件
+	/* 文件读取器不能读取zip包内的.pkg压缩文件.
+	* 比如无法android资源包中的.pkg文件
+	* 所以android.apk中不能存在.pkg格式文件否则将不能读取
 	*/
 
-	if ( !isLocalZip(path) ) {
-		var is_pkg = _fs.existsSync(`${path}/${self.m_name}.pkg`);
-		if (is_pkg) {
-			receive.m_pkg_path = `zip:///${path.substr(8)}/${self.m_name}.pkg@`;
-		}
+	if (isLocalZip(path)) { // 包路径在zip包中
+		installComplete(self, path, cb);
 	}
-	if (cb) {
-		Package_install3(self, path, install_ok);
-	} else {
-		Package_install3(self, path)
-		install_ok();
+	else if (isFileSync(`${path}/${self.name}.pkg`)) { // 本地包中存在.pkg文件
+		self.pkg_path = `zip:///${path.substr(8)}/${self.name}.pkg@`;  // file:///
+		installComplete(self, self.pkg_path, cb);
+	}
+	else { // 无.pkg包
+		installComplete(self, path, cb);
 	}
 }
 
-// install
-function Package_install2(self, cb) {
-	if (self.m_build) { // pkg明确声明为已build状态
-		if (self.m_local_launch) { // 本地发起pkg
-			//
-			var old = self.m_old;
-			if (old) { // 先载入本地旧包,然后载入远程origin包
-				let install_remote_ok = function(){ cb && cb() }.catch(err=>{
-					// 不能安装远程包,
-					print_err(err);
-					Object.assign(self, old); // 恢复
-					self.m_old = null;
-					cb && cb();
-				});
-				if (cb) {
-					// 读取旧pkg中的信息也许有些离散文件还可以继续使用,降低网络消耗
-					Package_install_local(self, old, function() {
-						Package_install_remote(self, install_remote_ok);
-					}.catch(cb.throw));
-				} else {
-					Package_install_local(self, old);
-					try {
-						Package_install_remote(self);
-					} catch(err) {
-						install_remote_ok.throw(err);
-					}
-				}
-			} else {
-
-				if (self.m_origin) {
-					// 可能由于网络原因导致没有调用`Package_attempt_enable_origin()`启用源检测
-					// 但本地可能存在原先下载的origin包,检测原先下载的远程包是否可用
-					var path = _path.temp(`${self.m_name}.pkg`);
-					if (_fs.existsSync(path)) { // 文件存在
-						var pkg_path = `zip:///${path.substr(8)}@`;
-						// 读取包内package.json文件内容
-						var package_json = pkg_path + '/package.json';
-						var info = parseJSON(read_text_sync(package_json), package_json);
-						if (info.versionCode != self.m_version_code && 
-							info.buildTime > self.m_info.buildTime) { // 版本号不相同，并且时间比本地包新
-							self.m_old = {
-								m_path: self.m_path,
-								m_version_code: self.m_version_code,
-							};
-							if (cb) {
-								Package_install_local(self, self.m_old, function() {
-									self.m_pkg_path = pkg_path;
-									Package_install3(self, pkg_path, cb);
-								}.catch(cb.throw));
-							} else {
-								Package_install_local(self, self.m_old);
-								self.m_pkg_path = pkg_path;
-								Package_install3(self, pkg_path);
-							}
-							return;
-						}
-					}
-				}
-				Package_install_local(self, self, cb);
-			}
-		} else { //  单纯的远程.pkg, 远程包一定都是.pkg
-			Package_install_remote(self, cb);
-		}
-	} else {
-		Package_install3(self, self.m_path, cb);
-	}
+enum PackageStatus {
+	NO_INSTALL = -1,
+	INSTALLED = 0,
+	INSTALLING = 1,
 }
 
-// install
-function Package_install(self, cb) {
-	if ( self.m_install ) {
-		return cb && cb();
-	}
-	if (cb) { // async
-		Package_install2(self, function () {
-			cb();
-		}.catch(cb.throw));
-	} else {
-		Package_install2(self);
-	}
-}
+class PackageIMPL {
+	host: Package;
+	json: PackageJson;
+	name: string; // package 名称
+	path: string; // package 路径, zip:///applications/test.apk@
+	hash: string;
+	build: boolean;
+	status: PackageStatus = PackageStatus.NO_INSTALL;
+	versions: Dict<string> = {}; // .pkg 包内文件的版本信息
+	pkg_files: Set<string> = new Set();
+	pkg_path: string = ''; // zip:///root/aa/aa.pkg@
+	path_cache: Map<string, [string/*pathname*/,string/*resolve*/]> = new Map();
+	helper?: PackageIMPL; // local helper package
+	helperAll = false; // `this.hash === helper.hash` 完全使用 helper
+	isNetwork: boolean;
 
-// ------------ install package end ------------ 
+	constructor(path: string, json: PackageJson) {
+		this.json = json;
+		this.name = _path.basename(path);
+		this.path = path;
+		this.hash = json.hash || '';
+		this.build = !!json.hash;
+		this.isNetwork = isNetwork(path);
 
-function throw_MODULE_NOT_FOUND(request) {
-	var err = new Error(`Cannot find module or file '${request}'`);
-	err.code = 'MODULE_NOT_FOUND';
-	throw err;
-}
+		assert(json.name == this.name, `Lib name must be consistent with the folder name, ${json.name} != ${this.name}`);
+		assert(!packages.has(path), `${path} package repeat create`);
+		packages.set(path, this);
+		this.host = new Package(this);
 
-function Package_get_path_details_result(self, pathname, version) {
-
-	var rv = { pathname: self.m_src + '/' + pathname, path: pathname };
-	if ( self.m_pkg_files[pathname] ) { // 使用.pkg
-		rv = { pathname: self.m_pkg_path + '/' + pathname, path: pathname };
-	}
-	if (self.m_old) { // 读取本地旧文件
-		var old = self.m_old;
-		// 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
-		if ( old.m_versions[pathname] === version ) {
-			if ( old.m_pkg_files[pathname] ) {
-				rv = { pathname: old.m_pkg_path + '/' + pathname, path: pathname };
-			} else {
-				rv = { pathname: old.m_src + '/' + pathname, path: pathname };
-			}
-		}
-	}
-
-	rv.version = version;
-	rv.pathname = set_url_args(rv.pathname, version);
-
-	self.m_path_cache[pathname] = rv;
-
-	// print_warn('Package_get_path: ' + rv)
-
-	return rv;
-}
-
-// 获取当前pkg内路径
-function Package_get_path_details(self, pathname) {
-
-	var rv = self.m_path_cache[pathname];
-	if (rv) {
-		return rv;
-	}
-	var ver, file_pathnames;
-	
-	if (_path.extname(pathname)) {
-		ver = self.m_versions[pathname];
-		if ( ver === undefined ) { // 找不到版本信息
-			if (isLocal(self.m_src)) {
-				var src = self.m_src + '/' + pathname;
-				if (isFileSync(src)) { // 尝试访问文件系统,是否能找到文件信息
-					return Package_get_path_details_result(self, pathname, '');
-				}
-			}
-			// throw_MODULE_NOT_FOUND(pathname);
-			file_pathnames = [pathname + '/index']; // 尝试做为目录使用
-		} else {
-			return Package_get_path_details_result(self, pathname, ver);
-		}
-	} else {
-		// 没有扩展名,尝试使用多个扩展名查找 .js .jsx .json .keys
-		file_pathnames = [pathname, pathname + '/index'];
-	}
-	
-	var extnames = Object.keys(Module._extensions);
-	var raw_pathname = pathname;
-
-	// 尝试使用尝试默认扩展名不同的扩展名查找, and `${pathname}/index`
-	for (var j = 0; j < file_pathnames.length; j++) {
-		pathname = file_pathnames[j];
-		for (var ext of extnames) {
-			ver = self.m_versions[pathname + ext];
-			if (ver !== undefined) {
-				pathname += ext;
-				break;
-			}
-		}
-		if ( ver === undefined ) {
-			if (isLocal(self.m_src)) { // 尝试访问本地文件系统,是否能找到文件信息
-				for (var ext of extnames) {
-					var src = self.m_src + '/' + pathname + ext;
-					if ( isFileSync(src) ) {
-						pathname += ext;
-						ver = '';
+		if (this.isNetwork && this.build) {
+			// query helper package
+			for (var path of modulePaths) {
+				var mp = modulePathCache.get(path) as ModulePath;
+				if (!mp.isNetwork && mp.hasPackage(this.name)) {
+					var json = mp.packageJson(this.name);
+					if (json.hash) { // is build
+						this.helper = new PackageIMPL(path + '/' + this.name, json);
 						break;
 					}
 				}
 			}
-			if (ver === undefined) {
-				if (j === file_pathnames.length - 1)
-					throw_MODULE_NOT_FOUND(raw_pathname);
+		}
+	}
+
+	resolveRelative(relativePath: string): { pathname: string, resolve: string } {
+		var self = this; 
+		self.host.installSync();
+
+		if (self.helperAll)
+			return (self.helper as PackageIMPL).resolveRelative(relativePath);
+	
+		var pathname = relativePath;
+		var cached = self.path_cache.get(pathname);
+		if (cached) {
+			return { pathname: cached[0], resolve: cached[1] };
+		}
+
+		if (!pathname) {
+			pathname = self.json.main;
+		}
+
+		var ver: string | undefined, file_pathnames: string[];
+	
+		if (_path.extname(pathname)) {
+			ver = self.versions[pathname];
+			if ( ver === undefined ) { // 找不到版本信息
+				if (isLocal(self.path)) {
+					var src = self.path + '/' + pathname;
+					if (isFileSync(src)) { // 尝试访问文件系统,是否能找到文件信息
+						return resolveRelativeAfter(self, relativePath, pathname, '');
+					}
+				}
+				file_pathnames = [pathname + '/index']; // 尝试做为目录使用
 			} else {
-				break;
+				return resolveRelativeAfter(self, relativePath, pathname, ver);
 			}
 		} else {
-			break;
+			// 没有扩展名,尝试使用多个扩展名查找 .js .json .node ...
+			file_pathnames = [pathname, pathname + '/index'];
 		}
-	}
 
-	return Package_get_path_details_result(self, pathname, ver);
-}
-
-function Package_get_path(self, pathname) {
-	return Package_get_path_details(self, pathname).pathname;
-}
-
-function resolve_filename(request) {
-	if (haveNode && NativeModule.nonInternalExists(request)) {
-		return request;
-	}
-	var mat = request.match(/^([a-z\-_$]+)(\/(.+))?$/i);
-	if (mat) {
-		var pkg = instance.getPackage(mat[1]);
-		if (pkg) {
-			Package_install(pkg);
-			return Package_get_path(pkg, mat[3] ? resolvePathLevel(mat[3]) : '');
-		}
-	} else if (isAbsolute(request)) {
-		var pathname = resolve(request);
-		var o = instance.getPackageWithAbsolutePath(pathname);
-		if (o) {
-			return Package_get_path(o.package, o.path);
-		} else {
-			if (pathname in external_cache || isFileSync(pathname)) {
-				return pathname;
+		var extnames = Object.keys(Module._extensions);
+		var is_local = isLocal(self.path);
+	
+		// 尝试使用尝试默认扩展名不同的扩展名查找, and `${pathname}/index`
+		for (var pathname of file_pathnames) {
+			for (var ext of extnames) {
+				ver = self.versions[pathname + ext];
+				if (ver !== undefined) {
+					return resolveRelativeAfter(self, relativePath, pathname + ext, ver);
+				}
+			}
+			if (is_local) { // 尝试访问本地文件系统,是否能找到文件信息
+				for (var ext of extnames) {
+					var src = self.path + '/' + pathname + ext;
+					if ( isFileSync(src) ) {
+						return resolveRelativeAfter(self, relativePath, pathname + ext, '');
+					}
+				}
 			}
 		}
+	
+		throw_MODULE_NOT_FOUND(self.path + '/' + relativePath);
+		throw '';
 	}
-	throw_MODULE_NOT_FOUND(request);
 }
 
-function Package_resolve_filename(self, dir, request) {
-	if (haveNode && NativeModule.nonInternalExists(request)) {
-		return request;
+class PackageExtend extends PackageIMPL {
+
+	constructor(name: string, modules: string[]) {
+		super('ext://' + name, {
+			name,
+			main: 'index.js',
+			version: '0.0.0',
+		});
+		this.status = PackageStatus.INSTALLED;
+		modules.forEach(e=>this.versions[e]='-');
 	}
-	if (request.length > 2 && 
-			request.charCodeAt(0) === 46/*.*/ &&  (
-			request.charCodeAt(1) === 46/*.*/ || 
-			request.charCodeAt(1) === 47/*/*/)
-	) {
-		// path in pkg
-		return Package_get_path(self, resolvePathLevel(dir + '/' + request));
-	}
-	return resolve_filename(request);
-}
 
-/** 
- * 如果没有path, require main file 
- */
-function Package_require(self, parent, request) {
-	Package_install(self);
+	resolveRelative(relativePath: string): { pathname: string, resolve: string } {
+		var self = this;
 
-	if (!request || request == '.') {
-		request = self.m_info.main || 'index';
-	}
-	request = resolvePathLevel(request, true);
-	var {pathname,path} = Package_get_path_details(self, request);
-	var module = self.m_modules[pathname];
-	if (module) return module;
-
-	module = new Module(self.m_src + '/' + path, parent, self);
-	module.file = path;
-	module.dir = _path.dirname(path);
-	self.m_modules[pathname] = module;
-
-	var name = _path.basename(path);
-	name = name.substr(0, name.length - _path.extname(name).length).replace(/[\.\-]/g, '_');
-	var exports = module.exports[name] = module.exports;
-
-	try {
-		module.load(pathname);
-	} finally {
-		if (!module.loaded) {
-			delete self.m_modules[pathname];
+		var pathname = relativePath;
+		var cached = self.path_cache.get(pathname);
+		if (cached) {
+			return { pathname: cached[0], resolve: cached[1] };
 		}
+
+		if (!pathname) {
+			pathname = this.json.main;
+		}
+
+		if (!this.versions.hasOwnProperty(pathname)) {
+			var paths = Object.keys(Module._extensions).map(e=>pathname + e);
+			pathname = '';
+			for (var path of paths) {
+				if (this.versions.hasOwnProperty(path)) {
+					pathname = path; break;
+				}
+			}
+			if (!pathname)
+				throw_MODULE_NOT_FOUND(self.path + '/' + relativePath);
+		}
+
+		var resolve = this.path + '/' + pathname;
+
+		self.path_cache.set(relativePath, [pathname, resolve]);
+
+		return { pathname, resolve };
 	}
 
-	exports = module.exports;
+	static _init() {
+		interface ExtendModule { 
+			filename: string;
+			extname: string;
+		}
+		var tmps: Dict<string[]> = {};
+		for ( var [, v] of Object.entries<ExtendModule>(_util.__extendModule) ) {
+			var i = v.filename.indexOf('/');
+			if (i > 0) {
+				var mname = v.filename.substr(0, i);
+				var m = tmps[mname];
+				if (!m) {
+					tmps[mname] = m = [];
+				}
+				m.push(v.filename.substr(i + 1));
+			}
+		}
 
-	if (exports && typeof exports == 'object' && !(name in exports)) {
-		exports[name] = exports;
-	}
-
-	return module;
-}
-
-/**
- * @func Package_attempt_enable_origin 必需要install之前调用,安装后调用无效
- */
-function Package_attempt_enable_origin(self, origin, origin_version_code, origin_info) {
-	if (Package_is_can_check_origin(self, origin)) {
-		if ( origin_version_code != self.m_version_code ) {
-			self.m_old = {
-				m_path: self.m_path, 
-				m_version_code: self.m_version_code,
-				m_info: self.m_info,
-			};
-			self.m_path = origin;
-			self.m_version_code = origin_version_code;
-			self.m_info = origin_info;
+		for ( var [name, files] of Object.entries(tmps)) {
+			new PackageExtend(name, files);
 		}
 	}
 }
 
-/**
- * @func Package_is_can_check_origin 是否可以检查源
- */
-function Package_is_can_check_origin(self, origin) {
-	if ( self.m_build && !self.m_install && self.m_local_launch ) {
-		if (origin == self.m_origin && origin != self.m_path) {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * @class Package
- */
 class Package {
+	private _impl: PackageIMPL;
 
-	get info() { return this.m_info }
-	get origin() { return this.m_origin }
-	get name() { return this.m_name }   // pkg 名称
-	get path() { return this.m_path }   // pkg 路径
-	get src() { return this.m_src }
-	get hasBuild() { return this.m_build }             // build
-	get versions() { return this.m_versions }           // 资源版本
-	get versionCode() { return this.m_version_code }   // 版本代码
-	
-	/**
-	 * @constructor
-	 */
-	constructor(path, name, is_build, info, version_code, origin) {
-		var self = this;
-		self.m_info = info;
-		self.m_origin = isNetwork(origin) ? origin : '';
-		self.m_local_launch = isLocal(path);
-		self.m_name = name;
-		self.m_path = path;
-		self.m_src = '';        /* */
-		self.m_build = is_build;
-		self.m_pkg_path = '';   /* .pkg 文件本地路径 zip:///temp/test.pkg@ */
-		self.m_pkg_files = {};  /* .pkg 中的文件列表,没有.pkg文件这个属性为null */
-		self.m_versions = {};   /* .pkg 包内文件的版本信息 */
-		self.m_version_code = version_code;
-		self.m_install = false;
-		self.m_modules = {};
-		self.m_old = null;
-		self.m_path_cache = {};
-		//zip:///applications/test.apk@/
+	get json() { return this._impl.json }
+	get name() { return this._impl.name }
+	get path() { return this._impl.path }
 
-		var dirname = path.match(/([^\/]+)$/)[1];
-		if (dirname != name) {
-			throw new Error(`Lib name must be consistent with the folder name, ${dirname} != ${name}`);
-		}
-	}
-	
-	/**
-	 * 获取路径
-	 */
-	resolve(path) {
-		Package_install(this);
-		return Package_resolve_filename(this, '', path);
-	}
-}
-
-// -------------------------- Packages private func --------------------------
-
-
-function read_config_file(pathname, pathname2) {
-	var c = inl_require_without_err(pathname);
-	var c2 = inl_require_without_err(pathname2);
-	if (c || c2) {
-		return Object.assign({}, c, c2);
-	}
-}
-
-interface PackageRegisterStatus {
-	
-}
-
-interface PackageRegister { 
-	ready: 0;
-	path: string;
-	name: string; 
-};
-
-/**
- * @class PackageManage
- */
-class PackageManage {
-	private m_search_path: Dict = {};
-	private m_pkgs_register: Dict = {}; // all register path
-	private m_pkgs: Dict<Package> = {}; // 当前加载的pkgs
-	private m_async_cb: Function[] = [];
-	private m_is_ready: boolean = true; // 是否已准备就绪
-	private m_main_module: any = null;
-	private m_main_startup_path: string = '';
-
-	// 注册更多相同名称的pkg都没关系,最终都只使用最开始注册的pkg
-	private _register_path(path: string, optional?: boolean) {
-		var self = this;
-		var path2 = resolve(path);
-		var register = self.m_pkgs_register[path2];
-		if ( !register ) {
-			var mat = path2.match(/^(.+?\/)(?:([^\/]+)\/)?([a-z_\$][a-z0-9\-_\.\$]*)$/i);
-			if ( mat ) {
-				if ( mat[2] ) { // add libs
-					self._add_pkg_search_path(mat[1] + mat[2]);
-				}
-				/* pkg的状态,-1忽略/0未就绪/1准备中/2已经就绪/3异常 */
-				self.m_pkgs_register[path2] = register = {
-					ready: 0, 
-					path: path2, 
-					name: mat[3], 
-					optional: !!optional,
-				};
-				self.m_is_ready = false; /* 设置未准备状态 */
-			} else {
-				throw new Error(`Invalid pkg path "${path}"`);
-			}
-		}
-		return register;
+	constructor(impl: any) {
+		this._impl = impl;
 	}
 
-	private _unregister_path(path: string) {
-		var self = this;
-		path = resolve(path);
-		var register = self.m_pkgs_register[path];
-		if (register) {
-			register.ready = -1;
-			delete self.m_pkgs_register[path];
-		}
+	resolve(relativePath: string) {
+		return this._impl.resolveRelative(relativePath).resolve;
 	}
 
-	private _add_pkg_search_path(libs: string) {
-		var self = this;
-		if (libs) {
-			var path = resolve(libs);
-			if ( !self.m_search_path[path] ) {
-				/* `pkg search path`的状态,0未就绪/1准备中/2已经就绪 */
-				self.m_search_path[path] = { ready: 0, path: path };
-				self.m_is_ready = false; /* 设置未准备状态 */
-			}
-		}
-	}
-
-	private _assert_origin(path: string) {
-		var self = this;
-		var register = self.m_pkgs_register[resolve(path)];
-		if ( !register ) {
-			throw new Error('unregister "' + path + '"');
-		}
-		if (register.ready != 0 || register.ready != 1 ) { 
-			throw new Error('It cannot be modified now origin "' + path + '"');
-		}
-		return register;
-	}
-
-	private _set_origin(path: string, origin?: string) {
-		this._assert_origin(path).origin = origin || '';
-	}
-
-	private _disable_origin(path: string, disable: boolean) {
-		this._assert_origin(path).disable_origin = !!disable;
-	}
-
-	private _depe_pkg(path: string, deps: Dict<string>) {
-		var self = this;
-		function add_depe(pathname: string) {
-			if ( isAbsolute(pathname) ) {
-				self._register_path(pathname);
-			} else {
-				self._register_path(path + '/' + pathname);
-			}
-		}
-		if ( typeof deps == 'object' ) {
-			for ( var name in deps ) { // 添加依赖路径
-				add_depe(deps[name]);
-			}
-		}
-	}
-
-	private _new_pkg(path: string, name: string, is_build: boolean, info: Dict, version_code: string, origin: string) {
-		var self = this;
-		if (typeof info.buildTime != 'number') {
-			info.buildTime = 0;
-		}
-		info.src = info.src || '';
-		var pkg = self.m_pkgs[name];
-		if (pkg) { // Pcakage 实例已创建(尝试更新)
-			if (is_build)
-				Package_attempt_enable_origin(pkg, path, version_code, info);
-		} else {
-			pkg = new Package(path, name, is_build, info, version_code, String(origin)); // 创建一个pkg
-			self.m_pkgs[name] = pkg;
-			
-			if ( pkg.m_origin ) { // reg origin pkg and check update
-				Packages_register_path(self, pkg.m_origin, true);
-			}
-		}
-	}
-
-	//
-	// 通过一个在pkg父亲目录下pkgs.key的描述列表文件创建pkg对像
-	// 如果这些pkg在一个http服务器，通过这个packages.json文件能避免下载所有的package.json
-	// 因为packages.json包含这个目录中所有pkg的简单描述,这个文件一般会由开发工具创建
-	//
-	private _parse_new_pkgs_json(node_path: string, content: string, local: boolean) {
-		var self = this;
-		if ( node_path.ready == 2 ) return;
-		node_path.ready = 2;
-		node_path = node_path.path;
-		
-		var packages = JSON.parse(content);
-		
-		for ( var name in packages ) {
-			var info = packages[name]; 
-			if (name[0] != '@' /* 忽略: @ */ && typeof info == 'object' &&
-				(!local || ignore_local_package.indexOf(name) === -1))
-			{
-				var path  = node_path + '/' + name; // pkg path
-				if (info.path) {
-					path = resolve(isAbsolute(info.path) ? 
-						info.path : node_path + '/' + info.path);
-				}
-				var version_code = String(info.versionCode || ''); // pkg version code
-				// is pkg build, 是否为build过的代码
-				// 最终的version_code与_build属性都存在才能被视为build状态
-				var is_build = '_build' in info ? !!info._Build : !!version_code;
-				var origin = info.origin || '';
-				
-				var register = self.m_pkgs_register[path];
-				if ( register ) {
-					origin = register.disable_origin ? '' : register.origin || origin;
-				} else {
-					self.m_pkgs_register[path] = register = { ready: 0, path: path, name: name };
-				}
-
-				if ( Packages_verification_is_need_load_pkg(self, register, false) ) {
-					register.ready = 2;
-					Packages_depe_pkg(self, path, info.externDependencies);
-					Packages_new_pkg(self, path, name, is_build, info, version_code, origin);
-				}
-			}
-		}
-	}
-
-	private _verification_is_need_load_pkg(register, is_warn: boolean) {
-		var self = this;
-		var pkg = self.m_pkgs[register.name];
-		if ( pkg ) { // pkg 已创建
-			if ( pkg.path == register.path )  // 路径相同不需要在做任何工作了
-				return false;
-			// 路径不相同检测是否可以更新替换
-			if ( !Package_is_can_check_origin(pkg, register.path) ) { // 不需要check
-				register.ready = -1; // 忽略
-				if ( is_warn ) {
-					// throw register;
-					print_warn('Ignore, Lib has been created and cannot be replaced,', register.path);
-				}
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private _parse_new_pkg_json(register, content) {
-		var self = this;
-		var info = parseJSON(content, register.path + '/package.json');
-		var version_code = String(info.versionCode || '');
-		// is pkg build, 是否为build过的代码
-		// 最终的version_code与_build属性都存在才能被视为build状态
-		var is_build = !!(info._Build && version_code);
-		var origin = register.disable_origin ? '' : register.origin || info.origin || '';
-		
-		register.ready = 2; // 完成
-		
-		Packages_depe_pkg(self, register.path, info.externDependencies);
-		Packages_new_pkg(self, register.path, 
-			info.name, is_build, info, version_code, origin);
-	}
-
-	private _load_pkg_json(register, async, receipt) {
-		var self = this;
-
-		if ( Packages_verification_is_need_load_pkg(self, register, true) ) {
-			// 没有此pkg实例,尝试读取package.json文件
-			// 文件必须强制加载不使用缓存
-			var package_json = register.path + '/package.json';
-			var pkg_json = set_url_args(package_json, '__nocache');
-			var err = null;
-			if ( async ) {
-				read_text(pkg_json, function(content) {
-					try {
-						Packages_parse_new_pkg_json(self, register, content);
-					} catch (e) { 
-						err = e;
-					}
-					Packages_load_pkg_json_after(self, err, register, true, receipt);
-				}.catch(function(err) {
-					Packages_load_pkg_json_after(self, err, register, true, receipt);
-				}));
-				return;
-			} else {
-				try {
-					Packages_parse_new_pkg_json(self, register, read_text_sync(pkg_json));
-				} catch(e) {
-					err = e;
-				}
-			}
-		}
-		Packages_load_pkg_json_after(self, err, register, async, receipt);
-	}
-
-	private _load_pkg_json_after(err, register, async, receipt) {
-		var self = this;
-		if (err) {
-			if (register.optional) { // optional
-				register.ready = -1; // ignore
-				if (receipt)
-					Packages_require_before(self, async);
-			} else {
-				var async_cb = self.m_async_cb;
-				register.ready = 3; // 设置为异常
-				register.error = err;
-				self.m_async_cb = [];
-				async_cb.forEach(function(cb) { 
-					cb.throw(err); /* 抛出异常 */ 
-				});
-				if (!async) {
-					throw err;
-				}
-			}
-		} else {
-			if (receipt)
-				Packages_require_before(self, async);
-		}
-	}
-
-	private _try_parse_new_pkgs_json(node_path, async, local) {
-		var self = this;
-		var pkgs_json = node_path.path + '/packages.json';
-		// load packages.json `packages.json` 文件必须强制加载不使用缓存
-		var json_path_no_cache = set_url_args(pkgs_json, '__nocache');
-		if (async) {
-			node_path.ready = 1;  // 载入中packages.json
-			read_text(json_path_no_cache, function(content) {
-				try {
-					Packages_parse_new_pkgs_json(self, node_path, content, local);
-				} catch (err) { 
-					node_path.ready = 2;
-					print_warn(err, `Ignore load ${pkgs_json}`);
-				}
-				Packages_require_before(self, true);
-			}.catch(function(err) {
-				node_path.ready = 2;
-				print_warn(err, `Ignore load ${node_path.path}`);
-				Packages_require_before(self, true);
-			}));
-		} else {
+	installSync() {
+		var self = this._impl;
+		if (self.status !== 0) {
+			if (self.helper) // install helper
+				self.helper.host.installSync();
 			try {
-				var content = read_text_sync(json_path_no_cache);
-				Packages_parse_new_pkgs_json(self, node_path, content, local);
-			} catch (err) {
-				node_path.ready = 2;
-				print_warn(err, `Ignore load ${node_path.path}/packages.json`);
+				install(self);
+			} finally {
+				self.status = PackageStatus.NO_INSTALL;
 			}
 		}
 	}
 
-	// 准备工作，实例化已注册过的所有pkg,并读取packages.json描述文件
-	// require befory ready
-	private _require_before(async, cb) {
-		var self = this;
-		if (self.m_is_ready) {
-			return cb && cb();
-		}
-		if (self.m_async_cb.length && !async) { // 正在异步载入中,完成前禁止再使用同步
-			throw new Error('Now can not be loaded synchronously because an ' +
-											'asynchronous loading operation is being carried out.');
-		}
-		if (async && cb) {
-			self.m_async_cb.push(cb);
-		}
-		var is_loading = false;
-
-		// Prioritizing local loading pkg search path
-		for ( var i in self.m_search_path ) {
-			var node_path = self.m_search_path[i];
-			if (node_path.ready === 0) {
-				if (isLocal(node_path.path)) { // local
-					if (!ignore_all_local_package && isDirectorySync(node_path.path)) {
-						//  Give priority to the use of `packages.json`
-						if (isFileSync(node_path.path + '/packages.json')) {
-							Packages_try_parse_new_pkgs_json(self, node_path, false, true);
-						} else { // no packages.json
-							readdirSync(node_path.path).forEach(function(dirent) {
-								// if (dirent.name == 'ngui')
-								// 	console.log('readdirSync', dirent);
-								if (dirent.type == 2/*dir*/ || (dirent.type == 3/*link*/ && isDirectorySync(dirent.pathname))) {
-									if (ignore_local_package.indexOf(dirent.name) == -1) {
-										if ( isFileSync(dirent.pathname + '/package.json') ) {
-											var register = Packages_register_path(self, dirent.pathname);
-											if (register.ready === 0)
-												Packages_load_pkg_json(self, register, false, false);
-										}
-									}
-								}
-							});
-						}
-					} else {
-						node_path.ready = 2;  // ok
+	async install() {
+		var self = this._impl;
+		if (self.status !== 0) {
+			if (self.helper) // install helper
+				await self.helper.host.install();
+			await new Promise<void>(function(resolve, reject) {
+				install(self, function(err) {
+					if (err) {
+						self.status = PackageStatus.NO_INSTALL;
+						reject(err);
 					}
-				}
-			}
-		}
-
-		// Loading network pkg search path
-		for ( var i in self.m_search_path ) {
-			var node_path = self.m_search_path[i];
-			if (node_path.ready === 0) {
-				if (!isLocal(node_path.path)) { // local
-					if (async) {       // network
-						is_loading = true;      // 1.载入中,2.完成
-						Packages_try_parse_new_pkgs_json(self, node_path, true);
-					} else { // sync network
-						Packages_try_parse_new_pkgs_json(self, node_path, false);
-					}
-				}
-			} else if (node_path.ready === 1) {
-				if (async) {
-					is_loading = true; // 1.载入中,2.完成
-				}
-			}
-		}
-
-		if ( is_loading ) return;
-		
-		// Loading packages
-		for ( var i in self.m_pkgs_register ) {
-			var register = self.m_pkgs_register[i];
-			if (register.ready === 0) {
-				is_loading = true;
-				register.ready = 1; // 设置成加载中状态
-				Packages_load_pkg_json(self, register, async, true);
-			} else if (register.ready === 1) {
-				is_loading = true;
-			} else if ( register.ready == 3 ) { // err
-				throwError(`Load pkg fail "${register.path}"\n${register.error.message}`, cb);
-				return;
-			}
-		}
-		
-		if ( !is_loading ) { // 没有任何载入中
-			var async_cb = self.m_async_cb;
-			self.m_is_ready = true;
-			self.m_async_cb = [];
-			async_cb.forEach(function(cb) {
-				cb();
+					else resolve();
+				});
 			});
 		}
 	}
 
-	private _require_parse_main_startup() {
-		var self = this;
-		if (_util.argv.length > 1) {
-			if ( String(_util.argv[1])[0] != '-' ) {
-				self.m_main_startup_path = String(_util.argv[1] || '');
-				return _util.argv.slice(2);
-			} else {
-				if (String(_util.argv[1]).indexOf('--inspect') == 0) {
-					if ( String(_util.argv[2])[0] != '-' ) {
-						self.m_main_startup_path = String(_util.argv[2] || '');
-						return _util.argv.slice(3);
-					}
-				}
-			}
-		}
-		// console.error('Cannot find main startup path arg');
-		return _util.argv.slice(1);
-	}
-
-	private _require_parse_argv() {
-		var self = this;
-		var args = Packages_require_parse_main_startup(self);
-
-		for (var i = 0; i < args.length; i++) {
-			var item = args[i];
-			var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
-			if (mat) {
-				var name = mat[1].replace(/-/gm, '_');
-				var val = mat[2] || 1;
-				var raw_val = options[name];
-				if ( raw_val ) {
-					if ( Array.isArray(raw_val) ) {
-						raw_val.push(val);
-					} else {
-						options[name] = [raw_val, val];
-					}
-				} else {
-					options[name] = val;
-				}
-			}
-		}
-
-		options.dev = _util.dev;
-
-		if (haveNode) {
-			if (process.execArgv.some(s=>(s+'').indexOf('--inspect') == 0)) {
-				options.dev = true;
-			}
-		}
-
-		self.dev = _pkgutil.dev = options.dev = !!options.dev;
-		
-		if ( !('url_arg' in options) ) {
-			options.url_arg = '';
-		}
-
-		if ('no_cache' in options || options.dev) {
-			if (options.url_arg) {
-				options.url_arg += '&__nocache';
-			} else {
-				options.url_arg = '__nocache';
-			}
-		}
-
-		ignore_local_package = options.ignore_local || [];
-		ignore_all_local_package = false;
-		if ( typeof ignore_local_package == 'string' ) {
-			if ( ignore_local_package == '' || ignore_local_package == '*' ) {
-				ignore_all_local_package = true;
-			} else {
-				ignore_local_package = [ ignore_local_package ];
-			}
-		} else {
-			ignore_all_local_package = ignore_local_package.indexOf('*') != -1;
-		}
-	}
-
-	private _require_add_main_search_path() {
-		var self = this;
-		var main = self.m_main_startup_path;
-
-		if (main) {
-			if (isNetwork(main)) {
-				if (options.dev) {
-					Packages_require_before(instance); // load packages
-					// 这是一个网络启动并为调式状态时,尝试从调式服务器`/libs` load `package`
-					var mat = main.match(/^https?:\/\/[^\/]+/);
-					assert(mat, 'Unknown err');
-					instance.addPackageSearchPath(mat[0] + '/libs');
-					instance.addPackageSearchPath(mat[0] + '/node_modules');
-				}
-			}
-			else { // local
-				if (_path.extname(main) == '.js' || _path.extname(main) == '.jsx') {
-					instance.addPackageSearchPath(_path.dirname(main) + '/node_modules');
-					instance.addPackageSearchPath(_path.dirname(main) + '/../node_modules');
-				} else { // package
-					instance.addPackageSearchPath(main + '/node_modules');
-					instance.addPackageSearchPath(main + '/../node_modules');
-				}
-			}
-		}
-
-		[
-			_path.resources(),
-			_path.resources('node_modules'),
-			_path.cwd(),
-			_path.cwd() + '/node_modules',
-		].concat(Module.globalPaths).forEach(function(path) {
-			instance.addPackageSearchPath(path);
-		});
-	}
-
-	constructor() {
-		assert(!instance); instance = this;
-		this._require_parse_argv(); // parse argv
-		this._require_add_main_search_path();
-	}
-
-	/**
-	 * @get mainModule
-	 */
-	get mainModule() {
-		return this.m_main_module;
-	}
-
-	/**
-	 * @get mainPackage
-	 */
-	get mainPackage() {
-		return this.m_main_module && this.m_main_module.package;
-	}
-
-	/**
-	 * @get main main run file path
-	 */
-	get mainFilename() {
-		return this.m_main_module && this.m_main_module.filename;
-	}
-
-	/**
-	 * @get pkgs 获取pkgs 名称列表
-	 */
-	get names() {
-		var rev = [];
-		for (var i in this.m_pkgs) {
-			rev.push(i);
-		}
-		return rev;
-	}
-
-	/**
-	 * 是否有这个pkg
-	 */
-	hasPackage(name: string) {
-		return name in this.m_pkgs;
-	}
-
-	/**
-	 * 通过名称获取pkg实体
-	 */
-	getPackage(name: string) {
-		return this.m_pkgs[name];
-	}
-
-	/**
-	 * @fun getPackageWithAbsolutePath 通过绝对路径获取pkg内部相对路径,没有找到返回null
-	 * @arg path {String} 绝对路径
-	 */
-	getPackageWithAbsolutePath(path: string) {
-		for (var i in this.m_pkgs) {
-			var pkg = this.m_pkgs[i];
-			var old = pkg.m_old;
-			
-			if (path.indexOf(pkg.path) === 0 || 
-					(old && path.indexOf(old.m_path) === 0) ) { // 可能匹配
-				Package_install(pkg);
-				
-				var src;
-				
-				if (path.indexOf(pkg.src) === 0) {
-					src = pkg.src;
-				} else if (old && path.indexOf(old.m_src) === 0) {
-					src = old.m_src;
-				}
-				
-				if (src) {
-					return {
-						package: pkg, 
-						path: path.substr(src.length + 1) || pkg.m_info.main || 'index',
-					};
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * @func addPackageSearchPath(libs) 
-	 */
-	addPackageSearchPath(libs) {
-		this._add_pkg_search_path(libs);
-	}
-
-	/**
-	 * @func addPackage
-	 */
-	addPackage(packagePath: string) {
-		this._register_path(packagePath);
-	}
-
-	/**
-	 * @func setOrigin(path,origin)
-	 */
-	setOrigin(packagePath: string, origin: string) {
-		Packages_set_origin(this, packagePath, origin);
-	}
-
-	/**
-	 * @func disableOrigin(path)
-	 */
-	disableOrigin(packagePath: string, disable: boolean) {
-		Packages_disable_origin(this, packagePath, disable);
-	}
-
-	/**
-	 * @func load Asynchronous mode load packages info and ready
-	 */
-	load(packageNames: string[], cb: (progress: number)=>void) {
-		assert(typeof cb == 'function', 'Callbacks must be used');
-		if ( !Array.isArray(packageNames) ) {
-			packageNames = [ packageNames ];
-		}
-
-		var len = packageNames.length;
-		var count = 0;
-		var e: Error | null = null;
-		var self = this;
-		
-		var callback = function() {
-			if ( !e) {
-				cb((++count) / len); // err, process
-			}
-		}.catch(function(err) {
-			if ( !e) {
-				e = err; cb.throw(e);
-			}
-		});
-
-		Packages_require_before(this, true, function() {
-			for (var i = 0; i < len; i++) {
-				var pkg = self.getPackage(packageNames[i]);
-				if ( ! pkg) {
-					return throwError(`Lib "${packageNames[i]}" does not exist`, cb);
-				}
-				Package_install(pkg, callback);
-			}
-		}.catch(cb.throw));
-	}
-
-	get options() {
-		return options;
-	}
-
-	/**
-	 * @get config
-	 */ 
-	get config() {
-		if (!config) {
-			var pkg = this.mainPackage;
-			if (pkg) {
-				config = 
-					read_config_file(pkg.name + '/.config', pkg.name + '/config') ||
-					read_config_file(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
-			} else {
-				config = read_config_file(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
-			}
-		}
-		return config;
-	}
-
-	_resolveFilename(request: string, parent?: any) {
-		if (parent) {
-			return Package_resolve_filename(parent.package, parent.dir, request);
-		} else {
-			return resolve_filename(request);
-		}
-	}
-
-	/**
-	 * # startup run
-	 * # parse args ready run
-	 */
-	_startup() {
-		var main = this.m_main_startup_path;
-		if (main) { // start
-			if ( /^.+?\.jsx?$/i.test(main) ) { // js or jsx
-				inl_require(resolve(main), null);
-			} else {
-				if (main[main.length - 1] == '/') {
-					main = main.substr(0, main.length - 1);
-				}
-				var mat = main.match( /^(.+\/)?([a-z_$][a-z0-9_\-$]*(\.[a-z0-9_\-$]*)?)$/i );
-				if ( !mat) { // pkg
-					throw new Error(`Could not start, invalid package path "${main}"`);
-				}
-				var pkg = mat[2];
-				instance.addPackage(main); // 添加pkg
-				
-				if (options.dev) { // sync 这样更加容易发现错误,但会卡死工作线程
-					inl_require(pkg, null); // 载入pkg
-				} else {
-					instance.load(pkg, function(proc) { // 异步载入`package`
-						if (proc == 1) 
-							inl_require(pkg, null);
-					}.catch(function(err) {
-						throw err;
-					}));
-				}
-			}
-		}
-		delete Packages.prototype._startup;
-	}
-
-	_require(request: string, parent?: any) {
-		return inl_require(request, parent);
-	}
-
-	readonly resolve = resolve;
-	readonly isAbsolute = isAbsolute;
-	readonly isLocal = isLocal;
-	readonly isLocalZip = isLocalZip;
-	readonly isNetwork = isNetwork;
 }
 
-// require absolute path file
-function inl_require_external(path: string, parent?: any) {
-	var r = instance.getPackageWithAbsolutePath(path);
-	if (r) { // 重新require
-		return Package_require(r.package, null, r.path).exports;
-	}
-	// 文件不在pkg内部,这是一个外部文件
-	// 是否载入过这个文件
-	if (external_cache[path]) {
-		return external_cache[path].exports;
-	}
-
-	var module = new Module(path, parent, null);
-	external_cache[path] = module;
-
-	try {
-		module.load(set_url_args(path));
-	} finally {
-		if (!module.loaded) {
-			delete external_cache[path];
-		}
-	}
-	return module.exports;
-}
-
-/**
- * @func inl_require_extend(require)
- */
-function inl_require_extend(require: string, parent?: any) {
-
-	if (extend_cache[require]) {
-		return extend_cache[require].exports;
-	}
-
-	var require_extname = _path.extname(require);
-	if (require_extname) {
-		require = require.substr(0, require.length - require_extname.length);
-	}
-
-	if (!__extendModule[require]) {
-		return;
-	}
-
-	var { filename, extname } = __extendModule[require];
-	if (require_extname) {
-		if (require_extname != extname) {
-			return;
-		}
-	}
-
-	var content = __getExtendModuleContent(require);
-	var module = new Module(filename, parent, null);
-	extend_cache[require] = module;
-	extend_cache[require + extname] = module;
-	module.filename = filename;
-	module.paths = [];
-
-	var name = _path.basename(require).replace(/[\.\-]/g, '_');
-	var exports = module.exports[name] = module.exports;
-
-	try {
-		// console.log('----------------------', content)
-		if (extname == '.json') {
-			module.exports = parseJSON(content, filename);
-		} else {
-			module._compile(content, filename, filename);
-		}
-		module.loaded = true;
-	} finally {
-		if (!module.loaded) {
-			delete extend_cache[require];
-		}
-	}
-
-	exports = module.exports;
-
-	if (!(name in exports)) {
-		exports[name] = exports;
-	}
-
-	return exports;
-}
-
-/**
- * require('ngui/util.js');
- * require('ngui/gui');
- *
- * @fun inl_require
- * @arg request {String}  #    请求名
- * @arg parent {Module}   #    父模块
- */
-function inl_require(request: string, parent?: any) {
-	var pkg = null;
-	var dir = '';
-
-	if (parent) {
-		//debug('require %s parent: %s', request, parent.id);
-		pkg = parent.package;
-		dir = parent.dir;
-	}
-
-	Packages_require_before(instance, false); //先准备pkg
-
-	if (haveNode && NativeModule.nonInternalExists(request)) {
-		debug('load node native module %s', request);
-		return NativeModule.require(request);
-	}
-
-	if (request.length > 2 && 
-			request.charCodeAt(0) === 46/*.*/ && (
-			request.charCodeAt(1) === 46/*.*/ || request.charCodeAt(1) === 47/*/*/)
-	) { // path in package
-		if (!pkg) {
-			throw throwError(`require module error, cannot find "${request}"`);
-		}
-	} else if (isAbsolute(request)) { // absolute path
-		return inl_require_external(resolve(request));
-	} else { // depe package
-		var mat = request.match(/^([a-z_\$][a-z0-9\-_\.\$]*)(\/(.+))?$/i);
-		if (mat) { // 导入一个新的package的名称,如果pkg不存在会抛出异常
-			pkg = instance.getPackage(mat[1]);
-
-			if (!pkg) { // 这是错误的, require('test/xx'); 这个 test package 必须存在
-				var result = inl_require_extend(request, parent);
-				if (result) {
-					return result;
+function parseOptions(args: string[], options: Optopns) {
+	for (var i = 0; i < args.length; i++) {
+		var item = args[i];
+		var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
+		if (mat) {
+			var name = mat[1].replace(/-/gm, '_');
+			var val = mat[2] || 'true';
+			var raw_val = options[name];
+			if ( raw_val ) {
+				if ( Array.isArray(raw_val) ) {
+					raw_val.push(val);
 				} else {
-					throw throwError(`require module error, "${mat[1]}" pkg not register`);
+					options[name] = [raw_val, val];
 				}
+			} else {
+				options[name] = val;
 			}
-			request = mat[3] || '';
-			dir = '';
 		}
 	}
+}
 
-	request = dir ? dir + '/' + request : request; // 包内路径
+function initArgv() {
+	var args: string[] = [];
+	if (_util.argv.length > 1) {
+		mainPath = String(_util.argv[1] || '');
+		args = _util.argv.slice(2);
+	}
+	parseOptions(args, options); // parse options
 
-	if (pkg) {
-		return Package_require(pkg, parent, request).exports;
+	if ( 'url_arg' in options ) {
+		if (Array.isArray(options.url_arg))
+			options.url_arg = options.url_arg.join('&');
 	} else {
-		var result = inl_require_extend(request, parent);
-		if (result) { // 扩展 ext
-			return result;
-		} else { // 外部导入 `inl_require_external`
-			return inl_require_external(resolve(request), parent);
+		options.url_arg = '';
+	}
+	if ('no_cache' in options || _debug) {
+		if (options.url_arg) {
+			options.url_arg += '&__no_cache';
+		} else {
+			options.url_arg = '__no_cache';
 		}
 	}
 }
 
-// without error
-function inl_require_without_err(pathname: string, parent?: any) {
-	try { return inl_require(pathname, parent) } catch(e) {}
-}
+initArgv();
+PackageExtend._init();
+Module._initPaths();
 
-export default new PackageManage();
-
-// exports = module.exports = new PackageManage();
-// exports.Module = Module;
-// exports.NativeModule = NativeModule;
+export default new Exports();

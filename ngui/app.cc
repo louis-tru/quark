@@ -133,13 +133,15 @@ void AppInl::onMemorywarning() {
 void AppInl::onUnload() {
 	if (m_is_load) {
 		m_is_load = false;
-		m_main_loop->post_sync(Cb([&](Cbd& d) {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		m_main_loop->post_sync(Cb([&](Cb::Data& d) {
 			DLOG("AppInl::onUnload()");
 			XX_TRIGGER(Unload);
 			if (m_root) {
 				GUILock lock;
 				m_root->remove();
 			}
+			d.data->complete();
 		}));
 	}
 }
