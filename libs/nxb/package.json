@@ -1,0 +1,46 @@
+{
+	"name": "nxp",
+	"version": "0.6.2",
+	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
+	"main": "",
+	"author": {
+		"name": "xuewen.chu",
+		"email": "louistru@hotmail.com",
+		"url": "http://ngui.fun/"
+	},
+	"bin": {
+		"nxmake": "shell.js",
+		"ngui-make": "shell.js"
+	},
+	"keywords": [
+		"jsx",
+		"javascript",
+		"ecmascript",
+		"html5",
+		"css",
+		"css3",
+		"qt",
+		"android",
+		"ios",
+		"appletv",
+		"gui",
+		"ui",
+		"opengl",
+		"react",
+		"native",
+		"es6",
+		"es7",
+		"es2017"
+	],
+	"dependencies": {
+		"marked": "~0.3.6",
+		"uglify-es": "~3.0.28",
+		"nxkit": "~0.10.21"
+	},
+	"license": "BSD-2-Clause",
+	"bugs": {
+		"url": "https://github.com/louis-tru/ngui/issues",
+		"email": "louistru@hotmail.com"
+	},
+	"homepage": "http://ngui.fun/"
+}
