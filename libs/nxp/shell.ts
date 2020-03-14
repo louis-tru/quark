@@ -1,22 +1,23 @@
 #!/usr/bin/env node
 
-var util = require('nxkit');
-var fs = require('nxkit/fs');
-var { NguiBuild } = require('./build');
-var { NguiExport } = require('./export');
-var server = require('./server');
-var arguments = require('nxkit/arguments');
-var args = process.argv.slice(2);
-var cmd = args.shift();
-var opts = arguments.options;
-var help_info = arguments.helpInfo;
-var def_opts = arguments.defOpts;
+import util from 'nxkit';
+import fs = require('nxkit/fs');
+import NguiBuild from './build';
+import NguiExport from './export';
+import server from './server';
+import * as arguments from 'nxkit/arguments';
+
+const args = process.argv.slice(2);
+const cmd = args.shift();
+const opts = arguments.options;
+const help_info = arguments.helpInfo;
+const def_opts = arguments.defOpts;
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts(['port', 'p'], 1026, 	'--port=PORT,-p PORT Run ngui debugger server port [{0}]');
 def_opts(['remote', 'r'], '', 	'--remote=ADDRESS,-r ADDRESS Remote console address [none]');
 
-if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) { 
+if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) {
 	console.log('');
 	console.log('Usage: nxmake COMMAND [OS]');
 	console.log('Usage: nxmake [OPTION]...');
@@ -37,8 +38,7 @@ if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) {
 	console.log('Options:');
 	console.log('  ' + help_info.join('\n  '));
 	console.log('');
-	return;
-} 
+}
 else if ( cmd == 'export' ) {
 	util.assert(args.length, 'export Bad argument. system name required, for example "nxmake export ios"');
 	new NguiExport(process.cwd(), args[0]).export();
@@ -64,5 +64,7 @@ else if ( cmd == 'clear' ) {
 }
 else {
 	// run wrb server
-	server.start_server(arguments.options);
+	server(arguments.options);
 }
+
+export default {};

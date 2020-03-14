@@ -53,4 +53,3 @@ new Function("exports", function() {
 	});
 	return code.join("\n\n");
 }())(exports);
-

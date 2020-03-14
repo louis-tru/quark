@@ -28,20 +28,21 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('nxkit/util');
-var service = require('nxkit/service');
-var HttpService = require('nxkit/http_service').HttpService;
-var StaticService = require('nxkit/static_service').StaticService;
-var path = require('nxkit/path');
-var fs = require('nxkit/fs');
-var keys = require('nxkit/keys');
-var Buffer = require('buffer').Buffer;
-var remote_log = require('./remote_log');
-var gen_html = require('./marked/html').gen_html;
+import util from 'nxkit';
+import service from 'nxkit/service';
+import {HttpService} from 'nxkit/http_service';
+import path from 'nxkit/path';
+import * as fs from 'nxkit/fs';
+import * as remote_log from './remote_log';
+import {gen_html} from './marked/html';
 
-var File = util.class('File', HttpService, {
+function resolveLocal(...args: string[]) {
+	return path.fallbackPath(path.resolve(...args));
+}
 
-	action: function(info) {
+export default class File extends HttpService {
+
+	async action(info: any) {
 		var log = 'Request: ' + this.url;
 		console.log(log);
 		remote_log.remote_log_print(log);
@@ -54,17 +55,19 @@ var File = util.class('File', HttpService, {
 		else if ( /\/versions.json$/.test(this.pathname) ) {
 			return this.versions_json({ pathname:this.pathname });
 		}
-		HttpService.members.action.call(this, info);
-	},
+		super.action(info);
+	}
 
-	marked_assets: function({pathname}) {
+	marked_assets({pathname}: {pathname:string}) {
 		// console.log('marked_assets', pathname);
-		this.returnFile(path.resolveLocal(__dirname, 'marked/assets', pathname));
-	},
+		this.returnFile(resolveLocal(__dirname, 'marked/assets', pathname));
+	}
 
-	marked: function({pathname}) {
+	marked({pathname}: {pathname:string}) {
 		var self = this;
 		var filename = this.server.root + '/' + pathname;
+
+		this.markResponse();
 
 		fs.stat(filename, function (err, stat) {
 			
@@ -90,7 +93,7 @@ var File = util.class('File', HttpService, {
 			res.setHeader('Last-Modified', mtime.toUTCString());
 			res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
-			if (ims && new Date(ims) - mtime === 0) { //use 304 cache
+			if (ims && new Date(ims).valueOf() - mtime.valueOf() === 0) { //use 304 cache
 				res.writeHead(304);
 				res.end(); 
 				return;
@@ -108,21 +111,22 @@ var File = util.class('File', HttpService, {
 			});
 
 		});
-	},
+	}
 
-	packages_json: function({pathname}) {
+	packages_json({pathname}: {pathname:string}) {
 		var self = this;
-		var dir = path.resolveLocal(this.server.root, path.dirname(pathname));
+		var dir = resolveLocal(this.server.root, path.dirname(pathname));
 		var res = self.response;
+
+		this.markResponse();
 
 		if (fs.existsSync(dir + '/packages.json')) {
 			self.returnFile(dir + '/packages.json');
 		} 
 		else {
 			if ( fs.existsSync(dir) ) {
-				var pkgs = { };
-				var ls = fs.ls_sync(dir);
-				fs.ls_sync(dir).forEach(function(stat) {
+				var pkgs: Dict = {};
+				(fs.listSync(dir) as fs.StatsDescribe[]).forEach(function(stat) {
 					if ( stat.isDirectory() ) {
 						var pkg = dir + '/' + stat.name + '/package.json';
 						if (fs.existsSync(pkg)) {
@@ -140,12 +144,14 @@ var File = util.class('File', HttpService, {
 				this.returnErrorStatus(404);
 			}
 		}
-	},
+	}
 
-	versions_json: function({pathname}) {
+	versions_json({pathname}: {pathname:string}) {
 		var self = this;
-		var dir = path.resolveLocal(this.server.root, path.dirname(pathname));
+		var dir = resolveLocal(this.server.root, path.dirname(pathname));
 		var res = self.response;
+
+		this.markResponse();
 
 		if (fs.existsSync(dir + '/versions.json')) {
 			self.returnFile(dir + '/versions.json');
@@ -155,17 +161,17 @@ var File = util.class('File', HttpService, {
 			
 			if ( fs.existsSync(dir) && fs.existsSync(pkg) ) {
 				var config = JSON.parse(fs.readFileSync(pkg, 'utf8'));
-				var versions = { };
+				var versions: Dict = {};
 
-				dir = path.resolveLocal(dir, config.src || '');
+				dir = resolveLocal(dir, config.src || '');
 
 				fs.ls_sync(dir, true, function(stat, pathname) {
 					if ( stat.isFile() ) {
 						versions[pathname] = util.hash(stat.mtime.valueOf() + '');
 					}
 				});
-				
-				var data = JSON.stringify({ versions: versions, pkg_files: {} }, null, 2);
+
+				var data = JSON.stringify({ versions: versions }, null, 2);
 				self.setDefaultHeader();
 				res.setHeader('Content-Type', 'application/json; charset=utf-8');
 				res.writeHead(200);
@@ -176,6 +182,6 @@ var File = util.class('File', HttpService, {
 		}
 	}
 	
-});
+}
 
 service.set('File', File);

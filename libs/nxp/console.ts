@@ -28,14 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('nxkit');
-var service = require('nxkit/service');
-var remote_log = require('./remote_log');
-var HttpService = require('nxkit/http_service').HttpService;
+import service from 'nxkit/service';
+import * as remote_log from './remote_log';
+import {HttpService} from 'nxkit/http_service';
 
-var Console = util.class('Console', HttpService, {
+export default class Console extends HttpService {
 
-	log: function({log}) {
+	log({log}: {log: string}) {
 		if ( this.request.method == 'POST' )  {
 			if ( this.data.line_feed == '1' ) {
 				console.log(this.data.log );
@@ -48,8 +47,8 @@ var Console = util.class('Console', HttpService, {
 			remote_log.remote_log_print(log);
 		}
 		this.returnHtml('ok');
-	},
+	}
 
-});
+}
 
 service.set('Console', Console);

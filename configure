@@ -13,7 +13,7 @@ if [ "`which tsc`" == "" ]; then
 fi
 
 if   [ ! -d libs/nxkit ] \
-	|| [ ! -d libs/nxmake/gyp ] \
+	|| [ ! -d libs/nxp/gyp ] \
 	|| [ ! -d depe/v8-link ] \
 	|| [ ! -d depe/FFmpeg ] \
 	|| [ ! -d depe/node ] \
@@ -22,6 +22,7 @@ if   [ ! -d libs/nxkit ] \
 	make pull
 fi
 
+# build nxkit
 if [ ! -f libs/nxkit/out/nxkit/package.json ]; then
 	cd libs/nxkit
 	npm i
@@ -29,23 +30,26 @@ if [ ! -f libs/nxkit/out/nxkit/package.json ]; then
 	cd ../..
 fi
 
-if [ ! -d libs/nxmake/node_modules ]; then
-	cd libs/nxmake
+# build nxp
+if [ ! -f libs/nxp/out/nxp/package.json ]; then
+	cd libs/nxp
 	npm i
 	rm -rf node_modules/nxkit
 	cd node_modules
 	ln -s ../../nxkit/out/nxkit
-	cd ../../..
+	cd ..
+	npm run build
+	cd ../..
 fi
 
 if   [ ! -d tools/node_modules/nxkit ] \
-	|| [ ! -d tools/node_modules/nxmake ] \
+	|| [ ! -d tools/node_modules/nxp ] \
 ; then
 	rm -rf tools/node_modules/*
 	mkdir -p tools/node_modules
 	cd tools/node_modules
 	ln -s ../../libs/nxkit/out/nxkit
-	ln -s ../../libs/nxmake
+	ln -s ../../libs/nxp/out/nxp
 	cd ../..
 fi
 

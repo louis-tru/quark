@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('nxkit/fs');
-var marked = require('marked');
+import * as fs from 'nxkit/fs';
+import marked from 'marked';
 var renderer = new marked.Renderer();
 
 var marked_template = fs.readFileSync(__dirname + '/../marked/template.html').toString('utf-8');
@@ -67,7 +67,7 @@ renderer.heading = function(text, level, raw) {
 	);
 };
 
-function gen_html(text_md, title, template) {
+export function gen_html(text_md, title, template) {
 	var lexer = new marked.Lexer();
 	var tokens = lexer.lex(text_md);
 
@@ -91,5 +91,4 @@ function gen_html(text_md, title, template) {
 	return { html: template, tokens: tokens };
 }
 
-exports.gen_html = gen_html;
-exports.get_default_template = get_marked_template;
+export const get_default_template = get_marked_template;

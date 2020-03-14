@@ -28,18 +28,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var http = require('http');
-var path = require('nxkit/path');
-var querystring = require('querystring');
-var remote_log_uri = null;
+import * as http from 'http';
+import path, {URL} from 'nxkit/path';
+import * as querystring from 'querystring';
+var remote_log_uri: URL | null = null;
 
-function remote_log_print_with_post(data) {
+export function remote_log_print_with_post(data: Dict<string>) {
 	var uri = remote_log_uri;
 	if ( !uri ) return;
 
 	var postData = querystring.stringify(data);
 
-	var opt = { 
+	var opt: Dict = { 
 		hostname: uri.hostname,
 		method: 'POST',
 		path: '/$console/log/',
@@ -48,7 +48,7 @@ function remote_log_print_with_post(data) {
 			'Content-Length': Buffer.byteLength(postData)
 		}
 	}
-	port = parseInt(uri.port);
+	var port = parseInt(uri.port);
 	if ( !isNaN(port) ) {
 		opt.port = port;
 	}
@@ -59,22 +59,18 @@ function remote_log_print_with_post(data) {
 	req.end();
 }
 
-function remote_log_print(args) {
+export function remote_log_print(log: string) {
 	var uri = remote_log_uri;
 	if ( uri ) {
 		var url = path.resolve(uri.href, '/$console/log');
-		http.get(url + '/' + args, function() { });
+		http.get(url + '/' + log, function() { });
 	}
 }
 
-function set_remote_log_address(address) {
+export function set_remote_log_address(address: string) {
 	if ( /^https?:\/\/[^\/]+/.test(String(address)) ) {
 		remote_log_uri = new path.URL(String(address));
 	} else {
 		remote_log_uri = null;
 	}
 }
-
-exports.remote_log_print = remote_log_print;
-exports.remote_log_print_with_post = remote_log_print_with_post;
-exports.set_remote_log_address = set_remote_log_address;

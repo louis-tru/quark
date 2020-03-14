@@ -28,27 +28,26 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-require('./console');
-require('./file');
-var path = require('nxkit/url');
-var keys = require('nxkit/keys');
-var server = require('nxkit/server');
-var remote_log = require('./remote_log');
-var getLocalNetworkHost = require('nxkit/network_host').getLocalNetworkHost;
+import './console';
+import './file';
+import keys from 'nxkit/keys';
+import {ServerIMPL, Options} from 'nxkit/server';
+import * as remote_log from './remote_log';
+import {getLocalNetworkHost} from 'nxkit/network_host';
 
 process.on('unhandledRejection', (err, promise) => {
 	throw err;
 });
 
-function start_server(options) {
-	options = options || {};
+export default function start_server(options?: Dict) {
+	var opts: Dict = options || {};
 	var config = keys.parseFile(__dirname + '/config.keys');
-	if ( typeof options.port == 'number' ) {
-		config.server.port = options.port;
+	if ( typeof opts.port == 'number' ) {
+		config.server.port = opts.port;
 	}
-	remote_log.set_remote_log_address(options.remote);
-	
-	var ser = new server.Server( config.server );
+	remote_log.set_remote_log_address(opts.remote);
+
+	var ser = new ServerIMPL( config.server );
 	ser.start();
 
 	setTimeout(function() {
@@ -60,5 +59,3 @@ function start_server(options) {
 
 	return ser;
 }
-
-exports.start_server = start_server;

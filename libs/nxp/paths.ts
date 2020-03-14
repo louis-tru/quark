@@ -28,52 +28,51 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var url = require('nxkit/url');
-var fs = require('nxkit/fs');
-var path = require('path');
+import * as fs from 'nxkit/fs';
+import * as path from 'path';
 
-function resolve(name) {
-	return path.resolve(__dirname + '/' + name);
+function resolve(name: string) {
+	return path.resolve(__dirname, name);
 }
 
-if ( fs.existsSync(resolve('product/ngui.gypi')) ) {
-	module.exports = {
-		ngui_gyp: '',
-		includes_gypi: [ resolve('product/ngui.gypi') ],
-		default_modules: [ /*resolve('product/libs/ngui'),*/ ],
-		examples: resolve('product/examples'),
-		bundle_resources: [ /*resolve('product/cacert.pem')*/ ],
-		includes: [ resolve('product/include') ],
-		librarys: {
-			ios: [
-				resolve('product/ios'),
-				'ios/Frameworks/iphoneos/Debug/nutils.framework ../nutils.framework',
-				'ios/Frameworks/iphoneos/Debug/ngui.framework ../ngui.framework',
-				'ios/Frameworks/iphoneos/Debug/ngui-media.framework ../ngui-media.framework',
-				'ios/Frameworks/iphoneos/Release/nutils.framework ../nutils.framework',
-				'ios/Frameworks/iphoneos/Release/ngui.framework ../ngui.framework',
-				'ios/Frameworks/iphoneos/Release/ngui-js.framework ../ngui-js.framework',
-				'ios/Frameworks/iphoneos/Release/ngui-v8.framework ../ngui-v8.framework',
-				'ios/Frameworks/iphoneos/Release/ngui-node.framework ../ngui-node.framework',
-				'ios/Frameworks/iphoneos/Release/ngui-media.framework ../ngui-media.framework',
-				'ios/Frameworks/iphonesimulator/Debug/nutils.framework ../nutils.framework',
-				'ios/Frameworks/iphonesimulator/Debug/ngui.framework ../ngui.framework',
-				'ios/Frameworks/iphonesimulator/Debug/ngui-js.framework ../ngui-js.framework',
-				'ios/Frameworks/iphonesimulator/Debug/ngui-v8.framework ../ngui-v8.framework',
-				'ios/Frameworks/iphonesimulator/Debug/ngui-node.framework ../ngui-node.framework',
-				'ios/Frameworks/iphonesimulator/Debug/ngui-media.framework ../ngui-media.framework',
-				'ios/Frameworks/iphonesimulator/Release/nutils.framework ../nutils.framework',
-				'ios/Frameworks/iphonesimulator/Release/ngui.framework ../ngui.framework',
-				'ios/Frameworks/iphonesimulator/Release/ngui-js.framework ../ngui-js.framework',
-				'ios/Frameworks/iphonesimulator/Release/ngui-v8.framework ../ngui-v8.framework',
-				'ios/Frameworks/iphonesimulator/Release/ngui-node.framework ../ngui-node.framework',
-				'ios/Frameworks/iphonesimulator/Release/ngui-media.framework ../ngui-media.framework',
-			],
-			android: [ resolve('product/android') ],
-		},
-	};
-} else { // debug
-	module.exports = {
+export default {
+	ngui_gyp: '',
+	includes_gypi: [ resolve('product/ngui.gypi') ] as string[],
+	default_modules: [ /*resolve('product/libs/ngui'),*/ ] as string[],
+	examples: resolve('product/examples'),
+	bundle_resources: [ /*resolve('product/cacert.pem')*/ ] as string[],
+	includes: [ resolve('product/include') ] as string[],
+	librarys: {
+		ios: [
+			resolve('product/ios'),
+			'ios/Frameworks/iphoneos/Debug/nxkit.framework ../nxkit.framework',
+			'ios/Frameworks/iphoneos/Debug/ngui.framework ../ngui.framework',
+			'ios/Frameworks/iphoneos/Debug/ngui-media.framework ../ngui-media.framework',
+			'ios/Frameworks/iphoneos/Release/nxkit.framework ../nxkit.framework',
+			'ios/Frameworks/iphoneos/Release/ngui.framework ../ngui.framework',
+			'ios/Frameworks/iphoneos/Release/ngui-js.framework ../ngui-js.framework',
+			'ios/Frameworks/iphoneos/Release/ngui-v8.framework ../ngui-v8.framework',
+			'ios/Frameworks/iphoneos/Release/ngui-node.framework ../ngui-node.framework',
+			'ios/Frameworks/iphoneos/Release/ngui-media.framework ../ngui-media.framework',
+			'ios/Frameworks/iphonesimulator/Debug/nxkit.framework ../nxkit.framework',
+			'ios/Frameworks/iphonesimulator/Debug/ngui.framework ../ngui.framework',
+			'ios/Frameworks/iphonesimulator/Debug/ngui-js.framework ../ngui-js.framework',
+			'ios/Frameworks/iphonesimulator/Debug/ngui-v8.framework ../ngui-v8.framework',
+			'ios/Frameworks/iphonesimulator/Debug/ngui-node.framework ../ngui-node.framework',
+			'ios/Frameworks/iphonesimulator/Debug/ngui-media.framework ../ngui-media.framework',
+			'ios/Frameworks/iphonesimulator/Release/nxkit.framework ../nxkit.framework',
+			'ios/Frameworks/iphonesimulator/Release/ngui.framework ../ngui.framework',
+			'ios/Frameworks/iphonesimulator/Release/ngui-js.framework ../ngui-js.framework',
+			'ios/Frameworks/iphonesimulator/Release/ngui-v8.framework ../ngui-v8.framework',
+			'ios/Frameworks/iphonesimulator/Release/ngui-node.framework ../ngui-node.framework',
+			'ios/Frameworks/iphonesimulator/Release/ngui-media.framework ../ngui-media.framework',
+		],
+		android: [ resolve('product/android') ],
+	} as Dict<string[]>,
+};
+
+if ( !fs.existsSync(resolve('product/ngui.gypi')) ) { // debug status
+	exports.default = { 
 		ngui_gyp: __dirname + '/../../ngui.gyp',
 		includes_gypi: [
 			__dirname + '/../../out/config.gypi',

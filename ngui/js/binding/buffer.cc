@@ -43,22 +43,22 @@ JS_BEGIN
  */
 class NativeBuffer {
  public:
-  
-  /**
-   * @func parseEncoding()
-   */
-  static bool parseEncoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
-    JS_WORKER(args);
-    String s = arg->ToStringValue(worker);
-    en = Coder::parse_encoding( s );
-    if ( en == Encoding::unknown ) {
-      worker->throwError(
-        "Unknown encoding \"%s\", the optional value is "
-        "[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s );
-      return false;
-    }
-    return true;
-  }
+	
+	/**
+	 * @func parseEncoding()
+	 */
+	static bool parseEncoding(FunctionCall args, const Local<JSValue>& arg, Encoding& en) {
+		JS_WORKER(args);
+		String s = arg->ToStringValue(worker);
+		en = Coder::parse_encoding( s );
+		if ( en == Encoding::unknown ) {
+			worker->throwError(
+				"Unknown encoding \"%s\", the optional value is "
+				"[binary|ascii|base64|hex|utf8|ucs2|utf16|utf32]", *s );
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * @func fromString(str[,encoding])
@@ -77,28 +77,28 @@ class NativeBuffer {
 		}
 
 		Encoding en = Encoding::utf8;
-    Local<JSValue> r;
+		Local<JSValue> r;
 
-    if ( args.Length() > 1 ) {
-      if ( ! parseEncoding(args, args[1], en) ) return;
-    }
+		if ( args.Length() > 1 ) {
+			if ( ! parseEncoding(args, args[1], en) ) return;
+		}
 
-    JS_RETURN( worker->NewUint8Array(args[0].To<JSString>(), en) );
+		JS_RETURN( worker->NewUint8Array(args[0].To<JSString>(), en) );
 	}
 
 	/**
-	 * @func toString(uint8array,[encoding[,start[,end]]])
+	 * @func convertString(uint8array,[encoding[,start[,end]]])
 	 * @arg uint8array {Uint8Array}
 	 * @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}
 	 * @arg [start=0] {uint}
 	 * @arg [end] {uint}
 	 */
-	static void toString(FunctionCall args) {
+	static void convertString(FunctionCall args) {
 		JS_WORKER(args);
 
-    if (args.Length() < 1 || !args[0]->IsUint8Array()) {
+		if (args.Length() < 1 || !args[0]->IsUint8Array()) {
 			JS_THROW_ERR(
-				"* @func toString(uint8array,[encoding[,start[,end]]])\n"
+				"* @func convertString(uint8array,[encoding[,start[,end]]])\n"
 				"* @arg uint8array {Uint8Array}\n"
 				"* @arg [encoding=utf8] {binary|ascii|base64|hex|utf8|ucs2|utf16|utf32}\n"
 				"* @arg [start=0] {uint}\n"
@@ -106,11 +106,11 @@ class NativeBuffer {
 			);
 		}
 
-    Local<JSUint8Array> self = args[0].To<JSUint8Array>();
+		Local<JSUint8Array> self = args[0].To<JSUint8Array>();
 		
 		Encoding encoding = Encoding::utf8;
-    int len = self->ByteLength(worker);
-    char* data = self->weakBuffer(worker).value();
+		int len = self->ByteLength(worker);
+		char* data = self->weakBuffer(worker).value();
 		uint start = 0;
 		uint end = len;
 		int args_index = 1;
@@ -138,7 +138,7 @@ class NativeBuffer {
 				Buffer buff = Coder::encoding(encoding, data + start, end - start);
 				JS_RETURN( worker->New(buff.collapse_string(), true) );
 				break;
-			} default: {// 解码to ucs2
+			} default: { // 解码to ucs2
 				Ucs2String str( Coder::decoding_to_uint16(encoding, data + start, end - start) );
 				JS_RETURN( worker->New(str) );
 				break;
@@ -151,7 +151,7 @@ class NativeBuffer {
 	 */
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_METHOD(fromString, fromString);
-		JS_SET_METHOD(toString, toString);
+		JS_SET_METHOD(convertString, convertString);
 	}
 };
 
