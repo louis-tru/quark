@@ -28,7 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-import { AsyncTask, StreamData, Encoding, Dirent } from './fs';
+import { Encoding } from './buffer';
+import { AsyncTask, StreamData, Dirent } from './fs';
 
 const _reader = __requireNgui__('_reader');
 

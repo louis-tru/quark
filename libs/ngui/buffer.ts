@@ -30,4 +30,8 @@
 
 const _buffer = __requireNgui__('_buffer');
 
-export {};
+Object.assign(exports, _buffer);
+
+export type Encoding = 'binary'|'ascii'|'base64'|'hex'|'utf8'|'ucs2'|'utf16'|'utf32';
+export declare function fromString(str: string, encoding?: Encoding): Uint8Array;
+export declare function convertString(uint8array: Uint8Array, encoding?: Encoding, start?: number, end?: number): string;

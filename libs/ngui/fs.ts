@@ -30,6 +30,7 @@
 
 import './_ext';
 import errno from './errno';
+import {Encoding} from './buffer';
 
 const _fs = __requireNgui__('_fs');
 
@@ -105,8 +106,6 @@ export declare class FileStat {
 	ctime(): number;
 	birthtime(): number;
 }
-
-export type Encoding = 'binary'|'ascii'|'base64'|'hex'|'utf8'|'ucs2'|'utf16'|'utf32';
 
 export interface ReadStream {
 	pause(): void;

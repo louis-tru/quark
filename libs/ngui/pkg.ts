@@ -111,7 +111,7 @@ function throwErr(err: any, cb?: Cb) {
 		throw err;
 }
 
-function parseJSON(source: string, filename: string) {
+function _parseJSON(source: string, filename: string) {
 	try {
 		return JSON.parse(stripBOM(source));
 	} catch (err) {
@@ -120,10 +120,30 @@ function parseJSON(source: string, filename: string) {
 	}
 }
 
+function readJSONSync(filename: string) {
+	return _parseJSON(readTextSync(filename), filename);
+}
+
+async function readJSON(filename: string) {
+	return _parseJSON(await readText(filename), filename);
+}
+
 function throw_MODULE_NOT_FOUND(request: string) {
 	var err = new Error(`Cannot find module or file '${request}'`);
 	err.code = 'MODULE_NOT_FOUND';
 	throw err;
+}
+
+function readLocalPackageLinkSync(pathname: string) {
+	if (isFileSync(pathname)) {
+		var link = readTextSync(pathname);
+		link = isAbsolute(link) ? resolve(link): resolve(pathname, '..', link);
+		if (isDirectorySync(link)) {
+			if ( isFileSync(link + '/package.json') ) {
+				return link;
+			}
+		}
+	}
 }
 
 interface Cb {
@@ -151,58 +171,109 @@ export interface PackageJson extends Dict {
 
 class ModulePath {
 	readonly path: string;
-	readonly isNetwork: boolean;
-	private _networkPackageJsons: Dict<PackageJson> = {};
-	private _packageNames = new Set<string>();
+	readonly network: boolean;
+	private _packagesJson: Dict<PackageJson> | null = null;
+	private _packagesPath = new Map<string, string>();
 
 	constructor(path: string) {
 		assert(path);
 		assert(typeof path == 'string', 'Search Path type error');
 		this.path = resolve(path);
-		this.isNetwork = isNetwork(path);
+		this.network = isNetwork(path);
 	}
 
-	async load() {
-		if (isNetwork) {
-			// load packages.json `packages.json` 文件必须强制加载不使用缓存
-			var json_path_no_cache = set_url_args(this.path + '/packages.json', '__no_cache');
-			this._networkPackageJsons = parseJSON(await readText(json_path_no_cache), json_path_no_cache);
-			Object.keys(this._networkPackageJsons).forEach(e=>this._packageNames.add(e));
+	private setPackagesPath(pkgName: string) {
+		var json = (this._packagesJson as Dict<PackageJson>)[pkgName] ;
+		var path: string;
+		var link = json.symlink as string;
+		if (link) {
+			// delete json.symlink;
+			path = isAbsolute(link) ? resolve(link): resolve(this.path, link);
 		} else {
-			this.loadSync();
+			path = this.path + '/' + pkgName;
 		}
+		this._packagesPath.set(pkgName, path);
 	}
 
-	loadSync() {
-		if (isNetwork) {
-			// load packages.json `packages.json` 文件必须强制加载不使用缓存
-			var json_path_no_cache = set_url_args(this.path + '/packages.json', '__no_cache');
-			this._networkPackageJsons = parseJSON(readTextSync(json_path_no_cache), json_path_no_cache);
-			Object.keys(this._networkPackageJsons).forEach(e=>this._packageNames.add(e));
-		} else {
-			assert(isDirectorySync(this.path), `"${this.path}" is not a directory`);
-			for (var dirent of readdirSync(this.path) ) {
-				if (dirent.type == 2/*dir*/ || (dirent.type == 3/*link*/ && isDirectorySync(dirent.pathname))) {
-					if ( isFileSync(dirent.pathname + '/package.json') ) {
-						this._packageNames.add(dirent.name);
-					}
+	private loadLocalSync() {
+		// local read mode
+		assert(isDirectorySync(this.path), `"${this.path}" is not a directory`);
+		for (var dirent of readdirSync(this.path) ) {
+			if (dirent.type == 2/*dir*/ || (dirent.type == 3/*link*/ && isDirectorySync(dirent.pathname))) { // directory
+				if ( isFileSync(dirent.pathname + '/package.json') ) {
+					this._packagesPath.set(dirent.name, dirent.pathname);
+				}
+			} else { // has package link
+				var link = readLocalPackageLinkSync(dirent.pathname);
+				if (link) {
+					this._packagesPath.set(dirent.name, link);
 				}
 			}
 		}
 	}
 
+	async load() {
+		if (this.network) {
+			// load packages.json `packages.json`
+			let {resolve} = resolveFilename(this.path + '/packages.json', undefined, true);
+			this._packagesJson = await readJSON(resolve) as Dict<PackageJson>;
+			Object.keys(this._packagesJson).forEach(k=>this.setPackagesPath(k));
+		} else { // local
+			this.loadLocalSync();
+		}
+	}
+
+	loadSync() {
+		if (this.network) {
+			// load packages.json `packages.json`
+			var {resolve: filename} = resolveFilename(this.path + '/packages.json', undefined, true);
+			this._packagesJson = readJSONSync(filename) as Dict<PackageJson>; // symlink
+			Object.keys(this._packagesJson).forEach(k=>this.setPackagesPath(k));
+		} else { // local
+			this.loadLocalSync();
+		}
+	}
+
+	loadSyncWithoutErr() {
+		try {
+			this.loadSync();
+			return true;
+		} catch(err) {
+			return false;
+		}
+	}
+
 	hasPackage(name: string) {
-		return this._packageNames.has(name);
+		return this._packagesPath.has(name);
+	}
+
+	isNetwork(name: string) {
+		var path = this._packagesPath.get(name);
+		assert(path);
+		return isNetwork(path) ? true : false;
 	}
 
 	packageJson(name: string): PackageJson {
-		assert(this._packageNames.has(name), `package ${name} does not exist in ${this.path} path`);
-		if (this.isNetwork) {
-			return this._networkPackageJsons[name];
-		} else {
-			var path = `${this.path}/${name}/package.json`;
-			return parseJSON(readTextSync(path), path);
+		var path = this._packagesPath.get(name);
+		assert(path, `package ${name} does not exist in ${this.path} path`);
+		if (this._packagesJson) {
+			return this._packagesJson[name];
+		} else { // local
+			path = `${path}/package.json`;
+			return readJSONSync(path);
 		}
+	}
+
+	createPackage(pkgName: string) {
+		var path = this._packagesPath.get(pkgName) as string;
+		var pkg = packages.get(path);
+		if (!pkg)
+			pkg = new PackageIMPL(path, this.packageJson(pkgName));
+		var rawpath = this.path + '/' + pkgName;
+		if (!packages.has(rawpath)) {
+			packages.set(rawpath, pkg);
+		}
+		return pkg;
 	}
 
 }
@@ -210,11 +281,16 @@ class ModulePath {
 const modulePaths: string[] = [];
 const modulePathCache: Map<string, ModulePath> = new Map();
 const packages: Map<string, PackageIMPL> = new Map();
-const packageCaches: Map<string, {pkg: PackageIMPL, relativePath: string}> = new Map(); // absolute path cache
+const lookupCaches: Map<string, LookupResult> = new Map(); // absolute path cache
 const options: Optopns = {};
 var mainPath: string = '';
 var mainModule: Module | null = null;
 var config: Dict | null = null;
+
+interface LookupResult {
+	pkg: PackageIMPL;
+	relativePath: string;
+}
 
 if (haveNode) {
 	var NativeModule: any, vm: any, path: any;
@@ -263,7 +339,14 @@ export class Module implements NguiModule {
 		assert(!this.loaded);
 		this.filename = filename;
 		this.dirname = _path.dirname(filename);
-		this.paths = Module._nodeModulePaths(this.dirname);
+
+		if (isNetwork(filename)) {
+			if (this.package) {
+				this.paths = Module._nodeModulePaths(this.dirname, this.package.path);
+			}
+		} else {
+			this.paths = Module._nodeModulePaths(this.dirname);
+		}
 
 		var extension = _path.extname(filename) || '.js';
 		if (!Module._extensions[extension])
@@ -335,12 +418,8 @@ export class Module implements NguiModule {
 		return false;
 	}
 
-	private static _nodeModulePaths(from: string) {
-		if (isNetwork(from)) {
-			return [];
-		} else {
-			return slicePaths(resolve(from)).map(e=>e+'/node_modules');
-		}
+	private static _nodeModulePaths(from: string, begin?: string) {
+		return levelPaths(resolve(from), begin).map(e=>e+'/node_modules');
 	}
 
 	private static _resolveLookupPaths(request: string, parent?: Module): string[] | null {
@@ -405,7 +484,7 @@ export class Module implements NguiModule {
 			return cachedModule.exports;
 		}
 
-		var module = new Module(filename, parent, pkg?.host);
+		var module = new Module(filename, parent, pkg && pkg.host);
 
 		if (isMain) {
 			assert(!mainModule);
@@ -448,12 +527,14 @@ export class Module implements NguiModule {
 				if (isNetwork(main)) { // 这是一个网络启动,添加一些默认搜索路径
 					if (_debug) {
 						// load `project/node_modules`
+						// add http://127.0.0.1:1026/node_modules to global search path
 						var mat = main.match(/^https?:\/\/[^\/]+/) as RegExpMatchArray;
 						await addModulePathWithoutErr(mat[0] + '/node_modules');
 					}
+					// pkg http://127.0.0.1:1026/aaa/bbb/node_modules/pkg
+					// add http://127.0.0.1:1026/aaa/bbb/node_modules to global search path
 					await addModulePathWithoutErr(resolve(main, '..'));
 				}
-				main = resolve(main);
 				var _lookup = lookup(main);
 				if (_lookup)
 					await _lookup.pkg.host.install();
@@ -568,8 +649,7 @@ export class Module implements NguiModule {
 			(module as Module)._compile(stripBOM(content), filename);
 		},
 		'.json': function(module: NguiModule, filename: string) {
-			var content = readTextSync(filename);
-			module.exports = parseJSON(content, filename);
+			module.exports = readJSONSync(filename);
 		},
 		'.node': haveNode ? function(module: NguiModule, filename: string) {
 			return process.dlopen(module, path._makeLong(fallbackPath(filename)));
@@ -591,8 +671,8 @@ function tryModuleLoad(module: Module, filename: string, rawPathname: string) {
 	}
 }
 
-function resolveFilename(request: string, parent?: Module): { filename: string, resolve: string, pkg?: PackageIMPL } {
-	var _lookup = lookup(request, parent);
+function resolveFilename(request: string, parent?: Module, mpCall?: boolean): { filename: string, resolve: string, pkg?: PackageIMPL } {
+	var _lookup = lookup(request, parent, mpCall);
 	if (_lookup) {
 		var rr = _lookup.pkg.resolveRelative(_lookup.relativePath);
 		return { 
@@ -613,8 +693,8 @@ function resolveFilename(request: string, parent?: Module): { filename: string, 
 				}
 				throw_MODULE_NOT_FOUND(`Cannot find module '${request}'`);
 			}
-		} else {
-			resolveFilename = set_url_args(filename);
+		} else { // no package network file
+			resolveFilename = set_url_args(filename, mpCall ? '__no_cache': '');
 		}
 		return {
 			filename, resolve: resolveFilename,
@@ -622,27 +702,36 @@ function resolveFilename(request: string, parent?: Module): { filename: string, 
 	}
 }
 
-function slicePaths(from: string): string[] {
-	// Guarantee that 'from' is absolute.
-	// from = resolve(from);
-
-	var prefix: string;
+function getOrigin(from: string) {
+	var origin: string;
 
 	if (isNetwork(from)) {
 		var index = from.indexOf('/', from[4] == 's' ? 9: 8);
 		if (index == -1) {
-			return [from];
+			return from;
 		} else {
-			prefix = from.substr(0, index);
+			origin = from.substr(0, index);
 		}
 	} else if (isLocalZip(from)) {
 		// zip:///home/xxx/test.apk@/assets/bb.jpg
-		prefix = from.substr(0, from.indexOf('@') + 1);
-		if (!prefix)
-			return [];
+		origin = from.substr(0, from.indexOf('@') + 1);
+		if (!origin)
+			return '';
 	} else {
-		prefix = (from.match(/^file:\/\/(\/[a-z]:\/)?/i) as RegExpMatchArray)[0];
+		origin = (from.match(/^file:\/\/(\/[a-z]:\/)?/i) as RegExpMatchArray)[0];
 	}
+
+	return origin;
+}
+
+function levelPaths(from: string, begin?: string): string[] {
+	// Guarantee that 'from' is absolute.
+	// from = resolve(from);
+
+	var prefix = begin ? begin: getOrigin(from);
+
+	if (!prefix) // invalid origin
+		return [];
 
 	from = from.substr(prefix.length);
 
@@ -677,7 +766,120 @@ function slicePaths(from: string): string[] {
 	return paths.map(e=>prefix+e);
 }
 
-function lookup(request: string, parent?: Module): { pkg: PackageIMPL, relativePath: string } | null {
+function lookupFromAbsolute(request: string, lazy?: boolean): LookupResult | null {
+	request = resolve(request);
+
+	var cached = lookupCaches.get(request);
+	if (cached)
+		return cached;
+
+	var paths = levelPaths(request);
+	paths.pop();
+
+	if (paths.length === 0) { // file:///aaa -> aaa module, file:/// -> No directory
+		return null;
+	}
+	var is_local = isLocal(request);
+
+	for (var pkgPath of paths) {
+		var pkg = packages.get(pkgPath);
+		if (!pkg) {
+			if (is_local) {
+				if (isDirectorySync(pkgPath)) {
+					var json_path = pkgPath + '/package.json';
+					if (isFileSync(json_path)) {
+						pkg = new PackageIMPL(pkgPath, readJSONSync(json_path));
+					}
+				} else { // try package link
+					var link = readLocalPackageLinkSync(pkgPath);
+					if (link) {
+						pkg = packages.get(link);
+						if (!pkg)
+							pkg = new PackageIMPL(link, readJSONSync(link + '/package.json'));
+						packages.set(pkgPath, pkg);
+					}
+				}
+			} else { // network
+				var searchPath = pkgPath.substr(0, pkgPath.lastIndexOf('/'));
+				var modulePath = modulePathCache.get(searchPath);
+				if (modulePath) {
+					var pkgName = pkgPath.substr(searchPath.length + 1);
+					if (modulePath.hasPackage(pkgName)) {
+						pkg = modulePath.createPackage(pkgName);
+					}
+				}
+			}
+		}
+
+		if (pkg) {
+			var relativePath = request.substr(pkgPath.length + 1);
+			if (!is_local && !lazy) { // network
+				// TODO network, if relativePath = 'node_modules/pkgName/xxx.js' then ?
+				var index = relativePath.indexOf('node_modules');
+				if (index != -1) {
+					var searchPath = pkg.path + '/' + relativePath.substr(0, index + 12);
+					var modulePath = modulePathCache.get(searchPath);
+					if (!modulePath) {
+						modulePath = new ModulePath(searchPath);
+						var ok = modulePath.loadSyncWithoutErr();
+						modulePathCache.set(searchPath, modulePath);
+						if (ok) { // relookup
+							return lookupFromAbsolute(request);
+						}
+					}
+				}
+			}
+			var r = { pkg, relativePath };
+			lookupCaches.set(request, r);
+			return r;
+		}
+	}
+
+	return null;
+}
+
+function lookupFromPackage(request: string, parent?: Module): LookupResult | null {
+	var paths = modulePaths;
+	if (parent && parent.paths && parent.paths.length) {
+		paths = parent.paths.concat(paths);
+	}
+
+	debug('looking pkg for %j in %j', request, paths);
+
+	var pkgName = request;
+	var relativePath = '';
+	var index = request.indexOf('/');
+	if (index != -1) {
+		pkgName = request.substr(0, index);
+		relativePath = request.substr(index + 1);
+	}
+
+	for (var searchPath of paths) {
+		var pkg = packages.get(searchPath + '/' + pkgName);
+		if (!pkg) {
+			var modulePath = modulePathCache.get(searchPath);
+			if (!modulePath) {
+				modulePath = new ModulePath(searchPath);
+				modulePath.loadSyncWithoutErr();
+				modulePathCache.set(searchPath, modulePath);
+			}
+			if (modulePath.hasPackage(pkgName)) {
+				pkg = modulePath.createPackage(pkgName);
+			}
+		}
+		if (pkg)
+			return { pkg, relativePath };
+	}
+
+	// extend pkg
+	var pkg = packages.get('ext://' + pkgName);
+	if (pkg)
+		return { pkg, relativePath };
+
+	return null;
+}
+
+function lookup(request: string, parent?: Module, lazy?: boolean): LookupResult | null {
 
 	// Check for node modules paths.
 	if (request.charAt(0) !== '.' || // mod or .mode or file:/// or http:/// or / or d:/
@@ -687,90 +889,15 @@ function lookup(request: string, parent?: Module): { pkg: PackageIMPL, relativeP
 			(!isWindows || request.charAt(1) !== '\\'))) {
 
 		if (isAbsolute(request)) { // file:/// or http:/// or / or d:/
-			request = resolve(request);
-
-			var cached = packageCaches.get(request);
-			if (cached)
-				return cached;
-
-			let paths = slicePaths(request);
-			paths.pop();
-
-			if (paths.length === 0) { // file:///aaa -> aaa module, file:/// -> No directory
-				return null;
-			}
-			var is_local = isLocal(request);
-
-			for (var path of paths) {
-				var pkg = packages.get(path);
-				if (!pkg) {
-					if (is_local) {
-						var json_path = path + '/package.json';
-						if (isFileSync(json_path)) {
-							pkg = new PackageIMPL(path, parseJSON(readTextSync(json_path), json_path));
-						}
-					} else { // network
-						var searchPath = path.substr(0, path.lastIndexOf('/'));
-						var modulePath = modulePathCache.get(searchPath);
-						if (modulePath) {
-							var name = path.substr(searchPath.length + 1);
-							if (modulePath.hasPackage(name)) {
-								var json = modulePath.packageJson(name);
-								pkg = new PackageIMPL(path, json);
-							}
-						}
-					}
-				}
-				if (pkg) {
-					var r = { pkg, relativePath: paths[0].substr(path.length + 1) };
-					packageCaches.set(request, r);
-					return r;
-				}
-			}
-		} else { // mod or .mode
-			let paths = modulePaths;
-			if (parent && parent.paths && parent.paths.length) {
-				paths = parent.paths.concat(paths);
-			}
-
-			debug('looking pkg for %j in %j', request, paths);
-
-			var moduleName = request;
-			var relativePath = '';
-			var index = request.indexOf('/');
-			if (index != -1) {
-				moduleName = request.substr(0, index);
-				relativePath = request.substr(index + 1);
-			}
-
-			for (var path of paths) {
-				var pkg = packages.get(path + '/' + moduleName);
-				if (!pkg) {
-					var modulePath = modulePathCache.get(path);
-					if (!modulePath) {
-						modulePath = new ModulePath(path);
-						modulePath.loadSync();
-						modulePathCache.set(path, modulePath);
-					}
-					if (modulePath.hasPackage(moduleName)) {
-						pkg = new PackageIMPL(path + '/' + moduleName, modulePath.packageJson(moduleName));
-					}
-				}
-				if (pkg)
-					return { pkg, relativePath };
-			}
-
-			// extend pkg
-			var pkg = packages.get('ext://' + moduleName);
-			if (pkg)
-				return { pkg, relativePath };
+			return lookupFromAbsolute(request, lazy);
+		} else if (!lazy /*no lazy*/) { // mod or .mode
+			return lookupFromPackage(request, parent);
 		}
-
 	} else { // ./ or ..
 		if (parent) { // parent
-			return lookup(parent.dirname + '/' + request);
+			return lookupFromAbsolute(parent.dirname + '/' + request);
 		} else { // cwd()
-			return lookup(resolve(request));
+			return lookupFromAbsolute(request);
 		}
 	}
 
@@ -827,7 +954,7 @@ class Exports {
 			if (mod) {
 				var pkg = mod.package;
 				if (pkg) {
-					cfg = readConfigFile(pkg.name + '/.config', pkg.name + '/config');
+					cfg = readConfigFile(pkg.path + '/.config', pkg.path + '/config');
 				} else {
 					cfg = readConfigFile(mod.dirname + '/.config', mod.dirname + '/config');
 				}
@@ -837,179 +964,6 @@ class Exports {
 		return config as Dict;
 	}
 
-}
-
-// -------------------------- Package --------------------------
-
-function resolveRelativeAfter(self: PackageIMPL, key: string, pathname: string, version: string) {
-
-	var resolve: string = '';
-
-	if (self.helper) { // 读取本地旧文件
-		var helper = self.helper;
-		// 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
-		if ( helper.versions[pathname] === version ) {
-			if ( helper.pkg_files.has(pathname) ) {
-				resolve = helper.pkg_path + '/' + pathname;
-			} else {
-				resolve = helper.path + '/' + pathname;
-			}
-		}
-	}
-
-	if (!resolve) {
-		if ( self.pkg_path && self.pkg_files.has(pathname) ) { // 使用.pkg
-			resolve = self.pkg_path + '/' + pathname;
-		} else {
-			resolve = self.path + '/' + pathname;
-		}
-	}
-
-	resolve = set_url_args(resolve, version);
-
-	self.path_cache.set(key, [pathname, resolve]);
-
-	return { pathname, resolve };
-}
-
-function installComplete(self: PackageIMPL, versions_path: string, cb?: Cb) {
-	// 读取package.json文件
-	var json = self.json;
-	if (json.name != self.name) {
-		return throwErr('Lib name must be ' +
-										 `consistent with the folder name, ${self.name} != ${json.name}`, cb);
-	}
-
-	if (self.build || isNetwork(versions_path)) {
-		// 读取package内部资源文件版本信息
-		var versions_json = versions_path + '/versions.json';
-		// 这里如果非build状态,不使用缓存
-		var versions_json_arg = set_url_args(versions_json, self.hash || '__no_cache');
-
-		var read_versions_ok = function(str: string) {
-			var data = parseJSON(str, versions_json);
-			self.versions = data.versions || {};
-			self.status = PackageStatus.INSTALLED;
-			if (self.pkg_path) {
-				for (var [file, ver] of Object.entries(self.versions)) {
-					if (ver.charCodeAt(0) != 46 /*.*/)
-						self.pkg_files.add(file); // .pkg 中包含的文件列表 
-				}
-			}
-			cb && cb(); // ok
-		};
-
-		if (cb)
-			readText(versions_json_arg).then(read_versions_ok).catch(cb);
-		else
-			read_versions_ok(readTextSync(versions_json_arg));
-	} else {
-		self.status = PackageStatus.INSTALLED;
-		cb && cb(); // ok
-	}
-}
-
-function installNetwork(self: PackageIMPL, cb?: Cb) {
-	if (self.helper) {
-		if (self.hash == self.helper.hash) { // 完全相同的两个包
-			self.helperAll = true;
-			self.status = PackageStatus.INSTALLED;
-			return cb && cb();
-		}
-	}
-
-	// 如果本地不存在相应版本的文件,下载远程.pkg文件到本地
-	// 远程.pkg文件必须存在否则抛出异常
-	var hash = self.hash;
-	var path = _path.temp(`${self.name}.pkg`);
-	var pathname = `${path}.${hash}`;
-
-	// zip:///Users/pppp/sasa/aa.apk@/aaaaa/bbbb/aa.js
-
-	if (_fs.existsSync(pathname)) { // 文件存在,无需下载
-		// 设置一个本地zip文件读取协议路径,使用这种路径可直接读取zip内部文件
-		self.pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
-		installComplete(self, self.pkg_path, cb);
-	} else { // downloading ...
-		var url = set_url_args(`${self.path}/${self.name}.pkg`, hash);
-		var save = pathname + '.~';
-
-		var tryOld = function() {
-			// TODO ... Try to query the old package
-			// TODO ...
-			if (self.helper) { // use helper pkg
-				self.helperAll = true;
-				self.status = PackageStatus.INSTALLED;
-				cb && cb();
-				return true;
-			}
-		};
-
-		// TODO 文件比较大时需要断点续传下载
-		// TODO 还应该使用读取数据流方式,实时回调通知下载进度
-		var ok = function(err?: Error) { // 下载成功
-			if (err) {
-				if (!tryOld()) {
-					throwErr(err, cb);
-				}
-			} else {
-				_fs.renameSync(save, pathname);
-				self.pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
-				installComplete(self, self.pkg_path, cb);
-			}
-		};
-
-		if (cb) {
-			_http.request({ url, save }, ok);
-		} else {
-			try {
-				_http.requestSync({ url, save });
-			} catch(err) {
-				ok(err); return;
-			}
-			ok();
-		}
-	}
-}
-
-function install(self: PackageIMPL, cb?: Cb) {
-	var path = self.path;
-
-	if (self.status != PackageStatus.NO_INSTALL) {
-		return throwErr(`${path} package installing repeat call`, cb);
-	}
-	self.status = PackageStatus.INSTALLING;
-
-	if (!self.build) { // Not build
-		return installComplete(self, path, cb);
-	}
-
-	if (self.isNetwork) { // network
-		return installNetwork(self, cb);
-	}
-
-	// install local
-
-	/*
-	* build的pkg有两种格式
-	* 1.pkg根目录存在.pkg压缩文件,文件中包含全部文件版本信息与一部分源码文件以及资源文件.
-	* 2.pkg根目录不存在.pkg压缩文件,相比build前只多出文件版本信息,适用于android/ios安装包中存在.
-	*/
-	/* 文件读取器不能读取zip包内的.pkg压缩文件.
-	* 比如无法android资源包中的.pkg文件
-	* 所以android.apk中不能存在.pkg格式文件否则将不能读取
-	*/
-
-	if (isLocalZip(path)) { // 包路径在zip包中
-		installComplete(self, path, cb);
-	}
-	else if (isFileSync(`${path}/${self.name}.pkg`)) { // 本地包中存在.pkg文件
-		self.pkg_path = `zip:///${path.substr(8)}/${self.name}.pkg@`;  // file:///
-		installComplete(self, self.pkg_path, cb);
-	}
-	else { // 无.pkg包
-		installComplete(self, path, cb);
-	}
 }
 
 enum PackageStatus {
@@ -1036,30 +990,62 @@ class PackageIMPL {
 
 	constructor(path: string, json: PackageJson) {
 		this.json = json;
-		this.name = _path.basename(path);
+		this.name = json.name;
 		this.path = path;
 		this.hash = json.hash || '';
 		this.build = !!json.hash;
 		this.isNetwork = isNetwork(path);
 
-		assert(json.name == this.name, `Lib name must be consistent with the folder name, ${json.name} != ${this.name}`);
+		// assert(json.name == name, `Lib name must be consistent with the folder name, ${json.name} != ${name}`);
 		assert(!packages.has(path), `${path} package repeat create`);
 		packages.set(path, this);
-		this.host = new Package(this);
+
+		this.host = new Package(this); // create shell
 
 		if (this.isNetwork && this.build) {
-			// query helper package
+			// query helper package from global modulePaths
 			for (var path of modulePaths) {
 				var mp = modulePathCache.get(path) as ModulePath;
-				if (!mp.isNetwork && mp.hasPackage(this.name)) {
+				if (mp.hasPackage(this.name) && !mp.isNetwork(this.name)) {
 					var json = mp.packageJson(this.name);
 					if (json.hash) { // is build
-						this.helper = new PackageIMPL(path + '/' + this.name, json);
+						this.helper = mp.createPackage(this.name);
 						break;
 					}
 				}
 			}
 		}
+	}
+
+	private _resolveRelativeAfter(key: string, pathname: string, version: string) {
+		var self = this;
+		var resolve: string = '';
+	
+		if (self.helper) { // 读取本地旧文件
+			var helper = self.helper;
+			// 版本相同,完全可以使用本地旧文件路径,这样可以避免从网络下载新资源
+			if ( helper.versions[pathname] === version ) {
+				if ( helper.pkg_files.has(pathname) ) {
+					resolve = helper.pkg_path + '/' + pathname;
+				} else {
+					resolve = helper.path + '/' + pathname;
+				}
+			}
+		}
+	
+		if (!resolve) {
+			if ( self.pkg_path && self.pkg_files.has(pathname) ) { // 使用.pkg
+				resolve = self.pkg_path + '/' + pathname;
+			} else {
+				resolve = self.path + '/' + pathname;
+			}
+		}
+	
+		resolve = set_url_args(resolve, version);
+	
+		self.path_cache.set(key, [pathname, resolve]);
+	
+		return { pathname, resolve };
 	}
 
 	resolveRelative(relativePath: string): { pathname: string, resolve: string } {
@@ -1084,15 +1070,15 @@ class PackageIMPL {
 		if (_path.extname(pathname)) {
 			ver = self.versions[pathname];
 			if ( ver === undefined ) { // 找不到版本信息
-				if (isLocal(self.path)) {
+				if (!this.isNetwork) { // local
 					var src = self.path + '/' + pathname;
-					if (isFileSync(src)) { // 尝试访问文件系统,是否能找到文件信息
-						return resolveRelativeAfter(self, relativePath, pathname, '');
+					if (isFileSync(src)) { // 尝试访问本地文件系统,是否能找到文件信息
+						return self._resolveRelativeAfter(relativePath, pathname, '');
 					}
 				}
 				file_pathnames = [pathname + '/index']; // 尝试做为目录使用
 			} else {
-				return resolveRelativeAfter(self, relativePath, pathname, ver);
+				return self._resolveRelativeAfter(relativePath, pathname, ver);
 			}
 		} else {
 			// 没有扩展名,尝试使用多个扩展名查找 .js .json .node ...
@@ -1100,28 +1086,170 @@ class PackageIMPL {
 		}
 
 		var extnames = Object.keys(Module._extensions);
-		var is_local = isLocal(self.path);
-	
+
 		// 尝试使用尝试默认扩展名不同的扩展名查找, and `${pathname}/index`
 		for (var pathname of file_pathnames) {
 			for (var ext of extnames) {
 				ver = self.versions[pathname + ext];
 				if (ver !== undefined) {
-					return resolveRelativeAfter(self, relativePath, pathname + ext, ver);
+					return self._resolveRelativeAfter(relativePath, pathname + ext, ver);
 				}
 			}
-			if (is_local) { // 尝试访问本地文件系统,是否能找到文件信息
+			if (!this.isNetwork) { // 尝试访问本地文件系统,是否能找到文件信息
 				for (var ext of extnames) {
 					var src = self.path + '/' + pathname + ext;
-					if ( isFileSync(src) ) {
-						return resolveRelativeAfter(self, relativePath, pathname + ext, '');
+					if ( isFileSync(src) ) { // find local
+						return self._resolveRelativeAfter(relativePath, pathname + ext, '');
 					}
 				}
 			}
 		}
-	
+
 		throw_MODULE_NOT_FOUND(self.path + '/' + relativePath);
 		throw '';
+	}
+
+	private _installComplete(versions_path: string, cb?: Cb) {
+		var self = this;
+		// 读取package.json文件
+		var json = self.json;
+		if (json.name != self.name) {
+			return throwErr('Lib name must be ' +
+											 `consistent with the folder name, ${self.name} != ${json.name}`, cb);
+		}
+	
+		if (self.build || isNetwork(versions_path)) {
+			// 读取package内部资源文件版本信息
+			var versions_json = versions_path + '/versions.json';
+			// 这里如果非build状态,不使用缓存
+			var versions_json_arg = set_url_args(versions_json, self.hash || '__no_cache');
+	
+			var read_versions_ok = function(str: string) {
+				var data = _parseJSON(str, versions_json);
+				self.versions = data.versions || {};
+				self.status = PackageStatus.INSTALLED;
+				if (self.pkg_path) {
+					for (var [file, ver] of Object.entries(self.versions)) {
+						if (ver.charCodeAt(0) != 46 /*.*/)
+							self.pkg_files.add(file); // .pkg 中包含的文件列表 
+					}
+				}
+				cb && cb(); // ok
+			};
+	
+			if (cb)
+				readText(versions_json_arg).then(read_versions_ok).catch(cb);
+			else
+				read_versions_ok(readTextSync(versions_json_arg));
+		} else {
+			self.status = PackageStatus.INSTALLED;
+			cb && cb(); // ok
+		}
+	}
+	
+	private _installNetwork(cb?: Cb) {
+		var self = this;
+		if (self.helper) {
+			if (self.hash == self.helper.hash) { // 完全相同的两个包
+				self.helperAll = true;
+				self.status = PackageStatus.INSTALLED;
+				return cb && cb();
+			}
+		}
+	
+		// 如果本地不存在相应版本的文件,下载远程.pkg文件到本地
+		// 远程.pkg文件必须存在否则抛出异常
+		var hash = self.hash;
+		var path = _path.temp(`${self.name}.pkg`);
+		var pathname = `${path}.${hash}`;
+	
+		// zip:///Users/pppp/sasa/aa.apk@/aaaaa/bbbb/aa.js
+	
+		if (_fs.existsSync(pathname)) { // 文件存在,无需下载
+			// 设置一个本地zip文件读取协议路径,使用这种路径可直接读取zip内部文件
+			self.pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
+			self._installComplete(self.pkg_path, cb);
+		} else { // downloading ...
+			var url = set_url_args(`${self.path}/${self.name}.pkg`, hash);
+			var save = pathname + '.~';
+	
+			var tryOld = function() {
+				// TODO ... Try to query the old package
+				// TODO ...
+				if (self.helper) { // use helper pkg
+					self.helperAll = true;
+					self.status = PackageStatus.INSTALLED;
+					cb && cb();
+					return true;
+				}
+			};
+	
+			// TODO 文件比较大时需要断点续传下载
+			// TODO 还应该使用读取数据流方式,实时回调通知下载进度
+			var ok = function(err?: Error) { // 下载成功
+				if (err) {
+					if (!tryOld()) {
+						throwErr(err, cb);
+					}
+				} else {
+					_fs.renameSync(save, pathname);
+					self.pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
+					self._installComplete(self.pkg_path, cb);
+				}
+			};
+	
+			if (cb) {
+				_http.request({ url, save }, ok);
+			} else {
+				try {
+					_http.requestSync({ url, save });
+				} catch(err) {
+					ok(err); return;
+				}
+				ok();
+			}
+		}
+	}
+
+	install(cb?: Cb) {
+		var self = this;
+		var path = self.path;
+	
+		if (self.status != PackageStatus.NO_INSTALL) {
+			return throwErr(`${path} package installing repeat call`, cb);
+		}
+		self.status = PackageStatus.INSTALLING;
+	
+		if (!self.build) { // Not build
+			return self._installComplete(path, cb);
+		}
+	
+		if (self.isNetwork) { // network
+			return self._installNetwork(cb);
+		}
+	
+		// install local
+	
+		/*
+		* build的pkg有两种格式
+		* 1.pkg根目录存在.pkg压缩文件,文件中包含全部文件版本信息与一部分源码文件以及资源文件.
+		* 2.pkg根目录不存在.pkg压缩文件,相比build前只多出文件版本信息,适用于android/ios安装包中存在.
+		*/
+		/* 文件读取器不能读取zip包内的.pkg压缩文件.
+		* 比如无法android资源包中的.pkg文件
+		* 所以android.apk中不能存在.pkg格式文件否则将不能读取
+		*/
+
+		if (isLocalZip(path)) { // 包路径在zip包中
+			self._installComplete(path, cb);
+		}
+		else if (isFileSync(`${path}/${self.name}.pkg`)) { // 本地包中存在.pkg文件
+			self.pkg_path = `zip:///${path.substr(8)}/${self.name}.pkg@`;  // file:///
+			self._installComplete(self.pkg_path, cb);
+		}
+		else { // 无.pkg包
+			self._installComplete(path, cb);
+		}
 	}
 }
 
@@ -1214,7 +1342,7 @@ class Package {
 			if (self.helper) // install helper
 				self.helper.host.installSync();
 			try {
-				install(self);
+				self.install();
 			} finally {
 				self.status = PackageStatus.NO_INSTALL;
 			}
@@ -1227,7 +1355,7 @@ class Package {
 			if (self.helper) // install helper
 				await self.helper.host.install();
 			await new Promise<void>(function(resolve, reject) {
-				install(self, function(err) {
+				self.install(function(err) {
 					if (err) {
 						self.status = PackageStatus.NO_INSTALL;
 						reject(err);

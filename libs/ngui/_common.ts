@@ -331,7 +331,7 @@ export function equalsClass(baseclass: any, subclass: any): boolean {
 /**
  * @fun assert
  */
-export function assert(condition: any, code?: ErrnoCode | number | string, ...args: string[]): void {
+export function assert(condition: any, code?: ErrnoCode | number | string, ...args: any[]): void {
 	if (condition)
 		return;
 	if (Array.isArray(code)) { // ErrnoCode
