@@ -103,7 +103,7 @@ class FileReader::Core {
 	}
 
 	String zip_path(cString& path) {
-		int  i = path.index_of('@');
+		int  i = path.index_of('?');
 		if (i != -1) {
 			return path.substr(0, i);
 		}
@@ -149,9 +149,6 @@ class FileReader::Core {
 		}
 	}
 
-	/**
-	 * @func read
-	 */
 	uint read(cString& path, cCb& cb, bool stream) {
 		
 		Protocol p = protocol(path);
@@ -208,9 +205,6 @@ class FileReader::Core {
 		return id;
 	}
 
-	/**
-	 * @func read_sync
-	 */
 	Buffer read_sync(cString& path) throw(Error) {
 		Buffer rv;
 
@@ -248,16 +242,10 @@ class FileReader::Core {
 		return rv;
 	}
 
-	/**
-	 * @func abort
-	 */
 	void abort(uint id) {
 		AsyncIOTask::safe_abort(id);
 	}
 
-	/**
-	 * @func exists_sync
-	 */
 	bool exists_sync(cString& path, bool file, bool dir) {
 		switch ( protocol(path) ) {
 			default:
@@ -308,9 +296,6 @@ class FileReader::Core {
 		return move(rv);
 	}
 
-	/**
-	 * @func format
-	 */
 	String format(cString& path) {
 		int index = -1;
 		switch ( protocol(path) ) {
@@ -363,21 +348,12 @@ class FileReader::Core {
 	Map<String, ZipReader*> zips_;
 };
 
-/**
- * @constructor
- */
 FileReader::FileReader(): m_core(new Core()) { }
 
-/**
- * @constructor
- */
 FileReader::FileReader(FileReader&& reader): m_core(reader.m_core) {
 	reader.m_core = nullptr;
 }
 
-/**
- * @destructor
- */
 FileReader::~FileReader() {
 	delete m_core;
 	m_core = nullptr;
@@ -424,9 +400,6 @@ void FileReader::clear() {
 
 static FileReader* shared_instance = nullptr;
 
-/**
- * @func set_to_share
- */
 void FileReader::set_shared_instance(FileReader* reader) {
 	if (shared_instance != reader) {
 		Release(shared_instance);
@@ -434,9 +407,6 @@ void FileReader::set_shared_instance(FileReader* reader) {
 	}
 }
 
-/**
- * @func share
- */
 FileReader* FileReader::shared() {
 	if ( !shared_instance ) {
 		shared_instance = new FileReader();

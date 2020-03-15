@@ -425,7 +425,7 @@ class NX_EXPORT FileSearch: public Object {
 	 *
 	 * To obtain the absolute path to the file already exists.
 	 * If no such file returns the empty string ""
-	 * If it is a zip package path, will return with the prefix "zip:///home/xxx/test.apk@/assets/bb.jpg"
+	 * If it is a zip package path, will return with the prefix "zip:///home/xxx/test.apk?/assets/bb.jpg"
 	 * @func get_absolute_path
 	 */
 	String get_absolute_path(cString& path) const;

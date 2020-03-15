@@ -36,6 +36,7 @@ import keys from 'nxkit/keys';
 import NguiBuild, {PackageJson} from './build';
 import { getLocalNetworkHost } from 'nxkit/network_host';
 import * as child_process from 'child_process';
+import { setFlagsFromString } from 'v8';
 
 const isWindows = process.platform == 'win32';
 
@@ -87,12 +88,16 @@ class Package {
 	readonly is_app: boolean;
 	readonly include_dirs: string[] = [];
 	readonly sources: string[] = [ 'public' ];
-	readonly bundle_resources: string[];
-	readonly dependencies: string[] = [ '<@(libngui)' ];
-	readonly includes: string[] = [];
+	private _includes: string[] = [];
+	private _dependencies: string[] = [ '<@(libngui)' ];
+	private _bundle_resources: string[] = [];
 	private _binding = false;
 	private _gypi: OutputGypi | null = null;
 	private _is_initialize = false;
+
+	get includes() { return this._includes }
+	get dependencies() { return this._dependencies }
+	get bundle_resources() { return this._bundle_resources }
 
 	get binding() {
 		return this._binding;
@@ -126,7 +131,24 @@ class Package {
 		this.name = pkg_json.name;
 		this.pathname = host.output + '/' + this.name + '.gypi';
 		this.source_path = source_path;
-		this.bundle_resources = host.bundle_resources.concat();
+		this._bundle_resources = host.bundle_resources.concat();
+	}
+
+	// reset app resources
+	private set_dependencies() {
+		var self = this;
+		var name = this.name;
+
+		this.host.node_modules.forEach(function(item) { 
+			self._includes.push(item.pathname);
+			self._includes.push(...item._includes);
+			self._dependencies.push(item.name);
+			self._bundle_resources.push(...item._bundle_resources);
+		});
+
+		self._includes = filter_repeat(self._includes, name);
+		self._dependencies = filter_repeat(self._dependencies, name);
+		self._bundle_resources = filter_repeat(self._bundle_resources, name);
 	}
 
 	private initialize() {
@@ -173,9 +195,11 @@ class Package {
 			this.bundle_resources.push('install/' + this.name);
 		}
 
-		if ( this.binding ) {
+		if ( this._binding ) {
 			this.include_dirs.push(relative + '/binding');
 		}
+
+		self.set_dependencies();
 	}
 
 	private gen_ios_gypi(): OutputGypi {
@@ -246,14 +270,14 @@ class Package {
 		{
 			'targets': [
 				{
-					'variables': is_app ? { 
+					'variables': is_app ? {
 						'XCODE_INFOPLIST_FILE': '$(SRCROOT)/Project/<(os)/' + name + '.plist' 
-					} : { },
+					} : {},
 					'target_name': name,
 					'product_name': is_app ? name + '-1' : name,
 					'type': type,
 					'include_dirs': self.include_dirs,
-					'dependencies': filter_repeat(self.dependencies, name),
+					'dependencies': self.dependencies,
 					'direct_dependent_settings': {
 						'include_dirs': is_app ? [] : self.include_dirs,
 					},
@@ -363,37 +387,6 @@ class Package {
 		return gypi;
 	}
 
-	// reset app resources
-	private add_default_dependencies() {
-		var pkg = this; //self.m_pkg_output[name];
-		var node_modules = this.host.node_modules;
-		var name = this.name;
-
-		node_modules.forEach(function(item) { 
-			pkg.dependencies.push(item.name);
-			pkg.bundle_resources.push(...item.bundle_resources);
-			pkg.includes.push(item.pathname);
-			pkg.includes.push(...item.includes);
-		});
-
-		var dependencies = filter_repeat(pkg.dependencies, name);
-		var bundle_resources = filter_repeat(pkg.bundle_resources, name);
-		var includes = filter_repeat(pkg.includes, name);
-
-		pkg.dependencies.splice(0); // clear
-		pkg.bundle_resources.splice(0); // clear
-		pkg.includes.splice(0); // clear
-
-		pkg.dependencies.push(...dependencies);
-		pkg.bundle_resources.push(...bundle_resources);
-		pkg.includes.push(...includes);
-
-		pkg.gypi.targets[0].dependencies = pkg.dependencies;
-		if ( this.host.os == 'ios' ) {
-			pkg.gypi.targets[0].mac_bundle_resources = pkg.bundle_resources;
-		}
-	}
-
 	gen() {
 		if (!this._is_initialize) {
 			this._is_initialize = true;
@@ -407,10 +400,6 @@ class Package {
 		} else {
 			throw new Error('Not support');
 		}
-
-		if (this.is_app)
-			this.add_default_dependencies();
-
 		return this.gypi;
 	}
 
@@ -481,12 +470,9 @@ export default class NguiExport {
 		}
 
 		var pkg_json = parse_json_file(source_path + '/package.json');
+		
+		pkg = new Package(self, source_path, pkg_json, is_app || false);
 
-		util.assert(pkg_json.name && pkg_json.name == name, 
-								'Lib name must be consistent with the folder name, ' + 
-								name + ' != ' + pkg_json.name);
-
-		self.m_pkg_output[name] = pkg = new Package(self, source_path, pkg_json, is_app || false);
 		self.m_pkg_output[name] = pkg;
 
 		pkg.gen();

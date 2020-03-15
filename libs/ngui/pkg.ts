@@ -713,8 +713,8 @@ function getOrigin(from: string) {
 			origin = from.substr(0, index);
 		}
 	} else if (isLocalZip(from)) {
-		// zip:///home/xxx/test.apk@/assets/bb.jpg
-		origin = from.substr(0, from.indexOf('@') + 1);
+		// zip:///home/xxx/test.apk?/assets/bb.jpg
+		origin = from.substr(0, from.indexOf('?') + 1);
 		if (!origin)
 			return '';
 	} else {
@@ -976,13 +976,13 @@ class PackageIMPL {
 	host: Package;
 	json: PackageJson;
 	name: string; // package 名称
-	path: string; // package 路径, zip:///applications/test.apk@
+	path: string; // package 路径, zip:///applications/test.apk?
 	hash: string;
 	build: boolean;
 	status: PackageStatus = PackageStatus.NO_INSTALL;
 	versions: Dict<string> = {}; // .pkg 包内文件的版本信息
 	pkg_files: Set<string> = new Set();
-	pkg_path: string = ''; // zip:///root/aa/aa.pkg@
+	pkg_path: string = ''; // zip:///root/aa/aa.pkg?
 	path_cache: Map<string, [string/*pathname*/,string/*resolve*/]> = new Map();
 	helper?: PackageIMPL; // local helper package
 	helperAll = false; // `this.hash === helper.hash` 完全使用 helper
@@ -996,6 +996,8 @@ class PackageIMPL {
 		this.build = !!json.hash;
 		this.isNetwork = isNetwork(path);
 
+		var pathname = _path.basename(path);
+
 		// assert(json.name == name, `Lib name must be consistent with the folder name, ${json.name} != ${name}`);
 		assert(!packages.has(path), `${path} package repeat create`);
 		packages.set(path, this);
@@ -1006,10 +1008,10 @@ class PackageIMPL {
 			// query helper package from global modulePaths
 			for (var path of modulePaths) {
 				var mp = modulePathCache.get(path) as ModulePath;
-				if (mp.hasPackage(this.name) && !mp.isNetwork(this.name)) {
-					var json = mp.packageJson(this.name);
+				if (mp.hasPackage(pathname) && !mp.isNetwork(pathname)) {
+					var json = mp.packageJson(pathname);
 					if (json.hash) { // is build
-						this.helper = mp.createPackage(this.name);
+						this.helper = mp.createPackage(pathname);
 						break;
 					}
 				}
@@ -1163,11 +1165,11 @@ class PackageIMPL {
 		var path = _path.temp(`${self.name}.pkg`);
 		var pathname = `${path}.${hash}`;
 	
-		// zip:///Users/pppp/sasa/aa.apk@/aaaaa/bbbb/aa.js
+		// zip:///Users/pppp/sasa/aa.apk?/aaaaa/bbbb/aa.js
 	
 		if (_fs.existsSync(pathname)) { // 文件存在,无需下载
 			// 设置一个本地zip文件读取协议路径,使用这种路径可直接读取zip内部文件
-			self.pkg_path = `zip:///${pathname.substr(8)}@`;  // file:///
+			self.pkg_path = `zip:///${pathname.substr(8)}?`;  // file:///
 			self._installComplete(self.pkg_path, cb);
 		} else { // downloading ...
 			var url = set_url_args(`${self.path}/${self.name}.pkg`, hash);
@@ -1193,7 +1195,7 @@ class PackageIMPL {
 					}
 				} else {
 					_fs.renameSync(save, pathname);
-					self.pkg_path = `zip:///${pathname.substr(8)}@`; // file:///
+					self.pkg_path = `zip:///${pathname.substr(8)}?`; // file:///
 					self._installComplete(self.pkg_path, cb);
 				}
 			};
@@ -1244,7 +1246,7 @@ class PackageIMPL {
 			self._installComplete(path, cb);
 		}
 		else if (isFileSync(`${path}/${self.name}.pkg`)) { // 本地包中存在.pkg文件
-			self.pkg_path = `zip:///${path.substr(8)}/${self.name}.pkg@`;  // file:///
+			self.pkg_path = `zip:///${path.substr(8)}/${self.name}.pkg?`;  // file:///
 			self._installComplete(self.pkg_path, cb);
 		}
 		else { // 无.pkg包
@@ -1365,7 +1367,6 @@ class Package {
 			});
 		}
 	}
-
 }
 
 function parseOptions(args: string[], options: Optopns) {

@@ -623,9 +623,8 @@ export default class NguiBuild {
 		return apps;
 	}
 
-	async build() { 
+	async build() {
 		var self = this;
-		var keys_path = self.m_source + '/proj.keys';
 
 		fs.mkdirpSync(this.m_target_local);
 		fs.mkdirpSync(this.m_target_public);
@@ -649,6 +648,8 @@ indent_size = 2
 			);
 		}
 		
+		var keys_path = self.m_source + '/proj.keys';
+
 		if ( !fs.existsSync(keys_path) ) { // No exists proj.keys file
 			// build pkgs
 			// scan each current target directory
