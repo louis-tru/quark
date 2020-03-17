@@ -135,7 +135,9 @@ export declare class View extends Notification<GUIEvent> implements DOM {
 	id: string; // ext
 	readonly __meta__: View;
 	readonly owner: ViewController | null;
+	ownerAs<T extends ViewController = ViewController>(): T;
 	action: Action | null;
+	actionAs<T extends Action = Action>(): T;
 	style: StyleSheet;
 	setAction(action: ActionIn | null): void;
 	hashCode(): number;

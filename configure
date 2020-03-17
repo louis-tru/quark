@@ -53,4 +53,8 @@ if   [ ! -d tools/node_modules/nxkit ] \
 	cd ../..
 fi
 
+if [ ! -d node_modules ]; then
+	ln -s libs node_modules
+fi
+
 node tools/configure.js "$@"

@@ -320,7 +320,7 @@ export class Overlay extends Navigation {
 	}
 	
 	fadeOut() {
-		this.view.transition({ opacity: 0, time: 200 }, ()=>{
+		this.domAs().transition({ opacity: 0, time: 200 }, ()=>{
 			this.remove();
 		});
 		this.unregisterNavigation(0);
@@ -352,7 +352,7 @@ export class Overlay extends Navigation {
 		var _offset_x = offset_x || 0;
 		var _offset_y = offset_y || 0;
 		
-		self.view.show();
+		self.domAs().show();
 		
 		self.m_pos_x = _x;
 		self.m_pos_y = _y;
@@ -361,7 +361,7 @@ export class Overlay extends Navigation {
 		
 		ngui.nextFrame(function() {
 			self._showOverlay(_x, _y, _offset_x, _offset_y);
-			self.view.transition({ opacity: 1, time: 200 });
+			self.domAs().transition({ opacity: 1, time: 200 });
 		});
 		
 		self.m_is_activate = true;

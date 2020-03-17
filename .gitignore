@@ -15,3 +15,4 @@ depe/glslang
 libs/nxkit
 node_modules
 libs/ngui/out
+.node_modules

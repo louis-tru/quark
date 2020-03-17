@@ -143,7 +143,7 @@ class Basic extends ViewController {
 	@event readonly onChange: EventNoticer<Event<boolean, Basic>>;
 
 	triggerMounted() {
-		this.view.onClick.on(()=>{
+		this.domAs().onClick.on(()=>{
 			if ( !this.m_disable )
 				this.selected = !this.selected;
 		}, '1');
@@ -159,7 +159,7 @@ class Basic extends ViewController {
 	}
 
 	set disable(value) {
-		this.view.receive = !value;
+		this.domAs().receive = !value;
 		this.m_disable = !!value;
 	}
 

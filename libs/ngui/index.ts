@@ -38,7 +38,7 @@ import event, {
 } from './event';
 import {View} from './_view';
 import {ViewController,_CVD} from './ctr';
-import { ActionIn, KeyframeOptions } from './_action';
+import { ActionIn, KeyframeOptions, Action } from './_action';
 import * as action from './action';
 import app from  './app';
 import display_port from './display_port';
@@ -90,6 +90,17 @@ class _View extends NativeNotification {
 
 	get owner() {
 		return this.m_owner;
+	}
+
+	ownerAs<T extends ViewController = ViewController>() {
+		utils.assert(this.m_owner, 'View.ownerAs<T>() = null');
+		return this.m_owner as T;
+	}
+
+	actionAs<T extends Action = Action>() {
+		var action = (this as unknown as View).getAction() as Action;
+		utils.assert(action, 'View.actionAs<T>() = null');
+		return action as T;
 	}
 
 	addDefaultListener(name: string, listen: Listen<GUIEvent> | string) {

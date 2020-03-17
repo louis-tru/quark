@@ -28,47 +28,62 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Div, Clip, Text } from 'ngui';
-import { Navbutton, Mynavpage } from './public';
-import './components';
-import './input';
-import './icons';
-import './media';
-import './action';
-import './fs';
-import './http';
-import './zlib';
-import './storage';
+import { Div, Text, default as ngui, _CVD } from 'ngui';
+import { Event } from 'ngui/event';
+import { Switch, Checkbox } from 'ngui/checkbox';
+import { Mynavpage } from './public';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
+const px = ngui.atomPixel;
+
+ngui.css({
+	'.checkbox_page': {
+		width: 'full',
+	},
+	'.checkbox_page .item': {
+		width: 'full',
+		borderBottom: `${px} #ccc`,
+	},
+	'.checkbox_page .text': {
+		width: '100!',
+		margin: 13,
+	},
+})
+
+function change_handle(evt: Event<boolean, Switch>) {
+	var checkbox = evt.sender;
+	var str = checkbox.selected ? 'YES' : 'NO';
+	str += checkbox.disable ? ',Disable' : '';
+	(checkbox.domAs().prev as Text).value = str;
+}
 
 export const vx = ()=>(
-
-	<Mynavpage title="Examples" source=resolve(__filename)>
-
-		<Scroll width="full" height="full" bounceLock=0>
-
-			<Text class="category_title" value="GUI." />
-			<Clip class="category">
-				<Navbutton next=components.vx id="btn0">Components</Navbutton>
-				<Navbutton next=media.vx>Multi-Media</Navbutton>
-				<Navbutton next=input.vx>Input</Navbutton>
-				<Navbutton next=icons.vx>Icons</Navbutton>
-				<Navbutton next=action.vx>Action</Navbutton>
-			</Clip>
-			
-			<Text class="category_title" value="Basic util." />
-			<Clip class="category">
-				<Navbutton next=fs.vx>File System</Navbutton>
-				<Navbutton next=http.vx>Http</Navbutton>
-				<!--Navbutton next=zlib.vx>Zlib</Navbutton-->
-				<Navbutton next=storage.vx>Local Storage</Navbutton>
-			</Clip>
-
-			<Div height=15 width="full" />
-		</Scroll>
-
+	<Mynavpage title="Checkbox" source={resolve(__filename)}>
+		<Div width="full" class="checkbox_page">
+			<Div class="item">
+				<Text class="text" value="YES" />
+				<Switch onChange={change_handle} style={{margin:10}} selected={1} />
+			</Div>
+			<Div class="item">
+				<Text class="text" value="NO,Disable" />
+				<Switch onChange={change_handle} style={{margin:10}} disable={1} />
+			</Div>
+			<Div class="item">
+				<Text class="text" value="NO" />
+				<Switch onChange={change_handle} style={{margin:10}} />
+			</Div>
+			<Div class="item">
+				<Text class="text" value="YES" />
+				<Checkbox onChange={change_handle} style={{margin:13}} selected={1} />
+			</Div>
+			<Div class="item">
+				<Text class="text" value="YES,Disable" />
+				<Checkbox onChange={change_handle} style={{margin:13}} disable={1} selected={1} />
+			</Div>
+			<Div class="item">
+				<Text class="text" value="NO" />
+				<Checkbox onChange={change_handle} style={{margin:13}} />
+			</Div>
+		</Div>
 	</Mynavpage>
-
 )
-

@@ -150,7 +150,7 @@ export class Dialog extends Navigation {
 	private _compute_buttons_width() {
 		var self = this;
 		var len = self.length;
-		if (!len || !self.view.visible)
+		if (!len || !self.domAs().visible)
 			return;
 		
 		if ( len == 1 ) {
@@ -232,9 +232,9 @@ export class Dialog extends Navigation {
 	}
 
 	show() {
-		if (!this.view.visible) {
+		if (!this.domAs().visible) {
 			this.appendTo(ngui.root);
-			this.view.visible = true;
+			this.domAs().visible = true;
 			ngui.nextFrame(()=>{
 				this._compute_buttons_width();
 				var main = this.IDs.main as Indep;
@@ -242,20 +242,20 @@ export class Dialog extends Navigation {
 				main.originY = main.finalHeight / 2;
 				main.scale = new value.Vec2(0.2, 0.2);
 				main.transition({ scale : '1 1', time: 250 });
-				this.view.opacity = 0.2;
-				this.view.transition({ opacity : 1, time: 250 });
+				this.domAs().opacity = 0.2;
+				this.domAs().transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
 	}
 
 	close() {
-		if ( this.view.visible ) {
+		if ( this.domAs().visible ) {
 			var main = this.IDs.main as Indep;
 			main.originX = main.finalWidth / 2;
 			main.originY = main.finalHeight / 2;
 			main.transition({ scale : '0.2 0.2', time: 300 });
-			this.view.transition({ opacity : 0.05, time: 300 }, ()=>{ this.remove() });
+			this.domAs().transition({ opacity : 0.05, time: 300 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);
@@ -281,7 +281,7 @@ export class Dialog extends Navigation {
 	}
 
 	navigationEnter(focus: View) {
-		if ( !this.view.hasChild(focus) ) {
+		if ( !this.domAs().hasChild(focus) ) {
 			if ( this.length ) {
 				this.triggerAction(this.length - 1);
 			}
@@ -342,27 +342,27 @@ export class Sheet extends Dialog {
 	}
 
 	show() {
-		if (!this.view.visible) {
+		if (!this.domAs().visible) {
 			this.appendTo(ngui.root);
-			this.view.visible = true;
+			this.domAs().visible = true;
 			ngui.nextFrame(()=>{
 				var main = this.IDs.main as Indep;
 				var height = main.finalHeight;
 				main.y = height;
 				main.transition({ y: 0, time: 250 });
-				this.view.opacity = 0.3;
-				this.view.transition({ opacity : 1, time: 250 });
+				this.domAs().opacity = 0.3;
+				this.domAs().transition({ opacity : 1, time: 250 });
 			});
 			this.registerNavigation(0);
 		}
 	}
 	
 	close() {
-		if ( this.view.visible ) {
+		if ( this.domAs().visible ) {
 			var main = this.IDs.main as Indep;
 			var height = main.finalHeight;
 			main.transition({ y: height, time: 250 });
-			this.view.transition({ opacity : 0.15, time: 250 }, ()=>{ this.remove() });
+			this.domAs().transition({ opacity : 0.15, time: 250 }, ()=>{ this.remove() });
 			this.unregisterNavigation(0);
 		} else {
 			this.unregisterNavigation(0);

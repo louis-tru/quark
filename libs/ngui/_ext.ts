@@ -65,6 +65,8 @@ interface NguiModule {
 	paths: string[];
 }
 
+declare var __filename: string;
+declare var __dirname: string;
 declare var __requireNgui__: RequireFunction;
 declare var require: NguiRequire;
 declare var module: NguiModule;

@@ -645,17 +645,17 @@ class Bar extends NavigationStatus {
 	}
 	
 	get visible() {
-		return this.view.visible;
+		return this.domAs().visible;
 	}
 	
 	set visible(value) {
 		if ( value ) {
 			if (this.isCurrent) {
-				this.view.visible = true;
+				this.domAs().visible = true;
 			}
 		} else {
 			if (!this.isCurrent) {
-				this.view.visible = false;
+				this.domAs().visible = false;
 			}
 		}
 	}
@@ -695,7 +695,7 @@ export class Navbar extends Bar {
 				backIconVisible = false;
 			}
 			
-			var nav_width = self.collection ? (self.collection.view as Div).finalWidth : 0;
+			var nav_width = self.collection ? self.collection.domAs<Div>().finalWidth : 0;
 			
 			// console.log('----------------------nav_width', nav_width);
 
@@ -768,8 +768,8 @@ export class Navbar extends Bar {
 
 	refreshStyle(time: number) {
 		if (this.isCurrent) {
-			(this.view as Indep).alignY = value.parseAlign('bottom');
-			(this.view as Indep).height = new value.Value(this.height);
+			(this.domAs() as Indep).alignY = value.parseAlign('bottom');
+			(this.domAs() as Indep).height = new value.Value(this.height);
 			(this.IDs.title_text_panel as Text).textLineHeight = value.parseTextLineHeight(this.height);
 			(this.IDs.back_text_btn as Button).textLineHeight = value.parseTextLineHeight(this.height);
 			super.refreshStyle(time);
@@ -848,16 +848,16 @@ export class Navbar extends Bar {
 					x: -this.m_back_panel_width + back_icon_width, time: time,
 				});
 			}
-			this.view.transition({ opacity: 0, time: time }, ()=>{ this.view.hide() });
+			this.domAs().transition({ opacity: 0, time: time }, ()=>{ this.domAs().hide() });
 		} else {
-			this.view.opacity = 0;
-			this.view.hide();
+			this.domAs().opacity = 0;
+			this.domAs().hide();
 		}
 		super.intoBackground(time);
 	}
 	
 	intoForeground(time: number, action: NavigationForegroundAction) { 
-		this.view.show(); // show
+		this.domAs().show(); // show
 		if ( time ) {
 			if ( this.$defaultStyle ) {
 				var back_icon_width = 0; // this.IDs.back_text0.visible ? 20 : 0;
@@ -871,10 +871,10 @@ export class Navbar extends Bar {
 				(this.IDs.back_text1 as View).x = 0;
 				(this.IDs.title_text_panel as View).x = 0;
 			}
-			this.view.opacity = 0;
-			this.view.transition({ opacity: 1, time: time });
+			this.domAs().opacity = 0;
+			this.domAs().transition({ opacity: 1, time: time });
 		} else {
-			this.view.opacity = 1;
+			this.domAs().opacity = 1;
 			(this.IDs.back_text1 as View).x = 0;
 			(this.IDs.title_text_panel as View).x = 0;
 		}
@@ -890,7 +890,7 @@ export class Navbar extends Bar {
 					x: this.m_title_panel_width + this.$titleMenuWidth, time: time,
 				});
 			}
-			this.view.transition({ opacity: 0, time: time }, ()=>{ this.remove() });
+			this.domAs().transition({ opacity: 0, time: time }, ()=>{ this.remove() });
 		} else {
 			this.remove();
 		}
@@ -921,13 +921,13 @@ export class Toolbar extends Bar {
 		if ( time ) {
 			var page = (this.page.nextPage || this.page.prevPage);
 			if (!page || page.toolbar !== this) {
-				this.view.show();
-				this.view.opacity = 0;
-				this.view.transition({ opacity: 1, time: time });
+				this.domAs().show();
+				this.domAs().opacity = 0;
+				this.domAs().transition({ opacity: 1, time: time });
 			}
 		} else {
-			this.view.show();
-			this.view.opacity = 1;
+			this.domAs().show();
+			this.domAs().opacity = 1;
 		}
 		super.intoForeground(time, action);
 	}
@@ -935,10 +935,10 @@ export class Toolbar extends Bar {
 	intoBackground(time: number) {
 		if ( this.collection.current.toolbar !== this ) {
 			if ( time ) {
-				this.view.transition({ opacity: 0, time: time }, ()=>{ this.view.hide() });
+				this.domAs().transition({ opacity: 0, time: time }, ()=>{ this.domAs().hide() });
 			} else {
-				this.view.opacity = 0;
-				this.view.hide();
+				this.domAs().opacity = 0;
+				this.domAs().hide();
 			}
 		}
 		super.intoBackground(time);
@@ -947,11 +947,11 @@ export class Toolbar extends Bar {
 	intoLeave(time: number) {
 		if ( this.collection.current.toolbar !== this ) {
 			if ( this.status == 0 && time ) {
-				this.view.transition({ opacity: 0, time: time }, ()=>{
+				this.domAs().transition({ opacity: 0, time: time }, ()=>{
 					if ( this.collection.defaultToolbar !== this ) {
 						this.remove();
 					} else {
-						this.view.hide();
+						this.domAs().hide();
 					}
 				});
 			
@@ -959,7 +959,7 @@ export class Toolbar extends Bar {
 				if ( this.collection.defaultToolbar !== this ) {
 					this.remove();
 				} else {
-					this.view.hide();
+					this.domAs().hide();
 				}
 			}
 		}
@@ -975,7 +975,7 @@ export class Toolbar extends Bar {
  * @func backgroundColorReverse
  */
 function backgroundColorReverse(self: NavPage) {
-	var color = (self.view as Indep).backgroundColor.reverse();
+	var color = self.domAs<Indep>().backgroundColor.reverse();
 	color.a = 255 * 0.6;
 	return color;
 }
@@ -1079,10 +1079,10 @@ export class NavPage extends Navigation {
 		this.navbar.intoBackground(time);
 		this.toolbar.intoBackground(time);
 		if ( this.status != 1 ) {
-			if ( time && (this.view.parent as Div).finalVisible ) {
-				this.view.transition({ x: (this.view.parent as Div).finalWidth / -3, visible: false, time: time });
+			if ( time && (this.domAs().parent as Div).finalVisible ) {
+				this.domAs().transition({ x: (this.domAs().parent as Div).finalWidth / -3, visible: false, time: time });
 			} else {
-				this.view.style = { x: ((this.view.parent as Div).finalWidth || 100) / -3, visible: false };
+				this.domAs().style = { x: ((this.domAs().parent as Div).finalWidth || 100) / -3, visible: false };
 			}
 		}
 		super.intoBackground(time);
@@ -1095,27 +1095,27 @@ export class NavPage extends Navigation {
 		this.toolbar.intoForeground(time, action);
 		this.m_nextPage = null;
 		if ( this.status == -1 ) {
-			if ( time && (this.view.parent as Div).finalVisible ) {
-				this.view.style = { 
+			if ( time && (this.domAs().parent as Div).finalVisible ) {
+				this.domAs().style = { 
 					borderLeftColor: backgroundColorReverse(this), 
 					borderLeftWidth: ngui.atomPixel, 
-					x: (this.view.parent as Div).finalWidth, 
+					x: (this.domAs().parent as Div).finalWidth, 
 					visible: true,
 				};
-				this.view.transition({ x: 0, time: time }, ()=>{ 
-					(this.view as Indep).borderLeftWidth = 0;
+				this.domAs().transition({ x: 0, time: time }, ()=>{ 
+					(this.domAs() as Indep).borderLeftWidth = 0;
 				});
 			} else {
-				this.view.style = { x: 0, borderLeftWidth: 0, visible: true };
+				this.domAs().style = { x: 0, borderLeftWidth: 0, visible: true };
 			}
 			(this.m_toolbar as any).m_page = this;
 		} 
 		else if ( this.status == 1 ) {
-			if ( time && (this.view.parent as Div).finalVisible ) {
-				this.view.visible = true;
-				this.view.transition({ x: 0, time: time });
+			if ( time && (this.domAs().parent as Div).finalVisible ) {
+				this.domAs().visible = true;
+				this.domAs().transition({ x: 0, time: time });
 			} else {
-				this.view.style = { x: 0, visible: true };
+				this.domAs().style = { x: 0, visible: true };
 			}
 			(this.m_toolbar as any).m_page = this;
 		}
@@ -1127,12 +1127,12 @@ export class NavPage extends Navigation {
 		this.navbar.intoLeave(time);
 		this.toolbar.intoLeave(time);
 		if ( this.status == 0 ) {
-			if ( time && (this.view.parent as Div).finalVisible ) {
-				this.view.style = { 
+			if ( time && (this.domAs().parent as Div).finalVisible ) {
+				this.domAs().style = { 
 					borderLeftColor: backgroundColorReverse(this), 
 					borderLeftWidth: ngui.atomPixel, 
 				};
-				this.view.transition({ x: (this.view.parent as Div).finalWidth, visible: false, time: time }, ()=>{
+				this.domAs().transition({ x: (this.domAs().parent as Div).finalWidth, visible: false, time: time }, ()=>{
 					this.remove();
 				});
 				super.intoLeave(time);

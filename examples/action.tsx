@@ -29,34 +29,35 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { 
-	Div, Hybrid, Text, Button, Image, Indep, Clip,
+	Hybrid, Text, Button, Image, Indep, Clip, ViewController, View, _CVD
 } from 'ngui';
-import { HIGHLIGHTED_DOWN } from 'ngui/event';
-import { Toolbar } from 'ngui/nav';
+import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'ngui/event';
+import { Toolbar, NavPage } from 'ngui/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 
 var resolve = require.resolve;
 
-function view_code(evt) {
-	evt.sender.owner.collection.push(review_vx(), 1);
+function view_code(evt: GUIClickEvent) {
+	(evt.sender.owner as NavPage).collection.push(review_vx(), true);
 }
 
-function highlighted(evt) {
-	var img1 = evt.sender.owner.IDs.img1;
-	var img2 = evt.sender.owner.IDs.img2;
+function highlighted(evt: GUIHighlightedEvent) {
+	var owner = evt.sender.ownerAs();
+	var img1 = owner.find('img1');
+	var img2 = owner.find('img2');
 	var speed = 1;
-	if ( evt.status == HIGHLIGHTED_DOWN ) {
+	if ( evt.status == HighlightedStatus.HIGHLIGHTED_DOWN ) {
 		speed = img1 === evt.sender ? 2 : 0.5;
 	}
-	img1.action.speed = speed;
-	img2.action.speed = speed;
+	img1.actionAs().speed = speed;
+	img2.actionAs().speed = speed;
 }
 
 const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
-			<Button onClick=view_code>
+			<Button onClick={view_code}>
 				<Text class="toolbar_btn" textColor="#fff" value="\ue9ab" />
 			</Button>
 		</Hybrid>
@@ -65,36 +66,38 @@ const toolbar_vx = ()=>(
 
 export const vx = ()=>(
 	<Mynavpage 
-		navbar.backgroundColor="#333"
-		navbar.backTextColor="#fff" 
-		navbar.titleTextColor="#fff"
-		toolbar=(toolbar_vx())
+		navbar={<Toolbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
+		toolbar={toolbar_vx()}
 		backgroundColor="#333"
-		title="Action" source=resolve(__filename)>
+		title="Action" source={resolve(__filename)}>
 		<Clip width="full" height="full">
 
-			<Indep width=600 alignX="center" alignY="center" y=-15 opacity=0.5>
-				<Image onHighlighted=highlighted id="img1" src=resolve('./gear0.png')
+			<Indep width={600} alignX="center" alignY="center" y={-15} opacity={0.5}>
+				<Image onHighlighted={highlighted} id="img1" src={resolve('./gear0.png')}
 					marginLeft="auto" marginRight="auto" 
-					y=56 width=600 origin="300 300"
-					action=[
-						{ rotateZ: 0, time:0, curve:'linear' }, 
-						{ rotateZ: -360, time: 4000, curve:'linear' },
-					]
-					action.loop=1e8
-					action.playing=1
+					y={56} width={600} origin="300 300"
+					action={{
+						keyframe:[
+							{ rotateZ: 0, time:0, curve:'linear' }, 
+							{ rotateZ: -360, time: 4000, curve:'linear' },
+						],
+						loop: 1e8,
+						playing: true,
+					}}
 				/>
-				<Image onHighlighted=highlighted id="img2" src=resolve('./gear1.png')
+				<Image onHighlighted={highlighted} id="img2" src={resolve('./gear1.png')}
 					marginLeft="auto" 
 					marginRight="auto"
-					width=361 
+					width={361} 
 					origin="180.5 180.5"
-					action=[
-						{ rotateZ: 22.5, time:0, curve:'linear' }, 
-						{ rotateZ: 22.5 + 360, time: 2000, curve:'linear' },
-					]
-					action.loop=1e8
-					action.playing=1
+					action={{
+						keyframe: [
+							{ rotateZ: 22.5, time:0, curve:'linear' }, 
+							{ rotateZ: 22.5 + 360, time: 2000, curve:'linear' },
+						],
+						loop: 1e8,
+						playing: true,
+					}}
 				/>
 			</Indep>
 

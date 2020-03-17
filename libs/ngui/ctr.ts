@@ -656,12 +656,17 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 		return this.m_vdom ? this.m_vdom.dom: null;
 	}
 
+	ownerAs<T extends ViewController = ViewController>() {
+		utils.assert(this.m_owner, 'ViewController.ownerAs<T>() = null');
+		return this.m_owner as T;
+	}
+
 	/**
 	 * Insecure access
 	 */
-	get view(): View {
-		utils.assert(this.m_vdom, 'ViewController.view = null');
-		return (this.m_vdom as VirtualDOM).dom as View;
+	domAs<T extends DOM = View>() {
+		utils.assert(this.m_vdom, 'ViewController.viewAs<T>() = null');
+		return (this.m_vdom as VirtualDOM).dom as T;
 	}
 
 	get isLoaded() {

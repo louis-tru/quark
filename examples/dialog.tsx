@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode } from 'ngui';
+import { Div, Button, TextNode, _CVD } from 'ngui';
 import { Mynavpage } from './public';
-import 'ngui/dialog';
+import * as dialog from 'ngui/dialog';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
 
 function alert() {
 	dialog.alert('Hello alert.');
@@ -64,13 +64,13 @@ function custom() {
 	});
 }
 
-export const vx = ()=>(
-	<Mynavpage title="Dialog" source=resolve(__filename)>
+export default ()=>(
+	<Mynavpage title="Dialog" source={resolve(__filename)}>
 		<Div width="full">
-			<Button class="long_btn" onClick=alert>Alert</Button>
-			<Button class="long_btn" onClick=confirm>Confirm</Button>
-			<Button class="long_btn" onClick=prompt>Prompt</Button>
-			<Button class="long_btn" onClick=custom>Custom</Button>
+			<Button class="long_btn" onClick={alert}>Alert</Button>
+			<Button class="long_btn" onClick={confirm}>Confirm</Button>
+			<Button class="long_btn" onClick={prompt}>Prompt</Button>
+			<Button class="long_btn" onClick={custom}>Custom</Button>
 		</Div>
 	</Mynavpage>
 )
