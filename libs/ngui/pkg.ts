@@ -1113,13 +1113,7 @@ class PackageIMPL {
 
 	private _installComplete(versions_path: string, cb?: Cb) {
 		var self = this;
-		// 读取package.json文件
-		var json = self.json;
-		if (json.name != self.name) {
-			return throwErr('Lib name must be ' +
-											 `consistent with the folder name, ${self.name} != ${json.name}`, cb);
-		}
-	
+
 		if (self.build || isNetwork(versions_path)) {
 			// 读取package内部资源文件版本信息
 			var versions_json = versions_path + '/versions.json';

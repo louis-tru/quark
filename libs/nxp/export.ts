@@ -133,7 +133,7 @@ class Package {
 	}
 
 	// reset app resources
-	private set_dependencies() {
+	private gen_before() {
 		var self = this;
 
 		var includes: string[] = [];
@@ -423,7 +423,7 @@ class Package {
 
 	gen() {
 		if (!this._gypi) {
-			this.set_dependencies();
+			this.gen_before();
 			var os = this.host.os;
 			if ( os == 'ios' ) {
 				this._gypi = this.gen_ios_gypi();
@@ -687,7 +687,7 @@ export default class NguiExport {
 						str = str.replace(reg0, '').replace(reg1, '');
 						fs.writeFileSync(cmake, str);
 					});
-	
+
 					// write CMakeLists.txt path
 					self.write_cmake_depe_to_android_build_gradle(pkg, out[0], true);
 				} else {

@@ -41,18 +41,6 @@ const uglify = require('./uglify');
 const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
 
-export const native_source = [
-	'.c',
-	'.cc',
-	'.cpp',
-	'.cxx',
-	'.m',
-	'.mm',
-	'.s', 
-	'.swift',
-	'.java',
-];
-
 function resolveLocal(...args: string[]) {
 	return path.fallbackPath(path.resolve(...args));
 }
@@ -130,7 +118,7 @@ function read_file_text(pathname: string) {
 	};
 }
 
-export interface PackageJson {
+export interface PackageJson extends Dict {
 	name: string;
 	main: string;
 	version: string;
@@ -154,10 +142,6 @@ export interface PackageJson {
 }
 
 type PkgJson = PackageJson;
-
-interface OutputPkg {
-	pkg_json: PkgJson;
-}
 
 class Hash {
 	
@@ -198,39 +182,33 @@ class Hash {
 	}
 }
 
-export default class NguiBuild {
-	
-	private m_source                    = '';
-	private m_target_local              = '';
-	private m_target_public             = '';
-	private m_cur_pkg_name              = '';
-	private m_cur_pkg_source            = '';
-	private m_cur_pkg_target_local      = '';
-	private m_cur_pkg_target_public     = '';
-	private m_cur_pkg_json: PkgJson | null = null;
-	private m_cur_pkg_versions: Dict<string> = {};
-	private m_cur_pkg_detach_file: string[] = [];
-	private m_cur_pkg_skip_file: string[] = [];
-	private m_cur_pkg_enable_minify     = false;
-	private m_cur_pkg_tsconfig_outDir   = '';
-	private m_output_pkgs: Dict<OutputPkg>= {};
+class Package {
+	private m_output_name       = '';
+	private m_source            = '';
+	private m_target_local      = '';
+	private m_target_public     = '';
+	private m_versions: Dict<string> = {};
+	private m_detach_file: string[] = [];
+	private m_skip_file: string[] = [];
+	private m_enable_minify     = false;
+	private m_tsconfig_outDir   = '';
+	private m_host: NguiBuild;
 
-	ignore_hide = true; // 忽略隐藏文件
-	minify = -1; // 缩小与混淆js代码，-1表示使用package.json定义
-	skip: string[] = [];// 跳过文件列表
-	detach: string[] = []; // 分离文件列表
-
-	constructor(source: string, target: string) {
-		this.m_source           = resolveLocal(source);
-		this.m_target_local     = resolveLocal(target, 'install');
-		this.m_target_public    = resolveLocal(target, 'public');
-		
-		util.assert(fs.existsSync(this.m_source), 'Build source does not exist ,{0}', this.m_source);
-		util.assert(fs.statSync(this.m_source).isDirectory());
-	}
+	readonly json: PkgJson;
 
 	private _console_log(tag: string, pathname: string, desc?: string) {
-		console.log(tag, this.m_cur_pkg_name + '/' + pathname, desc);
+		console.log(tag, this.m_output_name + '/' + pathname, desc);
+	}
+
+	constructor(host: NguiBuild, source_path: string, outputName: string, json: PkgJson) {
+		this.m_host = host;
+		this.m_source = source_path;
+		this.json = json;
+		this.m_output_name = outputName;
+		this.m_target_local     = this.m_host.target_local + '/' + outputName;
+		this.m_target_public    = this.m_host.target_public + '/' + outputName;
+		this.m_skip_file        = this._get_skip_files(this.json, outputName);
+		this.m_detach_file      = this._get_detach_files(this.json, outputName);
 	}
 
 	// 获取跳过文件列表
@@ -255,7 +233,7 @@ export default class NguiBuild {
 		rev.push('versions.json');
 
 		var reg = new RegExp('^:?' + name + '$');
-		self.skip.forEach(function (src) {
+		self.m_host.skip.forEach(function (src) {
 			var ls = src.split('/');
 			if (reg.test(ls.shift() as string) && ls.length) {
 				rev.push(ls.join('/'));
@@ -280,7 +258,7 @@ export default class NguiBuild {
 		}
 		
 		var reg = new RegExp('^:?' + name + '$');
-		self.detach.forEach(function (src) {
+		self.m_host.detach.forEach(function (src) {
 			var ls = src.split('/');
 			if (reg.test(ls.shift() as string) && ls.length) {
 				rev.push(ls.join('/'));
@@ -289,52 +267,24 @@ export default class NguiBuild {
 		return rev;
 	}
 
-	private _build(pathname: string, ignore_public?: boolean): OutputPkg | null {
+	build(ignore_public?: boolean) {
 		var self = this;
-		var target_local = this.m_target_local;
-		var target_public = this.m_target_public;
-		var source_path = resolveLocal(pathname);
-		var name = path.basename(source_path);
-		var target_local_path = target_local + '/' + name;
-		var target_public_path = target_public + '/' + name;
-
-		// ignore network pkg 
-		if ( /^https?:\/\//i.test(source_path) ) { 
-			return null;
-		}
-
-		var out = self.m_output_pkgs[name];
-		if ( out ) { // Already complete
-			return out;
-		}
-
-		var pkg_json = parse_json_file(source_path + '/package.json') as PkgJson;
-
-		util.assert(pkg_json.name && pkg_json.name == name, 
-								'Lib name must be consistent with the folder name, ' + 
-								name  + ' != ' + pkg_json.name);
-
-		self.m_output_pkgs[name] = out = { pkg_json };
-
-		self.m_cur_pkg_name             = name;
-		self.m_cur_pkg_source           = source_path;
-		self.m_cur_pkg_target_local     = target_local_path;
-		self.m_cur_pkg_target_public    = target_public_path;
-		self.m_cur_pkg_json             = pkg_json;
-		self.m_cur_pkg_versions         = {};
-		self.m_cur_pkg_skip_file        = self._get_skip_files(pkg_json, name);
-		self.m_cur_pkg_detach_file      = self._get_detach_files(pkg_json, name);
+		var source_path = self.m_source;
+		var pkg_json = self.json;
 
 		if ( pkg_json.hash ) { // 已经build过,直接拷贝到目标
 			self._copy_pkg(pkg_json, source_path);
-			return out;
+			return;
 		}
 
-		if ( self.minify == -1 ) { // 使用package.json定义
+		var target_local_path = self.m_target_local;
+		var target_public_path = self.m_target_public;
+
+		if ( self.m_host.minify == -1 ) { // 使用package.json定义
 			// package.json 默认不启用 `minify`
-			self.m_cur_pkg_enable_minify = 'minify' in pkg_json ? !!pkg_json.minify : false;
+			self.m_enable_minify = 'minify' in pkg_json ? !!pkg_json.minify : false;
 		} else {
-			self.m_cur_pkg_enable_minify = !!self.minify;
+			self.m_enable_minify = !!self.m_host.minify;
 		}
 
 		fs.removerSync(target_local_path);
@@ -346,30 +296,30 @@ export default class NguiBuild {
 
 		// build tsc
 		if (fs.existsSync(source_path + '/tsconfig.json')) {
-			self.m_cur_pkg_tsconfig_outDir = source_path;
+			self.m_tsconfig_outDir = source_path;
 			var tsconfig = parse_json_file(source_path + '/tsconfig.json');
 			if (tsconfig.compilerOptions?.outDir) {
 				var outDir = tsconfig.compilerOptions.outDir;
 				if (path.isAbsolute(outDir)) {
-					self.m_cur_pkg_tsconfig_outDir = resolveLocal(outDir);
+					self.m_tsconfig_outDir = resolveLocal(outDir);
 				} else {
-					self.m_cur_pkg_tsconfig_outDir = resolveLocal(source_path, outDir);
+					self.m_tsconfig_outDir = resolveLocal(source_path, outDir);
 				}
 			}
 			exec_cmd(`cd ${source_path} && tsc`);
 		}
 
 		// each dir
-		self._build_each_pkg_dir('');
+		self._build_each_pkg_dir('', '');
 
 		var hash = new Hash();
-		for (var i in self.m_cur_pkg_versions) {  // 计算 version code
-			hash.update_str(self.m_cur_pkg_versions[i]);
+		for (var i in self.m_versions) {  // 计算 version code
+			hash.update_str(self.m_versions[i]);
 		}
 
 		pkg_json.hash = hash.digest();
 
-		var cur_pkg_versions = self.m_cur_pkg_versions;
+		var cur_pkg_versions = self.m_versions;
 		var versions = { versions: cur_pkg_versions };
 		var skipInstall = pkg_json.skipInstall;
 		delete pkg_json.skipInstall;
@@ -386,24 +336,22 @@ export default class NguiBuild {
 				if (versions.versions[i].charAt(0) != '.')
 					pkg_files.push('"' + i + '"');
 			}
-			new_zip(target_local_path, pkg_files, target_public_path + '/' + name + '.pkg');
+			new_zip(target_local_path, pkg_files, target_public_path + '/' + pkg_json.name + '.pkg');
 		}
 
 		if ( skipInstall ) { // skip install
 			let skip_install = resolveLocal(target_local_path, '../../skip_install');
 			fs.mkdirpSync(skip_install);
-			fs.removerSync(skip_install + '/' + name);
-			fs.renameSync(target_local_path, path + '/' + name);
+			fs.removerSync(skip_install + '/' + self.m_output_name);
+			fs.renameSync(target_local_path, path + '/' + self.m_output_name);
 		}
-
-		return out;
 	}
 
 	private _copy_js(source: string, target_local: string) {
 		var self = this;
 		var data = read_file_text(source);
 
-		if ( self.m_cur_pkg_enable_minify ) {
+		if ( self.m_enable_minify ) {
 			var minify = uglify.minify(data.value, {
 				toplevel: true,
 				keep_fnames: false,
@@ -437,25 +385,37 @@ export default class NguiBuild {
 		return data.hash;
 	}
 
+	private _write_string(pathname: string, content: string) {
+		var self = this;
+		var target_local  = resolveLocal(self.m_target_local, pathname);
+		var target_public = resolveLocal(self.m_target_public, pathname);
+		fs.mkdirpSync( path.dirname(target_local) ); // 先创建目录
+		fs.writeFileSync(target_local, content, 'utf8');
+		var hash = new Hash();
+		hash.update_str(content);
+		fs.cp_sync(target_local, target_public);
+		self.m_versions[pathname] = hash.digest(); // 记录文件 hash
+	}
+
 	private _build_file(pathname: string) {
 		var self = this;
 		// 跳过文件
-		for (var i = 0; i < self.m_cur_pkg_skip_file.length; i++) {
-			var name = self.m_cur_pkg_skip_file[i];
+		for (var i = 0; i < self.m_skip_file.length; i++) {
+			var name = self.m_skip_file[i];
 			if ( pathname.indexOf(name) == 0 ) { // 跳过这个文件
 				self._console_log('Skip', pathname);
 				return;
 			}
 		}
-		var source        = resolveLocal(self.m_cur_pkg_source, pathname);
-		var target_local  = resolveLocal(self.m_cur_pkg_target_local, pathname);
-		var target_public = resolveLocal(self.m_cur_pkg_target_public, pathname);
+		var source        = resolveLocal(self.m_source, pathname);
+		var target_local  = resolveLocal(self.m_target_local, pathname);
+		var target_public = resolveLocal(self.m_target_public, pathname);
 		var extname       = path.extname(pathname).toLowerCase();
 		var is_detach     = false;
 		var hash          = '';
 
-		for (var i = 0; i < self.m_cur_pkg_detach_file.length; i++) {
-			var name = self.m_cur_pkg_detach_file[i];
+		for (var i = 0; i < self.m_detach_file.length; i++) {
+			var name = self.m_detach_file[i];
 			if (pathname.indexOf(name) === 0) {
 				is_detach = true; // 分离这个文件
 				break;
@@ -473,11 +433,11 @@ export default class NguiBuild {
 				if (pathname.substr(-2 - extname.length, 2) == '.d') { // typescript define
 					self._console_log('Copy', pathname);
 					hash = copy_file(source, target_local);
-				} else if (self.m_cur_pkg_tsconfig_outDir) {
+				} else if (self.m_tsconfig_outDir) {
 					pathname = pathname.substr(0,  pathname.length - extname.length) + '.js';
-					target_local = resolveLocal(self.m_cur_pkg_target_local, pathname);
-					target_public = resolveLocal(self.m_cur_pkg_target_public, pathname);
-					hash = self._copy_js(self.m_cur_pkg_tsconfig_outDir + '/' + pathname, target_local);
+					target_local = resolveLocal(self.m_target_local, pathname);
+					target_public = resolveLocal(self.m_target_public, pathname);
+					hash = self._copy_js(self.m_tsconfig_outDir + '/' + pathname, target_local);
 				} else {
 					self._console_log('Ignore', pathname, 'No tsconfig.json');
 					return;
@@ -509,25 +469,44 @@ export default class NguiBuild {
 			hash = '.' + hash; // Separate files with "." before hash
 		}
 
-		self.m_cur_pkg_versions[pathname] = hash; // 记录文件 hash
+		self.m_versions[pathname] = hash; // 记录文件 hash
 	}
 
-	private _build_each_pkg_dir(pathname: string) {
+	private _build_each_pkg_dir(pathname: string, basename: string) {
 		var self = this;
-		var path2 = resolveLocal(self.m_cur_pkg_source, pathname);
+		var dir = resolveLocal(self.m_source, pathname);
 
-		for (var stat of fs.listSync(path2)) {
-			if (stat.name[0] != '.' || !self.ignore_hide) {
-				var path3 = pathname ? pathname + '/' + stat.name : stat.name; 
-				if ( stat.isFile() ) {
-					self._build_file(path3);
-				} else if ( stat.isDirectory() ) {
-					if (self.m_cur_pkg_tsconfig_outDir == path2) { // skip ts out dir
-						if (self.m_cur_pkg_tsconfig_outDir == self.m_cur_pkg_source) { // no skip root source
-							self._build_each_pkg_dir(path3);
-						}
-					} else {
-						self._build_each_pkg_dir(path3);
+		if (self.m_tsconfig_outDir == dir) { // skip ts out dir
+			if (self.m_tsconfig_outDir != self.m_source) { // no skip root source
+				return;
+			}
+		}
+
+		if (basename == 'node_modules') {
+			var pkgs: Dict<PkgJson> = {};
+			var ok = false;
+			for (var stat of fs.listSync(dir)) {
+				var pkg_path = dir + '/' + stat.name;
+				if (stat.isDirectory() && fs.existsSync( pkg_path + '/package.json')) {
+					var pkg = self.m_host.buildPackage(pkg_path, false, true) as Package;
+					var symlink = path.relative(`${self.m_target_local}/${pathname}`, `${self.m_target_local}/${pkg.m_output_name}`);
+					self._write_string(pathname + '/' + pkg.json.name, symlink);
+					pkgs[pkg.m_output_name] = pkg.json;
+					pkg.json.symlink = symlink;
+					ok = true;
+				}
+			}
+			if (ok)
+				self._write_string(pathname + '/packages.json', JSON.stringify(pkgs, null, 2));
+		} else {
+			for (var stat of fs.listSync(dir)) {
+				if (stat.name[0] != '.' || !self.m_host.ignore_hide) {
+					var basename = stat.name;
+					let path = pathname ? pathname + '/' + basename : basename; 
+					if ( stat.isFile() ) {
+						self._build_file(path);
+					} else if ( stat.isDirectory() ) {
+						self._build_each_pkg_dir(path, basename);
 					}
 				}
 			}
@@ -535,7 +514,7 @@ export default class NguiBuild {
 	}
 
 	private _copy(source: string, target: string) {
-		fs.cp_sync(source, target, { ignore_hide: this.ignore_hide });
+		fs.cp_sync(source, target, { ignore_hide: this.m_host.ignore_hide });
 	}
 
 	private _copy_pkg(pkg_json: PkgJson, source: string) {
@@ -571,26 +550,80 @@ export default class NguiBuild {
 		}
 	}
 
+}
+
+export default class NguiBuild {
+	
+	readonly source: string;
+	readonly target_local: string;
+	readonly target_public: string;
+	readonly outputs: Dict<Package>= {};
+
+	ignore_hide = true; // 忽略隐藏文件
+	minify = -1; // 缩小与混淆js代码，-1表示使用package.json定义
+	skip: string[] = [];// 跳过文件列表
+	detach: string[] = []; // 分离文件列表
+
+	constructor(source: string, target: string) {
+		this.source           = resolveLocal(source);
+		this.target_local     = resolveLocal(target, 'install');
+		this.target_public    = resolveLocal(target, 'public');
+		
+		util.assert(fs.existsSync(this.source), 'Build source does not exist ,{0}', this.source);
+		util.assert(fs.statSync(this.source).isDirectory());
+	}
+
 	private _copy_outer_file(items: Dict<string>) {
 		var self = this;
 		for (var source in items) {
 			var target = items[source] || source;
 			console.log('Copy', source);
-			fs.cp_sync(self.m_source + '/' + source, 
-								 self.m_target_local + '/' + target, { ignore_hide: self.ignore_hide });
+			fs.cp_sync(self.source + '/' + source, 
+								 self.target_local + '/' + target, { ignore_hide: self.ignore_hide });
 		}
 	}
-	
+
+	buildPackage(pathname: string, ignore_public?: boolean, hasFullname?: boolean) {
+		var self = this;
+		var source_path = resolveLocal(pathname);
+
+		// ignore network pkg 
+		if ( /^https?:\/\//i.test(source_path) ) { 
+			return null;
+		}
+
+		var pkg_json: PkgJson | null = null;
+		var __ = ()=>{
+			if (!pkg_json) {
+				pkg_json = parse_json_file(source_path + '/package.json') as PkgJson;
+			}
+			return pkg_json;
+		};
+
+		var outputName = hasFullname ? __().name + '@' + __().version: path.basename(source_path);
+		var pkg = self.outputs[outputName];
+		if ( pkg ) { // Already complete
+			return pkg;
+		}
+
+		self.outputs[outputName] = pkg = new Package(this, source_path, outputName, __());
+
+		pkg.build(ignore_public);
+
+		return pkg;
+
+	}
+
 	private _build_result() {
 		var self = this;
 		var result: Dict<PkgJson> = {};
 		var ok = 0;
-		for ( var name in self.m_output_pkgs ) {
-			result[name] = self.m_output_pkgs[name].pkg_json;
+		for ( var name in self.outputs ) {
+			result[name] = self.outputs[name].pkg_json;
 			ok = 1;
 		}
 		if ( ok ) {
-			fs.writeFileSync(self.m_target_public + '/packages.json', JSON.stringify(result, null, 2));
+			fs.writeFileSync(self.target_public + '/packages.json', JSON.stringify(result, null, 2));
 		} else {
 			console.log('No package build');
 		}
@@ -598,7 +631,7 @@ export default class NguiBuild {
 
 	async install_depe() {
 		var self = this;
-		var keys_path = self.m_source + '/proj.keys';
+		var keys_path = self.source + '/proj.keys';
 
 		if ( !fs.existsSync(keys_path) )
 			return [];
@@ -639,14 +672,14 @@ export default class NguiBuild {
 	async build() {
 		var self = this;
 
-		fs.mkdirpSync(this.m_target_local);
-		fs.mkdirpSync(this.m_target_public);
+		fs.mkdirpSync(this.target_local);
+		fs.mkdirpSync(this.target_public);
 
-		if (!fs.existsSync(`${self.m_source}/.gitignore`)) {
-			fs.writeFileSync(`${self.m_source}/.gitignore`, 'out\n');
+		if (!fs.existsSync(`${self.source}/.gitignore`)) {
+			fs.writeFileSync(`${self.source}/.gitignore`, 'out\n');
 		}
 
-		if (!fs.existsSync(`${self.m_source}/.editorconfig`)) {
+		if (!fs.existsSync(`${self.source}/.editorconfig`)) {
 			fs.writeFileSync(`${self.m_source}/.editorconfig`,
 `
 # top-most EditorConfig file  
@@ -661,17 +694,17 @@ indent_size = 2
 			);
 		}
 		
-		var keys_path = self.m_source + '/proj.keys';
+		var keys_path = self.source + '/proj.keys';
 
 		if ( !fs.existsSync(keys_path) ) { // No exists proj.keys file
 			// build pkgs
 			// scan each current target directory
-			fs.listSync(self.m_source).forEach(function(stat) {
+			fs.listSync(self.source).forEach(function(stat) {
 				if ( stat.name[0] != '.' && 
 						 stat.isDirectory() && 
-						 fs.existsSync( self.m_source + '/' + stat.name + '/package.json' )
+						 fs.existsSync( self.source + '/' + stat.name + '/package.json' )
 				) {
-					self._build(self.m_source + '/' + stat.name);
+					self.buildPackage(self.source + '/' + stat.name);
 				}
 			});
 			self._build_result();
@@ -690,20 +723,20 @@ indent_size = 2
 
 		// build application node_modules
 
-		var node_modules = self.m_source + '/node_modules';
+		var node_modules = self.source + '/node_modules';
 
 		if ( fs.existsSync(node_modules) && fs.statSync(node_modules).isDirectory() ) {
 			fs.listSync(node_modules).forEach(function(stat) {
 				var source = node_modules + '/' + stat.name;
 				if ( stat.isDirectory() && fs.existsSync(source + '/package.json') ) {
-					self._build(source);
+					self.buildPackage(source);
 				}
 			});
 		}
 
 		// build apps
-		for (var app of apps){
-			self._build(self.m_source + '/' + app);
+		for (var app of apps) {
+			self.buildPackage(self.source + '/' + app);
 		}
 
 		self._build_result();
@@ -714,12 +747,12 @@ indent_size = 2
 	 */
 	initialize() {
 		var project_name = path.basename(process.cwd()) || 'nguiproj';
-		var proj_keys = this.m_source + '/proj.keys';
+		var proj_keys = this.source + '/proj.keys';
 		var proj: Dict = { '@projectName': project_name };
 		var default_modules = paths.default_modules;
 
 		if ( default_modules && default_modules.length ) {
-			var pkgs_dirname = this.m_source + '/node_modules';
+			var pkgs_dirname = this.source + '/node_modules';
 			fs.mkdir_p_sync(pkgs_dirname); // create pkgs dir
 			// copy default pkgs
 			default_modules.forEach(function(pkg) { 
@@ -759,7 +792,7 @@ new GUIApplication().start(
 `);
 			}
 			if (!fs.existsSync('examples')) { // copy examples pkg
-				fs.cp_sync(paths.examples, this.m_source + '/examples');
+				fs.cp_sync(paths.examples, this.source + '/examples');
 			}
 			proj['@projectName'] = project_name;
 
