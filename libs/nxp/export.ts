@@ -36,11 +36,10 @@ import keys from 'nxkit/keys';
 import NguiBuild, {PackageJson} from './build';
 import { getLocalNetworkHost } from 'nxkit/network_host';
 import * as child_process from 'child_process';
-import { setFlagsFromString } from 'v8';
 
 const isWindows = process.platform == 'win32';
 
-var native_source = [
+const native_source = [
 	'.c',
 	'.cc',
 	'.cpp',
@@ -82,31 +81,29 @@ interface OutputGypi extends Dict {}
 class Package {
 	readonly host: NguiExport;
 	readonly name: string;
-	readonly pathname: string;
+	readonly gypi_path: string;
 	readonly source_path: string;
 	readonly pkg_json: PkgJson;
 	readonly is_app: boolean;
+	readonly includes: string[] = [];
 	readonly include_dirs: string[] = [];
 	readonly sources: string[] = [ 'public' ];
-	private _includes: string[] = [];
-	private _dependencies: string[] = [ '<@(libngui)' ];
-	private _bundle_resources: string[] = [];
+	readonly dependencies: string[] = [ '<@(libngui)' ];
+	readonly dependencies_recursion: string[] = [ '<@(libngui)' ];
+	readonly bundle_resources: string[] = [];
 	private _binding = false;
+	private _binding_gyp = false;
+	private _native = false;
 	private _gypi: OutputGypi | null = null;
-	private _is_initialize = false;
 
-	get includes() { return this._includes }
-	get dependencies() { return this._dependencies }
-	get bundle_resources() { return this._bundle_resources }
-
-	get binding() {
-		return this._binding;
+	get native() {
+		return this._native;
 	}
 
 	get gypi() {
 		util.assert(this._gypi);
 		return this._gypi as OutputGypi;
-	};
+	}
 
 	private get_start_argv() {
 		var self = this;
@@ -124,31 +121,65 @@ class Package {
 		return [] as string[];
 	}
 
-	constructor(host: NguiExport, source_path: string, pkg_json: PkgJson, is_app: boolean) {
+	constructor(host: NguiExport, source_path: string, is_app?: boolean) {
+		var pkg_json = parse_json_file(source_path + '/package.json');
 		this.host = host;
-		this.pkg_json = pkg_json;
-		this.is_app = is_app;
-		this.name = pkg_json.name;
-		this.pathname = host.output + '/' + this.name + '.gypi';
 		this.source_path = source_path;
-		this._bundle_resources = host.bundle_resources.concat();
+		this.pkg_json = pkg_json;
+		this.is_app = is_app || false;
+		this.name = path.basename(source_path);
+		this.gypi_path = host.output + '/' + this.name + '.gypi';
+		this.initialize();
 	}
 
 	// reset app resources
 	private set_dependencies() {
 		var self = this;
-		var name = this.name;
 
-		this.host.node_modules.forEach(function(item) { 
-			self._includes.push(item.pathname);
-			self._includes.push(...item._includes);
-			self._dependencies.push(item.name);
-			self._bundle_resources.push(...item._bundle_resources);
-		});
+		var includes: string[] = [];
+		var dependencies: string[] = [];
+		var dependencies_recursion: string[] = [...self.dependencies];
+		var bundle_resources: string[] = [];
+		var outputs = self.host.outputs;
 
-		self._includes = filter_repeat(self._includes, name);
-		self._dependencies = filter_repeat(self._dependencies, name);
-		self._bundle_resources = filter_repeat(self._bundle_resources, name);
+		if (self.is_app)
+			bundle_resources.push(...self.host.bundle_resources);
+
+		for (var [k,v] of Object.entries(self.pkg_json.dependencies as Dict<string>)) {
+			// TODO looking for the right package
+			var version = v.replace(/^(~|\^)/, '');
+			var fullname = k + '@' + version;
+			var pkg = outputs[fullname];
+			if (!pkg) {
+				fullname = k;
+				pkg = outputs[fullname];
+			}
+			if (pkg) {
+				if (self.is_app) {
+					includes.push(pkg.gypi_path, ...pkg.includes);
+					dependencies_recursion.push(fullname, ...pkg.dependencies_recursion);
+					bundle_resources.push(...pkg.bundle_resources);
+				}
+				dependencies.push(fullname);
+			}
+		}
+
+		self.includes.splice(0, Infinity, ...filter_repeat(includes));
+		self.dependencies.splice(0, Infinity, ...filter_repeat(dependencies, this.name));
+		self.dependencies_recursion.splice(0, Infinity, ...filter_repeat(dependencies_recursion, this.name));
+		self.bundle_resources.splice(0, Infinity, ...filter_repeat(bundle_resources));
+
+		// is native
+		for (var depe of self.dependencies_recursion) {
+			var pkg = outputs[depe];
+			if (pkg) {
+				if (pkg._native || pkg._binding || pkg._binding_gyp) {
+					this._native = true;
+					break;
+				}
+			}
+		}
+
 	}
 
 	private initialize() {
@@ -159,21 +190,30 @@ class Package {
 		var relative = path.relative(host.output, source_path);
 
 		// add native and source
-		if ( fs.existsSync(source_path + '/binding') ) {
+		if ( fs.existsSync(source_path + '/binding.gyp') ) {
+			var targets = parse_json_file(source_path + '/binding.gyp').targets as any[];
+			if (targets.length) {
+				var target = targets[0];
+				var target_name = target.target_name;
+				self.dependencies.push(relative + '/binding.gyp:' + target_name);
+				self._binding_gyp = true;
+			}
+		}
+		else if ( fs.existsSync(source_path + '/binding') ) {
 			fs.listSync(source_path + '/binding').forEach(function(stat) {
 				if ( stat.name[0] != '.' ) {
 					if ( stat.isFile() ) {
 						var extname = path.extname(stat.name).toLowerCase();
-						if (native_source.indexOf(extname) == -1) { // resources
-							// 将非native源文件作为资源拷贝
-							// self.bundle_resources.push( relative + '/binding/' + stat.name );
-						} else { // native source
+						if (native_source.indexOf(extname) != -1) { // native source
 							self._binding = true;
 						}
 					}
 					self.sources.push( relative + '/binding/' + stat.name );
 				}
 			});
+			if ( this._binding ) {
+				this.include_dirs.push(relative + '/binding');
+			}
 		}
 
 		// add source
@@ -182,7 +222,7 @@ class Package {
 				if ( stat.isFile() ) {
 					var extname = path.extname(stat.name).toLowerCase();
 					if (native_source.indexOf(extname) == -1) {
-						// 不添加任何 native source
+						// not add native source
 						self.sources.push( relative + '/' + stat.name );
 					}
 				} else {
@@ -194,12 +234,6 @@ class Package {
 		if ( !pkg_json.skipInstall ) { // no skip install pkg
 			this.bundle_resources.push('install/' + this.name);
 		}
-
-		if ( this._binding ) {
-			this.include_dirs.push(relative + '/binding');
-		}
-
-		self.set_dependencies();
 	}
 
 	private gen_ios_gypi(): OutputGypi {
@@ -208,7 +242,7 @@ class Package {
 		var name = self.name;
 		var host = self.host;
 		var sources = self.sources;
-		var id = self.pkg_json.id || 'com.mycompany.${PRODUCT_NAME:rfc1034identifier}';
+		var id = self.pkg_json.id || 'org.ngui.${PRODUCT_NAME:rfc1034identifier}';
 		var app_name = self.pkg_json.app || '${EXECUTABLE_NAME}';
 		var version = self.pkg_json.version;
 		var xcode_settings = {};
@@ -265,7 +299,7 @@ class Package {
 
 		// create gypi json data
 
-		var type = is_app ? 'executable' : self.binding ? 'static_library' : 'none';
+		var type = is_app ? 'executable' : self._binding ? 'static_library' : 'none';
 		var gypi = 
 		{
 			'targets': [
@@ -277,7 +311,7 @@ class Package {
 					'product_name': is_app ? name + '-1' : name,
 					'type': type,
 					'include_dirs': self.include_dirs,
-					'dependencies': self.dependencies,
+					'dependencies': is_app ? self.dependencies_recursion: self.dependencies,
 					'direct_dependent_settings': {
 						'include_dirs': is_app ? [] : self.include_dirs,
 					},
@@ -298,11 +332,11 @@ class Package {
 		var name = self.name;
 		var host = self.host;
 		var sources = self.sources;
-		var id = (self.pkg_json.id || 'com.mycompany.' + name).replace(/-/gm, '_');
+		var id = (self.pkg_json.id || 'org.ngui.' + name).replace(/-/gm, '_');
 		var app_name = self.pkg_json.app || name;
 		var version = self.pkg_json.version;
 		var java_pkg = id.replace(/\./mg, '/');
-		var so_pkg = self.binding ? name : 'ngui-js';
+		var so_pkg = self.native ? name : 'ngui-js';
 
 		if ( is_app ) { // copy platfoem file
 			var proj_out = host.proj_out;
@@ -356,15 +390,15 @@ class Package {
 
 		var type = 'none';
 		if ( is_app ) {
-			if ( self.binding ) {
+			if ( self.native ) {
 				type = 'shared_library';
-				if ( !self.binding ) {
+				if ( !self._binding ) {
 					fs.writeFileSync(host.output, fs.readFileSync(__dirname + '/export/'));
 					fs.cp_sync(__dirname + '/export/empty.c', host.output + '/empty.c', { replace: false });
 					sources.push('empty.c');
 				}
 			}
-		} else if ( self.binding ) {
+		} else if ( self._binding ) {
 			type = 'static_library';
 		}
 
@@ -375,7 +409,7 @@ class Package {
 					'target_name': name,
 					'type': type,
 					'include_dirs': self.include_dirs,
-					'dependencies': filter_repeat(self.dependencies, name),
+					'dependencies': is_app ? self.dependencies_recursion: self.dependencies,
 					'direct_dependent_settings': {
 						'include_dirs': is_app ? [] : self.include_dirs,
 					},
@@ -388,19 +422,18 @@ class Package {
 	}
 
 	gen() {
-		if (!this._is_initialize) {
-			this._is_initialize = true;
-			this.initialize();
+		if (!this._gypi) {
+			this.set_dependencies();
+			var os = this.host.os;
+			if ( os == 'ios' ) {
+				this._gypi = this.gen_ios_gypi();
+			} else if ( os == 'android' ) {
+				this._gypi = this.gen_android_gypi();
+			} else {
+				throw new Error('Not support');
+			}
 		}
-		var os = this.host.os;
-		if ( os == 'ios' ) {
-			this._gypi = this.gen_ios_gypi();
-		} else if ( os == 'android' ) {
-			this._gypi = this.gen_android_gypi();
-		} else {
-			throw new Error('Not support');
-		}
-		return this.gypi;
+		return this._gypi;
 	}
 
 }
@@ -411,8 +444,7 @@ export default class NguiExport {
 	readonly proj_out: string;
 	readonly os: string;
 	readonly bundle_resources: string[];
-	readonly node_modules: Package[] = [];
-	private m_pkg_output: Dict<Package> = {};
+	readonly outputs: Dict<Package> = {};
 	private m_project_name = 'app';
 
 	constructor(source: string, os: string) {
@@ -456,7 +488,7 @@ export default class NguiExport {
 	private solve(pathname: string, is_app?: boolean): Package | null {
 		var self = this;
 		var source_path = resolveLocal(pathname);
-		var name = path.basename(source_path);
+		var fullname = path.basename(source_path);
 
 		// ignore network pkg 
 		if ( /^https?:\/\//i.test(source_path) ) {
@@ -464,18 +496,10 @@ export default class NguiExport {
 			return null;
 		}
 
-		var pkg = self.m_pkg_output[name];
-		if ( pkg ) { // Already complete
-			return pkg;
+		var pkg = self.outputs[fullname];
+		if ( !pkg ) {
+			self.outputs[fullname] = pkg = new Package(self, source_path, is_app);
 		}
-
-		var pkg_json = parse_json_file(source_path + '/package.json');
-		
-		pkg = new Package(self, source_path, pkg_json, is_app || false);
-
-		self.m_pkg_output[name] = pkg;
-
-		pkg.gen();
 
 		return pkg;
 	}
@@ -537,16 +561,21 @@ export default class NguiExport {
 		var self = this;
 		// write gyp
 
-		var includes = [];
 		var source = self.source;
+		var includes = [];
 
-		for ( var i in self.m_pkg_output ) {
-			var pkg = self.m_pkg_output[i];
-			if ( pkg.is_app ) {
-				includes.push.apply(includes, pkg.includes)
-				includes.push(pkg.pathname);
+		for ( var i in self.outputs ) {
+			var pkg = self.outputs[i];
+			if ( !pkg.is_app ) { // node_modules
+				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
 			}
-			fs.writeFileSync( pkg.pathname, JSON.stringify(pkg.gypi, null, 2));
+		}
+
+		for ( var i in self.outputs ) {
+			var pkg = self.outputs[i];
+			if ( pkg.is_app ) {
+				includes.push(...pkg.includes, pkg.gypi_path);
+			}
 		}
 
 		includes = filter_repeat(includes).map(function(pathname) {
@@ -607,27 +636,27 @@ export default class NguiExport {
 		var source = self.source;
 		var str: string;
 
-		for ( var i in self.m_pkg_output ) {
-			var pkg = self.m_pkg_output[i];
-			if ( pkg.is_app ) {
-				if ( pkg.binding ) {
+		for ( var i in self.outputs ) {
+			var pkg = self.outputs[i];
+			if ( !pkg.is_app ) { // node_modules
+				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
+			} else {
+				if ( pkg.native )
 					use_ndk = true;
-				}
 				settings_gradle.push("':" + i + "'");
 			}
-			fs.writeFileSync( pkg.pathname, JSON.stringify(pkg.gypi, null, 2));
 		}
 
 		// gen gyp and native cmake
 		// android 每个项目需单独创建`gyp`并生成`.cmake`
-		for ( var i in self.m_pkg_output ) {
-			var pkg = self.m_pkg_output[i];
+		for ( var i in self.outputs ) {
+			var pkg = self.outputs[i];
 			if ( pkg.is_app ) {
 
-				if ( pkg.binding ) {
+				if ( pkg.native ) {
 					// android并不完全依赖`gyp`,只需针对native项目生成.cmake文件
 
-					var includes = pkg.includes.concat(pkg.pathname).map(function(pathname) {
+					var includes = pkg.includes.concat(pkg.gypi_path).map(function(pathname) {
 						return path.relative(source, pathname);
 					});
 					var ngui_gyp = paths.ngui_gyp;
@@ -645,7 +674,7 @@ export default class NguiExport {
 					fs.writeFileSync( gyp_file, JSON.stringify(gyp, null, 2) ); 
 					// gen cmake
 					var out = self.gen_project_file(pkg.name); // gen target project 
-					
+
 					fs.removerSync(gyp_file); // write gyp file
 
 					//对于android这两个属性会影响输出库.so的默认路径,导致无法捆绑.so库文件,所以从文件中删除它
@@ -664,14 +693,15 @@ export default class NguiExport {
 				} else {
 					self.write_cmake_depe_to_android_build_gradle(pkg, '', false);
 				}
-	
+
 				// copy pkgrary bundle resources to android assets directory
 				var android_assets = `${proj_out}/${pkg.name}/src/main/assets`;
-	
+
 				pkg.bundle_resources.forEach(function(res) {
 					var basename = path.basename(res);
 					var source = path.relative(android_assets, output + '/' + res);
-					if (!fs.existsSync(output + '/' + res)) return;
+					if (!fs.existsSync(output + '/' + res))
+						return;
 					var target = `${android_assets}/${basename}`;
 					try {
 						// if ( fs.existsSync(target) )
@@ -709,6 +739,10 @@ export default class NguiExport {
 		console.log('Export Ok');
 	}
 
+	private exists(name: string) {
+		return fs.existsSync(this.output + '/install/' + name) || fs.existsSync(this.output + '/skip_install/' + name)
+	}
+
 	async export() {
 		var self = this;
 		var os = this.os;
@@ -735,7 +769,7 @@ export default class NguiExport {
 
 		// build apps
 		for (var app of apps) {
-			if ( !fs.existsSync(this.output + '/install/' + app) )
+			if ( !self.exists(app) )
 				await (new NguiBuild(this.source, this.output).build());
 		}
 
@@ -746,17 +780,14 @@ export default class NguiExport {
 			fs.listSync(node_modules).forEach(function(stat) {
 				var source = node_modules + '/' + stat.name;
 				if ( stat.isDirectory() && fs.existsSync(source + '/package.json') ) {
-					var pkg = self.solve(source, false);
-					if (pkg)
-						self.node_modules.push(pkg);
+					self.solve(source, false);
 				}
 			});
 		}
 
 		// export apps
 		for (var app of apps) {
-			util.assert(fs.existsSync(this.output + '/install/' + app), 
-									'Installation directory not found');
+			util.assert(self.exists(app), 'Installation directory not found');
 			self.solve(this.source + '/' + app, true);
 		}
 

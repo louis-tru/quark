@@ -38,7 +38,7 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"nxkit": "~0.10.30",
+		"nxkit": "~0.10.31",
 		"typescript": "~3.7.4"
 	},
 	"devDependencies": {

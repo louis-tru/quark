@@ -14,14 +14,14 @@ gen_framework() {
 	node $gen $os $1 "no-cut" "$2" $out/product/$os/Frameworks/$3 $arr
 }
 
-gen_framework nutils    nutils              iphonesimulator "x64"
+gen_framework nxkit      nxkit                iphonesimulator "x64"
 gen_framework ngui       ""                   iphonesimulator "x64"
 gen_framework ngui-media no-inc               iphonesimulator "x64"
 gen_framework ngui-v8    depe/v8-link/include iphonesimulator "x64"
 gen_framework ngui-js    no-inc               iphonesimulator "x64"
 gen_framework ngui-node  no-inc               iphonesimulator "x64"
 
-gen_framework nutils    nutils              iphoneos "arm64"
+gen_framework nxkit      nxkit                iphoneos "arm64"
 gen_framework ngui       ""                   iphoneos "arm64" # x64 arm64 armv7
 gen_framework ngui-media no-inc               iphoneos "arm64"
 gen_framework ngui-v8    depe/v8-link/include iphoneos "arm64"
@@ -41,7 +41,7 @@ cd ../iphonesimulator && mkdir -p Debug Release
 # iphonesimulator
 
 cd Debug
-[ ! -L nutils.framework ] && ln -s ../nutils.framework
+[ ! -L nxkit.framework ] && ln -s ../nxkit.framework
 [ ! -L ngui.framework ] && ln -s ../ngui.framework
 [ ! -L ngui-media.framework ] && ln -s ../ngui-media.framework
 [ ! -L ngui-v8.framework ] && ln -s ../ngui-v8.framework
@@ -49,7 +49,7 @@ cd Debug
 [ ! -L ngui-node.framework ] && ln -s ../ngui-node.framework
 
 cd ../Release
-[ ! -L nutils.framework ] && ln -s ../nutils.framework
+[ ! -L nxkit.framework ] && ln -s ../nxkit.framework
 [ ! -L ngui.framework ] && ln -s ../ngui.framework
 [ ! -L ngui-media.framework ] && ln -s ../ngui-media.framework
 [ ! -L ngui-v8.framework ] && ln -s ../ngui-v8.framework
@@ -61,12 +61,12 @@ cd ../../iphoneos && mkdir -p Debug Release
 # iphoneos
 
 cd Debug
-[ ! -L nutils.framework ] && ln -s ../nutils.framework
+[ ! -L nxkit.framework ] && ln -s ../nxkit.framework
 [ ! -L ngui.framework ] && ln -s ../ngui.framework
 [ ! -L ngui-media.framework ] && ln -s ../ngui-media.framework
 
 cd ../Release
-[ ! -L nutils.framework ] && ln -s ../nutils.framework
+[ ! -L nxkit.framework ] && ln -s ../nxkit.framework
 [ ! -L ngui.framework ] && ln -s ../ngui.framework
 [ ! -L ngui-media.framework ] && ln -s ../ngui-media.framework
 [ ! -L ngui-v8.framework ] && ln -s ../ngui-v8.framework

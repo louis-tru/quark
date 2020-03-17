@@ -35,10 +35,23 @@ import keys from 'nxkit/keys';
 import path from 'nxkit/path';
 import paths from './paths';
 import { exec } from 'nxkit/syscall';
+
 const uglify = require('./uglify');
 
-var base64_chars =
+const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
+
+export const native_source = [
+	'.c',
+	'.cc',
+	'.cpp',
+	'.cxx',
+	'.m',
+	'.mm',
+	'.s', 
+	'.swift',
+	'.java',
+];
 
 function resolveLocal(...args: string[]) {
 	return path.fallbackPath(path.resolve(...args));

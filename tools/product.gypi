@@ -143,6 +143,11 @@
 			'GCC_ENABLE_CPP_RTTI': 'YES',             # -frtti / -fno-rtti
 		},
 		'cflags_cc': [ '-std=c++0x', ], 
+		'target_conditions': [
+			['_target_name != "libngui"', {
+				'dependencies': [ 'libngui' ],
+			}],
+		],
 	},
 
 	'targets': [{
@@ -167,7 +172,7 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-lnutils',
+						'-lnxkit',
 						'-lngui',
 						'-lngui-media',
 						'-lngui-v8',
@@ -186,7 +191,7 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/nutils.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/nxkit.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-media.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-v8.framework',
@@ -199,7 +204,7 @@
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/nutils.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/nxkit.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-media.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-v8.framework',

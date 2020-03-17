@@ -75,7 +75,7 @@ if (!fs.existsSync(target + '/bin/osx-jsa-shell')) {
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
 copy_header(root + '/ngui', `${include}/ngui`);
-copy_header(root + '/nutils', `${include}/nutils`);
+copy_header(root + '/nxkit', `${include}/nxkit`);
 copy_header(`${root}/depe/v8-link/include`, include);
 copy_header(`${root}/depe/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
 copy_header(`${root}/depe/node/deps/openssl/config/archs`, `${include}/openssl/archs`);
