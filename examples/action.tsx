@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { 
-	Hybrid, Text, Button, Image, Indep, Clip, ViewController, View, _CVD
+import {
+	Hybrid, Text, Button, Image, Indep, Clip, _CVD
 } from 'ngui';
 import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'ngui/event';
 import { Toolbar, NavPage } from 'ngui/nav';
@@ -64,14 +64,13 @@ const toolbar_vx = ()=>(
 	</Toolbar>
 )
 
-export const vx = ()=>(
+export default ()=>(
 	<Mynavpage 
 		navbar={<Toolbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
 		toolbar={toolbar_vx()}
 		backgroundColor="#333"
 		title="Action" source={resolve(__filename)}>
 		<Clip width="full" height="full">
-
 			<Indep width={600} alignX="center" alignY="center" y={-15} opacity={0.5}>
 				<Image onHighlighted={highlighted} id="img1" src={resolve('./gear0.png')}
 					marginLeft="auto" marginRight="auto" 
@@ -100,7 +99,6 @@ export const vx = ()=>(
 					}}
 				/>
 			</Indep>
-
 		</Clip>
 	</Mynavpage>
 )

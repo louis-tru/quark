@@ -57,7 +57,7 @@ function change_handle(evt: Event<boolean, Switch>) {
 	(checkbox.domAs().prev as Text).value = str;
 }
 
-export const vx = ()=>(
+export default ()=>(
 	<Mynavpage title="Checkbox" source={resolve(__filename)}>
 		<Div width="full" class="checkbox_page">
 			<Div class="item">

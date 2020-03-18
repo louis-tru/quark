@@ -28,11 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input } from 'ngui';
-import 'ngui/fs';
-import 'ngui/path';
+import { Div, Button, Input, _CVD } from 'ngui';
+import * as fs from 'ngui/fs';
+import path from 'ngui/path';
 import { alert } from 'ngui/dialog';
 import { Mynavpage } from './public';
+import { GUIClickEvent, GUIKeyEvent } from 'ngui/event';
+import * as buffer from 'ngui/buffer';
 
 var resolve = require.resolve;
 
@@ -40,18 +42,18 @@ const filename = path.documents('test.txt');
 
 fs.mkdirpSync(path.dirname(filename));
 
-function WriteFile(evt) {
+function WriteFile(evt: GUIClickEvent) {
 	console.log('------------', filename);
-	fs.writeFile(filename, evt.sender.owner.IDs.input.value, function() {
+	fs.writeFile(filename, evt.sender.ownerAs().find<Input>('input').value).then(function() {
 		alert('Write file OK.');
-	}.catch(err=>{
+	}).catch(err=>{
 		alert(err.message + ', ' + err.code);
-	}));
+	});
 }
 
-function WriteFileSync(evt) {
+function WriteFileSync(evt: GUIClickEvent) {
 	try {
-		var txt = evt.sender.owner.IDs.input.value;
+		var txt = evt.sender.ownerAs().find<Input>('input').value;
 		var r = fs.writeFileSync(filename, txt);
 		console.log(r);
 		alert('Write file OK.');
@@ -60,16 +62,16 @@ function WriteFileSync(evt) {
 	}
 }
 
-function ReadFile(evt) {
+function ReadFile(evt: GUIClickEvent) {
 	console.log('------------', filename);
-	fs.readFile(filename, function(buf) {
-		alert(buf.toString('utf-8'));
-	}.catch(err=>{
+	fs.readFile(filename).then(function(buf) {
+		alert(buffer.convertString(buf, 'utf8'));
+	}).catch(err=>{
 		alert(err.message + ', ' + err.code);
-	}));
+	});
 }
 
-function Remove(evt) {
+function Remove(evt: GUIClickEvent) {
 	try {
 		var a = fs.removerSync(filename);
 		alert('Remove file OK. ' + a);
@@ -78,22 +80,22 @@ function Remove(evt) {
 	}
 }
 
-function keyenter(evt) {
+function keyenter(evt: GUIKeyEvent) {
 	evt.sender.blur();
 }
 
-export const vx = ()=>(
-	<Mynavpage title="File System" source=resolve(__filename)>
+export default ()=>(
+	<Mynavpage title="File System" source={resolve(__filename)}>
 		<Div width="full">
 			<Input class="input" id="input" 
 				placeholder="Please enter write content.."
 				value="Hello."
-				returnType="done" onKeyEnter=keyenter />
-			<Button class="long_btn" onClick=WriteFile>WriteFile</Button>
-			<Button class="long_btn" onClick=WriteFileSync>WriteFileSync</Button>
-			<Button class="long_btn" onClick=ReadFile>ReadFile</Button>
-			<Button class="long_btn" onClick=ReadFile>ReadFileSync</Button>
-			<Button class="long_btn" onClick=Remove>Remove</Button>
+				returnType="done" onKeyEnter={keyenter} />
+			<Button class="long_btn" onClick={WriteFile}>WriteFile</Button>
+			<Button class="long_btn" onClick={WriteFileSync}>WriteFileSync</Button>
+			<Button class="long_btn" onClick={ReadFile}>ReadFile</Button>
+			<Button class="long_btn" onClick={ReadFile}>ReadFileSync</Button>
+			<Button class="long_btn" onClick={Remove}>Remove</Button>
 		</Div>
 	</Mynavpage>
 )

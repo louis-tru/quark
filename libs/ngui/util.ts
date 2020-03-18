@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const _pkg = __requireNgui__('_pkg');
+import _pkgutil from './_pkgutil';
 import _util, {_process} from './_util';
 import * as _common from './_common';
 import {EventNoticer, Event} from './event';
@@ -36,9 +36,9 @@ import {EventNoticer, Event} from './event';
 export default {
 	..._util, ..._common,
 	get id() { return _common.getId() },
-	get options() { return _pkg.options },
-	get config() { return _pkg.config },
-	get debug() { return _pkg.debug },
+	get options() { return _pkgutil.options },
+	get config() { return _pkgutil.config },
+	get debug() { return _pkgutil.debug },
 	// events
 	get onBeforeExit(): EventNoticer<Event<number>> { return _process.getNoticer('BeforeExit') },
 	get onExit(): EventNoticer<Event<number>> { return _process.getNoticer('BeforeExit') },

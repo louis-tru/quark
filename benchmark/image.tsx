@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Image, Scroll } from 'ngui';
-import 'ngui/reader';
-import 'ngui/path';
+import { GUIApplication, Root, Image, Scroll, _CVD } from 'ngui';
+import * as reader from 'ngui/reader';
+import path from 'ngui/path';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root backgroundColor="#000">
@@ -10,7 +10,7 @@ new GUIApplication({ multisample: 2 }).start(
 				reader.readdirSync(__dirname + '/img2')
 				.concat(reader.readdirSync(__dirname + '/img'))
 				.filter(e=>path.extname(e.name).match(/\.(gif|jpeg|jpg|png|webp)$/i)).map(e=>
-					(<Image borderBottom="5 #fff" width="100%" src=e.pathname />)
+					(<Image borderBottom="5 #fff" width="100%" src={e.pathname} />)
 				)
 			}
 		</Scroll>

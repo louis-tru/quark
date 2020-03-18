@@ -1,39 +1,39 @@
 
 import { EventNoticer } from 'ngui/event';
-import './uu';
+import * as uu from './uu';
 
 uu.start();
 
 var ontest = new EventNoticer('test', this);
 
-uu.time(1);
+uu.log(1);
 
 for (var i = 0; i < 1000000; i++) {
 	ontest.on(function() {
 		// noop
-	}, i);
+	}, String(i));
 }
 
-uu.time(2);
+uu.log(2);
 
 for (var i = 1000000; i < 2000000; i++) {
 	ontest.once(function() {
 		// noop
-	}, i);
+	}, String(i));
 }
 
-uu.time(3);
+uu.log(3);
 
 ontest.trigger();
 
-uu.time(4);
+uu.log(4);
 
 for (var i = 0; i < 1000000; i++) {
-	ontest.off(i);
+	ontest.off(String(i));
 }
 
-uu.time(5);
+uu.log(5);
 
 ontest.trigger();
 
-uu.time(6);
+uu.log(6);

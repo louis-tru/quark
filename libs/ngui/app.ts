@@ -43,6 +43,14 @@ var cur_root_ctr: ViewController | null = null;
 export interface Options {
 	anisotropic?: boolean;
 	multisample?: 0|1|2|3|4;
+	x?: number,
+	y?: number,
+	width?: number,
+	height?: number,
+	fullScreen?: boolean,
+	enableTouch?: boolean,
+	background?: number,
+	title?: string;
 }
 
 /**

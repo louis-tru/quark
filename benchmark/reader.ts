@@ -1,8 +1,8 @@
 
-import 'ngui/fs';
-import * as url from 'ngui/path';
-import 'ngui/reader';
-import './uu';
+import * as fs from 'ngui/fs';
+import url from 'ngui/path';
+import * as reader from 'ngui/reader';
+import * as uu from './uu';
 
 var path = url.documents('benchmark.txt');
 
@@ -19,8 +19,8 @@ for (var j = 0; j < 10000; j++) {
 uu.log();
 
 for (var j = 0; j < 10000; j++) {
-	reader.readFile(path, function(bf) {
-	}.catch(e=>console.log('err', ++i)));
+	reader.readFile(path).then(function(data) {
+	}).catch(e=>console.log('err', ++i));
 }
 
 uu.log();

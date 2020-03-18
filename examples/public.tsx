@@ -38,29 +38,6 @@ import {GUIClickEvent} from 'ngui/event';
 const px = ngui.atomPixel;
 const resolve = require.resolve;
 
-// CSS(<Style>
-//   .long_btn {
-//     margin: 10;
-//     margin_bottom: 0;
-//     width: full;
-//     height: 36;
-//     text_line_height: 36;
-//     text_color: #0079ff;
-//     border_radius: 8;
-//     border: ${px} #0079ff;
-//   }
-//   .long_btn2 {
-//     margin: 10;
-//     margin_bottom: 0;
-//     width: full;
-//     height: 36
-//     text_line_height: 36;
-//     text_color: #fff;
-//     border_radius: 8;
-//     border: ${px} #fff;
-//   }
-// </Style>);
-
 ngui.css({
 	
 	'.long_btn': {
@@ -141,7 +118,7 @@ export class NavButton extends ViewController {
 			</Button>
 		);
 	}
-	
+
 	handle_click(evt: GUIClickEvent) {
 		if (!this.next) return;
 		var next = this.next();
@@ -160,12 +137,10 @@ export class NavButton extends ViewController {
 
 export class Page extends NavPage {
 	source = resolve(__filename);
-
 	constructor() {
 		super();
 		this.backgroundColor = '#f8f8f8';
 	}
-
 }
 
 export var Navbutton = NavButton;

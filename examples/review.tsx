@@ -28,28 +28,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text } from 'ngui';
-import { Mynavpage } from './public';
-import { Toolbar } from 'ngui/nav';
-import 'ngui/reader';
+import { Scroll, Text, _CVD } from 'ngui';
+import { Mynavpage, Page } from './public';
+import { Navbar } from 'ngui/nav';
+import * as reader from 'ngui/reader';
+import {Event} from 'ngui/event';
 
-function foreground(evt) {
+function foreground(evt: Event<void, Page>) {
 	var navpage = evt.sender;
 	navpage.title = 'Source';
-	var text = reader.readFileSync(navpage.prevPage.source, 'utf8');
-	navpage.IDs.text.value = text;
+	var text = reader.readFileSync((navpage.prevPage as Page).source, 'utf8');
+	navpage.find<Text>('text').value = text;
 }
 
-export default const vx = ()=>(
+export default ()=>(
 	<Mynavpage 
-		navbar.backgroundColor="#333"
-		navbar.backTextColor="#fff" 
-		navbar.titleTextColor="#fff"
-		toolbar.backgroundColor="#333"
-		toolbar.hidden=true 
-		backgroundColor="#333" onForeground=foreground>
-		<Scroll width="full" height="full" bounceLock=0>
-			<Text width="full" id="text" textColor="#fff" textSize=12 margin=5 />
+		navbar={<Navbar
+			backgroundColor="#333"
+			backTextColor="#fff"
+			titleTextColor="#fff"
+			hidden={true} />
+		}
+		backgroundColor="#333" onForeground={foreground}>
+		<Scroll width="full" height="full" bounceLock={0}>
+			<Text width="full" id="text" textColor="#fff" textSize={12} margin={5} />
 		</Scroll>
 	</Mynavpage>
 )

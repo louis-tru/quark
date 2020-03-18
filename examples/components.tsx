@@ -41,7 +41,6 @@ const resolve = require.resolve;
 export default ()=>(
 	<Mynavpage title="Components" source={resolve(__filename)}>
 		<Scroll width="full" height="full" bounceLock={0}>
-		
 			<Text class="category_title" value="Components." />
 			<Clip class="category">
 				<Navbutton next={nav}>Nav</Navbutton>
@@ -50,7 +49,6 @@ export default ()=>(
 				<Navbutton next={overlay}>Overlay</Navbutton>
 				<Navbutton next={dialog}>Dialog</Navbutton>
 			</Clip>
-			
 		</Scroll>
 	</Mynavpage>
 );

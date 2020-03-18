@@ -1,9 +1,11 @@
 
-import { GUIApplication, Root, Div, Indep, ngui, render } from 'ngui';
+import { GUIApplication, Root, Div, Indep, default as ngui, _CVD, ViewController } from 'ngui';
 import { Color } from 'ngui/value';
-import { random } from 'ngui/util';
-import 'ngui/css';
-import './uu';
+import util from 'ngui/util';
+import * as css from 'ngui/css';
+import * as uu from './uu';
+
+const random = util.random;
 
 var test_count = 100000;
 
@@ -15,12 +17,12 @@ css.create({
 
 class RootViewController extends ViewController {
 
-	triggerMounted(e) {
-		super.triggerMounted(e);
+	triggerMounted() {
+		super.triggerMounted();
 
 		var w = ngui.displayPort.width;
 		var h = ngui.displayPort.height;
-		var csss = {};
+		var csss: Dict<css.StyleSheet> = {};
 	
 		for (var i = 0; i < test_count; i++) {
 			var s = random(20, 30);
@@ -39,18 +41,20 @@ class RootViewController extends ViewController {
 		css.create(csss);
 	
 		uu.log();
+
+		var v = this.domAs();
 	
-		this.dom.class = 'root';
+		v.class = 'root';
 	
-		render(
+		ngui.render(
 			<Div width="full" height="full">
-				${
+				{
 					Array.from({length:test_count}, (j, i)=>{
-						return <Indep class=('css_' + i) />;
+						return <Indep class={'css_' + i} />;
 					})
 				}
-			</Div>, 
-			this.dom
+			</Div>,
+			v
 		);
 	
 		uu.log();

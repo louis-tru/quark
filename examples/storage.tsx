@@ -28,20 +28,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input } from 'ngui';
-import 'ngui/storage';
+import { Div, Button, Input, _CVD } from 'ngui';
+import * as storage from 'ngui/storage';
 import { alert } from 'ngui/dialog';
 import { Mynavpage } from './public';
+import {GUIKeyEvent,GUIClickEvent} from 'ngui/event';
 
 var resolve = require.resolve;
 
 const key = 'test';
 
-function keyenter(evt) {
+function keyenter(evt: GUIKeyEvent) {
 	evt.sender.blur();
 }
 
-function Get(evt) {
+function Get(evt: GUIClickEvent) {
 	var val = storage.get(key);
 	if ( val ) {
 		alert(storage.get(key));
@@ -50,32 +51,32 @@ function Get(evt) {
 	}
 }
 
-function Set(evt) {
-	storage.set(key, evt.sender.owner.IDs.input.value);
+function Set(evt: GUIClickEvent) {
+	storage.set(key, evt.sender.ownerAs().find<Input>('input').value);
 	alert('Save local data OK.');
 }
 
-function Del(evt) {
+function Del(evt: GUIClickEvent) {
 	storage.del(key);
 	alert('Delete local data OK.');
 }
 
-function Clear(evt) {
-	storage.clear(key);
+function Clear(evt: GUIClickEvent) {
+	storage.clear();
 	alert('Delete All local data OK.');
 }
 
-export const vx = ()=>(
-	<Mynavpage title="Local Storage" source=resolve(__filename)>
+export default ()=>(
+	<Mynavpage title="Local Storage" source={resolve(__filename)}>
 		<Div width="full">
 			<Input class="input" id="input" 
 				placeholder="Please enter value .." 
 				value="Hello."
-				returnType="done" onKeyEnter=keyenter />
-			<Button class="long_btn" onClick=Get>Get</Button>
-			<Button class="long_btn" onClick=Set>Set</Button>
-			<Button class="long_btn" onClick=Del>Del</Button>
-			<Button class="long_btn" onClick=Clear>Clear</Button>
+				returnType="done" onKeyEnter={keyenter} />
+			<Button class="long_btn" onClick={Get}>Get</Button>
+			<Button class="long_btn" onClick={Set}>Set</Button>
+			<Button class="long_btn" onClick={Del}>Del</Button>
+			<Button class="long_btn" onClick={Clear}>Clear</Button>
 		</Div>
 	</Mynavpage>
 )

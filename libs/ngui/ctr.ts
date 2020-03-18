@@ -155,7 +155,10 @@ export class VirtualDOM {
 			this.assignProps(); // before set props
 			var r = (newCtr as any).triggerLoad(); // trigger event Load, private props visit
 			if (r instanceof Promise) {
-				r.then(()=>(newCtr as any).m_loaded = true); // private props visit
+				r.then(()=>{
+					(newCtr as any).m_loaded = true;
+					markRerender(newCtr);
+				}); // private props visit
 			} else {
 				(newCtr as any).m_loaded = true; // private props visit
 			}
@@ -516,9 +519,9 @@ export enum TypeOf {
 /**
  * @class ViewController DOM
  */
-export class ViewController extends Notification<Event<any, ViewController>> implements DOM {
+export class ViewController<State extends Dict = Dict> extends Notification<Event<any, ViewController>> implements DOM {
 	private m_IDs: Dict<ViewController | View> = {};
-	private m_vmodel: Dict = {}; // view modle
+	private m_state: State = {} as State; // state
 	private m_dataHash: Dict<number> = {}; // modle and props hash
 	private m_id: string; // = null;     // id
 	private m_owner: ViewController | null; // = null;  // owner controller
@@ -677,20 +680,29 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 		return this.m_mounted;
 	}
 
-	get model() {
-		return this.m_vmodel;
+	/**
+	 * @get state view model
+	 */
+	get state() {
+		return this.m_state;
 	}
 
-	set model(modle: Dict) {
-		this.setModel(modle);
+	/**
+	 * @set state view model
+	 */
+	set state(state: State) {
+		this.setState(state);
 	}
 
-	setModel(modle: Dict) {
+	/**
+	 * @func setState()
+	 */
+	setState(state: State) {
 		var update = false;
-		var value = this.m_vmodel;
+		var value = this.m_state;
 		var hash = this.m_dataHash;
-		for (var key in modle) {
-			var item = modle[key];
+		for (var key in state) {
+			var item = state[key];
 			var hashCode = Object.hashCode(item);
 			if (hashCode != hash[key]) {
 				value[key] = item;
@@ -714,11 +726,11 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 		return Function.prototype.hashCode.call(this);
 	}
 
-	appendTo(parentView: View) {
+	appendTo(parentView: View): View {
 		return domInCtr(this).appendTo(parentView);
 	}
 
-	afterTo(prevView: View) {
+	afterTo(prevView: View): View {
 		return domInCtr(this).afterTo(prevView);
 	}
 
@@ -818,7 +830,7 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 	 * @arg obj {DOM | DOMConstructor}
 	 * @ret {DOM} return dom instance
 	 */
-	static render(obj: DOM | VirtualDOM, parentView?: View) {
+	static render<T extends DOM = DOM>(obj: DOM | VirtualDOM, parentView?: View) {
 		var dom: DOM;
 		var owner = parentView ? parentView.owner: null;
 
@@ -833,7 +845,7 @@ export class ViewController extends Notification<Event<any, ViewController>> imp
 			dom.appendTo(parentView);
 			// (dom as any).m_owner = owner; // private props visit
 		}
-		return dom;
+		return dom as T;
 	}
 
 	static hashCode() {

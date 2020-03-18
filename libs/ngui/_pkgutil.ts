@@ -35,6 +35,12 @@ const _util = __requireNgui__('_util');
 const { haveNode } = _util;
 const PREFIX = 'file:///';
 const _cwd = _path.cwd;
+const _debug = _util.debug as boolean;
+const options: Optopns = {};  // start options
+var config: Dict | null = null;
+var mainPath: string = '';
+
+export type Optopns = Dict<string|string[]>;
 
 if (!haveNode) {
 	const _console = __requireNgui__('_console');
@@ -214,6 +220,81 @@ function stripBOM(content: string) {
 	return content;
 }
 
+function parseOptions(args: string[], options: Optopns) {
+	for (var i = 0; i < args.length; i++) {
+		var item = args[i];
+		var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
+		if (mat) {
+			var name = mat[1].replace(/-/gm, '_');
+			var val = mat[2] || 'true';
+			var raw_val = options[name];
+			if ( raw_val ) {
+				if ( Array.isArray(raw_val) ) {
+					raw_val.push(val);
+				} else {
+					options[name] = [raw_val, val];
+				}
+			} else {
+				options[name] = val;
+			}
+		}
+	}
+}
+
+// without error
+function requireWithoutErr(pathname: string) {
+	var _pkg = __requireNgui__('_pkg');
+	try { return _pkg._load(pathname) } catch(e) {}
+}
+
+function readConfigFile(pathname: string, pathname2: string) {
+	var c = requireWithoutErr(pathname);
+	var c2 = requireWithoutErr(pathname2);
+	if (c || c2) {
+		return Object.assign({}, c, c2);
+	}
+}
+
+function getConfig(): Dict {
+	if (!config) {
+		var cfg: Dict | null = null;
+		var mod = __requireNgui__('_pkg').mainModule;
+		if (mod) {
+			var pkg = mod.package;
+			if (pkg) {
+				cfg = readConfigFile(pkg.path + '/.config', pkg.path + '/config');
+			} else {
+				cfg = readConfigFile(mod.dirname + '/.config', mod.dirname + '/config');
+			}
+		}
+		config = cfg || readConfigFile(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
+	}
+	return config as Dict;
+}
+
+function initArgv() {
+	var args: string[] = [];
+	if (_util.argv.length > 1) {
+		mainPath = String(_util.argv[1] || '');
+		args = _util.argv.slice(2);
+	}
+	parseOptions(args, options); // parse options
+
+	if ( 'url_arg' in options ) {
+		if (Array.isArray(options.url_arg))
+			options.url_arg = options.url_arg.join('&');
+	} else {
+		options.url_arg = '';
+	}
+	if ('no_cache' in options || _debug) {
+		if (options.url_arg) {
+			options.url_arg += '&__no_cache';
+		} else {
+			options.url_arg = '__no_cache';
+		}
+	}
+}
+
 function makeRequireFunction(mod: any, main: any): NguiRequire {
 	const Module = mod.constructor;
 
@@ -297,6 +378,8 @@ function debugLog(TAG = 'PKG') {
 	}
 }
 
+initArgv();
+
 export default {
 	fallbackPath: utils.fallbackPath,
 	resolvePathLevel,
@@ -305,9 +388,15 @@ export default {
 	isLocal,
 	isLocalZip,
 	isNetwork,
+	get options() { return options },
+	get config() { return getConfig() },
+	debug: _debug,
+	//
+	stripBOM,
 	makeRequireFunction,
 	stripShebang,
-	stripBOM,
-	assert, debugLog,
+	assert,
+	debugLog,
+	mainPath,
 	delimiter: utils.delimiter,
 };

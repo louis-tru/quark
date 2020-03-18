@@ -282,10 +282,8 @@ const modulePaths: string[] = [];
 const modulePathCache: Map<string, ModulePath> = new Map();
 const packages: Map<string, PackageIMPL> = new Map();
 const lookupCaches: Map<string, LookupResult> = new Map(); // absolute path cache
-const options: Optopns = {};
-var mainPath: string = '';
+const options: Optopns = _pkgutil.options;
 var mainModule: Module | null = null;
-var config: Dict | null = null;
 
 interface LookupResult {
 	pkg: PackageIMPL;
@@ -522,7 +520,7 @@ export class Module implements NguiModule {
 			};
 			await addModulePathWithoutErr(_path.resources());
 
-			var main = mainPath;
+			var main = _pkgutil.mainPath as string;
 			if (main) {
 				if (isNetwork(main)) { // 这是一个网络启动,添加一些默认搜索路径
 					if (_debug) {
@@ -904,19 +902,6 @@ function lookup(request: string, parent?: Module, lazy?: boolean): LookupResult 
 	return null;
 }
 
-// without error
-function requireWithoutErr(pathname: string) {
-	try { return (Module as any)._load(pathname) } catch(e) {}
-}
-
-function readConfigFile(pathname: string, pathname2: string) {
-	var c = requireWithoutErr(pathname);
-	var c2 = requireWithoutErr(pathname2);
-	if (c || c2) {
-		return Object.assign({}, c, c2);
-	}
-}
-
 class Exports {
 
 	get mainPackage() {
@@ -945,23 +930,6 @@ class Exports {
 	lookupPackage(name: string, parent?: Module): Package | null {
 		var _lookup = lookup(name, parent);
 		return _lookup ? _lookup.pkg.host: null;
-	}
-
-	get config() {
-		if (!config) {
-			var cfg: Dict | null = null;
-			var mod = mainModule;
-			if (mod) {
-				var pkg = mod.package;
-				if (pkg) {
-					cfg = readConfigFile(pkg.path + '/.config', pkg.path + '/config');
-				} else {
-					cfg = readConfigFile(mod.dirname + '/.config', mod.dirname + '/config');
-				}
-			}
-			config = cfg || readConfigFile(_path.cwd() + '/.config', _path.cwd() + '/config') || {};
-		}
-		return config as Dict;
 	}
 
 }
@@ -1052,7 +1020,7 @@ class PackageIMPL {
 
 	resolveRelative(relativePath: string): { pathname: string, resolve: string } {
 		var self = this; 
-		self.host.installSync();
+		self.installSync();
 
 		if (self.helperAll)
 			return (self.helper as PackageIMPL).resolveRelative(relativePath);
@@ -1247,6 +1215,20 @@ class PackageIMPL {
 			self._installComplete(path, cb);
 		}
 	}
+
+	installSync() {
+		var self = this;
+		if (self.status !== 0) {
+			if (self.helper) // install helper
+				self.helper.installSync();
+			try {
+				self.install();
+			} finally {
+				self.status = PackageStatus.NO_INSTALL;
+			}
+		}
+	}
+
 }
 
 class PackageExtend extends PackageIMPL {
@@ -1332,19 +1314,6 @@ class Package {
 		return this._impl.resolveRelative(relativePath).resolve;
 	}
 
-	installSync() {
-		var self = this._impl;
-		if (self.status !== 0) {
-			if (self.helper) // install helper
-				self.helper.host.installSync();
-			try {
-				self.install();
-			} finally {
-				self.status = PackageStatus.NO_INSTALL;
-			}
-		}
-	}
-
 	async install() {
 		var self = this._impl;
 		if (self.status !== 0) {
@@ -1363,51 +1332,6 @@ class Package {
 	}
 }
 
-function parseOptions(args: string[], options: Optopns) {
-	for (var i = 0; i < args.length; i++) {
-		var item = args[i];
-		var mat = item.match(/^-{1,2}([^=]+)(?:=(.*))?$/);
-		if (mat) {
-			var name = mat[1].replace(/-/gm, '_');
-			var val = mat[2] || 'true';
-			var raw_val = options[name];
-			if ( raw_val ) {
-				if ( Array.isArray(raw_val) ) {
-					raw_val.push(val);
-				} else {
-					options[name] = [raw_val, val];
-				}
-			} else {
-				options[name] = val;
-			}
-		}
-	}
-}
-
-function initArgv() {
-	var args: string[] = [];
-	if (_util.argv.length > 1) {
-		mainPath = String(_util.argv[1] || '');
-		args = _util.argv.slice(2);
-	}
-	parseOptions(args, options); // parse options
-
-	if ( 'url_arg' in options ) {
-		if (Array.isArray(options.url_arg))
-			options.url_arg = options.url_arg.join('&');
-	} else {
-		options.url_arg = '';
-	}
-	if ('no_cache' in options || _debug) {
-		if (options.url_arg) {
-			options.url_arg += '&__no_cache';
-		} else {
-			options.url_arg = '__no_cache';
-		}
-	}
-}
-
-initArgv();
 PackageExtend._init();
 Module._initPaths();
 

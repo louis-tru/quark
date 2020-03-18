@@ -1,8 +1,10 @@
 
-import { GUIApplication, ViewController, Root, Div, Indep, ngui, New, lock } from 'ngui';
+import { GUIApplication, ViewController, Root, Indep, default as ngui, _CVD } from 'ngui';
 import { Color } from 'ngui/value';
-import { random, log } from 'ngui/util';
-import './uu';
+import util from 'ngui/util';
+import * as uu from './uu';
+
+const random = util.random;
 
 class RootViewController extends ViewController {
 	render() {
@@ -20,20 +22,23 @@ class RootViewController extends ViewController {
 						var x = random(0, w + s) - s2;
 						var y = random(0, h + s) - s2;
 						return (
-							<Indep originX=s2 
-								originY=s2 
-								backgroundColor=color 
-								width=s 
-								height=s 
-								x=x 
-								y=y 
-								action=[
-									{ rotateZ: 0, time:0, curve:'linear' }, 
-									{ rotateZ: 360 * (random(0, 1) ? -1 : 1),
-										time: random(1000, 4000), curve:'linear' },
-								] 
-								action.loop=1e8
-								action.playing=1 />
+							<Indep originX={s2} 
+								originY={s2}
+								backgroundColor={color} 
+								width={s} 
+								height={s} 
+								x={x} 
+								y={y} 
+								action={{
+									keyframe: [
+										{ rotateZ: 0, time:0, curve:'linear' }, 
+										{ rotateZ: 360 * (random(0, 1) ? -1 : 1),
+											time: random(1000, 4000), curve:'linear' },
+									],
+									loop: 1e8,
+									playing: 1,
+								}}
+							/>
 						);
 					})
 				}

@@ -43,32 +43,30 @@ import storage from './storage';
 const resolve = require.resolve;
 
 export default ()=>(
-
 	<Mynavpage title="Examples" source={resolve(__filename)}>
 
-		<Scroll width="full" height="full" bounceLock=0>
+		<Scroll width="full" height="full" bounceLock={0}>
 
 			<Text class="category_title" value="GUI." />
 			<Clip class="category">
-				<Navbutton next=components.vx id="btn0">Components</Navbutton>
-				<Navbutton next=media.vx>Multi-Media</Navbutton>
-				<Navbutton next=input.vx>Input</Navbutton>
-				<Navbutton next=icons.vx>Icons</Navbutton>
-				<Navbutton next=action.vx>Action</Navbutton>
+				<Navbutton next={components} id="btn0">Components</Navbutton>
+				<Navbutton next={media}>Multi-Media</Navbutton>
+				<Navbutton next={input}>Input</Navbutton>
+				<Navbutton next={icons}>Icons</Navbutton>
+				<Navbutton next={action}>Action</Navbutton>
 			</Clip>
 			
 			<Text class="category_title" value="Basic util." />
 			<Clip class="category">
-				<Navbutton next=fs.vx>File System</Navbutton>
-				<Navbutton next=http.vx>Http</Navbutton>
-				<!--Navbutton next=zlib.vx>Zlib</Navbutton-->
-				<Navbutton next=storage.vx>Local Storage</Navbutton>
+				<Navbutton next={fs}>File System</Navbutton>
+				<Navbutton next={http}>Http</Navbutton>
+				{/* <Navbutton next={zlib}>Zlib</Navbutton> */}
+				<Navbutton next={storage}>Local Storage</Navbutton>
 			</Clip>
 
-			<Div height=15 width="full" />
+			<Div height={15} width="full" />
 		</Scroll>
 
 	</Mynavpage>
-
 )
 

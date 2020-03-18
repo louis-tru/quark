@@ -28,27 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button } from 'ngui';
+import { Div, Button, _CVD } from 'ngui';
 import { AudioPlayer, Video } from 'ngui/media';
 import { Mynavpage } from './public';
-import * as aaaa from 'ngui/path';
+import { GUIClickEvent } from 'ngui/event';
 
 // const src_720 = 'http://ngui.fun/media/2017-09-11_15_41_19.mp4';
 const src_720 = 'http://ngui.fun/media/piper720p.mp4';
 const audio_src = 'http://ngui.fun/media/all_we_know.mp3';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
 
-var audio_player = null;
+var audio_player: AudioPlayer | null = null;
 
-function PlayVideo(evt) {
+function PlayVideo(evt: GUIClickEvent) {
 	StopAudio(evt);
-	var v = evt.sender.owner.IDs.video;
+	var v = evt.sender.ownerAs().find<Video>('video');
 	v.src = src_720;
 	v.start();
 }
 
-function PlayAudio(evt) {
+function PlayAudio(evt: GUIClickEvent) {
 	StopVideo(evt);
 	if ( !audio_player ) {
 		audio_player = new AudioPlayer();
@@ -57,43 +57,43 @@ function PlayAudio(evt) {
 	audio_player.start();
 }
 
-function StopVideo(evt) {
-	evt.sender.owner.IDs.video.stop();
+function StopVideo(evt: GUIClickEvent) {
+	evt.sender.ownerAs().find<Video>('video').stop();
 }
 
-function StopAudio(evt) {
+function StopAudio(evt: GUIClickEvent) {
 	if ( audio_player ) {
 		audio_player.stop();
 		audio_player = null;
 	}
 }
 
-function Stop(evt) {
+function Stop(evt: GUIClickEvent) {
 	StopVideo(evt);
 	StopAudio(evt);
 }
 
-function Seek(evt) {
+function Seek(evt: GUIClickEvent) {
 	if ( audio_player ) {
 		audio_player.seek(10000); // 10s
 	} else {
-		evt.sender.owner.IDs.video.seek(100000); // 100s
+		evt.sender.ownerAs().find<Video>('video').seek(100000); // 100s
 	}
 }
 
-export const vx = ()=>(
-	<Mynavpage title="Media" source=resolve(__filename) onRemove=StopAudio>
+export default ()=>(
+	<Mynavpage title="Media" source={resolve(__filename)} onRemove={StopAudio}>
 		<Div width="full">
-			<Button class="long_btn" onClick=PlayVideo>Play Video</Button>
-			<Button class="long_btn" onClick=PlayAudio>Play Audio</Button>
-			<Button class="long_btn" onClick=Stop>Stop</Button>
+			<Button class="long_btn" onClick={PlayVideo}>Play Video</Button>
+			<Button class="long_btn" onClick={PlayAudio}>Play Audio</Button>
+			<Button class="long_btn" onClick={Stop}>Stop</Button>
 
 			<Video 
 				id="video" 
-				marginTop=10
-				borderRadius=20 
+				marginTop={10}
+				borderRadius={20} 
 				_border="8 #f00" 
-				clip=false
+				clip={false}
 				width="full" 
 				backgroundColor="#000" 
 			/>

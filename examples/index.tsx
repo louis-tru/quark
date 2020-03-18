@@ -28,23 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'ngui/util';
-import 'ngui/sys';
-import 'ngui/reader';
-import 'ngui/font';
+import util from 'ngui/util';
+import * as sys from 'ngui/sys';
+import * as reader from 'ngui/reader';
+import * as font from 'ngui/font';
 import {
-	GUIApplication, Root, Scroll, CSS, atomPixel as px,
-	Div, Hybrid, Clip, Text, Button, TextNode as T, ngui
+	GUIApplication, Root, Scroll,
+	Div, Hybrid, Clip, Text, Button, TextNode as T, default as ngui, _CVD
 } from 'ngui';
 import { NavPageCollection, Toolbar } from 'ngui/nav';
-import { Navbutton, Mynavpage } from './public';
-import './examples';
+import { Navbutton, Mynavpage, Page } from './public';
+import examples from './examples';
 import about_vx from './about';
 import review_vx from './review';
+import {GUIClickEvent} from 'ngui/event';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
+const px = ngui.atomPixel;
 
-CSS({
+ngui.css({
 	
 	'.category_title': {
 		width: 'full',
@@ -99,8 +101,8 @@ CSS({
 	
 })
 
-function review_code(evt) {
-	evt.sender.owner.collection.push(review_vx(), 1);
+function review_code(evt: GUIClickEvent) {
+	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 
 const ngui_tools = 'https://www.npmjs.com/package/nxmake';
@@ -110,8 +112,8 @@ const documents = 'http://ngui.fun/';
 
 // registerFont
 
-function handle_go_to(evt) {
-	var url = evt.sender.url;
+function handle_go_to(evt: GUIClickEvent) {
+	var url = (evt.sender as any).url;
 	if ( url ) {
 		ngui.app.openUrl(url);
 	}
@@ -125,7 +127,7 @@ class DefaultToolbar extends Toolbar {
 	render() {
 		return super.render(
 			<Hybrid textAlign="center" width="full" height="full">
-				<Button onClick=review_code>
+				<Button onClick={review_code}>
 					<Text class="toolbar_btn" value="\ue9ab" />
 				</Button>
 			</Hybrid>
@@ -134,42 +136,42 @@ class DefaultToolbar extends Toolbar {
 }
 
 const ngui_tools_vx = ()=>(
-	<Mynavpage title="Ngui Tools" source=resolve(__filename)>
+	<Mynavpage title="Ngui Tools" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">
 `1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g nxmake" />.
 2. Or get the node modules from Github.`
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ngui_tools}>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
 
 const examples_source_vx = ()=>(
-	<Mynavpage title="Examples Source" source=resolve(__filename)>
+	<Mynavpage title="Examples Source" source={resolve(__filename)}>
 		<Div width="full">
 			<Text class="category_title" value="You can get the full examples source code from Github" />
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=examples_source>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={examples_source}>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
 
 const documents_vx = ()=>(
-	<Mynavpage title="Documents" source=resolve(__filename)>
+	<Mynavpage title="Documents" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="ngui.fun" /> to view the document?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=documents>Go Documents</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={documents}>Go Documents</Button>
 		</Div>
 	</Mynavpage>
 )
 
 const bug_feedback_vx = ()=>(
-	<Mynavpage title="Bug Feedback" source=resolve(__filename)>
+	<Mynavpage title="Bug Feedback" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_go_to url=ngui_tools_issues_url>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ngui_tools_issues_url}>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick=handle_bug_feedback>Send email</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_bug_feedback}>Send email</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -178,42 +180,42 @@ var app = new GUIApplication({
 	multisample: 4,
 	width: 420,
 	height: 800,
-	fullScreen: util.options.full_screen || 0,
-	enableTouch: 1,
+	fullScreen: !!util.options.full_screen,
+	enableTouch: true,
 	background: 0xffffff,
 	title: 'Ngui Examples',
 }).start(
 	<Root>
 
-		<NavPageCollection id="npc" defaultToolbar=DefaultToolbar>
-			<Mynavpage title="Home" source=resolve(__filename)>
+		<NavPageCollection id="npc" defaultToolbar={DefaultToolbar}>
+			<Mynavpage title="Home" source={resolve(__filename)}>
 
-				<Scroll width="full" height="full" bounceLock=0>
+				<Scroll width="full" height="full" bounceLock={0}>
 
 					<Text class="hello" value="Hello." />
-					<Div class="category" borderBottom=`${px} #c8c7cc`>
-						<Hybrid class="codepre">`<T class="keywork" value="import"/> \{ <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> \} <T class="keywork" value="from" /> <T class="str" value="'ngui'" />
+					<Div class="category" borderBottom={`${px} #c8c7cc`}>
+						<Hybrid class="codepre"><T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'ngui'" />
 <T class="keywork" value="new"/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>(
-	\<<T class="tag_name" value="Root" />\>hello world!\</<T class="tag_name" value="Root" />\>
-)`
+	{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{"\>"}
+)
 						</Hybrid>
 					</Div>
 
 					<Text class="category_title" />
 					<Clip class="category">
-						<Navbutton next=examples.vx>Examples</Navbutton>
-						<Navbutton next=examples_source_vx>Examples Source</Navbutton>
-						<Navbutton next=ngui_tools_vx>Ngui Tools</Navbutton>
+						<Navbutton next={examples}>Examples</Navbutton>
+						<Navbutton next={examples_source_vx}>Examples Source</Navbutton>
+						<Navbutton next={ngui_tools_vx}>Ngui Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />
 					<Clip class="category">
-						<Navbutton next=about_vx>About</Navbutton>
-						<Navbutton next=documents_vx>Documents</Navbutton>
-						<Navbutton next=bug_feedback_vx>Bug Feedback</Navbutton>
+						<Navbutton next={about_vx}>About</Navbutton>
+						<Navbutton next={documents_vx}>Documents</Navbutton>
+						<Navbutton next={bug_feedback_vx}>Bug Feedback</Navbutton>
 					</Clip>
 
-					<Div height=32 width="full" />
+					<Div height={32} width="full" />
 
 				</Scroll>
 

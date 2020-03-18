@@ -28,13 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { 
-	Div, Scroll, Text, TextNode, Hybrid, ViewController 
-} from 'ngui';
+import { Div, Scroll, TextNode, Hybrid, _CVD } from 'ngui';
 import { Mynavpage } from './public';
 
-var resolve = require.resolve;
-var icon_str = `
+const resolve = require.resolve;
+const icon_str = `
 \ue900
 \ue901
 \ue902
@@ -1649,19 +1647,18 @@ var icon_str = `
 
 class Controller extends Mynavpage {
 	source = resolve(__filename);
-	m_title = 'Icons';
 	render() {
 		return super.render(
-			<Scroll width="full" height="full" bounceLock=0>
-				<Div margin=10 width="full">
+			<Scroll width="full" height="full" bounceLock={0}>
+				<Div margin={10} width="full">
 					{
 						Array.from({length: icon_str.length}).map((e,i)=>{
 							var unicode = icon_str.charCodeAt(i);
 							if (unicode > 255) {
 								return (
-									<Hybrid marginBottom=10 textAlign="center" width="25%">
-										<TextNode textSize=28 textFamily="icomoon-ultimate" value=icon_str[i] />
-										<TextNode textColor="#555" value=` ${unicode.toString(16)}` />
+									<Hybrid marginBottom={10} textAlign="center" width="25%">
+										<TextNode textSize={28} textFamily="icomoon-ultimate" value={icon_str[i]} />
+										<TextNode textColor="#555" value={` ${unicode.toString(16)}`} />
 									</Hybrid>
 								);
 							}
@@ -1673,6 +1670,6 @@ class Controller extends Mynavpage {
 	}
 }
 
-export const vx = ()=>{
-	return Controller;
+export default ()=>{
+	<Controller title="Icons" />
 }

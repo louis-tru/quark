@@ -1,10 +1,12 @@
 
-import { GUIApplication, ViewController, Root, Div, Scroll, render, CSS } from 'ngui';
+import { GUIApplication, ViewController, Root, Div, Scroll, default as ngui, _CVD } from 'ngui';
 import { Color } from 'ngui/value';
-import { random } from 'ngui/util';
-import './uu';
+import util from 'ngui/util';
+import * as uu from './uu';
 
-CSS({
+const {random} = util
+
+ngui.css({
 	'.item': {
 		height: 40,
 		width: '25%',
@@ -13,22 +15,22 @@ CSS({
 
 class RootViewController extends ViewController {
 
-	triggerMounted(e) {
-		super.triggerMounted(e);
+	triggerMounted() {
+		super.triggerMounted();
 
 		uu.start();
 
-		render(
+		ngui.render<Scroll>(
 			<Scroll width="full" height="full">
 				{
 					Array.from({ length: 10000 }, ()=>{
 						var color = new Color(random(0, 255), 
 							random(0, 255), random(0, 255), 255);
-						return <Div backgroundColor=color class="item" />;
+						return <Div backgroundColor={color} class="item" />;
 					})
 				}
 			</Scroll>
-		).appendTo(this.dom);
+		).appendTo(this.domAs());
 	
 		uu.log();
 

@@ -29,38 +29,39 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { 
-	Div, Indep, Button, Text, Hybrid
+	Div, Indep, Button, Text, Hybrid, _CVD,
 } from 'ngui';
-import { Mynavpage } from './public';
+import { Mynavpage, Page } from './public';
 import { Navbar, Toolbar } from 'ngui/nav';
 import review_vx from './review';
+import { GUIClickEvent } from 'ngui/event';
 
-var resolve = require.resolve;
+const resolve = require.resolve;
 
-function hide_show_navbar(evt) {
-	var navbar = evt.sender.owner.navbar;
+function hide_show_navbar(evt: GUIClickEvent) {
+	var navbar = evt.sender.ownerAs<Page>().navbar;
 	var hidden = !navbar.hidden
 	navbar.setHidden(hidden, true);
-	evt.sender.prev.transition({ height: hidden ? 20 : 0, time: 400 });
+	(evt.sender.prev as Div).transition({ height: hidden ? 20 : 0, time: 400 });
 }
 
-function hide_show_toolbar(evt) {
-	var toolbar = evt.sender.owner.toolbar;
+function hide_show_toolbar(evt: GUIClickEvent) {
+	var toolbar = evt.sender.ownerAs<Page>().toolbar;
 	toolbar.setHidden(!toolbar.hidden, true);
 }
 
-function nav_pop(evt) {
-	evt.sender.owner.collection.pop(1);
+function nav_pop(evt: GUIClickEvent) {
+	evt.sender.ownerAs<Page>().collection.pop(true);
 }
 
-function view_code(evt) {
-	evt.sender.owner.collection.push(review_vx(), 1);
+function view_code(evt: GUIClickEvent) {
+	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 
 const navbar_vx = ()=>(
 	<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
-		<Indep alignX="right" alignY="center" x=-10>
-			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize=20>\ued63</Button>
+		<Indep alignX="right" alignY="center" x={-10}>
+			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize={20}>\ued63</Button>
 		</Indep>
 	</Navbar>
 )
@@ -68,22 +69,22 @@ const navbar_vx = ()=>(
 const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
-			<Button onClick=view_code>
+			<Button onClick={view_code}>
 				<Text class="toolbar_btn" textColor="#fff" value="\ue9ab" />
 			</Button>
 		</Hybrid>
 	</Toolbar>
 )
 
-export const vx = ()=>(
+export default ()=>(
 	<Mynavpage 
-		title="Nav" source=resolve(__filename) 
-		backgroundColor="#333" navbar=(navbar_vx()) toolbar=(toolbar_vx())>
+		title="Nav" source={resolve(__filename)} 
+		backgroundColor="#333" navbar={navbar_vx()} toolbar={toolbar_vx()}>
 		<Div width="full">
-			<Div width="full" height=0 />
-			<Button class="long_btn2" onClick=hide_show_navbar>Hide/Show Navbar</Button>
-			<Button class="long_btn2" onClick=hide_show_toolbar>Hide/Show Toolbar</Button>
-			<Button class="long_btn2" onClick=nav_pop>Nav pop</Button>
+			<Div width="full" height={0} />
+			<Button class="long_btn2" onClick={hide_show_navbar}>Hide/Show Navbar</Button>
+			<Button class="long_btn2" onClick={hide_show_toolbar}>Hide/Show Toolbar</Button>
+			<Button class="long_btn2" onClick={nav_pop}>Nav pop</Button>
 		</Div>
 	</Mynavpage>
 )
