@@ -54,9 +54,11 @@ function read_ngui_version() {
 
 function update_ngui_version() {
 	var vers = read_ngui_version().join('.');
-	var pkgs = [
+	[
+		__dirname + '/../libs/ngui/out/ngui/package.json',
+		__dirname + '/../libs/nxp/out/nxp/package.json',
 		__dirname + '/../libs/ngui/package.json',
-		__dirname + '/../libs/nxmake/package.json',
+		__dirname + '/../libs/nxp/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);

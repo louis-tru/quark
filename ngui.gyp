@@ -8,7 +8,7 @@
 
 	'variables': {
 		'more_log%': 0,
-		'ngui_product_dir%': '<(output)/../nxmake/product',
+		'ngui_product_dir%': '<(output)/../nxp/product',
 		'ngui_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
 		'conditions': [

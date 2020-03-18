@@ -28,16 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('nxkit/util').default;
 var fs = require('nxkit/fs');
 var { copy_header } = require('./cp-header');
 var path = require('path');
-var {execSync} = require('nxkit/syscall');
 var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/nxmake';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/nxp';
 var include = target + '/product/include';
 
 fs.rm_r_sync(include);
@@ -46,32 +44,9 @@ fs.rm_r_sync(target + '/product/examples');
 
 read_version.update_ngui_version();
 
-fs.cp_sync(root + '/libs/nxmake', target, {ignore_hide:1});
+fs.cp_sync(root + '/libs/nxp/out/nxp', target, {ignore_hide:0,symlink: 0});
+fs.cp_sync(root + '/libs/nxp/gyp', target + '/gyp', {ignore_hide:1,replace:0});
 
-var host = "192.168.0.115";
-
-if (process.env.REMOTE_COMPILE_HOST) {
-	host = process.env.REMOTE_COMPILE_HOST
-}
-// if [ "$1" ]; then
-// 	host="$1"
-// fi
-
-if (!fs.existsSync(target + '/bin/linux-jsa-shell')) {
-	var {code} = execSync(`scp louis@${host}:~/Project/ngui/libs/nxmake/bin/linux-jsa-shell ${target}/bin`);
-	if (code) {
-		console.warn('Cannot copy linux-jsa-shell, not find linux-jsa-shell');
-	} else {
-		fs.chmodSync(target + '/bin/linux-jsa-shell', 0755);
-	}
-} else {
-	fs.chmodSync(target + '/bin/linux-jsa-shell', 0755);
-}
-if (!fs.existsSync(target + '/bin/osx-jsa-shell')) {
-	console.warn('Cannot copy osx-jsa-shell, not find osx-jsa-shell');
-} else {
-	fs.chmodSync(target + '/bin/osx-jsa-shell', 0755);	
-}
 fs.chmodSync(target + '/gyp/gyp', 0755);
 
 copy_header(root + '/ngui', `${include}/ngui`);
