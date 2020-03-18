@@ -61,11 +61,11 @@ function read_plist_and_replace_version() {
 	var version = read_ngui_version_str();
 	var en = 'utf-8';
 	var str = fs.readFileSync(`${__dirname}/${os}-framework.plist`, en);//.toString(en);
-	str = str.replace(new RegExp(new Buffer('11.11.11').toString(en), 'gm'),
-										new Buffer(version).toString(en));
-	str = str.replace(new RegExp(new Buffer('xxxxxxxxxx').toString(en), 'gm'), 
-										new Buffer(name).toString(en));
-	return new Buffer(str, en);
+	str = str.replace(new RegExp(Buffer.from('11.11.11').toString(en), 'gm'),
+										Buffer.from(version).toString(en));
+	str = str.replace(new RegExp(Buffer.from('xxxxxxxxxx').toString(en), 'gm'), 
+										Buffer.from(name).toString(en));
+	return Buffer.from(str, en);
 }
 
 fs.mkdir_p_sync(framework_dir);

@@ -44,7 +44,7 @@ typedef KeyframeAction::Frame Frame;
 	static void Name(Local<JSString> name, PropertyCall args) {\
 	JS_WORKER(args);\
 	JS_SELF(Frame);\
-	if (self->host()) block;\
+	if (self->host()) { block; } \
 	else JS_THROW_ERR("No host property, unbind `KeyframeAction`");\
 }
 #define def_set_property_from_type0(Name, Type, Parser, block)\

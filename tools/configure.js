@@ -423,6 +423,14 @@ async function exec_check(check, cmds) {
 	}
 	if (typeof cmds == 'string') cmds = [cmds];
 
+	if (host_os == 'linux') {
+		util.assert(execSync('which apt-get').code == 0, 'no command `apt-get`');
+	} else if (host_os == 'osx') {
+		util.assert(execSync('which brew').code == 0, 'no command `brew`');
+	} else {
+		throw new Error(`not support ${host_os} platform`);
+	}
+
 	for (var cmd of cmds) {
 		if (cmd[0] == '*') {
 			if (process.env.USER != 'root') {
@@ -444,15 +452,14 @@ async function exec_check(check, cmds) {
 	}
 }
 
-async function install_linux_depe(opts, variables) {
+async function install_depe(opts, variables) {
 	var {os,arch} = opts;
 	var {cross_compiling} = variables;
+	var dpkg = {};
 
-	if (execSync('which apt-get').code == 0) {
-		var dpkg = {
-			dtrace: '*apt-get install systemtap-sdt-dev -y',
-			autoconf: '*apt-get install autoconf -y',
-		};
+	if (host_os == 'linux') {
+		dpkg.dtrace = '*apt-get install systemtap-sdt-dev -y';
+		dpkg.autoconf = '*apt-get install autoconf -y';
 
 		if (arch == 'x86' || arch == 'x64') {
 			dpkg.yasm = [
@@ -460,6 +467,7 @@ async function install_linux_depe(opts, variables) {
 				`*make -C ${__dirname}/yasm install`,
 			];
 		}
+
 		if (os == 'linux') {
 			if (cross_compiling) {
 				if (arch == 'arm') {
@@ -476,12 +484,22 @@ async function install_linux_depe(opts, variables) {
 			// dpkg.javac = '*apt-get install default-jdk';
 			dpkg.javac = '*apt-get install openjdk-8-jdk -y';
 		}
-
-		for (var i in dpkg) {
-			await exec_check(i, dpkg[i]);
+	}
+	else if (host_os == 'osx') {
+		if (arch == 'x86' || arch == 'x64') {
+			dpkg.autoconf = 'brew install autoconf -f';
+			dpkg.yasm = [
+				`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
+				`*make -C ${__dirname}/yasm install`,
+			];
 		}
-	} else {
-		throw Error.new(`Cannot install compile depe for linux arch = ${arch}`);
+	}
+	else {
+		throw Error.new(`Cannot install compile depe for ${host_os} arch = ${arch}`);
+	}
+
+	for (var i in dpkg) {
+		await exec_check(i, dpkg[i]);
 	}
 }
 
@@ -647,9 +665,7 @@ async function configure() {
 		}
 		// todo check android sdk ...
 
-		if (host_os == 'linux') {
-			await install_linux_depe(opts, variables);
-		}
+		await install_depe(opts, variables);
 
 		var tools = {
 			// 'mips': { cross_prefix: `mipsel-linux-android`, arch_name: 'mips2', abi: 'mips' },
@@ -757,7 +773,7 @@ async function configure() {
 			console.warn('Unknown Linux distribution');
 		}
 
-		await install_linux_depe(opts, variables);
+		await install_depe(opts, variables);
 
 		if ( arch == 'arm' || arch == 'arm64' ) { // arm arm64
 			if (arch == 'arm') {
@@ -833,6 +849,8 @@ async function configure() {
 
 		util.assert(XCODEDIR, 'The Xode installation directory could not be found. '+
 			'Make sure that Xcode is installed correctly');
+
+		await install_depe(opts, variables);
 
 		try {
 			variables.xcode_version = syscall('xcodebuild -version').first.match(/\d+.\d+$/)[0];

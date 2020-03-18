@@ -16,3 +16,4 @@ libs/nxkit
 node_modules
 libs/ngui/out
 .node_modules
+package-lock.json

@@ -185,7 +185,8 @@ class InlJSON {
 			Local<JSObject> o = arg.To<JSObject>();
 			if (arg->IsUint8Array(worker)) {
 				rv = stringify_buffer(o->AsBuffer(worker));
-			} else if (worker->values() && worker->values()->isBase(arg)) {
+			}
+			else if (worker->values() && worker->values()->isBase(arg)) {
 				_rv->push(Quotes);
 				_rv->push( o->ToStringValue(worker) );
 				_rv->push(Quotes);

@@ -50,14 +50,14 @@ NX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
 	
 	void initialize(cJSON& options);
 	void refresh_display();
-	void onLoad();
-	void onRender();
-	void onPause();
-	void onResume();
-	void onBackground();
-	void onForeground();
-	void onMemorywarning();
-	void onUnload();
+	void triggerLoad();
+	void triggerRender();
+	void triggerPause();
+	void triggerResume();
+	void triggerBackground();
+	void triggerForeground();
+	void triggerMemorywarning();
+	void triggerUnload();
 	
 	/**
 	 * @func set_volume_up()

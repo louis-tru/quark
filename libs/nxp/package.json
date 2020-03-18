@@ -12,7 +12,7 @@
 		"nxp": "shell.js"
 	},
 	"scripts": {
-		"cp": "cp -rf LICENSE *.keys *.md marked export out/nxp && if [ ! -d out/nxp/gyp ]; then ln -s ../../gyp out/nxp; fi ",
+		"cp": "mkdir -p out/nxp && cp -rf LICENSE *.keys *.md marked export out/nxp && if [ ! -d out/nxp/gyp ]; then ln -s ../../gyp out/nxp; fi ",
 		"build": "npm run cp && tsc && node _.js"
 	},
 	"keywords": [

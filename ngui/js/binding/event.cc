@@ -491,17 +491,17 @@ class WrapGUIClickEvent: public WrapObject {
 	/**
 	 * @get mode {int}
 	 */
-	static void mode(Local<JSString> name, PropertyCall args) {
+	static void type(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_SELF(GUIClickEvent);
-		JS_RETURN( int(self->mode()) );
+		JS_RETURN( int(self->type()) );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(GUIClickEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(x, x);
 			JS_SET_CLASS_ACCESSOR(y, y);
-			JS_SET_CLASS_ACCESSOR(mode, mode);
+			JS_SET_CLASS_ACCESSOR(type, type);
 			JS_SET_CLASS_ACCESSOR(count, count);
 		}, GUIEvent);
 	}

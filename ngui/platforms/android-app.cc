@@ -97,9 +97,9 @@ class AndroidApplication {
 
 		activity->callbacks->onDestroy                  = &AndroidApplication::onDestroy;
 		activity->callbacks->onStart                    = &AndroidApplication::onStart;
-		activity->callbacks->onResume                   = &AndroidApplication::onResume;
+		activity->callbacks->triggerResume                   = &AndroidApplication::onResume;
 		activity->callbacks->onSaveInstanceState        = &AndroidApplication::onSaveInstanceState;
-		activity->callbacks->onPause                    = &AndroidApplication::onPause;
+		activity->callbacks->triggerPause                    = &AndroidApplication::onPause;
 		activity->callbacks->onStop                     = &AndroidApplication::onStop;
 		activity->callbacks->onConfigurationChanged     = &AndroidApplication::onConfigurationChanged;
 		activity->callbacks->onLowMemory                = &AndroidApplication::onLowMemory;
@@ -121,9 +121,9 @@ class AndroidApplication {
 
 		activity->callbacks->onDestroy                  = nullptr;
 		activity->callbacks->onStart                    = nullptr;
-		activity->callbacks->onResume                   = nullptr;
+		activity->callbacks->triggerResume                   = nullptr;
 		activity->callbacks->onSaveInstanceState        = nullptr;
-		activity->callbacks->onPause                    = nullptr;
+		activity->callbacks->triggerPause                    = nullptr;
 		activity->callbacks->onStop                     = nullptr;
 		activity->callbacks->onConfigurationChanged     = nullptr;
 		activity->callbacks->onLowMemory                = nullptr;
@@ -138,7 +138,7 @@ class AndroidApplication {
 
 		application->m_activity = nullptr;
 
-		// application->m_app->onUnload();
+		// application->m_app->triggerUnload();
 		// delete application; application = nullptr;
 	}
 
@@ -164,7 +164,7 @@ class AndroidApplication {
 				} else {
 					application->m_is_init_ok = true;
 					gl_draw_context->initialize();
-					application->m_host->onLoad();
+					application->m_host->triggerLoad();
 				}
 				application->start_render_task();
 			}
@@ -201,7 +201,7 @@ class AndroidApplication {
 			NX_ASSERT(application->m_host);
 			NX_ASSERT(application->m_host->render_loop());
 		}
-		application->m_host->onForeground();
+		application->m_host->triggerForeground();
 		application->stop_render_task();
 	}
 
@@ -244,7 +244,7 @@ class AndroidApplication {
 	// ----------------------------------------------------------------------
 	
 	static void onStop(ANativeActivity* activity) {
-		application->m_host->onBackground();
+		application->m_host->triggerBackground();
 		application->stop_render_task();
 	}
 
@@ -262,15 +262,15 @@ class AndroidApplication {
 	
 	static void onLowMemory(ANativeActivity* activity) {
 		NX_DEBUG("onLowMemory");
-		application->m_host->onMemorywarning();
+		application->m_host->triggerMemorywarning();
 	}
 
 	static void onResume(ANativeActivity* activity) {
-		application->m_host->onResume();
+		application->m_host->triggerResume();
 	}
 
 	static void onPause(ANativeActivity* activity) {
-		application->m_host->onPause();
+		application->m_host->triggerPause();
 	}
 
 	// ----------------------------------------------------------------------

@@ -243,24 +243,24 @@ class LinuxApplication {
 				case MapNotify:
 					if (m_is_init) {
 						DLOG("event, MapNotify, Window onForeground");
-						m_host->onForeground();
+						m_host->triggerForeground();
 						m_render_looper->start();
 					}
 					break;
 				case UnmapNotify:
 					DLOG("event, UnmapNotify, Window onBackground");
-					m_host->onBackground();
+					m_host->triggerBackground();
 					m_render_looper->stop();
 					break;
 				case FocusIn:
 					DLOG("event, FocusIn, Window onResume");
 					m_ime->focus_in();
-					m_host->onResume();
+					m_host->triggerResume();
 					break;
 				case FocusOut:
 					DLOG("event, FocusOut, Window onPause");
 					m_ime->focus_out();
-					m_host->onPause();
+					m_host->triggerPause();
 					break;
 				case KeyPress:
 					DLOG("event, KeyDown, keycode: %ld", event.xkey.keycode);
@@ -361,8 +361,8 @@ class LinuxApplication {
 				m_is_init = 1;
 				NX_CHECK(gl_draw_context->create_surface(m_win));
 				gl_draw_context->initialize();
-				m_host->onLoad();
-				m_host->onForeground();
+				m_host->triggerLoad();
+				m_host->triggerForeground();
 				m_render_looper->start();
 			}
 			ev.data->complete();

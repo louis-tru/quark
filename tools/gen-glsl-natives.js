@@ -38,7 +38,7 @@ var Buffer  = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
 
 var round = `
-float xx_round(float num) {
+float nx_round(float num) {
 	float r = floor(num);
 	if ( num - r >= 0.5 ) {
 		return r + 1.0;
@@ -46,8 +46,8 @@ float xx_round(float num) {
 		return r;
 	}
 }
-vec2 xx_round(vec2 num) {
-	return vec2(xx_round(num.x), xx_round(num.y));
+vec2 nx_round(vec2 num) {
+	return vec2(nx_round(num.x), nx_round(num.y));
 }
 `;
 
@@ -117,7 +117,7 @@ function transformation_to_es2(glsl_code, type_vp) {
 	});
 
 	if (type_vp) {
-		glsl_code = glsl_code.replace(/gl_VertexID/g, 'xx_VertexID');
+		glsl_code = glsl_code.replace(/gl_VertexID/g, 'nx_VertexID');
 	} 
 	else { // fp
 		if (es2_frag_out_name.length) {
@@ -132,7 +132,7 @@ function transformation_to_es2(glsl_code, type_vp) {
 	glsl_code = glsl_code.replace(/([^a-zA-Z0-9\$_])texture\s*\(/g, '$1texture2D(');
 	glsl_code = glsl_code.replace(/([^a-zA-Z0-9\$_])round\s*\(/g, function(all, a) {
 		is_use_round = true;
-		return a + 'xx_round(';
+		return a + 'nx_round(';
 	});
 
 	if (is_use_round)
@@ -221,8 +221,8 @@ function resolve_glsl(name, vert_code, frag_code, hpp, cpp) {
 
 		find_uniforms_attributes(glsl_code, uniforms, uniform_blocks, attributes, type_vp);
 
-		var buff = new Buffer(glsl_code).toJSON().data;
-		var es2_buff = new Buffer(es2_glsl_code).toJSON().data;
+		var buff = Buffer.from(glsl_code).toJSON().data;
+		var es2_buff = Buffer.from(es2_glsl_code).toJSON().data;
 
 		if (type_vp) {
 			source_vp = buff;
@@ -294,9 +294,10 @@ function main() {
 		}
 	});
 
+	var now = Date.now();
 	write(hpp,
-		'#ifndef __shader_natives_' + Date.now() + '__',
-		'#define __shader_natives_' + Date.now() + '__',
+		'#ifndef __shader_natives_' + now,
+		'#define __shader_natives_' + now,
 		'namespace ngui {',
 		'namespace shader {',
 		'#pragma pack(push,4)',
@@ -346,7 +347,7 @@ function main() {
 
 	// init block
 	var name = path.basename(output_cc).replace(/[\.-]/gm, '_');
-	write(cpp, `XX_INIT_BLOCK(${name}) {`);
+	write(cpp, `NX_INIT_BLOCK(${name}) {`);
 	names.forEach(e=>{
 		write(cpp, `  GLDraw::register_gl_shader((ngui::GLShader*)(&${e}));`)
 	});

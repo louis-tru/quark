@@ -82,11 +82,11 @@ static NSString* app_delegate_name = @"";
  * @interface ApplicationDelegate
  */
 @interface ApplicationDelegate()<NSWindowDelegate> {
-	UIWindow* _window;
-	BOOL      _is_background;
-	BOOL      _is_pause;
-	BOOL      _loaded;
-	Callback  _render_exec;
+	UIWindow*  _window;
+	BOOL       _is_background;
+	BOOL       _is_pause;
+	BOOL       _loaded;
+	Cb         _render_exec;
 }
 @property (strong, nonatomic) GLView* glview;
 @property (strong, nonatomic) MacIMEHelprt* ime;
@@ -206,9 +206,9 @@ static CVReturn display_link_callback(CVDisplayLinkRef displayLink,
  */
 @implementation ApplicationDelegate
 
-static void render_exec_func(Cb& evt, Object* ctx) {
+static void render_exec_func(CbD& evt, Object* ctx) {
 	app_delegate.render_task_count--;
-	_inl_app(app_delegate.app)->onRender();
+	_inl_app(app_delegate.app)->triggerRender();
 }
 
 - (void)display_link_callback:(const CVTimeStamp*)outputTime {
@@ -226,7 +226,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 
 - (void)refresh_surface_size_with_rect:(::CGRect)rect {
 	if (!_loaded) return;
-	_app->render_loop()->post(Cb([self, rect](Cb& d) {
+	_app->render_loop()->post(Cb([self, rect](CbD& d) {
 		gl_draw_context->refresh_surface_size(rect);
 	}));
 	LOG("refresh_surface_size, %f, %f", rect.size.width, rect.size.height);
@@ -245,7 +245,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 		[self pause];
 		_is_background = YES;
 		NX_DEBUG("onBackground");
-		_inl_app(_app)->onBackground();
+		_inl_app(_app)->triggerBackground();
 	}
 }
 
@@ -253,7 +253,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 	if (_loaded && _is_background) {
 		_is_background = NO;
 		NX_DEBUG("onForeground");
-		_inl_app(_app)->onForeground();
+		_inl_app(_app)->triggerForeground();
 		[self resume];
 	}
 }
@@ -262,7 +262,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 	if (_loaded && !_is_pause) {
 		NX_DEBUG("onPause");
 		_is_pause = YES;
-		_inl_app(_app)->onPause();
+		_inl_app(_app)->triggerPause();
 	}
 }
 
@@ -270,7 +270,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 	if (_loaded && _is_pause) {
 		NX_DEBUG("onResume");
 		_is_pause = NO;
-		_inl_app(_app)->onResume();
+		_inl_app(_app)->triggerResume();
 		[self refresh_surface_size];
 	}
 }
@@ -286,7 +286,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 	_app->render_loop()->post_sync(Cb([self, rect, context](Cb::Data& d) {
 		gl_draw_context->initialize(self.glview, context);
 		gl_draw_context->refresh_surface_size(rect);
-		_inl_app(_app)->onLoad();
+		_inl_app(_app)->triggerLoad();
 		_loaded = YES;
 		d.data->complete();
 	}));
@@ -383,7 +383,7 @@ static void render_exec_func(Cb& evt, Object* ctx) {
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
 	NX_DEBUG("applicationWillTerminate");
-	_inl_app(_app)->onUnload();
+	_inl_app(_app)->triggerUnload();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {

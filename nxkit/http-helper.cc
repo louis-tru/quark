@@ -216,7 +216,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	NX_DEBUG("request_sync %s", options.url.c());
 	typedef Callback<RunLoop::PostSyncData> Cb_;
 	bool ok = false;
-	HttpError err(Error());
+	HttpError err = Error();
 	ResponseData data;
 
 	get_private_loop()->post_sync(Cb_([&](Cb_::Data& d) {

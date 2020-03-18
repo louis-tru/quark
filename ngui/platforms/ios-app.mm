@@ -233,7 +233,7 @@ static NSString* app_delegate_name = @"";
 
 static void render_exec_func(CbD& evt, Object* ctx) {
 	app_delegate.render_task_count--;
-	_inl_app(app_delegate.app)->onRender();
+	_inl_app(app_delegate.app)->triggerRender();
 }
 
 - (void)display_link_callback:(CADisplayLink*)displayLink {
@@ -338,7 +338,7 @@ static void render_exec_func(CbD& evt, Object* ctx) {
 	_app->render_loop()->post(Cb([self, layer, rect](CbD& d) {
 		gl_draw_context->set_surface_view(self.glview, layer);
 		gl_draw_context->refresh_surface_size(rect);
-		_inl_app(self.app)->onLoad();
+		_inl_app(self.app)->triggerLoad();
 		[self.display_link addToRunLoop:[NSRunLoop mainRunLoop]
 														forMode:NSDefaultRunLoopMode];
 	}));
@@ -353,31 +353,31 @@ static void render_exec_func(CbD& evt, Object* ctx) {
 }
 
 - (void)applicationWillResignActive:(UIApplication*) application {
-	_inl_app(_app)->onPause();
+	_inl_app(_app)->triggerPause();
 }
 
 - (void)applicationDidBecomeActive:(UIApplication*) application {
-	_inl_app(_app)->onResume();
+	_inl_app(_app)->triggerResume();
 	[self refresh_surface_size];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication*) application {
 	_is_background = YES;
-	_inl_app(_app)->onBackground();
+	_inl_app(_app)->triggerBackground();
 }
 
 - (void)applicationWillEnterForeground:(UIApplication*) application {
 	_is_background = NO;
-	_inl_app(_app)->onForeground();
+	_inl_app(_app)->triggerForeground();
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication*) application {
-	_inl_app(_app)->onMemorywarning();
+	_inl_app(_app)->triggerMemorywarning();
 }
 
 - (void)applicationWillTerminate:(UIApplication*)application {
 	[self.display_link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-	_inl_app(_app)->onUnload();
+	_inl_app(_app)->triggerUnload();
 }
 
 - (void) mailComposeController:(MFMailComposeViewController*)controller

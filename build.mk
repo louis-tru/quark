@@ -31,11 +31,11 @@ GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
 ifeq ($(V), 1)
-V_ARG = "V=1"
+	V_ARG = "V=1"
 endif
 
 ifeq ($(OS), android)
-BUILD_STYLE = make-linux
+	BUILD_STYLE = make-linux
 endif
 
 gen_project=\
@@ -47,19 +47,19 @@ make_compile=\
 	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
-.PHONY: $(STYLES) all compile tools test2 clean
+.PHONY: $(STYLES) all build tools test2 clean
 
 .SECONDEXPANSION:
 
 ###################### Build ######################
 
-all: compile
+all: build # compile
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
 	@$(call gen_project,$@,ngui.gyp)
 
-compile: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
+build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
 
 tools: $(GYPFILES)

@@ -376,7 +376,7 @@ void Video::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
 }
 
 void Video::multimedia_source_eof(MultimediaSource* so) {
-	Inl_Video(this)->trigger(GUI_EVENT_SOURCE_EOF); // trigger event eof
+	Inl_Video(this)->trigger(GUI_EVENT_SOURCE_END); // trigger event eof
 }
 
 void Video::multimedia_source_error(MultimediaSource* so, cError& err) {

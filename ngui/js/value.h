@@ -113,8 +113,10 @@ class NX_EXPORT ValueProgram: public Object {
 	virtual ~ValueProgram();
 	void throwError(Local<JSValue> value, cchar* msg = nullptr, cchar* help = nullptr);
 	js_value_table(def_attr_fn);
+	bool isBase(Local<JSValue> arg);
  private:
 	js_value_table(def_attr)
+	Persistent<JSFunction> _Base;
 	Worker* worker;
 	#undef def_attr_fn
 	#undef def_attr

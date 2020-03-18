@@ -619,7 +619,7 @@ export default class NguiBuild {
 		var result: Dict<PkgJson> = {};
 		var ok = 0;
 		for ( var name in self.outputs ) {
-			result[name] = self.outputs[name].pkg_json;
+			result[name] = self.outputs[name].json;
 			ok = 1;
 		}
 		if ( ok ) {
@@ -680,7 +680,7 @@ export default class NguiBuild {
 		}
 
 		if (!fs.existsSync(`${self.source}/.editorconfig`)) {
-			fs.writeFileSync(`${self.m_source}/.editorconfig`,
+			fs.writeFileSync(`${self.source}/.editorconfig`,
 `
 # top-most EditorConfig file  
 root = true  

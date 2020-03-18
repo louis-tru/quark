@@ -52,7 +52,7 @@ void looper(CbD& ev, LooperData* data) {
 	if ( data->id && !is_exited() ) {
 		// 60fsp
 		data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
-		data->host->onRender();
+		data->host->triggerRender();
 		// DLOG("onRender");
 	} else {
 		Release(data);

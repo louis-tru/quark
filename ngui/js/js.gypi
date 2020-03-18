@@ -112,11 +112,9 @@
 		'actions': [
 			{
 				'action_name': 'build_ngui_',
-				'inputs': [
-					'../../libs/ngui/tsconfig.json',
-				],
-				'outputs': [],
-				'action': [ 'sh', '-c', 'cd libs/ngui && npm run build' ]
+				'inputs': [ '../../libs/ngui/tsconfig.json' ],
+				'outputs': ['../../libs/ngui/out/ngui/package.json'],
+				'action': [ 'sh', '-c', 'cd libs/ngui; if [ ! -f out/ngui/package.json ]; then npm run build; fi' ]
 			},
 			{
 				'action_name': 'gen_inl_js_natives',

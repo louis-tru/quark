@@ -22,7 +22,15 @@ if   [ ! -d libs/nxkit ] \
 	make pull
 fi
 
-# build nxkit
+# build libs/ngui
+if [ ! -f libs/ngui/out/ngui/package.json ]; then
+	cd libs/ngui
+	npm i
+	npm run build
+	cd ../..
+fi
+
+# build libs/nxkit
 if [ ! -f libs/nxkit/out/nxkit/package.json ]; then
 	cd libs/nxkit
 	npm i
@@ -30,7 +38,7 @@ if [ ! -f libs/nxkit/out/nxkit/package.json ]; then
 	cd ../..
 fi
 
-# build nxp
+# build libs/nxp
 if [ ! -f libs/nxp/out/nxp/package.json ]; then
 	cd libs/nxp
 	npm i
@@ -53,6 +61,7 @@ if   [ ! -d tools/node_modules/nxkit ] \
 	cd ../..
 fi
 
+# ln -s libs node_modules
 if [ ! -d node_modules ]; then
 	ln -s libs node_modules
 fi

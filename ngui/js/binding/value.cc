@@ -56,6 +56,8 @@ ValueProgram::ValueProgram(Worker* worker,
 	// reset
 	js_value_table(js_init_func)
 
+	_Base.Reset(worker, priv->Get(worker,Ascii("_Base")).To<JSFunction>());
+
 #undef Ascii
 #undef js_init_func
 }
@@ -803,6 +805,10 @@ bool ValueProgram::parseTextWhiteSpace(Local<JSValue> in,
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value = (TextWhiteSpaceEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
 	});
+}
+
+bool ValueProgram::isBase(Local<JSValue> arg) {
+	return arg->InstanceOf(worker, _Base.local());
 }
 
 void binding_background(Local<JSObject> exports, Worker* worker);

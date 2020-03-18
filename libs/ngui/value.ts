@@ -2146,6 +2146,7 @@ const _priv = exports._priv;
 delete exports._priv;
 Object.assign(_priv, exports);
 
+_priv._Base = Base;
 _priv._TextAlign = _text_align;
 _priv._Align = _align;
 _priv._ContentAlign = _content_align;

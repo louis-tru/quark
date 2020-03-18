@@ -174,18 +174,18 @@ class WrapBackgroundImage: public WrapObject {
 	static void set_position(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(BackgroundImage);
-		js_parse_value2(Array<BackgroundPositionCollection>, BackgroundPositions,
+		js_parse_value2(BackgroundPositionCollection, BackgroundPositionCollection,
 										value, "BackgroundImage.position = %s");
-		self->set_position_x(out[0].x);
-		self->set_position_y(out[0].y);
+		self->set_position_x(out.x);
+		self->set_position_y(out.y);
 	}
 	static void set_size(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(BackgroundImage);
-		js_parse_value2(Array<BackgroundSizeCollection>, BackgroundSizes,
+		js_parse_value2(BackgroundSizeCollection, BackgroundSizeCollection,
 										value, "BackgroundImage.size = %s");
-		self->set_size_x(out[0].x);
-		self->set_size_y(out[0].y);
+		self->set_size_x(out.x);
+		self->set_size_y(out.y);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {

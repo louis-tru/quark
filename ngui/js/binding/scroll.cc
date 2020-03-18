@@ -501,7 +501,7 @@ class WrapScroll: public WrapViewBase {
 		JS_RETURN( self->enable_fixed_scroll_size() );
 	}
 	
-	static void set_enable_fixed_scroll_size(Local<JSString> name, FunctionCall args) {
+	static void set_enable_fixed_scroll_size(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		if ( args.Length() < 1 ) {
 			JS_THROW_ERR(

@@ -23,7 +23,7 @@ endif
 
 DEPS = libs/nxkit libs/nxp/gyp.ngui depe/v8-link \
 	depe/FFmpeg.ngui depe/node.ngui depe/bplus
-FORWARD = make xcode msvs make-linux cmake-linux cmake compile tools $(ANDROID_JAR) test2 clean
+FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
@@ -54,13 +54,13 @@ check_osx=\
 
 .PHONY: $(FORWARD) ios android linux osx \
 	product install install-nxp \
-	help web doc watch build _host_linux _host_osx pull push
+	help web doc watch all all_on_linux all_on_osx pull push
 
 .SECONDEXPANSION:
 
 # compile product ngui and install
 # It can only run in MAC system.
-product: # pull
+product:
 	@$(MAKE) ios
 	@$(MAKE) android
 
@@ -79,57 +79,58 @@ $(FORWARD):
 # It can only run in MAC system.
 ios:
 	@$(call check_osx,$@)
-	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) compile # armv7 say goodbye 
-	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) compile
-	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) compile
-	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) compile # handy debug
+	@#./configure --os=ios --arch=arm --library=shared && $(MAKE) build # armv7 say goodbye 
+	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
+	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
+	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
 	@./tools/gen_apple_frameworks.sh $(NXP_OUT) ios
 
 # build all android platform and output to product dir
 android:
 	@$(MAKE) $(ANDROID_JAR)
-	@./configure --os=android --arch=x64   --library=shared && $(MAKE) compile
-	@./configure --os=android --arch=arm   --library=shared && $(MAKE) compile
-	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) compile
+	@./configure --os=android --arch=x64   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) build
 
 linux:
-	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) compile
-	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) compile
-	@./configure --os=linux   --arch=x64                    && $(MAKE) compile
-	@./configure --os=linux   --arch=arm                    && $(MAKE) compile
+	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build
+	@./configure --os=linux   --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=linux   --arch=x64                    && $(MAKE) build
+	@./configure --os=linux   --arch=arm                    && $(MAKE) build
 
 osx:
+	@$(call check_osx,$@)
 	@echo Unsupported
 
 # build all from current system platform
 
-build:
+all:
 	@if [ "$(HOST_OS)" = "osx" ]; then \
-		$(MAKE) _host_osx; \
+		$(MAKE) all_on_osx; \
 	elif [ "$(HOST_OS)" = "linux" ]; then \
-		$(MAKE) _host_linux; \
+		$(MAKE) all_on_linux; \
 	else \
 		echo Unsupported current System "$(HOST_OS)"; \
 	fi
 
-_host_osx: # pull
+all_on_osx:
 	@$(MAKE) android
 	@$(MAKE) ios
-	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) compile
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) compile
-	@./configure --os=android --arch=x86                    && $(MAKE) compile
-	@./configure --os=android --arch=x64                    && $(MAKE) compile
-	@./configure --os=android --arch=arm                    && $(MAKE) compile
-	@./configure --os=android --arch=arm64                  && $(MAKE) compile
+	@./configure --os=ios     --arch=arm   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x86                    && $(MAKE) build
+	@./configure --os=android --arch=x64                    && $(MAKE) build
+	@./configure --os=android --arch=arm                    && $(MAKE) build
+	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
-_host_linux: # pull
+all_on_linux:
 	@$(MAKE) android
 	@$(MAKE) linux
-	@./configure --os=android --arch=x86   --library=shared && $(MAKE) compile
-	@./configure --os=android --arch=x86                    && $(MAKE) compile
-	@./configure --os=android --arch=x64                    && $(MAKE) compile
-	@./configure --os=android --arch=arm                    && $(MAKE) compile
-	@./configure --os=android --arch=arm64                  && $(MAKE) compile
+	@./configure --os=android --arch=x86   --library=shared && $(MAKE) build
+	@./configure --os=android --arch=x86                    && $(MAKE) build
+	@./configure --os=android --arch=x64                    && $(MAKE) build
+	@./configure --os=android --arch=arm                    && $(MAKE) build
+	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
 doc:
 	@$(NODE) tools/gen_html_doc.js doc out/doc
@@ -139,7 +140,7 @@ web:
 
 help:
 	@echo
-	@echo Run \"make\" start compile
+	@echo Run \"make\" start build product
 	@echo Run \"make xcode\" output xcode project file
 	@echo You must first call before calling make \"./configure\"
 	@echo

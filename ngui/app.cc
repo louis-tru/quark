@@ -98,39 +98,39 @@ void AppInl::refresh_display() {
 	m_display_port->refresh();
 }
 
-void AppInl::onLoad() {
+void AppInl::triggerLoad() {
 	if (!m_is_load) {
 		m_is_load = true;
-		m_main_loop->post(Cb([&](Cbd& d) { GUILock lock; NX_TRIGGER(Load); }));
+		m_main_loop->post(Cb([&](CbD& d) { GUILock lock; NX_TRIGGER(Load); }));
 	}
 }
 
-void AppInl::onRender() {
+void AppInl::triggerRender() {
 	m_display_port->render_frame();
 }
 
-void AppInl::onPause() {
-	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Pause); }));
+void AppInl::triggerPause() {
+	m_main_loop->post(Cb([&](CbD& d) { NX_TRIGGER(Pause); }));
 }
 
-void AppInl::onResume() {
-	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Resume); }));
+void AppInl::triggerResume() {
+	m_main_loop->post(Cb([&](CbD& d) { NX_TRIGGER(Resume); }));
 }
 
-void AppInl::onBackground() {
-	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Background); }));
+void AppInl::triggerBackground() {
+	m_main_loop->post(Cb([&](CbD& d) { NX_TRIGGER(Background); }));
 }
 
-void AppInl::onForeground() {
-	m_main_loop->post(Cb([&](Cbd& d) { NX_TRIGGER(Foreground); }));
+void AppInl::triggerForeground() {
+	m_main_loop->post(Cb([&](CbD& d) { NX_TRIGGER(Foreground); }));
 }
 
-void AppInl::onMemorywarning() {
+void AppInl::triggerMemorywarning() {
 	clear();
-	m_main_loop->post(Cb([&](Cbd&){ NX_TRIGGER(Memorywarning); }));
+	m_main_loop->post(Cb([&](CbD&){ NX_TRIGGER(Memorywarning); }));
 }
 
-void AppInl::onUnload() {
+void AppInl::triggerUnload() {
 	if (m_is_load) {
 		m_is_load = false;
 		typedef Callback<RunLoop::PostSyncData> Cb;
@@ -345,7 +345,7 @@ bool GUIApplication::has_current_render_thread() const {
  * @func clear([full]) 清理不需要使用的资源
  */
 void GUIApplication::clear(bool full) {
-	m_render_loop->post(Cb([&, full](Cbd& e){ m_draw_ctx->clear(full); }));
+	m_render_loop->post(Cb([&, full](CbD& e){ m_draw_ctx->clear(full); }));
 }
 
 void GUIApplication::set_default_text_background_color(TextColor value) {

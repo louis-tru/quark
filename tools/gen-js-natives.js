@@ -77,8 +77,8 @@ const NativeJSCode CORE_native_js_[] = {
 };
 */
 
-var wrap_s = new Buffer('(function(exports,module,global){').toJSON().data;
-var wrap_e = new Buffer('})').toJSON().data;
+var wrap_s = Buffer.from('(function(exports,module,global){').toJSON().data;
+var wrap_e = Buffer.from('})').toJSON().data;
 var wrap_len = is_wrap ? wrap_s.length + wrap_e.length : 0;
 
 function write(fp) {
@@ -153,7 +153,7 @@ function write_file_item(filename, fd_h, fd_cc, pkgname, read) {
 	}
 	write_no_line_feed(fd_cc, arr.join(','));
 	if (is_wrap) {
-		write_no_line_feed(fd_cc, ',', new Buffer('})').toJSON().data.join(',') );
+		write_no_line_feed(fd_cc, ',', Buffer.from('})').toJSON().data.join(',') );
 	}
 	write(fd_cc, ',0', '};');
 
