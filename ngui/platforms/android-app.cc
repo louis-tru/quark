@@ -97,9 +97,9 @@ class AndroidApplication {
 
 		activity->callbacks->onDestroy                  = &AndroidApplication::onDestroy;
 		activity->callbacks->onStart                    = &AndroidApplication::onStart;
-		activity->callbacks->triggerResume                   = &AndroidApplication::onResume;
+		activity->callbacks->onResume                   = &AndroidApplication::onResume;
 		activity->callbacks->onSaveInstanceState        = &AndroidApplication::onSaveInstanceState;
-		activity->callbacks->triggerPause                    = &AndroidApplication::onPause;
+		activity->callbacks->onPause                    = &AndroidApplication::onPause;
 		activity->callbacks->onStop                     = &AndroidApplication::onStop;
 		activity->callbacks->onConfigurationChanged     = &AndroidApplication::onConfigurationChanged;
 		activity->callbacks->onLowMemory                = &AndroidApplication::onLowMemory;
@@ -121,9 +121,9 @@ class AndroidApplication {
 
 		activity->callbacks->onDestroy                  = nullptr;
 		activity->callbacks->onStart                    = nullptr;
-		activity->callbacks->triggerResume                   = nullptr;
+		activity->callbacks->onResume                   = nullptr;
 		activity->callbacks->onSaveInstanceState        = nullptr;
-		activity->callbacks->triggerPause                    = nullptr;
+		activity->callbacks->onPause                    = nullptr;
 		activity->callbacks->onStop                     = nullptr;
 		activity->callbacks->onConfigurationChanged     = nullptr;
 		activity->callbacks->onLowMemory                = nullptr;
@@ -626,7 +626,7 @@ extern "C" {
 	}
 
 	NX_EXPORT void Java_org_ngui_NguiActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
-		application->host()->main_loop()->post(Cb([](Cb& ev){
+		application->host()->main_loop()->post(Cb([](CbD& ev){
 			application->host()->display_port()->NX_TRIGGER(change);
 		}));
 	}

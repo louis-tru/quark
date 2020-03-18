@@ -113,7 +113,12 @@
 			{
 				'action_name': 'build_ngui_',
 				'inputs': [ '../../libs/ngui/tsconfig.json' ],
-				'outputs': ['../../libs/ngui/out/ngui/package.json'],
+				'outputs': [
+					'../../out/_event.js',
+					'../../out/_value.js',
+					'../../out/_pkg.js',
+					'../../out/_pkgutil.js',
+				],
 				'action': [ 'sh', '-c', 'cd libs/ngui; if [ ! -f out/ngui/package.json ]; then npm run build; fi' ]
 			},
 			{

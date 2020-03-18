@@ -415,13 +415,17 @@ function configure_node(opts, variables, configuration) {
 	}
 }
 
-async function exec_check(check, cmds) {
+async function exec_check(check, cmd) {
+
 	if (check.indexOf('/') != -1) { // file
-		if (fs.existsSync(check)) return;
+		if (fs.existsSync(check)) {
+			return;
+		}
 	} else {
-		if (execSync(`which ${check}`).code == 0) return;
+		if (execSync(`which ${check}`).code == 0) {
+			return;
+		}
 	}
-	if (typeof cmds == 'string') cmds = [cmds];
 
 	if (host_os == 'linux') {
 		util.assert(execSync('which apt-get').code == 0, 'no command `apt-get`');
@@ -429,6 +433,19 @@ async function exec_check(check, cmds) {
 		util.assert(execSync('which brew').code == 0, 'no command `brew`');
 	} else {
 		throw new Error(`not support ${host_os} platform`);
+	}
+
+	var cmds;
+
+	if (typeof cmd == 'string') {
+		cmds = [cmds];
+	} else if (Array.isArray(cmd)) {
+		cmds = cmd;
+	} else if (typeof cmd == 'object') {
+		cmds = cmd.cmds || [];
+		for (var i in cmd.deps) {
+			await exec_check(i, cmd.deps[i]);
+		}
 	}
 
 	for (var cmd of cmds) {
@@ -458,16 +475,19 @@ async function install_depe(opts, variables) {
 	var dpkg = {};
 
 	if (host_os == 'linux') {
-		dpkg.dtrace = '*apt-get install systemtap-sdt-dev -y';
-		dpkg.autoconf = '*apt-get install autoconf -y';
-
+		var deps = {
+			dtrace: '*apt-get install systemtap-sdt-dev -y',
+			autoconf: '*apt-get install autoconf -y',
+		};
 		if (arch == 'x86' || arch == 'x64') {
-			dpkg.yasm = [
-				`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
-				`*make -C ${__dirname}/yasm install`,
-			];
+			dpkg.yasm = {
+				cmds: [
+					`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
+					`*make -C ${__dirname}/yasm install`,
+				],
+				deps,
+			};
 		}
-
 		if (os == 'linux') {
 			if (cross_compiling) {
 				if (arch == 'arm') {
@@ -486,12 +506,18 @@ async function install_depe(opts, variables) {
 		}
 	}
 	else if (host_os == 'osx') {
+		var deps = {
+			autoconf: 'brew install autoconf -f',
+			ftp: 'brew install ftp -f',
+		};
 		if (arch == 'x86' || arch == 'x64') {
-			dpkg.autoconf = 'brew install autoconf -f';
-			dpkg.yasm = [
-				`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
-				`*make -C ${__dirname}/yasm install`,
-			];
+			dpkg.yasm = { 
+				cmds: [
+					`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
+					`*make -C ${__dirname}/yasm install`,
+				],
+				deps,
+			};
 		}
 	}
 	else {

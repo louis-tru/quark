@@ -73,7 +73,7 @@ void each_fonts () {
 	//  String path0 = Path::format("%s/res/SF-UI", *Path::resources_dir());
 	String path0 = "/System/Library/Fonts";
 	
-	FileHelper::each_sync(path0, Cb([&](Cbd   & d) {
+	FileHelper::each_sync(path0, Cb([&](CbD& d) {
 		
 		Dirent* ent = static_cast<Dirent*>(d.data);
 		
@@ -151,7 +151,7 @@ void each_glyph() {
 	//  String font_path = FileSearch::share()->get_absolute_path("res/font/lateef.ttf");
 	//  String font_path = "/System/Library/Fonts/LanguageSupport/PingFang.ttc";
 	
-	cchar* text = "所有OpenType字体";
+	cchar* text = "鎵€鏈塐penType瀛椾綋";
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	
@@ -173,7 +173,7 @@ void each_glyph() {
 	
 	NX_ASSERT(!error);
 	
-	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 楚学文�A
+	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 65 }; // 妤氬鏂囷拷A
 	
 	FT_UInt glyph_index = FT_Get_Char_Index( face, 65533 );
 	
@@ -234,7 +234,7 @@ void onload_f(Event<>& evt, void* user) {
 	
 	FT_Glyph_Metrics& metrics = gl->metrics;
 	
-	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 'A' }; // 楚学文�A
+	uint ch[6] = { 0, 26970, 23398, 25991, 65533, 'A' }; //
 	
 	FT_UInt glyph_index = FT_Get_Char_Index( face, '\t' );
 	
@@ -260,7 +260,7 @@ void onload_f(Event<>& evt, void* user) {
 	NX_ASSERT(!error);
 	
 	if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-		FT_Outline_Embolden(&(gl->outline), 16); // 加粗轮廓线
+		FT_Outline_Embolden(&(gl->outline), 16); //
 	}
 	
 	if (gl->format != FT_GLYPH_FORMAT_BITMAP) {
@@ -300,7 +300,7 @@ void onload_f(Event<>& evt, void* user) {
 
 void draw_char() {
 	GUIApplication app;
-	app.NX_ON(load, onload_f);
+	app.NX_ON(Load, onload_f);
 	app.run();
 }
 

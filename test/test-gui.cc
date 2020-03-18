@@ -120,6 +120,6 @@ void onload_handle (Event<>& evt, void* user) {
 
 void test_gui(int argc, char **argv) {
 	GUIApplication app;
-	app.NX_ON(load, onload_handle);
+	app.NX_ON(Load, onload_handle);
 	app.run();
 }
