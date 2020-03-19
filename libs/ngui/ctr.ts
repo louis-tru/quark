@@ -469,18 +469,20 @@ function domInCtr(self: ViewController): DOM {
 
 function defineProp<T extends any/*typeof ViewController.prototype*/>(target: T, name: string, defaultValue?: any) {
 	utils.assert(utils.equalsClass(ViewController, target.constructor), 'Type error');
+	var m_name = 'm_' + name;
+	var m_hash_name = 'm_prop_' + name;
 	Object.defineProperty(target, name, {
 		get: arguments.length < 3 ? function(this: any) {
-			return this['m_' + name];
-		}: typeof defaultValue == 'function' ? defaultValue: ((target['m_' + name] = defaultValue), function(this: any) {
-			return this['m_' + name];
+			return this[m_name];
+		}: typeof defaultValue == 'function' ? defaultValue: ((target[m_name] = defaultValue), function(this: any) {
+			return this[m_name];
 		}),
 		set(this: any, value: any) {
 			var hashCode = Object.hashCode(value);
 			var hash = this.m_dataHash;
-			if (hash['__prop_' + name] != hashCode) {
-				hash['__prop_' + name] = hashCode;
-				this['m_' + name] = value;
+			if (hash[m_hash_name] != hashCode) {
+				hash[m_hash_name] = hashCode;
+				this[m_name] = value;
 				this.markRerender(); // mark render
 			}
 		},

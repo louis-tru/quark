@@ -385,8 +385,10 @@ definePropertys(String.prototype, {
 	hashCode: function(): number {
 		var _hash = 5381;
 		var len = this.length;
-		while (len--) 
+		while (len) {
 			_hash += (_hash << 5) + this.charCodeAt(len);
+			len--;
+		}
 		return _hash;
 	},
 });
