@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 import * as fs from 'nxkit/fs';
-import marked from 'marked';
+import * as marked from 'marked';
 var renderer = new marked.Renderer();
 
 var marked_template = fs.readFileSync(__dirname + '/../marked/template.html').toString('utf-8');

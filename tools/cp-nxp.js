@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var fs = require('nxkit/fs');
+var { execSync } = require('nxkit/syscall');
 var { copy_header } = require('./cp-header');
 var path = require('path');
 var read_version = require('./read_version');
@@ -44,6 +45,7 @@ fs.rm_r_sync(target + '/product/examples');
 
 read_version.update_ngui_version();
 
+execSync(`cd ${root}/libs/nxp && npm run build`);
 fs.cp_sync(root + '/libs/nxp/out/nxp', target, {ignore_hide:0,symlink: 0});
 fs.cp_sync(root + '/libs/nxp/gyp', target + '/gyp', {ignore_hide:1,replace:0});
 

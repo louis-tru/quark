@@ -30,7 +30,7 @@
 
 import util from 'nxkit';
 import service from 'nxkit/service';
-import {HttpService} from 'nxkit/http_service';
+import { HttpService } from 'nxkit/http_service';
 import path from 'nxkit/path';
 import * as fs from 'nxkit/fs';
 import * as remote_log from './remote_log';
@@ -67,7 +67,7 @@ export default class File extends HttpService {
 		var self = this;
 		var filename = this.server.root + '/' + pathname;
 
-		this.markResponse();
+		self.markReturnInvalid();
 
 		fs.stat(filename, function (err, stat) {
 			
@@ -118,7 +118,7 @@ export default class File extends HttpService {
 		var dir = resolveLocal(this.server.root, path.dirname(pathname));
 		var res = self.response;
 
-		this.markResponse();
+		self.markReturnInvalid();
 
 		if (fs.existsSync(dir + '/packages.json')) {
 			self.returnFile(dir + '/packages.json');
@@ -151,11 +151,11 @@ export default class File extends HttpService {
 		var dir = resolveLocal(this.server.root, path.dirname(pathname));
 		var res = self.response;
 
-		this.markResponse();
+		self.markReturnInvalid();
 
 		if (fs.existsSync(dir + '/versions.json')) {
 			self.returnFile(dir + '/versions.json');
-		} 
+		}
 		else {
 			var pkg = dir + '/package.json';
 			
@@ -166,8 +166,15 @@ export default class File extends HttpService {
 				dir = resolveLocal(dir, config.src || '');
 
 				fs.ls_sync(dir, true, function(stat, pathname) {
+					if (stat.name == '.git' || stat.name == '.svn')
+						return true; // cancel each children
+					var hash = util.hash(stat.mtime.valueOf() + '');
 					if ( stat.isFile() ) {
-						versions[pathname] = util.hash(stat.mtime.valueOf() + '');
+						versions[pathname] = hash;
+					} else if (pathname) {
+						versions[pathname + '/packages.json'] = hash;
+					} else {
+						versions['packages.json'] = hash;
 					}
 				});
 

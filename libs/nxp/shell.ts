@@ -5,13 +5,13 @@ import fs = require('nxkit/fs');
 import NguiBuild from './build';
 import NguiExport from './export';
 import server from './server';
-import * as arguments from 'nxkit/arguments';
+import * as argument from 'nxkit/arguments';
 
 const args = process.argv.slice(2);
 const cmd = args.shift();
-const opts = arguments.options;
-const help_info = arguments.helpInfo;
-const def_opts = arguments.defOpts;
+const opts = argument.options;
+const help_info = argument.helpInfo;
+const def_opts = argument.defOpts;
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts(['port', 'p'], 1026, 	'--port=PORT,-p PORT Run ngui debugger server port [{0}]');
@@ -64,7 +64,7 @@ else if ( cmd == 'clear' ) {
 }
 else {
 	// run wrb server
-	server(arguments.options);
+	server(argument.options);
 }
 
 export default {};
