@@ -438,7 +438,7 @@ async function exec_check(check, cmd) {
 	var cmds;
 
 	if (typeof cmd == 'string') {
-		cmds = [cmds];
+		cmds = [cmd];
 	} else if (Array.isArray(cmd)) {
 		cmds = cmd;
 	} else if (typeof cmd == 'object') {
@@ -458,6 +458,8 @@ async function exec_check(check, cmd) {
 		}
 		// process.stdin.setRawMode(true);
 		process.stdin.resume();
+
+		console.log('Install depe', check, 'Run:', cmd);
 
 		var r = await exec(cmd, {
 			stdout: process.stdout,
@@ -507,8 +509,9 @@ async function install_depe(opts, variables) {
 	}
 	else if (host_os == 'osx') {
 		var deps = {
-			autoconf: 'brew install autoconf -f',
-			ftp: 'brew install ftp -f',
+			autoconf: 'brew install autoconf',
+			// ftp: 'brew install inetutils',
+			automake: 'brew install automake',
 		};
 		if (arch == 'x86' || arch == 'x64') {
 			dpkg.yasm = { 

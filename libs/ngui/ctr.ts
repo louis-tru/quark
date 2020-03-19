@@ -497,17 +497,17 @@ export declare function prop(defaultValue: (()=>any) | any): <T extends object>(
 exports.prop = function(defaultValueOrTarget: any, name?: string) {
 	if (arguments.length < 2) {
 		return function(target: any, name: any) {
-			defineProp(target, name, defaultValueOrTarget);
+			defineProp(target, name, defaultValueOrTarget/*default value*/);
 		};
 	} else {
-		defineProp(defaultValueOrTarget, name as string);
+		defineProp(defaultValueOrTarget/*target*/, name as string);
 	}
 };
 
 const _prop = exports.prop;
 
 function rerender(ctr: ViewController) {
-	(ViewController as any)._rerender(ctr);
+	ViewController.rerender(ctr);
 }
 
 export enum TypeOf {
@@ -530,9 +530,9 @@ export class ViewController<State extends Dict = Dict> extends Notification<Even
 	private m_vchildren: VirtualDOM[]; // = []; // outer vdom children
 	private m_loaded: boolean; // = false;
 	private m_mounted: boolean; // = false;
-	private m_style: Dict | null; // = null;
+	private m_style: StyleSheet | null; // = null;
 
-	private static _rerender(self: ViewController) {
+	static rerender(self: ViewController) {
 		G_renderQueueSet.delete(self); // delete mark
 	
 		var vdom_c = self.m_vdom;
@@ -659,6 +659,9 @@ export class ViewController<State extends Dict = Dict> extends Notification<Even
 		return this.m_vdom ? this.m_vdom.dom: null;
 	}
 
+	/**
+	 * Insecure access
+	 */
 	ownerAs<T extends ViewController = ViewController>() {
 		utils.assert(this.m_owner, 'ViewController.ownerAs<T>() = null');
 		return this.m_owner as T;
