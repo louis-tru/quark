@@ -51,9 +51,14 @@ const native_source = [
 	'.java',
 ];
 
-function parse_json_file(filename: string) {
+function parse_json_file(filename: string, strict?: boolean) {
 	try {
-		return JSON.parse(fs.readFileSync(filename, 'utf-8'));
+		var str = fs.readFileSync(filename, 'utf-8');
+		if (strict) {
+			return JSON.parse(str);
+		} else {
+			return eval('(\n' + str + '\n)');
+		}
 	} catch (err) {
 		err.message = filename + ': ' + err.message;
 		throw err;
@@ -88,8 +93,8 @@ class Package {
 	readonly includes: string[] = [];
 	readonly include_dirs: string[] = [];
 	readonly sources: string[] = [ 'public' ];
-	readonly dependencies: string[] = [ '<@(libngui)' ];
-	readonly dependencies_recursion: string[] = [ '<@(libngui)' ];
+	readonly dependencies: string[] = [];
+	readonly dependencies_recursion: string[] = [];
 	readonly bundle_resources: string[] = [];
 	private _binding = false;
 	private _binding_gyp = false;
@@ -137,15 +142,15 @@ class Package {
 		var self = this;
 
 		var includes: string[] = [];
-		var dependencies: string[] = [];
+		var dependencies: string[] = self.dependencies;
 		var dependencies_recursion: string[] = [...self.dependencies];
-		var bundle_resources: string[] = [];
+		var bundle_resources: string[] = self.bundle_resources;
 		var outputs = self.host.outputs;
 
 		if (self.is_app)
 			bundle_resources.push(...self.host.bundle_resources);
 
-		for (var [k,v] of Object.entries(self.pkg_json.dependencies as Dict<string>)) {
+		for (var [k,v] of Object.entries((self.pkg_json.dependencies || {}) as Dict<string>)) {
 			// TODO looking for the right package
 			var version = v.replace(/^(~|\^)/, '');
 			var fullname = k + '@' + version;
@@ -187,7 +192,9 @@ class Package {
 		var host = this.host;
 		var pkg_json = self.pkg_json;
 		var source_path = this.source_path;
-		var relative = path.relative(host.output, source_path);
+		var relative_source = path.relative(host.output, source_path);
+
+		// console.log('initialize relative', relative_source, '-', host.output, source_path);
 
 		// add native and source
 		if ( fs.existsSync(source_path + '/binding.gyp') ) {
@@ -195,8 +202,10 @@ class Package {
 			if (targets.length) {
 				var target = targets[0];
 				var target_name = target.target_name;
-				self.dependencies.push(relative + '/binding.gyp:' + target_name);
-				self._binding_gyp = true;
+				if (target_name) {
+					self.dependencies.push(relative_source + '/binding.gyp:' + target_name);
+					self._binding_gyp = true;
+				}
 			}
 		}
 		else if ( fs.existsSync(source_path + '/binding') ) {
@@ -208,11 +217,11 @@ class Package {
 							self._binding = true;
 						}
 					}
-					self.sources.push( relative + '/binding/' + stat.name );
+					self.sources.push( relative_source + '/binding/' + stat.name );
 				}
 			});
 			if ( this._binding ) {
-				this.include_dirs.push(relative + '/binding');
+				this.include_dirs.push(relative_source + '/binding');
 			}
 		}
 
@@ -223,10 +232,10 @@ class Package {
 					var extname = path.extname(stat.name).toLowerCase();
 					if (native_source.indexOf(extname) == -1) {
 						// not add native source
-						self.sources.push( relative + '/' + stat.name );
+						self.sources.push( relative_source + '/' + stat.name );
 					}
 				} else {
-					self.sources.push( relative + '/' + stat.name );
+					self.sources.push( relative_source + '/' + stat.name );
 				}
 			}
 		});
@@ -510,9 +519,9 @@ export default class NguiExport {
 
 		var os = self.os;
 		var source = self.source;
+		var out = self.output;
 		var project = 'make';
 		var project_path: string[];
-		var out = self.output;
 		var proj_out = self.proj_out;
 
 		if ( os == 'ios' ) {
@@ -531,25 +540,28 @@ export default class NguiExport {
 
 		// write _var.gypi
 		var include_gypi = ' -Iout/_var.gypi';
-		var var_gyp = { variables: { OS: os, os: os, project: project } };
+		var var_gyp = { variables: { OS: os == 'ios' ? 'mac': os, os: os, project: project } };
 		fs.writeFileSync(source + '/out/_var.gypi', JSON.stringify(var_gyp, null, 2));
+
+		// console.log('paths.includes_gypi', source, paths.includes_gypi);
 
 		paths.includes_gypi.forEach(function(str) { 
 			include_gypi += ' -I' + path.relative(source, str);
 		});
 
+		// console.log('paths.includes_gypi', paths.includes_gypi);
+
 		var shell = `\
 			GYP_GENERATORS=${project} ${gyp_exec} \
 			-f ${project} \
 			--generator-output="${proj_out}" \
-			-Goutput_dir="${path.relative(source,out)}" \
+			-Goutput_dir="${path.relative(source, out)}" \
 			-Gstandalone ${include_gypi} \
 			${project_name}.gyp \
 			--depth=. \
 		`;
 
 		var buf = child_process.execSync(shell);
-
 		if ( buf.length ) {
 			console.log(buf.toString());
 		}
@@ -575,6 +587,7 @@ export default class NguiExport {
 			var pkg = self.outputs[i];
 			if ( pkg.is_app ) {
 				includes.push(...pkg.includes, pkg.gypi_path);
+				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
 			}
 		}
 
@@ -610,7 +623,7 @@ export default class NguiExport {
 
 		fs.removerSync(gyp_file); // write gyp file
 
-		console.log('export complete');
+		console.log(`export ${self.os} complete`);
 	}
 
 	private write_cmake_depe_to_android_build_gradle(pkg: Package, cmake: string, add: boolean) {
@@ -652,6 +665,7 @@ export default class NguiExport {
 		for ( var i in self.outputs ) {
 			var pkg = self.outputs[i];
 			if ( pkg.is_app ) {
+				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
 
 				if ( pkg.native ) {
 					// android并不完全依赖`gyp`,只需针对native项目生成.cmake文件
@@ -736,7 +750,7 @@ export default class NguiExport {
 		} catch (e) {
 			// 
 		}
-		console.log('Export Ok');
+		console.log(`export ${self.os} complete`);
 	}
 
 	private exists(name: string) {

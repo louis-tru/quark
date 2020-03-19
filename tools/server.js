@@ -32,7 +32,7 @@ var util = require('nxkit').default;
 var fs = require('nxkit/fs');
 var service = require('nxkit/service').default;
 var HttpService = require('nxkit/http_service').HttpService;
-var server = require('nxmake/server');
+var server = require('nxp/server');
 
 var opt = {
 	// remote: 'http://192.168.1.124:1026/',

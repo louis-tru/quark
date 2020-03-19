@@ -39,19 +39,19 @@ using namespace ngui;
 @implementation MyApplication
 
 - (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-  [super application:app didFinishLaunchingWithOptions:options];
+	[super application:app didFinishLaunchingWithOptions:options];
 }
 @end
 
-XX_GUI_MAIN() {
-  
-  [ApplicationDelegate set_application_delegate:NSStringFromClass(MyApplication.class)];
+NX_GUI_MAIN() {
+	
+	[ApplicationDelegate set_application_delegate:NSStringFromClass(MyApplication.class)];
 	
 #if DEBUG
 	js::Start("ARGV_DEBUG");
 #else
 	js::Start("ARGV_RELEASE");
 #endif
-  
-  return 0;
+	
+	return 0;
 }

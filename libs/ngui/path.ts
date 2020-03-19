@@ -305,8 +305,8 @@ export class URL {
 	
 	// del hash all params
 	clearHash(): URL {
-		(<any>this)._hash_params = {};
-		(<any>this)._hash = '';
+		(this as any)._hash_params = {};
+		(this as any)._hash = '';
 		return this;
 	}
 	
@@ -314,9 +314,9 @@ export class URL {
 	relative(targetPath: string): string {
 		var target = new URL(targetPath);
 		if ( this.origin != target.origin )
-			return (<any>this)._origin + (<any>this)._filename;
-		var ls: string[]  = (<any>this)._filename == '/' ? [] : (<any>this)._filename.split('/');
-		var ls2: string[] = (<any>this)._filename == '/' ? [] : (<any>this)._filename.split('/');
+			return (this as any)._origin + (this as any)._filename;
+		var ls: string[]  = (this as any)._filename == '/' ? [] : (this as any)._filename.split('/');
+		var ls2: string[] = (target as any)._filename == '/' ? [] : (target as any)._filename.split('/');
 		var len = Math.max(ls.length, ls2.length);
 		
 		for (var i = 1; i < len; i++) {
@@ -331,7 +331,7 @@ export class URL {
 				return ls2.splice(i).join('/');
 			}
 		}
-		return '';
+		return '.';
 	}
 
 	toJSON(): string {
@@ -369,7 +369,7 @@ export default {
 	 * @func isAbsolute(path) is absolute path
 	 */
 	isAbsolute: _pkgutil.isAbsolute, // func
-
+	
 	/**
 	 * @func resolve(path) resolve path 
 	 */
@@ -414,88 +414,88 @@ export default {
 	path(path: string) {
 		return get_path(path).path;
 	},
-
+	
 	search(path: string) {
 		return get_path(path).search;
 	},
-
+	
 	hash(path: string) {
 		return get_path(path).hash;
 	},
-
+	
 	host(path: string) {
 		return get_path(path).host;
 	},
-
+	
 	hostname(path: string) {
 		return get_path(path).hostname;
 	},
-
+	
 	// href origin
 	origin(path: string) {
 		return get_path(path).origin;
 	},
-
+	
 	// port: "81"
 	port(path: string) {
 		return get_path(path).port;
 	},
-
+	
 	// protocol: "http:"
 	protocol(path: string) {
 		return get_path(path).protocol;
 	},
-
+	
 	// href params
 	params(path: string) {
 		return get_path(path).params;
 	},
-
+	
 	// hash params 
 	hashParams(path: string) {
 		return get_path(path).hashParams;
 	},
-
+	
 	// get path param
 	getParam(name: string, path: string) {
 		return get_path(path).getParam(name);
 	},
-
+	
 	// set path param
 	setParam(name: string, value: string, path: string) {
 		return get_path(path).setParam(name, value).href;
 	},
-
+	
 	// del path param
 	deleteParam(name: string, path: string) {
 		return get_path(path).deleteParam(name).href;
 	},
-
+	
 	// del all hash param
 	clearParam(path: string) {
 		return get_path(path).clearParam().href;
 	},
-
+	
 	// get hash param
 	getHash(name: string, path: string) {
 		return get_path(path).getHash(name);
 	},
-
+	
 	// set hash param
 	setHash(name: string, value: string, path: string) {
 		return get_path(path).setHash(name, value).href;
 	},
-
+	
 	// del hash param
 	deleteHash(name: string, path: string) {
 		return get_path(path).deleteHash(name).href;
 	},
-
+	
 	// del all hash param
 	clearHash(path: string) {
 		return get_path(path).clearHash().href;
 	},
-
+	
 	// relative path
 	relative(path: string, target: string) {
 		if (arguments.length > 1) 
@@ -503,5 +503,5 @@ export default {
 		else 
 			return get_path(path).relative(path);
 	},
-
+	
 }

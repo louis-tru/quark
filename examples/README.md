@@ -1,18 +1,18 @@
 Ngui Examples
 ===============
 
-* 这是一个`Ngui`演示工程，请使用`nxmake`命令导出到`xcode`或`android studio`
+* 这是一个`Ngui`演示工程，请使用`nxp`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`nxmake`
+## 获取`nxp`
 
-* 使用 nodejs `npm`安装`nxmake`
+* 使用 nodejs `npm`安装`nxp`
 
 
 ```sh
 # shell
-sudo npm install -g nxmake
+sudo npm install -g nxp
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g nxmake
 
 ```sh
 # shell
-nxmake export ios
-nxmake export android
+nxp export ios
+nxp export android
 ```
 
 导出后使用`xcode`或`android studio`打开`Project`文件夹下的工程文件

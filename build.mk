@@ -82,4 +82,4 @@ $(ANDROID_JAR): android/org/ngui/*.java
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/nxmake/product/$(OS)
+	@rm -rfv out/nxp/product/$(OS)

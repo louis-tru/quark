@@ -41,6 +41,76 @@ const uglify = require('./uglify');
 const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
 
+const init_code = `
+import { GUIApplication, Root, Indep, _CVD } from 'ngui';
+
+new GUIApplication().start(
+	<Root>
+		<Indep align="center">Hello world</Indep>
+	</Root>
+);
+
+`;
+
+const init_code2 = `
+
+import utils from 'ngui/util';
+
+console.log('When the package has only one file, TSC cannot be compiled. This should be a bug of TSC');
+
+`;
+
+const init_editorconfig  = `
+# top-most EditorConfig file  
+root = true  
+  
+# all files  
+[*]  
+indent_style = tab  
+indent_size = 2
+
+`;
+
+const init_tsconfig = {
+	"compileOnSave": true,
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "ES2018",
+		"moduleResolution": "node",
+		"sourceMap": false,
+		"outDir": "out",
+		"rootDir": ".",
+		"baseUrl": ".",
+		"declaration": true,
+		"alwaysStrict": true,
+		"allowJs": true,
+		"checkJs": false,
+		"strict": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": false,
+		"emitDecoratorMetadata": false,
+		"experimentalDecorators": true,
+		"removeComments": true,
+		"jsx": "react",
+		"jsxFactory": "_CVD",
+		// "typeRoots" : ["../libs"],
+		// "types" : ["node", "lodash", "express"]
+	},
+	"include": [
+		"**/*",
+	],
+	"exclude": [
+		"out",
+		"var",
+		".git",
+		".svn",
+		"node_modules",
+		"_.js",
+	]
+};
+
 function resolveLocal(...args: string[]) {
 	return path.fallbackPath(path.resolve(...args));
 }
@@ -49,10 +119,10 @@ function exec_cmd(cmd: string) {
 	var r = child_process.spawnSync('sh', ['-c', cmd]);
 	if (r.status != 0) {
 		if (r.stdout.length) {
-			console.log(r.stdout);
+			console.log(r.stdout + '');
 		}
 		if (r.stderr.length) {
-			console.error(r.stderr);
+			console.error(r.stderr + '');
 		}
 		process.exit(0);
 	} else {
@@ -67,9 +137,14 @@ function exec_cmd(cmd: string) {
 	}
 }
 
-function parse_json_file(filename: string) {
+function parse_json_file(filename: string, strict?: boolean) {
 	try {
-		return JSON.parse(fs.readFileSync(filename, 'utf-8'));
+		var str = fs.readFileSync(filename, 'utf-8');
+		if (strict) {
+			return JSON.parse(str);
+		} else {
+			return eval('(\n' + str + '\n)');
+		}
 	} catch (err) {
 		err.message = filename + ': ' + err.message;
 		throw err;
@@ -92,7 +167,7 @@ function copy_file(source: string, target: string) {
 	var rfd  = fs.openSync(source, 'r');
 	var wfd  = fs.openSync(target, 'w');
 	var size = 1024 * 100; // 100 kb
-	var buff = new Buffer(size);
+	var buff = Buffer.alloc(size);
 	var len  = 0;
 	var hash = new Hash();
 	
@@ -197,7 +272,7 @@ class Package {
 	readonly json: PkgJson;
 
 	private _console_log(tag: string, pathname: string, desc?: string) {
-		console.log(tag, this.m_output_name + '/' + pathname, desc);
+		console.log(tag, this.m_output_name + '/' + pathname, desc || '');
 	}
 
 	constructor(host: NguiBuild, source_path: string, outputName: string, json: PkgJson) {
@@ -663,6 +738,10 @@ export default class NguiBuild {
 
 		apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
 
+		if (!fs.existsSync('node_modules/@types/ngui')) { // copy @types
+			fs.cp_sync(paths.types, this.source + '/node_modules/@types');
+		}
+
 		fs.removerSync('package-lock.json');
 		fs.removerSync('package.json');
 
@@ -675,25 +754,6 @@ export default class NguiBuild {
 		fs.mkdirpSync(this.target_local);
 		fs.mkdirpSync(this.target_public);
 
-		if (!fs.existsSync(`${self.source}/.gitignore`)) {
-			fs.writeFileSync(`${self.source}/.gitignore`, 'out\n');
-		}
-
-		if (!fs.existsSync(`${self.source}/.editorconfig`)) {
-			fs.writeFileSync(`${self.source}/.editorconfig`,
-`
-# top-most EditorConfig file  
-root = true  
-  
-# all files  
-[*]  
-indent_style = tab  
-indent_size = 2
-
-`
-			);
-		}
-		
 		var keys_path = self.source + '/proj.keys';
 
 		if ( !fs.existsSync(keys_path) ) { // No exists proj.keys file
@@ -746,6 +806,7 @@ indent_size = 2
 	 * @func initialize() init project directory and add examples
 	 */
 	initialize() {
+		var self = this;
 		var project_name = path.basename(process.cwd()) || 'nguiproj';
 		var proj_keys = this.source + '/proj.keys';
 		var proj: Dict = { '@projectName': project_name };
@@ -763,6 +824,13 @@ indent_size = 2
 			});
 		}
 
+		if (!fs.existsSync(`${self.source}/.gitignore`)) {
+			fs.writeFileSync(`${self.source}/.gitignore`, ['out', 'node_modules'].join('\n'));
+		}
+		if (!fs.existsSync(`${self.source}/.editorconfig`)) {
+			fs.writeFileSync(`${self.source}/.editorconfig`, init_editorconfig);
+		}
+
 		if (fs.existsSync(proj_keys)) { // 如果当前目录存在proj.keys文件附加到当前
 			proj = Object.assign(proj, keys.parseFile(proj_keys));
 		} else {
@@ -773,24 +841,18 @@ indent_size = 2
 					name: project_name,
 					app: project_name,
 					id: `org.ngui.${project_name}`,
-					main: 'index.jsx',
+					main: 'index.js',
+					types: 'index.d.ts',
 					version: '1.0.0',
-					extendSyntax: true,
 				};
+				init_tsconfig.compilerOptions.outDir = 'out/' + project_name;
 				fs.mkdirSync(project_name);
 				fs.writeFileSync(project_name + '/package.json', JSON.stringify(json, null, 2));
-				fs.writeFileSync(project_name + '/index.jsx', 
-`
-import { GUIApplication, Root, Indep } from 'ngui';
-
-new GUIApplication().start(
-	<Root>
-		<Indep align="center">Hello world</Indep>
-	</Root>
-);
-
-`);
+				fs.writeFileSync(project_name + '/index.tsx', init_code);
+				fs.writeFileSync(project_name + '/test.ts', init_code2);
+				fs.writeFileSync(project_name + '/tsconfig.json', JSON.stringify(init_tsconfig, null, 2));
 			}
+
 			if (!fs.existsSync('examples')) { // copy examples pkg
 				fs.cp_sync(paths.examples, this.source + '/examples');
 			}
@@ -799,6 +861,11 @@ new GUIApplication().start(
 			if (fs.existsSync('examples/package.json')) {
 				proj['@apps']['examples'] = '';
 			}
+
+			if (!fs.existsSync('node_modules/@types/ngui')) { // copy @types
+				fs.cp_sync(paths.types, this.source + '/node_modules/@types');
+			}
+
 			if (fs.existsSync(project_name + '/package.json')) {
 				proj['@apps'][project_name] = '';
 			}

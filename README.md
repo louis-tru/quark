@@ -11,22 +11,22 @@ Ngui is a cross-platform (Android/iOS) front-end development framework. The core
 |--|--|--|
 
 
-Build and install nxmake
+Build and install nxp
 ===============
 
 1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
 
 2. Setting environment variable `JAVA_HOME` and `ANDROID_HOME`
 
-Compile and install nxmake `make install`, It takes a long time.
+Compile and install nxp `make install`, It takes a long time.
 
-use nxmake tools create project.
+use nxp tools create project.
 
 first create an empty file directory, then execute in the directory
 
-`nxmake init`
+`nxp init`
 
-export ios xcode project `nxmake export ios`
+export ios xcode project `nxp export ios`
 
 
 # Simple Examples
@@ -46,33 +46,33 @@ You can get a more detailed [`Examples`]
 
 If you've never used ngui before, you can start from here and build your ngui program step by step.
 
-## Install nxmake
+## Install nxp
 
-First, you need to install the toolkit provided by `nxmake`
+First, you need to install the toolkit provided by `nxp`
 
-* Install `nxmake` using nodejs `npm` 
+* Install `nxp` using nodejs `npm` 
 
 * Open `Terminal` and execute the following command：
 
 ```sh
 # shell
-$ sudo npm install -g nxmake
+$ sudo npm install -g nxp
 
 ```
 	
-* Running `nxmake` requires dependency on `nodejs` and `python2.7`
+* Running `nxp` requires dependency on `nodejs` and `python2.7`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
 ## Create new project
 
-Create a new `nxmake` project using the following `shell` command：
+Create a new `nxp` project using the following `shell` command：
 
 ```sh
 # shell
 $ mkdir myproject
 $ cd myproject
-$ nxmake init
+$ nxp init
 ```
 
 ## Build project
@@ -82,7 +82,7 @@ If this is a new project, you can skip this step and go directly to the next ste
 
 ```js
 # shell
-$ nxmake build
+$ nxp build
 ```
 
 ## Export project
@@ -92,22 +92,22 @@ This step exports [`Xcode`] or [`Android Studio`] project，because you eventual
 ```js
 # shell
 # export xcode ios project
-$ nxmake export ios
+$ nxp export ios
 # export android studio project
-$ nxmake export android
+$ nxp export android
 ```
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
-## nxmake test http server
+## nxp test http server
 
-`nxmake` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+`nxp` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
 Execute the following code to start it：
 
 ```js
 # shell
-$ nxmake
+$ nxp
 ```
 
 # Downloads
@@ -121,5 +121,5 @@ $ nxmake
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
 [`Android APK`]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/nxmake
+[`NPM`]: https://www.npmjs.com/package/nxp
 [`Source code`]: https://github.com/louis-tru/ngui

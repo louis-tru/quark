@@ -4,6 +4,5 @@
 	"id": "org.ngui.benchmark",
 	"version": "0.1.0",
 	"main": "action",
-	"nguiSyntax": true,
 	"detach": [ "img", "img2" ]
 }

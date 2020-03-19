@@ -49,6 +49,19 @@
 		},
 		'type': '<(library)',
 		'cflags!': ['-Werror'],
+		'xcode_settings': {
+			'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',   # -std=c++0x
+			'CLANG_CXX_LIBRARY': 'libc++',            # c++11 libc support
+			'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',       # -fexceptions
+			'GCC_ENABLE_CPP_RTTI': 'YES',             # -frtti / -fno-rtti
+		},
+		'cflags_cc': [ '-std=c++0x', '-fexceptions', '-frtti', ],
+		'defines': [
+			'XX_USING_SHARED=1',
+			'USING_UV_SHARED=1',
+			'USING_V8_SHARED=1',
+			'USING_V8_PLATFORM_SHARED=1',
+		],
 		'conditions': [
 			['os=="android"', {
 				'ldflags': [
@@ -63,6 +76,22 @@
 						'cflags': [ '-fPIC' ],
 					}],
 				],
+				'link_settings': {
+					'libraries': [
+						'-llog', 
+						'-landroid',
+						'-lnxkit',
+						'-lngui',
+						'-lngui-media',
+						'-lngui-v8',
+						'-lngui-js',
+						'-lngui-node',
+					],
+					'library_dirs': [
+						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
+					],
+				},
+				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 			}],
 			['os=="linux"', {
 				'cflags': [
@@ -82,9 +111,6 @@
 				],
 			}],
 			['os=="ios"', {
-				'link_settings': { 
-					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
-				},
 				'xcode_settings': {
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
@@ -104,12 +130,33 @@
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 					'VALID_ARCHS': ['arm64'],
 				},
-				'cflags_cc': [ '-stdlib=libc++' ], 
+				'cflags_cc': [ '-stdlib=libc++' ],
+				'link_settings': {
+					'libraries': [
+						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/nxkit.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-v8.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-node.framework',
+					],
+				},
+				'mac_framework_dirs': [
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
+				],
+				'mac_bundle_frameworks': [
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/nxkit.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-media.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-v8.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-js.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-node.framework',
+				],
+				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 			}],
 			['os=="osx"', {
-				'link_settings': { 
-					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
-				},
 				'xcode_settings': {
 					'SYMROOT': '<(DEPTH)/out/xcodebuild/<(os)',
 					'ALWAYS_SEARCH_USER_PATHS': 'NO',
@@ -134,23 +181,14 @@
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 				},
 				'cflags_cc': [ '-stdlib=libc++' ], 
-			}],
-		],
-		'xcode_settings': {
-			'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',   # -std=c++0x
-			'CLANG_CXX_LIBRARY': 'libc++',            # c++11 libc support
-			'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',       # -fexceptions
-			'GCC_ENABLE_CPP_RTTI': 'YES',             # -frtti / -fno-rtti
-		},
-		'cflags_cc': [ '-std=c++0x', ], 
-		'target_conditions': [
-			['_target_name != "libngui"', {
-				'dependencies': [ 'libngui' ],
+				'link_settings': { 
+					'libraries': [ '$(SDKROOT)/System/Library/Frameworks/Foundation.framework' ],
+				},
 			}],
 		],
 	},
 
-	'targets': [{
+	'_targets': [{
 		'target_name': 'libngui',
 		'type': 'none',
 		'direct_dependent_settings': {
@@ -168,7 +206,7 @@
 		},
 		'conditions': [
 			['os=="android"', {
-				'link_settings': { 
+				'link_settings': {
 					'libraries': [
 						'-llog', 
 						'-landroid',
@@ -211,6 +249,7 @@
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-js.framework',
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ngui-node.framework',
 					],
+					'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 				},
 			}],
 		],

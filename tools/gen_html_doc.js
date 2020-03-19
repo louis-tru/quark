@@ -31,7 +31,7 @@
 
 var fs = require('nxkit/fs');
 var path = require('path');
-var marked_html = require('nxmake/marked/html');
+var marked_html = require('nxp/marked/html');
 var read_ngui_version = require('./read_version').read_ngui_version;
 var argv = process.argv.slice(2);
 var template = null;
@@ -93,6 +93,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(require.resolve('nxmake') + '/marked/assets', output + '/assets');
+fs.cp_sync(require.resolve('nxp') + '/marked/assets', output + '/assets');
 
 each_dir('', output);

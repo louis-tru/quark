@@ -31,7 +31,7 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/nxmake',
+				'../libs/nxp',
 				'../libs/nxkit',
 				'test.cc',
 				'test-ngui.cc',

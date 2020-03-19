@@ -42,9 +42,15 @@ var include = target + '/product/include';
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
+fs.rm_r_sync(target + '/product/ngui');
 
 read_version.update_ngui_version();
 
+// build ngui
+execSync(`cd ${root}/libs/ngui && npm run build`);
+fs.cp_sync(root + '/libs/ngui/out/@types', target + '/product/@types');
+
+// build nxkit
 execSync(`cd ${root}/libs/nxp && npm run build`);
 fs.cp_sync(root + '/libs/nxp/out/nxp', target, {ignore_hide:0,symlink: 0});
 fs.cp_sync(root + '/libs/nxp/gyp', target + '/gyp', {ignore_hide:1,replace:0});
@@ -55,7 +61,7 @@ copy_header(root + '/ngui', `${include}/ngui`);
 copy_header(root + '/nxkit', `${include}/nxkit`);
 copy_header(`${root}/depe/v8-link/include`, include);
 copy_header(`${root}/depe/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
-copy_header(`${root}/depe/node/deps/openssl/config/archs`, `${include}/openssl/archs`);
+copy_header(`${root}/depe/node/deps/openssl/config`, `${include}/openssl`);
 copy_header(`${root}/depe/node/deps/uv/include`, include);
 copy_header(`${root}/depe/node/deps/zlib/zlib.h`, `${include}/zlib.h`);
 copy_header(`${root}/depe/node/deps/zlib/zconf.h`, `${include}/zconf.h`);

@@ -40,6 +40,7 @@ export default {
 	includes_gypi: [ resolve('product/ngui.gypi') ] as string[],
 	default_modules: [ /*resolve('product/libs/ngui'),*/ ] as string[],
 	examples: resolve('product/examples'),
+	types: resolve('product/@types'),
 	bundle_resources: [ /*resolve('product/cacert.pem')*/ ] as string[],
 	includes: [ resolve('product/include') ] as string[],
 	librarys: {
@@ -80,6 +81,7 @@ if ( !fs.existsSync(resolve('product/ngui.gypi')) ) { // debug status
 		],
 		default_modules: [],
 		examples: __dirname + '/../../examples',
+		types: __dirname + '/../../libs/ngui/out/@types',
 		bundle_resources: [ /*__dirname + '/../../nguiutil/cacert.pem'*/ ],
 		includes: [],
 		librarys: {},

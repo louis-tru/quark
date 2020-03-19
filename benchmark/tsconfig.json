@@ -22,6 +22,8 @@
 		"removeComments": true,
 		"jsx": "react",
 		"jsxFactory": "_CVD",
+		// "typeRoots" : ["../libs"],
+		// "types" : ["node", "lodash", "express"]
 	},
 	"include": [
 		"**/*",
