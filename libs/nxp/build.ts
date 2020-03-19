@@ -722,28 +722,29 @@ export default class NguiBuild {
 			}
 		}
 
-		// npm install
-		console.log(`Install dependencies ...`);
-		fs.writeFileSync('package.json', '{}');
+		try {
+			// npm install
+			console.log(`Install dependencies ...`);
+			fs.writeFileSync('package.json', '{}');
 
-		process.stdin.resume();
+			process.stdin.resume();
 
-		var r = await exec(`npm install ${apps.join(' ')} --save=. --only=prod`, {
-			stdout: process.stdout,
-			stderr: process.stderr, stdin: process.stdin,
-		});
-		process.stdin.pause();
+			var r = await exec(`npm install ${apps.join(' ')} --save=. --only=prod --ignore-scripts`, {
+				stdout: process.stdout,
+				stderr: process.stderr, stdin: process.stdin,
+			});
+			process.stdin.pause();
 
-		util.assert(r.code === 0);
+			util.assert(r.code === 0);
 
-		apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
-
-		if (!fs.existsSync('node_modules/@types/ngui')) { // copy @types
-			fs.cp_sync(paths.types, this.source + '/node_modules/@types');
+			if (!fs.existsSync('node_modules/@types/ngui')) { // copy @types
+				fs.cp_sync(paths.types, this.source + '/node_modules/@types');
+			}
+		} finally {
+			fs.removerSync('package-lock.json');
+			fs.removerSync('package.json');
+			apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
 		}
-
-		fs.removerSync('package-lock.json');
-		fs.removerSync('package.json');
 
 		return apps;
 	}

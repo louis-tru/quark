@@ -57,7 +57,7 @@
 		},
 		'cflags_cc': [ '-std=c++0x', '-fexceptions', '-frtti', ],
 		'defines': [
-			'XX_USING_SHARED=1',
+			'NX_USING_SHARED=1',
 			'USING_UV_SHARED=1',
 			'USING_V8_SHARED=1',
 			'USING_V8_PLATFORM_SHARED=1',
@@ -193,7 +193,7 @@
 		'type': 'none',
 		'direct_dependent_settings': {
 			'defines': [ 
-				'XX_USING_SHARED=1',
+				'NX_USING_SHARED=1',
 				'USING_UV_SHARED=1',
 				'USING_V8_SHARED=1',
 				'USING_V8_PLATFORM_SHARED=1',

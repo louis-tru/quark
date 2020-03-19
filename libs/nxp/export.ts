@@ -49,6 +49,7 @@ const native_source = [
 	'.s', 
 	'.swift',
 	'.java',
+	'.h',
 ];
 
 function parse_json_file(filename: string, strict?: boolean) {
@@ -137,19 +138,10 @@ class Package {
 		this.initialize();
 	}
 
-	// reset app resources
-	private gen_before() {
+	private _dependencies() {
 		var self = this;
-
-		var includes: string[] = [];
-		var dependencies: string[] = self.dependencies;
-		var dependencies_recursion: string[] = [...self.dependencies];
-		var bundle_resources: string[] = self.bundle_resources;
+		var pkgs: Package[] = [];
 		var outputs = self.host.outputs;
-
-		if (self.is_app)
-			bundle_resources.push(...self.host.bundle_resources);
-
 		for (var [k,v] of Object.entries((self.pkg_json.dependencies || {}) as Dict<string>)) {
 			// TODO looking for the right package
 			var version = v.replace(/^(~|\^)/, '');
@@ -160,37 +152,76 @@ class Package {
 				pkg = outputs[fullname];
 			}
 			if (pkg) {
-				if (self.is_app) {
-					includes.push(pkg.gypi_path, ...pkg.includes);
-					dependencies_recursion.push(fullname, ...pkg.dependencies_recursion);
-					bundle_resources.push(...pkg.bundle_resources);
-				}
-				dependencies.push(fullname);
+				pkgs.push(pkg);
 			}
 		}
+		return pkgs;
+	}
 
-		self.includes.splice(0, Infinity, ...filter_repeat(includes));
-		self.dependencies.splice(0, Infinity, ...filter_repeat(dependencies, this.name));
-		self.dependencies_recursion.splice(0, Infinity, ...filter_repeat(dependencies_recursion, this.name));
-		self.bundle_resources.splice(0, Infinity, ...filter_repeat(bundle_resources));
+	private _dependencies_recursion(Out: Set<Package>) {
+		var self = this;
+		for (var pkg of self._dependencies()) {
+			Out.add(pkg);
+			pkg._dependencies_recursion(Out);
+		}
+	}
 
-		// is native
-		for (var depe of self.dependencies_recursion) {
-			var pkg = outputs[depe];
-			if (pkg) {
+	private get_dependencies_recursion() {
+		var pkgs: Package[] = [];
+		var set = new Set<Package>();
+		this._dependencies_recursion(set);
+		for (var pkg of set) {
+			pkgs.push(pkg);
+		}
+		return pkgs;
+	}
+
+	// reset app resources
+	private gen_before() {
+		var self = this;
+		var deps = self.get_dependencies_recursion();
+		var is_app = self.is_app;
+		var pkg_json = self.pkg_json;
+
+		if ( !pkg_json.skipInstall ) { // no skip install pkg
+			self.bundle_resources.push('install/' + this.name);
+		}
+
+		self.dependencies_recursion.push(...self.dependencies);
+
+		for (var pkg of self._dependencies()) {
+			self.dependencies.push(pkg.name);
+		}
+
+		if (is_app) {
+			for (var pkg of deps) {
+				self.includes.push(pkg.gypi_path);
+				self.dependencies_recursion.push(pkg.name);
+				if (!pkg.pkg_json.skipInstall)
+					self.bundle_resources.push('install/' + pkg.name);
+			}
+			self.includes.splice(0, Infinity, ...filter_repeat(self.includes));
+			self.dependencies_recursion.splice(0, Infinity, ...filter_repeat(self.dependencies_recursion, this.name));
+			self.bundle_resources.splice(0, Infinity, ...filter_repeat(self.bundle_resources));
+		}
+
+		self.dependencies.splice(0, Infinity, ...filter_repeat(self.dependencies, this.name));
+
+		if (self._binding || self._binding_gyp) {
+			self._native = true;
+		} else { // is native
+			for (var pkg of deps) {
 				if (pkg._native || pkg._binding || pkg._binding_gyp) {
 					this._native = true;
 					break;
 				}
 			}
 		}
-
 	}
 
 	private initialize() {
 		var self = this;
 		var host = this.host;
-		var pkg_json = self.pkg_json;
 		var source_path = this.source_path;
 		var relative_source = path.relative(host.output, source_path);
 
@@ -203,7 +234,7 @@ class Package {
 				var target = targets[0];
 				var target_name = target.target_name;
 				if (target_name) {
-					self.dependencies.push(relative_source + '/binding.gyp:' + target_name);
+					self.dependencies.push(path.relative(host.source, source_path) + '/binding.gyp:' + target_name);
 					self._binding_gyp = true;
 				}
 			}
@@ -239,10 +270,6 @@ class Package {
 				}
 			}
 		});
-
-		if ( !pkg_json.skipInstall ) { // no skip install pkg
-			this.bundle_resources.push('install/' + this.name);
-		}
 	}
 
 	private gen_ios_gypi(): OutputGypi {
@@ -402,7 +429,7 @@ class Package {
 			if ( self.native ) {
 				type = 'shared_library';
 				if ( !self._binding ) {
-					fs.writeFileSync(host.output, fs.readFileSync(__dirname + '/export/'));
+					// fs.writeFileSync(host.output, fs.readFileSync(__dirname + '/export/'));
 					fs.cp_sync(__dirname + '/export/empty.c', host.output + '/empty.c', { replace: false });
 					sources.push('empty.c');
 				}
@@ -540,7 +567,7 @@ export default class NguiExport {
 
 		// write _var.gypi
 		var include_gypi = ' -Iout/_var.gypi';
-		var var_gyp = { variables: { OS: os == 'ios' ? 'mac': os, os: os, project: project } };
+		var var_gyp = { variables: { OS: os == 'ios' ? 'mac': os, os: os, project: project, DEPTH: source, } };
 		fs.writeFileSync(source + '/out/_var.gypi', JSON.stringify(var_gyp, null, 2));
 
 		// console.log('paths.includes_gypi', source, paths.includes_gypi);
@@ -586,8 +613,8 @@ export default class NguiExport {
 		for ( var i in self.outputs ) {
 			var pkg = self.outputs[i];
 			if ( pkg.is_app ) {
-				includes.push(...pkg.includes, pkg.gypi_path);
 				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
+				includes.push(...pkg.includes, pkg.gypi_path);
 			}
 		}
 
@@ -654,8 +681,6 @@ export default class NguiExport {
 			if ( !pkg.is_app ) { // node_modules
 				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
 			} else {
-				if ( pkg.native )
-					use_ndk = true;
 				settings_gradle.push("':" + i + "'");
 			}
 		}
@@ -667,8 +692,11 @@ export default class NguiExport {
 			if ( pkg.is_app ) {
 				fs.writeFileSync( pkg.gypi_path, JSON.stringify(pkg.gen(), null, 2));
 
+				// console.log(pkg.name, pkg.native)
+
 				if ( pkg.native ) {
 					// android并不完全依赖`gyp`,只需针对native项目生成.cmake文件
+					use_ndk = true;
 
 					var includes = pkg.includes.concat(pkg.gypi_path).map(function(pathname) {
 						return path.relative(source, pathname);
