@@ -249,9 +249,12 @@ function check_fun(origin: any) {
 }
 
 function forwardNoticeNoticer<E>(forward_noticer: EventNoticer<E>, evt: E) {
-	var noticer = (evt as any).m_noticer;
-	forward_noticer.triggerWithEvent(evt);
-	(evt as any).m_noticer = noticer;
+	try {
+		var noticer = (evt as any).m_noticer;
+		forward_noticer.triggerWithEvent(evt);
+	} finally {
+		(evt as any).m_noticer = noticer;
+	}
 }
 
 export class EventNoticer<E = Event> {
@@ -578,7 +581,7 @@ export class Notification<E = Event> {
 	/**
 	 * @func addDefaultListener
 	 */
-	addDefaultListener(name: string, listen: Listen<E> | string) {
+	addDefaultListener(name: string, listen: Listen<E> | string | null) {
 		if ( typeof listen == 'string' ) {
 			var func = (<any>this)[listen]; // find func 
 			if ( typeof func == 'function' ) {

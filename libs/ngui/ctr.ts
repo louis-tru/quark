@@ -742,7 +742,7 @@ export class ViewController<State extends Dict = Dict> extends Notification<Even
 	/**
 	 * @overwrite
 	 */
-	addDefaultListener(name: string, func: Listen<Event<any, ViewController>> | string) {
+	addDefaultListener(name: string, func: Listen<Event<any, ViewController>> | string | null) {
 		if ( typeof func == 'string' ) {
 			var owner = this as any, func2;
 			do {

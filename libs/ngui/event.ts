@@ -215,7 +215,7 @@ export enum KeyboardKeyName {
 
 declare class NativeEvent<Data, Sender extends object> extends Event<Data, Sender> {}
 
-export declare class GUIEvent<Data = void> extends NativeEvent<Data, View> {
+export declare class GUIEvent<Data = void, Sender extends object = View> extends NativeEvent<Data, Sender> {
 	readonly origin: View;
 	readonly timestamp: number;
 	readonly isDefault: boolean;
@@ -224,14 +224,14 @@ export declare class GUIEvent<Data = void> extends NativeEvent<Data, View> {
 	cancelBubble(): void;
 }
 
-export declare class GUIActionEvent extends GUIEvent {
+export declare class GUIActionEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly action: Action;
 	readonly delay: number;
 	readonly frame: number;
 	readonly loop: number;
 }
 
-export declare class GUIKeyEvent extends GUIEvent {
+export declare class GUIKeyEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly keycode: number;
 	readonly repeat: number;
 	readonly shift: boolean;
@@ -244,18 +244,18 @@ export declare class GUIKeyEvent extends GUIEvent {
 	focusMove: View | null;
 }
 
-export declare class GUIClickEvent extends GUIEvent {
+export declare class GUIClickEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly x: number;
 	readonly y: number;
 	readonly count: number;
 	readonly type: ClickType;
 }
 
-export declare class GUIHighlightedEvent extends GUIEvent {
+export declare class GUIHighlightedEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly status: HighlightedStatus;
 }
 
-export declare class GUIMouseEvent extends GUIEvent {
+export declare class GUIMouseEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly x: number;
 	readonly y: number;
 }
@@ -271,11 +271,11 @@ export interface TouchPoint {
 	readonly view: View;
 }
 
-export declare class GUITouchEvent extends GUIEvent {
+export declare class GUITouchEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly changedTouches: TouchPoint[];
 }
 
-export declare class GUIFocusMoveEvent extends GUIEvent {
+export declare class GUIFocusMoveEvent<Data = void, Sender extends object = View> extends GUIEvent<Data, Sender> {
 	readonly focus: View | null;
 	readonly focusMove: View | null;
 }

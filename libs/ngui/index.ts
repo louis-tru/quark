@@ -103,7 +103,7 @@ class _View extends NativeNotification {
 		return action as T;
 	}
 
-	addDefaultListener(name: string, listen: Listen<GUIEvent> | string) {
+	addDefaultListener(name: string, listen: Listen<GUIEvent> | string | null) {
 		if ( typeof listen == 'string' ) { // find func 
 			var owner: any = this;
 			do {
