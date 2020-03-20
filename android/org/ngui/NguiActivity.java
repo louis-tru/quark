@@ -54,7 +54,7 @@ import android.content.pm.ApplicationInfo;
 
 public class NguiActivity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
 
-	private static String TAG = "QGR";
+	private static String TAG = "Ngui";
 	private IMEHelper m_ime = null;
 	private Handler m_handler = null;
 	private PowerManager pm = null;
