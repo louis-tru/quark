@@ -249,8 +249,8 @@ class Package {
 				} else if ( stat.isDirectory() ) {
 					if (name == 'node_modules') {
 						var node_modules = source_path + '/' + pathname;
-						fs.listSync(node_modules, function(stat) {
-							if (stat.isDirectory())
+						fs.listSync(node_modules, function(stat, pathname) {
+							if (pathname && stat.isDirectory())
 								host.solve(node_modules + '/' + stat.name, false, true);
 						});
 						return true; // cancel each children

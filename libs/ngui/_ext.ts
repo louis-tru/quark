@@ -28,596 +28,396 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-interface RequireFunction {
-	(id: string): any;
+import {List} from './event';
+import errno from './errno';
+
+var id = 10;
+var AsyncFunctionConstructor = (async function() {}).constructor;
+var scopeLockQueue = new Map();
+
+export var currentTimezone = new Date().getTimezoneOffset() / -60; // 当前时区
+
+export function isAsync(func: any): boolean {
+	return func && func.constructor === AsyncFunctionConstructor;
 }
 
-interface RequireResolve {
-	(id: string, options?: { paths?: string[]; }): string;
-	paths(request: string): string[] | null;
-}
+class obj_constructor {}
 
-interface NguiExtensions {
-	'.js': (m: NguiModule, filename: string) => any;
-	'.json': (m: NguiModule, filename: string) => any;
-	'.node': (m: NguiModule, filename: string) => any;
-	[ext: string]: (m: NguiModule, filename: string) => any;
-}
-
-interface NguiRequire extends RequireFunction {
-	resolve: RequireResolve;
-	cache: Dict<NguiModule>;
-	/**
-	 * @deprecated
-	 */
-	extensions: NguiExtensions;
-	main: NguiModule | undefined;
-}
-
-interface NguiModule {
-	exports: any;
-	require: RequireFunction;
-	id: string;
-	filename: string;
-	loaded: boolean;
-	parent: NguiModule | null;
-	children: NguiModule[];
-	paths: string[];
-}
-
-declare var __filename: string;
-declare var __dirname: string;
-declare var __requireNgui__: RequireFunction;
-declare var require: NguiRequire;
-declare var module: NguiModule;
-// Same as module.exports
-declare var exports: any;
-
-interface ObjectConstructor {
-	hashCode(obj: any): number;
-}
-
-interface Object {
-	hashCode(): number;
-}
-
-// Dictionaries
-interface Dict<T = any> {
-	[key: string]: T;
-}
-
-type TimeoutResult = any; // NodeJS.Timeout | number;
-
-interface Function {
-	hashCode(): number;
-	setTimeout(this: Function, time: number, ...argArray: any[]): TimeoutResult;
-}
-
-interface CallableFunction extends Function {
-	setTimeout<A extends any[], R>(this: (...args: A) => R, time: number, ...args: A): TimeoutResult;
-}
-
-interface ArrayConstructor {
-	toArray(obj: any, index?: number, end?: number): any[];
-}
-
-interface Array<T> {
-	hashCode(): number;
-	deleteOf(value: T): T[];
-	indexReverse(index: number): T;
-}
-
-interface StringConstructor {
-	format(str: string, ...args: any[]): string;
-}
-
-interface String {
-	hashCode(): number;
-}
-
-interface Number {
-
-	hashCode(): number;
-
-	/**
-	* 转换为前后固定位数的字符串
-	* @arg before {Number}  小数点前固定位数
-	* @arg [after] {Number} 小数点后固定位数
-	*/
-	toFixedBefore(before: number, after?: number): string;
-
-}
-
-interface Boolean {
-	hashCode(): number;
-}
-
-interface DateConstructor {
-
-	/**
-	 * @field current timezone
-	 */
-	currentTimezone: number;
-
-	/**
-	 * 解析字符串为时间
-	 * <pre><code>
-	 * var i = '2008-02-13 01:12:13';
-	 * var date = Date.parseDate(i); //返回的新时间
-	 * </code></pre>
-	 * @func parseDate(str[,format[,timezone]])
-	 * @arg str {String}        要解析的字符串
-	 * @arg [format] {String}   date format   default yyyyMMddhhmmssfff
-	 * @arg [timezone] {Number} 要解析的时间所在时区,默认为当前时区
-	 * @ret {Date}              返回新时间
-	 */
-	parseDate(date_str: string, format?: string, timezone?: number): Date;
-
-	/**
-		* 格式化时间戳(单位:毫秒)
-		* <pre><code>
-		* var time_span = 10002100;
-		* var format = 'dd hh:mm:ss';
-		* var str = Date.formatTimeSpan(time_span, format); // str = '0 2:46:42'
-		* var format = 'dd天hh时mm分ss秒';
-		* var str = Date.formatTimeSpan(time_span, format); // str = '0天2时46分42秒'
-		* format = 'hh时mm分ss秒';
-		* str = Date.formatTimeSpan(time_span, format); // str = '2时46分42秒'
-		* format = 'mm分ss秒';
-		* str = Date.formatTimeSpan(time_span, format); // str = '166分42秒'
-		* </code></pre>
-		* @func formatTimeSpan(ts[,format])
-		* @arg ts {Number} 要格式化的时间戳
-		* @arg [format]  {String} 要格式化的时间戳格式
-		* @ret {String} 返回的格式化后的时间戳
-		*/
-	formatTimeSpan(time_span: number, format?: string): string;
-
-}
-
-interface Date {
-
-	hashCode(): number;
-
-	/**
-	 * @func add 给当前Date时间追加毫秒,改变时间值
-	 * @arg ms {Number}  要添追加的毫秒值
-	 * @ret {Date}
-	 */
-	add(ms: number): Date;
-
-	/**
-		* 给定日期格式返回日期字符串
-		* <pre><code>
-		* var date = new Date();
-		* var format = 'yyyy-MM-dd hh:mm:ss.fff';
-		* var dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
-		* format = 'yyyy-MM-dd hh:mm:ss';
-		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10：32：23'
-		* format = 'yyyy/MM/dd';
-		* dateStr = date.toString(format); // dateStr的值为 '2008/12/10'
-		* format = 'yyyy-MM-dd hh';
-		* dateStr = date.toString(format); // dateStr的值为 '2008-12-10 10'
-		* </code></pre>
-		* @func date_to_string(date[,foramt])
-		* @arg date {Date}
-		* @arg [format] {String} 要转换的字符串格式
-		* @ret {String} 返回格式化后的时间字符串
-		*/
-	toString(format?: string, timezone?: number): string;
-
-}
-
-interface ErrorDescribe {
-	name?: string;
-	message?: string;
-	error?: string;
-	description?: string;
-	errno?: number;
-	child?: Error | Error[];
-	[prop: string]: any;
-}
-
-type ErrnoCode = [number/*errno*/, string/*message*/, string?/*description*/];
-type ErrorNewArg = ErrnoCode | Error | string | ErrorDescribe;
-
-interface ErrorConstructor {
-	'new'(err: ErrorNewArg, ...child: ErrorNewArg[]): Error;
-	toJSON(err: Error): any;
-	setStackTraceJSON(enable: boolean): void;
-	/** Create .stack property on a target object */
-	captureStackTrace(targetObject: Object, constructorOpt?: Function): void;
-}
-
-interface Error {
-	errno?: number;
-	description?: string;
-	child?: Error[];
-	[prop: string]: any;
-}
-
-declare function setTimeout<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
-declare function setInterval<A extends any[]>(cb: (...args: A)=>void, timeout?: number, ...args: A): TimeoutResult;
-declare function setImmediate<A extends any[]>(cb: (...args: A)=>void, ...args: A): TimeoutResult;
-declare function clearTimeout(id?: TimeoutResult): void;
-declare function clearInterval(id?: TimeoutResult): void;
-declare function clearImmediate(id?: TimeoutResult): void;
-
-(function(_: any) {
-
-if (Date.formatTimeSpan !== undefined)
-	return;
-
-if (typeof globalThis == 'undefined') {
-	var globa = arguments[0]('(global)');
-	if (typeof globa == 'object') {
-		(globa as any).globalThis = globa;
-	} else if (typeof window == 'object') {
-		(window as any).globalThis = window;
+function clone_object(new_obj: any, obj: any): any {
+	for (var name of Object.getOwnPropertyNames(obj)) {
+		var property = <PropertyDescriptor>Object.getOwnPropertyDescriptor(obj, name);
+		if (property.writable) {
+			new_obj[name] = clone(property.value);
+		}//else {
+			// Object.defineProperty(new_obj, name, property);
+		//}
 	}
+	return new_obj;
 }
 
-var currentTimezone = new Date().getTimezoneOffset() / -60;
-var G_slice = Array.prototype.slice;
-var G_hash_code_id = 1;
-var G_hash_code_set = new WeakSet();
-var dateToString = Date.prototype.toString;
+export function getId() {
+	return id++;
+}
 
 /**
- * @fun ext_class #  EXT class prototype objects
+ * @fun clone # 克隆一个Object对像
+ * @arg obj {Object} # 要复制的Object对像
+ * @arg {Object}
  */
-function definePropertys(obj: any, extd: any): void {
-	for (var i in extd) {
-		var desc = <PropertyDescriptor>Object.getOwnPropertyDescriptor(extd, i);
-		desc.enumerable = false;
-		Object.defineProperty(obj, i, desc);
-	}
-}
+export function clone(obj: any): any {
+	if (obj && typeof obj == 'object') {
+		var new_obj: any = null, i;
 
-function hashCode(obj: any): number {
-	return 	obj === null ? -1354856:
-					obj === undefined ? -3387255: obj.hashCode();
-}
-
-// index of
-function indexOf(str: string, str1: string): number {
-	var index = str.indexOf(str1);
-	return index > -1 ? index : Infinity;
-}
-
-definePropertys(Object, {
-	hashCode: hashCode,
-});
-
-definePropertys(Object.prototype, {
-	hashCode(): number {
-		if (G_hash_code_set.has(this)) 
-			return 0;
-		G_hash_code_set.add(this);
-		var _hash = 5381;
-		for (var key in this) {
-			_hash += (_hash << 5) + (key.hashCode() + hashCode(this[key]));
+		switch (obj.constructor) {
+			case Object:
+				new_obj = {};
+				for(i in obj) {
+					new_obj[i] = clone(obj[i]);
+				}
+				return new_obj;
+			case Array:
+				new_obj = [ ];
+				for (i = 0; i < obj.length; i++) {
+					new_obj[i] = clone(obj[i]);
+				}
+				return new_obj;
+			case Date:
+				return new Date(obj.valueOf());
+			default:
+				obj_constructor.prototype = obj.constructor.prototype;
+				new_obj = new obj_constructor();
+				return clone_object(new_obj, obj);
 		}
-		G_hash_code_set.delete(this);
-		return _hash;
-	},
-});
+	}
+	return obj;
+}
 
-definePropertys(Function.prototype, {
+/**
+ * @func extend(obj, extd)
+ */
+export function extend(obj: any, extd: any): any {
+	if (extd.__proto__ && extd.__proto__ !== Object.prototype)
+		extend(obj, extd.__proto__);
+	for (var i of Object.getOwnPropertyNames(extd)) {
+		if (i != 'constructor') {
+			var desc = <PropertyDescriptor>Object.getOwnPropertyDescriptor(extd, i);
+			desc.enumerable = false;
+			Object.defineProperty(obj, i, desc);
+		}
+	}
+	return obj;
+}
+
+/**
+ * Empty function
+ */
+export function noop() {}
+
+/**
+ * @func isNull(value)
+ */
+export function isNull(value: any): boolean {
+	return value === null || value === undefined
+}
+
+/**
+ * @fun extendClass #  EXT class prototype objects
+ */
+export function extendClass(cls: Function, ...extds: Function[]) {
+	var proto = cls.prototype;
+	for (var extd of extds) {
+		if (extd instanceof Function) {
+			extd = extd.prototype;
+		}
+		extend(proto, extd);
+	}
+	return cls;
+}
+
+async function scopeLockDequeue(mutex: any): Promise<void> {
+	var item, queue = scopeLockQueue.get(mutex);
+	while( item = queue.shift() ) {
+		try {
+			item.resolve(await item.cb());
+		} catch(err) {
+			item.reject(err);
+		}
+	}
+	scopeLockQueue.delete(mutex);
+}
+
+/**
+ * @func scopeLock(mutex, cb)
+ */
+export function scopeLock<R>(mutex: any, cb: ()=>Promise<R>|R): Promise<R> {
+	assert(mutex, 'Bad argument');
+	assert(typeof cb == 'function', 'Bad argument');
+	return new Promise<R>((resolve, reject)=>{
+		if (scopeLockQueue.has(mutex)) {
+			scopeLockQueue.get(mutex).push({resolve, reject, cb});
+		} else {
+			scopeLockQueue.set(mutex, new List().push({resolve, reject, cb}).host);
+			scopeLockDequeue(mutex); // dequeue
+		}
+	})
+}
+
+/**
+ * @fun get(name[,self]) # get object value by name
+ * @arg name {String} 
+ * @arg [self] {Object}
+ * @ret {Object}
+ */
+export function get(name: string, self: any): any {
+	var names = name.split('.');
+	var item;
+	while ( (item = names.shift()) ) {
+		self = self[item];
+		if (!self)
+			return self;
+	}
+	return self;
+}
+
+/**
+* @fun set(name,value[,self]) # Setting object value by name
+* @arg name {String} 
+* @arg value {Object} 
+* @arg [self] {Object}
+* @ret {Object}
+*/
+export function set(name: string, value: any, self: any): any {
+	var item = null;
+	var names = name.split('.');
+	var _name = <string>names.pop();
+	while ( (item = names.shift()) ){
+		self = self[item] || (self[item] = {});
+	}
+	self[_name] = value;
+	return self;
+}
+
+/**
+ * @fun def(name[,self]) # Delete object value by name
+ * @arg name {String} 
+ * @arg [self] {Object}
+ */
+export function del(name: string, self: any): void {
+	var names = name.split('.');
+	var _name = <string>names.pop();
+	self = get(names.join('.'), self);
+	if (self)
+		delete self[_name];
+}
+
+/**
+ * @fun random # 创建随机数字
+ * @arg [start] {Number} # 开始位置
+ * @arg [end] {Number}   # 结束位置
+ * @ret {Number}
+ */
+export function random(start: number = 0, end: number = 1E8): number {
+	if (start == end)
+		return start;
+	var r = Math.random();
+	start = start || 0;
+	end = end || (end===0?0:1E8);
+	return Math.floor(start + r * (end - start + 1));
+}
+
+/**
+* @fun fixRandom # 固定随机值,指定几率返回常数
+* @arg args.. {Number} # 输入百分比
+* @ret {Number}
+*/
+export function fixRandom(arg: number, ...args: number[]): number {
+	if (!args.length)
+		return 0;
+	var total = arg;
+	var argus = [arg];
+	var len = args.length;
+	for (var i = 0; i < len; i++) {
+		total += args[i];
+		argus.push(total);
+	}
+	var r = random(0, total - 1);
+	for (var i = 0; (i < len); i++) {
+		if (r < argus[i])
+			return i;
+	}
+	return 0;
+}
+
+/**
+* @fun filter # object filter
+* @arg obj {Object}  
+* @arg exp {Object}  #   filter exp
+* @arg non {Boolean} #   take non
+* @ret {Object}
+*/
+export function filter(obj: any, exp: string[] | ((key: string, value: any)=>boolean), non: boolean = false): any {
+	var rev: any = {};
+	var isfn = (typeof exp == 'function');
 	
-	hashCode(): number {
-		if (!this.hasOwnProperty('M_hashCode')) {
-			Object.defineProperty(this, 'M_hashCode', { 
-				enumerable: false, configurable: false, writable: false, value: G_hash_code_id++
-			});
+	if (isfn || non) {
+		for (var key in obj) {
+			var value = obj[key];
+			var b: boolean = isfn ? (<any>exp)(key, value) : ((<string[]>exp).indexOf(key) != -1);
+			if (non ? !b : b)
+				rev[key] = value;
 		}
-		return this.M_hashCode;
-	},
-
-	setTimeout(time: number, ...args: any[]): TimeoutResult {
-		var fn = this;
-		return setTimeout(function() {
-			fn(...args);
-		}, time);
-	},
-
-});
-
-definePropertys(Array, {
-	toArray(obj: any, index: number, end: number): any[] {
-		return G_slice.call(obj, index, end);
-	},
-});
-
-definePropertys(Array.prototype, {
-
-	hashCode(): number {
-		if (G_hash_code_set.has(this)) 
-			return 0;
-		G_hash_code_set.add(this);
-		var _hash = 5381;
-		for (var item of this) {
-			if (item) {
-				_hash += (_hash << 5) + item.hashCode();
-			}
+	} else {
+		for (var item of <string[]>exp) {
+			item = String(item);
+			if (item in obj)
+				rev[item] = obj[item];
 		}
-		G_hash_code_set.delete(this);
-		return _hash;
-	},
-
-	deleteOf(value: any): any[] {
-		var i = this.indexOf(value);
-		if (i != -1) {
-			this.splice(i, 1);
-		}
-		return this;
-	},
-
-	indexReverse (index: number): any {
-		return this[this.length - 1 - index];
-	},
-
-});
-
-// ext TypedArray
-definePropertys((Uint8Array as any).prototype.__proto__, {
-
-	hashCode(): number {
-		var _hash = 5381;
-		var self = new Uint8Array(this.buffer, this.byteOffset, this.byteLength);
-		for (var item of self) {
-			_hash += (_hash << 5) + item;
-		}
-		return _hash;
-	},
-});
-
-definePropertys(String, {
-	format(str: string, ...args: any[]): string {
-		var val = String(str);
-		for (var i = 0, len = args.length; i < len; i++)
-			val = val.replace(new RegExp('\\{' + i + '\\}', 'g'), args[i]);
-		return val;
 	}
-});
+	return rev;
+}
 
-definePropertys(String.prototype, {
-	hashCode: function(): number {
-		var _hash = 5381;
-		var len = this.length;
-		while (len) {
-			_hash += (_hash << 5) + this.charCodeAt(len);
-			len--;
+/**
+ * @fun update # update object property value
+ * @arg obj {Object}      #        need to be updated for as
+ * @arg extd {Object}    #         update object
+ * @arg {Object}
+ */
+export function update<T>(obj: T, extd: any): T {
+	for (var key in extd) {
+		if (key in obj) {
+			(<any>obj)[key] = select((<any>obj)[key], extd[key]);
 		}
-		return _hash;
-	},
-});
+	}
+	return obj;
+}
 
-definePropertys(Number.prototype, {
+/**
+ * @fun select
+ * @arg default {Object} 
+ * @arg value   {Object} 
+ * @reg {Object}
+ */
+export function select<T>(default_: T, value: any): T {
+	if ( typeof default_ == typeof value ) {
+		return <T>value;
+	} else {
+		return default_;
+	}
+}
 
-	hashCode(): number {
-		return this;
-	},
+/**
+ * @fun equalsClass  # Whether this type of sub-types
+ * @arg baseclass {class}
+ * @arg subclass {class}
+ */
+export function equalsClass(baseclass: any, subclass: any): boolean {
+	if (!baseclass || !subclass || !subclass.prototype)
+		return false;
+	if (baseclass === subclass)
+		return true;
+	
+	var prototype = baseclass.prototype;
+	var subprototype = subclass.prototype;
+	if (!subprototype) return false;
+	var obj = subprototype.__proto__;
+	
+	while (obj) {
+		if (prototype === obj)
+			return true;
+		obj = obj.__proto__;
+	}
+	return false;
+}
 
-	toFixedBefore(before: number, after: number): string {
-		if (!isFinite(this)) {
-			return String(this);
+/**
+ * @fun assert
+ */
+export function assert(condition: any, code?: ErrnoCode | number | string, ...args: any[]): void {
+	if (condition)
+		return;
+	if (Array.isArray(code)) { // ErrnoCode
+		throw Error.new(code);
+	} else {
+		var errno: ErrnoCode;
+		if (typeof code == 'number') {
+			errno = [code, 'assert fail, unforeseen exceptions'];
 		} else {
-			var num = typeof after == 'number' ? this.toFixed(after) : String(this);
-			var match = num.match(/^(\d+)(\.\d+)?$/);
-			var integer = match[1];
-			var len = before - integer.length;
-			if (len > 0)
-				num = new Array(len + 1).join('0') + num;
-			return num;
+			errno = [-30009, String.format(String(code || 'ERR_ASSERT_ERROR'), ...args)];
 		}
-	},
+		throw Error.new(errno);
+	}
+}
 
-});
+/**
+ * @func sleep()
+ */
+export function sleep<T>(time: number, defaultValue?: T): Promise<T> {
+	return new Promise((ok, err)=>setTimeout(()=>ok(defaultValue), time));
+}
 
-definePropertys(Boolean.prototype, {
-	hashCode(): number {
-		return this == true ? -1186256: -23547257;
-	},
-});
+export function timeout<T>(promise: Promise<T>, time: number): Promise<T> {
+	return new Promise(function(_resolve, _reject) {
 
-definePropertys(Date, {
+		var id: any = setTimeout(function() {
+			id = 0;
+			_reject(Error.new(errno.ERR_EXECUTE_TIMEOUT));
+		}, time);
 
-	currentTimezone: currentTimezone,
-
-	parseDate(
-		date_str: string, 
-		format?: string, /* = 'yyyyMMddhhmmssfff', */
-		timezone?: number, /* = currentTimezone*/
-	): Date 
-	{
-		var s = String(date_str).replace(/[^0-9]/gm, '');
-		var f = '';
-
-		format = format || 'yyyyMMddhhmmssfff';
-		format.replace(/(yyyy|MM|dd|hh|mm|ss|fff)/gm, e=>{
-			f += e;
-			return '';
-		});
-		
-		if (timezone === undefined)
-			timezone = currentTimezone;
-
-		var d = new Date();
-		var diffTime = currentTimezone - timezone;
-
-		return new Date(
-			Number(s.substr(indexOf(f, 'yyyy'), 4)) || d.getFullYear(),
-			Number(s.substr(indexOf(f, 'MM'), 2) || 1/*(d.getMonth() + 1)*/) - 1,
-			Number(s.substr(indexOf(f, 'dd'), 2)) || 1/*d.getDate()*/,
-			Number(s.substr(indexOf(f, 'hh'), 2) || 0/*d.getHours()*/) - diffTime,
-			Number(s.substr(indexOf(f, 'mm'), 2)) || 0/*d.getMinutes()*/,
-			Number(s.substr(indexOf(f, 'ss'), 2)) || 0/*d.getSeconds()*/,
-			Number(s.substr(indexOf(f, 'fff'), 3)) || 0
-		);
-	},
-
-	formatTimeSpan(time_span: number, format: string = 'dd hh:mm:ss'): string {
-
-		var data = [];
-		var items = [
-			[1, 1000, /fff/g],
-			[1000, 60, /ss/g],
-			[60, 60, /mm/g],
-			[60, 24, /hh/g],
-			[24, 1, /dd/g]
-		];
-		
-		var start = false;
-
-		for (var i = 0; i < 5; i++) {
-			var item = items[i];
-			var reg = <RegExp>item[2];
-
-			if (format.match(reg)) {
-				start = true;
+		var ok = (err: any, r?: any)=>{
+			if (!id) {
+				clearTimeout(id);
+				id = 0;
+				if (err)
+					_reject(err);
+				else
+					_resolve(r);
 			}
-			else if (start) {
-				break;
-			}
-			time_span = time_span / <number>item[0];
-			data.push([time_span % <number>item[1], time_span]);
-		}
+		};
 
-		if (!start) {
-			return format;
-		}
-
-		data.indexReverse(0).reverse();
-		data.forEach(function (item, index) {
-			format =
-				format.replace(<RegExp>items[index][2], Math.floor(<number>item[0]).toFixedBefore(2));
-		});
-		return format;
-	},
-
-});
-
-definePropertys(Date.prototype, {
-
-	hashCode(): number {
-		return this.valueOf();
-	},
-
-	add(ms: number): Date {
-		this.setMilliseconds(this.getMilliseconds() + ms);
-		return this;
-	},
-
-	toString(format?: string, timezone?: number): string {
-		if (format/*typeof format == 'string'*/) {
-			var d = new Date(this.valueOf());
-			if (typeof timezone == 'number') {
-				var cur_time_zone = d.getTimezoneOffset() / -60;
-				var offset = timezone - cur_time_zone;
-				d.setHours(d.getHours() + offset);
-			}
-			return format.replace('yyyy', String(d.getFullYear()))
-				.replace('MM', (d.getMonth() + 1).toFixedBefore(2))
-				.replace('dd', d.getDate().toFixedBefore(2))
-				.replace('hh', d.getHours().toFixedBefore(2))
-				.replace('HH', d.getHours().toFixedBefore(2))
-				.replace('mm', d.getMinutes().toFixedBefore(2))
-				.replace('ss', d.getSeconds().toFixedBefore(2))
-				.replace('fff', d.getMilliseconds().toFixedBefore(3));
-		} else {
-			return dateToString.call(this);
-		}
-	},
-
-});
-
-const errors: Dict<Function> = {
-	Error,
-	SyntaxError,
-	ReferenceError,
-	TypeError,
-	RangeError,
-	EvalError,
-	URIError,
-};
-
-if (!Error.captureStackTrace) {
-	definePropertys(Error, {
-		captureStackTrace(targetObject: Object, constructorOpt?: Function): void {
-			// TODO ...
-		}
+		promise.then(e=>ok(null, e)).catch(ok);
 	});
 }
 
-var stackTraceJSON = true;
+interface PromiseExecutor<T> {
+	(resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>): Promise<void> | void;
+}
 
-definePropertys(Error, {
+export class PromiseNx<T extends any> extends Promise<T> {
+	protected m_executor?: PromiseExecutor<T>;
+	constructor(executor?: (resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
+		var _resolve: any;
+		var _reject: any;
 
-	new(arg: ErrorNewArg, ...child: ErrorNewArg[]): Error {
-		var err: Error;
-		if (typeof arg == 'object') { // ErrnoCode | Error | ErrorDescribe;
-			if (arg instanceof Error) {
-				err = <Error>arg;
-			} if (Array.isArray(arg)) { // ErrnoCode
-				var errnoCode = <ErrnoCode>arg;
-				err = new Error(errnoCode[1] || errnoCode[2] || 'Unknown error');
-				err.errno = errnoCode[0];
-				err.description = errnoCode[2] || '';
-				Error.captureStackTrace(err, Error.new);
-			} else { // ErrorDescribe
-				var describe = <ErrorDescribe>arg;
-				var Err = <ErrorConstructor>(errors[(<Error>arg).name] || Error);
-				var msg = describe.message || describe.error || 'Unknown error';
-				err = <Error>Object.assign(new Err(msg), arg);
-				Error.captureStackTrace(err, Error.new);
+		super(function(resolve: (value?: T)=>void, reject: (reason?: any)=>void) {
+			_resolve = resolve;
+			_reject = reject;
+		});
+
+		this.m_executor = executor;
+
+		try {
+			var r = this.executor(_resolve, _reject);
+			if (r instanceof Promise) {
+				r.catch(_reject);
 			}
-		} else { // string
-			err = new Error(String(arg));
-			Error.captureStackTrace(err, Error.new);
+		} catch(err) {
+			_reject(err);
 		}
-		err.errno = Number(err.errno) || -30000;
+	}
 
-		if (child.length) {
-			if (!Array.isArray(err.child))
-				err.child = [];
-			for (var ch of child) {
-				err.child.push(Error.new(ch));
-			}
+	executor(resolve: (value?: T)=>void, reject: (reason?: any)=>void) {
+		if (this.m_executor) {
+			return this.m_executor(resolve, reject, this);
+		} else {
+			throw Error.new('executor undefined');
 		}
-		return err;
-	},
+	}
 
-	toJSON(err: any): Error {
-		return Error.new(err).toJSON()
-	},
+}
 
-	setStackTraceJSON(enable: boolean) {
-		stackTraceJSON = !!enable;
-	},
-
-});
-
-definePropertys(Error.prototype, {
-
-	hashCode(): number {
-		var _hash = Object.prototype.hashCode.call(this);
-		_hash += (_hash << 5) + this.message.hashCode();
-		return _hash;
-	},
-
-	toJSON(): any {
-		var err: Error = this;
-		var r: any = Object.assign({}, err);
-		r.name = err.name || '';
-		r.message = err.message || 'Unknown error';
-		r.errno = Number(err.errno) || -30000;
-		r.code = r.errno; // compatible old
-		r.description = err.description || '';
-		if (stackTraceJSON)
-			r.stack = err.stack || '';
-		return r;
-	},
-});
-
-})((s:any)=>eval(s));
+/**
+ * @func promise(executor)
+ */
+export function promise<T extends any>(executor: (resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
+	return new PromiseNx<T>(executor) as Promise<T>;
+}
