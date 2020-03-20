@@ -71,6 +71,28 @@ indent_size = 2
 
 `;
 
+export const native_source = [
+	'.c',
+	'.cc',
+	'.cpp',
+	'.cxx',
+	'.m',
+	'.mm',
+	'.s', 
+	'.swift',
+];
+
+export const native_header = [
+	'.h',
+	'.hpp',
+	'.hxx',
+];
+
+const skip_files = native_source.concat(native_header, [
+	'.gyp',
+	'.gypi',
+]);
+
 const init_tsconfig = {
 	"compileOnSave": true,
 	"compilerOptions": {
@@ -279,11 +301,12 @@ class Package {
 		this.m_host = host;
 		this.m_source = source_path;
 		this.json = json;
-		this.m_output_name = outputName;
+		this.m_output_name      = outputName;
 		this.m_target_local     = this.m_host.target_local + '/' + outputName;
 		this.m_target_public    = this.m_host.target_public + '/' + outputName;
 		this.m_skip_file        = this._get_skip_files(this.json, outputName);
 		this.m_detach_file      = this._get_detach_files(this.json, outputName);
+		host.outputs[outputName] = this;
 	}
 
 	// 获取跳过文件列表
@@ -302,7 +325,7 @@ class Package {
 		}
 
 		rev.push('tsconfig.json');
-		rev.push('binding');
+		rev.push('binding.gyp');
 		rev.push('node_modules');
 		rev.push('out');
 		rev.push('versions.json');
@@ -342,7 +365,7 @@ class Package {
 		return rev;
 	}
 
-	build(ignore_public?: boolean) {
+	build() {
 		var self = this;
 		var source_path = self.m_source;
 		var pkg_json = self.json;
@@ -365,9 +388,7 @@ class Package {
 		fs.removerSync(target_local_path);
 		fs.removerSync(target_public_path);
 		fs.mkdirpSync(target_local_path);
-		if ( !ignore_public ) {
-			fs.mkdirpSync(target_public_path);
-		}
+		fs.mkdirpSync(target_public_path);
 
 		// build tsc
 		if (fs.existsSync(source_path + '/tsconfig.json')) {
@@ -396,30 +417,18 @@ class Package {
 
 		var cur_pkg_versions = self.m_versions;
 		var versions = { versions: cur_pkg_versions };
-		var skipInstall = pkg_json.skipInstall;
 		delete pkg_json.skipInstall;
 
 		fs.writeFileSync(target_local_path + '/versions.json', JSON.stringify(versions, null, 2));
 		fs.writeFileSync(target_local_path + '/package.json', JSON.stringify(pkg_json, null, 2)); // rewrite package.json
 		fs.writeFileSync(target_public_path + '/package.json', JSON.stringify(pkg_json, null, 2)); // rewrite package.json
 
-		if (ignore_public) {  // ignore public
-			fs.removerSync(target_public_path);
-		} else {
-			var pkg_files = ['versions.json'];
-			for ( var i in versions.versions ) {
-				if (versions.versions[i].charAt(0) != '.')
-					pkg_files.push('"' + i + '"');
-			}
-			new_zip(target_local_path, pkg_files, target_public_path + '/' + pkg_json.name + '.pkg');
+		var pkg_files = ['versions.json'];
+		for ( var i in versions.versions ) {
+			if (versions.versions[i].charAt(0) != '.')
+				pkg_files.push('"' + i + '"');
 		}
-
-		if ( skipInstall ) { // skip install
-			let skip_install = resolveLocal(target_local_path, '../../skip_install');
-			fs.mkdirpSync(skip_install);
-			fs.removerSync(skip_install + '/' + self.m_output_name);
-			fs.renameSync(target_local_path, path + '/' + self.m_output_name);
-		}
+		new_zip(target_local_path, pkg_files, target_public_path + '/' + pkg_json.name + '.pkg');
 	}
 
 	private _copy_js(source: string, target_local: string) {
@@ -463,12 +472,12 @@ class Package {
 	private _write_string(pathname: string, content: string) {
 		var self = this;
 		var target_local  = resolveLocal(self.m_target_local, pathname);
-		var target_public = resolveLocal(self.m_target_public, pathname);
+		// var target_public = resolveLocal(self.m_target_public, pathname);
 		fs.mkdirpSync( path.dirname(target_local) ); // 先创建目录
 		fs.writeFileSync(target_local, content, 'utf8');
 		var hash = new Hash();
 		hash.update_str(content);
-		fs.cp_sync(target_local, target_public);
+		// fs.cp_sync(target_local, target_public);
 		self.m_versions[pathname] = hash.digest(); // 记录文件 hash
 	}
 
@@ -488,6 +497,10 @@ class Package {
 		var extname       = path.extname(pathname).toLowerCase();
 		var is_detach     = false;
 		var hash          = '';
+
+		if (skip_files.indexOf(extname) != -1) {
+			return; // skip native file
+		}
 
 		for (var i = 0; i < self.m_detach_file.length; i++) {
 			var name = self.m_detach_file[i];
@@ -563,10 +576,10 @@ class Package {
 			for (var stat of fs.listSync(dir)) {
 				var pkg_path = dir + '/' + stat.name;
 				if (stat.isDirectory() && fs.existsSync( pkg_path + '/package.json')) {
-					var pkg = self.m_host.buildPackage(pkg_path, false, true) as Package;
-					var symlink = path.relative(`${self.m_target_local}/${pathname}`, `${self.m_target_local}/${pkg.m_output_name}`);
+					var pkg = self.m_host.solve(pkg_path, true) as Package;
+					var symlink = path.relative(`${self.m_target_local}/${pathname}`, `${self.m_host.target_local}/${pkg.m_output_name}`);
 					self._write_string(pathname + '/' + pkg.json.name, symlink);
-					pkgs[pkg.m_output_name] = pkg.json;
+					pkgs[pkg.json.name] = pkg.json;
 					pkg.json.symlink = symlink;
 					ok = true;
 				}
@@ -658,7 +671,7 @@ export default class NguiBuild {
 		}
 	}
 
-	buildPackage(pathname: string, ignore_public?: boolean, hasFullname?: boolean) {
+	solve(pathname: string, hasFullname?: boolean) {
 		var self = this;
 		var source_path = resolveLocal(pathname);
 
@@ -677,16 +690,12 @@ export default class NguiBuild {
 
 		var outputName = hasFullname ? __().name + '@' + __().version: path.basename(source_path);
 		var pkg = self.outputs[outputName];
-		if ( pkg ) { // Already complete
-			return pkg;
+		if ( !pkg ) { // Already complete
+			pkg = new Package(this, source_path, outputName, __());
+			pkg.build();
 		}
 
-		self.outputs[outputName] = pkg = new Package(this, source_path, outputName, __());
-
-		pkg.build(ignore_public);
-
 		return pkg;
-
 	}
 
 	private _build_result() {
@@ -765,7 +774,7 @@ export default class NguiBuild {
 						 stat.isDirectory() && 
 						 fs.existsSync( self.source + '/' + stat.name + '/package.json' )
 				) {
-					self.buildPackage(self.source + '/' + stat.name);
+					self.solve(self.source + '/' + stat.name);
 				}
 			});
 			self._build_result();
@@ -790,14 +799,14 @@ export default class NguiBuild {
 			fs.listSync(node_modules).forEach(function(stat) {
 				var source = node_modules + '/' + stat.name;
 				if ( stat.isDirectory() && fs.existsSync(source + '/package.json') ) {
-					self.buildPackage(source);
+					self.solve(source);
 				}
 			});
 		}
 
 		// build apps
 		for (var app of apps) {
-			self.buildPackage(self.source + '/' + app);
+			self.solve(self.source + '/' + app);
 		}
 
 		self._build_result();

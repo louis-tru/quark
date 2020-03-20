@@ -33,24 +33,11 @@ import paths from './paths';
 import * as fs from 'nxkit/fs';
 import path from 'nxkit/path';
 import keys from 'nxkit/keys';
-import NguiBuild, {PackageJson} from './build';
+import NguiBuild, {PackageJson,native_source,native_header} from './build';
 import { getLocalNetworkHost } from 'nxkit/network_host';
 import * as child_process from 'child_process';
 
 const isWindows = process.platform == 'win32';
-
-const native_source = [
-	'.c',
-	'.cc',
-	'.cpp',
-	'.cxx',
-	'.m',
-	'.mm',
-	'.s', 
-	'.swift',
-	'.java',
-	'.h',
-];
 
 function parse_json_file(filename: string, strict?: boolean) {
 	try {
@@ -86,10 +73,10 @@ interface OutputGypi extends Dict {}
 
 class Package {
 	readonly host: NguiExport;
-	readonly name: string;
+	readonly outputName: string;
 	readonly gypi_path: string;
 	readonly source_path: string;
-	readonly pkg_json: PkgJson;
+	readonly json: PkgJson;
 	readonly is_app: boolean;
 	readonly includes: string[] = [];
 	readonly include_dirs: string[] = [];
@@ -114,12 +101,12 @@ class Package {
 	private get_start_argv() {
 		var self = this;
 		if ( self.is_app ) {
-			var name = self.name;
-			var pkg_json = self.pkg_json;
+			var name = self.outputName;
+			var json = self.json;
 			var inspect = '--inspect=0.0.0.0:9229 ';
 			var start_argv = name;
 			var start_argv_debug = inspect + 'http://' + getLocalNetworkHost()[0] + ':1026/' + name;
-			if ( pkg_json.skipInstall ) {
+			if ( json.skipInstall ) {
 				console.warn( 'skipInstall params May lead to Application', name, ' to start incorrectly' );
 			}
 			return [start_argv, start_argv_debug].map(e=>`ngui ${e}`);
@@ -127,22 +114,21 @@ class Package {
 		return [] as string[];
 	}
 
-	constructor(host: NguiExport, source_path: string, is_app?: boolean) {
-		var pkg_json = parse_json_file(source_path + '/package.json');
+	constructor(host: NguiExport, source_path: string, outputName: string, json: PkgJson, is_app?: boolean) {
 		this.host = host;
 		this.source_path = source_path;
-		this.pkg_json = pkg_json;
+		this.json = json;
 		this.is_app = is_app || false;
-		this.name = path.basename(source_path);
-		this.gypi_path = host.output + '/' + this.name + '.gypi';
-		this.initialize();
+		this.outputName = outputName;
+		this.gypi_path = host.output + '/' + outputName + '.gypi';
+		host.outputs[outputName] = this;
 	}
 
 	private _dependencies() {
 		var self = this;
 		var pkgs: Package[] = [];
 		var outputs = self.host.outputs;
-		for (var [k,v] of Object.entries((self.pkg_json.dependencies || {}) as Dict<string>)) {
+		for (var [k,v] of Object.entries((self.json.dependencies || {}) as Dict<string>)) {
 			// TODO looking for the right package
 			var version = v.replace(/^(~|\^)/, '');
 			var fullname = k + '@' + version;
@@ -181,31 +167,31 @@ class Package {
 		var self = this;
 		var deps = self.get_dependencies_recursion();
 		var is_app = self.is_app;
-		var pkg_json = self.pkg_json;
+		var json = self.json;
 
-		if ( !pkg_json.skipInstall ) { // no skip install pkg
-			self.bundle_resources.push('install/' + this.name);
+		if ( !json.skipInstall ) { // no skip install pkg
+			self.bundle_resources.push('install/' + this.outputName);
 		}
 
 		self.dependencies_recursion.push(...self.dependencies);
 
 		for (var pkg of self._dependencies()) {
-			self.dependencies.push(pkg.name);
+			self.dependencies.push(pkg.outputName);
 		}
 
 		if (is_app) {
 			for (var pkg of deps) {
 				self.includes.push(pkg.gypi_path);
-				self.dependencies_recursion.push(pkg.name);
-				if (!pkg.pkg_json.skipInstall)
-					self.bundle_resources.push('install/' + pkg.name);
+				self.dependencies_recursion.push(pkg.outputName);
+				if (!pkg.json.skipInstall)
+					self.bundle_resources.push('install/' + pkg.outputName);
 			}
 			self.includes.splice(0, Infinity, ...filter_repeat(self.includes));
-			self.dependencies_recursion.splice(0, Infinity, ...filter_repeat(self.dependencies_recursion, this.name));
+			self.dependencies_recursion.splice(0, Infinity, ...filter_repeat(self.dependencies_recursion, this.outputName));
 			self.bundle_resources.splice(0, Infinity, ...filter_repeat(self.bundle_resources));
 		}
 
-		self.dependencies.splice(0, Infinity, ...filter_repeat(self.dependencies, this.name));
+		self.dependencies.splice(0, Infinity, ...filter_repeat(self.dependencies, this.outputName));
 
 		if (self._binding || self._binding_gyp) {
 			self._native = true;
@@ -219,7 +205,7 @@ class Package {
 		}
 	}
 
-	private initialize() {
+	initialize() {
 		var self = this;
 		var host = this.host;
 		var source_path = this.source_path;
@@ -239,48 +225,55 @@ class Package {
 				}
 			}
 		}
-		else if ( fs.existsSync(source_path + '/binding') ) {
-			fs.listSync(source_path + '/binding').forEach(function(stat) {
-				if ( stat.name[0] != '.' ) {
-					if ( stat.isFile() ) {
-						var extname = path.extname(stat.name).toLowerCase();
-						if (native_source.indexOf(extname) != -1) { // native source
-							self._binding = true;
-						}
-					}
-					self.sources.push( relative_source + '/binding/' + stat.name );
-				}
-			});
-			if ( this._binding ) {
-				this.include_dirs.push(relative_source + '/binding');
-			}
-		}
+
+		var is_include_dirs = false;
 
 		// add source
-		fs.listSync(source_path).forEach(function(stat) {
-			if ( stat.name != 'binding' && stat.name[0] != '.' ) {
+		fs.listSync(source_path, true, function(stat, pathname) {
+			var name = stat.name;
+			if ( name[0] != '.' ) {
 				if ( stat.isFile() ) {
-					var extname = path.extname(stat.name).toLowerCase();
-					if (native_source.indexOf(extname) == -1) {
-						// not add native source
-						self.sources.push( relative_source + '/' + stat.name );
+					var extname = path.extname(name).toLowerCase();
+					if (native_source.indexOf(extname) != -1) {
+						if (!self._binding_gyp) {
+							self._binding = true;
+							self.sources.push( relative_source + '/' + pathname );
+						} // else not add native source
+						is_include_dirs = true;
+					} else {
+						if (native_header.indexOf(extname) != -1) {
+							is_include_dirs = true;
+						}
+						self.sources.push( relative_source + '/' + pathname );
 					}
-				} else {
-					self.sources.push( relative_source + '/' + stat.name );
+				} else if ( stat.isDirectory() ) {
+					if (name == 'node_modules') {
+						var node_modules = source_path + '/' + pathname;
+						fs.listSync(node_modules, function(stat) {
+							if (stat.isDirectory())
+								host.solve(node_modules + '/' + stat.name, false, true);
+						});
+						return true; // cancel each children
+					}
 				}
 			}
 		});
+
+		if ( is_include_dirs ) {
+			self.include_dirs.push(relative_source);
+		}
+
 	}
 
 	private gen_ios_gypi(): OutputGypi {
 		var self = this;
 		var is_app = self.is_app;
-		var name = self.name;
+		var name = self.outputName;
 		var host = self.host;
 		var sources = self.sources;
-		var id = self.pkg_json.id || 'org.ngui.${PRODUCT_NAME:rfc1034identifier}';
-		var app_name = self.pkg_json.app || '${EXECUTABLE_NAME}';
-		var version = self.pkg_json.version;
+		var id = self.json.id || 'org.ngui.${PRODUCT_NAME:rfc1034identifier}';
+		var app_name = self.json.app || '${EXECUTABLE_NAME}';
+		var version = self.json.version;
 		var xcode_settings = {};
 
 		if ( is_app ) { // copy platfoem file
@@ -365,12 +358,12 @@ class Package {
 	private gen_android_gypi(): OutputGypi {
 		var self = this;
 		var is_app = self.is_app;
-		var name = self.name;
+		var name = self.outputName;
 		var host = self.host;
 		var sources = self.sources;
-		var id = (self.pkg_json.id || 'org.ngui.' + name).replace(/-/gm, '_');
-		var app_name = self.pkg_json.app || name;
-		var version = self.pkg_json.version;
+		var id = (self.json.id || 'org.ngui.' + name).replace(/-/gm, '_');
+		var app_name = self.json.app || name;
+		var version = self.json.version;
 		var java_pkg = id.replace(/\./mg, '/');
 		var so_pkg = self.native ? name : 'ngui-js';
 
@@ -521,10 +514,9 @@ export default class NguiExport {
 		fs.mkdirpSync(this.proj_out);
 	}
 
-	private solve(pathname: string, is_app?: boolean): Package | null {
+	solve(pathname: string, is_app?: boolean, hasFullname?: boolean): Package | null {
 		var self = this;
 		var source_path = resolveLocal(pathname);
-		var fullname = path.basename(source_path);
 
 		// ignore network pkg 
 		if ( /^https?:\/\//i.test(source_path) ) {
@@ -532,9 +524,19 @@ export default class NguiExport {
 			return null;
 		}
 
-		var pkg = self.outputs[fullname];
+		var json: PkgJson | null = null;
+		var __ = ()=>{
+			if (!json) {
+				json = parse_json_file(source_path + '/package.json') as PkgJson;
+			}
+			return json;
+		};
+
+		var outputName = hasFullname ? __().name + '@' + __().version: path.basename(source_path);
+		var pkg = self.outputs[outputName];
 		if ( !pkg ) {
-			self.outputs[fullname] = pkg = new Package(self, source_path, is_app);
+			pkg = new Package(self, source_path, outputName, __(), is_app);
+			pkg.initialize();
 		}
 
 		return pkg;
@@ -655,10 +657,10 @@ export default class NguiExport {
 
 	private write_cmake_depe_to_android_build_gradle(pkg: Package, cmake: string, add: boolean) {
 		var self = this;
-		var build_gradle = `${self.proj_out}/${pkg.name}/build.gradle`;
+		var build_gradle = `${self.proj_out}/${pkg.outputName}/build.gradle`;
 		var str = fs.readFileSync(build_gradle).toString('utf8');
 		str = str.replace(/^.*android\.externalNativeBuild\.cmake\.path\s*=\s*("|')[^"']*("|').*$/mg, '');
-		cmake = path.relative(`${self.proj_out}/${pkg.name}`, cmake);
+		cmake = path.relative(`${self.proj_out}/${pkg.outputName}`, cmake);
 		cmake = `android.externalNativeBuild.cmake.path = '${cmake}'`;
 		if ( add ) {
 			str += cmake;
@@ -710,12 +712,12 @@ export default class NguiExport {
 						'includes': includes,
 					};
 
-					var gyp_file = source + '/' + pkg.name +'.gyp';
+					var gyp_file = source + '/' + pkg.outputName +'.gyp';
 
 					// write gyp file
 					fs.writeFileSync( gyp_file, JSON.stringify(gyp, null, 2) ); 
 					// gen cmake
-					var out = self.gen_project_file(pkg.name); // gen target project 
+					var out = self.gen_project_file(pkg.outputName); // gen target project 
 
 					fs.removerSync(gyp_file); // write gyp file
 
@@ -737,7 +739,7 @@ export default class NguiExport {
 				}
 
 				// copy pkgrary bundle resources to android assets directory
-				var android_assets = `${proj_out}/${pkg.name}/src/main/assets`;
+				var android_assets = `${proj_out}/${pkg.outputName}/src/main/assets`;
 
 				pkg.bundle_resources.forEach(function(res) {
 					var basename = path.basename(res);
