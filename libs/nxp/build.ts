@@ -392,17 +392,8 @@ class Package {
 
 		// build tsc
 		if (fs.existsSync(source_path + '/tsconfig.json')) {
-			self.m_tsconfig_outDir = source_path;
-			var tsconfig = parse_json_file(source_path + '/tsconfig.json');
-			if (tsconfig.compilerOptions?.outDir) {
-				var outDir = tsconfig.compilerOptions.outDir;
-				if (path.isAbsolute(outDir)) {
-					self.m_tsconfig_outDir = resolveLocal(outDir);
-				} else {
-					self.m_tsconfig_outDir = resolveLocal(source_path, outDir);
-				}
-			}
-			exec_cmd(`cd ${source_path} && tsc`);
+			self.m_tsconfig_outDir = resolveLocal(self.m_host.target_local, '../tsc', self.m_output_name);
+			exec_cmd(`cd ${source_path} && tsc --outDir ${self.m_tsconfig_outDir}`);
 		}
 
 		// each dir
@@ -513,6 +504,10 @@ class Package {
 		switch (extname) {
 			case '.js':
 				self._console_log('Out ', pathname);
+				if (self.m_tsconfig_outDir) {
+					if (fs.existsSync(self.m_tsconfig_outDir + '/' + pathname))
+						source = self.m_tsconfig_outDir + '/' + pathname;
+				}
 				hash = self._copy_js(source, target_local);
 				break;
 			case '.ts':
@@ -542,7 +537,6 @@ class Package {
 					console.error('Parse keys file error: ' + source);
 					throw err;
 				}
-
 				fs.mkdirpSync( path.dirname(target_local) ); // 先创建目录
 				fs.writeFileSync(target_local, keys.stringify(keys_data), 'utf8');
 				break;
@@ -578,7 +572,7 @@ class Package {
 				if (stat.isDirectory() && fs.existsSync( pkg_path + '/package.json')) {
 					var pkg = self.m_host.solve(pkg_path, true) as Package;
 					var symlink = path.relative(`${self.m_target_local}/${pathname}`, `${self.m_host.target_local}/${pkg.m_output_name}`);
-					self._write_string(pathname + '/' + pkg.json.name, symlink);
+					self._write_string(pathname + '/' + pkg.json.name + '.link', symlink);
 					pkgs[pkg.json.name] = pkg.json;
 					pkg.json.symlink = symlink;
 					ok = true;

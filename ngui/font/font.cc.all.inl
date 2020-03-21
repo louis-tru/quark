@@ -415,7 +415,7 @@ class FontFromData: public Font {
 	 public:
 		Data(Buffer& buff)
 		: value((FT_Byte*)*buff)
-		, length(buff.length()), storage(buff) {  }
+		, length(buff.length()), storage(buff) {}
 		FT_Byte* value;
 		uint  length;
 		Buffer storage;

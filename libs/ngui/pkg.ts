@@ -85,7 +85,9 @@ function readText(path: string) {
 	return new Promise<string>(function(resolve, reject) {
 		if ('ext://' == path.substr(0, 6)) {
 			try {
-				return _util.__extendModuleContent(path.substr(6));
+				var r = _util.__extendModuleContent(path.substr(6));
+				assert(r, `Cannot find module ${path}`);
+				return resolve(r);
 			} catch(err) {
 				reject(err);
 			}
@@ -97,7 +99,9 @@ function readText(path: string) {
 
 function readTextSync(path: string): string {
 	if ('ext://' == path.substr(0, 6)) {
-		return _util.__extendModuleContent(path.substr(6));
+		var r = _util.__extendModuleContent(path.substr(6));
+		assert(r, `Cannot find module ${path}`);
+		return r;
 	} else {
 		return readFileSync(path, 'utf8');
 	}
@@ -128,19 +132,25 @@ async function readJSON(filename: string) {
 	return _parseJSON(await readText(filename), filename);
 }
 
-function throw_MODULE_NOT_FOUND(request: string) {
-	var err = new Error(`Cannot find module or file '${request}'`);
+function throw_MODULE_NOT_FOUND(request: string, parent?: Module) {
+	var msg = `Cannot find module '${request}'`;
+	if (parent) {
+		msg += ` in module ${parent.filename}`;
+	}
+	var err = new Error(msg);
 	err.code = 'MODULE_NOT_FOUND';
 	throw err;
 }
 
 function readLocalPackageLinkSync(pathname: string) {
-	if (isFileSync(pathname)) {
-		var link = readTextSync(pathname);
-		link = isAbsolute(link) ? resolve(link): resolve(pathname, '..', link);
-		if (isDirectorySync(link)) {
-			if ( isFileSync(link + '/package.json') ) {
-				return link;
+	if (_path.extname(pathname) == '.link') {
+		if (isFileSync(pathname)) {
+			var link = readTextSync(pathname);
+			link = isAbsolute(link) ? resolve(link): resolve(pathname, '..', link);
+			if (isDirectorySync(link)) {
+				if ( isFileSync(link + '/package.json') ) {
+					return link;
+				}
 			}
 		}
 	}
@@ -206,7 +216,7 @@ class ModulePath {
 			} else { // has package link
 				var link = readLocalPackageLinkSync(dirent.pathname);
 				if (link) {
-					this._packagesPath.set(dirent.name, link);
+					this._packagesPath.set(dirent.name.substr(0, dirent.name.length - 5), link);
 				}
 			}
 		}
@@ -373,7 +383,7 @@ export class Module implements NguiModule {
 
 		if (haveNode) {
 			var compiledWrapper = vm.runInThisContext(wrapper, {
-				filename: filename + '#->' + resolveFilename,
+				filename: filename,// + '#->' + resolveFilename,
 				lineOffset: 0,
 				displayErrors: true
 			});
@@ -403,7 +413,7 @@ export class Module implements NguiModule {
 			}
 		} else {
 			var wrapper = Module.wrap(content);
-			var compiledWrapper = _util.runScript(wrapper, filename + '#->' + resolveFilename);
+			var compiledWrapper = _util.runScript(wrapper, filename/* + '#->' + resolveFilename*/);
 			filename = fallbackPath(filename);
 			var dirname = _path.dirname(filename);
 			var require = makeRequireFunction(this, mainModule);
@@ -427,13 +437,13 @@ export class Module implements NguiModule {
 				request.charAt(1) !== '.' &&
 				request.charAt(1) !== '/' &&
 				(!isWindows || request.charAt(1) !== '\\'))) {
-	
+
 			let paths = modulePaths;
 			if (parent != null && parent.paths && parent.paths.length) {
 				paths = parent.paths.concat(paths);
 			}
 
-			debug('looking for %j in %j', request, paths);
+			debug('Module._resolveLookupPaths-1 for %j in %j', request, paths);
 			return paths.length > 0 ? paths : null;
 		}
 
@@ -445,14 +455,14 @@ export class Module implements NguiModule {
 			// from realpath(__filename) but in REPL there is no filename
 			const mainPaths = ['.'];
 	
-			debug('looking for %j in %j', request, mainPaths);
+			debug('Module._resolveLookupPaths-2 for %j in %j', request, mainPaths);
 			return mainPaths;
 		}
 
 		debug('RELATIVE: requested: %s from parent.id %s', request, parent.id);
 
 		const parentDir = [parent.dirname];
-		debug('looking for %j', parentDir);
+		debug('Module._resolveLookupPaths-3 for %j', parentDir);
 		return parentDir;
 	}
 
@@ -538,15 +548,20 @@ export class Module implements NguiModule {
 					await _lookup.pkg.host.install();
 				Module._load(main, undefined, true);
 			}
-
-			if (haveNode)
-				// Handle any nextTicks added in the first tick of the program
-				process._tickCallback();
 		}
 
-		startup().catch(err=>{
-			throw err;
+		startup().catch((err: Error)=>{
+			if (haveNode) {
+				console.error(err.stack || err.message);
+				process.exit(-20045);
+			} else {
+				throw err;
+			}
 		});
+
+		if (haveNode)
+			// Handle any nextTicks added in the first tick of the program
+			process._tickCallback();
 	}
 
 	static _initPaths() {
@@ -689,7 +704,7 @@ function resolveFilename(request: string, parent?: Module, mpCall?: boolean): { 
 						return { filename, resolve: filename };
 					}
 				}
-				throw_MODULE_NOT_FOUND(`Cannot find module '${request}'`);
+				throw_MODULE_NOT_FOUND(request, parent);
 			}
 		} else { // no package network file
 			resolveFilename = set_url_args(filename, mpCall ? '__no_cache': '');
@@ -716,7 +731,8 @@ function getOrigin(from: string) {
 		if (!origin)
 			return '';
 	} else {
-		origin = (from.match(/^file:\/\/(\/[a-z]:\/)?/i) as RegExpMatchArray)[0];
+		var mat = from.match(/^file:\/\/(\/[a-z]:\/)?/i);
+		origin = mat ? mat[0]: '';
 	}
 
 	return origin;
@@ -764,12 +780,39 @@ function levelPaths(from: string, begin?: string): string[] {
 	return paths.map(e=>prefix+e);
 }
 
+function slicePackageName(request: string) {
+	var pkgName = request;
+	var relativePath = '';
+	var index = request.indexOf('/');
+	if (index != -1) {
+		pkgName = request.substr(0, index);
+		relativePath = request.substr(index + 1);
+	}
+	return {pkgName,relativePath};
+}
+
+function lookupFromExtend(pkgName: string, relativePath: string): LookupResult | null {
+	// extend pkg
+	var pkg = packages.get('ext://' + pkgName);
+	if (pkg) {
+		var r = { pkg, relativePath };
+		lookupCaches.set('ext://' + pkgName + (relativePath ? '/' + relativePath : ''), r);
+		return r;
+	}
+	return null;
+}
+
 function lookupFromAbsolute(request: string, lazy?: boolean): LookupResult | null {
 	request = resolve(request);
 
 	var cached = lookupCaches.get(request);
 	if (cached)
 		return cached;
+
+	if (request.substr(0, 4) == 'ext:') {
+		var {pkgName,relativePath} = slicePackageName(request.substr(6));
+		return lookupFromExtend(pkgName, relativePath);
+	}
 
 	var paths = levelPaths(request);
 	paths.pop();
@@ -789,7 +832,7 @@ function lookupFromAbsolute(request: string, lazy?: boolean): LookupResult | nul
 						pkg = new PackageIMPL(pkgPath, readJSONSync(json_path));
 					}
 				} else { // try package link
-					var link = readLocalPackageLinkSync(pkgPath);
+					var link = readLocalPackageLinkSync(pkgPath + '.link');
 					if (link) {
 						pkg = packages.get(link);
 						if (!pkg)
@@ -842,15 +885,9 @@ function lookupFromPackage(request: string, parent?: Module): LookupResult | nul
 		paths = parent.paths.concat(paths);
 	}
 
-	debug('looking pkg for %j in %j', request, paths);
+	debug('lookupFromPackage pkg for %j in %j', request, paths);
 
-	var pkgName = request;
-	var relativePath = '';
-	var index = request.indexOf('/');
-	if (index != -1) {
-		pkgName = request.substr(0, index);
-		relativePath = request.substr(index + 1);
-	}
+	var {pkgName,relativePath} = slicePackageName(request);
 
 	for (var searchPath of paths) {
 		var pkg = packages.get(searchPath + '/' + pkgName);
@@ -869,12 +906,7 @@ function lookupFromPackage(request: string, parent?: Module): LookupResult | nul
 			return { pkg, relativePath };
 	}
 
-	// extend pkg
-	var pkg = packages.get('ext://' + pkgName);
-	if (pkg)
-		return { pkg, relativePath };
-
-	return null;
+	return lookupFromExtend(pkgName, relativePath);
 }
 
 function lookup(request: string, parent?: Module, lazy?: boolean): LookupResult | null {

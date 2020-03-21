@@ -87,10 +87,10 @@ ios:
 
 # build all android platform and output to product dir
 android:
-	@$(MAKE) $(ANDROID_JAR)
 	@./configure --os=android --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=arm   --library=shared && $(MAKE) build
 	@./configure --os=android --arch=arm64 --library=shared && $(MAKE) build
+	@$(MAKE) $(ANDROID_JAR)
 
 linux:
 	@./configure --os=linux   --arch=x64   --library=shared && $(MAKE) build

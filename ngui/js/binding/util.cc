@@ -268,7 +268,8 @@ class NativeUtil {
 		String path = args[0]->ToStringValue(worker);
 		for (int i = 0; i < EXT_native_js_count_; i++) {
 			const EXT_NativeJSCode* code = EXT_native_js_ + i;
-			if (path == code->name) {
+			String name(code->name);
+			if (path == name || path == name + code->ext) {
 				JS_RETURN( worker->New(code->code, code->count) );
 			}
 		}

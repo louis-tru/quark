@@ -388,10 +388,13 @@ FontPool::FontPool(Draw* ctx)
 		for (uint i = 0 ; i < count; i++) {
 			WeakBuffer data((cchar*)native_fonts_[i].data, native_fonts_[i].count);
 			auto font_data = new FontFromData::Data(data);
+			// LOG("register_font,%d", i);
 			_inl_pool(this)->register_font(font_data, i == 1 ? "icon" : String());
+			// LOG("register_font ok,%d", i);
 		}
-		
+
 		if ( m_familys.has("langou") ) {
+			// LOG("m_familys.has langou ok");
 			// 这个内置字体必须载入成功,否则退出程序
 			// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
 			m_spare_family = m_familys["langou"];
@@ -601,6 +604,7 @@ FontGlyphTable* FontPool::get_table(TextStyleEnum style) {
  * @arg [family_alias = String()] {cString&} # 给所属家族添加一个别名
  */
 bool FontPool::register_font(Buffer buff, cString& family_alias) {
+	DLOG("register_font,%d", buff.length());
 	return _inl_pool(this)->register_font(new FontFromData::Data(buff), family_alias);
 }
 

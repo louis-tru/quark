@@ -554,7 +554,7 @@ class LinuxApplication {
 	}
 
 	void resolved_queue() {
-		List<Callback> queue;
+		List<Cb> queue;
 		{
 			ScopeLock lock(m_queue_mutex);
 			if (m_queue.length()) {
@@ -563,7 +563,7 @@ class LinuxApplication {
 		}
 		if (queue.length()) {
 			for (auto& i: queue) {
-				SimpleEvent data = { 0, m_host, 0 };
+				CbD data = { 0, m_host, 0 };
 				i.value()->call(data);
 			}
 		}
@@ -616,7 +616,7 @@ class LinuxApplication {
 	RunLoop* m_main_loop;
 	String m_title;
 	LINUXIMEHelper* m_ime;
-	List<Callback> m_queue;
+	List<Cb> m_queue;
 	Mutex m_queue_mutex;
 	snd_mixer_t* m_mixer;
 	XDevice* m_multitouch_device;
@@ -791,7 +791,7 @@ void DisplayPort::set_status_bar_style(StatusBarStyle style) {
  * @func request_fullscreen(fullscreen)
  */
 void DisplayPort::request_fullscreen(bool fullscreen) {
-	__dispatch_x11_async(Cb([fullscreen](Cb& e) {
+	__dispatch_x11_async(Cb([fullscreen](CbD& e) {
 		application->request_fullscreen(fullscreen);
 	}));
 }

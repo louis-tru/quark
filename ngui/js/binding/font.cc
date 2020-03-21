@@ -146,13 +146,13 @@ class WrapFontStatic {
 			);
 		}
 
-    auto buf = args[0]->AsBuffer(worker);
+		auto buf = args[0]->AsBuffer(worker);
 		String alias;
 		
 		if ( args.Length() > 1 ) {
 			alias = args[1]->ToStringValue(worker);
 		}
-		JS_RETURN( font_pool()->register_font(buf, alias) );
+		JS_RETURN( font_pool()->register_font(buf.copy(), alias) );
 	}
 	
 	/**

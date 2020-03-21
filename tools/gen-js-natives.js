@@ -41,9 +41,9 @@ var Buffer = require('buffer').Buffer;
 var check_file_is_change = require('./check').check_file_is_change;
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 
+// console.log(inputs);
 /*
 console.log(process.argv);
-console.log(inputs);
 console.log(suffix);
 console.log(output_h);
 console.log(output_cc);

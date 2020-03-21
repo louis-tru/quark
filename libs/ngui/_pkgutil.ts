@@ -112,7 +112,8 @@ const posix = {
 	delimiter: ':',
 };
 
-const utils = _util.platform == 'win32' ? win32: posix;
+const isWin32 = _util.platform == 'win32';
+const utils = isWin32 ? win32: posix;
 
 /** 
  * format part 
@@ -152,7 +153,7 @@ function resolve(...args: string[]) {
 
 	if (mat) {
 		if (mat[2]) { // local absolute path /
-			if (win32 && mat[2] != '/') { // windows d:\
+			if (isWin32 && mat[2] != '/') { // windows d:\
 				prefix = PREFIX + mat[2] + '/';
 				path = path.substr(2);
 			} else {
@@ -172,7 +173,7 @@ function resolve(...args: string[]) {
 		}
 	} else { // Relative path, no network protocol
 		var cwd = _cwd();
-		if (win32) {
+		if (isWin32) {
 			prefix += cwd.substr(0,10) + '/'; // 'file:///d:/';
 			path = cwd.substr(11) + '/' + path;
 		} else {

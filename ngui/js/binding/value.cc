@@ -46,7 +46,7 @@ JS_BEGIN
 ValueProgram::ValueProgram(Worker* worker,
 												 Local<JSObject> exports,
 												 Local<JSObject> priv): worker(worker) {
-#define Ascii(s) worker->New(s,1)
+#define Ascii(s) worker->NewAscii(s)
 
 #define js_init_func(Name, Type) \
 	NX_DEBUG("init value %s", #Name);\
@@ -823,7 +823,7 @@ class NativeValue {
 		binding_background(exports, worker);
 		
 		Local<JSObject> _prve = worker->NewObject();
-		exports->Set(worker, worker->New("_priv", 1), _prve);
+		exports->Set(worker, worker->NewAscii("_priv"), _prve);
 		
 		{
 			TryCatch try_catch;

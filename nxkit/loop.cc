@@ -196,7 +196,7 @@ NX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 	}
 
-	static void safeExit(int rc, bool forceExit = 0) {
+	static void safeExit(int rc, bool forceExit = false) {
 		static int is_exited = 0;
 		if (!is_exited++ && !is_process_exit) {
 
@@ -212,7 +212,7 @@ NX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			Release(keep); keep = nullptr;
 
 			// if (main_loop_obj && current_id() == main_loop_id && main_loop_obj->runing()) {
-			// 	main_loop_obj->post(Cb([rc, forceExit](Se& e) {
+			// 	main_loop_obj->post(Cb([rc, forceExit](CbD& e) {
 			// 		_exit(rc, forceExit);
 			// 	}));
 			// 	// std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -331,7 +331,7 @@ NX_EXPORT void safeExit(int rc) {
 }
 
 void exit(int rc) {
-	Thread::Inl::safeExit(rc, 1);
+	Thread::Inl::safeExit(rc, true);
 }
 
 bool is_exited() {

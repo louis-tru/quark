@@ -84,9 +84,9 @@ class NX_EXPORT IOStreamData: public Object {
 	SimpleStream* m_stream;
 };
 
-template<class T = Object>
+template<class T = Object, class E = Error>
 struct NX_EXPORT CallbackData {
-	cError* error;
+	const E* error;
 	T* data;
 	int return_value;
 };
