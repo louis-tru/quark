@@ -4,11 +4,11 @@ set -e
 
 # install depes
 
-if [ "$USER"!="root" ]; then
+if [ "$USER" != "root" ]; then
 	SUDO="sudo"
 fi
 
-if [ "`which tsc`"=="" ]; then
+if [ "`which tsc`" = "" ]; then
 	$SUDO npm install typescript -g;
 fi
 
