@@ -28,11 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/util.h"
+#ifndef __ngui__trial__jsx__
+#define __ngui__trial__jsx__
+
+#include "nxkit/error.h"
 
 NX_NS(ngui)
 
-Ucs2String javascript_transform_x(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
-Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
+NX_EXPORT Ucs2String javascript_transform_x(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
+NX_EXPORT Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
 
 NX_END
+#endif

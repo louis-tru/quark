@@ -36,6 +36,10 @@
 
 NX_NS(ngui)
 
+#ifdef CHECK
+# undef CHECK
+#endif
+
 #define UNEXPECTED_TOKEN_ERROR() error()
 
 #define CHECK_NEXT(tok, ...) if (next() != tok) error(__VA_ARGS__)
@@ -44,7 +48,7 @@ NX_NS(ngui)
 
 #define CHECK_PEEK(tok, ...) if (_scanner->peek() != tok) error(__VA_ARGS__)
 
-#define CHECK(con, ...) if(!con) error(__VA_ARGS__)
+#define CHECK(con, ...) if(!(con)) error(__VA_ARGS__)
 
 #define DEF_STATIC_STR_LIST(F) \
 	F(SPACE, ' ') \
