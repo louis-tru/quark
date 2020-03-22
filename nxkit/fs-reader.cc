@@ -37,7 +37,7 @@
 
 NX_NS(ngui)
 
-String __format_part_path(cString& path);
+String inl_format_part_path(cString& path);
 
 typedef HttpHelper::ResponseData ResponseData;
 
@@ -129,7 +129,7 @@ class FileReader::Core {
 		ScopeLock lock(zip_mutex_);
 		try {
 			ZipReader* read = get_zip_reader(zip);
-			String inl_path = __format_part_path(path.substr(zip.length() + 1));
+			String inl_path = inl_format_part_path(path.substr(zip.length() + 1));
 			if ( read->jump(inl_path) ) {
 				buffer = read->read();
 			} else {
@@ -222,7 +222,7 @@ class FileReader::Core {
 				ScopeLock lock(zip_mutex_);
 				
 				ZipReader* read = get_zip_reader(zip);
-				String inl_path = __format_part_path( path.substr(zip.length() + 1) );
+				String inl_path = inl_format_part_path( path.substr(zip.length() + 1) );
 				
 				if ( read->jump(inl_path) ) {
 					rv = read->read();
@@ -261,7 +261,7 @@ class FileReader::Core {
 					NX_IGNORE_ERR({
 						ScopeLock lock(zip_mutex_);
 						ZipReader* read = get_zip_reader(zip);
-						String inl_path = __format_part_path( path.substr(zip.length() + 1) );
+						String inl_path = inl_format_part_path( path.substr(zip.length() + 1) );
 						if ( file && read->is_file( inl_path ) )
 							return true;
 						if ( dir && read->is_directory( inl_path ) )
@@ -286,7 +286,7 @@ class FileReader::Core {
 					NX_IGNORE_ERR({
 						ScopeLock lock(zip_mutex_);
 						ZipReader* read = get_zip_reader(zip);
-						String inl_path = __format_part_path( path.substr(zip.length() + 1) );
+						String inl_path = inl_format_part_path( path.substr(zip.length() + 1) );
 						rv = read->readdir(inl_path);
 					});
 				}
@@ -310,7 +310,7 @@ class FileReader::Core {
 		if (index == -1) {
 			return path;
 		}
-		String s = __format_part_path(path.substr(index));
+		String s = inl_format_part_path(path.substr(index));
 		if (s.is_empty()) {
 			return path.substr(0, index);
 		} else {
