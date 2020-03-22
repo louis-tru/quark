@@ -112,7 +112,7 @@ void Map<Key, Value, Compare>::NodeList::realloc(uint capacity) {
 		
 		::free(this->m_value);
 	} else {
-		NX_ASSERT(!this->m_capacity);
+		ASSERT(!this->m_capacity);
 	}
 	
 	this->m_capacity = capacity;
@@ -135,25 +135,25 @@ Map<Key, Value, Compare>::IteratorData::IteratorData(Map* host, Item* item) : _h
 
 template<class Key, class Value, class Compare>
 const Key& Map<Key, Value, Compare>::IteratorData::key() const {
-	NX_ASSERT(_item);
+	ASSERT(_item);
 	return _item->key;
 }
 
 template<class Key, class Value, class Compare>
 Key& Map<Key, Value, Compare>::IteratorData::key() {
-	NX_ASSERT(_item);
+	ASSERT(_item);
 	return _item->key;
 }
 
 template<class Key, class Value, class Compare>
 const Value& Map<Key, Value, Compare>::IteratorData::value() const {
-	NX_ASSERT(_item);
+	ASSERT(_item);
 	return _item->value;
 }
 
 template<class Key, class Value, class Compare>
 Value& Map<Key, Value, Compare>::IteratorData::value() {
-	NX_ASSERT(_item);
+	ASSERT(_item);
 	return _item->value;
 }
 
@@ -500,7 +500,7 @@ template<class Key, class Value, class Compare>
 void Map<Key, Value, Compare>::del2(Item* item) {
 	Node* buk = *m_nodes + (item->hash % m_nodes.capacity());
 	
-	NX_ASSERT(!item->mark); // 有标记的不能删除
+	ASSERT(!item->mark); // 有标记的不能删除
 	
 	if (item->prev || item->next) {
 		Item* prev = item->prev;
@@ -584,7 +584,7 @@ void Map<Key, Value, Compare>::mark(IteratorConst it) {
 	const IteratorData& data = it.data();
 	Item* item = data._item;
 	if (item && !item->mark) {
-		NX_ASSERT(data._host == this);
+		ASSERT(data._host == this);
 		item->mark = true;
 		m_marks.push(item);
 	}

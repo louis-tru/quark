@@ -122,7 +122,7 @@ static void _TEST_init_AMediaExtractor(cString& path, uint select_track) {
 		::close(fd);
 	}
 	int err = AMediaExtractor_selectTrack(_TEST_ex, select_track);
-	NX_ASSERT(err == 0);
+	ASSERT(err == 0);
 }
 
 static void _TEST_get_sample_data(byte* out, uint size, uint& sample_size) {

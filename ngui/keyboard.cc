@@ -37,7 +37,7 @@ NX_NS(ngui)
  * @constructor 
  */
 KeyboardAdapter::KeyboardAdapter(): app_(app()) {
-	NX_CHECK(app_);
+	ASSERT(app_);
 	
 	keyname_ = KEYCODE_UNKNOWN;
 	keypress_ = 0;

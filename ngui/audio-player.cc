@@ -238,9 +238,9 @@ NX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 	void start_run() {
 		Lock lock(m_mutex);
 		
-		NX_ASSERT( m_source && m_audio && m_pcm );
-		NX_ASSERT( m_source->is_active() );
-		NX_ASSERT( m_status == PLAYER_STATUS_START );
+		ASSERT( m_source && m_audio && m_pcm );
+		ASSERT( m_source->is_active() );
+		ASSERT( m_status == PLAYER_STATUS_START );
 		
 		m_waiting_buffer = false;
 		
@@ -266,7 +266,7 @@ NX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 };
 
 void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
-	NX_ASSERT(m_source == src);
+	ASSERT(m_source == src);
 	
 	if (m_audio) {
 		Inl_AudioPlayer(this)->trigger(GUI_EVENT_READY); // trigger event ready
@@ -381,7 +381,7 @@ void AudioPlayer::set_src(cString& value) {
 		Inl_AudioPlayer(this)->stop_and_release(lock, true);
 	}
 	auto loop = main_loop();
-	NX_CHECK(loop, "Cannot find main run loop");
+	ASSERT(loop, "Cannot find main run loop");
 	m_source = new MultimediaSource(src, loop);
 	m_keep = loop->keep_alive("AudioPlayer::set_src");
 	m_source->set_delegate(this);
@@ -451,7 +451,7 @@ PlayerStatus AudioPlayer::status() {
 bool AudioPlayer::seek(uint64 timeUs) {
 	ScopeLock scope(m_mutex);
 	if ( Inl_AudioPlayer(this)->is_active() && timeUs < m_duration ) {
-		NX_ASSERT(m_source);
+		ASSERT(m_source);
 		if ( m_source->seek(timeUs) ) {
 			m_uninterrupted_play_start_systime = 0;
 			m_time = timeUs;

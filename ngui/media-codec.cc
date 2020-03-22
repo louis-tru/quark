@@ -176,7 +176,7 @@ MediaCodec::MediaCodec(Extractor* extractor)
  * @func set_delegate
  */
 void MediaCodec::set_delegate(Delegate* delegate) {
-	NX_ASSERT(delegate);
+	ASSERT(delegate);
 	m_delegate = delegate;
 }
 

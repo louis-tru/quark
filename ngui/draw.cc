@@ -45,7 +45,7 @@ class TextureEmpty: public Texture {
  public:
 	virtual void load() {
 		if (m_status == TEXTURE_NO_LOADED) {
-			NX_CHECK(load_data(empty_pixel_data), "Load temp texture error");
+			ASSERT(load_data(empty_pixel_data), "Load temp texture error");
 		}
 	}
 };
@@ -66,7 +66,7 @@ Draw::Draw(GUIApplication* host, cJSON& options)
 , m_best_display_scale(1)
 , m_library(DRAW_LIBRARY_INVALID)
 {
-	NX_CHECK(!m_draw_ctx, "At the same time can only run a GLDraw entity");
+	ASSERT(!m_draw_ctx, "At the same time can only run a GLDraw entity");
 	m_draw_ctx = this;
 	
 	cJSON& msample = options["multisample"];

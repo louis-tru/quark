@@ -196,7 +196,7 @@ class BasicString<Char, Container>::StringCore {
 	}
 
 	void release() {
-		NX_ASSERT(m_ref > 0);
+		ASSERT(m_ref > 0);
 		if ( --m_ref == 0 ) {
 			delete this; // 只有当引用记数变成0才会释放
 		}

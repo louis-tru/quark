@@ -141,7 +141,7 @@ int           __xx_ngui_have_debug = 0;
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& ngui_argv) {
 	static String argv_str;
 
-	NX_CHECK(argv_in.length(), "Bad start argument");
+	ASSERT(argv_in.length(), "Bad start argument");
 	__xx_ngui_have_node = 1;
 	__xx_ngui_have_debug = 0;
 	argv_str = argv_in[0];
@@ -211,7 +211,7 @@ int Start(const Array<String>& argv_in) {
 		};
 		ngui::set_object_allocator(&allocator);
 	}
-	NX_CHECK(!__xx_ngui_argv);
+	ASSERT(!__xx_ngui_argv);
 
 	Array<char*> argv, ngui_argv;
 	parseArgv(argv_in, argv, ngui_argv);
@@ -224,7 +224,7 @@ int Start(const Array<String>& argv_in) {
 	char** argv_c = const_cast<char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
-	NX_CHECK(RunLoop::main_loop() == RunLoop::current());
+	ASSERT(RunLoop::main_loop() == RunLoop::current());
 
 	if (__xx_ngui_have_node ) {
 		if (node::ngui_node_api) {

@@ -348,7 +348,7 @@ View::View()
  */
 View::~View() {
 
-	NX_ASSERT(m_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+	ASSERT(m_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 	
 	blur();
 	

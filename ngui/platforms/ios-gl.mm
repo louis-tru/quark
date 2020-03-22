@@ -79,7 +79,7 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 }
 
 GLDrawProxy::GLDrawProxy(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
-	NX_CHECK([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
+	ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 	ctx.multiThreaded = NO;
 }
 
@@ -161,11 +161,11 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 }
 
 //void GLDrawProxy::set_current_context() {
-//  NX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
+//  ASSERT([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 //}
 
 void GLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
-	NX_CHECK([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
+	ASSERT([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
 	m_surface_view = view;
 	m_layer = layer;
 	m_host->set_best_display_scale(UIScreen.mainScreen.scale);

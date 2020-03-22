@@ -189,8 +189,8 @@ bool JSON::operator==(cString& str) const {
 JSON& JSON::operator[](cJSON& key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
 	CRValue& n = *reinterpret_cast<CRValue*>(&key);
-	NX_ASSERT(self->IsObject());
-	NX_ASSERT(n.IsString());
+	ASSERT(self->IsObject());
+	ASSERT(n.IsString());
 	RValue::MemberIterator member = self->FindMember(n);
 	RValue* value = NULL;
 	
@@ -210,8 +210,8 @@ JSON& JSON::operator[](cJSON& key) {
 const JSON& JSON::operator[](cJSON& key) const {
 	CRValue* self = reinterpret_cast<CRValue*>(this);
 	CRValue& n = *reinterpret_cast<CRValue*>(&key);
-	NX_ASSERT(self->IsObject());
-	NX_ASSERT(n.IsString());
+	ASSERT(self->IsObject());
+	ASSERT(n.IsString());
 	RValue::ConstMemberIterator member = self->FindMember(n);
 	
 	if (member != self->MemberEnd()){
@@ -221,9 +221,9 @@ const JSON& JSON::operator[](cJSON& key) const {
 }
 
 JSON& JSON::operator[](int index) {
-	NX_ASSERT(is_array());
+	ASSERT(is_array());
 	RValue* self = reinterpret_cast<RValue*>(this);
-	NX_ASSERT(self->IsArray());
+	ASSERT(self->IsArray());
 	RValue* value = NULL;
 	
 	int size = self->Size();
@@ -243,7 +243,7 @@ JSON& JSON::operator[](int index) {
 
 JSON& JSON::operator[] (cchar* key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
-	NX_ASSERT(self->IsObject());
+	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
 	RValue::MemberIterator member = self->FindMember(n);
 	RValue* value = NULL;
@@ -267,7 +267,7 @@ JSON& JSON::operator[] (cString& key) {
 
 const JSON& JSON::operator[](int index) const {
 	CRValue* self = reinterpret_cast<CRValue*>(this);
-	NX_ASSERT(self->IsArray());
+	ASSERT(self->IsArray());
 	
 	int size = self->Size();
 	if(index < size){
@@ -278,7 +278,7 @@ const JSON& JSON::operator[](int index) const {
 
 const JSON& JSON::operator[](cchar* key) const {
 	CRValue* self = reinterpret_cast<CRValue*>(this);
-	NX_ASSERT(self->IsObject());
+	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
 	RValue::ConstMemberIterator member = self->FindMember(n);
 	
@@ -339,7 +339,7 @@ void JSON::pop() {
 
 void JSON::remove(cchar* key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
-	NX_ASSERT(self->IsObject());
+	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
 	RValue::MemberIterator member = self->FindMember(n);
 	
@@ -407,10 +407,10 @@ JSON::ArrayIteratorConst JSON::end_array() const {
 static JSON parse_for(cchar* json, int64 len = 0xFFFFFFFFFFFFFFF) throw(Error) {
 	RDocument doc(&shareMemoryPoolAllocator);
 	doc.Parse(json, len);
-	NX_ASSERT_ERR(!doc.HasParseError(),
-								"json parse error, offset: %lu, code: %d\n%s, %p, %ld",
-								doc.GetErrorOffset(),
-								doc.GetParseError(), json, json, len);
+	NX_CHECK(!doc.HasParseError(),
+						"json parse error, offset: %lu, code: %d\n%s, %p, %ld",
+						doc.GetErrorOffset(),
+						doc.GetParseError(), json, json, len);
 	return *reinterpret_cast<JSON*>(&doc);
 }
 
@@ -441,7 +441,7 @@ JSON& JSON::ext(JSON& o, JSON& extd) {
 		}
 	}
 	else {
-		//  NX_ASSERT_ERR(0, "This method is only applicable to \"Object\" type of JOSN");
+		//  ASSERT(0, "This method is only applicable to \"Object\" type of JOSN");
 		NX_WARN("%s", "This method is only applicable to \"Object\" type of JOSN");
 	}
 	return o;

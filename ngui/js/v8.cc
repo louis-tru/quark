@@ -260,7 +260,7 @@ class WorkerIMPL: public IMPL {
 			rv = func->Call(CONTEXT(m_host), v8::Undefined(ISOLATE(this)), 3, args);
 			if (!rv.IsEmpty()) {
 				Local<JSValue> rv = module->Get(m_host, m_host->strs()->exports());
-				NX_ASSERT(rv->IsObject(m_host));
+				ASSERT(rv->IsObject(m_host));
 				return rv;
 			}
 		}
@@ -455,14 +455,14 @@ void* WeakCallbackInfo::GetParameter() const {
 }
 
 bool IMPL::IsWeak(PersistentBase<JSObject>& handle) {
-	NX_ASSERT( !handle.IsEmpty() );
+	ASSERT( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	return h->IsWeak();
 }
 
 void IMPL::SetWeak(PersistentBase<JSObject>& handle,
 												WrapObject* ptr, WeakCallbackInfo::Callback callback) {
-	NX_ASSERT( !handle.IsEmpty() );
+	ASSERT( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	h->MarkIndependent();
 	h->SetWeak(ptr, reinterpret_cast<v8::WeakCallbackInfo<WrapObject>::Callback>(callback),
@@ -470,7 +470,7 @@ void IMPL::SetWeak(PersistentBase<JSObject>& handle,
 }
 
 void IMPL::ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr) {
-	NX_ASSERT( !handle.IsEmpty() );
+	ASSERT( !handle.IsEmpty() );
 	auto h = reinterpret_cast<v8::PersistentBase<v8::Value>*>(&handle);
 	h->ClearWeak();
 }
@@ -482,14 +482,14 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 		bool ok;
 		// function.__proto__ = base
 		// ok = f->SetPrototype(v8cls->ParentFromFunction());
-		// NX_ASSERT(ok);
+		// ASSERT(ok);
 		// function.prototype.__proto__ = base.prototype
 		auto b = v8cls->ParentFromFunction();
 		auto s = Back(m_host->strs()->prototype());
 		auto p = f->Get(CONTEXT(m_host), s).ToLocalChecked().As<v8::Object>();
 		auto p2 = b->Get(CONTEXT(m_host), s).ToLocalChecked().As<v8::Object>();
 		ok = p->SetPrototype(p2);
-		NX_ASSERT(ok);
+		ASSERT(ok);
 	}
 	return Cast<JSFunction>(f);
 }
@@ -1077,7 +1077,7 @@ template <> void PersistentBase<JSValue>::Reset() {
 
 template <> template <>
 void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other) {
-	NX_ASSERT(worker);
+	ASSERT(worker);
 	reinterpret_cast<v8::PersistentBase<v8::Value>*>(this)->
 		Reset(ISOLATE(worker), *reinterpret_cast<const v8::Local<v8::Value>*>(&other));
 	worker_ = worker;
@@ -1085,7 +1085,7 @@ void PersistentBase<JSValue>::Reset(Worker* worker, const Local<JSValue>& other)
 
 template<> template<>
 void PersistentBase<JSValue>::Copy(const PersistentBase<JSValue>& that) {
-	NX_ASSERT(that.worker_);
+	ASSERT(that.worker_);
 	typedef v8::CopyablePersistentTraits<v8::Value>::CopyablePersistent Handle;
 	reinterpret_cast<Handle*>(this)->operator=(*reinterpret_cast<const Handle*>(&that));
 	worker_ = that.worker_;
@@ -1401,7 +1401,7 @@ int IMPL::start(int argc, char** argv) {
 		{
 			HandleScope scope(*worker);
 			auto _pkg = worker->bindingModule("_pkg");
-			NX_CHECK(!_pkg.IsEmpty(), "Can't start worker");
+			ASSERT(!_pkg.IsEmpty(), "Can't start worker");
 			Local<JSValue> r = _pkg.To()->
 				GetProperty(*worker, "Module").To()->
 				GetProperty(*worker, "runMain").To<JSFunction>()->Call(*worker);

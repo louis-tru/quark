@@ -212,11 +212,11 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
 					m_buffer[i] = buffer.realloc(BUFFER_SIZE);
 				}
 			}
-			NX_ASSERT(buffer.length() == 0);
+			ASSERT(buffer.length() == 0);
 		}
 		
 		void read_next() {
-			NX_ASSERT(!m_read_end);
+			ASSERT(!m_read_end);
 			Buffer buff = alloc_buffer();
 			if ( buff.length() ) {
 				m_reading_count++;
@@ -242,9 +242,9 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
 		}
 		
 		void copy_complete() {
-			NX_ASSERT(m_reading_count == 0);
-			NX_ASSERT(m_writeing_count == 0);
-			NX_ASSERT(m_read_end);
+			ASSERT(m_reading_count == 0);
+			ASSERT(m_writeing_count == 0);
+			ASSERT(m_read_end);
 			if ( !is_abort() ) { // copy complete
 				//NX_DEBUG("-----copy_complete------");
 				Handle<Task> handle(this);
@@ -254,16 +254,16 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
 		}
 		
 		virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
-			NX_ASSERT( file == m_source_file );
-			NX_ASSERT( m_reading_count > 0 );
+			ASSERT( file == m_source_file );
+			ASSERT( m_reading_count > 0 );
 			m_reading_count--;
 			if ( buffer.length() ) {
 				m_writeing_count++;
 				m_target_file->write(buffer, buffer.length());
 				read_next();
 			} else {
-				NX_ASSERT(m_reading_count == 0);
-				NX_ASSERT(!m_read_end);
+				ASSERT(m_reading_count == 0);
+				ASSERT(!m_read_end);
 				m_read_end = true;
 				if ( m_writeing_count == 0 ) {
 					copy_complete();
@@ -272,8 +272,8 @@ static AsyncIOTask* cp2(cString& source, cString& target, cCb& cb, RunLoop* loop
 		}
 		
 		virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) {
-			NX_ASSERT( file == m_target_file );
-			NX_ASSERT( m_writeing_count > 0 );
+			ASSERT( file == m_target_file );
+			ASSERT( m_writeing_count > 0 );
 			m_writeing_count--;
 			release_buffer(buffer);
 			if ( m_read_end ) {
@@ -788,7 +788,7 @@ uint FileHelper::read_stream(cString& path, cCb& cb) {
 			Task* ctx = req->ctx();
 			
 			ctx->m_read_count--;
-			NX_ASSERT(ctx->m_read_count == 0);
+			ASSERT(ctx->m_read_count == 0);
 			
 			if ( uv_req->result < 0 ) { // error
 				ctx->abort();

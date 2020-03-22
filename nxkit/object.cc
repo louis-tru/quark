@@ -94,7 +94,7 @@ Object::~Object() {
 	if ( mark_index_ > -1 ) {
 		ScopeLock scope(mark_objects_mutex);
 		mark_objects_[mark_index_] = nullptr;
-		NX_ASSERT(active_mark_objects_count_);
+		ASSERT(active_mark_objects_count_);
 		active_mark_objects_count_--;
 	}
 }
@@ -113,7 +113,7 @@ std::vector<Object*> Object::mark_objects() {
 		}
 	}
 	
-	NX_ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
+	ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
 	
 	mark_objects_ = move(new_mark_objects);
 	return rv;
@@ -191,11 +191,11 @@ void Release(Object* obj) {
 }
 
 Reference::~Reference() {
-	NX_ASSERT( m_ref_count <= 0 );
+	ASSERT( m_ref_count <= 0 );
 }
 
 bool Reference::retain() {
-	NX_ASSERT(m_ref_count >= 0);
+	ASSERT(m_ref_count >= 0);
 	if ( m_ref_count++ == 0 ) {
 		object_allocator.retain(this);
 	}
@@ -203,7 +203,7 @@ bool Reference::retain() {
 }
 
 void Reference::release() {
-	NX_ASSERT(m_ref_count >= 0);
+	ASSERT(m_ref_count >= 0);
 	if ( --m_ref_count <= 0 ) { // 当引用记数小宇等于0释放
 		object_allocator.release(this);
 	}

@@ -129,7 +129,7 @@ public:
 				while (begin != view) {
 					
 					Layout* layout = static_cast<Layout*>(view);
-					Layout* parent = layout->m_parent_layout; NX_ASSERT( parent );
+					Layout* parent = layout->m_parent_layout; ASSERT( parent );
 					
 					if ( parent->as_div() ) { // in div
 						bool horizontal =
@@ -137,7 +137,7 @@ public:
 							 static_cast<Div*>(parent)->content_align() == ContentAlign::RIGHT);
 						layout->set_layout_three_times(horizontal, false);
 					} else {
-						NX_ASSERT( parent->as_hybrid() );
+						ASSERT( parent->as_hybrid() );
 						layout->set_layout_three_times(true, true);
 					}
 					
@@ -187,7 +187,7 @@ class BeginView: public View { };
  * @constructor
  */
 PreRender::PreRender() {
-	NX_ASSERT(!m_pre_render); // "At the same time can only run a MarkManager entity"
+	ASSERT(!m_pre_render); // "At the same time can only run a MarkManager entity"
 	m_pre_render = this;
 	BeginView* begin = new BeginView();
 	m_marks.push(begin);

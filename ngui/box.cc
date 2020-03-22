@@ -525,7 +525,7 @@ public:
 	
 	inline Box* set_offset_horizontal_(Box* prev, Vec2& squeeze,
 																		 float limit_width, Div* div, bool layout_three) {
-		NX_ASSERT(div);
+		ASSERT(div);
 		
 		m_parent_layout = div;
 		
@@ -597,7 +597,7 @@ public:
 	
 	inline Box* set_offset_vertical_(Box* prev, Vec2& squeeze,
 																	 float limit_height, Div* div, bool layout_three) {
-		NX_ASSERT(div);
+		ASSERT(div);
 		
 		m_parent_layout = div;
 		

@@ -151,7 +151,7 @@ class NX_EXPORT DisplayPort: public Reference {
 	 * @func pop_draw_region
 	 */
 	inline void pop_draw_region() {
-		NX_ASSERT( m_draw_region.length() > 1 );
+		ASSERT( m_draw_region.length() > 1 );
 		m_draw_region.pop();
 	}
 	

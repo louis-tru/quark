@@ -54,7 +54,7 @@ static String system_second_font_family_name;
  * @func find_font_family_by_path(path)
  */
 static String find_font_family_by_path(cString& path) {
-	NX_ASSERT(system_font_family_list);
+	ASSERT(system_font_family_list);
 	for ( auto& i : *system_font_family_list ) {
 		if (i.value().path == path) {
 			return i.value().family;
@@ -67,7 +67,7 @@ static String find_font_family_by_path(cString& path) {
  * @func parse_system_font_family_name()
  */
 static void parse_system_font_family_name() {
-	NX_ASSERT(system_font_family_list);
+	ASSERT(system_font_family_list);
 
 	XMLDocument* config = nullptr;
 

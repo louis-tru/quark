@@ -60,9 +60,9 @@ static EGLDisplay egl_display() {
 			display = eglGetDisplay(__get_x11_display());
 #endif
 		NX_DEBUG("eglGetDisplay, %p", display);
-		NX_ASSERT(display != EGL_NO_DISPLAY);
+		ASSERT(display != EGL_NO_DISPLAY);
 		EGLBoolean displayState = eglInitialize(display, nullptr, nullptr);
-		NX_CHECK(displayState, "Cannot initialize EGL");
+		ASSERT(displayState, "Cannot initialize EGL");
 	}
 	return display;
 }
@@ -98,7 +98,7 @@ static EGLConfig egl_config(
 
 	// first we get size of all configurations
 	chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
-	NX_ASSERT(chooseConfigState);
+	ASSERT(chooseConfigState);
 
 	if ( numConfigs == 0 ) {
 		// attempt disable multi sample
@@ -106,7 +106,7 @@ static EGLConfig egl_config(
 		attribs[19] = 0;
 		multisample = 0;
 		chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
-		NX_ASSERT(chooseConfigState);
+		ASSERT(chooseConfigState);
 		
 		if (numConfigs == 0) {
 			NX_FATAL("We can't have EGLConfig array with zero size!");
@@ -121,7 +121,7 @@ static EGLConfig egl_config(
 	// and load them
 	chooseConfigState = eglChooseConfig(display, attribs, 
 																			*supportedConfigs, numConfigs, &numConfigs);
-	NX_ASSERT(chooseConfigState);
+	ASSERT(chooseConfigState);
 
 	if ( numConfigs == 0 ) {
 		NX_FATAL("Value of `numConfigs` must be positive");
@@ -223,7 +223,7 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 	} else {
 		ctx_attrs[1] = 2; // opengl es 2
 		ctx = eglCreateContext(display, config, nullptr, ctx_attrs);
-		NX_ASSERT(ctx);
+		ASSERT(ctx);
 
 		rv = (new MyGLDraw<GLDraw>(host, display, config, ctx,
 															 multisample_ok,
@@ -327,8 +327,8 @@ static Vec2 get_window_size(EGLNativeWindowType win) {
 }
 
 bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-	NX_ASSERT(!m_window);
-	NX_ASSERT(!m_surface);
+	ASSERT(!m_window);
+	ASSERT(!m_surface);
 	EGLSurface surface = eglCreateWindowSurface(m_display, m_config, window, nullptr);
 
 	if ( !surface ) {
@@ -347,7 +347,7 @@ bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
 
 	// m_host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
 	// 	ok = eglMakeCurrent(m_display, surface, surface, m_context);
-	// 	NX_CHECK(ok);
+	// 	ASSERT(ok);
 	// }));
 	// CHECK(ok);
 	
@@ -362,7 +362,7 @@ bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
 
 void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
 	if ( m_window ) {
-		NX_ASSERT(window == m_window);
+		ASSERT(window == m_window);
 		if (m_surface) {
 			eglDestroySurface(m_display, m_surface);
 		}

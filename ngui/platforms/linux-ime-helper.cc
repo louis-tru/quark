@@ -352,7 +352,7 @@ class LINUXIMEHelper::Inl {
 	// for XIM interaction
 	void openIM()
 	{
-		NX_CHECK(!m_im);
+		ASSERT(!m_im);
 
 		m_im = XOpenIM(m_display, NULL, NULL, NULL);
 		if (m_im  == NULL) {
@@ -407,7 +407,7 @@ class LINUXIMEHelper::Inl {
 		if (m_im == NULL)
 			return;
 		
-		NX_CHECK(!m_ic);
+		ASSERT(!m_ic);
 
 		if ((m_input_style & XIMPreeditPosition) && m_fontset) {
 			XRectangle area = { 0,0,1,1 };

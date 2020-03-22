@@ -287,7 +287,7 @@ class NX_EXPORT FontGlyph {
 	 * @func has_tex_level
 	 */
 	inline bool has_texure_level(TexureLevel level) {
-		NX_ASSERT(level < LEVEL_NONE);
+		ASSERT(level < LEVEL_NONE);
 		return m_textures[level];
 	}
 	

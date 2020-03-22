@@ -245,7 +245,7 @@ class NativeUtil {
 		}
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 		RunLoop::next_tick(Cb([worker, func](CbD& e) {
-			NX_ASSERT(!func.IsEmpty());
+			ASSERT(!func.IsEmpty());
 			JS_HANDLE_SCOPE();
 			func.local()->Call(worker);
 		}));

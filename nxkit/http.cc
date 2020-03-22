@@ -120,10 +120,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	}
 	
 	virtual ~Inl() {
-		NX_CHECK(!m_sending);
-		NX_CHECK(!m_connect);
-		NX_CHECK(!m_cache_reader);
-		NX_CHECK(!m_file_writer);
+		ASSERT(!m_sending);
+		ASSERT(!m_connect);
+		ASSERT(!m_cache_reader);
+		ASSERT(!m_file_writer);
 		Release(m_keep); m_keep = nullptr;
 	}
 	
@@ -143,7 +143,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		~Sending() { Release(m_host); }
 		void release() {
-			NX_ASSERT(m_host);
+			ASSERT(m_host);
 			m_host->m_sending = nullptr;
 			delete this;
 		}
@@ -188,7 +188,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				m_socket = new Socket(hostname, port, loop);
 			}
 			
-			NX_ASSERT(m_socket);
+			ASSERT(m_socket);
 			m_socket->set_delegate(this);
 			
 			m_parser.data = this;
@@ -203,7 +203,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 		~Connect() {
-			NX_ASSERT(m_id.is_null());
+			ASSERT(m_id.is_null());
 			Release(m_socket);     m_socket = nullptr;
 			Release(m_upload_file);m_upload_file = nullptr;
 		}
@@ -211,8 +211,8 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		inline RunLoop* loop() { return m_loop; }
 		
 		void bind_client_and_send(Client* client) {
-			NX_ASSERT(client);
-			NX_ASSERT(!m_client);
+			ASSERT(client);
+			ASSERT(!m_client);
 			
 			m_client = client;
 			m_socket->set_timeout(m_client->m_timeout); // set timeout
@@ -242,7 +242,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			if (status_code == 200) {
 				self->m_client->m_write_cache_flag = 2; // set write cache flag
 			}
-			NX_ASSERT(status_code == parser->status_code);
+			ASSERT(status_code == parser->status_code);
 			// LOG("http %d,%d", int(parser->http_major), int(parser->http_minor));
 			self->m_client->m_status_code = status_code;
 			self->m_client->m_http_response_version = 
@@ -566,28 +566,28 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 		virtual void trigger_async_file_open(AsyncFile* file) {
-			NX_ASSERT( m_is_multipart_form_data );
+			ASSERT( m_is_multipart_form_data );
 			send_multipart_form_data();
 		}
 		
 		virtual void trigger_async_file_close(AsyncFile* file) {
-			NX_ASSERT( m_is_multipart_form_data );
+			ASSERT( m_is_multipart_form_data );
 			Error err(ERR_FILE_UNEXPECTED_SHUTDOWN, "File unexpected shutdown");
 			m_client->report_error_and_abort(err);
 		}
 		
 		virtual void trigger_async_file_error(AsyncFile* file, cError& error) {
-			NX_ASSERT( m_is_multipart_form_data );
+			ASSERT( m_is_multipart_form_data );
 			m_client->report_error_and_abort(error);
 		}
 		
 		virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) {
-			NX_ASSERT( m_is_multipart_form_data );
+			ASSERT( m_is_multipart_form_data );
 			if ( buffer.length() ) {
 				m_socket->write(buffer, 1);
 			} else {
-				NX_ASSERT(m_multipart_form_data.length());
-				NX_ASSERT(m_upload_file);
+				ASSERT(m_multipart_form_data.length());
+				ASSERT(m_upload_file);
 				m_socket->write(string_header_end.copy_buffer()); // \r\n
 				m_upload_file->release(); // release file
 				m_upload_file = nullptr;
@@ -600,10 +600,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) { }
 		
 		void send_multipart_form_data() {
-			NX_ASSERT( m_multipart_form_buffer.length() == BUFFER_SIZE );
+			ASSERT( m_multipart_form_buffer.length() == BUFFER_SIZE );
 			
 			if ( m_upload_file ) { // upload file
-				NX_ASSERT( m_upload_file->is_open() );
+				ASSERT( m_upload_file->is_open() );
 				m_upload_file->read(m_multipart_form_buffer);
 			}
 			else if ( m_multipart_form_data.length() ) {
@@ -696,10 +696,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 		void get_connect(Client* client, cCb& cb) {
-			NX_ASSERT(client);
-			NX_ASSERT(!client->m_uri.is_null());
-			NX_ASSERT(!client->m_uri.hostname().is_empty());
-			NX_ASSERT(client->m_uri.type() == URI_HTTP || client->m_uri.type() == URI_HTTPS);
+			ASSERT(client);
+			ASSERT(!client->m_uri.is_null());
+			ASSERT(!client->m_uri.hostname().is_empty());
+			ASSERT(client->m_uri.type() == URI_HTTP || client->m_uri.type() == URI_HTTPS);
 			
 			uint16 port = client->m_uri.port();
 			if (!port) {
@@ -757,7 +757,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 			}
 			
-			NX_CHECK(connect_count <= MAX_CONNECT_COUNT);
+			ASSERT(connect_count <= MAX_CONNECT_COUNT);
 			
 			if (!conn) {
 				if (connect_count == MAX_CONNECT_COUNT) {
@@ -795,7 +795,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				connect->release();
 			} else {
 				if ( connect->m_use ) {
-					NX_ASSERT( !connect->m_id.is_null() );
+					ASSERT( !connect->m_id.is_null() );
 					connect->m_use = false;
 					connect->m_client = nullptr;
 					connect->socket()->set_timeout(0);
@@ -840,7 +840,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		, m_read_count(0)
 		, m_client(client)
 		, m_parse_header(true), m_offset(0), m_size(size) {
-			NX_ASSERT(!m_client->m_cache_reader);
+			ASSERT(!m_client->m_cache_reader);
 			m_client->m_cache_reader = this;
 			set_delegate(this);
 			open();
@@ -942,7 +942,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			} else {
 				// read cache
 				m_read_count--;
-				NX_ASSERT(m_read_count == 0);
+				ASSERT(m_read_count == 0);
 				
 				if ( buffer.length() ) {
 					m_offset += buffer.length();
@@ -1022,14 +1022,14 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			// flag = 1 only write header 
 			// flag = 2 write header and body
 
-			NX_ASSERT(!m_client->m_file_writer);
+			ASSERT(!m_client->m_file_writer);
 			m_client->m_file_writer = this;
 
 			// LOG("FileWriter m_write_flag -- %i, %s", m_write_flag, *path);
 			
 			if ( m_write_flag ) { // verification cache is valid
 				auto& r_header = m_client->response_header(); 
-				NX_ASSERT(r_header.length());
+				ASSERT(r_header.length());
 
 				if ( r_header.has("cache-control") ) {
 					String expires = convert_to_expires(r_header.get("cache-control"));
@@ -1121,7 +1121,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			} else {
 				m_client->trigger_http_data2(buffer);
 				m_write_count--;
-				NX_ASSERT(m_write_count >= 0);
+				ASSERT(m_write_count >= 0);
 			 advance:
 				if ( m_write_count == 0 ) {
 					if ( m_completed_end ) { // http已经结束
@@ -1176,7 +1176,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	}
 	
 	void read_advance() {
-		Reader* r = reader(); NX_ASSERT(r);
+		Reader* r = reader(); ASSERT(r);
 		if ( m_pause ) {
 			r->read_pause();
 		} else {
@@ -1185,7 +1185,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	}
 
 	void read_pause() {
-		Reader* r = reader(); NX_ASSERT(r);
+		Reader* r = reader(); ASSERT(r);
 		r->read_pause();
 	}
 	
@@ -1252,8 +1252,8 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	void http_response_complete(bool fromCache) {
 
 		if (!fromCache) {
-			NX_ASSERT(m_pool_ptr);
-			NX_ASSERT(m_connect);
+			ASSERT(m_pool_ptr);
+			ASSERT(m_connect);
 			m_pool_ptr->release(m_connect, false);
 			m_connect = nullptr;
 
@@ -1300,15 +1300,15 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	}
 
 	void send_http() {
-		NX_ASSERT(m_sending);
-		NX_ASSERT(!m_connect);
-		NX_ASSERT(m_pool_ptr);
+		ASSERT(m_sending);
+		ASSERT(!m_connect);
+		ASSERT(m_pool_ptr);
 		m_pool_ptr->get_connect(this, Cb([this](CbD& evt) {
 			if ( m_wait_connect_id ) {
 				if ( evt.error ) {
 					report_error_and_abort(*evt.error);
 				} else {
-					NX_ASSERT( !m_connect );
+					ASSERT( !m_connect );
 					m_connect = static_cast<Connect*>(evt.data);
 					m_connect->bind_client_and_send(this);
 				}
@@ -1338,7 +1338,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		if ( m_sending && !m_sending->m_ending ) {
 			m_sending->m_ending = true;
 			
-			NX_ASSERT(m_pool_ptr);
+			ASSERT(m_pool_ptr);
 			
 			Release(m_cache_reader); m_cache_reader = nullptr;
 			Release(m_file_writer);  m_file_writer = nullptr;
@@ -1353,7 +1353,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				if (state == m_ready_state)
 					m_ready_state = HTTP_READY_STATE_INITIAL;
 			} else {
-				NX_ASSERT(m_sending);
+				ASSERT(m_sending);
 				m_ready_state = HTTP_READY_STATE_COMPLETED;
 				m_delegate->trigger_http_readystate_change(m_host);
 				m_sending->release();
@@ -1368,10 +1368,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	// public api
 	
 	void send(Buffer data) throw(Error) {
-		NX_ASSERT_ERR(!m_sending, ERR_REPEAT_CALL, "Sending repeat call");
-		NX_ASSERT_ERR( !m_uri.is_null(), ERR_INVALID_PATH, "Invalid path" );
-		NX_ASSERT_ERR(m_uri.type() == URI_HTTP ||
-									m_uri.type() == URI_HTTPS, ERR_INVALID_PATH, "Invalid path `%s`", *m_uri.href());
+		NX_CHECK(!m_sending, ERR_REPEAT_CALL, "Sending repeat call");
+		NX_CHECK( !m_uri.is_null(), ERR_INVALID_PATH, "Invalid path" );
+		NX_CHECK(m_uri.type() == URI_HTTP ||
+						m_uri.type() == URI_HTTPS, ERR_INVALID_PATH, "Invalid path `%s`", *m_uri.href());
 		m_post_data = data;
 		
 		m_sending = new Sending(this);
@@ -1408,8 +1408,8 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	}
 	
 	void check_is_can_modify() throw(Error) {
-		NX_ASSERT_ERR(!m_sending, ERR_SENDINX_CANNOT_MODIFY,
-									"Http request sending cannot modify property");
+		NX_CHECK(!m_sending, ERR_SENDINX_CANNOT_MODIFY,
+							"Http request sending cannot modify property");
 	}
 	
 	void pause() {
@@ -1474,7 +1474,7 @@ HttpClientRequest::HttpClientRequest(RunLoop* loop): m_inl(NewRetain<Inl>(this, 
 }
 
 HttpClientRequest::~HttpClientRequest() {
-	NX_CHECK(m_inl->m_keep->host() == RunLoop::current());
+	ASSERT(m_inl->m_keep->host() == RunLoop::current());
 	m_inl->set_delegate(nullptr);
 	m_inl->abort();
 	m_inl->release();
@@ -1551,8 +1551,8 @@ void HttpClientRequest::set_request_header(cString& name, cString& value) throw(
 
 void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error) {
 	m_inl->check_is_can_modify();
-	NX_ASSERT_ERR( value.length() <= BUFFER_SIZE,
-								ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
+	NX_CHECK( value.length() <= BUFFER_SIZE,
+						ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
 	m_inl->m_post_form_data.set(form_name, {
 		FORM_TYPE_TEXT, value, inl__uri_encode(form_name)
 	});

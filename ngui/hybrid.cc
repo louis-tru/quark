@@ -101,7 +101,7 @@ void Hybrid::set_layout_three_times(bool horizontal, bool hybrid) {
 	
 	if ( !m_visible ) { return; }
 	
-	NX_ASSERT(m_parent_layout);
+	ASSERT(m_parent_layout);
 	
 	if ( horizontal ) { // horizontal layout
 		
@@ -115,7 +115,7 @@ void Hybrid::set_layout_three_times(bool horizontal, bool hybrid) {
 				mark_pre(M_SHAPE);
 				
 				if ( hybrid ) { // update row offset
-					NX_ASSERT( m_linenum != -1 );
+					ASSERT( m_linenum != -1 );
 					static_cast<Hybrid*>(m_parent_layout)->m_rows[m_linenum].offset_end.x(m_offset_end.x());
 				}
 				

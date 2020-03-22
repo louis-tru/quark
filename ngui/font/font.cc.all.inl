@@ -172,10 +172,10 @@ void Font::Inl::del_glyph_data(GlyphContainer* container) {
 FontGlyph* Font::Inl::get_glyph(uint16 unicode, uint region,
 																uint index, FGTexureLevel level, bool vector) 
 {
-	NX_ASSERT(region < 512);
-	NX_ASSERT(index < 128);
+	ASSERT(region < 512);
+	ASSERT(index < 128);
 	
-	load(); NX_ASSERT(m_ft_face);
+	load(); ASSERT(m_ft_face);
 	
 	GlyphContainerFlag* flags = m_flags[region];
 	
@@ -435,7 +435,7 @@ class FontFromData: public Font {
 	 * @overwrite
 	 */
 	void install() {
-		NX_ASSERT(!m_ft_face);
+		ASSERT(!m_ft_face);
 		FT_New_Memory_Face((FT_Library)m_ft_lib,
 											 m_data->value,
 											 m_data->length,
@@ -457,7 +457,7 @@ class FontFromFile: public Font {
 	 * @overwrite
 	 */
 	void install() {
-		NX_ASSERT(!m_ft_face);
+		ASSERT(!m_ft_face);
 		FT_New_Face((FT_Library)m_ft_lib,
 								Path::fallback_c(m_font_path),
 								m_face_index,
@@ -527,7 +527,7 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 				}
 			}
 		} else {
-			NX_ASSERT(m_ffid->name() == "icon");
+			ASSERT(m_ffid->name() == "icon");
 		}
 		
 		// 查找最大高度与行高度
@@ -544,7 +544,7 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 	}
 	
 	void set_glyph(uint region, uint index, FontGlyph* glyph) {
-		NX_ASSERT( glyph );
+		ASSERT( glyph );
 		if ( !m_blocks[region] ) {
 			GlyphsBlock* block = new GlyphsBlock();
 			memset(block, 0, sizeof(GlyphsBlock));
@@ -621,7 +621,7 @@ FontGlyph* FontGlyphTable::glyph(uint16 unicode) {
  * @func use_texture_glyph 使用纹理字型
  */
 FontGlyph* FontGlyphTable::use_texture_glyph(uint16 unicode, FGTexureLevel level) {
-	NX_ASSERT(level < FontGlyph::LEVEL_NONE);
+	ASSERT(level < FontGlyph::LEVEL_NONE);
 	
 	FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 	

@@ -46,7 +46,6 @@ git_pull_deps=echo $(1) deps \
 check_osx=\
 	if [ "$(HOST_OS)" != "osx" ]; then \
 		echo ;\
-		echo Error:;\
 		echo target \"$(1)\" can only run on MAC system.;\
 		echo ;\
 		exit 1; \

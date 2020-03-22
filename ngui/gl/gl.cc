@@ -50,12 +50,12 @@ public:
 	 * @func initializ_shader 初始化着色器程序
 	 */
 	void initializ_shader() {
-		NX_CHECK(m_shaders);
+		ASSERT(m_shaders);
 		
 		for (auto& i : *m_shaders) {
 			GLShader* shader = i.value();
 			GLuint handle = 0;
-			NX_CHECK(shader->shader == 0);
+			ASSERT(shader->shader == 0);
 			
 			if (m_library == DRAW_LIBRARY_GLES2) {
 				handle = compile_link_shader(shader->name,
@@ -70,7 +70,7 @@ public:
 			} else { // opengl
 				// TODO ...
 			}
-			NX_ASSERT(handle);
+			ASSERT(handle);
 			shader->shader = handle;
 			
 			if ( *shader->shader_uniforms != '\0' ) {

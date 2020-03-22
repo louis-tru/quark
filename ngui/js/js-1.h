@@ -133,12 +133,12 @@ class JSClassIMPL {
 	inline uint64 id() const { return id_; }
 	
 	inline void retain() {
-		NX_ASSERT(ref_ >= 0);
+		ASSERT(ref_ >= 0);
 		ref_++;
 	}
 	
 	inline void release() {
-		NX_ASSERT(ref_ >= 0);
+		ASSERT(ref_ >= 0);
 		if ( --ref_ <= 0 ) {
 			delete this;
 		}

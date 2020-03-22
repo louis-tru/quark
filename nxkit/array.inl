@@ -54,13 +54,13 @@ Array<T, Container>::IteratorData::IteratorData(Array* host, uint index)
 
 template<class T, class Container>
 const T& Array<T, Container>::IteratorData::value() const {
-	NX_ASSERT(_host);
+	ASSERT(_host);
 	return (*_host)[_index];
 }
 
 template<class T, class Container>
 T& Array<T, Container>::IteratorData::value() {
-	NX_ASSERT(_host);
+	ASSERT(_host);
 	return (*_host)[_index];
 }
 
@@ -161,32 +161,32 @@ Array<T, Container>& Array<T, Container>::operator=(Array&& arr) {
 
 template<class T, class Container>
 const T& Array<T, Container>::operator[](uint index) const {
-	// NX_ASSERT_ERR(index < _length, "Array access violation.");
-	NX_ASSERT(index < _length);
+	// NX_CHECK(index < _length, "Array access violation.");
+	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
 T& Array<T, Container>::operator[](uint index) {
-	NX_ASSERT(index < _length);
+	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
 const T& Array<T, Container>::item(uint index) const {
-	NX_ASSERT(index < _length);
+	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
 T& Array<T, Container>::item(uint index) {
-	NX_ASSERT(index < _length);
+	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
 T& Array<T, Container>::set(uint index, const T& item) {
-	NX_ASSERT(index <= _length);
+	ASSERT(index <= _length);
 	if ( index < _length ) {
 		return ((*_container)[index] = item);
 	}
@@ -195,7 +195,7 @@ T& Array<T, Container>::set(uint index, const T& item) {
 
 template<class T, class Container>
 T& Array<T, Container>::set(uint index, T&& item) {
-	NX_ASSERT(index <= _length);
+	ASSERT(index <= _length);
 	if ( index < _length ) {
 		return ((*_container)[index] = move(item));
 	}

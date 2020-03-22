@@ -41,8 +41,7 @@
 #if NX_EXCEPTIONS_SUPPORT
 
 #define NX_THROW(code, ...) throw ngui::Error(code, __VA_ARGS__)
-#define NX_ASSERT_ERR(cond, ...) if(!(cond)) throw ngui::Error(__VA_ARGS__)
-#define NX_CHECK_ERR NX_ASSERT_ERR
+#define NX_CHECK(cond, ...) if(!(cond)) throw ngui::Error(__VA_ARGS__)
 
 #define NX_IGNORE_ERR(block) try block catch (const ngui::Error& err) {    \
 	NX_DEBUG("%s,%s", "The exception is ignored", err.message().c());     \
@@ -84,8 +83,15 @@ NX_END
 #error Exceptions must be turned on
 
 #define NX_THROW ngui::fatal()
-#define NX_ASSERT_ERR(cond, ...) if(!(cond)) ngui::fatal()
+#define NX_CHECK(cond, ...) if(!(cond)) ngui::fatal()
 #define NX_IGNORE_ERR(block) block ((void) 0)
 
 #endif
+
+#ifdef CHECK
+# undef CHECK
+#endif
+
+#define CHECK NX_CHECK
+
 #endif

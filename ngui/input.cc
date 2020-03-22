@@ -375,7 +375,7 @@ NX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			}
 		}
 		
-		NX_ASSERT(row);
+		ASSERT(row);
 		
 		// find cell start and end
 		int cell_begin = -1, cell_end = -1;

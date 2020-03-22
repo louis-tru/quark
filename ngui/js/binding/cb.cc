@@ -42,7 +42,7 @@ Cb get_callback_for_type(Worker* worker, Local<JSValue> cb) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
 		return Cb([worker, func](CbD& d) {
-			NX_ASSERT(!func.IsEmpty());
+			ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			Local<JSFunction> f = func.local();
 			
@@ -87,7 +87,7 @@ Cb get_callback_for_buffer2(Worker* worker, Local<JSValue> cb, Encoding encoding
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 
 		return Cb([worker, func, encoding](CbD& d) {
-			NX_ASSERT(!func.IsEmpty());
+			ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			Local<JSFunction> f = func.local();
 			
@@ -111,7 +111,7 @@ Cb get_callback_for_io_stream2(Worker* worker, Local<JSValue> cb) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
 		return Cb([worker, func](CbD& d) {
-			NX_ASSERT(!func.IsEmpty());
+			ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			
 			Local<JSFunction> f = func.local();
@@ -141,7 +141,7 @@ Cb get_callback_for_response_data2(Worker* worker, Local<JSValue> cb) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		
 		return Cb([worker, func](CbD& d) {
-			NX_ASSERT(!func.IsEmpty());
+			ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			
 			Local<JSFunction> f = func.local();
@@ -169,7 +169,7 @@ Cb get_callback_for_none(Worker* worker, Local<JSValue> cb) {
 	if ( !cb.IsEmpty() && cb->IsFunction(worker) ) {
 		CopyablePersistentFunc func(worker, cb.To<JSFunction>());
 		return Cb([worker, func](CbD& d) {
-			NX_ASSERT(!func.IsEmpty());
+			ASSERT(!func.IsEmpty());
 			HandleScope scope(worker);
 			Local<JSFunction> f = func.local();
 			if ( d.error ) {

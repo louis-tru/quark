@@ -236,14 +236,14 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 	, m_delegate(nullptr)
 	, m_host(host)
 	{
-		NX_CHECK(m_keep);
+		ASSERT(m_keep);
 	}
 	
 	virtual ~Inl() {
 		if ( m_fp ) {
 			uv_fs_t req;
 			int res = uv_fs_close(m_keep->host()->uv_loop(), &req, m_fp, nullptr); // sync
-			NX_ASSERT( res == 0 );
+			ASSERT( res == 0 );
 		}
 		Release(m_keep); m_keep = nullptr;
 		clear_writeing();
@@ -338,7 +338,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		uv_fs_req_cleanup(uv_req);
 		FileReq* req = FileReq::cast(uv_req);
 		Handle<FileReq> handle(req);
-		NX_ASSERT( req->ctx()->m_opening );
+		ASSERT( req->ctx()->m_opening );
 		req->ctx()->m_opening = false;
 		if ( uv_req->result > 0 ) {
 			if ( req->ctx()->m_fp ) {
@@ -393,7 +393,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		auto self = req->ctx();
 		uv_fs_req_cleanup(uv_req);
 
-		NX_ASSERT(self->m_writeing.first() == req);
+		ASSERT(self->m_writeing.first() == req);
 		self->m_writeing.shift();
 		self->continue_write();
 
@@ -421,7 +421,7 @@ AsyncFile::AsyncFile(cString& path, RunLoop* loop)
 { }
 
 AsyncFile::~AsyncFile() {
-	NX_CHECK(m_inl->loop() == RunLoop::current());
+	ASSERT(m_inl->loop() == RunLoop::current());
 	m_inl->set_delegate(nullptr);
 	if (m_inl->is_open())
 		m_inl->close();

@@ -378,7 +378,7 @@ FontPool::FontPool(Draw* ctx)
 , m_max_glyph_texture_size(0)
 , m_display_port_scale(0)
 {
-	NX_ASSERT(m_draw_ctx);
+	ASSERT(m_draw_ctx);
 	
 	FT_Init_FreeType((FT_Library*)&m_ft_lib);
 		
@@ -573,7 +573,7 @@ Font* FontPool::get_font(cString& name, TextStyleEnum style) {
  */
 FontGlyphTable* FontPool::get_table(cFFID ffid, TextStyleEnum style) {
 	
-	NX_ASSERT(ffid);
+	ASSERT(ffid);
 	
 	uint code = ffid->code() + (uint)style;
 	
@@ -681,7 +681,7 @@ void FontPool::clear(bool full) {
  * @func set_display_port
  */
 void FontPool::set_display_port(DisplayPort* display_port) {
-	NX_ASSERT(!m_display_port);
+	ASSERT(!m_display_port);
 	display_port->NX_ON(change, &Inl::display_port_change_handle, _inl_pool(this));
 	m_display_port = display_port;
 }
@@ -717,7 +717,7 @@ String FontPool::get_family_name(cString& path) const {
  * @func get_glyph_texture_level # 根据字体尺寸获取纹理等级
  */
 float FontPool::get_glyph_texture_size(FGTexureLevel leval) {
-	NX_ASSERT( leval < FontGlyph::LEVEL_NONE );
+	ASSERT( leval < FontGlyph::LEVEL_NONE );
 	
 	const float glyph_texture_levels_size[13] = {
 		10, 12, 14, 16, 18, 20, 25, 32, 64, 128, 256, 512, 0

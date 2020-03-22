@@ -67,8 +67,6 @@
 
 // ------------------------------------------------------------------
 
-#define NX_CHECK(cond, ...)	if(!(cond)) ngui::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-
 #ifndef NX_MORE_LOG
 # define NX_MORE_LOG 0
 #endif
@@ -80,11 +78,21 @@
 # define NX_MEMORY_TRACE_MARK 1
 #endif
 
-#if DEBUG
-# define NX_ASSERT(cond, ...) NX_CHECK(cond, ##__VA_ARGS__)
+#ifndef NX_ASSERT_STRICT
+# define  NX_ASSERT_STRICT 1
+#endif
+
+#if DEBUG || NX_ASSERT_STRICT
+# define NX_ASSERT(cond, ...) if(!(cond)) ngui::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
 # define NX_ASSERT(cond, ...) ((void)0)
 #endif
+
+#ifdef ASSERT
+# undef ASSERT
+#endif
+
+#define ASSERT NX_ASSERT
 
 #if DEBUG || NX_MORE_LOG
 # define NX_DEBUG(msg, ...) ngui::console::log(msg, ##__VA_ARGS__)

@@ -96,7 +96,7 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	
 	// TODO parse vbo data
 	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, 64 * 64, 72, 72);
-	NX_ASSERT(!error);
+	ASSERT(!error);
 	
 	if ( error ) {
 		NX_WARN("%s", "parse font glyph vbo data error"); return false;
@@ -104,7 +104,7 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	
 	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(),
 												FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
-	NX_ASSERT( ! error );
+	ASSERT( ! error );
 	
 	if ( error ) {
 		NX_WARN("%s", "parse font glyph vbo data error"); return false;

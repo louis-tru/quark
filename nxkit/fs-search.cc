@@ -115,7 +115,7 @@ FileSearch::ZipInSearchPath::ZipInSearchPath(cString& zip_path, cString& path)
 : SearchPath(path)
 , m_zip_path(zip_path)
 , m_zip (zip_path) {
-	NX_ASSERT_ERR( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
+	ASSERT( m_zip.open(), "Cannot open zip file, `%s`", *zip_path );
 }
 
 FileSearch::ZipInSearchPath::~ZipInSearchPath() {

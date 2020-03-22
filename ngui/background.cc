@@ -68,7 +68,7 @@ public:
 							left->release();
 						}
 						bool ok = new_left->retain();
-						NX_ASSERT(ok);
+						ASSERT(ok);
 					}
 					return new_left;
 				}

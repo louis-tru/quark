@@ -41,7 +41,7 @@ public:
 	/**
 	 * @func set_indep_offset
 	 */
-	void set_indep_offset(Box* parent) { NX_ASSERT(parent);
+	void set_indep_offset(Box* parent) { ASSERT(parent);
 		
 		if (m_align_x == Align::RIGHT) { // 水平右对齐
 			m_offset_start.x(parent->m_final_width - m_raw_client_width);
@@ -113,7 +113,7 @@ void Indep::set_layout_content_offset() {
 
 Box* Indep::set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* div) {
 	if ( m_visible ) {
-		m_parent_layout = div; NX_ASSERT(div);
+		m_parent_layout = div; ASSERT(div);
 		mark_pre(M_LAYOUT_THREE_TIMES);
 	} else {
 		set_default_offset_value();
@@ -123,7 +123,7 @@ Box* Indep::set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* di
 
 Box* Indep::set_offset_vertical(Box* prev, Vec2& squeeze, float limit, Div* div) {
 	if ( m_visible ) {
-		m_parent_layout = div; NX_ASSERT(div);
+		m_parent_layout = div; ASSERT(div);
 		mark_pre(M_LAYOUT_THREE_TIMES);
 	} else {
 		set_default_offset_value();

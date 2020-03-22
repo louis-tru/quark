@@ -272,14 +272,14 @@ static void render_exec_func(CbD& evt, Object* ctx) {
 }
 
 - (BOOL)application:(UIApplication*)app didFinishLaunchingWithOptions:(NSDictionary*)options {
-	NX_ASSERT(!app_delegate); 
+	ASSERT(!app_delegate); 
 	app_delegate = self;
 	
 	//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 	//[app setStatusBarHidden:NO];
 	
 	_app = Inl_GUIApplication(GUIApplication::shared()); 
-	NX_ASSERT(self.app);
+	ASSERT(self.app);
 	_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	_is_background = NO;
 	_render_exec = Cb(render_exec_func);
@@ -445,10 +445,10 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	NX_ASSERT(!gl_draw_context);
+	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
-	NX_ASSERT(m_draw_ctx);
+	ASSERT(m_draw_ctx);
 }
 
 /**

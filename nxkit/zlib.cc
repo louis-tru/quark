@@ -148,7 +148,7 @@ extern cchar* inl__file_flag_str(int flag);
 
 // Override
 int GZip::open(int flag) {
-	NX_ASSERT(!m_gzfp);
+	ASSERT(!m_gzfp);
 	if (m_gzfp) // 已经打开了
 		return 0;
 	m_gzfp = gzopen(Path::fallback_c(m_path), inl__file_flag_str(flag));

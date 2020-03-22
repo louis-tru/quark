@@ -36,7 +36,7 @@
 NX_NS(ngui)
 
 #define _db _http_cookie_db
-#define assert_r(c) NX_ASSERT(c == BP_OK)
+#define assert_r(c) ASSERT(c == BP_OK)
 
 static Mutex mutex;
 static bp_db_t* _http_cookie_db = nullptr;

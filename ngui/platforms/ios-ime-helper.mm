@@ -271,7 +271,7 @@ using namespace ngui;
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
 		} else {
-			NX_ASSERT( keycode == _keyboard_up_keycode );
+			ASSERT( keycode == _keyboard_up_keycode );
 		}
 		_app->dispatch()->dispatch_ime_insert([text UTF8String]);
 		_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 0, 0, -1, 0);

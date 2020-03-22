@@ -150,7 +150,7 @@ public:
 	 * @func assignment
 	 */
 	KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action) {
-		NX_ASSERT(view);
+		ASSERT(view);
 		
 		if ( ! ignore_action && m_time ) { // 创建动作
 			
@@ -190,7 +190,7 @@ StyleSheets::StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClas
 , m_pseudo( parent ? parent->m_pseudo : CSS_PSEUDO_CLASS_NONE )
 {
 	if ( pseudo ) { // pseudo cls
-		NX_ASSERT( !m_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
+		ASSERT( !m_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
 		m_pseudo = pseudo;
 	}
 }
@@ -246,7 +246,7 @@ StyleSheets* StyleSheets::find(const CSSName& name) {
  * @func assignment
  */
 void StyleSheets::assignment(View* view) {
-	NX_ASSERT(view);
+	ASSERT(view);
 	for ( auto& i : m_property ) {
 		i.value()->assignment(view);
 	}
@@ -256,7 +256,7 @@ void StyleSheets::assignment(View* view) {
  * @func assignment
  */
 void StyleSheets::assignment(Frame* frame) {
-	NX_ASSERT(frame);
+	ASSERT(frame);
 	for ( auto& i : m_property ) {
 		i.value()->assignment(frame);
 	}
@@ -327,7 +327,7 @@ public:
 				return nullptr;
 			}
 			
-			NX_ASSERT( !name.value().is_empty() );
+			ASSERT( !name.value().is_empty() );
 			
 			ss = _inl_ss(ss)->find2(name, pseudo);
 			
@@ -336,7 +336,7 @@ public:
 				return nullptr;
 			}
 		}
-		NX_ASSERT( ss != this );
+		ASSERT( ss != this );
 		
 		return ss;
 	}
@@ -571,7 +571,7 @@ CSSViewClasss::CSSViewClasss(View* host)
 , m_is_support_pseudo(false)
 , m_once_apply(true)
 , m_multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
-	NX_ASSERT(host);
+	ASSERT(host);
 }
 
 /**
@@ -676,7 +676,7 @@ void CSSViewClasss::apply(StyleSheetsScope* scope) {
 }
 
 void CSSViewClasss::apply(StyleSheetsScope* scope, bool* effect_child) {
-	NX_ASSERT(effect_child);
+	ASSERT(effect_child);
 	_inl_cvc(this)->apply<1>(scope, effect_child);
 }
 
@@ -697,7 +697,7 @@ StyleSheetsScope::StyleSheetsScope(View* scope) {
 }
 
 void StyleSheetsScope::push_scope(View* scope) {
-	NX_ASSERT(scope);
+	ASSERT(scope);
 	CSSViewClasss* classs = scope->classs();
 	if ( classs && classs->has_child() ) {
 		for ( auto& i : classs->child_style_sheets() ) {
@@ -720,9 +720,9 @@ void StyleSheetsScope::pop_scope() {
 		if ( classs && classs->has_child() ) {
 			int count = classs->child_style_sheets().length();
 			for ( int i = 0; i < count; i++ ) {
-				NX_ASSERT( m_style_sheets.length() > 1 );
+				ASSERT( m_style_sheets.length() > 1 );
 				Scope scope = m_style_sheets.last();
-				NX_ASSERT( scope.wrap->ref == scope.ref );
+				ASSERT( scope.wrap->ref == scope.ref );
 				if ( scope.ref == 1 ) {
 					m_style_sheets_map.del(scope.wrap->sheets);
 				} else {

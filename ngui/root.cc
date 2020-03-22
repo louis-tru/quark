@@ -47,7 +47,7 @@ Root::~Root() {
  */
 void Root::initialize() throw(Error) {
 	auto app = ngui::app();
-	NX_ASSERT_ERR(app, "Before you create a root, you need to create a GUIApplication");
+	NX_CHECK(app, "Before you create a root, you need to create a GUIApplication");
 	m_background_color = Color(255, 255, 255); // 默认白色背景
 	m_level = 1; // 根视图为1
 	m_final_visible = true;

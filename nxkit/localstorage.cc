@@ -35,7 +35,7 @@
 NX_NS(ngui)
 
 #define _db _localstorage_db
-#define assert_r(c) NX_ASSERT(c == BP_OK)
+#define assert_r(c) ASSERT(c == BP_OK)
 
 static bp_db_t* _localstorage_db = nullptr;
 static int64 _has_initialize = 0;

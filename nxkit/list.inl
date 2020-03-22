@@ -52,13 +52,13 @@ bool List<Item, Allocator>::IteratorData::is_null() const {
 
 template<class Item, class Allocator>
 const Item& List<Item, Allocator>::IteratorData::value() const {
-	NX_ASSERT(_item);
+	ASSERT(_item);
 	return _item->_item;
 }
 
 template<class Item, class Allocator>
 Item& List<Item, Allocator>::IteratorData::value() {
-	NX_ASSERT(_item);
+	ASSERT(_item);
 	return _item->_item;
 }
 
@@ -336,7 +336,7 @@ template<class Item, class Allocator>
 void List<Item, Allocator>::del(IteratorConst it) {
 	ItemWrap* item = it.data()._item;
 	if (item) {
-		NX_ASSERT( it.data()._host == this);
+		ASSERT( it.data()._host == this);
 		ItemWrap* prev = item->_prev;
 		ItemWrap* next = item->_next;
 		

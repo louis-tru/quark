@@ -93,7 +93,7 @@ class LinuxApplication {
 	, m_element(nullptr)
 	, m_is_fullscreen(0)
 	{
-		NX_ASSERT(!application); application = this;
+		ASSERT(!application); application = this;
 	}
 
 	~LinuxApplication() {
@@ -118,7 +118,7 @@ class LinuxApplication {
 	}
 
 	void post_message(cCb& cb) {
-		NX_ASSERT(m_win);
+		ASSERT(m_win);
 		{
 			ScopeLock lock(m_queue_mutex);
 			m_queue.push(cb);
@@ -185,7 +185,7 @@ class LinuxApplication {
 
 		// DLOG("m_xset.background_pixel 3, %d", m_xset.background_pixel);
 
-		NX_CHECK(win, "Cannot create XWindow");
+		ASSERT(win, "Cannot create XWindow");
 
 		if (m_multitouch_device) {
 			DLOG("m_multitouch_device");
@@ -359,7 +359,7 @@ class LinuxApplication {
 				m_host->refresh_display(); // 刷新显示
 			} else {
 				m_is_init = 1;
-				NX_CHECK(gl_draw_context->create_surface(m_win));
+				ASSERT(gl_draw_context->create_surface(m_win));
 				gl_draw_context->initialize();
 				m_host->triggerLoad();
 				m_host->triggerForeground();
@@ -376,7 +376,7 @@ class LinuxApplication {
 	void initialize_display() {
 		if (!m_dpy) {
 			m_dpy = XOpenDisplay(nullptr);
-			NX_CHECK(m_dpy, "Error: Can't open display");
+			ASSERT(m_dpy, "Error: Can't open display");
 			m_xft_dpi = get_monitor_dpi();
 			m_xwin_scale = m_xft_dpi / 96.0;
 		}
@@ -388,7 +388,7 @@ class LinuxApplication {
 	}
 
 	void initialize(cJSON& options) {
-		NX_CHECK(XInitThreads(), "Error: Can't init X threads");
+		ASSERT(XInitThreads(), "Error: Can't init X threads");
 
 		cJSON& o_x = options["x"];
 		cJSON& o_y = options["y"];
@@ -441,7 +441,7 @@ class LinuxApplication {
 	}
 
 	void initialize_multitouch() {
-		NX_ASSERT(!m_multitouch_device);
+		ASSERT(!m_multitouch_device);
 
 		Atom touchAtom = XInternAtom(m_dpy, "TOUCHSCREEN", true);
 		if (touchAtom == None) {
@@ -540,7 +540,7 @@ class LinuxApplication {
 	}
 
 	void initialize_master_volume_control() {
-		NX_ASSERT(!m_mixer);
+		ASSERT(!m_mixer);
 		snd_mixer_open(&m_mixer, 0);
 		snd_mixer_attach(m_mixer, "default");
 		snd_mixer_selem_register(m_mixer, NULL, NULL);
@@ -625,18 +625,18 @@ class LinuxApplication {
 };
 
 Vec2 __get_window_size() {
-	NX_CHECK(application);
+	ASSERT(application);
 	return application->get_window_size();
 }
 
 Display* __get_x11_display() {
-	NX_CHECK(application);
+	ASSERT(application);
 	return application->get_x11_display();
 }
 
 // sync to x11 main message loop
 void __dispatch_x11_async(cCb& cb) {
-	NX_ASSERT(application);
+	ASSERT(application);
 	return application->post_message(cb);
 }
 
@@ -698,7 +698,7 @@ void GUIApplication::send_email(cString& recipient,
  */
 void AppInl::initialize(cJSON& options) {
 	DLOG("AppInl::initialize");
-	NX_ASSERT(!gl_draw_context);
+	ASSERT(!gl_draw_context);
 	application->initialize(options);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();

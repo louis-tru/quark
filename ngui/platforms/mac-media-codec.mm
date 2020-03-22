@@ -188,8 +188,8 @@ class AppleVideoCodec: public MediaCodec {
 		OSStatus status;
 		const TrackInfo& track = m_extractor->track();
 		
-		NX_ASSERT(track.width);
-		NX_ASSERT(track.height);
+		ASSERT(track.width);
+		ASSERT(track.height);
 		
 		CFDictionaryRef attrs = (__bridge CFDictionaryRef)
 		[NSDictionary dictionaryWithObjectsAndKeys:
@@ -211,7 +211,7 @@ class AppleVideoCodec: public MediaCodec {
 		};
 		status = VTDecompressionSessionCreate(NULL, m_format_desc, NULL, attrs, &cb, &m_session);
 		
-		NX_ASSERT(status >= 0);
+		ASSERT(status >= 0);
 		
 		CFRetain(m_session);
 		

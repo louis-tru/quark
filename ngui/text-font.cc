@@ -165,7 +165,7 @@ FontGlyphTable* TextFont::get_font_glyph_table_and_height(Data& data,
 	//}
 	
 	FontGlyphTable* table = font_pool()->get_table(m_text_family.value, m_text_style.value);
-	NX_ASSERT(table);
+	ASSERT(table);
 	
 	/* FontGlyph中获得的数据是 26.6 frac. 64pt 值, 所以这里需要除以这个比例 */
 	float ratio = 4096.0 / m_text_size.value; /* 64.0 * 64.0 = 4096.0 */
@@ -235,7 +235,7 @@ float TextFont::simple_layout_width(cUcs2String& text) {
 		v = v->parent();
 	} while(v && ok < 3);
 	
-	FontGlyphTable* table = font_pool()->get_table(family.value, style.value); NX_ASSERT(table);
+	FontGlyphTable* table = font_pool()->get_table(family.value, style.value); ASSERT(table);
 	
 	float rv = 0;
 	float ratio = 4096.0 / size.value;

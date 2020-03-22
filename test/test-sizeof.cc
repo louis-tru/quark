@@ -49,8 +49,8 @@ typedef TestSizeOf* TestSizeOfPtr;
 void test_sizeof(int argc, char **argv) {
 	
 	TestSizeOfPtr of = TestSizeOfPtr();
-	
-	NX_CHECK(!of);
+
+	NX_ASSERT_STRICT(!of);
 	
 	LOG("TestSizeOf: %d", sizeof(TestSizeOf));
 }

@@ -91,7 +91,7 @@ NX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	}
 	
 	bool advance_video(uint64 sys_time) {
-		NX_ASSERT(m_status != PLAYER_STATUS_STOP);
+		ASSERT(m_status != PLAYER_STATUS_STOP);
 		
 		bool draw = false;
 		
@@ -315,9 +315,9 @@ NX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	void start_run() {
 		Lock lock(m_mutex);
 		
-		NX_ASSERT( m_source && m_video );
-		NX_ASSERT( m_source->is_active() );
-		NX_ASSERT( m_status == PLAYER_STATUS_START );
+		ASSERT( m_source && m_video );
+		ASSERT( m_source->is_active() );
+		ASSERT( m_status == PLAYER_STATUS_START );
 		
 		m_waiting_buffer = false;
 		
@@ -393,7 +393,7 @@ String Video::source() const {
 }
 
 void Video::multimedia_source_ready(MultimediaSource* src) {
-	NX_ASSERT( m_source == src );
+	ASSERT( m_source == src );
 	
 	if ( m_video ) {
 		Inl_Video(this)->trigger(GUI_EVENT_READY); // trigger event ready
@@ -403,8 +403,8 @@ void Video::multimedia_source_ready(MultimediaSource* src) {
 		return;
 	}
 
-	NX_ASSERT(!m_video);
-	NX_ASSERT(!m_audio);
+	ASSERT(!m_video);
+	ASSERT(!m_audio);
 	
 	// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 	
@@ -478,7 +478,7 @@ void Video::set_source(cString& value) {
 		}
 		Inl_Video(this)->stop_and_release(lock, true);
 	}
-	auto loop = main_loop(); NX_CHECK(loop, "Cannot find main run loop");
+	auto loop = main_loop(); ASSERT(loop, "Cannot find main run loop");
 	m_source = new MultimediaSource(src, loop);
 	m_keep = loop->keep_alive("Video::set_source");
 	m_source->set_delegate(this);
@@ -526,7 +526,7 @@ bool Video::seek(uint64 timeUs) {
 	ScopeLock scope(m_mutex);
 	
 	if ( Inl_Video(this)->is_active() && timeUs < m_duration ) {
-		NX_ASSERT( m_source );
+		ASSERT( m_source );
 		
 		if ( m_source->seek(timeUs) ) {
 			m_uninterrupted_play_start_systime = 0;

@@ -62,12 +62,12 @@ get_static_method_info(info, "com/ngui/Helper", "get_package_code_path", "()Ljav
  */
 
 JNI::ScopeENV::ScopeENV(): m_env(NULL), m_is_attach(false) {
-	NX_ASSERT( javavm );
+	ASSERT( javavm );
 	
 	if (  javavm->GetEnv((void**)&m_env, JNI_VERSION_1_6) != JNI_OK ) {
 		jint result;
 		result = javavm->AttachCurrentThread(&m_env, NULL);
-		NX_ASSERT( result == JNI_OK );
+		ASSERT( result == JNI_OK );
 		m_is_attach = true;
 	}
 }

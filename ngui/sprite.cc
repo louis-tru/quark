@@ -114,7 +114,7 @@ void Sprite::set_src(cString& value) {
 
 void Sprite::set_texture(Texture* value) {
 	
-	NX_ASSERT(value);
+	ASSERT(value);
 	
 	// 如果值相同,不做处理
 	if (value == m_texture) {

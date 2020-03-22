@@ -42,8 +42,8 @@
 	NX_INIT_BLOCK(__xx_gui_main__) { __xx_gui_main = __xx_gui_main__; } \
 	int __xx_gui_main__(int argc, char** argv)
 
-#define NX_CHECK_RENDER_THREAD() NX_CHECK(app()->has_current_render_thread())
-#define NX_ASSERT_RENDER_THREAD() NX_ASSERT(app()->has_current_render_thread())
+#define NX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
+#define NX_ASSERT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
 
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数

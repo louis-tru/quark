@@ -93,12 +93,12 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	, m_uv_timer(nullptr)
 	, m_timeout(0)
 	{ //
-		NX_CHECK(m_keep);
+		ASSERT(m_keep);
 	}
 	
 	virtual ~Inl() {
-		NX_CHECK(!m_is_open);
-		NX_CHECK(!m_uv_handle);
+		ASSERT(!m_is_open);
+		ASSERT(!m_uv_handle);
 		Release(m_keep); m_keep = nullptr;
 	}
 	
@@ -108,8 +108,8 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		inline UVHandle(Inl* host, uv_loop_t* loop): host(host) {
 			host->retain();
 			int r;
-			r = uv_tcp_init(loop, &uv_tcp); NX_ASSERT( r == 0 );
-			r = uv_timer_init(loop, &uv_timer); NX_ASSERT( r == 0 );
+			r = uv_tcp_init(loop, &uv_tcp); ASSERT( r == 0 );
+			r = uv_timer_init(loop, &uv_timer); ASSERT( r == 0 );
 			uv_tcp.data = this;
 			uv_timer.data = this;
 		}
@@ -289,8 +289,8 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	// ------------------------------------------------------------------------------------------
 	
 	void open2() {
-		NX_ASSERT(m_is_opening == false);
-		NX_ASSERT(m_uv_handle == nullptr);
+		ASSERT(m_is_opening == false);
+		ASSERT(m_uv_handle == nullptr);
 		
 		if ( m_remote_ip.is_empty() ) {
 			sockaddr_in sockaddr;
@@ -341,8 +341,8 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		
 		if ( !m_remote_ip.is_empty() ) {
 			m_uv_handle = new UVHandle(this, uv_loop());
-			NX_ASSERT(m_uv_tcp == nullptr);
-			NX_ASSERT(m_uv_timer == nullptr);
+			ASSERT(m_uv_tcp == nullptr);
+			ASSERT(m_uv_timer == nullptr);
 			m_uv_tcp = &m_uv_handle->uv_tcp;
 			m_uv_timer = &m_uv_handle->uv_timer;
 			auto req = new SocketConReq(this);
@@ -357,7 +357,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	}
 	
 	void close2() {
-		NX_ASSERT(m_uv_handle);
+		ASSERT(m_uv_handle);
 		uv_close((uv_handle_t*)m_uv_tcp, [](uv_handle_t* handle){
 			Handle<UVHandle> h((UVHandle*)handle->data);
 		});
@@ -391,8 +391,8 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	static void open_cb(uv_connect_t* uv_req, int status) {
 		Handle<SocketConReq> req = SocketConReq::cast(uv_req);
 		Inl* self = req->ctx();
-		NX_ASSERT(self->m_is_opening);
-		NX_ASSERT(!self->m_is_open);
+		ASSERT(self->m_is_opening);
+		ASSERT(!self->m_is_open);
 		
 		uv_tcp_keepalive(self->m_uv_tcp, self->m_enable_keep_alive, self->m_keep_idle);
 		uv_tcp_nodelay(self->m_uv_tcp, self->m_no_delay);
@@ -442,7 +442,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	}
 	
 	virtual void trigger_socket_data(int nread, char* buffer) {
-		NX_ASSERT( m_is_open );
+		ASSERT( m_is_open );
 		if ( nread < 0 ) {
 			if ( nread != UV_EOF ) { // 异常断开
 				report_uv_err(int(nread));
@@ -661,7 +661,7 @@ class SSL_INL: public Socket::Inl {
 	
 	static void ssl_write_cb(uv_write_t* req, int status) {
 		SSLSocketWriteReq* req_ = SSLSocketWriteReq::cast(req);
-		NX_ASSERT(req_->data().buffers_count);
+		ASSERT(req_->data().buffers_count);
 		
 		req_->data().buffers_count--;
 		
@@ -698,7 +698,7 @@ class SSL_INL: public Socket::Inl {
 	
 	static int bio_write(BIO* b, cchar* in, int inl) {
 		SSL_INL* self = ((SSL_INL*)b->ptr);
-		NX_ASSERT( self->m_ssl_handshake );
+		ASSERT( self->m_ssl_handshake );
 		
 		int r;
 		
@@ -730,7 +730,7 @@ class SSL_INL: public Socket::Inl {
 			if ( self->m_ssl_write_req ) { // send msg
 				
 				auto req = self->m_ssl_write_req;
-				NX_ASSERT( req->data().buffers_count < 2 );
+				ASSERT( req->data().buffers_count < 2 );
 				
 				uv_buf_t buf;
 				buf.base = buffer.value();
@@ -765,7 +765,7 @@ class SSL_INL: public Socket::Inl {
 	}
 	
 	static int bio_read(BIO *b, char* out, int outl) {
-		NX_ASSERT(out);
+		ASSERT(out);
 		SSL_INL* self = ((SSL_INL*)b->ptr);
 		
 		int ret = NX_MIN(outl, self->m_bio_read_source_buffer_length);
@@ -802,13 +802,13 @@ class SSL_INL: public Socket::Inl {
 	}
 	
 	void set_ssl_handshake_timeout() {
-		NX_ASSERT(m_uv_handle);
+		ASSERT(m_uv_handle);
 		uv_timer_stop(m_uv_timer);
 		uv_timer_start(m_uv_timer, &ssl_handshake_timeout_cb, 1e7, 0); // 10s handshake timeout
 	}
 	
 	virtual void trigger_socket_connect_open() {
-		NX_ASSERT( !m_ssl_handshake );
+		ASSERT( !m_ssl_handshake );
 		set_ssl_handshake_timeout();
 		m_bio_read_source_buffer_length = 0;
 		m_ssl_handshake = 1;
@@ -833,7 +833,7 @@ class SSL_INL: public Socket::Inl {
 			close2();
 		} else {
 			
-			NX_ASSERT( m_bio_read_source_buffer_length == 0 );
+			ASSERT( m_bio_read_source_buffer_length == 0 );
 			
 			m_bio_read_source_buffer = buffer;
 			m_bio_read_source_buffer_length = nread;
@@ -859,7 +859,7 @@ class SSL_INL: public Socket::Inl {
 					}
 				}
 			} else { // ssl handshake
-				NX_ASSERT(m_ssl_handshake == 1);
+				ASSERT(m_ssl_handshake == 1);
 				
 				int r = SSL_connect(m_ssl);
 				
@@ -876,7 +876,7 @@ class SSL_INL: public Socket::Inl {
 					reset_timeout();
 					m_delegate->trigger_socket_open(m_host);
 					
-					NX_ASSERT( m_bio_read_source_buffer_length == 0 );
+					ASSERT( m_bio_read_source_buffer_length == 0 );
 				}
 			}
 			
@@ -884,7 +884,7 @@ class SSL_INL: public Socket::Inl {
 	}
 	
 	virtual void write(Buffer& buffer, int mark) {
-		NX_ASSERT(!m_ssl_write_req);
+		ASSERT(!m_ssl_write_req);
 		
 		auto req = new SSLSocketWriteReq(this, 0, { buffer, mark, 0, 0 });
 		m_ssl_write_req = req;
@@ -933,7 +933,7 @@ Socket::Socket(cString& hostname, uint16 port, RunLoop* loop)
 }
 
 Socket::~Socket() {
-	NX_CHECK(m_inl->m_keep->host() == RunLoop::current());
+	ASSERT(m_inl->m_keep->host() == RunLoop::current());
 	m_inl->set_delegate(nullptr);
 	if (m_inl->is_open())
 		m_inl->close();
@@ -988,7 +988,7 @@ void Socket::write(Buffer buffer, int mark) {
 }
 
 NX_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
-	NX_CHECK(func);
+	ASSERT(func);
 	new_root_cert_store = func;
 }
 

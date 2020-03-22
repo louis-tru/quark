@@ -67,7 +67,7 @@ template <typename T, class Allocator> class NX_EXPORT Container {
 		if ( capacity ) {
 			m_capacity = powf(2, ceil(log2(NX_MAX(NX_MIN_CAPACITY, capacity))));
 			m_value = static_cast<T*>(Allocator::alloc(size()));
-			NX_ASSERT(m_value);
+			ASSERT(m_value);
 		}
 	}
 	

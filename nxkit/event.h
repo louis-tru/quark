@@ -479,7 +479,7 @@ template<class Event> class NX_EXPORT EventNoticer: public Event::BasicEventNoti
 	}
 	
 	inline void get_listener() {
-		NX_ASSERT(!m_name.is_empty());
+		ASSERT(!m_name.is_empty());
 		if (m_listener == nullptr) {
 			m_listener = new List<LWrap>();
 		}
@@ -499,10 +499,10 @@ template<class Event> class NX_EXPORT EventNoticer: public Event::BasicEventNoti
 		typedef OnListener<Scope> OnListener2;
 		for ( auto& i : *m_listener ) {
 			if ( i.value().value() && i.value()->is_on_listener() ) {
-				NX_ASSERT_ERR( !(static_cast<OnListener2*>(i.value().value())->equals( listener ) &&
-												 static_cast<OnListener2*>(i.value().value())->equals( scope )),
-											ERR_DUPLICATE_LISTENER,
-										 "Events have been added over the letter");
+				NX_CHECK( !(static_cast<OnListener2*>(i.value().value())->equals( listener ) &&
+										static_cast<OnListener2*>(i.value().value())->equals( scope )),
+										ERR_DUPLICATE_LISTENER,
+										"Events have been added over the letter");
 			}
 		}
 	}
@@ -512,10 +512,10 @@ template<class Event> class NX_EXPORT EventNoticer: public Event::BasicEventNoti
 		typedef OnStaticListener<Data> OnStaticListener2;
 		for ( auto& i : *m_listener ) {
 			if ( i.value().value() && i.value()->is_on_static_listener() ) {
-				NX_ASSERT_ERR( !(static_cast<OnStaticListener2*>(i.value().value())->equals( listener ) &&
-												 static_cast<OnStaticListener2*>(i.value().value())->equals( data )),
-											ERR_DUPLICATE_LISTENER,
-											"Events have been added over the letter");
+				NX_CHECK( !(static_cast<OnStaticListener2*>(i.value().value())->equals( listener ) &&
+										static_cast<OnStaticListener2*>(i.value().value())->equals( data )),
+										ERR_DUPLICATE_LISTENER,
+										"Events have been added over the letter");
 			}
 		}
 	}
@@ -523,9 +523,9 @@ template<class Event> class NX_EXPORT EventNoticer: public Event::BasicEventNoti
 	void assert_shell(EventNoticer* shell) throw(Error) {
 		for ( auto& i : *m_listener ) {
 			if ( i.value().value() && i.value()->is_on_shell_listener() ) {
-				NX_ASSERT_ERR( !static_cast<OnShellListener*>(i.value().value())->equals( shell ),
-											ERR_DUPLICATE_LISTENER,
-											"Events have been added over the letter");
+				NX_CHECK( !static_cast<OnShellListener*>(i.value().value())->equals( shell ),
+									ERR_DUPLICATE_LISTENER,
+									"Events have been added over the letter");
 			}
 		}
 	}

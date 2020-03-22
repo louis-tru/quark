@@ -315,7 +315,7 @@ NX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 		uint size = 0;
 		uint size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
 
-		NX_CHECK_RENDER_THREAD();
+		NX_ASSERT_STRICT_RENDER_THREAD();
 
 		for (uint i = 0; i < mipmap_data.length(); i++) {
 			auto data = mipmap_data[i];
@@ -354,7 +354,7 @@ NX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 		auto ctx = draw_ctx();
 		if (!ctx) return;
 
-		NX_CHECK_RENDER_THREAD();
+		NX_ASSERT_STRICT_RENDER_THREAD();
 		
 		m_status |= TEXTURE_LOADING;
 		int status = TEXTURE_NO_LOADED;
@@ -560,7 +560,7 @@ bool TextureYUV::load_yuv(cPixelData& data) {
 	int size = data.width() * data.height();
 	int new_size = size + size / 2;
 
-	NX_CHECK_RENDER_THREAD();
+	NX_ASSERT_STRICT_RENDER_THREAD();
 
 	if (draw_ctx()->adjust_texture_memory(new_size)) {
 		if ( draw_ctx()->set_yuv_texture(this, data) ) {
@@ -600,8 +600,8 @@ FileTexture::FileTexture(cString& path)
 }
 
 FileTexture::~FileTexture() {
-	NX_ASSERT(m_pool == nullptr);
-	NX_ASSERT(m_load_id == 0);
+	ASSERT(m_pool == nullptr);
+	ASSERT(m_load_id == 0);
 }
 
 String FileTexture::id() const {
@@ -715,7 +715,7 @@ void FileTexture::load(Level level) {
 }
 
 bool FileTexture::unload(Level level) {
-	NX_CHECK_RENDER_THREAD();
+	NX_ASSERT_STRICT_RENDER_THREAD();
 
 	if (level == LEVEL_NONE) { // unload all
 		if (m_status & TEXTURE_LOADING) {
@@ -774,16 +774,16 @@ NX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
 	}
 	
 	void add_texture_for_pool(FileTexture* tex, cString& name) {
-		NX_ASSERT(!tex->m_pool);
-		NX_ASSERT(!m_textures[name]);
+		ASSERT(!tex->m_pool);
+		ASSERT(!m_textures[name]);
 		m_textures[name] = tex;
 		tex->retain();
 		tex->m_pool = this;
 	}
 	
 	void del_texture_for_pool(FileTexture* tex) {
-		NX_ASSERT(tex->m_pool == this);
-		NX_ASSERT(tex->ref_count() > 0);
+		ASSERT(tex->m_pool == this);
+		ASSERT(tex->ref_count() > 0);
 		tex->m_pool = nullptr;
 		m_completes.del(tex);
 		tex->release();
@@ -799,12 +799,12 @@ NX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
 	void set_texture_total_data_size(int size) {
 		m_total_data_size += size;
 		// NX_DEBUG("texture_total_data_size: %d", m_total_data_size);
-		NX_ASSERT(m_total_data_size >= 0);
+		ASSERT(m_total_data_size >= 0);
 	}
 };
 
 static void set_texture_total_data_size(TexturePool* pool, int size) {
-	NX_ASSERT(pool);
+	ASSERT(pool);
 	_inl_pool(pool)->set_texture_total_data_size(size);
 }
 
@@ -813,14 +813,14 @@ TexturePool::TexturePool(Draw* ctx)
 , m_draw_ctx(ctx)
 , m_total_data_size(0)
 {
-	NX_ASSERT(m_draw_ctx); // "Did not find GLDraw"
+	ASSERT(m_draw_ctx); // "Did not find GLDraw"
 }
 
 TexturePool::~TexturePool() {
 	for ( auto& i : m_textures ) {
 		auto tex = i.value();
 		tex->m_pool = nullptr;
-		NX_ASSERT( tex->ref_count() > 0 );
+		ASSERT( tex->ref_count() > 0 );
 		// if ( tex->ref_count() == 1 ) {
 		tex->unload();
 		Release(tex);
@@ -867,7 +867,7 @@ float TexturePool::progress() const {
 }
 
 void TexturePool::clear(bool full) {
-	NX_CHECK_RENDER_THREAD();
+	NX_ASSERT_STRICT_RENDER_THREAD();
 
 	bool del_mark = false;
 	
@@ -875,7 +875,7 @@ void TexturePool::clear(bool full) {
 		for ( auto& i : m_textures ) {
 			FileTexture* texture = i.value();
 			texture->unload();
-			NX_ASSERT(texture->ref_count() > 0);
+			ASSERT(texture->ref_count() > 0);
 			if ( texture->ref_count() == 1 ) { // 不需要使用的纹理可以删除
 				_inl_pool(this)->del_texture_for_pool(texture);
 				i.value() = nullptr;
@@ -899,7 +899,7 @@ void TexturePool::clear(bool full) {
 		// 先按使用使用次数排序纹理对像
 		for ( auto& i : m_textures ) {
 			FileTexture* tex = i.value();
-			NX_ASSERT( tex->ref_count() > 0 );
+			ASSERT( tex->ref_count() > 0 );
 			
 			if ( tex->ref_count() == 1 ) { // 不需要使用的纹理可以删除
 				tex->unload();

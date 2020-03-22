@@ -170,7 +170,7 @@ void DisplayPort::lock_size(float width, float height) {
 	if (width >= 0.0 && height >= 0.0) {
 		if (m_lock_size.width() != width || m_lock_size.height() != height) {
 			m_lock_size = { width, height };
-			NX_CHECK(m_host->render_loop());
+			ASSERT(m_host->render_loop());
 			m_host->render_loop()->post(Cb([this](CbD& e) {
 				_inl(this)->update_display_port_rl();
 			}));

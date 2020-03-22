@@ -159,7 +159,7 @@ static inline int ascii_alpha_to_lower(int c) {
 }
 
 static inline bool is_in_range(int value, int lower_limit, int higher_limit) {
-	NX_ASSERT(lower_limit <= higher_limit);
+	ASSERT(lower_limit <= higher_limit);
 	return (uint)(value - lower_limit) <= (uint)(higher_limit - lower_limit);
 }
 
@@ -579,7 +579,7 @@ class Scanner : public Object {
 		next_->location.line = line_;
 		next_->string_value = next_->string_space = Ucs2String();
 		
-		NX_ASSERT(c0_ == '/');
+		ASSERT(c0_ == '/');
 		
 		advance();
 		if (c0_ == '/' || c0_ == '*') { // ILLEGAL
@@ -1024,8 +1024,8 @@ class Scanner : public Object {
 /* 'keyword' is a char array, so sizeof(keyword) is */  \
 /* strlen(keyword) plus 1 for the NUL char. */          \
 	const int keyword_length = sizeof(keyword) - 1;       \
-	NX_ASSERT(keyword_length >= kMinLength);               \
-	NX_ASSERT(keyword_length <= kMaxLength);               \
+	ASSERT(keyword_length >= kMinLength);               \
+	ASSERT(keyword_length <= kMaxLength);               \
 	if (input_length == keyword_length &&                 \
 		input[1] == keyword[1] &&                           \
 		(keyword_length <= 2 || input[2] == keyword[2]) &&  \
@@ -1313,7 +1313,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 	}
 	
 	int scan_hex_number(int expected_length) {
-		NX_ASSERT(expected_length <= 4);  // prevent overflow
+		ASSERT(expected_length <= 4);  // prevent overflow
 		int x = 0;
 		for (int i = 0; i < expected_length; i++) {
 			
@@ -1495,7 +1495,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 	}
 	
 	bool set_pos(uint pos) {
-		NX_ASSERT(pos >= 0);
+		ASSERT(pos >= 0);
 		
 		if ( pos < size_ ) {
 			if (pos > pos_) {
@@ -1656,7 +1656,7 @@ class Parser: public Object {
 	}
 
 	void parse_function() {
-		NX_ASSERT(token() == FUNCTION);
+		ASSERT(token() == FUNCTION);
 		// function f(arg) { block }
 		fetch(); // function
 		if ( is_declaration_identifier(next()) ) {
@@ -1674,7 +1674,7 @@ class Parser: public Object {
 	}
 
 	void parse_arrow_function() {
-		NX_ASSERT(token() == ARROW);
+		ASSERT(token() == ARROW);
 		// TODO ...
 	}
 
@@ -1871,7 +1871,7 @@ class Parser: public Object {
 	}
 
 	void parse_brace_expression(Token begin, Token end) { // 括号表达式
-		NX_ASSERT( token() == begin );
+		ASSERT( token() == begin );
 		uint level = _level;
 		_level++;
 
@@ -2049,7 +2049,7 @@ class Parser: public Object {
 	}
 
 	void parse_regexp_expression() { // 正则表达式
-		NX_ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
+		ASSERT(_scanner->token() == DIV || _scanner->token() == ASSIGN_DIV);
 		
 		if (_scanner->scan_regexp_content(_scanner->location().beg_pos) == REGEXP_LITERAL) {
 			next();
@@ -2060,7 +2060,7 @@ class Parser: public Object {
 	}
 
 	void parse_variable_visit_expression() { // 属性访问表达式
-		NX_ASSERT( is_declaration_identifier(token()) );
+		ASSERT( is_declaration_identifier(token()) );
 
 		fetch(); // identifier
 
@@ -2108,13 +2108,13 @@ class Parser: public Object {
 			UNEXPECTED_TOKEN_ERROR();
 		}
 		while(true) {
-			NX_ASSERT(peek() == LBRACE);
+			ASSERT(peek() == LBRACE);
 			append(_scanner->string_value());
 			append(S.COMMAND);  // ${
 			// next();
 			next();
 			parse_command_string_block(); // parse { block }
-			NX_ASSERT(peek() == RBRACE);
+			ASSERT(peek() == RBRACE);
 			append(S.RBRACE);   // }
 			_scanner->scan_command_string(_scanner->next_location().end_pos);
 			Token tok = next();
@@ -2127,7 +2127,7 @@ class Parser: public Object {
 	}
 
 	void parse_command_string_block() {
-		NX_ASSERT( _scanner->token() == LBRACE );
+		ASSERT( _scanner->token() == LBRACE );
 		while(true) {
 			if (peek() == RBRACE)
 				break;
@@ -2162,7 +2162,7 @@ class Parser: public Object {
 	}
 
 	void parse_class() {
-		NX_ASSERT(token() == CLASS);
+		ASSERT(token() == CLASS);
 	
 		fetch();
 	
@@ -2206,7 +2206,7 @@ class Parser: public Object {
 			CHECK_TOKEN(LBRACE); // {
 		}
 		
-		NX_ASSERT(_scanner->token() == LBRACE); // {
+		ASSERT(_scanner->token() == LBRACE); // {
 		
 		append(S.LBRACE); // {
 		
@@ -2339,7 +2339,7 @@ class Parser: public Object {
 	}
 
 	void parse_export() {
-		NX_ASSERT(_scanner->token() == EXPORT);
+		ASSERT(_scanner->token() == EXPORT);
 		CHECK(_level == 0);
 		
 		Token tok = next();
@@ -2406,7 +2406,7 @@ class Parser: public Object {
 		// import { GUIApplication as App } from 'ngui/app';
 		// import app, { GUIApplication as App } from 'ngui/app';
 
-		NX_ASSERT(token() == LBRACE);
+		ASSERT(token() == LBRACE);
 		append(S.LBRACE);     // {
 
 		if (defaultId) {
@@ -2441,7 +2441,7 @@ class Parser: public Object {
 	}
 
 	void parse_import() {
-		NX_ASSERT(_scanner->token() == IMPORT);
+		ASSERT(_scanner->token() == IMPORT);
 		Token tok = next();
 
 		if (is_import_declaration_identifier(tok)) { // identifier
@@ -2702,7 +2702,7 @@ class Parser: public Object {
 	}
 	
 	void parse_xml_element(bool inXml) {
-		NX_ASSERT(_scanner->token() == XML_ELEMENT_TAG);
+		ASSERT(_scanner->token() == XML_ELEMENT_TAG);
 
 		if ( !is_xml_element_legal_start(inXml) ) { // 是否为合法的xml开始
 			append(S.LT);
@@ -2844,7 +2844,7 @@ class Parser: public Object {
 	}
 	
 	void parse_xml_element_context(cUcs2String& tag_name) {
-		NX_ASSERT(_scanner->token() == GT);  // >
+		ASSERT(_scanner->token() == GT);  // >
 		
 		// add chileren
 		append(S.COMMA);    // ,

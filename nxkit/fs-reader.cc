@@ -211,13 +211,13 @@ class FileReader::Core {
 		switch ( protocol(path) ) {
 			default:
 			case FILE:
-				NX_ASSERT_ERR(FileHelper::exists_sync(path),
-											ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
+				NX_CHECK(FileHelper::exists_sync(path),
+									ERR_FILE_NOT_EXISTS, "Unable to read file contents, \"%s\"", *path);
 				rv = FileHelper::read_file_sync(path);
 				break;
 			case ZIP: {
 				String zip = zip_path(path);
-				NX_ASSERT_ERR(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
+				NX_CHECK(!zip.is_empty(), ERR_FILE_NOT_EXISTS, "Invalid file path, \"%s\"", *path);
 				
 				ScopeLock lock(zip_mutex_);
 				

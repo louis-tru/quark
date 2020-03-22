@@ -97,7 +97,7 @@ uint GLDraw::set_texture(const Array<PixelData>& data) {
 		return false;
 	}
 	
-	GLint format = get_gl_texture_pixel_format(pixel_format); NX_ASSERT(format);
+	GLint format = get_gl_texture_pixel_format(pixel_format); ASSERT(format);
 	
 	// 启用各向异性
 #if defined(GL_EXT_texture_filter_anisotropic) && GL_EXT_texture_filter_anisotropic == 1
@@ -230,7 +230,7 @@ static bool load_yuv_texture2(Draw* draw, uint handle,
 
 bool GLDraw::set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
 	PixelFormat format = data.format();
-	NX_ASSERT(format == PixelData::YUV420P || format == PixelData::YUV420SP ||
+	ASSERT(format == PixelData::YUV420P || format == PixelData::YUV420SP ||
 					 format == PixelData::YUV411P || format == PixelData::YUV411SP);
 	
 	if ( format != PixelData::YUV420P && format != PixelData::YUV420SP ) {

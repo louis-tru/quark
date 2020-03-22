@@ -62,7 +62,7 @@ class AndroidApplication {
 	, m_current_orientation(Orientation::ORIENTATION_INVALID)
 	, m_is_init_ok(false)
 	{
-		NX_ASSERT(!application); application = this;
+		ASSERT(!application); application = this;
 		m_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 	}
 
@@ -117,7 +117,7 @@ class AndroidApplication {
 	}
 
 	static void onDestroy(ANativeActivity* activity) {
-		NX_ASSERT(application->m_activity);
+		ASSERT(application->m_activity);
 
 		activity->callbacks->onDestroy                  = nullptr;
 		activity->callbacks->onStart                    = nullptr;
@@ -154,7 +154,7 @@ class AndroidApplication {
 				// ScopeLock scope(application->m_mutex);
 				if ( window == application->m_window ) {
 					ok = gl_draw_context->create_surface(window);
-					NX_CHECK(ok);
+					ASSERT(ok);
 				}
 			}
 			if ( ok ) {
@@ -197,9 +197,9 @@ class AndroidApplication {
 			application->m_dispatch = application->m_host->dispatch();
 			application->m_render_looper = new RenderLooper(application->m_host);
 
-			NX_ASSERT(application->m_activity);
-			NX_ASSERT(application->m_host);
-			NX_ASSERT(application->m_host->render_loop());
+			ASSERT(application->m_activity);
+			ASSERT(application->m_host);
+			ASSERT(application->m_host->render_loop());
 		}
 		application->m_host->triggerForeground();
 		application->stop_render_task();
@@ -480,7 +480,7 @@ void GUIApplication::send_email(cString& recipient,
 }
 
 void AppInl::initialize(cJSON& options) {
-	NX_ASSERT(!gl_draw_context);
+	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
 }

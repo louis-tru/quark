@@ -54,7 +54,7 @@ class SoftwareMediaCodec: public MediaCodec {
 		, m_is_open(false)
 		, m_output_occupy(false)
 	{
-		m_frame = av_frame_alloc(); NX_ASSERT(m_frame);
+		m_frame = av_frame_alloc(); ASSERT(m_frame);
 		
 		if (type() == MEDIA_TYPE_VIDEO) {
 			m_color_format = VIDEO_COLOR_FORMAT_YUV420P;
@@ -101,10 +101,10 @@ class SoftwareMediaCodec: public MediaCodec {
 			AVStream* stream = m_extractor->host()->get_stream(m_extractor->track());
 			if ( !stream ) {
 				stream = m_extractor->host()->get_stream(m_extractor->track());
-				NX_ASSERT( stream );
+				ASSERT( stream );
 			}
 			
-			const AVCodec* codec = get_avcodec(); NX_ASSERT(codec);
+			const AVCodec* codec = get_avcodec(); ASSERT(codec);
 			
 			if ( m_threads > 1 ) { // set threads
 				if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)

@@ -92,11 +92,11 @@ NX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		threads_end_listens = new List<ListenSignal*>();
 		on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
 		int err = pthread_key_create(&specific_key, thread_destructor);
-		NX_CHECK(err == 0);
+		ASSERT(err == 0);
 	}
 
 	static void set_thread_specific_data(Thread* thread) {
-		NX_CHECK(!pthread_getspecific(specific_key));
+		ASSERT(!pthread_getspecific(specific_key));
 		pthread_setspecific(specific_key, thread);
 	}
 
@@ -105,13 +105,13 @@ NX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 	void set_run_loop(RunLoop* loop) {
-		NX_CHECK(!m_loop);
+		ASSERT(!m_loop);
 		m_loop = loop;
 	}
 
 	void del_run_loop(RunLoop* loop) {
-		NX_CHECK(m_loop);
-		NX_CHECK(m_loop == loop);
+		ASSERT(m_loop);
+		ASSERT(m_loop == loop);
 		m_loop = nullptr;
 	}
 
@@ -363,8 +363,8 @@ class RunLoop::Inl: public RunLoop {
 		uv_timer_t uv_timer;
 		{ //
 			ScopeLock lock(m_mutex);
-			NX_CHECK(Thread::current_id() == m_tid, "Must run on the target thread");
-			NX_CHECK(!m_uv_async);
+			ASSERT(Thread::current_id() == m_tid, "Must run on the target thread");
+			ASSERT(!m_uv_async);
 			m_timeout = NX_MAX(timeout, 0);
 			m_record_timeout = 0;
 			m_uv_async = &uv_async; uv_async.data = this;
@@ -660,7 +660,7 @@ RunLoop::RunLoop(Thread* t)
  */
 RunLoop::~RunLoop() {
 	ScopeLock lock(*threads_mutex);
-	NX_CHECK(m_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
+	ASSERT(m_uv_async == nullptr, "Secure deletion must ensure that the run loop has exited");
 
 	{
 		ScopeLock lock(m_mutex);
@@ -685,7 +685,7 @@ RunLoop::~RunLoop() {
  */
 RunLoop* RunLoop::current() {
 	auto t = Thread::Inl::get_thread_specific_data();
-	NX_CHECK(t, "Can't get thread specific data");
+	ASSERT(t, "Can't get thread specific data");
 	auto loop = t->loop();
 	if (!loop) {
 		ScopeLock scope(*threads_mutex);
@@ -707,7 +707,7 @@ RunLoop* RunLoop::main_loop() {
 	// TODO: 小心线程安全,最好先确保已调用过`current()`
 	if (!main_loop_obj) {
 		current();
-		NX_CHECK(main_loop_obj);
+		ASSERT(main_loop_obj);
 	}
 	return main_loop_obj;
 }
@@ -772,7 +772,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
 	post(Cb([work, this](CbD& ev) {
 		int r = uv_queue_work(m_uv_loop, &work->uv_req,
 													Work::uv_work_cb, Work::uv_after_work_cb);
-		NX_ASSERT(!r);
+		ASSERT(!r);
 		work->it = m_works.push(work);
 	}));
 
@@ -788,7 +788,7 @@ void RunLoop::cancel_work(uint id) {
 		for (auto& i : m_works) {
 			if (i.value()->id == id) {
 				int r = uv_cancel((uv_req_t*)&i.value()->uv_req);
-				NX_ASSERT(!r);
+				ASSERT(!r);
 				break;
 			}
 		}
@@ -928,7 +928,7 @@ KeepLoop::~KeepLoop() {
 		if ( m_declear ) {
 			_inl(m_loop)->cancel_group_non_lock(m_group);
 		}
-		NX_CHECK(m_loop->m_keeps.length());
+		ASSERT(m_loop->m_keeps.length());
 
 		m_loop->m_keeps.del(m_id); // 减少一个引用计数
 
@@ -976,7 +976,7 @@ void KeepLoop::cancel(uint id) {
 ParallelWorking::ParallelWorking(): ParallelWorking(RunLoop::current()) {}
 
 ParallelWorking::ParallelWorking(RunLoop* loop) : m_proxy(nullptr) {
-	NX_CHECK(loop, "Can not find current thread run loop.");
+	ASSERT(loop, "Can not find current thread run loop.");
 	m_proxy = loop->keep_alive("ParallelWorking()");
 }
 
@@ -1023,7 +1023,7 @@ void ParallelWorking::abort_child(ThreadID id) {
 	} else {
 		{
 			ScopeLock scope(m_mutex2);
-			NX_CHECK(m_childs.has(id), 
+			ASSERT(m_childs.has(id), 
 				"Only subthreads belonging to \"ParallelWorking\" can be aborted");
 		}
 		Thread::abort(id);
@@ -1042,7 +1042,7 @@ void ParallelWorking::awaken_child(ThreadID id) {
 			Thread::awaken(i.key());
 		}
 	} else {
-		NX_CHECK(m_childs.has(id), 
+		ASSERT(m_childs.has(id), 
 			"Only subthreads belonging to \"ParallelWorking\" can be awaken");
 		Thread::awaken(id);
 	}

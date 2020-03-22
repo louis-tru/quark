@@ -150,7 +150,7 @@ void AppInl::triggerUnload() {
  * @func set_root
  */
 void AppInl::set_root(Root* value) throw(Error) {
-	NX_ASSERT_ERR(!m_root, "Root view already exists");
+	NX_CHECK(!m_root, "Root view already exists");
 	m_root = value;
 	m_root->retain();   // strong ref
 	set_focus_view(value);
@@ -180,11 +180,11 @@ bool AppInl::set_focus_view(View* view) {
  */
 void GUIApplication::runMain(int argc, char* argv[]) {
 	static int is_initialize = 0;
-	NX_CHECK(!is_initialize++, "Cannot multiple calls.");
+	ASSERT(!is_initialize++, "Cannot multiple calls.");
 	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	Thread::spawn([argc, argv](Thread& t) {
-		NX_CHECK( __xx_default_gui_main );
+		ASSERT( __xx_default_gui_main );
 		auto main = __xx_gui_main ? __xx_gui_main : __xx_default_gui_main;
 		__xx_default_gui_main = nullptr;
 		__xx_gui_main = nullptr;
@@ -204,7 +204,7 @@ void GUIApplication::runMain(int argc, char* argv[]) {
  * @func run()
  */
 void GUIApplication::run() {
-	NX_CHECK(!m_is_run, "GUI program has been running");
+	ASSERT(!m_is_run, "GUI program has been running");
 
 	m_is_run = true;
 	m_render_loop = RunLoop::current(); // 当前消息队列
@@ -217,7 +217,7 @@ void GUIApplication::run() {
 	}
 	thelper->awaken(); // 外部线程继续运行
 
-	NX_CHECK(!m_render_loop->runing());
+	ASSERT(!m_render_loop->runing());
 
 	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 
@@ -228,7 +228,7 @@ void GUIApplication::run() {
 }
 
 void GUIApplication::run_indep() {
-	NX_ASSERT(RunLoop::is_main_loop()); // main loop call
+	ASSERT(RunLoop::is_main_loop()); // main loop call
 	Thread::spawn([this](Thread& t) {
 		DLOG("run render loop ...");
 		run(); // run gui main thread loop
@@ -321,7 +321,7 @@ GUIApplication::~GUIApplication() {
  */
 void GUIApplication::initialize(cJSON& options) throw(Error) {
 	GUILock lock;
-	NX_CHECK_ERR(!m_shared, "At the same time can only run a GUIApplication entity");
+	NX_CHECK(!m_shared, "At the same time can only run a GUIApplication entity");
 	m_shared = this;
 	HttpHelper::initialize(); // 初始http
 	_inl_app(this)->initialize(options);

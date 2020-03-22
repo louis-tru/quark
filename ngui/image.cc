@@ -361,7 +361,7 @@ uint Image::source_height() const {
  * @func set_texture
  */
 void Image::set_texture(Texture* value) {
-	NX_ASSERT(value);
+	ASSERT(value);
 	if (value == m_texture) return;
 	m_texture->NX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
 	m_texture->release(); // 释放

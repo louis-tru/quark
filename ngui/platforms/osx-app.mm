@@ -295,10 +295,10 @@ static void render_exec_func(CbD& evt, Object* ctx) {
 
 - (void)applicationDidFinishLaunching:(NSNotification*) notification {
 	UIApplication* app = UIApplication.sharedApplication;
-	NX_ASSERT(!app_delegate);
+	ASSERT(!app_delegate);
 	app_delegate = self;
 	_app = Inl_GUIApplication(GUIApplication::shared());
-	NX_ASSERT(_app);
+	ASSERT(_app);
 	
 	UIScreen* screen = UIScreen.mainScreen;
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
@@ -443,9 +443,9 @@ void GUIApplication::send_email(cString& recipient,
  * @func initialize(options)
  */
 void AppInl::initialize(cJSON& options) {
-	NX_ASSERT(!app_options);
+	ASSERT(!app_options);
 	app_options = [[ApplicationOptions alloc] init:options];
-	NX_ASSERT(!gl_draw_context);
+	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
 	m_draw_ctx = gl_draw_context->host();
 }
