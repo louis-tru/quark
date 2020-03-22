@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/fs.h"
+#include "trial/fs.h"
 #include "nxkit/zlib.h"
 #include "nxkit/handle.h"
 #include "nxkit/error.h"
@@ -37,7 +37,7 @@ NX_NS(ngui)
 
 // FileSearch implementation
 
-String inl__format_part_path(cString& path);
+String __format_part_path(cString& path);
 
 class FileSearch::SearchPath {
 public:
@@ -85,7 +85,7 @@ Buffer FileSearch::SearchPath::read(cString& path) {
 }
 
 String FileSearch::ZipInSearchPath::formatPath(cString& path1, cString& path2) {
-	return inl__format_part_path(String(path1).push('/').push(path2));
+	return __format_part_path(String(path1).push('/').push(path2));
 }
 
 String FileSearch::ZipInSearchPath::get_absolute_path(cString& path) {
@@ -170,7 +170,7 @@ void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 #if NX_WIN
 	_path = path.replace_all('\\', '/');
 #endif
-	_path = inl__format_part_path(path);
+	_path = __format_part_path(path);
 	
 	auto it = m_search_paths.begin();
 	auto end = m_search_paths.end();

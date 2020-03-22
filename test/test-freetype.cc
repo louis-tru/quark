@@ -33,6 +33,7 @@
 #include <nxkit/map.h>
 #include <nxkit/fs.h>
 #include <ngui/sys.h>
+#include <trial/fs.h>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -151,7 +152,7 @@ void each_glyph() {
 	//  String font_path = FileSearch::share()->get_absolute_path("res/font/lateef.ttf");
 	//  String font_path = "/System/Library/Fonts/LanguageSupport/PingFang.ttc";
 	
-	cchar* text = "鎵€鏈塐penType瀛椾綋";
+	cchar* text = "A-penType-B";
 	
 	error = FT_New_Face(library, *font_path, 0, &face);
 	

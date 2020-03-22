@@ -26,7 +26,7 @@ BUILD_STYLE   = make
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile ngui.gyp tools/common.gypi out/config.gypi tools.gyp tools/tools.gypi
+GYPFILES	= Makefile ngui.gyp tools/common.gypi out/config.gypi trial/trial.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -47,7 +47,7 @@ make_compile=\
 	CXX="$(CXX)" LINK="$(LINK)" $(V_ARG) BUILDTYPE=$(BUILDTYPE) \
 	builddir="$(shell pwd)/$(LIBS_DIR)"
 
-.PHONY: $(STYLES) all build tools test2 clean
+.PHONY: $(STYLES) all build test2 clean
 
 .SECONDEXPANSION:
 
@@ -61,11 +61,6 @@ $(STYLES): $(GYPFILES)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
-
-tools: $(GYPFILES)
-	@$(call gen_project,$(BUILD_STYLE),tools.gyp)
-	@$(call make_compile,$(MAKE))
-	@#cp $(LIBS_DIR)/jsa-shell $(NXP)/bin/$(OS)-jsa-shell
 
 test2: $(GYPFILES)
 	@#make -C test -f test2.mk

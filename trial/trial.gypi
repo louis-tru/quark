@@ -1,12 +1,13 @@
 {
 	'targets': [{
-		'target_name': 'jsa-shell',
-		'type': 'executable',
+		'target_name': 'trial',
+		'type': '<(output_type)',
 		'dependencies': [ 'nxkit' ],
 		'sources': [
 			'jsx.h',
 			'jsx.cc',
-			'jsa-shell.cc',
+			'fs.h',
+			'fs-search.cc',
 		],
 	}],
 }

@@ -3,6 +3,7 @@
 		'nxkit/nxkit.gypi',
 		'ngui/ngui.gypi',
 		'ngui/js/js.gypi',
+		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
 

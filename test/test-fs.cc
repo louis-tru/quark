@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <nxkit/fs.h>
+#include <trial/fs.h>
 #include <pwd.h>
 
 using namespace ngui;
@@ -145,5 +146,4 @@ void test_fs(int argc, char **argv) {
 	LOG(search->get_absolute_path("thk/../../assets/thk/../thk/res_r_hd/ad/39.jpg_v94859"));
 
 	LOG("Very good, doen");
-
 }

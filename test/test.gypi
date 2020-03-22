@@ -16,6 +16,8 @@
 				'ngui-media',
 				'ngui-node',
 				'ngui-v8',
+				###########
+				'trial',
 				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
 				'depe/freetype2/freetype2.gyp:ft2',
 			],
@@ -73,6 +75,7 @@
 				'test-alsa-ff.cc',
 				'test-linux-input.cc',
 				'test-linux-input-2.cc',
+				'test-jsx.cc',
 			],
 			'conditions': [
 				['os in "ios osx"', {
@@ -85,42 +88,6 @@
 					},
 				}],
 				['os in "linux android" and library_output=="static_library"', {
-					'ldflags': [ '<@(other_ldflags)' ],
-				}],
-			],
-		},
-		{
-			'target_name': 'ngui-demo',
-			'type': 'executable',
-			'dependencies': [
-				'nxkit',
-				'ngui',
-				'ngui-js',
-				'ngui-media',
-				'ngui-node',
-				'ngui-v8',
-			],
-			'mac_bundle': 1,
-			'mac_bundle_resources': [
-				'../examples',
-			],
-			'xcode_settings': {
-				'OTHER_LDFLAGS': '-all_load',
-			},
-			'sources': [
-				'demo.cc',
-			],
-			'conditions': [
-				['os in "ios osx"', {
-					'sources': [
-						'test-<(os).plist',
-						'Storyboard-<(os).storyboard',
-					],
-					'xcode_settings': {
-						'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
-					},
-				}],
-				['os in "linux android"', {
 					'ldflags': [ '<@(other_ldflags)' ],
 				}],
 			],

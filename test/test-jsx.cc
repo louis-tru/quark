@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nxkit/fs.h"
-#include "./jsx.h"
-#include "nxkit/codec.h" 
+#include "nxkit/codec.h"
+#include "trial/jsx.h"
 
 using namespace ngui;
 
@@ -60,7 +60,7 @@ bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx, bool clean
 	return 0;
 }
 
-int main(int argc, char* argv[]) {
+int test_jsx(int argc, char* argv[]) {
 
 #if DEBUG_JSA
 	String src = DEBUG_JSA_PATH;

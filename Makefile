@@ -23,7 +23,7 @@ endif
 
 DEPS = libs/nxkit libs/nxp/gyp.ngui depe/v8-link \
 	depe/FFmpeg.ngui depe/node.ngui depe/bplus
-FORWARD = make xcode msvs make-linux cmake-linux cmake build tools $(ANDROID_JAR) test2 clean
+FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \

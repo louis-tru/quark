@@ -1,9 +1,9 @@
 {
 	'targets': [
 	{
-		'target_name': 'nxkit',
 		# 'product_prefix': '',
 		# 'product_ext': 'so',
+		'target_name': 'nxkit',
 		'type': '<(output_type)',
 		'dependencies': [
 			'nxkit/minizip.gyp:minizip',
@@ -32,7 +32,6 @@
 			'../tools/install-android-toolchain',
 			'../ngui/version.h',
 			'../ngui/errno.h',
-			'cacert.pem',
 			# src
 			'env.h',
 			'errno.h',
@@ -74,7 +73,6 @@
 			'fs-file.cc',
 			'fs-sync.cc',
 			'fs-async.cc',
-			'fs-search.cc',
 			'fs-reader.cc',
 			'buffer.cc',
 			'json.cc',

@@ -167,7 +167,7 @@ bool Path::is_local_file(cString& path) {
 	return false;
 }
 
-String inl__format_part_path(cString& path) {
+NX_EXPORT String __format_part_path(cString& path) {
 	
 	Array<String> ls = path.split('/');
 	Array<String> rev;
@@ -279,7 +279,7 @@ String Path::format(cString& path) {
 	}
 #endif
 	
-	s = inl__format_part_path(s);
+	s = __format_part_path(s);
 	
 	return prefix.push( s );
 }
