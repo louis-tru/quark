@@ -675,7 +675,7 @@ export class ViewController<State extends Dict = Dict> extends Notification<Even
 	 * Insecure access
 	 */
 	domAs<T extends DOM = View>() {
-		utils.assert(this.m_vdom, 'ViewController.viewAs<T>() = null');
+		utils.assert(this.m_vdom, 'ViewController.domAs<T>() = null');
 		return (this.m_vdom as VirtualDOM).dom as T;
 	}
 

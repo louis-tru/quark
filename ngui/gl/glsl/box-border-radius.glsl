@@ -36,7 +36,7 @@ void main() {
 
 	// TODO 这里如果直接使用`radius_size`会导致异常,这很奇怪
 	vec4 radius_size2 = vec4(radius_size.xyzw);
-	vec4 border_width2 = vec4(border_width.xyzw);
+	vec4 border_width2 = vec4(border_width.wxyz);
 	
 	float index = float(gl_VertexID - SAMPLEx2);
 	

@@ -573,9 +573,8 @@ void Action::play() {
 	if ( m_parent ) {
 		m_parent->play();
 	} else {
-		if ( m_views.length() ) {
-			_inl_action_center(ActionCenter::shared())->add(this);
-		}
+		// if (m_views.length()) // cancel limit
+		_inl_action_center(ActionCenter::shared())->add(this);
 	}
 }
 
@@ -1185,15 +1184,20 @@ void ActionCenter::advance(int64 now_time) {
 		for ( auto i = m_actions.begin(); !i.is_null(); ) {
 			Action::Wrap& wrap = i.value();
 			if ( wrap.value ) {
-				if (wrap.play) {
-					if ( wrap.value->advance(time_span, false, wrap.value) ) {
-						// 不能消耗所有时间表示动作已经结束
-						// end action play
-						_inl_action_center(this)->del(wrap.value);
+				if (wrap.value->m_views.length()) {
+					if (wrap.play) {
+						if ( wrap.value->advance(time_span, false, wrap.value) ) {
+							// 不能消耗所有时间表示动作已经结束
+							// end action play
+							_inl_action_center(this)->del(wrap.value);
+						}
+					} else {
+						wrap.play = true;
+						wrap.value->advance(0, false, wrap.value);
 					}
 				} else {
-					wrap.play = true;
-					wrap.value->advance(0, false, wrap.value);
+					_inl_action_center(this)->del(wrap.value);
+					m_actions.del(i);
 				}
 				i++;
 			} else {

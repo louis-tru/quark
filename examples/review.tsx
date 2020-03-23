@@ -30,7 +30,7 @@
 
 import { Scroll, Text, _CVD } from 'ngui';
 import { Mynavpage, Page } from './public';
-import { Navbar } from 'ngui/nav';
+import { Navbar, Toolbar } from 'ngui/nav';
 import * as reader from 'ngui/reader';
 import {Event} from 'ngui/event';
 
@@ -43,12 +43,8 @@ function foreground(evt: Event<void, Page>) {
 
 export default ()=>(
 	<Mynavpage 
-		navbar={<Navbar
-			backgroundColor="#333"
-			backTextColor="#fff"
-			titleTextColor="#fff"
-			hidden={true} />
-		}
+		navbar={<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
+		toolbar={<Toolbar hidden={true} />}
 		backgroundColor="#333" onForeground={foreground}>
 		<Scroll width="full" height="full" bounceLock={0}>
 			<Text width="full" id="text" textColor="#fff" textSize={12} margin={5} />

@@ -110,7 +110,9 @@ export class NavButton extends ViewController {
 				class="next_btn"
 				textColor="#0079ff"
 				defaultHighlighted={0}
-				borderBottom={`${px} #c8c7cc`}>
+				borderBottom={`${px} #c8c7cc`}
+				style={this.style}
+			>
 				<Hybrid marginLeft={16} marginRight={50}>{vdoms}</Hybrid>
 				<Indep x={-10} alignX="right" alignY="center">
 					<Text value={'\uedbe'} textFamily="icomoon-ultimate" textColor="#aaa" />

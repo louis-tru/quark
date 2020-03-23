@@ -273,7 +273,7 @@ export class Navigation extends NavigationStatus {
  * @func refresh_bar_style
  */
 function refresh_bar_style(self: NavPageCollection, time: number) {
-	if ( self.IDs.navbar && self.current ) {
+	if ( self.IDs.navbar && self.length ) {
 		time = self.enableAnimate ? time : 0;
 		var navbar = self.navbar || { 
 			height: 0, border: 0, backgroundColor: '#0000', borderColor: '#0000' 
@@ -364,6 +364,10 @@ export class NavPageCollection extends Navigation {
 	get navbar() { return (this.current as NavPage).navbar }
 	get toolbar() { return (this.current as NavPage).toolbar }
 	get defaultToolbar(): Toolbar | null { return this.m_default_toolbar }
+
+	isCurrent(page: NavPage) {
+		return page && this.m_pages.indexReverse(0) === page;
+	}
 
 	set padding(value) {
 		utils.assert(typeof value == 'number');
@@ -479,10 +483,8 @@ export class NavPageCollection extends Navigation {
 		(page as any).m_prevPage = prev; // private props visit
 
 		if (prev) { // set next page
-			(page as any).m_nextPage = page; // private props visit
+			(prev as any).m_nextPage = page; // private props visit
 		}
-
-		this.m_pages.push(page);
 
 		if (!(page as any).m_navbar) { // Create default navbar
 			page.navbar = <Navbar />;
@@ -495,6 +497,8 @@ export class NavPageCollection extends Navigation {
 				page.toolbar = <Toolbar />;
 			}
 		}
+
+		this.m_pages.push(page);
 
 		(page.navbar as any).m_collection = this; // private props visit
 		(page.toolbar as any).m_collection = this; // private props visit
@@ -703,7 +707,8 @@ export class Navbar extends Bar {
 
 			var back_width = (self.IDs.back_text1 as TextNode).simpleLayoutWidth(back_text) + 3; // 3间隔
 			var title_width = (self.IDs.title_text_panel as TextNode).simpleLayoutWidth(title_text);
-			var menu_width = Math.min(nav_width / 3, Math.max(self.$titleMenuWidth, 0));
+			// console.log('back_width', 'title_width', back_width, title_width);
+			var marginRight = Math.min(nav_width / 3, Math.max(self.$titleMenuWidth, 0));
 			var marginLeft = 0;
 			var min_back_width = 6;
 			
@@ -712,8 +717,8 @@ export class Navbar extends Bar {
 				back_width += min_back_width;
 			}
 			
-			(self.IDs.title_panel as Indep).marginLeft = new value.Value(marginLeft);
-			(self.IDs.title_panel as Indep).marginRight = new value.Value(menu_width);
+			(self.IDs.title_panel as Indep).marginLeft = new value.Value(value.ValueType.PIXEL, marginLeft);
+			(self.IDs.title_panel as Indep).marginRight = new value.Value(value.ValueType.PIXEL, marginRight);
 			(self.IDs.title_panel as Indep).show();
 			(self.IDs.back_text0 as TextNode).visible = backIconVisible;
 			
@@ -722,11 +727,11 @@ export class Navbar extends Bar {
 				if ( back_width <= title_x ) {
 					back_width = title_x;
 				} else { // back 的宽度超过title-x位置
-					//console.log(back_width, (nav_width - menu_width - marginLeft) - title_width);
-					back_width = Math.min(back_width, (nav_width - menu_width - marginLeft) - title_width);
+					//console.log(back_width, (nav_width - marginLeft - marginRight) - title_width);
+					back_width = Math.min(back_width, (nav_width - marginLeft - marginRight) - title_width);
 					back_width = Math.max(min_back_width, back_width);
 				}
-				title_width = nav_width - back_width - menu_width - marginLeft;
+				title_width = nav_width - back_width -  marginLeft - marginRight;
 				self.m_back_panel_width = back_width;// - min_back_width;
 				self.m_title_panel_width = title_width;
 			} else {
@@ -771,7 +776,7 @@ export class Navbar extends Bar {
 	refreshStyle(time: number) {
 		if (this.isCurrent) {
 			(this.domAs() as Indep).alignY = value.parseAlign('bottom');
-			(this.domAs() as Indep).height = new value.Value(this.height);
+			(this.domAs() as Indep).height = new value.Value(value.ValueType.PIXEL, this.height);
 			(this.IDs.title_text_panel as Text).textLineHeight = value.parseTextLineHeight(this.height);
 			(this.IDs.back_text_btn as Button).textLineHeight = value.parseTextLineHeight(this.height);
 			super.refreshStyle(time);
@@ -1016,7 +1021,7 @@ export class NavPage extends Navigation {
 	}
 	get prevPage() { return this.m_prevPage }
 	get nextPage() { return this.m_nextPage }
-	get isCurrent() { return this.m_collection && this.m_collection.current === this }
+	get isCurrent() { return this.m_collection && this.m_collection.isCurrent(this) }
 
 	set title(value) {
 		this.m_title = String(value);
@@ -1035,7 +1040,7 @@ export class NavPage extends Navigation {
 			if (value !== this.m_navbar) {
 				utils.assert(!value.page);
 				if (this.m_navbar) {
-					this.navbar.remove();
+					this.m_navbar.remove();
 				}
 				this.m_navbar = value;
 				(this as any).m_navbar.m_page = this; // private props visit

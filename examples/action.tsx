@@ -32,7 +32,7 @@ import {
 	Hybrid, Text, Button, Image, Indep, Clip, _CVD
 } from 'ngui';
 import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'ngui/event';
-import { Toolbar, NavPage } from 'ngui/nav';
+import { Navbar, Toolbar, NavPage } from 'ngui/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 
@@ -66,7 +66,7 @@ const toolbar_vx = ()=>(
 
 export default ()=>(
 	<Mynavpage 
-		navbar={<Toolbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
+		navbar={<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff" />}
 		toolbar={toolbar_vx()}
 		backgroundColor="#333"
 		title="Action" source={resolve(__filename)}>

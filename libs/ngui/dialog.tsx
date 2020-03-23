@@ -160,7 +160,7 @@ export class Dialog extends Navigation {
 			if ( main_width ) {
 				var btn = self.find<Clip>('btns').first as Button;
 				while (btn) {
-					btn.width = new value.Value((main_width / len) - ((len - 1) * px));
+					btn.width = new value.Value(value.ValueType.PIXEL, (main_width / len) - ((len - 1) * px));
 					btn.borderLeft = value.parseBorder(`${px} #9da1a0`);
 					btn.borderTopWidth = px;
 					btn = btn.next as Button;
@@ -397,7 +397,7 @@ export function prompt(msg: string | { msg?: string, text?: string, placeholder?
 {
 	var message: any;
 	if (typeof msg == 'string')
-		msg = {msg};
+		message = {msg};
 	var { msg: _msg = '', text = '', placeholder = CONSTS.placeholder, security = false } = message;
 	var dag = render(
 		<Dialog 

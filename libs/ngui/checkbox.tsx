@@ -143,6 +143,7 @@ class Basic extends ViewController {
 	@event readonly onChange: EventNoticer<Event<boolean, Basic>>;
 
 	triggerMounted() {
+		this.domAs().receive = !this.m_disable;
 		this.domAs().onClick.on(()=>{
 			if ( !this.m_disable )
 				this.selected = !this.selected;
@@ -159,7 +160,8 @@ class Basic extends ViewController {
 	}
 
 	set disable(value) {
-		this.domAs().receive = !value;
+		if (this.isMounted)
+			this.domAs().receive = !value;
 		this.m_disable = !!value;
 	}
 
@@ -185,7 +187,7 @@ export class Checkbox extends Basic {
 
 	render() {
 		return (
-			<Button class={`x_checkbox ${this.selected ? 'on': ''}`} defaultHighlighted={0}>
+			<Button class={`x_checkbox ${this.selected ? 'on': ''}`} style={this.style} defaultHighlighted={0}>
 				<TextNode class="mark" value={"\ued71"} />
 			</Button>
 		)
@@ -199,7 +201,7 @@ export class Switch extends Basic {
 
 	render() {
 		return (
-			<Button class={`x_switch ${this.selected ? 'on': ''}`} defaultHighlighted={0}>
+			<Button class={`x_switch ${this.selected ? 'on': ''}`} style={this.style} defaultHighlighted={0}>
 				<Indep class="background" />
 				<Indep class="button" />
 			</Button>

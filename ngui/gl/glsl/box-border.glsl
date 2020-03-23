@@ -1,10 +1,10 @@
 #vert
 #include "_box.glsl"
 
-#define vertex0 (vertex_ac.xy - border_width.xy)
-#define vertex1 vec2(vertex_ac.z + border_width.z, vertex_ac.y - border_width.y)
-#define vertex2 (vertex_ac.zw + border_width.zw)
-#define vertex3 vec2(vertex_ac.x - border_width.x, vertex_ac.w + border_width.w)
+#define vertex0 (vertex_ac.xy - border_width.wx)
+#define vertex1 vec2(vertex_ac.z + border_width.y, vertex_ac.y - border_width.x)
+#define vertex2 (vertex_ac.zw + border_width.yz)
+#define vertex3 vec2(vertex_ac.x - border_width.w, vertex_ac.w + border_width.z)
 #define vertex4 vec2(vertex_ac.x, vertex_ac.y)
 #define vertex5 vec2(vertex_ac.z, vertex_ac.y)
 #define vertex6 vec2(vertex_ac.z, vertex_ac.w)
@@ -29,29 +29,29 @@ void main() {
 	int id = gl_VertexID;
 	int d = direction;
 
-	if (d == 0) { // left
-		if      ( id == 0 ) v = vertex3;
-		else if ( id == 1 ) v = vertex0;
-		else if ( id == 2 ) v = vertex4;
-		else  v = vertex7;
-	} 
-	else if (d == 1) {
+	if (d == 0) { // top
 		if      ( id == 0 ) v = vertex0;
 		else if ( id == 1 ) v = vertex1;
 		else if ( id == 2 ) v = vertex5;
 		else  v = vertex4;
 	} 
-	else if (d == 2) {
+	else if (d == 1) { // right
 		if      ( id == 0 ) v = vertex1;
 		else if ( id == 1 ) v = vertex2;
 		else if ( id == 2 ) v = vertex6;
 		else  v = vertex5;
 	} 
-	else {
+	else if (d == 2) { // bottom
 		if      ( id == 0 ) v = vertex2;
 		else if ( id == 1 ) v = vertex3;
 		else if ( id == 2 ) v = vertex7;
 		else  v = vertex6;
+	}
+	else { // left
+		if      ( id == 0 ) v = vertex3;
+		else if ( id == 1 ) v = vertex0;
+		else if ( id == 2 ) v = vertex4;
+		else  v = vertex7;
 	}
 	
 	f_color = vec4(border_color.rgb, border_color.a * opacity);

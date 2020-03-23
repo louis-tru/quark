@@ -36,6 +36,8 @@ import { Image } from './_view';
 
 const _media = __requireNgui__('_media');
 
+Object.assign(exports, _media);
+
 export enum MediaType {
 	MEDIA_TYPE_AUDIO,
 	MEDIA_TYPE_VIDEO,

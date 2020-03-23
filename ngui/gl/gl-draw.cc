@@ -135,7 +135,7 @@ public:
 		glUniform4f(shader.vertex_ac,
 								-v->m_origin.x(), -v->m_origin.y(),
 								v->m_final_width - v->m_origin.x(), v->m_final_height - v->m_origin.y());
-		glUniform4fv(shader.border_width, 1, &v->m_border_left_width);
+		glUniform4fv(shader.border_width, 1, &v->m_border_top_width);
 		glUniform4fv(shader.radius_size, 1, &v->m_final_border_radius_left_top);
 	}
 	
@@ -148,26 +148,26 @@ public:
 
 		set_box_uniform_value(shader::box_border_radius, v);
 		
-		if ( v->m_border_left_width != 0) { // left
-			FloatColor color = v->m_border_left_color.to_float_color();
-			glUniform1i(shader::box_border_radius.direction, 0);
-			glUniform4fv(shader::box_border_radius.border_color, 1, color.value());
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
-		}
 		if ( v->m_border_top_width != 0) { // top
 			FloatColor color = v->m_border_top_color.to_float_color();
-			glUniform1i(shader::box_border_radius.direction, 1);
+			glUniform1i(shader::box_border_radius.direction, 0);
 			glUniform4fv(shader::box_border_radius.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
 		}
 		if ( v->m_border_right_width != 0) { // right
 			FloatColor color = v->m_border_right_color.to_float_color();
-			glUniform1i(shader::box_border_radius.direction, 2);
+			glUniform1i(shader::box_border_radius.direction, 1);
 			glUniform4fv(shader::box_border_radius.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
 		}
 		if ( v->m_border_bottom_width != 0) { // bottom
 			FloatColor color = v->m_border_bottom_color.to_float_color();
+			glUniform1i(shader::box_border_radius.direction, 2);
+			glUniform4fv(shader::box_border_radius.border_color, 1, color.value());
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
+		}
+		if ( v->m_border_left_width != 0) { // left
+			FloatColor color = v->m_border_left_color.to_float_color();
 			glUniform1i(shader::box_border_radius.direction, 3);
 			glUniform4fv(shader::box_border_radius.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
@@ -182,30 +182,30 @@ public:
 		
 		set_box_uniform_value(shader::box_border, v);
 		
-		if ( v->m_border_left_width != 0) { // left
-			// LOG("m_border_left_width, %f", v->m_border_left_width);
-			FloatColor color = v->m_border_left_color.to_float_color();
-			glUniform1i(shader::box_border.direction, 0);
-			glUniform4fv(shader::box_border.border_color, 1, color.value());
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
 		if ( v->m_border_top_width != 0) { // top
 			// LOG("m_border_top_width, %f", v->m_border_top_width);
 			FloatColor color = v->m_border_top_color.to_float_color();
-			glUniform1i(shader::box_border.direction, 1);
+			glUniform1i(shader::box_border.direction, 0);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		if ( v->m_border_right_width != 0) { // right
 			// LOG("m_border_right_width, %f", v->m_border_right_width);
 			FloatColor color = v->m_border_right_color.to_float_color();
-			glUniform1i(shader::box_border.direction, 2);
+			glUniform1i(shader::box_border.direction, 1);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		if ( v->m_border_bottom_width != 0) { // bottom
 			// LOG("m_border_bottom_width, %f", v->m_border_bottom_width);
 			FloatColor color = v->m_border_bottom_color.to_float_color();
+			glUniform1i(shader::box_border.direction, 2);
+			glUniform4fv(shader::box_border.border_color, 1, color.value());
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		if ( v->m_border_left_width != 0) { // left
+			// LOG("m_border_left_width, %f", v->m_border_left_width);
+			FloatColor color = v->m_border_left_color.to_float_color();
 			glUniform1i(shader::box_border.direction, 3);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

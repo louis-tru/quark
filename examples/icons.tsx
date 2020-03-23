@@ -1662,7 +1662,7 @@ class Controller extends Mynavpage {
 									</Hybrid>
 								);
 							}
-						})
+						}).filter(e=>e)
 					}
 				</Div>
 			</Scroll>
@@ -1670,6 +1670,6 @@ class Controller extends Mynavpage {
 	}
 }
 
-export default ()=>{
+export default ()=>(
 	<Controller title="Icons" />
-}
+);
