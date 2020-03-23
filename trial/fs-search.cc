@@ -40,22 +40,22 @@ NX_NS(ngui)
 String inl_format_part_path(cString& path);
 
 class FileSearch::SearchPath {
-public:
+ public:
 	virtual ZipInSearchPath* as_zip() { return NULL; }
 	virtual String get_absolute_path(cString& path);
 	virtual Buffer read(cString& path);
 	inline String path() { return m_path; }
-protected:
+ protected:
 	String m_path;
 	friend class ZipInSearchPath;
-private:
+ private:
 	SearchPath(cString& path): m_path(path) { }
 	virtual ~SearchPath() { }
 	friend class FileSearch;
 };
 
 class FileSearch::ZipInSearchPath: public FileSearch::SearchPath {
-public:
+ public:
 	ZipInSearchPath* as_zip() { return this; }
 	String get_absolute_path(cString& path);
 	Buffer read(cString& path);
@@ -63,7 +63,7 @@ public:
 	bool exists_by_abs(cString& path);
 	inline String zip_path() { return m_zip_path; }
 	static String formatPath(cString& path1, cString& path2);
-private:
+ private:
 	ZipInSearchPath(cString& zip_path, cString& path);
 	~ZipInSearchPath();
 	String m_zip_path;
