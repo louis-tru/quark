@@ -139,8 +139,8 @@ const ngui_tools_vx = ()=>(
 	<Mynavpage title="Ngui Tools" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">
-`1. You can use nodejs <T textBackgroundColor="#ddd" value="npm install -g nxp" />.
-2. Or get the node modules from Github.`
+1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g nxp\n"} />.
+2. Or get the node modules from Github.
 			</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ngui_tools}>Go Github</Button>
 		</Div>

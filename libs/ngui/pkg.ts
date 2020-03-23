@@ -92,7 +92,7 @@ function readText(path: string) {
 				reject(err);
 			}
 		} else {
-			readFile(path, 'utf8', (err?: Error, r?: any)=>err?reject(err):resolve(r));
+			readFile((err?: Error, r?: any)=>err?reject(err):resolve(r), path, 'utf8');
 		}
 	});
 }

@@ -44,63 +44,66 @@ JS_BEGIN
 class NativeFileReader {
  public:
 	
-	template<bool stream> static void readFile(FunctionCall args, cchar* argument) {
+	/**
+	 * @func readStream(cb,path)
+	 * @arg cb {Function}
+	 * @arg path {String}
+	 * @ret {uint} return read id
+	 */
+	/**
+	 * @func readFile(cb,path[,encoding])
+	 * @arg cb {Function}
+	 * @arg path {String}
+	 * @ret {uint} return read id
+	 */
+	static void read(FunctionCall args, bool isStream) {
 		JS_WORKER(args);
-		if ( args.Length() == 0 || ! args[0]->IsString(worker) ) {
-			JS_THROW_ERR(argument);
+
+		uint args_index = 0;
+		if ( args.Length() < 2 || !args[0]->IsFunction(worker) || !args[1]->IsString(worker) ) {
+			if (isStream) {
+				JS_THROW_ERR(
+					"* @func reader.readStream(cb,path)\n"
+					"* @arg cb {Function}\n"
+					"* @arg path {String}\n"
+					"* @ret {uint} return read id\n"
+				);
+			} else {
+				JS_THROW_ERR(
+							"* @func reader.readFile(cb,path[,encoding])\n"
+							"* @arg cb {Function}\n"
+							"* @arg path {String}\n"
+							"* @arg [encoding] {Encoding}\n"
+							"* @ret {uint} return read id\n"
+				);
+			}
 		}
 		
-		String path = args[0]->ToStringValue(worker);
-		Cb cb;
-		
+		args_index++;
+
+		String path = args[args_index++]->ToStringValue(worker);
 		Encoding encoding = Encoding::unknown;
-		int args_index = 1;
 		
 		if (args.Length() > args_index && args[args_index]->IsString(worker)) { //
 			if ( ! parse_encoding(args, args[args_index], encoding) ) return;
 			args_index++;
 		}
-		if ( args.Length() > args_index ) {
-			cb = stream ?
-				get_callback_for_io_stream(worker, args[args_index]) :
-				get_callback_for_buffer(worker, args[args_index], encoding);
-		}
-		if ( stream ) {
+
+		if ( isStream ) {
+			Cb cb = get_callback_for_io_stream(worker, args[0]);
 			JS_RETURN( f_reader()->read_stream( path, cb ) );
 		} else {
+			Cb cb = get_callback_for_buffer(worker, args[0], encoding);
 			JS_RETURN( f_reader()->read_file( path, cb ) );
 		}
 	}
 	
-	/**
-	 * @func readStream(path[,cb])
-	 * @arg path {String}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return read id
-	 */
 	static void readStream(FunctionCall args) {
-		readFile<true>(args,
-							 "* @func reader.readStream(path[,cb])\n"
-							 "* @arg path {String}\n"
-							 "* @arg [cb] {Function}\n"
-							 "* @ret {uint} return read id\n"
-							 );
+		read(args, true);
 	}
-	
-	/**
-	 * @func readFile(path[,cb])
-	 * @arg path {String}
-	 * @arg [cb] {Function}
-	 * @ret {uint} return read id
-	 */
+
 	static void readFile(FunctionCall args) {
-		readFile<false>(args,
-								"* @func reader.readFile(path[,encoding[,cb]])\n"
-								"* @arg path {String}\n"
-								"* @arg [encoding] {Encoding}\n"
-								"* @arg [cb] {Function}\n"
-								"* @ret {uint} return read id\n"
-								);
+		read(args, false);
 	}
 	
 	/**

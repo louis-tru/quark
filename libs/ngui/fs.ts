@@ -312,7 +312,7 @@ export function copyr(path: string, target: string) {
 
 export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject): number {
-		return _fs.readStream(path, function(err?: Error, r?: StreamData) {
+		return _fs.readStream(function(err?: Error, r?: StreamData) {
 			if (err) {
 				reject(err);
 			} else {
@@ -322,7 +322,7 @@ export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncT
 					resolve();
 				}
 			}
-		});
+		}, path);
 	});
 }
 
@@ -340,38 +340,38 @@ export declare function write(fd: number, data: Uint8Array, size?: number, offse
 export declare function write(fd: number, data: string, offsetFd?: number): Promise<number>;
 export declare function write(fd: number, data: string, encoding?: Encoding, offsetFd?: number): Promise<number>;
 
-exports.writeFile = function() {
+exports.writeFile = function(...args: any[]) {
 	return new Promise<number>(function(resolve, reject) {
-		_fs.writeFile(...arguments, (err?: Error, r?: number)=>err?reject(err):resolve(r));
+		_fs.writeFile((err?: Error, r?: number)=>err ? reject(err) : resolve(r), ...args);
 	});
 };
 
-exports.readFile = function() {
+exports.readFile = function(...args: any[]) {
 	return new Promise<any>(function(resolve, reject) {
-		_fs.readFile(...arguments, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+		_fs.readFile((err?: Error, r?: any)=>err ? reject(err) : resolve(r), ...args);
 	});
 };
 
-exports.open = function() {
+exports.open = function(...args: any[]) {
 	return new Promise<any>(function(resolve, reject) {
-		_fs.open(...arguments, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+		_fs.open((err?: Error, r?: any)=>err?reject(err):resolve(r), ...args);
 	});
 };
 
-exports.close = function() {
+exports.close = function(...args: any[]) {
 	return new Promise<void>(function(resolve, reject) {
-		_fs.close(...arguments, (err?: Error)=>err?reject(err):resolve());
+		_fs.close((err?: Error)=>err?reject(err):resolve(), ...args);
 	});
 };
 
-exports.read = function() {
+exports.read = function(...args: any[]) {
 	return new Promise<any>(function(resolve, reject) {
-		_fs.read(...arguments, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+		_fs.read((err?: Error, r?: any)=>err?reject(err):resolve(r), ...args);
 	});
 };
 
-exports.write = function() {
+exports.write = function(...args: any[]) {
 	return new Promise<any>(function(resolve, reject) {
-		_fs.write(...arguments, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+		_fs.write((err?: Error, r?: any)=>err?reject(err):resolve(r), ...args);
 	});
 };

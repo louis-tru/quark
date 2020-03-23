@@ -329,23 +329,27 @@ static bool parse_file_write_params(FunctionCall args, bool sync, int& args_inde
 	JS_WORKER(args);
 
 	size = 0;
-	args_index = 2;
 	
-	if ( args[1]->IsString(worker) ) { // 写入字符串
+	if ( args[args_index]->IsString(worker) ) { // 写入字符串
+		int index_str = args_index;
+		args_index++;
 		
 		Encoding en = Encoding::utf8;
-		if ( args.Length() > 2 && args[2]->IsString(worker) ) { // 第三个参数为编码格式
-			if ( ! parse_encoding(args, args[2], en) ) {
+		if ( args.Length() > args_index && args[args_index]->IsString(worker) ) { // 第三个参数为编码格式
+			if ( ! parse_encoding(args, args[args_index], en) ) {
 				return false;
 			}
 			args_index++;
 		}
-		buffer = args[1]->ToBuffer(worker, en);
+		buffer = args[index_str]->ToBuffer(worker, en);
 		size = buffer.length();
 		data = buffer.value();
 	}
 	else { // ArrayBuffer or TypedArray
-		auto wb = args[1]->AsBuffer(worker);
+
+		auto wb = args[args_index]->AsBuffer(worker);
+
+		args_index++;
 
 		if (!sync) {
 			// 这是一个危险的操作,一定要确保buffer不能被释放否则会导致致命错误
@@ -356,8 +360,8 @@ static bool parse_file_write_params(FunctionCall args, bool sync, int& args_inde
 		data = *wb;
 		size = wb.length();
 		
-		if ( args.Length() > 2 && args[2]->IsInt32(worker) ) { // size
-			int num = args[2]->ToInt32Value(worker);
+		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) { // size
+			int num = args[args_index]->ToInt32Value(worker);
 			if ( num >= 0 ) {
 				size = NX_MIN( num, size );
 				if (!sync) {
@@ -1367,64 +1371,66 @@ class NativeFileHelper {
 	}
 
 	/**
-	 * @func read_stream(path[,cb])
-	 * @arg [cb] {Function}
+	 * @func read_stream(cb,path)
+	 * @arg cb {Function}
+	 * @arg path {String}
 	 * @ret {uint} return abort id
 	 */
 	static void read_stream(FunctionCall args) {
 		JS_WORKER(args);
-		if (args.Length() < 1 || !args[0]->IsString(worker)) {
+		if (args.Length() < 2 || !args[0]->IsFunction(worker) || !args[1]->IsString(worker)) {
 			JS_THROW_ERR(
-										"* @func readStream(path[,cb])\n"
-										"* @arg [cb] {Function}\n"
+										"* @func readStream(cb,path)\n"
+										"* @arg cb {Function}\n"
+										"* @arg path {String}\n"
 										"* @ret {uint} return abort id\n"
 										);
 		}
-		String path = args[0]->ToStringValue(worker);
-		
-		Cb cb;
-		if ( args.Length() > 1 ) {
-			cb = get_callback_for_io_stream(worker, args[1]);
-		}
+		Cb cb = get_callback_for_io_stream(worker, args[0]);
+		String path = args[1]->ToStringValue(worker);
 		JS_RETURN( FileHelper::read_stream(path, cb) );
 	}
-	
+
 	/**
-	 * @func read_file_sync(path)
+	 * @func read_file_sync(path[,encoding])
 	 * @arg path {String}
 	 * @ret {Buffer} return file buffer
 	 */
 	/**
-	 * @func read_file(path[,cb])
+	 * @func read_file(cb,path[,encoding])
+	 * @arg cb {Function}
 	 * @arg path {String}
-	 * @arg [cb] {Function}
 	 */
 	static void read_file(FunctionCall args, bool sync) {
 		JS_WORKER(args);
-		if (args.Length() < 1 || ! args[0]->IsString(worker)) {
-			if ( sync ) {
+
+		int args_index = 0;
+		if (sync) {
+			if (args.Length() < 1 || !args[0]->IsString(worker)) {
 				JS_THROW_ERR(
-											"* @func readFileSync(path)\n"
+											"* @func readFileSync(path[,encoding])\n"
 											"* @arg path {String}\n"
 											"* @arg [encoding] {String}\n"
 											"* @ret {Buffer} return file buffer\n"
 											);
-			} else {
+			}
+		} else {
+			args_index++;
+			if (args.Length() < 2 || !args[0]->IsFunction(worker) || !args[1]->IsString(worker)) {
 				JS_THROW_ERR(
-											"* @func readFile(path[,cb])\n"
+											"* @func readFile(cb,path[,encoding])\n"
+											"* @arg cb {Function}\n"
 											"* @arg path {String}\n"
 											"* @arg [encoding] {String}\n"
-											"* @arg [cb] {Function}\n"
 											);
 			}
 		}
 
-		String path = args[0]->ToStringValue(worker);
+		String path = args[args_index++]->ToStringValue(worker);
 		Encoding encoding = Encoding::unknown;
-		int args_index = 1;
 
 		if (args.Length() > args_index && args[args_index]->IsString(worker)) { //
-			if ( ! parse_encoding(args, args[args_index], encoding) ) return;
+			if ( !parse_encoding(args, args[args_index], encoding) ) return;
 			args_index++;
 		}
 
@@ -1437,10 +1443,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( convert_buffer(worker, r, encoding) );
 		} else {
-			Cb cb;
-			if ( args.Length() > args_index ) {
-				cb = get_callback_for_buffer(worker, args[args_index], encoding);
-			}
+			Cb cb = get_callback_for_buffer(worker, args[0], encoding);
 			FileHelper::read_file(path, cb);
 		}
 	}
@@ -1450,64 +1453,64 @@ class NativeFileHelper {
 	 * @func write_file_sync(path,string[,encoding])
 	 * @arg path {String}
 	 * @arg string {String}
-	 * @arg buffer {Buffer|ArrayBuffer}
+	 * @arg buffer {Uint8Array|ArrayBuffer}
 	 * @arg [size] {int}
 	 * @arg [encoding='utf8'] {String}
 	 * @ret {bool}
 	 */
 	/**
-	 * @func write_file(path,buffer[,cb])
-	 * @func write_file(path,buffer[,size[,cb]])
-	 * @func write_file(path,string[,encoding[,cb]])
+	 * @func write_file(cb,path,buffer)
+	 * @func write_file(cb,path,string[,encoding])
+	 * @arg cb {Function}
 	 * @arg path {String}
 	 * @arg string {String}
-	 * @arg buffer {Buffer|ArrayBuffer}
+	 * @arg buffer {Uint8Array|ArrayBuffer}
 	 * @arg [size] {int}
 	 * @arg [encoding=utf8] {Encoding}
-	 * @arg [cb] {Function}
 	 */
 	static void write_file(FunctionCall args, bool sync) {
 		JS_WORKER(args);
-		
-		if ( args.Length() < 2 || !args[0]->IsString(worker) ||
-				!(args[1]->IsString(worker) ||
-					args[1]->IsBuffer()
-        )
-    ) { // 参数错误
-			if ( sync ) {
+
+		int args_index = 0;
+		if ( sync ) {
+			if ( args.Length() < 2 || !args[0]->IsString(worker) ||
+					!(args[1]->IsString(worker) || args[1]->IsBuffer())
+			) { // 参数错误
 				JS_THROW_ERR(
 											"* @func writeFileSync(path,buffer[,size])\n"
 											"* @func writeFileSync(path,string[,encoding])\n"
 											"* @arg path {String}\n"
 											"* @arg string {String}\n"
-											"* @arg buffer {Buffer|ArrayBuffer}\n"
+											"* @arg buffer {Uint8Array|ArrayBuffer}\n"
 											"* @arg [size] {int}\n"
 											"* @arg [encoding=utf8] {Encoding}\n"
 											"* @ret {int}\n"
 											);
-			} else {
+			}
+		} else {
+			args_index++;
+			if ( args.Length() < 3 || !args[0]->IsFunction(worker) || !args[1]->IsString(worker) ||
+					!(args[2]->IsString(worker) || args[2]->IsBuffer())
+				) {
 				JS_THROW_ERR(
-											"* @func writeFile(path,buffer[,cb])\n"
-											"* @func writeFile(path,buffer[,size[,cb]])\n"
-											"* @func writeFile(path,string[,encoding[,cb]])\n"
+											"* @func writeFile(cb,path,buffer[,size])\n"
+											"* @func writeFile(cb,path,string[,encoding])\n"
+											"* @arg cb {Function}\n"
 											"* @arg path {String}\n"
 											"* @arg string {String}\n"
-											"* @arg buffer {Buffer|ArrayBuffer}\n"
+											"* @arg buffer {Uint8Array|ArrayBuffer}\n"
 											"* @arg [size] {int}\n"
 											"* @arg [encoding=utf8] {Encoding}\n"
-											"* @arg [cb] {Function}\n"
 											);
 			}
 		}
 		
-		String path = args[0]->ToStringValue(worker);
-		
-		int args_index;
+		String path = args[args_index++]->ToStringValue(worker);
 		Buffer buffer;
 		void* data;
 		int64 size;
 		bool afterCollapse = false;
-		
+
 		if (!parse_file_write_params(args, sync, args_index, buffer, data, size, afterCollapse))
 			return;
 		
@@ -1520,14 +1523,10 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			
-			Cb cb;
-			if ( args.Length() > args_index ) {
-				cb = get_callback_for_int(worker, args[args_index]);
-			}
+			Cb cb = get_callback_for_int(worker, args[0]);
 			
 			// keep raw buffer Persistent javascript value
-			CopyablePersistentValue persistent(worker, args[1]);
+			CopyablePersistentValue persistent(worker, args[2]);
 			
 			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb, size](CbD& ev) {
 				ASSERT( ev.data );
@@ -1549,57 +1548,56 @@ class NativeFileHelper {
 	 * @ret {int} return file handle `success >= 0`
 	 */
 	/**
-	 * @func open(path[,mode[,cb]])
-	 * @func open(path[,cb])
+	 * @func open(cb,path[,mode])
+	 * @arg cb {Function}
 	 * @arg path {String}
 	 * @arg [mode=FOPEN_R] {FileOpenMode}
-	 * @arg [cb] {Function}
 	 */
 	static void open(FunctionCall args, bool sync) {
 		JS_WORKER(args);
-		
-		if ( args.Length() == 0 || !args[0]->IsString(worker) ) {
-			if ( sync ) {
+
+		int args_index = 0;
+		if (sync) {
+			if ( args.Length() < 1 || !args[0]->IsString(worker) ) {
 				JS_THROW_ERR(
 											"* @func openSync(path[,mode])\n"
 											"* @arg path {String}\n"
 											"* @arg [mode=FOPEN_R] {FileOpenMode}\n"
 											"* @ret {int} return file handle `success >= 0`\n"
 											);
-			} else {
+			} 
+		} else {
+			args_index++;
+			if ( args.Length() < 2 || !args[0]->IsFunction(worker) || !args[1]->IsString(worker) ) {
 				JS_THROW_ERR(
-											"* @func open(path[,mode[,cb]])\n"
-											"* @func open(path[,cb])\n"
+											"* @func open(cb,path[,mode])\n"
+											"* @arg cb {Function}\n"
 											"* @arg path {String}\n"
 											"* @arg [mode=FOPEN_R] {FileOpenMode}\n"
-											"* @arg [cb] {Function}\n"
 											);
 			}
 		}
-		
-		uint args_index = 1;
+
+		String path = args[args_index++]->ToStringValue(worker);
 		FileOpenFlag flag = FileOpenFlag::FOPEN_R;
-		
-		if ( args.Length() > 1 && args[1]->IsUint32(worker) ) {
+
+		if ( args.Length() > args_index && args[args_index]->IsUint32(worker) ) {
 			uint num = args[1]->ToUint32Value(worker);
 			flag = (FileOpenFlag)num;
 			args_index++;
 		}
-		
+
 		if ( sync ) {
 			int r;
 			try {
-				r = FileHelper::open_sync(args[0]->ToStringValue(worker), flag);
+				r = FileHelper::open_sync(path, flag);
 			} catch(cError& err) {
 				JS_THROW_ERR(err);
 			}
 			JS_RETURN( r );
 		} else {
-			Cb cb;
-			if ( args.Length() > args_index ) {
-				cb = get_callback_for_int(worker, args[args_index]);
-			}
-			FileHelper::open(args[0]->ToStringValue(worker), flag, cb);
+			Cb cb = get_callback_for_int(worker, args[0]);
+			FileHelper::open(path, flag, cb);
 		}
 	}
 	
@@ -1609,31 +1607,34 @@ class NativeFileHelper {
 	 * @ret {void}
 	 */
 	/**
-	 * @func close(fd[,cb])
+	 * @func close(cb,fd)
 	 * @arg fd {int} file handle
 	 * @arg [cb] {Function}
 	 */
 	static void close(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		
-		if ( args.Length() == 0 || !args[0]->IsInt32(worker) ) {
-			if ( sync ) {
+		int args_index = 0;
+		if (sync) {
+			if ( args.Length() < 1 || !args[0]->IsInt32(worker) ) {
 				JS_THROW_ERR(
-											"* @func closeSync(fd)\n"
-											"* @arg path {int} file handle\n"
-											"* @ret {void}\n"
-											);
-			} else {
+										"* @func closeSync(fd)\n"
+										"* @arg path {int} file handle\n"
+										"* @ret {void}\n"
+										);
+			}
+		} else {
+			args_index++;
+			if ( args.Length() < 2 || !args[0]->IsFunction(worker) || !args[1]->IsInt32(worker) ) {
 				JS_THROW_ERR(
-											"* @func close(fd[,cb])\n"
+											"* @func close(cb,fd)\n"
+											"* @arg cb {Function}\n"
 											"* @arg fd {int} file handle\n"
-											"* @arg [cb] {Function}\n"
 											);
 			}
 		}
 		
-		int fd = args[0]->ToInt32Value(worker);
-		
+		int fd = args[args_index]->ToInt32Value(worker);
 		if ( sync ) {
 			try {
 				FileHelper::close_sync(fd);
@@ -1641,10 +1642,7 @@ class NativeFileHelper {
 				JS_THROW_ERR(err);
 			}
 		} else {
-			Cb cb;
-			if ( args.Length() > 1 ) {
-				cb = get_callback_for_none(worker, args[1]);
-			}
+			Cb cb = get_callback_for_none(worker, args[0]);
 			FileHelper::close(fd, cb);
 		}
 	}
@@ -1659,20 +1657,19 @@ class NativeFileHelper {
 	 * @ret {int} return read data length
 	 */
 	/**
-	 * @func read(fd,buffer[,size[,offset[,cb]]])
-	 * @func read(fd,buffer[,size[,cb]])
-	 * @func read(fd,buffer[,cb])
+	 * @func read(cb,fd,buffer[,size[,offset]])
+	 * @arg cb {Function}
 	 * @arg fd {int} file handle
 	 * @arg buffer {Buffer} output buffer
 	 * @arg [size=-1] {int}
 	 * @arg [offset=-1] {int}
-	 * @arg [cb] {Function}
 	 */
 	static void read(FunctionCall args, bool sync) {
 		JS_WORKER(args);
 		
-		if ( args.Length() < 2 || !args[0]->IsInt32(worker) || !args[1]->IsUint8Array() ) {
-			if ( sync ) {
+		uint args_index = 0;
+		if (sync) {
+			if ( args.Length() < 2 || !args[0]->IsInt32(worker) || !args[1]->IsUint8Array() ) {
 				JS_THROW_ERR(
 											"* @func readSync(fd,buffer[,size[,offset]])\n"
 											"* @arg fd {int} file handle\n"
@@ -1681,27 +1678,26 @@ class NativeFileHelper {
 											"* @arg [offset=-1] {int}\n"
 											"* @ret {int} return read data length\n"
 											);
-			} else {
+			}
+		} else {
+			args_index++;
+			if ( args.Length() < 3 || !args[0]->IsFunction(worker) || !args[1]->IsInt32(worker) || !args[2]->IsUint8Array() ) {
 				JS_THROW_ERR(
-											"* @func read(fd,buffer[,size[,offset[,cb]]])\n"
-											"* @func read(fd,buffer[,size[,cb]])\n"
-											"* @func read(fd,buffer[,cb])\n"
+											"* @func read(cb,fd,buffer[,size[,offset]])\n"
+											"* @arg cb {Function}\n"
 											"* @arg fd {int} file handle\n"
 											"* @arg buffer {Buffer} output buffer\n"
 											"* @arg [size=-1] {int}\n"
 											"* @arg [offset=-1] {int}\n"
-											"* @arg [cb] {Function}\n"
 											);
 			}
 		}
-		
-		auto raw_buf = args[1]->AsBuffer(worker);
-		
-		int fd = args[0]->ToInt32Value(worker);
+
+		int fd = args[args_index++]->ToInt32Value(worker);
+		auto raw_buf = args[args_index++]->AsBuffer(worker);
 		uint size = raw_buf.length();
 		int64 offset = -1;
-		uint args_index = 2;
-		
+
 		// size
 		if ( args.Length() > args_index && args[args_index]->IsInt32(worker) ) {
 			int num = args[args_index]->ToInt32Value(worker);
@@ -1727,13 +1723,10 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Cb cb;
-			if ( args.Length() > args_index ) {
-				cb = get_callback_for_int(worker, args[args_index]);
-			}
+			Cb cb = get_callback_for_int(worker, args[0]);
 			
 			// keep war buffer Persistent javascript object
-			CopyablePersistentValue persistent(worker, args[1]);
+			CopyablePersistentValue persistent(worker, args[2]);
 			
 			FileHelper::read(fd, WeakBuffer(*raw_buf, size), offset,
 											 Cb([persistent, cb](CbD& ev) {
@@ -1749,7 +1742,7 @@ class NativeFileHelper {
 	 * @func write_sync(fd,buffer[,size[,offset]])
 	 * @func write_sync(fd,string[,encoding[,offset]])
 	 * @arg fd {int} file handle
-	 * @arg buffer {Buffer|ArrayBuffer} write buffer
+	 * @arg buffer {Uint8Array|ArrayBuffer} write buffer
 	 * @arg string {String} write string
 	 * @arg [size=-1] {int} read size, `-1` use buffer.length
 	 * @arg [offset=-1] {int}
@@ -1757,71 +1750,65 @@ class NativeFileHelper {
 	 * @ret {int} return write data length
 	 */
 	/**
-	 * @func write(fd,buffer[,size[,offset[,cb]]])
-	 * @func write(fd,buffer[,size[,cb]])
-	 * @func write(fd,buffer[,cb])
-	 * @func write(fd,string[,encoding[,offset[,cb]]])
-	 * @func write(fd,string[,encoding[,cb]])
-	 * @func write(fd,string[,cb])
+	 * @func write(cb,fd,buffer[,size[,offset]])
+	 * @func write(cb,fd,string[,encoding[,offset]])
+	 * @arg cb {Function}
 	 * @arg fd {int} file handle
-	 * @arg buffer {Buffer|ArrayBuffer} write buffer
+	 * @arg buffer {Uint8Array|ArrayBuffer} write buffer
 	 * @arg string {String} write string
 	 * @arg [size=-1] {int} read size, `-1` use buffer.length
 	 * @arg [offset=-1] {int}
 	 * @arg [encoding='utf8'] {String}
-	 * @arg [cb] {Function}
 	 */
 	static void write(FunctionCall args, bool sync) {
 		JS_WORKER(args);
-		
-		if (args.Length() < 2 || !args[0]->IsInt32(worker) ||
-			!(args[1]->IsString(worker) ||
-        // args[1]->IsArrayBuffer(worker) ||
-				args[1]->IsBuffer(worker) )
-		) { // 参数错误
-			if ( sync ) {
+
+		int args_index = 0;
+		if (sync) {
+			if (args.Length() < 2 || !args[0]->IsInt32(worker) ||
+				!(args[1]->IsString(worker) || args[1]->IsBuffer(worker))
+			) { // 参数错误
 				JS_THROW_ERR(
 											"* @func writeSync(fd,buffer[,size[,offset]])\n"
 											"* @func writeSync(fd,string[,encoding[,offset]])\n"
 											"* @arg fd {int} file handle\n"
-											"* @arg buffer {Buffer|ArrayBuffer} write buffer\n"
+											"* @arg buffer {Uint8Array|ArrayBuffer} write buffer\n"
 											"* @arg string {String} write string\n"
 											"* @arg [size=-1] {int} read size, `-1` use buffer.length\n"
 											"* @arg [offset=-1] {int}\n"
 											"* @arg [encoding='utf8'] {String}\n"
 											"* @ret {int} return write data length\n"
 											);
-			} else {
+			}
+		} else {
+			args_index++;
+			if (args.Length() < 3 || !args[0]->IsFunction(worker) || !args[1]->IsInt32(worker) ||
+				!(args[2]->IsString(worker) || args[2]->IsBuffer(worker) )
+			) {
 				JS_THROW_ERR(
-											"* @func write(fd,buffer[,size[,offset[,cb]]])\n"
-											"* @func write(fd,buffer[,size[,cb]])\n"
-											"* @func write(fd,buffer[,cb])\n"
-											"* @func write(fd,string[,encoding,[,offset[,cb]]])\n"
-											"* @func write(fd,string[,encoding,[,cb]])\n"
-											"* @func write(fd,string[,cb])\n"
+											"* @func write(cb,fd,buffer[,size[,offset]])\n"
+											"* @func write(cb,fd,string[,encoding[,offset]])\n"
+											"* @arg cb {Function}\n"
 											"* @arg fd {int} file handle\n"
-											"* @arg buffer {Buffer|ArrayBuffer} write buffer\n"
+											"* @arg buffer {Uint8Array|ArrayBuffer} write buffer\n"
 											"* @arg string {String} write string\n"
 											"* @arg [size=-1] {int} read size, `-1` use buffer.length\n"
 											"* @arg [offset=-1] {int}\n"
 											"* @arg [encoding='utf8'] {String}\n"
-											"* @arg [cb] {Function}\n"
 											);
 			}
 		}
 		
-		int fd = args[0]->ToInt32Value(worker);
-
+		int fd = args[args_index++]->ToInt32Value(worker);
 		Buffer buffer;
 		void*  data;
 		int64 size;
 		int64 offset = -1;
 		bool afterCollapse = false;
-		int args_index;
-		
+
 		if (!parse_file_write_params(args, sync, args_index, buffer, data, size, afterCollapse))
 			return;
-		
+
 		if (args.Length() > args_index && args[args_index]->IsInt32()) { // offset
 			offset = args[args_index]->ToInt32Value(worker);
 			if ( offset < 0 )
@@ -1838,14 +1825,11 @@ class NativeFileHelper {
 			}
 			JS_RETURN( r );
 		} else {
-			Cb cb;
-			if ( args.Length() > args_index ) {
-				cb = get_callback_for_int(worker, args[args_index]);
-			}
+			Cb cb = get_callback_for_int(worker, args[0]);
 
 			// keep raw buffer Persistent javascript value
-			CopyablePersistentValue persistent(worker, args[1]);
-			
+			CopyablePersistentValue persistent(worker, args[2]);
+
 			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb, size](CbD& ev) {
 				ASSERT( ev.data );
 				if (afterCollapse) { // restore raw buffer

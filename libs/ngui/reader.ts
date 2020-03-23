@@ -48,7 +48,7 @@ Object.assign(exports, _reader);
 
 export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncTask<void> {
 	return new AsyncTask<void>(function(resolve, reject): number {
-		return _reader.readStream(path, function(err?: Error, r?: StreamData) {
+		return _reader.readStream(function(err?: Error, r?: StreamData) {
 			if (err) {
 				reject(err);
 			} else {
@@ -58,16 +58,16 @@ export function readStream(path: string, cb: (stream: StreamData)=>void): AsyncT
 					resolve();
 				}
 			}
-		});
+		}, path);
 	});
 }
 
-exports.readFile = function() {
+exports.readFile = function(...args: any[]) {
 	return new AsyncTask<any>(function(resolve, reject) {
-		return _reader.readFile(...arguments, (err?: Error, r?: any)=>err?reject(err):resolve(r));
+		return _reader.readFile((err?: Error, r?: any)=>err?reject(err):resolve(r), ...args);
 	});
 };
 
-exports.readFileSync = function() {
-	return _reader.readFileSync(...arguments);
+exports.readFileSync = function(...args: any[]) {
+	return _reader.readFileSync(...args);
 };
