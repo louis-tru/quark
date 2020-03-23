@@ -29,7 +29,7 @@ void main() {
 	int id = gl_VertexID;
 	int d = direction;
 
-	if (d == 0) {
+	if (d == 0) { // left
 		if      ( id == 0 ) v = vertex3;
 		else if ( id == 1 ) v = vertex0;
 		else if ( id == 2 ) v = vertex4;

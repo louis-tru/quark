@@ -36,6 +36,10 @@
 
 NX_NS(ngui)
 
+static String documentsPath;
+static String tempPath;
+static String resourcesPath;
+
 String Path::executable() {
 	static cString path([]() -> String { 
 		char dir[PATH_MAX] = { 0 };
@@ -46,30 +50,38 @@ String Path::executable() {
 }
 
 String Path::documents(cString& child) {
-	static cString path(Path::format("%s/%s", getenv("HOME"), "Documents"));
-	if ( child.is_empty() ) {
-		return path;
+	if (documentsPath.is_empty()) {
+		documentsPath = Path::format("%s/%s", getenv("HOME"), "Documents");
+		FileHelper::mkdir_p_sync(documentsPath);
 	}
-	return Path::format("%s/%s", *path, *child);
+	if ( child.is_empty() ) {
+		return documentsPath;
+	}
+	return Path::format("%s/%s", *documentsPath, *child);
 }
 
 String Path::temp(cString& child) {
-	static cString path( Path::format("%s/%s", getenv("HOME"), ".cache") );
-	if (child.is_empty()) {
-		return path;
+	if (tempPath.is_empty()) {
+		tempPath = Path::format("%s/%s", getenv("HOME"), ".cache");
+		FileHelper::mkdir_p_sync(tempPath);
 	}
-	return Path::format("%s/%s", *path, *child);
+	if (child.is_empty()) {
+		return tempPath;
+	}
+	return Path::format("%s/%s", *tempPath, *child);
 }
 
 /**
  * Get the resoures dir
  */
 String Path::resources(cString& child) {
-	static cString path( Path::dirname(executable()) );
-	if (child.is_empty()) {
-		return path;
+	if (resourcesPath.is_empty()) {
+		resourcesPath = Path::dirname(executable());
 	}
-	return Path::format("%s/%s", *path, *child);
+	if (child.is_empty()) {
+		return resourcesPath;
+	}
+	return Path::format("%s/%s", *resourcesPath, *child);
 }
 
 namespace sys {

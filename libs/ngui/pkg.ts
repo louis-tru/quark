@@ -543,6 +543,7 @@ export class Module implements NguiModule {
 					// add http://127.0.0.1:1026/aaa/bbb/node_modules to global search path
 					await addModulePathWithoutErr(resolve(main, '..'));
 				}
+				main = resolve(main);
 				var _lookup = lookup(main);
 				if (_lookup)
 					await _lookup.pkg.host.install();
@@ -704,7 +705,7 @@ function resolveFilename(request: string, parent?: Module, mpCall?: boolean): { 
 						return { filename, resolve: filename };
 					}
 				}
-				throw_MODULE_NOT_FOUND(request, parent);
+				throw_MODULE_NOT_FOUND(filename, parent);
 			}
 		} else { // no package network file
 			resolveFilename = set_url_args(filename, mpCall ? '__no_cache': '');

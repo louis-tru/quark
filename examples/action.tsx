@@ -58,7 +58,7 @@ const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
 			<Button onClick={view_code}>
-				<Text class="toolbar_btn" textColor="#fff" value="\ue9ab" />
+				<Text class="toolbar_btn" textColor="#fff" value={"\ue9ab"} />
 			</Button>
 		</Hybrid>
 	</Toolbar>

@@ -61,7 +61,7 @@ function view_code(evt: GUIClickEvent) {
 const navbar_vx = ()=>(
 	<Navbar backgroundColor="#333" backTextColor="#fff" titleTextColor="#fff">
 		<Indep alignX="right" alignY="center" x={-10}>
-			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize={20}>\ued63</Button>
+			<Button textFamily="icomoon-ultimate" textColor="#fff" textSize={20}>{"\ued63"}</Button>
 		</Indep>
 	</Navbar>
 )
@@ -70,7 +70,7 @@ const toolbar_vx = ()=>(
 	<Toolbar backgroundColor="#333">
 		<Hybrid textAlign="center" width="full" height="full">
 			<Button onClick={view_code}>
-				<Text class="toolbar_btn" textColor="#fff" value="\ue9ab" />
+				<Text class="toolbar_btn" textColor="#fff" value={"\ue9ab"} />
 			</Button>
 		</Hybrid>
 	</Toolbar>

@@ -36,7 +36,7 @@ NX_NS(ngui)
 
 using namespace tinyxml2;
 
-#define xx_font_family_info_cache ".simple_font_family_cache"
+#define nx_font_family_info_cache ".simple_font_family_cache"
 
 #if NX_IOS || NX_OSX
 static String system_fonts_dir = "/System/Library/Fonts";
@@ -127,7 +127,7 @@ static void parse_system_font_family_name() {
  */
 static bool get_system_font_family_cache() {
 	
-	String path = Path::temp(xx_font_family_info_cache);
+	String path = Path::temp(nx_font_family_info_cache);
 	
 	if ( !FileHelper::exists_sync(path) ) { // 这个文件不存在
 		return false;
@@ -314,7 +314,7 @@ const SimpleFontList& FontPool::system_font_family() {
 	json["font_familys"] = font_familys;
 	String json_str = JSON::stringify( json );
 	String data = String::format( "%s\n%s", *hash(json_str), *json_str );
-	FileHelper::write_file_sync(Path::temp(xx_font_family_info_cache), data); // 写入文件
+	FileHelper::write_file_sync(Path::temp(nx_font_family_info_cache), data); // 写入文件
 	
 	return *system_font_family_list;
 }

@@ -100,9 +100,9 @@ F(PROPERTY_SRC, String, src)    /* image */ \
  * @func PropertyName
  */
 enum PropertyName: uint {
-# define xx_def_enum(ENUM, TYPE, NAME) ENUM,
-	NX_EACH_PROPERTY_TABLE(xx_def_enum)
-# undef xx_def_enum
+# define nx_def_enum(ENUM, TYPE, NAME) ENUM,
+	NX_EACH_PROPERTY_TABLE(nx_def_enum)
+# undef nx_def_enum
 };
 
 template<> inline uint

@@ -100,8 +100,8 @@ export class Stepper extends ViewController {
 	render() {
 		return (
 			<Hybrid class="x_stepper">
-				<Button class="minus" onClick="m_minus_click_handle" defaultHighlighted={0}>\ued5e</Button>
-				<Button class="plus" onClick="m_plus_click_handle" defaultHighlighted={0}>\ued5d</Button>
+				<Button class="minus" onClick="m_minus_click_handle" defaultHighlighted={0}>{"\ued5e"}</Button>
+				<Button class="plus" onClick="m_plus_click_handle" defaultHighlighted={0}>{"\ued5d"}</Button>
 			</Hybrid>  
 		);
 	}

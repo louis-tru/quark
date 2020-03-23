@@ -452,8 +452,10 @@ export class NavPageCollection extends Navigation {
 			return;
 		}
 		var time = this.enableAnimate && animate && this.length ? TRANSITION_TIME : 0;
-		var prev = this.current;
+		var prev = this.m_pages.indexReverse(0);
 		var page: NavPage = arg;
+
+		// console.log('push---', time, animate, this.length, this.enableAnimate);
 
 		if ( arg ) {
 			if ( arg instanceof NavPage ) { // dom
@@ -480,6 +482,8 @@ export class NavPageCollection extends Navigation {
 			(page as any).m_nextPage = page; // private props visit
 		}
 
+		this.m_pages.push(page);
+
 		if (!(page as any).m_navbar) { // Create default navbar
 			page.navbar = <Navbar />;
 		}
@@ -492,13 +496,11 @@ export class NavPageCollection extends Navigation {
 			}
 		}
 
-		this.m_pages.push(page);
-
 		(page.navbar as any).m_collection = this; // private props visit
 		(page.toolbar as any).m_collection = this; // private props visit
 		page.navbar.appendTo(this.IDs.navbar as View);
 		page.toolbar.appendTo(this.IDs.toolbar as View);
-		
+
 		this.m_animating = time ? true: false;
 		if ( time ) {
 			setTimeout(()=>{ this.m_animating = false }, time);
@@ -802,7 +804,7 @@ export class Navbar extends Bar {
 									textSize={20}
 									height={26} y={2}
 									textColor="inherit" 
-									textFamily="icon" value='\uedc5' />
+									textFamily="icon" value={'\uedc5'} />
 								<TextNode id="back_text1" />
 							</Button>
 						</Limit>
@@ -1073,6 +1075,7 @@ export class NavPage extends Navigation {
 
 	// @overwrite
 	intoBackground(time: number) {
+		// console.log('intoBackground', time);
 		//console.log( this.nextPage == null ? 'null' : 'no null' )
 		if ( this.nextPage == null ) return;
 		//console.log( 'natpage intoBackground' )
@@ -1090,6 +1093,7 @@ export class NavPage extends Navigation {
 
 	// @overwrite
 	intoForeground(time: number, action: NavigationForegroundAction) {
+		// console.log('intoForeground', time);
 		if ( this.status == 0 ) return;
 		this.navbar.intoForeground(time, action);
 		this.toolbar.intoForeground(time, action);
@@ -1124,6 +1128,7 @@ export class NavPage extends Navigation {
 
 	// @overwrite
 	intoLeave(time: number) {
+		// console.log('intoLeave', time);
 		this.navbar.intoLeave(time);
 		this.toolbar.intoLeave(time);
 		if ( this.status == 0 ) {

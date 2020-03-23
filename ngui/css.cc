@@ -209,12 +209,12 @@ StyleSheets::~StyleSheets() {
 
 // -----
 
-#define xx_def_property(ENUM, TYPE, NAME) \
+#define nx_def_property(ENUM, TYPE, NAME) \
 void StyleSheets::set_##NAME(TYPE value) { \
 _inl_ss(this)->set_property_value<ENUM>(value); \
 }
-NX_EACH_PROPERTY_TABLE(xx_def_property)
-#undef xx_def_accessor
+NX_EACH_PROPERTY_TABLE(nx_def_property)
+#undef nx_def_accessor
 
 template <> BackgroundPtr StyleSheets::Inl::
 get_property_value<PROPERTY_BACKGROUND, BackgroundPtr>() {

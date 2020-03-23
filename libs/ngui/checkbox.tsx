@@ -186,7 +186,7 @@ export class Checkbox extends Basic {
 	render() {
 		return (
 			<Button class={`x_checkbox ${this.selected ? 'on': ''}`} defaultHighlighted={0}>
-				<TextNode class="mark" value="\ued71" />
+				<TextNode class="mark" value={"\ued71"} />
 			</Button>
 		)
 	}

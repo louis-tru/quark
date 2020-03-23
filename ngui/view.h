@@ -110,11 +110,11 @@ class NX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 * @enum ViewType
 	 */
 	enum ViewType {
-	 #define xx_def_view_type(enum, type, name) enum,
+	 #define nx_def_view_type(enum, type, name) enum,
 		INVALID = 0,
 		VIEW,
-		NX_EACH_VIEWS(xx_def_view_type)
-	 #undef xx_def_view_type
+		NX_EACH_VIEWS(nx_def_view_type)
+	 #undef nx_def_view_type
 	};
 
 	/**
@@ -122,10 +122,10 @@ class NX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 */
 	virtual ViewType view_type() const { return VIEW; }
 	
- #define xx_def_view_type(enum, type, name)  \
+ #define nx_def_view_type(enum, type, name)  \
 	virtual type* as_##name() { return nullptr; }
-	NX_EACH_VIEWS(xx_def_view_type) // as type
- #undef xx_def_view_type
+	NX_EACH_VIEWS(nx_def_view_type) // as type
+ #undef nx_def_view_type
 
 	/**
 	 * @enum MarkValue

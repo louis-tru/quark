@@ -108,8 +108,8 @@ int clock_gettime2(clockid_t id, struct timespec *tspec) {
 # define IMMEDIATE_CRASH() ((void(*)())0)()
 #endif
 
-#ifndef xx_stderr
-# define xx_stderr stdout
+#ifndef nx_stderr
+# define nx_stderr stdout
 #endif
 
 NX_NS(ngui)
@@ -135,13 +135,13 @@ void Console::warn(cString& str) {
 	printf("Warning: %s\n", *str);
 }
 void Console::error(cString& str) {
-	fprintf(xx_stderr, "%s\n", *str);
+	fprintf(nx_stderr, "%s\n", *str);
 }
 void Console::print(cString& str) {
 	printf("%s", *str);
 }
 void Console::print_err(cString& str) {
-	fprintf(xx_stderr, "%s", *str);
+	fprintf(nx_stderr, "%s", *str);
 }
 void Console::clear() {
 	// noop
@@ -414,7 +414,7 @@ int fix_random(uint a, ...) {
 
 void fatal(cchar* file, uint line, cchar* func, cchar* msg, ...) {
 	fflush(stdout);
-	fflush(xx_stderr);
+	fflush(nx_stderr);
 	if (msg) {
 		NX_STRING_FORMAT(msg, str);
 		default_console()->print_err("\n\n\n");
@@ -423,7 +423,7 @@ void fatal(cchar* file, uint line, cchar* func, cchar* msg, ...) {
 	console::report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 	console::dump_backtrace();
 	fflush(stdout);
-	fflush(xx_stderr);
+	fflush(nx_stderr);
 	IMMEDIATE_CRASH();
 }
 

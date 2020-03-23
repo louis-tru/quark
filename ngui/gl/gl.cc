@@ -35,8 +35,8 @@
 
 #define gl_  glshaders(this)
 
-#ifndef xx_use_depth_test
-#define xx_use_depth_test 0
+#ifndef nx_use_depth_test
+#define nx_use_depth_test 0
 #endif
 
 NX_NS(ngui)
@@ -247,7 +247,7 @@ void GLDraw::initializ_gl_buffers() {
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
 		glGenRenderbuffers(1, &m_render_buffer);
 		// Perform similar steps to create and attach a depth renderbuffer.
-		if ( xx_use_depth_test ) {
+		if ( nx_use_depth_test ) {
 			glGenRenderbuffers(1, &m_depth_buffer);
 		}
 		// stencil buffer
@@ -290,7 +290,7 @@ void GLDraw::refresh_buffer() {
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_RGBA8, width, height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_msaa_render_buffer);
 
-		if ( xx_use_depth_test ) {
+		if ( nx_use_depth_test ) {
 			if ( is_support_packed_depth_stencil() ) {
 				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
 				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_DEPTH24_STENCIL8, width, height);
@@ -305,7 +305,7 @@ void GLDraw::refresh_buffer() {
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_STENCIL_INDEX8, width, height);
 		}
 	} else {
-		if ( xx_use_depth_test ) {
+		if ( nx_use_depth_test ) {
 			if ( is_support_packed_depth_stencil() ) {
 				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -321,7 +321,7 @@ void GLDraw::refresh_buffer() {
 		}
 	}
 
-	if ( xx_use_depth_test ) {
+	if ( nx_use_depth_test ) {
 		 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
 															is_support_packed_depth_stencil() ? m_depth_buffer : m_stencil_buffer);

@@ -158,7 +158,7 @@ static void init_ffmpeg_jni() {
 	static bool has_init = false;
 	if (!has_init) {
 		has_init = true;
-		if ( xx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
+		if ( nx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
 			NX_ERR( "x_jni_set_java_vm(), unsuccessful." );
 		}
 	}

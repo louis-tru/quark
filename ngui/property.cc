@@ -47,16 +47,16 @@ NX_NS(ngui)
 
 #define set_func(view, cls, Name, func) view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
-static PropertysAccessor* xx_accessor_shared = nullptr;
+static PropertysAccessor* nx_accessor_shared = nullptr;
 
 /**
  * @func shared
  */
 PropertysAccessor* PropertysAccessor::shared() {
-	if ( ! xx_accessor_shared ) {
-		xx_accessor_shared = new PropertysAccessor();
+	if ( ! nx_accessor_shared ) {
+		nx_accessor_shared = new PropertysAccessor();
 	}
-	return xx_accessor_shared;
+	return nx_accessor_shared;
 }
 
 PropertysAccessor::PropertysAccessor() {

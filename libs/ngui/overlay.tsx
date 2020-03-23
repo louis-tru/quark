@@ -296,7 +296,7 @@ export class Overlay extends Navigation {
 							y={-10} x={-3}
 							textFamily='iconfont' 
 							textLineHeight={36}
-							textSize={36} textColor={this.backgroundColor} value="\uedcb" />
+							textSize={36} textColor={this.backgroundColor} value={"\uedcb"} />
 					</Indep>
 
 					<Clip id="content" backgroundColor={this.backgroundColor} borderRadius={8}>{vdoms}</Clip>

@@ -37,8 +37,8 @@
 #include "action.h"
 #include "css.h"
 
-NX_EXPORT int (*__xx_default_gui_main)(int, char**) = nullptr;
-NX_EXPORT int (*__xx_gui_main)(int, char**) = nullptr;
+NX_EXPORT int (*__nx_default_gui_main)(int, char**) = nullptr;
+NX_EXPORT int (*__nx_gui_main)(int, char**) = nullptr;
 
 NX_NS(ngui)
 
@@ -184,10 +184,10 @@ void GUIApplication::runMain(int argc, char* argv[]) {
 	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	Thread::spawn([argc, argv](Thread& t) {
-		ASSERT( __xx_default_gui_main );
-		auto main = __xx_gui_main ? __xx_gui_main : __xx_default_gui_main;
-		__xx_default_gui_main = nullptr;
-		__xx_gui_main = nullptr;
+		ASSERT( __nx_default_gui_main );
+		auto main = __nx_gui_main ? __nx_gui_main : __nx_default_gui_main;
+		__nx_default_gui_main = nullptr;
+		__nx_gui_main = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
 		DLOG("GUIApplication::start Exit");
 		ngui::exit(rc); // if sub thread end then exit

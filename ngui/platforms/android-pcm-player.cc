@@ -49,7 +49,7 @@ extern int get_channel_mask(uint channel_count);
 #if USE_ANDROID_OPENSLES_PCM_PLAYER
 
 struct AudioEngine;
-static AudioEngine* xx_share_engine = NULL;
+static AudioEngine* nx_share_engine = NULL;
 
 struct AudioEngine {
 
@@ -94,10 +94,10 @@ struct AudioEngine {
 	}
 
 	static AudioEngine* share() {
-		if ( ! xx_share_engine ) {
-			xx_share_engine = new AudioEngine();
+		if ( ! nx_share_engine ) {
+			nx_share_engine = new AudioEngine();
 		}
-		return xx_share_engine;
+		return nx_share_engine;
 	}
 
 	// engine interfaces

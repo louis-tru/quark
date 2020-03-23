@@ -275,15 +275,15 @@ class Frame::Inl: public Frame {
 	
 };
 
-#define xx_def_property(ENUM, TYPE, NAME) \
+#define nx_def_property(ENUM, TYPE, NAME) \
 TYPE Frame::NAME() { \
 	return _inl_frame(this)->property_value<ENUM, TYPE>(); \
 }\
 void Frame::set_##NAME(TYPE value) { \
 	_inl_frame(this)->set_property_value<ENUM>(value); \
 }
-NX_EACH_PROPERTY_TABLE(xx_def_property)
-#undef xx_def_accessor
+NX_EACH_PROPERTY_TABLE(nx_def_property)
+#undef nx_def_accessor
 
 /**
  * @func GroupAction::Inl

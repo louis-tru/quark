@@ -61,9 +61,14 @@ if   [ ! -d tools/node_modules/nxkit ] \
 	cd ../..
 fi
 
-# ln -s libs node_modules
 if [ ! -d node_modules ]; then
+	mkdir node_modules
+	cd node_modules
+	ln -s ../libs/ngui/out/ngui
+	ln -s ../libs/nxkit/out/nxkit
+	ln -s ../libs/nxp/out/nxp
 	ln -s libs node_modules
+	cd ..
 fi
 
 node tools/configure.js "$@"

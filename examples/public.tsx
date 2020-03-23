@@ -69,7 +69,7 @@ ngui.css({
 	},
 	
 	'.next_btn': {
-		width: "full",
+		width: 'full',
 		textLineHeight: 45,
 		textAlign: "left",
 		borderRadius: 0,
@@ -78,7 +78,7 @@ ngui.css({
 	'.next_btn:normal': {
 		backgroundColor: '#fff0', time: 180
 	},
-	
+
 	'.next_btn:hover': {
 		backgroundColor: '#ececec', time: 50
 	},
@@ -113,7 +113,7 @@ export class NavButton extends ViewController {
 				borderBottom={`${px} #c8c7cc`}>
 				<Hybrid marginLeft={16} marginRight={50}>{vdoms}</Hybrid>
 				<Indep x={-10} alignX="right" alignY="center">
-					<Text value="\uedbe" textFamily="icomoon-ultimate" textColor="#aaa" />
+					<Text value={'\uedbe'} textFamily="icomoon-ultimate" textColor="#aaa" />
 				</Indep>
 			</Button>
 		);

@@ -144,7 +144,7 @@ export class VirtualDOM {
 	}
 
 	newInstance(ctr: ViewController | null): DOM {
-		utils.assert(!this.dom);
+		utils.assert(this.dom === defaultDOM);
 		var dom = new this.domConstructor();
 		this.dom = dom;
 		(dom as any).m_owner = ctr; // private props visit
@@ -179,7 +179,7 @@ export class VirtualDOM {
 	}
 }
 
-VirtualDOM.prototype.dom = {
+const defaultDOM = {
 	id: '',
 	get __meta__(): View { throw Error.new('implemented') },
 	get owner(): ViewController { throw Error.new('implemented') },
@@ -187,7 +187,9 @@ VirtualDOM.prototype.dom = {
 	appendTo(){ throw Error.new('implemented') },
 	afterTo(){ throw Error.new('implemented')  },
 	style: {},
-};
+} as DOM;
+
+VirtualDOM.prototype.dom = defaultDOM;
 
 /**
  * @class VirtualDOMCollection
@@ -264,7 +266,7 @@ class VirtualDOMCollection extends VirtualDOM {
 	}
 
 	newInstance(ctr: ViewController | null): DOM {
-		utils.assert(!this.dom);
+		utils.assert(this.dom === defaultDOM);
 		var vdoms = this.vdoms;
 		var keys = this.keys;
 		this.dom = new DOMCollection(ctr, this);
@@ -894,6 +896,6 @@ export function _CVDD(value: any): VirtualDOM | null {
 }
 
 // create virtual dom
-export function _CVD(Type: DOMConstructor, props: Dict | null, ...children: (VirtualDOM | null)[]) {
-	return new VirtualDOM(Type, props, children);
+export function _CVD(Type: DOMConstructor, props: Dict | null, ...children: any[]) {
+	return new VirtualDOM(Type, props, children.map(_CVDD));
 }

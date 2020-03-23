@@ -39,7 +39,7 @@
 #include "depe/node/src/ngui.h"
 #include "uv.h"
 
-extern int (*__xx_default_gui_main)(int, char**);
+extern int (*__nx_default_gui_main)(int, char**);
 
 /**
  * @ns ngui::js
@@ -133,26 +133,26 @@ void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
 // startup argv
-Array<char*>* __xx_ngui_argv = nullptr;
-int           __xx_ngui_have_node = 1;
-int           __xx_ngui_have_debug = 0;
+Array<char*>* __nx_ngui_argv = nullptr;
+int           __nx_ngui_have_node = 1;
+int           __nx_ngui_have_debug = 0;
 
 // parse argv
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& ngui_argv) {
 	static String argv_str;
 
 	ASSERT(argv_in.length(), "Bad start argument");
-	__xx_ngui_have_node = 1;
-	__xx_ngui_have_debug = 0;
+	__nx_ngui_have_node = 1;
+	__nx_ngui_have_debug = 0;
 	argv_str = argv_in[0];
 
 	Array<int> indexs = {-1};
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-		if (__xx_ngui_have_node && argv_in[i].index_of("--no-node") == 0) { // ngui arg
-			__xx_ngui_have_node = 0; // disable node
+		if (__nx_ngui_have_node && argv_in[i].index_of("--no-node") == 0) { // ngui arg
+			__nx_ngui_have_node = 0; // disable node
 		} else {
-			if (!__xx_ngui_have_debug && argv_in[i].index_of("--inspect") == 0) {
-				__xx_ngui_have_debug = 1;
+			if (!__nx_ngui_have_debug && argv_in[i].index_of("--inspect") == 0) {
+				__nx_ngui_have_debug = 1;
 			}
 			argv_str.push(' ').push(argv_in[i]);
 			indexs.push(index);
@@ -211,14 +211,14 @@ int Start(const Array<String>& argv_in) {
 		};
 		ngui::set_object_allocator(&allocator);
 	}
-	ASSERT(!__xx_ngui_argv);
+	ASSERT(!__nx_ngui_argv);
 
 	Array<char*> argv, ngui_argv;
 	parseArgv(argv_in, argv, ngui_argv);
 
 	Thread::NX_ON(ProcessSafeExit, on_process_safe_handle);
 
-	__xx_ngui_argv = &ngui_argv;
+	__nx_ngui_argv = &ngui_argv;
 	int rc = 0;
 	int argc = argv.length();
 	char** argv_c = const_cast<char**>(&argv[0]);
@@ -226,7 +226,7 @@ int Start(const Array<String>& argv_in) {
 	// Mark the current main thread and check current thread
 	ASSERT(RunLoop::main_loop() == RunLoop::current());
 
-	if (__xx_ngui_have_node ) {
+	if (__nx_ngui_have_node ) {
 		if (node::ngui_node_api) {
 			rc = node::ngui_node_api->Start(argc, argv_c);
 		} else {
@@ -247,10 +247,10 @@ int Start(const Array<String>& argv_in) {
 		}
 	} else {
 	 no_node_start:
-		__xx_ngui_have_node = 0;
+		__nx_ngui_have_node = 0;
 		rc = IMPL::start(argc, argv_c);
 	}
-	__xx_ngui_argv = nullptr;
+	__nx_ngui_argv = nullptr;
 	Thread::NX_OFF(ProcessSafeExit, on_process_safe_handle);
 
 	return rc;
@@ -296,7 +296,7 @@ int __default_main(int argc, char** argv) {
 }
 
 NX_INIT_BLOCK(__default_main) {
-	__xx_default_gui_main = __default_main;
+	__nx_default_gui_main = __default_main;
 }
 
 JS_END

@@ -38,7 +38,7 @@ NX_NS(ngui)
 
 class GUIApplication;
 
-#define xx_each_keyboard_key_name_table(F) \
+#define nx_each_keyboard_key_name_table(F) \
 F(KEYCODE_UNKNOWN,          0)  \
 F(KEYCODE_MOUSE_LEFT,       1)  \
 F(KEYCODE_MOUSE_CENTER,     2)  \
@@ -198,9 +198,9 @@ F(KEYCODE_ZOOM_IN,          333)     /* 放大键 */ \
 F(KEYCODE_ZOOM_OUT,         334)     /* 缩小键 */ \
 
 enum KeyboardKeyName {
-#define xx_def_enum_keyboard_key_name(Name, Code) Name = Code,
-	xx_each_keyboard_key_name_table(xx_def_enum_keyboard_key_name)
-#undef xx_def_enum_keyboard_key_name
+#define nx_def_enum_keyboard_key_name(Name, Code) Name = Code,
+	nx_each_keyboard_key_name_table(nx_def_enum_keyboard_key_name)
+#undef nx_def_enum_keyboard_key_name
 };
 
 /**

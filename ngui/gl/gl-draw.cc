@@ -50,8 +50,8 @@
 #include "native-glsl.h"
 
 #define SIZEOF(T) sizeof(T) / sizeof(float)
-#define xx_ctx_data(view, T)       static_cast<CtxDataWrap<T>*>(view->m_ctx_data)->value()
-#define xx_ctx_data_float_p(view)  static_cast<CtxDataWrap<CtxData>*>(view->m_ctx_data)->float_p()
+#define nx_ctx_data(view, T)       static_cast<CtxDataWrap<T>*>(view->m_ctx_data)->value()
+#define nx_ctx_data_float_p(view)  static_cast<CtxDataWrap<CtxData>*>(view->m_ctx_data)->float_p()
 
 NX_NS(ngui)
 
@@ -183,24 +183,28 @@ public:
 		set_box_uniform_value(shader::box_border, v);
 		
 		if ( v->m_border_left_width != 0) { // left
+			// LOG("m_border_left_width, %f", v->m_border_left_width);
 			FloatColor color = v->m_border_left_color.to_float_color();
 			glUniform1i(shader::box_border.direction, 0);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		if ( v->m_border_top_width != 0) { // top
+			// LOG("m_border_top_width, %f", v->m_border_top_width);
 			FloatColor color = v->m_border_top_color.to_float_color();
 			glUniform1i(shader::box_border.direction, 1);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		if ( v->m_border_right_width != 0) { // right
+			// LOG("m_border_right_width, %f", v->m_border_right_width);
 			FloatColor color = v->m_border_right_color.to_float_color();
 			glUniform1i(shader::box_border.direction, 2);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		if ( v->m_border_bottom_width != 0) { // bottom
+			// LOG("m_border_bottom_width, %f", v->m_border_bottom_width);
 			FloatColor color = v->m_border_bottom_color.to_float_color();
 			glUniform1i(shader::box_border.direction, 3);
 			glUniform4fv(shader::box_border.border_color, 1, color.value());

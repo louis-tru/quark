@@ -525,16 +525,19 @@ class RunLoop::Inl: public RunLoop {
 		return id;
 	}
 
-	void post_sync(const Callback<RunLoop::PostSyncData>& exec, uint group, uint64 delay_us) {
+	void post_sync(const Callback<RunLoop::PostSyncData>& cb, uint group, uint64 delay_us) {
 		if (Thread::current_id() == m_thread->id()) { // 相同的线程立即执行
-			sync_callback(*reinterpret_cast<cCb*>(&exec), nullptr, this);
-		} else {
+			struct Data: public RunLoop::PostSyncData { virtual void complete() {} } data;
+			sync_callback(*reinterpret_cast<cCb*>(&cb), nullptr, &data);
+		}
+		else {
+
 			if (m_thread->is_abort()) {
 				DLOG("RunLoop::post_sync, m_thread->is_abort() == true");
 				return;
 			}
 
-			struct Ctx: public RunLoop::PostSyncData {
+			struct Data: public RunLoop::PostSyncData {
 				virtual void complete() {
 					ScopeLock scope(inl->m_mutex);
 					ok = true;
@@ -543,28 +546,29 @@ class RunLoop::Inl: public RunLoop {
 				Inl* inl;
 				bool ok;
 				Condition cond;
-			} ctx;
+			} data;
 
 			Lock lock(m_mutex);
-			Ctx* ctxp = &ctx;
-			ctx.inl = this;
-			ctx.ok = false;
+			Data* datap = &data;
+			data.inl = this;
+			data.ok = false;
 
 			m_queue.push({
 				0, group, 0,
-				Cb([exec, ctxp, this](CbD& e) {
+				Cb([cb, datap, this](CbD& e) {
 					CallbackData<RunLoop::PostSyncData> evt = {
-						nullptr, ctxp, 0
+						nullptr, datap, 0
 					};
-					exec->call(evt);
+					cb->call(evt);
 				})
 			});
 
 			activate_loop(); // 通知继续
 
+			// wait
 			do {
-				ctx.cond.wait(lock);
-			} while(!ctx.ok);
+				data.cond.wait(lock);
+			} while(!data.ok);
 		}
 	}
 	

@@ -426,10 +426,10 @@ class NX_EXPORT KeyframeAction: public Action {
 		 */
 		void flush();
 		
-	 #define xx_def_property(ENUM, TYPE, NAME) \
+	 #define nx_def_property(ENUM, TYPE, NAME) \
 		void set_##NAME(TYPE value); TYPE NAME();
-		NX_EACH_PROPERTY_TABLE(xx_def_property)
-	 #undef xx_def_property
+		NX_EACH_PROPERTY_TABLE(nx_def_property)
+	 #undef nx_def_property
 		
 	 private:
 		

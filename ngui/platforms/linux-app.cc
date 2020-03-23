@@ -397,12 +397,14 @@ class LinuxApplication {
 		cJSON& o_b = options["background"];
 		cJSON& o_t = options["title"];
 		cJSON& o_fc = options["fullScreen"];
-		cJSON& o_et = options["enableTouch"]; int is_enable_touch = 0;
+		cJSON& o_et = options["enableTouch"];
+		
+		int is_enable_touch = 0;
 
 		if (o_t.is_string()) m_title = o_t.to_string();
 		if (o_fc.is_bool()) m_is_fullscreen = o_fc.to_bool();
 		if (o_fc.is_int()) m_is_fullscreen = o_fc.to_int();
-		if (o_et.is_bool()) is_enable_touch = o_et.to_int();
+		if (o_et.is_bool()) is_enable_touch = o_et.to_bool();
 		if (o_et.is_int()) is_enable_touch = o_et.to_int();
 
 		initialize_display(); // init display

@@ -38,8 +38,8 @@
 #include <android/native_window.h>
 #endif
 
-#ifndef xx_use_depth_test
-#define xx_use_depth_test 0
+#ifndef nx_use_depth_test
+#define nx_use_depth_test 0
 #endif
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0

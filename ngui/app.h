@@ -38,9 +38,9 @@
 #include "ngui/value.h"
 
 #define NX_GUI_MAIN() \
-	int __xx_gui_main__(int, char**); \
-	NX_INIT_BLOCK(__xx_gui_main__) { __xx_gui_main = __xx_gui_main__; } \
-	int __xx_gui_main__(int argc, char** argv)
+	int __nx_gui_main__(int, char**); \
+	NX_INIT_BLOCK(__nx_gui_main__) { __nx_gui_main = __nx_gui_main__; } \
+	int __nx_gui_main__(int argc, char** argv)
 
 #define NX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
 #define NX_ASSERT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
@@ -48,7 +48,7 @@
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
  */
-NX_EXPORT extern int (*__xx_gui_main)(int, char**);
+NX_EXPORT extern int (*__nx_gui_main)(int, char**);
 
 /**
  * @ns trurh::gui

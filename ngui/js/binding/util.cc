@@ -44,9 +44,9 @@ JS_BEGIN
 
 using namespace native_js;
 
-extern Array<char*>* __xx_ngui_argv;
-extern int __xx_ngui_have_node;
-extern int __xx_ngui_have_debug;
+extern Array<char*>* __nx_ngui_argv;
+extern int __nx_ngui_have_node;
+extern int __nx_ngui_have_debug;
 
 typedef Object NativeObject;
 
@@ -293,14 +293,14 @@ class NativeUtil {
 		JS_SET_PROPERTY(platform, ngui::platform());
 
 		Local<JSArray> argv = worker->NewArray();
-		if (__xx_ngui_argv) {
-			for (uint i = 0; i < __xx_ngui_argv->length(); i++) {
-				argv->Set(worker, i, worker->New(__xx_ngui_argv->item(i)));
+		if (__nx_ngui_argv) {
+			for (uint i = 0; i < __nx_ngui_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(__nx_ngui_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);
-		JS_SET_PROPERTY(haveNode, !!__xx_ngui_have_node);
-		JS_SET_PROPERTY(debug, !!__xx_ngui_have_debug);
+		JS_SET_PROPERTY(haveNode, !!__nx_ngui_have_node);
+		JS_SET_PROPERTY(debug, !!__nx_ngui_have_debug);
 
 		// extendModule
 		Local<JSObject> extendModule = worker->NewObject();

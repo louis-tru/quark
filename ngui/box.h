@@ -470,10 +470,10 @@ class NX_EXPORT Box: public Layout {
 	Color     m_border_right_color;
 	Color     m_border_bottom_color;
 	Color     m_border_left_color;
+	float     m_border_left_width;
 	float     m_border_top_width;
 	float     m_border_right_width;
 	float     m_border_bottom_width;
-	float     m_border_left_width;
 	float     m_border_radius_left_top; // 左上圆角
 	float     m_border_radius_right_top; // 右上圆角
 	float     m_border_radius_right_bottom; // 右下圆角

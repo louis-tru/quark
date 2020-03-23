@@ -7,7 +7,7 @@ uniform mat4  root_matrix;
 uniform float view_matrix[7];  // 视图变换/透明度
 uniform vec4  vertex_ac;
 
-#define xx_VertexID int(vertex_id[0])
+#define nx_VertexID int(vertex_id[0])
 #define r_matrix root_matrix
 #define v_matrix get_view_matrix()
 #define _vm view_matrix

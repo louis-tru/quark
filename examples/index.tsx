@@ -128,7 +128,7 @@ class DefaultToolbar extends Toolbar {
 		return super.render(
 			<Hybrid textAlign="center" width="full" height="full">
 				<Button onClick={review_code}>
-					<Text class="toolbar_btn" value="\ue9ab" />
+					<Text class="toolbar_btn" value={"\ue9ab"} />
 				</Button>
 			</Hybrid>
 		);
@@ -187,17 +187,19 @@ var app = new GUIApplication({
 }).start(
 	<Root>
 
-		<NavPageCollection id="npc" defaultToolbar={DefaultToolbar}>
+		<NavPageCollection id="npc" defaultToolbar={<DefaultToolbar />}>
 			<Mynavpage title="Home" source={resolve(__filename)}>
 
 				<Scroll width="full" height="full" bounceLock={0}>
 
 					<Text class="hello" value="Hello." />
 					<Div class="category" borderBottom={`${px} #c8c7cc`}>
-						<Hybrid class="codepre"><T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'ngui'" />
-<T class="keywork" value="new"/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>(
-	{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{"\>"}
-)
+						<Hybrid class="codepre">
+							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'ngui'" />
+								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
+								(
+									{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{">"}
+								)
 						</Hybrid>
 					</Div>
 

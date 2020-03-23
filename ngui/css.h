@@ -90,9 +90,9 @@ class NX_EXPORT StyleSheets: public Object {
 	
 	// -------------------- set property --------------------
 	
-# define xx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
-	NX_EACH_PROPERTY_TABLE(xx_def_property)
-# undef xx_def_property
+# define nx_def_property(ENUM, TYPE, NAME) void set_##NAME(TYPE value);
+	NX_EACH_PROPERTY_TABLE(nx_def_property)
+# undef nx_def_property
 	
 	/**
 	 * @func background()
