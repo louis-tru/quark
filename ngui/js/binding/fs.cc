@@ -1443,6 +1443,7 @@ class NativeFileHelper {
 			}
 			JS_RETURN( convert_buffer(worker, r, encoding) );
 		} else {
+			// LOG("read_file,args,%d", args.Length());
 			Cb cb = get_callback_for_buffer(worker, args[0], encoding);
 			FileHelper::read_file(path, cb);
 		}

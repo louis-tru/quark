@@ -49,6 +49,7 @@
 #define JS_UNPACK(type)  auto wrap = ngui::js::WrapObject::unpack<type>(args.This())
 #define JS_SELF(type)    auto self = ngui::js::WrapObject::unpack<type>(args.This())->self()
 #define JS_HANDLE_SCOPE() HandleScope scope(worker)
+#define JS_CALLBACK_SCOPE() CallbackScope cscope(worker)
 
 #define JS_THROW_ERROR(Error, err, ...) \
 	return worker->throwError(worker->New##Error((err), ##__VA_ARGS__))
@@ -382,6 +383,14 @@ class NX_EXPORT HandleScope: public NoCopy {
 	~HandleScope();
  private:
 	void* val_[3];
+};
+
+class NX_EXPORT CallbackScope: public NoCopy {
+ public:
+	explicit CallbackScope(Worker* worker);
+	~CallbackScope();
+ private:
+	void* val_;
 };
 
 class NX_EXPORT JSValue: public NoCopy {

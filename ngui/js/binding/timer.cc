@@ -152,8 +152,8 @@ class WrapTimer: public WrapObject {
 		 * 否则v8声明的临时变量会存储在顶级句柄范围中,
 		 * 因为顶级范围句柄从来不会释放,这会造成局部变量也不会释放最终导致内存泄漏
 		 */
-		
 		JS_HANDLE_SCOPE();
+		JS_CALLBACK_SCOPE();
 		wrap->call(wrap->worker()->New("__native_handle_cb__",1));
 	}
 	

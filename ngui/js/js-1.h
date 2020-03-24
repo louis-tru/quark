@@ -96,6 +96,8 @@ class Worker::IMPL {
 	int  TriggerBeforeExit(int code);
 	bool TriggerUncaughtException(Local<JSValue> err);
 	bool TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise);
+	
+	inline int is_node() const { return m_is_node; }
 
 	static int start(int argc, char** argv);
 

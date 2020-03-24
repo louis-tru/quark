@@ -71,6 +71,16 @@ function ReadFile(evt: GUIClickEvent) {
 	});
 }
 
+function ReadFileSync(evt: GUIClickEvent) {
+	console.log('------------', filename);
+	try {
+		var s = fs.readFileSync(filename, 'utf8');
+		alert(s);
+	} catch(err) {
+		alert(err.message + ', ' + err.code);
+	}
+}
+
 function Remove(evt: GUIClickEvent) {
 	try {
 		var a = fs.removerSync(filename);
@@ -94,7 +104,7 @@ export default ()=>(
 			<Button class="long_btn" onClick={WriteFile}>WriteFile</Button>
 			<Button class="long_btn" onClick={WriteFileSync}>WriteFileSync</Button>
 			<Button class="long_btn" onClick={ReadFile}>ReadFile</Button>
-			<Button class="long_btn" onClick={ReadFile}>ReadFileSync</Button>
+			<Button class="long_btn" onClick={ReadFileSync}>ReadFileSync</Button>
 			<Button class="long_btn" onClick={Remove}>Remove</Button>
 		</Div>
 	</Mynavpage>

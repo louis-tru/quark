@@ -31,6 +31,7 @@
 import './_ext';
 import errno from './errno';
 import {Encoding} from './buffer';
+import _util from './_util';
 
 const _fs = __requireNgui__('_fs');
 

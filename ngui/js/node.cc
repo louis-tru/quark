@@ -48,6 +48,10 @@ namespace node {
 		ngui::RunLoop::main_loop()->run();
 	}
 
+	bool NguiEnvironment::is_exited() {
+		return ngui::is_exited();
+	}
+
 	char* NguiEnvironment::encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
 		auto buff = ngui::Codec::encoding(ngui::Encoding::UTF8, src, length);
 		*out_len = buff.length();
@@ -58,10 +62,6 @@ namespace node {
 		auto buff = ngui::Codec::decoding_to_uint16(ngui::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
-	}
-
-	bool NguiEnvironment::is_exited() {
-		return ngui::is_exited();
 	}
 
 }

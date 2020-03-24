@@ -35,10 +35,11 @@ const _util = __requireNgui__('_util');
 
 type Platform = 'darwin' | 'linux' | 'win32' | 'android';
 
+
 function nextTick<A extends any[], R>(cb: (...args: A) => R, ...args: A): void {
 	if (typeof cb != 'function')
 		throw new Error('callback must be a function');
-	_util.nextTick(()=>cb(...args));
+	_util.nextTick(function(){ cb(...args) });
 }
 
 function unrealized() {

@@ -57,18 +57,20 @@ static void addEventListener_1(
 	Wrap<Self>* wrap, const GUIEventName& type, cString& func, int id, Cast* cast = nullptr) 
 {
 	auto f = [wrap, func, cast](typename Self::EventType& evt) {
-		// if (worker()->is_terminate()) return;
-		HandleScope scope(wrap->worker());
+		auto worker = wrap->worker();
+		JS_HANDLE_SCOPE();
+		JS_CALLBACK_SCOPE();
+
 		// arg event
 		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
 		if (cast) 
 			ev->setPrivateData(cast); // set data cast func
-		Local<JSValue> args[2] = { ev->that(), wrap->worker()->New(true) };
+		Local<JSValue> args[2] = { ev->that(), worker->New(true) };
 		
 		DLOG("addEventListener_1, %s, EventType: %s", *func, *evt.name());
 
 		// call js trigger func
-		Local<JSValue> r = wrap->call( wrap->worker()->New(func,1), 2, args );
+		Local<JSValue> r = wrap->call( worker->New(func,1), 2, args );
 	};
 	
 	Self* self = wrap->self();

@@ -83,6 +83,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 			if ( !trigger_error.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				Local<JSValue> arg = worker()->New( error );
 				host()->call( worker()->New(trigger_error, 1), 1, &arg );
 			}
@@ -90,18 +91,21 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		virtual void trigger_http_write(HttpClientRequest* req) {
 			if ( !trigger_write.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				host()->call( worker()->New(trigger_write, 1) );
 			}
 		}
 		virtual void trigger_http_header(HttpClientRequest* req) {
 			if ( !trigger_header.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				host()->call( worker()->New(trigger_header, 1) );
 			}
 		}
 		virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
 			if ( !trigger_data.is_empty() ) {
 				HandleScope scope(host()->worker());
+				CallbackScope cscope(worker());
 				Local<JSValue> arg = worker()->New( move(buffer) );
 				host()->call( worker()->New(trigger_data, 1), 1, &arg );
 			}
@@ -109,24 +113,28 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		virtual void trigger_http_end(HttpClientRequest* req) {
 			if ( !trigger_end.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				host()->call( worker()->New(trigger_end, 1) );
 			}
 		}
 		virtual void trigger_http_readystate_change(HttpClientRequest* req) {
 			if ( !trigger_readystate_change.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				host()->call( worker()->New(trigger_readystate_change, 1) );
 			}
 		}
 		virtual void trigger_http_timeout(HttpClientRequest* req) {
 			if ( !trigger_timeout.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				host()->call( worker()->New(trigger_timeout, 1) );
 			}
 		}
 		virtual void trigger_http_abort(HttpClientRequest* req) {
 			if ( !trigger_abort.is_empty() ) {
 				HandleScope scope(worker());
+				CallbackScope cscope(worker());
 				host()->call( worker()->New(trigger_abort, 1) );
 			}
 		}

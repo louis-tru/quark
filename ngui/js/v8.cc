@@ -125,19 +125,16 @@ class V8ExternalStringResource: public v8::String::ExternalStringResource {
  */
 class WorkerIMPL: public IMPL {
  public:
- 	template<class T>
-	struct Wrap {
-		T value;
-		inline Wrap(Isolate* isolate): value(isolate) {}
+	struct HandleScopeWrap {
+		v8::HandleScope value;
+		inline HandleScopeWrap(Isolate* isolate): value(isolate) {}
 	};
 	Isolate*  isolate_;
 	Locker*   locker_;
-	Wrap<v8::HandleScope>* handle_scope_;
-	Wrap<v8::SealHandleScope>* handle_scope_seal_;
+	HandleScopeWrap* handle_scope_;
 	v8::Local<v8::Context> context_;
 
-	WorkerIMPL()
-		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
+	WorkerIMPL(): locker_(nullptr), handle_scope_(nullptr)
 	{
 		Isolate::CreateParams params;
 		params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -145,7 +142,7 @@ class WorkerIMPL: public IMPL {
 		isolate_ = Isolate::New(params);
 		locker_ = new Locker(isolate_);
 		isolate_->Enter();
-		handle_scope_ = new Wrap<v8::HandleScope>(isolate_);
+		handle_scope_ = new HandleScopeWrap(isolate_);
 		context_ = v8::Context::New(isolate_);
 		context_->Enter();
 		isolate_->SetFatalErrorHandler(OnFatalError);
@@ -155,7 +152,7 @@ class WorkerIMPL: public IMPL {
 
 	// use node
 	WorkerIMPL(void* v8_isolate, void* v8_context)
-		: locker_(nullptr), handle_scope_(nullptr), handle_scope_seal_(nullptr) 
+		: locker_(nullptr), handle_scope_(nullptr)
 	{
 		m_is_node = 1;
 		isolate_ = reinterpret_cast<Isolate*>(v8_isolate);
@@ -165,9 +162,6 @@ class WorkerIMPL: public IMPL {
 	virtual void initialize() {
 		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
 		m_global.Reset(m_host, Cast<JSObject>(context_->Global()) );
-		if (!m_is_node) {
-			handle_scope_seal_ = new Wrap<v8::SealHandleScope>(isolate_);
-		}
 		IMPL::initialize();
 	}
 
@@ -176,7 +170,6 @@ class WorkerIMPL: public IMPL {
 		if (!m_is_node) {
 			context_->Exit();
 			context_.Clear();
-			delete handle_scope_seal_; handle_scope_seal_ = nullptr;
 			delete handle_scope_; handle_scope_ = nullptr;
 			isolate_->Exit();
 			delete locker_; locker_ = nullptr;
@@ -376,7 +369,7 @@ Worker* IMPL::create() {
 	return inl->host();
 }
 
-NX_EXPORT Worker* createWorkerWithNode(void* isolate, void* context) {
+NX_EXPORT Worker* NewWorkerWithNode(void* isolate, void* context) {
 	auto inl = new WorkerIMPL(isolate, context);
 	inl->initialize();
 	return inl->host();
@@ -496,7 +489,7 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 
 Local<JSValue> IMPL::binding_node_module(cString& name) {
 	if (node::ngui_node_api) {
-		void* r = node::ngui_node_api->binding_node_module(*name);
+		void* r = node::ngui_env->binding_node_module(*name);
 		auto _ = reinterpret_cast<Local<JSValue>*>(&r);
 		return *_;
 	}
@@ -517,6 +510,22 @@ HandleScope::~HandleScope() {
 	reinterpret_cast<V8HandleScopeWrap*>(this)->~V8HandleScopeWrap();
 }
 
+CallbackScope::CallbackScope(Worker* worker) {
+	auto impl = WORKER(worker);
+	if (impl->is_node()) {
+		val_ = node::ngui_env->new_callback_scope();
+	} else {
+		val_ = nullptr;
+	}
+}
+
+CallbackScope::~CallbackScope() {
+	if (val_) {
+		node::ngui_env->del_callback_scope(reinterpret_cast<node::NodeCallbackScope*>(val_));
+	}
+	val_ = nullptr;
+}
+	
 // ------------------------ JSValue ------------------------
 
 bool JSValue::IsUndefined() const {
@@ -1398,6 +1407,8 @@ int IMPL::start(int argc, char** argv) {
 	int rc = 0;
 	{
 		Handle<Worker> worker = IMPL::create();
+		v8::SealHandleScope handle_scope_seal_(ISOLATE(*worker));
+
 		{
 			HandleScope scope(*worker);
 			auto _pkg = worker->bindingModule("_pkg");

@@ -96,6 +96,7 @@ class NativeBuffer {
 	static void convertString(FunctionCall args) {
 		JS_WORKER(args);
 
+		int args_index = 0;
 		if (args.Length() < 1 || !args[0]->IsUint8Array()) {
 			JS_THROW_ERR(
 				"* @func convertString(uint8array,[encoding[,start[,end]]])\n"
@@ -106,17 +107,16 @@ class NativeBuffer {
 			);
 		}
 
-		Local<JSUint8Array> self = args[0].To<JSUint8Array>();
+		Local<JSUint8Array> self = args[args_index++].To<JSUint8Array>();
 		
 		Encoding encoding = Encoding::utf8;
 		int len = self->ByteLength(worker);
 		char* data = self->weakBuffer(worker).value();
 		uint start = 0;
 		uint end = len;
-		int args_index = 1;
 
 		if (args.Length() > args_index && args[args_index]->IsString(worker)) {
-			if ( ! parseEncoding(args, args[0], encoding) ) return;
+			if ( ! parseEncoding(args, args[args_index], encoding) ) return;
 			args_index++;
 		}
 		if (args.Length() > args_index && args[args_index]->ToUint32Maybe(worker).To(start)) {
