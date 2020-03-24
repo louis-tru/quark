@@ -526,49 +526,45 @@ class RunLoop::Inl: public RunLoop {
 	}
 
 	void post_sync(const Callback<RunLoop::PostSyncData>& cb, uint group, uint64 delay_us) {
-		if (Thread::current_id() == m_thread->id()) { // 相同的线程立即执行
-			struct Data: public RunLoop::PostSyncData { virtual void complete() {} } data;
-			sync_callback(*reinterpret_cast<cCb*>(&cb), nullptr, &data);
-		}
-		else {
+		ASSERT(!m_thread->is_abort(), "RunLoop::post_sync, m_thread->is_abort() == true");
 
-			if (m_thread->is_abort()) {
-				DLOG("RunLoop::post_sync, m_thread->is_abort() == true");
-				return;
+		struct Data: public RunLoop::PostSyncData {
+			virtual void complete() {
+				ScopeLock scope(inl->m_mutex);
+				ok = true;
+				cond.notify_all();
 			}
+			Inl* inl;
+			bool ok;
+			Condition cond;
+		} data;
 
-			struct Data: public RunLoop::PostSyncData {
-				virtual void complete() {
-					ScopeLock scope(inl->m_mutex);
-					ok = true;
-					cond.notify_all();
-				}
-				Inl* inl;
-				bool ok;
-				Condition cond;
-			} data;
+		Data* datap = &data;
+		data.inl = this;
+		data.ok = false;
 
-			Lock lock(m_mutex);
-			Data* datap = &data;
-			data.inl = this;
-			data.ok = false;
+		typedef CallbackData<RunLoop::PostSyncData> PCbD;
 
+		bool isCur = Thread::current_id() == m_thread->id();
+		if (isCur) { // 立即调用
+			sync_callback(*reinterpret_cast<cCb*>(&cb), nullptr, datap);
+		}
+
+		Lock lock(m_mutex);
+
+		if (!isCur) {
 			m_queue.push({
 				0, group, 0,
 				Cb([cb, datap, this](CbD& e) {
-					CallbackData<RunLoop::PostSyncData> evt = {
-						nullptr, datap, 0
-					};
+					PCbD evt = { nullptr, datap, 0 };
 					cb->call(evt);
 				})
 			});
-
 			activate_loop(); // 通知继续
+		}
 
-			// wait
-			do {
-				data.cond.wait(lock);
-			} while(!data.ok);
+		while(!data.ok) {
+			data.cond.wait(lock); // wait
 		}
 	}
 	

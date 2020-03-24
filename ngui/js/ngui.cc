@@ -39,6 +39,10 @@
 #include "depe/node/src/ngui.h"
 #include "uv.h"
 
+#if NX_UNIX
+# include <dlfcn.h>
+#endif
+
 extern int (*__nx_default_gui_main)(int, char**);
 
 /**
@@ -229,18 +233,17 @@ int Start(const Array<String>& argv_in) {
 	ASSERT(RunLoop::main_loop() == RunLoop::current());
 
 	if (__nx_ngui_have_node ) {
-		if (node::ngui_node_api) {
-			rc = node::ngui_node_api->Start(argc, argv_c);
+		if (node::node_api) {
+			rc = node::node_api->start(argc, argv_c);
 		} else {
 #if NX_LINUX
 			// try loading ngui-node
-			uv_lib_t lib;
-			int err = uv_dlopen("libngui-node.so", &lib);
-			if (err != 0) {
-				NX_WARN("No node library loaded, %s", uv_dlerror(&lib));
+			void* handle = dlopen("libngui-node.so", RTLD_LAZY | RTLD_GLOBAL);
+			if (!handle) {
+				NX_WARN("No node library loaded, %s", dlerror());
 				goto no_node_start;
 			} else {
-				rc = node::ngui_node_api->Start(argc, argv_c);
+				rc = node::node_api->start(argc, argv_c);
 			}
 #else
 			NX_WARN("No node library loaded");

@@ -136,9 +136,9 @@ class WorkerIMPL: public IMPL {
 
 	WorkerIMPL(): locker_(nullptr), handle_scope_(nullptr)
 	{
+		m_is_node = 0;
 		Isolate::CreateParams params;
 		params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-		m_is_node = 0;
 		isolate_ = Isolate::New(params);
 		locker_ = new Locker(isolate_);
 		isolate_->Enter();
@@ -151,18 +151,16 @@ class WorkerIMPL: public IMPL {
 	}
 
 	// use node
-	WorkerIMPL(void* v8_isolate, void* v8_context)
-		: locker_(nullptr), handle_scope_(nullptr)
+	WorkerIMPL(v8::Isolate* isolate, v8::Local<v8::Context> context)
+		: locker_(nullptr), handle_scope_(nullptr), isolate_(isolate), context_(context)
 	{
 		m_is_node = 1;
-		isolate_ = reinterpret_cast<Isolate*>(v8_isolate);
-		context_ = *reinterpret_cast<v8::Local<v8::Context>*>(v8_context);
 	}
 
-	virtual void initialize() {
+	virtual Worker* initialize() {
 		isolate_->SetData(ISOLATE_INL_WORKER_DATA_INDEX, m_host);
 		m_global.Reset(m_host, Cast<JSObject>(context_->Global()) );
-		IMPL::initialize();
+		return IMPL::initialize();
 	}
 
 	virtual void release() {
@@ -364,15 +362,11 @@ Worker* Worker::worker() {
 }
 
 Worker* IMPL::create() {
-	auto inl = new WorkerIMPL();
-	inl->initialize();
-	return inl->host();
+	return (new WorkerIMPL())->initialize();
 }
 
-NX_EXPORT Worker* NewWorkerWithNode(void* isolate, void* context) {
-	auto inl = new WorkerIMPL(isolate, context);
-	inl->initialize();
-	return inl->host();
+NX_EXPORT Worker* new_worker_with_node(v8::Isolate* isolate, v8::Local<v8::Context> context) {
+	return (new WorkerIMPL(isolate, context))->initialize();
 }
 
 WrapObject* IMPL::GetObjectPrivate(Local<JSObject> object) {
@@ -488,8 +482,8 @@ Local<JSFunction> IMPL::GenConstructor(Local<JSClass> cls) {
 }
 
 Local<JSValue> IMPL::binding_node_module(cString& name) {
-	if (node::ngui_node_api) {
-		void* r = node::ngui_env->binding_node_module(*name);
+	if (node::node_api) {
+		void* r = node::node_api->binding_node_module(*name);
 		auto _ = reinterpret_cast<Local<JSValue>*>(&r);
 		return *_;
 	}
@@ -513,7 +507,7 @@ HandleScope::~HandleScope() {
 CallbackScope::CallbackScope(Worker* worker) {
 	auto impl = WORKER(worker);
 	if (impl->is_node()) {
-		val_ = node::ngui_env->new_callback_scope();
+		val_ = node::node_api->callback_scope(node::ngui_api->env());
 	} else {
 		val_ = nullptr;
 	}
@@ -521,7 +515,7 @@ CallbackScope::CallbackScope(Worker* worker) {
 
 CallbackScope::~CallbackScope() {
 	if (val_) {
-		node::ngui_env->del_callback_scope(reinterpret_cast<node::NodeCallbackScope*>(val_));
+		node::node_api->delete_callback_scope(reinterpret_cast<node::NodeCallbackScope*>(val_));
 	}
 	val_ = nullptr;
 }
@@ -1423,7 +1417,6 @@ int IMPL::start(int argc, char** argv) {
 		}
 
 		auto loop = RunLoop::main_loop();
-
 		do {
 			loop->run();
 			/* IOS forces the process to terminate, but it does not quit immediately.

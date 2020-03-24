@@ -35,30 +35,30 @@
 
 namespace node {
 
-	NguiEnvironment* ngui_env = nullptr;
-	NodeAPI* ngui_node_api = nullptr;
+	NguiApi* ngui_api = nullptr;
+	NodeAPI* node_api = nullptr;
 
-	NguiEnvironment::~NguiEnvironment() {
+	NguiApi::~NguiApi() {
 		ngui::Release(m_worker);
 		m_worker = nullptr;
-		ngui_env = nullptr;
+		ngui_api = nullptr;
 	}
 
-	void NguiEnvironment::run_loop() {
+	void NguiApi::run_main_loop() {
 		ngui::RunLoop::main_loop()->run();
 	}
 
-	bool NguiEnvironment::is_exited() {
+	bool NguiApi::is_exited() {
 		return ngui::is_exited();
 	}
 
-	char* NguiEnvironment::encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
+	char* NguiApi::encoding_to_utf8(const uint16_t* src, int length, int* out_len) {
 		auto buff = ngui::Codec::encoding(ngui::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}
 
-	uint16_t* NguiEnvironment::decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
+	uint16_t* NguiApi::decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
 		auto buff = ngui::Codec::decoding_to_uint16(ngui::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();

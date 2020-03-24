@@ -289,7 +289,7 @@ static void require_native(FunctionCall args) {
 	}
 }
 
-void IMPL::initialize() {
+Worker* IMPL::initialize() {
 	HandleScope scope(m_host);
 	m_native_modules.Reset(m_host, m_host->NewObject());
 	m_classs = new JSClassStore(m_host);
@@ -302,6 +302,7 @@ void IMPL::initialize() {
 	if ( !m_global.local()->Has(m_host, globalThis) ) {
 		m_global.local()->Set(m_host, globalThis, m_global.local());
 	}
+	return m_host;
 }
 
 void IMPL::release() {

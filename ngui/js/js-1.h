@@ -65,26 +65,19 @@ class Worker::IMPL {
 
 	IMPL();
 	virtual ~IMPL();
-	virtual void initialize();
+	virtual Worker* initialize();
 	virtual void release();
-
 	static Worker* create();
-
+	static inline IMPL* inl(Worker* worker) { return worker->m_inl; }
 	template<class T = IMPL>
-	inline static T* current(Worker* worker = Worker::worker()) {
-		return static_cast<T*>(worker->m_inl);
-	}
-	inline static JSClassStore* js_class(Worker* worker) {
-		return worker->m_inl->m_classs;
-	}
-	inline Worker* host() { return m_host; }
+	inline static T* current(Worker* worker = Worker::worker()) { return static_cast<T*>(worker->m_inl); }
+	inline static JSClassStore* js_class(Worker* worker) { return worker->m_inl->m_classs; }
 	inline JSClassStore* js_class() { return m_classs; }
-
+	inline Worker* host() { return m_host; }
 	static WrapObject* GetObjectPrivate(Local<JSObject> object);
 	static bool SetObjectPrivate(Local<JSObject> object, WrapObject* value);
 
 	bool IsWeak(PersistentBase<JSObject>& handle);
-
 	void SetWeak(PersistentBase<JSObject>& handle,
 							 WrapObject* ptr, WeakCallbackInfo::Callback callback);
 	void ClearWeak(PersistentBase<JSObject>& handle, WrapObject* ptr);
@@ -101,9 +94,6 @@ class Worker::IMPL {
 
 	static int start(int argc, char** argv);
 
-	static inline IMPL* inl(Worker* worker) {
-		return worker->m_inl;
-	}
 
  protected:
 	friend class Worker;

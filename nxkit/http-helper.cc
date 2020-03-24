@@ -220,19 +220,20 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	ResponseData data;
 
 	get_private_loop()->post_sync(Cb_([&](Cb_::Data& d) {
+		auto dd = d.data;
 		try {
-			request(options, Cb([&](CbD& ev) {
-				if (d.error) {
+			request(options, Cb([&,dd](CbD& ev) {
+				if (ev.error) {
 					*const_cast<HttpError*>(&err) = move(*static_cast<const HttpError*>(ev.error));
 				} else {
 					*const_cast<ResponseData*>(&data) = move(*static_cast<ResponseData*>(ev.data));
 					*const_cast<bool*>(&ok) = true;
 				}
-				d.data->complete();
+				dd->complete();
 			}));
 		} catch(const HttpError& e) {
 			*const_cast<HttpError*>(&err) = e;
-			d.data->complete();
+			dd->complete();
 		}
 	}));
 
