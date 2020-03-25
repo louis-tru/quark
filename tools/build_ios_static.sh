@@ -1,7 +1,7 @@
 #!/bin/sh
 
 CWD=`pwd`
-PRODUCT_DIR="out/product/ngui/product"
+PRODUCT_DIR="out/nxp/product"
 BUILD_ALL=$1
 BUILD_V8=$2
 
@@ -10,7 +10,7 @@ build() {
 	cd out/ios.$1.Release
 	rm -f libngui.a libv8.a
 	
-	ar rc libngui.a `find obj.target/ngui-gui \
+	ar rc libngui.a `find obj.target/ngui \
 													obj.target/nxkit \
 													obj.target/ngui-js \
 													obj.target/zlib \

@@ -40,32 +40,31 @@ void main() {
 	
 	float index = float(gl_VertexID - SAMPLEx2);
 	
-	if ( direction == 0 ) { // 左边边框
-		if ( index < 0.0 ) { // 左下角
-			args = mat3(radius_size2.w, PIx0_5, 0.0, 1.0, 0.0, border_width2.xwxw); // 逆时钟, y轴镜像
-		} else { // 左上角
-			args = mat3(radius_size2.x, 0.0, 1.0, 1.0, 1.0, border_width2.xyxy);
-		}
-	}
-	else if ( direction == 1 ) { // 上边
+	if ( direction == 0 ) { // 上边
 		if ( index < 0.0 ) { // 左上角
 			args = mat3(radius_size2.x, PIx0_5, 1.0, 1.0, 1.0, border_width2.yxxy);
 		} else { // 右上角
 			args = mat3(radius_size2.y, 0.0, 0.0, 0.0, 1.0, border_width2.yzzy); // 逆时钟, x轴镜像
 		}
 	}
-	else if ( direction == 2 ) { // 右边
+	else if ( direction == 1 ) { // 右边
 		if ( index < 0.0 ) { // 右上角
 			args = mat3(radius_size2.y, PIx0_5, 0.0, 0.0, 1.0, border_width2.zyzy); // 逆时钟, x轴镜像
 		} else { // 右下角
 			args = mat3(radius_size2.z, 0.0, 1.0, 0.0, 0.0, border_width2.zwzw);   // xy轴镜像
 		}
 	}
-	else { // 下边
+	else if ( direction == 2 ) { // 下边
 		if ( index < 0.0 ) { // 右下角
 			args = mat3(radius_size2.z, PIx0_5, 1.0, 0.0, 0.0, border_width2.wzzw); // xy轴镜像
 		} else { // 左下角
 			args = mat3(radius_size2.w, 0.0, 0.0, 1.0, 0.0, border_width2.wxxw);    // 逆时钟, y轴镜像
+		}
+	} else { // 左边边框
+		if ( index < 0.0 ) { // 左下角
+			args = mat3(radius_size2.w, PIx0_5, 0.0, 1.0, 0.0, border_width2.xwxw); // 逆时钟, y轴镜像
+		} else { // 左上角
+			args = mat3(radius_size2.x, 0.0, 1.0, 1.0, 1.0, border_width2.xyxy);
 		}
 	}
 	
