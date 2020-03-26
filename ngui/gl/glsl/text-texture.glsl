@@ -26,16 +26,20 @@ void main() {
 	vec4 v;
 	
 	if (gl_VertexID == 0) {
-		f_tex_coord = vec2(0.0, 0.0); v.xy = coord;
+		f_tex_coord = vec2(0.0, 0.0);
+		v.xy = coord;
 	}
 	else if (gl_VertexID == 1) {
-		f_tex_coord = vec2(1., 0.0);  v.xy = vec2(coord.x + tex_size2.x, coord.y);
+		f_tex_coord = vec2(1., 0.0);
+		v.xy = vec2(coord.x + tex_size2.x, coord.y);
 	}
 	else if (gl_VertexID == 2) {
-		f_tex_coord = vec2(1.0, 1.0); v.xy = (coord + tex_size2.xy);
+		f_tex_coord = vec2(1.0, 1.0);
+		v.xy = (coord + tex_size2.xy);
 	}
 	else {
-		f_tex_coord = vec2(0.0, 1.0); v.xy = vec2(coord.x, coord.y + tex_size2.y);
+		f_tex_coord = vec2(0.0, 1.0);
+		v.xy = vec2(coord.x, coord.y + tex_size2.y);
 	}
 	
 	v = v_matrix * vec4(v.xy, 0.0, 1.0);
