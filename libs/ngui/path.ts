@@ -355,7 +355,7 @@ export class URL {
 (URL as any).prototype._params = null;
 (URL as any).prototype._hash_params = null;
 
-function get_path(path: string): URL {
+function get_path(path?: string): URL {
 	return new URL(path);
 }
 
@@ -383,116 +383,116 @@ export default {
 	/**
 	 * full filename
 	 */
-	basename(path: string) {
+	basename(path?: string) {
 		return get_path(path).basename;
 	},
 
 	/**
 	 * full filename
 	 */
-	dirname(path: string) {
+	dirname(path?: string) {
 		return get_path(path).dirname;
 	},
 
 	/**
 	 * full filename
 	 */
-	extname(path: string) {
+	extname(path?: string) {
 		return get_path(path).extname;
 	},
 
 	/**
 	 * full filename
 	 */
-	filename(path: string) {
+	filename(path?: string) {
 		return get_path(path).filename;
 	},
 
 	/**
 	 * full path
 	 */
-	path(path: string) {
+	path(path?: string) {
 		return get_path(path).path;
 	},
 	
-	search(path: string) {
+	search(path?: string) {
 		return get_path(path).search;
 	},
 	
-	hash(path: string) {
+	hash(path?: string) {
 		return get_path(path).hash;
 	},
 	
-	host(path: string) {
+	host(path?: string) {
 		return get_path(path).host;
 	},
 	
-	hostname(path: string) {
+	hostname(path?: string) {
 		return get_path(path).hostname;
 	},
 	
 	// href origin
-	origin(path: string) {
+	origin(path?: string) {
 		return get_path(path).origin;
 	},
 	
 	// port: "81"
-	port(path: string) {
+	port(path?: string) {
 		return get_path(path).port;
 	},
 	
 	// protocol: "http:"
-	protocol(path: string) {
+	protocol(path?: string) {
 		return get_path(path).protocol;
 	},
 	
 	// href params
-	params(path: string) {
+	params(path?: string) {
 		return get_path(path).params;
 	},
 	
 	// hash params 
-	hashParams(path: string) {
+	hashParams(path?: string) {
 		return get_path(path).hashParams;
 	},
 	
 	// get path param
-	getParam(name: string, path: string) {
+	getParam(name: string, path?: string) {
 		return get_path(path).getParam(name);
 	},
 	
 	// set path param
-	setParam(name: string, value: string, path: string) {
+	setParam(name: string, value: string, path?: string) {
 		return get_path(path).setParam(name, value).href;
 	},
 	
 	// del path param
-	deleteParam(name: string, path: string) {
+	deleteParam(name: string, path?: string) {
 		return get_path(path).deleteParam(name).href;
 	},
 	
 	// del all hash param
-	clearParam(path: string) {
+	clearParam(path?: string) {
 		return get_path(path).clearParam().href;
 	},
 	
 	// get hash param
-	getHash(name: string, path: string) {
+	getHash(name: string, path?: string) {
 		return get_path(path).getHash(name);
 	},
 	
 	// set hash param
-	setHash(name: string, value: string, path: string) {
+	setHash(name: string, value: string, path?: string) {
 		return get_path(path).setHash(name, value).href;
 	},
 	
 	// del hash param
-	deleteHash(name: string, path: string) {
+	deleteHash(name: string, path?: string) {
 		return get_path(path).deleteHash(name).href;
 	},
 	
 	// del all hash param
-	clearHash(path: string) {
+	clearHash(path?: string) {
 		return get_path(path).clearHash().href;
 	},
 	
