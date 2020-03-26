@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-class ErrnoList {
+export class ErrnoList {
 	ERR_UNKNOWN_ERROR: ErrnoCode = [-30000, 'UNKNOWN_ERROR']
 	ERR_READ_STREAM_ABORT: ErrnoCode = [-39001, 'ERR_READ_STREAM_ABORT']
 	ERR_EXECUTE_TIMEOUT: ErrnoCode = [-30061, 'ERR_EXECUTE_TIMEOUT']
