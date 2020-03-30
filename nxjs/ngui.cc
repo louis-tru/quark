@@ -151,13 +151,15 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 	__nx_ngui_have_node = 1;
 	__nx_ngui_have_debug = 0;
 	argv_str = argv_in[0];
-
 	Array<int> indexs = {-1};
+
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
-		if (__nx_ngui_have_node && argv_in[i].index_of("--no-node") == 0) { // ngui arg
+		if (argv_in[i].index_of("--no-node") == 0) { // ngui arg
 			__nx_ngui_have_node = 0; // disable node
+		} else if (argv_in[i].index_of("--debug") == 0) {
+			__nx_ngui_have_debug = 1;
 		} else {
-			if (!__nx_ngui_have_debug && argv_in[i].index_of("--inspect") == 0) {
+			if (argv_in[i].index_of("--inspect") == 0) {
 				__nx_ngui_have_debug = 1;
 			}
 			argv_str.push(' ').push(argv_in[i]);

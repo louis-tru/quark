@@ -37,9 +37,9 @@ import org.ngui.NguiActivity;
 
 public class MainActivity extends NguiActivity {
 
-  static {
-    System.loadLibrary("nxjs");
-  }
+	static {
+		System.loadLibrary("nxjs");
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +49,7 @@ public class MainActivity extends NguiActivity {
 	protected String startCommand() {
 		//return "examples";
 		//--inspect-brk=0.0.0.0:9229
-		return "ngui --dev http://192.168.0.11:1026/examples --ignore-local=*";
+		return "ngui --dev http://192.168.0.11:1026/examples";
 	}
 
 }
