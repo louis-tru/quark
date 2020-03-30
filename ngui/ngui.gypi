@@ -305,7 +305,7 @@
 		# end
 	},
 	{
-		'target_name': 'ngui-media',
+		'target_name': 'nxmedia',
 		'type': '<(output_type)',
 		'dependencies': [
 			'nxkit',

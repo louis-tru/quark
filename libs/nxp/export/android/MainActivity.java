@@ -35,7 +35,7 @@ import android.os.Bundle;
 
 public class MainActivity extends NguiActivity {
 
-	private static final String LIBRARY = "ngui-js";
+	private static final String LIBRARY = "nxjs";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

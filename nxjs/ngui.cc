@@ -237,8 +237,8 @@ int Start(const Array<String>& argv_in) {
 			rc = node::node_api->start(argc, argv_c);
 		} else {
 #if NX_LINUX
-			// try loading ngui-node
-			void* handle = dlopen("libngui-node.so", RTLD_LAZY | RTLD_GLOBAL);
+			// try loading nxnode
+			void* handle = dlopen("libnxnode.so", RTLD_LAZY | RTLD_GLOBAL);
 			if (!handle) {
 				NX_WARN("No node library loaded, %s", dlerror());
 				goto no_node_start;

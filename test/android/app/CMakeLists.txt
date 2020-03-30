@@ -146,7 +146,7 @@ add_library(ngui SHARED
   ../../../ngui/media.cc
 )
 
-add_library(ngui-media SHARED
+add_library(nxmedia SHARED
 	../../../ngui/audio-player.cc
 	../../../ngui/video.cc
 	../../../ngui/media-codec.cc
@@ -158,7 +158,7 @@ add_library(ngui-media SHARED
 	../../../ngui/platforms/android-pcm-audio-track.cc
 )
 
-add_library(ngui-js SHARED
+add_library(nxjs SHARED
 	../../../out/native-inl-js.cc
 	../../../out/native-lib-js.cc
 	../../../out/native-ext-js.cc
@@ -262,6 +262,6 @@ add_library(ngui-test SHARED
 )
 
 target_link_libraries(ngui       atomic z android log OpenSLES GLESv3 EGL mediandk ngui-depes-test)
-target_link_libraries(ngui-media ngui OpenSLES GLESv3 EGL mediandk ngui-depes-test)
-target_link_libraries(ngui-js    ngui ngui-depes-test)
-target_link_libraries(ngui-test  ngui ngui-js ngui-depes-test)
+target_link_libraries(nxmedia ngui OpenSLES GLESv3 EGL mediandk ngui-depes-test)
+target_link_libraries(nxjs    ngui ngui-depes-test)
+target_link_libraries(ngui-test  ngui nxjs ngui-depes-test)

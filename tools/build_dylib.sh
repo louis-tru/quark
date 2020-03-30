@@ -66,32 +66,32 @@ link_dylib ngui "$obj/ngui " \
 # gen temp framework
 framework ngui
 
-# ngui-media
-link_dylib ngui-media "$obj/ngui-media" "-liconv -lbz2 -lz -lFFmpeg" \
+# nxmedia
+link_dylib nxmedia "$obj/nxmedia" "-liconv -lbz2 -lz -lFFmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
 	-framework CoreMedia -framework nxkit -framework ngui"
-framework ngui-media no-inc
+framework nxmedia no-inc
 
-# ngui-v8
+# nxv8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib ngui-v8 "$obj/v8-link" "" "-framework JavaScriptCore"
+	link_dylib nxv8 "$obj/v8-link" "" "-framework JavaScriptCore"
 else
 	# $obj/v8_base/depe/node/deps/v8/src/api.o
 	# $obj/v8_base/depe/node/deps/v8/src/inspector
-	link_dylib ngui-v8 "$obj/v8_base $obj/v8_libplatform" \
+	link_dylib nxv8 "$obj/v8_base $obj/v8_libplatform" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
 		-lv8_nosnapshot -lv8_builtins_generators" ""
 fi
-framework ngui-v8 $out/../../depe/v8-link/include
+framework nxv8 $out/../../depe/v8-link/include
 
-# ngui-js
-link_dylib ngui-js "$obj/ngui-js" "" \
-	"-framework nxkit -framework ngui -framework ngui-media \
-	-framework ngui-v8 -framework JavaScriptCore"
-framework ngui-js no-inc
+# nxjs
+link_dylib nxjs "$obj/nxjs" "" \
+	"-framework nxkit -framework ngui -framework nxmedia \
+	-framework nxv8 -framework JavaScriptCore"
+framework nxjs no-inc
 
-# ngui-node
-link_dylib ngui-node "$obj/node" "-lnghttp2 -lcares -lz" \
-	"-framework nxkit -framework ngui -framework ngui-js -framework ngui-v8"
-framework ngui-node no-inc
+# nxnode
+link_dylib nxnode "$obj/node" "-lnghttp2 -lcares -lz" \
+	"-framework nxkit -framework ngui -framework nxjs -framework nxv8"
+framework nxnode no-inc
 

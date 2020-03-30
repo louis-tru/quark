@@ -12,10 +12,10 @@
 			'dependencies': [
 				'nxkit',
 				'ngui',
-				'ngui-js',
-				'ngui-media',
-				'ngui-node',
-				'ngui-v8',
+				'nxjs',
+				'nxmedia',
+				'nxnode',
+				'nxv8',
 				###########
 				'trial',
 				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',

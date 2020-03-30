@@ -38,7 +38,7 @@ import org.ngui.NguiActivity;
 public class MainActivity extends NguiActivity {
 
   static {
-    System.loadLibrary("ngui-js");
+    System.loadLibrary("nxjs");
   }
 
 	@Override

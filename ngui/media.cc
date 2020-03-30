@@ -45,16 +45,16 @@ int initialize_media() {
 	if (is_loaded_lib()) {
 		return 1;
 	}
-	// try loading ngui-node
+	// try loading nxnode
 	uv_lib_t lib;
-	int err = uv_dlopen("libngui-media.so", &lib);
+	int err = uv_dlopen("libnxmedia.so", &lib);
 	if (err != 0) {
-		NX_WARN("No ngui-media library loaded, %s", uv_dlerror(&lib));
+		NX_WARN("No nxmedia library loaded, %s", uv_dlerror(&lib));
 	} else {
 		if (is_loaded_lib()) {
 			return 1;
 		}
-		NX_WARN("No ngui-media library loaded");
+		NX_WARN("No nxmedia library loaded");
 	}
 
 	return 0;

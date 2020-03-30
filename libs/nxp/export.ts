@@ -365,7 +365,7 @@ class Package {
 		var app_name = self.json.app || name;
 		var version = self.json.version;
 		var java_pkg = id.replace(/\./mg, '/');
-		var so_pkg = self.native ? name : 'ngui-js';
+		var so_pkg = self.native ? name : 'nxjs';
 
 		if ( is_app ) { // copy platfoem file
 			var proj_out = host.proj_out;

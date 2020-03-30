@@ -59,6 +59,7 @@ fs.chmodSync(target + '/gyp/gyp', 0755);
 
 copy_header(root + '/ngui', `${include}/ngui`);
 copy_header(root + '/nxkit', `${include}/nxkit`);
+copy_header(root + '/nxjs', `${include}/nxjs`);
 copy_header(`${root}/depe/v8-link/include`, include);
 copy_header(`${root}/depe/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
 copy_header(`${root}/depe/node/deps/openssl/config`, `${include}/openssl`);

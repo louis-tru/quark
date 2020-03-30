@@ -12,7 +12,7 @@ build() {
 	
 	ar rc libngui.a `find obj.target/ngui \
 													obj.target/nxkit \
-													obj.target/ngui-js \
+													obj.target/nxjs \
 													obj.target/zlib \
 													obj.target/ft2 \
 													obj.target/http_parser \
