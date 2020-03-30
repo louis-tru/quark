@@ -31,9 +31,9 @@
 #ifndef __ngui__js__ngui__
 #define __ngui__js__ngui__
 
-#include "ngui/js/js.h"
-#include "ngui/js/wrap.h"
-#include "ngui/js/value.h"
+#include "nxjs/js.h"
+#include "nxjs/wrap.h"
+#include "nxjs/value.h"
 #include "ngui/app.h"
 #include "ngui/view.h"
 

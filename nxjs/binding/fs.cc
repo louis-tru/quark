@@ -30,8 +30,8 @@
 
 #include "nxkit/fs.h"
 #include "nxkit/http.h"
-#include "ngui/js/wrap.h"
-#include "ngui/js/str.h"
+#include "nxjs/wrap.h"
+#include "nxjs/str.h"
 #include "cb-1.h"
 #include "fs-1.h"
 

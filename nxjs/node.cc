@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js-1.h"
+#include "nxjs/js-1.h"
 #include "nxkit/loop.h"
 #include "nxkit/codec.h"
 #include "depe/node/src/ngui.h"

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nxkit/loop.h"
-#include "ngui/js/wrap.h"
+#include "nxjs/wrap.h"
 
 /**
  * @ns ngui::js

@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "json-1.h"
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 #include "nxkit/string-builder.h"
 
 /**

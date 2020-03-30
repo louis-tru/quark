@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js-1.h"
-#include "ngui/js/ngui.h"
-#include "ngui/js/str.h"
+#include "nxjs/js-1.h"
+#include "nxjs/ngui.h"
+#include "nxjs/str.h"
 #include "ngui/app.h"
 #include "ngui/action.h"
 #include "ngui/css.h"
 #include "ngui/button.h"
-#include "ngui/js/value.h"
+#include "nxjs/value.h"
 
 /**
  * @ns ngui::js

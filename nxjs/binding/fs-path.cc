@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nxkit/fs.h"
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 
 /**
  * @ns ngui::js

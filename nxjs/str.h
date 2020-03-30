@@ -31,7 +31,7 @@
 #ifndef __ngui__js__strs__
 #define __ngui__js__strs__
 
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 
 #define js_common_string(F)  \
 F(global) \

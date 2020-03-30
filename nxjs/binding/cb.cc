@@ -30,8 +30,8 @@
 
 #include "nxkit/fs.h"
 #include "nxkit/http.h"
-#include "ngui/js/js.h"
-#include "ngui/js/str.h"
+#include "nxjs/js.h"
+#include "nxjs/str.h"
 #include "cb-1.h"
 
 JS_BEGIN

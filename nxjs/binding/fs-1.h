@@ -32,7 +32,7 @@
 #ifndef __ngui__js__fs_1__
 #define __ngui__js__fs_1__
 
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 #include "nxkit/codec.h"
 
 /**

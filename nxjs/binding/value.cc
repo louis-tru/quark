@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/str.h"
-#include "ngui/js/js-1.h"
-#include "ngui/js/ngui.h"
-#include "ngui/js/value.h"
+#include "nxjs/str.h"
+#include "nxjs/js-1.h"
+#include "nxjs/ngui.h"
+#include "nxjs/value.h"
 #include "ngui/font.h"
 #include "ngui/draw.h"
 #include "native-inl-js.h"

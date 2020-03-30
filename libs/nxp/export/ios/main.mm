@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <ngui/platforms/mac-app.h>
-#include <ngui/js/ngui.h>
+#include <nxjs/ngui.h>
 
 using namespace ngui;
 

@@ -31,7 +31,7 @@
 #ifndef __ngui__js__event_1__
 #define __ngui__js__event_1__
 
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 
 /**
  * @ns ngui::js

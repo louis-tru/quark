@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/ngui.h"
+#include "nxjs/ngui.h"
 #include "ngui/span.h"
-#include "ngui/js/js-1.h"
+#include "nxjs/js-1.h"
 
 /**
  * @ns ngui::js

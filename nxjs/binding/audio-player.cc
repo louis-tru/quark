@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "event-1.h"
-#include "ngui/js/ngui.h"
+#include "nxjs/ngui.h"
 #include "ngui/media-codec.h"
 #include "ngui/audio-player.h"
 

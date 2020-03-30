@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js-1.h"
-#include "ngui/js/ngui.h"
+#include "nxjs/js-1.h"
+#include "nxjs/ngui.h"
 #include "ngui/layout.h"
 
 /**

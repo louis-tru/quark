@@ -31,7 +31,7 @@
 #include "js-1.h"
 #include "ngui/app.h"
 #include "ngui/view.h"
-#include "ngui/js/ngui.h"
+#include "nxjs/ngui.h"
 #include "nxkit/http.h"
 #include "binding/event-1.h"
 #include "android/android.h"

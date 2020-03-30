@@ -32,7 +32,7 @@
 #define __ngui__js__json__
 
 #include "nxkit/string-builder.h"
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 
 /**
  * @ns ngui::js

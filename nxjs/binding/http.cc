@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nxkit/http.h"
-#include "ngui/js/wrap.h"
+#include "nxjs/wrap.h"
 #include "cb-1.h"
 
 /**

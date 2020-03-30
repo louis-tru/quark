@@ -32,7 +32,7 @@
 #ifndef __ngui__js__wrap__
 #define __ngui__js__wrap__
 
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 
 JS_BEGIN
 

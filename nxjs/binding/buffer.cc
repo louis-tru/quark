@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/wrap.h"
+#include "nxjs/wrap.h"
 #include "nxkit/buffer.h"
-#include "ngui/js/str.h"
+#include "nxjs/str.h"
 
 /**
  * @ns ngui::js

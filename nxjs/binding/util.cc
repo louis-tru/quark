@@ -32,7 +32,7 @@
 #include "nxkit/fs.h"
 #include "ngui/sys.h"
 #include "nxkit/loop.h"
-#include "ngui/js/ngui.h"
+#include "nxjs/ngui.h"
 //#include "nxkit/jsx.h"
 #include "native-ext-js.h"
 

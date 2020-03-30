@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "json-1.h"
-#include "ngui/js/str.h"
-#include "ngui/js/ngui.h"
+#include "nxjs/str.h"
+#include "nxjs/ngui.h"
 #include "ngui/view.h"
 
 /**

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/ngui.h"
+#include "nxjs/ngui.h"
 #include "ngui/font.h"
 #include "ngui/draw.h"
 

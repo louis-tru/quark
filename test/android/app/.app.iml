@@ -55,8 +55,8 @@
     <content url="file://$MODULE_DIR$/../../../ngui/js">
       <sourceFolder url="file://$MODULE_DIR$/../../../ngui/js" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui/js/binding">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui/js/binding" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../nxjs/binding">
+      <sourceFolder url="file://$MODULE_DIR$/../../../nxjs/binding" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../../../ngui/platforms">
       <sourceFolder url="file://$MODULE_DIR$/../../../ngui/platforms" isTestSource="false" />

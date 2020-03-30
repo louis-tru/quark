@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nxkit/fs.h"
-#include "ngui/js/js.h"
-#include "ngui/js/str.h"
+#include "nxjs/js.h"
+#include "nxjs/str.h"
 #include "nxkit/codec.h"
 #include "cb-1.h"
 #include "fs-1.h"

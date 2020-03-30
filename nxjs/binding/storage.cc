@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js.h"
+#include "nxjs/js.h"
 #include "nxkit/localstorage.h"
 #include "cb-1.h"
 

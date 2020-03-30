@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/js/js-1.h"
-#include "ngui/js/ngui.h"
+#include "nxjs/js-1.h"
+#include "nxjs/ngui.h"
 #include "ngui/event.h"
 #include "ngui/action.h"
 #include "ngui/button.h"
 #include "ngui/panel.h"
 #include "ngui/keyboard.h"
-#include "ngui/js/str.h"
+#include "nxjs/str.h"
 #include "event-1.h"
 #include "native-inl-js.h"
 

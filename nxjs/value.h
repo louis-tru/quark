@@ -31,7 +31,7 @@
 #ifndef __ngui__js__value__
 #define __ngui__js__value__
 
-#include "ngui/js/wrap.h"
+#include "nxjs/wrap.h"
 #include "ngui/value.h"
 #include "ngui/bezier.h"
 #include "ngui/background.h"
