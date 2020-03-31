@@ -28,48 +28,34 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-interface RequireFunction {
-	(id: string): any;
-}
-
 interface RequireResolve {
 	(id: string, options?: { paths?: string[]; }): string;
 	paths(request: string): string[] | null;
 }
 
-interface NguiExtensions {
-	'.js': (m: NguiModule, filename: string) => any;
-	'.json': (m: NguiModule, filename: string) => any;
-	'.node': (m: NguiModule, filename: string) => any;
-	[ext: string]: (m: NguiModule, filename: string) => any;
-}
-
-interface NguiRequire extends RequireFunction {
+interface NodeRequire {
+	(id: string): any;
 	resolve: RequireResolve;
-	cache: Dict<NguiModule>;
-	/**
-	 * @deprecated
-	 */
-	extensions: NguiExtensions;
-	main: NguiModule | undefined;
+	cache: Dict<NodeModule>;
+	main: NodeModule | undefined;
 }
 
-interface NguiModule {
+interface NodeModule {
 	exports: any;
-	require: RequireFunction;
 	id: string;
 	filename: string;
 	loaded: boolean;
-	parent: NguiModule | null;
-	children: NguiModule[];
+	parent: NodeModule | null;
+	children: NodeModule[];
 	paths: string[];
+	package?: any;
 }
 
 declare var __filename: string;
 declare var __dirname: string;
-declare var __requireNgui__: RequireFunction;
-declare var require: NguiRequire;
-declare var module: NguiModule;
+declare var __requireNgui__: (id: string)=>any;
+declare var require: NodeRequire; // TODO May conflict with future node versions
+declare var module: NodeModule; // TODO May conflict with future node versions
 // Same as module.exports
 declare var exports: any;
 

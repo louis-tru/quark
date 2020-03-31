@@ -320,7 +320,7 @@ function updateChildren(parent: Module, child: Module) {
 		children.push(child);
 }
 
-export class Module implements NguiModule {
+export class Module implements NodeModule {
 	id: string;
 	exports: any = {};
 	parent: Module | null;
@@ -657,15 +657,15 @@ export class Module implements NguiModule {
 	static readonly _pathCache: Dict<string> = {};
 	static readonly _debug = _pkgutil.debugLog('module');
 
-	static readonly _extensions: NguiExtensions = {
-		'.js': function(module: NguiModule, filename: string) {
+	static readonly _extensions: Dict<(m: NodeModule, filename: string) => any> = {
+		'.js': function(module: NodeModule, filename: string) {
 			var content = readTextSync(filename);
 			(module as Module)._compile(stripBOM(content), filename);
 		},
-		'.json': function(module: NguiModule, filename: string) {
+		'.json': function(module: NodeModule, filename: string) {
 			module.exports = readJSONSync(filename);
 		},
-		'.node': haveNode ? function(module: NguiModule, filename: string) {
+		'.node': haveNode ? function(module: NodeModule, filename: string) {
 			return process.dlopen(module, path._makeLong(fallbackPath(filename)));
 		}: function() {
 			throw new Error('unrealized');

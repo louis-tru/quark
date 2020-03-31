@@ -296,7 +296,7 @@ function initArgv() {
 	}
 }
 
-function makeRequireFunction(mod: any, main: any): NguiRequire {
+function makeRequireFunction(mod: any, main: any): NodeRequire {
 	const Module = mod.constructor;
 
 	function require(path: string) {
