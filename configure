@@ -67,7 +67,6 @@ if [ ! -d node_modules ]; then
 	ln -s ../libs/ngui/out/ngui
 	ln -s ../libs/nxkit/out/nxkit
 	ln -s ../libs/nxp/out/nxp
-	ln -s libs node_modules
 	cd ..
 fi
 

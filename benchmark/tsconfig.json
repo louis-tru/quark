@@ -22,7 +22,7 @@
 		"removeComments": true,
 		"jsx": "react",
 		"jsxFactory": "_CVD",
-		// "typeRoots" : ["../libs"],
+		// "typeRoots": ["../libs"],
 		// "types" : ["node", "lodash", "express"]
 	},
 	"include": [
