@@ -47,9 +47,7 @@ String Path::executable() {
 }
 
 String Path::documents(cString& child) {
-	static String path(
-					Path::format("%s", *Android::files_dir_path())
-	);
+	static String path(Path::format("%s", *Android::files_dir_path()));
 	if ( child.is_empty() ) {
 		return path;
 	}
@@ -57,9 +55,7 @@ String Path::documents(cString& child) {
 }
 
 String Path::temp(cString& child) {
-	static String path(
-					Path::format("%s", *Android::cache_dir_path())
-	);
+	static String path(Path::format("%s", *Android::cache_dir_path()));
 	if ( child.is_empty() ) {
 		return path;
 	}
@@ -70,9 +66,7 @@ String Path::temp(cString& child) {
  * Get the resoures dir
  */
 String Path::resources(cString& child) {
-	static String path(
-		Path::format("zip://%s?/assets", *Android::package_code_path())
-	);
+	static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
 	if ( child.is_empty() ) {
 		return path;
 	}
