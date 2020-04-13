@@ -54,15 +54,6 @@ export enum Status {
 	BACKGROUND = 1,
 }
 
-export enum NavigationForegroundAction {
-	INIT,
-	RESUME,
-}
-
-export interface EventForegroundData {
-	action: NavigationForegroundAction;
-}
-
 /**
  * @class Status
  */
@@ -70,7 +61,7 @@ class NavigationStatus extends ViewController {
 	private m_status: Status = Status.INIT; // 1=background,0=foreground,-1=init or exit
 	get status() { return this.m_status }
 	intoBackground(animate: number) { this.m_status = 1 }
-	intoForeground(animate: number, action: NavigationForegroundAction) { this.m_status = 0 }
+	intoForeground(animate: number) { this.m_status = 0 }
 	intoLeave(animate: number) { this.m_status = -1 }
 }
 
@@ -84,7 +75,7 @@ export class Navigation extends NavigationStatus {
 	private m_focus_resume: View | null = null;
 
 	@event readonly onBackground: EventNoticer<Event<void, Navigation>>;
-	@event readonly onForeground: EventNoticer<Event<EventForegroundData, Navigation>>;
+	@event readonly onForeground: EventNoticer<Event<void, Navigation>>;
 
 	private static _navigationInit(nav: Navigation) {
 		if ( (nav as any).m_stack !== g_navigationStack || g_navigationInit_ok || !ngui.root) {
@@ -149,8 +140,8 @@ export class Navigation extends NavigationStatus {
 		this.trigger('Background');
 	}
 
-	protected triggerForeground(data: EventForegroundData) {
-		this.trigger('Foreground', data);
+	protected triggerForeground() {
+		this.trigger('Foreground');
 	}
 
 	intoBackground(animate: number) { 
@@ -158,9 +149,9 @@ export class Navigation extends NavigationStatus {
 		this.triggerBackground();
 	}
 
-	intoForeground(animate: number, action: NavigationForegroundAction) {
-		super.intoForeground(animate, action);
-		this.triggerForeground({ action: action });
+	intoForeground(animate: number) {
+		super.intoForeground(animate);
+		this.triggerForeground();
 	}
 
 	/**
@@ -197,7 +188,7 @@ export class Navigation extends NavigationStatus {
 				if ( view ) {
 					view.focus();
 				}
-				this.intoForeground(animate, NavigationForegroundAction.INIT);
+				this.intoForeground(animate);
 			});
 		}
 	}
@@ -220,7 +211,7 @@ export class Navigation extends NavigationStatus {
 					if (last.value.m_focus_resume) {
 						last.value.m_focus_resume.focus();
 					}
-					last.value.intoForeground(animate, NavigationForegroundAction.RESUME);
+					last.value.intoForeground(animate);
 				}
 			});
 		}
@@ -863,7 +854,7 @@ export class Navbar extends Bar {
 		super.intoBackground(time);
 	}
 	
-	intoForeground(time: number, action: NavigationForegroundAction) { 
+	intoForeground(time: number) { 
 		this.domAs().show(); // show
 		if ( time ) {
 			if ( this.$defaultStyle ) {
@@ -885,7 +876,7 @@ export class Navbar extends Bar {
 			(this.IDs.back_text1 as View).x = 0;
 			(this.IDs.title_text_panel as View).x = 0;
 		}
-		super.intoForeground(time, action);
+		super.intoForeground(time);
 	}
 
 	intoLeave(time: number) { 
@@ -921,7 +912,7 @@ export class Toolbar extends Bar {
 		);
 	}
 	
-	intoForeground(time: number, action: NavigationForegroundAction) {
+	intoForeground(time: number) {
 		if ( this.isDefault ) {
 			this.m_page = this.collection.current as NavPage;
 		}
@@ -936,7 +927,7 @@ export class Toolbar extends Bar {
 			this.domAs().show();
 			this.domAs().opacity = 1;
 		}
-		super.intoForeground(time, action);
+		super.intoForeground(time);
 	}
 	
 	intoBackground(time: number) {
@@ -1097,11 +1088,11 @@ export class NavPage extends Navigation {
 	}
 
 	// @overwrite
-	intoForeground(time: number, action: NavigationForegroundAction) {
+	intoForeground(time: number) {
 		// console.log('intoForeground', time);
 		if ( this.status == 0 ) return;
-		this.navbar.intoForeground(time, action);
-		this.toolbar.intoForeground(time, action);
+		this.navbar.intoForeground(time);
+		this.toolbar.intoForeground(time);
 		this.m_nextPage = null;
 		if ( this.status == -1 ) {
 			if ( time && (this.domAs().parent as Div).finalVisible ) {
@@ -1128,7 +1119,7 @@ export class NavPage extends Navigation {
 			}
 			(this.m_toolbar as any).m_page = this;
 		}
-		super.intoForeground(time, action);
+		super.intoForeground(time);
 	}
 
 	// @overwrite
