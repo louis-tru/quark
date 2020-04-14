@@ -30,12 +30,12 @@
 
 var _id = 0;
 
-export class LiteItem<T> {
+export class ListItem<T> {
 	private _host: List<T> | null;
-	private _prev: LiteItem<T> | null; 
-	private _next: LiteItem<T> | null;
+	private _prev: ListItem<T> | null; 
+	private _next: ListItem<T> | null;
 	private _value: T;
-	constructor(host: List<T>, prev: LiteItem<T> | null, next: LiteItem<T> | null, value: T) {
+	constructor(host: List<T>, prev: ListItem<T> | null, next: ListItem<T> | null, value: T) {
 		this._host = host;
 		this._prev = prev;
 		this._next = next;
@@ -53,8 +53,8 @@ export class LiteItem<T> {
  */
 export class List<T> {
 
-	private _first: LiteItem<T> | null = null;
-	private _last: LiteItem<T> | null = null;
+	private _first: ListItem<T> | null = null;
+	private _last: ListItem<T> | null = null;
 	private _length: number = 0;
 
 	get first() {
@@ -69,7 +69,7 @@ export class List<T> {
 		return this._length;
 	}
 
-	del(item: LiteItem<T>) {
+	del(item: ListItem<T>) {
 		if ( item.host === this ) {
 			var prev = item.prev;
 			var next = item.next;
@@ -92,14 +92,14 @@ export class List<T> {
 		return null;
 	}
 
-	unshift(value: T): LiteItem<T> {
-		var item: LiteItem<T>;
+	unshift(value: T): ListItem<T> {
+		var item: ListItem<T>;
 		if ( this._first ) {
-			item = new LiteItem(this, null, this._first, value);
+			item = new ListItem(this, null, this._first, value);
 			(<any>this._first)._prev = item;
 			this._first = item;
 		} else {
-			item = new LiteItem(this, null, null, value);
+			item = new ListItem(this, null, null, value);
 			this._last = item;
 			this._first = item;
 		}
@@ -107,14 +107,14 @@ export class List<T> {
 		return item;
 	}
 
-	push(value: T): LiteItem<T> {
-		var item: LiteItem<T>;
+	push(value: T): ListItem<T> {
+		var item: ListItem<T>;
 		if ( this._last ) {
-			item = new LiteItem(this, this._last, null, value);
+			item = new ListItem(this, this._last, null, value);
 			(<any>this._last)._next = item;
 			this._last = item;
 		} else {
-			item = new LiteItem(this, null, null, value);
+			item = new ListItem(this, null, null, value);
 			this._last = item;
 			this._first = item;
 		}
@@ -124,7 +124,7 @@ export class List<T> {
 
 	pop(): T | null {
 		if ( this._length ) {
-			var r = <LiteItem<T>>this._last;
+			var r = <ListItem<T>>this._last;
 			if ( this._length > 1 ) {
 				(<any>r.prev)._next = null;
 				this._last = r.prev;
@@ -143,7 +143,7 @@ export class List<T> {
 
 	shift(): T | null {
 		if ( this._length ) {
-			var r= <LiteItem<T>>this._first;
+			var r= <ListItem<T>>this._first;
 			if ( this._length > 1 ) {
 				(<any>r.next)._prev = null;
 				this._first = r.next;
@@ -262,7 +262,7 @@ export class EventNoticer<E = Event> {
 	private m_name: string;
 	private m_sender: object;
 	private m_listens: List<ListenItem> | null = null;
-	private m_listens_map: Map<string, LiteItem<ListenItem>> | null = null
+	private m_listens_map: Map<string, ListItem<ListenItem>> | null = null
 	private m_length: number = 0
 	private m_enable: boolean = true
 
@@ -473,7 +473,7 @@ export class EventNoticer<E = Event> {
 		if (listen) {
 			if ( typeof listen == 'string' ) { // by id delete 
 				var name = String(listen);
-				let listens_map = <Map<string, LiteItem<ListenItem>>>this.m_listens_map;
+				let listens_map = <Map<string, ListItem<ListenItem>>>this.m_listens_map;
 				let item = listens_map.get(name);
 				if ( item ) {
 					this.m_length--;
@@ -483,7 +483,7 @@ export class EventNoticer<E = Event> {
 				}
 			} else if ( listen instanceof Function ) { // 要卸载是一个函数
 				let listens = <List<ListenItem>>this.m_listens;
-				let listens_map = <Map<string, LiteItem<ListenItem>>>this.m_listens_map;
+				let listens_map = <Map<string, ListItem<ListenItem>>>this.m_listens_map;
 				let item = listens.first;
 				if (scope) { // 需比较范围
 					while ( item ) {
@@ -500,7 +500,7 @@ export class EventNoticer<E = Event> {
 						item = item.next;
 					}
 				} else { // 与这个函数有关系的
-					let listens_map = <Map<string, LiteItem<ListenItem>>>this.m_listens_map;
+					let listens_map = <Map<string, ListItem<ListenItem>>>this.m_listens_map;
 					while ( item ) {
 						let value = item.value;
 						if ( value.listen ) {
@@ -517,7 +517,7 @@ export class EventNoticer<E = Event> {
 				}
 			} else if ( listen instanceof Object ) { //
 				let listens = <List<ListenItem>>this.m_listens;
-				let listens_map = <Map<string, LiteItem<ListenItem>>>this.m_listens_map;
+				let listens_map = <Map<string, ListItem<ListenItem>>>this.m_listens_map;
 				let item = listens.first;
 				// 要卸载这个范围上相关的侦听器,包括`EventNoticer`代理
 				while ( item ) {
@@ -544,7 +544,7 @@ export class EventNoticer<E = Event> {
 				r++;
 			}
 			this.m_length = 0;
-			this.m_listens_map = new Map<string, LiteItem<ListenItem>>();
+			this.m_listens_map = new Map<string, ListItem<ListenItem>>();
 		}
 		return r;
 	}

@@ -36,7 +36,7 @@ import ngui, {
 } from './index';
 import * as value from './value';
 import {prop} from './ctr';
-import {event, EventNoticer, Event, LiteItem} from './event';
+import {event, EventNoticer, Event, ListItem} from './event';
 
 const TRANSITION_TIME = 400;
 const g_navigationStack = new List<Navigation>();
@@ -71,7 +71,7 @@ class NavigationStatus extends ViewController {
 export class Navigation extends NavigationStatus {
 
 	private m_stack = g_navigationStack;
-	private m_iterator: LiteItem<Navigation> | null = null;
+	private m_iterator: ListItem<Navigation> | null = null;
 	private m_focus_resume: View | null = null;
 
 	@event readonly onBackground: EventNoticer<Event<void, Navigation>>;
@@ -178,7 +178,7 @@ export class Navigation extends NavigationStatus {
 			this.m_iterator = this.m_stack.push(this);
 			// console.log('push_navigation()-----', this.m_stack.length);
 			ngui.lock(()=>{
-				var prev = (this.m_iterator as LiteItem<Navigation>).prev;
+				var prev = (this.m_iterator as ListItem<Navigation>).prev;
 				if ( prev ) {
 					var focus = ngui.app.focusView;
 					prev.value.m_focus_resume = focus && prev.value.__meta__.hasChild(focus) ? focus : null;
