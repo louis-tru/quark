@@ -95,9 +95,9 @@ export function clone(obj: any): any {
 /**
  * @func extend(obj, extd)
  */
-export function extend(obj: any, extd: any): any {
-	if (extd.__proto__ && extd.__proto__ !== Object.prototype)
-		extend(obj, extd.__proto__);
+export function extend(obj: any, extd: any, end: any): any {
+	if (extd.__proto__ && extd.__proto__ !== end)
+		extend(obj, extd.__proto__, end);
 	for (var i of Object.getOwnPropertyNames(extd)) {
 		if (i != 'constructor') {
 			var desc = <PropertyDescriptor>Object.getOwnPropertyDescriptor(extd, i);
@@ -123,13 +123,14 @@ export function isNull(value: any): boolean {
 /**
  * @fun extendClass #  EXT class prototype objects
  */
-export function extendClass(cls: Function, ...extds: Function[]) {
+export function extendClass(cls: Function, extds: Function[] | Function, end = Object.prototype) {
 	var proto = cls.prototype;
-	for (var extd of extds) {
+	var extds_ = Array.isArray(extds)? extds: [extds];
+	for (var extd of extds_) {
 		if (extd instanceof Function) {
 			extd = extd.prototype;
 		}
-		extend(proto, extd);
+		extend(proto, extd, end);
 	}
 	return cls;
 }
