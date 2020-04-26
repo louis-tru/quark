@@ -160,6 +160,27 @@ export class List<T> {
 		return null;
 	}
 
+	insert(prev: ListItem<T>, value: T) {
+		if (prev.host !== this)
+			throw 'Bad argument.';
+
+		var _prev = prev as any;
+		var item: ListItem<T>;
+
+		if (_prev._next) {
+			item = new ListItem(this, _prev, _prev._next, value);
+			_prev._next._prev = item;
+			_prev._next = item;
+		} else {
+			item = new ListItem(this, _prev, null, value);
+			_prev._next = item;
+			this._last = item;
+		}
+
+		this._length++;
+		return item;
+	}
+
 	clear() {
 		this._first = null;
 		this._last = null;
