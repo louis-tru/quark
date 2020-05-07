@@ -1,0 +1,53 @@
+<html>
+	<head>
+
+		<style>
+
+			body {
+				margin: 0;
+				padding: 0;
+			}
+
+			.div1 {
+				height: 500px;
+				margin: auto;
+				background: #0f0;
+				display: flex;
+				flex-wrap: wrap;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
+				align-content: center;
+			}
+
+			.div1 > div {
+				background: #f00;
+				margin: 10px;
+				width: 40px;
+				text-align: center;
+				color: #fff;
+				/* flex: 1; */
+			}
+
+			.div1 > div:nth-child(1) {
+				flex: 1;
+			}
+
+			.div1 > div:nth-child(2) {
+				flex: 2;
+			}
+
+		</style>
+
+	</head>
+	<body>
+
+		<div class="div1">
+			<div class="a">A</div>
+			<div class="b">B</div>
+			<div class="c">C</div>
+			<div class="d">D</div>
+		</div>
+		
+	</body>
+</html>

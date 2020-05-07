@@ -30,12 +30,12 @@
 
 import { P, M, LOG, AM, VM, VP, CA } from './test';
 import { GUIApplication, Root, Div, Image } from 'ngui';
-import 'ngui/display_port' as dp;
+import dp from 'ngui/display_port';
 
 new GUIApplication().start(
 	<Root>
-		<Div width=200 height=200 background_color="#f00">
-			<Image src=resolve('res/cc.jpg') width="full" height="full" opacity=0.5 />
+		<Div width={200} height={200} background_color="#f00">
+			<Image src={resolve('res/cc.jpg')} width="full" height="full" opacity={0.5} />
 		</Div>
 	</Root>
 ).onLoad = function() {
