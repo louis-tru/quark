@@ -45,7 +45,7 @@ class FontFamilysID;
 
 namespace value {
 	
-#define JS_ENUM_VALUE(F) \
+#define NX_ENUM_VALUE(F) \
 	F(AUTO,               auto) \
 	F(FULL,               full) \
 	F(PIXEL,              pixel) \
@@ -224,7 +224,7 @@ namespace value {
 	F(TextStyleEnum, HEAVY_ITALIC) \
 	F(TextStyleEnum, BLACK_ITALIC) \
 	F(TextStyleEnum, OTHER) \
-		
+	
 	/**
 	 * @enum TextDecorationEnum
 	 */
@@ -247,7 +247,7 @@ namespace value {
 	F(TextWhiteSpaceEnum, PRE)              /* 保留所有空白,不使用自动wrap */ \
 	F(TextWhiteSpaceEnum, PRE_LINE)         /* 合并空白符序列,但保留换行符,使用自动wrap */ \
 	F(TextWhiteSpaceEnum, WRAP)             /* 保留所有空白,强制使用自动wrap */ \
-		
+	
 	/**
 	 * @enum TextAlign 文本对齐方式
 	 */
@@ -258,7 +258,7 @@ namespace value {
 	F(TextAlign, LEFT_REVERSE)   /* 左对齐并反向 */ \
 	F(TextAlign, CENTER_REVERSE) /* 居中对齐并反向 */ \
 	F(TextAlign, RIGHT_REVERSE)  /* 右对齐并反向 */ \
-		
+	
 	/**
 	 * @enum Align 对齐方式
 	 */
@@ -295,7 +295,7 @@ namespace value {
 	#define DEF_ENUM(Type, NAME) NAME = Enum::NAME,
 	
 	enum Enum {
-		JS_ENUM_VALUE(DEF_ENUM_VALUE)
+		NX_ENUM_VALUE(DEF_ENUM_VALUE)
 	};
 	
 	enum class KeyboardType: byte {

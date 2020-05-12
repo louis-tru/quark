@@ -30,19 +30,19 @@
 
 import { P, M, LOG, VM, VP } from './test'
 import { GUIApplication, Root, Div, Button, Indep, Image } from 'ngui';
-import 'ngui/action';
-import 'ngui/css';
+import * as action from 'ngui/action';
+import css from 'ngui/css';
 
 new GUIApplication().start(
 	<Root>
-		<Div id="div" width=100 height=100 background_color="#f00" x=150 origin="50 50" />
-		<Image id="img" width=100 height=100 />
-		<Indep align_y="bottom" align_x="center" y=-30>
-			<Button id="play" text_line_height=30 background_color="#aaa" margin=2>@@  Play  </Button>
-			<Button id="stop" text_line_height=30 background_color="#aaa" margin=2>@@  Stop  </Button>
-			<Button id="seek_play" text_line_height=30 background_color="#aaa" margin=2>@@  Seek Play  </Button>
-			<Button id="seek_stop" text_line_height=30 background_color="#aaa" margin=2>@@  Seek Stop  </Button>
-			<Button id="clear" text_line_height=30 background_color="#aaa" margin=2>@@  Clear  </Button>
+		<Div id="div" width={100} height={100} backgroundColor="#f00" x={150} origin="50 50" />
+		<Image id="img" width={100} height={100} />
+		<Indep align_y="bottom" alignX="center" y={-30}>
+			<Button id="play" textLineHeight={30} backgroundColor="#aaa" margin={2}>@@  Play  </Button>
+			<Button id="stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>@@  Stop  </Button>
+			<Button id="seek_play" textLineHeight={30} backgroundColor="#aaa" margin={2}>@@  Seek Play  </Button>
+			<Button id="seek_stop" textLineHeight={30} backgroundColor="#aaa" margin={2}>@@  Seek Stop  </Button>
+			<Button id="clear" textLineHeight={30} backgroundColor="#aaa" margin={2}>@@  Clear  </Button>
 		</Indep>
 	</Root>
 ).onload = function() {
