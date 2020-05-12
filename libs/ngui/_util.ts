@@ -35,7 +35,6 @@ const _util = __requireNgui__('_util');
 
 type Platform = 'darwin' | 'linux' | 'win32' | 'android';
 
-
 function nextTick<A extends any[], R>(cb: (...args: A) => R, ...args: A): void {
 	if (typeof cb != 'function')
 		throw new Error('callback must be a function');
@@ -52,6 +51,8 @@ export declare class SimpleHash {
 	digest(): string;
 	clear(): void;
 }
+
+exports.SimpleHash = _util.SimpleHash;
 
 const _nodeProcess = (globalThis as any).process
 
@@ -75,7 +76,7 @@ class Process extends Notification {
 		},
 	};
 
-	getNoticer(name: string) {
+	getNoticer(name: 'BeforeExit'|'Exit'|'UncaughtException'|'UnhandledRejection') {
 		if (!this.hasNoticer(name)) {
 			var noticer = super.getNoticer(name);
 			var handle = (this._handles as any)[name];
@@ -109,9 +110,8 @@ class Process extends Notification {
 			_util._exit(code || 0);
 		}
 	}
-}
 
-exports.SimpleHash = _util.SimpleHash;
+}
 
 export const _process = new Process();
 
