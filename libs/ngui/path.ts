@@ -117,7 +117,7 @@ function parse_params(self: any) {
 	
 	for (var i = 0; i < ls.length; i++) {
 		var o = ls[i].split('=');
-		params[ o[0] ] = o[1] || '';
+		params[ o[0] ] = decodeURIComponent(o[1] || '');
 	}
 }
 
@@ -134,14 +134,14 @@ function parse_hash_params(self: any) {
 	
 	for (var i = 0; i < ls.length; i++) {
 		var o = ls[i].split('=');
-		params[ o[0] ] = o[1] || '';
+		params[ o[0] ] = decodeURIComponent(o[1] || '');
 	}
 }
 
-function stringify_params(prefix: string, params: Dict) {
+function querystringStringify(prefix: string, params: Dict) {
 	var rev = [];
 	for (var i in params) {
-		rev.push(i + '=' + params[i]);
+		rev.push(i + '=' + encodeURIComponent(params[i]));
 	}
 	return rev.length ? prefix + rev.join('&') : '';
 }
@@ -252,28 +252,38 @@ export class URL {
 		parse_params(this);
 		return (<any>this)._params;
 	}
+
+	set params(value: Dict<string>) {
+		(<any>this)._params = {...value};
+		(<any>this)._search = querystringStringify('?', (<any>this)._params);
+	}
 	
 	get hashParams(): Dict<string> {
 		parse_hash_params(this);
 		return (<any>this)._hash_params;
 	}
-	
+
+	set hashParams(value: Dict<string>){
+		(<any>this)._hash_params = {...value};
+		(<any>this)._hash = querystringStringify('#', (<any>this)._hash_params);
+	}
+
 	// get path param
 	getParam(name: string): string {
 		return (<any>this).params[name];
 	}
-	
+
 	// set path param
 	setParam(name: string, value: string): URL {
 		this.params[name] = value || '';
-		(<any>this)._search = stringify_params('?', (<any>this)._params);
+		(<any>this)._search = querystringStringify('?', (<any>this)._params);
 		return this;
 	}
 	
 	// del path param
 	deleteParam(name: string): URL {
 		delete this.params[name];
-		(<any>this)._search = stringify_params('?', (<any>this)._params);
+		(<any>this)._search = querystringStringify('?', (<any>this)._params);
 		return this;
 	}
 	
@@ -292,14 +302,14 @@ export class URL {
 	// set hash param
 	setHash(name: string, value: string): URL {
 		this.hashParams[name] = value || '';
-		(<any>this)._hash = stringify_params('#', (<any>this)._hash_params);
+		(<any>this)._hash = querystringStringify('#', (<any>this)._hash_params);
 		return this;
 	}
 	
 	// del hash param
 	deleteHash(name: string): URL {
 		delete this.hashParams[name];
-		(<any>this)._hash = stringify_params('#', (<any>this)._hash_params);
+		(<any>this)._hash = querystringStringify('#', (<any>this)._hash_params);
 		return this;
 	}
 	
