@@ -22,7 +22,7 @@ endif
 #######################
 
 DEPS = libs/nxkit libs/nxp/gyp.ngui depe/v8-link \
-	depe/FFmpeg.ngui depe/node.ngui depe/bplus
+	depe/FFmpeg.ngui depe/node.ngui depe/bplus depe/skia
 FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
