@@ -192,7 +192,7 @@ export class List<T> {
 /**
 	* @class Event
 	*/
-export class Event<Data = any, Sender extends object = object> {
+export class Event<Data, Sender extends object = object> {
 	private m_data: Data;
 	private m_return_value: number; // = 0
 	protected m_noticer: EventNoticer<Event<Data, Sender>> | null; // = null;
@@ -241,7 +241,7 @@ export class Event<Data = any, Sender extends object = object> {
 (Event as any).prototype.m_noticer = null;
 (Event as any).prototype.m_origin = null;
 
-type DefaultEvent = Event;
+type DefaultEvent = Event<any>;
 
 export interface Listen<Event = DefaultEvent, Scope extends object = object> {
 	(this: Scope, evt: Event): any;
@@ -277,6 +277,8 @@ function forwardNoticeNoticer<E>(forward_noticer: EventNoticer<E>, evt: E) {
 		(evt as any).m_noticer = noticer;
 	}
 }
+
+export interface EventNoticer<E = DefaultEvent> extends Listen<E> {}
 
 export class EventNoticer<E = DefaultEvent> {
 
@@ -478,7 +480,7 @@ export class EventNoticer<E = DefaultEvent> {
 			}
 			(evt as any).m_noticer = null;
 		}
-		return (evt as unknown as Event).returnValue;
+		return (evt as unknown as DefaultEvent).returnValue;
 	}
 
 	/**
@@ -683,7 +685,7 @@ export class Notification<E = DefaultEvent> {
 		if (noticer) {
 			return noticer.triggerWithEvent(event);
 		}
-		return (event as unknown as Event).returnValue;
+		return (event as unknown as DefaultEvent).returnValue;
 	}
 
 	/**
