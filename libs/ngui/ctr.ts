@@ -742,25 +742,6 @@ export class ViewController<State extends Dict = Dict> extends Notification<Even
 	}
 
 	/**
-	 * @overwrite
-	 */
-	addDefaultListener(name: string, func: Listen<Event<any, ViewController>> | string | null) {
-		if ( typeof func == 'string' ) {
-			var owner = this as any, func2;
-			do {
-				var func2 = owner[func];  // find func
-				if ( typeof func2 == 'function' ) {
-					return this.addEventListener(name, func2, owner, '0'); // default id 0
-				}
-				owner = owner.m_owner;
-			} while(owner);
-			throw Error.new(`Cannot find a function named "${func}"`);
-		} else {
-			return super.addDefaultListener(name, func);
-		}
-	}
-
-	/**
 	 * @func render(...vdoms)
 	 */
 	protected render(...vdoms: any[]): any {

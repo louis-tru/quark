@@ -30,7 +30,7 @@
 
 import utils from './util';
 import event, {
-	NativeNotification, Listen, EventNoticer, 
+	NativeNotification, EventNoticer, 
 	HighlightedStatus,
 	GUIEvent, GUIHighlightedEvent,
 	GUIKeyEvent, GUIClickEvent,
@@ -101,22 +101,6 @@ class _View extends NativeNotification {
 		var action = (this as unknown as View).getAction() as Action;
 		utils.assert(action, 'View.actionAs<T>() = null');
 		return action as T;
-	}
-
-	addDefaultListener(name: string, listen: Listen<GUIEvent> | string | null) {
-		if ( typeof listen == 'string' ) { // find func 
-			var owner: any = this;
-			do {
-				var func2 = owner[listen];
-				if ( typeof func2 == 'function' ) {
-					return this.addEventListener(name, func2, owner, '0'); // default id 0
-				}
-				owner = owner.m_owner;
-			} while(owner);
-			throw Error.new(`Cannot find a function named "${listen}"`);
-		} else {
-			return NativeNotification.prototype.addDefaultListener.call(this, name, listen);
-		}
 	}
 
 	hashCode() {
