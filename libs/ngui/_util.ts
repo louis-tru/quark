@@ -117,7 +117,7 @@ export const _process = new Process();
 
 export default {
 	version: _util.version as ()=>string,
-	addNativeEventListener: _util.addNativeEventListener as (target: Object, event: string, fn: (event: Event)=>void, id?: number)=>boolean,
+	addNativeEventListener: _util.addNativeEventListener as (target: Object, event: string, fn: (event: Event<any>)=>void, id?: number)=>boolean,
 	removeNativeEventListener: _util.removeNativeEventListener as (target: Object, event: string, id?: number)=>boolean,
 	gc: _util.garbageCollection as ()=>void,
 	runScript: _util.runScript as (source: string, name?: string, sandbox?: any)=>any,

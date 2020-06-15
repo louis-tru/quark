@@ -278,7 +278,7 @@ function forwardNoticeNoticer<E>(forward_noticer: EventNoticer<E>, evt: E) {
 	}
 }
 
-export interface EventNoticer<E = DefaultEvent> extends Listen<E> {}
+// export interface EventNoticer<E = DefaultEvent> extends Listen<E> {}
 
 export class EventNoticer<E = DefaultEvent> {
 

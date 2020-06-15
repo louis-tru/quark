@@ -286,7 +286,7 @@ const PREFIX = 'm_on';
 /**
  * @class NativeNotification
  */
-export class NativeNotification<E = Event> extends Notification<E> {
+export class NativeNotification<E = Event<any>> extends Notification<E> {
 
 	getNoticer(name: string) {
 		var noticer = (this as any)[PREFIX + name] as EventNoticer<E>;
