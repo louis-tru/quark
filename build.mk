@@ -10,18 +10,17 @@ BUILDTYPE     ?= Release
 V             ?= 0
 CXX           ?= g++
 LINK          ?= g++
-ANDROID_SDK   ?= $(ANDROID_HOME)
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
-ANDROID_JAR   = out/android.classs.ngui.jar
+ANDROID_JAR    = out/android.classs.ngui.jar
 JAVAC         ?= javac
-JAR           = jar
+JAR            = jar
 ENV           ?=
-NXP           = ./libs/nxp
-NXP_OUT       = out/nxp
-GYP           = $(NXP)/gyp/gyp
+NXP            = ./libs/nxp
+NXP_OUT        = out/nxp
+GYP            = $(NXP)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
-LIBS_DIR      = out/$(OUTPUT)
-BUILD_STYLE   = make
+LIBS_DIR       = out/$(OUTPUT)
+BUILD_STYLE    = make
 
 #######################
 

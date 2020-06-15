@@ -1,9 +1,9 @@
 
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR    = out/android.classs.ngui.jar
-NXP            = ./libs/nxp
-NXP_OUT        = out/nxp
+ANDROID_JAR     = out/android.classs.ngui.jar
+NXP             = ./libs/nxp
+NXP_OUT         = out/nxp
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 

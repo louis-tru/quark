@@ -679,7 +679,7 @@ async function configure() {
 					fs.existsSync(`${toolchain_dir2}/bin/armv7a-linux-androideabi${api}-clang`) ) {
 				toolchain_dir = toolchain_dir2;
 			} else {
-				var ndk_path = opts.ndk_path || `${process.env.ANDROID_HOME}/ndk-bundle`;
+				var ndk_path = opts.ndk_path || `${process.env.ANDROID_NDK}`;
 				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
 					// console.log(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`)
 					syscall(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`);
