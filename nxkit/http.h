@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__http__
-#define __ngui__utils__http__
+#ifndef __nxkit__http__
+#define __nxkit__http__
 
 #include "nxkit/handle.h"
 #include "nxkit/string.h"

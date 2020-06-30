@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__macros__
-#define __ngui__utils__macros__
+#ifndef __nxkit__macros__
+#define __nxkit__macros__
 
 #include "env.h"
 

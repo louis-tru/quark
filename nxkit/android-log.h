@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__android_log__
-#define __ngui__utils__android_log__
+#ifndef __nxkit__android_log__
+#define __nxkit__android_log__
 
 #include "nxkit/util.h"
 

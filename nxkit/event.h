@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__event__
-#define __ngui__utils__event__
+#ifndef __nxkit__event__
+#define __nxkit__event__
 
 #include "nxkit/list.h"
 #include "nxkit/map.h"

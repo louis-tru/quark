@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__object__
-#define __ngui__utils__object__
+#ifndef __nxkit__object__
+#define __nxkit__object__
 
 #include "nxkit/macros.h"
 #include <atomic>

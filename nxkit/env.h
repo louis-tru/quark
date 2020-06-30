@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__env__
-#define __ngui__utils__env__
+#ifndef __nxkit__env__
+#define __nxkit__env__
 
 #define NX_HAS_CPP __cplusplus
 

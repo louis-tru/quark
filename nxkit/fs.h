@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__fs__
-#define __ngui__utils__fs__
+#ifndef __nxkit__fs__
+#define __nxkit__fs__
 
 #include "nxkit/cb.h"
 #include "nxkit/string.h"

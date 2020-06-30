@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__json__
-#define __ngui__utils__json__
+#ifndef __nxkit__json__
+#define __nxkit__json__
 
 #include "nxkit/string.h"
 #include "nxkit/handle.h"

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__array__
-#define __ngui__utils__array__
+#ifndef __nxkit__array__
+#define __nxkit__array__
 
 #include "nxkit/util.h"
 #include "nxkit/container.h"

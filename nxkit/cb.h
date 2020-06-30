@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__cb__
-#define __ngui__utils__cb__
+#ifndef __nxkit__cb__
+#define __nxkit__cb__
 
 #include "nxkit/util.h"
 #include "nxkit/error.h"

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__android_jni__
-#define __ngui__utils__android_jni__
+#ifndef __nxkit__android_jni__
+#define __nxkit__android_jni__
 
 #include "nxkit/util.h"
 

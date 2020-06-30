@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__zlib__
-#define __ngui__utils__zlib__
+#ifndef __nxkit__zlib__
+#define __nxkit__zlib__
 
 #include "nxkit/map.h"
 #include "nxkit/string.h"

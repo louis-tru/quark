@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__container__
-#define __ngui__utils__container__
+#ifndef __nxkit__container__
+#define __nxkit__container__
 
 #include <math.h>
 #include <string.h>

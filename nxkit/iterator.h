@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__iterator__
-#define __ngui__utils__iterator__
+#ifndef __nxkit__iterator__
+#define __nxkit__iterator__
 
 #include "nxkit/util.h"
 

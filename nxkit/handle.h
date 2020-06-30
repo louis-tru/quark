@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__handle__
-#define __ngui__utils__handle__
+#ifndef __nxkit__handle__
+#define __nxkit__handle__
 
 #include <functional>
 #include "nxkit/util.h"

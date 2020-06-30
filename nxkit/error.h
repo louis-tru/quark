@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__error__
-#define __ngui__utils__error__
+#ifndef __nxkit__error__
+#define __nxkit__error__
 
 /**
  * @ns ngui

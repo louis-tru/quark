@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__loop__
-#define __ngui__utils__loop__
+#ifndef __nxkit__loop__
+#define __nxkit__loop__
 
 #include "nxkit/util.h"
 #include "nxkit/list.h"

@@ -28,8 +28,8 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__uv_1__
-#define __ngui__utils__uv_1__
+#ifndef __nxkit__uv_1__
+#define __nxkit__uv_1__
 
 #include <uv.h>
 #include "nxkit/util.h"

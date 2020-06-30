@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ngui__utils__localstorage__
-#define __ngui__utils__localstorage__
+#ifndef __nxkit__localstorage__
+#define __nxkit__localstorage__
 
 #include "nxkit/cb.h"
 #include "nxkit/util.h"

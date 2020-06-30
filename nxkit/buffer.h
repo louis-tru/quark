@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__utils__buffer__
-#define __ngui__utils__buffer__
+#ifndef __nxkit__buffer__
+#define __nxkit__buffer__
 
 #include "nxkit/array.h"
 #include "nxkit/codec.h"

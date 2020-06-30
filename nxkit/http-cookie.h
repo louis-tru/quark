@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ngui__utils__http__cookie__
-#define __ngui__utils__http__cookie__
+#ifndef __nxkit__http__cookie__
+#define __nxkit__http__cookie__
 
 #include "nxkit/util.h"
 #include "nxkit/string.h"
