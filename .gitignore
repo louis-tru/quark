@@ -17,3 +17,4 @@ node_modules
 libs/ftr/out
 .node_modules
 package-lock.json
+libs/ftrp/gyp
