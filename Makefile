@@ -29,7 +29,7 @@ git_pull=sh -c "\
 	if [ ! -f $(1)/.git/config ]; then \
 		git clone $(3) $(1) && cd $(1) && git checkout $(2) && echo git clone $(3) ok; \
 	else \
-		cd $(1) && git checkout $(2) && git pull && echo git pull $(1) ok; \
+		cd $(1) && git pull && git checkout $(2) && echo git pull $(1) ok; \
 	fi"
 
 git_push=sh -c "cd $(1) && git push && echo git push $(1) ok"
