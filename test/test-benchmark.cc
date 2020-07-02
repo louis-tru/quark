@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxjs/ngui.h"
+#include "ftr-js/ftr.h"
 
-using namespace ngui;
+using namespace ftr;
 
 #define IP_REMOTE "127.0.0.1"
 

@@ -1,8 +1,8 @@
 
 import { P, M, LOG, AM } from './test'
-import 'ngui/fs';
-import 'ngui/reader';
-import 'ngui/url';
+import 'ftr/fs';
+import 'ftr/reader';
+import 'ftr/url';
 
 const DIR = url.documents('test');
 const FILE = DIR + '/test_file.txt';

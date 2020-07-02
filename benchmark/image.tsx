@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Image, Scroll, _CVD } from 'ngui';
-import * as reader from 'ngui/reader';
-import path from 'ngui/path';
+import { GUIApplication, Root, Image, Scroll, _CVD } from 'ftr';
+import * as reader from 'ftr/reader';
+import path from 'ftr/path';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root backgroundColor="#000">

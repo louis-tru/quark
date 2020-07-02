@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/fs.h>
+#include <ftr/util/fs.h>
 #include <trial/fs.h>
 #include <pwd.h>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_fs(int argc, char **argv) {
 	

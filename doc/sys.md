@@ -1,4 +1,4 @@
-# `ngui/sys`
+# `ftr/sys`
 
 与操作系统相关的api
 

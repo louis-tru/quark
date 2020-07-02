@@ -1,5 +1,5 @@
 {
-	"name": "test-ngui",
+	"name": "test-ftr",
 	"main": "test_gui.jsx",
-	"nguiSyntax": true
+	"ftrSyntax": true
 }

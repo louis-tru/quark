@@ -29,10 +29,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('nxkit/fs');
+var fs = require('somes/fs');
 var path = require('path');
-var marked_html = require('nxp/marked/html');
-var read_ngui_version = require('./read_version').read_ngui_version;
+var marked_html = require('ftrp/marked/html');
+var read_ftr_version = require('./read_version').read_ftr_version;
 var argv = process.argv.slice(2);
 var template = null;
 var indexs = { };
@@ -49,7 +49,7 @@ if ( fs.existsSync(source + '/index.md') ) { // 存在索引
 	md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 	var r = marked_html.gen_html(md, '', '__placeholder_body__');
 	template = fs.readFileSync(__dirname + '/doc_template.html').toString();
-	template = template.replace('__placeholder_version__', 'v' + read_ngui_version().join('.'));
+	template = template.replace('__placeholder_version__', 'v' + read_ftr_version().join('.'));
 	template = template.replace('__placeholder_index__', r.html);
 }
 
@@ -61,7 +61,7 @@ function gen(src, target) {
 		md = md.replace(/\.(md|mdown)(\#|\))/img, '.html$2');
 		var tmp = template.replace('__placeholder_src__', src.substr(1).replace(/.(md|mdown)/i, '.html'));
 		tmp = tmp.replace('__placeholder_relative__', new Array(src.split('/').length - 1).join('../'));
-		var r = marked_html.gen_html(md, indexs[src] || 'Ngui API Documentation', tmp);
+		var r = marked_html.gen_html(md, indexs[src] || 'Ftr API Documentation', tmp);
 		fs.writeFileSync(save, r.html);
 	}
 }
@@ -93,6 +93,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(require.resolve('nxp') + '/marked/assets', output + '/assets');
+fs.cp_sync(require.resolve('ftrp') + '/marked/assets', output + '/assets');
 
 each_dir('', output);

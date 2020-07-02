@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { Buffer } from 'buffer';
-import 'ngui/http';
-import 'ngui/value';
-import 'ngui/sys';
+import 'ftr/http';
+import 'ftr/value';
+import 'ftr/sys';
 
 console.log('args:', process.argv, process.mainModule.filename);
 

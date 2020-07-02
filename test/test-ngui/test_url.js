@@ -1,5 +1,5 @@
 
-import 'ngui/url'
+import 'ftr/url'
 import { P, M } from './test'
 
 console.log('\nOutputs:\n');

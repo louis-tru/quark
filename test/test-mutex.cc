@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
-#include <nxkit/loop.h>
+#include <ftr/util/util.h>
+#include <ftr/util/loop.h>
 
-using namespace ngui;
+using namespace ftr;
 
 volatile bool run_flag = false;
 Mutex mtx;

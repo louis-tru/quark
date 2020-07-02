@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./jsx.h"
-#include "nxkit/string.h"
-#include "nxkit/string-builder.h"
-#include "nxkit/map.h"
-#include "nxkit/fs.h"
+#include "ftr/util/string.h"
+#include "ftr/util/string-builder.h"
+#include "ftr/util/map.h"
+#include "ftr/util/fs.h"
 
-NX_NS(ngui)
+FX_NS(ftr)
 
 #ifdef CHECK
 # undef CHECK
@@ -126,7 +126,7 @@ NX_NS(ngui)
 	F(NUMBER_2, "2") \
 	F(NUMBER_3, "3") \
 	F(STATIC, "static") \
-	F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('ngui/ctr');") \
+	F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('ftr/ctr');") \
 	F(_VV, "_VV") \
 	F(_VVT, "_VVT") \
 	F(_VVD, "_VVD") \
@@ -291,7 +291,7 @@ enum Token {
 	TYPEOF,                 // typeof
 	/*  Literal */
 	NUMBER_LITERAL,         // number
-	STRINX_LITERAL,         // string
+	STRIFX_LITERAL,         // string
 	REGEXP_LITERAL,         // regexp
 	IDENTIFIER,             // identifier
 	/* KEYWORD */
@@ -746,7 +746,7 @@ class Scanner : public Object {
 					next_->string_value.push('`');
 					token = scan_command_string(pos_);
 					if ( token == COMMAND_END ) {
-						token = STRINX_LITERAL;
+						token = STRIFX_LITERAL;
 					}
 					break;
 					
@@ -1213,7 +1213,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 			}
 		} while(c0_ >= 0);
 		
-		return STRINX_LITERAL;
+		return STRIFX_LITERAL;
 	}
 	
 	Token skip_multi_line_comment() {
@@ -1289,7 +1289,7 @@ KEYWORDS(KEYWORD_GROUP_CASE, KEYWORD)
 		next_->string_value.push(quote);
 		
 		advance();  // consume quote
-		return STRINX_LITERAL;
+		return STRIFX_LITERAL;
 	}
 	
 	// 扫描字符串转义
@@ -1599,7 +1599,7 @@ class Parser: public Object {
 
 		if (_is_jsx) {
 			// add jsx header code
-			// import { _VV, _VVT, _VVD } from 'ngui/ctr';
+			// import { _VV, _VVT, _VVD } from 'ftr/ctr';
 			append(S.JSX_HEADER);
 		}
 
@@ -1698,7 +1698,7 @@ class Parser: public Object {
 			case CONST: // const
 			case ELSE:  // else
 			case NUMBER_LITERAL:  // number
-			case STRINX_LITERAL:  // string
+			case STRIFX_LITERAL:  // string
 				fetch();
 				break;
 			case IDENTIFIER:  // identifier
@@ -1915,7 +1915,7 @@ class Parser: public Object {
 				parse_function();
 				break;
 			case NUMBER_LITERAL: // 10
-			case STRINX_LITERAL: // "String"
+			case STRIFX_LITERAL: // "String"
 				fetch();
 				break;
 			case COMMAND:     // `str ${
@@ -2253,7 +2253,7 @@ class Parser: public Object {
 				case AS:
 				case OF:
 				case FROM:
-				case STRINX_LITERAL:
+				case STRIFX_LITERAL:
 					//class member identifier
 					if ( peek() == LPAREN ) { // (
 						goto function;
@@ -2406,9 +2406,9 @@ class Parser: public Object {
 	}
 
 	void parse_import_block(Ucs2String* defaultId) {
-		// import { GUIApplication } from 'ngui/app';
-		// import { GUIApplication as App } from 'ngui/app';
-		// import app, { GUIApplication as App } from 'ngui/app';
+		// import { GUIApplication } from 'ftr/app';
+		// import { GUIApplication as App } from 'ftr/app';
+		// import app, { GUIApplication as App } from 'ftr/app';
 
 		ASSERT(token() == LBRACE);
 		append(S.LBRACE);     // {
@@ -2453,23 +2453,23 @@ class Parser: public Object {
 			Ucs2String id = _scanner->string_value();
 			tok = next();
 			
-			if (tok == FROM) { // import app from 'ngui/app';
+			if (tok == FROM) { // import app from 'ftr/app';
 				append(id);       // app   // TODO ... developer evn modify id
 				append(S.ASSIGN); // =
-				CHECK_NEXT(STRINX_LITERAL);
-				append(S.REQUIRE); // require('ngui/app').default;
+				CHECK_NEXT(STRIFX_LITERAL);
+				append(S.REQUIRE); // require('ftr/app').default;
 				append(S.LPAREN); // (
 				fetch();
 				append(S.RPAREN); // )
 				append(S.PERIOD); // .
 				append(S.DEFAULT); // default
-			} else if (tok == COMMA) { // import app, { GUIApplication as App } from 'ngui/app';
+			} else if (tok == COMMA) { // import app, { GUIApplication as App } from 'ftr/app';
 				CHECK_NEXT(LBRACE);
 				parse_import_block(&id);
 				CHECK_NEXT(FROM);
 				append(S.ASSIGN); // =
-				CHECK_NEXT(STRINX_LITERAL);
-				append(S.REQUIRE); // require('ngui/app');
+				CHECK_NEXT(STRIFX_LITERAL);
+				append(S.REQUIRE); // require('ftr/app');
 				append(S.LPAREN); // (
 				fetch();
 				append(S.RPAREN); // )
@@ -2478,7 +2478,7 @@ class Parser: public Object {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
-		else if (tok == MUL) {  // import * as app from 'ngui/app';
+		else if (tok == MUL) {  // import * as app from 'ftr/app';
 			append(S.CONST);    // const
 			CHECK_NEXT(AS);       // as
 			tok = next();
@@ -2486,8 +2486,8 @@ class Parser: public Object {
 				fetch();
 				CHECK_NEXT(FROM);
 				append(S.ASSIGN);  // =
-				CHECK_NEXT(STRINX_LITERAL);
-				append(S.REQUIRE); // require('ngui/app');
+				CHECK_NEXT(STRIFX_LITERAL);
+				append(S.REQUIRE); // require('ftr/app');
 				append(S.LPAREN); // (
 				fetch();
 				append(S.RPAREN); // )
@@ -2495,18 +2495,18 @@ class Parser: public Object {
 				UNEXPECTED_TOKEN_ERROR();
 			}
 		}
-		else if (tok == LBRACE) { // import { GUIApplication as app } from 'ngui/app';
+		else if (tok == LBRACE) { // import { GUIApplication as app } from 'ftr/app';
 			append(S.CONST); // const
 			parse_import_block(nullptr);
 			CHECK_NEXT(FROM);  // from
 			append(S.ASSIGN); // =
-			CHECK_NEXT(STRINX_LITERAL);
-			append(S.REQUIRE);// require('ngui/app');
+			CHECK_NEXT(STRIFX_LITERAL);
+			append(S.REQUIRE);// require('ftr/app');
 			append(S.LPAREN); // (
 			fetch();
 			append(S.RPAREN); // )
 		}
-		else if (tok == STRINX_LITERAL) { // ngui private syntax
+		else if (tok == STRIFX_LITERAL) { // ftr private syntax
 
 			Ucs2String str = _scanner->string_value();
 			if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
@@ -2517,7 +2517,7 @@ class Parser: public Object {
 					append(S.SPACE); //
 					append(S.ASSIGN); // =
 					next(); // IDENTIFIER
-					append(S.REQUIRE); // require('ngui/app');
+					append(S.REQUIRE); // require('ftr/app');
 					append(S.LPAREN); // (
 					append(str);
 					append(S.RPAREN); // )
@@ -2553,7 +2553,7 @@ class Parser: public Object {
 					append(S.SPACE); //
 					append(S.ASSIGN); // =
 				}
-				append(S.REQUIRE); // require('ngui/app');
+				append(S.REQUIRE); // require('ftr/app');
 				append(S.LPAREN); // (
 				append(str);
 				append(S.RPAREN); // )
@@ -2669,7 +2669,7 @@ class Parser: public Object {
 			case EVENT:
 			case GET:
 			case SET:
-			case STRINX_LITERAL:
+			case STRIFX_LITERAL:
 				return true;
 		}
 	}
@@ -2907,7 +2907,7 @@ class Parser: public Object {
 					pos = _scanner->location().end_pos;
 					break;
 					
-				case STRINX_LITERAL:   // xml context text
+				case STRIFX_LITERAL:   // xml context text
 					if (!_scanner->next_string_space().is_empty())
 						scape.push(_scanner->next_string_space());
 					str.push(_scanner->next_string_value());
@@ -2933,7 +2933,7 @@ class Parser: public Object {
 	}
 	
 	void error(cString& msg, Scanner::Location loc) {
-		NX_THROW(ERR_SYNTAX_ERROR,
+		FX_THROW(ERR_SYNTAX_ERROR,
 						 "%s\nline:%d, pos:%d, %s",
 						 *msg, loc.line + 1, loc.end_pos, *_path);
 	}
@@ -3024,4 +3024,4 @@ Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comme
 	return Parser(in, path, false, clean_comment).transform();
 }
 
-NX_END
+FX_END

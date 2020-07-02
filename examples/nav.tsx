@@ -30,11 +30,11 @@
 
 import { 
 	Div, Indep, Button, Text, Hybrid, _CVD,
-} from 'ngui';
+} from 'ftr';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'ngui/nav';
+import { Navbar, Toolbar } from 'ftr/nav';
 import review_vx from './review';
-import { GUIClickEvent } from 'ngui/event';
+import { GUIClickEvent } from 'ftr/event';
 
 const resolve = require.resolve;
 

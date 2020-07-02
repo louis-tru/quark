@@ -1,5 +1,5 @@
 
-import { GUIApplication, Root, Indep, Text, Div } from 'ngui';
+import { GUIApplication, Root, Indep, Text, Div } from 'ftr';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root>

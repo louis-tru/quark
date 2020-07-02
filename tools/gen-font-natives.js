@@ -79,16 +79,16 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __ngui__native__',
-		'#define __ngui__native__',
-	 'namespace ngui{',
+		'#ifndef __ftr__native__',
+		'#define __ftr__native__',
+	 'namespace ftr{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace ngui{');
+	write(cc_fd, 'namespace ftr{');
 	
 	var fonts = [];
 	

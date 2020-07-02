@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/json.h>
-#include <nxkit/string.h>
-#include <nxkit/event.h>
+#include <ftr/util/json.h>
+#include <ftr/util/string.h>
+#include <ftr/util/event.h>
 #include <map>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_json(int argc, char **argv) {
 	

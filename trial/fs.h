@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__trial__fs__
-#define __ngui__trial__fs__
+#ifndef __ftr__trial__fs__
+#define __ftr__trial__fs__
 
-#include "nxkit/fs.h"
+#include "ftr/util/fs.h"
 
 /**
- * @ns ngui
+ * @ns ftr
  */
 
-NX_NS(ngui)
+FX_NS(ftr)
 
 /**
  * @class FileSearch # Resources files search
  */
-class NX_EXPORT FileSearch: public Object {
-	NX_HIDDEN_ALL_COPY(FileSearch);
+class FX_EXPORT FileSearch: public Object {
+	FX_HIDDEN_ALL_COPY(FileSearch);
  public:
 	
 	FileSearch();
@@ -108,5 +108,5 @@ class NX_EXPORT FileSearch: public Object {
 	List<SearchPath*> m_search_paths; // Search path list
 };
 
-NX_END
+FX_END
 #endif

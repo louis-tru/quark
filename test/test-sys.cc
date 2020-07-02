@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/sys.h"
-#include "nxkit/string.h"
+#include "ftr/sys.h"
+#include "ftr/util/string.h"
 
-using namespace ngui;
+using namespace ftr;
 
 void test_sys(int argc, char **argv) {
 	LOG(sys::info());

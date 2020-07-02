@@ -41,7 +41,7 @@
  * @port: Physical connector type; one of %PORT_*
  * @phy_address: MDIO address of PHY (transceiver); 0 or 255 if not
  *	applicable.  For clause 45 PHYs this is the PRTAD.
- * @transceiver: Historically used to distinguish different possible
+ * @transceiver: Historically used to distiftrsh different possible
  *	PHY types, but not in a consistent way.  Deprecated.
  * @autoneg: Enable/disable autonegotiation and auto-detection;
  *	either %AUTONEG_DISABLE or %AUTONEG_ENABLE
@@ -264,7 +264,7 @@ enum phy_tunable_id {
  * struct ethtool_regs - hardware register dump
  * @cmd: Command number = %ETHTOOL_GREGS
  * @version: Dump format version.  This is driver-specific and may
- *	distinguish different chips/revisions.  Drivers must use new
+ *	distiftrsh different chips/revisions.  Drivers must use new
  *	version numbers whenever the dump format changes in an
  *	incompatible way.
  * @len: On entry, the real length of @data.  On return, the number of
@@ -1752,7 +1752,7 @@ enum ethtool_reset_flags {
  *	%ethtool_link_mode_bit_indices for the link modes, and other
  *	link features that the link partner advertised through
  *	autonegotiation; 0 if unknown or not applicable.  Read-only.
- * @transceiver: Used to distinguish different possible PHY types,
+ * @transceiver: Used to distiftrsh different possible PHY types,
  *	reported consistently by PHYLIB.  Read-only.
  *
  * If autonegotiation is disabled, the speed and @duplex represent the

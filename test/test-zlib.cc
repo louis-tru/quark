@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/zlib.h>
+#include <ftr/util/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_zlib (int argc, char **argv) {
 	

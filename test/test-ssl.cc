@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/net.h"
-#include "nxkit/fs.h"
+#include "ftr/util/net.h"
+#include "ftr/util/fs.h"
 #include <uv.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace ngui;
+using namespace ftr;
 
 #define error_report printf
 #define info_report printf

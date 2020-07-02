@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'ngui';
+import { Div, Button, _CVD } from 'ftr';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;

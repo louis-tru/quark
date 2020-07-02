@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/loop.h>
+#include <ftr/util/loop.h>
 
-using namespace ngui;
+using namespace ftr;
 
 static void message_cb(CbD& ev, RunLoop* loop) {
 	static int i = 0;

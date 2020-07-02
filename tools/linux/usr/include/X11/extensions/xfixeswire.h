@@ -95,7 +95,7 @@
 /* Selection events share one event number */
 #define XFixesSelectionNotify		    0
 
-/* Within the selection, the 'subtype' field distinguishes */
+/* Within the selection, the 'subtype' field distiftrshes */
 #define XFixesSetSelectionOwnerNotify	    0
 #define XFixesSelectionWindowDestroyNotify  1
 #define XFixesSelectionClientCloseNotify    2

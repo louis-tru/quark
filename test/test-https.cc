@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
-#include <nxkit/http.h>
-#include <nxkit/string.h>
-#include <nxkit/fs.h>
+#include <ftr/util/util.h>
+#include <ftr/util/http.h>
+#include <ftr/util/string.h>
+#include <ftr/util/fs.h>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_https(int argc, char **argv) {
 	HttpHelper::initialize();

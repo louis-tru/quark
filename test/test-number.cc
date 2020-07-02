@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
-#include <nxkit/loop.h>
-#include <nxkit/array.h>
-#include <ngui/sys.h>
+#include <ftr/util/util.h>
+#include <ftr/util/loop.h>
+#include <ftr/util/array.h>
+#include <ftr/sys.h>
 
-using namespace ngui;
+using namespace ftr;
 
 template<class T>
 void test_operation_add(const char* name) {

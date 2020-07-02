@@ -39,7 +39,7 @@
 	<key>MinimumOSVersion</key>
 	<string>10.0</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.ngui.xxxxxxxxxx</string>
+	<string>org.ftr.xxxxxxxxxx</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>

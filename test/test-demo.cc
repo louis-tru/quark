@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxjs/ngui.h"
+#include "ftr-js/ftr.h"
 
-using namespace ngui;
+using namespace ftr;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
@@ -47,7 +47,7 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 }
 
 void test_demo(int argc, char **argv) {
-	String cmd = "ngui ";
+	String cmd = "ftr ";
 
 #if USE_NODE
 	cmd += " ";
@@ -105,11 +105,11 @@ void test_demo(int argc, char **argv) {
 
 extern "C" {
 
-#if NX_ANDROID
-#include <nxkit/android-jni.h>
+#if FX_ANDROID
+#include <ftr/util/android-jni.h>
 	JNIEXPORT extern void
-	Java_org_ngui_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		LOG("Java_org_ngui_examples_MainActivity_test");
+	Java_org_ftr_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		LOG("Java_org_ftr_examples_MainActivity_test");
 	}
 #endif
 }

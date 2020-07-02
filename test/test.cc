@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/app.h"
-#include "ngui/sys.h"
-#include "nxkit/loop.h"
-#include "../depe/node/src/ngui.h"
+#include "ftr/app.h"
+#include "ftr/sys.h"
+#include "ftr/util/loop.h"
+#include "../depe/node/src/ftr.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_http_cookie
 #endif
 
-using namespace ngui;
+using namespace ftr;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
-NX_GUI_MAIN() {
+FX_GUI_MAIN() {
 
-	// node::NguiEnvironment::test();
+	// node::FtrEnvironment::test();
 
 	uint64 st = sys::time();
 	

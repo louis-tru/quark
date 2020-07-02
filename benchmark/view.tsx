@@ -1,12 +1,12 @@
 
-import { GUIApplication, ViewController, Root, Div, Scroll, default as ngui, _CVD } from 'ngui';
-import { Color } from 'ngui/value';
-import util from 'ngui/util';
+import { GUIApplication, ViewController, Root, Div, Scroll, default as ftr, _CVD } from 'ftr';
+import { Color } from 'ftr/value';
+import util from 'ftr/util';
 import * as uu from './uu';
 
 const {random} = util
 
-ngui.css({
+ftr.css({
 	'.item': {
 		height: 40,
 		width: '25%',
@@ -20,7 +20,7 @@ class RootViewController extends ViewController {
 
 		uu.start();
 
-		ngui.render<Scroll>(
+		ftr.render<Scroll>(
 			<Scroll width="full" height="full">
 				{
 					Array.from({ length: 10000 }, ()=>{

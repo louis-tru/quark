@@ -28,25 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import util from 'ngui/util';
-import * as sys from 'ngui/sys';
-import * as reader from 'ngui/reader';
-import * as font from 'ngui/font';
+import util from 'ftr/util';
+import * as sys from 'ftr/sys';
+import * as reader from 'ftr/reader';
+import * as font from 'ftr/font';
 import {
 	GUIApplication, Root, Scroll,
-	Div, Hybrid, Clip, Text, Button, TextNode as T, default as ngui, _CVD
-} from 'ngui';
-import { NavPageCollection, Toolbar } from 'ngui/nav';
+	Div, Hybrid, Clip, Text, Button, TextNode as T, default as ftr, _CVD
+} from 'ftr';
+import { NavPageCollection, Toolbar } from 'ftr/nav';
 import { Navbutton, Mynavpage, Page } from './public';
 import examples from './examples';
 import about_vx from './about';
 import review_vx from './review';
-import {GUIClickEvent} from 'ngui/event';
+import {GUIClickEvent} from 'ftr/event';
 
 const resolve = require.resolve;
-const px = ngui.atomPixel;
+const px = ftr.atomPixel;
 
-ngui.css({
+ftr.css({
 	
 	'.category_title': {
 		width: 'full',
@@ -105,9 +105,9 @@ function review_code(evt: GUIClickEvent) {
 	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 
-const ngui_tools = 'https://www.npmjs.com/package/nxp';
-const ngui_tools_issues_url = 'https://github.com/louis-tru/ngui/issues';
-const examples_source = 'https://github.com/louis-tru/ngui.git';
+const ftr_tools = 'https://www.npmjs.com/package/ftrp';
+const ftr_tools_issues_url = 'https://github.com/louis-tru/ftr/issues';
+const examples_source = 'https://github.com/louis-tru/ftr.git';
 const documents = 'http://ngui.fun/';
 
 // registerFont
@@ -115,12 +115,12 @@ const documents = 'http://ngui.fun/';
 function handle_go_to(evt: GUIClickEvent) {
 	var url = (evt.sender as any).url;
 	if ( url ) {
-		ngui.app.openUrl(url);
+		ftr.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	ngui.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	ftr.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 class DefaultToolbar extends Toolbar {
@@ -135,14 +135,14 @@ class DefaultToolbar extends Toolbar {
 	}
 }
 
-const ngui_tools_vx = ()=>(
-	<Mynavpage title="Ngui Tools" source={resolve(__filename)}>
+const ftr_tools_vx = ()=>(
+	<Mynavpage title="Ftr Tools" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">
-1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g nxp\n"} />.
+1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g ftrp\n"} />.
 2. Or get the node modules from Github.
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ngui_tools}>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ftr_tools}>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -169,7 +169,7 @@ const bug_feedback_vx = ()=>(
 	<Mynavpage title="Bug Feedback" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ngui_tools_issues_url}>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ftr_tools_issues_url}>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_bug_feedback}>Send email</Button>
 		</Div>
@@ -183,7 +183,7 @@ var app = new GUIApplication({
 	fullScreen: !!util.options.full_screen,
 	enableTouch: true,
 	background: 0xffffff,
-	title: 'Ngui Examples',
+	title: 'Ftr Examples',
 }).start(
 	<Root>
 
@@ -195,7 +195,7 @@ var app = new GUIApplication({
 					<Text class="hello" value="Hello." />
 					<Div class="category" borderBottom={`${px} #c8c7cc`}>
 						<Hybrid class="codepre">
-							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'ngui'" />
+							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'ftr'" />
 								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
 								(
 									{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{">"}
@@ -207,7 +207,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next={examples}>Examples</Navbutton>
 						<Navbutton next={examples_source_vx}>Examples Source</Navbutton>
-						<Navbutton next={ngui_tools_vx}>Ngui Tools</Navbutton>
+						<Navbutton next={ftr_tools_vx}>Ftr Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />

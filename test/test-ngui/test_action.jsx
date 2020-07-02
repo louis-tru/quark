@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root, Div, Button, Indep, Image } from 'ngui';
-import * as action from 'ngui/action';
-import css from 'ngui/css';
+import { GUIApplication, Root, Div, Button, Indep, Image } from 'ftr';
+import * as action from 'ftr/action';
+import css from 'ftr/css';
 
 new GUIApplication().start(
 	<Root>

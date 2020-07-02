@@ -1,15 +1,15 @@
 
-import { GUIApplication, ViewController, Root, Indep, default as ngui, _CVD } from 'ngui';
-import { Color } from 'ngui/value';
-import util from 'ngui/util';
+import { GUIApplication, ViewController, Root, Indep, default as ftr, _CVD } from 'ftr';
+import { Color } from 'ftr/value';
+import util from 'ftr/util';
 import * as uu from './uu';
 
 const random = util.random;
 
 class RootViewController extends ViewController {
 	render() {
-		var w = ngui.displayPort.width;
-		var h = ngui.displayPort.height;
+		var w = ftr.displayPort.width;
+		var h = ftr.displayPort.height;
 		console.log(w,h);
 
 		return (
@@ -47,6 +47,6 @@ class RootViewController extends ViewController {
 	}
 }
 
-new GUIApplication({ multisample: 4, title: 'Ngui benchmark' }).start(<RootViewController />);
+new GUIApplication({ multisample: 4, title: 'Ftr benchmark' }).start(<RootViewController />);
 
 uu.show_fsp();

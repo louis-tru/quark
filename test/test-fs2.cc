@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/fs.h>
-#include <nxkit/loop.h>
+#include <ftr/util/fs.h>
+#include <ftr/util/loop.h>
 
-using namespace ngui;
+using namespace ftr;
 
 static String write_str;
 
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	
-	write_str = f_reader()->read_file_sync(Path::resources("ngui/ctr.js"));
+	write_str = f_reader()->read_file_sync(Path::resources("ftr/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 

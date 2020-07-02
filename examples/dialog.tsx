@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode, _CVD } from 'ngui';
+import { Div, Button, TextNode, _CVD } from 'ftr';
 import { Mynavpage } from './public';
-import * as dialog from 'ngui/dialog';
+import * as dialog from 'ftr/dialog';
 
 const resolve = require.resolve;
 

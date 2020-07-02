@@ -70,7 +70,7 @@ all.
    You might think that the country code specification is redundant.
 But in fact, some languages have dialects in different countries.  For
 example, `de_AT' is used for Austria, and `pt_BR' for Brazil.  The
-country code serves to distinguish the dialects.
+country code serves to distiftrsh the dialects.
 
    The locale naming convention of `LL_CC', with `LL' denoting the
 language and `CC' denoting the country, is the one use on systems based
@@ -129,7 +129,7 @@ get started, please write to `coordinator@translationproject.org' to
 reach the coordinator for all translator teams.
 
    The English team is special.  It works at improving and uniformizing
-the terminology in use.  Proven linguistic skills are praised more than
+the terminology in use.  Proven liftrstic skills are praised more than
 programming skills, here.
 
 1.4 Available Packages

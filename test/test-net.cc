@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/net.h"
+#include "ftr/util/net.h"
 #include <uv.h>
 
-using namespace ngui;
+using namespace ftr;
 
 void echo_ipv6(hostent* host) {
 	LOG("addrtype, IPV6, %d", host->h_addrtype);
@@ -116,7 +116,7 @@ class MySocket: public Socket, public Socket::Delegate {
 		"Host: www.iqiyi.com\r\n"
 		"Connection: keep-alive\r\n"
 		"Accept: */*\r\n"
-		"User-Agent: Mozilla/5.0 AppleWebKit ngui Net Test\r\n\r\n";
+		"User-Agent: Mozilla/5.0 AppleWebKit ftr Net Test\r\n\r\n";
 		
 		write(header.collapse_buffer());
 	}

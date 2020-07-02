@@ -1,7 +1,7 @@
 
 var { Buffer } = require('buffer');
-var util = require('nxkit').default;
-var r = require('nxkit/request');
+var util = require('somes').default;
+var r = require('ftr/util/request');
 
 // 测试EOS区块链RPC交易
 

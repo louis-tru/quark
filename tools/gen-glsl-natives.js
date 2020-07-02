@@ -298,15 +298,15 @@ function main() {
 	write(hpp,
 		'#ifndef __shader_natives_' + now,
 		'#define __shader_natives_' + now,
-		'namespace ngui {',
+		'namespace ftr {',
 		'namespace shader {',
 		'#pragma pack(push,4)',
 	);
 
 	write(cpp,
 		`#include "./${path.basename(output_h)}"`,
-		'#include "ngui/gl/gl.h"',
-		'namespace ngui {',
+		'#include "ftr/gl/gl.h"',
+		'namespace ftr {',
 		'namespace shader {',
 	);
 
@@ -347,9 +347,9 @@ function main() {
 
 	// init block
 	var name = path.basename(output_cc).replace(/[\.-]/gm, '_');
-	write(cpp, `NX_INIT_BLOCK(${name}) {`);
+	write(cpp, `FX_INIT_BLOCK(${name}) {`);
 	names.forEach(e=>{
-		write(cpp, `  GLDraw::register_gl_shader((ngui::GLShader*)(&${e}));`)
+		write(cpp, `  GLDraw::register_gl_shader((ftr::GLShader*)(&${e}));`)
 	});
 	write(cpp, '}');
 	write(cpp, '}', '}');

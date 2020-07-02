@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, default as ngui, _CVD } from 'ngui';
-import { Event } from 'ngui/event';
-import { Switch, Checkbox } from 'ngui/checkbox';
+import { Div, Text, default as ftr, _CVD } from 'ftr';
+import { Event } from 'ftr/event';
+import { Switch, Checkbox } from 'ftr/checkbox';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;
-const px = ngui.atomPixel;
+const px = ftr.atomPixel;
 
-ngui.css({
+ftr.css({
 	'.checkbox_page': {
 		width: 'full',
 	},

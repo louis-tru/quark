@@ -11,13 +11,13 @@ V             ?= 0
 CXX           ?= g++
 LINK          ?= g++
 ANDROID_LIB   ?= $(ANDROID_SDK)/platforms/android-24/android.jar
-ANDROID_JAR    = out/android.classs.ngui.jar
+ANDROID_JAR    = out/android.classs.ftr.jar
 JAVAC         ?= javac
 JAR            = jar
 ENV           ?=
-NXP            = ./libs/nxp
-NXP_OUT        = out/nxp
-GYP            = $(NXP)/gyp/gyp
+FTRP           = ./libs/ftrp
+FTRP_OUT       = out/ftrp
+GYP            = $(FTRP)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
 BUILD_STYLE    = make
@@ -25,7 +25,7 @@ BUILD_STYLE    = make
 #######################
 
 STYLES		= make xcode msvs make-linux cmake-linux cmake
-GYPFILES	= Makefile ngui.gyp tools/common.gypi out/config.gypi trial/trial.gypi
+GYPFILES	= Makefile ftr.gyp tools/common.gypi out/config.gypi trial/trial.gypi
 GYP_ARGS	= -Goutput_dir="out" \
 -Iout/var.gypi -Iout/config.gypi -Itools/common.gypi -S.$(OS).$(SUFFIX) --depth=.
 
@@ -56,7 +56,7 @@ all: build # compile
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call gen_project,$@,ngui.gyp)
+	@$(call gen_project,$@,ftr.gyp)
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))
@@ -66,14 +66,14 @@ test2: $(GYPFILES)
 	@$(call gen_project,$(BUILD_STYLE),test2.gyp)
 	@$(call make_compile,$(MAKE))
 
-$(ANDROID_JAR): android/org/ngui/*.java
+$(ANDROID_JAR): android/org/ftr/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/ngui/*.java
-	@cd out/android.classs; $(JAR) cfv ngui.jar .
-	@mkdir -p $(NXP_OUT)/product/android/libs
-	@cp out/android.classs/ngui.jar $(NXP_OUT)/product/android/libs
+	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/ftr/*.java
+	@cd out/android.classs; $(JAR) cfv ftr.jar .
+	@mkdir -p $(FTRP_OUT)/product/android/libs
+	@cp out/android.classs/ftr.jar $(FTRP_OUT)/product/android/libs
 
 clean:
 	@rm -rfv $(LIBS_DIR)
-	@rm -rfv out/nxp/product/$(OS)
+	@rm -rfv out/ftrp/product/$(OS)

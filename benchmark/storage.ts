@@ -1,5 +1,5 @@
 
-import * as storage from 'ngui/storage';
+import * as storage from 'ftr/storage';
 import * as uu from './uu';
 
 uu.start();

@@ -1,5 +1,5 @@
 
-import 'ngui/util';
+import 'ftr/util';
 
 function json_stringify(value, whitelist) {
 

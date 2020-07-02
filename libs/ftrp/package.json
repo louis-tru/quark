@@ -1,0 +1,53 @@
+{
+	"name": "ftrp",
+	"version": "0.7.0",
+	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
+	"main": "server.js",
+	"author": {
+		"name": "xuewen.chu",
+		"email": "louistru@hotmail.com",
+		"url": "http://ngui.fun/"
+	},
+	"bin": {
+		"ftrp": "shell.js"
+	},
+	"scripts": {
+		"cp": "mkdir -p out/ftrp && cp -rf LICENSE *.keys *.md marked export out/ftrp && if [ ! -d out/ftrp/gyp ]; then ln -s ../../gyp out/ftrp; fi ",
+		"build": "npm run cp && tsc && node _.js"
+	},
+	"keywords": [
+		"jsx",
+		"javascript",
+		"ecmascript",
+		"html5",
+		"css",
+		"css3",
+		"qt",
+		"android",
+		"ios",
+		"appletv",
+		"gui",
+		"ui",
+		"opengl",
+		"react",
+		"native",
+		"es6",
+		"es7",
+		"es2017"
+	],
+	"dependencies": {
+		"marked": "~0.3.6",
+		"uglify-es": "~3.0.28",
+		"somes": "~0.10.69",
+		"typescript": "~3.7.4"
+	},
+	"devDependencies": {
+		"@types/node": "~12.12.20"
+	},
+	"license": "BSD-2-Clause",
+	"bugs": {
+		"url": "https://github.com/louis-tru/ftr/issues",
+		"email": "louistru@hotmail.com"
+	},
+	"homepage": "http://ngui.fun/"
+}

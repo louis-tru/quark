@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('nxkit').default;
-var fs = require('nxkit/fs');
-var service = require('nxkit/service').default;
-var HttpService = require('nxkit/http_service').HttpService;
-var server = require('nxp/server');
+var util = require('somes').default;
+var fs = require('somes/fs');
+var service = require('somes/service').default;
+var HttpService = require('somes/http_service').HttpService;
+var server = require('ftrp/server');
 
 var opt = {
 	// remote: 'http://192.168.1.124:1026/',

@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxjs/ngui.h"
+#include "ftr-js/ftr.h"
 
-using namespace ngui;
+using namespace ftr;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 1
 #define USE_INSPECT 0
 #define USE_NODE 0
 
-void test_ngui(int argc, char **argv) {
-	String cmd = "ngui ";
+void test_ftr(int argc, char **argv) {
+	String cmd = "ftr ";
 #if USE_NODE
 	cmd += " ";
 #else
@@ -48,9 +48,9 @@ void test_ngui(int argc, char **argv) {
 	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #endif
 #if USE_REMOTE
-	cmd += "http://" IP_REMOTE ":1026/test/test-ngui";
+	cmd += "http://" IP_REMOTE ":1026/test/test-ftr";
 #else
-	cmd += "test-ngui";
+	cmd += "test-ftr";
 #endif
 	js::Start(cmd);
 }

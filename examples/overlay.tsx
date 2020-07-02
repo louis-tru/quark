@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Indep, default as ngui, _CVD } from 'ngui';
+import { Div, Button, Indep, default as ftr, _CVD } from 'ftr';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'ngui/overlay';
-import { GUIClickEvent } from 'ngui/event';
+import { Overlay } from 'ftr/overlay';
+import { GUIClickEvent } from 'ftr/event';
 
 const resolve = require.resolve;
 
 function show_overlay(evt: GUIClickEvent) {
-	ngui.render<Overlay>(
+	ftr.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Menu A</Navbutton>
@@ -49,7 +49,7 @@ function show_overlay(evt: GUIClickEvent) {
 }
 
 function show_overlay2(evt: GUIClickEvent) {
-	var com = ngui.render<Overlay>(
+	var com = ftr.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Hello.</Navbutton>
@@ -63,7 +63,7 @@ function show_overlay2(evt: GUIClickEvent) {
 }
 
 function show_overlay3(evt: GUIClickEvent) {
-	var com = ngui.render<Overlay>(
+	var com = ftr.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton style={{textColor:"#fff"}}>Hello.</Navbutton>

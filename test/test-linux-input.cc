@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
+#include <ftr/util/util.h>
 
-#if NX_LINUX && !NX_ANDROID
+#if FX_LINUX && !FX_ANDROID
 
 #include <stdio.h>
 #include <unistd.h>
@@ -70,7 +70,7 @@ int test_linux_input2()
 
 	int	fd = open( "/dev/input/event0", O_RDONLY );
 	if ( fd < 0 ) {
-		NX_ERR( "/dev/input/event0" );
+		FX_ERR( "/dev/input/event0" );
 		return(-1);
 	}
 
@@ -81,7 +81,7 @@ int test_linux_input2()
 		ret = select( fd + 1, &rds, NULL, NULL, NULL );
 		if ( ret < 0 ) 
 		{
-			NX_ERR( "select" );
+			FX_ERR( "select" );
 			return(-1);
 		}
 		/*能够读取到数据*/
@@ -128,7 +128,7 @@ int test_linux_input__(int argc, char **argv)
 
 	int fd = open("/dev/input/event0", O_RDONLY);
 	if (fd < 0) {
-		NX_ERR("/dev/input/event0"); 
+		FX_ERR("/dev/input/event0"); 
 		return -1;
 	}
 

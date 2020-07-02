@@ -1,4 +1,4 @@
-# `ngui`
+# `ftr`
 
 
 ## `Class: GUIApplication`
@@ -86,15 +86,15 @@
 Example:
 
 ```js
-import { View, Div, ngui } from 'ngui'
+import { View, Div, ftr } from 'ftr'
 
 var v = new View();
 v.x = 100;
 v.y = 100;
-ngui.root.append(v);
+ftr.root.append(v);
 
 // jsx语法只能存在于.jsx文件中
-var v2 = ngui.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
+var v2 = ftr.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
 v2.onClick.on(function(ev) {
 	console.log('div click');
 })
@@ -1750,38 +1750,38 @@ console.log(view.class);
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus
 [`Notification`]: event.md#class-notification
-[`TextFont`]: ngui.md#class-textfont
-[`TextLayout`]: ngui.md#class-textlayout
-[`View`]: ngui.md#class-view
-[`Sprite`]: ngui.md#class-sprite
-[`Layout`]: ngui.md#class-layout
-[`Span`]: ngui.md#class-span
-[`Box`]: ngui.md#class-box
-[`Div`]: ngui.md#class-div
-[`Hybrid`]:  ngui.md#class-hybrid
-[`Limit`]:  ngui.md#class-limit
-[`Indep`]:  ngui.md#class-indep
-[`LimitIndep`]:  ngui.md#class-limitindep
-[`Image`]:  ngui.md#class-image
-[`Panel`]:  ngui.md#class-panel
-[`Root`]:  ngui.md#class-root
-[`BasicScroll`]: ngui.md#class-basicscroll
-[`Scroll`]: ngui.md#class-scroll
-[`Button`]: ngui.md#class-button
-[`Text`]: ngui.md#class-text
-[`Input`]: ngui.md#class-input
-[`Textarea`]: ngui.md#class-textarea
-[`TextNode`]: ngui.md#class-textnode
-[`Label`]: ngui.md#class-label
-[`Trap in Layout`]: ngui.md#trap-in-layout
+[`TextFont`]: ftr.md#class-textfont
+[`TextLayout`]: ftr.md#class-textlayout
+[`View`]: ftr.md#class-view
+[`Sprite`]: ftr.md#class-sprite
+[`Layout`]: ftr.md#class-layout
+[`Span`]: ftr.md#class-span
+[`Box`]: ftr.md#class-box
+[`Div`]: ftr.md#class-div
+[`Hybrid`]:  ftr.md#class-hybrid
+[`Limit`]:  ftr.md#class-limit
+[`Indep`]:  ftr.md#class-indep
+[`LimitIndep`]:  ftr.md#class-limitindep
+[`Image`]:  ftr.md#class-image
+[`Panel`]:  ftr.md#class-panel
+[`Root`]:  ftr.md#class-root
+[`BasicScroll`]: ftr.md#class-basicscroll
+[`Scroll`]: ftr.md#class-scroll
+[`Button`]: ftr.md#class-button
+[`Text`]: ftr.md#class-text
+[`Input`]: ftr.md#class-input
+[`Textarea`]: ftr.md#class-textarea
+[`TextNode`]: ftr.md#class-textnode
+[`Label`]: ftr.md#class-label
+[`Trap in Layout`]: ftr.md#trap-in-layout
 [`reader`]: reader.md
 [`$(path)`]: global.md#_Path-path-
 [`Repeat`]: value.md#class-repeat
 [`ContentAlign`]: value.md#class-contentalign
-[`Limit.minWidth`]: ngui.md#limit-minWidth
-[`Limit.minHeight`]: ngui.md#limit-minHeight
-[`Limit.maxWidth`]: ngui.md#limit-maxWidth
-[`Limit.maxHeight`]: ngui.md#limit-maxHeight
+[`Limit.minWidth`]: ftr.md#limit-minWidth
+[`Limit.minHeight`]: ftr.md#limit-minHeight
+[`Limit.maxWidth`]: ftr.md#limit-maxWidth
+[`Limit.maxHeight`]: ftr.md#limit-maxHeight
 [`Curve`]: value.md#class-curve
 [`TextColor`]: value.md#class-textcolor
 [`TextSize`]: value.md#class-textsize

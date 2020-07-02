@@ -109,7 +109,7 @@
 #define	SIOC_OUT	0x20000000	/* copy out parameters */
 #define	SIOC_IN		0x40000000	/* copy in parameters */
 #define	SIOC_INOUT	(SIOC_IN|SIOC_OUT)
-/* the 0x20000000 is so we can distinguish new ioctl's from old */
+/* the 0x20000000 is so we can distiftrsh new ioctl's from old */
 #define	_SIO(x,y)	((int)(SIOC_VOID|(x<<8)|y))
 #define	_SIOR(x,y,t)	((int)(SIOC_OUT|((sizeof(t)&SIOCPARM_MASK)<<16)|(x<<8)|y))
 #define	_SIOW(x,y,t)	((int)(SIOC_IN|((sizeof(t)&SIOCPARM_MASK)<<16)|(x<<8)|y))

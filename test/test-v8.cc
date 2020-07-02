@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/util.h"
-#include "nxkit/string.h"
+#include "ftr/util/util.h"
+#include "ftr/util/string.h"
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <sstream>
 #include <istream>
 
 using namespace v8;
-namespace n = ngui;
+namespace n = ftr;
 
 MaybeLocal<v8::Value> run_script(Isolate* isolate, v8::Local<v8::String> source_string,
 																 v8::Local<v8::String> name,

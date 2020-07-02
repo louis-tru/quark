@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "trial/fs.h"
-#include "nxkit/zlib.h"
-#include "nxkit/handle.h"
-#include "nxkit/error.h"
+#include "ftr/util/zlib.h"
+#include "ftr/util/handle.h"
+#include "ftr/util/error.h"
 
-NX_NS(ngui)
+FX_NS(ftr)
 
 // FileSearch implementation
 
@@ -131,13 +131,13 @@ FileSearch::FileSearch() {
 		if (i != -1) {
 			add_zip_search_path(res, res.substr(i + 1));
 		} else {
-			NX_WARN("Invalid path, %s", *res);
+			FX_WARN("Invalid path, %s", *res);
 		}
 	} else {
 		if (FileHelper::exists_sync(res)) {
 			add_search_path(res);
 		} else {
-			NX_WARN("Resource directory does not exists, %s", *res);
+			FX_WARN("Resource directory does not exists, %s", *res);
 		}
 	}
 }
@@ -155,7 +155,7 @@ void FileSearch::add_search_path(cString& path) {
 		FileSearch::SearchPath* s = it.value();
 		if (!s->as_zip()) {
 			if (s->path() == str) {
-				NX_WARN("The repetitive path, \"%s\"", *path);
+				FX_WARN("The repetitive path, \"%s\"", *path);
 				// Fault tolerance, skip the same path
 				return;
 			}
@@ -167,7 +167,7 @@ void FileSearch::add_search_path(cString& path) {
 void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 	String _zip_path = Path::format("%s", *zip_path);
 	String _path = path;
-#if NX_WIN
+#if FX_WIN
 	_path = path.replace_all('\\', '/');
 #endif
 	_path = inl_format_part_path(path);
@@ -178,7 +178,7 @@ void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 		if (it.value()->as_zip()) {
 			FileSearch::ZipInSearchPath* s = it.value()->as_zip();
 			if (s->zip_path() == _zip_path && s->path() == _path) {
-				NX_WARN("The repetitive path, ZIP: %s, %s", *zip_path, *path);
+				FX_WARN("The repetitive path, ZIP: %s, %s", *zip_path, *path);
 				// Fault tolerance,skip the same path
 				return;
 			}
@@ -232,7 +232,7 @@ void FileSearch::remove_all_search_path() {
 String FileSearch::get_absolute_path(cString& path) const {
 	
 	if (path.is_empty()) {
-		NX_WARN("Search path cannot be a empty and null");
+		FX_WARN("Search path cannot be a empty and null");
 		return String();
 	}
 	
@@ -329,4 +329,4 @@ FileSearch* FileSearch::shared() {
 	return search;
 }
 
-NX_END
+FX_END

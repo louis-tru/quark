@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'trial',
 		'type': '<(output_type)',
-		'dependencies': [ 'nxkit' ],
+		'dependencies': [ 'ftr-util' ],
 		'sources': [
 			'jsx.h',
 			'jsx.cc',

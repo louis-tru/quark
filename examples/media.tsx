@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, _CVD } from 'ngui';
-import { AudioPlayer, Video } from 'ngui/media';
+import { Div, Button, _CVD } from 'ftr';
+import { AudioPlayer, Video } from 'ftr/media';
 import { Mynavpage } from './public';
-import { GUIClickEvent } from 'ngui/event';
+import { GUIClickEvent } from 'ftr/event';
 
 // const src_720 = 'http://ngui.fun/media/2017-09-11_15_41_19.mp4';
 const src_720 = 'http://ngui.fun/media/piper720p.mp4';

@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
+#include <ftr/util/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace ngui;
+using namespace ftr;
 
 class Foo {
  public:

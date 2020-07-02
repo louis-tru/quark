@@ -1,9 +1,9 @@
 
-# [`Ngui`]
+# [`Ftr`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/nxp)
-* [`Examples`](https://github.com/louis-tru/ngui/tree/master/examples)
+* [`Tools`](https://www.npmjs.com/package/ftrp)
+* [`Examples`](https://github.com/louis-tru/ftr/tree/master/examples)
 
 # Course
 
@@ -15,25 +15,25 @@
 
 # Modules
 
-* [`ngui`](ngui.md)
+* [`ftr`](ftr.md)
 * [`pkg`](pkg.md)
-* [`ngui/action`](action.md)
-* [`ngui/app`](app.md)
-* [`ngui/css`](css.md)
-* [`ngui/ctr`](ctr.md)
-* [`ngui/display_port`](display_port.md)
-* [`ngui/font`](font.md)
-* [`ngui/media`](media.md)
-* [`ngui/value`](value.md)
-* [`ngui/util`](util.md)
-* [`ngui/event`](event.md)
-* [`ngui/fs`](fs.md)
-* [`ngui/http`](http.md)
-* [`ngui/keys`](keys.md)
-* [`ngui/path`](path.md)
-* [`ngui/reader`](reader.md)
-* [`ngui/storage`](storage.md)
-* [`ngui/sys`](sys.md)
+* [`ftr/action`](action.md)
+* [`ftr/app`](app.md)
+* [`ftr/css`](css.md)
+* [`ftr/ctr`](ctr.md)
+* [`ftr/display_port`](display_port.md)
+* [`ftr/font`](font.md)
+* [`ftr/media`](media.md)
+* [`ftr/value`](value.md)
+* [`ftr/util`](util.md)
+* [`ftr/event`](event.md)
+* [`ftr/fs`](fs.md)
+* [`ftr/http`](http.md)
+* [`ftr/keys`](keys.md)
+* [`ftr/path`](path.md)
+* [`ftr/reader`](reader.md)
+* [`ftr/storage`](storage.md)
+* [`ftr/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Ngui`]: http://ngui.fun/
+[`Ftr`]: http://ngui.fun/

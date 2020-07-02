@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/util.h"
-#include "nxkit/buffer.h"
+#include "ftr/util/util.h"
+#include "ftr/util/buffer.h"
 
-using namespace ngui;
+using namespace ftr;
 
 void test_buffer(int argc, char **argv) {
 	

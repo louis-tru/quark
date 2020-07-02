@@ -1,7 +1,7 @@
-ngui
+ftr
 ===============
 
-Ngui is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
+ftr is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 
@@ -11,22 +11,22 @@ Ngui is a cross-platform (Android/iOS) front-end development framework. The core
 |--|--|--|
 
 
-Build and install nxp
+Build and install ftrp
 ===============
 
 1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
 
 2. Setting environment variable `JAVA_HOME` and `ANDROID_HOME`
 
-Compile and install nxp `make install`, It takes a long time.
+Compile and install ftrp `make install`, It takes a long time.
 
-use nxp tools create project.
+use ftrp tools create project.
 
 first create an empty file directory, then execute in the directory
 
-`nxp init`
+`ftrp init`
 
-export ios xcode project `nxp export ios`
+export ios xcode project `ftrp export ios`
 
 
 # Simple Examples
@@ -34,7 +34,7 @@ export ios xcode project `nxp export ios`
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { GUIApplication, Root } from 'ngui'
+import { GUIApplication, Root } from 'ftr'
 new GUIApplication().start(
 	<Root>hello world!</Root>
 )
@@ -44,35 +44,35 @@ You can get a more detailed [`Examples`]
 
 # Start Usage
 
-If you've never used ngui before, you can start from here and build your ngui program step by step.
+If you've never used ftr before, you can start from here and build your ftr program step by step.
 
-## Install nxp
+## Install ftrp
 
-First, you need to install the toolkit provided by `nxp`
+First, you need to install the toolkit provided by `ftrp`
 
-* Install `nxp` using nodejs `npm` 
+* Install `ftrp` using nodejs `npm` 
 
 * Open `Terminal` and execute the following command：
 
 ```sh
 # shell
-$ sudo npm install -g nxp
+$ sudo npm install -g ftrp
 
 ```
 	
-* Running `nxp` requires dependency on `nodejs` and `python2.7`
+* Running `ftrp` requires dependency on `nodejs` and `python2.7`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
 ## Create new project
 
-Create a new `nxp` project using the following `shell` command：
+Create a new `ftrp` project using the following `shell` command：
 
 ```sh
 # shell
 $ mkdir myproject
 $ cd myproject
-$ nxp init
+$ ftrp init
 ```
 
 ## Build project
@@ -82,7 +82,7 @@ If this is a new project, you can skip this step and go directly to the next ste
 
 ```js
 # shell
-$ nxp build
+$ ftrp build
 ```
 
 ## Export project
@@ -92,22 +92,22 @@ This step exports [`Xcode`] or [`Android Studio`] project，because you eventual
 ```js
 # shell
 # export xcode ios project
-$ nxp export ios
+$ ftrp export ios
 # export android studio project
-$ nxp export android
+$ ftrp export android
 ```
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
-## nxp test http server
+## ftrp test http server
 
-`nxp` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+`ftrp` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
 Execute the following code to start it：
 
 ```js
 # shell
-$ nxp
+$ ftrp
 ```
 
 # Downloads
@@ -117,9 +117,9 @@ $ nxp
 * Project [`Source code`] from `Github`
 
 
-[`Examples`]: https://github.com/louis-tru/ngui/tree/master/demo
+[`Examples`]: https://github.com/louis-tru/ftr/tree/master/demo
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/ngui/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/nxp
-[`Source code`]: https://github.com/louis-tru/ngui
+[`Android APK`]: https://github.com/louis-tru/ftr/releases/download/v0.1.0/examples-release.apk
+[`NPM`]: https://www.npmjs.com/package/ftrp
+[`Source code`]: https://github.com/louis-tru/ftr

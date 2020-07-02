@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ngui/sys.h"
+#include "ftr/sys.h"
 
-using namespace ngui;
+using namespace ftr;
 
 class TestSizeOf {
  private:

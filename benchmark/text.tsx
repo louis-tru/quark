@@ -1,5 +1,5 @@
 
-import { Image } from 'ngui';
+import { Image } from 'ftr';
 import './print';
 
 

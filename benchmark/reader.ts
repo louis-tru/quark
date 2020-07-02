@@ -1,7 +1,7 @@
 
-import * as fs from 'ngui/fs';
-import url from 'ngui/path';
-import * as reader from 'ngui/reader';
+import * as fs from 'ftr/fs';
+import url from 'ftr/path';
+import * as reader from 'ftr/reader';
 import * as uu from './uu';
 
 var path = url.documents('benchmark.txt');

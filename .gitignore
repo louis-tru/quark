@@ -3,7 +3,7 @@ out
 .DS_Store
 *.DS_Store
 node_modules/.bin
-ngui.sublime-workspace
+ftr.sublime-workspace
 *jsa-shell
 depe/glsl-optimizer
 depe/glslang
@@ -12,8 +12,8 @@ depe/glslang
 *.a
 *.so
 .vscode
-libs/nxkit
+libs/somes
 node_modules
-libs/ngui/out
+libs/ftr/out
 .node_modules
 package-lock.json

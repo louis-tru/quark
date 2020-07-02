@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, default as ngui, _CVD, View } from 'ngui';
+import { Div, Button, Text, Input, Textarea, default as ftr, _CVD, View } from 'ftr';
 import { Mynavpage } from './public';
-import { GUIClickEvent } from 'ngui/event';
+import { GUIClickEvent } from 'ftr/event';
 
 const resolve = require.resolve;
 
@@ -39,7 +39,7 @@ function start_input(evt: GUIClickEvent) {
 }
 
 function end_input(evt: GUIClickEvent) {
-	(ngui.app.focusView as View).blur();
+	(ftr.app.focusView as View).blur();
 }
 
 export default ()=>(

@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, _CVD, default as ngui } from 'ngui';
-import { Stepper } from 'ngui/stepper';
+import { Div, Text, _CVD, default as ftr } from 'ftr';
+import { Stepper } from 'ftr/stepper';
 import { Mynavpage } from './public';
-import { Event } from 'ngui/event';
+import { Event } from 'ftr/event';
 
 const resolve = require.resolve;
 
-ngui.css({
+ftr.css({
 	'.strpper_page': {
 		width: 'full',
 	},
 	'.strpper_page .item': {
 		width: 'full',
-		borderBottom: `${ngui.atomPixel} #ccc`,
+		borderBottom: `${ftr.atomPixel} #ccc`,
 	},
 	'.strpper_page .text': {
 		width: '140!',

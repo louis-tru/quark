@@ -28,22 +28,22 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ngui__android__android__
-#define __ngui__android__android__
+#ifndef __ftr__android__android__
+#define __ftr__android__android__
 
-#include "nxkit/util.h"
+#include "ftr/util/util.h"
 
-#if NX_ANDROID
+#if FX_ANDROID
 
-#include "nxkit/string.h"
+#include "ftr/util/string.h"
 
-NX_NS(ngui)
+FX_NS(ftr)
 
 /**
  * @class Android
 */
-class NX_EXPORT Android {
-public:
+class FX_EXPORT Android {
+ public:
 	static void initialize();
 	// gui
 	static void ime_keyboard_open(bool clear, int type, int return_type);
@@ -82,7 +82,7 @@ public:
 	static uint64 used_memory();
 };
 
-NX_END
+FX_END
 
 #endif
 #endif

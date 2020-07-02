@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, AM, VM, VP, CA } from './test';
-import { GUIApplication, Root, Div, Image } from 'ngui';
-import dp from 'ngui/display_port';
+import { GUIApplication, Root, Div, Image } from 'ftr';
+import dp from 'ftr/display_port';
 
 new GUIApplication().start(
 	<Root>

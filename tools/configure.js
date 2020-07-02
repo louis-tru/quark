@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var util = require('nxkit').default;
-var fs = require('nxkit/fs');
-var url = require('nxkit/path');
+var util = require('somes').default;
+var fs = require('somes/fs');
+var url = require('somes/path');
 var path = require('path');
 var host_os = process.platform == 'darwin' ? 'osx': process.platform;
 var host_arch = arch_format(process.arch);
-var argument = require('nxkit/arguments');
-var { syscall, execSync, exec } = require('nxkit/syscall');
+var argument = require('somes/arguments');
+var { syscall, execSync, exec } = require('somes/syscall');
 var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;

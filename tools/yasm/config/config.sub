@@ -44,7 +44,7 @@ timestamp='2012-04-18'
 # and recognize all the CPU types, system types and aliases
 # that are meaningful with *any* GNU software.
 # Each package is responsible for reporting which valid configurations
-# it does not support.  The user should be able to distinguish
+# it does not support.  The user should be able to distiftrsh
 # a failure to support a valid configuration from a meaningless
 # configuration.
 

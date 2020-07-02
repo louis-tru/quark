@@ -1,5 +1,5 @@
 
-#include <nxkit/env.h>
+#include <ftr/util/env.h>
 
 /* jconfigint.h.  Generated from jconfigint.h.in by configure.  */
 /* libjpeg-turbo build number */
@@ -15,7 +15,7 @@
 #define VERSION "1.5.1"
 
 /* The size of `size_t', as computed by sizeof. */
-#if XX_ARCH_32BIT
+#if FX_ARCH_32BIT
 # define SIZEOF_SIZE_T 4
 #else
 # define SIZEOF_SIZE_T 8

@@ -1,7 +1,7 @@
 {
 	"name": "examples",
-	"app": "Ngui-Examples",
-	"id": "org.ngui.examples",
+	"app": "Ftr-Examples",
+	"id": "org.ftr.examples",
 	"main":	"index.js",
 	"types": "index.d.ts",
 	"version": "1.0.0"

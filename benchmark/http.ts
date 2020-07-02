@@ -1,5 +1,5 @@
 
-import * as http from 'ngui/http';
+import * as http from 'ftr/http';
 
 var i = 0;
 

@@ -12,8 +12,8 @@ if [ "`which tsc`" = "" ]; then
 	$SUDO npm install typescript -g;
 fi
 
-if   [ ! -d libs/nxkit ] \
-	|| [ ! -d libs/nxp/gyp ] \
+if   [ ! -d libs/somes ] \
+	|| [ ! -d libs/ftrp/gyp ] \
 	|| [ ! -d depe/v8-link ] \
 	|| [ ! -d depe/FFmpeg ] \
 	|| [ ! -d depe/node ] \
@@ -22,51 +22,51 @@ if   [ ! -d libs/nxkit ] \
 	make pull
 fi
 
-# build libs/ngui
-if [ ! -f libs/ngui/out/ngui/package.json ]; then
-	cd libs/ngui
+# build libs/ftr
+if [ ! -f libs/ftr/out/ftr/package.json ]; then
+	cd libs/ftr
 	npm i
 	npm run build
 	cd ../..
 fi
 
-# build libs/nxkit
-if [ ! -f libs/nxkit/out/nxkit/package.json ]; then
-	cd libs/nxkit
+# build libs/somes
+if [ ! -f libs/somes/out/somes/package.json ]; then
+	cd libs/somes
 	npm i
 	npm run build
 	cd ../..
 fi
 
-# build libs/nxp
-if [ ! -f libs/nxp/out/nxp/package.json ]; then
-	cd libs/nxp
+# build libs/ftrp
+if [ ! -f libs/ftrp/out/ftrp/package.json ]; then
+	cd libs/ftrp
 	npm i
-	rm -rf node_modules/nxkit
+	rm -rf node_modules/somes
 	cd node_modules
-	ln -s ../../nxkit/out/nxkit
+	ln -s ../../somes/out/somes
 	cd ..
 	npm run build
 	cd ../..
 fi
 
-if   [ ! -d tools/node_modules/nxkit ] \
-	|| [ ! -d tools/node_modules/nxp ] \
+if   [ ! -d tools/node_modules/somes ] \
+	|| [ ! -d tools/node_modules/ftrp ] \
 ; then
 	rm -rf tools/node_modules/*
 	mkdir -p tools/node_modules
 	cd tools/node_modules
-	ln -s ../../libs/nxkit/out/nxkit
-	ln -s ../../libs/nxp/out/nxp
+	ln -s ../../libs/somes/out/somes
+	ln -s ../../libs/ftrp/out/ftrp
 	cd ../..
 fi
 
 if [ ! -d node_modules ]; then
 	mkdir node_modules
 	cd node_modules
-	ln -s ../libs/ngui/out/ngui
-	ln -s ../libs/nxkit/out/nxkit
-	ln -s ../libs/nxp/out/nxp
+	ln -s ../libs/ftr/out/ftr
+	ln -s ../libs/somes/out/somes
+	ln -s ../libs/ftrp/out/ftrp
 	cd ..
 fi
 

@@ -1,6 +1,6 @@
 
 import { LOG, AM, M, P, VM, VP, LOG } from './test'
-import { Event, EventNoticer, Notification, event } from 'ngui/event';
+import { Event, EventNoticer, Notification, event } from 'ftr/event';
 
 LOG('\nTest event:\n')
 

@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
-#include <ngui/image.h>
-#include <ngui/sprite.h>
-#include <ngui/div.h>
-#include <ngui/app.h>
-#include <ngui/display-port.h>
-#include <ngui/root.h>
-#include <nxkit/fs.h>
-#include <ngui/gl/gl.h>
+#include <ftr/util/util.h>
+#include <ftr/image.h>
+#include <ftr/sprite.h>
+#include <ftr/div.h>
+#include <ftr/app.h>
+#include <ftr/display-port.h>
+#include <ftr/root.h>
+#include <ftr/util/fs.h>
+#include <ftr/gl/gl.h>
 
-using namespace ngui;
-using ngui::value::ValueType;
-using ngui::value::Value;
+using namespace ftr;
+using ftr::value::ValueType;
+using ftr::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();
@@ -120,6 +120,6 @@ void onload_handle (Event<>& evt, void* user) {
 
 void test_gui(int argc, char **argv) {
 	GUIApplication app;
-	app.NX_ON(Load, onload_handle);
+	app.FX_ON(Load, onload_handle);
 	app.run();
 }

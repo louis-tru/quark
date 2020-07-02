@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package org.ngui.test;
+package org.ftr.test;
 
 import android.os.Bundle;
 import android.util.Log;
 
-import org.ngui.NguiActivity;
+import org.ftr.FtrActivity;
 
-public class MainActivity extends NguiActivity {
+public class MainActivity extends FtrActivity {
 
 	static {
-		System.loadLibrary("nxjs");
+		System.loadLibrary("ftr-js");
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class MainActivity extends NguiActivity {
 	protected String startCommand() {
 		//return "examples";
 		//--inspect-brk=0.0.0.0:9229
-		return "ngui --dev http://192.168.0.11:1026/examples";
+		return "ftr --dev http://192.168.0.11:1026/examples";
 	}
 
 }

@@ -430,7 +430,7 @@
 #define  PCI_X_STATUS_64BIT	0x00010000	/* 64-bit device */
 #define  PCI_X_STATUS_133MHZ	0x00020000	/* 133 MHz capable */
 #define  PCI_X_STATUS_SPL_DISC	0x00040000	/* Split Completion Discarded */
-#define  PCI_X_STATUS_UNX_SPL	0x00080000	/* Unexpected Split Completion */
+#define  PCI_X_STATUS_UFX_SPL	0x00080000	/* Unexpected Split Completion */
 #define  PCI_X_STATUS_COMPLEX	0x00100000	/* Device Complexity */
 #define  PCI_X_STATUS_MAX_READ	0x00600000	/* Designed Max Memory Read Count */
 #define  PCI_X_STATUS_MAX_SPLIT	0x03800000	/* Designed Max Outstanding Split Transactions */
@@ -706,7 +706,7 @@
 #define  PCI_ERR_UNC_FCP	0x00002000	/* Flow Control Protocol */
 #define  PCI_ERR_UNC_COMP_TIME	0x00004000	/* Completion Timeout */
 #define  PCI_ERR_UNC_COMP_ABORT	0x00008000	/* Completer Abort */
-#define  PCI_ERR_UNC_UNX_COMP	0x00010000	/* Unexpected Completion */
+#define  PCI_ERR_UNC_UFX_COMP	0x00010000	/* Unexpected Completion */
 #define  PCI_ERR_UNC_RX_OVER	0x00020000	/* Receiver Overflow */
 #define  PCI_ERR_UNC_MALF_TLP	0x00040000	/* Malformed TLP */
 #define  PCI_ERR_UNC_ECRC	0x00080000	/* ECRC Error Status */

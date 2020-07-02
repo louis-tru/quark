@@ -36,9 +36,9 @@
  */
 
 
-#include <nxkit/util.h>
+#include <ftr/util/util.h>
 
-#if NX_LINUX && !NX_ANDROID
+#if FX_LINUX && !FX_ANDROID
 
 #include <stdio.h>
 #include <stdlib.h>

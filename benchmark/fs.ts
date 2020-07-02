@@ -1,6 +1,6 @@
 
-import * as fs from 'ngui/fs';
-import url from 'ngui/path';
+import * as fs from 'ftr/fs';
+import url from 'ftr/path';
 import * as uu from './uu';
 
 var path = url.documents('benchmark.txt');

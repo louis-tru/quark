@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/util.h"
-#include "nxkit/fs.h"
+#include "ftr/util/util.h"
+#include "ftr/util/fs.h"
 
-using namespace ngui;
+using namespace ftr;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
  public:

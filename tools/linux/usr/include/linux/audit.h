@@ -366,7 +366,7 @@ enum {
 #define __AUDIT_ARCH_CONVENTION_MASK 0x30000000
 #define __AUDIT_ARCH_CONVENTION_MIPS64_N32 0x20000000
 
-/* distinguish syscall tables */
+/* distiftrsh syscall tables */
 #define __AUDIT_ARCH_64BIT 0x80000000
 #define __AUDIT_ARCH_LE	   0x40000000
 

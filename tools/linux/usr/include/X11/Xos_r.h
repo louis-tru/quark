@@ -57,7 +57,7 @@ in this Software without prior written authorization from The Open Group.
  * complicated, mostly because P1003.1c (the IEEE POSIX Threads spec)
  * went through lots of drafts, and some vendors shipped systems based
  * on draft API that were changed later.  Unfortunately POSIX did not
- * provide a feature-test macro for distinguishing each of the drafts.
+ * provide a feature-test macro for distiftrshing each of the drafts.
  */
 
 /*

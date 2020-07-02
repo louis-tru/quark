@@ -81,7 +81,7 @@
 
 
 /*
- * Note @@@: since the socket layers don't really distinguish the control and
+ * Note @@@: since the socket layers don't really distiftrsh the control and
  * the data plane but generally seems to be data plane-centric, any layer is
  * about equally wrong for the SAP. If you have a better idea about this,
  * please speak up ...

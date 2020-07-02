@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/http.h>
+#include <ftr/util/http.h>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_http3(int argc, char **argv) {
 	LOG(HttpHelper::get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));

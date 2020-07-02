@@ -1,9 +1,9 @@
 
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR     = out/android.classs.ngui.jar
-NXP             = ./libs/nxp
-NXP_OUT         = out/nxp
+ANDROID_JAR     = out/android.classs.ftr.jar
+FTRP            = ./libs/ftrp
+FTRP_OUT        = out/ftrp
 GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
@@ -21,8 +21,8 @@ endif
 
 #######################
 
-DEPS = libs/nxkit libs/nxp/gyp.ngui depe/v8-link \
-	depe/FFmpeg.ngui depe/node.ngui depe/bplus depe/skia
+DEPS = libs/somes libs/ftrp/gyp.ftr depe/v8-link \
+		depe/FFmpeg.ftr depe/node.ftr depe/bplus depe/skia
 FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
 
 git_pull=sh -c "\
@@ -52,24 +52,24 @@ check_osx=\
 	fi
 
 .PHONY: $(FORWARD) ios android linux osx \
-	product install install-nxp \
+	product install install-ftrp \
 	help web doc watch all all_on_linux all_on_osx pull push
 
 .SECONDEXPANSION:
 
-# compile product ngui and install
+# compile product ftr and install
 # It can only run in MAC system.
 product:
 	@$(MAKE) ios
 	@$(MAKE) android
 
 install: product
-	@$(MAKE) install-nxp
+	@$(MAKE) install-ftrp
 
-install-nxp:
-	@$(NODE) ./tools/cp-nxp.js
-	@cd $(NXP_OUT) && npm i -f
-	@cd $(NXP_OUT) && $(SUDO) npm i -g
+install-ftrp:
+	@$(NODE) ./tools/cp-ftrp.js
+	@cd $(FTRP_OUT) && npm i -f
+	@cd $(FTRP_OUT) && $(SUDO) npm i -g
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -82,7 +82,7 @@ ios:
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy debug
-	@./tools/gen_apple_frameworks.sh $(NXP_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(FTRP_OUT) ios
 
 # build all android platform and output to product dir
 android:

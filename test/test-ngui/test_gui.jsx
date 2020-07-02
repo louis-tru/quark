@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import 'ngui/sys';
-import 'ngui/dialog';
+import 'ftr/sys';
+import 'ftr/dialog';
 import {
 	GUIApplication,
 	Root, Div, Image, Sprite,
 	Text, Label, Limit, Hybrid,
-	Span, Video, Panel, Button, TextNode, Scroll, ngui: gui
-} from 'ngui';
+	Span, Video, Panel, Button, TextNode, Scroll, ftr: gui
+} from 'ftr';
 
 const action1 = {
 	delay: 1,

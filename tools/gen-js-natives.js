@@ -30,7 +30,7 @@
 
 var fs = require('fs');
 var path = require('path');
-// var syscall = require('nxkit/syscall');
+// var syscall = require('ftr/util/syscall');
 var inputs = process.argv.slice(2);
 var output_cc = inputs.pop();
 var output_h = inputs.pop();
@@ -110,7 +110,7 @@ function readSource(pathname) {
 	// var ext = path.extname(pathname);
 	// if (/*pathname.indexOf('value.js') == -1 && */(ext == '.js' || ext == '.jsx')) {
 	// 	console.log('jsa-shell', pathname);
-	// 	syscall.syscall(`${__dirname}/../libs/nxp/bin/${host_os}-jsa-shell ` +
+	// 	syscall.syscall(`${__dirname}/../libs/ftrp/bin/${host_os}-jsa-shell ` +
 	// 									`${pathname} ${pathname}~ --clean-comment`);
 	// 	var result = fs.readFileSync(pathname + '~').toJSON().data;
 	// 	// if (pathname.indexOf('value.js') != -1) {

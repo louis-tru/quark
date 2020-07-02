@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/http-cookie.h"
-#include "ngui/sys.h"
+#include "ftr/util/http-cookie.h"
+#include "ftr/sys.h"
 
-using namespace ngui;
+using namespace ftr;
 
 void test_http_cookie(int argc, char **argv) {
 	
@@ -83,7 +83,7 @@ void test_http_cookie(int argc, char **argv) {
 	
 	LOG("E, %s", *http_cookie_get("ngui.fun", "test"));
 
-	http_cookie_set("ngui.orh", "test--------A", "ngui.fun%", -1, "KKK/MMM");
+	http_cookie_set("ftr.orh", "test--------A", "ngui.fun%", -1, "KKK/MMM");
 
 	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("ngui.fun"));
 	

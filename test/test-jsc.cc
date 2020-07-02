@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "nxkit/util.h"
-#include "nxkit/string-builder.h"
-#include "nxkit/buffer.h"
-#include "nxkit/loop.h"
+#include "ftr/util/util.h"
+#include "ftr/util/string-builder.h"
+#include "ftr/util/buffer.h"
+#include "ftr/util/loop.h"
 
-using namespace ngui;
+using namespace ftr;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;

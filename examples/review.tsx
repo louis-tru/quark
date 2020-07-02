@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text, _CVD } from 'ngui';
+import { Scroll, Text, _CVD } from 'ftr';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'ngui/nav';
-import * as reader from 'ngui/reader';
-import {Event} from 'ngui/event';
+import { Navbar, Toolbar } from 'ftr/nav';
+import * as reader from 'ftr/reader';
+import {Event} from 'ftr/event';
 
 function foreground(evt: Event<void, Page>) {
 	var navpage = evt.sender;

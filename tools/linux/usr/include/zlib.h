@@ -1155,7 +1155,7 @@ ZEXTERN int ZEXPORT inflateBack OF((z_streamp strm,
    if in() or out() returned an error, Z_DATA_ERROR if there was a format error
    in the deflate stream (in which case strm->msg is set to indicate the nature
    of the error), or Z_STREAM_ERROR if the stream was not properly initialized.
-   In the case of Z_BUF_ERROR, an input or output error can be distinguished
+   In the case of Z_BUF_ERROR, an input or output error can be distiftrshed
    using strm->next_in which will be Z_NULL only if in() returned an error.  If
    strm->next_in is not Z_NULL, then the Z_BUF_ERROR was due to out() returning
    non-zero.  (in() will always be called before out(), so strm->next_in is
@@ -1664,8 +1664,8 @@ ZEXTERN const char * ZEXPORT gzerror OF((gzFile file, int *errnum));
    closed, then the string previously returned by gzerror will no longer be
    available.
 
-     gzerror() should be used to distinguish errors from end-of-file for those
-   functions above that do not distinguish those cases in their return values.
+     gzerror() should be used to distiftrsh errors from end-of-file for those
+   functions above that do not distiftrsh those cases in their return values.
 */
 
 ZEXTERN void ZEXPORT gzclearerr OF((gzFile file));

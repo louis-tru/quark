@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { NavPage } from 'ngui/nav';
+import { NavPage } from 'ftr/nav';
 import { 
 	ViewController, Button, Hybrid,
-	Text, Indep, default as ngui, _CVD
-} from 'ngui';
-import {GUIClickEvent} from 'ngui/event';
+	Text, Indep, default as ftr, _CVD
+} from 'ftr';
+import {GUIClickEvent} from 'ftr/event';
 
-const px = ngui.atomPixel;
+const px = ftr.atomPixel;
 const resolve = require.resolve;
 
-ngui.css({
+ftr.css({
 	
 	'.long_btn': {
 		margin: 10,

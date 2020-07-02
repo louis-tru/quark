@@ -1,4 +1,4 @@
-# `ngui/ctr`
+# `ftr/ctr`
 
 ## static ViewController::render(vdom[,parentView) 
 
@@ -11,8 +11,8 @@
 Example:
 
 ```jsx
-import { GUIApplication, ViewController, Root, Div } from 'ngui'
-import 'ngui/http'
+import { GUIApplication, ViewController, Root, Div } from 'ftr'
+import 'ftr/http'
 class MyCtr extends ViewController {
 	triggerLoad(e) {
 		http.get('http://192.168.1.100:1026/README.md?param=' + this.message.param, bf=>(this.modle = {bf}));
@@ -143,18 +143,18 @@ new GUIApplication().start(
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`View`]: ngui.md#class-view
+[`View`]: ftr.md#class-view
 [`ViewController`]: ctr.md#class-viewcontroller
 [`Notification`]: event.md#class-notification
-[`View.action`]: ngui.md#get-view-action
-[`View.style`]: ngui.md#view-style
-[`View.visible`]: ngui.md#view-visible
-[`View.receive`]: ngui.md#view-receive
-[`View.class`]: ngui.md#get-view-class
-[`View.transition()`]: ngui.md#view-transition-style-delay-cb-
-[`View.show()`]: ngui.md#view-show-
-[`View.hide()`]: ngui.md#view-hide-
-[`View.addClass()`]: ngui.md#view-addClass-name-
-[`View.removeClass()`]: ngui.md#view-removeclass-name-
-[`View.toggleClass()`]: ngui.md#view-toggleclass-name-
-[`View.remove()`]: ngui.md#view-remove-
+[`View.action`]: ftr.md#get-view-action
+[`View.style`]: ftr.md#view-style
+[`View.visible`]: ftr.md#view-visible
+[`View.receive`]: ftr.md#view-receive
+[`View.class`]: ftr.md#get-view-class
+[`View.transition()`]: ftr.md#view-transition-style-delay-cb-
+[`View.show()`]: ftr.md#view-show-
+[`View.hide()`]: ftr.md#view-hide-
+[`View.addClass()`]: ftr.md#view-addClass-name-
+[`View.removeClass()`]: ftr.md#view-removeclass-name-
+[`View.toggleClass()`]: ftr.md#view-toggleclass-name-
+[`View.remove()`]: ftr.md#view-remove-

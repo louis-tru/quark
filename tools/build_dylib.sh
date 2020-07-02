@@ -52,46 +52,44 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# nxkit
-link_dylib nxkit "$obj/nxkit $obj/libuv $obj/openssl $obj/http_parser " \
-	"-lminizip -lbplus -lz " "-framework Foundation -framework UIKit "
-framework nxkit $out/../../nxkit
-
-# ngui
-link_dylib ngui "$obj/ngui " \
-	"-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
+# ftr
+link_dylib ftr \
+	"$obj/ftr-util $obj/libuv $obj/openssl $obj/http_parser \
+			$obj/ftr " \
+	"-lminizip -lbplus -lz 
+			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
-	-framework CoreGraphics -framework QuartzCore -framework UIKit \
-	-framework MessageUI -framework nxkit "
-# gen temp framework
-framework ngui
+			-framework CoreGraphics -framework QuartzCore -framework UIKit -framework MessageUI "
+framework ftr no-inc # gen temp framework
 
-# nxmedia
-link_dylib nxmedia "$obj/nxmedia" "-liconv -lbz2 -lz -lFFmpeg" \
+# ftr-media
+link_dylib ftr-media \
+	"$obj/ftr-media" \
+	"-liconv -lbz2 -lz -lFFmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-	-framework CoreMedia -framework nxkit -framework ngui"
-framework nxmedia no-inc
+			-framework CoreMedia -framework ftr"
+framework ftr-media no-inc # gen temp framework
 
-# nxv8
+# ftr-js + ftr-v8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib nxv8 "$obj/v8-link" "" "-framework JavaScriptCore"
+	link_dylib ftr-js \
+		"$obj/v8-link $obj/ftr-js" \
+		"" \
+		"-framework ftr -framework ftr-media -framework JavaScriptCore"
 else
 	# $obj/v8_base/depe/node/deps/v8/src/api.o
 	# $obj/v8_base/depe/node/deps/v8/src/inspector
-	link_dylib nxv8 "$obj/v8_base $obj/v8_libplatform" \
+	link_dylib ftr-js \
+		"$obj/v8_base $obj/v8_libplatform $obj/ftr-js" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
-		-lv8_nosnapshot -lv8_builtins_generators" ""
+				-lv8_nosnapshot -lv8_builtins_generators" \
+		"-framework ftr -framework ftr-media -framework JavaScriptCore"
 fi
-framework nxv8 $out/../../depe/v8-link/include
+framework ftr-js no-inc # gen temp framework
 
-# nxjs
-link_dylib nxjs "$obj/nxjs" "" \
-	"-framework nxkit -framework ngui -framework nxmedia \
-	-framework nxv8 -framework JavaScriptCore"
-framework nxjs no-inc
-
-# nxnode
-link_dylib nxnode "$obj/node" "-lnghttp2 -lcares -lz" \
-	"-framework nxkit -framework ngui -framework nxjs -framework nxv8"
-framework nxnode no-inc
-
+# ftr-node
+link_dylib ftr-node \
+	"$obj/node" \
+	"-lnghttp2 -lcares -lz" \
+	"-framework ftr -framework ftr-js"
+framework ftr-node no-inc # gen temp framework

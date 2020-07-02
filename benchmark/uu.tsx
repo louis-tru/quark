@@ -1,8 +1,8 @@
 
-import * as http from 'ngui/http';
-import util from 'ngui/util';
-import * as sys from 'ngui/sys';
-import { Indep, ViewController, default as ngui, Text, _CVD } from 'ngui';
+import * as http from 'ftr/http';
+import util from 'ftr/util';
+import * as sys from 'ftr/sys';
+import { Indep, ViewController, default as ftr, Text, _CVD } from 'ftr';
 
 var ts = 0;
 
@@ -30,7 +30,7 @@ class FSP extends ViewController {
 	}
 
 	up_fsp() {
-		var fsp_value = ngui.displayPort.fsp();
+		var fsp_value = ftr.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
 		this.state = { fsp_value, cpu_usage };
 		setTimeout(e=>this.up_fsp(), 1000);
@@ -42,18 +42,18 @@ var fsp: FSP;
 
 export function show_fsp() {
 	util.assert(!fsp);
-	util.assert(ngui.app);
+	util.assert(ftr.app);
 
 	function show_fsp_ok() {
-		if (ngui.root) {
-			fsp = ngui.render(<FSP />, ngui.root);
+		if (ftr.root) {
+			fsp = ftr.render(<FSP />, ftr.root);
 			fsp.up_fsp();
 		}
 	}
 
-	if (ngui.app.isLoaded) {
+	if (ftr.app.isLoaded) {
 		show_fsp_ok.setTimeout(1000);
 	} else {
-		ngui.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
+		ftr.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
 	}
 };

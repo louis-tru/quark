@@ -322,7 +322,7 @@ struct vfio_region_info_cap_type {
  *
  * AUTOMASKED indicates that after signaling, the interrupt line is
  * automatically masked by VFIO and the user needs to unmask the line
- * to receive new interrupts.  This is primarily intended to distinguish
+ * to receive new interrupts.  This is primarily intended to distiftrsh
  * level triggered interrupts.
  *
  * The NORESIZE flag indicates that the interrupt lines within the index

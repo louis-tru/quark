@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/array.h>
-#include <nxkit/list.h>
-#include <nxkit/string.h>
-#include <nxkit/map.h>
+#include <ftr/util/array.h>
+#include <ftr/util/list.h>
+#include <ftr/util/string.h>
+#include <ftr/util/map.h>
 #include <map>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_map(int argc, char **argv) {
 	

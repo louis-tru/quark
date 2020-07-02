@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'ngui';
-import * as storage from 'ngui/storage';
-import { alert } from 'ngui/dialog';
+import { Div, Button, Input, _CVD } from 'ftr';
+import * as storage from 'ftr/storage';
+import { alert } from 'ftr/dialog';
 import { Mynavpage } from './public';
-import {GUIKeyEvent,GUIClickEvent} from 'ngui/event';
+import {GUIKeyEvent,GUIClickEvent} from 'ftr/event';
 
 var resolve = require.resolve;
 

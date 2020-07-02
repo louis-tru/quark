@@ -1,19 +1,19 @@
-Ngui简介
+Ftr简介
 ===============
 
-Ngui是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
+Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
 
-* [`开源跨平台移动项目Ngui【简介】`](http://www.jianshu.com/p/2104b885eae6)
+* [`开源跨平台移动项目Ftr【简介】`](http://www.jianshu.com/p/2104b885eae6)
 
-* [`开源跨平台移动项目Ngui【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
+* [`开源跨平台移动项目Ftr【入门】`](http://www.jianshu.com/p/b21bf5380c7f)
 
-* [`开源跨平台移动项目Ngui【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
+* [`开源跨平台移动项目Ftr【视图与布局系统】`](http://www.jianshu.com/p/4e9d927c3724)
 
-* [`开源跨平台移动项目Ngui【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
+* [`开源跨平台移动项目Ftr【Action动作系统】`](http://www.jianshu.com/p/01064b100315)
 
-* [`开源跨平台移动项目Ngui【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
+* [`开源跨平台移动项目Ftr【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Ngui API 文档`](http://ngui.fun/doc/)
+* [`Ftr API 文档`](http://ngui.fun/doc/)
 
 # 什么是Action动作
 
@@ -25,8 +25,8 @@ Ngui是一个跨平台（Android/iOS）前端开发框架，核心代码使用C+
 比如说现在创建了一个新的关键帧动作，给它设置两个关键帧，且x的值经过1秒钟从0变化到100，然后再经过1秒回到0。这个过程是动作自身发生的变化并且带动与之相关的视图一同发生改变，请记住这个过程视图是被动的，而动作才是主动的发生改变。
 
 ```js
-import { ngui, Div } from 'ngui';
-import KeyframeAction from 'ngui/action';
+import { ftr, Div } from 'ftr';
+import KeyframeAction from 'ftr/action';
 var div = new Div();
 var act = new KeyframeAction();
 act.add({ x: 0, time: 0 });
@@ -36,7 +36,7 @@ div.width = 50;
 div.height = 50;
 div.backgroundColor = '#f00';
 div.action = act;
-div.appendTo(ngui.root);
+div.appendTo(ftr.root);
 act.play();
 ```
 
@@ -96,7 +96,7 @@ act2.paly();
 
 # View.action属性
 
-[View.action]做为[View]的一个属性可接收多种类型的参数，之前给大家展示的例子中创建动作是很繁琐的，但`active`提供多种类型的参数类型的支持，包括`json`数据与`Action`对像实例本身。前面的例子中已介绍过`Action`方式，下面着重说`json`数据方法。大家也可研读`ngui.js`与`action.js`中的源代码，其它[View.action]属性只是做简单的调用转发，功能的实现其实是在`action.js`文件中的`create()`方法里实现的。
+[View.action]做为[View]的一个属性可接收多种类型的参数，之前给大家展示的例子中创建动作是很繁琐的，但`active`提供多种类型的参数类型的支持，包括`json`数据与`Action`对像实例本身。前面的例子中已介绍过`Action`方式，下面着重说`json`数据方法。大家也可研读`ftr.js`与`action.js`中的源代码，其它[View.action]属性只是做简单的调用转发，功能的实现其实是在`action.js`文件中的`create()`方法里实现的。
 
 看例子:
 ```js
@@ -177,7 +177,7 @@ view.transition({
 [SequenceAction]: https://ngui.fun/doc/action.html#class-sequenceaction
 [KeyframeAction]: https://ngui.fun/doc/action.html#class-keyframeaction
 [Frame]: https://ngui.fun/doc/action.html#class-frame
-[View]: https://ngui.fun/doc/ngui.html#class-view
-[Div]: https://ngui.fun/doc/ngui.html#class-div
-[View.action]: https://ngui.fun/doc/ngui.html#set-view-action
-[View.transition()]: https://ngui.fun/doc/ngui.html#view-transition-style-delay-cb-
+[View]: https://ngui.fun/doc/ftr.html#class-view
+[Div]: https://ngui.fun/doc/ftr.html#class-div
+[View.action]: https://ngui.fun/doc/ftr.html#set-view-action
+[View.transition()]: https://ngui.fun/doc/ftr.html#view-transition-style-delay-cb-

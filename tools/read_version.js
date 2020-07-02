@@ -28,37 +28,37 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('nxkit/fs');
+var fs = require('somes/fs');
 
-function read_ngui_version() {
-	var str = fs.readFileSync(__dirname + '/../ngui/version.h').toString('utf-8');
+function read_ftr_version() {
+	var str = fs.readFileSync(__dirname + '/../ftr/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
 	var mat;
 
-	if ( (mat = /#define\s+QGR_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+FTR_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MAJOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+QGR_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+FTR_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MINOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+QGR_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+FTR_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse ngui version number form ngui/version.h');
+		throw new Error('Cannot parse ftr version number form ftr/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-function update_ngui_version() {
-	var vers = read_ngui_version().join('.');
+function update_ftr_version() {
+	var vers = read_ftr_version().join('.');
 	[
-		__dirname + '/../libs/ngui/out/ngui/package.json',
-		__dirname + '/../libs/nxp/out/nxp/package.json',
-		__dirname + '/../libs/ngui/package.json',
-		__dirname + '/../libs/nxp/package.json',
+		__dirname + '/../libs/ftr/out/ftr/package.json',
+		__dirname + '/../libs/ftrp/out/ftrp/package.json',
+		__dirname + '/../libs/ftr/package.json',
+		__dirname + '/../libs/ftrp/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
@@ -66,5 +66,5 @@ function update_ngui_version() {
 	});
 }
 
-exports.read_ngui_version = read_ngui_version;
-exports.update_ngui_version = update_ngui_version;
+exports.read_ftr_version = read_ftr_version;
+exports.update_ftr_version = update_ftr_version;

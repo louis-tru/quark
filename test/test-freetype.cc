@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/util.h>
-#include <nxkit/string.h>
-#include <nxkit/map.h>
-#include <nxkit/fs.h>
-#include <ngui/sys.h>
+#include <ftr/util/util.h>
+#include <ftr/util/string.h>
+#include <ftr/util/map.h>
+#include <ftr/util/fs.h>
+#include <ftr/sys.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -45,17 +45,17 @@
 #include <chrono>
 
 //
-#include "ngui/image-codec.h"
-#include "ngui/texture.h"
-#include "ngui/image.h"
-#include "ngui/sprite.h"
-#include "ngui/box.h"
-#include "ngui/app.h"
-#include "ngui/display-port.h"
-#include "ngui/root.h"
-#include "ngui/gl/gl.h"
+#include "ftr/image-codec.h"
+#include "ftr/texture.h"
+#include "ftr/image.h"
+#include "ftr/sprite.h"
+#include "ftr/box.h"
+#include "ftr/app.h"
+#include "ftr/display-port.h"
+#include "ftr/root.h"
+#include "ftr/gl/gl.h"
 
-using namespace ngui;
+using namespace ftr;
 
 void each_fonts () {
 	
@@ -301,7 +301,7 @@ void onload_f(Event<>& evt, void* user) {
 
 void draw_char() {
 	GUIApplication app;
-	app.NX_ON(Load, onload_f);
+	app.FX_ON(Load, onload_f);
 	app.run();
 }
 

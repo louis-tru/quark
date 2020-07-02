@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <nxkit/map.h>
-#include <nxkit/array.h>
-#include <nxkit/list.h>
-#include <nxkit/string.h>
-#include <nxkit/event.h>
+#include <ftr/util/map.h>
+#include <ftr/util/array.h>
+#include <ftr/util/list.h>
+#include <ftr/util/string.h>
+#include <ftr/util/event.h>
 
-using namespace ngui;
+using namespace ftr;
 
 void test_event(int argc, char **argv) {
 	

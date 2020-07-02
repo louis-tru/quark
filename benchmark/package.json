@@ -1,7 +1,7 @@
 {
 	"name": "benchmark",
-	"appName":	"Ngui-Benchmark",
-	"id": "org.ngui.benchmark",
+	"appName":	"Ftr-Benchmark",
+	"id": "org.ftr.benchmark",
 	"version": "0.1.0",
 	"main": "action",
 	"detach": [ "img", "img2" ]

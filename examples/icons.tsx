@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Scroll, TextNode, Hybrid, _CVD } from 'ngui';
+import { Div, Scroll, TextNode, Hybrid, _CVD } from 'ftr';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;

@@ -1,4 +1,4 @@
-# `ngui/font`
+# `ftr/font`
 
 
 ## setDefaultFonts(fonts)

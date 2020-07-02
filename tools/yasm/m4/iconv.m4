@@ -79,7 +79,7 @@ AC_DEFUN([AM_ICONV_LINK],
 int main ()
 {
   int result = 0;
-  /* Test against AIX 5.1 bug: Failures are not distinguishable from successful
+  /* Test against AIX 5.1 bug: Failures are not distiftrshable from successful
      returns.  */
   {
     iconv_t cd_utf8_to_88591 = iconv_open ("ISO8859-1", "UTF-8");
@@ -99,7 +99,7 @@ int main ()
         iconv_close (cd_utf8_to_88591);
       }
   }
-  /* Test against Solaris 10 bug: Failures are not distinguishable from
+  /* Test against Solaris 10 bug: Failures are not distiftrshable from
      successful returns.  */
   {
     iconv_t cd_ascii_to_88591 = iconv_open ("ISO8859-1", "646");

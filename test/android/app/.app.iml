@@ -40,29 +40,29 @@
     <content url="file://$MODULE_DIR$/../../../out">
       <sourceFolder url="file://$MODULE_DIR$/../../../out" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui/font">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui/font" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr/font">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr/font" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui/gl">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui/gl" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr/gl">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr/gl" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui/image">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui/image" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr/image">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr/image" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui/js">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui/js" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr/js">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr/js" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../nxjs/binding">
-      <sourceFolder url="file://$MODULE_DIR$/../../../nxjs/binding" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr-js/binding">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr-js/binding" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../ngui/platforms">
-      <sourceFolder url="file://$MODULE_DIR$/../../../ngui/platforms" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr/platforms">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr/platforms" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../nxkit">
-      <sourceFolder url="file://$MODULE_DIR$/../../../nxkit" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../ftr/util">
+      <sourceFolder url="file://$MODULE_DIR$/../../../ftr/util" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../..">
       <sourceFolder url="file://$MODULE_DIR$/../.." isTestSource="false" />

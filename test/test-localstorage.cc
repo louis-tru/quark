@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/localstorage.h"
+#include "ftr/util/localstorage.h"
 
-using namespace ngui;
+using namespace ftr;
 
 void test_localstorage(int argc, char **argv) {
 	

@@ -1,4 +1,4 @@
-# `ngui/fs`
+# `ftr/fs`
 
 这里提供的是nodejs文件的扩展函数
 

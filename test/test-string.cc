@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <nxkit/string.h>
-#include <nxkit/codec.h>
+#include <ftr/util/string.h>
+#include <ftr/util/codec.h>
 
 using namespace std;
-using namespace ngui;
+using namespace ftr;
 
 class Str {
  private:

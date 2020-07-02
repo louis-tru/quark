@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'ngui';
-import util from 'ngui/util';
-import * as http from 'ngui/http';
-import { alert } from 'ngui/dialog';
+import { Div, Button, Input, _CVD } from 'ftr';
+import util from 'ftr/util';
+import * as http from 'ftr/http';
+import { alert } from 'ftr/dialog';
 import { Mynavpage } from './public';
-import { GUIClickEvent, GUIKeyEvent } from 'ngui/event';
-import * as buffer from 'ngui/buffer';
+import { GUIClickEvent, GUIKeyEvent } from 'ftr/event';
+import * as buffer from 'ftr/buffer';
 
 const resolve = require.resolve;
 

@@ -1,4 +1,4 @@
-# `ngui/path`
+# `ftr/path`
 
 
 ## executable()
@@ -49,7 +49,7 @@ console.log(path.documents('aa.jpeg'));
 
 ## fallback(path)
 
-恢复路径为操作系统可以识别的路径,一般不需要使用该函数,除非直接调用非`Ngui`提供的Native/C/C++函数
+恢复路径为操作系统可以识别的路径,一般不需要使用该函数,除非直接调用非`Ftr`提供的Native/C/C++函数
 
 * @arg `path` {[`String`]}
 * @ret {[`String`]}

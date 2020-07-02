@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Clip, Text, _CVD } from 'ngui';
+import { Scroll, Clip, Text, _CVD } from 'ftr';
 import { Navbutton, Mynavpage } from './public';
 import checkbox from './checkbox';
 import overlay from './overlay';

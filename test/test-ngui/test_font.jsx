@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test';
-import { GUIApplication, Root } from 'ngui';
-import 'ngui/font' as f;
+import { GUIApplication, Root } from 'ftr';
+import 'ftr/font' as f;
 import 'fs';
-import 'ngui/url';
+import 'ftr/url';
 
 new GUIApplication().start(<Root/>).onLoad = function() {
 

@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nxkit/fs.h"
-#include "nxkit/codec.h"
+#include "ftr/util/fs.h"
+#include "ftr/util/codec.h"
 #include "trial/jsx.h"
 
-using namespace ngui;
+using namespace ftr;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/ngui_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/ftr_ace/ace/Makefile.dryice.js"
 
-#define error(err, ...) { NX_ERR(err, ##__VA_ARGS__); return 1; }
+#define error(err, ...) { FX_ERR(err, ##__VA_ARGS__); return 1; }
 
 bool transform_js(cString& src, Ucs2String in, Buffer& out, bool jsx, bool clean_comment) {
 #if DEBUG_JSA

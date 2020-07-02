@@ -1,8 +1,8 @@
 
-import { GUIApplication, Root, Div, Indep, default as ngui, _CVD, ViewController } from 'ngui';
-import { Color } from 'ngui/value';
-import util from 'ngui/util';
-import * as css from 'ngui/css';
+import { GUIApplication, Root, Div, Indep, default as ftr, _CVD, ViewController } from 'ftr';
+import { Color } from 'ftr/value';
+import util from 'ftr/util';
+import * as css from 'ftr/css';
 import * as uu from './uu';
 
 const random = util.random;
@@ -20,8 +20,8 @@ class RootViewController extends ViewController {
 	triggerMounted() {
 		super.triggerMounted();
 
-		var w = ngui.displayPort.width;
-		var h = ngui.displayPort.height;
+		var w = ftr.displayPort.width;
+		var h = ftr.displayPort.height;
 		var csss: Dict<css.StyleSheet> = {};
 	
 		for (var i = 0; i < test_count; i++) {
@@ -46,7 +46,7 @@ class RootViewController extends ViewController {
 	
 		v.class = 'root';
 	
-		ngui.render(
+		ftr.render(
 			<Div width="full" height="full">
 				{
 					Array.from({length:test_count}, (j, i)=>{

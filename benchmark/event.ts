@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'ngui/event';
+import { EventNoticer } from 'ftr/event';
 import * as uu from './uu';
 
 uu.start();

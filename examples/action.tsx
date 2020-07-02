@@ -30,9 +30,9 @@
 
 import {
 	Hybrid, Text, Button, Image, Indep, Clip, _CVD
-} from 'ngui';
-import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'ngui/event';
-import { Navbar, Toolbar, NavPage } from 'ngui/nav';
+} from 'ftr';
+import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'ftr/event';
+import { Navbar, Toolbar, NavPage } from 'ftr/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

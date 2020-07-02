@@ -10,12 +10,10 @@
 				'../out',
 			],
 			'dependencies': [
-				'nxkit',
-				'ngui',
-				'nxjs',
-				'nxmedia',
-				'nxnode',
-				'nxv8',
+				'ftr',
+				'ftr-js',
+				'ftr-media',
+				'ftr-node',
 				###########
 				'trial',
 				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
@@ -24,7 +22,7 @@
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-ngui',
+				'test-ftr',
 				'../examples',
 				'../benchmark',
 			],
@@ -33,10 +31,10 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/nxp',
-				'../libs/nxkit',
+				'../libs/ftrp',
+				'../libs/somes',
 				'test.cc',
-				'test-ngui.cc',
+				'test-ftr.cc',
 				'test-fs.cc',
 				'test-fs2.cc',
 				'test-gui.cc',
@@ -95,14 +93,14 @@
 	],
 
 	'conditions': [
-		# gen android test depes `libngui-depes-test.so`
+		# gen android test depes `libftr-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'ngui-depes-test',
+				'target_name': 'ftr-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'nxkit/minizip.gyp:minizip',
+					'ftr/util/minizip.gyp:minizip',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
 					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',
@@ -130,13 +128,13 @@
 				],
 			},
 			{
-				'target_name': 'ngui-depes-copy',
+				'target_name': 'ftr-depes-copy',
 				'type': 'none',
-				'dependencies': [ 'ngui-depes-test' ],
+				'dependencies': [ 'ftr-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libngui-depes-test.so',
+						'<(output)/lib.target/libftr-depes-test.so',
 					],
 				}],
 			}],
@@ -144,7 +142,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'NguiTest',
+				'target_name': 'FtrTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],
