@@ -275,7 +275,7 @@ struct NativeModule {
 
 static Map<String, NativeModule>* native_modules = nullptr;
 
-// @private __requireFtr__
+// @private __require__
 static void require_native(FunctionCall args) {
 	JS_WORKER(args);
 	JS_HANDLE_SCOPE();
@@ -296,7 +296,7 @@ Worker* IMPL::initialize() {
 	m_strs = new CommonStrings(m_host);
 	ASSERT(m_global.local()->IsObject(m_host));
 	m_global.local()->SetProperty(m_host, "global", m_global.local());
-	m_global.local()->SetMethod(m_host, "__requireFtr__", require_native);
+	m_global.local()->SetMethod(m_host, "__require__", require_native);
 
 	auto globalThis = m_host->New("globalThis");
 	if ( !m_global.local()->Has(m_host, globalThis) ) {

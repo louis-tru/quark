@@ -31,7 +31,7 @@
 import utils from './util';
 import * as value from './value';
 
-const _css = __requireFtr__('_css');
+const _css = __require__('_css');
 const debug = utils.debug;
 
 exports.create = _css.create;

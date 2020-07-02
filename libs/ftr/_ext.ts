@@ -53,7 +53,7 @@ interface NodeModule {
 
 declare var __filename: string;
 declare var __dirname: string;
-declare var __requireFtr__: (id: string)=>any;
+declare var __require__: (id: string)=>any;
 declare var require: NodeRequire; // TODO May conflict with future node versions
 declare var module: NodeModule; // TODO May conflict with future node versions
 // Same as module.exports

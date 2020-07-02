@@ -35,7 +35,7 @@ import * as value from './value';
 import event, {EventNoticer, Notification, NativeNotification, Event} from './event';
 import ViewController, { VirtualDOM, _CVD, _CVDD } from './ctr';
 
-const _ftr = __requireFtr__('_ftr');
+const _ftr = __require__('_ftr');
 
 var cur: GUIApplication | null = null;
 var cur_root_ctr: ViewController | null = null;

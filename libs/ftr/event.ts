@@ -280,7 +280,7 @@ export declare class GUIFocusMoveEvent<Data = void, Sender extends object = View
 	readonly focusMove: View | null;
 }
 
-const _util = __requireFtr__('_util');
+const _util = __require__('_util');
 const PREFIX = 'm_on';
 
 /**

@@ -28,15 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const _util = __requireFtr__('_util');
-const _path = __requireFtr__('_path');
-const _fs = __requireFtr__('_fs');
-const _http = __requireFtr__('_http');
-const _pkgutil = __requireFtr__('_pkgutil').default;
+const _util = __require__('_util');
+const _path = __require__('_path');
+const _fs = __require__('_fs');
+const _http = __require__('_http');
+const _pkgutil = __require__('_pkgutil').default;
 const { fallbackPath,
 				resolve, isAbsolute, isLocal, isLocalZip, stripShebang,
 				isNetwork, assert, stripBOM, makeRequireFunction } = _pkgutil;
-const { readFile, readFileSync, isFileSync, isDirectorySync, readdirSync } = __requireFtr__('_reader');
+const { readFile, readFileSync, isFileSync, isDirectorySync, readdirSync } = __require__('_reader');
 const { haveNode } = _util;
 const isWindows = _util.platform == 'win32';
 const debug = _pkgutil.debugLog('PKG');

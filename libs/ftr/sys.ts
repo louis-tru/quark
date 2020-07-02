@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const _sys = __requireFtr__('_sys');
+const _sys = __require__('_sys');
 
 export enum NetworkInterface {
 	NETWORK_NONE,

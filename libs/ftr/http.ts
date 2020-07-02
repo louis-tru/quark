@@ -34,7 +34,7 @@ import event, {
 	EventNoticer, NativeNotification, Notification, Event,
 } from './event';
 
-const _http = __requireFtr__('_http');
+const _http = __require__('_http');
 
 export enum HttpMethod {
 	HTTP_METHOD_GET,

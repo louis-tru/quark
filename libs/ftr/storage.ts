@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const _storage = __requireFtr__('_storage');
+const _storage = __require__('_storage');
 
 export function get(key: string) {
 	var rv = _storage.get(`__${key}`);

@@ -37,4 +37,4 @@ export declare function registerFont(data: Uint8Array, alias?: string): boolean;
 export declare function registerFontFile(path: string, alias?: string): boolean;
 export declare function setFamilyAlias(family: string, alias?: string): void;
 
-Object.assign(exports, __requireFtr__('_font'));
+Object.assign(exports, __require__('_font'));

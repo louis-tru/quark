@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const _buffer = __requireFtr__('_buffer');
+const _buffer = __require__('_buffer');
 
 Object.assign(exports, _buffer);
 

@@ -33,7 +33,7 @@ import errno from './errno';
 import {Encoding} from './buffer';
 import _util from './_util';
 
-const _fs = __requireFtr__('_fs');
+const _fs = __require__('_fs');
 
 export enum FileOpenFlag {
 	FOPEN_ACCMODE = 0o3,

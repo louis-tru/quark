@@ -33,7 +33,7 @@ import app from './app';
 import {Mat4} from './value';
 import event, { EventNoticer, NativeNotification, Notification } from './event';
 
-const _display_port = __requireFtr__('_display_port');
+const _display_port = __require__('_display_port');
 
 export enum Orientation {
 	ORIENTATION_INVALID = _display_port.ORIENTATION_INVALID as number,

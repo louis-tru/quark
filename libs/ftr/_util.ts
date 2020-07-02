@@ -31,7 +31,7 @@
 import './_ext';
 import {Event, Notification, EventNoticer} from './event';
 
-const _util = __requireFtr__('_util');
+const _util = __require__('_util');
 
 type Platform = 'darwin' | 'linux' | 'win32' | 'android';
 

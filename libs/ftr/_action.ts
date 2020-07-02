@@ -31,7 +31,7 @@
 import { StyleSheet } from './css';
 import * as value from './value';
 
-exports.Action = __requireFtr__('_action').Action;
+exports.Action = __require__('_action').Action;
 
 export interface KeyframeOptions extends StyleSheet {
 	curve?: value.CurveIn;

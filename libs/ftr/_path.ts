@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const _path = __requireFtr__('_path');
+const _path = __require__('_path');
 
 export default {
 	executable: _path.executable as ()=>string,

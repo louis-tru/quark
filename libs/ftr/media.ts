@@ -34,7 +34,7 @@ import event, {
 } from './event';
 import { Image } from './_view';
 
-const _media = __requireFtr__('_media');
+const _media = __require__('_media');
 
 Object.assign(exports, _media);
 

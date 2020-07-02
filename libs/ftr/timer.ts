@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-const _timer = __requireFtr__('_timer');
+const _timer = __require__('_timer');
 
 export declare class Timer {
 	loop: boolean;

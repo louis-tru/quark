@@ -36,7 +36,7 @@ import { Action, ActionIn, KeyframeOptions } from './_action';
 import { GUIActionEvent } from './event';
 export * from './_action';
 
-const _action = __requireFtr__('_action');
+const _action = __require__('_action');
 
 Object.assign(exports, _action);
 

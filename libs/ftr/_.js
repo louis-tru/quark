@@ -32,7 +32,7 @@ mkdirp(out_);
 for ( var i of ['_event', 'value', 'pkg', '_pkgutil'] ) {
 	var j = i.substr(0, 1) == '_' ? i : '_' + i;
 	fs.writeFileSync(`${out_}/${j}.js`, fs.readFileSync(`${out}/${i}.js`));
-	fs.writeFileSync(`${out}/${i}.js`, `module.exports=__requireFtr__('${j}')`);
+	fs.writeFileSync(`${out}/${i}.js`, `module.exports=__require__('${j}')`);
 }
 
 // publish @types/ftr

@@ -31,7 +31,7 @@
 import { Encoding } from './buffer';
 import { AsyncTask, StreamData, Dirent } from './fs';
 
-const _reader = __requireFtr__('_reader');
+const _reader = __require__('_reader');
 
 export declare function readFile(path: string): AsyncTask<Uint8Array>;
 export declare function readFile(path: string, encoding: Encoding): AsyncTask<string>;

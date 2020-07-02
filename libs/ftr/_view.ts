@@ -40,7 +40,7 @@ import ViewController from './ctr';
 import { StyleSheet } from './css';
 import { Action, ActionIn, KeyframeOptions } from './_action';
 
-const _ftr = __requireFtr__('_ftr');
+const _ftr = __require__('_ftr');
 
 export interface DOM {
 	id: string;

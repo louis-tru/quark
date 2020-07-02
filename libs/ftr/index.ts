@@ -47,7 +47,7 @@ export * from './_view';
 export {ViewController, VirtualDOM,_CVD} from './ctr';
 export {GUIApplication} from './app';
 
-const _ftr = __requireFtr__('_ftr');
+const _ftr = __require__('_ftr');
 
 class _View extends NativeNotification {
 
