@@ -4,11 +4,9 @@
 		'cplusplus_rtti%': 1,
 		'library_output%': 'static_library',
 		'output_type%': 'static_library',
-		'output_shared%': 'none',
 		'conditions': [
 			['library_output=="shared_library" and OS!="mac"',{
 				'output_type': 'shared_library',
-				'output_shared': 'shared_library',
 			}],
 		],
 	},

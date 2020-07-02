@@ -2,7 +2,7 @@
 	'targets': [
 	{
 		'target_name': 'ftr-v8',
-		'type': '<(output_shared)',
+		'type': 'none',
 		'dependencies': [
 			'depe/v8-link/v8-link.gyp:v8-link',
 			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
@@ -10,12 +10,15 @@
 	},
 	{
 		'target_name': 'ftr-node',
-		'type': '<(output_shared)',
+		'type': '<(output_type)',
 		'dependencies': [
 			'ftr',
 			'ftr-js',
-			'ftr-v8',
+			# 'ftr-v8',
 			'depe/node/node.gyp:node',
+		],
+		"sources": [
+			'../libs/ftrp/export/empty.c', # fix mac platform build error
 		],
 	},
 	{
