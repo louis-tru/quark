@@ -93,6 +93,6 @@ function each_dir(src, target) {
 }
 
 fs.mkdir_p_sync(output);
-fs.cp_sync(require.resolve('ftrp') + '/marked/assets', output + '/assets');
+fs.cp_sync(require.resolve('ftrp') + '/../marked/assets', output + '/assets');
 
 each_dir('', output);
