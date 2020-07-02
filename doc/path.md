@@ -90,7 +90,7 @@ Example:
 // true
 // false
 console.log(path.isAbsolute('/var/kk'));
-console.log(path.isAbsolute('http://ngui.fun/'));
+console.log(path.isAbsolute('http://fasttr.org/'));
 console.log(path.isAbsolute('index.jsx'));
 ```
 
@@ -105,8 +105,8 @@ console.log(path.isAbsolute('index.jsx'));
 Example:
 
 ```js
-// Prints: http://ngui.fun/A/C/test.js
-console.log(path.resolve('http://ngui.fun/home', "..", "A", "B", "..", "C", "test.js"));
+// Prints: http://fasttr.org/A/C/test.js
+console.log(path.resolve('http://fasttr.org/home', "..", "A", "B", "..", "C", "test.js"));
 // Prints: 
 // true
 // file:///var/data/aaa/cc/ddd/kk.jpg
@@ -131,12 +131,12 @@ Example:
 // Prints: file:///var/data/index.js
 var uri = new URL('index.js');
 console.log(uri.href);
-// Prints: http://ngui.fun/index.html?args=0
-var uri2 = new URL('http://ngui.fun/home/../index.html?args=0')
+// Prints: http://fasttr.org/index.html?args=0
+var uri2 = new URL('http://fasttr.org/home/../index.html?args=0')
 console.log(uri2.href);
 // Prints: 
 // Error: Parse uri error, Illegal URL
-new URL('http://ngui.fun:').href
+new URL('http://fasttr.org:').href
 ```
 
 ### Get: URL.href
@@ -148,8 +148,8 @@ new URL('http://ngui.fun:').href
 Example:
 
 ```js
-// Prints: http://ngui.fun/
-console.log(new URL('http://ngui.fun/').href);
+// Prints: http://fasttr.org/
+console.log(new URL('http://fasttr.org/').href);
 ```
 
 ### Get: URL.filename
@@ -160,7 +160,7 @@ console.log(new URL('http://ngui.fun/').href);
 
 ```js
 // Prints: /aaa/bbbb/ccc/test.js
-console.log(new URL('http://ngui.fun/aaa/bbbb/ccc/test.js').filename);
+console.log(new URL('http://fasttr.org/aaa/bbbb/ccc/test.js').filename);
 ```
 
 ### Get: URL.path
@@ -171,7 +171,7 @@ console.log(new URL('http://ngui.fun/aaa/bbbb/ccc/test.js').filename);
 
 ```js
 // Prints: /aaa/bbbb/ccc/test.js?asas=asas
-console.log(new URL('http://ngui.fun/aaa/bbbb/ccc/test.js?asas=asas').path);
+console.log(new URL('http://fasttr.org/aaa/bbbb/ccc/test.js?asas=asas').path);
 ```
 
 ### Get: URL.dirname
@@ -182,7 +182,7 @@ Example:
 
 ```js
 // Prints: /aaa/bbbb/ccc
-console.log(new URL('http://ngui.fun/aaa/bbbb/ccc/test.js').dirname);
+console.log(new URL('http://fasttr.org/aaa/bbbb/ccc/test.js').dirname);
 ```
 
 ### Get: URL.search
@@ -195,7 +195,7 @@ Example:
 
 ```js
 // Prints: ?a=A&b=B
-console.log(new URL('http://ngui.fun/?a=A&b=B').search);
+console.log(new URL('http://fasttr.org/?a=A&b=B').search);
 ```
 
 ### Get: URL.hash
@@ -208,7 +208,7 @@ Example:
 
 ```js
 // Prints: #c=C&d=D
-console.log(new URL('http://ngui.fun/?a=A&b=B#c=C&d=D').hash);
+console.log(new URL('http://fasttr.org/?a=A&b=B#c=C&d=D').hash);
 ```
 
 ### Get: URL.host
@@ -220,8 +220,8 @@ console.log(new URL('http://ngui.fun/?a=A&b=B#c=C&d=D').hash);
 Example:
 
 ```js
-// Prints: ngui.fun:80
-console.log(new URL('http://ngui.fun:81/').host);
+// Prints: fasttr.org:80
+console.log(new URL('http://fasttr.org:81/').host);
 ```
 
 ### Get: URL.hostname
@@ -233,8 +233,8 @@ console.log(new URL('http://ngui.fun:81/').host);
 Example:
 
 ```js
-// Prints: ngui.fun
-console.log(new URL('http://ngui.fun:81/').host);
+// Prints: fasttr.org
+console.log(new URL('http://fasttr.org:81/').host);
 ```
 
 ### Get: URL.origin
@@ -246,8 +246,8 @@ console.log(new URL('http://ngui.fun:81/').host);
 Example:
 
 ```js
-// Prints: http://ngui.fun:81
-console.log(new URL('http://ngui.fun:81/host/index.html').host);
+// Prints: http://fasttr.org:81
+console.log(new URL('http://fasttr.org:81/host/index.html').host);
 // Prints: file://
 console.log(new URL('file:///var/data/index.html').host);
 ```
@@ -288,9 +288,9 @@ Example:
 
 ```js
 // Prints: 81
-console.log(new URL('http://ngui.fun:81').port);
+console.log(new URL('http://fasttr.org:81').port);
 // Prints 没有端口号会返回空字符串: ""
-console.log(new URL('http://ngui.fun').port);
+console.log(new URL('http://fasttr.org').port);
 ```
 
 ### Get: URL.protocol
@@ -311,7 +311,7 @@ Example:
 //   a: "100",
 //   b: "test"
 // }
-console.log(new URL('http://ngui.fun/?a=100&b=test').params);
+console.log(new URL('http://fasttr.org/?a=100&b=test').params);
 ```
 
 ### Get: URL.hashParams
@@ -328,7 +328,7 @@ Example:
 //   a: "200",
 //   b: "300"
 // }
-console.log(new URL('http://ngui.fun/#a=200&b=300').hashParams);
+console.log(new URL('http://fasttr.org/#a=200&b=300').hashParams);
 ```
 
 ### URL.getParam(name)
@@ -342,7 +342,7 @@ Example:
 
 ```js
 // Prints: ok
-console.log(new URL('http://ngui.fun/?args=ok').getParam('args'));
+console.log(new URL('http://fasttr.org/?args=ok').getParam('args'));
 ```
 
 ### URL.setParam(name, value)
@@ -385,10 +385,10 @@ Example:
 
 ```js
 // Prints: ../A/B/C/test.js
-var uri = new URL('http://ngui.fun/home/');
-console.log(uri.relative('http://ngui.fun/A/B/C/test.js'));
+var uri = new URL('http://fasttr.org/home/');
+console.log(uri.relative('http://fasttr.org/A/B/C/test.js'));
 // Prints: file:///var/data/A/B/C/test.js
-var uri2 = new URL('http://ngui.fun/home/');
+var uri2 = new URL('http://fasttr.org/home/');
 console.log(uri2.relative('file:///var/data/A/B/C/test.js'));
 
 ```

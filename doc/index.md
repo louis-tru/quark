@@ -36,4 +36,4 @@
 * [`ftr/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Ftr`]: http://ngui.fun/
+[`Ftr`]: http://fasttr.org/

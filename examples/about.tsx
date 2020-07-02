@@ -50,7 +50,7 @@ export default ()=>{
 	
 	Support
 	===============
-	http://ngui.fun
+	http://fasttr.org
 	louistru@hotmail.com`;
 
 	return (

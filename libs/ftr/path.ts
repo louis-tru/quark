@@ -206,19 +206,19 @@ export class URL {
 		return (<any>this)._hash;
 	}
 	
-	// host: "ngui.fun:81"
+	// host: "fasttr.org:81"
 	get host(): string {
 		parse_path(this);
 		return (<any>this)._hostname + ((<any>this)._port ? ':' + (<any>this)._port : '');
 	}
 	
-	// hostname: "ngui.fun"
+	// hostname: "fasttr.org"
 	get hostname(): string {
 		parse_path(this);
 		return (<any>this)._hostname;
 	}
 	
-	// origin: "http://ngui.fun:81"
+	// origin: "http://fasttr.org:81"
 	get origin(): string {
 		parse_path(this);
 		return (<any>this)._origin;

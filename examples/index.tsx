@@ -108,7 +108,7 @@ function review_code(evt: GUIClickEvent) {
 const ftr_tools = 'https://www.npmjs.com/package/ftrp';
 const ftr_tools_issues_url = 'https://github.com/louis-tru/ftr/issues';
 const examples_source = 'https://github.com/louis-tru/ftr.git';
-const documents = 'http://ngui.fun/';
+const documents = 'http://fasttr.org/';
 
 // registerFont
 
@@ -159,7 +159,7 @@ const examples_source_vx = ()=>(
 const documents_vx = ()=>(
 	<Mynavpage title="Documents" source={resolve(__filename)}>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="ngui.fun" /> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="fasttr.org" /> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={documents}>Go Documents</Button>
 		</Div>
 	</Mynavpage>

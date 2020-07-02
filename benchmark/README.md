@@ -13,7 +13,7 @@ Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++
 
 * [`开源跨平台移动项目Ftr【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Ftr API 文档`](http://ngui.fun/doc/)
+* [`Ftr API 文档`](http://fasttr.org/doc/)
 
 # Benchmark
 

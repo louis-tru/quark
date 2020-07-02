@@ -5,7 +5,7 @@ Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
-* 从这里[`Go API Index`](http://ngui.fun/doc/)可以到 `API Documents Index`
+* 从这里[`Go API Index`](http://fasttr.org/doc/)可以到 `API Documents Index`
 
 | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-a053c44f45adcaca.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-93fd936d3d3fdc03.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-056a731d62180993.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) |
 |--|--|--|

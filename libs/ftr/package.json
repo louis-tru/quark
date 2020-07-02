@@ -7,7 +7,7 @@
 	"author": {
 		"name": "xuewen.chu",
 		"email": "louistru@hotmail.com",
-		"url": "http://ngui.fun/"
+		"url": "http://fasttr.org/"
 	},
 	"scripts": {
 		"build": "tsc && cp LICENSE *.md out/ftr && node _.js"
@@ -37,5 +37,5 @@
 		"url": "https://github.com/louis-tru/./issues",
 		"email": "louistru@hotmail.com"
 	},
-	"homepage": "http://ngui.fun/"
+	"homepage": "http://fasttr.org/"
 }

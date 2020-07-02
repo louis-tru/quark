@@ -13,7 +13,7 @@ Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++
 
 * [`开源跨平台移动项目Ftr【CSS样式表规则及用法】`](http://www.jianshu.com/p/fb86b020554b)
 
-* [`Ftr API 文档`](http://ngui.fun/doc/)
+* [`Ftr API 文档`](http://fasttr.org/doc/)
 
 # 什么是Action动作
 
@@ -171,13 +171,13 @@ view.transition({
 
 * `View.onActionLoop`动作循环开始时触发，第一次执行动作并不会触发。同样它也会有延时，也同样记录在`delay`。
 
-[Action]: https://ngui.fun/doc/action.html#class-action
-[GroupAction]: https://ngui.fun/doc/action.html#class-groupaction
-[SpawnAction]: https://ngui.fun/doc/action.html#class-spawnaction
-[SequenceAction]: https://ngui.fun/doc/action.html#class-sequenceaction
-[KeyframeAction]: https://ngui.fun/doc/action.html#class-keyframeaction
-[Frame]: https://ngui.fun/doc/action.html#class-frame
-[View]: https://ngui.fun/doc/ftr.html#class-view
-[Div]: https://ngui.fun/doc/ftr.html#class-div
-[View.action]: https://ngui.fun/doc/ftr.html#set-view-action
-[View.transition()]: https://ngui.fun/doc/ftr.html#view-transition-style-delay-cb-
+[Action]: https://fasttr.org/doc/action.html#class-action
+[GroupAction]: https://fasttr.org/doc/action.html#class-groupaction
+[SpawnAction]: https://fasttr.org/doc/action.html#class-spawnaction
+[SequenceAction]: https://fasttr.org/doc/action.html#class-sequenceaction
+[KeyframeAction]: https://fasttr.org/doc/action.html#class-keyframeaction
+[Frame]: https://fasttr.org/doc/action.html#class-frame
+[View]: https://fasttr.org/doc/ftr.html#class-view
+[Div]: https://fasttr.org/doc/ftr.html#class-div
+[View.action]: https://fasttr.org/doc/ftr.html#set-view-action
+[View.transition()]: https://fasttr.org/doc/ftr.html#view-transition-style-delay-cb-

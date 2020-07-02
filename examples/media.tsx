@@ -33,9 +33,9 @@ import { AudioPlayer, Video } from 'ftr/media';
 import { Mynavpage } from './public';
 import { GUIClickEvent } from 'ftr/event';
 
-// const src_720 = 'http://ngui.fun/media/2017-09-11_15_41_19.mp4';
-const src_720 = 'http://ngui.fun/media/piper720p.mp4';
-const audio_src = 'http://ngui.fun/media/all_we_know.mp3';
+// const src_720 = 'http://fasttr.org/media/2017-09-11_15_41_19.mp4';
+const src_720 = 'http://fasttr.org/media/piper720p.mp4';
+const audio_src = 'http://fasttr.org/media/all_we_know.mp3';
 
 const resolve = require.resolve;
 

@@ -5,9 +5,9 @@ Ftr is a cross-platform (Android/iOS) front-end development framework. The core 
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 
-* From here, [`Go API Index`](http://ngui.fun/doc/) can go to `API Documents Index`
+* From here, [`Go API Index`](http://fasttr.org/doc/) can go to `API Documents Index`
 
-| ![Screenshot](http://ngui.fun/img/0x0ss.jpg) | ![Screenshot](http://ngui.fun/img/0x0ss_3.jpg) | ![Screenshot](http://ngui.fun/img/0x0ss_4.jpg) |
+| ![Screenshot](http://fasttr.org/img/0x0ss.jpg) | ![Screenshot](http://fasttr.org/img/0x0ss_3.jpg) | ![Screenshot](http://fasttr.org/img/0x0ss_4.jpg) |
 |--|--|--|
 
 

@@ -35,72 +35,72 @@ using namespace ftr;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	LOG(http_cookie_get("ngui.fun", "test"));
+	LOG(http_cookie_get("fasttr.org", "test"));
 	
-	http_cookie_set("ngui.fun", "test", "ngui.fun");
+	http_cookie_set("fasttr.org", "test", "fasttr.org");
 	
-	LOG("A, %s", *http_cookie_get("ngui.fun", "test"));
+	LOG("A, %s", *http_cookie_get("fasttr.org", "test"));
 	
-	LOG("B, %s", *http_cookie_get("www.ngui.fun", "test"));
+	LOG("B, %s", *http_cookie_get("www.fasttr.org", "test"));
 
-	http_cookie_set("www.ngui.fun", "test", "$");
+	http_cookie_set("www.fasttr.org", "test", "$");
 
-	LOG("B2, %s", *http_cookie_get("www.ngui.fun", "test"));
+	LOG("B2, %s", *http_cookie_get("www.fasttr.org", "test"));
 
-	http_cookie_set("ngui.fun", "test2", "*");
+	http_cookie_set("fasttr.org", "test2", "*");
 	
-	LOG("D, %s", *http_cookie_get("ngui.fun", "test2"));
+	LOG("D, %s", *http_cookie_get("fasttr.org", "test2"));
 	
-	LOG("E, %s", *http_cookie_get("www.ngui.fun", "test2"));
+	LOG("E, %s", *http_cookie_get("www.fasttr.org", "test2"));
 	
-	http_cookie_set("ngui.fun", "test2", "-----------------------------", -1, "/AA");
+	http_cookie_set("fasttr.org", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG("F, %s", *http_cookie_get("ngui.fun", "test2"));
+	LOG("F, %s", *http_cookie_get("fasttr.org", "test2"));
 	
-	LOG("H, %s", *http_cookie_get("ngui.fun", "test2", "/AA"));
+	LOG("H, %s", *http_cookie_get("fasttr.org", "test2", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.ngui.fun", "/AA"));
+	LOG(http_cookie_get_all_string("www.fasttr.org", "/AA"));
 	
-	http_cookie_set_with_expression("ngui.fun", "test3=HHHH--l; path=/AA; max-age=60");
+	http_cookie_set_with_expression("fasttr.org", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	LOG(http_cookie_get("ngui.fun", "test3"));
+	LOG(http_cookie_get("fasttr.org", "test3"));
 	
-	LOG(http_cookie_get("ngui.fun", "test3", "/AA"));
+	LOG(http_cookie_get("fasttr.org", "test3", "/AA"));
 	
-	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.ngui.fun", "/AA"));
-	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("ngui.fun", "/AA"));
+	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.fasttr.org", "/AA"));
+	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("fasttr.org", "/AA"));
 	
 	// test delete
 	
-	http_cookie_delete("ngui.fun", "test");
+	http_cookie_delete("fasttr.org", "test");
 	
-	LOG(http_cookie_get("ngui.fun", "test"));
+	LOG(http_cookie_get("fasttr.org", "test"));
 	
-	http_cookie_set("ngui.fun", "test", "ngui.fun2");
-	http_cookie_set("ngui.fun", "test9", "ngui.fun3");
-	http_cookie_set("ngui.fun", "test8", "ngui.fun4");
-	http_cookie_set("www.ngui.fun", "test7", "ngui.fun5");
+	http_cookie_set("fasttr.org", "test", "fasttr.org2");
+	http_cookie_set("fasttr.org", "test9", "fasttr.org3");
+	http_cookie_set("fasttr.org", "test8", "fasttr.org4");
+	http_cookie_set("www.fasttr.org", "test7", "fasttr.org5");
 	
-	LOG("E, %s", *http_cookie_get("ngui.fun", "test"));
+	LOG("E, %s", *http_cookie_get("fasttr.org", "test"));
 
-	http_cookie_set("ftr.orh", "test--------A", "ngui.fun%", -1, "KKK/MMM");
+	http_cookie_set("ftr.orh", "test--------A", "fasttr.org%", -1, "KKK/MMM");
 
-	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("ngui.fun"));
+	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("fasttr.org"));
 	
-	http_cookie_delete_all("ngui.fun");
+	http_cookie_delete_all("fasttr.org");
 	
-	LOG(http_cookie_get("ngui.fun", "test"));
+	LOG(http_cookie_get("fasttr.org", "test"));
 	
-	http_cookie_set("ngui.fun", "test", "ngui.fun");
+	http_cookie_set("fasttr.org", "test", "fasttr.org");
 	
-	LOG("F, %s", *http_cookie_get("ngui.fun", "test--------A", "KKK/MMM", 1));
+	LOG("F, %s", *http_cookie_get("fasttr.org", "test--------A", "KKK/MMM", 1));
 	
 	http_cookie_clear();
 	
-	LOG(http_cookie_get("ngui.fun", "test"));
+	LOG(http_cookie_get("fasttr.org", "test"));
 	
-	http_cookie_set("ngui.fun", "test", "END test cookie", sys::time() + 6e7); // 60s expires
+	http_cookie_set("fasttr.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
 	
-	LOG(http_cookie_get("ngui.fun", "test"));
+	LOG(http_cookie_get("fasttr.org", "test"));
 	
 }
