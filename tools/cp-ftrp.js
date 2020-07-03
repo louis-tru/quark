@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var fs = require('ftr/util/fs');
-var { execSync } = require('ftr/util/syscall');
+var fs = require('somes/fs');
+var { execSync } = require('somes/syscall');
 var { copy_header } = require('./cp-header');
 var path = require('path');
 var read_version = require('./read_version');

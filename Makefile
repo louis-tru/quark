@@ -62,6 +62,7 @@ check_osx=\
 product:
 	@$(MAKE) ios
 	@$(MAKE) android
+	@$(NODE) ./tools/cp-ftrp.js
 
 install: product
 	@$(MAKE) install-ftrp
