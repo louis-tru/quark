@@ -44,9 +44,9 @@ JS_BEGIN
 
 using namespace native_js;
 
-extern Array<char*>* __nx_ftr_argv;
-extern int __nx_ftr_have_node;
-extern int __nx_ftr_have_debug;
+extern Array<char*>* __fx_ftr_argv;
+extern int __fx_ftr_have_node;
+extern int __fx_ftr_have_debug;
 
 typedef Object NativeObject;
 
@@ -294,14 +294,14 @@ class NativeUtil {
 		JS_SET_PROPERTY(platform, ftr::platform());
 
 		Local<JSArray> argv = worker->NewArray();
-		if (__nx_ftr_argv) {
-			for (uint i = 0; i < __nx_ftr_argv->length(); i++) {
-				argv->Set(worker, i, worker->New(__nx_ftr_argv->item(i)));
+		if (__fx_ftr_argv) {
+			for (uint i = 0; i < __fx_ftr_argv->length(); i++) {
+				argv->Set(worker, i, worker->New(__fx_ftr_argv->item(i)));
 			}
 		}
 		JS_SET_PROPERTY(argv, argv);
-		JS_SET_PROPERTY(haveNode, !!__nx_ftr_have_node);
-		JS_SET_PROPERTY(debug, !!__nx_ftr_have_debug);
+		JS_SET_PROPERTY(haveNode, !!__fx_ftr_have_node);
+		JS_SET_PROPERTY(debug, !!__fx_ftr_have_debug);
 
 		// extendModule
 		Local<JSObject> extendModule = worker->NewObject();

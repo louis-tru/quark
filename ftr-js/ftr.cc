@@ -139,28 +139,28 @@ void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
 // startup argv
-Array<char*>* __nx_ftr_argv = nullptr;
-int           __nx_ftr_have_node = 1;
-int           __nx_ftr_have_debug = 0;
+Array<char*>* __fx_ftr_argv = nullptr;
+int           __fx_ftr_have_node = 1;
+int           __fx_ftr_have_debug = 0;
 
 // parse argv
 static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& ftr_argv) {
 	static String argv_str;
 
 	ASSERT(argv_in.length(), "Bad start argument");
-	__nx_ftr_have_node = 1;
-	__nx_ftr_have_debug = 0;
+	__fx_ftr_have_node = 1;
+	__fx_ftr_have_debug = 0;
 	argv_str = argv_in[0];
 	Array<int> indexs = {-1};
 
 	for (int i = 1, index = argv_in[0].length(); i < argv_in.length(); i++) {
 		if (argv_in[i].index_of("--no-node") == 0) { // ftr arg
-			__nx_ftr_have_node = 0; // disable node
+			__fx_ftr_have_node = 0; // disable node
 		} else if (argv_in[i].index_of("--debug") == 0) {
-			__nx_ftr_have_debug = 1;
+			__fx_ftr_have_debug = 1;
 		} else {
 			if (argv_in[i].index_of("--inspect") == 0) {
-				__nx_ftr_have_debug = 1;
+				__fx_ftr_have_debug = 1;
 			}
 			argv_str.push(' ').push(argv_in[i]);
 			indexs.push(index);
@@ -219,14 +219,14 @@ int Start(const Array<String>& argv_in) {
 		};
 		ftr::set_object_allocator(&allocator);
 	}
-	ASSERT(!__nx_ftr_argv);
+	ASSERT(!__fx_ftr_argv);
 
 	Array<char*> argv, ftr_argv;
 	parseArgv(argv_in, argv, ftr_argv);
 
 	Thread::FX_ON(ProcessSafeExit, on_process_safe_handle);
 
-	__nx_ftr_argv = &ftr_argv;
+	__fx_ftr_argv = &ftr_argv;
 	int rc = 0;
 	int argc = argv.length();
 	char** argv_c = const_cast<char**>(&argv[0]);
@@ -234,7 +234,7 @@ int Start(const Array<String>& argv_in) {
 	// Mark the current main thread and check current thread
 	ASSERT(RunLoop::main_loop() == RunLoop::current());
 
-	if (__nx_ftr_have_node ) {
+	if (__fx_ftr_have_node ) {
 		if (node::node_api) {
 			rc = node::node_api->start(argc, argv_c);
 		} else {
@@ -254,10 +254,10 @@ int Start(const Array<String>& argv_in) {
 		}
 	} else {
 	 no_node_start:
-		__nx_ftr_have_node = 0;
+		__fx_ftr_have_node = 0;
 		rc = IMPL::start(argc, argv_c);
 	}
-	__nx_ftr_argv = nullptr;
+	__fx_ftr_argv = nullptr;
 	Thread::FX_OFF(ProcessSafeExit, on_process_safe_handle);
 
 	return rc;
