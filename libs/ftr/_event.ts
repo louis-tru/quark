@@ -574,6 +574,8 @@ export class EventNoticer<E = DefaultEvent> {
 
 }
 
+export const VOID = {} as any;
+
 const PREFIX = 'm_on';
 const FIND_REG = new RegExp('^' + PREFIX);
 
@@ -743,6 +745,9 @@ export function event(target: any, name: string) {
 		configurable: false,
 		enumerable: true,
 		get() { return this.getNoticer(event) },
-		set(listen: Function | null) { this.addDefaultListener(event, listen) },
+		set(listen: Function | null) {
+			if (listen !== VOID)
+				this.addDefaultListener(event, listen);
+		},
 	});
 }
