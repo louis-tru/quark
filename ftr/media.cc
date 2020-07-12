@@ -47,14 +47,14 @@ int initialize_media() {
 	}
 	// try loading nxnode
 	uv_lib_t lib;
-	int err = uv_dlopen("libnxmedia.so", &lib);
+	int err = uv_dlopen("libftr-media.so", &lib);
 	if (err != 0) {
-		FX_WARN("No nxmedia library loaded, %s", uv_dlerror(&lib));
+		FX_WARN("No ftr-media library loaded, %s", uv_dlerror(&lib));
 	} else {
 		if (is_loaded_lib()) {
 			return 1;
 		}
-		FX_WARN("No nxmedia library loaded");
+		FX_WARN("No ftr-media library loaded");
 	}
 
 	return 0;
