@@ -240,7 +240,7 @@ int Start(const Array<String>& argv_in) {
 		} else {
 #if FX_LINUX
 			// try loading nxnode
-			void* handle = dlopen("libnxnode.so", RTLD_LAZY | RTLD_GLOBAL);
+			void* handle = dlopen("libftr-node.so", RTLD_LAZY | RTLD_GLOBAL);
 			if (!handle) {
 				FX_WARN("No node library loaded, %s", dlerror());
 				goto no_node_start;
