@@ -333,19 +333,13 @@ export function equalsClass(baseclass: any, subclass: any): boolean {
 /**
  * @fun assert
  */
-export function assert(condition: any, code?: ErrnoCode | number | string, ...args: any[]): void {
+export function assert(condition: any, code?: number | ErrorNewArg): void {
 	if (condition)
 		return;
-	if (Array.isArray(code)) { // ErrnoCode
-		throw Error.new(code);
+	if (typeof code == 'number') {
+		throw Error.new([code, 'assert fail, unforeseen exceptions']);
 	} else {
-		var errno: ErrnoCode;
-		if (typeof code == 'number') {
-			errno = [code, 'assert fail, unforeseen exceptions'];
-		} else {
-			errno = [-30009, String.format(String(code || 'ERR_ASSERT_ERROR'), ...args)];
-		}
-		throw Error.new(errno);
+		throw Error.new(code || [-30009, 'ERR_ASSERT_ERROR']);
 	}
 }
 
