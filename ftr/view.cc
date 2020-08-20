@@ -695,29 +695,6 @@ void View::set_need_draw(bool value) {
 }
 
 /**
- * @func visit child draw
- */
-void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
-	View* view = m_first;
-	
-	if ( m_draw_visible || need_draw ) {
-		m_child_change_flag = false;
-		while (view) {
-			view->mark_value |= inherit_mark;
-			view->draw(draw);
-			view = view->m_next;
-		}
-	} else {
-		if ( inherit_mark ) {
-			while (view) {
-				view->mark_value |= inherit_mark;
-				view = view->m_next;
-			}
-		}
-	}
-}
-
-/**
  * 标记该视图已经发生改变
  */
 void View::mark(uint value) {
@@ -902,6 +879,29 @@ void View::draw(Draw* draw) {
 		visit(draw);
 		
 		mark_value = M_NONE;
+	}
+}
+
+/**
+ * @func visit child draw
+ */
+void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
+	View* view = m_first;
+	
+	if ( m_draw_visible || need_draw ) {
+		m_child_change_flag = false;
+		while (view) {
+			view->mark_value |= inherit_mark;
+			view->draw(draw);
+			view = view->m_next;
+		}
+	} else {
+		if ( inherit_mark ) {
+			while (view) {
+				view->mark_value |= inherit_mark;
+				view = view->m_next;
+			}
+		}
 	}
 }
 

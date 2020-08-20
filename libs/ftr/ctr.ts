@@ -470,13 +470,14 @@ function domInCtr(self: ViewController): DOM {
  */
 
 function defineProp<T extends any/*typeof ViewController.prototype*/>(target: T, name: string, defaultValue?: any) {
-	utils.assert(utils.equalsClass(ViewController, target.constructor), 'Type error');
+	var _target = target as any;
+	utils.assert(utils.equalsClass(ViewController, _target.constructor), 'Type error');
 	var m_name = 'm_' + name;
 	var m_hash_name = 'm_prop_' + name;
-	Object.defineProperty(target, name, {
+	Object.defineProperty(_target, name, {
 		get: arguments.length < 3 ? function(this: any) {
 			return this[m_name];
-		}: typeof defaultValue == 'function' ? defaultValue: ((target[m_name] = defaultValue), function(this: any) {
+		}: typeof defaultValue == 'function' ? defaultValue: ((_target[m_name] = defaultValue), function(this: any) {
 			return this[m_name];
 		}),
 		set(this: any, value: any) {
