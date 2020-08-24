@@ -647,8 +647,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	Vec2    m_scale;      /* 缩放向量 */
 	Vec2    m_skew;       /* 倾斜向量 */
 	float   m_rotate_z;   /* z轴旋转角度值 */
-	float   m_opacity;    /* 可影响子视图的透明度值
-												 * Can affect the transparency value of sub view */
+	float   m_opacity;    /* 可影响子视图的透明度值 */
 	/*
 	 *  不可能同时所有视图都会发生改变,如果视图树很庞大的时候,
 	 *  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
@@ -665,10 +664,8 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	uint m_level;         /* 视图在整个视图树中所处的层级
 												 * 0表示还没有加入到GUIApplication唯一的视图树中,根视图为1 */
 	Mat  m_matrix;        /* 基础矩阵,从父视图矩阵开始的矩阵,通过translate/scale/skew/rotate得到 */
-	Vec2 m_origin;        /* 以该点 位移,缩放,旋转,歪斜
-												 * To the view of displacement, rotate, scale, skew */
-	Mat  m_final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵
-												 * The parent view matrix * local matrix = final transformation matrix */
+	Vec2 m_origin;        /* 以该点 位移,缩放,旋转,歪斜 */
+	Mat  m_final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
 	float m_final_opacity;/* 最终的不透明值 */
 	uint mark_value;      /* 这些标记后的视图会在开始帧绘制前进行更新.
 												 * 需要这些标记的原因主要是为了最大程度的节省性能开销,
@@ -677,11 +674,9 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 												 *  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,
 												 *  那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
 												 * */
-	bool m_visible;       /* 是否显示视图,包括子视图
-												 * Whether to display the view, including the sub view */
+	bool m_visible;       /* 是否显示视图,包括子视图 */
 	bool m_final_visible; /* 最终是否显示,受父视图m_visible影响 */
-	bool m_draw_visible;  /* 该状态标识视图是否在屏幕或区域范围内(是否需要绘图),这个状态会忽略`m_visible`值
-													 * Whether on the screen range inner */
+	bool m_draw_visible;  /* 该状态标识视图是否在屏幕或区域范围内(是否需要绘图),这个状态会忽略`m_visible`值 */
 	bool m_need_draw;             /* 忽略视图visible值,强制绘制子视图 */
 	bool m_child_change_flag;     /* 子视图有变化标记,调用draw后重置 */
 	bool m_receive;               /* 是否接收事件 */

@@ -45,9 +45,6 @@ Hybrid::Hybrid()
 	
 }
 
-/**
- * @overwrite
- */
 View* Hybrid::append_text(cUcs2String& str) throw(Error) {
 	TextNode* text = new TextNode();
 	text->set_value( str );
@@ -55,9 +52,6 @@ View* Hybrid::append_text(cUcs2String& str) throw(Error) {
 	return text;
 }
 
-/**
- * @set text_align
- */
 void Hybrid::set_text_align(TextAlign value) {
 	if (value != m_text_align) {
 		m_text_align = value;
@@ -94,9 +88,6 @@ void Hybrid::set_layout_content_offset() {
 	}
 }
 
-/**
- * @overwrite
- */
 void Hybrid::set_layout_three_times(bool horizontal, bool hybrid) {
 	
 	if ( !m_visible ) { return; }
@@ -144,9 +135,6 @@ void Hybrid::set_layout_three_times(bool horizontal, bool hybrid) {
 	}
 }
 
-/**
- * @func set_layout_content_offset_after
- */
 void Hybrid::set_layout_content_offset_after() {
 	
 	TextRows* rows = &m_rows;

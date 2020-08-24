@@ -1,4 +1,4 @@
-Ftr简介
+ftr 全称 (fast typesetting render)
 ===============
 
 Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。

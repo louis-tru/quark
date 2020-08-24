@@ -43,16 +43,10 @@
 
 FX_NS(ftr)
 
-/**
- * @class Box::Inl
- */
 FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
-public:
-#define _inl(self) static_cast<Box::Inl*>(static_cast<Box*>(self))
+ public:
+ #define _inl(self) static_cast<Box::Inl*>(static_cast<Box*>(self))
 	
-	/**
-	 * @func solve_explicit_size
-	 */
 	template<bool hybrid> bool solve_explicit_size() {
 		
 		bool h_change = false;
@@ -228,10 +222,7 @@ public:
 		}
 		m_offset_end.x(m_offset_start.x() + width);
 	}
-	
-	/**
-	 * @func solve_explicit_horizontal_size 设置水平尺寸
-	 */
+
 	void solve_explicit_horizontal_size() {
 		
 		Box* parent = View::parent()->as_box();
@@ -432,10 +423,7 @@ public:
 		}
 		m_offset_end.y(m_offset_start.y() + height);
 	}
-	
-	/**
-	 * @func solve_explicit_vertical_size 设置垂直尺寸
-	 */
+
 	void solve_explicit_vertical_size() {
 		
 		Box* parent = View::parent()->as_box();
@@ -509,16 +497,10 @@ public:
 		}
 	}
 	
-	/**
-	 * @func get_horizontal_reverse_offset
-	 */
 	inline float get_horizontal_reverse_offset(float outer_width) const {
 		return outer_width - m_offset_end.x();
 	}
 	
-	/**
-	 * @func get_vertical_reverse_offset
-	 */
 	inline float get_vertical_reverse_offset(float outer_width) const {
 		return outer_width - m_offset_end.y();
 	}
@@ -764,9 +746,6 @@ void _box_inl__solve_final_vertical_size_with_full_height(Box* box, float parent
 	_inl(box)->solve_final_vertical_size_with_full_height(parent);
 }
 
-/**
- * @func set_horizontal_active_mark
- */
 void Box::set_horizontal_active_mark() {
 	uint value = M_NONE;
 	// 如果这些值都不为像素,父视图会可能影响到子视图的M_SIZE_HORIZONTAL
@@ -783,9 +762,6 @@ void Box::set_horizontal_active_mark() {
 	horizontal_active_mark_value = value;
 }
 
-/**
- * @func set_vertical_active_mark
- */
 void Box::set_vertical_active_mark() {
 	uint value = M_NONE;
 	// 如果这些值都不为像素,父视图将会可能影响到子视图的M_SIZE_VERTICAL
@@ -802,9 +778,6 @@ void Box::set_vertical_active_mark() {
 	vertical_active_mark_value = value;
 }
 
-/**
- * @constructor
- */
 Box::Box()
 : m_width(ValueType::AUTO)
 , m_height(ValueType::AUTO)
@@ -865,16 +838,6 @@ void Box::set_parent(View* parent) throw(Error) {
 	m_linenum = 0;
 }
 
-void Box::draw(Draw* draw) {
-	if ( m_visible ) {
-		if ( mark_value ) {
-			solve();
-		}
-		draw->draw(this);
-		mark_value = M_NONE;
-	}
-}
-
 /**
  * @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
  */
@@ -882,9 +845,6 @@ bool Box::overlap_test(Vec2 point) {
 	return View::overlap_test_from_convex_quadrilateral( m_final_vertex, point );
 }
 
-/**
- * @overwrite
- */
 Vec2 Box::layout_offset() {
 	// 经过布局计算得到的偏移值
 	
@@ -943,18 +903,12 @@ Vec2 Box::layout_offset() {
 							offset_start_y + m_final_margin_top + m_border_top_width);
 }
 
-/**
- * @overwrite
- */
 CGRect Box::screen_rect() {
 	final_matrix();
 	compute_box_vertex(m_final_vertex);
 	return View::screen_rect_from_convex_quadrilateral(m_final_vertex);
 }
 
-/**
- * @func compute_box_vertex
- */
 void Box::compute_box_vertex(Vec2 vertex[4]) {
 	Vec2 start(-m_border_left_width - m_origin.x(), -m_border_top_width - m_origin.y() );
 	Vec2 end  (m_final_width  + m_border_right_width - m_origin.x(),
@@ -965,16 +919,10 @@ void Box::compute_box_vertex(Vec2 vertex[4]) {
 	vertex[3] = m_final_matrix * Vec2(start.x(), end.y());
 }
 
-/**
- * @func get_screen_region
- */
 Region Box::get_screen_region() {
 	return screen_region_from_convex_quadrilateral(m_final_vertex);
 }
 
-/**
- * @func solve() solve draw param
- */
 void Box::solve() {
 	View::solve();
 	
@@ -1012,9 +960,16 @@ void Box::solve() {
 	}
 }
 
-/**
- * @func set_draw_visible
- */
+void Box::draw(Draw* draw) {
+	if ( m_visible ) {
+		if ( mark_value ) {
+			solve();
+		}
+		draw->draw(this);
+		mark_value = M_NONE;
+	}
+}
+
 void Box::set_draw_visible() {
 	
 	m_draw_visible = false;
@@ -1068,10 +1023,6 @@ void Box::set_margin(Value value) {
 	set_vertical_active_mark();
 }
 
-/**
- * @func set_margin_top
- * @arg value {Value}
- */
 void Box::set_margin_top(Value value) {
 	value.value = FX_MAX(value.value, 0);
 	m_margin_top = value;
@@ -1079,10 +1030,6 @@ void Box::set_margin_top(Value value) {
 	set_vertical_active_mark();
 }
 
-/**
- * @func set_margin_right
- * @arg value {Value}
- */
 void Box::set_margin_right(Value value) {
 	value.value = FX_MAX(value.value, 0);
 	m_margin_right = value;
@@ -1090,10 +1037,6 @@ void Box::set_margin_right(Value value) {
 	set_horizontal_active_mark();
 }
 
-/**
- * @func set_margin_bottom
- * @arg value {Value}
- */
 void Box::set_margin_bottom(Value value) {
 	value.value = FX_MAX(value.value, 0);
 	m_margin_bottom = value;
@@ -1101,10 +1044,6 @@ void Box::set_margin_bottom(Value value) {
 	set_vertical_active_mark();
 }
 
-/**
- * @func set_margin_left
- * @arg value {Value}
- */
 void Box::set_margin_left(Value value) {
 	value.value = FX_MAX(value.value, 0);
 	m_margin_left = value;
@@ -1112,11 +1051,6 @@ void Box::set_margin_left(Value value) {
 	set_horizontal_active_mark();
 }
 
-/**
- * @func set_border # 设置全部边框值
- * @type value {Border}
- * @set
- */
 void Box::set_border(Border value) {
 	float width = FX_MAX(value.width, 0);
 	m_border_top_color = value.color;
@@ -1130,51 +1064,30 @@ void Box::set_border(Border value) {
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 }
 
-/**
- * @func set_border_top
- * @arg value {Border}
- */
 void Box::set_border_top(Border value) {
 	m_border_top_width = FX_MAX(value.width, 0);
 	m_border_top_color = value.color;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
-/**
- * @func set_border_right
- * @arg value {Border}
- */
 void Box::set_border_right(Border value) {
 	m_border_right_width = FX_MAX(value.width, 0);
 	m_border_right_color = value.color;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
-/**
- * @func set_border_bottom
- * @arg value {Border}
- */
 void Box::set_border_bottom(Border value) {
 	m_border_bottom_width = FX_MAX(value.width, 0);
 	m_border_bottom_color = value.color;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
-/**
- * @func set_border_left
- * @arg value {Border}
- * @set
- */
 void Box::set_border_left(Border value) {
 	m_border_left_width = FX_MAX(value.width, 0);
 	m_border_left_color = value.color;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
-/**
- * @func set_border_width # 设置全部边框宽度
- * @type value {float}
- */
 void Box::set_border_width(float value) {
 	value = FX_MAX(value, 0);
 	m_border_top_width = value;
@@ -1184,50 +1097,30 @@ void Box::set_border_width(float value) {
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 }
 
-/**
- * @func set_border_top_width
- * @arg value {float}
- */
 void Box::set_border_top_width(float value) {
 	value = FX_MAX(value, 0);
 	m_border_top_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
-/**
- * @func set_border_right_width
- * @arg value {float}
- */
 void Box::set_border_right_width(float value) {
 	value = FX_MAX(value, 0);
 	m_border_right_width = value;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
-/**
- * @func set_border_bottom_width
- * @arg value {float}
- */
 void Box::set_border_bottom_width(float value) {
 	value = FX_MAX(value, 0);
 	m_border_bottom_width = value;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
-/**
- * @func set_border_left_width
- * @arg value {float}
- */
 void Box::set_border_left_width(float value) {
 	value = FX_MAX(value, 0);
 	m_border_left_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
-/**
- * @func set_border_color # 设置全部边框颜色
- * @arg value {Color}
- */
 void Box::set_border_color(Color value) {
 	m_border_top_color = value;
 	m_border_right_color = value;
@@ -1236,46 +1129,26 @@ void Box::set_border_color(Color value) {
 	mark(M_BORDER);
 }
 
-/**
- * @func set_border_top_color
- * @arg value {Color}
- */
 void Box::set_border_top_color(Color value) {
 	m_border_top_color = value;
 	mark(M_BORDER);
 }
 
-/**
- * @func set_border_right_color
- * @arg value {Color}
- */
 void Box::set_border_right_color(Color value) {
 	m_border_right_color = value;
 	mark(M_BORDER);
 }
 
-/**
- * @func set_border_bottom_color
- * @arg value {Color}
- */
 void Box::set_border_bottom_color(Color value) {
 	m_border_bottom_color = value;
 	mark(M_BORDER);
 }
 
-/**
- * @func set_border_left_color
- * @arg value {Color}
- */
 void Box::set_border_left_color(Color value) {
 	m_border_left_color = value;
 	mark(M_BORDER);
 }
 
-/**
- * @func set_border_radius # 设置全部4个圆角值
- * @arg value {float}
- */
 void Box::set_border_radius(float value) {
 	value = FX_MAX(value, 0);
 	m_border_radius_right_top = value;
@@ -1285,58 +1158,36 @@ void Box::set_border_radius(float value) {
 	mark(M_BORDER_RADIUS);
 }
 
-/**
- * @func set_border_radius_right_top
- * @arg value {float}
- */
 void Box::set_border_radius_right_top(float value) {
 	value = FX_MAX(value, 0);
 	m_border_radius_right_top = value;
 	mark(M_BORDER_RADIUS);
 }
 
-/**
- * @func set_border_radius_right_bottom
- * @arg value {float}
- */
 void Box::set_border_radius_right_bottom(float value) {
 	value = FX_MAX(value, 0);
 	m_border_radius_right_bottom = value;
 	mark(M_BORDER_RADIUS);
 }
 
-/**
- * @func set_border_radius_left_bottom
- * @arg value {float}
- */
 void Box::set_border_radius_left_bottom(float value) {
 	value = FX_MAX(value, 0);
 	m_border_radius_left_bottom = value;
 	mark(M_BORDER_RADIUS);
 }
 
-/**
- * @func set_border_radius_left_top
- * @arg value {float}
- */
 void Box::set_border_radius_left_top(float value) {
 	value = FX_MAX(value, 0);
 	m_border_radius_left_top = value;
 	mark(M_BORDER_RADIUS);
 }
 
-/**
- * @func set_background_color
- */
 void Box::set_background_color(Color value) {
 	// FX_DEBUG("color,%d", value.a());
 	m_background_color = value;
 	mark(M_BACKGROUND_COLOR);
 }
 
-/**
- * @func set_background(value, only_copy)
- */
 void Box::set_background(Background* value) {
 	m_background = Background::assign(m_background, value);
 	if (m_background) {
@@ -1345,9 +1196,6 @@ void Box::set_background(Background* value) {
 	mark(M_BACKGROUND);
 }
 
-/**
- * @overwrite
- */
 void Box::set_visible(bool value) {
 	if (m_visible != value) {
 		View::set_visible(value);
@@ -1356,17 +1204,11 @@ void Box::set_visible(bool value) {
 	}
 }
 
-/**
- * @set set_newline {bool}
- */
 void Box::set_newline(bool value) {
 	m_newline = value;
 	mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
-/**
- * @func set_clip(bool)
- */
 void Box::set_clip(bool value) {
 	if (m_clip != value) {
 		m_clip = value;
@@ -1374,9 +1216,6 @@ void Box::set_clip(bool value) {
 	}
 }
 
-/**
- * @overwrite
- */
 void Box::set_layout_explicit_size() {
 	
 	if ( m_final_visible ) {
@@ -1401,9 +1240,6 @@ void Box::set_layout_explicit_size() {
 	}
 }
 
-/**
- * @overwrite
- */
 void Hybrid::set_layout_explicit_size() {
 	
 	if ( m_final_visible ) {
@@ -1430,9 +1266,6 @@ void Hybrid::set_layout_explicit_size() {
 	}
 }
 
-/**
- * @overwrite
- */
 void Indep::set_layout_explicit_size() {
 	
 	if ( m_final_visible ) {
@@ -1450,9 +1283,6 @@ void Indep::set_layout_explicit_size() {
 	}
 }
 
-/**
- * @func solve_explicit_size_after
- */
 void Box::solve_explicit_size_after(bool change_horizontal, bool change_vertical, uint child_mark) {
 	
 	/* 
@@ -1463,7 +1293,7 @@ void Box::solve_explicit_size_after(bool change_horizontal, bool change_vertical
 	 */
 	mark(M_MATRIX);
 
-#define solve_explicit_size_after_(func)  \
+	#define solve_explicit_size_after_(func)  \
 	/* 内部的宽度高度发生变化可能会影响到所有的子视图偏移值变化,所以尽可能标记这个变化 */ \
 	mark_pre(M_SHAPE | M_CONTENT_OFFSET); /* 改变将影响子布局视图偏移 */ \
 	View* view = first(); \
@@ -1524,16 +1354,10 @@ Box* Box::set_offset_vertical(Box* prev, Vec2& squeeze, float limit, Div* div) {
 	return _inl(this)->set_offset_vertical_(prev, squeeze, limit, div, 1);
 }
 
-/**
- * @overwrite
- */
 void Box::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) {
 	_inl(this)->set_offset_in_hybrid_(rows, limit, hybrid, 1);
 }
 
-/**
- * @overwrite
- */
 Box* Limit::set_offset_horizontal(Box* prev, Vec2& squeeze, float limit, Div* div) {
 	return _inl(this)->set_offset_horizontal_(prev, squeeze, limit, div, 0);
 }

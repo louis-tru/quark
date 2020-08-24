@@ -38,7 +38,7 @@ extern void _box_inl__solve_final_horizontal_size_with_full_width(Box* box, floa
 extern void _box_inl__solve_final_vertical_size_with_full_height(Box* box, float parent);
 
 FX_DEFINE_INLINE_MEMBERS(Div, Inl) {
-public:
+ public:
 	
 	void set_layout_three_times2(bool horizontal) {
 		
@@ -55,11 +55,9 @@ public:
 	
 };
 
-Div::Div(): m_content_align(ContentAlign::LEFT) { }
+Div::Div(): m_content_align(ContentAlign::LEFT) {
+}
 
-/**
- * @set set_content_align
- */
 void Div::set_content_align(ContentAlign value) {
 	if (value != m_content_align) {
 		m_content_align = value;
@@ -69,12 +67,12 @@ void Div::set_content_align(ContentAlign value) {
 
 bool Div::set_div_content_offset(Vec2& squeeze, Vec2 limit_min) {
 	
-# define loop(func)  \
-while (view) {  \
-	Box* box = view->as_box(); \
-	if (box) { func; }  \
-	view = view->next();  \
-}
+	# define loop(func)  \
+	while (view) {  \
+		Box* box = view->as_box(); \
+		if (box) { func; }  \
+		view = view->next();  \
+ 	}
 	
 	View* view  = first();
 	Box*  prev  = nullptr;
@@ -89,7 +87,7 @@ while (view) {  \
 			break;
 	}
 	
-# undef loop
+	# undef loop
 	
 	bool size_change = false;
 	
@@ -152,9 +150,6 @@ void Div::set_layout_content_offset() {
 	}
 }
 
-/**
- * @overwrite
- */
 void Div::set_layout_three_times(bool horizontal, bool hybrid) {
 	
 	if ( !m_visible ) { return; }

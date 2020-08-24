@@ -35,7 +35,7 @@
 FX_NS(ftr)
 
 FX_DEFINE_INLINE_MEMBERS(Text, Inl) {
-public:
+ public:
 	
 	template<TextAlign T>
 	void set_text_align_offset(float text_margin) {
@@ -97,9 +97,6 @@ void Text::accept_text(Ucs2StringBuilder& output) const {
 	output.push(m_data.string);
 }
 
-/**
- * @func set_text_align_offset
- */
 void Text::set_text_align_offset(float text_margin) {
 	switch ( m_text_align ) {
 		default:
@@ -138,9 +135,6 @@ void Text::draw(Draw* draw) {
 	}
 }
 
-/**
- * @func set_layout_content_offset
- */
 void Text::set_layout_content_offset() {
 	
 	if ( m_final_visible ) {
@@ -161,9 +155,6 @@ void Text::set_layout_content_offset() {
 	}
 }
 
-/**
- * @func set_draw_visible
- */
 void Text::set_draw_visible() {
 	
 	compute_box_vertex(m_final_vertex);

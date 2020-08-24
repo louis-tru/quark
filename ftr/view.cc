@@ -404,7 +404,7 @@ void View::set_parent(View* parent) throw(Error) {
 /**
  * #func remove # 删除当前视图,并不从内存清空视图数据
  */
-void View::remove() {		
+void View::remove() {
 	if (m_parent) {
 
 		blur(); // 辞去焦点
@@ -825,16 +825,10 @@ Region View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex)
 	};
 }
 
-/**
- * @func set_draw_visible
- */
 void View::set_draw_visible() {
 	// noop
 }
 
-/**
- * @func solve
- */
 void View::solve() {
 	uint mark_value = this->mark_value;
 	
@@ -856,9 +850,6 @@ void View::solve() {
 	}
 }
 
-/**
- * @func draw
- */
 void View::draw(Draw* draw) {
 	if ( m_visible ) {
 		
@@ -882,9 +873,6 @@ void View::draw(Draw* draw) {
 	}
 }
 
-/**
- * @func visit child draw
- */
 void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
 	View* view = m_first;
 	
@@ -905,30 +893,18 @@ void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
 	}
 }
 
-/**
- * @func layout_offset 获取布局偏移值
- */
 Vec2 View::layout_offset() {
 	return Vec2();
 }
 
-/**
- * @func layout_in_offset
- */
 Vec2 View::layout_in_offset() {
 	return m_origin;
 }
 
-/**
- * @func layout_offset
- */
 Vec2 View::layout_offset_from(View* parents) {
 	return _inl(this)->layout_offset_from(parents);
 }
 
-/**
- * @func screen_rect
- */
 CGRect View::screen_rect() {
 	return { position(), Vec2(0, 0) };
 }
@@ -949,41 +925,28 @@ const Mat& View::matrix() {
 	return m_matrix;
 }
 
-/**
- * @func final_matrix
- */
 const Mat& View::final_matrix() {
 	_inl(this)->compute_final_matrix();
 	return m_final_matrix;
 }
 
-/**
- * @func final_opacity
- */
 float View::final_opacity() {
 	_inl(this)->compute_final_opacity();
 	return m_final_opacity;
 }
 
-/**
- * @func position
- */
 Vec2 View::position() {
 	const Mat& mat = final_matrix();
 	return Vec2(mat[2], mat[5]);
 }
 
 /**
- * "cls1 clas2 clas3"
- * @func set_class
+ * @func set_class("cls1 clas2 clas3")
  */
 void View::set_class(cString& name) {
 	set_class(name.split(' '));
 }
 
-/**
- * @func set_class
- */
 void View::set_class(const Array<String>& name) {
 	if ( !m_classs ) {
 		m_classs = new CSSViewClasss(this);
@@ -991,9 +954,6 @@ void View::set_class(const Array<String>& name) {
 	m_classs->name(name);
 }
 
-/**
- * @func add_class
- */
 void View::add_class(cString& names) {
 	if ( !m_classs ) {
 		m_classs = new CSSViewClasss(this);
@@ -1001,18 +961,12 @@ void View::add_class(cString& names) {
 	m_classs->add(names);
 }
 
-/**
- * @func remove_class
- */
 void View::remove_class(cString& names) {
 	if ( m_classs ) {
 		m_classs->remove(names);
 	}
 }
 
-/**
- * @func toggle_class
- */
 void View::toggle_class(cString& names) {
 	if ( !m_classs ) {
 		m_classs = new CSSViewClasss(this);
@@ -1020,10 +974,6 @@ void View::toggle_class(cString& names) {
 	m_classs->toggle(names);
 }
 
-
-/**
- * @func refresh_styles
- */
 void View::refresh_styles(StyleSheetsScope* sss) {
 	if ( mark_value & M_STYLE_FULL ) { // full
 		_inl(this)->full_refresh_styles(sss);
@@ -1056,16 +1006,10 @@ static Button* first_button_2(View* v) {
 	return nullptr;
 }
 
-/**
- * @func first_button
- */
 Button* View::first_button() {
 	return first_button_2(this);
 }
 
-/**
- * @func has_child(child)
- */
 bool View::has_child(View* child) {
 	if ( child && child->m_level < m_level ) {
 		View* parent = child->m_parent;

@@ -64,19 +64,12 @@ FX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
 	}
 };
 
-/**
- * @constructor
- */
 Panel::Panel()
 : m_allow_leave(false)
 , m_allow_entry(false)
 , m_interval_time(0), m_enable_select(true) {
-	
 }
 
-/**
- * @func is_activity
- */
 bool Panel::is_activity() const {
 	View* view = app()->focus_view();
 	if (view) {
@@ -87,9 +80,6 @@ bool Panel::is_activity() const {
 	return false;
 }
 
-/**
- * @func parent_panel
- */
 Panel* Panel::parent_panel() {
 	View* v = parent();
 	while( v ) {
