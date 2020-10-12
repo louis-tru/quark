@@ -24,7 +24,7 @@
 				'res',
 				'test-ftr',
 				'../examples',
-				'../benchmark',
+				'../bench',
 			],
 			'xcode_settings': {
 				'OTHER_LDFLAGS': '-all_load',

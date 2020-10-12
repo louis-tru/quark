@@ -18,7 +18,7 @@
 			'depe/node/node.gyp:node',
 		],
 		"sources": [
-			'../libs/ftrp/export/empty.c', # fix mac platform build error
+			'../tools/useless.c', # fix mac platform build error
 		],
 	},
 	{
