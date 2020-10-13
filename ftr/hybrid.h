@@ -47,7 +47,6 @@ FX_NS(ftr)
  */
 class FX_EXPORT Hybrid: public Box, public TextLayout {
  public:
-	FX_DEFINE_GUI_VIEW(HYBRID, Hybrid, hybrid);
 	
 	typedef ReferenceTraits Traits;
 	

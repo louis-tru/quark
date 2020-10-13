@@ -982,34 +982,6 @@ void View::refresh_styles(StyleSheetsScope* sss) {
 	}
 }
 
-static Button* first_button_2(View* v) {
-	v = v->first();
-	
-	while (v) {
-		if ( v->final_visible() ) {
-			auto btn = v->as_button();
-			if ( btn ) {
-				return btn;
-			} else {
-				Panel* panel = v->as_panel();
-				
-				if ( !panel || (panel->enable_select() && panel->allow_entry()) ) {
-					Button* btn = first_button_2(v);
-					if ( btn ) {
-						return btn;
-					}
-				}
-			}
-		}
-		v = v->next();
-	}
-	return nullptr;
-}
-
-Button* View::first_button() {
-	return first_button_2(this);
-}
-
 bool View::has_child(View* child) {
 	if ( child && child->m_level < m_level ) {
 		View* parent = child->m_parent;

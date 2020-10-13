@@ -135,8 +135,6 @@
 			'binding/text-node.cc',
 			'binding/label.cc',
 			'binding/limit.cc',
-			'binding/panel.cc',
-			'binding/button.cc',
 			'binding/scroll.cc',
 			'binding/css.cc',
 			'binding/font.cc',

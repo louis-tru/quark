@@ -44,118 +44,118 @@ class WrapTextFont {
  public:
 
 	static void text_background_color(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_background_color()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_background_color()) );
 	}
 	static void text_color(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_color()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_color()) );
 	}
 	static void text_size(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_size()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_size()) );
 	}
 	static void text_style(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_style()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_style()) );
 	}
 	static void text_family(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_family()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_family()) );
 	}
 	static void text_shadow(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_shadow()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_shadow()) );
 	}
 	static void text_line_height(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_line_height()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_line_height()) );
 	}
 	static void text_decoration(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		JS_RETURN( worker->values()->New(text->text_decoration()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		JS_RETURN( worker->values()->New(text->text_decoration()) );
 	}
 	static void set_text_background_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextColor, value, "TextFont.textBackgroundColor = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_background_color(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextColor, value, "TextFont.textBackgroundColor = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_background_color(out);
 	}
 	// set
 	static void set_text_color(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextColor, value, "TextFont.textColor = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_color(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextColor, value, "TextFont.textColor = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_color(out);
 	}
 	static void set_text_size(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextSize, value, "TextFont.textSize = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_size(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextSize, value, "TextFont.textSize = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_size(out);
 	}
 	static void set_text_style(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextStyle, value, "TextFont.textStyle = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_style(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextStyle, value, "TextFont.textStyle = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_style(out);
 	}
 	static void set_text_family(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextFamily, value, "TextFont.textFamily = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_family(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextFamily, value, "TextFont.textFamily = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_family(out);
 	}
 	static void set_text_shadow(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextShadow, value, "TextFont.textShadow = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_shadow(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextShadow, value, "TextFont.textShadow = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_shadow(out);
 	}
 	static void set_text_line_height(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextLineHeight, value, "TextFont.textLineHeight = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_line_height(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextLineHeight, value, "TextFont.textLineHeight = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_line_height(out);
 	}
 	static void set_text_decoration(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextDecoration, value, "TextFont.textDecoration = %s");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		text->set_text_decoration(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextDecoration, value, "TextFont.textDecoration = %s");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		text->set_text_decoration(out);
 	}
 	
 	static void simple_layout_width(FunctionCall args) {
-		JS_WORKER(args); GUILock lock;
-		if ( args.Length() < 1 ) JS_THROW_ERR("Bad argument.");
-		JS_SELF(View);
-		TextFont* text = self->as_text_font();
-		float width = text->simple_layout_width( args[0]->ToUcs2StringValue(worker) );
-		JS_RETURN ( width );
+//		JS_WORKER(args); GUILock lock;
+//		if ( args.Length() < 1 ) JS_THROW_ERR("Bad argument.");
+//		JS_SELF(View);
+//		TextFont* text = self->as_text_font();
+//		float width = text->simple_layout_width( args[0]->ToUcs2StringValue(worker) );
+//		JS_RETURN ( width );
 	}
 
 	static void inherit(Local<JSClass> cls, Worker* worker) {
@@ -175,30 +175,30 @@ class WrapTextLayout {
  public:
 
 	static void text_overflow(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextLayout* text = self->as_text_layout();
-		JS_RETURN( worker->values()->New(text->text_overflow()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextLayout* text = self->as_text_layout();
+//		JS_RETURN( worker->values()->New(text->text_overflow()) );
 	}
 	static void text_white_space(Local<JSString> name, PropertyCall args) {
-		JS_WORKER(args);
-		JS_SELF(View);
-		TextLayout* text = self->as_text_layout();
-		JS_RETURN( worker->values()->New(text->text_white_space()) );
+//		JS_WORKER(args);
+//		JS_SELF(View);
+//		TextLayout* text = self->as_text_layout();
+//		JS_RETURN( worker->values()->New(text->text_white_space()) );
 	}
 	static void set_text_overflow(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextOverflow, value, "TextLayout.textOverflow = %s");
-		JS_SELF(View);
-		TextLayout* text = self->as_text_layout();
-		text->set_text_overflow(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextOverflow, value, "TextLayout.textOverflow = %s");
+//		JS_SELF(View);
+//		TextLayout* text = self->as_text_layout();
+//		text->set_text_overflow(out);
 	}
 	static void set_text_white_space(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
-		JS_WORKER(args); GUILock lock;
-		js_parse_value(TextWhiteSpace, value, "TextLayout.textWhiteSpace = %s");
-		JS_SELF(View);
-		TextLayout* text = self->as_text_layout();
-		text->set_text_white_space(out);
+//		JS_WORKER(args); GUILock lock;
+//		js_parse_value(TextWhiteSpace, value, "TextLayout.textWhiteSpace = %s");
+//		JS_SELF(View);
+//		TextLayout* text = self->as_text_layout();
+//		text->set_text_white_space(out);
 	}
 
 	static void inherit(Local<JSClass> cls, Worker* worker) {

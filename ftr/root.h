@@ -31,7 +31,7 @@
 #ifndef __ftr__root__
 #define __ftr__root__
 
-#include "ftr/panel.h"
+#include "ftr/div.h"
 
 /**
  * @ns ftr
@@ -42,9 +42,8 @@ FX_NS(ftr)
 /**
  * @class Root 这个类型的视图尺寸为显示端口的尺寸
  */
-class FX_EXPORT Root: public Panel {
+class FX_EXPORT Root: public Div {
  public:
-	FX_DEFINE_GUI_VIEW(ROOT, Root, root);
 	
 	inline Root() {}
 	

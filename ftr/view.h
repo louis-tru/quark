@@ -45,52 +45,14 @@ FX_NS(ftr)
 class DrawData;
 class Draw;
 class GLDraw;
-class View;
 class PreRender;
-class ViewXML;
 class Texture;
 class CSSViewClasss;
 class StyleSheetsScope;
 class BasicScroll;
 class Background;
 class ITextInput;
-
-#define FX_EACH_VIEWS(F)  \
-	F(LAYOUT, Layout, layout) \
-	F(BOX, Box, box)  \
-	F(DIV, Div, div)  \
-	F(BOX_SHADOW, BoxShadow, box_shadow)  \
-	F(INDEP, Indep, indep)  \
-	F(LIMIT, Limit, limit) \
-	F(LIMIT_INDEP, LimitIndep, limit_indep) \
-	F(IMAGE, Image, image)  \
-	F(SCROLL, Scroll, scroll) \
-	F(VIDEO, Video, video)  \
-	F(ROOT, Root, root) \
-	F(SPRITE, Sprite, sprite) \
-	F(HYBRID, Hybrid, hybrid) \
-	F(TEXT_NODE, TextNode, text_node) \
-	F(SPAN, Span, span) \
-	F(TEXT_FONT, TextFont, text_font) \
-	F(BASIC_SCROLL, BasicScroll, basic_scroll) \
-	F(ITEXT_INPUT, ITextInput, itext_input) \
-	F(TEXT_LAYOUT, TextLayout, text_layout) \
-	F(LABEL, Label, label) \
-	F(BUTTON, Button, button) \
-	F(PANEL, Panel, panel) \
-	F(TEXT, Text, text) \
-	F(INPUT, Input, input) \
-	F(TEXTAREA, Textarea, textarea) \
-
-#define FX_DEFINE_CLASS(enum, type, name) class type;
-FX_EACH_VIEWS(FX_DEFINE_CLASS);
-#undef FX_DEFINE_CLASS
-
-#define FX_DEFINE_GUI_VIEW(enum, type, name) \
-	public: \
-	friend class GLDraw;  \
-	virtual type* as_##name() { return this; }  \
-	virtual ViewType view_type() const { return enum; }
+class Layout;
 
 /**
  * @class View
@@ -106,27 +68,6 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 */
 	virtual ~View();
 	
-	/**
-	 * @enum ViewType
-	 */
-	enum ViewType {
-	 #define nx_def_view_type(enum, type, name) enum,
-		INVALID = 0,
-		VIEW,
-		FX_EACH_VIEWS(nx_def_view_type)
-	 #undef nx_def_view_type
-	};
-
-	/**
-	 * @func view_type 获取视图类型
-	 */
-	virtual ViewType view_type() const { return VIEW; }
-	
- #define nx_def_view_type(enum, type, name)  \
-	virtual type* as_##name() { return nullptr; }
-	FX_EACH_VIEWS(nx_def_view_type) // as type
- #undef nx_def_view_type
-
 	/**
 	 * @enum MarkValue
 	 */
@@ -160,6 +101,8 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 		M_STYLE_FULL            = (uint(1) << 31),  /* 所有后后代视图都受到影响 */
 		M_STYLE                 = (M_STYLE_CLASS | M_STYLE_FULL),
 	};
+	
+	virtual Layout* as_layout() { return nullptr; }
 	
 	/**
 	 * @get inner_text {Ucs2String}
@@ -565,12 +508,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 * @func trigger_listener_change()
 	 */
 	virtual void trigger_listener_change(const NameType& name, int count, int change);
-	
-	/**
-	 * @func first_button
-	 */
-	Button* first_button();
-	
+
 	/**
 	 * @func has_child(child)
 	 */

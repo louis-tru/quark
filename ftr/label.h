@@ -47,7 +47,6 @@ FX_NS(ftr)
  */
 class FX_EXPORT Label: public View, public TextFont {
  public:
-	FX_DEFINE_GUI_VIEW(LABEL, Label, label);
 	
 	typedef ReferenceTraits Traits;
 	

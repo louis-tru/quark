@@ -37,6 +37,8 @@ FX_NS(ftr)
 
 class BasicScroll;
 class Background;
+class Hybrid;
+class Div;
 
 /**
  * 布局盒子视图尺寸的变化会影响到:
@@ -47,7 +49,6 @@ class Background;
  */
 class FX_EXPORT Box: public Layout {
  public:
-	FX_DEFINE_GUI_VIEW(BOX, Box, box);
 	
 	Box();
 	

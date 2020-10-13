@@ -41,8 +41,7 @@ FX_NS(ftr)
  */
 class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
  public:
-	FX_DEFINE_GUI_VIEW(INPUT, Input, input);
-	
+
 	typedef ReferenceTraits Traits;
 	
 	Input();

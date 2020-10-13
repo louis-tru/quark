@@ -38,21 +38,22 @@
 FX_NS(ftr)
 
 class TextRows;
+class Hybrid;
 
 /**
  * @class Layout 布局排版抽象类
  */
 class FX_EXPORT Layout: public View {
  public:
-	FX_DEFINE_GUI_VIEW(LAYOUT, Layout, layout);
 	
 	Layout();
-	
+
 	/**
 	 * @overwrite
 	 */
 	virtual void remove();
 	virtual void remove_all_child();
+	virtual Layout* as_layout() { return this; }
 	
 	/**
 	 * @func client_width 客户端宽度,视图所占用的所有水平尺寸

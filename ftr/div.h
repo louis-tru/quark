@@ -40,7 +40,6 @@ FX_NS(ftr)
  */
 class FX_EXPORT Div: public Box {
  public:
-	FX_DEFINE_GUI_VIEW(DIV, Div, div);
 	
 	Div();
 	
