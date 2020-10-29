@@ -651,7 +651,7 @@ export default class FtrBuild {
 		this.target_local     = resolveLocal(target, 'install');
 		this.target_public    = resolveLocal(target, 'public');
 		
-		util.assert(fs.existsSync(this.source), 'Build source does not exist ,{0}', this.source);
+		util.assert(fs.existsSync(this.source), `Build source does not exist ,${this.source}`);
 		util.assert(fs.statSync(this.source).isDirectory());
 	}
 
