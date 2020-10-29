@@ -31,8 +31,8 @@
 #ifndef __ftr__version__
 #define __ftr__version__
 
-#define FTR_MAJOR_VERSION 0
-#define FTR_MINOR_VERSION 7
+#define FTR_MAJOR_VERSION 1
+#define FTR_MINOR_VERSION 0
 #define FTR_PATCH_VERSION 0
 #define FTR_TAG ""
 
