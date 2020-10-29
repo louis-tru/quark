@@ -4,7 +4,7 @@ NODE           ?= node
 ANDROID_JAR     = out/android.classs.ftr.jar
 FTRP            = ./libs/ftrp
 FTRP_OUT        = out/ftrp
-GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|cut -d "/" -f 1)
+GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|sed 's/\/ftr\.git//')
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
