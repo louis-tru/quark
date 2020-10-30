@@ -33,7 +33,7 @@
 
 #define FTR_MAJOR_VERSION 0
 #define FTR_MINOR_VERSION 7
-#define FTR_PATCH_VERSION 0
+#define FTR_PATCH_VERSION 1
 #define FTR_TAG ""
 
 #define __STRINGIFY(n) __STRINGIFY_HELPER(n)

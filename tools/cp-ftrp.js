@@ -56,6 +56,7 @@ fs.cp_sync(root + '/libs/ftrp/out/ftrp', target, {ignore_hide:0,symlink: 0});
 fs.cp_sync(root + '/libs/ftrp/gyp', target + '/gyp', {ignore_hide:1,replace:0});
 
 fs.chmodSync(target + '/gyp/gyp', 0755);
+fs.chmodSync(target + '/shell.js', 0755);
 
 copy_header(root + '/ftr', `${include}/ftr`);
 copy_header(root + '/ftr-js', `${include}/ftr-js`);
