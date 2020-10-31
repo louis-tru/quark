@@ -284,6 +284,7 @@ class Package {
 				'SKIP_INSTALL': 'NO',
 				'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
 				'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
+				'PRODUCT_BUNDLE_IDENTIFIER': id,
 			};
 	
 			var out = host.proj_out;

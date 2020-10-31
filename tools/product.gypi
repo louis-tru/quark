@@ -34,7 +34,7 @@
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
 					'GCC_STRICT_ALIASING': 'YES',
-					'ONLY_ACTIVE_ARCH': 'NO',
+					'ONLY_ACTIVE_ARCH': 'YES',
 				},
 				'conditions': [
 					['os=="android" and clang==0', {
@@ -126,7 +126,7 @@
 						'@executable_path/Frameworks'
 					],
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
-					'VALID_ARCHS': ['arm64'],
+					# 'VALID_ARCHS': ['arm64'], # Xcode 12 has abandoned this option
 				},
 				'cflags_cc': [ '-stdlib=libc++' ],
 				'link_settings': {
