@@ -14,10 +14,10 @@ gen_framework() {
 	node $gen $os $1 "no-cut" "$2" $out/product/$os/Frameworks/$3 $arr
 }
 
-gen_framework ftr       ftr                  iphonesimulator "x64"
-gen_framework ftr-media no-inc               iphonesimulator "x64"
-gen_framework ftr-js    ftr-js               iphonesimulator "x64"
-gen_framework ftr-node  no-inc               iphonesimulator "x64"
+gen_framework ftr       ftr                  iphonesimulator "arm64.simulator"
+gen_framework ftr-media no-inc               iphonesimulator "arm64.simulator"
+gen_framework ftr-js    ftr-js               iphonesimulator "arm64.simulator"
+gen_framework ftr-node  no-inc               iphonesimulator "arm64.simulator"
 
 gen_framework ftr       ftr                  iphoneos "arm64" # x64 arm64 armv7
 gen_framework ftr-media no-inc               iphoneos "arm64"
@@ -38,7 +38,7 @@ cd Debug
 [ ! -L ftr.framework ] && ln -s ../ftr.framework
 [ ! -L ftr-media.framework ] && ln -s ../ftr-media.framework
 [ ! -L ftr-js.framework ] && ln -s ../ftr-js.framework
-[ ! -L ftr-node.framework ] && ln -s ../nxnode.framework
+[ ! -L ftr-node.framework ] && ln -s ../ftr-node.framework
 
 cd ../Release
 [ ! -L ftr.framework ] && ln -s ../ftr.framework

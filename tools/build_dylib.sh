@@ -24,7 +24,9 @@ link_dylib() {
 
 	find $dirs -name *.o > $name.LinkFileList
 
-	clang++ -arch $arch_name -dynamiclib \
+	# clang++ -arch $arch_name -dynamiclib \
+
+	clang++ -target arm64-apple-ios14.1-simulator \
 		-isysroot $sysroot \
 		-L$out \
 		-F$out \
@@ -60,6 +62,9 @@ link_dylib ftr \
 			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 			-framework CoreGraphics -framework QuartzCore -framework UIKit -framework MessageUI "
+
+# exit
+
 framework ftr no-inc # gen temp framework
 
 # ftr-media

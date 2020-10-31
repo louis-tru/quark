@@ -36,6 +36,7 @@
 		'without_visibility_hidden%': 0,
 		'without_embed_bitcode%': 0,
 		'cross_compiling%': 0,
+		'simulator%': 0,
 
 		############################# dependents set ##################
 		
@@ -269,7 +270,7 @@
 				},
 				'conditions': [
 					['cplusplus11==1', { 'cflags_cc': [ '-stdlib=libc++' ] }],
-					['arch in "arm arm64"', { 'defines': [ 'USE_SIMULATOR' ]} ], # v8 setting
+					['simulator==0', { 'defines': [ 'USE_SIMULATOR' ]} ], # iphonesimulator can use v8
 					['without_embed_bitcode==1', { 
 						'cflags': [ 
 							#'-fembed-bitcode-marker' 
@@ -292,7 +293,7 @@
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
 					'VALID_ARCHS': '<(arch_name)',
 					'conditions': [
-						['arch in "x86 x64"', { 'SDKROOT': 'iphonesimulator' }],
+						['simulator==1', { 'SDKROOT': 'iphonesimulator' }],
 						['project=="xcode"', {
 							# v8 setting
 							'GCC_PREPROCESSOR_DEFINITIONS[arch=armv7]': [ '$(inherited)', 'USE_SIMULATOR', ],

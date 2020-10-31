@@ -75,6 +75,7 @@ def_opts('without-embed-bitcode', 1,
 																'--without-embed-bitcode disable apple embed-bitcode [{0}]');
 def_opts('without-node', 0,     '--without-node disable node [{0}]');
 def_opts('more-log',     0,     '--more-log print more log message [{0}]');
+def_opts('simulator',    0,     '--simulator compile to simulator [{0}]');
 
 function arm() {
 	return opts.arch.match(/^arm/) ? 1 : 0;
@@ -236,15 +237,17 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 						`-arch ${arch_name} ${f_embed_bitcode}`;
 		cmd += `--cc='${cc}' `;
 
-		if (arch == 'x86' || arch == 'x64') {
+		if (variables.simulator) {
 			cmd += '--sysroot=$(xcrun --sdk iphonesimulator --show-sdk-path) ';
 		} else {
-			if (arch == 'arm') {
-				var as = `${__dirname}/gas-preprocessor.pl -arch arm -as-type apple-clang -- ${cc}`;
-				cmd += `--as='${as}' `;
-			}
 			cmd += '--sysroot=$(xcrun --sdk iphoneos --show-sdk-path) ';
 		}
+
+		if (arch == 'arm') {
+			var as = `${__dirname}/gas-preprocessor.pl -arch arm -as-type apple-clang -- ${cc}`;
+			cmd += `--as='${as}' `;
+		}
+
 	} 
 	else if (os == 'osx') {
 		cmd = `\
@@ -560,7 +563,7 @@ async function configure() {
 
 	if ( os == 'ios' ) {
 		if ( opts.use_v8 == 'auto' ) { // ios默认使用 javascriptcore
-			if ( arch != 'x86' && arch != 'x64' ) {
+			if ( !opts.simulator ) {
 				opts.use_v8 = 0;
 			}
 		}
@@ -600,6 +603,7 @@ async function configure() {
 			cross_prefix: '',
 			use_system_zlib: bi(os.match(/^(android|linux|ios|osx)$/)),
 			media: opts.media,
+			simulator: opts.simulator,
 			version_min: '',
 			output: '',
 			cc: 'gcc',
@@ -897,7 +901,7 @@ async function configure() {
 		}
 
 		if ( os == 'ios' ) {
-			if (arch == 'x86' || arch == 'x64') {
+			if (variables.simulator) {
 				variables.build_sysroot = syscall('xcrun --sdk iphonesimulator --show-sdk-path').first;
 			} else {
 				variables.build_sysroot = syscall('xcrun --sdk iphoneos --show-sdk-path').first;
