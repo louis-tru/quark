@@ -18,3 +18,8 @@ libs/ftr/out
 .node_modules
 package-lock.json
 libs/ftrp/gyp
+depe/FFmpeg
+depe/bplus
+depe/node
+depe/skia
+depe/v8-link
