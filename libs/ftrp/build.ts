@@ -54,7 +54,7 @@ new GUIApplication().start(
 
 const init_code2 = `
 
-import utils from 'somes';
+// import utils from 'somes';
 
 console.log('When the package has only one file, TSC cannot be compiled. This should be a bug of TSC');
 
@@ -702,6 +702,7 @@ export default class FtrBuild {
 		}
 		if ( ok ) {
 			fs.writeFileSync(self.target_public + '/packages.json', JSON.stringify(result, null, 2));
+			console.log('build ok');
 		} else {
 			console.log('No package build');
 		}
@@ -732,7 +733,7 @@ export default class FtrBuild {
 
 			process.stdin.resume();
 
-			var r = await exec(`npm install ${apps.join(' ')} --save=. --only=prod --ignore-scripts`, {
+			var r = await exec(`npm install ${apps.map(e=>'./'+e).join(' ')} --save=. --only=prod --ignore-scripts`, {
 				stdout: process.stdout,
 				stderr: process.stderr, stdin: process.stdin,
 			});
@@ -746,7 +747,8 @@ export default class FtrBuild {
 		} finally {
 			fs.removerSync('package-lock.json');
 			fs.removerSync('package.json');
-			apps.forEach(e=>fs.unlinkSync('node_modules/' + e)); // delete uselse file
+			apps.map(e=>'node_modules/' + e)
+				.forEach(e => fs.existsSync(e)&&fs.unlinkSync(e)); // delete uselse file
 		}
 
 		return apps;

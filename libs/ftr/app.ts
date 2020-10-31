@@ -28,6 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+///<reference path="_ext.ts"/>
+
 import utils from './util';
 import {DisplayPort} from './display_port';
 import { Root, View } from './_view';

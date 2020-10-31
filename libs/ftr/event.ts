@@ -216,7 +216,7 @@ export enum KeyboardKeyName {
 declare class NativeEvent<Data, Sender extends object> extends Event<Data, Sender> {}
 
 export declare class GUIEvent<Data = void, Sender extends object = View> extends NativeEvent<Data, Sender> {
-	readonly origin: View;
+	get origin(): View;
 	readonly timestamp: number;
 	readonly isDefault: boolean;
 	readonly isBubble: boolean;
