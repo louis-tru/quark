@@ -164,7 +164,7 @@
 					'PREBINDING': 'NO',                       # No -Wl,-prebind
 					'MACOSX_DEPLOYMENT_TARGET': '10.8',       # -mmacosx-version-min=10.8
 					'USE_HEADERMAP': 'NO',
-					'AECHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
+					'ARCHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
 					'SKIP_INSTALL': 'YES',
 					'ENABLE_BITCODE': 'NO',
 					'DEBUG_INFORMATION_FORMAT': 'dwarf',      # dwarf-with-dsym
