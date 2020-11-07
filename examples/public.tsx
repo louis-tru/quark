@@ -106,7 +106,7 @@ export class NavButton extends ViewController {
 		//util.log('---------------------', px);
 		return (
 			<Button
-				onClick="handle_click"
+				onClick={(e:any)=>this.handle_click(e)}
 				class="next_btn"
 				textColor="#0079ff"
 				defaultHighlighted={0}

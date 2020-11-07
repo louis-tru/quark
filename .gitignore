@@ -23,3 +23,5 @@ depe/bplus
 depe/node
 depe/skia
 depe/v8-link
+examples/**.js
+bench/**.js

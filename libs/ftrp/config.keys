@@ -18,8 +18,6 @@ server
 		,
 			match			/$file/{action}/{pathname}
 			service		File
-		,
-			match			/{service}/{action}
 		, 
 			match			/{pathname}
 			service		File

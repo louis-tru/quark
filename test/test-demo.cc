@@ -35,7 +35,7 @@ using namespace ftr;
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
 #define USE_INSPECT 0
-#define USE_NODE 0
+#define USE_NODE 1
 
 static bool has_argv(cchar* name, int argc, char **argv) {
 	for (int i = 0; i < argc; i++) {
@@ -81,7 +81,7 @@ void test_demo(int argc, char **argv) {
 		cmd += ' ';
 	} else {
 #if USE_REMOTE
-		cmd += "http://" IP_REMOTE ":1026/demo/examples ";
+		cmd += "http://" IP_REMOTE ":1026/examples ";
 #else
 		cmd += "examples ";
 #endif
