@@ -38,7 +38,7 @@ cd Debug
 [ ! -L ftr.framework ] && ln -s ../ftr.framework
 [ ! -L ftr-media.framework ] && ln -s ../ftr-media.framework
 [ ! -L ftr-js.framework ] && ln -s ../ftr-js.framework
-[ ! -L ftr-node.framework ] && ln -s ../nxnode.framework
+[ ! -L ftr-node.framework ] && ln -s ../ftr-node.framework
 
 cd ../Release
 [ ! -L ftr.framework ] && ln -s ../ftr.framework
