@@ -697,8 +697,8 @@ async function configure() {
 				} else {
 					// todo auto download android ndk ...
 					console.error(
-						`Please run "./tools/install-android-toolchain NDK-DIR" ` +
-						'to install android toolchain!');
+						`Please Setting environment variable ANDROID_NDK or ` + 
+						`Run "./tools/install-android-toolchain NDK-DIR" to install android toolchain! `);
 					process.exit(1);
 				}
 			}
