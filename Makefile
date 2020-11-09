@@ -4,7 +4,6 @@ NODE           ?= node
 ANDROID_JAR     = out/android.classs.ftr.jar
 FTRP            = ./libs/ftrp
 FTRP_OUT        = out/ftrp
-GIT_repository := $(shell git remote -v|grep origin|tail -1|awk '{print $$2}'|sed 's/\/ftr\.git//')
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
@@ -15,33 +14,11 @@ ifeq ($(HOST_OS),darwin)
 	HOST_OS := osx
 endif
 
-ifeq ($(GIT_repository),)
-	GIT_repository = https://github.com/louis-tru
-endif
-
 #######################
 
 DEPS = libs/somes libs/ftrp/gyp.ftr depe/v8-link \
 		depe/FFmpeg.ftr depe/node.ftr depe/bplus depe/skia
 FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
-
-git_pull=sh -c "\
-	if [ ! -f $(1)/.git/config ]; then \
-		git clone $(3) $(1) && cd $(1) && git checkout $(2) && echo git clone $(3) ok; \
-	else \
-		cd $(1) && git pull && git checkout $(2) && echo git pull $(1) ok; \
-	fi"
-
-git_push=sh -c "cd $(1) && git push && echo git push $(1) ok"
-
-git_pull_deps=echo $(1) deps \
-	$(foreach i,$(DEPS),&& \
-		$(call git_$(1),\
-			$(call basename,$(i)),\
-			$(if $(call suffix,$(i)),$(call subst,.,,$(call suffix,$(i))),master),\
-			$(GIT_repository)/$(call subst,$(call suffix,$(i)),,$(call notdir,$(i))).git\
-		) \
-	)
 
 check_osx=\
 	if [ "$(HOST_OS)" != "osx" ]; then \
@@ -53,7 +30,7 @@ check_osx=\
 
 .PHONY: $(FORWARD) ios android linux osx \
 	product install install-ftrp \
-	help web doc watch all all_on_linux all_on_osx pull push
+	help web doc watch all all_on_linux all_on_osx init
 
 .SECONDEXPANSION:
 
@@ -148,13 +125,8 @@ help:
 watch:
 	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
 
-pull:
-	@git pull
+init:
 	@if [ ! -f test/android/app/app.iml ]; then \
 		cp test/android/app/.app.iml test/android/app/app.iml; \
 	fi
-	@$(call git_pull_deps,pull)
-
-push:
-	@git push
-	@$(call git_pull_deps,push)
+	@git submodule update --init
