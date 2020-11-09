@@ -31,7 +31,7 @@
 import './console';
 import './file';
 import keys from 'somes/keys';
-import {ServerIMPL, Options} from 'somes/server';
+import {ServerIMPL} from 'somes/server';
 import * as remote_log from './remote_log';
 import {getLocalNetworkHost} from 'somes/network_host';
 

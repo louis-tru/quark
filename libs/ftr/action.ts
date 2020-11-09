@@ -34,11 +34,12 @@ import * as value from './value';
 import { View } from './_view';
 import { Action, ActionIn, KeyframeOptions } from './_action';
 import { GUIActionEvent } from './event';
-export * from './_action';
 
 const _action = __require__('_action');
 
 Object.assign(exports, _action);
+
+export * from './_action';
 
 export declare abstract class GroupAction extends Action {
 	readonly length: number;

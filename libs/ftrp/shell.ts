@@ -15,7 +15,7 @@ const def_opts = argument.defOpts;
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts(['port', 'p'], 1026, 	'--port=PORT,-p PORT Run ftr debugger server port [{0}]');
-def_opts(['remote', 'r'], '', 	'--remote=ADDRESS,-r ADDRESS Remote console address [none]');
+// def_opts(['remote', 'r'], '', 	'--remote=ADDRESS,-r ADDRESS Remote console address [none]');
 
 if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) {
 	console.log('');
@@ -31,7 +31,7 @@ if ( opts.help || opts.h /*cmd == 'help' || cmd == 'h'*/ ) {
 	console.log('`ftrp install`');
 	console.log('`ftrp clear`');
 	console.log('`ftrp`');
-	console.log('`ftrp -r http://192.168.1.124:1026`');
+	// console.log('`ftrp -r http://192.168.1.124:1026`');
 	console.log('');
 	console.log('Defaults for the options are specified in brackets.');
 	console.log('');

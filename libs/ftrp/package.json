@@ -1,6 +1,6 @@
 {
 	"name": "ftrp",
-	"version": "0.7.0",
+	"version": "0.7.2",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "server.js",
 	"author": {
@@ -38,7 +38,7 @@
 	"dependencies": {
 		"marked": "~0.3.6",
 		"uglify-es": "~3.0.28",
-		"somes": "~0.10.70",
+		"somes": "~0.10.112",
 		"typescript": "~3.7.4"
 	},
 	"devDependencies": {

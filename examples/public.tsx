@@ -106,7 +106,7 @@ export class NavButton extends ViewController {
 		//util.log('---------------------', px);
 		return (
 			<Button
-				onClick="handle_click"
+				onClick={this._handle_click}
 				class="next_btn"
 				textColor="#0079ff"
 				defaultHighlighted={0}
@@ -121,7 +121,7 @@ export class NavButton extends ViewController {
 		);
 	}
 
-	handle_click(evt: GUIClickEvent) {
+	private _handle_click = (evt: GUIClickEvent)=>{
 		if (!this.next) return;
 		var next = this.next();
 		if ( ViewController.typeOf(next, Mynavpage) ) {
@@ -135,7 +135,7 @@ export class NavButton extends ViewController {
 		}
 		// console.log('nav button click');
 	}
-}
+};
 
 export class Page extends NavPage {
 	source = resolve(__filename);

@@ -408,7 +408,9 @@ Local<JSValue> Worker::bindingModule(cString& name) {
 	} else if (mod.native_code) {
 		exports = runNativeScript(WeakBuffer((char*)
 			mod.native_code->code, 
-			mod.native_code->count), name, exports
+			mod.native_code->count), 
+			String(mod.native_code->name) + mod.native_code->ext,
+			exports
 		).To();
 		if ( exports.IsEmpty() ) { // error
 			return exports;

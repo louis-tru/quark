@@ -11,14 +11,16 @@ ftr is a cross-platform (Android/iOS) front-end development framework. The core 
 |--|--|--|
 
 
-Build and install ftrp
+Build source and install ftrp
 ===============
 
 1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
 
-2. Setting environment variable `JAVA_HOME` and `ANDROID_HOME`
+2. Setting environment variable `JAVA_HOME` and `ANDROID_SDK` directory.
 
-Compile and install ftrp `make install`, It takes a long time.
+3. Pull dependent librarys, execute `make pull`.
+
+Compile and install ftrp, execute `make` or `make install`, It takes a long time.
 
 use ftrp tools create project.
 
@@ -29,97 +31,4 @@ first create an empty file directory, then execute in the directory
 export ios xcode project `ftrp export ios`
 
 
-# Simple Examples
-
-This is a simple program to display Hello world on the screen
-
-```jsx
-import { GUIApplication, Root } from 'ftr'
-new GUIApplication().start(
-	<Root>hello world!</Root>
-)
-```
-
-You can get a more detailed [`Examples`]
-
-# Start Usage
-
-If you've never used ftr before, you can start from here and build your ftr program step by step.
-
-## Install ftrp
-
-First, you need to install the toolkit provided by `ftrp`
-
-* Install `ftrp` using nodejs `npm` 
-
-* Open `Terminal` and execute the following command：
-
-```sh
-# shell
-$ sudo npm install -g ftrp
-
-```
-	
-* Running `ftrp` requires dependency on `nodejs` and `python2.7`
-
-* And now do not support the `windows` system, you need to use it under `mac`
-
-## Create new project
-
-Create a new `ftrp` project using the following `shell` command：
-
-```sh
-# shell
-$ mkdir myproject
-$ cd myproject
-$ ftrp init
-```
-
-## Build project
-
-This step compresses and packages the JavaScript code and resource files inside the project,
-If this is a new project, you can skip this step and go directly to the next step
-
-```js
-# shell
-$ ftrp build
-```
-
-## Export project
-
-This step exports [`Xcode`] or [`Android Studio`] project，because you eventually publish the program that be a `.apk` or `.ipa`
-
-```js
-# shell
-# export xcode ios project
-$ ftrp export ios
-# export android studio project
-$ ftrp export android
-```
-
-After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
-
-## ftrp test http server
-
-`ftrp` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
-
-Execute the following code to start it：
-
-```js
-# shell
-$ ftrp
-```
-
-# Downloads
-
-* Examples demo [`Android APK`] Install package
-
-* Project [`Source code`] from `Github`
-
-
-[`Examples`]: https://github.com/louis-tru/ftr/tree/master/demo
-[`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
-[`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/ftr/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/ftrp
-[`Source code`]: https://github.com/louis-tru/ftr
+[`Simple Examples`](https://github.com/louis-tru/ftr/tree/master/docs/README.md)

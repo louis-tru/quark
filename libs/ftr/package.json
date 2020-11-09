@@ -1,6 +1,6 @@
 {
 	"name": "ftr",
-	"version": "0.7.0",
+	"version": "0.7.2",
 	"description": "A GUI typesetting display engine and cross platform GUI application development framework based on NodeJS/OpenGL",
 	"main": "index.js",
 	"types": "index.ts",

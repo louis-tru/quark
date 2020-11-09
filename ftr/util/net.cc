@@ -41,12 +41,9 @@ FX_NS(ftr)
 typedef Socket::Delegate Delegate;
 
 static int ssl_initializ = 0;
-static String* ssl_cacert_file_path = new String();
-static String* ssl_client_key_file_path = new String();
-static String* ssl_client_keypasswd = new String();
+static X509_STORE* (*new_root_cert_store)() = nullptr;
 static X509_STORE* ssl_x509_store = nullptr;
 static SSL_CTX* ssl_v23_client_ctx = nullptr;
-static X509_STORE* (*new_root_cert_store)() = nullptr;
 
 struct SocketWriteReqData {
 	Buffer raw_buffer;
@@ -505,52 +502,40 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 class SSL_INL: public Socket::Inl {
  public:
 	
-	static bool copy_ssl_cert_file(cString& path, cString& copy, String* out, cchar* err_msg) {
-		String str = f_reader()->format(path);
-		if ( Path::is_local_zip(str) ) {
-			String copy_path = Path::temp(copy);
-			if ( !FileHelper::exists_sync(copy_path) ) {
-				try {
-					if ( FileHelper::write_file_sync(copy_path, f_reader()->read_file_sync(str)) <= 0 ) {
-						return false;
-					}
-				} catch (Error& err) {
-					FX_ERR("%s, %s", err_msg, *err.message()); return false;
-				}
-			}
-			*out = copy_path;
-		} else {
-			if ( FileHelper::exists_sync(str) ) {
-				*out = str;
-			} else {
-				FX_ERR("%s, path does not exist", err_msg); return false;
-			}
+	static void set_ssl_cacert(cString& ca_content) {
+		
+		if (ca_content.is_empty()) {
+			FX_ERR("%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
 		}
-		return true;
+
+		if ( !ssl_x509_store ) {
+			ssl_x509_store = X509_STORE_new();
+		}
+		
+		String ssl_cacert_file_path = Path::temp(".cacert.pem");
+		FileHelper::write_file_sync(ssl_cacert_file_path, ca_content);
+		
+		cchar* ca = Path::fallback_c(*ssl_cacert_file_path);
+
+		int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
+		if (!r) {
+			FX_ERR("%s", "set_ssl_cacert() fail"); return;
+			// FX_DEBUG("ssl load x509 store, %s"r);
+		}
+
+		if ( ssl_v23_client_ctx ) {
+			SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
+		}
 	}
 	
 	static void set_ssl_cacert_file(cString& path) {
-		if ( copy_ssl_cert_file(path, "cacert.pem", ssl_cacert_file_path, "Set cacert file fail") ) {
-			
-			if ( !ssl_x509_store ) {
-				ssl_x509_store = X509_STORE_new();
-			}
-			
-			cchar* ca = Path::fallback_c(*ssl_cacert_file_path);
-			int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
-			
-			// FX_DEBUG("ssl load x509 store, %s"r);
-			
-			if ( ssl_v23_client_ctx ) {
-				SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
-			}
+		try {
+			set_ssl_cacert(FileHelper::read_file_sync(path).collapse_string());
+		} catch(cError& err) {
+			FX_ERR("set_ssl_cacert() fail, %s", *err.message());
 		}
 	}
 	
-	static void set_ssl_client_key_file(cString& path) {
-		if ( copy_ssl_cert_file(path, "key.pem", ssl_client_key_file_path, "Set ssl client key file fail") ) { }
-	}
-
 	static void initializ_ssl() {
 		if ( ! ssl_initializ++ ) {
 			// Initialize ssl libraries and error messages
@@ -561,7 +546,7 @@ class SSL_INL: public Socket::Inl {
 			ssl_v23_client_ctx = SSL_CTX_new( SSLv23_client_method() );
 			SSL_CTX_set_verify(ssl_v23_client_ctx, SSL_VERIFY_PEER, NULL);
 			if (!ssl_x509_store) {
-				if (new_root_cert_store) {
+				if (new_root_cert_store) { // node method
 					ssl_x509_store = new_root_cert_store();
 					SSL_CTX_set_cert_store(ssl_v23_client_ctx, ssl_x509_store);
 				} else {
@@ -994,15 +979,15 @@ FX_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
 
 /*
 static void set_ssl_cacert_file(cString& path) {
-	SSL_INL::set_ssl_cacert_file(path);
+	// TODO
 }
 
 static void set_ssl_client_key_file(cString& path) {
-	SSL_INL::set_ssl_client_key_file(path);
+ // TODO
 }
 
 static void set_ssl_client_keypasswd(cString& passwd) {
-	*ssl_client_keypasswd = passwd;
+ // TODO
 }*/
 
 SSLSocket::SSLSocket(cString& hostname, uint16 port, RunLoop* loop) {

@@ -34,7 +34,7 @@
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
 					'GCC_STRICT_ALIASING': 'YES',
-					'ONLY_ACTIVE_ARCH': 'NO',
+					'ONLY_ACTIVE_ARCH': 'YES',
 				},
 				'conditions': [
 					['os=="android" and clang==0', {
@@ -126,7 +126,7 @@
 						'@executable_path/Frameworks'
 					],
 					'CLANG_ENABLE_OBJC_ARC': 'YES',
-					'VALID_ARCHS': ['arm64'],
+					# 'VALID_ARCHS': ['arm64'], # Xcode 12 has abandoned this option
 				},
 				'cflags_cc': [ '-stdlib=libc++' ],
 				'link_settings': {
@@ -164,7 +164,7 @@
 					'PREBINDING': 'NO',                       # No -Wl,-prebind
 					'MACOSX_DEPLOYMENT_TARGET': '10.8',       # -mmacosx-version-min=10.8
 					'USE_HEADERMAP': 'NO',
-					'AECHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
+					'ARCHS': ['$(ARCHS_STANDARD)'],           # 'ARCHS': 'x86_64',
 					'SKIP_INSTALL': 'YES',
 					'ENABLE_BITCODE': 'NO',
 					'DEBUG_INFORMATION_FORMAT': 'dwarf',      # dwarf-with-dsym

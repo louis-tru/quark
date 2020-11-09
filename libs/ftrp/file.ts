@@ -48,7 +48,7 @@ export default class File extends HttpService {
 		remote_log.remote_log_print(log);
 		if ( /.+\.(mdown|md)/i.test(this.pathname) ) {
 			return this.marked({pathname:this.pathname});
-		} 
+		}
 		else if ( /\/packages.json$/.test(this.pathname) ) {
 			return this.packages_json({pathname:this.pathname});
 		}
@@ -67,47 +67,50 @@ export default class File extends HttpService {
 		var self = this;
 		var filename = this.server.root + '/' + pathname;
 
-		self.markReturnInvalid();
+		return new Promise<void>((ok)=>{
 
-		fs.stat(filename, function (err, stat) {
-			
-			if (err) {
-				return self.returnErrorStatus(404);
-			}
-			
-			if (!stat.isFile()) {
-				return self.returnErrorStatus(404);
-			}
-			
-			//for file
-			if (stat.size > Math.min(self.server.maxFileSize, 5 * 1024 * 1024)) { 
-				//File size exceeds the limit
-				return self.returnErrorStatus(403);
-			}
-			
-			var mtime = stat.mtime;
-			var ims = self.request.headers['if-modified-since'];
-			var res = self.response;
+			fs.stat(filename, function (err, stat) {
 
-			self.setDefaultHeader();
-			res.setHeader('Last-Modified', mtime.toUTCString());
-			res.setHeader('Content-Type', 'text/html; charset=utf-8');
-
-			if (ims && new Date(ims).valueOf() - mtime.valueOf() === 0) { //use 304 cache
-				res.writeHead(304);
-				res.end(); 
-				return;
-			}
-			
-			fs.readFile(filename, function(err, data) {
 				if (err) {
-					return self.returnErrorStatus(404);
+					return self.returnErrorStatus(404), ok();
 				}
-				// template, title, text_md, no_index
+				
+				if (!stat.isFile()) {
+					return self.returnErrorStatus(404), ok();
+				}
+				
+				//for file
+				if (stat.size > Math.min(self.server.maxFileSize, 5 * 1024 * 1024)) { 
+					//File size exceeds the limit
+					return self.returnErrorStatus(403), ok();
+				}
+				
+				var mtime = stat.mtime;
+				var ims = self.request.headers['if-modified-since'];
 				var res = self.response;
-				var html = gen_html(data.toString('utf8')).html;
-				res.writeHead(200);
-				res.end(html);
+	
+				self.setDefaultHeader();
+				res.setHeader('Last-Modified', mtime.toUTCString());
+				res.setHeader('Content-Type', 'text/html; charset=utf-8');
+	
+				if (ims && new Date(ims).valueOf() - mtime.valueOf() === 0) { //use 304 cache
+					res.writeHead(304);
+					res.end(), ok();
+					return;
+				}
+				
+				fs.readFile(filename, function(err, data) {
+					if (err) {
+						return self.returnErrorStatus(404), ok();
+					}
+					// template, title, text_md, no_index
+					var res = self.response;
+					var html = gen_html(data.toString('utf8')).html;
+					res.writeHead(200);
+					res.end(html);
+					ok();
+				});
+	
 			});
 
 		});
@@ -118,13 +121,13 @@ export default class File extends HttpService {
 		var dir = resolveLocal(this.server.root[0], path.dirname(pathname));
 		var res = self.response;
 
-		self.markReturnInvalid();
-
 		if (fs.existsSync(dir + '/packages.json')) {
 			self.returnFile(dir + '/packages.json');
 		} 
 		else {
 			if ( fs.existsSync(dir) ) {
+				self.markReturnInvalid();
+
 				var pkgs: Dict = {};
 				(fs.listSync(dir) as fs.StatsDescribe[]).forEach(function(stat) {
 					if ( stat.isDirectory() ) {
@@ -151,8 +154,6 @@ export default class File extends HttpService {
 		var dir = resolveLocal(this.server.root[0], path.dirname(pathname));
 		var res = self.response;
 
-		self.markReturnInvalid();
-
 		if (fs.existsSync(dir + '/versions.json')) {
 			self.returnFile(dir + '/versions.json');
 		}
@@ -160,6 +161,8 @@ export default class File extends HttpService {
 			var pkg = dir + '/package.json';
 			
 			if ( fs.existsSync(dir) && fs.existsSync(pkg) ) {
+				self.markReturnInvalid();
+
 				var config = JSON.parse(fs.readFileSync(pkg, 'utf8'));
 				var versions: Dict = {};
 

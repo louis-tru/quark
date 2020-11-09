@@ -32,6 +32,7 @@
 #include <ftr/util/string.h>
 #include <ftr/util/map.h>
 #include <ftr/util/fs.h>
+#include <trial/fs.h>
 #include <ftr/sys.h>
 #include <trial/fs.h>
 

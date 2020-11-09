@@ -205,7 +205,7 @@ export class Dialog extends Navigation {
 								index={i}
 								class="button"
 								borderTopWidth={px}
-								onClick="m_handle_click"
+								onClick={(e:any)=>this._handleClick(e)}
 								defaultHighlighted={0}>{e}</Button>
 						))
 					}
@@ -267,7 +267,7 @@ export class Dialog extends Navigation {
 		this.trigger('Action', index);
 	}
 
-	protected m_handle_click(evt: GUIClickEvent) {
+	protected _handleClick(evt: GUIClickEvent) {
 		this.triggerAction((evt.sender as any).index);
 		this._actionClose();
 	}
@@ -303,7 +303,7 @@ export class Sheet extends Dialog {
 		var length = this.length;
 		var content = this.content ? this.content : vdoms.length ? vdoms: null;
 		return (
-			<Indep width="100%" height="100%" backgroundColor="#0008" onClick="navigationBack" visible={0} opacity={0}>ABCD
+			<Indep width="100%" height="100%" backgroundColor="#0008" onClick={()=>this.navigationBack()} visible={0} opacity={0}>ABCD
 			{content?
 				<Indep id="main" class="x_dialog sheet">{content}</Indep>:
 				<Indep id="main" class="x_dialog sheet">
@@ -315,7 +315,7 @@ export class Sheet extends Dialog {
 								index={length-i}
 								class="button"
 								width="100%"
-								onClick="triggerAction"
+								onClick={(e:any)=>this._handleClick(e)}
 								borderTopWidth={i?px:0}
 								defaultHighlighted={0}>{e}</Button>
 						)):
@@ -323,7 +323,7 @@ export class Sheet extends Dialog {
 							index={1}
 							class="button"
 							width="100%"
-							onClick="triggerAction"
+							onClick={(e:any)=>this._handleClick(e)}
 							defaultHighlighted={0}>{CONSTS.OK}</Button>
 					}
 					</Clip>
@@ -332,7 +332,7 @@ export class Sheet extends Dialog {
 							index={0}
 							class="button gray"
 							width="100%"
-							onClick="triggerAction"
+							onClick={(e:any)=>this._handleClick(e)}
 							defaultHighlighted={0}>{CONSTS.CANCEL}</Button>
 					</Clip>
 				</Indep>

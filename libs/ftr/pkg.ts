@@ -36,7 +36,8 @@ const _pkgutil = __require__('_pkgutil').default;
 const { fallbackPath,
 				resolve, isAbsolute, isLocal, isLocalZip, stripShebang,
 				isNetwork, assert, stripBOM, makeRequireFunction } = _pkgutil;
-const { readFile, readFileSync, isFileSync, isDirectorySync, readdirSync } = __require__('_reader');
+const { readFile, readFileSync, isFileSync, 
+				isDirectorySync, readdirSync, existsSync } = __require__('_reader');
 const { haveNode } = _util;
 const isWindows = _util.platform == 'win32';
 const debug = _pkgutil.debugLog('PKG');
@@ -510,10 +511,10 @@ export class Module implements NodeModule {
 	}
 
 	private static runMain() {
-		delete Module.runMain;
+		delete (Module as any).runMain;
 		// Load the main module--the command line argument.
 
-		async function startup() {
+		(async ()=>{ // startup
 			var addModulePathWithoutErr = async (path: string)=>{
 				try {
 					if ( !modulePathCache.hasOwnProperty(path) ) {
@@ -543,15 +544,18 @@ export class Module implements NodeModule {
 					// add http://127.0.0.1:1026/aaa/bbb/node_modules to global search path
 					await addModulePathWithoutErr(resolve(main, '..'));
 				}
-				main = resolve(main);
+
+				//
+				if (existsSync(main)) {
+					main = resolve(main);
+				}
 				var _lookup = lookup(main);
-				if (_lookup)
+				if (_lookup) {
 					await _lookup.pkg.host.install();
+				}
 				Module._load(main, undefined, true);
 			}
-		}
-
-		startup().catch((err: Error)=>{
+		})().catch((err: Error)=>{
 			if (haveNode) {
 				console.error(err.stack || err.message);
 				process.exit(-20045);
@@ -566,7 +570,9 @@ export class Module implements NodeModule {
 	}
 
 	static _initPaths() {
-		if (!haveNode) return;
+		if (!haveNode)
+			return;
+
 		const isWindows = process.platform === 'win32';
 
 		var homeDir;
@@ -635,7 +641,7 @@ export class Module implements NodeModule {
 	}
 
 	private static _initNode(nm: any) {
-		delete Module._initNode;
+		delete (Module as any)._initNode;
 		if (haveNode) {
 			NativeModule = nm;
 			vm = NativeModule.require('vm');
@@ -685,8 +691,8 @@ function tryModuleLoad(module: Module, filename: string, rawPathname: string) {
 	}
 }
 
-function resolveFilename(request: string, parent?: Module, mpCall?: boolean): { filename: string, resolve: string, pkg?: PackageIMPL } {
-	var _lookup = lookup(request, parent, mpCall);
+function resolveFilename(request: string, parent?: Module, nocache?: boolean): { filename: string, resolve: string, pkg?: PackageIMPL } {
+	var _lookup = lookup(request, parent, nocache);
 	if (_lookup) {
 		var rr = _lookup.pkg.resolveRelative(_lookup.relativePath);
 		return { 
@@ -708,7 +714,7 @@ function resolveFilename(request: string, parent?: Module, mpCall?: boolean): { 
 				throw_MODULE_NOT_FOUND(filename, parent);
 			}
 		} else { // no package network file
-			resolveFilename = set_url_args(filename, mpCall ? '__no_cache': '');
+			resolveFilename = set_url_args(filename, nocache ? '__no_cache': '');
 		}
 		return {
 			filename, resolve: resolveFilename,
@@ -1003,7 +1009,7 @@ class PackageIMPL {
 		assert(!packages.has(path), `${path} package repeat create`);
 		packages.set(path, this);
 
-		this.host = new Package(this); // create shell
+		this.host = new Package(this); // create host
 
 		if (this.isNetwork && this.build) {
 			// query helper package from global modulePaths
@@ -1256,8 +1262,9 @@ class PackageIMPL {
 				self.helper.installSync();
 			try {
 				self.install();
-			} finally {
+			} catch(err) {
 				self.status = PackageStatus.NO_INSTALL;
+				throw err;
 			}
 		}
 	}
@@ -1316,7 +1323,7 @@ class PackageExtend extends PackageIMPL {
 		var tmps: Dict<string[]> = {};
 		for ( var [, v] of Object.entries<ExtendModule>(_util.__extendModule) ) {
 			var i = v.filename.indexOf('/');
-			if (i > 0) {
+			if (i > 0) { // 没有目录的扩展包被忽略  ftr/value
 				var mname = v.filename.substr(0, i);
 				var m = tmps[mname];
 				if (!m) {

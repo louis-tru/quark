@@ -284,6 +284,7 @@ class Package {
 				'SKIP_INSTALL': 'NO',
 				'ASSETCATALOG_COMPILER_APPICON_NAME': 'AppIcon',
 				'ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME': 'LaunchImage',
+				'PRODUCT_BUNDLE_IDENTIFIER': id,
 			};
 	
 			var out = host.proj_out;
@@ -507,7 +508,7 @@ export default class FtrExport {
 		paths.includes.forEach(copy_libs);
 
 		var proj_keys = this.source + '/proj.keys';
-		util.assert(fs.existsSync(proj_keys), 'Export source does not exist ,{0}', proj_keys);
+		util.assert(fs.existsSync(proj_keys), `Export source does not exist ,${proj_keys}`);
 
 		fs.mkdirpSync(this.output);
 		fs.mkdirpSync(this.output + '/public');
@@ -794,7 +795,7 @@ export default class FtrExport {
 
 		util.assert(
 			os == 'android' || 
-			os == 'ios', 'Do not support {0} os export', os);
+			os == 'ios', `Do not support ${os} os export`);
 
 		util.assert(fs.existsSync(keys_path), 'Proj.keys file not found');
 

@@ -158,7 +158,7 @@
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
 					'GCC_STRICT_ALIASING': 'YES',
-					'ONLY_ACTIVE_ARCH': 'NO',
+					'ONLY_ACTIVE_ARCH': 'YES',
 				},
 				'conditions': [
 					['os=="android" and clang==0', {
@@ -196,6 +196,11 @@
 					'-rdynamic',
 					'-pthread',
 				],
+				'link_settings': {
+					'libraries': [
+						'-stdlib=libstdc++', # use libstdc++, default use libc++_shared
+					],
+				},
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
