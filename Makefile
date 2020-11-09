@@ -16,8 +16,6 @@ endif
 
 #######################
 
-DEPS = libs/somes libs/ftrp/gyp.ftr depe/v8-link \
-		depe/FFmpeg.ftr depe/node.ftr depe/bplus depe/skia
 FORWARD = make xcode msvs make-linux cmake-linux cmake build $(ANDROID_JAR) test2 clean
 
 check_osx=\
