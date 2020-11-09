@@ -7,7 +7,7 @@ include_directories(../../../depe/freetype2/include)
 include_directories(../../../depe/tess2/Include)
 include_directories(../../../depe/libwebp)
 include_directories(../../../depe/libgif/lib)
-include_directories(../../../depe/libjpeg-turbo)
+include_directories(../../../depe/libjpeg)
 include_directories(../../../depe/libpng)
 include_directories(../../../depe/libwebp)
 include_directories(../../../depe/FFmpeg)
@@ -70,7 +70,6 @@ add_library(ftr SHARED
 	../../../ftr/util/fs-file.cc
 	../../../ftr/util/fs-sync.cc
 	../../../ftr/util/fs-async.cc
-	../../../ftr/util/fs-search.cc
 	../../../ftr/util/fs-reader.cc
 	../../../ftr/util/buffer.cc
 	../../../ftr/util/json.cc
@@ -79,7 +78,6 @@ add_library(ftr SHARED
 	../../../ftr/util/zlib.cc
 	../../../ftr/util/loop.cc
 	../../../ftr/util/loop-private.cc
-	../../../ftr/util/jsx.cc
 	../../../ftr/util/net.cc
 	../../../ftr/util/cb.cc
 	../../../ftr/util/date.cc
@@ -146,7 +144,7 @@ add_library(ftr SHARED
   ../../../ftr/media.cc
 )
 
-add_library(nxmedia SHARED
+add_library(ftr-media SHARED
 	../../../ftr/audio-player.cc
 	../../../ftr/video.cc
 	../../../ftr/media-codec.cc
@@ -186,7 +184,7 @@ add_library(ftr-js SHARED
 	../../../ftr-js/binding/buffer.cc
 	# binding ftr-gui
 	../../../ftr-js/binding/value.cc
-	../../../ftr-js/binding/ftr-binding.cc
+	../../../ftr-js/binding/binding.cc
 	../../../ftr-js/binding/action.cc
 	../../../ftr-js/binding/action-frame.cc
 	../../../ftr-js/binding/app.cc
@@ -216,6 +214,11 @@ add_library(ftr-js SHARED
 	../../../ftr-js/binding/text.cc
 	../../../ftr-js/binding/input.cc
 	../../../ftr-js/binding/background.cc
+)
+
+add_library(ftr-trial SHARED
+	../../../trial/fs-search.cc
+	../../../trial/jsx.cc
 )
 
 add_library(ftr-test SHARED
@@ -262,6 +265,7 @@ add_library(ftr-test SHARED
 )
 
 target_link_libraries(ftr       atomic z android log OpenSLES GLESv3 EGL mediandk ftr-depes-test)
-target_link_libraries(nxmedia ftr OpenSLES GLESv3 EGL mediandk ftr-depes-test)
+target_link_libraries(ftr-media ftr OpenSLES GLESv3 EGL mediandk ftr-depes-test)
 target_link_libraries(ftr-js    ftr ftr-depes-test)
-target_link_libraries(ftr-test  ftr ftr-js ftr-depes-test)
+target_link_libraries(ftr-trial ftr ftr-depes-test)
+target_link_libraries(ftr-test  ftr ftr-js ftr-trial ftr-depes-test)

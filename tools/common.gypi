@@ -196,6 +196,11 @@
 					'-rdynamic',
 					'-pthread',
 				],
+				'link_settings': {
+					'libraries': [
+						'-stdlib=libstdc++', # use libstdc++, default use libc++_shared
+					],
+				},
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],

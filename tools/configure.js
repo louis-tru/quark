@@ -532,6 +532,17 @@ async function install_depe(opts, variables) {
 	}
 }
 
+function get_host_tag_or_die() {
+	// Return the host tag for this platform. Die if not supported.
+	if (host_os == 'linux')
+		return 'linux-x86_64';
+	else if (host_os == 'osx')
+		return 'darwin-x86_64';
+	else if (host_os == 'win32' || host_os == 'cygwin')
+		return 'windows-x86_64';
+	throw Error('Unsupported platform: ' + host_os);
+}
+
 async function configure() {
 
 	if (opts.help || opts.h) { // print help info
@@ -673,13 +684,13 @@ async function configure() {
 		// check android ndk toolchain
 		var toolchain_dir = `${__dirname}/android-toolchain/${arch}`;
 		if (!fs.existsSync(toolchain_dir)) {
-			var toolchain_dir2 = `${__dirname}/android-toolchain/arm`;
+			var ndk_path = opts.ndk_path || `${process.env.ANDROID_NDK}`;
+			var toolchain_dir2 = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
 			// chech ndk r19
-			if ( opts.clang && // can use clang 
+			if ( // opts.clang && // can use clang 
 					fs.existsSync(`${toolchain_dir2}/bin/armv7a-linux-androideabi${api}-clang`) ) {
 				toolchain_dir = toolchain_dir2;
 			} else {
-				var ndk_path = opts.ndk_path || `${process.env.ANDROID_NDK}`;
 				if ( ndk_path && fs.existsSync(ndk_path) ) { // install tool
 					// console.log(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`)
 					syscall(`${__dirname}/install-android-toolchain ${ndk_path} ${api} ${arch}`);
@@ -700,21 +711,20 @@ async function configure() {
 			// 'mips': { cross_prefix: `mipsel-linux-android`, arch_name: 'mips2', abi: 'mips' },
 			// 'mips64': { cross_prefix: `mips64el-linux-android`, arch_name: 'mips64r6', abi: 'mips64' },
 			'arm': { cross_prefix: `arm-linux-androideabi-`, arch_name: 'armv6', abi: 'armeabi' },
+			'armv7': { cross_prefix: `armv7a-linux-androideabi-`, arch_name: 'armv7-a', abi: 'armeabi-v7a' },
 			'arm64': { cross_prefix: `aarch64-linux-android-`, arch_name: 'armv8-a', abi: 'arm64-v8a' },
 			'x86': { cross_prefix: `i686-linux-android-`, arch_name: 'i686', abi: 'x86' },
 			'x64':  { cross_prefix: `x86_64-linux-android-`, arch_name: 'x86-64', abi: 'x86_64' },
 		};
 
-		var tool = tools[arch];
-		if (!tool) {
-			console.error(`do not support android os and ${arch} cpu architectures`);
-			return;
-		}
-
 		if (arch == 'arm' && opts.armv7) {
 			suffix = 'armv7';
-			tool.arch_name = 'armv7-a';
-			tool.abi = 'armeabi-v7a';
+		}
+
+		var tool = tools[suffix];
+		if (!tool) {
+			console.error(`do not support android os and ${arch} cpu architectures`);
+			process.exit(-1);
 		}
 
 		variables.cross_prefix = tool.cross_prefix;
