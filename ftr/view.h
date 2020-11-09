@@ -82,6 +82,7 @@ class ITextInput;
 	F(INPUT, Input, input) \
 	F(TEXTAREA, Textarea, textarea) \
 
+
 #define FX_DEFINE_CLASS(enum, type, name) class type;
 FX_EACH_VIEWS(FX_DEFINE_CLASS);
 #undef FX_DEFINE_CLASS
