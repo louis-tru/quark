@@ -711,27 +711,30 @@ async function configure() {
 			// 'mips': { cross_prefix: `mipsel-linux-android`, arch_name: 'mips2', abi: 'mips' },
 			// 'mips64': { cross_prefix: `mips64el-linux-android`, arch_name: 'mips64r6', abi: 'mips64' },
 			'arm': { cross_prefix: `arm-linux-androideabi-`, arch_name: 'armv6', abi: 'armeabi' },
-			'armv7': { cross_prefix: `armv7a-linux-androideabi-`, arch_name: 'armv7-a', abi: 'armeabi-v7a' },
 			'arm64': { cross_prefix: `aarch64-linux-android-`, arch_name: 'armv8-a', abi: 'arm64-v8a' },
 			'x86': { cross_prefix: `i686-linux-android-`, arch_name: 'i686', abi: 'x86' },
 			'x64':  { cross_prefix: `x86_64-linux-android-`, arch_name: 'x86-64', abi: 'x86_64' },
 		};
 
-		if (arch == 'arm' && opts.armv7) {
-			suffix = 'armv7';
-		}
-
-		var tool = tools[suffix];
+		var tool = tools[arch];
 		if (!tool) {
 			console.error(`do not support android os and ${arch} cpu architectures`);
 			process.exit(-1);
+		}
+
+		var cc_prefix = tool.cross_prefix;
+
+		if (arch == 'arm' && opts.armv7) {
+			suffix = 'armv7';
+			cc_prefix = 'armv7a-linux-androideabi-';
+			tool.arch_name = 'armv7-a';
+			tool.abi = 'armeabi-v7a';
 		}
 
 		variables.cross_prefix = tool.cross_prefix;
 		variables.arch_name = tool.arch_name;
 		variables.android_abi = tool.abi;
 
-		var cc_prefix = tool.cross_prefix;
 		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
 
 		if (!fs.existsSync(`${cc_path}gcc`) || 

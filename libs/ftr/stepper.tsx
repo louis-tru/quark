@@ -85,11 +85,11 @@ export class Stepper extends ViewController {
 		return this.m_value;
 	}
 
-	protected m_minus_click_handle() {
+	protected _MinusClickHandle() {
 		this.value = this.m_value - this.step;
 	}
 	
-	protected m_plus_click_handle() {
+	protected _PlusClickHandle() {
 		this.value = this.m_value + this.step;
 	}
 
@@ -100,8 +100,8 @@ export class Stepper extends ViewController {
 	render() {
 		return (
 			<Hybrid class="x_stepper" style={this.style}>
-				<Button class="minus" onClick="m_minus_click_handle" defaultHighlighted={0}>{"\ued5e"}</Button>
-				<Button class="plus" onClick="m_plus_click_handle" defaultHighlighted={0}>{"\ued5d"}</Button>
+				<Button class="minus" onClick={()=>this._MinusClickHandle()} defaultHighlighted={0}>{"\ued5e"}</Button>
+				<Button class="plus" onClick={()=>this._PlusClickHandle()} defaultHighlighted={0}>{"\ued5d"}</Button>
 			</Hybrid>  
 		);
 	}

@@ -285,7 +285,7 @@ export class Overlay extends Navigation {
 	render(...vdoms: any[]) {
 		return (
 			<Indep visible={false} width="full" height="full" backgroundColor="#0003" opacity={0}>
-				<Div width="full" height="full" onTouchStart="fadeOut" onMouseDown="fadeOut" id="mask" />
+				<Div width="full" height="full" onTouchStart={()=>this.fadeOut()} onMouseDown={()=>this.fadeOut()} id="mask" />
 				<Indep id="inl">
 
 					<Indep id="arrow" 
