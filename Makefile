@@ -125,7 +125,7 @@ help:
 watch:
 	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
 
-init:
+init: # init git submodule
 	@if [ ! -f test/android/app/app.iml ]; then \
 		cp test/android/app/.app.iml test/android/app/app.iml; \
 	fi
