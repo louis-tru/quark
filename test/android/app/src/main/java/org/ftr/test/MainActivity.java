@@ -47,9 +47,9 @@ public class MainActivity extends FtrActivity {
 	}
 
 	protected String startCommand() {
-		//--inspect-brk=0.0.0.0:9229
 		//return "ftr --dev http://192.168.0.11:1026/examples";
-		return "ftr examples";
+//		return "ftr --inspect-brk=0.0.0.0:9229 examples";
+		return "ftr --no-node examples";
 	}
 
 }

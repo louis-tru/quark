@@ -515,6 +515,7 @@ export class Module implements NodeModule {
 		// Load the main module--the command line argument.
 
 		(async ()=>{ // startup
+
 			var addModulePathWithoutErr = async (path: string)=>{
 				try {
 					if ( !modulePathCache.hasOwnProperty(path) ) {
@@ -558,7 +559,7 @@ export class Module implements NodeModule {
 		})().catch((err: Error)=>{
 			if (haveNode) {
 				console.error(err.stack || err.message);
-				process.exit(-20045);
+				process.exit(-20045); // ERR_UNHANDLED_REJECTION
 			} else {
 				throw err;
 			}

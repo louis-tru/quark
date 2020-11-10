@@ -255,9 +255,9 @@ ZipReader::ZipReader(cString& path, cString& passwd)
 	, m_is_open(false)
 {
 	if ( Path::is_local_zip(m_path) ) { // zip:///
-		m_compatible_path = m_path + '@';
+		m_compatible_path = m_path + '?';
 	} else if ( Path::is_local_file(m_path) ) { // file:///
-		m_compatible_path = String::format("zip:///%s@", *m_path.substr(8));
+		m_compatible_path = String::format("zip:///%s?", *m_path.substr(8));
 	}
 }
 
