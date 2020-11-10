@@ -40,7 +40,7 @@ var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
 var default_arch = host_arch || 'x86';
-var android_api_level = 21;
+var android_api_level = 28; // android-9.0
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
@@ -948,6 +948,7 @@ async function configure() {
 	variables.suffix = suffix;
 
 	config_mk.push('SUFFIX=' + suffix);
+	config_mk.push('CC=' + variables.cc);
 	config_mk.push('CXX=' + variables.cxx);
 	config_mk.push('LINK=' + variables.ld);
 	config_mk.push('SHARED=' + shared);

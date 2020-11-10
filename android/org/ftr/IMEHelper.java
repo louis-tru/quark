@@ -30,7 +30,6 @@
 
 package org.ftr;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,6 +43,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputContentInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -167,6 +167,11 @@ public class IMEHelper extends EditText {
 			return true;
 		}
 
+		@Override
+		public boolean commitContent(InputContentInfo inputContentInfo, int i, Bundle bundle) {
+			return true;
+		}
+
 		public boolean setSelection(int start, int end) {
 			return true;
 		}
@@ -245,6 +250,7 @@ public class IMEHelper extends EditText {
 		public void closeConnection() {
 			m_host.finish();
 		}
+
 	}
 
 	public IMEHelper(final Context context) {

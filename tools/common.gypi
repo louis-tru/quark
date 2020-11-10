@@ -196,17 +196,17 @@
 					'-rdynamic',
 					'-pthread',
 				],
-				'link_settings': {
-					'libraries': [
-						'-stdlib=libstdc++', # use libstdc++, default use libc++_shared
-					],
-				},
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
 					},{
 						'cflags!': [ '-Wno-old-style-declaration' ],
 						# 'cflags': [ '-fPIC' ],
+						'link_settings': {
+							'libraries': [
+								'-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared
+							],
+						},
 					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
 					['arch=="arm" and arm_vfp!="none"', {
