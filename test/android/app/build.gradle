@@ -19,7 +19,7 @@ android {
                 '-ffunction-sections',
                 '-fdata-sections',
                 '-fomit-frame-pointer'
-        abiFilters 'arm64-v8a', 'x86_64'
+        abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
         //'armeabi', 'armeabi-v7a', 'x86', 'x86_64',
         //arguments "-DANDROID_TOOLCHAIN=gcc"
       }
