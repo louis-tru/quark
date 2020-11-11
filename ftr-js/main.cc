@@ -29,9 +29,22 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr-js/ftr.h"
+#include "ftr/app.h"
 
 using namespace ftr::js;
 
 FX_GUI_MAIN() {
 	return Start(argc, argv);
 }
+
+#if FX_ANDROID
+class App: public ftr::GUIApplication {
+	public: static void run(int argc, char *argv[]) {
+		runMain(argc, argv);
+	}
+};
+int main(int argc, char *argv[]) {
+	App::run(argc, argv);
+	return 0;
+}
+#endif

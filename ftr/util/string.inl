@@ -454,9 +454,9 @@ BasicString<Char, Container>::operator+(const BasicString& s) const {
 	return BasicString(c(), length(), *s, s.length());
 }
 
-template<> BasicString<char, Container<char>>::BasicString(const Object& o);
-template<> BasicString<uint16, Container<uint16>>::BasicString(const Object& o);
-template<> BasicString<uint32, Container<uint32>>::BasicString(const Object& o);
+template<> FX_EXPORT BasicString<char, Container<char>>::BasicString(const Object& o);
+template<> FX_EXPORT BasicString<uint16, Container<uint16>>::BasicString(const Object& o);
+template<> FX_EXPORT BasicString<uint32, Container<uint32>>::BasicString(const Object& o);
 
 template <typename Char, class Container>
 Array<BasicString<Char, Container>>
@@ -842,9 +842,9 @@ String BasicString<Char, Container>::to_string() const {
 	return str;
 }
 
-template<> String BasicString<char, Container<char>>::to_string() const;
-template<> String BasicString<uint16, Container<uint16>>::to_string() const;
-template<> String BasicString<uint32, Container<uint32>>::to_string() const;
+template<> FX_EXPORT String BasicString<char, Container<char>>::to_string() const;
+template<> FX_EXPORT String BasicString<uint16, Container<uint16>>::to_string() const;
+template<> FX_EXPORT String BasicString<uint32, Container<uint32>>::to_string() const;
 
 template<typename Char>
 static int _sscanf(const Char* s, cchar* f, void* out, uint len) {

@@ -170,8 +170,8 @@ String BasicStringBuilder<Char, Container, Allocator>::to_string() const {
 	return "[BasicStringBuilder]";
 }
 
-template<> String BasicStringBuilder<char, Container<char>>::join(cString& sp) const;
-template<> String BasicStringBuilder<char, Container<char>>::to_string() const;
+template<> FX_EXPORT String BasicStringBuilder<char, Container<char>>::join(cString& sp) const;
+template<> FX_EXPORT String BasicStringBuilder<char, Container<char>>::to_string() const;
 
 template <class Char, class Container, class Allocator>
 BasicString<Char, Container>

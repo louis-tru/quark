@@ -97,7 +97,7 @@ function touch_file(pathnames) {
 	});
 }
 
-function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir) {
+function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
 	var arch_name = variables.arch_name;
@@ -762,14 +762,6 @@ async function configure() {
 			variables.cc = `${cc_prefix}gcc`;
 			variables.cxx = `${cc_prefix}g++`;
 			variables.ld = `${cc_prefix}g++`;
-
-			if (fs.existsSync(`${cc_path}clang++`)) {
-				/* 
-				 * 这里使用g++进行链接会导致无法运行,
-				 * 这可能是g++默认链接的stl库有问题.不再追究更多细节,使用clang++进行链接
-				 */
-				variables.ld = `${cc_prefix}clang++`;
-			}
 		}
 		variables.ar = `${variables.cross_prefix}ar`;
 		variables.as = `${variables.cross_prefix}as`;
@@ -991,7 +983,7 @@ async function configure() {
 		}
 
 		if ( ff_rebuild ) { // rebuild FFmpeg
-		 if ( !configure_FFmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
+		 if ( !configure_ffmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
 			 return;
 		 }
 		}

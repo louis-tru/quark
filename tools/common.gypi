@@ -145,14 +145,14 @@
 			'Release': {
 				'defines': [ 'NDEBUG' ],
 				'cflags': [
-					# '-O3', 
-					# '-ffunction-sections', 
-					# '-fdata-sections', 
+					'-O3', 
+					'-ffunction-sections', 
+					'-fdata-sections', 
 					'-fvisibility=hidden',
-					# '-fomit-frame-pointer',
+					'-fomit-frame-pointer',
 				],
 				'cflags_cc': [
-					# '-fvisibility-inlines-hidden',
+					'-fvisibility-inlines-hidden',
 				],
 				'ldflags': [ '-s' ],
 				'xcode_settings': {
@@ -162,9 +162,9 @@
 					# 'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
 				},
 				'conditions': [
-					['os=="android"', { # and clang==0
-						# 'cflags!': [ '-O3' ], # Android uses - O3 to make the package larger 
-						# 'cflags': [ '-O2' ],
+					['os=="android"', { #  and clang==0
+						'cflags!': [ '-O3' ], # Android uses - O3 to make the package larger 
+						'cflags': [ '-O2' ],
 					}],
 					['without_visibility_hidden==1', {
 						'cflags!': [ '-fvisibility=hidden' ],
@@ -189,23 +189,18 @@
 					'-pthread',
 				],
 				'ldflags': [
-					'-shared',
-					# '-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
-					'-rdynamic',
-					'-fPIC',
+					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-pthread',
+					'-rdynamic',
+					# '-ddynamiclib', # clang flag
+					# '-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared, clang flag
+					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
 				],
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
-					},{
+					}, {
 						'cflags!': [ '-Wno-old-style-declaration' ],
-						'link_settings': {
-							'libraries': [
-								# '-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared
-								'-static-libstdc++', # use static-libstdc++, clang default use libc++_shared
-							],
-						},
 					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
 					['arch=="arm" and arm_vfp!="none"', {
@@ -360,20 +355,6 @@
 					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
 				},
 			}],
-			# ['library_output=="shared_library"', {
-			# 	'conditions': [
-			# 		['os in "linux android"', {
-			# 			'cflags': [ '-fPIC' ],
-			# 		}]
-			# 	],
-			# 	'target_conditions': [
-			# 		['_target_name in "node"', {
-			# 			'defines': [ 
-			# 				'NODE_SHARED_MODE=1', 
-			# 			],
-			# 		}],
-			# 	],
-			# }],
 			['cplusplus11==1', {
 				'xcode_settings': {
 					'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',    # -std=c++0x

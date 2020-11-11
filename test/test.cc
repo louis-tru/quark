@@ -53,3 +53,15 @@ FX_GUI_MAIN() {
 
 	return 0;
 }
+
+#if FX_ANDROID
+class App: public GUIApplication {
+	public: static void run(int argc, char *argv[]) {
+		runMain(argc, argv);
+	}
+};
+int main(int argc, char *argv[]) {
+	App::run(argc, argv);
+	return 0;
+}
+#endif
