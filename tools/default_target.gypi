@@ -14,7 +14,7 @@
 	'target_defaults': {
 		'conditions': [
 			['library_output=="shared_library"', { 
-				'defines': [ 'XX_BUILDING_SHARED' ],
+				'defines': [ 'FX_BUILDING_SHARED' ],
 			}],
 			# c++ exceptions
 			['cplusplus_exceptions==1', {

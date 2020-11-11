@@ -43,7 +43,7 @@
 # include <dlfcn.h>
 #endif
 
-extern int (*__nx_default_gui_main)(int, char**);
+extern int (*__fx_default_gui_main)(int, char**);
 
 /**
  * @ns ftr::js
@@ -296,14 +296,14 @@ int __default_main(int argc, char** argv) {
 	}
 
 	if ( cmd.is_empty() ) {
-		return Start(argc, argv);
+		return argc != 0 ? Start(argc, argv): 0;
 	} else {
 		return Start(cmd);
 	}
 }
 
 FX_INIT_BLOCK(__default_main) {
-	__nx_default_gui_main = __default_main;
+	__fx_default_gui_main = __default_main;
 }
 
 JS_END

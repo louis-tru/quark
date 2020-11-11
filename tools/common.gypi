@@ -145,25 +145,26 @@
 			'Release': {
 				'defines': [ 'NDEBUG' ],
 				'cflags': [
-					'-O3', 
-					'-ffunction-sections', 
-					'-fdata-sections', 
+					# '-O3', 
+					# '-ffunction-sections', 
+					# '-fdata-sections', 
 					'-fvisibility=hidden',
-					'-fomit-frame-pointer',
+					# '-fomit-frame-pointer',
 				],
 				'cflags_cc': [
-					'-fvisibility-inlines-hidden',
+					# '-fvisibility-inlines-hidden',
 				],
 				'ldflags': [ '-s' ],
 				'xcode_settings': {
 					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
 					'GCC_STRICT_ALIASING': 'YES',
 					'ONLY_ACTIVE_ARCH': 'YES',
+					# 'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
 				},
 				'conditions': [
-					['os=="android" and clang==0', {
-						'cflags!': [ '-O3' ],
-						'cflags': [ '-O2' ],
+					['os=="android"', { # and clang==0
+						# 'cflags!': [ '-O3' ], # Android uses - O3 to make the package larger 
+						# 'cflags': [ '-O2' ],
 					}],
 					['without_visibility_hidden==1', {
 						'cflags!': [ '-fvisibility=hidden' ],
@@ -184,16 +185,14 @@
 		'conditions': [
 			['os=="android"', {
 				'cflags': [
-					'-fPIE',
 					'-fPIC',
 					'-pthread',
 				],
 				'ldflags': [
 					'-shared',
-					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
-					'-fPIE',
-					# '-pie',
+					# '-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
 					'-rdynamic',
+					'-fPIC',
 					'-pthread',
 				],
 				'conditions': [
@@ -201,10 +200,10 @@
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
 					},{
 						'cflags!': [ '-Wno-old-style-declaration' ],
-						# 'cflags': [ '-fPIC' ],
 						'link_settings': {
 							'libraries': [
-								'-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared
+								# '-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared
+								'-static-libstdc++', # use static-libstdc++, clang default use libc++_shared
 							],
 						},
 					}],

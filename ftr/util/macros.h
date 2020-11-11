@@ -137,11 +137,11 @@
 
 // Setup for Linux shared library export.
 #if FX_HAS_ATTRIBUTE_VISIBILITY
-// # ifdef FX_BUILDING_SHARED
-#  define FX_EXPORT __attribute__ ((visibility("default")))
-// # else
-// #  define FX_EXPORT
-// # endif
+# ifdef FX_BUILDING_SHARED
+#  define FX_EXPORT __attribute__((visibility("default")))
+# else
+#  define FX_EXPORT
+# endif
 #else
 # define FX_EXPORT
 #endif

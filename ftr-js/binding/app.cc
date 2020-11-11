@@ -140,7 +140,7 @@ class WrapNativeGUIApplication: public WrapObject {
 			app->FX_ON(Memorywarning,
 								 &WrapNativeGUIApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeGUIApplication*>(wrap));
-			app->run_indep();
+			app->run_loop_detach(); // run gui loop
 			wrap = New<WrapNativeGUIApplication>(args, app);
 		} catch(cError& err) {
 			if ( wrap )

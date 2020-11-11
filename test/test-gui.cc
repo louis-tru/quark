@@ -121,5 +121,5 @@ void onload_handle (Event<>& evt, void* user) {
 void test_gui(int argc, char **argv) {
 	GUIApplication app;
 	app.FX_ON(Load, onload_handle);
-	app.run();
+	app.run_loop();
 }

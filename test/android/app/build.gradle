@@ -7,7 +7,7 @@ android {
   defaultConfig {
     applicationId "com.ftr.test"
     minSdkVersion 28
-   targetSdkVersion 28
+		targetSdkVersion 28
     versionCode 1
     versionName "1.0"
     externalNativeBuild {
