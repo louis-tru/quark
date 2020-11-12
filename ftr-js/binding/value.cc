@@ -651,10 +651,10 @@ bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc
 		Local<JSArray> arr = obj.To<JSArray>();
 		for(int i = 0, len = arr->Length(worker); i < len; i++) {
 			Local<JSObject> obj = arr->Get(worker, i).To<JSObject>();
-			out.push(Value({
+			out.push(Value{
 				(ValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker),
 				(float)    obj->Get(worker, worker->strs()->value())->ToNumberValue(worker)
-			}));
+			});
 		}
 	});
 }
@@ -676,9 +676,32 @@ bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc
 	js_parse(Aligns, {
 		Local<JSArray> arr = obj.To<JSArray>();
 		for(int i = 0, len = arr->Length(worker); i < len; i++) {
-			out.push( arr->Get(worker, i)->ToUint32Value(worker) );
+			out.push( Align(arr->Get(worker, i)->ToUint32Value(worker)) );
 		}
 	});
+	
+//	
+//	Local<JSObject> obj;
+//	Local<JSValue> val;
+//	if (desc) {
+//		Local<JSValue> args[] = { in, worker->New(desc) };
+//		val = _parseAligns.local()->Call(worker, 2, args);
+//	} else {
+//		val = _parseAligns.local()->Call(worker, 1, &in);
+//	}
+//	if ( val.IsEmpty() ) {
+//		return false;
+//	} else {
+//		obj = val.To<JSObject>();
+//	}
+//	{
+//		Local<JSArray> arr = obj.To<JSArray>();
+//		for(int i = 0, len = arr->Length(worker); i < len; i++) {
+//			out.push( Align(arr->Get(worker, i)->ToUint32Value(worker)) );
+//		}
+//	}
+//	return true;
+//	
 }
 
 bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc) {

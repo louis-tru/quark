@@ -87,7 +87,7 @@ class WrapIndep: public WrapViewBase {
 		js_parse_value2(Array<Align>, Aligns, value, "Indep.align = %s");
 		JS_SELF(Indep);
 		self->set_align_x(out[0]);
-		self->set_align_y(out[1]);
+		self->set_align_y(out.length() > 1 ? out[1]: out[0]);
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {

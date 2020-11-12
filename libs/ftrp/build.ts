@@ -42,11 +42,13 @@ const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
 
 const init_code = `
-import { GUIApplication, Root, Indep, _CVD } from 'ftr';
+import { GUIApplication, Root, Indep, Text, _CVD } from 'ftr';
 
-new GUIApplication().start(
+new GUIApplication({ multisample: 4 }).start(
 	<Root>
-		<Indep align="center">Hello world</Indep>
+		<Indep align="center" backgroundColor="#f00">
+			<Text value="Hello world" />
+		</Indep>
 	</Root>
 );
 

@@ -126,7 +126,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
 		
-		JSON options;
+		JSON options = JSON::object();
 		if ( args.Length() > 0 && args[0]->IsObject(worker) ) {
 			if (!args[0].To<JSObject>()->ToJSON(worker).To(options))
 				return;
