@@ -9,7 +9,7 @@
 	url = https://github.com/louis-tru/v8-link.git
 [submodule "depe/ffmpeg"]
 	path = depe/ffmpeg
-	url = https://github.com/louis-tru/FFmpeg.git
+	url = https://github.com/louis-tru/ffmpeg.git
 [submodule "depe/node"]
 	path = depe/node
 	url = https://github.com/louis-tru/node.git
