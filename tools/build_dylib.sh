@@ -28,7 +28,7 @@ link_dylib() {
 		-isysroot $sysroot \
 		-L$out \
 		-F$out \
-		-L$out/obj.target/FFmpeg \
+		-L$out/obj.target/ffmpeg \
 		-L$sysroot/System/Library/Frameworks \
 		-stdlib=libc++ \
 		-filelist $name.LinkFileList \
@@ -65,7 +65,7 @@ framework ftr no-inc # gen temp framework
 # ftr-media
 link_dylib ftr-media \
 	"$obj/ftr-media" \
-	"-liconv -lbz2 -lz -lFFmpeg" \
+	"-liconv -lbz2 -lz -lffmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
 			-framework CoreMedia -framework ftr"
 framework ftr-media no-inc # gen temp framework

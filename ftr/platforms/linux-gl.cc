@@ -97,16 +97,15 @@ static EGLConfig egl_config(
 	EGLBoolean chooseConfigState;
 
 	// first we get size of all configurations
-	chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
-	ASSERT(chooseConfigState);
+	eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
 
 	if ( numConfigs == 0 ) {
 		// attempt disable multi sample
 		attribs[17] = 0;
 		attribs[19] = 0;
 		multisample = 0;
-		chooseConfigState = eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
-		ASSERT(chooseConfigState);
+
+		eglChooseConfig(display, attribs, NULL, 0, &numConfigs);
 		
 		if (numConfigs == 0) {
 			FX_FATAL("We can't have EGLConfig array with zero size!");

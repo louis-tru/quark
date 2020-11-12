@@ -27,7 +27,7 @@ clang++
 -arch arm64 -dynamiclib 
 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk 
 -L.
--L./obj.target/FFmpeg
+-L./obj.target/ffmpeg
 -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks
 -stdlib=libc++ 
 -filelist ftr.LinkFileList
@@ -50,7 +50,7 @@ clang++
 -ltess2 
 -lft2 
 -ltinyxml2 
--lFFmpeg 
+-lffmpeg 
 -framework Foundation 
 -framework SystemConfiguration 
 -framework OpenGLES 
@@ -68,7 +68,7 @@ clang++
 -lz 
 
 
-clang++ -arch armv7 -shared -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk -L. -L./obj.target/FFmpeg -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks -stdlib=libc++ -filelist ftr.LinkFileList -o libftr.dylib -single_module -install_name @rpath/ftr.framework/ftr -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -miphoneos-version-min=8.0 -fembed-bitcode -dead_strip -fobjc-arc -fobjc-link-runtime -lftr-zlib -lopenssl -luv -lhttp_parser -lreachability -ltess2 -lft2 -ltinyxml2 -lFFmpeg -framework Foundation -framework SystemConfiguration -framework OpenGLES -framework CoreGraphics -framework UIKit -framework QuartzCore -framework AudioToolbox -framework CoreVideo -framework VideoToolbox -framework CoreMedia -framework JavaScriptCore -liconv -lbz2 -lsqlite3 -lz 
+clang++ -arch armv7 -shared -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk -L. -L./obj.target/ffmpeg -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/System/Library/Frameworks -stdlib=libc++ -filelist ftr.LinkFileList -o libftr.dylib -single_module -install_name @rpath/ftr.framework/ftr -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -miphoneos-version-min=8.0 -fembed-bitcode -dead_strip -fobjc-arc -fobjc-link-runtime -lftr-zlib -lopenssl -luv -lhttp_parser -lreachability -ltess2 -lft2 -ltinyxml2 -lffmpeg -framework Foundation -framework SystemConfiguration -framework OpenGLES -framework CoreGraphics -framework UIKit -framework QuartzCore -framework AudioToolbox -framework CoreVideo -framework VideoToolbox -framework CoreMedia -framework JavaScriptCore -liconv -lbz2 -lsqlite3 -lz 
 
 
 

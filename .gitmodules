@@ -7,8 +7,8 @@
 [submodule "depe/v8-link"]
 	path = depe/v8-link
 	url = https://github.com/louis-tru/v8-link.git
-[submodule "depe/FFmpeg"]
-	path = depe/FFmpeg
+[submodule "depe/ffmpeg"]
+	path = depe/ffmpeg
 	url = https://github.com/louis-tru/FFmpeg.git
 [submodule "depe/node"]
 	path = depe/node

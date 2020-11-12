@@ -386,6 +386,16 @@
 					'BUILDING_V8_PLATFORM_SHARED=1',
 				],
 			}],
+			['_target_name in "v8_external_snapshot"', {
+				'sources': [  'useless.c' ],
+			}],
+			['_target_name in "mksnapshot"', {
+				'conditions': [
+					['os=="android"', {
+						'ldflags': [ '-llog' ],
+					}]
+				]
+			}],
 		],
 	},
 

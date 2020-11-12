@@ -171,9 +171,9 @@
 					'platforms/android-app.cc',
 					'platforms/android-keyboard.cc',
 					'platforms/android-sys.cc',
-					'../android/com/ftr/FtrActivity.java',
-					'../android/com/ftr/Android.java',
-					'../android/com/ftr/IMEHelper.java',
+					# '../android/org/ftr/FtrActivity.java',
+					# '../android/org/ftr/Android.java',
+					# '../android/org/ftr/IMEHelper.java',
 				],
 				'link_settings': { 
 					'libraries': [
@@ -310,7 +310,7 @@
 		'type': '<(output_type)',
 		'dependencies': [
 			'ftr',
-			'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
+			'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
 		'sources': [
 			'pcm-player.h',

@@ -15,7 +15,7 @@ fi
 if   [ ! -d libs/somes ] \
 	|| [ ! -d libs/ftrp/gyp ] \
 	|| [ ! -d depe/v8-link ] \
-	|| [ ! -d depe/FFmpeg ] \
+	|| [ ! -d depe/ffmpeg ] \
 	|| [ ! -d depe/node ] \
 	|| [ ! -d depe/bplus ] \
 ; then
