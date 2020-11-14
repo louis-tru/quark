@@ -23,18 +23,3 @@
 [submodule "depe/v8"]
 	path = depe/v8
 	url = https://github.com/louis-tru/v8.git
-
-# v8 deps
-
-[submodule "depe/v8_deps/common"]
-	path = depe/v8_deps/common
-	url = https://github.com/louis-tru/v8-base-trace_event-common.git
-[submodule "depe/v8_deps/googletest"]
-	path = depe/v8_deps/googletest
-	url = https://github.com/louis-tru/googletest.git
-[submodule "depe/v8_deps/jinja2"]
-	path = depe/v8_deps/jinja2
-	url = https://github.com/louis-tru/jinja2.git
-[submodule "depe/v8_deps/markupsafe"]
-	path = depe/v8_deps/markupsafe
-	url = https://github.com/louis-tru/markupsafe.git

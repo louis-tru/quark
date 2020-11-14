@@ -70,18 +70,4 @@ if [ ! -d node_modules ]; then
 	cd ..
 fi
 
-if [ ! -d depe/v8 ]; then
-	echo Please run \`make init\` to pull dependency first
-	exit 1
-fi
-
-cd depe/v8
-
-[ ! -L testing/gtest ] && ln -sf ../../v8_deps/googletest testing/gtest
-[ ! -L base/trace_event/common ] && mkdir -p base/trace_event && ln -sf ../../../v8_deps/common base/trace_event/common
-[ ! -d third_party/jinja2 ] && cp -rf ../v8_deps/jinja2 third_party
-[ ! -d third_party/markupsafe ] &&  cp -rf ../v8_deps/markupsafe third_party
-
-cd ../..
-
 node tools/configure.js "$@"

@@ -60,7 +60,7 @@ void test_demo(int argc, char **argv) {
 #endif
 
 #if USE_INSPECT
-	cmd += "--inspect=0.0.0.0:9229 ";
+	cmd += "--inspect-brk=0.0.0.0:9229 ";
 #else
 	if (has_argv("--inspect", argc, argv)) {
 		cmd += "--inspect=0.0.0.0:9229 ";
