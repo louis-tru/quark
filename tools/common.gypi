@@ -374,7 +374,6 @@
 			['_target_name in "node"', {
 				'defines': [ 'NODE_SHARED_MODE=1' ],
 				# 'dependencies!': [ 'v8_inspector_compress_protocol_json#host' ],
-				# 'dependencies': [ 'v8_inspector_compress_protocol_json#host' ],
 			}],
 			['_target_name in "openssl http_parser zlib"', {
 				'cflags!': ['-fvisibility=hidden'],
