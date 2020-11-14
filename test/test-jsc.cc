@@ -96,7 +96,7 @@ struct JSCStringTraits: public NonObjectTraits {
 	}
 };
 
-typedef Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+typedef ftr::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 
 static JSValueRef ConstructorFunc(JSContextRef ctx,
 																	JSObjectRef function,

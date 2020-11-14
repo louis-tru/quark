@@ -34,7 +34,7 @@ using namespace ftr;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
-#define USE_INSPECT 0
+#define USE_INSPECT 1
 #define USE_NODE 1
 
 static bool has_argv(cchar* name, int argc, char **argv) {
@@ -60,7 +60,7 @@ void test_demo(int argc, char **argv) {
 #endif
 
 #if USE_INSPECT
-	cmd += "--inspect-brk=0.0.0.0:9229 ";
+	cmd += "--inspect=0.0.0.0:9229 ";
 #else
 	if (has_argv("--inspect", argc, argv)) {
 		cmd += "--inspect=0.0.0.0:9229 ";
