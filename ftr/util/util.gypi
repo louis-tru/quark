@@ -4,12 +4,11 @@
 		# 'product_prefix': '',
 		# 'product_ext': 'so',
 		'target_name': 'ftr-util',
-		# 'type': '<(output_type)',
-		'type': 'static_library',
+		'type': 'static_library', # <(output_type)
 		'dependencies': [
 			'ftr/util/minizip.gyp:minizip',
 			'depe/bplus/bplus.gyp:bplus',
-			'depe/node/deps/uv/uv.gyp:libuv',
+			'depe/libuv/libuv.gyp:libuv',
 			'depe/node/deps/openssl/openssl.gyp:openssl',
 			'depe/node/deps/http_parser/http_parser.gyp:http_parser',
 		],

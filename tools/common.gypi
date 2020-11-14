@@ -100,7 +100,7 @@
 		'debug_http2%': 'false',
 		'debug_nghttp2%': 'false',
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
-		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/depe/node/deps/v8/src/libv8_base.a',
+		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/depe/v8/src/libv8_base.a',
 
 		# conditions
 		'conditions': [
@@ -176,7 +176,7 @@
 		'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
 		'include_dirs': [
 			'..',
-			'../depe/node/deps/uv/include',
+			'../depe/libuv/include',
 			'../depe/node/deps/openssl/openssl/include',
 			'../depe/node/deps/zlib',
 			'../depe/node/deps/http_parser',
@@ -373,11 +373,13 @@
 			# shared all public symbol
 			['_target_name in "node"', {
 				'defines': [ 'NODE_SHARED_MODE=1' ],
+				# 'dependencies!': [ 'v8_inspector_compress_protocol_json#host' ],
+				# 'dependencies': [ 'v8_inspector_compress_protocol_json#host' ],
 			}],
 			['_target_name in "openssl http_parser zlib"', {
 				'cflags!': ['-fvisibility=hidden'],
 			}],
-			['_target_name in "uv"', {
+			['_target_name in "libuv"', {
 				'defines': [ 'BUILDING_UV_SHARED=1' ],
 			}],
 			['_target_name in "v8_libplatform v8_libbase v8_base"', {

@@ -35,7 +35,7 @@
 #endif
 #include <uv.h>
 #include <pthread.h>
-#include "depe/node/deps/uv/src/queue.h"
+// #include "depe/libuv/src/queue.h" // QUEUE_EMPTY
 
 #ifndef FX_ATEXIT_WAIT_TIMEOUT
 # define FX_ATEXIT_WAIT_TIMEOUT 1e6
@@ -382,11 +382,11 @@ class RunLoop::Inl: public RunLoop {
 	
 	bool is_alive() {
 		// m_uv_async 外是否还有活着的`handle`与请求
-		// uv_loop_alive(uv_loop*)
 		uv_loop_t* loop = m_uv_loop;
-		return m_uv_loop->active_handles > 1 ||
-					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
-					 loop->closing_handles != NULL;
+		//		return m_uv_loop->active_handles > 1 ||
+		//					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
+		//					 loop->closing_handles != NULL;
+		return uv_loop_alive(m_uv_loop);
 	}
 	
 	void close_uv_async() {

@@ -14,7 +14,6 @@
 		'dependencies': [
 			'ftr',
 			'ftr-js',
-			# 'ftr-v8',
 			'depe/node/node.gyp:node',
 		],
 		"sources": [

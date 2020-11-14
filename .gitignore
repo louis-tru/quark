@@ -17,3 +17,4 @@ package-lock.json
 examples/**.js
 bench/**.js
 depe/skia
+*.pyc
