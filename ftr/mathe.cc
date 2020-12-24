@@ -690,10 +690,12 @@ Vec4 Mat4::operator*(const Vec4& b) const {
  */
 void Mat4::multiplication(const Mat4& b, Mat4& output) const {
 	/*
-	 [ a1, b1, c1, d1 ]   [ a2, b2, c2, d2 ]
-	 [ e1, f1, g1, h1 ]   [ e2, f2, g2, h2 ]
-	 [ i1, j1, k1, l1 ] * [ i2, j2, k2, l2 ]
-	 [ m1, n1, o1, p1 ]   [ m2, n2, o2, p2 ]
+	 [ a1, b1, c1, d1 ]   [ a2, b2, c2, d2, a2, b2 ]
+	 [ e1, f1, g1, h1 ]   [ e2, f2, g2, h2, a2, b2 ]
+	 [ i1, j1, k1, l1 ] * [ i2, j2, k2, l2, a2, b2 ]
+	 [ m1, n1, o1, p1 ]   [ m2, n2, o2, p2, a2, b2 ]
+	 [ m1, n1, o1, p1 ]
+	 [ m1, n1, o1, p1 ]
 	 */
 	float* _v = output._value;
 	const float* _a = _value;
