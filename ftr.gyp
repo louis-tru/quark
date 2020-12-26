@@ -63,7 +63,7 @@
 		],
 		'conditions': [
 			# output mac shared library for "ftr.framework"
-			['debug==0 and library_output=="shared_library" and OS=="mac" and project=="make"', {
+			['library_output=="shared_library" and OS=="mac" and project=="make"', {
 				'actions': [{
 					'action_name': 'mk_ftr_dylib',
 					'variables': {
@@ -97,7 +97,7 @@
 						'<(output)/libtess2.a',
 						'<(output)/libft2.a',
 						'<(output)/libtinyxml2.a',
-						'<(output)/obj.target/FFmpeg/libFFmpeg.a',
+						'<(output)/obj.target/ffmpeg/libffmpeg.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
 						'<(output)/libftr-util.a',

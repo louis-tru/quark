@@ -124,7 +124,7 @@ Individual component options:
 
 External library support:
 
-  Using any of the following switches will allow FFmpeg to link to the
+  Using any of the following switches will allow ffmpeg to link to the
   corresponding external library. All the components depending on that library
   will become enabled, if all their other dependencies are met and they are not
   explicitly disabled. E.g. --enable-libwavpack will enable linking to
@@ -135,7 +135,7 @@ External library support:
   libraries must be explicitly enabled.
 
   Also note that the following help text describes the purpose of the libraries
-  themselves, not all their features will necessarily be usable by FFmpeg.
+  themselves, not all their features will necessarily be usable by ffmpeg.
 
   --enable-avisynth        enable reading of AviSynth script files [no]
   --disable-bzlib          disable bzlib [autodetect]
@@ -349,7 +349,7 @@ Optimization options (experts only):
   --disable-mmi            disable Loongson SIMD optimizations
   --disable-fast-unaligned consider unaligned accesses slow
 
-Developer options (useful when working on FFmpeg itself):
+Developer options (useful when working on ffmpeg itself):
   --disable-debug          disable debugging symbols
   --enable-debug=LEVEL     set the debug level []
   --disable-optimizations  disable compiler optimizations

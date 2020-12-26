@@ -34,7 +34,7 @@ using namespace ftr;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
-#define USE_INSPECT 0
+#define USE_INSPECT 1
 #define USE_NODE 1
 
 static bool has_argv(cchar* name, int argc, char **argv) {

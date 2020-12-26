@@ -35,7 +35,7 @@
 #endif
 #include <uv.h>
 #include <pthread.h>
-#include "depe/node/deps/uv/src/queue.h"
+// #include "depe/libuv/src/queue.h" // QUEUE_EMPTY
 
 #ifndef FX_ATEXIT_WAIT_TIMEOUT
 # define FX_ATEXIT_WAIT_TIMEOUT 1e6
@@ -167,7 +167,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		m_cond.notify_one(); // awaken sleep status
 	}
 
-	static void atexit_exec() {
+	static void before_exit() {
 		if (!is_process_exit++) { // exit
 			Array<ID> threads_id;
 			{
@@ -187,16 +187,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 	}
 
-	static void _exit(int rc, bool forceExit) {
-		if (!is_process_exit) {
-			atexit_exec();
-			DLOG("Inl::reallyExit()");
-			if (forceExit)
-				::exit(rc); // foece reallyExit
-		}
-	}
-
-	static void safeExit(int rc, bool forceExit = false) {
+	static void safe_exit(int rc, bool forceExit = false) {
 		static int is_exited = 0;
 		if (!is_exited++ && !is_process_exit) {
 
@@ -210,16 +201,11 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			DLOG("Inl::exit(), 1");
 
 			Release(keep); keep = nullptr;
+			before_exit();
 
-			// if (main_loop_obj && current_id() == main_loop_id && main_loop_obj->runing()) {
-			// 	main_loop_obj->post(Cb([rc, forceExit](CbD& e) {
-			// 		_exit(rc, forceExit);
-			// 	}));
-			// 	// std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			// 	// exit(rc, forceExit);
-			// } else {
-			_exit(rc, forceExit);
-			// }
+			DLOG("Inl::reallyExit()");
+			if (forceExit)
+				::exit(rc); // foece reallyExit
 		} else {
 			DLOG("The program has exited");
 		}
@@ -326,12 +312,12 @@ Thread* Thread::current() {
 	return Inl::get_thread_specific_data();
 }
 
-FX_EXPORT void safeExit(int rc) {
-	Thread::Inl::safeExit(rc);
+FX_EXPORT void safe_exit(int rc) {
+	Thread::Inl::safe_exit(rc);
 }
 
 void exit(int rc) {
-	Thread::Inl::safeExit(rc, true);
+	Thread::Inl::safe_exit(rc, true);
 }
 
 bool is_exited() {
@@ -340,7 +326,7 @@ bool is_exited() {
 
 FX_INIT_BLOCK(thread_init_once) {
 	DLOG("thread_init_once");
-	atexit(Thread::Inl::atexit_exec);
+	atexit(Thread::Inl::before_exit);
 	Thread::Inl::thread_initialize();
 }
 
@@ -396,11 +382,11 @@ class RunLoop::Inl: public RunLoop {
 	
 	bool is_alive() {
 		// m_uv_async 外是否还有活着的`handle`与请求
-		// uv_loop_alive(uv_loop*)
 		uv_loop_t* loop = m_uv_loop;
-		return m_uv_loop->active_handles > 1 ||
-					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
-					 loop->closing_handles != NULL;
+		//		return m_uv_loop->active_handles > 1 ||
+		//					 QUEUE_EMPTY(&(loop)->active_reqs) == 0 ||
+		//					 loop->closing_handles != NULL;
+		return uv_loop_alive(m_uv_loop);
 	}
 	
 	void close_uv_async() {

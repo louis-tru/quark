@@ -37,8 +37,8 @@
 #include "action.h"
 #include "css.h"
 
-FX_EXPORT int (*__nx_default_gui_main)(int, char**) = nullptr;
-FX_EXPORT int (*__nx_gui_main)(int, char**) = nullptr;
+FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
+FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
 
 FX_NS(ftr)
 
@@ -184,15 +184,15 @@ void GUIApplication::runMain(int argc, char* argv[]) {
 	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	Thread::spawn([argc, argv](Thread& t) {
-		ASSERT( __nx_default_gui_main );
-		auto main = __nx_gui_main ? __nx_gui_main : __nx_default_gui_main;
-		__nx_default_gui_main = nullptr;
-		__nx_gui_main = nullptr;
+		ASSERT( __fx_default_gui_main );
+		auto main = __fx_gui_main ? __fx_gui_main : __fx_default_gui_main;
+		__fx_default_gui_main = nullptr;
+		__fx_gui_main = nullptr;
 		int rc = main(argc, argv); // 运行这个自定gui入口函数
 		DLOG("GUIApplication::start Exit");
 		ftr::exit(rc); // if sub thread end then exit
 		return rc;
-	}, "main");
+	}, "runMain");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
 	while (!m_shared || !m_shared->m_is_run) {
@@ -200,20 +200,16 @@ void GUIApplication::runMain(int argc, char* argv[]) {
 	}
 }
 
-/**
- * @func run()
- */
-void GUIApplication::run() {
+void GUIApplication::run_loop() {
 	ASSERT(!m_is_run, "GUI program has been running");
 
 	m_is_run = true;
 	m_render_loop = RunLoop::current(); // 当前消息队列
 	m_render_keep = m_render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
-	m_render_id = m_render_loop->thread_id();
 
-	if (m_main_loop != m_render_loop) {
+	if (m_render_loop != m_main_loop) {
 		Inl2_RunLoop(m_render_loop)->set_independent_mutex(thelper->global_gui_lock_mutex());
-		Thread::awaken(m_main_id); // main loop awaken
+		Thread::awaken(m_main_loop->thread_id()); // main loop awaken
 	}
 	thelper->awaken(); // 外部线程继续运行
 
@@ -227,14 +223,16 @@ void GUIApplication::run() {
 	m_is_run = false;
 }
 
-void GUIApplication::run_indep() {
+void GUIApplication::run_loop_detach() {
 	ASSERT(RunLoop::is_main_loop()); // main loop call
+
 	Thread::spawn([this](Thread& t) {
 		DLOG("run render loop ...");
-		run(); // run gui main thread loop
+		run_loop();
 		DLOG("run render loop end");
 		return 0;
 	}, "render_loop");
+
 	Thread::sleep(); // main loop sleep
 }
 
@@ -248,9 +246,10 @@ static void on_process_safe_handle(Event<>& e, Object* data) {
 int AppInl::onExit(int code) {
 	if (m_render_keep) {
 		onUnload();
+		auto render_loop_id = m_render_loop->thread_id();
 		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
 		Release(m_main_keep); m_main_keep = nullptr; // stop main loop
-		Thread::abort(m_render_id);
+		Thread::abort(render_loop_id);
 		DLOG("GUIApplication onExit");
 	}
 	return code;
@@ -288,7 +287,6 @@ GUIApplication::GUIApplication()
 , m_action_center(nullptr)
 {
 	m_main_keep = m_main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
-	m_main_id = m_main_loop->thread_id();
 	Thread::FX_ON(ProcessSafeExit, on_process_safe_handle);
 }
 

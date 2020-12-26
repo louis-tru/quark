@@ -4,7 +4,7 @@
 	},
 	'targets': [
 		{
-			'target_name': 'test',
+			'target_name': 'test1',
 			'type': 'executable',
 			'include_dirs': [
 				'../out',
@@ -16,7 +16,7 @@
 				'ftr-node',
 				###########
 				'trial',
-				'depe/FFmpeg/FFmpeg.gyp:FFmpeg',
+				'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
 				'depe/freetype2/freetype2.gyp:ft2',
 			],
 			'mac_bundle': 1,
@@ -103,7 +103,7 @@
 					'ftr/util/minizip.gyp:minizip',
 					'depe/tess2/tess2.gyp:tess2', 
 					'depe/freetype2/freetype2.gyp:ft2',
-					'depe/FFmpeg/FFmpeg.gyp:FFmpeg_compile',
+					'depe/ffmpeg/ffmpeg.gyp:ffmpeg_compile',
 					'depe/libgif/libgif.gyp:libgif', 
 					'depe/libjpeg/libjpeg.gyp:libjpeg', 
 					'depe/libpng/libpng.gyp:libpng',
@@ -117,13 +117,14 @@
 					'depe/node/node.gyp:node',
 					'depe/bplus/bplus.gyp:bplus',
 				],
+				'sources': [ '../tools/useless.c' ],
 				'link_settings': { 
 					'libraries': [ '-lz' ],
 				},
 				'ldflags': [
 					'-s',
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/FFmpeg/libFFmpeg.a',
+					'<(output)/obj.target/ffmpeg/libffmpeg.a',
 					'-Wl,--no-whole-archive',
 				],
 			},

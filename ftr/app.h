@@ -38,9 +38,9 @@
 #include "ftr/value.h"
 
 #define FX_GUI_MAIN() \
-	int __nx_gui_main__(int, char**); \
-	FX_INIT_BLOCK(__nx_gui_main__) { __nx_gui_main = __nx_gui_main__; } \
-	int __nx_gui_main__(int argc, char** argv)
+	int __fx_gui_main__(int, char**); \
+	FX_INIT_BLOCK(__fx_gui_main__) { __fx_gui_main = __fx_gui_main__; } \
+	int __fx_gui_main__(int argc, char** argv)
 
 #define FX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
 #define FX_ASSERT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
@@ -48,7 +48,7 @@
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
  */
-FX_EXPORT extern int (*__nx_gui_main)(int, char**);
+FX_EXPORT extern int (*__fx_gui_main)(int, char**);
 
 /**
  * @ns trurh::gui
@@ -115,14 +115,14 @@ class FX_EXPORT GUIApplication: public Object {
 	void initialize(cJSON& options = JSON::object()) throw(Error);
 
 	/**
-	 * @func run 运行消息循环
+	 * @func run_loop 运行gui消息循环
 	 */
-	void run();	
+	void run_loop();
 
 	/**
-	 * @func run_indep 在独立的线程运行消息循环
+	 * @func run_loop 在新的线程运行gui消息循环
 	 */
-	void run_indep();
+	void run_loop_detach();
 
 	/**
 	 * @func clear 清理垃圾回收内存资源, full=true 清理全部资源
@@ -249,7 +249,6 @@ class FX_EXPORT GUIApplication: public Object {
 	bool  m_is_run, m_is_load;
 	RunLoop  *m_render_loop, *m_main_loop;
 	KeepLoop *m_render_keep, *m_main_keep;
-	ThreadID m_render_id, m_main_id;
 	Draw*                m_draw_ctx;         // 绘图上下文
 	DisplayPort*         m_display_port;     // 显示端口
 	Root*                m_root;             // 根视图

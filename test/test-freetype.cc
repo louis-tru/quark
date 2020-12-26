@@ -303,7 +303,7 @@ void onload_f(Event<>& evt, void* user) {
 void draw_char() {
 	GUIApplication app;
 	app.FX_ON(Load, onload_f);
-	app.run();
+	app.run_loop();
 }
 
 void test_freetype(int argc, char **argv) {

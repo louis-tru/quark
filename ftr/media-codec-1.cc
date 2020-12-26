@@ -346,7 +346,7 @@ void Inl::start() {
 			if ( fmt_ctx ) {
 				avformat_close_input(&fmt_ctx);
 			}
-			FX_DEBUG("free FFmpeg AVFormatContext");
+			FX_DEBUG("free ffmpeg AVFormatContext");
 		});
 		
 		int r;
@@ -415,7 +415,7 @@ void Inl::start() {
 		read_stream(t, fmt_ctx, uri, bit_rate_index);
 
 		return 0;
-	}, "FFmpeg_read_source");
+	}, "ffmpeg_read_source");
 }
 
 /**

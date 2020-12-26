@@ -21,7 +21,7 @@ build() {
 													obj.target/tess2 \
 													obj.target/libuv \
 													obj.target/tinyxml2 \
-													obj.target/FFmpeg/libs \
+													obj.target/ffmpeg/libs \
 													-name *.o|xargs`
 	ranlib libftr.a
 

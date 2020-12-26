@@ -233,7 +233,7 @@ class FX_EXPORT ZipReader: public Object {
 	
  private:
 	String m_path;   // Zip file path
-	String m_compatible_path; // zip:///var/data/test.zip@
+	String m_compatible_path; // zip:///var/data/test.zip?
 	String m_passwd;
 	
 	struct m_unz_file_pos {

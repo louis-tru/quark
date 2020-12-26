@@ -100,7 +100,7 @@
 		'debug_http2%': 'false',
 		'debug_nghttp2%': 'false',
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
-		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/depe/node/deps/v8/src/libv8_base.a',
+		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/depe/v8/src/libv8_base.a',
 
 		# conditions
 		'conditions': [
@@ -159,10 +159,11 @@
 					'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
 					'GCC_STRICT_ALIASING': 'YES',
 					'ONLY_ACTIVE_ARCH': 'YES',
+					# 'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
 				},
 				'conditions': [
-					['os=="android" and clang==0', {
-						'cflags!': [ '-O3' ],
+					['os=="android"', { #  and clang==0
+						'cflags!': [ '-O3' ], # Android uses - O3 to make the package larger 
 						'cflags': [ '-O2' ],
 					}],
 					['without_visibility_hidden==1', {
@@ -175,7 +176,7 @@
 		'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
 		'include_dirs': [
 			'..',
-			'../depe/node/deps/uv/include',
+			'../depe/libuv/include',
 			'../depe/node/deps/openssl/openssl/include',
 			'../depe/node/deps/zlib',
 			'../depe/node/deps/http_parser',
@@ -184,29 +185,22 @@
 		'conditions': [
 			['os=="android"', {
 				'cflags': [
-					'-fPIE',
 					'-fPIC',
 					'-pthread',
 				],
 				'ldflags': [
-					'-shared',
 					'-Wl,--gc-sections',  # Discard Unused Functions with gc-sections
-					'-fPIE',
-					# '-pie',
-					'-rdynamic',
 					'-pthread',
+					'-rdynamic',
+					# '-ddynamiclib', # clang flag
+					# '-stdlib=libstdc++', # use libstdc++, clang default use libc++_shared, clang flag
+					'-static-libstdc++', # link static-libstdc++, clang default use libc++_shared
 				],
-				'link_settings': {
-					'libraries': [
-						'-stdlib=libstdc++', # use libstdc++, default use libc++_shared
-					],
-				},
 				'conditions': [
 					['clang==0', {
 						'cflags': [ '-funswitch-loops', '-finline-limit=64' ],
-					},{
+					}, {
 						'cflags!': [ '-Wno-old-style-declaration' ],
-						# 'cflags': [ '-fPIC' ],
 					}],
 					['arch=="arm"', { 'cflags': [ '-march=<(arch_name)' ] }],
 					['arch=="arm" and arm_vfp!="none"', {
@@ -361,20 +355,6 @@
 					'GCC_ENABLE_CPP_RTTI':       'NO',   # -fno-rtti
 				},
 			}],
-			# ['library_output=="shared_library"', {
-			# 	'conditions': [
-			# 		['os in "linux android"', {
-			# 			'cflags': [ '-fPIC' ],
-			# 		}]
-			# 	],
-			# 	'target_conditions': [
-			# 		['_target_name in "node"', {
-			# 			'defines': [ 
-			# 				'NODE_SHARED_MODE=1', 
-			# 			],
-			# 		}],
-			# 	],
-			# }],
 			['cplusplus11==1', {
 				'xcode_settings': {
 					'CLANG_CXX_LANGUAGE_STANDARD': 'c++0x',    # -std=c++0x
@@ -393,11 +373,12 @@
 			# shared all public symbol
 			['_target_name in "node"', {
 				'defines': [ 'NODE_SHARED_MODE=1' ],
+				# 'dependencies!': [ 'v8_inspector_compress_protocol_json#host' ],
 			}],
 			['_target_name in "openssl http_parser zlib"', {
 				'cflags!': ['-fvisibility=hidden'],
 			}],
-			['_target_name in "uv"', {
+			['_target_name in "libuv"', {
 				'defines': [ 'BUILDING_UV_SHARED=1' ],
 			}],
 			['_target_name in "v8_libplatform v8_libbase v8_base"', {
@@ -405,6 +386,16 @@
 					'BUILDING_V8_SHARED=1', 
 					'BUILDING_V8_PLATFORM_SHARED=1',
 				],
+			}],
+			['_target_name in "v8_external_snapshot"', {
+				'sources': [  'useless.c' ],
+			}],
+			['_target_name in "mksnapshot"', {
+				'conditions': [
+					['os=="android"', {
+						'ldflags': [ '-llog' ],
+					}]
+				]
 			}],
 		],
 	},

@@ -7,12 +7,19 @@
 [submodule "depe/v8-link"]
 	path = depe/v8-link
 	url = https://github.com/louis-tru/v8-link.git
-[submodule "depe/FFmpeg"]
-	path = depe/FFmpeg
-	url = https://github.com/louis-tru/FFmpeg.git
+[submodule "depe/ffmpeg"]
+	path = depe/ffmpeg
+	url = https://github.com/louis-tru/ffmpeg.git
 [submodule "depe/node"]
 	path = depe/node
 	url = https://github.com/louis-tru/node.git
 [submodule "depe/bplus"]
 	path = depe/bplus
 	url = https://github.com/louis-tru/bplus.git
+[submodule "depe/libuv"]
+	path = depe/libuv
+	url = https://github.com/louis-tru/libuv.git
+
+[submodule "depe/v8"]
+	path = depe/v8
+	url = https://github.com/louis-tru/v8.git

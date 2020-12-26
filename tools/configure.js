@@ -40,7 +40,7 @@ var opts = argument.options;
 var help_info = argument.helpInfo;
 var def_opts = argument.defOpts;
 var default_arch = host_arch || 'x86';
-var android_api_level = 21;
+var android_api_level = 28; // android-9.0
 
 def_opts(['help','h'], 0,       '-h, --help     print help info');
 def_opts('v', 0,                '-v, --v        enable compile print info [{0}]');
@@ -92,17 +92,42 @@ function touch_file(pathnames) {
 	}
 	pathnames.forEach(function(pathname) {
 		if ( !fs.existsSync(pathname) ) {
+			fs.mkdirpSync(path.dirname(pathname));
 			fs.writeFileSync(pathname, '');
 		}
 	});
 }
 
-function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir) {
+function touch_files(variables) {
+	
+	touch_file([
+		'out/native-inl-js.cc',
+		'out/native-ext-js.cc',
+		'out/native-lib-js.cc',
+		'out/native-font.cc',
+		'out/native-glsl.cc',
+	]);
+
+	if (variables.library_output == 'shared_library' && variables.OS != 'mac') {
+		touch_file([
+			`${variables.output}/lib.target/libftr.so`,
+			`${variables.output}/lib.target/libftr-js.so`,
+			`${variables.output}/lib.target/libftr-media.so`,
+			`${variables.output}/lib.target/libftr-node.so`,
+		]);
+	}
+
+	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
+		touch_file([`${variables.output}/lib.target/libftr-depes-test.so`]);
+	}
+}
+
+function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir) {
 	var os = opts.os;
 	var arch = opts.arch;
 	var arch_name = variables.arch_name;
 	var cmd = '';
-	var source = __dirname + '/../depe/FFmpeg';
+	var source = __dirname + '/../depe/ffmpeg';
 
 	var ff_opts = [
 		`--prefix=${ff_install_dir}`,
@@ -276,9 +301,9 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 	cmd += ff_opts.join(' ');
 
 	// clean
-	execSync(`cd depe/FFmpeg; make clean; find . -name *.o|xargs rm; `);
+	execSync(`cd depe/ffmpeg; make clean; find . -name *.o|xargs rm; `);
 	syscall(`
-		rm -rf ${variables.output}/obj.target/depe/FFmpeg/*;
+		rm -rf ${variables.output}/obj.target/depe/ffmpeg/*;
 		rm -rf ${ff_install_dir}; \
 		rm -rf \
 		${source}/compat/strtod.d \
@@ -302,7 +327,7 @@ function configure_FFmpeg(opts, variables, configuration, clang, ff_install_dir)
 	console.log(cmd, '\n');
 
 	var log = syscall(
-		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/FFmpeg; ${cmd};`
+		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/ffmpeg; ${cmd};`
 	);
 	console.error(log.stderr.join('\n'));
 	console.log(log.stdout.join('\n'));
@@ -697,8 +722,8 @@ async function configure() {
 				} else {
 					// todo auto download android ndk ...
 					console.error(
-						`Please run "./tools/install-android-toolchain NDK-DIR" ` +
-						'to install android toolchain!');
+						`Please Setting environment variable ANDROID_NDK or ` + 
+						`Run "./tools/install-android-toolchain NDK-DIR" to install android toolchain! `);
 					process.exit(1);
 				}
 			}
@@ -762,14 +787,6 @@ async function configure() {
 			variables.cc = `${cc_prefix}gcc`;
 			variables.cxx = `${cc_prefix}g++`;
 			variables.ld = `${cc_prefix}g++`;
-
-			if (fs.existsSync(`${cc_path}clang++`)) {
-				/* 
-				 * 这里使用g++进行链接会导致无法运行,
-				 * 这可能是g++默认链接的stl库有问题.不再追究更多细节,使用clang++进行链接
-				 */
-				variables.ld = `${cc_prefix}clang++`;
-			}
 		}
 		variables.ar = `${variables.cross_prefix}ar`;
 		variables.as = `${variables.cross_prefix}as`;
@@ -948,6 +965,7 @@ async function configure() {
 	variables.suffix = suffix;
 
 	config_mk.push('SUFFIX=' + suffix);
+	config_mk.push('CC=' + variables.cc);
 	config_mk.push('CXX=' + variables.cxx);
 	config_mk.push('LINK=' + variables.ld);
 	config_mk.push('SHARED=' + shared);
@@ -968,29 +986,29 @@ async function configure() {
 		config_mk.push(`JAR=${java_home}/bin/jar`);
 	}
 	
-	// -------------------------- configure FFmpeg --------------------------
+	// -------------------------- configure ffmpeg --------------------------
 
-	{ // configure FFmpeg
-		var ff_install_dir = `${variables.output}/obj.target/FFmpeg`;
+	{ // configure ffmpeg
+		var ff_install_dir = `${variables.output}/obj.target/ffmpeg`;
 		var ff_rebuild = false;
-		var ff_product_path = `${ff_install_dir}/libFFmpeg.a`;
+		var ff_product_path = `${ff_install_dir}/libffmpeg.a`;
 
 		if ( opts.media == 'auto' ) { // auto
 			if ( !fs.existsSync(`${ff_product_path}`) &&
 					 !fs.existsSync(`${ff_install_dir}/objs`) ) {
 				ff_rebuild = true;
 			} else {
-				ff_rebuild = !fs.existsSync(__dirname + '/../depe/FFmpeg/config.h')
+				ff_rebuild = !fs.existsSync(__dirname + '/../depe/ffmpeg/config.h')
 			}
 			variables.media = 1;
 		} else {
-			if ( opts.media ) { // Force rebuild FFmpeg
+			if ( opts.media ) { // Force rebuild ffmpeg
 				ff_rebuild = true;
 			}
 		}
 
-		if ( ff_rebuild ) { // rebuild FFmpeg
-		 if ( !configure_FFmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
+		if ( ff_rebuild ) { // rebuild ffmpeg
+		 if ( !configure_ffmpeg(opts, variables, configuration, opts.clang, ff_install_dir) ) {
 			 return;
 		 }
 		}
@@ -1017,20 +1035,14 @@ async function configure() {
 		fs.mkdirSync('out');
 	}
 
-	touch_file([ 
-		'out/native-inl-js.cc',
-		'out/native-ext-js.cc',
-		'out/native-lib-js.cc',
-		'out/native-font.cc',
-		'out/native-glsl.cc',
-	]);
-	
 	fs.writeFileSync('out/config.gypi', config_gypi_str);
 	fs.writeFileSync('out/config.mk', config_mk_str);
 
 	if (!opts.without_node) { 
 		fs.writeFileSync('depe/node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
 	}
+
+	touch_files(variables);
 }
 
 configure().then(e=>{

@@ -47,11 +47,11 @@ FX_GUI_MAIN() {
 	
 	[ApplicationDelegate set_application_delegate:NSStringFromClass(MyApplication.class)];
 	
-#if DEBUG
-	js::Start("ARGV_DEBUG");
-#else
+// #if DEBUG
+	// js::Start("ARGV_DEBUG");
+// #else
 	js::Start("ARGV_RELEASE");
-#endif
+// #endif
 	
 	return 0;
 }

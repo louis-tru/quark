@@ -16,9 +16,9 @@ Build source and install ftrp
 
 1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
 
-2. Setting environment variable `JAVA_HOME` and `ANDROID_SDK` directory.
+2. Setting environment variable `JAVA_HOME` and `ANDROID_SDK` and `ANDROID_NDK` directory.
 
-3. Pull dependent librarys, execute `make pull`.
+3. Pull dependent librarys, execute `make init`.
 
 Compile and install ftrp, execute `make` or `make install`, It takes a long time.
 

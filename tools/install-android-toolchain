@@ -58,7 +58,7 @@ if [ ! -f $DIR/bin/clang ]; then
 		--install-dir=$DIR \
 		--platform=android-$level \
 		--arch=$arch \
-		--force
+		# --force
 	
 	if [ `which python` ]; then 
 	 rm -rf $DIR/bin/python

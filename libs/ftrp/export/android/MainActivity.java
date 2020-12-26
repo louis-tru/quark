@@ -44,11 +44,10 @@ public class MainActivity extends FtrActivity {
 
 	@Override
 	protected String startCommand() {
-		if ( isDebugger() ) {
-			return "ARGV_DEBUG";
-		} else {
-			return "ARGV_RELEASE";
-		}
+		// if ( isDebugger() )
+		// return "ARGV_DEBUG";
+		// else
+		return "ARGV_RELEASE";
 	}
 
 	static {
