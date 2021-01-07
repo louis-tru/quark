@@ -101,7 +101,19 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 		M_STYLE_FULL            = (uint(1) << 31),  /* 所有后后代视图都受到影响 */
 		M_STYLE                 = (M_STYLE_CLASS | M_STYLE_FULL),
 	};
-	
+
+	/**
+	 * 正向迭代布局
+	 * @method forward_iteration()
+	 */
+	virtual void forward_iteration();
+
+	/**
+	 * 反向迭代布局
+	 * @method reverse_iteration()
+	 */
+	virtual void reverse_iteration();
+
 	virtual Layout* as_layout() { return nullptr; }
 	
 	/**
