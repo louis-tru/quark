@@ -243,7 +243,7 @@ class Action::Inl: public Action {
 	
 };
 
-#include "action.cc.inl"
+#include "action-property.cc"
 
 class Frame::Inl: public Frame {
  public:

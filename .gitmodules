@@ -19,7 +19,9 @@
 [submodule "depe/libuv"]
 	path = depe/libuv
 	url = https://github.com/louis-tru/libuv.git
-
 [submodule "depe/v8"]
 	path = depe/v8
 	url = https://github.com/louis-tru/v8.git
+[submodule "depe/skia"]
+	path = depe/skia
+	url = https://github.com/louis-tru/skia.git
