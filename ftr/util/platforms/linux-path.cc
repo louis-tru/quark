@@ -28,96 +28,59 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include <stdlib.h>
+#include <unistd.h>
+#include <linux/limits.h>
+#include <sys/utsname.h>
 #include "ftr/util/fs.h"
-#include <Foundation/Foundation.h>
-#if FX_IOS
-# import <UIKit/UIKit.h>
-#else
-# import <AppKit/AppKit.h>
-#endif
 
 FX_NS(ftr)
 
 String Path::executable() {
-	static cString path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
+	static cString path([]() -> String { 
+		char dir[PATH_MAX] = { 0 };
+		int n = readlink("/proc/self/exe", dir, PATH_MAX);
+		return Path::format("%s", dir);
+	}());
 	return path;
 }
 
 String Path::documents(cString& child) {
-	static cString path(
-		Path::format([NSSearchPathForDirectoriesInDomains(
-			NSDocumentDirectory,
-			NSUserDomainMask,
-			YES
-		) objectAtIndex:0].UTF8String)
-	);
-	if (child.is_empty()) {
-		return path;
+	static String documentsPath([]() -> String { 
+		String s = Path::format("%s/%s", getenv("HOME"), "Documents");
+		FileHelper::mkdir_p_sync(s);
+		return s;
+	}());
+	if ( child.is_empty() ) {
+		return documentsPath;
 	}
-	return Path::format("%s/%s", *path, *child);
+	return Path::format("%s/%s", *documentsPath, *child);
 }
 
 String Path::temp(cString& child) {
-	static cString path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
+	static String tempPath([]() -> String {
+		String s = Path::format("%s/%s", getenv("HOME"), ".cache");
+		FileHelper::mkdir_p_sync(s);
+		return s;
+	}());
 	if (child.is_empty()) {
-		return path;
+		return tempPath;
 	}
-	return Path::format("%s/%s", *path, *child);
+	return Path::format("%s/%s", *tempPath, *child);
 }
 
 /**
  * Get the resoures dir
  */
 String Path::resources(cString& child) {
-	static cString path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
+	static String resourcesPath([]() -> String {
+		return Path::dirname(executable());
+	}());
 	if (child.is_empty()) {
-		return path;
+		return resourcesPath;
 	}
-	return Path::format("%s/%s", *path, *child);
-}
-
-namespace sys {
-
-	String brand() {
-		return "Apple";
-	}
-
-#if FX_IOS
-
-	String version() {
-		return [[[UIDevice currentDevice] systemVersion] UTF8String];
-	}
-
-	String subsystem() {
-		return [[[UIDevice currentDevice] model] UTF8String];
-	}
-
-#else 
-
-	String version() {
-		return String();
-	}
-
-	String subsystem() {
-		static String name("MacOSX");
-		return name;
-	}
-
-#endif 
-
-	void __get_languages__(String& langs, String& lang) {
-		NSArray* languages = [NSLocale preferredLanguages];
-		for ( int i = 0; i < [languages count]; i++ ) {
-			NSString* str = [languages objectAtIndex:0];
-			if (i == 0) {
-				lang = [str UTF8String];
-			} else {
-				langs += ',';
-			}
-			langs += [str UTF8String];
-		}
-	}
-	
+	return Path::format("%s/%s", *resourcesPath, *child);
 }
 
 FX_END
+

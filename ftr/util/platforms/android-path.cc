@@ -28,62 +28,50 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "app-inl.h"
-#include "ftr/util/loop.h"
+#include <unistd.h>
+#include "ftr/util/fs.h"
+#include "ftr/util/android-jni.h"
+#include "android/android.h"
+
+using namespace ftr;
 
 FX_NS(ftr)
 
-RenderLooper::RenderLooper(AppInl* host)
-: m_host(host), m_id(nullptr) {
-	
+String Path::executable() {
+	static cString path([]() -> String { 
+		char dir[PATH_MAX] = { 0 };
+		int n = readlink("/proc/self/exe", dir, PATH_MAX);
+		return Path::format("%s", dir);
+	}());
+	return path;
 }
 
-RenderLooper::~RenderLooper() {
-	stop();
-}
-
-struct LooperData: Object {
-	int id;
-	AppInl* host;
-	Callback<> cb;
-};
-
-void looper(CbD& ev, LooperData* data) {
-	if ( data->id && !is_exited() ) {
-		// 60fsp
-		data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
-		data->host->triggerRender();
-		// DLOG("onRender");
-	} else {
-		Release(data);
+String Path::documents(cString& child) {
+	static String path(Path::format("%s", *Android::files_dir_path()));
+	if ( child.is_empty() ) {
+		return path;
 	}
+	return Path::format("%s/%s", *path, *child);
 }
 
-void RenderLooper::start() {
-	typedef Callback<RunLoop::PostSyncData> Cb;
-	m_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
-		if (!m_id) {
-			LooperData* data = new LooperData();
-			data->id = iid32();
-			data->host = m_host;
-			data->cb = Callback<>(&looper, data);
-			m_id = &data->id;
-			Callback<>::Data d;
-			looper(d, data);
-		}
-		ev.data->complete();
-	}));
+String Path::temp(cString& child) {
+	static String path(Path::format("%s", *Android::cache_dir_path()));
+	if ( child.is_empty() ) {
+		return path;
+	}
+	return Path::format("%s/%s", *path, *child);
 }
 
-void RenderLooper::stop() {
-	typedef Callback<RunLoop::PostSyncData> Cb;
-	m_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
-		if (m_id) {
-			*m_id = 0;
-			m_id = nullptr;
-		}
-		ev.data->complete();
-	}));
+/**
+ * Get the resoures dir
+ */
+String Path::resources(cString& child) {
+	static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
+	if ( child.is_empty() ) {
+		return path;
+	}
+	return Path::format("%s/%s", *path, *child);
 }
 
 FX_END
+

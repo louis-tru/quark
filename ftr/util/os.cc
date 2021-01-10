@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "sys.h"
+#include "os.h"
 #include "ftr/util/array.h"
 #include "ftr/util/string.h"
 #include "ftr/util/fs.h"
@@ -37,7 +37,114 @@
 #include <unistd.h>
 
 FX_NS(ftr)
-FX_NS(sys)
+FX_NS(os)
+
+// util
+
+String name() {
+#if  FX_IOS
+		static String _name("iOS");
+#elif  FX_OSX
+		static String _name("MacOSX");
+#elif  FX_ANDROID
+		static String _name("Android");
+#elif  FX_WIN
+		static String _name("Windows");
+#elif  FX_LINUX
+		static String _name("Linux");
+#elif FX_NACL
+		static String _name("Nacl"); // ?
+#elif  FX_QNX
+		static String _name("Qnx"); // ?
+#else
+	# error no support
+#endif
+	return _name;
+}
+
+#if FX_UNIX
+static String* info_str = nullptr;
+
+String info() {
+	if (!info_str) {
+		info_str = new String();
+		static struct utsname uts;
+		static char name[256];
+		gethostname(name, 255);
+		uname(&uts);
+		*info_str = String::format(
+			"host: %s\nsys: %s\nmachine: %s\n"
+			"nodename: %s\nversion: %s\nrelease: %s",
+			name,
+			uts.sysname,
+			uts.machine,
+			uts.nodename, uts.version, uts.release
+		);
+		//  getlogin(), getuid(), getgid(),
+	}
+	return *info_str;
+}
+#endif 
+
+int64 time_second() {
+	return ::time(nullptr);
+}
+
+int64 time() {
+	timespec now;
+	clock_gettime(CLOCK_REALTIME, &now);
+	int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+	return r;
+}
+
+int64 time_monotonic() {
+	timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+	return r;
+}
+
+struct language_t {
+	String langs;
+	String lang;
+};
+
+#if FX_APPLE
+void __get_languages__(String& langs, String& lang);
+#endif 
+
+static language_t* langs_ = nullptr;
+static language_t* get_languages() {
+	if (!langs_) {
+		langs_ = new language_t();
+#if FX_IOS
+		langs_ = new language_t();
+		__get_languages__(langs_->langs, langs_->lang);
+#elif FX_ANDROID
+		langs_->langs = Android::language();
+		langs_->lang = langs_->langs;
+#elif FX_LINUX
+		cchar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
+		if ( lang ) {
+			langs_->langs = String(lang).split('.')[0];
+		} else {
+			langs_->langs = "en_US";
+		}
+		langs_->lang = langs_->langs;
+#endif
+	}
+	return langs_;
+}
+
+String languages() {
+	return get_languages()->langs;
+}
+
+String language() {
+	return get_languages()->lang;
+}
+
+// advanced
 
 bool is_wifi() {
 	return network_status() == 2;

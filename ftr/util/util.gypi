@@ -106,7 +106,8 @@
 					'android-jni.cc',
 					'android-log.h',
 					'android-log.cc',
-					'_android.cc',
+					'platforms/android-path.cc',
+					'platforms/android-os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -119,7 +120,8 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'_linux.cc',
+					'platforms/linux-path.cc',
+					'platforms/linux-os.cc',
 				],
 				'link_settings': {
 					'libraries': [
@@ -129,7 +131,8 @@
 			}],
 			['OS=="mac"', {
 				'sources': [
-					'_mac.mm',
+					'platforms/mac-path.cc',
+					'platforms/mac-os.cc',
 				],
 				'link_settings': {
 					'libraries': [

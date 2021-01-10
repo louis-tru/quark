@@ -72,10 +72,10 @@ class FX_EXPORT Android {
 	static String version();
 	static String brand();
 	static String subsystem();
-	static int network_status();
-	static bool is_ac_power();
-	static bool is_battery();
-	static float battery_level();
+	static int    network_status();
+	static bool   is_ac_power();
+	static bool   is_battery();
+	static float  battery_level();
 	static String language();
 	static uint64 available_memory();
 	static uint64 memory();

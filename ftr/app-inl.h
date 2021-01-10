@@ -28,85 +28,102 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <linux/limits.h>
-#include <sys/utsname.h>
-#include "ftr/util/fs.h"
+#ifndef __ftr__gui_app_1__
+#define __ftr__gui_app_1__
+
+#include "app.h"
+
+/**
+ * @ns ftr
+ */
 
 FX_NS(ftr)
 
-String Path::executable() {
-	static cString path([]() -> String { 
-		char dir[PATH_MAX] = { 0 };
-		int n = readlink("/proc/self/exe", dir, PATH_MAX);
-		return Path::format("%s", dir);
-	}());
-	return path;
-}
+FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
+ public:
+	struct KeyboardOptions {
+		bool               is_clear;
+		KeyboardType       type;
+		KeyboardReturnType return_type;
+		Vec2               spot_location;
+	};
+	
+	void initialize(cJSON& options);
+	void refresh_display();
+	void triggerLoad();
+	void triggerRender();
+	void triggerPause();
+	void triggerResume();
+	void triggerBackground();
+	void triggerForeground();
+	void triggerMemorywarning();
+	void triggerUnload();
+	
+	/**
+	 * @func set_volume_up()
+	 */
+	void set_volume_up();
 
-String Path::documents(cString& child) {
-	static String documentsPath([]() -> String { 
-		String s = Path::format("%s/%s", getenv("HOME"), "Documents");
-		FileHelper::mkdir_p_sync(s);
-		return s;
-	}());
-	if ( child.is_empty() ) {
-		return documentsPath;
+	/**
+	 * @func set_volume_down()
+	 */
+	void set_volume_down();
+	
+	/**
+	 * @func set_root
+	 */
+	void set_root(Root* value) throw(Error);
+	
+	/**
+	 * @func runMain
+	 */
+	inline static void runMain(int argc, char* argv[]) {
+		GUIApplication::runMain(argc, argv);
 	}
-	return Path::format("%s/%s", *documentsPath, *child);
-}
+	
+	/**
+	 * @func set_focus_view
+	 */
+	bool set_focus_view(View* view);
+	
+	/**
+	 * @func dispatch
+	 * */
+	inline GUIEventDispatch* dispatch() { return m_dispatch; }
+	
+	/**
+	 * @func ime_keyboard_open
+	 */
+	void ime_keyboard_open(KeyboardOptions options);
+	
+	/**
+	 * @func ime_keyboard_can_backspace
+	 */
+	void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
+	
+	/**
+	 * @func ime_keyboard_close
+	 */
+	void ime_keyboard_close();
+	
+	/**
+	 * @func ime_keyboard_spot_location
+	 */
+	void ime_keyboard_spot_location(Vec2 location);
 
-String Path::temp(cString& child) {
-	static String tempPath([]() -> String {
-		String s = Path::format("%s/%s", getenv("HOME"), ".cache");
-		FileHelper::mkdir_p_sync(s);
-		return s;
-	}());
-	if (child.is_empty()) {
-		return tempPath;
-	}
-	return Path::format("%s/%s", *tempPath, *child);
-}
+	/**
+	 * @func onExit(code)
+	 */
+	int onExit(int code);
+	
+};
 
-/**
- * Get the resoures dir
- */
-String Path::resources(cString& child) {
-	static String resourcesPath([]() -> String {
-		return Path::dirname(executable());
-	}());
-	if (child.is_empty()) {
-		return resourcesPath;
-	}
-	return Path::format("%s/%s", *resourcesPath, *child);
-}
+#define _inl_app(self) static_cast<AppInl*>(self)
 
-namespace sys {
+typedef GUIApplication::Inl AppInl;
 
-	static struct utsname* utsn = NULL;
-
-	utsname* _uname() {
-		if (!utsn) {
-			utsn = new utsname();
-			uname(utsn);
-		}
-		return utsn;
-	}
-
-	String version() {
-		return _uname()->release;
-	}
-
-	String brand() {
-		return "Linux";
-	}
-
-	String subsystem() {
-		return _uname()->version;
-	}
-
-}
+void safeExit(int rc);
 
 FX_END
 
+#endif

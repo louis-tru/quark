@@ -28,66 +28,22 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <unistd.h>
-#include "ftr/util/fs.h"
-#include "ftr/util/android-jni.h"
-#include "android/android.h"
 
-using namespace ftr;
+#ifndef __ftr__gui_render_looper__
+#define __ftr__gui_render_looper__
 
-FX_NS(ftr)
-
-String Path::executable() {
-	static cString path([]() -> String { 
-		char dir[PATH_MAX] = { 0 };
-		int n = readlink("/proc/self/exe", dir, PATH_MAX);
-		return Path::format("%s", dir);
-	}());
-	return path;
-}
-
-String Path::documents(cString& child) {
-	static String path(Path::format("%s", *Android::files_dir_path()));
-	if ( child.is_empty() ) {
-		return path;
-	}
-	return Path::format("%s/%s", *path, *child);
-}
-
-String Path::temp(cString& child) {
-	static String path(Path::format("%s", *Android::cache_dir_path()));
-	if ( child.is_empty() ) {
-		return path;
-	}
-	return Path::format("%s/%s", *path, *child);
-}
+#include "app-inl.h"
 
 /**
- * Get the resoures dir
+ * @class RenderLooper
  */
-String Path::resources(cString& child) {
-	static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
-	if ( child.is_empty() ) {
-		return path;
-	}
-	return Path::format("%s/%s", *path, *child);
-}
-
-namespace sys {
-
-	String version() {
-		return Android::version();
-	}
-
-	String brand() {
-		return Android::brand();
-	}
-
-	String subsystem() {
-		return Android::subsystem();
-	}
-
-}
-
-FX_END
-
+class RenderLooper {
+ public:
+	RenderLooper(AppInl* host);
+	~RenderLooper();
+	void start();
+	void stop();
+ private:
+	AppInl* m_host;
+	int* m_id;
+};

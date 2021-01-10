@@ -49,7 +49,47 @@
 #import <mach/mach.h>
 
 FX_NS(ftr)
-FX_NS(sys)
+FX_NS(os)
+
+String brand() {
+	return "Apple";
+}
+
+#if FX_IOS
+
+String version() {
+	return [[[UIDevice currentDevice] systemVersion] UTF8String];
+}
+
+String subsystem() {
+	return [[[UIDevice currentDevice] model] UTF8String];
+}
+
+#else 
+
+String version() {
+	return String();
+}
+
+String subsystem() {
+	static String name("MacOSX");
+	return name;
+}
+
+#endif 
+
+void __get_languages__(String& langs, String& lang) {
+	NSArray* languages = [NSLocale preferredLanguages];
+	for ( int i = 0; i < [languages count]; i++ ) {
+		NSString* str = [languages objectAtIndex:0];
+		if (i == 0) {
+			lang = [str UTF8String];
+		} else {
+			langs += ',';
+		}
+		langs += [str UTF8String];
+	}
+}
 
 int network_status() {
 	Reachability* reachability = [Reachability reachabilityWithHostName:@"www.apple.com"];

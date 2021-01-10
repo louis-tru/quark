@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,41 +25,40 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
-#include "android/android.h"
+#ifndef __ftr__utils__os__
+#define __ftr__utils__os__
+
+#include "ftr/util/util.h"
 
 FX_NS(ftr)
-FX_NS(sys)
+FX_NS(os)
 
-int network_status() {
-	return Android::network_status();
-}
+// util
+FX_EXPORT String name();
+FX_EXPORT String version();
+FX_EXPORT String brand();
+FX_EXPORT String subsystem();
+FX_EXPORT String info();
+FX_EXPORT String languages();
+FX_EXPORT String language();
+FX_EXPORT int64 time();
+FX_EXPORT int64 time_second();
+FX_EXPORT int64 time_monotonic();
 
-bool is_ac_power() {
-	return Android::is_ac_power();
-}
-
-bool is_battery() {
-	return Android::is_battery();
-}
-
-float battery_level() {
-	return Android::battery_level();
-}
-
-uint64 memory() {
-	return Android::memory();
-}
-
-uint64 used_memory() {
-	return Android::used_memory();
-}
-
-uint64 available_memory() {
-	return Android::available_memory();
-}
+// advanced
+FX_EXPORT bool  is_wifi();
+FX_EXPORT bool  is_mobile();
+FX_EXPORT int   network_status();
+FX_EXPORT bool  is_ac_power();
+FX_EXPORT bool  is_battery();
+FX_EXPORT float battery_level();
+FX_EXPORT uint64 memory();
+FX_EXPORT uint64 used_memory();
+FX_EXPORT uint64 available_memory();
+FX_EXPORT float cpu_usage();
 
 FX_END FX_END
+#endif

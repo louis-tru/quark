@@ -200,19 +200,6 @@ FX_INLINE constexpr Tp&& forward(typename _right_reference::_remove_reference<Tp
 	return static_cast<Tp&&>(t);
 }
 
-namespace sys {
-	FX_EXPORT String name();
-	FX_EXPORT String version();
-	FX_EXPORT String brand();
-	FX_EXPORT String subsystem();
-	FX_EXPORT String info();
-	FX_EXPORT String languages();
-	FX_EXPORT String language();
-	FX_EXPORT int64 time();
-	FX_EXPORT int64 time_second();
-	FX_EXPORT int64 time_monotonic();
-};
-
 FX_END
 
 #endif
