@@ -152,7 +152,8 @@ namespace ftr {
 		Container _container;
 	};
 
-	typedef ArrayBuffer<char> Buffer;
+	typedef       ArrayBuffer<char> Buffer;
+	typedef const ArrayBuffer<char> cBuffer;
 
 	#include "ftr/util/buffer.inl"
 }
