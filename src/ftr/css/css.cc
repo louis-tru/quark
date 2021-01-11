@@ -33,7 +33,7 @@
 
 FX_NS(ftr)
 
-#include "css-property.cc"
+#include "css.cc.inl"
 
 static Map<String, CSSPseudoClass> pseudo_class_table([]() {
 	Map<String, CSSPseudoClass> r;

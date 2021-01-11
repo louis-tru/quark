@@ -53,7 +53,7 @@ FX_NS(ftr)
  不一样。
  */
 
-static Buffer _compress(cchar* data, uint len, int level) {
+static Buffer _compress(const char* data, uint32_t len, int level) {
 	Buffer rev, tmp(16384); // 16k
 	z_stream strm;
 	strm.zalloc = Z_NULL;
@@ -79,7 +79,7 @@ static Buffer _compress(cchar* data, uint len, int level) {
 	return rev;
 }
 
-static Buffer _uncompress(cchar* data, uint len) {
+static Buffer _uncompress(const char* data, uint32_t len) {
 	Buffer rev, tmp(16384); // 16k
 	z_stream strm;
 	strm.zalloc = Z_NULL;
@@ -108,14 +108,14 @@ static Buffer _uncompress(cchar* data, uint len) {
 /**
  * @func compress
  */
-Buffer ZLib::compress(cString& str, int level) {
+Buffer ZLib::compress(const String& str, int level) {
 	return _compress(*str, str.length(), level);
 }
 
 /**
  * @func uncompress
  */
-Buffer ZLib::uncompress(cString& str) {
+Buffer ZLib::uncompress(const String& str) {
 	return _uncompress(*str, str.length());
 }
 
@@ -144,7 +144,7 @@ bool GZip::is_open() {
 	return m_gzfp != NULL;
 }
 
-extern cchar* inl__file_flag_str(int flag);
+extern const char* inl__file_flag_str(int flag);
 
 // Override
 int GZip::open(int flag) {
@@ -170,19 +170,19 @@ int GZip::close() {
 }
 
 // Override
-int GZip::read(void* buffer, int64 size, int64 offset) {
+int GZip::read(void* buffer, int64_t size, int64_t offset) {
 	if ( offset > -1 ) {
 		gzseek((gzFile)m_gzfp, offset, SEEK_SET);
 	}
-	return gzread((gzFile)m_gzfp, buffer, uint(size));
+	return gzread((gzFile)m_gzfp, buffer, uint32_t(size));
 }
 
 // Override
-int GZip::write(const void* buffer, int64 size, int64 offset) {
+int GZip::write(const void* buffer, int64_t size, int64_t offset) {
 	if ( offset > -1 ) {
 		gzseek((gzFile)m_gzfp, offset, SEEK_SET);
 	}
-	return gzwrite((gzFile)m_gzfp, buffer, uint(size));
+	return gzwrite((gzFile)m_gzfp, buffer, uint32_t(size));
 }
 
 FX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
@@ -228,7 +228,7 @@ FX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
 		return false;
 	}
 	
-	void add_dir_info_item(cString& pathname, FileType type) {
+	void add_dir_info_item(const String& pathname, FileType type) {
 		
 		String dirname = Path::dirname(pathname);
 		String compatible_path = m_compatible_path + '/' + pathname;
@@ -249,7 +249,7 @@ FX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
 	
 };
 
-ZipReader::ZipReader(cString& path, cString& passwd)
+ZipReader::ZipReader(const String& path, const String& passwd)
 	: m_path(Path::format(path)), m_passwd(passwd)
 	, m_unzp(nullptr)
 	, m_is_open(false)
@@ -304,8 +304,8 @@ bool ZipReader::open() {
 			FX_ERR("Get current file info error"); return false;
 		}
 		String pathname = name;
-		uint compressed_size = (uint)unzfi.compressed_size;
-		uint uncompressed_size = (uint)unzfi.uncompressed_size;
+		uint32_t compressed_size = (uint32_t)unzfi.compressed_size;
+		uint32_t uncompressed_size = (uint32_t)unzfi.uncompressed_size;
 		unz_entry_info info = { _pos, pathname, compressed_size, uncompressed_size };
 		_inl_reader(this)->add_dir_info_item(pathname, FTYPE_FILE);
 		m_file_info.set(info.pathname, info);
@@ -339,22 +339,22 @@ bool ZipReader::close() {
 	return !m_unzp;
 }
 
-bool ZipReader::exists(cString& path) const {
+bool ZipReader::exists(const String& path) const {
 	return m_file_info.has(path) || m_dir_info.has(path);
 }
 
-bool ZipReader::is_file(cString& path) const {
+bool ZipReader::is_file(const String& path) const {
 	return m_file_info.has(path);
 }
 
-bool ZipReader::is_directory(cString& path) const {
+bool ZipReader::is_directory(const String& path) const {
 	return m_dir_info.has(path);
 }
 
 /**
  * @func readdir(path)
  */
-Array<Dirent> ZipReader::readdir(cString& path) const {
+Array<Dirent> ZipReader::readdir(const String& path) const {
 	auto it = m_dir_info.find(path);
 	if ( it.is_null() ) {
 		return Array<Dirent>();
@@ -363,7 +363,7 @@ Array<Dirent> ZipReader::readdir(cString& path) const {
 	}
 }
 
-bool ZipReader::jump(cString& path) {
+bool ZipReader::jump(const String& path) {
 	auto it = m_file_info.find(path);
 	if ( it == m_file_info.end() ) {
 		return false;
@@ -412,7 +412,7 @@ Buffer ZipReader::read() {
 	return buffer;
 }
 
-Buffer ZipReader::read(uint size) {
+Buffer ZipReader::read(uint32_t size) {
 	Buffer buffer(size, size + 1);
 	int length = read(*buffer, size);
 	if (length < 0) { // err
@@ -424,7 +424,7 @@ Buffer ZipReader::read(uint size) {
 
 // ZipWriter
 
-ZipWriter::ZipWriter(cString& path, cString& passwd)
+ZipWriter::ZipWriter(const String& path, const String& passwd)
 	: m_path(path)
 	, m_passwd(passwd)
 	, m_open_mode(OPEN_MODE_CREATE)
@@ -470,7 +470,7 @@ bool ZipWriter::close() {
 	return !m_zipp;
 }
 
-bool ZipWriter::add_file(cString& path) {
+bool ZipWriter::add_file(const String& path) {
 	if ( close_current_file() ) {
 		zip_fileinfo zipfi;
 		
@@ -499,7 +499,7 @@ bool ZipWriter::add_file(cString& path) {
 	return false;
 }
 
-bool ZipWriter::write(const void* buffer, uint size) {
+bool ZipWriter::write(const void* buffer, uint32_t size) {
 	return zipWriteInFileInZip((zipFile*)m_zipp, buffer, size) == 0;
 }
 
@@ -510,7 +510,7 @@ bool ZipWriter::write(cBuffer& data) {
 /**
  * Write data to file
  */
-bool ZipWriter::write(cString& str) {
+bool ZipWriter::write(const String& str) {
 	return write(*str, str.length());
 }
 

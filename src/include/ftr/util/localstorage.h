@@ -32,17 +32,14 @@
 #ifndef __ftr__util__localstorage__
 #define __ftr__util__localstorage__
 
-#include "ftr/util/cb.h"
-#include "ftr/util/util.h"
-#include "ftr/util/string.h"
+#include <ftr/util/cb.h>
+#include <ftr/util/util.h>
 
-FX_NS(ftr)
-
-FX_EXPORT String localstorage_get(cString& name);
-FX_EXPORT void localstorage_set(cString& name, cString& value);
-FX_EXPORT void localstorage_delete(cString& name);
-FX_EXPORT void localstorage_clear();
-FX_EXPORT void localstorage_transaction(cCb& cb);
-
-FX_END
+namespace ftr {
+	FX_EXPORT String localstorage_get(const String& name);
+	FX_EXPORT void   localstorage_set(const String& name, const String& value);
+	FX_EXPORT void   localstorage_delete(const String& name);
+	FX_EXPORT void   localstorage_clear();
+	FX_EXPORT void   localstorage_transaction(cCb& cb);
+}
 #endif

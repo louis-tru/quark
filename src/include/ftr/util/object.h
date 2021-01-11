@@ -31,8 +31,9 @@
 #ifndef __ftr__util__object__
 #define __ftr__util__object__
 
-#include "ftr/util/macros.h"
+#include <ftr/util/macros.h>
 #include <atomic>
+#include <string>
 
 #ifndef FX_MEMORY_TRACE_MARK
 # define FX_MEMORY_TRACE_MARK 0
@@ -42,182 +43,153 @@
 # include <vector>
 #endif
 
-/**
- * @ns ftr
- */
+namespace ftr {
 
-FX_NS(ftr)
+	#define FX_DEFAULT_ALLOCATOR() \
+	static void* operator new(std::size_t size) { return ::operator new(size); } \
+	static void  operator delete(void* p) { ::operator delete(p); } \
+	virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
 
-typedef const char cchar;
-typedef unsigned char byte;
-typedef const unsigned char cbyte;
-typedef signed char int8;
-typedef unsigned char uint8;
-typedef short int16;
-typedef unsigned short uint16;
-typedef unsigned int uint;
-typedef int int32;
-typedef unsigned int uint32;
+	// -------------------------------------------------------
 
-#if FX_ARCH_64BIT
-typedef long int int64;
-typedef unsigned long int uint64;
-#else
-typedef long long int int64;
-typedef unsigned long long int uint64;
-#endif
+	class Object;
+	class Reference;
 
-typedef std::size_t size_t;
+	struct FX_EXPORT DefaultAllocator {
+		static void* alloc(size_t size);
+		static void* realloc(void* ptr, size_t size);
+		static void  free(void* ptr);
+	};
 
-#define FX_DEFAULT_ALLOCATOR()  \
-static void* operator new(std::size_t size) { return ::operator new(size); } \
-static void  operator delete(void* p) { ::operator delete(p); } \
-virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
+	struct ObjectAllocator {
+		void* (*alloc)(size_t size);
+		void  (*release)(Object* obj);
+		void  (*retain)(Object* obj);
+	};
 
-// -------------------------------------------------------
+	template<typename T, class A = DefaultAllocator> class Container;
+	template<class T, class Container = Container<T>> class Array;
+	//
+	typedef std::string String;
+	typedef std::basic_string<uint16_t> String16;
+	typedef std::basic_string<uint32_t> String32;
 
-class Object;
-class Reference;
+	FX_EXPORT void set_object_allocator(ObjectAllocator* allocator = nullptr);
+	FX_EXPORT bool Retain(Object* obj);
+	FX_EXPORT void Release(Object* obj);
 
-struct FX_EXPORT DefaultAllocator {
-	static void* alloc(size_t size);
-	static void* realloc(void* ptr, size_t size);
-	static void free(void* ptr);
-};
+	template<class T, typename... Args>
+	FX_INLINE T* New(Args... args) { return new T(args...); }
 
-struct ObjectAllocator {
-	void* (*alloc)(size_t size);
-	void (*release)(Object* obj);
-	void (*retain)(Object* obj);
-};
+	template<class T, typename... Args>
+	FX_INLINE T* NewRetain(Args... args) {
+		T* r = new T(args...); r->retain(); return r; 
+	}
 
-template<typename T, class A = DefaultAllocator> class Container;
-template<class T, class Container = Container<T>> class Array;
-template<class Item, class ItemAllocator = DefaultAllocator> class List;
-template<typename Char = char, class Container = Container<Char>> class BasicString;
-typedef BasicString<> String;
-typedef const String cString;
-typedef BasicString<uint16, Container<uint16>> Ucs2String;
-typedef const Ucs2String cUcs2String;
-typedef BasicString<uint32, Container<uint32>> Ucs4String;
-typedef const Ucs4String cUcs4String;
+	class DefaultTraits;
+	class ReferenceTraits;
+	class ProtocolTraits;
 
-FX_EXPORT void set_object_allocator(ObjectAllocator* allocator = nullptr);
-FX_EXPORT bool Retain(Object* obj);
-FX_EXPORT void Release(Object* obj);
+	/**
+	* @class Object
+	*/
+	class FX_EXPORT Object {
+		public:
+		typedef DefaultTraits Traits;
+		virtual String to_string() const;
+		virtual bool is_reference() const;
+		virtual bool retain();
+		// "new" method alloc can call，Otherwise, fatal exception will be caused
+		virtual void release();
+		static void* operator new(std::size_t size);
+		static void* operator new(std::size_t size, void* p);
+		static void  operator delete(void* p);
+		#if FX_MEMORY_TRACE_MARK
+		static std::vector<Object*> mark_objects();
+		static int mark_objects_count();
+		Object();
+		virtual ~Object();
+		private:
+		int initialize_mark_();
+		int mark_index_;
+		#else 
+		virtual ~Object() = default;
+		#endif 
+	};
 
-template<class T, typename... Args>
-FX_INLINE T* New(Args... args) { return new T(args...); }
+	/**
+	* @class Reference
+	*/
+	class FX_EXPORT Reference: public Object {
+		public:
+		typedef ReferenceTraits Traits;
+		inline Reference(): m_ref_count(0) { }
+		inline Reference(const Reference& ref): m_ref_count(0) { }
+		inline Reference& operator=(const Reference& ref) { return *this; }
+		virtual ~Reference();
+		virtual bool retain();
+		virtual void release();
+		virtual bool is_reference() const;
+		inline int ref_count() const { return m_ref_count; }
+		protected:
+		std::atomic_int m_ref_count;
+	};
 
-template<class T, typename... Args>
-FX_INLINE T* NewRetain(Args... args) { 
-	T* r = new T(args...); r->retain(); return r; 
+	/**
+	* @class Protocol
+	*/
+	class FX_EXPORT Protocol {
+		public:
+		typedef ProtocolTraits Traits;
+		virtual Object* to_object() = 0;
+	};
+
+	/**
+	* @class DefaultTraits
+	*/
+	class FX_EXPORT DefaultTraits {
+		public:
+		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
+		inline static void Release(Object* obj) { if (obj) obj->release(); }
+		static constexpr bool is_reference = false;
+		static constexpr bool is_object = true;
+	};
+
+	/**
+	* @class ReferenceTraits
+	*/
+	class FX_EXPORT ReferenceTraits: public DefaultTraits {
+		public:
+		static constexpr bool is_reference = true;
+	};
+
+	/**
+	* @class ProtocolTraits
+	*/
+	class FX_EXPORT ProtocolTraits {
+		public:
+		template<class T> inline static bool Retain(T* obj) {
+			return obj ? obj->to_object()->retain() : 0;
+		}
+		template<class T> inline static void Release(T* obj) {
+			if (obj) obj->to_object()->release();
+		}
+		static constexpr bool is_reference = false;
+	};
+
+	typedef ProtocolTraits InterfaceTraits;
+
+	/**
+	* @class NonObjectTraits
+	*/
+	class FX_EXPORT NonObjectTraits {
+		public:
+		template<class T> inline static bool Retain(T* obj) {
+			/* Non referential pairs need not be Retain */ return 0;
+		}
+		template<class T> inline static void Release(T* obj) { delete obj; }
+		static constexpr bool is_reference = false;
+	};
+
 }
-
-class DefaultTraits;
-class ReferenceTraits;
-class ProtocolTraits;
-
-/**
- * @class Object
- */
-class FX_EXPORT Object {
- public:
-	typedef DefaultTraits Traits;
-	virtual String to_string() const;
-	virtual bool is_reference() const;
-	virtual bool retain();
-  // "new" method alloc can call，Otherwise, fatal exception will be caused
-	virtual void release();
-	static void* operator new(std::size_t size);
-	static void* operator new(std::size_t size, void* p);
-	static void  operator delete(void* p);
-#if FX_MEMORY_TRACE_MARK
-	static std::vector<Object*> mark_objects();
-	static int mark_objects_count();
-	Object();
-	virtual ~Object();
- private:
-	int initialize_mark_();
-	int mark_index_;
-#else 
-	virtual ~Object() = default;
-#endif 
-};
-
-/**
- * @class Reference
- */
-class FX_EXPORT Reference: public Object {
- public:
-	typedef ReferenceTraits Traits;
-	inline Reference(): m_ref_count(0) { }
-	inline Reference(const Reference& ref): m_ref_count(0) { }
-	inline Reference& operator=(const Reference& ref) { return *this; }
-	virtual ~Reference();
-	virtual bool retain();
-	virtual void release();
-	virtual bool is_reference() const;
-	inline int ref_count() const { return m_ref_count; }
- protected:
-	std::atomic_int m_ref_count;
-};
-
-/**
- * @class Protocol
- */
-class FX_EXPORT Protocol {
- public:
-	typedef ProtocolTraits Traits;
-	virtual Object* to_object() = 0;
-};
-
-/**
- * @class DefaultTraits
- */
-class FX_EXPORT DefaultTraits {
- public:
-	inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
-	inline static void Release(Object* obj) { if (obj) obj->release(); }
-	static constexpr bool is_reference = false;
-	static constexpr bool is_object = true;
-};
-
-/**
- * @class ReferenceTraits
- */
-class FX_EXPORT ReferenceTraits: public DefaultTraits {
- public:
-	static constexpr bool is_reference = true;
-};
-
-/**
- * @class ProtocolTraits
- */
-class FX_EXPORT ProtocolTraits {
- public:
-	template<class T> inline static bool Retain(T* obj) {
-		return obj ? obj->to_object()->retain() : 0;
-	}
-	template<class T> inline static void Release(T* obj) {
-		if (obj) obj->to_object()->release();
-	}
-	static constexpr bool is_reference = false;
-};
-
-typedef ProtocolTraits InterfaceTraits;
-
-/**
- * @class NonObjectTraits
- */
-class FX_EXPORT NonObjectTraits {
- public:
-	template<class T> inline static bool Retain(T* obj) {
-		/* Non referential pairs need not be Retain */ return 0;
-	}
-	template<class T> inline static void Release(T* obj) { delete obj; }
-	static constexpr bool is_reference = false;
-};
-
-FX_END
 #endif

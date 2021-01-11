@@ -41,7 +41,7 @@ FX_NS(ftr)
 static Mutex mutex;
 static bp_db_t* _http_cookie_db = nullptr;
 static int _has_initialize = 0;
-static int64 _http_cookie_date = 0;
+static int64_t _http_cookie_date = 0;
 static const String EXPIRES("expires");
 static const String MAX_AGE("max-age");
 static const String PATH("path");
@@ -64,7 +64,7 @@ static int bp__fuzz_compare_cb(void *arg, const bp_key_t *a, const bp_key_t *b)
 
 	for (uint32_t i = 0; i < len; i++) {
 		if (a->value[i] != b->value[i])
-			return (uint8_t) a->value[i] > (uint8_t) b->value[i] ? 1 : -1;
+			return (uint32_t8_t) a->value[i] > (uint32_t8_t) b->value[i] ? 1 : -1;
 	}
 	return 0;
 }
@@ -99,7 +99,7 @@ static void http_cookie_open() {
 	}
 }
 
-static String get_storage_key_prefix(bool secure, cString& domain) {
+static String get_storage_key_prefix(bool secure, const String& domain) {
 	String r(secure ? '1': '0'); 
 	r.push('.');
 	auto domains = domain.split('.');
@@ -111,8 +111,8 @@ static String get_storage_key_prefix(bool secure, cString& domain) {
 	return  r;
 }
 
-static String get_storage_key(cString& domain, 
-	cString& name, cString& path, bool secure) {
+static String get_storage_key(const String& domain, 
+	const String& name, const String& path, bool secure) {
 	String r = get_storage_key_prefix(secure, domain);
 
 	if (!path.is_empty()) {
@@ -141,7 +141,7 @@ static int http_cookie_fuzz_query_compare_cb(void* arg, const bp_key_t *a, const
 	return 0;
 };
 
-static int http_cookie_fuzz_query(cString& domain, bool secure, Buffer *buf) 
+static int http_cookie_fuzz_query(const String& domain, bool secure, Buffer *buf) 
 {
 	String _key = get_storage_key_prefix(secure, domain);
 	bp_key_t key = { _key.length(), (char*)*_key };
@@ -165,7 +165,7 @@ end:
 	return r;
 }
 
-String http_cookie_get(cString& domain, cString& name, cString& path, bool secure) {
+String http_cookie_get(const String& domain, const String& name, const String& path, bool secure) {
 	http_cookie_open();
 
 	if ( _db ) {
@@ -176,8 +176,8 @@ String http_cookie_get(cString& domain, cString& name, cString& path, bool secur
 		if (bp_get_reverse(_db, &key, &val) == BP_OK) {
 			try { 
 				JSON json = JSON::parse(Buffer(val.value, val.length));
-				int64 expires = json[0].to_int64();
-				int64 date = json[1].to_int64();
+				int64_t expires = json[0].to_int64_t();
+				int64_t date = json[1].to_int64_t();
 
 				if ((expires == -1 && date == _http_cookie_date) || expires > sys::time()) {
 					return json[2].to_string();
@@ -190,7 +190,7 @@ String http_cookie_get(cString& domain, cString& name, cString& path, bool secur
 	return String();
 }
 
-static void http_cookie_set2(String& _key, cString& value, int64 expires) 
+static void http_cookie_set2(String& _key, const String& value, int64_t expires) 
 {
 	int r;
 
@@ -209,7 +209,7 @@ static void http_cookie_set2(String& _key, cString& value, int64 expires)
 	assert_r(r);
 }
 
-void http_cookie_set_with_expression(cString& domain, cString& expression) 
+void http_cookie_set_with_expression(const String& domain, const String& expression) 
 {
 	//Set-Cookie: BAIDU_WISE_UID=bd_1491295526_455; expires=Thu, 04-Apr-2019 08:45:26 GMT; path=/; domain=baidu.com
 	//Set-Cookie: BAIDUID=C9DD3739AD81A91137099489A6DA4C2F:FG=1; expires=Wed, 04-Apr-18 08:45:27 GMT; max-age=31536000; path=/; domain=.baidu.com; version=1
@@ -237,7 +237,7 @@ void http_cookie_set_with_expression(cString& domain, cString& expression)
 			return;
 		}
 		
-		int64 expires = -1;
+		int64_t expires = -1;
 		
 		auto end = options.end();
 		auto it = options.find(DOMAIN_STR);
@@ -258,11 +258,11 @@ void http_cookie_set_with_expression(cString& domain, cString& expression)
 		
 		it = options.find(MAX_AGE);
 		if ( it != end ) {
-			expires = it.value().to_int64() * 1e6 + sys::time();
+			expires = it.value().to_int64_t() * 1e6 + sys::time();
 		} else {
 			it = options.find(EXPIRES);
 			if ( it != end ) {
-				int64 time = parse_time(it.value());
+				int64_t time = parse_time(it.value());
 				if ( time > 0 ) {
 					expires = time;
 				}
@@ -276,9 +276,9 @@ void http_cookie_set_with_expression(cString& domain, cString& expression)
 	}
 }
 
-void http_cookie_set(cString& domain,
-										 cString& name,
-										 cString& value, int64 expires, cString& path, bool secure) 
+void http_cookie_set(const String& domain,
+										 const String& name,
+										 const String& value, int64_t expires, const String& path, bool secure) 
 {
 	http_cookie_open();
 	if ( _db ) {
@@ -287,7 +287,7 @@ void http_cookie_set(cString& domain,
 	}
 }
 
-void http_cookie_delete(cString& domain, cString& name, cString& path, bool secure) {
+void http_cookie_delete(const String& domain, const String& name, const String& path, bool secure) {
 	http_cookie_open();
 	if ( _db ) {
 		int r;
@@ -299,7 +299,7 @@ void http_cookie_delete(cString& domain, cString& name, cString& path, bool secu
 	}
 }
 
-String http_cookie_get_all_string(cString& domain, cString& path, bool secure) {
+String http_cookie_get_all_string(const String& domain, const String& path, bool secure) {
 
 	Map<String, String> all = http_cookie_get_all(domain, path, secure);
 
@@ -314,7 +314,7 @@ String http_cookie_get_all_string(cString& domain, cString& path, bool secure) {
 	return String();
 }
 
-Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool secure) {
+Map<String, String> http_cookie_get_all(const String& domain, const String& path, bool secure) {
 	ScopeLock scope(mutex);
 	http_cookie_open();
 	Map<String, String> result;
@@ -338,7 +338,7 @@ Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool sec
 				char* s = strchr(key->value, '/');
 				if (s) {
 					int i = 0, t_len = path->length();
-					cchar* t = path->c();
+					const char* t = path->c();
 
 					// LOG("bp_get_filtered_range, %s, %s", s, t);
 
@@ -356,8 +356,8 @@ Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool sec
 				auto m = reinterpret_cast<tmp_data_t*>(arg)->result;
 				try { 
 					JSON json = JSON::parse(WeakBuffer(val->value, val->length));
-					int64 expires = json[0].to_int64();
-					int64 date = json[1].to_int64();
+					int64_t expires = json[0].to_int64_t();
+					int64_t date = json[1].to_int64_t();
 
 					if ((expires == -1 && date == _http_cookie_date) || expires > sys::time()) {
 						char* s = strchr(key->value, '@') + 1;
@@ -372,7 +372,7 @@ Map<String, String> http_cookie_get_all(cString& domain, cString& path, bool sec
 	return result;
 }
 
-void http_cookie_delete_all(cString& domain, bool secure) {
+void http_cookie_delete_all(const String& domain, bool secure) {
 	ScopeLock scope(mutex);
 	http_cookie_open();
 	if ( _db ) {

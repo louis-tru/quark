@@ -62,17 +62,17 @@ JSON::JSON(int i) {
 }
 
 //! Constructor for unsigned value.
-JSON::JSON(uint u) {
+JSON::JSON(uint32_t u) {
 	new(this)RValue(u);
 }
 
-//! Constructor for int64_t value.
-JSON::JSON(int64 i64) {
-	new(this)RValue((int64_t)i64);
+//! Constructor for int64_t_t value.
+JSON::JSON(int64_t i64) {
+	new(this)RValue((int64_t_t)i64);
 }
 
 //! Constructor for uint64_t value.
-JSON::JSON(uint64 u64) {
+JSON::JSON(uint64_t u64) {
 	new(this)RValue((uint64_t)u64);
 }
 
@@ -81,13 +81,13 @@ JSON::JSON(double d) {
 	new(this)RValue(d);
 }
 
-//! Constructor for ccharp value.
-JSON::JSON(cchar* str) {
-	new(this)RValue(str, uint(strlen(str)), shareMemoryPoolAllocator);
+//! Constructor for const charp value.
+JSON::JSON(const char* str) {
+	new(this)RValue(str, uint32_t(strlen(str)), shareMemoryPoolAllocator);
 }
 
 //! Constructor for CStringRef value.
-JSON::JSON(cString& str) {
+JSON::JSON(const String& str) {
 	new(this)RValue(*str, str.length(), shareMemoryPoolAllocator);
 }
 
@@ -97,17 +97,17 @@ JSON::JSON(cBuffer& data) {
 }
 
 JSON::JSON(JSON&& json) {
-	new(this)RValue(move(*reinterpret_cast<RValue*>(&json))); // init
+	new(this)RValue(std::move(*reinterpret_cast<RValue*>(&json))); // init
 }
 JSON& JSON::operator=(JSON&& json) {
-	*reinterpret_cast<RValue*>(this) = move(*reinterpret_cast<RValue*>(&json));
+	*reinterpret_cast<RValue*>(this) = std::move(*reinterpret_cast<RValue*>(&json));
 	return *this;
 }
 
 JSON::JSON(JSON& json) {
 //  TLog(sizeof(RValue));
 //  TLog(sizeof(JSON));
-	new(this)RValue(move(*reinterpret_cast<RValue*>(&json))); // init
+	new(this)RValue(std::move(*reinterpret_cast<RValue*>(&json))); // init
 }
 
 JSON::~JSON(){
@@ -135,18 +135,18 @@ JSON& JSON::operator=(int i) {
 	return *this;
 }
 
-JSON& JSON::operator=(uint u) {
+JSON& JSON::operator=(uint32_t u) {
 	reinterpret_cast<RValue*>(this)->SetUint(u);
 	return *this;
 }
 
-JSON& JSON::operator=(int64 i64) {
+JSON& JSON::operator=(int64_t i64) {
 	reinterpret_cast<RValue*>(this)->SetInt64(i64);
 	return *this;
 }
 
-JSON& JSON::operator=(uint64 u64) {
-	reinterpret_cast<RValue*>(this)->SetUint64(u64);
+JSON& JSON::operator=(uint64_t u64) {
+	reinterpret_cast<RValue*>(this)->SetUint64_t(u64);
 	return *this;
 }
 
@@ -155,13 +155,13 @@ JSON& JSON::operator=(double d) {
 	return *this;
 }
 
-JSON& JSON::operator=(cchar* str) {
+JSON& JSON::operator=(const char* str) {
 	reinterpret_cast<RValue*>(this)->
-		SetString(str, uint(strlen(str)), shareMemoryPoolAllocator);
+		SetString(str, uint32_t(strlen(str)), shareMemoryPoolAllocator);
 	return *this;
 }
 
-JSON& JSON::operator=(cString& str) {
+JSON& JSON::operator=(const String& str) {
 	reinterpret_cast<RValue*>(this)->
 		SetString(*str, str.length(), shareMemoryPoolAllocator);
 	return *this;
@@ -178,11 +178,11 @@ bool JSON::operator==(const JSON& json) const {
 	return reinterpret_cast<CRValue*>(this)->operator==(b);
 }
 
-bool JSON::operator==(cchar* str) const {
+bool JSON::operator==(const char* str) const {
 	return reinterpret_cast<CRValue*>(this)->operator==(str);
 }
 
-bool JSON::operator==(cString& str) const {
+bool JSON::operator==(const String& str) const {
 	return reinterpret_cast<CRValue*>(this)->operator==(*str);
 }
 
@@ -241,7 +241,7 @@ JSON& JSON::operator[](int index) {
 	return *reinterpret_cast<JSON*>(value);
 }
 
-JSON& JSON::operator[] (cchar* key) {
+JSON& JSON::operator[] (const char* key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
 	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
@@ -261,7 +261,7 @@ JSON& JSON::operator[] (cchar* key) {
 	return *reinterpret_cast<JSON*>(value);
 }
 
-JSON& JSON::operator[] (cString& key) {
+JSON& JSON::operator[] (const String& key) {
 	return operator[](*key);
 }
 
@@ -276,7 +276,7 @@ const JSON& JSON::operator[](int index) const {
 	return NullValue;
 }
 
-const JSON& JSON::operator[](cchar* key) const {
+const JSON& JSON::operator[](const char* key) const {
 	CRValue* self = reinterpret_cast<CRValue*>(this);
 	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
@@ -288,15 +288,15 @@ const JSON& JSON::operator[](cchar* key) const {
 	return NullValue;
 }
 
-const JSON& JSON::operator[](cString& key) const {
+const JSON& JSON::operator[](const String& key) const {
 	return operator[](*key);
 }
 
-bool JSON::is_member(cchar* key) const {
+bool JSON::is_member(const char* key) const {
 	return reinterpret_cast<CRValue*>(this)->HasMember(key);
 }
 
-bool JSON::is_member(cString& key) const {
+bool JSON::is_member(const String& key) const {
 	return reinterpret_cast<CRValue*>(this)->HasMember(*key);
 }
 
@@ -308,21 +308,21 @@ bool JSON::is_object() const { return reinterpret_cast<CRValue*>(this)->IsObject
 bool JSON::is_array()  const { return reinterpret_cast<CRValue*>(this)->IsArray(); }
 bool JSON::is_number() const { return reinterpret_cast<CRValue*>(this)->IsNumber(); }
 bool JSON::is_int()    const { return reinterpret_cast<CRValue*>(this)->IsInt(); }
-bool JSON::is_uint()   const { return reinterpret_cast<CRValue*>(this)->IsUint(); }
-bool JSON::is_int64()  const { return reinterpret_cast<CRValue*>(this)->IsInt64(); }
-bool JSON::is_uint64() const { return reinterpret_cast<CRValue*>(this)->IsUint64(); }
+bool JSON::is_uint32_t()   const { return reinterpret_cast<CRValue*>(this)->IsUint(); }
+bool JSON::is_int64_t()  const { return reinterpret_cast<CRValue*>(this)->IsInt64(); }
+bool JSON::is_uint64_t() const { return reinterpret_cast<CRValue*>(this)->IsUint64_t(); }
 bool JSON::is_double() const { return reinterpret_cast<CRValue*>(this)->IsDouble(); }
 bool JSON::is_string() const { return reinterpret_cast<CRValue*>(this)->IsString(); }
 bool JSON::to_bool()   const { return reinterpret_cast<CRValue*>(this)->GetBool(); }
 double JSON::to_double()   const { return reinterpret_cast<CRValue*>(this)->GetDouble(); }
 int JSON::to_int()         const { return reinterpret_cast<CRValue*>(this)->GetInt(); }
-int64 JSON::to_int64()     const { return reinterpret_cast<CRValue*>(this)->GetInt64(); }
-cchar* JSON::to_cstring()  const { return reinterpret_cast<CRValue*>(this)->GetString(); }
-String JSON::to_string()   const { return move(String(to_cstring(), string_length())); }
-uint JSON::to_uint()       const { return reinterpret_cast<CRValue*>(this)->GetUint(); }
-uint64 JSON::to_uint64()   const { return reinterpret_cast<CRValue*>(this)->GetUint64(); }
-uint JSON::string_length() const { return reinterpret_cast<CRValue*>(this)->GetStringLength(); }
-uint JSON::length()        const { return reinterpret_cast<CRValue*>(this)->Size(); }
+int64_t JSON::to_int64_t()     const { return reinterpret_cast<CRValue*>(this)->GetInt64(); }
+const char* JSON::to_cstring()  const { return reinterpret_cast<CRValue*>(this)->GetString(); }
+String JSON::to_string()   const { return std::move(String(to_cstring(), string_length())); }
+uint32_t JSON::to_uint32_t()       const { return reinterpret_cast<CRValue*>(this)->GetUint(); }
+uint64_t JSON::to_uint64_t()   const { return reinterpret_cast<CRValue*>(this)->GetUint64_t(); }
+uint32_t JSON::string_length() const { return reinterpret_cast<CRValue*>(this)->GetStringLength(); }
+uint32_t JSON::length()        const { return reinterpret_cast<CRValue*>(this)->Size(); }
 
 void JSON::clear() {
 	if (is_array()) {
@@ -337,7 +337,7 @@ void JSON::pop() {
 	reinterpret_cast<RValue*>(this)->PopBack();
 }
 
-void JSON::remove(cchar* key) {
+void JSON::remove(const char* key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
 	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
@@ -348,7 +348,7 @@ void JSON::remove(cchar* key) {
 	}
 }
 
-void JSON::remove(cString& key) {
+void JSON::remove(const String& key) {
 	remove(*key);
 }
 
@@ -404,7 +404,7 @@ JSON::ArrayIteratorConst JSON::end_array() const {
 	return reinterpret_cast<ArrayIteratorConst>(reinterpret_cast<CRValue*>(this)->End());
 }
 
-static JSON parse_for(cchar* json, int64 len = 0xFFFFFFFFFFFFFFF) throw(Error) {
+static JSON parse_for(const char* json, int64_t len = 0xFFFFFFFFFFFFFFF) throw(Error) {
 	RDocument doc(&shareMemoryPoolAllocator);
 	doc.Parse(json, len);
 	FX_CHECK(!doc.HasParseError(),
@@ -414,7 +414,7 @@ static JSON parse_for(cchar* json, int64 len = 0xFFFFFFFFFFFFFFF) throw(Error) {
 	return *reinterpret_cast<JSON*>(&doc);
 }
 
-JSON JSON::parse(cString& json) throw(Error) {
+JSON JSON::parse(const String& json) throw(Error) {
 	return parse_for(*json, json.length());
 }
 
@@ -422,7 +422,7 @@ JSON JSON::parse(cBuffer& data) throw(Error) {
 	return parse_for(*data, data.length());
 }
 
-JSON JSON::parse(cchar* json) throw(Error) {
+JSON JSON::parse(const char* json) throw(Error) {
 	return parse_for(json);
 }
 
@@ -430,7 +430,7 @@ String JSON::stringify(cJSON& json){
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	reinterpret_cast<CRValue*>(&json)->Accept(writer);
-	return move(String(buffer.GetString(), uint(buffer.GetSize())));
+	return std::move(String(buffer.GetString(), uint32_t(buffer.GetSize())));
 }
 
 JSON& JSON::ext(JSON& o, JSON& extd) {

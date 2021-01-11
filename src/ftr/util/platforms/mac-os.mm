@@ -192,18 +192,18 @@ float battery_level() {
 
 #endif
 
-uint64 memory() {
+uint64_t memory() {
 	return [NSProcessInfo processInfo].physicalMemory;
 }
 
-uint64 used_memory() {
+uint64_t used_memory() {
 	struct task_basic_info info;
 	mach_msg_type_number_t size = TASK_BASIC_INFO_COUNT;
 	kern_return_t kerr = task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&info, &size);
 	return (kerr == KERN_SUCCESS) ? info.resident_size : 0; // size in bytes
 }
 
-uint64 available_memory() {
+uint64_t available_memory() {
 	vm_statistics_data_t stats;
 	mach_msg_type_number_t size = HOST_VM_INFO_COUNT;
 	kern_return_t kerr = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&stats, &size);

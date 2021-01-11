@@ -104,7 +104,7 @@ void async_callback(cCb& cb, PostMessage* loop) {
 
 struct TaskList {
 	Mutex mutex;
-	Map<uint, AsyncIOTask*> values;
+	Map<uint32_t, AsyncIOTask*> values;
 };
 
 static TaskList* tasks = new TaskList;
@@ -128,7 +128,7 @@ void AsyncIOTask::abort() {
 	}
 }
 
-void AsyncIOTask::safe_abort(uint id) {
+void AsyncIOTask::safe_abort(uint32_t id) {
 	if (id) {
 		ScopeLock scope(tasks->mutex);
 		auto i = tasks->values.find(id);

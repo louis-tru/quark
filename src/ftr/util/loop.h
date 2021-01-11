@@ -49,12 +49,12 @@ class FX_EXPORT ParallelWorking: public Object {
 	ParallelWorking();
 	ParallelWorking(RunLoop* loop);
 	virtual ~ParallelWorking();
-	ThreadID spawn_child(Exec exec, cString& name);
+	ThreadID spawn_child(Exec exec, const String& name);
 	void awaken_child(ThreadID id = ThreadID());  // default awaken all child
 	void abort_child(ThreadID id = ThreadID());   // default abort all child
-	uint post(cCb& cb); // post message to main thread
-	uint post(cCb& cb, uint64 delay_us);
-	void cancel(uint id = 0); // cancel message
+	uint32_t post(cCb& cb); // post message to main thread
+	uint32_t post(cCb& cb, uint64_t delay_us);
+	void cancel(uint32_t id = 0); // cancel message
  private:
 	KeepLoop* m_proxy;
 	Mutex m_mutex2;

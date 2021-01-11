@@ -46,7 +46,7 @@ extern int inl__file_flag_mask(int flag);
 
 // ---------------------------------------FileHelper------------------------------------------
 
-static void uv_error(int err, cchar* msg = nullptr) throw(Error) {
+static void uv_error(int err, const char* msg = nullptr) throw(Error) {
 	throw Error((int)err, "%s, %s, %s",
 							 uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
 }
@@ -75,7 +75,7 @@ static bool each_sync(Array<Dirent>& ls, cCb& cb, bool internal) throw(Error) {
 }
 
 static bool each_sync_1(
-	cString& path, cCb& cb, bool internal, bool skip_empty_path = false) throw(Error) 
+	const String& path, cCb& cb, bool internal, bool skip_empty_path = false) throw(Error) 
 {
 	FileStat stat;
 	try {
@@ -97,11 +97,11 @@ static bool each_sync_1(
 	return ftr::each_sync(ls, cb, internal);
 }
 
-bool FileHelper::each_sync(cString& path, cCb& cb, bool internal) throw(Error) {
+bool FileHelper::each_sync(const String& path, cCb& cb, bool internal) throw(Error) {
 	return ftr::each_sync_1(path, cb, internal, false);
 }
 
-void FileHelper::chmod_sync(cString& path, uint mode) throw(Error) {
+void FileHelper::chmod_sync(const String& path, uint32_t mode) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_chmod(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
 	if (r != 0) {
@@ -109,7 +109,7 @@ void FileHelper::chmod_sync(cString& path, uint mode) throw(Error) {
 	}
 }
 
-void FileHelper::chown_sync(cString& path, uint owner, uint group) throw(Error) {
+void FileHelper::chown_sync(const String& path, uint32_t owner, uint32_t group) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_chown(uv_default_loop(), &req, Path::fallback_c(path), owner, group, nullptr);
 	if (r != 0) {
@@ -119,7 +119,7 @@ void FileHelper::chown_sync(cString& path, uint owner, uint group) throw(Error) 
 
 static bool default_stop_signal = false;
 
-void FileHelper::mkdir_sync(cString& path, uint mode) throw(Error) {
+void FileHelper::mkdir_sync(const String& path, uint32_t mode) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_mkdir(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
 	if (r != 0) {
@@ -127,7 +127,7 @@ void FileHelper::mkdir_sync(cString& path, uint mode) throw(Error) {
 	}
 }
 
-void FileHelper::rename_sync(cString& name, cString& new_name) throw(Error) {
+void FileHelper::rename_sync(const String& name, const String& new_name) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_rename(uv_default_loop(), &req,
 											Path::fallback_c(name), Path::fallback_c(new_name), nullptr);
@@ -136,7 +136,7 @@ void FileHelper::rename_sync(cString& name, cString& new_name) throw(Error) {
 	}
 }
 
-void FileHelper::link_sync(cString& path, cString& newPath) throw(Error) {
+void FileHelper::link_sync(const String& path, const String& newPath) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_link(
 		uv_default_loop(), &req,
@@ -148,7 +148,7 @@ void FileHelper::link_sync(cString& path, cString& newPath) throw(Error) {
 	}
 }
 
-void FileHelper::unlink_sync(cString& path) throw(Error) {
+void FileHelper::unlink_sync(const String& path) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_unlink(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
 	if ( r != 0 ) {
@@ -156,7 +156,7 @@ void FileHelper::unlink_sync(cString& path) throw(Error) {
 	}
 }
 
-void FileHelper::rmdir_sync(cString& path) throw(Error) {
+void FileHelper::rmdir_sync(const String& path) throw(Error) {
 	uv_fs_t req;
 	int r = uv_fs_rmdir(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
 	if ( r != 0 ) {
@@ -164,7 +164,7 @@ void FileHelper::rmdir_sync(cString& path) throw(Error) {
 	}
 }
 
-Array<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
+Array<Dirent> FileHelper::readdir_sync(const String& path) throw(Error) {
 	Array<Dirent> ls;
 	uv_fs_t req;
 	String p = Path::format("%s", *path) + '/';
@@ -181,7 +181,7 @@ Array<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
 	return ls;
 }
 
-FileStat FileHelper::stat_sync(cString& path) throw(Error) {
+FileStat FileHelper::stat_sync(const String& path) throw(Error) {
 	FileStat stat;
 	uv_fs_t req;
 	int r = uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr);
@@ -193,12 +193,12 @@ FileStat FileHelper::stat_sync(cString& path) throw(Error) {
 	return stat;
 }
 
-bool FileHelper::exists_sync(cString& path) {
+bool FileHelper::exists_sync(const String& path) {
 	uv_fs_t req;
 	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), F_OK, nullptr) == 0;
 }
 
-bool FileHelper::is_file_sync(cString& path) {
+bool FileHelper::is_file_sync(const String& path) {
 	uv_fs_t req;
 	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
 		return !S_ISDIR(req.statbuf.st_mode);
@@ -206,7 +206,7 @@ bool FileHelper::is_file_sync(cString& path) {
 	return false;
 }
 
-bool FileHelper::is_directory_sync(cString& path) {
+bool FileHelper::is_directory_sync(const String& path) {
 	uv_fs_t req;
 	if (uv_fs_stat(uv_default_loop(), &req, Path::fallback_c(path), nullptr) == 0) {
 		return S_ISDIR(req.statbuf.st_mode);
@@ -214,25 +214,25 @@ bool FileHelper::is_directory_sync(cString& path) {
 	return false;
 }
 
-bool FileHelper::readable_sync(cString& path) {
+bool FileHelper::readable_sync(const String& path) {
 	uv_fs_t req;
 	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
 }
 
-bool FileHelper::writable_sync(cString& path) {
+bool FileHelper::writable_sync(const String& path) {
 	uv_fs_t req;
 	return uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), W_OK, nullptr) == 0;
 }
 
-bool FileHelper::executable_sync(cString& path) {
+bool FileHelper::executable_sync(const String& path) {
 	uv_fs_t req;
 	int r = uv_fs_access(uv_default_loop(), &req, Path::fallback_c(path), X_OK, nullptr);
 	return (r == 0);
 }
 
-void FileHelper::mkdir_p_sync(cString& path, uint mode) throw(Error) {
+void FileHelper::mkdir_p_sync(const String& path, uint32_t mode) throw(Error) {
 	
-	cchar* path2 = Path::fallback_c(path);
+	const char* path2 = Path::fallback_c(path);
 	
 	uv_fs_t req;
 	
@@ -296,7 +296,7 @@ void FileHelper::mkdir_p_sync(cString& path, uint mode) throw(Error) {
 	}
 }
 
-bool FileHelper::chmod_r_sync(cString& path, uint mode, bool* stop_signal) throw(Error) {
+bool FileHelper::chmod_r_sync(const String& path, uint32_t mode, bool* stop_signal) throw(Error) {
 	
 	if ( stop_signal == nullptr ) {
 		stop_signal = &default_stop_signal;
@@ -319,7 +319,7 @@ bool FileHelper::chmod_r_sync(cString& path, uint mode, bool* stop_signal) throw
 	}));
 }
 
-bool FileHelper::chown_r_sync(cString& path, uint owner, uint group, bool* stop_signal) throw(Error) 
+bool FileHelper::chown_r_sync(const String& path, uint32_t owner, uint32_t group, bool* stop_signal) throw(Error) 
 {
 	if (stop_signal == nullptr) {
 		stop_signal = &default_stop_signal;
@@ -341,7 +341,7 @@ bool FileHelper::chown_r_sync(cString& path, uint owner, uint group, bool* stop_
 	}));
 }
 
-bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
+bool FileHelper::remove_r_sync(const String& path, bool* stop_signal) throw(Error) {
 	
 	if ( stop_signal == nullptr ) {
 		stop_signal = &default_stop_signal;
@@ -353,7 +353,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 			d.return_value = 0;
 		} else {
 			Dirent* dirent = static_cast<Dirent*>(d.data);
-			cchar* p = Path::fallback_c(dirent->pathname);
+			const char* p = Path::fallback_c(dirent->pathname);
 			int r;
 			if ( dirent->type == FTYPE_DIR ) {
 				r = uv_fs_rmdir(uv_default_loop(), &req, p, nullptr);
@@ -368,7 +368,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 	}), true, true);
 }
 
-static bool cp_sync2(cString& source, cString& target, bool* stop_signal) throw(Error) {
+static bool cp_sync2(const String& source, const String& target, bool* stop_signal) throw(Error) {
 	
 	File source_file(source);
 	File target_file(target);
@@ -385,7 +385,7 @@ static bool cp_sync2(cString& source, cString& target, bool* stop_signal) throw(
 	int size = 1024 * 512; // 512 kb
 	Buffer data(size);
 
-	int64 len = source_file.read(*data, size);
+	int64_t len = source_file.read(*data, size);
 	
 	while ( len > 0 ) {
 		r = target_file.write(*data, len);
@@ -404,11 +404,11 @@ static bool cp_sync2(cString& source, cString& target, bool* stop_signal) throw(
 	return true;
 }
 
-bool FileHelper::copy_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
+bool FileHelper::copy_sync(const String& source, const String& target, bool* stop_signal) throw(Error) {
 	return cp_sync2(source, target, stop_signal ? stop_signal : &default_stop_signal);
 }
 
-bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal) throw(Error) {
+bool FileHelper::copy_r_sync(const String& source, const String& target, bool* stop_signal) throw(Error) {
 	
 	if ( !is_directory_sync(Path::dirname(target)) ) { // 没有父目录,无法复制
 		return false;
@@ -418,7 +418,7 @@ bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal
 		stop_signal = &default_stop_signal;
 	}
 	
-	uint s_len = Path::format("%s", *source).length();
+	uint32_t s_len = Path::format("%s", *source).length();
 	String path = Path::format("%s", *target);
 	
 	return each_sync(source, Cb([&](CbD& d) {
@@ -446,9 +446,9 @@ bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal
 
 // read file
 
-Buffer FileHelper::read_file_sync(cString& path, int64 size) throw(Error) {
+Buffer FileHelper::read_file_sync(const String& path, int64_t size) throw(Error) {
 
-	int64 offset = -1;
+	int64_t offset = -1;
 
 	Buffer buff;
 	uv_fs_t req;
@@ -492,10 +492,10 @@ Buffer FileHelper::read_file_sync(cString& path, int64 size) throw(Error) {
 
 // write file
 
-int FileHelper::write_file_sync(cString& path, cString& str) throw(Error) {
+int FileHelper::write_file_sync(const String& path, const String& str) throw(Error) {
 	return write_file_sync(path, *str, str.length() );
 }
-int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) throw(Error) {
+int FileHelper::write_file_sync(const String& path, const void* buffer, int64_t size) throw(Error) {
 	uv_fs_t req;
 	int fp = open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
 	uv_buf_t buf;
@@ -506,7 +506,7 @@ int FileHelper::write_file_sync(cString& path, const void* buffer, int64 size) t
 	return r;
 }
 // open/close file fd
-int FileHelper::open_sync(cString& path, int flag) throw(Error) {
+int FileHelper::open_sync(const String& path, int flag) throw(Error) {
 	uv_fs_t req;
 	int fp = uv_fs_open(uv_default_loop(), &req,
 											Path::fallback_c(path),
@@ -524,7 +524,7 @@ void FileHelper::close_sync(int fd) throw(Error) {
 	}
 }
 // read with fd
-int FileHelper::read_sync(int fd, void* buffer, int64 size, int64 offset) throw(Error) {
+int FileHelper::read_sync(int fd, void* buffer, int64_t size, int64_t offset) throw(Error) {
 	uv_fs_t req;
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
@@ -535,7 +535,7 @@ int FileHelper::read_sync(int fd, void* buffer, int64 size, int64 offset) throw(
 	}
 	return r;
 }
-int FileHelper::write_sync(int fd, const void* buffer, int64 size, int64 offset) throw(Error) {
+int FileHelper::write_sync(int fd, const void* buffer, int64_t size, int64_t offset) throw(Error) {
 	uv_fs_t req;
 	uv_buf_t buf;
 	buf.base = (char*)buffer;

@@ -51,7 +51,7 @@ String inl__get_http_cache_path() {
 typedef HttpHelper::RequestOptions RequestOptions;
 typedef HttpHelper::ResponseData ResponseData;
 
-static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(HttpError) {
+static uint32_t http_request(RequestOptions& options, cCb& cb, bool stream) throw(HttpError) {
 	
 	class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public SimpleStream {
 	 public:
@@ -193,11 +193,11 @@ static uint http_request(RequestOptions& options, cCb& cb, bool stream) throw(Ht
 /**
  * @func request
  */
-uint HttpHelper::request(RequestOptions& options, cCb& cb) throw(HttpError) {
+uint32_t HttpHelper::request(RequestOptions& options, cCb& cb) throw(HttpError) {
 	return http_request(options, cb, false);
 }
 
-uint HttpHelper::request_stream(RequestOptions& options, cCb& cb) throw(HttpError) {
+uint32_t HttpHelper::request_stream(RequestOptions& options, cCb& cb) throw(HttpError) {
 	return http_request(options, cb, true);
 }
 
@@ -224,9 +224,9 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 		try {
 			request(options, Cb([&,dd](CbD& ev) {
 				if (ev.error) {
-					*const_cast<HttpError*>(&err) = move(*static_cast<const HttpError*>(ev.error));
+					*const_cast<HttpError*>(&err) = std::move(*static_cast<const HttpError*>(ev.error));
 				} else {
-					*const_cast<ResponseData*>(&data) = move(*static_cast<ResponseData*>(ev.data));
+					*const_cast<ResponseData*>(&data) = std::move(*static_cast<ResponseData*>(ev.data));
 					*const_cast<bool*>(&ok) = true;
 				}
 				dd->complete();
@@ -244,7 +244,7 @@ Buffer HttpHelper::request_sync(RequestOptions& options) throw(HttpError) {
 	}
 }
 
-static RequestOptions default_request_options(cString& url) {
+static RequestOptions default_request_options(const String& url) {
 	return {
 		url,
 		HTTP_METHOD_GET,
@@ -262,7 +262,7 @@ static RequestOptions default_request_options(cString& url) {
 /**
  * @func download
  */
-uint HttpHelper::download(cString& url, cString& save, cCb& cb) throw(HttpError) {
+uint32_t HttpHelper::download(const String& url, const String& save, cCb& cb) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.save = save;
 	return http_request(options, cb, false);
@@ -271,7 +271,7 @@ uint HttpHelper::download(cString& url, cString& save, cCb& cb) throw(HttpError)
 /**
  * @func download_sync
  */
-void HttpHelper::download_sync(cString& url, cString& save) throw(HttpError) {
+void HttpHelper::download_sync(const String& url, const String& save) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.save = save;
 	request_sync(options);
@@ -280,7 +280,7 @@ void HttpHelper::download_sync(cString& url, cString& save) throw(HttpError) {
 /**
  * @func upload
  */
-uint HttpHelper::upload(cString& url, cString& file, cCb& cb) throw(HttpError) {
+uint32_t HttpHelper::upload(const String& url, const String& file, cCb& cb) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.upload = file;
 	options.method = HTTP_METHOD_POST;
@@ -291,7 +291,7 @@ uint HttpHelper::upload(cString& url, cString& file, cCb& cb) throw(HttpError) {
 /**
  * @func upload
  */
-Buffer HttpHelper::upload_sync(cString& url, cString& file) throw(HttpError) {
+Buffer HttpHelper::upload_sync(const String& url, const String& file) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.upload = file;
 	options.method = HTTP_METHOD_POST;
@@ -302,7 +302,7 @@ Buffer HttpHelper::upload_sync(cString& url, cString& file) throw(HttpError) {
 /**
  * @func get
  */
-uint HttpHelper::get(cString& url, cCb& cb, bool no_cache) throw(HttpError) {
+uint32_t HttpHelper::get(const String& url, cCb& cb, bool no_cache) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.disable_cache = no_cache;
 	return http_request(options, cb, false);
@@ -311,7 +311,7 @@ uint HttpHelper::get(cString& url, cCb& cb, bool no_cache) throw(HttpError) {
 /**
  * @func get_stream
  */
-uint HttpHelper::get_stream(cString& url, cCb& cb, bool no_cache) throw(HttpError) {
+uint32_t HttpHelper::get_stream(const String& url, cCb& cb, bool no_cache) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.disable_cache = no_cache;
 	return http_request(options, cb, true);
@@ -320,7 +320,7 @@ uint HttpHelper::get_stream(cString& url, cCb& cb, bool no_cache) throw(HttpErro
 /**
  * @func post
  */
-uint HttpHelper::post(cString& url, Buffer data, cCb& cb) throw(HttpError) {
+uint32_t HttpHelper::post(const String& url, Buffer data, cCb& cb) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.method = HTTP_METHOD_POST;
 	options.post_data = data;
@@ -330,7 +330,7 @@ uint HttpHelper::post(cString& url, Buffer data, cCb& cb) throw(HttpError) {
 /**
  * @func get_sync
  */
-Buffer HttpHelper::get_sync(cString& url, bool no_cache) throw(HttpError) {
+Buffer HttpHelper::get_sync(const String& url, bool no_cache) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.disable_cache = no_cache;
 	return request_sync(options);
@@ -339,7 +339,7 @@ Buffer HttpHelper::get_sync(cString& url, bool no_cache) throw(HttpError) {
 /**
  * @func post_sync
  */
-Buffer HttpHelper::post_sync(cString& url, Buffer data) throw(HttpError) {
+Buffer HttpHelper::post_sync(const String& url, Buffer data) throw(HttpError) {
 	RequestOptions options = default_request_options(url);
 	options.method = HTTP_METHOD_POST;
 	options.post_data = data;
@@ -349,7 +349,7 @@ Buffer HttpHelper::post_sync(cString& url, Buffer data) throw(HttpError) {
 /**
  * @func abort
  */
-void HttpHelper::abort(uint id) {
+void HttpHelper::abort(uint32_t id) {
 	AsyncIOTask::safe_abort(id);
 }
 
@@ -375,7 +375,7 @@ String HttpHelper::user_agent() {
 /**
  * @func set_user_agent
  */
-void HttpHelper::set_user_agent(cString& user_agent) {
+void HttpHelper::set_user_agent(const String& user_agent) {
 	http_user_agent = user_agent;
 }
 
@@ -389,7 +389,7 @@ String HttpHelper::cache_path() {
 /**
  * @func set_cache_path 设置缓存文件路径
  */
-void HttpHelper::set_cache_path(cString& path) {
+void HttpHelper::set_cache_path(const String& path) {
 	try {
 		FileHelper::mkdir_p_sync(path);
 		http_cache_path = path;

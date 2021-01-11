@@ -29,20 +29,20 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr/util/buffer.h"
-#include "ftr/util/array.cc.inl"
 
-FX_NS(ftr)
- 
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(byte, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double, BufferContainer, 1);
-FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(bool, BufferContainer, 1);
+namespace ftr {
 
-FX_END
+	#include "array.inl"
+	 
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double, BufferContainer, 1);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(bool, BufferContainer, 1);
+}

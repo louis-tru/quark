@@ -49,7 +49,7 @@ void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat) {
 }
 
 FileStat::FileStat(): m_stat(nullptr) { }
-FileStat::FileStat(cString& path): FileStat(FileHelper::stat_sync(path)) { }
+FileStat::FileStat(const String& path): FileStat(FileHelper::stat_sync(path)) { }
 FileStat::FileStat(FileStat&& stat): m_stat(stat.m_stat) {
 	stat.m_stat = nullptr;
 }
@@ -76,7 +76,7 @@ bool FileStat::is_file() const { return S_ISREG(STAT->st_mode); }
 bool FileStat::is_dir() const { return S_ISDIR(STAT->st_mode); }
 bool FileStat::is_link() const { return S_ISLNK(STAT->st_mode); }
 bool FileStat::is_sock() const { return S_ISSOCK(STAT->st_mode); }
-uint64 FileStat::mode() const { return STAT->st_mode; }
+uint64_t FileStat::mode() const { return STAT->st_mode; }
 
 FileType FileStat::type() const {
 	if ( m_stat ) {
@@ -91,28 +91,28 @@ FileType FileStat::type() const {
 	return FTYPE_UNKNOWN;
 }
 
-uint64 FileStat::group() const { return STAT->st_gid; }
-uint64 FileStat::owner() const { return STAT->st_uid; }
-uint64 FileStat::nlink() const { return STAT->st_nlink; }
-uint64 FileStat::ino() const { return STAT->st_ino; }
-uint64 FileStat::blksize() const { return STAT->st_blksize; }
-uint64 FileStat::blocks() const { return STAT->st_blocks; }
-uint64 FileStat::flags() const { return STAT->st_flags; }
-uint64 FileStat::gen() const { return STAT->st_gen; }
-uint64 FileStat::dev() const { return STAT->st_dev; }
-uint64 FileStat::rdev() const { return STAT->st_rdev; }
-uint64 FileStat::size() const { return STAT->st_size; }
-uint64 FileStat::atime() const {
-	return (int64)STAT->st_atim.tv_sec * 1000000 + STAT->st_atim.tv_nsec / 1000;
+uint64_t FileStat::group() const { return STAT->st_gid; }
+uint64_t FileStat::owner() const { return STAT->st_uid; }
+uint64_t FileStat::nlink() const { return STAT->st_nlink; }
+uint64_t FileStat::ino() const { return STAT->st_ino; }
+uint64_t FileStat::blksize() const { return STAT->st_blksize; }
+uint64_t FileStat::blocks() const { return STAT->st_blocks; }
+uint64_t FileStat::flags() const { return STAT->st_flags; }
+uint64_t FileStat::gen() const { return STAT->st_gen; }
+uint64_t FileStat::dev() const { return STAT->st_dev; }
+uint64_t FileStat::rdev() const { return STAT->st_rdev; }
+uint64_t FileStat::size() const { return STAT->st_size; }
+uint64_t FileStat::atime() const {
+	return (int64_t)STAT->st_atim.tv_sec * 1000000 + STAT->st_atim.tv_nsec / 1000;
 }
-uint64 FileStat::mtime() const {
-	return (int64)STAT->st_mtim.tv_sec * 1000000 + STAT->st_mtim.tv_nsec / 1000;
+uint64_t FileStat::mtime() const {
+	return (int64_t)STAT->st_mtim.tv_sec * 1000000 + STAT->st_mtim.tv_nsec / 1000;
 }
-uint64 FileStat::ctime() const {
-	return (int64)STAT->st_ctim.tv_sec * 1000000 + STAT->st_ctim.tv_nsec / 1000;
+uint64_t FileStat::ctime() const {
+	return (int64_t)STAT->st_ctim.tv_sec * 1000000 + STAT->st_ctim.tv_nsec / 1000;
 }
-uint64 FileStat::birthtime() const {
-	return (int64)STAT->st_birthtim.tv_sec * 1000000 + STAT->st_birthtim.tv_nsec / 1000;
+uint64_t FileStat::birthtime() const {
+	return (int64_t)STAT->st_birthtim.tv_sec * 1000000 + STAT->st_birthtim.tv_nsec / 1000;
 }
 
 #undef STAT
@@ -139,7 +139,7 @@ int inl__file_flag_mask(int flag) {
 #endif 
 }
 
-cchar* inl__file_flag_str(int flag) {
+const char* inl__file_flag_str(int flag) {
 	switch (flag) {
 		default:
 		case FOPEN_R: return "r";
@@ -184,7 +184,7 @@ int File::close() {
 	return r;
 }
 
-int File::read(void* buffer, int64 size, int64 offset) {
+int File::read(void* buffer, int64_t size, int64_t offset) {
 	uv_fs_t req;
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
@@ -192,7 +192,7 @@ int File::read(void* buffer, int64 size, int64 offset) {
 	return uv_fs_read(uv_default_loop(), &req, m_fp, &buf, 1, offset, nullptr);
 }
 
-int File::write(const void* buffer, int64 size, int64 offset) {
+int File::write(const void* buffer, int64_t size, int64_t offset) {
 	uv_fs_t req;
 	uv_buf_t buf;
 	buf.base = (char*)buffer;
@@ -204,7 +204,7 @@ int File::write(const void* buffer, int64 size, int64 offset) {
 
 struct FileStreamData {
 	Buffer buffer;
-	int64 offset;
+	int64_t offset;
 	int mark;
 };
 
@@ -228,7 +228,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		}
 	}
 	
-	Inl(AsyncFile* host, cString& path, RunLoop* loop)
+	Inl(AsyncFile* host, const String& path, RunLoop* loop)
 	: m_path(path)
 	, m_fp(0)
 	, m_opening(false)
@@ -255,12 +255,12 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 	void open(int flag) {
 		if (m_fp) {
 			Error e(ERR_FILE_ALREADY_OPEN, "File already open");
-			async_err_callback(Cb(&Inl::fs_error_cb, this), move(e), loop());
+			async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 			return;
 		}
 		if (m_opening) {
 			Error e(ERR_FILE_OPENING, "File opening...");
-			async_err_callback(Cb(&Inl::fs_error_cb, this), move(e), loop());
+			async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 			return;
 		}
 		m_opening = true;
@@ -279,11 +279,11 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		}
 		else {
 			Error e(ERR_FILE_NOT_OPEN, "File not open");
-			async_err_callback(Cb(&Inl::fs_error_cb, this), move(e), loop());
+			async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 		}
 	}
 
-	void read(Buffer& buffer, int64 offset, int mark) {
+	void read(Buffer& buffer, int64_t offset, int mark) {
 		auto req = new FileStreamReq(this, 0, { buffer, mark });
 		uv_buf_t buf;
 		buf.base = req->data().buffer.value();
@@ -291,7 +291,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 		uv_fs_read(uv_loop(), req->req(), m_fp, &buf, 1, offset, &Inl::fs_read_cb);
 	}
 
-	void write(Buffer& buffer, int64 offset, int mark) {
+	void write(Buffer& buffer, int64_t offset, int mark) {
 		m_writeing.push(new FileStreamReq(this, 0, { buffer, offset, mark }));
 		if (m_writeing.length() == 1) {
 			continue_write();
@@ -382,7 +382,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 			del(req)->trigger_async_file_error(host(req), err);
 		} else {
 			del(req)->trigger_async_file_read(host(req),
-																				req->data().buffer.realloc((uint)uv_req->result),
+																				req->data().buffer.realloc((uint32_t)uv_req->result),
 																				req->data().mark );
 		}
 	}
@@ -416,7 +416,7 @@ class AsyncFile::Inl: public Reference, public AsyncFile::Delegate {
 	List<FileStreamReq*> m_writeing;
 };
 
-AsyncFile::AsyncFile(cString& path, RunLoop* loop)
+AsyncFile::AsyncFile(const String& path, RunLoop* loop)
 : m_inl(NewRetain<AsyncFile::Inl>(this, path, loop))
 { }
 
@@ -447,11 +447,11 @@ void AsyncFile::close() {
 	m_inl->close();
 }
 
-void AsyncFile::read(Buffer buffer, int64 offset, int mark) {
+void AsyncFile::read(Buffer buffer, int64_t offset, int mark) {
 	m_inl->read(buffer, offset, mark);
 }
 
-void AsyncFile::write(Buffer buffer, int64 offset, int mark) {
+void AsyncFile::write(Buffer buffer, int64_t offset, int mark) {
 	m_inl->write(buffer, offset, mark);
 }
 

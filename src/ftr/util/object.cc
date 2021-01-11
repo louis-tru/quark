@@ -28,7 +28,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/string.h"
 #include "ftr/util/object.h"
 #include "ftr/util/loop.h"
 #include "ftr/util/array.h"
@@ -78,7 +77,7 @@ static Array<Object*> mark_objects_([](){
 int Object::initialize_mark_() {
 	if ( mark_index_ == 123456 ) {
 		ScopeLock scope(mark_objects_mutex);
-		uint index = mark_objects_.length();
+		uint32_t index = mark_objects_.length();
 		mark_objects_.push(this);
 		active_mark_objects_count_++;
 		return index;
@@ -115,7 +114,7 @@ std::vector<Object*> Object::mark_objects() {
 	
 	ASSERT( new_mark_objects.length() == active_mark_objects_count_ );
 	
-	mark_objects_ = move(new_mark_objects);
+	mark_objects_ = std::move(new_mark_objects);
 	return rv;
 }
 

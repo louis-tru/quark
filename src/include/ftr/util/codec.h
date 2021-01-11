@@ -31,104 +31,100 @@
 #ifndef __ftr__util__codec__
 #define __ftr__util__codec__
 
-#include "ftr/util/util.h"
-#include "ftr/util/buffer.h"
+#include <ftr/util/util.h>
+#include <ftr/util/buffer.h>
 
-/**
- * @ns ftr
- */
+namespace ftr {
 
-FX_NS(ftr)
+	template<class T> class ArrayBuffer;
 
-template<class T> class ArrayBuffer;
+	/**
+	* @enum Encoding
+	*/
+	enum class Encoding {
+		binary = 0, /**binary*/
+		ascii,      /**ascii*/
+		base64,     /**base64*/
+		hex,        /**hex*/
+		utf8,       /**utf8*/
+		ucs2,       /**ucs2*/
+		ucs4,       /**ucs4*/
+		utf16,      /**utf16*/
+		utf32,      /**utf32*/
+		unknown,
+		BINARY  = binary,
+		ASCII   = ascii,
+		BASE64  = base64,
+		HEX     = hex,
+		UTF8    = utf8,
+		UCS2    = ucs2,
+		UCS4    = ucs4,
+		UTF16   = utf16,
+		UTF32   = utf32,
+		UNKNOWN = unknown,
+		//@end enum
+	};
 
-/**
- * @enum Encoding
- */
-enum class Encoding {
-	binary = 0, /**binary*/
-	ascii,      /**ascii*/
-	base64,     /**base64*/
-	hex,        /**hex*/
-	utf8,       /**utf8*/
-	ucs2,       /**ucs2*/
-	ucs4,       /**ucs4*/
-	utf16,      /**utf16*/
-	utf32,      /**utf32*/
-	unknown,
-	BINARY  = binary,
-	ASCII   = ascii,
-	BASE64  = base64,
-	HEX     = hex,
-	UTF8    = utf8,
-	UCS2    = ucs2,
-	UCS4    = ucs4,
-	UTF16   = utf16,
-	UTF32   = utf32,
-	UNKNOWN = unknown,
-	//@end enum
-};
+	/**
+	* @class Codec
+	*/
+	class FX_EXPORT Codec {
+		public:
+		
+		/**
+		* @func parse_encoding
+		*/
+		static Encoding parse_encoding(const String& en);
+		
+		/**
+		* @func encoding_string
+		*/
+		static String encoding_string(Encoding en);
+		
+		/**
+		* @func encoding
+		*/
+		static ArrayBuffer<char> encoding(Encoding target_en, const String& source);
+		static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<char>& source);
+		static ArrayBuffer<char> encoding(Encoding target_en, const char* source, uint32_t length);
+		
+		/**
+		* @func encoding
+		*/
+		static ArrayBuffer<char> encoding(Encoding target_en, const String16& source);
+		static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<uint16_t>& source);
+		static ArrayBuffer<char> encoding(Encoding target_en, const uint16_t* source, uint32_t length);
+		
+		/**
+		* @func encoding
+		*/
+		static ArrayBuffer<char> encoding(Encoding target_en, const String32& source);
+		static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source);
+		static ArrayBuffer<char> encoding(Encoding target_en, const uint32_t* source, uint32_t length);
+		
+		/**
+		* @func decoding_to_byte
+		*/
+		static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const String& source);
+		static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const ArrayBuffer<char>& source);
+		static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const char* source, uint32_t length);
+		
+		/**
+		* @func decoding_to_uint16_t
+		*/
+		static ArrayBuffer<uint16_t> decoding_to_uint16_t(Encoding source_en, const String& source);
+		static ArrayBuffer<uint16_t> decoding_to_uint16_t(Encoding source_en, const ArrayBuffer<char>& source);
+		static ArrayBuffer<uint16_t> decoding_to_uint16_t(Encoding source_en, const char* source, uint32_t length);
+		
+		/**
+		* @func decoding_to_uint32_t
+		*/
+		static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, const String& source);
+		static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, const ArrayBuffer<char>& source);
+		static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, const char* source, uint32_t length);
+	};
 
-/**
- * @class Codec
- */
-class FX_EXPORT Codec {
- public:
-	
-	/**
-	 * @func parse_encoding
-	 */
-	static Encoding parse_encoding(cString& en);
-	
-	/**
-	 * @func encoding_string
-	 */
-	static String encoding_string(Encoding en);
-	
-	/**
-	 * @func encoding
-	 */
-	static ArrayBuffer<char> encoding(Encoding target_en, cString& source);
-	static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<char>& source);
-	static ArrayBuffer<char> encoding(Encoding target_en, cchar* source, uint length);
-	
-	/**
-	 * @func encoding
-	 */
-	static ArrayBuffer<char> encoding(Encoding target_en, const Ucs2String& source);
-	static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<uint16>& source);
-	static ArrayBuffer<char> encoding(Encoding target_en, const uint16* source, uint length);
-	
-	/**
-	 * @func encoding
-	 */
-	static ArrayBuffer<char> encoding(Encoding target_en, const Ucs4String& source);
-	static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<uint32>& source);
-	static ArrayBuffer<char> encoding(Encoding target_en, const uint32* source, uint length);
-	
-	/**
-	 * @func decoding_to_byte
-	 */
-	static ArrayBuffer<char> decoding_to_byte(Encoding source_en, cString& source);
-	static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const ArrayBuffer<char>& source);
-	static ArrayBuffer<char> decoding_to_byte(Encoding source_en, cchar* source, uint length);
-	
-	/**
-	 * @func decoding_to_uint16
-	 */
-	static ArrayBuffer<uint16> decoding_to_uint16(Encoding source_en, cString& source);
-	static ArrayBuffer<uint16> decoding_to_uint16(Encoding source_en, const ArrayBuffer<char>& source);
-	static ArrayBuffer<uint16> decoding_to_uint16(Encoding source_en, cchar* source, uint length);
-	
-	/**
-	 * @func decoding_to_uint32
-	 */
-	static ArrayBuffer<uint32> decoding_to_uint32(Encoding source_en, cString& source);
-	static ArrayBuffer<uint32> decoding_to_uint32(Encoding source_en, const ArrayBuffer<char>& source);
-	static ArrayBuffer<uint32> decoding_to_uint32(Encoding source_en, cchar* source, uint length);
-};
+	typedef Codec Coder;
 
-typedef Codec Coder;
-
-FX_END
+}
 #endif

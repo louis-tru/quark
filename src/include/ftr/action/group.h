@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,40 +25,73 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/string-builder.h"
+#ifndef __ftr__action__group__
+#define __ftr__action__group__
 
-FX_NS(ftr)
+#include "ftr/action/action.h"
 
-template<> String BasicStringBuilder<char, Container<char>>::join(cString& sp) const {
-	if (this->length() == 1) {
-		return this->begin().value();
-	} else {
-		uint len = m_string_length + sp.length() * this->length() - sp.length();
-		Buffer buff(len, len + 1);
+namespace ftr {
+
+	/**
+	* @class GroupAction
+	*/
+	class FX_EXPORT GroupAction: public Action {
+		public:
 		
-		char* data = *buff;
-		bool is_sp = false;
+		/**
+		* @func operator[]
+		*/
+		Action* operator[](uint index);
 		
-		for (auto i = this->begin(), e = this->end(); i != e; i++) {
-			uint len = i.value().length();
-			if (is_sp) {
-				memcpy(data, *sp, sp.length());
-				data += sp.length();
-			}
-			memcpy(data, *i.value(), len);
-			data += len;
-			is_sp = true;
-		}
-		*data = 0;
-		return String(move(buff));
-	}
-}
+		/**
+		* @func length
+		*/
+		inline uint length() const { return m_actions.length(); }
+		
+		/**
+		* @func append
+		*/
+		virtual void append(Action* action) throw(Error);
+		
+		/**
+		* @func insert
+		*/
+		virtual void insert(uint index, Action* action) throw(Error);
+		
+		/**
+		* @func remove_child
+		*/
+		virtual void remove_child(uint index);
+		
+		/**
+		* @overwrite
+		*/
+		virtual void clear();
+		virtual GroupAction* as_group() { return this; }
+		
+		protected:
+		
+		/**
+		* @destructor
+		*/
+		virtual ~GroupAction();
+		
+		/**
+		* @overwrite
+		*/
+		virtual void bind_view(View* view);
+		
+		typedef List<Action*>::Iterator Iterator;
+		List<Action*>   m_actions;
+		Array<Iterator> m_actions_index;
+		
+		friend class Action;
+		
+		FX_DEFINE_INLINE_CLASS(Inl);
+	};
 
-template<> String BasicStringBuilder<char, Container<char>>::to_string() const {
-	return to_basic_string();
 }
-
-FX_END
+#endif

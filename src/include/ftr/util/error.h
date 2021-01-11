@@ -31,12 +31,8 @@
 #ifndef __ftr__util__error__
 #define __ftr__util__error__
 
-/**
- * @ns ftr
- */
-
-#include "ftr/util/util.h"
-#include "ftr/util/errno.h"
+#include <ftr/util/object.h>
+#include <ftr/util/errno.h>
 
 #if FX_EXCEPTIONS_SUPPORT
 
@@ -47,36 +43,36 @@
 	FX_DEBUG("%s,%s", "The exception is ignored", err.message().c());     \
 }((void)0)
 
-FX_NS(ftr)
+namespace ftr {
 
-/**
- * @class Error
- */
-class FX_EXPORT Error: public Object {
- public:
-	
-	Error();
-	Error(int code, cString& msg);
-	Error(int code, cchar*, ...);
-	Error(cString& msg);
-	Error(cchar*, ...);
-	Error(const Error& err);
-	virtual ~Error();
-	Error& operator=(const Error& e);
-	virtual cString& message() const throw();
-	virtual int code() const throw();
-	void set_code(int value);
-	void set_message(cString& value);
-  virtual String to_string() const;
+	/**
+	* @class Error
+	*/
+	class FX_EXPORT Error: public Object {
+		public:
+		
+		Error();
+		Error(int code, const String& msg);
+		Error(int code, const char*, ...);
+		Error(const String& msg);
+		Error(const char*, ...);
+		Error(const Error& err);
+		virtual ~Error();
+		Error& operator=(const Error& e);
+		virtual const String& message() const throw();
+		virtual int code() const throw();
+		void set_code(int value);
+		void set_message(const String& value);
+		virtual String to_string() const;
 
- private:
-	int     m_code;
-	String* m_message;
-};
+		private:
+		int          m_code;
+		String* m_message;
+	};
 
-typedef const Error cError;
+	typedef const Error cError;
 
-FX_END
+}
 
 #else
 

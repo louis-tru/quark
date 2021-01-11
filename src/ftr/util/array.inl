@@ -30,7 +30,7 @@
 
 #define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, Container, append_zero) \
 \
-template<> Array<T, Container<T>>::Array(uint length, uint capacity) \
+template<> Array<T, Container<T>>::Array(uint32_t length, uint32_t capacity) \
 : _length(length), _container(FX_MAX(length, capacity)) { \
 	if (_length) {  \
 		memset(*_container, 0, sizeof(T) * _length); \
@@ -38,13 +38,13 @@ template<> Array<T, Container<T>>::Array(uint length, uint capacity) \
 }\
 \
 template<> Array<T, Container<T>>::Array(const std::initializer_list<T>& list) \
-: _length(uint(list.size())), _container(uint(list.size())) { \
+: _length(uint32_t(list.size())), _container(uint32_t(list.size())) { \
 	if (_length) {  \
 		memcpy((void*)*_container, list.begin(), sizeof(T) * _length); \
 	}\
 } \
 \
-template<> uint Array<T, Container<T>>::push(const Array& arr) { \
+template<> uint32_t Array<T, Container<T>>::push(const Array& arr) { \
 	if (arr._length) { \
 		_length += arr._length; \
 		_container.realloc(_length + append_zero); \
@@ -56,7 +56,7 @@ template<> uint Array<T, Container<T>>::push(const Array& arr) { \
 	return _length; \
 }\
 \
-template<> uint Array<T, Container<T>>::push(Array&& arr) { \
+template<> uint32_t Array<T, Container<T>>::push(Array&& arr) { \
 	if (arr._length) { \
 		_length += arr._length; \
 		_container.realloc(_length); \
@@ -67,7 +67,7 @@ template<> uint Array<T, Container<T>>::push(Array&& arr) { \
 	return _length; \
 } \
 \
-template<> uint Array<T, Container<T>>::pop() { \
+template<> uint32_t Array<T, Container<T>>::pop() { \
 	if (_length) {  \
 		_length--;  \
 		_container.realloc(_length); \
@@ -75,7 +75,7 @@ template<> uint Array<T, Container<T>>::pop() { \
 	return _length; \
 } \
 \
-template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint start, uint end) { \
+template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint32_t start, uint32_t end) { \
 	end = FX_MIN(end, _length); \
 	if (start < end) { \
 		Array arr; \
@@ -87,7 +87,7 @@ template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint start, uint
 	return Array(); \
 }\
 \
-template<> uint Array<T, Container<T>>::write(const T* src, int to, uint size) { \
+template<> uint32_t Array<T, Container<T>>::write(const T* src, int to, uint32_t size) { \
 	if (size) { \
 		if ( to == -1 ) to = _length; \
 		_length = FX_MAX(to + size, _length); \
@@ -97,8 +97,8 @@ template<> uint Array<T, Container<T>>::write(const T* src, int to, uint size) {
 	return size; \
 } \
 \
-template<> uint Array<T, Container<T>>::pop(uint count) { \
-	uint j = uint(FX_MAX(_length - count, 0)); \
+template<> uint32_t Array<T, Container<T>>::pop(uint32_t count) { \
+	uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
 	if (_length > j) {  \
 		_length = j;  \
 		_container.realloc(_length); \

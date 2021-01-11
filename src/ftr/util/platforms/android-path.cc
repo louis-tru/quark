@@ -38,7 +38,7 @@ using namespace ftr;
 FX_NS(ftr)
 
 String Path::executable() {
-	static cString path([]() -> String { 
+	static const String path([]() -> String { 
 		char dir[PATH_MAX] = { 0 };
 		int n = readlink("/proc/self/exe", dir, PATH_MAX);
 		return Path::format("%s", dir);
@@ -46,7 +46,7 @@ String Path::executable() {
 	return path;
 }
 
-String Path::documents(cString& child) {
+String Path::documents(const String& child) {
 	static String path(Path::format("%s", *Android::files_dir_path()));
 	if ( child.is_empty() ) {
 		return path;
@@ -54,7 +54,7 @@ String Path::documents(cString& child) {
 	return Path::format("%s/%s", *path, *child);
 }
 
-String Path::temp(cString& child) {
+String Path::temp(const String& child) {
 	static String path(Path::format("%s", *Android::cache_dir_path()));
 	if ( child.is_empty() ) {
 		return path;
@@ -65,7 +65,7 @@ String Path::temp(cString& child) {
 /**
  * Get the resoures dir
  */
-String Path::resources(cString& child) {
+String Path::resources(const String& child) {
 	static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
 	if ( child.is_empty() ) {
 		return path;

@@ -31,34 +31,36 @@
 #ifndef __ftr__utils__os__
 #define __ftr__utils__os__
 
-#include "ftr/util/util.h"
+#include <ftr/util/util.h>
+#include <ftr/util/object.h>
 
-FX_NS(ftr)
-FX_NS(os)
+namespace ftr {
+	namespace os {
 
-// util
-FX_EXPORT String name();
-FX_EXPORT String version();
-FX_EXPORT String brand();
-FX_EXPORT String subsystem();
-FX_EXPORT String info();
-FX_EXPORT String languages();
-FX_EXPORT String language();
-FX_EXPORT int64 time();
-FX_EXPORT int64 time_second();
-FX_EXPORT int64 time_monotonic();
+	// util
+	FX_EXPORT String name();
+	FX_EXPORT String version();
+	FX_EXPORT String brand();
+	FX_EXPORT String subsystem();
+	FX_EXPORT String info();
+	FX_EXPORT String languages();
+	FX_EXPORT String language();
+	FX_EXPORT int64_t time();
+	FX_EXPORT int64_t time_second();
+	FX_EXPORT int64_t time_monotonic();
 
-// advanced
-FX_EXPORT bool  is_wifi();
-FX_EXPORT bool  is_mobile();
-FX_EXPORT int   network_status();
-FX_EXPORT bool  is_ac_power();
-FX_EXPORT bool  is_battery();
-FX_EXPORT float battery_level();
-FX_EXPORT uint64 memory();
-FX_EXPORT uint64 used_memory();
-FX_EXPORT uint64 available_memory();
-FX_EXPORT float cpu_usage();
+	// advanced
+	FX_EXPORT bool  is_wifi();
+	FX_EXPORT bool  is_mobile();
+	FX_EXPORT int   network_status();
+	FX_EXPORT bool  is_ac_power();
+	FX_EXPORT bool  is_battery();
+	FX_EXPORT float battery_level();
+	FX_EXPORT uint64_t memory();
+	FX_EXPORT uint64_t used_memory();
+	FX_EXPORT uint64_t available_memory();
+	FX_EXPORT float cpu_usage();
 
-FX_END FX_END
+	}
+}
 #endif

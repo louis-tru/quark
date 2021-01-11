@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr_utils_errno__
-#define __ftr_utils_errno__
+#ifndef __ftr_util_errno__
+#define __ftr_util_errno__
 
 /**
  * @ns ftr

@@ -28,177 +28,173 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__bezier__
-#define __ftr__bezier__
+#ifndef __ftr__math__bezier__
+#define __ftr__math__bezier__
 
-#include "ftr/mathe.h"
+#include "ftr/math/math.h"
 #include "ftr/util/buffer.h"
 
-/**
- * @ns ftr
- */
+namespace ftr {
 
-FX_NS(ftr)
-
-/**
- * @class QuadraticBezier # 二次贝塞尔曲线
- */
-class FX_EXPORT QuadraticBezier {
- public:
-	
 	/**
-	 * @constructor
-	 */
-	QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2);
-	
-	/**
-	 * @func sample_curve_x
-	 */
-	float sample_curve_x(float t) const;
-	
-	/**
-	 * @func sample_curve_y
-	 */
-	float sample_curve_y(float t) const;
-	
-	/**
-	 * @func compute_bezier_points
-	 */
-	void sample_curve_points(uint sample_count, float* out) const;
-	
-	/**
-	 * @func sample_curve_points
-	 */
-	ArrayBuffer<Vec2> sample_curve_points(uint sample_count) const;
-	
- private:
-	
-	float p0x, p0y;
-	float p1x, p1y;
-	float p2x, p2y;
-};
-
-/**
- * @class CubicBezier # 三次贝塞尔曲线
- */
-class FX_EXPORT CubicBezier {
- public:
-	
-	/**
-	 * @constructor
-	 */
-	inline CubicBezier() { }
-	
-	/**
-	 * @constructor
-	 */
-	CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
+	* @class QuadraticBezier # 二次贝塞尔曲线
+	*/
+	class FX_EXPORT QuadraticBezier {
+		public:
 		
-	/**
-	 * @func sample_curve_x
-	 */
-	inline float sample_curve_x(float t) const {
-		// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
-		return ((ax * t + bx) * t + cx) * t + p0x;
-	}
-	
-	/**
-	 * @func sample_curve_y
-	 */
-	inline float sample_curve_y(float t) const {
-		return ((ay * t + by) * t + cy) * t + p0y;
-	}
-	
-	/**
-	 * @func compute_bezier_points
-	 */
-	void sample_curve_points(uint sample_count, float* out) const;
-	
-	/**
-	 * @func sample_curve_points
-	 */
-	ArrayBuffer<Vec2> sample_curve_points(uint sample_count) const;
-	
- protected:
-	
-	float ax, bx, cx;
-	float ay, by, cy;
-	float p0x, p0y;
-};
+		/**
+		* @constructor
+		*/
+		QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2);
+		
+		/**
+		* @func sample_curve_x
+		*/
+		float sample_curve_x(float t) const;
+		
+		/**
+		* @func sample_curve_y
+		*/
+		float sample_curve_y(float t) const;
+		
+		/**
+		* @func compute_bezier_points
+		*/
+		void sample_curve_points(uint sample_count, float* out) const;
+		
+		/**
+		* @func sample_curve_points
+		*/
+		ArrayBuffer<Vec2> sample_curve_points(uint sample_count) const;
+		
+		private:
+		
+		float p0x, p0y;
+		float p1x, p1y;
+		float p2x, p2y;
+	};
 
-/**
- * @class FixedCubicBezier
- * @bases CubicBezier
- */
-class FX_EXPORT FixedCubicBezier: public CubicBezier {
- public:
-	
 	/**
-	 * @constructor
-	 */
-	FixedCubicBezier();
-	
-	/**
-	 * Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
-	 * @constructor
-	 */
-	FixedCubicBezier(Vec2 p1, Vec2 p2);
-	
-	/**
-	 * @constructor
-	 */
-	inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
-		: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
-	{ }
-	
-	/**
-	 * @func point1
-	 */
-	inline Vec2 point1() const { return m_p1; }
-	
-	/**
-	 * @func point2
-	 */
-	inline Vec2 point2() const { return m_p2; }
-	
-	/**
-	 * @func sample_curve_derivative_x
-	 */
-	inline float sample_curve_derivative_x(float t) const {
-		return (3.0 * ax * t + 2.0 * bx) * t + cx;
-	}
-	
-	/**
-	 * @func solve_curve_x # Given an x value, find a parametric value it came from.
-	 */
-	float solve_curve_x(float x, float epsilon) const;
-	
-	/**
-	 * @func solve
-	 */
-	inline float solve(float x, float epsilon) const {
-		return (this->*m_solve)(x, epsilon);
-	}
-	
- private:
-	
-	typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
-	
-	Solve m_solve;
-	Vec2 m_p1;
-	Vec2 m_p2;
-	
-	FX_DEFINE_INLINE_CLASS(Inl);
-};
+	* @class CubicBezier # 三次贝塞尔曲线
+	*/
+	class FX_EXPORT CubicBezier {
+		public:
+		
+		/**
+		* @constructor
+		*/
+		inline CubicBezier() { }
+		
+		/**
+		* @constructor
+		*/
+		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
+			
+		/**
+		* @func sample_curve_x
+		*/
+		inline float sample_curve_x(float t) const {
+			// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
+			return ((ax * t + bx) * t + cx) * t + p0x;
+		}
+		
+		/**
+		* @func sample_curve_y
+		*/
+		inline float sample_curve_y(float t) const {
+			return ((ay * t + by) * t + cy) * t + p0y;
+		}
+		
+		/**
+		* @func compute_bezier_points
+		*/
+		void sample_curve_points(uint sample_count, float* out) const;
+		
+		/**
+		* @func sample_curve_points
+		*/
+		ArrayBuffer<Vec2> sample_curve_points(uint sample_count) const;
+		
+		protected:
+		
+		float ax, bx, cx;
+		float ay, by, cy;
+		float p0x, p0y;
+	};
 
-typedef FixedCubicBezier Curve;
-typedef const Curve cCurve;
+	/**
+	* @class FixedCubicBezier
+	* @bases CubicBezier
+	*/
+	class FX_EXPORT FixedCubicBezier: public CubicBezier {
+		public:
+		
+		/**
+		* @constructor
+		*/
+		FixedCubicBezier();
+		
+		/**
+		* Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
+		* @constructor
+		*/
+		FixedCubicBezier(Vec2 p1, Vec2 p2);
+		
+		/**
+		* @constructor
+		*/
+		inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
+			: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
+		{ }
+		
+		/**
+		* @func point1
+		*/
+		inline Vec2 point1() const { return m_p1; }
+		
+		/**
+		* @func point2
+		*/
+		inline Vec2 point2() const { return m_p2; }
+		
+		/**
+		* @func sample_curve_derivative_x
+		*/
+		inline float sample_curve_derivative_x(float t) const {
+			return (3.0 * ax * t + 2.0 * bx) * t + cx;
+		}
+		
+		/**
+		* @func solve_curve_x # Given an x value, find a parametric value it came from.
+		*/
+		float solve_curve_x(float x, float epsilon) const;
+		
+		/**
+		* @func solve
+		*/
+		inline float solve(float x, float epsilon) const {
+			return (this->*m_solve)(x, epsilon);
+		}
+		
+		private:
+		
+		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
+		
+		Solve m_solve;
+		Vec2 m_p1;
+		Vec2 m_p2;
+		
+		FX_DEFINE_INLINE_CLASS(Inl);
+	};
 
-FX_EXPORT extern const FixedCubicBezier LINEAR;
-FX_EXPORT extern const FixedCubicBezier EASE;
-FX_EXPORT extern const FixedCubicBezier EASE_IN;
-FX_EXPORT extern const FixedCubicBezier EASE_OUT;
-FX_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+	typedef FixedCubicBezier Curve;
+	typedef const Curve cCurve;
 
-FX_END
+	FX_EXPORT extern const FixedCubicBezier LINEAR;
+	FX_EXPORT extern const FixedCubicBezier EASE;
+	FX_EXPORT extern const FixedCubicBezier EASE_IN;
+	FX_EXPORT extern const FixedCubicBezier EASE_OUT;
+	FX_EXPORT extern const FixedCubicBezier EASE_IN_OUT;
+
+}
 #endif

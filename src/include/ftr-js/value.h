@@ -56,47 +56,28 @@ using namespace ftr::value;
 // ------------- values -------------
 
 #define js_value_table(F) \
-F(String, String) \
-F(bool, bool) \
-F(float, float) \
-F(int, int) \
-F(uint, uint) \
-F(TextAlign, TextAlign) \
-F(Align, Align) \
-F(ContentAlign, ContentAlign) \
-F(Border, Border) \
-F(Shadow, Shadow) \
-F(Color, Color) \
-F(Vec2, Vec2) \
-F(Vec3, Vec3) \
-F(Vec4, Vec4) \
-F(Rect, CGRect) \
-F(Mat, Mat) \
-F(Mat4, Mat4) \
-F(Value, Value) \
-F(TextColor, TextColor) \
-F(TextSize, TextSize)  \
-F(TextFamily, TextFamily) \
-F(TextStyle, TextStyle) \
-F(TextShadow, TextShadow)  \
-F(TextLineHeight, TextLineHeight) \
-F(TextDecoration, TextDecoration) \
-F(Repeat, Repeat) \
-F(Curve, Curve) \
-F(Direction, Direction) \
-F(TextOverflow, TextOverflow) \
-F(TextWhiteSpace, TextWhiteSpace) \
-F(KeyboardType, KeyboardType) \
-F(KeyboardReturnType, KeyboardReturnType) \
-F(Background, BackgroundPtr) \
-F(BackgroundPosition, BackgroundPosition) \
+F(String, String)                       F(bool, bool) \
+F(float, float)                         F(int, int) \
+F(uint, uint)                           F(TextAlign, TextAlign) \
+F(Align, Align)                         F(ContentAlign, ContentAlign) \
+F(Border, Border)                       F(Shadow, Shadow) \
+F(Color, Color)                         F(Vec2, Vec2) \
+F(Vec3, Vec3)                           F(Vec4, Vec4) \
+F(Rect, CGRect)                         F(Mat, Mat) \
+F(Mat4, Mat4)                           F(Value, Value) \
+F(TextColor, TextColor)                 F(TextSize, TextSize)  \
+F(TextFamily, TextFamily)               F(TextStyle, TextStyle) \
+F(TextShadow, TextShadow)               F(TextLineHeight, TextLineHeight) \
+F(TextDecoration, TextDecoration)       F(Repeat, Repeat) \
+F(Curve, Curve)                         F(Direction, Direction) \
+F(TextOverflow, TextOverflow)           F(TextWhiteSpace, TextWhiteSpace) \
+F(KeyboardType, KeyboardType)           F(KeyboardReturnType, KeyboardReturnType) \
+F(Background, BackgroundPtr)            F(BackgroundPosition, BackgroundPosition) \
 F(BackgroundSize, BackgroundSize) \
 /* Append, no actual type */\
-F(Values, Array<Value>) \
+F(Values, Array<Value>)                 F(BackgroundSizeCollection, BackgroundSizeCollection) \
+F(Aligns, Array<Align>)                 F(BackgroundPositionCollection, BackgroundPositionCollection) \
 F(Floats, Array<float>) \
-F(Aligns, Array<Align>) \
-F(BackgroundPositionCollection, BackgroundPositionCollection) \
-F(BackgroundSizeCollection, BackgroundSizeCollection) \
 
 /**
  * @class ValueProgram

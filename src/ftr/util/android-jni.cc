@@ -82,7 +82,7 @@ JavaVM* JNI::jvm() {
 	return javavm;
 }
 
-JNI::MethodInfo::MethodInfo(cchar* clazz, cchar* method, cchar* param_code, bool is_static)
+JNI::MethodInfo::MethodInfo(const char* clazz, const char* method, const char* param_code, bool is_static)
 : m_clazz(NULL)
 , m_method(NULL) {
 	ScopeENV env;
@@ -97,7 +97,7 @@ JNI::MethodInfo::MethodInfo(cchar* clazz, cchar* method, cchar* param_code, bool
 	}
 }
 
-JNI::MethodInfo::MethodInfo(jclass clazz, cchar* method, cchar* param_code, bool is_static)
+JNI::MethodInfo::MethodInfo(jclass clazz, const char* method, const char* param_code, bool is_static)
 : m_clazz(clazz)
 , m_method(NULL) {
 	ScopeENV env;
@@ -114,7 +114,7 @@ JNI::MethodInfo::MethodInfo(jclass clazz, cchar* method, cchar* param_code, bool
 /**
 * @func find_clazz
 * */
-jclass JNI::find_clazz(cchar* clazz) {
+jclass JNI::find_clazz(const char* clazz) {
 	ScopeENV env;
 	if (env.is_null()) {
 		return NULL;
@@ -130,7 +130,7 @@ String JNI::jstring_to_string(jstring jstr, JNIEnv* env) {
 	}
 
 	if ( env ) {
-		cchar* chars = env->GetStringUTFChars(jstr, NULL);
+		const char* chars = env->GetStringUTFChars(jstr, NULL);
 		String rv(chars);
 		env->ReleaseStringUTFChars(jstr, chars);
 		return rv;
@@ -140,7 +140,7 @@ String JNI::jstring_to_string(jstring jstr, JNIEnv* env) {
 		if ( env.is_null() ) {
 			return String();
 		}
-		cchar* chars = env->GetStringUTFChars(jstr, NULL);
+		const char* chars = env->GetStringUTFChars(jstr, NULL);
 		jsize len = env->GetStringUTFLength(jstr);
 		String rv(chars, len);
 		env->ReleaseStringUTFChars(jstr, chars);

@@ -62,15 +62,15 @@ float battery_level() {
 	return Android::battery_level();
 }
 
-uint64 memory() {
+uint64_t memory() {
 	return Android::memory();
 }
 
-uint64 used_memory() {
+uint64_t used_memory() {
 	return Android::used_memory();
 }
 
-uint64 available_memory() {
+uint64_t available_memory() {
 	return Android::available_memory();
 }
 

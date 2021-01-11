@@ -28,60 +28,56 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__pcm_player__
-#define __ftr__pcm_player__
+#ifndef __ftr__media__pcm__
+#define __ftr__media__pcm__
 
 #include "ftr/util/util.h"
 #include "ftr/util/buffer.h"
 
-/**
- * @ns ftr
- */
-
-FX_NS(ftr)
-
-/**
- * @class PCMPlayer
- */
-class PCMPlayer: public Protocol {
- public:
+namespace ftr {
 
 	/**
-	 * @func write
-	 * */
-	virtual bool write(cBuffer& buffer) = 0;
+	* @class PCMPlayer
+	*/
+	class PCMPlayer: public Protocol {
+		public:
 
-	/**
-	 * @func flush
-	 * */
-	virtual void flush() = 0;
+		/**
+		* @func write
+		* */
+		virtual bool write(cBuffer& buffer) = 0;
 
-	/**
-	 * @func set_mute
-	 * */
-	virtual bool set_mute(bool value) = 0;
+		/**
+		* @func flush
+		* */
+		virtual void flush() = 0;
 
-	/**
-	 * @func set_volume 0-100
-	 * */
-	virtual bool set_volume(uint value) = 0;
+		/**
+		* @func set_mute
+		* */
+		virtual bool set_mute(bool value) = 0;
 
-	/**
-	 * @func buffer_size
-	 * */
-	virtual uint buffer_size() = 0;
+		/**
+		* @func set_volume 0-100
+		* */
+		virtual bool set_volume(uint value) = 0;
 
-	/**
-	 * @func compensate
-	 */
-	virtual float compensate() = 0;
+		/**
+		* @func buffer_size
+		* */
+		virtual uint buffer_size() = 0;
 
-	/**
-	 * @func create
-	 */
-	static PCMPlayer* create(uint channel_count, uint sample_rate);
+		/**
+		* @func compensate
+		*/
+		virtual float compensate() = 0;
 
-};
+		/**
+		* @func create
+		*/
+		static PCMPlayer* create(uint channel_count, uint sample_rate);
 
-FX_END
+	};
+
+}
 #endif

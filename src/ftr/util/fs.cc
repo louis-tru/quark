@@ -41,10 +41,10 @@
 FX_NS(ftr)
 
 #if FX_WIN
-const uint FileHelper::default_mode(0);
+const uint32_t FileHelper::default_mode(0);
 #else
-const uint FileHelper::default_mode([]() {
-	uint mask = umask(0);
+const uint32_t FileHelper::default_mode([]() {
+	uint32_t mask = umask(0);
 	umask(mask);
 	return 0777 & ~mask;
 }());
@@ -52,7 +52,7 @@ const uint FileHelper::default_mode([]() {
 
 // Path implementation
 
-static String split_path(cString& path, bool basename) {
+static String split_path(const String& path, bool basename) {
 	String s = path;
 #if FX_WIN
 	s = s.replace_all('\\', '/');
@@ -79,15 +79,15 @@ static String split_path(cString& path, bool basename) {
 	}
 }
 
-String Path::basename(cString& path) {
+String Path::basename(const String& path) {
 	return split_path(path, true);
 }
 
-String Path::dirname(cString& path) {
+String Path::dirname(const String& path) {
 	return split_path(path, false);
 }
 
-String Path::extname(cString& path) {
+String Path::extname(const String& path) {
 	String s = split_path(path, true);
 	int index = s.last_index_of('.');
 	if (index != -1) {
@@ -111,7 +111,7 @@ String Path::cwd() {
 #endif 
 }
 
-bool Path::chdir(cString& path) {
+bool Path::chdir(const String& path) {
 	String str = format("%s", *path);
 #if FX_WIN
 	return _chdir(*str.substr(8)) == 0;
@@ -122,7 +122,7 @@ bool Path::chdir(cString& path) {
 
 static const String chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
 
-bool Path::is_local_absolute(cString& path) {
+bool Path::is_local_absolute(const String& path) {
 #if FX_WIN
 	if (chars.index_of(s[0]) != -1 && path[1] == ':') {
 		return true;
@@ -138,7 +138,7 @@ bool Path::is_local_absolute(cString& path) {
 	return false;
 }
 
-bool Path::is_local_zip(cString& path) {
+bool Path::is_local_zip(const String& path) {
 	if (
 			(path[0] == 'z' || path[0] == 'Z') &&
 			(path[1] == 'i' || path[1] == 'I') &&
@@ -152,7 +152,7 @@ bool Path::is_local_zip(cString& path) {
 	return false;
 }
 
-bool Path::is_local_file(cString& path) {
+bool Path::is_local_file(const String& path) {
 	if (
 			(path[0] == 'f' || path[0] == 'F') &&
 			(path[1] == 'i' || path[1] == 'I') &&
@@ -167,7 +167,7 @@ bool Path::is_local_file(cString& path) {
 	return false;
 }
 
-FX_EXPORT String inl_format_part_path(cString& path) {
+FX_EXPORT String inl_format_part_path(const String& path) {
 	
 	Array<String> ls = path.split('/');
 	Array<String> rev;
@@ -199,7 +199,7 @@ FX_EXPORT String inl_format_part_path(cString& path) {
 	return s;
 }
 
-String Path::format(cString& path) {
+String Path::format(const String& path) {
 	
 	String s = path;
 	
@@ -284,18 +284,18 @@ String Path::format(cString& path) {
 	return prefix.push( s );
 }
 
-String Path::format(cchar* path, ...) {
+String Path::format(const char* path, ...) {
 	
 	FX_STRING_FORMAT(path, s);
 	
 	return format(s);
 }
 
-String Path::fallback(cString& path) {
+String Path::fallback(const String& path) {
 	return fallback_c(path);
 }
 
-cchar* Path::fallback_c(cString& path) {
+const char* Path::fallback_c(const String& path) {
 #if FX_WIN
 	if ( is_local_zip(path) ) {
 		return path.c() + 7;

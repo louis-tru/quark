@@ -155,7 +155,7 @@ class FX_EXPORT Maybe {
 	FX_INLINE bool To(T& out) {
 		if ( val_ok_ ) {
 			out = move(val_);
-      return true;
+			return true;
 		}
 		return false;
 	}

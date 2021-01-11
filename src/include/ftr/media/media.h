@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__media__
-#define __ftr__media__
+#ifndef __ftr__media__media__
+#define __ftr__media__media__
 
 #include "ftr/util/string.h"
 
@@ -39,27 +39,23 @@
 # define FX_MEDIA_DYNAMIC
 #endif
 
-/**
- * @ns ftr
- */
+namespace ftr {
 
-FX_NS(ftr)
+	enum PlayerStatus {
+		PLAYER_STATUS_STOP = 0,
+		PLAYER_STATUS_START,
+		PLAYER_STATUS_PLAYING,
+		PLAYER_STATUS_PAUSED,
+	};
 
-enum PlayerStatus {
-	PLAYER_STATUS_STOP = 0,
-	PLAYER_STATUS_START,
-	PLAYER_STATUS_PLAYING,
-	PLAYER_STATUS_PAUSED,
-};
+	typedef struct {
+		Object* (*const create)(void* arg);
+		const uint64 tid;
+	} module_info_t;
 
-typedef struct {
-	Object* (*const create)(void* arg);
-	const uint64 tid;
-} module_info_t;
+	FX_EXPORT extern int initialize_media();
+	FX_EXPORT extern module_info_t* module_audio_player;
+	FX_EXPORT extern module_info_t* module_video;
 
-FX_EXPORT extern int initialize_media();
-FX_EXPORT extern module_info_t* module_audio_player;
-FX_EXPORT extern module_info_t* module_video;
-
-FX_END
+}
 #endif

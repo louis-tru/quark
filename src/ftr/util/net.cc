@@ -52,7 +52,7 @@ struct SocketWriteReqData {
 struct SSLSocketWriteReqData {
 	Buffer raw_buffer;
 	int    mark;
-	uint   buffers_count;
+	uint32_t   buffers_count;
 	int    error;
 	Buffer buffers[2];
 };
@@ -120,7 +120,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	
 	// utils
 	
-	void initialize(cString& hostname, uint16 port) {
+	void initialize(const String& hostname, uint16_t port) {
 		m_hostname = hostname;
 		m_port = port;
 	}
@@ -134,7 +134,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	
 	void report_err(Error err, bool async = false) {
 		if (async)
-			async_err_callback(Cb(&Inl::report_err_from_loop, this), move(err), m_keep);
+			async_err_callback(Cb(&Inl::report_err_from_loop, this), std::move(err), m_keep);
 		else
 			m_delegate->trigger_socket_error(m_host, err);
 	}
@@ -212,7 +212,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		return m_is_open && m_is_pause;
 	}
 	
-	void set_keep_alive(bool enable, uint64 keep_idle) {
+	void set_keep_alive(bool enable, uint64_t keep_idle) {
 		/*
 		 keepalive默认是关闭的, 因为虽然流量极小, 毕竟是开销. 因此需要用户手动开启. 有两种方式开启.
 		 
@@ -231,7 +231,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		 setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
 		 */
 		m_enable_keep_alive = enable;
-		m_keep_idle = keep_idle ? uint(keep_idle / 1000000): 7200;
+		m_keep_idle = keep_idle ? uint32_t(keep_idle / 1000000): 7200;
 		if ( m_uv_tcp && uv_is_active((uv_handle_t*)m_uv_tcp) ) {
 			uv_tcp_keepalive(m_uv_tcp, m_enable_keep_alive, m_keep_idle);
 		}
@@ -244,7 +244,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		}
 	}
 	
-	void set_timeout(uint64 timeout) {
+	void set_timeout(uint64_t timeout) {
 		m_timeout = timeout;
 		reset_timeout();
 	}
@@ -267,7 +267,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		}
 	}
 	
-	void write(Buffer buffer, int64 size, int mark) {
+	void write(Buffer buffer, int64_t size, int mark) {
 		if ( size < 0 ) {
 			size = buffer.length();
 		}
@@ -432,7 +432,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	static void read_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 		Inl* self = static_cast<UVHandle*>(handle->data)->host;
 		if ( self->m_read_buffer.is_null() ) {
-			self->m_read_buffer = Buffer( FX_MIN(65536, uint(suggested_size)) );
+			self->m_read_buffer = Buffer( FX_MIN(65536, uint32_t(suggested_size)) );
 		}
 		buf->base = *self->m_read_buffer;
 		buf->len = self->m_read_buffer.length();
@@ -485,15 +485,15 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	bool        m_is_pause;
 	bool        m_enable_keep_alive;
 	bool        m_no_delay;
-	uint        m_keep_idle;
+	uint32_t        m_keep_idle;
 	String      m_hostname;
-	uint16      m_port;
+	uint16_t      m_port;
 	uv_tcp_t*   m_uv_tcp;
 	uv_timer_t* m_uv_timer;
 	sockaddr    m_address;
 	String      m_remote_ip;
 	Buffer      m_read_buffer;
-	uint64      m_timeout;
+	uint64_t      m_timeout;
 };
 
 /**
@@ -502,7 +502,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 class SSL_INL: public Socket::Inl {
  public:
 	
-	static void set_ssl_cacert(cString& ca_content) {
+	static void set_ssl_cacert(const String& ca_content) {
 		
 		if (ca_content.is_empty()) {
 			FX_ERR("%s", "set_ssl_cacert() fail, ca_content is empty string"); return;
@@ -515,7 +515,7 @@ class SSL_INL: public Socket::Inl {
 		String ssl_cacert_file_path = Path::temp(".cacert.pem");
 		FileHelper::write_file_sync(ssl_cacert_file_path, ca_content);
 		
-		cchar* ca = Path::fallback_c(*ssl_cacert_file_path);
+		const char* ca = Path::fallback_c(*ssl_cacert_file_path);
 
 		int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 		if (!r) {
@@ -528,7 +528,7 @@ class SSL_INL: public Socket::Inl {
 		}
 	}
 	
-	static void set_ssl_cacert_file(cString& path) {
+	static void set_ssl_cacert_file(const String& path) {
 		try {
 			set_ssl_cacert(FileHelper::read_file_sync(path).collapse_string());
 		} catch(cError& err) {
@@ -681,7 +681,7 @@ class SSL_INL: public Socket::Inl {
 		// Do nothing
 	}
 	
-	static int bio_write(BIO* b, cchar* in, int inl) {
+	static int bio_write(BIO* b, const char* in, int inl) {
 		SSL_INL* self = ((SSL_INL*)b->ptr);
 		ASSERT( self->m_ssl_handshake );
 		
@@ -766,7 +766,7 @@ class SSL_INL: public Socket::Inl {
 	
 	static int receive_ssl_err(const char *str, size_t len, void *u) {
 		SSL_INL* self = (SSL_INL*)u;
-		self->m_ssl_error_msg.push(str, uint(len));
+		self->m_ssl_error_msg.push(str, uint32_t(len));
 		return 1;
 	}
 	
@@ -889,7 +889,7 @@ class SSL_INL: public Socket::Inl {
  private:
 	
 	SSL*    m_ssl;
-	cchar*  m_bio_read_source_buffer;
+	const char*  m_bio_read_source_buffer;
 	int     m_bio_read_source_buffer_length;
 	Buffer  m_ssl_read_buffer;
 	String  m_ssl_error_msg;
@@ -912,7 +912,7 @@ BIO_METHOD SSL_INL::bio_method = {
 
 Socket::Socket(): m_inl(nullptr) {}
 
-Socket::Socket(cString& hostname, uint16 port, RunLoop* loop)
+Socket::Socket(const String& hostname, uint16_t port, RunLoop* loop)
 : m_inl( NewRetain<Inl>(this, loop) ) {
 	m_inl->initialize(hostname, port);
 }
@@ -931,7 +931,7 @@ void Socket::open() {
 String Socket::hostname() const {
 	return m_inl->m_hostname;
 }
-uint16 Socket::port() const {
+uint16_t Socket::port() const {
 	return m_inl->m_port;
 }
 String Socket::ip() const {
@@ -940,13 +940,13 @@ String Socket::ip() const {
 bool Socket::ipv6() const {
 	return m_inl->ipv6();
 }
-void Socket::set_keep_alive(bool enable, uint64 keep_idle) {
+void Socket::set_keep_alive(bool enable, uint64_t keep_idle) {
 	m_inl->set_keep_alive(enable, keep_idle);
 }
 void Socket::set_no_delay(bool no_delay) {
 	m_inl->set_no_delay(no_delay);
 }
-void Socket::set_timeout(uint64 timeout) {
+void Socket::set_timeout(uint64_t timeout) {
 	m_inl->set_timeout(timeout);
 }
 void Socket::set_delegate(Delegate* delegate) {
@@ -968,7 +968,7 @@ void Socket::resume() {
 	m_inl->resume();
 }
 void Socket::write(Buffer buffer, int mark) {
-	uint size = buffer.length();
+	uint32_t size = buffer.length();
 	m_inl->write(buffer, size, mark);
 }
 
@@ -978,19 +978,19 @@ FX_EXPORT void set_ssl_root_x509_store_function(X509_STORE* (*func)()) {
 }
 
 /*
-static void set_ssl_cacert_file(cString& path) {
+static void set_ssl_cacert_file(const String& path) {
 	// TODO
 }
 
-static void set_ssl_client_key_file(cString& path) {
+static void set_ssl_client_key_file(const String& path) {
  // TODO
 }
 
-static void set_ssl_client_keypasswd(cString& passwd) {
+static void set_ssl_client_keypasswd(const String& passwd) {
  // TODO
 }*/
 
-SSLSocket::SSLSocket(cString& hostname, uint16 port, RunLoop* loop) {
+SSLSocket::SSLSocket(const String& hostname, uint16_t port, RunLoop* loop) {
 	m_inl = NewRetain<SSL_INL>(this, loop);
 	m_inl->initialize(hostname, port);
 }

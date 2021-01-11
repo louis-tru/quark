@@ -20,7 +20,8 @@ FTRP_OUT       = out/ftrp
 GYP            = $(FTRP)/gyp/gyp
 OUTPUT        ?= $(OS).$(SUFFIX).$(BUILDTYPE)
 LIBS_DIR       = out/$(OUTPUT)
-BUILD_STYLE    = make
+BUILD_STYLE   ?= make
+BUILD_FILE    ?= ftr.gyp
 
 #######################
 
@@ -56,7 +57,7 @@ all: build # compile
 
 # GYP file generation targets.
 $(STYLES): $(GYPFILES)
-	@$(call gen_project,$@,ftr.gyp)
+	@$(call gen_project,$@,$(BUILD_FILE))
 
 build: $(BUILD_STYLE) # out/$(BUILD_STYLE)/Makefile.$(OS).$(SUFFIX)
 	@$(call make_compile,$(MAKE))

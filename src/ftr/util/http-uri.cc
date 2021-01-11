@@ -44,7 +44,7 @@ FX_NS(ftr)
 
 URI::URI(): _uritype(URI_UNKNOWN), _port(0) { }
 
-URI::URI(cString& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
+URI::URI(const String& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
 	
 	String s = src.substr(0, 9).to_lower_case();
 	
@@ -109,7 +109,7 @@ URI::URI(cString& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
 		
 		index = _hostname.last_index_of(':');
 		if ( index != -1 ) {
-			_port = _hostname.substr(index + 1).to_uint();
+			_port = _hostname.substr(index + 1).to_uint32_t();
 			_hostname = _hostname.substr(0, index);
 		}
 		
@@ -204,11 +204,11 @@ static inline int needs_encoding(char ch, char next
 	return 1;
 }
 
-extern String inl__uri_encode(cString& url, bool component, bool secondary) {
+extern String inl__uri_encode(const String& url, bool component, bool secondary) {
 	
 	byte ch = 0;
 	int len = url.length();
-	cchar* src = *url;
+	const char* src = *url;
 	size_t msize = 0;
 	
 	for (int i = 0; i < len; ++i) {
@@ -225,8 +225,8 @@ extern String inl__uri_encode(cString& url, bool component, bool secondary) {
 		return String();
 	}
 	
-	uint size = 0;
-	cchar* hex = "0123456789ABCDEF";
+	uint32_t size = 0;
+	const char* hex = "0123456789ABCDEF";
 	
 	for ( int i = 0; i < len; i++ ) {
 		ch = src[i];
@@ -241,14 +241,14 @@ extern String inl__uri_encode(cString& url, bool component, bool secondary) {
 	
 	enc[size] = '\0';
 	
-	return Buffer(enc, uint(size));
+	return Buffer(enc, uint32_t(size));
 }
 
-String URI::encode(cString &url) {
+String URI::encode(const String &url) {
 	return inl__uri_encode(url, true, false);
 }
 
-String URI::decode(cString& url) {
+String URI::decode(const String& url) {
 	int i = 0;
 	size_t size = 0;
 	size_t len = 0;
@@ -258,7 +258,7 @@ String URI::decode(cString& url) {
 	
 	// chars len
 	len = url.length();
-	cchar* src = *url;
+	const char* src = *url;
 	
 	// alloc
 	dec = (char *) malloc(len + 1);
@@ -284,7 +284,7 @@ String URI::decode(cString& url) {
 	
  #undef push
 	
-	return Buffer(dec, uint(size));
+	return Buffer(dec, uint32_t(size));
 }
 
 FX_END

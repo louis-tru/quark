@@ -28,20 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <new>
-
 #define FX_DEF_ARRAY_SPECIAL(T, Container) \
-template<>  Array<T, Container<T>>::Array(uint length, uint capacity); \
+template<>  Array<T, Container<T>>::Array(uint32_t length, uint32_t capacity); \
 template<>  Array<T, Container<T>>::Array(const std::initializer_list<T>& list); \
-template<> uint                   Array<T, Container<T>>::push(const Array& arr); \
-template<> uint                   Array<T, Container<T>>::push(Array&& arr); \
-template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint start, uint end); \
-template<> uint Array<T, Container<T>>::write(const T* src, int to, uint size);\
-template<> uint                   Array<T, Container<T>>::pop();  \
-template<> uint                   Array<T, Container<T>>::pop(uint count);  \
+template<> uint32_t                   Array<T, Container<T>>::push(const Array& arr); \
+template<> uint32_t                   Array<T, Container<T>>::push(Array&& arr); \
+template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint32_t start, uint32_t end); \
+template<> uint32_t Array<T, Container<T>>::write(const T* src, int to, uint32_t size);\
+template<> uint32_t                   Array<T, Container<T>>::pop();  \
+template<> uint32_t                   Array<T, Container<T>>::pop(uint32_t count);  \
 template<> void                   Array<T, Container<T>>::clear()
-
-FX_NS(ftr)
 
 // IteratorData
 
@@ -49,7 +45,7 @@ template<class T, class Container>
 Array<T, Container>::IteratorData::IteratorData() : _host(NULL), _index(0) { }
 
 template<class T, class Container>
-Array<T, Container>::IteratorData::IteratorData(Array* host, uint index)
+Array<T, Container>::IteratorData::IteratorData(Array* host, uint32_t index)
 : _host(host), _index(index) { }
 
 template<class T, class Container>
@@ -71,7 +67,7 @@ bool Array<T, Container>::IteratorData::equals(const IteratorData& it) const {
 
 template<class T, class Container>
 bool Array<T, Container>::IteratorData::is_null() const {
-	return !_host || uint(_index) == _host->_length;
+	return !_host || uint32_t(_index) == _host->_length;
 }
 
 template<class T, class Container>
@@ -83,13 +79,13 @@ void Array<T, Container>::IteratorData::prev() { // --
 template<class T, class Container>
 void Array<T, Container>::IteratorData::next() { // ++
 	if (_host)
-		_index = FX_MIN(_host->_length, uint(_index + 1));
+		_index = FX_MIN(_host->_length, uint32_t(_index + 1));
 }
 
 // Array
 
 template<class T, class Container>
-Array<T, Container>::Array(uint length, uint capacity)
+Array<T, Container>::Array(uint32_t length, uint32_t capacity)
 : _length(length), _container(FX_MAX(length, capacity))
 { 
 	if (_length) {
@@ -104,7 +100,7 @@ Array<T, Container>::Array(uint length, uint capacity)
 }
 
 template<class T, class Container>
-Array<T, Container>::Array(T* data, uint length, uint capacity)
+Array<T, Container>::Array(T* data, uint32_t length, uint32_t capacity)
 : _length(length), _container(FX_MAX(capacity, length), data)
 {
 }
@@ -119,7 +115,7 @@ template<class T, class Container>
 Array<T, Container>::Array(Array&& arr) : _length(0), _container(0)
 {
 	T* t = *arr._container;
-	_container.operator=(move(arr._container));
+	_container.operator=(std::move(arr._container));
 	if ( t == *_container ) {
 		_length = arr._length;
 		arr._length = 0;
@@ -128,10 +124,10 @@ Array<T, Container>::Array(Array&& arr) : _length(0), _container(0)
 
 template<class T, class Container>
 Array<T, Container>::Array(const std::initializer_list<T>& list)
-: _length((uint)list.size()), _container((uint)list.size()) {
+: _length((uint32_t)list.size()), _container((uint32_t)list.size()) {
 	T* begin = *_container;
 	for (auto& i : list) {
-		new(begin) T(move(i)); // 调用默认构造
+		new(begin) T(std::move(i)); // 调用默认构造
 		begin++;
 	}
 }
@@ -151,7 +147,7 @@ Array<T, Container>& Array<T, Container>::operator=(Array&& arr) {
 	if ( &arr._container == &_container ) return *this;
 	clear();
 	T* t = *arr._container;
-	_container.operator=(move(arr._container));
+	_container.operator=(std::move(arr._container));
 	if ( t == *_container ) {
 		_length = arr._length;
 		arr._length = 0;
@@ -160,32 +156,32 @@ Array<T, Container>& Array<T, Container>::operator=(Array&& arr) {
 }
 
 template<class T, class Container>
-const T& Array<T, Container>::operator[](uint index) const {
+const T& Array<T, Container>::operator[](uint32_t index) const {
 	// FX_CHECK(index < _length, "Array access violation.");
 	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
-T& Array<T, Container>::operator[](uint index) {
+T& Array<T, Container>::operator[](uint32_t index) {
 	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
-const T& Array<T, Container>::item(uint index) const {
+const T& Array<T, Container>::item(uint32_t index) const {
 	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
-T& Array<T, Container>::item(uint index) {
+T& Array<T, Container>::item(uint32_t index) {
 	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
-T& Array<T, Container>::set(uint index, const T& item) {
+T& Array<T, Container>::set(uint32_t index, const T& item) {
 	ASSERT(index <= _length);
 	if ( index < _length ) {
 		return ((*_container)[index] = item);
@@ -194,16 +190,16 @@ T& Array<T, Container>::set(uint index, const T& item) {
 }
 
 template<class T, class Container>
-T& Array<T, Container>::set(uint index, T&& item) {
+T& Array<T, Container>::set(uint32_t index, T&& item) {
 	ASSERT(index <= _length);
 	if ( index < _length ) {
-		return ((*_container)[index] = move(item));
+		return ((*_container)[index] = std::move(item));
 	}
-	return (*_container)[push(move(item)) - 1];
+	return (*_container)[push(std::move(item)) - 1];
 }
 
 template<class T, class Container>
-uint Array<T, Container>::push(const T& item) {
+uint32_t Array<T, Container>::push(const T& item) {
 	_length++;
 	_container.realloc(_length);
 	new((*_container) + _length - 1) T(item);
@@ -211,15 +207,15 @@ uint Array<T, Container>::push(const T& item) {
 }
 
 template<class T, class Container>
-uint Array<T, Container>::push(T&& item) {
+uint32_t Array<T, Container>::push(T&& item) {
 	_length++;
 	_container.realloc(_length);
-	new((*_container) + _length - 1) T(ftr::move(item));
+	new((*_container) + _length - 1) T(std::move(item));
 	return _length;
 }
 
 template<class T, class Container>
-uint Array<T, Container>::push(const Array& arr) {
+uint32_t Array<T, Container>::push(const Array& arr) {
 	if (arr._length) {
 		_length += arr._length;
 		_container.realloc(_length);
@@ -237,7 +233,7 @@ uint Array<T, Container>::push(const Array& arr) {
 }
 
 template<class T, class Container>
-uint Array<T, Container>::push(Array&& arr) {
+uint32_t Array<T, Container>::push(Array&& arr) {
 	if (arr._length) {
 		_length += arr._length;
 		_container.realloc(_length);
@@ -247,7 +243,7 @@ uint Array<T, Container>::push(Array&& arr) {
 		T* begin = end - arr._length;
 		
 		while (begin < end) {
-			new(begin) T(move(*item)); // 调用复制构造
+			new(begin) T(std::move(*item)); // 调用复制构造
 			item++; begin++;
 		}
 	}
@@ -255,12 +251,12 @@ uint Array<T, Container>::push(Array&& arr) {
 }
 
 template<class T, class Container>
-inline Array<T, Container> Array<T, Container>::slice(uint start) {
+inline Array<T, Container> Array<T, Container>::slice(uint32_t start) {
 	return slice(start, _length);
 }
 
 template<class T, class Container>
-Array<T, Container> Array<T, Container>::slice(uint start, uint end) {
+Array<T, Container> Array<T, Container>::slice(uint32_t start, uint32_t end) {
 	end = FX_MIN(end, _length);
 	if (start < end) {
 		Array arr;
@@ -279,7 +275,7 @@ Array<T, Container> Array<T, Container>::slice(uint start, uint end) {
 }
 
 template<class T, class Container>
-uint Array<T, Container>::write(const Array& arr, int to, int size, uint form) {
+uint32_t Array<T, Container>::write(const Array& arr, int to, int size, uint32_t form) {
 	int s = FX_MIN(arr._length - form, size < 0 ? arr._length : size);
 	if (s > 0) {
 		return write((*arr._container) + form, to, s);
@@ -291,11 +287,11 @@ uint Array<T, Container>::write(const Array& arr, int to, int size, uint form) {
  * @func write
  */
 template<class T, class Container>
-uint Array<T, Container>::write(const T* src, int to, uint size) {
+uint32_t Array<T, Container>::write(const T* src, int to, uint32_t size) {
 	if (size) {
 		if ( to == -1 ) to = _length;
-		uint old_len = _length;
-		uint end = to + size;
+		uint32_t old_len = _length;
+		uint32_t end = to + size;
 		_length = FX_MAX(end, _length);
 		_container.realloc(_length);
 		T* tar = (*_container) + to;
@@ -312,7 +308,7 @@ uint Array<T, Container>::write(const T* src, int to, uint size) {
 }
 
 template<class T, class Container>
-uint Array<T, Container>::pop() {
+uint32_t Array<T, Container>::pop() {
 	if (_length) {
 		_length--;
 		reinterpret_cast<Wrap*>((*_container) + _length)->~Wrap(); // 释放
@@ -322,7 +318,7 @@ uint Array<T, Container>::pop() {
 }
 
 template<class T, class Container>
-uint Array<T, Container>::pop(uint count) {
+uint32_t Array<T, Container>::pop(uint32_t count) {
 	
 	int j = FX_MAX(_length - count, 0);
 	if (_length > j) {
@@ -370,25 +366,23 @@ typename Array<T, Container>::Iterator Array<T, Container>::end() {
 }
 
 template<class T, class Container>
-inline uint Array<T, Container>::length() const {
+inline uint32_t Array<T, Container>::length() const {
 	return _length;
 }
 
 template<class T, class Container>
-inline uint Array<T, Container>::capacity() const {
+inline uint32_t Array<T, Container>::capacity() const {
 	return _container.capacity();
 }
 
 FX_DEF_ARRAY_SPECIAL(char, Container);
-FX_DEF_ARRAY_SPECIAL(byte, Container);
-FX_DEF_ARRAY_SPECIAL(int16, Container);
-FX_DEF_ARRAY_SPECIAL(uint16, Container);
+FX_DEF_ARRAY_SPECIAL(unsigned char, Container);
+FX_DEF_ARRAY_SPECIAL(int16_t, Container);
+FX_DEF_ARRAY_SPECIAL(uint16_t, Container);
 FX_DEF_ARRAY_SPECIAL(int, Container);
-FX_DEF_ARRAY_SPECIAL(uint, Container);
-FX_DEF_ARRAY_SPECIAL(int64, Container);
-FX_DEF_ARRAY_SPECIAL(uint64, Container);
+FX_DEF_ARRAY_SPECIAL(uint32_t, Container);
+FX_DEF_ARRAY_SPECIAL(int64_t, Container);
+FX_DEF_ARRAY_SPECIAL(uint64_t, Container);
 FX_DEF_ARRAY_SPECIAL(float, Container);
 FX_DEF_ARRAY_SPECIAL(double, Container);
 FX_DEF_ARRAY_SPECIAL(bool, Container);
-
-FX_END

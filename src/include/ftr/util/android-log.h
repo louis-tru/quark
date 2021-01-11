@@ -31,26 +31,24 @@
 #ifndef __ftr__util__android_log__
 #define __ftr__util__android_log__
 
-#include "ftr/util/util.h"
+#include <ftr/util/log.h>
 
 #if FX_ANDROID
 
-FX_NS(ftr)
+namespace ftr {
 
-/**
- * @class AndroidConsole # util log
- */
-class FX_EXPORT AndroidConsole: public Console {
- public:
-	virtual void log(cString& str);
-	virtual void warn(cString& str);
-	virtual void error(cString& str);
-	virtual void print(cString& str);
-	virtual void print_err(cString& str);
-	virtual void clear();
-};
-
-FX_END
-
+	/**
+	* @class AndroidConsole # util log
+	*/
+	class FX_EXPORT AndroidConsole: public Console {
+		public:
+		virtual void log(const String& str);
+		virtual void warn(const String& str);
+		virtual void error(const String& str);
+		virtual void print(const String& str);
+		virtual void print_err(const String& str);
+		virtual void clear();
+	};
+}
 #endif
 #endif

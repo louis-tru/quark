@@ -43,13 +43,13 @@
 
 FX_NS(ftr)
 
-template<> uint Compare<ThreadID>::hash(const ThreadID& key) {
+template<> uint32_t Compare<ThreadID>::hash(const ThreadID& key) {
 	ThreadID* p = const_cast<ThreadID*>(&key);
 	size_t* t = reinterpret_cast<size_t*>(p);
 	return (*t) % Uint::max;
 }
 template<> bool Compare<ThreadID>::equals(
-	const ThreadID& a, const ThreadID& b, uint ha, uint hb) {
+	const ThreadID& a, const ThreadID& b, uint32_t ha, uint32_t hb) {
 	return a == b;
 }
 
@@ -139,7 +139,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 		}
 	}
 
-	static ID run(Exec exec, cString& name) {
+	static ID run(Exec exec, const String& name) {
 		if ( is_process_exit ) {
 			return ID();
 		} else {
@@ -197,7 +197,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			}
 
 			DLOG("Inl::exit(), 0");
-			rc = Thread::FX_TRIGGER(ProcessSafeExit, Event<>(Int(rc), move(rc)));
+			rc = Thread::FX_TRIGGER(ProcessSafeExit, Event<>(Int(rc), std::move(rc)));
 			DLOG("Inl::exit(), 1");
 
 			Release(keep); keep = nullptr;
@@ -220,11 +220,11 @@ EventNoticer<>& Thread::onProcessSafeExit() {
 Thread::Thread(){}
 Thread::~Thread(){}
 
-ThreadID Thread::spawn(Exec exec, cString& name) {
+ThreadID Thread::spawn(Exec exec, const String& name) {
 	return Inl::run(exec, name);
 }
 
-void Thread::join(ID id, int64 timeoutUs) {
+void Thread::join(ID id, int64_t timeoutUs) {
 	if (id == current_id()) {
 		DLOG("Thread::join(), cannot join self");
 		return;
@@ -254,7 +254,7 @@ void Thread::join(ID id, int64 timeoutUs) {
 /**
  * @func sleep
  */
-void Thread::sleep(int64 timeoutUs) {
+void Thread::sleep(int64_t timeoutUs) {
 	if ( timeoutUs > 0 && timeoutUs < 5e5 /*500ms*/ ) {
 		std::this_thread::sleep_for(std::chrono::microseconds(timeoutUs));
 		return;
@@ -336,7 +336,7 @@ class RunLoop::Inl: public RunLoop {
  public:
  #define _inl(self) static_cast<RunLoop::Inl*>(self)
 	
-	void run(int64 timeout) {
+	void run(int64_t timeout) {
 		if (is_process_exit) {
 			DLOG("cannot run RunLoop, is_process_exit != 0");
 			return;
@@ -397,11 +397,11 @@ class RunLoop::Inl: public RunLoop {
 			uv_close((uv_handle_t*)m_uv_timer, nullptr);
 	}
 	
-	inline void uv_timer_req(int64 timeout_ms) {
+	inline void uv_timer_req(int64_t timeout_ms) {
 		uv_timer_start(m_uv_timer, (uv_timer_cb)resolve_queue_before, timeout_ms, 0);
 	}
 	
-	bool resolve_queue_after(int64 timeout_ms) {
+	bool resolve_queue_after(int64_t timeout_ms) {
 		bool Continue = 0;
 		if (m_uv_loop->stop_flag != 0) { // 循环停止标志
 			close_uv_async();
@@ -414,14 +414,14 @@ class RunLoop::Inl: public RunLoop {
 					m_record_timeout = 0; // 取消超时记录
 				} else { // 已没有活着的其它uv请求
 					if (m_record_timeout) { // 如果已开始记录继续等待
-						int64 timeout = (sys::time_monotonic() - m_record_timeout - m_timeout) / 1000;
+						int64_t timeout = (sys::time_monotonic() - m_record_timeout - m_timeout) / 1000;
 						if (timeout >= 0) { // 已经超时
 							close_uv_async();
 						} else { // 继续等待超时
 							uv_timer_req(-timeout);
 						}
 					} else {
-						int64 timeout = m_timeout / 1000;
+						int64_t timeout = m_timeout / 1000;
 						if (timeout > 0) { // 需要等待超时
 							m_record_timeout = sys::time_monotonic(); // 开始记录超时
 							uv_timer_req(timeout);
@@ -445,7 +445,7 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	void resolve_queue(List<Queue>& queue) {
-		int64 now = sys::time_monotonic();
+		int64_t now = sys::time_monotonic();
 		for (auto i = queue.begin(), e = queue.end(); i != e; ) {
 			auto t = i++;
 			if (now >= t.value().time) { //
@@ -459,7 +459,7 @@ class RunLoop::Inl: public RunLoop {
 		List<Queue> queue;
 		{ ScopeLock lock(m_mutex);
 			if (m_queue.length()) {
-				queue = move(m_queue);
+				queue = std::move(m_queue);
 			} else {
 				return resolve_queue_after(-1);
 			}
@@ -477,10 +477,10 @@ class RunLoop::Inl: public RunLoop {
 			if (m_queue.length() == 0) {
 				return resolve_queue_after(-1);
 			}
-			int64 now = sys::time_monotonic();
-			int64 duration = Int64::max;
+			int64_t now = sys::time_monotonic();
+			int64_t duration = Int64::max;
 			for ( auto& i : m_queue ) {
-				int64 du = i.value().time - now;
+				int64_t du = i.value().time - now;
 				if (du <= 0) {
 					duration = 0; break;
 				} else if (du < duration) {
@@ -494,15 +494,15 @@ class RunLoop::Inl: public RunLoop {
 	/**
 	 * @func post()
 	 */
-	uint post(cCb& exec, uint group, uint64 delay_us) {
+	uint32_t post(cCb& exec, uint32_t group, uint64_t delay_us) {
 		if (m_thread->is_abort()) {
 			DLOG("RunLoop::post, m_thread->is_abort() == true");
 			return 0;
 		}
 		ScopeLock lock(m_mutex);
-		uint id = iid32();
+		uint32_t id = iid32();
 		if (delay_us) {
-			int64 time = sys::time_monotonic() + delay_us;
+			int64_t time = sys::time_monotonic() + delay_us;
 			m_queue.push({ id, group, time, exec });
 		} else {
 			m_queue.push({ id, group, 0, exec });
@@ -511,7 +511,7 @@ class RunLoop::Inl: public RunLoop {
 		return id;
 	}
 
-	void post_sync(const Callback<RunLoop::PostSyncData>& cb, uint group, uint64 delay_us) {
+	void post_sync(const Callback<RunLoop::PostSyncData>& cb, uint32_t group, uint64_t delay_us) {
 		ASSERT(!m_thread->is_abort(), "RunLoop::post_sync, m_thread->is_abort() == true");
 
 		struct Data: public RunLoop::PostSyncData {
@@ -554,12 +554,12 @@ class RunLoop::Inl: public RunLoop {
 		}
 	}
 	
-	inline void cancel_group(uint group) {
+	inline void cancel_group(uint32_t group) {
 		ScopeLock lock(m_mutex);
 		cancel_group_non_lock(group);
 	}
 
-	void cancel_group_non_lock(uint group) {
+	void cancel_group_non_lock(uint32_t group) {
 		for (auto i = m_queue.begin(), e = m_queue.end(); i != e; ) {
 			auto j = i++;
 			if (j.value().group == group) {
@@ -586,7 +586,7 @@ class RunLoop::Inl: public RunLoop {
 struct RunLoop::Work {
 	typedef NonObjectTraits Traits;
 	RunLoop* host;
-	uint id;
+	uint32_t id;
 	List<Work*>::Iterator it;
 	Callback<> work;
 	Callback<> done;
@@ -725,7 +725,7 @@ bool RunLoop::is_alive() const {
  * TODO: Be careful about thread security issues
  * @func sync # 延时
  */
-uint RunLoop::post(cCb& cb, uint64 delay_us) {
+uint32_t RunLoop::post(cCb& cb, uint64_t delay_us) {
 	return _inl(this)->post(cb, 0, delay_us);
 }
 
@@ -741,7 +741,7 @@ void RunLoop::post_sync(const Callback<PostSyncData>& cb) {
  * TODO: Be careful about thread security issues
  * @func work()
  */
-uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
+uint32_t RunLoop::work(cCb& cb, cCb& done, const String& name) {
 	if (m_thread->is_abort()) {
 		DLOG("RunLoop::work, m_thread->is_abort() == true");
 		return 0;
@@ -769,7 +769,7 @@ uint RunLoop::work(cCb& cb, cCb& done, cString& name) {
  * TODO: Be careful about thread security issues
  * @func cancel_work(id)
  */
-void RunLoop::cancel_work(uint id) {
+void RunLoop::cancel_work(uint32_t id) {
 	post(Cb([=](CbD& ev) {
 		for (auto& i : m_works) {
 			if (i.value()->id == id) {
@@ -785,7 +785,7 @@ void RunLoop::cancel_work(uint id) {
  * TODO: Be careful about thread security issues
  * @overwrite
  */
-uint RunLoop::post_message(cCb& cb, uint64 delay_us) {
+uint32_t RunLoop::post_message(cCb& cb, uint64_t delay_us) {
 	return _inl(this)->post(cb, 0, delay_us);
 }
 
@@ -793,7 +793,7 @@ uint RunLoop::post_message(cCb& cb, uint64 delay_us) {
  * TODO: Be careful about thread security issues
  * @func cancel # 取消同步
  */
-void RunLoop::cancel(uint id) {
+void RunLoop::cancel(uint32_t id) {
 	ScopeLock lock(m_mutex);
 	for (auto& i : m_queue) {
 		if (i.value().id == id) {
@@ -807,7 +807,7 @@ void RunLoop::cancel(uint id) {
 /**
  * @func run() 运行消息循环
  */
-void RunLoop::run(uint64 timeout) {
+void RunLoop::run(uint64_t timeout) {
 	_inl(this)->run(timeout);
 }
 
@@ -828,7 +828,7 @@ void RunLoop::stop() {
  * 保持活动状态,并返回一个代理,只要不删除返回的代理对像,消息队列会一直保持活跃状态
  * @func keep_alive
  */
-KeepLoop* RunLoop::keep_alive(cString& name, bool declear) {
+KeepLoop* RunLoop::keep_alive(const String& name, bool declear) {
 	ScopeLock lock(m_mutex);
 	auto keep = new KeepLoop(name, declear);
 	keep->m_id = m_keeps.push(keep);
@@ -856,7 +856,7 @@ static RunLoop* get_loop_with_id(ThreadID id) {
 /**
  * @func keep_alive_current 保持当前循环活跃并返回代理
  */
-KeepLoop* RunLoop::keep_alive_current(cString& name, bool declear) {
+KeepLoop* RunLoop::keep_alive_current(const String& name, bool declear) {
 	RunLoop* loop = current();
 	if ( loop ) {
 		return loop->keep_alive(name, declear);
@@ -902,7 +902,7 @@ bool RunLoop::is_alive(ThreadID id) {
 
 // ************** KeepLoop **************
 
-KeepLoop::KeepLoop(cString& name, bool destructor_clear)
+KeepLoop::KeepLoop(const String& name, bool destructor_clear)
 : m_group(iid32()), m_name(name), m_declear(destructor_clear) {
 }
 
@@ -926,7 +926,7 @@ KeepLoop::~KeepLoop() {
 	}
 }
 
-uint KeepLoop::post(cCb& exec, uint64 delay_us) {
+uint32_t KeepLoop::post(cCb& exec, uint64_t delay_us) {
 	// TODO: Be careful about thread security issues
 	if (m_loop)
 		return _inl(m_loop)->post(exec, m_group, delay_us);
@@ -934,7 +934,7 @@ uint KeepLoop::post(cCb& exec, uint64 delay_us) {
 		return 0;
 }
 
-uint KeepLoop::post_message(cCb& cb, uint64 delay_us) {
+uint32_t KeepLoop::post_message(cCb& cb, uint64_t delay_us) {
 	// TODO: Be careful about thread security issues
 	if (m_loop)
 		return _inl(m_loop)->post(cb, m_group, delay_us);
@@ -948,7 +948,7 @@ void KeepLoop::cancel_all() {
 		_inl(m_loop)->cancel_group(m_group); // abort all
 }
 
-void KeepLoop::cancel(uint id) {
+void KeepLoop::cancel(uint32_t id) {
 	// TODO: Be careful about thread security issues
 	if (m_loop)
 		m_loop->cancel(id);
@@ -977,7 +977,7 @@ ParallelWorking::~ParallelWorking() {
 /**
  * @func run
  */
-ThreadID ParallelWorking::spawn_child(Exec exec, cString& name) {
+ThreadID ParallelWorking::spawn_child(Exec exec, const String& name) {
 	ScopeLock scope(m_mutex2);
 	auto id = Thread::Inl::run([this, exec](Thread& t) {
 		int rc = exec(t);
@@ -1037,21 +1037,21 @@ void ParallelWorking::awaken_child(ThreadID id) {
 /**
  * @func post message to main thread
  */
-uint ParallelWorking::post(cCb& exec) {
+uint32_t ParallelWorking::post(cCb& exec) {
 	return m_proxy->post(exec);
 }
 
 /**
  * @func post
  */
-uint ParallelWorking::post(cCb& exec, uint64 delayUs) {
+uint32_t ParallelWorking::post(cCb& exec, uint64_t delayUs) {
 	return m_proxy->post(exec, delayUs);
 }
 
 /**
  * @func cancel
  */
-void ParallelWorking::cancel(uint id) {
+void ParallelWorking::cancel(uint32_t id) {
 	if ( id ) {
 		m_proxy->cancel(id);
 	} else {

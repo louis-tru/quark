@@ -31,10 +31,6 @@
 #ifndef __ftr_errno__
 #define __ftr_errno__
 
-/**
- * @ns ftr
- */
-
 namespace ftr {
 
 	enum {

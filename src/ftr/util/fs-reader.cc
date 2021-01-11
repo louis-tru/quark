@@ -37,7 +37,7 @@
 
 FX_NS(ftr)
 
-String inl_format_part_path(cString& path);
+String inl_format_part_path(const String& path);
 
 typedef HttpHelper::ResponseData ResponseData;
 
@@ -61,7 +61,7 @@ class FileReader::Core {
 		}
 	}
 
-	Protocol protocol(cString& path) {
+	Protocol protocol(const String& path) {
 		if ( Path::is_local_file( path ) ) {
 			return FILE;
 		}
@@ -102,7 +102,7 @@ class FileReader::Core {
 		return Unknown;
 	}
 
-	String zip_path(cString& path) {
+	String zip_path(const String& path) {
 		int  i = path.index_of('?');
 		if (i != -1) {
 			return path.substr(0, i);
@@ -110,7 +110,7 @@ class FileReader::Core {
 		return String();
 	}
 
-	ZipReader* get_zip_reader(cString& path) throw(Error) {
+	ZipReader* get_zip_reader(const String& path) throw(Error) {
 		ZipReader* reader = zips_.get(path);
 		if (reader) {
 			return reader;
@@ -124,7 +124,7 @@ class FileReader::Core {
 		return reader;
 	}
 
-	void read_from_zip(RunLoop* loop, cString& zip, cString& path, bool stream, cCb& cb) {
+	void read_from_zip(RunLoop* loop, const String& zip, const String& path, bool stream, cCb& cb) {
 		Buffer buffer;
 		ScopeLock lock(zip_mutex_);
 		try {
@@ -134,7 +134,7 @@ class FileReader::Core {
 				buffer = read->read();
 			} else {
 				Error err("Zip package internal file does not exist, %s", *path);
-				async_err_callback(cb, move(err), loop); return;
+				async_err_callback(cb, std::move(err), loop); return;
 			}
 		} catch (cError& err) {
 			Error e(err);
@@ -142,17 +142,17 @@ class FileReader::Core {
 		}
 		
 		if ( stream ) {
-			uint len = buffer.length();
+			uint32_t len = buffer.length();
 			async_callback(cb, IOStreamData(buffer, 1, 0, len, len, nullptr), static_cast<PostMessage*>(loop));
 		} else {
-			async_callback(cb, move(buffer), static_cast<PostMessage*>(loop));
+			async_callback(cb, std::move(buffer), static_cast<PostMessage*>(loop));
 		}
 	}
 
-	uint read(cString& path, cCb& cb, bool stream) {
+	uint32_t read(const String& path, cCb& cb, bool stream) {
 		
 		Protocol p = protocol(path);
-		uint id = 0;
+		uint32_t id = 0;
 
 		switch (p) {
 			default:
@@ -205,7 +205,7 @@ class FileReader::Core {
 		return id;
 	}
 
-	Buffer read_sync(cString& path) throw(Error) {
+	Buffer read_sync(const String& path) throw(Error) {
 		Buffer rv;
 
 		switch ( protocol(path) ) {
@@ -242,11 +242,11 @@ class FileReader::Core {
 		return rv;
 	}
 
-	void abort(uint id) {
+	void abort(uint32_t id) {
 		AsyncIOTask::safe_abort(id);
 	}
 
-	bool exists_sync(cString& path, bool file, bool dir) {
+	bool exists_sync(const String& path, bool file, bool dir) {
 		switch ( protocol(path) ) {
 			default:
 			case FILE:
@@ -274,7 +274,7 @@ class FileReader::Core {
 		return false;
 	}
 
-	Array<Dirent> readdir_sync(cString& path) throw(Error) {
+	Array<Dirent> readdir_sync(const String& path) throw(Error) {
 		Array<Dirent> rv;
 		switch ( protocol(path) ) {
 			default:
@@ -293,10 +293,10 @@ class FileReader::Core {
 				break;
 			}
 		}
-		return move(rv);
+		return std::move(rv);
 	}
 
-	String format(cString& path) {
+	String format(const String& path) {
 		int index = -1;
 		switch ( protocol(path) ) {
 			default:
@@ -318,7 +318,7 @@ class FileReader::Core {
 		}
 	}
 	
-	bool is_absolute(cString& path) {
+	bool is_absolute(const String& path) {
 		
 		if ( Path::is_local_absolute(path) ) {
 			return true;
@@ -359,28 +359,28 @@ FileReader::~FileReader() {
 	m_core = nullptr;
 }
 
-uint FileReader::read_file(cString& path, cCb& cb) {
+uint32_t FileReader::read_file(const String& path, cCb& cb) {
 	return m_core->read(path, cb, false);
 }
-uint FileReader::read_stream(cString& path, cCb& cb) {
+uint32_t FileReader::read_stream(const String& path, cCb& cb) {
 	return m_core->read(path, cb, true);
 }
-Buffer FileReader::read_file_sync(cString& path) throw(Error) {
+Buffer FileReader::read_file_sync(const String& path) throw(Error) {
 	return m_core->read_sync(path);
 }
-void FileReader::abort(uint id) {
+void FileReader::abort(uint32_t id) {
 	m_core->abort(id);
 }
-bool FileReader::exists_sync(cString& path) {
+bool FileReader::exists_sync(const String& path) {
 	return m_core->exists_sync(path, 1, 1);
 }
-bool FileReader::is_file_sync(cString& path) {
+bool FileReader::is_file_sync(const String& path) {
 	return m_core->exists_sync(path, 1, 0);
 }
-bool FileReader::is_directory_sync(cString& path) {
+bool FileReader::is_directory_sync(const String& path) {
 	return m_core->exists_sync(path, 0, 1);
 }
-Array<Dirent> FileReader::readdir_sync(cString& path) {
+Array<Dirent> FileReader::readdir_sync(const String& path) {
   try {
     return m_core->readdir_sync(path);
   } catch(cError& err) {
@@ -388,10 +388,10 @@ Array<Dirent> FileReader::readdir_sync(cString& path) {
   }
   return Array<Dirent>();
 }
-String FileReader::format(cString& path) {
+String FileReader::format(const String& path) {
 	return m_core->format(path);
 }
-bool FileReader::is_absolute(cString& path) {
+bool FileReader::is_absolute(const String& path) {
 	return m_core->is_absolute(path);
 }
 void FileReader::clear() {

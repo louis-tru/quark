@@ -34,66 +34,26 @@
 #include "ftr-js/js.h"
 
 #define js_common_string(F)  \
-F(global) \
-F(exports) \
-F(constructor) \
-F(console) \
-F(__proto__) \
-F(__native_private_data) \
-F(prototype) \
-F(type) \
-F(value) \
-F(isAuto) \
-F(width) \
-F(height) \
-F(offset) \
-F(offsetX) \
-F(offsetY) \
-F(_value) \
-F(r) \
-F(g) \
-F(b) \
-F(a) \
-F(x) \
-F(y) \
-F(z) \
-F(start) \
-F(point) \
-F(end) \
-F(w) \
-F(size) \
-F(color) \
-F(toJSON) \
-F(stack) \
-F(get_path) \
-F(_exit) \
-F(code) \
-F(message) \
-F(status) \
-F(url) \
-F(id) \
-F(startX) \
-F(startY) \
-F(force) \
-F(clickIn) \
-F(view) \
-F(m_noticer) \
-F(point1X) \
-F(point1Y) \
-F(point2X) \
-F(point2Y) \
-F(time) \
-F(m_change_touches) \
-F(name) \
-F(pathname) \
-F(styles) \
-F(sender) \
-F(Buffer) \
-F(data) \
-F(total) \
-F(complete) \
-F(httpVersion) \
-F(statusCode) \
+F(global)         F(exports)        F(constructor) \
+F(console)        F(__proto__)      F(__native_private_data) \
+F(prototype)      F(type)           F(value) \
+F(isAuto)         F(width)          F(height) \
+F(offset)         F(offsetX)        F(offsetY) \
+F(_value)         F(r)              F(g) \
+F(b)              F(a)              F(x) \
+F(y)              F(z)              F(start) \
+F(point)          F(end)            F(w) \
+F(size)           F(color)          F(toJSON) \
+F(stack)          F(get_path)       F(_exit) \
+F(code)           F(message)        F(status) \
+F(url)            F(id)             F(startX) \
+F(startY)         F(force)          F(clickIn) \
+F(view)           F(m_noticer)      F(point1X) \
+F(point1Y)        F(point2X)        F(point2Y) \
+F(time)           F(m_change_touches) F(name) \
+F(pathname)       F(styles)         F(sender) \
+F(Buffer)         F(data)           F(total) \
+F(complete)       F(httpVersion)    F(statusCode) \
 F(responseHeaders) \
 
 JS_BEGIN

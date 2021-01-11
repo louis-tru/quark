@@ -43,7 +43,7 @@ template<class uv_req, class Context, class Data = Object>
 class UVRequestWrap: public Object {
  public:
 	inline UVRequestWrap(Context* ctx, cCb& cb = 0, Data data = Data())
-	: m_ctx(ctx), m_cb(cb), m_data(move(data)) {
+	: m_ctx(ctx), m_cb(cb), m_data(std::move(data)) {
 		m_req.data = this;
 		if (Context::Traits::is_reference) Retain(m_ctx);
 	}
@@ -72,13 +72,13 @@ class FX_EXPORT AsyncIOTask: public Reference {
  public:
 	AsyncIOTask(RunLoop* loop = RunLoop::current());
 	virtual ~AsyncIOTask();
-	static void safe_abort(uint id);
+	static void safe_abort(uint32_t id);
 	inline bool is_abort() const { return m_abort; }
-	inline uint id() const { return m_id; }
+	inline uint32_t id() const { return m_id; }
 	inline RunLoop* loop() { return m_loop; }
 	virtual void abort();
  private:
-	uint m_id;
+	uint32_t m_id;
 	bool m_abort;
 	RunLoop* m_loop;
 };

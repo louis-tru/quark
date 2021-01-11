@@ -34,19 +34,19 @@
 
 FX_NS(ftr)
 
-void AndroidConsole::log(cString& str) {
+void AndroidConsole::log(const String& str) {
 	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
 }
-void AndroidConsole::warn(cString& str) {
+void AndroidConsole::warn(const String& str) {
 	__android_log_print(ANDROID_LOG_WARN, "FX_WARN", "%s\n", *str);
 }
-void AndroidConsole::error(cString& str) {
+void AndroidConsole::error(const String& str) {
 	__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
 }
-void AndroidConsole::print(cString& str) {
+void AndroidConsole::print(const String& str) {
 	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
 }
-void AndroidConsole::print_err(cString& str) {
+void AndroidConsole::print_err(const String& str) {
 	__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
 }
 void AndroidConsole::clear() {

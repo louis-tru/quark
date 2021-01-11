@@ -38,7 +38,7 @@ FX_NS(ftr)
 #define assert_r(c) ASSERT(c == BP_OK)
 
 static bp_db_t* _localstorage_db = nullptr;
-static int64 _has_initialize = 0;
+static int64_t _has_initialize = 0;
 
 static String get_db_filename() {
 	return Path::temp(".localstorage.bp");
@@ -62,7 +62,7 @@ static void localstorage_open() {
 	}
 }
 
-String localstorage_get(cString& name) {
+String localstorage_get(const String& name) {
 	localstorage_open();
 	String result;
 	if ( _db ) {
@@ -75,7 +75,7 @@ String localstorage_get(cString& name) {
 	return result;
 }
 
-void localstorage_set(cString& name, cString& value) {
+void localstorage_set(const String& name, const String& value) {
 	localstorage_open();
 	if ( _db ) {
 		bp_key_t   key = { name.length(), (char*)*name };
@@ -84,7 +84,7 @@ void localstorage_set(cString& name, cString& value) {
 	}
 }
 
-void localstorage_delete(cString& name) {
+void localstorage_delete(const String& name) {
 	localstorage_open();
 	if ( _db ) {
 		bp_key_t key = { name.length(), (char*)*name };

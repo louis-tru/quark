@@ -39,12 +39,12 @@
 FX_NS(ftr)
 
 String Path::executable() {
-	static cString path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
+	static const String path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
 	return path;
 }
 
-String Path::documents(cString& child) {
-	static cString path(
+String Path::documents(const String& child) {
+	static const String path(
 		Path::format([NSSearchPathForDirectoriesInDomains(
 			NSDocumentDirectory,
 			NSUserDomainMask,
@@ -57,8 +57,8 @@ String Path::documents(cString& child) {
 	return Path::format("%s/%s", *path, *child);
 }
 
-String Path::temp(cString& child) {
-	static cString path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
+String Path::temp(const String& child) {
+	static const String path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
 	if (child.is_empty()) {
 		return path;
 	}
@@ -68,8 +68,8 @@ String Path::temp(cString& child) {
 /**
  * Get the resoures dir
  */
-String Path::resources(cString& child) {
-	static cString path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
+String Path::resources(const String& child) {
+	static const String path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
 	if (child.is_empty()) {
 		return path;
 	}

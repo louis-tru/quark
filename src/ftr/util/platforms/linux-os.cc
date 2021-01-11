@@ -96,7 +96,7 @@ memory_info_t get_memory_info() {
 		j = s.index_of("kB", i);
 		if (j == -1) return r;
 
-		r.MemTotal = s.substring(i + 9, j).trim().to_uint64() * 1024;
+		r.MemTotal = s.substring(i + 9, j).trim().to_uint64_t() * 1024;
 		DLOG("MemTotal, %lu", r.MemTotal);
 
 		i = s.index_of("MemFree:", j);
@@ -104,7 +104,7 @@ memory_info_t get_memory_info() {
 		j = s.index_of("kB", i);
 		if (j == -1) return r;
 
-		r.MemFree = s.substring(i + 8, j).trim().to_uint64() * 1024;
+		r.MemFree = s.substring(i + 8, j).trim().to_uint64_t() * 1024;
 		DLOG("MemFree, %lu", r.MemFree);
 
 		i = s.index_of("MemAvailable:", j);
@@ -112,22 +112,22 @@ memory_info_t get_memory_info() {
 		j = s.index_of("kB", i);
 		if (j == -1) return r;
 
-		r.MemAvailable = s.substring(i + 13, j).trim().to_uint64() * 1024;
+		r.MemAvailable = s.substring(i + 13, j).trim().to_uint64_t() * 1024;
 		DLOG("MemAvailable, %lu", r.MemAvailable);
 	}
 	return r;
 }
 
-uint64 memory() {
+uint64_t memory() {
 	return get_memory_info().MemTotal;
 }
 
-uint64 used_memory() {
+uint64_t used_memory() {
 	memory_info_t info = get_memory_info();
-	return int64(info.MemTotal) - info.MemAvailable;
+	return int64_t(info.MemTotal) - info.MemAvailable;
 }
 
-uint64 available_memory() {
+uint64_t available_memory() {
 	return get_memory_info().MemAvailable;
 }
 

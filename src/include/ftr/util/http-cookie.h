@@ -32,35 +32,35 @@
 #ifndef __ftr__util__http__cookie__
 #define __ftr__util__http__cookie__
 
-#include "ftr/util/util.h"
-#include "ftr/util/string.h"
-#include "ftr/util/map.h"
+#include <ftr/util/util.h>
+#include <string>
+#include <map>
 
-FX_NS(ftr)
+namespace ftr {
 
-FX_EXPORT String http_cookie_get(cString& domain,
-																 cString& name,
-																 cString& path = String(), bool ssl = 0);
+	FX_EXPORT String http_cookie_get(const String& domain,
+																	const String& name,
+																	const String& path = String(), bool ssl = 0);
 
-FX_EXPORT String http_cookie_get_all_string(cString& domain,
-																						cString& path = String(), bool ssl = 0);
+	FX_EXPORT String http_cookie_get_all_string(const String& domain,
+																							const String& path = String(), bool ssl = 0);
 
-FX_EXPORT Map<String, String> http_cookie_get_all(cString& domain,
-																									cString& path = String(), bool ssl = 0);
+	FX_EXPORT std::map<String, String> http_cookie_get_all(const String& domain,
+																												const String& path = String(), bool ssl = 0);
 
-FX_EXPORT void http_cookie_set_with_expression(cString& domain, cString& expression);
+	FX_EXPORT void http_cookie_set_with_expression(const String& domain, const String& expression);
 
-FX_EXPORT void http_cookie_set(cString& domain,
-															 cString& name,
-															 cString& value,
-															 int64 expires = -1, cString& path = String(), bool ssl = 0);
+	FX_EXPORT void http_cookie_set(const String& domain,
+																const String& name,
+																const String& value,
+																int64_t expires = -1, const String& path = String(), bool ssl = 0);
 
-FX_EXPORT void http_cookie_delete(cString& domain, 
-																	cString& name, cString& path = String(), bool ssl = 0);
+	FX_EXPORT void http_cookie_delete(const String& domain, 
+																		const String& name, const String& path = String(), bool ssl = 0);
 
-FX_EXPORT void http_cookie_delete_all(cString& domain, bool ssl = 0);
+	FX_EXPORT void http_cookie_delete_all(const String& domain, bool ssl = 0);
 
-FX_EXPORT void http_cookie_clear();
+	FX_EXPORT void http_cookie_clear();
 
-FX_END
+}
 #endif

@@ -29,73 +29,60 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr/util/error.h"
-#include "ftr/util/string.h"
-
-FX_NS(ftr)
+#include "ftr/util/util.h"
 
 #if FX_EXCEPTIONS_SUPPORT
 
-Error::Error()
-: m_code(ERR_UNKNOWN_ERROR)
-, m_message(new String("unknown exception")) {
+namespace ftr {
 
-}
+	Error::Error()
+	: m_code(ERR_UNKNOWN_ERROR)
+	, m_message(new String("unknown exception")) {
 
-Error::Error(int code, cString& msg)
-: m_code(code)
-, m_message(new String(msg)) {
+	}
 
-}
+	Error::Error(int code, const String& msg)
+	: m_code(code)
+	, m_message(new String(msg)) {
+	}
 
-Error::Error(int code, cchar* msg, ...): m_code(code) {
-	FX_STRING_FORMAT(msg, m);
-	m_message = new String(m);
-}
+	Error::Error(const String& msg): m_code(ERR_UNKNOWN_ERROR), m_message(new String(msg)) {
+	}
 
-Error::Error(cString& msg): m_code(ERR_UNKNOWN_ERROR), m_message(new String(msg)) {
+	Error::Error(cError& e)
+	: m_code(e.code())
+	, m_message(new String(*e.m_message)) {
+	}
 
-}
+	Error& Error::operator=(const Error& e) {
+		m_code = e.m_code;
+		*m_message = *e.m_message;
+		return *this;
+	}
 
-Error::Error(cchar* msg, ...): m_code(ERR_UNKNOWN_ERROR) {
-	FX_STRING_FORMAT(msg, m);
-	m_message = new String(m);
-}
+	Error::~Error() {
+		delete m_message;
+	}
 
-Error::Error(cError& e)
-: m_code(e.code())
-, m_message(new String(*e.m_message)) {
+	const String& Error::message() const throw() {
+		return *m_message;
+	}
 
-}
+	int Error::code() const throw() {
+		return m_code;
+	}
 
-Error& Error::operator=(const Error& e) {
-	m_code = e.m_code;
-	*m_message = *e.m_message;
-	return *this;
-}
+	void Error::set_message(const String& value) {
+		*m_message = value;
+	}
 
-Error::~Error() {
-	Release(m_message);
-}
+	void Error::set_code(int value) {
+		m_code = value;
+	}
 
-cString& Error::message() const throw() {
-	return *m_message;
-}
-
-int Error::code() const throw() {
-	return m_code;
-}
-
-void Error::set_message(cString& value) {
-	*m_message = value;
-}
-
-void Error::set_code(int value) {
-	m_code = value;
-}
-
-String Error::to_string() const {
-  return String::format("message: %d, code: %d", **m_message, m_code);
+	String Error::to_string() const {
+		return string_format("message: %s, code: %d", m_message->c_str(), m_code);
+	}
 }
 
 #endif
-FX_END

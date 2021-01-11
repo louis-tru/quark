@@ -43,7 +43,7 @@ typedef HttpClientRequest::Delegate HttpDelegate;
 
 extern String inl__get_http_user_agent();
 extern String inl__get_http_cache_path();
-extern String inl__uri_encode(cString& url, bool component = false, bool secondary = false);
+extern String inl__uri_encode(const String& url, bool component = false, bool secondary = false);
 
 static const String string_method[5] = { "GET", "POST", "HEAD", "DELETE", "PUT" };
 static const String string_colon(": ");
@@ -172,7 +172,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		
 		typedef List<Connect*>::Iterator ID;
 		
-		Connect(cString& hostname, uint16 port, bool ssl, RunLoop* loop)
+		Connect(const String& hostname, uint16_t port, bool ssl, RunLoop* loop)
 		: m_ssl(ssl)
 		, m_use(false)
 		, m_is_multipart_form_data(false)
@@ -236,9 +236,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 		static int on_status(http_parser* parser, const char *at, size_t length) {
-			//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint(length)).c());
+			//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
 			Connect* self = static_cast<Connect*>(parser->data);
-			int status_code = String(at - 4, 3).to_uint();
+			int status_code = String(at - 4, 3).to_uint32_t();
 			if (status_code == 200) {
 				self->m_client->m_write_cache_flag = 2; // set write cache flag
 			}
@@ -251,15 +251,15 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		}
 		
 		static int on_header_field(http_parser* parser, const char *at, size_t length) {
-			//g_debug("http response parser on_header_field, %s", String(at, uint(length)).c());
-			static_cast<Connect*>(parser->data)->m_header_field = String(at, uint(length)).lower_case();
+			//g_debug("http response parser on_header_field, %s", String(at, uint32_t(length)).c());
+			static_cast<Connect*>(parser->data)->m_header_field = String(at, uint32_t(length)).lower_case();
 			return 0;
 		}
 		
 		static int on_header_value(http_parser* parser, const char *at, size_t length) {
-			//g_debug("http response parser on_header_value, %s", String(at, uint(length)).c());
+			//g_debug("http response parser on_header_value, %s", String(at, uint32_t(length)).c());
 			Connect* self = static_cast<Connect*>(parser->data);
-			String value(at, uint(length));
+			String value(at, uint32_t(length));
 			
 			if ( !self->m_client->m_disable_cookie ) {
 				if ( self->m_header_field == "set-cookie" ) {
@@ -267,7 +267,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 			}
 			
-			self->m_header.set( move(self->m_header_field), value );
+			self->m_header.set( std::move(self->m_header_field), value );
 			
 			return 0;
 		}
@@ -277,10 +277,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			Connect* self = static_cast<Connect*>(parser->data);
 			Client* cli = self->m_client;
 			if ( self->m_header.has("content-length") ) {
-				cli->m_download_total = self->m_header.get("content-length").to_int64();
+				cli->m_download_total = self->m_header.get("content-length").to_int64_t();
 			}
 			self->init_gzip_parser();
-			cli->trigger_http_header(cli->m_status_code, move(self->m_header), 0);
+			cli->trigger_http_header(cli->m_status_code, std::move(self->m_header), 0);
 			return 0;
 		}
 		
@@ -304,7 +304,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			}
 		}
 		
-		int gzip_inflate(cchar* data, uint len, Buffer& out) {
+		int gzip_inflate(const char* data, uint32_t len, Buffer& out) {
 			static Buffer _z_strm_buff(16384); // 16k
 			
 			int r = 0;
@@ -331,12 +331,12 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			self->m_client->m_download_size += length;
 			Buffer buff;
 			if ( self->m_z_gzip ) {
-				int r = self->gzip_inflate(at, uint(length), buff);
+				int r = self->gzip_inflate(at, uint32_t(length), buff);
 				if (r < 0) {
 					FX_ERR("un gzip err, %d", r);
 				}
 			} else {
-				buff = WeakBuffer(at, uint(length)).copy();
+				buff = WeakBuffer(at, uint32_t(length)).copy();
 			}
 			if ( buff.length() ) {
 				self->m_client->trigger_http_data(buff);
@@ -394,10 +394,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				String last_modified = m_client->m_cache_reader->header()["last-modified"];
 				String etag = m_client->m_cache_reader->header()["etag"];
 				if ( !last_modified.is_empty() )  {
-					header.set("If-Modified-Since", move(last_modified) );
+					header.set("If-Modified-Since", std::move(last_modified) );
 				}
 				if ( !etag.is_empty() ) {
-					header.set("If-None-Match", move(etag) );
+					header.set("If-None-Match", std::move(etag) );
 				}
 			}
 			
@@ -420,7 +420,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 					
 					if (m_is_multipart_form_data ) {
 						
-						uint content_length = multipart_boundary_end.length();
+						uint32_t content_length = multipart_boundary_end.length();
 						
 						for ( auto& i : m_client->m_post_form_data ) {
 							FormValue& form = i.value();
@@ -673,9 +673,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		struct connect_req {
 			Client* client;
 			Callback<> cb;
-			uint wait_id;
+			uint32_t wait_id;
 			String  hostname;
-			uint16  port;
+			uint16_t  port;
 			URIType uri_type;
 		};
 		
@@ -701,7 +701,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			ASSERT(!client->m_uri.hostname().is_empty());
 			ASSERT(client->m_uri.type() == URI_HTTP || client->m_uri.type() == URI_HTTPS);
 			
-			uint16 port = client->m_uri.port();
+			uint16_t port = client->m_uri.port();
 			if (!port) {
 				port = client->m_uri.type() == URI_HTTP ? 80 : 443;
 			}
@@ -736,7 +736,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		Connect* get_connect2(connect_req& req) {
 			Connect* conn = nullptr;
 			Connect* conn2 = nullptr;
-			uint connect_count = 0;
+			uint32_t connect_count = 0;
 			
 			for ( auto& i : m_pool ) {
 				if ( connect_count < MAX_CONNECT_COUNT ) {
@@ -835,7 +835,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		public AsyncFile::Delegate, public Reader 
 	{
 	 public:
-		FileCacheReader(Client* client, int64 size, RunLoop* loop)
+		FileCacheReader(Client* client, int64_t size, RunLoop* loop)
 		: AsyncFile(client->m_cache_path, loop)
 		, m_read_count(0)
 		, m_client(client)
@@ -898,11 +898,11 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 								m_parse_header = false;
 								m_offset += (j + 2);
 
-								int64 expires = parse_time(m_header.get("expires"));
+								int64_t expires = parse_time(m_header.get("expires"));
 								if ( expires > sys::time() ) {
 									m_client->trigger_http_readystate_change(HTTP_READY_STATE_RESPONSE);
 									m_client->m_download_total = FX_MAX(m_size - m_offset, 0);
-									m_client->trigger_http_header(200, move(m_header), true);
+									m_client->trigger_http_header(200, std::move(m_header), true);
 									read_advance();
 								} else {
 									// LOG("Read -- %ld, %ld, %s", expires, sys::time(), *m_header.get("expires"));
@@ -980,15 +980,15 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		Client* m_client;
 		Map<String, String> m_header;
 		bool m_parse_header;
-		uint  m_offset;
-		int64 m_size;
+		uint32_t  m_offset;
+		int64_t m_size;
 	};
 
 	Map<String, String>& response_header() {
 		return m_response_header;
 	}
 
-	static String convert_to_expires(cString& cache_control) {
+	static String convert_to_expires(const String& cache_control) {
 		if ( !cache_control.is_empty() ) {
 			int i = cache_control.index_of(string_max_age);
 			if ( i != -1 && i + string_max_age.length() < cache_control.length() ) {
@@ -997,7 +997,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				? cache_control.substring(i + string_max_age.length(), j)
 				: cache_control.substring(i + string_max_age.length());
 				
-				int64 num = max_age.trim().to_int64();
+				int64_t num = max_age.trim().to_int64_t();
 				if ( num > 0 ) {
 					return gmt_time_string( sys::time_second() + num );
 				}
@@ -1011,7 +1011,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	 */
 	class FileWriter: public Object, public AsyncFile::Delegate {
 	 public:
-		FileWriter(Client* client, cString& path, int flag, RunLoop* loop)
+		FileWriter(Client* client, const String& path, int flag, RunLoop* loop)
 		: m_client(client)
 		, m_file(nullptr)
 		, m_write_flag(flag)
@@ -1040,8 +1040,8 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 				}
 
 				if ( r_header.has("expires") ) {
-					int64 expires = parse_time(r_header.get("expires"));
-					int64 now = sys::time();
+					int64_t expires = parse_time(r_header.get("expires"));
+					int64_t now = sys::time();
 					if ( expires > now ) {
 						m_file = new AsyncFile(path, loop);
 					}
@@ -1204,9 +1204,9 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 		m_delegate->trigger_http_write(m_host);
 	}
 	
-	void trigger_http_header(uint status_code, Map<String, String>&& header, bool fromCache) {
+	void trigger_http_header(uint32_t status_code, Map<String, String>&& header, bool fromCache) {
 		m_status_code = status_code;
-		m_response_header = move(header);
+		m_response_header = std::move(header);
 		m_delegate->trigger_http_header(m_host);
 	}
 
@@ -1263,7 +1263,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 					if (expires.is_empty()) {
 						expires = m_response_header.get("expires");
 					}
-					m_response_header = move(m_cache_reader->header());
+					m_response_header = std::move(m_cache_reader->header());
 
 					if (!expires.is_empty() && expires != m_response_header.get("expires")) {
 						// 重新设置 expires
@@ -1431,10 +1431,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	HttpClientRequest* m_host;
 	KeepLoop*  m_keep;
 	HttpDelegate* m_delegate;
-	int64      m_upload_total;    /* 需上传到服务器数据总量 */
-	int64      m_upload_size;     /* 已写上传到服务器数据尺寸 */
-	int64      m_download_total;  /* 需下载数据总量 */
-	int64      m_download_size;   /* 已下载数据量 */
+	int64_t      m_upload_total;    /* 需上传到服务器数据总量 */
+	int64_t      m_upload_size;     /* 已写上传到服务器数据尺寸 */
+	int64_t      m_download_total;  /* 需下载数据总量 */
+	int64_t      m_download_size;   /* 已下载数据量 */
 	HttpReadyState m_ready_state; /* 请求状态 */
 	int         m_status_code;    /* 服务器响应http状态码 */
 	HttpMethod  m_method;
@@ -1458,10 +1458,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	//bool        _disable_ssl_verify_host; //
 	bool        m_keep_alive;
 	Sending*    m_sending;
-	uint64      m_timeout;
+	uint64_t      m_timeout;
 	bool        m_pause;
 	bool        m_url_no_cache_arg;
-	uint        m_wait_connect_id, m_write_cache_flag;
+	uint32_t        m_wait_connect_id, m_write_cache_flag;
 	static      ConnectPool m_pool;
 	static      ConnectPool* m_pool_ptr;
 };
@@ -1494,22 +1494,22 @@ void HttpClientRequest::set_method(HttpMethod method) throw(Error) {
 	m_inl->m_method = method;
 }
 
-void HttpClientRequest::set_url(cString& path) throw(Error) {
+void HttpClientRequest::set_url(const String& path) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_uri = URI(path);
 }
 
-void HttpClientRequest::set_save_path(cString& path) throw(Error) {
+void HttpClientRequest::set_save_path(const String& path) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_save_path = path;
 }
 
-void HttpClientRequest::set_username(cString& username) throw(Error) {
+void HttpClientRequest::set_username(const String& username) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_username = username;
 }
 
-void HttpClientRequest::set_password(cString& password) throw(Error) {
+void HttpClientRequest::set_password(const String& password) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_password = password;
 }
@@ -1539,17 +1539,17 @@ void HttpClientRequest::set_keep_alive(bool keep_alive) throw(Error) {
 	m_inl->m_keep_alive = keep_alive;
 }
 
-void HttpClientRequest::set_timeout(uint64 timeout) throw(Error) {
+void HttpClientRequest::set_timeout(uint64_t timeout) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_timeout = timeout;
 }
 
-void HttpClientRequest::set_request_header(cString& name, cString& value) throw(Error) {
+void HttpClientRequest::set_request_header(const String& name, const String& value) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_request_header.set(name, value);
 }
 
-void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error) {
+void HttpClientRequest::set_form(const String& form_name, const String& value) throw(Error) {
 	m_inl->check_is_can_modify();
 	FX_CHECK( value.length() <= BUFFER_SIZE,
 						ERR_HTTP_FORM_SIZE_LIMIT, "Http form field size limit <= %d", BUFFER_SIZE);
@@ -1558,7 +1558,7 @@ void HttpClientRequest::set_form(cString& form_name, cString& value) throw(Error
 	});
 }
 
-void HttpClientRequest::set_upload_file(cString& form_name, cString& path) throw(Error) {
+void HttpClientRequest::set_upload_file(const String& form_name, const String& path) throw(Error) {
 	m_inl->check_is_can_modify();
 	m_inl->m_post_form_data.set(form_name, {
 		FORM_TYPE_FILE, path, inl__uri_encode(form_name)
@@ -1575,7 +1575,7 @@ void HttpClientRequest::clear_form_data() throw(Error) {
 	m_inl->m_post_form_data.clear();
 }
 
-String HttpClientRequest::get_response_header(cString& name) {
+String HttpClientRequest::get_response_header(const String& name) {
 	auto i = m_inl->m_response_header.find(name);
 	if ( i.is_null() ) return String();
 	return i.value();
@@ -1585,19 +1585,19 @@ const Map<String, String>& HttpClientRequest::get_all_response_headers() {
 	return m_inl->m_response_header;
 }
 
-int64 HttpClientRequest::upload_total() const {
+int64_t HttpClientRequest::upload_total() const {
 	return m_inl->m_upload_total;
 }
 
-int64 HttpClientRequest::upload_size() const {
+int64_t HttpClientRequest::upload_size() const {
 	return m_inl->m_upload_size;
 }
 
-int64 HttpClientRequest::download_total() const {
+int64_t HttpClientRequest::download_total() const {
 	return m_inl->m_download_total;
 }
 
-int64 HttpClientRequest::download_size() const {
+int64_t HttpClientRequest::download_size() const {
 	return m_inl->m_download_size;
 }
 
@@ -1617,7 +1617,7 @@ void HttpClientRequest::send(Buffer data) throw(Error) { // thread safe
 	m_inl->send(data);
 }
 
-void HttpClientRequest::send(cString& data) throw(Error) { // thread safe
+void HttpClientRequest::send(const String& data) throw(Error) { // thread safe
 	m_inl->send(data.copy_buffer());
 }
 

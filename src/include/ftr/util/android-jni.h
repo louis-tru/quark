@@ -31,97 +31,97 @@
 #ifndef __ftr__util__android_jni__
 #define __ftr__util__android_jni__
 
-#include "ftr/util/util.h"
+#include <ftr/util/macros.h>
 
 #if FX_ANDROID
 
+#include <ftr/util/object.h>
 #include <jni.h>
 
-FX_NS(ftr)
-
-/**
- * @class JNI
- */
-class FX_EXPORT JNI {
- public:
+namespace ftr {
 
 	/**
-	 * @class ScopeENV
-	 */
-	class FX_EXPORT ScopeENV {
-		FX_HIDDEN_ALL_COPY(ScopeENV);
-	 public:
-		ScopeENV();
-		~ScopeENV();
-		inline bool is_null() const { return m_env == NULL; }
-		inline JNIEnv* operator*() const { return m_env; }
-		inline JNIEnv* operator->() const { return m_env; }
-	 private:
-		JNIEnv* m_env;
-		bool    m_is_attach;
-		// @end
+	* @class JNI
+	*/
+	class FX_EXPORT JNI {
+		public:
+
+		/**
+		* @class ScopeENV
+		*/
+		class FX_EXPORT ScopeENV {
+			FX_HIDDEN_ALL_COPY(ScopeENV);
+			public:
+			ScopeENV();
+			~ScopeENV();
+			inline bool is_null() const { return m_env == NULL; }
+			inline JNIEnv* operator*() const { return m_env; }
+			inline JNIEnv* operator->() const { return m_env; }
+			private:
+			JNIEnv* m_env;
+			bool    m_is_attach;
+			// @end
+		};
+
+		/**
+		* @class MethodInfo
+		*/
+		class FX_EXPORT MethodInfo {
+			public:
+			MethodInfo(const char* clazz, const char* method, const char* param_code, bool is_static = false);
+			MethodInfo(jclass clazz, const char* method, const char* param_code, bool is_static = false);
+			inline jclass clazz() const { return m_clazz; }
+			inline jmethodID method() const { return m_method; }
+			private:
+			jclass      m_clazz;
+			jmethodID   m_method;
+			// @end
+		};
+
+		/**
+		* @func find_clazz
+		* */
+		static jclass find_clazz(const char* clazz);
+
+		/**
+			* @func find_method
+			*/
+		inline static jmethodID find_method(jclass clazz, const char* method, const char* param_code) {
+			return MethodInfo(clazz, method, param_code).method();
+		}
+
+		/**
+		* @func find_static_method
+		* */
+		inline static jmethodID find_static_method(jclass clazz, const char* method, const char* param_code) {
+			return MethodInfo(clazz, method, param_code, true).method();
+		}
+
+		/**
+		* @func find_method
+		* */
+		inline static jmethodID find_method(const char* clazz, const char* method, const char* param_code) {
+			return MethodInfo(clazz, method, param_code).method();
+		}
+
+		/**
+		* @func find_static_method
+		* */
+		static jmethodID find_static_method(const char* clazz, const char* method, const char* param_code) {
+			return MethodInfo(clazz, method, param_code, true).method();
+		}
+
+		/**
+		* @func jvm
+		*/
+		static JavaVM* jvm();
+
+		/**
+		* @func jstring_to_string
+		*/
+		static String jstring_to_string(jstring jstr, JNIEnv* env = NULL);
 	};
 
-	/**
-	 * @class MethodInfo
-	 */
-	class FX_EXPORT MethodInfo {
-	 public:
-		MethodInfo(cchar* clazz, cchar* method, cchar* param_code, bool is_static = false);
-		MethodInfo(jclass clazz, cchar* method, cchar* param_code, bool is_static = false);
-		inline jclass clazz() const { return m_clazz; }
-		inline jmethodID method() const { return m_method; }
-	 private:
-		jclass      m_clazz;
-		jmethodID   m_method;
-		// @end
-	};
-
-	/**
-	 * @func find_clazz
-	 * */
-	static jclass find_clazz(cchar* clazz);
-
-	/**
-	 * @func find_method
-	 * */
-	inline static jmethodID find_method(jclass clazz, cchar* method, cchar* param_code) {
-		return MethodInfo(clazz, method, param_code).method();
-	}
-
-	/**
-	 * @func find_static_method
-	 * */
-	inline static jmethodID find_static_method(jclass clazz, cchar* method, cchar* param_code) {
-		return MethodInfo(clazz, method, param_code, true).method();
-	}
-
-	/**
-	 * @func find_method
-	 * */
-	inline static jmethodID find_method(cchar* clazz, cchar* method, cchar* param_code) {
-		return MethodInfo(clazz, method, param_code).method();
-	}
-
-	/**
-	 * @func find_static_method
-	 * */
-	static jmethodID find_static_method(cchar* clazz, cchar* method, cchar* param_code) {
-		return MethodInfo(clazz, method, param_code, true).method();
-	}
-
-	/**
-	 * @func jvm
-	 */
-	static JavaVM* jvm();
-
-	/**
-	 * @func jstring_to_string
-	 */
-	static String jstring_to_string(jstring jstr, JNIEnv* env = NULL);
-};
-
-FX_END
-
+}
 #endif
 #endif

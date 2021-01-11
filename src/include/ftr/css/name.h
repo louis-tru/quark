@@ -28,54 +28,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __ftr__styles__name__
+#define __ftr__styles__name__
+
+#include "ftr/util/array.h"
 #include "ftr/util/string.h"
 
-FX_NS(ftr)
+namespace ftr {
 
-template<>
-BasicString<char, Container<char>>::BasicString(const Object& o) {
-	String str = o.to_string();
-	m_core = str.m_core;
-	m_core->retain();
+	class FX_EXPORT CSSName {
+		public:
+		CSSName(const Array<String>& classs);
+		CSSName(cString& name);
+		inline String value() const { return m_name; }
+		inline uint hash() const { return m_hash; }
+		private:
+		String m_name;
+		uint   m_hash;
+	};
+
 }
 
-template<> BasicString<uint16, Container<uint16>>::BasicString(const Object& o) {
-	String str = o.to_string();
-	ArrayBuffer<uint16> data = Coder::decoding_to_uint16(Encoding::utf8, str);
-	uint len = data.length();
-	Char* s = data.collapse();
-	if (s) {
-		m_core = new StringCore(len, s);
-	} else {
-		m_core = StringCore::empty();
-	}
-}
-
-template<> BasicString<uint32, Container<uint32>>::BasicString(const Object& o) {
-	String str = o.to_string();
-	ArrayBuffer<uint32> data = Coder::decoding_to_uint32(Encoding::utf8, str);
-	uint len = data.length();
-	Char* s = data.collapse();
-	if (s) {
-		m_core = new StringCore(len, s);
-	} else {
-		m_core = StringCore::empty();
-	}
-}
-
-template<>
-String BasicString<char, Container<char>>::to_string() const {
-	return *this;
-}
-
-template<>
-String BasicString<uint16, Container<uint16>>::to_string() const {
-	return Coder::encoding(Encoding::utf8, *this);
-}
-
-template<>
-String BasicString<uint32, Container<uint32>>::to_string() const {
-	return Coder::encoding(Encoding::utf8, *this);
-}
-
-FX_END
+#endif

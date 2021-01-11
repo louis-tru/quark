@@ -37,7 +37,7 @@
 FX_NS(ftr)
 
 String Path::executable() {
-	static cString path([]() -> String { 
+	static const String path([]() -> String { 
 		char dir[PATH_MAX] = { 0 };
 		int n = readlink("/proc/self/exe", dir, PATH_MAX);
 		return Path::format("%s", dir);
@@ -45,7 +45,7 @@ String Path::executable() {
 	return path;
 }
 
-String Path::documents(cString& child) {
+String Path::documents(const String& child) {
 	static String documentsPath([]() -> String { 
 		String s = Path::format("%s/%s", getenv("HOME"), "Documents");
 		FileHelper::mkdir_p_sync(s);
@@ -57,7 +57,7 @@ String Path::documents(cString& child) {
 	return Path::format("%s/%s", *documentsPath, *child);
 }
 
-String Path::temp(cString& child) {
+String Path::temp(const String& child) {
 	static String tempPath([]() -> String {
 		String s = Path::format("%s/%s", getenv("HOME"), ".cache");
 		FileHelper::mkdir_p_sync(s);
@@ -72,7 +72,7 @@ String Path::temp(cString& child) {
 /**
  * Get the resoures dir
  */
-String Path::resources(cString& child) {
+String Path::resources(const String& child) {
 	static String resourcesPath([]() -> String {
 		return Path::dirname(executable());
 	}());
