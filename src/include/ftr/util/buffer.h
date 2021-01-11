@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__array__
-#define __ftr__util__array__
+#ifndef __ftr__util__buffer__
+#define __ftr__util__buffer__
 
 #include <ftr/util/util.h>
 #include <ftr/util/container.h>
@@ -40,28 +40,28 @@
 namespace ftr {
 
 	/**
-	* @class Array
+	* @class ArrayBuffer
 	*/
-	template<class T, class Container = Container<T>> class FX_EXPORT Array: public Object {
+	template<class T, class Container = Container<T>> class FX_EXPORT ArrayBuffer: public Object {
 		private:
 
-		Array(const Array&) = delete;
-		Array& operator=(const Array&) = delete;
+		ArrayBuffer(const ArrayBuffer&) = delete;
+		ArrayBuffer& operator=(const ArrayBuffer&) = delete;
 
 		public:
-		static Array readonly(const Array& arr);
-		static Array readonly(const T* arr = nullptr, uint32_t length = 0);
+		static ArrayBuffer readonly(const ArrayBuffer& arr);
+		static ArrayBuffer readonly(const T* arr = nullptr, uint32_t length = 0);
 
-		Array(const std::initializer_list<T>& list);
-		Array(Array& arr);
-		Array(Array&& arr);
-		Array(T* data, uint32_t length, uint32_t capacity = 0);
-		Array(uint32_t length = 0, uint32_t capacity = 0);
+		ArrayBuffer(const std::initializer_list<T>& list);
+		ArrayBuffer(ArrayBuffer& arr);
+		ArrayBuffer(ArrayBuffer&& arr);
+		ArrayBuffer(T* data, uint32_t length, uint32_t capacity = 0);
+		ArrayBuffer(uint32_t length = 0, uint32_t capacity = 0);
 
-		virtual ~Array();
+		virtual ~ArrayBuffer();
 		
-		Array& operator=(Array&);
-		Array& operator=(Array&&);
+		ArrayBuffer& operator=(ArrayBuffer&);
+		ArrayBuffer& operator=(ArrayBuffer&&);
 		
 		T      & operator[](uint32_t index);
 		const T& operator[](uint32_t index) const;
@@ -71,10 +71,10 @@ namespace ftr {
 
 		uint32_t pop(uint32_t count = 0);
 
-		uint32_t concat(Array&& arr);
+		uint32_t concat(ArrayBuffer&& arr);
 
-		Array slice(uint32_t start);
-		Array slice(uint32_t start, uint32_t end);
+		ArrayBuffer slice(uint32_t start);
+		ArrayBuffer slice(uint32_t start, uint32_t end);
 
 		inline bool is_readonly() const { return _container.is_readonly(); }
 		inline T* operator*() { return *_container; }
@@ -97,8 +97,8 @@ namespace ftr {
 		/**
 		 * @func copy()
 		 */
-		inline Array copy() const {
-			return Array(*(const Array*)this);
+		inline ArrayBuffer copy() const {
+			return ArrayBuffer(*(const ArrayBuffer*)this);
 		}
 		
 		/**
@@ -120,9 +120,9 @@ namespace ftr {
 		// }
 
 		/**
-		* @func realloc reset realloc length and return this Array&&
+		* @func realloc reset realloc length and return this ArrayBuffer&&
 		*/
-		Array&& realloc(uint32_t length) {
+		ArrayBuffer&& realloc(uint32_t length) {
 			// if ( !_container.readonly() ) {
 			// 	return std::move(*this);
 			// }
@@ -139,7 +139,7 @@ namespace ftr {
 		* @arg form {int=0} 从要写入数组的form位置开始取数据
 		* @ret {uint32_t} 返回写入数据量
 		*/
-		uint32_t write(const Array& src, int to = -1, int size = -1, uint32_t form = 0);
+		uint32_t write(const ArrayBuffer& src, int to = -1, int size = -1, uint32_t form = 0);
 		uint32_t write(const T* src, int to, uint32_t size);
 
 		void     clear();
@@ -152,9 +152,9 @@ namespace ftr {
 		Container _container;
 	};
 
-	#include "ftr/util/array.inl"
+	typedef ArrayBuffer<char> Buffer;
 
-	typedef Array<char> Buffer;
+	#include "ftr/util/buffer.inl"
 }
 
 #endif

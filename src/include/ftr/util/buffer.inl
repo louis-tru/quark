@@ -29,20 +29,20 @@
  * ***** END LICENSE BLOCK ***** */
 
 // template<class T, class Container>
-// Array<T, Container>::Array(const Array& arr) : _length(0), _container(0)
+// ArrayBuffer<T, Container>::ArrayBuffer(const ArrayBuffer& arr) : _length(0), _container(0)
 // {
 // 	push(arr);
 // }
 
 // template<class T, class Container>
-// Array<T, Container>& Array<T, Container>::operator=(const Array& arr) {
+// ArrayBuffer<T, Container>& ArrayBuffer<T, Container>::operator=(const ArrayBuffer& arr) {
 // 	clear();
 // 	push(arr);
 // 	return *this;
 // }
 
 template<class T, class Container>
-Array<T, Container>::Array(const std::initializer_list<T>& list)
+ArrayBuffer<T, Container>::ArrayBuffer(const std::initializer_list<T>& list)
 : _length((uint32_t)list.size()), _container((uint32_t)list.size()) {
 	T* begin = *_container;
 	for (auto& i : list) {
@@ -52,11 +52,11 @@ Array<T, Container>::Array(const std::initializer_list<T>& list)
 }
 
 template<class T, class Container>
-Array<T, Container>::Array(Array& arr): Array(std::move(arr)) {
+ArrayBuffer<T, Container>::ArrayBuffer(ArrayBuffer& arr): ArrayBuffer(std::move(arr)) {
 }
 
 template<class T, class Container>
-Array<T, Container>::Array(Array&& arr) : _length(0), _container(0)
+ArrayBuffer<T, Container>::ArrayBuffer(ArrayBuffer&& arr) : _length(0), _container(0)
 {
 	T* t = *arr._container;
 	_container.operator=(std::move(arr._container));
@@ -67,12 +67,12 @@ Array<T, Container>::Array(Array&& arr) : _length(0), _container(0)
 }
 
 template<class T, class Container>
-Array<T, Container>::Array(T* data, uint32_t length, uint32_t capacity)
+ArrayBuffer<T, Container>::ArrayBuffer(T* data, uint32_t length, uint32_t capacity)
 : _length(length), _container(FX_MAX(capacity, length), data)
 {}
 
 template<class T, class Container>
-Array<T, Container>::Array(uint32_t length, uint32_t capacity)
+ArrayBuffer<T, Container>::ArrayBuffer(uint32_t length, uint32_t capacity)
 : _length(length), _container(FX_MAX(length, capacity))
 {
 	if (_length) {
@@ -86,17 +86,17 @@ Array<T, Container>::Array(uint32_t length, uint32_t capacity)
 	}
 }
 
-template<class T, class Container> Array<T, Container>::~Array() {
+template<class T, class Container> ArrayBuffer<T, Container>::~ArrayBuffer() {
 	clear();
 }
 
 template<class T, class Container>
-Array<T, Container>& Array<T, Container>::operator=(Array& arr) {
+ArrayBuffer<T, Container>& ArrayBuffer<T, Container>::operator=(ArrayBuffer& arr) {
 	return operator=(std::move(arr));
 }
 
 template<class T, class Container>
-Array<T, Container>& Array<T, Container>::operator=(Array&& arr) {
+ArrayBuffer<T, Container>& ArrayBuffer<T, Container>::operator=(ArrayBuffer&& arr) {
 	if ( &arr._container == &_container ) return *this;
 	clear();
 	T* t = *arr._container;
@@ -109,32 +109,32 @@ Array<T, Container>& Array<T, Container>::operator=(Array&& arr) {
 }
 
 template<class T, class Container>
-const T& Array<T, Container>::operator[](uint32_t index) const {
-	// FX_CHECK(index < _length, "Array access violation.");
+const T& ArrayBuffer<T, Container>::operator[](uint32_t index) const {
+	// FX_CHECK(index < _length, "ArrayBuffer access violation.");
 	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 template<class T, class Container>
-T& Array<T, Container>::operator[](uint32_t index) {
+T& ArrayBuffer<T, Container>::operator[](uint32_t index) {
 	ASSERT(index < _length);
 	return (*_container)[index];
 }
 
 // template<class T, class Container>
-// const T& Array<T, Container>::item(uint32_t index) const {
+// const T& ArrayBuffer<T, Container>::item(uint32_t index) const {
 // 	ASSERT(index < _length);
 // 	return (*_container)[index];
 // }
 
 // template<class T, class Container>
-// T& Array<T, Container>::item(uint32_t index) {
+// T& ArrayBuffer<T, Container>::item(uint32_t index) {
 // 	ASSERT(index < _length);
 // 	return (*_container)[index];
 // }
 
 // template<class T, class Container>
-// T& Array<T, Container>::set(uint32_t index, const T& item) {
+// T& ArrayBuffer<T, Container>::set(uint32_t index, const T& item) {
 // 	ASSERT(index <= _length);
 // 	if ( index < _length ) {
 // 		return ((*_container)[index] = item);
@@ -143,7 +143,7 @@ T& Array<T, Container>::operator[](uint32_t index) {
 // }
 
 // template<class T, class Container>
-// T& Array<T, Container>::set(uint32_t index, T&& item) {
+// T& ArrayBuffer<T, Container>::set(uint32_t index, T&& item) {
 // 	ASSERT(index <= _length);
 // 	if ( index < _length ) {
 // 		return ((*_container)[index] = std::move(item));
@@ -152,7 +152,7 @@ T& Array<T, Container>::operator[](uint32_t index) {
 // }
 
 template<class T, class Container>
-uint32_t Array<T, Container>::push(const T& item) {
+uint32_t ArrayBuffer<T, Container>::push(const T& item) {
 	_length++;
 	_container.realloc(_length);
 	new((*_container) + _length - 1) T(item);
@@ -160,7 +160,7 @@ uint32_t Array<T, Container>::push(const T& item) {
 }
 
 template<class T, class Container>
-uint32_t Array<T, Container>::push(T&& item) {
+uint32_t ArrayBuffer<T, Container>::push(T&& item) {
 	_length++;
 	_container.realloc(_length);
 	new((*_container) + _length - 1) T(std::move(item));
@@ -168,7 +168,7 @@ uint32_t Array<T, Container>::push(T&& item) {
 }
 
 // template<class T, class Container>
-// uint32_t Array<T, Container>::concat(const Array& arr) {
+// uint32_t ArrayBuffer<T, Container>::concat(const ArrayBuffer& arr) {
 // 	if (arr._length) {
 // 		_length += arr._length;
 // 		_container.realloc(_length);
@@ -186,7 +186,7 @@ uint32_t Array<T, Container>::push(T&& item) {
 // }
 
 template<class T, class Container>
-uint32_t Array<T, Container>::concat(Array&& arr) {
+uint32_t ArrayBuffer<T, Container>::concat(ArrayBuffer&& arr) {
 	if (arr._length) {
 		_length += arr._length;
 		_container.realloc(_length);
@@ -208,15 +208,15 @@ uint32_t Array<T, Container>::concat(Array&& arr) {
 }
 
 template<class T, class Container>
-inline Array<T, Container> Array<T, Container>::slice(uint32_t start) {
+inline ArrayBuffer<T, Container> ArrayBuffer<T, Container>::slice(uint32_t start) {
 	return slice(start, _length);
 }
 
 template<class T, class Container>
-Array<T, Container> Array<T, Container>::slice(uint32_t start, uint32_t end) {
+ArrayBuffer<T, Container> ArrayBuffer<T, Container>::slice(uint32_t start, uint32_t end) {
 	end = FX_MIN(end, _length);
 	if (start < end) {
-		Array arr;
+		ArrayBuffer arr;
 		arr._length = end - start;
 		arr._container.realloc(arr._length);
 		T* tar = *arr._container;
@@ -228,11 +228,11 @@ Array<T, Container> Array<T, Container>::slice(uint32_t start, uint32_t end) {
 		}
 		return arr;
 	}
-	return Array();
+	return ArrayBuffer();
 }
 
 template<class T, class Container>
-uint32_t Array<T, Container>::write(const Array& arr, int to, int size, uint32_t form) {
+uint32_t ArrayBuffer<T, Container>::write(const ArrayBuffer& arr, int to, int size, uint32_t form) {
 	int s = FX_MIN(arr._length - form, size < 0 ? arr._length : size);
 	if (s > 0) {
 		return write((*arr._container) + form, to, s);
@@ -244,7 +244,7 @@ uint32_t Array<T, Container>::write(const Array& arr, int to, int size, uint32_t
  * @func write
  */
 template<class T, class Container>
-uint32_t Array<T, Container>::write(const T* src, int to, uint32_t size) {
+uint32_t ArrayBuffer<T, Container>::write(const T* src, int to, uint32_t size) {
 	if (size) {
 		if ( to == -1 ) to = _length;
 		uint32_t old_len = _length;
@@ -265,7 +265,7 @@ uint32_t Array<T, Container>::write(const T* src, int to, uint32_t size) {
 }
 
 // template<class T, class Container>
-// uint32_t Array<T, Container>::pop() {
+// uint32_t ArrayBuffer<T, Container>::pop() {
 // 	if (_length) {
 // 		_length--;
 // 		reinterpret_cast<Sham*>((*_container) + _length)->~Sham(); // 释放
@@ -275,7 +275,7 @@ uint32_t Array<T, Container>::write(const T* src, int to, uint32_t size) {
 // }
 
 template<class T, class Container>
-uint32_t Array<T, Container>::pop(uint32_t count) {
+uint32_t ArrayBuffer<T, Container>::pop(uint32_t count) {
 	
 	int j = FX_MAX(_length - count, 0);
 	if (_length > j) {
@@ -289,7 +289,7 @@ uint32_t Array<T, Container>::pop(uint32_t count) {
 	return _length;
 }
 
-template<class T, class Container> void Array<T, Container>::clear() {
+template<class T, class Container> void ArrayBuffer<T, Container>::clear() {
 	if (_length) {
 		T* item = *_container;
 		T* end = item + _length;
@@ -303,24 +303,24 @@ template<class T, class Container> void Array<T, Container>::clear() {
 }
 
 template<class T, class Container>
-inline uint32_t Array<T, Container>::length() const {
+inline uint32_t ArrayBuffer<T, Container>::length() const {
 	return _length;
 }
 
 template<class T, class Container>
-inline uint32_t Array<T, Container>::capacity() const {
+inline uint32_t ArrayBuffer<T, Container>::capacity() const {
 	return _container.capacity();
 }
 
 #define FX_DEF_ARRAY_SPECIAL(T, Container) \
-	template<> Array<T, Container<T>>::Array(uint32_t length, uint32_t capacity); \
-	template<> Array<T, Container<T>>::Array(const std::initializer_list<T>& list); \
-	template<> uint32_t               Array<T, Container<T>>::push(const Array& arr); \
-	template<> uint32_t               Array<T, Container<T>>::push(Array&& arr); \
-	template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint32_t start, uint32_t end); \
-	template<> uint32_t Array<T, Container<T>>::write(const T* src, int to, uint32_t size);\
-	template<> uint32_t               Array<T, Container<T>>::pop(uint32_t count);  \
-	template<> void                   Array<T, Container<T>>::clear()
+	template<> ArrayBuffer<T, Container<T>>::ArrayBuffer(uint32_t length, uint32_t capacity); \
+	template<> ArrayBuffer<T, Container<T>>::ArrayBuffer(const std::initializer_list<T>& list); \
+	template<> uint32_t               ArrayBuffer<T, Container<T>>::push(const ArrayBuffer& arr); \
+	template<> uint32_t               ArrayBuffer<T, Container<T>>::push(ArrayBuffer&& arr); \
+	template<> ArrayBuffer<T, Container<T>> ArrayBuffer<T, Container<T>>::slice(uint32_t start, uint32_t end); \
+	template<> uint32_t ArrayBuffer<T, Container<T>>::write(const T* src, int to, uint32_t size);\
+	template<> uint32_t               ArrayBuffer<T, Container<T>>::pop(uint32_t count);  \
+	template<> void                   ArrayBuffer<T, Container<T>>::clear()
 
 FX_DEF_ARRAY_SPECIAL(char, Container);
 FX_DEF_ARRAY_SPECIAL(unsigned char, Container);
