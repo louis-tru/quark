@@ -31,8 +31,8 @@
 #ifndef __ftr__util__handle__
 #define __ftr__util__handle__
 
+#include <ftr/util/object.h>
 #include <functional>
-#include <ftr/util/util.h>
 
 namespace ftr {
 
@@ -44,60 +44,63 @@ namespace ftr {
 		FX_HIDDEN_ALL_COPY(Handle);
 		
 		inline T* move() {
-			return Traits::Retain(m_data) ? m_data : collapse();
+			return Traits::Retain(_data) ? _data : collapse();
 		}
 		
 		public:
-
 		typedef T Type;
 		typedef T2 Traits;
 		
-		inline Handle(): m_data(nullptr) { }
-		inline Handle(T* data): m_data(data) { Traits::Retain(data); }
-		inline Handle(Handle& handle) { m_data = handle.std::move(); }
-		inline Handle(Handle&& handle) { m_data = handle.std::move(); }
+		inline Handle(): _data(nullptr) {}
+		inline Handle(T* data): _data(data) { Traits::Retain(data); }
+		inline Handle(Handle& handle) { _data = handle.move(); }
+		inline Handle(Handle&& handle) { _data = handle.move(); }
 		
-		~Handle() { clear(); }
+		~Handle() { release(); }
 		
 		inline Handle& operator=(Handle& handle) {
-			clear();
-			m_data = handle.std::move();
+			release();
+			_data = handle.move();
 			return *this;
 		}
 		
 		inline Handle& operator=(Handle&& handle) {
-			clear();
-			m_data = handle.std::move();
+			release();
+			_data = handle.move();
 			return *this;
 		}
 		
-		inline T* operator->() { return m_data; }
-		inline const T* operator->() const { return m_data; }
-		inline T* operator*() { return m_data; }
-		inline const T* operator*() const { return m_data; }
-		inline const T* value() const { return m_data; }
-		inline T* value() { return m_data; }
-		
+		inline T* operator->() { return _data; }
+		inline T* operator*() { return _data; }
+		inline T* value() { return _data; }
+		inline const T* operator->() const { return _data; }
+		inline const T* operator*() const { return _data; }
+		inline const T* value() const { return _data; }
+
 		/**
 		* @func is_null() Is null data available ?
 		*/
-		inline bool is_null() const { return m_data == nullptr; }
+		inline bool is_null() const {
+			return _data == nullptr;
+		}
 		
 		/**
 		* @func collapse() 解绑数据,用函数失去对数据的管理权,数据被移走
 		*/
 		inline T* collapse() {
-			T* data = m_data; m_data = nullptr;
+			T* data = _data; 
+			_data = nullptr;
 			return data;
 		}
 
-		inline void clear() {
-			Traits::Release(m_data); m_data = nullptr;
+		inline void release() {
+			Traits::Release(_data);
+			_data = nullptr;
 		}
 		
 		private:
 
-		T* m_data;
+		T* _data;
 	};
 
 	/**
@@ -106,11 +109,11 @@ namespace ftr {
 	class FX_EXPORT ScopeClear {
 		public:
 		typedef std::function<void()> Clear;
-		ScopeClear(Clear clear): m_clear(clear) { }
-		~ScopeClear() { m_clear(); }
-		inline void cancel() { m_clear = [](){ }; }
+		ScopeClear(Clear clear): _clear(clear) { }
+		~ScopeClear() { _clear(); }
+		inline void cancel() { _clear = [](){}; }
 		private:
-		Clear m_clear;
+		Clear _clear;
 	};
 
 }

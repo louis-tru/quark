@@ -42,57 +42,75 @@ namespace ftr {
 	# define FX_MIN_CAPACITY (8)
 	#endif
 
+	struct FX_EXPORT AllocatorDefault {
+		inline static void* alloc(size_t size) {
+			return ::malloc(size);
+		}
+		inline static void* realloc(void* ptr, size_t size) {
+			return ::realloc(ptr, size);
+		}
+		inline static void free(void* ptr) {
+			::free(ptr);
+		}
+	};
+
 	/**
 	* @class Container
 	*/
-	template <typename T, class Allocator> class FX_EXPORT Container {
+	template <typename T, class Allocator = AllocatorDefault> class FX_EXPORT Container {
 		public:
 		
 		~Container() {
 			free();
 		}
 		
-		inline uint32_t capacity() const { return m_capacity; }
-		inline uint32_t size() const { return sizeof(T) * m_capacity; }
-		inline T* operator*() { return m_value; }
-		inline const T* operator*() const { return m_value; }
+		inline uint32_t is_readonly() const { return _readonly; }
+		inline uint32_t capacity() const { return _capacity; }
+		inline uint32_t size() const { return sizeof(T) * _capacity; }
+		inline T* operator*() { return _value; }
+		inline const T* operator*() const { return _value; }
 		
 		//
-
-		Container(uint32_t capacity = 0): m_capacity(0), m_value(nullptr) {
+		Container(uint32_t capacity = 0): _capacity(0), _value(nullptr), _readonly(false) {
 			if ( capacity ) {
-				m_capacity = powf(2, ceil(log2(FX_MAX(FX_MIN_CAPACITY, capacity))));
-				m_value = static_cast<T*>(Allocator::alloc(size()));
-				ASSERT(m_value);
+				_capacity = powf(2, ceil(log2(FX_MAX(FX_MIN_CAPACITY, capacity))));
+				_value = static_cast<T*>(Allocator::alloc(size()));
+				ASSERT(_value);
 			}
 		}
 		
-		Container(uint32_t capacity, T* value)
-		: m_capacity(capacity), m_value(value)
+		Container(uint32_t capacity, T* value, bool readonly = false)
+		: _capacity(capacity), _value(value), _readonly(readonly)
 		{}
 		
-		Container(const Container& container): m_capacity(0), m_value(nullptr)  {
+		Container(const Container& container): _capacity(0), _value(nullptr), _readonly(false) {
 			operator=(container);
 		}
 		
-		Container(Container&& container): m_capacity(0), m_value(nullptr) {
+		Container(Container&& container): _capacity(0), _value(nullptr), _readonly(false) {
 			operator=(std::move(container));
 		}
 		
 		Container& operator=(const Container& container) {
 			free();
-			m_capacity = container.m_capacity;
-			if (m_capacity) {
-				m_value = static_cast<T*>(Allocator::alloc(size()));
-				::memcpy((void*)m_value, (void*)*container, size());
+			_capacity = container._capacity;
+			if (_capacity) {
+				if (container._readonly) {
+					_value = container->_value;
+					_readonly = true;
+				} else {
+					_value = static_cast<T*>(Allocator::alloc(size()));
+					::memcpy((void*)_value, (void*)*container, size());
+					_readonly = false;
+				}
 			}
 			return *this;
 		}
 		
 		Container& operator=(Container&& container) {
 			free();
-			m_capacity = container.m_capacity;
-			m_value = container.collapse();
+			_capacity = container._capacity;
+			_value = container.collapse();
 			return *this;
 		}
 		
@@ -101,13 +119,17 @@ namespace ftr {
 		* @arg capacity {uint32_t}
 		*/
 		void realloc(uint32_t capacity) {
-			if ( capacity ) {
-				capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
-				if ( capacity > m_capacity || capacity < m_capacity / 4.0 ) {
-					realloc0(powf(2, ceil(log2(capacity))));
-				}
+			if (_readonly) {
+				FX_UNREACHABLE();
 			} else {
-				free();
+				if ( capacity ) {
+					capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
+					if ( capacity > _capacity || capacity < _capacity / 4.0 ) {
+						realloc_(powf(2, ceil(log2(capacity))));
+					}
+				} else {
+					free();
+				}
 			}
 		}
 		
@@ -115,9 +137,12 @@ namespace ftr {
 		* @func collapse
 		*/
 		T* collapse() {
-			T* rev = m_value;
-			m_capacity = 0;
-			m_value = nullptr;
+			if (_readonly) {
+				return nullptr;
+			}
+			T* rev = _value;
+			_capacity = 0;
+			_value = nullptr;
 			return rev;
 		}
 		
@@ -125,29 +150,32 @@ namespace ftr {
 		* @func free
 		*/
 		void free() {
-			if ( m_value ) {
-				Allocator::free(m_value);
-				m_capacity = 0;
-				m_value = nullptr;
+			if ( _value ) {
+				if (!_readonly) {
+					Allocator::free(_value);
+				}
+				_capacity = 0;
+				_value = nullptr;
 			}
 		}
 
-		protected:
+		private:
 
-		void realloc0(uint32_t capacity) {
+		void realloc_(uint32_t capacity) {
 			if (capacity == 0) {
 				free();
-			} else if ( capacity != m_capacity ) {
+			} else if ( capacity != _capacity ) {
 				uint32_t size = sizeof(T) * capacity;
-				m_capacity = capacity;
-				m_value = (T*)(m_value ? Allocator::realloc(m_value, size) : Allocator::alloc(size));
+				_capacity = capacity;
+				_value = (T*)(_value ? Allocator::realloc(_value, size) : Allocator::alloc(size));
 			}
 		}
 
 		template<class S, class A> friend class Container;
-		
-		uint32_t m_capacity;
-		T*       m_value;
+
+		uint32_t _capacity;
+		T*       _value;
+		bool     _readonly;
 	};
 
 }

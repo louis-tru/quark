@@ -45,6 +45,7 @@ class PrivateLoop {
 	}
 
 	bool is_continue(Thread& t) {
+		std::stringbuf a;
 		ScopeLock scope(m_mutex);
 		if (!t.is_abort()) {
 			/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,

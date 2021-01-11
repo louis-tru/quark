@@ -384,7 +384,7 @@ namespace ftr {
 		va_list ap;
 		va_start(ap, a);
 		while (1) {
-			int e = va_arg(ap, int);
+			uint32_t e = va_arg(ap, uint32_t);
 			if (e < 1) {
 				break;
 			}
@@ -397,7 +397,7 @@ namespace ftr {
 		if (r >= total) {
 			while (1) {
 				i++;
-				int e = va_arg(ap, int);
+				uint32_t e = va_arg(ap, uint32_t);
 				if (e < 1) {
 					break;
 				}
@@ -428,11 +428,11 @@ namespace ftr {
 
 	static std::atomic<uint64_t> id(10);
 
-	uint64_t iid() {
+	uint64_t getId() {
 		return id++;
 	}
 
-	uint32_t iid32() {
+	uint32_t getId32() {
 		return id++ % Uint::max;
 	}
 

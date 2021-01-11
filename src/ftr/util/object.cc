@@ -35,16 +35,6 @@
 
 FX_NS(ftr)
 
-void* DefaultAllocator::alloc(size_t size) {
-	return ::malloc(size);
-}
-void* DefaultAllocator::realloc(void* ptr, size_t size) {
-	return ::realloc(ptr, size);
-}
-void DefaultAllocator::free(void* ptr) {
-	::free(ptr);
-}
-
 static void* default_object_alloc(size_t size) {
 	return ::malloc(size);
 }
@@ -86,7 +76,6 @@ int Object::initialize_mark_() {
 }
 
 Object::Object(): mark_index_(initialize_mark_()) {
-
 }
 
 Object::~Object() {
@@ -156,26 +145,24 @@ void Object::operator delete(void* p) {
 	FX_UNREACHABLE();
 }
 
-void set_object_allocator(ObjectAllocator* alloc) {
-	if ( alloc ) {
-		if (alloc->alloc) {
-			object_allocator.alloc = alloc->alloc;
-		} else {
-			object_allocator.alloc = &default_object_alloc;
-		}
-		if (alloc->release) {
-			object_allocator.release = alloc->release;
-		} else {
-			object_allocator.release = &default_object_release;
-		}
-		if (alloc->retain) {
-			object_allocator.retain = alloc->retain;
-		} else {
-			object_allocator.retain = &default_object_retain;
-		}
+void set_object_allocator(
+	void* (*alloc)(size_t size),
+	void (*release)(Object* obj),
+	void (*retain)(Object* obj)
+) {
+	if (alloc) {
+		object_allocator.alloc = alloc;
 	} else {
 		object_allocator.alloc = &default_object_alloc;
+	}
+	if (release) {
+		object_allocator.release = release;
+	} else {
 		object_allocator.release = &default_object_release;
+	}
+	if (retain) {
+		object_allocator.retain = retain;
+	} else {
 		object_allocator.retain = &default_object_retain;
 	}
 }
@@ -190,20 +177,20 @@ void Release(Object* obj) {
 }
 
 Reference::~Reference() {
-	ASSERT( m_ref_count <= 0 );
+	ASSERT( _ref_count <= 0 );
 }
 
 bool Reference::retain() {
-	ASSERT(m_ref_count >= 0);
-	if ( m_ref_count++ == 0 ) {
+	ASSERT(_ref_count >= 0);
+	if ( _ref_count++ == 0 ) {
 		object_allocator.retain(this);
 	}
 	return true;
 }
 
 void Reference::release() {
-	ASSERT(m_ref_count >= 0);
-	if ( --m_ref_count <= 0 ) { // 当引用记数小宇等于0释放
+	ASSERT(_ref_count >= 0);
+	if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
 		object_allocator.release(this);
 	}
 }

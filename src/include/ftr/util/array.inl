@@ -28,87 +28,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#define FX_DEF_ARRAY_SPECIAL(T, Container) \
-template<>  Array<T, Container<T>>::Array(uint32_t length, uint32_t capacity); \
-template<>  Array<T, Container<T>>::Array(const std::initializer_list<T>& list); \
-template<> uint32_t                   Array<T, Container<T>>::push(const Array& arr); \
-template<> uint32_t                   Array<T, Container<T>>::push(Array&& arr); \
-template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint32_t start, uint32_t end); \
-template<> uint32_t Array<T, Container<T>>::write(const T* src, int to, uint32_t size);\
-template<> uint32_t                   Array<T, Container<T>>::pop();  \
-template<> uint32_t                   Array<T, Container<T>>::pop(uint32_t count);  \
-template<> void                   Array<T, Container<T>>::clear()
+// template<class T, class Container>
+// Array<T, Container>::Array(const Array& arr) : _length(0), _container(0)
+// {
+// 	push(arr);
+// }
 
-// IteratorData
-
-template<class T, class Container>
-Array<T, Container>::IteratorData::IteratorData() : _host(NULL), _index(0) { }
+// template<class T, class Container>
+// Array<T, Container>& Array<T, Container>::operator=(const Array& arr) {
+// 	clear();
+// 	push(arr);
+// 	return *this;
+// }
 
 template<class T, class Container>
-Array<T, Container>::IteratorData::IteratorData(Array* host, uint32_t index)
-: _host(host), _index(index) { }
-
-template<class T, class Container>
-const T& Array<T, Container>::IteratorData::value() const {
-	ASSERT(_host);
-	return (*_host)[_index];
-}
-
-template<class T, class Container>
-T& Array<T, Container>::IteratorData::value() {
-	ASSERT(_host);
-	return (*_host)[_index];
-}
-
-template<class T, class Container>
-bool Array<T, Container>::IteratorData::equals(const IteratorData& it) const {
-	return it._index == _index;
-}
-
-template<class T, class Container>
-bool Array<T, Container>::IteratorData::is_null() const {
-	return !_host || uint32_t(_index) == _host->_length;
-}
-
-template<class T, class Container>
-void Array<T, Container>::IteratorData::prev() { // --
-	if (_host)
-		_index = FX_MAX(0, _index - 1);
-}
-
-template<class T, class Container>
-void Array<T, Container>::IteratorData::next() { // ++
-	if (_host)
-		_index = FX_MIN(_host->_length, uint32_t(_index + 1));
-}
-
-// Array
-
-template<class T, class Container>
-Array<T, Container>::Array(uint32_t length, uint32_t capacity)
-: _length(length), _container(FX_MAX(length, capacity))
-{ 
-	if (_length) {
-		T* begin = *_container;
-		T* end = begin + _length;
-		
-		while (begin < end) {
-			new(begin) T(); // 调用默认构造
-			begin++;
-		}
+Array<T, Container>::Array(const std::initializer_list<T>& list)
+: _length((uint32_t)list.size()), _container((uint32_t)list.size()) {
+	T* begin = *_container;
+	for (auto& i : list) {
+		new(begin) T(std::move(i)); // 调用默认构造
+		begin++;
 	}
 }
 
 template<class T, class Container>
-Array<T, Container>::Array(T* data, uint32_t length, uint32_t capacity)
-: _length(length), _container(FX_MAX(capacity, length), data)
-{
-}
-
-template<class T, class Container>
-Array<T, Container>::Array(const Array& arr) : _length(0), _container(0)
-{
-	push(arr);
+Array<T, Container>::Array(Array& arr): Array(std::move(arr)) {
 }
 
 template<class T, class Container>
@@ -123,12 +67,22 @@ Array<T, Container>::Array(Array&& arr) : _length(0), _container(0)
 }
 
 template<class T, class Container>
-Array<T, Container>::Array(const std::initializer_list<T>& list)
-: _length((uint32_t)list.size()), _container((uint32_t)list.size()) {
-	T* begin = *_container;
-	for (auto& i : list) {
-		new(begin) T(std::move(i)); // 调用默认构造
-		begin++;
+Array<T, Container>::Array(T* data, uint32_t length, uint32_t capacity)
+: _length(length), _container(FX_MAX(capacity, length), data)
+{}
+
+template<class T, class Container>
+Array<T, Container>::Array(uint32_t length, uint32_t capacity)
+: _length(length), _container(FX_MAX(length, capacity))
+{
+	if (_length) {
+		T* begin = *_container;
+		T* end = begin + _length;
+		
+		while (begin < end) {
+			new(begin) T(); // 调用默认构造
+			begin++;
+		}
 	}
 }
 
@@ -137,9 +91,8 @@ template<class T, class Container> Array<T, Container>::~Array() {
 }
 
 template<class T, class Container>
-Array<T, Container>& Array<T, Container>::operator=(const Array& arr) {
-	clear(); push(arr);
-	return *this;
+Array<T, Container>& Array<T, Container>::operator=(Array& arr) {
+	return operator=(std::move(arr));
 }
 
 template<class T, class Container>
@@ -168,35 +121,35 @@ T& Array<T, Container>::operator[](uint32_t index) {
 	return (*_container)[index];
 }
 
-template<class T, class Container>
-const T& Array<T, Container>::item(uint32_t index) const {
-	ASSERT(index < _length);
-	return (*_container)[index];
-}
+// template<class T, class Container>
+// const T& Array<T, Container>::item(uint32_t index) const {
+// 	ASSERT(index < _length);
+// 	return (*_container)[index];
+// }
 
-template<class T, class Container>
-T& Array<T, Container>::item(uint32_t index) {
-	ASSERT(index < _length);
-	return (*_container)[index];
-}
+// template<class T, class Container>
+// T& Array<T, Container>::item(uint32_t index) {
+// 	ASSERT(index < _length);
+// 	return (*_container)[index];
+// }
 
-template<class T, class Container>
-T& Array<T, Container>::set(uint32_t index, const T& item) {
-	ASSERT(index <= _length);
-	if ( index < _length ) {
-		return ((*_container)[index] = item);
-	}
-	return (*_container)[push(item) - 1];
-}
+// template<class T, class Container>
+// T& Array<T, Container>::set(uint32_t index, const T& item) {
+// 	ASSERT(index <= _length);
+// 	if ( index < _length ) {
+// 		return ((*_container)[index] = item);
+// 	}
+// 	return (*_container)[push(item) - 1];
+// }
 
-template<class T, class Container>
-T& Array<T, Container>::set(uint32_t index, T&& item) {
-	ASSERT(index <= _length);
-	if ( index < _length ) {
-		return ((*_container)[index] = std::move(item));
-	}
-	return (*_container)[push(std::move(item)) - 1];
-}
+// template<class T, class Container>
+// T& Array<T, Container>::set(uint32_t index, T&& item) {
+// 	ASSERT(index <= _length);
+// 	if ( index < _length ) {
+// 		return ((*_container)[index] = std::move(item));
+// 	}
+// 	return (*_container)[push(std::move(item)) - 1];
+// }
 
 template<class T, class Container>
 uint32_t Array<T, Container>::push(const T& item) {
@@ -214,38 +167,42 @@ uint32_t Array<T, Container>::push(T&& item) {
 	return _length;
 }
 
+// template<class T, class Container>
+// uint32_t Array<T, Container>::concat(const Array& arr) {
+// 	if (arr._length) {
+// 		_length += arr._length;
+// 		_container.realloc(_length);
+		
+// 		const T* source = *arr._container;
+// 		T* end = (*_container) + _length;
+// 		T* target = end - arr._length;
+		
+// 		while (target < end) {
+// 			new(target) T(*source); // 调用复制构造
+// 			source++; target++;
+// 		}
+// 	}
+// 	return _length;
+// }
+
 template<class T, class Container>
-uint32_t Array<T, Container>::push(const Array& arr) {
+uint32_t Array<T, Container>::concat(Array&& arr) {
 	if (arr._length) {
 		_length += arr._length;
 		_container.realloc(_length);
 		
 		const T* source = *arr._container;
 		T* end = (*_container) + _length;
-		T* target = end - arr._length;
-		
-		while (target < end) {
-			new(target) T(*source); // 调用复制构造
-			source++; target++;
-		}
-	}
-	return _length;
-}
-
-template<class T, class Container>
-uint32_t Array<T, Container>::push(Array&& arr) {
-	if (arr._length) {
-		_length += arr._length;
-		_container.realloc(_length);
-		
-		const T* item = *arr._container;
-		T* end = (*_container) + _length;
 		T* begin = end - arr._length;
 		
 		while (begin < end) {
-			new(begin) T(std::move(*item)); // 调用复制构造
-			item++; begin++;
+			new(begin) T(std::move(*source)); // 调用移动构造
+			source++; begin++;
 		}
+		// if (!arr._container.is_readonly()) {
+		// 	arr._container.free();
+		// 	arr._length = 0;
+		// }
 	}
 	return _length;
 }
@@ -298,7 +255,7 @@ uint32_t Array<T, Container>::write(const T* src, int to, uint32_t size) {
 		
 		for (int i = to; i < end; i++) {
 			if (i < old_len) {
-				reinterpret_cast<Wrap*>(tar)->~Wrap(); // 先释放原对像
+				reinterpret_cast<Sham*>(tar)->~Sham(); // 先释放原对像
 			}
 			new(tar) T(*src);
 			tar++; src++;
@@ -307,15 +264,15 @@ uint32_t Array<T, Container>::write(const T* src, int to, uint32_t size) {
 	return size;
 }
 
-template<class T, class Container>
-uint32_t Array<T, Container>::pop() {
-	if (_length) {
-		_length--;
-		reinterpret_cast<Wrap*>((*_container) + _length)->~Wrap(); // 释放
-		_container.realloc(_length);
-	}
-	return _length;
-}
+// template<class T, class Container>
+// uint32_t Array<T, Container>::pop() {
+// 	if (_length) {
+// 		_length--;
+// 		reinterpret_cast<Sham*>((*_container) + _length)->~Sham(); // 释放
+// 		_container.realloc(_length);
+// 	}
+// 	return _length;
+// }
 
 template<class T, class Container>
 uint32_t Array<T, Container>::pop(uint32_t count) {
@@ -324,7 +281,7 @@ uint32_t Array<T, Container>::pop(uint32_t count) {
 	if (_length > j) {
 		do {
 			_length--;
-			reinterpret_cast<Wrap*>((*_container) + _length)->~Wrap(); // 释放
+			reinterpret_cast<Sham*>((*_container) + _length)->~Sham(); // 释放
 		} while (_length > j);
 		
 		_container.realloc(_length);
@@ -337,32 +294,12 @@ template<class T, class Container> void Array<T, Container>::clear() {
 		T* item = *_container;
 		T* end = item + _length;
 		while (item < end) {
-			reinterpret_cast<Wrap*>(item)->~Wrap(); // 释放
+			reinterpret_cast<Sham*>(item)->~Sham(); // 释放
 			item++;
 		}
 		_length = 0;
 	}
 	_container.free();
-}
-
-template<class T, class Container>
-typename Array<T, Container>::IteratorConst Array<T, Container>::begin() const {
-	return IteratorConst(IteratorData(const_cast<Array*>(this), 0));
-}
-
-template<class T, class Container>
-typename Array<T, Container>::IteratorConst Array<T, Container>::end() const {
-	return IteratorConst(IteratorData(const_cast<Array*>(this), _length));
-}
-
-template<class T, class Container>
-typename Array<T, Container>::Iterator Array<T, Container>::begin() {
-	return Iterator(IteratorData(this, 0));
-}
-
-template<class T, class Container>
-typename Array<T, Container>::Iterator Array<T, Container>::end() {
-	return Iterator(IteratorData(this, _length));
 }
 
 template<class T, class Container>
@@ -374,6 +311,16 @@ template<class T, class Container>
 inline uint32_t Array<T, Container>::capacity() const {
 	return _container.capacity();
 }
+
+#define FX_DEF_ARRAY_SPECIAL(T, Container) \
+	template<> Array<T, Container<T>>::Array(uint32_t length, uint32_t capacity); \
+	template<> Array<T, Container<T>>::Array(const std::initializer_list<T>& list); \
+	template<> uint32_t               Array<T, Container<T>>::push(const Array& arr); \
+	template<> uint32_t               Array<T, Container<T>>::push(Array&& arr); \
+	template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint32_t start, uint32_t end); \
+	template<> uint32_t Array<T, Container<T>>::write(const T* src, int to, uint32_t size);\
+	template<> uint32_t               Array<T, Container<T>>::pop(uint32_t count);  \
+	template<> void                   Array<T, Container<T>>::clear()
 
 FX_DEF_ARRAY_SPECIAL(char, Container);
 FX_DEF_ARRAY_SPECIAL(unsigned char, Container);

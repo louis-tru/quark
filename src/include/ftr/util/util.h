@@ -50,8 +50,8 @@ namespace ftr {
 	FX_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
 	FX_EXPORT int fix_random(uint32_t a, ...);
 	FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
-	FX_EXPORT uint64_t iid();
-	FX_EXPORT uint32_t iid32();
+	FX_EXPORT uint64_t getId();
+	FX_EXPORT uint32_t getId32();
 	FX_EXPORT int64_t  parse_time(const String& str);
 	FX_EXPORT String gmt_time_string(int64_t second);
 	FX_EXPORT String platform();

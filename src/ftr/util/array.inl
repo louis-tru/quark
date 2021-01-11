@@ -44,7 +44,7 @@ template<> Array<T, Container<T>>::Array(const std::initializer_list<T>& list) \
 	}\
 } \
 \
-template<> uint32_t Array<T, Container<T>>::push(const Array& arr) { \
+/*template<> uint32_t Array<T, Container<T>>::push(const Array& arr) { \
 	if (arr._length) { \
 		_length += arr._length; \
 		_container.realloc(_length + append_zero); \
@@ -54,26 +54,27 @@ template<> uint32_t Array<T, Container<T>>::push(const Array& arr) { \
 		if (append_zero) begin[_length] = 0; \
 	} \
 	return _length; \
-}\
+}*/\
 \
 template<> uint32_t Array<T, Container<T>>::push(Array&& arr) { \
 	if (arr._length) { \
 		_length += arr._length; \
-		_container.realloc(_length); \
+		_container.realloc(_length + append_zero); \
 		const T* item = *arr._container; \
 		T* begin = (*_container) + _length - arr._length; \
 		memcpy((void*)begin, item, arr._length * sizeof(T)); \
+		if (append_zero) begin[_length] = 0; \
 	} \
 	return _length; \
 } \
 \
-template<> uint32_t Array<T, Container<T>>::pop() { \
+/*template<> uint32_t Array<T, Container<T>>::pop() { \
 	if (_length) {  \
 		_length--;  \
 		_container.realloc(_length); \
 	} \
 	return _length; \
-} \
+}*/ \
 \
 template<> Array<T, Container<T>> Array<T, Container<T>>::slice(uint32_t start, uint32_t end) { \
 	end = FX_MIN(end, _length); \

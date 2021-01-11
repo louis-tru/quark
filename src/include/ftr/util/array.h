@@ -33,71 +33,104 @@
 
 #include <ftr/util/util.h>
 #include <ftr/util/container.h>
-#include <ftr/util/iterator.h>
 #include <ftr/util/error.h>
 #include <initializer_list>
 #include <new>
 
 namespace ftr {
 
-	template<class T> class ArrayBuffer;
-	template<class T> class WeakArrayBuffer;
-
 	/**
 	* @class Array
 	*/
-	template<class T, class Container> class FX_EXPORT Array: public Object {
+	template<class T, class Container = Container<T>> class FX_EXPORT Array: public Object {
 		private:
 
-		struct Wrap { T _item; };
-		struct IteratorData {
-			public:
-			typedef T Value;
-			const T& value() const;
-						T& value();
-			inline int index() const { return _index; }
-			private:
-			IteratorData();
-			IteratorData(Array* host, uint32_t index);
-			bool equals(const IteratorData& it) const;
-			bool is_null() const;
-			void prev();
-			void next();
-			Array* _host;
-			int _index;
-			friend class Array;
-			friend class IteratorTemplateConst<IteratorData>;
-			friend class IteratorTemplate<IteratorData>;
-		};
-
-		Array(T* data, uint32_t length, uint32_t capacity);
+		Array(const Array&) = delete;
+		Array& operator=(const Array&) = delete;
 
 		public:
-		typedef IteratorTemplateConst<IteratorData> IteratorConst;
-		typedef IteratorTemplate<IteratorData> Iterator;
-		
-		Array(const Array&);
-		Array(Array&&);
-		Array(uint32_t length = 0, uint32_t capacity = 0);
+		static Array readonly(const Array& arr);
+		static Array readonly(const T* arr = nullptr, uint32_t length = 0);
+
 		Array(const std::initializer_list<T>& list);
+		Array(Array& arr);
+		Array(Array&& arr);
+		Array(T* data, uint32_t length, uint32_t capacity = 0);
+		Array(uint32_t length = 0, uint32_t capacity = 0);
+
 		virtual ~Array();
-		Array& operator=(const Array&);
+		
+		Array& operator=(Array&);
 		Array& operator=(Array&&);
+		
+		T      & operator[](uint32_t index);
 		const T& operator[](uint32_t index) const;
-		T& operator[](uint32_t index);
-		const T& item(uint32_t index) const;
-		T& item(uint32_t index);
-		T& set(uint32_t index, const T& item);
-		T& set(uint32_t index, T&& item);
-		uint32_t push(const T& item);
+		
 		uint32_t push(T&& item);
-		uint32_t push(const Array& arr);
-		uint32_t push(Array&& arr);
-		uint32_t pop();
-		uint32_t pop(uint32_t count);
+		uint32_t push(const T& item);
+
+		uint32_t pop(uint32_t count = 0);
+
+		uint32_t concat(Array&& arr);
+
 		Array slice(uint32_t start);
 		Array slice(uint32_t start, uint32_t end);
+
+		inline bool is_readonly() const { return _container.is_readonly(); }
+		inline T* operator*() { return *_container; }
+		inline T* value() { return *_container; }
+		inline const T* operator*() const { return *_container; }
+		inline const T* value() const { return *_container; }
+
+		/**
+		* @func size 获取数据占用内存大小
+		*/
+		inline uint32_t size() const { return _length * sizeof(T); }
+
+		/**
+		* @func is_null() Is null data available?
+		*/
+		inline bool is_null() const {
+			return *_container == nullptr;
+		}
 		
+		/**
+		 * @func copy()
+		 */
+		inline Array copy() const {
+			return Array(*(const Array*)this);
+		}
+		
+		/**
+		* @func collapse
+		*/
+		T* collapse() {
+			T* value = _container.collapse();
+			if ( value ) {
+				this->_length = 0;
+			}
+			return value;
+		}
+		
+		/**
+		* @func collapse_string
+		*/
+		// inline std::basic_string<T> collapse_string() {
+		// 	return std::basic_string<T>(std::move(*this));
+		// }
+
+		/**
+		* @func realloc reset realloc length and return this Array&&
+		*/
+		Array&& realloc(uint32_t length) {
+			// if ( !_container.readonly() ) {
+			// 	return std::move(*this);
+			// }
+			// _container.realloc(length);
+			// _length = length;
+			return std::move(*this);
+		}
+
 		/**
 		* @func write
 		* @arg src 
@@ -108,23 +141,20 @@ namespace ftr {
 		*/
 		uint32_t write(const Array& src, int to = -1, int size = -1, uint32_t form = 0);
 		uint32_t write(const T* src, int to, uint32_t size);
-		void clear();
-		String join(const String& sp) const;
-		IteratorConst begin() const;
-		IteratorConst end() const;
-		Iterator begin();
-		Iterator end();
+
+		void     clear();
 		uint32_t length() const;
 		uint32_t capacity() const;
 
 		private:
-		template<class S> friend class ArrayBuffer;
-		template<class S> friend class WeakArrayBuffer;
-		uint32_t    _length;
-		Container   _container;
+		struct Sham { T _item; };
+		uint32_t  _length;
+		Container _container;
 	};
 
 	#include "ftr/util/array.inl"
+
+	typedef Array<char> Buffer;
 }
 
 #endif

@@ -33,7 +33,6 @@
 
 #include <ftr/util/macros.h>
 #include <atomic>
-#include <string>
 
 #ifndef FX_MEMORY_TRACE_MARK
 # define FX_MEMORY_TRACE_MARK 0
@@ -52,51 +51,16 @@ namespace ftr {
 
 	// -------------------------------------------------------
 
-	class Object;
-	class Reference;
-
-	struct FX_EXPORT DefaultAllocator {
-		static void* alloc(size_t size);
-		static void* realloc(void* ptr, size_t size);
-		static void  free(void* ptr);
-	};
-
-	struct ObjectAllocator {
-		void* (*alloc)(size_t size);
-		void  (*release)(Object* obj);
-		void  (*retain)(Object* obj);
-	};
-
-	template<typename T, class A = DefaultAllocator> class Container;
-	template<class T, class Container = Container<T>> class Array;
-	//
-	typedef std::string String;
-	typedef std::basic_string<uint16_t> String16;
-	typedef std::basic_string<uint32_t> String32;
-
-	FX_EXPORT void set_object_allocator(ObjectAllocator* allocator = nullptr);
-	FX_EXPORT bool Retain(Object* obj);
-	FX_EXPORT void Release(Object* obj);
-
-	template<class T, typename... Args>
-	FX_INLINE T* New(Args... args) { return new T(args...); }
-
-	template<class T, typename... Args>
-	FX_INLINE T* NewRetain(Args... args) {
-		T* r = new T(args...); r->retain(); return r; 
-	}
-
-	class DefaultTraits;
+	class ObjectTraits;
 	class ReferenceTraits;
 	class ProtocolTraits;
-
+	
 	/**
 	* @class Object
 	*/
 	class FX_EXPORT Object {
 		public:
-		typedef DefaultTraits Traits;
-		virtual String to_string() const;
+		typedef ObjectTraits Traits;
 		virtual bool is_reference() const;
 		virtual bool retain();
 		// "new" method alloc can call，Otherwise, fatal exception will be caused
@@ -104,7 +68,7 @@ namespace ftr {
 		static void* operator new(std::size_t size);
 		static void* operator new(std::size_t size, void* p);
 		static void  operator delete(void* p);
-		#if FX_MEMORY_TRACE_MARK
+#if FX_MEMORY_TRACE_MARK
 		static std::vector<Object*> mark_objects();
 		static int mark_objects_count();
 		Object();
@@ -112,9 +76,9 @@ namespace ftr {
 		private:
 		int initialize_mark_();
 		int mark_index_;
-		#else 
+#else
 		virtual ~Object() = default;
-		#endif 
+#endif 
 	};
 
 	/**
@@ -123,16 +87,16 @@ namespace ftr {
 	class FX_EXPORT Reference: public Object {
 		public:
 		typedef ReferenceTraits Traits;
-		inline Reference(): m_ref_count(0) { }
-		inline Reference(const Reference& ref): m_ref_count(0) { }
+		inline Reference(): _ref_count(0) {}
+		inline Reference(const Reference& ref): _ref_count(0) {}
 		inline Reference& operator=(const Reference& ref) { return *this; }
 		virtual ~Reference();
 		virtual bool retain();
 		virtual void release();
 		virtual bool is_reference() const;
-		inline int ref_count() const { return m_ref_count; }
+		inline int ref_count() const { return _ref_count; }
 		protected:
-		std::atomic_int m_ref_count;
+		std::atomic_int _ref_count;
 	};
 
 	/**
@@ -145,9 +109,9 @@ namespace ftr {
 	};
 
 	/**
-	* @class DefaultTraits
+	* @class ObjectTraits
 	*/
-	class FX_EXPORT DefaultTraits {
+	class FX_EXPORT ObjectTraits {
 		public:
 		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
 		inline static void Release(Object* obj) { if (obj) obj->release(); }
@@ -158,7 +122,7 @@ namespace ftr {
 	/**
 	* @class ReferenceTraits
 	*/
-	class FX_EXPORT ReferenceTraits: public DefaultTraits {
+	class FX_EXPORT ReferenceTraits: public ObjectTraits {
 		public:
 		static constexpr bool is_reference = true;
 	};
@@ -190,6 +154,22 @@ namespace ftr {
 		template<class T> inline static void Release(T* obj) { delete obj; }
 		static constexpr bool is_reference = false;
 	};
+
+	FX_EXPORT void set_object_allocator(
+		void* (*alloc)(size_t size) = nullptr,
+		void (*release)(Object* obj) = nullptr,
+		void (*retain)(Object* obj) = nullptr
+	);
+	FX_EXPORT bool Retain(Object* obj);
+	FX_EXPORT void Release(Object* obj);
+
+	template<class T, typename... Args>
+	FX_INLINE T* New(Args... args) { return new T(args...); }
+
+	template<class T, typename... Args>
+	FX_INLINE T* NewRetain(Args... args) {
+		T* r = new T(args...); r->retain(); return r; 
+	}
 
 }
 #endif

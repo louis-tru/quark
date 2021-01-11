@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <android/api-level.h>
-#include "ftr/util/android-log.h"
-#include "ftr/util/android-jni.h"
+#include "./android-jni.h"
+#include "./android-log.h"
 #include "android/android.h"
 #include "ftr/util/string.h"
 #include "ftr/util/loop.h"

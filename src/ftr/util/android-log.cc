@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <android/log.h>
-#include "ftr/util/android-log.h"
+#include "./android-log.h"
 #include "ftr/util/string.h"
 
 FX_NS(ftr)
