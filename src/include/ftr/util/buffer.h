@@ -155,7 +155,7 @@ namespace ftr {
 	typedef       ArrayBuffer<char> Buffer;
 	typedef const ArrayBuffer<char> cBuffer;
 
-	#include "ftr/util/buffer.inl"
+	#include "./buffer.inl"
 }
 
 #endif
