@@ -30,16 +30,27 @@
 
 #include <stdio.h>
 #include <sys/utsname.h>
+#include <string>
+#include <iostream>
 
-int test2_sys(int argc, char *argv[]) {
-	struct utsname utsn;
-	uname(&utsn);
+int test2_str(int argc, char *argv[]) {
 
-	printf("sysname:%s\n", utsn.sysname);
-	printf("nodename:%s\n", utsn.nodename);
-	printf("release:%s\n", utsn.release);
-	printf("version:%s\n", utsn.version);
-	printf("machine:%s\n", utsn.machine);
+	std::string s = "hello";
+	
+	char* a = const_cast<char*>(s.c_str());
+	
+	std::free(&a);
+	
+	a[0] = 'H';
+	
+	std::cout
+	<< "sizeof(s):" << sizeof(s) << std::endl
+	<< "capacity:" << s.capacity() << std::endl
+	<< "size:" << s.size() << std::endl
+	<< "length:" << s.length() << std::endl
+	<< "str:" << s << std::endl
+	<< "ptr:" << s.c_str() << std::endl
+	<< std::endl;
 
 	return 0;
 }
