@@ -28,25 +28,121 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__string__
-#define __ftr__util__string__
+#ifndef __ftr__util__str__
+#define __ftr__util__str__
 
 #include <ftr/utils/macros.h>
-#include <string>
+#include <ftr/utils/buffer.h>
+#include <vector>
 
 namespace ftr {
 
-	typedef std::string String;
-	typedef std::u16string String16;
-	typedef std::u32string String32;
+	template<
+		typename T = char,
+		HolderMode M = HolderMode::kStrong,
+		typename A = AllocatorDefault
+	> class BasicString;
+	typedef BasicString<char> String;
+	typedef BasicString<uint16_t> String16;
+	typedef BasicString<uint32_t> String32;
 
-	namespace str {
-	
-		FX_EXPORT String& to_lower(String& str);
-		FX_EXPORT String& to_upper(String& str);
-		FX_EXPORT String format(const char* format, ...);
-	}
+	/**
+	* @class BasicString
+	*/
+	template<class T, HolderMode M, typename A>
+	class FX_EXPORT BasicString: public ArrayBuffer<T, M, A> {
+		public:
+		BasicString();
+		// BasicString(char i);
+		// BasicString(int i);
+		// BasicString(uint32_t i);
+		// BasicString(int64 i);
+		// BasicString(uint32_t64 i);
+		// BasicString(float f);
+		// BasicString(double f);
+		BasicString(const T* s1, uint32_t s1_len, const T* s2, uint32_t s2_len);
+		BasicString(const T* s, uint32_t len);
+		BasicString(const ArrayBuffer& s);
+		BasicString(ArrayBuffer&& s);
+		// BasicString(ArrayBuffer<T>&& data);
+		// BasicString(ArrayBuffer<T>& data) = delete;
+		// BasicString(const Object& o);
+		// template<typename T2>
+		// BasicString(const T2* s);
+		virtual ~BasicString();
 
+		static String format(const char* format, ...);
+
+		std::vector<BasicString> split(const BasicString& sp) const;
+		BasicString trim() const;
+		BasicString trim_left() const;
+		BasicString trim_right() const;
+		BasicString& upper_case();
+		BasicString& lower_case();
+		BasicString to_upper_case() const;
+		BasicString to_lower_case() const;
+		int         index_of(const BasicString& s, uint32_t start = 0) const;
+		int         last_index_of(const BasicString& s, int start) const;
+		int         last_index_of(const BasicString& s) const;
+		// int         index_of(const T* s, uint32_t start = 0) const;
+		// int         last_index_of(const T* s, int start) const;
+		// int         last_index_of(const T* s) const;
+
+		BasicString replace(const BasicString& s, const BasicString& rep) const;
+		BasicString replace_all(const BasicString& s, const BasicString& rep) const;
+		// BasicString replace(const T* s, const T* rep) const;
+		// BasicString replace_all(const T* s, const T* rep) const;
+
+		BasicString substr(uint32_t start, uint32_t length) const;
+		BasicString substr(uint32_t start) const;
+		BasicString substring(uint32_t start, uint32_t end) const;
+		BasicString substring(uint32_t start) const;
+
+		// BasicString& push(const T* s, uint32_t len);
+		// BasicString& push(const BasicString& s);
+		// BasicString& push(T s);
+		
+		// operator overload
+		BasicString& operator+=(const BasicString& s);
+		BasicString  operator+(const BasicString& s) const;
+		BasicString& operator=(const BasicString& s);
+		BasicString& operator=(      BasicString&& s); // assign
+		bool         operator==(const BasicString& s) const;
+		bool         operator!=(const BasicString& s) const;
+		bool         operator>(const BasicString& s) const;
+		bool         operator<(const BasicString& s) const;
+		bool         operator>=(const BasicString& s) const;
+		bool         operator<=(const BasicString& s) const;
+
+		// BasicString& operator+=(const T* s);
+		// BasicString  operator+(const T* s) const;
+		// BasicString& operator=(const T* s);
+		// bool         operator==(const T* s) const;
+		// bool         operator!=(const T* s) const;
+		// bool         operator>(const T* s) const;
+		// bool         operator<(const T* s) const;
+		// bool         operator>=(const T* s) const;
+		// bool         operator<=(const T* s) const;
+
+		// BasicString& assign(const T* s, uint32_t len);
+
+		uint32_t hash_code() const;
+
+		// int32_t      to_int() const;
+		// uint32_t to_uint32_t() const;
+		// int64_t to_int64() const;
+		// uint64_t to_uint32_t64() const;
+		// float to_float() const;
+		// double to_double() const;
+		// bool to_bool() const;
+		// bool to_int(int* out) const;
+		// bool to_uint32_t(uint32_t* out) const;
+		// bool to_int64(int64* out) const;
+		// bool to_uint32_t64(uint32_t64* out) const;
+		// bool to_float(float* out) const;
+		// bool to_double(double* out) const;
+		// bool to_bool(bool* out) const;
+	};
 }
 
 #endif

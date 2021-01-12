@@ -28,42 +28,78 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-template<class T, class Container>
-ArrayBuffer<T, Container>::ArrayBuffer(ArrayBuffer& arr): ArrayBuffer(std::move(arr))
-{}
-
-template<class T, class Container>
-ArrayBuffer<T, Container>::ArrayBuffer(ArrayBuffer&& arr) : _length(0), _container(0)
-{
-	T* t = *arr._container;
-	_container.operator=(std::move(arr._container));
-	if ( t == *_container ) {
-		_length = arr._length;
-		arr._length = 0;
-	}
+template<typename T, HolderMode M, typename A>
+template<HolderMode M2, typename A2>
+ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer<T, A2, M2>& arr): ArrayBuffer(std::move(arr))
+	: ArrayBuffer(const_cast<T*>(arr.val(), arr.length(), arr.capacity())) {
+	static_assert(Mode == HolderMode::kWeak, "Only weak types can be copied");
 }
 
-template<class T, class Container>
-ArrayBuffer<T, Container>::ArrayBuffer(const std::initializer_list<T>& list)
-: _length((uint32_t)list.size()), _container((uint32_t)list.size()) {
-	T* begin = *_container;
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>::ArrayBuffer(ArrayBuffer& arr): ArrayBuffer(std::move(arr))
+{}
+
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>::ArrayBuffer(T* data, uint32_t length, uint32_t capacity)
+: _length(length), _capacity(FX_MAX(capacity, length)), _val(data)
+{
+}
+
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>::ArrayBuffer(ArrayBuffer&& arr): _length(0), _capacity(0), _val(nullptr)
+{
+	operator=(std::move(arr));
+}
+
+template<typename T, HolderMode M, typename A>
+template<HolderMode M2, typename A2>
+ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(const ArrayBuffer<T, A2, M2>& arr) {
+	static_assert(Mode == HolderMode::kWeak, "Only weak types can be copied assign value");
+	_length = arr._length;
+	_capacity = arr._capacity;
+	_val = arr._val;
+}
+
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(ArrayBuffer& arr) {
+	return operator=(std::move(arr));
+}
+
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(ArrayBuffer&& arr) {
+	if ( arr._val != _val ) {
+		clear();
+		_length = arr._length;
+		_capacity = arr._capacity;
+		_val = arr._val;
+		if (Mode == HolderMode::kStrong) {
+			arr._length = 0;
+			arr._capacity = 0;
+			arr._val = nullptr;
+		}
+	}
+	return *this;
+}
+
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>::ArrayBuffer(const std::initializer_list<T>& list)
+: _length((uint32_t)list.size()), _capacity(0), _val(nullptr)
+{
+	realloc_(_length);
+	T* begin = _val;
 	for (auto& i : list) {
 		new(begin) T(std::move(i)); // 调用默认构造
 		begin++;
 	}
 }
 
-template<class T, class Container>
-ArrayBuffer<T, Container>::ArrayBuffer(T* data, uint32_t length, uint32_t capacity, bool is_readonly)
-: _length(length), _container(FX_MAX(capacity, length), data, is_readonly)
-{}
-
-template<class T, class Container>
-ArrayBuffer<T, Container>::ArrayBuffer(uint32_t length, uint32_t capacity)
-: _length(length), _container(FX_MAX(length, capacity))
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity)
+: _length(length), _capacity(0), _val(nullptr)
 {
+	realloc_(FX_MAX(length, capacity));
 	if (_length) {
-		T* begin = *_container;
+		T* begin = _val;
 		T* end = begin + _length;
 		while (begin < end) {
 			new(begin) T(); // 调用默认构造
@@ -72,104 +108,75 @@ ArrayBuffer<T, Container>::ArrayBuffer(uint32_t length, uint32_t capacity)
 	}
 }
 
-template<class T, class Container>
-ArrayBuffer<T, Container>::~ArrayBuffer() {
-	clear();
+template<typename T, HolderMode M, typename A>
+const T& ArrayBuffer<T, M, A>::operator[](uint32_t index) const {
+	ASSERT(index < _length, "ArrayBuffer access violation.");
+	return _val[index];
 }
 
-template<class T, class Container>
-ArrayBuffer<T, Container>& ArrayBuffer<T, Container>::operator=(ArrayBuffer& arr) {
-	return operator=(std::move(arr));
+template<typename T, HolderMode M, typename A>
+T& ArrayBuffer<T, M, A>::operator[](uint32_t index) {
+	ASSERT(index < _length, "ArrayBuffer access violation.");
+	return _val[index];
 }
 
-template<class T, class Container>
-ArrayBuffer<T, Container>& ArrayBuffer<T, Container>::operator=(ArrayBuffer&& arr) {
-	if ( &arr._container == &_container ) return *this;
-	clear();
-	T* t = *arr._container;
-	_container.operator=(std::move(arr._container));
-	if ( t == *_container ) {
-		_length = arr._length;
-		arr._length = 0;
+template<typename T, HolderMode M, typename A>
+uint32_t ArrayBuffer<T, M, A>::push(const T& item) {
+	_length++;
+	realloc_(_length);
+	new(_val + _length - 1) T(item);
+	return _length;
+}
+
+template<typename T, HolderMode M, typename A>
+uint32_t ArrayBuffer<T, M, A>::push(T&& item) {
+	_length++;
+	realloc_(_length);
+	new(_val + _length - 1) T(std::move(item));
+	return _length;
+}
+
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length) {
+	if (src_length) {
+		_length += src_length;
+		realloc_(_length);
+		T* src = arr._val;
+		T* end = _val + _length;
+		T* to = end - src_length;
+		while (to < end) {
+			new(to) T(std::move(*src)); // 调用移动构造
+			src++; to++;
+		}
 	}
 	return *this;
 }
 
-template<class T, class Container>
-const T& ArrayBuffer<T, Container>::operator[](uint32_t index) const {
-	ASSERT(index < _length, "ArrayBuffer access violation.");
-	return (*_container)[index];
-}
-
-template<class T, class Container>
-T& ArrayBuffer<T, Container>::operator[](uint32_t index) {
-	ASSERT(index < _length, "ArrayBuffer access violation.");
-	return (*_container)[index];
-}
-
-template<class T, class Container>
-uint32_t ArrayBuffer<T, Container>::push(const T& item) {
-	_length++;
-	_container.realloc(_length);
-	new((*_container) + _length - 1) T(item);
-	return _length;
-}
-
-template<class T, class Container>
-uint32_t ArrayBuffer<T, Container>::push(T&& item) {
-	_length++;
-	_container.realloc(_length);
-	new((*_container) + _length - 1) T(std::move(item));
-	return _length;
-}
-
-template<class T, class Container>
-uint32_t ArrayBuffer<T, Container>::concat(ArrayBuffer&& arr) {
-	if (arr._length) {
-		_length += arr._length;
-		_container.realloc(_length);
-		
-		const T* source = *arr._container;
-		T* end = (*_container) + _length;
-		T* begin = end - arr._length;
-		
-		while (begin < end) {
-			new(begin) T(std::move(*source)); // 调用移动构造
-			source++; begin++;
-		}
-	}
-	return _length;
-}
-
-template<class T, class Container>
-inline ArrayBuffer<T, Container> ArrayBuffer<T, Container>::slice(uint32_t start) const {
-	return slice(start, _length);
-}
-
-template<class T, class Container>
-ArrayBuffer<T, Container> ArrayBuffer<T, Container>::slice(uint32_t start, uint32_t end) const {
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, HolderMode::kStrong, A> ArrayBuffer<T, M, A>::slice(uint32_t start, uint32_t end) const {
 	end = FX_MIN(end, _length);
 	if (start < end) {
-		ArrayBuffer arr;
+		ArrayBuffer<T, HolderMode::kStrong, A> arr;
 		arr._length = end - start;
-		arr._container.realloc(arr._length);
-		T* tar = *arr._container;
-		T* e = tar + arr._length;
-		const T* src = *_container + start;
-		while (tar < e) {
-			new(tar) T(*src);
-			tar++; src++;
+		arr.realloc_(arr._length);
+		T* to = arr._val;
+		T* e = to + arr._length;
+		const T* src = _val + start;
+		while (to < e) {
+			new(to) T(*src);
+			to++; src++;
 		}
-		return arr;
+		return std::move(arr);
 	}
-	return ArrayBuffer();
+	return ArrayBuffer<T, HolderMode::kStrong, A>();
 }
 
-template<class T, class Container>
-uint32_t ArrayBuffer<T, Container>::write(const ArrayBuffer& arr, int to, int size, uint32_t form) {
+template<typename T, HolderMode M, typename A>
+template<HolderMode M2, typename A2>
+uint32_t ArrayBuffer<T, M, A>::write(const ArrayBuffer<T, A2, M2>& arr, int to, int size, uint32_t form) {
 	int s = FX_MIN(arr._length - form, size < 0 ? arr._length : size);
 	if (s > 0) {
-		return write((*arr._container) + form, to, s);
+		return write(_val + form, to, s);
 	}
 	return 0;
 }
@@ -177,15 +184,15 @@ uint32_t ArrayBuffer<T, Container>::write(const ArrayBuffer& arr, int to, int si
 /**
  * @func write
  */
-template<class T, class Container>
-uint32_t ArrayBuffer<T, Container>::write(const T* src, int to, uint32_t size) {
+template<typename T, HolderMode M, typename A>
+uint32_t ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size) {
 	if (size) {
 		if ( to == -1 ) to = _length;
 		uint32_t old_len = _length;
 		uint32_t end = to + size;
 		_length = FX_MAX(end, _length);
-		_container.realloc(_length);
-		T* tar = (*_container) + to;
+		realloc_(_length);
+		T* tar = _val + to;
 		
 		for (int i = to; i < end; i++) {
 			if (i < old_len) {
@@ -198,50 +205,91 @@ uint32_t ArrayBuffer<T, Container>::write(const T* src, int to, uint32_t size) {
 	return size;
 }
 
-template<class T, class Container>
-uint32_t ArrayBuffer<T, Container>::pop(uint32_t count) {
+template<typename T, HolderMode M, typename A>
+uint32_t ArrayBuffer<T, M, A>::pop(uint32_t count) {
 	int j = FX_MAX(_length - count, 0);
 	if (_length > j) {
 		do {
 			_length--;
-			reinterpret_cast<Sham*>((*_container) + _length)->~Sham(); // 释放
+			reinterpret_cast<Sham*>(_val + _length)->~Sham(); // 释放
 		} while (_length > j);
-		
-		_container.realloc(_length);
+		realloc_(_length);
 	}
 	return _length;
 }
 
-template<class T, class Container> void ArrayBuffer<T, Container>::clear() {
-	if (_length) {
-		T* item = *_container;
-		T* end = item + _length;
-		while (item < end) {
-			reinterpret_cast<Sham*>(item)->~Sham(); // 释放
-			item++;
-		}
-		_length = 0;
+template<typename T, HolderMode M, typename A>
+T* ArrayBuffer<T, M, A>::collapse() {
+	if (Mode == HolderMode::kWeak) {
+		return nullptr;
 	}
-	_container.free();
+	T* r = _val;
+	_capacity = 0;
+	_length = 0;
+	_val = nullptr;
+	return r;
 }
 
-#define FX_DEF_ARRAY_SPECIAL(T, Container) \
-	template<>                              ArrayBuffer<T, Container<T>>::ArrayBuffer(uint32_t length, uint32_t capacity); \
-	template<>                              ArrayBuffer<T, Container<T>>::ArrayBuffer(const std::initializer_list<T>& list); \
-	template<> uint32_t                     ArrayBuffer<T, Container<T>>::concat(ArrayBuffer&& arr); \
-	template<> ArrayBuffer<T, Container<T>> ArrayBuffer<T, Container<T>>::slice(uint32_t start, uint32_t end) const; \
-	template<> uint32_t                     ArrayBuffer<T, Container<T>>::write(const T* src, int to, uint32_t size);\
-	template<> uint32_t                     ArrayBuffer<T, Container<T>>::pop(uint32_t count);  \
-	template<> void                         ArrayBuffer<T, Container<T>>::clear()
+template<typename T, HolderMode M, typename A>
+void ArrayBuffer<T, M, A>::clear() {
+	if (_capacity) {
+		if (Mode == HolderMode::kStrong) {
+			T* item = _val;
+			T* end = item + _length;
+			while (item < end) {
+				reinterpret_cast<Sham*>(item)->~Sham(); // 释放
+				item++;
+			}
+			A::free(_val); /* free */
+		}
+		_length = 0;
+		_capacity = 0;
+		_val = nullptr;
+	}
+}
 
-FX_DEF_ARRAY_SPECIAL(char, Container);
-FX_DEF_ARRAY_SPECIAL(unsigned char, Container);
-FX_DEF_ARRAY_SPECIAL(int16_t, Container);
-FX_DEF_ARRAY_SPECIAL(uint16_t, Container);
-FX_DEF_ARRAY_SPECIAL(int, Container);
-FX_DEF_ARRAY_SPECIAL(uint32_t, Container);
-FX_DEF_ARRAY_SPECIAL(int64_t, Container);
-FX_DEF_ARRAY_SPECIAL(uint64_t, Container);
-FX_DEF_ARRAY_SPECIAL(float, Container);
-FX_DEF_ARRAY_SPECIAL(double, Container);
-FX_DEF_ARRAY_SPECIAL(bool, Container);
+template<typename T, HolderMode M, typename A>
+void ArrayBuffer<T, M, A>::realloc_(uint32_t capacity) {
+	static_assert(Mode == HolderMode::kStrong, "the weak holder cannot be changed");
+	if ( capacity ) {
+		capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
+		if ( capacity > _capacity || capacity < _capacity / 4.0 ) {
+			capacity = powf(2, ceil(log2(capacity)));
+			uint32_t size = sizeof(T) * capacity;
+			_capacity = capacity;
+			_val = static_cast<T*>(_val ? A::realloc(_val, size) : A::alloc(size));
+		}
+		ASSERT(_val);
+	} else {
+		A::free(_val);
+		_capacity = 0;
+		_val = nullptr;
+	}
+}
+
+#define FX_DEF_ARRAY_SPECIAL(T, M, A) \
+	template<>                              ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity); /*Strong*/ \
+	template<>                              ArrayBuffer<T, M, A>::ArrayBuffer(const std::initializer_list<T>& list); /*Strong*/ \
+	template<> ArrayBuffer<T, M, A>&        ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length); /*Strong*/ \
+	template<> uint32_t                     ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size); /*Strong*/ \
+	template<> uint32_t                     ArrayBuffer<T, M, A>::pop(uint32_t count); /*Strong*/ \
+	template<> void                         ArrayBuffer<T, M, A>::clear(); /*Strong/Weak*/ \
+	FX_DEF_ARRAY_SPECIAL_SLICE(T, M, A)
+
+#define FX_DEF_ARRAY_SPECIAL_SLICE(T, M, A) \
+	template<> ArrayBuffer<T, HolderMode::kStrong, A> \
+																					ArrayBuffer<T, M, A>::slice(uint32_t start, uint32_t end) const /*Strong/Weak*/
+#define FX_DEF_ARRAY_SPECIAL_ALL(T) \
+	FX_DEF_ARRAY_SPECIAL(T, HolderMode::kStrong, AllocatorDefault); \
+	FX_DEF_ARRAY_SPECIAL_SLICE(T, HolderMode::kWeak, AllocatorDefault)
+
+FX_DEF_ARRAY_SPECIAL_ALL(char);
+FX_DEF_ARRAY_SPECIAL_ALL(unsigned char);
+FX_DEF_ARRAY_SPECIAL_ALL(int16_t);
+FX_DEF_ARRAY_SPECIAL_ALL(uint16_t);
+FX_DEF_ARRAY_SPECIAL_ALL(int32_t);
+FX_DEF_ARRAY_SPECIAL_ALL(uint32_t);
+FX_DEF_ARRAY_SPECIAL_ALL(int64_t);
+FX_DEF_ARRAY_SPECIAL_ALL(uint64_t);
+FX_DEF_ARRAY_SPECIAL_ALL(float);
+FX_DEF_ARRAY_SPECIAL_ALL(double);

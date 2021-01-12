@@ -66,20 +66,19 @@ namespace ftr {
 		virtual String to_string() const;
 
 		private:
-		int          m_code;
+		int     m_code;
 		String* m_message;
 	};
 
 	typedef const Error cError;
-
 }
 
 #else
 
 #error Exceptions must be turned on
 
-#define FX_THROW ftr::fatal()
-#define FX_CHECK(cond, ...) if(!(cond)) ftr::fatal()
+#define FX_THROW(...) ftr::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define FX_CHECK(cond, ...) if(!(cond)) ftr::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define FX_IGNORE_ERR(block) block ((void) 0)
 
 #endif

@@ -32,81 +32,106 @@
 
 namespace ftr {
 
-	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, Container, append_zero) \
-	\
-	template<> ArrayBuffer<T, Container<T>>::ArrayBuffer(uint32_t length, uint32_t capacity) \
-	: _length(length), _container(FX_MAX(length, capacity)) { \
-		if (_length) {  \
-			memset(*_container, 0, sizeof(T) * _length); \
-		}\
-	}\
-	\
-	template<> ArrayBuffer<T, Container<T>>::ArrayBuffer(const std::initializer_list<T>& list) \
-	: _length(uint32_t(list.size())), _container(uint32_t(list.size())) { \
-		if (_length) {  \
-			memcpy((void*)*_container, list.begin(), sizeof(T) * _length); \
-		}\
-	} \
-	\
-	template<> uint32_t ArrayBuffer<T, Container<T>>::concat(ArrayBuffer&& arr) { \
-		if (arr._length) { \
-			_length += arr._length; \
-			_container.realloc(_length + append_zero); \
-			const T* item = *arr._container; \
-			T* target = (*_container) + _length - arr._length; \
-			memcpy((void*)target, item, arr._length * sizeof(T)); \
-			if (append_zero) target[_length] = 0; \
-		} \
-		return _length; \
-	} \
-	\
-	template<> ArrayBuffer<T, Container<T>> ArrayBuffer<T, Container<T>>::slice(uint32_t start, uint32_t end) const { \
-		end = FX_MIN(end, _length); \
-		if (start < end) { \
-			ArrayBuffer arr; \
-			arr._length = end - start; \
-			arr._container.realloc(arr._length + append_zero); \
-			T* target = *arr._container; \
-			memcpy((void*)target, (*_container) + start, arr._length * sizeof(T) ); \
-			if (append_zero) target[arr._length] = 0; \
-			return arr; \
-		} \
-		return ArrayBuffer(); \
-	}\
-	\
-	template<> uint32_t ArrayBuffer<T, Container<T>>::write(const T* src, int to, uint32_t size) { \
-		if (size) { \
-			if ( to == -1 ) to = _length; \
-			_length = FX_MAX(to + size, _length); \
-			_container.realloc(_length); \
-			memcpy((void*)((*_container) + to), src, size * sizeof(T) ); \
-		} \
-		return size; \
-	} \
-	\
-	template<> uint32_t ArrayBuffer<T, Container<T>>::pop(uint32_t count) { \
-		uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
-		if (_length > j) {  \
-			_length = j;  \
-			_container.realloc(_length); \
-		} \
-		return _length; \
-	} \
-	\
-	template<> void ArrayBuffer<T, Container<T>>::clear() { \
-		_length = 0;  \
-		_container.free();  \
+	void* AllocatorDefault::alloc(size_t size) {
+		return ::malloc(size);
+	}
+	void* AllocatorDefault::realloc(void* ptr, size_t size) {
+		return ::realloc(ptr, size);
+	}
+	void AllocatorDefault::free(void* ptr) {
+		::free(ptr);
 	}
 
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(char, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(unsigned char, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int16_t, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint16_t, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint32_t, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(int64_t, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(uint64_t, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(float, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(double, Container, 1);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(bool, Container, 1);
+	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, M, A, APPEND_ZERO) \
+		\
+		template<> ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity) \
+		: _length(length), _capacity(0), _val(nullptr) \
+		{ \
+			if (_length) {  \
+				realloc_(_length); \
+				memset(_val, 0, sizeof(T) * _length); \
+			}\
+		}\
+		\
+		template<> ArrayBuffer<T, M, A>::ArrayBuffer(const std::initializer_list<T>& list) \
+		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr) \
+		{ \
+			if (_length) { \
+				realloc_(_length); \
+				memcpy(_val, list.begin(), sizeof(T) * _length); \
+			}\
+		} \
+		\
+		template<> uint32_t ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length { \
+			if (src_length) {\
+				_length += src_length; \
+				realloc_(_length + APPEND_ZERO); \
+				T* src = _val; \
+				T* to = _val + _length - src_length; \
+				memcpy((void*)to, src, src_length * sizeof(T)); \
+				if (APPEND_ZERO) _val[_length] = 0; \
+			} \
+			return _length; \
+		} \
+		\
+		template<> uint32_t ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size) { \
+			if (size) { \
+				if ( to == -1 ) to = _length; \
+				_length = FX_MAX(to + size, _length); \
+				realloc_(_length); \
+				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
+			} \
+			return size; \
+		} \
+		\
+		template<> uint32_t ArrayBuffer<T, M, A>::pop(uint32_t count) { \
+			uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
+			if (_length > j) {  \
+				_length = j;  \
+				realloc_(_length); \
+			} \
+			return _length; \
+		} \
+		\
+		template<> void ArrayBuffer<T, M, A>::clear() { \
+			if (_capacity) { \
+				if (Mode == HolderMode::kStrong) { \
+					A::free(_val); /* free */ \
+				} \
+				_length = 0; \
+				_capacity = 0; \
+				_val = nullptr; \
+			}
+		} \
+		\
+		FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, M, A, APPEND_ZERO)
+	
+	#define FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, M, A, APPEND_ZERO) \
+		template<> ArrayBuffer<T, M, A> ArrayBuffer<T, M, A>::slice(uint32_t start, uint32_t end) const { \
+			end = FX_MIN(end, _length); \
+			if (start < end) { \
+				ArrayBuffer<T, HolderMode::kStrong, A> arr; \
+				arr._length = end - start; \
+				arr.realloc_(arr._length + APPEND_ZERO); \
+				memcpy((void*)arr._val, _val + start, arr._length * sizeof(T) ); \
+				if (APPEND_ZERO) arr._val[arr._length] = 0; \
+				return std::move(arr); \
+			} \
+			return ArrayBuffer<T, HolderMode::kStrong, A>();
+		}
+
+	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
+		FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, HolderMode::kStrong, AllocatorDefault, 1); \
+		FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, HolderMode::kWeak, AllocatorDefault, 1)
+
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint32_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int64_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint64_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(float);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(double);
 }
