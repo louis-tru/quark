@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,34 +25,64 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include "ftr/utils/error.h"
+#include "ftr/utils/util.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#if FX_EXCEPTIONS_SUPPORT
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+	Error::Error()
+	: m_code(ERR_UNKNOWN_ERROR)
+	, m_message(new String("unknown exception")) {
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	}
 
-int main(int argc, char *argv[]) {
+	Error::Error(int code, const String& msg)
+	: m_code(code)
+	, m_message(new String(msg)) {
+	}
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	Error::Error(const String& msg): m_code(ERR_UNKNOWN_ERROR), m_message(new String(msg)) {
+	}
 
-	return r;
+	Error::Error(cError& e)
+	: m_code(e.code())
+	, m_message(new String(*e.m_message)) {
+	}
+
+	Error& Error::operator=(const Error& e) {
+		m_code = e.m_code;
+		*m_message = *e.m_message;
+		return *this;
+	}
+
+	Error::~Error() {
+		delete m_message;
+	}
+
+	const String& Error::message() const throw() {
+		return *m_message;
+	}
+
+	int Error::code() const throw() {
+		return m_code;
+	}
+
+	void Error::set_message(const String& value) {
+		*m_message = value;
+	}
+
+	void Error::set_code(int value) {
+		m_code = value;
+	}
+
+	String Error::to_string() const {
+		return string_format("message: %s, code: %d", m_message->c_str(), m_code);
+	}
 }
 
+#endif

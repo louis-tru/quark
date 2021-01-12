@@ -29,30 +29,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <stdio.h>
-#include <time.h>
+#include <sys/utsname.h>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+int test2_sys(int argc, char *argv[]) {
+	struct utsname utsn;
+	uname(&utsn);
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	printf("sysname:%s\n", utsn.sysname);
+	printf("nodename:%s\n", utsn.nodename);
+	printf("release:%s\n", utsn.release);
+	printf("version:%s\n", utsn.version);
+	printf("machine:%s\n", utsn.machine);
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+	return 0;
 }
-

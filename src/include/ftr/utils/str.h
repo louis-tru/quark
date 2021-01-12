@@ -28,31 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__string__
+#define __ftr__util__string__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/utils/macros.h>
+#include <string>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+	typedef std::string String;
+	typedef std::u16string String16;
+	typedef std::u32string String32;
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
+	namespace str {
 	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+		FX_EXPORT String& to_lower(String& str);
+		FX_EXPORT String& to_upper(String& str);
+		FX_EXPORT String format(const char* format, ...);
+	}
 
-	return r;
 }
 
+#endif

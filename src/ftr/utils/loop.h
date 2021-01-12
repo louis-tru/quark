@@ -28,31 +28,55 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__loop_1__
+#define __ftr__util__loop_1__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
+#include "ftr/utils/loop.h"
+
+/**
+ * @ns ftr
+ */
+
+FX_NS(ftr)
+
+/**
+ * @class ParallelWorking
+ */
+class FX_EXPORT ParallelWorking: public Object {
+	FX_HIDDEN_ALL_COPY(ParallelWorking);
+ public:
+	typedef Thread::Exec Exec;
+	ParallelWorking();
+	ParallelWorking(RunLoop* loop);
+	virtual ~ParallelWorking();
+	ThreadID spawn_child(Exec exec, const String& name);
+	void awaken_child(ThreadID id = ThreadID());  // default awaken all child
+	void abort_child(ThreadID id = ThreadID());   // default abort all child
+	uint32_t post(cCb& cb); // post message to main thread
+	uint32_t post(cCb& cb, uint64_t delay_us);
+	void cancel(uint32_t id = 0); // cancel message
+ private:
+	KeepLoop* m_proxy;
+	Mutex m_mutex2;
+	Map<ThreadID, int> m_childs;
+};
+
+FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
+ public:
+	inline void set_independent_mutex(RecursiveMutex* mutex) {
+		m_independent_mutex = mutex;
+	}
+	inline void independent_mutex_lock() {
+		if (m_independent_mutex) {
+			m_independent_mutex->lock();
+		}
+	}
+	inline void independent_mutex_unlock() {
+		if (m_independent_mutex) {
+			m_independent_mutex->unlock();
+		}
+	}
+};
+
+FX_END
 #endif
-
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
-
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
-}
-

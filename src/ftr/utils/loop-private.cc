@@ -1,3 +1,4 @@
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,31 +29,80 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include "ftr/utils/loop.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+FX_NS(ftr)
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
-
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
+/**
+ * @class PrivateLoop
+ */
+class PrivateLoop {
+ public:
+	inline PrivateLoop(): m_loop(nullptr) {}
 	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	inline bool has_current_thread() {
+		return Thread::current_id() == m_thread_id;
+	}
 
-	return r;
+	bool is_continue(Thread& t) {
+		std::stringbuf a;
+		ScopeLock scope(m_mutex);
+		if (!t.is_abort()) {
+			/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
+			 * 200毫秒后没有向队列发送新消息结束线程
+			 * * *
+			 * 这里休眠200毫秒给外部线程足够时间往队列发送消息
+			 */
+			Thread::sleep(2e5);
+			if ( m_loop->is_alive() && !t.is_abort() ) {
+				return true; // 继续运行
+			}
+		}
+		m_loop = nullptr;
+		m_thread_id = ThreadID();
+		return false;
+	}
+	
+	RunLoop* loop() {
+		Lock lock(m_mutex);
+		if (is_exited())
+			return nullptr;
+		if (m_loop)
+			return m_loop;
+		
+		Thread::spawn([this](Thread& t) {
+			m_mutex.lock();
+			m_thread_id = t.id();
+			m_loop = RunLoop::current();
+			m_cond.notify_all();
+			m_mutex.unlock();
+			do {
+				m_loop->run(2e7); // 20秒后没有新消息结束线程
+			} while(is_continue(t));
+			return 0;
+		}, "private_loop");
+		
+		m_cond.wait(lock); // wait
+
+		return m_loop;
+	}
+	
+ private:
+	ThreadID m_thread_id;
+	RunLoop* m_loop;
+	Mutex m_mutex;
+	Condition m_cond;
+};
+
+static PrivateLoop* private_loop = new PrivateLoop();
+
+RunLoop* get_private_loop() {
+	return private_loop->loop();
 }
+
+bool has_private_loop_thread() {
+	return private_loop->has_current_thread();
+}
+
+FX_END
 

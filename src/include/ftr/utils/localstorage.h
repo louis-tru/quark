@@ -28,31 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#ifndef __ftr__util__localstorage__
+#define __ftr__util__localstorage__
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+#include <ftr/utils/cb.h>
+#include <ftr/utils/util.h>
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+namespace ftr {
+	FX_EXPORT String localstorage_get(const String& name);
+	FX_EXPORT void   localstorage_set(const String& name, const String& value);
+	FX_EXPORT void   localstorage_delete(const String& name);
+	FX_EXPORT void   localstorage_clear();
+	FX_EXPORT void   localstorage_transaction(cCb& cb);
 }
-
+#endif

@@ -54,7 +54,7 @@ framework() {
 
 # ftr
 link_dylib ftr \
-	"$obj/ftr-util $obj/libuv $obj/openssl $obj/http_parser \
+	"$obj/ftr-utils $obj/libuv $obj/openssl $obj/http_parser \
 			$obj/ftr " \
 	"-lminizip -lbplus -lz 
 			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \

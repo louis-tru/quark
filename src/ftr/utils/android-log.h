@@ -28,31 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__android_log__
+#define __ftr__util__android_log__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/utils/log.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+#if FX_ANDROID
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+namespace ftr {
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+	/**
+	* @class AndroidConsole # util log
+	*/
+	class FX_EXPORT AndroidConsole: public Console {
+		public:
+		virtual void log(const String& str);
+		virtual void warn(const String& str);
+		virtual void error(const String& str);
+		virtual void print(const String& str);
+		virtual void print_err(const String& str);
+		virtual void clear();
+	};
 }
-
+#endif
+#endif

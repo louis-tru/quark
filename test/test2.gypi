@@ -11,10 +11,11 @@
 			'test2-alsa2.cc',
 			'test2-xopen.cc',
 			'test2-sys.cc',
+			'test2-str.cc',
 		],
-		# 'mac_bundle': 1,
+		'mac_bundle': 1,
 		'xcode_settings': {
-			# 'OTHER_LDFLAGS': '-all_load',
+			'OTHER_LDFLAGS': '-all_load',
 		},
 		'conditions': [
 			['os in "ios osx"', {

@@ -28,31 +28,66 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__error__
+#define __ftr__util__error__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/utils/object.h>
+#include <ftr/utils/errno.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+#if FX_EXCEPTIONS_SUPPORT
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+#define FX_THROW(code, ...) throw ftr::Error(code, __VA_ARGS__)
+#define FX_CHECK(cond, ...) if(!(cond)) throw ftr::Error(__VA_ARGS__)
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+#define FX_IGNORE_ERR(block) try block catch (const ftr::Error& err) {    \
+	FX_DEBUG("%s,%s", "The exception is ignored", err.message().c());     \
+}((void)0)
 
-int main(int argc, char *argv[]) {
+namespace ftr {
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	/**
+	* @class Error
+	*/
+	class FX_EXPORT Error: public Object {
+		public:
+		
+		Error();
+		Error(int code, const String& msg);
+		Error(int code, const char*, ...);
+		Error(const String& msg);
+		Error(const char*, ...);
+		Error(const Error& err);
+		virtual ~Error();
+		Error& operator=(const Error& e);
+		virtual const String& message() const throw();
+		virtual int code() const throw();
+		void set_code(int value);
+		void set_message(const String& value);
+		virtual String to_string() const;
 
-	return r;
+		private:
+		int          m_code;
+		String* m_message;
+	};
+
+	typedef const Error cError;
+
 }
 
+#else
+
+#error Exceptions must be turned on
+
+#define FX_THROW ftr::fatal()
+#define FX_CHECK(cond, ...) if(!(cond)) ftr::fatal()
+#define FX_IGNORE_ERR(block) block ((void) 0)
+
+#endif
+
+#ifdef CHECK
+# undef CHECK
+#endif
+
+#define CHECK FX_CHECK
+
+#endif

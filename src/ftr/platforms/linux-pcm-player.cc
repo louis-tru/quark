@@ -45,7 +45,7 @@ FX_NS(ftr)
  */
 class LinuxPCMPlayer: public Object, public PCMPlayer {
  public:
-	typedef DefaultTraits Traits;
+	typedef ObjectTraits Traits;
 
 	virtual Object* to_object() { return this; }
 

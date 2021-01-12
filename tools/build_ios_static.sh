@@ -11,7 +11,7 @@ build() {
 	rm -f libftr.a libv8.a
 	
 	ar rc libftr.a `find obj.target/ftr \
-													obj.target/ftr-util \
+													obj.target/ftr-utils \
 													obj.target/ftr-js \
 													obj.target/zlib \
 													obj.target/ft2 \

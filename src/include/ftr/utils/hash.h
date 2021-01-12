@@ -28,31 +28,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__hash__
+#define __ftr__util__hash__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/utils/object.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+	/**
+	* @class SimpleHash
+	*/
+	class FX_EXPORT SimpleHash: public Object {
+		uint32_t _hash;
+		public:
+		inline SimpleHash(): _hash(5381) { }
+		inline uint32_t hash_code() { return _hash; }
+		inline void clear() { _hash = 5381; }
+		String digest();
+		template<class T>
+		void update(const T* data, uint32_t len) {
+			while (len--) _hash += (_hash << 5) + data[len];
+		}
+	};
 }
-
+#endif

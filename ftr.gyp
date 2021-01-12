@@ -1,6 +1,6 @@
 {
 	'includes': [
-		'ftr/util/util.gypi',
+		'ftr/utils/utils.gypi',
 		'ftr/ftr.gypi',
 		'ftr-js/ftr-js.gypi',
 		'trial/trial.gypi',
@@ -19,7 +19,7 @@
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/libftr-util.a',
+					'<(output)/obj.target/libftr-utils.a',
 					'<(output)/obj.target/libftr.a',
 					'<(output)/obj.target/libftr-js.a',
 					'<(output)/obj.target/libftr-media.a',
@@ -100,7 +100,7 @@
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
-						'<(output)/libftr-util.a',
+						'<(output)/libftr-utils.a',
 						'<(output)/libftr.a',
 						'<(output)/libftr-js.a',
 						'<(output)/libftr-media.a',

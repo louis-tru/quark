@@ -112,7 +112,7 @@ struct AudioEngine {
  */
 class AndroidPCMOpenSLES: public Object, public PCMPlayer {
  public:
-	typedef DefaultTraits Traits;
+	typedef ObjectTraits Traits;
 
 	virtual Object* to_object() { return this; }
 

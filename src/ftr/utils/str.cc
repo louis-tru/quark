@@ -28,31 +28,77 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include <ftr/utils/str.h>
+#include <algorithm>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	namespace str {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+		String& to_lower(String& str) {
+			std::transform(str.begin(), str.end(), str.begin(), tolower);
+			return str;
+		}
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+		String& to_upper(String& str) {
+			std::transform(str.begin(), str.end(), str.begin(), toupper);
+			return str;
+		}
+		
+		
+	#if FX_GNUC
+		 #define FX_STRING_FORMAT(format, str) \
+		 String str; \
+		 va_list __arg;  \
+		 va_start(__arg, format);  \
+		 char* __buf = nullptr;  \
+		 int __len = vasprintf(&__buf, format, __arg); \
+		 if (__buf) {  \
+			 str = String(Buffer(__buf,__len));  \
+		 } \
+		 va_end(__arg)
+	 #else
+		 #define FX_STRING_FORMAT(format, str) \
+		 String str; \
+		 va_list __arg;  \
+		 va_start(__arg, format);  \
+		 uint32_t __len = _vscprintf(format, __arg); \
+		 if (__len) {  \
+			 char* buf = (char*)malloc(__len+1); \
+			 buf[__len] = '\0';  \
+			 va_start(__arg, format);  \
+			 _vsnprintf_s(buf, __len + 1, format, __arg);  \
+			 str = String(Buffer(buf, __len)); \
+		 } \
+		 va_end(__arg)
+	 #endif
 
-int main(int argc, char *argv[]) {
+		String format(const char* format, ...) {
+			// FX_STRING_FORMAT(format, str);
+			
+			String str;
+			va_list __arg;
+			va_start(__arg, format);
+			char* __buf = nullptr;
+			int __len = vasprintf(&__buf, format, __arg);
+			if (__buf) {
+//				str = String(Buffer(__buf,__len));
+			}
+			va_end(__arg);
+			
+			std::string_view v = "A";
+			
+//			std::basic_string<T>(std::move(*this));
+			
+			String s(v);
+			
+//			s.c_str()
+			
+			s.capacity();
+			
+			return String("A");
+		}
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	}
 
-	return r;
 }
-

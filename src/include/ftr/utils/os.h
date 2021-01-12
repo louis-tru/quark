@@ -28,31 +28,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__utils__os__
+#define __ftr__utils__os__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/utils/util.h>
+#include <ftr/utils/object.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
+	namespace os {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+	// util
+	FX_EXPORT String name();
+	FX_EXPORT String version();
+	FX_EXPORT String brand();
+	FX_EXPORT String subsystem();
+	FX_EXPORT String info();
+	FX_EXPORT String languages();
+	FX_EXPORT String language();
+	FX_EXPORT int64_t time();
+	FX_EXPORT int64_t time_second();
+	FX_EXPORT int64_t time_monotonic();
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	// advanced
+	FX_EXPORT bool  is_wifi();
+	FX_EXPORT bool  is_mobile();
+	FX_EXPORT int   network_status();
+	FX_EXPORT bool  is_ac_power();
+	FX_EXPORT bool  is_battery();
+	FX_EXPORT float battery_level();
+	FX_EXPORT uint64_t memory();
+	FX_EXPORT uint64_t used_memory();
+	FX_EXPORT uint64_t available_memory();
+	FX_EXPORT float cpu_usage();
 
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+	}
 }
-
+#endif

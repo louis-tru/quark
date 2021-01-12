@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,34 +25,53 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include <unistd.h>
+#include "ftr/utils/fs.h"
+#include "ftr/utils/android-jni.h"
+#include "android/android.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+using namespace ftr;
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+FX_NS(ftr)
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+String Path::executable() {
+	static const String path([]() -> String { 
+		char dir[PATH_MAX] = { 0 };
+		int n = readlink("/proc/self/exe", dir, PATH_MAX);
+		return Path::format("%s", dir);
+	}());
+	return path;
 }
+
+String Path::documents(const String& child) {
+	static String path(Path::format("%s", *Android::files_dir_path()));
+	if ( child.is_empty() ) {
+		return path;
+	}
+	return Path::format("%s/%s", *path, *child);
+}
+
+String Path::temp(const String& child) {
+	static String path(Path::format("%s", *Android::cache_dir_path()));
+	if ( child.is_empty() ) {
+		return path;
+	}
+	return Path::format("%s/%s", *path, *child);
+}
+
+/**
+ * Get the resoures dir
+ */
+String Path::resources(const String& child) {
+	static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
+	if ( child.is_empty() ) {
+		return path;
+	}
+	return Path::format("%s/%s", *path, *child);
+}
+
+FX_END
 

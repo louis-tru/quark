@@ -28,31 +28,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#ifndef __ftr__util__http__cookie__
+#define __ftr__util__http__cookie__
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+#include <ftr/utils/util.h>
+#include <string>
+#include <map>
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_str
-#endif
+namespace ftr {
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	FX_EXPORT String http_cookie_get(const String& domain,
+																	const String& name,
+																	const String& path = String(), bool ssl = 0);
 
-int main(int argc, char *argv[]) {
+	FX_EXPORT String http_cookie_get_all_string(const String& domain,
+																							const String& path = String(), bool ssl = 0);
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	FX_EXPORT std::map<String, String> http_cookie_get_all(const String& domain,
+																												const String& path = String(), bool ssl = 0);
 
-	return r;
+	FX_EXPORT void http_cookie_set_with_expression(const String& domain, const String& expression);
+
+	FX_EXPORT void http_cookie_set(const String& domain,
+																const String& name,
+																const String& value,
+																int64_t expires = -1, const String& path = String(), bool ssl = 0);
+
+	FX_EXPORT void http_cookie_delete(const String& domain, 
+																		const String& name, const String& path = String(), bool ssl = 0);
+
+	FX_EXPORT void http_cookie_delete_all(const String& domain, bool ssl = 0);
+
+	FX_EXPORT void http_cookie_clear();
+
 }
-
+#endif
