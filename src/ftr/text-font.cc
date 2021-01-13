@@ -54,22 +54,22 @@ TextFont::Data::Data()
  * @constructor
  */
 TextFont::TextFont()
-: m_text_background_color({ TextValueType::INHERIT })
-, m_text_color({ TextValueType::INHERIT })
-, m_text_size({ TextValueType::INHERIT })
-, m_text_style({ TextValueType::INHERIT })
-, m_text_family(TextValueType::INHERIT)
-, m_text_line_height({ TextValueType::INHERIT })
-, m_text_shadow({ TextValueType::INHERIT })
-, m_text_decoration({ TextValueType::INHERIT })
+: _text_background_color({ TextValueType::INHERIT })
+, _text_color({ TextValueType::INHERIT })
+, _text_size({ TextValueType::INHERIT })
+, _text_style({ TextValueType::INHERIT })
+, _text_family(TextValueType::INHERIT)
+, _text_line_height({ TextValueType::INHERIT })
+, _text_shadow({ TextValueType::INHERIT })
+, _text_decoration({ TextValueType::INHERIT })
 { }
 
 /**
  * @set text_background_color {TextColor}
  */
 void TextFont::set_text_background_color(TextColor value) {
-	equal(m_text_background_color) {
-		m_text_background_color = value;
+	equal(_text_background_color) {
+		_text_background_color = value;
 		mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
 	}
 }
@@ -78,8 +78,8 @@ void TextFont::set_text_background_color(TextColor value) {
  * @set text_color {TextColor}
  */
 void TextFont::set_text_color(TextColor value) {
-	equal(m_text_color) {
-		m_text_color = value;
+	equal(_text_color) {
+		_text_color = value;
 		mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
 	}
 }
@@ -89,8 +89,8 @@ void TextFont::set_text_color(TextColor value) {
  */
 void TextFont::set_text_size(TextSize value) {
 	value.value = FX_MAX(value.value, 0);
-	equal(m_text_size) {
-		m_text_size = value;
+	equal(_text_size) {
+		_text_size = value;
 		mark_text(View::M_LAYOUT |
 							View::M_CONTENT_OFFSET |  /* 变化字体尺寸会导致总体尺寸与偏移发发生改变
 																					 * 文本视图无法直接处理尺寸变化,最终会传递给顶层Text处理
@@ -106,8 +106,8 @@ void TextFont::set_text_size(TextSize value) {
  * @set text_style {TextStyle}
  */
 void TextFont::set_text_style(TextStyle value) {
-	equal(m_text_style) {
-		m_text_style = value;
+	equal(_text_style) {
+		_text_style = value;
 		mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
 	}
 }
@@ -116,8 +116,8 @@ void TextFont::set_text_style(TextStyle value) {
  * @set text_family {TextFamily}
  */
 void TextFont::set_text_family(TextFamily value) {
-	equal(m_text_family) {
-		m_text_family = value;
+	equal(_text_family) {
+		_text_family = value;
 		mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
 	}
 }
@@ -127,8 +127,8 @@ void TextFont::set_text_family(TextFamily value) {
  */
 void TextFont::set_text_shadow(TextShadow value) {
 	value.value.size = FX_MAX(value.value.size, 0);
-	equal(m_text_shadow) {
-		m_text_shadow = value;
+	equal(_text_shadow) {
+		_text_shadow = value;
 		mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
 	}
 }
@@ -138,8 +138,8 @@ void TextFont::set_text_shadow(TextShadow value) {
  */
 void TextFont::set_text_line_height(TextLineHeight value) {
 	value.value.height = FX_MAX(value.value.height, 0);
-	equal(m_text_line_height) {
-		m_text_line_height = value;
+	equal(_text_line_height) {
+		_text_line_height = value;
 		mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
 	}
 }
@@ -148,8 +148,8 @@ void TextFont::set_text_line_height(TextLineHeight value) {
  * @set text_decoration {TextDecoration}
  */
 void TextFont::set_text_decoration(TextDecoration value) {
-	equal(m_text_decoration) {
-		m_text_decoration = value;
+	equal(_text_decoration) {
+		_text_decoration = value;
 		mark_text(View::M_LAYOUT | View::M_TEXT_FONT);
 	}
 }
@@ -160,15 +160,15 @@ void TextFont::set_text_decoration(TextDecoration value) {
 FontGlyphTable* TextFont::get_font_glyph_table_and_height(Data& data,
 																													TextLineHeightValue text_line_height) {
 	
-	//if ( m_text_family.name() == "icon" && m_text_line_height.value.height == 48 ) {
+	//if ( _text_family.name() == "icon" && _text_line_height.value.height == 48 ) {
 	//  LOG("icon");
 	//}
 	
-	FontGlyphTable* table = font_pool()->get_table(m_text_family.value, m_text_style.value);
+	FontGlyphTable* table = font_pool()->get_table(_text_family.value, _text_style.value);
 	ASSERT(table);
 	
 	/* FontGlyph中获得的数据是 26.6 frac. 64pt 值, 所以这里需要除以这个比例 */
-	float ratio = 4096.0 / m_text_size.value; /* 64.0 * 64.0 = 4096.0 */
+	float ratio = 4096.0 / _text_size.value; /* 64.0 * 64.0 = 4096.0 */
 	
 	float line_height = text_line_height.is_auto() ?
 											table->text_height() / ratio: /* 自动行高,使用字体文件中建议值 */
@@ -220,16 +220,16 @@ float TextFont::simple_layout_width(cUcs2String& text) {
 		TextFont* text = v->as_text_font();
 		if ( text ) {
 			if (family.type == TextValueType::INHERIT &&
-					text->m_text_family.type != TextValueType::INHERIT) {
-				family = text->m_text_family; ok++;
+					text->_text_family.type != TextValueType::INHERIT) {
+				family = text->_text_family; ok++;
 			}
 			if (style.type == TextValueType::INHERIT &&
-					text->m_text_style.type != TextValueType::INHERIT) {
-				style = text->m_text_style; ok++;
+					text->_text_style.type != TextValueType::INHERIT) {
+				style = text->_text_style; ok++;
 			}
 			if (size.type == TextValueType::INHERIT &&
-					text->m_text_size.type != TextValueType::INHERIT) {
-				size = text->m_text_size; ok++;
+					text->_text_size.type != TextValueType::INHERIT) {
+				size = text->_text_size; ok++;
 			}
 		}
 		v = v->parent();
@@ -303,8 +303,8 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 	#define C vertex2[2]
 	#define D vertex2[3]
 
-	D = v->m_final_matrix * Vec2(start_x, y);
-	C = v->m_final_matrix * Vec2(end_x, y);
+	D = v->_final_matrix * Vec2(start_x, y);
+	C = v->_final_matrix * Vec2(end_x, y);
 	
 	int line_num = -1;
 	
@@ -315,8 +315,8 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 			y = cell.baseline - y2;
 			
 			A = D; B = C;
-			D = v->m_final_matrix * Vec2(start_x, y);
-			C = v->m_final_matrix * Vec2(end_x, y);
+			D = v->_final_matrix * Vec2(start_x, y);
+			C = v->_final_matrix * Vec2(end_x, y);
 			re = View::screen_region_from_convex_quadrilateral(vertex2);
 			
 			if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) < re.h + dre.h &&
@@ -347,22 +347,22 @@ void TextFont::set_glyph_texture_level(Data& data) {
 	
 	View* v = view();
 	
-	Vec2 p1(v->m_final_matrix * Vec2(1, 0));
-	Vec2 p2(v->m_final_matrix * Vec2(0, 1));
+	Vec2 p1(v->_final_matrix * Vec2(1, 0));
+	Vec2 p2(v->_final_matrix * Vec2(0, 1));
 	
 	float x = p1.x() - p2.x();
 	float y = p1.y() - p2.y();
 	
 	float scale = sqrtf(x * x + y * y) / 1.4142135623731 /* sqrtf(2) = 1.4142135623731 */;
-	float final_text_size = m_text_size.value * scale;
+	float final_text_size = _text_size.value * scale;
 	
 	data.texture_level = font_pool()->get_glyph_texture_level(final_text_size); // 文本等级
-	data.texture_scale = m_text_size.value / final_text_size;
+	data.texture_scale = _text_size.value / final_text_size;
 }
 
 // ----------------------------------- TextLayout -----------------------------------
 
-FX_INLINE bool has_space_char(uint16 unicode, bool space, bool line_feed) {
+FX_INLINE bool has_space_char(uint16_t unicode, bool space, bool line_feed) {
 	switch(unicode) {
 		case 0x0A: // \n
 			return line_feed;
@@ -376,7 +376,7 @@ FX_INLINE bool has_space_char(uint16 unicode, bool space, bool line_feed) {
 	return false;
 }
 
-FX_INLINE bool has_english_char(uint16 unicode) {
+FX_INLINE bool has_english_char(uint16_t unicode) {
 	switch(unicode) {
 		case 48: case 49: case 50: case 51: case 52:
 		case 53: case 54: case 55: case 56: case 57: // 0-9
@@ -418,35 +418,35 @@ public:
 	 */
 	void solve_text_layout_mark(TextLayout* parent) {
 		
-		if (m_text_background_color.type == TextValueType::INHERIT) {
-			m_text_background_color.value = parent->m_text_background_color.value;
+		if (_text_background_color.type == TextValueType::INHERIT) {
+			_text_background_color.value = parent->_text_background_color.value;
 		}
-		if (m_text_color.type == TextValueType::INHERIT) {
-			m_text_color.value = parent->m_text_color.value;
+		if (_text_color.type == TextValueType::INHERIT) {
+			_text_color.value = parent->_text_color.value;
 		}
-		if (m_text_size.type == TextValueType::INHERIT) {
-			m_text_size.value = parent->m_text_size.value;
+		if (_text_size.type == TextValueType::INHERIT) {
+			_text_size.value = parent->_text_size.value;
 		}
-		if (m_text_style.type == TextValueType::INHERIT) {
-			m_text_style.value = parent->m_text_style.value;
+		if (_text_style.type == TextValueType::INHERIT) {
+			_text_style.value = parent->_text_style.value;
 		}
-		if (m_text_family.type == TextValueType::INHERIT) {
-			m_text_family.value = parent->m_text_family.value;
+		if (_text_family.type == TextValueType::INHERIT) {
+			_text_family.value = parent->_text_family.value;
 		}
-		if (m_text_line_height.type == TextValueType::INHERIT) {
-			m_text_line_height.value = parent->m_text_line_height.value;
+		if (_text_line_height.type == TextValueType::INHERIT) {
+			_text_line_height.value = parent->_text_line_height.value;
 		}
-		if (m_text_shadow.type == TextValueType::INHERIT) {
-			m_text_shadow.value = parent->m_text_shadow.value;
+		if (_text_shadow.type == TextValueType::INHERIT) {
+			_text_shadow.value = parent->_text_shadow.value;
 		}
-		if (m_text_decoration.type == TextValueType::INHERIT) {
-			m_text_decoration.value = parent->m_text_decoration.value;
+		if (_text_decoration.type == TextValueType::INHERIT) {
+			_text_decoration.value = parent->_text_decoration.value;
 		}
-		if (m_text_overflow.type == TextValueType::INHERIT) {
-			m_text_overflow.value = parent->m_text_overflow.value;
+		if (_text_overflow.type == TextValueType::INHERIT) {
+			_text_overflow.value = parent->_text_overflow.value;
 		}
-		if (m_text_white_space.type == TextValueType::INHERIT) {
-			m_text_white_space.value = parent->m_text_white_space.value;
+		if (_text_white_space.type == TextValueType::INHERIT) {
+			_text_white_space.value = parent->_text_white_space.value;
 		}
 		
 		View* v = view()->first();
@@ -494,7 +494,7 @@ public:
 			
 			word->newline = 0;
 			word->count = 1;
-			uint16 unicode = chars[begin];
+			uint16_t unicode = chars[begin];
 			
 			if ( has_space_char(unicode, true, true) ) {
 				if ( opts.merge_space || opts.merge_line_feed ) {
@@ -598,7 +598,7 @@ public:
 															uint begin, uint end, bool ignore_empty_cell) {
 		// 在这里进行文本排版布局
 		FontGlyphTable* table = get_font_glyph_table_and_height(data, opts.text_line_height);
-		float ratio = 4096.0 / m_text_size.value; /* 64.0 * 64.0 = 4096.0 */
+		float ratio = 4096.0 / _text_size.value; /* 64.0 * 64.0 = 4096.0 */
 		float line_height = data.text_ascender + data.text_descender;
 		
 		Vec2* offset_end = &rows->last()->offset_end;
@@ -702,15 +702,15 @@ public:
 };
 
 TextLayout::TextLayout(): TextFont()
-, m_text_overflow({ TextValueType::INHERIT })
-, m_text_white_space({ TextValueType::INHERIT }) {
+, _text_overflow({ TextValueType::INHERIT })
+, _text_white_space({ TextValueType::INHERIT }) {
 	
 }
 
 TextLayout::Options TextLayout::get_options(TextLayout* hybrid) {
 	Options opts;
 	
-	switch (hybrid ? hybrid->m_text_white_space.value : m_text_white_space.value) {
+	switch (hybrid ? hybrid->_text_white_space.value : _text_white_space.value) {
 		default:                            opts.space_wrap = { true, false, false, false }; break;
 		case TextWhiteSpaceEnum::NO_WRAP:   opts.space_wrap = { false, true, true, false }; break;
 		case TextWhiteSpaceEnum::NO_SPACE:  opts.space_wrap = { true, true, true, false }; break;
@@ -719,8 +719,8 @@ TextLayout::Options TextLayout::get_options(TextLayout* hybrid) {
 		case TextWhiteSpaceEnum::WRAP:      opts.space_wrap = { true, false, false, true }; break;
 	}
 	
-	opts.overflow = m_text_overflow.value;
-	opts.text_line_height = m_text_line_height.value;
+	opts.overflow = _text_overflow.value;
+	opts.text_line_height = _text_line_height.value;
 	
 	return opts;
 }
@@ -730,7 +730,7 @@ TextLayout::Options TextLayout::get_options(TextLayout* hybrid) {
  */
 bool TextLayout::is_auto_wrap(TextLayout* text) {
 	if ( text ) {
-		switch (text->m_text_white_space.value) {
+		switch (text->_text_white_space.value) {
 			case TextWhiteSpaceEnum::NO_WRAP:
 			case TextWhiteSpaceEnum::PRE: return false;
 			default:return true;
@@ -755,7 +755,7 @@ void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 	
 	if ( opts.space_wrap.auto_wrap || opts.space_wrap.merge_line_feed ) { // 允许多行修剪 or 允许单行修剪
 		if ( opts.space_wrap.auto_wrap ) {
-			switch ( m_text_overflow.value ) {
+			switch ( _text_overflow.value ) {
 				case TextOverflowEnum::NORMAL:
 					_inl(this)->set_text_layout_offset<0, 0, 1>(rows, limit, opts, data,
 																											string, begin, end, ignore_empty_cell);
@@ -774,7 +774,7 @@ void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 					break;
 			}
 		} else {
-			switch ( m_text_overflow.value ) {
+			switch ( _text_overflow.value ) {
 				case TextOverflowEnum::NORMAL:
 					_inl(this)->set_text_layout_offset<0, 0, 0>(rows, limit, opts, data,
 																											string, begin, end, ignore_empty_cell);
@@ -800,7 +800,7 @@ void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 }
 
 void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
-																				Data& data, uint16 security, uint count, Options* opts) {
+																				Data& data, uint16_t security, uint count, Options* opts) {
 	Ucs2String string;
 	for ( uint i = 0; i < count; i++ ) {
 		string.push(&security, 1);
@@ -809,15 +809,15 @@ void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 }
 
 void TextLayout::set_text_overflow(TextOverflow value) {
-	equal(m_text_overflow) {
-		m_text_overflow = value;
+	equal(_text_overflow) {
+		_text_overflow = value;
 		mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
 	}
 }
 
 void TextLayout::set_text_white_space(TextWhiteSpace value) {
-	equal(m_text_white_space) {
-		m_text_white_space = value;
+	equal(_text_white_space) {
+		_text_white_space = value;
 		mark_text(View::M_LAYOUT | View::M_CONTENT_OFFSET | View::M_TEXT_FONT);
 	}
 }
@@ -837,66 +837,66 @@ void TextLayout::solve_text_layout_mark() {
 	TextLayout* parent = view()->parent()->as_text_layout();
 	
 	if (parent) {
-		if (m_text_background_color.type == TextValueType::INHERIT) {
-			m_text_background_color.value = parent->m_text_background_color.value;
+		if (_text_background_color.type == TextValueType::INHERIT) {
+			_text_background_color.value = parent->_text_background_color.value;
 		}
-		if (m_text_color.type == TextValueType::INHERIT) {
-			m_text_color.value = parent->m_text_color.value;
+		if (_text_color.type == TextValueType::INHERIT) {
+			_text_color.value = parent->_text_color.value;
 		}
-		if (m_text_size.type == TextValueType::INHERIT) {
-			m_text_size.value = parent->m_text_size.value;
+		if (_text_size.type == TextValueType::INHERIT) {
+			_text_size.value = parent->_text_size.value;
 		}
-		if (m_text_style.type == TextValueType::INHERIT) {
-			m_text_style.value = parent->m_text_style.value;
+		if (_text_style.type == TextValueType::INHERIT) {
+			_text_style.value = parent->_text_style.value;
 		}
-		if (m_text_family.type == TextValueType::INHERIT) {
-			m_text_family.value = parent->m_text_family.value;
+		if (_text_family.type == TextValueType::INHERIT) {
+			_text_family.value = parent->_text_family.value;
 		}
-		if (m_text_line_height.type == TextValueType::INHERIT) {
-			m_text_line_height.value = parent->m_text_line_height.value;
+		if (_text_line_height.type == TextValueType::INHERIT) {
+			_text_line_height.value = parent->_text_line_height.value;
 		}
-		if (m_text_shadow.type == TextValueType::INHERIT) {
-			m_text_shadow.value = parent->m_text_shadow.value;
+		if (_text_shadow.type == TextValueType::INHERIT) {
+			_text_shadow.value = parent->_text_shadow.value;
 		}
-		if (m_text_decoration.type == TextValueType::INHERIT) {
-			m_text_decoration.value = parent->m_text_decoration.value;
+		if (_text_decoration.type == TextValueType::INHERIT) {
+			_text_decoration.value = parent->_text_decoration.value;
 		}
-		if (m_text_overflow.type == TextValueType::INHERIT) {
-			m_text_overflow.value = parent->m_text_overflow.value;
+		if (_text_overflow.type == TextValueType::INHERIT) {
+			_text_overflow.value = parent->_text_overflow.value;
 		}
-		if (m_text_white_space.type == TextValueType::INHERIT) {
-			m_text_white_space.value = parent->m_text_white_space.value;
+		if (_text_white_space.type == TextValueType::INHERIT) {
+			_text_white_space.value = parent->_text_white_space.value;
 		}
 	} else { // 没有父视图使用全局默认值
-		if (m_text_background_color.type == TextValueType::INHERIT) {
-			m_text_background_color.value = app()->default_text_background_color().value;
+		if (_text_background_color.type == TextValueType::INHERIT) {
+			_text_background_color.value = app()->default_text_background_color().value;
 		}
-		if (m_text_color.type == TextValueType::INHERIT) {
-			m_text_color.value = app()->default_text_color().value;
+		if (_text_color.type == TextValueType::INHERIT) {
+			_text_color.value = app()->default_text_color().value;
 		}
-		if (m_text_size.type == TextValueType::INHERIT) {
-			m_text_size.value = app()->default_text_size().value;
+		if (_text_size.type == TextValueType::INHERIT) {
+			_text_size.value = app()->default_text_size().value;
 		}
-		if (m_text_style.type == TextValueType::INHERIT) {
-			m_text_style.value = app()->default_text_style().value;
+		if (_text_style.type == TextValueType::INHERIT) {
+			_text_style.value = app()->default_text_style().value;
 		}
-		if (m_text_family.type == TextValueType::INHERIT) {
-			m_text_family.value = app()->default_text_family().value;
+		if (_text_family.type == TextValueType::INHERIT) {
+			_text_family.value = app()->default_text_family().value;
 		}
-		if (m_text_line_height.type == TextValueType::INHERIT) {
-			m_text_line_height.value = app()->default_text_line_height().value;
+		if (_text_line_height.type == TextValueType::INHERIT) {
+			_text_line_height.value = app()->default_text_line_height().value;
 		}
-		if (m_text_shadow.type == TextValueType::INHERIT) {
-			m_text_shadow.value = app()->default_text_shadow().value;
+		if (_text_shadow.type == TextValueType::INHERIT) {
+			_text_shadow.value = app()->default_text_shadow().value;
 		}
-		if (m_text_decoration.type == TextValueType::INHERIT) {
-			m_text_decoration.value = app()->default_text_decoration().value;
+		if (_text_decoration.type == TextValueType::INHERIT) {
+			_text_decoration.value = app()->default_text_decoration().value;
 		}
-		if (m_text_overflow.type == TextValueType::INHERIT) {
-			m_text_overflow.value = app()->default_text_overflow().value;
+		if (_text_overflow.type == TextValueType::INHERIT) {
+			_text_overflow.value = app()->default_text_overflow().value;
 		}
-		if (m_text_white_space.type == TextValueType::INHERIT) {
-			m_text_white_space.value = app()->default_text_white_space().value;
+		if (_text_white_space.type == TextValueType::INHERIT) {
+			_text_white_space.value = app()->default_text_white_space().value;
 		}
 	}
 	

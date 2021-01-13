@@ -37,14 +37,14 @@ FX_NS(ftr)
 extern void _view_inl__safe_delete_mark(View* view);
 
 Span::Span() {
-	m_need_draw = true;
+	_need_draw = true;
 }
 
 /**
  * @overwrie
  */
 void Span::set_visible(bool value) {
-	if (m_visible != value) { 
+	if (_visible != value) { 
 		View::set_visible(value);
 		// 这会影响其它兄弟视图的位置
 		mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL/* | M_TEXT_FONT*/);
@@ -65,7 +65,7 @@ View* Span::append_text(cUcs2String& str) throw(Error) {
  * @overwrite
  */
 Vec2 Span::layout_offset() {
-	return m_offset_start;
+	return _offset_start;
 }
 
 /**
@@ -73,7 +73,7 @@ Vec2 Span::layout_offset() {
  */
 void Span::set_layout_explicit_size() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		if ( mark_value & M_TEXT_FONT ) { // 文本属性的变化会影响后代文本视图属性
 			solve_text_layout_mark();
 		}
@@ -93,7 +93,7 @@ void Span::set_layout_explicit_size() {
  */
 void Span::set_layout_content_offset() {
 	
-	if (m_final_visible) {
+	if (_final_visible) {
 		
 		TextLayout* text = parent()->as_text_layout();
 		if ( text ) { // 父视图必需是TextLayout
@@ -109,7 +109,7 @@ void Span::set_layout_content_offset() {
  * @overwrite
  */
 void Span::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		View* view = first();
 		
@@ -127,7 +127,7 @@ void Span::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) {
  * @overwrite
  */
 void Span::set_layout_three_times(bool horizontal, bool hybrid) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		View* view = first();
 		while (view) {
 			Layout* layout = view->as_layout();

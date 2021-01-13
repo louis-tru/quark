@@ -43,25 +43,25 @@ class SoftwareMediaCodec: public MediaCodec {
 	 */
 	SoftwareMediaCodec(Extractor* extractor, AVCodecContext* ctx)
 		: MediaCodec(extractor)
-		, m_codec_ctx(ctx)
-		, m_frame(NULL)
-		, m_audio_buffer_size(0)
-		, m_audio_swr_ctx(NULL)
-		, m_audio_frame_size(0)
-		, m_presentation_time(0)
-		, m_threads(1)
-		, m_background_run(false)
-		, m_is_open(false)
-		, m_output_occupy(false)
+		, _codec_ctx(ctx)
+		, _frame(NULL)
+		, _audio_buffer_size(0)
+		, _audio_swr_ctx(NULL)
+		, _audio_frame_size(0)
+		, _presentation_time(0)
+		, _threads(1)
+		, _background_run(false)
+		, _is_open(false)
+		, _output_occupy(false)
 	{
-		m_frame = av_frame_alloc(); ASSERT(m_frame);
+		_frame = av_frame_alloc(); ASSERT(_frame);
 		
 		if (type() == MEDIA_TYPE_VIDEO) {
-			m_color_format = VIDEO_COLOR_FORMAT_YUV420P;
+			_color_format = VIDEO_COLOR_FORMAT_YUV420P;
 		} else {
-			m_channel_layout = CH_FRONT_LEFT | CH_FRONT_RIGHT;
-			m_channel_count  = 2;
-			m_audio_buffer = Buffer(1024 * 64); // 64k
+			_channel_layout = CH_FRONT_LEFT | CH_FRONT_RIGHT;
+			_channel_count  = 2;
+			_audio_buffer = Buffer(1024 * 64); // 64k
 		}
 	}
 	
@@ -72,60 +72,60 @@ class SoftwareMediaCodec: public MediaCodec {
 		
 		close();
 		
-		avcodec_free_context(&m_codec_ctx); m_codec_ctx = nullptr;
-		av_frame_free(&m_frame); m_frame = nullptr;
+		avcodec_free_context(&_codec_ctx); _codec_ctx = nullptr;
+		av_frame_free(&_frame); _frame = nullptr;
 		
-		if ( m_audio_swr_ctx ) {
-			swr_free(&m_audio_swr_ctx); m_audio_swr_ctx = nullptr;
+		if ( _audio_swr_ctx ) {
+			swr_free(&_audio_swr_ctx); _audio_swr_ctx = nullptr;
 		}
 	}
 	
 	void init_audio_swr() {
-		AVCodecContext* ctx = m_codec_ctx;
-		m_audio_swr_ctx  =
-		swr_alloc_set_opts(m_audio_swr_ctx,
-											 m_channel_layout, AV_SAMPLE_FMT_S16, ctx->sample_rate,
+		AVCodecContext* ctx = _codec_ctx;
+		_audio_swr_ctx  =
+		swr_alloc_set_opts(_audio_swr_ctx,
+											 _channel_layout, AV_SAMPLE_FMT_S16, ctx->sample_rate,
 											 ctx->channel_layout, ctx->sample_fmt, ctx->sample_rate,
 											 0, nullptr);
-		swr_init(m_audio_swr_ctx);
+		swr_init(_audio_swr_ctx);
 	}
 	
 	/**
 	 * @overwrite
 	 */
 	virtual bool open() {
-		ScopeLock lock(m_mutex);
+		ScopeLock lock(_mutex);
 		
-		if ( !m_is_open ) {
+		if ( !_is_open ) {
 			
-			AVStream* stream = m_extractor->host()->get_stream(m_extractor->track());
+			AVStream* stream = _extractor->host()->get_stream(_extractor->track());
 			if ( !stream ) {
-				stream = m_extractor->host()->get_stream(m_extractor->track());
+				stream = _extractor->host()->get_stream(_extractor->track());
 				ASSERT( stream );
 			}
 			
 			const AVCodec* codec = get_avcodec(); ASSERT(codec);
 			
-			if ( m_threads > 1 ) { // set threads
+			if ( _threads > 1 ) { // set threads
 				if ((codec->capabilities & AV_CODEC_CAP_FRAME_THREADS)
-						&& !(m_codec_ctx->flags & AV_CODEC_FLAG_TRUNCATED)
-						&& !(m_codec_ctx->flags & AV_CODEC_FLAG_LOW_DELAY)
-						&& !(m_codec_ctx->flags2 & AV_CODEC_FLAG2_CHUNKS)) {
-					m_codec_ctx->thread_count = m_threads;
-					m_codec_ctx->active_thread_type = FF_THREAD_FRAME;
+						&& !(_codec_ctx->flags & AV_CODEC_FLAG_TRUNCATED)
+						&& !(_codec_ctx->flags & AV_CODEC_FLAG_LOW_DELAY)
+						&& !(_codec_ctx->flags2 & AV_CODEC_FLAG2_CHUNKS)) {
+					_codec_ctx->thread_count = _threads;
+					_codec_ctx->active_thread_type = FF_THREAD_FRAME;
 				}
 			}
 			/* Copy codec parameters from input stream to output codec context */
-			if (avcodec_parameters_to_context(m_codec_ctx, stream->codecpar) >= 0) {
-				if (avcodec_open2(m_codec_ctx, codec, NULL) >= 0) {
-					m_is_open = true;
+			if (avcodec_parameters_to_context(_codec_ctx, stream->codecpar) >= 0) {
+				if (avcodec_open2(_codec_ctx, codec, NULL) >= 0) {
+					_is_open = true;
 					
 					if ( type() == MEDIA_TYPE_AUDIO ) {
 						init_audio_swr();
 					}
 					
-					if ( m_background_run ) { // background_run
-						m_background_run_id = Thread::spawn([this](Thread& t) {
+					if ( _background_run ) { // background_run
+						_background_run_id = Thread::spawn([this](Thread& t) {
 							background_run(t);
 							return 0;
 						}, "x_decoder_background_run_thread");
@@ -135,35 +135,35 @@ class SoftwareMediaCodec: public MediaCodec {
 			
 			flush2();
 		}
-		return m_is_open;
+		return _is_open;
 	}
 	
 	/**
 	 * @overwrite
 	 */
 	virtual bool close() {
-		Lock lock(m_mutex);
-		if ( m_is_open ) {
+		Lock lock(_mutex);
+		if ( _is_open ) {
 			flush2();
 			
-			if ( m_background_run ) {
+			if ( _background_run ) {
 				lock.unlock();
-				Thread::abort(m_background_run_id);
-				Thread::join(m_background_run_id);
+				Thread::abort(_background_run_id);
+				Thread::join(_background_run_id);
 				lock.lock();
 			}
-			if ( avcodec_close(m_codec_ctx) >= 0 ) {
-				m_is_open = false;
+			if ( avcodec_close(_codec_ctx) >= 0 ) {
+				_is_open = false;
 			}
 		}
-		return !m_is_open;
+		return !_is_open;
 	}
 	
 	void flush2() {
-		if ( m_is_open ) {
-			m_presentation_time = 0;
-			m_audio_buffer_size = 0;
-			// avcodec_flush_buffers(m_codec_ctx);
+		if ( _is_open ) {
+			_presentation_time = 0;
+			_audio_buffer_size = 0;
+			// avcodec_flush_buffers(_codec_ctx);
 		}
 	}
 	
@@ -171,7 +171,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 * */
 	virtual bool flush() {
-		ScopeLock scope(m_mutex);
+		ScopeLock scope(_mutex);
 		flush2();
 		return false;
 	}
@@ -191,19 +191,19 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @func advance2
 	 */
 	bool advance2() {
-		if ( m_extractor->advance() ) {
-			WeakBuffer data = m_extractor->sample_data();
+		if ( _extractor->advance() ) {
+			WeakBuffer data = _extractor->sample_data();
 			
 			AVPacket pkt;
 			av_init_packet(&pkt);
 			av_packet_from_data(&pkt, (byte*)*data, data.length());
-			pkt.flags = m_extractor->sample_flags();
-			pkt.pts = m_extractor->sample_time();
+			pkt.flags = _extractor->sample_flags();
+			pkt.pts = _extractor->sample_time();
 			pkt.dts = 0;
 			
-			int ret = avcodec_send_packet(m_codec_ctx, &pkt);
+			int ret = avcodec_send_packet(_codec_ctx, &pkt);
 			if (ret == 0) {
-				m_extractor->deplete_sample(pkt.size);
+				_extractor->deplete_sample(pkt.size);
 				return true;
 			} else if ( ret < 0 ) {
 				// err..
@@ -216,7 +216,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 * */
 	virtual bool advance() {
-		if ( !m_background_run ) {
+		if ( !_background_run ) {
 			return advance2();
 		}
 		return false;
@@ -226,7 +226,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 * */
 	virtual OutputBuffer output() {
-		if ( m_output_occupy ) {
+		if ( _output_occupy ) {
 			return OutputBuffer();
 		}
 		if ( type() == MEDIA_TYPE_AUDIO ) {
@@ -241,45 +241,45 @@ class SoftwareMediaCodec: public MediaCodec {
 	 */
 	OutputBuffer output_audio() {
 		
-		if ( m_audio_buffer_size ) {
-			if (m_audio_buffer_size >= m_audio_frame_size) {
+		if ( _audio_buffer_size ) {
+			if (_audio_buffer_size >= _audio_frame_size) {
 				OutputBuffer out;
-				out.data[0] = (byte *) *m_audio_buffer;
-				out.linesize[0] = m_audio_frame_size;
-				out.total = m_audio_frame_size;
-				out.time = m_presentation_time + m_frame_interval;
-				m_presentation_time = out.time;
-				m_output_occupy = true;
+				out.data[0] = (uint8_t *) *_audio_buffer;
+				out.linesize[0] = _audio_frame_size;
+				out.total = _audio_frame_size;
+				out.time = _presentation_time + _frame_interval;
+				_presentation_time = out.time;
+				_output_occupy = true;
 				return out;
 			}
 		}
 		
-		int ret = avcodec_receive_frame(m_codec_ctx, m_frame);
+		int ret = avcodec_receive_frame(_codec_ctx, _frame);
 		if ( ret == 0 ) {
 			int sample_bytes = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-			uint size = m_frame->nb_samples * sample_bytes * m_channel_count;
+			uint size = _frame->nb_samples * sample_bytes * _channel_count;
 			
-			if (m_audio_frame_size == 0) {
+			if (_audio_frame_size == 0) {
 				set_frame_size(size);
 			}
 			
 			if ( size ) {
 				OutputBuffer out;
-				byte* buffer = (byte*)*m_audio_buffer + m_audio_buffer_size;
-				swr_convert(m_audio_swr_ctx,
-										&buffer, m_frame->nb_samples,
-										(const uint8_t **) m_frame->extended_data, m_frame->nb_samples);
-				m_audio_buffer_size += size;
+				byte* buffer = (byte*)*_audio_buffer + _audio_buffer_size;
+				swr_convert(_audio_swr_ctx,
+										&buffer, _frame->nb_samples,
+										(const uint8_t  **) _frame->extended_data, _frame->nb_samples);
+				_audio_buffer_size += size;
 				
-				if (m_audio_buffer_size >= m_audio_frame_size) {
-					out.data[0] = (byte*)*m_audio_buffer;
-					out.linesize[0] = m_audio_frame_size;
-					out.total = m_audio_frame_size;
+				if (_audio_buffer_size >= _audio_frame_size) {
+					out.data[0] = (byte*)*_audio_buffer;
+					out.linesize[0] = _audio_frame_size;
+					out.total = _audio_frame_size;
 					// time
-					float front = (m_audio_buffer_size - size) / float(m_audio_frame_size);
-					out.time = m_frame->pts - front * m_frame_interval;
-					m_presentation_time = out.time;
-					m_output_occupy = true;
+					float front = (_audio_buffer_size - size) / float(_audio_frame_size);
+					out.time = _frame->pts - front * _frame_interval;
+					_presentation_time = out.time;
+					_output_occupy = true;
 					return out;
 				}
 			}
@@ -291,24 +291,24 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @func output_video
 	 */
 	OutputBuffer output_video() {
-		int ret = avcodec_receive_frame(m_codec_ctx, m_frame);
+		int ret = avcodec_receive_frame(_codec_ctx, _frame);
 		if ( ret == 0 ) {
 			OutputBuffer out;
 			// yuv420p
-			out.linesize[0] = m_frame->width * m_frame->height;
+			out.linesize[0] = _frame->width * _frame->height;
 			out.linesize[1] = out.linesize[0] / 4;
 			out.linesize[2] = out.linesize[1];
-			out.data[0] = m_frame->data[0]; // y
-			out.data[1] = m_frame->data[1]; // u
-			out.data[2] = m_frame->data[2]; // v
-			out.time = m_frame->pts;
+			out.data[0] = _frame->data[0]; // y
+			out.data[1] = _frame->data[1]; // u
+			out.data[2] = _frame->data[2]; // v
+			out.time = _frame->pts;
 			out.total = out.linesize[0] + out.linesize[1] + out.linesize[2];
 			//
 			if ( out.time == Uint64::max ) { // Unknown time frame
-				out.time = m_presentation_time + m_frame_interval; // correct time
+				out.time = _presentation_time + _frame_interval; // correct time
 			}
-			m_presentation_time = out.time;
-			m_output_occupy = true;
+			_presentation_time = out.time;
+			_output_occupy = true;
 			return out;
 		}
 		return OutputBuffer();
@@ -320,15 +320,15 @@ class SoftwareMediaCodec: public MediaCodec {
 	virtual void release(OutputBuffer& buffer) {
 		if (buffer.total) {
 			if (type() == MEDIA_TYPE_AUDIO) {
-				if ( m_audio_buffer_size > buffer.total ) {
-					m_audio_buffer_size -= buffer.total;
-					m_audio_buffer.write(*m_audio_buffer + buffer.total, 0, m_audio_buffer_size);
+				if ( _audio_buffer_size > buffer.total ) {
+					_audio_buffer_size -= buffer.total;
+					_audio_buffer.write(*_audio_buffer + buffer.total, 0, _audio_buffer_size);
 				} else {
-					m_audio_buffer_size = 0;
+					_audio_buffer_size = 0;
 				}
 			}
 			memset(&buffer, 0, sizeof(OutputBuffer));
-			m_output_occupy = false;
+			_output_occupy = false;
 		}
 	}
 	
@@ -337,16 +337,16 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * */
 	virtual void set_frame_size(uint size) {
 		if ( type() == MEDIA_TYPE_AUDIO ) {
-			m_audio_frame_size = FX_MAX(512, size);
-			if (m_audio_frame_size * 2 > m_audio_buffer.length()) {
-				m_audio_buffer = Buffer(m_audio_frame_size * 2);
-				m_audio_buffer_size = 0;
-				m_presentation_time = 0;
+			_audio_frame_size = FX_MAX(512, size);
+			if (_audio_frame_size * 2 > _audio_buffer.length()) {
+				_audio_buffer = Buffer(_audio_frame_size * 2);
+				_audio_buffer_size = 0;
+				_presentation_time = 0;
 			}
 			// compute audio frame interval
 			const TrackInfo &track = extractor()->track();
-			uint64 second_size = track.sample_rate * m_channel_count * 2;
-			m_frame_interval = uint(uint64(m_audio_frame_size) * 1000LL * 1000LL / second_size);
+			uint64 second_size = track.sample_rate * _channel_count * 2;
+			_frame_interval = uint(uint64(_audio_frame_size) * 1000LL * 1000LL / second_size);
 		}
 	}
 	
@@ -354,9 +354,9 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 * */
 	virtual void set_threads(uint value) {
-		ScopeLock scope(m_mutex);
-		if ( !m_is_open ) {
-			m_threads = FX_MAX(1, FX_MIN(8, value));
+		ScopeLock scope(_mutex);
+		if ( !_is_open ) {
+			_threads = FX_MAX(1, FX_MIN(8, value));
 		}
 	}
 	
@@ -364,24 +364,24 @@ class SoftwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 * */
 	virtual void set_background_run(bool value) {
-		ScopeLock scope(m_mutex);
-		if ( !m_is_open ) {
-			m_background_run = value;
+		ScopeLock scope(_mutex);
+		if ( !_is_open ) {
+			_background_run = value;
 		}
 	}
 	
 	const AVCodec* get_avcodec() {
-		const AVCodec* rv = m_codec_ctx->codec;
+		const AVCodec* rv = _codec_ctx->codec;
 		if ( rv ) return rv;
 		
-		const TrackInfo& track = m_extractor->track();
+		const TrackInfo& track = _extractor->track();
 		
 		/* find decoder for the stream */
 		AVCodec* codec = avcodec_find_decoder((AVCodecID)track.codec_id);
 		if (codec) {
 			/* Allocate a codec context for the decoder */
-			avcodec_open2(m_codec_ctx, codec, nullptr);
-			rv = m_codec_ctx->codec;
+			avcodec_open2(_codec_ctx, codec, nullptr);
+			rv = _codec_ctx->codec;
 		}
 		return rv;
 	}
@@ -399,19 +399,19 @@ class SoftwareMediaCodec: public MediaCodec {
 	}
 	
  private:
-	AVCodecContext* m_codec_ctx;
-	AVFrame*        m_frame;
-	Buffer          m_audio_buffer;
-	uint            m_audio_buffer_size;
-	SwrContext*     m_audio_swr_ctx;
-	uint            m_audio_frame_size;
-	uint64          m_presentation_time;
-	uint            m_threads;
-	bool            m_background_run;
-	bool            m_is_open;
-	bool            m_output_occupy;
-	Mutex           m_mutex;
-	ThreadID        m_background_run_id;
+	AVCodecContext* _codec_ctx;
+	AVFrame*        _frame;
+	Buffer          _audio_buffer;
+	uint            _audio_buffer_size;
+	SwrContext*     _audio_swr_ctx;
+	uint            _audio_frame_size;
+	uint64          _presentation_time;
+	uint            _threads;
+	bool            _background_run;
+	bool            _is_open;
+	bool            _output_occupy;
+	Mutex           _mutex;
+	ThreadID        _background_run_id;
 };
 
 /**

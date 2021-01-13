@@ -119,32 +119,32 @@ namespace ftr {
 		/**
 		* @func body 图像数据主体
 		*/
-		inline cWeakBuffer& body(uint index = 0) const { return m_body[index]; }
+		inline cWeakBuffer& body(uint index = 0) const { return _body[index]; }
 		
 		/**
 		* @func body_count
 		* */
-		inline uint body_count() const { return m_body.length(); }
+		inline uint body_count() const { return _body.length(); }
 		
 		/**
 		* @func width 图像宽度
 		*/
-		inline int width() const { return m_width; };
+		inline int width() const { return _width; };
 		
 		/**
 		* @func height 图像高度
 		*/
-		inline int height() const { return m_height; };
+		inline int height() const { return _height; };
 		
 		/**
 		* @func format 图像像素的排列格式
 		*/
-		inline Format format() const { return m_format; };
+		inline Format format() const { return _format; };
 		
 		/**
 		* @func is_premultiplied_alpha 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
 		*/
-		inline bool is_premultiplied_alpha() const { return m_is_premultiplied_alpha; };
+		inline bool is_premultiplied_alpha() const { return _is_premultiplied_alpha; };
 		
 		/**
 		* @func is_compressd_format
@@ -158,12 +158,12 @@ namespace ftr {
 		
 		private:
 		
-		Buffer              m_data;
-		int                 m_width;
-		int                 m_height;
-		Array<WeakBuffer>   m_body;
-		Format              m_format;
-		bool                m_is_premultiplied_alpha;
+		Buffer              _data;
+		int                 _width;
+		int                 _height;
+		Array<WeakBuffer>   _body;
+		Format              _format;
+		bool                _is_premultiplied_alpha;
 	};
 
 	/**

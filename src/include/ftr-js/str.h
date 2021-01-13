@@ -48,9 +48,9 @@ F(stack)          F(get_path)       F(_exit) \
 F(code)           F(message)        F(status) \
 F(url)            F(id)             F(startX) \
 F(startY)         F(force)          F(clickIn) \
-F(view)           F(m_noticer)      F(point1X) \
+F(view)           F(_noticer)      F(point1X) \
 F(point1Y)        F(point2X)        F(point2Y) \
-F(time)           F(m_change_touches) F(name) \
+F(time)           F(_change_touches) F(name) \
 F(pathname)       F(styles)         F(sender) \
 F(Buffer)         F(data)           F(total) \
 F(complete)       F(httpVersion)    F(statusCode) \
@@ -69,7 +69,7 @@ class FX_EXPORT CommonStrings: public Object {
 		auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
  private: Persistent<JSValue> __##name##_$_;
  private:
-	Worker* m_worker;
+	Worker* _worker;
 	js_def_persistent_string(Throw)
 	js_common_string(js_def_persistent_string);
 };

@@ -52,7 +52,7 @@ class Cast: public Object {
 	}
  private:
 	Cast(CastFunc func);
-	CastFunc m_cast_func;
+	CastFunc _cast_func;
 };
 
 JS_END

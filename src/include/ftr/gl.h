@@ -162,12 +162,12 @@ namespace ftr {
 															cBuffer& fragment,
 															const Array<String>& attrs = Array<String>());
 		
-		inline bool is_support_query() { return m_is_support_query; }
-		inline bool is_support_vao() { return m_is_support_vao; }
-		inline bool is_support_instanced() { return m_is_support_instanced; }
-		inline bool is_support_multisampled() { return m_is_support_multisampled; }
-		inline bool is_support_compressed_ETC1() { return m_is_support_compressed_ETC1; }
-		inline bool is_support_packed_depth_stencil() { return m_is_support_packed_depth_stencil; }
+		inline bool is_support_query() { return _is_support_query; }
+		inline bool is_support_vao() { return _is_support_vao; }
+		inline bool is_support_instanced() { return _is_support_instanced; }
+		inline bool is_support_multisampled() { return _is_support_multisampled; }
+		inline bool is_support_compressed_ETC1() { return _is_support_compressed_ETC1; }
+		inline bool is_support_packed_depth_stencil() { return _is_support_packed_depth_stencil; }
 		
 		/**
 		* @func register_gl_shader()
@@ -186,27 +186,27 @@ namespace ftr {
 		*/
 		void initializ_gl_status();
 		
-		bool    m_begin_screen_occlusion_query_status; // 屏幕遮挡test状态
-		GLuint  m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
-		GLuint  m_current_frame_buffer;
-		GLuint  m_render_buffer;
-		GLuint  m_frame_buffer;
-		GLuint  m_msaa_render_buffer;
-		GLuint  m_msaa_frame_buffer;
-		GLuint  m_depth_buffer;
-		GLuint  m_stencil_buffer;
-		GLuint  m_stencil_ref_value;
-		GLuint  m_root_stencil_ref_value;
+		bool    _begin_screen_occlusion_query_status; // 屏幕遮挡test状态
+		GLuint  _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
+		GLuint  _current_frame_buffer;
+		GLuint  _render_buffer;
+		GLuint  _frame_buffer;
+		GLuint  _msaa_render_buffer;
+		GLuint  _msaa_frame_buffer;
+		GLuint  _depth_buffer;
+		GLuint  _stencil_buffer;
+		GLuint  _stencil_ref_value;
+		GLuint  _root_stencil_ref_value;
 		
-		GLuint m_indexd_vbo_data;
-		bool m_is_support_vao;
-		bool m_is_support_instanced;
-		bool m_is_support_query;
-		bool m_is_support_multisampled;
-		bool m_is_support_compressed_ETC1;
-		bool m_is_support_packed_depth_stencil;
+		GLuint _indexd_vbo_data;
+		bool _is_support_vao;
+		bool _is_support_instanced;
+		bool _is_support_query;
+		bool _is_support_multisampled;
+		bool _is_support_compressed_ETC1;
+		bool _is_support_packed_depth_stencil;
 		
-		static Array<GLShader*>* m_shaders;
+		static Array<GLShader*>* _shaders;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		FX_DEFINE_INLINE_CLASS(Inl2);

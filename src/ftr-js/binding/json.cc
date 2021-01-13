@@ -127,7 +127,7 @@ class InlJSON {
 		cchar* hex = "0123456789abcdef";
 		byte* s = (byte*)buf.value();
 		for (uint i = 0; i < buf.length(); i++) {
-			byte ch = s[i];
+			uint8_t ch = s[i];
 			_rv->push(Space);
 			_rv->push( hex[ch >> 4] );
 			_rv->push( hex[ch & 15] );

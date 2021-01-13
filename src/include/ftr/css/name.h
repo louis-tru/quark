@@ -40,11 +40,11 @@ namespace ftr {
 		public:
 		CSSName(const Array<String>& classs);
 		CSSName(cString& name);
-		inline String value() const { return m_name; }
-		inline uint hash() const { return m_hash; }
+		inline String value() const { return _name; }
+		inline uint hash() const { return _hash; }
 		private:
-		String m_name;
-		uint   m_hash;
+		String _name;
+		uint   _hash;
 	};
 
 }

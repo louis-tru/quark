@@ -88,7 +88,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	 @Modified		minZ			Returns the minimum depth.
 	 @Description	Gets the minimum dimensions (x,y,z) for a given pixel format.
 	 *************************************************************************/
-	void m_get_format_min_dims (uint64 pixelFormat,
+	void _get_format_min_dims (uint64 pixelFormat,
 															uint& minX, uint& minY, uint& minZ) {
 		switch (pixelFormat) {
 			case PixelData::DXT1:
@@ -158,7 +158,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	 @Description	Returns the number of bits per pixel in a PVR Pixel Format
 	 identifier.
 	 *************************************************************************/
-	uint m_get_bits_per_pixel(uint64 pixel_format) {
+	uint _get_bits_per_pixel(uint64 pixel_format) {
 		
 		if((pixel_format & PVR3TEXTURE_PFHIGH_MASK) != 0){
 			byte* PixelFormatChar = (byte*)&pixel_format;
@@ -220,7 +220,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	 surfaces or a single surface, all faces or a single face and
 	 all MIP-Maps or a single specified MIP level.
 	 *************************************************************************/
-	uint m_get_texture_data_size (PVRv3TexHeader& header,
+	uint _get_texture_data_size (PVRv3TexHeader& header,
 																int iMipLevel, bool bAllSurfaces = false,
 																bool bAllFaces = false) {
 		//The smallest divisible sizes for a pixel format
@@ -232,7 +232,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		
 		//If the pixel format is compressed, get the pixel format's minimum dimensions.
 		if (PixelFormatPartHigh == 0) {
-			m_get_format_min_dims(header.pixelFormat, uiSmallestWidth, uiSmallestHeight, uiSmallestDepth);
+			_get_format_min_dims(header.pixelFormat, uiSmallestWidth, uiSmallestHeight, uiSmallestDepth);
 		}
 		
 		//Needs to be 64-bit integer to support 16kx16k and higher sizes.
@@ -251,7 +251,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		}
 		
 		//Work out the specified MIP Map's data size
-		uiDataSize = m_get_bits_per_pixel(header.pixelFormat) * uiWidth * uiHeight * uiDepth;
+		uiDataSize = _get_bits_per_pixel(header.pixelFormat) * uiWidth * uiHeight * uiDepth;
 		
 		//The number of faces/surfaces to register the size of.
 		uint numfaces = bAllFaces ? header.numberOfFaces : 1;
@@ -261,7 +261,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return (uint)(uiDataSize / 8) * numsurfs * numfaces;
 	}
 	
-	bool m_is_pvr_v2 (cBuffer& data) {
+	bool _is_pvr_v2 (cBuffer& data) {
 		const char PVRv2TexIdentifier[4] = { 'P', 'V', 'R', '!' };
 		PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
 		uint pvrTag = header->pvrTag;
@@ -274,7 +274,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return true;
 	}
 	
-	bool m_is_pvr_v3 (cBuffer& data) {
+	bool _is_pvr_v3 (cBuffer& data) {
 		PVRv3TexHeader *header = (PVRv3TexHeader*)*data;
 		// validate version
 		if (header->version == 55727696 ||
@@ -284,7 +284,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return false;
 	}
 	
-	Array<PixelData> m_decode_pvr_v2 (cBuffer& data) {
+	Array<PixelData> _decode_pvr_v2 (cBuffer& data) {
 		
 		Array<PixelData> rest;
 		
@@ -345,7 +345,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return rest;
 	}
 	
-	Array<PixelData> m_decode_pvr_v3 (cBuffer& data) {
+	Array<PixelData> _decode_pvr_v3 (cBuffer& data) {
 		
 		Array<PixelData> rest;
 		PVRv3TexHeader* header = (PVRv3TexHeader*)*data;
@@ -372,7 +372,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 			
 			for (uint i = 0; i < numberOfMipmaps; i++) {
 				
-				uint dataSize = m_get_texture_data_size(*header, i);
+				uint dataSize = _get_texture_data_size(*header, i);
 				char* new_data = new char[dataSize];
 				
 				memcpy(new_data, bytes + dataOffset, dataSize);
@@ -398,11 +398,11 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 };
 
 Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
-	if (_inl_pvr(this)->m_is_pvr_v2(data)) {
-		return _inl_pvr(this)->m_decode_pvr_v2(data);
+	if (_inl_pvr(this)->_is_pvr_v2(data)) {
+		return _inl_pvr(this)->_decode_pvr_v2(data);
 	}
-	else if (_inl_pvr(this)->m_is_pvr_v3(data)) {
-		return _inl_pvr(this)->m_decode_pvr_v3(data);
+	else if (_inl_pvr(this)->_is_pvr_v3(data)) {
+		return _inl_pvr(this)->_decode_pvr_v3(data);
 	}
 	FX_ERR("TexurePVR: Invalid data");
 	return Array<PixelData>();
@@ -410,7 +410,7 @@ Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
 
 PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 	
-	if (_inl_pvr(this)->m_is_pvr_v2(data)) {
+	if (_inl_pvr(this)->_is_pvr_v2(data)) {
 		
 		_Inl::PVRv2TexHeader* header = (_Inl::PVRv2TexHeader*)*data;
 		uint flags = header->flags;
@@ -426,7 +426,7 @@ PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 			return PixelData(Buffer(), header->width, header->height, format, false);
 		}
 	}
-	else if (_inl_pvr(this)->m_is_pvr_v3(data)) {
+	else if (_inl_pvr(this)->_is_pvr_v3(data)) {
 		
 		_Inl::PVRv3TexHeader *header = (_Inl::PVRv3TexHeader*)*data;
 		

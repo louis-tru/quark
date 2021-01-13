@@ -105,25 +105,25 @@ namespace ftr {
 		*/
 		FX_EVENT(surface_size_change_r);
 		
-		inline GUIApplication* host() const { return m_host; }
-		inline DrawLibrary library() { return m_library; }
-		inline Vec2 surface_size() const { return m_surface_size; }
-		inline CGRect selected_region() const { return m_selected_region; }
+		inline GUIApplication* host() const { return _host; }
+		inline DrawLibrary library() { return _library; }
+		inline Vec2 surface_size() const { return _surface_size; }
+		inline CGRect selected_region() const { return _selected_region; }
 		bool set_surface_size(Vec2 surface_size, CGRect* select_region = nullptr);
-		inline float best_display_scale() const { return m_best_display_scale; }
-		inline uint multisample() const { return m_multisample; }
-		inline void set_best_display_scale(float value) { m_best_display_scale = value; }
-		inline Texture* empty_texture() { return m_empty_texture; }
-		inline FontPool* font_pool() const { return m_font_pool; }
-		inline TexturePool* tex_pool() const { return m_tex_pool; }
-		inline static Draw* current() { return m_draw_ctx; }
+		inline float best_display_scale() const { return _best_display_scale; }
+		inline uint multisample() const { return _multisample; }
+		inline void set_best_display_scale(float value) { _best_display_scale = value; }
+		inline Texture* empty_texture() { return _empty_texture; }
+		inline FontPool* font_pool() const { return _font_pool; }
+		inline TexturePool* tex_pool() const { return _tex_pool; }
+		inline static Draw* current() { return _draw_ctx; }
 		virtual void clear(bool full = false);
 		
 		/**
 		* @func max_texture_memory_limit()
 		*/
 		inline uint64 max_texture_memory_limit() const {
-			return m_max_texture_memory_limit;
+			return _max_texture_memory_limit;
 		}
 		
 		/**
@@ -177,17 +177,17 @@ namespace ftr {
 		
 		protected:
 
-		GUIApplication*     m_host;
-		uint                m_multisample;      /* 是否启用多重采样 default false */
-		Vec2                m_surface_size;     /* 当前绘图表面支持的大小 */
-		CGRect              m_selected_region;  /* 选择绘图表面有区域 */
-		Texture*            m_empty_texture;
-		FontPool*           m_font_pool;        /* 字体纹理池 */
-		TexturePool*        m_tex_pool;         /* 文件纹理池 */
-		uint64              m_max_texture_memory_limit;
-		float               m_best_display_scale;
-		DrawLibrary         m_library;
-		static Draw*        m_draw_ctx;
+		GUIApplication*     _host;
+		uint                _multisample;      /* 是否启用多重采样 default false */
+		Vec2                _surface_size;     /* 当前绘图表面支持的大小 */
+		CGRect              _selected_region;  /* 选择绘图表面有区域 */
+		Texture*            _empty_texture;
+		FontPool*           _font_pool;        /* 字体纹理池 */
+		TexturePool*        _tex_pool;         /* 文件纹理池 */
+		uint64              _max_texture_memory_limit;
+		float               _best_display_scale;
+		DrawLibrary         _library;
+		static Draw*        _draw_ctx;
 		
 		friend Draw*        draw_ctx();
 		friend FontPool*    font_pool();
@@ -197,13 +197,13 @@ namespace ftr {
 	};
 
 	inline Draw* draw_ctx() {
-		return Draw::m_draw_ctx;
+		return Draw::_draw_ctx;
 	}
 	inline FontPool* font_pool() {
-		return Draw::m_draw_ctx->m_font_pool;
+		return Draw::_draw_ctx->_font_pool;
 	}
 	inline TexturePool* tex_pool() {
-		return Draw::m_draw_ctx->m_tex_pool;
+		return Draw::_draw_ctx->_tex_pool;
 	}
 
 }

@@ -163,32 +163,32 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func parent # 父级视图
 	 */
-	inline View* parent() { return m_parent; }
+	inline View* parent() { return _parent; }
 	
 	/**
 	 * @func prev # 上一个兄弟视图
 	 */
-	inline View* prev() { return m_prev; }
+	inline View* prev() { return _prev; }
 	
 	/**
 	 * @func next # 下一个兄视图
 	 */
-	inline View* next() { return m_next; }
+	inline View* next() { return _next; }
 	
 	/**
 	 * @func first # 第一个子视图
 	 */
-	inline View* first() { return m_first; }
+	inline View* first() { return _first; }
 	
 	/**
 	 * @func last # 最后一个子视图
 	 */
-	inline View* last() { return m_last; }
+	inline View* last() { return _last; }
 	
 	/**
 	 * @func action
 	 */
-	inline Action* action() { return m_action; }
+	inline Action* action() { return _action; }
 	
 	/**
 	 * @func action
@@ -198,92 +198,92 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func x # x轴位移
 	 */
-	inline float x() const { return m_translate.x(); }
+	inline float x() const { return _translate.x(); }
 	
 	/**
 	 * @func y # y轴位移
 	 */
-	inline float y() const { return m_translate.y(); }
+	inline float y() const { return _translate.y(); }
 	
 	/**
 	 * @func scale_x # x轴缩放
 	 */
-	inline float scale_x() const { return m_scale.x(); }
+	inline float scale_x() const { return _scale.x(); }
 
 	/**
 	 * @func scale_y # y轴缩放
 	 */
-	inline float scale_y() const { return m_scale.y(); }
+	inline float scale_y() const { return _scale.y(); }
 
 	/**
 	 * @func rotate_z # 旋转角度
 	 */
-	inline float rotate_z() const { return m_rotate_z; }
+	inline float rotate_z() const { return _rotate_z; }
 
 	/**
 	 * @func skew_x # x轴斜歪角度
 	 */
-	inline float skew_x() const { return m_skew.x(); }
+	inline float skew_x() const { return _skew.x(); }
 
 	/**
 	 * @func skew_y # y轴斜歪角度
 	 */
-	inline float skew_y() const { return m_skew.y(); }
+	inline float skew_y() const { return _skew.y(); }
 
 	/**
 	 * @func opacity  # 可影响子视图的透明度值
 	 *                  Can affect the transparency value of sub view
 	 */
-	inline float opacity() const { return m_opacity; }
+	inline float opacity() const { return _opacity; }
 
 	/**
 	 * @func visible  # 是否显示视图,包括子视图
 	 *                  Whether to display the view, including the sub view
 	 */
-	inline bool visible() const { return m_visible; }
+	inline bool visible() const { return _visible; }
 	
 	/**
 	 * @func final_visible {bool} # 最终是否显示会受父视图的影响
 	 */
-	inline bool final_visible() const { return m_final_visible; }
+	inline bool final_visible() const { return _final_visible; }
 	
 	/**
 	 * @func draw_visible
 	 */
-	inline bool draw_visible() const { return m_draw_visible; }
+	inline bool draw_visible() const { return _draw_visible; }
 	
 	/**
 	 * @func translate
 	 */
-	inline Vec2 translate() const { return m_translate; }
+	inline Vec2 translate() const { return _translate; }
 
 	/**
 	 * @func scale
 	 */
-	inline Vec2 scale() const { return m_scale; }
+	inline Vec2 scale() const { return _scale; }
 	
 	/**
 	 * @func skew
 	 */
-	inline Vec2 skew() const { return m_skew; }
+	inline Vec2 skew() const { return _skew; }
 
 	/**
 	 * @func origin_x # x轴原点,以该点 位移,缩放,旋转,歪斜
 	 *                  To the view of displacement, rotate, scale, skew
 	 */
-	inline float origin_x() const { return m_origin.x(); }
+	inline float origin_x() const { return _origin.x(); }
 
 	/**
 	 * @func origin_y # y轴原点,以该点 位移,缩放,旋转,歪斜
 	 *                  To the view of displacement, rotate, scale, skew
 	 */
-	inline float origin_y() const { return m_origin.y(); }
+	inline float origin_y() const { return _origin.y(); }
 
 	/**
 	 * @func origin # 原点,以该点 位移,缩放,旋转,歪斜
 	 *                To the view of displacement, rotate, scale, skew
 	 */
-	inline Vec2 origin() const { return m_origin; }
+	inline Vec2 origin() const { return _origin; }
 	
 	/**
 	 * @func set_x
@@ -368,7 +368,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func need_draw
 	 */
-	inline bool need_draw() const { return m_need_draw; }
+	inline bool need_draw() const { return _need_draw; }
 	
 	/**
 	 * @func set_need_draw
@@ -379,7 +379,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 * @func level # 视图在整个视图树中所处的层级
 	 *               0表示还没有加入到GUIApplication唯一的视图树中,根视图为1
 	 */
-	inline uint level() const { return m_level; }
+	inline uint level() const { return _level; }
 	
 	/**
 	 * @func transform # 设置视图变换
@@ -453,7 +453,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func classs
 	 */
-	inline CSSViewClasss* classs() { return m_classs; }
+	inline CSSViewClasss* classs() { return _classs; }
 	
 	/**
 	 * "cls1 clas2 clas3"
@@ -484,12 +484,12 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func receive()
 	 */
-	inline bool receive() const { return m_receive; }
+	inline bool receive() const { return _receive; }
 	
 	/**
 	 * @func receive()
 	 */
-	inline void set_receive(bool value) { m_receive = value; }
+	inline void set_receive(bool value) { _receive = value; }
 	
 	/**
 	 * @func focus();
@@ -553,7 +553,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 * @func visit child draw
 	 */
 	inline void visit(Draw* draw) {
-		visit(draw, mark_value & M_INHERIT, m_need_draw);
+		visit(draw, mark_value & M_INHERIT, _need_draw);
 	}
 	
 	/**
@@ -588,35 +588,35 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	
  private:
 
-	View*   m_parent;     /* 父视图 */
-	View*   m_prev;       /* 上一个兄弟视图,通过这些属性组成了一个双向链表 */
-	View*   m_next;       /* 下一个兄视图 */
-	View*   m_first;      /* 第一个子视图 */
-	View*   m_last;       /* 最后一个子视图 */
-	Vec2    m_translate;  /* 平移向量 */
-	Vec2    m_scale;      /* 缩放向量 */
-	Vec2    m_skew;       /* 倾斜向量 */
-	float   m_rotate_z;   /* z轴旋转角度值 */
-	float   m_opacity;    /* 可影响子视图的透明度值 */
+	View*   _parent;     /* 父视图 */
+	View*   _prev;       /* 上一个兄弟视图,通过这些属性组成了一个双向链表 */
+	View*   _next;       /* 下一个兄视图 */
+	View*   _first;      /* 第一个子视图 */
+	View*   _last;       /* 最后一个子视图 */
+	Vec2    _translate;  /* 平移向量 */
+	Vec2    _scale;      /* 缩放向量 */
+	Vec2    _skew;       /* 倾斜向量 */
+	float   _rotate_z;   /* z轴旋转角度值 */
+	float   _opacity;    /* 可影响子视图的透明度值 */
 	/*
 	 *  不可能同时所有视图都会发生改变,如果视图树很庞大的时候,
 	 *  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
 	 *  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
 	 *  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 	 */
-	View* m_prev_pre_mark;      /* 上一个标记的预处理标记视图 */
-	View* m_next_pre_mark;      /* 下一个标记的预处理标记视图 */
+	View* _prev_pre_mark;      /* 上一个标记的预处理标记视图 */
+	View* _next_pre_mark;      /* 下一个标记的预处理标记视图 */
 	
-	CSSViewClasss* m_classs;
+	CSSViewClasss* _classs;
 	
  protected:
 	
-	uint m_level;         /* 视图在整个视图树中所处的层级
+	uint _level;         /* 视图在整个视图树中所处的层级
 												 * 0表示还没有加入到GUIApplication唯一的视图树中,根视图为1 */
-	Mat  m_matrix;        /* 基础矩阵,从父视图矩阵开始的矩阵,通过translate/scale/skew/rotate得到 */
-	Vec2 m_origin;        /* 以该点 位移,缩放,旋转,歪斜 */
-	Mat  m_final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
-	float m_final_opacity;/* 最终的不透明值 */
+	Mat  _matrix;        /* 基础矩阵,从父视图矩阵开始的矩阵,通过translate/scale/skew/rotate得到 */
+	Vec2 _origin;        /* 以该点 位移,缩放,旋转,歪斜 */
+	Mat  _final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
+	float _final_opacity;/* 最终的不透明值 */
 	uint mark_value;      /* 这些标记后的视图会在开始帧绘制前进行更新.
 												 * 需要这些标记的原因主要是为了最大程度的节省性能开销,
 												 * 因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
@@ -624,14 +624,14 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 												 *  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,
 												 *  那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
 												 * */
-	bool m_visible;       /* 是否显示视图,包括子视图 */
-	bool m_final_visible; /* 最终是否显示,受父视图m_visible影响 */
-	bool m_draw_visible;  /* 该状态标识视图是否在屏幕或区域范围内(是否需要绘图),这个状态会忽略`m_visible`值 */
-	bool m_need_draw;             /* 忽略视图visible值,强制绘制子视图 */
-	bool m_child_change_flag;     /* 子视图有变化标记,调用draw后重置 */
-	bool m_receive;               /* 是否接收事件 */
-	DrawData*       m_ctx_data;   /* 绘图上下文需要的数据 */
-	Action*         m_action;
+	bool _visible;       /* 是否显示视图,包括子视图 */
+	bool _final_visible; /* 最终是否显示,受父视图_visible影响 */
+	bool _draw_visible;  /* 该状态标识视图是否在屏幕或区域范围内(是否需要绘图),这个状态会忽略`_visible`值 */
+	bool _need_draw;             /* 忽略视图visible值,强制绘制子视图 */
+	bool _child_change_flag;     /* 子视图有变化标记,调用draw后重置 */
+	bool _receive;               /* 是否接收事件 */
+	DrawData*       _ctx_data;   /* 绘图上下文需要的数据 */
+	Action*         _action;
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 	FX_DEFINE_INLINE_CLASS(EventInl);

@@ -105,45 +105,45 @@ PropertysAccessor::PropertysAccessor() {
 	set_func(div, Div, PROPERTY_CONTENT_ALIGN, content_align);
 	set_func(hybrid, Hybrid, PROPERTY_TEXT_ALIGN, text_align);
 
-	m_property_func_table.set(View::VIEW, view);
-	m_property_func_table.set(View::BOX, box);
-	m_property_func_table.set(View::DIV, div);
-	m_property_func_table.set(View::INDEP, div);
-	m_property_func_table.set(View::SCROLL, div);
-	m_property_func_table.set(View::ROOT, div);
-	m_property_func_table.set(View::LIMIT, div);
-	m_property_func_table.set(View::IMAGE, div);
-	m_property_func_table.set(View::BOX_SHADOW, div);
-	m_property_func_table.set(View::PANEL, div);
-	m_property_func_table.set(View::SPAN, view);
-	m_property_func_table.set(View::LABEL, view);
-	m_property_func_table.set(View::SPRITE, view);
-	m_property_func_table.set(View::HYBRID, hybrid);
+	_property_func_table.set(View::VIEW, view);
+	_property_func_table.set(View::BOX, box);
+	_property_func_table.set(View::DIV, div);
+	_property_func_table.set(View::INDEP, div);
+	_property_func_table.set(View::SCROLL, div);
+	_property_func_table.set(View::ROOT, div);
+	_property_func_table.set(View::LIMIT, div);
+	_property_func_table.set(View::IMAGE, div);
+	_property_func_table.set(View::BOX_SHADOW, div);
+	_property_func_table.set(View::PANEL, div);
+	_property_func_table.set(View::SPAN, view);
+	_property_func_table.set(View::LABEL, view);
+	_property_func_table.set(View::SPRITE, view);
+	_property_func_table.set(View::HYBRID, hybrid);
 	// indep/limit_indep
-	set_func(m_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_X, align_x);
-	set_func(m_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_Y, align_y);
-	m_property_func_table.set(View::LIMIT_INDEP, m_property_func_table[View::INDEP]);
+	set_func(_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_X, align_x);
+	set_func(_property_func_table[View::INDEP], Indep, PROPERTY_ALIGN_Y, align_y);
+	_property_func_table.set(View::LIMIT_INDEP, _property_func_table[View::INDEP]);
 	// shadow
-	set_func(m_property_func_table[View::BOX_SHADOW], BoxShadow, PROPERTY_REPEAT, shadow);
+	set_func(_property_func_table[View::BOX_SHADOW], BoxShadow, PROPERTY_REPEAT, shadow);
 	// limit/limit_indep
-	set_func(m_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_WIDTH, max_width);
-	set_func(m_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_HEIGHT, max_height);
-	set_func(m_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_WIDTH, max_width);
-	set_func(m_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_HEIGHT, max_height);
+	set_func(_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_WIDTH, max_width);
+	set_func(_property_func_table[View::LIMIT], Limit, PROPERTY_MAX_HEIGHT, max_height);
+	set_func(_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_WIDTH, max_width);
+	set_func(_property_func_table[View::LIMIT_INDEP], LimitIndep, PROPERTY_MAX_HEIGHT, max_height);
 	// video/image
-	set_func(m_property_func_table[View::IMAGE], Image, PROPERTY_SRC, src);
-	m_property_func_table[View::VIDEO] = m_property_func_table[View::IMAGE];
+	set_func(_property_func_table[View::IMAGE], Image, PROPERTY_SRC, src);
+	_property_func_table[View::VIDEO] = _property_func_table[View::IMAGE];
 	// sprite
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_WIDTH, width_1);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_HEIGHT, height_1);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_START_X, start_x);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_START_Y, start_y);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_X, ratio_x);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_Y, ratio_y);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_REPEAT, repeat);
-	set_func(m_property_func_table[View::SPRITE], Sprite, PROPERTY_SRC, src);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_WIDTH, width_1);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_HEIGHT, height_1);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_START_X, start_x);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_START_Y, start_y);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_X, ratio_x);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_RATIO_Y, ratio_y);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_REPEAT, repeat);
+	set_func(_property_func_table[View::SPRITE], Sprite, PROPERTY_SRC, src);
 	// label
-	set_func(m_property_func_table[View::LABEL], Label, PROPERTY_TEXT_ALIGN, text_align);
+	set_func(_property_func_table[View::LABEL], Label, PROPERTY_TEXT_ALIGN, text_align);
 	
 	// text-font
 	Map<PropertyName, Accessor> font;
@@ -157,7 +157,7 @@ PropertysAccessor::PropertysAccessor() {
 	set_func(font, TextFont, PROPERTY_TEXT_DECORATION, text_decoration);
 	
 	for (auto& i : font) { // extend
-		m_property_func_table[View::LABEL].set(i.key(), i.value()); // label
+		_property_func_table[View::LABEL].set(i.key(), i.value()); // label
 	}
 	
 	// text-layout
@@ -165,15 +165,15 @@ PropertysAccessor::PropertysAccessor() {
 	set_func(font, TextLayout, PROPERTY_TEXT_WHITE_SPACE, text_white_space);
 	
 	for (auto& i : font) { // extend
-		m_property_func_table[View::HYBRID].set(i.key(), i.value());  // hybrid
-		m_property_func_table[View::SPAN].set(i.key(), i.value());  // span
+		_property_func_table[View::HYBRID].set(i.key(), i.value());  // hybrid
+		_property_func_table[View::SPAN].set(i.key(), i.value());  // span
 	}
 	
-	m_property_func_table.set(View::BUTTON, m_property_func_table[View::HYBRID]);
-	m_property_func_table.set(View::TEXT, m_property_func_table[View::HYBRID]);
-	m_property_func_table.set(View::INPUT, m_property_func_table[View::HYBRID]);
-	m_property_func_table.set(View::TEXTAREA, m_property_func_table[View::HYBRID]);
-	m_property_func_table.set(View::TEXT_NODE, m_property_func_table[View::SPAN]);
+	_property_func_table.set(View::BUTTON, _property_func_table[View::HYBRID]);
+	_property_func_table.set(View::TEXT, _property_func_table[View::HYBRID]);
+	_property_func_table.set(View::INPUT, _property_func_table[View::HYBRID]);
+	_property_func_table.set(View::TEXTAREA, _property_func_table[View::HYBRID]);
+	_property_func_table.set(View::TEXT_NODE, _property_func_table[View::SPAN]);
 }
 
 /**
@@ -181,14 +181,14 @@ PropertysAccessor::PropertysAccessor() {
  */
 PropertysAccessor::Accessor
 PropertysAccessor::accessor(ViewType type, PropertyName name) {
-	return m_property_func_table[type][name];
+	return _property_func_table[type][name];
 }
 
 /**
  * @func has_accessor
  */
 bool PropertysAccessor::has_accessor(int view_type, PropertyName name) {
-	return m_property_func_table[view_type].has(name);
+	return _property_func_table[view_type].has(name);
 }
 
 FX_END

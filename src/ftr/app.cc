@@ -70,9 +70,9 @@ class ThreadHelper {
 // thread helper
 static auto *thelper = new ThreadHelper();
 // global shared gui application 
-GUIApplication* GUIApplication::m_shared = nullptr;
+GUIApplication* GUIApplication::_shared = nullptr;
 
-GUILock::GUILock(): m_d(nullptr) {
+GUILock::GUILock(): _d(nullptr) {
 	lock();
 }
 
@@ -81,65 +81,65 @@ GUILock::~GUILock() {
 }
 
 void GUILock::lock() {
-	if (!m_d) {
-		m_d = thelper->global_gui_lock_mutex();
+	if (!_d) {
+		_d = thelper->global_gui_lock_mutex();
 		thelper->global_gui_lock_mutex()->lock();
 	}
 }
 
 void GUILock::unlock() {
-	if (m_d) {
-		reinterpret_cast<RecursiveMutex*>(m_d)->unlock();
-		m_d = nullptr;
+	if (_d) {
+		reinterpret_cast<RecursiveMutex*>(_d)->unlock();
+		_d = nullptr;
 	}
 }
 
 void AppInl::refresh_display() {
-	m_display_port->refresh();
+	_display_port->refresh();
 }
 
 void AppInl::triggerLoad() {
-	if (!m_is_load) {
-		m_is_load = true;
-		m_main_loop->post(Cb([&](CbD& d) { GUILock lock; FX_TRIGGER(Load); }));
+	if (!_is_load) {
+		_is_load = true;
+		_main_loop->post(Cb([&](CbD& d) { GUILock lock; FX_TRIGGER(Load); }));
 	}
 }
 
 void AppInl::triggerRender() {
-	m_display_port->render_frame();
+	_display_port->render_frame();
 }
 
 void AppInl::triggerPause() {
-	m_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Pause); }));
+	_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Pause); }));
 }
 
 void AppInl::triggerResume() {
-	m_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Resume); }));
+	_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Resume); }));
 }
 
 void AppInl::triggerBackground() {
-	m_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Background); }));
+	_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Background); }));
 }
 
 void AppInl::triggerForeground() {
-	m_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Foreground); }));
+	_main_loop->post(Cb([&](CbD& d) { FX_TRIGGER(Foreground); }));
 }
 
 void AppInl::triggerMemorywarning() {
 	clear();
-	m_main_loop->post(Cb([&](CbD&){ FX_TRIGGER(Memorywarning); }));
+	_main_loop->post(Cb([&](CbD&){ FX_TRIGGER(Memorywarning); }));
 }
 
 void AppInl::triggerUnload() {
-	if (m_is_load) {
-		m_is_load = false;
+	if (_is_load) {
+		_is_load = false;
 		typedef Callback<RunLoop::PostSyncData> Cb;
-		m_main_loop->post_sync(Cb([&](Cb::Data& d) {
+		_main_loop->post_sync(Cb([&](Cb::Data& d) {
 			DLOG("AppInl::onUnload()");
 			FX_TRIGGER(Unload);
-			if (m_root) {
+			if (_root) {
 				GUILock lock;
-				m_root->remove();
+				_root->remove();
 			}
 			d.data->complete();
 		}));
@@ -150,9 +150,9 @@ void AppInl::triggerUnload() {
  * @func set_root
  */
 void AppInl::set_root(Root* value) throw(Error) {
-	FX_CHECK(!m_root, "Root view already exists");
-	m_root = value;
-	m_root->retain();   // strong ref
+	FX_CHECK(!_root, "Root view already exists");
+	_root = value;
+	_root->retain();   // strong ref
 	set_focus_view(value);
 }
 
@@ -160,14 +160,14 @@ void AppInl::set_root(Root* value) throw(Error) {
  * @func set_focus_view()
  */
 bool AppInl::set_focus_view(View* view) {
-	if ( m_focus_view != view ) {
+	if ( _focus_view != view ) {
 		if ( view->final_visible() && view->can_become_focus() ) {
-			if ( m_focus_view ) {
-				m_focus_view->release();
+			if ( _focus_view ) {
+				_focus_view->release();
 			}
-			m_focus_view = view;
-			m_focus_view->retain(); // strong ref
-			m_dispatch->make_text_input(view->as_itext_input());
+			_focus_view = view;
+			_focus_view->retain(); // strong ref
+			_dispatch->make_text_input(view->as_itext_input());
 		} else {
 			return false;
 		}
@@ -195,32 +195,32 @@ void GUIApplication::runMain(int argc, char* argv[]) {
 	}, "runMain");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
-	while (!m_shared || !m_shared->m_is_run) {
+	while (!_shared || !_shared->_is_run) {
 		thelper->sleep();
 	}
 }
 
 void GUIApplication::run_loop() {
-	ASSERT(!m_is_run, "GUI program has been running");
+	ASSERT(!_is_run, "GUI program has been running");
 
-	m_is_run = true;
-	m_render_loop = RunLoop::current(); // 当前消息队列
-	m_render_keep = m_render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
+	_is_run = true;
+	_render_loop = RunLoop::current(); // 当前消息队列
+	_render_keep = _render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
 
-	if (m_render_loop != m_main_loop) {
-		Inl2_RunLoop(m_render_loop)->set_independent_mutex(thelper->global_gui_lock_mutex());
-		Thread::awaken(m_main_loop->thread_id()); // main loop awaken
+	if (_render_loop != _main_loop) {
+		Inl2_RunLoop(_render_loop)->set_independent_mutex(thelper->global_gui_lock_mutex());
+		Thread::awaken(_main_loop->thread_id()); // main loop awaken
 	}
 	thelper->awaken(); // 外部线程继续运行
 
-	ASSERT(!m_render_loop->runing());
+	ASSERT(!_render_loop->runing());
 
-	m_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
+	_render_loop->run(); // 运行gui消息循环,这个消息循环主要用来绘图
 
-	Release(m_render_keep); m_render_keep = nullptr;
+	Release(_render_keep); _render_keep = nullptr;
 
-	m_render_loop = nullptr;
-	m_is_run = false;
+	_render_loop = nullptr;
+	_is_run = false;
 }
 
 void GUIApplication::run_loop_detach() {
@@ -244,11 +244,11 @@ static void on_process_safe_handle(Event<>& e, Object* data) {
 }
 
 int AppInl::onExit(int code) {
-	if (m_render_keep) {
+	if (_render_keep) {
 		onUnload();
-		auto render_loop_id = m_render_loop->thread_id();
-		Release(m_render_keep); m_render_keep = nullptr; // stop render loop
-		Release(m_main_keep); m_main_keep = nullptr; // stop main loop
+		auto render_loop_id = _render_loop->thread_id();
+		Release(_render_keep); _render_keep = nullptr; // stop render loop
+		Release(_main_keep); _main_keep = nullptr; // stop main loop
 		Thread::abort(render_loop_id);
 		DLOG("GUIApplication onExit");
 	}
@@ -263,53 +263,53 @@ GUIApplication::GUIApplication()
 , FX_INIT_EVENT(Pause)
 , FX_INIT_EVENT(Resume)
 , FX_INIT_EVENT(Memorywarning)
-, m_is_run(false)
-, m_is_load(false)
-, m_render_loop(nullptr)
-, m_main_loop(RunLoop::main_loop())
-, m_render_keep(nullptr)
-, m_main_keep(nullptr)
-, m_draw_ctx(nullptr)
-, m_display_port(nullptr)
-, m_root(nullptr)
-, m_focus_view(nullptr)
-, m_default_text_background_color({ TextValueType::VALUE, Color(0, 0, 0, 0) })
-, m_default_text_color({ TextValueType::VALUE, Color(0, 0, 0) })
-, m_default_text_size({ TextValueType::VALUE, 16 })
-, m_default_text_style({ TextValueType::VALUE, TextStyleEnum::REGULAR })
-, m_default_text_family(TextValueType::VALUE, FontPool::get_font_familys_id(String()))
-, m_default_text_shadow({ TextValueType::VALUE, { 0, 0, 0, Color(0, 0, 0) } })
-, m_default_text_line_height({ TextValueType::VALUE, { 0 } })
-, m_default_text_decoration({ TextValueType::VALUE, TextDecorationEnum::NONE })
-, m_default_text_overflow({ TextValueType::VALUE, TextOverflowEnum::NORMAL })
-, m_default_text_white_space({ TextValueType::VALUE, TextWhiteSpaceEnum::NORMAL })
-, m_dispatch(nullptr)
-, m_action_center(nullptr)
+, _is_run(false)
+, _is_load(false)
+, _render_loop(nullptr)
+, _main_loop(RunLoop::main_loop())
+, _render_keep(nullptr)
+, _main_keep(nullptr)
+, _draw_ctx(nullptr)
+, _display_port(nullptr)
+, _root(nullptr)
+, _focus_view(nullptr)
+, _default_text_background_color({ TextValueType::VALUE, Color(0, 0, 0, 0) })
+, _default_text_color({ TextValueType::VALUE, Color(0, 0, 0) })
+, _default_text_size({ TextValueType::VALUE, 16 })
+, _default_text_style({ TextValueType::VALUE, TextStyleEnum::REGULAR })
+, _default_text_family(TextValueType::VALUE, FontPool::get_font_familys_id(String()))
+, _default_text_shadow({ TextValueType::VALUE, { 0, 0, 0, Color(0, 0, 0) } })
+, _default_text_line_height({ TextValueType::VALUE, { 0 } })
+, _default_text_decoration({ TextValueType::VALUE, TextDecorationEnum::NONE })
+, _default_text_overflow({ TextValueType::VALUE, TextOverflowEnum::NORMAL })
+, _default_text_white_space({ TextValueType::VALUE, TextWhiteSpaceEnum::NORMAL })
+, _dispatch(nullptr)
+, _action_center(nullptr)
 {
-	m_main_keep = m_main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
+	_main_keep = _main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
 	Thread::FX_ON(ProcessSafeExit, on_process_safe_handle);
 }
 
 GUIApplication::~GUIApplication() {
 	GUILock lock;
-	if (m_root) {
-		m_root->remove();
-		m_root->release(); m_root = nullptr;
+	if (_root) {
+		_root->remove();
+		_root->release(); _root = nullptr;
 	}
-	if ( m_focus_view ) {
-		m_focus_view->release();
-		m_focus_view = nullptr;
+	if ( _focus_view ) {
+		_focus_view->release();
+		_focus_view = nullptr;
 	}
-	Release(m_draw_ctx);      m_draw_ctx = nullptr;
-	Release(m_dispatch);      m_dispatch = nullptr;
-	Release(m_action_center); m_action_center = nullptr;
-	Release(m_display_port);  m_display_port = nullptr;
-	Release(m_render_keep);   m_render_keep = nullptr;
-	Release(m_main_keep);     m_main_keep = nullptr;
+	Release(_draw_ctx);      _draw_ctx = nullptr;
+	Release(_dispatch);      _dispatch = nullptr;
+	Release(_action_center); _action_center = nullptr;
+	Release(_display_port);  _display_port = nullptr;
+	Release(_render_keep);   _render_keep = nullptr;
+	Release(_main_keep);     _main_keep = nullptr;
 
-	m_render_loop = nullptr;
-	m_main_loop = nullptr;
-	m_shared = nullptr;
+	_render_loop = nullptr;
+	_main_loop = nullptr;
+	_shared = nullptr;
 
 	Thread::FX_OFF(ProcessSafeExit, on_process_safe_handle);
 }
@@ -319,94 +319,94 @@ GUIApplication::~GUIApplication() {
  */
 void GUIApplication::initialize(cJSON& options) throw(Error) {
 	GUILock lock;
-	FX_CHECK(!m_shared, "At the same time can only run a GUIApplication entity");
-	m_shared = this;
+	FX_CHECK(!_shared, "At the same time can only run a GUIApplication entity");
+	_shared = this;
 	HttpHelper::initialize(); // 初始http
 	_inl_app(this)->initialize(options);
 	FX_DEBUG("Inl_GUIApplication initialize ok");
-	m_display_port = NewRetain<DisplayPort>(this); // strong ref
+	_display_port = NewRetain<DisplayPort>(this); // strong ref
 	FX_DEBUG("NewRetain<DisplayPort> ok");
-	m_draw_ctx->font_pool()->set_display_port(m_display_port);
-	FX_DEBUG("m_draw_ctx->font_pool()->set_display_port() ok");
-	m_dispatch = new GUIEventDispatch(this);
-	m_action_center = new ActionCenter();
+	_draw_ctx->font_pool()->set_display_port(_display_port);
+	FX_DEBUG("_draw_ctx->font_pool()->set_display_port() ok");
+	_dispatch = new GUIEventDispatch(this);
+	_action_center = new ActionCenter();
 }
 
 /**
  * @func has_current_render_thread()
  */
 bool GUIApplication::has_current_render_thread() const {
-	return m_render_loop && m_render_loop->thread_id() == Thread::current_id();
+	return _render_loop && _render_loop->thread_id() == Thread::current_id();
 }
 
 /**
  * @func clear([full]) 清理不需要使用的资源
  */
 void GUIApplication::clear(bool full) {
-	m_render_loop->post(Cb([&, full](CbD& e){ m_draw_ctx->clear(full); }));
+	_render_loop->post(Cb([&, full](CbD& e){ _draw_ctx->clear(full); }));
 }
 
 void GUIApplication::set_default_text_background_color(TextColor value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_background_color = value;
+		_default_text_background_color = value;
 	}
 }
 void GUIApplication::set_default_text_color(TextColor value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_color = value;
+		_default_text_color = value;
 	}
 }
 void GUIApplication::set_default_text_size(TextSize value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_size = value;
+		_default_text_size = value;
 	}
 }
 void GUIApplication::set_default_text_style(TextStyle value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_style = value;
+		_default_text_style = value;
 	}
 }
 void GUIApplication::set_default_text_family(TextFamily value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_family = value;
+		_default_text_family = value;
 	}
 }
 void GUIApplication::set_default_text_shadow(TextShadow value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_shadow = value;
+		_default_text_shadow = value;
 	}
 }
 void GUIApplication::set_default_text_line_height(TextLineHeight value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_line_height = value;
+		_default_text_line_height = value;
 	}
 }
 void GUIApplication::set_default_text_decoration(TextDecoration value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_decoration = value;
+		_default_text_decoration = value;
 	}
 }
 void GUIApplication::set_default_text_overflow(TextOverflow value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_overflow = value;
+		_default_text_overflow = value;
 	}
 }
 void GUIApplication::set_default_text_white_space(TextWhiteSpace value) {
 	if ( value.type == TextValueType::VALUE ) {
-		m_default_text_white_space = value;
+		_default_text_white_space = value;
 	}
 }
 
 uint64 GUIApplication::max_texture_memory_limit() const {
-	return m_draw_ctx->max_texture_memory_limit();
+	return _draw_ctx->max_texture_memory_limit();
 }
 
 void GUIApplication::set_max_texture_memory_limit(uint64 limit) {
-	m_draw_ctx->set_max_texture_memory_limit(limit);
+	_draw_ctx->set_max_texture_memory_limit(limit);
 }
 
 uint64 GUIApplication::used_texture_memory() const {
-	return m_draw_ctx->used_texture_memory();
+	return _draw_ctx->used_texture_memory();
 }
 
 FX_END

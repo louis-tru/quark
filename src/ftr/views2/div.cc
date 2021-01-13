@@ -55,12 +55,12 @@ FX_DEFINE_INLINE_MEMBERS(Div, Inl) {
 	
 };
 
-Div::Div(): m_content_align(ContentAlign::LEFT) {
+Div::Div(): _content_align(ContentAlign::LEFT) {
 }
 
 void Div::set_content_align(ContentAlign value) {
-	if (value != m_content_align) {
-		m_content_align = value;
+	if (value != _content_align) {
+		_content_align = value;
 		mark_pre(M_CONTENT_OFFSET);
 	}
 }
@@ -77,13 +77,13 @@ bool Div::set_div_content_offset(Vec2& squeeze, Vec2 limit_min) {
 	View* view  = first();
 	Box*  prev  = nullptr;
 	
-	switch ( m_content_align ) {
+	switch ( _content_align ) {
 		case ContentAlign::LEFT:
 		case ContentAlign::RIGHT:
-			loop( prev = box->set_offset_horizontal(prev, squeeze, m_limit.width(), this) );
+			loop( prev = box->set_offset_horizontal(prev, squeeze, _limit.width(), this) );
 			break;
 		default:
-			loop( prev = box->set_offset_vertical(prev, squeeze, m_limit.height(), this) );
+			loop( prev = box->set_offset_vertical(prev, squeeze, _limit.height(), this) );
 			break;
 	}
 	
@@ -92,35 +92,35 @@ bool Div::set_div_content_offset(Vec2& squeeze, Vec2 limit_min) {
 	bool size_change = false;
 	
 	// 没有明确宽度
-	if ( ! m_explicit_width ) {
+	if ( ! _explicit_width ) {
 		
-		if ( squeeze.width() > m_limit.width() ) {// 限制宽度
-			squeeze.width(m_limit.width());
+		if ( squeeze.width() > _limit.width() ) {// 限制宽度
+			squeeze.width(_limit.width());
 		} else if ( limit_min.width() > squeeze.width() ) {
 			squeeze.width(limit_min.width());
 		}
 		
-		if ( m_final_width != squeeze.width() ) { // 宽度发生改变
-			m_final_width       = squeeze.width();
-			m_raw_client_width  = m_final_margin_left + m_final_margin_right +
-														m_border_left_width + m_border_right_width + m_final_width;
+		if ( _final_width != squeeze.width() ) { // 宽度发生改变
+			_final_width       = squeeze.width();
+			_raw_client_width  = _final_margin_left + _final_margin_right +
+														_border_left_width + _border_right_width + _final_width;
 			size_change = true;
 		}
 	}
 	
 	// 没有明确高度,高度会受到子视图的挤压
-	if ( ! m_explicit_height ) {
+	if ( ! _explicit_height ) {
 		
-		if ( squeeze.height() > m_limit.height() ) { // 限制高度
-			squeeze.height(m_limit.height());
+		if ( squeeze.height() > _limit.height() ) { // 限制高度
+			squeeze.height(_limit.height());
 		} else if ( limit_min.height() > squeeze.height() ) {
 			squeeze.height(limit_min.height());
 		}
 		
-		if ( m_final_height != squeeze.height() ) { // 高度发生改变
-			m_final_height      = squeeze.height();
-			m_raw_client_height = m_final_margin_top + m_final_margin_bottom +
-														m_border_top_width + m_border_bottom_width + m_final_height;
+		if ( _final_height != squeeze.height() ) { // 高度发生改变
+			_final_height      = squeeze.height();
+			_raw_client_height = _final_margin_top + _final_margin_bottom +
+														_border_top_width + _border_bottom_width + _final_height;
 			size_change = true;
 		}
 	}
@@ -130,7 +130,7 @@ bool Div::set_div_content_offset(Vec2& squeeze, Vec2 limit_min) {
 
 void Div::set_layout_content_offset() {
 	
-	if (m_final_visible) {
+	if (_final_visible) {
 		
 		Vec2 squeeze;
 		
@@ -152,43 +152,43 @@ void Div::set_layout_content_offset() {
 
 void Div::set_layout_three_times(bool horizontal, bool hybrid) {
 	
-	if ( !m_visible ) { return; }
+	if ( !_visible ) { return; }
 	
-	ASSERT(m_parent_layout);
+	ASSERT(_parent_layout);
 	
 	if ( horizontal ) { // horizontal layout
 		
-		if ( m_width.type == ValueType::FULL ) {
-			float width = static_cast<Box*>(m_parent_layout)->m_final_width;
-			float raw_final_width = m_final_width;
+		if ( _width.type == ValueType::FULL ) {
+			float width = static_cast<Box*>(_parent_layout)->_final_width;
+			float raw_final_width = _final_width;
 			
 			_box_inl__solve_final_horizontal_size_with_full_width(this, width);
 			
-			if ( raw_final_width != m_final_width ) {
+			if ( raw_final_width != _final_width ) {
 				mark_pre(M_SHAPE);
 				
 				if ( hybrid ) { // update row offset
-					ASSERT( m_linenum != -1 );
-					static_cast<Hybrid*>(m_parent_layout)->m_rows[m_linenum].offset_end.x(m_offset_end.x());
+					ASSERT( _linenum != -1 );
+					static_cast<Hybrid*>(_parent_layout)->_rows[_linenum].offset_end.x(_offset_end.x());
 				}
 				
-				if (m_content_align == ContentAlign::LEFT ||
-						m_content_align == ContentAlign::RIGHT ) {
+				if (_content_align == ContentAlign::LEFT ||
+						_content_align == ContentAlign::RIGHT ) {
 					Inl_Div(this)->set_layout_three_times2(true);
 				}
 			}
 		}
 	} else {
-		if ( m_height.type == ValueType::FULL ) {
-			float parent = static_cast<Box*>(m_parent_layout)->m_final_height;
-			float raw_final_height = m_final_height;
+		if ( _height.type == ValueType::FULL ) {
+			float parent = static_cast<Box*>(_parent_layout)->_final_height;
+			float raw_final_height = _final_height;
 			
 			_box_inl__solve_final_vertical_size_with_full_height(this, parent);
 			
-			if ( raw_final_height != m_final_height ) {
+			if ( raw_final_height != _final_height ) {
 				mark_pre(M_SHAPE);
-				if (m_content_align == ContentAlign::TOP ||
-						m_content_align == ContentAlign::BOTTOM) {
+				if (_content_align == ContentAlign::TOP ||
+						_content_align == ContentAlign::BOTTOM) {
 					Inl_Div(this)->set_layout_three_times2(false);
 				}
 			}

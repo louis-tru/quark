@@ -44,7 +44,7 @@ template<class Basic> class MyGLDraw: public Basic {
 	MyGLDraw(GUIApplication* host, EAGLContext* ctx,
 					 DrawLibrary library,
 					 cJSON& options): Basic(host, options), proxy_(this, ctx) {
-		this->m_library = library;
+		this->_library = library;
 		this->initialize();
 	}
 	virtual void commit_render() {
@@ -78,7 +78,7 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 	return rv;
 }
 
-GLDrawProxy::GLDrawProxy(GLDraw* host, EAGLContext* ctx): m_host(host), m_context(ctx) {
+GLDrawProxy::GLDrawProxy(GLDraw* host, EAGLContext* ctx): _host(host), _context(ctx) {
 	ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
 	ctx.multiThreaded = NO;
 }
@@ -93,31 +93,31 @@ void GLDrawProxy::gl_main_render_buffer_storage() {
 	// The width, height, and format of the renderbuffer storage are derived from the bounds
 	// and properties of the CAEAGLLayer object
 	// at the moment the renderbufferStorage:fromDrawable: method is called.
-	[m_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:m_layer];
+	[_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
 }
 
 void GLDrawProxy::commit_render() {
 	glBindVertexArray(0); // clear vao
 	
-	if (m_host->multisample() > 1) {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_host->m_msaa_frame_buffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_host->m_frame_buffer);
+	if (_host->multisample() > 1) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, _host->_msaa_frame_buffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _host->_frame_buffer);
 		GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
 		
-		if (m_host->library() == DRAW_LIBRARY_GLES2) {
+		if (_host->library() == DRAW_LIBRARY_GLES2) {
 			glResolveMultisampleFramebufferAPPLE();
 			glDiscardFramebufferEXT(GL_READ_FRAMEBUFFER, 3, attachments);
 		} else {
-			Vec2 ssize = m_host->surface_size();
+			Vec2 ssize = _host->surface_size();
 			glBlitFramebuffer(0, 0, ssize.width(), ssize.height(),
 												0, 0, ssize.width(), ssize.height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, m_host->m_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_host->m_frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, _host->_frame_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _host->_frame_buffer);
 	} else {
 		GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-		if (m_host->library() == DRAW_LIBRARY_GLES2) {
+		if (_host->library() == DRAW_LIBRARY_GLES2) {
 			glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
 		} else {
 			glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
@@ -127,7 +127,7 @@ void GLDrawProxy::commit_render() {
 	// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
 	// you present its contents by making it the current renderbuffer
 	// and calling the presentRenderbuffer: method on your rendering context.
-	[m_context presentRenderbuffer:GL_FRAMEBUFFER];
+	[_context presentRenderbuffer:GL_FRAMEBUFFER];
 }
 
 /**
@@ -161,21 +161,21 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 }
 
 //void GLDrawProxy::set_current_context() {
-//  ASSERT([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
+//  ASSERT([EAGLContext setCurrentContext:_context], "Failed to set current OpenGL context");
 //}
 
 void GLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
-	ASSERT([EAGLContext setCurrentContext:m_context], "Failed to set current OpenGL context");
-	m_surface_view = view;
-	m_layer = layer;
-	m_host->set_best_display_scale(UIScreen.mainScreen.scale);
+	ASSERT([EAGLContext setCurrentContext:_context], "Failed to set current OpenGL context");
+	_surface_view = view;
+	_layer = layer;
+	_host->set_best_display_scale(UIScreen.mainScreen.scale);
 }
 
 bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
 	float scale = UIScreen.mainScreen.scale;
 	Vec2 size(rect.size.width * scale, rect.size.height * scale);
 	if ( !size.is_zero() ) {
-		return m_host->set_surface_size(size);
+		return _host->set_surface_size(size);
 	}
 	return false;
 }

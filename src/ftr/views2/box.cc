@@ -56,7 +56,7 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 		
 		if ( mark_value & M_SIZE_HORIZONTAL ) {
 			
-			float raw_limit_width = m_limit.width();
+			float raw_limit_width = _limit.width();
 			
 			solve_explicit_horizontal_size();
 			
@@ -66,7 +66,7 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 			// 3.宽度限制的变化可能会影响子盒子偏移变化
 			//  前两项的变化都会造成第三项的变化..
 			
-			if ( raw_limit_width != m_limit.width() ) {
+			if ( raw_limit_width != _limit.width() ) {
 				if ( hybrid ) {
 					TextAlign align = reinterpret_cast<Hybrid*>(this)->text_align();
 					if ( align != TextAlign::LEFT && align != TextAlign::LEFT_REVERSE ) {
@@ -84,11 +84,11 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 		
 		if ( mark_value & M_SIZE_VERTICAL ) {
 			
-			float raw_limit_height = m_limit.height();
+			float raw_limit_height = _limit.height();
 			
 			solve_explicit_vertical_size();
 			// 同上
-			if ( raw_limit_height != m_limit.height() ) {
+			if ( raw_limit_height != _limit.height() ) {
 				if ( !hybrid ) {
 					if ( reinterpret_cast<Div*>(this)->content_align() == ContentAlign::BOTTOM ) {
 						child_mark = M_MATRIX;
@@ -106,121 +106,121 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 	
 	inline void solve_horizontal_size_with_auto_width(float parent) {
 		
-		m_explicit_width = false;
+		_explicit_width = false;
 		
-		switch (m_margin_left.type) {
+		switch (_margin_left.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL:   m_final_margin_left = 0; break;
-			case ValueType::PIXEL:  m_final_margin_left = m_margin_left.value; break;
-			case ValueType::PERCENT:m_final_margin_left = parent * m_margin_left.value; break;
-			default:                m_final_margin_left = FX_MAX(parent - m_margin_left.value, 0); break;
+			case ValueType::FULL:   _final_margin_left = 0; break;
+			case ValueType::PIXEL:  _final_margin_left = _margin_left.value; break;
+			case ValueType::PERCENT:_final_margin_left = parent * _margin_left.value; break;
+			default:                _final_margin_left = FX_MAX(parent - _margin_left.value, 0); break;
 		}
 		
-		switch (m_margin_right.type) {
+		switch (_margin_right.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL:   m_final_margin_right = 0; break;
-			case ValueType::PIXEL:  m_final_margin_right = m_margin_right.value; break;
-			case ValueType::PERCENT:m_final_margin_right = parent * m_margin_right.value; break;
-			default:                m_final_margin_right = FX_MAX(parent - m_margin_right.value, 0); break;
+			case ValueType::FULL:   _final_margin_right = 0; break;
+			case ValueType::PIXEL:  _final_margin_right = _margin_right.value; break;
+			case ValueType::PERCENT:_final_margin_right = parent * _margin_right.value; break;
+			default:                _final_margin_right = FX_MAX(parent - _margin_right.value, 0); break;
 		}
 		
-		m_raw_client_width = m_final_margin_left + m_final_margin_right +
-												 m_border_left_width + m_border_right_width + m_final_width;
-		m_limit.width(Float::max);
+		_raw_client_width = _final_margin_left + _final_margin_right +
+												 _border_left_width + _border_right_width + _final_width;
+		_limit.width(Float::max);
 	}
 	
 	inline void solve_horizontal_size_with_full_width(float parent) {
 		
-		m_explicit_width = true; // 明确的宽度
+		_explicit_width = true; // 明确的宽度
 		
-		switch (m_margin_left.type) {
+		switch (_margin_left.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL:   m_final_margin_left = 0; break;   // 宽度为FULL,边距就不能为FULL
-			case ValueType::PIXEL:  m_final_margin_left = m_margin_left.value; break;
-			case ValueType::PERCENT:m_final_margin_left = parent * m_margin_left.value; break;
-			default:                m_final_margin_left = FX_MAX(parent - m_margin_left.value, 0); break;
+			case ValueType::FULL:   _final_margin_left = 0; break;   // 宽度为FULL,边距就不能为FULL
+			case ValueType::PIXEL:  _final_margin_left = _margin_left.value; break;
+			case ValueType::PERCENT:_final_margin_left = parent * _margin_left.value; break;
+			default:                _final_margin_left = FX_MAX(parent - _margin_left.value, 0); break;
 		}
 		
-		switch (m_margin_right.type) {
+		switch (_margin_right.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL:   m_final_margin_right = 0; break;  // 宽度为FULL,边距就不能为FULL
-			case ValueType::PIXEL:  m_final_margin_right = m_margin_right.value; break;
-			case ValueType::PERCENT:m_final_margin_right = parent * m_margin_right.value; break;
-			default:                m_final_margin_right = FX_MAX(parent - m_margin_right.value, 0); break;
+			case ValueType::FULL:   _final_margin_right = 0; break;  // 宽度为FULL,边距就不能为FULL
+			case ValueType::PIXEL:  _final_margin_right = _margin_right.value; break;
+			case ValueType::PERCENT:_final_margin_right = parent * _margin_right.value; break;
+			default:                _final_margin_right = FX_MAX(parent - _margin_right.value, 0); break;
 		}
 		
-		m_raw_client_width = m_final_margin_left +
-												 m_final_margin_right + m_border_left_width + m_border_right_width;
+		_raw_client_width = _final_margin_left +
+												 _final_margin_right + _border_left_width + _border_right_width;
 		
-		if ( m_raw_client_width < parent ) {
-			m_final_width = parent - m_raw_client_width;
-			m_raw_client_width = parent;
+		if ( _raw_client_width < parent ) {
+			_final_width = parent - _raw_client_width;
+			_raw_client_width = parent;
 		} else {
-			m_final_width = 0;
+			_final_width = 0;
 		}
-		m_limit.width(m_final_width);
+		_limit.width(_final_width);
 	}
 	
 	inline void solve_horizontal_size_with_explicit_width(float parent) {
 		
-		m_explicit_width = true;
+		_explicit_width = true;
 		
-		m_raw_client_width = m_final_width + m_border_left_width + m_border_right_width;
+		_raw_client_width = _final_width + _border_left_width + _border_right_width;
 		
 		// 剩下的宽度
-		float width = parent - m_raw_client_width;
+		float width = parent - _raw_client_width;
 		
-		if (m_margin_left.type == ValueType::AUTO || m_margin_left.type == ValueType::FULL) {
-			if (m_margin_right.type == ValueType::AUTO || m_margin_right.type == ValueType::FULL) {
+		if (_margin_left.type == ValueType::AUTO || _margin_left.type == ValueType::FULL) {
+			if (_margin_right.type == ValueType::AUTO || _margin_right.type == ValueType::FULL) {
 				// 左右边距都为自动
-				m_final_margin_left = m_final_margin_right = FX_MAX(width / 2, 0);
+				_final_margin_left = _final_margin_right = FX_MAX(width / 2, 0);
 			} else { // 只有左边距为自动
-				switch(m_margin_right.type) {
-					case ValueType::PIXEL:   m_final_margin_right = m_margin_right.value; break;
-					case ValueType::PERCENT: m_final_margin_right = m_margin_right.value * parent; break;
-					default:                 m_final_margin_right = FX_MAX(parent - m_margin_right.value, 0);
+				switch(_margin_right.type) {
+					case ValueType::PIXEL:   _final_margin_right = _margin_right.value; break;
+					case ValueType::PERCENT: _final_margin_right = _margin_right.value * parent; break;
+					default:                 _final_margin_right = FX_MAX(parent - _margin_right.value, 0);
 						break;
 				}
-				m_final_margin_left = FX_MAX(width - m_final_margin_right, 0);
+				_final_margin_left = FX_MAX(width - _final_margin_right, 0);
 			}
 		}
-		else if (m_margin_right.type == ValueType::AUTO || m_margin_right.type == ValueType::FULL) {
+		else if (_margin_right.type == ValueType::AUTO || _margin_right.type == ValueType::FULL) {
 			// 只有右边距为自动
-			switch(m_margin_left.type) {
-				case ValueType::PIXEL:   m_final_margin_left = m_margin_left.value; break;
-				case ValueType::PERCENT: m_final_margin_left = m_margin_left.value * parent; break;
-				default:                 m_final_margin_left = FX_MAX(parent - m_margin_left.value, 0); break;
+			switch(_margin_left.type) {
+				case ValueType::PIXEL:   _final_margin_left = _margin_left.value; break;
+				case ValueType::PERCENT: _final_margin_left = _margin_left.value * parent; break;
+				default:                 _final_margin_left = FX_MAX(parent - _margin_left.value, 0); break;
 			}
-			m_final_margin_right = FX_MAX(width - m_final_margin_left, 0);
+			_final_margin_right = FX_MAX(width - _final_margin_left, 0);
 		}
 		else { // 左右边距都不为自动
-			switch(m_margin_left.type) {
-				case ValueType::PIXEL:    m_final_margin_left = m_margin_left.value; break;
-				case ValueType::PERCENT:  m_final_margin_left = m_margin_left.value * parent; break;
-				default:                  m_final_margin_left = FX_MAX(parent - m_margin_left.value, 0);
+			switch(_margin_left.type) {
+				case ValueType::PIXEL:    _final_margin_left = _margin_left.value; break;
+				case ValueType::PERCENT:  _final_margin_left = _margin_left.value * parent; break;
+				default:                  _final_margin_left = FX_MAX(parent - _margin_left.value, 0);
 					break;
 			}
-			switch(m_margin_right.type) {
-				case ValueType::PIXEL:   m_final_margin_right = m_margin_right.value; break;
-				case ValueType::PERCENT: m_final_margin_right = m_margin_right.value * parent; break;
-				default:                 m_final_margin_right = FX_MAX(parent - m_margin_right.value, 0);
+			switch(_margin_right.type) {
+				case ValueType::PIXEL:   _final_margin_right = _margin_right.value; break;
+				case ValueType::PERCENT: _final_margin_right = _margin_right.value * parent; break;
+				default:                 _final_margin_right = FX_MAX(parent - _margin_right.value, 0);
 					break;
 			}
 		}
-		m_raw_client_width += (m_final_margin_left + m_final_margin_right);
+		_raw_client_width += (_final_margin_left + _final_margin_right);
 	}
 	
 	inline void solve_final_horizontal_size_with_full_width(float parent) {
 		
-		float width = m_final_margin_left +
-									m_final_margin_right + m_border_left_width + m_border_right_width;
+		float width = _final_margin_left +
+									_final_margin_right + _border_left_width + _border_right_width;
 		if ( width < parent ) {
-			m_final_width = parent - width;
+			_final_width = parent - width;
 			width = parent;
 		} else {
-			m_final_width = 0;
+			_final_width = 0;
 		}
-		m_offset_end.x(m_offset_start.x() + width);
+		_offset_end.x(_offset_start.x() + width);
 	}
 
 	void solve_explicit_horizontal_size() {
@@ -228,9 +228,9 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 		Box* parent = View::parent()->as_box();
 		
 		// 布局视图加入到普通视图内或父视图没有明确宽度时,属性类型AUTO/FULL/PERCENT/MINUS会失效.
-		if ( parent && parent->m_explicit_width ) {
+		if ( parent && parent->_explicit_width ) {
 			
-			float parent_width = parent->m_final_width;
+			float parent_width = parent->_final_width;
 			
 			// 1.AUTO
 			//   尺寸会受内部挤压影响
@@ -245,7 +245,7 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 			//   取父视图宽度的百分比值
 			// 5.减法值
 			
-			switch ( m_width.type ) {
+			switch ( _width.type ) {
 				case ValueType::AUTO:  // 自动宽度,由内部挤压确定 (width=auto)
 					solve_horizontal_size_with_auto_width(parent_width);
 					break;
@@ -253,175 +253,175 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 					solve_horizontal_size_with_full_width(parent_width);
 					break;
 				case ValueType::PIXEL:  // 像素值 (width=50)
-					m_final_width = m_width.value;
-					m_limit.width(m_final_width);
+					_final_width = _width.value;
+					_limit.width(_final_width);
 					solve_horizontal_size_with_explicit_width(parent_width);
 					break;
 				case ValueType::PERCENT: // 百分比 (width=50%)
-					m_final_width = m_width.value * parent_width;
-					m_limit.width(m_final_width);
+					_final_width = _width.value * parent_width;
+					_limit.width(_final_width);
 					solve_horizontal_size_with_explicit_width(parent_width);
 					break;
 				default:  // 减法值 (width=50!)
-					m_final_width = FX_MAX(parent_width - m_width.value, 0);
-					m_limit.width(m_final_width);
+					_final_width = FX_MAX(parent_width - _width.value, 0);
+					_limit.width(_final_width);
 					solve_horizontal_size_with_explicit_width(parent_width);
 					break;
 			}
 			
 		} else {
 			
-			m_limit.width(Float::max);
+			_limit.width(Float::max);
 			
-			if (m_margin_left.type == ValueType::PIXEL) {
-				m_final_margin_left = m_margin_left.value;
+			if (_margin_left.type == ValueType::PIXEL) {
+				_final_margin_left = _margin_left.value;
 			} else {
-				m_final_margin_left = 0;
+				_final_margin_left = 0;
 			}
 			
-			if (m_margin_right.type == ValueType::PIXEL) {
-				m_final_margin_right = m_margin_right.value;
+			if (_margin_right.type == ValueType::PIXEL) {
+				_final_margin_right = _margin_right.value;
 			} else {
-				m_final_margin_right = 0;
+				_final_margin_right = 0;
 			}
 			
-			m_raw_client_width =  m_border_left_width + m_border_right_width +
-														m_final_margin_left + m_final_margin_right;
+			_raw_client_width =  _border_left_width + _border_right_width +
+														_final_margin_left + _final_margin_right;
 			
 			// 父视图没有明确的宽度或者父视图为普通视图,只有像素值才生效否则为不明确的值
-			if (m_width.type == ValueType::PIXEL) {
-				m_final_width = m_width.value;
-				m_limit.width(m_final_width);
-				m_explicit_width = true;  // 明确的宽度,不受内部挤压
+			if (_width.type == ValueType::PIXEL) {
+				_final_width = _width.value;
+				_limit.width(_final_width);
+				_explicit_width = true;  // 明确的宽度,不受内部挤压
 			} else {
 				
 				// 如果父盒子为水平布局同时没有明确的宽度,FULL宽度会导致三次布局
-				if ( parent && m_width.type == ValueType::FULL ) { // 使用父视图的限制
-					m_limit.width(parent->m_limit.width() - m_raw_client_width);
+				if ( parent && _width.type == ValueType::FULL ) { // 使用父视图的限制
+					_limit.width(parent->_limit.width() - _raw_client_width);
 					// mark_pre(M_LAYOUT_THREE_TIMES); // TODO
 				}
 				
 				// 自动与百分比都无效,只能从内部挤压宽度.
-				m_explicit_width = false; // 不是明确的宽度,受内部挤压
+				_explicit_width = false; // 不是明确的宽度,受内部挤压
 			}
 
-			m_raw_client_width += m_final_width;
+			_raw_client_width += _final_width;
 		}
 	}
 	
 	inline void solve_vertical_size_with_auto_height(float parent) {
 		
-		m_explicit_height = false; // 高度由内部挤压
+		_explicit_height = false; // 高度由内部挤压
 		
-		switch (m_margin_top.type) {
+		switch (_margin_top.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL: m_final_margin_top = 0; break;   // 高度为自动值,边距就不能为自动值
-			case ValueType::PIXEL:  m_final_margin_top = m_margin_top.value; break;
-			case ValueType::PERCENT:m_final_margin_top = parent * m_margin_top.value; break;
-			default:      m_final_margin_top = FX_MAX(parent - m_margin_top.value, 0); break;
+			case ValueType::FULL: _final_margin_top = 0; break;   // 高度为自动值,边距就不能为自动值
+			case ValueType::PIXEL:  _final_margin_top = _margin_top.value; break;
+			case ValueType::PERCENT:_final_margin_top = parent * _margin_top.value; break;
+			default:      _final_margin_top = FX_MAX(parent - _margin_top.value, 0); break;
 		}
 		
-		switch (m_margin_bottom.type) {
+		switch (_margin_bottom.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL: m_final_margin_bottom = 0; break;  // 高度为自动值,边距就不能为自动值
-			case ValueType::PIXEL:  m_final_margin_bottom = m_margin_bottom.value; break;
-			case ValueType::PERCENT:m_final_margin_bottom = parent * m_margin_bottom.value; break;
-			default:   m_final_margin_bottom = FX_MAX(parent - m_margin_bottom.value, 0); break;
+			case ValueType::FULL: _final_margin_bottom = 0; break;  // 高度为自动值,边距就不能为自动值
+			case ValueType::PIXEL:  _final_margin_bottom = _margin_bottom.value; break;
+			case ValueType::PERCENT:_final_margin_bottom = parent * _margin_bottom.value; break;
+			default:   _final_margin_bottom = FX_MAX(parent - _margin_bottom.value, 0); break;
 		}
 		
-		m_raw_client_height = m_final_margin_top + m_final_margin_bottom +
-													m_border_top_width + m_border_bottom_width + m_final_height;
-		m_limit.height(Float::max);
+		_raw_client_height = _final_margin_top + _final_margin_bottom +
+													_border_top_width + _border_bottom_width + _final_height;
+		_limit.height(Float::max);
 	}
 	
 	inline void solve_vertical_size_with_full_height(float parent) {
 		
-		m_explicit_height = true; // 明确的高度
+		_explicit_height = true; // 明确的高度
 		
-		switch (m_margin_top.type) {
+		switch (_margin_top.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL:   m_final_margin_top = 0; break;   // 高度为自动值,边距就不能为自动值
-			case ValueType::PIXEL:  m_final_margin_top = m_margin_top.value; break;
-			case ValueType::PERCENT:m_final_margin_top = parent * m_margin_top.value; break;
-			default:                m_final_margin_top = FX_MAX(parent - m_margin_top.value, 0); break;
+			case ValueType::FULL:   _final_margin_top = 0; break;   // 高度为自动值,边距就不能为自动值
+			case ValueType::PIXEL:  _final_margin_top = _margin_top.value; break;
+			case ValueType::PERCENT:_final_margin_top = parent * _margin_top.value; break;
+			default:                _final_margin_top = FX_MAX(parent - _margin_top.value, 0); break;
 		}
 		
-		switch (m_margin_bottom.type) {
+		switch (_margin_bottom.type) {
 			case ValueType::AUTO:
-			case ValueType::FULL:   m_final_margin_bottom = 0; break;  // 高度为自动值,边距就不能为自动值
-			case ValueType::PIXEL:  m_final_margin_bottom = m_margin_bottom.value; break;
-			case ValueType::PERCENT:m_final_margin_bottom = parent * m_margin_bottom.value; break;
-			default:                m_final_margin_bottom = FX_MAX(parent - m_margin_bottom.value, 0);
+			case ValueType::FULL:   _final_margin_bottom = 0; break;  // 高度为自动值,边距就不能为自动值
+			case ValueType::PIXEL:  _final_margin_bottom = _margin_bottom.value; break;
+			case ValueType::PERCENT:_final_margin_bottom = parent * _margin_bottom.value; break;
+			default:                _final_margin_bottom = FX_MAX(parent - _margin_bottom.value, 0);
 				break;
 		}
 		
-		m_raw_client_height = m_final_margin_top +
-													m_final_margin_bottom + m_border_top_width + m_border_bottom_width;
+		_raw_client_height = _final_margin_top +
+													_final_margin_bottom + _border_top_width + _border_bottom_width;
 		
-		if (m_raw_client_height < parent) {
-			m_final_height = parent - m_raw_client_height;
-			m_raw_client_height = parent;
+		if (_raw_client_height < parent) {
+			_final_height = parent - _raw_client_height;
+			_raw_client_height = parent;
 		} else {
-			m_final_height = 0;
+			_final_height = 0;
 		}
-		m_limit.height(m_final_height);
+		_limit.height(_final_height);
 	}
 	
 	inline void solve_vertical_size_with_explicit_height(float parent) {
 		
-		m_explicit_height = true; // 明确高度
+		_explicit_height = true; // 明确高度
 		
-		m_raw_client_height = m_final_height + m_border_top_width + m_border_bottom_width;
+		_raw_client_height = _final_height + _border_top_width + _border_bottom_width;
 		
 		// 剩下的高度
-		float height = parent - m_raw_client_height;
+		float height = parent - _raw_client_height;
 		
-		if (m_margin_top.type == ValueType::AUTO) {
-			if (m_margin_bottom.type == ValueType::AUTO) { // 上下边距都为自动
-				m_final_margin_top = m_final_margin_bottom = FX_MAX(height / 2, 0);
+		if (_margin_top.type == ValueType::AUTO) {
+			if (_margin_bottom.type == ValueType::AUTO) { // 上下边距都为自动
+				_final_margin_top = _final_margin_bottom = FX_MAX(height / 2, 0);
 			} else { // 只有上边距为自动
-				switch(m_margin_bottom.type) {
-					case ValueType::PIXEL:   m_final_margin_bottom = m_margin_bottom.value; break;
-					case ValueType::FULL: m_final_margin_bottom = m_margin_bottom.value * parent; break;
-					default: m_final_margin_bottom = FX_MAX(parent - m_margin_bottom.value, 0); break;
+				switch(_margin_bottom.type) {
+					case ValueType::PIXEL:   _final_margin_bottom = _margin_bottom.value; break;
+					case ValueType::FULL: _final_margin_bottom = _margin_bottom.value * parent; break;
+					default: _final_margin_bottom = FX_MAX(parent - _margin_bottom.value, 0); break;
 				}
-				m_final_margin_top = FX_MAX(height - m_final_margin_bottom, 0);
+				_final_margin_top = FX_MAX(height - _final_margin_bottom, 0);
 			}
 		}
-		else if (m_margin_bottom.type == ValueType::AUTO) { // 只有下边距为自动
-			switch(m_margin_top.type) {
-				case ValueType::PIXEL:   m_final_margin_top = m_margin_top.value; break;
-				case ValueType::PERCENT: m_final_margin_top = m_margin_top.value * parent; break;
-				default: m_final_margin_top = FX_MAX(parent - m_margin_top.value, 0); break;
+		else if (_margin_bottom.type == ValueType::AUTO) { // 只有下边距为自动
+			switch(_margin_top.type) {
+				case ValueType::PIXEL:   _final_margin_top = _margin_top.value; break;
+				case ValueType::PERCENT: _final_margin_top = _margin_top.value * parent; break;
+				default: _final_margin_top = FX_MAX(parent - _margin_top.value, 0); break;
 			}
-			m_final_margin_bottom = FX_MAX(height - m_final_margin_top, 0);
+			_final_margin_bottom = FX_MAX(height - _final_margin_top, 0);
 		}
 		else { // 上下边距都不为自动
-			switch(m_margin_top.type) {
-				case ValueType::PIXEL:   m_final_margin_top = m_margin_top.value; break;
-				case ValueType::PERCENT: m_final_margin_top = m_margin_top.value * parent; break;
-				default: m_final_margin_top = FX_MAX(parent - m_margin_top.value, 0); break;
+			switch(_margin_top.type) {
+				case ValueType::PIXEL:   _final_margin_top = _margin_top.value; break;
+				case ValueType::PERCENT: _final_margin_top = _margin_top.value * parent; break;
+				default: _final_margin_top = FX_MAX(parent - _margin_top.value, 0); break;
 			}
-			switch(m_margin_bottom.type) {
-				case ValueType::PIXEL:   m_final_margin_bottom = m_margin_bottom.value; break;
-				case ValueType::PERCENT: m_final_margin_bottom = m_margin_bottom.value * parent; break;
-				default: m_final_margin_bottom = FX_MAX(parent - m_margin_bottom.value, 0); break;
+			switch(_margin_bottom.type) {
+				case ValueType::PIXEL:   _final_margin_bottom = _margin_bottom.value; break;
+				case ValueType::PERCENT: _final_margin_bottom = _margin_bottom.value * parent; break;
+				default: _final_margin_bottom = FX_MAX(parent - _margin_bottom.value, 0); break;
 			}
 		}
-		m_raw_client_height += (m_final_margin_top + m_final_margin_bottom);
+		_raw_client_height += (_final_margin_top + _final_margin_bottom);
 	}
 	
 	inline void solve_final_vertical_size_with_full_height(float parent) {
 		
-		float height = m_final_margin_top +
-									 m_final_margin_bottom + m_border_top_width + m_border_bottom_width;
+		float height = _final_margin_top +
+									 _final_margin_bottom + _border_top_width + _border_bottom_width;
 		if (height < parent) {
-			m_final_height = parent - height;
+			_final_height = parent - height;
 			height = parent;
 		} else {
-			m_final_height = 0;
+			_final_height = 0;
 		}
-		m_offset_end.y(m_offset_start.y() + height);
+		_offset_end.y(_offset_start.y() + height);
 	}
 
 	void solve_explicit_vertical_size() {
@@ -429,11 +429,11 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 		Box* parent = View::parent()->as_box();
 		
 		// 布局视图加入到普通视图内或父视图没有明确高度时,属性类型AUTO/PARENT/PERCENT/MINUS会失效.
-		if (parent && parent->m_explicit_height) {
+		if (parent && parent->_explicit_height) {
 			
-			float parent_height = parent->m_final_height;
+			float parent_height = parent->_final_height;
 			
-			switch ( m_height.type ) {
+			switch ( _height.type ) {
 				case ValueType::AUTO:
 					solve_vertical_size_with_auto_height(parent_height);
 					break;
@@ -441,87 +441,87 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 					solve_vertical_size_with_full_height(parent_height);
 					break;
 				case ValueType::PIXEL: // 像素值
-					m_final_height = m_height.value;
-					m_limit.height(m_final_height);
+					_final_height = _height.value;
+					_limit.height(_final_height);
 					solve_vertical_size_with_explicit_height(parent_height);
 					break;
 				case ValueType::PERCENT: // 百分比
-					m_final_height = m_height.value * parent_height;
-					m_limit.height(m_final_height);
+					_final_height = _height.value * parent_height;
+					_limit.height(_final_height);
 					solve_vertical_size_with_explicit_height(parent_height);
 					break;
 				default: // 减法值
-					m_final_height = FX_MAX(parent_height - m_height.value, 0);
-					m_limit.height(m_final_height);
+					_final_height = FX_MAX(parent_height - _height.value, 0);
+					_limit.height(_final_height);
 					solve_vertical_size_with_explicit_height(parent_height);
 					break;
 			}
 			
 		} else {
 			
-			m_limit.height(Float::max);
+			_limit.height(Float::max);
 			
-			if (m_margin_top.type == ValueType::PIXEL) {
-				m_final_margin_top = m_margin_top.value;
+			if (_margin_top.type == ValueType::PIXEL) {
+				_final_margin_top = _margin_top.value;
 			} else {
-				m_final_margin_top = 0;
+				_final_margin_top = 0;
 			}
 			
-			if (m_margin_bottom.type == ValueType::PIXEL) {
-				m_final_margin_bottom = m_margin_bottom.value;
+			if (_margin_bottom.type == ValueType::PIXEL) {
+				_final_margin_bottom = _margin_bottom.value;
 			} else {
-				m_final_margin_bottom = 0;
+				_final_margin_bottom = 0;
 			}
 			
-			m_raw_client_height = m_border_top_width + m_border_bottom_width +
-														m_final_margin_top + m_final_margin_bottom;
+			_raw_client_height = _border_top_width + _border_bottom_width +
+														_final_margin_top + _final_margin_bottom;
 			
 			// 如果父盒子为垂直布局同时没有明确的高度,FULL高度会导致三次布局
-			if (m_height.type == ValueType::PIXEL) {
-				m_final_height = m_height.value;
-				m_limit.height(m_final_height);
-				m_explicit_height = true;  // 明确的高度,不受内部挤压
+			if (_height.type == ValueType::PIXEL) {
+				_final_height = _height.value;
+				_limit.height(_final_height);
+				_explicit_height = true;  // 明确的高度,不受内部挤压
 			} else {
 				
 				// 父视图没有明确的高度,当高度为FULL时需要第三次排版计算最终高度
-				if ( parent && m_width.type == ValueType::FULL ) {// 使用父视图的限制
-					m_limit.height(parent->m_limit.height() - m_raw_client_height);
+				if ( parent && _width.type == ValueType::FULL ) {// 使用父视图的限制
+					_limit.height(parent->_limit.height() - _raw_client_height);
 					// mark_pre(M_LAYOUT_THREE_TIMES); // TODO
 				}
 				
 				// 自动与百分比都无效,只能从内部挤压高度.
-				m_explicit_height = false; // 不是明确的高度,受内部挤压
+				_explicit_height = false; // 不是明确的高度,受内部挤压
 			}
 
-			m_raw_client_height += m_final_height;
+			_raw_client_height += _final_height;
 		}
 	}
 	
 	inline float get_horizontal_reverse_offset(float outer_width) const {
-		return outer_width - m_offset_end.x();
+		return outer_width - _offset_end.x();
 	}
 	
 	inline float get_vertical_reverse_offset(float outer_width) const {
-		return outer_width - m_offset_end.y();
+		return outer_width - _offset_end.y();
 	}
 	
 	inline Box* set_offset_horizontal_(Box* prev, Vec2& squeeze,
 																		 float limit_width, Div* div, bool layout_three) {
 		ASSERT(div);
 		
-		m_parent_layout = div;
+		_parent_layout = div;
 		
-		if ( ! m_visible ) { // 如果没有显示不做处理
+		if ( ! _visible ) { // 如果没有显示不做处理
 			set_default_offset_value(); return prev;
 		}
 		
-		Vec2 old_offset_start = m_offset_start;
+		Vec2 old_offset_start = _offset_start;
 		
 		Box* rv = this;
 		
-		if ( layout_three && m_width.type == ValueType::FULL ) {
+		if ( layout_three && _width.type == ValueType::FULL ) {
 			// 父盒子无明确宽度意味着父盒子的宽度接下来还会受到子盒子的挤压影响
-			if ( !div->m_explicit_width ) {
+			if ( !div->_explicit_width ) {
 				// 那么父盒子的宽度变化会严重影响到full属性的子盒子
 				// 所以这里需要标记三次布局,在第三次布局中才能最终确定盒子的宽度
 				mark_pre(M_LAYOUT_THREE_TIMES);
@@ -531,26 +531,26 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 			
 		} else {
 			
-			if ( ! m_newline/*not newline*/ && prev ) { // 需要上面兄弟布局视图来帮忙解决
+			if ( ! _newline/*not newline*/ && prev ) { // 需要上面兄弟布局视图来帮忙解决
 				
-				float offset_end_x = prev->m_offset_end.x() + m_raw_client_width;
+				float offset_end_x = prev->_offset_end.x() + _raw_client_width;
 				
 				if ( offset_end_x <= limit_width ) { // 可以将这个兄弟视图紧挨排列在右边
-					m_offset_start.x(prev->m_offset_end.x());
-					m_offset_start.y(prev->m_offset_start.y());
-					m_offset_end.x(offset_end_x);
-					m_offset_end.y(prev->m_offset_start.y() + m_raw_client_height);
+					_offset_start.x(prev->_offset_end.x());
+					_offset_start.y(prev->_offset_start.y());
+					_offset_end.x(offset_end_x);
+					_offset_end.y(prev->_offset_start.y() + _raw_client_height);
 					
-					if ( old_offset_start != m_offset_start ) {
+					if ( old_offset_start != _offset_start ) {
 						// 偏移值发生改变,还需计算最终的变换矩阵,所以这里标记变换做进一步处理.
 						mark(M_MATRIX);
 					}
 					
-					if ( squeeze.width() < m_offset_end.x() ) { // 设置挤压宽度
-						squeeze.width(m_offset_end.x());
+					if ( squeeze.width() < _offset_end.x() ) { // 设置挤压宽度
+						squeeze.width(_offset_end.x());
 					}
-					if (squeeze.height() < m_offset_end.y()) { // 设置挤压高度
-						squeeze.height(m_offset_end.y());
+					if (squeeze.height() < _offset_end.y()) { // 设置挤压高度
+						squeeze.height(_offset_end.y());
 					}
 					
 					return this;
@@ -559,20 +559,20 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 		}
 		
 		// 从最开始位置布局
-		m_offset_start.x(0);
-		m_offset_start.y(squeeze.height());
-		m_offset_end.x(m_raw_client_width);
-		m_offset_end.y(squeeze.height() + m_raw_client_height);
+		_offset_start.x(0);
+		_offset_start.y(squeeze.height());
+		_offset_end.x(_raw_client_width);
+		_offset_end.y(squeeze.height() + _raw_client_height);
 		
-		if ( old_offset_start != m_offset_start ) {
+		if ( old_offset_start != _offset_start ) {
 			// 偏移值发生改变,还需计算最终的变换矩阵,所以这里标记变换做进一步处理.
 			mark(M_MATRIX);
 		}
 		
-		if ( squeeze.width() < m_offset_end.x() ) { // 设置挤压宽度
-			squeeze.width(m_offset_end.x());
+		if ( squeeze.width() < _offset_end.x() ) { // 设置挤压宽度
+			squeeze.width(_offset_end.x());
 		}
-		squeeze.height(m_offset_end.y()); // 设置挤压高度
+		squeeze.height(_offset_end.y()); // 设置挤压高度
 		
 		return rv;
 	}
@@ -581,18 +581,18 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 																	 float limit_height, Div* div, bool layout_three) {
 		ASSERT(div);
 		
-		m_parent_layout = div;
+		_parent_layout = div;
 		
-		if ( ! m_visible ) { // 如果没有显示不做处理
+		if ( ! _visible ) { // 如果没有显示不做处理
 			set_default_offset_value(); return prev;
 		}
 		
-		Vec2 old_offset_start = m_offset_start;
+		Vec2 old_offset_start = _offset_start;
 		Box* rv = this;
 		
-		if ( layout_three && m_height.type == ValueType::FULL ) {
+		if ( layout_three && _height.type == ValueType::FULL ) {
 			// 父盒子无明确高度意味着父盒子的高度接下来还会受到子盒子的挤压影响
-			if ( !div->m_explicit_height ) {
+			if ( !div->_explicit_height ) {
 				// 那么父盒子的高度变化会严重影响到full属性的子盒子
 				// 所以这里需要标记三次布局,在第三次布局中才能最终确定盒子的高度
 				mark_pre(M_LAYOUT_THREE_TIMES);
@@ -602,26 +602,26 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 			
 		} else {
 			
-			if ( ! m_newline/*not newline*/ && prev ) { // 需要上面兄弟来帮忙解决
+			if ( ! _newline/*not newline*/ && prev ) { // 需要上面兄弟来帮忙解决
 				
-				float offset_end_y = prev->m_offset_end.y() + m_raw_client_height;
+				float offset_end_y = prev->_offset_end.y() + _raw_client_height;
 				
 				if ( offset_end_y <= limit_height ) { // 可以将这个兄弟视图紧挨排列在下边
-					m_offset_start.x(prev->m_offset_start.x());
-					m_offset_start.y(prev->m_offset_end.y());
-					m_offset_end.y(offset_end_y);
-					m_offset_end.x(prev->m_offset_start.x() + m_raw_client_width);
+					_offset_start.x(prev->_offset_start.x());
+					_offset_start.y(prev->_offset_end.y());
+					_offset_end.y(offset_end_y);
+					_offset_end.x(prev->_offset_start.x() + _raw_client_width);
 					
-					if ( old_offset_start != m_offset_start ) {
+					if ( old_offset_start != _offset_start ) {
 						// 偏移值发生改变,还需计算最终的变换矩阵,所以这里标记变换做进一步处理.
 						mark(M_MATRIX);
 					}
 					
-					if (squeeze.width() < m_offset_end.x()) { // 设置挤压宽度
-						squeeze.width(m_offset_end.x());
+					if (squeeze.width() < _offset_end.x()) { // 设置挤压宽度
+						squeeze.width(_offset_end.x());
 					}
-					if (squeeze.height() < m_offset_end.y()) { // 设置挤压高度
-						squeeze.height(m_offset_end.y());
+					if (squeeze.height() < _offset_end.y()) { // 设置挤压高度
+						squeeze.height(_offset_end.y());
 					}
 					return this;
 				}
@@ -629,48 +629,48 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 		}
 		
 		// 从最开始位置布局
-		m_offset_start.y(0);
-		m_offset_start.x(squeeze.width());
-		m_offset_end.y(m_raw_client_height);
-		m_offset_end.x(squeeze.width() + m_raw_client_width);
+		_offset_start.y(0);
+		_offset_start.x(squeeze.width());
+		_offset_end.y(_raw_client_height);
+		_offset_end.x(squeeze.width() + _raw_client_width);
 		
-		if ( old_offset_start != m_offset_start ) {
+		if ( old_offset_start != _offset_start ) {
 			// 偏移值发生改变,还需计算最终的变换矩阵,所以这里标记变换做进一步处理.
 			mark(M_MATRIX);
 		}
 		
-		if ( squeeze.height() < m_offset_end.y() ) { // 设置挤压高度
-			squeeze.height(m_offset_end.y());
+		if ( squeeze.height() < _offset_end.y() ) { // 设置挤压高度
+			squeeze.height(_offset_end.y());
 		}
-		squeeze.width(m_offset_end.x());    // 设置挤压宽度
+		squeeze.width(_offset_end.x());    // 设置挤压宽度
 		
 		return rv;
 	}
 	
 	inline void set_offset_in_hybrid_(TextRows* rows, Vec2 limit,
 																		Hybrid* hybrid, bool layout_three) {
-		m_parent_layout = hybrid;
+		_parent_layout = hybrid;
 		
-		if ( ! m_visible ) {
+		if ( ! _visible ) {
 			set_default_offset_value(); return;
 		}
 		if ( rows->clip() ) { // 已经被修剪,不进行布局
-			m_linenum = -1;
-			m_draw_visible = false;
+			_linenum = -1;
+			_draw_visible = false;
 			set_default_offset_value(); return;
 		}
 
 		TextRows::Row* row = rows->last();
-		float offset_end_x = row->offset_end.x() + m_raw_client_width;
-		Vec2  old_offset_start = m_offset_start;
-		Vec2  old_offset_end = m_offset_end;
+		float offset_end_x = row->offset_end.x() + _raw_client_width;
+		Vec2  old_offset_start = _offset_start;
+		Vec2  old_offset_end = _offset_end;
 		
-		bool newline = m_newline;
+		bool newline = _newline;
 		bool monopoly_line = false;
 		
-		if ( layout_three && m_width.type == ValueType::FULL ) {
+		if ( layout_three && _width.type == ValueType::FULL ) {
 			// 父盒子无明确宽度意味着父盒子的宽度接下来还会受到子盒子的挤压影响
-			if ( hybrid && !hybrid->m_explicit_width ) {
+			if ( hybrid && !hybrid->_explicit_width ) {
 				// 那么父盒子的宽度变化会严重影响到full属性的子盒子
 				// 所以这里需要标记三次布局,在第三次布局中才能最终确定盒子的宽度
 				mark_pre(M_LAYOUT_THREE_TIMES);
@@ -686,23 +686,23 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 				 (Hybrid::is_auto_wrap(hybrid) /*自动换行*/ && offset_end_x > limit.width() /*当前行无法排版*/))
 			)
 		{ // 换行
-			rows->push_row(m_raw_client_height, 0);
+			rows->push_row(_raw_client_height, 0);
 			row = rows->last();
-			offset_end_x = m_raw_client_width;
+			offset_end_x = _raw_client_width;
 		} else {
-			rows->update_row(m_raw_client_height, 0);
+			rows->update_row(_raw_client_height, 0);
 		}
 		
-		m_linenum = rows->last_num(); // 记录行号
-		m_offset_start.x(row->offset_end.x());  // 距离最外层Text的偏移距离
-		m_offset_end.x(offset_end_x);
+		_linenum = rows->last_num(); // 记录行号
+		_offset_start.x(row->offset_end.x());  // 距离最外层Text的偏移距离
+		_offset_end.x(offset_end_x);
 		row->offset_end.x(offset_end_x); // 设置offset_end.x
-		m_offset_end.y(row->baseline);
-		m_offset_start.y(row->baseline - m_raw_client_height);
+		_offset_end.y(row->baseline);
+		_offset_start.y(row->baseline - _raw_client_height);
 
-		// LOG("x:%f,x1:%f,y:%f,y2:%f", old_offset_end[0], m_offset_end[0], old_offset_end[1], m_offset_end[1]);
+		// LOG("x:%f,x1:%f,y:%f,y2:%f", old_offset_end[0], _offset_end[0], old_offset_end[1], _offset_end[1]);
 		
-		if ( old_offset_start != m_offset_start || old_offset_end != m_offset_end ) {
+		if ( old_offset_start != _offset_start || old_offset_end != _offset_end ) {
 			// 偏移值发生改变,还需计算最终的变换矩阵,所以这里标记变换做进一步处理.
 			mark(M_MATRIX);
 		}
@@ -713,9 +713,9 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 	}
 	
 	void remove_background() {
-		if (m_background) {
-			m_background->release();
-			m_background = nullptr;
+		if (_background) {
+			_background->release();
+			_background = nullptr;
 		}
 	}
 	
@@ -750,13 +750,13 @@ void Box::set_horizontal_active_mark() {
 	uint value = M_NONE;
 	// 如果这些值都不为像素,父视图会可能影响到子视图的M_SIZE_HORIZONTAL
 	// 相当于标记了这个子视图M_SIZE_HORIZONTAL
-	if (m_width.type != ValueType::AUTO && m_width.type != ValueType::PIXEL ) {
+	if (_width.type != ValueType::AUTO && _width.type != ValueType::PIXEL ) {
 		value = (M_LAYOUT | M_SHAPE | M_SIZE_HORIZONTAL);
 	}
-	if (m_margin_left.type != ValueType::PIXEL) {
+	if (_margin_left.type != ValueType::PIXEL) {
 		value |= (M_LAYOUT | M_MATRIX | M_SIZE_HORIZONTAL);
 	}
-	else if (m_margin_right.type != ValueType::PIXEL) {
+	else if (_margin_right.type != ValueType::PIXEL) {
 		value |= (M_LAYOUT | M_SIZE_HORIZONTAL);
 	}
 	horizontal_active_mark_value = value;
@@ -766,61 +766,61 @@ void Box::set_vertical_active_mark() {
 	uint value = M_NONE;
 	// 如果这些值都不为像素,父视图将会可能影响到子视图的M_SIZE_VERTICAL
 	// 相当于标记了这个子视图M_SIZE_VERTICAL
-	if (m_height.type != ValueType::AUTO && m_height.type != ValueType::PIXEL) {
+	if (_height.type != ValueType::AUTO && _height.type != ValueType::PIXEL) {
 		value |= (M_LAYOUT | M_SHAPE | M_SIZE_VERTICAL);
 	}
-	if (m_margin_top.type != ValueType::PIXEL) {
+	if (_margin_top.type != ValueType::PIXEL) {
 		value |= (M_LAYOUT | M_MATRIX | M_SIZE_VERTICAL);
 	}
-	else if (m_margin_bottom.type != ValueType::PIXEL) {
+	else if (_margin_bottom.type != ValueType::PIXEL) {
 		value |= (M_LAYOUT | M_SIZE_VERTICAL);
 	}
 	vertical_active_mark_value = value;
 }
 
 Box::Box()
-: m_width(ValueType::AUTO)
-, m_height(ValueType::AUTO)
-, m_margin_top(ValueType::PIXEL)
-, m_margin_right(ValueType::PIXEL)
-, m_margin_bottom(ValueType::PIXEL)
-, m_margin_left(ValueType::PIXEL)
-, m_border_top_color()
-, m_border_right_color()
-, m_border_bottom_color()
-, m_border_left_color()
-, m_border_top_width(0)
-, m_border_right_width(0)
-, m_border_bottom_width(0)
-, m_border_left_width(0)
-, m_border_radius_left_top(0)
-, m_border_radius_right_top(0)
-, m_border_radius_right_bottom(0)
-, m_border_radius_left_bottom(0)
-, m_background_color(0, 0, 0, 0)
-, m_background(nullptr)
-, m_final_width(0)
-, m_final_height(0)
-, m_final_margin_left(0)
-, m_final_margin_top(0)
-, m_final_margin_right(0)
-, m_final_margin_bottom(0)
-, m_final_border_radius_left_top(0)
-, m_final_border_radius_right_top(0)
-, m_final_border_radius_right_bottom(0)
-, m_final_border_radius_left_bottom(0)
-, m_raw_client_width(0)
-, m_raw_client_height(0)
-, m_limit()
+: _width(ValueType::AUTO)
+, _height(ValueType::AUTO)
+, _margin_top(ValueType::PIXEL)
+, _margin_right(ValueType::PIXEL)
+, _margin_bottom(ValueType::PIXEL)
+, _margin_left(ValueType::PIXEL)
+, _border_top_color()
+, _border_right_color()
+, _border_bottom_color()
+, _border_left_color()
+, _border_top_width(0)
+, _border_right_width(0)
+, _border_bottom_width(0)
+, _border_left_width(0)
+, _border_radius_left_top(0)
+, _border_radius_right_top(0)
+, _border_radius_right_bottom(0)
+, _border_radius_left_bottom(0)
+, _background_color(0, 0, 0, 0)
+, _background(nullptr)
+, _final_width(0)
+, _final_height(0)
+, _final_margin_left(0)
+, _final_margin_top(0)
+, _final_margin_right(0)
+, _final_margin_bottom(0)
+, _final_border_radius_left_top(0)
+, _final_border_radius_right_top(0)
+, _final_border_radius_right_bottom(0)
+, _final_border_radius_left_bottom(0)
+, _raw_client_width(0)
+, _raw_client_height(0)
+, _limit()
 , horizontal_active_mark_value(0)
 , vertical_active_mark_value(0)
-, m_linenum(0)
-, m_newline(false)
-, m_clip(false)
-, m_explicit_width(false)
-, m_explicit_height(false)
-, m_is_draw_border(false)
-, m_is_draw_border_radius(false)
+, _linenum(0)
+, _newline(false)
+, _clip(false)
+, _explicit_width(false)
+, _explicit_height(false)
+, _is_draw_border(false)
+, _is_draw_border_radius(false)
 {
 }
 
@@ -835,92 +835,92 @@ void Box::remove() {
 
 void Box::set_parent(View* parent) throw(Error) {
 	Layout::set_parent(parent);
-	m_linenum = 0;
+	_linenum = 0;
 }
 
 /**
  * @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
  */
 bool Box::overlap_test(Vec2 point) {
-	return View::overlap_test_from_convex_quadrilateral( m_final_vertex, point );
+	return View::overlap_test_from_convex_quadrilateral( _final_vertex, point );
 }
 
 Vec2 Box::layout_offset() {
 	// 经过布局计算得到的偏移值
 	
-	float offset_start_x = m_offset_start.x();
-	float offset_start_y = m_offset_start.y();
+	float offset_start_x = _offset_start.x();
+	float offset_start_y = _offset_start.y();
 	
-	if ( m_parent_layout ) {
+	if ( _parent_layout ) {
 		
-		Hybrid* hybrid = m_parent_layout->as_hybrid();
+		Hybrid* hybrid = _parent_layout->as_hybrid();
 		
 		if ( hybrid ) { // Hybrid inner layout
 			
-			if ( m_linenum != -1 ) {
+			if ( _linenum != -1 ) {
 				
-				TextRows::Row& row = hybrid->rows()[m_linenum];
+				TextRows::Row& row = hybrid->rows()[_linenum];
 				
 				switch ( hybrid->text_align() ) {
 					default: /* LEFT */ break;
 					case TextAlign::CENTER:
-						offset_start_x += (hybrid->m_final_width - row.offset_end.x()) / 2.0;
+						offset_start_x += (hybrid->_final_width - row.offset_end.x()) / 2.0;
 						break;
 					case TextAlign::RIGHT:
-						offset_start_x += (hybrid->m_final_width - row.offset_end.x());
+						offset_start_x += (hybrid->_final_width - row.offset_end.x());
 						break;
 					case TextAlign::LEFT_REVERSE:
-						offset_start_x = _inl(this)->get_horizontal_reverse_offset(hybrid->m_final_width);
-						offset_start_x -= (hybrid->m_final_width - row.offset_end.x());
+						offset_start_x = _inl(this)->get_horizontal_reverse_offset(hybrid->_final_width);
+						offset_start_x -= (hybrid->_final_width - row.offset_end.x());
 						break;
 					case TextAlign::CENTER_REVERSE:
-						offset_start_x = _inl(this)->get_horizontal_reverse_offset(hybrid->m_final_width);
-						offset_start_x -= (hybrid->m_final_width - row.offset_end.x()) / 2.0;
+						offset_start_x = _inl(this)->get_horizontal_reverse_offset(hybrid->_final_width);
+						offset_start_x -= (hybrid->_final_width - row.offset_end.x()) / 2.0;
 						break;
 					case TextAlign::RIGHT_REVERSE:
-						offset_start_x = _inl(this)->get_horizontal_reverse_offset(hybrid->m_final_width);
+						offset_start_x = _inl(this)->get_horizontal_reverse_offset(hybrid->_final_width);
 						break;
 				}
-				offset_start_y = row.baseline - m_raw_client_height; // 底部对齐文本行基线
+				offset_start_y = row.baseline - _raw_client_height; // 底部对齐文本行基线
 			}
 			
 		} else { // Div inner layout
-			Div* div = static_cast<Div*>(m_parent_layout);
+			Div* div = static_cast<Div*>(_parent_layout);
 			
 			switch ( div->content_align() ) {
 				case ContentAlign::RIGHT: // horizontal reverse
-					offset_start_x = _inl(this)->get_horizontal_reverse_offset(div->m_final_width);
+					offset_start_x = _inl(this)->get_horizontal_reverse_offset(div->_final_width);
 					break;
 				case ContentAlign::BOTTOM: // vertical reverse
-					offset_start_y = _inl(this)->get_vertical_reverse_offset(div->m_final_height);
+					offset_start_y = _inl(this)->get_vertical_reverse_offset(div->_final_height);
 					break;
 				default: break;
 			}
 		}
 	}
 	
-	return Vec2(offset_start_x + m_final_margin_left + m_border_left_width,
-							offset_start_y + m_final_margin_top + m_border_top_width);
+	return Vec2(offset_start_x + _final_margin_left + _border_left_width,
+							offset_start_y + _final_margin_top + _border_top_width);
 }
 
 CGRect Box::screen_rect() {
 	final_matrix();
-	compute_box_vertex(m_final_vertex);
-	return View::screen_rect_from_convex_quadrilateral(m_final_vertex);
+	compute_box_vertex(_final_vertex);
+	return View::screen_rect_from_convex_quadrilateral(_final_vertex);
 }
 
 void Box::compute_box_vertex(Vec2 vertex[4]) {
-	Vec2 start(-m_border_left_width - m_origin.x(), -m_border_top_width - m_origin.y() );
-	Vec2 end  (m_final_width  + m_border_right_width - m_origin.x(),
-						 m_final_height + m_border_bottom_width - m_origin.y() );
-	vertex[0] = m_final_matrix * start;
-	vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
-	vertex[2] = m_final_matrix * end;
-	vertex[3] = m_final_matrix * Vec2(start.x(), end.y());
+	Vec2 start(-_border_left_width - _origin.x(), -_border_top_width - _origin.y() );
+	Vec2 end  (_final_width  + _border_right_width - _origin.x(),
+						 _final_height + _border_bottom_width - _origin.y() );
+	vertex[0] = _final_matrix * start;
+	vertex[1] = _final_matrix * Vec2(end.x(), start.y());
+	vertex[2] = _final_matrix * end;
+	vertex[3] = _final_matrix * Vec2(start.x(), end.y());
 }
 
 Region Box::get_screen_region() {
-	return screen_region_from_convex_quadrilateral(m_final_vertex);
+	return screen_region_from_convex_quadrilateral(_final_vertex);
 }
 
 void Box::solve() {
@@ -933,35 +933,35 @@ void Box::solve() {
 	// if (mark_value & (M_BACKGROUND | M_TRANSFORM | M_SHAPE)) { // 背景
 	// }
 	if ( mark_value & View::M_BORDER ) { // 边框
-		m_is_draw_border = (
-			m_border_left_width != 0 ||
-			m_border_right_width  != 0 ||
-			m_border_top_width  != 0 ||
-			m_border_bottom_width != 0
+		_is_draw_border = (
+			_border_left_width != 0 ||
+			_border_right_width  != 0 ||
+			_border_top_width  != 0 ||
+			_border_bottom_width != 0
 		);
 		mark_value |= Box::M_BORDER_RADIUS; // 边框会影响圆角
 	}
 	
 	// 形状变化包括M_SHAPE (width、height、border、margin, 设置顶点数据), 这个会影响圆角
 	if ( mark_value & (View::M_BORDER_RADIUS | View::M_SHAPE) ) { // 圆角标记
-		float w = (m_final_width + m_border_left_width + m_border_right_width) / 2.0;
-		float h = (m_final_height + m_border_top_width + m_border_bottom_width) / 2.0;
+		float w = (_final_width + _border_left_width + _border_right_width) / 2.0;
+		float h = (_final_height + _border_top_width + _border_bottom_width) / 2.0;
 		float max = FX_MIN(w, h);
-		m_final_border_radius_left_top = FX_MIN(m_border_radius_left_top, max);
-		m_final_border_radius_right_top = FX_MIN(m_border_radius_right_top, max);
-		m_final_border_radius_right_bottom = FX_MIN(m_border_radius_right_bottom, max);
-		m_final_border_radius_left_bottom = FX_MIN(m_border_radius_left_bottom, max);
-		m_is_draw_border_radius = (
-			m_final_border_radius_left_top != 0 ||
-			m_final_border_radius_right_top != 0 ||
-			m_final_border_radius_right_bottom != 0 ||
-			m_final_border_radius_left_bottom != 0
+		_final_border_radius_left_top = FX_MIN(_border_radius_left_top, max);
+		_final_border_radius_right_top = FX_MIN(_border_radius_right_top, max);
+		_final_border_radius_right_bottom = FX_MIN(_border_radius_right_bottom, max);
+		_final_border_radius_left_bottom = FX_MIN(_border_radius_left_bottom, max);
+		_is_draw_border_radius = (
+			_final_border_radius_left_top != 0 ||
+			_final_border_radius_right_top != 0 ||
+			_final_border_radius_right_bottom != 0 ||
+			_final_border_radius_left_bottom != 0
 		);
 	}
 }
 
 void Box::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		if ( mark_value ) {
 			solve();
 		}
@@ -972,11 +972,11 @@ void Box::draw(Draw* draw) {
 
 void Box::set_draw_visible() {
 	
-	m_draw_visible = false;
+	_draw_visible = false;
 	
-	if ( m_linenum == -1 ) { return; } // 没有布局,不显示在屏幕上
+	if ( _linenum == -1 ) { return; } // 没有布局,不显示在屏幕上
 	
-	compute_box_vertex(m_final_vertex);
+	compute_box_vertex(_final_vertex);
 	
 	/*
 	 * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
@@ -988,7 +988,7 @@ void Box::set_draw_visible() {
 	if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
 			FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.w + dre.w
 	) {
-		m_draw_visible = true;
+		_draw_visible = true;
 	}
 }
 
@@ -1001,23 +1001,23 @@ View* Box::append_text(cUcs2String& str) throw(Error) {
 }
 
 void Box::set_width(Value value) {
-	m_width = value;
+	_width = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
 }
 
 void Box::set_height(Value value) {
-	m_height = value;
+	_height = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
 }
 
 void Box::set_margin(Value value) {
 	value.value = FX_MAX(value.value, 0);
-	m_margin_top = value;
-	m_margin_right = value;
-	m_margin_bottom = value;
-	m_margin_left = value;
+	_margin_top = value;
+	_margin_right = value;
+	_margin_bottom = value;
+	_margin_left = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 	set_horizontal_active_mark();
 	set_vertical_active_mark();
@@ -1025,179 +1025,179 @@ void Box::set_margin(Value value) {
 
 void Box::set_margin_top(Value value) {
 	value.value = FX_MAX(value.value, 0);
-	m_margin_top = value;
+	_margin_top = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
 }
 
 void Box::set_margin_right(Value value) {
 	value.value = FX_MAX(value.value, 0);
-	m_margin_right = value;
+	_margin_right = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
 }
 
 void Box::set_margin_bottom(Value value) {
 	value.value = FX_MAX(value.value, 0);
-	m_margin_bottom = value;
+	_margin_bottom = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
 }
 
 void Box::set_margin_left(Value value) {
 	value.value = FX_MAX(value.value, 0);
-	m_margin_left = value;
+	_margin_left = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
 }
 
 void Box::set_border(Border value) {
 	float width = FX_MAX(value.width, 0);
-	m_border_top_color = value.color;
-	m_border_right_color = value.color;
-	m_border_bottom_color = value.color;
-	m_border_left_color = value.color;
-	m_border_top_width = width;
-	m_border_right_width = width;
-	m_border_bottom_width = width;
-	m_border_left_width = width;
+	_border_top_color = value.color;
+	_border_right_color = value.color;
+	_border_bottom_color = value.color;
+	_border_left_color = value.color;
+	_border_top_width = width;
+	_border_right_width = width;
+	_border_bottom_width = width;
+	_border_left_width = width;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 }
 
 void Box::set_border_top(Border value) {
-	m_border_top_width = FX_MAX(value.width, 0);
-	m_border_top_color = value.color;
+	_border_top_width = FX_MAX(value.width, 0);
+	_border_top_color = value.color;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
 void Box::set_border_right(Border value) {
-	m_border_right_width = FX_MAX(value.width, 0);
-	m_border_right_color = value.color;
+	_border_right_width = FX_MAX(value.width, 0);
+	_border_right_color = value.color;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
 void Box::set_border_bottom(Border value) {
-	m_border_bottom_width = FX_MAX(value.width, 0);
-	m_border_bottom_color = value.color;
+	_border_bottom_width = FX_MAX(value.width, 0);
+	_border_bottom_color = value.color;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
 void Box::set_border_left(Border value) {
-	m_border_left_width = FX_MAX(value.width, 0);
-	m_border_left_color = value.color;
+	_border_left_width = FX_MAX(value.width, 0);
+	_border_left_color = value.color;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
 void Box::set_border_width(float value) {
 	value = FX_MAX(value, 0);
-	m_border_top_width = value;
-	m_border_right_width = value;
-	m_border_bottom_width = value;
-	m_border_left_width = value;
+	_border_top_width = value;
+	_border_right_width = value;
+	_border_bottom_width = value;
+	_border_left_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
 }
 
 void Box::set_border_top_width(float value) {
 	value = FX_MAX(value, 0);
-	m_border_top_width = value;
+	_border_top_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
 void Box::set_border_right_width(float value) {
 	value = FX_MAX(value, 0);
-	m_border_right_width = value;
+	_border_right_width = value;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
 void Box::set_border_bottom_width(float value) {
 	value = FX_MAX(value, 0);
-	m_border_bottom_width = value;
+	_border_bottom_width = value;
 	mark_pre(M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_VERTICAL);
 }
 
 void Box::set_border_left_width(float value) {
 	value = FX_MAX(value, 0);
-	m_border_left_width = value;
+	_border_left_width = value;
 	mark_pre(M_MATRIX | M_SHAPE | M_BORDER | M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
 void Box::set_border_color(Color value) {
-	m_border_top_color = value;
-	m_border_right_color = value;
-	m_border_bottom_color = value;
-	m_border_left_color = value;
+	_border_top_color = value;
+	_border_right_color = value;
+	_border_bottom_color = value;
+	_border_left_color = value;
 	mark(M_BORDER);
 }
 
 void Box::set_border_top_color(Color value) {
-	m_border_top_color = value;
+	_border_top_color = value;
 	mark(M_BORDER);
 }
 
 void Box::set_border_right_color(Color value) {
-	m_border_right_color = value;
+	_border_right_color = value;
 	mark(M_BORDER);
 }
 
 void Box::set_border_bottom_color(Color value) {
-	m_border_bottom_color = value;
+	_border_bottom_color = value;
 	mark(M_BORDER);
 }
 
 void Box::set_border_left_color(Color value) {
-	m_border_left_color = value;
+	_border_left_color = value;
 	mark(M_BORDER);
 }
 
 void Box::set_border_radius(float value) {
 	value = FX_MAX(value, 0);
-	m_border_radius_right_top = value;
-	m_border_radius_right_bottom = value;
-	m_border_radius_left_bottom = value;
-	m_border_radius_left_top = value;
+	_border_radius_right_top = value;
+	_border_radius_right_bottom = value;
+	_border_radius_left_bottom = value;
+	_border_radius_left_top = value;
 	mark(M_BORDER_RADIUS);
 }
 
 void Box::set_border_radius_right_top(float value) {
 	value = FX_MAX(value, 0);
-	m_border_radius_right_top = value;
+	_border_radius_right_top = value;
 	mark(M_BORDER_RADIUS);
 }
 
 void Box::set_border_radius_right_bottom(float value) {
 	value = FX_MAX(value, 0);
-	m_border_radius_right_bottom = value;
+	_border_radius_right_bottom = value;
 	mark(M_BORDER_RADIUS);
 }
 
 void Box::set_border_radius_left_bottom(float value) {
 	value = FX_MAX(value, 0);
-	m_border_radius_left_bottom = value;
+	_border_radius_left_bottom = value;
 	mark(M_BORDER_RADIUS);
 }
 
 void Box::set_border_radius_left_top(float value) {
 	value = FX_MAX(value, 0);
-	m_border_radius_left_top = value;
+	_border_radius_left_top = value;
 	mark(M_BORDER_RADIUS);
 }
 
 void Box::set_background_color(Color value) {
 	// FX_DEBUG("color,%d", value.a());
-	m_background_color = value;
+	_background_color = value;
 	mark(M_BACKGROUND_COLOR);
 }
 
 void Box::set_background(Background* value) {
-	m_background = Background::assign(m_background, value);
-	if (m_background) {
-		m_background->set_host(this);
+	_background = Background::assign(_background, value);
+	if (_background) {
+		_background->set_host(this);
 	}
 	mark(M_BACKGROUND);
 }
 
 void Box::set_visible(bool value) {
-	if (m_visible != value) {
+	if (_visible != value) {
 		View::set_visible(value);
 		// 这会影响其它兄弟视图的位置
 		mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL);
@@ -1205,20 +1205,20 @@ void Box::set_visible(bool value) {
 }
 
 void Box::set_newline(bool value) {
-	m_newline = value;
+	_newline = value;
 	mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL);
 }
 
 void Box::set_clip(bool value) {
-	if (m_clip != value) {
-		m_clip = value;
+	if (_clip != value) {
+		_clip = value;
 		mark(M_CLIP);
 	}
 }
 
 void Box::set_layout_explicit_size() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		// 只需要解决 explicit size
 		if ( ! _inl(this)->solve_explicit_size<0>() ) {
 			return;
@@ -1242,7 +1242,7 @@ void Box::set_layout_explicit_size() {
 
 void Hybrid::set_layout_explicit_size() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		if ( mark_value & M_TEXT_FONT ) {
 			solve_text_layout_mark(); // 文本属性的变化会影响后代文本视图属性
 		}
@@ -1268,13 +1268,13 @@ void Hybrid::set_layout_explicit_size() {
 
 void Indep::set_layout_explicit_size() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		// 只需要解决 explicit size
 		if ( _inl(this)->solve_explicit_size<0>() ) {
 				
 			Box* box = parent()->as_box();
 			if ( box ) {
-				m_parent_layout = box;
+				_parent_layout = box;
 				mark_pre(M_LAYOUT_THREE_TIMES);
 			} else { // 父视图只是个普通视图,默认将偏移设置为0
 				set_default_offset_value();
@@ -1325,11 +1325,11 @@ void Box::solve_explicit_size_after(bool change_horizontal, bool change_vertical
  * @func set_default_offset_value 设置为起始默认偏移值
  */
 void Box::set_default_offset_value() {
-	m_offset_start.x(0);
-	m_offset_start.y(0);
-	m_offset_end.x(m_raw_client_width);
-	m_offset_end.y(m_raw_client_height);
-	m_linenum = 0;
+	_offset_start.x(0);
+	_offset_start.y(0);
+	_offset_end.x(_raw_client_width);
+	_offset_end.y(_raw_client_height);
+	_linenum = 0;
 }
 
 /**

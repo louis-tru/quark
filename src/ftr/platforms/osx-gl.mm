@@ -48,7 +48,7 @@ template<class Basic> class MyGLDraw: public Basic {
 	MyGLDraw(GUIApplication* host,
 					 DrawLibrary library,
 					 cJSON& options): Basic(host, options), proxy_(this) {
-		this->m_library = library;
+		this->_library = library;
 	}
 	virtual void begin_render() {
 		proxy_.commit_render();
@@ -71,7 +71,7 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 	return rv;
 }
 
-GLDrawProxy::GLDrawProxy(GLDraw* host): m_host(host), m_context(nil) {
+GLDrawProxy::GLDrawProxy(GLDraw* host): _host(host), _context(nil) {
 }
 
 GLDrawProxy::~GLDrawProxy() {
@@ -90,24 +90,24 @@ void GLDrawProxy::initialize(UIView* view, NSOpenGLContext* ctx) {
 	const GLubyte * OpenGLVersion = glGetString(GL_VERSION);
 	LOG("%s, %s, %s", name, biaoshifu, OpenGLVersion);
 	
-	m_surface_view = view;
-	m_context = ctx;
-	m_host->initialize();
-	m_host->set_best_display_scale(UIScreen.mainScreen.backingScaleFactor);
+	_surface_view = view;
+	_context = ctx;
+	_host->initialize();
+	_host->set_best_display_scale(UIScreen.mainScreen.backingScaleFactor);
 }
 
 void GLDrawProxy::begin_render() {
 	// Add your drawing codes here
-	[m_context makeCurrentContext];
+	[_context makeCurrentContext];
 	// must lock GL context because display link is threaded
-	CGLLockContext(m_context.CGLContextObj);
-	m_host->GLDraw::begin_render();
+	CGLLockContext(_context.CGLContextObj);
+	_host->GLDraw::begin_render();
 }
 
 void GLDrawProxy::commit_render() {
-	m_host->GLDraw::commit_render();
-	[m_context flushBuffer];
-	CGLUnlockContext(m_context.CGLContextObj);
+	_host->GLDraw::commit_render();
+	[_context flushBuffer];
+	CGLUnlockContext(_context.CGLContextObj);
 }
 
 /**
@@ -144,7 +144,7 @@ bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
 	float scale = UIScreen.mainScreen.backingScaleFactor;
 	Vec2 size(rect.size.width * scale, rect.size.height * scale);
 	if ( !size.is_zero() ) {
-		return m_host->set_surface_size(size);
+		return _host->set_surface_size(size);
 	}
 	return false;
 }

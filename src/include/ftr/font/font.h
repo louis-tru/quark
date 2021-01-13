@@ -55,16 +55,16 @@ namespace ftr {
 	*/
 	class FX_EXPORT FontFamilysID {
 		public:
-		inline const Array<String>& names() const { return m_names; }
-		inline cString& name() const { return m_name; }
-		inline uint code() const { return m_code; }
+		inline const Array<String>& names() const { return _names; }
+		inline cString& name() const { return _name; }
+		inline uint code() const { return _code; }
 		
 		private:
 		~FontFamilysID() { }
 		
-		Array<String>   m_names;
-		String          m_name;
-		uint            m_code;
+		Array<String>   _names;
+		String          _name;
+		uint            _code;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;
@@ -105,47 +105,47 @@ namespace ftr {
 		/**
 		* @func font_name
 		*/
-		inline cString font_name() const { return m_font_name; }
+		inline cString font_name() const { return _font_name; }
 		
 		/**
 		* @func num_glyphs
 		*/
-		inline uint num_glyphs() const { return m_num_glyphs; }
+		inline uint num_glyphs() const { return _num_glyphs; }
 		
 		/**
 		* @func family
 		*/
-		inline FontFamily* family() { return m_font_family; }
+		inline FontFamily* family() { return _font_family; }
 		
 		/**
 		* @func height
 		*/
-		inline int height() const { return m_height; }
+		inline int height() const { return _height; }
 		
 		/**
 		* @func max_advance
 		*/
-		inline int max_advance() const { return m_max_advance; }
+		inline int max_advance() const { return _max_advance; }
 		
 		/**
 		* @func ascender
 		*/
-		inline int ascender() const { return m_ascender; }
+		inline int ascender() const { return _ascender; }
 		
 		/**
 		* @func descender
 		*/
-		inline int descender() const { return m_descender; }
+		inline int descender() const { return _descender; }
 		
 		/**
 		* @func underline_position
 		*/
-		inline int underline_position() const { return m_underline_position; }
+		inline int underline_position() const { return _underline_position; }
 		
 		/**
 		* @func underline_thickness
 		*/
-		inline int underline_thickness() const { return m_underline_thickness; }
+		inline int underline_thickness() const { return _underline_thickness; }
 		
 		/**
 		* @func load
@@ -160,7 +160,7 @@ namespace ftr {
 		/**
 		* @func style
 		*/
-		inline TextStyleEnum style() const { return m_style; }
+		inline TextStyleEnum style() const { return _style; }
 		
 		private:
 		
@@ -175,25 +175,25 @@ namespace ftr {
 		struct GlyphContainerFlag;
 		struct GlyphContainer;
 		
-		FontPool*     m_pool;
-		FontFamily*   m_font_family;    // 所属字体家族
-		String        m_font_name;      // 字体名称
-		TextStyleEnum m_style;    //
-		uint          m_num_glyphs;     //
-		void*         m_ft_glyph;       /* FT_GlyphSlot */
-		int           m_height;         /* text height in 26.6 frac. pixels       */
-		int           m_max_advance;    /* max horizontal advance, in 26.6 pixels */
-		int           m_ascender;       /* ascender in 26.6 frac. pixels          */
-		int           m_descender;      /* descender in 26.6 frac. pixels         */
-		int           m_underline_position;
-		int           m_underline_thickness;
-		GlyphContainer** m_containers;  /* 字型描叙块指针,0x0000-0xFFFF共计512个区 */
-		GlyphContainerFlag**  m_flags;
+		FontPool*     _pool;
+		FontFamily*   _font_family;    // 所属字体家族
+		String        _font_name;      // 字体名称
+		TextStyleEnum _style;    //
+		uint          _num_glyphs;     //
+		void*         _ft_glyph;       /* FT_GlyphSlot */
+		int           _height;         /* text height in 26.6 frac. pixels       */
+		int           _max_advance;    /* max horizontal advance, in 26.6 pixels */
+		int           _ascender;       /* ascender in 26.6 frac. pixels          */
+		int           _descender;      /* descender in 26.6 frac. pixels         */
+		int           _underline_position;
+		int           _underline_thickness;
+		GlyphContainer** _containers;  /* 字型描叙块指针,0x0000-0xFFFF共计512个区 */
+		GlyphContainerFlag**  _flags;
 		
 		protected:
-		uint          m_face_index;   // 当前字体在字体文件中的索引
-		void*         m_ft_lib;       /* FT_Library */
-		void*         m_ft_face;      /* FT_Face */
+		uint          _face_index;   // 当前字体在字体文件中的索引
+		void*         _ft_lib;       /* FT_Library */
+		void*         _ft_face;      /* FT_Face */
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
@@ -240,51 +240,51 @@ namespace ftr {
 		/**
 		* @func texture
 		*/
-		inline uint texture_id(TexureLevel level) const { return m_textures[level]; }
+		inline uint texture_id(TexureLevel level) const { return _textures[level]; }
 		/**
 		* @func texture_size
 		*/
 		inline TexSize texture_size(TexureLevel level) const {
-			return m_texture_size[level];
+			return _texture_size[level];
 		}
 		/**
 		* @func vertex_data
 		*/
-		inline uint vertex_data() const { return m_vertex_value; }
+		inline uint vertex_data() const { return _vertex_value; }
 		/**
 		* @func vertex_count
 		*/
-		inline uint16 vertex_count() const { return m_vertex_count; }
+		inline uint16_t vertex_count() const { return _vertex_count; }
 		/**
 		* @func glyph_index
 		*/
-		inline uint16 glyph_index() const { return m_glyph_index; }
+		inline uint16_t glyph_index() const { return _glyph_index; }
 		/**
 		* @func unicode
 		*/
-		inline uint16 unicode() const { return m_unicode; }
+		inline uint16_t unicode() const { return _unicode; }
 		/**
 		* @func hori_bearing_x
 		*/
-		inline int16 hori_bearing_x() const { return m_hori_bearing_x; }
+		inline int16 hori_bearing_x() const { return _hori_bearing_x; }
 		/**
 		* @func hori_bearing_y
 		*/
-		inline uint16 hori_bearing_y() const { return m_hori_bearing_y; }
+		inline uint16_t hori_bearing_y() const { return _hori_bearing_y; }
 		/**
 		* @func hori_advance
 		*/
-		inline uint16 hori_advance() const { return m_hori_advance; }
+		inline uint16_t hori_advance() const { return _hori_advance; }
 		/**
 		* @func have_outline
 		*/
-		inline bool have_outline() const { return m_have_outline; }
+		inline bool have_outline() const { return _have_outline; }
 		/**
 		* @func has_tex_level
 		*/
 		inline bool has_texure_level(TexureLevel level) {
 			ASSERT(level < LEVEL_NONE);
-			return m_textures[level];
+			return _textures[level];
 		}
 		
 		/**
@@ -296,17 +296,17 @@ namespace ftr {
 		
 		typedef Font::GlyphContainer Container;
 		
-		uint        m_textures[12];       /* 纹理集合 */
-		TexSize     m_texture_size[12];   /* 纹理尺寸集合 */
-		uint        m_vertex_value;       /* vbo顶点数据 */
-		uint16      m_vertex_count;       /* 顶点数量 */
-		uint16      m_glyph_index;        /* 字型在字体文件中的索引 */
-		uint16      m_unicode;            /* 字型的unicode */
-		int16       m_hori_bearing_x;     /* 26.6 frac. 64pt hori_bearing_x */
-		uint16      m_hori_bearing_y;     /* 26.6 frac. 64pt hori_bearing_y */
-		uint16      m_hori_advance;       /* 26.6 frac. 64pt hori_advance */
-		Container*  m_container;          /* 所属容器 */
-		bool        m_have_outline;       /* 是否有轮廓 */
+		uint        _textures[12];       /* 纹理集合 */
+		TexSize     _texture_size[12];   /* 纹理尺寸集合 */
+		uint        _vertex_value;       /* vbo顶点数据 */
+		uint16_t      _vertex_count;       /* 顶点数量 */
+		uint16_t      _glyph_index;        /* 字型在字体文件中的索引 */
+		uint16_t      _unicode;            /* 字型的unicode */
+		int16       _hori_bearing_x;     /* 26.6 frac. 64pt hori_bearing_x */
+		uint16_t      _hori_bearing_y;     /* 26.6 frac. 64pt hori_bearing_y */
+		uint16_t      _hori_advance;       /* 26.6 frac. 64pt hori_advance */
+		Container*  _container;          /* 所属容器 */
+		bool        _have_outline;       /* 是否有轮廓 */
 		
 		friend class Font;
 		friend class FontGlyphTable;
@@ -324,60 +324,60 @@ namespace ftr {
 		/**
 		* @func id {cFFID}
 		*/
-		inline cFFID id() const { return m_ffid; }
+		inline cFFID id() const { return _ffid; }
 		
 		/**
 		* @func count {uint}
 		*/
-		inline uint count() const { return m_fonts.length(); }
+		inline uint count() const { return _fonts.length(); }
 		
 		/**
 		* @func style {TextStyleEnum}
 		*/
-		inline TextStyleEnum style() const { return m_style; }
+		inline TextStyleEnum style() const { return _style; }
 		
 		/**
 		* @func text_height {int} # 字体列表中最大text-height
 		*/
-		inline int text_height() const { return m_height; }
+		inline int text_height() const { return _height; }
 		
 		/**
 		* @func ascender {int} # 字体列表中最大ascender
 		*/
-		inline int max_ascender() const { return m_ascender; }
+		inline int max_ascender() const { return _ascender; }
 		
 		/**
 		* @func descender {int} # 字体列表中最大descender
 		*/
-		inline int max_descender() const { return m_descender; }
+		inline int max_descender() const { return _descender; }
 		
 		/**
 		* @func glyph
 		*/
-		FontGlyph* glyph(uint16 unicode);
+		FontGlyph* glyph(uint16_t unicode);
 		
 		/**
 		* @func use_texture_glyph # 使用纹理字型
 		*/
-		FontGlyph* use_texture_glyph(uint16 unicode, FontGlyph::TexureLevel level);
+		FontGlyph* use_texture_glyph(uint16_t unicode, FontGlyph::TexureLevel level);
 		
 		/**
 		* @func use_vector_glyph # 使用矢量顶点字型
 		*/
-		FontGlyph* use_vector_glyph(uint16 unicode);
+		FontGlyph* use_vector_glyph(uint16_t unicode);
 		
 		private:
 		
 		struct GlyphsBlock;
 		
-		FontPool*     m_pool;
-		GlyphsBlock*  m_blocks[512];
-		Array<Font*>  m_fonts;
-		cFFID         m_ffid;
-		TextStyleEnum m_style;
-		int           m_height;
-		int           m_ascender;
-		int           m_descender;
+		FontPool*     _pool;
+		GlyphsBlock*  _blocks[512];
+		Array<Font*>  _fonts;
+		cFFID         _ffid;
+		TextStyleEnum _style;
+		int           _height;
+		int           _ascender;
+		int           _descender;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
@@ -400,7 +400,7 @@ namespace ftr {
 		/**
 		* @func family_name
 		*/
-		inline cString family_name() const { return m_family_name; }
+		inline cString family_name() const { return _family_name; }
 		
 		/**
 		* @func font_names
@@ -410,15 +410,15 @@ namespace ftr {
 		/**
 		* @func num_fonts
 		*/
-		inline uint num_fonts() const { return m_all_fonts.length(); }
+		inline uint num_fonts() const { return _all_fonts.length(); }
 		
 		private:
 		
 		FontFamily(cString& family_name);
 		
-		String        m_family_name;
-		Font*         m_fonts[19];
-		Array<Font*>  m_all_fonts;
+		String        _family_name;
+		Font*         _fonts[19];
+		Array<Font*>  _all_fonts;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;

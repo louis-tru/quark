@@ -67,15 +67,15 @@ public:
 					break;
 			}
 			cell.baseline = baseline;
-			m_data.cells.push(move(cell));
+			_data.cells.push(move(cell));
 			cell.offset.push(0);     /* 添加第一个初始位置 */
 		}
 		// set box size
-		if ( max_offset > m_box_size.width() ) {
-			m_box_size.width(max_offset);
-			m_box_offset_start = cell.offset_start;
+		if ( max_offset > _box_size.width() ) {
+			_box_size.width(max_offset);
+			_box_offset_start = cell.offset_start;
 		}
-		m_box_size.height(baseline + descender);
+		_box_size.height(baseline + descender);
 	}
 	
 	/**
@@ -83,25 +83,25 @@ public:
 	 */
 	template<TextAlign T> void set_layout_content_offset() {
 		
-		m_data.cells.clear(); // 清空旧布局
-		m_box_size = Vec2();
-		m_box_offset_start = 0;
-		m_data.cell_draw_begin = m_data.cell_draw_end = 0;
+		_data.cells.clear(); // 清空旧布局
+		_box_size = Vec2();
+		_box_offset_start = 0;
+		_data.cell_draw_begin = _data.cell_draw_end = 0;
 		
-		if ( m_data.string.is_empty() ) { return; }
+		if ( _data.string.is_empty() ) { return; }
 		
 		// 在这里进行文本排版布局
 		
-		FontGlyphTable* table = get_font_glyph_table_and_height(m_data, m_text_line_height.value);
-		float ascender = m_data.text_ascender;    // 行顶与基线的距离
-		float descender = m_data.text_descender;  // 基线与行底的距离
-		float ratio = 4096.0 / m_text_size.value; /* 64.0 * 64.0 = 4096.0 */
+		FontGlyphTable* table = get_font_glyph_table_and_height(_data, _text_line_height.value);
+		float ascender = _data.text_ascender;    // 行顶与基线的距离
+		float descender = _data.text_descender;  // 基线与行底的距离
+		float ratio = 4096.0 / _text_size.value; /* 64.0 * 64.0 = 4096.0 */
 		
 		float baseline = ascender;
 		float offset = 0;
 		uint  line = 0;
 		uint begin = 0;
-		uint end = m_data.string.length();
+		uint end = _data.string.length();
 		
 		Cell cell = {
 			0, 0, 0, 0, Array<float>(), Array<uint16>(), 0
@@ -109,7 +109,7 @@ public:
 		cell.offset.push(0);
 		
 		while ( begin < end ) {
-			uint16 unicode = m_data.string[begin];
+			uint16_t unicode = _data.string[begin];
 			
 			if ( unicode == 0x0A ) { // \n 换行
 				uint count = cell.offset.length() - 1;
@@ -140,23 +140,23 @@ public:
 	 */
 	void compute_final_vertex(Vec2* final_vertex) {
 		Vec2 A, B, C, D; // rect vertex
-		Vec2 start(m_box_offset_start - m_origin.x(), -m_origin.y());
-		Vec2 end  (m_box_offset_start + m_box_size.width() - m_origin.x(),
-							 m_box_size.height() - m_origin.y() );
+		Vec2 start(_box_offset_start - _origin.x(), -_origin.y());
+		Vec2 end  (_box_offset_start + _box_size.width() - _origin.x(),
+							 _box_size.height() - _origin.y() );
 		
-		final_vertex[0] = m_final_matrix * start;
-		final_vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
-		final_vertex[2] = m_final_matrix * end;
-		final_vertex[3] = m_final_matrix * Vec2(start.x(), end.y());
+		final_vertex[0] = _final_matrix * start;
+		final_vertex[1] = _final_matrix * Vec2(end.x(), start.y());
+		final_vertex[2] = _final_matrix * end;
+		final_vertex[3] = _final_matrix * Vec2(start.x(), end.y());
 	}
 	
 };
 
 Label::Label()
-: m_text_align(TextAlign::LEFT)
-, m_box_offset_start(0)
+: _text_align(TextAlign::LEFT)
+, _box_offset_start(0)
 {
-	m_need_draw = false;
+	_need_draw = false;
 }
 
 /**
@@ -177,7 +177,7 @@ void Label::append(View* child) throw(Error) {
  * @overwrite
  */
 View* Label::append_text(cUcs2String& str) throw(Error) {
-	m_data.string.push(str);
+	_data.string.push(str);
 	mark( Layout::M_CONTENT_OFFSET );
 	return nullptr;
 }
@@ -186,7 +186,7 @@ View* Label::append_text(cUcs2String& str) throw(Error) {
  * @set set_value
  */
 void Label::set_value(cUcs2String& str) {
-	m_data.string = str;
+	_data.string = str;
 	mark( Layout::M_CONTENT_OFFSET );
 }
 
@@ -201,15 +201,15 @@ void Label::mark_text(uint value) {
  * @overwrite
  */
 void Label::accept_text(Ucs2StringBuilder& out) const {
-	out.push(m_data.string);
+	out.push(_data.string);
 }
 
 /**
  * @set text_align
  */
 void Label::set_text_align(TextAlign value) {
-	if (value != m_text_align) {
-		m_text_align = value;
+	if (value != _text_align) {
+		_text_align = value;
 		mark( M_CONTENT_OFFSET );
 	}
 }
@@ -218,40 +218,40 @@ void Label::set_text_align(TextAlign value) {
  * @overwrite
  */
 void Label::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			
 			if ( mark_value & M_TEXT_FONT ) {
-				if (m_text_background_color.type == TextValueType::INHERIT) {
-					m_text_background_color.value = app()->default_text_background_color().value;
+				if (_text_background_color.type == TextValueType::INHERIT) {
+					_text_background_color.value = app()->default_text_background_color().value;
 				}
-				if (m_text_color.type == TextValueType::INHERIT) {
-					m_text_color.value = app()->default_text_color().value;
+				if (_text_color.type == TextValueType::INHERIT) {
+					_text_color.value = app()->default_text_color().value;
 				}
-				if (m_text_size.type == TextValueType::INHERIT) {
-					m_text_size.value = app()->default_text_size().value;
+				if (_text_size.type == TextValueType::INHERIT) {
+					_text_size.value = app()->default_text_size().value;
 				}
-				if (m_text_style.type == TextValueType::INHERIT) {
-					m_text_style.value = app()->default_text_style().value;
+				if (_text_style.type == TextValueType::INHERIT) {
+					_text_style.value = app()->default_text_style().value;
 				}
-				if (m_text_family.type == TextValueType::INHERIT) {
-					m_text_family.value = app()->default_text_family().value;
+				if (_text_family.type == TextValueType::INHERIT) {
+					_text_family.value = app()->default_text_family().value;
 				}
-				if (m_text_line_height.type == TextValueType::INHERIT) {
-					m_text_line_height.value = app()->default_text_line_height().value;
+				if (_text_line_height.type == TextValueType::INHERIT) {
+					_text_line_height.value = app()->default_text_line_height().value;
 				}
-				if (m_text_shadow.type == TextValueType::INHERIT) {
-					m_text_shadow.value = app()->default_text_shadow().value;
+				if (_text_shadow.type == TextValueType::INHERIT) {
+					_text_shadow.value = app()->default_text_shadow().value;
 				}
-				if (m_text_decoration.type == TextValueType::INHERIT) {
-					m_text_decoration.value = app()->default_text_decoration().value;
+				if (_text_decoration.type == TextValueType::INHERIT) {
+					_text_decoration.value = app()->default_text_decoration().value;
 				}
 			}
 			
 			if ( mark_value & Layout::M_CONTENT_OFFSET ) {
 				mark_value |= (M_SHAPE); // 标记 M_SHAPE 是为了调用 set_draw_visible()
-				switch (m_text_align) {
+				switch (_text_align) {
 					case TextAlign::LEFT:
 						_inl(this)->set_layout_content_offset<TextAlign::LEFT>(); break;
 					case TextAlign::CENTER:
@@ -270,7 +270,7 @@ void Label::draw(Draw* draw) {
 			solve();
 			
 			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
-				set_glyph_texture_level(m_data);
+				set_glyph_texture_level(_data);
 			}
 		}
 		
@@ -284,7 +284,7 @@ void Label::draw(Draw* draw) {
  * @overwrite
  */
 bool Label::overlap_test(Vec2 point) {
-	return View::overlap_test_from_convex_quadrilateral( m_final_vertex, point );
+	return View::overlap_test_from_convex_quadrilateral( _final_vertex, point );
 }
 
 /**
@@ -292,8 +292,8 @@ bool Label::overlap_test(Vec2 point) {
  */
 CGRect Label::screen_rect() {
 	final_matrix();
-	_inl(this)->compute_final_vertex(m_final_vertex);
-	return View::screen_rect_from_convex_quadrilateral(m_final_vertex);
+	_inl(this)->compute_final_vertex(_final_vertex);
+	return View::screen_rect_from_convex_quadrilateral(_final_vertex);
 }
 
 /**
@@ -301,21 +301,21 @@ CGRect Label::screen_rect() {
  */
 void Label::set_draw_visible() {
 	
-	_inl(this)->compute_final_vertex(m_final_vertex);
+	_inl(this)->compute_final_vertex(_final_vertex);
 	
-	m_draw_visible =
+	_draw_visible =
 	
-	compute_text_visible_draw(m_final_vertex,
-														m_data,
-														-m_box_offset_start,
-														m_box_offset_start + m_box_size.width(), 0);
+	compute_text_visible_draw(_final_vertex,
+														_data,
+														-_box_offset_start,
+														_box_offset_start + _box_size.width(), 0);
 }
 
 /**
  * @overwrite
  */
 void Label::set_parent(View* parent) throw(Error) {
-	if ( parent != m_parent ) {
+	if ( parent != _parent ) {
 		View::set_parent(parent);
 		mark(M_TEXT_FONT);
 	}

@@ -72,7 +72,7 @@ class FontPool::Inl: public FontPool {
 	void initialize_default_fonts();
 	
 	/**
-	 * @fucn m_add_font
+	 * @fucn _add_font
 	 */
 	bool register_font(
 		cString& family_name,
@@ -93,7 +93,7 @@ class FontPool::Inl: public FontPool {
 			
 			if ( ! FileHelper::is_file_sync(path) )
 				return false;
-			m_paths[path] = family_name;
+			_paths[path] = family_name;
 			
 		} else if ( !data || !data->value ) {
 			return false;
@@ -104,23 +104,23 @@ class FontPool::Inl: public FontPool {
 		/*
 		FX_DEBUG("family_name:%s, font_name:%s, %s, ------%dkb%s", *family_name, *font_name, *path,
 						 uint(FileHelper::stat_sync(path).size() / 1024),
-						 m_fonts.has(font_name) ? "+++++++++++": "");
+						 _fonts.has(font_name) ? "+++++++++++": "");
 		 */
 		
-		for (int i = 1; m_fonts.has(font_name_); i++ ) { // 重复的字体名称
+		for (int i = 1; _fonts.has(font_name_); i++ ) { // 重复的字体名称
 			font_name_ = font_name + "_" + i;
 		}
 		
 		FontFamily* family = nullptr;
 		
-		auto i = m_familys.find(family_name);
+		auto i = _familys.find(family_name);
 		
-		if ( i != m_familys.end() ) {
+		if ( i != _familys.end() ) {
 			family = i.value();
 		} else {
 			family = new FontFamily(family_name);
-			m_familys[family_name] = family;
-			m_blend_fonts[family_name] = family; // 替换别名
+			_familys[family_name] = family;
+			_blend_fonts[family_name] = family; // 替换别名
 		}
 		
 		Font* font = nullptr;
@@ -134,11 +134,11 @@ class FontPool::Inl: public FontPool {
 		_inl_font(font)->initialize(this, family,
 															 font_name_, style, num_glyphs, face_index,
 															 height, max_advance, ascender, descender,
-															 underline_position, underline_thickness, (FT_Library)m_ft_lib);
+															 underline_position, underline_thickness, (FT_Library)_ft_lib);
 		
-		m_fonts[font_name_] = font;
+		_fonts[font_name_] = font;
 		if ( font_name_ != family_name ) { // 与家族名称相同忽略
-			m_blend_fonts[font_name_] = font;
+			_blend_fonts[font_name_] = font;
 		}
 		
 		_inl_family(family)->add_font(font);
@@ -152,7 +152,7 @@ class FontPool::Inl: public FontPool {
 		const FT_Byte* data = font_data->value;
 		
 		FT_Face face;
-		FT_Error err = FT_New_Memory_Face((FT_Library)m_ft_lib, data, font_data->length, 0, &face);
+		FT_Error err = FT_New_Memory_Face((FT_Library)_ft_lib, data, font_data->length, 0, &face);
 		
 		if (err) {
 			FX_ERR("Unable to load font, Freetype2 error code: %d", err);
@@ -198,7 +198,7 @@ class FontPool::Inl: public FontPool {
 				FT_Done_Face(face);
 				
 				if (face_index < num_faces) {
-					err = FT_New_Memory_Face((FT_Library)m_ft_lib, data, font_data->length, face_index, &face);
+					err = FT_New_Memory_Face((FT_Library)_ft_lib, data, font_data->length, face_index, &face);
 					if (err) {
 						FX_ERR("Unable to load font, Freetype2 error code: %d", err);
 						return false;
@@ -222,29 +222,29 @@ class FontPool::Inl: public FontPool {
 	 */
 	void display_port_change_handle(Event<>& evt) {
 
-		Vec2 scale_value = m_display_port->scale_value();
+		Vec2 scale_value = _display_port->scale_value();
 		float scale = FX_MAX(scale_value[0], scale_value[1]);
 		
-		if ( scale != m_display_port_scale ) {
+		if ( scale != _display_port_scale ) {
 			
-			if ( m_display_port_scale != 0.0 ) { // 缩放改变影响字型纹理,所有全部清理
+			if ( _display_port_scale != 0.0 ) { // 缩放改变影响字型纹理,所有全部清理
 				clear(true);
 			}
-			m_display_port_scale = scale;
+			_display_port_scale = scale;
 			
-			m_draw_ctx->host()->render_loop()->post(Cb([this](CbD& e) {
-				m_draw_ctx->refresh_font_pool(this);
-				_inl_app(m_draw_ctx->host())->refresh_display();
+			_draw_ctx->host()->render_loop()->post(Cb([this](CbD& e) {
+				_draw_ctx->refresh_font_pool(this);
+				_inl_app(_draw_ctx->host())->refresh_display();
 			}));
 			
-			Vec2 size = m_display_port->size();
+			Vec2 size = _display_port->size();
 			uint font_size = sqrtf(size.width() * size.height()) / 10;
 			
 			// 最大纹理字体不能超过上下文支持的大小
 			if (font_size >= FX_SUPPORT_MAX_TEXTURE_FONT_SIZE) {
-				m_max_glyph_texture_size = FX_SUPPORT_MAX_TEXTURE_FONT_SIZE;
+				_max_glyph_texture_size = FX_SUPPORT_MAX_TEXTURE_FONT_SIZE;
 			} else {
-				m_max_glyph_texture_size = font_glyph_texture_levels_idx[font_size].max_font_size;
+				_max_glyph_texture_size = font_glyph_texture_levels_idx[font_size].max_font_size;
 			}
 		}
 	}
@@ -371,16 +371,16 @@ class FontPool::Inl: public FontPool {
  * @constructor
  */
 FontPool::FontPool(Draw* ctx)
-: m_ft_lib(nullptr)
-, m_draw_ctx(ctx)
-, m_display_port(nullptr)
-, m_total_data_size(0)
-, m_max_glyph_texture_size(0)
-, m_display_port_scale(0)
+: _ft_lib(nullptr)
+, _draw_ctx(ctx)
+, _display_port(nullptr)
+, _total_data_size(0)
+, _max_glyph_texture_size(0)
+, _display_port_scale(0)
 {
-	ASSERT(m_draw_ctx);
+	ASSERT(_draw_ctx);
 	
-	FT_Init_FreeType((FT_Library*)&m_ft_lib);
+	FT_Init_FreeType((FT_Library*)&_ft_lib);
 		
 	{ // 载入内置字体
 		uint count = sizeof(native_fonts_) / sizeof(Native_font_data_);
@@ -393,11 +393,11 @@ FontPool::FontPool(Draw* ctx)
 			// LOG("register_font ok,%d", i);
 		}
 
-		if ( m_familys.has("langou") ) {
-			// LOG("m_familys.has langou ok");
+		if ( _familys.has("langou") ) {
+			// LOG("_familys.has langou ok");
 			// 这个内置字体必须载入成功,否则退出程序
 			// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
-			m_spare_family = m_familys["langou"];
+			_spare_family = _familys["langou"];
 		} else {
 			FX_FATAL("Unable to initialize ftr font");
 		}
@@ -433,26 +433,26 @@ FontPool::FontPool(Draw* ctx)
  */
 FontPool::~FontPool() {
 	
-	for ( auto& i : m_familys ) {
+	for ( auto& i : _familys ) {
 		Release(i.value()); // delete
 	}
-	for ( auto& i : m_fonts ) {
+	for ( auto& i : _fonts ) {
 		Release(i.value()); // delete
 	}
-	for ( auto& i : m_tables ) {
+	for ( auto& i : _tables ) {
 		Release(i.value()); // delete
 	}
 	
-	m_familys.clear();
-	m_fonts.clear();
-	m_tables.clear();
-	m_blend_fonts.clear();
-	m_default_fonts.clear();
+	_familys.clear();
+	_fonts.clear();
+	_tables.clear();
+	_blend_fonts.clear();
+	_default_fonts.clear();
 	
-	FT_Done_FreeType((FT_Library)m_ft_lib); m_ft_lib = nullptr;
+	FT_Done_FreeType((FT_Library)_ft_lib); _ft_lib = nullptr;
 	
-	if ( m_display_port ) {
-		m_display_port->FX_OFF(change, &Inl::display_port_change_handle, _inl_pool(this));
+	if ( _display_port ) {
+		_display_port->FX_OFF(change, &Inl::display_port_change_handle, _inl_pool(this));
 	}
 }
 
@@ -463,16 +463,16 @@ FontPool::~FontPool() {
  */
 void FontPool::set_default_fonts(const Array<String>* first, ...) {
 	
-	m_default_fonts.clear();
+	_default_fonts.clear();
 	Map<String, bool> has;
 	
-	auto end = m_blend_fonts.end();
+	auto end = _blend_fonts.end();
 	
 	for (uint i = 0; i < first->length(); i++) {
-		auto j = m_blend_fonts.find(first->item(i));
+		auto j = _blend_fonts.find(first->item(i));
 		if (j != end) {
 			has.set(j.value()->name(), true);
-			m_default_fonts.push(j.value()); 
+			_default_fonts.push(j.value()); 
 			break;
 		}
 	}
@@ -484,11 +484,11 @@ void FontPool::set_default_fonts(const Array<String>* first, ...) {
 	
 	while (ls) {
 		for (uint i = 0; i < ls->length(); i++) {
-			auto j = m_blend_fonts.find(ls->item(i));
+			auto j = _blend_fonts.find(ls->item(i));
 			if (j != end) {
 				if ( ! has.has(j.value()->name()) ) {
 					has.set(j.value()->name(), true);
-					m_default_fonts.push(j.value());
+					_default_fonts.push(j.value());
 				}
 				break;
 			}
@@ -498,8 +498,8 @@ void FontPool::set_default_fonts(const Array<String>* first, ...) {
 	
 	va_end(arg);
 	
-	if ( !has.has(m_spare_family->name()) ) {
-		m_default_fonts.push(m_spare_family);
+	if ( !has.has(_spare_family->name()) ) {
+		_default_fonts.push(_spare_family);
 	}
 }
 
@@ -509,23 +509,23 @@ void FontPool::set_default_fonts(const Array<String>* first, ...) {
  */
 void FontPool::set_default_fonts(const Array<String>& fonts) {
 	
-	m_default_fonts.clear();
+	_default_fonts.clear();
 	Map<String, bool> has;
 	
-	auto end = m_blend_fonts.end();
+	auto end = _blend_fonts.end();
 	
 	for (uint i = 0; i < fonts.length(); i++) {
-		auto j = m_blend_fonts.find(fonts[i].trim());
+		auto j = _blend_fonts.find(fonts[i].trim());
 		if (j != end) {
 			if ( ! has.has(j.value()->name()) ) {
 				has.set(j.value()->name(), true);
-				m_default_fonts.push(j.value());
+				_default_fonts.push(j.value());
 			}
 		}
 	}
 	
-	if ( !has.has(m_spare_family->name()) ) {
-		m_default_fonts.push(m_spare_family);
+	if ( !has.has(_spare_family->name()) ) {
+		_default_fonts.push(_spare_family);
 	}
 }
 
@@ -534,8 +534,8 @@ void FontPool::set_default_fonts(const Array<String>& fonts) {
  */
 Array<String> FontPool::default_font_names() const {
 	Array<String> rev;
-	for (uint i = 0; i < m_default_fonts.length(); i++)
-		rev.push(m_default_fonts[i]->name());
+	for (uint i = 0; i < _default_fonts.length(); i++)
+		rev.push(_default_fonts[i]->name());
 	return rev;
 }
 
@@ -551,8 +551,8 @@ Array<String> FontPool::font_names(cString& family_name) const {
  * @func get_font_family()
  */
 FontFamily* FontPool::get_font_family(cString& family_name) {
-	auto i = m_familys.find(family_name);
-	return i == m_familys.end() ? NULL : i.value();
+	auto i = _familys.find(family_name);
+	return i == _familys.end() ? NULL : i.value();
 }
 
 /**
@@ -562,8 +562,8 @@ FontFamily* FontPool::get_font_family(cString& family_name) {
  * @ret {Font*}
  */
 Font* FontPool::get_font(cString& name, TextStyleEnum style) {
-	auto i = m_blend_fonts.find(name);
-	return i == m_blend_fonts.end() ? NULL : i.value()->font(style);
+	auto i = _blend_fonts.find(name);
+	return i == _blend_fonts.end() ? NULL : i.value()->font(style);
 }
 
 /**
@@ -577,7 +577,7 @@ FontGlyphTable* FontPool::get_table(cFFID ffid, TextStyleEnum style) {
 	
 	uint code = ffid->code() + (uint)style;
 	
-	auto i = m_tables.find(code);
+	auto i = _tables.find(code);
 	if ( !i.is_null() ) {
 		return i.value();
 	}
@@ -585,7 +585,7 @@ FontGlyphTable* FontPool::get_table(cFFID ffid, TextStyleEnum style) {
 	FontGlyphTable* table = new FontGlyphTable();
 	_inl_table(table)->initialize(ffid, style, this);
 	
-	m_tables.set(code, table);
+	_tables.set(code, table);
 	
 	return table;
 }
@@ -615,9 +615,9 @@ bool FontPool::register_font(Buffer buff, cString& family_alias) {
  */
 bool FontPool::register_font_file(cString& path, cString& family_alias) {
 	
-	if (!m_paths.has(path) ) { //
+	if (!_paths.has(path) ) { //
 		
-		Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(path, (FT_Library)m_ft_lib);
+		Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(path, (FT_Library)_ft_lib);
 		
 		if ( !sffd.is_null() ) {
 			
@@ -656,10 +656,10 @@ bool FontPool::register_font_file(cString& path, cString& family_alias) {
 void FontPool::set_family_alias(cString& family, cString& alias) {
 	if ( ! alias.is_empty() ) {
 		
-		auto i = m_blend_fonts.find(family);
+		auto i = _blend_fonts.find(family);
 		
-		if (i != m_blend_fonts.end() && !m_blend_fonts.has(alias)) {
-			m_blend_fonts[alias] = i.value(); // 设置一个别名
+		if (i != _blend_fonts.end() && !_blend_fonts.has(alias)) {
+			_blend_fonts[alias] = i.value(); // 设置一个别名
 		}
 	}
 }
@@ -669,10 +669,10 @@ void FontPool::set_family_alias(cString& family, cString& alias) {
  * @arg [full = false] {bool} # 全面清理资源尽可能最大程度清理
  */
 void FontPool::clear(bool full) {
-	for ( auto& i : m_tables ) {
+	for ( auto& i : _tables ) {
 		_inl_table(i.value())->clear_table();
 	}
-	for ( auto& i : m_fonts ) {
+	for ( auto& i : _fonts ) {
 		_inl_font(i.value())->clear(full);
 	}
 }
@@ -681,16 +681,16 @@ void FontPool::clear(bool full) {
  * @func set_display_port
  */
 void FontPool::set_display_port(DisplayPort* display_port) {
-	ASSERT(!m_display_port);
+	ASSERT(!_display_port);
 	display_port->FX_ON(change, &Inl::display_port_change_handle, _inl_pool(this));
-	m_display_port = display_port;
+	_display_port = display_port;
 }
 
 /**
  * @func get_glyph_texture_level 通过字体尺寸获取纹理等级,与纹理大小font_size
  */
 FGTexureLevel FontPool::get_glyph_texture_level(float& font_size_out) {
-	if (font_size_out > m_max_glyph_texture_size) {
+	if (font_size_out > _max_glyph_texture_size) {
 		return FontGlyph::LEVEL_NONE;
 	}
 	uint index = ceilf(font_size_out);
@@ -706,7 +706,7 @@ FGTexureLevel FontPool::get_glyph_texture_level(float& font_size_out) {
  * @func get_family_name(path) get current register family name by font file path
  */
 String FontPool::get_family_name(cString& path) const {
-	auto it = m_paths.find(path);
+	auto it = _paths.find(path);
 	if ( it.is_null() ) {
 		return String();
 	}

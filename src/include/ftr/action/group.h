@@ -49,7 +49,7 @@ namespace ftr {
 		/**
 		* @func length
 		*/
-		inline uint length() const { return m_actions.length(); }
+		inline uint length() const { return _actions.length(); }
 		
 		/**
 		* @func append
@@ -85,8 +85,8 @@ namespace ftr {
 		virtual void bind_view(View* view);
 		
 		typedef List<Action*>::Iterator Iterator;
-		List<Action*>   m_actions;
-		Array<Iterator> m_actions_index;
+		List<Action*>   _actions;
+		Array<Iterator> _actions_index;
 		
 		friend class Action;
 		

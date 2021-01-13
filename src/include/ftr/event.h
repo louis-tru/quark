@@ -284,10 +284,10 @@ namespace ftr {
 		};
 		typedef TouchPoint Touch;
 		inline GUITouchEvent(View* origin, Array<TouchPoint>& touches)
-			: GUIEvent(origin), m_change_touches(touches) { }
-		inline Array<TouchPoint>& changed_touches() { return m_change_touches; }
+			: GUIEvent(origin), _change_touches(touches) { }
+		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
 		private:
-		Array<TouchPoint> m_change_touches;
+		Array<TouchPoint> _change_touches;
 	};
 
 	typedef GUITouchEvent::Touch GUITouch;
@@ -298,18 +298,18 @@ namespace ftr {
 	class FX_EXPORT GUIFocusMoveEvent: public GUIEvent {
 		public:
 		inline GUIFocusMoveEvent(View* origin, View* old_focus, View* new_focus)
-			: GUIEvent(origin), m_old_focus(old_focus), m_new_focus(new_focus) { }
-		inline View* old_focus() { return m_old_focus; }
-		inline View* new_focus() { return m_new_focus; }
-		inline View* focus() { return m_old_focus; }
-		inline View* focus_move() { return m_new_focus; }
+			: GUIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) { }
+		inline View* old_focus() { return _old_focus; }
+		inline View* new_focus() { return _new_focus; }
+		inline View* focus() { return _old_focus; }
+		inline View* focus_move() { return _new_focus; }
 		virtual void release() {
-			m_old_focus = nullptr;
-			m_new_focus = nullptr; GUIEvent::release();
+			_old_focus = nullptr;
+			_new_focus = nullptr; GUIEvent::release();
 		}
 		private:
-		View* m_old_focus;
-		View* m_new_focus;
+		View* _old_focus;
+		View* _new_focus;
 	};
 
 	/**
@@ -360,7 +360,7 @@ namespace ftr {
 		* @func keyboard_adapter
 		*/
 		inline KeyboardAdapter* keyboard_adapter() {
-			return m_keyboard;
+			return _keyboard;
 		}
 		
 		private:
@@ -369,10 +369,10 @@ namespace ftr {
 		typedef Map<PrtKey<View>, OriginTouche*> OriginTouches;
 		
 		GUIApplication*     app_;
-		OriginTouches       m_origin_touches;
-		MouseHandle*        m_mouse_h;
-		KeyboardAdapter*    m_keyboard;
-		ITextInput*         m_text_input;
+		OriginTouches       _origin_touches;
+		MouseHandle*        _mouse_h;
+		KeyboardAdapter*    _keyboard;
+		ITextInput*         _text_input;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

@@ -48,12 +48,12 @@ Root::~Root() {
 void Root::initialize() throw(Error) {
 	auto app = ftr::app();
 	FX_CHECK(app, "Before you create a root, you need to create a GUIApplication");
-	m_background_color = Color(255, 255, 255); // 默认白色背景
-	m_level = 1; // 根视图为1
-	m_final_visible = true;
-	m_explicit_width = true;
-	m_explicit_height = true;
-	// m_receive = true;
+	_background_color = Color(255, 255, 255); // 默认白色背景
+	_level = 1; // 根视图为1
+	_final_visible = true;
+	_explicit_width = true;
+	_explicit_height = true;
+	// _receive = true;
 	Vec2 size = display_port()->size();
 	set_width(size.width());
 	set_height(size.height());
@@ -66,7 +66,7 @@ void Root::initialize() throw(Error) {
  */
 void Root::draw(Draw* draw) {
 	
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			if ( mark_value & M_BASIC_MATRIX ) { // 变换
@@ -75,14 +75,14 @@ void Root::draw(Draw* draw) {
 				offset.x( offset.x() + origin().x() + translate().x() );
 				offset.y( offset.y() + origin().y() + translate().y() );
 				// 更新基础矩阵
-				m_matrix = Mat(offset, scale(), -rotate_z(), skew());
+				_matrix = Mat(offset, scale(), -rotate_z(), skew());
 			}
 			
 			if ( mark_value & M_OPACITY ) {
-				m_final_opacity = opacity();
+				_final_opacity = opacity();
 			}
 			if ( mark_value & M_TRANSFORM ) {
-				m_final_matrix = m_matrix;
+				_final_matrix = _matrix;
 			}
 			
 			if ( mark_value & (M_TRANSFORM | M_SHAPE) ) {
@@ -90,7 +90,7 @@ void Root::draw(Draw* draw) {
 			}
 		}
 		
-		draw->clear_color(m_background_color);
+		draw->clear_color(_background_color);
 		draw->draw(this);
 		
 		mark_value = M_NONE;
@@ -118,41 +118,41 @@ bool Root::can_become_focus() {
  */
 void Root::set_layout_explicit_size() {
 	
-	float final_width = m_final_width;
-	float final_height = m_final_height;
+	float final_width = _final_width;
+	float final_height = _final_height;
 	
 	Vec2 port_size = display_port()->size();
 
-	if ( m_width.type == ValueType::PIXEL ) {
-		m_final_width = m_width.value;
+	if ( _width.type == ValueType::PIXEL ) {
+		_final_width = _width.value;
 	} else {
-		m_final_width = port_size.width();
+		_final_width = port_size.width();
 	}
 
-	if ( m_height.type == ValueType::PIXEL ) {
-		m_final_height = m_height.value;
+	if ( _height.type == ValueType::PIXEL ) {
+		_final_height = _height.value;
 	} else {
-		m_final_height = port_size.height();
+		_final_height = port_size.height();
 	}
 	
-	m_raw_client_width = m_final_width;
-	m_raw_client_height = m_final_height;
-	m_limit.width(m_final_width);
-	m_limit.height(m_final_height);
+	_raw_client_width = _final_width;
+	_raw_client_height = _final_height;
+	_limit.width(_final_width);
+	_limit.height(_final_height);
 	
 	Box::set_default_offset_value();
 	
-	bool h = m_final_width != final_width;
-	bool v = m_final_height != final_height;
+	bool h = _final_width != final_width;
+	bool v = _final_height != final_height;
 	uint child_mark = M_NONE;
 	
 	if ( h ) {
-		if ( m_content_align == ContentAlign::RIGHT ) {
+		if ( _content_align == ContentAlign::RIGHT ) {
 			child_mark = M_MATRIX;
 		}
 	}
 	if ( v ) {
-		if ( m_content_align == ContentAlign::BOTTOM ) {
+		if ( _content_align == ContentAlign::BOTTOM ) {
 			child_mark = M_MATRIX;
 		}
 	}
@@ -172,8 +172,8 @@ void Root::set_layout_content_offset() {
  * @overwrite
  */
 Vec2 Root::layout_offset() {
-	return Vec2(m_offset_start.x() + m_final_margin_left + m_border_left_width,
-							m_offset_start.y() + m_final_margin_top + m_border_top_width);
+	return Vec2(_offset_start.x() + _final_margin_left + _border_left_width,
+							_offset_start.y() + _final_margin_top + _border_top_width);
 }
 
 FX_END

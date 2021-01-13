@@ -53,30 +53,30 @@ FX_DEFINE_INLINE_MEMBERS(Sprite, Inl) {
 };
 
 Sprite::Sprite(Vec2 size)
-: m_start()
-, m_size(size)
-, m_ratio(1,1)
-, m_texture(draw_ctx()->empty_texture())
-, m_tex_level(Texture::LEVEL_0)
-, m_repeat(Repeat::NONE)
+: _start()
+, _size(size)
+, _ratio(1,1)
+, _texture(draw_ctx()->empty_texture())
+, _tex_level(Texture::LEVEL_0)
+, _repeat(Repeat::NONE)
 {
-	m_need_draw = false;
-	m_texture->retain();
+	_need_draw = false;
+	_texture->retain();
 }
 
 /**
  * @destructor
  */
 Sprite::~Sprite() {
-	m_texture->FX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
-	m_texture->release(); // 释放对像
+	_texture->FX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	_texture->release(); // 释放对像
 }
 
 /**
  * @overwrite
  */
 void Sprite::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			solve();
@@ -89,7 +89,7 @@ void Sprite::draw(Draw* draw) {
 }
 
 String Sprite::src() const {
-	return m_texture->id();
+	return _texture->id();
 }
 
 Sprite* Sprite::create(cString& path, Vec2 size) {
@@ -117,15 +117,15 @@ void Sprite::set_texture(Texture* value) {
 	ASSERT(value);
 	
 	// 如果值相同,不做处理
-	if (value == m_texture) {
+	if (value == _texture) {
 		return;
 	}
 	
-	m_texture->release(); // 释放对像
-	m_texture->FX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
-	m_texture = value;
-	m_texture->retain(); // 保持对像
-	m_texture->FX_ON(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	_texture->release(); // 释放对像
+	_texture->FX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	_texture = value;
+	_texture->retain(); // 保持对像
+	_texture->FX_ON(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	
 	// 顶点座标数据受 origin、width、height 的影响
 	// 纹理座标数据受 startX、startY、width、height 的影响
@@ -133,31 +133,31 @@ void Sprite::set_texture(Texture* value) {
 }
 
 void Sprite::set_start_x(float value) {
-	if (m_start.x() != value) {
-		m_start.x(value);
+	if (_start.x() != value) {
+		_start.x(value);
 		mark(M_TEXTURE);
 	}
 }
 
 void Sprite::set_start_y(float value) {
-	if (m_start.y() != value) {
-		m_start.y(value);
+	if (_start.y() != value) {
+		_start.y(value);
 		mark(M_TEXTURE);
 	}
 }
 
 void Sprite::set_width(float value) {
 	// 值相同,不做处理
-	if (m_size.width() != value) {
-		m_size.width(value);
+	if (_size.width() != value) {
+		_size.width(value);
 		mark(M_SHAPE | M_TEXTURE); // 标记这两个更新
 	}
 }
 
 void Sprite::set_height(float value) {
 	// 值相同,不做处理
-	if (m_size.height() != value) {
-		m_size.height(value);
+	if (_size.height() != value) {
+		_size.height(value);
 		mark(M_SHAPE | M_TEXTURE); // 标记更新
 	}
 }
@@ -166,8 +166,8 @@ void Sprite::set_height(float value) {
  * @func ratio_x set
  */
 void Sprite::set_ratio_x(float value) {
-	if (m_ratio.x() != value) {
-		m_ratio.x(value);
+	if (_ratio.x() != value) {
+		_ratio.x(value);
 		mark( M_TEXTURE );
 	}
 }
@@ -176,8 +176,8 @@ void Sprite::set_ratio_x(float value) {
  * @func ratio_y set
  */
 void Sprite::set_ratio_y(float value) {
-	if (m_ratio.y() != value) {
-		m_ratio.y(value);
+	if (_ratio.y() != value) {
+		_ratio.y(value);
 		mark( M_TEXTURE );
 	}
 }
@@ -186,8 +186,8 @@ void Sprite::set_ratio_y(float value) {
  * @func repeat set
  */
 void Sprite::set_repeat(Repeat value) {
-	if (m_repeat != value) {
-		m_repeat = value;
+	if (_repeat != value) {
+		_repeat = value;
 		mark( M_TEXTURE );
 	}
 }
@@ -201,7 +201,7 @@ void Sprite::set_parent(View* parent) throw(Error) {
 }
 
 bool Sprite::overlap_test(Vec2 point) {
-	return View::overlap_test_from_convex_quadrilateral( m_final_vertex, point );
+	return View::overlap_test_from_convex_quadrilateral( _final_vertex, point );
 }
 
 /**
@@ -209,8 +209,8 @@ bool Sprite::overlap_test(Vec2 point) {
  */
 CGRect Sprite::screen_rect() {
 	final_matrix();
-	compute_box_vertex(m_final_vertex);
-	return View::screen_rect_from_convex_quadrilateral(m_final_vertex);
+	compute_box_vertex(_final_vertex);
+	return View::screen_rect_from_convex_quadrilateral(_final_vertex);
 }
 
 /**
@@ -218,14 +218,14 @@ CGRect Sprite::screen_rect() {
  */
 void Sprite::compute_box_vertex(Vec2 vertex[4]) {
 	
-	Vec2 start( -m_origin.x(), -m_origin.y() );
-	Vec2 end  ( m_size.width() - m_origin.x(),
-							m_size.height() - m_origin.y() );
+	Vec2 start( -_origin.x(), -_origin.y() );
+	Vec2 end  ( _size.width() - _origin.x(),
+							_size.height() - _origin.y() );
 	
-	vertex[0] = m_final_matrix * start;
-	vertex[1] = m_final_matrix * Vec2(end.x(), start.y());
-	vertex[2] = m_final_matrix * end;
-	vertex[3] = m_final_matrix * Vec2(start.x(), end.y());
+	vertex[0] = _final_matrix * start;
+	vertex[1] = _final_matrix * Vec2(end.x(), start.y());
+	vertex[2] = _final_matrix * end;
+	vertex[3] = _final_matrix * Vec2(start.x(), end.y());
 }
 
 /**
@@ -233,22 +233,22 @@ void Sprite::compute_box_vertex(Vec2 vertex[4]) {
  */
 void Sprite::set_draw_visible() {
 	
-	compute_box_vertex(m_final_vertex);
+	compute_box_vertex(_final_vertex);
 	
 	/*
 	 * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 	 * 这种模糊测试在大多数时候都是正确有效的。
 	 */
 	Region dre = display_port()->draw_region();
-	Region re = screen_region_from_convex_quadrilateral(m_final_vertex);
+	Region re = screen_region_from_convex_quadrilateral(_final_vertex);
 	
-	m_draw_visible = false;
+	_draw_visible = false;
 	
 	if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
 			FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.w + dre.w
 	) {
-		m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
-		m_draw_visible = true;
+		_tex_level = _texture->get_texture_level_from_convex_quadrilateral(_final_vertex);
+		_draw_visible = true;
 	}
 }
 

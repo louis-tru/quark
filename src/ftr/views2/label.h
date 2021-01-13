@@ -67,7 +67,7 @@ class FX_EXPORT Label: public View, public TextFont {
 	/**
 	 * @func value
 	 */
-	Ucs2String value() const { return m_data.string; }
+	Ucs2String value() const { return _data.string; }
 	
 	/**
 	 * @func set_value
@@ -77,17 +77,17 @@ class FX_EXPORT Label: public View, public TextFont {
 	/**
 	 * @func length
 	 */
-	inline uint length() const { return m_data.string.length(); }
+	inline uint length() const { return _data.string.length(); }
 	
 	/**
 	 * @func cells
 	 */
-	inline const Array<Cell>& cells() const { return m_data.cells; }
+	inline const Array<Cell>& cells() const { return _data.cells; }
 	
 	/**
 	 * @func text_align
 	 */
-	inline TextAlign text_align() const { return m_text_align; }
+	inline TextAlign text_align() const { return _text_align; }
 	
 	/**
 	 * @func set_text_align
@@ -97,12 +97,12 @@ class FX_EXPORT Label: public View, public TextFont {
 	/**
 	 * @func text_hori_bearing
 	 */
-	inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
+	inline float text_hori_bearing() const { return _data.text_hori_bearing; }
 	
 	/**
 	 * @func text_height
 	 */
-	inline float text_height() const { return m_data.text_height; }
+	inline float text_height() const { return _data.text_height; }
 	
  protected:
 	
@@ -116,11 +116,11 @@ class FX_EXPORT Label: public View, public TextFont {
 	virtual void set_parent(View* parent) throw(Error);
 	
  private:
-	Data        m_data;
-	TextAlign   m_text_align;
-	Vec2        m_box_size;
-	float       m_box_offset_start;
-	Vec2        m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置
+	Data        _data;
+	TextAlign   _text_align;
+	Vec2        _box_size;
+	float       _box_offset_start;
+	Vec2        _final_vertex[4];  // 最终在屏幕上显示的真实顶点位置
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 };

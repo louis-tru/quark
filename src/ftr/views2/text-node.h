@@ -60,7 +60,7 @@ class FX_EXPORT TextNode: public Span {
 	/**
 	 * @get value
 	 */
-	inline Ucs2String value() const { return m_data.string; }
+	inline Ucs2String value() const { return _data.string; }
 	
 	/**
 	 * @set value
@@ -70,22 +70,22 @@ class FX_EXPORT TextNode: public Span {
 	/**
 	 * @get length {uint}
 	 */
-	inline uint length() const { return m_data.string.length(); }
+	inline uint length() const { return _data.string.length(); }
 	
 	/**
 	 * @get cells
 	 */
-	inline const Array<Cell>& cells() const { return m_data.cells; }
+	inline const Array<Cell>& cells() const { return _data.cells; }
 	
 	/**
 	 * @func text_hori_bearing
 	 */
-	inline float text_hori_bearing() const { return m_data.text_hori_bearing; }
+	inline float text_hori_bearing() const { return _data.text_hori_bearing; }
 	
 	/**
 	 * @func text_height
 	 */
-	inline float text_height() const { return m_data.text_height; }
+	inline float text_height() const { return _data.text_height; }
 	
  protected:
 	
@@ -104,9 +104,9 @@ class FX_EXPORT TextNode: public Span {
 	
  private:
 	
-	Data  m_data;
-	bool  m_valid_layout_offset;
-	Vec2  m_final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
+	Data  _data;
+	bool  _valid_layout_offset;
+	Vec2  _final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
 	FX_DEFINE_INLINE_CLASS(Inl);
 };
 

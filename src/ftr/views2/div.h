@@ -46,7 +46,7 @@ class FX_EXPORT Div: public Box {
 	/**
 	 * @get content_align
 	 */
-	inline ContentAlign content_align() const { return m_content_align; };
+	inline ContentAlign content_align() const { return _content_align; };
 	
 	/**
 	 * @set set_content_align
@@ -71,7 +71,7 @@ class FX_EXPORT Div: public Box {
 	// 内容对齐方式默认为left（即默认为水平内容布局）
 	// left|right, 水平布局,一行宽度不够向下挤压
 	// top|bottom, 垂直布局,一列高度不够向右挤压
-	ContentAlign m_content_align;
+	ContentAlign _content_align;
 
 	FX_DEFINE_INLINE_CLASS(Inl);
 	

@@ -45,68 +45,68 @@ FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
  #define _inl(self) static_cast<DisplayPort::Inl*>(self)
 	
 	void handle_surface_size_change(Event<>& evt) {
-		m_phy_size = m_draw_ctx->selected_region().size;
+		_phy_size = _draw_ctx->selected_region().size;
 		update_display_port_rl();
 	}
 	
 	void update_root_size() {
 		Root* r = root();
 		if (r) {
-			r->set_width(m_size.width());
-			r->set_height(m_size.height());
+			r->set_width(_size.width());
+			r->set_height(_size.height());
 		}
 	}
 	
 	void update_display_port_rl() {
 		
-		if (m_lock_size.width() == 0 && m_lock_size.height() == 0) { // 使用系统默认的最合适的尺寸
-			m_size = { m_phy_size.width() / m_draw_ctx->best_display_scale(),
-				m_phy_size.height() / m_draw_ctx->best_display_scale() };
+		if (_lock_size.width() == 0 && _lock_size.height() == 0) { // 使用系统默认的最合适的尺寸
+			_size = { _phy_size.width() / _draw_ctx->best_display_scale(),
+				_phy_size.height() / _draw_ctx->best_display_scale() };
 		}
-		else if (m_lock_size.width() != 0 && m_lock_size.height() != 0) { // 尺寸全部锁定
-			m_size = m_lock_size;
+		else if (_lock_size.width() != 0 && _lock_size.height() != 0) { // 尺寸全部锁定
+			_size = _lock_size;
 		}
-		else if (m_lock_size.width() != 0) { // 只锁定宽度
-			m_size.width(m_lock_size.width());
-			m_size.height(m_size.width() / m_phy_size.width() * m_phy_size.height());
+		else if (_lock_size.width() != 0) { // 只锁定宽度
+			_size.width(_lock_size.width());
+			_size.height(_size.width() / _phy_size.width() * _phy_size.height());
 		}
-		else { // m_lock_height == 0 // 只锁定高度
-			m_size.height(m_lock_size.height());
-			m_size.width(m_size.height() / m_phy_size.height() * m_phy_size.width());
+		else { // _lock_height == 0 // 只锁定高度
+			_size.height(_lock_size.height());
+			_size.width(_size.height() / _phy_size.height() * _phy_size.width());
 		}
 		
-		m_scale_value[0] = m_phy_size.width() / m_size.width();
-		m_scale_value[1] = m_phy_size.height() / m_size.height();
-		m_scale = (m_scale_value[0] + m_scale_value[1]) / 2;
+		_scale_value[0] = _phy_size.width() / _size.width();
+		_scale_value[1] = _phy_size.height() / _size.height();
+		_scale = (_scale_value[0] + _scale_value[1]) / 2;
 		
-		m_atom_pixel = 1.0f / m_scale;
+		_atom_pixel = 1.0f / _scale;
 		
 		// 计算2D视图变换矩阵
 		
-		CGRect region = m_draw_ctx->selected_region();
-		Vec2 surface_size = m_draw_ctx->surface_size();
+		CGRect region = _draw_ctx->selected_region();
+		Vec2 surface_size = _draw_ctx->surface_size();
 		
-		Vec2 start = Vec2(-region.origin.x() / m_scale_value[0], -region.origin.y() / m_scale_value[1]);
-		Vec2 end = Vec2(surface_size.width() / m_scale_value[0] + start.x(),
-										surface_size.height() / m_scale_value[1] + start.y());
+		Vec2 start = Vec2(-region.origin.x() / _scale_value[0], -region.origin.y() / _scale_value[1]);
+		Vec2 end = Vec2(surface_size.width() / _scale_value[0] + start.x(),
+										surface_size.height() / _scale_value[1] + start.y());
 		
-		m_root_matrix = Mat4::ortho(start[0], end[0], start[1], end[1], -1.0f, 1.0f);
+		_root_matrix = Mat4::ortho(start[0], end[0], start[1], end[1], -1.0f, 1.0f);
 		
 		Mat4 test_root_matrix = // 测试着色器视图矩阵要大一圈
 		Mat4::ortho(start[0]-5, end[0]+5, start[1]-5, end[1]+5, -1.0f, 1.0f);
 		
-		m_draw_ctx->refresh_root_matrix(m_root_matrix, test_root_matrix);
+		_draw_ctx->refresh_root_matrix(_root_matrix, test_root_matrix);
 		
 		update_root_size(); // update root
 		
 		// set default draw region
-		m_draw_region.first() = {
+		_draw_region.first() = {
 			0, 0,
-			m_size.width(), m_size.height(),
-			m_size.width(), m_size.height(),
+			_size.width(), _size.height(),
+			_size.width(), _size.height(),
 		};
 		
-		m_host->main_loop()->post(Cb([this](CbD& e){
+		_host->main_loop()->post(Cb([this](CbD& e){
 			FX_TRIGGER(change); // 通知事件
 		}));
 	}
@@ -115,9 +115,9 @@ FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 	 * @func solve_next_frame()
 	 */
 	void solve_next_frame() {
-		if (m_next_frame.length()) {
-			List<Callback<>>* cb = new List<Callback<>>(move(m_next_frame));
-			m_host->main_loop()->post(Cb([cb](CbD& e) {
+		if (_next_frame.length()) {
+			List<Callback<>>* cb = new List<Callback<>>(move(_next_frame));
+			_host->main_loop()->post(Cb([cb](CbD& e) {
 				Handle<List<Callback<>>> handle(cb);
 				for ( auto& i : *cb ) {
 					i.value()->call();
@@ -133,45 +133,45 @@ FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 DisplayPort::DisplayPort(GUIApplication* host)
 : FX_INIT_EVENT(change)
 , FX_INIT_EVENT(orientation)
-, m_phy_size()
-, m_lock_size()
-, m_size()
-, m_scale(1)
-, m_scale_value(1)
-, m_pre_render(new PreRender())
-, m_draw_ctx(host->draw_ctx())
-, m_root_matrix()
-, m_atom_pixel(1)
-, m_host(host)
-, m_fsp(0)
-, m_record_fsp(0)
-, m_record_fsp_time(0)
+, _phy_size()
+, _lock_size()
+, _size()
+, _scale(1)
+, _scale_value(1)
+, _pre_render(new PreRender())
+, _draw_ctx(host->draw_ctx())
+, _root_matrix()
+, _atom_pixel(1)
+, _host(host)
+, _fsp(0)
+, _record_fsp(0)
+, _record_fsp_time(0)
 {
-	m_draw_region.push({ 0,0,0,0,0,0 });
+	_draw_region.push({ 0,0,0,0,0,0 });
 	// 侦听视口尺寸变化
-	FX_DEBUG("m_draw_ctx->FX_ON ...");
-	m_draw_ctx->FX_ON(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
-	FX_DEBUG("m_draw_ctx->FX_ON ok");
+	FX_DEBUG("_draw_ctx->FX_ON ...");
+	_draw_ctx->FX_ON(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
+	FX_DEBUG("_draw_ctx->FX_ON ok");
 }
 
 /**
  * @destructor
  */
 DisplayPort::~DisplayPort() {
-	Release(m_pre_render);
-	m_draw_ctx->FX_OFF(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
+	Release(_pre_render);
+	_draw_ctx->FX_OFF(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 }
 
 float DisplayPort::best_scale() const {
-	return m_draw_ctx->best_display_scale();
+	return _draw_ctx->best_display_scale();
 }
 
 void DisplayPort::lock_size(float width, float height) {
 	if (width >= 0.0 && height >= 0.0) {
-		if (m_lock_size.width() != width || m_lock_size.height() != height) {
-			m_lock_size = { width, height };
-			ASSERT(m_host->render_loop());
-			m_host->render_loop()->post(Cb([this](CbD& e) {
+		if (_lock_size.width() != width || _lock_size.height() != height) {
+			_lock_size = { width, height };
+			ASSERT(_host->render_loop());
+			_host->render_loop()->post(Cb([this](CbD& e) {
 				_inl(this)->update_display_port_rl();
 			}));
 		}
@@ -188,21 +188,21 @@ void DisplayPort::lock_size(float width, float height) {
 void DisplayPort::render_frame() {
 	Root* r = root();
 	int64 now_time = sys::time_monotonic();
-	m_host->action_center()->advance(now_time); // advance action
+	_host->action_center()->advance(now_time); // advance action
 	
 	if (r) {
-		bool ok = m_pre_render->solve(now_time);
-		if (ok || r->mark_value || r->m_child_change_flag) {
+		bool ok = _pre_render->solve(now_time);
+		if (ok || r->mark_value || r->_child_change_flag) {
 			
-			if (now_time - m_record_fsp_time >= 1e6) {
-				m_fsp = m_record_fsp;
-				m_record_fsp = 0;
-				m_record_fsp_time = now_time;
+			if (now_time - _record_fsp_time >= 1e6) {
+				_fsp = _record_fsp;
+				_record_fsp = 0;
+				_record_fsp_time = now_time;
 			}
-			m_record_fsp++;
+			_record_fsp++;
 			
-			m_draw_ctx->begin_render();
-			r->draw(m_draw_ctx); // 开始绘图
+			_draw_ctx->begin_render();
+			r->draw(_draw_ctx); // 开始绘图
 			_inl(this)->solve_next_frame();
 			
 #if DEBUG && PRINT_RENDER_FRAME_TIME
@@ -213,9 +213,9 @@ void DisplayPort::render_frame() {
 			 * 所以这里释放`GUILock`，commit_render()主要是绘图相关的函数调用,
 			 * 如果能够确保绘图函数的调用都在渲染线程,那就不会有安全问题。
 			 */
-			Inl2_RunLoop(m_host->render_loop())->independent_mutex_unlock();
-			m_draw_ctx->commit_render();
-			Inl2_RunLoop(m_host->render_loop())->independent_mutex_lock();
+			Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();
+			_draw_ctx->commit_render();
+			Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
 #if DEBUG && PRINT_RENDER_FRAME_TIME
 			int64 ts2 = (sys::time() - st) / 1e3;
 			if (ts2 > 16) {
@@ -237,17 +237,17 @@ void DisplayPort::refresh() {
 	// TODO 必须要渲染循环中调用
 	Root* r = root();
 	if ( r ) {
-		m_pre_render->solve(sys::time_monotonic());
-		m_draw_ctx->begin_render();
-		r->draw(m_draw_ctx); // 开始绘图
-		m_draw_ctx->commit_render();
+		_pre_render->solve(sys::time_monotonic());
+		_draw_ctx->begin_render();
+		r->draw(_draw_ctx); // 开始绘图
+		_draw_ctx->commit_render();
 	}
 }
 
 void DisplayPort::push_draw_region(Region re) {
 	// 计算一个交集区域
 	
-	Region dre = m_draw_region.last();
+	Region dre = _draw_region.last();
 	
 	float x, x2, y, y2;
 	
@@ -275,14 +275,14 @@ void DisplayPort::push_draw_region(Region re) {
 	re.w = re.x2 - re.x;
 	re.h = re.y2 - re.y;
 	
-	m_draw_region.push(re);
+	_draw_region.push(re);
 }
 
 /**
  * @func next_frame
  */
 void DisplayPort::next_frame(cCb& cb) {
-	m_next_frame.push(cb);
+	_next_frame.push(cb);
 }
 
 FX_END

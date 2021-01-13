@@ -860,7 +860,7 @@ class NativeValue {
 				FX_FATAL("Could not initialize native/_value.js");
 			}
 		}
-		worker->m_inl->m_values = new ValueProgram(worker, exports, _prve);
+		worker->_inl->_values = new ValueProgram(worker, exports, _prve);
 	}
 };
 

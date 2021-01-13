@@ -58,7 +58,7 @@ class FX_EXPORT BasicScroll: public Protocol {
 	 * @func scroll get
 	 */
 	inline Vec2 scroll() const {
-		return Vec2(-m_scroll.x(), -m_scroll.y());
+		return Vec2(-_scroll.x(), -_scroll.y());
 	}
 	
 	/**
@@ -79,12 +79,12 @@ class FX_EXPORT BasicScroll: public Protocol {
 	/**
 	 * @func scroll_x get
 	 */
-	inline float scroll_x() const { return -m_scroll.x(); }
+	inline float scroll_x() const { return -_scroll.x(); }
 	
 	/**
 	 * @func scroll_y get
 	 */
-	inline float scroll_y() const { return -m_scroll.y(); }
+	inline float scroll_y() const { return -_scroll.y(); }
 	
 	/**
 	 * @func set_scroll_x set
@@ -99,32 +99,32 @@ class FX_EXPORT BasicScroll: public Protocol {
 	/**
 	 * @func scroll_size
 	 */
-	inline Vec2 scroll_size() const { return m_scroll_size; }
+	inline Vec2 scroll_size() const { return _scroll_size; }
 	
 	/**
 	 * @func scroll_width
 	 */
-	inline float scroll_width() const { return m_scroll_size.width(); }
+	inline float scroll_width() const { return _scroll_size.width(); }
 	
 	/**
 	 * @func scroll_height
 	 */
-	inline float scroll_height() const { return m_scroll_size.height(); }
+	inline float scroll_height() const { return _scroll_size.height(); }
 	
 	/**
 	 * @func scrollbar get
 	 */
-	inline bool scrollbar() const { return m_scrollbar; }
+	inline bool scrollbar() const { return _scrollbar; }
 	
 	/**
 	 * @func set_scrollbar set
 	 */
-	inline void set_scrollbar(bool value) { m_scrollbar = value; }
+	inline void set_scrollbar(bool value) { _scrollbar = value; }
 	
 	/**
 	 * @func resistance get
 	 */
-	inline float resistance() const { return m_resistance; }
+	inline float resistance() const { return _resistance; }
 	
 	/**
 	 * @func set_resistance set
@@ -134,92 +134,92 @@ class FX_EXPORT BasicScroll: public Protocol {
 	/**
 	 * @func bounce get
 	 */
-	inline bool bounce() const { return m_bounce; }
+	inline bool bounce() const { return _bounce; }
 	
 	/**
 	 * @func set_bounce set
 	 */
-	inline void set_bounce(bool value) { m_bounce = value; }
+	inline void set_bounce(bool value) { _bounce = value; }
 	
 	/**
 	 * @func bounce_lock get
 	 */
-	inline bool bounce_lock() const { return m_bounce_lock; }
+	inline bool bounce_lock() const { return _bounce_lock; }
 	
 	/**
 	 * @func set_bounce_lock set
 	 */
-	inline void set_bounce_lock(bool value) { m_bounce_lock = value; }
+	inline void set_bounce_lock(bool value) { _bounce_lock = value; }
 	
 	/**
 	 * @func momentum get
 	 */
-	inline bool momentum() const { return m_momentum; }
+	inline bool momentum() const { return _momentum; }
 	
 	/**
 	 * @func set_momentum set
 	 */
-	inline void set_momentum(bool value) { m_momentum = value; }
+	inline void set_momentum(bool value) { _momentum = value; }
 	
 	/**
 	 * @func lock_direction get
 	 */
-	inline bool lock_direction() const { return m_lock_direction; }
+	inline bool lock_direction() const { return _lock_direction; }
 	
 	/**
 	 * @func set_lock_direction set
 	 */
-	inline void set_lock_direction(bool value) { m_lock_direction = value; }
+	inline void set_lock_direction(bool value) { _lock_direction = value; }
 	
 	/**
 	 * @func catch_position get
 	 */
-	inline Vec2 catch_position() const { return m_catch_position; }
+	inline Vec2 catch_position() const { return _catch_position; }
 	
 	/**
 	 * @func set_catch_position set
 	 */
-	inline void set_catch_position(Vec2 value) { m_catch_position = value; }
+	inline void set_catch_position(Vec2 value) { _catch_position = value; }
 	
 	/**
 	 * @func catch_position_x get
 	 */
-	inline float catch_position_x() const { return m_catch_position.x(); }
+	inline float catch_position_x() const { return _catch_position.x(); }
 	
 	/**
 	 * @func catch_position_x get
 	 */
-	inline float catch_position_y() const { return m_catch_position.x(); }
+	inline float catch_position_y() const { return _catch_position.x(); }
 	
 	/**
 	 * @func set_catch_position_x set
 	 */
-	inline void set_catch_position_x(float value) { m_catch_position.x(value); }
+	inline void set_catch_position_x(float value) { _catch_position.x(value); }
 	
 	/**
 	 * @func set_catch_position_y set
 	 */
-	inline void set_catch_position_y(float value) { m_catch_position.y(value); }
+	inline void set_catch_position_y(float value) { _catch_position.y(value); }
 	
 	/**
 	 * @func scrollbar_color
 	 */
-	inline Color scrollbar_color() const { return m_scrollbar_color; }
+	inline Color scrollbar_color() const { return _scrollbar_color; }
 	
 	/**
 	 * @func set_scrollbar_color
 	 */
-	inline void set_scrollbar_color(Color value) { m_scrollbar_color = value; }
+	inline void set_scrollbar_color(Color value) { _scrollbar_color = value; }
 	
 	/**
 	 * @func h_scrollbar
 	 */
-	inline bool h_scrollbar() const { return m_h_scrollbar; }
+	inline bool h_scrollbar() const { return _h_scrollbar; }
 	
 	/**
 	 * @func v_scrollbar
 	 */
-	inline bool v_scrollbar() const { return m_h_scrollbar; }
+	inline bool v_scrollbar() const { return _h_scrollbar; }
 	
 	/**
 	 * @func scrollbar_width get
@@ -229,7 +229,7 @@ class FX_EXPORT BasicScroll: public Protocol {
 	/**
 	 * @func set_scrollbar_width set
 	 */
-	inline void set_scrollbar_width(float value) { m_scrollbar_width = value; }
+	inline void set_scrollbar_width(float value) { _scrollbar_width = value; }
 	
 	/**
 	 * @func scrollbar_margin get
@@ -239,22 +239,22 @@ class FX_EXPORT BasicScroll: public Protocol {
 	/**
 	 * @func set_scrollbar_margin set
 	 */
-	inline void set_scrollbar_margin(float value) { m_scrollbar_margin = value; }
+	inline void set_scrollbar_margin(float value) { _scrollbar_margin = value; }
 	
 	/**
 	 * @func default_scroll_duration
 	 */
-	inline uint64 default_scroll_duration() const { return m_default_scroll_duration; }
+	inline uint64 default_scroll_duration() const { return _default_scroll_duration; }
 	
 	/**
 	 * @func set_default_scroll_duration
 	 */
-	inline void set_default_scroll_duration(uint64 value) { m_default_scroll_duration = value; }
+	inline void set_default_scroll_duration(uint64 value) { _default_scroll_duration = value; }
 	
 	/**
 	 * @func default_scroll_curve
 	 */
-	inline cCurve& default_scroll_curve() const { return *m_default_scroll_curve; }
+	inline cCurve& default_scroll_curve() const { return *_default_scroll_curve; }
 	
 	/**
 	 * @func set_default_scroll_curve
@@ -285,33 +285,33 @@ class FX_EXPORT BasicScroll: public Protocol {
 	
 	friend class GLDraw;
 	
-	List<Task*> m_tasks;
+	List<Task*> _tasks;
 	
-	Box* m_box;
-	Vec2 m_raw_scroll;
-	Vec2 m_scroll;
-	Vec2 m_scroll_size;       /* scroll size */
-	Vec2 m_scroll_max;
-	Vec2 m_move_start_scroll;
-	uint64 m_move_start_time;
-	Vec2 m_move_point, m_move_dist;
-	Vec2 m_catch_position;
-	Vec2 m_h_scrollbar_position, m_v_scrollbar_position;
-	uint m_action_id;
-	Color m_scrollbar_color;
-	float m_scrollbar_width, m_scrollbar_margin, m_scrollbar_opacity;
-	float m_resistance;     /* 阻力 */
-	uint64 m_default_scroll_duration;
-	Curve* m_default_scroll_curve;
-	bool m_moved;           /* 受外力移动中 */
- protected: bool m_h_scroll, m_v_scroll;     /* 是否激活水平与垂直滚动 */
- private: bool m_h_scrollbar, m_v_scrollbar; /* 是否显示水平与垂直滚动条 */
-	bool m_bounce_lock;
-	bool m_lock_h, m_lock_v;
-	bool m_lock_direction;  /* 锁定方向 */
-	bool m_bounce;          /* 使用反弹力 */
-	bool m_momentum;        /* 是否使用惯性 */
-	bool m_scrollbar;       /* 显示scrollbar */
+	Box* _box;
+	Vec2 _raw_scroll;
+	Vec2 _scroll;
+	Vec2 _scroll_size;       /* scroll size */
+	Vec2 _scroll_max;
+	Vec2 _move_start_scroll;
+	uint64 _move_start_time;
+	Vec2 _move_point, _move_dist;
+	Vec2 _catch_position;
+	Vec2 _h_scrollbar_position, _v_scrollbar_position;
+	uint _action_id;
+	Color _scrollbar_color;
+	float _scrollbar_width, _scrollbar_margin, _scrollbar_opacity;
+	float _resistance;     /* 阻力 */
+	uint64 _default_scroll_duration;
+	Curve* _default_scroll_curve;
+	bool _moved;           /* 受外力移动中 */
+ protected: bool _h_scroll, _v_scroll;     /* 是否激活水平与垂直滚动 */
+ private: bool _h_scrollbar, _v_scrollbar; /* 是否显示水平与垂直滚动条 */
+	bool _bounce_lock;
+	bool _lock_h, _lock_v;
+	bool _lock_direction;  /* 锁定方向 */
+	bool _bounce;          /* 使用反弹力 */
+	bool _momentum;        /* 是否使用惯性 */
+	bool _scrollbar;       /* 显示scrollbar */
 };
 
 /**
@@ -336,52 +336,52 @@ class FX_EXPORT Scroll: public Panel, public BasicScroll {
 	/**
 	 * @func focus_margin_left get
 	 */
-	inline float focus_margin_left() const { return m_focus_margin_left; }
+	inline float focus_margin_left() const { return _focus_margin_left; }
 	
 	/**
 	 * @func focus_margin_right get
 	 */
-	inline float focus_margin_right() const { return m_focus_margin_right; }
+	inline float focus_margin_right() const { return _focus_margin_right; }
 	
 	/**
 	 * @func focus_margin_top get
 	 */
-	inline float focus_margin_top() const { return m_focus_margin_top; }
+	inline float focus_margin_top() const { return _focus_margin_top; }
 	
 	/**
 	 * @func focus_margin_bottom get
 	 */
-	inline float focus_margin_bottom() const { return m_focus_margin_bottom; }
+	inline float focus_margin_bottom() const { return _focus_margin_bottom; }
 	
 	/**
 	 * @func focus_align_x get
 	 */
-	inline Align focus_align_x() const { return m_focus_align_x; }
+	inline Align focus_align_x() const { return _focus_align_x; }
 	
 	/**
 	 * @func focus_align_y get
 	 */
-	inline Align focus_align_y() const { return m_focus_align_y; }
+	inline Align focus_align_y() const { return _focus_align_y; }
 	
 	/**
 	 * @func set_focus_margin_left set
 	 */
-	inline void set_focus_margin_left(float value) { m_focus_margin_left = value; }
+	inline void set_focus_margin_left(float value) { _focus_margin_left = value; }
 	
 	/**
 	 * @func set_focus_margin_right set
 	 */
-	inline void set_focus_margin_right(float value) { m_focus_margin_right = value; }
+	inline void set_focus_margin_right(float value) { _focus_margin_right = value; }
 	
 	/**
 	 * @func set_focus_margin_top set
 	 */
-	inline void set_focus_margin_top(float value) { m_focus_margin_top = value; }
+	inline void set_focus_margin_top(float value) { _focus_margin_top = value; }
 	
 	/**
 	 * @func set_focus_margin_bottom set
 	 */
-	inline void set_focus_margin_bottom(float value) { m_focus_margin_bottom = value; }
+	inline void set_focus_margin_bottom(float value) { _focus_margin_bottom = value; }
 	
 	/**
 	 * @func set_focus_align_x set
@@ -396,7 +396,7 @@ class FX_EXPORT Scroll: public Panel, public BasicScroll {
 	/**
 	 * @func enable_focus_align get
 	 */
-	inline bool enable_focus_align() const { return m_enable_focus_align; }
+	inline bool enable_focus_align() const { return _enable_focus_align; }
 	
 	/**
 	 * @func set_enable_select_scroll set
@@ -406,7 +406,7 @@ class FX_EXPORT Scroll: public Panel, public BasicScroll {
 	/**
 	 * @func enable_fixed_scroll_size
 	 */
-	inline bool enable_fixed_scroll_size() const { return m_enable_fixed_scroll_size; }
+	inline bool enable_fixed_scroll_size() const { return _enable_fixed_scroll_size; }
 	
 	/**
 	 * @func set_enable_fixed_scroll_size
@@ -425,14 +425,14 @@ class FX_EXPORT Scroll: public Panel, public BasicScroll {
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 	
-	float m_focus_margin_left;
-	float m_focus_margin_right;
-	float m_focus_margin_top;
-	float m_focus_margin_bottom;
-	Align m_focus_align_x;
-	Align m_focus_align_y;
-	bool  m_enable_focus_align;
-	bool  m_enable_fixed_scroll_size;
+	float _focus_margin_left;
+	float _focus_margin_right;
+	float _focus_margin_top;
+	float _focus_margin_bottom;
+	Align _focus_align_x;
+	Align _focus_align_y;
+	bool  _enable_focus_align;
+	bool  _enable_fixed_scroll_size;
 	
 };
 

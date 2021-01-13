@@ -447,8 +447,8 @@ void GUIApplication::send_email(cString& recipient,
 void AppInl::initialize(cJSON& options) {
 	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
-	m_draw_ctx = gl_draw_context->host();
-	ASSERT(m_draw_ctx);
+	_draw_ctx = gl_draw_context->host();
+	ASSERT(_draw_ctx);
 }
 
 /**
@@ -531,7 +531,7 @@ void DisplayPort::keep_screen(bool keep) {
  */
 float DisplayPort::status_bar_height() {
 	::CGRect rect = app_delegate.host.statusBarFrame;
-	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / m_scale_value[1];
+	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale_value[1];
 }
 
 /**
@@ -561,7 +561,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 			[app_delegate refresh_status];
 			
 			::CGRect rect = app_delegate.glview.frame;
-			m_host->render_loop()->post(Cb([this, rect](CbD& ev) {
+			_host->render_loop()->post(Cb([this, rect](CbD& ev) {
 				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					main_loop()->post(Cb([this](CbD& e){

@@ -176,24 +176,24 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 */
 	AndroidHardwareMediaCodec(Extractor* extractor, AMediaCodec* codec, AMediaFormat* format)
 		: MediaCodec(extractor)
-		, m_format(format)
-		, m_codec(codec)
-		, m_eof_flags(false)
-		, m_video_width(0)
-		, m_video_height(0)
-		, m_audio_frame_size(0)
-		, m_presentation_time(0)
-		, m_is_open(true)
+		, _format(format)
+		, _codec(codec)
+		, _eof_flags(false)
+		, _video_width(0)
+		, _video_height(0)
+		, _audio_frame_size(0)
+		, _presentation_time(0)
+		, _is_open(true)
 	{
 		const TrackInfo& track = extractor->track();
 
 		if ( type() == MEDIA_TYPE_VIDEO ) {
 			fetch_video_color_format();
-			m_video_width = track.width;
-			m_video_height = track.height;
+			_video_width = track.width;
+			_video_height = track.height;
 		} else {
-			m_channel_layout = track.channel_layout;
-			m_channel_count  = track.channel_count;
+			_channel_layout = track.channel_layout;
+			_channel_count  = track.channel_count;
 		}
 	}
 
@@ -201,22 +201,22 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 * @destructor
 	 */
 	virtual ~AndroidHardwareMediaCodec() {
-		AMediaCodec_delete(m_codec);   m_codec = nullptr;
-		AMediaFormat_delete(m_format); m_format = nullptr;
+		AMediaCodec_delete(_codec);   _codec = nullptr;
+		AMediaFormat_delete(_format); _format = nullptr;
 	}
 
 	/**
 	 * @func fetch_video_color_format
 	 * */
 	void fetch_video_color_format() {
-		// AMediaFormat* format = AMediaCodec_getOutputFormat(m_codec);
+		// AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
 		int num;
-		if ( AMediaFormat_getInt32(m_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, &num) ) {
+		if ( AMediaFormat_getInt32(_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, &num) ) {
 			switch (num) {
-				case 17: m_color_format = VIDEO_COLOR_FORMAT_YUV411P; break;
-				case 19: m_color_format = VIDEO_COLOR_FORMAT_YUV420P; break;
-				case 21: m_color_format = VIDEO_COLOR_FORMAT_YUV420SP; break;
-				default: m_color_format = VIDEO_COLOR_FORMAT_INVALID; break;
+				case 17: _color_format = VIDEO_COLOR_FORMAT_YUV411P; break;
+				case 19: _color_format = VIDEO_COLOR_FORMAT_YUV420P; break;
+				case 21: _color_format = VIDEO_COLOR_FORMAT_YUV420SP; break;
+				default: _color_format = VIDEO_COLOR_FORMAT_INVALID; break;
 			}
 		}
 	}
@@ -225,35 +225,35 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 */
 	virtual bool open() {
-		if ( !m_is_open ) {
-			int result = AMediaCodec_configure(m_codec, m_format, nullptr, nullptr, 0);
-			if ( result == 0 && AMediaCodec_start(m_codec) == 0 ) {
-				m_is_open = true;
+		if ( !_is_open ) {
+			int result = AMediaCodec_configure(_codec, _format, nullptr, nullptr, 0);
+			if ( result == 0 && AMediaCodec_start(_codec) == 0 ) {
+				_is_open = true;
 			}
 			bool ok = flush();
 		}
-		return m_is_open;
+		return _is_open;
 	}
 
 	/**
 	 * @overwrite
 	 */
 	virtual bool close() {
-		if ( m_is_open ) {
+		if ( _is_open ) {
 			bool ok = flush();
-			if ( AMediaCodec_stop(m_codec) == 0 ) {
-				m_is_open = false;
+			if ( AMediaCodec_stop(_codec) == 0 ) {
+				_is_open = false;
 			}
 		}
-		return !m_is_open;
+		return !_is_open;
 	}
 	
 	/**
 	 * @overwrite
 	 */
 	virtual bool flush() {
-		m_presentation_time = 0;
-		return AMediaCodec_flush(m_codec) == 0;
+		_presentation_time = 0;
+		return AMediaCodec_flush(_codec) == 0;
 	}
 
 	/**
@@ -261,16 +261,16 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 * */
 	virtual bool advance() {
 
-		if ( m_extractor->advance() ) {
-			m_eof_flags = false;
+		if ( _extractor->advance() ) {
+			_eof_flags = false;
 
-			ssize_t bufidx = AMediaCodec_dequeueInputBuffer(m_codec, 0);
+			ssize_t bufidx = AMediaCodec_dequeueInputBuffer(_codec, 0);
 			if ( bufidx >= 0 ) {
 				size_t bufsize;
-				uint8_t* buf = AMediaCodec_getInputBuffer(m_codec, bufidx, &bufsize);
-				uint sample_size = m_extractor->deplete_sample((char*)buf, bufsize);
-				int sample_flags = m_extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
-				uint64 sample_time = m_extractor->sample_time();
+				uint8_t * buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
+				uint sample_size = _extractor->deplete_sample((char*)buf, bufsize);
+				int sample_flags = _extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
+				uint64 sample_time = _extractor->sample_time();
 
 				if ( sample_time == 0 ) {
 					FX_DEBUG("advance:0");
@@ -283,7 +283,7 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 						WeakBuffer buffer((char*)buf, sample_size);
 						MediaCodec::convert_sample_data_to_nalu(buffer);
 					}
-					AMediaCodec_queueInputBuffer( m_codec, bufidx, 0,
+					AMediaCodec_queueInputBuffer( _codec, bufidx, 0,
 																				sample_size, sample_time, sample_flags);
 					return true;
 				}
@@ -296,15 +296,15 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 * @overwrite
 	 */
 	virtual OutputBuffer output() {
-		if ( ! m_eof_flags ) {
+		if ( ! _eof_flags ) {
 			AMediaCodecBufferInfo info;
-			ssize_t status = AMediaCodec_dequeueOutputBuffer(m_codec, &info, 0);
+			ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec, &info, 0);
 
 			if ( status >= 0 ) {
 				if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
 					FX_DEBUG("output EOS");
-					m_eof_flags = true;
-					m_delegate->media_decoder_eof(this, info.presentationTimeUs);
+					_eof_flags = true;
+					_delegate->media_decoder_eof(this, info.presentationTimeUs);
 				}
 				int64_t presentation = info.presentationTimeUs;
 
@@ -313,7 +313,7 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 				}
 
 				size_t size;
-				uint8_t* buffer = AMediaCodec_getOutputBuffer(m_codec, status, &size);
+				uint8_t * buffer = AMediaCodec_getOutputBuffer(_codec, status, &size);
 
 				if ( size ) {
 					OutputBuffer out;
@@ -321,39 +321,39 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 					out.time = presentation;
 					out.index = status;
 
-					m_presentation_time = out.time;
+					_presentation_time = out.time;
 					if ( type() == MEDIA_TYPE_AUDIO ) {
-						if (m_audio_frame_size == 0) {
+						if (_audio_frame_size == 0) {
 							inl_set_frame_size(info.size);
 						}
 						out.data[0] = buffer;
 						out.linesize[0] = info.size;
 					} else {
-						if (m_color_format == VIDEO_COLOR_FORMAT_YUV420P) {
-							out.linesize[0] = m_video_width * m_video_height;
+						if (_color_format == VIDEO_COLOR_FORMAT_YUV420P) {
+							out.linesize[0] = _video_width * _video_height;
 							out.linesize[1] = out.linesize[0] / 4;
 							out.linesize[2] = out.linesize[1];
 							out.data[0] = buffer;                                     // y
 							out.data[1] = buffer + out.linesize[0];                   // u
 							out.data[2] = buffer + out.linesize[0] + out.linesize[1]; // v
 						} else { // YUV420SP
-							out.linesize[0] = m_video_width * m_video_height;
+							out.linesize[0] = _video_width * _video_height;
 							out.linesize[1] = out.total - out.linesize[0];
 							out.data[0] = buffer;                                     // y
 							out.data[1] = buffer + out.linesize[0];                   // uv
 						}
 						if ( out.time == Uint64::max ) { //  Unknown time frame
-							out.time = m_presentation_time + m_frame_interval;
+							out.time = _presentation_time + _frame_interval;
 						}
 					}
 					return out;
 				} else {
-					AMediaCodec_releaseOutputBuffer(m_codec, status, true);
+					AMediaCodec_releaseOutputBuffer(_codec, status, true);
 				}
 			} else if ( status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED ) {
 				FX_DEBUG("output buffers changed");
 			} else if ( status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED ) {
-				AMediaFormat* format = AMediaCodec_getOutputFormat(m_codec);
+				AMediaFormat* format = AMediaCodec_getOutputFormat(_codec);
 				FX_DEBUG("format changed to: %s", AMediaFormat_toString(format));
 				AMediaFormat_delete(format);
 			} else if ( status == AMEDIACODEC_INFO_TRY_AGAIN_LATER ) {
@@ -370,17 +370,17 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 */
 	virtual void release(OutputBuffer& buffer) {
 		if ( buffer.total ) {
-			AMediaCodec_releaseOutputBuffer(m_codec, buffer.index, true);
+			AMediaCodec_releaseOutputBuffer(_codec, buffer.index, true);
 			memset(&buffer, 0, sizeof(OutputBuffer));
 		}
 	}
 
 	void inl_set_frame_size(uint size) {
-		m_audio_frame_size = size;
+		_audio_frame_size = size;
 		// compute audio frame interval
 		const TrackInfo &track = extractor()->track();
-		uint64 second_size = track.sample_rate * m_channel_count * 2;
-		m_frame_interval = uint64(m_audio_frame_size) * 1000 * 1000 / second_size;
+		uint64 second_size = track.sample_rate * _channel_count * 2;
+		_frame_interval = uint64(_audio_frame_size) * 1000 * 1000 / second_size;
 	}
 
 	/**
@@ -401,14 +401,14 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	// --------------------- @overwrite end ---------------------
 
 private:
-	AMediaFormat* m_format;
-	AMediaCodec*  m_codec;
-	bool          m_eof_flags;
-	uint          m_video_width;
-	uint          m_video_height;
-	uint          m_audio_frame_size;
-	uint64        m_presentation_time;
-	bool          m_is_open;
+	AMediaFormat* _format;
+	AMediaCodec*  _codec;
+	bool          _eof_flags;
+	uint          _video_width;
+	uint          _video_height;
+	uint          _audio_frame_size;
+	uint64        _presentation_time;
+	bool          _is_open;
 };
 
 /**

@@ -176,7 +176,7 @@ template<class Basic> class MyGLDraw: public Basic {
 		, proxy_(this, display, config, ctx)
 		, multisample_ok_(multisample_ok) 
 	{
-		this->m_library = library;
+		this->_library = library;
 	}
 	virtual void refresh_buffer() { proxy_.refresh_buffer(); }
 	virtual void begin_render() { proxy_.begin_render(); }
@@ -234,34 +234,34 @@ GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
 
 GLDrawProxy::GLDrawProxy(GLDraw* host, 
 	EGLDisplay display, EGLConfig cfg, EGLContext ctx)
-: m_display(display)
-, m_config(cfg)
-, m_context(ctx)
-, m_surface(EGL_NO_SURFACE)
-, m_window(EGL_NO_NATIVE_WINDOW)
-, m_host(host) {
+: _display(display)
+, _config(cfg)
+, _context(ctx)
+, _surface(EGL_NO_SURFACE)
+, _window(EGL_NO_NATIVE_WINDOW)
+, _host(host) {
 
 }
 
 GLDrawProxy::~GLDrawProxy() {
-	if ( m_display != EGL_NO_DISPLAY ) {
-		eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if ( m_context != EGL_NO_CONTEXT ) {
-			eglDestroyContext(m_display, m_context);
+	if ( _display != EGL_NO_DISPLAY ) {
+		eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if ( _context != EGL_NO_CONTEXT ) {
+			eglDestroyContext(_display, _context);
 		}
-		if ( m_surface != EGL_NO_SURFACE ) {
-			eglDestroySurface(m_display, m_surface);
+		if ( _surface != EGL_NO_SURFACE ) {
+			eglDestroySurface(_display, _surface);
 		}
-		eglTerminate(m_display);
+		eglTerminate(_display);
 	}
-	m_display = EGL_NO_DISPLAY;
-	m_context = EGL_NO_CONTEXT;
-	m_surface = EGL_NO_SURFACE;
-	m_window = EGL_NO_NATIVE_WINDOW;
+	_display = EGL_NO_DISPLAY;
+	_context = EGL_NO_CONTEXT;
+	_surface = EGL_NO_SURFACE;
+	_window = EGL_NO_NATIVE_WINDOW;
 }
 
 GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
-	if (m_host->library() == DRAW_LIBRARY_GLES2) {
+	if (_host->library() == DRAW_LIBRARY_GLES2) {
 		switch (pixel_format) {
 			case PixelData::RGBA4444:
 			case PixelData::RGBX4444:
@@ -275,7 +275,7 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 			case PixelData::LUMINANCE_ALPHA88: return GL_LUMINANCE_ALPHA;
 			// compressd
 			case PixelData::ETC1: 
-				return m_host->is_support_compressed_ETC1() ? GL_ETC1_RGB8_OES : 0;
+				return _host->is_support_compressed_ETC1() ? GL_ETC1_RGB8_OES : 0;
 				// return is_support_compressed_ETC1() ? GL_COMPRESSED_RGB8_ETC2 : 0;
 			default: return 0;
 		}
@@ -308,11 +308,11 @@ GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
 }
 
 void GLDrawProxy::initialize() {
-	m_host->initialize();
+	_host->initialize();
 #if FX_ANDROID
-	m_host->set_best_display_scale(Android::get_display_scale());
+	_host->set_best_display_scale(Android::get_display_scale());
 #else 
-	m_host->set_best_display_scale(1.0 / DisplayPort::default_atom_pixel());
+	_host->set_best_display_scale(1.0 / DisplayPort::default_atom_pixel());
 #endif 
 	refresh_surface_size(nullptr);
 }
@@ -326,9 +326,9 @@ static Vec2 get_window_size(EGLNativeWindowType win) {
 }
 
 bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
-	ASSERT(!m_window);
-	ASSERT(!m_surface);
-	EGLSurface surface = eglCreateWindowSurface(m_display, m_config, window, nullptr);
+	ASSERT(!_window);
+	ASSERT(!_surface);
+	EGLSurface surface = eglCreateWindowSurface(_display, _config, window, nullptr);
 
 	if ( !surface ) {
 		FX_ERR("Unable to create a drawing surface");
@@ -340,54 +340,54 @@ bool GLDrawProxy::create_surface(EGLNativeWindowType window) {
  #define CHECK(ok) \
 	if ( !(ok) ) { \
 		FX_ERR("Unable to make egl current"); \
-		eglDestroySurface(m_display, surface); \
+		eglDestroySurface(_display, surface); \
 		return false; \
 	}
 
-	// m_host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
-	// 	ok = eglMakeCurrent(m_display, surface, surface, m_context);
+	// _host->host()->main_loop()->post_sync(Cb([&ok, this, surface](Se &ev) {
+	// 	ok = eglMakeCurrent(_display, surface, surface, _context);
 	// 	ASSERT(ok);
 	// }));
 	// CHECK(ok);
 	
-	CHECK(eglMakeCurrent(m_display, surface, surface, m_context));
+	CHECK(eglMakeCurrent(_display, surface, surface, _context));
 
-	m_window = window;
-	m_surface = surface;
-	m_raw_surface_size = get_window_size(window);
+	_window = window;
+	_surface = surface;
+	_raw_surface_size = get_window_size(window);
 
 	return true;
 }
 
 void GLDrawProxy::destroy_surface(EGLNativeWindowType window) {
-	if ( m_window ) {
-		ASSERT(window == m_window);
-		if (m_surface) {
-			eglDestroySurface(m_display, m_surface);
+	if ( _window ) {
+		ASSERT(window == _window);
+		if (_surface) {
+			eglDestroySurface(_display, _surface);
 		}
-		m_window = EGL_NO_NATIVE_WINDOW;
-		m_surface = nullptr;
+		_window = EGL_NO_NATIVE_WINDOW;
+		_surface = nullptr;
 	}
 }
 
 void GLDrawProxy::refresh_surface_size(CGRect* rect) {
 
-	if ( m_window ) {
-		m_raw_surface_size = get_window_size(m_window);
+	if ( _window ) {
+		_raw_surface_size = get_window_size(_window);
 	}
 
-	if ( m_raw_surface_size[0] == 0 || m_raw_surface_size[1] == 0 ) return;
+	if ( _raw_surface_size[0] == 0 || _raw_surface_size[1] == 0 ) return;
 
 	if ( rect == nullptr ) {
-		CGRect region = m_host->selected_region(); // 使用上次的区域，如果这是有效的
+		CGRect region = _host->selected_region(); // 使用上次的区域，如果这是有效的
 
 		if (region.size[0] == 0 || region.size[1] == 0) { // 区域无效
-			m_host->set_surface_size(m_raw_surface_size);
+			_host->set_surface_size(_raw_surface_size);
 		} else {
-			m_host->set_surface_size(m_raw_surface_size, &region);
+			_host->set_surface_size(_raw_surface_size, &region);
 		}
 	} else {
-		m_host->set_surface_size(m_raw_surface_size, rect);
+		_host->set_surface_size(_raw_surface_size, rect);
 	}
 
 	// set virtual keys rect
@@ -397,28 +397,28 @@ void GLDrawProxy::refresh_surface_size(CGRect* rect) {
 void GLDrawProxy::refresh_virtual_keyboard_rect() {
 	// draw android virtual keyboard rect
 #if FX_ANDROID
-	m_virtual_keys_rect = CGRect();
+	_virtual_keys_rect = CGRect();
 
-	Vec2 scale = m_host->host()->display_port()->scale_value();
-	CGRect region = m_host->selected_region();
+	Vec2 scale = _host->host()->display_port()->scale_value();
+	CGRect region = _host->selected_region();
 
-	int width = int(m_host->surface_size().width() - region.size.width());
-	int height = int(m_host->surface_size().height() - region.size.height());
+	int width = int(_host->surface_size().width() - region.size.width());
+	int height = int(_host->surface_size().height() - region.size.height());
 
 	if ( width > 0 ) { // left / right
 		if ( region.origin.x() == 0 ) { // right，虚拟键盘在`right`
-			m_virtual_keys_rect = {
+			_virtual_keys_rect = {
 							Vec2(region.size.width() / scale[0], 0),
 							Vec2(width / scale[0], region.size.height() / scale[1])
 			};
 		} else { // left，虚拟键盘在`left`
-			m_virtual_keys_rect = {
+			_virtual_keys_rect = {
 							Vec2(-region.origin.x() / scale[0], 0),
 							Vec2(region.origin.x() / scale[0], region.size.height() / scale[1])
 			};
 		}
 	} else if ( height > 0 ) { // bottom，虚拟键盘在`bottom`
-		m_virtual_keys_rect = {
+		_virtual_keys_rect = {
 						Vec2(0, region.size.height() / scale[0]),
 						Vec2(region.size.width() / scale[0], height / scale[1])
 		};
@@ -428,10 +428,10 @@ void GLDrawProxy::refresh_virtual_keyboard_rect() {
 
 void GLDrawProxy::refresh_buffer() {
 
-	if (m_host->surface_size() == Vec2())
+	if (_host->surface_size() == Vec2())
 		return;
 
-	Vec2 size = m_host->surface_size();
+	Vec2 size = _host->surface_size();
 	int width = size.width();
 	int height = size.height();
 
@@ -449,21 +449,21 @@ void GLDrawProxy::refresh_buffer() {
 }
 
 void GLDrawProxy::begin_render() {
-	m_host->m_stencil_ref_value = 0;
-	m_host->m_root_stencil_ref_value = 0;
-	m_host->m_current_frame_buffer = 0;
+	_host->_stencil_ref_value = 0;
+	_host->_root_stencil_ref_value = 0;
+	_host->_current_frame_buffer = 0;
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_STENCIL_TEST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void GLDrawProxy::commit_render() {
-	if ( m_host->is_support_vao() ) {
+	if ( _host->is_support_vao() ) {
 		glBindVertexArray(0);
 	}
 
-	// #define gl_ glshaders(m_host)
-	if ( m_virtual_keys_rect.size.width() != 0 ) {
+	// #define gl_ glshaders(_host)
+	if ( _virtual_keys_rect.size.width() != 0 ) {
 		// Draw Virtual Keys background color  
 
 		float view_matrix[] = {
@@ -474,25 +474,25 @@ void GLDrawProxy::commit_render() {
 		glUseProgram(shader::box_color.shader);
 		glUniform1fv(shader::box_color.view_matrix, 7, view_matrix);
 		glUniform4f(shader::box_color.vertex_ac,
-								m_virtual_keys_rect.origin[0], // vertex_ac
-								m_virtual_keys_rect.origin[1],
-								m_virtual_keys_rect.origin[0] + m_virtual_keys_rect.size[0],
-								m_virtual_keys_rect.origin[1] + m_virtual_keys_rect.size[1]);
+								_virtual_keys_rect.origin[0], // vertex_ac
+								_virtual_keys_rect.origin[1],
+								_virtual_keys_rect.origin[0] + _virtual_keys_rect.size[0],
+								_virtual_keys_rect.origin[1] + _virtual_keys_rect.size[1]);
 		glUniform4f(shader::box_color.border_width, 0, 0, 0, 0);
 		glUniform4f(shader::box_color.radius_size, 0, 0, 0, 0);
 		glUniform4f(shader::box_color.background_color, 0, 0, 0, 1);
 		glUniform1i(shader::box_color.is_radius, 0);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
-	eglSwapBuffers(m_display, m_surface);
+	eglSwapBuffers(_display, _surface);
 }
 
 void GLDrawProxy::initializ_gl_buffers() {
-	if ( ! m_host->m_frame_buffer ) {
+	if ( ! _host->_frame_buffer ) {
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(1, &m_host->m_frame_buffer);
-		if ( m_host->is_support_query() ) { // 屏幕遮挡查询对像
-			glGenQueries(1, &m_host->m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE);
+		glGenFramebuffers(1, &_host->_frame_buffer);
+		if ( _host->is_support_query() ) { // 屏幕遮挡查询对像
+			glGenQueries(1, &_host->_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE);
 		}
 	}
 }

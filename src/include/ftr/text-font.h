@@ -55,7 +55,7 @@ namespace ftr {
 			float   offset_start;   // 偏移开始
 			uint    begin;          // 在字符中有开始索引
 			Array<float>  offset;   // 偏移表
-			Array<uint16_t> chars;  // 字符表
+			Array<uint16_t > chars;  // 字符表
 			bool    reverse;        // 反向排列
 		};
 		
@@ -74,14 +74,14 @@ namespace ftr {
 		};
 		
 		// get attrs
-		inline TextColor text_background_color() const { return m_text_background_color; }
-		inline TextColor text_color() const { return m_text_color; }
-		inline TextSize text_size() const { return m_text_size; }
-		inline TextStyle text_style() const { return m_text_style; }
-		inline TextFamily text_family() const { return m_text_family; }
-		inline TextShadow text_shadow() const { return m_text_shadow; }
-		inline TextLineHeight text_line_height() const { return m_text_line_height; }
-		inline TextDecoration text_decoration() const { return m_text_decoration; }
+		inline TextColor text_background_color() const { return _text_background_color; }
+		inline TextColor text_color() const { return _text_color; }
+		inline TextSize text_size() const { return _text_size; }
+		inline TextStyle text_style() const { return _text_style; }
+		inline TextFamily text_family() const { return _text_family; }
+		inline TextShadow text_shadow() const { return _text_shadow; }
+		inline TextLineHeight text_line_height() const { return _text_line_height; }
+		inline TextDecoration text_decoration() const { return _text_decoration; }
 		// set attrs
 		void set_text_background_color(TextColor value);
 		void set_text_color(TextColor value);
@@ -109,7 +109,7 @@ namespace ftr {
 		* @func get_font_glyph_table
 		*/
 		inline FontGlyphTable* get_font_glyph_table_and_height(Data& data) {
-			return get_font_glyph_table_and_height(data, m_text_line_height.value);
+			return get_font_glyph_table_and_height(data, _text_line_height.value);
 		}
 		
 		/**
@@ -143,14 +143,14 @@ namespace ftr {
 		
 		protected:
 
-		TextColor   m_text_background_color;  // 文本背景颜色
-		TextColor   m_text_color;             // 字体颜色
-		TextSize    m_text_size;              // 字体尺寸
-		TextStyle   m_text_style;             // 字体样式
-		TextFamily  m_text_family;            // 字体名称
-		TextLineHeight  m_text_line_height;  // 行高
-		TextShadow      m_text_shadow;       // 文本阴影
-		TextDecoration  m_text_decoration;   // 文本装饰
+		TextColor   _text_background_color;  // 文本背景颜色
+		TextColor   _text_color;             // 字体颜色
+		TextSize    _text_size;              // 字体尺寸
+		TextStyle   _text_style;             // 字体样式
+		TextFamily  _text_family;            // 字体名称
+		TextLineHeight  _text_line_height;  // 行高
+		TextShadow      _text_shadow;       // 文本阴影
+		TextDecoration  _text_decoration;   // 文本装饰
 		
 		friend class GLDraw;
 	};
@@ -163,8 +163,8 @@ namespace ftr {
 		
 		TextLayout();
 		
-		inline TextOverflow text_overflow() const { return m_text_overflow; }
-		inline TextWhiteSpace text_white_space() const { return m_text_white_space; }
+		inline TextOverflow text_overflow() const { return _text_overflow; }
+		inline TextWhiteSpace text_white_space() const { return _text_white_space; }
 		
 		void set_text_overflow(TextOverflow value);
 		void set_text_white_space(TextWhiteSpace value);
@@ -213,7 +213,7 @@ namespace ftr {
 		* @func set_text_layout_offset
 		*/
 		void set_text_layout_offset(TextRows* rows, Vec2 limit,
-																Data& data, uint16 security, uint count, Options* opts = nullptr);
+																Data& data, uint16_t security, uint count, Options* opts = nullptr);
 		
 		/**
 		* @func mark_text
@@ -227,8 +227,8 @@ namespace ftr {
 		
 		protected:
 		
-		TextOverflow    m_text_overflow;     // 文本溢出
-		TextWhiteSpace  m_text_white_space;  // 空白处理
+		TextOverflow    _text_overflow;     // 文本溢出
+		TextWhiteSpace  _text_white_space;  // 空白处理
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		

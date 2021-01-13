@@ -39,7 +39,7 @@
 
 FX_NS(ftr)
 
-#define is_mark_pre m_prev_pre_mark
+#define is_mark_pre _prev_pre_mark
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
 
 /**
@@ -53,21 +53,21 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 * @func delete_mark 从原来的位置删除
 	 */
 	void delete_mark() {
-		m_prev_pre_mark->m_next_pre_mark = m_next_pre_mark;
-		m_next_pre_mark->m_prev_pre_mark = m_prev_pre_mark;
-		m_prev_pre_mark = nullptr;
-		m_next_pre_mark = nullptr;
+		_prev_pre_mark->_next_pre_mark = _next_pre_mark;
+		_next_pre_mark->_prev_pre_mark = _prev_pre_mark;
+		_prev_pre_mark = nullptr;
+		_next_pre_mark = nullptr;
 	}
 	
 	/**
 	 * @func safe_delete_mark 从原来的位置删除
 	 */
 	void safe_delete_mark() {
-		if ( m_prev_pre_mark ) {
-			m_prev_pre_mark->m_next_pre_mark = m_next_pre_mark;
-			m_next_pre_mark->m_prev_pre_mark = m_prev_pre_mark;
-			m_prev_pre_mark = nullptr;
-			m_next_pre_mark = nullptr;
+		if ( _prev_pre_mark ) {
+			_prev_pre_mark->_next_pre_mark = _next_pre_mark;
+			_next_pre_mark->_prev_pre_mark = _prev_pre_mark;
+			_prev_pre_mark = nullptr;
+			_next_pre_mark = nullptr;
 		}
 	}
 	
@@ -83,8 +83,8 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 * @func inl_remove_all_child
 	 */
 	void inl_remove_all_child() {
-		while (m_first) {
-			m_first->remove();
+		while (_first) {
+			_first->remove();
 		}
 	}
 	
@@ -92,18 +92,18 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 * @func clear # 清理关联视图信息
 	 */
 	void clear() {
-		if (m_parent) {
+		if (_parent) {
 			/* 当前为第一个子视图 */
-			if (m_parent->m_first == this) {
-				m_parent->m_first = m_next;
+			if (_parent->_first == this) {
+				_parent->_first = _next;
 			} else {
-				m_prev->m_next = m_next;
+				_prev->_next = _next;
 			}
 			/* 当前为最后一个子视图 */
-			if (m_parent->m_last == this) {
-				m_parent->m_last = m_prev;
+			if (_parent->_last == this) {
+				_parent->_last = _prev;
 			} else {
-				m_next->m_prev = m_prev;
+				_next->_prev = _prev;
 			}
 		}
 	}
@@ -113,8 +113,8 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 * @arg {int} level
 	 */
 	void set_level_and_visible(int level, bool visible) {
-		m_level = level;
-		m_final_visible = visible = visible && m_visible;
+		_level = level;
+		_final_visible = visible = visible && _visible;
 
 		if ( !visible ) {
 			blur();
@@ -129,29 +129,29 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		}
 		
 		level++;
-		View* v = m_first;
+		View* v = _first;
 		
 		while ( v ) {
 			_inl(v)->set_level_and_visible(level, visible);
-			v = v->m_next;
+			v = v->_next;
 		}
 	}
 	
 	void set_level0_and_visible_false() {
-		if ( m_level ) {
-			m_level = 0;
-			m_final_visible = false;
+		if ( _level ) {
+			_level = 0;
+			_final_visible = false;
 			blur();
 			
 			if ( is_mark_pre ) {
 				delete_mark();
 			}
 			
-			View* v = m_first;
+			View* v = _first;
 			
 			while ( v ) {
 				_inl(v)->set_level0_and_visible_false();
-				v = v->m_next;
+				v = v->_next;
 			}
 		}
 	}
@@ -160,19 +160,19 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 * @func set_final_visible_true
 	 */
 	void set_final_visible_true() {
-		if ( m_visible && ! m_final_visible ) {
-			m_final_visible = true;
+		if ( _visible && ! _final_visible ) {
+			_final_visible = true;
 			
 			Layout* layout = as_layout();
 			if ( layout && layout->mark_value ) {
 				pre_render()->mark_pre(layout);
 			}
 			
-			View* view = m_first;
+			View* view = _first;
 			
 			while (view) {
 				_inl(view)->set_final_visible_true();
-				view = view->m_next;
+				view = view->_next;
 			}
 		}
 	}
@@ -182,15 +182,15 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 */
 	void set_final_visible_false() {
 		
-		if ( m_final_visible ) {
-			m_final_visible = false;
+		if ( _final_visible ) {
+			_final_visible = false;
 			blur();
 			
-			View* view = m_first;
+			View* view = _first;
 			
 			while (view) {
 				_inl(view)->set_final_visible_false();
-				view = view->m_next;
+				view = view->_next;
 			}
 		}
 	}
@@ -201,26 +201,26 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	FX_INLINE void compute_basic_transform_matrix() {
 		// xy 布局偏移
 		Vec2 offset = layout_offset();
-		Vec2 layout_in = m_parent->layout_in_offset();
-		offset.x( offset.x() + m_origin.x() + m_translate.x() - layout_in.x() );
-		offset.y( offset.y() + m_origin.y() + m_translate.y() - layout_in.y() );
+		Vec2 layout_in = _parent->layout_in_offset();
+		offset.x( offset.x() + _origin.x() + _translate.x() - layout_in.x() );
+		offset.y( offset.y() + _origin.y() + _translate.y() - layout_in.y() );
 		// 更新基础矩阵
-		m_matrix = Mat(offset, m_scale, -m_rotate_z, m_skew);
+		_matrix = Mat(offset, _scale, -_rotate_z, _skew);
 	}
 	
 	/**
 	 * @func compute_final_matrix
 	 */
 	bool compute_final_matrix() {
-		if ( m_parent ) {
-			if ( _inl(m_parent)->compute_final_matrix() || (mark_value & M_TRANSFORM) ) {
-				m_parent->m_final_matrix.multiplication(matrix(), m_final_matrix);
+		if ( _parent ) {
+			if ( _inl(_parent)->compute_final_matrix() || (mark_value & M_TRANSFORM) ) {
+				_parent->_final_matrix.multiplication(matrix(), _final_matrix);
 				revoke_mark_value(mark_value, M_TRANSFORM); //  Delete M_TRANSFORM
 				return true;
 			}
 		} else {
 			if ( mark_value & M_TRANSFORM ) {
-				m_final_matrix = matrix();
+				_final_matrix = matrix();
 				revoke_mark_value(mark_value, M_TRANSFORM); //  Delete M_TRANSFORM
 				return true;
 			}
@@ -232,15 +232,15 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	 * @func compute_final_opacity
 	 */
 	bool compute_final_opacity() {
-		if ( m_parent ) {
-			if ( _inl(m_parent)->compute_final_opacity() || (mark_value & M_OPACITY) ) {
-				m_final_opacity = m_parent->m_final_opacity * m_opacity;
+		if ( _parent ) {
+			if ( _inl(_parent)->compute_final_opacity() || (mark_value & M_OPACITY) ) {
+				_final_opacity = _parent->_final_opacity * _opacity;
 				revoke_mark_value(mark_value, M_OPACITY); //  Delete M_OPACITY
 				return true;
 			}
 		} else {
 			if ( mark_value & M_OPACITY ) {
-				m_final_opacity = m_opacity;
+				_final_opacity = _opacity;
 				revoke_mark_value(mark_value, M_OPACITY); //  Delete M_OPACITY
 				return true;
 			}
@@ -255,12 +255,12 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		
 		Vec2 offset = layout_offset();
 		
-		if ( m_parent && m_parent != parents ) {
-			Vec2 parent_offset = _inl(m_parent)->layout_offset_from(parents);
-			Vec2 parent_in_offset = _inl(m_parent)->layout_in_offset();
+		if ( _parent && _parent != parents ) {
+			Vec2 parent_offset = _inl(_parent)->layout_offset_from(parents);
+			Vec2 parent_in_offset = _inl(_parent)->layout_in_offset();
 			
-			return Vec2(offset.x() + parent_offset.x() - parent_in_offset.x() + m_origin.x(),
-									offset.y() + parent_offset.y() - parent_in_offset.x() + m_origin.y() );
+			return Vec2(offset.x() + parent_offset.x() - parent_in_offset.x() + _origin.x(),
+									offset.y() + parent_offset.y() - parent_in_offset.x() + _origin.y() );
 		}
 		
 		return offset;
@@ -268,16 +268,16 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	
 	void full_refresh_styles(StyleSheetsScope* scope) {
 
-		if ( m_classs ) {
-			m_classs->apply(scope);
+		if ( _classs ) {
+			_classs->apply(scope);
 		}
 		
-		View* v = m_first;
+		View* v = _first;
 		if ( v ) {
 			scope->push_scope(this);
 			while (v) {
 				_inl(v)->full_refresh_styles( scope );
-				v = v->m_next;
+				v = v->_next;
 			}
 			scope->pop_scope();
 		}
@@ -286,18 +286,18 @@ FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 	}
 	
 	void local_refresh_styles(StyleSheetsScope* scope) {
-		if ( m_classs ) {
+		if ( _classs ) {
 			bool effect_child = false;
-			m_classs->apply(scope, &effect_child);
+			_classs->apply(scope, &effect_child);
 			
 			if ( effect_child ) { // effect child
 				
-				View* v = m_first;
+				View* v = _first;
 				if ( v ) {
 					scope->push_scope(this);
 					while (v) {
 						_inl(v)->full_refresh_styles( scope );
-						v = v->m_next;
+						v = v->_next;
 					}
 					scope->pop_scope();
 				}
@@ -313,33 +313,33 @@ void _view_inl__safe_delete_mark(View* view) {
 }
 
 View::View()
-: m_parent(nullptr)
-, m_prev(nullptr)
-, m_next(nullptr)
-, m_first(nullptr)
-, m_last(nullptr)
-, m_translate()
-, m_scale(1)
-, m_skew(0)
-, m_rotate_z(0)
-, m_opacity(1)
-, m_prev_pre_mark(nullptr)
-, m_next_pre_mark(nullptr)
-, m_classs(nullptr)
-, m_level(0)
-, m_matrix()
-, m_origin()
-, m_final_matrix()
-, m_final_opacity(1)
+: _parent(nullptr)
+, _prev(nullptr)
+, _next(nullptr)
+, _first(nullptr)
+, _last(nullptr)
+, _translate()
+, _scale(1)
+, _skew(0)
+, _rotate_z(0)
+, _opacity(1)
+, _prev_pre_mark(nullptr)
+, _next_pre_mark(nullptr)
+, _classs(nullptr)
+, _level(0)
+, _matrix()
+, _origin()
+, _final_matrix()
+, _final_opacity(1)
 , mark_value(0)
-, m_visible(true)
-, m_final_visible(false)
-, m_draw_visible(false)
-, m_need_draw(true)
-, m_child_change_flag(false)
-, m_receive(false)
-, m_ctx_data(nullptr)
-, m_action(nullptr)
+, _visible(true)
+, _final_visible(false)
+, _draw_visible(false)
+, _need_draw(true)
+, _child_change_flag(false)
+, _receive(false)
+, _ctx_data(nullptr)
+, _action(nullptr)
 {	
 }
 
@@ -348,7 +348,7 @@ View::View()
  */
 View::~View() {
 
-	ASSERT(m_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+	ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 	
 	blur();
 	
@@ -360,10 +360,10 @@ View::~View() {
 		_inl(this)->delete_mark();
 	}
 	
-	if ((size_t)m_ctx_data > 0x1) {
-		delete m_ctx_data; m_ctx_data = nullptr;
+	if ((size_t)_ctx_data > 0x1) {
+		delete _ctx_data; _ctx_data = nullptr;
 	}
-	Release(m_classs); m_classs = nullptr;
+	Release(_classs); _classs = nullptr;
 }
 
 /**
@@ -371,22 +371,22 @@ View::~View() {
  */
 void View::set_parent(View* parent) throw(Error) {
 	// clear parent
-	if (parent != m_parent) {
+	if (parent != _parent) {
 		_inl(this)->clear();
 		
-		if ( !m_parent ) {
+		if ( !_parent ) {
 			retain(); // link to parent and retain ref
 		}
-		m_parent = parent;
+		_parent = parent;
 		
 		// 设置level
-		uint level = parent->m_level;
+		uint level = parent->_level;
 		if (level) {
-			if ( level + 1 != m_level ) {
-				_inl(this)->set_level_and_visible(level + 1, parent->m_final_visible);
+			if ( level + 1 != _level ) {
+				_inl(this)->set_level_and_visible(level + 1, parent->_final_visible);
 			} else {
-				if ( m_final_visible != parent->m_final_visible ) {
-					if ( m_final_visible ) {
+				if ( _final_visible != parent->_final_visible ) {
+					if ( _final_visible ) {
 						_inl(this)->set_final_visible_false();
 					} else {
 						_inl(this)->set_final_visible_true();
@@ -405,7 +405,7 @@ void View::set_parent(View* parent) throw(Error) {
  * #func remove # 删除当前视图,并不从内存清空视图数据
  */
 void View::remove() {
-	if (m_parent) {
+	if (_parent) {
 
 		blur(); // 辞去焦点
 		
@@ -420,8 +420,8 @@ void View::remove() {
 		_inl(this)->clear();
 		
 		remove_event_listener();
-		m_level = 0;
-		m_parent = m_prev = m_next = nullptr;
+		_level = 0;
+		_parent = _prev = _next = nullptr;
 		release(); // Disconnect from parent view strong reference
 	}
 	else {
@@ -435,10 +435,10 @@ void View::remove() {
  * @func accept_text
  */
 void View::accept_text(Ucs2StringBuilder& out) const {
-	View* view = m_first;
+	View* view = _first;
 	while (view) {
 		view->accept_text(out);
-		view = view->m_next;
+		view = view->_next;
 	}
 }
 
@@ -467,22 +467,22 @@ View* View::append_text(cUcs2String& str) throw(Error) {
  * @arg child {View*} # 要前置的元素
  */
 void View::prepend(View* child) throw(Error) {
-	if (this == child->m_parent)
+	if (this == child->_parent)
 		_inl(child)->clear();
 	else
 		child->set_parent(this);
 	
-	if (m_first) {
-		child->m_prev = NULL;
-		child->m_next = m_first;
-		m_first->m_prev = child;
-		m_first = child;
+	if (_first) {
+		child->_prev = NULL;
+		child->_next = _first;
+		_first->_prev = child;
+		_first = child;
 	}
 	else { // 当前还没有子视图
-		child->m_prev = NULL;
-		child->m_next = NULL;
-		m_first = child;
-		m_last = child;
+		child->_prev = NULL;
+		child->_next = NULL;
+		_first = child;
+		_last = child;
 	}
 }
 
@@ -491,22 +491,22 @@ void View::prepend(View* child) throw(Error) {
  * @arg child {View*} # 要追加的元素
  */
 void View::append(View* child) throw(Error) {
-	if (this == child->m_parent)
+	if (this == child->_parent)
 		_inl(child)->clear();
 	else
 		child->set_parent(this);
 	
-	if (m_last) {
-		child->m_prev = m_last;
-		child->m_next = NULL;
-		m_last->m_next = child;
-		m_last = child;
+	if (_last) {
+		child->_prev = _last;
+		child->_next = NULL;
+		_last->_next = child;
+		_last = child;
 	}
 	else { // 当前还没有子视图
-		child->m_prev = NULL;
-		child->m_next = NULL;
-		m_first = child;
-		m_last = child;
+		child->_prev = NULL;
+		child->_next = NULL;
+		_first = child;
+		_last = child;
 	}
 }
 
@@ -515,21 +515,21 @@ void View::append(View* child) throw(Error) {
  * @arg view {View*} # 要插入的元素
  */
 void View::before(View* view) throw(Error) {
-	if (m_parent) {
+	if (_parent) {
 		if (view == this) return;
-		if (view->m_parent == m_parent)
+		if (view->_parent == _parent)
 			_inl(view)->clear();  // 清除关联
 		else
-			view->set_parent(m_parent);
+			view->set_parent(_parent);
 		
-		if (m_prev) {
-			m_prev->m_next = view;
+		if (_prev) {
+			_prev->_next = view;
 		} else { // 上面没有兄弟
-			m_parent->m_first = view;
+			_parent->_first = view;
 		}
-		view->m_prev = m_prev;
-		view->m_next = this;
-		m_prev = view;
+		view->_prev = _prev;
+		view->_next = this;
+		_prev = view;
 	}
 	
 }
@@ -539,21 +539,21 @@ void View::before(View* view) throw(Error) {
  * @arg view {View*} # 要插入的元素
  */
 void View::after(View* view) throw(Error) {
-	if (m_parent) {
+	if (_parent) {
 		if (view == this) return;
-		if (view->m_parent == m_parent)
+		if (view->_parent == _parent)
 			_inl(view)->clear(); // 清除关联
 		else
-			view->set_parent(m_parent);
+			view->set_parent(_parent);
 		
-		if (m_next) {
-			m_next->m_prev = view;
+		if (_next) {
+			_next->_prev = view;
 		} else { // 下面没有兄弟
-			m_parent->m_last = view;
+			_parent->_last = view;
 		}
-		view->m_prev = this;
-		view->m_next = m_next;
-		m_next = view;
+		view->_prev = this;
+		view->_next = _next;
+		_next = view;
 	}
 }
 
@@ -565,51 +565,51 @@ void View::remove_all_child() {
 }
 
 void View::set_x(float value) {
-	m_translate.x(value);
+	_translate.x(value);
 	mark(M_MATRIX); // 标记基础变换
 }
 
 void View::set_y(float value) {
-	m_translate.y(value);
+	_translate.y(value);
 	mark(M_MATRIX); // 标记基础变换
 }
 
 void View::set_scale_x(float value) {
-	m_scale.x(value);
+	_scale.x(value);
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_scale_y(float value) {
-	m_scale.y(value);
+	_scale.y(value);
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_rotate_z(float value) {
-	m_rotate_z = value;
+	_rotate_z = value;
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_skew_x(float value) {
-	m_skew.x(value);
+	_skew.x(value);
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_skew_y(float value) {
-	m_skew.y(value);
+	_skew.y(value);
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_opacity(float value) {
-	m_opacity = value;
+	_opacity = value;
 	mark(M_OPACITY);
 }
 
 void View::set_visible(bool value) {
-	if (m_visible != value) {
-		m_visible = value;
+	if (_visible != value) {
+		_visible = value;
 		
-		if (m_visible) {
-			if ( m_parent && m_parent->m_final_visible ) { // 父视图的显示状态必须要为true才能生效
+		if (_visible) {
+			if ( _parent && _parent->_final_visible ) { // 父视图的显示状态必须要为true才能生效
 				_inl(this)->set_final_visible_true();
 			}
 		} else {
@@ -620,50 +620,50 @@ void View::set_visible(bool value) {
 }
 
 void View::set_translate(Vec2 value) {
-	m_translate = value;
+	_translate = value;
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_scale(Vec2 value) {
-	m_scale = value;
+	_scale = value;
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_skew(Vec2 skew) {
-	m_skew = skew;
+	_skew = skew;
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::transform(Vec2 translate,
 										 Vec2 scale,
 										 float rotate_z, Vec2 skew) {
-	m_translate = translate;
-	m_scale = scale;
-	m_rotate_z = rotate_z;
-	m_skew = skew;
+	_translate = translate;
+	_scale = scale;
+	_rotate_z = rotate_z;
+	_skew = skew;
 	mark(M_MATRIX); // 标记更新
 }
 
 void View::set_origin_x(float value) {
-	if (m_origin.x() != value) {
-		m_origin.x(value);
-		View* view = m_first;
+	if (_origin.x() != value) {
+		_origin.x(value);
+		View* view = _first;
 		while ( view ) {
 			view->mark(M_MATRIX);
-			view = view->m_next;
+			view = view->_next;
 		}
 		mark(M_MATRIX | M_SHAPE);
 	}
 }
 
 void View::set_origin_y(float value) {
-	if (m_origin.y() != value) {
-		m_origin.y(value);
+	if (_origin.y() != value) {
+		_origin.y(value);
 		// 变化这个属性,需要更新变换矩阵、顶点数据、还有子视图的矩阵变换
-		View* view = m_first;
+		View* view = _first;
 		while ( view ) {
 			view->mark(M_MATRIX);
-			view = view->m_next;
+			view = view->_next;
 		}
 		mark(M_MATRIX | M_SHAPE);
 	}
@@ -673,12 +673,12 @@ void View::set_origin_y(float value) {
  * @func origin
  */
 void View::set_origin(Vec2 value) {
-	if (m_origin.y() != value.x() || m_origin.y() != value.y()) {
-		m_origin = value;
-		View* view = m_first;
+	if (_origin.y() != value.x() || _origin.y() != value.y()) {
+		_origin = value;
+		View* view = _first;
 		while ( view ) {
 			view->mark(M_MATRIX);
-			view = view->m_next;
+			view = view->_next;
 		}
 		mark(M_MATRIX | M_SHAPE);
 	}
@@ -688,8 +688,8 @@ void View::set_origin(Vec2 value) {
  * @func force_draw_child set
  */
 void View::set_need_draw(bool value) {
-	if ( value != m_need_draw ) {
-		m_need_draw = value;
+	if ( value != _need_draw ) {
+		_need_draw = value;
 		mark(M_MATRIX);
 	}
 }
@@ -699,10 +699,10 @@ void View::set_need_draw(bool value) {
  */
 void View::mark(uint value) {
 	mark_value |= value;
-	View* parent = m_parent;
-	while ( parent && !parent->m_child_change_flag ) {
-		parent->m_child_change_flag = true;
-		parent = parent->m_parent;
+	View* parent = _parent;
+	while ( parent && !parent->_child_change_flag ) {
+		parent->_child_change_flag = true;
+		parent = parent->_parent;
 	}
 }
 
@@ -837,12 +837,12 @@ void View::solve() {
 	}
 	
 	if ( mark_value & M_TRANSFORM ) {
-		m_parent->m_final_matrix.multiplication(m_matrix, m_final_matrix);
-		m_final_opacity = m_parent->m_final_opacity * m_opacity; // 最终的不透明度
+		_parent->_final_matrix.multiplication(_matrix, _final_matrix);
+		_final_opacity = _parent->_final_opacity * _opacity; // 最终的不透明度
 		set_draw_visible();
 	} else {
 		if ( mark_value & M_OPACITY ) {
-			m_final_opacity = m_parent->m_final_opacity * m_opacity;
+			_final_opacity = _parent->_final_opacity * _opacity;
 		}
 		if ( mark_value & M_SHAPE ) {
 			set_draw_visible();
@@ -851,7 +851,7 @@ void View::solve() {
 }
 
 void View::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			if ( mark_value & M_BASIC_MATRIX ) { // 基础变换
@@ -859,11 +859,11 @@ void View::draw(Draw* draw) {
 			}
 			
 			if ( mark_value & M_TRANSFORM ) {
-				m_parent->m_final_matrix.multiplication(m_matrix, m_final_matrix);
+				_parent->_final_matrix.multiplication(_matrix, _final_matrix);
 			}
 			
 			if ( mark_value & M_OPACITY ) {
-				m_final_opacity = m_parent->m_final_opacity * m_opacity;
+				_final_opacity = _parent->_final_opacity * _opacity;
 			}
 		}
 		
@@ -874,20 +874,20 @@ void View::draw(Draw* draw) {
 }
 
 void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
-	View* view = m_first;
+	View* view = _first;
 	
-	if ( m_draw_visible || need_draw ) {
-		m_child_change_flag = false;
+	if ( _draw_visible || need_draw ) {
+		_child_change_flag = false;
 		while (view) {
 			view->mark_value |= inherit_mark;
 			view->draw(draw);
-			view = view->m_next;
+			view = view->_next;
 		}
 	} else {
 		if ( inherit_mark ) {
 			while (view) {
 				view->mark_value |= inherit_mark;
-				view = view->m_next;
+				view = view->_next;
 			}
 		}
 	}
@@ -898,7 +898,7 @@ Vec2 View::layout_offset() {
 }
 
 Vec2 View::layout_in_offset() {
-	return m_origin;
+	return _origin;
 }
 
 Vec2 View::layout_offset_from(View* parents) {
@@ -914,25 +914,25 @@ CGRect View::screen_rect() {
  */
 const Mat& View::matrix() {
 	if ( mark_value & M_BASIC_MATRIX ) {
-		if ( m_parent ) {
+		if ( _parent ) {
 			_inl(this)->compute_basic_transform_matrix(); // 计算基础矩阵
 		} else {
 			Vec2 offset = layout_offset();
-			m_matrix = Mat(offset, m_scale, -m_rotate_z, m_skew);
+			_matrix = Mat(offset, _scale, -_rotate_z, _skew);
 		}
 		revoke_mark_value(mark_value, M_BASIC_MATRIX); // Delete BASIC_MATRIX
 	}
-	return m_matrix;
+	return _matrix;
 }
 
 const Mat& View::final_matrix() {
 	_inl(this)->compute_final_matrix();
-	return m_final_matrix;
+	return _final_matrix;
 }
 
 float View::final_opacity() {
 	_inl(this)->compute_final_opacity();
-	return m_final_opacity;
+	return _final_opacity;
 }
 
 Vec2 View::position() {
@@ -948,30 +948,30 @@ void View::set_class(cString& name) {
 }
 
 void View::set_class(const Array<String>& name) {
-	if ( !m_classs ) {
-		m_classs = new CSSViewClasss(this);
+	if ( !_classs ) {
+		_classs = new CSSViewClasss(this);
 	}
-	m_classs->name(name);
+	_classs->name(name);
 }
 
 void View::add_class(cString& names) {
-	if ( !m_classs ) {
-		m_classs = new CSSViewClasss(this);
+	if ( !_classs ) {
+		_classs = new CSSViewClasss(this);
 	}
-	m_classs->add(names);
+	_classs->add(names);
 }
 
 void View::remove_class(cString& names) {
-	if ( m_classs ) {
-		m_classs->remove(names);
+	if ( _classs ) {
+		_classs->remove(names);
 	}
 }
 
 void View::toggle_class(cString& names) {
-	if ( !m_classs ) {
-		m_classs = new CSSViewClasss(this);
+	if ( !_classs ) {
+		_classs = new CSSViewClasss(this);
 	}
-	m_classs->toggle(names);
+	_classs->toggle(names);
 }
 
 void View::refresh_styles(StyleSheetsScope* sss) {
@@ -983,13 +983,13 @@ void View::refresh_styles(StyleSheetsScope* sss) {
 }
 
 bool View::has_child(View* child) {
-	if ( child && child->m_level < m_level ) {
-		View* parent = child->m_parent;
+	if ( child && child->_level < _level ) {
+		View* parent = child->_parent;
 		while (parent) {
 			if ( parent == this ) {
 				return true;
 			}
-			parent = parent->m_parent;
+			parent = parent->_parent;
 		}
 	}
 	return false;

@@ -38,8 +38,8 @@ FX_NS(ftr)
  * @constructor
  */
 Layout::Layout()
-: m_parent_layout(nullptr) {
-	m_need_draw = false;
+: _parent_layout(nullptr) {
+	_need_draw = false;
 }
 
 /**
@@ -48,7 +48,7 @@ Layout::Layout()
 void Layout::remove() {
 	View* Parent = parent();
 	if (Parent) {
-		m_parent_layout = nullptr;
+		_parent_layout = nullptr;
 		Layout* layout = Parent->as_layout();
 		if ( layout && layout->level() ) {
 			layout->mark_pre(M_CONTENT_OFFSET);
@@ -73,7 +73,7 @@ void Layout::set_parent(View* parent) throw(Error) {
 	
 	View* old_parent = View::parent();
 	
-	m_parent_layout = nullptr;
+	_parent_layout = nullptr;
 	
 	if (parent != old_parent) {
 		if (old_parent) {

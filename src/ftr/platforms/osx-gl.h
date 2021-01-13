@@ -54,12 +54,12 @@ class FX_EXPORT GLDrawProxy {
 	void commit_render();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 	bool refresh_surface_size(::CGRect rect);
-	inline GLDraw* host() { return m_host; }
+	inline GLDraw* host() { return _host; }
 	static GLDrawProxy* create(GUIApplication* host, cJSON& options);
  private:
-	UIView* m_surface_view;
-	NSOpenGLContext* m_context;
-	GLDraw* m_host;
+	UIView* _surface_view;
+	NSOpenGLContext* _context;
+	GLDraw* _host;
 };
 
 FX_END

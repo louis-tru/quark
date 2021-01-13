@@ -62,8 +62,8 @@ namespace ftr {
 
 		typedef List<Action::Wrap> Actions;
 		
-		uint64  m_prev_sys_time;
-		Actions m_actions;
+		uint64  _prev_sys_time;
+		Actions _actions;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

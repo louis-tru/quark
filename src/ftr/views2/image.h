@@ -80,7 +80,7 @@ class FX_EXPORT Image: public Div {
 	/**
 	 * @func texture get 图像纹理数据
 	 */
-	inline Texture* texture() { return m_texture; }
+	inline Texture* texture() { return _texture; }
 	
 	/**
 	 * @func set_texture
@@ -108,8 +108,8 @@ class FX_EXPORT Image: public Div {
 	virtual void set_draw_visible();
 	
  private:
-	int       m_tex_level;
-	Texture*  m_texture; // 图像纹理数据
+	int       _tex_level;
+	Texture*  _texture; // 图像纹理数据
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 };

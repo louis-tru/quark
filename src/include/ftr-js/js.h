@@ -629,9 +629,9 @@ class FX_EXPORT Worker: public Object {
 	Local<JSNumber> New(double data);
 	Local<JSBoolean>New(bool data);
 	Local<JSInt32>  New(char data);
-	Local<JSUint32> New(byte data);
+	Local<JSUint32> New(uint8_t data);
 	Local<JSInt32>  New(int16 data);
-	Local<JSUint32> New(uint16 data);
+	Local<JSUint32> New(uint16_t data);
 	Local<JSInt32>  New(int data);
 	Local<JSUint32> New(uint data);
 	Local<JSNumber> New(int64 data);
@@ -830,7 +830,7 @@ class FX_EXPORT Worker: public Object {
 	friend class NativeValue;
 	friend class WorkerIMPL;
 	FX_DEFINE_INLINE_CLASS(IMPL);
-	IMPL* m_inl;
+	IMPL* _inl;
 
 	Worker(IMPL* inl);
 };

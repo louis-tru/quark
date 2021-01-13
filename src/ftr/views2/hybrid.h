@@ -65,7 +65,7 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	/**
 	 * @func text_align
 	 */
-	inline TextAlign text_align() const { return m_text_align; }
+	inline TextAlign text_align() const { return _text_align; }
 	
 	/**
 	 * @func set_text_align
@@ -75,7 +75,7 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	/**
 	 * @func rows
 	 */
-	inline TextRows& rows() { return m_rows; }
+	inline TextRows& rows() { return _rows; }
 	
  protected:
 
@@ -92,8 +92,8 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	void set_layout_content_offset_after();
 	
  protected:
-	TextRows  m_rows;
-	TextAlign m_text_align;
+	TextRows  _rows;
+	TextAlign _text_align;
 	
 	friend class Div;
 	

@@ -67,7 +67,7 @@ FX_DEFINE_INLINE_MEMBERS(View, EventInl) {
 	ReturnValue& trigger_highlightted(GUIHighlightedEvent& evt) {
 		View* view = this;
 		if ( view ) {
-			if ( view->m_receive ) {
+			if ( view->_receive ) {
 				view->Notification::trigger(GUI_EVENT_HIGHLIGHTED, evt);
 				if ( evt.is_default() ) {
 					CSSViewClasss* classs = view->classs();
@@ -86,7 +86,7 @@ FX_DEFINE_INLINE_MEMBERS(View, EventInl) {
 	int& bubble_trigger(const NameType& name, GUIEvent& evt) {
 		View* view = this;
 		while( view ) {
-			if ( view->m_receive ) {
+			if ( view->_receive ) {
 				view->Notification::trigger(name, evt);
 				if ( !evt.is_bubble() ) {
 					break; // Stop bubble
@@ -102,14 +102,14 @@ FX_DEFINE_INLINE_MEMBERS(View, EventInl) {
  * @func trigger
  */
 int& View::trigger(const NameType& name, GUIEvent& evt, bool need_send) {
-	if ( m_receive || need_send ) {
+	if ( _receive || need_send ) {
 		return Notification::trigger(name, evt);
 	}
 	return evt.return_value;
 }
 
 int View::trigger(const NameType& name, bool need_send) {
-	if ( m_receive || need_send ) {
+	if ( _receive || need_send ) {
 		auto del = get_noticer(name);
 		if ( del ) {
 			return del->trigger( **NewEvent<GUIEvent>(this) );
@@ -120,7 +120,7 @@ int View::trigger(const NameType& name, bool need_send) {
 
 void View::trigger_listener_change(const NameType& name, int count, int change) {
 	if ( change > 0 ) {
-		m_receive = true; // bind event auto open option
+		_receive = true; // bind event auto open option
 	}
 }
 
@@ -211,7 +211,7 @@ class GUIEventDispatch::OriginTouche {
 		_view->release();
 	}
 	static Vec2 view_position(View* view) {
-		return Vec2(view->m_final_matrix[2], view->m_final_matrix[5]);
+		return Vec2(view->_final_matrix[2], view->_final_matrix[5]);
 	}
 	inline View* view() { return _view; }
 	inline Vec2 view_start_position() { return _start_position; }
@@ -278,7 +278,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	// -------------------------- touch --------------------------
 	
 	void touchstart_2(View* view, List<GUITouch>& in) {
-		if ( view->receive() && view->m_draw_visible && in.length() ) {
+		if ( view->receive() && view->_draw_visible && in.length() ) {
 			Array<GUITouch> change_touches;
 			
 			for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -291,10 +291,10 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 					touch.click_in = true;
 					touch.view = view;
 					
-					if ( !m_origin_touches.has(view) ) {
-						m_origin_touches.set(view, new OriginTouche(view));
+					if ( !_origin_touches.has(view) ) {
+						_origin_touches.set(view, new OriginTouche(view));
 					}
-					(*m_origin_touches[view])[touch.id] = touch;
+					(*_origin_touches[view])[touch.id] = touch;
 					
 					change_touches.push( touch );
 					in.del(j);
@@ -305,8 +305,8 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 				auto evt = NewEvent<GUITouchEvent>(view, change_touches);
 				_inl_view(view)->bubble_trigger(GUI_EVENT_TOUCH_START, **evt); // emit event
 				
-				if ( !m_origin_touches[view]->is_click_down() ) { // trigger click down
-					m_origin_touches[view]->set_click_down(true);
+				if ( !_origin_touches[view]->is_click_down() ) { // trigger click down
+					_origin_touches[view]->set_click_down(true);
 					auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 					_inl_view(view)->trigger_highlightted(**evt); // emit event
 				}
@@ -319,10 +319,10 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	 */
 	void touchstart(View* view, List<GUITouch>& in) {
 		
-		if ( view->m_visible && in.length() ) {
-			if ( view->m_draw_visible || view->m_need_draw ) {
+		if ( view->_visible && in.length() ) {
+			if ( view->_draw_visible || view->_need_draw ) {
 				
-				if ( view->m_last && view->as_box() && static_cast<Box*>(view)->clip() ) {
+				if ( view->_last && view->as_box() && static_cast<Box*>(view)->clip() ) {
 					List<GUITouch> in2;
 					
 					for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -333,10 +333,10 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 						}
 					}
 					
-					View* v = view->m_last;
+					View* v = view->_last;
 					while( v && in2.length() ) {
 						touchstart(v, in2);
-						v = v->m_prev;
+						v = v->_prev;
 					}
 					
 					touchstart_2(view, in2);
@@ -345,10 +345,10 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 						in.push(move(in2));
 					}
 				} else {
-					View* v = view->m_last;
+					View* v = view->_last;
 					while( v && in.length() ) {
 						touchstart(v, in);
-						v = v->m_prev;
+						v = v->_prev;
 					}
 					touchstart_2(view, in);
 				}
@@ -366,7 +366,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 		
 		for ( auto& i : in ) {
 			GUITouch& in_touch = i.value();
-			for ( auto& touches : m_origin_touches ) {
+			for ( auto& touches : _origin_touches ) {
 				if ( touches.value()->has(in_touch.id) ) {
 					GUITouch& touch = (*touches.value())[in_touch.id];
 					touch.x = in_touch.x;
@@ -391,7 +391,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 				 **NewEvent<GUITouchEvent>(view, i.value())
 			);
 			
-			OriginTouche* origin_touche = m_origin_touches[view];
+			OriginTouche* origin_touche = _origin_touches[view];
 			
 			if ( !origin_touche->is_click_invalid() ) { // no invalid
 				Vec2 position = OriginTouche::view_position(view);
@@ -447,7 +447,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 		
 		for ( auto& i : in ) {
 			GUITouch& in_touch = i.value();
-			for ( auto& item : m_origin_touches ) {
+			for ( auto& item : _origin_touches ) {
 				if ( item.value()->has(in_touch.id) ) {
 					GUITouch& touch = (*item.value())[in_touch.id];
 					touch.x = in_touch.x;
@@ -465,7 +465,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 			View* view = touchs[0].view;
 			_inl_view(view)->bubble_trigger(type, **NewEvent<GUITouchEvent>(view, touchs)); // emit touch end event
 			
-			OriginTouche* origin_touche = m_origin_touches[view];
+			OriginTouche* origin_touche = _origin_touches[view];
 			
 			if ( origin_touche->count() == 0 ) {
 				if ( origin_touche->is_click_down() ) { // trigger click
@@ -486,7 +486,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 					}
 				}
 				delete origin_touche;
-				m_origin_touches.del(view); // del
+				_origin_touches.del(view); // del
 			}
 			//
 		}
@@ -521,9 +521,9 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 	Handle<GUIMouseEvent> NewMouseEvent(View* view, float x, float y, uint keycode = 0) {
 		return NewEvent<GUIMouseEvent>(view, x, y, keycode,
-			m_keyboard->shift(),
-			m_keyboard->ctrl(), m_keyboard->alt(),
-			m_keyboard->command(), m_keyboard->caps_lock(), 0, 0, 0
+			_keyboard->shift(),
+			_keyboard->ctrl(), _keyboard->alt(),
+			_keyboard->command(), _keyboard->caps_lock(), 0, 0, 0
 		);
 	}
 
@@ -532,9 +532,9 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	}
 
 	static View* find_receive_event_view_2(View* view, Vec2 pos) {
-		if ( view->m_visible ) {
-			if ( view->m_draw_visible || view->m_need_draw ) {
-				View* v = view->m_last;
+		if ( view->_visible ) {
+			if ( view->_draw_visible || view->_need_draw ) {
+				View* v = view->_last;
 
 				if (v && view->as_box() && static_cast<Box*>(view)->clip()) {
 					if (view->overlap_test(pos)) {
@@ -543,7 +543,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 							if (r) {
 								return r;
 							}
-							v = v->m_prev;
+							v = v->_prev;
 						}
 						if (view->receive()) {
 							return view;
@@ -555,7 +555,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 						if (r) {
 							return r;
 						}
-						v = v->m_prev;
+						v = v->_prev;
 					}
 					if (view->receive() && view->overlap_test(pos)) {
 						return view;
@@ -571,11 +571,11 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	}
 
 	void mousemove(View* view, Vec2 pos) {
-		View* d_view = m_mouse_h->click_down_view();
+		View* d_view = _mouse_h->click_down_view();
 
 		if ( d_view ) { // no invalid
 			Vec2 position = OriginTouche::view_position(d_view);
-			Vec2 start_position = m_mouse_h->view_start_position();
+			Vec2 start_position = _mouse_h->view_start_position();
 			float d = sqrtf(powf((position.x() - start_position.x()), 2) +
 											powf((position.y() - start_position.y()), 2));
 			// 视图位置移动超过2取消点击状态
@@ -584,16 +584,16 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 					_inl_view(view)->trigger_highlightted( // emit style status event
 						**NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER)); 
 				}
-				m_mouse_h->set_click_down_view(nullptr);
+				_mouse_h->set_click_down_view(nullptr);
 			}
 		}
 
 		float x = pos[0], y = pos[1];
 
-		View* old = m_mouse_h->view();
+		View* old = _mouse_h->view();
 
 		if (old != view) {
-			m_mouse_h->set_view(view);
+			_mouse_h->set_view(view);
 
 			if (old) {
 				auto evt = NewMouseEvent(old, x, y);
@@ -637,7 +637,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 		float x = pos[0], y = pos[1];
 		Handle<View> view(find_receive_event_view(pos));
 
-		if (m_mouse_h->view() != *view) {
+		if (_mouse_h->view() != *view) {
 			mousemove(*view, pos);
 		}
 
@@ -645,13 +645,13 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 		auto evt = NewMouseEvent(*view, x, y, name);
 
-		Handle<View> raw_down_view = m_mouse_h->click_down_view();
+		Handle<View> raw_down_view = _mouse_h->click_down_view();
 
 		if (down) {
-			m_mouse_h->set_click_down_view(*view);
+			_mouse_h->set_click_down_view(*view);
 			_inl_view(*view)->bubble_trigger(GUI_EVENT_MOUSE_DOWN, **evt);
 		} else {
-			m_mouse_h->set_click_down_view(nullptr);
+			_mouse_h->set_click_down_view(nullptr);
 			_inl_view(*view)->bubble_trigger(GUI_EVENT_MOUSE_UP, **evt);
 		}
 
@@ -673,7 +673,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 	void mousewhell(KeyboardKeyName name, bool down, float x, float y) {
 		if (down) {
-			auto view = m_mouse_h->view();
+			auto view = _mouse_h->view();
 			if (view) {
 				_inl_view(view)->bubble_trigger(GUI_EVENT_MOUSE_WHEEL, **NewMouseEvent(view, x, y, name));
 			}
@@ -689,7 +689,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 			view = app_->root();
 
 		if ( view ) {
-			auto name = m_keyboard->keyname();
+			auto name = _keyboard->keyname();
 			View* focus_move = nullptr;
 			Panel* panel = nullptr;
 			Direction direction = Direction::NONE;
@@ -712,10 +712,10 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 			}
 			
 			auto evt = NewEvent<GUIKeyEvent>(view, name,
-				m_keyboard->shift(),
-				m_keyboard->ctrl(), m_keyboard->alt(),
-				m_keyboard->command(), m_keyboard->caps_lock(),
-				m_keyboard->repeat(), m_keyboard->device(), m_keyboard->source()
+				_keyboard->shift(),
+				_keyboard->ctrl(), _keyboard->alt(),
+				_keyboard->command(), _keyboard->caps_lock(),
+				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 			);
 			
 			evt->set_focus_move(focus_move);
@@ -732,13 +732,13 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 					_inl_app(app_)->set_volume_down();
 				}
 				
-				int keypress_code = m_keyboard->keypress();
+				int keypress_code = _keyboard->keypress();
 				if ( keypress_code ) { // keypress
 					evt->set_keycode( keypress_code );
 					_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_PRESS, **evt);
 				}
 
-				if ( name == KEYCODE_CENTER && m_keyboard->repeat() == 0 ) {
+				if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
 					// CGRect rect = view->screen_rect();
 					auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 					_inl_view(view)->trigger_highlightted(**evt); // emit click status event
@@ -759,12 +759,12 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 			view = app_->root();
 
 		if ( view ) {
-			auto name = m_keyboard->keyname();
+			auto name = _keyboard->keyname();
 			auto evt = NewEvent<GUIKeyEvent>(view, name,
-				m_keyboard->shift(),
-				m_keyboard->ctrl(), m_keyboard->alt(),
-				m_keyboard->command(), m_keyboard->caps_lock(),
-				m_keyboard->repeat(), m_keyboard->device(), m_keyboard->source()
+				_keyboard->shift(),
+				_keyboard->ctrl(), _keyboard->alt(),
+				_keyboard->command(), _keyboard->caps_lock(),
+				_keyboard->repeat(), _keyboard->device(), _keyboard->source()
 			);
 			
 			_inl_view(view)->bubble_trigger(GUI_EVENT_KEY_UP, **evt);
@@ -799,16 +799,16 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	// ---------------
 };
 
-GUIEventDispatch::GUIEventDispatch(GUIApplication* app): app_(app), m_text_input(nullptr) {
-	m_keyboard = KeyboardAdapter::create();
-	m_mouse_h = new MouseHandle();
+GUIEventDispatch::GUIEventDispatch(GUIApplication* app): app_(app), _text_input(nullptr) {
+	_keyboard = KeyboardAdapter::create();
+	_mouse_h = new MouseHandle();
 }
 
 GUIEventDispatch::~GUIEventDispatch() {
-	for (auto& i : m_origin_touches)
+	for (auto& i : _origin_touches)
 		delete i.value();
-	Release(m_keyboard);
-	delete m_mouse_h;
+	Release(_keyboard);
+	delete _mouse_h;
 }
 
 #define _loop static_cast<PostMessage*>(app_->main_loop())
@@ -857,7 +857,7 @@ void GUIEventDispatch::dispatch_mousemove(float x, float y) {
 		GUILock lock;
 		Vec2 pos(x, y);
 		// set current mouse pos
-		m_mouse_h->set_position(pos);
+		_mouse_h->set_position(pos);
 
 		if (app_->root()) {
 			Handle<View> v(_inl_di(this)->find_receive_event_view(pos));
@@ -873,7 +873,7 @@ void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
 			case KEYCODE_MOUSE_LEFT:
 			case KEYCODE_MOUSE_CENTER:
 			case KEYCODE_MOUSE_RIGHT:
-				_inl_di(this)->mousepress(name, down, m_mouse_h->position());
+				_inl_di(this)->mousepress(name, down, _mouse_h->position());
 				break;
 			case KEYCODE_MOUSE_WHEEL_UP:
 				_inl_di(this)->mousewhell(name, down, 0, -53); break;
@@ -891,10 +891,10 @@ void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
 void GUIEventDispatch::dispatch_ime_delete(int count) {
 	async_callback(Cb([=](CbD& d) {
 		GUILock lock;
-		if ( m_text_input ) {
-			m_text_input->input_delete(count);
-			bool can_backspace = m_text_input->input_can_backspace();
-			bool can_delete = m_text_input->input_can_delete();
+		if ( _text_input ) {
+			_text_input->input_delete(count);
+			bool can_backspace = _text_input->input_can_backspace();
+			bool can_delete = _text_input->input_can_delete();
 			_inl_app(app_)->ime_keyboard_can_backspace(can_backspace, can_delete);
 		}
 	}), _loop);
@@ -903,8 +903,8 @@ void GUIEventDispatch::dispatch_ime_delete(int count) {
 void GUIEventDispatch::dispatch_ime_insert(cString& text) {
 	async_callback(Cb([=](CbD& d) {
 		GUILock lock;
-		if ( m_text_input ) {
-			m_text_input->input_insert(text);
+		if ( _text_input ) {
+			_text_input->input_insert(text);
 		}
 	}), _loop);
 }
@@ -912,8 +912,8 @@ void GUIEventDispatch::dispatch_ime_insert(cString& text) {
 void GUIEventDispatch::dispatch_ime_marked(cString& text) {
 	async_callback(Cb([=](CbD& d) {
 		GUILock lock;
-		if ( m_text_input ) {
-			m_text_input->input_marked(text);
+		if ( _text_input ) {
+			_text_input->input_marked(text);
 		}
 	}), _loop);
 }
@@ -921,8 +921,8 @@ void GUIEventDispatch::dispatch_ime_marked(cString& text) {
 void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
 	async_callback(Cb([=](CbD& d) {
 		GUILock lock;
-		if ( m_text_input ) {
-			m_text_input->input_unmark(text);
+		if ( _text_input ) {
+			_text_input->input_unmark(text);
 		}
 	}), _loop);
 }
@@ -930,16 +930,16 @@ void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
 void GUIEventDispatch::dispatch_ime_control(KeyboardKeyName name) {
 	async_callback(Cb([=](CbD& d) {
 		GUILock lock;
-		if ( m_text_input ) {
-			m_text_input->input_control(name);
+		if ( _text_input ) {
+			_text_input->input_control(name);
 		}
 	}), _loop);
 }
 
 void GUIEventDispatch::make_text_input(ITextInput* input) {
 	DLOG("make_text_input");
-	if ( input != m_text_input ) {
-		m_text_input = input;
+	if ( input != _text_input ) {
+		_text_input = input;
 		
 		if ( input ) {
 			_inl_app(app_)->ime_keyboard_open({

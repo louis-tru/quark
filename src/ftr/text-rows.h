@@ -57,15 +57,15 @@ class FX_EXPORT TextRows {
 	
 	TextRows();
 	
-	inline Row* last() { return m_last; }
-	inline uint count() const { return m_values.length(); }
-	inline uint last_num() const { return m_last_num; }
-	inline bool clip() const { return m_is_clip; }
-	inline void mark_clip() { m_is_clip = true; }
-	inline float max_width() const { return m_max_width; }
-	inline float max_height() const { return m_last->offset_end.y(); }
-	inline const Array<Row>& rows() const { return m_values; }
-	inline Row& operator[](uint index) { return m_values[index]; }
+	inline Row* last() { return _last; }
+	inline uint count() const { return _values.length(); }
+	inline uint last_num() const { return _last_num; }
+	inline bool clip() const { return _is_clip; }
+	inline void mark_clip() { _is_clip = true; }
+	inline float max_width() const { return _max_width; }
+	inline float max_height() const { return _last->offset_end.y(); }
+	inline const Array<Row>& rows() const { return _values; }
+	inline Row& operator[](uint index) { return _values[index]; }
 	
 	void push_row(float ascender, float descender);
 	void update_row(float ascender, float descender);
@@ -74,11 +74,11 @@ class FX_EXPORT TextRows {
 	
  private:
 	
-	Array<Row>  m_values;
-	Row*        m_last;       // 最后行
-	uint        m_last_num;   // 最后行号
-	float       m_max_width;  // 最大宽度
-	bool        m_is_clip;    // 修剪结束
+	Array<Row>  _values;
+	Row*        _last;       // 最后行
+	uint        _last_num;   // 最后行号
+	float       _max_width;  // 最大宽度
+	bool        _is_clip;    // 修剪结束
 };
 
 FX_END

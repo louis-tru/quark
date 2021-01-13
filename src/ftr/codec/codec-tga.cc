@@ -37,41 +37,41 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 	public:
 #pragma pack(push,1)
 	struct Header {
-		byte idlength;              /* 00h Size of Image ID field */
-		byte color_map_type;        /* 01h Color map type */
+		uint8_t idlength;              /* 00h Size of Image ID field */
+		uint8_t color_map_type;        /* 01h Color map type */
 		// 2-rgb
 		// 3-grayscale
 		// 10-rle rgb
 		// 11-rle grayscale
-		byte data_type_code;        /* 02h Image type code */
-		uint16 color_map_origin;    /* 03h Color map origin */
-		uint16 color_map_length;    /* 05h Color map length */
-		byte color_map_depth;       /* 07h Depth of color map entries */
-		uint16 x_origin;            /* 08h X origin of image */
-		uint16 y_origin;            /* 0Ah Y origin of image */
-		uint16 width;               /* 0Ch Width of image */
-		uint16 height;              /* 0Eh Height of image */
+		uint8_t data_type_code;        /* 02h Image type code */
+		uint16_t color_map_origin;    /* 03h Color map origin */
+		uint16_t color_map_length;    /* 05h Color map length */
+		uint8_t color_map_depth;       /* 07h Depth of color map entries */
+		uint16_t x_origin;            /* 08h X origin of image */
+		uint16_t y_origin;            /* 0Ah Y origin of image */
+		uint16_t width;               /* 0Ch Width of image */
+		uint16_t height;              /* 0Eh Height of image */
 		// 16、24、32
-		byte bits_per_pixel;        /* 10h Image pixel size */
-		byte image_descriptor;      /* 11h Image descriptor byte */
+		uint8_t bits_per_pixel;        /* 10h Image pixel size */
+		uint8_t image_descriptor;      /* 11h Image descriptor uint8_t */
 	};
 #pragma pack(pop)
 
 	typedef void (TGAImageCodec::_Inl::*ReadDataBlackFunc)(byte** in, byte** out, int alpha);
 	
 	/**
-	 * @func m_parse_rgb_rle # 解析RLE RGB图
+	 * @func _parse_rgb_rle # 解析RLE RGB图
 	 * @arg data {const byte*} # 图像数据指针
 	 * @arg new_data {byte*} # 新的通胀图像数据指针
 	 * @arg pixex_size {int} # 图像像素数量
 	 * @arg func {ReadDataBlackFunc} # 处理函数
 	 * @private
 	 */
-	void m_parse_rgb_rle(byte* in, byte* out,
+	void _parse_rgb_rle(byte* in, byte* out,
 											 int bytes,
 											 int pixex_size, ReadDataBlackFunc func, int alpha) {
 		for (int i = 0; i < pixex_size; i++) {
-			byte mask = in[0];
+			uint8_t mask = in[0];
 			in++;
 			(this->*func)(&in, &out, alpha);
 			
@@ -92,11 +92,11 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 	}
 	
 	// RLE 灰度图
-	void m_parse_gray_rle(byte* in, byte* out, int bytes, int pixex_size, int alpha) {
+	void _parse_gray_rle(byte* in, byte* out, int bytes, int pixex_size, int alpha) {
 		for (int i = 0; i < pixex_size; i++) {
-			byte mask = in[0];
+			uint8_t mask = in[0];
 			in += 1;
-			m_read_gray_data_black(&in, &out, bytes, alpha);
+			_read_gray_data_black(&in, &out, bytes, alpha);
 			
 			int j = mask & 0x7f;    // data[0] & 01111111
 			if (mask & 0x80) {       // data[0] & 10000000
@@ -109,13 +109,13 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 			}
 			else {
 				for (int k = 0; k < j; k++, i++) {
-					m_read_gray_data_black(&in, &out, bytes, alpha);
+					_read_gray_data_black(&in, &out, bytes, alpha);
 				}
 			}
 		}
 	}
 	
-	void m_read_16_data_black(byte** in, byte** out, int alpha) {
+	void _read_16_data_black(byte** in, byte** out, int alpha) {
 		uint16* in_ = (uint16*)*in;
 		uint16* out_ = (uint16*)*out;
 		*out_ = (in_[0] << 1) | (alpha ? (in_[0] & 0x8000) : 1);
@@ -123,7 +123,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 		*out = (byte*)(out_ + 1);
 	}
 	
-	void m_read_24_data_black(byte** in, byte** out, int alpha) {
+	void _read_24_data_black(byte** in, byte** out, int alpha) {
 		byte* in_ = *in;
 		byte* out_ = *out;
 		out_[2] = in_[0];
@@ -133,7 +133,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 		*out = out_ + 3;
 	}
 	
-	void m_read_32_data_black(byte** in, byte** out, int alpha) {
+	void _read_32_data_black(byte** in, byte** out, int alpha) {
 		byte* in_ = *in;
 		byte* out_ = *out;
 		out_[2] = in_[0];
@@ -144,7 +144,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 		*out = out_ + 4;
 	}
 	
-	void m_read_gray_data_black(byte** in, byte** out, int bytes, int alpha) {
+	void _read_gray_data_black(byte** in, byte** out, int bytes, int alpha) {
 		byte* in_ = *in;
 		byte* out_ = *out;
 		out_[0] = in_[0];
@@ -186,7 +186,7 @@ Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 	// parse image
 	int alpha = header->image_descriptor & 0x08;
 	int bytes = header->bits_per_pixel / 8; // 2、3、4
-	byte code = header->data_type_code;
+	uint8_t code = header->data_type_code;
 	
 	PixelData::Format format;
 	_Inl::ReadDataBlackFunc func;
@@ -197,13 +197,13 @@ Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 		} else { // GRAY | RLE GRAY
 			format = PixelData::LUMINANCE_ALPHA88;
 		}
-		func = &TGAImageCodec::_Inl::m_read_16_data_black;
+		func = &TGAImageCodec::_Inl::_read_16_data_black;
 	} else if (bytes == 3) {
 		format = PixelData::RGB888;
-		func = &TGAImageCodec::_Inl::m_read_24_data_black;
+		func = &TGAImageCodec::_Inl::_read_24_data_black;
 	} else {
 		format = alpha ? PixelData::RGBA8888: PixelData::RGBX8888;
-		func = &TGAImageCodec::_Inl::m_read_32_data_black;
+		func = &TGAImageCodec::_Inl::_read_32_data_black;
 	}
 	
 	int width = header->width;
@@ -223,7 +223,7 @@ Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 				}
 			}
 			else {  // RLE RGB
-				_inl_tga(this)->m_parse_rgb_rle(in_, out_, bytes, pixex_size, func, alpha);
+				_inl_tga(this)->_parse_rgb_rle(in_, out_, bytes, pixex_size, func, alpha);
 			}
 			break;
 		case 3:  // GRAY
@@ -234,7 +234,7 @@ Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 			}
 			break;
 		case 11: // RLE GRAY
-			_inl_tga(this)->m_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
+			_inl_tga(this)->_parse_gray_rle(in_, out_, bytes, pixex_size, alpha);
 			break;
 		default:
 			LOG("Parse tga image error, data type code undefined");
@@ -254,7 +254,7 @@ PixelData TGAImageCodec::decode_header(cBuffer& data) {
 	_Inl::Header* header = (_Inl::Header*)*data;
 	bool alpha = header->image_descriptor & 0x08;
 	int bytes = header->bits_per_pixel / 8; // 2、3、4
-	byte code = header->data_type_code;
+	uint8_t code = header->data_type_code;
 	PixelData::Format format;
 	
 	if( bytes == 2) {

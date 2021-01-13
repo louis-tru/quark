@@ -447,7 +447,7 @@ void AppInl::initialize(cJSON& options) {
 	app_options = [[ApplicationOptions alloc] init:options];
 	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
-	m_draw_ctx = gl_draw_context->host();
+	_draw_ctx = gl_draw_context->host();
 }
 
 /**

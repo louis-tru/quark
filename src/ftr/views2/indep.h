@@ -47,12 +47,12 @@ class FX_EXPORT Indep: public Div {
 	/**
 	 * @func align_x
 	 */
-	inline Align align_x() const { return m_align_x; };
+	inline Align align_x() const { return _align_x; };
 	
 	/**
 	 * @func align_y
 	 */
-	inline Align align_y() const { return m_align_y; };
+	inline Align align_y() const { return _align_y; };
 	
 	/**
 	 * @func set_align_x
@@ -83,7 +83,7 @@ class FX_EXPORT Indep: public Div {
 	virtual void set_layout_three_times(bool horizontal, bool hybrid);
 	
  private:
-	Align m_align_x, m_align_y;
+	Align _align_x, _align_y;
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 };

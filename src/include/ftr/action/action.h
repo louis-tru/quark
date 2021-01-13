@@ -95,27 +95,27 @@ namespace ftr {
 		/**
 		* @func loop get
 		*/
-		inline uint loop() const { return m_loop; }
+		inline uint loop() const { return _loop; }
 		
 		/**
 		* @func loopd get
 		*/
-		inline uint looped() const { return m_loopd; }
+		inline uint looped() const { return _loopd; }
 
 		/**
 		* @func delay get
 		*/
-		inline uint64 delay() const { return m_delay; }
+		inline uint64 delay() const { return _delay; }
 		
 		/**
 		* @func delayd get
 		*/
-		int64 delayed() const { return m_delayd; }
+		int64 delayed() const { return _delayd; }
 		
 		/**
 		* @func speed get
 		*/
-		inline float speed() const { return m_speed; }
+		inline float speed() const { return _speed; }
 		
 		/**
 		* @func playing
@@ -130,12 +130,12 @@ namespace ftr {
 		/**
 		* @func parent get
 		*/
-		inline Action* parent() { return m_parent; }
+		inline Action* parent() { return _parent; }
 		
 		/**
 		* @func loop set
 		*/
-		inline void loop(uint value) { m_loop = value; }
+		inline void loop(uint value) { _loop = value; }
 		
 		/**
 		* @func delay set
@@ -146,13 +146,13 @@ namespace ftr {
 		* @func speed set
 		*/
 		inline void speed(float value) {
-			m_speed = FX_MIN(10, FX_MAX(value, 0.1));
+			_speed = FX_MIN(10, FX_MAX(value, 0.1));
 		}
 		
 		/**
 		* @func duration
 		*/
-		inline uint64 duration() { return m_full_duration - m_delay; }
+		inline uint64 duration() { return _full_duration - _delay; }
 		
 		/**
 		* @func clear
@@ -208,15 +208,15 @@ namespace ftr {
 			bool play;
 		};
 		
-		Action* m_parent;
-		int     m_loop;
-		int     m_loopd;
-		int64   m_full_duration;
-		int64   m_delay;
-		int64   m_delayd;
-		float   m_speed;
-		List<View*> m_views;
-		List<Wrap>::Iterator m_action_center_id;
+		Action* _parent;
+		int     _loop;
+		int     _loopd;
+		int64   _full_duration;
+		int64   _delay;
+		int64   _delayd;
+		float   _speed;
+		List<View*> _views;
+		List<Wrap>::Iterator _action_center_id;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		

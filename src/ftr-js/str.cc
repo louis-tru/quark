@@ -32,12 +32,12 @@
 
 JS_BEGIN
 
-CommonStrings::CommonStrings(Worker* worker): m_worker(worker) {
+CommonStrings::CommonStrings(Worker* worker): _worker(worker) {
 #define js_init_persistent_string(name) \
 __##name##_$_.Reset(worker, worker->NewAscii(#name));
 	js_common_string(js_init_persistent_string);
 #undef js_init_persistent_string
-	__Throw_$_.Reset(m_worker, worker->NewAscii("throw"));
+	__Throw_$_.Reset(_worker, worker->NewAscii("throw"));
 }
 
 JS_END

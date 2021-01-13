@@ -51,18 +51,18 @@ import java.util.Date;
 
 public class IMEHelper extends EditText {
 
-	private boolean m_has_open = false;
-	private long m_action_time = 0;
-	private InputMethodManager m_imm = null;
-	private ImplementsInputConnection m_ic = null;
-	private boolean m_can_backspace = false;
-	private boolean m_can_delete = false;
-	private int m_keyboard_type = 0;
-	private int m_keyboard_return_type = 0;
-	private int m_inputType = InputType.TYPE_CLASS_TEXT;
-	private int m_imeOptions = EditorInfo.IME_ACTION_NONE;
-	private StringBuilder m_text = new StringBuilder();
-	private CharSequence  m_marked = null;
+	private boolean _has_open = false;
+	private long _action_time = 0;
+	private InputMethodManager _imm = null;
+	private ImplementsInputConnection _ic = null;
+	private boolean _can_backspace = false;
+	private boolean _can_delete = false;
+	private int _keyboard_type = 0;
+	private int _keyboard_return_type = 0;
+	private int _inputType = InputType.TYPE_CLASS_TEXT;
+	private int _imeOptions = EditorInfo.IME_ACTION_NONE;
+	private StringBuilder _text = new StringBuilder();
+	private CharSequence  _marked = null;
 
 	private static native void dispatchIMEDelete(int count);
 	private static native void dispatchIMEInsert(String text);
@@ -73,18 +73,18 @@ public class IMEHelper extends EditText {
 
 	static private class ImplementsInputConnection implements InputConnection {
 
-		private IMEHelper m_host = null;
+		private IMEHelper _host = null;
 
 		ImplementsInputConnection(IMEHelper host) {
-			m_host = host;
+			_host = host;
 		}
 		// implements InputConnection
 
 		public CharSequence getTextBeforeCursor(int n, int flags) {
-			if ( m_host.m_text.length() > 4 ) {
-				return m_host.m_text.substring(m_host.m_text.length() - 4, m_host.m_text.length());
+			if ( _host._text.length() > 4 ) {
+				return _host._text.substring(_host._text.length() - 4, _host._text.length());
 			}
-			return m_host.m_text;
+			return _host._text;
 		}
 
 		public CharSequence getTextAfterCursor(int n, int flags) {
@@ -104,10 +104,10 @@ public class IMEHelper extends EditText {
 		}
 
 		public boolean deleteSurroundingText(int beforeLength, int afterLength) {
-			if (m_host.m_text.length() > beforeLength) {
-				m_host.m_text.delete(m_host.m_text.length() - beforeLength, m_host.m_text.length());
+			if (_host._text.length() > beforeLength) {
+				_host._text.delete(_host._text.length() - beforeLength, _host._text.length());
 			} else {
-				m_host.m_text.delete(0, m_host.m_text.length());
+				_host._text.delete(0, _host._text.length());
 			}
 			if ( beforeLength == 1 ) {
 				dispatchIMEDelete(-1);
@@ -122,7 +122,7 @@ public class IMEHelper extends EditText {
 		}
 
 		public boolean setComposingText(CharSequence text, int newCursorPosition) {
-			m_host.m_marked = text;
+			_host._marked = text;
 			dispatchIMEMarked(text.toString());
 			return true;
 		}
@@ -132,16 +132,16 @@ public class IMEHelper extends EditText {
 		}
 
 		public boolean finishComposingText() {
-			 m_host.finish();
+			 _host.finish();
 			return true;
 		}
 
 		private void ime_insert(String s) {
-			m_host.m_text.append(s);
-			if ( m_host.m_marked == null ) {
+			_host._text.append(s);
+			if ( _host._marked == null ) {
 				dispatchIMEInsert(s.toString());
 			} else {
-				m_host.m_marked = null;
+				_host._marked = null;
 				dispatchIMEUnmark(s.toString());
 			}
 		}
@@ -177,7 +177,7 @@ public class IMEHelper extends EditText {
 		}
 
 		public boolean performEditorAction(int editorAction) {
-			m_host.m_text.append("\n");
+			_host._text.append("\n");
 			dispatchKeyboardInput(13, true, true, 0, -1, 0);
 			dispatchIMEInsert("\n");
 			dispatchKeyboardInput(13, true, false, 0, -1, 0);
@@ -205,8 +205,8 @@ public class IMEHelper extends EditText {
 
 			if ( event.getAction() == KeyEvent.ACTION_DOWN ) {
 				if ( event.getKeyCode() == KeyEvent.KEYCODE_DEL ) {
-					if (m_host.m_text.length() > 0) {
-						m_host.m_text.deleteCharAt(m_host.m_text.length() - 1);
+					if (_host._text.length() > 0) {
+						_host._text.deleteCharAt(_host._text.length() - 1);
 					}
 					dispatchIMEDelete(-1);
 				} else {
@@ -248,147 +248,147 @@ public class IMEHelper extends EditText {
 		}
 
 		public void closeConnection() {
-			m_host.finish();
+			_host.finish();
 		}
 
 	}
 
 	public IMEHelper(final Context context) {
 		super(context);
-		m_imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+		_imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 	}
 
 	public void open() {
-		m_has_open = true;
-		m_action_time = new Date().getTime();
+		_has_open = true;
+		_action_time = new Date().getTime();
 		setVisibility(View.VISIBLE);
 		requestFocus();
-		m_imm.showSoftInput(this, 0);
+		_imm.showSoftInput(this, 0);
 	}
 
 	public void close() {
-		m_has_open = false;
+		_has_open = false;
 		setVisibility(View.INVISIBLE);
 		clearFocus();
-		m_imm.hideSoftInputFromWindow(getWindowToken(), 0);
+		_imm.hideSoftInputFromWindow(getWindowToken(), 0);
 	}
 
 	private void finish() {
-		if ( m_marked != null ) {
-			dispatchIMEUnmark(m_marked.toString());
-			m_marked = null;
+		if ( _marked != null ) {
+			dispatchIMEUnmark(_marked.toString());
+			_marked = null;
 		}
 	}
 
 	public void clear() {
-		m_text = new StringBuilder();
-		m_marked = null;
-		m_can_backspace = true;
-		m_can_delete = true;
-		m_keyboard_type = 0;
-		m_keyboard_return_type = 0;
-		m_inputType = InputType.TYPE_CLASS_TEXT;
-		m_imeOptions = EditorInfo.IME_ACTION_NONE;
-		setInputType(m_inputType);
-		setImeOptions(m_imeOptions);
+		_text = new StringBuilder();
+		_marked = null;
+		_can_backspace = true;
+		_can_delete = true;
+		_keyboard_type = 0;
+		_keyboard_return_type = 0;
+		_inputType = InputType.TYPE_CLASS_TEXT;
+		_imeOptions = EditorInfo.IME_ACTION_NONE;
+		setInputType(_inputType);
+		setImeOptions(_imeOptions);
 	}
 
 	void set_can_backspace(boolean can_backspace, boolean can_delete) {
-		m_can_backspace = can_backspace;
-		m_can_delete = can_delete;
+		_can_backspace = can_backspace;
+		_can_delete = can_delete;
 	}
 
 	void set_keyboard_type(int type) {
 
-		if ( type == m_keyboard_type ) return;
+		if ( type == _keyboard_type ) return;
 
-		m_action_time = new Date().getTime();
-		m_keyboard_type = type;
+		_action_time = new Date().getTime();
+		_keyboard_type = type;
 
 		switch(type) {
 			default:
 			case 45: // NORMAL
-				m_inputType = InputType.TYPE_CLASS_TEXT;
+				_inputType = InputType.TYPE_CLASS_TEXT;
 				break;
 			case 53: // ASCII
 			case 63: // ASCII_NUMBER
-				m_inputType = InputType.TYPE_CLASS_TEXT;
-				m_imeOptions = EditorInfo.IME_FLAG_FORCE_ASCII;
+				_inputType = InputType.TYPE_CLASS_TEXT;
+				_imeOptions = EditorInfo.IME_FLAG_FORCE_ASCII;
 				break;
 			case 54: // NUMBER
 			case 56: // NUMBER_PAD
-				m_inputType = InputType.TYPE_CLASS_NUMBER;
+				_inputType = InputType.TYPE_CLASS_NUMBER;
 				break;
 			case 60: // DECIMAL
-				m_inputType = InputType.TYPE_CLASS_NUMBER |
+				_inputType = InputType.TYPE_CLASS_NUMBER |
 								InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED;
 			case 55: // URL
-				m_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI;
+				_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI;
 				break;
 			case 57: // PHONE
-				m_inputType = InputType.TYPE_CLASS_PHONE;
+				_inputType = InputType.TYPE_CLASS_PHONE;
 				break;
 			case 58: // NAME_PHONE
-				m_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME;
+				_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME;
 				break;
 			case 59: // EMAIL
-				m_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
+				_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
 				break;
 			case 61: // TWITTER
-				m_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE;
+				_inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE;
 				break;
 			case 62: // SEARCH
-				m_inputType = InputType.TYPE_CLASS_TEXT;
-				m_imeOptions = EditorInfo.IME_ACTION_GO;
+				_inputType = InputType.TYPE_CLASS_TEXT;
+				_imeOptions = EditorInfo.IME_ACTION_GO;
 				break;
 		}
 
-		setInputType(m_inputType);
-		setInputType(m_imeOptions);
+		setInputType(_inputType);
+		setInputType(_imeOptions);
 	}
 
 	void set_keyboard_return_type(int type) {
 
-		if ( type == m_keyboard_return_type ) return;
+		if ( type == _keyboard_return_type ) return;
 
-		m_action_time = new Date().getTime();
-		m_keyboard_return_type = type;
+		_action_time = new Date().getTime();
+		_keyboard_return_type = type;
 
 		switch(type) {
 			default:
 			case 45: // NORMAL
-				m_imeOptions = EditorInfo.IME_ACTION_NONE;
+				_imeOptions = EditorInfo.IME_ACTION_NONE;
 				break;
 			case 64: // GO
-				m_imeOptions = EditorInfo.IME_ACTION_GO;
+				_imeOptions = EditorInfo.IME_ACTION_GO;
 				break;
 			case 65: // JOIN
-				m_imeOptions = EditorInfo.IME_ACTION_NONE;
+				_imeOptions = EditorInfo.IME_ACTION_NONE;
 				break;
 			case 66: // NEXT
-				m_imeOptions = EditorInfo.IME_ACTION_NEXT;
+				_imeOptions = EditorInfo.IME_ACTION_NEXT;
 				break;
 			case 67: // ROUTE
-				m_imeOptions = EditorInfo.IME_ACTION_NONE;
+				_imeOptions = EditorInfo.IME_ACTION_NONE;
 				break;
 			case 68: // SEARCH
-				m_imeOptions = EditorInfo.IME_ACTION_SEARCH;
+				_imeOptions = EditorInfo.IME_ACTION_SEARCH;
 				break;
 			case 69: // SEND
-				m_imeOptions = EditorInfo.IME_ACTION_SEND;
+				_imeOptions = EditorInfo.IME_ACTION_SEND;
 				break;
 			case 70: // DONE
-				m_imeOptions = EditorInfo.IME_ACTION_DONE;
+				_imeOptions = EditorInfo.IME_ACTION_DONE;
 				break;
 			case 71: // EMERGENCY
-				m_imeOptions = EditorInfo.IME_ACTION_NONE;
+				_imeOptions = EditorInfo.IME_ACTION_NONE;
 				break;
 			case 72: // CONTINUE
-				m_imeOptions = EditorInfo.IME_ACTION_NONE;
+				_imeOptions = EditorInfo.IME_ACTION_NONE;
 				break;
 		}
 
-		setImeOptions(m_imeOptions);
+		setImeOptions(_imeOptions);
 	}
 
 	@Override
@@ -399,19 +399,19 @@ public class IMEHelper extends EditText {
 
 	@Override
 	public boolean onCheckIsTextEditor() {
-		return m_has_open;
+		return _has_open;
 	}
 
 	@Override
 	public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-		if ( m_ic == null ) {
-			m_ic = new ImplementsInputConnection(this);
+		if ( _ic == null ) {
+			_ic = new ImplementsInputConnection(this);
 		}
-		outAttrs.inputType = m_inputType;
-		outAttrs.imeOptions = m_imeOptions |
+		outAttrs.inputType = _inputType;
+		outAttrs.imeOptions = _imeOptions |
 						EditorInfo.IME_FLAG_NO_FULLSCREEN |
 						EditorInfo.IME_FLAG_NO_EXTRACT_UI;
-		return m_ic;
+		return _ic;
 	}
 
 }

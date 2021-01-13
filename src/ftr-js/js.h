@@ -68,12 +68,12 @@ class Worker::IMPL {
 	virtual Worker* initialize();
 	virtual void release();
 	static Worker* create();
-	static inline IMPL* inl(Worker* worker) { return worker->m_inl; }
+	static inline IMPL* inl(Worker* worker) { return worker->_inl; }
 	template<class T = IMPL>
-	inline static T* current(Worker* worker = Worker::worker()) { return static_cast<T*>(worker->m_inl); }
-	inline static JSClassStore* js_class(Worker* worker) { return worker->m_inl->m_classs; }
-	inline JSClassStore* js_class() { return m_classs; }
-	inline Worker* host() { return m_host; }
+	inline static T* current(Worker* worker = Worker::worker()) { return static_cast<T*>(worker->_inl); }
+	inline static JSClassStore* js_class(Worker* worker) { return worker->_inl->_classs; }
+	inline JSClassStore* js_class() { return _classs; }
+	inline Worker* host() { return _host; }
 	static WrapObject* GetObjectPrivate(Local<JSObject> object);
 	static bool SetObjectPrivate(Local<JSObject> object, WrapObject* value);
 
@@ -90,7 +90,7 @@ class Worker::IMPL {
 	bool TriggerUncaughtException(Local<JSValue> err);
 	bool TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise);
 	
-	inline int is_node() const { return m_is_node; }
+	inline int is_node() const { return _is_node; }
 
 	static int start(int argc, char** argv);
 
@@ -98,14 +98,14 @@ class Worker::IMPL {
  protected:
 	friend class Worker;
 	friend class NativeValue;
-	Worker*         m_host;
-	ThreadID        m_thread_id;
-	ValueProgram*   m_values;
-	CommonStrings*  m_strs;
-	JSClassStore*   m_classs;
-	Persistent<JSObject> m_global;
-	Persistent<JSObject> m_native_modules;
-	int m_is_node;
+	Worker*         _host;
+	ThreadID        _thread_id;
+	ValueProgram*   _values;
+	CommonStrings*  _strs;
+	JSClassStore*   _classs;
+	Persistent<JSObject> _global;
+	Persistent<JSObject> _native_modules;
+	int _is_node;
 };
 
 typedef Worker::IMPL IMPL;

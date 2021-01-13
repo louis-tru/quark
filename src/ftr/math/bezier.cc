@@ -138,8 +138,8 @@ public:
  */
 FixedCubicBezier::FixedCubicBezier()
 : CubicBezier(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), Vec2(1, 1))
-, m_solve((Solve)&Inl::solve_linear)
-, m_p1(Vec2(0, 0)), m_p2(Vec2(1, 1))
+, _solve((Solve)&Inl::solve_linear)
+, _p1(Vec2(0, 0)), _p2(Vec2(1, 1))
 { }
 
 /**
@@ -148,10 +148,10 @@ FixedCubicBezier::FixedCubicBezier()
  */
 FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2)
 : CubicBezier(Vec2(0, 0), p1, p2, Vec2(1, 1))
-, m_solve((Solve)&Inl::defalut_solve)
-, m_p1(p1), m_p2(p2) {
+, _solve((Solve)&Inl::defalut_solve)
+, _p1(p1), _p2(p2) {
 	if ( p1.x() == 0 && p1.y() == 0 && p2.x() == 1 && p2.y() == 1 ) {
-		m_solve = (Solve)&Inl::solve_linear;
+		_solve = (Solve)&Inl::solve_linear;
 	}
 }
 

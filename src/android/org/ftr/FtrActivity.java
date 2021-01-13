@@ -55,8 +55,8 @@ import android.content.pm.ApplicationInfo;
 public class FtrActivity extends NativeActivity implements View.OnSystemUiVisibilityChangeListener {
 
 	private static String TAG = "Ftr";
-	private IMEHelper m_ime = null;
-	private Handler m_handler = null;
+	private IMEHelper _ime = null;
+	private Handler _handler = null;
 	private PowerManager pm = null;
 	private AudioManager am = null;
 	private static boolean visible_status_bar = true;
@@ -113,7 +113,7 @@ public class FtrActivity extends NativeActivity implements View.OnSystemUiVisibi
 	}
 
 	public void post(Runnable r) {
-		m_handler.post(r);
+		_handler.post(r);
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public class FtrActivity extends NativeActivity implements View.OnSystemUiVisibi
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		virtual_navigation_device = is_virtual_navigation_device();
-		m_handler = new Handler(Looper.getMainLooper());
+		_handler = new Handler(Looper.getMainLooper());
 		pm = (PowerManager)getSystemService(POWER_SERVICE);
 		am = (AudioManager) getSystemService(AUDIO_SERVICE);
 		Android.initialize(this, new PrivateAPI(this));
@@ -166,29 +166,29 @@ public class FtrActivity extends NativeActivity implements View.OnSystemUiVisibi
 
 		public void ime_keyboard_open(boolean clear, int type, int return_type) {
 			Log.d(TAG, "ime_keyboard_open");
-			if ( host.m_ime == null ) {
-				host.m_ime = new IMEHelper(host);
-				((FrameLayout) host.findViewById(android.R.id.content)).addView(host.m_ime);
+			if ( host._ime == null ) {
+				host._ime = new IMEHelper(host);
+				((FrameLayout) host.findViewById(android.R.id.content)).addView(host._ime);
 			}
 			if ( clear ) {
-				host.m_ime.clear();
+				host._ime.clear();
 			}
-			host.m_ime.set_keyboard_return_type(return_type);
-			host.m_ime.set_keyboard_type(type);
-			host.m_ime.open();
+			host._ime.set_keyboard_return_type(return_type);
+			host._ime.set_keyboard_type(type);
+			host._ime.open();
 		}
 
 		public void ime_keyboard_can_backspace(boolean can_backspace, boolean can_delete) {
 			Log.d(TAG, "ime_keyboard_can_backspace");
-			if ( host.m_ime != null ) {
-				host.m_ime.set_can_backspace(can_backspace, can_delete);
+			if ( host._ime != null ) {
+				host._ime.set_can_backspace(can_backspace, can_delete);
 			}
 		}
 
 		public void ime_keyboard_close() {
 			Log.d(TAG, "ime_keyboard_close");
-			if ( host.m_ime != null ) {
-				host.m_ime.close();
+			if ( host._ime != null ) {
+				host._ime.close();
 			}
 		}
 

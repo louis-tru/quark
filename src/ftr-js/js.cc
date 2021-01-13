@@ -290,35 +290,35 @@ static void require_native(FunctionCall args) {
 }
 
 Worker* IMPL::initialize() {
-	HandleScope scope(m_host);
-	m_native_modules.Reset(m_host, m_host->NewObject());
-	m_classs = new JSClassStore(m_host);
-	m_strs = new CommonStrings(m_host);
-	ASSERT(m_global.local()->IsObject(m_host));
-	m_global.local()->SetProperty(m_host, "global", m_global.local());
-	m_global.local()->SetMethod(m_host, "__require__", require_native);
+	HandleScope scope(_host);
+	_native_modules.Reset(_host, _host->NewObject());
+	_classs = new JSClassStore(_host);
+	_strs = new CommonStrings(_host);
+	ASSERT(_global.local()->IsObject(_host));
+	_global.local()->SetProperty(_host, "global", _global.local());
+	_global.local()->SetMethod(_host, "__require__", require_native);
 
-	auto globalThis = m_host->New("globalThis");
-	if ( !m_global.local()->Has(m_host, globalThis) ) {
-		m_global.local()->Set(m_host, globalThis, m_global.local());
+	auto globalThis = _host->New("globalThis");
+	if ( !_global.local()->Has(_host, globalThis) ) {
+		_global.local()->Set(_host, globalThis, _global.local());
 	}
-	return m_host;
+	return _host;
 }
 
 void IMPL::release() {
-	Release(m_values); m_values = nullptr;
-	Release(m_strs); m_strs = nullptr;
-	delete m_classs; m_classs = nullptr;
-	m_native_modules.Reset();
-	m_global.Reset();
+	Release(_values); _values = nullptr;
+	Release(_strs); _strs = nullptr;
+	delete _classs; _classs = nullptr;
+	_native_modules.Reset();
+	_global.Reset();
 }
 
 IMPL::IMPL()
-: m_host(nullptr)
-, m_thread_id(Thread::current_id())
-, m_values(nullptr), m_strs(nullptr)
-, m_classs(nullptr), m_is_node(0) {
-	m_host = new Worker(this);
+: _host(nullptr)
+, _thread_id(Thread::current_id())
+, _values(nullptr), _strs(nullptr)
+, _classs(nullptr), _is_node(0) {
+	_host = new Worker(this);
 }
 
 IMPL::~IMPL() {
@@ -360,20 +360,20 @@ static bool TriggerException(Worker* worker, cString& name, int argc, Local<JSVa
 }
 
 int IMPL::TriggerExit(int code) {
-	return TriggerExit_1(m_host, "Exit", code);
+	return TriggerExit_1(_host, "Exit", code);
 }
 
 int IMPL::TriggerBeforeExit(int code) {
-	return TriggerExit_1(m_host, "BeforeExit", code);
+	return TriggerExit_1(_host, "BeforeExit", code);
 }
 
 bool IMPL::TriggerUncaughtException(Local<JSValue> err) {
-	return TriggerException(m_host, "UncaughtException", 1, &err);
+	return TriggerException(_host, "UncaughtException", 1, &err);
 }
 
 bool IMPL::TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise) {
 	Local<JSValue> argv[] = { reason, promise };
-	return TriggerException(m_host, "UncaughtException", 2, argv);
+	return TriggerException(_host, "UncaughtException", 2, argv);
 }
 
 Worker* Worker::create() {
@@ -389,7 +389,7 @@ void Worker::registerModule(cString& name, BindingCallback binding, cchar* file)
 
 Local<JSValue> Worker::bindingModule(cString& name) {
 	Local<JSValue> str = New(name);
-	Local<JSValue> r = m_inl->m_native_modules.local()->Get(this, str);
+	Local<JSValue> r = _inl->_native_modules.local()->Get(this, str);
 
 	if (!r->IsUndefined()) {
 		return r.To<JSObject>();
@@ -397,7 +397,7 @@ Local<JSValue> Worker::bindingModule(cString& name) {
 
 	auto it = native_modules->find(name);
 	if (it.is_null()) {
-		return m_inl->binding_node_module(name);
+		return _inl->binding_node_module(name);
 	}
 
 	NativeModule& mod = it.value();
@@ -416,11 +416,11 @@ Local<JSValue> Worker::bindingModule(cString& name) {
 			return exports;
 		}
 	}
-	m_inl->m_native_modules.local()->Set(this, str, exports);
+	_inl->_native_modules.local()->Set(this, str, exports);
 	return exports;
 }
 
-Worker::Worker(IMPL* inl): m_inl(inl) {
+Worker::Worker(IMPL* inl): _inl(inl) {
 	// register core native module
 	static int initializ_core_native_module = 0;
 	if ( initializ_core_native_module++ == 0 ) {
@@ -435,23 +435,23 @@ Worker::Worker(IMPL* inl): m_inl(inl) {
 }
 
 Worker::~Worker() {
-	delete m_inl; m_inl = nullptr;
+	delete _inl; _inl = nullptr;
 }
 
 ValueProgram* Worker::values() {
-	return m_inl->m_values;
+	return _inl->_values;
 }
 
 CommonStrings* Worker::strs() {
-	return m_inl->m_strs; 
+	return _inl->_strs; 
 }
 
 ThreadID Worker::threadId() {
-	return m_inl->m_thread_id;
+	return _inl->_thread_id;
 }
 
 Local<JSObject> Worker::global() {
-	return m_inl->m_global.local();
+	return _inl->_global.local();
 }
 
 Local<JSObject> Worker::NewError(cchar* errmsg, ...) {
@@ -478,7 +478,7 @@ Local<JSObject> Worker::NewError(cError& err) { return New(err); }
 Local<JSObject> Worker::NewError(const HttpError& err) { return New(err); }
 
 Local<JSObject> Worker::New(FileStat&& stat) {
-	Local<JSFunction> func = m_inl->m_classs->get_constructor(JS_TYPEID(FileStat));
+	Local<JSFunction> func = _inl->_classs->get_constructor(JS_TYPEID(FileStat));
 	ASSERT( !func.IsEmpty() );
 	Local<JSObject> r = func->NewInstance(this);
 	*Wrap<FileStat>::unpack(r)->self() = move(stat);
@@ -486,7 +486,7 @@ Local<JSObject> Worker::New(FileStat&& stat) {
 }
 
 Local<JSObject> Worker::NewInstance(uint64 id, uint argc, Local<JSValue>* argv) {
-	Local<JSFunction> func = m_inl->m_classs->get_constructor(id);
+	Local<JSFunction> func = _inl->_classs->get_constructor(id);
 	ASSERT( !func.IsEmpty() );
 	return func->NewInstance(this, argc, argv);
 }
@@ -513,11 +513,11 @@ void Worker::throwError(cchar* errmsg, ...) {
 }
 
 bool Worker::hasView(Local<JSValue> val) {
-	return m_inl->m_classs->instanceof(val, ftr::View::VIEW);
+	return _inl->_classs->instanceof(val, ftr::View::VIEW);
 }
 
 bool Worker::hasInstance(Local<JSValue> val, uint64 id) {
-	return m_inl->m_classs->instanceof(val, id);
+	return _inl->_classs->instanceof(val, id);
 }
 
 JS_END

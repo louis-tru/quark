@@ -59,14 +59,14 @@ class FX_EXPORT Layout: public View {
 	 * @func client_width 客户端宽度,视图所占用的所有水平尺寸
 	 */
 	inline float client_width() const {
-		return m_offset_end.x() - m_offset_start.x();
+		return _offset_end.x() - _offset_start.x();
 	}
 	
 	/**
 	 * @func client_height 客户端高度,视图所占用的所有垂直尺寸
 	 */
 	inline float client_height() const {
-		return m_offset_end.y() - m_offset_start.y();
+		return _offset_end.y() - _offset_start.y();
 	}
 	
  protected:
@@ -99,9 +99,9 @@ class FX_EXPORT Layout: public View {
 	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) = 0;
 	
  protected:
-	Vec2    m_offset_start;   /* 相对父视图的开始偏移位置 */
-	Vec2    m_offset_end;     /* 相对父视图的结束偏移位置 */
-	Layout* m_parent_layout;  /* 父关联的布局视图，在一般为父布局视图，在Text布局中时为顶层Text视图
+	Vec2    _offset_start;   /* 相对父视图的开始偏移位置 */
+	Vec2    _offset_end;     /* 相对父视图的结束偏移位置 */
+	Layout* _parent_layout;  /* 父关联的布局视图，在一般为父布局视图，在Text布局中时为顶层Text视图
 														 * 应该在做布局运算时被设置 
 														 */
 	friend class PreRender;

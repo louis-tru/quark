@@ -73,7 +73,7 @@ namespace ftr {
 		/**
 		* @func font_familys
 		*/
-		inline Array<String> family_names() const { return m_familys.keys(); }
+		inline Array<String> family_names() const { return _familys.keys(); }
 		
 		/**
 		* @func font_names
@@ -88,7 +88,7 @@ namespace ftr {
 		/**
 		* @fucn test 测试是否有字体或家族
 		*/
-		inline bool test(cString& font) { return m_blend_fonts.has(font); }
+		inline bool test(cString& font) { return _blend_fonts.has(font); }
 		
 		/**
 		* @func get_font 通过名称获得一个字体对像
@@ -196,19 +196,19 @@ namespace ftr {
 		*/
 		void set_display_port(DisplayPort* display_port);
 		
-		void*                       m_ft_lib;     /* FT_Library */
-		Map<String, BasicFont*>     m_blend_fonts;/* 所有的家族与字体包括别名 */
-		Map<String, FontFamily*>    m_familys;    /* 所有的字体家族 */
-		Map<String, Font*>          m_fonts;      /* 所有的字体 */
-		Map<uint, FontGlyphTable*>  m_tables;     /* 所有的字型表 */
-		Map<String, String>         m_paths;      /* 所有的字体路径 */
-		Array<BasicFont*>           m_default_fonts;
-		FontFamily*                 m_spare_family;     /* 备用字体家族 */
-		Draw*                       m_draw_ctx;
-		DisplayPort*                m_display_port;
-		uint64                      m_total_data_size; /* 总数据尺寸 */
-		float                       m_max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
-		float                       m_display_port_scale;
+		void*                       _ft_lib;     /* FT_Library */
+		Map<String, BasicFont*>     _blend_fonts;/* 所有的家族与字体包括别名 */
+		Map<String, FontFamily*>    _familys;    /* 所有的字体家族 */
+		Map<String, Font*>          _fonts;      /* 所有的字体 */
+		Map<uint, FontGlyphTable*>  _tables;     /* 所有的字型表 */
+		Map<String, String>         _paths;      /* 所有的字体路径 */
+		Array<BasicFont*>           _default_fonts;
+		FontFamily*                 _spare_family;     /* 备用字体家族 */
+		Draw*                       _draw_ctx;
+		DisplayPort*                _display_port;
+		uint64                      _total_data_size; /* 总数据尺寸 */
+		float                       _max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
+		float                       _display_port_scale;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		

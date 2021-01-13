@@ -52,18 +52,18 @@ class AndroidApplication {
 	typedef NonObjectTraits Traits;
 
 	AndroidApplication()
-	: m_activity(nullptr)
-	, m_window(nullptr)
-	, m_host(nullptr)
-	, m_queue(nullptr)
-	, m_looper(nullptr)
-	, m_render_looper(nullptr)
-	, m_dispatch( nullptr )
-	, m_current_orientation(Orientation::ORIENTATION_INVALID)
-	, m_is_init_ok(false)
+	: _activity(nullptr)
+	, _window(nullptr)
+	, _host(nullptr)
+	, _queue(nullptr)
+	, _looper(nullptr)
+	, _render_looper(nullptr)
+	, _dispatch( nullptr )
+	, _current_orientation(Orientation::ORIENTATION_INVALID)
+	, _is_init_ok(false)
 	{
 		ASSERT(!application); application = this;
-		m_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+		_looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 	}
 
  public:
@@ -71,20 +71,20 @@ class AndroidApplication {
 
 	inline void start_render_task() {
 		if ( Android::is_screen_on() ) {
-			m_render_looper->start();
+			_render_looper->start();
 		}
 	}
 
 	inline void stop_render_task() {
-		m_render_looper->stop();
+		_render_looper->stop();
 	}
 
 	inline Orientation orientation() const { 
-		return m_current_orientation; 
+		return _current_orientation; 
 	}
 
 	inline AppInl* host() const { 
-		return m_host; 
+		return _host; 
 	}
 
 	// -------------------------------static---------------------------------
@@ -113,11 +113,11 @@ class AndroidApplication {
 		activity->callbacks->onContentRectChanged       = &AndroidApplication::onContentRectChanged;
 		activity->instance = application;
 
-		application->m_activity = activity;
+		application->_activity = activity;
 	}
 
 	static void onDestroy(ANativeActivity* activity) {
-		ASSERT(application->m_activity);
+		ASSERT(application->_activity);
 
 		activity->callbacks->onDestroy                  = nullptr;
 		activity->callbacks->onStart                    = nullptr;
@@ -136,35 +136,35 @@ class AndroidApplication {
 		activity->callbacks->onInputQueueDestroyed      = nullptr;
 		activity->callbacks->onContentRectChanged       = nullptr;
 
-		application->m_activity = nullptr;
+		application->_activity = nullptr;
 
-		// application->m_app->triggerUnload();
+		// application->_app->triggerUnload();
 		// delete application; application = nullptr;
 	}
 
 	// ----------------------------------------------------------------------
 
 	static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
-		// ScopeLock scope(application->m_mutex);
+		// ScopeLock scope(application->_mutex);
 		typedef Callback<RunLoop::PostSyncData> Cb;
-		application->m_window = window;
-		application->m_host->render_loop()->post_sync(Cb([window](Cb::Data &ev) {
+		application->_window = window;
+		application->_host->render_loop()->post_sync(Cb([window](Cb::Data &ev) {
 			bool ok = false;
 			{ //
-				// ScopeLock scope(application->m_mutex);
-				if ( window == application->m_window ) {
+				// ScopeLock scope(application->_mutex);
+				if ( window == application->_window ) {
 					ok = gl_draw_context->create_surface(window);
 					ASSERT(ok);
 				}
 			}
 			if ( ok ) {
-				if ( application->m_is_init_ok ) {
+				if ( application->_is_init_ok ) {
 					gl_draw_context->refresh_surface_size(nullptr);
-					application->m_host->refresh_display(); // 更新画面
+					application->_host->refresh_display(); // 更新画面
 				} else {
-					application->m_is_init_ok = true;
+					application->_is_init_ok = true;
 					gl_draw_context->initialize();
-					application->m_host->triggerLoad();
+					application->_host->triggerLoad();
 				}
 				application->start_render_task();
 			}
@@ -173,10 +173,10 @@ class AndroidApplication {
 	}
 	
 	static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-		// ScopeLock scope(application->m_mutex);
-		application->m_window = nullptr;
+		// ScopeLock scope(application->_mutex);
+		application->_window = nullptr;
 		typedef Callback<RunLoop::PostSyncData> Cb;
-		application->m_host->render_loop()->post_sync(Cb([window](Cb::Data& ev) {
+		application->_host->render_loop()->post_sync(Cb([window](Cb::Data& ev) {
 			gl_draw_context->destroy_surface(window);
 			application->stop_render_task();
 			ev.data->complete();
@@ -185,7 +185,7 @@ class AndroidApplication {
 
 	static void onStart(ANativeActivity* activity) {
 		
-		if ( application->m_host == nullptr ) { // start gui
+		if ( application->_host == nullptr ) { // start gui
 			/**************************************************/
 			/**************************************************/
 			/*************** Start GUI Application ************/
@@ -193,15 +193,15 @@ class AndroidApplication {
 			/**************************************************/
 			AppInl::runMain(0, nullptr); // run gui application
 
-			application->m_host = Inl_GUIApplication(app());
-			application->m_dispatch = application->m_host->dispatch();
-			application->m_render_looper = new RenderLooper(application->m_host);
+			application->_host = Inl_GUIApplication(app());
+			application->_dispatch = application->_host->dispatch();
+			application->_render_looper = new RenderLooper(application->_host);
 
-			ASSERT(application->m_activity);
-			ASSERT(application->m_host);
-			ASSERT(application->m_host->render_loop());
+			ASSERT(application->_activity);
+			ASSERT(application->_host);
+			ASSERT(application->_host->render_loop());
 		}
-		application->m_host->triggerForeground();
+		application->_host->triggerForeground();
 		application->stop_render_task();
 	}
 
@@ -210,31 +210,31 @@ class AndroidApplication {
 		 * 这里做Rect选择绘制，主要因为android的虚拟导航按键，
 		 * 虚拟导航按键区域绘制黑色背景颜色填充
 		 */
-		application->m_rect = {
+		application->_rect = {
 			Vec2(rect->left, 0),
 			Vec2(rect->right - rect->left, rect->bottom)
 		};
 
 		// 屏幕旋转都会触发这个事件，所以不做更多的监听工作
 		Orientation orientation = (Orientation)Android::get_orientation();
-		int targger_orientation = (orientation != application->m_current_orientation);
+		int targger_orientation = (orientation != application->_current_orientation);
 		if ( targger_orientation ) { // 屏幕方向改变
-			application->m_current_orientation = orientation;
+			application->_current_orientation = orientation;
 		}
 
 		typedef Callback<RunLoop::PostSyncData> Cb_;
-		application->m_host->render_loop()->post_sync(Cb_([targger_orientation](Cb_::Data &ev) {
+		application->_host->render_loop()->post_sync(Cb_([targger_orientation](Cb_::Data &ev) {
 			// NOTE: **********************************
 			// 这里有点奇怪，因为绘图表面反应迟钝，
 			// 也就是说 `ANativeWindow_getWidth()` 返回值可能与当前真实值不相同，
 			// 但调用eglSwapBuffers()会刷新绘图表面。
-			application->m_host->refresh_display(); // 刷新绘图表面
+			application->_host->refresh_display(); // 刷新绘图表面
 			// ****************************************
-			gl_draw_context->refresh_surface_size(&application->m_rect);
+			gl_draw_context->refresh_surface_size(&application->_rect);
 
 			if ( targger_orientation ) { // 触发方向变化事件
-				application->m_host->main_loop()->post(Cb([](CbD& e) {
-					application->m_host->display_port()->FX_TRIGGER(orientation);
+				application->_host->main_loop()->post(Cb([](CbD& e) {
+					application->_host->display_port()->FX_TRIGGER(orientation);
 				}));
 			}
 			ev.data->complete();
@@ -244,7 +244,7 @@ class AndroidApplication {
 	// ----------------------------------------------------------------------
 	
 	static void onStop(ANativeActivity* activity) {
-		application->m_host->triggerBackground();
+		application->_host->triggerBackground();
 		application->stop_render_task();
 	}
 
@@ -262,15 +262,15 @@ class AndroidApplication {
 	
 	static void onLowMemory(ANativeActivity* activity) {
 		FX_DEBUG("onLowMemory");
-		application->m_host->triggerMemorywarning();
+		application->_host->triggerMemorywarning();
 	}
 
 	static void onResume(ANativeActivity* activity) {
-		application->m_host->triggerResume();
+		application->_host->triggerResume();
 	}
 
 	static void onPause(ANativeActivity* activity) {
-		application->m_host->triggerPause();
+		application->_host->triggerPause();
 	}
 
 	// ----------------------------------------------------------------------
@@ -290,20 +290,20 @@ class AndroidApplication {
 	// --------------------------- Dispatch event ---------------------------
 
 	static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
-		if ( queue != application->m_queue ) {
-			if ( application->m_queue ) {
-				AInputQueue_detachLooper(application->m_queue);
+		if ( queue != application->_queue ) {
+			if ( application->_queue ) {
+				AInputQueue_detachLooper(application->_queue);
 			}
-			AInputQueue_attachLooper(queue, application->m_looper,
+			AInputQueue_attachLooper(queue, application->_looper,
 															 ALOOPER_POLL_CALLBACK,
 															 (ALooper_callbackFunc) &onInputEvent_callback, queue);
-			application->m_queue = queue;
+			application->_queue = queue;
 		}
 	}
 	
 	static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
 		AInputQueue_detachLooper(queue);
-		application->m_queue = nullptr;
+		application->_queue = nullptr;
 	}
 
 	// ----------------------------------------------------------------------
@@ -323,7 +323,7 @@ class AndroidApplication {
 	}
 
 	static void dispatch_event(AInputEvent* event) {
-		GUIEventDispatch* dispatch = application->m_dispatch;
+		GUIEventDispatch* dispatch = application->_dispatch;
 
 		int type = AInputEvent_getType(event);
 		int device = AInputEvent_getDeviceId(event);
@@ -395,8 +395,8 @@ class AndroidApplication {
 	}
 
 	static bool get_gui_touch(AInputEvent* motion_event, int pointer_index, GUITouch* out) {
-		Vec2 scale = application->m_host->display_port()->scale();
-		float left = application->m_rect.origin.x();
+		Vec2 scale = application->_host->display_port()->scale();
+		float left = application->_rect.origin.x();
 		int id = AMotionEvent_getPointerId(motion_event, pointer_index);
 		float x = AMotionEvent_getX(motion_event, pointer_index) - left;
 		float y = AMotionEvent_getY(motion_event, pointer_index);
@@ -437,21 +437,21 @@ class AndroidApplication {
 	// ----------------------------------------------------------------------
 
 	void pending() {
-		ANativeActivity_finish(m_activity);
+		ANativeActivity_finish(_activity);
 	}
 
  private:
-	ANativeActivity* m_activity;
-	ANativeWindow* m_window;
-	AppInl* m_host;
-	AInputQueue* m_queue;
-	ALooper* m_looper;
-	RenderLooper* m_render_looper;
-	GUIEventDispatch* m_dispatch;
-	Orientation m_current_orientation;
-	CGRect m_rect;
-	// Mutex m_mutex;
-	bool m_is_init_ok;
+	ANativeActivity* _activity;
+	ANativeWindow* _window;
+	AppInl* _host;
+	AInputQueue* _queue;
+	ALooper* _looper;
+	RenderLooper* _render_looper;
+	GUIEventDispatch* _dispatch;
+	Orientation _current_orientation;
+	CGRect _rect;
+	// Mutex _mutex;
+	bool _is_init_ok;
 };
 
 /**
@@ -482,7 +482,7 @@ void GUIApplication::send_email(cString& recipient,
 void AppInl::initialize(cJSON& options) {
 	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
-	m_draw_ctx = gl_draw_context->host();
+	_draw_ctx = gl_draw_context->host();
 }
 
 /**
@@ -546,7 +546,7 @@ void DisplayPort::keep_screen(bool keep) {
 * @func status_bar_height()
 */
 float DisplayPort::status_bar_height() {
-	return Android::get_status_bar_height() / m_scale_value[1];
+	return Android::get_status_bar_height() / _scale_value[1];
 }
 
 /**

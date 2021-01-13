@@ -47,10 +47,10 @@ JS_BEGIN
 
 using namespace native_js;
 
-Cast::Cast(CastFunc func): m_cast_func(func) { }
+Cast::Cast(CastFunc func): _cast_func(func) { }
 
 Local<JSValue> Cast::cast(const Object& object, Worker* worker) {
-	return m_cast_func ? m_cast_func(object, worker): worker->NewNull();
+	return _cast_func ? _cast_func(object, worker): worker->NewNull();
 }
 
 // ------------------------------------------------------------------------
@@ -70,13 +70,13 @@ class WrapNativeEvent: public WrapObject {
 	static void noticer(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_UNPACK(Type);
-		JS_RETURN( wrap->get( worker->strs()->m_noticer() ) );
+		JS_RETURN( wrap->get( worker->strs()->_noticer() ) );
 	}
 	
 	static void sender(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_UNPACK(Type);
-		Local<JSValue> noticer = wrap->get(worker->strs()->m_noticer());
+		Local<JSValue> noticer = wrap->get(worker->strs()->_noticer());
 		
 		if ( !noticer.IsEmpty() && noticer->IsObject(worker) ) {
 			Local<JSValue> sender = noticer.To<JSObject>()->Get(worker, worker->strs()->sender());
@@ -97,7 +97,7 @@ class WrapNativeEvent: public WrapObject {
 	static void name(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);
 		JS_UNPACK(Type);
-		Local<JSValue> noticer = wrap->get(worker->strs()->m_noticer());
+		Local<JSValue> noticer = wrap->get(worker->strs()->_noticer());
 		
 		if ( !noticer.IsEmpty() && noticer->IsObject(worker) ) {
 			Local<JSValue> name = noticer.To<JSObject>()->Get(worker, worker->strs()->name());
@@ -590,7 +590,7 @@ class WrapGUITouchEvent: public WrapObject {
 		JS_UNPACK(GUITouchEvent);
 		JS_HANDLE_SCOPE();
 		
-		Local<JSValue> r = wrap->get(worker->strs()->m_change_touches());
+		Local<JSValue> r = wrap->get(worker->strs()->_change_touches());
 		
 		if (r.IsEmpty()) { // js error
 			return;
@@ -619,7 +619,7 @@ class WrapGUITouchEvent: public WrapObject {
 			
 			r = arr.To<JSValue>();
 			
-			wrap->set(worker->strs()->m_change_touches(), r);
+			wrap->set(worker->strs()->_change_touches(), r);
 		}
 		JS_RETURN( r );
 	}

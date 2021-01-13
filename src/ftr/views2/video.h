@@ -82,7 +82,7 @@ class FX_EXPORT Video: public Image,
 	/**
 	 * @func auto_play
 	 */
-	inline bool auto_play() const { return m_auto_play; }
+	inline bool auto_play() const { return _auto_play; }
 
 	/**
 	 * @func set_auto_play # setting auto play
@@ -112,7 +112,7 @@ class FX_EXPORT Video: public Image,
 	/**
 	 * @func mute getting mute status
 	 * */
-	inline bool mute() const { return m_mute; }
+	inline bool mute() const { return _mute; }
 
 	/**
 	 * @func mute setting mute status
@@ -122,7 +122,7 @@ class FX_EXPORT Video: public Image,
 	/**
 	 * @func volume
 	 */
-	inline uint volume() { return m_volume; }
+	inline uint volume() { return _volume; }
 
 	/**
 	 * @func volume
@@ -202,7 +202,7 @@ class FX_EXPORT Video: public Image,
 	/**
 	 * @func disable_wait_buffer
 	 */
-	inline bool disable_wait_buffer() const { return m_disable_wait_buffer; }
+	inline bool disable_wait_buffer() const { return _disable_wait_buffer; }
 
  protected:
 
@@ -215,28 +215,28 @@ class FX_EXPORT Video: public Image,
 
  private:
 
-	MultimediaSource* m_source;
-	MediaCodec*   m_audio;
-	MediaCodec*   m_video;
-	PCMPlayer*    m_pcm;
-	KeepLoop*     m_keep;
-	PlayerStatus  m_status;
-	OutputBuffer  m_audio_buffer;
-	OutputBuffer  m_video_buffer;
-	uint64  m_time, m_duration;
-	uint64  m_uninterrupted_play_start_time;
-	uint64  m_uninterrupted_play_start_systime;
-	uint64  m_prev_presentation_time;
-	uint64  m_prev_run_task_systime;
-	uint    m_video_width, m_video_height;
-	uint    m_task_id;
-	VideoColorFormat  m_color_format;
-	Mutex   m_audio_loop_mutex, m_mutex;
-	uint    m_volume;
-	bool    m_auto_play;
-	bool    m_mute;
-	bool    m_disable_wait_buffer;
-	bool    m_waiting_buffer;
+	MultimediaSource* _source;
+	MediaCodec*   _audio;
+	MediaCodec*   _video;
+	PCMPlayer*    _pcm;
+	KeepLoop*     _keep;
+	PlayerStatus  _status;
+	OutputBuffer  _audio_buffer;
+	OutputBuffer  _video_buffer;
+	uint64  _time, _duration;
+	uint64  _uninterrupted_play_start_time;
+	uint64  _uninterrupted_play_start_systime;
+	uint64  _prev_presentation_time;
+	uint64  _prev_run_task_systime;
+	uint    _video_width, _video_height;
+	uint    _task_id;
+	VideoColorFormat  _color_format;
+	Mutex   _audio_loop_mutex, _mutex;
+	uint    _volume;
+	bool    _auto_play;
+	bool    _mute;
+	bool    _disable_wait_buffer;
+	bool    _waiting_buffer;
 
 	FX_DEFINE_INLINE_CLASS(Inl);
 };

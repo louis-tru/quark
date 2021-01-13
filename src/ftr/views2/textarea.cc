@@ -39,26 +39,26 @@ Textarea::Textarea(): Input(), BasicScroll(this) {
 }
 
 void Textarea::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			
 			BasicScroll::solve();
 			
-			if (m_rows.max_width() <= final_width()) {
+			if (_rows.max_width() <= final_width()) {
 				input_text_offset_x_ = 0;
 			} else {
-				switch ( m_text_align ) {
+				switch ( _text_align ) {
 					default:
 					case TextAlign::LEFT_REVERSE:
 						input_text_offset_x_ = 0; break;
 					case TextAlign::CENTER:
 					case TextAlign::CENTER_REVERSE:
-						input_text_offset_x_ = (final_width() - m_rows.max_width()) / 2.0;
+						input_text_offset_x_ = (final_width() - _rows.max_width()) / 2.0;
 						break;
 					case TextAlign::RIGHT:
 					case TextAlign::RIGHT_REVERSE:
-						input_text_offset_x_ = final_width() - m_rows.max_width();
+						input_text_offset_x_ = final_width() - _rows.max_width();
 						break;
 				}
 			}
@@ -83,7 +83,7 @@ void Textarea::draw(Draw* draw) {
 			}
 			
 			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
-				set_glyph_texture_level(m_data);
+				set_glyph_texture_level(_data);
 			}
 		}
 		
@@ -94,9 +94,9 @@ void Textarea::draw(Draw* draw) {
 }
 
 void Textarea::set_layout_content_offset() {
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		Input::set_layout_content_offset();
-		BasicScroll::set_scroll_size(Vec2(m_rows.max_width(), m_rows.max_height()));
+		BasicScroll::set_scroll_size(Vec2(_rows.max_width(), _rows.max_height()));
 	}
 }
 
@@ -114,11 +114,11 @@ void Textarea::set_input_text_offset(Vec2 value) {
 
 void Textarea::set_draw_visible() {
 	
-	compute_box_vertex(m_final_vertex);
+	compute_box_vertex(_final_vertex);
 	
-	m_draw_visible =
+	_draw_visible =
 	
-		compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, scroll_y());
+		compute_text_visible_draw(_final_vertex, _data, 0, _final_width, scroll_y());
 }
 
 FX_END

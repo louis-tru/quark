@@ -56,17 +56,17 @@ class GLDrawProxy {
 	void commit_render();
 	void initializ_gl_buffers();
 	GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-	inline GLDraw* host() { return m_host; }
+	inline GLDraw* host() { return _host; }
 	static GLDrawProxy* create(GUIApplication* host, cJSON& options);
  protected:
-	EGLDisplay m_display;
-	EGLConfig m_config;
-	EGLContext m_context;
-	EGLSurface m_surface;
-	EGLNativeWindowType m_window;
-	Vec2 m_raw_surface_size;
-	CGRect m_virtual_keys_rect;
-	GLDraw* m_host;
+	EGLDisplay _display;
+	EGLConfig _config;
+	EGLContext _context;
+	EGLSurface _surface;
+	EGLNativeWindowType _window;
+	Vec2 _raw_surface_size;
+	CGRect _virtual_keys_rect;
+	GLDraw* _host;
 };
 
 FX_END

@@ -32,16 +32,59 @@
 #include <sys/utsname.h>
 #include <string>
 #include <iostream>
+#include <limits>
+#include <stdarg.h>
+#include "../src/include/ftr/util/macros.h"
+//#include <string.h>
+//#include <stdio.h>
+//#include <ctype.h>
+
+const char test_big_char[] = { 1, 0, 0, 0 };
+const int* test_big_int = (const int*)test_big_char;
+const bool has_big_data = *test_big_int != 1;
+
+namespace ftr {
+
+	int32_t vasprintf(char** o, const char* f, va_list arg) {
+		#if FX_GNUC
+			int32_t len = ::vasprintf(o, f, arg);
+		#else
+			int32_t len = ::vsprintf(o, f, arg);
+			if (len) {
+				o = (char*)::malloc(len + 1);
+				o[len] = '\0';
+				::_vsnprintf_s(o, len + 1, f, arg);
+			}
+		#endif
+		return len;
+	}
+
+	int32_t sprintf(char*& o, uint32_t& capacity, const char* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		int32_t len = vasprintf(&o, f, arg);
+		va_end(arg);
+		if (o) {
+			capacity = len + 1;
+		}
+		return len;
+	}
+
+}
 
 int test2_str(int argc, char *argv[]) {
 
-	std::string s = "hello";
+	std::string s = std::string("-hello").substr(1,5) + "-";
 	
 	char* a = const_cast<char*>(s.c_str());
+
 	
-	std::free(&a);
 	
-	a[0] = 'H';
+	// std::free(a - 2);
+	
+	int i = 3/4;
+	
+	a[0] = 'U';
 	
 	std::cout
 	<< "sizeof(s):" << sizeof(s) << std::endl
@@ -50,6 +93,10 @@ int test2_str(int argc, char *argv[]) {
 	<< "length:" << s.length() << std::endl
 	<< "str:" << s << std::endl
 	<< "ptr:" << s.c_str() << std::endl
+	<< "uint32_t:" << std::numeric_limits<uint32_t>::max() << std::endl
+	<< "has_big_data:" << has_big_data << std::endl
+	<< "i:" << i << std::endl
+	<< "memcmp:" << memcmp("A", "A", 1) << std::endl
 	<< std::endl;
 
 	return 0;

@@ -207,8 +207,8 @@ namespace {
 		public:
 		Color(uint color);
 		inline Color(): MTColor<byte>(0, 0, 0, 255) { }
-		inline Color(byte r, byte g, byte b): MTColor<byte>(r, g, b, 255) { }
-		inline Color(byte r, byte g, byte b, byte a): MTColor<byte>(r, g, b, a) { }
+		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<byte>(r, g, b, 255) { }
+		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MTColor<byte>(r, g, b, a) { }
 		bool operator==(Color color) const;
 		inline bool operator!=(Color color) const { return ! operator==(color); }
 		inline FloatColor to_float_color() const {

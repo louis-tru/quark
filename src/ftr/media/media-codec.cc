@@ -62,44 +62,44 @@ MultimediaSource::TrackInfo::TrackInfo() {
 
 // ------------------- MultimediaSource ------------------
 
-MultimediaSource::MultimediaSource(cString& uri, RunLoop* loop): m_inl(nullptr) {
-	m_inl = new Inl(this, uri, loop);
+MultimediaSource::MultimediaSource(cString& uri, RunLoop* loop): _inl(nullptr) {
+	_inl = new Inl(this, uri, loop);
 }
 
 MultimediaSource::~MultimediaSource() { 
-	Release(m_inl); m_inl = nullptr; 
+	Release(_inl); _inl = nullptr; 
 }
 
-void MultimediaSource::set_delegate(Delegate* delegate) { m_inl->set_delegate(delegate); }
-const URI& MultimediaSource::uri() const { return m_inl->m_uri; }
+void MultimediaSource::set_delegate(Delegate* delegate) { _inl->set_delegate(delegate); }
+const URI& MultimediaSource::uri() const { return _inl->_uri; }
 MultimediaSourceStatus MultimediaSource::status() const {
-	return (MultimediaSourceStatus)(int)m_inl->m_status;
+	return (MultimediaSourceStatus)(int)_inl->_status;
 }
-uint64 MultimediaSource::duration() const { return m_inl->m_duration; }
-uint MultimediaSource::bit_rate_index() const { return m_inl->bit_rate_index(); }
-const Array<BitRateInfo>& MultimediaSource::bit_rate()const{ return m_inl->bit_rate();}
-bool MultimediaSource::select_bit_rate(int index) { return m_inl->select_bit_rate(index); }
-Extractor* MultimediaSource::extractor(MediaType type) { return m_inl->extractor(type); }
-bool MultimediaSource::seek(uint64 timeUs) { return m_inl->seek(timeUs); }
-void MultimediaSource::start() { m_inl->start(); }
-void MultimediaSource::stop() { m_inl->stop(); }
-bool MultimediaSource::is_active() { return m_inl->is_active(); }
-void MultimediaSource::disable_wait_buffer(bool value) { m_inl->disable_wait_buffer(value); }
-AVStream* MultimediaSource::get_stream(const TrackInfo& t) { return m_inl->get_stream(t); }
+uint64 MultimediaSource::duration() const { return _inl->_duration; }
+uint MultimediaSource::bit_rate_index() const { return _inl->bit_rate_index(); }
+const Array<BitRateInfo>& MultimediaSource::bit_rate()const{ return _inl->bit_rate();}
+bool MultimediaSource::select_bit_rate(int index) { return _inl->select_bit_rate(index); }
+Extractor* MultimediaSource::extractor(MediaType type) { return _inl->extractor(type); }
+bool MultimediaSource::seek(uint64 timeUs) { return _inl->seek(timeUs); }
+void MultimediaSource::start() { _inl->start(); }
+void MultimediaSource::stop() { _inl->stop(); }
+bool MultimediaSource::is_active() { return _inl->is_active(); }
+void MultimediaSource::disable_wait_buffer(bool value) { _inl->disable_wait_buffer(value); }
+AVStream* MultimediaSource::get_stream(const TrackInfo& t) { return _inl->get_stream(t); }
 
 // ----------------- MultimediaSource::Extractor -------------------
 
 Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks)
-: m_host(host)
-, m_type(type)
-, m_track_index(0)
-, m_tracks(move(tracks))
-, m_sample_data_cache()
-, m_sample_index_cache(0)
-, m_sample_count_cache(0)
-, m_sample_data({ Buffer(), NULL, 0, 0, 0 })
-, m_eof_flags(0)
-, m_disable(1)
+: _host(host)
+, _type(type)
+, _track_index(0)
+, _tracks(move(tracks))
+, _sample_data_cache()
+, _sample_index_cache(0)
+, _sample_count_cache(0)
+, _sample_data({ Buffer(), NULL, 0, 0, 0 })
+, _eof_flags(0)
+, _disable(1)
 {
 }
 
@@ -107,10 +107,10 @@ Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& 
  * @func select_track
  */
 bool Extractor::select_track(uint index) {
-	ScopeLock lock(m_host->m_inl->mutex());
-	if ( m_track_index != index && index < m_tracks.length() ) {
-		m_host->m_inl->extractor_flush(this);
-		m_track_index = index;
+	ScopeLock lock(_host->_inl->mutex());
+	if ( _track_index != index && index < _tracks.length() ) {
+		_host->_inl->extractor_flush(this);
+		_track_index = index;
 		return true;
 	}
 	return false;
@@ -120,11 +120,11 @@ bool Extractor::select_track(uint index) {
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(char* out, uint size) {
-	if ( m_sample_data.size ) {
-		size = FX_MIN(m_sample_data.size, size);
-		memcpy(out, m_sample_data.data, size);
-		m_sample_data.data += size;
-		m_sample_data.size -= size;
+	if ( _sample_data.size ) {
+		size = FX_MIN(_sample_data.size, size);
+		memcpy(out, _sample_data.data, size);
+		_sample_data.data += size;
+		_sample_data.size -= size;
 		return size;
 	}
 	return 0;
@@ -135,8 +135,8 @@ uint Extractor::deplete_sample(char* out, uint size) {
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(Buffer& out) {
-	uint size = out.write(m_sample_data.data, 0, m_sample_data.size);
-	m_sample_data.size = 0;
+	uint size = out.write(_sample_data.data, 0, _sample_data.size);
+	_sample_data.size = 0;
 	return size;
 }
 
@@ -144,9 +144,9 @@ uint Extractor::deplete_sample(Buffer& out) {
  * @func deplete_sample
  * */
 uint Extractor::deplete_sample(uint size) {
-	size = FX_MIN(size, m_sample_data.size);
-	m_sample_data.size -= size;
-	m_sample_data.data += size;
+	size = FX_MIN(size, _sample_data.size);
+	_sample_data.size -= size;
+	_sample_data.data += size;
 	return size;
 }
 
@@ -154,7 +154,7 @@ uint Extractor::deplete_sample(uint size) {
  * @func advance
  * */
 bool Extractor::advance() {
-	return m_host->m_inl->extractor_advance(this);
+	return _host->_inl->extractor_advance(this);
 }
 
 // ----------------- MediaCodec -------------------
@@ -163,13 +163,13 @@ bool Extractor::advance() {
  * @constructor
  */
 MediaCodec::MediaCodec(Extractor* extractor)
-: m_extractor(extractor)
-, m_delegate(&default_media_decoder_delegate)
-, m_color_format(VIDEO_COLOR_FORMAT_INVALID)
-, m_channel_layout(CH_INVALID)
-, m_channel_count(0)
-, m_frame_interval(0) {
-	m_frame_interval = extractor->track().frame_interval;
+: _extractor(extractor)
+, _delegate(&default_media_decoder_delegate)
+, _color_format(VIDEO_COLOR_FORMAT_INVALID)
+, _channel_layout(CH_INVALID)
+, _channel_count(0)
+, _frame_interval(0) {
+	_frame_interval = extractor->track().frame_interval;
 }
 
 /**
@@ -177,7 +177,7 @@ MediaCodec::MediaCodec(Extractor* extractor)
  */
 void MediaCodec::set_delegate(Delegate* delegate) {
 	ASSERT(delegate);
-	m_delegate = delegate;
+	_delegate = delegate;
 }
 
 inline static bool is_nalu_start(byte* str) {
@@ -281,7 +281,7 @@ bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
 			uint start = 4, end = 0;
 			while( find_nalu_package(buffer, start, end) ) {
 				int s = end - start;
-				byte header[4] = { (byte)(s >> 24), (byte)(s >> 16), (byte)(s >> 8), (byte)s };
+				uint8_t header[4] = { (byte)(s >> 24), (byte)(s >> 16), (byte)(s >> 8), (byte)s };
 				memcpy(buf + start - 4, header, 4);
 				start = end + 4;
 			}

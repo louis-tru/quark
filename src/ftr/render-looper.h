@@ -44,6 +44,6 @@ class RenderLooper {
 	void start();
 	void stop();
  private:
-	AppInl* m_host;
-	int* m_id;
+	AppInl* _host;
+	int* _id;
 };

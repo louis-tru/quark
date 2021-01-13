@@ -267,9 +267,9 @@ namespace ftr {
 			int normal, shift;
 		};
 		
-		Map<int, KeyboardKeyName>      m_keycodes;
-		Map<int, AsciiKeyboardKeycode> m_ascii_keycodes;
-		Map<int, SymbolKeypressValue>  m_symbol_keypress;
+		Map<int, KeyboardKeyName>      _keycodes;
+		Map<int, AsciiKeyboardKeycode> _ascii_keycodes;
+		Map<int, SymbolKeypressValue>  _symbol_keypress;
 		
 		GUIApplication* app_;
 		KeyboardKeyName keyname_;

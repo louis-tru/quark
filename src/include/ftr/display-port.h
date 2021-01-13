@@ -90,12 +90,12 @@ namespace ftr {
 		/**
 		* @func phy_size 视口在屏幕上所占的实际物理像素的尺寸
 		*/
-		inline Vec2 phy_size() const { return m_phy_size; }
+		inline Vec2 phy_size() const { return _phy_size; }
 		
 		/**
 		* @func size 当前视口尺寸
 		*/
-		inline Vec2 size() const { return m_size; }
+		inline Vec2 size() const { return _size; }
 		
 		/**
 		* @func best_scale 最好的视口缩放
@@ -105,12 +105,12 @@ namespace ftr {
 		/**
 		* @func scale 当前视口缩放
 		*/
-		inline float scale() const { return m_scale; }
+		inline float scale() const { return _scale; }
 		
 		/**
 		* @func scale_value
 		*/
-		inline Vec2 scale_value() const { return m_scale_value; }
+		inline Vec2 scale_value() const { return _scale_value; }
 		
 		/**
 		* @func set_lock_size()
@@ -131,12 +131,12 @@ namespace ftr {
 		/**
 		* @func root_matrix
 		*/
-		inline const Mat4& root_matrix() const { return m_root_matrix; }
+		inline const Mat4& root_matrix() const { return _root_matrix; }
 		
 		/**
 		* @func draw_region
 		*/
-		inline const Region& draw_region() const { return m_draw_region.last(); }
+		inline const Region& draw_region() const { return _draw_region.last(); }
 
 		/**
 		* @func push_draw_region
@@ -147,14 +147,14 @@ namespace ftr {
 		* @func pop_draw_region
 		*/
 		inline void pop_draw_region() {
-			ASSERT( m_draw_region.length() > 1 );
-			m_draw_region.pop();
+			ASSERT( _draw_region.length() > 1 );
+			_draw_region.pop();
 		}
 		
 		/**
 		* @func atom_pixel
 		*/
-		inline float atom_pixel() const { return m_atom_pixel; }
+		inline float atom_pixel() const { return _atom_pixel; }
 		
 		/**
 		* @func next_frame() 只能在主gui线程调用
@@ -199,7 +199,7 @@ namespace ftr {
 		/**
 		* @func fsp()
 		*/
-		inline uint fsp() const { return m_fsp; }
+		inline uint fsp() const { return _fsp; }
 
 		/**
 		* @func default_atom_pixel
@@ -216,20 +216,20 @@ namespace ftr {
 		void render_frame();
 		void refresh();
 		
-		Vec2              m_phy_size;   // 视口在屏幕上所占的实际像素的尺寸
-		Vec2              m_lock_size;  // 锁定视口的尺寸
-		Vec2              m_size;       // 当前视口尺寸
-		float             m_scale;      // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
-		Vec2              m_scale_value;
-		PreRender*        m_pre_render;
-		Draw*             m_draw_ctx;
-		Mat4              m_root_matrix;
-		float             m_atom_pixel;
-		List<Region>      m_draw_region;
-		GUIApplication*   m_host;
-		List<Callback<>>  m_next_frame;
-		uint              m_fsp, m_record_fsp;
-		int64             m_record_fsp_time;
+		Vec2              _phy_size;   // 视口在屏幕上所占的实际像素的尺寸
+		Vec2              _lock_size;  // 锁定视口的尺寸
+		Vec2              _size;       // 当前视口尺寸
+		float             _scale;      // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
+		Vec2              _scale_value;
+		PreRender*        _pre_render;
+		Draw*             _draw_ctx;
+		Mat4              _root_matrix;
+		float             _atom_pixel;
+		List<Region>      _draw_region;
+		GUIApplication*   _host;
+		List<Callback<>>  _next_frame;
+		uint              _fsp, _record_fsp;
+		int64             _record_fsp_time;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class  GUIApplication; // 友元类

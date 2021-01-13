@@ -51,7 +51,7 @@ class FX_EXPORT BoxShadow: public Div {
 	/**
 	 * @func shadow_offset_x
 	 */
-	inline float shadow_offset_x() const { return m_shadow.offset_x; }
+	inline float shadow_offset_x() const { return _shadow.offset_x; }
 	
 	/**
 	 * @func set_shadow_offset_x
@@ -61,7 +61,7 @@ class FX_EXPORT BoxShadow: public Div {
 	/**
 	 * @func shadow_offset_y
 	 */
-	inline float shadow_offset_y() const { return m_shadow.offset_y; }
+	inline float shadow_offset_y() const { return _shadow.offset_y; }
 	
 	/**
 	 * @func set_shadow_offset_y
@@ -71,7 +71,7 @@ class FX_EXPORT BoxShadow: public Div {
 	/**
 	 * @func shadow_size
 	 */
-	inline float shadow_size() const { return m_shadow.size; }
+	inline float shadow_size() const { return _shadow.size; }
 	
 	/**
 	 * @func shadow_size
@@ -81,7 +81,7 @@ class FX_EXPORT BoxShadow: public Div {
 	/**
 	 * @func shadow_color
 	 */
-	inline Color shadow_color() const { return m_shadow.color; }
+	inline Color shadow_color() const { return _shadow.color; }
 	
 	/**
 	 * @func shadow_color
@@ -91,7 +91,7 @@ class FX_EXPORT BoxShadow: public Div {
 	/**
 	 * @func shadow
 	 */
-	inline Shadow shadow() const { return m_shadow; }
+	inline Shadow shadow() const { return _shadow; }
 	
 	/**
 	 * @func set_shadow_value
@@ -106,8 +106,8 @@ class FX_EXPORT BoxShadow: public Div {
 	virtual void draw(Draw* draw);
 	
  private:
-	bool  m_is_draw_shadow;
-	Shadow m_shadow;
+	bool  _is_draw_shadow;
+	Shadow _shadow;
 };
 
 FX_END

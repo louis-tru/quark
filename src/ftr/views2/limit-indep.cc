@@ -36,10 +36,10 @@ FX_NS(ftr)
  * @constructor
  */
 LimitIndep::LimitIndep()
-: m_max_width(ValueType::AUTO)
-, m_max_height(ValueType::AUTO)
-, m_limit_min_width(0)
-, m_limit_min_height(0) {
+: _max_width(ValueType::AUTO)
+, _max_height(ValueType::AUTO)
+, _limit_min_width(0)
+, _limit_min_height(0) {
 	
 }
 
@@ -47,7 +47,7 @@ LimitIndep::LimitIndep()
  * @func set_min_width
  */
 void LimitIndep::set_max_width(Value value) {
-	m_max_width = value;
+	_max_width = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
 }
@@ -56,7 +56,7 @@ void LimitIndep::set_max_width(Value value) {
  * @func set_min_width
  */
 void LimitIndep::set_max_height(Value value) {
-	m_max_height = value;
+	_max_height = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
 }

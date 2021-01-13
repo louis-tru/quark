@@ -46,7 +46,7 @@ bool FloatColor::operator==(const FloatColor& color) const {
 	return color.r() == r() && color.g() == g() &&  color.b() == b() &&  color.a() == a();
 }
 
-static inline byte getPartColor(int color, int offset) {
+static inline uint8_t getPartColor(int color, int offset) {
 	return (color >> offset) & 0xff;
 }
 

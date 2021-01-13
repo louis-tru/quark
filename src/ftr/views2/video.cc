@@ -48,26 +48,26 @@ typedef MediaCodec::OutputBuffer OutputBuffer;
  * @constructor
  */
 Video::Video()
-: m_source(NULL)
-, m_audio(NULL)
-, m_video(NULL)
-, m_pcm(NULL)
-, m_keep(nullptr)
-, m_status(PLAYER_STATUS_STOP)
-, m_audio_buffer(), m_video_buffer()
-, m_time(0), m_duration(0)
-, m_uninterrupted_play_start_time(0)
-, m_uninterrupted_play_start_systime(0)
-, m_prev_presentation_time(0)
-, m_prev_run_task_systime(0)
-, m_video_width(0), m_video_height(0)
-, m_task_id(0)
-, m_color_format(VIDEO_COLOR_FORMAT_INVALID)
-, m_volume(100)
-, m_auto_play(true)
-, m_mute(false)
-, m_disable_wait_buffer(false)
-, m_waiting_buffer(false) {
+: _source(NULL)
+, _audio(NULL)
+, _video(NULL)
+, _pcm(NULL)
+, _keep(nullptr)
+, _status(PLAYER_STATUS_STOP)
+, _audio_buffer(), _video_buffer()
+, _time(0), _duration(0)
+, _uninterrupted_play_start_time(0)
+, _uninterrupted_play_start_systime(0)
+, _prev_presentation_time(0)
+, _prev_run_task_systime(0)
+, _video_width(0), _video_height(0)
+, _task_id(0)
+, _color_format(VIDEO_COLOR_FORMAT_INVALID)
+, _volume(100)
+, _auto_play(true)
+, _mute(false)
+, _disable_wait_buffer(false)
+, _waiting_buffer(false) {
 	Image::set_texture( new TextureYUV() );
 }
 
@@ -83,36 +83,36 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 		body[1] = WeakBuffer((char*)buffer.data[1], buffer.linesize[1]);  // u
 		body[2] = WeakBuffer((char*)buffer.data[2], buffer.linesize[2]);  // v
 		
-		PixelData pixel(body, m_video_width, m_video_height, (PixelData::Format)m_color_format );
+		PixelData pixel(body, _video_width, _video_height, (PixelData::Format)_color_format );
 		
 		bool r = static_cast<TextureYUV*>(texture())->load_yuv(pixel); // load texture
-		m_video->release(buffer);
+		_video->release(buffer);
 		return r;
 	}
 	
 	bool advance_video(uint64 sys_time) {
-		ASSERT(m_status != PLAYER_STATUS_STOP);
+		ASSERT(_status != PLAYER_STATUS_STOP);
 		
 		bool draw = false;
 		
-		if ( ! m_video_buffer.total ) {
-			if ( m_status == PLAYER_STATUS_PLAYING || m_status == PLAYER_STATUS_START ) {
-				m_video_buffer = m_video->output();
+		if ( ! _video_buffer.total ) {
+			if ( _status == PLAYER_STATUS_PLAYING || _status == PLAYER_STATUS_START ) {
+				_video_buffer = _video->output();
 				//t_debug("output, %llu", sys_time_monotonic() - sys_time);
 				
-				if ( m_video_buffer.total ) {
-					if ( m_waiting_buffer ) {
-						m_waiting_buffer = false;
-						m_keep->post(Cb([this](CbD& e){
+				if ( _video_buffer.total ) {
+					if ( _waiting_buffer ) {
+						_waiting_buffer = false;
+						_keep->post(Cb([this](CbD& e){
 							trigger(GUI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
 						}));
 					}
 				} else { // 没有取到数据
-					MultimediaSourceStatus status = m_source->status();
+					MultimediaSourceStatus status = _source->status();
 					if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
-						if ( m_waiting_buffer == false ) {
-							m_waiting_buffer = true;
-							m_keep->post(Cb([this](CbD& e){
+						if ( _waiting_buffer == false ) {
+							_waiting_buffer = true;
+							_keep->post(Cb([this](CbD& e){
 								trigger(GUI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
 							}));
 						}
@@ -121,10 +121,10 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 					}
 				}
 				
-			}  else if ( m_status == PLAYER_STATUS_PAUSED ) {
+			}  else if ( _status == PLAYER_STATUS_PAUSED ) {
 				// 大于1000ms可更新画面
-				if ( m_duration && sys_time - m_prev_presentation_time > 1000000 ) {
-					OutputBuffer buffer = m_video->output();
+				if ( _duration && sys_time - _prev_presentation_time > 1000000 ) {
+					OutputBuffer buffer = _video->output();
 					if ( buffer.total ) {
 						load_yuv_texture(buffer);
 						draw = true;
@@ -133,19 +133,19 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 			}
 		}
 		
-		if ( m_video_buffer.total ) {
+		if ( _video_buffer.total ) {
 			
-			uint64 pts = m_video_buffer.time;
+			uint64 pts = _video_buffer.time;
 			
-			if (m_uninterrupted_play_start_systime &&        // 0表示还没开始
+			if (_uninterrupted_play_start_systime &&        // 0表示还没开始
 					pts &&                                          // 演示时间为0表示开始或(即时渲染如视频电话)
-					sys_time - m_prev_presentation_time < 300000    // 距离上一帧超过300ms重新记时(如应用程序从休眠中恢复或数据缓冲)
+					sys_time - _prev_presentation_time < 300000    // 距离上一帧超过300ms重新记时(如应用程序从休眠中恢复或数据缓冲)
 			) {
-				int64 st = (sys_time - m_uninterrupted_play_start_systime) -       // sys
-									 (pts - m_uninterrupted_play_start_time);   // frame
+				int64 st = (sys_time - _uninterrupted_play_start_systime) -       // sys
+									 (pts - _uninterrupted_play_start_time);   // frame
 				if ( st >= 0 ) { // 是否达到渲染帧时间
 					uint64 st_s = sys::time_monotonic();
-					load_yuv_texture(m_video_buffer);
+					load_yuv_texture(_video_buffer);
 					//t_debug("+++++++ input_video_yuv, use_time: %llu, pts: %llu, delay: %lld",
 					//        sys_time_monotonic() - st_s, pts, st);
 					draw = true;
@@ -153,27 +153,27 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 			} else { // start reander one frame
 				FX_DEBUG("Reset timing : prs: %lld, %lld, %lld",
 								pts,
-								sys_time - m_prev_presentation_time, m_uninterrupted_play_start_systime);
+								sys_time - _prev_presentation_time, _uninterrupted_play_start_systime);
 
-				if ( m_status == PLAYER_STATUS_START ) {
-					ScopeLock scope(m_mutex);
-					m_status = PLAYER_STATUS_PLAYING;
-					m_keep->post(Cb([this](CbD& e){
+				if ( _status == PLAYER_STATUS_START ) {
+					ScopeLock scope(_mutex);
+					_status = PLAYER_STATUS_PLAYING;
+					_keep->post(Cb([this](CbD& e){
 						trigger(GUI_EVENT_START_PLAY); // trigger start_play event
 					}));
 				}
 				{
-					ScopeLock scope(m_mutex);
-					m_uninterrupted_play_start_systime = sys_time;
-					m_uninterrupted_play_start_time = m_video_buffer.time;
+					ScopeLock scope(_mutex);
+					_uninterrupted_play_start_systime = sys_time;
+					_uninterrupted_play_start_time = _video_buffer.time;
 				}
-				load_yuv_texture(m_video_buffer);
+				load_yuv_texture(_video_buffer);
 				draw = true;
 			}
 		}
 		
 		// uint64 st = sys::time_monotonic();
-		m_video->advance();
+		_video->advance();
 		// t_debug("advance, %llu", sys_time_monotonic() - st);
 		
 		return draw;
@@ -181,40 +181,40 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 
 	// set pcm ..
 	bool write_audio_pcm() {
-		bool r = m_pcm->write(WeakBuffer((char*)m_audio_buffer.data[0], m_audio_buffer.linesize[0]));
+		bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 		if ( !r ) {
-			DLOG("Discard, audio PCM frame, %lld", m_audio_buffer.time);
+			DLOG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 		}
-		m_audio->release(m_audio_buffer);
+		_audio->release(_audio_buffer);
 		return r;
 	}
 	
 	void play_audio() {
-		float compensate = m_pcm->compensate();
-		// m_audio->set_frame_size( m_pcm->buffer_size() );
+		float compensate = _pcm->compensate();
+		// _audio->set_frame_size( _pcm->buffer_size() );
 	 loop:
 
 		uint64 sys_time = sys::time_monotonic();
 		
 		{ //
-			ScopeLock scope(m_mutex);
+			ScopeLock scope(_mutex);
 			
-			if ( m_status == PLAYER_STATUS_STOP ) { // stop
+			if ( _status == PLAYER_STATUS_STOP ) { // stop
 				return; // stop audio
 			}
 			
-			if ( !m_audio_buffer.total ) {
-				if ( m_status == PLAYER_STATUS_PLAYING || m_status == PLAYER_STATUS_START ) {
-					m_audio_buffer = m_audio->output();
+			if ( !_audio_buffer.total ) {
+				if ( _status == PLAYER_STATUS_PLAYING || _status == PLAYER_STATUS_START ) {
+					_audio_buffer = _audio->output();
 				}
 			}
 
-			if (m_audio_buffer.total) {
-				if (m_uninterrupted_play_start_systime) {
-					if (m_audio_buffer.time) {
-						int64 st = (sys_time - m_uninterrupted_play_start_systime) -     // sys
-											 (m_audio_buffer.time - m_uninterrupted_play_start_time); // frame
-						int delay = m_audio->frame_interval() * compensate;
+			if (_audio_buffer.total) {
+				if (_uninterrupted_play_start_systime) {
+					if (_audio_buffer.time) {
+						int64 st = (sys_time - _uninterrupted_play_start_systime) -     // sys
+											 (_audio_buffer.time - _uninterrupted_play_start_time); // frame
+						int delay = _audio->frame_interval() * compensate;
 
 						if (st >= delay) { // 是否达到播放声音时间。输入pcm到能听到声音会有一些延时,这里设置补偿
 							write_audio_pcm();
@@ -224,7 +224,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 					}
 				}
 			}
-			m_audio->advance();
+			_audio->advance();
 		}
 		
 		int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
@@ -243,39 +243,39 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	
 	bool stop_2(Lock& lock, bool is_event) {
 		
-		if ( m_status != PLAYER_STATUS_STOP ) {
+		if ( _status != PLAYER_STATUS_STOP ) {
 			
-			m_status = PLAYER_STATUS_STOP;
-			m_uninterrupted_play_start_systime = 0;
-			m_uninterrupted_play_start_time = 0;
-			m_prev_presentation_time = 0;
-			m_time = 0;
+			_status = PLAYER_STATUS_STOP;
+			_uninterrupted_play_start_systime = 0;
+			_uninterrupted_play_start_time = 0;
+			_prev_presentation_time = 0;
+			_time = 0;
 			
-			if ( m_audio ) {
-				m_audio->release(m_audio_buffer);
-				m_audio->extractor()->set_disable(true);
-				m_audio->close();
+			if ( _audio ) {
+				_audio->release(_audio_buffer);
+				_audio->extractor()->set_disable(true);
+				_audio->close();
 			}
-			if ( m_video ) {
-				m_video->release(m_video_buffer);
-				m_video->extractor()->set_disable(true);
-				m_video->close();
+			if ( _video ) {
+				_video->release(_video_buffer);
+				_video->extractor()->set_disable(true);
+				_video->close();
 				texture()->unload();
 			}
 
-			if (m_pcm) {
-				m_pcm->flush();
+			if (_pcm) {
+				_pcm->flush();
 			}
 			
 			unregister_task();
-			m_source->stop();
+			_source->stop();
 			
 			lock.unlock();
 			{ // wait audio thread end
-				ScopeLock scope(m_audio_loop_mutex);
+				ScopeLock scope(_audio_loop_mutex);
 			}
 			if ( is_event ) {
-				m_keep->post(Cb([this](CbD& e){
+				_keep->post(Cb([this](CbD& e){
 					trigger(GUI_EVENT_STOP); // trigger stop event
 				}));
 			}
@@ -288,59 +288,59 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	
 	void stop_and_release(Lock& lock, bool is_event) {
 		
-		if ( m_task_id ) {
-			m_keep->host()->cancel_work(m_task_id);
-			m_task_id = 0;
+		if ( _task_id ) {
+			_keep->host()->cancel_work(_task_id);
+			_task_id = 0;
 		}
 		
 		stop_2(lock, is_event);
 		
-		Release(m_audio); m_audio = nullptr;
-		Release(m_video); m_video = nullptr;
-		Release(m_source); m_source = nullptr;
-		Release(m_keep); m_keep = nullptr;
-		PCMPlayer::Traits::Release(m_pcm); m_pcm = nullptr;
+		Release(_audio); _audio = nullptr;
+		Release(_video); _video = nullptr;
+		Release(_source); _source = nullptr;
+		Release(_keep); _keep = nullptr;
+		PCMPlayer::Traits::Release(_pcm); _pcm = nullptr;
 		
-		m_time = 0;
-		m_duration = 0;
-		m_video_width = 0;
-		m_video_height = 0;
+		_time = 0;
+		_duration = 0;
+		_video_width = 0;
+		_video_height = 0;
 	}
 	
 	inline void stop_and_release(bool is_event) {
-		Lock lock(m_mutex);
+		Lock lock(_mutex);
 		stop_and_release(lock, is_event);
 	}
 	
 	void start_run() {
-		Lock lock(m_mutex);
+		Lock lock(_mutex);
 		
-		ASSERT( m_source && m_video );
-		ASSERT( m_source->is_active() );
-		ASSERT( m_status == PLAYER_STATUS_START );
+		ASSERT( _source && _video );
+		ASSERT( _source->is_active() );
+		ASSERT( _status == PLAYER_STATUS_START );
 		
-		m_waiting_buffer = false;
+		_waiting_buffer = false;
 		
-		if ( m_video->open() ) { // clear video
-			m_source->seek(0);
-			m_video->release( m_video_buffer );
-			m_video->flush();
-			m_video->extractor()->set_disable(false);
+		if ( _video->open() ) { // clear video
+			_source->seek(0);
+			_video->release( _video_buffer );
+			_video->flush();
+			_video->extractor()->set_disable(false);
 		} else {
 			stop_2(lock, true);
 			FX_ERR("Unable to open video decoder"); return;
 		}
 		
-		if ( m_audio && m_pcm && m_audio->open() ) {  // clear audio
-			m_audio->release( m_audio_buffer );
-			m_audio->flush();
-			m_audio->extractor()->set_disable(false);
-			m_pcm->flush();
-			m_pcm->set_volume(m_volume);
-			m_pcm->set_mute(m_mute);
+		if ( _audio && _pcm && _audio->open() ) {  // clear audio
+			_audio->release( _audio_buffer );
+			_audio->flush();
+			_audio->extractor()->set_disable(false);
+			_pcm->flush();
+			_pcm->set_volume(_volume);
+			_pcm->set_mute(_mute);
 			
 			Thread::spawn([this](Thread& t){
-				ScopeLock scope(m_audio_loop_mutex);
+				ScopeLock scope(_audio_loop_mutex);
 				Inl_Video(this)->play_audio();
 				return 0;
 			}, "audio");
@@ -353,7 +353,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 	 * @func is_active
 	 */
 	inline bool is_active() {
-		return m_status == PLAYER_STATUS_PAUSED || m_status == PLAYER_STATUS_PLAYING;
+		return _status == PLAYER_STATUS_PAUSED || _status == PLAYER_STATUS_PLAYING;
 	}
 };
 
@@ -366,7 +366,7 @@ Video::~Video() {
 
 void Video::multimedia_source_wait_buffer(MultimediaSource* so, float process) {
 	
-	if ( m_waiting_buffer ) { /* 开始等待数据缓存不触发事件,因为在解码器队列可能还存在数据,
+	if ( _waiting_buffer ) { /* 开始等待数据缓存不触发事件,因为在解码器队列可能还存在数据,
 														 * 所以等待解码器也无法输出数据时再触发事件
 														 */
 		if ( process < 1 ) { // trigger event wait_buffer
@@ -385,71 +385,71 @@ void Video::multimedia_source_error(MultimediaSource* so, cError& err) {
 }
 
 String Video::source() const {
-	if ( m_source ) {
-		return m_source->uri().href();
+	if ( _source ) {
+		return _source->uri().href();
 	} else {
 		return String();
 	}
 }
 
 void Video::multimedia_source_ready(MultimediaSource* src) {
-	ASSERT( m_source == src );
+	ASSERT( _source == src );
 	
-	if ( m_video ) {
+	if ( _video ) {
 		Inl_Video(this)->trigger(GUI_EVENT_READY); // trigger event ready
-		if ( m_status == PLAYER_STATUS_START ) {
+		if ( _status == PLAYER_STATUS_START ) {
 			Inl_Video(this)->start_run();
 		}
 		return;
 	}
 
-	ASSERT(!m_video);
-	ASSERT(!m_audio);
+	ASSERT(!_video);
+	ASSERT(!_audio);
 	
 	// 创建解码器很耗时这会导致gui线程延时,所以这里不在主线程创建
 	
-	m_task_id = m_keep->host()->work(Cb([=](CbD& d) {
-		if (m_source != src) return; // 源已被更改,所以取消
+	_task_id = _keep->host()->work(Cb([=](CbD& d) {
+		if (_source != src) return; // 源已被更改,所以取消
 		
-		MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, m_source);
-		MediaCodec* video = MediaCodec::create(MEDIA_TYPE_VIDEO, m_source);
-		PCMPlayer* pcm = m_pcm;
+		MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, _source);
+		MediaCodec* video = MediaCodec::create(MEDIA_TYPE_VIDEO, _source);
+		PCMPlayer* pcm = _pcm;
 		
-		if ( audio && !m_pcm ) {
+		if ( audio && !_pcm ) {
 			pcm = PCMPlayer::create(audio->channel_count(),
 															audio->extractor()->track(0).sample_rate );
 		}
-		ScopeLock scope(m_mutex);
-		m_pcm = pcm;
+		ScopeLock scope(_mutex);
+		_pcm = pcm;
 		
-		if ( m_source != src ) {
+		if ( _source != src ) {
 			Release(audio);
 			Release(video); return;
 		} else {
-			m_audio = audio;
-			m_video = video;
+			_audio = audio;
+			_video = video;
 		}
 	}, this/*保持Video*/), Cb([=](CbD& d) {
-		m_task_id = 0;
-		if ( m_source != src ) return;
-		if ( !m_audio) FX_ERR("Unable to create audio decoder");
-		if (m_video) {
+		_task_id = 0;
+		if ( _source != src ) return;
+		if ( !_audio) FX_ERR("Unable to create audio decoder");
+		if (_video) {
 			{ //
-				ScopeLock scope(m_mutex);
-				const TrackInfo& info = m_video->extractor()->track(0);
-				m_video_width   = info.width;
-				m_video_height  = info.height;
-				m_duration      = m_source->duration();
-				m_color_format  = m_video->color_format();
-				m_video->set_threads(2);
-				m_video->set_background_run(true);
+				ScopeLock scope(_mutex);
+				const TrackInfo& info = _video->extractor()->track(0);
+				_video_width   = info.width;
+				_video_height  = info.height;
+				_duration      = _source->duration();
+				_color_format  = _video->color_format();
+				_video->set_threads(2);
+				_video->set_background_run(true);
 			}
 			Inl_Video(this)->trigger(GUI_EVENT_READY); // trigger event ready
 			
-			if ( m_status == PLAYER_STATUS_START ) {
+			if ( _status == PLAYER_STATUS_START ) {
 				Inl_Video(this)->start_run();
 			} else {
-				if ( m_auto_play ) {
+				if ( _auto_play ) {
 					start();
 				}
 			}
@@ -470,38 +470,38 @@ void Video::set_source(cString& value) {
 	
 	String src = f_reader()->format(value);
 
-	Lock lock(m_mutex);
+	Lock lock(_mutex);
 	
-	if ( m_source ) {
-		if ( m_source->uri().href() == src ) {
+	if ( _source ) {
+		if ( _source->uri().href() == src ) {
 			return;
 		}
 		Inl_Video(this)->stop_and_release(lock, true);
 	}
 	auto loop = main_loop(); ASSERT(loop, "Cannot find main run loop");
-	m_source = new MultimediaSource(src, loop);
-	m_keep = loop->keep_alive("Video::set_source");
-	m_source->set_delegate(this);
-	m_source->disable_wait_buffer(m_disable_wait_buffer);
-	m_source->start();
+	_source = new MultimediaSource(src, loop);
+	_keep = loop->keep_alive("Video::set_source");
+	_source->set_delegate(this);
+	_source->disable_wait_buffer(_disable_wait_buffer);
+	_source->start();
 }
 
 /**
  * @func start play
  */
 void Video::start() {
-	Lock scope(m_mutex);
+	Lock scope(_mutex);
 	
-	if ( m_status == PLAYER_STATUS_STOP && m_source ) {
-		m_status = PLAYER_STATUS_START;
-		m_uninterrupted_play_start_systime = 0;
-		m_uninterrupted_play_start_time = 0;
-		m_prev_presentation_time = 0;
-		m_time = 0;
-		m_source->start();
+	if ( _status == PLAYER_STATUS_STOP && _source ) {
+		_status = PLAYER_STATUS_START;
+		_uninterrupted_play_start_systime = 0;
+		_uninterrupted_play_start_time = 0;
+		_prev_presentation_time = 0;
+		_time = 0;
+		_source->start();
 		
-		if ( m_video ) {
-			if ( m_source->is_active() ) {
+		if ( _video ) {
+			if ( _source->is_active() ) {
 				scope.unlock();
 				Inl_Video(this)->start_run();
 			}
@@ -513,7 +513,7 @@ void Video::start() {
  * @func stop play
  * */
 void Video::stop() {
-	Lock lock(m_mutex);
+	Lock lock(_mutex);
 	if ( Inl_Video(this)->stop_2(lock, true) ) {
 		mark(M_TEXTURE);
 	}
@@ -523,27 +523,27 @@ void Video::stop() {
  * @func seek to target time
  */
 bool Video::seek(uint64 timeUs) {
-	ScopeLock scope(m_mutex);
+	ScopeLock scope(_mutex);
 	
-	if ( Inl_Video(this)->is_active() && timeUs < m_duration ) {
-		ASSERT( m_source );
+	if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
+		ASSERT( _source );
 		
-		if ( m_source->seek(timeUs) ) {
-			m_uninterrupted_play_start_systime = 0;
-			m_time = timeUs;
+		if ( _source->seek(timeUs) ) {
+			_uninterrupted_play_start_systime = 0;
+			_time = timeUs;
 			{ // clear video
-				m_video->release( m_video_buffer );
-				m_video->flush();
+				_video->release( _video_buffer );
+				_video->flush();
 			}
-			if ( m_audio ) { // clear audio
-				m_audio->release( m_audio_buffer );
-				m_audio->flush();
+			if ( _audio ) { // clear audio
+				_audio->release( _audio_buffer );
+				_audio->flush();
 			}
-			if ( m_pcm ) {
-				m_pcm->flush();
+			if ( _pcm ) {
+				_pcm->flush();
 			}
-			m_keep->post(Cb([this](CbD& e){
-				Inl_Video(this)->trigger(GUI_EVENT_SEEK, Uint64(m_time)); // trigger seek event
+			_keep->post(Cb([this](CbD& e){
+				Inl_Video(this)->trigger(GUI_EVENT_SEEK, Uint64(_time)); // trigger seek event
 			}));
 			return true;
 		}
@@ -555,11 +555,11 @@ bool Video::seek(uint64 timeUs) {
  * @func pause play
  * */
 void Video::pause() {
-	ScopeLock scope(m_mutex);
-	if ( m_status == PLAYER_STATUS_PLAYING && m_duration /* 没有长度信息不能暂停*/ ) {
-		m_status = PLAYER_STATUS_PAUSED;
-		m_uninterrupted_play_start_systime = 0;
-		m_keep->post(Cb([this](CbD& e){
+	ScopeLock scope(_mutex);
+	if ( _status == PLAYER_STATUS_PLAYING && _duration /* 没有长度信息不能暂停*/ ) {
+		_status = PLAYER_STATUS_PAUSED;
+		_uninterrupted_play_start_systime = 0;
+		_keep->post(Cb([this](CbD& e){
 			Inl_Video(this)->trigger(GUI_EVENT_PAUSE); // trigger pause event
 		}));
 	}
@@ -569,11 +569,11 @@ void Video::pause() {
  * @func resume play
  * */
 void Video::resume() {
-	ScopeLock scope(m_mutex);
-	if ( m_status == PLAYER_STATUS_PAUSED ) {
-		m_status = PLAYER_STATUS_PLAYING;
-		m_uninterrupted_play_start_systime = 0;
-		m_keep->post(Cb([this](CbD& e){
+	ScopeLock scope(_mutex);
+	if ( _status == PLAYER_STATUS_PAUSED ) {
+		_status = PLAYER_STATUS_PLAYING;
+		_uninterrupted_play_start_systime = 0;
+		_keep->post(Cb([this](CbD& e){
 			Inl_Video(this)->trigger(GUI_EVENT_RESUME); // trigger resume event
 		}));
 	}
@@ -583,11 +583,11 @@ void Video::resume() {
  * @func set_mute setting mute status
  * */
 void Video::set_mute(bool value) {
-	ScopeLock scope(m_mutex);
-	if ( value != m_mute ) {
-		m_mute = value;
-		if ( m_pcm ) { // action
-			m_pcm->set_mute(m_mute);
+	ScopeLock scope(_mutex);
+	if ( value != _mute ) {
+		_mute = value;
+		if ( _pcm ) { // action
+			_pcm->set_mute(_mute);
 		}
 	}
 }
@@ -596,11 +596,11 @@ void Video::set_mute(bool value) {
  * @func set_volume
  */
 void Video::set_volume(uint value) {
-	ScopeLock scope(m_mutex);
+	ScopeLock scope(_mutex);
 	value = FX_MIN(value, 100);
-	m_volume = value;
-	if ( m_pcm ) {
-		m_pcm->set_volume(value);
+	_volume = value;
+	if ( _pcm ) {
+		_pcm->set_volume(value);
 	}
 }
 
@@ -608,20 +608,20 @@ void Video::set_volume(uint value) {
 /**
  * @func time
  * */
-uint64 Video::time() { ScopeLock scope(m_mutex); return m_time; }
+uint64 Video::time() { ScopeLock scope(_mutex); return _time; }
 
 /**
  * @func duration
  * */
-uint64 Video::duration() { ScopeLock scope(m_mutex); return m_duration; }
+uint64 Video::duration() { ScopeLock scope(_mutex); return _duration; }
 
 /**
  * @func audio_track_count
  */
 uint Video::audio_track_count() {
-	ScopeLock lock(m_mutex);
-	if ( m_audio ) {
-		return m_audio->extractor()->track_count();
+	ScopeLock lock(_mutex);
+	if ( _audio ) {
+		return _audio->extractor()->track_count();
 	}
 	return 0;
 }
@@ -630,9 +630,9 @@ uint Video::audio_track_count() {
  * @func audio_track_index
  */
 uint Video::audio_track_index() {
-	ScopeLock lock(m_mutex);
-	if ( m_audio ) {
-		return m_audio->extractor()->track_index();
+	ScopeLock lock(_mutex);
+	if ( _audio ) {
+		return _audio->extractor()->track_index();
 	}
 	return 0;
 }
@@ -641,9 +641,9 @@ uint Video::audio_track_index() {
  * @func audio_track
  */
 const TrackInfo* Video::audio_track() {
-	ScopeLock lock(m_mutex);
-	if ( m_audio ) {
-		return &m_audio->extractor()->track();
+	ScopeLock lock(_mutex);
+	if ( _audio ) {
+		return &_audio->extractor()->track();
 	}
 	return nullptr;
 }
@@ -652,9 +652,9 @@ const TrackInfo* Video::audio_track() {
  * @func audio_track
  */
 const TrackInfo* Video::audio_track(uint index) {
-	ScopeLock lock(m_mutex);
-	if ( m_audio && index < m_audio->extractor()->track_count() ) {
-		return &m_audio->extractor()->track(index);
+	ScopeLock lock(_mutex);
+	if ( _audio && index < _audio->extractor()->track_count() ) {
+		return &_audio->extractor()->track(index);
 	}
 	return nullptr;
 }
@@ -663,9 +663,9 @@ const TrackInfo* Video::audio_track(uint index) {
  * @func video_track
  * */
 const TrackInfo* Video::video_track() {
-	ScopeLock lock(m_mutex);
-	if ( m_video ) {
-		return &m_video->extractor()->track();
+	ScopeLock lock(_mutex);
+	if ( _video ) {
+		return &_video->extractor()->track();
 	}
 	return nullptr;
 }
@@ -674,9 +674,9 @@ const TrackInfo* Video::video_track() {
  * @func select_audio_track
  * */
 void Video::select_audio_track(uint index) {
-	ScopeLock scope(m_mutex);
-	if ( m_audio && index < m_audio->extractor()->track_count() ) {
-		m_audio->extractor()->select_track(index);
+	ScopeLock scope(_mutex);
+	if ( _audio && index < _audio->extractor()->track_count() ) {
+		_audio->extractor()->select_track(index);
 	}
 }
 
@@ -684,9 +684,9 @@ void Video::select_audio_track(uint index) {
  * @func source_status
  * */
 MultimediaSourceStatus Video::source_status() {
-	ScopeLock lock(m_mutex);
-	if ( m_source ) {
-		return m_source->status();
+	ScopeLock lock(_mutex);
+	if ( _source ) {
+		return _source->status();
 	}
 	return MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
 }
@@ -695,21 +695,21 @@ MultimediaSourceStatus Video::source_status() {
  * @func video_width
  */
 uint Video::video_width() {
-	ScopeLock lock(m_mutex);
-	return m_video_width;
+	ScopeLock lock(_mutex);
+	return _video_width;
 }
 
 /**
  * @func video_height
  */
 uint Video::video_height() {
-	ScopeLock lock(m_mutex);
-	return m_video_height;
+	ScopeLock lock(_mutex);
+	return _video_height;
 }
 
 PlayerStatus Video::status() {
-	ScopeLock lock(m_mutex);
-	return m_status;
+	ScopeLock lock(_mutex);
+	return _status;
 }
 
 bool Video::run_task(int64 sys_time) {
@@ -719,25 +719,25 @@ bool Video::run_task(int64 sys_time) {
 	// FX_DEBUG("------------------------ frame: %llu", sys_time_monotonic() - sys_time);
 	
 	{
-		ScopeLock scope(m_mutex);
-		if (m_uninterrupted_play_start_systime) {
-			m_time = sys_time - m_uninterrupted_play_start_systime + m_uninterrupted_play_start_time;
+		ScopeLock scope(_mutex);
+		if (_uninterrupted_play_start_systime) {
+			_time = sys_time - _uninterrupted_play_start_systime + _uninterrupted_play_start_time;
 		}
-		m_prev_run_task_systime = sys_time;
+		_prev_run_task_systime = sys_time;
 		
 		if (draw) {
-			m_prev_presentation_time = sys_time;
+			_prev_presentation_time = sys_time;
 		}
 	}
 	
-	return draw && m_final_visible;
+	return draw && _final_visible;
 }
 
 void Video::disable_wait_buffer(bool value) {
-	ScopeLock scope(m_mutex);
-	m_disable_wait_buffer = value;
-	if (m_source) {
-		m_source->disable_wait_buffer(value);
+	ScopeLock scope(_mutex);
+	_disable_wait_buffer = value;
+	if (_source) {
+		_source->disable_wait_buffer(value);
 	}
 }
 
@@ -746,14 +746,14 @@ void Video::set_texture(Texture* value) {
 }
 
 void Video::set_auto_play(bool value) {
-	ScopeLock scope(m_mutex); m_auto_play = value;
+	ScopeLock scope(_mutex); _auto_play = value;
 }
 
 /**
  * @overwrite
  */
 void Video::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		if ( mark_value ) {
 			solve();
 		}

@@ -155,7 +155,7 @@ class FX_EXPORT PropertysAccessor: public Object {
 	
  private:
 	
-	Map<ViewType, Map<PropertyName, Accessor>> m_property_func_table;
+	Map<ViewType, Map<PropertyName, Accessor>> _property_func_table;
 };
 
 FX_END

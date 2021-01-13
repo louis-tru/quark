@@ -58,19 +58,19 @@ namespace ftr {
 			
 			inline Frame(KeyframeAction* host,
 									uint index, const FixedCubicBezier& curve)
-			: m_host(host)
-			, m_index(index)
-			, m_curve(curve), m_time(0) {}
+			: _host(host)
+			, _index(index)
+			, _curve(curve), _time(0) {}
 			
 			/**
 			* @func index
 			*/
-			inline uint index() const { return m_index; }
+			inline uint index() const { return _index; }
 			
 			/**
 			* @func time get
 			*/
-			inline uint64 time() const { return m_time; }
+			inline uint64 time() const { return _time; }
 			
 			/**
 			* @func time set
@@ -80,22 +80,22 @@ namespace ftr {
 			/*
 			* @func host
 			*/
-			inline KeyframeAction* host() { return m_host; }
+			inline KeyframeAction* host() { return _host; }
 			
 			/**
 			* @func curve get
 			*/
-			inline FixedCubicBezier& curve() { return m_curve; }
+			inline FixedCubicBezier& curve() { return _curve; }
 			
 			/**
 			* @func curve get
 			*/
-			inline const FixedCubicBezier& curve() const { return m_curve; }
+			inline const FixedCubicBezier& curve() const { return _curve; }
 			
 			/**
 			* @func curve set
 			*/
-			inline void set_curve(const FixedCubicBezier& value) { m_curve = value; }
+			inline void set_curve(const FixedCubicBezier& value) { _curve = value; }
 			
 			/**
 			* @func fetch property value
@@ -114,10 +114,10 @@ namespace ftr {
 			
 			private:
 			
-			KeyframeAction*   m_host;
-			uint              m_index;
-			FixedCubicBezier  m_curve;
-			uint64            m_time;
+			KeyframeAction*   _host;
+			uint              _index;
+			FixedCubicBezier  _curve;
+			uint64            _time;
 			
 			FX_DEFINE_INLINE_CLASS(Inl);
 			friend class KeyframeAction;
@@ -126,7 +126,7 @@ namespace ftr {
 		/**
 		* @constructor
 		*/
-		inline KeyframeAction(): m_frame(-1), m_time(0), m_bind_view_type(0) { }
+		inline KeyframeAction(): _frame(-1), _time(0), _bind_view_type(0) { }
 		
 		/**
 		* @destructor
@@ -151,37 +151,37 @@ namespace ftr {
 		/**
 		* @func first
 		*/
-		inline Frame* first() { return m_frames[0]; }
+		inline Frame* first() { return _frames[0]; }
 		
 		/**
 		* @func last
 		*/
-		inline Frame* last() { return m_frames[m_frames.length() - 1]; }
+		inline Frame* last() { return _frames[_frames.length() - 1]; }
 		
 		/**
 		* @func frame
 		*/
-		inline Frame* frame(uint index) { return m_frames[index]; }
+		inline Frame* frame(uint index) { return _frames[index]; }
 		
 		/**
 		* @func operator[]
 		*/
-		inline Frame* operator[](uint index) { return m_frames[index]; }
+		inline Frame* operator[](uint index) { return _frames[index]; }
 		
 		/**
 		* @func length
 		*/
-		inline uint length() const { return m_frames.length(); }
+		inline uint length() const { return _frames.length(); }
 		
 		/**
 		* @func position get play frame position
 		*/
-		inline int position() const { return m_frame; }
+		inline int position() const { return _frame; }
 		
 		/**
 		* @func time get play time position
 		*/
-		inline int64 time() const { return m_time; }
+		inline int64 time() const { return _time; }
 		
 		/**
 		* @func add new frame
@@ -196,7 +196,7 @@ namespace ftr {
 		/**
 		* @func is_bind_view
 		*/
-		inline bool is_bind_view() { return m_bind_view_type; }
+		inline bool is_bind_view() { return _bind_view_type; }
 		
 		private:
 		
@@ -210,11 +210,11 @@ namespace ftr {
 		
 		typedef Map<PropertyName, Property*> Propertys;
 		
-		int           m_frame;
-		int64         m_time;
-		Array<Frame*> m_frames;
-		int           m_bind_view_type;
-		Propertys     m_property;
+		int           _frame;
+		int64         _time;
+		Array<Frame*> _frames;
+		int           _bind_view_type;
+		Propertys     _property;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

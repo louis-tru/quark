@@ -137,16 +137,16 @@ namespace ftr {
 		bool use(uint slot = 0,
 						Level level = LEVEL_0,
 						Repeat repeat = Repeat::NONE);
-		inline int status() const { return m_status; }
-		inline bool is_available() const { return m_width != 0; }
-		inline const uint* handle() const { return m_handle; }
-		inline const uint* data_size() const { return m_data_size; }
-		inline const uint* use_count() const { return m_use_count; }
-		inline const Repeat* repeat() const { return m_repeat; }
-		inline int width() const { return m_width; }
-		inline int height() const { return m_height; }
-		inline int diagonal() const { return m_diagonal; }
-		inline PixelFormat format() const { return m_format; }
+		inline int status() const { return _status; }
+		inline bool is_available() const { return _width != 0; }
+		inline const uint* handle() const { return _handle; }
+		inline const uint* data_size() const { return _data_size; }
+		inline const uint* use_count() const { return _use_count; }
+		inline const Repeat* repeat() const { return _repeat; }
+		inline int width() const { return _width; }
+		inline int height() const { return _height; }
+		inline int diagonal() const { return _diagonal; }
+		inline PixelFormat format() const { return _format; }
 
 		protected:
 
@@ -160,15 +160,15 @@ namespace ftr {
 		*/
 		bool load_data(cPixelData& data);
 
-		int   m_status;
-		uint  m_handle[8];
-		uint  m_data_size[8];
-		uint  m_use_count[8];
-		Repeat m_repeat[8];
-		int   m_width;
-		int   m_height;
-		uint  m_diagonal;
-		PixelFormat m_format;
+		int   _status;
+		uint  _handle[8];
+		uint  _data_size[8];
+		uint  _use_count[8];
+		Repeat _repeat[8];
+		int   _width;
+		int   _height;
+		uint  _diagonal;
+		PixelFormat _format;
 
 		friend class GLDraw;
 		FX_DEFINE_INLINE_CLASS(Inl);
@@ -203,17 +203,17 @@ namespace ftr {
 		* @func image_format 返回纹理的原始路径中的格式
 		*/
 		inline ImageFormat image_format() const {
-			return m_image_format;
+			return _image_format;
 		}
 		
 		private:
 		
 		FileTexture(cString& path);
 		
-		String        m_path;
-		uint          m_load_id;
-		ImageFormat   m_image_format;
-		TexturePool*  m_pool;
+		String        _path;
+		uint          _load_id;
+		ImageFormat   _image_format;
+		TexturePool*  _pool;
 		
 		friend class TexturePool;
 	};
@@ -277,10 +277,10 @@ namespace ftr {
 		
 		private:
 		
-		Draw* m_draw_ctx;
-		Map<String, FileTexture*> m_textures;
-		Map<PrtKey<Texture>, Texture*> m_completes;
-		uint64 m_total_data_size; /* 纹池当前数据总量 */
+		Draw* _draw_ctx;
+		Map<String, FileTexture*> _textures;
+		Map<PrtKey<Texture>, Texture*> _completes;
+		uint64 _total_data_size; /* 纹池当前数据总量 */
 		
 		FX_DEFINE_INLINE_CLASS(Inl)
 		

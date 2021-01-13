@@ -102,8 +102,8 @@ class MultimediaSource::Inl: public ParallelWorking {
 	 * @func is_active
 	 */
 	inline bool is_active() {
-		return  m_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-						m_status == MULTIMEDIA_SOURCE_STATUS_WAIT;
+		return  _status == MULTIMEDIA_SOURCE_STATUS_READY ||
+						_status == MULTIMEDIA_SOURCE_STATUS_WAIT;
 	}
 	
 	/**
@@ -135,25 +135,25 @@ class MultimediaSource::Inl: public ParallelWorking {
 	void trigger_wait_buffer();
 	void trigger_ready_buffer();
 	void trigger_eof();
-	inline Mutex& mutex() { return m_mutex; }
+	inline Mutex& mutex() { return _mutex; }
 	
 	friend class MultimediaSource;
 	friend class Extractor;
 	friend class MediaCodec;
 	friend class SoftwareMediaCodec;
 	
-	MultimediaSource*           m_host;
-	URI                         m_uri;
-	MultimediaSourceStatus      m_status;
-	Delegate*                   m_delegate;
-	uint                        m_bit_rate_index;
-	Array<BitRateInfo>          m_bit_rate;
-	Map<int, Extractor*>        m_extractors;
-	uint64                      m_duration;
-	AVFormatContext*            m_fmt_ctx;
-	Mutex                       m_mutex;
-	bool                        m_read_eof;
-	bool                        m_disable_wait_buffer;
+	MultimediaSource*           _host;
+	URI                         _uri;
+	MultimediaSourceStatus      _status;
+	Delegate*                   _delegate;
+	uint                        _bit_rate_index;
+	Array<BitRateInfo>          _bit_rate;
+	Map<int, Extractor*>        _extractors;
+	uint64                      _duration;
+	AVFormatContext*            _fmt_ctx;
+	Mutex                       _mutex;
+	bool                        _read_eof;
+	bool                        _disable_wait_buffer;
 };
 
 FX_END

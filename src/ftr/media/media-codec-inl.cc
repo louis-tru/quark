@@ -51,16 +51,16 @@ static DefaultMultimediaSourceDelegate default_multimedia_source_delegate;
 
 Inl::Inl(MultimediaSource* host, cString& uri, RunLoop* loop)
 	: ParallelWorking(loop)
-	, m_host(host)
-	, m_status(MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED)
-	, m_delegate(&default_multimedia_source_delegate)
-	, m_bit_rate_index(0)
-	, m_duration(0)
-	, m_fmt_ctx(nullptr)
-	, m_read_eof(false)
-	, m_disable_wait_buffer(false)
+	, _host(host)
+	, _status(MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED)
+	, _delegate(&default_multimedia_source_delegate)
+	, _bit_rate_index(0)
+	, _duration(0)
+	, _fmt_ctx(nullptr)
+	, _read_eof(false)
+	, _disable_wait_buffer(false)
 {
-	m_uri = URI( f_reader()->format(uri) );
+	_uri = URI( f_reader()->format(uri) );
 	/* register all formats and codecs */
 	av_register_all();
 	avformat_network_init();
@@ -71,10 +71,10 @@ Inl::Inl(MultimediaSource* host, cString& uri, RunLoop* loop)
  */
 Inl::~Inl() {
 	ScopeLock scope(mutex());
-	for (auto& i : m_extractors ) {
+	for (auto& i : _extractors ) {
 		Release(i.value());
 	}
-	m_extractors.clear();
+	_extractors.clear();
 	reset();
 }
 
@@ -82,14 +82,14 @@ Inl::~Inl() {
 void Inl::reset() {
 	
 	abort_child(); //
-	m_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
-	m_duration = 0;
-	m_bit_rate_index = 0;
-	m_bit_rate.clear();
-	m_read_eof = 0;
-	m_fmt_ctx = nullptr;
+	_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
+	_duration = 0;
+	_bit_rate_index = 0;
+	_bit_rate.clear();
+	_read_eof = 0;
+	_fmt_ctx = nullptr;
 	
-	for ( auto& i : m_extractors ) {
+	for ( auto& i : _extractors ) {
 		extractor_flush(i.value());
 	}
 }
@@ -99,7 +99,7 @@ void Inl::reset() {
  */
 void Inl::set_delegate(Delegate* delegate) {
 	ScopeLock scope(mutex());
-	m_delegate = delegate;
+	_delegate = delegate;
 }
 
 /**
@@ -107,7 +107,7 @@ void Inl::set_delegate(Delegate* delegate) {
  */
 uint Inl::bit_rate_index() {
 	ScopeLock scope(mutex());
-	return m_bit_rate_index;
+	return _bit_rate_index;
 }
 
 /**
@@ -115,7 +115,7 @@ uint Inl::bit_rate_index() {
  */
 const Array<BitRateInfo>& Inl::bit_rate() {
 	ScopeLock scope(mutex());
-	return m_bit_rate;
+	return _bit_rate;
 }
 
 /**
@@ -125,10 +125,10 @@ bool Inl::select_bit_rate(uint index) {
 	ScopeLock scope(mutex());
 	bool rt = true;
 	
-	if ( index != m_bit_rate_index && index < m_bit_rate.length() ) {
-		BitRateInfo& info = m_bit_rate[index];
+	if ( index != _bit_rate_index && index < _bit_rate.length() ) {
+		BitRateInfo& info = _bit_rate[index];
 
-		for ( auto& i: m_extractors ) {
+		for ( auto& i: _extractors ) {
 			Extractor* ex = i.value();
 			Array<TrackInfo> tracks;
 
@@ -139,7 +139,7 @@ bool Inl::select_bit_rate(uint index) {
 			}
 			if (tracks.length()) {
 				extractor_flush(ex);
-				ex->m_tracks = move(tracks);
+				ex->_tracks = move(tracks);
 				// notice decoder change
 			} else {
 				rt = false; break;
@@ -150,7 +150,7 @@ bool Inl::select_bit_rate(uint index) {
 	}
 	
 	if (rt) {
-		m_bit_rate_index = index;
+		_bit_rate_index = index;
 	}
 	return rt;
 }
@@ -159,19 +159,19 @@ bool Inl::select_bit_rate(uint index) {
  * @func extractor_flush
  * */
 void Inl::extractor_flush(Extractor* ex) {
-	ex->m_sample_index_cache = 0;
-	ex->m_sample_count_cache = 0;
-	ex->m_sample_data_cache = Array<SampleData>();
-	ex->m_sample_data.size = 0;
-	ex->m_sample_data.time = 0;
-	ex->m_sample_data.flags = 0;
-	ex->m_track_index = 0;
-	ex->m_eof_flags = 0;
+	ex->_sample_index_cache = 0;
+	ex->_sample_count_cache = 0;
+	ex->_sample_data_cache = Array<SampleData>();
+	ex->_sample_data.size = 0;
+	ex->_sample_data.time = 0;
+	ex->_sample_data.flags = 0;
+	ex->_track_index = 0;
+	ex->_eof_flags = 0;
 }
 
 // @func select_multi_bit_rate2
 void Inl::select_multi_bit_rate2(uint index) {
-	AVFormatContext* fmt_ctx = m_fmt_ctx;
+	AVFormatContext* fmt_ctx = _fmt_ctx;
 	if ( fmt_ctx->nb_programs ) {
 		for (uint i = 0; i < fmt_ctx->nb_programs; i++) {
 			AVProgram* program = fmt_ctx->programs[i];
@@ -196,15 +196,15 @@ void Inl::select_multi_bit_rate2(uint index) {
 Extractor* Inl::extractor(MediaType type) {
 	ScopeLock scope(mutex());
 	
-	if (m_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-			m_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
-		auto i = m_extractors.find(type);
+	if (_status == MULTIMEDIA_SOURCE_STATUS_READY ||
+			_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+		auto i = _extractors.find(type);
 		
 		if ( !i.is_null() ) {
 			return i.value();
 		} else {
 			
-			BitRateInfo& info = m_bit_rate[m_bit_rate_index];
+			BitRateInfo& info = _bit_rate[_bit_rate_index];
 			Array<TrackInfo> tr;
 			
 			for (uint i = 0; i < info.tracks.length(); i++) {
@@ -213,8 +213,8 @@ Extractor* Inl::extractor(MediaType type) {
 				}
 			}
 			if ( tr.length() ) {
-				Extractor* ex = new Extractor(type, m_host, move(tr));
-				m_extractors.set(type, ex);
+				Extractor* ex = new Extractor(type, _host, move(tr));
+				_extractors.set(type, ex);
 				return ex;
 			}
 		}
@@ -228,27 +228,27 @@ Extractor* Inl::extractor(MediaType type) {
 bool Inl::seek(uint64 timeUs) {
 	ScopeLock scope(mutex());
 	
-	if ( (m_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-				m_status == MULTIMEDIA_SOURCE_STATUS_WAIT) && timeUs < m_duration ) {
+	if ( (_status == MULTIMEDIA_SOURCE_STATUS_READY ||
+				_status == MULTIMEDIA_SOURCE_STATUS_WAIT) && timeUs < _duration ) {
 		
-		if ( m_read_eof == false ) { // not eof
+		if ( _read_eof == false ) { // not eof
 			
-			int stream = av_find_default_stream_index(m_fmt_ctx);
+			int stream = av_find_default_stream_index(_fmt_ctx);
 			
-			auto time_base = m_fmt_ctx->streams[stream]->time_base;
-			auto time = m_fmt_ctx->streams[stream]->start_time +
+			auto time_base = _fmt_ctx->streams[stream]->time_base;
+			auto time = _fmt_ctx->streams[stream]->start_time +
 									av_rescale(timeUs / 1000000.0, time_base.den, time_base.num);
 			
-			int ok = av_seek_frame(m_fmt_ctx, stream, time, AVSEEK_FLAG_BACKWARD);
+			int ok = av_seek_frame(_fmt_ctx, stream, time, AVSEEK_FLAG_BACKWARD);
 			
 			if ( ok >= 0 ) {
 				// clear Extractor cache sample data
 				
-				for ( auto& i : m_extractors ) {
+				for ( auto& i : _extractors ) {
 					Extractor* ex = i.value();
-					ex->m_sample_index_cache = 0;
-					ex->m_sample_count_cache = 0;
-					ex->m_sample_data.size = 0;
+					ex->_sample_index_cache = 0;
+					ex->_sample_count_cache = 0;
+					ex->_sample_data.size = 0;
 				}
 				return true;
 			}
@@ -321,22 +321,22 @@ BitRateInfo Inl::read_bit_rate_info(AVFormatContext* fmt_ctx, int start, int siz
 void Inl::start() {
 	ScopeLock scope(mutex());
 
-	if (m_status == MULTIMEDIA_SOURCE_STATUS_READYING ||
-			m_status == MULTIMEDIA_SOURCE_STATUS_READY ||
-			m_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+	if (_status == MULTIMEDIA_SOURCE_STATUS_READYING ||
+			_status == MULTIMEDIA_SOURCE_STATUS_READY ||
+			_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
 		return;
 	}
 	
 	reset();
 	
-	m_status = MULTIMEDIA_SOURCE_STATUS_READYING;
+	_status = MULTIMEDIA_SOURCE_STATUS_READYING;
 	
-	if ( m_uri.type() == URI_ZIP ) { // the now not support zip path
-		trigger_error(Error(ERR_MEDIA_INVALID_SOURCE, "invalid source file `%s`", *m_uri.href()));
+	if ( _uri.type() == URI_ZIP ) { // the now not support zip path
+		trigger_error(Error(ERR_MEDIA_INVALID_SOURCE, "invalid source file `%s`", *_uri.href()));
 		return;
 	}
 	
-	String uri = Path::fallback_c(m_uri.href());
+	String uri = Path::fallback_c(_uri.href());
 
 	spawn_child([this, uri](Thread& t) {
 		
@@ -397,9 +397,9 @@ void Inl::start() {
 
 		{
 			ScopeLock scope(mutex());
-			m_bit_rate = move(bit_rate);
-			m_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
-			m_fmt_ctx = fmt_ctx;
+			_bit_rate = move(bit_rate);
+			_duration = fmt_ctx->duration > 0 ? fmt_ctx->duration : 0;
+			_fmt_ctx = fmt_ctx;
 		}
 		bit_rate_index = bit_rate.length() / 2; // default value
 		select_bit_rate(bit_rate_index);
@@ -407,9 +407,9 @@ void Inl::start() {
 
 		post(Cb([this](CbD& d) {
 			{ ScopeLock scope(mutex());
-				m_status = MULTIMEDIA_SOURCE_STATUS_READY;
+				_status = MULTIMEDIA_SOURCE_STATUS_READY;
 			}
-			m_delegate->multimedia_source_ready(m_host);
+			_delegate->multimedia_source_ready(_host);
 		}));
 		
 		read_stream(t, fmt_ctx, uri, bit_rate_index);
@@ -425,16 +425,16 @@ void Inl::stop() {
 	
 	ScopeLock scope(mutex());
 	abort_child();
-	m_read_eof = 0;
-	m_fmt_ctx = nullptr;
+	_read_eof = 0;
+	_fmt_ctx = nullptr;
 	
-	for ( auto& i : m_extractors ) {
+	for ( auto& i : _extractors ) {
 		extractor_flush(i.value());
 	}
 	
 	post(Cb([this](CbD& d) {
 		ScopeLock scope(mutex());
-		m_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
+		_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
 	}));
 }
 
@@ -442,7 +442,7 @@ void Inl::stop() {
  * @func disable_wait_buffer
  */
 void Inl::disable_wait_buffer(bool value) {
-	m_disable_wait_buffer = value;
+	_disable_wait_buffer = value;
 }
 
 /*
@@ -451,43 +451,43 @@ void Inl::disable_wait_buffer(bool value) {
 bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double tbn) {
 
 	if ( ex->type() == MEDIA_TYPE_VIDEO ) {
-		if ( ex->m_sample_data_cache.length() == 0 ) { // allocation
+		if ( ex->_sample_data_cache.length() == 0 ) { // allocation
 			AVRational& rat = stream->avg_frame_rate.den ?
 												stream->avg_frame_rate : stream->r_frame_rate;
 			int len = rat.num * CACHE_DATA_TIME_SECOND / rat.den;
-			ex->m_sample_data_cache = Array<SampleData>(FX_MAX(len, 32));
+			ex->_sample_data_cache = Array<SampleData>(FX_MAX(len, 32));
 		}
 	} else { // AUDIO
-		int len = ex->m_sample_data_cache.length();
+		int len = ex->_sample_data_cache.length();
 		
 		if ( len == 0 ) {
 			if ( pkt.pts < stream->start_time ) { // Discard
 				return true;
 			}
-			ex->m_sample_data_cache = Array<SampleData>(1);
+			ex->_sample_data_cache = Array<SampleData>(1);
 		}
-		else if (len == 1 && ex->m_sample_count_cache == 1 /* && pkt.pts */ ) {
-			SampleData data = move(ex->m_sample_data_cache[0]);
+		else if (len == 1 && ex->_sample_count_cache == 1 /* && pkt.pts */ ) {
+			SampleData data = move(ex->_sample_data_cache[0]);
 			if ( pkt.pts ) {
 				len = 1000000 * CACHE_DATA_TIME_SECOND / (pkt.pts * tbn - data.time);
 			} else {
 				len = 256;
 			}
-			ex->m_sample_data_cache = Array<SampleData>(FX_MIN(FX_MAX(len, 32), 1024));
-			ex->m_sample_data_cache[0] = move(data);
+			ex->_sample_data_cache = Array<SampleData>(FX_MIN(FX_MAX(len, 32), 1024));
+			ex->_sample_data_cache[0] = move(data);
 		}
 	}
 	
-	uint len = ex->m_sample_data_cache.length();
+	uint len = ex->_sample_data_cache.length();
 	
-	if ( ex->m_sample_count_cache >= len ) {
+	if ( ex->_sample_count_cache >= len ) {
 		return false;
 	} else {
-		ex->m_sample_count_cache++;
+		ex->_sample_count_cache++;
 	}
-	int i = ex->m_sample_index_cache + ex->m_sample_count_cache - 1;
+	int i = ex->_sample_index_cache + ex->_sample_count_cache - 1;
 	
-	SampleData& data = ex->m_sample_data_cache[i % len];
+	SampleData& data = ex->_sample_data_cache[i % len];
 	
 	data._buf.write(WeakBuffer((char*)pkt.data, pkt.size), 0);
 	data.data   = *data._buf;
@@ -498,11 +498,11 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
 	
 	if ( pkt.pts < 0 ) { // Correction time
 	
-		if ( ex->m_sample_count_cache >= 2 ) {
-			int i0 = ex->m_sample_index_cache + ex->m_sample_count_cache - 3;
-			int i1 = ex->m_sample_index_cache + ex->m_sample_count_cache - 2;
-			SampleData& d0 = ex->m_sample_data_cache[(i0 + len) % len];
-			SampleData& d1 = ex->m_sample_data_cache[(i1 + len) % len];
+		if ( ex->_sample_count_cache >= 2 ) {
+			int i0 = ex->_sample_index_cache + ex->_sample_count_cache - 3;
+			int i1 = ex->_sample_index_cache + ex->_sample_count_cache - 2;
+			SampleData& d0 = ex->_sample_data_cache[(i0 + len) % len];
+			SampleData& d1 = ex->_sample_data_cache[(i1 + len) % len];
 			data.time = d1.time + d1.time - d0.time;
 			data.d_time =  d1.d_time + d1.d_time - d0.d_time;
 			FX_DEBUG("extractor_push(), time == 0, Correction time: %llu", data.time);
@@ -521,11 +521,11 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
  */
 Extractor* Inl::valid_extractor(AVMediaType type) {
 	if (type == AVMEDIA_TYPE_VIDEO || type == AVMEDIA_TYPE_AUDIO) {
-		auto it = m_extractors.find(type == AVMEDIA_TYPE_VIDEO ? MEDIA_TYPE_VIDEO : MEDIA_TYPE_AUDIO);
+		auto it = _extractors.find(type == AVMEDIA_TYPE_VIDEO ? MEDIA_TYPE_VIDEO : MEDIA_TYPE_AUDIO);
 		
-		if (m_extractors.end() != it) {
+		if (_extractors.end() != it) {
 			Extractor* ex = it.value();
-			if ( ex->m_disable ) {
+			if ( ex->_disable ) {
 				return nullptr;
 			} else {
 				return ex;
@@ -539,9 +539,9 @@ Extractor* Inl::valid_extractor(AVMediaType type) {
  * @func has_valid_extractor
  * */
 bool Inl::has_valid_extractor() {
-	for (auto i = m_extractors.begin(),
-						e = m_extractors.end(); i != e; i++) {
-		if ( !i.value()->m_disable ) {
+	for (auto i = _extractors.begin(),
+						e = _extractors.end(); i != e; i++) {
+		if ( !i.value()->_disable ) {
 			return true;
 		}
 	}
@@ -553,23 +553,23 @@ bool Inl::has_valid_extractor() {
  */
 bool Inl::extractor_advance_no_wait(Extractor* ex) {
 	
-	if ( ex->m_sample_count_cache ) {
+	if ( ex->_sample_count_cache ) {
 		// swap data
-		SampleData data = move(ex->m_sample_data);
-		ex->m_sample_data = move(ex->m_sample_data_cache[ex->m_sample_index_cache]);
-		ex->m_sample_data_cache[ex->m_sample_index_cache] = move(data);
-		ex->m_sample_index_cache = (ex->m_sample_index_cache + 1) % ex->m_sample_data_cache.length();
-		ex->m_sample_count_cache--;
-		if (ex->m_sample_count_cache == 0 && m_read_eof) {
-			ex->m_eof_flags = 1;
+		SampleData data = move(ex->_sample_data);
+		ex->_sample_data = move(ex->_sample_data_cache[ex->_sample_index_cache]);
+		ex->_sample_data_cache[ex->_sample_index_cache] = move(data);
+		ex->_sample_index_cache = (ex->_sample_index_cache + 1) % ex->_sample_data_cache.length();
+		ex->_sample_count_cache--;
+		if (ex->_sample_count_cache == 0 && _read_eof) {
+			ex->_eof_flags = 1;
 		}
 	} else { // no data
-		if ( m_read_eof ) { // eos
+		if ( _read_eof ) { // eos
 			trigger_eof();
 		}
 	}
 	
-	return ex->m_sample_data.size != 0;
+	return ex->_sample_data.size != 0;
 }
 
 /**
@@ -578,52 +578,52 @@ bool Inl::extractor_advance_no_wait(Extractor* ex) {
 bool Inl::extractor_advance(Extractor* ex) {
 	ScopeLock scope(mutex());
 
-	if (ex->m_sample_data.size) {
+	if (ex->_sample_data.size) {
 		return true;
 	}
-	if ( m_status != MULTIMEDIA_SOURCE_STATUS_READY &&
-			m_status != MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+	if ( _status != MULTIMEDIA_SOURCE_STATUS_READY &&
+			_status != MULTIMEDIA_SOURCE_STATUS_WAIT ) {
 		return false;
 	}
 	
-	if ( m_disable_wait_buffer ) {
-		if ( m_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+	if ( _disable_wait_buffer ) {
+		if ( _status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
 			trigger_ready_buffer();
 		}
 		return extractor_advance_no_wait(ex);
 	}
 	
-	if ( ex->m_sample_count_cache ) {
-		if ( m_status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
-			if ( ex->m_sample_count_cache == ex->m_sample_data_cache.length() || m_read_eof ) { //
+	if ( ex->_sample_count_cache ) {
+		if ( _status == MULTIMEDIA_SOURCE_STATUS_WAIT ) {
+			if ( ex->_sample_count_cache == ex->_sample_data_cache.length() || _read_eof ) { //
 				trigger_ready_buffer();
 			}
 		} else {
 			// swap data
-			SampleData data = move(ex->m_sample_data);
-			ex->m_sample_data = move(ex->m_sample_data_cache[ex->m_sample_index_cache]);
-			ex->m_sample_data_cache[ex->m_sample_index_cache] = move(data);
-			ex->m_sample_index_cache = (ex->m_sample_index_cache + 1) % ex->m_sample_data_cache.length();
-			ex->m_sample_count_cache--;
-			// FX_DEBUG("extractor_advance(), m_sample_count_cache:%d", ex->m_sample_count_cache);
-			if (ex->m_sample_count_cache == 0 && m_read_eof) {
-				ex->m_eof_flags = 1;
+			SampleData data = move(ex->_sample_data);
+			ex->_sample_data = move(ex->_sample_data_cache[ex->_sample_index_cache]);
+			ex->_sample_data_cache[ex->_sample_index_cache] = move(data);
+			ex->_sample_index_cache = (ex->_sample_index_cache + 1) % ex->_sample_data_cache.length();
+			ex->_sample_count_cache--;
+			// FX_DEBUG("extractor_advance(), _sample_count_cache:%d", ex->_sample_count_cache);
+			if (ex->_sample_count_cache == 0 && _read_eof) {
+				ex->_eof_flags = 1;
 			}
 		}
 
 	} else { // no data
 		// FX_DEBUG("extractor_advance(), no data ");
 		
-		if ( m_read_eof ) { // eos
+		if ( _read_eof ) { // eos
 			trigger_eof();
 		} else {
-			if ( m_status == MULTIMEDIA_SOURCE_STATUS_READY ) {
+			if ( _status == MULTIMEDIA_SOURCE_STATUS_READY ) {
 				trigger_wait_buffer();
 			}
 		}
 	}
 
-	return ex->m_sample_data.size != 0;
+	return ex->_sample_data.size != 0;
 }
 
 /**
@@ -666,8 +666,8 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 				
 				post(Cb([this](CbD& d) {
 					ScopeLock scope(mutex());
-					m_read_eof = 1;
-					m_fmt_ctx = nullptr;
+					_read_eof = 1;
+					_fmt_ctx = nullptr;
 				}));
 				
 			} else {
@@ -688,9 +688,9 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 		if ( pkt.size ) { //
 			ScopeLock scope(mutex());
 
-			if ( bit_rate_index != m_bit_rate_index ) { // bit_rate_index change
-				bit_rate_index = m_bit_rate_index;
-				select_multi_bit_rate2(m_bit_rate_index);
+			if ( bit_rate_index != _bit_rate_index ) { // bit_rate_index change
+				bit_rate_index = _bit_rate_index;
+				select_multi_bit_rate2(_bit_rate_index);
 			}
 
 			if ( has_valid_extractor() ) {
@@ -728,10 +728,10 @@ void Inl::trigger_error(cError& e) {
 	FX_DEBUG("Err, %s", *e.message());
 	post(Cb([e, this](CbD& d) {
 		{ ScopeLock scope(mutex());
-			m_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
-			m_fmt_ctx = nullptr;
+			_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
+			_fmt_ctx = nullptr;
 		}
-		m_delegate->multimedia_source_error(m_host, e);
+		_delegate->multimedia_source_error(_host, e);
 	}));
 }
 
@@ -741,13 +741,13 @@ void Inl::trigger_error(cError& e) {
 void Inl::trigger_wait_buffer() {
 	post(Cb([this](CbD& d) {
 		{ ScopeLock scope(mutex());
-			if ( m_status != MULTIMEDIA_SOURCE_STATUS_READY ) {
+			if ( _status != MULTIMEDIA_SOURCE_STATUS_READY ) {
 				return;
 			}
-			m_status = MULTIMEDIA_SOURCE_STATUS_WAIT;
+			_status = MULTIMEDIA_SOURCE_STATUS_WAIT;
 		}
 		FX_DEBUG("extractor_advance(), WAIT, 0");
-		m_delegate->multimedia_source_wait_buffer(m_host, 0);
+		_delegate->multimedia_source_wait_buffer(_host, 0);
 	}));
 }
 
@@ -757,11 +757,11 @@ void Inl::trigger_wait_buffer() {
 void Inl::trigger_ready_buffer() {
 	post(Cb([this](CbD& d) {
 		{ ScopeLock scope(mutex());
-			if ( m_status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
-			m_status = MULTIMEDIA_SOURCE_STATUS_READY;
+			if ( _status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
+			_status = MULTIMEDIA_SOURCE_STATUS_READY;
 		}
 		FX_DEBUG("extractor_advance(), WAIT, 1");
-		m_delegate->multimedia_source_wait_buffer(m_host, 1);
+		_delegate->multimedia_source_wait_buffer(_host, 1);
 	}));
 }
 
@@ -771,10 +771,10 @@ void Inl::trigger_ready_buffer() {
 void Inl::trigger_eof() {
 	post(Cb([this](CbD& d) {
 		{ ScopeLock scope(mutex());
-			if (m_status == MULTIMEDIA_SOURCE_STATUS_EOF) return;
-			m_status = MULTIMEDIA_SOURCE_STATUS_EOF;
+			if (_status == MULTIMEDIA_SOURCE_STATUS_EOF) return;
+			_status = MULTIMEDIA_SOURCE_STATUS_EOF;
 		}
-		m_delegate->multimedia_source_eof(m_host);
+		_delegate->multimedia_source_eof(_host);
 	}));
 }
 
@@ -783,9 +783,9 @@ void Inl::trigger_eof() {
  * */
 AVStream* Inl::get_stream(const TrackInfo& track) {
 	ScopeLock scope(mutex());
-	if ( m_fmt_ctx ) {
-		if ( track.track < m_fmt_ctx->nb_streams ) {
-			return m_fmt_ctx->streams[track.track];
+	if ( _fmt_ctx ) {
+		if ( track.track < _fmt_ctx->nb_streams ) {
+			return _fmt_ctx->streams[track.track];
 		}
 	}
 	return NULL;

@@ -103,7 +103,7 @@ using namespace ftr;
 	UITextInputStringTokenizer* _tokenizer;
 	BOOL _can_backspace;
 	AppInl* _app;
-	uint16  _keyboard_up_keycode;
+	uint16_t  _keyboard_up_keycode;
 	BOOL _clearing;
 	bool _has_open;
 }
@@ -267,7 +267,7 @@ using namespace ftr;
 
 - (void)insertText:(NSString*)text {
 	if ( text.length == 1 && _marked_text.length == 0 ) {
-		uint16 keycode = [text characterAtIndex:0];
+		uint16_t keycode = [text characterAtIndex:0];
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
 		} else {
@@ -431,7 +431,7 @@ using namespace ftr;
 	
 	if ( text ) {
 		if ( text.length == 1 ) {
-			uint16 keycode = [text characterAtIndex:0];
+			uint16_t keycode = [text characterAtIndex:0];
 			
 			if ( ![text isEqualToString:_marked_text] ) {
 				_keyboard_up_keycode = keycode;

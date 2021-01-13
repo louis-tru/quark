@@ -117,13 +117,13 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	virtual Object* to_object() { return this; }
 
 	AndroidPCMOpenSLES()
-					: m_max_volume_level(100)
+					: _max_volume_level(100)
 					, bqPlayerObject(NULL)
 					, bqPlayerPlay(NULL)
 					, bqPlayerBufferQueue(NULL)
 					, bqPlayerEffectSend(NULL)
 					, bqPlayerVolume(NULL)
-					, m_buffer_size(0)
+					, _buffer_size(0)
 	{
 
 	}
@@ -146,9 +146,9 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 			return false;
 		}
 
-		m_channel_count = channel_count;
-		m_sample_rate = sample_rate;
-		m_buffer_size = min_buffer_size();
+		_channel_count = channel_count;
+		_sample_rate = sample_rate;
+		_buffer_size = min_buffer_size();
 
 		SLresult result;
 		SLuint32 channelMask;
@@ -247,7 +247,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 		ASSERT(SL_RESULT_SUCCESS == result);
 
 		// get max volume level
-		result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &m_max_volume_level);
+		result = (*bqPlayerVolume)->GetMaxVolumeLevel(bqPlayerVolume, &_max_volume_level);
 		ASSERT(SL_RESULT_SUCCESS == result);
 
 		// set playing status
@@ -264,7 +264,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	 * */
 	virtual bool write(cBuffer& buffer) {
 		SLresult result;
-		ScopeLock scope(m_lock);
+		ScopeLock scope(_lock);
 		// input pcm buffer
 		result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, *buffer, buffer.length());
 		return result != SL_RESULT_BUFFER_INSUFFICIENT;
@@ -283,7 +283,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	virtual void flush() {
 		SLresult result;
 		// lock
-		ScopeLock scope(m_lock);
+		ScopeLock scope(_lock);
 		// clear buffer
 		result = (*bqPlayerBufferQueue)->Clear(bqPlayerBufferQueue);
 		ASSERT(SL_RESULT_SUCCESS == result);
@@ -302,9 +302,9 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	 * @overwrite
 	 * */
 	virtual bool set_volume(uint value) {
-		if ( m_max_volume_level ) {
+		if ( _max_volume_level ) {
 			SLresult result;
-			result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * m_max_volume_level);
+			result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * _max_volume_level);
 			return SL_RESULT_SUCCESS == result;
 		}
 		return false;
@@ -314,23 +314,23 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	 * @func buffer_size
 	 * */
 	virtual uint buffer_size() {
-		return m_buffer_size;
+		return _buffer_size;
 	}
 
 	uint min_buffer_size() {
 		JNI::ScopeENV env;
 		JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
-		int r = env->CallStaticIntMethod(m.clazz(), m.method(), m_sample_rate,
-																		 get_channel_mask(m_channel_count), 2/*ENCODIFX_PCM_16BIT*/);
+		int r = env->CallStaticIntMethod(m.clazz(), m.method(), _sample_rate,
+																		 get_channel_mask(_channel_count), 2/*ENCODIFX_PCM_16BIT*/);
 		return r;
 	}
 
  private:
-	Mutex         m_lock;
-	SLint16	      m_max_volume_level;
-	uint          m_sample_rate;
-	uint          m_channel_count;
-	uint          m_buffer_size;
+	Mutex         _lock;
+	SLint16	      _max_volume_level;
+	uint          _sample_rate;
+	uint          _channel_count;
+	uint          _buffer_size;
 
 	// engine interfaces
 	SLObjectItf engineObject;

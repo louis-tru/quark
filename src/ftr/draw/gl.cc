@@ -41,7 +41,7 @@
 
 FX_NS(ftr)
 
-Array<GLShader*>* GLDraw::m_shaders = nullptr;
+Array<GLShader*>* GLDraw::_shaders = nullptr;
 
 FX_DEFINE_INLINE_MEMBERS(GLDraw, Inl) {
 public:
@@ -50,19 +50,19 @@ public:
 	 * @func initializ_shader 初始化着色器程序
 	 */
 	void initializ_shader() {
-		ASSERT(m_shaders);
+		ASSERT(_shaders);
 		
-		for (auto& i : *m_shaders) {
+		for (auto& i : *_shaders) {
 			GLShader* shader = i.value();
 			GLuint handle = 0;
 			ASSERT(shader->shader == 0);
 			
-			if (m_library == DRAW_LIBRARY_GLES2) {
+			if (_library == DRAW_LIBRARY_GLES2) {
 				handle = compile_link_shader(shader->name,
 										WeakBuffer((cchar*)shader->es2_source_vp, (uint)shader->es2_source_vp_len),
 										WeakBuffer((cchar*)shader->es2_source_fp, (uint)shader->es2_source_fp_len),
 										String(shader->shader_attributes).split(','));
-			} else if (m_library == DRAW_LIBRARY_GLES3) {
+			} else if (_library == DRAW_LIBRARY_GLES3) {
 				handle = compile_link_shader(shader->name,
 										WeakBuffer((cchar*)shader->source_vp, (uint)shader->source_vp_len),
 										WeakBuffer((cchar*)shader->source_fp, (uint)shader->source_fp_len),
@@ -95,8 +95,8 @@ public:
 		for ( int i = 0; i < 65536; i++ ) {
 			buffer[i] = i;
 		}
-		glGenBuffers(1, &m_indexd_vbo_data);
-		glBindBuffer(GL_ARRAY_BUFFER, m_indexd_vbo_data);
+		glGenBuffers(1, &_indexd_vbo_data);
+		glBindBuffer(GL_ARRAY_BUFFER, _indexd_vbo_data);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 65536, *buffer, GL_STATIC_DRAW);
 		
 		/*
@@ -120,17 +120,17 @@ public:
 		FX_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
 		FX_DEBUG("OGL Info: %s", *info);
 		
-		m_is_support_vao = info.index_of( "GL_OES_vertex_array_object" ) != -1;
-		m_is_support_instanced = info.index_of( "GL_EXT_draw_instanced" ) != -1;
+		_is_support_vao = info.index_of( "GL_OES_vertex_array_object" ) != -1;
+		_is_support_instanced = info.index_of( "GL_EXT_draw_instanced" ) != -1;
 		// GL_EXT_disjoint_timer_query
 		// GL_EXT_occlusion_query_boolean
-		m_is_support_query = info.index_of( "occlusion" ) != -1;
+		_is_support_query = info.index_of( "occlusion" ) != -1;
 		// GL_EXT_multisampled_render_to_texture
 		// GL_IMG_multisampled_render_to_texture
 		// GL_APPLE_framebuffer_multisample
-		m_is_support_multisampled = info.index_of( "multisample" ) != -1;
-		m_is_support_compressed_ETC1 = info.index_of( "GL_OES_compressed_ETC1_RGB8_texture" ) != -1;
-		m_is_support_packed_depth_stencil = info.index_of( "packed_depth_stencil" ) != -1;
+		_is_support_multisampled = info.index_of( "multisample" ) != -1;
+		_is_support_compressed_ETC1 = info.index_of( "GL_OES_compressed_ETC1_RGB8_texture" ) != -1;
+		_is_support_packed_depth_stencil = info.index_of( "packed_depth_stencil" ) != -1;
 	}
 	
 };
@@ -139,29 +139,29 @@ public:
  * @constructor
  */
 GLDraw::GLDraw(GUIApplication* host, cJSON& options): Draw(host, options)
-, m_begin_screen_occlusion_query_status(false)
-, m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE(0)
-, m_current_frame_buffer(0)
-, m_render_buffer(0)
-, m_frame_buffer(0)
-, m_msaa_render_buffer(0)
-, m_msaa_frame_buffer(0)
-, m_depth_buffer(0)
-, m_stencil_buffer(0)
-, m_stencil_ref_value(0)
-, m_root_stencil_ref_value(0)
-, m_indexd_vbo_data(0)
-, m_is_support_vao(true)
-, m_is_support_instanced(true)
-, m_is_support_query(true)
-, m_is_support_multisampled(true)
-, m_is_support_compressed_ETC1(true)
+, _begin_screen_occlusion_query_status(false)
+, _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE(0)
+, _current_frame_buffer(0)
+, _render_buffer(0)
+, _frame_buffer(0)
+, _msaa_render_buffer(0)
+, _msaa_frame_buffer(0)
+, _depth_buffer(0)
+, _stencil_buffer(0)
+, _stencil_ref_value(0)
+, _root_stencil_ref_value(0)
+, _indexd_vbo_data(0)
+, _is_support_vao(true)
+, _is_support_instanced(true)
+, _is_support_query(true)
+, _is_support_multisampled(true)
+, _is_support_compressed_ETC1(true)
 {
 }
 
 GLDraw::~GLDraw() {
-	if (m_shaders) {
-		for (auto& i : (*m_shaders)) {
+	if (_shaders) {
+		for (auto& i : (*_shaders)) {
 			if (i.value()->shader) {
 				glDeleteProgram(i.value()->shader);
 				i.value()->shader = 0;
@@ -169,23 +169,23 @@ GLDraw::~GLDraw() {
 		}
 	}
 	
-	if ( m_indexd_vbo_data ) {
-		glDeleteBuffers(1, &m_indexd_vbo_data);
+	if ( _indexd_vbo_data ) {
+		glDeleteBuffers(1, &_indexd_vbo_data);
 	}
-	glDeleteRenderbuffers(1, &m_render_buffer);
-	glDeleteFramebuffers(1, &m_msaa_render_buffer);
-	glDeleteRenderbuffers(1, &m_depth_buffer);
-	glDeleteRenderbuffers(1, &m_stencil_buffer);
-	glDeleteFramebuffers(1, &m_frame_buffer);
-	glDeleteRenderbuffers(1, &m_msaa_frame_buffer);
+	glDeleteRenderbuffers(1, &_render_buffer);
+	glDeleteFramebuffers(1, &_msaa_render_buffer);
+	glDeleteRenderbuffers(1, &_depth_buffer);
+	glDeleteRenderbuffers(1, &_stencil_buffer);
+	glDeleteFramebuffers(1, &_frame_buffer);
+	glDeleteRenderbuffers(1, &_msaa_frame_buffer);
 	
-	if ( m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE ) {
-		glDeleteQueries(1, &m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE);
+	if ( _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE ) {
+		glDeleteQueries(1, &_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE);
 	}
 	
-	Release(m_empty_texture); m_empty_texture = nullptr;
-	Release(m_font_pool); m_font_pool = nullptr;
-	Release(m_tex_pool); m_tex_pool = nullptr;
+	Release(_empty_texture); _empty_texture = nullptr;
+	Release(_font_pool); _font_pool = nullptr;
+	Release(_tex_pool); _tex_pool = nullptr;
 }
 
 /**
@@ -193,7 +193,7 @@ GLDraw::~GLDraw() {
  */
 void GLDraw::initialize() {
 	Inl_GLDraw(this)->initializ_shader();
-	if (m_library == DRAW_LIBRARY_GLES2) {
+	if (_library == DRAW_LIBRARY_GLES2) {
 		Inl_GLDraw(this)->es2_initializ_indexd_vbo_and_ext_support();
 	}
 	Inl_GLDraw(this)->initializ_indexd_vbo();
@@ -241,23 +241,23 @@ void GLDraw::initializ_gl_status() {
  * @func initializ_gl_buffers
  */
 void GLDraw::initializ_gl_buffers() {
-	if ( ! m_frame_buffer ) {
+	if ( ! _frame_buffer ) {
 		// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
-		glGenFramebuffers(1, &m_frame_buffer);
+		glGenFramebuffers(1, &_frame_buffer);
 		// Create a color renderbuffer, allocate storage for it, and attach it to the framebuffer.
-		glGenRenderbuffers(1, &m_render_buffer);
+		glGenRenderbuffers(1, &_render_buffer);
 		// Perform similar steps to create and attach a depth renderbuffer.
 		if ( nx_use_depth_test ) {
-			glGenRenderbuffers(1, &m_depth_buffer);
+			glGenRenderbuffers(1, &_depth_buffer);
 		}
 		// stencil buffer
-		glGenRenderbuffers(1, &m_stencil_buffer);
+		glGenRenderbuffers(1, &_stencil_buffer);
 		// Create multisample buffers
-		glGenFramebuffers(1, &m_msaa_frame_buffer);
-		glGenRenderbuffers(1, &m_msaa_render_buffer);
+		glGenFramebuffers(1, &_msaa_frame_buffer);
+		glGenRenderbuffers(1, &_msaa_render_buffer);
 		
 		if ( is_support_query() ) { // 屏幕遮挡查询对像
-			glGenQueries(1, &m_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE);
+			glGenQueries(1, &_SCREEN_RANGE_OCCLUSION_QUERY_HANDLE);
 		}
 	}
 }
@@ -279,57 +279,57 @@ void GLDraw::refresh_buffer() {
 	
 	glViewport(0, 0, width, height);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_render_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _render_buffer);
 	gl_main_render_buffer_storage();
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_render_buffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _render_buffer);
 	
 	if ( multisample() > 1 && is_support_multisampled() ) { // 启用多重采样
-		glBindFramebuffer(GL_FRAMEBUFFER, m_msaa_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_msaa_render_buffer); // render
+		glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_render_buffer); // render
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_RGBA8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_msaa_render_buffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaa_render_buffer);
 
 		if ( nx_use_depth_test ) {
 			if ( is_support_packed_depth_stencil() ) {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
+				glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer); // depth
 				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_DEPTH24_STENCIL8, width, height);
 			} else {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
+				glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer); // depth
 				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_DEPTH_COMPONENT16, width, height);
-				glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
+				glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer); // stencil
 				glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_STENCIL_INDEX8, width, height);
 			}
 		} else {
-			glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
+			glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer); // stencil
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisample(), GL_STENCIL_INDEX8, width, height);
 		}
 	} else {
 		if ( nx_use_depth_test ) {
 			if ( is_support_packed_depth_stencil() ) {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
+				glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer); // depth
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 			} else {
-				glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer); // depth
+				glBindRenderbuffer(GL_RENDERBUFFER, _depth_buffer); // depth
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
-				glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
+				glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer); // stencil
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
 			}
 		} else {
-			glBindRenderbuffer(GL_RENDERBUFFER, m_stencil_buffer); // stencil
+			glBindRenderbuffer(GL_RENDERBUFFER, _stencil_buffer); // stencil
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
 		}
 	}
 
 	if ( nx_use_depth_test ) {
-		 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer);
+		 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depth_buffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-															is_support_packed_depth_stencil() ? m_depth_buffer : m_stencil_buffer);
+															is_support_packed_depth_stencil() ? _depth_buffer : _stencil_buffer);
 	} else {
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_stencil_buffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencil_buffer);
 	}
 
-	glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _frame_buffer);
 	
 	// Test the framebuffer for completeness.
 	if ( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ) {
@@ -344,12 +344,12 @@ void GLDraw::refresh_buffer() {
 
 void GLDraw::refresh_root_matrix(const Mat4& root, const Mat4& query) {
 	
-	if (!m_shaders) return;
+	if (!_shaders) return;
 	
 	Mat4 root_(root); root_   .transpose();
 	Mat4 query_(query); query_.transpose();
 	
-	const Array<GLShader*>& shaders = *m_shaders; // 更新2D视图变换矩阵
+	const Array<GLShader*>& shaders = *_shaders; // 更新2D视图变换矩阵
 	
 	for ( auto it : shaders ) {
 		GLShader* shader = it.value();
@@ -367,22 +367,22 @@ void GLDraw::refresh_root_matrix(const Mat4& root, const Mat4& query) {
 
 void GLDraw::refresh_font_pool(FontPool* pool) {
 	glUseProgram(shader::text_texture.shader);
-	glUniform1f(shader::text_texture.display_port_scale, pool->m_display_port_scale);
+	glUniform1f(shader::text_texture.display_port_scale, pool->_display_port_scale);
 }
 
 void GLDraw::begin_render() {
-	m_stencil_ref_value = 0;
-	m_root_stencil_ref_value = 0;
+	_stencil_ref_value = 0;
+	_root_stencil_ref_value = 0;
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_STENCIL_TEST);
 	if ( multisample() > 1 && is_support_multisampled() ) {
-		glBindFramebuffer(GL_FRAMEBUFFER, m_msaa_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_msaa_frame_buffer);
-		m_current_frame_buffer = m_msaa_frame_buffer;
+		glBindFramebuffer(GL_FRAMEBUFFER, _msaa_frame_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _msaa_frame_buffer);
+		_current_frame_buffer = _msaa_frame_buffer;
 	} else {
-		glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
-		m_current_frame_buffer = m_frame_buffer;
+		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _frame_buffer);
+		_current_frame_buffer = _frame_buffer;
 	}
 }
 
@@ -392,25 +392,25 @@ void GLDraw::commit_render() {
 	}
 	if ( multisample() && is_support_multisampled() ) {
 		Vec2 ssize = surface_size();
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msaa_frame_buffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frame_buffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaa_frame_buffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frame_buffer);
 		glBlitFramebuffer(0, 0, ssize.width(), ssize.height(),
 											0, 0, ssize.width(), ssize.height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_frame_buffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, _frame_buffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _frame_buffer);
 	}
 }
 
 void GLDraw::begin_screen_occlusion_query() {
-	if ( ! m_begin_screen_occlusion_query_status ) {
-		m_begin_screen_occlusion_query_status = true;
+	if ( ! _begin_screen_occlusion_query_status ) {
+		_begin_screen_occlusion_query_status = true;
 		glViewport(0, 0, surface_size()[0] / 10, surface_size()[1] / 10);
 	}
 }
 
 void GLDraw::end_screen_occlusion_query() {
-	if ( m_begin_screen_occlusion_query_status ) {
-		m_begin_screen_occlusion_query_status = false;
+	if ( _begin_screen_occlusion_query_status ) {
+		_begin_screen_occlusion_query_status = false;
 		glViewport(0, 0, surface_size()[0], surface_size()[1]);
 	}
 }
@@ -486,8 +486,8 @@ void GLDraw::del_buffer(uint id) {
 
 void GLDraw::register_gl_shader(GLShader* shader) {
 	static Array<GLShader*> shaders;
-	if (!m_shaders) {
-		m_shaders = &shaders;
+	if (!_shaders) {
+		_shaders = &shaders;
 	}
 	shaders.push(shader);
 }

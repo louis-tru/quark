@@ -47,12 +47,12 @@ class BasicScroll::Task: public PreRender::Task {
  public:
 	
 	Task(BasicScroll* host, uint64 duration, cCurve& curve = ease_out)
-	: m_host(host)
-	, m_start_time(sys::time_monotonic())
-	, m_duration(duration)
-	, m_immediate_end_flag(false)
-	, m_curve(curve)
-	, m_is_inl_ease_out(&ease_out == &curve)
+	: _host(host)
+	, _start_time(sys::time_monotonic())
+	, _duration(duration)
+	, _immediate_end_flag(false)
+	, _curve(curve)
+	, _is_inl_ease_out(&ease_out == &curve)
 	{
 	
 	}
@@ -61,7 +61,7 @@ class BasicScroll::Task: public PreRender::Task {
 	 * @func immediate_end_flag
 	 */
 	inline void immediate_end_flag() {
-		m_immediate_end_flag = true;
+		_immediate_end_flag = true;
 	}
 	
 	virtual void run(float y) = 0;
@@ -73,19 +73,19 @@ class BasicScroll::Task: public PreRender::Task {
 	 */
 	virtual bool run_task(int64 sys_time) {
 		
-		if ( m_immediate_end_flag ) { // immediate end motion
+		if ( _immediate_end_flag ) { // immediate end motion
 			immediate_end();
 		} else {
 			int64 now = sys::time_monotonic();
-			if ( now >= m_start_time + m_duration ) {
+			if ( now >= _start_time + _duration ) {
 				end();
 			} else {
-				if ( m_is_inl_ease_out ) {
+				if ( _is_inl_ease_out ) {
 					// ease_out
-					float y = float(now - m_start_time) / float(m_duration);
+					float y = float(now - _start_time) / float(_duration);
 					run( sqrtf(1 - powf(y - 1, 2)) );
 				} else {
-					run( m_curve.solve(float(now - m_start_time) / float(m_duration), 0.001) );
+					run( _curve.solve(float(now - _start_time) / float(_duration), 0.001) );
 				}
 			}
 		}
@@ -94,13 +94,13 @@ class BasicScroll::Task: public PreRender::Task {
 	
  protected:
 
-	BasicScroll* m_host;
-	uint64 m_start_time;
-	uint64 m_duration;
-	List<Task*>::Iterator m_id2;
-	bool   m_immediate_end_flag;
-	cCurve m_curve;
-	bool m_is_inl_ease_out;
+	BasicScroll* _host;
+	uint64 _start_time;
+	uint64 _duration;
+	List<Task*>::Iterator _id2;
+	bool   _immediate_end_flag;
+	cCurve _curve;
+	bool _is_inl_ease_out;
 	
 	friend class BasicScroll::Inl;
 };
@@ -125,27 +125,27 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		ScrollMotionTask(BasicScroll* host, uint64 duration, Vec2 to, cCurve& curve = ease_out)
 		: Task(host, duration, curve)
-		, m_from(host->m_scroll)
-		, m_to(to)
+		, _from(host->_scroll)
+		, _to(to)
 		{ }
 		
 		virtual void run(float y) {
-			Vec2 scroll = Vec2((m_to.x() - m_from.x()) * y + m_from.x(),
-												 (m_to.y() - m_from.y()) * y + m_from.y());
-			_inl(m_host)->set_scroll_and_trigger_event(scroll);
+			Vec2 scroll = Vec2((_to.x() - _from.x()) * y + _from.x(),
+												 (_to.y() - _from.y()) * y + _from.y());
+			_inl(_host)->set_scroll_and_trigger_event(scroll);
 		}
 		virtual void end() {
-			_inl(m_host)->set_scroll_and_trigger_event(m_to);
-			_inl(m_host)->termination_recovery(3e5, ease_in_out);
+			_inl(_host)->set_scroll_and_trigger_event(_to);
+			_inl(_host)->termination_recovery(3e5, ease_in_out);
 		}
 		virtual void immediate_end() {
-			_inl(m_host)->set_scroll_and_trigger_event(m_to);
-			_inl(m_host)->termination_recovery(0, ease_in_out);
+			_inl(_host)->set_scroll_and_trigger_event(_to);
+			_inl(_host)->termination_recovery(0, ease_in_out);
 		}
 		
 	 private:
-		Vec2  m_from;
-		Vec2  m_to;
+		Vec2  _from;
+		Vec2  _to;
 	};
 	
 	/**
@@ -156,28 +156,28 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		ScrollBarFadeInOutTask(BasicScroll* host, uint64 duration, float to, cCurve& curve = ease_out)
 		: Task(host, duration, curve)
-		, m_from(host->m_scrollbar_opacity)
-		, m_to(to)
+		, _from(host->_scrollbar_opacity)
+		, _to(to)
 		{ }
 		
 		virtual void run(float y) {
-			m_host->m_scrollbar_opacity = (m_to - m_from) * y + m_from;
-			m_host->m_box->mark(View::M_SCROLL_BAR);
+			_host->_scrollbar_opacity = (_to - _from) * y + _from;
+			_host->_box->mark(View::M_SCROLL_BAR);
 		}
 		virtual void end() {
-			m_host->m_scrollbar_opacity = m_to;
-			m_host->m_box->mark(View::M_SCROLL_BAR);
-			_inl(m_host)->termination_task(this);
+			_host->_scrollbar_opacity = _to;
+			_host->_box->mark(View::M_SCROLL_BAR);
+			_inl(_host)->termination_task(this);
 		}
 		virtual void immediate_end() {
-			m_host->m_scrollbar_opacity = m_to;
-			m_host->m_box->mark(View::M_SCROLL_BAR);
-			_inl(m_host)->termination_task(this);
+			_host->_scrollbar_opacity = _to;
+			_host->_box->mark(View::M_SCROLL_BAR);
+			_inl(_host)->termination_task(this);
 		}
 		
 	 private:
-		float m_from;
-		float m_to;
+		float _from;
+		float _to;
 	};
 	
 	friend class BasicScroll::Task;
@@ -189,7 +189,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void register_task(Task* task) {
 		if ( !task->is_register_task() ) {
-			task->m_id2 = m_tasks.push(task);
+			task->_id2 = _tasks.push(task);
 			task->register_task();
 			task->run_task(0);
 		}
@@ -200,7 +200,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void termination_task(Task* task) {
 		if ( task->is_register_task() ) {
-			m_tasks.del( task->m_id2 );
+			_tasks.del( task->_id2 );
 			delete task;
 		}
 	}
@@ -209,17 +209,17 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func termination_task
 	 */
 	void termination_all_task() {
-		for ( auto& i : m_tasks ) {
+		for ( auto& i : _tasks ) {
 			delete i.value();
 		}
-		m_tasks.clear();
+		_tasks.clear();
 	}
 	
 	/**
 	 * @func immediate_end_all_task
 	 */
 	void immediate_end_all_task() {
-		for ( auto& i : m_tasks ) {
+		for ( auto& i : _tasks ) {
 			i.value()->immediate_end_flag();
 		}
 	}
@@ -228,7 +228,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func is_task
 	 */
 	inline bool is_task() {
-		return m_tasks.length();
+		return _tasks.length();
 	}
 	
 	/**
@@ -237,7 +237,7 @@ class BasicScroll::Inl: public BasicScroll {
 	Momentum momentum(uint64 time, float dist,
 										float max_dist_upper, float max_dist_lower, float size) {
 		
-		float deceleration = 0.001 * m_resistance;
+		float deceleration = 0.001 * _resistance;
 		float speed = fabsf(dist) / float(time) * 1000.0;
 		float new_dist = (speed * speed) / (2 * deceleration);
 		float outside_dist = 0;
@@ -266,12 +266,12 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func get_catch_value
 	 */
 	Vec2 get_catch_value() {
-		float x = (m_catch_position.x() < 1 ||
-							 m_catch_position.x() > m_box->final_width()) ?
-							 m_box->final_width() : m_catch_position.x();
-		float y = (m_catch_position.y() < 1 ||
-							 m_catch_position.y() > m_box->final_width()) ?
-							 m_box->final_height() : m_catch_position.y();
+		float x = (_catch_position.x() < 1 ||
+							 _catch_position.x() > _box->final_width()) ?
+							 _box->final_width() : _catch_position.x();
+		float y = (_catch_position.y() < 1 ||
+							 _catch_position.y() > _box->final_width()) ?
+							 _box->final_height() : _catch_position.y();
 		if (x == 0.0) x = 1.0;
 		if (y == 0.0) y = 1.0;
 		return Vec2(x, y);
@@ -281,8 +281,8 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func get_valid_scroll
 	 */
 	Vec2 get_valid_scroll(float x, float y) {
-		x = x >= 0 ? 0 : x < m_scroll_max.x() ? m_scroll_max.x() : x;
-		y = y >= 0 ? 0 : y < m_scroll_max.y() ? m_scroll_max.y() : y;
+		x = x >= 0 ? 0 : x < _scroll_max.x() ? _scroll_max.x() : x;
+		y = y >= 0 ? 0 : y < _scroll_max.y() ? _scroll_max.y() : y;
 		return Vec2(x, y);
 	}
 	
@@ -302,11 +302,11 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		if ( Catch.x() != 1 && Catch.y() != 1 ) { // 捕获位置
 			valid.x( roundf(valid.x() / Catch.x()) * Catch.x() );
-			if ( valid.x() < m_scroll_max.x() ) {
+			if ( valid.x() < _scroll_max.x() ) {
 				valid.x( valid.x() + Catch.x() );
 			}
 			valid.y( roundf(valid.y() / Catch.y()) * Catch.y() );
-			if ( valid.y() < m_scroll_max.y() ) {
+			if ( valid.y() < _scroll_max.y() ) {
 				valid.y( valid.y() + Catch.y() );
 			}
 		}
@@ -318,22 +318,22 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void set_h_scrollbar_pos() {
 		
-		if ( ! m_h_scrollbar ) {
+		if ( ! _h_scrollbar ) {
 			return;
 		}
 		
 		float left_margin = scrollbar_margin();
-		float right_margin = m_v_scrollbar ? left_margin + scrollbar_width() : left_margin;
-		float h_scrollbar_max_size = FX_MAX(m_box->final_width() - left_margin - right_margin, 0);
+		float right_margin = _v_scrollbar ? left_margin + scrollbar_width() : left_margin;
+		float h_scrollbar_max_size = FX_MAX(_box->final_width() - left_margin - right_margin, 0);
 		
-		float h_scrollbar_indicator_size = roundf(powf(h_scrollbar_max_size, 2) / m_scroll_size.x());
+		float h_scrollbar_indicator_size = roundf(powf(h_scrollbar_max_size, 2) / _scroll_size.x());
 		h_scrollbar_indicator_size = FX_MAX(h_scrollbar_indicator_size, 8);
 		float h_scrollbar_max_scroll = h_scrollbar_max_size - h_scrollbar_indicator_size;
-		float h_scrollbar_prop = h_scrollbar_max_scroll / m_scroll_max.x();
+		float h_scrollbar_prop = h_scrollbar_max_scroll / _scroll_max.x();
 		
 		// ------------------------------------------------------
 		
-		float pos = h_scrollbar_prop * m_scroll.x();
+		float pos = h_scrollbar_prop * _scroll.x();
 		float size = h_scrollbar_indicator_size;
 		
 		if ( pos < 0 ) {
@@ -346,7 +346,7 @@ class BasicScroll::Inl: public BasicScroll {
 			pos = h_scrollbar_max_scroll + h_scrollbar_indicator_size - size;
 		}
 		
-		m_h_scrollbar_position = Vec2(pos + left_margin, size);
+		_h_scrollbar_position = Vec2(pos + left_margin, size);
 	}
 	
 	/**
@@ -354,23 +354,23 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void set_v_scrollbar_pos() {
 		
-		if ( ! m_v_scrollbar ) {
+		if ( ! _v_scrollbar ) {
 			return;
 		}
 		
 		float top_margin = scrollbar_margin();
-		float bottom_margin = m_h_scrollbar ? top_margin + scrollbar_width() : top_margin;
-		float v_scrollbar_max_size = FX_MAX(m_box->final_height() - top_margin - bottom_margin, 0);
+		float bottom_margin = _h_scrollbar ? top_margin + scrollbar_width() : top_margin;
+		float v_scrollbar_max_size = FX_MAX(_box->final_height() - top_margin - bottom_margin, 0);
 		
-		float v_scrollbar_indicator_size = roundf(powf(v_scrollbar_max_size, 2) / m_scroll_size.y());
+		float v_scrollbar_indicator_size = roundf(powf(v_scrollbar_max_size, 2) / _scroll_size.y());
 		v_scrollbar_indicator_size = FX_MAX(v_scrollbar_indicator_size, 8);
 		
 		float v_scrollbar_max_scroll = v_scrollbar_max_size - v_scrollbar_indicator_size;
-		float v_scrollbar_prop = v_scrollbar_max_scroll / m_scroll_max.y();
+		float v_scrollbar_prop = v_scrollbar_max_scroll / _scroll_max.y();
 		
 		// ------------------------------------------------------
 		
-		float pos = v_scrollbar_prop * m_scroll.y();
+		float pos = v_scrollbar_prop * _scroll.y();
 		float size = v_scrollbar_indicator_size;
 		
 		if ( pos < 0 ) {
@@ -383,7 +383,7 @@ class BasicScroll::Inl: public BasicScroll {
 			pos = v_scrollbar_max_scroll + v_scrollbar_indicator_size - size;
 		}
 		
-		m_v_scrollbar_position = Vec2(pos + top_margin, size);
+		_v_scrollbar_position = Vec2(pos + top_margin, size);
 	}
 	
 	/**
@@ -392,23 +392,23 @@ class BasicScroll::Inl: public BasicScroll {
 	void set_scroll_and_trigger_event(Vec2 scroll) {
 		
 		scroll = optimal_display(scroll);
-		scroll.x( m_h_scroll ? scroll.x() : 0 );
-		scroll.y( m_v_scroll ? scroll.y() : 0 );
+		scroll.x( _h_scroll ? scroll.x() : 0 );
+		scroll.y( _v_scroll ? scroll.y() : 0 );
 		
-		if ( m_scroll.x() != scroll.x() || m_scroll.y() != scroll.y() ) {
+		if ( _scroll.x() != scroll.x() || _scroll.y() != scroll.y() ) {
 			
-			m_scroll = scroll;
-			m_raw_scroll = scroll;
+			_scroll = scroll;
+			_raw_scroll = scroll;
 			
 			set_h_scrollbar_pos();
 			set_v_scrollbar_pos();
 			
-			m_box->mark(View::M_SCROLL); // mark
+			_box->mark(View::M_SCROLL); // mark
 			
 			main_loop()->post(Cb([this](CbD& se) {
-				Handle<GUIEvent> evt = New<GUIEvent>(m_box);
-				m_box->trigger(GUI_EVENT_SCROLL, **evt); // trigger event
-			}, m_box));
+				Handle<GUIEvent> evt = New<GUIEvent>(_box);
+				_box->trigger(GUI_EVENT_SCROLL, **evt); // trigger event
+			}, _box));
 		}
 	}
 	
@@ -430,16 +430,16 @@ class BasicScroll::Inl: public BasicScroll {
 	void termination_recovery(uint64 duration, cCurve& curve = ease_out) {
 		termination_all_task();
 		
-		Vec2 scroll = catch_valid_scroll(m_scroll);
-		if ( scroll.x() == m_scroll.x() && scroll.y() == m_scroll.y() ) {
+		Vec2 scroll = catch_valid_scroll(_scroll);
+		if ( scroll.x() == _scroll.x() && scroll.y() == _scroll.y() ) {
 			if ( duration ) {
-				if ( m_scrollbar_opacity != 0 ) {
+				if ( _scrollbar_opacity != 0 ) {
 					register_task( new ScrollBarFadeInOutTask(this, 2e5, 0) );
 				}
 			} else {
-				if ( m_scrollbar_opacity != 0 ) {
-					m_scrollbar_opacity = 0;
-					m_box->mark(View::M_SCROLL_BAR);
+				if ( _scrollbar_opacity != 0 ) {
+					_scrollbar_opacity = 0;
+					_box->mark(View::M_SCROLL_BAR);
 				}
 			}
 		} else {
@@ -452,11 +452,11 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void motion_start(Vec2 scroll, uint64 duration, cCurve& curve) {
 		
-		if ( !is_task() && ! m_moved ) {
+		if ( !is_task() && ! _moved ) {
 			
-			if ( scroll.x() != m_scroll.x() || scroll.y() != m_scroll.y() ) {
+			if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 				register_task( new ScrollMotionTask(this, duration, scroll, curve) );
-				if ( m_scrollbar_opacity != 1 ) {
+				if ( _scrollbar_opacity != 1 ) {
 					register_task( new ScrollBarFadeInOutTask(this, 5e4, 1) );
 				}
 			}
@@ -470,11 +470,11 @@ class BasicScroll::Inl: public BasicScroll {
 		
 		termination_all_task();
 		
-		m_moved = false;
-		m_move_dist = Vec2();
-		m_move_point = point;
-		m_move_start_time = sys::time_monotonic();
-		m_move_start_scroll = m_scroll;
+		_moved = false;
+		_move_dist = Vec2();
+		_move_point = point;
+		_move_start_time = sys::time_monotonic();
+		_move_start_scroll = _scroll;
 	}
 	
 	/**
@@ -482,69 +482,69 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void move(Vec2 point) {
 		
-		float delta_x = point.x() - m_move_point.x();
-		float delta_y = point.y() - m_move_point.y();
-		float new_x = m_scroll.x() + delta_x;
-		float new_y = m_scroll.y() + delta_y;
+		float delta_x = point.x() - _move_point.x();
+		float delta_y = point.y() - _move_point.y();
+		float new_x = _scroll.x() + delta_x;
+		float new_y = _scroll.y() + delta_y;
 		
-		m_move_point = point;
+		_move_point = point;
 		
 		// Slow down if outside of the boundaries
-		if ( new_x > 0 || new_x < m_scroll_max.x() ) {
-			if ( m_bounce ) {
-				new_x = m_scroll.x() + (delta_x / 2);
+		if ( new_x > 0 || new_x < _scroll_max.x() ) {
+			if ( _bounce ) {
+				new_x = _scroll.x() + (delta_x / 2);
 			} else {
-				new_x = (new_x >= 0 || m_scroll_max.x() >= 0 ? 0 : m_scroll_max.x());
+				new_x = (new_x >= 0 || _scroll_max.x() >= 0 ? 0 : _scroll_max.x());
 			}
 		}
-		if ( new_y > 0 || new_y < m_scroll_max.y() ) {
-			if ( m_bounce ) {
-				new_y = m_scroll.y() + delta_y / 2;
+		if ( new_y > 0 || new_y < _scroll_max.y() ) {
+			if ( _bounce ) {
+				new_y = _scroll.y() + delta_y / 2;
 			} else {
-				new_y = (new_y >= 0 || m_scroll_max.y() >= 0 ? 0 : m_scroll_max.y());
+				new_y = (new_y >= 0 || _scroll_max.y() >= 0 ? 0 : _scroll_max.y());
 			}
 		}
 		
-		m_move_dist.x( m_move_dist.x() + delta_x );
-		m_move_dist.y( m_move_dist.y() + delta_y );
+		_move_dist.x( _move_dist.x() + delta_x );
+		_move_dist.y( _move_dist.y() + delta_y );
 		
-		float dist_x = fabsf(m_move_dist.x());
-		float dist_y = fabsf(m_move_dist.y());
+		float dist_x = fabsf(_move_dist.x());
+		float dist_y = fabsf(_move_dist.y());
 		
-		if ( !m_moved ) {
+		if ( !_moved ) {
 			if ( dist_x < 3 && dist_y < 3 ) { // 距离小余3不处理
 				return;
 			}
-			if ( m_scrollbar_opacity != 1 ) {
+			if ( _scrollbar_opacity != 1 ) {
 				register_task( new ScrollBarFadeInOutTask(this, 2e5, 1) );
 			}
-			m_moved = true;
+			_moved = true;
 		}
 		
 		// Lock direction
-		if ( m_lock_direction ) {
+		if ( _lock_direction ) {
 			
-			if ( m_lock_v ) {
-				new_y = m_scroll.y();
+			if ( _lock_v ) {
+				new_y = _scroll.y();
 				delta_y = 0;
-			} else if( m_lock_h ) {
-				new_x = m_scroll.x();
+			} else if( _lock_h ) {
+				new_x = _scroll.x();
 				delta_x = 0;
 			}
 			else {
 				if ( dist_x > dist_y + 2 ) {
-					m_lock_v = true;
+					_lock_v = true;
 				} else if ( dist_y > dist_x + 2 ) {
-					m_lock_h = true;
+					_lock_h = true;
 				}
 			}
 		}
 		
 		uint64 time = sys::time_monotonic();
 		
-		if (int64(time) - m_move_start_time > 3e5) {
-			m_move_start_time = time;
-			m_move_start_scroll = m_scroll;
+		if (int64(time) - _move_start_time > 3e5) {
+			_move_start_time = time;
+			_move_start_scroll = _scroll;
 		}
 		
 		set_scroll_and_trigger_event(Vec2(new_x, new_y));
@@ -560,36 +560,36 @@ class BasicScroll::Inl: public BasicScroll {
 		Momentum momentum_x = { 0,0 };
 		Momentum momentum_y = { 0,0 };
 		
-		uint64 duration = int64(time) - m_move_start_time;
-		float new_x = m_scroll.x();
-		float new_y = m_scroll.y();
+		uint64 duration = int64(time) - _move_start_time;
+		float new_x = _scroll.x();
+		float new_y = _scroll.y();
 		
-		m_lock_h = false;
-		m_lock_v = false;
+		_lock_h = false;
+		_lock_v = false;
 		
 		//计算惯性
 		if ( duration < 3e5 ) {
 			
-			if ( m_momentum ) {
+			if ( _momentum ) {
 				if ( new_x ) {
-					momentum_x = momentum(duration, new_x - m_move_start_scroll.x(),
-																-m_scroll.x(), m_scroll.x() - m_scroll_max.x(),
-																m_bounce ? m_box->final_width() / 2.0 : 0);
+					momentum_x = momentum(duration, new_x - _move_start_scroll.x(),
+																-_scroll.x(), _scroll.x() - _scroll_max.x(),
+																_bounce ? _box->final_width() / 2.0 : 0);
 				}
 				if ( new_y ) {
-					momentum_y = momentum(duration, new_y - m_move_start_scroll.y(),
-																-m_scroll.y(), m_scroll.y() - m_scroll_max.y(),
-																m_bounce ? m_box->final_height() / 2.0 : 0);
+					momentum_y = momentum(duration, new_y - _move_start_scroll.y(),
+																-_scroll.y(), _scroll.y() - _scroll_max.y(),
+																_bounce ? _box->final_height() / 2.0 : 0);
 				}
-				new_x = m_scroll.x() + momentum_x.dist;
-				new_y = m_scroll.y() + momentum_y.dist;
+				new_x = _scroll.x() + momentum_x.dist;
+				new_y = _scroll.y() + momentum_y.dist;
 				
-				if ((m_scroll.x() > 0 && new_x > 0) ||
-						(m_scroll.x() < m_scroll_max.x() && new_x < m_scroll_max.x())) {
+				if ((_scroll.x() > 0 && new_x > 0) ||
+						(_scroll.x() < _scroll_max.x() && new_x < _scroll_max.x())) {
 					momentum_x = { 0, 0 };
 				}
-				if ((m_scroll.y() > 0 && new_y > 0) ||
-						(m_scroll.y() < m_scroll_max.y() && new_y < m_scroll_max.y())) {
+				if ((_scroll.y() > 0 && new_y > 0) ||
+						(_scroll.y() < _scroll_max.y() && new_y < _scroll_max.y())) {
 					momentum_y = { 0, 0 };
 				}
 			}
@@ -601,8 +601,8 @@ class BasicScroll::Inl: public BasicScroll {
 			float mod_y = int(roundf(new_y)) % uint(Catch.y());
 			float dist_x, dist_y;
 			
-			if ( new_x < 0 && new_x > m_scroll_max.x() && mod_x != 0 ) {
-				if ( m_scroll.x() - m_move_start_scroll.x() < 0 ) {
+			if ( new_x < 0 && new_x > _scroll_max.x() && mod_x != 0 ) {
+				if ( _scroll.x() - _move_start_scroll.x() < 0 ) {
 					dist_x = Catch.x() + mod_x;
 				} else {
 					dist_x = mod_x;
@@ -613,8 +613,8 @@ class BasicScroll::Inl: public BasicScroll {
 				momentum_x.time = FX_MAX(FX_MIN(dist_x, 3e5), momentum_x.time);
 			}
 			
-			if ( new_y < 0 && new_y > m_scroll_max.y() && mod_y != 0 ) {
-				if (m_scroll.y() - m_move_start_scroll.y() < 0) {
+			if ( new_y < 0 && new_y > _scroll_max.y() && mod_y != 0 ) {
+				if (_scroll.y() - _move_start_scroll.y() < 0) {
 					dist_y = Catch.y() + mod_y;
 				} else {
 					dist_y = mod_y;
@@ -626,7 +626,7 @@ class BasicScroll::Inl: public BasicScroll {
 			}
 		}
 		
-		m_moved = false;
+		_moved = false;
 		
 		//****************************************************************
 		
@@ -639,24 +639,24 @@ class BasicScroll::Inl: public BasicScroll {
 	}
 	
 	/**
-	 * @func m_touch_start_handle
+	 * @func _touch_start_handle
 	 */
-	void m_touch_start_handle(GUIEvent& e) {
-		if ( !m_action_id ) {
+	void _touch_start_handle(GUIEvent& e) {
+		if ( !_action_id ) {
 			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
-			m_action_id = evt->changed_touches()[0].id;
+			_action_id = evt->changed_touches()[0].id;
 			move_start(Vec2( evt->changed_touches()[0].x, evt->changed_touches()[0].y ));
 		}
 	}
 
 	/**
-	 * @func m_touch_move_handle
+	 * @func _touch_move_handle
 	 */
-	void m_touch_move_handle(GUIEvent& e) {
-		if ( m_action_id && e.return_value ) {
+	void _touch_move_handle(GUIEvent& e) {
+		if ( _action_id && e.return_value ) {
 			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
 			for ( auto& i : evt->changed_touches() ) {
-				if (i.value().id == m_action_id) {
+				if (i.value().id == _action_id) {
 					move(Vec2( i.value().x, i.value().y )); break;
 				}
 			}
@@ -664,88 +664,88 @@ class BasicScroll::Inl: public BasicScroll {
 	}
 
 	/**
-	 * @func m_touch_end_handle
+	 * @func _touch_end_handle
 	 */
-	void m_touch_end_handle(GUIEvent& e) {
-		if ( m_action_id ) {
+	void _touch_end_handle(GUIEvent& e) {
+		if ( _action_id ) {
 			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
 			for ( auto& i : evt->changed_touches() ) {
-				if (i.value().id == m_action_id) {
+				if (i.value().id == _action_id) {
 					move_end(Vec2( i.value().x, i.value().y ));
-					m_action_id = 0;
+					_action_id = 0;
 					break;
 				}
 			}
 		}
 	}
 	
-	void m_mouse_down_handle(GUIEvent& e) {
-		if ( !m_action_id ) {
+	void _mouse_down_handle(GUIEvent& e) {
+		if ( !_action_id ) {
 			GUIMouseEvent* evt = static_cast<GUIMouseEvent*>(&e);
-			m_action_id = 1;
+			_action_id = 1;
 			move_start(Vec2( evt->x(), evt->y() ));
 		}
 	}
 
-	void m_mouse_move_handle(GUIEvent& e) {
-		if ( m_action_id && e.return_value ) {
+	void _mouse_move_handle(GUIEvent& e) {
+		if ( _action_id && e.return_value ) {
 			GUIMouseEvent* evt = static_cast<GUIMouseEvent*>(&e);
 			move(Vec2( evt->x(), evt->y() ));
 		}
 	}
 
-	void m_mouse_up_handle(GUIEvent& e) {
-		if ( m_action_id ) {
+	void _mouse_up_handle(GUIEvent& e) {
+		if ( _action_id ) {
 			GUIMouseEvent* evt = static_cast<GUIMouseEvent*>(&e);
 			move_end(Vec2( evt->x(), evt->y() ));
-			m_action_id = 0;
+			_action_id = 0;
 		}
 	}
 	
 };
 
 BasicScroll::BasicScroll(Box* box)
-: m_box(box)
-, m_move_start_time(0)
-, m_catch_position(1,1)
-, m_action_id(0)
-, m_scrollbar_color(140, 140, 140, 200)
-, m_scrollbar_width(0)
-, m_scrollbar_margin(0)
-, m_scrollbar_opacity(0)
-, m_resistance(1)
-, m_default_scroll_duration(0)
-, m_default_scroll_curve(const_cast<Curve*>(&ease_out))
-, m_moved(false)
-, m_h_scroll(false)
-, m_v_scroll(false)
-, m_h_scrollbar(false)
-, m_v_scrollbar(false)
-, m_bounce_lock(true)
-, m_lock_h(false)
-, m_lock_v(false)
-, m_lock_direction(false)
-, m_bounce(true)
-, m_momentum(true)
-, m_scrollbar(true)
+: _box(box)
+, _move_start_time(0)
+, _catch_position(1,1)
+, _action_id(0)
+, _scrollbar_color(140, 140, 140, 200)
+, _scrollbar_width(0)
+, _scrollbar_margin(0)
+, _scrollbar_opacity(0)
+, _resistance(1)
+, _default_scroll_duration(0)
+, _default_scroll_curve(const_cast<Curve*>(&ease_out))
+, _moved(false)
+, _h_scroll(false)
+, _v_scroll(false)
+, _h_scrollbar(false)
+, _v_scrollbar(false)
+, _bounce_lock(true)
+, _lock_h(false)
+, _lock_v(false)
+, _lock_direction(false)
+, _bounce(true)
+, _momentum(true)
+, _scrollbar(true)
 {
 	// bind touch event
-	box->add_event_listener(GUI_EVENT_TOUCH_START, &Inl::m_touch_start_handle, _inl(this));
-	box->add_event_listener(GUI_EVENT_TOUCH_MOVE, &Inl::m_touch_move_handle, _inl(this));
-	box->add_event_listener(GUI_EVENT_TOUCH_END, &Inl::m_touch_end_handle, _inl(this));
-	box->add_event_listener(GUI_EVENT_TOUCH_CANCEL, &Inl::m_touch_end_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_START, &Inl::_touch_start_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_MOVE, &Inl::_touch_move_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_END, &Inl::_touch_end_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_TOUCH_CANCEL, &Inl::_touch_end_handle, _inl(this));
 	// bind mouse event
-	box->add_event_listener(GUI_EVENT_MOUSE_DOWN, &Inl::m_mouse_down_handle, _inl(this));
-	box->add_event_listener(GUI_EVENT_MOUSE_MOVE, &Inl::m_mouse_move_handle, _inl(this));
-	box->add_event_listener(GUI_EVENT_MOUSE_UP, &Inl::m_mouse_up_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_MOUSE_DOWN, &Inl::_mouse_down_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_MOUSE_MOVE, &Inl::_mouse_move_handle, _inl(this));
+	box->add_event_listener(GUI_EVENT_MOUSE_UP, &Inl::_mouse_up_handle, _inl(this));
 	
 	FX_DEBUG("Scroll: %d, Panel: %d", sizeof(Scroll), sizeof(Panel));
 }
 
 BasicScroll::~BasicScroll() {
 	_inl(this)->termination_all_task();
-	if ( m_default_scroll_curve != &ease_out ) {
-		delete m_default_scroll_curve;
+	if ( _default_scroll_curve != &ease_out ) {
+		delete _default_scroll_curve;
 	}
 }
 
@@ -753,31 +753,31 @@ BasicScroll::~BasicScroll() {
  * @func scroll_to
  */
 void BasicScroll::scroll_to(Vec2 value, uint64 duration) {
-	scroll_to(value, duration, *m_default_scroll_curve);
+	scroll_to(value, duration, *_default_scroll_curve);
 }
 
 /**
  * @func scroll_to
  */
 void BasicScroll::scroll_to(Vec2 value, uint64 duration, cCurve& curve) {
-	m_raw_scroll = Vec2(-value.x(), -value.y());
+	_raw_scroll = Vec2(-value.x(), -value.y());
 	Vec2 scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-	if ( scroll.x() != m_scroll.x() || scroll.y() != m_scroll.y() ) {
+	if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
 		_inl(this)->scroll_to_valid_scroll(scroll, duration, curve);
 	}
-	m_box->mark(View::M_SCROLL);
+	_box->mark(View::M_SCROLL);
 }
 
 /**
  * @func scroll set
  */
 void BasicScroll::set_scroll(Vec2 value) {
-	if ( m_default_scroll_duration ) {
-		scroll_to(value, m_default_scroll_duration, *m_default_scroll_curve);
+	if ( _default_scroll_duration ) {
+		scroll_to(value, _default_scroll_duration, *_default_scroll_curve);
 	} else {
-		m_raw_scroll = Vec2(-value.x(), -value.y());
-		m_scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
-		m_box->mark(View::M_SCROLL);
+		_raw_scroll = Vec2(-value.x(), -value.y());
+		_scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
+		_box->mark(View::M_SCROLL);
 	}
 }
 
@@ -785,35 +785,35 @@ void BasicScroll::set_scroll(Vec2 value) {
  * @func set_scroll_x set
  */
 void BasicScroll::set_scroll_x(float value) {
-	m_raw_scroll.x(-value);
-	m_scroll = _inl(this)->catch_valid_scroll( Vec2(-value, m_raw_scroll.y()) );
-	m_box->mark(View::M_SCROLL);
+	_raw_scroll.x(-value);
+	_scroll = _inl(this)->catch_valid_scroll( Vec2(-value, _raw_scroll.y()) );
+	_box->mark(View::M_SCROLL);
 }
 
 /**
  * @func scroll_x set
  */
 void BasicScroll::set_scroll_y(float value) {
-	m_raw_scroll.y(-value);
-	m_scroll = _inl(this)->catch_valid_scroll( Vec2(m_raw_scroll.x(), -value) );
-	m_box->mark(View::M_SCROLL);
+	_raw_scroll.y(-value);
+	_scroll = _inl(this)->catch_valid_scroll( Vec2(_raw_scroll.x(), -value) );
+	_box->mark(View::M_SCROLL);
 }
 
 /**
  * @func resistance set
  */
 void BasicScroll::set_resistance(float value) {
-	m_resistance = FX_MAX(0.5, value);
+	_resistance = FX_MAX(0.5, value);
 }
 
 /**
  * @func get_scrollbar_width
  */
 float BasicScroll::scrollbar_width() const {
-	if ( m_scrollbar_width < 1 ) {
+	if ( _scrollbar_width < 1 ) {
 		return 4 / display_port()->scale();
 	} else {
-		return m_scrollbar_width;
+		return _scrollbar_width;
 	}
 }
 
@@ -821,10 +821,10 @@ float BasicScroll::scrollbar_width() const {
  * @func scrollbar_margin
  */
 float BasicScroll::scrollbar_margin() const {
-	if ( m_scrollbar_width < 1 ) {
+	if ( _scrollbar_width < 1 ) {
 		return 4 / display_port()->scale();
 	} else {
-		return m_scrollbar_width;
+		return _scrollbar_width;
 	}
 }
 
@@ -839,39 +839,39 @@ void BasicScroll::terminate() {
  * @func default_scroll_curve
  */
 void BasicScroll::set_default_scroll_curve(cCurve& value) {
-	if ( m_default_scroll_curve == &ease_out ) {
-		m_default_scroll_curve = new Curve();
+	if ( _default_scroll_curve == &ease_out ) {
+		_default_scroll_curve = new Curve();
 	}
-	*m_default_scroll_curve = value;
+	*_default_scroll_curve = value;
 }
 
 /**
  * @func set_scroll_size
  */
 void BasicScroll::set_scroll_size(Vec2 size) {
-	if (m_scroll_size != size) {
+	if (_scroll_size != size) {
 		_inl(this)->immediate_end_all_task(); // change size immediate task
-		m_scroll_size = size;
+		_scroll_size = size;
 	}
-	m_scroll_max = Vec2(FX_MIN(m_box->final_width() - size.width(), 0),
-											FX_MIN(m_box->final_height() - size.height(), 0));
+	_scroll_max = Vec2(FX_MIN(_box->final_width() - size.width(), 0),
+											FX_MIN(_box->final_height() - size.height(), 0));
 	
-	m_h_scroll = m_scroll_max.x() < 0;
-	m_v_scroll = ((!m_bounce_lock && !m_h_scroll) || m_scroll_max.y() < 0);
+	_h_scroll = _scroll_max.x() < 0;
+	_v_scroll = ((!_bounce_lock && !_h_scroll) || _scroll_max.y() < 0);
 	
-	m_h_scrollbar = (m_h_scroll && m_scrollbar);
-	m_v_scrollbar = (m_v_scroll && m_scrollbar && m_scroll_max.y() < 0);
+	_h_scrollbar = (_h_scroll && _scrollbar);
+	_v_scrollbar = (_v_scroll && _scrollbar && _scroll_max.y() < 0);
 	
 	//
-	m_box->mark(View::M_SCROLL);
+	_box->mark(View::M_SCROLL);
 }
 
 void BasicScroll::solve() {
-	if ( m_box->mark_value & View::M_SCROLL ) {
-		if ( !m_moved && !_inl(this)->is_task() ) {
+	if ( _box->mark_value & View::M_SCROLL ) {
+		if ( !_moved && !_inl(this)->is_task() ) {
 			// fix scroll value
-			m_scroll = _inl(this)->catch_valid_scroll(m_raw_scroll);
-			m_raw_scroll = m_scroll;
+			_scroll = _inl(this)->catch_valid_scroll(_raw_scroll);
+			_raw_scroll = _scroll;
 		}
 	}
 }
@@ -892,7 +892,7 @@ public:
 		View* view = evt->focus_move();
 		Box* box = view ? view->as_box() : nullptr;
 		
-		if ( box && (m_h_scroll || m_v_scroll) ) {
+		if ( box && (_h_scroll || _v_scroll) ) {
 			Vec2 offset = box->layout_offset_from(this);
 			
 			CGRect rect = {
@@ -905,67 +905,67 @@ public:
 			
 			Vec2 v;
 			
-			if ( m_h_scroll ) {
-				switch ( m_focus_align_x ) {
+			if ( _h_scroll ) {
+				switch ( _focus_align_x ) {
 					case Align::LEFT:
-						v.x( rect.origin.x() - m_focus_margin_left );
+						v.x( rect.origin.x() - _focus_margin_left );
 						break;
 					case Align::RIGHT:
-						v.x(rect.origin.x() - rect.size.x() - final_width() + m_focus_margin_right);
+						v.x(rect.origin.x() - rect.size.x() - final_width() + _focus_margin_right);
 						break;
 					case Align::CENTER:
 						v.x( rect.origin.x() - (rect.size.x() + final_width()) / 2.0 );
 						break;
 					default: // none float
-						float height = m_final_width -
-						m_focus_margin_left -
-						m_focus_margin_right;
+						float height = _final_width -
+						_focus_margin_left -
+						_focus_margin_right;
 						if ( rect.size.x() < height ) {
-							float x = rect.origin.x() - m_focus_margin_left;
+							float x = rect.origin.x() - _focus_margin_left;
 							if ( x < scroll_x() ) { //
 								v.x( x );
 							} else {
-								x = rect.origin.x() + rect.size.x() - m_final_width + m_focus_margin_right;
+								x = rect.origin.x() + rect.size.x() - _final_width + _focus_margin_right;
 								if ( x > scroll_x() ) {
 									v.x(x);
 								}
 							}
 						} else {
-							v.x( rect.origin.x() - (rect.size.x() + m_final_width) / 2.0 ); // CENTER
+							v.x( rect.origin.x() - (rect.size.x() + _final_width) / 2.0 ); // CENTER
 						}
 						break;
 				}
 			}
 			
-			if ( m_v_scroll ) {
-				switch ( m_focus_align_y ) {
+			if ( _v_scroll ) {
+				switch ( _focus_align_y ) {
 					case Align::TOP:
-						v.y( rect.origin.y() - m_focus_margin_top );
+						v.y( rect.origin.y() - _focus_margin_top );
 						break;
 					case Align::BOTTOM:
 						v.y(rect.origin.y() - rect.size.y() -
-								m_final_height + m_focus_margin_bottom);
+								_final_height + _focus_margin_bottom);
 						break;
 					case Align::CENTER:
-						v.y( rect.origin.y() - (rect.size.y() + m_final_height) / 2.0 );
+						v.y( rect.origin.y() - (rect.size.y() + _final_height) / 2.0 );
 						break;
 					default: // none float
-						float height = m_final_height -
-						m_focus_margin_top -
-						m_focus_margin_bottom;
+						float height = _final_height -
+						_focus_margin_top -
+						_focus_margin_bottom;
 						if ( rect.size.y() < height ) {
-							float y = rect.origin.y() - m_focus_margin_top;
+							float y = rect.origin.y() - _focus_margin_top;
 							if ( y < scroll_x() ) { //
 								v.y( y );
 							} else {
 								y = rect.origin.y() + rect.size.y() -
-								m_final_height + m_focus_margin_bottom;
+								_final_height + _focus_margin_bottom;
 								if ( y > scroll_y() ) {
 									v.y(y);
 								}
 							}
 						} else {
-							v.y( rect.origin.y() - (rect.size.y() + m_final_height) / 2.0 ); // CENTER
+							v.y( rect.origin.y() - (rect.size.y() + _final_height) / 2.0 ); // CENTER
 						}
 						break;
 				}
@@ -979,20 +979,20 @@ public:
 
 Scroll::Scroll()
 : BasicScroll(this)
-, m_focus_margin_left(0)
-, m_focus_margin_right(0)
-, m_focus_margin_top(0)
-, m_focus_margin_bottom(0)
-, m_focus_align_x(Align::NONE)
-, m_focus_align_y(Align::NONE)
-, m_enable_focus_align(true)
-, m_enable_fixed_scroll_size(false)
+, _focus_margin_left(0)
+, _focus_margin_right(0)
+, _focus_margin_top(0)
+, _focus_margin_bottom(0)
+, _focus_align_x(Align::NONE)
+, _focus_align_y(Align::NONE)
+, _enable_focus_align(true)
+, _enable_fixed_scroll_size(false)
 {
 	
 }
 
 Vec2 Scroll::layout_in_offset() {
-	return Vec2( m_origin.x() + scroll_x(), m_origin.y() + scroll_y() );
+	return Vec2( _origin.x() + scroll_x(), _origin.y() + scroll_y() );
 }
 
 /**
@@ -1001,7 +1001,7 @@ Vec2 Scroll::layout_in_offset() {
 void Scroll::set_focus_align_x(Align value) {
 	if (value == Align::LEFT || value == Align::RIGHT ||
 			value == Align::CENTER || value == Align::NONE ) {
-		m_focus_align_x = value;
+		_focus_align_x = value;
 	}
 }
 
@@ -1011,7 +1011,7 @@ void Scroll::set_focus_align_x(Align value) {
 void Scroll::set_focus_align_y(Align value) {
 	if (value == Align::TOP || value == Align::BOTTOM ||
 			value == Align::CENTER || value == Align::NONE ) {
-		m_focus_align_y = value;
+		_focus_align_y = value;
 	}
 }
 
@@ -1019,13 +1019,13 @@ void Scroll::set_focus_align_y(Align value) {
  * @func set_enable_focus_align set
  */
 void Scroll::set_enable_focus_align(bool value) {
-	if ( value != m_enable_focus_align ) {
+	if ( value != _enable_focus_align ) {
 		if ( value ) {
 			add_event_listener(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
 		} else {
 			remove_event_listener(GUI_EVENT_FOCUS_MOVE, &Inl::handle_panel_focus_mode, Inl_Scroll(this));
 		}
-		m_enable_focus_align = value;
+		_enable_focus_align = value;
 	}
 }
 
@@ -1034,12 +1034,12 @@ void Scroll::set_enable_focus_align(bool value) {
  */
 void Scroll::set_enable_fixed_scroll_size(Vec2 size) {
 	if ( size.width() > 0 && size.height() > 0 ) {
-		m_enable_fixed_scroll_size = true;
+		_enable_fixed_scroll_size = true;
 		set_scroll_size(size);
 	} else {
-		if ( m_enable_fixed_scroll_size ) {
-			m_enable_fixed_scroll_size = false;
-			if ( m_explicit_width || m_explicit_height ) { // 明确的宽度与高度才可以滚动
+		if ( _enable_fixed_scroll_size ) {
+			_enable_fixed_scroll_size = false;
+			if ( _explicit_width || _explicit_height ) { // 明确的宽度与高度才可以滚动
 				Vec2 squeeze;
 				set_div_content_offset(squeeze, Vec2());
 				set_scroll_size(squeeze);
@@ -1051,7 +1051,7 @@ void Scroll::set_enable_fixed_scroll_size(Vec2 size) {
 }
 
 void Scroll::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			BasicScroll::solve();
@@ -1065,7 +1065,7 @@ void Scroll::draw(Draw* draw) {
 }
 
 void Scroll::set_layout_content_offset() {
-	if (m_final_visible) {
+	if (_final_visible) {
 		
 		Vec2 squeeze;
 		
@@ -1081,7 +1081,7 @@ void Scroll::set_layout_content_offset() {
 		}
 		
 		// 明确的宽度与高度才可以滚动
-		if ( !m_enable_fixed_scroll_size && (m_explicit_width || m_explicit_height) ) {
+		if ( !_enable_fixed_scroll_size && (_explicit_width || _explicit_height) ) {
 			set_scroll_size(squeeze);
 		}
 	}

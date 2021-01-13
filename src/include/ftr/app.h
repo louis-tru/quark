@@ -74,7 +74,7 @@ namespace ftr {
 		void lock();
 		void unlock();
 		private:
-		void* m_d;
+		void* _d;
 	};
 
 	/*
@@ -133,37 +133,37 @@ namespace ftr {
 		/**
 		* @func is_loaded
 		*/
-		inline bool is_loaded() const { return m_is_load; }
+		inline bool is_loaded() const { return _is_load; }
 		
 		/**
 		* @func draw_ctx 绘图上下文
 		*/
-		inline Draw* draw_ctx() { return m_draw_ctx; }
+		inline Draw* draw_ctx() { return _draw_ctx; }
 		
 		/**
 		* @func display_port GUI程序显示端口
 		*/
-		inline DisplayPort* display_port() { return m_display_port; }
+		inline DisplayPort* display_port() { return _display_port; }
 		
 		/**
 		* @func root GUI程序的根视图
 		*/
-		inline Root* root() { return m_root; }
+		inline Root* root() { return _root; }
 		
 		/**
 		* @func focus_view
 		*/
-		inline View* focus_view() { return m_focus_view; }
+		inline View* focus_view() { return _focus_view; }
 		
 		/**
 		* @func render_loop gui render loop
 		*/
-		inline RunLoop* render_loop() const { return m_render_loop; }
+		inline RunLoop* render_loop() const { return _render_loop; }
 		
 		/**
 		* @func work_loop work loop
 		*/
-		inline RunLoop* main_loop() const { return m_main_loop; }
+		inline RunLoop* main_loop() const { return _main_loop; }
 
 		/**
 		* @func has_current_render_thread()
@@ -173,24 +173,24 @@ namespace ftr {
 		/**
 		* @func action_center
 		*/
-		inline ActionCenter* action_center() { return m_action_center; }
+		inline ActionCenter* action_center() { return _action_center; }
 		
 		/**
 		* @func app Get current gui application entity
 		*/
-		static inline GUIApplication* shared() { return m_shared; }
+		static inline GUIApplication* shared() { return _shared; }
 
 		// get default text attrs
-		inline TextColor default_text_background_color() { return m_default_text_background_color; }
-		inline TextColor default_text_color() { return m_default_text_color; }
-		inline TextSize default_text_size() { return m_default_text_size; }
-		inline TextStyle default_text_style() { return m_default_text_style; }
-		inline TextFamily default_text_family() { return m_default_text_family; }
-		inline TextShadow default_text_shadow() { return m_default_text_shadow; }
-		inline TextLineHeight default_text_line_height() { return m_default_text_line_height; }
-		inline TextDecoration default_text_decoration() { return m_default_text_decoration; }
-		inline TextOverflow default_text_overflow() { return m_default_text_overflow; }
-		inline TextWhiteSpace default_text_white_space() { return m_default_text_white_space; }
+		inline TextColor default_text_background_color() { return _default_text_background_color; }
+		inline TextColor default_text_color() { return _default_text_color; }
+		inline TextSize default_text_size() { return _default_text_size; }
+		inline TextStyle default_text_style() { return _default_text_style; }
+		inline TextFamily default_text_family() { return _default_text_family; }
+		inline TextShadow default_text_shadow() { return _default_text_shadow; }
+		inline TextLineHeight default_text_line_height() { return _default_text_line_height; }
+		inline TextDecoration default_text_decoration() { return _default_text_decoration; }
+		inline TextOverflow default_text_overflow() { return _default_text_overflow; }
+		inline TextWhiteSpace default_text_white_space() { return _default_text_white_space; }
 		// set default text attrs
 		void set_default_text_background_color(TextColor value);
 		void set_default_text_color(TextColor value);
@@ -241,27 +241,27 @@ namespace ftr {
 
 		private:
 		
-		static GUIApplication*  m_shared;   // 当前应用程序
-		bool  m_is_run, m_is_load;
-		RunLoop  *m_render_loop, *m_main_loop;
-		KeepLoop *m_render_keep, *m_main_keep;
-		Draw*                m_draw_ctx;         // 绘图上下文
-		DisplayPort*         m_display_port;     // 显示端口
-		Root*                m_root;             // 根视图
-		View*                m_focus_view;       // 焦点视图
-		TextColor            m_default_text_background_color; // default text attrs
-		TextColor            m_default_text_color;
-		TextSize             m_default_text_size;
-		TextStyle            m_default_text_style;
-		TextFamily           m_default_text_family;
-		TextShadow           m_default_text_shadow;
-		TextLineHeight       m_default_text_line_height;
-		TextDecoration       m_default_text_decoration;
-		TextOverflow         m_default_text_overflow;
-		TextWhiteSpace       m_default_text_white_space; // text
-		GUIEventDispatch*    m_dispatch;
-		ActionCenter*        m_action_center;
-		uint64 m_max_texture_memory_limit;
+		static GUIApplication*  _shared;   // 当前应用程序
+		bool  _is_run, _is_load;
+		RunLoop  *_render_loop, *_main_loop;
+		KeepLoop *_render_keep, *_main_keep;
+		Draw*                _draw_ctx;         // 绘图上下文
+		DisplayPort*         _display_port;     // 显示端口
+		Root*                _root;             // 根视图
+		View*                _focus_view;       // 焦点视图
+		TextColor            _default_text_background_color; // default text attrs
+		TextColor            _default_text_color;
+		TextSize             _default_text_size;
+		TextStyle            _default_text_style;
+		TextFamily           _default_text_family;
+		TextShadow           _default_text_shadow;
+		TextLineHeight       _default_text_line_height;
+		TextDecoration       _default_text_decoration;
+		TextOverflow         _default_text_overflow;
+		TextWhiteSpace       _default_text_white_space; // text
+		GUIEventDispatch*    _dispatch;
+		ActionCenter*        _action_center;
+		uint64 _max_texture_memory_limit;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
@@ -271,13 +271,13 @@ namespace ftr {
 	};
 
 	inline GUIApplication* app() {
-		return GUIApplication::m_shared;
+		return GUIApplication::_shared;
 	}
 	inline Root* root() {
-		return GUIApplication::m_shared ? GUIApplication::m_shared->m_root : nullptr;
+		return GUIApplication::_shared ? GUIApplication::_shared->_root : nullptr;
 	}
 	inline DisplayPort* display_port() {
-		return GUIApplication::m_shared ? GUIApplication::m_shared->m_display_port : nullptr;
+		return GUIApplication::_shared ? GUIApplication::_shared->_display_port : nullptr;
 	}
 	inline RunLoop* main_loop() {
 		return RunLoop::main_loop();

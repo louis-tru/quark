@@ -61,14 +61,14 @@ public:
 		uint child_mark = M_NONE;
 		
 		if ( this->mark_value & Layout::M_SIZE_HORIZONTAL ) {
-			float limit_min_width = this->m_limit_min_width;
-			float limit_max_width = this->m_limit.width();
+			float limit_min_width = this->_limit_min_width;
+			float limit_max_width = this->_limit.width();
 			
 			solve_explicit_horizontal_size();
 			// 限制宽度变化可能对子视图造成影响
-			if (limit_min_width != this->m_limit_min_width ||
-					limit_max_width != this->m_limit.width() ) {
-				if ( this->m_content_align == ContentAlign::RIGHT ) { 
+			if (limit_min_width != this->_limit_min_width ||
+					limit_max_width != this->_limit.width() ) {
+				if ( this->_content_align == ContentAlign::RIGHT ) { 
 					// 右对齐宽度变化一定会影响到子盒子的最终位置偏移
 					child_mark = M_MATRIX;
 				}
@@ -78,14 +78,14 @@ public:
 		}
 		
 		if ( this->mark_value & Layout::M_SIZE_VERTICAL ) {
-			float limit_min_height = this->m_limit_min_height;
-			float limit_max_height = this->m_limit.height();
+			float limit_min_height = this->_limit_min_height;
+			float limit_max_height = this->_limit.height();
 			
 			solve_explicit_vertical_size();
 			// 同上
-			if (limit_min_height != this->m_limit_min_height ||
-					limit_max_height != this->m_limit.height() ) {
-				if ( this->m_content_align == ContentAlign::BOTTOM ) {
+			if (limit_min_height != this->_limit_min_height ||
+					limit_max_height != this->_limit.height() ) {
+				if ( this->_content_align == ContentAlign::BOTTOM ) {
 					// 底部对齐高度变化一定会影响到子盒子的最终位置偏移
 					child_mark = M_MATRIX;
 				}
@@ -107,40 +107,40 @@ public:
 		Box* parent = View::parent()->as_box();
 		
 		// 布局视图加入到普通视图内或父视图没有明确宽度时,属性类型AUTO/PARENT/PERCENT/MINUS会失效.
-		if ( parent && parent->m_explicit_width ) {
+		if ( parent && parent->_explicit_width ) {
 			
-			float parent_width = parent->m_final_width;
+			float parent_width = parent->_final_width;
 			
-			if (this->m_width.type == this->m_max_width.type &&
-					this->m_width.value == this->m_max_width.value ) {
+			if (this->_width.type == this->_max_width.type &&
+					this->_width.value == this->_max_width.value ) {
 				
-				switch ( this->m_width.type ) {
+				switch ( this->_width.type ) {
 					case ValueType::AUTO:
 						_box_inl__solve_horizontal_size_with_auto_width(this, parent_width);
-						this->m_limit_min_width = 0;
-						this->m_limit.width(Float::max);
+						this->_limit_min_width = 0;
+						this->_limit.width(Float::max);
 						break;
 					case ValueType::FULL:
 						_box_inl__solve_horizontal_size_with_full_width(this, parent_width);
-						this->m_limit_min_width = this->m_final_width;
-						this->m_limit.width(this->m_final_width);
+						this->_limit_min_width = this->_final_width;
+						this->_limit.width(this->_final_width);
 						break;
 					case ValueType::PIXEL:
-						this->m_final_width = this->m_width.value;
-						this->m_limit_min_width = this->m_final_width;
-						this->m_limit.width(this->m_final_width);
+						this->_final_width = this->_width.value;
+						this->_limit_min_width = this->_final_width;
+						this->_limit.width(this->_final_width);
 						_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 						break;
 					case ValueType::PERCENT:
-						this->m_final_width = this->m_width.value * parent_width;
-						this->m_limit_min_width = this->m_final_width;
-						this->m_limit.width(this->m_final_width);
+						this->_final_width = this->_width.value * parent_width;
+						this->_limit_min_width = this->_final_width;
+						this->_limit.width(this->_final_width);
 						_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 						break;
 					case ValueType::MINUS:
-						this->m_final_width = FX_MAX(parent_width - this->m_width.value, 0);
-						this->m_limit_min_width = this->m_final_width;
-						this->m_limit.width(this->m_final_width);
+						this->_final_width = FX_MAX(parent_width - this->_width.value, 0);
+						this->_limit_min_width = this->_final_width;
+						this->_limit.width(this->_final_width);
 						_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 						break;
 				}
@@ -149,96 +149,96 @@ public:
 				
 				_box_inl__solve_horizontal_size_with_auto_width(this, parent_width);
 				
-				switch ( this->m_width.type ) {
+				switch ( this->_width.type ) {
 					case ValueType::AUTO:
-						this->m_limit_min_width = 0;
+						this->_limit_min_width = 0;
 						break;
 					case ValueType::FULL:
-						this->m_limit_min_width = (parent_width -
-																			 this->m_final_margin_left - this->m_final_margin_right -
-																			 this->m_border_left_width - this->m_border_right_width);
+						this->_limit_min_width = (parent_width -
+																			 this->_final_margin_left - this->_final_margin_right -
+																			 this->_border_left_width - this->_border_right_width);
 						break;
 					case ValueType::PIXEL:
-						this->m_limit_min_width = this->m_width.value;
+						this->_limit_min_width = this->_width.value;
 						break;
 					case ValueType::PERCENT:
-						this->m_limit_min_width = this->m_width.value * parent_width;
+						this->_limit_min_width = this->_width.value * parent_width;
 						break;
 					case ValueType::MINUS:
-						this->m_limit_min_width = FX_MAX(parent_width - this->m_width.value, 0);
+						this->_limit_min_width = FX_MAX(parent_width - this->_width.value, 0);
 						break;
 				}
 				
-				switch ( this->m_max_width.type ) {
+				switch ( this->_max_width.type ) {
 					case ValueType::AUTO:
 						break;
 					case ValueType::FULL:
-						this->m_limit.width(parent_width -
-																this->m_final_margin_left - this->m_final_margin_right -
-																this->m_border_left_width - this->m_border_right_width);
+						this->_limit.width(parent_width -
+																this->_final_margin_left - this->_final_margin_right -
+																this->_border_left_width - this->_border_right_width);
 						break;
 					case ValueType::PIXEL:
-						this->m_limit.width(this->m_max_width.value);
+						this->_limit.width(this->_max_width.value);
 						break;
 					case ValueType::PERCENT:
-						this->m_limit.width(this->m_max_width.value * parent_width);
+						this->_limit.width(this->_max_width.value * parent_width);
 						break;
 					case ValueType::MINUS:
-						this->m_limit.width(FX_MAX(parent_width - this->m_max_width.value, 0));
+						this->_limit.width(FX_MAX(parent_width - this->_max_width.value, 0));
 						break;
 				}
 				
-				if ( this->m_limit_min_width > this->m_limit.width() ) {
-					this->m_limit_min_width = this->m_limit.width();
+				if ( this->_limit_min_width > this->_limit.width() ) {
+					this->_limit_min_width = this->_limit.width();
 				}
 			}
 			
 		} else {
 			
-			if (this->m_margin_left.type == ValueType::PIXEL) {
-				this->m_final_margin_left = this->m_margin_left.value;
+			if (this->_margin_left.type == ValueType::PIXEL) {
+				this->_final_margin_left = this->_margin_left.value;
 			} else {
-				this->m_final_margin_left = 0;
+				this->_final_margin_left = 0;
 			}
 			
-			if (this->m_margin_right.type == ValueType::PIXEL) {
-				this->m_final_margin_right = this->m_margin_right.value;
+			if (this->_margin_right.type == ValueType::PIXEL) {
+				this->_final_margin_right = this->_margin_right.value;
 			} else {
-				this->m_final_margin_right = 0;
+				this->_final_margin_right = 0;
 			}
 			
-			this->m_raw_client_width =  this->m_border_left_width + this->m_border_right_width +
-																	this->m_final_margin_left + this->m_final_margin_right;
+			this->_raw_client_width =  this->_border_left_width + this->_border_right_width +
+																	this->_final_margin_left + this->_final_margin_right;
 			
 			// 父视图没有明确的宽度或者父视图为普通视图,只有像素值才生效否则为不明确的值
-			if (this->m_width.type == ValueType::PIXEL &&
-					this->m_max_width.type == ValueType::PIXEL &&
-					this->m_width.value == this->m_max_width.value) {
-				this->m_final_width = this->m_width.value;
-				this->m_limit_min_width = this->m_final_width;
-				this->m_limit.width(this->m_final_width);
-				this->m_explicit_width = true;  // 明确的宽度,不受内部挤压
+			if (this->_width.type == ValueType::PIXEL &&
+					this->_max_width.type == ValueType::PIXEL &&
+					this->_width.value == this->_max_width.value) {
+				this->_final_width = this->_width.value;
+				this->_limit_min_width = this->_final_width;
+				this->_limit.width(this->_final_width);
+				this->_explicit_width = true;  // 明确的宽度,不受内部挤压
 			} else {
 				// 自动与百分比都无效,只能从内部挤压宽度.
-				this->m_limit_min_width = 0;
-				this->m_limit.width(Float::max);
-				if ( this->m_width.type == ValueType::PIXEL ) {
-					this->m_limit_min_width = this->m_width.value;
+				this->_limit_min_width = 0;
+				this->_limit.width(Float::max);
+				if ( this->_width.type == ValueType::PIXEL ) {
+					this->_limit_min_width = this->_width.value;
 				}
-				if ( this->m_max_width.type == ValueType::PIXEL ) {
-					this->m_limit.width(this->m_max_width.value);
+				if ( this->_max_width.type == ValueType::PIXEL ) {
+					this->_limit.width(this->_max_width.value);
 				} else {
-					if ( parent && this->m_max_width.type == ValueType::FULL ) { // 使用父视图的限制
-						this->m_limit.width(parent->m_limit.width() - this->m_raw_client_width);
+					if ( parent && this->_max_width.type == ValueType::FULL ) { // 使用父视图的限制
+						this->_limit.width(parent->_limit.width() - this->_raw_client_width);
 					}
 				}
-				if ( this->m_limit_min_width > this->m_limit.width() ) {
-					this->m_limit_min_width = this->m_limit.width();
+				if ( this->_limit_min_width > this->_limit.width() ) {
+					this->_limit_min_width = this->_limit.width();
 				}
-				this->m_explicit_width = false; // 不是明确的宽度,受内部挤压
+				this->_explicit_width = false; // 不是明确的宽度,受内部挤压
 			}
 
-			this->m_raw_client_width += this->m_final_width;
+			this->_raw_client_width += this->_final_width;
 		}
 	}
 	
@@ -250,40 +250,40 @@ public:
 		Box* parent = View::parent()->as_box();
 		
 		// 布局视图加入到普通视图内或父视图没有明确高度时,属性类型AUTO/PARENT/PERCENT/MINUS会失效.
-		if (parent && parent->m_explicit_height) {
+		if (parent && parent->_explicit_height) {
 			
-			float parent_height = parent->m_final_height;
+			float parent_height = parent->_final_height;
 			
-			if ( this->m_height.type == this->m_max_height.type &&
-					this->m_height.value == this->m_max_height.value ) {
+			if ( this->_height.type == this->_max_height.type &&
+					this->_height.value == this->_max_height.value ) {
 				
-				switch ( this->m_height.type ) {
+				switch ( this->_height.type ) {
 					case ValueType::AUTO:
 						_box_inl__solve_vertical_size_with_auto_height(this, parent_height);
-						this->m_limit_min_height = 0;
-						this->m_limit.height(Float::max);
+						this->_limit_min_height = 0;
+						this->_limit.height(Float::max);
 						break;
 					case ValueType::FULL:
 						_box_inl__solve_vertical_size_with_full_height(this, parent_height);
-						this->m_limit_min_height = this->m_final_height;
-						this->m_limit.height(this->m_final_height);
+						this->_limit_min_height = this->_final_height;
+						this->_limit.height(this->_final_height);
 						break;
 					case ValueType::PIXEL:
-						this->m_final_height = this->m_height.value;
-						this->m_limit_min_height = this->m_final_height;
-						this->m_limit.height(this->m_final_height);
+						this->_final_height = this->_height.value;
+						this->_limit_min_height = this->_final_height;
+						this->_limit.height(this->_final_height);
 						_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 						break;
 					case ValueType::PERCENT:
-						this->m_final_height = this->m_height.value * parent_height;
-						this->m_limit_min_height = this->m_final_height;
-						this->m_limit.height(this->m_final_height);
+						this->_final_height = this->_height.value * parent_height;
+						this->_limit_min_height = this->_final_height;
+						this->_limit.height(this->_final_height);
 						_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 						break;
 					case ValueType::MINUS:
-						this->m_final_height = FX_MAX(parent_height - this->m_height.value, 0);
-						this->m_limit_min_height = this->m_final_height;
-						this->m_limit.height(this->m_final_height);
+						this->_final_height = FX_MAX(parent_height - this->_height.value, 0);
+						this->_limit_min_height = this->_final_height;
+						this->_limit.height(this->_final_height);
 						_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 						break;
 				}
@@ -292,96 +292,96 @@ public:
 				
 				_box_inl__solve_vertical_size_with_auto_height(this, parent_height);
 				
-				switch ( this->m_height.type ) {
+				switch ( this->_height.type ) {
 					case ValueType::AUTO:
-						this->m_limit_min_height = 0;
+						this->_limit_min_height = 0;
 						break;
 					case ValueType::FULL:
-						this->m_limit_min_height = (parent_height -
-																				this->m_final_margin_top - this->m_final_margin_bottom -
-																				this->m_border_top_width - this->m_border_bottom_width);
+						this->_limit_min_height = (parent_height -
+																				this->_final_margin_top - this->_final_margin_bottom -
+																				this->_border_top_width - this->_border_bottom_width);
 						break;
 					case ValueType::PIXEL:
-						this->m_limit_min_height = this->m_height.value;
+						this->_limit_min_height = this->_height.value;
 						break;
 					case ValueType::PERCENT:
-						this->m_limit_min_height = this->m_height.value * parent_height;
+						this->_limit_min_height = this->_height.value * parent_height;
 						break;
 					case ValueType::MINUS:
-						this->m_limit_min_height = FX_MAX(parent_height - this->m_height.value, 0);
+						this->_limit_min_height = FX_MAX(parent_height - this->_height.value, 0);
 						break;
 				}
 				
-				switch ( this->m_max_height.type ) {
+				switch ( this->_max_height.type ) {
 					case ValueType::AUTO:
 						break;
 					case ValueType::FULL:
-						this->m_limit.height(parent_height -
-																 this->m_final_margin_top - this->m_final_margin_bottom -
-																 this->m_border_top_width - this->m_border_bottom_width);
+						this->_limit.height(parent_height -
+																 this->_final_margin_top - this->_final_margin_bottom -
+																 this->_border_top_width - this->_border_bottom_width);
 						break;
 					case ValueType::PIXEL:
-						this->m_limit.height(this->m_max_height.value);
+						this->_limit.height(this->_max_height.value);
 						break;
 					case ValueType::PERCENT:
-						this->m_limit.height(this->m_max_height.value * parent_height);
+						this->_limit.height(this->_max_height.value * parent_height);
 						break;
 					case ValueType::MINUS:
-						this->m_limit.height(FX_MAX(parent_height - this->m_max_height.value, 0));
+						this->_limit.height(FX_MAX(parent_height - this->_max_height.value, 0));
 						break;
 				}
 				
-				if ( this->m_limit_min_height > this->m_limit.height() ) {
-					this->m_limit_min_height = this->m_limit.height();
+				if ( this->_limit_min_height > this->_limit.height() ) {
+					this->_limit_min_height = this->_limit.height();
 				}
 			}
 			
 		} else {
 			
-			if (this->m_margin_top.type == ValueType::PIXEL) {
-				this->m_final_margin_top = this->m_margin_top.value;
+			if (this->_margin_top.type == ValueType::PIXEL) {
+				this->_final_margin_top = this->_margin_top.value;
 			} else {
-				this->m_final_margin_top = 0;
+				this->_final_margin_top = 0;
 			}
 			
-			if (this->m_margin_bottom.type == ValueType::PIXEL) {
-				this->m_final_margin_bottom = this->m_margin_bottom.value;
+			if (this->_margin_bottom.type == ValueType::PIXEL) {
+				this->_final_margin_bottom = this->_margin_bottom.value;
 			} else {
-				this->m_final_margin_bottom = 0;
+				this->_final_margin_bottom = 0;
 			}
 			
-			this->m_raw_client_height = this->m_border_top_width + this->m_border_bottom_width +
-																	this->m_final_margin_top + this->m_final_margin_bottom;
+			this->_raw_client_height = this->_border_top_width + this->_border_bottom_width +
+																	this->_final_margin_top + this->_final_margin_bottom;
 			
 			// 父视图没有明确的高度或者父视图为普通视图,只有像素值才生效否则为不明确的值
-			if (this->m_height.type == ValueType::PIXEL &&
-					this->m_max_height.type == ValueType::PIXEL &&
-					this->m_height.value == this->m_max_height.value) {
-				this->m_final_height = this->m_height.value;
-				this->m_limit_min_height = this->m_final_height;
-				this->m_limit.height(this->m_final_height);
-				this->m_explicit_height = true;  // 明确的高度,不受内部挤压
+			if (this->_height.type == ValueType::PIXEL &&
+					this->_max_height.type == ValueType::PIXEL &&
+					this->_height.value == this->_max_height.value) {
+				this->_final_height = this->_height.value;
+				this->_limit_min_height = this->_final_height;
+				this->_limit.height(this->_final_height);
+				this->_explicit_height = true;  // 明确的高度,不受内部挤压
 			} else {
 				// 自动与百分比都无效,只能从内部挤压高度.
-				this->m_limit_min_height = 0;
-				this->m_limit.height(Float::max);
-				if ( this->m_height.type == ValueType::PIXEL ) {
-					this->m_limit_min_height = this->m_height.value;
+				this->_limit_min_height = 0;
+				this->_limit.height(Float::max);
+				if ( this->_height.type == ValueType::PIXEL ) {
+					this->_limit_min_height = this->_height.value;
 				}
-				if ( this->m_max_height.type == ValueType::PIXEL ) {
-					this->m_limit.height(this->m_max_height.value);
+				if ( this->_max_height.type == ValueType::PIXEL ) {
+					this->_limit.height(this->_max_height.value);
 				} else {
-					if ( parent && this->m_max_height.type == ValueType::FULL ) { // 使用父视图的限制
-						this->m_limit.height(parent->m_limit.height() - this->m_raw_client_height);
+					if ( parent && this->_max_height.type == ValueType::FULL ) { // 使用父视图的限制
+						this->_limit.height(parent->_limit.height() - this->_raw_client_height);
 					}
 				}
-				if ( this->m_limit_min_height > this->m_limit.height() ) {
-					this->m_limit_min_height = this->m_limit.height();
+				if ( this->_limit_min_height > this->_limit.height() ) {
+					this->_limit_min_height = this->_limit.height();
 				}
-				this->m_explicit_height = false; // 不是明确的高度,受内部挤压
+				this->_explicit_height = false; // 不是明确的高度,受内部挤压
 			}
 
-			this->m_raw_client_height += this->m_final_height;
+			this->_raw_client_height += this->_final_height;
 		}
 	}
 
@@ -392,13 +392,13 @@ public:
 		uint value = M_NONE;
 		// 如果这些值都不为像素,父视图会可能影响到子视图的M_SIZE_HORIZONTAL
 		// 相当于标记了这个子视图M_SIZE_HORIZONTAL
-		if ((this->m_width.type != ValueType::PIXEL && this->m_width.type != ValueType::AUTO) ||
-				(this->m_max_width.type != ValueType::PIXEL && this->m_max_width.type != ValueType::AUTO)) {
+		if ((this->_width.type != ValueType::PIXEL && this->_width.type != ValueType::AUTO) ||
+				(this->_max_width.type != ValueType::PIXEL && this->_max_width.type != ValueType::AUTO)) {
 			value = (M_LAYOUT | M_SHAPE | M_SIZE_HORIZONTAL);
 		}
-		if (this->m_margin_left.type != ValueType::PIXEL) {
+		if (this->_margin_left.type != ValueType::PIXEL) {
 			value |= (M_LAYOUT | M_MATRIX | M_SIZE_HORIZONTAL);
-		} else if (this->m_margin_right.type != ValueType::PIXEL) {
+		} else if (this->_margin_right.type != ValueType::PIXEL) {
 			value |= (M_LAYOUT | M_SIZE_HORIZONTAL);
 		}
 		this->horizontal_active_mark_value = value;
@@ -411,13 +411,13 @@ public:
 		uint value = M_NONE;
 		// 如果这些值都不为像素,父视图将会可能影响到子视图的M_SIZE_VERTICAL
 		// 相当于标记了这个子视图M_SIZE_VERTICAL
-		if ((this->m_height.type != ValueType::PIXEL && this->m_height.type != ValueType::AUTO) ||
-				(this->m_max_height.type != ValueType::PIXEL && this->m_max_height.type != ValueType::AUTO)) {
+		if ((this->_height.type != ValueType::PIXEL && this->_height.type != ValueType::AUTO) ||
+				(this->_max_height.type != ValueType::PIXEL && this->_max_height.type != ValueType::AUTO)) {
 			value |= (M_LAYOUT | M_SHAPE | M_SIZE_VERTICAL);
 		}
-		if (this->m_margin_top.type != ValueType::PIXEL) {
+		if (this->_margin_top.type != ValueType::PIXEL) {
 			value |= (M_LAYOUT | M_MATRIX | M_SIZE_VERTICAL);
-		} else if (this->m_margin_bottom.type != ValueType::PIXEL) {
+		} else if (this->_margin_bottom.type != ValueType::PIXEL) {
 			value |= (M_LAYOUT | M_SIZE_VERTICAL);
 		}
 		this->vertical_active_mark_value = value;
@@ -445,10 +445,10 @@ void LimitIndep::set_vertical_active_mark() {
  * @constructor
  */
 Limit::Limit()
-: m_max_width(ValueType::AUTO)
-, m_max_height(ValueType::AUTO)
-, m_limit_min_width(0)
-, m_limit_min_height(0) {
+: _max_width(ValueType::AUTO)
+, _max_height(ValueType::AUTO)
+, _limit_min_width(0)
+, _limit_min_height(0) {
 	
 }
 
@@ -456,7 +456,7 @@ Limit::Limit()
  * @func min_width
  */
 void Limit::set_max_width(Value value) {
-	m_max_width = value;
+	_max_width = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_HORIZONTAL);
 	set_horizontal_active_mark();
 }
@@ -465,13 +465,13 @@ void Limit::set_max_width(Value value) {
  * @func min_width
  */
 void Limit::set_max_height(Value value) {
-	m_max_height = value;
+	_max_height = value;
 	mark_pre(M_SHAPE | M_LAYOUT | M_SIZE_VERTICAL);
 	set_vertical_active_mark();
 }
 
 void Limit::set_layout_explicit_size() {
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		// 只需要解决 explicit size
 		if ( ! _inl_limit(this)->solve_explicit_size() ) {
 			return;
@@ -494,13 +494,13 @@ void Limit::set_layout_explicit_size() {
 
 void LimitIndep::set_layout_explicit_size() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		// 只需要解决 explicit size
 		if ( _inl_limit_indep(this)->solve_explicit_size() ) {
 			
 			Box* box = parent()->as_box();
 			if ( box ) {
-				m_parent_layout = box;
+				_parent_layout = box;
 				mark_pre(M_LAYOUT_THREE_TIMES);
 			} else { // 父视图只是个普通视图,默认将偏移设置为0
 				set_default_offset_value();
@@ -511,11 +511,11 @@ void LimitIndep::set_layout_explicit_size() {
 
 void Limit::set_layout_content_offset() {
 	
-	if (m_final_visible) {
+	if (_final_visible) {
 		
 		Vec2 squeeze;
 		
-		if ( set_div_content_offset(squeeze, Vec2(m_limit_min_width, m_limit_min_height)) ) { //
+		if ( set_div_content_offset(squeeze, Vec2(_limit_min_width, _limit_min_height)) ) { //
 			// 高度或宽度被挤压即形状发生变化
 			mark(M_SHAPE);
 			
@@ -533,16 +533,16 @@ void Limit::set_layout_content_offset() {
 
 void LimitIndep::set_layout_content_offset() {
 	
-	if (m_final_visible) {
+	if (_final_visible) {
 		Vec2 squeeze;
 		
-		if ( set_div_content_offset(squeeze, Vec2(m_limit_min_width, m_limit_min_height)) ) { //
+		if ( set_div_content_offset(squeeze, Vec2(_limit_min_width, _limit_min_height)) ) { //
 			// 高度或宽度被挤压即形状发生变化
 			mark(M_SHAPE);
 			
 			Box* box = parent()->as_box();
 			if ( box ) {
-				m_parent_layout = box;
+				_parent_layout = box;
 				mark_pre(M_LAYOUT_THREE_TIMES);
 			} else { // 父视图只是个普通视图,默认将偏移设置为0
 				set_default_offset_value();

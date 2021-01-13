@@ -67,10 +67,10 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		
 		int i = 0;
 		
-		if (point.x() < pos.x() + 16 || point.x() > pos.x() + m_final_width - 16) {
+		if (point.x() < pos.x() + 16 || point.x() > pos.x() + _final_width - 16) {
 			i++;
 		}
-		if ( point.y() < pos.y() || point.y() > pos.y() + m_final_height ) {
+		if ( point.y() < pos.y() || point.y() > pos.y() + _final_height ) {
 			i++;
 		}
 		return i;
@@ -227,11 +227,11 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	Vec2 spot_location() {
 		Vec2 offset = input_text_offset();
 
-		float y = m_rows[cursor_linenum_].baseline - m_data.text_hori_bearing + offset.y();
+		float y = _rows[cursor_linenum_].baseline - _data.text_hori_bearing + offset.y();
 		float x = cursor_x_ + offset.x();
 
-		Vec2 cursor_offset(x - m_origin.x(), y + m_data.text_height - m_origin.y());
-		Vec2 location = m_final_matrix * cursor_offset;
+		Vec2 cursor_offset(x - _origin.x(), y + _data.text_height - _origin.y());
+		Vec2 location = _final_matrix * cursor_offset;
 
 		DLOG("input_spot_location,x:%f,y:%f", location.x(), location.y());
 		
@@ -248,16 +248,16 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 					break;
 				case KEYCODE_UP: {
 					Vec2 location = spot_location();
-					Vec2 coord(location.x(), location.y() - (m_data.text_height * 1.5));
+					Vec2 coord(location.x(), location.y() - (_data.text_height * 1.5));
 					set_cursor_with_screen_coord(coord);
 					break;
 				}
 				case KEYCODE_RIGHT:
-					cursor_ = FX_MIN(m_data.string.length(), cursor_ + 1);
+					cursor_ = FX_MIN(_data.string.length(), cursor_ + 1);
 					break;
 				case KEYCODE_DOWN: {
 					Vec2 location = spot_location();
-					Vec2 coord(location.x(), location.y() + (m_data.text_height * 0.5));
+					Vec2 coord(location.x(), location.y() + (_data.text_height * 0.5));
 					set_cursor_with_screen_coord(coord);
 					break;
 				}
@@ -269,7 +269,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 					cursor_ = 0;
 					break;
 				case KEYCODE_MOVE_END:
-					cursor_ = m_data.string.length();
+					cursor_ = _data.string.length();
 					break;
 			}
 			
@@ -281,7 +281,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	
 	void auto_selectd() {
 		
-		if ( !editing_ || m_data.cells.length() == 0 ) return;
+		if ( !editing_ || _data.cells.length() == 0 ) return;
 		
 		Vec2 pos = position();
 		Vec2 point = point_;
@@ -291,13 +291,13 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		
 		if ( point.x() < pos.x() + 16 ) {
 			direction_x = -1; // left
-		} else if ( point.x() > pos.x() + m_final_width - 16 ) {
+		} else if ( point.x() > pos.x() + _final_width - 16 ) {
 			direction_x = 1; // right
 		}
 		
 		if ( point.y() < pos.y() ) {
 			direction_y = -1; // left
-		} else if ( point.y() > pos.y() + m_final_height ) {
+		} else if ( point.y() > pos.y() + _final_height ) {
 			direction_y = 1; // right
 		}
 		
@@ -306,24 +306,24 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			if ( direction_y ) {
 				int linenum = cursor_linenum_;
 				linenum += direction_y;
-				linenum = FX_MIN(m_rows.last_num(), FX_MAX(linenum, 0));
-				point.y(pos.y() + m_rows[linenum].baseline + offset.y());
+				linenum = FX_MIN(_rows.last_num(), FX_MAX(linenum, 0));
+				point.y(pos.y() + _rows[linenum].baseline + offset.y());
 			}
 			
 			if ( direction_x ) {
 				
-				int begin = m_data.cells.length() - 1;
+				int begin = _data.cells.length() - 1;
 				
 				for ( ; begin >=0; begin-- ) {
-					if ( m_data.cells[begin].line_num == cursor_linenum_ ) break;
+					if ( _data.cells[begin].line_num == cursor_linenum_ ) break;
 				}
 				
-				float reverse = m_data.cells[begin].reverse;
+				float reverse = _data.cells[begin].reverse;
 				int cursor = cursor_ + (direction_x > 0 ? (reverse?-1:1): (reverse?1:-1));
-				cursor = FX_MIN(m_data.string.length(), FX_MAX(cursor, 0));
+				cursor = FX_MIN(_data.string.length(), FX_MAX(cursor, 0));
 				
 				for ( int j = begin; j >= 0; j-- ) {
-					Cell* cell = &m_data.cells[j];
+					Cell* cell = &_data.cells[j];
 					if ( cell->line_num == cursor_linenum_ ) {
 						if ( int(cell->begin) <= cursor ) {
 							float x = cell->offset[FX_MIN(cursor - cell->begin, cell->chars.length())];
@@ -332,7 +332,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 							break;
 						}
 					} else {
-						cell = &m_data.cells[j+1];
+						cell = &_data.cells[j+1];
 						float x = cell->offset[0];
 						x = cell->offset_start + (reverse ? -x : x);
 						point.x(pos.x() + offset.x() + x);
@@ -347,12 +347,12 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	
 	void set_cursor_with_screen_coord(Vec2 screen_coord) {
 		
-		if ( !editing_ || m_data.string.length() == 0 ) {
+		if ( !editing_ || _data.string.length() == 0 ) {
 			return;
 		}
 	
-		// Vec2 pos = position() - m_origin; // TODO 这个方法效率低
-		Vec2 pos = Vec2(m_final_matrix[2], m_final_matrix[5]) - m_origin;
+		// Vec2 pos = position() - _origin; // TODO 这个方法效率低
+		Vec2 pos = Vec2(_final_matrix[2], _final_matrix[5]) - _origin;
 		
 		// find row
 		
@@ -363,11 +363,11 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		const TextRows::Row* row = nullptr;
 		
 		if ( y < offset.y() ) {
-			row = &m_rows[0];
-		} else if ( y > offset.y() + m_rows.max_height() ) {
-			row = m_rows.last();
+			row = &_rows[0];
+		} else if ( y > offset.y() + _rows.max_height() ) {
+			row = _rows.last();
 		} else {
-			for ( auto& i : m_rows.rows() ) {
+			for ( auto& i : _rows.rows() ) {
 				if (y >= offset.y() + i.value().offset_start.y() &&
 						y <= offset.y() + i.value().offset_end.y() ) {
 					row = &i.value(); break;
@@ -380,12 +380,12 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		// find cell start and end
 		int cell_begin = -1, cell_end = -1;
 		
-		for ( uint i = 0; i < m_data.cells.length(); i++ ) {
-			if ( m_data.cells[i].line_num == row->row_num  ) { // 排除小余目标行cell
+		for ( uint i = 0; i < _data.cells.length(); i++ ) {
+			if ( _data.cells[i].line_num == row->row_num  ) { // 排除小余目标行cell
 				cell_begin = i;
 				
-				for ( int i = m_data.cells.length() - 1; i >= cell_begin; i-- ) {
-					if ( m_data.cells[i].line_num == row->row_num  ) { // 排除大余目标行cell
+				for ( int i = _data.cells.length() - 1; i >= cell_begin; i-- ) {
+					if ( _data.cells[i].line_num == row->row_num  ) { // 排除大余目标行cell
 						cell_end = i; break;
 					}
 				}
@@ -394,11 +394,11 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		}
 		
 		if ( cell_begin == -1 || cell_end == -1 ) { // 所在行没有cell,选择最后行尾
-			cursor_ = m_data.string.length();
+			cursor_ = _data.string.length();
 		} else {
 			//
-			Cell& cell = m_data.cells[cell_begin]; // 开始cell
-			Cell& cell2 = m_data.cells[cell_end];  // 结束cell
+			Cell& cell = _data.cells[cell_begin]; // 开始cell
+			Cell& cell2 = _data.cells[cell_end];  // 结束cell
 			
 			float offset_start = offset.x() + cell.offset_start;
 			uint end = cell2.begin + cell2.chars.length();
@@ -411,7 +411,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			} else {
 				// 通过在cells中查询光标位置
 				for ( int i = cell_begin; i <= cell_end; i++ ) {
-					Cell& cell = m_data.cells[i];
+					Cell& cell = _data.cells[i];
 					float offset0 = offset_start + (reverse ? -cell.offset[0] : cell.offset[0]);
 					
 					for ( int j = 1, l = cell.offset.length(); j < l; j++ ) {
@@ -476,12 +476,12 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		
 		if ( !text.is_empty() ) {
 			
-			if ( cursor_ < m_data.string.length() ) { // insert
-				Ucs2String old = m_data.string;
-				m_data.string = Ucs2String(*old, cursor_, *text, text.length());
-				m_data.string.push(*old + cursor_, old.length() - cursor_);
+			if ( cursor_ < _data.string.length() ) { // insert
+				Ucs2String old = _data.string;
+				_data.string = Ucs2String(*old, cursor_, *text, text.length());
+				_data.string.push(*old + cursor_, old.length() - cursor_);
 			} else { // append
-				m_data.string.push( text );
+				_data.string.push( text );
 			}
 			
 			cursor_ += text.length();
@@ -493,9 +493,9 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		if ( marked_text_.length() == 0 ) {
 			marked_text_idx_ = cursor_;
 		}
-		Ucs2String old = m_data.string;
-		m_data.string = Ucs2String(*old, marked_text_idx_, *text, text.length());
-		m_data.string.push(*old + marked_text_idx_ + marked_text_.length(),
+		Ucs2String old = _data.string;
+		_data.string = Ucs2String(*old, marked_text_idx_, *text, text.length());
+		_data.string.push(*old + marked_text_idx_ + marked_text_.length(),
 											 old.length() - marked_text_idx_ - marked_text_.length());
 		
 		cursor_ += text.length() - marked_text_.length();
@@ -527,7 +527,7 @@ Input::Input()
 , flag_(0), type_(KeyboardType::NORMAL)
 , return_type_(KeyboardReturnType::NORMAL)
 {
-	m_receive = true;
+	_receive = true;
 
 	add_event_listener(GUI_EVENT_CLICK, &Input::Inl::click_handle, Inl_Input(this));
 	add_event_listener(GUI_EVENT_TOUCH_START, &Input::Inl::touchstart_handle, Inl_Input(this));
@@ -552,7 +552,7 @@ void Input::set_value(cUcs2String& str) {
 View* Input::append_text(cUcs2String& str) throw(Error) {
 	View* r = Text::append_text(str);
 	marked_text_ = Ucs2String();
-	cursor_ = m_data.string.length();
+	cursor_ = _data.string.length();
 	Inl_Input(this)->trigger_change();
 	return r;
 }
@@ -582,8 +582,8 @@ void Input::input_delete(int count) {
 			if ( count < 0 ) {
 				count = FX_MIN(cursor, -count);
 				if ( count ) {
-					Ucs2String old = m_data.string;
-					m_data.string = Ucs2String(*old, cursor - count,
+					Ucs2String old = _data.string;
+					_data.string = Ucs2String(*old, cursor - count,
 																		 *old + cursor, int(old.length()) - cursor);
 					cursor_ -= count;
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
@@ -591,8 +591,8 @@ void Input::input_delete(int count) {
 			} else if ( count > 0 ) {
 				count = FX_MIN(int(length()) - cursor, count);
 				if ( count ) {
-					Ucs2String old = m_data.string;
-					m_data.string = Ucs2String(*old, cursor,
+					Ucs2String old = _data.string;
+					_data.string = Ucs2String(*old, cursor,
 																		 *old + cursor + count,
 																		 int(old.length()) - cursor - count);
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
@@ -724,7 +724,7 @@ void Input::set_text_margin(float value) {
  * @overwrite
  */
 void Input::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 			
@@ -744,7 +744,7 @@ void Input::draw(Draw* draw) {
 			}
 			
 			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
-				set_glyph_texture_level(m_data);
+				set_glyph_texture_level(_data);
 			}
 		}
 		
@@ -756,25 +756,25 @@ void Input::draw(Draw* draw) {
 
 void Input::set_layout_content_offset() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		
 		float margin_x = text_margin_ + text_margin_;
 		
-		Vec2 limit = Vec2(m_limit.width() - margin_x, m_limit.height());
+		Vec2 limit = Vec2(_limit.width() - margin_x, _limit.height());
 		
-		m_rows.reset();
-		m_data.cells.clear(); // 清空旧布局
-		m_data.cell_draw_begin = m_data.cell_draw_end = 0;
+		_rows.reset();
+		_data.cells.clear(); // 清空旧布局
+		_data.cell_draw_begin = _data.cell_draw_end = 0;
 		
-		TextLineHeightValue line_height = m_text_line_height.value;
+		TextLineHeightValue line_height = _text_line_height.value;
 		
 		bool multi_line = is_multi_line_input();
 		
-		if ( !multi_line && m_explicit_height && m_text_line_height.value.is_auto() ) {
-			line_height.height = m_final_height;
+		if ( !multi_line && _explicit_height && _text_line_height.value.is_auto() ) {
+			line_height.height = _final_height;
 		}
 		
-		cUcs2String& string = m_data.string.length() ? m_data.string: placeholder_;
+		cUcs2String& string = _data.string.length() ? _data.string: placeholder_;
 		
 		if ( string.length() ) {
 			
@@ -796,34 +796,34 @@ void Input::set_layout_content_offset() {
 				uint mark_end = mark + marked_text_.length();
 				
 				if ( mark ) {
-					set_text_layout_offset(&m_rows, limit, m_data, string, 0, mark, &opts, !multi_line);
+					set_text_layout_offset(&_rows, limit, _data, string, 0, mark, &opts, !multi_line);
 				}
 				
-				marked_cell_begin_ = m_data.cells.length();
-				set_text_layout_offset(&m_rows, limit, m_data, string, mark, mark_end, &opts, !multi_line);
-				marked_cell_end_ = m_data.cells.length();
+				marked_cell_begin_ = _data.cells.length();
+				set_text_layout_offset(&_rows, limit, _data, string, mark, mark_end, &opts, !multi_line);
+				marked_cell_end_ = _data.cells.length();
 				
 				uint end = string.length();
 				if ( mark_end < end ) {
-					set_text_layout_offset(&m_rows, limit, m_data, string, mark_end, end, &opts, !multi_line);
+					set_text_layout_offset(&_rows, limit, _data, string, mark_end, end, &opts, !multi_line);
 				}
 				
 			} else {
 				marked_cell_begin_ = marked_cell_end_ = 0;
 				if ( length() && security_ ) {
-					set_text_layout_offset(&m_rows, limit, m_data, 9679/*●*/, length(), &opts);
+					set_text_layout_offset(&_rows, limit, _data, 9679/*●*/, length(), &opts);
 				} else {
-					set_text_layout_offset(&m_rows, limit, m_data,
+					set_text_layout_offset(&_rows, limit, _data,
 																 string, 0, string.length(), &opts, !multi_line);
 				}
 			}
 		} else {
-			get_font_glyph_table_and_height(m_data, line_height);
-			m_rows.update_row(m_data.text_ascender, m_data.text_descender);
+			get_font_glyph_table_and_height(_data, line_height);
+			_rows.update_row(_data.text_ascender, _data.text_descender);
 		}
 		
-		m_rows.set_width(m_rows.last()->offset_end.x());
-		m_rows.set_width(m_rows.max_width() + margin_x);
+		_rows.set_width(_rows.last()->offset_end.x());
+		_rows.set_width(_rows.max_width() + margin_x);
 		
 		set_layout_content_offset_after();
 	}
@@ -860,9 +860,9 @@ void Input::refresh_cursor_screen_position() {
 		Vec2  text_offset = input_text_offset();
 		Cell* cell = nullptr;
 		
-		if ( m_data.string.length() ) {
+		if ( _data.string.length() ) {
 		
-			for ( auto& i : m_data.cells ) {
+			for ( auto& i : _data.cells ) {
 				uint begin = i.value().begin;
 				
 				if ( cursor_ == begin ) {
@@ -874,7 +874,7 @@ void Input::refresh_cursor_screen_position() {
 						cell = &i.value(); break;
 					} else {
 						if ( cursor_ == end ) {
-							if ( uint(i.index() + 1) == m_data.cells.length() ) { // last cell
+							if ( uint(i.index() + 1) == _data.cells.length() ) { // last cell
 								cell = &i.value(); break;
 							}
 						}
@@ -891,28 +891,28 @@ void Input::refresh_cursor_screen_position() {
 			float offset = cell->offset[cursor_ - cell->begin];
 			cursor_linenum_ = cell->line_num;
 			cursor_x_ = cell->offset_start + (cell->reverse ? -offset : offset);
-			row = &m_rows[cursor_linenum_];
+			row = &_rows[cursor_linenum_];
 		} else { // 找不到cell定位到最后行
-			switch ( m_text_align ) {
+			switch ( _text_align ) {
 				default:
 				case TextAlign::LEFT_REVERSE:
 					cursor_x_ = text_margin_; break;
 				case TextAlign::CENTER_REVERSE:
 				case TextAlign::CENTER:
-					cursor_x_ = m_final_width / 2.0; break;
+					cursor_x_ = _final_width / 2.0; break;
 				case TextAlign::RIGHT_REVERSE:
 				case TextAlign::RIGHT:
-					cursor_x_ = m_final_width - text_margin_; break;
+					cursor_x_ = _final_width - text_margin_; break;
 			}
-			cursor_linenum_ = m_rows.last_num();
-			row = &m_rows[cursor_linenum_];
+			cursor_linenum_ = _rows.last_num();
+			row = &_rows[cursor_linenum_];
 		}
 		
-		float max_width = m_rows.max_width();
+		float max_width = _rows.max_width();
 		
 		// y
 		if ( is_multi_line_input() ) {
-			if ( m_rows.max_height() < m_final_height) {
+			if ( _rows.max_height() < _final_height) {
 				text_offset.y(0);
 			} else {
 				float offset = row->offset_start.y() + text_offset.y();
@@ -921,17 +921,17 @@ void Input::refresh_cursor_screen_position() {
 					text_offset.y(-row->offset_start.y());
 				} else { // bottom cursor
 					offset = row->offset_end.y() + text_offset.y();
-					if ( offset > m_final_height ) {
-						text_offset.y(m_final_height - row->offset_end.y());
+					if ( offset > _final_height ) {
+						text_offset.y(_final_height - row->offset_end.y());
 					}
 				}
 				
 				if ( text_offset.y() > 0 ) { // top
 					text_offset.y(0); goto x;
 				}
-				offset = text_offset.y() + m_rows.max_height();
-				if ( offset < m_final_height ) { // bottom
-					text_offset.y(m_final_height - m_rows.max_height());
+				offset = text_offset.y() + _rows.max_height();
+				if ( offset < _final_height ) { // bottom
+					text_offset.y(_final_height - _rows.max_height());
 				}
 			}
 		}
@@ -939,7 +939,7 @@ void Input::refresh_cursor_screen_position() {
 	 x:
 		
 		// x
-		if ( max_width <= m_final_width - text_margin_ - text_margin_ ) {
+		if ( max_width <= _final_width - text_margin_ - text_margin_ ) {
 			text_offset.x(0);
 		} else {
 			
@@ -949,30 +949,30 @@ void Input::refresh_cursor_screen_position() {
 			
 			if ( offset < text_margin_ ) { // left cursor
 				text_offset.x(text_margin_ - cursor_x_);
-			} else if ( offset > m_final_width - text_margin_ )  { // right cursor
-				text_offset.x(m_final_width - text_margin_ - cursor_x_);
+			} else if ( offset > _final_width - text_margin_ )  { // right cursor
+				text_offset.x(_final_width - text_margin_ - cursor_x_);
 			}
 			
 			// 检测文本x轴两端是在非法显示区域
 			
-			switch ( m_text_align ) {
+			switch ( _text_align ) {
 				default:
 				case TextAlign::LEFT_REVERSE:
 					offset = text_offset.x(); break;
 				case TextAlign::CENTER_REVERSE:
 				case TextAlign::CENTER:
-					offset = text_offset.x() + (m_final_width - max_width) / 2.0; break;
+					offset = text_offset.x() + (_final_width - max_width) / 2.0; break;
 				case TextAlign::RIGHT_REVERSE:
 				case TextAlign::RIGHT:
-					offset = text_offset.x() + m_final_width - max_width; break;
+					offset = text_offset.x() + _final_width - max_width; break;
 			}
 			
 			if ( offset > text_margin_ ) { // left
 				text_offset.x(text_offset.x() - offset + text_margin_); goto end;
 			}
 			offset += max_width;
-			if ( offset < m_final_width - text_margin_ ) { // right
-				text_offset.x(text_offset.x() - offset - text_margin_ + m_final_width);
+			if ( offset < _final_width - text_margin_ ) { // right
+				text_offset.x(text_offset.x() - offset - text_margin_ + _final_width);
 			}
 		}
 	 end:

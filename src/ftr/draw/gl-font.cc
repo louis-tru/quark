@@ -82,12 +82,12 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	
 	struct ShortVec2 { int16 x; int16 y; };
 	
-	if ( ! glyph->m_have_outline ) { // 没有轮廓,使用一个空白轮廓
+	if ( ! glyph->_have_outline ) { // 没有轮廓,使用一个空白轮廓
 		
 		ShortVec2 vertex[3] = { { 0,0 }, { 0,0 }, { 0,0 } };
 		
-		glGenBuffers(1, &glyph->m_vertex_value);
-		glBindBuffer(GL_ARRAY_BUFFER, glyph->m_vertex_value);
+		glGenBuffers(1, &glyph->_vertex_value);
+		glBindBuffer(GL_ARRAY_BUFFER, glyph->_vertex_value);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(ShortVec2) * 3, vertex, GL_STATIC_DRAW);
 		// mark_new_data_size(glyph, sizeof(ShortVec2) * 3);
 		
@@ -95,14 +95,14 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	}
 	
 	// TODO parse vbo data
-	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, 64 * 64, 72, 72);
+	FT_Error error = FT_Set_Char_Size((FT_Face)font->_ft_face, 0, 64 * 64, 72, 72);
 	ASSERT(!error);
 	
 	if ( error ) {
 		FX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
-	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(),
+	error = FT_Load_Glyph((FT_Face)font->_ft_face, glyph->glyph_index(),
 												FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
 	ASSERT( ! error );
 	
@@ -129,7 +129,7 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 		0
 	};
 	
-	error = FT_Outline_Decompose(&((FT_GlyphSlot)font->m_ft_glyph)->outline, &funcs, &data);
+	error = FT_Outline_Decompose(&((FT_GlyphSlot)font->_ft_glyph)->outline, &funcs, &data);
 	if ( error ) {
 		FX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
@@ -162,9 +162,9 @@ bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 	//  LOG("tess vertex_length:%d, element_count:%d", tessGetVertexCount(*tess), nelems);
 	//  LOG("tess total vertex length:%d", vertex_count);
 	
-	glGenBuffers(1, &glyph->m_vertex_value);
-	glBindBuffer(GL_ARRAY_BUFFER, glyph->m_vertex_value);
-	glyph->m_vertex_count = vertex_count;
+	glGenBuffers(1, &glyph->_vertex_value);
+	glBindBuffer(GL_ARRAY_BUFFER, glyph->_vertex_value);
+	glyph->_vertex_count = vertex_count;
 	
 	uint size = sizeof(ShortVec2) * vertex_count;
 	
@@ -181,26 +181,26 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
 		10, 12, 14, 16, 18, 20, 25, 32, 64, 128, 256, 512
 	};
 	
-	float font_size = texture_levels_size[level] * font->m_pool->m_display_port_scale;
+	float font_size = texture_levels_size[level] * font->_pool->_display_port_scale;
 	
-	FT_Error error = FT_Set_Char_Size((FT_Face)font->m_ft_face, 0, font_size * 64, 72, 72);
+	FT_Error error = FT_Set_Char_Size((FT_Face)font->_ft_face, 0, font_size * 64, 72, 72);
 	if (error) {
 		FX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
-	error = FT_Load_Glyph((FT_Face)font->m_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
+	error = FT_Load_Glyph((FT_Face)font->_ft_face, glyph->glyph_index(), FT_LOAD_DEFAULT);
 	if (error) {
 		FX_WARN("%s", "parse font glyph vbo data error"); return false;
 	}
 	
-	if ( ((FT_GlyphSlot)font->m_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
-		error = FT_Render_Glyph((FT_GlyphSlot)font->m_ft_glyph, FT_RENDER_MODE_NORMAL);
+	if ( ((FT_GlyphSlot)font->_ft_glyph)->format != FT_GLYPH_FORMAT_BITMAP ) {
+		error = FT_Render_Glyph((FT_GlyphSlot)font->_ft_glyph, FT_RENDER_MODE_NORMAL);
 		if (error) {
 			FX_WARN("%s", "parse font glyph vbo data error"); return false;
 		}
 	}
 	
-	FT_GlyphSlot slot = (FT_GlyphSlot)font->m_ft_glyph;
+	FT_GlyphSlot slot = (FT_GlyphSlot)font->_ft_glyph;
 	FT_Bitmap bit = slot->bitmap;
 	
 	GLuint texture_handle;
@@ -218,30 +218,30 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
-	glyph->m_textures[level] = texture_handle;
+	glyph->_textures[level] = texture_handle;
 	
-	if ( glyph->m_have_outline ) { // 有轮廓
+	if ( glyph->_have_outline ) { // 有轮廓
 		
 		glTexImage2D(GL_TEXTURE_2D, 0,
 								 GL_ALPHA, bit.width, bit.rows, 0,
 								 GL_ALPHA, GL_UNSIGNED_BYTE, bit.buffer);
-		glyph->m_texture_size[level] = {
+		glyph->_texture_size[level] = {
 			int16(bit.width),
 			int16(bit.rows),
 			int16(slot->bitmap_left),
 			int16(slot->bitmap_top)
 		};
 		
-		//uint16 unicode = glyph->unicode();
+		//uint16_t unicode = glyph->unicode();
 		//FX_DEBUG("%s, level:%d, width:%d, height:%d, top:%d, left:%d",
 		//        &unicode, level, bit.width, bit.rows, (int)slot->bitmap_top, (int)slot->bitmap_left);
 		
 		_inl_font(font)->mark_new_data_size(glyph, bit.width * bit.rows);
 	}
 	else { // 没有轮廓, 使用一个透明的空白像素
-		byte empty_pixel = 0;
+		uint8_t empty_pixel = 0;
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 1, 1, 0, GL_ALPHA, GL_UNSIGNED_BYTE, &empty_pixel);
-		glyph->m_texture_size[level] = { 1, 1, 0, 0 };
+		glyph->_texture_size[level] = { 1, 1, 0, 0 };
 		_inl_font(font)->mark_new_data_size(glyph, 1);
 	}
 	

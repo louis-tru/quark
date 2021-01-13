@@ -53,13 +53,13 @@ namespace ftr {
 		StyleSheetsScope(View* scope);
 		void push_scope(View* scope);
 		void pop_scope();
-		inline View* bottom_scope() { return m_scopes.length() ? m_scopes.last() : nullptr; }
-		inline const List<Scope>& style_sheets() { return m_style_sheets; }
+		inline View* bottom_scope() { return _scopes.length() ? _scopes.last() : nullptr; }
+		inline const List<Scope>& style_sheets() { return _style_sheets; }
 		private:
 		typedef Map<PrtKey<StyleSheets>, Scope::Wrap> StyleSheetsMap;
-		List<View*>   m_scopes;
-		List<Scope>   m_style_sheets;
-		StyleSheetsMap  m_style_sheets_map;
+		List<View*>   _scopes;
+		List<Scope>   _style_sheets;
+		StyleSheetsMap  _style_sheets_map;
 	};
 }
 

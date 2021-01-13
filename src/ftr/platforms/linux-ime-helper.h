@@ -54,7 +54,7 @@ class LINUXIMEHelper {
 	void focus_out();
  private:
 	class Inl;
-	Inl* m_inl;
+	Inl* _inl;
 };
 
 FX_END

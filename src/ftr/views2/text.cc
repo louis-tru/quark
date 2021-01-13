@@ -40,12 +40,12 @@ FX_DEFINE_INLINE_MEMBERS(Text, Inl) {
 	template<TextAlign T>
 	void set_text_align_offset(float text_margin) {
 		
-		float final_width = m_final_width;
+		float final_width = _final_width;
 		
-		for ( auto& i : m_data.cells ) {
+		for ( auto& i : _data.cells ) {
 			Cell& cell = i.value();
 			
-			TextRows::Row& row = m_rows[cell.line_num];
+			TextRows::Row& row = _rows[cell.line_num];
 			cell.baseline = row.baseline;
 			
 			switch (T) {
@@ -83,22 +83,22 @@ void Text::append(View* child) throw(Error) {
 }
 
 View* Text::append_text(cUcs2String& str) throw(Error) {
-	m_data.string.push(str);
+	_data.string.push(str);
 	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 	return nullptr;
 }
 
 void Text::set_value(cUcs2String& str) {
-	m_data.string = str;
+	_data.string = str;
 	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 }
 
 void Text::accept_text(Ucs2StringBuilder& output) const {
-	output.push(m_data.string);
+	output.push(_data.string);
 }
 
 void Text::set_text_align_offset(float text_margin) {
-	switch ( m_text_align ) {
+	switch ( _text_align ) {
 		default:
 			Inl_Text(this)->set_text_align_offset<TextAlign::LEFT>(text_margin); break;
 		case TextAlign::CENTER:
@@ -115,7 +115,7 @@ void Text::set_text_align_offset(float text_margin) {
 }
 
 void Text::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		
 		if ( mark_value ) {
 		
@@ -125,7 +125,7 @@ void Text::draw(Draw* draw) {
 			solve();
 			
 			if ( mark_value & (M_TRANSFORM | M_TEXT_SIZE) ) {
-				set_glyph_texture_level(m_data);
+				set_glyph_texture_level(_data);
 			}
 		}
 		
@@ -137,18 +137,18 @@ void Text::draw(Draw* draw) {
 
 void Text::set_layout_content_offset() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		
-		m_rows.reset();
-		m_data.cells.clear(); // 清空旧布局
-		m_data.cell_draw_begin = m_data.cell_draw_end = 0;
+		_rows.reset();
+		_data.cells.clear(); // 清空旧布局
+		_data.cell_draw_begin = _data.cell_draw_end = 0;
 		
-		if ( !m_data.string.is_empty() ) {
+		if ( !_data.string.is_empty() ) {
 			
 			mark( M_SHAPE );
 			
 			// set layout ...
-			set_text_layout_offset(&m_rows, m_limit, m_data);
+			set_text_layout_offset(&_rows, _limit, _data);
 		}
 		
 		set_layout_content_offset_after();
@@ -157,11 +157,11 @@ void Text::set_layout_content_offset() {
 
 void Text::set_draw_visible() {
 	
-	compute_box_vertex(m_final_vertex);
+	compute_box_vertex(_final_vertex);
 	
-	m_draw_visible =
+	_draw_visible =
 	
-	compute_text_visible_draw(m_final_vertex, m_data, 0, m_final_width, 0);
+	compute_text_visible_draw(_final_vertex, _data, 0, _final_width, 0);
 }
 
 FX_END

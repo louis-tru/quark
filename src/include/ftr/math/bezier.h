@@ -150,12 +150,12 @@ namespace ftr {
 		/**
 		* @func point1
 		*/
-		inline Vec2 point1() const { return m_p1; }
+		inline Vec2 point1() const { return _p1; }
 		
 		/**
 		* @func point2
 		*/
-		inline Vec2 point2() const { return m_p2; }
+		inline Vec2 point2() const { return _p2; }
 		
 		/**
 		* @func sample_curve_derivative_x
@@ -173,16 +173,16 @@ namespace ftr {
 		* @func solve
 		*/
 		inline float solve(float x, float epsilon) const {
-			return (this->*m_solve)(x, epsilon);
+			return (this->*_solve)(x, epsilon);
 		}
 		
 		private:
 		
 		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
 		
-		Solve m_solve;
-		Vec2 m_p1;
-		Vec2 m_p2;
+		Solve _solve;
+		Vec2 _p1;
+		Vec2 _p2;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

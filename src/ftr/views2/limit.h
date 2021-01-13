@@ -53,22 +53,22 @@ class FX_EXPORT Limit: public Div {
 	/**
 	 * @func min_width
 	 */
-	inline Value min_width() const { return m_width; }
+	inline Value min_width() const { return _width; }
 	
 	/**
 	 * @func min_width
 	 */
-	inline Value min_height() const { return m_height; }
+	inline Value min_height() const { return _height; }
 	
 	/**
 	 * @func min_width
 	 */
-	inline Value max_width() const { return m_max_width; }
+	inline Value max_width() const { return _max_width; }
 	
 	/**
 	 * @func min_width
 	 */
-	inline Value max_height() const { return m_max_height; }
+	inline Value max_height() const { return _max_height; }
 	
 	/**
 	 * @func set_min_width
@@ -105,10 +105,10 @@ class FX_EXPORT Limit: public Div {
 	virtual void set_layout_three_times(bool horizontal, bool hybrid);
 	
  private:
-	Value m_max_width;
-	Value m_max_height;
-	float m_limit_min_width;
-	float m_limit_min_height;
+	Value _max_width;
+	Value _max_height;
+	float _limit_min_width;
+	float _limit_min_height;
 	
 };
 

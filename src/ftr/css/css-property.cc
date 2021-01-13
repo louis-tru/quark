@@ -42,98 +42,98 @@ template<class T> class CSSProperty1: public Property {
 	typedef void (TextFont::*Set2)(T value);
 	typedef void (TextLayout::*Set3)(T value);
 	
-	CSSProperty1(T value): m_value(value) {}
+	CSSProperty1(T value): _value(value) {}
 	virtual ~CSSProperty1() {}
 	
-	inline T value() const { return m_value; }
-	inline void set_value(T value) { m_value = value; }
+	inline T value() const { return _value; }
+	inline void set_value(T value) { _value = value; }
 	
 	inline void assignment(View* view, PropertyName name) {
 		ASSERT(view);
 		PropertysAccessor::Accessor accessor =
 		PropertysAccessor::shared()->accessor(view->view_type(), name);
 		if (accessor.set_accessor) {
-			(view->*reinterpret_cast<Set>(accessor.set_accessor))(m_value);
+			(view->*reinterpret_cast<Set>(accessor.set_accessor))(_value);
 		}
 	}
  protected:
-	T m_value;
+	T _value;
 };
 
 template<> inline void CSSProperty1<TextColor>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextSize>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextStyle>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextFamily>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextLineHeight>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextShadow>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextDecoration>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(m_value);
+		(view->as_text_font()->*reinterpret_cast<Set2>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextOverflow>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_layout()->*reinterpret_cast<Set3>(accessor.set_accessor))(m_value);
+		(view->as_text_layout()->*reinterpret_cast<Set3>(accessor.set_accessor))(_value);
 	}
 }
 template<> inline void CSSProperty1<TextWhiteSpace>::assignment(View* view, PropertyName Name) {
 	ASSERT(view);
 	Accessor accessor = PropertysAccessor::shared()->accessor(view->view_type(), Name);
 	if ( accessor.set_accessor ) {
-		(view->as_text_layout()->*reinterpret_cast<Set3>(accessor.set_accessor))(m_value);
+		(view->as_text_layout()->*reinterpret_cast<Set3>(accessor.set_accessor))(_value);
 	}
 }
 
 template <> CSSProperty1<BackgroundPtr>::~CSSProperty1() {
-	Release(m_value);
+	Release(_value);
 }
 template <> BackgroundPtr CSSProperty1<BackgroundPtr>::value() const {
-	return m_value;
+	return _value;
 }
 template <> void CSSProperty1<BackgroundPtr>::set_value(BackgroundPtr value) {
-	m_value = Background::assign(m_value, value ? value : new BackgroundImage());
+	_value = Background::assign(_value, value ? value : new BackgroundImage());
 }
-template <> CSSProperty1<BackgroundPtr>::CSSProperty1(BackgroundPtr val): m_value(nullptr) {
+template <> CSSProperty1<BackgroundPtr>::CSSProperty1(BackgroundPtr val): _value(nullptr) {
 	CSSProperty1<BackgroundPtr>::set_value(val);
 }
 
@@ -153,7 +153,7 @@ public:
 
 #define nx_def_property(ENUM, TYPE, NAME) \
 template<> void CSSProperty<TYPE, ENUM>::assignment(Frame* frame) { \
-	frame->set_##NAME(m_value); \
+	frame->set_##NAME(_value); \
 }
 FX_EACH_PROPERTY_TABLE(nx_def_property)
 #undef nx_def_property

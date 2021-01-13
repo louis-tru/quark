@@ -50,25 +50,25 @@ public:
 	 */
 	void solve_explicit_size() {
 		
-		Vec2 raw_limit = m_limit;
-		m_final_width = m_final_height = 0;
+		Vec2 raw_limit = _limit;
+		_final_width = _final_height = 0;
 		
-		if ( m_width.type == ValueType::AUTO ) {
-			m_texture->load();
-			if ( m_height.type == ValueType::AUTO ) {
+		if ( _width.type == ValueType::AUTO ) {
+			_texture->load();
+			if ( _height.type == ValueType::AUTO ) {
 				solve_explicit_horizontal_size(1);
 				solve_explicit_vertical_size(1);
 			} else {
 				solve_explicit_vertical_size(1);
 				solve_explicit_horizontal_size(
-					m_texture->height() == 0 ? 1 : m_final_height / m_texture->height()
+					_texture->height() == 0 ? 1 : _final_height / _texture->height()
 																			 );
 			}
-		} else if ( m_height.type == ValueType::AUTO ) {
-			m_texture->load();
+		} else if ( _height.type == ValueType::AUTO ) {
+			_texture->load();
 			solve_explicit_horizontal_size(1);
 			solve_explicit_vertical_size(
-				m_texture->width() == 0 ? 1 : m_final_width / m_texture->width()
+				_texture->width() == 0 ? 1 : _final_width / _texture->width()
 																	 );
 		} else {
 			solve_explicit_horizontal_size(1);
@@ -81,17 +81,17 @@ public:
 		// 3.宽度限制的变化可能会影响子盒子偏移变化
 		//  前两项的变化都会造成第三项的变化..
 		
-		bool h = raw_limit.width() != m_limit.width();
-		bool v = raw_limit.height() != m_limit.height();
+		bool h = raw_limit.width() != _limit.width();
+		bool v = raw_limit.height() != _limit.height();
 		uint child_mark = M_NONE;
 		
 		if ( h ) {
-			if ( m_content_align == ContentAlign::RIGHT ) {
+			if ( _content_align == ContentAlign::RIGHT ) {
 				child_mark = M_MATRIX; // 右对齐宽度变化一定会影响到子盒子的最终位置偏移
 			}
 		}
 		if ( v ) {
-			if ( m_content_align == ContentAlign::BOTTOM ) {
+			if ( _content_align == ContentAlign::BOTTOM ) {
 				child_mark = M_MATRIX; // 底部对齐高度变化一定会影响到子盒子的最终位置偏移
 			}
 		}
@@ -106,70 +106,70 @@ public:
 		Box* parent = View::parent()->as_box();
 		
 		// 布局视图加入到普通视图内或父视图没有明确宽度时,属性vFULL/vPERCENT/vMINUS会失效.
-		if ( parent && parent->m_explicit_width ) {
+		if ( parent && parent->_explicit_width ) {
 			
-			float parent_width = parent->m_final_width;
+			float parent_width = parent->_final_width;
 			
-			switch ( m_width.type ) {
+			switch ( _width.type ) {
 				case ValueType::AUTO: // AUTO (width=auto)
-					m_final_width = (m_texture->width() ? m_texture->width(): m_final_height) * height_ratio;
-					m_limit.width(m_final_width);
+					_final_width = (_texture->width() ? _texture->width(): _final_height) * height_ratio;
+					_limit.width(_final_width);
 					_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 					break;
 				case ValueType::FULL: // 吸附父视图 (width=full)
 					_box_inl__solve_horizontal_size_with_full_width(this, parent_width);
 					break;
 				case ValueType::PIXEL:  // 像素值  (width=50)
-					m_final_width = m_width.value;
-					m_limit.width(m_final_width);
+					_final_width = _width.value;
+					_limit.width(_final_width);
 					_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 					break;
 				case ValueType::PERCENT: // 百分比 (width=50%)
-					m_final_width = m_width.value * parent_width;
-					m_limit.width(m_final_width);
+					_final_width = _width.value * parent_width;
+					_limit.width(_final_width);
 					_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 					break;
 				default: // 减法值 (width=50not)
-					m_final_width = FX_MAX(parent_width - m_width.value, 0);
-					m_limit.width(m_final_width);
+					_final_width = FX_MAX(parent_width - _width.value, 0);
+					_limit.width(_final_width);
 					_box_inl__solve_horizontal_size_with_explicit_width(this, parent_width);
 					break;
 			}
 			
 		} else {
 			
-			if (m_margin_left.type == ValueType::PIXEL) {
-				m_final_margin_left = m_margin_left.value;
+			if (_margin_left.type == ValueType::PIXEL) {
+				_final_margin_left = _margin_left.value;
 			} else {
-				m_final_margin_left = 0;
+				_final_margin_left = 0;
 			}
 			
-			if (m_margin_right.type == ValueType::PIXEL) {
-				m_final_margin_right = m_margin_right.value;
+			if (_margin_right.type == ValueType::PIXEL) {
+				_final_margin_right = _margin_right.value;
 			} else {
-				m_final_margin_right = 0;
+				_final_margin_right = 0;
 			}
 			
-			m_raw_client_width =  m_border_left_width + m_border_right_width +
-														m_final_margin_left + m_final_margin_right;
+			_raw_client_width =  _border_left_width + _border_right_width +
+														_final_margin_left + _final_margin_right;
 			
-			m_explicit_width = true;  // 明确的宽度,不受内部挤压
+			_explicit_width = true;  // 明确的宽度,不受内部挤压
 			
-			if (m_width.type == ValueType::PIXEL) {
-				m_final_width = m_width.value;
-				m_limit.width(m_final_width);
+			if (_width.type == ValueType::PIXEL) {
+				_final_width = _width.value;
+				_limit.width(_final_width);
 			} else {
-				m_final_width = (m_texture->width() ? m_texture->width() : m_final_height) * height_ratio;
-				m_limit.width(m_final_width);
+				_final_width = (_texture->width() ? _texture->width() : _final_height) * height_ratio;
+				_limit.width(_final_width);
 				
 				// 如果父盒子为水平布局同时没有明确的宽度,FULL宽度会导致三次布局
-				if ( parent && m_width.type == ValueType::FULL ) { // 使用父视图的限制
-					m_limit.width(parent->m_limit.width() - m_raw_client_width);
-					m_explicit_width = false; // 不是明确的宽度,受内部挤压
+				if ( parent && _width.type == ValueType::FULL ) { // 使用父视图的限制
+					_limit.width(parent->_limit.width() - _raw_client_width);
+					_explicit_width = false; // 不是明确的宽度,受内部挤压
 				}
 			}
 
-			m_raw_client_width += m_final_width;
+			_raw_client_width += _final_width;
 		}
 	}
 	
@@ -181,70 +181,70 @@ public:
 		Box* parent = View::parent()->as_box();
 		
 		// 布局视图加入到普通视图内或父视图没有明确高度时,属性vAUTO/vFULL/vPERCENT/vMINUS会失效.
-		if (parent && parent->m_explicit_height) {
+		if (parent && parent->_explicit_height) {
 			
-			float parent_height = parent->m_final_height;
+			float parent_height = parent->_final_height;
 			
-			switch(m_height.type) {
+			switch(_height.type) {
 				case ValueType::AUTO: // AUTO
-					m_final_height = (m_texture->height() ? m_texture->height(): m_final_width) * width_ratio;
-					m_limit.height(m_final_height);
+					_final_height = (_texture->height() ? _texture->height(): _final_width) * width_ratio;
+					_limit.height(_final_height);
 					_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 					break;
 				case ValueType::FULL: // FULL
 					_box_inl__solve_vertical_size_with_full_height(this, parent_height);
 					break;
 				case ValueType::PIXEL: // 像素值
-					m_final_height = m_height.value;
-					m_limit.height(m_final_height);
+					_final_height = _height.value;
+					_limit.height(_final_height);
 					_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 					break;
 				case ValueType::PERCENT: // 百分比
-					m_final_height = m_height.value * parent_height;
-					m_limit.height(m_final_height);
+					_final_height = _height.value * parent_height;
+					_limit.height(_final_height);
 					_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 					break;
 				default: // 减法值
-					m_final_height = FX_MAX(parent_height - m_height.value, 0);
-					m_limit.height(m_final_height);
+					_final_height = FX_MAX(parent_height - _height.value, 0);
+					_limit.height(_final_height);
 					_box_inl__solve_vertical_size_with_explicit_height(this, parent_height);
 					break;
 			}
 			
 		} else {
 			
-			if (m_margin_top.type == ValueType::PIXEL) {
-				m_final_margin_top = m_margin_top.value;
+			if (_margin_top.type == ValueType::PIXEL) {
+				_final_margin_top = _margin_top.value;
 			} else {
-				m_final_margin_top = 0;
+				_final_margin_top = 0;
 			}
 			
-			if (m_margin_bottom.type == ValueType::PIXEL) {
-				m_final_margin_bottom = m_margin_bottom.value;
+			if (_margin_bottom.type == ValueType::PIXEL) {
+				_final_margin_bottom = _margin_bottom.value;
 			} else {
-				m_final_margin_bottom = 0;
+				_final_margin_bottom = 0;
 			}
 			
-			m_raw_client_height = m_border_top_width + m_border_bottom_width +
-														m_final_margin_top + m_final_margin_bottom;
+			_raw_client_height = _border_top_width + _border_bottom_width +
+														_final_margin_top + _final_margin_bottom;
 			
-			m_explicit_height = true;  // 明确的宽度,不受内部挤压
+			_explicit_height = true;  // 明确的宽度,不受内部挤压
 			
-			if (m_height.type == ValueType::PIXEL) {
-				m_final_height = m_height.value;
-				m_limit.height(m_final_height);
+			if (_height.type == ValueType::PIXEL) {
+				_final_height = _height.value;
+				_limit.height(_final_height);
 			} else {
-				m_final_height = (m_texture->height() ? m_texture->height(): m_final_width) * width_ratio;
-				m_limit.height(m_final_height);
+				_final_height = (_texture->height() ? _texture->height(): _final_width) * width_ratio;
+				_limit.height(_final_height);
 				
 				// 如果父盒子为水平布局同时没有明确的宽度,FULL宽度会导致三次布局
-				if ( parent && m_height.type == ValueType::FULL ) { // 使用父视图的限制
-					m_limit.height(parent->m_limit.height() - m_raw_client_height);
-					m_explicit_width = false; // 不是明确的宽度,受内部挤压
+				if ( parent && _height.type == ValueType::FULL ) { // 使用父视图的限制
+					_limit.height(parent->_limit.height() - _raw_client_height);
+					_explicit_width = false; // 不是明确的宽度,受内部挤压
 				}
 			}
 			
-			m_raw_client_height += m_final_height;
+			_raw_client_height += _final_height;
 		}
 	}
 	
@@ -275,10 +275,10 @@ public:
  * @constructor
  */
 Image::Image()
-: m_tex_level(Texture::LEVEL_0)
-, m_texture(draw_ctx()->empty_texture())
+: _tex_level(Texture::LEVEL_0)
+, _texture(draw_ctx()->empty_texture())
 {
-	m_texture->retain(); // 保持纹理
+	_texture->retain(); // 保持纹理
 }
 
 Image* Image::create(cString& src) {
@@ -291,15 +291,15 @@ Image* Image::create(cString& src) {
  * @destructor
  */
 Image::~Image() {
-	m_texture->FX_OFF(change, &Inl::texture_change_handle, _inl(this));
-	m_texture->release(); // 释放纹理
+	_texture->FX_OFF(change, &Inl::texture_change_handle, _inl(this));
+	_texture->release(); // 释放纹理
 }
 
 /**
  * @overwrite
  */
 void Image::draw(Draw* draw) {
-	if ( m_visible ) {
+	if ( _visible ) {
 		if ( mark_value ) {
 			solve();
 		}
@@ -329,7 +329,7 @@ void Image::set_src(cString& value) {
  * @func source
  */
 String Image::source() const {
-	return m_texture->id();
+	return _texture->id();
 }
 
 /**
@@ -347,14 +347,14 @@ void Image::set_source(cString& value) {
  * @func source_width
  */
 uint Image::source_width() const {
-	return m_texture->width();
+	return _texture->width();
 }
 
 /**
  * @func source_width
  */
 uint Image::source_height() const {
-	return m_texture->height();
+	return _texture->height();
 }
 
 /**
@@ -362,12 +362,12 @@ uint Image::source_height() const {
  */
 void Image::set_texture(Texture* value) {
 	ASSERT(value);
-	if (value == m_texture) return;
-	m_texture->FX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
-	m_texture->release(); // 释放
-	m_texture = value;
-	m_texture->retain(); // 保持
-	m_texture->FX_ON(change, &Image::Inl::texture_change_handle, _inl(this));
+	if (value == _texture) return;
+	_texture->FX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
+	_texture->release(); // 释放
+	_texture = value;
+	_texture->retain(); // 保持
+	_texture->FX_ON(change, &Image::Inl::texture_change_handle, _inl(this));
 	mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXTURE);
 }
 
@@ -376,7 +376,7 @@ void Image::set_texture(Texture* value) {
  */
 void Image::set_layout_explicit_size() {
 	
-	if ( m_final_visible ) {
+	if ( _final_visible ) {
 		// 只需要解决 explicit size
 		
 		if ( mark_value & (M_SIZE_HORIZONTAL | M_SIZE_VERTICAL) ) {
@@ -407,16 +407,16 @@ void Image::set_layout_explicit_size() {
  * @overwrite
  */
 void Image::set_layout_content_offset() {
-	if (m_final_visible) {
+	if (_final_visible) {
 		Vec2 squeeze;
 		
-		Vec2 limit_min(m_texture->width(), m_texture->height());
+		Vec2 limit_min(_texture->width(), _texture->height());
 		
-		if ( limit_min.width() > m_limit.width() ) {
-			limit_min.width(m_limit.width());
+		if ( limit_min.width() > _limit.width() ) {
+			limit_min.width(_limit.width());
 		}
-		if ( limit_min.height() > m_limit.height() ) {
-			limit_min.height(m_limit.height());
+		if ( limit_min.height() > _limit.height() ) {
+			limit_min.height(_limit.height());
 		}
 		
 		if ( set_div_content_offset(squeeze, limit_min) ) {
@@ -437,7 +437,7 @@ void Image::set_layout_content_offset() {
 
 void Image::set_draw_visible() {
 	Div::set_draw_visible();
-	m_tex_level = m_texture->get_texture_level_from_convex_quadrilateral(m_final_vertex);
+	_tex_level = _texture->get_texture_level_from_convex_quadrilateral(_final_vertex);
 }
 
 FX_END

@@ -57,19 +57,19 @@ class FX_EXPORT PreRender: public Object {
 	class FX_EXPORT Task {
 	 public:
 		typedef List<Task*>::Iterator ID;
-		inline Task(): m_timeout(0) { }
+		inline Task(): _timeout(0) { }
 		virtual ~Task();
 		virtual bool run_task(int64 sys_time) = 0;
 		void register_task();
 		void unregister_task();
-		inline bool is_register_task() const { return !m_task_id.is_null(); }
-		inline ID get_task_id() const { return m_task_id; }
-		inline void set_task_id(ID id) { m_task_id = id; }
-		inline int64 get_task_timeout() const { return m_timeout; }
-		inline void set_task_timeout(int64 timeout_us) { m_timeout = timeout_us; }
+		inline bool is_register_task() const { return !_task_id.is_null(); }
+		inline ID get_task_id() const { return _task_id; }
+		inline void set_task_id(ID id) { _task_id = id; }
+		inline int64 get_task_timeout() const { return _timeout; }
+		inline void set_task_timeout(int64 timeout_us) { _timeout = timeout_us; }
 	 private:
-		ID    m_task_id;
-		int64 m_timeout;
+		ID    _task_id;
+		int64 _timeout;
 	};
 	
 	/**
@@ -84,10 +84,10 @@ class FX_EXPORT PreRender: public Object {
 	
  private:
 	
-	bool         m_mark_pre;    // 是否有layout标记
-	Array<View*> m_marks;       // 被标记的视图
-	List<Task*>  m_tasks;
-	static PreRender* m_pre_render;
+	bool         _mark_pre;    // 是否有layout标记
+	Array<View*> _marks;       // 被标记的视图
+	List<Task*>  _tasks;
+	static PreRender* _pre_render;
 	
 	friend PreRender* pre_render();
 	
@@ -98,7 +98,7 @@ class FX_EXPORT PreRender: public Object {
  * @func pre_render
  */
 inline PreRender* pre_render() {
-	return PreRender::m_pre_render;
+	return PreRender::_pre_render;
 }
 
 FX_END

@@ -294,63 +294,63 @@ namespace ftr {
 			FX_ENUM_VALUE(DEF_ENUM_VALUE)
 		};
 		
-		enum class KeyboardType: byte {
+		enum class KeyboardType: uint8_t {
 			FX_KEYBOARD_TYPE(DEF_ENUM)
 		};
 
-		enum class KeyboardReturnType: byte {
+		enum class KeyboardReturnType: uint8_t {
 			FX_KEYBOARD_RETURN_TYPE(DEF_ENUM)
 		};
 
-		enum class Direction: byte {
+		enum class Direction: uint8_t {
 			FX_DIRECTION(DEF_ENUM)
 		};
 
-		enum class ValueType: byte {
+		enum class ValueType: uint8_t {
 			FX_VALUE_TYPE(DEF_ENUM)
 		};
 
-		enum class BackgroundPositionType: byte {
+		enum class BackgroundPositionType: uint8_t {
 			FX_BACKGROUND_POSITION_TYPE(DEF_ENUM)
 		};
 		
-		enum class BackgroundSizeType: byte {
+		enum class BackgroundSizeType: uint8_t {
 			FX_BACKGROUND_SIZE_TYPE(DEF_ENUM)
 		};
 		
-		enum class TextValueType: byte {
+		enum class TextValueType: uint8_t {
 			FX_TEXT_VALUE_TYPE(DEF_ENUM)
 		};
 
-		enum class TextStyleEnum: byte {
+		enum class TextStyleEnum: uint8_t {
 			FX_TEXT_STYLE_ENUM(DEF_ENUM)
 		};
 
-		enum class TextDecorationEnum: byte {
+		enum class TextDecorationEnum: uint8_t {
 			FX_TEXT_DECORATION_ENUM(DEF_ENUM)
 		};
 		
-		enum class TextOverflowEnum: byte {
+		enum class TextOverflowEnum: uint8_t {
 			FX_TEXT_OVERFLOW_ENUM(DEF_ENUM)
 		};
 		
-		enum class TextWhiteSpaceEnum: byte {
+		enum class TextWhiteSpaceEnum: uint8_t {
 			FX_TEXT_WHITE_SPACE_ENUM(DEF_ENUM)
 		};
 
-		enum class TextAlign: byte {
+		enum class TextAlign: uint8_t {
 			FX_TEXT_ALIGN(DEF_ENUM)
 		};
 
-		enum class Align: byte {
+		enum class Align: uint8_t {
 			FX_ALIGN(DEF_ENUM)
 		};
 
-		enum class ContentAlign: byte {
+		enum class ContentAlign: uint8_t {
 			FX_CONTENT_ALIGN(DEF_ENUM)
 		};
 		
-		enum class Repeat: byte {
+		enum class Repeat: uint8_t {
 			FX_REPEAT(DEF_ENUM)
 		};
 

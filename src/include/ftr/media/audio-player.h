@@ -77,7 +77,7 @@ namespace ftr {
 		/**
 		* @func auto_play
 		*/
-		inline bool auto_play() const { return m_auto_play; }
+		inline bool auto_play() const { return _auto_play; }
 
 		/**
 		* @func set_auto_play setting auto play
@@ -97,7 +97,7 @@ namespace ftr {
 		/**
 		* @func mute getting mute status
 		* */
-		inline bool mute() const { return m_mute; }
+		inline bool mute() const { return _mute; }
 
 		/**
 		* @func set_mute setting mute status
@@ -107,7 +107,7 @@ namespace ftr {
 		/**
 		* @func volume
 		*/
-		inline uint volume() { return m_volume; }
+		inline uint volume() { return _volume; }
 
 		/**
 		* @func set_volume
@@ -182,27 +182,27 @@ namespace ftr {
 		/**
 		* @func disable_wait_buffer
 		*/
-		inline bool disable_wait_buffer() const { return m_disable_wait_buffer; }
+		inline bool disable_wait_buffer() const { return _disable_wait_buffer; }
 
 		private:
 
-		MultimediaSource* m_source;
-		PCMPlayer*    m_pcm;
-		MediaCodec*   m_audio;
-		KeepLoop*     m_keep;
-		PlayerStatus  m_status;
-		OutputBuffer  m_audio_buffer;
-		uint64  m_duration, m_time;
-		uint64  m_uninterrupted_play_start_time;
-		uint64  m_uninterrupted_play_start_systime;
-		uint64  m_prev_presentation_time;
-		Mutex   m_audio_loop_mutex, m_mutex;
-		uint    m_task_id;
-		uint    m_volume;
-		bool    m_mute;
-		bool    m_auto_play;
-		bool    m_disable_wait_buffer;
-		bool    m_waiting_buffer;
+		MultimediaSource* _source;
+		PCMPlayer*    _pcm;
+		MediaCodec*   _audio;
+		KeepLoop*     _keep;
+		PlayerStatus  _status;
+		OutputBuffer  _audio_buffer;
+		uint64  _duration, _time;
+		uint64  _uninterrupted_play_start_time;
+		uint64  _uninterrupted_play_start_systime;
+		uint64  _prev_presentation_time;
+		Mutex   _audio_loop_mutex, _mutex;
+		uint    _task_id;
+		uint    _volume;
+		bool    _mute;
+		bool    _auto_play;
+		bool    _disable_wait_buffer;
+		bool    _waiting_buffer;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

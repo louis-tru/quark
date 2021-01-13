@@ -68,64 +68,64 @@ uint PixelData::get_pixel_data_size(Format format) {
 }
 
 PixelData::PixelData()
-: m_data()
-, m_width(0)
-, m_height(0)
-, m_body()
-, m_format(INVALID), m_is_premultiplied_alpha(false) {
+: _data()
+, _width(0)
+, _height(0)
+, _body()
+, _format(INVALID), _is_premultiplied_alpha(false) {
 }
 
 PixelData::PixelData(cPixelData& body)
-: m_data()
-, m_width(body.width())
-, m_height(body.height())
-, m_body(body.m_body)
-, m_format(body.format()), m_is_premultiplied_alpha(false) {
+: _data()
+, _width(body.width())
+, _height(body.height())
+, _body(body._body)
+, _format(body.format()), _is_premultiplied_alpha(false) {
 }
 
 PixelData::PixelData(PixelData&& body)
-: m_data(move(body.m_data))
-, m_width(body.width())
-, m_height(body.height())
-, m_body(move(body.m_body))
-, m_format(body.format()), m_is_premultiplied_alpha(false) {
+: _data(move(body._data))
+, _width(body.width())
+, _height(body.height())
+, _body(move(body._body))
+, _format(body.format()), _is_premultiplied_alpha(false) {
 }
 
 PixelData::PixelData(Format format)
-: m_data()
-, m_width(0)
-, m_height(0)
-, m_body()
-, m_format(format), m_is_premultiplied_alpha(false) {
+: _data()
+, _width(0)
+, _height(0)
+, _body()
+, _format(format), _is_premultiplied_alpha(false) {
 }
 
 PixelData::PixelData(Buffer body, int width,
 										 int height, Format format, bool is_premultiplied_alpha)
-: m_data(body)
-, m_width(width)
-, m_height(height)
-, m_body()
-, m_format(format), m_is_premultiplied_alpha(is_premultiplied_alpha) {
-	m_body.push(WeakBuffer(*m_data, m_data.length()));
+: _data(body)
+, _width(width)
+, _height(height)
+, _body()
+, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
+	_body.push(WeakBuffer(*_data, _data.length()));
 }
 
 PixelData::PixelData(WeakBuffer body, int width,
 										 int height, Format format, bool is_premultiplied_alpha)
-: m_data()
-, m_width(width)
-, m_height(height)
-, m_body()
-, m_format(format), m_is_premultiplied_alpha(is_premultiplied_alpha) {
-	m_body.push(body);
+: _data()
+, _width(width)
+, _height(height)
+, _body()
+, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
+	_body.push(body);
 }
 
 PixelData::PixelData(const Array<WeakBuffer>& body, int width,
 										 int height, Format format, bool is_premultiplied_alpha)
-: m_data()
-, m_width(width)
-, m_height(height)
-, m_body(body)
-, m_format(format), m_is_premultiplied_alpha(is_premultiplied_alpha) {
+: _data()
+, _width(width)
+, _height(height)
+, _body(body)
+, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
 
 }
 

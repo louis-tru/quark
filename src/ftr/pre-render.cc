@@ -35,33 +35,33 @@
 
 FX_NS(ftr)
 
-PreRender* PreRender::m_pre_render(NULL);
+PreRender* PreRender::_pre_render(NULL);
 
 FX_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
 public:
 	
 	void delete_mark_pre(View* view) {
-		view->m_prev_pre_mark->m_next_pre_mark = view->m_next_pre_mark;
-		view->m_next_pre_mark->m_prev_pre_mark = view->m_prev_pre_mark;
-		view->m_prev_pre_mark = nullptr;
-		view->m_next_pre_mark = nullptr;
+		view->_prev_pre_mark->_next_pre_mark = view->_next_pre_mark;
+		view->_next_pre_mark->_prev_pre_mark = view->_prev_pre_mark;
+		view->_prev_pre_mark = nullptr;
+		view->_next_pre_mark = nullptr;
 	}
 	
 	void solve_pre() {
 		
-		if (m_mark_pre) {
+		if (_mark_pre) {
 			
 			// 1.从外至内,计算明确的布局宽度与高度
 			
 			// 忽略第0层级,第0层级的视图是无效的
-			auto i = ++m_marks.begin();
+			auto i = ++_marks.begin();
 			
 			StyleSheetsScope* sss = nullptr;
 			
 			// 解决所有的布局视图的size,与style
 			for ( ; !i.is_null(); i++ ) {
 				View* begin = i.value();
-				View* view = begin->m_next_pre_mark;
+				View* view = begin->_next_pre_mark;
 				
 				while ( begin != view ) {
 					
@@ -78,7 +78,7 @@ public:
 						view->refresh_styles(sss);
 					}
 					
-					View* next = view->m_next_pre_mark;
+					View* next = view->_next_pre_mark;
 					Layout* layout = view->as_layout();
 					if ( layout ) {
 						if (view->mark_value & View::M_LAYOUT) {
@@ -95,12 +95,12 @@ public:
 			
 			// 2.从内至外,设置偏移并挤压不明确的高度与宽度
 			
-			i = --m_marks.end(); auto end = m_marks.begin();
+			i = --_marks.end(); auto end = _marks.begin();
 			
 			// 解决所有的布局视图的位置
 			for ( ; i != end; i-- ) {
 				View* begin = i.value();
-				View* view = begin->m_next_pre_mark;
+				View* view = begin->_next_pre_mark;
 				while (begin != view) {
 					
 					Layout* layout = static_cast<Layout*>(view);
@@ -108,7 +108,7 @@ public:
 						layout->set_layout_content_offset();
 					}
 					
-					View* next = view->m_next_pre_mark;
+					View* next = view->_next_pre_mark;
 					
 					if ( view->mark_value & Box::M_LAYOUT_THREE_TIMES ) {
 						
@@ -120,16 +120,16 @@ public:
 			}
 			
 			// 3.从外至内进一步最终解决局宽度与高度还有偏移位置
-			i = ++m_marks.begin();
+			i = ++_marks.begin();
 			
 			for ( ; !i.is_null(); i++ ) {
 				View* begin = i.value();
-				View* view = begin->m_next_pre_mark;
+				View* view = begin->_next_pre_mark;
 				
 				while (begin != view) {
 					
 					Layout* layout = static_cast<Layout*>(view);
-					Layout* parent = layout->m_parent_layout; ASSERT( parent );
+					Layout* parent = layout->_parent_layout; ASSERT( parent );
 					
 					if ( parent->as_div() ) { // in div
 						bool horizontal =
@@ -141,16 +141,16 @@ public:
 						layout->set_layout_three_times(true, true);
 					}
 					
-					View* next = view->m_next_pre_mark;
-					view->m_prev_pre_mark = nullptr; // 删除标记
-					view->m_next_pre_mark = nullptr;
+					View* next = view->_next_pre_mark;
+					view->_prev_pre_mark = nullptr; // 删除标记
+					view->_next_pre_mark = nullptr;
 					view = next;
 				}
-				begin->m_prev_pre_mark = begin;
-				begin->m_next_pre_mark = begin;
+				begin->_prev_pre_mark = begin;
+				begin->_next_pre_mark = begin;
 			}
 			
-			m_mark_pre = false;
+			_mark_pre = false;
 		}
 	}
 	
@@ -159,7 +159,7 @@ public:
 	 */
 	void add_task(Task* task) {
 		if ( task->get_task_id().is_null() ) {
-			Task::ID id = m_tasks.push(task);
+			Task::ID id = _tasks.push(task);
 			task->set_task_id( id );
 		}
 	}
@@ -187,24 +187,24 @@ class BeginView: public View { };
  * @constructor
  */
 PreRender::PreRender() {
-	ASSERT(!m_pre_render); // "At the same time can only run a MarkManager entity"
-	m_pre_render = this;
+	ASSERT(!_pre_render); // "At the same time can only run a MarkManager entity"
+	_pre_render = this;
 	BeginView* begin = new BeginView();
-	m_marks.push(begin);
-	begin->m_prev_pre_mark = begin;
-	begin->m_next_pre_mark = begin;
+	_marks.push(begin);
+	begin->_prev_pre_mark = begin;
+	begin->_next_pre_mark = begin;
 }
 
 /**
  * @destructor
  */
 PreRender::~PreRender() {
-	auto it = m_marks.begin();
-	auto end = m_marks.end();
+	auto it = _marks.begin();
+	auto end = _marks.end();
 	for (; it != end; it++) {
 		Release(it.value());
 	}
-	m_pre_render = nullptr;
+	_pre_render = nullptr;
 }
 
 /**
@@ -212,24 +212,24 @@ PreRender::~PreRender() {
  * @arg {View*} view
  */
 void PreRender::mark_pre(View* view) {
-	if ( view->m_level ) {
-		if ( !view->m_next_pre_mark ) {
-			if ( m_marks.length() <= view->m_level ) {
-				int len = view->m_level + 1;
-				for (int i = m_marks.length(); i < len; i++) {
+	if ( view->_level ) {
+		if ( !view->_next_pre_mark ) {
+			if ( _marks.length() <= view->_level ) {
+				int len = view->_level + 1;
+				for (int i = _marks.length(); i < len; i++) {
 					View* begin = new BeginView();
-					m_marks.push(begin);
-					begin->m_prev_pre_mark = begin;
-					begin->m_next_pre_mark = begin;
+					_marks.push(begin);
+					begin->_prev_pre_mark = begin;
+					begin->_next_pre_mark = begin;
 				}
 			}
-			View* begin = m_marks[view->m_level];
-			view->m_prev_pre_mark = begin->m_prev_pre_mark;
-			view->m_next_pre_mark = begin;
-			begin->m_prev_pre_mark = view;
-			view->m_prev_pre_mark->m_next_pre_mark = view;
+			View* begin = _marks[view->_level];
+			view->_prev_pre_mark = begin->_prev_pre_mark;
+			view->_next_pre_mark = begin;
+			begin->_prev_pre_mark = view;
+			view->_prev_pre_mark->_next_pre_mark = view;
 		}
-		m_mark_pre = true;
+		_mark_pre = true;
 	}
 }
 
@@ -240,9 +240,9 @@ bool PreRender::solve(int64 now_time) {
 	
 	bool rv = false;
 	
-	if ( m_tasks.length() ) { // solve task
+	if ( _tasks.length() ) { // solve task
 		
-		for ( auto i = m_tasks.begin(), end = m_tasks.end(); i != end; ) {
+		for ( auto i = _tasks.begin(), end = _tasks.end(); i != end; ) {
 			auto j = i++;
 			Task* task = j.value();
 			if ( task ) {
@@ -252,7 +252,7 @@ bool PreRender::solve(int64 now_time) {
 					}
 				}
 			} else {
-				m_tasks.del(j);
+				_tasks.del(j);
 			}
 		}
 	}

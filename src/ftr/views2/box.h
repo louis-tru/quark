@@ -61,7 +61,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func width
 	 */
-	inline Value width() const { return m_width; }
+	inline Value width() const { return _width; }
 	
 	/**
 	 * @func set_width
@@ -71,7 +71,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func height
 	 */
-	inline Value height() const { return m_height; }
+	inline Value height() const { return _height; }
 	
 	/**
 	 * @func set_height
@@ -86,7 +86,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func margin_left
 	 */
-	inline Value margin_left() const { return m_margin_left; }
+	inline Value margin_left() const { return _margin_left; }
 	
 	/**
 	 * @func set_margin_left
@@ -96,7 +96,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func margin_top
 	 */
-	inline Value margin_top() const { return m_margin_top; }
+	inline Value margin_top() const { return _margin_top; }
 	
 	/**
 	 * @func set_margin_top
@@ -106,7 +106,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func margin_right
 	 */
-	inline Value margin_right() const { return m_margin_right; }
+	inline Value margin_right() const { return _margin_right; }
 	
 	/**
 	 * @func set_margin_right
@@ -116,7 +116,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func margin_bottom
 	 */
-	inline Value margin_bottom() const { return m_margin_bottom; }
+	inline Value margin_bottom() const { return _margin_bottom; }
 	
 	/**
 	 * @func set_margin_bottom
@@ -132,7 +132,7 @@ class FX_EXPORT Box: public Layout {
 	 * @func border_left
 	 */
 	inline Border border_left() const {
-		return Border(m_border_left_width, m_border_left_color);
+		return Border(_border_left_width, _border_left_color);
 	}
 	
 	/**
@@ -144,7 +144,7 @@ class FX_EXPORT Box: public Layout {
 	 * @func border_top
 	 */
 	inline Border border_top() const {
-		return Border(m_border_top_width, m_border_top_color);
+		return Border(_border_top_width, _border_top_color);
 	}
 	
 	/**
@@ -156,7 +156,7 @@ class FX_EXPORT Box: public Layout {
 	 * @func border_right
 	 */
 	inline Border border_right() const {
-		return Border(m_border_right_width, m_border_right_color);
+		return Border(_border_right_width, _border_right_color);
 	}
 	
 	/**
@@ -168,7 +168,7 @@ class FX_EXPORT Box: public Layout {
 	 * @func border_bottom
 	 */
 	inline Border border_bottom() const {
-		return Border(m_border_bottom_width, m_border_bottom_color);
+		return Border(_border_bottom_width, _border_bottom_color);
 	}
 	
 	/**
@@ -184,7 +184,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func set_border_left_width
 	 */
-	inline float border_left_width() const { return m_border_left_width; }
+	inline float border_left_width() const { return _border_left_width; }
 	
 	/**
 	 * @func set_border_left_width
@@ -194,7 +194,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_top_width
 	 */
-	inline float border_top_width() const { return m_border_top_width; }
+	inline float border_top_width() const { return _border_top_width; }
 	
 	/**
 	 * @func set_border_top_width
@@ -204,7 +204,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_right_width
 	 */
-	inline float border_right_width() const { return m_border_right_width; }
+	inline float border_right_width() const { return _border_right_width; }
 	
 	/**
 	 * @func set_border_right_width
@@ -214,7 +214,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_bottom_width
 	 */
-	inline float border_bottom_width() const { return m_border_bottom_width; }
+	inline float border_bottom_width() const { return _border_bottom_width; }
 	
 	/**
 	 * @func set_border_bottom_width
@@ -229,7 +229,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_left_color
 	 */
-	inline Color border_left_color() const { return m_border_left_color; }
+	inline Color border_left_color() const { return _border_left_color; }
 	
 	/**
 	 * @func set_border_left_color
@@ -239,7 +239,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_top_color
 	 */
-	inline Color border_top_color() const { return m_border_top_color; }
+	inline Color border_top_color() const { return _border_top_color; }
 	
 	/**
 	 * @func set_border_top_color
@@ -249,7 +249,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_right_color
 	 */
-	inline Color border_right_color() const { return m_border_right_color; }
+	inline Color border_right_color() const { return _border_right_color; }
 	
 	/**
 	 * @func set_border_right_color
@@ -259,7 +259,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_bottom_color
 	 */
-	inline Color border_bottom_color() const { return m_border_bottom_color; }
+	inline Color border_bottom_color() const { return _border_bottom_color; }
 	
 	/**
 	 * @func set_border_bottom_color
@@ -274,7 +274,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_radius_left_top
 	 */
-	inline float border_radius_left_top() const { return m_border_radius_left_top; }
+	inline float border_radius_left_top() const { return _border_radius_left_top; }
 	
 	/**
 	 * @func set_border_radius_left_top
@@ -285,7 +285,7 @@ class FX_EXPORT Box: public Layout {
 	 * @func border_radius_right_top
 	 */
 	
-	inline float border_radius_right_top() const { return m_border_radius_right_top; }
+	inline float border_radius_right_top() const { return _border_radius_right_top; }
 	
 	/**
 	 * @func set_border_radius_right_top
@@ -295,7 +295,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_radius_right_bottom
 	 */
-	inline float border_radius_right_bottom() const { return m_border_radius_right_bottom; }
+	inline float border_radius_right_bottom() const { return _border_radius_right_bottom; }
 	
 	/**
 	 * @func set_border_radius_right_bottom
@@ -305,7 +305,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func border_radius_left_bottom
 	 */
-	inline float border_radius_left_bottom() const { return m_border_radius_left_bottom; }
+	inline float border_radius_left_bottom() const { return _border_radius_left_bottom; }
 	
 	/**
 	 * @func set_border_radius_left_bottom
@@ -315,7 +315,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func background_color
 	 */
-	inline Color background_color() const { return m_background_color; }
+	inline Color background_color() const { return _background_color; }
 	
 	/**
 	 * @func set_background_color
@@ -325,7 +325,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @get newline 值为true布局会重启一行或一列的开始
 	 */
-	inline bool newline() const { return m_newline; }
+	inline bool newline() const { return _newline; }
 	
 	/**
 	 * @set set_newline
@@ -335,37 +335,37 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func final_width 最终的宽度
 	 */
-	inline float final_width() const { return m_final_width; }
+	inline float final_width() const { return _final_width; }
 	
 	/**
 	 * @func final_height 最终的高度
 	 */
-	inline float final_height() const { return m_final_height; }
+	inline float final_height() const { return _final_height; }
 	
 	/**
 	 * @func final_margin_left 最终的左边距
 	 */
-	inline float final_margin_left() const { return m_final_margin_left; }
+	inline float final_margin_left() const { return _final_margin_left; }
 	
 	/**
 	 * @func final_margin_top 最终的顶边距
 	 */
-	inline float final_margin_top() const { return m_final_margin_top; }
+	inline float final_margin_top() const { return _final_margin_top; }
 	
 	/**
 	 * @func final_margin_right 最终的右边距
 	 */
-	inline float final_margin_right() const { return m_final_margin_right; }
+	inline float final_margin_right() const { return _final_margin_right; }
 	
 	/**
 	 * @func final_margin_bottom 最终的底边距
 	 */
-	inline float final_margin_bottom() const { return m_final_margin_bottom; }
+	inline float final_margin_bottom() const { return _final_margin_bottom; }
 	
 	/**
 	 * @func clip()
 	 */
-	inline bool clip() const { return m_clip; }
+	inline bool clip() const { return _clip; }
 	
 	/**
 	 * @func set_clip(bool)
@@ -375,7 +375,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func background()
 	 */
-	inline Background* background() { return m_background; }
+	inline Background* background() { return _background; }
 
 	/**
 	 * @func set_background(value)
@@ -461,50 +461,50 @@ class FX_EXPORT Box: public Layout {
 	
  private:
 	
-	Value     m_width;  // width 宽度
-	Value     m_height; // height 高度
-	Value     m_margin_top;   // 顶边缘距离
-	Value     m_margin_right; // 右边缘距离
-	Value     m_margin_bottom; // 底边缘距离
-	Value     m_margin_left;  // 左边缘距离
-	Color     m_border_top_color;
-	Color     m_border_right_color;
-	Color     m_border_bottom_color;
-	Color     m_border_left_color;
-	float     m_border_top_width;
-	float     m_border_right_width;
-	float     m_border_bottom_width;
-	float     m_border_left_width;
-	float     m_border_radius_left_top; // 左上圆角
-	float     m_border_radius_right_top; // 右上圆角
-	float     m_border_radius_right_bottom; // 右下圆角
-	float     m_border_radius_left_bottom; // 左下圆角
-	Color     m_background_color;     // 背景颜色
-	Background* m_background;         // 盒子背景
+	Value     _width;  // width 宽度
+	Value     _height; // height 高度
+	Value     _margin_top;   // 顶边缘距离
+	Value     _margin_right; // 右边缘距离
+	Value     _margin_bottom; // 底边缘距离
+	Value     _margin_left;  // 左边缘距离
+	Color     _border_top_color;
+	Color     _border_right_color;
+	Color     _border_bottom_color;
+	Color     _border_left_color;
+	float     _border_top_width;
+	float     _border_right_width;
+	float     _border_bottom_width;
+	float     _border_left_width;
+	float     _border_radius_left_top; // 左上圆角
+	float     _border_radius_right_top; // 右上圆角
+	float     _border_radius_right_bottom; // 右下圆角
+	float     _border_radius_left_bottom; // 左下圆角
+	Color     _background_color;     // 背景颜色
+	Background* _background;         // 盒子背景
  protected:
-	float     m_final_width; // 最终的宽度
-	float     m_final_height; // 最终的高度
-	float     m_final_margin_top; // 最终的顶边距
-	float     m_final_margin_right; // 最终的右边距
-	float     m_final_margin_bottom; // 最终的底边距
-	float     m_final_margin_left; // 最终的左边距
-	float     m_final_border_radius_left_top; // 最终的左上圆角
-	float     m_final_border_radius_right_top; // 最终的右上圆角
-	float     m_final_border_radius_right_bottom; // 最终的右下圆角
-	float     m_final_border_radius_left_bottom; // 最终的左下圆角
-	float     m_raw_client_width;    // 原客户端宽度,视图所占用的所有水平尺寸,三次布局以前的宽度
-	float     m_raw_client_height;   // 原客户端高度,视图所占用的所有垂直尺寸,三次布局以前的高度
-	Vec2      m_limit;            // 限制内部偏移排版的尺寸,有明确尺寸时与final_width或final_height相等
-	Vec2      m_final_vertex[4];  // 最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
+	float     _final_width; // 最终的宽度
+	float     _final_height; // 最终的高度
+	float     _final_margin_top; // 最终的顶边距
+	float     _final_margin_right; // 最终的右边距
+	float     _final_margin_bottom; // 最终的底边距
+	float     _final_margin_left; // 最终的左边距
+	float     _final_border_radius_left_top; // 最终的左上圆角
+	float     _final_border_radius_right_top; // 最终的右上圆角
+	float     _final_border_radius_right_bottom; // 最终的右下圆角
+	float     _final_border_radius_left_bottom; // 最终的左下圆角
+	float     _raw_client_width;    // 原客户端宽度,视图所占用的所有水平尺寸,三次布局以前的宽度
+	float     _raw_client_height;   // 原客户端高度,视图所占用的所有垂直尺寸,三次布局以前的高度
+	Vec2      _limit;            // 限制内部偏移排版的尺寸,有明确尺寸时与final_width或final_height相等
+	Vec2      _final_vertex[4];  // 最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
 	uint      horizontal_active_mark_value; // 父视图尺寸改变时,这个值会被加入到当前主标记中
 	uint      vertical_active_mark_value;   //
-	int       m_linenum;          /* 盒子在Hybrid视图布局中的行索引,-1表式没有行无需显示 */
-	bool      m_newline;          // 新行或新列
-	bool      m_clip;             // 是否溢出修剪
-	bool      m_explicit_width;   // 是否拥有明确宽度,明确宽度不会受到子布局视图的挤压影响
-	bool      m_explicit_height;  // 是否拥有明确高度,明确高度不会受到子布局视图的挤压影响
-	bool      m_is_draw_border;   // 是否需要绘制边框
-	bool      m_is_draw_border_radius;  // 是否要绘制圆角
+	int       _linenum;          /* 盒子在Hybrid视图布局中的行索引,-1表式没有行无需显示 */
+	bool      _newline;          // 新行或新列
+	bool      _clip;             // 是否溢出修剪
+	bool      _explicit_width;   // 是否拥有明确宽度,明确宽度不会受到子布局视图的挤压影响
+	bool      _explicit_height;  // 是否拥有明确高度,明确高度不会受到子布局视图的挤压影响
+	bool      _is_draw_border;   // 是否需要绘制边框
+	bool      _is_draw_border_radius;  // 是否要绘制圆角
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 	

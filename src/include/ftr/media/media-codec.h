@@ -142,37 +142,37 @@ namespace ftr {
 			/**
 			* @func track_count
 			*/
-			inline uint track_count() const { return m_tracks.length(); }
+			inline uint track_count() const { return _tracks.length(); }
 			
 			/**
 			* @func track_index current
 			*/
-			inline uint track_index() const { return m_track_index; }
+			inline uint track_index() const { return _track_index; }
 			
 			/**
 			* @func track current
 			* */
-			inline const TrackInfo& track() const { return m_tracks[m_track_index]; }
+			inline const TrackInfo& track() const { return _tracks[_track_index]; }
 			
 			/**
 			* @func track get track info with index
 			*/
-			inline const TrackInfo& track(uint index) const { return m_tracks[index]; }
+			inline const TrackInfo& track(uint index) const { return _tracks[index]; }
 			
 			/**
 			* @func host
 			*/
-			inline MultimediaSource* host() const { return m_host; }
+			inline MultimediaSource* host() const { return _host; }
 			
 			/**
 			* @func type
 			*/
-			inline MediaType type() const { return m_type; }
+			inline MediaType type() const { return _type; }
 			
 			/**
 			* @func frame_interval
 			* */
-			inline uint frame_interval() const { return m_tracks[0].frame_interval; }
+			inline uint frame_interval() const { return _tracks[0].frame_interval; }
 			
 			/**
 			* @func select_track
@@ -182,34 +182,34 @@ namespace ftr {
 			/**
 			* @func sample_time
 			* */
-			inline uint64 sample_time() const { return m_sample_data.time; }
+			inline uint64 sample_time() const { return _sample_data.time; }
 			
 			/**
 			* @func sample_d_time
 			* */
-			inline uint64 sample_d_time() const { return m_sample_data.d_time; }
+			inline uint64 sample_d_time() const { return _sample_data.d_time; }
 			
 			/**
 			* @func sample_data
 			* */
 			inline WeakBuffer sample_data() const {
-				return WeakBuffer(m_sample_data.data, m_sample_data.size);
+				return WeakBuffer(_sample_data.data, _sample_data.size);
 			}
 			
 			/**
 			* @func sample_size
 			* */
-			inline uint sample_size() const { return m_sample_data.size; }
+			inline uint sample_size() const { return _sample_data.size; }
 
 			/**
 			* @func presentation_time
 			* */
-			inline int sample_flags() const { return m_sample_data.flags; }
+			inline int sample_flags() const { return _sample_data.flags; }
 
 			/**
 			* @func eof_flags
 			* */
-			inline bool eof_flags() const { return m_eof_flags; }
+			inline bool eof_flags() const { return _eof_flags; }
 
 			/**
 			* @func deplete_sample
@@ -230,7 +230,7 @@ namespace ftr {
 			* @func deplete_sample
 			* */
 			inline uint deplete_sample() {
-				return deplete_sample(m_sample_data.size);
+				return deplete_sample(_sample_data.size);
 			}
 			
 			/**
@@ -241,12 +241,12 @@ namespace ftr {
 			/**
 			* @func set_disable
 			*/
-			inline void set_disable(bool value) {  m_disable = value; }
+			inline void set_disable(bool value) {  _disable = value; }
 
 			/**
 			* @func is_disable default true
 			* */
-			inline bool is_disable() const { return m_disable; }
+			inline bool is_disable() const { return _disable; }
 			
 			private:
 			
@@ -261,16 +261,16 @@ namespace ftr {
 				int     flags;
 			};
 			
-			MultimediaSource* m_host;
-			MediaType         m_type;
-			uint              m_track_index;
-			Array<TrackInfo>  m_tracks;
-			Array<SampleData> m_sample_data_cache;
-			uint              m_sample_index_cache;
-			uint              m_sample_count_cache;
-			SampleData        m_sample_data;
-			bool              m_eof_flags;
-			bool              m_disable;
+			MultimediaSource* _host;
+			MediaType         _type;
+			uint              _track_index;
+			Array<TrackInfo>  _tracks;
+			Array<SampleData> _sample_data_cache;
+			uint              _sample_index_cache;
+			uint              _sample_count_cache;
+			SampleData        _sample_data;
+			bool              _eof_flags;
+			bool              _disable;
 			friend class MultimediaSource;
 			friend class MultimediaSource::Inl;
 			// @end
@@ -357,7 +357,7 @@ namespace ftr {
 		
 		friend class Extractor;
 		friend class MediaCodec;
-		Inl*         m_inl;
+		Inl*         _inl;
 	};
 
 	/**
@@ -388,7 +388,7 @@ namespace ftr {
 		/**
 		* @func type
 		* */
-		inline MediaType type() const { return m_extractor->type(); }
+		inline MediaType type() const { return _extractor->type(); }
 		
 		/**
 		* @func set_delegate
@@ -398,32 +398,32 @@ namespace ftr {
 		/**
 		* @func source # return decoder source path
 		*/
-		inline MultimediaSource* source() const { return m_extractor->host(); }
+		inline MultimediaSource* source() const { return _extractor->host(); }
 		
 		/**
 		* @func extractor
 		*/
-		inline Extractor* extractor() const { return m_extractor; }
+		inline Extractor* extractor() const { return _extractor; }
 		
 		/**
 		* @func color_format decode output video color format 
 		*/
-		inline VideoColorFormat color_format() const { return m_color_format; }
+		inline VideoColorFormat color_format() const { return _color_format; }
 
 		/**
 		* @func channel_count
 		* */
-		inline uint channel_count() const { return m_channel_count; }
+		inline uint channel_count() const { return _channel_count; }
 
 		/**
 		* @func channel_layout
 		* */
-		inline uint64 channel_layout() const { return m_channel_layout; }
+		inline uint64 channel_layout() const { return _channel_layout; }
 
 		/**
 		* @func frame_interval
 		* */
-		inline uint frame_interval() const { return m_frame_interval; }
+		inline uint frame_interval() const { return _frame_interval; }
 		
 		/**
 		* @func open
@@ -504,12 +504,12 @@ namespace ftr {
 
 		MediaCodec(Extractor* extractor);
 		
-		Extractor*  m_extractor;
-		Delegate*   m_delegate;
-		VideoColorFormat m_color_format;
-		uint64      m_channel_layout;
-		uint        m_channel_count;
-		uint        m_frame_interval;
+		Extractor*  _extractor;
+		Delegate*   _delegate;
+		VideoColorFormat _color_format;
+		uint64      _channel_layout;
+		uint        _channel_count;
+		uint        _frame_interval;
 	};
 
 }

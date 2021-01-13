@@ -73,73 +73,73 @@ class LinuxApplication {
 	typedef NonObjectTraits Traits;
 
 	LinuxApplication()
-	: m_host(nullptr)
-	, m_dpy(nullptr)
-	, m_root(0)
-	, m_win(0)
-	, m_render_looper(nullptr)
-	, m_dispatch(nullptr)
-	, m_current_orientation(Orientation::ORIENTATION_INVALID)
-	, m_screen(0), m_s_width(0), m_s_height(0)
-	, m_x(0), m_y(0), m_width(1), m_height(1)
-	, m_w_width(1), m_w_height(1)
-	, m_is_init(0), m_exit(0)
-	, m_xft_dpi(96.0)
-	, m_xwin_scale(1.0)
-	, m_main_loop(0)
-	, m_ime(nullptr)
-	, m_mixer(nullptr)
-	, m_multitouch_device(nullptr)
-	, m_element(nullptr)
-	, m_is_fullscreen(0)
+	: _host(nullptr)
+	, _dpy(nullptr)
+	, _root(0)
+	, _win(0)
+	, _render_looper(nullptr)
+	, _dispatch(nullptr)
+	, _current_orientation(Orientation::ORIENTATION_INVALID)
+	, _screen(0), _s_width(0), _s_height(0)
+	, _x(0), _y(0), _width(1), _height(1)
+	, _w_width(1), _w_height(1)
+	, _is_init(0), _exit(0)
+	, _xft_dpi(96.0)
+	, _xwin_scale(1.0)
+	, _main_loop(0)
+	, _ime(nullptr)
+	, _mixer(nullptr)
+	, _multitouch_device(nullptr)
+	, _element(nullptr)
+	, _is_fullscreen(0)
 	{
 		ASSERT(!application); application = this;
 	}
 
 	~LinuxApplication() {
-		if (m_mixer) {
-			snd_mixer_free(m_mixer);
-			snd_mixer_detach(m_mixer, "default");
-			snd_mixer_close(m_mixer);
-			m_mixer = nullptr;
-			m_element = nullptr;
+		if (_mixer) {
+			snd_mixer_free(_mixer);
+			snd_mixer_detach(_mixer, "default");
+			snd_mixer_close(_mixer);
+			_mixer = nullptr;
+			_element = nullptr;
 		}
-		if (m_win) {
-			XDestroyWindow(m_dpy, m_win); m_win = 0;
+		if (_win) {
+			XDestroyWindow(_dpy, _win); _win = 0;
 		}
-		if (m_dpy) {
-			XCloseDisplay(m_dpy); m_dpy = nullptr;
+		if (_dpy) {
+			XCloseDisplay(_dpy); _dpy = nullptr;
 		}
-		if (m_ime) {
-			delete m_ime; m_ime = nullptr;
+		if (_ime) {
+			delete _ime; _ime = nullptr;
 		}
 		application = nullptr;
 		gl_draw_context = nullptr;
 	}
 
 	void post_message(cCb& cb) {
-		ASSERT(m_win);
+		ASSERT(_win);
 		{
-			ScopeLock lock(m_queue_mutex);
-			m_queue.push(cb);
+			ScopeLock lock(_queue_mutex);
+			_queue.push(cb);
 		}
 		// XExposeEvent event;
 		// event.type = Expose;
-		// event.display = m_dpy;
-		// event.window = m_win;
+		// event.display = _dpy;
+		// event.window = _win;
 		// event.x = 0;
 		// event.y = 0;
 		// event.width = 1;
 		// event.height = 1;
 		// event.count = 0;
-		// Status status = XSendEvent(m_dpy, m_win, true, ExposureMask, (XEvent*)&event);
+		// Status status = XSendEvent(_dpy, _win, true, ExposureMask, (XEvent*)&event);
 
 		XCirculateEvent event;
 		event.type = CirculateNotify;
-		event.display = m_dpy;
-		event.window = m_win;
+		event.display = _dpy;
+		event.window = _win;
 		event.place = PlaceOnTop;
-		XSendEvent(m_dpy, m_win, false, NoEventMask, (XEvent*)&event);
+		XSendEvent(_dpy, _win, false, NoEventMask, (XEvent*)&event);
 	}
 
 	/**
@@ -147,7 +147,7 @@ class LinuxApplication {
 	 */
 	Window create_xwindow () {
 
-		m_xset.event_mask = NoEventMask
+		_xset.event_mask = NoEventMask
 			| KeyPressMask
 			| KeyReleaseMask
 			| EnterWindowMask   // EnterNotify
@@ -157,8 +157,8 @@ class LinuxApplication {
 			| FocusChangeMask   // FocusIn, FocusOut
 		;
 
-		if (!m_multitouch_device) {
-			m_xset.event_mask |= NoEventMask
+		if (!_multitouch_device) {
+			_xset.event_mask |= NoEventMask
 				| ButtonPressMask
 				| ButtonReleaseMask
 				| PointerMotionMask // MotionNotify
@@ -171,27 +171,27 @@ class LinuxApplication {
 			;
 		}
 
-		DLOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", m_x, m_y, m_width, m_height);
+		DLOG("XCreateWindow, x:%d, y:%d, w:%d, h:%d", _x, _y, _width, _height);
 
 		Window win = XCreateWindow(
-			m_dpy, m_root,
-			m_x, m_y,
-			m_width, m_height, 0,
-			DefaultDepth(m_dpy, 0),
+			_dpy, _root,
+			_x, _y,
+			_width, _height, 0,
+			DefaultDepth(_dpy, 0),
 			InputOutput,
-			DefaultVisual(m_dpy, 0),
-			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &m_xset
+			DefaultVisual(_dpy, 0),
+			CWBackPixel | CWEventMask | CWBorderPixel | CWColormap, &_xset
 		);
 
-		// DLOG("m_xset.background_pixel 3, %d", m_xset.background_pixel);
+		// DLOG("_xset.background_pixel 3, %d", _xset.background_pixel);
 
 		ASSERT(win, "Cannot create XWindow");
 
-		if (m_multitouch_device) {
-			DLOG("m_multitouch_device");
+		if (_multitouch_device) {
+			DLOG("_multitouch_device");
 
 			XIEventMask eventmask;
-			byte mask[3] = { 0,0,0 };
+			uint8_t mask[3] = { 0,0,0 };
 
 			eventmask.deviceid = XIAllMasterDevices;
 			eventmask.mask_len = sizeof(mask);
@@ -201,26 +201,26 @@ class LinuxApplication {
 			XISetMask(mask, XI_TouchUpdate);
 			XISetMask(mask, XI_TouchEnd);
 
-			XISelectEvents(m_dpy, win, &eventmask, 1);
+			XISelectEvents(_dpy, win, &eventmask, 1);
 		}
 
-		XStoreName(m_dpy, win, *m_title); // set window title name
-		XSetWMProtocols(m_dpy, win, &m_wm_delete_window, True);
+		XStoreName(_dpy, win, *_title); // set window title name
+		XSetWMProtocols(_dpy, win, &_wm_delete_window, True);
 
 		return win;
 	}
 
 	void run() {
-		m_host = Inl_GUIApplication(app());
-		m_dispatch = m_host->dispatch();
-		m_render_looper = new RenderLooper(m_host);
-		m_main_loop = m_host->main_loop();
-		m_win = create_xwindow();
-		m_ime = new LINUXIMEHelper(m_host, m_dpy, m_win);
+		_host = Inl_GUIApplication(app());
+		_dispatch = _host->dispatch();
+		_render_looper = new RenderLooper(_host);
+		_main_loop = _host->main_loop();
+		_win = create_xwindow();
+		_ime = new LINUXIMEHelper(_host, _dpy, _win);
 
-		XMapWindow(m_dpy, m_win); // Activate window
+		XMapWindow(_dpy, _win); // Activate window
 
-		if (m_is_fullscreen) {
+		if (_is_fullscreen) {
 			request_fullscreen(true);
 		}
 
@@ -228,7 +228,7 @@ class LinuxApplication {
 
 		// run message main_loop
 		do {
-			XNextEvent(m_dpy, &event);
+			XNextEvent(_dpy, &event);
 
 			if (is_exited()) break;
 
@@ -241,68 +241,68 @@ class LinuxApplication {
 					handle_expose(event);
 					break;
 				case MapNotify:
-					if (m_is_init) {
+					if (_is_init) {
 						DLOG("event, MapNotify, Window onForeground");
-						m_host->triggerForeground();
-						m_render_looper->start();
+						_host->triggerForeground();
+						_render_looper->start();
 					}
 					break;
 				case UnmapNotify:
 					DLOG("event, UnmapNotify, Window onBackground");
-					m_host->triggerBackground();
-					m_render_looper->stop();
+					_host->triggerBackground();
+					_render_looper->stop();
 					break;
 				case FocusIn:
 					DLOG("event, FocusIn, Window onResume");
-					m_ime->focus_in();
-					m_host->triggerResume();
+					_ime->focus_in();
+					_host->triggerResume();
 					break;
 				case FocusOut:
 					DLOG("event, FocusOut, Window onPause");
-					m_ime->focus_out();
-					m_host->triggerPause();
+					_ime->focus_out();
+					_host->triggerPause();
 					break;
 				case KeyPress:
 					DLOG("event, KeyDown, keycode: %ld", event.xkey.keycode);
-					m_ime->key_press(&event.xkey);
-					m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
+					_ime->key_press(&event.xkey);
+					_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 1);
 					break;
 				case KeyRelease:
 					DLOG("event, KeyUp, keycode: %d", event.xkey.keycode);
-					m_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
+					_dispatch->keyboard_adapter()->dispatch(event.xkey.keycode, 0, 0);
 					break;
 				case ButtonPress:
 					DLOG("event, MouseDown, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-					m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
+					_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), true);
 					break;
 				case ButtonRelease:
 					DLOG("event, MouseUp, button: %s", MOUSE_KEYS[event.xbutton.button - 1]);
-					m_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
+					_dispatch->dispatch_mousepress(KeyboardKeyName(event.xbutton.button), false);
 					break;
 				case MotionNotify: {
-					Vec2 scale = m_host->display_port()->scale();
+					Vec2 scale = _host->display_port()->scale();
 					DLOG("event, MouseMove: [%d, %d]", event.xmotion.x, event.xmotion.y);
-					m_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
+					_dispatch->dispatch_mousemove(event.xmotion.x / scale[0], event.xmotion.y / scale[1]);
 					break;
 				}
 				case ClientMessage:
-					if (event.xclient.message_type == m_wm_protocols && 
-						(Atom)event.xclient.data.l[0] == m_wm_delete_window) {
-						m_exit = 1; // exit
+					if (event.xclient.message_type == _wm_protocols && 
+						(Atom)event.xclient.data.l[0] == _wm_delete_window) {
+						_exit = 1; // exit
 					}
 					break;
 				case GenericEvent:
 					/* event is a union, so cookie == &event, but this is type safe. */
-					if (XGetEventData(m_dpy, &event.xcookie)) {
+					if (XGetEventData(_dpy, &event.xcookie)) {
 						XHandleXinput2Event(&event.xcookie);
-						XFreeEventData(m_dpy, &event.xcookie);
+						XFreeEventData(_dpy, &event.xcookie);
 					}
 					break;
 				default:
 					DLOG("event, %d", event.type);
 					break;
 			}
-		} while(!m_exit);
+		} while(!_exit);
 
 		destroy();
 	}
@@ -310,7 +310,7 @@ class LinuxApplication {
 	void XHandleXinput2Event(XGenericEventCookie* cookie) {
 
 		XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
-		Vec2 scale = m_host->display_port()->scale();
+		Vec2 scale = _host->display_port()->scale();
 
 		List<GUITouch> touchs = {
 			{
@@ -328,17 +328,17 @@ class LinuxApplication {
 			case XI_TouchBegin:
 				DLOG("event, XI_TouchBegin, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 					xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
-				m_dispatch->dispatch_touchstart( move(touchs) );
+				_dispatch->dispatch_touchstart( move(touchs) );
 				break;
 			case XI_TouchEnd:
 				DLOG("event, XI_TouchEnd, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 					xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
-				m_dispatch->dispatch_touchend( move(touchs) );
+				_dispatch->dispatch_touchend( move(touchs) );
 				break;
 			case XI_TouchUpdate:
 				DLOG("event, XI_TouchUpdate, deviceid: %d, sourceid: %d, detail: %d, x: %f, y: %f", 
 					xev->deviceid, xev->sourceid, xev->detail, float(xev->event_x), float(xev->event_y));
-				m_dispatch->dispatch_touchmove( move(touchs) );
+				_dispatch->dispatch_touchmove( move(touchs) );
 				break;
 		}
 	}
@@ -346,45 +346,45 @@ class LinuxApplication {
 	void handle_expose(XEvent& event) {
 		DLOG("event, Expose");
 		XWindowAttributes attrs;
-		XGetWindowAttributes(m_dpy, m_win, &attrs);
+		XGetWindowAttributes(_dpy, _win, &attrs);
 
-		m_w_width = attrs.width;
-		m_w_height = attrs.height;
+		_w_width = attrs.width;
+		_w_height = attrs.height;
 
 		typedef Callback<RunLoop::PostSyncData> Cb;
-		m_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
-			if (m_is_init) {
+		_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
+			if (_is_init) {
 				CGRect rect = {Vec2(), get_window_size()};
 				gl_draw_context->refresh_surface_size(&rect);
-				m_host->refresh_display(); // 刷新显示
+				_host->refresh_display(); // 刷新显示
 			} else {
-				m_is_init = 1;
-				ASSERT(gl_draw_context->create_surface(m_win));
+				_is_init = 1;
+				ASSERT(gl_draw_context->create_surface(_win));
 				gl_draw_context->initialize();
-				m_host->triggerLoad();
-				m_host->triggerForeground();
-				m_render_looper->start();
+				_host->triggerLoad();
+				_host->triggerForeground();
+				_render_looper->start();
 			}
 			ev.data->complete();
 		}));
 	}
 
 	inline LINUXIMEHelper* ime() {
-		return m_ime;
+		return _ime;
 	}
 
 	void initialize_display() {
-		if (!m_dpy) {
-			m_dpy = XOpenDisplay(nullptr);
-			ASSERT(m_dpy, "Error: Can't open display");
-			m_xft_dpi = get_monitor_dpi();
-			m_xwin_scale = m_xft_dpi / 96.0;
+		if (!_dpy) {
+			_dpy = XOpenDisplay(nullptr);
+			ASSERT(_dpy, "Error: Can't open display");
+			_xft_dpi = get_monitor_dpi();
+			_xwin_scale = _xft_dpi / 96.0;
 		}
 	}
 
 	inline float xwin_scale() {
 		initialize_display(); // init display
-		return m_xwin_scale;
+		return _xwin_scale;
 	}
 
 	void initialize(cJSON& options) {
@@ -401,40 +401,40 @@ class LinuxApplication {
 		
 		int is_enable_touch = 0;
 
-		if (o_t.is_string()) m_title = o_t.to_string();
-		if (o_fc.is_bool()) m_is_fullscreen = o_fc.to_bool();
-		if (o_fc.is_int()) m_is_fullscreen = o_fc.to_int();
+		if (o_t.is_string()) _title = o_t.to_string();
+		if (o_fc.is_bool()) _is_fullscreen = o_fc.to_bool();
+		if (o_fc.is_int()) _is_fullscreen = o_fc.to_int();
 		if (o_et.is_bool()) is_enable_touch = o_et.to_bool();
 		if (o_et.is_int()) is_enable_touch = o_et.to_int();
 
 		initialize_display(); // init display
 
-		m_root = XDefaultRootWindow(m_dpy);
-		m_screen = DefaultScreen(m_dpy);
+		_root = XDefaultRootWindow(_dpy);
+		_screen = DefaultScreen(_dpy);
 
-		m_w_width = m_width = m_s_width   = XDisplayWidth(m_dpy, m_screen);
-		m_w_height = m_height = m_s_height = XDisplayHeight(m_dpy, m_screen);
-		m_wm_protocols     = XInternAtom(m_dpy, "WM_PROTOCOLS"    , False);
-		m_wm_delete_window = XInternAtom(m_dpy, "WM_DELETE_WINDOW", False);
+		_w_width = _width = _s_width   = XDisplayWidth(_dpy, _screen);
+		_w_height = _height = _s_height = XDisplayHeight(_dpy, _screen);
+		_wm_protocols     = XInternAtom(_dpy, "WM_PROTOCOLS"    , False);
+		_wm_delete_window = XInternAtom(_dpy, "WM_DELETE_WINDOW", False);
 
-		DLOG("screen width: %d, height: %d, dpi scale: %f", m_s_width, m_s_height, m_xwin_scale);
+		DLOG("screen width: %d, height: %d, dpi scale: %f", _s_width, _s_height, _xwin_scale);
 		
-		m_xset.background_pixel = 0;
-		m_xset.border_pixel = 0;
-		m_xset.background_pixmap = None;
-		m_xset.border_pixmap = None;
-		m_xset.event_mask = NoEventMask;
-		m_xset.do_not_propagate_mask = NoEventMask;
+		_xset.background_pixel = 0;
+		_xset.border_pixel = 0;
+		_xset.background_pixmap = None;
+		_xset.border_pixmap = None;
+		_xset.event_mask = NoEventMask;
+		_xset.do_not_propagate_mask = NoEventMask;
 
-		// DLOG("m_xset.background_pixel 1, %d", m_xset.background_pixel);
+		// DLOG("_xset.background_pixel 1, %d", _xset.background_pixel);
 
-		if (o_b.is_uint()) m_xset.background_pixel = o_b.to_uint();
-		if (o_w.is_uint()) m_width = FX_MAX(1, o_w.to_uint()) * m_xwin_scale;
-		if (o_h.is_uint()) m_height = FX_MAX(1, o_h.to_uint()) * m_xwin_scale;
-		if (o_x.is_uint()) m_x = o_x.to_uint() * m_xwin_scale; else m_x = (m_s_width - m_width) / 2;
-		if (o_y.is_uint()) m_y = o_y.to_uint() * m_xwin_scale; else m_y = (m_s_height - m_height) / 2;
+		if (o_b.is_uint()) _xset.background_pixel = o_b.to_uint();
+		if (o_w.is_uint()) _width = FX_MAX(1, o_w.to_uint()) * _xwin_scale;
+		if (o_h.is_uint()) _height = FX_MAX(1, o_h.to_uint()) * _xwin_scale;
+		if (o_x.is_uint()) _x = o_x.to_uint() * _xwin_scale; else _x = (_s_width - _width) / 2;
+		if (o_y.is_uint()) _y = o_y.to_uint() * _xwin_scale; else _y = (_s_height - _height) / 2;
 
-		// DLOG("m_xset.background_pixel 2, %d", m_xset.background_pixel);
+		// DLOG("_xset.background_pixel 2, %d", _xset.background_pixel);
 
 		if (is_enable_touch)
 			initialize_multitouch();
@@ -443,16 +443,16 @@ class LinuxApplication {
 	}
 
 	void initialize_multitouch() {
-		ASSERT(!m_multitouch_device);
+		ASSERT(!_multitouch_device);
 
-		Atom touchAtom = XInternAtom(m_dpy, "TOUCHSCREEN", true);
+		Atom touchAtom = XInternAtom(_dpy, "TOUCHSCREEN", true);
 		if (touchAtom == None) {
-			touchAtom = XInternAtom(m_dpy, XI_TOUCHSCREEN, false);
+			touchAtom = XInternAtom(_dpy, XI_TOUCHSCREEN, false);
 			if (touchAtom == None) return;
 		}
 
 		int inputDeviceCount = 0;
-		XDeviceInfo* devices = XListInputDevices(m_dpy, &inputDeviceCount);
+		XDeviceInfo* devices = XListInputDevices(_dpy, &inputDeviceCount);
 		XDeviceInfo* touchInfo = nullptr;
 
 		for (int i = 0; i < inputDeviceCount; i++) {
@@ -465,23 +465,23 @@ class LinuxApplication {
 			return;
 		}
 
-		m_multitouch_device =  XOpenDevice(m_dpy, touchInfo->id);
-		if (!m_multitouch_device)
+		_multitouch_device =  XOpenDevice(_dpy, touchInfo->id);
+		if (!_multitouch_device)
 			return;
 
 		DLOG("X11 Touch enable active for device «%s»", touchInfo->name);
 
-		Atom enabledAtom = XInternAtom(m_dpy, "Device Enabled", false);
+		Atom enabledAtom = XInternAtom(_dpy, "Device Enabled", false);
 
-		byte enabled = 1;
-		XChangeDeviceProperty(m_dpy, m_multitouch_device,
+		uint8_t enabled = 1;
+		XChangeDeviceProperty(_dpy, _multitouch_device,
 			enabledAtom, XA_INTEGER, 8, PropModeReplace, &enabled, 1);
 	}
 
 	int get_master_volume() {
 		long volume = 0;
-		if (m_element) {
-			snd_mixer_selem_get_playback_volume(m_element, SND_MIXER_SCHN_FRONT_LEFT, &volume);
+		if (_element) {
+			snd_mixer_selem_get_playback_volume(_element, SND_MIXER_SCHN_FRONT_LEFT, &volume);
 		}
 		return volume;
 	}
@@ -504,7 +504,7 @@ class LinuxApplication {
 		int len = sizeof(snd_mixer_selem_channel_id_t) / sizeof(chs);
 
 		for (int i = 0; i < len; i++) {
-			snd_mixer_selem_set_playback_volume(m_element, chs[i], volume);
+			snd_mixer_selem_set_playback_volume(_element, chs[i], volume);
 		}
 	}
 
@@ -513,59 +513,59 @@ class LinuxApplication {
 		int x, y, width, height;
 		if (fullscreen) {
 			XWindowAttributes attrs;
-			XGetWindowAttributes(m_dpy, m_win, &attrs);
-			m_x = attrs.x;
-			m_y = attrs.y;
+			XGetWindowAttributes(_dpy, _win, &attrs);
+			_x = attrs.x;
+			_y = attrs.y;
 			x = 0; y = 0;
-			m_width = m_w_width;
-			m_height = m_w_height;
-			width = XDisplayWidth(m_dpy, m_screen);
-			height = XDisplayHeight(m_dpy, m_screen);
+			_width = _w_width;
+			_height = _w_height;
+			width = XDisplayWidth(_dpy, _screen);
+			height = XDisplayHeight(_dpy, _screen);
 			mask |= CWOverrideRedirect;
-			m_xset.override_redirect = True;
+			_xset.override_redirect = True;
 		} else {
-			x = m_x; y = m_y;
-			width = m_width;
-			height = m_height;
-			m_xset.override_redirect = False;
+			x = _x; y = _y;
+			width = _width;
+			height = _height;
+			_xset.override_redirect = False;
 		}
-		XChangeWindowAttributes(m_dpy, m_win, mask, &m_xset);
-		XMoveResizeWindow(m_dpy, m_win, x, y, width, height);
+		XChangeWindowAttributes(_dpy, _win, mask, &_xset);
+		XMoveResizeWindow(_dpy, _win, x, y, width, height);
 	}
 
 	inline Vec2 get_window_size() {
-		return Vec2(m_w_width, m_w_height);
+		return Vec2(_w_width, _w_height);
 	}
 
 	inline Display* get_x11_display() {
-		return m_dpy;
+		return _dpy;
 	}
 
 	void initialize_master_volume_control() {
-		ASSERT(!m_mixer);
-		snd_mixer_open(&m_mixer, 0);
-		snd_mixer_attach(m_mixer, "default");
-		snd_mixer_selem_register(m_mixer, NULL, NULL);
-		snd_mixer_load(m_mixer);
+		ASSERT(!_mixer);
+		snd_mixer_open(&_mixer, 0);
+		snd_mixer_attach(_mixer, "default");
+		snd_mixer_selem_register(_mixer, NULL, NULL);
+		snd_mixer_load(_mixer);
 		/* 取得第一個 element，也就是 Master */
-		m_element = snd_mixer_first_elem(m_mixer); DLOG("element,%p", m_element);
+		_element = snd_mixer_first_elem(_mixer); DLOG("element,%p", _element);
 		/* 設定音量的範圍 0 ~ 100 */
-		if (m_element) {
-			snd_mixer_selem_set_playback_volume_range(m_element, 0, 100);
+		if (_element) {
+			snd_mixer_selem_set_playback_volume_range(_element, 0, 100);
 		}
 	}
 
 	void resolved_queue() {
 		List<Cb> queue;
 		{
-			ScopeLock lock(m_queue_mutex);
-			if (m_queue.length()) {
-				queue = move(m_queue);
+			ScopeLock lock(_queue_mutex);
+			if (_queue.length()) {
+				queue = move(_queue);
 			}
 		}
 		if (queue.length()) {
 			for (auto& i: queue) {
-				CbD data = { 0, m_host, 0 };
+				CbD data = { 0, _host, 0 };
 				i.value()->call(data);
 			}
 		}
@@ -573,16 +573,16 @@ class LinuxApplication {
 
 	void destroy() {
 		if (!is_exited()) {
-			m_render_looper->stop();
+			_render_looper->stop();
 			ftr::safeExit(0);
 		}
-		XDestroyWindow(m_dpy, m_win); m_win = 0;
-		XCloseDisplay(m_dpy); m_dpy = nullptr; // disconnect x display
+		XDestroyWindow(_dpy, _win); _win = 0;
+		XCloseDisplay(_dpy); _dpy = nullptr; // disconnect x display
 		DLOG("LinuxApplication Exit");
 	}
 
 	float get_monitor_dpi() {
-		char* ms = XResourceManagerString(m_dpy);
+		char* ms = XResourceManagerString(_dpy);
 		float dpi = 96.0;
 		if (ms) {
 			DLOG("Entire DB:\n%s", ms);
@@ -601,29 +601,29 @@ class LinuxApplication {
 
  private:
 	// @methods data:
-	AppInl* m_host;
-	Display* m_dpy;
-	Window m_root, m_win;
-	RenderLooper* m_render_looper;
-	GUIEventDispatch* m_dispatch;
-	Orientation m_current_orientation;
-	int m_screen, m_s_width, m_s_height;
-	int m_x, m_y;
-	uint m_width, m_height;
-	std::atomic_int m_w_width, m_w_height;
-	bool m_is_init, m_exit;
-	float m_xft_dpi, m_xwin_scale;
-	XSetWindowAttributes m_xset;
-	Atom m_wm_protocols, m_wm_delete_window;
-	RunLoop* m_main_loop;
-	String m_title;
-	LINUXIMEHelper* m_ime;
-	List<Cb> m_queue;
-	Mutex m_queue_mutex;
-	snd_mixer_t* m_mixer;
-	XDevice* m_multitouch_device;
-	snd_mixer_elem_t* m_element;
-	bool m_is_fullscreen;
+	AppInl* _host;
+	Display* _dpy;
+	Window _root, _win;
+	RenderLooper* _render_looper;
+	GUIEventDispatch* _dispatch;
+	Orientation _current_orientation;
+	int _screen, _s_width, _s_height;
+	int _x, _y;
+	uint _width, _height;
+	std::atomic_int _w_width, _w_height;
+	bool _is_init, _exit;
+	float _xft_dpi, _xwin_scale;
+	XSetWindowAttributes _xset;
+	Atom _wm_protocols, _wm_delete_window;
+	RunLoop* _main_loop;
+	String _title;
+	LINUXIMEHelper* _ime;
+	List<Cb> _queue;
+	Mutex _queue_mutex;
+	snd_mixer_t* _mixer;
+	XDevice* _multitouch_device;
+	snd_mixer_elem_t* _element;
+	bool _is_fullscreen;
 };
 
 Vec2 __get_window_size() {
@@ -703,7 +703,7 @@ void AppInl::initialize(cJSON& options) {
 	ASSERT(!gl_draw_context);
 	application->initialize(options);
 	gl_draw_context = GLDrawProxy::create(this, options);
-	m_draw_ctx = gl_draw_context->host();
+	_draw_ctx = gl_draw_context->host();
 }
 
 /**

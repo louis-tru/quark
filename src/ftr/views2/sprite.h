@@ -83,37 +83,37 @@ class FX_EXPORT Sprite: public View {
 	/**
 	 * @func texture 精灵的纹理
 	 */
-	inline Texture* texture() const { return m_texture; }
+	inline Texture* texture() const { return _texture; }
 	
 	/**
 	 * @func start_x 精灵在图像中的开始x轴座标
 	 */
-	inline float start_x() const { return m_start.x(); }
+	inline float start_x() const { return _start.x(); }
 	
 	/**
 	 * @func start_y 精灵在图像中的开始y轴座标
 	 */
-	inline float start_y() const { return m_start.y(); }
+	inline float start_y() const { return _start.y(); }
 	
 	/**
 	 * @func width 精灵宽度
 	 */
-	inline float width() const { return m_size.width(); }
+	inline float width() const { return _size.width(); }
 	
 	/**
 	 * @func height 精灵高度
 	 */
-	inline float height() const { return m_size.height(); }
+	inline float height() const { return _size.height(); }
 	
 	/**
 	 * @func width_1()
 	 */
-	inline Value width_1() const { return Value(m_size.width()); }
+	inline Value width_1() const { return Value(_size.width()); }
 	
 	/**
 	 * @func height_1()
 	 */
-	inline Value height_1() const { return Value(m_size.height()); }
+	inline Value height_1() const { return Value(_size.height()); }
 	
 	/**
 	 * @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
@@ -164,7 +164,7 @@ class FX_EXPORT Sprite: public View {
 	 * @func start 精灵图片的开始位置
 	 */
 	inline Vec2 start() const {
-		return m_start;
+		return _start;
 	}
 	
 	/**
@@ -177,7 +177,7 @@ class FX_EXPORT Sprite: public View {
 	/**
 	 * @func size 精灵视图的尺寸
 	 */
-	inline Vec2 size() const { return m_size; }
+	inline Vec2 size() const { return _size; }
 	
 	/**
 	 * @func size 精灵视图的尺寸
@@ -189,17 +189,17 @@ class FX_EXPORT Sprite: public View {
 	/**
 	 * @func ratio_x get
 	 */
-	inline float ratio_x() const { return m_ratio.x(); }
+	inline float ratio_x() const { return _ratio.x(); }
 	
 	/**
 	 * @func ratio_y get
 	 */
-	inline float ratio_y() const { return m_ratio.y(); }
+	inline float ratio_y() const { return _ratio.y(); }
 	
 	/**
 	 * @func ratio get 图像比例尺
 	 */
-	inline Vec2 ratio() const { return m_ratio; }
+	inline Vec2 ratio() const { return _ratio; }
 	
 	/**
 	 * @func set_ratio_x set
@@ -221,7 +221,7 @@ class FX_EXPORT Sprite: public View {
 	/**
 	 * @func repeat get
 	 */
-	inline Repeat repeat() const { return m_repeat; }
+	inline Repeat repeat() const { return _repeat; }
 	
 	/**
 	 * @func repeat set
@@ -248,13 +248,13 @@ class FX_EXPORT Sprite: public View {
 	void compute_box_vertex(Vec2 vertex[4]);
 
  private:
-	Vec2      m_start;
-	Vec2      m_size;
-	Vec2      m_ratio;
-	Texture*  m_texture;
-	int       m_tex_level;
-	Repeat    m_repeat;
-	Vec2      m_final_vertex[4];      //  最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
+	Vec2      _start;
+	Vec2      _size;
+	Vec2      _ratio;
+	Texture*  _texture;
+	int       _tex_level;
+	Repeat    _repeat;
+	Vec2      _final_vertex[4];      //  最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
 	
 	FX_DEFINE_INLINE_CLASS(Inl);
 };

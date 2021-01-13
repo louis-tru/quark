@@ -58,7 +58,7 @@ namespace ftr {
 		* @func name
 		*/
 		inline const Array<String>& name() const {
-			return m_classs;
+			return _classs;
 		}
 		
 		/**
@@ -85,7 +85,7 @@ namespace ftr {
 		* @func has_child
 		*/
 		inline bool has_child() const {
-			return m_child_style_sheets.length();
+			return _child_style_sheets.length();
 		}
 		
 		/**
@@ -107,17 +107,17 @@ namespace ftr {
 		* @func child_style_sheets current child style sheets
 		*/
 		inline const Array<StyleSheets*>& child_style_sheets() {
-			return m_child_style_sheets;
+			return _child_style_sheets;
 		}
 		
 		private:
-		View*           m_host;
-		Array<String>   m_classs;
-		Array<uint>     m_query_group;
-		Array<StyleSheets*> m_child_style_sheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
-		bool            m_is_support_pseudo;      // 当前样式表选择器能够找到支持伪类的样式表
-		bool            m_once_apply;             // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
-		CSSPseudoClass  m_multiple_status;
+		View*           _host;
+		Array<String>   _classs;
+		Array<uint>     _query_group;
+		Array<StyleSheets*> _child_style_sheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
+		bool            _is_support_pseudo;      // 当前样式表选择器能够找到支持伪类的样式表
+		bool            _once_apply;             // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
+		CSSPseudoClass  _multiple_status;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

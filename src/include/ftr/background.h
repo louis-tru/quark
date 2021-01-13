@@ -66,7 +66,7 @@ namespace ftr {
 		/**
 		* @func next()
 		*/
-		inline Background* next() { return m_next; }
+		inline Background* next() { return _next; }
 		
 		/**
 		* @func set_next(value)
@@ -97,7 +97,7 @@ namespace ftr {
 		/**
 		* @func allow_multi_holder()
 		*/
-		inline HolderMode holder_mode() const { return m_holder_mode; }
+		inline HolderMode holder_mode() const { return _holder_mode; }
 		
 		/**
 		* @func set_holder_mode(value)
@@ -127,9 +127,9 @@ namespace ftr {
 		*/
 		virtual Background* copy(Background* to) = 0;
 		
-		Background* m_next;
-		Box*        m_host;
-		HolderMode  m_holder_mode;
+		Background* _next;
+		Box*        _host;
+		HolderMode  _holder_mode;
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class Box;
 		friend class GLDraw;
@@ -146,13 +146,13 @@ namespace ftr {
 		virtual ~BackgroundImage();
 		virtual Type type() const { return M_IMAGE; }
 		virtual BackgroundImage* as_image() { return this; }
-		inline Texture* texture() { return m_texture; }
-		inline Repeat repeat() const { return m_repeat; }
-		inline BackgroundPosition position_x() const { return m_position_x; }
-		inline BackgroundPosition position_y() const { return m_position_y; }
-		inline BackgroundSize size_x() const { return m_size_x; }
-		inline BackgroundSize size_y() const { return m_size_y; }
-		inline bool has_base64() const { return m_has_base64_src; }
+		inline Texture* texture() { return _texture; }
+		inline Repeat repeat() const { return _repeat; }
+		inline BackgroundPosition position_x() const { return _position_x; }
+		inline BackgroundPosition position_y() const { return _position_y; }
+		inline BackgroundSize size_x() const { return _size_x; }
+		inline BackgroundSize size_y() const { return _size_y; }
+		inline bool has_base64() const { return _has_base64_src; }
 		String src() const;
 		void set_src(cString& value);
 		void set_src_base64(cString& data);
@@ -166,15 +166,15 @@ namespace ftr {
 		protected:
 		virtual Background* copy(Background* to);
 		private:
-		String    m_src;
-		bool      m_has_base64_src;
-		Texture*  m_texture;
-		Repeat    m_repeat;
-		BackgroundPosition  m_position_x;
-		BackgroundPosition  m_position_y;
-		BackgroundSize      m_size_x;
-		BackgroundSize      m_size_y;
-		int m_attributes_flags;
+		String    _src;
+		bool      _has_base64_src;
+		Texture*  _texture;
+		Repeat    _repeat;
+		BackgroundPosition  _position_x;
+		BackgroundPosition  _position_y;
+		BackgroundSize      _size_x;
+		BackgroundSize      _size_y;
+		int _attributes_flags;
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class Box;
 		friend class GLDraw;

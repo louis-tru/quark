@@ -45,7 +45,7 @@ public:
 				if (bg == this) {
 					return true;
 				}
-				bg = bg->m_next;
+				bg = bg->_next;
 			} while (bg);
 		}
 		return false;
@@ -82,10 +82,10 @@ public:
 	}
 	
 	void set_next(Background* value) {
-		m_next = assign(m_next, value);
-		if (m_next) {
-			m_next->set_host(m_host);
-			m_next->set_holder_mode(m_holder_mode);
+		_next = assign(_next, value);
+		if (_next) {
+			_next->set_host(_host);
+			_next->set_holder_mode(_holder_mode);
 		}
 		mark(View::M_BACKGROUND);
 	}
@@ -93,21 +93,21 @@ public:
 };
 
 Background::Background()
-: m_next(nullptr)
-, m_host(nullptr)
-, m_holder_mode(M_INDEPENDENT)
+: _next(nullptr)
+, _host(nullptr)
+, _holder_mode(M_INDEPENDENT)
 {
 }
 
 Background::~Background() {
-	if (m_next) {
-		m_next->release();
-		m_next = nullptr;
+	if (_next) {
+		_next->release();
+		_next = nullptr;
 	}
 }
 
 void Background::set_next(Background* value) {
-	if (value != m_next) {
+	if (value != _next) {
 		if (_inl(this)->check_loop_reference(value)) {
 			FX_ERR("Box background loop reference error");
 		} else {
@@ -122,7 +122,7 @@ Background* Background::assign(Background* left, Background* right) {
 	if (left == right) {
 		return left;
 	} else {
-		if (left && right && _inl(left)->check_loop_reference(right->m_next)) {
+		if (left && right && _inl(left)->check_loop_reference(right->_next)) {
 			FX_ERR("Box background loop reference error");
 			return left;
 		} else {
@@ -132,9 +132,9 @@ Background* Background::assign(Background* left, Background* right) {
 }
 
 bool Background::retain() {
-	if (m_holder_mode == M_DISABLE) {
+	if (_holder_mode == M_DISABLE) {
 		return false;
-	} else if (m_holder_mode == M_INDEPENDENT) {
+	} else if (_holder_mode == M_INDEPENDENT) {
 		if (ref_count() > 0) {
 			return false;
 		}
@@ -148,10 +148,10 @@ void Background::release() {
 }
 
 void Background::set_host(Box* host) {
-	if (m_host != host) {
-		m_host = host;
-		if (m_next) {
-			m_next->set_host(host);
+	if (_host != host) {
+		_host = host;
+		if (_next) {
+			_next->set_host(host);
 		}
 	}
 }
@@ -160,17 +160,17 @@ void Background::set_host(Box* host) {
  * @func set_holder_mode(mode)
  */
 void Background::set_holder_mode(HolderMode mode) {
-	if (m_holder_mode != mode) {
-		m_holder_mode = mode;
-		if (m_next) {
-			m_next->set_holder_mode(mode);
+	if (_holder_mode != mode) {
+		_holder_mode = mode;
+		if (_next) {
+			_next->set_holder_mode(mode);
 		}
 	}
 }
 
 void Background::mark(uint mark_value) {
-	if (m_host) {
-		m_host->mark(mark_value);
+	if (_host) {
+		_host->mark(mark_value);
 	}
 }
 
@@ -198,73 +198,73 @@ public:
 	void reset_texture() {
 		auto pool = tex_pool();
 		if (pool) {
-			if (m_has_base64_src) {
+			if (_has_base64_src) {
 				FX_UNIMPLEMENTED(); // TODO ...
 			} else {
-				set_texture(pool->get_texture(m_src));
+				set_texture(pool->get_texture(_src));
 			}
 		}
 	}
 	
 //  Texture* get_texture() {
-//    if (!m_texture) {
-//      if (!m_src.is_empty()) {
+//    if (!_texture) {
+//      if (!_src.is_empty()) {
 //        reset_texture();
 //      }
 //    }
-//    return m_texture;
+//    return _texture;
 //  }
 	
 	void set_source(cString& src, bool has_base64) {
-		if (has_base64 || src != m_src) {
-			m_src = src;
-			m_has_base64_src = has_base64;
+		if (has_base64 || src != _src) {
+			_src = src;
+			_has_base64_src = has_base64;
 			if ( src.is_empty() ) {
 				set_texture(nullptr);
 			} else {
 				reset_texture();
 			}
-			m_attributes_flags |= BI_flag_src;
+			_attributes_flags |= BI_flag_src;
 		}
 	}
 	
 };
 
 BackgroundImage::BackgroundImage()
-: m_src()
-, m_texture(nullptr)
-, m_repeat(Repeat::REPEAT)
-, m_attributes_flags(0)
+: _src()
+, _texture(nullptr)
+, _repeat(Repeat::REPEAT)
+, _attributes_flags(0)
 {
 }
 
 BackgroundImage::~BackgroundImage() {
-	if (m_texture) {
-		m_texture->FX_OFF(change, &Inl::texture_change_handle, _inl2(this));
-		m_texture->release(); // 释放纹理
+	if (_texture) {
+		_texture->FX_OFF(change, &Inl::texture_change_handle, _inl2(this));
+		_texture->release(); // 释放纹理
 	}
 }
 
 Background* BackgroundImage::copy(Background* to) {
 	BackgroundImage* target = (to && to->type() == M_IMAGE) ?
 			static_cast<BackgroundImage*>(to) : new BackgroundImage();
-	target->m_attributes_flags |= m_attributes_flags;
-	if (m_attributes_flags & BI_flag_src) {
-		target->m_src = m_src;
-		target->m_has_base64_src = m_has_base64_src;
+	target->_attributes_flags |= _attributes_flags;
+	if (_attributes_flags & BI_flag_src) {
+		target->_src = _src;
+		target->_has_base64_src = _has_base64_src;
 	}
-	if (m_attributes_flags & BI_flag_repeat) target->m_repeat = m_repeat;
-	if (m_attributes_flags & BI_flag_position_x) target->m_position_x = m_position_x;
-	if (m_attributes_flags & BI_flag_position_y) target->m_position_y = m_position_y;
-	if (m_attributes_flags & BI_flag_size_x) target->m_size_x = m_size_x;
-	if (m_attributes_flags & BI_flag_size_y) target->m_size_y = m_size_y;
-	if (m_attributes_flags & BI_flag_texture) target->set_texture(m_texture);
-	_inl(target)->set_next(m_next);
+	if (_attributes_flags & BI_flag_repeat) target->_repeat = _repeat;
+	if (_attributes_flags & BI_flag_position_x) target->_position_x = _position_x;
+	if (_attributes_flags & BI_flag_position_y) target->_position_y = _position_y;
+	if (_attributes_flags & BI_flag_size_x) target->_size_x = _size_x;
+	if (_attributes_flags & BI_flag_size_y) target->_size_y = _size_y;
+	if (_attributes_flags & BI_flag_texture) target->set_texture(_texture);
+	_inl(target)->set_next(_next);
 	return target;
 }
 
 String BackgroundImage::src() const {
-	return m_src;
+	return _src;
 }
 
 void BackgroundImage::set_src(cString& value) {
@@ -276,58 +276,58 @@ void BackgroundImage::set_src_base64(cString& value) {
 }
 
 void BackgroundImage::set_texture(Texture* value) {
-	if (value != m_texture) {
-		if (m_texture) {
-			m_texture->FX_OFF(change, &Inl::texture_change_handle, _inl2(this));
-			m_texture->release(); // 释放
+	if (value != _texture) {
+		if (_texture) {
+			_texture->FX_OFF(change, &Inl::texture_change_handle, _inl2(this));
+			_texture->release(); // 释放
 		}
-		m_texture = value;
+		_texture = value;
 		if (value) {
-			m_texture->retain(); // 保持
-			m_texture->FX_ON(change, &Inl::texture_change_handle, _inl2(this));
+			_texture->retain(); // 保持
+			_texture->FX_ON(change, &Inl::texture_change_handle, _inl2(this));
 		}
 		mark(View::M_BACKGROUND);
-		m_attributes_flags |= BI_flag_texture;
+		_attributes_flags |= BI_flag_texture;
 	}
 }
 
 void BackgroundImage::set_repeat(Repeat value) {
-	if (m_repeat != value) {
-		m_repeat = value;
+	if (_repeat != value) {
+		_repeat = value;
 		mark(View::M_BACKGROUND);
-		m_attributes_flags |= BI_flag_repeat;
+		_attributes_flags |= BI_flag_repeat;
 	}
 }
 
 void BackgroundImage::set_position_x(BackgroundPosition value) {
-	if (value != m_position_x) {
-		m_position_x = value;
+	if (value != _position_x) {
+		_position_x = value;
 		mark(View::M_BACKGROUND);
-		m_attributes_flags |= BI_flag_position_x;
+		_attributes_flags |= BI_flag_position_x;
 	}
 }
 
 void BackgroundImage::set_position_y(BackgroundPosition value) {
-	if (value != m_position_y) {
-		m_position_y = value;
+	if (value != _position_y) {
+		_position_y = value;
 		mark(View::M_BACKGROUND);
-		m_attributes_flags |= BI_flag_position_y;
+		_attributes_flags |= BI_flag_position_y;
 	}
 }
 
 void BackgroundImage::set_size_x(BackgroundSize value) {
-	if (value != m_size_x) {
-		m_size_x = value;
+	if (value != _size_x) {
+		_size_x = value;
 		mark(View::M_BACKGROUND);
-		m_attributes_flags |= BI_flag_size_x;
+		_attributes_flags |= BI_flag_size_x;
 	}
 }
 
 void BackgroundImage::set_size_y(BackgroundSize value) {
-	if (value != m_size_y) {
-		m_size_y = value;
+	if (value != _size_y) {
+		_size_y = value;
 		mark(View::M_BACKGROUND);
-		m_attributes_flags |= BI_flag_size_y;
+		_attributes_flags |= BI_flag_size_y;
 	}
 }
 
@@ -335,7 +335,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 																								Vec2& final_size,
 																								Vec2& final_position, int& level) {
 	bool ok = false;
-	auto tex = m_texture;
+	auto tex = _texture;
 	if (!tex) {
 		return ok;
 	}
@@ -345,8 +345,8 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	
 	float tex_width = tex->width();
 	float tex_height = tex->height();
-	auto sx = m_size_x, sy = m_size_y;
-	auto px = m_position_x, py = m_position_y;
+	auto sx = _size_x, sy = _size_y;
+	auto px = _position_x, py = _position_y;
 	
 	float final_size_x, final_size_y, final_position_x, final_position_y;
 	
@@ -361,7 +361,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 				final_size_x = tex_width * final_size_y / tex_height;
 				break;
 			default: // case BackgroundSizeType::PERCENT:
-				final_size_y = sy.value * v->m_final_height;
+				final_size_y = sy.value * v->_final_height;
 				final_size_x = tex_width * final_size_y / tex_height;
 				break;
 		}
@@ -369,7 +369,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 		if (sx.type == BackgroundSizeType::PIXEL) {
 			final_size_x = sx.value;
 		} else {
-			final_size_x = sx.value * v->m_final_width;
+			final_size_x = sx.value * v->_final_width;
 		}
 		switch (sy.type) {
 			case BackgroundSizeType::AUTO:
@@ -379,7 +379,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 				final_size_y = sy.value;
 				break;
 			default:// case BackgroundSizeType::PERCENT:
-				final_size_y = sy.value * v->m_final_height;
+				final_size_y = sy.value * v->_final_height;
 				break;
 		}
 	}
@@ -389,13 +389,13 @@ bool BackgroundImage::get_background_image_data(Box* v,
 			final_position_x = px.value;
 			break;
 		case BackgroundPositionType::PERCENT:   /* 百分比  % */
-			final_position_x = px.value * v->m_final_width;
+			final_position_x = px.value * v->_final_width;
 			break;
 		case BackgroundPositionType::RIGHT:     /* 居右  % */
-			final_position_x = v->m_final_width - final_size_x;
+			final_position_x = v->_final_width - final_size_x;
 			break;
 		case BackgroundPositionType::CENTER:    /* 居中 */
-			final_position_x = (v->m_final_width - final_size_x) / 2;
+			final_position_x = (v->_final_width - final_size_x) / 2;
 			break;
 		default:
 			final_position_x = 0; break;
@@ -406,13 +406,13 @@ bool BackgroundImage::get_background_image_data(Box* v,
 			final_position_y = py.value;
 			break;
 		case BackgroundPositionType::PERCENT:   /* 百分比  % */
-			final_position_y = py.value * v->m_final_height;
+			final_position_y = py.value * v->_final_height;
 			break;
 		case BackgroundPositionType::BOTTOM:     /* 居下  % */
-			final_position_y = v->m_final_height - final_size_y;
+			final_position_y = v->_final_height - final_size_y;
 			break;
 		case BackgroundPositionType::CENTER:    /* 居中 */
-			final_position_y = (v->m_final_height - final_size_y) / 2;
+			final_position_y = (v->_final_height - final_size_y) / 2;
 			break;
 		default:
 			final_position_y = 0; break;
@@ -424,11 +424,11 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	// Computing texture level
 	float dpscale = display_port()->scale();
 	// screen size
-	auto vertex = v->m_final_vertex;
+	auto vertex = v->_final_vertex;
 	float box_screen_scale_width = sqrt(pow(vertex[0][0] - vertex[1][0], 2) +
-																			pow(vertex[0][1] - vertex[1][1], 2)) / v->m_final_width;
+																			pow(vertex[0][1] - vertex[1][1], 2)) / v->_final_width;
 	float box_screen_scale_height = sqrt(pow(vertex[0][0] - vertex[3][0], 2) +
-																			 pow(vertex[0][1] - vertex[3][1], 2)) / v->m_final_height;
+																			 pow(vertex[0][1] - vertex[3][1], 2)) / v->_final_height;
 	float tex_screen_width = final_size_x * box_screen_scale_width;
 	float tex_screen_height = final_size_y * box_screen_scale_height;
 	
@@ -448,7 +448,7 @@ Background* BackgroundGradient::copy(Background* to) {
 	BackgroundGradient* target = (to && to->type() == M_GRADIENT) ?
 		static_cast<BackgroundGradient*>(to) : new BackgroundGradient();
 	// TODO ..
-	_inl(target)->set_next(m_next);
+	_inl(target)->set_next(_next);
 	return target;
 }
 

@@ -52,13 +52,13 @@ static Map<int, String> pseudo_class_table2([]() {
 }());
 
 CSSName::CSSName(const Array<String>& classs)
-: m_name(String('.').push(classs.join('.')))
-, m_hash(m_name.hash_code()) {
+: _name(String('.').push(classs.join('.')))
+, _hash(_name.hash_code()) {
 	
 }
 CSSName::CSSName(cString& n)
-: m_name(n)
-, m_hash(n.hash_code()) {
+: _name(n)
+, _hash(n.hash_code()) {
 	
 }
 
@@ -76,10 +76,10 @@ public:
 	 */
 	template<PropertyName Name, class T> inline void set_property_value(T value) {
 		typedef CSSProperty<T, Name> Type;
-		auto it = m_property.find(Name);
+		auto it = _property.find(Name);
 		if ( it.is_null() ) {
 			Type* prop = new Type(value);
-			m_property.set(Name, prop);
+			_property.set(Name, prop);
 		} else {
 			static_cast<Type*>(it.value())->set_value(value);
 		}
@@ -87,10 +87,10 @@ public:
 	
 	template<PropertyName Name, class T> inline T get_property_value() {
 		typedef CSSProperty<T, Name> Type;
-		auto it = m_property.find(Name);
+		auto it = _property.find(Name);
 		if ( it.is_null() ) {
 			Type* prop = new Type(T());
-			m_property.set(Name, prop);
+			_property.set(Name, prop);
 			return prop->value();
 		} else {
 			return static_cast<Type*>(it.value())->value();
@@ -98,7 +98,7 @@ public:
 	}
 	
 	inline StyleSheets* find1(uint hash) {
-		auto i = m_children.find(hash);
+		auto i = _children.find(hash);
 		return i.is_null() ? nullptr : i.value();
 	}
 	
@@ -106,34 +106,34 @@ public:
 		
 		StyleSheets* ss = nullptr;
 		
-		auto it = m_children.find(name.hash());
+		auto it = _children.find(name.hash());
 		
 		if ( it.is_null() ) {
 			mark_classs_names(name);
 			ss = new StyleSheets(name, this, CSS_PSEUDO_CLASS_NONE);
-			m_children.set(name.hash(), ss);
+			_children.set(name.hash(), ss);
 		} else {
 			ss = it.value();
 		}
 		
 		if ( pseudo ) { // pseudo cls
-			if ( ss->m_pseudo ) { // illegal pseudo cls, 伪类样式表,不能再存在子的伪类样式表
+			if ( ss->_pseudo ) { // illegal pseudo cls, 伪类样式表,不能再存在子的伪类样式表
 				return nullptr;
 			}
 			StyleSheets** pseudo_cls = nullptr;
 			switch ( pseudo ) {
 				default: break;
 				case CSS_PSEUDO_CLASS_NORMAL:
-					pseudo_cls = &ss->m_child_NORMAL; break;
+					pseudo_cls = &ss->_child_NORMAL; break;
 				case CSS_PSEUDO_CLASS_HOVER:
-					pseudo_cls = &ss->m_child_HOVER; break;
+					pseudo_cls = &ss->_child_HOVER; break;
 				case CSS_PSEUDO_CLASS_DOWN:
-					pseudo_cls = &ss->m_child_DOWN; break;
+					pseudo_cls = &ss->_child_DOWN; break;
 			}
 			
 			if ( pseudo_cls ) {
 				if ( !*pseudo_cls ) {
-					ss->m_is_support_pseudo = true;
+					ss->_is_support_pseudo = true;
 					ss = *pseudo_cls = new StyleSheets(name, this, pseudo);
 				} else {
 					ss = *pseudo_cls;
@@ -152,26 +152,26 @@ public:
 	KeyframeAction* assignment(View* view, KeyframeAction* action, bool ignore_action) {
 		ASSERT(view);
 		
-		if ( ! ignore_action && m_time ) { // 创建动作
+		if ( ! ignore_action && _time ) { // 创建动作
 			
 			if ( !action ) {
 				action = new KeyframeAction();
 				action->add(0); // add frame 0
-				action->add(m_time); // add frame 1
+				action->add(_time); // add frame 1
 				view->action(action); // set action
 				action->play(); // start play
 			}
 			
 			Frame* frame = action->frame(1);
 			
-			for ( auto& i : m_property ) {
+			for ( auto& i : _property ) {
 				i.value()->assignment(frame);
 			}
 			
-			frame->set_time(m_time);
+			frame->set_time(_time);
 			
 		} else { // 立即设置
-			for ( auto& i : m_property ) {
+			for ( auto& i : _property ) {
 				i.value()->assignment(view);
 			}
 		}
@@ -180,31 +180,31 @@ public:
 };
 
 StyleSheets::StyleSheets(const CSSName& name, StyleSheets* parent, CSSPseudoClass pseudo)
-: m_css_name(name)
-, m_parent(parent)
-, m_time(0)
-, m_child_NORMAL(nullptr)
-, m_child_HOVER(nullptr)
-, m_child_DOWN(nullptr)
-, m_is_support_pseudo(false)
-, m_pseudo( parent ? parent->m_pseudo : CSS_PSEUDO_CLASS_NONE )
+: _css_name(name)
+, _parent(parent)
+, _time(0)
+, _child_NORMAL(nullptr)
+, _child_HOVER(nullptr)
+, _child_DOWN(nullptr)
+, _is_support_pseudo(false)
+, _pseudo( parent ? parent->_pseudo : CSS_PSEUDO_CLASS_NONE )
 {
 	if ( pseudo ) { // pseudo cls
-		ASSERT( !m_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
-		m_pseudo = pseudo;
+		ASSERT( !_pseudo ); // 父样式表为伪样式表,子样式表必须不能为伪样式表
+		_pseudo = pseudo;
 	}
 }
 
 StyleSheets::~StyleSheets() {
-	for ( auto& i : m_children ) {
+	for ( auto& i : _children ) {
 		Release(i.value());
 	}
-	for ( auto& i : m_property ) {
+	for ( auto& i : _property ) {
 		delete i.value();
 	}
-	Release(m_child_NORMAL); m_child_NORMAL = nullptr;
-	Release(m_child_HOVER); m_child_HOVER = nullptr;
-	Release(m_child_DOWN); m_child_DOWN = nullptr;
+	Release(_child_NORMAL); _child_NORMAL = nullptr;
+	Release(_child_HOVER); _child_HOVER = nullptr;
+	Release(_child_DOWN); _child_DOWN = nullptr;
 }
 
 // -----
@@ -219,10 +219,10 @@ FX_EACH_PROPERTY_TABLE(nx_def_property)
 template <> BackgroundPtr StyleSheets::Inl::
 get_property_value<PROPERTY_BACKGROUND, BackgroundPtr>() {
 	typedef CSSProperty<BackgroundPtr, PROPERTY_BACKGROUND> Type;
-	auto it = m_property.find(PROPERTY_BACKGROUND);
+	auto it = _property.find(PROPERTY_BACKGROUND);
 	if (it.is_null()) {
 		Type* prop = new Type(new BackgroundImage());
-		m_property.set(PROPERTY_BACKGROUND, prop);
+		_property.set(PROPERTY_BACKGROUND, prop);
 		return prop->value();
 	} else {
 		return static_cast<Type*>(it.value())->value();
@@ -247,7 +247,7 @@ StyleSheets* StyleSheets::find(const CSSName& name) {
  */
 void StyleSheets::assignment(View* view) {
 	ASSERT(view);
-	for ( auto& i : m_property ) {
+	for ( auto& i : _property ) {
 		i.value()->assignment(view);
 	}
 }
@@ -257,7 +257,7 @@ void StyleSheets::assignment(View* view) {
  */
 void StyleSheets::assignment(Frame* frame) {
 	ASSERT(frame);
-	for ( auto& i : m_property ) {
+	for ( auto& i : _property ) {
 		i.value()->assignment(frame);
 	}
 }
@@ -308,8 +308,8 @@ public:
 	}
 	
 	void mark_classs_names(const CSSName& name) {
-		m_all_css_names.set(name.hash(), 1);
-		m_css_query_group_cache.clear();
+		_all_css_names.set(name.hash(), 1);
+		_css_query_group_cache.clear();
 	}
 	
 	// ".div_cls.div_cls2 .aa.bb.cc"
@@ -342,7 +342,7 @@ public:
 	}
 	
 	Array<uint>* get_css_find_group(uint hash) {
-		auto it = m_css_query_group_cache.find(hash);
+		auto it = _css_query_group_cache.find(hash);
 		if ( it.is_null() ) {
 			return nullptr;
 		} else {
@@ -351,7 +351,7 @@ public:
 	}
 	
 	inline void add_css_query_grpup(uint hash, Array<uint>& css_query_group) {
-		if ( m_all_css_names.has(hash) ) {
+		if ( _all_css_names.has(hash) ) {
 			css_query_group.push(hash);
 		}
 	}
@@ -403,7 +403,7 @@ public:
 				add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
 				add_css_query_grpup(new_css_name1(classs[1]).hash(), r);
 				add_css_query_grpup(hash, r);
-				m_css_query_group_cache.set(hash, r);
+				_css_query_group_cache.set(hash, r);
 				break;
 			case 3:
 				add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
@@ -413,7 +413,7 @@ public:
 				add_css_query_grpup(new_css_name2(classs[0], classs[2]).hash(), r);
 				add_css_query_grpup(new_css_name2(classs[1], classs[2]).hash(), r);
 				add_css_query_grpup(hash, r);
-				m_css_query_group_cache.set(hash, r);
+				_css_query_group_cache.set(hash, r);
 				break;
 			default:  // 4...
 				if ( group ) { // len > 4
@@ -438,7 +438,7 @@ public:
 				add_css_query_grpup(new_css_name3(classs[1], classs[2], classs[3]).hash(), r);
 				add_css_query_grpup(new_css_name3(classs[0], classs[2], classs[3]).hash(), r);
 				add_css_query_grpup(hash, r);
-				m_css_query_group_cache.set(hash, r);
+				_css_query_group_cache.set(hash, r);
 				// 
 				for ( uint i = 4; i < len; i++ ) { // len > 4
 					add_css_query_grpup(CSSName(classs[i]).hash(), r);
@@ -463,9 +463,9 @@ public:
 #define _inl_cvc(self) static_cast<CSSViewClasss::Inl*>(self)
 	
 	void update_classs(Array<String>&& classs) {
-		m_classs = move(classs);
-		m_query_group = _inl_r(root_styles())->get_css_query_grpup(m_classs);
-		m_host->mark_pre(View::M_STYLE_CLASS);
+		_classs = move(classs);
+		_query_group = _inl_r(root_styles())->get_css_query_grpup(_classs);
+		_host->mark_pre(View::M_STYLE_CLASS);
 	}
 	
 	template<bool RETURN_EFFECT_CHILD>
@@ -476,24 +476,24 @@ public:
 		Map<PrtKey<StyleSheets>, int> origin_child_style_sheets_map;
 		
 		if ( RETURN_EFFECT_CHILD ) {
-			for ( auto& i : m_child_style_sheets ) {
+			for ( auto& i : _child_style_sheets ) {
 				origin_child_style_sheets_map.set(i.value(), 1);
 			}
 		}
 		
-		m_child_style_sheets.clear();
-		m_is_support_pseudo = false;
+		_child_style_sheets.clear();
+		_is_support_pseudo = false;
 		
 		FX_DEBUG("CSSViewClasss apply, query group count: %d, style sheets count: %d, '%s'",
-						 m_query_group.length(), scope->style_sheets().length(), m_classs.join(' ').c());
+						 _query_group.length(), scope->style_sheets().length(), _classs.join(' ').c());
 		
-		if ( m_query_group.length() ) {
+		if ( _query_group.length() ) {
 			const List<Scope>& style_sheets = scope->style_sheets();
 			Map<PrtKey<StyleSheets>, int> child_style_sheets_map;
 			
 			KeyframeAction* action = nullptr;
 			
-			for ( auto& i : m_query_group ) {
+			for ( auto& i : _query_group ) {
 				for ( auto& j : style_sheets ) {
 					
 					Scope scope = j.value();
@@ -502,7 +502,7 @@ public:
 						StyleSheets* ss = _inl_ss(scope.wrap->sheets)->find1(i.value());
 						if ( ss ) {
 							
-							action = _inl_ss(ss)->assignment(m_host, action, m_once_apply);
+							action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 							
 							if ( ss->has_child() && !child_style_sheets_map.has(ss) ) {
 								if ( RETURN_EFFECT_CHILD ) {
@@ -511,13 +511,13 @@ public:
 									}
 								}
 								child_style_sheets_map.set(ss, 1);
-								m_child_style_sheets.push(ss);
+								_child_style_sheets.push(ss);
 							}
 							
 							if ( ss->is_support_pseudo() ) {
-								m_is_support_pseudo = true;
-								// m_host->set_receive(true);
-								switch ( m_multiple_status ) {
+								_is_support_pseudo = true;
+								// _host->set_receive(true);
+								switch ( _multiple_status ) {
 									default: ss = nullptr; break;
 									case CSS_PSEUDO_CLASS_NORMAL: ss = ss->normal(); break;
 									case CSS_PSEUDO_CLASS_HOVER:  ss = ss->hover(); break;
@@ -528,7 +528,7 @@ public:
 							}
 							
 							if ( ss ) {
-								action = _inl_ss(ss)->assignment(m_host, action, m_once_apply);
+								action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 								
 								if ( ss->has_child() && !child_style_sheets_map.has(ss) ) {
 									if ( RETURN_EFFECT_CHILD ) {
@@ -537,7 +537,7 @@ public:
 										}
 									}
 									child_style_sheets_map.set(ss, 1);
-									m_child_style_sheets.push(ss);
+									_child_style_sheets.push(ss);
 								}
 							}
 							//
@@ -550,7 +550,7 @@ public:
 				action->frame(0)->fetch(); // fetch 0 frame property
 			}
 			
-			m_once_apply = false;
+			_once_apply = false;
 			
 			if ( RETURN_EFFECT_CHILD ) {
 				if (child_style_sheets_map.length() !=
@@ -567,10 +567,10 @@ public:
  * @constructor
  */
 CSSViewClasss::CSSViewClasss(View* host)
-: m_host(host)
-, m_is_support_pseudo(false)
-, m_once_apply(true)
-, m_multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
+: _host(host)
+, _is_support_pseudo(false)
+, _once_apply(true)
+, _multiple_status(CSS_PSEUDO_CLASS_NORMAL) {
 	ASSERT(host);
 }
 
@@ -598,7 +598,7 @@ void CSSViewClasss::add(cString& names) {
 	bool up = false;
 	
 	Map<String, int> new_classs;
-	for ( auto& j : m_classs ) {
+	for ( auto& j : _classs ) {
 		new_classs.set(j.value(), 1);
 	}
 	for ( auto& i : names.split(' ') ) {
@@ -621,7 +621,7 @@ void CSSViewClasss::remove(cString& names) {
 	bool up = false;
 	
 	Map<String, int> new_classs;
-	for ( auto& j : m_classs ) {
+	for ( auto& j : _classs ) {
 		new_classs.set(j.value(), 1);
 	}
 	for ( auto& i : names.split(' ') ) {
@@ -642,7 +642,7 @@ void CSSViewClasss::toggle(cString& names) {
 	bool up = false;
 	
 	Map<String, int> new_classs;
-	for ( auto& j : m_classs ) {
+	for ( auto& j : _classs ) {
 		new_classs.set(j.value(), 1);
 	}
 	for ( auto& i : names.split(' ') ) {
@@ -663,10 +663,10 @@ void CSSViewClasss::toggle(cString& names) {
  * @func set_style_pseudo_status
  */
 void CSSViewClasss::set_style_pseudo_status(CSSPseudoClass status) {
-	if ( m_multiple_status != status ) {
-		m_multiple_status = status;
-		if ( m_is_support_pseudo ) {
-			m_host->mark_pre(View::M_STYLE_CLASS);
+	if ( _multiple_status != status ) {
+		_multiple_status = status;
+		if ( _is_support_pseudo ) {
+			_host->mark_pre(View::M_STYLE_CLASS);
 		}
 	}
 }
@@ -688,8 +688,8 @@ static void push_all_scope(StyleSheetsScope* self, View* scope) {
 }
 
 StyleSheetsScope::StyleSheetsScope(View* scope) {
-	m_style_sheets.push({
-		&m_style_sheets_map.set(root_styles(), { root_styles(), 1 }),
+	_style_sheets.push({
+		&_style_sheets_map.set(root_styles(), { root_styles(), 1 }),
 		1
 	});
 	push_all_scope(this, scope);
@@ -702,36 +702,36 @@ void StyleSheetsScope::push_scope(View* scope) {
 	if ( classs && classs->has_child() ) {
 		for ( auto& i : classs->child_style_sheets() ) {
 			Scope::Wrap* wrap = nullptr;
-			auto it = m_style_sheets_map.find(i.value());
+			auto it = _style_sheets_map.find(i.value());
 			if ( it.is_null() ) { // 添加
-				wrap = &m_style_sheets_map.set(i.value(), { i.value(), 1 });
+				wrap = &_style_sheets_map.set(i.value(), { i.value(), 1 });
 			} else {
 				wrap = &it.value();
 				wrap->ref++;
 			}
-			m_style_sheets.push({ wrap, wrap->ref });
+			_style_sheets.push({ wrap, wrap->ref });
 		}
 	}
-	m_scopes.push(scope);
+	_scopes.push(scope);
 }
 void StyleSheetsScope::pop_scope() {
-	if ( m_scopes.length() ) {
-		CSSViewClasss* classs = m_scopes.last()->classs();
+	if ( _scopes.length() ) {
+		CSSViewClasss* classs = _scopes.last()->classs();
 		if ( classs && classs->has_child() ) {
 			int count = classs->child_style_sheets().length();
 			for ( int i = 0; i < count; i++ ) {
-				ASSERT( m_style_sheets.length() > 1 );
-				Scope scope = m_style_sheets.last();
+				ASSERT( _style_sheets.length() > 1 );
+				Scope scope = _style_sheets.last();
 				ASSERT( scope.wrap->ref == scope.ref );
 				if ( scope.ref == 1 ) {
-					m_style_sheets_map.del(scope.wrap->sheets);
+					_style_sheets_map.del(scope.wrap->sheets);
 				} else {
 					scope.wrap->ref--;
 				}
-				m_style_sheets.pop();
+				_style_sheets.pop();
 			}
 		}
-		m_scopes.pop();
+		_scopes.pop();
 	}
 }
 

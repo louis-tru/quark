@@ -164,7 +164,7 @@ uint GLDraw::set_texture(const Array<PixelData>& data) {
 }
 
 uint GLDraw::gen_texture(uint origin_texture, uint width, uint height) {
-	GLuint default_frame_buffer = m_current_frame_buffer;
+	GLuint default_frame_buffer = _current_frame_buffer;
 	GLuint handle;
 	GLuint frame_buffer;
 	glGenFramebuffers(1, &frame_buffer);
@@ -240,11 +240,11 @@ bool GLDraw::set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
 	uint tex_y, tex_uv;
 	bool gen = false;
 	
-	if (yuv_tex->m_handle[0] &&
+	if (yuv_tex->_handle[0] &&
 			yuv_tex->width() == data.width() &&
 			yuv_tex->height() == data.height() ) {
-		tex_y = yuv_tex->m_handle[0];
-		tex_uv = yuv_tex->m_handle[1];
+		tex_y = yuv_tex->_handle[0];
+		tex_uv = yuv_tex->_handle[1];
 	} else {
 		gen = true;
 		glGenTextures(1, &tex_y);
@@ -280,15 +280,15 @@ bool GLDraw::set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data) {
 		if ( ok ) {
 			// Load texture success
 			
-			if ( yuv_tex->m_handle[0] ) {
-				if ( yuv_tex->m_handle[0] != tex_y ) {
-					glDeleteTextures(2, yuv_tex->m_handle); // Delete old texture
+			if ( yuv_tex->_handle[0] ) {
+				if ( yuv_tex->_handle[0] != tex_y ) {
+					glDeleteTextures(2, yuv_tex->_handle); // Delete old texture
 				}
 			}
 			
 			glBindTexture(GL_TEXTURE_2D, 0);
-			yuv_tex->m_handle[0] = tex_y;
-			yuv_tex->m_handle[1] = tex_uv;
+			yuv_tex->_handle[0] = tex_y;
+			yuv_tex->_handle[1] = tex_uv;
 			return true;
 		}
 	}

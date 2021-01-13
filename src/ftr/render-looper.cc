@@ -34,7 +34,7 @@
 FX_NS(ftr)
 
 RenderLooper::RenderLooper(AppInl* host)
-: m_host(host), m_id(nullptr) {
+: _host(host), _id(nullptr) {
 	
 }
 
@@ -61,13 +61,13 @@ void looper(CbD& ev, LooperData* data) {
 
 void RenderLooper::start() {
 	typedef Callback<RunLoop::PostSyncData> Cb;
-	m_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
-		if (!m_id) {
+	_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
+		if (!_id) {
 			LooperData* data = new LooperData();
 			data->id = iid32();
-			data->host = m_host;
+			data->host = _host;
 			data->cb = Callback<>(&looper, data);
-			m_id = &data->id;
+			_id = &data->id;
 			Callback<>::Data d;
 			looper(d, data);
 		}
@@ -77,10 +77,10 @@ void RenderLooper::start() {
 
 void RenderLooper::stop() {
 	typedef Callback<RunLoop::PostSyncData> Cb;
-	m_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
-		if (m_id) {
-			*m_id = 0;
-			m_id = nullptr;
+	_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
+		if (_id) {
+			*_id = 0;
+			_id = nullptr;
 		}
 		ev.data->complete();
 	}));

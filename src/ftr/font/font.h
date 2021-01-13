@@ -147,8 +147,8 @@ public:
 	 * @func mark_new_data_size
 	 */
 	inline void mark_new_data_size(FontGlyph* glyph, uint size) {
-		glyph->m_container->data_size += size;
-		m_pool->m_total_data_size += size;
+		glyph->_container->data_size += size;
+		_pool->_total_data_size += size;
 	}
 	
 	/**
@@ -167,20 +167,20 @@ public:
 	 * @func set_vertex_data
 	 */
 	inline bool set_vertex_data( FontGlyph* glyph ) {
-		return m_pool->m_draw_ctx->set_font_glyph_vertex_data(this, glyph);
+		return _pool->_draw_ctx->set_font_glyph_vertex_data(this, glyph);
 	}
 	
 	/**
 	 * @func set_texture_data
 	 */
 	inline bool set_texture_data(FontGlyph* glyph, FGTexureLevel level) {
-		return m_pool->m_draw_ctx->set_font_glyph_texture_data(this, glyph, level);
+		return _pool->_draw_ctx->set_font_glyph_texture_data(this, glyph, level);
 	}
 	
 	/**
 	 * @func get_glyph
 	 */
-	FontGlyph* get_glyph(uint16 unicode, uint region, uint index, FGTexureLevel level, bool vector);
+	FontGlyph* get_glyph(uint16_t unicode, uint region, uint index, FGTexureLevel level, bool vector);
 	
 };
 

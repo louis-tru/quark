@@ -50,13 +50,13 @@ class FX_EXPORT GLDrawProxy {
 	void gl_main_render_buffer_storage();
 	void set_surface_view(UIView* view, CAEAGLLayer* layer);
 	bool refresh_surface_size(::CGRect rect);
-	inline GLDraw* host() { return m_host; }
+	inline GLDraw* host() { return _host; }
 	static GLDrawProxy* create(GUIApplication* host, cJSON& options);
  private:
-	UIView* m_surface_view;
-	CAEAGLLayer* m_layer;
-	EAGLContext* m_context;
-	GLDraw*      m_host;
+	UIView* _surface_view;
+	CAEAGLLayer* _layer;
+	EAGLContext* _context;
+	GLDraw*      _host;
 };
 
 FX_END

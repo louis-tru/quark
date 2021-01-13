@@ -71,42 +71,42 @@ namespace ftr {
 		/**
 		* @func time
 		*/
-		inline uint64 time() const { return m_time; }
+		inline uint64 time() const { return _time; }
 		
 		/**
 		* @func set_time
 		*/
-		inline void set_time(uint64 value) { m_time = value; }
+		inline void set_time(uint64 value) { _time = value; }
 		
 		/**
 		* @func name
 		*/
-		inline String name() const { return m_css_name.value(); }
+		inline String name() const { return _css_name.value(); }
 		
 		/**
 		* @func hash
 		*/
-		inline uint hash() const { return m_css_name.hash(); }
+		inline uint hash() const { return _css_name.hash(); }
 		
 		/**
 		* @func parent
 		*/
-		inline StyleSheets* parent() { return m_parent; }
+		inline StyleSheets* parent() { return _parent; }
 		
 		/**
 		* @func normal
 		*/
-		inline StyleSheets* normal() { return m_child_NORMAL; }
+		inline StyleSheets* normal() { return _child_NORMAL; }
 		
 		/**
 		* @func normal
 		*/
-		inline StyleSheets* hover() { return m_child_HOVER; }
+		inline StyleSheets* hover() { return _child_HOVER; }
 		
 		/**
 		* @func normal
 		*/
-		inline StyleSheets* down() { return m_child_DOWN; }
+		inline StyleSheets* down() { return _child_DOWN; }
 		
 		/**
 		* @func find children
@@ -116,7 +116,7 @@ namespace ftr {
 		/**
 		* @func has_child
 		*/
-		inline bool has_child() const { return m_children.length(); }
+		inline bool has_child() const { return _children.length(); }
 		
 		/**
 		* @func assignment
@@ -131,24 +131,24 @@ namespace ftr {
 		/**
 		* @func is_support_pseudo support multiple pseudo status
 		*/
-		inline bool is_support_pseudo() const { return m_is_support_pseudo; }
+		inline bool is_support_pseudo() const { return _is_support_pseudo; }
 		
 		/**
 		* @func pseudo
 		*/
-		inline CSSPseudoClass pseudo() const { return m_pseudo; }
+		inline CSSPseudoClass pseudo() const { return _pseudo; }
 		
 		private:
-		CSSName                       m_css_name;
-		StyleSheets*                  m_parent;
-		Map<uint, StyleSheets*>       m_children;
-		Map<PropertyName, Property*>  m_property;
-		uint64         m_time;
-		StyleSheets*   m_child_NORMAL;
-		StyleSheets*   m_child_HOVER;
-		StyleSheets*   m_child_DOWN;
-		bool           m_is_support_pseudo; // m_NORMAL | m_HOVER | m_DOWN
-		CSSPseudoClass m_pseudo;
+		CSSName                       _css_name;
+		StyleSheets*                  _parent;
+		Map<uint, StyleSheets*>       _children;
+		Map<PropertyName, Property*>  _property;
+		uint64         _time;
+		StyleSheets*   _child_NORMAL;
+		StyleSheets*   _child_HOVER;
+		StyleSheets*   _child_DOWN;
+		bool           _is_support_pseudo; // _NORMAL | _HOVER | _DOWN
+		CSSPseudoClass _pseudo;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class CSSManager;
@@ -175,8 +175,8 @@ namespace ftr {
 		static RootStyleSheets* shared();
 		
 		private:
-		Map<uint, int>          m_all_css_names;
-		Map<uint, Array<uint>>  m_css_query_group_cache;
+		Map<uint, int>          _all_css_names;
+		Map<uint, Array<uint>>  _css_query_group_cache;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
