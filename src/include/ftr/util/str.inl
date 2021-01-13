@@ -257,14 +257,12 @@ BasicString<T, M, A>& BasicString<T, M, A>::operator+=(const BasicString& s) {
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> 
-BasicString<T, M, A>::operator+(const BasicString& s) const {
+BasicString<T, M, A> BasicString<T, M, A>::operator+(const BasicString& s) const {
 	return BasicString(c(), length(), *s, s.length());
 }
 
 template <typename T, HolderMode M, typename A>
-Array<BasicString<T, M, A>>
-BasicString<T, M, A>::split(const BasicString& sp) const { // Not Thread safe
+Array<BasicString<T, M, A>> BasicString<T, M, A>::split(const BasicString& sp) const { // Not Thread safe
 	Array<BasicString> rev;
 	int splen = sp.length();
 	int prev = 0;
@@ -278,8 +276,7 @@ BasicString<T, M, A>::split(const BasicString& sp) const { // Not Thread safe
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> 
-BasicString<T, M, A>::trim() const { // Not Thread safe
+BasicString<T, M, A> BasicString<T, M, A>::trim() const { // Not Thread safe
 	uint len = length();
 	T* value = m_core->value();
 	uint start = 0;
@@ -305,8 +302,7 @@ BasicString<T, M, A>::trim() const { // Not Thread safe
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> 
-BasicString<T, M, A>::trim_left() const { // Not Thread safe
+BasicString<T, M, A> BasicString<T, M, A>::trim_left() const { // Not Thread safe
 	uint len = length();
 	T* value = m_core->value();
 	for (uint start = 0; start < len; start++) {
@@ -322,8 +318,7 @@ BasicString<T, M, A>::trim_left() const { // Not Thread safe
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> 
-BasicString<T, M, A>::trim_right() const { // Not Thread safe
+BasicString<T, M, A> BasicString<T, M, A>::trim_right() const { // Not Thread safe
 	uint len = length();
 	T* value = m_core->value();
 	for (uint end = len; end > 0; end--) {
@@ -339,8 +334,7 @@ BasicString<T, M, A>::trim_right() const { // Not Thread safe
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& 
-BasicString<T, M, A>::upper_case() { // Not Thread safe
+BasicString<T, M, A>&  BasicString<T, M, A>::upper_case() { // Not Thread safe
 	m_core->modify(this);
 	uint len = length();
 	T* s = m_core->value();
@@ -352,8 +346,7 @@ BasicString<T, M, A>::upper_case() { // Not Thread safe
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& 
-BasicString<T, M, A>::lower_case() { // Not Thread safe
+BasicString<T, M, A>&  BasicString<T, M, A>::lower_case() { // Not Thread safe
 	m_core->modify(this);
 	uint len = length();
 	T* s = m_core->value();
@@ -404,21 +397,7 @@ BasicString<T, M, A> BasicString<T, M, A>::replace_all(
 	return replace_all_(this, s.c(), s.length(), *rep, rep.length());
 }
 
-// template <typename T, HolderMode M, typename A>
-// BasicString<T, M, A>& BasicString<T, M, A>::assign(const T* s, uint len) { // Not Thread safe
-// 	if (m_core->ref() > 1) { // 当前不是唯一引用,抛弃核心创建一个新的核心
-// 		m_core->release();
-// 		m_core = len ? new StringCore(len) : StringCore::empty();
-// 	} else { // 当唯一引用时,调用自动调整容量
-// 		m_core->container.realloc(len + 1);
-// 	}
-// 	m_core->length = len;
-	
-// 	T* value = m_core->value();
-// 	_memcpy(value, s, len);
-// 	value[len] = '\0';
-// 	return *this;
-// }
+//
 
 template <typename T, HolderMode M, typename A>
 BasicString<T, M, A>& BasicString<T, M, A>::operator=(const BasicString& s) { // Not Thread safe
@@ -468,91 +447,6 @@ template <typename T, HolderMode M, typename A>
 bool BasicString<T, M, A>::operator<=(const BasicString& s) const {
 	return internal::str::compare(this, s.c()) <= 0;
 }
-
-template <typename T, HolderMode M, typename A>
-int BasicString<T, M, A>::index_of (const T* s, uint start) const {
-	return _index_of(this, s, _strlen(s), start);
-}
-
-template <typename T, HolderMode M, typename A>
-int BasicString<T, M, A>::last_index_of(const T* s, int start) const {
-	return _last_index_of(this, s, _strlen(s), start);
-}
-
-template <typename T, HolderMode M, typename A>
-int BasicString<T, M, A>::last_index_of(const T* s) const {
-	return _last_index_of(this, s, _strlen(s), length());
-}
-
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> BasicString<T, M, A>::replace (const T* s, const T* rep) const {
-	return replace_(this, s, _strlen(s), rep, _strlen(rep));
-}
-
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> BasicString<T, M, A>::replace_all(const T* s, const T* rep) const {
-	return replace_all_(this, s, _strlen(s), rep, _strlen(rep));
-}
-
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& BasicString<T, M, A>::push(const T* s) {
-	return push(s, _strlen(s));
-}
-
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& BasicString<T, M, A>::operator+=(const T* s) {
-	return push(s, _strlen(s));
-}
-
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A> BasicString<T, M, A>::operator+(const T* s) const {
-	return BasicString(c(), length(), s, _strlen(s));
-}
-
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& BasicString<T, M, A>::operator=(const T* s) {
-	return assign(s, _strlen(s));
-}
-
-template <typename T, HolderMode M, typename A>
-bool BasicString<T, M, A>::operator==(const T* s) const {
-	return internal::str::compare(this, s) == 0;
-}
-
-template <typename T, HolderMode M, typename A>
-bool BasicString<T, M, A>::operator!=(const T* s) const {
-	return internal::str::compare(this, s) != 0;
-}
-
-template <typename T, HolderMode M, typename A>
-bool BasicString<T, M, A>::operator>(const T* s) const {
-	return internal::str::compare(this, s) > 0;
-}
-
-template <typename T, HolderMode M, typename A>
-bool BasicString<T, M, A>::operator<(const T* s) const {
-	return internal::str::compare(this, s) < 0;
-}
-
-template <typename T, HolderMode M, typename A>
-bool BasicString<T, M, A>::operator>=(const T* s) const {
-	return internal::str::compare(this, s) >= 0;
-}
-
-template <typename T, HolderMode M, typename A>
-bool BasicString<T, M, A>::operator<=(const T* s) const {
-	return internal::str::compare(this, s) <= 0;
-}
-
-// template<typename T, class Container>
-// String BasicString<T, M, A>::to_string() const {
-// 	static String str("[String]");
-// 	return str;
-// }
-
-// template<> FX_EXPORT String BasicString<char, Container<char>>::to_string() const;
-// template<> FX_EXPORT String BasicString<uint16, Container<uint16>>::to_string() const;
-// template<> FX_EXPORT String BasicString<uint32, Container<uint32>>::to_string() const;
 
 template <typename T, HolderMode M, typename A>
 template<T2>
