@@ -28,11 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+
 template<typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
-ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer<T, A2, M2>& arr): ArrayBuffer(std::move(arr))
+ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr)
 	: ArrayBuffer(const_cast<T*>(arr.val(), arr.length(), arr.capacity())) {
-	static_assert(Mode == HolderMode::kWeak, "Only weak types can be copied");
+	static_assert(M == HolderMode::kWeak, "Only weak types can be copied");
 }
 
 template<typename T, HolderMode M, typename A>
@@ -53,8 +55,8 @@ ArrayBuffer<T, M, A>::ArrayBuffer(ArrayBuffer&& arr): _length(0), _capacity(0), 
 
 template<typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
-ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(const ArrayBuffer<T, A2, M2>& arr) {
-	static_assert(Mode == HolderMode::kWeak, "Only weak types can be copied assign value");
+ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(const ArrayBuffer<T, M2, A2>& arr) {
+	static_assert(M == HolderMode::kWeak, "Only weak types can be copied assign value");
 	_length = arr._length;
 	_capacity = arr._capacity;
 	_val = arr._val;
@@ -72,7 +74,7 @@ ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(ArrayBuffer&& arr) {
 		_length = arr._length;
 		_capacity = arr._capacity;
 		_val = arr._val;
-		if (Mode == HolderMode::kStrong) {
+		if (M == HolderMode::kStrong) {
 			arr._length = 0;
 			arr._capacity = 0;
 			arr._val = nullptr;
@@ -109,15 +111,20 @@ ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity)
 }
 
 template<typename T, HolderMode M, typename A>
+T& ArrayBuffer<T, M, A>::operator[](uint32_t index) {
+	ASSERT(index < _length, "ArrayBuffer access violation.");
+	return _val[index];
+}
+
+template<typename T, HolderMode M, typename A>
 const T& ArrayBuffer<T, M, A>::operator[](uint32_t index) const {
 	ASSERT(index < _length, "ArrayBuffer access violation.");
 	return _val[index];
 }
 
 template<typename T, HolderMode M, typename A>
-T& ArrayBuffer<T, M, A>::operator[](uint32_t index) {
-	ASSERT(index < _length, "ArrayBuffer access violation.");
-	return _val[index];
+T* ArrayBuffer<T, M, A>::val() {
+	return _val;
 }
 
 template<typename T, HolderMode M, typename A>
@@ -136,19 +143,19 @@ uint32_t ArrayBuffer<T, M, A>::push(T&& item) {
 	return _length;
 }
 
+uint64_t hash_code(const void* data, uint32_t len);
+
 template<typename T, HolderMode M, typename A>
 uint64_t ArrayBuffer<T, M, A>::hash_code() const {
 	return ftr::hash_code(_val, size());
 }
-
-uint64_t hash_code(const void* data, uint32_t len);
 
 template<typename T, HolderMode M, typename A>
 ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length) {
 	if (src_length) {
 		_length += src_length;
 		realloc_(_length);
-		T* src = arr._val;
+		//T* src = src._val;
 		T* end = _val + _length;
 		T* to = end - src_length;
 		while (to < end) {
@@ -190,7 +197,7 @@ ArrayBuffer<T, HolderMode::kStrong, A> ArrayBuffer<T, M, A>::slice_(uint32_t sta
 
 template<typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
-uint32_t ArrayBuffer<T, M, A>::write(const ArrayBuffer<T, A2, M2>& arr, int to, int size_src, uint32_t form_src) {
+uint32_t ArrayBuffer<T, M, A>::write(const ArrayBuffer<T, M2, A2>& arr, int to, int size_src, uint32_t form_src) {
 	int s = FX_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
 	if (s > 0) {
 		return write(_val + form_src, to, s);
@@ -237,7 +244,7 @@ uint32_t ArrayBuffer<T, M, A>::pop(uint32_t count) {
 
 template<typename T, HolderMode M, typename A>
 T* ArrayBuffer<T, M, A>::collapse() {
-	if (Mode == HolderMode::kWeak) {
+	if (M == HolderMode::kWeak) {
 		return nullptr;
 	}
 	T* r = _val;
@@ -250,7 +257,7 @@ T* ArrayBuffer<T, M, A>::collapse() {
 template<typename T, HolderMode M, typename A>
 void ArrayBuffer<T, M, A>::clear() {
 	if (_capacity) {
-		if (Mode == HolderMode::kStrong) {
+		if (M == HolderMode::kStrong) {
 			T* i = _val;
 			T* end = i + _length;
 			while (i < end) {
@@ -267,7 +274,7 @@ void ArrayBuffer<T, M, A>::clear() {
 
 template<typename T, HolderMode M, typename A>
 void ArrayBuffer<T, M, A>::realloc_(uint32_t capacity) {
-	static_assert(Mode == HolderMode::kStrong, "the weak holder cannot be changed");
+	static_assert(M == HolderMode::kStrong, "the weak holder cannot be changed");
 	if ( capacity ) {
 		capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
 		if ( capacity > _capacity || capacity < _capacity / 4.0 ) {

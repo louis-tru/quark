@@ -31,15 +31,10 @@
 #ifndef __ftr__util__str__
 #define __ftr__util__str__
 
-#include <ftr/util/macros.h>
 #include <ftr/util/buffer.h>
 #include <vector>
 
 namespace ftr {
-
-	typedef BasicString<char> String;
-	typedef BasicString<uint16_t > String16;
-	typedef BasicString<uint32_t> String32;
 
 	/**
 	* @class BasicString
@@ -49,31 +44,27 @@ namespace ftr {
 		public:
 
 			BasicString() {}
-			template<typename T2>
-			BasicString(const T2* s);
-			BasicString(
-				const T* s1, uint32_t s1_len,
-				const T* s2 = nullptr, uint32_t s2_len = 0
-			);
-			BasicString(ArrayBuffer&& s);
+			template<HolderMode M2, typename A2>
+			BasicString(const ArrayBuffer<T, M2, A2>& s): ArrayBuffer<T, M, A>(s) {} // Only weak types can be copied
+			BasicString(      ArrayBuffer<T, M, A>&  s) : ArrayBuffer<T, M, A>(std::move(s)) {}
+			BasicString(      ArrayBuffer<T, M, A>&& s) : ArrayBuffer<T, M, A>(s) {}
+			BasicString(const T* s);
+			BasicString(const T* s, uint32_t len);
+			BasicString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // Only weak types can be copied
 			BasicString(char i);
 			BasicString(int32_t i);
-			BasicString(uint32_t i);
 			BasicString(int64_t i);
-			BasicString(uint32_t64 i);
+			BasicString(uint32_t i);
+			BasicString(uint64_t i);
 			BasicString(float f);
 			BasicString(double f);
 
-			static String format(const char* format, ...);
+			static BasicString<char, HolderMode::kStrong> format(const char* format, ...);
 
 			BasicString<T, HolderMode::kWeak, A> substr(uint32_t start, uint32_t length) const;
 			BasicString<T, HolderMode::kWeak, A> substring(uint32_t start, uint32_t end) const;
 			BasicString<T, HolderMode::kWeak, A> substr(uint32_t start) const;
 			BasicString<T, HolderMode::kWeak, A> substring(uint32_t start) const;
-			BasicString<T, HolderMode::kStrong, A> substr_strong(uint32_t start, uint32_t length) const;
-			BasicString<T, HolderMode::kStrong, A> substring_strong(uint32_t start, uint32_t end) const;
-			BasicString<T, HolderMode::kStrong, A> substr_strong(uint32_t start) const;
-			BasicString<T, HolderMode::kStrong, A> substring_strong(uint32_t start) const;
 
 			template<HolderMode M2, typename A2>
 			std::vector<BasicString<T, HolderMode::kWeak, A>> split(const BasicString<T, M2, A2>& sp) const;
@@ -82,8 +73,8 @@ namespace ftr {
 			BasicString<T, HolderMode::kWeak, A> trim_left() const;
 			BasicString<T, HolderMode::kWeak, A> trim_right() const;
 
-			BasicString& upper_case();
-			BasicString& lower_case();
+			BasicString<T, M,                  A>& upper_case(); // Only strong types can be call
+			BasicString<T, M,                  A>& lower_case(); // Only strong types can be call
 			BasicString<T, HolderMode::kStrong, A> to_upper_case() const;
 			BasicString<T, HolderMode::kStrong, A> to_lower_case() const;
 
@@ -93,31 +84,41 @@ namespace ftr {
 			int last_index_of(const BasicString<T, M2, A2>& s, int start) const;
 			template<HolderMode M2, typename A2>
 			int last_index_of(const BasicString<T, M2, A2>& s) const;
-
+			
 			template<HolderMode M2, typename A2, HolderMode M3, typename A3>
 			BasicString<T, HolderMode::kStrong, A> replace(const BasicString<T, M2, A2>& s, const BasicString<T, M3, A3>& rep) const;
 			template<HolderMode M2, typename A2, HolderMode M3, typename A3>
 			BasicString<T, HolderMode::kStrong, A> replace_all(const BasicString<T, M2, A2>& s, const BasicString<T, M3, A3>& rep) const;
 
-			// operator overload
-			// BasicString& operator=(const BasicString& s);
+			// assign
 			template<HolderMode M2, typename A2>
-			BasicString<T, M,                   A>& operator= (      BasicString&& s); // assign
+			BasicString<T, M,                   A>& operator=(const BasicString<T, M2, A2>& s); // Only weak types can be copied assign value
+			BasicString<T, M,                   A>& operator=(      BasicString&  s); // assign ref
+			BasicString<T, M,                   A>& operator=(      BasicString&& s); // assign right ref
 			template<HolderMode M2, typename A2>
-			BasicString<T, M,                   A>& operator+=(const BasicString<T, M2, A2>& s);
+			BasicString<T, M,                   A>& operator+=(const BasicString<T, M2, A2>& s); // write, Only strong types can be call
 			template<HolderMode M2, typename A2>
-			BasicString<T, HolderMode::kStrong, A> operator+  (const BasicString<T, M2, A2>& s) const;
-			//
-			bool         operator==(const BasicString& s) const;
-			bool         operator!=(const BasicString& s) const;
-			bool         operator>(const BasicString& s) const;
-			bool         operator<(const BasicString& s) const;
-			bool         operator>=(const BasicString& s) const;
-			bool         operator<=(const BasicString& s) const;
+			BasicString<T, HolderMode::kStrong, A>  operator+ (const BasicString<T, M2, A2>& s) const; // concat new
+
+			// compare
+			template<HolderMode M2, typename A2> bool operator==(const BasicString<T, M2, A2>& s) const;
+			template<HolderMode M2, typename A2> bool operator!=(const BasicString<T, M2, A2>& s) const;
+			template<HolderMode M2, typename A2> bool operator>(const BasicString<T, M2, A2>& s) const;
+			template<HolderMode M2, typename A2> bool operator<(const BasicString<T, M2, A2>& s) const;
+			template<HolderMode M2, typename A2> bool operator>=(const BasicString<T, M2, A2>& s) const;
+			template<HolderMode M2, typename A2> bool operator<=(const BasicString<T, M2, A2>& s) const;
 
 			template<typename T2> T2   to_number()        const;
 			template<typename T2> bool to_number(T2* out) const;
 	};
-}
 
+	#include "str.inl"
+
+	typedef BasicString<char,     HolderMode::kWeak> String;
+	typedef BasicString<uint16_t, HolderMode::kWeak> String16;
+	typedef BasicString<uint32_t, HolderMode::kWeak> String32;
+	typedef BasicString<char,     HolderMode::kStrong> MutableString;
+	typedef BasicString<uint16_t, HolderMode::kStrong> MutableString16;
+	typedef BasicString<uint32_t, HolderMode::kStrong> MutableString32;
+}
 #endif

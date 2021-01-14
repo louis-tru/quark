@@ -51,6 +51,10 @@ namespace ftr {
 
 	// -------------------------------------------------------
 
+	class ObjectTraits;
+	class ReferenceTraits;
+	class ProtocolTraits;
+
 	/**
 	* @class Object
 	*/

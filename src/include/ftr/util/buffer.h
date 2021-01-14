@@ -33,7 +33,8 @@
 
 #include <ftr/util/object.h>
 #include <initializer_list>
-#include <new>
+#include <math.h>
+//#include <new>
 
 namespace ftr {
 
@@ -53,9 +54,9 @@ namespace ftr {
 
 	template<
 		typename T = char,
-		HolderMode M = HolderMode::kStrong,
+		HolderMode M = HolderMode::kWeak,
 		typename A = AllocatorDefault
-	> BasicString;
+	> class BasicString;
 
 	/**
 	* @class ArrayBuffer
@@ -68,22 +69,22 @@ namespace ftr {
 	class FX_EXPORT ArrayBuffer: public Object {
 		public:
 			typedef T Type;
-			template<HolderMode M2, typename A2>
-			ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied
 			ArrayBuffer(T* data, uint32_t length, uint32_t capacity = 0);
 			ArrayBuffer(uint32_t length = 0, uint32_t capacity = 0);
-			ArrayBuffer(ArrayBuffer& arr);
-			ArrayBuffer(ArrayBuffer&& arr);
+			template<HolderMode M2, typename A2>
+			ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied
+			ArrayBuffer(      ArrayBuffer& arr);
+			ArrayBuffer(      ArrayBuffer&& arr);
 			ArrayBuffer(const std::initializer_list<T>& list);
 
 			virtual ~ArrayBuffer() { clear(); }
 			
 			template<HolderMode M2, typename A2>
 			ArrayBuffer& operator=(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied assign value
-			ArrayBuffer& operator=(ArrayBuffer&);
-			ArrayBuffer& operator=(ArrayBuffer&&);
+			ArrayBuffer& operator=(      ArrayBuffer&);
+			ArrayBuffer& operator=(      ArrayBuffer&&);
 			
-			T      & operator[](uint32_t index);
+			T      & operator[](uint32_t index); // Only strong types have this method
 			const T& operator[](uint32_t index) const;
 			
 			uint32_t push(T&& item);
@@ -136,11 +137,11 @@ namespace ftr {
 			 * @func weak() return weak array buffer
 			 */
 			ArrayBuffer<T, HolderMode::kWeak, A> weak() const {
-				return ArrayBuffer<T, HolderMode::kWeak, A>(&this);
+				return ArrayBuffer<T, HolderMode::kWeak, A>(*this);
 			}
 			
-			inline       T* val() { return _val; }
-			inline const T* val() const { return _val; }
+			T*       val(); // Only strong types have this method
+			const T* val() const { return _val; }
 
 			/**
 			* @func size 获取数据占用内存大小
@@ -203,10 +204,10 @@ namespace ftr {
 			T*        _val;
 	};
 
+	#include "./buffer.inl"
+
 	typedef ArrayBuffer<char, HolderMode::kStrong> Buffer;
 	typedef ArrayBuffer<char, HolderMode::kWeak>   WeakBuffer;
-
-	#include "./buffer.inl"
 }
 
 #endif

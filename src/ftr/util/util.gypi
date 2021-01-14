@@ -55,6 +55,7 @@
 			'../../include/ftr/util/util.h',
 			'../../include/ftr/util/zlib.h',
 			'../../include/ftr/util/str.h',
+			'../../include/ftr/util/str.inl',
 			# cc
 			'buffer.cc',
 			'cb.cc',

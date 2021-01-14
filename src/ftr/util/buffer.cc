@@ -63,7 +63,7 @@ namespace ftr {
 			}\
 		} \
 		\
-		template<> uint32_t ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length { \
+		template<> ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
 				_length += src_length; \
 				realloc_(_length + APPEND_ZERO); \
@@ -72,15 +72,16 @@ namespace ftr {
 				memcpy((void*)to, src, src_length * sizeof(T)); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			} \
-			return _length; \
+			return *this; \
 		} \
 		\
 		template<> uint32_t ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size) { \
 			if (size) { \
 				if ( to == -1 ) to = _length; \
 				_length = FX_MAX(to + size, _length); \
-				realloc_(_length); \
+				realloc_(_length + APPEND_ZERO); \
 				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
+				if (APPEND_ZERO) _val[_length] = 0; \
 			} \
 			return size; \
 		} \
@@ -89,36 +90,36 @@ namespace ftr {
 			uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
-				realloc_(_length); \
+				realloc_(_length + APPEND_ZERO); \
+				if (APPEND_ZERO) _val[_length] = 0; \
 			} \
 			return _length; \
 		} \
 		\
 		template<> void ArrayBuffer<T, M, A>::clear() { \
 			if (_capacity) { \
-				if (Mode == HolderMode::kStrong) { \
+				if (M == HolderMode::kStrong) { \
 					A::free(_val); /* free */ \
 				} \
 				_length = 0; \
 				_capacity = 0; \
 				_val = nullptr; \
-			}
+			} \
 		} \
 		\
 		FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, M, A, APPEND_ZERO)
 	
 	#define FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, M, A, APPEND_ZERO) \
-		template<> ArrayBuffer<T, M, A> ArrayBuffer<T, M, A>::slice_(uint32_t start, uint32_t end) const { \
+		template<> ArrayBuffer<T, HolderMode::kStrong, A> \
+		ArrayBuffer<T, M, A>::slice_(uint32_t start, uint32_t end) const { \
 			end = FX_MIN(end, _length); \
 			if (start < end) { \
-				ArrayBuffer<T, HolderMode::kStrong, A> arr; \
-				arr._length = end - start; \
-				arr.realloc_(arr._length + APPEND_ZERO); \
-				memcpy((void*)arr._val, _val + start, arr._length * sizeof(T) ); \
-				if (APPEND_ZERO) arr._val[arr._length] = 0; \
+				ArrayBuffer<T, HolderMode::kStrong, A> arr(end - start, end - start + APPEND_ZERO); \
+				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
+				if (APPEND_ZERO) arr[arr.length()] = 0; \
 				return std::move(arr); \
 			} \
-			return ArrayBuffer<T, HolderMode::kStrong, A>();
+			return ArrayBuffer<T, HolderMode::kStrong, A>();\
 		}
 
 	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
