@@ -43,7 +43,7 @@ namespace ftr {
 		const int* test_big_int = (const int*)test_big_char;
 		const bool is_big_data = *test_big_int != 1;
 
-		void assign(void* l, const void* r, int len) {
+		static void assign(char* l, const char* r, int len) {
 			switch (len) {
 				case 1:
 					*static_cast<char*>(l) = *static_cast<const char*>(r);
@@ -63,7 +63,7 @@ namespace ftr {
 			}
 		}
 
-		void str::strcp(void* o, int size_o, const void* i, int size_i, uint32_t len) {
+		void str::strcp(char* o, int size_o, const char* i, int size_i, uint32_t len) {
 			if (len && i) {
 				if (size_o == size_i) {
 					::memcpy(o, i, len * size_o);
@@ -72,7 +72,7 @@ namespace ftr {
 					int min = FX_MIN(size_o, size_i);
 					int max = FX_MIN(size_o, size_i);
 					if (is_big_data) { // big data layout
-						for (int i = 0; i < len; i++) {
+						for (int j = 0; j < len; j++) {
 							assign(o, i + max - min, min);
 							o+=size_o; i+=size_i;
 						}
@@ -87,7 +87,7 @@ namespace ftr {
 			}
 		}
 
-		bool str_sscanf(const void* i, const char* f, void* o, int len, int sizeof_i) {
+		static bool str_sscanf(const char* i, const char* f, char* o, int len, int sizeof_i) {
 			if (sizeof_i == 1) {
 				return sscanf( i, f, o, len );
 			} else {
@@ -104,11 +104,11 @@ namespace ftr {
 			}
 		}
 
-		bool str::to_number(const void* i, int32_t* o, int len, int sizeof_i) {
+		bool str::to_number(const char* i, int32_t* o, int len, int sizeof_i) {
 			return str_sscanf(i, "%d", o, len, sizeof_i);
 		}
 		
-		bool str::to_number(const void* i, int64_t* o, int len, int sizeof_i) {
+		bool str::to_number(const char* i, int64_t* o, int len, int sizeof_i) {
 			#if FX_ARCH_64BIT
 				return str_sscanf(i, "%ld", o, len, sizeof_i);
 			#else
@@ -116,11 +116,11 @@ namespace ftr {
 			#endif
 		}
 
-		bool str::to_number(const void* i, uint32_t* o, int len, int sizeof_i) {
+		bool str::to_number(const char* i, uint32_t* o, int len, int sizeof_i) {
 			return str_sscanf(i, "%lld", o, len, sizeof_i);
 		}
 
-		bool str::to_number(const void* i, uint64_t* o, int len, int sizeof_i) {
+		bool str::to_number(const char* i, uint64_t* o, int len, int sizeof_i) {
 			#if FX_ARCH_64BIT
 				return str_sscanf(i, "%lu", o, len, sizeof_i);
 			#else
@@ -128,15 +128,15 @@ namespace ftr {
 			#endif
 		}
 
-		bool str::to_number(const void* i, float* o, int len, int size_of) {
+		bool str::to_number(const char* i, float* o, int len, int size_of) {
 			return str_sscanf(i, "%fd", o, len, size_of);
 		}
 
-		bool str::to_number(const void* i, double* o, int len, int size_of) {
+		bool str::to_number(const char* i, double* o, int len, int size_of) {
 			return str_sscanf(i, "%lf", o, len, size_of);
 		}
 
-		uint32_t str::strlen(const void* s, int sizeof) {
+		uint32_t str::strlen(const char* s, int sizeof) {
 			if (s) {
 				if (sizeof == 1) {
 					return (uint32_t)::strlen(s);
@@ -152,7 +152,7 @@ namespace ftr {
 			}
 		}
 
-		int str::memcmp(const void* s1, const void* s2, uint32_t len, int size_of) {
+		int str::memcmp(const char* s1, const char* s2, uint32_t len, int size_of) {
 			return ::memcmp(s1, s2, len * size_of);
 		}
 
@@ -181,7 +181,7 @@ namespace ftr {
 			return len;
 		}
 
-		int str::index_of(const void* s1, uint32_t s1_len, const void* s2, uint32_t s2_len, uint32_t start, int size_of) {
+		int str::index_of(const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t start, int size_of) {
 			if (s1_len < s2_len) return -1;
 			if (start + s2_len > s1_len) return -1;
 
@@ -196,7 +196,7 @@ namespace ftr {
 			return -1;
 		}
 
-		int str::last_index_of(const void* s1, uint32_t s1_len, const void* s2, uint32_t s2_len, uint32_t _start, int size_of) {
+		int str::last_index_of(const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t _start, int size_of) {
 			int32_t start = _start;
 			if ( start + s2_len > s1_len )
 				start = s1_len - s2_len;
@@ -222,13 +222,13 @@ namespace ftr {
 			}
 
 			uint32_t _capacity;
-			void*    _val;
+			char*    _val;
 		};
 
-		void* str::replace(
-			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len,
-			const void* rep, uint32_t rep_len,
+		char* str::replace(
+			const char* s1, uint32_t s1_len,
+			const char* s2, uint32_t s2_len,
+			const char* rep, uint32_t rep_len,
 			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all
 		) {
 			_Str s_tmp;

@@ -39,25 +39,25 @@ namespace internal {
 		static bool to_number(uint64_t* o, const char* i, int len);
 		static bool to_number(float* o, const char* i, int len);
 		static bool to_number(double* o, const char* i, int len);
-		static void strcp(void* o, int size_o, const void* i, int size_i, uint32_t len);
+		static void strcp(char* o, int size_o, const char* i, int size_i, uint32_t len);
 		template <typename Output, typename Input>
 		static void strcp(Output* o, const Input* i, uint32_t len) {
 			internal::str::strcp(o, sizeof(Output), i, sizeof(Input), len);
 		}
-		static uint32_t strlen(const void* s, int size_of);
-		static int memcmp(const void* s1, const void* s2, uint32_t len, int size_of);
+		static uint32_t strlen(const char* s, int size_of);
+		static int memcmp(const char* s1, const char* s2, uint32_t len, int size_of);
 		// 1 > , -1 <, 0 ==
 		template <typename T>
 		static int memcmp(const T* s1, const T* s2, uint32_t len) {
 			return internal::str::memcmp(s1, s2, len, sizeof(T));
 		}
 		static int32_t sprintf(char*& o, uint32_t& capacity, const char* f, ...);
-		static int32_t index_of     (const void* s1, uint32_t s1_len, const void* s2, uint32_t s2_len, uint32_t start, int size_of);
-		static int32_t last_index_of(const void* s1, uint32_t s1_len, const void* s2, uint32_t s2_len, uint32_t start, int size_of);
-		void* replace(
-			const void* s1, uint32_t s1_len,
-			const void* s2, uint32_t s2_len,
-			const void* rep, uint32_t rep_len,
+		static int32_t index_of     (const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t start, int size_of);
+		static int32_t last_index_of(const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t start, int size_of);
+		char* replace(
+			const char* s1, uint32_t s1_len,
+			const char* s2, uint32_t s2_len,
+			const char* rep, uint32_t rep_len,
 			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all
 		);
 	};
