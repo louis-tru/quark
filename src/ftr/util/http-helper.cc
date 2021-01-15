@@ -28,12 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/http.h"
-#include "ftr/util/http-cookie.h"
-#include "ftr/util/fs.h"
-#include "ftr/version.h"
-#include "ftr/util/string-builder.h"
-#include "ftr/util/uv-1.h"
+#include <ftr/util/http.h>
+#include <ftr/util/http-cookie.h>
+#include <ftr/util/fs.h>
+#include <ftr/version.h>
+#include "uv.h"
 
 FX_NS(ftr)
 

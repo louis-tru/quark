@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/error.h"
-#include "ftr/util/fs.h"
-#include "ftr/util/uv-1.h"
+#include <ftr/util/error.h>
+#include <ftr/util/fs.h>
+#include "uv.h"
 
 FX_NS(ftr)
 

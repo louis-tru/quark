@@ -29,7 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <ftr/util/log.h>
+#include <ftr/util/error.h>
+#include <ftr/util/codec.h>
 #include <stdio.h>
+#include <algorithm>
 
 #if defined(__GLIBC__) || defined(__GNU_LIBRARY__)
 # define FX_VLIBC_GLIBC 1
@@ -90,10 +93,20 @@ namespace ftr {
 		return _default_console;
 	}
 
+  namespace internal {
+    MutableString string_format(const char* f, va_list arg);
+    
+    #define FX_STRING_FORMAT(format, str) \
+      va_list __arg; \
+      va_start(__arg, format); \
+      MutableString str = internal::string_format(format, __arg); \
+      va_end(__arg)
+  }
+
 	namespace console {
 		
 		void report_error(const char* format, ...) {
-			FX_STRING_FORMAT(format, str);
+      FX_STRING_FORMAT(format, str);
 			printf("%s", *str);
 		}
 		
@@ -201,11 +214,20 @@ namespace ftr {
 		}
 
 		void log(bool msg) {
+      
+      MutableString s( msg ? "true": "false");
+      
+      String ss = s;
+      
+      if (s.operator==("AA")) {
+        
+      }
+      
 			default_console()->log( msg ? "true": "false" );
 		}
 		
 		void log(const char* format, ...) {
-			FX_STRING_FORMAT(format, str);
+      FX_STRING_FORMAT(format, str);
 			default_console()->log(str);
 		}
 		
@@ -213,9 +235,8 @@ namespace ftr {
 			default_console()->log(msg);
 		}
 		
-		void log_ucs2(cUcs2String& msg) {
-			String s = Coder::encoding(Encoding::utf8, msg);
-			default_console()->log(s);
+		void log_ucs2(const String16& msg) {
+			default_console()->log(Coder::encoding(Encoding::utf8, msg));
 		}
 			
 		void print(const char* format, ...) {
@@ -255,8 +276,8 @@ namespace ftr {
 		}
 
 		void error(const Error& err) {
-			String str = String::format("Error: %d \n message:\n\t%s", err.code(), *err.message());
-			default_console()->error(err.message());
+			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), *err.message());
+			default_console()->error(str);
 		}
 		
 		void tag(const char* tag, const char* format, ...) {

@@ -87,6 +87,5 @@ namespace ftr {
 		#endif
 	}
 
-	FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 }
 #endif

@@ -155,6 +155,8 @@ namespace ftr {
 			static constexpr bool is_reference = false;
 	};
 
+  FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+
 	FX_EXPORT void set_object_allocator(
 		void* (*alloc)(size_t size) = nullptr,
 		void (*release)(Object* obj) = nullptr,

@@ -49,8 +49,8 @@ namespace ftr {
 		: _length(length), _capacity(0), _val(nullptr) \
 		{ \
 			if (_length) {  \
-				realloc_(_length); \
-				memset(_val, 0, sizeof(T) * _length); \
+				realloc_(_length + APPEND_ZERO); \
+        if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		}\
 		\
@@ -58,8 +58,9 @@ namespace ftr {
 		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr) \
 		{ \
 			if (_length) { \
-				realloc_(_length); \
+				realloc_(_length + APPEND_ZERO); \
 				memcpy(_val, list.begin(), sizeof(T) * _length); \
+        if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		} \
 		\

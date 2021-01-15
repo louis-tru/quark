@@ -37,35 +37,34 @@ namespace ftr {
 
 	Error::Error()
 	: _code(ERR_UNKNOWN_ERROR)
-	, _message(new String("unknown exception")) {
+	, _message("Unknown exception") {
 
 	}
 
 	Error::Error(int code, const String& msg)
 	: _code(code)
-	, _message(new String(msg)) {
+	, _message(msg.copy()) {
 	}
 
-	Error::Error(const String& msg): _code(ERR_UNKNOWN_ERROR), _message(new String(msg)) {
+	Error::Error(const String& msg): _code(ERR_UNKNOWN_ERROR), _message(msg.copy()) {
 	}
 
 	Error::Error(cError& e)
 	: _code(e.code())
-	, _message(new String(*e._message)) {
+	, _message(e._message.copy()) {
 	}
 
 	Error& Error::operator=(const Error& e) {
 		_code = e._code;
-		*_message = *e._message;
+		_message = e._message.copy();
 		return *this;
 	}
 
 	Error::~Error() {
-		delete _message;
 	}
 
-	const String& Error::message() const throw() {
-		return *_message;
+	const String Error::message() const throw() {
+		return _message;
 	}
 
 	int Error::code() const throw() {
@@ -73,7 +72,7 @@ namespace ftr {
 	}
 
 	void Error::set_message(const String& value) {
-		*_message = value;
+		_message = value.copy();
 	}
 
 	void Error::set_code(int value) {
@@ -81,7 +80,7 @@ namespace ftr {
 	}
 
 	String Error::to_string() const {
-		return string_format("message: %s, code: %d", _message->c_str(), _code);
+		return String::format("message: %s, code: %d", *_message, _code);
 	}
 }
 

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/util.h"
-#include "ftr/version.h"
+#include <ftr/util/util.h>
+#include <ftr/version.h>
 
 namespace ftr {
 
@@ -84,7 +84,8 @@ namespace ftr {
 	}
 
 	String version() {
-		return FTR_VERSION;
+    static String ver(FTR_VERSION);
+		return ver;
 	}
 
 	String platform() {
@@ -93,7 +94,7 @@ namespace ftr {
 		#elif FX_LINUX
 			static String _name("linux");
 		#elif  FX_ANDROID
-				static String _name("android");
+      static String _name("android");
 		#elif  FX_WIN
 			static String _name("win32");
 		#else

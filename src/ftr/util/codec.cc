@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/error.h"
-#include "ftr/util/codec.h"
-#include "ftr/util/buffer.h"
+#include <ftr/util/error.h>
+#include <ftr/util/codec.h>
+#include <ftr/util/buffer.h>
 #include <unordered_map>
 
 namespace ftr {
@@ -135,13 +135,12 @@ namespace ftr {
 	static Buffer encoding_to_binary(const Char* source, uint32_t len) {
 		const Char* end = source + len;
 		//uint32_t size = sizeof(Char);
-		Buffer rev(len, len + 1);
+		Buffer rev(len);
 		char* data = *rev;
 		while (source < end) {
 			*data = *source;
 			data++; source++;
 		}
-		(*rev)[len] = '\0';
 		return rev;
 	}
 
@@ -153,13 +152,12 @@ namespace ftr {
 	static Buffer encoding_to_ascii(const Char* source, uint32_t len) {
 		// ucs2/ucs4到ascii会丢失所有ascii以外的编码
 		const Char* end = source + len;
-		Buffer rev(len, len + 1);
+		Buffer rev(len);
 		char* data = *rev;
 		while (source < end) {
 			*data = *(unsigned char*)source % 128;
 			data++; source++;
 		}
-		*data = '\0';
 		return rev;
 	}
 
@@ -321,7 +319,7 @@ namespace ftr {
 				return encoding_to_hex(source, len);
 			}
 			case Encoding::utf8: {
-				return encoding_to_utf8((cbyte*)source, len);
+				return encoding_to_utf8((const uint8_t*)source, len);
 			}
 			case Encoding::utf16: { // 暂时使用ucs2,ucs2不能包括所有字符编码
 				//FX_WARN("%s", "From ascii to ucs2 would be a waste of memory space.");
@@ -341,7 +339,7 @@ namespace ftr {
 		return Buffer();
 	}
 
-	static Buffer encoding_with_uint16_t _(Encoding target_en, const uint16_t * source, uint32_t len) {
+	static Buffer encoding_with_uint16_t_(Encoding target_en, const uint16_t * source, uint32_t len) {
 		// const uint16_t * end = source + len;
 		
 		switch (target_en) {

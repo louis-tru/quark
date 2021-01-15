@@ -32,13 +32,12 @@ namespace internal {
 
 	struct str {
 		static const char ws[8];
-
-		static bool to_number(int32_t* o, const char* i, int len);
-		static bool to_number(int64_t* o, const char* i, int len);
-		static bool to_number(uint32_t* o, const char* i, int len);
-		static bool to_number(uint64_t* o, const char* i, int len);
-		static bool to_number(float* o, const char* i, int len);
-		static bool to_number(double* o, const char* i, int len);
+		static bool to_number(const char* i, int32_t* o, int len);
+		static bool to_number(const char* i, int64_t* o, int len);
+		static bool to_number(const char* i, uint32_t* o, int len);
+		static bool to_number(const char* i, uint64_t* o, int len);
+		static bool to_number(const char* i, float* o, int len);
+		static bool to_number(const char* i, double* o, int len);
 		static void strcp(char* o, int size_o, const char* i, int size_i, uint32_t len);
 		template <typename Output, typename Input>
 		static void strcp(Output* o, const Input* i, uint32_t len) {
@@ -51,7 +50,7 @@ namespace internal {
 		static int memcmp(const T* s1, const T* s2, uint32_t len) {
 			return internal::str::memcmp(s1, s2, len, sizeof(T));
 		}
-		static int32_t sprintf(char*& o, uint32_t& capacity, const char* f, ...);
+		static int32_t sprintf(char** o, uint32_t* capacity, const char* f, ...);
 		static int32_t index_of     (const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t start, int size_of);
 		static int32_t last_index_of(const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t start, int size_of);
 		char* replace(
@@ -64,28 +63,39 @@ namespace internal {
 }
 
 template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>::BasicString(const T* s): BasicString<T, M, A>(s, internal::str::strlen(s, sizeof(T))) {
+BasicString<T, M, A>::BasicString(const T* s)
+  : BasicString<T, M, A>(s, internal::str::strlen(s, sizeof(T))) {
 }
 
 template <typename T, HolderMode M, typename A>
 BasicString<T, M, A>::BasicString(const T* s, uint32_t len) {
-	this->_length = len;
-	if (this->_length) { // strong
-		if (M == HolderMode::kStrong) {
-			realloc_(this->_length + 1);
-			internal::str::strcp(this->_val, s, this->_langth);
-		} else { // weak
-			this->_val = const_cast<T*>(s);
-			this->_capacity = this->_length + 1;
-		}
-	}
+  this->_length = len;
+  if (len) {
+    this->realloc_(this->_length + 1);
+    internal::str::strcp(this->_val, s, this->_length);
+  }
+}
+
+template <>
+BasicString<char>::BasicString(const char* s, uint32_t len)
+  : ArrayBuffer<char, HolderMode::kWeak>(const_cast<char*>(s), len) {
+}
+
+template <>
+BasicString<uint16_t>::BasicString(const uint16_t* s, uint32_t len)
+  : ArrayBuffer<uint16_t, HolderMode::kWeak>(const_cast<uint16_t*>(s), len) {
+}
+
+template <>
+BasicString<uint32_t>::BasicString(const uint32_t* s, uint32_t len)
+  : ArrayBuffer<uint32_t, HolderMode::kWeak>(const_cast<uint32_t*>(s), len) {
 }
 
 template <typename T, HolderMode M, typename A>
 BasicString<T, M, A>::BasicString(const T* a, uint32_t a_len, const T* b, uint32_t b_len) {
-	// static_assert(M == HolderMode::kStrong, "the weak holder cannot be changed");
+  static_assert(M == HolderMode::kStrong, "the weak holder cannot be changed");
 	this->_length = a_len + b_len;
-	realloc_(this->_length + 1);
+  this->realloc_(this->_length + 1);
 	internal::str::strcp(this->_val, a, a_len);
 	internal::str::strcp(this->_val + a_len, b, b_len);
 }
@@ -140,7 +150,7 @@ BasicString<T, M, A>::BasicString(double i) {
 }
 
 template <>
-BasicString<char, HolderMode::kStrong> BasicString<>::format(const char* format, ...);
+MutableString BasicString<>::format(const char* format, ...);
 
 template <typename T, HolderMode M, typename A>
 BasicString<T, M, A> ArrayBuffer<T, M, A>::collapse_string() {
@@ -322,6 +332,12 @@ BasicString<T, M, A>& BasicString<T, M, A>::operator=(const BasicString<T, M2, A
 }
 
 template <typename T, HolderMode M, typename A>
+BasicString<T, M, A>& BasicString<T, M, A>::operator=(const BasicString<T, M, A>& s) { // Only weak types can be copied assign value
+  ArrayBuffer<T, M, A>::operator=(s);
+  return *this;
+}
+
+template <typename T, HolderMode M, typename A>
 BasicString<T, M, A>& BasicString<T, M, A>::operator=(BasicString&  s) { // assign ref
 	return operator=(std::move(s));
 }
@@ -347,11 +363,19 @@ BasicString<T, HolderMode::kStrong, A>  BasicString<T, M, A>::operator+(const Ba
 
 // --------------------------------------------------------------------------------
 
+
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-bool BasicString<T, M, A>::operator==(const BasicString<T, M2, A2>& s) const {
-	return internal::str::memcmp(this->_val, s._val, this->_length) == 0;
+template<typename T2>
+bool BasicString<T, M, A>::operator==(T2& _s) const {
+  BasicString<T> s(_s), s2(_s);
+  return internal::str::memcmp(this->_val, s2._val, this->_length) == 0;
 }
+
+//template <typename T, HolderMode M, typename A>
+//template<HolderMode M2, typename A2>
+//bool BasicString<T, M, A>::operator==(const BasicString<T, M2, A2>& s) const {
+//	return internal::str::memcmp(this->_val, s._val, this->_length) == 0;
+//}
 
 template <typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
@@ -389,12 +413,12 @@ template<typename T, HolderMode M, typename A>
 template<typename T2>
 T2 BasicString<T, M, A>::to_number() const {
 	T2 o;
-	internal::str::to_number(&o, this->_val, this->_length);
+	internal::str::to_number(this->_val, &o, this->_length);
 	return o;
 }
 
 template<typename T, HolderMode M, typename A>
 template<typename T2>
 bool BasicString<T, M, A>::to_number(T2* o) const {
-	return internal::str::to_number(o, this->_val, this->_length);
+	return internal::str::to_number(this->_val, o, this->_length);
 }

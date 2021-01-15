@@ -28,12 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+template<typename T, HolderMode M, typename A>
+ArrayBuffer<T, M, A>::ArrayBuffer(): _length(0), _capacity(0), _val(nullptr) {
+}
 
 template<typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
 ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr)
-	: ArrayBuffer(const_cast<T*>(arr.val(), arr.length(), arr.capacity())) {
+	: ArrayBuffer(const_cast<T*>(arr.val()), arr.length(), arr.capacity()) {
 	static_assert(M == HolderMode::kWeak, "Only weak types can be copied");
 }
 
@@ -112,6 +114,7 @@ ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity)
 
 template<typename T, HolderMode M, typename A>
 T& ArrayBuffer<T, M, A>::operator[](uint32_t index) {
+  static_assert(M == HolderMode::kStrong, "Only for strong types");
 	ASSERT(index < _length, "ArrayBuffer access violation.");
 	return _val[index];
 }
@@ -123,8 +126,9 @@ const T& ArrayBuffer<T, M, A>::operator[](uint32_t index) const {
 }
 
 template<typename T, HolderMode M, typename A>
-T* ArrayBuffer<T, M, A>::val() {
-	return _val;
+T* ArrayBuffer<T, M, A>::operator*() {
+  static_assert(M == HolderMode::kStrong, "Only for strong types");
+  return _val;
 }
 
 template<typename T, HolderMode M, typename A>

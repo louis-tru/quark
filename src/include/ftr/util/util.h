@@ -43,6 +43,7 @@
 #include <ftr/util/hash.h>
 #include <ftr/util/log.h>
 #include <ftr/util/numbers.h>
+#include <ftr/util/str.h>
 
 namespace ftr {
 

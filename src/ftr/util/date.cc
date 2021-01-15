@@ -618,7 +618,7 @@ namespace ftr {
 	int64_t parse_time(const String& str)
 	{
 		time_t parsed = -1;
-		int rc = parsedate(str.c_str(), &parsed);
+		int rc = parsedate(str.val(), &parsed);
 		
 		switch(rc) {
 			case PARSEDATE_OK:
@@ -650,8 +650,7 @@ namespace ftr {
 			int tm_isdst;           //夏令时标志
 		};*/
 		
-		
-		String r = string_format
+    String r = String(String::format
 		("%s, %d%d %s %d %d%d:%d%d:%d%d GMT"
 		 , wkday2[tm.tm_wday]
 		 , tm.tm_mday / 10, tm.tm_mday % 10
@@ -660,9 +659,9 @@ namespace ftr {
 		 , tm.tm_hour / 10, tm.tm_hour % 10
 		 , tm.tm_min / 10, tm.tm_min % 10
 		 , tm.tm_sec / 10, tm.tm_sec % 10
-		 );
-		
-		return r;
+    ));
+    
+    return r;
 	}
 
 }

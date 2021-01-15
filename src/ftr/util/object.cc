@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr/util/object.h"
-#include "ftr/util/loop.h"
 #include <vector>
 
 namespace ftr {
@@ -45,9 +44,9 @@ namespace ftr {
 		/* NOOP */
 	}
 
-	static ObjectAllocator object_allocator = {
-		&default_object_alloc, &default_object_release, &default_object_retain,
-	};
+  static void* (*object_allocator_alloc)(size_t size) = &default_object_alloc;
+  static void  (*object_allocator_release)(Object* obj) = &default_object_release;
+  static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
 
 	#if FX_MEMORY_TRACE_MARK
 
@@ -117,7 +116,7 @@ namespace ftr {
 	}
 
 	void Object::release() {
-		object_allocator.release(this);
+		object_allocator_release(this);
 	}
 
 	void* Object::operator new(std::size_t size) {
@@ -126,7 +125,7 @@ namespace ftr {
 			((Object*)p)->mark_index_ = 123456;
 			return p;
 		#else
-			return object_allocator.alloc(size);
+			return object_allocator_alloc(size);
 		#endif
 	}
 
@@ -145,19 +144,19 @@ namespace ftr {
 		void (*retain)(Object* obj)
 	) {
 		if (alloc) {
-			object_allocator.alloc = alloc;
+			object_allocator_alloc = alloc;
 		} else {
-			object_allocator.alloc = &default_object_alloc;
+			object_allocator_alloc = &default_object_alloc;
 		}
 		if (release) {
-			object_allocator.release = release;
+			object_allocator_release = release;
 		} else {
-			object_allocator.release = &default_object_release;
+			object_allocator_release = &default_object_release;
 		}
 		if (retain) {
-			object_allocator.retain = retain;
+			object_allocator_retain = retain;
 		} else {
-			object_allocator.retain = &default_object_retain;
+			object_allocator_retain = &default_object_retain;
 		}
 	}
 
@@ -177,7 +176,7 @@ namespace ftr {
 	bool Reference::retain() {
 		ASSERT(_ref_count >= 0);
 		if ( _ref_count++ == 0 ) {
-			object_allocator.retain(this);
+			object_allocator_retain(this);
 		}
 		return true;
 	}
@@ -185,7 +184,7 @@ namespace ftr {
 	void Reference::release() {
 		ASSERT(_ref_count >= 0);
 		if ( --_ref_count <= 0 ) { // 当引用记数小宇等于0释放
-			object_allocator.release(this);
+			object_allocator_release(this);
 		}
 	}
 

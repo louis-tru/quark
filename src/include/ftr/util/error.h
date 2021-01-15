@@ -50,7 +50,6 @@ namespace ftr {
 	*/
 	class FX_EXPORT Error: public Object {
 		public:
-		
 			Error();
 			Error(int code, const String& msg);
 			Error(int code, const char*, ...);
@@ -59,15 +58,15 @@ namespace ftr {
 			Error(const Error& err);
 			virtual ~Error();
 			Error& operator=(const Error& e);
-			virtual const String& message() const throw();
+			virtual const String message() const throw();
 			virtual int code() const throw();
 			void set_code(int value);
 			void set_message(const String& value);
 			virtual String to_string() const;
 
 		private:
-			int     _code;
-			String* _message;
+			int            _code;
+      MutableString _message;
 	};
 
 	typedef const Error cError;

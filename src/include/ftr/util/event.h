@@ -477,7 +477,7 @@ namespace ftr {
 			}
 			
 			inline void get_listener() {
-				ASSERT(!_name.empty());
+				ASSERT(!_name.is_null());
 				if (_listener == nullptr) {
 					_listener = new std::list<LWrap>();
 				}
@@ -551,7 +551,6 @@ namespace ftr {
 
 			inline Notification()
 				: _noticers(nullptr) {
-				
 			}
 			
 			virtual ~Notification() {
@@ -576,7 +575,7 @@ namespace ftr {
 
 			bool has_noticer(const Name& name) const {
 				if ( _noticers != nullptr ) {
-					return _noticers->has(name);
+					return _noticers->find(name) != _noticers->end();
 				}
 				return false;
 			}
@@ -586,7 +585,7 @@ namespace ftr {
 			* @ret {bool}
 			*/
 			inline bool is_noticer_none() const {
-				return _noticers == nullptr || _noticers->length() == 0;
+				return _noticers == nullptr || _noticers->size() == 0;
 			}
 			
 			/**
@@ -806,6 +805,15 @@ namespace ftr {
 			}
 		
 		private:
+
+      struct NoticerWrap {
+        inline NoticerWrap() { FX_UNREACHABLE(); }
+        inline NoticerWrap(const Name& t, Sender* sender)
+        : name(t), value(t.to_string(), sender) { }
+        Name    name;
+        Noticer value;
+      };
+
 			typedef std::unordered_map<Name, NoticerWrap*> Noticers;
 			
 			Noticer* get_noticer2(const Name& name) {
@@ -819,14 +827,6 @@ namespace ftr {
 					return &_noticers->set(name, new NoticerWrap(name, static_cast<Sender*>(this)))->value;
 				}
 			}
-
-			struct NoticerWrap {
-				inline NoticerWrap() { FX_UNREACHABLE(); }
-				inline NoticerWrap(const Name& t, Sender* sender)
-				: name(t), value(t.to_string(), sender) { }
-				Name    name;
-				Noticer value;
-			};
 
 			Noticers* _noticers;
 	};

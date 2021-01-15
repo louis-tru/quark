@@ -43,7 +43,7 @@ namespace ftr {
 		const int* test_big_int = (const int*)test_big_char;
 		const bool is_big_data = *test_big_int != 1;
 
-		static void assign(char* l, const char* r, int len) {
+		static void assign(void* l, const void* r, int len) {
 			switch (len) {
 				case 1:
 					*static_cast<char*>(l) = *static_cast<const char*>(r);
@@ -77,7 +77,7 @@ namespace ftr {
 							o+=size_o; i+=size_i;
 						}
 					} else {
-						for (int i = 0; i < len; i++) {
+						for (int j = 0; j < len; j++) {
 							assign(o, i, min);
 							o+=size_o; i+=size_i;
 						}
@@ -87,63 +87,57 @@ namespace ftr {
 			}
 		}
 
-		static bool str_sscanf(const char* i, const char* f, char* o, int len, int sizeof_i) {
+		static bool str_sscanf(const char* i, const char* f, void* o, int len, int sizeof_i) {
 			if (sizeof_i == 1) {
 				return sscanf( i, f, o, len );
 			} else {
-				if (len < 33) {
-					char o2[33];
-					str::strcp(o2, 1, i, sizeof_i, len);
-					return sscanf( i, f, o2, len );
-				} else {
-					char* o2 = (char*)malloc(len);
-					str::strcp(o2, 1, i, sizeof_i, len);
-					free(o2);
-					return sscanf( i, f, o2, len );
-				}
+        char o2[65];
+        len = FX_MIN(len, 64);
+        str::strcp(o2, 1, i, sizeof_i, len);
+        return sscanf( o2, f, o, len );
 			}
 		}
 
-		bool str::to_number(const char* i, int32_t* o, int len, int sizeof_i) {
-			return str_sscanf(i, "%d", o, len, sizeof_i);
+		bool str::to_number(const char* i, int32_t* o, int len) {
+			return str_sscanf(i, "%d", o, len, sizeof(int32_t));
 		}
 		
-		bool str::to_number(const char* i, int64_t* o, int len, int sizeof_i) {
+		bool str::to_number(const char* i, int64_t* o, int len) {
 			#if FX_ARCH_64BIT
-				return str_sscanf(i, "%ld", o, len, sizeof_i);
+				return str_sscanf(i, "%ld", o, len, sizeof(int64_t));
 			#else
-				return str_sscanf(i, "%lld", o, len, sizeof_i);
+				return str_sscanf(i, "%lld", o, len, sizeof(int64_t));
 			#endif
 		}
 
-		bool str::to_number(const char* i, uint32_t* o, int len, int sizeof_i) {
-			return str_sscanf(i, "%lld", o, len, sizeof_i);
+		bool str::to_number(const char* i, uint32_t* o, int len) {
+			return str_sscanf(i, "%lld", o, len, sizeof(uint32_t));
 		}
 
-		bool str::to_number(const char* i, uint64_t* o, int len, int sizeof_i) {
+		bool str::to_number(const char* i, uint64_t* o, int len) {
 			#if FX_ARCH_64BIT
-				return str_sscanf(i, "%lu", o, len, sizeof_i);
+				return str_sscanf(i, "%lu", o, len, sizeof(uint64_t));
 			#else
-				return str_sscanf(i, "%llu", o, len, sizeof_i);
+				return str_sscanf(i, "%llu", o, len, sizeof(uint64_t));
 			#endif
 		}
 
-		bool str::to_number(const char* i, float* o, int len, int size_of) {
-			return str_sscanf(i, "%fd", o, len, size_of);
+		bool str::to_number(const char* i, float* o, int len) {
+			return str_sscanf(i, "%fd", o, len, sizeof(float));
 		}
 
-		bool str::to_number(const char* i, double* o, int len, int size_of) {
-			return str_sscanf(i, "%lf", o, len, size_of);
+		bool str::to_number(const char* i, double* o, int len) {
+			return str_sscanf(i, "%lf", o, len, sizeof(double));
 		}
 
-		uint32_t str::strlen(const char* s, int sizeof) {
+		uint32_t str::strlen(const char* s, int size_of) {
 			if (s) {
-				if (sizeof == 1) {
+				if (size_of == 1) {
 					return (uint32_t)::strlen(s);
 				} else {
 					uint32_t rev = 0;
 					while (*s != 0) {
-						rev++; s+=sizeof;
+						rev++; s+=size_of;
 					}
 					return rev;
 				}
@@ -169,6 +163,16 @@ namespace ftr {
 			#endif
 			return len;
 		}
+  
+    MutableString string_format(const char* f, va_list arg) {
+      MutableString str;
+      char* buf = nullptr;
+      int len = internal::vasprintf(&buf, f, arg);
+      if (buf) {
+        str = Buffer(buf, len).collapse_string();
+      }
+      return str;
+    }
 
 		int32_t str::sprintf(char** o, uint32_t* capacity, const char* f, ...) {
 			va_list arg;
@@ -214,9 +218,9 @@ namespace ftr {
 				capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
 				if ( capacity > _capacity || capacity < _capacity / 4.0 ) {
 					capacity = powf(2, ceil(log2(capacity)));
-					uint32_t size = sizeof(T) * capacity;
+					uint32_t size = sizeof(char) * capacity;
 					_capacity = capacity;
-					_val = static_cast<T*>(_val ? ::realloc(_val, size) : ::malloc(size));
+					_val = static_cast<char*>(_val ? ::realloc(_val, size) : ::malloc(size));
 				}
 				ASSERT(_val);
 			}
@@ -238,7 +242,7 @@ namespace ftr {
 
 			while ((find = index_of(s1, s1_len, s2, s2_len, from, size_of)) != -1) {
 				before_len = find - from;
-				s.realloc((s_tmp_to + before_len + rep_len + 1) * size_of); // realloc
+        s_tmp.realloc((s_tmp_to + before_len + rep_len + 1) * size_of); // realloc
 
 				if (before_len) {
 					::memcpy(
@@ -277,17 +281,12 @@ namespace ftr {
 	}
 
 	template <>
-	static String MutableString<>::format(const char* f, ...) {
-		String str;
-		va_list arg;
-		va_start(arg, f);
-		char* buf = nullptr;
-		int len = internal::vasprintf(&buf, f, arg);
-		if (buf) {
-			str = String(Buffer(buf, len));
-		}
-		va_end(__arg);
-		return set::move(str);
+  MutableString BasicString<>::format(const char* f, ...) {
+    va_list arg;
+    va_start(arg, f);
+    MutableString str = internal::string_format(f, arg);
+    va_end(arg);
+    return str;
 	}
 
 }
