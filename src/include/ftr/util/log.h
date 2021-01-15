@@ -69,7 +69,7 @@ namespace ftr {
 		FX_EXPORT void log(bool);
 		FX_EXPORT void log(const char*, ...);
 		FX_EXPORT void log(const String&);
-		FX_EXPORT void log_ucs2(const String16&);
+		FX_EXPORT void log(const String16&);
 		FX_EXPORT void warn(const char*, ...);
 		FX_EXPORT void warn(const String&);
 		FX_EXPORT void error(const char*, ...);

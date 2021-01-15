@@ -207,6 +207,9 @@ namespace ftr {
 			uint32_t  _length;
 			uint32_t  _capacity;
 			T*        _val;
+		
+			template<typename T2, HolderMode M2, typename A2> friend class ArrayBuffer;
+			template<typename T2, HolderMode M2, typename A2> friend class BasicString;
 	};
 
 	#include "./buffer.inl"

@@ -169,7 +169,7 @@ namespace ftr {
       char* buf = nullptr;
       int len = internal::vasprintf(&buf, f, arg);
       if (buf) {
-        str = Buffer(buf, len).collapse_string();
+//        str = Buffer(buf, len).collapse_string();
       }
       return str;
     }
@@ -287,6 +287,21 @@ namespace ftr {
     MutableString str = internal::string_format(f, arg);
     va_end(arg);
     return str;
+	}
+
+	template <>
+	BasicString<char>::BasicString(const char* s, uint32_t len)
+		: ArrayBuffer<char, HolderMode::kWeak>(const_cast<char*>(s), len) {
+	}
+
+	template <>
+	BasicString<uint16_t>::BasicString(const uint16_t* s, uint32_t len)
+		: ArrayBuffer<uint16_t, HolderMode::kWeak>(const_cast<uint16_t*>(s), len) {
+	}
+
+	template <>
+	BasicString<uint32_t>::BasicString(const uint32_t* s, uint32_t len)
+		: ArrayBuffer<uint32_t, HolderMode::kWeak>(const_cast<uint32_t*>(s), len) {
 	}
 
 }

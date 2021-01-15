@@ -117,7 +117,7 @@ namespace ftr {
 			if (start < end) { \
 				ArrayBuffer<T, HolderMode::kStrong, A> arr(end - start, end - start + APPEND_ZERO); \
 				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
-				if (APPEND_ZERO) arr[arr.length()] = 0; \
+				if (APPEND_ZERO) (*arr)[arr.length()] = 0; \
 				return std::move(arr); \
 			} \
 			return ArrayBuffer<T, HolderMode::kStrong, A>();\

@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
+#include <ftr/util/hash.h>
 
 namespace ftr {
 
 	static const char* I64BIT_TABLE =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
-	void SimpleHash::update(const void* data, uint32_t len);
+	void SimpleHash::update(const void* data, uint32_t len) {
 		while (len--)
 			_hash += (_hash << 5) + ((const char*)data)[len];
 	}
 	
-	String SimpleHash::digest() {
-		String rev;
+	MutableString SimpleHash::digest() {
+		MutableString rev;
 		do {
 			rev += I64BIT_TABLE[_hash & 0x3F];
 		} while (_hash >>= 6);
@@ -55,13 +55,13 @@ namespace ftr {
 		return hash.hash_code();
 	}
 
-	String hash(const void* data, uint32_t len) {
+	MutableString hash(const void* data, uint32_t len) {
 		SimpleHash hash;
 		hash.update((const char*)data, len);
 		return hash.digest();
 	}
 
-	String hash(const String& str) {
+	MutableString hash(const String& str) {
 		return hash(*str, str.length());
 	}
 

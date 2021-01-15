@@ -34,14 +34,18 @@
 #include <iostream>
 #include <limits>
 #include <stdarg.h>
-#include "../src/include/ftr/util/macros.h"
-//#include <string.h>
-//#include <stdio.h>
-//#include <ctype.h>
+#include <ftr/util/macros.h>
+#include <ftr/util/str.h>
+#include <functional>
+#include <stdlib.h>
+#include <string.h>
+#include <unordered_map>
 
 const char test_big_char[] = { 1, 0, 0, 0 };
 const int* test_big_int = (const int*)test_big_char;
 const bool has_big_data = *test_big_int != 1;
+
+using namespace std;
 
 namespace ftr {
 
@@ -72,32 +76,128 @@ namespace ftr {
 
 }
 
+class Str {
+public:
+	Str(const char* v): _val(v) {
+	}
+	uint64_t hash_code() const {
+		return 100;
+	}
+	private:
+	const char* _val;
+};
+
+namespace std {
+			
+	template<>
+	struct std::hash<Str> {
+		size_t operator()(const Str& val) const {
+			return val.hash_code();
+		}
+	};
+
+	template<typename T, ftr::HolderMode M, typename A>
+	 struct hash<ftr::BasicString<T, M, A>> {
+		 size_t operator()(const ftr::BasicString<T, M, A>& val) const {
+			 return 101;
+		 }
+	 };
+}
+
+void test_str2() {
+	
+	ftr::WeakBuffer wb(const_cast<char*>("ABCD"), 4);
+	ftr::Buffer     sb(wb.copy());
+	ftr::MutableString ms("ABCD");
+	ftr::String s(ms);
+	ftr::String s_(s);
+	ftr::MutableString s2(ms.copy());
+	
+	cout
+	<< endl
+	<< "-------------" << endl
+	<< "s.operator==(ms)" << s.operator==(ms) << endl
+	<< "s.operator==(s):" << s.operator==(s) << endl
+	<< "s.operator==('B'):" << s.operator==("B") << endl
+	<< "s.operator==(wb):" << s.operator==(wb) << endl
+	<< "s.operator==(sb):" << s.operator==(sb) << endl
+	<< "s2.operator==(ms)" << s2.operator==(ms) << endl
+	<< "s2.operator==(s):" << s2.operator==(s) << endl
+	<< "s2.operator==('B'):" << s2.operator==("B") << endl
+	<< "s2.operator==(wb):" << s2.operator==(wb) << endl
+	<< "s2.operator==(sb):" << s2.operator==(sb) << endl
+	
+	<< endl
+	
+	<< "-------------" << endl
+	<< "s.operator!=(ms)" << s.operator!=(ms) << endl
+	<< "s.operator!=(s):" << s.operator!=(s) << endl
+	<< "s.operator!=('B'):" << s.operator!=("B") << endl
+	<< "s.operator!=(wb):" << s.operator!=(wb) << endl
+	<< "s.operator!=(sb):" << s.operator!=(sb) << endl
+	<< "s2.operator!=(ms)" << s2.operator!=(ms) << endl
+	<< "s2.operator!=(s):" << s2.operator!=(s) << endl
+	<< "s2.operator!=('B'):" << s2.operator!=("B") << endl
+	<< "s2.operator!=(wb):" << s2.operator!=(wb) << endl
+	<< "s2.operator!=(sb):" << s2.operator!=(sb) << endl
+	
+	<< endl;
+
+	//	s2.split("A");
+	
+	s.operator=(s_);
+//	auto A =
+	ms.replace("A", "BBB");
+	s.operator=(ms);
+	s.operator=("A");
+	
+	s2.operator=(s_.copy());
+	s2.operator=(ms);
+	s2.operator=("A");
+	
+	s + s_;
+	s + ms;
+	s + "A";
+	
+	s2 + s_;
+	s2 + ms;
+	s2 + "A";
+	
+//	s += s_;
+//	s += ms;
+//	s += "A";
+	
+	s2 += s_;
+	ms + "B";
+	s2 += "C";
+	s2 += "A";
+	ms+= "100";
+}
+
 int test2_str(int argc, char *argv[]) {
 
 	std::string s = std::string("-hello").substr(1,5) + "-";
 	
 	char* a = const_cast<char*>(s.c_str());
-
-	
-	
-	// std::free(a - 2);
-	
-	int i = 3/4;
-	
 	a[0] = 'U';
 	
+	test_str2();
+	
 	std::cout
-	<< "sizeof(s):" << sizeof(s) << std::endl
-	<< "capacity:" << s.capacity() << std::endl
-	<< "size:" << s.size() << std::endl
-	<< "length:" << s.length() << std::endl
-	<< "str:" << s << std::endl
-	<< "ptr:" << s.c_str() << std::endl
-	<< "uint32_t:" << std::numeric_limits<uint32_t>::max() << std::endl
-	<< "has_big_data:" << has_big_data << std::endl
-	<< "i:" << i << std::endl
-	<< "memcmp:" << memcmp("A", "A", 1) << std::endl
-	<< std::endl;
+	<< "sizeof(s):" << sizeof(s) << endl
+	<< "capacity:" << s.capacity() << endl
+	<< "size:" << s.size() << endl
+	<< "length:" << s.length() << endl
+	<< "str:" << s << endl
+	<< "ptr:" << s.c_str() << endl
+	<< "uint32_t:" << std::numeric_limits<uint32_t>::max() << endl
+	<< "has_big_data:" << has_big_data << endl
+	<< "i:" << 3 / 4 << endl
+	<< "memcmp:" << memcmp("A", "A", 1) << endl
+	<< "std::hash<std::string>():" << std::hash<std::string>()("ABCD") << endl
+	<< "std::hash<Str>():" << std::hash<Str>()("ABCD") << endl
+	<< "std::hash<String>():" << std::hash<ftr::String>()("ABCD") << endl
+	<< endl;
 
 	return 0;
 }

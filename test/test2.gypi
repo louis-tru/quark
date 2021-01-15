@@ -2,6 +2,9 @@
 	'targets': [{
 		'target_name': 'test2',
 		'type': 'executable',
+		'include_dirs': [
+			'../src/include',
+		],
 		'sources': [
 			'test2.cc',
 			'test2-thread.cc',
@@ -12,6 +15,12 @@
 			'test2-xopen.cc',
 			'test2-sys.cc',
 			'test2-str.cc',
+			'../src/ftr/util/log.cc',
+			'../src/ftr/util/str.cc',
+			'../src/ftr/util/buffer.cc',
+			'../src/ftr/util/object.cc',
+			# '../src/ftr/util/codec.cc',
+			# '../src/ftr/util/hash.cc',
 		],
 		'mac_bundle': 1,
 		'xcode_settings': {

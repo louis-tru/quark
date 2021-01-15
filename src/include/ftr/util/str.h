@@ -49,15 +49,16 @@ namespace ftr {
 	template<class T, HolderMode M, typename A>
 	class FX_EXPORT BasicString: public ArrayBuffer<T, M, A> {
 		public:
-    
-			BasicString() {}
-      BasicString(const BasicString<T, M, A>& s)  : ArrayBuffer<T, M, A>(s) {} // Only weak types can be copied
-      BasicString(      BasicString<T, M, A>&  s) : ArrayBuffer<T, M, A>(std::move(s)) {}
-      BasicString(      BasicString<T, M, A>&& s) : ArrayBuffer<T, M, A>(s) {}
+			// copyed constructors
+      inline BasicString(const BasicString& s)  : ArrayBuffer<T, M, A>(s) {} // Only weak types can be copied
+			inline BasicString(      BasicString& s)  : ArrayBuffer<T, M, A>(std::move(s)) {}
+			inline BasicString(      BasicString&& s) : ArrayBuffer<T, M, A>(std::move(s)) {}
       template<HolderMode M2, typename A2>
-      BasicString(const ArrayBuffer<T, M2, A2>& s): ArrayBuffer<T, M, A>(s) {} // Only weak types can be copied
-      BasicString(      ArrayBuffer<T, M, A>&  s) : ArrayBuffer<T, M, A>(std::move(s)) {}
-      BasicString(      ArrayBuffer<T, M, A>&& s) : ArrayBuffer<T, M, A>(s) {}
+			inline BasicString(const ArrayBuffer<T, M2, A2>& s): ArrayBuffer<T, M, A>(s) {} // Only weak types can be copied
+			inline BasicString(      ArrayBuffer<T, M, A>&  s) : ArrayBuffer<T, M, A>(std::move(s)) {}
+			inline BasicString(      ArrayBuffer<T, M, A>&& s) : ArrayBuffer<T, M, A>(std::move(s)) {}
+			// other constructors
+			inline BasicString() {}
 			BasicString(const T* s);
 			BasicString(const T* s, uint32_t len);
 			BasicString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // Only weak types can be copied
@@ -95,31 +96,31 @@ namespace ftr {
 			template<HolderMode M2, typename A2>
 			int last_index_of(const BasicString<T, M2, A2>& s) const;
 			
-			template<HolderMode M2, typename A2, HolderMode M3, typename A3>
-			BasicString<T, HolderMode::kStrong, A> replace(const BasicString<T, M2, A2>& s, const BasicString<T, M3, A3>& rep) const;
-			template<HolderMode M2, typename A2, HolderMode M3, typename A3>
-			BasicString<T, HolderMode::kStrong, A> replace_all(const BasicString<T, M2, A2>& s, const BasicString<T, M3, A3>& rep) const;
+//			template<HolderMode M2, typename A2, HolderMode M3, typename A3>
+			BasicString<T, HolderMode::kStrong, A> replace(const BasicString& s, const BasicString& rep) const;
+//			template<HolderMode M2, typename A2, HolderMode M3, typename A3>
+			BasicString<T, HolderMode::kStrong, A> replace_all(const BasicString& s, const BasicString& rep) const;
 
 			// assign
-			template<HolderMode M2, typename A2>
-			BasicString<T, M,                   A>& operator=(const BasicString<T, M2, A2>& s); // Only weak types can be copied assign value
-      BasicString<T, M,                   A>& operator=(const BasicString<T, M, A>& s); // Only weak types can be copied assign value
-			BasicString<T, M,                   A>& operator=(      BasicString&  s); // assign ref
-			BasicString<T, M,                   A>& operator=(      BasicString&& s); // assign right ref
+			BasicString& operator=(const BasicString& s); // Only weak types can be copied assign value
+			BasicString& operator=(      BasicString&  s); // assign ref
+			BasicString& operator=(      BasicString&& s); // assign right ref
+
 			template<HolderMode M2, typename A2>
 			BasicString<T, M,                   A>& operator+=(const BasicString<T, M2, A2>& s); // write, Only strong types can be call
+			BasicString<T, M,                   A>& operator+=(const BasicString& s); // write, Only strong types can be call
+
 			template<HolderMode M2, typename A2>
 			BasicString<T, HolderMode::kStrong, A>  operator+ (const BasicString<T, M2, A2>& s) const; // concat new
+			BasicString<T, HolderMode::kStrong, A>  operator+ (const BasicString& s) const; // concat new
 
 			// compare
-			template<typename T2>
-      bool operator==(T2& s) const;
-      // template<HolderMode M2, typename A2> bool operator==(const BasicString<T, M2, A2>& s) const;
-			template<HolderMode M2, typename A2> bool operator!=(const BasicString<T, M2, A2>& s) const;
-			template<HolderMode M2, typename A2> bool operator>(const BasicString<T, M2, A2>& s) const;
-			template<HolderMode M2, typename A2> bool operator<(const BasicString<T, M2, A2>& s) const;
-			template<HolderMode M2, typename A2> bool operator>=(const BasicString<T, M2, A2>& s) const;
-			template<HolderMode M2, typename A2> bool operator<=(const BasicString<T, M2, A2>& s) const;
+			bool operator==(const BasicString<T>& s) const;
+			bool operator!=(const BasicString<T>& s) const;
+			bool operator> (const BasicString<T>& s) const;
+			bool operator< (const BasicString<T>& s) const;
+			bool operator>=(const BasicString<T>& s) const;
+			bool operator<=(const BasicString<T>& s) const;
 
 			template<typename T2> T2   to_number()        const;
 			template<typename T2> bool to_number(T2* out) const;

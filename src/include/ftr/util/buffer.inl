@@ -35,8 +35,8 @@ ArrayBuffer<T, M, A>::ArrayBuffer(): _length(0), _capacity(0), _val(nullptr) {
 template<typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
 ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr)
-	: ArrayBuffer(const_cast<T*>(arr.val()), arr.length(), arr.capacity()) {
-	static_assert(M == HolderMode::kWeak, "Only weak types can be copied");
+	: ArrayBuffer(const_cast<T*>(arr._val), arr._length, arr._capacity) {
+	static_assert(M == HolderMode::kWeak, "Only weak types can be copied ..");
 }
 
 template<typename T, HolderMode M, typename A>
@@ -58,10 +58,10 @@ ArrayBuffer<T, M, A>::ArrayBuffer(ArrayBuffer&& arr): _length(0), _capacity(0), 
 template<typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
 ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(const ArrayBuffer<T, M2, A2>& arr) {
-	static_assert(M == HolderMode::kWeak, "Only weak types can be copied assign value");
+	static_assert(M == HolderMode::kWeak, "Only weak types can be copied assign value .");
 	_length = arr._length;
 	_capacity = arr._capacity;
-	_val = arr._val;
+	_val = const_cast<T*>(arr._val);
 }
 
 template<typename T, HolderMode M, typename A>
@@ -204,7 +204,7 @@ template<HolderMode M2, typename A2>
 uint32_t ArrayBuffer<T, M, A>::write(const ArrayBuffer<T, M2, A2>& arr, int to, int size_src, uint32_t form_src) {
 	int s = FX_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
 	if (s > 0) {
-		return write(_val + form_src, to, s);
+		return write(arr._val + form_src, to, s);
 	}
 	return 0;
 }

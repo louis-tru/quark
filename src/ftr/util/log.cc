@@ -56,6 +56,12 @@
 # define nx_stderr stdout
 #endif
 
+#define FX_STRING_FORMAT(format, str) \
+	va_list __arg; \
+	va_start(__arg, format); \
+	MutableString str = internal::string_format(format, __arg); \
+	va_end(__arg)
+
 namespace ftr {
 
 	void Console::log(const String& str) {
@@ -95,12 +101,6 @@ namespace ftr {
 
   namespace internal {
     MutableString string_format(const char* f, va_list arg);
-    
-    #define FX_STRING_FORMAT(format, str) \
-      va_list __arg; \
-      va_start(__arg, format); \
-      MutableString str = internal::string_format(format, __arg); \
-      va_end(__arg)
   }
 
 	namespace console {
@@ -214,15 +214,6 @@ namespace ftr {
 		}
 
 		void log(bool msg) {
-      
-      MutableString s( msg ? "true": "false");
-      
-      String ss = s;
-      
-      if (s.operator==("AA")) {
-        
-      }
-      
 			default_console()->log( msg ? "true": "false" );
 		}
 		
@@ -235,8 +226,8 @@ namespace ftr {
 			default_console()->log(msg);
 		}
 		
-		void log_ucs2(const String16& msg) {
-			default_console()->log(Coder::encoding(Encoding::utf8, msg));
+		void log(const String16& msg) {
+//			default_console()->log(Coder::encoding(Encoding::utf8, msg));
 		}
 			
 		void print(const char* format, ...) {

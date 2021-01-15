@@ -467,7 +467,7 @@ namespace ftr {
 
 	// 解码单个unicode
 	template<class Char>
-	static uint32_t decoding_utf8_to_word(cbyte* str, Char* out) {
+	static uint32_t decoding_utf8_to_word(const uint8_t* str, Char* out) {
 
 		uint32_t c = *str;
 		str++;
@@ -563,7 +563,7 @@ namespace ftr {
 		Char* data = *rev;
 		const char* end = source + len;
 		while (source < end) {
-			*data = *(cbyte*)source % 128;
+			*data = *(const uint8_t*)source % 128;
 			data++; source++;
 		}
 		*data = '\0';
@@ -607,7 +607,7 @@ namespace ftr {
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 	};
-	#define unbase64(x) unbase64_table[(byte)(x)]
+	#define unbase64(x) unbase64_table[(uint8_t)(x)]
 
 	static int16_t unhex_table[] = {
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -627,7 +627,7 @@ namespace ftr {
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 	};
-	#define unhex(x) unhex_table[(byte)(x)]
+	#define unhex(x) unhex_table[(uint8_t)(x)]
 
 	template <class Char>
 	static ArrayBuffer<Char> decoding_from_base64(const char* src, uint32_t length) {
@@ -692,8 +692,8 @@ namespace ftr {
 		const char* end = source + len;
 		Char* data = *rev;
 		while (source < end) {
-			uint8_t ch0 = (byte)unhex(source[0]);
-			uint8_t ch1 = (byte)unhex(source[1]);
+			uint8_t ch0 = (uint8_t)unhex(source[0]);
+			uint8_t ch1 = (uint8_t)unhex(source[1]);
 			*data = (ch0 * 16 + ch1);
 			data++; source+=2;
 		}
@@ -709,7 +709,7 @@ namespace ftr {
 		
 		const char* end = source + len;
 		while (source < end) {
-			source += decoding_utf8_to_word(reinterpret_cast<cbyte*>(source), data);
+			source += decoding_utf8_to_word(reinterpret_cast<const uint8_t*>(source), data);
 			data++;
 		}
 		*data = '\0';
@@ -778,7 +778,7 @@ namespace ftr {
 		return Buffer();
 	}
 
-	static ArrayBuffer<uint16_t > decoding_to_uint16_t _(Encoding source_en, const char* source, uint32_t len) {
+	static ArrayBuffer<uint16_t > decoding_to_uint16_t_(Encoding source_en, const char* source, uint32_t len) {
 		switch (source_en) {
 			case Encoding::binary: {
 				return decoding_from_binary<uint16_t >(source, len);
@@ -889,7 +889,7 @@ namespace ftr {
 		
 		auto i = encodings.find(en.to_lower_case());
 		if (i != encodings.end()) {
-			return i.value();
+			return i->second;
 		}
 		return Encoding::unknown;
 	}
@@ -898,11 +898,11 @@ namespace ftr {
 	 * @func encoding_string
 	 */
 	String Codec::encoding_string(Encoding en) {
-		static const Map<uint32_t, String> strs(init_encoding_string());
+		static const std::unordered_map<uint32_t, String> strs(init_encoding_string());
 		static const String unknown = "unknown";
 		auto i = strs.find((uint32_t)en);
 		if (i != strs.end()) {
-			return i.value();
+			return i->second;
 		}
 		return unknown;
 	}
@@ -913,7 +913,7 @@ namespace ftr {
 	Buffer Codec::encoding(Encoding target_en, const String& source) {
 		return encoding_with_byte_(target_en, *source, source.length());
 	}
-	Buffer Codec::encoding(Encoding target_en, cBuffer& source){
+	Buffer Codec::encoding(Encoding target_en, const Buffer& source){
 		return encoding_with_byte_(target_en, *source, source.length());
 	}
 	Buffer Codec::encoding(Encoding target_en, const char* source, uint32_t length) {
@@ -923,20 +923,20 @@ namespace ftr {
 	/**
 	 * @func encoding
 	 */
-	Buffer Codec::encoding(Encoding target_en, const Ucs2String& source) {
-		return encoding_with_uint16_t _(target_en, *source, source.length());
+	Buffer Codec::encoding(Encoding target_en, const String16& source) {
+		return encoding_with_uint16_t_(target_en, *source, source.length());
 	}
 	Buffer Codec::encoding(Encoding target_en, const ArrayBuffer<uint16_t >& source){
-		return encoding_with_uint16_t _(target_en, *source, source.length());
+		return encoding_with_uint16_t_(target_en, *source, source.length());
 	}
 	Buffer Codec::encoding(Encoding target_en, const uint16_t * source, uint32_t length) {
-		return encoding_with_uint16_t _(target_en, source, length);
+		return encoding_with_uint16_t_(target_en, source, length);
 	}
 
 	/**
 	 * @func encoding
 	 */
-	Buffer Codec::encoding(Encoding target_en, const Ucs4String& source) {
+	Buffer Codec::encoding(Encoding target_en, const String32& source) {
 		return encoding_with_uint32_t_(target_en, *source, source.length());
 	}
 	Buffer Codec::encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source) {
@@ -952,7 +952,7 @@ namespace ftr {
 	Buffer Codec::decoding_to_byte(Encoding source_en, const String& source) {
 		return decoding_to_byte_(source_en, *source, source.length());
 	}
-	Buffer Codec::decoding_to_byte(Encoding source_en, cBuffer& source) {
+	Buffer Codec::decoding_to_byte(Encoding source_en, const Buffer& source) {
 		return decoding_to_byte_(source_en, *source, source.length());
 	}
 	Buffer Codec::decoding_to_byte(Encoding source_en, const char* source, uint32_t length) {
@@ -963,13 +963,13 @@ namespace ftr {
 	 * @func decoding_to_uint16_t 
 	 */
 	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, const String& source) {
-		return decoding_to_uint16_t _(source_en, *source, source.length());
+		return decoding_to_uint16_t_(source_en, *source, source.length());
 	}
-	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, cBuffer& source) {
-		return decoding_to_uint16_t _(source_en, *source, source.length());
+	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, const Buffer& source) {
+		return decoding_to_uint16_t_(source_en, *source, source.length());
 	}
 	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, const char* source, uint32_t length) {
-		return decoding_to_uint16_t _(source_en, source, length);
+		return decoding_to_uint16_t_(source_en, source, length);
 	}
 
 	/**
@@ -978,7 +978,7 @@ namespace ftr {
 	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, const String& source) {
 		return decoding_to_uint32_t_(source_en, *source, source.length());
 	}
-	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, cBuffer& source) {
+	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, const Buffer& source) {
 		return decoding_to_uint32_t_(source_en, *source, source.length());
 	}
 	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, const char* source, uint32_t length) {

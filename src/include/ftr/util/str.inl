@@ -77,19 +77,13 @@ BasicString<T, M, A>::BasicString(const T* s, uint32_t len) {
 }
 
 template <>
-BasicString<char>::BasicString(const char* s, uint32_t len)
-  : ArrayBuffer<char, HolderMode::kWeak>(const_cast<char*>(s), len) {
-}
+BasicString<char>::BasicString(const char* s, uint32_t len);
 
 template <>
-BasicString<uint16_t>::BasicString(const uint16_t* s, uint32_t len)
-  : ArrayBuffer<uint16_t, HolderMode::kWeak>(const_cast<uint16_t*>(s), len) {
-}
+BasicString<uint16_t>::BasicString(const uint16_t* s, uint32_t len);
 
 template <>
-BasicString<uint32_t>::BasicString(const uint32_t* s, uint32_t len)
-  : ArrayBuffer<uint32_t, HolderMode::kWeak>(const_cast<uint32_t*>(s), len) {
-}
+BasicString<uint32_t>::BasicString(const uint32_t* s, uint32_t len);
 
 template <typename T, HolderMode M, typename A>
 BasicString<T, M, A>::BasicString(const T* a, uint32_t a_len, const T* b, uint32_t b_len) {
@@ -303,19 +297,23 @@ int BasicString<T, M, A>::last_index_of(const BasicString<T, M2, A2>& s) const {
 // --------------------------------------------------------------------------------
 
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2, HolderMode M3, typename A3>
+//template<HolderMode M2, typename A2, HolderMode M3, typename A3>
 BasicString<T, HolderMode::kStrong, A> BasicString<T, M, A>::replace(
-	const BasicString<T, M2, A2>& s, const BasicString<T, M3, A3>& rep
+	const BasicString& s, const BasicString& rep
 ) const {
 	uint32_t len, capacity;
-	void* val = internal::str::replace(this->_val, this->_length, s._val, s._length, rep._val, rep._length, sizeof(T), &len, &capacity, false);
+	void* val = internal::str::replace(this->_val, this->_length,
+																		 s._val, s._length,
+																		 rep._val, rep._length,
+																		 sizeof(T), &len, &capacity, false
+	);
 	return ArrayBuffer<T, HolderMode::kStrong, A>(val, len, capacity).collapse_string();
 }
 
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2, HolderMode M3, typename A3>
+//template<HolderMode M2, typename A2, HolderMode M3, typename A3>
 BasicString<T, HolderMode::kStrong, A> BasicString<T, M, A>::replace_all(
-	const BasicString<T, M2, A2>& s, const BasicString<T, M3, A3>& rep
+	const BasicString& s, const BasicString& rep
 ) const {
 	uint32_t len, capacity;
 	void* val = internal::str::replace(this->_val, this->_length, s._val, s._length, rep._val, rep._length, sizeof(T), &len, &capacity, true);
@@ -324,87 +322,82 @@ BasicString<T, HolderMode::kStrong, A> BasicString<T, M, A>::replace_all(
 
 // --------------------------------------------------------------------------------
 
-template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-BasicString<T, M, A>& BasicString<T, M, A>::operator=(const BasicString<T, M2, A2>& s) { // Only weak types can be copied assign value
-	ArrayBuffer<T, M, A>::operator=(s);
+template<typename T, HolderMode M, typename A>
+BasicString<T, M, A>& BasicString<T, M, A>::operator=(const BasicString& s) { // Only weak types can be copied assign value
+  ArrayBuffer<T, M, A>::operator=(s);
 	return *this;
 }
 
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& BasicString<T, M, A>::operator=(const BasicString<T, M, A>& s) { // Only weak types can be copied assign value
-  ArrayBuffer<T, M, A>::operator=(s);
-  return *this;
+template<typename T, HolderMode M, typename A>
+BasicString<T, M, A>& BasicString<T, M, A>::operator=(BasicString& s) { // assign ref
+	ArrayBuffer<T, M, A>::operator=(std::move(s));
+	return *this;
 }
 
-template <typename T, HolderMode M, typename A>
-BasicString<T, M, A>& BasicString<T, M, A>::operator=(BasicString&  s) { // assign ref
-	return operator=(std::move(s));
-}
-
-template <typename T, HolderMode M, typename A>
+template<typename T, HolderMode M, typename A>
 BasicString<T, M, A>& BasicString<T, M, A>::operator=(BasicString&& s) { // assign right ref
-	ArrayBuffer<T, M, A>::operator=(s);
+	ArrayBuffer<T, M, A>::operator=(std::move(s));
 	return *this;
 }
 
 template <typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
 BasicString<T, M, A>& BasicString<T, M, A>::operator+=(const BasicString<T, M2, A2>& s) { // write, Only strong types can be call
-	write(s); return *this;
+	this->write(s);
+	return *this;
 }
 
 template <typename T, HolderMode M, typename A>
 template<HolderMode M2, typename A2>
-BasicString<T, HolderMode::kStrong, A>  BasicString<T, M, A>::operator+(const BasicString<T, M2, A2>& s) const { // concat new
-	BasicString<T, HolderMode::kStrong, A> s1(this->copy()); s.write(s);
+BasicString<T, HolderMode::kStrong, A> BasicString<T, M, A>::operator+(const BasicString<T, M2, A2>& s) const { // concat new
+	BasicString<T, HolderMode::kStrong, A> s1(this->copy());
+	s1.write(s);
+	return std::move(s1);
+}
+
+template <typename T, HolderMode M, typename A>
+BasicString<T, M, A>& BasicString<T, M, A>::operator+=(const BasicString& s) { // write, Only strong types can be call
+	this->write(s);
+	return *this;
+}
+
+template <typename T, HolderMode M, typename A>
+BasicString<T, HolderMode::kStrong, A> BasicString<T, M, A>::operator+(const BasicString& s) const { // concat new
+	BasicString<T, HolderMode::kStrong, A> s1(this->copy());
+	s1.write(s);
 	return std::move(s1);
 }
 
 // --------------------------------------------------------------------------------
 
-
 template <typename T, HolderMode M, typename A>
-template<typename T2>
-bool BasicString<T, M, A>::operator==(T2& _s) const {
-  BasicString<T> s(_s), s2(_s);
-  return internal::str::memcmp(this->_val, s2._val, this->_length) == 0;
-}
-
-//template <typename T, HolderMode M, typename A>
-//template<HolderMode M2, typename A2>
-//bool BasicString<T, M, A>::operator==(const BasicString<T, M2, A2>& s) const {
-//	return internal::str::memcmp(this->_val, s._val, this->_length) == 0;
-//}
-
-template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-bool BasicString<T, M, A>::operator!=(const BasicString<T, M2, A2>& s) const {
-	return internal::str::memcmp(this->_val, s._val, this->_length) != 0;
+bool BasicString<T, M, A>::operator==(const BasicString<T>& s) const {
+	return internal::str::memcmp(this->_val, s.val(), this->_length) == 0;
 }
 
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-bool BasicString<T, M, A>::operator>(const BasicString<T, M2, A2>& s) const {
-	return internal::str::memcmp(this->_val, s._val, this->_length) > 0;
+bool BasicString<T, M, A>::operator!=(const BasicString<T>& s) const {
+	return internal::str::memcmp(this->_val, s.val(), this->_length) != 0;
 }
 
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-bool BasicString<T, M, A>::operator<(const BasicString<T, M2, A2>& s) const {
-	return internal::str::memcmp(this->_val, s._val, this->_length) < 0;
+bool BasicString<T, M, A>::operator>(const BasicString<T>& s) const {
+	return internal::str::memcmp(this->_val, s.val(), this->_length) > 0;
 }
 
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-bool BasicString<T, M, A>::operator>=(const BasicString<T, M2, A2>& s) const {
-	return internal::str::memcmp(this->_val, s._val, this->_length) >= 0;
+bool BasicString<T, M, A>::operator<(const BasicString<T>& s) const {
+	return internal::str::memcmp(this->_val, s.val(), this->_length) < 0;
 }
 
 template <typename T, HolderMode M, typename A>
-template<HolderMode M2, typename A2>
-bool BasicString<T, M, A>::operator<=(const BasicString<T, M2, A2>& s) const {
-	return internal::str::memcmp(this->_val, s._val, this->_length) <= 0;
+bool BasicString<T, M, A>::operator>=(const BasicString<T>& s) const {
+	return internal::str::memcmp(this->_val, s.val(), this->_length) >= 0;
+}
+
+template <typename T, HolderMode M, typename A>
+bool BasicString<T, M, A>::operator<=(const BasicString<T>& s) const {
+	return internal::str::memcmp(this->_val,s.val(), this->_length) <= 0;
 }
 
 // --------------------------------------------------------------------------------
