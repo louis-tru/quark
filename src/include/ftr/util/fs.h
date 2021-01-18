@@ -343,22 +343,17 @@ namespace ftr {
 			* @arg [...] {const char*}
 			* @ret {String}
 			*/
-			static String format(const char* path, ...);
+			static SString format(const char* path, ...);
 			
 			/**
 			* @func format
 			*/
-			static String format(const String& path);
+			static SString format(const String& path);
 			
 			/**
 			* @func restore
 			*/
 			static String fallback(const String& path);
-			
-			/**
-			* @func restore_c
-			*/
-			static const char* fallback_c(const String& path);
 			
 			/**
 			* @func cwd # Getting current working directory

@@ -47,7 +47,7 @@ static void jpeg_error_output(j_common_ptr cinfo) {
 	longjmp(data->jmpbuf, 1);
 }
 
-Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
+Array<PixelData> JPEGImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv;
 	struct jpeg_decompress_struct jpeg;
 	struct jpeg_error_mgr jerr;
@@ -58,7 +58,7 @@ Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 	jpeg.client_data = &client_data;
 	jpeg_create_decompress(&jpeg);
 
-	jpeg_mem_src(&jpeg, (byte*)*data, data.length());
+	jpeg_mem_src(&jpeg, (uint8_t*)*data, data.length());
 	
 	if ( setjmp(client_data.jmpbuf) ) {
 		jpeg_destroy_decompress(&jpeg);
@@ -115,7 +115,7 @@ Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 	return rv;
 }
 
-PixelData JPEGImageCodec::decode_header(cBuffer& data) {
+PixelData JPEGImageCodec::decode_header(const Buffer& data) {
 	struct jpeg_decompress_struct jpeg;
 	struct jpeg_error_mgr jerr;
 	jpeg.err = jpeg_std_error(&jerr);
@@ -128,7 +128,7 @@ PixelData JPEGImageCodec::decode_header(cBuffer& data) {
 	ScopeClear clear([&jpeg]() {
 		jpeg_destroy_decompress(&jpeg);
 	});
-	jpeg_mem_src(&jpeg, (byte*)*data, data.length());
+	jpeg_mem_src(&jpeg, (uint8_t*)*data, data.length());
 	
 	if ( setjmp(client_data.jmpbuf) ) {
 		return PixelData();

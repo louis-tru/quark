@@ -164,7 +164,7 @@ class ApplePCMPlayer: public Object, public PCMPlayer {
 	/**
 	 * @overwrite
 	 */
-	virtual bool write(cBuffer& buffer) {
+	virtual bool write(const Buffer& buffer) {
 		ScopeLock scope(_mutex);
 		
 		if ( !_player ) {

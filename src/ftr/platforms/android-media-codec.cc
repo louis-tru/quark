@@ -75,7 +75,7 @@ enum {
 };
 #define AMediaExtractor FFAMediaExtractor
 #define AMediaCodec FFAMediaCodec
-#define AMediaCodecBufferInfo FFAMediaCodecBufferInfo
+#define AMediaCodeconst BufferInfo FFAMediaCodeconst BufferInfo
 #define AMediaFormat FFAMediaFormat
 #define AMediaCodec_getOutputFormat ff_AMediaCodec_getOutputFormat
 #define AMediaCodec_flush ff_AMediaCodec_flush
@@ -125,13 +125,13 @@ static void _TEST_init_AMediaExtractor(cString& path, uint select_track) {
 	ASSERT(err == 0);
 }
 
-static void _TEST_get_sample_data(byte* out, uint size, uint& sample_size) {
+static void _TEST_get_sample_data(uint8_t* out, uint size, uint& sample_size) {
 	Buffer buf(size);
-	ssize_t sample_size2 = AMediaExtractor_readSampleData(_TEST_ex, (byte*)*buf, size);
+	ssize_t sample_size2 = AMediaExtractor_readSampleData(_TEST_ex, (uint8_t*)*buf, size);
 
 	uint j[10] = { 0 };
 	uint o = 0;
-	byte* cmp = (byte*)*buf;
+	uint8_t* cmp = (uint8_t*)*buf;
 
 	for (int i = 0; i < sample_size; i++) {
 		if (cmp[i] != out[i]) {
@@ -297,7 +297,7 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 */
 	virtual OutputBuffer output() {
 		if ( ! _eof_flags ) {
-			AMediaCodecBufferInfo info;
+			AMediaCodeconst BufferInfo info;
 			ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec, &info, 0);
 
 			if ( status >= 0 ) {

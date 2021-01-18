@@ -33,7 +33,7 @@
 #include "ftr/util/handle.h"
 #include "ftr/util/error.h"
 #include "ftr/util/http.h"
-#include "ftr/util/uv-1.h"
+#include "uv.h"
 
 FX_NS(ftr)
 

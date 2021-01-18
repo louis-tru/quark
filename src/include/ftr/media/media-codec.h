@@ -372,7 +372,7 @@ namespace ftr {
 		struct FX_EXPORT OutputBuffer {
 			OutputBuffer();
 			OutputBuffer(const OutputBuffer& buffer);
-			byte*   data[8];      /* 数据Buffer */
+			uint8_t*   data[8];      /* 数据Buffer */
 			uint    linesize[8];  /* 数据大小 */
 			uint    total;        /* 数据总大小 */
 			uint64  time;         /* 演示时间 */
@@ -483,7 +483,7 @@ namespace ftr {
 		/**
 		* @func parse_psp_pps
 		* */
-		static bool parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps);
+		static bool parse_avc_psp_pps(const Buffer& extradata, Buffer& out_psp, Buffer& out_pps);
 		
 		/**
 		* @func create decoder

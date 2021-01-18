@@ -37,7 +37,7 @@
 #else
 	#include <unistd.h>
 #endif
-#include "ftr/util/uv-1.h"
+#include "uv.h"
 
 FX_NS(ftr)
 

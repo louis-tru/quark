@@ -34,7 +34,7 @@
 FX_NS(ftr)
 
 struct PngDataSource {
-	cBuffer* buff;
+	const Buffer* buff;
 	uint index;
 };
 
@@ -44,7 +44,7 @@ static void png_rw_fn(png_structp png, png_bytep bytep, png_size_t size) {
 	s->index += size;
 }
 
-Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
+Array<PixelData> PNGImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv;
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	
@@ -108,7 +108,7 @@ Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
 	Array<png_bytep> row_pointers((uint)h);
 	
 	for (uint i = 0; i < h; i++) {
-		row_pointers[i] = (byte*)buff.value() + rowbytes * i;
+		row_pointers[i] = (uint8_t*)buff.value() + rowbytes * i;
 	}
 	png_read_image(png, &row_pointers[0]);
 	png_read_end(png, info);
@@ -117,7 +117,7 @@ Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
 	return rv;
 }
 
-PixelData PNGImageCodec::decode_header(cBuffer& data) {
+PixelData PNGImageCodec::decode_header(const Buffer& data) {
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	
 	ScopeClear scope([&png]() {

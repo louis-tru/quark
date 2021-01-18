@@ -34,7 +34,7 @@
 FX_NS(ftr)
 
 struct GifSource {
-	cBuffer* buff;
+	const Buffer* buff;
 	uint index;
 };
 
@@ -45,7 +45,7 @@ int GifInputFunc(GifFileType * gif, GifByteType* data, int size) {
 	return size;
 }
 
-Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
+Array<PixelData> GIFImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv;
 	
 	GifSource source = { &data, 0 };
@@ -106,7 +106,7 @@ Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
 	return rv;
 }
 
-PixelData GIFImageCodec::decode_header(cBuffer& data) {
+PixelData GIFImageCodec::decode_header(const Buffer& data) {
 	GifSource source = { &data, 0 };
 	GifFileType* gif = DGifOpen(&source, GifInputFunc, NULL);
 	

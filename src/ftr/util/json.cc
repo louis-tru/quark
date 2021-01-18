@@ -92,7 +92,7 @@ JSON::JSON(const String& str) {
 }
 
 //! Constructor for CDataRef value.
-JSON::JSON(cBuffer& data) {
+JSON::JSON(const Buffer& data) {
 	new(this)RValue(*data, data.length(), shareMemoryPoolAllocator);
 }
 
@@ -167,7 +167,7 @@ JSON& JSON::operator=(const String& str) {
 	return *this;
 }
 
-JSON& JSON::operator=(cBuffer& data) {
+JSON& JSON::operator=(const Buffer& data) {
 	reinterpret_cast<RValue*>(this)->
 		SetString(*data, data.length(), shareMemoryPoolAllocator);
 	return *this;
@@ -418,7 +418,7 @@ JSON JSON::parse(const String& json) throw(Error) {
 	return parse_for(*json, json.length());
 }
 
-JSON JSON::parse(cBuffer& data) throw(Error) {
+JSON JSON::parse(const Buffer& data) throw(Error) {
 	return parse_for(*data, data.length());
 }
 

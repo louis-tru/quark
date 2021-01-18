@@ -161,7 +161,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	uint _get_bits_per_pixel(uint64 pixel_format) {
 		
 		if((pixel_format & PVR3TEXTURE_PFHIGH_MASK) != 0){
-			byte* PixelFormatChar = (byte*)&pixel_format;
+			uint8_t* PixelFormatChar = (uint8_t*)&pixel_format;
 			return PixelFormatChar[4] + PixelFormatChar[5] + PixelFormatChar[6] + PixelFormatChar[7];
 		}
 		else{
@@ -261,7 +261,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return (uint)(uiDataSize / 8) * numsurfs * numfaces;
 	}
 	
-	bool _is_pvr_v2 (cBuffer& data) {
+	bool _is_pvr_v2 (const Buffer& data) {
 		const char PVRv2TexIdentifier[4] = { 'P', 'V', 'R', '!' };
 		PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
 		uint pvrTag = header->pvrTag;
@@ -274,7 +274,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return true;
 	}
 	
-	bool _is_pvr_v3 (cBuffer& data) {
+	bool _is_pvr_v3 (const Buffer& data) {
 		PVRv3TexHeader *header = (PVRv3TexHeader*)*data;
 		// validate version
 		if (header->version == 55727696 ||
@@ -284,7 +284,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return false;
 	}
 	
-	Array<PixelData> _decode_pvr_v2 (cBuffer& data) {
+	Array<PixelData> _decode_pvr_v2 (const Buffer& data) {
 		
 		Array<PixelData> rest;
 		
@@ -307,7 +307,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 			uint height = header->height;
 			uint dataLength = header->dataLength;
 			uint dataOffset = 0;
-			byte* bytes = ((byte*)*data) + sizeof(PVRv2TexHeader);
+			uint8_t* bytes = ((uint8_t*)*data) + sizeof(PVRv2TexHeader);
 			
 			// Calculate the data size for each texture level and respect the minimum number of blocks
 			while (dataOffset < dataLength) {
@@ -345,7 +345,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return rest;
 	}
 	
-	Array<PixelData> _decode_pvr_v3 (cBuffer& data) {
+	Array<PixelData> _decode_pvr_v3 (const Buffer& data) {
 		
 		Array<PixelData> rest;
 		PVRv3TexHeader* header = (PVRv3TexHeader*)*data;
@@ -366,7 +366,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 			bool isPremultipliedAlpha = flags & PVR3TextureFlag_PremultipliedAlpha;
 			
 			uint dataLen = data.length() - (sizeof(PVRv3TexHeader) + header->metadataLength);
-			byte* bytes = ((byte*)*data) + sizeof(PVRv3TexHeader) + header->metadataLength;
+			uint8_t* bytes = ((uint8_t*)*data) + sizeof(PVRv3TexHeader) + header->metadataLength;
 			
 			uint numberOfMipmaps = header->numberOfMipmaps;
 			
@@ -397,7 +397,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	}
 };
 
-Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
+Array<PixelData> PVRTCImageCodec::decode(const Buffer& data) {
 	if (_inl_pvr(this)->_is_pvr_v2(data)) {
 		return _inl_pvr(this)->_decode_pvr_v2(data);
 	}
@@ -408,7 +408,7 @@ Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
 	return Array<PixelData>();
 }
 
-PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
+PixelData PVRTCImageCodec::decode_header(const Buffer& data) {
 	
 	if (_inl_pvr(this)->_is_pvr_v2(data)) {
 		

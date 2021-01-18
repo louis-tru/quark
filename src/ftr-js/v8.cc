@@ -200,7 +200,7 @@ class WorkerIMPL: public IMPL {
 	}
 	
 	FX_INLINE v8::Local<v8::String> NewFromOneByte(cchar* str) {
-		return v8::String::NewFromOneByte(isolate_, (byte*)str);
+		return v8::String::NewFromOneByte(isolate_, (uint8_t*)str);
 	}
 	
 	FX_INLINE v8::Local<v8::String> NewFromUtf8(cchar* str) {
@@ -235,7 +235,7 @@ class WorkerIMPL: public IMPL {
 		return result;
 	}
 	
-	Local<JSValue> runNativeScript(cBuffer& source, cString& name, Local<JSObject> exports) {
+	Local<JSValue> runNativeScript(const Buffer& source, cString& name, Local<JSObject> exports) {
 		v8::Local<v8::Value> _name = Back(_host->New(String::format("%s", *name)));
 		v8::Local<v8::Value> _souece = Back(_host->NewString(source));
 		
@@ -562,7 +562,7 @@ bool JSValue::IsArrayBuffer() const {
 	return reinterpret_cast<const v8::Value*>(this)->IsArrayBuffer();
 }
 bool JSValue::IsTypedArray() const {
-  return reinterpret_cast<const v8::Value*>(this)->IsArrayBufferView();
+  return reinterpret_cast<const v8::Value*>(this)->IsArrayWeakBuffer();
 }
 bool JSValue::IsUint8Array() const {
   return reinterpret_cast<const v8::Value*>(this)->IsUint8Array();
@@ -638,7 +638,7 @@ String JSValue::ToStringValue(Worker* worker, bool ascii) const {
 		Buffer buffer(128);
 		int index = 0, count;
 		do {
-			count = str->WriteOneByte((byte*)*buffer, index, 128);
+			count = str->WriteOneByte((uint8_t*)*buffer, index, 128);
 			rev.push(*buffer, count);
 			index += count;
 		} while(count);
@@ -859,18 +859,18 @@ char* JSArrayBuffer::Data(Worker* worker) {
 	return (char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
 }
 Local<JSArrayBuffer> JSTypedArray::Buffer(Worker* worker) {
-	auto ab = reinterpret_cast<v8::ArrayBufferView*>(this);
+	auto ab = reinterpret_cast<v8::ArrayWeakBuffer*>(this);
 	v8::Local<v8::ArrayBuffer> ab2 = ab->Buffer();
 	return Cast<JSArrayBuffer>(ab2);
 }
 
 int JSTypedArray::ByteLength(Worker* worker) {
-  auto ab = reinterpret_cast<v8::ArrayBufferView*>(this);
+  auto ab = reinterpret_cast<v8::ArrayWeakBuffer*>(this);
   return (uint)ab->ByteLength();
 }
 
 int JSTypedArray::ByteOffset(Worker* worker) {
-  auto ab = reinterpret_cast<v8::ArrayBufferView*>(this);
+  auto ab = reinterpret_cast<v8::ArrayWeakBuffer*>(this);
   return (uint)ab->ByteOffset();
 }
 
@@ -1370,7 +1370,7 @@ Local<JSValue> Worker::runScript(cString& source,
 }
 
 Local<JSValue> Worker::runNativeScript(
-	cBuffer& source, cString& name, Local<JSObject> exports) {
+	const Buffer& source, cString& name, Local<JSObject> exports) {
 	v8::EscapableHandleScope scope(ISOLATE(this));
 	if (exports.IsEmpty()) {
 		exports = NewObject();

@@ -125,7 +125,7 @@ class InlJSON {
 	bool stringify_buffer(WeakBuffer buf) {
 		_rv->push(BufferPrefix);
 		cchar* hex = "0123456789abcdef";
-		byte* s = (byte*)buf.value();
+		uint8_t* s = (uint8_t*)buf.value();
 		for (uint i = 0; i < buf.length(); i++) {
 			uint8_t ch = s[i];
 			_rv->push(Space);

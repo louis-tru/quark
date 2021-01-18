@@ -185,10 +185,10 @@ namespace ftr {
 		/**
 		* 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
 		* @func decode
-		* @arg data {cBuffer&}
+		* @arg data {const Buffer&}
 		* @ret {Array<PixelData>}
 		*/
-		virtual Array<PixelData> decode(cBuffer& data) = 0;
+		virtual Array<PixelData> decode(const Buffer& data) = 0;
 		
 		/**
 		* @func decode_header
@@ -196,7 +196,7 @@ namespace ftr {
 		* 如果当前只需要知道图像的附加信息可调用该函数,
 		* 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
 		*/
-		virtual PixelData decode_header(cBuffer& data) = 0;
+		virtual PixelData decode_header(const Buffer& data) = 0;
 		
 		/**
 		* @func encode 编码图像数据
@@ -220,8 +220,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT TGAImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(cBuffer& data);
-		virtual PixelData decode_header(cBuffer& data);
+		virtual Array<PixelData> decode(const Buffer& data);
+		virtual PixelData decode_header(const Buffer& data);
 		virtual Buffer encode(cPixelData& data);
 		friend class _Inl; class _Inl;
 	};
@@ -231,8 +231,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT JPEGImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(cBuffer& data);
-		virtual PixelData decode_header(cBuffer& data);
+		virtual Array<PixelData> decode(const Buffer& data);
+		virtual PixelData decode_header(const Buffer& data);
 		virtual Buffer encode(cPixelData& data);
 	};
 
@@ -241,8 +241,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT GIFImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(cBuffer& data);
-		virtual PixelData decode_header(cBuffer& data);
+		virtual Array<PixelData> decode(const Buffer& data);
+		virtual PixelData decode_header(const Buffer& data);
 		virtual Buffer encode(cPixelData& data);
 	};
 
@@ -251,8 +251,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT PNGImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(cBuffer& data);
-		virtual PixelData decode_header(cBuffer& data);
+		virtual Array<PixelData> decode(const Buffer& data);
+		virtual PixelData decode_header(const Buffer& data);
 		virtual Buffer encode(cPixelData& data);
 	};
 
@@ -261,8 +261,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT WEBPImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(cBuffer& data);
-		virtual PixelData decode_header(cBuffer& data);
+		virtual Array<PixelData> decode(const Buffer& data);
+		virtual PixelData decode_header(const Buffer& data);
 		virtual Buffer encode(cPixelData& data);
 	};
 
@@ -276,8 +276,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT PVRTCImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(cBuffer& data);
-		virtual PixelData decode_header(cBuffer& data);
+		virtual Array<PixelData> decode(const Buffer& data);
+		virtual PixelData decode_header(const Buffer& data);
 		virtual Buffer encode(cPixelData& data);
 		FX_DEFINE_INLINE_CLASS(_Inl);
 	};

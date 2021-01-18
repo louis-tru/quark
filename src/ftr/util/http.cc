@@ -309,10 +309,10 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			
 			int r = 0;
 			
-			_z_strm.next_in = (byte*)data;
+			_z_strm.next_in = (uint8_t*)data;
 			_z_strm.avail_in = len;
 			do {
-				_z_strm.next_out = (byte*)*_z_strm_buff;
+				_z_strm.next_out = (uint8_t*)*_z_strm_buff;
 				_z_strm.avail_out = _z_strm_buff.length();
 				r = inflate(&_z_strm, Z_NO_FLUSH);
 				out.write(_z_strm_buff, -1, _z_strm_buff.length() - _z_strm.avail_out);

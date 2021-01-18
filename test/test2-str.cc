@@ -46,132 +46,112 @@ const int* test_big_int = (const int*)test_big_char;
 const bool has_big_data = *test_big_int != 1;
 
 using namespace std;
-
-namespace ftr {
-
-	int32_t vasprintf(char** o, const char* f, va_list arg) {
-		#if FX_GNUC
-			int32_t len = ::vasprintf(o, f, arg);
-		#else
-			int32_t len = ::vsprintf(o, f, arg);
-			if (len) {
-				o = (char*)::malloc(len + 1);
-				o[len] = '\0';
-				::_vsnprintf_s(o, len + 1, f, arg);
-			}
-		#endif
-		return len;
-	}
-
-	int32_t sprintf(char*& o, uint32_t& capacity, const char* f, ...) {
-		va_list arg;
-		va_start(arg, f);
-		int32_t len = vasprintf(&o, f, arg);
-		va_end(arg);
-		if (o) {
-			capacity = len + 1;
-		}
-		return len;
-	}
-
-}
+using namespace ftr;
 
 class Str {
-public:
-	Str(const char* v): _val(v) {
-	}
-	uint64_t hash_code() const {
-		return 100;
-	}
+	public:
+		Str(const char* v): _val(v) {
+		}
+		uint64_t hash_code() const {
+			return 100;
+		}
 	private:
-	const char* _val;
+		const char* _val;
 };
 
 namespace std {
 			
 	template<>
-	struct std::hash<Str> {
+	struct hash<Str> {
 		size_t operator()(const Str& val) const {
 			return val.hash_code();
 		}
 	};
-
-	template<typename T, ftr::HolderMode M, typename A>
-	 struct hash<ftr::BasicString<T, M, A>> {
-		 size_t operator()(const ftr::BasicString<T, M, A>& val) const {
-			 return 101;
-		 }
-	 };
 }
 
 void test_str2() {
-	
-	ftr::WeakBuffer wb(const_cast<char*>("ABCD"), 4);
-	ftr::Buffer     sb(wb.copy());
-	ftr::MutableString ms("ABCD");
-	ftr::String s(ms);
-	ftr::String s_(s);
-	ftr::MutableString s2(ms.copy());
-	
-	cout
-	<< endl
-	<< "-------------" << endl
-	<< "s.operator==(ms)" << s.operator==(ms) << endl
-	<< "s.operator==(s):" << s.operator==(s) << endl
-	<< "s.operator==('B'):" << s.operator==("B") << endl
-	<< "s.operator==(wb):" << s.operator==(wb) << endl
-	<< "s.operator==(sb):" << s.operator==(sb) << endl
-	<< "s2.operator==(ms)" << s2.operator==(ms) << endl
-	<< "s2.operator==(s):" << s2.operator==(s) << endl
-	<< "s2.operator==('B'):" << s2.operator==("B") << endl
-	<< "s2.operator==(wb):" << s2.operator==(wb) << endl
-	<< "s2.operator==(sb):" << s2.operator==(sb) << endl
-	
-	<< endl
-	
-	<< "-------------" << endl
-	<< "s.operator!=(ms)" << s.operator!=(ms) << endl
-	<< "s.operator!=(s):" << s.operator!=(s) << endl
-	<< "s.operator!=('B'):" << s.operator!=("B") << endl
-	<< "s.operator!=(wb):" << s.operator!=(wb) << endl
-	<< "s.operator!=(sb):" << s.operator!=(sb) << endl
-	<< "s2.operator!=(ms)" << s2.operator!=(ms) << endl
-	<< "s2.operator!=(s):" << s2.operator!=(s) << endl
-	<< "s2.operator!=('B'):" << s2.operator!=("B") << endl
-	<< "s2.operator!=(wb):" << s2.operator!=(wb) << endl
-	<< "s2.operator!=(sb):" << s2.operator!=(sb) << endl
-	
-	<< endl;
 
-	//	s2.split("A");
+	String strv = String::from("ABCD", 4); // from const char
+	String strv2(strv); // from strong
+	SString str(strv.copy()); // from weak
 	
-	s.operator=(s_);
-//	auto A =
-	ms.replace("A", "BBB");
-	s.operator=(ms);
-	s.operator=("A");
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		cout
+		<< endl
+		<< "s2.operator==('B'):" << s.operator==("B") << endl
+		<< "s2.operator==(ms)"   << s.operator==(s) << endl
+		<< "s2.operator==(s):"   << s.operator==(sv) << endl
+		<< endl;
+	}
+
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		cout
+		<< endl
+		<< "s.operator==('B'):"  << sv.operator==("B") << endl
+		<< "s.operator==(ms)"    << sv.operator==(s) << endl
+		<< "s.operator==(s):"    << sv.operator==(sv) << endl
+		<< endl;
+	}
+
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		s.operator=("A");
+		s.operator=(s);
+		s.operator=(sv.copy());
+	}
 	
-	s2.operator=(s_.copy());
-	s2.operator=(ms);
-	s2.operator=("A");
+	{
+		String sv = strv;
+		SString     s(sv.copy());
+		sv.operator=("A");
+		sv.operator=(s);
+		sv.operator=(sv);
+	}
 	
-	s + s_;
-	s + ms;
-	s + "A";
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		s + "A";
+		s + s;
+		s + sv;
+	}
 	
-	s2 + s_;
-	s2 + ms;
-	s2 + "A";
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		sv + "A";
+		sv + s;
+		sv + sv;
+	}
+
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		s += "A";
+		s += s;
+		s += sv;
+    //sv += s;
+	}
 	
-//	s += s_;
-//	s += ms;
-//	s += "A";
-	
-	s2 += s_;
-	ms + "B";
-	s2 += "C";
-	s2 += "A";
-	ms+= "100";
+
+	{
+		String sv = strv;
+		SString s(sv.copy());
+		s.split("A");
+		s.replace("A", "K");
+		s.replace_all("A", "V");
+		cout
+		<< endl
+		<< sv.index_of("B") << endl
+		<< sv.last_index_of("B") << endl
+		<< endl;
+	}
+
 }
 
 int test2_str(int argc, char *argv[]) {
@@ -196,7 +176,7 @@ int test2_str(int argc, char *argv[]) {
 	<< "memcmp:" << memcmp("A", "A", 1) << endl
 	<< "std::hash<std::string>():" << std::hash<std::string>()("ABCD") << endl
 	<< "std::hash<Str>():" << std::hash<Str>()("ABCD") << endl
-	<< "std::hash<String>():" << std::hash<ftr::String>()("ABCD") << endl
+	<< "std::hash<String>():" << std::hash<String>()("ABCD") << endl
 	<< endl;
 
 	return 0;

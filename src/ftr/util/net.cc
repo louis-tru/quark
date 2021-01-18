@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/net.h"
-#include "ftr/util/string.h"
+#include <ftr/util/net.h>
+#include <ftr/util/str.h>
 #include <errno.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "ftr/util/http.h"
-#include "ftr/util/uv-1.h"
+#include "uv.h"
 
 FX_NS(ftr)
 

@@ -17,10 +17,9 @@
 			'test2-str.cc',
 			'../src/ftr/util/log.cc',
 			'../src/ftr/util/str.cc',
-			'../src/ftr/util/buffer.cc',
 			'../src/ftr/util/object.cc',
-			# '../src/ftr/util/codec.cc',
-			# '../src/ftr/util/hash.cc',
+			'../src/ftr/util/hash.cc',
+			'../src/ftr/util/codec.cc',
 		],
 		'mac_bundle': 1,
 		'xcode_settings': {

@@ -66,10 +66,10 @@ namespace ftr {
 			return rev;
 		}
 		
-		strm.next_in = (byte*)data;
+		strm.next_in = (uint8_t*)data;
 		strm.avail_in = len;
 		do {
-			strm.next_out = (byte*)*tmp;
+			strm.next_out = (uint8_t*)*tmp;
 			strm.avail_out = tmp.length();
 			deflate(&strm, Z_FINISH);
 			rev.write(tmp, rev.length(), tmp.length() - strm.avail_out);
@@ -92,10 +92,10 @@ namespace ftr {
 			return rev;
 		}
 		
-		strm.next_in = (byte*)data;
+		strm.next_in = (uint8_t*)data;
 		strm.avail_in = len;
 		do {
-			strm.next_out = (byte*)*tmp;
+			strm.next_out = (uint8_t*)*tmp;
 			strm.avail_out = tmp.length();
 			inflate(&strm, Z_FINISH);
 			rev.write(tmp, rev.length(), tmp.length() - strm.avail_out);
@@ -109,28 +109,14 @@ namespace ftr {
 	 * @func compress
 	 */
 	Buffer ZLib::compress(const String& str, int level) {
-		return _compress(str.c_str(), (uint32_t)str.length(), level);
+		return _compress(str.val(), (uint32_t)str.length(), level);
 	}
 
 	/**
 	 * @func uncompress
 	 */
 	Buffer ZLib::uncompress(const String& str) {
-		return _uncompress(str.c_str(), (uint32_t)str.length());
-	}
-
-	/**
-	 * @func compress
-	 */
-	Buffer ZLib::compress(cBuffer& buff, int level) {
-		return _compress(*buff, buff.length(), level);
-	}
-
-	/**
-	 * @func uncompress
-	 */
-	Buffer ZLib::uncompress(cBuffer& buff) {
-		return _uncompress(*buff, buff.length());
+		return _uncompress(str.val(), (uint32_t)str.length());
 	}
 
 	GZip::~GZip() {
@@ -195,10 +181,10 @@ namespace ftr {
 			}
 			if ( _unzp ) {
 				int code;
-				if ( _passwd.empty() ) {
+				if ( _passwd.is_null() ) {
 					code = unzOpenCurrentFile((unzFile)_unzp);
 				} else {
-					code = unzOpenCurrentFilePassword((unzFile)_unzp, _passwd.c_str());
+					code = unzOpenCurrentFilePassword((unzFile)_unzp, _passwd.val());
 				}
 				if ( code == UNZ_OK ) {
 					_is_open = true;
@@ -233,7 +219,7 @@ namespace ftr {
 			String dirname = Path::dirname(pathname);
 			String compatible_path = _compatible_path + '/' + pathname;
 			
-			if ( dirname.empty() ) {
+			if ( dirname.is_null() ) {
 				_dir_info[dirname].push_back(Dirent(pathname, compatible_path, type));
 			} else {
 				String basename = pathname.substr(dirname.length() + 1);
@@ -309,7 +295,7 @@ namespace ftr {
 			uint32_t uncompressed_size = (uint32_t)unzfi.uncompressed_size;
 			unz_entry_info info = { _pos, pathname, compressed_size, uncompressed_size };
 			_inl_reader(this)->add_dir_info_item(pathname, FTYPE_FILE);
-			_file_info.set(info.pathname, info);
+			_file_info[info.pathname] = info;
 		} while(unzGoToNextFile(unzp) == UNZ_OK);
 		
 		first();
@@ -327,7 +313,7 @@ namespace ftr {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
 				FX_ERR("Cannot close file reader internal documents, %s, %s",
-							 *_path, *_cur_it.value().pathname);
+							 _path.val(), _cur_it->second.pathname.val());
 			}
 			if ( unzClose((unzFile)_unzp) == UNZ_OK ) {
 				_unzp = nullptr;
@@ -341,26 +327,29 @@ namespace ftr {
 	}
 
 	bool ZipReader::exists(const String& path) const {
-		return _file_info.has(path) || _dir_info.has(path);
+		if (_file_info.find(path) != _file_info.end())
+			return true;
+		if (_dir_info.find(path) != _dir_info.end())
+			return true;
 	}
 
 	bool ZipReader::is_file(const String& path) const {
-		return _file_info.has(path);
+		return _file_info.find(path) != _file_info.end();
 	}
 
 	bool ZipReader::is_directory(const String& path) const {
-		return _dir_info.has(path);
+		return _dir_info.find(path) != _dir_info.end();
 	}
 
 	/**
 	 * @func readdir(path)
 	 */
-	Array<Dirent> ZipReader::readdir(const String& path) const {
+	std::vector<Dirent> ZipReader::readdir(const String& path) const {
 		auto it = _dir_info.find(path);
-		if ( it.is_null() ) {
-			return Array<Dirent>();
+		if ( it == _dir_info.end() ) {
+			return std::vector<Dirent>();
 		} else {
-			return it.value();
+			return it->second;
 		}
 	}
 
@@ -404,7 +393,7 @@ namespace ftr {
 
 	Buffer ZipReader::read() {
 		int size = uncompressed_size();
-		Buffer buffer(size, size + 1);
+		Buffer buffer = Buffer::from(size, size + 1);
 		size = read(*buffer, size);
 		if (size < 0) { // err
 			return Buffer();
@@ -414,7 +403,7 @@ namespace ftr {
 	}
 
 	Buffer ZipReader::read(uint32_t size) {
-		Buffer buffer(size, size + 1);
+		Buffer buffer = Buffer::from(size, size + 1);
 		int length = read(*buffer, size);
 		if (length < 0) { // err
 			return Buffer();
@@ -500,23 +489,12 @@ namespace ftr {
 		return false;
 	}
 
-	bool ZipWriter::write(const void* buffer, uint32_t size) {
-		return zipWriteInFileInZip((zipFile*)_zipp, buffer, size) == 0;
-	}
-
-	bool ZipWriter::write(cBuffer& data) {
-		return write(*data, data.length());
-	}
-
-	/**
-	 * Write data to file
-	 */
-	bool ZipWriter::write(const String& str) {
-		return write(*str, str.length());
+	bool ZipWriter::write(const WeakBuffer& data) {
+		return zipWriteInFileInZip((zipFile*)_zipp, data.val(), data.length()) == 0;
 	}
 
 	bool ZipWriter::close_current_file() {
-		if ( ! _new_name.is_empty() ) { // 当前有打开的新文件
+		if ( ! _new_name.is_null() ) { // 当前有打开的新文件
 			int code = zipCloseFileInZip((zipFile*)_zipp);
 			if ( code != ZIP_OK ) {
 				FX_ERR("Cannot close file writer internal documents, %s, %s", *_path, *_new_name);

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,10 +25,11 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
 #include <ftr/util/str.h>
+#include <ftr/util/hash.h>
 #include <algorithm>
 
 namespace ftr {
@@ -91,10 +92,10 @@ namespace ftr {
 			if (sizeof_i == 1) {
 				return sscanf( i, f, o, len );
 			} else {
-        char o2[65];
-        len = FX_MIN(len, 64);
-        str::strcp(o2, 1, i, sizeof_i, len);
-        return sscanf( o2, f, o, len );
+				char o2[65];
+				len = FX_MIN(len, 64);
+				str::strcp(o2, 1, i, sizeof_i, len);
+				return sscanf( o2, f, o, len );
 			}
 		}
 
@@ -163,16 +164,16 @@ namespace ftr {
 			#endif
 			return len;
 		}
-  
-    MutableString string_format(const char* f, va_list arg) {
-      MutableString str;
-      char* buf = nullptr;
-      int len = internal::vasprintf(&buf, f, arg);
-      if (buf) {
-//        str = Buffer(buf, len).collapse_string();
-      }
-      return str;
-    }
+	
+		SString string_format(const char* f, va_list arg) {
+			char* buf = nullptr;
+			int len = internal::vasprintf(&buf, f, arg);
+			if (buf) {
+				return SString::from(buf, len);
+			} else {
+				return SString();
+			}
+		}
 
 		int32_t str::sprintf(char** o, uint32_t* capacity, const char* f, ...) {
 			va_list arg;
@@ -185,7 +186,10 @@ namespace ftr {
 			return len;
 		}
 
-		int str::index_of(const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t start, int size_of) {
+		int str::index_of(
+			const char* s1, uint32_t s1_len, const char* s2, 
+			uint32_t s2_len, uint32_t start, int size_of
+		) {
 			if (s1_len < s2_len) return -1;
 			if (start + s2_len > s1_len) return -1;
 
@@ -200,7 +204,10 @@ namespace ftr {
 			return -1;
 		}
 
-		int str::last_index_of(const char* s1, uint32_t s1_len, const char* s2, uint32_t s2_len, uint32_t _start, int size_of) {
+		int str::last_index_of(
+			const char* s1, uint32_t s1_len, const char* s2, 
+			uint32_t s2_len, uint32_t _start, int size_of
+		) {
 			int32_t start = _start;
 			if ( start + s2_len > s1_len )
 				start = s1_len - s2_len;
@@ -242,7 +249,7 @@ namespace ftr {
 
 			while ((find = index_of(s1, s1_len, s2, s2_len, from, size_of)) != -1) {
 				before_len = find - from;
-        s_tmp.realloc((s_tmp_to + before_len + rep_len + 1) * size_of); // realloc
+				s_tmp.realloc((s_tmp_to + before_len + rep_len + 1) * size_of); // realloc
 
 				if (before_len) {
 					::memcpy(
@@ -280,28 +287,144 @@ namespace ftr {
 		}
 	}
 
-	template <>
-  MutableString BasicString<>::format(const char* f, ...) {
-    va_list arg;
-    va_start(arg, f);
-    MutableString str = internal::string_format(f, arg);
-    va_end(arg);
-    return str;
+	void* AllocatorDefault::alloc(size_t size) {
+		return ::malloc(size);
+	}
+	
+	void* AllocatorDefault::realloc(void* ptr, size_t size) {
+		return ::realloc(ptr, size);
+	}
+
+	void AllocatorDefault::free(void* ptr) {
+		::free(ptr);
 	}
 
 	template <>
-	BasicString<char>::BasicString(const char* s, uint32_t len)
-		: ArrayBuffer<char, HolderMode::kWeak>(const_cast<char*>(s), len) {
+	SString String::format(const char* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		SString str = internal::string_format(f, arg);
+		va_end(arg);
+		return str;
 	}
 
 	template <>
-	BasicString<uint16_t>::BasicString(const uint16_t* s, uint32_t len)
-		: ArrayBuffer<uint16_t, HolderMode::kWeak>(const_cast<uint16_t*>(s), len) {
+	ArrayBuffer<char, HolderMode::kWeak>::ArrayBuffer(const char* s, uint32_t length)
+    : _length(length), _capacity(length), _val(const_cast<char*>(s)) {
 	}
 
 	template <>
-	BasicString<uint32_t>::BasicString(const uint32_t* s, uint32_t len)
-		: ArrayBuffer<uint32_t, HolderMode::kWeak>(const_cast<uint32_t*>(s), len) {
+	ArrayBuffer<uint16_t, HolderMode::kWeak>::ArrayBuffer(const uint16_t* s, uint32_t length)
+    : _length(length), _capacity(length), _val(const_cast<uint16_t*>(s)) {
 	}
 
+	template <>
+	ArrayBuffer<uint32_t, HolderMode::kWeak>::ArrayBuffer(const uint32_t* s, uint32_t length)
+    : _length(length), _capacity(length), _val(const_cast<uint32_t*>(s)) {
+	}
+
+	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, M, A, APPEND_ZERO) \
+		\
+		template<> ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity) \
+		: _length(length), _capacity(0), _val(nullptr) \
+		{ \
+			if (_length) {  \
+				realloc_(_length + APPEND_ZERO); \
+        if (APPEND_ZERO) _val[_length] = 0; \
+			}\
+		}\
+		\
+		template<> ArrayBuffer<T, M, A>::ArrayBuffer(const std::initializer_list<T>& list) \
+		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr) \
+		{ \
+			if (_length) { \
+				realloc_(_length + APPEND_ZERO); \
+				memcpy(_val, list.begin(), sizeof(T) * _length); \
+        if (APPEND_ZERO) _val[_length] = 0; \
+			}\
+		} \
+		\
+		template<> ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length) { \
+			if (src_length) {\
+				_length += src_length; \
+				realloc_(_length + APPEND_ZERO); \
+				T* src = _val; \
+				T* to = _val + _length - src_length; \
+				memcpy((void*)to, src, src_length * sizeof(T)); \
+				if (APPEND_ZERO) _val[_length] = 0; \
+			} \
+			return *this; \
+		} \
+		\
+		template<> uint32_t ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size) { \
+			if (size) { \
+				if ( to == -1 ) to = _length; \
+				_length = FX_MAX(to + size, _length); \
+				realloc_(_length + APPEND_ZERO); \
+				memcpy((void*)(_val + to), src, size * sizeof(T) ); \
+				if (APPEND_ZERO) _val[_length] = 0; \
+			} \
+			return size; \
+		} \
+		\
+		template<> ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::pop(uint32_t count) { \
+			uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
+			if (_length > j) {  \
+				_length = j;  \
+				realloc_(_length + APPEND_ZERO); \
+				if (APPEND_ZERO) _val[_length] = 0; \
+			} \
+			/*return _length;*/ \
+			return *this; \
+		} \
+		\
+		template<> void ArrayBuffer<T, M, A>::clear() { \
+			if (_capacity) { \
+				if (M == HolderMode::kStrong) { \
+					A::free(_val); /* free */ \
+				} \
+				_length = 0; \
+				_capacity = 0; \
+				_val = nullptr; \
+			} \
+		} \
+		\
+		template<> ArrayBuffer<T, M, A>&& ArrayBuffer<T, M, A>::realloc(uint32_t capacity) { \
+			if (capacity < _length) { /* clear Partial data */ \
+				_length = capacity;\
+			} \
+			realloc_(capacity + 1); \
+			if (APPEND_ZERO) _val[_length] = 0; \
+			return std::move(*this); \
+		} \
+		\
+		FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, M, A, APPEND_ZERO)
+	
+	#define FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, M, A, APPEND_ZERO) \
+		template<> ArrayBuffer<T, HolderMode::kStrong, A> \
+		ArrayBuffer<T, M, A>::slice_(uint32_t start, uint32_t end) const { \
+			end = FX_MIN(end, _length); \
+			if (start < end) { \
+				ArrayBuffer<T, HolderMode::kStrong, A> arr(end - start, end - start + APPEND_ZERO); \
+				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
+				if (APPEND_ZERO) (*arr)[arr.length()] = 0; \
+				return std::move(arr); \
+			} \
+			return ArrayBuffer<T, HolderMode::kStrong, A>();\
+		}
+
+	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
+		FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, HolderMode::kStrong, AllocatorDefault, 1); \
+		FX_DEF_ARRAY_SPECIAL_SLICE_IMPLEMENTATION(T, HolderMode::kWeak, AllocatorDefault, 1)
+
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t );
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint32_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int64_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint64_t);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(float);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(double);
 }

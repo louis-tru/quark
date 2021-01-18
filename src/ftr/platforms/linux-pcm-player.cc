@@ -124,7 +124,7 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		return true;
 	}
 
-	virtual bool write(cBuffer& buffer) {
+	virtual bool write(const Buffer& buffer) {
 		int r;
 		snd_pcm_uframes_t frames;
 		int s16_len = buffer.length() / 2;

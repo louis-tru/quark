@@ -57,17 +57,17 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 	};
 #pragma pack(pop)
 
-	typedef void (TGAImageCodec::_Inl::*ReadDataBlackFunc)(byte** in, byte** out, int alpha);
+	typedef void (TGAImageCodec::_Inl::*ReadDataBlackFunc)(uint8_t** in, uint8_t** out, int alpha);
 	
 	/**
 	 * @func _parse_rgb_rle # 解析RLE RGB图
-	 * @arg data {const byte*} # 图像数据指针
-	 * @arg new_data {byte*} # 新的通胀图像数据指针
+	 * @arg data {const uint8_t*} # 图像数据指针
+	 * @arg new_data {uint8_t*} # 新的通胀图像数据指针
 	 * @arg pixex_size {int} # 图像像素数量
 	 * @arg func {ReadDataBlackFunc} # 处理函数
 	 * @private
 	 */
-	void _parse_rgb_rle(byte* in, byte* out,
+	void _parse_rgb_rle(uint8_t* in, uint8_t* out,
 											 int bytes,
 											 int pixex_size, ReadDataBlackFunc func, int alpha) {
 		for (int i = 0; i < pixex_size; i++) {
@@ -78,7 +78,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 			int j = mask & 0x7f;    // data[0] & 01111111
 			if (mask & 0x80) {       // data[0] & 10000000
 				// 相同的像素
-				byte* cp = out - bytes;
+				uint8_t* cp = out - bytes;
 				for (int k = 0; k < j; k++, i++) {
 					memcpy(out, cp, bytes);
 					out += bytes;
@@ -92,7 +92,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 	}
 	
 	// RLE 灰度图
-	void _parse_gray_rle(byte* in, byte* out, int bytes, int pixex_size, int alpha) {
+	void _parse_gray_rle(uint8_t* in, uint8_t* out, int bytes, int pixex_size, int alpha) {
 		for (int i = 0; i < pixex_size; i++) {
 			uint8_t mask = in[0];
 			in += 1;
@@ -101,7 +101,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 			int j = mask & 0x7f;    // data[0] & 01111111
 			if (mask & 0x80) {       // data[0] & 10000000
 				// 相同的像素
-				byte* tmp = out - 2;
+				uint8_t* tmp = out - 2;
 				for (int k = 0; k < j; k++, i++) {
 					memcpy(out, tmp, 2);
 					out += 4;
@@ -115,17 +115,17 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 		}
 	}
 	
-	void _read_16_data_black(byte** in, byte** out, int alpha) {
+	void _read_16_data_black(uint8_t** in, uint8_t** out, int alpha) {
 		uint16* in_ = (uint16*)*in;
 		uint16* out_ = (uint16*)*out;
 		*out_ = (in_[0] << 1) | (alpha ? (in_[0] & 0x8000) : 1);
-		*in = (byte*)(in_ + 1);
-		*out = (byte*)(out_ + 1);
+		*in = (uint8_t*)(in_ + 1);
+		*out = (uint8_t*)(out_ + 1);
 	}
 	
-	void _read_24_data_black(byte** in, byte** out, int alpha) {
-		byte* in_ = *in;
-		byte* out_ = *out;
+	void _read_24_data_black(uint8_t** in, uint8_t** out, int alpha) {
+		uint8_t* in_ = *in;
+		uint8_t* out_ = *out;
 		out_[2] = in_[0];
 		out_[1] = in_[1];
 		out_[0] = in_[2];
@@ -133,9 +133,9 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 		*out = out_ + 3;
 	}
 	
-	void _read_32_data_black(byte** in, byte** out, int alpha) {
-		byte* in_ = *in;
-		byte* out_ = *out;
+	void _read_32_data_black(uint8_t** in, uint8_t** out, int alpha) {
+		uint8_t* in_ = *in;
+		uint8_t* out_ = *out;
 		out_[2] = in_[0];
 		out_[1] = in_[1];
 		out_[0] = in_[2];
@@ -144,9 +144,9 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 		*out = out_ + 4;
 	}
 	
-	void _read_gray_data_black(byte** in, byte** out, int bytes, int alpha) {
-		byte* in_ = *in;
-		byte* out_ = *out;
+	void _read_gray_data_black(uint8_t** in, uint8_t** out, int bytes, int alpha) {
+		uint8_t* in_ = *in;
+		uint8_t* out_ = *out;
 		out_[0] = in_[0];
 		out_[1] = alpha ? in_[1] : 255;
 		*in = in_ + bytes;
@@ -154,7 +154,7 @@ class TGAImageCodec::_Inl : public TGAImageCodec {
 	}
 };
 
-static void premultiplied_alpha(byte* data, int pixex_size) {
+static void premultiplied_alpha(uint8_t* data, int pixex_size) {
 	for(int i = 0; i < pixex_size; i++){
 		float alpha = data[3] / 255;
 		data[0] *= alpha;
@@ -179,7 +179,7 @@ static Buffer flip_vertical(cchar* data, int width, int height, int bytes) {
 	return rev;
 }
 
-Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
+Array<PixelData> TGAImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv;
 	
 	_Inl::Header* header = (_Inl::Header*)*data; // 适用小端格式CPU
@@ -211,8 +211,8 @@ Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 	int pixex_size = width * height;
 	int out_size = pixex_size * bytes;
 	Buffer out(out_size);
-	byte* out_ = (byte*)out.value();
-	byte* in_ = ((byte*)data.value()) + sizeof(_Inl::Header) + header->idlength;
+	uint8_t* out_ = (uint8_t*)out.value();
+	uint8_t* in_ = ((uint8_t*)data.value()) + sizeof(_Inl::Header) + header->idlength;
 	
 	switch ( code ) {
 		case 2:  // RGB
@@ -250,7 +250,7 @@ Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 	return rv;
 }
 
-PixelData TGAImageCodec::decode_header(cBuffer& data) {
+PixelData TGAImageCodec::decode_header(const Buffer& data) {
 	_Inl::Header* header = (_Inl::Header*)*data;
 	bool alpha = header->image_descriptor & 0x08;
 	int bytes = header->bits_per_pixel / 8; // 2、3、4
@@ -296,10 +296,10 @@ Buffer TGAImageCodec::encode(cPixelData& pixel_data) {
 		
 		memcpy(ret_data_p, &header, sizeof(_Inl::Header));
 		
-		cBuffer& pixel_data_d = pixel_data.body();
+		const Buffer& pixel_data_d = pixel_data.body();
 		int pixex_size = pixel_data_d.length() / 4;
-		byte* tmp = (byte*)ret_data_p;
-		const byte* data = (const byte*)*pixel_data_d;
+		uint8_t* tmp = (uint8_t*)ret_data_p;
+		const uint8_t* data = (const uint8_t*)*pixel_data_d;
 
 		// 写入BGRA数据
 		if ( pixel_data.is_premultiplied_alpha() ) {

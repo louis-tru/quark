@@ -51,7 +51,7 @@ static inline uint8_t getPartColor(int color, int offset) {
 }
 
 Color::Color(uint color)
-: MTColor<byte>(getPartColor(color, 24),
+: MTColor<uint8_t>(getPartColor(color, 24),
 								getPartColor(color, 16),
 								getPartColor(color, 8),
 								getPartColor(color, 0))

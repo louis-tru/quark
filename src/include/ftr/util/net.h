@@ -32,7 +32,7 @@
 #define __ftr__util__net__
 
 #include <ftr/util/util.h>
-#include <ftr/util/buffer.h>
+#include <ftr/util/str.h>
 #include <ftr/util/loop.h>
 
 namespace ftr {

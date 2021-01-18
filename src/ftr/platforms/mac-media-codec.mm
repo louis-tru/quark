@@ -113,7 +113,7 @@ class AppleVideoCodec: public MediaCodec {
 		Buffer psp, pps;
 		
 		if ( MediaCodec::parse_avc_psp_pps(track.extradata, psp, pps) ) {
-			byte*  param[2] = { (byte*)(*psp + 4), (byte*)(*pps + 4) };
+			uint8_t*  param[2] = { (uint8_t*)(*psp + 4), (uint8_t*)(*pps + 4) };
 			size_t size[2]  = { psp.length() - 4, pps.length() - 4 };
 			status = CMVideoFormatDescriptionCreateFromH264ParameterSets(NULL, 2,
 																																	 param, size, 4, &_format_desc);
@@ -278,7 +278,7 @@ class AppleVideoCodec: public MediaCodec {
 		MediaCodec::convert_sample_data_to_mp4_style(data);
 		
 		status = CMBlockBufferCreateWithMemoryBlock(nullptr,
-																								(byte*)*data,
+																								(uint8_t*)*data,
 																								data.length(),
 																								kCFAllocatorNull,
 																								nullptr, 0, data.length(), 0, &block);
@@ -406,8 +406,8 @@ class AppleVideoCodec: public MediaCodec {
 			// yuv420sp
 			out.linesize[0] =  _video_width * _video_height;
 			out.linesize[1] = out.linesize[0] / 2;
-			out.data[0] = (byte*)CVPixelBufferGetBaseAddressOfPlane(buf->buffer, 0);  // y
-			out.data[1] = (byte*)CVPixelBufferGetBaseAddressOfPlane(buf->buffer, 1);  // uv
+			out.data[0] = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(buf->buffer, 0);  // y
+			out.data[1] = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(buf->buffer, 1);  // uv
 			out.time  = _presentation_time = buf->time;
 			out.total = out.linesize[0] + out.linesize[1];
 			return out;

@@ -30,28 +30,33 @@
 
 #include "ftr/util/error.h"
 #include "ftr/util/util.h"
+//#include <algorithm>
 
 #if FX_EXCEPTIONS_SUPPORT
+#include <exception>
 
 namespace ftr {
 
-	Error::Error()
-	: _code(ERR_UNKNOWN_ERROR)
-	, _message("Unknown exception") {
+	namespace internal {
+		 SString string_format(const char* f, va_list arg);
+	 }
 
+	Error::Error(const Error& e)
+	 : _code(e.code())
+	 , _message(e._message.copy()) {
+		 std::exception _ex;
+	}
+
+	Error::Error(int code, const char* msg, ...): _errno(code) {
+		va_list arg;
+		va_start(arg, msg);
+		_message = internal::string_format(msg, arg);
+		va_end(arg)
 	}
 
 	Error::Error(int code, const String& msg)
-	: _code(code)
-	, _message(msg.copy()) {
-	}
-
-	Error::Error(const String& msg): _code(ERR_UNKNOWN_ERROR), _message(msg.copy()) {
-	}
-
-	Error::Error(cError& e)
-	: _code(e.code())
-	, _message(e._message.copy()) {
+	 : _code(code)
+	 , _message(msg.copy()) {
 	}
 
 	Error& Error::operator=(const Error& e) {
@@ -63,24 +68,12 @@ namespace ftr {
 	Error::~Error() {
 	}
 
-	const String Error::message() const throw() {
+	String Error::message() const throw() {
 		return _message;
 	}
 
 	int Error::code() const throw() {
 		return _code;
-	}
-
-	void Error::set_message(const String& value) {
-		_message = value.copy();
-	}
-
-	void Error::set_code(int value) {
-		_code = value;
-	}
-
-	String Error::to_string() const {
-		return String::format("message: %s, code: %d", *_message, _code);
 	}
 }
 

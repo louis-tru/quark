@@ -45,7 +45,7 @@ namespace ftr {
 		/**
 		* @func write
 		* */
-		virtual bool write(cBuffer& buffer) = 0;
+		virtual bool write(const Buffer& buffer) = 0;
 
 		/**
 		* @func flush

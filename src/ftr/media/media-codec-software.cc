@@ -196,7 +196,7 @@ class SoftwareMediaCodec: public MediaCodec {
 			
 			AVPacket pkt;
 			av_init_packet(&pkt);
-			av_packet_from_data(&pkt, (byte*)*data, data.length());
+			av_packet_from_data(&pkt, (uint8_t*)*data, data.length());
 			pkt.flags = _extractor->sample_flags();
 			pkt.pts = _extractor->sample_time();
 			pkt.dts = 0;
@@ -265,14 +265,14 @@ class SoftwareMediaCodec: public MediaCodec {
 			
 			if ( size ) {
 				OutputBuffer out;
-				byte* buffer = (byte*)*_audio_buffer + _audio_buffer_size;
+				uint8_t* buffer = (uint8_t*)*_audio_buffer + _audio_buffer_size;
 				swr_convert(_audio_swr_ctx,
 										&buffer, _frame->nb_samples,
 										(const uint8_t  **) _frame->extended_data, _frame->nb_samples);
 				_audio_buffer_size += size;
 				
 				if (_audio_buffer_size >= _audio_frame_size) {
-					out.data[0] = (byte*)*_audio_buffer;
+					out.data[0] = (uint8_t*)*_audio_buffer;
 					out.linesize[0] = _audio_frame_size;
 					out.total = _audio_frame_size;
 					// time

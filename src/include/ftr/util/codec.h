@@ -32,7 +32,7 @@
 #define __ftr__util__codec__
 
 #include <ftr/util/util.h>
-#include <ftr/util/buffer.h>
+#include <ftr/util/str.h>
 
 namespace ftr {
 
@@ -82,44 +82,32 @@ namespace ftr {
 			/**
 			* @func encoding
 			*/
-			static ArrayBuffer<char> encoding(Encoding target_en, const String& source);
-			static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<char>& source);
-			static ArrayBuffer<char> encoding(Encoding target_en, const char* source, uint32_t length);
+			static SString encoding(Encoding target_en, const String& source);
 			
 			/**
 			* @func encoding
 			*/
-			static ArrayBuffer<char> encoding(Encoding target_en, const String16& source);
-			static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<uint16_t >& source);
-			static ArrayBuffer<char> encoding(Encoding target_en, const uint16_t * source, uint32_t length);
+			static SString encoding(Encoding target_en, const String16& source);
 			
 			/**
 			* @func encoding
 			*/
-			static ArrayBuffer<char> encoding(Encoding target_en, const String32& source);
-			static ArrayBuffer<char> encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source);
-			static ArrayBuffer<char> encoding(Encoding target_en, const uint32_t* source, uint32_t length);
+			static SString encoding(Encoding target_en, const String32& source);
 			
 			/**
 			* @func decoding_to_byte
 			*/
-			static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const String& source);
-			static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const ArrayBuffer<char>& source);
-			static ArrayBuffer<char> decoding_to_byte(Encoding source_en, const char* source, uint32_t length);
+			static SString decoding_to_byte(Encoding source_en, const String& source);
 			
 			/**
 			* @func decoding_to_uint16_t 
 			*/
-			static ArrayBuffer<uint16_t > decoding_to_uint16_t (Encoding source_en, const String& source);
-			static ArrayBuffer<uint16_t > decoding_to_uint16_t (Encoding source_en, const ArrayBuffer<char>& source);
-			static ArrayBuffer<uint16_t > decoding_to_uint16_t (Encoding source_en, const char* source, uint32_t length);
+			static SString16 decoding_to_uint16_t (Encoding source_en, const String& source);
 			
 			/**
 			* @func decoding_to_uint32_t
 			*/
-			static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, const String& source);
-			static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, const ArrayBuffer<char>& source);
-			static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, const char* source, uint32_t length);
+			static SString32 decoding_to_uint32_t(Encoding source_en, const String& source);
 	};
 
 	typedef Codec Coder;

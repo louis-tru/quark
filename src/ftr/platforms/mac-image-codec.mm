@@ -42,7 +42,7 @@
 
 FX_NS(ftr)
 
-static PixelData image_decode(cBuffer& data) {
+static PixelData image_decode(const Buffer& data) {
 
 	NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
                                         length:data.length()
@@ -103,7 +103,7 @@ static PixelData image_decode(cBuffer& data) {
 	return PixelData();
 }
 
-static PixelData image_decode_header(cBuffer& data) {
+static PixelData image_decode_header(const Buffer& data) {
 	
 	NSData* nsdata = [NSData dataWithBytesNoCopy:(void*)*data
                                         length:data.length()
@@ -134,12 +134,12 @@ static PixelData image_decode_header(cBuffer& data) {
 	return PixelData();
 }
 
-Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
+Array<PixelData> JPEGImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv; rv.push(image_decode(data));
 	return rv;
 }
 
-PixelData JPEGImageCodec::decode_header(cBuffer& data) {
+PixelData JPEGImageCodec::decode_header(const Buffer& data) {
 	return image_decode_header(data);
 }
 
@@ -148,12 +148,12 @@ Buffer JPEGImageCodec::encode(cPixelData& data) {
 	return Buffer();
 }
 
-Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
+Array<PixelData> GIFImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv; rv.push(image_decode(data));
 	return rv;
 }
 
-PixelData GIFImageCodec::decode_header(cBuffer& data) {
+PixelData GIFImageCodec::decode_header(const Buffer& data) {
 	return image_decode_header(data);
 }
 
@@ -162,12 +162,12 @@ Buffer GIFImageCodec::encode(cPixelData& data) {
 	return Buffer();
 }
 
-Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
+Array<PixelData> PNGImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv; rv.push(image_decode(data));
 	return rv;
 }
 
-PixelData PNGImageCodec::decode_header(cBuffer& data) {
+PixelData PNGImageCodec::decode_header(const Buffer& data) {
 	return image_decode_header(data);
 }
 
@@ -176,12 +176,12 @@ Buffer PNGImageCodec::encode(cPixelData& data) {
 	return Buffer();
 }
 
-Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
+Array<PixelData> WEBPImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv; rv.push(image_decode(data));
 	return rv;
 }
 
-PixelData WEBPImageCodec::decode_header(cBuffer& data) {
+PixelData WEBPImageCodec::decode_header(const Buffer& data) {
 	return image_decode_header(data);
 }
 

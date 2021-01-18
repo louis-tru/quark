@@ -59,7 +59,7 @@
 #define FX_STRING_FORMAT(format, str) \
 	va_list __arg; \
 	va_start(__arg, format); \
-	MutableString str = internal::string_format(format, __arg); \
+	SString str = internal::string_format(format, __arg); \
 	va_end(__arg)
 
 namespace ftr {
@@ -99,9 +99,9 @@ namespace ftr {
 		return _default_console;
 	}
 
-  namespace internal {
-    MutableString string_format(const char* f, va_list arg);
-  }
+	namespace internal {
+		SString string_format(const char* f, va_list arg);
+	}
 
 	namespace console {
 		
@@ -157,7 +157,7 @@ namespace ftr {
 		}
 		
 		void log(char msg) {
-			default_console()->log( String::format("%d", msg) );
+			default_console()->log( String::format("%u", msg) );
 		}
 		
 		void log(uint8_t msg) {
@@ -227,9 +227,9 @@ namespace ftr {
 		}
 		
 		void log(const String16& msg) {
-//			default_console()->log(Coder::encoding(Encoding::utf8, msg));
+			default_console()->log(Coder::encoding(Encoding::utf8, msg));
 		}
-			
+
 		void print(const char* format, ...) {
 			FX_STRING_FORMAT(format, str);
 			default_console()->print(str);
@@ -267,7 +267,7 @@ namespace ftr {
 		}
 
 		void error(const Error& err) {
-			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), *err.message());
+			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().val());
 			default_console()->error(str);
 		}
 		

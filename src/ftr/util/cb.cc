@@ -30,124 +30,125 @@
 
 #include <uv.h>
 #include "ftr/util/cb.h"
-#include "ftr/util/string.h"
+#include "ftr/util/str.h"
 #include "ftr/util/loop.h"
-#include "ftr/util/uv-1.h"
+#include "uv.h"
+#include <unordered_map>
 
-FX_NS(ftr)
+namespace ftr {
 
-class DefaultStaticCallback: public CallbackCore<Object> {
- public:
-	virtual bool retain() { return 1; }
-	virtual void release() { }
-	virtual void call(CbD& event) const { }
-};
+	class DefaultStaticCallback: public CallbackCore<Object> {
+	 public:
+		virtual bool retain() { return 1; }
+		virtual void release() { }
+		virtual void call(CbD& event) const { }
+	};
 
-static DefaultStaticCallback* default_callback_p = nullptr;
-static Mutex mutex;
+	static DefaultStaticCallback* default_callback_p = nullptr;
+	static Mutex mutex;
 
-static inline DefaultStaticCallback* default_callback() {
-	if ( !default_callback_p ) {
-		ScopeLock scope(mutex);
-		default_callback_p = NewRetain<DefaultStaticCallback>();
+	static inline DefaultStaticCallback* default_callback() {
+		if ( !default_callback_p ) {
+			ScopeLock scope(mutex);
+			default_callback_p = NewRetain<DefaultStaticCallback>();
+		}
+		return default_callback_p;
 	}
-	return default_callback_p;
-}
 
-template<>
-Callback<Object>::Callback(int type): Handle<CallbackCore<Object>>(default_callback()) {
-}
-
-class WrapCallback: public CallbackCore<Object> {
- public:
-	inline WrapCallback(cCb& cb, Error* err, Object* data)
-	: _inl_cb(cb), _err(err), _data(data) {
+	template<>
+	Callback<Object>::Callback(int type): Handle<CallbackCore<Object>>(default_callback()) {
 	}
-	virtual ~WrapCallback() {
-		Release(_err);
-		Release(_data);
+
+	class WrapCallback: public CallbackCore<Object> {
+	 public:
+		inline WrapCallback(cCb& cb, Error* err, Object* data)
+		: _inl_cb(cb), _err(err), _data(data) {
+		}
+		virtual ~WrapCallback() {
+			Release(_err);
+			Release(_data);
+		}
+		virtual void call(CbD& evt) const {
+			evt.error = _err;
+			evt.data = _data;
+			_inl_cb->call(evt);
+		}
+	 private:
+		Callback<> _inl_cb;
+		Error* _err;
+		Object* _data;
+	};
+
+	void async_callback_and_dealloc(cCb& cb, Error* e, Object* d, PostMessage* loop) {
+		loop->post_message( Cb(new WrapCallback(cb, e, d)) );
 	}
-	virtual void call(CbD& evt) const {
-		evt.error = _err;
-		evt.data = _data;
-		_inl_cb->call(evt);
+
+	/**
+	 * @func sync_callback
+	 */
+	int sync_callback(cCb& cb, cError* err, Object* data) {
+		CbD evt = { err, data, 0 };
+		cb->call(evt);
+		return evt.return_value;
 	}
- private:
-	Callback<> _inl_cb;
-	Error* _err;
-	Object* _data;
-};
 
-void async_callback_and_dealloc(cCb& cb, Error* e, Object* d, PostMessage* loop) {
-	loop->post_message( Cb(new WrapCallback(cb, e, d)) );
-}
-
-/**
- * @func sync_callback
- */
-int sync_callback(cCb& cb, cError* err, Object* data) {
-	CbD evt = { err, data, 0 };
-	cb->call(evt);
-	return evt.return_value;
-}
-
-/**
- * @func async_callback
- */
-void async_callback(cCb& cb, PostMessage* loop) {
-	if ( loop ) {
-		loop->post_message( cb );
-	} else {
-		sync_callback(cb);
+	/**
+	 * @func async_callback
+	 */
+	void async_callback(cCb& cb, PostMessage* loop) {
+		if ( loop ) {
+			loop->post_message( cb );
+		} else {
+			sync_callback(cb);
+		}
 	}
-}
 
-struct TaskList {
-	Mutex mutex;
-	Map<uint32_t, AsyncIOTask*> values;
-};
+	struct TaskList {
+		Mutex mutex;
+		std::unordered_map<uint32_t, AsyncIOTask*> values;
+	};
 
-static TaskList* tasks = new TaskList;
+	static TaskList* tasks = new TaskList;
 
-AsyncIOTask::AsyncIOTask(RunLoop* loop)
-: _id(iid32()), _abort(false), _loop(loop) {
-	FX_CHECK(_loop);
-	ScopeLock scope(tasks->mutex);
-	tasks->values.set(_id, this);
-}
-
-AsyncIOTask::~AsyncIOTask() {
-	ScopeLock scope(tasks->mutex);
-	tasks->values.del(_id);
-}
-
-void AsyncIOTask::abort() {
-	if ( !_abort ) {
-		_abort = true;
-		release(); // end
-	}
-}
-
-void AsyncIOTask::safe_abort(uint32_t id) {
-	if (id) {
+	AsyncIOTask::AsyncIOTask(RunLoop* loop)
+	: _id(iid32()), _abort(false), _loop(loop) {
+		FX_CHECK(_loop);
 		ScopeLock scope(tasks->mutex);
-		auto i = tasks->values.find(id);
-		if (i.is_null()) return;
-		
-		i.value()->_loop->post(Cb([id](CbD& e) {
-			AsyncIOTask* task = nullptr;
-			{ //
-				ScopeLock scope(tasks->mutex);
-				auto i = tasks->values.find(id);
-				if (!i.is_null()) {
-					task = i.value();
-				}
-			}
-			if (task) {
-				task->abort();
-			}
-		}));
+		tasks->values.set(_id, this);
 	}
-}
 
-FX_END
+	AsyncIOTask::~AsyncIOTask() {
+		ScopeLock scope(tasks->mutex);
+		tasks->values.del(_id);
+	}
+
+	void AsyncIOTask::abort() {
+		if ( !_abort ) {
+			_abort = true;
+			release(); // end
+		}
+	}
+
+	void AsyncIOTask::safe_abort(uint32_t id) {
+		if (id) {
+			ScopeLock scope(tasks->mutex);
+			auto i = tasks->values.find(id);
+			if (i.is_null()) return;
+			
+			i.value()->_loop->post(Cb([id](CbD& e) {
+				AsyncIOTask* task = nullptr;
+				{ //
+					ScopeLock scope(tasks->mutex);
+					auto i = tasks->values.find(id);
+					if (!i.is_null()) {
+						task = i.value();
+					}
+				}
+				if (task) {
+					task->abort();
+				}
+			}));
+		}
+	}
+
+}

@@ -40,10 +40,10 @@ namespace ftr {
 			_hash += (_hash << 5) + ((const char*)data)[len];
 	}
 	
-	MutableString SimpleHash::digest() {
-		MutableString rev;
+	SString SimpleHash::digest() {
+		SString rev;
 		do {
-			rev += I64BIT_TABLE[_hash & 0x3F];
+			rev.push(I64BIT_TABLE[_hash & 0x3F]);
 		} while (_hash >>= 6);
 		_hash = 5381;
 		return rev;
@@ -55,13 +55,13 @@ namespace ftr {
 		return hash.hash_code();
 	}
 
-	MutableString hash(const void* data, uint32_t len) {
+	SString hash(const void* data, uint32_t len) {
 		SimpleHash hash;
 		hash.update((const char*)data, len);
 		return hash.digest();
 	}
 
-	MutableString hash(const String& str) {
+	SString hash(const String& str) {
 		return hash(*str, str.length());
 	}
 

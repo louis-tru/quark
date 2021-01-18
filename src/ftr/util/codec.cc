@@ -30,7 +30,6 @@
 
 #include <ftr/util/error.h>
 #include <ftr/util/codec.h>
-#include <ftr/util/buffer.h>
 #include <unordered_map>
 
 namespace ftr {
@@ -168,7 +167,7 @@ namespace ftr {
 	template <class Char>
 	static Buffer encoding_to_utf8(const Char* source, uint32_t len) {
 		uint32_t utf8_len = encoding_utf8_str_length(source, len);
-		Buffer rev(utf8_len, utf8_len + 1);
+		Buffer rev = Buffer::from(utf8_len, utf8_len + 1);
 		char* data = *rev;
 		
 		const Char* end = source + len;
@@ -189,7 +188,7 @@ namespace ftr {
 		const char* src = (const char*)source;
 		uint32_t slen = len * sizeof(Char);
 		uint32_t dlen = (slen + 2 - ((slen + 2) % 3)) / 3 * 4;
-		Buffer rev(dlen, dlen + 1);
+		Buffer rev = Buffer::from(dlen, dlen + 1);
 		char* dst = *rev;
 		dst[dlen] = 0;
 		
@@ -255,7 +254,7 @@ namespace ftr {
 		const char* start = (const char*)source;
 		const char* end = start + len * sizeof(Char);
 		uint32_t byte_len = len * sizeof(Char) * 2;
-		Buffer rev(byte_len, byte_len + 1);
+		Buffer rev = Buffer::from(byte_len, byte_len + 1);
 		char* data = *rev;
 		while (start < end) {
 			uint8_t ch = *start;
@@ -275,7 +274,7 @@ namespace ftr {
 	static Buffer encoding_to_ucs2(const Char* source, uint32_t len) {
 		// ucs4到ucs2会丢失所有ucs2以外的编码
 		const Char* end = source + len;
-		Buffer rev(len * 2, len * 2 + 1);
+		Buffer rev = Buffer::from(len * 2, len * 2 + 1);
 		char* data = *rev;
 		while (source < end) {
 			*reinterpret_cast<uint16_t *>(data) = *source;
@@ -292,7 +291,7 @@ namespace ftr {
 	template <class Char>
 	static Buffer encoding_to_ucs4(const Char* source, uint32_t len) {
 		const Char* end = source + len;
-		Buffer rev(len * 4, len * 4 + 1);
+		Buffer rev = Buffer::from(len * 4, len * 4 + 1);
 		char* data = *rev;
 		while (source < end) {
 			*reinterpret_cast<uint32_t*>(data) = *source;
@@ -546,7 +545,7 @@ namespace ftr {
 
 	template <class Char>
 	static ArrayBuffer<Char> decoding_from_binary(const char* source, uint32_t len) {
-		ArrayBuffer<Char> rev(len, len + 1);
+		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
 		const char* end = source + len;
 		while (source < end) {
@@ -559,7 +558,7 @@ namespace ftr {
 
 	template <class Char>
 	static ArrayBuffer<Char> decoding_from_ascii(const char* source, uint32_t len) {
-		ArrayBuffer<Char> rev(len, len + 1);
+		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
 		const char* end = source + len;
 		while (source < end) {
@@ -680,7 +679,7 @@ namespace ftr {
 		len -= (dstEnd - dst);
 		*dst = '\0';
 		
-		return ArrayBuffer<Char>(buf, len);
+		return ArrayBuffer<Char>::from(buf, len);
 	}
 
 	template <class Char>
@@ -688,7 +687,7 @@ namespace ftr {
 		if (len % 2 != 0) { // hex 编码数据错误
 			return ArrayBuffer<Char>();
 		}
-		ArrayBuffer<Char> rev(len / 2, len / 2 + 1);
+		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len / 2, len / 2 + 1);
 		const char* end = source + len;
 		Char* data = *rev;
 		while (source < end) {
@@ -704,7 +703,7 @@ namespace ftr {
 	template <class Char>
 	static ArrayBuffer<Char> decoding_from_utf8(const char* source, uint32_t len) {
 		uint32_t rev_len = decoding_utf8_str_length(source, len);
-		ArrayBuffer<Char> rev(rev_len, rev_len + 1);
+		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(rev_len, rev_len + 1);
 		Char* data = *rev;
 		
 		const char* end = source + len;
@@ -718,7 +717,7 @@ namespace ftr {
 
 	template <class Char>
 	static ArrayBuffer<Char> decoding_from_ucs2(const char* source, uint32_t len) {
-		ArrayBuffer<Char> rev(len, len + 1);
+		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
 		const char* end = source + len;
 		while (source < end) {
@@ -731,7 +730,7 @@ namespace ftr {
 
 	template <class Char>
 	static ArrayBuffer<Char> decoding_from_ucs4(const char* source, uint32_t len) {
-		ArrayBuffer<Char> rev(len, len + 1);
+		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
 		const char* end = source + len;
 		while (source < end) {
@@ -778,7 +777,7 @@ namespace ftr {
 		return Buffer();
 	}
 
-	static ArrayBuffer<uint16_t > decoding_to_uint16_t_(Encoding source_en, const char* source, uint32_t len) {
+	static ArrayBuffer<uint16_t> decoding_to_uint16_t_(Encoding source_en, const char* source, uint32_t len) {
 		switch (source_en) {
 			case Encoding::binary: {
 				return decoding_from_binary<uint16_t >(source, len);
@@ -884,8 +883,7 @@ namespace ftr {
 	 */
 	Encoding Codec::parse_encoding(const String& en) {
 		static const std::unordered_map<String, Encoding> encodings(init_parse_encoding());
-		
-		String encoding = en.to_lower_case();
+		SString encoding = en.to_lower_case();
 		
 		auto i = encodings.find(en.to_lower_case());
 		if (i != encodings.end()) {
@@ -910,79 +908,43 @@ namespace ftr {
 	/**
 	 * @func encoding
 	 */
-	Buffer Codec::encoding(Encoding target_en, const String& source) {
+	SString Codec::encoding(Encoding target_en, const String& source) {
 		return encoding_with_byte_(target_en, *source, source.length());
-	}
-	Buffer Codec::encoding(Encoding target_en, const Buffer& source){
-		return encoding_with_byte_(target_en, *source, source.length());
-	}
-	Buffer Codec::encoding(Encoding target_en, const char* source, uint32_t length) {
-		return encoding_with_byte_(target_en, source, length);
 	}
 
 	/**
 	 * @func encoding
 	 */
-	Buffer Codec::encoding(Encoding target_en, const String16& source) {
+	SString Codec::encoding(Encoding target_en, const String16& source) {
 		return encoding_with_uint16_t_(target_en, *source, source.length());
-	}
-	Buffer Codec::encoding(Encoding target_en, const ArrayBuffer<uint16_t >& source){
-		return encoding_with_uint16_t_(target_en, *source, source.length());
-	}
-	Buffer Codec::encoding(Encoding target_en, const uint16_t * source, uint32_t length) {
-		return encoding_with_uint16_t_(target_en, source, length);
 	}
 
 	/**
 	 * @func encoding
 	 */
-	Buffer Codec::encoding(Encoding target_en, const String32& source) {
+	SString Codec::encoding(Encoding target_en, const String32& source) {
 		return encoding_with_uint32_t_(target_en, *source, source.length());
-	}
-	Buffer Codec::encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source) {
-		return encoding_with_uint32_t_(target_en, *source, source.length());
-	}
-	Buffer Codec::encoding(Encoding target_en, const uint32_t* source, uint32_t length) {
-		return encoding_with_uint32_t_(target_en, source, length);
 	}
 
 	/**
 	 * @func decoding_to_byte
 	 */
-	Buffer Codec::decoding_to_byte(Encoding source_en, const String& source) {
+	SString Codec::decoding_to_byte(Encoding source_en, const String& source) {
 		return decoding_to_byte_(source_en, *source, source.length());
-	}
-	Buffer Codec::decoding_to_byte(Encoding source_en, const Buffer& source) {
-		return decoding_to_byte_(source_en, *source, source.length());
-	}
-	Buffer Codec::decoding_to_byte(Encoding source_en, const char* source, uint32_t length) {
-		return decoding_to_byte_(source_en, source, length);
 	}
 
 	/**
 	 * @func decoding_to_uint16_t 
 	 */
-	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, const String& source) {
+	SString16 Codec::decoding_to_uint16_t(Encoding source_en, const String& source) {
 		return decoding_to_uint16_t_(source_en, *source, source.length());
-	}
-	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, const Buffer& source) {
-		return decoding_to_uint16_t_(source_en, *source, source.length());
-	}
-	ArrayBuffer<uint16_t > Codec::decoding_to_uint16_t (Encoding source_en, const char* source, uint32_t length) {
-		return decoding_to_uint16_t_(source_en, source, length);
 	}
 
 	/**
 	 * @func decoding_to_uint32_t
 	 */
-	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, const String& source) {
+	SString32 Codec::decoding_to_uint32_t(Encoding source_en, const String& source) {
 		return decoding_to_uint32_t_(source_en, *source, source.length());
-	}
-	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, const Buffer& source) {
-		return decoding_to_uint32_t_(source_en, *source, source.length());
-	}
-	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, const char* source, uint32_t length) {
-		return decoding_to_uint32_t_(source_en, source, length);
 	}
 
 }

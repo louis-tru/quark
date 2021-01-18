@@ -149,17 +149,17 @@ namespace ftr {
 		* @arg shader_type {GLenum}  #     程序类型
 		* @ret {GLuint}
 		*/
-		GLuint compile_shader(cString& name, cBuffer& code, GLenum shader_type);
+		GLuint compile_shader(cString& name, const Buffer& code, GLenum shader_type);
 		
 		/**
 		* @func compile_link_shader # 编译着色器程序
-		* @arg vertex {cBuffer&}                 #             顶点程序代码
+		* @arg vertex {const Buffer&}                 #             顶点程序代码
 		* @arg fragment {cData&}                 #             片段程序代码
 		* @arg attrs {const Array<String>&}      #             要编号的属性列表
 		* @ret {GLuint}
 		*/
-		GLuint compile_link_shader(cString& name, cBuffer& vertex,
-															cBuffer& fragment,
+		GLuint compile_link_shader(cString& name, const Buffer& vertex,
+															const Buffer& fragment,
 															const Array<String>& attrs = Array<String>());
 		
 		inline bool is_support_query() { return _is_support_query; }

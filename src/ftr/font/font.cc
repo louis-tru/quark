@@ -600,7 +600,7 @@ FontGlyphTable* FontPool::get_table(TextStyleEnum style) {
 
 /**
  * @func register_font # 通过Buffer数据注册字体
- * @arg buff {cBuffer} # 字体数据
+ * @arg buff {const Buffer} # 字体数据
  * @arg [family_alias = String()] {cString&} # 给所属家族添加一个别名
  */
 bool FontPool::register_font(Buffer buff, cString& family_alias) {

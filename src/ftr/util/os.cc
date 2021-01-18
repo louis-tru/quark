@@ -105,19 +105,19 @@ namespace ftr {
 		}
 
 		#if FX_UNIX
-			static String* info_str = nullptr;
+			static SString* info_str = nullptr;
 
 			String info() {
 				
 				// std::unordered_map<std::string, std::string> a;
 				
 				if (!info_str) {
-					info_str = new String();
+					info_str = new SString();
 					static struct utsname uts;
 					static char name[256];
 					gethostname(name, 255);
 					uname(&uts);
-					*info_str = format_string(
+					*info_str = String::format(
 						"host: %s\nsys: %s\nmachine: %s\n"
 						"nodename: %s\nversion: %s\nrelease: %s",
 						name,
@@ -138,14 +138,14 @@ namespace ftr {
 			int64_t time() {
 				timespec now;
 				clock_gettime(CLOCK_REALTIME, &now);
-				int64_t_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+				int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
 				return r;
 			}
 
 			int64_t time_monotonic() {
 				timespec now;
 				clock_gettime(CLOCK_MONOTONIC, &now);
-				int64_t_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
+				int64_t r = now.tv_sec * 1000000LL + now.tv_nsec / 1000LL;
 				return r;
 			}
 

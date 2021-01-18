@@ -678,7 +678,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSValue> New(const PersistentBase<JSValue>& value);
 
 	Local<JSObject> NewInstance(uint64 id, uint argc = 0, Local<JSValue>* argv = nullptr);
-	Local<JSString> NewString(cBuffer& data);
+	Local<JSString> NewString(const Buffer& data);
   Local<JSString> NewAscii(cchar* str);
   Local<JSArrayBuffer> NewArrayBuffer(char* use_buff, uint len);
   Local<JSArrayBuffer> NewArrayBuffer(uint len);
@@ -792,7 +792,7 @@ class FX_EXPORT Worker: public Object {
 	 * @func runNativeScript
 	 */
 	Local<JSValue> runNativeScript(
-		cBuffer& source, cString& name, 
+		const Buffer& source, cString& name, 
 		Local<JSObject> exports = Local<JSObject>());
 
 	/**

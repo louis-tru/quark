@@ -203,12 +203,12 @@ namespace {
 	/**
 	* @class Color
 	*/
-	class FX_EXPORT Color: public MTColor<byte> {
+	class FX_EXPORT Color: public MTColor<uint8_t> {
 		public:
 		Color(uint color);
-		inline Color(): MTColor<byte>(0, 0, 0, 255) { }
-		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<byte>(r, g, b, 255) { }
-		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MTColor<byte>(r, g, b, a) { }
+		inline Color(): MTColor<uint8_t>(0, 0, 0, 255) { }
+		inline Color(uint8_t r, uint8_t g, uint8_t b): MTColor<uint8_t>(r, g, b, 255) { }
+		inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): MTColor<uint8_t>(r, g, b, a) { }
 		bool operator==(Color color) const;
 		inline bool operator!=(Color color) const { return ! operator==(color); }
 		inline FloatColor to_float_color() const {

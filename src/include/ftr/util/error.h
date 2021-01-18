@@ -50,23 +50,17 @@ namespace ftr {
 	*/
 	class FX_EXPORT Error: public Object {
 		public:
-			Error();
-			Error(int code, const String& msg);
-			Error(int code, const char*, ...);
-			Error(const String& msg);
-			Error(const char*, ...);
 			Error(const Error& err);
+			Error(int errno, const char* msg, ...);
+			Error(int errno = ERR_UNKNOWN_ERROR, const String& msg = "Unknown exception");
 			virtual ~Error();
 			Error& operator=(const Error& e);
-			virtual const String message() const throw();
-			virtual int code() const throw();
-			void set_code(int value);
-			void set_message(const String& value);
-			virtual String to_string() const;
-
+			virtual String message() const;
+			virtual int errno() const;
+			inline int code() const { return errno(); }
 		private:
-			int            _code;
-      MutableString _message;
+			int     _errno;
+			SString _message;
 	};
 
 	typedef const Error cError;

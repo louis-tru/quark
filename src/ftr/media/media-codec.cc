@@ -180,11 +180,11 @@ void MediaCodec::set_delegate(Delegate* delegate) {
 	_delegate = delegate;
 }
 
-inline static bool is_nalu_start(byte* str) {
+inline static bool is_nalu_start(uint8_t* str) {
 	return str[0] == 0 && str[1] == 0 && str[2] == 0 && str[3] == 1;
 }
 
-static bool find_nalu_package(cBuffer& buffer, uint start, uint& end) {
+static bool find_nalu_package(const Buffer& buffer, uint start, uint& end) {
 	uint length = buffer.length();
 	if ( start < length ) {
 		cchar* c = *buffer + start;
@@ -210,9 +210,9 @@ static bool find_nalu_package(cBuffer& buffer, uint start, uint& end) {
 /**
  * @func parse_psp_pps
  * */
-bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
+bool MediaCodec::parse_avc_psp_pps(const Buffer& extradata, Buffer& out_psp, Buffer& out_pps) {
 	// set sps and pps
-	byte* buf = (byte*)*extradata;
+	uint8_t* buf = (uint8_t*)*extradata;
 	
 	if ( is_nalu_start(buf) ) { // nalu
 		uint start = 4, end = 0;
@@ -252,7 +252,7 @@ bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& 
 bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
 	uint size = buffer.length();
 	if (size) {
-		byte* buf = (byte*)*buffer;
+		uint8_t* buf = (uint8_t*)*buffer;
 		if ( !is_nalu_start(buf) ) {
 			uint i = 0;
 			while ( i + 4 < size ) {
@@ -276,12 +276,12 @@ bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
 bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
 	uint size = buffer.length();
 	if (size) {
-		byte* buf = (byte*)*buffer;
+		uint8_t* buf = (uint8_t*)*buffer;
 		if ( is_nalu_start(buf) ) {
 			uint start = 4, end = 0;
 			while( find_nalu_package(buffer, start, end) ) {
 				int s = end - start;
-				uint8_t header[4] = { (byte)(s >> 24), (byte)(s >> 16), (byte)(s >> 8), (byte)s };
+				uint8_t header[4] = { (uint8_t)(s >> 24), (uint8_t)(s >> 16), (uint8_t)(s >> 8), (uint8_t)s };
 				memcpy(buf + start - 4, header, 4);
 				start = end + 4;
 			}

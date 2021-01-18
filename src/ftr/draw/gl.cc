@@ -421,7 +421,7 @@ void GLDraw::end_screen_occlusion_query() {
  * @arg shader_type {GLenum}  #     程序类型
  * @ret {GLuint}
  */
-GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
+GLuint GLDraw::compile_shader(cString& name, const Buffer& code, GLenum shader_type) {
 	GLuint shader_handle = glCreateShader(shader_type);
 	GLint code_len = code.length();
 	cchar* c = code.value();
@@ -447,7 +447,7 @@ GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) 
  * @private
  */
 GLuint GLDraw::compile_link_shader(cString& name,
-																	 cBuffer& vertex, cBuffer& fragment,
+																	 const Buffer& vertex, const Buffer& fragment,
 																	 const Array<String>& attrs) {
 	
 	GLuint vertex_handle = compile_shader(name, vertex, GL_VERTEX_SHADER);

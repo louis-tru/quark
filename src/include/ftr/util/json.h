@@ -128,7 +128,7 @@ typedef const JSON cJSON;
 			JSON(const String& str);
 			
 			//! Constructor for cData& value.
-			JSON(cBuffer& data);
+			JSON(const Buffer& data);
 			
 		private:
 			//! Copy constructor is not permitted.
@@ -154,7 +154,7 @@ typedef const JSON cJSON;
 			JSON& operator=(double d);
 			JSON& operator=(const char* str);
 			JSON& operator=(const String& str);
-			JSON& operator=(cBuffer& data);
+			JSON& operator=(const Buffer& data);
 			//
 			bool operator==(cJSON& json) const;
 			bool operator==(const char* str) const;
@@ -206,10 +206,10 @@ typedef const JSON cJSON;
 			void pop();
 			void clear();
 			
-			void restd::move(const char* key);
-			void restd::move(const String& key);
-			void restd::move(IteratorConst it);
-			void restd::move(ArrayIteratorConst it);
+			void remove(const char* key);
+			void remove(const String& key);
+			void remove(IteratorConst it);
+			void remove(ArrayIteratorConst it);
 			
 			Iterator begin();
 			Iterator end();
@@ -225,7 +225,7 @@ typedef const JSON cJSON;
 			* @param  {Data} data
 			* @return {JSON}
 			*/
-			static JSON parse(cBuffer& data) throw(Error);
+			static JSON parse(const Buffer& data) throw(Error);
 			
 			/**
 			* 把JSON格式的字符串转换为Json对像

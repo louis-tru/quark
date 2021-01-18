@@ -34,7 +34,7 @@
 
 #include <ftr/util/util.h>
 #include <string>
-#include <map>
+#include <unordered_map>
 
 namespace ftr {
 
@@ -45,8 +45,8 @@ namespace ftr {
 	FX_EXPORT String http_cookie_get_all_string(const String& domain,
 																							const String& path = String(), bool ssl = 0);
 
-	FX_EXPORT std::map<String, String> http_cookie_get_all(const String& domain,
-																												const String& path = String(), bool ssl = 0);
+	FX_EXPORT std::unordered_map<String, String> http_cookie_get_all(const String& domain,
+																																					 const String& path = String(), bool ssl = 0);
 
 	FX_EXPORT void http_cookie_set_with_expression(const String& domain, const String& expression);
 

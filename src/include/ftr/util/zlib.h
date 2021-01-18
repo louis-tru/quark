@@ -50,22 +50,12 @@ namespace ftr {
 			/**
 			* @func compress
 			*/
-			static Buffer compress(const String& str, int level = -1);
-			
-			/**
-			* @func compress
-			*/
-			static Buffer compress(cBuffer& buff, int level = -1);
+			static Buffer compress(const WeakBuffer& buff, int level = -1);
 			
 			/**
 			* @func uncompress
 			*/
-			static Buffer uncompress(const String& str);
-			
-			/**
-			* @func uncompress
-			*/
-			static Buffer uncompress(cBuffer& buff);
+			static Buffer uncompress(const WeakBuffer& buff);
 			
 	};
 
@@ -333,9 +323,7 @@ namespace ftr {
 			/**
 			* @func write Writes a block of data to the new file
 			*/
-			bool write(const void* buffer, uint32_t size);
-			bool write(const String& str);
-			bool write(cBuffer& data);
+			bool write(const WeakBuffer& data);
 			
 			/**
 			* @func write
