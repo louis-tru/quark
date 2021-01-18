@@ -62,6 +62,7 @@ namespace ftr {
 	define_number(Int32, int32_t); define_number(Uint32, uint32_t);
 	define_number(Int64, int64_t); define_number(Uint64, uint64_t);
 	define_number(Float, float); define_number(Double, double);
+	define_number(Bool, bool);
 
 	#undef define_number
 }

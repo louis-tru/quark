@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class BoxShadow
@@ -110,5 +110,5 @@ class FX_EXPORT BoxShadow: public Div {
 	Shadow _shadow;
 };
 
-FX_END
+}
 #endif

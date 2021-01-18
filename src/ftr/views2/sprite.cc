@@ -34,7 +34,7 @@
 #include "app.h"
 #include "display-port.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Sprite, Inl) {
  public:
@@ -252,4 +252,4 @@ void Sprite::set_draw_visible() {
 	}
 }
 
-FX_END
+}

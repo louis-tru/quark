@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Root 这个类型的视图尺寸为显示端口的尺寸
@@ -73,5 +73,5 @@ class FX_EXPORT Root: public Div {
 	virtual void set_layout_content_offset();
 };
 
-FX_END
+}
 #endif

@@ -32,12 +32,14 @@
 #define __ftr__util__json__
 
 #include <ftr/util/handle.h>
+#include <ftr/util/str.h>
+#include <ftr/util/error.h>
 
 namespace ftr {
 
-class JSON;
+	class JSON;
 
-typedef const JSON cJSON;
+	typedef const JSON cJSON;
 
 	/**
 	* @class JSON
@@ -121,14 +123,8 @@ typedef const JSON cJSON;
 			//! Constructor for double value.
 			JSON(double d);
 			
-			//! Constructor for const char* value.
-			JSON(const char* str);
-			
 			//! Constructor for const String& value.
 			JSON(const String& str);
-			
-			//! Constructor for cData& value.
-			JSON(const Buffer& data);
 			
 		private:
 			//! Copy constructor is not permitted.

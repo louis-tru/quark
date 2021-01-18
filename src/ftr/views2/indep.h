@@ -33,7 +33,7 @@
 
 #include "ftr/div.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Indep
@@ -89,5 +89,5 @@ class FX_EXPORT Indep: public Div {
 };
 
 
-FX_END
+}
 #endif

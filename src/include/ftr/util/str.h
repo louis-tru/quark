@@ -129,6 +129,7 @@ namespace ftr {
 			* @func is_null() Is null data available?
 			*/
 			inline bool is_null() const { return _length == 0; }
+			inline bool is_empty() const { return _length == 0; }
 
 			inline uint32_t length() const { return _length; }
 			inline uint32_t capacity() const { return _capacity; }

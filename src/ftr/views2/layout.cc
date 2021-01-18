@@ -32,7 +32,7 @@
 #include "app.h"
 #include "pre-render.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @constructor
@@ -94,4 +94,4 @@ void Layout::set_parent(View* parent) throw(Error) {
 	}
 }
 
-FX_END
+}

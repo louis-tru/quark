@@ -166,7 +166,7 @@ namespace ftr {
 		}
 		uv_fs_t req;
 		_fp = uv_fs_open(uv_default_loop(), &req,
-											Path::fallback_c(_path),
+											Path::fallback(_path).val(),
 											inl__file_flag_mask(flag), FileHelper::default_mode, nullptr);
 		if ( _fp > 0 ) {
 			return 0;
@@ -216,7 +216,7 @@ namespace ftr {
 		typedef AsyncFile::Delegate Delegate;
 		virtual void trigger_async_file_open(AsyncFile* file) { }
 		virtual void trigger_async_file_close(AsyncFile* file) { }
-		virtual void trigger_async_file_error(AsyncFile* file, cError& error) { }
+		virtual void trigger_async_file_error(AsyncFile* file, const Error& error) { }
 		virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) { }
 		virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) { }
 
@@ -266,7 +266,7 @@ namespace ftr {
 			_opening = true;
 			auto req = new FileReq(this);
 			uv_fs_open(uv_loop(), req->req(),
-								 Path::fallback_c(_path),
+								 Path::fallback(_path).val(),
 								 inl__file_flag_mask(flag), FileHelper::default_mode, &Inl::fs_open_cb);
 		}
 		
@@ -286,7 +286,7 @@ namespace ftr {
 		void read(Buffer& buffer, int64_t offset, int mark) {
 			auto req = new FileStreamReq(this, 0, { buffer, mark });
 			uv_buf_t buf;
-			buf.base = req->data().buffer.value();
+			buf.base = *req->data().buffer;
 			buf.len = req->data().buffer.length();
 			uv_fs_read(uv_loop(), req->req(), _fp, &buf, 1, offset, &Inl::fs_read_cb);
 		}

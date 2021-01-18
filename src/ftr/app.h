@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
  public:
@@ -124,6 +124,6 @@ typedef GUIApplication::Inl AppInl;
 
 void safeExit(int rc);
 
-FX_END
+}
 
 #endif

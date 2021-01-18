@@ -37,7 +37,7 @@
 
 #include "ftr/util/string.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Android
@@ -82,7 +82,7 @@ class FX_EXPORT Android {
 	static uint64 used_memory();
 };
 
-FX_END
+}
 
 #endif
 #endif

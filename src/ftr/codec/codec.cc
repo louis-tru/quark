@@ -31,7 +31,7 @@
 #include "ftr/image-codec.h"
 #include "ftr/util/string.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 ImageCodec* tga_image_codec = nullptr;
 ImageCodec* jpeg_image_codec = nullptr;
@@ -193,4 +193,4 @@ ImageCodec* ImageCodec::shared(ImageFormat format) {
 	}
 }
 
-FX_END
+}

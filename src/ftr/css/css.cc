@@ -31,7 +31,7 @@
 #include "css.h"
 #include "view.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #include "css.cc.inl"
 
@@ -771,4 +771,4 @@ RootStyleSheets* RootStyleSheets::shared() {
 	return root_style_sheets;
 }
 
-FX_END
+}

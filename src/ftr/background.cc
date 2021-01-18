@@ -32,7 +32,7 @@
 #include "texture.h"
 #include "display-port.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Background, Inl) {
 #define _inl(self) static_cast<Background::Inl*>(static_cast<Background*>(self))
@@ -452,4 +452,4 @@ Background* BackgroundGradient::copy(Background* to) {
 	return target;
 }
 
-FX_END
+}

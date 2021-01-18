@@ -31,7 +31,7 @@
 #include "box-shadow-1.h"
 #include "draw.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 BoxShadow::BoxShadow(): _is_draw_shadow(false), _shadow() {
 	
@@ -93,4 +93,4 @@ void BoxShadow::set_shadow(Shadow value) {
 	mark(M_BOX_SHADOW);
 }
 
-FX_END
+}

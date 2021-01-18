@@ -40,7 +40,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Hybrid
@@ -99,5 +99,5 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	
 };
 
-FX_END
+}
 #endif

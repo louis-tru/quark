@@ -32,7 +32,7 @@
 #include "hybrid.h"
 #include "limit-indep.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
 public:
@@ -161,4 +161,4 @@ Vec2 Indep::layout_offset() {
 							 _offset_start.y() + _final_margin_top + _border_top_width);
 }
 
-FX_END
+}

@@ -34,7 +34,7 @@
 #include "ftr/util/util.h"
 #include "ftr/util/map.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 class View;
 
@@ -158,6 +158,6 @@ class FX_EXPORT PropertysAccessor: public Object {
 	Map<ViewType, Map<PropertyName, Accessor>> _property_func_table;
 };
 
-FX_END
+}
 
 #endif

@@ -33,7 +33,7 @@
 #include "root.h"
 #include "draw.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @destructor
@@ -176,4 +176,4 @@ Vec2 Root::layout_offset() {
 							_offset_start.y() + _final_margin_top + _border_top_width);
 }
 
-FX_END
+}

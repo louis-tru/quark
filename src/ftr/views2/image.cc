@@ -34,7 +34,7 @@
 #include "display-port.h"
 #include "errno.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 void _box_inl__solve_horizontal_size_with_full_width(Box* box, float parent);
 void _box_inl__solve_horizontal_size_with_explicit_width(Box* box, float parent);
@@ -440,4 +440,4 @@ void Image::set_draw_visible() {
 	_tex_level = _texture->get_texture_level_from_convex_quadrilateral(_final_vertex);
 }
 
-FX_END
+}

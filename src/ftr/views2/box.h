@@ -33,7 +33,7 @@
 
 #include "ftr/layout.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 class BasicScroll;
 class Background;
@@ -518,6 +518,6 @@ class FX_EXPORT Box: public Layout {
 	friend class BackgroundImage;
 };
 
-FX_END
+}
 
 #endif

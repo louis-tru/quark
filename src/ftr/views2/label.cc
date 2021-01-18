@@ -34,7 +34,7 @@
 #include "display-port.h"
 #include "text-rows.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 class Label::Inl: public Label {
 public:
@@ -321,4 +321,4 @@ void Label::set_parent(View* parent) throw(Error) {
 	}
 }
 
-FX_END
+}

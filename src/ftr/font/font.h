@@ -40,7 +40,7 @@
 #include "ftr/bezier.h"
 #include "ftr/draw.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef FontGlyph::TexureLevel FGTexureLevel;
 
@@ -184,5 +184,5 @@ public:
 	
 };
 
-FX_END
+}
 #endif

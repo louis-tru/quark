@@ -30,7 +30,7 @@
 
 #include "text-rows.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 TextRows::TextRows() {
 	reset();
@@ -98,4 +98,4 @@ void TextRows::set_width(float value) {
 	}
 }
 
-FX_END
+}

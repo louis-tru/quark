@@ -39,7 +39,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 class View;
 
@@ -101,6 +101,6 @@ inline PreRender* pre_render() {
 	return PreRender::_pre_render;
 }
 
-FX_END
+}
 #endif
 

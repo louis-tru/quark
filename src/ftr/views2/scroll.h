@@ -39,7 +39,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class BasicScroll
@@ -436,5 +436,5 @@ class FX_EXPORT Scroll: public Panel, public BasicScroll {
 	
 };
 
-FX_END
+}
 #endif

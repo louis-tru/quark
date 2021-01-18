@@ -32,7 +32,7 @@
 #include "ftr/util/fs.h"
 #include <bplus.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 #define _db _localstorage_db
 #define assert_r(c) ASSERT(c == BP_OK)
@@ -52,7 +52,7 @@ static void localstorage_close() {
 
 static void localstorage_open() {
 	if ( _localstorage_db == nullptr ) {
-		int r = bp_open(&_db, Path::fallback_c(get_db_filename()));
+		int r = bp_open(&_db, Path::fallback(get_db_filename()).val());
 		if ( r == BP_OK ) {
 			if (_has_initialize++ == 0)
 				atexit(localstorage_close);
@@ -107,4 +107,4 @@ void localstorage_transaction(cCb& cb) {
 	sync_callback(cb);
 }
 
-FX_END
+}

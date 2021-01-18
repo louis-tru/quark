@@ -32,7 +32,7 @@
 #include "ftr/util/json.h"
 #include "tinyxml2.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 using namespace tinyxml2;
 
@@ -319,4 +319,4 @@ const SimpleFontList& FontPool::system_font_family() {
 	return *system_font_family_list;
 }
 
-FX_END
+}

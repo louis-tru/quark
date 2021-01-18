@@ -34,7 +34,7 @@
 #include "ftr/text.h"
 #include "ftr/pre-render.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Input
@@ -171,6 +171,6 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	FX_DEFINE_INLINE_CLASS(Inl);
 };
 
-FX_END
+}
 
 #endif

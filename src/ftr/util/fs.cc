@@ -68,7 +68,7 @@ namespace ftr {
 			start -= 2;
 		}
 		
-		int index = s.last_index_of('/', start);
+		int index = s.last_index_of("/", start);
 		if (index != -1) {
 			if (basename) {
 				return s.substring(index + 1);
@@ -94,7 +94,7 @@ namespace ftr {
 
 	String Path::extname(const String& path) {
 		String s = split_path(path, true);
-		int index = s.last_index_of('.');
+		int index = s.last_index_of(".");
 		if (index != -1) {
 			return s.substr(index);
 		}
@@ -119,9 +119,9 @@ namespace ftr {
 	bool Path::chdir(const String& path) {
 		String str = format("%s", *path);
 	#if FX_WIN
-		return _chdir(*str.substr(8)) == 0;
+		return _chdir(str.substr(8).val()) == 0;
 	#else
-		return ::chdir(*str.substr(7)) == 0;
+		return ::chdir(str.substr(7).val()) == 0;
 	#endif
 	}
 

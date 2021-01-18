@@ -31,7 +31,7 @@
 #include "ftr/keyboard.h"
 #include "ftr/util/map.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class LinuxKeyboardAdapter
@@ -187,4 +187,4 @@ KeyboardAdapter* KeyboardAdapter::create() {
 	return new LinuxKeyboardAdapter();
 }
 
-FX_END
+}

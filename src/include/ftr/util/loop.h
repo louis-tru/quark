@@ -87,7 +87,7 @@ namespace ftr {
 			Mutex _mutex;
 			Condition _cond;
 			ID    _id;
-			String  _name;
+			SString  _name;
 			void* _data[256];
 			RunLoop* _loop;
 	};

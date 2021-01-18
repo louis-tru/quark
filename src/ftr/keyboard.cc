@@ -31,7 +31,7 @@
 #include "keyboard.h"
 #include "app-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @constructor 
@@ -267,4 +267,4 @@ bool KeyboardAdapter::transformation(uint keycode, bool unicode, bool down) {
 	return unicode;
 }
 
-FX_END
+}

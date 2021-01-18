@@ -38,7 +38,7 @@
 #include <android/native_activity.h>
 #include <android/native_window.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 class AndroidApplication;
 static AndroidApplication* application = nullptr;
@@ -638,4 +638,4 @@ extern "C" {
 	}
 }
 
-FX_END
+}

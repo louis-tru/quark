@@ -44,7 +44,7 @@
 #define GL_ETC1_RGB8_OES  0x8D64
 #define EGL_NO_NATIVE_WINDOW 0
 
-FX_NS(ftr)
+namespace ftr {
 
 #if !FX_ANDROID
 extern Vec2 __get_window_size();
@@ -497,4 +497,4 @@ void GLDrawProxy::initializ_gl_buffers() {
 	}
 }
 
-FX_END
+}

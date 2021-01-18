@@ -160,7 +160,7 @@ namespace ftr {
 				public:
 					virtual void trigger_async_file_open(AsyncFile* file) = 0;
 					virtual void trigger_async_file_close(AsyncFile* file) = 0;
-					virtual void trigger_async_file_error(AsyncFile* file, cError& error) = 0;
+					virtual void trigger_async_file_error(AsyncFile* file, const Error& error) = 0;
 					virtual void trigger_async_file_read(AsyncFile* file, Buffer buffer, int mark) = 0;
 					virtual void trigger_async_file_write(AsyncFile* file, Buffer buffer, int mark) = 0;
 			};

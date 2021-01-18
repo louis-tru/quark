@@ -32,7 +32,7 @@
 #include "ftr/util/handle.h"
 #include "ftr/util/android-jni.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef JNI::MethodInfo MethodInfo;
 typedef JNI::ScopeENV   ScopeENV;
@@ -295,4 +295,4 @@ PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate)
 	return NULL;
 }
 
-FX_END
+}

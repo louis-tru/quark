@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-FX_NS(ftr)
+namespace ftr {
 
 FontGlyphTextureLevel font_glyph_texture_levels_idx[513] = {
 	{ FontGlyph::LEVEL_0, 0, 10 }, // 0-10 LEVEL_0
@@ -546,4 +546,4 @@ FontGlyphTextureLevel font_glyph_texture_levels_idx[513] = {
 	{ FontGlyph::LEVEL_11, 256, 512 },
 };
 
-FX_END
+}

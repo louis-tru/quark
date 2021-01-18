@@ -30,7 +30,7 @@
 
 #include "limit-indep.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @constructor
@@ -61,4 +61,4 @@ void LimitIndep::set_max_height(Value value) {
 	set_vertical_active_mark();
 }
 
-FX_END
+}

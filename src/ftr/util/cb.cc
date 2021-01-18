@@ -111,15 +111,15 @@ namespace ftr {
 	static TaskList* tasks = new TaskList;
 
 	AsyncIOTask::AsyncIOTask(RunLoop* loop)
-	: _id(iid32()), _abort(false), _loop(loop) {
+	: _id(getId32()), _abort(false), _loop(loop) {
 		FX_CHECK(_loop);
 		ScopeLock scope(tasks->mutex);
-		tasks->values.set(_id, this);
+		tasks->values[_id] = this;
 	}
 
 	AsyncIOTask::~AsyncIOTask() {
 		ScopeLock scope(tasks->mutex);
-		tasks->values.del(_id);
+		tasks->values.erase(_id);
 	}
 
 	void AsyncIOTask::abort() {
@@ -133,15 +133,16 @@ namespace ftr {
 		if (id) {
 			ScopeLock scope(tasks->mutex);
 			auto i = tasks->values.find(id);
-			if (i.is_null()) return;
+			if (i == tasks->values.end())
+				return;
 			
-			i.value()->_loop->post(Cb([id](CbD& e) {
+			i->second->_loop->post(Cb([id](CbD& e) {
 				AsyncIOTask* task = nullptr;
 				{ //
 					ScopeLock scope(tasks->mutex);
 					auto i = tasks->values.find(id);
-					if (!i.is_null()) {
-						task = i.value();
+					if (i != tasks->values.end()) {
+						task = i->second;
 					}
 				}
 				if (task) {

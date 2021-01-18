@@ -39,7 +39,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 class TextureYUV;
 class PCMPlayer;
@@ -241,6 +241,6 @@ class FX_EXPORT Video: public Image,
 	FX_DEFINE_INLINE_CLASS(Inl);
 };
 
-FX_END
+}
 #endif
 

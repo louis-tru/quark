@@ -37,7 +37,7 @@
 #include "css.h"
 #include "panel.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #define is_mark_pre _prev_pre_mark
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
@@ -995,4 +995,4 @@ bool View::has_child(View* child) {
 	return false;
 }
 
-FX_END
+}

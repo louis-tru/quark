@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Limit
@@ -112,5 +112,5 @@ class FX_EXPORT Limit: public Div {
 	
 };
 
-FX_END
+}
 #endif

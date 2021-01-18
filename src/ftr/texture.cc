@@ -35,7 +35,7 @@
 #include "ftr/util/buffer.h"
 #include "display-port.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef PixelData::Format PixelFormat;
 
@@ -955,4 +955,4 @@ void TexturePool::clear(bool full) {
 	}
 }
 
-FX_END
+}

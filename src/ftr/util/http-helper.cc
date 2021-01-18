@@ -34,7 +34,7 @@
 #include <ftr/version.h>
 #include "uv.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 static String http_cache_path = String();
 static String http_user_agent = "Mozilla/5.0 ftr/" FTR_VERSION " (KHTML, like Gecko)";
@@ -412,4 +412,4 @@ void HttpHelper::clear_cookie() {
 	http_cookie_clear();
 }
 
-FX_END
+}

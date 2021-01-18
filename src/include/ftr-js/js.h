@@ -41,8 +41,8 @@
 
 // ------------- js common macro -------------
 
-#define JS_BEGIN         FX_NS(ftr) FX_NS(js)
-#define JS_END           FX_END FX_END
+#define JS_BEGIN         namespace ftr { FX_NS(js)
+#define JS_END           } }
 #define JS_WORKER(...)   auto worker = Worker::worker(__VA_ARGS__)
 #define JS_RETURN(rev)   return worker->result(args, (rev))
 #define JS_RETURN_NULL() return worker->result(args, worker->NewNull())

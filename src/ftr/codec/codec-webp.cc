@@ -31,7 +31,7 @@
 #include "ftr/image-codec.h"
 #include <webp/decode.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 Array<PixelData> WEBPImageCodec::decode(const Buffer& data) {
 	Array<PixelData> rv;
@@ -55,4 +55,4 @@ Buffer WEBPImageCodec::encode (const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+}

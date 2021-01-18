@@ -36,7 +36,7 @@
 # import <AppKit/AppKit.h>
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
 String Path::executable() {
 	static const String path( format([[[NSBundle mainBundle] executablePath] UTF8String]) );
@@ -76,4 +76,4 @@ String Path::resources(const String& child) {
 	return Path::format("%s/%s", *path, *child);
 }
 
-FX_END
+}

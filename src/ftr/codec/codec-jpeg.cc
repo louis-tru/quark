@@ -35,7 +35,7 @@ extern "C" {
 #include <jpeglib.h>
 }
 
-FX_NS(ftr)
+namespace ftr {
 
 struct JPEGClientData {
 	jmp_buf jmpbuf;
@@ -149,4 +149,4 @@ Buffer JPEGImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+}

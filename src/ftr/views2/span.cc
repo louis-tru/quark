@@ -32,7 +32,7 @@
 #include "text-node.h"
 #include "text-rows.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 extern void _view_inl__safe_delete_mark(View* view);
 
@@ -140,4 +140,4 @@ void Span::set_layout_three_times(bool horizontal, bool hybrid) {
 	}
 }
 
-FX_END
+}

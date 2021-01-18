@@ -41,7 +41,7 @@
 #include "background.h"
 #include "texture.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
  public:
@@ -1382,4 +1382,4 @@ void LimitIndep::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid
 	_inl(this)->set_offset_in_hybrid_(rows, limit, hybrid, 0);
 }
 
-FX_END
+}

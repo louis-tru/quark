@@ -32,12 +32,12 @@
 #include "ftr/util/http-cookie.h"
 #include "ftr/util/fs.h"
 #include "ftr/version.h"
-#include "ftr/util/string-builder.h"
 #include "ftr/util/net.h"
 #include <http_parser.h>
 #include <zlib.h>
+#include <list>
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef HttpClientRequest::Delegate HttpDelegate;
 
@@ -160,7 +160,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	
 	class ConnectPool;
 	class Connect;
-	typedef List<Connect*>::Iterator ConnectID;
+	typedef std::list<Connect*>::iterator ConnectID;
 
 	/**
 	 * @class HttpClientRequest::Inl::Connect
@@ -170,7 +170,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 	, public Reader, public AsyncFile::Delegate {
 	 public:
 		
-		typedef List<Connect*>::Iterator ID;
+		typedef std::list<Connect*>::iterator ID;
 		
 		Connect(const String& hostname, uint16_t  port, bool ssl, RunLoop* loop)
 		: _ssl(ssl)
@@ -1637,4 +1637,4 @@ String HttpClientRequest::http_response_version() const {
 	return _inl->_http_response_version;
 }
 
-FX_END
+}

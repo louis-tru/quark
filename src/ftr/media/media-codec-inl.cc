@@ -33,7 +33,7 @@
 #include "ftr/app.h"
 #include "ftr/errno.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #define CACHE_DATA_TIME_SECOND 10
 
@@ -791,4 +791,4 @@ AVStream* Inl::get_stream(const TrackInfo& track) {
 	return NULL;
 }
 
-FX_END
+}

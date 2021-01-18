@@ -32,7 +32,7 @@
 #include "ftr/util/map.h"
 #include <android/keycodes.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class AndroidKeyboardAdapter
@@ -188,4 +188,4 @@ KeyboardAdapter* KeyboardAdapter::create() {
 	return new AndroidKeyboardAdapter();
 }
 
-FX_END
+}

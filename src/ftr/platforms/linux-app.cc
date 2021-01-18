@@ -46,7 +46,7 @@
 #include <unistd.h>
 #include <alsa/asoundlib.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 class LinuxApplication;
 static LinuxApplication* application = nullptr;
@@ -811,7 +811,7 @@ Orientation DisplayPort::orientation() {
 void DisplayPort::set_orientation(Orientation orientation) {
 }
 
-FX_END
+}
 
 using namespace ftr;
 

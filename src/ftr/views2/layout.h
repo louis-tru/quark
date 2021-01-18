@@ -35,7 +35,7 @@
 #include "ftr/value.h"
 #include "ftr/text-font.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 class TextRows;
 class Hybrid;
@@ -116,6 +116,6 @@ class FX_EXPORT Layout: public View {
 	friend class Scroll;
 };
 
-FX_END
+}
 
 #endif

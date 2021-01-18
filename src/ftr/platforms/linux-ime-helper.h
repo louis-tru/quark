@@ -33,7 +33,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef AppInl::KeyboardOptions KeyboardOptions;
 
@@ -57,4 +57,4 @@ class LINUXIMEHelper {
 	Inl* _inl;
 };
 
-FX_END
+}

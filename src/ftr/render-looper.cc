@@ -31,7 +31,7 @@
 #include "app-inl.h"
 #include "ftr/util/loop.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 RenderLooper::RenderLooper(AppInl* host)
 : _host(host), _id(nullptr) {
@@ -86,4 +86,4 @@ void RenderLooper::stop() {
 	}));
 }
 
-FX_END
+}

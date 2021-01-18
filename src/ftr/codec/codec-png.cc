@@ -31,7 +31,7 @@
 #include "ftr/image-codec.h"
 #include <png.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 struct PngDataSource {
 	const Buffer* buff;
@@ -176,4 +176,4 @@ Buffer PNGImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+}

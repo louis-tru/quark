@@ -31,7 +31,7 @@
 #include "bezier.h"
 #include <math.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 // 德卡斯特里奥
 
@@ -204,4 +204,4 @@ const FixedCubicBezier EASE_IN(0.42, 0, 1, 1);
 const FixedCubicBezier EASE_OUT(0, 0, 0.58, 1);
 const FixedCubicBezier EASE_IN_OUT(0.42, 0, 0.58, 1);
 
-FX_END
+}

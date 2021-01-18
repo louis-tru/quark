@@ -39,7 +39,7 @@
 #import <UIKit/UIKit.h>
 #import <OpenGLES/EAGL.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 class FX_EXPORT GLDrawProxy {
  public:
@@ -59,7 +59,7 @@ class FX_EXPORT GLDrawProxy {
 	GLDraw*      _host;
 };
 
-FX_END
+}
 
 #endif
 #endif

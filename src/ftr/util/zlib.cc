@@ -137,7 +137,7 @@ namespace ftr {
 		ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
-		_gzfp = gzopen(Path::fallback_c(_path), inl__file_flag_str(flag));
+		_gzfp = gzopen(Path::fallback(_path).val(), inl__file_flag_str(flag));
 		if (_gzfp) {
 			return 0;
 		}
@@ -217,7 +217,7 @@ namespace ftr {
 		void add_dir_info_item(const String& pathname, FileType type) {
 			
 			String dirname = Path::dirname(pathname);
-			String compatible_path = _compatible_path + '/' + pathname;
+			String compatible_path = _compatible_path + "/" + pathname;
 			
 			if ( dirname.is_null() ) {
 				_dir_info[dirname].push_back(Dirent(pathname, compatible_path, type));
@@ -242,7 +242,7 @@ namespace ftr {
 		, _is_open(false)
 	{
 		if ( Path::is_local_zip(_path) ) { // zip:///
-			_compatible_path = _path + '?';
+			_compatible_path = _path + "?";
 		} else if ( Path::is_local_file(_path) ) { // file:///
 			_compatible_path = String::format("zip:///%s?", *_path.substr(8));
 		}
@@ -262,7 +262,7 @@ namespace ftr {
 			return false;
 		}
 		
-		unzFile unzp = unzOpen(Path::fallback_c(_path));
+		unzFile unzp = unzOpen(Path::fallback(_path).val());
 		if ( !unzp ) {
 			FX_ERR("Cannot open file ZipReader, %s", *_path);
 			return false;
@@ -436,7 +436,7 @@ namespace ftr {
 		}
 		
 		_open_mode = mode;
-		_zipp = zipOpen(Path::fallback_c(_path), _open_mode);
+		_zipp = zipOpen(Path::fallback(_path).val(), _open_mode);
 		
 		if ( !_zipp ) {
 			FX_ERR("Cannot open file ZipWriter, %s", *_path);

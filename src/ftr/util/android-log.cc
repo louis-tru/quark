@@ -32,7 +32,7 @@
 #include "./android-log.h"
 #include "ftr/util/string.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 void AndroidConsole::log(const String& str) {
 	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
@@ -53,4 +53,4 @@ void AndroidConsole::clear() {
 	// noop
 }
 
-FX_END
+}

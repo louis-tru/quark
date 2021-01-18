@@ -38,7 +38,7 @@
 #include "ftr/util/loop.h"
 #include "ftr/errno.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef MultimediaSource::TrackInfo TrackInfo;
 typedef PreRender::Task::ID TaskID;
@@ -770,4 +770,4 @@ void Video::remove() {
 	Image::remove();
 }
 
-FX_END
+}

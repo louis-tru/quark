@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 
 /**
@@ -81,5 +81,5 @@ class FX_EXPORT TextRows {
 	bool        _is_clip;    // 修剪结束
 };
 
-FX_END
+}
 #endif

@@ -38,7 +38,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 using value::Repeat;
 
@@ -259,6 +259,6 @@ class FX_EXPORT Sprite: public View {
 	FX_DEFINE_INLINE_CLASS(Inl);
 };
 
-FX_END
+}
 #endif
 

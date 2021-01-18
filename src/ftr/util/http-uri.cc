@@ -38,7 +38,7 @@
 #include <zlib.h>
 #include <uv.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 // ----------------------------- URL -----------------------------
 
@@ -287,4 +287,4 @@ String URI::decode(const String& url) {
 	return Buffer(dec, uint32_t(size));
 }
 
-FX_END
+}

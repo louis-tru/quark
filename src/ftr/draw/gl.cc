@@ -39,7 +39,7 @@
 #define nx_use_depth_test 0
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
 Array<GLShader*>* GLDraw::_shaders = nullptr;
 
@@ -492,4 +492,4 @@ void GLDraw::register_gl_shader(GLShader* shader) {
 	shaders.push(shader);
 }
 
-FX_END
+}

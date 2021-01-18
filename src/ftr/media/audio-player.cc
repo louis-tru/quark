@@ -32,7 +32,7 @@
 #include "app.h"
 #include "errno.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @constructor
@@ -599,4 +599,4 @@ void AudioPlayer::select_track(uint index) {
 	}
 }
 
-FX_END
+}

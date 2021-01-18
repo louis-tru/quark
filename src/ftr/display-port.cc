@@ -37,7 +37,7 @@
 #include "ftr/util/loop-1.h"
 #include "sys.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 
 FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
@@ -285,5 +285,5 @@ void DisplayPort::next_frame(cCb& cb) {
 	_next_frame.push(cb);
 }
 
-FX_END
+}
 

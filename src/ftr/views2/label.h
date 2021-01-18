@@ -40,7 +40,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Label
@@ -125,5 +125,5 @@ class FX_EXPORT Label: public View, public TextFont {
 	FX_DEFINE_INLINE_CLASS(Inl);
 };
 
-FX_END
+}
 #endif

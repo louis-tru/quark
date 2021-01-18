@@ -35,7 +35,7 @@
 #include "display-port.h"
 #include "button.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 static cCurve ease_in_out(0.3, 0.3, 0.3, 1);
 static cCurve ease_out(0, 0, 0.58, 1);
@@ -1087,4 +1087,4 @@ void Scroll::set_layout_content_offset() {
 	}
 }
 
-FX_END
+}

@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 #define DEFAULT_PCM_PERIOD_SIZE 4096
 #define DEFAULT_PCM_PERIODS 3
@@ -216,4 +216,4 @@ PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 	return NULL;
 }
 
-FX_END
+}

@@ -34,7 +34,7 @@
 #include "button.h"
 #include "css.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #define FX_FUN(NAME, STR, CATEGORY, FLAG) \
 const GUIEventName GUI_EVENT_##NAME(#STR, GUI_EVENT_CATEGORY_##CATEGORY, FLAG);
@@ -961,4 +961,4 @@ void GUIEventDispatch::make_text_input(ITextInput* input) {
 	}
 }
 
-FX_END
+}

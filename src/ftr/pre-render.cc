@@ -33,7 +33,7 @@
 #include "div.h"
 #include "css.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 PreRender* PreRender::_pre_render(NULL);
 
@@ -278,4 +278,4 @@ void PreRender::Task::unregister_task() {
 	}
 }
 
-FX_END
+}

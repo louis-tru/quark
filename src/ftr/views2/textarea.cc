@@ -32,7 +32,7 @@
 #include "display-port.h"
 #include "app-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 Textarea::Textarea(): Input(), BasicScroll(this) {
 	
@@ -121,4 +121,4 @@ void Textarea::set_draw_visible() {
 		compute_text_visible_draw(_final_vertex, _data, 0, _final_width, scroll_y());
 }
 
-FX_END
+}

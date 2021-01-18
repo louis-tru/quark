@@ -34,7 +34,9 @@
 #include <ftr/util/str.h>
 #include <ftr/util/errno.h>
 
-#if FX_EXCEPTIONS_SUPPORT
+#if !FX_EXCEPTIONS_SUPPORT
+	#error Exceptions must be turned on
+#endif
 
 #define FX_THROW(code, ...) throw ftr::Error(code, __VA_ARGS__)
 #define FX_CHECK(cond, ...) if(!(cond)) throw ftr::Error(__VA_ARGS__)
@@ -51,35 +53,18 @@ namespace ftr {
 	class FX_EXPORT Error: public Object {
 		public:
 			Error(const Error& err);
-			Error(int errno, const char* msg, ...);
-			Error(int errno = ERR_UNKNOWN_ERROR, const String& msg = "Unknown exception");
+			Error(int code, const char* msg, ...);
+			Error(int code = ERR_UNKNOWN_ERROR, const String& msg = "Unknown exception");
 			virtual ~Error();
 			Error& operator=(const Error& e);
-			virtual String message() const;
-			virtual int errno() const;
-			inline int code() const { return errno(); }
+			String message() const throw();
+			int code() const throw();
 		private:
-			int     _errno;
+			int     _code;
 			SString _message;
 	};
 
 	typedef const Error cError;
 }
-
-#else
-
-#error Exceptions must be turned on
-
-#define FX_THROW(...) ftr::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define FX_CHECK(cond, ...) if(!(cond)) ftr::fatal(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define FX_IGNORE_ERR(block) block ((void) 0)
-
-#endif
-
-#ifdef CHECK
-# undef CHECK
-#endif
-
-#define CHECK FX_CHECK
 
 #endif

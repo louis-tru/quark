@@ -32,7 +32,7 @@
 #include <math.h>
 #include "mathe.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 float Vec2::distance(Vec2 point) const {
 	return sqrtf( powf(x() - point.x(), 2) + powf(y() - point.y(), 2) );
@@ -807,4 +807,4 @@ Mat4 Mat4::ortho(float left, float right, float top, float bottom, float near, f
 	return matrix;
 }
 
-FX_END
+}

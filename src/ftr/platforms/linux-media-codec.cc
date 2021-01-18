@@ -30,7 +30,7 @@
 
 #include "ftr/media-codec-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class LinuxHardwareMediaCodec
@@ -61,4 +61,4 @@ MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
 	return nullptr;
 }
 
-FX_END
+}

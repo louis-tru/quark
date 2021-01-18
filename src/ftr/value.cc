@@ -31,7 +31,7 @@
 #include "value.h"
 #include "font.h"
 
-FX_NS(ftr)
+namespace ftr {
 FX_NS(value)
 
 bool Shadow::operator==(const Shadow& value) const {
@@ -60,5 +60,5 @@ const Array<String>& TextFamily::names() const {
 	return value->names();
 }
 
-FX_END
-FX_END
+}
+}

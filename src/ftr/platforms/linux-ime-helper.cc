@@ -35,7 +35,7 @@
 #include <X11/keysym.h>
 #include <locale.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 extern void __dispatch_x11_async(cCb& cb); // sync to x11 main message loop
 
@@ -640,4 +640,4 @@ void LINUXIMEHelper::focus_out() {
 	_inl->focus_out();
 }
 
-FX_END
+}

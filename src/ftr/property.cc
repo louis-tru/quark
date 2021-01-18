@@ -43,7 +43,7 @@
 #include "sprite.h"
 #include "box-shadow-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #define set_func(view, cls, Name, func) view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
@@ -191,4 +191,4 @@ bool PropertysAccessor::has_accessor(int view_type, PropertyName name) {
 	return _property_func_table[view_type].has(name);
 }
 
-FX_END
+}

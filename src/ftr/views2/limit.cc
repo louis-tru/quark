@@ -31,7 +31,7 @@
 #include "limit.h"
 #include "limit-indep.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 void _box_inl__solve_horizontal_size_with_auto_width(Box* box, float parent);
 void _box_inl__solve_horizontal_size_with_full_width(Box* box, float parent);
@@ -555,4 +555,4 @@ void Limit::set_layout_three_times(bool horizontal, bool hybrid) {
 	// NOOP
 }
 
-FX_END
+}

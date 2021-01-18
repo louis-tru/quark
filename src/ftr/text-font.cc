@@ -35,7 +35,7 @@
 #include "text-rows.h"
 #include "font/font-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #define equal(attr) if (value.type != attr.type || value.value != attr.value)
 
@@ -912,4 +912,4 @@ void TextLayout::solve_text_layout_mark() {
 	view()->mark_value &= (~View::M_TEXT_FONT); // 删除这些标记
 }
 
-FX_END
+}

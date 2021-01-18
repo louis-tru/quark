@@ -34,7 +34,7 @@
 #include "ftr/input.h"
 #include "ftr/scroll.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Textarea
@@ -67,6 +67,6 @@ class FX_EXPORT Textarea: public Input, public BasicScroll {
 	virtual void set_draw_visible();
 };
 
-FX_END
+}
 
 #endif

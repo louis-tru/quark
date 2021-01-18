@@ -31,7 +31,7 @@
 #include "ftr/sys.h"
 #include "android/android.h"
 
-FX_NS(ftr)
+namespace ftr {
 FX_NS(os)
 
 String version() {
@@ -74,4 +74,4 @@ uint64_t available_memory() {
 	return Android::available_memory();
 }
 
-FX_END FX_END
+} }

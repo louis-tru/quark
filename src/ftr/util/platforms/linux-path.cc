@@ -34,7 +34,7 @@
 #include <sys/utsname.h>
 #include "ftr/util/fs.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 String Path::executable() {
 	static const String path([]() -> String { 
@@ -82,5 +82,5 @@ String Path::resources(const String& child) {
 	return Path::format("%s/%s", *resourcesPath, *child);
 }
 
-FX_END
+}
 

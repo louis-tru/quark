@@ -39,7 +39,7 @@
 #define USE_ANDROID_OPENSLES_PCM_PLAYER 0
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @func get_channel_mask
@@ -370,4 +370,4 @@ PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 #endif 
 }
 
-FX_END
+}

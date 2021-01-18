@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Text
@@ -108,5 +108,5 @@ class FX_EXPORT Text: public Hybrid {
 	friend class Hybrid;
 };
 
-FX_END
+}
 #endif

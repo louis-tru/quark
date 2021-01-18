@@ -38,7 +38,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class LimitIndep
@@ -113,5 +113,5 @@ class FX_EXPORT LimitIndep: public Indep {
 	
 };
 
-FX_END
+}
 #endif

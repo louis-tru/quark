@@ -37,7 +37,7 @@
 
 static JavaVM* javavm = nullptr;
 
-FX_NS(ftr)
+namespace ftr {
 
 // ------------------- JNI -------------------
 
@@ -148,7 +148,7 @@ String JNI::jstring_to_string(jstring jstr, JNIEnv* env) {
 	}
 }
 
-FX_END
+}
 
 extern "C" 
 {

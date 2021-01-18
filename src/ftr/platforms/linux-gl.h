@@ -40,7 +40,7 @@
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 class GLDrawProxy {
  public:
@@ -69,7 +69,7 @@ class GLDrawProxy {
 	GLDraw* _host;
 };
 
-FX_END
+}
 
 #endif
 #endif

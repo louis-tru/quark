@@ -35,7 +35,7 @@
 #include "ftr/util/buffer.h"
 #include <unistd.h>
 
-FX_NS(ftr)
+namespace ftr {
 FX_NS(os)
 
 static struct utsname* utsn = NULL;
@@ -131,4 +131,4 @@ uint64_t available_memory() {
 	return get_memory_info().MemAvailable;
 }
 
-FX_END FX_END
+} }

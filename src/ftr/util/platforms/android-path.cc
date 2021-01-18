@@ -35,7 +35,7 @@
 
 using namespace ftr;
 
-FX_NS(ftr)
+namespace ftr {
 
 String Path::executable() {
 	static const String path([]() -> String { 
@@ -73,5 +73,5 @@ String Path::resources(const String& child) {
 	return Path::format("%s/%s", *path, *child);
 }
 
-FX_END
+}
 

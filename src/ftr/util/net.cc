@@ -36,7 +36,7 @@
 #include "ftr/util/http.h"
 #include "uv.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef Socket::Delegate Delegate;
 
@@ -447,7 +447,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 			close2();
 		} else {
 			reset_timeout();
-			WeakBuffer buff(buffer, nread);
+			WeakBuffer buff = WeakBuffer::from(buffer, nread);
 			_delegate->trigger_socket_data(_host, buff);
 		}
 	}
@@ -467,7 +467,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	virtual void write(Buffer& buffer, int mark) {
 		auto req = new SocketWriteReq(this, 0, { buffer, mark });
 		uv_buf_t buf;
-		buf.base = req->data().raw_buffer.value();
+		buf.base = *req->data().raw_buffer;
 		buf.len = req->data().raw_buffer.length();
 		int r = uv_write(req->req(), (uv_stream_t*)_uv_tcp, &buf, 1, &write_cb);
 		if ( report_uv_err(r) ) {
@@ -515,7 +515,7 @@ class SSL_INL: public Socket::Inl {
 		String ssl_cacert_file_path = Path::temp(".cacert.pem");
 		FileHelper::write_file_sync(ssl_cacert_file_path, ca_content);
 		
-		const char* ca = Path::fallback_c(*ssl_cacert_file_path);
+		const char* ca = Path::fallback(*ssl_cacert_file_path).val();
 
 		int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 		if (!r) {
@@ -530,7 +530,7 @@ class SSL_INL: public Socket::Inl {
 	
 	static void set_ssl_cacert_file(const String& path) {
 		try {
-			set_ssl_cacert(FileHelper::read_file_sync(path).collapse_string());
+			set_ssl_cacert(FileHelper::read_file_sync(path));
 		} catch(cError& err) {
 			FX_ERR("set_ssl_cacert() fail, %s", *err.message());
 		}
@@ -693,7 +693,7 @@ class SSL_INL: public Socket::Inl {
 			
 			auto req = new SocketWriteReq(self, 0, { buffer });
 			uv_buf_t buf;
-			buf.base = req->data().raw_buffer.value();
+			buf.base = *req->data().raw_buffer;
 			buf.len = req->data().raw_buffer.length();
 			
 			r = uv_write(req->req(), (uv_stream_t*)self->_uv_tcp, &buf, 1, &ssl_handshake_write_cb);
@@ -718,7 +718,7 @@ class SSL_INL: public Socket::Inl {
 				ASSERT( req->data().buffers_count < 2 );
 				
 				uv_buf_t buf;
-				buf.base = buffer.value();
+				buf.base = *buffer;
 				buf.len = inl;
 				
 				req->data().buffers[req->data().buffers_count] = buffer;
@@ -735,7 +735,7 @@ class SSL_INL: public Socket::Inl {
 				
 				auto req = new SocketWriteReq(self, 0, { buffer });
 				uv_buf_t buf;
-				buf.base = req->data().raw_buffer.value();
+				buf.base = *req->data().raw_buffer;
 				buf.len = req->data().raw_buffer.length();
 				
 				r = uv_write(req->req(), (uv_stream_t*)self->_uv_tcp, &buf, 1, &ssl_other_write_cb);
@@ -999,4 +999,4 @@ void SSLSocket::disable_ssl_verify(bool disable) {
 	static_cast<SSL_INL*>(_inl)->disable_ssl_verify(disable);
 }
 
-FX_END
+}

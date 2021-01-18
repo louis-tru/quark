@@ -32,7 +32,7 @@
 #include "textarea.h"
 #include "app-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
  public:
@@ -985,4 +985,4 @@ void Input::refresh_cursor_screen_position() {
 	}
 }
 
-FX_END
+}

@@ -30,7 +30,7 @@
 
 #include "media-codec-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 static MediaCodec::Delegate default_media_decoder_delegate;
 
@@ -310,4 +310,4 @@ MediaCodec::OutputBuffer::OutputBuffer(const OutputBuffer& buffer) {
 	memcpy(this, &buffer, sizeof(OutputBuffer));
 }
 
-FX_END
+}

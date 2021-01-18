@@ -36,7 +36,7 @@
 #include "app.h"
 #include "display-port.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
 
@@ -272,4 +272,4 @@ void TextNode::set_draw_visible() {
 														0, _offset_end.x() - _offset_start.x(), _offset_start.y());
 }
 
-FX_END
+}

@@ -33,7 +33,7 @@
 #include "ftr/app.h"
 #include "ftr/errno.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(View, ActionInl) {
  public:
@@ -1212,4 +1212,4 @@ ActionCenter* ActionCenter::shared() {
 	return action_center_shared;
 }
 
-FX_END
+}

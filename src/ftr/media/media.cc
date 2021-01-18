@@ -31,7 +31,7 @@
 #include "media.h"
 #include <uv.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 module_info_t* module_audio_player = nullptr;
 module_info_t* module_video = nullptr;
@@ -60,4 +60,4 @@ int initialize_media() {
 	return 0;
 }
 
-FX_END
+}

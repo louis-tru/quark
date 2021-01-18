@@ -33,7 +33,7 @@
 #include "texture.h"
 #include "display-port.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 static char empty_[4] = { 0, 0, 0, 0 };
 static cPixelData empty_pixel_data(WeakBuffer(empty_, 4), 1, 1, PixelData::RGBA8888);
@@ -136,4 +136,4 @@ bool Draw::adjust_texture_memory(uint64 will_alloc_size) {
 	return false;
 }
 
-FX_END
+}

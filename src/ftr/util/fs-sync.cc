@@ -31,6 +31,7 @@
 #include "ftr/util/error.h"
 #include "ftr/util/fs.h"
 #include <uv.h>
+#include <vector>
 
 #if FX_WIN
 #include <io.h>
@@ -39,7 +40,7 @@
 #include <unistd.h>
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
 extern void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat);
 extern int inl__file_flag_mask(int flag);
@@ -51,9 +52,8 @@ static void uv_error(int err, const char* msg = nullptr) throw(Error) {
 							 uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
 }
 
-static bool each_sync(Array<Dirent>& ls, cCb& cb, bool internal) throw(Error) {
-	for ( auto& i : ls ) {
-		Dirent& dirent = i.value();
+static bool each_sync(std::vector<Dirent>& ls, cCb& cb, bool internal) throw(Error) {
+	for ( auto& dirent : ls ) {
 		if ( !internal ) { // 外部优先
 			if ( !sync_callback(cb, nullptr, &dirent) ) { // 停止遍历
 				return false;
@@ -547,4 +547,4 @@ int FileHelper::write_sync(int fd, const void* buffer, int64_t size, int64_t off
 	return r;
 }
 
-FX_END
+}

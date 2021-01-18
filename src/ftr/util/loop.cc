@@ -29,29 +29,32 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr/util/loop.h"
-#include "ftr/util/loop-1.h"
+#include "loop.h"
 #if FX_ANDROID
 # include "ftr/util/android-jni.h"
 #endif
 #include <uv.h>
 #include <pthread.h>
+#include <vector>
+#include <list>
+#include <unordered_map>
 // #include "depe/libuv/src/queue.h" // QUEUE_EMPTY
 
 #ifndef FX_ATEXIT_WAIT_TIMEOUT
 # define FX_ATEXIT_WAIT_TIMEOUT 1e6
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
-template<> uint32_t Compare<ThreadID>::hash(const ThreadID& key) {
-	ThreadID* p = const_cast<ThreadID*>(&key);
-	size_t* t = reinterpret_cast<size_t*>(p);
-	return (*t) % Uint::max;
-}
-template<> bool Compare<ThreadID>::equals(
-	const ThreadID& a, const ThreadID& b, uint32_t ha, uint32_t hb) {
-	return a == b;
-}
+//template<> uint32_t Compare<ThreadID>::hash(const ThreadID& key) {
+//	ThreadID* p = const_cast<ThreadID*>(&key);
+//	size_t* t = reinterpret_cast<size_t*>(p);
+//	return (*t) % Uint::max;
+//}
+//template<> bool Compare<ThreadID>::equals(
+//	const ThreadID& a, const ThreadID& b, uint32_t ha, uint32_t hb) {
+//	return a == b;
+//}
 
 // ----------------------------------------------------------
 
@@ -62,8 +65,8 @@ struct ListenSignal {
 };
 
 static Mutex* threads_mutex;
-static Map<ThreadID, Thread*>* threads = nullptr;
-static List<ListenSignal*>* threads_end_listens = nullptr;
+static std::unordered_map<ThreadID, Thread*>* threads = nullptr;
+static std::list<ListenSignal*>* threads_end_listens = nullptr;
 static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
 static pthread_key_t specific_key;
@@ -87,9 +90,9 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 	static void thread_initialize() {
-		threads = new Map<ID, Thread*>();
+		threads = new std::unordered_map<ID, Thread*>();
 		threads_mutex = new Mutex();
-		threads_end_listens = new List<ListenSignal*>();
+		threads_end_listens = new std::list<ListenSignal*>();
 		on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
 		int err = pthread_key_create(&specific_key, thread_destructor);
 		ASSERT(err == 0);
@@ -128,14 +131,13 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			ScopeLock scope(*threads_mutex);
 			DLOG("Thread end ..., %s", *thread->name());
 			for (auto& i : *threads_end_listens) {
-				ListenSignal* s = i.value();
-				if (s->thread == thread) {
-					ScopeLock scope(s->mutex);
-					s->cond.notify_one();
+				if (i->thread == thread) {
+					ScopeLock scope(i->mutex);
+					i->cond.notify_one();
 				}
 			}
 			DLOG("Thread end  ok, %s", *thread->name());
-			threads->del(thread->id());
+			threads->erase(thread->id());
 		}
 	}
 
@@ -151,7 +153,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			thread->_abort = false;
 			thread->_loop = nullptr;
 			memset(thread->_data, 0, sizeof(void*[256]));
-			threads->set(thread->_id, thread);
+			(*threads)[thread->_id] = thread;
 			t.detach();
 			return thread->_id;
 		}
@@ -169,20 +171,20 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 
 	static void before_exit() {
 		if (!is_process_exit++) { // exit
-			Array<ID> threads_id;
+			std::vector<ID> threads_id;
 			{
 				ScopeLock scope(*threads_mutex);
-				DLOG("threads count, %d", threads->length());
+				DLOG("threads count, %d", threads->size());
 				for ( auto& i : *threads ) {
-					DLOG("atexit_exec,name, %p, %s", i.value()->id(), *i.value()->name());
-					_inl_t(i.value())->awaken(true); // awaken sleep status and abort
-					threads_id.push(i.value()->id());
+					DLOG("atexit_exec,name, %p, %s", i.second->id(), *i.second->name());
+					_inl_t(i.second)->awaken(true); // awaken sleep status and abort
+					threads_id.push_back(i.second->id());
 				}
 			}
 			for ( auto& i: threads_id ) {
 				// 在这里等待这个线程的结束,这个时间默认为1秒钟
-				DLOG("atexit_exec,join, %p", i.value());
-				join(i.value(), FX_ATEXIT_WAIT_TIMEOUT); // wait 1s
+				DLOG("atexit_exec,join, %p", i);
+				join(i, FX_ATEXIT_WAIT_TIMEOUT); // wait 1s
 			}
 		}
 	}
@@ -197,7 +199,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			}
 
 			DLOG("Inl::exit(), 0");
-			rc = Thread::FX_TRIGGER(ProcessSafeExit, Event<>(Int(rc), std::move(rc)));
+			rc = Thread::FX_TRIGGER(ProcessSafeExit, Event<>(Int32(rc), std::move(rc)));
 			DLOG("Inl::exit(), 1");
 
 			Release(keep); keep = nullptr;
@@ -231,13 +233,13 @@ void Thread::join(ID id, int64_t timeoutUs) {
 	}
 	Lock lock(*threads_mutex);
 	auto i = threads->find(id);
-	if ( !i.is_null() ) {
-		ListenSignal signal = { i.value() };
-		auto it = threads_end_listens->push(&signal);
+	if ( i != threads->end() ) {
+		ListenSignal signal = { i->second };
+		auto it = threads_end_listens->insert(threads_end_listens->end(), &signal);//(&signal);
 		{ //
 			Lock l(signal.mutex);
 			lock.unlock();
-			String name = i.value()->name();
+			String name = i->second->name();
 			DLOG("Thread::join, ..., %p, %s", id, *name);
 			if (timeoutUs > 0) {
 				signal.cond.wait_for(l, std::chrono::microseconds(timeoutUs)); // wait
@@ -247,7 +249,7 @@ void Thread::join(ID id, int64_t timeoutUs) {
 			DLOG("Thread::join, end, %p, %s", id, *name);
 		}
 		lock.lock();
-		threads_end_listens->del(it);
+		threads_end_listens->erase(it);
 	}
 }
 
@@ -285,8 +287,8 @@ void Thread::sleep(int64_t timeoutUs) {
 void Thread::awaken(ID id) {
 	ScopeLock lock(*threads_mutex);
 	auto i = threads->find(id);
-	if ( !i.is_null() ) {
-		_inl_t(i.value())->awaken(); // awaken sleep status
+	if ( i != threads->end() ) {
+		_inl_t(i->second)->awaken(); // awaken sleep status
 	}
 }
 
@@ -1059,5 +1061,5 @@ void ParallelWorking::cancel(uint32_t id) {
 	}
 }
 
-FX_END
+}
 

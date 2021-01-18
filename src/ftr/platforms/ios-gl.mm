@@ -34,7 +34,7 @@
 #import "ftr/sys.h"
 #import <OpenGLES/ES2/glext.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class MyGLDraw
@@ -180,4 +180,4 @@ bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
 	return false;
 }
 
-FX_END
+}

@@ -39,7 +39,7 @@ extern "C" {
 #include "ftr/media-codec.h"
 #include "ftr/util/loop-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef MultimediaSource::BitRateInfo BitRateInfo;
 typedef MultimediaSource::Extractor   Extractor;
@@ -156,5 +156,5 @@ class MultimediaSource::Inl: public ParallelWorking {
 	bool                        _disable_wait_buffer;
 };
 
-FX_END
+}
 #endif

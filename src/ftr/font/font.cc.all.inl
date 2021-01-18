@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @get font {Font*}
@@ -762,4 +762,4 @@ Font* FontFamily::font(TextStyleEnum style) {
 	return font;
 }
 
-FX_END
+}

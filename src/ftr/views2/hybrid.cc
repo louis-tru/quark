@@ -33,7 +33,7 @@
 #include "text-node.h"
 #include "ftr/util/codec.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 extern void _view_inl__safe_delete_mark(View* v);
 extern void _box_inl__solve_final_horizontal_size_with_full_width(Box* box, float parent);
@@ -189,4 +189,4 @@ void Hybrid::set_layout_content_offset_after() {
 }
 
 #undef loop
-FX_END
+}

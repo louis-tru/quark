@@ -32,7 +32,7 @@
 #include "audio-player.h"
 #include "video.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 FX_INIT_BLOCK(media_init) {
 
@@ -52,4 +52,4 @@ FX_INIT_BLOCK(media_init) {
 	module_video = &video;
 }
 
-FX_END
+}

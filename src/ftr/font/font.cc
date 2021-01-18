@@ -46,7 +46,7 @@
 #define FX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
 static String THIN_("thin");
 static String ULTRALIGHT_("ultralight"); static String BOOK_("book");
@@ -796,6 +796,6 @@ cFFID FontPool::get_font_familys_id(cString fonts) {
 	}
 }
 
-FX_END
+}
 
 #include "font.cc.init.inl"

@@ -33,7 +33,7 @@
 #include "ftr/sys.h"
 #include "native-glsl.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef PixelData::Format PixelFormat;
 
@@ -347,4 +347,4 @@ void GLDraw::use_texture(uint id, uint slot) {
 	glBindTexture(GL_TEXTURE_2D, id);
 }
 
-FX_END
+}

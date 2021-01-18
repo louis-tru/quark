@@ -32,7 +32,7 @@
 #include "ftr/font/font-1.h"
 #include "ftr/display-port.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 #if DEBUG
 void test__TESS_CONNECTED_POLYGONS() {
@@ -250,4 +250,4 @@ bool GLDraw::set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level
 	return true;
 }
 
-FX_END
+}

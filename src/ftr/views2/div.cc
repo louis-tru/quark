@@ -31,7 +31,7 @@
 #include "div.h"
 #include "hybrid.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 extern void _view_inl__safe_delete_mark(View* view);
 extern void _box_inl__solve_final_horizontal_size_with_full_width(Box* box, float parent);
@@ -196,4 +196,4 @@ void Div::set_layout_three_times(bool horizontal, bool hybrid) {
 	}
 }
 
-FX_END
+}

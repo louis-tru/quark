@@ -31,7 +31,7 @@
 #import "ftr/keyboard.h"
 #import "ftr/util/map.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class AppleKeyboardAdapter
@@ -187,4 +187,4 @@ KeyboardAdapter* KeyboardAdapter::create() {
 	return new AppleKeyboardAdapter();
 }
 
-FX_END
+}

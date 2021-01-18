@@ -37,7 +37,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class TextNode
@@ -110,5 +110,5 @@ class FX_EXPORT TextNode: public Span {
 	FX_DEFINE_INLINE_CLASS(Inl);
 };
 
-FX_END
+}
 #endif

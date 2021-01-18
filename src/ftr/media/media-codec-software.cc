@@ -30,7 +30,7 @@
 
 #include "media-codec-1.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class SoftwareMediaCodec
@@ -430,4 +430,4 @@ MediaCodec* MediaCodec::software(MediaType type, MultimediaSource* source) {
 	return rv;
 }
 
-FX_END
+}

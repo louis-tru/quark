@@ -33,7 +33,7 @@
 #import "ftr/util/loop.h"
 #import <AudioToolbox/AudioToolbox.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 #define QUEUE_BUFFER_COUNT 3
 #define WAIT_WRITE_BUFFER_COUNT 3
@@ -300,4 +300,4 @@ PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
 	return NULL;
 }
 
-FX_END
+}

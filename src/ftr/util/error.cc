@@ -32,9 +32,6 @@
 #include "ftr/util/util.h"
 //#include <algorithm>
 
-#if FX_EXCEPTIONS_SUPPORT
-#include <exception>
-
 namespace ftr {
 
 	namespace internal {
@@ -47,11 +44,11 @@ namespace ftr {
 		 std::exception _ex;
 	}
 
-	Error::Error(int code, const char* msg, ...): _errno(code) {
+	Error::Error(int code, const char* msg, ...): _code(code) {
 		va_list arg;
 		va_start(arg, msg);
 		_message = internal::string_format(msg, arg);
-		va_end(arg)
+		va_end(arg);
 	}
 
 	Error::Error(int code, const String& msg)
@@ -62,10 +59,14 @@ namespace ftr {
 	Error& Error::operator=(const Error& e) {
 		_code = e._code;
 		_message = e._message.copy();
+		
+		FX_CHECK(0);
+		
 		return *this;
 	}
 
 	Error::~Error() {
+		std::exception _e;
 	}
 
 	String Error::message() const throw() {
@@ -76,5 +77,3 @@ namespace ftr {
 		return _code;
 	}
 }
-
-#endif

@@ -53,7 +53,7 @@
 #define nx_ctx_data(view, T)       static_cast<CtxDataWrap<T>*>(view->_ctx_data)->value()
 #define nx_ctx_data_float_p(view)  static_cast<CtxDataWrap<CtxData>*>(view->_ctx_data)->float_p()
 
-FX_NS(ftr)
+namespace ftr {
 
 template<typename T>
 class CtxDataWrap: public DrawData {
@@ -809,4 +809,4 @@ void GLDraw::draw(Root* v) {
 	v->visit(this);
 }
 
-FX_END
+}

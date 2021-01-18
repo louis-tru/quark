@@ -40,7 +40,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 class DrawData;
 class Draw;
@@ -652,5 +652,5 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	friend class Background;
 };
 
-FX_END
+}
 #endif

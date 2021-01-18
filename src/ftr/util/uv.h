@@ -34,54 +34,54 @@
 #include <uv.h>
 #include "ftr/util/util.h"
 
-FX_NS(ftr)
+namespace ftr {
 
-/**
- * @class UVRequestWrap
- */
-template<class uv_req, class Context, class Data = Object>
-class UVRequestWrap: public Object {
- public:
-	inline UVRequestWrap(Context* ctx, cCb& cb = 0, Data data = Data())
-	: _ctx(ctx), _cb(cb), _data(std::move(data)) {
-		_req.data = this;
-		if (Context::Traits::is_reference) Retain(_ctx);
-	}
-	virtual ~UVRequestWrap() {
-		if (Context::Traits::is_reference) Release(_ctx);
-	}
-	static inline UVRequestWrap* cast(uv_req* req) {
-		return (UVRequestWrap*)req->data;
-	}
-	inline Context* ctx() { return _ctx; }
-	inline Callback<>& cb() { return _cb; }
-	inline uv_req* req() { return &_req; }
-	inline Data& data() { return _data; }
- private:
-	uv_req    _req;
-	Context*  _ctx;
-	Callback<>  _cb;
-	Data      _data;
-};
+	/**
+	 * @class UVRequestWrap
+	 */
+	template<class uv_req, class Context, class Data = Object>
+	class UVRequestWrap: public Object {
+		public:
+			inline UVRequestWrap(Context* ctx, cCb& cb = 0, Data data = Data())
+			: _ctx(ctx), _cb(cb), _data(std::move(data)) {
+				_req.data = this;
+				if (Context::Traits::is_reference) Retain(_ctx);
+			}
+			virtual ~UVRequestWrap() {
+				if (Context::Traits::is_reference) Release(_ctx);
+			}
+			static inline UVRequestWrap* cast(uv_req* req) {
+				return (UVRequestWrap*)req->data;
+			}
+			inline Context* ctx() { return _ctx; }
+			inline Callback<>& cb() { return _cb; }
+			inline uv_req* req() { return &_req; }
+			inline Data& data() { return _data; }
+		private:
+			uv_req    _req;
+			Context*  _ctx;
+			Callback<>  _cb;
+			Data      _data;
+	};
 
-/**
- * @class AsyncIOTask
- */
-class FX_EXPORT AsyncIOTask: public Reference {
-	FX_HIDDEN_ALL_COPY(AsyncIOTask);
- public:
-	AsyncIOTask(RunLoop* loop = RunLoop::current());
-	virtual ~AsyncIOTask();
-	static void safe_abort(uint32_t id);
-	inline bool is_abort() const { return _abort; }
-	inline uint32_t id() const { return _id; }
-	inline RunLoop* loop() { return _loop; }
-	virtual void abort();
- private:
-	uint32_t _id;
-	bool _abort;
-	RunLoop* _loop;
-};
+	/**
+	 * @class AsyncIOTask
+	 */
+	class FX_EXPORT AsyncIOTask: public Reference {
+			FX_HIDDEN_ALL_COPY(AsyncIOTask);
+		public:
+			AsyncIOTask(RunLoop* loop = RunLoop::current());
+			virtual ~AsyncIOTask();
+			static void safe_abort(uint32_t id);
+			inline bool is_abort() const { return _abort; }
+			inline uint32_t id() const { return _id; }
+			inline RunLoop* loop() { return _loop; }
+			virtual void abort();
+	 	private:
+			uint32_t _id;
+			bool _abort;
+			RunLoop* _loop;
+	};
 
-FX_END
+}
 #endif

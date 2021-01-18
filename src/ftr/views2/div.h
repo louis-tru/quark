@@ -33,7 +33,7 @@
 
 #include "ftr/box.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Div
@@ -77,6 +77,6 @@ class FX_EXPORT Div: public Box {
 	
 };
 
-FX_END
+}
 
 #endif

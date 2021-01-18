@@ -31,7 +31,7 @@
 #include "ftr/image-codec.h"
 #include <gif_lib.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 struct GifSource {
 	const Buffer* buff;
@@ -123,4 +123,4 @@ Buffer GIFImageCodec::encode(const PixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+}

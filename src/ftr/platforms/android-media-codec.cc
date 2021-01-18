@@ -105,7 +105,7 @@ enum {
 
 // ------------------------------------------------------------------------------------------------
 
-FX_NS(ftr)
+namespace ftr {
 
 #if DEBUG && !USE_FFMPEG_MEDIACODEC
 
@@ -485,4 +485,4 @@ MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
 	return rv;
 }
 
-FX_END
+}

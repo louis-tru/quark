@@ -32,7 +32,7 @@
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-FX_NS(ftr)
+namespace ftr {
 
 #define OUTPUT_BUFFER_NUM 12
 
@@ -474,4 +474,4 @@ MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
 	return NULL;
 }
 
-FX_END
+}

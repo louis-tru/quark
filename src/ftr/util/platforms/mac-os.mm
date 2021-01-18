@@ -48,7 +48,7 @@
 #import <sys/sysctl.h>
 #import <mach/mach.h>
 
-FX_NS(ftr)
+namespace ftr {
 FX_NS(os)
 
 String brand() {
@@ -252,4 +252,4 @@ float cpu_usage() {
 	return cpu_usage;
 }
 
-FX_END FX_END
+} }

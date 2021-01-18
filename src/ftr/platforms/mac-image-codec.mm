@@ -40,7 +40,7 @@
 # import <UIKit/UIKit.h>
 #endif
 
-FX_NS(ftr)
+namespace ftr {
 
 static PixelData image_decode(const Buffer& data) {
 
@@ -190,4 +190,4 @@ Buffer WEBPImageCodec::encode(cPixelData& data) {
 	return Buffer();
 }
 
-FX_END
+}

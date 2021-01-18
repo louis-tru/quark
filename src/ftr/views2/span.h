@@ -39,7 +39,7 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
 /**
  * @class Span
@@ -74,5 +74,5 @@ class FX_EXPORT Span: public Layout, public TextLayout {
 	
 };
 
-FX_END
+}
 #endif

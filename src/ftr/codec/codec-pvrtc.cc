@@ -30,7 +30,7 @@
 
 #include "ftr/image-codec.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 static const uint PVR2TEXTURE_FLAG_TYPE_MASK = 0xff;
 static const uint64 PVR3TEXTURE_PFHIGH_MASK = 0xffffffff00000000ULL;
@@ -452,4 +452,4 @@ Buffer PVRTCImageCodec::encode(cPixelData& data) {
 	return Buffer();
 }
 
-FX_END
+}

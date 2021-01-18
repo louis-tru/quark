@@ -40,7 +40,7 @@
 FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
 FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef GUIApplication::Inl AppInl;
 
@@ -409,4 +409,4 @@ uint64 GUIApplication::used_texture_memory() const {
 	return _draw_ctx->used_texture_memory();
 }
 
-FX_END
+}

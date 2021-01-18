@@ -91,7 +91,7 @@ namespace ftr {
 
 	static void http_cookie_open() {
 		if ( _db == nullptr ) {
-			int r = bp_open(&_db, Path::fallback_c(get_db_filename()));
+			int r = bp_open(&_db, Path::fallback(get_db_filename()).val());
 			if ( r == BP_OK ) {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 				if (_has_initialize++ == 0) {

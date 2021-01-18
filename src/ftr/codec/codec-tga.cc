@@ -30,7 +30,7 @@
 
 #include "ftr/image-codec.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 class TGAImageCodec::_Inl : public TGAImageCodec {
 #define _inl_tga(self) static_cast<TGAImageCodec::_Inl*>(self)
@@ -329,4 +329,4 @@ Buffer TGAImageCodec::encode(cPixelData& pixel_data) {
 	return Buffer();
 }
 
-FX_END
+}

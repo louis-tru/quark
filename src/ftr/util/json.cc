@@ -33,7 +33,7 @@
 #include "ftr/util/json.h"
 #include "ftr/util/error.h"
 
-FX_NS(ftr)
+namespace ftr {
 
 typedef rapidjson::CrtAllocator MemoryPoolAllocator;
 typedef       rapidjson::GenericValue<rapidjson::UTF8<>, MemoryPoolAllocator> RValue;
@@ -68,7 +68,7 @@ JSON::JSON(uint32_t u) {
 
 //! Constructor for int64_t_t value.
 JSON::JSON(int64_t i64) {
-	new(this)RValue((int64_t_t)i64);
+	new(this)RValue((int64_t)i64);
 }
 
 //! Constructor for uint64_t value.
@@ -81,19 +81,9 @@ JSON::JSON(double d) {
 	new(this)RValue(d);
 }
 
-//! Constructor for const charp value.
-JSON::JSON(const char* str) {
-	new(this)RValue(str, uint32_t(strlen(str)), shareMemoryPoolAllocator);
-}
-
 //! Constructor for CStringRef value.
 JSON::JSON(const String& str) {
 	new(this)RValue(*str, str.length(), shareMemoryPoolAllocator);
-}
-
-//! Constructor for CDataRef value.
-JSON::JSON(const Buffer& data) {
-	new(this)RValue(*data, data.length(), shareMemoryPoolAllocator);
 }
 
 JSON::JSON(JSON&& json) {
@@ -471,4 +461,4 @@ JSON JSON::null(){
 	return JSON();
 }
 
-FX_END
+}
