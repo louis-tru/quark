@@ -150,7 +150,6 @@ namespace ftr {
 			JSON& operator=(double d);
 			JSON& operator=(const char* str);
 			JSON& operator=(const String& str);
-			JSON& operator=(const Buffer& data);
 			//
 			bool operator==(cJSON& json) const;
 			bool operator==(const char* str) const;
@@ -178,21 +177,20 @@ namespace ftr {
 			bool is_array()  const;
 			bool is_number() const;
 			bool is_int()    const;
-			bool is_uint32_t()   const;
-			bool is_int64_t()  const;
-			bool is_uint64_t() const;
+			bool is_uint32()   const;
+			bool is_int64()  const;
+			bool is_uint64() const;
 			bool is_double() const;
 			bool is_string() const;
 			
 			bool to_bool()   const;
 			int to_int()     const;
-			int64_t to_int64_t() const;
-			uint32_t to_uint32_t()   const;
-			uint64_t to_uint64_t()   const;
+			int64_t to_int64() const;
+			uint32_t to_uint32()   const;
+			uint64_t to_uint64()   const;
 			double to_double()   const;
-			const char* to_cstring()  const;
 			String to_string()   const;
-			//
+
 			uint32_t string_length() const;
 			
 			/**
@@ -218,24 +216,10 @@ namespace ftr {
 			
 			/**
 			* 把JSON格式的字符串转换为Json对像
-			* @param  {Data} data
-			* @return {JSON}
-			*/
-			static JSON parse(const Buffer& data) throw(Error);
-			
-			/**
-			* 把JSON格式的字符串转换为Json对像
 			* @param  {const String&} json_str
 			* @return {JSON}
 			*/
 			static JSON parse(const String& json_str) throw(Error);
-			
-			/**
-			* 把JSON格式的字符串转换为Json对像
-			* @param  {const char*} json_str
-			* @return {JSON}
-			*/
-			static JSON parse(const char* json_str) throw(Error);
 			
 			/**
 			* 把Json对像转换为字符串
