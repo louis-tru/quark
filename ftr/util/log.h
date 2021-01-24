@@ -28,31 +28,64 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__log__
+#define __ftr__util__log__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/util/macros.h>
+#include <ftr/util/str.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	class Error;
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	/**
+	* @class Console # util log
+	*/
+	class FX_EXPORT Console {
+		public:
+			// typedef NonObjectTraits Traits;
+			virtual ~Console() = default;
+			virtual void log(cString& str);
+			virtual void warn(cString& str);
+			virtual void error(cString& str);
+			virtual void print(cString& str);
+			virtual void print_err(cString& str);
+			virtual void clear();
+			void set_as_default();
+	};
 
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
+	namespace console {
+		FX_EXPORT void log(char s);
+		FX_EXPORT void log(unsigned char s);
+		FX_EXPORT void log(int16_t s);
+		FX_EXPORT void log(uint32_t s);
+		FX_EXPORT void log(int s);
 	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+		FX_EXPORT void log(uint32_t s);
+		FX_EXPORT void log(float s);
+		FX_EXPORT void log(double);
+		FX_EXPORT void log(int64_t);
+		FX_EXPORT void log(uint64_t);
+		FX_EXPORT void log(bool);
+		FX_EXPORT void log(const char*, ...);
+		FX_EXPORT void log(cString&);
+		FX_EXPORT void log(cString16&);
+		FX_EXPORT void warn(const char*, ...);
+		FX_EXPORT void warn(cString&);
+		FX_EXPORT void error(const char*, ...);
+		FX_EXPORT void error(cString&);
+		FX_EXPORT void error(const Error&);
+		FX_EXPORT void tag(const char*, const char*, ...);
+		FX_EXPORT void print(const char*, ...);
+		FX_EXPORT void print(cString&);
+		FX_EXPORT void print_err(const char*, ...);
+		FX_EXPORT void print_err(cString&);
+		FX_EXPORT void clear();
+		#if FX_ARCH_32BIT
+			FX_EXPORT void log(long);
+			FX_EXPORT void log(unsigned long);
+		#endif
+	}
 
-	return r;
 }
-
+#endif

@@ -28,31 +28,60 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include "util.h"
+#include "../handle.h"
+#include "_uv.h"
+#include <unordered_map>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	struct TaskList {
+		Mutex mutex;
+		std::unordered_map<uint32_t, AsyncIOTask*> values;
+	};
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	static TaskList* tasks = new TaskList;
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	AsyncIOTask::AsyncIOTask(RunLoop* loop)
+	: _id(getId32()), _abort(false), _loop(loop) {
+		FX_CHECK(_loop);
+		ScopeLock scope(tasks->mutex);
+		tasks->values[_id] = this;
+	}
 
-int main(int argc, char *argv[]) {
+	AsyncIOTask::~AsyncIOTask() {
+		ScopeLock scope(tasks->mutex);
+		tasks->values.erase(_id);
+	}
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	void AsyncIOTask::abort() {
+		if ( !_abort ) {
+			_abort = true;
+			release(); // end
+		}
+	}
 
-	return r;
+	void AsyncIOTask::safe_abort(uint32_t id) {
+		if (id) {
+			ScopeLock scope(tasks->mutex);
+			auto i = tasks->values.find(id);
+			if (i == tasks->values.end())
+				return;
+			
+			i->second->_loop->post(Cb([id](Cbd& e) {
+				AsyncIOTask* task = nullptr;
+				{ //
+					ScopeLock scope(tasks->mutex);
+					auto i = tasks->values.find(id);
+					if (i != tasks->values.end()) {
+						task = i->second;
+					}
+				}
+				if (task) {
+					task->abort();
+				}
+			}));
+		}
+	}
+
 }
-

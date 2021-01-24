@@ -28,31 +28,53 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__loop_working__
+#define __ftr__util__loop_working__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include "ftr/util/loop/loop.h"
+#include <unordered_map>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	/**
+	* @class ParallelWorking
+	*/
+	class FX_EXPORT ParallelWorking: public Object {
+			FX_HIDDEN_ALL_COPY(ParallelWorking);
+		public:
+			typedef Thread::Exec Exec;
+			ParallelWorking();
+			ParallelWorking(RunLoop* loop);
+			virtual ~ParallelWorking();
+			ThreadID spawn_child(Exec exec, cString& name);
+			void awaken_child(ThreadID id = ThreadID());  // default awaken all child
+			void abort_child(ThreadID id = ThreadID());   // default abort all child
+			uint32_t post(Cb cb); // post message to main thread
+			uint32_t post(Cb cb, uint64_t delay_us);
+			void cancel(uint32_t id = 0); // cancel message
+		private:
+			typedef std::unordered_map<ThreadID, int> Map;
+			KeepLoop* _proxy;
+			Mutex _mutex2;
+			Map _childs;
+	};
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {
+		public:
+			inline void set_independent_mutex(RecursiveMutex* mutex) {
+				_independent_mutex = mutex;
+			}
+			inline void independent_mutex_lock() {
+				if (_independent_mutex) {
+					_independent_mutex->lock();
+				}
+			}
+			inline void independent_mutex_unlock() {
+				if (_independent_mutex) {
+					_independent_mutex->unlock();
+				}
+			}
+	};
 
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
 }
-
+#endif

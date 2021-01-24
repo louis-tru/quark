@@ -28,31 +28,60 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__loop__thread__
+#define __ftr__util__loop__thread__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <ftr/util/str.h>
+#include <ftr/util/event.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	typedef std::thread::id ThreadID;
+	typedef std::mutex Mutex;
+	typedef std::recursive_mutex RecursiveMutex;
+	typedef std::lock_guard<Mutex> ScopeLock;
+	typedef std::unique_lock<Mutex> Lock;
+	typedef std::condition_variable Condition;
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	class RunLoop;
 
-int main(int argc, char *argv[]) {
+	/**
+	* @class Thread
+	*/
+	class FX_EXPORT Thread {
+			FX_HIDDEN_ALL_COPY(Thread);
+		public:
+			typedef ThreadID ID;
+			typedef NonObjectTraits Traits;
+			typedef std::function<int(Thread&)> Exec;
+			inline bool is_abort() const { return _abort; }
+			inline ID id() const { return _id; }
+			inline String name() const { return _name; }
+			inline RunLoop* loop() const { return _loop; }
+			static ID spawn(Exec exec, cString& name);
+			static ID current_id();
+			static Thread* current();
+			static void sleep(int64_t timeoutUs = 0 /*小于1永久等待*/);
+			static void join(ID id, int64_t timeoutUs = 0 /*小于1永久等待*/);
+			static void awaken(ID id);
+			static void abort(ID id);
+			static EventNoticer<>& onProcessSafeExit();
+		private:
+			Thread();
+			~Thread();
+			FX_DEFINE_INLINE_CLASS(Inl);
+			bool  _abort;
+			Mutex _mutex;
+			Condition _cond;
+			ID    _id;
+			SString  _name;
+			void* _data[256];
+			RunLoop* _loop;
+	};
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
 }
-
+#endif

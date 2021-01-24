@@ -28,31 +28,50 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr_util_errno__
+#define __ftr_util_errno__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+/**
+ * @ns ftr
+ */
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	enum {
+		ERR_UNKNOWN_ERROR         = -10000,
+		ERR_HTTP_STATUS_ERROR     = -10001,
+		ERR_INL_ERROR             = -10003,
+		ERR_INVALID_FILE_PATH     = -10004,
+		ERR_SYNTAX_ERROR          = -10005,
+		ERR_ASYNC_ERROR           = -10006,
+		ERR_FILE_ALREADY_OPEN     = -10007,
+		ERR_FILE_NOT_OPEN         = -10008,
+		ERR_ALLOCATE_MEMORY_FAIL  = -10009,
+		ERR_NOT_RUN_LOOP          = -10010,
+		ERR_FILE_NOT_EXISTS       = -10011,
+		ERR_ZIP_IN_FILE_NOT_EXISTS= -10012,
+		ERR_DUPLICATE_LISTENER    = -10013,
+		ERR_PARSE_HOSTNAME_ERROR  = -10014,
+		ERR_CONNECT_ALREADY_OPEN  = -10015,
+		ERR_SOCKET_NOT_WRITABLE   = -10016,
+		ERR_SENDIFX_CANNOT_MODIFY = -10017,
+		ERR_FILE_UNEXPECTED_SHUTDOWN    = -10018,
+		ERR_CONNECT_UNEXPECTED_SHUTDOWN = -10019,
+		ERR_REPEAT_CALL           = - 10020,
+		ERR_HTTP_FORM_SIZE_LIMIT  = - 10021,
+		ERR_CANNOT_RUN_SYNC_IO    = -10022,
+		ERR_NOT_SUPPORTED_FILE_PROTOCOL = -10023,
+		ERR_SSL_HANDSHAKE_FAIL    = -10024,
+		ERR_SSL_UNKNOWN_ERROR     = -10025,
+		ERR_NOT_OPTN_TCP_CONNECT  = -10026,
+		ERR_COPY_TARGET_DIRECTORY_NOT_EXISTS  = -10027,
+		ERR_FILE_OPENING          = -10028,
+		ERR_BACKGROUND_ONLY_HOST = -10029,
+		ERR_BACKGROUND_NEXT_LOOP_REF = -10030,
+		ERR_HTTP_REQUEST_TIMEOUT = -10031,
+		ERR_FILE_NO_EXIST_IN_ZIP_PKG = -10032,
+	};
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
 }
 
+#endif

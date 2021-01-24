@@ -28,31 +28,41 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include <ftr/util/hash.h>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	static const char* I64BIT_TABLE =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
+	void SimpleHash::update(const void* data, uint32_t len) {
+		while (len--)
+			_hash += (_hash << 5) + ((const char*)data)[len];
+	}
 	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	SString SimpleHash::digest() {
+		SString rev;
+		do {
+			rev.push(I64BIT_TABLE[_hash & 0x3F]);
+		} while (_hash >>= 6);
+		_hash = 5381;
+		return rev;
+	}
 
-	return r;
+	uint64_t hash_code(const void* data, uint32_t len) {
+		SimpleHash hash;
+		hash.update(data, len);
+		return hash.hash_code();
+	}
+
+	SString hash(const void* data, uint32_t len) {
+		SimpleHash hash;
+		hash.update((const char*)data, len);
+		return hash.digest();
+	}
+
+	SString hash(cString& str) {
+		return hash(*str, str.length());
+	}
+
 }
-

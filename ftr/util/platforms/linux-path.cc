@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,34 +25,62 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <linux/limits.h>
+#include <sys/utsname.h>
+#include "ftr/util/fs.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+String Path::executable() {
+	static cString path([]() -> String { 
+		char dir[PATH_MAX] = { 0 };
+		int n = readlink("/proc/self/exe", dir, PATH_MAX);
+		return Path::format("%s", dir);
+	}());
+	return path;
+}
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+String Path::documents(cString& child) {
+	static String documentsPath([]() -> String { 
+		String s = Path::format("%s/%s", getenv("HOME"), "Documents");
+		FileHelper::mkdir_p_sync(s);
+		return s;
+	}());
+	if ( child.is_empty() ) {
+		return documentsPath;
+	}
+	return Path::format("%s/%s", *documentsPath, *child);
+}
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+String Path::temp(cString& child) {
+	static String tempPath([]() -> String {
+		String s = Path::format("%s/%s", getenv("HOME"), ".cache");
+		FileHelper::mkdir_p_sync(s);
+		return s;
+	}());
+	if (child.is_empty()) {
+		return tempPath;
+	}
+	return Path::format("%s/%s", *tempPath, *child);
+}
 
-int main(int argc, char *argv[]) {
+/**
+ * Get the resoures dir
+ */
+String Path::resources(cString& child) {
+	static String resourcesPath([]() -> String {
+		return Path::dirname(executable());
+	}());
+	if (child.is_empty()) {
+		return resourcesPath;
+	}
+	return Path::format("%s/%s", *resourcesPath, *child);
+}
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
 }
 

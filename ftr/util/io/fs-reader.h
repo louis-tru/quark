@@ -28,31 +28,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__io__fs_reaser__
+#define __ftr__util__io__fs_reaser__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/util/io/fs.h>
+#include <ftr/util/io/stream.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	/**
+	* @class FileReader
+	*/
+	class FX_EXPORT FileReader: public Object {
+			FX_HIDDEN_ALL_COPY(FileReader);
+		public:
+			FileReader();
+			FileReader(FileReader&& reader);
+			virtual ~FileReader();
+			virtual uint32_t read_file(cString& path, Cb cb = 0);
+			virtual uint32_t read_stream(cString& path, Callback<StreamResponse> cb = 0);
+			virtual Buffer read_file_sync(cString& path) throw(Error);
+			virtual void abort(uint32_t id);
+			virtual bool exists_sync(cString& path);
+			virtual bool is_file_sync(cString& path);
+			virtual bool is_directory_sync(cString& path);
+			virtual std::vector<Dirent> readdir_sync(cString& path);
+			virtual bool is_absolute(cString& path);
+			virtual String format(cString& path);
+			virtual void clear();
+			static void set_shared_instance(FileReader* reader);
+			static FileReader* shared();
+		private:
+			class Core;
+			Core* _core;
+	};
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+	inline FileReader* fs_reader() {
+		return FileReader::shared();
+	}
 }
-
+#endif

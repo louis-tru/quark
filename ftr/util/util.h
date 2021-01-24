@@ -28,31 +28,34 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__util__
+#define __ftr__util__util__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
+#if !defined(__cplusplus)
+# error "Please use the c++ compiler"
 #endif
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
+#if __cplusplus < 201103L
+# error "The compiler does not support c++ 11"
 #endif
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+#include <ftr/util/object.h>
+#include <ftr/util/hash.h>
+#include <ftr/util/log.h>
+#include <ftr/util/numbers.h>
+#include <ftr/util/str.h>
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+namespace ftr {
 
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+	FX_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
+	FX_EXPORT int fix_random(uint32_t a, ...);
+	FX_EXPORT uint64_t getId();
+	FX_EXPORT uint32_t getId32();
+	FX_EXPORT int64_t  parse_time(cString& str);
+	FX_EXPORT SString gmt_time_string(int64_t second);
+	FX_EXPORT String platform();
+	FX_EXPORT String version();
+	FX_EXPORT void exit(int rc);
+	FX_EXPORT bool is_exited();
 }
-
+#endif

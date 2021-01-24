@@ -3,7 +3,7 @@
 		'target_name': 'test2',
 		'type': 'executable',
 		'include_dirs': [
-			'../src/include',
+			'..',
 		],
 		'sources': [
 			'test2.cc',
@@ -15,11 +15,13 @@
 			'test2-xopen.cc',
 			'test2-sys.cc',
 			'test2-str.cc',
-			'../src/ftr/util/log.cc',
-			'../src/ftr/util/str.cc',
-			'../src/ftr/util/object.cc',
-			'../src/ftr/util/hash.cc',
-			'../src/ftr/util/codec.cc',
+			'test2-list.cc',
+			'../ftr/util/log.cc',
+			'../ftr/util/str.cc',
+			'../ftr/util/object.cc',
+			'../ftr/util/hash.cc',
+			'../ftr/util/codec.cc',
+			'../ftr/util/error.cc',
 		],
 		'mac_bundle': 1,
 		'xcode_settings': {

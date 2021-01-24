@@ -1,3 +1,4 @@
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
@@ -28,31 +29,78 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include <ftr/util/loop/loop.h>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	/**
+	 * @class PrivateLoop
+	 */
+	class PrivateLoop {
+		public:
+			inline PrivateLoop(): _loop(nullptr) {}
+			
+			inline bool has_current_thread() {
+				return Thread::current_id() == _thread_id;
+			}
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+			bool is_continue(Thread& t) {
+				ScopeLock scope(_mutex);
+				if (!t.is_abort()) {
+					/* 趁着循环运行结束到上面这句lock片刻时间拿到队列对像的线程,这里是最后的200毫秒,
+					* 200毫秒后没有向队列发送新消息结束线程
+					* * *
+					* 这里休眠200毫秒给外部线程足够时间往队列发送消息
+					*/
+					Thread::sleep(2e5);
+					if ( _loop->is_alive() && !t.is_abort() ) {
+						return true; // 继续运行
+					}
+				}
+				_loop = nullptr;
+				_thread_id = ThreadID();
+				return false;
+			}
+			
+			RunLoop* loop() {
+				Lock lock(_mutex);
+				if (is_exited())
+					return nullptr;
+				if (_loop)
+					return _loop;
+				
+				Thread::spawn([this](Thread& t) {
+					_mutex.lock();
+					_thread_id = t.id();
+					_loop = RunLoop::current();
+					_cond.notify_all();
+					_mutex.unlock();
+					do {
+						_loop->run(2e7); // 20秒后没有新消息结束线程
+					} while(is_continue(t));
+					return 0;
+				}, "private_loop");
+				
+				_cond.wait(lock); // wait
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+				return _loop;
+			}
+		
+		private:
+			ThreadID _thread_id;
+			RunLoop* _loop;
+			Mutex _mutex;
+			Condition _cond;
+	};
 
-int main(int argc, char *argv[]) {
+	static PrivateLoop* private_loop = new PrivateLoop();
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	RunLoop* get_private_loop() {
+		return private_loop->loop();
+	}
 
-	return r;
+	bool has_private_loop_thread() {
+		return private_loop->has_current_thread();
+	}
+
 }
-

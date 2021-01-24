@@ -28,31 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include <android/log.h>
+#include "./android-log.h"
+#include "ftr/util/string.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
-
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+void AndroidConsole::log(cString& str) {
+	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
+}
+void AndroidConsole::warn(cString& str) {
+	__android_log_print(ANDROID_LOG_WARN, "FX_WARN", "%s\n", *str);
+}
+void AndroidConsole::error(cString& str) {
+	__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
+}
+void AndroidConsole::print(cString& str) {
+	__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
+}
+void AndroidConsole::print_err(cString& str) {
+	__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
+}
+void AndroidConsole::clear() {
+	// noop
 }
 
+}

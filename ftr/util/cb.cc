@@ -28,31 +28,56 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include "ftr/util/cb.h"
+#include "ftr/util/str.h"
+#include "ftr/util/loop/loop.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	class DefaultStaticCallback: public CallbackCore<Object, Error> {
+	 public:
+		virtual bool retain() { return 1; }
+		virtual void release() {}
+		virtual void call(Cbd& event) const {}
+	};
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	static DefaultStaticCallback* default_callback_ = nullptr;
+	static Mutex mutex;
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	static inline DefaultStaticCallback* default_callback() {
+		if ( !default_callback ) {
+			ScopeLock scope(mutex);
+			default_callback_ = NewRetain<DefaultStaticCallback>();
+		}
+		return default_callback_;
+	}
 
-int main(int argc, char *argv[]) {
+	template<>
+	Callback<Object>::Callback(int type): Handle<CallbackCore<Object, Error>>(default_callback()) {
+	}
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	class WrapCallback: public CallbackCore<Object, Error> {
+	 public:
+		inline WrapCallback(Cb cb, Error* err, Object* data)
+		: _cb(cb), _err(err), _data(data) {
+		}
+		virtual ~WrapCallback() {
+			Release(_err);
+			Release(_data);
+		}
+		virtual void call(Cbd& evt) const {
+			evt.error = _err;
+			evt.data = _data;
+			_cb->call(evt);
+		}
+	 private:
+		Cb _cb;
+		Error* _err;
+		Object* _data;
+	};
 
-	return r;
+	void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop) {
+		loop->post_message( Cb(new WrapCallback(cb, e, d)) );
+	}
+
 }
-

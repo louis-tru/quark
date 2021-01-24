@@ -28,31 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#ifndef __ftr__util__storage__
+#define __ftr__util__storage__
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+#include <ftr/util/cb.h>
+#include <ftr/util/util.h>
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
+namespace ftr {
+	FX_EXPORT SString storage_get(cString& name);
+	FX_EXPORT void    storage_set(cString& name, cString& value);
+	FX_EXPORT void    storage_delete(cString& name);
+	FX_EXPORT void    storage_clear();
+	FX_EXPORT void    storage_transaction(Cb cb);
 }
-
+#endif

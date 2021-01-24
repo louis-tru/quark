@@ -28,31 +28,89 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__codec__
+#define __ftr__util__codec__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/util/util.h>
+#include <ftr/util/str.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	/**
+	* @enum Encoding
+	*/
+	enum class Encoding {
+		binary = 0, /**binary*/
+		ascii,      /**ascii*/
+		base64,     /**base64*/
+		hex,        /**hex*/
+		utf8,       /**utf8*/
+		ucs2,       /**ucs2*/
+		ucs4,       /**ucs4*/
+		utf16,      /**utf16*/
+		utf32,      /**utf32*/
+		unknown,
+		BINARY  = binary,
+		ASCII   = ascii,
+		BASE64  = base64,
+		HEX     = hex,
+		UTF8    = utf8,
+		UCS2    = ucs2,
+		UCS4    = ucs4,
+		UTF16   = utf16,
+		UTF32   = utf32,
+		UNKNOWN = unknown,
+		//@end enum
+	};
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	/**
+	* @class Codec
+	*/
+	class FX_EXPORT Codec {
+		public:
+			
+			/**
+			* @func parse_encoding
+			*/
+			static Encoding parse_encoding(cString& en);
+			
+			/**
+			* @func encoding_string
+			*/
+			static String encoding_string(Encoding en);
+			
+			/**
+			* @func encoding
+			*/
+			static SString encoding(Encoding target_en, cString& source);
+			
+			/**
+			* @func encoding
+			*/
+			static SString encoding(Encoding target_en, cString16& source);
+			
+			/**
+			* @func encoding
+			*/
+			static SString encoding(Encoding target_en, cString32& source);
+			
+			/**
+			* @func decoding_to_byte
+			*/
+			static SString decoding_to_byte(Encoding source_en, cString& source);
+			
+			/**
+			* @func decoding_to_uint16_t 
+			*/
+			static SString16 decoding_to_uint16_t (Encoding source_en, cString& source);
+			
+			/**
+			* @func decoding_to_uint32_t
+			*/
+			static SString32 decoding_to_uint32_t(Encoding source_en, cString& source);
+	};
 
-int main(int argc, char *argv[]) {
+	typedef Codec Coder;
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
 }
-
+#endif

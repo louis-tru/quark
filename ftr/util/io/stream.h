@@ -28,31 +28,50 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#ifndef __ftr__util__io__stream__
+#define __ftr__util__io__stream__
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+#include <ftr/util/str.h>
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+namespace ftr {
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	class FX_EXPORT Stream {
+		 public:
+			 virtual void pause() = 0;
+			 virtual void resume() = 0;
+	 };
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	 /**
+	 * @class StreamResponse
+	 */
+	 class FX_EXPORT StreamResponse: public Object {
+		 public:
+			 inline StreamResponse(Buffer buffer
+													, bool complete = 0
+													, uint32_t id = 0
+													, uint64_t size = 0
+													, uint64_t total = 0, Stream* stream = nullptr)
+				 : _buffer(buffer)
+				 , _complete(complete)
+				 , _size(size), _total(total), _id(id), _stream(stream) {
+			 }
+			 inline bool complete() const { return _complete; }
+			 inline int64_t size() const { return _size; }
+			 inline int64_t total() const { return _total; }
+			 inline Buffer& buffer() { return _buffer; }
+			 inline const Buffer& buffer() const { return _buffer; }
+			 inline uint32_t id() const { return _id; }
+			 inline Stream* stream() const { return _stream; }
+			 inline void pause() { if ( _stream ) _stream->pause(); }
+			 inline void resume() { if ( _stream ) _stream->resume(); }
+		 private:
+			 Buffer      _buffer;
+			 bool        _complete;
+			 int64_t     _size;
+			 int64_t     _total;
+			 uint32_t    _id;
+			 Stream*     _stream;
+	 };
 
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
 }
-
+#endif

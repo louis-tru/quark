@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,34 +25,55 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include "ftr/util/error.h"
+#include "ftr/util/util.h"
+//#include <algorithm>
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
+namespace ftr {
 
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
+	namespace internal {
+		SString string_format(const char* f, va_list arg);
+	}
 
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
-#endif
+	Error::Error(const Error& e)
+	 : _code(e.code())
+	 , _message(e._message.copy()) {
+		 std::exception _ex;
+	}
 
-int TEST_FUNC_NAME(int argc, char *argv[]);
+	Error::Error(int code, const char* msg, ...): _code(code) {
+		va_list arg;
+		va_start(arg, msg);
+		_message = internal::string_format(msg, arg);
+		va_end(arg);
+	}
 
-int main(int argc, char *argv[]) {
+	Error::Error(int code, cString& msg)
+	 : _code(code)
+	 , _message(msg.copy()) {
+	}
 
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
+	Error& Error::operator=(const Error& e) {
+		_code = e._code;
+		_message = e._message.copy();
+		
+		FX_CHECK(0);
+		
+		return *this;
+	}
 
-	return r;
+	Error::~Error() {
+		// std::exception _e;
+	}
+
+	String Error::message() const throw() {
+		return _message;
+	}
+
+	int Error::code() const throw() {
+		return _code;
+	}
 }
-
