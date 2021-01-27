@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./str.h"
+#include "./string.h"
 
 JS_BEGIN
 

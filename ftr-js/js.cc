@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/str.h"
+#include "ftr/util/string.h"
 #include "js-1.h"
 #include "native-inl-js.h"
 #include "native-lib-js.h"

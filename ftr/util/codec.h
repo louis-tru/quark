@@ -32,7 +32,7 @@
 #define __ftr__util__codec__
 
 #include <ftr/util/util.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 
 namespace ftr {
 

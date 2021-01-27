@@ -32,7 +32,7 @@
 #define __ftr__util__log__
 
 #include <ftr/util/macros.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 
 namespace ftr {
 

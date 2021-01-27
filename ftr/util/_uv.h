@@ -28,8 +28,8 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__io___uv____
-#define __ftr__util__io___uv____
+#ifndef __ftr__util__io___uv__
+#define __ftr__util__io___uv__
 
 #include <uv.h>
 #include <ftr/util/util.h>

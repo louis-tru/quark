@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 #include <ftr/util/hash.h>
 #include <algorithm>
 

@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/io/http.h"
-#include "ftr/util/http-cookie.h"
-#include "ftr/util/fs.h"
+#include "ftr/util/net/net.h"
+#include "ftr/util/net/http.h"
+#include "ftr/util/net/http-cookie.h"
+#include "ftr/util/fs/fs.h"
 #include "ftr/version.h"
 #include "ftr/util/string-builder.h"
-#include "ftr/util/net.h"
 #include <http_parser.h>
 #include <zlib.h>
 #include <uv.h>

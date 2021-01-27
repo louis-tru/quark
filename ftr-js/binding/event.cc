@@ -35,7 +35,7 @@
 #include "ftr/button.h"
 #include "ftr/panel.h"
 #include "ftr/keyboard.h"
-#include "ftr-js/str.h"
+#include "ftr-js/string.h"
 #include "event-1.h"
 #include "native-inl-js.h"
 

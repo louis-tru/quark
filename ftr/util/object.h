@@ -68,6 +68,10 @@ namespace ftr {
 			static void* operator new(std::size_t size);
 			static void* operator new(std::size_t size, void* p);
 			static void  operator delete(void* p);
+			static void set_allocator(
+				void* (*alloc)(size_t size) = nullptr,
+				void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
+			);
 		#if FX_MEMORY_TRACE_MARK
 			static std::vector<Object*> mark_objects();
 			static int mark_objects_count();
@@ -155,13 +159,8 @@ namespace ftr {
 			static constexpr bool is_reference = false;
 	};
 
-  FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
+	FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
-	FX_EXPORT void set_object_allocator(
-		void* (*alloc)(size_t size) = nullptr,
-		void (*release)(Object* obj) = nullptr,
-		void (*retain)(Object* obj) = nullptr
-	);
 	FX_EXPORT bool Retain(Object* obj);
 	FX_EXPORT void Release(Object* obj);
 
@@ -172,7 +171,9 @@ namespace ftr {
 
 	template<class T, typename... Args>
 	inline T* NewRetain(Args... args) {
-		T* r = new T(args...); r->retain(); return r;
+		T* r = new T(args...);
+		r->retain();
+		return r;
 	}
 
 }

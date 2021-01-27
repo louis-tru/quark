@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__io__http__
-#define __ftr__util__io__http__
+#ifndef __ftr__util__net__http__
+#define __ftr__util__net__http__
 
 #include <ftr/util/handle.h>
 #include <ftr/util/event.h>
 #include <ftr/util/error.h>
 #include <ftr/util/loop/loop.h>
-#include <ftr/util/io/stream.h>
+#include <ftr/util/stream.h>
 #include <unordered_map>
 
 namespace ftr {
@@ -111,12 +111,11 @@ namespace ftr {
 	};
 
 	/**
-	* @class HttpClientRequest 需注意线程安全问题
+	* @class HttpClientRequest
 	*/
-	class FX_EXPORT HttpClientRequest: public Object, public SimpleStream {
+	class FX_EXPORT HttpClientRequest: public Object, public Stream {
 			FX_HIDDEN_ALL_COPY(HttpClientRequest);
 		public:
-
 			class Delegate {
 				public:
 				virtual void trigger_http_error(HttpClientRequest* req, cError& error) = 0;
@@ -128,8 +127,8 @@ namespace ftr {
 				virtual void trigger_http_timeout(HttpClientRequest* req) = 0;
 				virtual void trigger_http_abort(HttpClientRequest* req) = 0;
 			};
-			HttpClientRequest(RunLoop* loop = RunLoop::current());
 
+			HttpClientRequest(RunLoop* loop = RunLoop::current());
 			virtual ~HttpClientRequest();
 			void set_delegate(Delegate* delegate) throw(Error);
 			void set_method(HttpMethod method) throw(Error);

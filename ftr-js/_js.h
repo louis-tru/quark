@@ -32,7 +32,7 @@
 #define __ftr__js__js_1__
 
 #include "js.h"
-#include "str.h"
+#include "string.h"
 
 #define js_bind_native_event( name, type, block) \
 	FX_ON(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)

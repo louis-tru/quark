@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-#ifndef __ftr__util__http__io__cookie__
-#define __ftr__util__http__io__cookie__
+#ifndef __ftr__util__http__net__cookie__
+#define __ftr__util__http__net__cookie__
 
 #include <ftr/util/util.h>
 #include <string>

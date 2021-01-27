@@ -45,7 +45,7 @@
 			'js.h',
 			'ftr.h',
 			'ftr.cc',
-			'str.h',
+			'string.h',
 			'str.cc',
 			'v8.cc',
 			'value.h',

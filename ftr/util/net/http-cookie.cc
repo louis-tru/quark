@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/io/http-cookie.h"
-#include "ftr/util/io/fs.h"
+#include "ftr/util/net/http-cookie.h"
+#include "ftr/util/fs/fs.h"
 #include "ftr/util/json.h"
 #include "ftr/util/os.h"
 #include <bplus.h>

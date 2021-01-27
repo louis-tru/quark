@@ -32,7 +32,7 @@
 #define __ftr__util__json__
 
 #include <ftr/util/handle.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 #include <ftr/util/error.h>
 
 namespace ftr {

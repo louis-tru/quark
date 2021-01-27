@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr/util/error.h"
-#include "ftr/util/io/fs.h"
-#include "ftr/util/io/fs-path.h"
+#include "ftr/util/fs/fs.h"
+#include "ftr/util/fs/fs-path.h"
 #include <uv.h>
 #include <vector>
 

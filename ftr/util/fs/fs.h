@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__io__fs__
-#define __ftr__util__io__fs__
+#ifndef __ftr__util__fs__fs__
+#define __ftr__util__fs__fs__
 
 #include <ftr/util/cb.h>
 #include <ftr/util/handle.h>
 #include <ftr/util/loop/loop.h>
-#include <ftr/util/io/stream.h>
+#include <ftr/util/stream.h>
 #include <vector>
 
 namespace ftr {
@@ -88,7 +88,7 @@ namespace ftr {
 			FX_HIDDEN_ALL_COPY(File);
 		public:
 			typedef ObjectTraits Traits;
-			inline  File(cString& path): _path(path), _fp(0) { }
+			inline  File(cString& path): _path(path), _fd(0) {}
 			virtual ~File();
 			inline  String path() const { return _path; }
 			virtual bool is_open();
@@ -98,7 +98,7 @@ namespace ftr {
 			virtual int write(const void* buffer, int64_t size, int64_t offset = -1);
 		private:
 			String _path;
-			int    _fp;
+			int    _fd;
 	};
 
 	/**

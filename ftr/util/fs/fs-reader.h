@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__io__fs_reaser__
-#define __ftr__util__io__fs_reaser__
+#ifndef __ftr__util__fs__fs_reaser__
+#define __ftr__util__fs__fs_reaser__
 
-#include <ftr/util/io/fs.h>
-#include <ftr/util/io/stream.h>
+#include <ftr/util/fs/fs.h>
+#include <ftr/util/fs/stream.h>
 
 namespace ftr {
 

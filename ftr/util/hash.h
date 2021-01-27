@@ -32,7 +32,7 @@
 #define __ftr__util__hash__
 
 #include <ftr/util/object.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 
 namespace ftr {
 

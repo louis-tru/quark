@@ -35,7 +35,7 @@
 #include <limits>
 #include <stdarg.h>
 #include <ftr/util/macros.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 #include <functional>
 #include <stdlib.h>
 #include <string.h>

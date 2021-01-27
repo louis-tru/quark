@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/http.h>
-#include <ftr/util/http-cookie.h>
-#include <ftr/util/fs.h>
+#include <ftr/util/net/http.h>
+#include <ftr/util/net/http-cookie.h>
+#include <ftr/util/fs/fs.h>
 #include <ftr/version.h>
 #include <vector>
-#include "_uv.h"
+#include "../_uv.h"
 
 namespace ftr {
 

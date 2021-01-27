@@ -28,14 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/io/fs.h"
-#include "ftr/util/io/fs-path.h"
-#include "ftr/util/io/fs-reader.h"
+#include "ftr/util/fs/fs.h"
+#include "ftr/util/fs/fs-path.h"
+#include "ftr/util/fs/fs-reader.h"
 #include "ftr/util/zlib.h"
 #include "ftr/util/handle.h"
 #include "ftr/util/error.h"
-#include "ftr/util/io/http.h"
-#include "_uv.h"
+#include "ftr/util/net/http.h"
+#include "../_uv.h"
 #include <unordered_map>
 
 namespace ftr {

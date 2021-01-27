@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__io__fs_path__
-#define __ftr__util__io__fs_path__
+#ifndef __ftr__util__fs__fs_path__
+#define __ftr__util__fs__fs_path__
 
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 
 namespace ftr {
 

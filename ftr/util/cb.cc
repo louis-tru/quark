@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ftr/util/cb.h"
-#include "ftr/util/str.h"
+#include "ftr/util/string.h"
 #include "ftr/util/loop/loop.h"
 
 namespace ftr {

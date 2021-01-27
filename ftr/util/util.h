@@ -43,10 +43,9 @@
 #include <ftr/util/hash.h>
 #include <ftr/util/log.h>
 #include <ftr/util/numbers.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 
 namespace ftr {
-
 	FX_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);
 	FX_EXPORT int fix_random(uint32_t a, ...);
 	FX_EXPORT uint64_t getId();

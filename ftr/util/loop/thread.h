@@ -35,7 +35,7 @@
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 #include <ftr/util/event.h>
 
 namespace ftr {

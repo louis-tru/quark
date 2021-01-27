@@ -33,7 +33,7 @@
 
 #include <ftr/util/util.h>
 #include <ftr/util/error.h>
-#include <ftr/util/str.h>
+#include <ftr/util/string.h>
 #include <ftr/util/handle.h>
 #include <functional>
 

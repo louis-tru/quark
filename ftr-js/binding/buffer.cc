@@ -30,7 +30,7 @@
 
 #include "ftr-js/wrap.h"
 #include "ftr/util/buffer.h"
-#include "ftr-js/str.h"
+#include "ftr-js/string.h"
 
 /**
  * @ns ftr::js

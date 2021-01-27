@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__str__
-#define __ftr__util__str__
+#ifndef __ftr__util__array__
+#define __ftr__util__array__
 
 #include <ftr/util/object.h>
 #include <initializer_list>
@@ -59,19 +59,8 @@ namespace ftr {
 		typename A = AllocatorDefault
 	> class ArrayBuffer;
 
-	typedef ArrayBuffer<char,     HolderMode::kWeak>   String;
-	typedef ArrayBuffer<uint16_t, HolderMode::kWeak>   String16;
-	typedef ArrayBuffer<uint32_t, HolderMode::kWeak>   String32;
-	typedef ArrayBuffer<char,     HolderMode::kStrong> SString;
-	typedef ArrayBuffer<uint16_t, HolderMode::kStrong> SString16;
-	typedef ArrayBuffer<uint32_t, HolderMode::kStrong> SString32;
-	// alias
-	typedef const  String   cString;
-	typedef const  String16 cString16;
-	typedef const  String32 cString32;
-	typedef const  char     cchar;
-	typedef SString         Buffer;
-	typedef String          WeakBuffer;
+	typedef ArrayBuffer<char, HolderMode::kStrong> Buffer;
+	typedef ArrayBuffer<char, HolderMode::kWeak>   WeakBuffer;
 
 	/**
 	 * @class ArrayBuffer
@@ -90,17 +79,6 @@ namespace ftr {
 			ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied
 			ArrayBuffer(const ArrayBuffer& arr); // Only weak types can be copied
 			ArrayBuffer(const std::initializer_list<T>& list);
-			// constructors
-			ArrayBuffer(const T* s); // copy constructors
-			ArrayBuffer(const T* s, uint32_t len); // copy constructors
-			ArrayBuffer(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
-			ArrayBuffer(char i); // strong types can call
-			ArrayBuffer(int32_t i); // strong types can call
-			ArrayBuffer(int64_t i); // strong types can call
-			ArrayBuffer(uint32_t i); // strong types can call
-			ArrayBuffer(uint64_t i); // strong types can call
-			ArrayBuffer(float f); // strong types can call
-			ArrayBuffer(double f); // strong types can call
 
 			/**
 			 * @func from() greedy new ArrayBuffer from ...
@@ -118,11 +96,6 @@ namespace ftr {
 
 			virtual ~ArrayBuffer() { clear(); }
 
-			/**
-			 * @func format string
-			 */
-			static SString format(const char* format, ...);
-		
 			/**
 			* @func size 获取数据占用内存大小
 			*/
@@ -143,36 +116,7 @@ namespace ftr {
 			template<HolderMode M2, typename A2>
 			ArrayBuffer& operator=(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied assign value
 			ArrayBuffer& operator=(const ArrayBuffer&);
-			// operator+
-			Strong operator+(const Weak& s) const; // concat new
-			template<HolderMode M2, typename A2>
-			Strong operator+(const ArrayBuffer<T, M2, A2>& s) const; // concat new
-			// operator+=
-			ArrayBuffer& operator+=(const Weak& s); // write, Only strong types can be call
-			template<HolderMode M2, typename A2>
-			ArrayBuffer& operator+=(const ArrayBuffer<T, M2, A2>& s); // write, Only strong types can be call
 
-			// operator compare
-			bool operator==(const T* s) const;
-			bool operator!=(const T* s) const;
-			bool operator> (const T* s) const;
-			bool operator< (const T* s) const;
-			bool operator>=(const T* s) const;
-			bool operator<=(const T* s) const;
-			//
-			template<HolderMode M2, typename A2> 
-			inline bool operator==(const ArrayBuffer<T, M2, A2>& s) const { return operator==(s._val); }
-			template<HolderMode M2, typename A2> 
-			inline bool operator!=(const ArrayBuffer<T, M2, A2>& s) const { return operator!=(s._val); }
-			template<HolderMode M2, typename A2> 
-			inline bool operator> (const ArrayBuffer<T, M2, A2>& s) const { return operator>(s._val); }
-			template<HolderMode M2, typename A2> 
-			inline bool operator< (const ArrayBuffer<T, M2, A2>& s) const { return operator<(s._val); }
-			template<HolderMode M2, typename A2> 
-			inline bool operator>=(const ArrayBuffer<T, M2, A2>& s) const { return operator>=(s._val); }
-			template<HolderMode M2, typename A2> 
-			inline bool operator<=(const ArrayBuffer<T, M2, A2>& s) const { return operator<=(s._val); }
-		
 			// get ptr
 			T& operator[](uint32_t index) { // Only strong types have this method
 				static_assert(M == HolderMode::kStrong, "Only for strong types");
@@ -189,30 +133,6 @@ namespace ftr {
 			}
 			inline const T* operator*() const { return _val; }
 			inline const T* val      () const { return _val; }
-		
-			// substr
-			inline Weak substr(uint32_t start, uint32_t length) const { return slice(start, start + length); }
-			inline Weak substring(uint32_t start, uint32_t end) const { return slice(start, end); }
-			inline Weak substr(uint32_t start) const { return slice(start); }
-			inline Weak substring(uint32_t start) const { return slice(start); }
-			// split
-			std::vector<Weak> split(const Weak& sp) const;
-			// trim
-			Weak trim() const;
-			Weak trim_left() const;
-			Weak trim_right() const;
-			// upper, lower
-			ArrayBuffer& upper_case(); // Only strong types can be call
-			ArrayBuffer& lower_case(); // Only strong types can be call
-			Strong       to_upper_case() const;
-			Strong       to_lower_case() const;
-			// index_of
-			int index_of(const Weak& s, uint32_t start = 0) const;
-			int last_index_of(const Weak& s, int start) const;
-			int last_index_of(const Weak& s) const;
-			// replace
-			Strong replace(const Weak& s, const Weak& rep) const;
-			Strong replace_all(const Weak& s, const Weak& rep) const;
 
 			ArrayBuffer& push(T&& item);
 			ArrayBuffer& push(const T& item);
@@ -282,10 +202,6 @@ namespace ftr {
 			 */
 			uint64_t hash_code() const;
 			
-			// to number
-			template<typename T2> T2   to_number()        const;
-			template<typename T2> bool to_number(T2* out) const;
-
 		protected:
 			// constructors
 			ArrayBuffer(uint32_t length, uint32_t capacity, T* data); // greedy constructors
@@ -312,11 +228,11 @@ namespace ftr {
 			uint32_t  _length;
 			uint32_t  _capacity;
 			T*        _val;
-		
+
 			template<typename T2, HolderMode M2, typename A2> friend class ArrayBuffer;
 	};
 
-	#include "./str.inl"
+	#include "./array.inl"
 }
 
 namespace std {

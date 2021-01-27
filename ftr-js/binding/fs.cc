@@ -31,7 +31,7 @@
 #include "ftr/util/fs.h"
 #include "ftr/util/http.h"
 #include "ftr-js/wrap.h"
-#include "ftr-js/str.h"
+#include "ftr-js/string.h"
 #include "cb-1.h"
 #include "fs-1.h"
 

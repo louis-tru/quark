@@ -44,9 +44,9 @@ namespace ftr {
 		/* NOOP */
 	}
 
-  static void* (*object_allocator_alloc)(size_t size) = &default_object_alloc;
-  static void  (*object_allocator_release)(Object* obj) = &default_object_release;
-  static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
+	static void* (*object_allocator_alloc)(size_t size) = &default_object_alloc;
+	static void  (*object_allocator_release)(Object* obj) = &default_object_release;
+	static void  (*object_allocator_retain)(Object* obj) = &default_object_retain;
 
 	#if FX_MEMORY_TRACE_MARK
 
@@ -138,10 +138,9 @@ namespace ftr {
 		FX_UNREACHABLE();
 	}
 
-	void set_object_allocator(
+	void Object::set_allocator(
 		void* (*alloc)(size_t size),
-		void (*release)(Object* obj),
-		void (*retain)(Object* obj)
+		void (*release)(Object* obj), void (*retain)(Object* obj)
 	) {
 		if (alloc) {
 			object_allocator_alloc = alloc;

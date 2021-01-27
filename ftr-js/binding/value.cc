@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/str.h"
+#include "ftr-js/string.h"
 #include "ftr-js/js-1.h"
 #include "ftr-js/ftr.h"
 #include "ftr-js/value.h"

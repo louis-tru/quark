@@ -29,9 +29,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <ftr/util/error.h>
-#include <ftr/util/io/fs.h>
-#include <ftr/util/io/fs-path.h>
-#include "_uv.h"
+#include <ftr/util/fs/fs.h>
+#include <ftr/util/fs/fs-path.h>
+#include "../_uv.h"
 #include <list>
 
 namespace ftr {
@@ -168,30 +168,30 @@ namespace ftr {
 	}
 
 	bool File::is_open() {
-		return _fp;
+		return _fd;
 	}
 
 	int File::open(int flag) {
-		if ( _fp ) { // 文件已经打开
+		if ( _fd ) { // 文件已经打开
 			FX_WARN( "file already open" );
 			return 0;
 		}
 		uv_fs_t req;
-		_fp = uv_fs_open(uv_default_loop(), &req,
+		_fd = uv_fs_open(uv_default_loop(), &req,
 											Path::fallback(_path).val(),
 											inl__file_flag_mask(flag), FileHelper::default_mode, nullptr);
-		if ( _fp > 0 ) {
+		if ( _fd > 0 ) {
 			return 0;
 		}
-		return _fp;
+		return _fd;
 	}
 
 	int File::close() {
-		if ( !_fp ) return 0;
+		if ( !_fd ) return 0;
 		uv_fs_t req;
-		int r = uv_fs_close(uv_default_loop(), &req, _fp, nullptr);
+		int r = uv_fs_close(uv_default_loop(), &req, _fd, nullptr);
 		if ( r == 0 ) {
-			_fp = 0;
+			_fd = 0;
 		}
 		return r;
 	}
@@ -201,7 +201,7 @@ namespace ftr {
 		uv_buf_t buf;
 		buf.base = (char*)buffer;
 		buf.len = size;
-		return uv_fs_read(uv_default_loop(), &req, _fp, &buf, 1, offset, nullptr);
+		return uv_fs_read(uv_default_loop(), &req, _fd, &buf, 1, offset, nullptr);
 	}
 
 	int File::write(const void* buffer, int64_t size, int64_t offset) {
@@ -209,7 +209,7 @@ namespace ftr {
 		uv_buf_t buf;
 		buf.base = (char*)buffer;
 		buf.len = size;
-		return uv_fs_write(uv_default_loop(), &req, _fp, &buf, 1, offset, nullptr);
+		return uv_fs_write(uv_default_loop(), &req, _fd, &buf, 1, offset, nullptr);
 	}
 
 	// ----------------------------------- FileAsync -----------------------------------------
@@ -242,7 +242,7 @@ namespace ftr {
 		
 		Inl(AsyncFile* host, cString& path, RunLoop* loop)
 		: _path(path)
-		, _fp(0)
+		, _fd(0)
 		, _opening(false)
 		, _keep(loop->keep_alive("AsyncFile::Inl", false))
 		, _delegate(nullptr)
@@ -252,9 +252,9 @@ namespace ftr {
 		}
 		
 		virtual ~Inl() {
-			if ( _fp ) {
+			if ( _fd ) {
 				uv_fs_t req;
-				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fp, nullptr); // sync
+				int res = uv_fs_close(_keep->host()->uv_loop(), &req, _fd, nullptr); // sync
 				ASSERT( res == 0 );
 			}
 			Release(_keep); _keep = nullptr;
@@ -262,10 +262,10 @@ namespace ftr {
 		}
 		
 		inline String& path() { return _path; }
-		inline bool is_open() { return _fp; }
+		inline bool is_open() { return _fd; }
 		
 		void open(int flag) {
-			if (_fp) {
+			if (_fd) {
 				Error e(ERR_FILE_ALREADY_OPEN, "File already open");
 				async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 				return;
@@ -283,9 +283,9 @@ namespace ftr {
 		}
 		
 		void close() {
-			if (_fp) {
-				int fp = _fp;
-				_fp = 0;
+			if (_fd) {
+				int fp = _fd;
+				_fd = 0;
 				auto req = new FileReq(this);
 				uv_fs_close(uv_loop(), req->req(), fp, &AsyncFile::Inl::fs_close_cb);
 			}
@@ -300,7 +300,7 @@ namespace ftr {
 			uv_buf_t buf;
 			buf.base = *req->data().buffer;
 			buf.len = req->data().buffer.length();
-			uv_fs_read(uv_loop(), req->req(), _fp, &buf, 1, offset, &Inl::fs_read_cb);
+			uv_fs_read(uv_loop(), req->req(), _fd, &buf, 1, offset, &Inl::fs_read_cb);
 		}
 
 		void write(Buffer& buffer, int64_t offset, int mark) {
@@ -330,7 +330,7 @@ namespace ftr {
 				buf.base = req->data().buffer.value();
 				buf.len = req->data().buffer.length();
 				// LOG("write_first-- %ld", req->data().offset);
-				uv_fs_write(uv_loop(), req->req(), _fp, &buf, 1, req->data().offset, &Inl::fs_write_cb);
+				uv_fs_write(uv_loop(), req->req(), _fd, &buf, 1, req->data().offset, &Inl::fs_write_cb);
 			}
 		}
 			
@@ -353,13 +353,13 @@ namespace ftr {
 			ASSERT( req->ctx()->_opening );
 			req->ctx()->_opening = false;
 			if ( uv_req->result > 0 ) {
-				if ( req->ctx()->_fp ) {
+				if ( req->ctx()->_fd ) {
 					uv_fs_t close_req;
 					uv_fs_close(uv_req->loop, &close_req, (uv_file)uv_req->result, nullptr); // sync
 					Error err(ERR_FILE_ALREADY_OPEN, "file already open");
 					del(req)->trigger_async_file_error(host(req), err);
 				} else {
-					req->ctx()->_fp = (int)uv_req->result;
+					req->ctx()->_fd = (int)uv_req->result;
 					del(req)->trigger_async_file_open(host(req));
 				}
 			} else {
@@ -374,7 +374,7 @@ namespace ftr {
 			FileReq* req = FileReq::cast(uv_req);
 			Handle<FileReq> handle(req);
 			if ( uv_req->result == 0 ) { // ok
-				// ctx->ctx()->_fp = 0;
+				// ctx->ctx()->_fd = 0;
 				del(req)->trigger_async_file_close(host(req));
 			} else {
 				Error err((int)uv_req->result, "%s, %s",
@@ -420,7 +420,7 @@ namespace ftr {
 
 	 private:
 		String      _path;
-		int         _fp;
+		int         _fd;
 		bool        _opening;
 		KeepLoop*   _keep;
 		Delegate*   _delegate;
@@ -430,7 +430,7 @@ namespace ftr {
 
 	AsyncFile::AsyncFile(cString& path, RunLoop* loop)
 	: _inl(NewRetain<AsyncFile::Inl>(this, path, loop))
-	{ }
+	{}
 
 	AsyncFile::~AsyncFile() {
 		ASSERT(_inl->loop() == RunLoop::current());

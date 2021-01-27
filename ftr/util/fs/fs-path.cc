@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <sys/stat.h>
-#include <ftr/util/io/fs-path.h>
+#include <ftr/util/fs/fs-path.h>
 #include <vector>
 
 #if FX_WIN

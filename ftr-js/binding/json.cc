@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "json-1.h"
-#include "ftr-js/str.h"
+#include "ftr-js/string.h"
 #include "ftr-js/ftr.h"
 #include "ftr/view.h"
 

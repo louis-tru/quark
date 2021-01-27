@@ -28,13 +28,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/io/net.h>
-#include <ftr/util/str.h>
+#include <ftr/util/net/net.h>
+#include <ftr/util/string.h>
 #include <errno.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <ftr/util/io/http.h>
-#include "_uv.h"
+#include <ftr/util/net/http.h>
+#include "../_uv.h"
 
 namespace ftr {
 

@@ -30,7 +30,7 @@
 
 #include "ftr-js/js-1.h"
 #include "ftr-js/ftr.h"
-#include "ftr-js/str.h"
+#include "ftr-js/string.h"
 #include "ftr/app.h"
 #include "ftr/action.h"
 #include "ftr/css.h"
