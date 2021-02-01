@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/handle.h"
-#include "ftr/util/error.h"
-#include "ftr/util/zlib.h"
-#include "ftr/util/io/fs-path.h"
+#include "./handle.h"
+#include "./error.h"
+#include "./zlib.h"
+#include "./fs.h"
 #include <zip.h>
 #include <zlib.h>
 #include <unzip.h>

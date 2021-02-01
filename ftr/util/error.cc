@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/error.h"
-#include "ftr/util/util.h"
+#include "./error.h"
+#include "./util.h"
 //#include <algorithm>
 
 namespace ftr {

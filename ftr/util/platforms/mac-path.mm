@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/io/fs-path.h"
+#include "../fs.h"
 #include <Foundation/Foundation.h>
 #if FX_IOS
 # import <UIKit/UIKit.h>

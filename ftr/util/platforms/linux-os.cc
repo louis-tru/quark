@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
-#include "ftr/util/string.h"
-#include "ftr/util/array.h"
-#include "ftr/util/fs.h"
-#include "ftr/util/buffer.h"
+#include "../os.h"
+#include "../string.h"
+#include "../array.h"
+#include "../fs.h"
+#include "../buffer.h"
 #include <unistd.h>
 
 namespace ftr {

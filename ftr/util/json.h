@@ -31,9 +31,9 @@
 #ifndef __ftr__util__json__
 #define __ftr__util__json__
 
-#include <ftr/util/handle.h>
-#include <ftr/util/string.h>
-#include <ftr/util/error.h>
+#include "./handle.h"
+#include "./string.h"
+#include "./error.h"
 
 namespace ftr {
 

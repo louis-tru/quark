@@ -30,8 +30,8 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
-#include "ftr/util/json.h"
-#include "ftr/util/error.h"
+#include "./json.h"
+#include "./error.h"
 
 namespace ftr {
 

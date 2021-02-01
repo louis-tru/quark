@@ -31,7 +31,7 @@
 #ifndef __ftr__util__stream__
 #define __ftr__util__stream__
 
-#include <ftr/util/string.h>
+#include "./buffer.h"
 
 namespace ftr {
 
@@ -44,31 +44,31 @@ namespace ftr {
 	 /**
 	 * @class StreamResponse
 	 */
-	 class FX_EXPORT StreamResponse: public Object {
-			public:
-				inline StreamResponse(Buffer buffer, bool complete = 0
-													, uint32_t id = 0, uint64_t size = 0
-													, uint64_t total = 0, Stream* stream = nullptr)
-				: _buffer(buffer), _complete(complete)
-				, _size(size), _total(total), _id(id), _stream(stream) {
-				}
-				inline bool complete() const { return _complete; }
-				inline int64_t size() const { return _size; }
-				inline int64_t total() const { return _total; }
-				inline Buffer& buffer() { return _buffer; }
-				inline const Buffer& buffer() const { return _buffer; }
-				inline uint32_t id() const { return _id; }
-				inline Stream* stream() const { return _stream; }
-				inline void pause() { if ( _stream ) _stream->pause(); }
-				inline void resume() { if ( _stream ) _stream->resume(); }
-			private:
-				Buffer    _buffer;
-				bool      _complete;
-				int64_t   _size;
-				int64_t   _total;
-				uint32_t  _id;
-				Stream*   _stream;
-	 };
+	class FX_EXPORT StreamResponse: public Object {
+		public:
+			inline StreamResponse(Buffer buffer, bool complete = 0
+												, uint32_t id = 0, uint64_t size = 0
+												, uint64_t total = 0, Stream* stream = nullptr)
+			: _buffer(buffer), _complete(complete)
+			, _size(size), _total(total), _id(id), _stream(stream) {
+			}
+			inline bool complete() const { return _complete; }
+			inline int64_t size() const { return _size; }
+			inline int64_t total() const { return _total; }
+			inline Buffer& buffer() { return _buffer; }
+			inline const Buffer& buffer() const { return _buffer; }
+			inline uint32_t id() const { return _id; }
+			inline Stream* stream() const { return _stream; }
+			inline void pause() { if ( _stream ) _stream->pause(); }
+			inline void resume() { if ( _stream ) _stream->resume(); }
+		private:
+			Buffer    _buffer;
+			bool      _complete;
+			int64_t   _size;
+			int64_t   _total;
+			uint32_t  _id;
+			Stream*   _stream;
+	};
 
 }
 #endif

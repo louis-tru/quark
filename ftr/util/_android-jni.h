@@ -31,11 +31,11 @@
 #ifndef __ftr__util__android_jni__
 #define __ftr__util__android_jni__
 
-#include <ftr/util/macros.h>
+#include "./macros.h"
 
 #if FX_ANDROID
 
-#include <ftr/util/object.h>
+#include "./object.h"
 #include <jni.h>
 
 namespace ftr {

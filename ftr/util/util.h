@@ -39,11 +39,11 @@
 # error "The compiler does not support c++ 11"
 #endif
 
-#include <ftr/util/object.h>
-#include <ftr/util/hash.h>
-#include <ftr/util/log.h>
-#include <ftr/util/numbers.h>
-#include <ftr/util/string.h>
+#include "./object.h"
+#include "./hash.h"
+#include "./log.h"
+#include "./numbers.h"
+#include "./string.h"
 
 namespace ftr {
 	FX_EXPORT int random(uint32_t start = 0, uint32_t end = 0x7fffffff);

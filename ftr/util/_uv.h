@@ -28,13 +28,13 @@
 *
 * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__util__io___uv__
-#define __ftr__util__io___uv__
+#ifndef __ftr__util__uv__
+#define __ftr__util__uv__
 
 #include <uv.h>
-#include <ftr/util/util.h>
-#include <ftr/util/cb.h>
-#include <ftr/util/loop/loop.h>
+#include "./util.h"
+#include "./cb.h"
+#include "./loop.h"
 
 namespace ftr {
 

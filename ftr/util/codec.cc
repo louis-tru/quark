@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/error.h>
-#include <ftr/util/codec.h>
+#include "./error.h"
+#include "./codec.h"
 #include <unordered_map>
 
 namespace ftr {

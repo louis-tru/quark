@@ -31,8 +31,8 @@
 #ifndef __ftr__util__zlib__
 #define __ftr__util__zlib__
 
-#include <ftr/util/io/fs.h>
-#include <ftr/util/error.h>
+#include "./fs.h"
+#include "./error.h"
 #include <map>
 #include <vector>
 

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "ftr/util/os.h"
-#import "ftr/util/string.h"
-#import "ftr/util/array.h"
+#import "../../os.h"
+#import "../string.h"
+#import "../array.h"
 #import <Foundation/Foundation.h>
 #if FX_IOS
 # import <UIKit/UIKit.h>

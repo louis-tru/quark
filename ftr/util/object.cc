@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/object.h>
+#include "./object.h"
 #include <vector>
 
 namespace ftr {

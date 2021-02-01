@@ -31,7 +31,7 @@
 #ifndef __ftr__util__object__
 #define __ftr__util__object__
 
-#include <ftr/util/macros.h>
+#include "./macros.h"
 #include <atomic>
 
 #ifndef FX_MEMORY_TRACE_MARK

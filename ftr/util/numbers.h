@@ -31,7 +31,7 @@
 #ifndef __ftr__util__numbers__
 #define __ftr__util__numbers__
 
-#include <ftr/util/object.h>
+#include "./object.h"
 
 namespace ftr {
 

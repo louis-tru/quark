@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/numbers.h>
+#include "./numbers.h"
 #include <limits>
 
 namespace ftr {

@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "property.h"
+#include "./_property.h"
 #include "view.h"
 #include "box.h"
 #include "div.h"

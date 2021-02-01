@@ -28,9 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "util.h"
-#include "../handle.h"
-#include "_uv.h"
+#include "./handle.h"
+#include "./_uv.h"
 #include <unordered_map>
 
 namespace ftr {

@@ -31,8 +31,8 @@
 #ifndef __ftr__util__error__
 #define __ftr__util__error__
 
-#include <ftr/util/string.h>
-#include <ftr/util/errno.h>
+#include "./string.h"
+#include "./errno.h"
 
 #if !FX_EXCEPTIONS_SUPPORT
 	#error Exceptions must be turned on

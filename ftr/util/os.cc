@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/os.h"
-#include "ftr/util/io/fs.h"
+#include "./os.h"
+#include "./fs.h"
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
@@ -41,7 +41,7 @@
 #endif
 
 #if FX_ANDROID
-# include <android/android.h>
+# include "../../android.h"
 #endif
 
 #if FX_APPLE

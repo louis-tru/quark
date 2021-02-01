@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/hash.h>
+#include "./hash.h"
 
 namespace ftr {
 

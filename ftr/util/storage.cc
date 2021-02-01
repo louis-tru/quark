@@ -28,9 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/storage.h"
-#include "ftr/util/io/fs.h"
-#include "ftr/util/io/fs-path.h"
+#include "./storage.h"
+#include "./fs.h"
 #include <bplus.h>
 
 namespace ftr {

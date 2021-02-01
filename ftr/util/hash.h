@@ -31,8 +31,8 @@
 #ifndef __ftr__util__hash__
 #define __ftr__util__hash__
 
-#include <ftr/util/object.h>
-#include <ftr/util/string.h>
+#include "./object.h"
+#include "./string.h"
 
 namespace ftr {
 

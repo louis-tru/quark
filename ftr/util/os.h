@@ -31,8 +31,8 @@
 #ifndef __ftr__utils__os__
 #define __ftr__utils__os__
 
-#include <ftr/util/util.h>
-#include <ftr/util/object.h>
+#include "./util.h"
+#include "./object.h"
 
 namespace ftr {
 	namespace os {

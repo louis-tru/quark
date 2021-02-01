@@ -31,8 +31,8 @@
 #ifndef __ftr__util__codec__
 #define __ftr__util__codec__
 
-#include <ftr/util/util.h>
-#include <ftr/util/string.h>
+#include "./util.h"
+#include "./string.h"
 
 namespace ftr {
 

@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <linux/limits.h>
 #include <sys/utsname.h>
-#include "ftr/util/fs.h"
+#include "../fs.h"
 
 namespace ftr {
 

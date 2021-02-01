@@ -29,49 +29,47 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <unistd.h>
-#include "ftr/util/fs.h"
-#include "ftr/util/android-jni.h"
-#include "android/android.h"
-
-using namespace ftr;
+#include "../fs.h"
+#include "../_android-jni.h"
+#include "../../../android/android.h"
 
 namespace ftr {
 
-String Path::executable() {
-	static cString path([]() -> String { 
-		char dir[PATH_MAX] = { 0 };
-		int n = readlink("/proc/self/exe", dir, PATH_MAX);
-		return Path::format("%s", dir);
-	}());
-	return path;
-}
-
-String Path::documents(cString& child) {
-	static String path(Path::format("%s", *Android::files_dir_path()));
-	if ( child.is_empty() ) {
+	String Path::executable() {
+		static cString path([]() -> String { 
+			char dir[PATH_MAX] = { 0 };
+			int n = readlink("/proc/self/exe", dir, PATH_MAX);
+			return Path::format("%s", dir);
+		}());
 		return path;
 	}
-	return Path::format("%s/%s", *path, *child);
-}
 
-String Path::temp(cString& child) {
-	static String path(Path::format("%s", *Android::cache_dir_path()));
-	if ( child.is_empty() ) {
-		return path;
+	String Path::documents(cString& child) {
+		static String path(Path::format("%s", *Android::files_dir_path()));
+		if ( child.is_empty() ) {
+			return path;
+		}
+		return Path::format("%s/%s", *path, *child);
 	}
-	return Path::format("%s/%s", *path, *child);
-}
 
-/**
- * Get the resoures dir
- */
-String Path::resources(cString& child) {
-	static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
-	if ( child.is_empty() ) {
-		return path;
+	String Path::temp(cString& child) {
+		static String path(Path::format("%s", *Android::cache_dir_path()));
+		if ( child.is_empty() ) {
+			return path;
+		}
+		return Path::format("%s/%s", *path, *child);
 	}
-	return Path::format("%s/%s", *path, *child);
-}
+
+	/**
+	* Get the resoures dir
+	*/
+	String Path::resources(cString& child) {
+		static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
+		if ( child.is_empty() ) {
+			return path;
+		}
+		return Path::format("%s/%s", *path, *child);
+	}
 
 }
 

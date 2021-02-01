@@ -28,50 +28,51 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
-#include "android/android.h"
+#include "../../os.h"
+#include "../../../android/android.h"
 
 namespace ftr {
-FX_NS(os)
+	namespace os {
 
-String version() {
-	return Android::version();
+		String version() {
+			return Android::version();
+		}
+
+		String brand() {
+			return Android::brand();
+		}
+
+		String subsystem() {
+			return Android::subsystem();
+		}
+
+		int network_status() {
+			return Android::network_status();
+		}
+
+		bool is_ac_power() {
+			return Android::is_ac_power();
+		}
+
+		bool is_battery() {
+			return Android::is_battery();
+		}
+
+		float battery_level() {
+			return Android::battery_level();
+		}
+
+		uint64_t memory() {
+			return Android::memory();
+		}
+
+		uint64_t used_memory() {
+			return Android::used_memory();
+		}
+
+		uint64_t available_memory() {
+			return Android::available_memory();
+		}
+
+	}
 }
-
-String brand() {
-	return Android::brand();
-}
-
-String subsystem() {
-	return Android::subsystem();
-}
-
-int network_status() {
-	return Android::network_status();
-}
-
-bool is_ac_power() {
-	return Android::is_ac_power();
-}
-
-bool is_battery() {
-	return Android::is_battery();
-}
-
-float battery_level() {
-	return Android::battery_level();
-}
-
-uint64_t memory() {
-	return Android::memory();
-}
-
-uint64_t used_memory() {
-	return Android::used_memory();
-}
-
-uint64_t available_memory() {
-	return Android::available_memory();
-}
-
-} }

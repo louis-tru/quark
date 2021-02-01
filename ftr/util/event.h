@@ -31,8 +31,8 @@
 #ifndef __ftr__util__event__
 #define __ftr__util__event__
 
-#include <ftr/util/util.h>
-#include <ftr/util/error.h>
+#include "./util.h"
+#include "./error.h"
 #include <unordered_map>
 #include <list>
 #include <functional>

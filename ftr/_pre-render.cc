@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "pre-render.h"
-#include "draw.h"
-#include "div.h"
-#include "css.h"
+#include "./pre-render.h"
+#include "./draw.h"
+#include "./div.h"
+#include "./css.h"
 
 namespace ftr {
 

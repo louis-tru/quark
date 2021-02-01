@@ -31,9 +31,9 @@
 #ifndef __ftr__pre_render__
 #define __ftr__pre_render__
 
-#include "ftr/util/util.h"
-#include "ftr/util/array.h"
-#include "ftr/util/list.h"
+#include "./util/util.h"
+#include "./util/array.h"
+#include "./util/list.h"
 
 /**
  * @ns ftr

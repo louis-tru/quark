@@ -31,7 +31,7 @@
 #ifndef __ftr__util__handle__
 #define __ftr__util__handle__
 
-#include <ftr/util/object.h>
+#include "./object.h"
 #include <functional>
 
 namespace ftr {

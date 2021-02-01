@@ -31,10 +31,9 @@
 #ifndef __ftr__util__cb__
 #define __ftr__util__cb__
 
-#include <ftr/util/util.h>
-#include <ftr/util/error.h>
-#include <ftr/util/string.h>
-#include <ftr/util/handle.h>
+#include "./util.h"
+#include "./error.h"
+#include "./handle.h"
 #include <functional>
 
 namespace ftr {

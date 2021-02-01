@@ -31,7 +31,7 @@
 #ifndef __ftr__util__android_log__
 #define __ftr__util__android_log__
 
-#include <ftr/util/log.h>
+#include "./log.h"
 
 #if FX_ANDROID
 

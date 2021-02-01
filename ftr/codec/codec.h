@@ -46,124 +46,124 @@ namespace ftr {
 	class FX_EXPORT PixelData: public Object {
 		public:
 
-		enum Format: uint64 {
-			PVRTCI_2BPP_RGB = 0,
-			PVRTCI_2BPP_RGBA,
-			PVRTCI_4BPP_RGB,
-			PVRTCI_4BPP_RGBA,
-			PVRTCII_2BPP,
-			PVRTCII_4BPP,
-			ETC1,
-			DXT1,
-			DXT2,
-			DXT3,
-			DXT4,
-			DXT5,
+			enum Format: uint64 {
+				PVRTCI_2BPP_RGB = 0,
+				PVRTCI_2BPP_RGBA,
+				PVRTCI_4BPP_RGB,
+				PVRTCI_4BPP_RGBA,
+				PVRTCII_2BPP,
+				PVRTCII_4BPP,
+				ETC1,
+				DXT1,
+				DXT2,
+				DXT3,
+				DXT4,
+				DXT5,
+				
+				//These formats are identical to some DXT formats.
+				BC1 = DXT1,
+				BC2 = DXT3,
+				BC3 = DXT5,
+				
+				//These are currently unsupported:
+				BC4,
+				BC5,
+				BC6,
+				BC7,
+				
+				//These are supported
+				UYVY,
+				YUY2,
+				YUV420P,
+				YUV420SP,
+				YUV411P,
+				YUV411SP,
+				BW1BPP,
+				SharedExponentR9G9B9E5,
+				RGBG8888,
+				GRGB8888,
+				ETC2_RGB,
+				ETC2_RGBA,
+				ETC2_RGB_A1,
+				EAC_R11,
+				EAC_RG11,
+				
+				//Invalid value
+				NumCompressedPFs,
+				
+				//
+				RGBA8888            = 100001,
+				RGBX8888            = 100002,
+				RGB888              = 100003,
+				RGB565              = 100004,
+				RGBA5551            = 100005,
+				RGBA4444            = 100006,
+				RGBX4444            = 100007,
+				ALPHA8              = 100008,
+				LUMINANCE8          = 100009,
+				LUMINANCE_ALPHA88   = 100010,
+				INVALID             = 200000
+			};
 			
-			//These formats are identical to some DXT formats.
-			BC1 = DXT1,
-			BC2 = DXT3,
-			BC3 = DXT5,
+			PixelData();
+			PixelData(cPixelData& data);
+			PixelData(PixelData&& data);
+			PixelData(Format format);
+			PixelData(Buffer body, int width, int height,
+								Format format, bool is_premultiplied_alpha = false);
+			PixelData(WeakBuffer body, int width, int height,
+								Format format, bool is_premultiplied_alpha = false);
+			PixelData(const Array<WeakBuffer>& body, int width, int height,
+								Format format, bool is_premultiplied_alpha = false);
 			
-			//These are currently unsupported:
-			BC4,
-			BC5,
-			BC6,
-			BC7,
+			/**
+			* @func body 图像数据主体
+			*/
+			inline cWeakBuffer& body(uint index = 0) const { return _body[index]; }
 			
-			//These are supported
-			UYVY,
-			YUY2,
-			YUV420P,
-			YUV420SP,
-			YUV411P,
-			YUV411SP,
-			BW1BPP,
-			SharedExponentR9G9B9E5,
-			RGBG8888,
-			GRGB8888,
-			ETC2_RGB,
-			ETC2_RGBA,
-			ETC2_RGB_A1,
-			EAC_R11,
-			EAC_RG11,
+			/**
+			* @func body_count
+			* */
+			inline uint32_t body_count() const { return _body.length(); }
 			
-			//Invalid value
-			NumCompressedPFs,
+			/**
+			* @func width 图像宽度
+			*/
+			inline int width() const { return _width; }
 			
-			//
-			RGBA8888            = 100001,
-			RGBX8888            = 100002,
-			RGB888              = 100003,
-			RGB565              = 100004,
-			RGBA5551            = 100005,
-			RGBA4444            = 100006,
-			RGBX4444            = 100007,
-			ALPHA8              = 100008,
-			LUMINANCE8          = 100009,
-			LUMINANCE_ALPHA88   = 100010,
-			INVALID             = 200000
-		};
-		
-		PixelData();
-		PixelData(cPixelData& data);
-		PixelData(PixelData&& data);
-		PixelData(Format format);
-		PixelData(Buffer body, int width, int height,
-							Format format, bool is_premultiplied_alpha = false);
-		PixelData(WeakBuffer body, int width, int height,
-							Format format, bool is_premultiplied_alpha = false);
-		PixelData(const Array<WeakBuffer>& body, int width, int height,
-							Format format, bool is_premultiplied_alpha = false);
-		
-		/**
-		* @func body 图像数据主体
-		*/
-		inline cWeakBuffer& body(uint index = 0) const { return _body[index]; }
-		
-		/**
-		* @func body_count
-		* */
-		inline uint body_count() const { return _body.length(); }
-		
-		/**
-		* @func width 图像宽度
-		*/
-		inline int width() const { return _width; };
-		
-		/**
-		* @func height 图像高度
-		*/
-		inline int height() const { return _height; };
-		
-		/**
-		* @func format 图像像素的排列格式
-		*/
-		inline Format format() const { return _format; };
-		
-		/**
-		* @func is_premultiplied_alpha 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
-		*/
-		inline bool is_premultiplied_alpha() const { return _is_premultiplied_alpha; };
-		
-		/**
-		* @func is_compressd_format
-		*/
-		static bool is_compressd_format(Format format);
-		
-		/**
-		* @func get_pixel_data_size
-		*/
-		static uint get_pixel_data_size(Format format);
+			/**
+			* @func height 图像高度
+			*/
+			inline int height() const { return _height; }
+			
+			/**
+			* @func format 图像像素的排列格式
+			*/
+			inline Format format() const { return _format; }
+			
+			/**
+			* @func is_premultiplied_alpha 图像数据是否对通道信息进行了预先处理,存在alpha通道才有效.
+			*/
+			inline bool is_premultiplied_alpha() const { return _is_premultiplied_alpha; }
+			
+			/**
+			* @func is_compressd_format
+			*/
+			static bool is_compressd_format(Format format);
+			
+			/**
+			* @func get_pixel_data_size
+			*/
+			static uint get_pixel_data_size(Format format);
 		
 		private:
-		
-		Buffer              _data;
-		int                 _width;
-		int                 _height;
-		Array<WeakBuffer>   _body;
-		Format              _format;
-		bool                _is_premultiplied_alpha;
+			
+			Buffer              _data;
+			int                 _width;
+			int                 _height;
+			Array<WeakBuffer>   _body;
+			Format              _format;
+			bool                _is_premultiplied_alpha;
 	};
 
 	/**
@@ -171,47 +171,47 @@ namespace ftr {
 	*/
 	class FX_EXPORT ImageCodec: public Object {
 		public:
-		
-		enum ImageFormat {
-			Unknown = 0,
-			TGA,
-			JPEG,
-			GIF,
-			PNG,
-			WEBP,
-			PVRTC,
-		};
-		
-		/**
-		* 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
-		* @func decode
-		* @arg data {const Buffer&}
-		* @ret {Array<PixelData>}
-		*/
-		virtual Array<PixelData> decode(const Buffer& data) = 0;
-		
-		/**
-		* @func decode_header
-		* 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
-		* 如果当前只需要知道图像的附加信息可调用该函数,
-		* 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
-		*/
-		virtual PixelData decode_header(const Buffer& data) = 0;
-		
-		/**
-		* @func encode 编码图像数据
-		*/
-		virtual Buffer encode(cPixelData& data) = 0;
-		
-		/**
-		* @func get_image_format 通过路径获取图片类型
-		*/
-		static ImageFormat get_image_format(cString& path);
-		
-		/**
-		* @func create # 通过格式创建图像解析器
-		*/
-		static ImageCodec* shared(ImageFormat format);
+			
+			enum ImageFormat {
+				Unknown = 0,
+				TGA,
+				JPEG,
+				GIF,
+				PNG,
+				WEBP,
+				PVRTC,
+			};
+			
+			/**
+			* 解码图像为GPU可读取的格式如:RGBA8888/RGBA4444/ETC1/ETC2_RGB/ETC2_RGBA...,并返回mipmap列表
+			* @func decode
+			* @arg data {const Buffer&}
+			* @ret {Array<PixelData>}
+			*/
+			virtual Array<PixelData> decode(const Buffer& data) = 0;
+			
+			/**
+			* @func decode_header
+			* 只解码头信息,返回除主体数据以外的描述数据 width、height、format、
+			* 如果当前只需要知道图像的附加信息可调用该函数,
+			* 因为解码像 jpg、png 这种复杂压缩图像格式是很耗时间的.
+			*/
+			virtual PixelData decode_header(const Buffer& data) = 0;
+			
+			/**
+			* @func encode 编码图像数据
+			*/
+			virtual Buffer encode(cPixelData& data) = 0;
+			
+			/**
+			* @func get_image_format 通过路径获取图片类型
+			*/
+			static ImageFormat get_image_format(cString& path);
+			
+			/**
+			* @func create # 通过格式创建图像解析器
+			*/
+			static ImageCodec* shared(ImageFormat format);
 		
 	};
 
@@ -220,10 +220,10 @@ namespace ftr {
 	*/
 	class FX_EXPORT TGAImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(const Buffer& data);
-		virtual PixelData decode_header(const Buffer& data);
-		virtual Buffer encode(cPixelData& data);
-		friend class _Inl; class _Inl;
+			virtual Array<PixelData> decode(const Buffer& data);
+			virtual PixelData decode_header(const Buffer& data);
+			virtual Buffer encode(cPixelData& data);
+			friend class _Inl; class _Inl;
 	};
 
 	/**
@@ -231,9 +231,9 @@ namespace ftr {
 	*/
 	class FX_EXPORT JPEGImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(const Buffer& data);
-		virtual PixelData decode_header(const Buffer& data);
-		virtual Buffer encode(cPixelData& data);
+			virtual Array<PixelData> decode(const Buffer& data);
+			virtual PixelData decode_header(const Buffer& data);
+			virtual Buffer encode(cPixelData& data);
 	};
 
 	/**
@@ -251,9 +251,9 @@ namespace ftr {
 	*/
 	class FX_EXPORT PNGImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(const Buffer& data);
-		virtual PixelData decode_header(const Buffer& data);
-		virtual Buffer encode(cPixelData& data);
+			virtual Array<PixelData> decode(const Buffer& data);
+			virtual PixelData decode_header(const Buffer& data);
+			virtual Buffer encode(cPixelData& data);
 	};
 
 	/**
@@ -261,9 +261,9 @@ namespace ftr {
 	*/
 	class FX_EXPORT WEBPImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(const Buffer& data);
-		virtual PixelData decode_header(const Buffer& data);
-		virtual Buffer encode(cPixelData& data);
+			virtual Array<PixelData> decode(const Buffer& data);
+			virtual PixelData decode_header(const Buffer& data);
+			virtual Buffer encode(cPixelData& data);
 	};
 
 	/**
@@ -276,10 +276,10 @@ namespace ftr {
 	*/
 	class FX_EXPORT PVRTCImageCodec: public ImageCodec {
 		public:
-		virtual Array<PixelData> decode(const Buffer& data);
-		virtual PixelData decode_header(const Buffer& data);
-		virtual Buffer encode(cPixelData& data);
-		FX_DEFINE_INLINE_CLASS(_Inl);
+			virtual Array<PixelData> decode(const Buffer& data);
+			virtual PixelData decode_header(const Buffer& data);
+			virtual Buffer encode(cPixelData& data);
+			FX_DEFINE_INLINE_CLASS(_Inl);
 	};
 
 }

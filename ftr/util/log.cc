@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/log.h>
-#include <ftr/util/error.h>
-#include <ftr/util/codec.h>
+#include "./log.h"
+#include "./error.h"
+#include "./codec.h"
 #include <stdio.h>
 #include <algorithm>
 

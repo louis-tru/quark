@@ -32,11 +32,11 @@
 #ifndef __ftr__util__storage__
 #define __ftr__util__storage__
 
-#include <ftr/util/cb.h>
-#include <ftr/util/util.h>
+#include "./cb.h"
+#include "./util.h"
 
 namespace ftr {
-	FX_EXPORT SString storage_get(cString& name);
+	FX_EXPORT String  storage_get(cString& name);
 	FX_EXPORT void    storage_set(cString& name, cString& value);
 	FX_EXPORT void    storage_delete(cString& name);
 	FX_EXPORT void    storage_clear();

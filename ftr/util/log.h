@@ -31,8 +31,8 @@
 #ifndef __ftr__util__log__
 #define __ftr__util__log__
 
-#include <ftr/util/macros.h>
-#include <ftr/util/string.h>
+#include "./macros.h"
+#include "./string.h"
 
 namespace ftr {
 

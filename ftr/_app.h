@@ -31,7 +31,7 @@
 #ifndef __ftr__gui_app_1__
 #define __ftr__gui_app_1__
 
-#include "app.h"
+#include "./app.h"
 
 /**
  * @ns ftr
