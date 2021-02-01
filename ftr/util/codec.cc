@@ -883,7 +883,7 @@ namespace ftr {
 	 */
 	Encoding Codec::parse_encoding(cString& en) {
 		static const std::unordered_map<String, Encoding> encodings(init_parse_encoding());
-		SString encoding = en.to_lower_case();
+		String encoding = en.to_lower_case();
 		
 		auto i = encodings.find(en.to_lower_case());
 		if (i != encodings.end()) {
@@ -908,42 +908,42 @@ namespace ftr {
 	/**
 	 * @func encoding
 	 */
-	SString Codec::encoding(Encoding target_en, cString& source) {
+	Buffer Codec::encoding(Encoding target_en, cBuffer& source) {
 		return encoding_with_byte_(target_en, *source, source.length());
 	}
 
 	/**
 	 * @func encoding
 	 */
-	SString Codec::encoding(Encoding target_en, cString16& source) {
+	Buffer Codec::encoding(Encoding target_en, const ArrayBuffer<uint16_t>& source) {
 		return encoding_with_uint16_t_(target_en, *source, source.length());
 	}
 
 	/**
 	 * @func encoding
 	 */
-	SString Codec::encoding(Encoding target_en, cString32& source) {
+	Buffer Codec::encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source) {
 		return encoding_with_uint32_t_(target_en, *source, source.length());
 	}
 
 	/**
 	 * @func decoding_to_byte
 	 */
-	SString Codec::decoding_to_byte(Encoding source_en, cString& source) {
+	Buffer Codec::decoding_to_byte(Encoding source_en, cString& source) {
 		return decoding_to_byte_(source_en, *source, source.length());
 	}
 
 	/**
 	 * @func decoding_to_uint16_t 
 	 */
-	SString16 Codec::decoding_to_uint16_t(Encoding source_en, cString& source) {
+	ArrayBuffer<uint16_t> Codec::decoding_to_uint16_t(Encoding source_en, cString& source) {
 		return decoding_to_uint16_t_(source_en, *source, source.length());
 	}
 
 	/**
 	 * @func decoding_to_uint32_t
 	 */
-	SString32 Codec::decoding_to_uint32_t(Encoding source_en, cString& source) {
+	ArrayBuffer<uint32_t> Codec::decoding_to_uint32_t(Encoding source_en, cString& source) {
 		return decoding_to_uint32_t_(source_en, *source, source.length());
 	}
 

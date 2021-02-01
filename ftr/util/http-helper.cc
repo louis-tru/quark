@@ -36,8 +36,8 @@
 
 namespace ftr {
 
-	static SString http_cache_path = String();
-	static SString http_user_agent = "Mozilla/5.0 ftr/util/" FTR_VERSION " (KHTML, like Gecko)";
+	static String http_cache_path = String();
+	static String http_user_agent = "Mozilla/5.0 ftr/util/" FTR_VERSION " (KHTML, like Gecko)";
 
 	String inl__get_http_user_agent() {
 		return http_user_agent;

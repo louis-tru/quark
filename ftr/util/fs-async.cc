@@ -72,8 +72,8 @@ private:
 	RunLoop* _loop;
 };
 
-typedef AsyncReqNonCtx<uv_fs_t, SString> FileReq;
-typedef AsyncReqNonCtx<uv_fs_t, SString, std::vector<Dirent>> FileLsReq;
+typedef AsyncReqNonCtx<uv_fs_t, String> FileReq;
+typedef AsyncReqNonCtx<uv_fs_t, String, std::vector<Dirent>> FileLsReq;
 
 static Error uv_error(uv_fs_t* req, cChar* msg = nullptr) {
 	return Error((int)req->result, "%s, %s, %s",
@@ -478,7 +478,7 @@ uint32_t FileHelper::chmod_r(cString& path, uint32_t mode, Cb cb) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain(); // chmod2 回调前都保持each不被释放
 		const Dirent& dirent = each->dirent();
-		SString pathname = dirent.pathname;
+		String pathname = dirent.pathname;
 		chmod2(dirent.pathname, mode, Cb([each, cb, pathname](Cbd& evt) {
 			Handle<AsyncEach> handle(each);
 			each->release();

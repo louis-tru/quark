@@ -59,7 +59,7 @@
 #define FX_STRING_FORMAT(format, str) \
 	va_list __arg; \
 	va_start(__arg, format); \
-	SString str = internal::string_format(format, __arg); \
+	String str = internal::string_format(format, __arg); \
 	va_end(__arg)
 
 namespace ftr {
@@ -100,7 +100,7 @@ namespace ftr {
 	}
 
 	namespace internal {
-		SString string_format(cChar* f, va_list arg);
+		String string_format(cChar* f, va_list arg);
 	}
 
 	namespace console {

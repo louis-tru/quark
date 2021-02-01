@@ -42,7 +42,7 @@
 namespace ftr {
 
 	namespace internal {
-		SString string_format(cChar* f, va_list arg);
+		String string_format(cChar* f, va_list arg);
 	}
 
 	// Path implementation
@@ -162,7 +162,7 @@ namespace ftr {
 		return false;
 	}
 
-	SString inl_format_part_path(cString& path) {
+	String inl_format_part_path(cString& path) {
 		
 		std::vector<String> ls = path.split("/");
 		std::vector<String> rev;
@@ -182,7 +182,7 @@ namespace ftr {
 			}
 		}
 		
-		SString s;
+		String s;
 		
 		if (rev.size()) {
 			// reverse
@@ -194,15 +194,15 @@ namespace ftr {
 		return s;
 	}
 
-	SString Path::format(cString& path) {
+	String Path::format(cString& path) {
 		
-		SString s = path.copy();
+		String s = path.copy();
 		
 		#if FX_WIN
 			// TODO wondows ...
 			s = path.replace_all('\\', '/');
 			
-			SString prefix;
+			String prefix;
 			
 			if (s[0] == '/') { // absolute path
 				// add windows drive letter
@@ -257,7 +257,7 @@ namespace ftr {
 				}
 			}
 		#else
-			SString prefix = "file:///";
+			String prefix = "file:///";
 			if (s[0] == '/') { // absolute path
 				//
 			} else {
@@ -278,10 +278,10 @@ namespace ftr {
 		return prefix.push( s );
 	}
 
-	SString Path::format(cChar* path, ...) {
+	String Path::format(cChar* path, ...) {
 		va_list arg;
 		va_start(arg, path);
-		SString str = internal::string_format(path, arg);
+		String str = internal::string_format(path, arg);
 		va_end(arg);
 		return format(str);
 	}

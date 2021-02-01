@@ -215,8 +215,8 @@ namespace ftr {
 		
 		void add_dir_info_item(cString& pathname, FileType type) {
 			
-			SString dirname = Path::dirname(pathname);
-			SString compatible_path = _compatible_path + "/" + pathname;
+			String dirname = Path::dirname(pathname);
+			String compatible_path = _compatible_path + "/" + pathname;
 			
 			if ( dirname.is_null() ) {
 				Dirent dir(pathname, compatible_path, type);

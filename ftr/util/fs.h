@@ -136,8 +136,8 @@ namespace ftr {
 			inline Dirent(cString& n, cString& p, FileType t)
 				: name(n.copy()), pathname(p.copy()), type(t) {
 			}
-			SString name;
-			SString pathname;
+			String name;
+			String pathname;
 			FileType type;
 	};
 
@@ -307,19 +307,19 @@ namespace ftr {
 			* @func documents_dir # Get the documents dir.
 			* @ret {cString&} # The path that can be write/read a file in
 			*/
-			static SString documents(cString& child = String());
+			static String documents(cString& child = String());
 			
 			/**
 			* @func temp_dir # Get the temp dir.
 			* @ret {cString&} # The path that can be write/read a file in
 			*/
-			static SString temp(cString& child = String());
+			static String temp(cString& child = String());
 			
 			/**
 			* @func resources_dir # Get the resoures dir
 			* @ret {cString&}
 			*/
-			static SString resources(cString& child = String());
+			static String resources(cString& child = String());
 			
 			/**
 			* @func is_absolute # Is absolute path
@@ -343,12 +343,12 @@ namespace ftr {
 			* @arg [...] {cChar*}
 			* @ret {String}
 			*/
-			static SString format(cChar* path, ...);
+			static String format(cChar* path, ...);
 			
 			/**
 			* @func format
 			*/
-			static SString format(cString& path);
+			static String format(cString& path);
 			
 			/**
 			* @func fallback

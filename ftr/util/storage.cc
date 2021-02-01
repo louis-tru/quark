@@ -40,7 +40,7 @@ namespace ftr {
 	static bp_db_t* _storage_db = nullptr;
 	static int64_t _has_initialize = 0;
 
-	static SString get_db_filename() {
+	static String get_db_filename() {
 		return Path::temp(".storage.bp");
 	}
 
@@ -62,9 +62,9 @@ namespace ftr {
 		}
 	}
 
-	SString storage_get(cString& name) {
+	String storage_get(cString& name) {
 		storage_open();
-		SString result;
+		String result;
 		if ( _db ) {
 			bp_key_t key = { name.length(), (Char*)name.val() };
 			bp_key_t val;

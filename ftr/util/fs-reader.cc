@@ -343,7 +343,7 @@ namespace ftr {
 		
 	 private:
 		Mutex zip_mutex_;
-		std::unordered_map<SString, ZipReader*> zips_;
+		std::unordered_map<String, ZipReader*> zips_;
 	};
 
 	FileReader::FileReader(): _core(new Core()) { }

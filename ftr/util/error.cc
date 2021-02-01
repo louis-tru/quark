@@ -35,7 +35,7 @@
 namespace ftr {
 
 	namespace internal {
-		SString string_format(cChar* f, va_list arg);
+		String string_format(cChar* f, va_list arg);
 	}
 
 	Error::Error(const Error& e)

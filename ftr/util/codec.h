@@ -32,7 +32,7 @@
 #define __ftr__util__codec__
 
 #include "./util.h"
-#include "./string.h"
+#include "./buffer.h"
 
 namespace ftr {
 
@@ -82,32 +82,32 @@ namespace ftr {
 			/**
 			* @func encoding
 			*/
-			static SString encoding(Encoding target_en, cString& source);
+			static Buffer encoding(Encoding target_en, cBuffer& source);
 			
 			/**
 			* @func encoding
 			*/
-			static SString encoding(Encoding target_en, cString16& source);
+			static Buffer encoding(Encoding target_en, const ArrayBuffer<uint16_t>& source);
 			
 			/**
 			* @func encoding
 			*/
-			static SString encoding(Encoding target_en, cString32& source);
+			static Buffer encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source);
 			
 			/**
 			* @func decoding_to_byte
 			*/
-			static SString decoding_to_byte(Encoding source_en, cString& source);
+			static Buffer decoding_to_byte(Encoding source_en, cString& source);
 			
 			/**
 			* @func decoding_to_uint16_t 
 			*/
-			static SString16 decoding_to_uint16_t (Encoding source_en, cString& source);
+			static ArrayBuffer<uint16_t> decoding_to_uint16_t (Encoding source_en, cString& source);
 			
 			/**
 			* @func decoding_to_uint32_t
 			*/
-			static SString32 decoding_to_uint32_t(Encoding source_en, cString& source);
+			static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, cString& source);
 	};
 
 	typedef Codec Coder;

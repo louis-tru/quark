@@ -61,7 +61,7 @@ namespace ftr {
 			int    code() const throw();
 		private:
 			int     _code;
-			SString _message;
+			String _message;
 	};
 
 	typedef const Error cError;

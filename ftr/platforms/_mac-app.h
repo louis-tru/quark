@@ -48,7 +48,7 @@
 
 @interface ApplicationDelegate: UIResponder<UIApplicationDelegate>
 @property (assign, nonatomic, readonly) ftr::GUIApplication* app;
-+ (void)set_application_delegate:(NSString*)name;
++ (void)set_application_delegate:(NString*)name;
 - (UIWindow*)window;
 @end
 

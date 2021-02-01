@@ -657,4 +657,14 @@ namespace ftr {
 	}
 
 }
+
+namespace std {
+	template<typename T, typename A>
+	struct hash<ftr::ArrayString<T, M, A>> {
+		size_t operator()(const ftr::ArrayString<T, A>& val) const {
+			return val.hash_code();
+		}
+	};
+}
+
 #endif

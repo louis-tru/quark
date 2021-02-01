@@ -105,12 +105,12 @@ namespace ftr {
 		}
 
 		#if FX_UNIX
-			static SString* info_str = nullptr;
+			static String* info_str = nullptr;
 
 			String info() {
 				
 				if (!info_str) {
-					info_str = new SString();
+					info_str = new String();
 					static struct utsname uts;
 					static Char name[256];
 					gethostname(name, 255);
@@ -148,8 +148,8 @@ namespace ftr {
 			}
 
 			struct language_t {
-				SString langs;
-				SString lang;
+				String langs;
+				String lang;
 			};
 
 		#if FX_APPLE

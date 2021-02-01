@@ -102,7 +102,7 @@ namespace ftr {
 			virtual int write(const void* buffer, int64_t size, int64_t offset = -1);
 			
 		private:
-			SString _path;
+			String _path;
 			void*  _gzfp;
 	};
 
@@ -220,9 +220,9 @@ namespace ftr {
 		
 		private:
 
-			SString _path;   // Zip file path
-			SString _compatible_path; // zip:///var/data/test.zip?
-			SString _passwd;
+			String _path;   // Zip file path
+			String _compatible_path; // zip:///var/data/test.zip?
+			String _passwd;
 			
 			struct _unz_file_pos {
 				size_t pos_in_zip_directory;   /* offset in zip file directory */
@@ -231,13 +231,13 @@ namespace ftr {
 			
 			struct unz_entry_info {
 				_unz_file_pos  pos;
-				SString  pathname;
+				String  pathname;
 				uint32_t  compressed_size;
 				uint32_t  uncompressed_size;
 			};
 			
-			typedef std::map<SString, unz_entry_info> Info;
-			typedef std::map<SString, std::vector<Dirent>> DirInfo;
+			typedef std::map<String, unz_entry_info> Info;
+			typedef std::map<String, std::vector<Dirent>> DirInfo;
 			typedef Info::iterator iterator;
 			
 			void*     _unzp;
@@ -351,8 +351,8 @@ namespace ftr {
 		
 			bool close_current_file();
 			
-			SString   _path;   // Zip file path
-			SString   _passwd;
+			String   _path;   // Zip file path
+			String   _passwd;
 			OpenMode  _open_mode;
 			int       _level; // compression level
 			void*     _zipp;

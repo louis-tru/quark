@@ -630,7 +630,7 @@ namespace ftr {
 		return -1;
 	}
 
-	SString gmt_time_string(int64_t second) {
+	String gmt_time_string(int64_t second) {
 		time_t t = second;
 		struct tm tm;
 		memcpy(&tm, gmtime(&t), sizeof(struct tm));
@@ -650,7 +650,7 @@ namespace ftr {
 			int tm_isdst;           //夏令时标志
 		};*/
 		
-    SString r = String::format("%s, %d%d %s %d %d%d:%d%d:%d%d GMT"
+    String r = String::format("%s, %d%d %s %d %d%d:%d%d:%d%d GMT"
 		 , wkday2[tm.tm_wday]
 		 , tm.tm_mday / 10, tm.tm_mday % 10
 		 , month[tm.tm_mon]

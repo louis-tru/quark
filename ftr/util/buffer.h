@@ -112,8 +112,10 @@ namespace ftr {
 				ASSERT(index < _length, "ArrayBuffer access violation.");
 				return _val[index];
 			}
-			inline       T* val      ()                      { return _val; }
-			inline const T* val      ()                const { return _val; }
+			inline       T* operator*()       { return _val; }
+			inline const T* operator*() const { return _val; }
+			inline       T* val      ()       { return _val; }
+			inline const T* val      () const { return _val; }
 
 			ArrayBuffer& push(T&& item);
 			ArrayBuffer& push(const T& item);

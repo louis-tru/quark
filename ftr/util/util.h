@@ -51,7 +51,7 @@ namespace ftr {
 	FX_EXPORT uint64_t getId();
 	FX_EXPORT uint32_t getId32();
 	FX_EXPORT int64_t  parse_time(cString& str);
-	FX_EXPORT SString gmt_time_string(int64_t second);
+	FX_EXPORT String gmt_time_string(int64_t second);
 	FX_EXPORT String platform();
 	FX_EXPORT String version();
 	FX_EXPORT void exit(int rc);

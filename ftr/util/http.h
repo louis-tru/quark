@@ -100,14 +100,14 @@ namespace ftr {
 			inline String basename() const { return _basename; }
 			inline String extname() const { return _extname; }
 			inline String search() const { return _search; }
-			static SString encode(cString& url);
-			static SString decode(cString& url);
+			static String encode(cString& url);
+			static String decode(cString& url);
 		private:
 			URIType _uritype;
 			uint16_t  _port;
-			SString _href, _host, _hostname;
-			SString _domain, _origin, _pathname;
-			SString _dir, _basename, _extname, _search;
+			String _href, _host, _hostname;
+			String _domain, _origin, _pathname;
+			String _dir, _basename, _extname, _search;
 	};
 
 	/**
@@ -148,8 +148,8 @@ namespace ftr {
 			void clear_request_header() throw(Error);
 			void clear_form_data() throw(Error);
 			String get_response_header(cString& name);
-			const std::unordered_map<SString, SString>& get_all_response_headers() const;
-						std::unordered_map<SString, SString>& get_all_response_headers();
+			const std::unordered_map<String, String>& get_all_response_headers() const;
+						std::unordered_map<String, String>& get_all_response_headers();
 			int64_t upload_total() const;
 			int64_t upload_size() const;
 			int64_t download_total() const;
@@ -207,7 +207,7 @@ namespace ftr {
 	class FX_EXPORT HttpHelper {
 		public:
 			typedef std::unordered_map<String, String> Map;
-			typedef std::unordered_map<SString, SString> SMap;
+			typedef std::unordered_map<String, String> SMap;
 			struct RequestOptions {
 				String     url;
 				HttpMethod method;
@@ -222,7 +222,7 @@ namespace ftr {
 			};
 			struct ResponseData {
 				Buffer  data;
-				SString http_version;
+				String http_version;
 				int     status_code;
 				SMap    response_headers;
 			};

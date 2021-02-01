@@ -184,16 +184,8 @@ namespace frt {
 
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
-			capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
-			if ( capacity > _capacity || capacity < _capacity / 4.0 ) {
-				capacity = powf(2, ceil(log2(capacity)));
-				uint32_t size = sizeof(Char) * capacity;
-				_capacity = capacity;
-				_val = static_cast<Char*>(_val ? ::realloc(_val, size) : ::malloc(size));
-			}
-			FX_ASSERT(_val);
+			_val = AllocatorDefault::realloc(_val, capacity, &_capacity, sizeof(Char));
 		}
-
 		uint32_t _capacity;
 		Char*    _val;
 	};

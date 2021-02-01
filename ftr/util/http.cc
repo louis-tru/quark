@@ -1580,11 +1580,11 @@ String HttpClientRequest::get_response_header(cString& name) {
 	return i.value();
 }
 
-const std::unordered_map<SString, SString>& HttpClientRequest::get_all_response_headers() const {
+const std::unordered_map<String, String>& HttpClientRequest::get_all_response_headers() const {
 	return _inl->_response_header;
 }
 
-std::unordered_map<SString, SString>& HttpClientRequest::get_all_response_headers() {
+std::unordered_map<String, String>& HttpClientRequest::get_all_response_headers() {
 	return _inl->_response_header;
 }
 
