@@ -37,8 +37,8 @@
 #include "action.h"
 #include "css.h"
 
-FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
-FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
+FX_EXPORT int (*__fx_default_gui_main)(int, Char**) = nullptr;
+FX_EXPORT int (*__fx_gui_main)(int, Char**) = nullptr;
 
 namespace ftr {
 
@@ -178,7 +178,7 @@ bool AppInl::set_focus_view(View* view) {
 /**
  * @func runMain()
  */
-void GUIApplication::runMain(int argc, char* argv[]) {
+void GUIApplication::runMain(int argc, Char* argv[]) {
 	static int is_initialize = 0;
 	ASSERT(!is_initialize++, "Cannot multiple calls.");
 	

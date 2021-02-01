@@ -138,7 +138,7 @@ bool is_ac_power() {
 			return 0;
 		}
 		const void *psValue;
-		char buf[32] = {0};
+		Char buf[32] = {0};
 		psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSPowerSourceStateKey));
 		CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
 		return strcmp("AC Power", buf) == 0;
@@ -176,7 +176,7 @@ float battery_level() {
 		const void *psValue;
 		int curCapacity = 0, maxCapacity = 0;
 #if DEBUG
-		char buf[32] = {0};
+		Char buf[32] = {0};
 		psValue = (CFStringRef)CFDictionaryGetValue(pSource, CFSTR(kIOPSNameKey));
 		CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
 		NSLog(@"kIOPSNameKey, %s", buf);

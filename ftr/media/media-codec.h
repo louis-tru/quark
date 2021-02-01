@@ -214,7 +214,7 @@ namespace ftr {
 			/**
 			* @func deplete_sample
 			* */
-			uint deplete_sample(char* out, uint size);
+			uint deplete_sample(Char* out, uint size);
 
 			/**
 			* @func deplete_sample
@@ -254,7 +254,7 @@ namespace ftr {
 
 			struct SampleData {
 				Buffer  _buf;
-				char*   data;
+				Char*   data;
 				uint    size;
 				uint64  time;
 				uint64  d_time;
@@ -483,7 +483,7 @@ namespace ftr {
 		/**
 		* @func parse_psp_pps
 		* */
-		static bool parse_avc_psp_pps(const Buffer& extradata, Buffer& out_psp, Buffer& out_pps);
+		static bool parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps);
 		
 		/**
 		* @func create decoder

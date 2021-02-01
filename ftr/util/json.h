@@ -148,26 +148,26 @@ namespace ftr {
 			JSON& operator=(int64_t i64);
 			JSON& operator=(uint64_t u64);
 			JSON& operator=(double d);
-			JSON& operator=(const char* str);
+			JSON& operator=(cChar* str);
 			JSON& operator=(cString& str);
 			//
 			bool operator==(cJSON& json) const;
-			bool operator==(const char* str) const;
+			bool operator==(cChar* str) const;
 			bool operator==(cString& str) const;
 			inline bool operator!=(cJSON& json) const { return !this->operator==(json); }
-			inline bool operator!=(const char* str) const { return !this->operator==(str); }
+			inline bool operator!=(cChar* str) const { return !this->operator==(str); }
 			inline bool operator!=(cString& str) const { return !this->operator==(str); }
 			
 			JSON& operator[](cJSON& key);
 			JSON& operator[](int index);
-			JSON& operator[](const char* key);
+			JSON& operator[](cChar* key);
 			JSON& operator[](cString& key);
 			cJSON& operator[](cJSON& key) const;
 			cJSON& operator[](int index) const;
-			cJSON& operator[](const char* key) const;
+			cJSON& operator[](cChar* key) const;
 			cJSON& operator[](cString& key) const;
 			
-			bool is_member(const char* key) const;
+			bool is_member(cChar* key) const;
 			bool is_member(cString& key) const;
 			bool is_null()   const;
 			bool is_false()  const;
@@ -200,7 +200,7 @@ namespace ftr {
 			void pop();
 			void clear();
 			
-			void remove(const char* key);
+			void remove(cChar* key);
 			void remove(cString& key);
 			void remove(IteratorConst it);
 			void remove(ArrayIteratorConst it);
@@ -260,13 +260,13 @@ namespace ftr {
 			union Data {
 				// 12 bytes in 32-bit mode, 16 bytes in 64-bit mode
 				struct InlString {
-					const char* str;
+					cChar* str;
 					uint32_t length;
 					uint32_t hashcode;  //!< reserved
 				} s;
 				// 8 bytes
 				union Number {
-					struct I { char padding[4]; int i; } i;
+					struct I { Char padding[4]; int i; } i;
 					int64_t i64;
 					uint64_t u64;
 					double d;

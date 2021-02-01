@@ -119,7 +119,7 @@ bool Extractor::select_track(uint index) {
 /**
  * @func deplete_sample
  * */
-uint Extractor::deplete_sample(char* out, uint size) {
+uint Extractor::deplete_sample(Char* out, uint size) {
 	if ( _sample_data.size ) {
 		size = FX_MIN(_sample_data.size, size);
 		memcpy(out, _sample_data.data, size);
@@ -184,10 +184,10 @@ inline static bool is_nalu_start(uint8_t* str) {
 	return str[0] == 0 && str[1] == 0 && str[2] == 0 && str[3] == 1;
 }
 
-static bool find_nalu_package(const Buffer& buffer, uint start, uint& end) {
+static bool find_nalu_package(cBuffer& buffer, uint start, uint& end) {
 	uint length = buffer.length();
 	if ( start < length ) {
-		cchar* c = *buffer + start;
+		cChar* c = *buffer + start;
 		while(1) {
 			size_t size = strlen(c);
 			start += size;
@@ -210,7 +210,7 @@ static bool find_nalu_package(const Buffer& buffer, uint start, uint& end) {
 /**
  * @func parse_psp_pps
  * */
-bool MediaCodec::parse_avc_psp_pps(const Buffer& extradata, Buffer& out_psp, Buffer& out_pps) {
+bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& out_pps) {
 	// set sps and pps
 	uint8_t* buf = (uint8_t*)*extradata;
 	
@@ -219,9 +219,9 @@ bool MediaCodec::parse_avc_psp_pps(const Buffer& extradata, Buffer& out_psp, Buf
 		while (find_nalu_package(extradata, start, end)) {
 			int nalu_type = buf[start] & 0x1F;
 			if (nalu_type == 0x07) {        // SPS
-				out_psp.write((char*)buf + start - 4, 0, end - start + 4);
+				out_psp.write((Char*)buf + start - 4, 0, end - start + 4);
 			} else if (nalu_type == 0x08) { // PPS
-				out_pps.write((char*)buf + start - 4, 0, end - start + 4);
+				out_pps.write((Char*)buf + start - 4, 0, end - start + 4);
 			}
 			if (out_psp.length() && out_pps.length()) {
 				return true;
@@ -234,11 +234,11 @@ bool MediaCodec::parse_avc_psp_pps(const Buffer& extradata, Buffer& out_psp, Buf
 		if (numOfPictureParameterSets == 1) {
 			uint pps_size = buf[10 + sps_size];
 			if (sps_size + pps_size < extradata.length()) {
-				char csd_s[4] = {0, 0, 0, 1};
+				Char csd_s[4] = {0, 0, 0, 1};
 				out_psp.write(csd_s, 0, 4);
 				out_pps.write(csd_s, 0, 4);
-				out_psp.write((char*)buf + 8, 4, sps_size);
-				out_pps.write((char*)buf + 11 + sps_size, 4, pps_size);
+				out_psp.write((Char*)buf + 8, 4, sps_size);
+				out_pps.write((Char*)buf + 11 + sps_size, 4, pps_size);
 				return true;
 			}
 		}

@@ -32,15 +32,15 @@
 
 namespace ftr {
 
-	static const char* I64BIT_TABLE =
+	static cChar* I64BIT_TABLE =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 
 	void SimpleHash::update(const void* data, uint32_t len) {
 		while (len--)
-			_hash += (_hash << 5) + ((const char*)data)[len];
+			_hash += (_hash << 5) + ((cChar*)data)[len];
 	}
 	
-	SString SimpleHash::digest() {
+	String SimpleHash::digest() {
 		SString rev;
 		do {
 			rev.push(I64BIT_TABLE[_hash & 0x3F]);
@@ -55,14 +55,14 @@ namespace ftr {
 		return hash.hash_code();
 	}
 
-	SString hash(const void* data, uint32_t len) {
+	String hash(const void* data, uint32_t len) {
 		SimpleHash hash;
-		hash.update((const char*)data, len);
+		hash.update((cChar*)data, len);
 		return hash.digest();
 	}
 
-	SString hash(cString& str) {
-		return hash(*str, str.length());
+	String hash(cString& str) {
+		return hash(str.str_c(), str.length());
 	}
 
 }

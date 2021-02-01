@@ -148,7 +148,7 @@ namespace ftr {
 	static int http_cookie_fuzz_query(cString& domain, bool secure, Buffer *buf)
 	{
 		String _key = get_storage_key_prefix(secure, domain);
-		bp_key_t key = { _key.length(), (char*)*_key };
+		bp_key_t key = { _key.length(), (Char*)*_key };
 		bp_value_t value;
 		int r;
 
@@ -174,7 +174,7 @@ namespace ftr {
 
 		if ( _db ) {
 			String _key = get_storage_key(domain, name, path, secure);
-			bp_key_t key = { _key.length(), (char*)*_key };
+			bp_key_t key = { _key.length(), (Char*)*_key };
 			bp_key_t val;
 
 			if (bp_get_reverse(_db, &key, &val) == BP_OK) {
@@ -206,8 +206,8 @@ namespace ftr {
 		String _val = JSON::stringify(json);
 		// LOG("---- %s, %d", *_val, _val.length());
 
-		bp_key_t key = { _key.length(), (char*)*_key };
-		bp_value_t val = { _val.length(), (char*)*_val };
+		bp_key_t key = { _key.length(), (Char*)*_key };
+		bp_value_t val = { _val.length(), (Char*)*_val };
 
 		r = bp_set(_db, &key, &val);
 		assert_r(r);
@@ -297,7 +297,7 @@ namespace ftr {
 		if ( _db ) {
 			int r;
 			String _key = get_storage_key(domain, name, path, secure);
-			bp_key_t key = { _key.length(), (char*)*_key };
+			bp_key_t key = { _key.length(), (Char*)*_key };
 
 			r =  bp_remove(_db, &key); assert_r(r);
 		}
@@ -340,10 +340,10 @@ namespace ftr {
 
 				r = bp_get_filtered_range(_db, &start, &end, [](void* arg, const bp_key_t *key) {
 					auto path = &reinterpret_cast<tmp_data_t*>(arg)->path;
-					char* s = strchr(key->value, '/');
+					Char* s = strchr(key->value, '/');
 					if (s) {
 						int i = 0, t_len = path->length();
-						const char* t = path->val();
+						cChar* t = path->val();
 
 						// LOG("bp_get_filtered_range, %s, %s", s, t);
 
@@ -365,7 +365,7 @@ namespace ftr {
 						int64_t date = json[1].to_int64_t();
 
 						if ((expires == -1 && date == _http_cookie_date) || expires > os::time()) {
-							char* s = strchr(key->value, '@') + 1;
+							Char* s = strchr(key->value, '@') + 1;
 							(*m)[String(s, key->length - (s - key->value))] = json[2].to_string();
 						}
 					} catch(cError& err) {

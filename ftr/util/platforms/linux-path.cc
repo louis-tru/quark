@@ -38,7 +38,7 @@ namespace ftr {
 
 String Path::executable() {
 	static cString path([]() -> String { 
-		char dir[PATH_MAX] = { 0 };
+		Char dir[PATH_MAX] = { 0 };
 		int n = readlink("/proc/self/exe", dir, PATH_MAX);
 		return Path::format("%s", dir);
 	}());

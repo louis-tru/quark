@@ -89,10 +89,10 @@ class TextNode::Inl: public TextNode {
 			if (T == TextAlign::LEFT_REVERSE ||
 					T == TextAlign::CENTER_REVERSE || T == TextAlign::RIGHT_REVERSE ) { // reverse
 				end = cell.offset_start + cell.offset[0];
-				start = end - (cell.offset[cell.chars.length()] - cell.offset[0]);
+				start = end - (cell.offset[cell.Chars.length()] - cell.offset[0]);
 			} else {
 				start = cell.offset_start + cell.offset[0];
-				end = cell.offset_start + cell.offset[cell.chars.length()];
+				end = cell.offset_start + cell.offset[cell.Chars.length()];
 			}
 			
 			if ( start < offset_start_x ) { offset_start_x = start; }
@@ -131,7 +131,7 @@ class TextNode::Inl: public TextNode {
 				
 				for ( auto& i : _data.cells ) {
 					float start = i.value().offset[0];
-					float end = i.value().offset[i.value().chars.length()];
+					float end = i.value().offset[i.value().Chars.length()];
 					if ( start < offset_start_x ) { offset_start_x = start; }
 					if ( end > offset_end_x ) { offset_end_x = end; }
 				}

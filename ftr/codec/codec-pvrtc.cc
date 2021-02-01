@@ -261,20 +261,20 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return (uint)(uiDataSize / 8) * numsurfs * numfaces;
 	}
 	
-	bool _is_pvr_v2 (const Buffer& data) {
-		const char PVRv2TexIdentifier[4] = { 'P', 'V', 'R', '!' };
+	bool _is_pvr_v2 (cBuffer& data) {
+		cChar PVRv2TexIdentifier[4] = { 'P', 'V', 'R', '!' };
 		PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
 		uint pvrTag = header->pvrTag;
-		if (PVRv2TexIdentifier[0] != char((pvrTag >>  0) & 0xff) ||
-				PVRv2TexIdentifier[1] != char((pvrTag >>  8) & 0xff) ||
-				PVRv2TexIdentifier[2] != char((pvrTag >> 16) & 0xff) ||
-				PVRv2TexIdentifier[3] != char((pvrTag >> 24) & 0xff)) {
+		if (PVRv2TexIdentifier[0] != Char((pvrTag >>  0) & 0xff) ||
+				PVRv2TexIdentifier[1] != Char((pvrTag >>  8) & 0xff) ||
+				PVRv2TexIdentifier[2] != Char((pvrTag >> 16) & 0xff) ||
+				PVRv2TexIdentifier[3] != Char((pvrTag >> 24) & 0xff)) {
 			return false;
 		}
 		return true;
 	}
 	
-	bool _is_pvr_v3 (const Buffer& data) {
+	bool _is_pvr_v3 (cBuffer& data) {
 		PVRv3TexHeader *header = (PVRv3TexHeader*)*data;
 		// validate version
 		if (header->version == 55727696 ||
@@ -284,7 +284,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return false;
 	}
 	
-	Array<PixelData> _decode_pvr_v2 (const Buffer& data) {
+	Array<PixelData> _decode_pvr_v2 (cBuffer& data) {
 		
 		Array<PixelData> rest;
 		
@@ -331,7 +331,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 				
 				uint data_size = widthBlocks * heightBlocks * 8;
 				
-				char* _data = new char[data_size];
+				Char* _data = new Char[data_size];
 				memcpy(_data, bytes + dataOffset, data_size);
 				
 				rest.push(PixelData(Buffer(_data, data_size), width, height, format));
@@ -345,7 +345,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 		return rest;
 	}
 	
-	Array<PixelData> _decode_pvr_v3 (const Buffer& data) {
+	Array<PixelData> _decode_pvr_v3 (cBuffer& data) {
 		
 		Array<PixelData> rest;
 		PVRv3TexHeader* header = (PVRv3TexHeader*)*data;
@@ -373,7 +373,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 			for (uint i = 0; i < numberOfMipmaps; i++) {
 				
 				uint dataSize = _get_texture_data_size(*header, i);
-				char* new_data = new char[dataSize];
+				Char* new_data = new Char[dataSize];
 				
 				memcpy(new_data, bytes + dataOffset, dataSize);
 				
@@ -397,7 +397,7 @@ class PVRTCImageCodec::_Inl: public PVRTCImageCodec {
 	}
 };
 
-Array<PixelData> PVRTCImageCodec::decode(const Buffer& data) {
+Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
 	if (_inl_pvr(this)->_is_pvr_v2(data)) {
 		return _inl_pvr(this)->_decode_pvr_v2(data);
 	}
@@ -408,7 +408,7 @@ Array<PixelData> PVRTCImageCodec::decode(const Buffer& data) {
 	return Array<PixelData>();
 }
 
-PixelData PVRTCImageCodec::decode_header(const Buffer& data) {
+PixelData PVRTCImageCodec::decode_header(cBuffer& data) {
 	
 	if (_inl_pvr(this)->_is_pvr_v2(data)) {
 		

@@ -262,7 +262,7 @@ class AndroidPCMOpenSLES: public Object, public PCMPlayer {
 	/**
 	 * @overwrite
 	 * */
-	virtual bool write(const Buffer& buffer) {
+	virtual bool write(cBuffer& buffer) {
 		SLresult result;
 		ScopeLock scope(_lock);
 		// input pcm buffer

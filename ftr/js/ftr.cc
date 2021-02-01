@@ -43,7 +43,7 @@
 # include <dlfcn.h>
 #endif
 
-extern int (*__fx_default_gui_main)(int, char**);
+extern int (*__fx_default_gui_main)(int, Char**);
 
 /**
  * @ns ftr::js
@@ -139,12 +139,12 @@ void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
 // startup argv
-Array<char*>* __fx_ftr_argv = nullptr;
+Array<Char*>* __fx_ftr_argv = nullptr;
 int           __fx_ftr_have_node = 1;
 int           __fx_ftr_have_debug = 0;
 
 // parse argv
-static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<char*>& ftr_argv) {
+static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& ftr_argv) {
 	static String argv_str;
 
 	ASSERT(argv_in.length(), "Bad start argument");
@@ -168,14 +168,14 @@ static void parseArgv(const Array<String> argv_in, Array<char*>& argv, Array<cha
 		}
 	}
 
-	char* str_c = const_cast<char*>(*argv_str);
+	Char* str_c = const_cast<Char*>(*argv_str);
 	argv.push(str_c);
 	ftr_argv.push(str_c);
 
 	for (int i = 1, ftr_ok = 0; i < indexs.length(); i++) {
 		int index = indexs[i];
 		str_c[index] = '\0';
-		char* arg = str_c + index + 1;
+		Char* arg = str_c + index + 1;
 		if (ftr_ok || arg[0] != '-') {
 			ftr_ok = 1; // ftr argv start
 			ftr_argv.push(arg);
@@ -221,7 +221,7 @@ int Start(const Array<String>& argv_in) {
 	}
 	ASSERT(!__fx_ftr_argv);
 
-	Array<char*> argv, ftr_argv;
+	Array<Char*> argv, ftr_argv;
 	parseArgv(argv_in, argv, ftr_argv);
 
 	Thread::FX_ON(ProcessSafeExit, on_process_safe_handle);
@@ -229,7 +229,7 @@ int Start(const Array<String>& argv_in) {
 	__fx_ftr_argv = &ftr_argv;
 	int rc = 0;
 	int argc = argv.length();
-	char** argv_c = const_cast<char**>(&argv[0]);
+	Char** argv_c = const_cast<Char**>(&argv[0]);
 
 	// Mark the current main thread and check current thread
 	ASSERT(RunLoop::main_loop() == RunLoop::current());
@@ -263,7 +263,7 @@ int Start(const Array<String>& argv_in) {
 	return rc;
 }
 
-int Start(int argc, char** argv) {
+int Start(int argc, Char** argv) {
 	Array<String> argv_in;
 	for (int i = 0; i < argc; i++) {
 		argv_in.push(argv[i]);
@@ -274,7 +274,7 @@ int Start(int argc, char** argv) {
 /**
  * @func __default_main
  */
-int __default_main(int argc, char** argv) {
+int __default_main(int argc, Char** argv) {
 	String cmd;
 
 #if FX_ANDROID

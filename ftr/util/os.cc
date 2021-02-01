@@ -112,7 +112,7 @@ namespace ftr {
 				if (!info_str) {
 					info_str = new SString();
 					static struct utsname uts;
-					static char name[256];
+					static Char name[256];
 					gethostname(name, 255);
 					uname(&uts);
 					*info_str = String::format(
@@ -167,7 +167,7 @@ namespace ftr {
 				langs_->langs = Android::language();
 				langs_->lang = langs_->langs;
 			#elif FX_LINUX
-				const char* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
+				cChar* lang = getenv("LANG") ? getenv("LANG"): getenv("LC_ALL");
 				if ( lang ) {
 					langs_->langs = String(lang).split('.')[0];
 				} else {
@@ -203,7 +203,7 @@ namespace ftr {
 			static std::atomic_int priv_cpu_usage_count(0);
 
 			float cpu_usage() {
-				char bf[512] = {0};
+				Char bf[512] = {0};
 				Array<String> cpus;
 				String prev_str;
 				int size;
@@ -211,8 +211,8 @@ namespace ftr {
 				if (fd <= 0) return 0;
 
 				while((size = FileHelper::read_sync(fd, bf, 511))) {
-					char* s = bf;
-					char* ch;
+					Char* s = bf;
+					Char* ch;
 					while ((ch = strchr(s, '\n'))) {
 						prev_str.push(s, ch - s);
 						cpus.push(prev_str);

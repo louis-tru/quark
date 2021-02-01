@@ -59,13 +59,13 @@ public:
 			
 			if (_library == DRAW_LIBRARY_GLES2) {
 				handle = compile_link_shader(shader->name,
-										WeakBuffer((cchar*)shader->es2_source_vp, (uint)shader->es2_source_vp_len),
-										WeakBuffer((cchar*)shader->es2_source_fp, (uint)shader->es2_source_fp_len),
+										WeakBuffer((cChar*)shader->es2_source_vp, (uint)shader->es2_source_vp_len),
+										WeakBuffer((cChar*)shader->es2_source_fp, (uint)shader->es2_source_fp_len),
 										String(shader->shader_attributes).split(','));
 			} else if (_library == DRAW_LIBRARY_GLES3) {
 				handle = compile_link_shader(shader->name,
-										WeakBuffer((cchar*)shader->source_vp, (uint)shader->source_vp_len),
-										WeakBuffer((cchar*)shader->source_fp, (uint)shader->source_fp_len),
+										WeakBuffer((cChar*)shader->source_vp, (uint)shader->source_vp_len),
+										WeakBuffer((cChar*)shader->source_fp, (uint)shader->source_fp_len),
 										String(shader->shader_attributes).split(','));
 			} else { // opengl
 				// TODO ...
@@ -114,7 +114,7 @@ public:
 	 * @func es2_initializ_indexd_vbo_and_ext_support
 	 */
 	void es2_initializ_indexd_vbo_and_ext_support() {
-		String info = (cchar*)glGetString(GL_EXTENSIONS);
+		String info = (cChar*)glGetString(GL_EXTENSIONS);
 		FX_DEBUG("OGL Info: %s", glGetString(GL_VENDOR));
 		FX_DEBUG("OGL Info: %s", glGetString(GL_RENDERER));
 		FX_DEBUG("OGL Info: %s", glGetString(GL_VERSION));
@@ -421,17 +421,17 @@ void GLDraw::end_screen_occlusion_query() {
  * @arg shader_type {GLenum}  #     程序类型
  * @ret {GLuint}
  */
-GLuint GLDraw::compile_shader(cString& name, const Buffer& code, GLenum shader_type) {
+GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
 	GLuint shader_handle = glCreateShader(shader_type);
 	GLint code_len = code.length();
-	cchar* c = code.value();
+	cChar* c = code.value();
 	glShaderSource(shader_handle, 1, &c, &code_len);
 	glCompileShader(shader_handle);
 	GLint ok;
 	glGetShaderiv(shader_handle, GL_COMPILE_STATUS, &ok);
 	if ( ok != GL_TRUE ) {
-		char log[255] = { 0 };
-		cchar* c_name = *name;
+		Char log[255] = { 0 };
+		cChar* c_name = *name;
 		glGetShaderInfoLog(shader_handle, 254, &ok, log);
 		FX_FATAL("Compile shader error. name: %s, \n%s", c_name, log);
 	}
@@ -447,7 +447,7 @@ GLuint GLDraw::compile_shader(cString& name, const Buffer& code, GLenum shader_t
  * @private
  */
 GLuint GLDraw::compile_link_shader(cString& name,
-																	 const Buffer& vertex, const Buffer& fragment,
+																	 cBuffer& vertex, cBuffer& fragment,
 																	 const Array<String>& attrs) {
 	
 	GLuint vertex_handle = compile_shader(name, vertex, GL_VERTEX_SHADER);
@@ -472,8 +472,8 @@ GLuint GLDraw::compile_link_shader(cString& name,
 	GLint ok;
 	glGetProgramiv(program_handle, GL_LINK_STATUS, &ok);
 	if (ok != GL_TRUE) {
-		char log[255] = { 0 };
-		cchar* c_name = *name;
+		Char log[255] = { 0 };
+		cChar* c_name = *name;
 		glGetProgramInfoLog(program_handle, 254, &ok, log);
 		FX_FATAL("Link shader error, name: %s, \n%s", c_name, log);
 	}

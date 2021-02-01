@@ -39,11 +39,11 @@ FX_GUI_MAIN() {
 
 #if FX_ANDROID
 class App: public ftr::GUIApplication {
-	public: static void run(int argc, char *argv[]) {
+	public: static void run(int argc, Char *argv[]) {
 		runMain(argc, argv);
 	}
 };
-int main(int argc, char *argv[]) {
+int main(int argc, Char *argv[]) {
 	App::run(argc, argv);
 	return 0;
 }

@@ -42,30 +42,30 @@ extern "C" {
 #include <libavcodec/jni.h>
 #include <libavcodec/mediacodec_wrapper.h>
 }
-const char* AMEDIAFORMAT_KEY_AAC_PROFILE = "aac-profile";
-const char* AMEDIAFORMAT_KEY_BIT_RATE = "bitrate";
-const char* AMEDIAFORMAT_KEY_CHANNEL_COUNT = "channel-count";
-const char* AMEDIAFORMAT_KEY_CHANNEL_MASK = "channel-mask";
-const char* AMEDIAFORMAT_KEY_COLOR_FORMAT = "color-format";
-const char* AMEDIAFORMAT_KEY_DURATION = "durationUs";
-const char* AMEDIAFORMAT_KEY_FLAC_COMPRESSION_LEVEL = "flac-compression-level";
-const char* AMEDIAFORMAT_KEY_FRAME_RATE = "frame-rate";
-const char* AMEDIAFORMAT_KEY_HEIGHT = "height";
-const char* AMEDIAFORMAT_KEY_IS_ADTS = "is-adts";
-const char* AMEDIAFORMAT_KEY_IS_AUTOSELECT = "is-autoselect";
-const char* AMEDIAFORMAT_KEY_IS_DEFAULT = "is-default";
-const char* AMEDIAFORMAT_KEY_IS_FORCED_SUBTITLE = "is-forced-subtitle";
-const char* AMEDIAFORMAT_KEY_I_FRAME_INTERVAL = "i-frame-interval";
-const char* AMEDIAFORMAT_KEY_LANGUAGE = "language";
-const char* AMEDIAFORMAT_KEY_MAX_HEIGHT = "max-height";
-const char* AMEDIAFORMAT_KEY_MAX_INPUT_SIZE = "max-input-size";
-const char* AMEDIAFORMAT_KEY_MAX_WIDTH = "max-width";
-const char* AMEDIAFORMAT_KEY_MIME = "mime";
-const char* AMEDIAFORMAT_KEY_PUSH_BLANK_BUFFERS_ON_STOP = "push-blank-buffers-on-shutdown";
-const char* AMEDIAFORMAT_KEY_REPEAT_PREVIOUS_FRAME_AFTER = "repeat-previous-frame-after";
-const char* AMEDIAFORMAT_KEY_SAMPLE_RATE = "sample-rate";
-const char* AMEDIAFORMAT_KEY_WIDTH = "width";
-const char* AMEDIAFORMAT_KEY_STRIDE = "stride";
+cChar* AMEDIAFORMAT_KEY_AAC_PROFILE = "aac-profile";
+cChar* AMEDIAFORMAT_KEY_BIT_RATE = "bitrate";
+cChar* AMEDIAFORMAT_KEY_CHANNEL_COUNT = "channel-count";
+cChar* AMEDIAFORMAT_KEY_CHANNEL_MASK = "channel-mask";
+cChar* AMEDIAFORMAT_KEY_COLOR_FORMAT = "color-format";
+cChar* AMEDIAFORMAT_KEY_DURATION = "durationUs";
+cChar* AMEDIAFORMAT_KEY_FLAC_COMPRESSION_LEVEL = "flac-compression-level";
+cChar* AMEDIAFORMAT_KEY_FRAME_RATE = "frame-rate";
+cChar* AMEDIAFORMAT_KEY_HEIGHT = "height";
+cChar* AMEDIAFORMAT_KEY_IS_ADTS = "is-adts";
+cChar* AMEDIAFORMAT_KEY_IS_AUTOSELECT = "is-autoselect";
+cChar* AMEDIAFORMAT_KEY_IS_DEFAULT = "is-default";
+cChar* AMEDIAFORMAT_KEY_IS_FORCED_SUBTITLE = "is-forced-subtitle";
+cChar* AMEDIAFORMAT_KEY_I_FRAME_INTERVAL = "i-frame-interval";
+cChar* AMEDIAFORMAT_KEY_LANGUAGE = "language";
+cChar* AMEDIAFORMAT_KEY_MAX_HEIGHT = "max-height";
+cChar* AMEDIAFORMAT_KEY_MAX_INPUT_SIZE = "max-input-size";
+cChar* AMEDIAFORMAT_KEY_MAX_WIDTH = "max-width";
+cChar* AMEDIAFORMAT_KEY_MIME = "mime";
+cChar* AMEDIAFORMAT_KEY_PUSH_BLANK_BUFFERS_ON_STOP = "push-blank-buffers-on-shutdown";
+cChar* AMEDIAFORMAT_KEY_REPEAT_PREVIOUS_FRAME_AFTER = "repeat-previous-frame-after";
+cChar* AMEDIAFORMAT_KEY_SAMPLE_RATE = "sample-rate";
+cChar* AMEDIAFORMAT_KEY_WIDTH = "width";
+cChar* AMEDIAFORMAT_KEY_STRIDE = "stride";
 enum {
 	AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM = 4,
 	AMEDIACODEC_CONFIGURE_FLAG_ENCODE = 1,
@@ -75,7 +75,7 @@ enum {
 };
 #define AMediaExtractor FFAMediaExtractor
 #define AMediaCodec FFAMediaCodec
-#define AMediaCodeconst BufferInfo FFAMediaCodeconst BufferInfo
+#define AMediaCodecBufferInfo FFAMediaCodecBufferInfo
 #define AMediaFormat FFAMediaFormat
 #define AMediaCodec_getOutputFormat ff_AMediaCodec_getOutputFormat
 #define AMediaCodec_flush ff_AMediaCodec_flush
@@ -268,7 +268,7 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 			if ( bufidx >= 0 ) {
 				size_t bufsize;
 				uint8_t * buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
-				uint sample_size = _extractor->deplete_sample((char*)buf, bufsize);
+				uint sample_size = _extractor->deplete_sample((Char*)buf, bufsize);
 				int sample_flags = _extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
 				uint64 sample_time = _extractor->sample_time();
 
@@ -280,7 +280,7 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 				}
 				if ( sample_size ) {
 					if ( type() == MEDIA_TYPE_VIDEO ) {
-						WeakBuffer buffer((char*)buf, sample_size);
+						WeakBuffer buffer((Char*)buf, sample_size);
 						MediaCodec::convert_sample_data_to_nalu(buffer);
 					}
 					AMediaCodec_queueInputBuffer( _codec, bufidx, 0,
@@ -297,7 +297,7 @@ class AndroidHardwareMediaCodec: public MediaCodec {
 	 */
 	virtual OutputBuffer output() {
 		if ( ! _eof_flags ) {
-			AMediaCodeconst BufferInfo info;
+			AMediaCodecBufferInfo info;
 			ssize_t status = AMediaCodec_dequeueOutputBuffer(_codec, &info, 0);
 
 			if ( status >= 0 ) {
@@ -422,7 +422,7 @@ MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
 
 	if ( ex ) {
 		const TrackInfo& track = ex->track();
-		cchar* mime = NULL;
+		cChar* mime = NULL;
 
 		if (type == MEDIA_TYPE_AUDIO) {
 			if (track.mime == "audio/aac" && track.extradata.length()) { // aac

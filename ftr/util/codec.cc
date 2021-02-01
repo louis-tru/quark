@@ -43,7 +43,7 @@ namespace ftr {
 	//  6 | 0400 0000 - 7FFF FFFF | 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 	// ===========================================
 	// 单个unicode转换成utf8的长度
-	static uint32_t encoding_utf8_char_length(uint32_t unicode) {
+	static uint32_t encoding_utf8_Char_length(uint32_t unicode) {
 		if (unicode < 0x7F + 1) {               // 单字节编码
 			return 1;
 		}
@@ -73,18 +73,18 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static uint32_t encoding_utf8_str_length(const Char* source, uint32_t len) {
+	static uint32_t encoding_utf8_str_length(cChar* source, uint32_t len) {
 		uint32_t rev = 0;
-		const Char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
-			rev += encoding_utf8_char_length(*source);
+			rev += encoding_utf8_Char_length(*source);
 			source++;
 		}
 		return rev;
 	}
 
 	// 单个unicode转换到utf-8编码
-	static uint32_t encoding_unicode_to_utf8_char(uint32_t unicode, char* s) {
+	static uint32_t encoding_unicode_to_utf8_Char(uint32_t unicode, Char* s) {
 		uint32_t rev = 1;
 		
 		if (unicode < 0x7F + 1) {             // 单字节编码
@@ -131,11 +131,11 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_binary(const Char* source, uint32_t len) {
-		const Char* end = source + len;
+	static Buffer encoding_to_binary(cChar* source, uint32_t len) {
+		cChar* end = source + len;
 		//uint32_t size = sizeof(Char);
 		Buffer rev(len);
-		char* data = *rev;
+		Char* data = *rev;
 		while (source < end) {
 			*data = *source;
 			data++; source++;
@@ -148,13 +148,13 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_ascii(const Char* source, uint32_t len) {
+	static Buffer encoding_to_ascii(cChar* source, uint32_t len) {
 		// ucs2/ucs4到ascii会丢失所有ascii以外的编码
-		const Char* end = source + len;
+		cChar* end = source + len;
 		Buffer rev(len);
-		char* data = *rev;
+		Char* data = *rev;
 		while (source < end) {
-			*data = *(unsigned char*)source % 128;
+			*data = *(unsigned Char*)source % 128;
 			data++; source++;
 		}
 		return rev;
@@ -165,14 +165,14 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_utf8(const Char* source, uint32_t len) {
+	static Buffer encoding_to_utf8(cChar* source, uint32_t len) {
 		uint32_t utf8_len = encoding_utf8_str_length(source, len);
 		Buffer rev = Buffer::from(utf8_len, utf8_len + 1);
-		char* data = *rev;
+		Char* data = *rev;
 		
-		const Char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
-			data += encoding_unicode_to_utf8_char(*source, data);
+			data += encoding_unicode_to_utf8_Char(*source, data);
 			source++;
 		}
 		*data = '\0';
@@ -184,12 +184,12 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_base64(const Char* source, uint32_t len) {
-		const char* src = (const char*)source;
+	static Buffer encoding_to_base64(cChar* source, uint32_t len) {
+		cChar* src = (cChar*)source;
 		uint32_t slen = len * sizeof(Char);
 		uint32_t dlen = (slen + 2 - ((slen + 2) % 3)) / 3 * 4;
 		Buffer rev = Buffer::from(dlen, dlen + 1);
-		char* dst = *rev;
+		Char* dst = *rev;
 		dst[dlen] = 0;
 		
 		uint32_t a;
@@ -199,7 +199,7 @@ namespace ftr {
 		uint32_t k;
 		uint32_t n;
 		
-		static const char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		static cChar table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz"
 		"0123456789+/";
 		
@@ -249,13 +249,13 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_hex(const Char* source, uint32_t len) {
-		const char* hex = "0123456789abcdef";
-		const char* start = (const char*)source;
-		const char* end = start + len * sizeof(Char);
+	static Buffer encoding_to_hex(cChar* source, uint32_t len) {
+		cChar* hex = "0123456789abcdef";
+		cChar* start = (cChar*)source;
+		cChar* end = start + len * sizeof(Char);
 		uint32_t byte_len = len * sizeof(Char) * 2;
 		Buffer rev = Buffer::from(byte_len, byte_len + 1);
-		char* data = *rev;
+		Char* data = *rev;
 		while (start < end) {
 			uint8_t ch = *start;
 			data[0] = hex[ch >> 4];
@@ -271,11 +271,11 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_ucs2(const Char* source, uint32_t len) {
+	static Buffer encoding_to_ucs2(cChar* source, uint32_t len) {
 		// ucs4到ucs2会丢失所有ucs2以外的编码
-		const Char* end = source + len;
+		cChar* end = source + len;
 		Buffer rev = Buffer::from(len * 2, len * 2 + 1);
-		char* data = *rev;
+		Char* data = *rev;
 		while (source < end) {
 			*reinterpret_cast<uint16_t *>(data) = *source;
 			data += 2; source++;
@@ -289,10 +289,10 @@ namespace ftr {
 	 * @private
 	 */
 	template <class Char>
-	static Buffer encoding_to_ucs4(const Char* source, uint32_t len) {
-		const Char* end = source + len;
+	static Buffer encoding_to_ucs4(cChar* source, uint32_t len) {
+		cChar* end = source + len;
 		Buffer rev = Buffer::from(len * 4, len * 4 + 1);
-		char* data = *rev;
+		Char* data = *rev;
 		while (source < end) {
 			*reinterpret_cast<uint32_t*>(data) = *source;
 			data += 4; source++;
@@ -301,8 +301,8 @@ namespace ftr {
 		return rev;
 	}
 
-	static Buffer encoding_with_byte_(Encoding target_en, const char* source, uint32_t len) {
-		// const char* end = source + len;
+	static Buffer encoding_with_byte_(Encoding target_en, cChar* source, uint32_t len) {
+		// cChar* end = source + len;
 		
 		switch (target_en) {
 			case Encoding::binary: {
@@ -424,7 +424,7 @@ namespace ftr {
 	// 4字节 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 	// 5字节 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 	// 6字节 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-	static int decoding_utf8_word_length(char c) {
+	static int decoding_utf8_word_length(Char c) {
 
 		if ((c & 0x80) == 0) { // 小于 128 (c & 10000000) == 00000000
 			// uft8单字节编码 0xxxxxxx
@@ -454,9 +454,9 @@ namespace ftr {
 	}
 
 	// uincode 长度
-	static uint32_t decoding_utf8_str_length(const char* source, uint32_t len) {
+	static uint32_t decoding_utf8_str_length(cChar* source, uint32_t len) {
 		uint32_t rev = 0;
-		const char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
 			source += decoding_utf8_word_length(*source);
 			rev++;
@@ -544,10 +544,10 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_binary(const char* source, uint32_t len) {
+	static ArrayBuffer<Char> decoding_from_binary(cChar* source, uint32_t len) {
 		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
-		const char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
 			*data = *source;
 			data++; source++;
@@ -557,10 +557,10 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_ascii(const char* source, uint32_t len) {
+	static ArrayBuffer<Char> decoding_from_ascii(cChar* source, uint32_t len) {
 		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
-		const char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
 			*data = *(const uint8_t*)source % 128;
 			data++; source++;
@@ -629,14 +629,14 @@ namespace ftr {
 	#define unhex(x) unhex_table[(uint8_t)(x)]
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_base64(const char* src, uint32_t length) {
-		char a, b, c, d;
+	static ArrayBuffer<Char> decoding_from_base64(cChar* src, uint32_t length) {
+		Char a, b, c, d;
 		
 		uint32_t len = base64_decoded_size_fast(length);
 		Char* buf = (Char*)::malloc(len + 1);
 		Char* dst = buf;
 		Char* dstEnd = dst + len;
-		const char* srcEnd = src + length;
+		cChar* srcEnd = src + length;
 		
 		while (dst < dstEnd) {
 			long remaining = srcEnd - src;
@@ -683,12 +683,12 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_hex(const char* source, uint32_t len) {
+	static ArrayBuffer<Char> decoding_from_hex(cChar* source, uint32_t len) {
 		if (len % 2 != 0) { // hex 编码数据错误
 			return ArrayBuffer<Char>();
 		}
 		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len / 2, len / 2 + 1);
-		const char* end = source + len;
+		cChar* end = source + len;
 		Char* data = *rev;
 		while (source < end) {
 			uint8_t ch0 = (uint8_t)unhex(source[0]);
@@ -701,12 +701,12 @@ namespace ftr {
 	};
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_utf8(const char* source, uint32_t len) {
+	static ArrayBuffer<Char> decoding_from_utf8(cChar* source, uint32_t len) {
 		uint32_t rev_len = decoding_utf8_str_length(source, len);
 		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(rev_len, rev_len + 1);
 		Char* data = *rev;
 		
-		const char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
 			source += decoding_utf8_to_word(reinterpret_cast<const uint8_t*>(source), data);
 			data++;
@@ -716,12 +716,12 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_ucs2(const char* source, uint32_t len) {
+	static ArrayBuffer<Char> decoding_from_ucs2(cChar* source, uint32_t len) {
 		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
-		const char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
-			*data = *reinterpret_cast<const Char*>(source);
+			*data = *reinterpret_cast<cChar*>(source);
 			data++; source += 2;
 		}
 		*data = '\0';
@@ -729,55 +729,55 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static ArrayBuffer<Char> decoding_from_ucs4(const char* source, uint32_t len) {
+	static ArrayBuffer<Char> decoding_from_ucs4(cChar* source, uint32_t len) {
 		ArrayBuffer<Char> rev = ArrayBuffer<Char>::from(len, len + 1);
 		Char* data = *rev;
-		const char* end = source + len;
+		cChar* end = source + len;
 		while (source < end) {
-			*data = *reinterpret_cast<const Char*>(source);
+			*data = *reinterpret_cast<cChar*>(source);
 			data++; source += 4;
 		}
 		*data = '\0';
 		return rev;
 	}
 
-	static Buffer decoding_to_byte_(Encoding source_en, const char* source, uint32_t len) {
+	static Buffer decoding_to_byte_(Encoding source_en, cChar* source, uint32_t len) {
 		switch (source_en) {
 			case Encoding::binary: {
-				return decoding_from_binary<char>(source, len);
+				return decoding_from_binary<Char>(source, len);
 			}
 			case Encoding::ascii: {
-				return decoding_from_ascii<char>(source, len);
+				return decoding_from_ascii<Char>(source, len);
 			}
 			case Encoding::base64: {
-				return decoding_from_base64<char>(source, len);
+				return decoding_from_base64<Char>(source, len);
 			}
 			case Encoding::hex: {
-				return decoding_from_hex<char>(source, len);
+				return decoding_from_hex<Char>(source, len);
 			}
 			case Encoding::utf8: { // 会丢失ascii外的编码
 				//FX_WARN("%s", "Conversion from utf8 to ascii will lose data.");
-				return decoding_from_utf8<char>(source, len);
+				return decoding_from_utf8<Char>(source, len);
 			}
 			case Encoding::utf16: { // 暂时使用ucs2
 				//FX_WARN("%s", "Conversion from utf16 to ascii will lose data.");
-				return decoding_from_ucs2<char>(source, len);
+				return decoding_from_ucs2<Char>(source, len);
 			}
 			case Encoding::ucs2: { // 会丢失ascii外的编码
 				//FX_WARN("%s", "Conversion from ucs2 to ascii will lose data.");
-				return decoding_from_ucs2<char>(source, len);
+				return decoding_from_ucs2<Char>(source, len);
 			}
 			case Encoding::utf32:
 			case Encoding::ucs4: { // 会丢失ascii外的编码
 				//FX_WARN("%s", "Conversion from ucs4 to ascii will lose data.");
-				return decoding_from_ucs4<char>(source, len);
+				return decoding_from_ucs4<Char>(source, len);
 			}
 			default: FX_ERR("%s", "Unknown encoding."); break;
 		}
 		return Buffer();
 	}
 
-	static ArrayBuffer<uint16_t> decoding_to_uint16_t_(Encoding source_en, const char* source, uint32_t len) {
+	static ArrayBuffer<uint16_t> decoding_to_uint16_t_(Encoding source_en, cChar* source, uint32_t len) {
 		switch (source_en) {
 			case Encoding::binary: {
 				return decoding_from_binary<uint16_t >(source, len);
@@ -813,7 +813,7 @@ namespace ftr {
 		return ArrayBuffer<uint16_t >();
 	}
 
-	static ArrayBuffer<uint32_t> decoding_to_uint32_t_(Encoding source_en, const char* source, uint32_t len) {
+	static ArrayBuffer<uint32_t> decoding_to_uint32_t_(Encoding source_en, cChar* source, uint32_t len) {
 		switch (source_en) {
 			case Encoding::binary: {
 				return decoding_from_binary<uint32_t>(source, len);

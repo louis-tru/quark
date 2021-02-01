@@ -44,7 +44,7 @@ namespace ftr {
 
 typedef FontGlyph::TexureLevel FGTexureLevel;
 
-enum ContainerFlag: char {
+enum ContainerFlag: Char {
 	CF_NO_READY = 0,
 	CF_READY,
 	CF_NONE,

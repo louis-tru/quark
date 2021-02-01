@@ -92,9 +92,9 @@ namespace ftr {
 
 	#define FALSE 0
 	#define TRUE 1
-	#define ISALPHA(x)  (isalpha((int)  ((unsigned char)x)))
-	#define ISDIGIT(x)  (isdigit((int)  ((unsigned char)x)))
-	#define ISALNUM(x)  (isalnum((int)  ((unsigned char)x)))
+	#define ISALPHA(x)  (isalpha((int)  ((unsigned Char)x)))
+	#define ISDIGIT(x)  (isdigit((int)  ((unsigned Char)x)))
+	#define ISALNUM(x)  (isalnum((int)  ((unsigned Char)x)))
 
 	#if FX_WIN
 	# define ERRNO         ((int)GetLastError())
@@ -111,19 +111,19 @@ namespace ftr {
 	# define SIZEOF_TIME_T 4
 	#endif
 
-	const char * const wkday[] =
+	cChar * const wkday[] =
 	{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-	const char * const wkday2[] =
+	cChar * const wkday2[] =
 	{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-	static const char * const weekday[] =
+	static cChar * const weekday[] =
 	{ "Monday", "Tuesday", "Wednesday", "Thursday",
 		"Friday", "Saturday", "Sunday" };
-	const char * const month[]=
+	cChar * const month[]=
 	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	struct tzinfo {
-		char name[5];
+		Char name[5];
 		int offset; /* +/- in minutes */
 	};
 
@@ -138,7 +138,7 @@ namespace ftr {
 	 * PARSEDATE_SOONER - time underflow at the low end of time_t
 	 */
 
-	static int parsedate(const char *date, time_t *output);
+	static int parsedate(cChar *date, time_t *output);
 
 	#define PARSEDATE_OK     0
 	#define PARSEDATE_FAIL   -1
@@ -227,10 +227,10 @@ namespace ftr {
 
 	/* Portable, consistent toupper (remember EBCDIC). Do not use toupper() because
 	 its behavior is altered by the current locale. */
-	static char raw_toupper(char in)
+	static Char raw_toupper(Char in)
 	{
 		if(in >= 'a' && in <= 'z')
-			return (char)('A' + in - 'a');
+			return (Char)('A' + in - 'a');
 		return in;
 	}
 
@@ -244,7 +244,7 @@ namespace ftr {
 	 * non-ascii.
 	 */
 
-	static int raw_equal(const char *first, const char *second)
+	static int raw_equal(cChar *first, cChar *second)
 	{
 		while(*first && *second) {
 			if(raw_toupper(*first) != raw_toupper(*second))
@@ -273,10 +273,10 @@ namespace ftr {
 	 0 monday - 6 sunday
 	 */
 
-	static int checkday(const char *check, size_t len)
+	static int checkday(cChar *check, size_t len)
 	{
 		int i;
-		const char * const *what;
+		cChar * const *what;
 		bool found= FALSE;
 		if(len > 3)
 			what = &weekday[0];
@@ -292,10 +292,10 @@ namespace ftr {
 		return found?i:-1;
 	}
 
-	static int checkmonth(const char *check)
+	static int checkmonth(cChar *check)
 	{
 		int i;
-		const char * const *what;
+		cChar * const *what;
 		bool found= FALSE;
 		
 		what = &month[0];
@@ -312,7 +312,7 @@ namespace ftr {
 	/* return the time zone offset between GMT and the input one, in number
 	 of seconds or -1 if the timezone wasn't found/legal */
 
-	static int checktz(const char *check)
+	static int checktz(cChar *check)
 	{
 		unsigned int i;
 		const struct tzinfo *what;
@@ -329,7 +329,7 @@ namespace ftr {
 		return found?what->offset*60:-1;
 	}
 
-	static void skip(const char **date)
+	static void skip(cChar **date)
 	{
 		/* skip everything that aren't letters or digits */
 		while(**date && !ISALNUM(**date))
@@ -400,7 +400,7 @@ namespace ftr {
 	 * PARSEDATE_SOONER - time underflow at the low end of time_t
 	 */
 
-	static int parsedate(const char *date, time_t *output)
+	static int parsedate(cChar *date, time_t *output)
 	{
 		time_t t = 0;
 		int wdaynum=-1;  /* day of the week number, 0-6 (mon-sun) */
@@ -413,7 +413,7 @@ namespace ftr {
 		int tzoff=-1;
 		struct my_tm tm;
 		enum assume dignext = DATE_MDAY;
-		const char *indate = date; /* save the original pointer */
+		cChar *indate = date; /* save the original pointer */
 		int part = 0; /* max 6 parts */
 		
 		while(*date && (part < 6)) {
@@ -423,7 +423,7 @@ namespace ftr {
 			
 			if(ISALPHA(*date)) {
 				/* a name coming up */
-				char buf[32]="";
+				Char buf[32]="";
 				size_t len;
 				if(sscanf(date, "%31[ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 									"abcdefghijklmnopqrstuvwxyz]", buf))
@@ -457,7 +457,7 @@ namespace ftr {
 			else if(ISDIGIT(*date)) {
 				/* a digit */
 				int val;
-				char *end;
+				Char *end;
 				if((secnum == -1) &&
 					 (3 == sscanf(date, "%02d:%02d:%02d", &hournum, &minnum, &secnum))) {
 					/* time stamp! */

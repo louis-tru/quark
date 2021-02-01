@@ -532,7 +532,7 @@ class FX_EXPORT JSFunction: public JSObject {
 class FX_EXPORT JSArrayBuffer: public JSObject {
  public:
 	int ByteLength(Worker* worker) const;
-	char* Data(Worker* worker);
+	Char* Data(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
 };
 
@@ -616,7 +616,7 @@ class FX_EXPORT Worker: public Object {
 	 * @func registerModule
 	 */
 	static void registerModule(cString& name,
-                             BindingCallback binding, cchar* file = nullptr);
+                             BindingCallback binding, cChar* file = nullptr);
 
 	/**
 	 * @func bindingModule
@@ -629,7 +629,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSNumber> New(float data);
 	Local<JSNumber> New(double data);
 	Local<JSBoolean>New(bool data);
-	Local<JSInt32>  New(char data);
+	Local<JSInt32>  New(Char data);
 	Local<JSUint32> New(uint8_t data);
 	Local<JSInt32>  New(int16 data);
 	Local<JSUint32> New(uint16_t data);
@@ -637,7 +637,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSUint32> New(uint data);
 	Local<JSNumber> New(int64 data);
 	Local<JSNumber> New(uint64 data);
-	Local<JSString> New(cchar* data, int len = -1);
+	Local<JSString> New(cChar* data, int len = -1);
 	Local<JSString> New(cString& data, bool is_ascii = false);
 	Local<JSString> New(cUcs2String& data);
 	Local<JSObject> New(cError& data);
@@ -657,7 +657,7 @@ class FX_EXPORT Worker: public Object {
   inline Local<JSBoolean> New(const Bool& v) { return New(v.value); }
   inline Local<JSNumber>  New(const Float& v) { return New(v.value); }
   inline Local<JSNumber>  New(const Double& v) { return New(v.value); }
-  inline Local<JSInt32>   New(const Char& v) { return New(v.value); }
+  inline Local<JSInt32>   New(cChar& v) { return New(v.value); }
   inline Local<JSUint32>  New(const Byte& v) { return New(v.value); }
   inline Local<JSInt32>   New(const Int16& v) { return New(v.value); }
   inline Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
@@ -679,19 +679,19 @@ class FX_EXPORT Worker: public Object {
 	Local<JSValue> New(const PersistentBase<JSValue>& value);
 
 	Local<JSObject> NewInstance(uint64 id, uint argc = 0, Local<JSValue>* argv = nullptr);
-	Local<JSString> NewString(const Buffer& data);
-  Local<JSString> NewAscii(cchar* str);
-  Local<JSArrayBuffer> NewArrayBuffer(char* use_buff, uint len);
+	Local<JSString> NewString(cBuffer& data);
+  Local<JSString> NewAscii(cChar* str);
+  Local<JSArrayBuffer> NewArrayBuffer(Char* use_buff, uint len);
   Local<JSArrayBuffer> NewArrayBuffer(uint len);
 	Local<JSUint8Array> NewUint8Array(Local<JSString> str, Encoding enc = Encoding::utf8);
-  Local<JSUint8Array> NewUint8Array(int size, char fill = 0);
+  Local<JSUint8Array> NewUint8Array(int size, Char fill = 0);
   Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab);
   Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab, uint offset, uint size);
-	Local<JSObject> NewRangeError(cchar* errmsg, ...);
-	Local<JSObject> NewReferenceError(cchar* errmsg, ...);
-	Local<JSObject> NewSyntaxError(cchar* errmsg, ...);
-	Local<JSObject> NewTypeError(cchar* errmsg, ...);
-	Local<JSObject> NewError(cchar* errmsg, ...);
+	Local<JSObject> NewRangeError(cChar* errmsg, ...);
+	Local<JSObject> NewReferenceError(cChar* errmsg, ...);
+	Local<JSObject> NewSyntaxError(cChar* errmsg, ...);
+	Local<JSObject> NewTypeError(cChar* errmsg, ...);
+	Local<JSObject> NewError(cChar* errmsg, ...);
 	Local<JSObject> NewError(cError& err);
 	Local<JSObject> NewError(const HttpError& err);
 	Local<JSObject> NewError(Local<JSObject> value);
@@ -710,7 +710,7 @@ class FX_EXPORT Worker: public Object {
 	 * @func throwError
 	 */
 	void throwError(Local<JSValue> exception);
-	void throwError(cchar* errmsg, ...);
+	void throwError(cChar* errmsg, ...);
 	
 	/**
 	 * @func hasInstance
@@ -793,7 +793,7 @@ class FX_EXPORT Worker: public Object {
 	 * @func runNativeScript
 	 */
 	Local<JSValue> runNativeScript(
-		const Buffer& source, cString& name, 
+		cBuffer& source, cString& name, 
 		Local<JSObject> exports = Local<JSObject>());
 
 	/**

@@ -163,7 +163,7 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	uint  marked_cell_begin_, marked_cell_end_;
 	float text_margin_, cursor_x_, input_text_offset_x_;
 	bool  editing_, cursor_twinkle_status_, security_;
-	char  flag_;
+	Char  flag_;
 	Vec2  point_;
 	KeyboardType  type_;
 	KeyboardReturnType  return_type_;

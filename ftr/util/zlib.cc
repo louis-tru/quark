@@ -52,7 +52,7 @@ namespace ftr {
 	 不一样。
 	 */
 
-	static Buffer _compress(const char* data, uint32_t len, int level) {
+	static Buffer _compress(cChar* data, uint32_t len, int level) {
 		Buffer rev, tmp(16384); // 16k
 		z_stream strm;
 		strm.zalloc = Z_NULL;
@@ -78,7 +78,7 @@ namespace ftr {
 		return rev;
 	}
 
-	static Buffer _uncompress(const char* data, uint32_t len) {
+	static Buffer _uncompress(cChar* data, uint32_t len) {
 		Buffer rev, tmp(16384); // 16k
 		z_stream strm;
 		strm.zalloc = Z_NULL;
@@ -129,7 +129,7 @@ namespace ftr {
 		return _gzfp != NULL;
 	}
 
-	extern const char* inl__file_flag_str(int flag);
+	extern cChar* inl__file_flag_str(int flag);
 
 	// Override
 	int GZip::open(int flag) {
@@ -276,7 +276,7 @@ namespace ftr {
 		});
 		
 		// Init
-		char name[256 + 1];
+		Char name[256 + 1];
 		unz_file_info unzfi;
 		unz_file_pos pos;
 		int code;

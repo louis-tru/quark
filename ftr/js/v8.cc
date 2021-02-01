@@ -105,7 +105,7 @@ class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringR
 	String _str;
  public:
 	V8ExternalOneByteStringResource(cString& value): _str(value) { }
-	virtual cchar* data() const { return *_str; }
+	virtual cChar* data() const { return *_str; }
 	virtual size_t length() const { return _str.length(); }
 };
 
@@ -199,11 +199,11 @@ class WorkerIMPL: public IMPL {
 		return worker;
 	}
 	
-	FX_INLINE v8::Local<v8::String> NewFromOneByte(cchar* str) {
+	FX_INLINE v8::Local<v8::String> NewFromOneByte(cChar* str) {
 		return v8::String::NewFromOneByte(isolate_, (uint8_t*)str);
 	}
 	
-	FX_INLINE v8::Local<v8::String> NewFromUtf8(cchar* str) {
+	FX_INLINE v8::Local<v8::String> NewFromUtf8(cChar* str) {
 		return v8::String::NewFromUtf8(isolate_, str);
 	}
 	
@@ -235,7 +235,7 @@ class WorkerIMPL: public IMPL {
 		return result;
 	}
 	
-	Local<JSValue> runNativeScript(const Buffer& source, cString& name, Local<JSObject> exports) {
+	Local<JSValue> runNativeScript(cBuffer& source, cString& name, Local<JSObject> exports) {
 		v8::Local<v8::Value> _name = Back(_host->New(String::format("%s", *name)));
 		v8::Local<v8::Value> _souece = Back(_host->NewString(source));
 		
@@ -259,14 +259,14 @@ class WorkerIMPL: public IMPL {
 	}
 	
 	// Extracts a C string from a V8 Utf8Value.
-	static cchar* to_cstring(const v8::String::Utf8Value& value) {
+	static cChar* to_cstring(const v8::String::Utf8Value& value) {
 		return *value ? *value : "<string conversion failed>";
 	}
 	
 	String parse_exception_message(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
 		v8::HandleScope handle_scope(isolate_);
 		v8::String::Utf8Value exception(error);
-		const char* exception_string = to_cstring(exception);
+		cChar* exception_string = to_cstring(exception);
 		if (message.IsEmpty()) {
 			// V8 didn't provide any extra information about this error; just
 			return exception_string;
@@ -275,12 +275,12 @@ class WorkerIMPL: public IMPL {
 			// Print (filename):(line number): (message).
 			v8::String::Utf8Value filename(message->GetScriptOrigin().ResourceName());
 			v8::Local<v8::Context> context(isolate_->GetCurrentContext());
-			const char* filename_string = to_cstring(filename);
+			cChar* filename_string = to_cstring(filename);
 			int linenum = message->GetLineNumber(context).FromJust();
 			out.push(String::format("%s:%d: %s\n", filename_string, linenum, exception_string));
 			// Print line of source code.
 			v8::String::Utf8Value sourceline(message->GetSourceLine(context).ToLocalChecked());
-			const char* sourceline_string = to_cstring(sourceline);
+			cChar* sourceline_string = to_cstring(sourceline);
 			out.push(sourceline_string); out.push('\n');
 			int start = message->GetStartColumn(context).FromJust();
 			for (int i = 0; i < start; i++) {
@@ -304,7 +304,7 @@ class WorkerIMPL: public IMPL {
 						stack_trace_string->IsString() &&
 						v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
 					v8::String::Utf8Value stack_trace(stack_trace_string);
-					const char* stack_trace_string = to_cstring(stack_trace);
+					cChar* stack_trace_string = to_cstring(stack_trace);
 					out.push( stack_trace_string ); out.push('\n');
 				}
 			}
@@ -316,7 +316,7 @@ class WorkerIMPL: public IMPL {
 		FX_ERR( parse_exception_message(message, error) );
 	}
 
-	static void OnFatalError(const char* location, const char* message) {
+	static void OnFatalError(cChar* location, cChar* message) {
 		if (location) {
 			FX_FATAL("FATAL ERROR: %s %s\n", location, message);
 		} else {
@@ -855,8 +855,8 @@ Local<JSObject> JSFunction::NewInstance(Worker* worker, int argc, Local<JSValue>
 int JSArrayBuffer::ByteLength(Worker* worker) const {
 	return (uint)reinterpret_cast<const v8::ArrayBuffer*>(this)->ByteLength();
 }
-char* JSArrayBuffer::Data(Worker* worker) {
-	return (char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
+Char* JSArrayBuffer::Data(Worker* worker) {
+	return (Char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
 }
 Local<JSArrayBuffer> JSTypedArray::Buffer(Worker* worker) {
 	auto ab = reinterpret_cast<v8::ArrayWeakBuffer*>(this);
@@ -1106,7 +1106,7 @@ Local<JSBoolean> Worker::New(bool data) {
 	return Cast<JSBoolean>(v8::Boolean::New(ISOLATE(this), data));
 }
 
-Local<JSInt32> Worker::New(char data) {
+Local<JSInt32> Worker::New(Char data) {
 	return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 }
 
@@ -1138,7 +1138,7 @@ Local<JSNumber> Worker::New(uint64 data) {
 	return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 }
 
-Local<JSString> Worker::New(cchar* data, int len) {
+Local<JSString> Worker::New(cChar* data, int len) {
   return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
                                                 data, v8::String::kNormalString, len < 0? -1: len));
 }
@@ -1218,7 +1218,7 @@ Local<JSValue> Worker::New(const PersistentBase<JSValue>& value) {
 		reinterpret_cast<const v8::PersistentBase<v8::Value>*>(&value)->Get(ISOLATE(this));
 	return Cast(r);
 }
-Local<JSArrayBuffer> Worker::NewArrayBuffer(char* use_buff, uint len) {
+Local<JSArrayBuffer> Worker::NewArrayBuffer(Char* use_buff, uint len) {
   return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
 }
 Local<JSArrayBuffer> Worker::NewArrayBuffer(uint len) {
@@ -1252,35 +1252,35 @@ Local<JSSet> Worker::NewSet() {
   return Cast<JSSet>(v8::Set::New(ISOLATE(this)));
 }
 
-Local<JSString> Worker::NewString(const Buffer& data) {
+Local<JSString> Worker::NewString(cBuffer& data) {
 	return Cast<JSString>(v8::String::NewFromUtf8(ISOLATE(this),
 																								*data, v8::String::kNormalString,
 																								data.length()));
 }
 
-Local<JSString> Worker::NewAscii(cchar* str) {
+Local<JSString> Worker::NewAscii(cChar* str) {
   return Cast<JSString>(v8::String::NewFromOneByte(ISOLATE(this),
                                                    (const uint8_t  *)str, v8::String::kNormalString));
 }
   
-  Local<JSString> NewAscii(cchar* str);
+  Local<JSString> NewAscii(cChar* str);
 
-Local<JSObject> Worker::NewRangeError(cchar* errmsg, ...) {
+Local<JSObject> Worker::NewRangeError(cChar* errmsg, ...) {
 	FX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::RangeError(Back(New(str))->ToString()));
 }
 
-Local<JSObject> Worker::NewReferenceError(cchar* errmsg, ...) {
+Local<JSObject> Worker::NewReferenceError(cChar* errmsg, ...) {
 	FX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::ReferenceError(Back(New(str))->ToString()));
 }
 
-Local<JSObject> Worker::NewSyntaxError(cchar* errmsg, ...) {
+Local<JSObject> Worker::NewSyntaxError(cChar* errmsg, ...) {
 	FX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::SyntaxError( Back(New(str))->ToString() ));
 }
 
-Local<JSObject> Worker::NewTypeError(cchar* errmsg, ...) {
+Local<JSObject> Worker::NewTypeError(cChar* errmsg, ...) {
 	FX_STRING_FORMAT(errmsg, str);
 	return Cast<JSObject>(v8::Exception::TypeError( Back(New(str))->ToString() ));
 }
@@ -1311,7 +1311,7 @@ Local<JSUint8Array> Worker::New(Buffer&& buff) {
 
   if (buff.length()) {
     size_t len = buff.length();
-    char* data = buff.collapse();
+    Char* data = buff.collapse();
     ab = v8::ArrayBuffer::New(ISOLATE(this), data, len);
   } else {
     ab = v8::ArrayBuffer::New(ISOLATE(this), 0);
@@ -1370,7 +1370,7 @@ Local<JSValue> Worker::runScript(cString& source,
 }
 
 Local<JSValue> Worker::runNativeScript(
-	const Buffer& source, cString& name, Local<JSObject> exports) {
+	cBuffer& source, cString& name, Local<JSObject> exports) {
 	v8::EscapableHandleScope scope(ISOLATE(this));
 	if (exports.IsEmpty()) {
 		exports = NewObject();
@@ -1386,7 +1386,7 @@ void Worker::garbageCollection() {
 	ISOLATE(this)->LowMemoryNotification();
 }
 
-int IMPL::start(int argc, char** argv) {
+int IMPL::start(int argc, Char** argv) {
 
 	v8::Platform* platform = v8::platform::CreateDefaultPlatform();
 	v8::V8::InitializePlatform(platform);
@@ -1395,7 +1395,7 @@ int IMPL::start(int argc, char** argv) {
 	// Unconditionally force typed arrays to allocate outside the v8 heap. This
 	// is to prevent memory pointers from being moved around that are returned by
 	// Buffer::Data().
-	const char no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
+	cChar no_typed_array_heap[] = "--typed_array_max_size_in_heap=0";
 	v8::V8::SetFlagsFromString(no_typed_array_heap, sizeof(no_typed_array_heap) - 1);
 	v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 

@@ -92,7 +92,7 @@ class Worker::IMPL {
 	
 	inline int is_node() const { return _is_node; }
 
-	static int start(int argc, char** argv);
+	static int start(int argc, Char** argv);
 
 
  protected:

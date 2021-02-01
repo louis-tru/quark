@@ -47,7 +47,7 @@ namespace ftr {
 
 // ---------------------------------------FileHelper------------------------------------------
 
-static void uv_error(int err, const char* msg = nullptr) throw(Error) {
+static void uv_error(int err, cChar* msg = nullptr) throw(Error) {
 	throw Error((int)err, "%s, %s, %s",
 							 uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
 }
@@ -236,7 +236,7 @@ bool FileHelper::executable_sync(cString& path) {
 
 void FileHelper::mkdir_p_sync(cString& path, uint32_t mode) throw(Error) {
 	
-	const char* path2 = Path::fallback_c(path);
+	cChar* path2 = Path::fallback_c(path);
 	
 	uv_fs_t req;
 	
@@ -245,11 +245,11 @@ void FileHelper::mkdir_p_sync(cString& path, uint32_t mode) throw(Error) {
 	}
 	
 	int len = strlen(path2);
-	char c = path2[len - 1];
+	Char c = path2[len - 1];
 	if (c == '/' || c == '\\') {
 		len--;
 	}
-	char p[len + 1];
+	Char p[len + 1];
 	memcpy(p, path2, len);
 	p[len] = '\0';
 	
@@ -357,7 +357,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 			d.return_value = 0;
 		} else {
 			Dirent* dirent = static_cast<Dirent*>(d.data);
-			const char* p = Path::fallback_c(dirent->pathname);
+			cChar* p = Path::fallback_c(dirent->pathname);
 			int r;
 			if ( dirent->type == FTYPE_DIR ) {
 				r = uv_fs_rmdir(uv_default_loop(), &req, p, nullptr);
@@ -466,7 +466,7 @@ Buffer FileHelper::read_file_sync(cString& path, int64_t size) throw(Error) {
 				break;
 			size = req.statbuf.st_size;
 		}
-		char* buffer = (char*)::malloc(size + 1); // 为兼容C字符串多加1位0
+		Char* buffer = (Char*)::malloc(size + 1); // 为兼容C字符串多加1位0
 		if ( buffer ) {
 			uv_buf_t buf;
 			buf.base = buffer;
@@ -503,7 +503,7 @@ int FileHelper::write_file_sync(cString& path, const void* buffer, int64_t size)
 	uv_fs_t req;
 	int fp = open_sync(path, O_WRONLY | O_CREAT | O_TRUNC);
 	uv_buf_t buf;
-	buf.base = (char*)buffer;
+	buf.base = (Char*)buffer;
 	buf.len = size < 0 ? 0 : size;
 	int r = uv_fs_write(uv_default_loop(), &req, fp, &buf, 1, -1, nullptr);
 	uv_fs_close(uv_default_loop(), &req, fp, nullptr);
@@ -531,7 +531,7 @@ void FileHelper::close_sync(int fd) throw(Error) {
 int FileHelper::read_sync(int fd, void* buffer, int64_t size, int64_t offset) throw(Error) {
 	uv_fs_t req;
 	uv_buf_t buf;
-	buf.base = (char*)buffer;
+	buf.base = (Char*)buffer;
 	buf.len = size;
 	int r = uv_fs_read(uv_default_loop(), &req, fd, &buf, 1, offset, nullptr);
 	if (r < 0) {
@@ -542,7 +542,7 @@ int FileHelper::read_sync(int fd, void* buffer, int64_t size, int64_t offset) th
 int FileHelper::write_sync(int fd, const void* buffer, int64_t size, int64_t offset) throw(Error) {
 	uv_fs_t req;
 	uv_buf_t buf;
-	buf.base = (char*)buffer;
+	buf.base = (Char*)buffer;
 	buf.len = size;
 	int r = uv_fs_write(uv_default_loop(), &req, fd, &buf, 1, offset, nullptr);
 	if (r < 0) {

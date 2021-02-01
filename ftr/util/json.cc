@@ -145,7 +145,7 @@ JSON& JSON::operator=(double d) {
 	return *this;
 }
 
-JSON& JSON::operator=(const char* str) {
+JSON& JSON::operator=(cChar* str) {
 	reinterpret_cast<RValue*>(this)->
 		SetString(str, uint32_t(strlen(str)), shareMemoryPoolAllocator);
 	return *this;
@@ -162,7 +162,7 @@ bool JSON::operator==(const JSON& json) const {
 	return reinterpret_cast<CRValue*>(this)->operator==(b);
 }
 
-bool JSON::operator==(const char* str) const {
+bool JSON::operator==(cChar* str) const {
 	return reinterpret_cast<CRValue*>(this)->operator==(str);
 }
 
@@ -225,7 +225,7 @@ JSON& JSON::operator[](int index) {
 	return *reinterpret_cast<JSON*>(value);
 }
 
-JSON& JSON::operator[] (const char* key) {
+JSON& JSON::operator[] (cChar* key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
 	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
@@ -260,7 +260,7 @@ const JSON& JSON::operator[](int index) const {
 	return NullValue;
 }
 
-const JSON& JSON::operator[](const char* key) const {
+const JSON& JSON::operator[](cChar* key) const {
 	CRValue* self = reinterpret_cast<CRValue*>(this);
 	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
@@ -276,7 +276,7 @@ const JSON& JSON::operator[](cString& key) const {
 	return operator[](*key);
 }
 
-bool JSON::is_member(const char* key) const {
+bool JSON::is_member(cChar* key) const {
 	return reinterpret_cast<CRValue*>(this)->HasMember(key);
 }
 
@@ -320,7 +320,7 @@ void JSON::pop() {
 	reinterpret_cast<RValue*>(this)->PopBack();
 }
 
-void JSON::remove(const char* key) {
+void JSON::remove(cChar* key) {
 	RValue* self = reinterpret_cast<RValue*>(this);
 	ASSERT(self->IsObject());
 	RValue n(rapidjson::StringRef(key));
@@ -387,7 +387,7 @@ JSON::ArrayIteratorConst JSON::end_array() const {
 	return reinterpret_cast<ArrayIteratorConst>(reinterpret_cast<CRValue*>(this)->End());
 }
 
-static JSON parse_for(const char* json, int64_t len = 0xFFFFFFFFFFFFFFF) throw(Error) {
+static JSON parse_for(cChar* json, int64_t len = 0xFFFFFFFFFFFFFFF) throw(Error) {
 	RDocument doc(&shareMemoryPoolAllocator);
 	doc.Parse(json, len);
 	FX_CHECK(!doc.HasParseError(),

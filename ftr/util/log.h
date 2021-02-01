@@ -55,8 +55,8 @@ namespace ftr {
 	};
 
 	namespace console {
-		FX_EXPORT void log(char s);
-		FX_EXPORT void log(unsigned char s);
+		FX_EXPORT void log(Char s);
+		FX_EXPORT void log(unsigned Char s);
 		FX_EXPORT void log(int16_t s);
 		FX_EXPORT void log(uint32_t s);
 		FX_EXPORT void log(int s);
@@ -67,18 +67,18 @@ namespace ftr {
 		FX_EXPORT void log(int64_t);
 		FX_EXPORT void log(uint64_t);
 		FX_EXPORT void log(bool);
-		FX_EXPORT void log(const char*, ...);
+		FX_EXPORT void log(cChar*, ...);
 		FX_EXPORT void log(cString&);
 		FX_EXPORT void log(cString16&);
-		FX_EXPORT void warn(const char*, ...);
+		FX_EXPORT void warn(cChar*, ...);
 		FX_EXPORT void warn(cString&);
-		FX_EXPORT void error(const char*, ...);
+		FX_EXPORT void error(cChar*, ...);
 		FX_EXPORT void error(cString&);
 		FX_EXPORT void error(const Error&);
-		FX_EXPORT void tag(const char*, const char*, ...);
-		FX_EXPORT void print(const char*, ...);
+		FX_EXPORT void tag(cChar*, cChar*, ...);
+		FX_EXPORT void print(cChar*, ...);
 		FX_EXPORT void print(cString&);
-		FX_EXPORT void print_err(const char*, ...);
+		FX_EXPORT void print_err(cChar*, ...);
 		FX_EXPORT void print_err(cString&);
 		FX_EXPORT void clear();
 		#if FX_ARCH_32BIT

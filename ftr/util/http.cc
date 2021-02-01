@@ -49,7 +49,7 @@ static cString string_colon(": ");
 static cString string_space(" ");
 static cString string_header_end("\r\n");
 static cString string_max_age("max-age=");
-static cString content_type_form("application/x-www-form-urlencoded; charset=utf-8");
+static cString content_type_form("application/x-www-form-urlencoded; Charset=utf-8");
 static cString content_type_multipart_form("multipart/form-data; "
 																								"boundary=----FtrFormBoundaryrGKCBY7qhFd3TrwA");
 static cString multipart_boundary_start("------FtrFormBoundaryrGKCBY7qhFd3TrwA\r\n");
@@ -234,7 +234,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			return 0;
 		}
 		
-		static int on_status(http_parser* parser, const char *at, size_t length) {
+		static int on_status(http_parser* parser, cChar *at, size_t length) {
 			//g_debug("http response parser on_status, %s %s", String(at - 4, 3).c(), String(at, uint32_t(length)).c());
 			Connect* self = static_cast<Connect*>(parser->data);
 			int status_code = String(at - 4, 3).to_uint32_t();
@@ -249,13 +249,13 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			return 0;
 		}
 		
-		static int on_header_field(http_parser* parser, const char *at, size_t length) {
+		static int on_header_field(http_parser* parser, cChar *at, size_t length) {
 			//g_debug("http response parser on_header_field, %s", String(at, uint32_t(length)).c());
 			static_cast<Connect*>(parser->data)->_header_field = String(at, uint32_t(length)).lower_case();
 			return 0;
 		}
 		
-		static int on_header_value(http_parser* parser, const char *at, size_t length) {
+		static int on_header_value(http_parser* parser, cChar *at, size_t length) {
 			//g_debug("http response parser on_header_value, %s", String(at, uint32_t(length)).c());
 			Connect* self = static_cast<Connect*>(parser->data);
 			String value(at, uint32_t(length));
@@ -303,7 +303,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			}
 		}
 		
-		int gzip_inflate(const char* data, uint32_t len, Buffer& out) {
+		int gzip_inflate(cChar* data, uint32_t len, Buffer& out) {
 			static Buffer _z_strm_buff(16384); // 16k
 			
 			int r = 0;
@@ -324,7 +324,7 @@ class HttpClientRequest::Inl: public Reference, public Delegate {
 			return r;
 		}
 		
-		static int on_body(http_parser* parser, const char *at, size_t length) {
+		static int on_body(http_parser* parser, cChar *at, size_t length) {
 			//g_debug("--http response parser on_body, %d", length);
 			Connect* self = static_cast<Connect*>(parser->data);
 			self->_client->_download_size += length;

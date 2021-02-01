@@ -35,7 +35,7 @@
 
 namespace ftr {
 
-static char empty_[4] = { 0, 0, 0, 0 };
+static Char empty_[4] = { 0, 0, 0, 0 };
 static cPixelData empty_pixel_data(WeakBuffer(empty_, 4), 1, 1, PixelData::RGBA8888);
 
 /**

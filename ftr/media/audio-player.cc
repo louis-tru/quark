@@ -68,7 +68,7 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 	
 	// set pcm ..
 	bool write_audio_pcm(uint64 st) {
-		bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
+		bool r = _pcm->write(WeakBuffer((Char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 		if ( !r ) {
 			FX_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 		} else {

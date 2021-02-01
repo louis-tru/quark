@@ -33,18 +33,18 @@
 
 namespace ftr {
 
-Array<PixelData> WEBPImageCodec::decode(const Buffer& data) {
+Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
 	Array<PixelData> rv;
 	int width, height;
 	uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.value(), data.length(), &width, &height);
 	if (buff) {
-		Buffer bf((char*)buff, width * height * 4);
+		Buffer bf((Char*)buff, width * height * 4);
 		rv.push( PixelData( bf, width, height, PixelData::RGBA8888, false) );
 	}
 	return rv;
 }
 
-PixelData WEBPImageCodec::decode_header (const Buffer& data) {
+PixelData WEBPImageCodec::decode_header (cBuffer& data) {
 	int width = 0, height = 0;
 	int ok = WebPGetInfo((uint8_t*)data.value(), data.length(), &width, &height);
 	//if ( ok == VP8_STATUS_OK ) {

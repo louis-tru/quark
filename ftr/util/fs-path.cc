@@ -42,7 +42,7 @@
 namespace ftr {
 
 	namespace internal {
-		SString string_format(const char* f, va_list arg);
+		SString string_format(cChar* f, va_list arg);
 	}
 
 	// Path implementation
@@ -93,14 +93,14 @@ namespace ftr {
 
 	String Path::cwd() {
 		#if FX_WIN
-			char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
+			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/', '/' };
 			_getcwd(cwd + 8, 1024);
 			String str = String(cwd).replace_all('\\', '/');
 			if (str.length() == 10)
 				str.push('/'); //
 			return str;
 		#else
-			char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/' };
+			Char cwd[1100] = { 'f', 'i', 'l', 'e', ':', '/', '/' };
 			getcwd(cwd + 7, 1024);
 			return cwd;
 		#endif
@@ -115,11 +115,11 @@ namespace ftr {
 		#endif
 	}
 
-	static cString chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
+	static cString Chars("ABCDEFGHIJKMLNOPQRSTUVWXYZabcdefghijkmlnopqrstuvwxyz");
 
 	bool Path::is_local_absolute(cString& path) {
 		#if FX_WIN
-			if (chars.index_of(s[0]) != -1 && path[1] == ':') {
+			if (Chars.index_of(s[0]) != -1 && path[1] == ':') {
 				return true;
 			}
 		#else
@@ -211,7 +211,7 @@ namespace ftr {
 			}
 			else if ( s.length() > 7 && is_local_zip(s) ) {
 				
-				if (chars.index_of(s[7]) != -1 && s[8] == ':') { // zip:///c:
+				if (Chars.index_of(s[7]) != -1 && s[8] == ':') { // zip:///c:
 					if (s.length() < 10) {
 						return s.substr(0, 9).copy().push('/');
 					} else if (s[9] == '/') { // zip:///c:/
@@ -228,7 +228,7 @@ namespace ftr {
 				
 			} else if ( s.length() >= 8 && is_local_file( s ) ) { // file:///
 				
-				if (chars.index_of(s[8]) != -1 && s[9] == ':') { // file:///c:
+				if (Chars.index_of(s[8]) != -1 && s[9] == ':') { // file:///c:
 					if (s.length() < 11) {
 						return s.substr(0, 10).copy().push('/');
 					} else if (s[10] == '/') { // file:///c:/
@@ -244,7 +244,7 @@ namespace ftr {
 				}
 			} else { // Relative path
 				if (s.length() >= 2 &&
-						chars.index_of(s[0]) != -1 && s[1] == ':' &&
+						Chars.index_of(s[0]) != -1 && s[1] == ':' &&
 						(s.length() < 3 || s[2] == '/')
 						) { // Windows absolute path
 					prefix = String("file:///").push(*s, 2).push('/');
@@ -278,7 +278,7 @@ namespace ftr {
 		return prefix.push( s );
 	}
 
-	SString Path::format(const char* path, ...) {
+	SString Path::format(cChar* path, ...) {
 		va_list arg;
 		va_start(arg, path);
 		SString str = internal::string_format(path, arg);
@@ -305,7 +305,7 @@ namespace ftr {
 		return path;
 	}
 
-	const char* Path::fallback_c(cString& path) {
+	cChar* Path::fallback_c(cString& path) {
 		return fallback(path).val();
 	}
 

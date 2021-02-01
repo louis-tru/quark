@@ -38,9 +38,9 @@
 #include "ftr/value.h"
 
 #define FX_GUI_MAIN() \
-	int __fx_gui_main__(int, char**); \
+	int __fx_gui_main__(int, Char**); \
 	FX_INIT_BLOCK(__fx_gui_main__) { __fx_gui_main = __fx_gui_main__; } \
-	int __fx_gui_main__(int argc, char** argv)
+	int __fx_gui_main__(int argc, Char** argv)
 
 #define FX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
 #define FX_ASSERT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
@@ -48,7 +48,7 @@
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
  */
-FX_EXPORT extern int (*__fx_gui_main)(int, char**);
+FX_EXPORT extern int (*__fx_gui_main)(int, Char**);
 
 namespace ftr {
 
@@ -237,7 +237,7 @@ namespace ftr {
 		/**
 		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 		*/
-		static void runMain(int argc, char* argv[]);
+		static void runMain(int argc, Char* argv[]);
 
 		private:
 		

@@ -47,7 +47,7 @@ static void jpeg_error_output(j_common_ptr cinfo) {
 	longjmp(data->jmpbuf, 1);
 }
 
-Array<PixelData> JPEGImageCodec::decode(const Buffer& data) {
+Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
 	Array<PixelData> rv;
 	struct jpeg_decompress_struct jpeg;
 	struct jpeg_error_mgr jerr;
@@ -115,7 +115,7 @@ Array<PixelData> JPEGImageCodec::decode(const Buffer& data) {
 	return rv;
 }
 
-PixelData JPEGImageCodec::decode_header(const Buffer& data) {
+PixelData JPEGImageCodec::decode_header(cBuffer& data) {
 	struct jpeg_decompress_struct jpeg;
 	struct jpeg_error_mgr jerr;
 	jpeg.err = jpeg_std_error(&jerr);

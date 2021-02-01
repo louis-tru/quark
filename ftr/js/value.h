@@ -86,13 +86,13 @@ class FX_EXPORT ValueProgram: public Object {
  public:
 	#define def_attr_fn(Name, Type)           \
 		Local<JSValue> New(const Type& value);  \
-		bool parse##Name(Local<JSValue> in, Type& out, cchar* err_msg = nullptr);
+		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
 	#define def_attr(Name, Type) \
 		Persistent<JSFunction> _parse##Name; \
 		Persistent<JSFunction> _##Name;
 	ValueProgram(Worker* worker, Local<JSObject> exports, Local<JSObject> native);
 	virtual ~ValueProgram();
-	void throwError(Local<JSValue> value, cchar* msg = nullptr, cchar* help = nullptr);
+	void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
 	js_value_table(def_attr_fn);
 	bool isBase(Local<JSValue> arg);
  private:

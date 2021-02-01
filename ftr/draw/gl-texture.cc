@@ -200,7 +200,7 @@ static bool load_yuv_texture2(Draw* draw, uint handle,
 															GLenum format,
 															uint pixel_storei,
 															uint offset_x, uint offset_y, 
-															uint width, uint height, cchar* buffer, 
+															uint width, uint height, cChar* buffer, 
 															bool new_gen, uint nw = 0, uint nh = 0) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, handle);

@@ -33,9 +33,6 @@
 
 #include "./object.h"
 #include <initializer_list>
-#include <math.h>
-#include <vector>
-#include <functional>
 
 namespace ftr {
 
@@ -43,55 +40,43 @@ namespace ftr {
 	# define FX_MIN_CAPACITY (8)
 	#endif
 
-	enum HolderMode {
-		kWeak, kStrong
-	};
-
 	struct AllocatorDefault {
 		static void* alloc(size_t size);
-		static void* realloc(void* ptr, size_t size);
 		static void  free(void* ptr);
+		static void* realloc(void* ptr, size_t size, size_t* out_size, int size_of);
 	};
 
-	template<
-		typename T = char,
-		HolderMode M = HolderMode::kStrong,
-		typename A = AllocatorDefault
-	> class ArrayBuffer;
+	template<typename T = Char, typename A = AllocatorDefault> class ArrayBuffer;
+	template<typename T = Char, typename A = AllocatorDefault> class ArrayString;
 
-	typedef ArrayBuffer<char, HolderMode::kStrong> Buffer;
-	typedef ArrayBuffer<char, HolderMode::kWeak>   WeakBuffer;
+	typedef       ArrayBuffer<Char>     Buffer;
+	typedef       WeakArrayBuffer<Char> WeakBuffer;
+	typedef const ArrayBuffer<Char>     cBuffer;
+	typedef const WeakArrayBuffer<Char> cWeakBuffer;
 
 	/**
 	 * @class ArrayBuffer
 	 */
-	template<typename T, HolderMode M, typename A>
+	template<typename T, typename A>
 	class FX_EXPORT ArrayBuffer: public Object {
 		public:
-			typedef             T                          Type;
-			typedef ArrayBuffer<T, HolderMode::kWeak,   A> Weak;
-			typedef ArrayBuffer<T, HolderMode::kStrong, A> Strong;
+			typedef                 T     Type;
+			typedef ArrayBuffer    <T, A> Strong;
+			typedef WeakArrayBuffer<T, A> Weak;
 			// constructors
 			ArrayBuffer();
 			ArrayBuffer(ArrayBuffer& arr);  // right value copy constructors
 			ArrayBuffer(ArrayBuffer&& arr); // right value copy constructors
-			template<HolderMode M2, typename A2>
-			ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied
-			ArrayBuffer(const ArrayBuffer& arr); // Only weak types can be copied
 			ArrayBuffer(const std::initializer_list<T>& list);
 
 			/**
 			 * @func from() greedy new ArrayBuffer from ...
 			 */
 			static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
-				return ArrayBuffer(length, capacity, data);
+				return ArrayBuffer(length, FX_MAX(capacity, length), data);
 			}
 			static inline ArrayBuffer from(uint32_t length, uint32_t capacity = 0) {
 				return ArrayBuffer(length, capacity);
-			}
-			static inline ArrayBuffer weak(const T* data, uint32_t length) {
-				static_assert(M == HolderMode::kWeak, "from(), Only weak types can be copied");
-				return ArrayBuffer(length, -1, const_cast<T*>(data));
 			}
 
 			virtual ~ArrayBuffer() { clear(); }
@@ -106,37 +91,33 @@ namespace ftr {
 			*/
 			inline bool is_null() const { return _length == 0; }
 
+			/**
+			 * @func is_weak() is weak array buffer object
+			 */
+			inline bool is_weak() const { return _capacity >= 0; }
+
 			inline uint32_t length() const { return _length; }
-			inline uint32_t capacity() const { return _capacity; }
+			inline int32_t  capacity() const { return _capacity; }
 
 			// operator=
 			ArrayBuffer& operator=(ArrayBuffer& arr);
 			ArrayBuffer& operator=(ArrayBuffer&& arr);
-			template<HolderMode M2, typename A2>
-			ArrayBuffer& operator=(const ArrayBuffer<T, M2, A2>& arr); // Only weak types can be copied assign value
-			ArrayBuffer& operator=(const ArrayBuffer& arr);
 
 			// get ptr
-			T& operator[](uint32_t index) { // Only strong types have this method
-				static_assert(M == HolderMode::kStrong, "Only for strong types");
+			inline       T& operator[](uint32_t index) {
 				ASSERT(index < _length, "ArrayBuffer access violation.");
 				return _val[index];
 			}
-			const T& operator[](uint32_t index) const {
+			inline const T& operator[](uint32_t index) const {
 				ASSERT(index < _length, "ArrayBuffer access violation.");
 				return _val[index];
 			}
-			inline T * operator*() { // Only strong types have this method
-				static_assert(M == HolderMode::kStrong, "Only for strong types");
-				return _val;
-			}
-			inline const T* operator*() const { return _val; }
-			inline const T* val      () const { return _val; }
+			inline       T* val      ()                      { return _val; }
+			inline const T* val      ()                const { return _val; }
 
 			ArrayBuffer& push(T&& item);
 			ArrayBuffer& push(const T& item);
-			ArrayBuffer& push(const Weak& src);
-			ArrayBuffer& pop(uint32_t count = 1);
+			ArrayBuffer& pop (uint32_t count = 1);
 
 			/**
 			* @func write()
@@ -146,15 +127,15 @@ namespace ftr {
 			* @arg form_src {int=0} 从要写入src数组的form位置开始读取数据
 			* @ret {uint32_t} 返回写入数据量
 			*/
-			template<HolderMode M2, typename A2>
-			uint32_t write(const ArrayBuffer<T, M2, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
+			template<typename A2>
+			uint32_t write(const ArrayBuffer<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
 			uint32_t write(const T* src, int to, uint32_t size_src);
-			
+
 			/**
-			 * @func concat() concat buffer
+			 * @func concat() use right value move mode concat buffer 
 			 */
-			template<HolderMode M2, typename A2>
-			inline ArrayBuffer& concat(ArrayBuffer<T, M2, A2>&& arr) {
+			template<typename A2>
+			inline ArrayBuffer& concat(ArrayBuffer<T, A2>&& arr) {
 				return concat_(*arr, arr.length());
 			}
 
@@ -172,7 +153,12 @@ namespace ftr {
 			* @func collapse, discard data ownership
 			*/
 			T* collapse();
-			
+
+			/**
+			* @func collapse string, discard data ownership
+			*/
+			ArrayString<T, A> collapse_string();
+
 			/**
 			* @func clear() clear data
 			*/
@@ -202,80 +188,74 @@ namespace ftr {
 			struct Sham { T _item; }; // Used to call data destructors
 
 			uint32_t  _length;
-			int32_t   _capacity;
+			int32_t   _capacity; // -1 means that it does not hold a pointer. This value is determined when it is constructed
 			T*        _val;
 
-			template<typename T2, HolderMode M2, typename A2> friend class ArrayBuffer;
+			template<typename T2, typename A2> friend class ArrayBuffer;
 	};
 
 	/**
 		* @class WeakArrayBuffer
 		*/
-	template<typename T, HolderMode M, typename A>
-	class FX_EXPORT WeakArrayBuffer: public ArrayBuffer<T, M, A> {
+	template<typename T, typename A>
+	class FX_EXPORT WeakArrayBuffer: public ArrayBuffer<T, A> {
 		public:
-
-			WeakArrayBuffer(): ArrayBuffer() {
-				this->_capacity = -1;
-			}
-
-			WeakArrayBuffer(const T* data, uint length)
-			: ArrayBuffer(length, -1, const_cast<T*>(data)) {
-				this->_capacity = -1;
-			}
-
-			WeakArrayBuffer(const WeakArrayBuffer& arr): ArrayBuffer(
-				const_cast<T*>(*arr._container), 
-				arr._length, arr._container.capacity()
-			) {
-				this->_container.m_weak = true;
-			}
-
-			template<HolderMode M2, class A2>
-			WeakArrayBuffer(const ArrayBuffer<T, M2, A2>& arr) {
-				this->_container.m_weak = true;
-				operator=(arr);
-			}
+			WeakArrayBuffer(): ArrayBuffer(0, -1, nullptr) {}
+			WeakArrayBuffer(const T* data, uint length): ArrayBuffer(length, -1, const_cast<T*>(data)) {}
+			WeakArrayBuffer(const WeakArrayBuffer& arr): ArrayBuffer(arr._length, -1, const_cast<T*>(arr._val)) {}
+			template<class A2>
+			WeakArrayBuffer(const ArrayBuffer<T, A2>& arr): ArrayBuffer(arr._length, -1, const_cast<T*>(arr._val)) {}
 
 			WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
-				return operator=(*static_cast<const Array<T, BufferContainer<T>>*>(&arr));
-			}
-
-			template<class T2>
-			WeakArrayBuffer& operator=(const Array<T, T2>& arr) {
 				this->_length = arr._length;
-				this->_container.m_weak = true;
-				this->_container = arr._container;
+				this->_val = arr._val;
+				return *this;
+			}
+			template<class A2>
+			WeakArrayBuffer& operator=(const ArrayBuffer<T, A2>& arr) {
+				this->_length = arr._length;
+				this->_val = arr._val;
 				return *this;
 			}
 	};
 
 	// -------------------------------------- IMPL --------------------------------------
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(): _length(0), _capacity(0), _val(nullptr) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>::ArrayBuffer(): _length(0), _capacity(0), _val(nullptr) {
 	}
 
-	template<typename T, HolderMode M, typename A>
-	template<HolderMode M2, typename A2>
-	ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer<T, M2, A2>& arr)
-		: ArrayBuffer(arr._length, arr._capacity, const_cast<T*>(arr._val)) {
-		static_assert(M == HolderMode::kWeak, "Only weak types can be copied ..");
-	}
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(const ArrayBuffer& arr)
-		: ArrayBuffer(arr._length, arr._capacity, const_cast<T*>(arr._val)) { // Only weak types can be copied
-		static_assert(M == HolderMode::kWeak, "Only weak types can be copied ...");
-	}
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(ArrayBuffer& arr): ArrayBuffer(std::move(arr))
+	template<typename T, typename A>
+	ArrayBuffer<T, A>::ArrayBuffer(ArrayBuffer& arr): ArrayBuffer(std::move(arr))
 	{}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity)
-	: _length(length), _capacity(0), _val(nullptr)
+	template<typename T, typename A>
+	ArrayBuffer<T, A>::ArrayBuffer(ArrayBuffer&& arr): _length(0), _capacity(0), _val(nullptr)
+	{
+		operator=(std::move(arr));
+	}
+
+	template<typename T, typename A>
+	ArrayBuffer<T, A>::ArrayBuffer(const std::initializer_list<T>& list)
+		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr)
+	{
+		realloc_(_length);
+		T* begin = _val;
+		for (auto& i : list) {
+			new(begin) T(std::move(i)); // 调用默认构造
+			begin++;
+		}
+	}
+
+	template<typename T, typename A>
+	ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity, T* data)
+		: _length(length), _capacity(capacity), _val(data)
+	{
+	}
+
+	template<typename T, typename A>
+	ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity)
+		: _length(length), _capacity(0), _val(nullptr)
 	{
 		realloc_(FX_MAX(length, capacity));
 		if (_length) {
@@ -288,45 +268,19 @@ namespace ftr {
 		}
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity, T* data)
-	: _length(length), _capacity(FX_MAX(capacity, length)), _val(data)
-	{
-	}
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(ArrayBuffer&& arr): _length(0), _capacity(0), _val(nullptr)
-	{
-		operator=(std::move(arr));
-	}
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>::ArrayBuffer(const std::initializer_list<T>& list)
-	: _length((uint32_t)list.size()), _capacity(0), _val(nullptr)
-	{
-		realloc_(_length);
-		T* begin = _val;
-		for (auto& i : list) {
-			new(begin) T(std::move(i)); // 调用默认构造
-			begin++;
-		}
-	}
-
-	// --------------------------------------------------------------------------------
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(ArrayBuffer& arr) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>& ArrayBuffer<T, A>::operator=(ArrayBuffer& arr) {
 		return operator=(std::move(arr));
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(ArrayBuffer&& arr) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>& ArrayBuffer<T, A>::operator=(ArrayBuffer&& arr) {
 		if ( arr._val != _val ) {
 			clear();
 			_length = arr._length;
-			_capacity = arr._capacity;
 			_val = arr._val;
-			if (M == HolderMode::kStrong) {
+			if (!is_weak()) {
+				_capacity = arr._capacity;
 				arr._length = 0;
 				arr._capacity = 0;
 				arr._val = nullptr;
@@ -335,51 +289,24 @@ namespace ftr {
 		return *this;
 	}
 
-	template<typename T, HolderMode M, typename A>
-	template<HolderMode M2, typename A2>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(const ArrayBuffer<T, M2, A2>& arr) {
-		static_assert(M == HolderMode::kWeak, "operator=(), Only weak types can be copied assign value .");
-		_length = arr._length;
-		_capacity = arr._capacity;
-		_val = const_cast<T*>(arr._val);
-		return *this;
-	}
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::operator=(const ArrayBuffer& arr) {
-		static_assert(M == HolderMode::kWeak, "operator=(), Only weak types can be copied assign value ..");
-		_length = arr._length;
-		_capacity = arr._capacity;
-		_val = const_cast<T*>(arr._val);
-		return *this;
-	}
-
-	// --------------------------------------------------------------------------------
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::push(const T& item) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>& ArrayBuffer<T, A>::push(const T& item) {
 		_length++;
 		realloc_(_length);
 		new(_val + _length - 1) T(item);
 		return *this;
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::push(T&& item) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>& ArrayBuffer<T, A>::push(T&& item) {
 		_length++;
 		realloc_(_length);
 		new(_val + _length - 1) T(std::move(item));
 		return *this;
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::push(const Weak& src) {
-		write(src);
-		return *this;
-	}
-
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::pop(uint32_t count) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>& ArrayBuffer<T, A>::pop(uint32_t count) {
 		int j = FX_MAX(_length - count, 0);
 		if (_length > j) {
 			do {
@@ -391,9 +318,9 @@ namespace ftr {
 		return *this;
 	}
 
-	template<typename T, HolderMode M, typename A>
+	template<typename T, typename A>
 	template<HolderMode M2, typename A2>
-	uint32_t ArrayBuffer<T, M, A>::write(
+	uint32_t ArrayBuffer<T, A>::write(
 		const ArrayBuffer<T, M2, A2>& arr, int to, int size_src, uint32_t form_src) 
 	{
 		int s = FX_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
@@ -406,8 +333,8 @@ namespace ftr {
 	/**
 	* @func write
 	*/
-	template<typename T, HolderMode M, typename A>
-	uint32_t ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size_src) {
+	template<typename T, typename A>
+	uint32_t ArrayBuffer<T, A>::write(const T* src, int to, uint32_t size_src) {
 		if (size_src) {
 			if ( to == -1 ) to = _length;
 			uint32_t old_len = _length;
@@ -427,8 +354,8 @@ namespace ftr {
 		return size_src;
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>& ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>& ArrayBuffer<T, A>::concat_(T* src, uint32_t src_length) {
 		if (src_length) {
 			_length += src_length;
 			realloc_(_length);
@@ -442,8 +369,8 @@ namespace ftr {
 		return *this;
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, HolderMode::kWeak, A> ArrayBuffer<T, M, A>::slice(uint32_t start, uint32_t end) const {
+	template<typename T, typename A>
+	ArrayBuffer<T, HolderMode::kWeak, A> ArrayBuffer<T, A>::slice(uint32_t start, uint32_t end) const {
 		end = FX_MIN(end, _length);
 		if (start < end) {
 			return ArrayBuffer<T, HolderMode::kWeak, A>(_val + start, end - start);
@@ -452,8 +379,8 @@ namespace ftr {
 		}
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, HolderMode::kStrong, A> ArrayBuffer<T, M, A>::copy(uint32_t start, uint32_t end) const {
+	template<typename T, typename A>
+	ArrayBuffer<T, HolderMode::kStrong, A> ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const {
 		end = FX_MIN(end, _length);
 		if (start < end) {
 			ArrayBuffer<T, HolderMode::kStrong, A> arr;
@@ -471,11 +398,10 @@ namespace ftr {
 		return ArrayBuffer<T, HolderMode::kStrong, A>();
 	}
 
-	template<typename T, HolderMode M, typename A>
-	T* ArrayBuffer<T, M, A>::collapse() {
-		if (M == HolderMode::kWeak) {
+	template<typename T, typename A>
+	T* ArrayBuffer<T, A>::collapse() {
+		if (is_weak())
 			return nullptr;
-		}
 		T* r = _val;
 		_capacity = 0;
 		_length = 0;
@@ -483,76 +409,57 @@ namespace ftr {
 		return r;
 	}
 
-	template<typename T, HolderMode M, typename A>
-	void ArrayBuffer<T, M, A>::clear() {
-		if (_capacity) {
-			if (M == HolderMode::kStrong) {
+	template<typename T, typename A>
+	void ArrayBuffer<T, A>::clear() {
+		if (_val) {
+			if (!is_weak()) {
 				T* i = _val;
 				T* end = i + _length;
-				while (i < end) {
-					reinterpret_cast<Sham*>(i)->~Sham(); // 释放
-					i++;
-				}
+				while (i < end)
+					reinterpret_cast<Sham*>(i++)->~Sham(); // 释放
 				A::free(_val); /* free */
+				_capacity = 0;
 			}
 			_length = 0;
-			_capacity = 0;
 			_val = nullptr;
 		}
 	}
 
-	template<typename T, HolderMode M, typename A>
-	ArrayBuffer<T, M, A>&& ArrayBuffer<T, M, A>::realloc(uint32_t capacity) {
+	template<typename T, typename A>
+	ArrayBuffer<T, A>&& ArrayBuffer<T, A>::realloc(uint32_t capacity) {
+		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		if (capacity < _length) { // clear Partial data
 			T* i = _val + capacity;
 			T* end = i + _length;
-			while (i < end) {
-				reinterpret_cast<Sham*>(i)->~Sham(); // 释放
-			}
+			while (i < end)
+				reinterpret_cast<Sham*>(i++)->~Sham(); // 释放
 			_length = capacity;
 		}
 		realloc_(capacity);
 		return std::move(*this);
 	}
 
-	template<typename T, HolderMode M, typename A>
-	void ArrayBuffer<T, M, A>::realloc_(uint32_t capacity) {
-		static_assert(M == HolderMode::kStrong, "the weak holder cannot be changed");
-		if ( capacity ) {
-			capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
-			if ( capacity > _capacity || capacity < _capacity / 4.0 ) {
-				capacity = powf(2, ceil(log2(capacity)));
-				uint32_t size = sizeof(T) * capacity;
-				_capacity = capacity;
-				_val = static_cast<T*>(_val ? A::realloc(_val, size) : A::alloc(size));
-			}
-			ASSERT(_val);
-		} else {
-			A::free(_val);
-			_capacity = 0;
-			_val = nullptr;
-		}
+	template<typename T, typename A>
+	void ArrayBuffer<T, A>::realloc_(uint32_t capacity) {
+		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
+		_val = (T*)A::realloc(_val, capacity, &_capacity, sizeof(T));
 	}
 
-	#define FX_DEF_ARRAY_SPECIAL(T, M, A) \
-		template<>                          ArrayBuffer<T, M, A>::ArrayBuffer(uint32_t length, uint32_t capacity); /*Strong*/ \
-		template<>                          ArrayBuffer<T, M, A>::ArrayBuffer(const std::initializer_list<T>& list); /*Strong*/ \
-		template<> ArrayBuffer<T, M, A>&    ArrayBuffer<T, M, A>::concat_(T* src, uint32_t src_length); /*Strong*/ \
-		template<> uint32_t                 ArrayBuffer<T, M, A>::write(const T* src, int to, uint32_t size); /*Strong*/ \
-		template<> ArrayBuffer<T, M, A>&    ArrayBuffer<T, M, A>::pop(uint32_t count); /*Strong*/ \
-		template<> void                     ArrayBuffer<T, M, A>::clear(); /*Strong/Weak*/ \
-		template<> ArrayBuffer<T, M, A>&&   ArrayBuffer<T, M, A>::realloc(uint32_t capacity); /*Strong*/ \
-		FX_DEF_ARRAY_SPECIAL_SLICE(T, M, A)
+	#define FX_DEF_ARRAY_SPECIAL(T, A) \
+		template<>                       ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity); \
+		template<>                       ArrayBuffer<T, A>::ArrayBuffer(const std::initializer_list<T>& list); \
+		template<> ArrayBuffer<T, A>&    ArrayBuffer<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> uint32_t              ArrayBuffer<T, A>::write(const T* src, int to, uint32_t size); \
+		template<> ArrayBuffer<T, A>&    ArrayBuffer<T, A>::pop(uint32_t count); \
+		template<> void                  ArrayBuffer<T, A>::clear(); \
+		template<> ArrayBuffer<T, A>&&   ArrayBuffer<T, A>::realloc(uint32_t capacity); \
+		template<> ArrayBuffer<T, A>     ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const \
 
-	#define FX_DEF_ARRAY_SPECIAL_SLICE(T, M, A) \
-		template<> ArrayBuffer<T, HolderMode::kStrong, A> \
-																				ArrayBuffer<T, M, A>::copy(uint32_t start, uint32_t end) const /*Strong/Weak*/
 	#define FX_DEF_ARRAY_SPECIAL_ALL(T) \
-		FX_DEF_ARRAY_SPECIAL(T, HolderMode::kStrong, AllocatorDefault); \
-		FX_DEF_ARRAY_SPECIAL_SLICE(T, HolderMode::kWeak, AllocatorDefault)
+		FX_DEF_ARRAY_SPECIAL(T, AllocatorDefault)
 
-	FX_DEF_ARRAY_SPECIAL_ALL(char);
-	FX_DEF_ARRAY_SPECIAL_ALL(unsigned char);
+	FX_DEF_ARRAY_SPECIAL_ALL(Char);
+	FX_DEF_ARRAY_SPECIAL_ALL(unsigned Char);
 	FX_DEF_ARRAY_SPECIAL_ALL(int16_t);
 	FX_DEF_ARRAY_SPECIAL_ALL(uint16_t );
 	FX_DEF_ARRAY_SPECIAL_ALL(int32_t);
@@ -562,6 +469,8 @@ namespace ftr {
 	FX_DEF_ARRAY_SPECIAL_ALL(float);
 	FX_DEF_ARRAY_SPECIAL_ALL(double);
 
+	#undef FX_DEF_ARRAY_SPECIAL
+	#undef FX_DEF_ARRAY_SPECIAL_ALL
 }
 
 #endif

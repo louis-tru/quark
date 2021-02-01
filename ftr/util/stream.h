@@ -56,7 +56,7 @@ namespace ftr {
 			inline int64_t size() const { return _size; }
 			inline int64_t total() const { return _total; }
 			inline Buffer& buffer() { return _buffer; }
-			inline const Buffer& buffer() const { return _buffer; }
+			inline cBuffer& buffer() const { return _buffer; }
 			inline uint32_t id() const { return _id; }
 			inline Stream* stream() const { return _stream; }
 			inline void pause() { if ( _stream ) _stream->pause(); }

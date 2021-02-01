@@ -47,7 +47,7 @@ class LINUXIMEHelper::Inl {
 
 	static Inl* create(AppInl* app, Display* dpy, Window win, int inputStyle) {
 
-		char *locale = setlocale(LC_CTYPE, "");
+		Char *locale = setlocale(LC_CTYPE, "");
 		if (locale == NULL) {
 			FX_ERR("Can't set locale");
 			return nullptr;
@@ -59,7 +59,7 @@ class LINUXIMEHelper::Inl {
 			return nullptr;
 		}
 
-		char *modifiers = XSetLocaleModifiers("");
+		Char *modifiers = XSetLocaleModifiers("");
 		if (modifiers == NULL) {
 			FX_ERR("Can't set locale modifiers");
 			return nullptr;
@@ -81,9 +81,9 @@ class LINUXIMEHelper::Inl {
 		_spot_location = {1,1};
 
 		// load fontset
-		char **missing_list = NULL;
+		Char **missing_list = NULL;
 		int missing_count = 0;
-		char *default_string = NULL;
+		Char *default_string = NULL;
 		_fontset = XCreateFontSet(_display, "*,*", 
 			&missing_list, &missing_count, &default_string);
 		if (_fontset == NULL) {
@@ -154,7 +154,7 @@ class LINUXIMEHelper::Inl {
 		if (_im == NULL)
 			return;
 
-		char buf[256] = { '\0', };
+		Char buf[256] = { '\0', };
 		KeySym keysym = 0;
 		Status status = XLookupNone;
 
@@ -213,7 +213,7 @@ class LINUXIMEHelper::Inl {
 		if (_ic == NULL)
 			return;
 
-		char* str = Xutf8ResetIC(_ic);
+		Char* str = Xutf8ResetIC(_ic);
 
 		if (str != NULL) {
 			setPreeditString(str, 0, 0);
@@ -293,8 +293,8 @@ class LINUXIMEHelper::Inl {
 			self->setPreeditString(NULL,
 				draw_data->chg_first, draw_data->chg_length);
 		} else {
-			if (draw_data->text->encoding_is_wchar) {
-				String str = wchar_t_to_string(draw_data->text->string.wide_char);
+			if (draw_data->text->encoding_is_wChar) {
+				String str = wChar_t_to_string(draw_data->text->string.wide_Char);
 				self->setPreeditString(*str,
 						draw_data->chg_first, draw_data->chg_length);
 			} else {
@@ -486,7 +486,7 @@ class LINUXIMEHelper::Inl {
 		if (_ic == NULL)
 			return;
 
-		char* str = Xutf8ResetIC(_ic);
+		Char* str = Xutf8ResetIC(_ic);
 
 		if (str != NULL) {
 			setPreeditString(str, 0, 0);
@@ -498,9 +498,9 @@ class LINUXIMEHelper::Inl {
 		DLOG("XIC is destroyed");
 	}
 
-	static String wchar_t_to_string(const wchar_t *str)
+	static String wChar_t_to_string(const wChar_t *str)
 	{
-		if (sizeof(wchar_t) == 2) {
+		if (sizeof(wChar_t) == 2) {
 			Ucs2String ustr = (const uint16*)str;
 			return ustr.to_string();
 		} else {
@@ -518,13 +518,13 @@ class LINUXIMEHelper::Inl {
 		}
 	}
 
-	void insert(cchar* str)
+	void insert(cChar* str)
 	{
 		DLOG("insert, %s", str);
 		_app->dispatch()->dispatch_ime_insert(str);
 	}
 
-	void setPreeditString(cchar* str, int pos, int length)
+	void setPreeditString(cChar* str, int pos, int length)
 	{
 		DLOG("setPreeditString, %s, %d, %d", str, pos, length);
 		if (str == NULL) {

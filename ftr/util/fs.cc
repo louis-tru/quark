@@ -150,7 +150,7 @@ namespace ftr {
 		#endif
 	}
 
-	const char* inl__file_flag_str(int flag) {
+	cChar* inl__file_flag_str(int flag) {
 		switch (flag) {
 			default:
 			case FOPEN_R: return "r";
@@ -198,7 +198,7 @@ namespace ftr {
 	int File::read(void* buffer, int64_t size, int64_t offset) {
 		uv_fs_t req;
 		uv_buf_t buf;
-		buf.base = (char*)buffer;
+		buf.base = (Char*)buffer;
 		buf.len = size;
 		return uv_fs_read(uv_default_loop(), &req, _fd, &buf, 1, offset, nullptr);
 	}
@@ -206,7 +206,7 @@ namespace ftr {
 	int File::write(const void* buffer, int64_t size, int64_t offset) {
 		uv_fs_t req;
 		uv_buf_t buf;
-		buf.base = (char*)buffer;
+		buf.base = (Char*)buffer;
 		buf.len = size;
 		return uv_fs_write(uv_default_loop(), &req, _fd, &buf, 1, offset, nullptr);
 	}

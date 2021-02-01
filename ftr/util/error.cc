@@ -35,7 +35,7 @@
 namespace ftr {
 
 	namespace internal {
-		SString string_format(const char* f, va_list arg);
+		SString string_format(cChar* f, va_list arg);
 	}
 
 	Error::Error(const Error& e)
@@ -44,7 +44,7 @@ namespace ftr {
 		 std::exception _ex;
 	}
 
-	Error::Error(int code, const char* msg, ...): _code(code) {
+	Error::Error(int code, cChar* msg, ...): _code(code) {
 		va_list arg;
 		va_start(arg, msg);
 		_message = internal::string_format(msg, arg);

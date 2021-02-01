@@ -43,11 +43,11 @@ namespace ftr {
 			inline uint64_t hash_code() { return _hash; }
 			inline void clear() { _hash = 5381; }
 			void   update(const void* data, uint32_t len);
-			SString digest();
+			String digest();
 	};
 
 	FX_EXPORT uint64_t hash_code(const void* data, uint32_t len);
-	FX_EXPORT SString hash(const void* data, uint32_t len);
-	FX_EXPORT SString hash(cString& str);
+	FX_EXPORT String hash(const void* data, uint32_t len);
+	FX_EXPORT String hash(cString& str);
 }
 #endif

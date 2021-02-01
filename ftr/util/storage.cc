@@ -66,7 +66,7 @@ namespace ftr {
 		storage_open();
 		SString result;
 		if ( _db ) {
-			bp_key_t key = { name.length(), (char*)name.val() };
+			bp_key_t key = { name.length(), (Char*)name.val() };
 			bp_key_t val;
 			if (bp_get(_db, &key, &val) == BP_OK) {
 				result = Buffer(val.value, val.length);
@@ -78,8 +78,8 @@ namespace ftr {
 	void storage_set(cString& name, cString& value) {
 		storage_open();
 		if ( _db ) {
-			bp_key_t   key = { name.length(), (char*)name.val() };
-			bp_value_t val = { value.length(), (char*)value.val() };
+			bp_key_t   key = { name.length(), (Char*)name.val() };
+			bp_value_t val = { value.length(), (Char*)value.val() };
 			int r = bp_set(_db, &key, &val); assert_r(r);
 		}
 	}
@@ -87,7 +87,7 @@ namespace ftr {
 	void storage_delete(cString& name) {
 		storage_open();
 		if ( _db ) {
-			bp_key_t key = { name.length(), (char*)name.val() };
+			bp_key_t key = { name.length(), (Char*)name.val() };
 			int r = bp_remove(_db, &key); assert_r(r);
 		}
 	}

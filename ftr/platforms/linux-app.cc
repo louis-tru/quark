@@ -54,7 +54,7 @@ static GLDrawProxy* gl_draw_context = nullptr;
 typedef DisplayPort::Orientation Orientation;
 
 #if DEBUG || FX_MORE_LOG
-cchar* MOUSE_KEYS[] = {
+cChar* MOUSE_KEYS[] = {
 	"left",
 	"second (or middle)",
 	"right",
@@ -582,13 +582,13 @@ class LinuxApplication {
 	}
 
 	float get_monitor_dpi() {
-		char* ms = XResourceManagerString(_dpy);
+		Char* ms = XResourceManagerString(_dpy);
 		float dpi = 96.0;
 		if (ms) {
 			DLOG("Entire DB:\n%s", ms);
 			XrmDatabase db = XrmGetStringDatabase(ms);
 			XrmValue value;
-			char* type = nullptr;
+			Char* type = nullptr;
 			if (XrmGetResource(db, "Xft.dpi", "String", &type, &value) == True) {
 				if (value.addr) {
 					dpi = atof(value.addr);
@@ -815,7 +815,7 @@ void DisplayPort::set_orientation(Orientation orientation) {
 
 using namespace ftr;
 
-extern "C" FX_EXPORT int main(int argc, char* argv[]) {
+extern "C" FX_EXPORT int main(int argc, Char* argv[]) {
 	Handle<LinuxApplication> h = new LinuxApplication();
 
 	/**************************************************/

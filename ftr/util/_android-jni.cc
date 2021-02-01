@@ -46,7 +46,7 @@ namespace ftr {
 	/*
 		boolean Z
 		byte	B
-		char	C
+		Char	C
 		short	S
 		int		I
 		long	J
@@ -82,7 +82,7 @@ namespace ftr {
 		return javavm;
 	}
 
-	JNI::MethodInfo::MethodInfo(const char* clazz, const char* method, const char* param_code, bool is_static)
+	JNI::MethodInfo::MethodInfo(cChar* clazz, cChar* method, cChar* param_code, bool is_static)
 	: _clazz(NULL)
 	, _method(NULL) {
 		ScopeENV env;
@@ -97,7 +97,7 @@ namespace ftr {
 		}
 	}
 
-	JNI::MethodInfo::MethodInfo(jclass clazz, const char* method, const char* param_code, bool is_static)
+	JNI::MethodInfo::MethodInfo(jclass clazz, cChar* method, cChar* param_code, bool is_static)
 	: _clazz(clazz)
 	, _method(NULL) {
 		ScopeENV env;
@@ -114,7 +114,7 @@ namespace ftr {
 	/**
 	* @func find_clazz
 	* */
-	jclass JNI::find_clazz(const char* clazz) {
+	jclass JNI::find_clazz(cChar* clazz) {
 		ScopeENV env;
 		if (env.is_null()) {
 			return NULL;
@@ -130,9 +130,9 @@ namespace ftr {
 		}
 
 		if ( env ) {
-			const char* chars = env->GetStringUTFChars(jstr, NULL);
-			String rv(chars);
-			env->ReleaseStringUTFChars(jstr, chars);
+			cChar* Chars = env->GetStringUTFChars(jstr, NULL);
+			String rv(Chars);
+			env->ReleaseStringUTFChars(jstr, Chars);
 			return rv;
 		} else {
 			
@@ -140,10 +140,10 @@ namespace ftr {
 			if ( env.is_null() ) {
 				return String();
 			}
-			const char* chars = env->GetStringUTFChars(jstr, NULL);
+			cChar* Chars = env->GetStringUTFChars(jstr, NULL);
 			jsize len = env->GetStringUTFLength(jstr);
-			String rv(chars, len);
-			env->ReleaseStringUTFChars(jstr, chars);
+			String rv(Chars, len);
+			env->ReleaseStringUTFChars(jstr, Chars);
 			return rv;
 		}
 	}

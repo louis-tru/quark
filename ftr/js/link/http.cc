@@ -756,7 +756,7 @@ public:
 		return true;
 	}
 
-	template<bool stream> static void request(FunctionCall args, cchar* argument) {
+	template<bool stream> static void request(FunctionCall args, cChar* argument) {
 		JS_WORKER(args);
 		if (args.Length() == 0 || ! args[0]->IsObject(worker)) {
 			JS_THROW_ERR(argument);

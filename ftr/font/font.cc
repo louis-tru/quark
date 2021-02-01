@@ -166,8 +166,8 @@ class FontPool::Inl: public FontPool {
 			
 			while (1) {
 				
-				if (face->charmap &&
-						face->charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
+				if (face->Charmap &&
+						face->Charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
 						FT_IS_SCALABLE(face)                              // 必须为矢量字体
 						) {
 					// 以64 pem 为标准
@@ -313,8 +313,8 @@ class FontPool::Inl: public FontPool {
 			
 			while (1) {
 				
-				if (face->charmap &&
-						face->charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
+				if (face->Charmap &&
+						face->Charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
 						FT_IS_SCALABLE(face)                              // 必须为矢量字体
 				) {
 					
@@ -386,7 +386,7 @@ FontPool::FontPool(Draw* ctx)
 		uint count = sizeof(native_fonts_) / sizeof(Native_font_data_);
 		
 		for (uint i = 0 ; i < count; i++) {
-			WeakBuffer data((cchar*)native_fonts_[i].data, native_fonts_[i].count);
+			WeakBuffer data((cChar*)native_fonts_[i].data, native_fonts_[i].count);
 			auto font_data = new FontFromData::Data(data);
 			// LOG("register_font,%d", i);
 			_inl_pool(this)->register_font(font_data, i == 1 ? "icon" : String());
@@ -600,7 +600,7 @@ FontGlyphTable* FontPool::get_table(TextStyleEnum style) {
 
 /**
  * @func register_font # 通过Buffer数据注册字体
- * @arg buff {const Buffer} # 字体数据
+ * @arg buff {cBuffer} # 字体数据
  * @arg [family_alias = String()] {cString&} # 给所属家族添加一个别名
  */
 bool FontPool::register_font(Buffer buff, cString& family_alias) {

@@ -291,7 +291,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		if ( _remote_ip.is_empty() ) {
 			sockaddr_in sockaddr;
 			sockaddr_in6 sockaddr6;
-			char dst[64];
+			Char dst[64];
 			
 			if ( uv_ip4_addr(*_hostname, _port, &sockaddr) == 0 ) {
 				_address = *((struct sockaddr*)&sockaddr);
@@ -437,7 +437,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 		buf->len = self->_read_buffer.length();
 	}
 	
-	virtual void trigger_socket_data(int nread, char* buffer) {
+	virtual void trigger_socket_data(int nread, Char* buffer) {
 		ASSERT( _is_open );
 		if ( nread < 0 ) {
 			if ( nread != UV_EOF ) { // 异常断开
@@ -514,7 +514,7 @@ class SSL_INL: public Socket::Inl {
 		String ssl_cacert_file_path = Path::temp(".cacert.pem");
 		FileHelper::write_file_sync(ssl_cacert_file_path, ca_content);
 		
-		const char* ca = Path::fallback(*ssl_cacert_file_path).val();
+		cChar* ca = Path::fallback(*ssl_cacert_file_path).val();
 
 		int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 		if (!r) {
@@ -560,7 +560,7 @@ class SSL_INL: public Socket::Inl {
 		if ( where & SSL_CB_HANDSHAKE_DONE ) { /* LOG("----------------done"); */ }
 	}
 	
-	static int bio_puts(BIO *bp, const char *str) {
+	static int bio_puts(BIO *bp, cChar *str) {
 		return bio_write(bp, str, int(strlen(str)));
 	}
 	
@@ -680,7 +680,7 @@ class SSL_INL: public Socket::Inl {
 		// Do nothing
 	}
 	
-	static int bio_write(BIO* b, const char* in, int inl) {
+	static int bio_write(BIO* b, cChar* in, int inl) {
 		SSL_INL* self = ((SSL_INL*)b->ptr);
 		ASSERT( self->_ssl_handshake );
 		
@@ -748,7 +748,7 @@ class SSL_INL: public Socket::Inl {
 		}
 	}
 	
-	static int bio_read(BIO *b, char* out, int outl) {
+	static int bio_read(BIO *b, Char* out, int outl) {
 		ASSERT(out);
 		SSL_INL* self = ((SSL_INL*)b->ptr);
 		
@@ -763,7 +763,7 @@ class SSL_INL: public Socket::Inl {
 		return ret;
 	}
 	
-	static int receive_ssl_err(const char *str, size_t len, void *u) {
+	static int receive_ssl_err(cChar *str, size_t len, void *u) {
 		SSL_INL* self = (SSL_INL*)u;
 		self->_ssl_error_msg.push(str, uint32_t(len));
 		return 1;
@@ -803,7 +803,7 @@ class SSL_INL: public Socket::Inl {
 		}
 	}
 	
-	virtual void trigger_socket_data(int nread, char* buffer) {
+	virtual void trigger_socket_data(int nread, Char* buffer) {
 		
 		if ( nread < 0 ) {
 			
@@ -888,7 +888,7 @@ class SSL_INL: public Socket::Inl {
  private:
 	
 	SSL*    _ssl;
-	const char*  _bio_read_source_buffer;
+	cChar*  _bio_read_source_buffer;
 	int     _bio_read_source_buffer_length;
 	Buffer  _ssl_read_buffer;
 	String  _ssl_error_msg;

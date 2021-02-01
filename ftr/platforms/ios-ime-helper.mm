@@ -267,7 +267,7 @@ using namespace ftr;
 
 - (void)insertText:(NSString*)text {
 	if ( text.length == 1 && _marked_text.length == 0 ) {
-		uint16_t keycode = [text characterAtIndex:0];
+		uint16_t keycode = [text CharacterAtIndex:0];
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
 		} else {
@@ -386,7 +386,7 @@ using namespace ftr;
 	return nil;
 }
 
-- (UITextRange*)characterRangeByExtendingPosition:(UITextPosition *)position
+- (UITextRange*)CharacterRangeByExtendingPosition:(UITextPosition *)position
 																			inDirection:(UITextLayoutDirection)direction; {
 	return nil;
 }
@@ -421,7 +421,7 @@ using namespace ftr;
 	return range.start;
 }
 
-- (UITextRange*)characterRangeAtPoint:(CGPoint)point {
+- (UITextRange*)CharacterRangeAtPoint:(CGPoint)point {
 	return [IOSTextRange new];
 }
 
@@ -431,7 +431,7 @@ using namespace ftr;
 	
 	if ( text ) {
 		if ( text.length == 1 ) {
-			uint16_t keycode = [text characterAtIndex:0];
+			uint16_t keycode = [text CharacterAtIndex:0];
 			
 			if ( ![text isEqualToString:_marked_text] ) {
 				_keyboard_up_keycode = keycode;

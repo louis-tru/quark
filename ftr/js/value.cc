@@ -364,7 +364,7 @@ Local<JSValue> ValueProgram::New(const BackgroundSizeCollection& value) {
 	return _BackgroundSizeCollection.local()->Call(worker, 4, args);
 }
 
-static void throw_error(Worker* worker, Local<JSValue> value, cchar* msg, cchar* help = nullptr) {
+static void throw_error(Worker* worker, Local<JSValue> value, cChar* msg, cChar* help = nullptr) {
 	// Bad argument. Input.type = `Bad`
 	// reference value, "
 
@@ -379,7 +379,7 @@ static void throw_error(Worker* worker, Local<JSValue> value, cchar* msg, cchar*
 	worker->throwError(err);
 }
 
-void ValueProgram::throwError(Local<JSValue> value, cchar* msg, cchar* help) {
+void ValueProgram::throwError(Local<JSValue> value, cChar* msg, cChar* help) {
 	throw_error(worker, value, msg, help);
 }
 
@@ -410,49 +410,49 @@ return true;\
 }
 
 // parse
-bool ValueProgram::parseTextAlign(Local<JSValue> in, TextAlign& out, cchar* desc) {
+bool ValueProgram::parseTextAlign(Local<JSValue> in, TextAlign& out, cChar* desc) {
 	js_parse(TextAlign, {
 		out = (TextAlign)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseAlign(Local<JSValue> in, Align& out, cchar* desc) {
+bool ValueProgram::parseAlign(Local<JSValue> in, Align& out, cChar* desc) {
 	js_parse(Align, {
 		out = (Align)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseContentAlign(Local<JSValue> in, ContentAlign& out, cchar* desc) {
+bool ValueProgram::parseContentAlign(Local<JSValue> in, ContentAlign& out, cChar* desc) {
 	js_parse(ContentAlign, {
 		out = (ContentAlign)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseRepeat(Local<JSValue> in, Repeat& out, cchar* desc) {
+bool ValueProgram::parseRepeat(Local<JSValue> in, Repeat& out, cChar* desc) {
 	js_parse(Repeat, {
 		out = (Repeat)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseDirection(Local<JSValue> in, Direction& out, cchar* desc) {
+bool ValueProgram::parseDirection(Local<JSValue> in, Direction& out, cChar* desc) {
 	js_parse(Direction, {
 		out = (Direction)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseKeyboardType(Local<JSValue> in, KeyboardType& out, cchar* desc) {
+bool ValueProgram::parseKeyboardType(Local<JSValue> in, KeyboardType& out, cChar* desc) {
 	js_parse(KeyboardType, {
 		out = (KeyboardType)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseKeyboardReturnType(Local<JSValue> in, KeyboardReturnType& out, cchar* desc) {
+bool ValueProgram::parseKeyboardReturnType(Local<JSValue> in, KeyboardReturnType& out, cChar* desc) {
 	js_parse(KeyboardReturnType, {
 		out = (KeyboardReturnType)obj->ToUint32Value(worker);
 	});
 }
 
-bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
+bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cChar* desc) {
 	js_parse(Border, {
 		out.width = obj->Get(worker, worker->strs()->width())->ToNumberValue(worker);
 		out.color.r(obj->Get(worker, worker->strs()->r())->ToUint32Value(worker));
@@ -462,7 +462,7 @@ bool ValueProgram::parseBorder(Local<JSValue> in, Border& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseShadow(Local<JSValue> in, Shadow& out, cchar* desc) {
+bool ValueProgram::parseShadow(Local<JSValue> in, Shadow& out, cChar* desc) {
 	js_parse(Shadow, {
 		out.offset_x = obj->Get(worker, worker->strs()->offsetX())->ToNumberValue(worker);
 		out.offset_y = obj->Get(worker, worker->strs()->offsetY())->ToNumberValue(worker);
@@ -474,7 +474,7 @@ bool ValueProgram::parseShadow(Local<JSValue> in, Shadow& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseColor(Local<JSValue> in, Color& out, cchar* desc) {
+bool ValueProgram::parseColor(Local<JSValue> in, Color& out, cChar* desc) {
 	js_parse(Color, {
 		out.r(obj->Get(worker, worker->strs()->r())->ToUint32Value(worker));
 		out.g(obj->Get(worker, worker->strs()->g())->ToUint32Value(worker));
@@ -483,14 +483,14 @@ bool ValueProgram::parseColor(Local<JSValue> in, Color& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseVec2(Local<JSValue> in, Vec2& out, cchar* desc) {
+bool ValueProgram::parseVec2(Local<JSValue> in, Vec2& out, cChar* desc) {
 	js_parse(Vec2, {
 		out.x(obj->Get(worker, worker->strs()->x())->ToNumberValue(worker));
 		out.y(obj->Get(worker, worker->strs()->y())->ToNumberValue(worker));
 	});
 }
 
-bool ValueProgram::parseVec3(Local<JSValue> in, Vec3& out, cchar* desc) {
+bool ValueProgram::parseVec3(Local<JSValue> in, Vec3& out, cChar* desc) {
 	js_parse(Vec3, {
 		out.x(obj->Get(worker, worker->strs()->x())->ToNumberValue(worker));
 		out.y(obj->Get(worker, worker->strs()->y())->ToNumberValue(worker));
@@ -498,7 +498,7 @@ bool ValueProgram::parseVec3(Local<JSValue> in, Vec3& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseVec4(Local<JSValue> in, Vec4& out, cchar* desc) {
+bool ValueProgram::parseVec4(Local<JSValue> in, Vec4& out, cChar* desc) {
 	js_parse(Vec4, {
 		out.x(obj->Get(worker, worker->strs()->x())->ToNumberValue(worker));
 		out.y(obj->Get(worker, worker->strs()->y())->ToNumberValue(worker));
@@ -507,7 +507,7 @@ bool ValueProgram::parseVec4(Local<JSValue> in, Vec4& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseCurve(Local<JSValue> in, Curve& out, cchar* desc) {
+bool ValueProgram::parseCurve(Local<JSValue> in, Curve& out, cChar* desc) {
 	if ( in->IsString(worker) ) {
 		JS_WORKER();
 		auto it = CURCE.find( in->ToStringValue(worker,1) );
@@ -524,7 +524,7 @@ bool ValueProgram::parseCurve(Local<JSValue> in, Curve& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseRect(Local<JSValue> in, CGRect& out, cchar* desc) {
+bool ValueProgram::parseRect(Local<JSValue> in, CGRect& out, cChar* desc) {
 	js_parse(Rect, {
 		out.origin.x(obj->Get(worker, worker->strs()->x())->ToNumberValue(worker));
 		out.origin.y(obj->Get(worker, worker->strs()->y())->ToNumberValue(worker));
@@ -533,7 +533,7 @@ bool ValueProgram::parseRect(Local<JSValue> in, CGRect& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseMat(Local<JSValue> in, Mat& out, cchar* desc) {
+bool ValueProgram::parseMat(Local<JSValue> in, Mat& out, cChar* desc) {
 	js_parse(Mat, {
 		Local<JSArray> mat = obj->Get(worker, worker->strs()->_value()).To<JSArray>();
 		out.m0(mat->Get(worker, 0)->ToNumberValue(worker));
@@ -543,7 +543,7 @@ bool ValueProgram::parseMat(Local<JSValue> in, Mat& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseMat4(Local<JSValue> in, Mat4& out, cchar* desc) {
+bool ValueProgram::parseMat4(Local<JSValue> in, Mat4& out, cChar* desc) {
 	js_parse(Mat4, {
 		Local<JSArray> mat = obj->Get(worker, worker->strs()->_value()).To<JSArray>();
 		out.m0(mat->Get(worker, 0)->ToNumberValue(worker));
@@ -565,7 +565,7 @@ bool ValueProgram::parseMat4(Local<JSValue> in, Mat4& out, cchar* desc) {
 	});
 }
 
-bool ValueProgram::parseValue(Local<JSValue> in, Value& out, cchar* desc) {
+bool ValueProgram::parseValue(Local<JSValue> in, Value& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.type = ValueType::PIXEL;
 		out.value = in->ToNumberValue(worker);
@@ -578,7 +578,7 @@ bool ValueProgram::parseValue(Local<JSValue> in, Value& out, cchar* desc) {
 }
 
 bool ValueProgram::parseBackgroundPosition(Local<JSValue> in,
-																					 BackgroundPosition& out, cchar* desc) {
+																					 BackgroundPosition& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.type = BackgroundPositionType::PIXEL;
 		out.value = in->ToNumberValue(worker);
@@ -590,7 +590,7 @@ bool ValueProgram::parseBackgroundPosition(Local<JSValue> in,
 	});
 }
 
-bool ValueProgram::parseBackgroundSize(Local<JSValue> in, BackgroundSize& out, cchar* desc) {
+bool ValueProgram::parseBackgroundSize(Local<JSValue> in, BackgroundSize& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.type = BackgroundSizeType::PIXEL;
 		out.value = in->ToNumberValue(worker);
@@ -602,7 +602,7 @@ bool ValueProgram::parseBackgroundSize(Local<JSValue> in, BackgroundSize& out, c
 	});
 }
 
-bool ValueProgram::parseBackground(Local<JSValue> in, BackgroundPtr& out, cchar* desc) {
+bool ValueProgram::parseBackground(Local<JSValue> in, BackgroundPtr& out, cChar* desc) {
 	if (in->IsNull()) {
 		out = nullptr;
 		return true;
@@ -612,7 +612,7 @@ bool ValueProgram::parseBackground(Local<JSValue> in, BackgroundPtr& out, cchar*
 	});
 }
 
-bool ValueProgram::parseBackgroundPositionCollection(Local<JSValue> in, BackgroundPositionCollection& out, cchar* desc) {
+bool ValueProgram::parseBackgroundPositionCollection(Local<JSValue> in, BackgroundPositionCollection& out, cChar* desc) {
 	js_parse(BackgroundPositionCollection, {
 		auto x = obj->Get(worker, worker->strs()->x()).To();
 		auto y = obj->Get(worker, worker->strs()->y()).To();
@@ -627,7 +627,7 @@ bool ValueProgram::parseBackgroundPositionCollection(Local<JSValue> in, Backgrou
 	});
 }
 
-bool ValueProgram::parseBackgroundSizeCollection(Local<JSValue> in, BackgroundSizeCollection& out, cchar* desc) {
+bool ValueProgram::parseBackgroundSizeCollection(Local<JSValue> in, BackgroundSizeCollection& out, cChar* desc) {
 	js_parse(BackgroundSizeCollection, {
 		auto x = obj->Get(worker, worker->strs()->x()).To();
 		auto y = obj->Get(worker, worker->strs()->y()).To();
@@ -642,7 +642,7 @@ bool ValueProgram::parseBackgroundSizeCollection(Local<JSValue> in, BackgroundSi
 	});
 }
 
-bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc) {
+bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.push(Value{ ValueType::PIXEL, (float)in->ToNumberValue(worker) });
 		return true;
@@ -659,7 +659,7 @@ bool ValueProgram::parseValues(Local<JSValue> in, Array<Value>& out, cchar* desc
 	});
 }
 
-bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc) {
+bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.push(in->ToNumberValue(worker));
 		return true;
@@ -672,7 +672,7 @@ bool ValueProgram::parseFloats(Local<JSValue> in, Array<float>& out, cchar* desc
 	});
 }
 
-bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc) {
+bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cChar* desc) {
 	js_parse(Aligns, {
 		Local<JSArray> arr = obj.To<JSArray>();
 		for(int i = 0, len = arr->Length(worker); i < len; i++) {
@@ -704,7 +704,7 @@ bool ValueProgram::parseAligns(Local<JSValue> in, Array<Align>& out, cchar* desc
 //	
 }
 
-bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc) {
+bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cChar* desc) {
 	js_parse(TextColor, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value.r(obj->Get(worker, worker->strs()->r())->ToUint32Value(worker));
@@ -714,7 +714,7 @@ bool ValueProgram::parseTextColor(Local<JSValue> in, TextColor& out, cchar* desc
 	});
 }
 
-bool ValueProgram::parseTextSize(Local<JSValue> in, TextSize& out, cchar* desc) {
+bool ValueProgram::parseTextSize(Local<JSValue> in, TextSize& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.type = TextValueType::VALUE;
 		out.value = in->ToNumberValue(worker);
@@ -725,20 +725,20 @@ bool ValueProgram::parseTextSize(Local<JSValue> in, TextSize& out, cchar* desc) 
 		out.value = obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
 	});
 }
-bool ValueProgram::parseTextFamily(Local<JSValue> in, TextFamily& out, cchar* desc) {
+bool ValueProgram::parseTextFamily(Local<JSValue> in, TextFamily& out, cChar* desc) {
 	js_parse(TextFamily, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		String fonts = obj->Get(worker, worker->strs()->value())->ToStringValue(worker);
 		out.value = FontPool::get_font_familys_id(fonts);
 	});
 }
-bool ValueProgram::parseTextStyle(Local<JSValue> in, TextStyle& out, cchar* desc) {
+bool ValueProgram::parseTextStyle(Local<JSValue> in, TextStyle& out, cChar* desc) {
 	js_parse(TextStyle, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value = (TextStyleEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
 	});
 }
-bool ValueProgram::parseTextShadow(Local<JSValue> in, TextShadow& out, cchar* desc) {
+bool ValueProgram::parseTextShadow(Local<JSValue> in, TextShadow& out, cChar* desc) {
 	js_parse(TextShadow, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value.offset_x = obj->Get(worker, worker->strs()->offsetX())->ToNumberValue(worker);
@@ -751,7 +751,7 @@ bool ValueProgram::parseTextShadow(Local<JSValue> in, TextShadow& out, cchar* de
 	});
 }
 bool ValueProgram::parseTextLineHeight(Local<JSValue> in,
-																			 TextLineHeight& out, cchar* desc) {
+																			 TextLineHeight& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out.type = TextValueType::VALUE;
 		out.value.height = in->ToNumberValue(worker);
@@ -763,21 +763,21 @@ bool ValueProgram::parseTextLineHeight(Local<JSValue> in,
 	});
 }
 bool ValueProgram::parseTextDecoration(Local<JSValue> in,
-																			 TextDecoration& out, cchar* desc) {
+																			 TextDecoration& out, cChar* desc) {
 	js_parse(TextDecoration, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value = (TextDecorationEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
 	});
 }
-bool ValueProgram::parseString(Local<JSValue> in, String& out, cchar* desc) {
+bool ValueProgram::parseString(Local<JSValue> in, String& out, cChar* desc) {
 	out = in->ToStringValue(worker);
 	return true;
 }
-bool ValueProgram::parsebool(Local<JSValue> in, bool& out, cchar* desc) {
+bool ValueProgram::parsebool(Local<JSValue> in, bool& out, cChar* desc) {
 	out = in->ToBooleanValue(worker);
 	return true;
 }
-bool ValueProgram::parsefloat(Local<JSValue> in, float& out, cchar* desc) {
+bool ValueProgram::parsefloat(Local<JSValue> in, float& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out = in->ToNumberValue(worker);
 		return true;
@@ -790,7 +790,7 @@ bool ValueProgram::parsefloat(Local<JSValue> in, float& out, cchar* desc) {
 	throw_error(worker, in, desc);
 	return false;
 }
-bool ValueProgram::parseint(Local<JSValue> in, int& out, cchar* desc) {
+bool ValueProgram::parseint(Local<JSValue> in, int& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out = in->ToInt32Value(worker);
 		return true;
@@ -803,7 +803,7 @@ bool ValueProgram::parseint(Local<JSValue> in, int& out, cchar* desc) {
 	throw_error(worker, in, desc);
 	return false;
 }
-bool ValueProgram::parseuint(Local<JSValue> in, uint& out, cchar* desc) {
+bool ValueProgram::parseuint(Local<JSValue> in, uint& out, cChar* desc) {
 	if (in->IsNumber(worker)) {
 		out = in->ToUint32Value(worker);
 		return true;
@@ -816,14 +816,14 @@ bool ValueProgram::parseuint(Local<JSValue> in, uint& out, cchar* desc) {
 	throw_error(worker, in, desc);
 	return false;
 }
-bool ValueProgram::parseTextOverflow(Local<JSValue> in, TextOverflow& out, cchar* desc) {
+bool ValueProgram::parseTextOverflow(Local<JSValue> in, TextOverflow& out, cChar* desc) {
 	js_parse(TextOverflow, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value = (TextOverflowEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
 	});
 }
 bool ValueProgram::parseTextWhiteSpace(Local<JSValue> in,
-																			TextWhiteSpace& out, cchar* desc) {
+																			TextWhiteSpace& out, cChar* desc) {
 	js_parse(TextWhiteSpace, {
 		out.type = (TextValueType)obj->Get(worker, worker->strs()->type())->ToUint32Value(worker);
 		out.value = (TextWhiteSpaceEnum)obj->Get(worker, worker->strs()->value())->ToUint32Value(worker);
@@ -851,7 +851,7 @@ class NativeValue {
 		{
 			TryCatch try_catch;
 
-			if (worker->runNativeScript(WeakBuffer((char*)
+			if (worker->runNativeScript(WeakBuffer((Char*)
 							native_js::INL_native_js_code__value_,
 							native_js::INL_native_js_code__value_count_), "_value.js", exports).IsEmpty()) {
 				if ( try_catch.HasCaught() ) {

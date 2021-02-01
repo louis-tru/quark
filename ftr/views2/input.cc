@@ -326,7 +326,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 					Cell* cell = &_data.cells[j];
 					if ( cell->line_num == cursor_linenum_ ) {
 						if ( int(cell->begin) <= cursor ) {
-							float x = cell->offset[FX_MIN(cursor - cell->begin, cell->chars.length())];
+							float x = cell->offset[FX_MIN(cursor - cell->begin, cell->Chars.length())];
 							x = cell->offset_start + (reverse ? -x : x);
 							point.x(pos.x() + offset.x() + x);
 							break;
@@ -401,7 +401,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			Cell& cell2 = _data.cells[cell_end];  // 结束cell
 			
 			float offset_start = offset.x() + cell.offset_start;
-			uint end = cell2.begin + cell2.chars.length();
+			uint end = cell2.begin + cell2.Chars.length();
 			bool reverse = cell.reverse;
 			
 			if ( x <= offset_start + (reverse ? -row->offset_end.x() : 0) ) { // 行开始位置
@@ -868,7 +868,7 @@ void Input::refresh_cursor_screen_position() {
 				if ( cursor_ == begin ) {
 					cell = &i.value(); break;
 				} else if ( cursor_ > begin ) {
-					uint end = begin + i.value().chars.length();
+					uint end = begin + i.value().Chars.length();
 					
 					if ( cursor_ < end ) {
 						cell = &i.value(); break;

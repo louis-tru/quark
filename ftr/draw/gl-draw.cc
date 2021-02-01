@@ -357,19 +357,19 @@ public:
 		while ( begin < end ) {
 			TextFont::Cell& cell = data.cells[begin];
 			
-			if ( cell.chars.length() ) {
+			if ( cell.Chars.length() ) {
 				float y = cell.baseline - data.text_hori_bearing + offset.y();
 				float offset_start = cell.offset_start + offset.x();
 				float* offset_table = &cell.offset[0];
 				
 				if ( cell.reverse ) {
 					glUniform4f(shader::text_box_color.vertex_ac,
-											offset_start - offset_table[cell.chars.length()], y,
+											offset_start - offset_table[cell.Chars.length()], y,
 											offset_start - offset_table[0], y + data.text_height);
 				} else {
 					glUniform4f(shader::text_box_color.vertex_ac,
 											offset_start + offset_table[0], y,
-											offset_start + offset_table[cell.chars.length()], y + data.text_height);
+											offset_start + offset_table[cell.Chars.length()], y + data.text_height);
 				}
 				
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4); // 绘图背景
@@ -397,16 +397,16 @@ public:
 		for (int i = data.cell_draw_begin, e = data.cell_draw_end; i < e; i++) {
 			
 			TextFont::Cell& cell = data.cells[i];
-			uint count = cell.chars.length();
+			uint count = cell.Chars.length();
 			if ( count ) {
-				const uint16* chars = &cell.chars[0];
+				const uint16* Chars = &cell.Chars[0];
 				float offset_start = cell.offset_start + offset.x();
 				float* offset_table = &cell.offset[0];
 				
 				glUniform1f(shader::text_vertex.hori_baseline, cell.baseline + offset.y());
 				
 				for (uint j = 0; j < count; j++) {
-					FontGlyph* glyph = table->use_vector_glyph(chars[j]);
+					FontGlyph* glyph = table->use_vector_glyph(Chars[j]);
 					/* 水平偏移 */
 					float offset_x = offset_start + (cell.reverse ? -offset_table[j + 1] : offset_table[j]);
 					
@@ -438,9 +438,9 @@ public:
 		for (int i = data.cell_draw_begin, e = data.cell_draw_end; i < e; i++) {
 			
 			TextFont::Cell& cell = data.cells[i];
-			uint count = cell.chars.length();
+			uint count = cell.Chars.length();
 			if ( count ) {
-				const uint16* chars = &cell.chars[0];
+				const uint16* Chars = &cell.Chars[0];
 				float offset_start = cell.offset_start + offset.x();
 				float* offset_table = &cell.offset[0];
 				
@@ -448,7 +448,7 @@ public:
 				
 				for (uint j = 0; j < count; j++) {
 					
-					uint16_t unicode = chars[j];
+					uint16_t unicode = Chars[j];
 					FontGlyph* glyph = table->use_texture_glyph(unicode, level); /* 使用纹理 */
 					FontGlyph::TexSize s = glyph->texture_size(level);
 					glUniform4f(shader::text_texture.tex_size, s.width, s.height, s.left, s.top );

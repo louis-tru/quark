@@ -79,9 +79,9 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 
 	bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
 		Array<WeakBuffer> body(3);
-		body[0] = WeakBuffer((char*)buffer.data[0], buffer.linesize[0]);  // y
-		body[1] = WeakBuffer((char*)buffer.data[1], buffer.linesize[1]);  // u
-		body[2] = WeakBuffer((char*)buffer.data[2], buffer.linesize[2]);  // v
+		body[0] = WeakBuffer((Char*)buffer.data[0], buffer.linesize[0]);  // y
+		body[1] = WeakBuffer((Char*)buffer.data[1], buffer.linesize[1]);  // u
+		body[2] = WeakBuffer((Char*)buffer.data[2], buffer.linesize[2]);  // v
 		
 		PixelData pixel(body, _video_width, _video_height, (PixelData::Format)_color_format );
 		
@@ -181,7 +181,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 
 	// set pcm ..
 	bool write_audio_pcm() {
-		bool r = _pcm->write(WeakBuffer((char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
+		bool r = _pcm->write(WeakBuffer((Char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 		if ( !r ) {
 			DLOG("Discard, audio PCM frame, %lld", _audio_buffer.time);
 		}

@@ -43,7 +43,7 @@ void test__TESS_CONNECTED_POLYGONS() {
 	//  If a polygon edge is a boundary, that is, not connected to another polygon, the neighbour index is TESS_UNDEF.
 	//  Example, flood fill based on seed polygon:
 	//
-	// Data visited(new char[nelems] { 0 }, nelems);
+	// Data visited(new Char[nelems] { 0 }, nelems);
 	// TESSindex stack[50];
 	// TESSindex start_poly = 0;
 	// uint count = 0;

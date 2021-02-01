@@ -34,7 +34,7 @@
 namespace ftr {
 
 struct PngDataSource {
-	const Buffer* buff;
+	cBuffer* buff;
 	uint index;
 };
 
@@ -44,7 +44,7 @@ static void png_rw_fn(png_structp png, png_bytep bytep, png_size_t size) {
 	s->index += size;
 }
 
-Array<PixelData> PNGImageCodec::decode(const Buffer& data) {
+Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
 	Array<PixelData> rv;
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	
@@ -117,7 +117,7 @@ Array<PixelData> PNGImageCodec::decode(const Buffer& data) {
 	return rv;
 }
 
-PixelData PNGImageCodec::decode_header(const Buffer& data) {
+PixelData PNGImageCodec::decode_header(cBuffer& data) {
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	
 	ScopeClear scope([&png]() {

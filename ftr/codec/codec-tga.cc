@@ -164,12 +164,12 @@ static void premultiplied_alpha(uint8_t* data, int pixex_size) {
 	}
 }
 
-static Buffer flip_vertical(cchar* data, int width, int height, int bytes) {
+static Buffer flip_vertical(cChar* data, int width, int height, int bytes) {
 	
 	Buffer rev(width * height * bytes);
-	char* p = *rev;
+	Char* p = *rev;
 	int row_size = width * bytes;
-	char* tmp = p + (height - 1) * row_size;
+	Char* tmp = p + (height - 1) * row_size;
 	
 	for ( int i = 0; i < height; i++ ) {
 		memcpy(tmp, data, row_size);
@@ -179,7 +179,7 @@ static Buffer flip_vertical(cchar* data, int width, int height, int bytes) {
 	return rev;
 }
 
-Array<PixelData> TGAImageCodec::decode(const Buffer& data) {
+Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
 	Array<PixelData> rv;
 	
 	_Inl::Header* header = (_Inl::Header*)*data; // 适用小端格式CPU
@@ -250,7 +250,7 @@ Array<PixelData> TGAImageCodec::decode(const Buffer& data) {
 	return rv;
 }
 
-PixelData TGAImageCodec::decode_header(const Buffer& data) {
+PixelData TGAImageCodec::decode_header(cBuffer& data) {
 	_Inl::Header* header = (_Inl::Header*)*data;
 	bool alpha = header->image_descriptor & 0x08;
 	int bytes = header->bits_per_pixel / 8; // 2、3、4
@@ -277,7 +277,7 @@ Buffer TGAImageCodec::encode(cPixelData& pixel_data) {
 	
 		int size = sizeof(_Inl::Header) + pixel_data.width() * pixel_data.height() * 4;
 		
-		char* ret_data_p = new char[size];
+		Char* ret_data_p = new Char[size];
 		Buffer ret_data(ret_data_p, size);
 
 		_Inl::Header header;
@@ -296,7 +296,7 @@ Buffer TGAImageCodec::encode(cPixelData& pixel_data) {
 		
 		memcpy(ret_data_p, &header, sizeof(_Inl::Header));
 		
-		const Buffer& pixel_data_d = pixel_data.body();
+		cBuffer& pixel_data_d = pixel_data.body();
 		int pixex_size = pixel_data_d.length() / 4;
 		uint8_t* tmp = (uint8_t*)ret_data_p;
 		const uint8_t* data = (const uint8_t*)*pixel_data_d;

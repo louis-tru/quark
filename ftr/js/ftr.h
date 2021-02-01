@@ -86,7 +86,7 @@ class FX_EXPORT WrapViewBase: public WrapObject {
 
 FX_EXPORT int Start(cString& cmd);
 FX_EXPORT int Start(const Array<String>& argv);
-FX_EXPORT int Start(int argc, char** argv);
+FX_EXPORT int Start(int argc, Char** argv);
 
 JS_END
 #endif

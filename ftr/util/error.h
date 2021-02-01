@@ -53,7 +53,7 @@ namespace ftr {
 	class FX_EXPORT Error: public Object {
 		public:
 			Error(const Error& err);
-			Error(int code, const char* msg, ...);
+			Error(int code, cChar* msg, ...);
 			Error(int code = ERR_UNKNOWN_ERROR, cString& msg = "Unknown exception");
 			virtual ~Error();
 			Error& operator=(const Error& e);

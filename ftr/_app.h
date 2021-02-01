@@ -77,7 +77,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
 	/**
 	 * @func runMain
 	 */
-	inline static void runMain(int argc, char* argv[]) {
+	inline static void runMain(int argc, Char* argv[]) {
 		GUIApplication::runMain(argc, argv);
 	}
 	

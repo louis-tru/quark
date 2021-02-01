@@ -147,7 +147,7 @@ URI::URI(cString& src): _uritype(URI_UNKNOWN), _port(0), _href(src) {
 
 #define IN_RANGE(a,b,c) (a >= b && a <= c)
 
-static inline int needs_encoding(char ch, char next
+static inline int needs_encoding(Char ch, Char next
 																 , bool component, bool secondary)
 {
 	if ( ch < 0 ) {
@@ -164,7 +164,7 @@ static inline int needs_encoding(char ch, char next
 		return 0;
 	}
 	
-	// reserved chars
+	// reserved Chars
 	// - _ . ! ~ * ' ( )
 	switch (ch) {
 		case '-':
@@ -206,7 +206,7 @@ extern String inl__uri_encode(cString& url, bool component, bool secondary) {
 	
 	uint8_t ch = 0;
 	int len = url.length();
-	const char* src = *url;
+	cChar* src = *url;
 	size_t msize = 0;
 	
 	for (int i = 0; i < len; ++i) {
@@ -218,13 +218,13 @@ extern String inl__uri_encode(cString& url, bool component, bool secondary) {
 	}
 	
 	// alloc with probable size
-	char* enc = (char*)malloc((sizeof(char) * msize) + 1);
+	Char* enc = (Char*)malloc((sizeof(Char) * msize) + 1);
 	if ( !enc ) {
 		return String();
 	}
 	
 	uint32_t size = 0;
-	const char* hex = "0123456789ABCDEF";
+	cChar* hex = "0123456789ABCDEF";
 	
 	for ( int i = 0; i < len; i++ ) {
 		ch = src[i];
@@ -250,16 +250,16 @@ String URI::decode(cString& url) {
 	int i = 0;
 	size_t size = 0;
 	size_t len = 0;
-	char *dec = NULL;
-	char tmp[3];
-	char ch = 0;
+	Char *dec = NULL;
+	Char tmp[3];
+	Char ch = 0;
 	
-	// chars len
+	// Chars len
 	len = url.length();
-	const char* src = *url;
+	cChar* src = *url;
 	
 	// alloc
-	dec = (char *) malloc(len + 1);
+	dec = (Char *) malloc(len + 1);
 	
  #define push(c) (dec[size++] = c)
 	

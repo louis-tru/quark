@@ -75,16 +75,16 @@ private:
 typedef AsyncReqNonCtx<uv_fs_t, SString> FileReq;
 typedef AsyncReqNonCtx<uv_fs_t, SString, std::vector<Dirent>> FileLsReq;
 
-static Error uv_error(uv_fs_t* req, const char* msg = nullptr) {
+static Error uv_error(uv_fs_t* req, cChar* msg = nullptr) {
 	return Error((int)req->result, "%s, %s, %s",
 							 uv_err_name((int)req->result), uv_strerror((int)req->result), msg ? msg: "");
 }
 
-static void async_err_callback2(FileReq* req, const char* msg = nullptr) {
+static void async_err_callback2(FileReq* req, cChar* msg = nullptr) {
 	async_reject(req->cb(), uv_error(req->req(), msg));
 }
 
-static void async_err_callback2(Cb cb, uv_fs_t* req, const char* msg = nullptr) {
+static void async_err_callback2(Cb cb, uv_fs_t* req, cChar* msg = nullptr) {
 	async_reject(cb, uv_error(req, msg));
 }
 
@@ -926,7 +926,7 @@ void FileHelper::read_file(cString& path, Cb cb, int64_t size) {
 		
 		static void start_read(FileReq* req) {
 			int64_t size = req->data().size;
-			char* buffer = (char*)::malloc(size + 1); // 为兼容C字符串多加1位0
+			Char* buffer = (Char*)::malloc(size + 1); // 为兼容C字符串多加1位0
 			if ( buffer ) {
 				req->data().buff = Buffer(buffer, uint32_t(size));
 				uv_buf_t buf;

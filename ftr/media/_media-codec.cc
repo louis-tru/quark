@@ -285,7 +285,7 @@ BitRateInfo Inl::read_bit_rate_info(AVFormatContext* fmt_ctx, int start, int siz
 			tr.channel_layout = codecpar->channel_layout;
 			tr.frame_interval = stream->avg_frame_rate.den *
 							(double(1000000.0) / double(stream->avg_frame_rate.num));
-			tr.extradata = WeakBuffer((char *) codecpar->extradata, codecpar->extradata_size).copy();
+			tr.extradata = WeakBuffer((Char *) codecpar->extradata, codecpar->extradata_size).copy();
 
 			entry = av_dict_get(stream->metadata, "variant_language", nullptr, 0);
 			if ( entry ) {
@@ -355,7 +355,7 @@ void Inl::start() {
 		r = avformat_open_input(&fmt_ctx, *uri, nullptr, nullptr);
 		if ( r < 0 ) {
 			
-			char msg[AV_ERROR_MAX_STRING_SIZE] = { 0 };
+			Char msg[AV_ERROR_MAX_STRING_SIZE] = { 0 };
 			av_make_error_string(msg, AV_ERROR_MAX_STRING_SIZE, r);
 			Error e(ERR_MEDIA_INVALID_SOURCE,
 							"Could not open source file: `%s`, msg: %s", *uri, msg);
@@ -365,7 +365,7 @@ void Inl::start() {
 		/* retrieve stream information */
 		r = avformat_find_stream_info(fmt_ctx, nullptr);
 		if ( r < 0 ) {
-			char msg[AV_ERROR_MAX_STRING_SIZE] = { 0 };
+			Char msg[AV_ERROR_MAX_STRING_SIZE] = { 0 };
 			av_make_error_string(msg, AV_ERROR_MAX_STRING_SIZE, r);
 			Error e(ERR_MEDIA_INVALID_SOURCE,
 							"Could not find stream information `%s`, msg: %s", *uri, *msg);
@@ -489,7 +489,7 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
 	
 	SampleData& data = ex->_sample_data_cache[i % len];
 	
-	data._buf.write(WeakBuffer((char*)pkt.data, pkt.size), 0);
+	data._buf.write(WeakBuffer((Char*)pkt.data, pkt.size), 0);
 	data.data   = *data._buf;
 	data.size   = pkt.size;
 	data.time   = pkt.pts * tbn;
@@ -673,7 +673,7 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 			} else {
 				FX_DEBUG("read_frame() error break;");
 				
-				char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
+				Char err_desc[AV_ERROR_MAX_STRING_SIZE] = {0};
 				av_make_error_string(err_desc, AV_ERROR_MAX_STRING_SIZE, ok);
 				
 				FX_ERR("%s", err_desc);

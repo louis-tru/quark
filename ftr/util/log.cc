@@ -100,12 +100,12 @@ namespace ftr {
 	}
 
 	namespace internal {
-		SString string_format(const char* f, va_list arg);
+		SString string_format(cChar* f, va_list arg);
 	}
 
 	namespace console {
 		
-		void report_error(const char* format, ...) {
+		void report_error(cChar* format, ...) {
       FX_STRING_FORMAT(format, str);
 			printf("%s", *str);
 		}
@@ -122,7 +122,7 @@ namespace ftr {
 					for (int i = 1; i < size; ++i) {
 						report_error("%2d: ", i);
 						Dl_info info;
-						char* demangled = NULL;
+						Char* demangled = NULL;
 						if (!dladdr(trace[i], &info) || !info.dli_sname) {
 							report_error("%p\n", trace[i]);
 						} else if ((demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0))) {
@@ -134,7 +134,7 @@ namespace ftr {
 					}
 				}
 			#elif FX_QNX
-				char out[1024];
+				Char out[1024];
 				bt_accessor_t acc;
 				bt_memmap_t memmap;
 				bt_init_accessor(&acc, BT_SELF);
@@ -147,7 +147,7 @@ namespace ftr {
 				if (size == 0) {
 					report_error("(empty)\n");
 				} else {
-					bt_sprnf_addrs(&memmap, trace, size, const_cast<char*>("%a\n"),
+					bt_sprnf_addrs(&memmap, trace, size, const_cast<Char*>("%a\n"),
 												out, sizeof(out), NULL);
 					report_error(out);
 				}
@@ -156,7 +156,7 @@ namespace ftr {
 			#endif  // FX_VLIBC_GLIBC || FX_BSD
 		}
 		
-		void log(char msg) {
+		void log(Char msg) {
 			default_console()->log( String::format("%u", msg) );
 		}
 		
@@ -217,7 +217,7 @@ namespace ftr {
 			default_console()->log( msg ? "true": "false" );
 		}
 		
-		void log(const char* format, ...) {
+		void log(cChar* format, ...) {
       FX_STRING_FORMAT(format, str);
 			default_console()->log(str);
 		}
@@ -230,7 +230,7 @@ namespace ftr {
 			default_console()->log(Coder::encoding(Encoding::utf8, msg));
 		}
 
-		void print(const char* format, ...) {
+		void print(cChar* format, ...) {
 			FX_STRING_FORMAT(format, str);
 			default_console()->print(str);
 		}
@@ -239,7 +239,7 @@ namespace ftr {
 			default_console()->print(str);
 		}
 		
-		void print_err(const char* format, ...) {
+		void print_err(cChar* format, ...) {
 			FX_STRING_FORMAT(format, str);
 			default_console()->print_err(str);
 		}
@@ -248,7 +248,7 @@ namespace ftr {
 			default_console()->print_err(str);
 		}
 		
-		void warn(const char* format, ...) {
+		void warn(cChar* format, ...) {
 			FX_STRING_FORMAT(format, str);
 			default_console()->warn(str);
 		}
@@ -257,7 +257,7 @@ namespace ftr {
 			default_console()->warn(str);
 		}
 		
-		void error(const char* format, ...) {
+		void error(cChar* format, ...) {
 			FX_STRING_FORMAT(format, str);
 			default_console()->error(str);
 		}
@@ -271,7 +271,7 @@ namespace ftr {
 			default_console()->error(str);
 		}
 		
-		void tag(const char* tag, const char* format, ...) {
+		void tag(cChar* tag, cChar* format, ...) {
 			FX_STRING_FORMAT(format, str);
 			default_console()->print(String::format("%s ", tag));
 			default_console()->log(str);
@@ -284,7 +284,7 @@ namespace ftr {
 	} // end namescape console {
 
 
-	void fatal(const char* file, uint32_t line, const char* func, const char* msg, ...) {
+	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
 		fflush(stdout);
 		fflush(nx_stderr);
 		if (msg) {

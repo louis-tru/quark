@@ -127,7 +127,7 @@ public:
 				float hori_advance = table->glyph(unicode)->hori_advance() / ratio; // 字符宽度
 				offset += hori_advance;
 				cell.offset.push(offset);
-				cell.chars.push(unicode);
+				cell.Chars.push(unicode);
 			}
 			begin++;
 		}

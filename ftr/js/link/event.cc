@@ -686,7 +686,7 @@ class BindingNativeEvent {
  public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
-		worker->runNativeScript(WeakBuffer((char*)
+		worker->runNativeScript(WeakBuffer((Char*)
 															INL_native_js_code__event_,
 															INL_native_js_code__event_count_), "_event.js", exports);
 		WrapNativeEvent::binding(exports, worker);

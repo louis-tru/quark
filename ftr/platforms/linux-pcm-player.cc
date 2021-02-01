@@ -59,8 +59,8 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		, _mute(false)
 	{
 #if DEBUG
-		char* PCM_PERIODS = getenv("PCM_PERIODS");
-		char* PCM_PERIOD_SIZE = getenv("PCM_PERIOD_SIZE");
+		Char* PCM_PERIODS = getenv("PCM_PERIODS");
+		Char* PCM_PERIOD_SIZE = getenv("PCM_PERIOD_SIZE");
 		if (PCM_PERIODS) {
 			_period_size = String(PCM_PERIODS).to_uint();
 		}
@@ -124,7 +124,7 @@ class LinuxPCMPlayer: public Object, public PCMPlayer {
 		return true;
 	}
 
-	virtual bool write(const Buffer& buffer) {
+	virtual bool write(cBuffer& buffer) {
 		int r;
 		snd_pcm_uframes_t frames;
 		int s16_len = buffer.length() / 2;

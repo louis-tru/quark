@@ -44,7 +44,7 @@ JS_BEGIN
 
 using namespace native_js;
 
-extern Array<char*>* __fx_ftr_argv;
+extern Array<Char*>* __fx_ftr_argv;
 extern int __fx_ftr_have_node;
 extern int __fx_ftr_have_debug;
 

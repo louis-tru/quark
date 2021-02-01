@@ -52,13 +52,13 @@ namespace node {
 		return ftr::is_exited();
 	}
 
-	char* FtrApi::encoding_to_utf8(const uint16_t * src, int length, int* out_len) {
+	Char* FtrApi::encoding_to_utf8(const uint16_t * src, int length, int* out_len) {
 		auto buff = ftr::Codec::encoding(ftr::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();
 	}
 
-	uint16_t * FtrApi::decoding_utf8_to_uint16(const char* src, int length, int* out_len) {
+	uint16_t * FtrApi::decoding_utf8_to_uint16(cChar* src, int length, int* out_len) {
 		auto buff = ftr::Codec::decoding_to_uint16(ftr::Encoding::UTF8, src, length);
 		*out_len = buff.length();
 		return buff.collapse();

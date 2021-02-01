@@ -56,7 +56,7 @@ Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 		case Encoding::utf16: {
 			Ucs2String str = ToUcs2StringValue(worker);
 			uint len = str.length() * 2;
-			return Buffer((char*)str.collapse(), len);
+			return Buffer((Char*)str.collapse(), len);
 		}
 		default: // 编码
 			return Coder::encoding(en, ToStringValue(worker));
@@ -199,13 +199,13 @@ Maybe<Buffer> JSArray::ToBufferMaybe(Worker* worker) {
 
 WeakBuffer JSArrayBuffer::weakBuffer(Worker* worker) {
 	int size = ByteLength(worker);
-	char* data = Data(worker);
+	Char* data = Data(worker);
 	return WeakBuffer(data, size);
 }
 
 WeakBuffer JSTypedArray::weakBuffer(Worker* worker) {
   auto buffer = Buffer(worker);
-  char* data = buffer->Data(worker);
+  Char* data = buffer->Data(worker);
   int offset = ByteOffset(worker);
   int len = ByteLength(worker);
   return WeakBuffer(data + offset, len);
@@ -380,7 +380,7 @@ Worker* Worker::create() {
 	return IMPL::create();
 }
 
-void Worker::registerModule(cString& name, BindingCallback binding, cchar* file) {
+void Worker::registerModule(cString& name, BindingCallback binding, cChar* file) {
 	if (!native_modules) {
 		native_modules = new Map<String, NativeModule>();
 	}
@@ -406,7 +406,7 @@ Local<JSValue> Worker::bindingModule(cString& name) {
 	if (mod.binding) {
 		mod.binding(exports, this);
 	} else if (mod.native_code) {
-		exports = runNativeScript(WeakBuffer((char*)
+		exports = runNativeScript(WeakBuffer((Char*)
 			mod.native_code->code, 
 			mod.native_code->count), 
 			String(mod.native_code->name) + mod.native_code->ext,
@@ -454,7 +454,7 @@ Local<JSObject> Worker::global() {
 	return _inl->_global.local();
 }
 
-Local<JSObject> Worker::NewError(cchar* errmsg, ...) {
+Local<JSObject> Worker::NewError(cChar* errmsg, ...) {
 	FX_STRING_FORMAT(errmsg, str);
 	Error err(ERR_UNKNOWN_ERROR, str);
 	return New(err);
@@ -496,7 +496,7 @@ Local<JSUint8Array> Worker::NewUint8Array(Local<JSString> str, Encoding en) {
 	return New(buff);
 }
 
-Local<JSUint8Array> Worker::NewUint8Array(int size, char fill) {
+Local<JSUint8Array> Worker::NewUint8Array(int size, Char fill) {
   auto ab = NewArrayBuffer(size);
   if (fill)
     memset(ab->Data(this), fill, size);
@@ -507,7 +507,7 @@ Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab) {
   return NewUint8Array(ab, 0, ab->ByteLength(this));
 }
 
-void Worker::throwError(cchar* errmsg, ...) {
+void Worker::throwError(cChar* errmsg, ...) {
 	FX_STRING_FORMAT(errmsg, str);
 	throwError(NewError(*str));
 }

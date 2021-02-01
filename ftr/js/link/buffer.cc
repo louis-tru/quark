@@ -111,7 +111,7 @@ class NativeBuffer {
 		
 		Encoding encoding = Encoding::utf8;
 		int len = self->ByteLength(worker);
-		char* data = self->weakBuffer(worker).value();
+		Char* data = self->weakBuffer(worker).value();
 		uint start = 0;
 		uint end = len;
 

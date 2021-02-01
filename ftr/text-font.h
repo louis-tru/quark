@@ -55,7 +55,7 @@ namespace ftr {
 			float   offset_start;   // 偏移开始
 			uint    begin;          // 在字符中有开始索引
 			Array<float>  offset;   // 偏移表
-			Array<uint16_t > chars;  // 字符表
+			Array<uint16_t > Chars;  // 字符表
 			bool    reverse;        // 反向排列
 		};
 		

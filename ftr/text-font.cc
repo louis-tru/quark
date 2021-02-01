@@ -310,7 +310,7 @@ bool TextFont::compute_text_visible_draw(Vec2 vertex[4],
 	
 	for ( auto& i : data.cells ) {
 		Cell& cell = i.value();
-		if ( line_num != int(cell.line_num) && cell.chars.length() ) {
+		if ( line_num != int(cell.line_num) && cell.Chars.length() ) {
 			line_num = cell.line_num;
 			y = cell.baseline - y2;
 			
@@ -362,7 +362,7 @@ void TextFont::set_glyph_texture_level(Data& data) {
 
 // ----------------------------------- TextLayout -----------------------------------
 
-FX_INLINE bool has_space_char(uint16_t unicode, bool space, bool line_feed) {
+FX_INLINE bool has_space_Char(uint16_t unicode, bool space, bool line_feed) {
 	switch(unicode) {
 		case 0x0A: // \n
 			return line_feed;
@@ -376,7 +376,7 @@ FX_INLINE bool has_space_char(uint16_t unicode, bool space, bool line_feed) {
 	return false;
 }
 
-FX_INLINE bool has_english_char(uint16_t unicode) {
+FX_INLINE bool has_english_Char(uint16_t unicode) {
 	switch(unicode) {
 		case 48: case 49: case 50: case 51: case 52:
 		case 53: case 54: case 55: case 56: case 57: // 0-9
@@ -400,7 +400,7 @@ FX_INLINE bool has_english_char(uint16_t unicode) {
  */
 struct Word {
 	Array<float>  offset;
-	Array<uint16> chars;
+	Array<uint16> Chars;
 	float         width;
 	bool          newline;
 	uint          count;
@@ -468,7 +468,7 @@ public:
 	FX_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint begin) {
 		
 		/* 结束上一行 */
-		if ( cell.chars.length() ) {
+		if ( cell.Chars.length() ) {
 			cell.baseline = rows->last()->baseline;
 			data.cells.push(move(cell));
 		} else {
@@ -490,13 +490,13 @@ public:
 													 Options::SpaceWrap opts, cUcs2String& string, uint begin, uint end) {
 		if ( begin < end ) {
 			
-			const uint16* chars = *string;
+			const uint16* Chars = *string;
 			
 			word->newline = 0;
 			word->count = 1;
-			uint16_t unicode = chars[begin];
+			uint16_t unicode = Chars[begin];
 			
-			if ( has_space_char(unicode, true, true) ) {
+			if ( has_space_Char(unicode, true, true) ) {
 				if ( opts.merge_space || opts.merge_line_feed ) {
 					
 					if ( unicode == 0x0A ) {
@@ -512,8 +512,8 @@ public:
 					uint count = 0;
 					do {
 						count++; begin++;
-						unicode = chars[begin];
-					} while ( begin < end && has_space_char(unicode, opts.merge_space, opts.merge_line_feed) );
+						unicode = Chars[begin];
+					} while ( begin < end && has_space_Char(unicode, opts.merge_space, opts.merge_line_feed) );
 					
 					word->count = count; unicode = ' ';
 				} else {
@@ -524,16 +524,16 @@ public:
 				
 				goto common;
 				
-			} else if ( !opts.force_wrap && has_english_char(unicode) ) {
+			} else if ( !opts.force_wrap && has_english_Char(unicode) ) {
 				uint count = 0;
 				float offset = offset_start;
 				do {
 					offset += table->glyph(unicode)->hori_advance() / ratio; // 字符宽度
 					word->offset.set(count, offset);
-					word->chars.set(count, unicode);
+					word->Chars.set(count, unicode);
 					count++; begin++;
-					unicode = chars[begin];
-				} while ( begin < end && has_english_char(unicode) );
+					unicode = Chars[begin];
+				} while ( begin < end && has_english_Char(unicode) );
 				
 				word->count = count;
 				word->width = offset - offset_start;
@@ -542,7 +542,7 @@ public:
 			common:
 				float hori_advance = table->glyph(unicode)->hori_advance() / ratio; // 字符宽度
 				word->offset.set(0, offset_start + hori_advance);
-				word->chars.set(0, unicode);
+				word->Chars.set(0, unicode);
 				word->width = hori_advance;
 			}
 			
@@ -562,17 +562,17 @@ public:
 		
 		float hori_advance = table->glyph('.')->hori_advance() / ratio; // 字符宽度
 		cell.offset.write( word.offset, -1, word.count );
-		cell.chars.write( word.chars, -1, word.count );
+		cell.Chars.write( word.Chars, -1, word.count );
 		
 		uint ellipsis_count = ellipsis ? 3 : 0;
 		
-		while ( cell.chars.length() || ellipsis_count ) {
-			if ( cell.offset[cell.chars.length()] + ellipsis_count * hori_advance <= limit.width() ) {
+		while ( cell.Chars.length() || ellipsis_count ) {
+			if ( cell.offset[cell.Chars.length()] + ellipsis_count * hori_advance <= limit.width() ) {
 				break;
 			} else {
-				if ( cell.chars.length() ) {
+				if ( cell.Chars.length() ) {
 					cell.offset.pop();
-					cell.chars.pop();
+					cell.Chars.pop();
 				} else {
 					ellipsis_count--;
 				}
@@ -580,10 +580,10 @@ public:
 		}
 		
 		if ( ellipsis_count ) {
-			float offset = cell.offset[cell.chars.length()] + hori_advance;
+			float offset = cell.offset[cell.Chars.length()] + hori_advance;
 			for ( uint i = 0; i < ellipsis_count; i++ ) {
 				cell.offset.push(offset + i * hori_advance);
-				cell.chars.push('.');
+				cell.Chars.push('.');
 			}
 		}
 		// cell.line_num
@@ -684,7 +684,7 @@ public:
 				}
 				
 				cell.offset.write( word.offset, -1, word.count );
-				cell.chars.write( word.chars, -1, word.count );
+				cell.Chars.write( word.Chars, -1, word.count );
 				offset_end->x(offset_end->x() + word.width);  // 更新Text行偏移
 			}
 			
@@ -692,9 +692,9 @@ public:
 			
 		} while ( read_word(&word, offset_end->x(), table, ratio, opts.space_wrap, string, begin, end) );
 		
-		if ( cell.chars.length() ) {
+		if ( cell.Chars.length() ) {
 			cell.baseline = rows->last()->baseline;
-			offset_end->x(cell.offset[cell.chars.length()]); // 更新Text行偏移
+			offset_end->x(cell.offset[cell.Chars.length()]); // 更新Text行偏移
 			data.cells.push(move(cell));
 		}
 	}

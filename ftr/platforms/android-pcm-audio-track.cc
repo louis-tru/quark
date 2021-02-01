@@ -196,7 +196,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 	/**
 	 * @overwrite
 	 * */
-	virtual bool write(const Buffer& buffer) {
+	virtual bool write(cBuffer& buffer) {
 		ScopeENV env;
 		// buffer rewind
 		env->DeleteLocalRef(env->CallObjectMethod(_buffer, _buffer_rewind));

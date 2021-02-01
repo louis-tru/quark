@@ -80,7 +80,7 @@ static void parse_system_font_family_name() {
 		const XMLElement* first = root->FirstChildElement("family");
 		
 		if ( first && (first = first->FirstChildElement("font")) ) {
-			cchar* path = first->GetText();
+			cChar* path = first->GetText();
 			if ( path ) {
 				system_first_font_family_name = 
 					find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
@@ -104,7 +104,7 @@ static void parse_system_font_family_name() {
 				if ( lang && strcmp(lang->Value(), "zh-Hans") == 0 ) {
 
 					if ( (first = first->FirstChildElement("font")) ) {
-						cchar* path = first->GetText();
+						cChar* path = first->GetText();
 						if ( path ) {
 							system_second_font_family_name = 
 								find_font_family_by_path(Path::format("%s/%s", *system_fonts_dir, path));
