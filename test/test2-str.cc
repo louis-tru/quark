@@ -71,13 +71,11 @@ namespace std {
 
 void test_str2() {
 
-	String strv = String::from("ABCD", 4); // from const char
-	String strv2(strv); // from strong
-	SString str(strv.copy()); // from weak
+	String strv("ABCDEFG");
 	
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		cout
 		<< endl
 		<< "s2.operator==('B'):" << s.operator==("B") << endl
@@ -88,7 +86,7 @@ void test_str2() {
 
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		cout
 		<< endl
 		<< "s.operator==('B'):"  << sv.operator==("B") << endl
@@ -99,7 +97,7 @@ void test_str2() {
 
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		s.operator=("A");
 		s.operator=(s);
 		s.operator=(sv.copy());
@@ -107,7 +105,7 @@ void test_str2() {
 	
 	{
 		String sv = strv;
-		SString     s(sv.copy());
+		String     s(sv.copy());
 		sv.operator=("A");
 		sv.operator=(s);
 		sv.operator=(sv);
@@ -115,7 +113,7 @@ void test_str2() {
 	
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		s + "A";
 		s + s;
 		s + sv;
@@ -123,7 +121,7 @@ void test_str2() {
 	
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		sv + "A";
 		sv + s;
 		sv + sv;
@@ -131,7 +129,7 @@ void test_str2() {
 
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		s += "A";
 		s += s;
 		s += sv;
@@ -141,7 +139,7 @@ void test_str2() {
 
 	{
 		String sv = strv;
-		SString s(sv.copy());
+		String s(sv.copy());
 		s.split("A");
 		s.replace("A", "K");
 		s.replace_all("A", "V");

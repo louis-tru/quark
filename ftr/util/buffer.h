@@ -452,7 +452,7 @@ namespace ftr {
 	template<typename T, typename A>
 	void ArrayBuffer<T, A>::realloc_(uint32_t capacity) {
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
-		_val = (T*)A::realloc(_val, capacity, &_capacity, sizeof(T));
+		_val = (T*)A::realloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
 	#define FX_DEF_ARRAY_SPECIAL(T, A) \

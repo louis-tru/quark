@@ -41,9 +41,7 @@
 
 namespace ftr {
 
-	namespace internal {
-		String string_format(cChar* f, va_list arg);
-	}
+	String string_format(cChar* f, va_list arg);
 
 	// Path implementation
 
@@ -107,11 +105,11 @@ namespace ftr {
 	}
 
 	bool Path::chdir(cString& path) {
-		String str = format("%s", *path);
+		String str = format("%s", path.str_c());
 		#if FX_WIN
-			return _chdir(str.substr(8).val()) == 0;
+			return _chdir(str.substr(8).str_c()) == 0;
 		#else
-			return ::chdir(str.substr(7).val()) == 0;
+			return ::chdir(str.substr(7).str_c()) == 0;
 		#endif
 	}
 
@@ -169,7 +167,7 @@ namespace ftr {
 		int up = 0;
 		for (int i = ls.size() - 1; i > -1; i--) {
 			cString& v = ls[i];
-			if (!v.is_null() && v != ".") {
+			if (!v.is_empty() && v != ".") {
 				if (v[0] == '.' && v[1] == '.') { // set up ../
 					up++;
 				}
@@ -281,7 +279,7 @@ namespace ftr {
 	String Path::format(cChar* path, ...) {
 		va_list arg;
 		va_start(arg, path);
-		String str = internal::string_format(path, arg);
+		String str = string_format(path, arg);
 		va_end(arg);
 		return format(str);
 	}

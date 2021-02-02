@@ -79,35 +79,20 @@ namespace ftr {
 			*/
 			static String encoding_string(Encoding en);
 			
-			/**
-			* @func encoding
-			*/
-			static Buffer encoding(Encoding target_en, cBuffer& source);
-			
-			/**
-			* @func encoding
-			*/
-			static Buffer encoding(Encoding target_en, const ArrayBuffer<uint16_t>& source);
-			
-			/**
-			* @func encoding
-			*/
-			static Buffer encoding(Encoding target_en, const ArrayBuffer<uint32_t>& source);
-			
-			/**
-			* @func decoding_to_byte
-			*/
-			static Buffer decoding_to_byte(Encoding source_en, cString& source);
-			
-			/**
-			* @func decoding_to_uint16_t 
-			*/
-			static ArrayBuffer<uint16_t> decoding_to_uint16_t (Encoding source_en, cString& source);
-			
-			/**
-			* @func decoding_to_uint32_t
-			*/
-			static ArrayBuffer<uint32_t> decoding_to_uint32_t(Encoding source_en, cString& source);
+			// encoding
+			static ArrayBuffer<char>     encode(Encoding target_en, const ArrayBuffer<char>& source);
+			static ArrayBuffer<char>     encode(Encoding target_en, const ArrayString<char>& source);
+			static ArrayBuffer<char>     encode(Encoding target_en, const ArrayBuffer<uint16_t>& source);
+			static ArrayBuffer<char>     encode(Encoding target_en, const ArrayString<uint16_t>& source);
+			static ArrayBuffer<char>     encode(Encoding target_en, const ArrayBuffer<uint32_t>& source);
+			static ArrayBuffer<char>     encode(Encoding target_en, const ArrayString<uint32_t>& source);
+			// decoding
+			static ArrayBuffer<char>     decode_to_buffer(Encoding source_en, const ArrayBuffer<char>& source);
+			static ArrayBuffer<char>     decode_to_buffer(Encoding source_en, const ArrayString<char>& source);
+			static ArrayBuffer<uint16_t> decode_to_uint16(Encoding source_en, const ArrayBuffer<char>& source);
+			static ArrayBuffer<uint16_t> decode_to_uint16(Encoding source_en, const ArrayString<char>& source);
+			static ArrayBuffer<uint32_t> decode_to_uint32(Encoding source_en, const ArrayBuffer<char>& source);
+			static ArrayBuffer<uint32_t> decode_to_uint32(Encoding source_en, const ArrayString<char>& source);
 	};
 
 	typedef Codec Coder;

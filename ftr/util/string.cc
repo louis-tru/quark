@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./string.h"
+#include "./codec.h"
 #include <algorithm>
 
 namespace ftr {
@@ -61,80 +62,83 @@ namespace ftr {
 		}
 	}
 
-	void _Str::strcp(void* o_, int size_o, const void* i_, int size_i, uint32_t len) {
+	void _Str::strcp(void* o_, int sizeof_o, const void* i_, int sizeof_i, uint32_t len) {
 		char* o = (char*)o_;
 		char* i = (char*)i_;
 		if (len && i) {
-			if (size_o == size_i) {
-				::memcpy(o, i, len * size_o);
-				((Char*)o)[len] = '\0';
+			if (sizeof_o == sizeof_i) {
+				::memcpy(o, i, len * sizeof_o);
+				((char*)o)[len] = '\0';
 			} else {
-				int min = FX_MIN(size_o, size_i);
-				int max = FX_MIN(size_o, size_i);
+				int min = FX_MIN(sizeof_o, sizeof_i);
+				int max = FX_MIN(sizeof_o, sizeof_i);
 				if (is_big_data) { // big data layout
 					for (int j = 0; j < len; j++) {
 						assign(o, i + max - min, min);
-						o+=size_o; i+=size_i;
+						o+=sizeof_o; i+=sizeof_i;
 					}
 				} else {
 					for (int j = 0; j < len; j++) {
 						assign(o, i, min);
-						o+=size_o; i+=size_i;
+						o+=sizeof_o; i+=sizeof_i;
 					}
 				}
-				::memset(o, 0, size_o);
+				::memset(o, 0, sizeof_o);
 			}
 		}
 	}
-
-	static bool str_sscanf(const void* i_, const void* f_, void* o_, int len, int sizeof_i) {
-		char* o = (char*)o_;
-		char* i = (char*)i_;
-		char* f = (char*)f_;
+	
+	bool _Str::sscanf(const void* i, int sizeof_i, int len_i, const char* f, ...) {
+		bool r;
+		va_list arg;
+		va_start(arg, f);
 		if (sizeof_i == 1) {
-			return sscanf( i, f, o, len );
+			r = vsscanf( (const char*)i, f, arg);
 		} else {
-			Char o2[65];
-			len = FX_MIN(len, 64);
-			_Str::strcp(o2, 1, i, sizeof_i, len);
-			return sscanf( o2, f, o, len );
+			Char i2[65];
+			len_i = FX_MIN(len_i, 64);
+			_Str::strcp(i2, 1, i, sizeof_i, len_i);
+			r = vsscanf( i2, f, arg );
 		}
+		va_end(arg);
+		return r;
 	}
 
-	bool _Str::to_number(const void* i, int32_t* o, int len) {
-		return str_sscanf(i, "%d", o, len, sizeof(int32_t));
+	bool _Str::to_number(const void* i, int sizeof_i, int len, int32_t* o) {
+		return _Str::sscanf(i, sizeof_i, len, "%d", o);
 	}
 	
-	bool _Str::to_number(const void* i, int64_t* o, int len) {
+	bool _Str::to_number(const void* i, int size_of, int len, uint32_t* o) {
+		return _Str::sscanf(i, size_of, len, "%u", o);
+	}
+
+	bool _Str::to_number(const void* i, int sizeof_i, int len, int64_t* o) {
 		#if FX_ARCH_64BIT
-			return str_sscanf(i, "%ld", o, len, sizeof(int64_t));
+			return _Str::sscanf(i, sizeof_i, len, "%ld", o);
 		#else
-			return str_sscanf(i, "%lld", o, len, sizeof(int64_t));
+			return _Str::sscanf(i, sizeof_i, len, "%lld", o);
 		#endif
 	}
 
-	bool _Str::to_number(const void* i, uint32_t* o, int len) {
-		return str_sscanf(i, "%lld", o, len, sizeof(uint32_t));
-	}
-
-	bool _Str::to_number(const void* i, uint64_t* o, int len) {
+	bool _Str::to_number(const void* i, int size_of, int len, uint64_t* o) {
 		#if FX_ARCH_64BIT
-			return str_sscanf(i, "%lu", o, len, sizeof(uint64_t));
+			return _Str::sscanf(i, size_of, len, "%lu", o);
 		#else
-			return str_sscanf(i, "%llu", o, len, sizeof(uint64_t));
+			return _Str::sscanf(i, size_of, len, "%llu", o);
 		#endif
 	}
 
-	bool _Str::to_number(const void* i, float* o, int len) {
-		return str_sscanf(i, "%fd", o, len, sizeof(float));
+	bool _Str::to_number(const void* i, int size_of, int len, float* o) {
+		return _Str::sscanf(i, size_of, len, "%fd", o);
 	}
 
-	bool _Str::to_number(const void* i, double* o, int len) {
-		return str_sscanf(i, "%lf", o, len, sizeof(double));
+	bool _Str::to_number(const void* i, int size_of, int len, double* o) {
+		return _Str::sscanf(i, size_of, len, "%lf", o);
+		// _str->_length = _Str::sprintf(&_str->_val, &_str->_capacity, "%g", i);
 	}
 
 	uint32_t _Str::strlen(const void* s_, int size_of) {
-	const char* s = (const char*)s_;
+		const char* s = (const char*)s_;
 		if (s) {
 			if (size_of == 1) {
 				return (uint32_t)::strlen(s);
@@ -258,17 +262,71 @@ namespace ftr {
 
 	// ---------------------------------------------------------------------
 
-	int32_t vasprintf(Char** o, cChar* f, va_list arg) {
-		#if FX_GNUC
-			int32_t len = ::vasprintf(o, f, arg);
-		#else
-			int32_t len = ::vsprintf(o, f, arg);
-			if (len) {
-				o = (Char*)::malloc(len + 1);
-				o[len] = '\0';
-				::_vsnprintf_s(o, len + 1, f, arg);
+	int32_t vsnprintf(char* o, uint32_t capacity_o, cChar* f, va_list arg) {
+		return ::vsnprintf(o, capacity_o, f, arg);
+	}
+	
+	int32_t vasprintf(char** o, cChar* f, va_list arg) {
+		return ::vasprintf(o, f, arg);
+	}
+	
+	int32_t snprintf(void* o, int sizeof_o, uint32_t capacity_o, uint32_t* len_o, cChar* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		int r;
+		if (sizeof_o == 1) {
+			r = vsnprintf((char*)o, capacity_o, f, arg);
+		} else {
+			// TODO ...
+		}
+		va_end(arg);
+		
+		
+		
+		return r;
+	}
+
+	void* _Str::sprintf(void* o, int sizeof_o, int capacity_o, int* len_o, cChar* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+
+		void* r;
+		
+		if (sizeof_o == 1) {
+			if (o) {
+				*len_o = vasprintf((char*)o, capacity_o, f, arg);
+			} else {
+				char* o2;
+				*len_o = vasprintf(&o2, f, arg);
 			}
-		#endif
+		} else {
+			//			char* str;
+			//			int len = vasprintf(&str, f, arg);
+			//			if (sizeof_o == 2) {
+			//				auto b = Codec::decode_to_uint16(Encoding::UTF8, Buffer::from(str, len));
+			//				*len_o = b.length();
+			//				r = b.collapse();
+			//			} else if (sizeof_o == 4) {
+			//				auto b = Codec::decode_to_uint32(Encoding::UTF8, Buffer::from(str, len));
+			//				*len_o = b.length();
+			//				r = b.collapse();
+			//			} else {
+			//				FX_FATAL("I won't support it");
+			//			}
+		}
+		va_end(arg);
+		
+		return r;
+	}
+
+	int32_t sprintf(Char** o, uint32_t* capacity, cChar* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		int32_t len = vasprintf(o, f, arg);
+		va_end(arg);
+		if (o && capacity) {
+			*capacity = len + 1;
+		}
 		return len;
 	}
 
@@ -280,17 +338,6 @@ namespace ftr {
 		} else {
 			return String();
 		}
-	}
-
-	int32_t _Str::sprintf(Char** o, uint32_t* capacity, cChar* f, ...) {
-		va_list arg;
-		va_start(arg, f);
-		int32_t len = vasprintf(o, f, arg);
-		va_end(arg);
-		if (o && capacity) {
-			*capacity = len + 1;
-		}
-		return len;
 	}
 
 	template <>

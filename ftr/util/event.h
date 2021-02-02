@@ -477,7 +477,7 @@ namespace ftr {
 			}
 			
 			inline void get_listener() {
-				ASSERT(!_name.is_null());
+				ASSERT(!_name.is_empty());
 				if (_listener == nullptr) {
 					_listener = new std::list<LWrap>();
 				}

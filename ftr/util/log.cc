@@ -59,7 +59,7 @@
 #define FX_STRING_FORMAT(format, str) \
 	va_list __arg; \
 	va_start(__arg, format); \
-	String str = internal::string_format(format, __arg); \
+	String str = string_format(format, __arg); \
 	va_end(__arg)
 
 namespace ftr {
@@ -99,15 +99,13 @@ namespace ftr {
 		return _default_console;
 	}
 
-	namespace internal {
-		String string_format(cChar* f, va_list arg);
-	}
+	String string_format(cChar* f, va_list arg);
 
 	namespace console {
 		
 		void report_error(cChar* format, ...) {
-      FX_STRING_FORMAT(format, str);
-			printf("%s", *str);
+			FX_STRING_FORMAT(format, str);
+			printf("%s", str.str_c());
 		}
 		
 		// Attempts to dump a backtrace (if supported).
@@ -227,7 +225,7 @@ namespace ftr {
 		}
 		
 		void log(cString16& msg) {
-			default_console()->log(Coder::encoding(Encoding::utf8, msg));
+			default_console()->log(Coder::encode(Encoding::utf8, msg));
 		}
 
 		void print(cChar* format, ...) {
@@ -267,7 +265,7 @@ namespace ftr {
 		}
 
 		void error(const Error& err) {
-			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().val());
+			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().str_c());
 			default_console()->error(str);
 		}
 		

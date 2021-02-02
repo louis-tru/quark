@@ -34,9 +34,7 @@
 
 namespace ftr {
 
-	namespace internal {
-		String string_format(cChar* f, va_list arg);
-	}
+	String string_format(cChar* f, va_list arg);
 
 	Error::Error(const Error& e)
 	 : _code(e.code())
@@ -47,7 +45,7 @@ namespace ftr {
 	Error::Error(int code, cChar* msg, ...): _code(code) {
 		va_list arg;
 		va_start(arg, msg);
-		_message = internal::string_format(msg, arg);
+		_message = string_format(msg, arg);
 		va_end(arg);
 	}
 

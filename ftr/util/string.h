@@ -57,12 +57,8 @@ namespace ftr {
 			ArrayString(const T* s, uint32_t len); // copy constructors
 			ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
 			ArrayString(T c); // char to string constructors
-			ArrayString(int32_t i); // int32_t to string constructors
-			ArrayString(int64_t i); // int64_t to string constructors
-			ArrayString(uint32_t i); // uint32_t to string constructors
-			ArrayString(uint64_t i); // uint64_t to string constructors
-			ArrayString(float f); // float to string constructors
-			ArrayString(double f); // double to string constructors
+			template<typename T2>
+			ArrayString(T2 i); // number to string constructors
 			/**
 			 * @func format string
 			 */
@@ -97,7 +93,7 @@ namespace ftr {
 			uint64_t hash_code() const;
 			// collapse to array buffer
 			ArrayBuffer<T, A> collapse();
-			ArrayBuffer<T, A> copy();
+			ArrayString<T, A> copy() const;
 			// operator compare
 			bool operator==(const T* s) const;
 			inline bool operator==(const ArrayString& s) const { return operator==(s._str->_val); }
@@ -138,29 +134,43 @@ namespace ftr {
 		private:
 			class LongStr;
 			ArrayString(LongStr* str); // ref copy constructors
+			T*       val();
 			LongStr* _str; // long string
-			// T   _short[16]; // to be optimized
+			// T   _short[32]; // to be optimized
 			friend class LongStr;
 	};
 
+}
 
-	// -------------------------------------- IMPL --------------------------------------
+// -------------------------------------- IMPL --------------------------------------
+
+namespace ftr {
 
 	class FX_EXPORT _Str {
 		public:
 		static cChar ws[8];
-		static bool to_number(const void* i, int32_t* o, int len);
-		static bool to_number(const void* i, int64_t* o, int len);
-		static bool to_number(const void* i, uint32_t* o, int len);
-		static bool to_number(const void* i, uint64_t* o, int len);
-		static bool to_number(const void* i, float* o, int len);
-		static bool to_number(const void* i, double* o, int len);
-		static void strcp(void* o, int size_o, const void* i, int size_i, uint32_t len);
+		static bool sscanf(const void* i, int sizeof_i, int len_i, const char* f, ...);
+		static bool to_number(const void* i, int sizeof_i, int len_i, int32_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, uint32_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, int64_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, uint64_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, float* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, double* o);
+		template <typename Input, typename Output>
+		static bool to_number(const Input* i, int len_i, Output* o) {
+			return to_number(i, sizeof(Input), len_i, o);
+		}
+		static void* sprintf(void* o, int sizeof_o, int capacity_o, int* len_o, cChar* f, ...);
+		static void  strcp(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
 		template <typename Output, typename Input>
 		static void strcp(Output* o, const Input* i, uint32_t len) {
 			strcp(o, sizeof(Output), i, sizeof(Input), len);
 		}
 		static uint32_t strlen(const void* s, int size_of);
+		template <typename T>
+		static uint32_t strlen(const T* s) {
+			return strlen(s, sizeof(T));
+		}
 		static int memcmp(const void* s1, const void* s2, uint32_t len, int size_of);
 		// 1 > , -1 <, 0 ==
 		template <typename T>
@@ -181,12 +191,7 @@ namespace ftr {
 			const void* rep, uint32_t rep_len,
 			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all
 		);
-		static int32_t sprintf(Char** o, uint32_t* capacity, cChar* f, ...);
 	};
-
-}
-
-namespace ftr {
 
 	template<typename T, typename A> class ArrayString<T, A>::LongStr {
 		public:
@@ -285,68 +290,28 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* s)
-		: ArrayString<T, A>(s, _Str::strlen(s, sizeof(T))) {
+		: ArrayString<T, A>(s, _Str::strlen(s)) {
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* s, uint32_t len): _str(new LongStr(len)) {
-		_Str::strcp(_str->_val, s, len);
+		_Str::strcp(val(), s, len);
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len): _str(new LongStr(a_len + b_len)) {
-		_Str::strcp(_str->_val,         a, a_len);
-		_Str::strcp(_str->_val + a_len, b, b_len);
+		_Str::strcp(val(),         a, a_len);
+		_Str::strcp(val() + a_len, b, b_len);
 	}
-	
+
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(T c): _str(new LongStr(1)) {
+	ArrayString<T, A>::ArrayString(const T c): _str(new LongStr(1)) {
 		_str->_val[0] = c;
 	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(int i): _str(new LongStr()) {
-		_str->_length = _Str::sprintf(&_str->_val, &_str->_capacity, "%d", i);
-	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(uint32_t i): _str(new LongStr()) {
-		_str->_length = _Str::sprintf(&_str->_val, &_str->_capacity, "%u", i);
-	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(int64_t i): _str(new LongStr()) {
-		_str->_length = 
-		#if FX_ARCH_64BIT
-			_Str::sprintf(&_str->_val, &_str->_capacity, "%ld", i);
-		#else
-			_Str::sprintf(&_str->_val, &_str->_capacity, "%lld", i);
-		#endif
-	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(uint64_t i): _str(new LongStr()) {
-		_str->_length = 
-		#if FX_ARCH_64BIT
-			_Str::sprintf(&_str->_val, &_str->_capacity, "%lu", i);
-		#else
-			_Str::sprintf(&_str->_val, &_str->_capacity, "%llu", i);
-		#endif
-	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(float i): _str(new LongStr()) {
-		_str->_length = _Str::sprintf(&_str->_val, &_str->_capacity, "%f", i);
-	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(double i): _str(new LongStr()) {
-		_str->_length = _Str::sprintf(&_str->_val, &_str->_capacity, "%g", i);
-	}
-
-	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(LongStr* str): _str(str) {
-	}
+	
+	template<>
+	template<typename T2>
+	ArrayString<char, AllocatorDefault>::ArrayString(T2 i);
 
 	template <>
 	String String::format(cChar* format, ...);
@@ -354,19 +319,22 @@ namespace ftr {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	bool ArrayString<T, A>::is_empty() const { return _str->_length == 0; }
+	bool ArrayString<T, A>::is_empty() const { return length() == 0; }
+
+	template <typename T, typename A>
+	T ArrayString<T, A>::operator[](uint32_t index) const { return str_c()[index]; }
 
 	template <typename T, typename A>
 	const T* ArrayString<T, A>::str_c() const { return _str->_val; }
-
-	template <typename T, typename A>
-	T ArrayString<T, A>::operator[](uint32_t index) const { return _str->_val[index]; }
 
 	template <typename T, typename A>
 	uint32_t ArrayString<T, A>::length() const { return _str->_length; }
 
 	template <typename T, typename A>
 	uint32_t ArrayString<T, A>::capacity() const { return _str->_capacity; }
+	
+	template <typename T, typename A>
+	T* ArrayString<T, A>::val() { return _str->_val; }
 
 	// --------------------------------------------------------------------------------
 
@@ -449,7 +417,7 @@ namespace ftr {
 
 	template <typename T, typename A>
 	uint64_t ArrayString<T, A>::hash_code() const {
-		return hash_code(_str->_val, _str->_length * sizeof(T));
+		return ftr::hash_code(_str->_val, _str->_length * sizeof(T));
 	}
 
 	template <typename T, typename A>
@@ -458,8 +426,8 @@ namespace ftr {
 	}
 
 	template <typename T, typename A>
-	ArrayBuffer<T, A> ArrayString<T, A>::copy() {
-		return _str->_length ? ArrayString(): ArrayString();
+	ArrayString<T, A> ArrayString<T, A>::copy() const {
+		return length() ? ArrayString(str_c(), length()): ArrayString();
 	}
 
 	template <typename T, typename A>
@@ -592,12 +560,12 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::to_upper_case() const {
-		return BasicString(*this).upper_case();
+		return ArrayString(*this).upper_case();
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::to_lower_case() const {
-		return BasicString(*this).upper_case();
+		return ArrayString(*this).upper_case();
 	}
 
 	// --------------------------------------------------------------------------------
@@ -617,7 +585,7 @@ namespace ftr {
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::replace(const ArrayString& s, const ArrayString& rep) const {
 		uint32_t len, capacity;
-		T* val = _Str::replace(
+		T* val = (T*)_Str::replace(
 			_str->_val, _str->_length, s._str->_val, s._str->_length, 
 			rep._str->_val, rep._str->_length, sizeof(T), &len, &capacity, false
 		);
@@ -627,7 +595,7 @@ namespace ftr {
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::replace_all(const ArrayString& s, const ArrayString& rep) const {
 		uint32_t len, capacity;
-		T* val = _Str::replace(_str->_val, _str->_length, s._str->_val, s._str->_length,
+		T* val = (T*)_Str::replace(_str->_val, _str->_length, s._str->_val, s._str->_length,
 			rep._str->_val, rep._str->_length, sizeof(T), &len, &capacity, true
 		);
 		return ArrayString(new LongStr(len, capacity, val));
