@@ -40,7 +40,7 @@ namespace ftr {
 
 	Error::Error(const Error& e)
 	 : _code(e.code())
-	 , _message(e._message.copy()) {
+	 , _message(e._message) {
 		 std::exception _ex;
 	}
 
@@ -53,12 +53,12 @@ namespace ftr {
 
 	Error::Error(int code, cString& msg)
 	 : _code(code)
-	 , _message(msg.copy()) {
+	 , _message(msg) {
 	}
 
 	Error& Error::operator=(const Error& e) {
 		_code = e._code;
-		_message = e._message.copy();
+		_message = e._message;
 		
 		FX_CHECK(0);
 		

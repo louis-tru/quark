@@ -31,7 +31,7 @@
 #include "./string.h"
 #include <algorithm>
 
-namespace frt {
+namespace ftr {
 
 	cChar _Str::ws[8] = {
 		0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20, /*0xA0,*/ 0x0
@@ -61,7 +61,9 @@ namespace frt {
 		}
 	}
 
-	void _Str::strcp(void* o, int size_o, const void* i, int size_i, uint32_t len) {
+	void _Str::strcp(void* o_, int size_o, const void* i_, int size_i, uint32_t len) {
+		char* o = (char*)o_;
+		char* i = (char*)i_;
 		if (len && i) {
 			if (size_o == size_i) {
 				::memcpy(o, i, len * size_o);
@@ -85,13 +87,16 @@ namespace frt {
 		}
 	}
 
-	static bool str_sscanf(const void* i, const void* f, void* o, int len, int sizeof_i) {
+	static bool str_sscanf(const void* i_, const void* f_, void* o_, int len, int sizeof_i) {
+		char* o = (char*)o_;
+		char* i = (char*)i_;
+		char* f = (char*)f_;
 		if (sizeof_i == 1) {
 			return sscanf( i, f, o, len );
 		} else {
 			Char o2[65];
 			len = FX_MIN(len, 64);
-			str::strcp(o2, 1, i, sizeof_i, len);
+			_Str::strcp(o2, 1, i, sizeof_i, len);
 			return sscanf( o2, f, o, len );
 		}
 	}
@@ -128,7 +133,8 @@ namespace frt {
 		return str_sscanf(i, "%lf", o, len, sizeof(double));
 	}
 
-	uint32_t _Str::strlen(const void* s, int size_of) {
+	uint32_t _Str::strlen(const void* s_, int size_of) {
+	const char* s = (const char*)s_;
 		if (s) {
 			if (size_of == 1) {
 				return (uint32_t)::strlen(s);
@@ -149,16 +155,19 @@ namespace frt {
 	}
 
 	int _Str::index_of(
-		cChar* s1, uint32_t s1_len, cChar* s2, 
+		const void* s1_, uint32_t s1_len, const void* s2_,
 		uint32_t s2_len, uint32_t start, int size_of
 	) {
 		if (s1_len < s2_len) return -1;
 		if (start + s2_len > s1_len) return -1;
 
+		const char* s1 = (const char*)s1_;
+		const char* s2 = (const char*)s2_;
+
 		int32_t end = s1_len - s2_len + 1;
 
 		while ( start < end ) {
-			if (str::memcmp(s1 + (start * size_of), s2, s2_len, size_of) == 0) {
+			if (_Str::memcmp(s1 + (start * size_of), s2, s2_len, size_of) == 0) {
 				return start;
 			}
 			start++;
@@ -167,9 +176,11 @@ namespace frt {
 	}
 
 	int _Str::last_index_of(
-		const void* s1, uint32_t s1_len, const void* s2,
+		const void* s1_, uint32_t s1_len, const void* s2_,
 		uint32_t s2_len, uint32_t _start, int size_of
 	) {
+		const char* s1 = (const char*)s1_;
+		const char* s2 = (const char*)s2_;
 		int32_t start = _start;
 		if ( start + s2_len > s1_len )
 			start = s1_len - s2_len;
@@ -184,22 +195,27 @@ namespace frt {
 
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
-			_val = AllocatorDefault::realloc(_val, capacity, &_capacity, sizeof(Char));
+			_val = (char*)AllocatorDefault::realloc(
+				_val, capacity, &_capacity, sizeof(Char));
 		}
 		uint32_t _capacity;
 		Char*    _val;
 	};
 
 	void* _Str::replace(
-		const void* s1, uint32_t s1_len,
-		const void* s2, uint32_t s2_len,
-		const void* rep, uint32_t rep_len,
+		const void* s1_, uint32_t s1_len,
+		const void* s2_, uint32_t s2_len,
+		const void* rep_, uint32_t rep_len,
 		int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all
 	) {
 		_StrTmp s_tmp;
 		uint32_t s_tmp_to = 0;
 		uint32_t from = 0;
 		int32_t  find, before_len;
+		
+		const char* s1 = (const char*)s1_;
+		const char* s2 = (const char*)s2_;
+		const char* rep = (const char*)rep_;
 
 		while ((find = index_of(s1, s1_len, s2, s2_len, from, size_of)) != -1) {
 			before_len = find - from;

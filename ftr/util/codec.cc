@@ -73,7 +73,7 @@ namespace ftr {
 	}
 
 	template <class Char>
-	static uint32_t encoding_utf8_str_length(cChar* source, uint32_t len) {
+	static uint32_t encoding_utf8_str_length(const Char* source, uint32_t len) {
 		uint32_t rev = 0;
 		cChar* end = source + len;
 		while (source < end) {
@@ -134,7 +134,7 @@ namespace ftr {
 	static Buffer encoding_to_binary(cChar* source, uint32_t len) {
 		cChar* end = source + len;
 		//uint32_t size = sizeof(Char);
-		Buffer rev(len);
+		auto rev = Buffer::from(len);
 		Char* data = *rev;
 		while (source < end) {
 			*data = *source;
@@ -151,10 +151,10 @@ namespace ftr {
 	static Buffer encoding_to_ascii(cChar* source, uint32_t len) {
 		// ucs2/ucs4到ascii会丢失所有ascii以外的编码
 		cChar* end = source + len;
-		Buffer rev(len);
+		auto rev = Buffer::from(len);
 		Char* data = *rev;
 		while (source < end) {
-			*data = *(unsigned Char*)source % 128;
+			*data = *(uint8_t*)source % 128;
 			data++; source++;
 		}
 		return rev;

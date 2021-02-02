@@ -41,18 +41,19 @@ namespace ftr {
 	#endif
 
 	struct AllocatorDefault {
-		static void* alloc(size_t size);
+		static void* alloc(uint32_t size);
 		static void  free(void* ptr);
-		static void* realloc(void* ptr, size_t size, size_t* out_size, int size_of);
+		static void* realloc(void* ptr, uint32_t size, uint32_t* out_size, int size_of);
 	};
 
-	template<typename T = Char, typename A = AllocatorDefault> class ArrayBuffer;
-	template<typename T = Char, typename A = AllocatorDefault> class ArrayString;
+	template<typename T = char, typename A = AllocatorDefault> class ArrayBuffer;
+	template<typename T = char, typename A = AllocatorDefault> class WeakArrayBuffer;
+	template<typename T = char, typename A = AllocatorDefault> class ArrayString;
 
-	typedef       ArrayBuffer<Char>     Buffer;
-	typedef       WeakArrayBuffer<Char> WeakBuffer;
-	typedef const ArrayBuffer<Char>     cBuffer;
-	typedef const WeakArrayBuffer<Char> cWeakBuffer;
+	typedef       ArrayBuffer<char>     Buffer;
+	typedef       WeakArrayBuffer<char> WeakBuffer;
+	typedef const ArrayBuffer<char>     cBuffer;
+	typedef const WeakArrayBuffer<char> cWeakBuffer;
 
 	/**
 	 * @class ArrayBuffer
@@ -202,11 +203,14 @@ namespace ftr {
 	template<typename T, typename A>
 	class FX_EXPORT WeakArrayBuffer: public ArrayBuffer<T, A> {
 		public:
-			WeakArrayBuffer(): ArrayBuffer(0, -1, nullptr) {}
-			WeakArrayBuffer(const T* data, uint length): ArrayBuffer(length, -1, const_cast<T*>(data)) {}
-			WeakArrayBuffer(const WeakArrayBuffer& arr): ArrayBuffer(arr._length, -1, const_cast<T*>(arr._val)) {}
+			WeakArrayBuffer(): ArrayBuffer<T, A>(0, -1, nullptr) {}
+			WeakArrayBuffer(const T* data, uint32_t length)
+				: ArrayBuffer<T, A>(length, -1, const_cast<T*>(data)) {}
+			WeakArrayBuffer(const WeakArrayBuffer& arr)
+				: ArrayBuffer<T, A>(arr._length, -1, const_cast<T*>(arr._val)) {}
 			template<class A2>
-			WeakArrayBuffer(const ArrayBuffer<T, A2>& arr): ArrayBuffer(arr._length, -1, const_cast<T*>(arr._val)) {}
+			WeakArrayBuffer(const ArrayBuffer<T, A2>& arr)
+				: ArrayBuffer<T, A>(arr._length, -1, const_cast<T*>(arr._val)) {}
 
 			WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
 				this->_length = arr._length;
@@ -220,6 +224,10 @@ namespace ftr {
 				return *this;
 			}
 	};
+
+}
+
+namespace ftr {
 
 	// -------------------------------------- IMPL --------------------------------------
 
@@ -321,9 +329,9 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	template<HolderMode M2, typename A2>
+	template<typename A2>
 	uint32_t ArrayBuffer<T, A>::write(
-		const ArrayBuffer<T, M2, A2>& arr, int to, int size_src, uint32_t form_src) 
+		const ArrayBuffer<T, A2>& arr, int to, int size_src, uint32_t form_src)
 	{
 		int s = FX_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
 		if (s > 0) {
@@ -372,20 +380,20 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, HolderMode::kWeak, A> ArrayBuffer<T, A>::slice(uint32_t start, uint32_t end) const {
+	WeakArrayBuffer<T, A> ArrayBuffer<T, A>::slice(uint32_t start, uint32_t end) const {
 		end = FX_MIN(end, _length);
 		if (start < end) {
-			return ArrayBuffer<T, HolderMode::kWeak, A>(_val + start, end - start);
+			return ArrayBuffer<T, A>(_val + start, end - start);
 		} else {
-			return ArrayBuffer<T, HolderMode::kWeak, A>();
+			return ArrayBuffer<T, A>();
 		}
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, HolderMode::kStrong, A> ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const {
+	ArrayBuffer<T, A> ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const {
 		end = FX_MIN(end, _length);
 		if (start < end) {
-			ArrayBuffer<T, HolderMode::kStrong, A> arr;
+			ArrayBuffer<T, A> arr;
 			arr._length = end - start;
 			arr.realloc_(arr._length);
 			T* to = arr._val;
@@ -397,7 +405,7 @@ namespace ftr {
 			}
 			return std::move(arr);
 		}
-		return ArrayBuffer<T, HolderMode::kStrong, A>();
+		return ArrayBuffer<T, A>();
 	}
 
 	template<typename T, typename A>
@@ -460,8 +468,8 @@ namespace ftr {
 	#define FX_DEF_ARRAY_SPECIAL_ALL(T) \
 		FX_DEF_ARRAY_SPECIAL(T, AllocatorDefault)
 
-	FX_DEF_ARRAY_SPECIAL_ALL(Char);
-	FX_DEF_ARRAY_SPECIAL_ALL(unsigned Char);
+	FX_DEF_ARRAY_SPECIAL_ALL(char);
+	FX_DEF_ARRAY_SPECIAL_ALL(unsigned char);
 	FX_DEF_ARRAY_SPECIAL_ALL(int16_t);
 	FX_DEF_ARRAY_SPECIAL_ALL(uint16_t );
 	FX_DEF_ARRAY_SPECIAL_ALL(int32_t);

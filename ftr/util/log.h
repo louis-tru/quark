@@ -56,7 +56,7 @@ namespace ftr {
 
 	namespace console {
 		FX_EXPORT void log(Char s);
-		FX_EXPORT void log(unsigned Char s);
+		FX_EXPORT void log(uint8_t s);
 		FX_EXPORT void log(int16_t s);
 		FX_EXPORT void log(uint32_t s);
 		FX_EXPORT void log(int s);

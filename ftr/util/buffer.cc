@@ -33,7 +33,7 @@
 
 namespace ftr {
 
-	void* AllocatorDefault::alloc(size_t size) {
+	void* AllocatorDefault::alloc(uint32_t size) {
 		return ::malloc(size);
 	}
 	
@@ -41,14 +41,14 @@ namespace ftr {
 		::free(ptr);
 	}
 
-	void* AllocatorDefault::realloc(void* _val, size_t capacity, size_t* _capacity, int size_of) {
+	void* AllocatorDefault::realloc(void* _val, uint32_t capacity, uint32_t* _capacity, int size_of) {
 		if ( capacity ) {
 			capacity = FX_MAX(FX_MIN_CAPACITY, capacity);
 			if ( capacity > *_capacity || capacity < *_capacity / 4.0 ) {
 				capacity = powf(2, ceil(log2(capacity)));
 				uint32_t size = size_of * capacity;
 				*_capacity = capacity;
-				_val = _val ? ::realloc(_val, size) : ::alloc(size);
+				_val = _val ? ::realloc(_val, size) : ::malloc(size);
 				FX_ASSERT(_val);
 			}
 		} else {
@@ -149,8 +149,8 @@ namespace ftr {
 	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(T) \
 		FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, AllocatorDefault, 1)
 	
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(Char);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned Char);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t );
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);

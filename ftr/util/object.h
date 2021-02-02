@@ -159,7 +159,7 @@ namespace ftr {
 			static constexpr bool is_reference = false;
 	};
 
-	FX_EXPORT void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg = 0, ...);
+	FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);
 
 	FX_EXPORT bool Retain(Object* obj);
 	FX_EXPORT void Release(Object* obj);

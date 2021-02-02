@@ -65,19 +65,19 @@
 namespace ftr {
 
 	void Console::log(cString& str) {
-		printf("%s\n", *str);
+		printf("%s\n", str.str_c());
 	}
 	void Console::warn(cString& str) {
-		printf("Warning: %s\n", *str);
+		printf("Warning: %s\n", str.str_c());
 	}
 	void Console::error(cString& str) {
-		fprintf(nx_stderr, "%s\n", *str);
+		fprintf(nx_stderr, "%s\n", str.str_c());
 	}
 	void Console::print(cString& str) {
-		printf("%s", *str);
+		printf("%s", str.str_c());
 	}
 	void Console::print_err(cString& str) {
-		fprintf(nx_stderr, "%s", *str);
+		fprintf(nx_stderr, "%s", str.str_c());
 	}
 	void Console::clear() {
 		// noop

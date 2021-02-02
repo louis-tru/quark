@@ -43,7 +43,7 @@ namespace ftr {
 	String SimpleHash::digest() {
 		String rev;
 		do {
-			rev.push(I64BIT_TABLE[_hash & 0x3F]);
+			rev.append(I64BIT_TABLE[_hash & 0x3F]);
 		} while (_hash >>= 6);
 		_hash = 5381;
 		return rev;

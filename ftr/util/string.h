@@ -56,6 +56,7 @@ namespace ftr {
 			ArrayString(const T* s); // copy constructors
 			ArrayString(const T* s, uint32_t len); // copy constructors
 			ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
+			ArrayString(T c); // char to string constructors
 			ArrayString(int32_t i); // int32_t to string constructors
 			ArrayString(int64_t i); // int64_t to string constructors
 			ArrayString(uint32_t i); // uint32_t to string constructors
@@ -70,7 +71,7 @@ namespace ftr {
 			inline bool is_empty() const;
 			inline const T* str_c() const;
 
-			inline T operator[](uint32_t index) const
+			inline T operator[](uint32_t index) const;
 			inline uint32_t length() const;
 			inline uint32_t capacity() const;
 
@@ -146,6 +147,7 @@ namespace ftr {
 	// -------------------------------------- IMPL --------------------------------------
 
 	class FX_EXPORT _Str {
+		public:
 		static cChar ws[8];
 		static bool to_number(const void* i, int32_t* o, int len);
 		static bool to_number(const void* i, int64_t* o, int len);
@@ -181,6 +183,10 @@ namespace ftr {
 		);
 		static int32_t sprintf(Char** o, uint32_t* capacity, cChar* f, ...);
 	};
+
+}
+
+namespace ftr {
 
 	template<typename T, typename A> class ArrayString<T, A>::LongStr {
 		public:
@@ -235,7 +241,7 @@ namespace ftr {
 				} else {
 					T* val = _val;
 					uint32_t length = _length, capacity = _capacity;
-					if (_str->ref() > 1) {
+					if (ref() > 1) {
 						val = LongStr(*this)._val; // alloc new mem space
 					} else {
 						_val = nullptr;
@@ -291,6 +297,11 @@ namespace ftr {
 	ArrayString<T, A>::ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len): _str(new LongStr(a_len + b_len)) {
 		_Str::strcp(_str->_val,         a, a_len);
 		_Str::strcp(_str->_val + a_len, b, b_len);
+	}
+	
+	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(T c): _str(new LongStr(1)) {
+		_str->_val[0] = c;
 	}
 
 	template <typename T, typename A>
@@ -366,12 +377,12 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A>& ArrayString<T, A>::operator=(const ArrayString& s) {
-		_str = s._val->retain();
+		_str = s._str->retain();
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>& ArrayString<T, A>::operator=(ArrayString&& s) {
-		_str = s._val;
+		_str = s._str;
 		s._str = LongStr::empty();
 	}
 
@@ -409,10 +420,10 @@ namespace ftr {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>& ArrayString<T, A>::append(const T* s, uint32_t len = 0) {
+	ArrayString<T, A>& ArrayString<T, A>::append(const T* s, uint32_t len) {
 		if (len > 0) {
-			uint old_length = _str->length;
-			uint new_length = old_length + len;
+			uint32_t old_length = _str->_length;
+			uint32_t new_length = old_length + len;
 
 			if (_str->ref() > 1) { // 当前不是唯一引用
 				auto old_str = _str;
@@ -453,7 +464,7 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayBuffer<T, A>::collapse_string() {
-		return ArrayString(std::move(*this));
+		return ArrayString<T, A>(std::move(*this));
 	}
 
 	// --------------------------------------------------------------------------------
@@ -493,14 +504,14 @@ namespace ftr {
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::trim() const {
 		uint32_t start = 0;
-		uint32_t end = _length;
+		uint32_t end = _str->_length;
 		const T* _val = _str->_val;
-		for (; start < _length; start++) {
+		for (; start < _str->_length; start++) {
 			if (strchr(_Str::ws, _val[start]) == nullptr) {
 				break;
 			}
 		}
-		if (start == _length) {
+		if (start == _str->_length) {
 			return ArrayString(); // empty string
 		} else {
 			for (; end > 0; end--) {
@@ -509,7 +520,7 @@ namespace ftr {
 				}
 			}
 		}
-		if (start == 0 && end == _length) {
+		if (start == 0 && end == _str->_length) {
 			return ArrayString(*this);
 		}
 		return substring(start, end);
@@ -517,7 +528,8 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::trim_left() const {
-		for (uint32_t start = 0, const T* _val = _str->_val; start < _length; start++) {
+		const T* _val = _str->_val;
+		for (uint32_t start = 0; start < _str->length; start++) {
 			if (strchr(_Str::ws, _val[start]) == nullptr) {
 				if (start == 0) {
 					return ArrayString(*this);
@@ -531,9 +543,10 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::trim_right() const {
-		for (uint32_t end = _length, const T* _val = _str->_val; end > 0; end--) {
+		const T* _val = _str->_val;
+		for (uint32_t end = _str->_length; end > 0; end--) {
 			if (strchr(_Str::ws, _val[end - 1]) == nullptr) {
-				if (end == _length) {
+				if (end == _str->_length) {
 					return ArrayString(*this);
 				} else {
 					return substring(0, end);
@@ -545,12 +558,14 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::substr(uint32_t start, uint32_t length) const {
-		return ArrayString(WeakArrayBuffer(_str->_val, _str->_length).copy(start, start + length));
+		return ArrayString(WeakArrayBuffer<T, A>(
+			_str->_val, _str->_length).copy(start, start + length));
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::substring(uint32_t start, uint32_t end) const {
-		return ArrayString(WeakArrayBuffer(_str->_val, _str->_length).copy(start, end));
+		return ArrayString(WeakArrayBuffer<T, A>(
+			_str->_val, _str->_length).copy(start, end));
 	}
 
 	// --------------------------------------------------------------------------------
@@ -559,7 +574,7 @@ namespace ftr {
 	ArrayString<T, A>&  ArrayString<T, A>::upper_case() {
 		_str->detach(this);
 		T* s = _str->_val;
-		for (uint32_t i = 0; i < _length; i++, s++) {
+		for (uint32_t i = 0; i < _str->_length; i++, s++) {
 			*s = ::toupper(*s);
 		}
 		return *this;
@@ -569,7 +584,7 @@ namespace ftr {
 	ArrayString<T, A>&  ArrayString<T, A>::lower_case() {
 		_str->detach(this);
 		T* s = _str->_val;
-		for (uint32_t i = 0; i < _length; i++, s++) {
+		for (uint32_t i = 0; i < _str->_length; i++, s++) {
 			*s = ::tolower(*s);
 		}
 		return *this;
@@ -597,17 +612,12 @@ namespace ftr {
 		return _Str::last_index_of(_str->_val, _str->_length, s._str->_val, s._str->_length, start, sizeof(T));
 	}
 
-	template <typename T, typename A>
-	int ArrayString<T, A>::last_index_of(const ArrayString& s) const {
-		return _Str::last_index_of(_str->_val, _str->_length, s._str->_val, s._str->_length, _str->_length, sizeof(T));
-	}
-
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::replace(const ArrayString& s, const ArrayString& rep) const {
 		uint32_t len, capacity;
-		T* val = _str::replace(
+		T* val = _Str::replace(
 			_str->_val, _str->_length, s._str->_val, s._str->_length, 
 			rep._str->_val, rep._str->_length, sizeof(T), &len, &capacity, false
 		);
@@ -617,7 +627,7 @@ namespace ftr {
 	template <typename T, typename A>
 	ArrayString<T, A> ArrayString<T, A>::replace_all(const ArrayString& s, const ArrayString& rep) const {
 		uint32_t len, capacity;
-		T* val = _str::replace(_str->_val, _str->_length, s._str->_val, s._str->_length,
+		T* val = _Str::replace(_str->_val, _str->_length, s._str->_val, s._str->_length,
 			rep._str->_val, rep._str->_length, sizeof(T), &len, &capacity, true
 		);
 		return ArrayString(new LongStr(len, capacity, val));
@@ -646,21 +656,21 @@ namespace ftr {
 	template<typename T2>
 	T2 ArrayString<T, A>::to_number() const {
 		T2 o;
-		_Str::to_number(str_c(), &o, _length);
+		_Str::to_number(str_c(), &o, _str->_length);
 		return o;
 	}
 
 	template<typename T, typename A>
 	template<typename T2>
 	bool ArrayString<T, A>::to_number(T2* o) const {
-		return _Str::to_number(str_c(), o, _length);
+		return _Str::to_number(str_c(), o, _str->_length);
 	}
 
 }
 
 namespace std {
 	template<typename T, typename A>
-	struct hash<ftr::ArrayString<T, M, A>> {
+	struct hash<ftr::ArrayString<T, A>> {
 		size_t operator()(const ftr::ArrayString<T, A>& val) const {
 			return val.hash_code();
 		}
