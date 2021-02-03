@@ -42,7 +42,7 @@
 #define FX_CHECK(cond, ...) if(!(cond)) throw ftr::Error(__VA_ARGS__)
 
 #define FX_IGNORE_ERR(block) try block catch (ftr::Error& err) {    \
-	FX_DEBUG("%s,%s", "The exception is ignored", err.message().val());     \
+	FX_DEBUG("%s,%s", "The exception is ignored", err.message().str_c());     \
 }((void)0)
 
 namespace ftr {

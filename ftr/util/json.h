@@ -220,6 +220,7 @@ namespace ftr {
 			* @return {JSON}
 			*/
 			static JSON parse(cString& json_str) throw(Error);
+			static JSON parse(cBuffer& json_str) throw(Error);
 			
 			/**
 			* 把Json对像转换为字符串

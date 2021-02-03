@@ -36,19 +36,8 @@
 
 namespace ftr {
 
-	#ifndef FX_MIN_CAPACITY
-	# define FX_MIN_CAPACITY (8)
-	#endif
-
-	struct AllocatorDefault {
-		static void* alloc(uint32_t size);
-		static void  free(void* ptr);
-		static void* realloc(void* ptr, uint32_t size, uint32_t* out_size, int size_of);
-	};
-
-	template<typename T = char, typename A = AllocatorDefault> class ArrayBuffer;
-	template<typename T = char, typename A = AllocatorDefault> class WeakArrayBuffer;
-	template<typename T = char, typename A = AllocatorDefault> class ArrayString;
+	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer;
+	template<typename T = char, typename A = MemoryAllocator> class WeakArrayBuffer;
 
 	typedef       ArrayBuffer<char>     Buffer;
 	typedef       WeakArrayBuffer<char> WeakBuffer;
@@ -95,7 +84,7 @@ namespace ftr {
 			/**
 			 * @func is_weak() is weak array buffer object
 			 */
-			inline bool is_weak() const { return _capacity >= 0; }
+			inline bool is_weak() const { return _capacity < 0; }
 
 			inline uint32_t length() const { return _length; }
 			inline int32_t  capacity() const { return _capacity; }
@@ -163,6 +152,11 @@ namespace ftr {
 			ArrayString<T, A> collapse_string();
 
 			/**
+			 * @func join() to string
+			 */
+			String join(cString& sp);
+
+			/**
 			* @func clear() clear data
 			*/
 			void clear();
@@ -207,10 +201,10 @@ namespace ftr {
 			WeakArrayBuffer(const T* data, uint32_t length)
 				: ArrayBuffer<T, A>(length, -1, const_cast<T*>(data)) {}
 			WeakArrayBuffer(const WeakArrayBuffer& arr)
-				: ArrayBuffer<T, A>(arr._length, -1, const_cast<T*>(arr._val)) {}
+				: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
 			template<class A2>
 			WeakArrayBuffer(const ArrayBuffer<T, A2>& arr)
-				: ArrayBuffer<T, A>(arr._length, -1, const_cast<T*>(arr._val)) {}
+				: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
 
 			WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
 				this->_length = arr._length;
@@ -452,7 +446,7 @@ namespace ftr {
 	template<typename T, typename A>
 	void ArrayBuffer<T, A>::realloc_(uint32_t capacity) {
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
-		_val = (T*)A::realloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
+		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
 	#define FX_DEF_ARRAY_SPECIAL(T, A) \
@@ -466,7 +460,7 @@ namespace ftr {
 		template<> ArrayBuffer<T, A>     ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const \
 
 	#define FX_DEF_ARRAY_SPECIAL_ALL(T) \
-		FX_DEF_ARRAY_SPECIAL(T, AllocatorDefault)
+//		FX_DEF_ARRAY_SPECIAL(T, MemoryAllocator)
 
 	FX_DEF_ARRAY_SPECIAL_ALL(char);
 	FX_DEF_ARRAY_SPECIAL_ALL(unsigned char);

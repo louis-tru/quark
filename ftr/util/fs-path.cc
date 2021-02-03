@@ -185,9 +185,9 @@ namespace ftr {
 		if (rev.size()) {
 			// reverse
 			for (int i = rev.size() - 1; i > 0; i--) {
-				s.push(rev[i]).push('/');
+				s.append(rev[i]).append('/');
 			}
-			s.push(rev[0]);
+			s.append(rev[0]);
 		}
 		return s;
 	}
@@ -205,40 +205,40 @@ namespace ftr {
 			if (s[0] == '/') { // absolute path
 				// add windows drive letter
 				// file:///c:/
-				prefix = cwd().substr(0, 11).copy();
+				prefix = cwd().substr(0, 11);
 			}
 			else if ( s.length() > 7 && is_local_zip(s) ) {
 				
 				if (Chars.index_of(s[7]) != -1 && s[8] == ':') { // zip:///c:
 					if (s.length() < 10) {
-						return s.substr(0, 9).copy().push('/');
+						return s.substr(0, 9).append('/');
 					} else if (s[9] == '/') { // zip:///c:/
 						prefix = s.substr(0, 10);
-						s = s.substr(10).copy();
+						s = s.substr(10);
 					} else { // invalid windows path
 						prefix = "zip:///"; // unix path ?
-						s = s.substr(7).copy();
+						s = s.substr(7);
 					}
 				} else {
 					prefix = "zip:///"; // unix path ?
-					s = s.substr(7).copy();
+					s = s.substr(7);
 				}
 				
 			} else if ( s.length() >= 8 && is_local_file( s ) ) { // file:///
 				
 				if (Chars.index_of(s[8]) != -1 && s[9] == ':') { // file:///c:
 					if (s.length() < 11) {
-						return s.substr(0, 10).copy().push('/');
+						return s.substr(0, 10).append('/');
 					} else if (s[10] == '/') { // file:///c:/
-						prefix = s.substr(0, 11).copy();
-						s = s.substr(11).copy();
+						prefix = s.substr(0, 11);
+						s = s.substr(11);
 					} else { // invalid windows path
 						prefix = "file:///"; // unix path ?
-						s = s.substr(8).copy();
+						s = s.substr(8);
 					}
 				} else {
 					prefix = "file:///"; // unix path ?
-					s = s.substr(8).copy();
+					s = s.substr(8);
 				}
 			} else { // Relative path
 				if (s.length() >= 2 &&
@@ -246,7 +246,7 @@ namespace ftr {
 						(s.length() < 3 || s[2] == '/')
 						) { // Windows absolute path
 					prefix = String("file:///").push(*s, 2).push('/');
-					s = s.substr(2).copy();
+					s = s.substr(2);
 				}
 				else {
 					// file:///c:/
@@ -261,19 +261,19 @@ namespace ftr {
 			} else {
 				if ( s.length() > 7 && is_local_zip(s) ) {
 					prefix = "zip:///";
-					s = s.substr(7).copy();
+					s = s.substr(7);
 				}
 				else if (s.length() >= 8 && is_local_file( s ) ) {
-					s = s.substr(8).copy();
+					s = s.substr(8);
 				} else { // Relative path
-					s = cwd().substr(8).copy().push('/').push(s);
+					s = cwd().substr(8).append('/').append(s);
 				}
 			}
 		#endif
 		
 		s = inl_format_part_path(s);
 		
-		return prefix.push( s );
+		return prefix.append( s );
 	}
 
 	String Path::format(cChar* path, ...) {
@@ -304,7 +304,7 @@ namespace ftr {
 	}
 
 	cChar* Path::fallback_c(cString& path) {
-		return fallback(path).val();
+		return fallback(path).str_c();
 	}
 
 }

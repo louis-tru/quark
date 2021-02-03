@@ -53,7 +53,8 @@ namespace ftr {
 	 */
 
 	static Buffer _compress(cChar* data, uint32_t len, int level) {
-		Buffer rev, tmp(16384); // 16k
+		Buffer rev;
+		auto tmp = Buffer::from(16384); // 16k
 		z_stream strm;
 		strm.zalloc = Z_NULL;
 		strm.zfree = Z_NULL;
@@ -79,7 +80,8 @@ namespace ftr {
 	}
 
 	static Buffer _uncompress(cChar* data, uint32_t len) {
-		Buffer rev, tmp(16384); // 16k
+		Buffer rev;
+		auto tmp = Buffer::from(16384); // 16k
 		z_stream strm;
 		strm.zalloc = Z_NULL;
 		strm.zfree = Z_NULL;
@@ -136,7 +138,7 @@ namespace ftr {
 		ASSERT(!_gzfp);
 		if (_gzfp) // 已经打开了
 			return 0;
-		_gzfp = gzopen(Path::fallback(_path).val(), inl__file_flag_str(flag));
+		_gzfp = gzopen(Path::fallback_c(_path), inl__file_flag_str(flag));
 		if (_gzfp) {
 			return 0;
 		}
@@ -180,10 +182,10 @@ namespace ftr {
 			}
 			if ( _unzp ) {
 				int code;
-				if ( _passwd.is_null() ) {
+				if ( _passwd.is_empty() ) {
 					code = unzOpenCurrentFile((unzFile)_unzp);
 				} else {
-					code = unzOpenCurrentFilePassword((unzFile)_unzp, _passwd.val());
+					code = unzOpenCurrentFilePassword((unzFile)_unzp, _passwd.str_c());
 				}
 				if ( code == UNZ_OK ) {
 					_is_open = true;
@@ -218,7 +220,7 @@ namespace ftr {
 			String dirname = Path::dirname(pathname);
 			String compatible_path = _compatible_path + "/" + pathname;
 			
-			if ( dirname.is_null() ) {
+			if ( dirname.is_empty() ) {
 				Dirent dir(pathname, compatible_path, type);
 				auto l = _dir_info[std::move(dirname)];
 				l.push_back(dir);
@@ -245,7 +247,7 @@ namespace ftr {
 		if ( Path::is_local_zip(_path) ) { // zip:///
 			_compatible_path = _path + "?";
 		} else if ( Path::is_local_file(_path) ) { // file:///
-			_compatible_path = String::format("zip:///%s?", _path.substr(8).val());
+			_compatible_path = String::format("zip:///%s?", _path.substr(8).str_c());
 		}
 	}
 
@@ -263,15 +265,15 @@ namespace ftr {
 			return false;
 		}
 		
-		unzFile unzp = unzOpen(Path::fallback(_path).val());
+		unzFile unzp = unzOpen(Path::fallback_c(_path));
 		if ( !unzp ) {
-			FX_ERR("Cannot open file ZipReader, %s", _path.val());
+			FX_ERR("Cannot open file ZipReader, %s", _path.str_c());
 			return false;
 		}
 		
 		ScopeClear clear([&]() {
 			if ( unzClose((unzFile) unzp) != UNZ_OK ) {
-				FX_ERR("Cannot close file ZipReader, %s", _path.val());
+				FX_ERR("Cannot close file ZipReader, %s", _path.str_c());
 			}
 		});
 		
@@ -314,12 +316,12 @@ namespace ftr {
 		if ( _unzp ) {
 			if ( !_inl_reader(this)->_close_current_file() ) {
 				FX_ERR("Cannot close file reader internal documents, %s, %s",
-							 _path.val(), _cur_it->second.pathname.val());
+							 _path.str_c(), _cur_it->second.pathname.str_c());
 			}
 			if ( unzClose((unzFile)_unzp) == UNZ_OK ) {
 				_unzp = nullptr;
 			} else {
-				FX_ERR("Cannot close file ZipReader, %s", _path.val());
+				FX_ERR("Cannot close file ZipReader, %s", _path.str_c());
 			}
 			_file_info.clear();
 			_dir_info.clear();
@@ -437,10 +439,10 @@ namespace ftr {
 		}
 		
 		_open_mode = mode;
-		_zipp = zipOpen(Path::fallback(_path).val(), _open_mode);
+		_zipp = zipOpen(Path::fallback(_path).str_c(), _open_mode);
 		
 		if ( !_zipp ) {
-			FX_ERR("Cannot open file ZipWriter, %s", *_path);
+			FX_ERR("Cannot open file ZipWriter, %s", _path.str_c());
 			return false;
 		}
 		return true;
@@ -455,7 +457,7 @@ namespace ftr {
 			if ( zipClose((zipFile*)_zipp, NULL) == ZIP_OK ) {
 				_zipp = nullptr;
 			} else {
-				FX_ERR("Cannot close zip ZipWriter, %s", *_path);
+				FX_ERR("Cannot close zip ZipWriter, %s", _path.str_c());
 			}
 		}
 		return !_zipp;
@@ -466,7 +468,7 @@ namespace ftr {
 			zip_fileinfo zipfi;
 			
 			int i = zipOpenNewFileInZip3((zipFile*)_zipp,
-																	 *path,
+																	 path.str_c(),
 																	 &zipfi,
 																	 NULL,
 																	 0,
@@ -479,12 +481,12 @@ namespace ftr {
 																	 -MAX_WBITS,
 																	 DEF_MEM_LEVEL,
 																	 Z_DEFAULT_STRATEGY,
-																	 _passwd == "" ? NULL: *_passwd,
+																	 _passwd == "" ? NULL: _passwd.str_c(),
 																	 0);
 			if ( i == ZIP_OK ) {
 				return true;
 			} else {
-				FX_ERR("add zip file error, `%s, %s`", *_path, *path);
+				FX_ERR("add zip file error, `%s, %s`", _path.str_c(), path.str_c());
 			}
 		}
 		return false;
@@ -495,10 +497,10 @@ namespace ftr {
 	}
 
 	bool ZipWriter::close_current_file() {
-		if ( ! _new_name.is_null() ) { // 当前有打开的新文件
+		if ( ! _new_name.is_empty() ) { // 当前有打开的新文件
 			int code = zipCloseFileInZip((zipFile*)_zipp);
 			if ( code != ZIP_OK ) {
-				FX_ERR("Cannot close file writer internal documents, %s, %s", *_path, *_new_name);
+				FX_ERR("Cannot close file writer internal documents, %s, %s", _path.str_c(), _new_name.str_c());
 				return false;
 			}
 			_new_name = String();

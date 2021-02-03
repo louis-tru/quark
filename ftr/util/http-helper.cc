@@ -36,6 +36,8 @@
 
 namespace ftr {
 
+	typedef std::unordered_map<String, String> Map;
+
 	static String http_cache_path = String();
 	static String http_user_agent = "Mozilla/5.0 ftr/util/" FTR_VERSION " (KHTML, like Gecko)";
 
@@ -49,15 +51,17 @@ namespace ftr {
 
 	typedef HttpHelper::RequestOptions RequestOptions;
 	typedef HttpHelper::ResponseData ResponseData;
+	typedef HttpHelper::Cb HCb;
+	typedef Callback<StreamResponse> SCb;
 
-	static uint32_t http_request(RequestOptions& options, Cb cb, bool stream) throw(HttpError) {
+	static uint32_t http_request(RequestOptions& options, HCb cb, SCb scb, bool stream) throw(HttpError) {
 		
-		class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public SimpleStream {
+		class Task: public AsyncIOTask, public HttpClientRequest::Delegate, public Stream {
 		public:
-			Callback<>    cb;
-			bool          stream;
-			bool          full_data;
-			std::vector<String> data;
+			HCb cb;
+			SCb scb;
+			bool stream, full_data;
+			ArrayBuffer<String> data;
 			HttpClientRequest* client;
 			
 			Task() {
@@ -73,27 +77,27 @@ namespace ftr {
 			virtual void trigger_http_error(HttpClientRequest* req, cError& error) {
 				HttpError e(error.code(),
 										error.message() + ", " + req->url(), req->status_code(), req->url());
-				sync_callback(cb, &e);
+				cb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_timeout(HttpClientRequest* req) {
 				HttpError e(ERR_HTTP_REQUEST_TIMEOUT,
 										String("http request timeout") + ", " + req->url(), 0, req->url());
-				sync_callback(cb, &e);
+				cb->reject(&e);
 				abort(); // abort and release
 			}
 
 			virtual void trigger_http_data(HttpClientRequest* req, Buffer buffer) {
 				if ( stream ) {
 					// TODO 现在还不支持暂停与恢复功能
-					IOStreamData data(buffer, 0, id(),
+					StreamResponse data(buffer, 0, id(),
 														client->download_size(),
 														client->download_total(), nullptr /*, this*/);
-					sync_callback(cb, nullptr, &data);
+					scb->resolve(&data);
 				} else {
 					if ( full_data ) {
-						data.push_back(buffer);
+						data.push(buffer);
 					}
 				}
 			}
@@ -109,25 +113,23 @@ namespace ftr {
 				if ( client->status_code() > 399 || client->status_code() < 100 ) {
 					HttpError e(ERR_HTTP_STATUS_ERROR,
 											String::format("Http status error, status code:%d, %s",
-																		req->status_code(), req->url().val()),
+																		req->status_code(), req->url().str_c()),
 											req->status_code(), req->url());
-					sync_callback(cb, &e);
+					cb->reject(&e);
 				} else {
 					if ( stream ) {
 						// TODO 现在还不支持暂停与恢复功能
-						IOStreamData data(Buffer(), 1, id(),
+						StreamResponse data(Buffer(), 1, id(),
 															client->download_size(),
 															client->download_total(), nullptr /*, this*/);
-						sync_callback(cb, nullptr, &data);
+						scb->resolve(&data);
 					} else {
 						ResponseData rdata;
-						for (auto i: data) {
-							rdata.data.write(i);
-						}
+						rdata.data = data.join("").collapse();
 						rdata.http_version = client->http_response_version();
 						rdata.status_code = client->status_code();
 						rdata.response_headers = std::move( client->get_all_response_headers() );
-						sync_callback(cb, nullptr, &rdata);
+						cb->resolve(&rdata);
 					}
 				}
 				abort(); // abort and release
@@ -167,7 +169,9 @@ namespace ftr {
 			req->disable_cache(options.disable_cache);
 			req->disable_ssl_verify(options.disable_ssl_verify);
 			req->disable_cookie(options.disable_cookie);
+			
 			task->cb = cb;
+			task->scb = scb;
 			task->stream = stream;
 			
 			if ( !options.upload.is_empty() ) { // 需要上传文件
@@ -180,7 +184,7 @@ namespace ftr {
 			}
 			
 			for ( auto& i : options.headers ) {
-				req->set_request_header(i.key(), i.value());
+				req->set_request_header(i.first, i.second);
 			}
 			
 			req->send(options.post_data);
@@ -195,11 +199,11 @@ namespace ftr {
 	* @func request
 	*/
 	uint32_t HttpHelper::request(RequestOptions& options, Cb cb) throw(HttpError) {
-		return http_request(options, cb, false);
+		return http_request(options, cb, 0, false);
 	}
 
 	uint32_t HttpHelper::request_stream(RequestOptions& options, Callback<StreamResponse> cb) throw(HttpError) {
-		return http_request(options, cb, true);
+		return http_request(options, 0, cb, true);
 	}
 
 	extern RunLoop* get_private_loop();
@@ -212,9 +216,9 @@ namespace ftr {
 		if (has_private_loop_thread()) {
 			throw HttpError(ERR_CANNOT_RUN_SYNC_IO,
 											String::format("cannot send sync http request, %s"
-																		, options.url.c()), 0, options.url);
+																		, options.url.str_c()), 0, options.url);
 		}
-		FX_DEBUG("request_sync %s", options.url.c());
+		FX_DEBUG("request_sync %s", options.url.str_c());
 		typedef Callback<RunLoop::PostSyncData> Cb_;
 		bool ok = false;
 		HttpError err = Error();
@@ -223,11 +227,11 @@ namespace ftr {
 		get_private_loop()->post_sync(Cb_([&](Cb_::Data& d) {
 			auto dd = d.data;
 			try {
-				request(options, Cb([&,dd](Cbd& ev) {
+				request(options, HCb([&,dd](HCb::Data& ev) {
 					if (ev.error) {
 						*const_cast<HttpError*>(&err) = std::move(*static_cast<const HttpError*>(ev.error));
 					} else {
-						*const_cast<ResponseData*>(&data) = std::move(*static_cast<ResponseData*>(ev.data));
+						*const_cast<ResponseData*>(&data) = std::move(*ev.data);
 						*const_cast<bool*>(&ok) = true;
 					}
 					dd->complete();
@@ -249,7 +253,7 @@ namespace ftr {
 		return {
 			url,
 			HTTP_METHOD_GET,
-			Map<String, String>(),
+			Map(),
 			Buffer(),
 			String(),
 			String(),
@@ -266,7 +270,7 @@ namespace ftr {
 	uint32_t HttpHelper::download(cString& url, cString& save, Cb cb) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.save = save;
-		return http_request(options, cb, false);
+		return http_request(options, cb, 0, false);
 	}
 
 	/**
@@ -286,7 +290,7 @@ namespace ftr {
 		options.upload = file;
 		options.method = HTTP_METHOD_POST;
 		options.disable_cache = true;
-		return http_request(options, cb, false);
+		return http_request(options, cb, 0, false);
 	}
 
 	/**
@@ -306,16 +310,16 @@ namespace ftr {
 	uint32_t HttpHelper::get(cString& url, Cb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return http_request(options, cb, false);
+		return http_request(options, cb, 0, false);
 	}
 
 	/**
 	* @func get_stream
 	*/
-	uint32_t HttpHelper::get_stream(cString& url, Cb cb, bool no_cache) throw(HttpError) {
+	uint32_t HttpHelper::get_stream(cString& url, SCb cb, bool no_cache) throw(HttpError) {
 		RequestOptions options = default_request_options(url);
 		options.disable_cache = no_cache;
-		return http_request(options, cb, true);
+		return http_request(options, 0, cb, true);
 	}
 
 	/**
@@ -325,7 +329,7 @@ namespace ftr {
 		RequestOptions options = default_request_options(url);
 		options.method = HTTP_METHOD_POST;
 		options.post_data = data;
-		return http_request(options, cb, false);
+		return http_request(options, cb, 0, false);
 	}
 
 	/**
@@ -361,7 +365,7 @@ namespace ftr {
 		static int http_initialized = 0;
 		if ( ! http_initialized++ ) {
 			http_user_agent = String::format("Mozilla/5.0 (%s/%s) ftr/util/"
-																			FTR_VERSION " (KHTML, like Gecko)", *sys::name(), *sys::version());
+													FTR_VERSION " (KHTML, like Gecko)", *os::name(), *sys::version());
 			set_cache_path(Path::temp("http_cache"));
 		}
 	}

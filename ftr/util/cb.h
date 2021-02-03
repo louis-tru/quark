@@ -157,12 +157,12 @@ namespace ftr {
 
 	template<class D, class E>
 	FX_EXPORT void async_resolve(Callback<D, E> cb, D&& data, PostMessage* loop = nullptr) {
-		async_callback(cb, nullptr, &data, loop);
+		async_callback(cb, (E*)nullptr, &data, loop);
 	}
 
 	template<class D, class E>
 	FX_EXPORT void async_reject(Callback<D, E> cb, E&& err, PostMessage* loop = nullptr) {
-		async_callback(cb, &err, nullptr, loop);
+		async_callback(cb, &err, (D*)nullptr, loop);
 	}
 
 	FX_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);

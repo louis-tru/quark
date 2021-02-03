@@ -49,11 +49,28 @@ namespace ftr {
 		static void  operator delete(void* p) { ::operator delete(p); } \
 		virtual void release() { static_assert(!Traits::is_reference, ""); ::delete this; }
 
+	#ifndef FX_MIN_CAPACITY
+	# define FX_MIN_CAPACITY (8)
+	#endif
+
 	// -------------------------------------------------------
 
 	class ObjectTraits;
 	class ReferenceTraits;
 	class ProtocolTraits;
+	
+	struct MemoryAllocator {
+		static void* alloc(uint32_t size);
+		static void  free(void* ptr);
+		static void* realloc(void* ptr, uint32_t size);
+		// auto alloc Memory
+		static void* aalloc(void* ptr, uint32_t size, uint32_t* size_out, uint32_t size_of);
+	};
+	
+	template<typename T = char, typename A = MemoryAllocator> class ArrayString;
+	
+	typedef       ArrayString<char, MemoryAllocator> String;
+	typedef const ArrayString<char, MemoryAllocator> cString;
 
 	/**
 	* @class Object
@@ -63,12 +80,12 @@ namespace ftr {
 			typedef ObjectTraits Traits;
 			virtual bool is_reference() const;
 			virtual bool retain();
-			// "new" method alloc can call，Otherwise, fatal exception will be caused
-			virtual void release();
+			virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
+			virtual ArrayString<char, MemoryAllocator> to_string() const;
 			static void* operator new(std::size_t size);
 			static void* operator new(std::size_t size, void* p);
 			static void  operator delete(void* p);
-			static void set_allocator(
+			static void set_object_allocator(
 				void* (*alloc)(size_t size) = nullptr,
 				void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
 			);

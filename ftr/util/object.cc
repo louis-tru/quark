@@ -33,6 +33,35 @@
 
 namespace ftr {
 
+	void* MemoryAllocator::alloc(uint32_t size) {
+		return ::malloc(size);
+	}
+	
+	void MemoryAllocator::free(void* ptr) {
+		::free(ptr);
+	}
+	
+	void* MemoryAllocator::realloc(void* ptr, uint32_t size) {
+		return ::realloc(ptr, size);
+	}
+
+	void* MemoryAllocator::aalloc(void* val, uint32_t size, uint32_t* size_out, uint32_t size_of) {
+		if ( size ) {
+			size = FX_MAX(FX_MIN_CAPACITY, size);
+			if ( size > *size_out || size < *size_out / 4.0 ) {
+				size = powf(2, ceil(log2(size)));
+				*size_out = size;
+				val = val ? ::realloc(val, size_of * size) : ::malloc(size_of * size);
+				FX_ASSERT(val);
+			}
+		} else {
+			*size_out = 0;
+			::free(val);
+			val = nullptr;
+		}
+		return val;
+	}
+
 	static void* default_object_alloc(size_t size) {
 		return ::malloc(size);
 	}
@@ -138,7 +167,7 @@ namespace ftr {
 		FX_UNREACHABLE();
 	}
 
-	void Object::set_allocator(
+	void Object::set_object_allocator(
 		void* (*alloc)(size_t size),
 		void (*release)(Object* obj), void (*retain)(Object* obj)
 	) {

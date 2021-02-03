@@ -606,10 +606,10 @@ struct RunLoop::Work {
 void RunLoop::Inl::stop_after_print_message() {
 	ScopeLock lock(_mutex);
 	for (auto& i: _keeps) {
-		DLOG("Print: RunLoop keep not release \"%s\"", i->_name.val());
+		DLOG("Print: RunLoop keep not release \"%s\"", i->_name.str_c());
 	}
 	for (auto& i: _works) {
-		DLOG("Print: RunLoop work not complete: \"%s\"", i->name.val());
+		DLOG("Print: RunLoop work not complete: \"%s\"", i->name.str_c());
 	}
 }
 
@@ -640,11 +640,11 @@ RunLoop::~RunLoop() {
 	{
 		ScopeLock lock(_mutex);
 		for (auto& i: _keeps) {
-			FX_WARN("RunLoop keep not release \"%s\"", i->_name.val());
+			FX_WARN("RunLoop keep not release \"%s\"", i->_name.str_c());
 			i->_loop = nullptr;
 		}
 		for (auto& i: _works) {
-			FX_WARN("RunLoop work not complete: \"%s\"", i->name.val());
+			FX_WARN("RunLoop work not complete: \"%s\"", i->name.str_c());
 			delete i;
 		}
 	}

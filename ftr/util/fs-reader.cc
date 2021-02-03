@@ -57,8 +57,8 @@ namespace ftr {
 
 		~Core() {
 			ScopeLock lock(zip_mutex_);
-			for (auto i = zips_.begin(), e = zips_.end(); i != e; i++) {
-				Release(i.value());
+			for (auto i: zips_ ) {
+				Release(i.second);
 			}
 		}
 

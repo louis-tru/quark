@@ -246,7 +246,7 @@ namespace ftr {
 			virtual ~EventNoticer() {
 				if (_listener) {
 					off();
-					Release(_listener);
+					delete _listener;
 				}
 			}
 			
@@ -414,11 +414,11 @@ namespace ftr {
 			
 			void off(EventNoticer* shell) {
 				if (_listener) {
-					for ( auto& i : *_listener ) {
-						if ( i.value().value() && i.value()->is_on_shell_listener() &&
-								static_cast<OnShellListener*>(i.value())->equals( shell ) )
+					for ( auto i : *_listener ) {
+						if ( i.value().value() && i->is_on_shell_listener() &&
+								static_cast<OnShellListener*>(i)->equals( shell ) )
 						{ //
-							i.value().del();
+							i.del();
 							break;
 						}
 					}
@@ -427,8 +427,8 @@ namespace ftr {
 
 			void off() {
 				if (_listener) {
-					for ( auto& i : *_listener ) {
-						i.value().del();
+					for ( auto i : *_listener ) {
+						i.del();
 					}
 				}
 			}

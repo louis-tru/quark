@@ -153,20 +153,20 @@ static void stat_cb(uv_fs_t* req) {
 static void exists2(cString& path, Cb cb, RunLoop* loop) {
 	uv_fs_access(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
-							 Path::fallback(path).val(), F_OK, &uv_fs_access_cb);
+							 Path::fallback_c(path), F_OK, &uv_fs_access_cb);
 }
 
 static void ls2(cString& path, Callback<std::vector<Dirent>> cb, RunLoop* loop) {
 	uv_fs_scandir(loop->uv_loop(),
-								New<FileLsReq>(cb, loop, path)->req(), Path::fallback(path).val(), 1, &ls_cb);
+								New<FileLsReq>(cb, loop, path)->req(), Path::fallback_c(path), 1, &ls_cb);
 }
 
 void file_helper_stat2(cString& path, Cb cb, RunLoop* loop) {
-	uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), Path::fallback(path).val(), &stat_cb);
+	uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), Path::fallback_c(path), &stat_cb);
 }
 
 static void is_dir2(cString& path, Cb cb, RunLoop* loop) {
-	uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), Path::fallback(path).val(), &is_dir_cb);
+	uv_fs_stat(loop->uv_loop(), New<FileReq>(cb, loop)->req(), Path::fallback_c(path), &is_dir_cb);
 }
 
 static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) {
@@ -181,8 +181,8 @@ static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) 
 		, _end(cb)
 		, _reading_count(0), _writeing_count(0), _read_end(false)
 		{//
-			_buffer[0] = Buffer(BUFFER_SIZE);
-			_buffer[1] = Buffer(BUFFER_SIZE);
+			_buffer[0] = Buffer::from(BUFFER_SIZE);
+			_buffer[1] = Buffer::from(BUFFER_SIZE);
 			_source_file->set_delegate(this);
 			_target_file->set_delegate(this);
 			_source_file->open(FOPEN_R);
@@ -307,37 +307,37 @@ static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) 
 static void mkdir2(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
 	uv_fs_mkdir(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
-							Path::fallback(path).val(), mode, &uv_fs_async_cb);
+							Path::fallback_c(path), mode, &uv_fs_async_cb);
 }
 
 static void chmod2(cString& path, uint32_t mode, Cb cb, RunLoop* loop) {
 	uv_fs_chmod(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
-							Path::fallback(path).val(), mode, &uv_fs_async_cb);
+							Path::fallback_c(path), mode, &uv_fs_async_cb);
 }
 
 static void chown2(cString& path, uint32_t owner, uint32_t group, Cb cb, RunLoop* loop) {
 	uv_fs_chown(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
-							Path::fallback(path).val(), owner, group, &uv_fs_async_cb);
+							Path::fallback_c(path), owner, group, &uv_fs_async_cb);
 }
 
 static void link2(cString& path, cString& newPath, Cb cb, RunLoop* loop) {
 	uv_fs_link(loop->uv_loop(),
 						 New<FileReq>(cb, loop)->req(),
-						 Path::fallback(path).val(), Path::fallback(newPath).val(), &uv_fs_async_cb);
+						 Path::fallback_c(path), Path::fallback_c(newPath), &uv_fs_async_cb);
 }
 
 static void unlink2(cString& path, Cb cb, RunLoop* loop) {
 	uv_fs_unlink(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
-							 Path::fallback(path).val(), &uv_fs_async_cb);
+							 Path::fallback_c(path), &uv_fs_async_cb);
 }
 
 static void rmdir2(cString& path, Cb cb, RunLoop* loop) {
 	uv_fs_rmdir(loop->uv_loop(),
 							New<FileReq>(cb, loop)->req(),
-							Path::fallback(path).val(), &uv_fs_async_cb);
+							Path::fallback_c(path), &uv_fs_async_cb);
 }
 
 /**
@@ -542,8 +542,8 @@ void FileHelper::rename(cString& name, cString& new_name, Cb cb) {
 	LOOP2;
 	uv_fs_rename(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
-							 Path::fallback(name).val(),
-							 Path::fallback(new_name).val(), &uv_fs_async_cb);
+							 Path::fallback_c(name),
+							 Path::fallback_c(new_name), &uv_fs_async_cb);
 }
 
 void FileHelper::link(cString& path, cString& newPath, Cb cb) {
@@ -700,7 +700,7 @@ void FileHelper::is_file(cString& path, Cb cb) {
 	LOOP2;
 	uv_fs_stat(loop->uv_loop(),
 						 New<FileReq>(cb, loop)->req(),
-						 Path::fallback(path).val(),
+						 Path::fallback_c(path),
 						 &is_file_cb);
 }
 
@@ -712,7 +712,7 @@ void FileHelper::readable(cString& path, Cb cb) {
 	LOOP2;
 	uv_fs_access(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
-							 Path::fallback(path).val(),
+							 Path::fallback_c(path),
 							 R_OK, &uv_fs_access_cb);
 }
 
@@ -720,7 +720,7 @@ void FileHelper::writable(cString& path, Cb cb) {
 	LOOP2;
 	uv_fs_access(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
-							 Path::fallback(path).val(),
+							 Path::fallback_c(path),
 							 W_OK, &uv_fs_access_cb);
 }
 
@@ -728,7 +728,7 @@ void FileHelper::executable(cString& path, Cb cb) {
 	LOOP2;
 	uv_fs_access(loop->uv_loop(),
 							 New<FileReq>(cb, loop)->req(),
-							 Path::fallback(path).val(),
+							 Path::fallback_c(path),
 							 X_OK, &uv_fs_access_cb);
 }
 
@@ -826,7 +826,7 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 					_read_count++;
 					
 					if ( !_buffer.length() ) {
-						_buffer = Buffer(BUFFER_SIZE);
+						_buffer = Buffer::from(BUFFER_SIZE);
 					}
 					uv_buf_t buf;
 					buf.base = *_buffer;
@@ -868,7 +868,7 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 		
 		static void start(FileReq* req) {
 			uv_fs_open(req->ctx()->uv_loop(), req->req(),
-								 Path::fallback(req->ctx()->_path).val(), O_RDONLY, 0, &fs_open_cb);
+								 Path::fallback_c(req->ctx()->_path), O_RDONLY, 0, &fs_open_cb);
 		}
 		
 	};
@@ -1151,9 +1151,10 @@ void FileHelper::write(int fd, Buffer buffer, int64_t offset, Cb cb) {
 			Handle<FileReq> handle(req);
 			Buffer& buff = req->data().buffer;
 			if ( uv_req->result < 0 ) {
-				async_callback(req->cb(), uv_error(uv_req), std::move(buff));
+				auto err = uv_error(uv_req);
+				cb->call(&err, &buff);
 			} else {
-				async_callback(req->cb(), std::move(buff));
+				async_resolve(req->cb(), std::move(buff));
 			}
 		}
 		

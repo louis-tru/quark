@@ -177,7 +177,7 @@ namespace ftr {
 		}
 		uv_fs_t req;
 		_fd = uv_fs_open(uv_default_loop(), &req,
-											Path::fallback(_path).val(),
+											Path::fallback_c(_path),
 											inl__file_flag_mask(flag), FileHelper::default_mode, nullptr);
 		if ( _fd > 0 ) {
 			return 0;
@@ -266,18 +266,18 @@ namespace ftr {
 		void open(int flag) {
 			if (_fd) {
 				Error e(ERR_FILE_ALREADY_OPEN, "File already open");
-				async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
+				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 				return;
 			}
 			if (_opening) {
 				Error e(ERR_FILE_OPENING, "File opening...");
-				async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
+				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 				return;
 			}
 			_opening = true;
 			auto req = new FileReq(this);
 			uv_fs_open(uv_loop(), req->req(),
-								 Path::fallback(_path).val(),
+								 Path::fallback_c(_path),
 								 inl__file_flag_mask(flag), FileHelper::default_mode, &Inl::fs_open_cb);
 		}
 		
@@ -290,7 +290,7 @@ namespace ftr {
 			}
 			else {
 				Error e(ERR_FILE_NOT_OPEN, "File not open");
-				async_err_callback(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
+				async_reject(Cb(&Inl::fs_error_cb, this), std::move(e), loop());
 			}
 		}
 
@@ -303,8 +303,8 @@ namespace ftr {
 		}
 
 		void write(Buffer& buffer, int64_t offset, int mark) {
-			_writeing.push(new FileStreamReq(this, 0, { buffer, offset, mark }));
-			if (_writeing.length() == 1) {
+			_writeing.push_back(new FileStreamReq(this, 0, { buffer, offset, mark }));
+			if (_writeing.size() == 1) {
 				continue_write();
 			}
 		}
@@ -317,16 +317,16 @@ namespace ftr {
 			
 		void clear_writeing() {
 			for(auto& i : _writeing) {
-				i.value()->release();
+				i->release();
 			}
 			_writeing.clear();
 		}
 
 		void continue_write() {
-			if (_writeing.length()) {
-				auto req = _writeing.first();
+			if (_writeing.size()) {
+				auto req = _writeing.front();
 				uv_buf_t buf;
-				buf.base = req->data().buffer.value();
+				buf.base = req->data().buffer.val();
 				buf.len = req->data().buffer.length();
 				// LOG("write_first-- %ld", req->data().offset);
 				uv_fs_write(uv_loop(), req->req(), _fd, &buf, 1, req->data().offset, &Inl::fs_write_cb);
@@ -403,9 +403,9 @@ namespace ftr {
 			Handle<FileStreamReq> handle(req);
 			auto self = req->ctx();
 			uv_fs_req_cleanup(uv_req);
-
-			ASSERT(self->_writeing.first() == req);
-			self->_writeing.shift();
+			
+			ASSERT(self->_writeing.front() == req);
+			self->_writeing.pop_front();
 			self->continue_write();
 
 			if ( uv_req->result < 0 ) {

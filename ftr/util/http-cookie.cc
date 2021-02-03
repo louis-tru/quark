@@ -90,7 +90,7 @@ namespace ftr {
 
 	static void http_cookie_open() {
 		if ( _db == nullptr ) {
-			int r = bp_open(&_db, Path::fallback(get_db_filename()).val());
+			int r = bp_open(&_db, Path::fallback_c(get_db_filename()));
 			if ( r == BP_OK ) {
 				bp_set_compare_cb(_db, bp__default_compare_cb, nullptr);
 				if (_has_initialize++ == 0) {
@@ -105,12 +105,12 @@ namespace ftr {
 
 	static String get_storage_key_prefix(bool secure, cString& domain) {
 		String r(secure ? '1': '0');
-		r.push('.');
+		r.append('.');
 		auto domains = domain.split('.');
 		for (int i = domains.size() - 1; i > -1; i--) {
-			if (!domains[i].is_null()) {
-				r.write(domains[i]);
-				r.push('.');
+			if (!domains[i].is_empty()) {
+				r.append(domains[i]);
+				r.append('.');
 			}
 		}
 		return  r;
@@ -119,19 +119,19 @@ namespace ftr {
 	static String get_storage_key(cString& domain, cString& name, cString& path, bool secure) {
 		String r = get_storage_key_prefix(secure, domain);
 
-		if (!path.is_null()) {
+		if (!path.is_empty()) {
 			if (path[0] != '/')
-				r.push('/');
-			r.write(path);
+				r.append('/');
+			r.append(path);
 			if (r[r.length() - 1] != '/')
-				r.push('/');
+				r.append('/');
 		}
 		else {
-			r.push('/');
+			r.append('/');
 		}
 
-		r.push('@');
-		r.write(name);
+		r.append('@');
+		r.append(name);
 		return r;
 	}
 
@@ -179,9 +179,9 @@ namespace ftr {
 
 			if (bp_get_reverse(_db, &key, &val) == BP_OK) {
 				try {
-					JSON json = JSON::parse(Buffer(val.value, val.length));
-					int64_t expires = json[0].to_int64_t();
-					int64_t date = json[1].to_int64_t();
+					JSON json = JSON::parse(Buffer::from(val.value, val.length));
+					int64_t expires = json[0].to_int64();
+					int64_t date = json[1].to_int64();
 
 					if ((expires == -1 && date == _http_cookie_date) || expires > os::time()) {
 						return json[2].to_string();
@@ -229,7 +229,7 @@ namespace ftr {
 			for ( auto& i : expression.split("; ") ) {
 				int j = i.index_of('=');
 				if ( j != -1 ) {
-					if ( name.is_null() ) {
+					if ( name.is_empty() ) {
 						name = i.substr(0, j);
 						value = i.substr(j + 1);
 					} else {
@@ -238,7 +238,7 @@ namespace ftr {
 				}
 			}
 			
-			if ( name.is_null() ) {
+			if ( name.is_empty() ) {
 				return;
 			}
 			
@@ -304,18 +304,13 @@ namespace ftr {
 	}
 
 	String HttpHelper::get_all_cookie_string(cString& domain, cString& path, bool secure) {
-		Map all = http_cookie_get_all(domain, path, secure);
-		// TODO ......
-
+		Map all = get_all_cookie(domain, path, secure);
 		if (all.size()) {
-			String result;
-//			std::vector<String> result;
+			ArrayBuffer<String> result;
 			for (auto& i : all) {
-				
-				// result.push_back(move(String(i.key()).push('=').push(i.value())));
-//				result += i->f
+				 result.push( std::move( String(i.second).append('=').append(i.second) ) );
 			}
-//			return result.join( "; " );
+			return result.join( "; " );
 		}
 		return String();
 	}
@@ -334,16 +329,16 @@ namespace ftr {
 				bp_key_t end = { buf[1].length(), *buf[1] };
 
 				struct tmp_data_t {
-					std::unordered_map<String, String> *result;
+					Map *result;
 					String path;
-				} _tmp = { &result, path.is_null() ? String('/'): path };
+				} _tmp = { &result, path.is_empty() ? String('/'): String(path) };
 
 				r = bp_get_filtered_range(_db, &start, &end, [](void* arg, const bp_key_t *key) {
 					auto path = &reinterpret_cast<tmp_data_t*>(arg)->path;
 					Char* s = strchr(key->value, '/');
 					if (s) {
 						int i = 0, t_len = path->length();
-						cChar* t = path->val();
+						auto t = path->str_c();
 
 						// LOG("bp_get_filtered_range, %s, %s", s, t);
 
@@ -361,8 +356,8 @@ namespace ftr {
 					auto m = reinterpret_cast<tmp_data_t*>(arg)->result;
 					try {
 						JSON json = JSON::parse(WeakBuffer(val->value, val->length));
-						int64_t expires = json[0].to_int64_t();
-						int64_t date = json[1].to_int64_t();
+						int64_t expires = json[0].to_int64();
+						int64_t date = json[1].to_int64();
 
 						if ((expires == -1 && date == _http_cookie_date) || expires > os::time()) {
 							Char* s = strchr(key->value, '@') + 1;
@@ -403,7 +398,7 @@ namespace ftr {
 
 				for (auto& i : rms) {
 					bp_key_t key = {
-						i.length(), *i,
+						i.length(), (char*)i.str_c(),
 					};
 					r = bp_remove(_db, &key); assert_r(r);
 					//LOG("http_cookie_delete_all 2, %s", key.value);

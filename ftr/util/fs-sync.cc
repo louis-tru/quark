@@ -107,7 +107,7 @@ bool FileHelper::each_sync(cString& path, Cb cb, bool internal) throw(Error) {
 
 void FileHelper::chmod_sync(cString& path, uint32_t mode) throw(Error) {
 	uv_fs_t req;
-	int r = uv_fs_chmod(uv_default_loop(), &req, Path::fallback(path).val(), mode, nullptr);
+	int r = uv_fs_chmod(uv_default_loop(), &req, Path::fallback_c(path), mode, nullptr);
 	if (r != 0) {
 		uv_error(r, *path);
 	}
@@ -115,7 +115,7 @@ void FileHelper::chmod_sync(cString& path, uint32_t mode) throw(Error) {
 
 void FileHelper::chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error) {
 	uv_fs_t req;
-	int r = uv_fs_chown(uv_default_loop(), &req, Path::fallback(path).val(), owner, group, nullptr);
+	int r = uv_fs_chown(uv_default_loop(), &req, Path::fallback_c(path), owner, group, nullptr);
 	if (r != 0) {
 		uv_error(r, *path);
 	}
@@ -168,15 +168,15 @@ void FileHelper::rmdir_sync(cString& path) throw(Error) {
 	}
 }
 
-Array<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
-	Array<Dirent> ls;
+std::vector<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
+	std::vector<Dirent> ls;
 	uv_fs_t req;
 	String p = Path::format("%s", *path) + '/';
 	int r = uv_fs_scandir(uv_default_loop(), &req, Path::fallback_c(path), 1, nullptr);
 	if ( r > 0 ) {
 		uv_dirent_t ent;
 		while ( uv_fs_scandir_next(&req, &ent) == 0 ) {
-			ls.push( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
+			ls.push_back( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
 		}
 	} else if ( r < 0) {
 		uv_error(r, *path);
@@ -310,7 +310,7 @@ bool FileHelper::chmod_r_sync(cString& path, uint32_t mode, bool* stop_signal) t
 	
 	return each_sync(path, Cb([&](Cbd& d) {
 		if ( *stop_signal ) { // 停止信号
-			d.return_value = false;
+			d.rc = false;
 		} else {
 			Dirent* dirent = static_cast<Dirent*>(d.data);
 			int r = uv_fs_chmod(uv_default_loop(), &req,
@@ -318,7 +318,7 @@ bool FileHelper::chmod_r_sync(cString& path, uint32_t mode, bool* stop_signal) t
 			if (r != 0) {
 				uv_error(r, *dirent->pathname);
 			}
-			d.return_value = 1;
+			d.rc = 1;
 		}
 	}));
 }
@@ -332,7 +332,7 @@ bool FileHelper::chown_r_sync(cString& path, uint32_t owner, uint32_t group, boo
 	
 	return each_sync(path, Cb([&](Cbd& d) {
 		if (*stop_signal) { // 停止信号
-			d.return_value = false;
+			d.rc = 0;
 		} else {
 			Dirent* dirent = static_cast<Dirent*>(d.data);
 			int r = uv_fs_chown(uv_default_loop(), &req,
@@ -340,7 +340,7 @@ bool FileHelper::chown_r_sync(cString& path, uint32_t owner, uint32_t group, boo
 			if (r != 0) {
 				uv_error(r, *dirent->pathname);
 			}
-			d.return_value = 1;
+			d.rc = 1;
 		}
 	}));
 }
@@ -354,7 +354,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 
 	return each_sync_1(path, Cb([&](Cbd& d) {
 		if ( *stop_signal ) { // 停止信号
-			d.return_value = 0;
+			d.rc = 0;
 		} else {
 			Dirent* dirent = static_cast<Dirent*>(d.data);
 			cChar* p = Path::fallback_c(dirent->pathname);
@@ -367,7 +367,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 			if (r != 0) {
 				uv_error(r, *dirent->pathname);
 			}
-			d.return_value = 1;
+			d.rc = 1;
 		}
 	}), true, true);
 }
@@ -387,7 +387,7 @@ static bool cp_sync2(cString& source, cString& target, bool* stop_signal) throw(
 	}
 		
 	int size = 1024 * 512; // 512 kb
-	Buffer data(size);
+	auto data = Buffer::from(size);
 
 	int64_t len = source_file.read(*data, size);
 	
@@ -433,15 +433,15 @@ bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal
 		switch (dirent->type) {
 			case FTYPE_DIR:
 				mkdir_sync(target); /* create dir */
-				d.return_value = 1;
+				d.rc = 1;
 				break;
 			case FTYPE_FILE:
-				d.return_value = cp_sync2(dirent->pathname, target, stop_signal);
+				d.rc = cp_sync2(dirent->pathname, target, stop_signal);
 				break;
 			default: break;
 		}
 		if ( *stop_signal ) { // 停止信号
-			d.return_value = 1;
+			d.rc = 1;
 		}
 	}));
 }
@@ -475,7 +475,7 @@ Buffer FileHelper::read_file_sync(cString& path, int64_t size) throw(Error) {
 			
 			if ( r > 0 ) {
 				buffer[r] = '\0';
-				buff = Buffer(buffer, r);
+				buff = Buffer::from(buffer, r);
 			} else {
 				free(buffer);
 			}

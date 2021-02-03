@@ -31,6 +31,7 @@
 #include "./net.h"
 #include "./string.h"
 #include "./_uv.h"
+#include "./fs.h"
 #include <errno.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -133,7 +134,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	
 	void report_err(Error err, bool async = false) {
 		if (async)
-			async_err_callback(Cb(&Inl::report_err_from_loop, this), std::move(err), _keep);
+			async_reject(Cb(&Inl::report_err_from_loop, this), std::move(err), _keep);
 		else
 			_delegate->trigger_socket_error(_host, err);
 	}
@@ -293,20 +294,20 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 			sockaddr_in6 sockaddr6;
 			Char dst[64];
 			
-			if ( uv_ip4_addr(*_hostname, _port, &sockaddr) == 0 ) {
+			if ( uv_ip4_addr(_hostname.str_c(), _port, &sockaddr) == 0 ) {
 				_address = *((struct sockaddr*)&sockaddr);
 				// uv_ip4_name(&sockaddr, dst, 64); _remote_ip = dst;
 				_remote_ip = _hostname;
 			}
 			
-			else if ( uv_ip6_addr(*_hostname, _port, &sockaddr6) == 0 ) {
+			else if ( uv_ip6_addr(_hostname.str_c(), _port, &sockaddr6) == 0 ) {
 				_address = *((struct sockaddr*)&sockaddr6);
 				// uv_ip6_name(&sockaddr6, dst, 64); _remote_ip = dst;
 				_remote_ip = _hostname;
 			}
 			
 			else {
-				hostent* host = gethostbyname(*_hostname);
+				hostent* host = gethostbyname(_hostname.str_c());
 				if ( host ) {
 					if ( host->h_addrtype == AF_INET ) { // ipv4
 						memset(&sockaddr, 0, sizeof(sockaddr_in));
@@ -325,11 +326,11 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 						_address = *((struct sockaddr*)&sockaddr6);
 						uv_ip6_name(&sockaddr6, dst, 64); _remote_ip = dst;
 					} else {
-						report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", *_hostname),1);
+						report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", _hostname.str_c()),1);
 						return;
 					}
 				} else {
-					report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", *_hostname),1);
+					report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", _hostname.str_c()),1);
 					return;
 				}
 			}
@@ -431,7 +432,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	static void read_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 		Inl* self = static_cast<UVHandle*>(handle->data)->host;
 		if ( self->_read_buffer.is_null() ) {
-			self->_read_buffer = Buffer( FX_MIN(65536, uint32_t(suggested_size)) );
+			self->_read_buffer = Buffer::from( FX_MIN(65536, uint32_t(suggested_size)) );
 		}
 		buf->base = *self->_read_buffer;
 		buf->len = self->_read_buffer.length();
@@ -514,7 +515,7 @@ class SSL_INL: public Socket::Inl {
 		String ssl_cacert_file_path = Path::temp(".cacert.pem");
 		FileHelper::write_file_sync(ssl_cacert_file_path, ca_content);
 		
-		cChar* ca = Path::fallback(*ssl_cacert_file_path).val();
+		cChar* ca = Path::fallback_c(ssl_cacert_file_path);
 
 		int r = X509_STORE_load_locations(ssl_x509_store, ca, nullptr);
 		if (!r) {
@@ -531,7 +532,7 @@ class SSL_INL: public Socket::Inl {
 		try {
 			set_ssl_cacert(FileHelper::read_file_sync(path));
 		} catch(cError& err) {
-			FX_ERR("set_ssl_cacert() fail, %s", *err.message());
+			FX_ERR("set_ssl_cacert() fail, %s", err.message().str_c());
 		}
 	}
 	
@@ -765,7 +766,7 @@ class SSL_INL: public Socket::Inl {
 	
 	static int receive_ssl_err(cChar *str, size_t len, void *u) {
 		SSL_INL* self = (SSL_INL*)u;
-		self->_ssl_error_msg.push(str, uint32_t(len));
+		self->_ssl_error_msg.append(str, uint32_t(len));
 		return 1;
 	}
 	
@@ -823,17 +824,17 @@ class SSL_INL: public Socket::Inl {
 			_bio_read_source_buffer_length = nread;
 			
 			if ( !_ssl_read_buffer.length() ) {
-				_ssl_read_buffer = Buffer(65536);
+				_ssl_read_buffer = Buffer::from(65536);
 			}
 			
 			if ( _is_open ) {
 				reset_timeout();
 				
 				while (1) {
-					int i = SSL_read(_ssl, _ssl_read_buffer.value(), 65536);
+					int i = SSL_read(_ssl, _ssl_read_buffer.val(), 65536);
 					
 					if ( i > 0 ) {
-						WeakBuffer buff(_ssl_read_buffer.value(), i);
+						WeakBuffer buff(_ssl_read_buffer.val(), i);
 						_delegate->trigger_socket_data(_host, buff);
 					} else {
 						if ( i < 0 ) { // err
@@ -873,7 +874,7 @@ class SSL_INL: public Socket::Inl {
 		auto req = new SSLSocketWriteReq(this, 0, { buffer, mark, 0, 0 });
 		_ssl_write_req = req;
 		
-		int r = SSL_write(_ssl, req->data().raw_buffer.value(), req->data().raw_buffer.length());
+		int r = SSL_write(_ssl, req->data().raw_buffer.val(), req->data().raw_buffer.length());
 		
 		_ssl_write_req = nullptr;
 		

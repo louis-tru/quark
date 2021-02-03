@@ -170,23 +170,25 @@ namespace ftr {
 		}
 		return -1;
 	}
+	
+	typedef void* (*AAlloc)(void*, uint32_t, uint32_t*, uint32_t);
 
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
-			_val = (char*)AllocatorDefault::realloc(
-				_val, capacity, &_capacity, sizeof(Char));
+			_val = (char*)_aalloc(_val, capacity, &_capacity, sizeof(Char));
 		}
 		uint32_t _capacity;
 		Char*    _val;
+		AAlloc   _aalloc;
 	};
 
 	void* _Str::replace(
 		const void* s1_, uint32_t s1_len,
 		const void* s2_, uint32_t s2_len,
 		const void* rep_, uint32_t rep_len,
-		int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all
+		int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all, AAlloc realloc
 	) {
-		_StrTmp s_tmp;
+		_StrTmp s_tmp = {0, nullptr, realloc};
 		uint32_t s_tmp_to = 0;
 		uint32_t from = 0;
 		int32_t  find, before_len;
@@ -247,7 +249,7 @@ namespace ftr {
 		return ::vsnprintf(o, len, f, arg);
 	}
 
-	int32_t _Str::to_string(char* o, uint32_t len, cChar* f, ...) {
+	int32_t _Str::format(char* o, uint32_t len, cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
 		int r = vsnprintf((char*)o, len, f, arg);
@@ -255,7 +257,7 @@ namespace ftr {
 		return FX_MIN(len - 1, len);
 	}
 
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
+	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
 		char* str;
 		int len_ = ftr::vasprintf(&str, f, arg);
 
@@ -275,10 +277,10 @@ namespace ftr {
 			size->capacity = b.length() + 1;
 			str = (char*)b.collapse();
 		}	else {
-			FX_FATAL("I won't support it");
+			FX_FATAL("I won't support it, format");
 		}
 
-		if (&AllocatorDefault::alloc != alloc && alloc != &::malloc) {
+		if (&MemoryAllocator::alloc != alloc && alloc != (void*)&::malloc) {
 			char* str_2 = (char*)alloc(size->capacity * size_of);
 			memcpy(str_2, str, size->len * size_of);
 			memset(str_2 + size->len * size_of, 0, size_of);
@@ -289,44 +291,69 @@ namespace ftr {
 		return str;
 	}
 
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, cChar* f, ...) {
+	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		void* str = vasprintf2(size, size_of, alloc, f, arg);
+		void* str = _Str::format(size, size_of, alloc, f, arg);
 		va_end(arg);
 		return str;
 	}
+	
+	// number to string 
 
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, int32_t i) {
-		return _Str::to_string(size, size_of, alloc, "%d", i);
+	void* _Str::format(Size* size, int size_of, Alloc alloc, int32_t i) {
+		return _Str::format(size, size_of, alloc, "%d", i);
 	}
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, uint32_t i) {
-		return _Str::to_string(size, size_of, alloc, "%u", i);
+	void* _Str::format(Size* size, int size_of, Alloc alloc, uint32_t i) {
+		return _Str::format(size, size_of, alloc, "%u", i);
 	}
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, int64_t i) {
+	void* _Str::format(Size* size, int size_of, Alloc alloc, int64_t i) {
 		#if FX_ARCH_64BIT
-			return _Str::to_string(size, size_of, alloc, "%ld", i);
+			return _Str::format(size, size_of, alloc, "%ld", i);
 		#else
-			return _Str::to_string(size, size_of, alloc, "%lld", i);
+			return _Str::format(size, size_of, alloc, "%lld", i);
 		#endif
 	}
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, uint64_t i) {
+	void* _Str::format(Size* size, int size_of, Alloc alloc, uint64_t i) {
 		#if FX_ARCH_64BIT
-			return _Str::to_string(size, size_of, alloc, "%lu", i);
+			return _Str::format(size, size_of, alloc, "%lu", i);
 		#else
-			return _Str::to_string(size, size_of, alloc, "%llu", i);
+			return _Str::format(size, size_of, alloc, "%llu", i);
 		#endif
 	}
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, float i) {
-		return _to_number(i, size_of, len, "%fd", o);
+	void* _Str::format(Size* size, int size_of, Alloc alloc, float i) {
+		return _Str::format(size, size_of, alloc, "%fd", i);
 	}
-	void* _Str::to_string(Size* size, int size_of, Alloc alloc, double i) {
-		return _Str::to_string(size, size_of, alloc, "%g", i);
+	void* _Str::format(Size* size, int size_of, Alloc alloc, double i) {
+		return _Str::format(size, size_of, alloc, "%g", i);
 	}
 
 	String string_format(cChar* f, va_list arg) {
 		Size size;
-		char* buf = (char*)_Str::to_string(&size, 1, &malloc, f, arg);
+		char* buf = (char*)_Str::format(&size, 1, &MemoryAllocator::alloc, f, arg);
 		return buf ? Buffer::from(buf, size.len, size.capacity).collapse_string(): String();
 	}
+			
+	String Object::to_string() const {
+		static String str("[object]");
+		return str;
+	}
+	
+	String _Str::to_string(const void* ptr, uint32_t len, int size_of) {
+		if (size_of == 1) { // char
+			return String((const char*)ptr, len);
+		} else if (size_of == 2) { // uint16_t
+			return Codec::encode(Encoding::UTF8, WeakArrayBuffer<uint16_t>((const uint16_t*)ptr, len));
+		} else if (size_of == 4) { // uint32_t
+			return Codec::encode(Encoding::UTF8, WeakArrayBuffer<uint32_t>((const uint32_t*)ptr, len));
+		} else {
+			FX_FATAL("I won't support it, to_string");
+		}
+	}
+
+	template <>
+	String ArrayString<>::to_string() const {
+		return *this;
+	}
+
 }

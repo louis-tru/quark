@@ -207,7 +207,6 @@ namespace ftr {
 	class FX_EXPORT HttpHelper {
 		public:
 			typedef std::unordered_map<String, String> Map;
-			typedef std::unordered_map<String, String> SMap;
 			struct RequestOptions {
 				String     url;
 				HttpMethod method;
@@ -222,9 +221,9 @@ namespace ftr {
 			};
 			struct ResponseData {
 				Buffer  data;
-				String http_version;
+				String  http_version;
 				int     status_code;
-				SMap    response_headers;
+				Map     response_headers;
 			};
 			typedef Callback<ResponseData> Cb;
 			static uint32_t request(RequestOptions& options, Cb cb = 0) throw(HttpError);
