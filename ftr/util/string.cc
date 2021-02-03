@@ -30,7 +30,7 @@
 
 #include "./string.h"
 #include "./codec.h"
-#include <algorithm>
+//#include <algorithm>
 
 namespace ftr {
 
@@ -42,44 +42,24 @@ namespace ftr {
 	const int* test_big_int = (const int*)test_big_Char;
 	const bool is_big_data = *test_big_int != 1;
 
-	static void assign(void* l, const void* r, int len) {
-		switch (len) {
-			case 1:
-				*static_cast<Char*>(l) = *static_cast<cChar*>(r);
-				break;
-			case 2:
-				*static_cast<int16_t*>(l) = *static_cast<const int16_t*>(r);
-				break;
-			case 4:
-				*static_cast<int32_t*>(l) = *static_cast<const int32_t*>(r);
-				break;
-			case 8:
-				*static_cast<int64_t*>(l) = *static_cast<const int64_t*>(r);
-				break;
-			default:
-				::memcpy(l, r, len);
-				break;
-		}
-	}
-
-	void _Str::strcp(void* o_, int sizeof_o, const void* i_, int sizeof_i, uint32_t len) {
+	void _Str::strcpy(void* o_, int sizeof_o, const void* i_, int sizeof_i, uint32_t len) {
 		char* o = (char*)o_;
 		char* i = (char*)i_;
 		if (len && i) {
 			if (sizeof_o == sizeof_i) {
 				::memcpy(o, i, len * sizeof_o);
-				((char*)o)[len] = '\0';
+				::memset(((char*)o) + len * len, 0, sizeof_o);
 			} else {
 				int min = FX_MIN(sizeof_o, sizeof_i);
 				int max = FX_MIN(sizeof_o, sizeof_i);
 				if (is_big_data) { // big data layout
 					for (int j = 0; j < len; j++) {
-						assign(o, i + max - min, min);
+						::memcpy(o, i + max - min, min); // Copy low order only
 						o+=sizeof_o; i+=sizeof_i;
 					}
 				} else {
 					for (int j = 0; j < len; j++) {
-						assign(o, i, min);
+						::memcpy(o, i, min); // Copy low order only
 						o+=sizeof_o; i+=sizeof_i;
 					}
 				}
@@ -88,53 +68,47 @@ namespace ftr {
 		}
 	}
 	
-	bool _Str::sscanf(const void* i, int sizeof_i, int len_i, const char* f, ...) {
-		bool r;
-		va_list arg;
-		va_start(arg, f);
+	bool _to_number(const void* i, int sizeof_i, int len_i, const char* f, void* o) {
 		if (sizeof_i == 1) {
-			r = vsscanf( (const char*)i, f, arg);
+			return sscanf( (const char*)i, f, o);
 		} else {
-			Char i2[65];
-			len_i = FX_MIN(len_i, 64);
-			_Str::strcp(i2, 1, i, sizeof_i, len_i);
-			r = vsscanf( i2, f, arg );
+			Char i_[65];
+			_Str::strcpy(i_, 1, i, sizeof_i, FX_MIN(len_i, 64));
+			return sscanf( i_, f, o );
 		}
-		va_end(arg);
-		return r;
 	}
 
 	bool _Str::to_number(const void* i, int sizeof_i, int len, int32_t* o) {
-		return _Str::sscanf(i, sizeof_i, len, "%d", o);
+		return _to_number(i, sizeof_i, len, "%d", o);
 	}
 	
 	bool _Str::to_number(const void* i, int size_of, int len, uint32_t* o) {
-		return _Str::sscanf(i, size_of, len, "%u", o);
+		return _to_number(i, size_of, len, "%u", o);
 	}
 
 	bool _Str::to_number(const void* i, int sizeof_i, int len, int64_t* o) {
 		#if FX_ARCH_64BIT
-			return _Str::sscanf(i, sizeof_i, len, "%ld", o);
+			return _to_number(i, sizeof_i, len, "%ld", o);
 		#else
-			return _Str::sscanf(i, sizeof_i, len, "%lld", o);
+			return _to_number(i, sizeof_i, len, "%lld", o);
 		#endif
 	}
 
 	bool _Str::to_number(const void* i, int size_of, int len, uint64_t* o) {
 		#if FX_ARCH_64BIT
-			return _Str::sscanf(i, size_of, len, "%lu", o);
+			return _to_number(i, size_of, len, "%lu", o);
 		#else
-			return _Str::sscanf(i, size_of, len, "%llu", o);
+			return _to_number(i, size_of, len, "%llu", o);
 		#endif
 	}
 
 	bool _Str::to_number(const void* i, int size_of, int len, float* o) {
-		return _Str::sscanf(i, size_of, len, "%fd", o);
+		return _to_number(i, size_of, len, "%fd", o);
 	}
 
 	bool _Str::to_number(const void* i, int size_of, int len, double* o) {
-		return _Str::sscanf(i, size_of, len, "%lf", o);
-		// _str->_length = _Str::sprintf(&_str->_val, &_str->_capacity, "%g", i);
+		return _to_number(i, size_of, len, "%lf", o);
+		// return _to_number(i, size_of, len, "%g", o);
 	}
 
 	uint32_t _Str::strlen(const void* s_, int size_of) {
@@ -262,90 +236,97 @@ namespace ftr {
 
 	// ---------------------------------------------------------------------
 
-	int32_t vsnprintf(char* o, uint32_t capacity_o, cChar* f, va_list arg) {
-		return ::vsnprintf(o, capacity_o, f, arg);
-	}
-	
+	typedef _Str::Alloc Alloc;
+	typedef _Str::Size Size;
+
 	int32_t vasprintf(char** o, cChar* f, va_list arg) {
 		return ::vasprintf(o, f, arg);
 	}
 	
-	int32_t snprintf(void* o, int sizeof_o, uint32_t capacity_o, uint32_t* len_o, cChar* f, ...) {
-		va_list arg;
-		va_start(arg, f);
-		int r;
-		if (sizeof_o == 1) {
-			r = vsnprintf((char*)o, capacity_o, f, arg);
-		} else {
-			// TODO ...
-		}
-		va_end(arg);
-		
-		
-		
-		return r;
+	int32_t vsnprintf(char* o, uint32_t len, cChar* f, va_list arg) {
+		return ::vsnprintf(o, len, f, arg);
 	}
 
-	void* _Str::sprintf(void* o, int sizeof_o, int capacity_o, int* len_o, cChar* f, ...) {
+	int32_t _Str::to_string(char* o, uint32_t len, cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-
-		void* r;
-		
-		if (sizeof_o == 1) {
-			if (o) {
-				*len_o = vasprintf((char*)o, capacity_o, f, arg);
-			} else {
-				char* o2;
-				*len_o = vasprintf(&o2, f, arg);
-			}
-		} else {
-			//			char* str;
-			//			int len = vasprintf(&str, f, arg);
-			//			if (sizeof_o == 2) {
-			//				auto b = Codec::decode_to_uint16(Encoding::UTF8, Buffer::from(str, len));
-			//				*len_o = b.length();
-			//				r = b.collapse();
-			//			} else if (sizeof_o == 4) {
-			//				auto b = Codec::decode_to_uint32(Encoding::UTF8, Buffer::from(str, len));
-			//				*len_o = b.length();
-			//				r = b.collapse();
-			//			} else {
-			//				FX_FATAL("I won't support it");
-			//			}
-		}
+		int r = vsnprintf((char*)o, len, f, arg);
 		va_end(arg);
-		
-		return r;
+		return FX_MIN(len - 1, len);
 	}
 
-	int32_t sprintf(Char** o, uint32_t* capacity, cChar* f, ...) {
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
+		char* str;
+		int len_ = ftr::vasprintf(&str, f, arg);
+
+		if (size_of == 1) {
+			size->len = len_;
+			size->capacity = len_ + 1;
+		}
+		else if (size_of == 2) {
+			auto b = Codec::decode_to_uint16(Encoding::UTF8, Buffer::from(str, len_));
+			size->len = b.length();
+			size->capacity = b.length() + 1;
+			str = (char*)b.collapse();
+		}
+		else if (size_of == 4) {
+			auto b = Codec::decode_to_uint32(Encoding::UTF8, Buffer::from(str, len_));
+			size->len = b.length();
+			size->capacity = b.length() + 1;
+			str = (char*)b.collapse();
+		}	else {
+			FX_FATAL("I won't support it");
+		}
+
+		if (&AllocatorDefault::alloc != alloc && alloc != &::malloc) {
+			char* str_2 = (char*)alloc(size->capacity * size_of);
+			memcpy(str_2, str, size->len * size_of);
+			memset(str_2 + size->len * size_of, 0, size_of);
+			free(str);
+			str = str_2;
+		}
+
+		return str;
+	}
+
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		int32_t len = vasprintf(o, f, arg);
+		void* str = vasprintf2(size, size_of, alloc, f, arg);
 		va_end(arg);
-		if (o && capacity) {
-			*capacity = len + 1;
-		}
-		return len;
+		return str;
+	}
+
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, int32_t i) {
+		return _Str::to_string(size, size_of, alloc, "%d", i);
+	}
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, uint32_t i) {
+		return _Str::to_string(size, size_of, alloc, "%u", i);
+	}
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, int64_t i) {
+		#if FX_ARCH_64BIT
+			return _Str::to_string(size, size_of, alloc, "%ld", i);
+		#else
+			return _Str::to_string(size, size_of, alloc, "%lld", i);
+		#endif
+	}
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, uint64_t i) {
+		#if FX_ARCH_64BIT
+			return _Str::to_string(size, size_of, alloc, "%lu", i);
+		#else
+			return _Str::to_string(size, size_of, alloc, "%llu", i);
+		#endif
+	}
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, float i) {
+		return _to_number(i, size_of, len, "%fd", o);
+	}
+	void* _Str::to_string(Size* size, int size_of, Alloc alloc, double i) {
+		return _Str::to_string(size, size_of, alloc, "%g", i);
 	}
 
 	String string_format(cChar* f, va_list arg) {
-		Char* buf = nullptr;
-		int len = ftr::vasprintf(&buf, f, arg);
-		if (buf) {
-			return Buffer::from(buf, len).collapse_string();
-		} else {
-			return String();
-		}
-	}
-
-	template <>
-	String String::format(cChar* f, ...) {
-		va_list arg;
-		va_start(arg, f);
-		String str = string_format(f, arg);
-		va_end(arg);
-		return str;
+		Size size;
+		char* buf = (char*)_Str::to_string(&size, 1, &malloc, f, arg);
+		return buf ? Buffer::from(buf, size.len, size.capacity).collapse_string(): String();
 	}
 }

@@ -33,6 +33,7 @@
 
 #include "./buffer.h"
 #include <vector>
+#include <stdarg.h>
 
 namespace ftr {
 
@@ -62,7 +63,7 @@ namespace ftr {
 			/**
 			 * @func format string
 			 */
-			static String format(cChar* format, ...);
+			static ArrayString format(cChar* format, ...);
 
 			inline bool is_empty() const;
 			inline const T* str_c() const;
@@ -148,23 +149,28 @@ namespace ftr {
 
 	class FX_EXPORT _Str {
 		public:
+		typedef void* (*Alloc)(uint32_t);
+		struct Size { uint32_t len; uint32_t capacity; };
 		static cChar ws[8];
-		static bool sscanf(const void* i, int sizeof_i, int len_i, const char* f, ...);
 		static bool to_number(const void* i, int sizeof_i, int len_i, int32_t* o);
 		static bool to_number(const void* i, int sizeof_i, int len_i, uint32_t* o);
 		static bool to_number(const void* i, int sizeof_i, int len_i, int64_t* o);
 		static bool to_number(const void* i, int sizeof_i, int len_i, uint64_t* o);
 		static bool to_number(const void* i, int sizeof_i, int len_i, float* o);
 		static bool to_number(const void* i, int sizeof_i, int len_i, double* o);
-		template <typename Input, typename Output>
-		static bool to_number(const Input* i, int len_i, Output* o) {
-			return to_number(i, sizeof(Input), len_i, o);
-		}
-		static void* sprintf(void* o, int sizeof_o, int capacity_o, int* len_o, cChar* f, ...);
-		static void  strcp(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
+		int32_t to_string(char* o, uint32_t len_o, cChar* f, ...);
+		void* to_string(Size* size, int size_of, Alloc alloc, cChar* f, ...);
+		void* to_string(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg);
+		void* to_string(Size* size, int size_of, Alloc alloc, int32_t i);
+		void* to_string(Size* size, int size_of, Alloc alloc, uint32_t i);
+		void* to_string(Size* size, int size_of, Alloc alloc, int64_t i);
+		void* to_string(Size* size, int size_of, Alloc alloc, uint64_t i);
+		void* to_string(Size* size, int size_of, Alloc alloc, float i);
+		void* to_string(Size* size, int size_of, Alloc alloc, double i);
+		static void  strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
 		template <typename Output, typename Input>
-		static void strcp(Output* o, const Input* i, uint32_t len) {
-			strcp(o, sizeof(Output), i, sizeof(Input), len);
+		static void strcpy(Output* o, const Input* i, uint32_t len) {
+			strcpy(o, sizeof(Output), i, sizeof(Input), len);
 		}
 		static uint32_t strlen(const void* s, int size_of);
 		template <typename T>
@@ -264,6 +270,10 @@ namespace ftr {
 				return str;
 			}
 
+			static LongStr* empty_retain() {
+				return empty()->retain();
+			}
+
 			uint32_t _length, _capacity;
 			T*       _val;
 			std::atomic_int _ref;
@@ -272,7 +282,7 @@ namespace ftr {
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(): _str(LongStr::empty()->retain()) {
+	ArrayString<T, A>::ArrayString(): _str(LongStr::empty_retain()) {
 	}
 
 	template <typename T, typename A>
@@ -281,7 +291,7 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(ArrayString&& s): _str(s._str) {
-		s._str = LongStr::empty();
+		s._str = LongStr::empty_retain();
 	}
 
 	template <typename T, typename A>
@@ -295,26 +305,37 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* s, uint32_t len): _str(new LongStr(len)) {
-		_Str::strcp(val(), s, len);
+		_Str::strcpy(val(), s, len);
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len): _str(new LongStr(a_len + b_len)) {
-		_Str::strcp(val(),         a, a_len);
-		_Str::strcp(val() + a_len, b, b_len);
+		_Str::strcpy(val(),         a, a_len);
+		_Str::strcpy(val() + a_len, b, b_len);
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(const T c): _str(new LongStr(1)) {
 		_str->_val[0] = c;
 	}
-	
-	template<>
-	template<typename T2>
-	ArrayString<char, AllocatorDefault>::ArrayString(T2 i);
 
+	template <typename T, typename A>
 	template <>
-	String String::format(cChar* format, ...);
+	ArrayString<char, AllocatorDefault>::ArrayString<int32_t>(int32_t i) {
+		_Str::Size size;
+		T* str = (T*)_Str::to_string((_Str::Size*)_str, sizeof(T), &A::alloc, i);
+		_str = str ? ArrayBuffer(new LongStr(size.len, size.capacity, str)): LongStr::empty_retain();
+	}
+
+	template <typename T, typename A>
+	ArrayString<T, A> ArrayString<T, A>::format(cChar* f, ...) {
+		va_list arg;
+		va_start(arg, f);
+		_Str::Size size;
+		T* str = (T*)_Str::to_string(&size, sizeof(T), &A::alloc, f, arg);
+		va_end(arg);
+		return str ? ArrayBuffer(new LongStr(size.len, size.capacity, str)): ArrayString();
+	}
 
 	// --------------------------------------------------------------------------------
 
@@ -345,25 +366,30 @@ namespace ftr {
 
 	template <typename T, typename A>
 	ArrayString<T, A>& ArrayString<T, A>::operator=(const ArrayString& s) {
-		_str = s._str->retain();
+		if (_str != s._str) {
+			_str.release();
+			_str = s._str->retain();
+		}
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>& ArrayString<T, A>::operator=(ArrayString&& s) {
-		_str = s._str;
-		s._str = LongStr::empty();
+		if (_str != s._str) {
+			_str = s._str;
+			s._str = LongStr::empty_retain();
+		}
 	}
 
 	template <typename T, typename A>
 	ArrayString<T, A>& ArrayString<T, A>::assign(const T* s, uint32_t len) {
 		if (_str->ref() > 1) { // 当前不是唯一引用,抛弃核心创建一个新的核心
 			_str->release();
-			_str = len ? new LongStr(len): LongStr::empty()->retain();
+			_str = len ? new LongStr(len): LongStr::empty_retain();
 		} else { // 当唯一引用时,调用自动调整容量
 			_str->realloc(len + 1);
 			_str->_length = len;
 		}
-		_Str::strcp(_str->_val, s, len); // copy str
+		_Str::strcpy(_str->_val, s, len); // copy str
 		return *this;
 	}
 
@@ -396,14 +422,14 @@ namespace ftr {
 			if (_str->ref() > 1) { // 当前不是唯一引用
 				auto old_str = _str;
 				_str = new LongStr(new_length);
-				_Str::strcp(_str->_val, old_str->_val, old_length);
+				_Str::strcpy(_str->_val, old_str->_val, old_length);
 				old_str->release(); // 并不会真的释放,只是减少一个引用
 			}
 			else { // 自动调整容量
 				_str->realloc(new_length + 1);
 				_str->_length = new_length;
 			}
-			_Str::strcp(_str->_val + old_length, s, len);
+			_Str::strcpy(_str->_val + old_length, s, len);
 		}
 		return *this;
 	}
@@ -624,14 +650,14 @@ namespace ftr {
 	template<typename T2>
 	T2 ArrayString<T, A>::to_number() const {
 		T2 o;
-		_Str::to_number(str_c(), &o, _str->_length);
+		return _Str::to_number(str_c(), sizeof(T), length(), o);
 		return o;
 	}
 
 	template<typename T, typename A>
 	template<typename T2>
 	bool ArrayString<T, A>::to_number(T2* o) const {
-		return _Str::to_number(str_c(), o, _str->_length);
+		return _Str::to_number(str_c(), sizeof(T), length(), o);
 	}
 
 }
