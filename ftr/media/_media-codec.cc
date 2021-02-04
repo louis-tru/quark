@@ -405,7 +405,7 @@ void Inl::start() {
 		select_bit_rate(bit_rate_index);
 		select_multi_bit_rate2(bit_rate_index);
 
-		post(Cb([this](Cbd& d) {
+		post(Cb([this](CbData& d) {
 			{ ScopeLock scope(mutex());
 				_status = MULTIMEDIA_SOURCE_STATUS_READY;
 			}
@@ -432,7 +432,7 @@ void Inl::stop() {
 		extractor_flush(i.value());
 	}
 	
-	post(Cb([this](Cbd& d) {
+	post(Cb([this](CbData& d) {
 		ScopeLock scope(mutex());
 		_status = MULTIMEDIA_SOURCE_STATUS_UNINITIALIZED;
 	}));
@@ -664,7 +664,7 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 			if ( AVERROR_EOF == ok ) {
 				FX_DEBUG("read_frame() eof break;");
 				
-				post(Cb([this](Cbd& d) {
+				post(Cb([this](CbData& d) {
 					ScopeLock scope(mutex());
 					_read_eof = 1;
 					_fmt_ctx = nullptr;
@@ -726,7 +726,7 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
  * */
 void Inl::trigger_error(cError& e) {
 	FX_DEBUG("Err, %s", *e.message());
-	post(Cb([e, this](Cbd& d) {
+	post(Cb([e, this](CbData& d) {
 		{ ScopeLock scope(mutex());
 			_status = MULTIMEDIA_SOURCE_STATUS_FAULT;
 			_fmt_ctx = nullptr;
@@ -739,7 +739,7 @@ void Inl::trigger_error(cError& e) {
  * @func trigger_wait_buffer
  * */
 void Inl::trigger_wait_buffer() {
-	post(Cb([this](Cbd& d) {
+	post(Cb([this](CbData& d) {
 		{ ScopeLock scope(mutex());
 			if ( _status != MULTIMEDIA_SOURCE_STATUS_READY ) {
 				return;
@@ -755,7 +755,7 @@ void Inl::trigger_wait_buffer() {
  * @func trigger_ready_buffer
  * */
 void Inl::trigger_ready_buffer() {
-	post(Cb([this](Cbd& d) {
+	post(Cb([this](CbData& d) {
 		{ ScopeLock scope(mutex());
 			if ( _status != MULTIMEDIA_SOURCE_STATUS_WAIT ) return;
 			_status = MULTIMEDIA_SOURCE_STATUS_READY;
@@ -769,7 +769,7 @@ void Inl::trigger_ready_buffer() {
  * @func trigger_eof
  * */
 void Inl::trigger_eof() {
-	post(Cb([this](Cbd& d) {
+	post(Cb([this](CbData& d) {
 		{ ScopeLock scope(mutex());
 			if (_status == MULTIMEDIA_SOURCE_STATUS_EOF) return;
 			_status = MULTIMEDIA_SOURCE_STATUS_EOF;

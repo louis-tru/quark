@@ -211,9 +211,6 @@
 				},
 			}],
 			['OS=="mac"', {
-				'dependencies': [
-					'depe/reachability/reachability.gyp:reachability',
-				],
 				'sources':[
 					'platforms/mac-app.h',
 					'platforms/mac-image-codec.mm',

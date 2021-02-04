@@ -30,6 +30,7 @@
 
 #include "./object.h"
 #include <vector>
+#include <math.h>
 
 namespace ftr {
 

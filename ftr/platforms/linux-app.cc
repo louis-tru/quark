@@ -565,7 +565,7 @@ class LinuxApplication {
 		}
 		if (queue.length()) {
 			for (auto& i: queue) {
-				Cbd data = { 0, _host, 0 };
+				CbData data = { 0, _host, 0 };
 				i.value()->call(data);
 			}
 		}
@@ -793,7 +793,7 @@ void DisplayPort::set_status_bar_style(StatusBarStyle style) {
  * @func request_fullscreen(fullscreen)
  */
 void DisplayPort::request_fullscreen(bool fullscreen) {
-	__dispatch_x11_async(Cb([fullscreen](Cbd& e) {
+	__dispatch_x11_async(Cb([fullscreen](CbData& e) {
 		application->request_fullscreen(fullscreen);
 	}));
 }

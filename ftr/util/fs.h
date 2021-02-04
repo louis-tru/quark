@@ -198,7 +198,7 @@ namespace ftr {
 			static void chmod_sync(cString& path, uint32_t mode = default_mode) throw(Error);
 			
 			/**
-			* @func chmod_p  # 递归设置
+			* @func chmod_r_sync  # 递归设置
 			* # 多线程中,设置stop_signal值为true来终止操作
 			*/
 			static void chown_sync(cString& path, uint32_t owner, uint32_t group) throw(Error);

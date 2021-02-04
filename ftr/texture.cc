@@ -407,7 +407,7 @@ FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 			_status |= TEXTURE_COMPLETE;
 		}
 		_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_LOADING); // delete mark
-		main_loop()->post(Cb([this, status](Cbd& e) {
+		main_loop()->post(Cb([this, status](CbData& e) {
 			FX_TRIGGER(change, status);
 		}, this));
 	}
@@ -435,7 +435,7 @@ FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 		}
 
 		if (post_to_render_handles.length()) {
-			ctx->host()->render_loop()->post(Cb([post_to_render_handles](Cbd& e) {
+			ctx->host()->render_loop()->post(Cb([post_to_render_handles](CbData& e) {
 				auto ctx = draw_ctx();
 				if (ctx) {
 					for (auto i : post_to_render_handles) {
@@ -575,7 +575,7 @@ bool TextureYUV::load_yuv(cPixelData& data) {
 				_diagonal = Vec2(_width, _height).diagonal();
 				_format = data.format();
 				_status = TEXTURE_COMPLETE;
-				main_loop()->post(Cb([this](Cbd& e) {
+				main_loop()->post(Cb([this](CbData& e) {
 					FX_TRIGGER(change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
 				}, this));
 			}
@@ -632,7 +632,7 @@ void FileTexture::load(Level level) {
 	#define LoaderTextureError(err) { \
 		_status = TEXTURE_ERROR;  \
 		FX_ERR(err, *_path); \
-		main_loop()->post(Cb([this](Cbd& e) { \
+		main_loop()->post(Cb([this](CbData& e) { \
 			FX_TRIGGER(change, TEXTURE_CHANGE_ERROR); \
 		}, this)); \
 	}
@@ -651,7 +651,7 @@ void FileTexture::load(Level level) {
 	};
 	
 	// load level 0
-	_load_id = f_reader()->read_file(_path, Cb([this](Cbd& d) {
+	_load_id = f_reader()->read_file(_path, Cb([this](CbData& d) {
 		GUILock lock;
 		_load_id = 0;
 		
@@ -675,7 +675,7 @@ void FileTexture::load(Level level) {
 			auto ctx = new DecodeContext();
 			ctx->input = *static_cast<Buffer*>(d.data);
 			
-			Cb complete([this, ctx](Cbd& e) { // 完成
+			Cb complete([this, ctx](CbData& e) { // 完成
 				Handle<DecodeContext> handle(ctx);
 				if (!ctx->output.length()) {
 					LoaderTextureError("Error: Loader image file error, %s");
@@ -698,7 +698,7 @@ void FileTexture::load(Level level) {
 			
 			if (_status & TEXTURE_CHANGE_LEVEL_0) {
 				// 解码需要时间,发送到工作线程执行解码操作
-				app->render_loop()->work(Cb([this, ctx, parser](Cbd& e) {
+				app->render_loop()->work(Cb([this, ctx, parser](CbData& e) {
 					ctx->output = parser->decode(ctx->input);
 				}, this), complete);
 			} else {
@@ -790,7 +790,7 @@ FX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
 	}
 	
 	void trigger_change() {
-		main_loop()->post(Cb([this](Cbd& e) {
+		main_loop()->post(Cb([this](CbData& e) {
 			TexturePoolEventData data = { progress(), nullptr };
 			FX_TRIGGER(change, data);
 		}));

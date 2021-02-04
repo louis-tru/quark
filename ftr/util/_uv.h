@@ -41,10 +41,10 @@ namespace ftr {
 	/**
 	 * @class UVRequestWrap
 	 */
-	template<class uv_req, class Context, class Data = Object, class Cbd = Object>
+	template<class uv_req, class Context, class Data = Object, class CbData = Object>
 	class UVRequestWrap: public Object {
 		public:
-			inline UVRequestWrap(Context* ctx, Callback<Cbd> cb = 0, Data data = Data())
+			inline UVRequestWrap(Context* ctx, Callback<CbData> cb = 0, Data data = Data())
 			: _ctx(ctx), _cb(cb), _data(std::move(data)) {
 				_req.data = this;
 				if (Context::Traits::is_reference) Retain(_ctx);
@@ -56,13 +56,13 @@ namespace ftr {
 				return (UVRequestWrap*)req->data;
 			}
 			inline Context* ctx() { return _ctx; }
-			inline Callback<Cbd>& cb() { return _cb; }
+			inline Callback<CbData>& cb() { return _cb; }
 			inline uv_req* req() { return &_req; }
 			inline Data& data() { return _data; }
 		private:
 			uv_req    _req;
 			Context*  _ctx;
-			Callback<Cbd> _cb;
+			Callback<CbData> _cb;
 			Data      _data;
 	};
 

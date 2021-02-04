@@ -52,11 +52,11 @@ extern int inl__file_flag_mask(int flag);
 
 // --------------------------------- async -----------------------------------
 
-template<class uv_req, class Data = Object, class Cbd = Object>
-class AsyncReqNonCtx: public UVRequestWrap<uv_req, Object, Data, Cbd> {
+template<class uv_req, class Data = Object, class CbData = Object>
+class AsyncReqNonCtx: public UVRequestWrap<uv_req, Object, Data, CbData> {
 public:
-	AsyncReqNonCtx(Cb cb, RunLoop* loop = LOOP, Data data = Data())
-	: UVRequestWrap<uv_req, Object, Data, Cbd>(nullptr, cb, std::move(data))
+	AsyncReqNonCtx(Callback<CbData> cb, RunLoop* loop = LOOP, Data data = Data())
+	: UVRequestWrap<uv_req, Object, Data, CbData>(nullptr, cb, std::move(data))
 	, _loop(loop)
 	{}
 	static inline AsyncReqNonCtx* cast(uv_req* req) {
@@ -80,11 +80,13 @@ static Error uv_error(uv_fs_t* req, cChar* msg = nullptr) {
 							 uv_err_name((int)req->result), uv_strerror((int)req->result), msg ? msg: "");
 }
 
-static void async_err_callback2(FileReq* req, cChar* msg = nullptr) {
+template<class Req>
+static void async_err_callback(Req* req, cChar* msg = nullptr) {
 	async_reject(req->cb(), uv_error(req->req(), msg));
 }
 
-static void async_err_callback2(Cb cb, uv_fs_t* req, cChar* msg = nullptr) {
+template<class CB>
+static void async_err_callback(CB cb, uv_fs_t* req, cChar* msg = nullptr) {
 	async_reject(cb, uv_error(req, msg));
 }
 
@@ -94,7 +96,7 @@ static void uv_fs_async_cb(uv_fs_t* req) {
 	if ( req->result == 0 ) { // ok
 		async_callback(handle->cb());
 	} else { // err
-		async_err_callback2(*handle);
+		async_err_callback(*handle);
 	}
 }
 
@@ -146,7 +148,7 @@ static void stat_cb(uv_fs_t* req) {
 		inl__set_file_stat(&stat, &req->statbuf);
 		async_resolve<Object>(handle->cb(), std::move(stat));
 	} else { // err
-		async_err_callback2(*handle);
+		async_err_callback(*handle);
 	}
 }
 
@@ -431,7 +433,7 @@ class AsyncEach: public AsyncIOTask {
 		}
 	}
 	
-	void start_cb(Cbd& evt) {
+	void start_cb(CbData& evt) {
 		if ( !is_abort() ) {
 			if ( evt.error ) { // err
 				abort();
@@ -474,12 +476,12 @@ void FileHelper::chmod(cString& path, uint32_t mode, Cb cb) {
 }
 
 uint32_t FileHelper::chmod_r(cString& path, uint32_t mode, Cb cb) {
-	auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](Cbd& evt) {
+	auto each = NewRetain<AsyncEach>(path, Cb([mode, cb](CbData& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain(); // chmod2 回调前都保持each不被释放
 		const Dirent& dirent = each->dirent();
 		String pathname = dirent.pathname;
-		chmod2(dirent.pathname, mode, Cb([each, cb, pathname](Cbd& evt) {
+		chmod2(dirent.pathname, mode, Cb([each, cb, pathname](CbData& evt) {
 			Handle<AsyncEach> handle(each);
 			each->release();
 			if ( !each->is_abort() ) {
@@ -500,10 +502,10 @@ void FileHelper::chown(cString& path, uint32_t owner, uint32_t group, Cb cb) {
 }
 
 uint32_t FileHelper::chown_r(cString& path, uint32_t owner, uint32_t group, Cb cb) {
-	auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](Cbd& evt) {
+	auto each = NewRetain<AsyncEach>(path, Cb([owner, group, cb](CbData& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain();
-		chown2(each->dirent().pathname, owner, group, Cb([each, cb](Cbd& evt) {
+		chown2(each->dirent().pathname, owner, group, Cb([each, cb](CbData& evt) {
 			Handle<AsyncEach> handle(each); each->release();
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
@@ -523,7 +525,7 @@ void FileHelper::mkdir(cString& path, uint32_t mode, Cb cb) {
 }
 
 void FileHelper::mkdir_p(cString& path, uint32_t mode, Cb cb) {
-	exists2(path, Cb([=](Cbd& evt) {
+	exists2(path, Cb([=](CbData& evt) {
 		if ( static_cast<Bool*>(evt.data)->value ) { // ok
 			async_callback(cb);
 		} else {
@@ -559,11 +561,11 @@ void FileHelper::rmdir(cString& path, Cb cb) {
 }
 
 uint32_t FileHelper::remove_r(cString& path, Cb cb) {
-	auto each = NewRetain<AsyncEach>(path, Cb([cb](Cbd& evt) {
+	auto each = NewRetain<AsyncEach>(path, Cb([cb](CbData& evt) {
 		auto each = static_cast<AsyncEach*>(evt.data);
 		each->retain();
 
-		Cb cb2([each, cb](Cbd& evt) {
+		Cb cb2([each, cb](CbData& evt) {
 			Handle<AsyncEach> handle(each); each->release();
 			if ( !each->is_abort() ) {
 				if ( evt.error ) {
@@ -599,7 +601,7 @@ uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
 		, _path(Path::format("%s", *target))
 		, _copy_task(nullptr)
 		{ //
-			is_dir2(Path::dirname(target), Cb([this](Cbd& ev) {
+			is_dir2(Path::dirname(target), Cb([this](CbData& ev) {
 				if ( is_abort() ) return;
 				if ( static_cast<Bool*>(ev.data)->value ) {
 					start();
@@ -615,7 +617,7 @@ uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
 			return _path + dirent().pathname.substr(_s_len); // 目标文件
 		}
 		
-		static void each_cb(Cbd& d, Object* self) {
+		static void each_cb(CbData& d, Object* self) {
 			Task* t = static_cast<Task*>(self);
 			const Dirent& ent = t->dirent();
 			
@@ -623,7 +625,7 @@ uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
 				case FTYPE_DIR:
 					exists2(t->target(), Cb(&Task::is_directory_cb, t), t->loop()); break;
 				case FTYPE_FILE:
-					t->_copy_task = cp2(ent.pathname, t->target(), Cb([t](Cbd& ev) {
+					t->_copy_task = cp2(ent.pathname, t->target(), Cb([t](CbData& ev) {
 						t->_copy_task = nullptr;
 						if ( !t->is_abort() ) {
 							if ( ev.error ) {
@@ -639,12 +641,12 @@ uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
 			}
 		}
 		
-		void error(Cbd& ev) {
+		void error(CbData& ev) {
 			abort();
 			async_callback(_end, ev.error);
 		}
 		
-		void is_directory_cb(Cbd& evt) {
+		void is_directory_cb(CbData& evt) {
 			if ( is_abort() ) return;
 			if ( evt.error ) {
 				error(evt);
@@ -653,7 +655,7 @@ uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
 					advance(); return;
 				}
 				/* create dir */
-				mkdir2(target(), default_mode, Cb([this](Cbd& ev) {
+				mkdir2(target(), default_mode, Cb([this](CbData& ev) {
 					if ( !is_abort() ) {
 						if ( ev.error ) {
 							error(ev);
@@ -738,14 +740,14 @@ void FileHelper::executable(cString& path, Cb cb) {
 
 uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 	class Task;
-	typedef UVRequestWrap<uv_fs_t, Task> FileReq;
+	typedef UVRequestWrap<uv_fs_t, Task, Object, StreamResponse> FileReq;
 	
 	class Task: public AsyncIOTask, public Stream {
 	 public:
 		String     _path;
 		int64_t      _offset;
 		int        _fd;
-		Callback<> _cb;
+		Callback<StreamResponse> _cb;
 		Buffer     _buffer;
 		bool       _pause;
 		int        _read_count;
@@ -753,7 +755,7 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 		int64_t      _total;
 		int64_t      _size;
 		
-		Task(int64_t offset, Cb cb) {
+		Task(int64_t offset, Callback<StreamResponse> cb) {
 			_offset = offset;
 			_cb = cb;
 			_pause = false;
@@ -797,7 +799,7 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 			
 			if ( uv_req->result < 0 ) { // error
 				ctx->abort();
-				async_err_callback2(req->cb(), uv_req, *ctx->_path);
+				async_reject(req->cb(), uv_error(req->req(), ctx->_path.str_c()));
 				uv_fs_close(ctx->uv_loop(), uv_req, ctx->_fd, &fs_close_cb); // close
 			} else {
 				if ( uv_req->result ) {
@@ -807,12 +809,12 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 					ctx->_size += uv_req->result;
 					StreamResponse data(ctx->_buffer.realloc((uint32_t)uv_req->result),
 														0, ctx->id(), ctx->_size, ctx->_total, ctx);
-					async_resolve<Object>(ctx->_cb, std::move(data));
+					async_resolve(ctx->_cb, std::move(data));
 					ctx->read_advance(req);
 				} else { // end
 					ctx->abort();
 					StreamResponse data(Buffer(), 1, ctx->id(), ctx->_size, ctx->_total, ctx);
-					async_resolve<Object>(ctx->_cb, std::move(data));
+					async_resolve(ctx->_cb, std::move(data));
 					uv_fs_close(ctx->uv_loop(), uv_req, ctx->_fd, &fs_close_cb); // close
 				}
 			}
@@ -848,7 +850,7 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 				req->ctx()->read_advance(req);
 			} else { // err
 				req->ctx()->abort();
-				async_err_callback2(req->ctx()->_cb, uv_req, *req->ctx()->_path);
+				async_err_callback(req->ctx()->_cb, uv_req, *req->ctx()->_path);
 				uv_fs_close(req->ctx()->uv_loop(), uv_req, req->ctx()->_fd, &fs_close_cb); // close
 			}
 		}
@@ -862,7 +864,7 @@ uint32_t FileHelper::read_stream(cString& path, Callback<StreamResponse> cb) {
 			} else { // open file fail
 				Handle<FileReq> handle(req);
 				req->ctx()->abort();
-				async_err_callback2(req->ctx()->_cb, uv_req, *req->ctx()->_path);
+				async_err_callback(req->ctx()->_cb, uv_req, *req->ctx()->_path);
 			}
 		}
 		
@@ -906,7 +908,7 @@ void FileHelper::read_file(cString& path, Cb cb, int64_t size) {
 				req->data().size = uv_req->statbuf.st_size;
 				start_read(req);
 			} else { // err
-				async_err_callback2(req->cb(), uv_req, *req->data().path);
+				async_err_callback(req->cb(), uv_req, *req->data().path);
 				uv_fs_close(req->uv_loop(), uv_req, req->data().fd, &fs_close_cb); // close
 			}
 		}
@@ -915,7 +917,7 @@ void FileHelper::read_file(cString& path, Cb cb, int64_t size) {
 			uv_fs_req_cleanup(uv_req);
 			FileReq* req = FileReq::cast(uv_req);
 			if ( uv_req->result < 0 ) { // error
-				async_err_callback2(req->cb(), uv_req, *req->data().path);
+				async_err_callback(req->cb(), uv_req, *req->data().path);
 			} else {
 				Buffer& buff = req->data().buff;
 				buff[uv_req->result] = '\0';
@@ -928,7 +930,7 @@ void FileHelper::read_file(cString& path, Cb cb, int64_t size) {
 			int64_t size = req->data().size;
 			Char* buffer = (Char*)::malloc(size + 1); // 为兼容C字符串多加1位0
 			if ( buffer ) {
-				req->data().buff = Buffer(buffer, uint32_t(size));
+				req->data().buff = Buffer::from(buffer, uint32_t(size));
 				uv_buf_t buf;
 				buf.base = buffer;
 				buf.len = size;
@@ -952,13 +954,13 @@ void FileHelper::read_file(cString& path, Cb cb, int64_t size) {
 				}
 			} else { // open file fail
 				Handle<FileReq> handle(req);
-				async_err_callback2(req->cb(), uv_req, *req->data().path);
+				async_err_callback(req->cb(), uv_req, *req->data().path);
 			}
 		}
 		
 		static void start(FileReq* req) {
 			uv_fs_open(req->uv_loop(), req->req(),
-								 Path::fallback(req->data().path).val(), O_RDONLY, 0, &fs_open_cb);
+				Path::fallback(req->data().path).str_c(), O_RDONLY, 0, &fs_open_cb);
 		}
 		
 	};
@@ -987,7 +989,7 @@ void FileHelper::write_file(cString& path, Buffer buffer, Cb cb) {
 			FileReq* req = FileReq::cast(uv_req);
 			Buffer& buff = req->data().buff;
 			if ( uv_req->result < 0 ) {
-				auto err = uv_error(uv_req, req->data().path.val());
+				auto err = uv_error(uv_req, req->data().path.str_c());
 				async_callback<Object>(req->cb(), &err, &buff);
 			} else {
 				async_resolve<Object>(req->cb(), std::move(buff));
@@ -1006,14 +1008,14 @@ void FileHelper::write_file(cString& path, Buffer buffer, Cb cb) {
 				uv_fs_write(req->uv_loop(), uv_req, (uv_file)uv_req->result, &buf, 1, -1, &fs_write_cb);
 			} else { // open file fail
 				Handle<FileReq> handle(req);
-				auto err = uv_error(uv_req, req->data().path.val());
+				auto err = uv_error(uv_req, req->data().path.str_c());
 				async_callback<Object>(req->cb(), &err, &req->data().buff);
 			}
 		}
 		
 		static void start(FileReq* req) {
 			uv_fs_open(req->uv_loop(), req->req(),
-								 Path::fallback(req->data().path).val(),
+								 Path::fallback(req->data().path).str_c(),
 								 O_WRONLY | O_CREAT | O_TRUNC, default_mode, &fs_open_cb);
 		}
 		
@@ -1044,7 +1046,7 @@ void FileHelper::open(cString& path, int flag, Cb cb) {
 				int fd = (int)uv_req->result;
 				async_resolve<Object>(req->cb(), Int32(fd));
 			} else { // open file fail
-				async_err_callback2(req->cb(), uv_req, *req->data().path);
+				async_err_callback(req->cb(), uv_req, *req->data().path);
 			}
 		}
 		
@@ -1052,7 +1054,7 @@ void FileHelper::open(cString& path, int flag, Cb cb) {
 			Data& data = req->data();
 			uv_fs_open(req->uv_loop(),
 								 req->req(),
-								 Path::fallback(data.path).val(),
+								 Path::fallback(data.path).str_c(),
 								 inl__file_flag_mask(data.flag),
 								 default_mode,
 								 &fs_open_cb);
@@ -1080,7 +1082,7 @@ void FileHelper::close(int fd, Cb cb) {
 			if ( uv_req->result == 0 ) {
 				async_callback(req->cb());
 			} else { // close file fail
-				async_err_callback2(req->cb(), uv_req);
+				async_err_callback(req->cb(), uv_req);
 			}
 		}
 		
@@ -1112,10 +1114,12 @@ void FileHelper::read(int fd, Buffer buffer, int64_t offset, Cb cb) {
 			Handle<FileReq> handle(req);
 			Buffer& buff = req->data().buffer;
 			if ( uv_req->result < 0 ) { // error
-				async_callback(req->cb(), uv_error(uv_req), std::move(buff));
+				auto err = uv_error(uv_req);
+				req->cb()->call(&err, &buff);
 			} else {
 				buff[uv_req->result] = '\0';
-				async_callback(req->cb(), buff.realloc((uint32_t)uv_req->result));
+				buff.realloc((uint32_t)uv_req->result);
+				req->cb()->resolve(&buff);
 			}
 		}
 		
@@ -1152,7 +1156,7 @@ void FileHelper::write(int fd, Buffer buffer, int64_t offset, Cb cb) {
 			Buffer& buff = req->data().buffer;
 			if ( uv_req->result < 0 ) {
 				auto err = uv_error(uv_req);
-				cb->call(&err, &buff);
+				req->cb()->call(&err, &buff);
 			} else {
 				async_resolve(req->cb(), std::move(buff));
 			}

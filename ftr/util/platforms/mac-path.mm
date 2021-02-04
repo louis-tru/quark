@@ -43,37 +43,28 @@ namespace ftr {
 		return path;
 	}
 
-	SString Path::documents(cString& child) {
-		static SString path(
+	String Path::documents(cString& child) {
+		static String path(
 			Path::format([NSSearchPathForDirectoriesInDomains(
 				NSDocumentDirectory,
 				NSUserDomainMask,
 				YES
 			) objectAtIndex:0].UTF8String)
 		);
-		if (child.is_empty()) {
-			return path.copy();
-		}
-		return Path::format("%s/%s", *path, *child);
+		return child.is_empty() ? path: Path::format("%s/%s", path.str_c(), child.str_c());
 	}
 
-	SString Path::temp(cString& child) {
+	String Path::temp(cString& child) {
 		static cString path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
-		if (child.is_empty()) {
-			return path.copy();
-		}
-		return Path::format("%s/%s", *path, *child);
+		return child.is_empty() ? path: Path::format("%s/%s", path.str_c(), child.str_c());;
 	}
 
 	/**
 	 * Get the resoures dir
 	 */
-	SString Path::resources(cString& child) {
+	String Path::resources(cString& child) {
 		static cString path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
-		if (child.is_empty()) {
-			return path.copy();
-		}
-		return Path::format("%s/%s", *path, *child);
+		return child.is_empty()? path: Path::format("%s/%s", path.str_c(), child.str_c());
 	}
 
 }

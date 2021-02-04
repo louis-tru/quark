@@ -1529,14 +1529,14 @@ class NativeFileHelper {
 			// keep raw buffer Persistent javascript value
 			CopyablePersistentValue persistent(worker, args[2]);
 			
-			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb, size](Cbd& ev) {
+			FileHelper::write_file(path, buffer, Cb([persistent, afterCollapse, cb, size](CbData& ev) {
 				ASSERT( ev.data );
 				if (afterCollapse) {
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();
 				}
 				Int i(size);
-				Cbd r = { nullptr, &i, 0 };
+				CbData r = { nullptr, &i, 0 };
 				cb->call(r);
 			}));
 		}
@@ -1730,10 +1730,10 @@ class NativeFileHelper {
 			CopyablePersistentValue persistent(worker, args[2]);
 			
 			FileHelper::read(fd, WeakBuffer(*raw_buf, size), offset,
-											 Cb([persistent, cb](Cbd& ev) {
+											 Cb([persistent, cb](CbData& ev) {
 				ASSERT( ev.data );
 				Int read_len(static_cast<Buffer*>(ev.data)->length());
-				Cbd r = { nullptr, &read_len, 0 };
+				CbData r = { nullptr, &read_len, 0 };
 				cb->call(r);
 			}));
 		}
@@ -1831,14 +1831,14 @@ class NativeFileHelper {
 			// keep raw buffer Persistent javascript value
 			CopyablePersistentValue persistent(worker, args[2]);
 
-			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb, size](Cbd& ev) {
+			FileHelper::write(fd, buffer, offset, Cb([persistent, afterCollapse, cb, size](CbData& ev) {
 				ASSERT( ev.data );
 				if (afterCollapse) { // restore raw buffer
 					// collapse这个buffer因为这是ArrayBuffer所持有的内存空间,绝不能在这里被释放
 					static_cast<Buffer*>(ev.data)->collapse();
 				}
 				Int i(size);
-				Cbd r = { nullptr, &i, 0 };
+				CbData r = { nullptr, &i, 0 };
 				cb->call(r);
 			}));
 		}

@@ -125,6 +125,9 @@
 				},
 			}],
 			['OS=="mac"', {
+				'dependencies': [
+					'depe/reachability/reachability.gyp:reachability',
+				],
 				'sources': [
 					'platforms/mac-path.mm',
 					'platforms/mac-os.mm',

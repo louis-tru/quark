@@ -92,9 +92,9 @@ namespace ftr {
 
 	#define FALSE 0
 	#define TRUE 1
-	#define ISALPHA(x)  (isalpha((int)  ((unsigned Char)x)))
-	#define ISDIGIT(x)  (isdigit((int)  ((unsigned Char)x)))
-	#define ISALNUM(x)  (isalnum((int)  ((unsigned Char)x)))
+	#define ISALPHA(x)  (isalpha((int)  ((unsigned char)x)))
+	#define ISDIGIT(x)  (isdigit((int)  ((unsigned char)x)))
+	#define ISALNUM(x)  (isalnum((int)  ((unsigned char)x)))
 
 	#if FX_WIN
 	# define ERRNO         ((int)GetLastError())
@@ -618,7 +618,7 @@ namespace ftr {
 	int64_t parse_time(cString& str)
 	{
 		time_t parsed = -1;
-		int rc = parsedate(str.val(), &parsed);
+		int rc = parsedate(str.str_c(), &parsed);
 		
 		switch(rc) {
 			case PARSEDATE_OK:

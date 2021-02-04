@@ -67,7 +67,7 @@ namespace ftr {
 			if (i == tasks->values.end())
 				return;
 			
-			i->second->_loop->post(Cb([id](Cbd& e) {
+			i->second->_loop->post(Cb([id](CbData& e) {
 				AsyncIOTask* task = nullptr;
 				{ //
 					ScopeLock scope(tasks->mutex);

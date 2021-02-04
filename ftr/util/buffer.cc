@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./buffer.h"
-#include <math.h>
 #include <string.h>
 
 namespace ftr {

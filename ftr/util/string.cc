@@ -30,7 +30,6 @@
 
 #include "./string.h"
 #include "./codec.h"
-//#include <algorithm>
 
 namespace ftr {
 
@@ -48,7 +47,7 @@ namespace ftr {
 		if (len && i) {
 			if (sizeof_o == sizeof_i) {
 				::memcpy(o, i, len * sizeof_o);
-				::memset(((char*)o) + len * len, 0, sizeof_o);
+				::memset(((char*)o) + len * sizeof_o, 0, sizeof_o);
 			} else {
 				int min = FX_MIN(sizeof_o, sizeof_i);
 				int max = FX_MIN(sizeof_o, sizeof_i);

@@ -233,7 +233,7 @@ class AndroidApplication {
 			gl_draw_context->refresh_surface_size(&application->_rect);
 
 			if ( targger_orientation ) { // 触发方向变化事件
-				application->_host->main_loop()->post(Cb([](Cbd& e) {
+				application->_host->main_loop()->post(Cb([](CbData& e) {
 					application->_host->display_port()->FX_TRIGGER(orientation);
 				}));
 			}
@@ -626,7 +626,7 @@ extern "C" {
 	}
 
 	FX_EXPORT void Java_org_ftr_FtrActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
-		application->host()->main_loop()->post(Cb([](Cbd& ev){
+		application->host()->main_loop()->post(Cb([](CbData& ev){
 			application->host()->display_port()->FX_TRIGGER(change);
 		}));
 	}

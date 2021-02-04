@@ -691,7 +691,7 @@ namespace ftr {
 				for (auto& i : _pool) {
 					auto con = i;
 					con->_id = ConnectID();
-					con->_loop->post(Cb([con](Cbd& e){
+					con->_loop->post(Cb([con](CbData& e){
 						Release(con);
 					}));
 				}
@@ -731,7 +731,7 @@ namespace ftr {
 					}
 				}
 				if (conn) {
-					Cbd evt = { 0, conn };
+					CbData evt = { 0, conn };
 					cb->call(evt);
 				}
 			}
@@ -769,7 +769,7 @@ namespace ftr {
 							connect_count--;
 							_pool.erase(conn2->_id);
 							conn2->_id = ConnectID();
-							conn2->loop()->post(Cb([conn2](Cbd& e) {
+							conn2->loop()->post(Cb([conn2](CbData& e) {
 								conn2->release();
 							}));
 						}
@@ -818,7 +818,7 @@ namespace ftr {
 							// _connect_req.del(i);
 							_connect_req.erase(j);
 							lock.unlock(); // unlock
-							Cbd evt = { 0, conn };
+							CbData evt = { 0, conn };
 							cb->call( evt );
 							break;
 						}
@@ -1312,7 +1312,7 @@ namespace ftr {
 			ASSERT(_sending);
 			ASSERT(!_connect);
 			ASSERT(_pool_ptr);
-			_pool_ptr->get_connect(this, Cb([this](Cbd& evt) {
+			_pool_ptr->get_connect(this, Cb([this](CbData& evt) {
 				if ( _wait_connect_id ) {
 					if ( evt.error ) {
 						report_error_and_abort(*evt.error);
@@ -1325,7 +1325,7 @@ namespace ftr {
 			}, this));
 		}
 		
-		void cache_file_stat_cb(Cbd& evt) {
+		void cache_file_stat_cb(CbData& evt) {
 			if ( _sending ) {
 				if ( evt.error ) { //
 					send_http();

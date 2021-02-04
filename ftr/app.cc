@@ -101,7 +101,7 @@ void AppInl::refresh_display() {
 void AppInl::triggerLoad() {
 	if (!_is_load) {
 		_is_load = true;
-		_main_loop->post(Cb([&](Cbd& d) { GUILock lock; FX_TRIGGER(Load); }));
+		_main_loop->post(Cb([&](CbData& d) { GUILock lock; FX_TRIGGER(Load); }));
 	}
 }
 
@@ -110,24 +110,24 @@ void AppInl::triggerRender() {
 }
 
 void AppInl::triggerPause() {
-	_main_loop->post(Cb([&](Cbd& d) { FX_TRIGGER(Pause); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Pause); }));
 }
 
 void AppInl::triggerResume() {
-	_main_loop->post(Cb([&](Cbd& d) { FX_TRIGGER(Resume); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Resume); }));
 }
 
 void AppInl::triggerBackground() {
-	_main_loop->post(Cb([&](Cbd& d) { FX_TRIGGER(Background); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Background); }));
 }
 
 void AppInl::triggerForeground() {
-	_main_loop->post(Cb([&](Cbd& d) { FX_TRIGGER(Foreground); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Foreground); }));
 }
 
 void AppInl::triggerMemorywarning() {
 	clear();
-	_main_loop->post(Cb([&](Cbd&){ FX_TRIGGER(Memorywarning); }));
+	_main_loop->post(Cb([&](CbData&){ FX_TRIGGER(Memorywarning); }));
 }
 
 void AppInl::triggerUnload() {
@@ -343,7 +343,7 @@ bool GUIApplication::has_current_render_thread() const {
  * @func clear([full]) 清理不需要使用的资源
  */
 void GUIApplication::clear(bool full) {
-	_render_loop->post(Cb([&, full](Cbd& e){ _draw_ctx->clear(full); }));
+	_render_loop->post(Cb([&, full](CbData& e){ _draw_ctx->clear(full); }));
 }
 
 void GUIApplication::set_default_text_background_color(TextColor value) {

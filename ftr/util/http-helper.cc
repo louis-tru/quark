@@ -32,6 +32,7 @@
 #include "./http.h"
 #include "./fs.h"
 #include "./_uv.h"
+#include "./os.h"
 #include <vector>
 
 namespace ftr {
@@ -97,7 +98,7 @@ namespace ftr {
 					scb->resolve(&data);
 				} else {
 					if ( full_data ) {
-						data.push(buffer);
+						data.push(buffer.collapse_string());
 					}
 				}
 			}
@@ -365,7 +366,7 @@ namespace ftr {
 		static int http_initialized = 0;
 		if ( ! http_initialized++ ) {
 			http_user_agent = String::format("Mozilla/5.0 (%s/%s) ftr/util/"
-													FTR_VERSION " (KHTML, like Gecko)", *os::name(), *sys::version());
+					FTR_VERSION " (KHTML, like Gecko)", os::name().str_c(), os::version().str_c());
 			set_cache_path(Path::temp("http_cache"));
 		}
 	}

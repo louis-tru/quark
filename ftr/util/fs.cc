@@ -333,7 +333,7 @@ namespace ftr {
 			}
 		}
 			
-		void fs_error_cb(Cbd& evt) {
+		void fs_error_cb(CbData& evt) {
 			_delegate->trigger_async_file_error(_host, *evt.error);
 		}
 		

@@ -519,7 +519,7 @@ class RunLoop::Inl: public RunLoop {
 		data.inl = this;
 		data.ok = false;
 
-		typedef CallbackData<RunLoop::PostSyncData> PCbd;
+		typedef CallbackData<RunLoop::PostSyncData> PCbData;
 
 		bool isCur = Thread::current_id() == _thread->id();
 		if (isCur) { // 立即调用
@@ -531,7 +531,7 @@ class RunLoop::Inl: public RunLoop {
 		if (!isCur) {
 			_queue.push_back({
 				0, group, 0,
-				Cb([cb, datap, this](Cbd& e) {
+				Cb([cb, datap, this](CbData& e) {
 					cb->resolve(datap);
 				})
 			});
@@ -744,7 +744,7 @@ uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
 	work->host = this;
 	work->name = name;
 
-	post(Cb([work, this](Cbd& ev) {
+	post(Cb([work, this](CbData& ev) {
 		int r = uv_queue_work(_uv_loop, &work->uv_req,
 													Work::uv_work_cb, Work::uv_after_work_cb);
 		ASSERT(!r);
@@ -759,7 +759,7 @@ uint32_t RunLoop::work(Cb cb, Cb done, cString& name) {
  * @func cancel_work(id)
  */
 void RunLoop::cancel_work(uint32_t id) {
-	post(Cb([=](Cbd& ev) {
+	post(Cb([=](CbData& ev) {
 		for (auto& i : _works) {
 			if (i->id == id) {
 				int r = uv_cancel((uv_req_t*)&i->uv_req);
@@ -807,7 +807,7 @@ void RunLoop::run(uint64_t timeout) {
  */
 void RunLoop::stop() {
 	if ( runing() ) {
-		post(Cb([this](Cbd& se) {
+		post(Cb([this](CbData& se) {
 			uv_stop(_uv_loop);
 		}));
 	}

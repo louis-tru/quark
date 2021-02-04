@@ -55,7 +55,7 @@ static void uv_error(int err, cChar* msg = nullptr) throw(Error) {
 static bool each_sync(std::vector<Dirent>& ls, Cb cb, bool internal) throw(Error) {
 	for ( auto& dirent : ls ) {
 		if ( !internal ) { // 外部优先
-			Cbd d = {0,&dirent,1};
+			CbData d = {0,&dirent,1};
 			cb->call(d);
 			if ( !d.rc ) { // 停止遍历
 				return false;
@@ -68,7 +68,7 @@ static bool each_sync(std::vector<Dirent>& ls, Cb cb, bool internal) throw(Error
 			}
 		}
 		if ( internal ) { // 内部优先
-			Cbd d = {0,&dirent,1};
+			CbData d = {0,&dirent,1};
 			cb->call(d);
 			if ( !d.rc ) { // 停止遍历
 				return false;
@@ -308,7 +308,7 @@ bool FileHelper::chmod_r_sync(cString& path, uint32_t mode, bool* stop_signal) t
 	
 	uv_fs_t req;
 	
-	return each_sync(path, Cb([&](Cbd& d) {
+	return each_sync(path, Cb([&](CbData& d) {
 		if ( *stop_signal ) { // 停止信号
 			d.rc = false;
 		} else {
@@ -330,7 +330,7 @@ bool FileHelper::chown_r_sync(cString& path, uint32_t owner, uint32_t group, boo
 	}
 	uv_fs_t req;
 	
-	return each_sync(path, Cb([&](Cbd& d) {
+	return each_sync(path, Cb([&](CbData& d) {
 		if (*stop_signal) { // 停止信号
 			d.rc = 0;
 		} else {
@@ -352,7 +352,7 @@ bool FileHelper::remove_r_sync(cString& path, bool* stop_signal) throw(Error) {
 	}
 	uv_fs_t req;
 
-	return each_sync_1(path, Cb([&](Cbd& d) {
+	return each_sync_1(path, Cb([&](CbData& d) {
 		if ( *stop_signal ) { // 停止信号
 			d.rc = 0;
 		} else {
@@ -425,7 +425,7 @@ bool FileHelper::copy_r_sync(cString& source, cString& target, bool* stop_signal
 	uint32_t s_len = Path::format("%s", *source).length();
 	String path = Path::format("%s", *target);
 	
-	return each_sync(source, Cb([&](Cbd& d) {
+	return each_sync(source, Cb([&](CbData& d) {
 		
 		Dirent* dirent = static_cast<Dirent*>(d.data);
 		String target = path + dirent->pathname.substr(s_len); // 目标文件

@@ -170,7 +170,7 @@ namespace ftr {
 						async_reject(cb, Error(ERR_INVALID_FILE_PATH, "Invalid file path, \"%s\"", *path), RunLoop::current());
 					} else {
 						RunLoop* loop = RunLoop::current();
-						loop->work(Cb([this, loop, zip, path, stream, cb](Cbd& evt) {
+						loop->work(Cb([this, loop, zip, path, stream, cb](CbData& evt) {
 							read_from_zip(loop, zip, path, stream, cb);
 						}));
 					}

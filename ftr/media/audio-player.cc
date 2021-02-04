@@ -97,7 +97,7 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 					
 					if ( _audio_buffer.total ) {
 						if ( _waiting_buffer ) {
-							_keep->post(Cb([this](Cbd& evt) {
+							_keep->post(Cb([this](CbData& evt) {
 								trigger(GUI_EVENT_WAIT_BUFFER, Float(1.0F)); // trigger source WAIT event
 							}));
 							_waiting_buffer = false;
@@ -106,13 +106,13 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 						MultimediaSourceStatus status = _source->status();
 						if ( status == MULTIMEDIA_SOURCE_STATUS_WAIT ) { // 源..等待数据
 							if ( _waiting_buffer == false ) {
-								_keep->post(Cb([this](Cbd& evt) {
+								_keep->post(Cb([this](CbData& evt) {
 									trigger(GUI_EVENT_WAIT_BUFFER, Float(0.0F)); // trigger source WAIT event
 								}));
 								_waiting_buffer = true;
 							}
 						} else if ( status == MULTIMEDIA_SOURCE_STATUS_EOF ) {
-							_keep->post(Cb([this](Cbd& evt) {
+							_keep->post(Cb([this](CbData& evt) {
 								stop();
 							}));
 							return;
@@ -139,7 +139,7 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 				} else {
 					if ( _status == PLAYER_STATUS_START ) {
 						_status = PLAYER_STATUS_PLAYING;
-						_keep->post(Cb([this](Cbd& evt) {
+						_keep->post(Cb([this](CbData& evt) {
 							trigger(GUI_EVENT_START_PLAY); // trigger start_play event
 						}));
 					}
@@ -194,7 +194,7 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 				ScopeLock scope(_audio_loop_mutex);
 			}
 			if ( is_event ) {
-				_keep->post(Cb([this](Cbd& e){
+				_keep->post(Cb([this](CbData& e){
 					Inl_AudioPlayer(this)->trigger(GUI_EVENT_STOP); // trigger stop event
 				}));
 			}
@@ -277,7 +277,7 @@ void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
 	}
 	
 	// 创建解码器很耗时这会导致主线程延时,所以任务方式发送到工作线程
-	_task_id = _keep->host()->work(Cb([=](Cbd& d) {
+	_task_id = _keep->host()->work(Cb([=](CbData& d) {
 		if (_source != src) return; // 源已被更改,所以取消
 		
 		MediaCodec* audio = MediaCodec::create(MEDIA_TYPE_AUDIO, _source);
@@ -296,7 +296,7 @@ void AudioPlayer::multimedia_source_ready(MultimediaSource* src) {
 		} else {
 			_audio = audio;
 		}
-	}, this/*保持AutoPlayer不释放直到任务结束*/), Cb([=](Cbd& d) { //任务完成后回调
+	}, this/*保持AutoPlayer不释放直到任务结束*/), Cb([=](CbData& d) { //任务完成后回调
 		_task_id = 0; //
 		if ( _source != src ) return;
 		
@@ -458,7 +458,7 @@ bool AudioPlayer::seek(uint64 timeUs) {
 			_audio->release( _audio_buffer );
 			_audio->flush();
 			_pcm->flush();
-			_keep->post(Cb([this](Cbd& e){
+			_keep->post(Cb([this](CbData& e){
 				Inl_AudioPlayer(this)->trigger(GUI_EVENT_SEEK, Uint64(_time)); // trigger seek event
 			}));
 			return true;
@@ -475,7 +475,7 @@ void AudioPlayer::pause() {
 	if ( _status == PLAYER_STATUS_PLAYING && _duration /*没有长度信息不能暂停*/ ) {
 		_status = PLAYER_STATUS_PAUSED;
 		_uninterrupted_play_start_systime = 0;
-		_keep->post(Cb([this](Cbd& e){
+		_keep->post(Cb([this](CbData& e){
 			Inl_AudioPlayer(this)->trigger(GUI_EVENT_PAUSE); // trigger pause event
 		}));
 	}
@@ -489,7 +489,7 @@ void AudioPlayer::resume() {
 	if ( _status == PLAYER_STATUS_PAUSED ) {
 		_status = PLAYER_STATUS_PLAYING;
 		_uninterrupted_play_start_systime = 0;
-		_keep->post(Cb([this](Cbd& e){
+		_keep->post(Cb([this](CbData& e){
 			Inl_AudioPlayer(this)->trigger(GUI_EVENT_RESUME); // trigger resume event
 		}));
 	}

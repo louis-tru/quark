@@ -704,6 +704,7 @@ namespace ftr {
 		int prev = 0;
 		int index = 0;
 		while ((index = index_of(sp, prev)) != -1) {
+			// printf("A,index=%d,prev=%d\n", index, prev);
 			r.push_back(substring(prev, index));
 			prev = index + splen;
 		}

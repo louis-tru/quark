@@ -40,7 +40,7 @@ int test2_opengl(int argc, char *argv[]) { return 0; }
 #endif
 
 #ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_list
+#define TEST_FUNC_NAME test2_str
 #endif
 
 int TEST_FUNC_NAME(int argc, char *argv[]);

@@ -34,26 +34,33 @@
 
 namespace ftr {
 
-	class DefaultStaticCallback: public CallbackCore<Object, Error> {
+	class DefaultCallbackCore: public CallbackCore<Object, Error> {
 	 public:
 		virtual bool retain() { return 1; }
 		virtual void release() {}
-		virtual void call(Cbd& event) const {}
+		virtual void call(CbData& event) const {}
 	};
 
-	static DefaultStaticCallback* default_callback_ = nullptr;
+	static DefaultCallbackCore* default_callback_ = nullptr;
 	static Mutex mutex;
 
-	static inline DefaultStaticCallback* default_callback() {
+	static inline DefaultCallbackCore* default_callback() {
 		if ( !default_callback ) {
 			ScopeLock scope(mutex);
-			default_callback_ = NewRetain<DefaultStaticCallback>();
+			if (!default_callback) {
+				default_callback_ = NewRetain<DefaultCallbackCore>();
+			}
 		}
 		return default_callback_;
 	}
 
 	template<>
-	Callback<Object>::Callback(int type): Handle<CallbackCore<Object, Error>>(default_callback()) {
+	void* Callback<Object>::DefaultCore() {
+		if ( !default_callback ) {
+			ScopeLock scope(mutex);
+			default_callback_ = NewRetain<DefaultCallbackCore>();
+		}
+		return default_callback_;
 	}
 
 	class WrapCallback: public CallbackCore<Object, Error> {
@@ -65,7 +72,7 @@ namespace ftr {
 			Release(_err);
 			Release(_data);
 		}
-		virtual void call(Cbd& evt) const {
+		virtual void call(CbData& evt) const {
 			evt.error = _err;
 			evt.data = _data;
 			_cb->call(evt);

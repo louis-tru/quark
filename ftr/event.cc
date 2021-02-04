@@ -494,7 +494,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 	
 	//  dispatch touch event
 	
-	void dispatch_touchstart(Cbd& evt) {
+	void dispatch_touchstart(CbData& evt) {
 		GUILock lock;
 		Root* r = app_->root();
 		if (r) {
@@ -502,17 +502,17 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 		}
 	}
 	
-	void dispatch_touchmove(Cbd& evt) {
+	void dispatch_touchmove(CbData& evt) {
 		GUILock lock;
 		touchmove(*static_cast<List<GUITouch>*>(evt.data));
 	}
 	
-	void dispatch_touchend(Cbd& evt) {
+	void dispatch_touchend(CbData& evt) {
 		GUILock lock;
 		touchend(*static_cast<List<GUITouch>*>(evt.data), GUI_EVENT_TOUCH_END);
 	}
 	
-	void dispatch_touchcancel(Cbd& evt) {
+	void dispatch_touchcancel(CbData& evt) {
 		GUILock lock;
 		touchend(*static_cast<List<GUITouch>*>(evt.data), GUI_EVENT_TOUCH_CANCEL);
 	}
@@ -816,7 +816,7 @@ GUIEventDispatch::~GUIEventDispatch() {
 void KeyboardAdapter::dispatch(uint keycode, bool unicode,
 															 bool down, int repeat, int device, int source) 
 {
-	async_callback(Cb([=](Cbd& evt) {
+	async_callback(Cb([=](CbData& evt) {
 		GUILock lock;
 		repeat_ = repeat; device_ = device;
 		source_ = source;
@@ -853,7 +853,7 @@ void GUIEventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
 }
 
 void GUIEventDispatch::dispatch_mousemove(float x, float y) {
-	async_callback(Cb([=](Cbd& evt) {
+	async_callback(Cb([=](CbData& evt) {
 		GUILock lock;
 		Vec2 pos(x, y);
 		// set current mouse pos
@@ -867,7 +867,7 @@ void GUIEventDispatch::dispatch_mousemove(float x, float y) {
 }
 
 void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
-	async_callback(Cb([=](Cbd& evt) {
+	async_callback(Cb([=](CbData& evt) {
 		GUILock lock;
 		switch(name) {
 			case KEYCODE_MOUSE_LEFT:
@@ -889,7 +889,7 @@ void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
 }
 
 void GUIEventDispatch::dispatch_ime_delete(int count) {
-	async_callback(Cb([=](Cbd& d) {
+	async_callback(Cb([=](CbData& d) {
 		GUILock lock;
 		if ( _text_input ) {
 			_text_input->input_delete(count);
@@ -901,7 +901,7 @@ void GUIEventDispatch::dispatch_ime_delete(int count) {
 }
 
 void GUIEventDispatch::dispatch_ime_insert(cString& text) {
-	async_callback(Cb([=](Cbd& d) {
+	async_callback(Cb([=](CbData& d) {
 		GUILock lock;
 		if ( _text_input ) {
 			_text_input->input_insert(text);
@@ -910,7 +910,7 @@ void GUIEventDispatch::dispatch_ime_insert(cString& text) {
 }
 
 void GUIEventDispatch::dispatch_ime_marked(cString& text) {
-	async_callback(Cb([=](Cbd& d) {
+	async_callback(Cb([=](CbData& d) {
 		GUILock lock;
 		if ( _text_input ) {
 			_text_input->input_marked(text);
@@ -919,7 +919,7 @@ void GUIEventDispatch::dispatch_ime_marked(cString& text) {
 }
 
 void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
-	async_callback(Cb([=](Cbd& d) {
+	async_callback(Cb([=](CbData& d) {
 		GUILock lock;
 		if ( _text_input ) {
 			_text_input->input_unmark(text);
@@ -928,7 +928,7 @@ void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
 }
 
 void GUIEventDispatch::dispatch_ime_control(KeyboardKeyName name) {
-	async_callback(Cb([=](Cbd& d) {
+	async_callback(Cb([=](CbData& d) {
 		GUILock lock;
 		if ( _text_input ) {
 			_text_input->input_control(name);

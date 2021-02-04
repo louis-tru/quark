@@ -454,7 +454,7 @@ namespace ftr {
 					set_event2(evt);
 					for (auto i = _listener->begin(); i != _listener->end(); ) {
 						auto j = i++;
-						Listener* listener = j.value().listener;
+						Listener* listener = j->listener;
 						if ( listener ) {
 							// TODO:
 							// listener->mListener 如果为空指针或者野指针,会导致程序崩溃。。
@@ -463,7 +463,7 @@ namespace ftr {
 							// 幸好我们的程序是运行在js环境中的,无需对原生的api有过多的依赖。
 							listener->call(evt);
 						} else {
-							_listener->del(j);
+							_listener->erase(j);
 						}
 					}
 				}

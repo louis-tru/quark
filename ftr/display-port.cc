@@ -106,7 +106,7 @@ FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 			_size.width(), _size.height(),
 		};
 		
-		_host->main_loop()->post(Cb([this](Cbd& e){
+		_host->main_loop()->post(Cb([this](CbData& e){
 			FX_TRIGGER(change); // 通知事件
 		}));
 	}
@@ -117,7 +117,7 @@ FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
 	void solve_next_frame() {
 		if (_next_frame.length()) {
 			List<Callback<>>* cb = new List<Callback<>>(move(_next_frame));
-			_host->main_loop()->post(Cb([cb](Cbd& e) {
+			_host->main_loop()->post(Cb([cb](CbData& e) {
 				Handle<List<Callback<>>> handle(cb);
 				for ( auto& i : *cb ) {
 					i.value()->call();
@@ -171,7 +171,7 @@ void DisplayPort::lock_size(float width, float height) {
 		if (_lock_size.width() != width || _lock_size.height() != height) {
 			_lock_size = { width, height };
 			ASSERT(_host->render_loop());
-			_host->render_loop()->post(Cb([this](Cbd& e) {
+			_host->render_loop()->post(Cb([this](CbData& e) {
 				_inl(this)->update_display_port_rl();
 			}));
 		}

@@ -581,7 +581,7 @@ LINUXIMEHelper::~LINUXIMEHelper() {
 }
 void LINUXIMEHelper::open(KeyboardOptions options) {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->set_keyboard_type(options.type);
 		_inl->set_keyboard_return_type(options.return_type);
 		_inl->set_spot_location(options.spot_location);
@@ -593,37 +593,37 @@ void LINUXIMEHelper::open(KeyboardOptions options) {
 }
 void LINUXIMEHelper::close() {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->close();
 	}));
 }
 void LINUXIMEHelper::clear() {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->clear();
 	}));
 }
 void LINUXIMEHelper::set_keyboard_can_backspace(bool can_backspace, bool can_delete) {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->set_keyboard_can_backspace(can_backspace, can_delete);
 	}));
 }
 void LINUXIMEHelper::set_keyboard_type(KeyboardType type) {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->set_keyboard_type(type);
 	}));
 }
 void LINUXIMEHelper::set_keyboard_return_type(KeyboardReturnType type) {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->set_keyboard_return_type(type);
 	}));
 }
 void LINUXIMEHelper::set_spot_location(Vec2 location) {
 	if (!_inl) return;
-	__dispatch_x11_async(Cb([=](Cbd& e){
+	__dispatch_x11_async(Cb([=](CbData& e){
 		_inl->set_spot_location(location);
 	}));
 }

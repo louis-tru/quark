@@ -111,7 +111,7 @@ namespace ftr {
 			typedef CallbackCore<D, E> Core;
 			typedef CallbackData<D, E> Data;
 			enum { kNoop = 0 };
-			Callback(int type = kNoop): Callback<Object>::Callback(type) {}
+			Callback(int type = kNoop): Handle<Core>(static_cast<Core*>(Callback<>::DefaultCore())) {}
 			inline Callback(Core* cb): Handle<Core>(cb) {}
 			inline Callback(const Callback& cb): Handle<Core>(*const_cast<Callback*>(&cb)) {}
 			inline Callback(Callback& cb): Handle<Core>(cb) {}
@@ -138,34 +138,39 @@ namespace ftr {
 				return *this;
 			}
 			inline Core* collapse() { return nullptr; }
+		private:
+			static void* DefaultCore();
+			template<class D2, class E2> friend class Callback;
 	};
 
-	template<> Callback<Object>::Callback(int type);
+	template<> void* Callback<Object>::DefaultCore();
 
 	typedef Callback<> Cb;
-	typedef Cb::Data Cbd;
+	typedef Cb::Data CbData;
+
+	FX_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
 
 	template<class D, class E>
 	FX_EXPORT void async_callback(Callback<D, E> cb, E* e = nullptr, D* d = nullptr, PostMessage* loop = nullptr) {
 		if ( loop ) {
 			_async_callback_and_dealloc(*reinterpret_cast<Cb*>(&cb),
-				e ? new E(std::move(*e)): nullptr, d ? new D(std::move(*d)): nullptr, loop);
+				(Error*)(e ? new E(std::move(*e)): nullptr),
+				(Object*)(d ? new D(std::move(*d)): nullptr), loop
+			);
 		} else {
 			cb->call(e, d);
 		}
 	}
 
-	template<class D, class E>
-	FX_EXPORT void async_resolve(Callback<D, E> cb, D&& data, PostMessage* loop = nullptr) {
-		async_callback(cb, (E*)nullptr, &data, loop);
+	template<class D, class E, class D2>
+	FX_EXPORT inline void async_resolve(Callback<D, E> cb, D2&& data, PostMessage* loop = nullptr) {
+		async_callback(cb, (E*)nullptr, static_cast<D*>(&data), loop);
 	}
 
-	template<class D, class E>
-	FX_EXPORT void async_reject(Callback<D, E> cb, E&& err, PostMessage* loop = nullptr) {
-		async_callback(cb, &err, (D*)nullptr, loop);
+	template<class D, class E, class E2>
+	FX_EXPORT inline void async_reject(Callback<D, E> cb, E2&& err, PostMessage* loop = nullptr) {
+		async_callback(cb, static_cast<E*>(&err), (D*)nullptr, loop);
 	}
-
-	FX_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);
 
 }
 #endif

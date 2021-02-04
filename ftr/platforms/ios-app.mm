@@ -132,11 +132,11 @@ static NSString* app_delegate_name = @"";
 	[coordinator animateAlongsideTransition:^(id context) {
 		Orientation ori = display_port()->orientation();
 		::CGRect rect = app_delegate.glview.frame;
-		app_delegate.app->render_loop()->post(Cb([ori, rect](Cbd& d) {
+		app_delegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
 			gl_draw_context->refresh_surface_size(rect);
 			if (ori != app_delegate.current_orientation) {
 				app_delegate.current_orientation = ori;
-				main_loop()->post(Cb([](Cbd& e) {
+				main_loop()->post(Cb([](CbData& e) {
 					(app_delegate.app)->display_port()->FX_TRIGGER(orientation);
 				}));
 			}
@@ -231,7 +231,7 @@ static NSString* app_delegate_name = @"";
  */
 @implementation ApplicationDelegate
 
-static void render_exec_func(Cbd& evt, Object* ctx) {
+static void render_exec_func(CbData& evt, Object* ctx) {
 	app_delegate.render_task_count--;
 	_inl_app(app_delegate.app)->triggerRender();
 }
@@ -262,7 +262,7 @@ static void render_exec_func(Cbd& evt, Object* ctx) {
 
 - (void)refresh_surface_size {
 	::CGRect rect = app_delegate.glview.frame;
-	_app->render_loop()->post(Cb([self, rect](Cbd& d) {
+	_app->render_loop()->post(Cb([self, rect](CbData& d) {
 		gl_draw_context->refresh_surface_size(rect);
 	}));
 }
@@ -335,7 +335,7 @@ static void render_exec_func(Cbd& evt, Object* ctx) {
 															kEAGLColorFormatRGBA8,
 															kEAGLDrawablePropertyColorFormat, nil];
 	
-	_app->render_loop()->post(Cb([self, layer, rect](Cbd& d) {
+	_app->render_loop()->post(Cb([self, layer, rect](CbData& d) {
 		gl_draw_context->set_surface_view(self.glview, layer);
 		gl_draw_context->refresh_surface_size(rect);
 		_inl_app(self.app)->triggerLoad();
@@ -561,10 +561,10 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 			[app_delegate refresh_status];
 			
 			::CGRect rect = app_delegate.glview.frame;
-			_host->render_loop()->post(Cb([this, rect](Cbd& ev) {
+			_host->render_loop()->post(Cb([this, rect](CbData& ev) {
 				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
-					main_loop()->post(Cb([this](Cbd& e){
+					main_loop()->post(Cb([this](CbData& e){
 						FX_TRIGGER(change);
 					}));
 				}
