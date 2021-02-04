@@ -30,6 +30,7 @@
 
 #include "./string.h"
 #include "./codec.h"
+#include "./handle.h"
 
 namespace ftr {
 
@@ -170,8 +171,10 @@ namespace ftr {
 		return -1;
 	}
 	
-	typedef void* (*AAlloc)(void*, uint32_t, uint32_t*, uint32_t);
-
+	typedef ArrayStringBase::AAlloc AAlloc;
+	typedef _Str::Alloc Alloc;
+	typedef _Str::Size Size;
+	
 	struct _StrTmp {
 		void realloc(uint32_t capacity) {
 			_val = (char*)_aalloc(_val, capacity, &_capacity, sizeof(Char));
@@ -237,9 +240,6 @@ namespace ftr {
 
 	// ---------------------------------------------------------------------
 
-	typedef _Str::Alloc Alloc;
-	typedef _Str::Size Size;
-
 	int32_t vasprintf(char** o, cChar* f, va_list arg) {
 		return ::vasprintf(o, f, arg);
 	}
@@ -248,12 +248,39 @@ namespace ftr {
 		return ::vsnprintf(o, len, f, arg);
 	}
 
-	int32_t _Str::format(char* o, uint32_t len, cChar* f, ...) {
+	int32_t _Str::format_n(char* o, uint32_t len, cChar* f, ...) {
 		va_list arg;
 		va_start(arg, f);
-		int r = vsnprintf((char*)o, len, f, arg);
+		int r = vsnprintf((char*)o, len + 1, f, arg);
 		va_end(arg);
-		return FX_MIN(len - 1, len);
+		return FX_MIN(r, len);
+	}
+	
+	int32_t _Str::format_n(char* o, uint32_t len_o, int32_t i) {
+		return _Str::format_n(o, len_o, "%d", i);
+	}
+	int32_t _Str::format_n(char* o, uint32_t len_o, uint32_t i) {
+		return _Str::format_n(o, len_o, "%u", i);
+	}
+	int32_t _Str::format_n(char* o, uint32_t len_o, int64_t i) {
+		#if FX_ARCH_64BIT
+			return _Str::format_n(o, len_o, "%ld", i);
+		#else
+			return _Str::format_n(o, len_o, "%lld", i);
+		#endif
+	}
+	int32_t _Str::format_n(char* o, uint32_t len_o, uint64_t i) {
+		#if FX_ARCH_64BIT
+			return _Str::format_n(o, len_o, "%lu", i);
+		#else
+			return _Str::format_n(o, len_o, "%llu", i);
+		#endif
+	}
+	int32_t _Str::format_n(char* o, uint32_t len_o, float i) {
+		return _Str::format_n(o, len_o, "%fd", i);
+	}
+	int32_t _Str::format_n(char* o, uint32_t len_o, double i) {
+		return _Str::format_n(o, len_o, "%g", i);
 	}
 
 	void* _Str::format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg) {
@@ -353,6 +380,160 @@ namespace ftr {
 	template <>
 	String ArrayString<>::to_string() const {
 		return *this;
+	}
+	
+	// --------------- ArrayStringBase ---------------
+	
+	typedef ArrayStringBase::LongStr LongStr;
+	typedef ArrayStringBase::ShortStr ShortStr;
+	
+	LongStr* ArrayStringBase::NewLong(uint32_t length, uint32_t capacity, char* val) {
+		auto l = (LongStr*)::malloc(sizeof(LongStr));
+		l->length = length; l->capacity = capacity;
+		l->val = val; l->ref = 1;
+		return l;
+	}
+
+	void ArrayStringBase::Release(LongStr* l, Free free) {
+		FX_ASSERT(l->ref > 0);
+		if ( --l->ref == 0 ) {
+			free(l->val);
+			l->val = nullptr;
+			delete l; // 只有当引用记数变成0才会释放
+		}
+	}
+	
+	void ArrayStringBase::clear(Free free) {
+		if (_val.s.length < 0) {
+			Release(_val.l, free);
+		}
+		_val.s.length = 0;
+	}
+	
+	void ArrayStringBase::Retain(LongStr* l) { // retain long string
+		l->ref++;
+	}
+
+	ArrayStringBase::ArrayStringBase(): _val({.s={{0},0}}) {
+	} // empty
+	
+	ArrayStringBase::ArrayStringBase(const ArrayStringBase& str): _val(str._val)
+	{
+		if (_val.s.length < 0)
+			Retain(_val.l);
+	} // copy
+	
+	ArrayStringBase::ArrayStringBase(uint32_t len, AAlloc aalloc, uint8_t size_of)
+		: _val({.s={{0},0}})
+	{
+		realloc(len, aalloc, nullptr, size_of); // alloc
+	}
+	
+	ArrayStringBase::ArrayStringBase(uint32_t l, uint32_t c, char* v, uint8_t size_of)
+		: _val({.s={{0},0}})
+	{ // use long string
+		if (v) {
+			_val.s.length = -1; // mark long string
+			_val.l = NewLong(l * size_of, c * size_of, v);
+		}
+	}
+	void ArrayStringBase::assign(uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free) {
+		assign( ArrayStringBase(len, capacity, val, size_of), free);
+	}
+	
+	void ArrayStringBase::assign(const ArrayStringBase& s, Free free) {
+		if (s._val.s.length < 0) { // long
+			if (_val.s.length < 0) { // long
+				if (_val.l == s._val.l) {
+					return;
+				}
+				Release(_val.l, free);
+			}
+			Retain(s._val.l);
+			_val = s._val;
+		} else { // short
+			if (_val.s.length < 0) { // long
+				Release(_val.l, free);
+			}
+			_val = s._val;
+		}
+	}
+
+	uint32_t ArrayStringBase::size() const {
+		return _val.s.length < 0 ? _val.l->length: _val.s.length;
+	}
+	
+	uint32_t ArrayStringBase::capacity() const {
+		return _val.s.length < 0 ? _val.l->capacity: MAX_SHORT_LEN;
+	}
+	
+	char* ArrayStringBase::data() {
+		return _val.s.length < 0 ? _val.l->val: (char*)_val.s.val;
+	}
+
+	const char* ArrayStringBase::data() const {
+		return _val.s.length < 0 ? _val.l->val: (const char*)_val.s.val;
+	}
+	
+	char* ArrayStringBase::realloc(uint32_t len, AAlloc aalloc, Free free, uint8_t size_of) {
+		len *= size_of;
+		if (_val.s.length < 0) { // long
+			if (_val.l->ref > 1) {
+				// TODO 需要从共享核心中分离出来, 多个线程同时使用一个LongStr可能的安全问题
+				auto leave = _val.l;
+				_val.l = NewLong(len, 0, nullptr);
+				_val.l->val = (char*)aalloc(_val.l->val, len + size_of, &_val.l->capacity, 1);
+				::memcpy(_val.l->val, leave->val, FX_MIN(len, leave->length));
+				Release(leave, free); // release old
+			} else {
+				_val.l->length = len;
+				_val.l->val = (char*)aalloc(_val.l->val, len + size_of, &_val.l->capacity, 1);
+			}
+		} else if (len > MAX_SHORT_LEN) {
+			_val.s.length = -1; // mark long string
+			_val.l = NewLong(len, 0, nullptr);
+			_val.l->val = (char*)aalloc(_val.l->val, len + size_of, &_val.l->capacity, 1);
+		} else { // use short string
+			_val.s.length = len;
+			::memset(_val.s.val + len, 0, size_of);
+			return _val.s.val;
+		}
+		::memset(_val.l->val + len, 0, size_of);
+		return _val.l->val;
+	}
+
+	Buffer ArrayStringBase::collapse(AAlloc aalloc, Free free) {
+		uint32_t s_len = _val.s.length;
+		if (s_len < 0) {
+			// long string
+			if (_val.l->length == 0) {
+				return Buffer();
+			} else { // collapse
+				uint32_t len = _val.l->length;
+				uint32_t capacity = _val.l->length;
+				char* val = _val.l->val;
+				if (_val.l->ref > 1) { //
+					val = (char*)aalloc(nullptr, capacity, &capacity, 1);
+					::memcpy(val, _val.l->val, capacity);
+					Release(_val.l, free); // release ref
+				} else {
+					delete _val.l; // full delete
+				}
+				_val.s = {{0},0}; // use empty string
+				return Buffer::from(val, len, capacity);
+			}
+		} else {
+			// short string
+			if (s_len == 0) {
+				return Buffer();
+			} else {
+				uint32_t capacity;
+				char* val = (char*)aalloc(nullptr, MAX_SHORT_LEN + 4, &capacity, 1);
+				::memcpy(val, _val.s.val, MAX_SHORT_LEN + 4);
+				_val.s = {{0},0}; // use empty string
+				return Buffer::from(val, s_len, capacity);
+			}
+		}
 	}
 
 }

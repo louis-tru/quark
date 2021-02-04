@@ -145,6 +145,7 @@ void test_str2() {
 		s.replace_all("A", "V");
 		cout
 		<< endl
+		<< "length:" << sv.length() << endl
 		<< sv.index_of("B") << endl
 		<< sv.last_index_of("B") << endl
 		<< endl;
