@@ -460,7 +460,7 @@ namespace ftr {
 		template<> ArrayBuffer<T, A>     ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const \
 
 	#define FX_DEF_ARRAY_SPECIAL_ALL(T) \
-//		FX_DEF_ARRAY_SPECIAL(T, MemoryAllocator)
+		FX_DEF_ARRAY_SPECIAL(T, MemoryAllocator)
 
 	FX_DEF_ARRAY_SPECIAL_ALL(char);
 	FX_DEF_ARRAY_SPECIAL_ALL(unsigned char);
