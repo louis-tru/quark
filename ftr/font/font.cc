@@ -28,19 +28,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
-#include "ftr/util/buffer.h"
-#include "font-1.h"
-#include "native-font.h"
-#include "ftr/bezier.h"
-#include "ftr/texture.h"
-#include "ftr/display-port.h"
-#include "ftr/draw.h"
-#include "ftr/app.h"
-#include "ftr/app-1.h"
+#include <native-font.h>
+#include "../util/os.h"
+#include "../util/buffer.h"
+#include "./_font.h"
+#include "../math/bezier.h"
+#include "../texture.h"
+#include "../display-port.h"
+#include "../draw/draw.h"
+#include "../app.h"
+#include "../_app.h"
 
-#include "font.cc.levels.inl"
-#include "font.cc.all.inl"
+#include "./font.cc.levels.inl"
+#include "./font.cc.all.inl"
 
 #ifndef FX_SUPPORT_MAX_TEXTURE_FONT_SIZE
 #define FX_SUPPORT_MAX_TEXTURE_FONT_SIZE 512

@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "media-codec-1.h"
-#include "ftr/util/loop.h"
-#include "ftr/app.h"
-#include "ftr/errno.h"
+#include "./_media-codec.h"
+#include "../util/loop.h"
+#include "../app.h"
+#include "../errno.h"
 
 namespace ftr {
 

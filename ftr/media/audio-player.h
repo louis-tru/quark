@@ -31,10 +31,10 @@
 #ifndef __ftr__media__audio_player__
 #define __ftr__media__audio_player__
 
-#include "ftr/event.h"
-#include "ftr/media.h"
-#include "ftr/pcm-player.h"
-#include "ftr/media-codec.h"
+#include "../event.h"
+#include "./media.h"
+#include "./pcm.h"
+#include "./media-codec.h"
 
 namespace ftr {
 

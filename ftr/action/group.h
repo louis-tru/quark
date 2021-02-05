@@ -31,7 +31,7 @@
 #ifndef __ftr__action__group__
 #define __ftr__action__group__
 
-#include "ftr/action/action.h"
+#include "../action/action.h"
 
 namespace ftr {
 

@@ -31,7 +31,7 @@
 #ifndef __ftr__math__math__
 #define __ftr__math__math__
 
-#include "ftr/util/util.h"
+#include "../util/util.h"
 
 
 #define T_PI 3.1415926535898f                   // PI

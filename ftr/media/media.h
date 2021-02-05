@@ -31,7 +31,7 @@
 #ifndef __ftr__media__media__
 #define __ftr__media__media__
 
-#include "ftr/util/string.h"
+#include "../util/string.h"
 
 #ifndef FX_NO_MEDIA_DYNAMIC_LIB
 # define FX_MEDIA_DYNAMIC virtual

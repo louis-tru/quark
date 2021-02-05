@@ -31,12 +31,12 @@
 #ifndef __ftr__media__media_codec__
 #define __ftr__media__media_codec__
 
-#include "ftr/util/util.h"
-#include "ftr/util/string.h"
-#include "ftr/util/buffer.h"
-#include "ftr/util/http.h"
-#include "ftr/image-codec.h"
-#include "ftr/media.h"
+#include "../util/util.h"
+#include "../util/string.h"
+#include "../util/buffer.h"
+#include "../util/http.h"
+#include "../codec/codec.h"
+#include "./media.h"
 
 typedef struct AVStream AVStream;
 

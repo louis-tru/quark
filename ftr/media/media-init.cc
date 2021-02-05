@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "pcm-player.h"
-#include "audio-player.h"
-#include "video.h"
+#include "./pcm.h"
+#include "./audio-player.h"
+#include "../views/video.h"
 
 namespace ftr {
 

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/gl/gl.h"
-#include "ftr/font/font-1.h"
-#include "ftr/display-port.h"
+#include "../gl.h"
+#include "../font/font-1.h"
+#include "../display-port.h"
 
 namespace ftr {
 

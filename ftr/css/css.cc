@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "css.h"
+#include "./css.h"
 #include "view.h"
 
 namespace ftr {

@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
-#include "ftr/util/string.h"
+#include "./codec.h"
+#include "../util/string.h"
 
 namespace ftr {
 

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/version.h"
-#include "ftr/util/json.h"
-#include "tinyxml2.h"
+#include "../version.h"
+#include "../util/json.h"
+#include <tinyxml2.h>
 
 namespace ftr {
 

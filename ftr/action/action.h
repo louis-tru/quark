@@ -31,14 +31,14 @@
 #ifndef __ftr__action__
 #define __ftr__action__
 
-#include "ftr/util/array.h"
-#include "ftr/util/list.h"
-#include "ftr/util/map.h"
-#include "ftr/value.h"
-#include "ftr/math/bezier.h"
-#include "ftr/event.h"
-#include "ftr/property.h"
-#include "ftr/background.h"
+#include "../util/array.h"
+#include "../util/list.h"
+#include "../util/map.h"
+#include "../value.h"
+#include "../math/bezier.h"
+#include "../event.h"
+#include "../property.h"
+#include "../background.h"
 
 namespace ftr {
 

@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "media-codec-1.h"
+#include "./_media-codec.h"
 
 namespace ftr {
 

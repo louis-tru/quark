@@ -31,8 +31,8 @@
 #ifndef __ftr__styles__name__
 #define __ftr__styles__name__
 
-#include "ftr/util/array.h"
-#include "ftr/util/string.h"
+#include "../util/array.h"
+#include "../util/string.h"
 
 namespace ftr {
 

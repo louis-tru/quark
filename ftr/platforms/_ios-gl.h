@@ -31,7 +31,7 @@
 #ifndef __ftr__ios_gl__
 #define __ftr__ios_gl__
 
-#import "ftr/util/macros.h"
+#import "../util/macros.h"
 
 #if FX_IOS
 

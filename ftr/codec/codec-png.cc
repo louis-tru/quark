@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/image-codec.h"
+#include "./codec.h"
 #include <png.h>
 
 namespace ftr {

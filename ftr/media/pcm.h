@@ -31,8 +31,8 @@
 #ifndef __ftr__media__pcm__
 #define __ftr__media__pcm__
 
-#include "ftr/util/util.h"
-#include "ftr/util/buffer.h"
+#include "../util/util.h"
+#include "../util/buffer.h"
 
 namespace ftr {
 

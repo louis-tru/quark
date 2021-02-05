@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/gl/gl.h"
-#include "ftr/texture.h"
-#include "ftr/font/font-1.h"
-#include "native-glsl.h"
+#include "./gl.h"
+#include "../texture.h"
+#include "../font/_font.h"
+#include <native-glsl.h>
 
 #define gl_  glshaders(this)
 

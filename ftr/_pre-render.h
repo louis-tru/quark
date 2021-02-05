@@ -41,65 +41,65 @@
 
 namespace ftr {
 
-class View;
+	class View;
 
-/**
- * @class PreRender 预渲染
- */
-class FX_EXPORT PreRender: public Object {
-	FX_HIDDEN_ALL_COPY(PreRender);
- public:
-	
-	PreRender();
-	
-	virtual ~PreRender();
-	
-	class FX_EXPORT Task {
-	 public:
-		typedef List<Task*>::Iterator ID;
-		inline Task(): _timeout(0) { }
-		virtual ~Task();
-		virtual bool run_task(int64 sys_time) = 0;
-		void register_task();
-		void unregister_task();
-		inline bool is_register_task() const { return !_task_id.is_null(); }
-		inline ID get_task_id() const { return _task_id; }
-		inline void set_task_id(ID id) { _task_id = id; }
-		inline int64 get_task_timeout() const { return _timeout; }
-		inline void set_task_timeout(int64 timeout_us) { _timeout = timeout_us; }
-	 private:
-		ID    _task_id;
-		int64 _timeout;
+	/**
+	* @class PreRender 预渲染
+	*/
+	class FX_EXPORT PreRender: public Object {
+			FX_HIDDEN_ALL_COPY(PreRender);
+		public:
+
+			PreRender();
+
+			virtual ~PreRender();
+
+			class FX_EXPORT Task {
+				public:
+					typedef List<Task*>::Iterator ID;
+					inline Task(): _timeout(0) { }
+					virtual ~Task();
+					virtual bool run_task(int64 sys_time) = 0;
+					void register_task();
+					void unregister_task();
+					inline bool is_register_task() const { return !_task_id.is_null(); }
+					inline ID get_task_id() const { return _task_id; }
+					inline void set_task_id(ID id) { _task_id = id; }
+					inline int64 get_task_timeout() const { return _timeout; }
+					inline void set_task_timeout(int64 timeout_us) { _timeout = timeout_us; }
+				private:
+					ID    _task_id;
+					int64 _timeout;
+			};
+
+			/**
+				* @func solve 解决预先渲染问题,如果需要更新视图返回true
+				*/
+			bool solve(int64 now_time);
+
+			/**
+				* @func mark_pre
+				*/
+			void mark_pre(View* view);
+
+		private:
+
+			bool         _mark_pre;    // 是否有layout标记
+			Array<View*> _marks;       // 被标记的视图
+			List<Task*>  _tasks;
+			static PreRender* _pre_render;
+
+			friend PreRender* pre_render();
+
+			FX_DEFINE_INLINE_CLASS(Inl)
 	};
-	
-	/**
-	 * @func solve 解决预先渲染问题,如果需要更新视图返回true
-	 */
-	bool solve(int64 now_time);
-	
-	/**
-	 * @func mark_pre
-	 */
-	void mark_pre(View* view);
-	
- private:
-	
-	bool         _mark_pre;    // 是否有layout标记
-	Array<View*> _marks;       // 被标记的视图
-	List<Task*>  _tasks;
-	static PreRender* _pre_render;
-	
-	friend PreRender* pre_render();
-	
-	FX_DEFINE_INLINE_CLASS(Inl)
-};
 
-/**
- * @func pre_render
- */
-inline PreRender* pre_render() {
-	return PreRender::_pre_render;
-}
+	/**
+	* @func pre_render
+	*/
+	inline PreRender* pre_render() {
+		return PreRender::_pre_render;
+	}
 
 }
 #endif

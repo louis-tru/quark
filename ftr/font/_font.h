@@ -35,10 +35,10 @@
 #include <freetype/freetype.h>
 #include <freetype/ftoutln.h>
 #include <tesselator.h>
-#include "ftr/util/fs.h"
-#include "ftr/font.h"
-#include "ftr/bezier.h"
-#include "ftr/draw.h"
+#include "../util/fs.h"
+#include "./font.h"
+#include "../math/bezier.h"
+#include "../draw/draw.h"
 
 namespace ftr {
 

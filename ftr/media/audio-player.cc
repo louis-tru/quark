@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "audio-player.h"
-#include "app.h"
-#include "errno.h"
+#include "./audio-player.h"
+#include "../app.h"
+#include "../errno.h"
 
 namespace ftr {
 

@@ -76,11 +76,11 @@ void Font::Inl::initialize(
 }
 
 /**
- * @func move_to # 新的多边形开始
+ * @func move_to # 鏂扮殑澶氳竟褰㈠紑濮�
  */
 int Font::Inl::move_to(const FT_Vector* to, void* user) {
 	DecomposeData* data = static_cast<DecomposeData*>(user);
-	if (data->length) { // 添加一个多边形
+	if (data->length) { // 娣诲姞涓€涓杈瑰舰
 		tessAddContour(data->tess, 2, *data->vertex, sizeof(Vec2), data->length);
 		data->length = 0;
 	}
@@ -93,7 +93,7 @@ int Font::Inl::move_to(const FT_Vector* to, void* user) {
 }
 
 /**
- * @func line_to # 一次贝塞尔点（直线）
+ * @func line_to # 涓€娆¤礉濉炲皵鐐癸紙鐩寸嚎锛�
  */
 int Font::Inl::line_to(const FT_Vector* to, void* user) {
 	DecomposeData* data = static_cast<DecomposeData*>(user);
@@ -105,21 +105,21 @@ int Font::Inl::line_to(const FT_Vector* to, void* user) {
 }
 
 /**
- * @func line_to # 二次贝塞尔曲线点,转换到一次塞尔点
+ * @func line_to # 浜屾璐濆灏旀洸绾跨偣,杞崲鍒颁竴娆″灏旂偣
  */
 int Font::Inl::conic_to(const FT_Vector* control, const FT_Vector* to, void* user) {
 	DecomposeData* data = static_cast<DecomposeData*>(user);
 	Vec2 p2 = Vec2(to->x, -to->y);
 	//  LOG("conic_to:%d,%d|%d,%d", control->x, control->y, to->x, to->y);
 	QuadraticBezier bezier(data->p0, Vec2(control->x, -control->y), p2);
-	// 使用10点采样,采样越多越能还原曲线,但需要更多有存储空间
+	// 浣跨敤10鐐归噰鏍�,閲囨牱瓒婂瓒婅兘杩樺師鏇茬嚎,浣嗛渶瑕佹洿澶氭湁瀛樺偍绌洪棿
 	bezier.sample_curve_points(data->sample, (float*)(data->push_vertex(data->sample - 1) - 1));
 	data->p0 = p2;
 	return FT_Err_Ok;
 }
 
 /**
- * @func line_to # 三次贝塞尔曲线点,转换到一次塞尔点
+ * @func line_to # 涓夋璐濆灏旀洸绾跨偣,杞崲鍒颁竴娆″灏旂偣
  */
 int Font::Inl::cubic_to(const FT_Vector* control1,
 												const FT_Vector* control2,
@@ -154,7 +154,7 @@ void Font::Inl::del_glyph_data(GlyphContainer* container) {
 			}
 			
 			for ( int i = 1; i < 12; i++ ) {
-				if ( glyph->_textures[i] ) { // 删除纹理
+				if ( glyph->_textures[i] ) { // 鍒犻櫎绾圭悊
 					ctx->del_texture( glyph->_textures[i] );
 				}
 			}
@@ -269,12 +269,12 @@ FontGlyph* Font::Inl::get_glyph(uint16_t unicode, uint region,
 
 /**
  * @func clear
- * 在调用这个方法后此前通过任何途径获取到的字型数据将不能再使用
- * 包括从FontGlyphTable获取到的字型,调用FontGlyphTable::Inl.clear_table()可清理引用
+ * 鍦ㄨ皟鐢ㄨ繖涓柟娉曞悗姝ゅ墠閫氳繃浠讳綍閫斿緞鑾峰彇鍒扮殑瀛楀瀷鏁版嵁灏嗕笉鑳藉啀浣跨敤
+ * 鍖呮嫭浠嶧ontGlyphTable鑾峰彇鍒扮殑瀛楀瀷,璋冪敤FontGlyphTable::Inl.clear_table()鍙竻鐞嗗紩鐢�
  */
 void Font::Inl::clear(bool full) {
 	if ( _ft_face ) {
-		if ( full ) { // 完全清理
+		if ( full ) { // 瀹屽叏娓呯悊
 			
 			for (int i = 0; i < 512; i++) {
 				del_glyph_data( _containers[i] );
@@ -296,7 +296,7 @@ void Font::Inl::clear(bool full) {
 			};
 			uint64 total_data_size = 0;
 			List<Container> containers_sort;
-			// 按使用使用次数排序
+			// 鎸変娇鐢ㄤ娇鐢ㄦ鏁版帓搴�
 			for (int regioni = 0; regioni < 512; regioni++) {
 				GlyphContainer* con = _containers[regioni];
 				if ( con ) {
@@ -315,7 +315,7 @@ void Font::Inl::clear(bool full) {
 					}
 					total_data_size += con->data_size;
 					con->use_count /= 2;
-				} else { // 容器不存在,标志也不需要存在
+				} else { // 瀹瑰櫒涓嶅瓨鍦�,鏍囧織涔熶笉闇€瑕佸瓨鍦�
 					delete _flags[regioni]; _flags[regioni] = nullptr;
 				}
 			}
@@ -323,7 +323,7 @@ void Font::Inl::clear(bool full) {
 			if ( containers_sort.length() ) {
 				uint64 total_data_size_1_3 = total_data_size / 3;
 				uint64 del_data_size = 0;
-				// 从排序列表顶部开始删除总容量的1/3,并置零容器使用次数
+				// 浠庢帓搴忓垪琛ㄩ《閮ㄥ紑濮嬪垹闄ゆ€诲閲忕殑1/3,骞剁疆闆跺鍣ㄤ娇鐢ㄦ鏁�
 				auto last = --containers_sort.end();
 				
 				for ( auto it = containers_sort.begin(); it != last; it++ ) {
@@ -335,7 +335,7 @@ void Font::Inl::clear(bool full) {
 						delete _flags[region]; _flags[region] = nullptr;
 					}
 				}
-				// 如果删除到最后一个容器还不足总容量的1/3,并且最后一个容器总容量超过512kb也一并删除
+				// 濡傛灉鍒犻櫎鍒版渶鍚庝竴涓鍣ㄨ繕涓嶈冻鎬诲閲忕殑1/3,骞朵笖鏈€鍚庝竴涓鍣ㄦ€诲閲忚秴杩�512kb涔熶竴骞跺垹闄�
 				if ( del_data_size < total_data_size_1_3 ) {
 					if ( last.value().container->data_size > 512 * 1024 ) {
 						int region = last.value().region;
@@ -381,7 +381,7 @@ bool Font::load() {
 		
 		_ft_glyph = ((FT_Face)_ft_face)->glyph;
 		
-		if ( ! _containers ) { // 创建块容器
+		if ( ! _containers ) { // 鍒涘缓鍧楀鍣�
 			_containers = new GlyphContainer*[512];
 			_flags = new GlyphContainerFlag*[512];
 			memset( _containers, 0, sizeof(GlyphContainer*) * 512);
@@ -449,7 +449,7 @@ class FontFromData: public Font {
  */
 class FontFromFile: public Font {
  public:
-	String  _font_path;    // 字体文件路径
+	String  _font_path;    // 瀛椾綋鏂囦欢璺緞
 	
 	FontFromFile(cString& path) : _font_path(path) { }
 	
@@ -504,23 +504,23 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 		for ( auto& i : _ffid->names() ) {
 			Font* font = _pool->get_font(i.value(), _style);
 			if ( font && !fonts_name.has(font->name()) ) {
-				if ( font->load() ) { // 载入字体
+				if ( font->load() ) { // 杞藉叆瀛椾綋
 					_fonts.push(font);
 					fonts_name.set(font->name(), true);
 				}
 			}
 		}
 		
-		/* 如果使用icon图标字体时，加入默认字体会导致不同系统`ascender`与`descender`有所差异,
-		 * 从而导致不同系统的字体基线的位置不相同，无法使用`icon`精准排版，
-		 * 为了使用这个`icon`进行精准排版现在暂时做例外处理，在使用`icon`字体名称时不加入默认字体
+		/* 濡傛灉浣跨敤icon鍥炬爣瀛椾綋鏃讹紝鍔犲叆榛樿瀛椾綋浼氬鑷翠笉鍚岀郴缁焋ascender`涓巂descender`鏈夋墍宸紓,
+		 * 浠庤€屽鑷翠笉鍚岀郴缁熺殑瀛椾綋鍩虹嚎鐨勪綅缃笉鐩稿悓锛屾棤娉曚娇鐢╜icon`绮惧噯鎺掔増锛�
+		 * 涓轰簡浣跨敤杩欎釜`icon`杩涜绮惧噯鎺掔増鐜板湪鏆傛椂鍋氫緥澶栧鐞嗭紝鍦ㄤ娇鐢╜icon`瀛椾綋鍚嶇О鏃朵笉鍔犲叆榛樿瀛椾綋
 		 */
 		
 		if (_ffid->code() != 2090550926) {
 			for ( auto& i : _pool->_default_fonts ) {
 				Font* font = i.value()->font(_style);
-				if ( ! fonts_name.has(font->name()) ) { // 避免重复的名称
-					if ( font->load() ) { // 载入字体
+				if ( ! fonts_name.has(font->name()) ) { // 閬垮厤閲嶅鐨勫悕绉�
+					if ( font->load() ) { // 杞藉叆瀛椾綋
 						_fonts.push(font);
 						fonts_name.set(font->name(), true);
 					}
@@ -530,7 +530,7 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 			ASSERT(_ffid->name() == "icon");
 		}
 		
-		// 查找最大高度与行高度
+		// 鏌ユ壘鏈€澶ч珮搴︿笌琛岄珮搴�
 		_height = 0;
 		_ascender = 0;
 		_descender = 0;
@@ -590,7 +590,7 @@ class FontGlyphTable::Inl: public FontGlyphTable {
 			} while (begin != end);
 		}
 		
-		/* TODO 使用一个默认字形  � 65533 */
+		/* TODO 浣跨敤涓€涓粯璁ゅ瓧褰�  锟� 65533 */
 		Font* font = _pool->_spare_family->font(_style);
 		
 		glyph = _inl_font(font)->get_glyph(65533, 65533 / 128, 65533 % 128, level, vector);
@@ -618,7 +618,7 @@ FontGlyph* FontGlyphTable::glyph(uint16_t unicode) {
 }
 
 /**
- * @func use_texture_glyph 使用纹理字型
+ * @func use_texture_glyph 浣跨敤绾圭悊瀛楀瀷
  */
 FontGlyph* FontGlyphTable::use_texture_glyph(uint16_t unicode, FGTexureLevel level) {
 	ASSERT(level < FontGlyph::LEVEL_NONE);
@@ -629,7 +629,7 @@ FontGlyph* FontGlyphTable::use_texture_glyph(uint16_t unicode, FGTexureLevel lev
 		if ( glyph->has_texure_level(level) ) {
 			glyph->_container->use_count++; return glyph;
 		}
-		else { // 先尝试使用最快的方法
+		else { // 鍏堝皾璇曚娇鐢ㄦ渶蹇殑鏂规硶
 			if ( _inl_font(glyph->font())->set_texture_data(glyph, level) ) { //
 				glyph->_container->use_count++; return glyph;
 			}
@@ -641,7 +641,7 @@ FontGlyph* FontGlyphTable::use_texture_glyph(uint16_t unicode, FGTexureLevel lev
 }
 
 /**
- * @func use_vector_glyph # 使用字型,并且载入vbo矢量顶点数据
+ * @func use_vector_glyph # 浣跨敤瀛楀瀷,骞朵笖杞藉叆vbo鐭㈤噺椤剁偣鏁版嵁
  */
 FontGlyph* FontGlyphTable::use_vector_glyph(uint16_t unicode) {
 	FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
@@ -650,7 +650,7 @@ FontGlyph* FontGlyphTable::use_vector_glyph(uint16_t unicode) {
 		if ( glyph->vertex_data() ) {
 			glyph->_container->use_count++; return glyph;
 		}
-		else { // 先尝试使用最快的方法
+		else { // 鍏堝皾璇曚娇鐢ㄦ渶蹇殑鏂规硶
 			if ( _inl_font(glyph->font())->set_vertex_data(glyph) ) { //
 				glyph->_container->use_count++; return glyph;
 			}
@@ -746,7 +746,7 @@ Font* FontFamily::font(TextStyleEnum style) {
 	int big = index + 1;
 	int small = index - 1;
 	
-	// 查找相邻字重
+	// 鏌ユ壘鐩搁偦瀛楅噸
 	while (big < 19 || small >= 0) {
 		if ( small >= 0 ) {
 			font = _fonts[small];

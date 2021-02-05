@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "bezier.h"
+#include "./bezier.h"
 #include <math.h>
 
 namespace ftr {

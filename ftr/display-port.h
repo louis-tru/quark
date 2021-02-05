@@ -31,12 +31,12 @@
 #ifndef __ftr__display_port__
 #define __ftr__display_port__
 
-#include "ftr/util/util.h"
-#include "ftr/util/event.h"
-#include "ftr/util/list.h"
-#include "ftr/mathe.h"
-#include "ftr/value.h"
-#include "ftr/util/cb.h"
+#include "./util/util.h"
+#include "./util/event.h"
+#include "./util/list.h"
+#include "./math/math.h"
+#include "./value.h"
+#include "./util/cb.h"
 
 namespace ftr {
 

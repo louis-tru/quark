@@ -31,9 +31,7 @@
 #ifndef __ftr__css_scope__
 #define __ftr__css_scope__
 
-#include "ftr/css/sheets.h"
-#include "ftr/util/list.h"
-#include "ftr/util/map.h"
+#include "./sheets.h"
 
 namespace ftr {
 

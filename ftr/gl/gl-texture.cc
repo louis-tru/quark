@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/texture.h"
-#include "ftr/gl/gl.h"
-#include "ftr/sys.h"
-#include "native-glsl.h"
+#include "./gl.h"
+#include "../texture.h"
+#include "../util/os.h"
+#include <native-glsl.h>
 
 namespace ftr {
 

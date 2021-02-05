@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/action.h"
-#include "ftr/view.h"
-#include "ftr/app.h"
-#include "ftr/errno.h"
+#include "../action.h"
+#include "../view.h"
+#include "../app.h"
+#include "../errno.h"
 
 namespace ftr {
 

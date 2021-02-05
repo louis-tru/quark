@@ -31,8 +31,8 @@
 #ifndef __ftr__codec_codec__
 #define __ftr__codec_codec__
 
-#include <ftr/util/handle.h>
-#include <ftr/util/buffer.h>
+#include "../util/handle.h"
+#include "../util/buffer.h"
 #include <vec>
 
 namespace ftr {

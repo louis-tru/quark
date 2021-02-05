@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "media.h"
+#include "./media.h"
 #include <uv.h>
 
 namespace ftr {

@@ -31,13 +31,11 @@
 #ifndef __ftr__styles__
 #define __ftr__styles__
 
-#include "ftr/util/util.h"
-#include "ftr/util/map.h"
-#include "ftr/util/string.h"
-#include "ftr/util/list.h"
-#include "ftr/property.h"
-#include "ftr/value.h"
-#include "ftr/action.h"
+#include "../util/util.h"
+#include "../util/string.h"
+#include "../property.h"
+#include "../value.h"
+#include "../action/action.h"
 
 namespace ftr {
 

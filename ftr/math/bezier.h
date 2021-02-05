@@ -31,8 +31,8 @@
 #ifndef __ftr__math__bezier__
 #define __ftr__math__bezier__
 
-#include "ftr/math/math.h"
-#include "ftr/util/buffer.h"
+#include "./math.h"
+#include "../util/buffer.h"
 
 namespace ftr {
 

@@ -31,10 +31,9 @@
 #ifndef __ftr__font__font__
 #define __ftr__font__font__
 
-#include "ftr/util/array.h"
-#include "ftr/util/map.h"
-#include "ftr/draw.h"
-#include "ftr/value.h"
+#include "../util/array.h"
+#include "../draw/draw.h"
+#include "../value.h"
 
 namespace ftr {
 

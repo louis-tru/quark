@@ -36,8 +36,8 @@ extern "C" {
 # include <libavformat/avformat.h>
 # include <libswresample/swresample.h>
 }
-#include "ftr/media-codec.h"
-#include "ftr/util/loop-1.h"
+#include "./media-codec.h"
+#include "../util/_working.h"
 
 namespace ftr {
 
