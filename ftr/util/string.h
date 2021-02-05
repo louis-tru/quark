@@ -292,7 +292,7 @@ namespace ftr {
 	template <typename T2>
 	ArrayString<T, A>::ArrayString(T2 i)
 	{
-		1 + i; // test number math operation
+		(void)(1 + i); // test number math operation
 		if (sizeof(T) == 1) {
 			_val.s.length = _Str::format_n(data(), MAX_SHORT_LEN, i);
 		} else {

@@ -449,7 +449,7 @@ namespace ftr {
 				}
 				Release(_val.l, free);
 			}
-			Retain(s._val.l);
+			Retain(s._val.l); // Retain long string
 			_val = s._val;
 		} else { // short
 			if (_val.s.length < 0) { // long
@@ -477,6 +477,7 @@ namespace ftr {
 	
 	char* ArrayStringBase::realloc(uint32_t len, AAlloc aalloc, Free free, uint8_t size_of) {
 		len *= size_of;
+		
 		if (_val.s.length < 0) { // long
 			if (_val.l->ref > 1) {
 				// TODO 需要从共享核心中分离出来, 多个线程同时使用一个LongStr可能的安全问题
@@ -489,16 +490,29 @@ namespace ftr {
 				_val.l->length = len;
 				_val.l->val = (char*)aalloc(_val.l->val, len + size_of, &_val.l->capacity, 1);
 			}
-		} else if (len > MAX_SHORT_LEN) {
+		}
+		else if (len > MAX_SHORT_LEN) {
+			auto l = NewLong(len, 0, nullptr);
+			auto v = (char*)aalloc(nullptr, len + size_of, &l->capacity, 1);
+			::memcpy(v, _val.s.val, _val.s.length); // copy string
+			_val.l = l;
 			_val.s.length = -1; // mark long string
-			_val.l = NewLong(len, 0, nullptr);
-			_val.l->val = (char*)aalloc(_val.l->val, len + size_of, &_val.l->capacity, 1);
-		} else { // use short string
+		}
+		else { // use short string
 			_val.s.length = len;
-			::memset(_val.s.val + len, 0, size_of);
+			if (size_of == 1) {
+				_val.s.val[len] = '\0';
+			} else {
+				::memset(_val.s.val + len, 0, size_of);
+			}
 			return _val.s.val;
 		}
-		::memset(_val.l->val + len, 0, size_of);
+		
+		if (size_of == 1) {
+			_val.l->val[len] = '\0';
+		} else {
+			::memset(_val.l->val + len, 0, size_of);
+		}
 		return _val.l->val;
 	}
 

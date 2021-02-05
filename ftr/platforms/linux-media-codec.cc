@@ -32,33 +32,33 @@
 
 namespace ftr {
 
-/**
- * @class LinuxHardwareMediaCodec
- * */
-class LinuxHardwareMediaCodec: public MediaCodec {
- public:
+	/**
+	* @class LinuxHardwareMediaCodec
+	* */
+	class LinuxHardwareMediaCodec: public MediaCodec {
+		public:
 
-	LinuxHardwareMediaCodec(Extractor* extractor)
-	: MediaCodec(extractor) {
-		// TODO ...
-	}
+			LinuxHardwareMediaCodec(Extractor* extractor)
+			: MediaCodec(extractor) {
+				// TODO ...
+			}
+
+			/**
+			* @destructor
+			*/
+			virtual ~LinuxHardwareMediaCodec() {
+				// TODO ...
+			}
+
+		private:
+
+	};
 
 	/**
-	 * @destructor
-	 */
-	virtual ~LinuxHardwareMediaCodec() {
-		// TODO ...
+	* @func hardware
+	*/
+	MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
+		return nullptr;
 	}
-
- private:
-
-};
-
-/**
- * @func hardware
- */
-MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
-	return nullptr;
-}
 
 }
