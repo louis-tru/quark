@@ -28,7 +28,7 @@ check_osx=\
 
 .PHONY: $(FORWARD) ios android linux osx \
 	product install install-ftrp \
-	help web doc watch all all_on_linux all_on_osx init
+	help web doc watch all all_on_linux all_on_osx pull
 
 .SECONDEXPANSION:
 
@@ -123,8 +123,9 @@ help:
 watch:
 	@./tools/sync_watch -h $(REMOTE_COMPILE_HOST)
 
-init: # init git submodule
+pull: # init git submodule
 	@if [ ! -f test/android/app/app.iml ]; then \
 		cp test/android/app/.app.iml test/android/app/app.iml; \
 	fi
-	@git submodule update --init
+	@git pull
+	@git submodule update --init --recursive
