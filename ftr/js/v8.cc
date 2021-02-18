@@ -389,7 +389,7 @@ bool IMPL::SetObjectPrivate(Local<JSObject> object, WrapObject* value) {
  */
 class V8JSClass: public JSClassIMPL {
  public:
-	V8JSClass(Worker* worker, uint64 id, cString& name,
+	V8JSClass(Worker* worker, uint64_t id, cString& name,
 						FunctionCallback constructor, V8JSClass* base,
 						v8::Local<v8::Function> base2 = v8::Local<v8::Function>())
 	: JSClassIMPL(worker, id, name), parent_(base)
@@ -691,7 +691,7 @@ int JSValue::ToInt32Value(Worker* worker) const {
 	return reinterpret_cast<const v8::Value*>(this)->ToInt32()->Value();
 }
 
-uint JSValue::ToUint32Value(Worker* worker) const {
+uint32_t JSValue::ToUint32Value(Worker* worker) const {
 	return reinterpret_cast<const v8::Value*>(this)->ToUint32()->Value();
 }
 
@@ -734,7 +734,7 @@ Local<JSValue> JSObject::Get(Worker* worker, Local<JSValue> key) {
 							Get(CONTEXT(worker), Back(key)).FromMaybe(v8::Local<v8::Value>()));
 }
 
-Local<JSValue> JSObject::Get(Worker* worker, uint index) {
+Local<JSValue> JSObject::Get(Worker* worker, uint32_t index) {
 	return Cast(reinterpret_cast<v8::Object*>(this)->
 							Get(CONTEXT(worker), index).FromMaybe(v8::Local<v8::Value>()));
 }
@@ -744,7 +744,7 @@ bool JSObject::Set(Worker* worker, Local<JSValue> key, Local<JSValue> val) {
 		Set(CONTEXT(worker), Back(key), Back(val)).FromMaybe(false);
 }
 
-bool JSObject::Set(Worker* worker, uint index, Local<JSValue> val) {
+bool JSObject::Set(Worker* worker, uint32_t index, Local<JSValue> val) {
 	return reinterpret_cast<v8::Object*>(this)->
 		Set(CONTEXT(worker), index, Back(val)).FromMaybe(false);
 }
@@ -754,7 +754,7 @@ bool JSObject::Has(Worker* worker, Local<JSValue> key) {
 		Has(CONTEXT(worker), Back(key)).FromMaybe(false);
 }
 
-bool JSObject::Has(Worker* worker, uint index) {
+bool JSObject::Has(Worker* worker, uint32_t index) {
 	return reinterpret_cast<v8::Object*>(this)->
 		Has(CONTEXT(worker), index).FromMaybe(false);
 }
@@ -763,7 +763,7 @@ bool JSObject::JSObject::Delete(Worker* worker, Local<JSValue> key) {
 	return reinterpret_cast<v8::Object*>(this)->Delete(CONTEXT(worker), Back(key)).FromMaybe(false);
 }
 
-bool JSObject::Delete(Worker* worker, uint index) {
+bool JSObject::Delete(Worker* worker, uint32_t index) {
 	return reinterpret_cast<v8::Object*>(this)->Delete(CONTEXT(worker), index).FromMaybe(false);
 }
 
@@ -820,10 +820,10 @@ double JSNumber::Value(Worker* worker) const {
 int JSInt32::Value(Worker* worker) const {
 	return reinterpret_cast<const v8::Int32*>(this)->Value();
 }
-int64 JSInteger::Value(Worker* worker) const {
+int64_t JSInteger::Value(Worker* worker) const {
 	return reinterpret_cast<const v8::Integer*>(this)->Value();
 }
-uint JSUint32::Value(Worker* worker) const {
+uint32_t JSUint32::Value(Worker* worker) const {
 	return reinterpret_cast<const v8::Uint32*>(this)->Value();
 }
 bool JSBoolean::Value(Worker* worker) const {
@@ -985,7 +985,7 @@ void ReturnValue::Set(int i) {
 	reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 }
 
-void ReturnValue::Set(uint i) {
+void ReturnValue::Set(uint32_t i) {
 	reinterpret_cast<v8::ReturnValue<v8::Value>*>(this)->Set(i);
 }
 
@@ -1126,15 +1126,15 @@ Local<JSInt32> Worker::New(int data) {
 	return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 }
 
-Local<JSUint32> Worker::New(uint data) {
+Local<JSUint32> Worker::New(uint32_t data) {
 	return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
 }
 
-Local<JSNumber> Worker::New(int64 data) {
+Local<JSNumber> Worker::New(int64_t data) {
 	return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 }
 
-Local<JSNumber> Worker::New(uint64 data) {
+Local<JSNumber> Worker::New(uint64_t data) {
 	return Cast<JSNumber>(v8::Number::New(ISOLATE(this), data));
 }
 
@@ -1218,13 +1218,13 @@ Local<JSValue> Worker::New(const PersistentBase<JSValue>& value) {
 		reinterpret_cast<const v8::PersistentBase<v8::Value>*>(&value)->Get(ISOLATE(this));
 	return Cast(r);
 }
-Local<JSArrayBuffer> Worker::NewArrayBuffer(Char* use_buff, uint len) {
+Local<JSArrayBuffer> Worker::NewArrayBuffer(Char* use_buff, uint32_t len) {
   return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), use_buff, len));
 }
-Local<JSArrayBuffer> Worker::NewArrayBuffer(uint len) {
+Local<JSArrayBuffer> Worker::NewArrayBuffer(uint32_t len) {
   return Cast<JSArrayBuffer>(v8::ArrayBuffer::New(ISOLATE(this), len));
 }
-Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab, uint offset, uint size) {
+Local<JSUint8Array> Worker::NewUint8Array(Local<JSArrayBuffer> ab, uint32_t offset, uint32_t size) {
   auto ab2 = Back<v8::ArrayBuffer>(ab);
   offset = FX_MIN((uint)ab2->ByteLength(), offset);
   if (size + offset > ab2->ByteLength()) {
@@ -1236,7 +1236,7 @@ Local<JSObject> Worker::NewObject() {
 	return Cast<JSObject>(v8::Object::New(ISOLATE(this)));
 }
 
-Local<JSArray> Worker::NewArray(uint len) {
+Local<JSArray> Worker::NewArray(uint32_t len) {
 	return Cast<JSArray>(v8::Array::New(ISOLATE(this), len));
 }
 
@@ -1297,7 +1297,7 @@ Local<JSObject> Worker::NewError(Local<JSObject> value) {
 	v8::Local<v8::Value> msg = v->Get( Back(strs()->message()) );
 	v8::Local<v8::Object> e = v8::Exception::Error(msg->ToString()).As<v8::Object>();
 	v8::Local<v8::Array> names = v->GetPropertyNames();
-	for (uint i = 0, j = 0; i < names->Length(); i++) {
+	for (uint32_t i = 0, j = 0; i < names->Length(); i++) {
 		v8::Local<v8::Value> key = names->Get(i);
 		e->Set(key, v->Get(key));
 	}
@@ -1323,7 +1323,7 @@ void Worker::throwError(Local<JSValue> exception) {
 	ISOLATE(this)->ThrowException(Back(exception));
 }
 
-Local<JSClass> Worker::NewClass(uint64 id,
+Local<JSClass> Worker::NewClass(uint64_t id,
 																cString& name,
 																FunctionCallback constructor,
 																WrapAttachCallback attach_callback, Local<JSClass> base) {
@@ -1333,16 +1333,16 @@ Local<JSClass> Worker::NewClass(uint64 id,
 	return rv;
 }
 
-Local<JSClass> Worker::NewClass(uint64 id, cString& name,
+Local<JSClass> Worker::NewClass(uint64_t id, cString& name,
 																FunctionCallback constructor,
-																WrapAttachCallback attach_callback, uint64 base) {
+																WrapAttachCallback attach_callback, uint64_t base) {
 	return NewClass(id, name, constructor, attach_callback, _inl->_classs->get_class(base));
 }
 
 /**
  * @func NewClass js class
  */
-Local<JSClass> Worker::NewClass(uint64 id, cString& name,
+Local<JSClass> Worker::NewClass(uint64_t id, cString& name,
 																FunctionCallback constructor,
 																WrapAttachCallback attach_callback, Local<JSFunction> base) {
 	auto cls = new V8JSClass(this, id, name, constructor, nullptr, Back<v8::Function>(base));

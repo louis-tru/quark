@@ -39,74 +39,73 @@
 
 namespace ftr {
 
-/**
- * @class Text
- */
-class FX_EXPORT Text: public Hybrid {
- public:
-	FX_DEFINE_GUI_VIEW(TEXT, Text, text);
-	
 	/**
-	 * @overwrite
-	 */
-	virtual void  prepend(View* child) throw(Error);
-	virtual void  append(View* child) throw(Error);
-	virtual View* append_text(cUcs2String& str) throw(Error);
-	
-	/**
-	 * @get value
-	 */
-	inline Ucs2String value() const { return _data.string; }
-	
-	/**
-	 * @set value
-	 */
-	virtual void set_value(cUcs2String& str);
-	
-	/**
-	 * @get length
-	 */
-	inline uint length() const { return _data.string.length(); }
-	
-	/**
-	 * @get cells
-	 */
-	inline const Array<Cell>& cells() const { return _data.cells; }
-	
-	/**
-	 * @func text_hori_bearing
-	 */
-	inline float text_hori_bearing() const { return _data.text_hori_bearing; }
-	
-	/**
-	 * @func text_height
-	 */
-	inline float text_height() const { return _data.text_height; }
+	* @class Text
+	*/
+	class FX_EXPORT Text: public Hybrid {
+		public:
+		FX_DEFINE_GUI_VIEW(TEXT, Text, text);
+		
+		/**
+		* @overwrite
+		*/
+		virtual void  prepend(View* child) throw(Error);
+		virtual void  append(View* child) throw(Error);
+		virtual View* append_text(cUcs2String& str) throw(Error);
+		
+		/**
+		* @get value
+		*/
+		inline Ucs2String value() const { return _data.string; }
+		
+		/**
+		* @set value
+		*/
+		virtual void set_value(cUcs2String& str);
+		
+		/**
+		* @get length
+		*/
+		inline uint32_t length() const { return _data.string.length(); }
+		
+		/**
+		* @get cells
+		*/
+		inline const Array<Cell>& cells() const { return _data.cells; }
+		
+		/**
+		* @func text_hori_bearing
+		*/
+		inline float text_hori_bearing() const { return _data.text_hori_bearing; }
+		
+		/**
+		* @func text_height
+		*/
+		inline float text_height() const { return _data.text_height; }
 
- protected:
-	
-	/**
-	 * @func set_text_align_offset
-	 */
-	void set_text_align_offset(float text_margin = 0);
-	
-	/**
-	 * @func set_draw_visible
-	 */
-	virtual void set_draw_visible();
+		protected:
+		/**
+		* @func set_text_align_offset
+		*/
+		void set_text_align_offset(float text_margin = 0);
+		
+		/**
+		* @func set_draw_visible
+		*/
+		virtual void set_draw_visible();
 
-	/**
-	 * @overwrite
-	 */
-	virtual void draw(Draw* draw);
-	virtual void accept_text(Ucs2StringBuilder& output) const;
-	virtual void set_layout_content_offset();
-	
-	Data  _data;
-	
-	FX_DEFINE_INLINE_CLASS(Inl);
-	friend class Hybrid;
-};
+		/**
+		* @overwrite
+		*/
+		virtual void draw(Draw* draw);
+		virtual void accept_text(Ucs2StringBuilder& output) const;
+		virtual void set_layout_content_offset();
+		
+		Data  _data;
+		
+		FX_DEFINE_INLINE_CLASS(Inl);
+		friend class Hybrid;
+	};
 
 }
 #endif

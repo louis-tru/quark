@@ -48,7 +48,7 @@ class Div;
  * @class Box
  */
 class FX_EXPORT Box: public Layout {
- public:
+	public:
 	
 	Box();
 	
@@ -391,8 +391,7 @@ class FX_EXPORT Box: public Layout {
 	virtual Vec2 layout_offset();
 	virtual CGRect screen_rect();
 	
- protected:
-	
+	protected:
 	/**
 	 * @overwrite
 	 */
@@ -432,7 +431,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @func solve_explicit_size_after()
 	 */
-	void solve_explicit_size_after(bool change_horizontal, bool change_vertical, uint child_mark);
+	void solve_explicit_size_after(bool change_horizontal, bool change_vertical, uint32_t child_mark);
 	
 	/**
 	 * @func set_default_offset_value
@@ -459,8 +458,7 @@ class FX_EXPORT Box: public Layout {
 	 */
 	void solve();
 	
- private:
-	
+	private:
 	Value     _width;  // width 宽度
 	Value     _height; // height 高度
 	Value     _margin_top;   // 顶边缘距离
@@ -481,7 +479,7 @@ class FX_EXPORT Box: public Layout {
 	float     _border_radius_left_bottom; // 左下圆角
 	Color     _background_color;     // 背景颜色
 	Background* _background;         // 盒子背景
- protected:
+	protected:
 	float     _final_width; // 最终的宽度
 	float     _final_height; // 最终的高度
 	float     _final_margin_top; // 最终的顶边距
@@ -496,8 +494,8 @@ class FX_EXPORT Box: public Layout {
 	float     _raw_client_height;   // 原客户端高度,视图所占用的所有垂直尺寸,三次布局以前的高度
 	Vec2      _limit;            // 限制内部偏移排版的尺寸,有明确尺寸时与final_width或final_height相等
 	Vec2      _final_vertex[4];  // 最终在屏幕上显示的真实顶点位置，左上/右上/右下/左下
-	uint      horizontal_active_mark_value; // 父视图尺寸改变时,这个值会被加入到当前主标记中
-	uint      vertical_active_mark_value;   //
+	uint32_t      horizontal_active_mark_value; // 父视图尺寸改变时,这个值会被加入到当前主标记中
+	uint32_t      vertical_active_mark_value;   //
 	int       _linenum;          /* 盒子在Hybrid视图布局中的行索引,-1表式没有行无需显示 */
 	bool      _newline;          // 新行或新列
 	bool      _clip;             // 是否溢出修剪

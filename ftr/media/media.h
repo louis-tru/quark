@@ -50,7 +50,7 @@ namespace ftr {
 
 	typedef struct {
 		Object* (*const create)(void* arg);
-		const uint64 tid;
+		const uint64_t tid;
 	} module_info_t;
 
 	FX_EXPORT extern int initialize_media();

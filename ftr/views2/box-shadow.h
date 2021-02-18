@@ -43,7 +43,7 @@ namespace ftr {
  * @class BoxShadow
  */
 class FX_EXPORT BoxShadow: public Div {
- public:
+	public:
 	FX_DEFINE_GUI_VIEW(BOX_SHADOW, BoxShadow, shadow);
 	
 	BoxShadow();
@@ -98,14 +98,13 @@ class FX_EXPORT BoxShadow: public Div {
 	 */
 	void set_shadow(Shadow value);
 	
- protected:
-	
+	protected:
 	/**
 	 * @overwrite
 	 */
 	virtual void draw(Draw* draw);
 	
- private:
+	private:
 	bool  _is_draw_shadow;
 	Shadow _shadow;
 };

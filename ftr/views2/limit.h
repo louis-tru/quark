@@ -43,7 +43,7 @@ namespace ftr {
  * @class Limit
  */
 class FX_EXPORT Limit: public Div {
- public:
+	public:
 	FX_DEFINE_GUI_VIEW(LIMIT, Limit, limit);
 	
 	template<class T> class Inl; friend class Inl<Limit>;
@@ -90,8 +90,7 @@ class FX_EXPORT Limit: public Div {
 	 */
 	void set_max_height(Value value);
 	
- protected:
-
+	protected:
 	/**
 	 * @overwrite
 	 */
@@ -104,7 +103,7 @@ class FX_EXPORT Limit: public Div {
 	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
 	virtual void set_layout_three_times(bool horizontal, bool hybrid);
 	
- private:
+	private:
 	Value _max_width;
 	Value _max_height;
 	float _limit_min_width;

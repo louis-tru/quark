@@ -45,7 +45,7 @@ using value::Repeat;
  * @class Image
  */
 class FX_EXPORT Image: public Div {
- public:
+	public:
 	FX_DEFINE_GUI_VIEW(IMAGE, Image, image);
 	
 	Image();
@@ -60,12 +60,12 @@ class FX_EXPORT Image: public Div {
 	/**
 	 * @func source_width
 	 */
-	uint source_width() const;
+	uint32_t source_width() const;
 	
 	/**
 	 * @func source_width
 	 */
-	uint source_height() const;
+	uint32_t source_height() const;
 	
 	/**
 	 * @func src 图像路径
@@ -87,8 +87,7 @@ class FX_EXPORT Image: public Div {
 	 */
 	virtual void set_texture(Texture* value);
 	
- protected:
-	
+	protected:
 	/**
 	 * @func source
 	 */
@@ -107,7 +106,7 @@ class FX_EXPORT Image: public Div {
 	virtual void set_layout_content_offset();
 	virtual void set_draw_visible();
 	
- private:
+	private:
 	int       _tex_level;
 	Texture*  _texture; // 图像纹理数据
 	

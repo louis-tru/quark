@@ -39,76 +39,73 @@
 
 namespace ftr {
 
-/**
- * @class TextNode
- */
-class FX_EXPORT TextNode: public Span {
- public:
-	
-	TextNode();
-	
 	/**
-	 * @overwrite
-	 */
-	virtual void prepend(View* child) throw(Error);
-	virtual void append(View* child) throw(Error);
-	virtual View* append_text(cUcs2String& str) throw(Error);
-	virtual Vec2 layout_offset();
-	virtual bool overlap_test(Vec2 point);
-	virtual CGRect screen_rect();
-	
-	/**
-	 * @get value
-	 */
-	inline Ucs2String value() const { return _data.string; }
-	
-	/**
-	 * @set value
-	 */
-	void set_value(cUcs2String& str);
-	
-	/**
-	 * @get length {uint}
-	 */
-	inline uint length() const { return _data.string.length(); }
-	
-	/**
-	 * @get cells
-	 */
-	inline const Array<Cell>& cells() const { return _data.cells; }
-	
-	/**
-	 * @func text_hori_bearing
-	 */
-	inline float text_hori_bearing() const { return _data.text_hori_bearing; }
-	
-	/**
-	 * @func text_height
-	 */
-	inline float text_height() const { return _data.text_height; }
-	
- protected:
-	
-	/**
-	 * @overwrite
-	 */
-	virtual void draw(Draw* draw);
-	virtual void accept_text(Ucs2StringBuilder& output) const;
-	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
-	virtual void set_layout_three_times(bool horizontal, bool hybrid);
-	
-	/**
-	 * @func set_draw_visible
-	 */
-	virtual void set_draw_visible();
-	
- private:
-	
-	Data  _data;
-	bool  _valid_layout_offset;
-	Vec2  _final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
-	FX_DEFINE_INLINE_CLASS(Inl);
-};
+	* @class TextNode
+	*/
+	class FX_EXPORT TextNode: public Span {
+		public:
+		TextNode();
+		
+		/**
+		* @overwrite
+		*/
+		virtual void prepend(View* child) throw(Error);
+		virtual void append(View* child) throw(Error);
+		virtual View* append_text(cUcs2String& str) throw(Error);
+		virtual Vec2 layout_offset();
+		virtual bool overlap_test(Vec2 point);
+		virtual CGRect screen_rect();
+		
+		/**
+		* @get value
+		*/
+		inline Ucs2String value() const { return _data.string; }
+		
+		/**
+		* @set value
+		*/
+		void set_value(cUcs2String& str);
+		
+		/**
+		* @get length {uint}
+		*/
+		inline uint32_t length() const { return _data.string.length(); }
+		
+		/**
+		* @get cells
+		*/
+		inline const Array<Cell>& cells() const { return _data.cells; }
+		
+		/**
+		* @func text_hori_bearing
+		*/
+		inline float text_hori_bearing() const { return _data.text_hori_bearing; }
+		
+		/**
+		* @func text_height
+		*/
+		inline float text_height() const { return _data.text_height; }
+		
+		protected:
+		/**
+		* @overwrite
+		*/
+		virtual void draw(Draw* draw);
+		virtual void accept_text(Ucs2StringBuilder& output) const;
+		virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
+		virtual void set_layout_three_times(bool horizontal, bool hybrid);
+		
+		/**
+		* @func set_draw_visible
+		*/
+		virtual void set_draw_visible();
+		
+		private:
+		Data  _data;
+		bool  _valid_layout_offset;
+		Vec2  _final_vertex[4];      // 最终在屏幕上显示的真实顶点位置
+		FX_DEFINE_INLINE_CLASS(Inl);
+	};
 
 }
 #endif

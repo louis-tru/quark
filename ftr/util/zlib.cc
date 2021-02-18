@@ -173,8 +173,8 @@ namespace ftr {
 	}
 
 	FX_DEFINE_INLINE_MEMBERS(ZipReader, Inl) {
-	 public:
-	 #define _inl_reader(self) static_cast<ZipReader::Inl*>(self)
+		public:
+		#define _inl_reader(self) static_cast<ZipReader::Inl*>(self)
 		
 		bool _open_current_file() {
 			if ( _is_open ) {

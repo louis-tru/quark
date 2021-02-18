@@ -45,7 +45,7 @@ namespace ftr {
 			struct OutputBufferInfo {
 				CVPixelBufferRef        buffer = nullptr;
 				CVPixelBufferLockFlags  lock;
-				uint64                  time;
+				uint64_t                  time;
 			};
 			
 			AppleVideoCodec(Extractor* ex)
@@ -262,7 +262,7 @@ namespace ftr {
 				OSStatus status;
 				CMBlockBufferRef block;
 				
-				uint64 sample_time = _extractor->sample_time();
+				uint64_t sample_time = _extractor->sample_time();
 				
 				if ( _sample_data && _sample_time == sample_time ) {
 					return _sample_data;
@@ -389,7 +389,7 @@ namespace ftr {
 					// correct time
 					if ( buf ) {
 						if ( _presentation_time ) {
-							int64 diff = buf->time - _presentation_time - _frame_interval;
+							int64_t diff = buf->time - _presentation_time - _frame_interval;
 							if ( diff > _frame_interval / 2 && diff < _frame_interval * 3 ) {
 								if (unknown_time_frame) {
 									buf = unknown_time_frame;
@@ -437,22 +437,22 @@ namespace ftr {
 			/**
 			* @overwrite
 			*/
-			virtual void set_frame_size(uint size) {}
-			virtual void set_threads(uint value) {}
+			virtual void set_frame_size(uint32_t size) {}
+			virtual void set_threads(uint32_t value) {}
 			virtual void set_background_run(bool value) {}
 			
 		private:
 			VTDecompressionSessionRef _session;
 			CMFormatDescriptionRef    _format_desc;
 			CMSampleBufferRef         _sample_data;
-			uint64                    _sample_time;
+			uint64_t                    _sample_time;
 			Mutex                     _output_buffer_mutex;
 			OutputBufferInfo          _output_buffer[OUTPUT_BUFFER_NUM];
-			uint  _output_buffer_count;
-			uint  _start_decoder;
-			uint  _video_width;
-			uint  _video_height;
-			uint64  _presentation_time;
+			uint32_t  _output_buffer_count;
+			uint32_t  _start_decoder;
+			uint32_t  _video_width;
+			uint32_t  _video_height;
+			uint64_t  _presentation_time;
 	};
 
 	/**

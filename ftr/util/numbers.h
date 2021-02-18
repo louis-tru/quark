@@ -37,21 +37,21 @@ namespace ftr {
 
 	template <typename T> class FX_EXPORT Number: public Object {
 		public:
-			inline Number(T v): value(v) { }
-			inline T operator*() { return value; }
-			inline Number& operator++() { value++; return *this; } // ++i
-			inline Number& operator--() { value--; return *this; } // --i
-			inline Number  operator++(int) { T v = value; value++; return v; } // i++
-			inline Number  operator--(int) { T v = value; value--; return v; } // i--
-			template <typename T2> inline T operator=(T2 v) { value = v.value; return value; }
-			template <typename T2> inline bool operator==(T2 v) { return value == v.value; }
-			template <typename T2> inline bool operator!=(T2 v) { return value != v.value; }
-			template <typename T2> inline bool operator<(T2 v) { return value < v.value; }
-			template <typename T2> inline bool operator>(T2 v) { return value > v.value; }
-			template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
-			template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
-			T value;
-			static const T min, max;
+		inline Number(T v): value(v) { }
+		inline T operator*() { return value; }
+		inline Number& operator++() { value++; return *this; } // ++i
+		inline Number& operator--() { value--; return *this; } // --i
+		inline Number  operator++(int) { T v = value; value++; return v; } // i++
+		inline Number  operator--(int) { T v = value; value--; return v; } // i--
+		template <typename T2> inline T operator=(T2 v) { value = v.value; return value; }
+		template <typename T2> inline bool operator==(T2 v) { return value == v.value; }
+		template <typename T2> inline bool operator!=(T2 v) { return value != v.value; }
+		template <typename T2> inline bool operator<(T2 v) { return value < v.value; }
+		template <typename T2> inline bool operator>(T2 v) { return value > v.value; }
+		template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
+		template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
+		T value;
+		static const T min, max;
 	};
 
 	#define define_number(N, T) \

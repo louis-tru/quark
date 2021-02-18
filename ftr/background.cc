@@ -35,8 +35,8 @@
 namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Background, Inl) {
-#define _inl(self) static_cast<Background::Inl*>(static_cast<Background*>(self))
-public:
+	public:
+	#define _inl(self) static_cast<Background::Inl*>(static_cast<Background*>(self))
 	
 	bool check_loop_reference(Background* value) {
 		if (value) {
@@ -168,7 +168,7 @@ void Background::set_holder_mode(HolderMode mode) {
 	}
 }
 
-void Background::mark(uint mark_value) {
+void Background::mark(uint32_t mark_value) {
 	if (_host) {
 		_host->mark(mark_value);
 	}
@@ -185,8 +185,9 @@ enum {
 };
 
 FX_DEFINE_INLINE_MEMBERS(BackgroundImage, Inl) {
-#define _inl2(self) static_cast<BackgroundImage::Inl*>(self)
-public:
+	public:
+	#define _inl2(self) static_cast<BackgroundImage::Inl*>(self)
+
 	void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
 		GUILock lock;
 		int status = *evt.data();

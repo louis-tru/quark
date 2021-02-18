@@ -41,38 +41,34 @@
 
 namespace ftr {
 
-/**
- * @class Span
- */
-class FX_EXPORT Span: public Layout, public TextLayout {
- public:
-	
-	typedef ReferenceTraits Traits;
-
-	Span();
-
 	/**
-	 * @overwrite
-	 */
-	virtual TextFont* as_text_font() { return this; }
-	virtual TextLayout* as_text_layout() { return this; }
-	virtual View* view() { return this; }
-	virtual void set_visible(bool value);
-	virtual View* append_text(cUcs2String& str) throw(Error);
-	virtual Vec2 layout_offset();
-	virtual Object* to_object() { return this; }
-	
- protected:
-	
-	/**
-	 * @overwrite
-	 */
-	virtual void set_layout_explicit_size();
-	virtual void set_layout_content_offset();
-	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
-	virtual void set_layout_three_times(bool horizontal, bool hybrid);
-	
-};
+	* @class Span
+	*/
+	class FX_EXPORT Span: public Layout, public TextLayout {
+		public:
+		typedef ReferenceTraits Traits;
+
+		Span();
+		/**
+		* @overwrite
+		*/
+		virtual TextFont* as_text_font() { return this; }
+		virtual TextLayout* as_text_layout() { return this; }
+		virtual View* view() { return this; }
+		virtual void set_visible(bool value);
+		virtual View* append_text(cUcs2String& str) throw(Error);
+		virtual Vec2 layout_offset();
+		virtual Object* to_object() { return this; }
+		
+		protected:
+		/**
+		* @overwrite
+		*/
+		virtual void set_layout_explicit_size();
+		virtual void set_layout_content_offset();
+		virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
+		virtual void set_layout_three_times(bool horizontal, bool hybrid);
+	};
 
 }
 #endif

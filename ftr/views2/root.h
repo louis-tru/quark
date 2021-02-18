@@ -43,8 +43,7 @@ namespace ftr {
  * @class Root 这个类型的视图尺寸为显示端口的尺寸
  */
 class FX_EXPORT Root: public Div {
- public:
-	
+	public:
 	inline Root() {}
 	
 	/**
@@ -64,7 +63,7 @@ class FX_EXPORT Root: public Div {
 	virtual void draw(Draw* draw);
 	virtual bool can_become_focus();
 	
- protected:
+	protected:
 	/**
 	 * @overwrite
 	 */

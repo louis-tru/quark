@@ -36,36 +36,35 @@
 
 namespace ftr {
 
-/**
- * @class Textarea
- */
-class FX_EXPORT Textarea: public Input, public BasicScroll {
-	FX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
- public:
+	/**
+	* @class Textarea
+	*/
+	class FX_EXPORT Textarea: public Input, public BasicScroll {
+		FX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
+		public:
 
-	typedef ReferenceTraits Traits;
-	
-	Textarea();
-	
-	/**
-	 * @overwrite
-	 */
-	// virtual bool is_clip() { return true; }
-	virtual BasicScroll* as_basic_scroll() { return this; }
-	virtual Object* to_object() { return this; }
-	
- protected:
-	
-	/**
-	 * @overwrite
-	 */
-	virtual void draw(Draw* draw);
-	virtual void set_layout_content_offset();
-	virtual bool is_multi_line_input();
-	virtual Vec2 input_text_offset();
-	virtual void set_input_text_offset(Vec2 value);
-	virtual void set_draw_visible();
-};
+		typedef ReferenceTraits Traits;
+		
+		Textarea();
+		
+		/**
+		* @overwrite
+		*/
+		// virtual bool is_clip() { return true; }
+		virtual BasicScroll* as_basic_scroll() { return this; }
+		virtual Object* to_object() { return this; }
+		
+		protected:
+		/**
+		* @overwrite
+		*/
+		virtual void draw(Draw* draw);
+		virtual void set_layout_content_offset();
+		virtual bool is_multi_line_input();
+		virtual Vec2 input_text_offset();
+		virtual void set_input_text_offset(Vec2 value);
+		virtual void set_draw_visible();
+	};
 
 }
 

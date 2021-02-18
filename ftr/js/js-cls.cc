@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "js-1.h"
+#include "./_js.h"
 #include "wrap.h"
 
 JS_BEGIN
@@ -47,7 +47,7 @@ JSClassStore::~JSClassStore() {
 	}
 }
 
-Local<JSClass> JSClassStore::get_class(uint64 id) {
+Local<JSClass> JSClassStore::get_class(uint64_t id) {
 	auto i = values_.find(id);
 	if ( !i.is_null() ) {
 		return i.value()->jsclass.local();
@@ -55,7 +55,7 @@ Local<JSClass> JSClassStore::get_class(uint64 id) {
 	return Local<JSClass>();
 }
 
-uint64 JSClassStore::set_class(uint64 id, Local<JSClass> cls,
+uint64_t JSClassStore::set_class(uint64_t id, Local<JSClass> cls,
 														 WrapAttachCallback attach_callback) throw(Error) {
 	FX_CHECK( ! values_.has(id), "Set native Constructors ID repeat");
 	Desc* desc = new Desc();
@@ -66,7 +66,7 @@ uint64 JSClassStore::set_class(uint64 id, Local<JSClass> cls,
 	return id;
 }
 
-uint64 JSClassStore::set_class_alias(uint64 id, uint64 alias) throw(Error) {
+uint64_t JSClassStore::set_class_alias(uint64_t id, uint64_t alias) throw(Error) {
 	FX_CHECK( values_.has(id), "No Constructors ID");
 	FX_CHECK( !values_.has(alias), "Set native Constructors ID repeat");
 	values_.set(alias, values_.get(id));
@@ -76,7 +76,7 @@ uint64 JSClassStore::set_class_alias(uint64 id, uint64 alias) throw(Error) {
 /**
  * @func get_constructor
  */
-Local<JSFunction> JSClassStore::get_constructor(uint64 id) {
+Local<JSFunction> JSClassStore::get_constructor(uint64_t id) {
 	auto it = values_.find(id);
 	if ( !it.is_null() ) {
 		if (it.value()->function.IsEmpty()) {
@@ -92,14 +92,14 @@ Local<JSFunction> JSClassStore::get_constructor(uint64 id) {
 /**
  * @func reset()
  */
-void JSClassStore::reset_constructor(uint64 id) {
+void JSClassStore::reset_constructor(uint64_t id) {
 	auto it = values_.find(id);
 	if ( !it.is_null() ) {
 		it.value()->function.Reset();
 	}
 }
 
-WrapObject* JSClassStore::attach(uint64 id, Object* object) {
+WrapObject* JSClassStore::attach(uint64_t id, Object* object) {
 	WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
 	ASSERT( !wrap->worker() );
 	
@@ -125,7 +125,7 @@ WrapObject* JSClassStore::attach(uint64 id, Object* object) {
 	return nullptr;
 }
 
-bool JSClassStore::instanceof(Local<JSValue> val, uint64 id) {
+bool JSClassStore::instanceof(Local<JSValue> val, uint64_t id) {
 	if ( values_.has(id) ) {
 		Local<JSClass> cls = values_.get(id)->jsclass.local();
 		return cls->HasInstance(worker_, val);

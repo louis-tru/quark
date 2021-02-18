@@ -44,29 +44,29 @@ namespace ftr {
 
 	class GLDrawProxy {
 		public:
-			GLDrawProxy(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
-			~GLDrawProxy();
-			void initialize();
-			bool create_surface(EGLNativeWindowType window);
-			void destroy_surface(EGLNativeWindowType window);
-			void refresh_surface_size(CGRect* rect);
-			void refresh_virtual_keyboard_rect();
-			void refresh_buffer();
-			void begin_render();
-			void commit_render();
-			void initializ_gl_buffers();
-			GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-			inline GLDraw* host() { return _host; }
-			static GLDrawProxy* create(GUIApplication* host, cJSON& options);
+		GLDrawProxy(GLDraw* host, EGLDisplay display, EGLConfig cfg, EGLContext ctx);
+		~GLDrawProxy();
+		void initialize();
+		bool create_surface(EGLNativeWindowType window);
+		void destroy_surface(EGLNativeWindowType window);
+		void refresh_surface_size(CGRect* rect);
+		void refresh_virtual_keyboard_rect();
+		void refresh_buffer();
+		void begin_render();
+		void commit_render();
+		void initializ_gl_buffers();
+		GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
+		inline GLDraw* host() { return _host; }
+		static GLDrawProxy* create(GUIApplication* host, cJSON& options);
 		protected:
-			EGLDisplay _display;
-			EGLConfig _config;
-			EGLContext _context;
-			EGLSurface _surface;
-			EGLNativeWindowType _window;
-			Vec2 _raw_surface_size;
-			CGRect _virtual_keys_rect;
-			GLDraw* _host;
+		EGLDisplay _display;
+		EGLConfig _config;
+		EGLContext _context;
+		EGLSurface _surface;
+		EGLNativeWindowType _window;
+		Vec2 _raw_surface_size;
+		CGRect _virtual_keys_rect;
+		GLDraw* _host;
 	};
 
 }

@@ -44,8 +44,8 @@ class Hybrid;
  * @class Layout 布局排版抽象类
  */
 class FX_EXPORT Layout: public View {
- public:
-	
+	public:
+
 	Layout();
 
 	/**
@@ -69,8 +69,7 @@ class FX_EXPORT Layout: public View {
 		return _offset_end.y() - _offset_start.y();
 	}
 	
- protected:
-	
+	protected:
 	/**
 	 * @overwrite
 	 */
@@ -98,7 +97,6 @@ class FX_EXPORT Layout: public View {
 	 */
 	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) = 0;
 	
- protected:
 	Vec2    _offset_start;   /* 相对父视图的开始偏移位置 */
 	Vec2    _offset_end;     /* 相对父视图的结束偏移位置 */
 	Layout* _parent_layout;  /* 父关联的布局视图，在一般为父布局视图，在Text布局中时为顶层Text视图

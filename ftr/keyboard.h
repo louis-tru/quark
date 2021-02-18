@@ -38,7 +38,7 @@ namespace ftr {
 
 	class GUIApplication;
 
-	#define nx_each_keyboard_key_name_table(F) \
+	#define fx_each_keyboard_key_name_table(F) \
 	F(KEYCODE_UNKNOWN,          0)  \
 	F(KEYCODE_MOUSE_LEFT,       1)  \
 	F(KEYCODE_MOUSE_CENTER,     2)  \
@@ -198,16 +198,16 @@ namespace ftr {
 	F(KEYCODE_ZOOM_OUT,         334)     /* 缩小键 */ \
 
 	enum KeyboardKeyName {
-		#define nx_def_enum_keyboard_key_name(Name, Code) Name = Code,
-		nx_each_keyboard_key_name_table(nx_def_enum_keyboard_key_name)
-		#undef nx_def_enum_keyboard_key_name
+		#define fx_def_enum_keyboard_key_name(Name, Code) Name = Code,
+		fx_each_keyboard_key_name_table(fx_def_enum_keyboard_key_name)
+		#undef fx_def_enum_keyboard_key_name
 	};
 
 	/**
 	* @class KeyboardAdapter
 	*/
 	class FX_EXPORT KeyboardAdapter: public Object {
-	public:
+		public:
 
 		KeyboardAdapter();
 		
@@ -238,11 +238,10 @@ namespace ftr {
 		/**
 		* @func dispatch
 		*/
-		void dispatch(uint keycode, bool ascii, bool down,
+		void dispatch(uint32_t keycode, bool ascii, bool down,
 									int repeat = 0, int device = 0, int source = 0);
 		
 		protected:
-
 		/**
 		* @func set_utils_keycodes
 		*/
@@ -256,7 +255,7 @@ namespace ftr {
 		/**
 		* @func transformation
 		*/
-		virtual bool transformation(uint keycode, bool unicode, bool down);
+		virtual bool transformation(uint32_t keycode, bool unicode, bool down);
 		
 		struct AsciiKeyboardKeycode {
 			KeyboardKeyName name;

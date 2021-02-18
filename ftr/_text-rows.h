@@ -44,39 +44,37 @@ namespace ftr {
  * @class TextRows
  */
 class FX_EXPORT TextRows {
- public:
-	
+	public:
 	struct FX_EXPORT Row {
 		Vec2 offset_start;
 		Vec2 offset_end;
 		float baseline;
 		float ascender;
 		float descender;
-		uint  row_num;
+		uint32_t  row_num;
 	};
-	
+
 	TextRows();
 	
 	inline Row* last() { return _last; }
-	inline uint count() const { return _values.length(); }
-	inline uint last_num() const { return _last_num; }
+	inline uint32_t count() const { return _values.length(); }
+	inline uint32_t last_num() const { return _last_num; }
 	inline bool clip() const { return _is_clip; }
 	inline void mark_clip() { _is_clip = true; }
 	inline float max_width() const { return _max_width; }
 	inline float max_height() const { return _last->offset_end.y(); }
 	inline const Array<Row>& rows() const { return _values; }
-	inline Row& operator[](uint index) { return _values[index]; }
+	inline Row& operator[](uint32_t index) { return _values[index]; }
 	
 	void push_row(float ascender, float descender);
 	void update_row(float ascender, float descender);
 	void reset();
 	void set_width(float value);
-	
- private:
-	
+
+ 	private:
 	Array<Row>  _values;
 	Row*        _last;       // 最后行
-	uint        _last_num;   // 最后行号
+	uint32_t        _last_num;   // 最后行号
 	float       _max_width;  // 最大宽度
 	bool        _is_clip;    // 修剪结束
 };

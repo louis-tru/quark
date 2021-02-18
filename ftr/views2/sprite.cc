@@ -37,7 +37,7 @@
 namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Sprite, Inl) {
- public:
+	public:
 	
 	/**
 	 * @func texture_change_handle

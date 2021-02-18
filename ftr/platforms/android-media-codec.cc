@@ -111,7 +111,7 @@ namespace ftr {
 
 		static AMediaExtractor* _TEST_ex = NULL;
 
-		static void _TEST_init_AMediaExtractor(cString& path, uint select_track) {
+		static void _TEST_init_AMediaExtractor(cString& path, uint32_t select_track) {
 			if (_TEST_ex == NULL) {
 				int fd = ::open(Path::fallback_c(path), 0);
 				if ( fd <= 0 ) {
@@ -125,12 +125,12 @@ namespace ftr {
 			ASSERT(err == 0);
 		}
 
-		static void _TEST_get_sample_data(uint8_t* out, uint size, uint& sample_size) {
+		static void _TEST_get_sample_data(uint8_t* out, uint32_t size, uint& sample_size) {
 			Buffer buf(size);
 			ssize_t sample_size2 = AMediaExtractor_readSampleData(_TEST_ex, (uint8_t*)*buf, size);
 
-			uint j[10] = { 0 };
-			uint o = 0;
+			uint32_t j[10] = { 0 };
+			uint32_t o = 0;
 			uint8_t* cmp = (uint8_t*)*buf;
 
 			for (int i = 0; i < sample_size; i++) {
@@ -158,7 +158,7 @@ namespace ftr {
 			static bool has_init = false;
 			if (!has_init) {
 				has_init = true;
-				if ( nx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
+				if ( fx_jni_set_java_vm(JNI::jvm(), NULL) != 0 ) {
 					FX_ERR( "x_jni_set_java_vm(), unsuccessful." );
 				}
 			}
@@ -268,9 +268,9 @@ namespace ftr {
 					if ( bufidx >= 0 ) {
 						size_t bufsize;
 						uint8_t * buf = AMediaCodec_getInputBuffer(_codec, bufidx, &bufsize);
-						uint sample_size = _extractor->deplete_sample((Char*)buf, bufsize);
+						uint32_t sample_size = _extractor->deplete_sample((Char*)buf, bufsize);
 						int sample_flags = _extractor->eof_flags() ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0;
-						uint64 sample_time = _extractor->sample_time();
+						uint64_t sample_time = _extractor->sample_time();
 
 						if ( sample_time == 0 ) {
 							FX_DEBUG("advance:0");
@@ -375,23 +375,23 @@ namespace ftr {
 				}
 			}
 
-			void inl_set_frame_size(uint size) {
+			void inl_set_frame_size(uint32_t size) {
 				_audio_frame_size = size;
 				// compute audio frame interval
 				const TrackInfo &track = extractor()->track();
-				uint64 second_size = track.sample_rate * _channel_count * 2;
+				uint64_t second_size = track.sample_rate * _channel_count * 2;
 				_frame_interval = uint64(_audio_frame_size) * 1000 * 1000 / second_size;
 			}
 
 			/**
 			* @overwrite
 			* */
-			virtual void set_frame_size(uint size) { }
+			virtual void set_frame_size(uint32_t size) { }
 
 			/**
 			* @overwrite
 			* */
-			virtual void set_threads(uint value) { }
+			virtual void set_threads(uint32_t value) { }
 
 			/**
 			* @overwrite
@@ -404,10 +404,10 @@ namespace ftr {
 			AMediaFormat* _format;
 			AMediaCodec*  _codec;
 			bool          _eof_flags;
-			uint          _video_width;
-			uint          _video_height;
-			uint          _audio_frame_size;
-			uint64        _presentation_time;
+			uint32_t          _video_width;
+			uint32_t          _video_height;
+			uint32_t          _audio_frame_size;
+			uint64_t        _presentation_time;
 			bool          _is_open;
 	};
 

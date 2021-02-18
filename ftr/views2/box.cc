@@ -44,15 +44,15 @@
 namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
- public:
- #define _inl(self) static_cast<Box::Inl*>(static_cast<Box*>(self))
+	public:
+	#define _inl(self) static_cast<Box::Inl*>(static_cast<Box*>(self))
 	
 	template<bool hybrid> bool solve_explicit_size() {
 		
 		bool h_change = false;
 		bool v_change = false;
 		bool change = false;
-		uint child_mark = M_NONE;
+		uint32_t child_mark = M_NONE;
 		
 		if ( mark_value & M_SIZE_HORIZONTAL ) {
 			
@@ -747,7 +747,7 @@ void _box_inl__solve_final_vertical_size_with_full_height(Box* box, float parent
 }
 
 void Box::set_horizontal_active_mark() {
-	uint value = M_NONE;
+	uint32_t value = M_NONE;
 	// 如果这些值都不为像素,父视图会可能影响到子视图的M_SIZE_HORIZONTAL
 	// 相当于标记了这个子视图M_SIZE_HORIZONTAL
 	if (_width.type != ValueType::AUTO && _width.type != ValueType::PIXEL ) {
@@ -763,7 +763,7 @@ void Box::set_horizontal_active_mark() {
 }
 
 void Box::set_vertical_active_mark() {
-	uint value = M_NONE;
+	uint32_t value = M_NONE;
 	// 如果这些值都不为像素,父视图将会可能影响到子视图的M_SIZE_VERTICAL
 	// 相当于标记了这个子视图M_SIZE_VERTICAL
 	if (_height.type != ValueType::AUTO && _height.type != ValueType::PIXEL) {
@@ -926,7 +926,7 @@ Region Box::get_screen_region() {
 void Box::solve() {
 	View::solve();
 	
-	uint mark_value = this->mark_value;
+	uint32_t mark_value = this->mark_value;
 	
 	// if ( mark_value & View::M_BACKGROUND_COLOR ) { // 背景颜色
 	// }
@@ -1283,7 +1283,7 @@ void Indep::set_layout_explicit_size() {
 	}
 }
 
-void Box::solve_explicit_size_after(bool change_horizontal, bool change_vertical, uint child_mark) {
+void Box::solve_explicit_size_after(bool change_horizontal, bool change_vertical, uint32_t child_mark) {
 	
 	/* 
 	 * 有非常大的可能性导致自身位置偏移:
@@ -1299,7 +1299,7 @@ void Box::solve_explicit_size_after(bool change_horizontal, bool change_vertical
 	View* view = first(); \
 	while (view) { \
 		Box* box = view->as_box(); \
-		if (box) { uint mark; func; if ( mark ) box->mark_pre(mark); } \
+		if (box) { uint32_t mark; func; if ( mark ) box->mark_pre(mark); } \
 		view = view->next(); \
 	}
 	

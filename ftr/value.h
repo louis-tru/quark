@@ -42,250 +42,250 @@ namespace ftr {
 	namespace value {
 
 		#define FX_ENUM_VALUE(F) \
-		F(AUTO,               auto) \
-		F(FULL,               full) \
-		F(PIXEL,              pixel) \
-		F(PERCENT,            percent) \
-		F(MINUS,              minus) \
-		F(INHERIT,            inherit) \
-		F(VALUE,              value) \
-		F(THIN,               thin)              /*100*/ \
-		F(ULTRALIGHT,         ultralight)        /*200*/ \
-		F(LIGHT,              light)             /*300*/ \
-		F(REGULAR,            regular)           /*400*/ \
-		F(MEDIUM,             medium)            /*500*/ \
-		F(SEMIBOLD,           semibold)          /*600*/ \
-		F(BOLD,               bold)              /*700*/ \
-		F(HEAVY,              heavy)             /*800*/ \
-		F(BLACK,              black)             /*900*/ \
-		F(THIN_ITALIC,        thin_italic)       /*100*/ \
-		F(ULTRALIGHT_ITALIC,  ultralight_italic) /*200*/ \
-		F(LIGHT_ITALIC,       light_italic)      /*300*/ \
-		F(ITALIC,             italic)            /*400*/ \
-		F(MEDIUM_ITALIC,      medium_italic)     /*500*/ \
-		F(SEMIBOLD_ITALIC,    semibold_italic)   /*600*/ \
-		F(BOLD_ITALIC,        bold_italic)       /*700*/ \
-		F(HEAVY_ITALIC,       heavy_italic)      /*800*/ \
-		F(BLACK_ITALIC,       black_italic)      /*900*/ \
-		F(OTHER,              other) \
-		F(NONE,               none) \
-		F(OVERLINE,           overline) \
-		F(LINE_THROUGH,       line_through) \
-		F(UNDERLINE,          underline) \
-		F(LEFT,               left) \
-		F(CENTER,             center) \
-		F(RIGHT,              right) \
-		F(LEFT_REVERSE,       left_reverse) \
-		F(CENTER_REVERSE,     center_reverse) \
-		F(RIGHT_REVERSE,      right_reverse) \
-		F(TOP,                top) \
-		F(BOTTOM,             bottom) \
-		F(MIDDLE,             middle) \
-		F(REPEAT,             repeat) \
-		F(REPEAT_X,           repeat_x) \
-		F(REPEAT_Y,           repeat_y) \
-		F(MIRRORED_REPEAT,    mirrored_repeat) \
-		F(MIRRORED_REPEAT_X,  mirrored_repeat_x) \
-		F(MIRRORED_REPEAT_Y,  mirrored_repeat_y) \
-		F(NORMAL,             normal) \
-		F(CLIP,               clip) \
-		F(ELLIPSIS,           ellipsis) \
-		F(CENTER_ELLIPSIS,    center_ellipsis) \
-		F(NO_WRAP,            no_wrap) \
-		F(NO_SPACE,           no_space) \
-		F(PRE,                pre) \
-		F(PRE_LINE,           pre_line) \
-		F(WRAP,               wrap) \
-		/* keyboard type */ \
-		F(ASCII,              ascii) \
-		F(NUMBER,             number) \
-		F(URL,                url) \
-		F(NUMBER_PAD,         number_pad) \
-		F(PHONE,              phone) \
-		F(NAME_PHONE,         name_phone) \
-		F(EMAIL,              email) \
-		F(DECIMAL,            decimal) \
-		F(TWITTER,            twitter) \
-		F(SEARCH,             search) \
-		F(ASCII_NUMBER,       ascii_numner) \
-		/* keyboard return type */ \
-		F(GO,                 go) \
-		F(JOIN,               join) \
-		F(NEXT,               next) \
-		F(ROUTE,              route) \
-		F(SEND,               send) \
-		F(DONE,               done) \
-		F(EMERGENCY,          emergency) \
-		F(CONTINUE,           continue) \
+			F(AUTO,               auto) \
+			F(FULL,               full) \
+			F(PIXEL,              pixel) \
+			F(PERCENT,            percent) \
+			F(MINUS,              minus) \
+			F(INHERIT,            inherit) \
+			F(VALUE,              value) \
+			F(THIN,               thin)              /*100*/ \
+			F(ULTRALIGHT,         ultralight)        /*200*/ \
+			F(LIGHT,              light)             /*300*/ \
+			F(REGULAR,            regular)           /*400*/ \
+			F(MEDIUM,             medium)            /*500*/ \
+			F(SEMIBOLD,           semibold)          /*600*/ \
+			F(BOLD,               bold)              /*700*/ \
+			F(HEAVY,              heavy)             /*800*/ \
+			F(BLACK,              black)             /*900*/ \
+			F(THIN_ITALIC,        thin_italic)       /*100*/ \
+			F(ULTRALIGHT_ITALIC,  ultralight_italic) /*200*/ \
+			F(LIGHT_ITALIC,       light_italic)      /*300*/ \
+			F(ITALIC,             italic)            /*400*/ \
+			F(MEDIUM_ITALIC,      medium_italic)     /*500*/ \
+			F(SEMIBOLD_ITALIC,    semibold_italic)   /*600*/ \
+			F(BOLD_ITALIC,        bold_italic)       /*700*/ \
+			F(HEAVY_ITALIC,       heavy_italic)      /*800*/ \
+			F(BLACK_ITALIC,       black_italic)      /*900*/ \
+			F(OTHER,              other) \
+			F(NONE,               none) \
+			F(OVERLINE,           overline) \
+			F(LINE_THROUGH,       line_through) \
+			F(UNDERLINE,          underline) \
+			F(LEFT,               left) \
+			F(CENTER,             center) \
+			F(RIGHT,              right) \
+			F(LEFT_REVERSE,       left_reverse) \
+			F(CENTER_REVERSE,     center_reverse) \
+			F(RIGHT_REVERSE,      right_reverse) \
+			F(TOP,                top) \
+			F(BOTTOM,             bottom) \
+			F(MIDDLE,             middle) \
+			F(REPEAT,             repeat) \
+			F(REPEAT_X,           repeat_x) \
+			F(REPEAT_Y,           repeat_y) \
+			F(MIRRORED_REPEAT,    mirrored_repeat) \
+			F(MIRRORED_REPEAT_X,  mirrored_repeat_x) \
+			F(MIRRORED_REPEAT_Y,  mirrored_repeat_y) \
+			F(NORMAL,             normal) \
+			F(CLIP,               clip) \
+			F(ELLIPSIS,           ellipsis) \
+			F(CENTER_ELLIPSIS,    center_ellipsis) \
+			F(NO_WRAP,            no_wrap) \
+			F(NO_SPACE,           no_space) \
+			F(PRE,                pre) \
+			F(PRE_LINE,           pre_line) \
+			F(WRAP,               wrap) \
+			/* keyboard type */ \
+			F(ASCII,              ascii) \
+			F(NUMBER,             number) \
+			F(URL,                url) \
+			F(NUMBER_PAD,         number_pad) \
+			F(PHONE,              phone) \
+			F(NAME_PHONE,         name_phone) \
+			F(EMAIL,              email) \
+			F(DECIMAL,            decimal) \
+			F(TWITTER,            twitter) \
+			F(SEARCH,             search) \
+			F(ASCII_NUMBER,       ascii_numner) \
+			/* keyboard return type */ \
+			F(GO,                 go) \
+			F(JOIN,               join) \
+			F(NEXT,               next) \
+			F(ROUTE,              route) \
+			F(SEND,               send) \
+			F(DONE,               done) \
+			F(EMERGENCY,          emergency) \
+			F(CONTINUE,           continue) \
 
 		/**
 		* @enum KeyboardType
 		*/
 		#define FX_KEYBOARD_TYPE(F) \
-		F(KeyboardType, NORMAL) \
-		F(KeyboardType, ASCII) \
-		F(KeyboardType, NUMBER) \
-		F(KeyboardType, URL) \
-		F(KeyboardType, NUMBER_PAD) \
-		F(KeyboardType, PHONE) \
-		F(KeyboardType, NAME_PHONE) \
-		F(KeyboardType, EMAIL) \
-		F(KeyboardType, DECIMAL) \
-		F(KeyboardType, TWITTER) \
-		F(KeyboardType, SEARCH) \
-		F(KeyboardType, ASCII_NUMBER) \
+			F(KeyboardType, NORMAL) \
+			F(KeyboardType, ASCII) \
+			F(KeyboardType, NUMBER) \
+			F(KeyboardType, URL) \
+			F(KeyboardType, NUMBER_PAD) \
+			F(KeyboardType, PHONE) \
+			F(KeyboardType, NAME_PHONE) \
+			F(KeyboardType, EMAIL) \
+			F(KeyboardType, DECIMAL) \
+			F(KeyboardType, TWITTER) \
+			F(KeyboardType, SEARCH) \
+			F(KeyboardType, ASCII_NUMBER) \
 		
 		/**
 		* @enum KeyboardReturnType
 		*/
 		#define FX_KEYBOARD_RETURN_TYPE(F) \
-		F(KeyboardReturnType, NORMAL) \
-		F(KeyboardReturnType, GO) \
-		F(KeyboardReturnType, JOIN) \
-		F(KeyboardReturnType, NEXT) \
-		F(KeyboardReturnType, ROUTE) \
-		F(KeyboardReturnType, SEARCH) \
-		F(KeyboardReturnType, SEND) \
-		F(KeyboardReturnType, DONE) \
-		F(KeyboardReturnType, EMERGENCY) \
-		F(KeyboardReturnType, CONTINUE) \
+			F(KeyboardReturnType, NORMAL) \
+			F(KeyboardReturnType, GO) \
+			F(KeyboardReturnType, JOIN) \
+			F(KeyboardReturnType, NEXT) \
+			F(KeyboardReturnType, ROUTE) \
+			F(KeyboardReturnType, SEARCH) \
+			F(KeyboardReturnType, SEND) \
+			F(KeyboardReturnType, DONE) \
+			F(KeyboardReturnType, EMERGENCY) \
+			F(KeyboardReturnType, CONTINUE) \
 		
 		/**
 		* @enum Direction
 		*/
 		#define FX_DIRECTION(F) \
-		F(Direction, NONE) \
-		F(Direction, LEFT) \
-		F(Direction, RIGHT) \
-		F(Direction, TOP) \
-		F(Direction, BOTTOM) \
+			F(Direction, NONE) \
+			F(Direction, LEFT) \
+			F(Direction, RIGHT) \
+			F(Direction, TOP) \
+			F(Direction, BOTTOM) \
 
 		/**
 		* @enum ValueType
 		*/
 		#define FX_VALUE_TYPE(F) \
-		F(ValueType, AUTO)    /* 自动值  auto */ \
-		F(ValueType, FULL)    /* 吸附到父视图(client边距与父视图重叠) full */ \
-		F(ValueType, PIXEL)   /* 像素值  px */ \
-		F(ValueType, PERCENT) /* 百分比  % */ \
-		F(ValueType, MINUS)   /* 减法(parent-value) ! */ \
+			F(ValueType, AUTO)    /* 自动值  auto */ \
+			F(ValueType, FULL)    /* 吸附到父视图(client边距与父视图重叠) full */ \
+			F(ValueType, PIXEL)   /* 像素值  px */ \
+			F(ValueType, PERCENT) /* 百分比  % */ \
+			F(ValueType, MINUS)   /* 减法(parent-value) ! */ \
 
 		/**
 		* @enum BackgroundPositionType
 		*/
 		#define FX_BACKGROUND_POSITION_TYPE(F) \
-		F(ValueType, PIXEL)     /* 像素值  px */ \
-		F(ValueType, PERCENT)   /* 百分比  % */ \
-		F(ValueType, LEFT)      /* 居左 */ \
-		F(ValueType, RIGHT)     /* 居右  % */ \
-		F(ValueType, CENTER)    /* 居中 */ \
-		F(ValueType, TOP)       /* 居上 */ \
-		F(ValueType, BOTTOM)    /* 居下 */ \
+			F(ValueType, PIXEL)     /* 像素值  px */ \
+			F(ValueType, PERCENT)   /* 百分比  % */ \
+			F(ValueType, LEFT)      /* 居左 */ \
+			F(ValueType, RIGHT)     /* 居右  % */ \
+			F(ValueType, CENTER)    /* 居中 */ \
+			F(ValueType, TOP)       /* 居上 */ \
+			F(ValueType, BOTTOM)    /* 居下 */ \
 
 		/**
 		* @enum BackgroundSizeType
 		*/
 		#define FX_BACKGROUND_SIZE_TYPE(F) \
-		F(ValueType, AUTO)      /* 自动值  auto */ \
-		F(ValueType, PIXEL)     /* 像素值  px */ \
-		F(ValueType, PERCENT)   /* 百分比  % */ \
+			F(ValueType, AUTO)      /* 自动值  auto */ \
+			F(ValueType, PIXEL)     /* 像素值  px */ \
+			F(ValueType, PERCENT)   /* 百分比  % */ \
 
 		/**
 		* @enum TextValueType
 		*/
 		#define FX_TEXT_VALUE_TYPE(F) \
-		F(TextValueType, INHERIT) \
-		F(TextValueType, VALUE) \
+			F(TextValueType, INHERIT) \
+			F(TextValueType, VALUE) \
 
 		/**
 		* @enum TextStyleEnum
 		*/
 		#define FX_TEXT_STYLE_ENUM(F) \
-		F(TextStyleEnum, THIN) \
-		F(TextStyleEnum, ULTRALIGHT) \
-		F(TextStyleEnum, LIGHT) \
-		F(TextStyleEnum, REGULAR) \
-		F(TextStyleEnum, MEDIUM) \
-		F(TextStyleEnum, SEMIBOLD) \
-		F(TextStyleEnum, BOLD) \
-		F(TextStyleEnum, HEAVY) \
-		F(TextStyleEnum, BLACK) \
-		F(TextStyleEnum, THIN_ITALIC) \
-		F(TextStyleEnum, ULTRALIGHT_ITALIC) \
-		F(TextStyleEnum, LIGHT_ITALIC) \
-		F(TextStyleEnum, ITALIC) \
-		F(TextStyleEnum, MEDIUM_ITALIC) \
-		F(TextStyleEnum, SEMIBOLD_ITALIC) \
-		F(TextStyleEnum, BOLD_ITALIC) \
-		F(TextStyleEnum, HEAVY_ITALIC) \
-		F(TextStyleEnum, BLACK_ITALIC) \
-		F(TextStyleEnum, OTHER) \
+			F(TextStyleEnum, THIN) \
+			F(TextStyleEnum, ULTRALIGHT) \
+			F(TextStyleEnum, LIGHT) \
+			F(TextStyleEnum, REGULAR) \
+			F(TextStyleEnum, MEDIUM) \
+			F(TextStyleEnum, SEMIBOLD) \
+			F(TextStyleEnum, BOLD) \
+			F(TextStyleEnum, HEAVY) \
+			F(TextStyleEnum, BLACK) \
+			F(TextStyleEnum, THIN_ITALIC) \
+			F(TextStyleEnum, ULTRALIGHT_ITALIC) \
+			F(TextStyleEnum, LIGHT_ITALIC) \
+			F(TextStyleEnum, ITALIC) \
+			F(TextStyleEnum, MEDIUM_ITALIC) \
+			F(TextStyleEnum, SEMIBOLD_ITALIC) \
+			F(TextStyleEnum, BOLD_ITALIC) \
+			F(TextStyleEnum, HEAVY_ITALIC) \
+			F(TextStyleEnum, BLACK_ITALIC) \
+			F(TextStyleEnum, OTHER) \
 
 		/**
 		* @enum TextDecorationEnum
 		*/
 		#define FX_TEXT_DECORATION_ENUM(F) \
-		F(TextDecoration, NONE)           /* 没有 */ \
-		F(TextDecoration, OVERLINE)       /* 上划线 */ \
-		F(TextDecoration, LINE_THROUGH)   /* 中划线 */ \
-		F(TextDecoration, UNDERLINE)      /* 下划线 */ \
+			F(TextDecoration, NONE)           /* 没有 */ \
+			F(TextDecoration, OVERLINE)       /* 上划线 */ \
+			F(TextDecoration, LINE_THROUGH)   /* 中划线 */ \
+			F(TextDecoration, UNDERLINE)      /* 下划线 */ \
 
 		#define FX_TEXT_OVERFLOW_ENUM(F) \
-		F(TextOverflowEnum, NORMAL)          /* 不做任何处理 */ \
-		F(TextOverflowEnum, CLIP)            /* 剪切 */ \
-		F(TextOverflowEnum, ELLIPSIS)        /* 剪切并显示省略号 */ \
-		F(TextOverflowEnum, CENTER_ELLIPSIS) /* 剪切并居中显示省略号 */ \
+			F(TextOverflowEnum, NORMAL)          /* 不做任何处理 */ \
+			F(TextOverflowEnum, CLIP)            /* 剪切 */ \
+			F(TextOverflowEnum, ELLIPSIS)        /* 剪切并显示省略号 */ \
+			F(TextOverflowEnum, CENTER_ELLIPSIS) /* 剪切并居中显示省略号 */ \
 
 		#define FX_TEXT_WHITE_SPACE_ENUM(F) \
-		F(TextWhiteSpaceEnum, NORMAL)           /* 保留所有空白,使用自动wrap */ \
-		F(TextWhiteSpaceEnum, NO_WRAP)          /* 合并空白序列,不使用自动wrap */ \
-		F(TextWhiteSpaceEnum, NO_SPACE)         /* 合并空白序列,使用自动wrap */ \
-		F(TextWhiteSpaceEnum, PRE)              /* 保留所有空白,不使用自动wrap */ \
-		F(TextWhiteSpaceEnum, PRE_LINE)         /* 合并空白符序列,但保留换行符,使用自动wrap */ \
-		F(TextWhiteSpaceEnum, WRAP)             /* 保留所有空白,强制使用自动wrap */ \
+			F(TextWhiteSpaceEnum, NORMAL)           /* 保留所有空白,使用自动wrap */ \
+			F(TextWhiteSpaceEnum, NO_WRAP)          /* 合并空白序列,不使用自动wrap */ \
+			F(TextWhiteSpaceEnum, NO_SPACE)         /* 合并空白序列,使用自动wrap */ \
+			F(TextWhiteSpaceEnum, PRE)              /* 保留所有空白,不使用自动wrap */ \
+			F(TextWhiteSpaceEnum, PRE_LINE)         /* 合并空白符序列,但保留换行符,使用自动wrap */ \
+			F(TextWhiteSpaceEnum, WRAP)             /* 保留所有空白,强制使用自动wrap */ \
 
 		/**
 		* @enum TextAlign 文本对齐方式
 		*/
 		#define FX_TEXT_ALIGN(F) \
-		F(TextAlign, LEFT)           /* 左对齐 */ \
-		F(TextAlign, CENTER)         /* 居中 */ \
-		F(TextAlign, RIGHT)          /* 右对齐 */ \
-		F(TextAlign, LEFT_REVERSE)   /* 左对齐并反向 */ \
-		F(TextAlign, CENTER_REVERSE) /* 居中对齐并反向 */ \
-		F(TextAlign, RIGHT_REVERSE)  /* 右对齐并反向 */ \
+			F(TextAlign, LEFT)           /* 左对齐 */ \
+			F(TextAlign, CENTER)         /* 居中 */ \
+			F(TextAlign, RIGHT)          /* 右对齐 */ \
+			F(TextAlign, LEFT_REVERSE)   /* 左对齐并反向 */ \
+			F(TextAlign, CENTER_REVERSE) /* 居中对齐并反向 */ \
+			F(TextAlign, RIGHT_REVERSE)  /* 右对齐并反向 */ \
 
 		/**
 		* @enum Align 对齐方式
 		*/
 		#define FX_ALIGN(F) \
-		F(Align, NONE) \
-		F(Align, LEFT) \
-		F(Align, RIGHT) \
-		F(Align, CENTER) \
-		F(Align, TOP) \
-		F(Align, BOTTOM) \
+			F(Align, NONE) \
+			F(Align, LEFT) \
+			F(Align, RIGHT) \
+			F(Align, CENTER) \
+			F(Align, TOP) \
+			F(Align, BOTTOM) \
 
 		/**
 		* @enum ContentAlign div 内容对齐方式
 		*/
 		#define FX_CONTENT_ALIGN(F) \
-		F(ContentAlign, LEFT)    /* 水平左对齐 */ \
-		F(ContentAlign, RIGHT)   /* 水平右对齐 */ \
-		F(ContentAlign, TOP)     /* 垂直上对齐 */ \
-		F(ContentAlign, BOTTOM)  /* 垂直下对齐 */ \
+			F(ContentAlign, LEFT)    /* 水平左对齐 */ \
+			F(ContentAlign, RIGHT)   /* 水平右对齐 */ \
+			F(ContentAlign, TOP)     /* 垂直上对齐 */ \
+			F(ContentAlign, BOTTOM)  /* 垂直下对齐 */ \
 
 		/**
 		* @enum Repeat 纹理重复方式
 		*/
 		#define FX_REPEAT(F) \
-		F(Repeat, NONE) \
-		F(Repeat, REPEAT) \
-		F(Repeat, REPEAT_X) \
-		F(Repeat, REPEAT_Y) \
-		F(Repeat, MIRRORED_REPEAT) \
-		F(Repeat, MIRRORED_REPEAT_X) \
-		F(Repeat, MIRRORED_REPEAT_Y) \
+			F(Repeat, NONE) \
+			F(Repeat, REPEAT) \
+			F(Repeat, REPEAT_X) \
+			F(Repeat, REPEAT_Y) \
+			F(Repeat, MIRRORED_REPEAT) \
+			F(Repeat, MIRRORED_REPEAT_X) \
+			F(Repeat, MIRRORED_REPEAT_Y) \
 
 		#define DEF_ENUM_VALUE(NAME, NAME2) NAME,
 		#define DEF_ENUM(Type, NAME) NAME = Enum::NAME,

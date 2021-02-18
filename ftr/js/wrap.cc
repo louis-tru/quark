@@ -48,26 +48,26 @@ static int record_strong_count = 0;
  * @class WrapObject::Inl
  */
 class WrapObject::Inl: public WrapObject {
- public:
- #define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
+	public:
+	#define _inl_wrap(self) static_cast<WrapObject::Inl*>(self)
 	
 	void clear_weak() {
-#if FX_MEMORY_TRACE_MARK
-		if (IMPL::current(worker())->IsWeak(handle_)) {
-			record_strong_count++;
-			print_wrap("mark_strong");
-		}
-#endif
+		#if FX_MEMORY_TRACE_MARK
+			if (IMPL::current(worker())->IsWeak(handle_)) {
+				record_strong_count++;
+				print_wrap("mark_strong");
+			}
+		#endif
 		IMPL::current(worker())->ClearWeak(handle_, this);
 	}
 	
 	void make_weak() {
-#if FX_MEMORY_TRACE_MARK
-		if (!IMPL::current(worker())->IsWeak(handle_)) {
-			record_strong_count--;
-			print_wrap("make_weak");
-		}
-#endif
+		#if FX_MEMORY_TRACE_MARK
+			if (!IMPL::current(worker())->IsWeak(handle_)) {
+				record_strong_count--;
+				print_wrap("make_weak");
+			}
+		#endif
 		IMPL::current(worker())->SetWeak(handle_, this, [](const WeakCallbackInfo& info) {
 			auto self = _inl_wrap(info.GetParameter());
 			self->handle_.V8_DEATH_RESET();
@@ -88,10 +88,10 @@ void WrapObject::init2(FunctionCall args) {
 	ASSERT( !classs->current_attach_object_ );
 	handle_.Reset(worker_, args.This());
 	bool ok = IMPL::SetObjectPrivate(args.This(), this); ASSERT(ok);
-#if FX_MEMORY_TRACE_MARK
-	record_wrap_count++; 
-	record_strong_count++;
-#endif 
+	#if FX_MEMORY_TRACE_MARK
+		record_wrap_count++; 
+		record_strong_count++;
+	#endif 
 	if (!self()->is_reference() || /* non reference */
 			static_cast<Reference*>(self())->ref_count() <= 0) {
 		_inl_wrap(this)->make_weak();
@@ -110,11 +110,11 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 		bool ok = IMPL::SetObjectPrivate(args.This(), wrap); ASSERT(ok);
 		classs->current_attach_object_ = nullptr;
 		wrap->initialize();
-#if FX_MEMORY_TRACE_MARK
-		record_wrap_count++; 
-		record_strong_count++;
-		print_wrap("External");
-#endif
+		#if FX_MEMORY_TRACE_MARK
+			record_wrap_count++; 
+			record_strong_count++;
+			print_wrap("External");
+		#endif
 		return wrap;
 	}
 	return nullptr;
@@ -123,10 +123,10 @@ WrapObject* WrapObject::attach(FunctionCall args) {
 WrapObject::~WrapObject() {
 	ASSERT(handle_.IsEmpty());
 
-#if FX_MEMORY_TRACE_MARK
-	record_wrap_count--;
-	print_wrap("~WrapObject");
-#endif 
+	#if FX_MEMORY_TRACE_MARK
+		record_wrap_count--;
+		print_wrap("~WrapObject");
+	#endif 
 	self()->~Object();
 }
 
@@ -179,7 +179,7 @@ WrapObject* WrapObject::unpack2(Local<JSObject> object) {
 	return static_cast<WrapObject*>(IMPL::GetObjectPrivate(object));
 }
 
-WrapObject* WrapObject::pack2(Object* object, uint64 type_id) {
+WrapObject* WrapObject::pack2(Object* object, uint64_t type_id) {
 	WrapObject* wrap = reinterpret_cast<WrapObject*>(object) - 1;
 	if ( !wrap->worker() ) { // uninitialized
 		JS_WORKER();

@@ -39,22 +39,22 @@ namespace ftr {
 
 	class LINUXIMEHelper {
 		public:
-			LINUXIMEHelper(AppInl* app, Display* dpy, 
-										Window win, int inputStyle = XIMPreeditPosition);
-			~LINUXIMEHelper();
-			void open(KeyboardOptions options);
-			void close();
-			void clear();
-			void set_keyboard_can_backspace(bool can_backspace, bool can_delete);
-			void set_keyboard_type(KeyboardType type);
-			void set_keyboard_return_type(KeyboardReturnType type);
-			void set_spot_location(Vec2 location);
-			void key_press(XKeyPressedEvent *event);
-			void focus_in();
-			void focus_out();
+		LINUXIMEHelper(AppInl* app, Display* dpy, 
+									Window win, int inputStyle = XIMPreeditPosition);
+		~LINUXIMEHelper();
+		void open(KeyboardOptions options);
+		void close();
+		void clear();
+		void set_keyboard_can_backspace(bool can_backspace, bool can_delete);
+		void set_keyboard_type(KeyboardType type);
+		void set_keyboard_return_type(KeyboardReturnType type);
+		void set_spot_location(Vec2 location);
+		void key_press(XKeyPressedEvent *event);
+		void focus_in();
+		void focus_out();
 		private:
-			class Inl;
-			Inl* _inl;
+		class Inl;
+		Inl* _inl;
 	};
 
 }

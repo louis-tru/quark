@@ -31,9 +31,9 @@
 #ifndef __ftr__font__font__
 #define __ftr__font__font__
 
-#include "../util/array.h"
 #include "../draw/draw.h"
 #include "../value.h"
+#include <vector>
 
 namespace ftr {
 
@@ -54,35 +54,35 @@ namespace ftr {
 	*/
 	class FX_EXPORT FontFamilysID {
 		public:
-		inline const Array<String>& names() const { return _names; }
+		inline const std::vector<String>& names() const { return _names; }
 		inline cString& name() const { return _name; }
-		inline uint code() const { return _code; }
+		inline uint32_t code() const { return _code; }
 		
 		private:
-		~FontFamilysID() { }
+		~FontFamilysID() {}
 		
-		Array<String>   _names;
-		String          _name;
-		uint            _code;
+		std::vector<String> _names;
+		String              _name;
+		uint32_t            _code;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;
 	};
 
 	/**
-	* @class BasicFont
+	* @class BaseFont
 	*/
-	class FX_EXPORT BasicFont: public Object {
+	class FX_EXPORT BaseFont: public Object {
 		public:
 		virtual cString& name() const = 0;
-		virtual Font* font(TextStyleEnum style= TextStyleEnum::REGULAR) = 0;
+		virtual Font* font(TextStyleEnum style = TextStyleEnum::REGULAR) = 0;
 	};
 
 	/**
 	* @class Font 矢量字体
 	* 暂时只支持unicode编码中第0平面最常用的编码(0x0000-0xFFFF)
 	*/
-	class FX_EXPORT Font: public BasicFont {
+	class FX_EXPORT Font: public BaseFont {
 		FX_HIDDEN_ALL_COPY(Font);
 		protected:
 
@@ -94,7 +94,6 @@ namespace ftr {
 		virtual ~Font();
 		
 		public:
-		
 		/**
 		* @overwrite
 		*/
@@ -109,7 +108,7 @@ namespace ftr {
 		/**
 		* @func num_glyphs
 		*/
-		inline uint num_glyphs() const { return _num_glyphs; }
+		inline uint32_t num_glyphs() const { return _num_glyphs; }
 		
 		/**
 		* @func family
@@ -178,7 +177,7 @@ namespace ftr {
 		FontFamily*   _font_family;    // 所属字体家族
 		String        _font_name;      // 字体名称
 		TextStyleEnum _style;    //
-		uint          _num_glyphs;     //
+		uint32_t      _num_glyphs;     //
 		void*         _ft_glyph;       /* FT_GlyphSlot */
 		int           _height;         /* text height in 26.6 frac. pixels       */
 		int           _max_advance;    /* max horizontal advance, in 26.6 pixels */
@@ -190,7 +189,7 @@ namespace ftr {
 		GlyphContainerFlag**  _flags;
 		
 		protected:
-		uint          _face_index;   // 当前字体在字体文件中的索引
+		uint32_t      _face_index;   // 当前字体在字体文件中的索引
 		void*         _ft_lib;       /* FT_Library */
 		void*         _ft_face;      /* FT_Face */
 		
@@ -239,7 +238,7 @@ namespace ftr {
 		/**
 		* @func texture
 		*/
-		inline uint texture_id(TexureLevel level) const { return _textures[level]; }
+		inline uint32_t texture_id(TexureLevel level) const { return _textures[level]; }
 		/**
 		* @func texture_size
 		*/
@@ -249,7 +248,7 @@ namespace ftr {
 		/**
 		* @func vertex_data
 		*/
-		inline uint vertex_data() const { return _vertex_value; }
+		inline uint32_t vertex_data() const { return _vertex_value; }
 		/**
 		* @func vertex_count
 		*/
@@ -295,9 +294,9 @@ namespace ftr {
 		
 		typedef Font::GlyphContainer Container;
 		
-		uint        _textures[12];       /* 纹理集合 */
+		uint32_t        _textures[12];       /* 纹理集合 */
 		TexSize     _texture_size[12];   /* 纹理尺寸集合 */
-		uint        _vertex_value;       /* vbo顶点数据 */
+		uint32_t        _vertex_value;       /* vbo顶点数据 */
 		uint16_t      _vertex_count;       /* 顶点数量 */
 		uint16_t      _glyph_index;        /* 字型在字体文件中的索引 */
 		uint16_t      _unicode;            /* 字型的unicode */
@@ -328,7 +327,7 @@ namespace ftr {
 		/**
 		* @func count {uint}
 		*/
-		inline uint count() const { return _fonts.length(); }
+		inline uint32_t count() const { return _fonts.length(); }
 		
 		/**
 		* @func style {TextStyleEnum}
@@ -371,12 +370,10 @@ namespace ftr {
 		
 		FontPool*     _pool;
 		GlyphsBlock*  _blocks[512];
-		Array<Font*>  _fonts;
+		std::vector<Font*>  _fonts;
 		cFFID         _ffid;
 		TextStyleEnum _style;
-		int           _height;
-		int           _ascender;
-		int           _descender;
+		int _height, _ascender, _descender;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
@@ -386,7 +383,7 @@ namespace ftr {
 	/**
 	* @class FontFamily 字体家族
 	*/
-	class FX_EXPORT FontFamily: public BasicFont {
+	class FX_EXPORT FontFamily: public BaseFont {
 		FX_HIDDEN_ALL_COPY(FontFamily);
 		public:
 		
@@ -404,12 +401,12 @@ namespace ftr {
 		/**
 		* @func font_names
 		*/
-		Array<String> font_names() const;
+		std::vector<String> font_names() const;
 		
 		/**
 		* @func num_fonts
 		*/
-		inline uint num_fonts() const { return _all_fonts.length(); }
+		inline uint32_t num_fonts() const { return _all_fonts.length(); }
 		
 		private:
 		
@@ -417,7 +414,7 @@ namespace ftr {
 		
 		String        _family_name;
 		Font*         _fonts[19];
-		Array<Font*>  _all_fonts;
+		std::vector<Font*>  _all_fonts;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;

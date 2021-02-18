@@ -46,7 +46,7 @@ namespace ftr {
  * @class Label
  */
 class FX_EXPORT Label: public View, public TextFont {
- public:
+	public:
 	
 	typedef ReferenceTraits Traits;
 	
@@ -77,7 +77,7 @@ class FX_EXPORT Label: public View, public TextFont {
 	/**
 	 * @func length
 	 */
-	inline uint length() const { return _data.string.length(); }
+	inline uint32_t length() const { return _data.string.length(); }
 	
 	/**
 	 * @func cells
@@ -104,18 +104,17 @@ class FX_EXPORT Label: public View, public TextFont {
 	 */
 	inline float text_height() const { return _data.text_height; }
 	
- protected:
-	
+	protected:
 	/**
 	 * @overwrite
 	 */
 	virtual void draw(Draw* draw);
-	virtual void mark_text(uint value);
+	virtual void mark_text(uint32_t value);
 	virtual void accept_text(Ucs2StringBuilder& out) const;
 	virtual void set_draw_visible();
 	virtual void set_parent(View* parent) throw(Error);
 	
- private:
+	private:
 	Data        _data;
 	TextAlign   _text_align;
 	Vec2        _box_size;

@@ -62,7 +62,7 @@ static int is_process_exit = 0;
 static EventNoticer<>* on_process_safe_exit = nullptr;
 
 FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
- public:
+	public:
 	#define _inl_t(self) static_cast<Thread::Inl*>(self)
 
 	static void thread_destructor(void* ptr) {

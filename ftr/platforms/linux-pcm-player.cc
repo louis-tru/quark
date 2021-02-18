@@ -87,7 +87,7 @@ namespace ftr {
 				DLOG("~LinuxPCMPlayer");
 			}
 
-			bool initialize(uint channel_count, uint sample_rate) {
+			bool initialize(uint32_t channel_count, uint32_t sample_rate) {
 			#define CHECK() if (r < 0) return 0
 				int r, dir = 0;
 				_channel_count = channel_count;
@@ -174,7 +174,7 @@ namespace ftr {
 				return 1;
 			}
 
-			virtual bool set_volume(uint value) {
+			virtual bool set_volume(uint32_t value) {
 				float fvalue = value / 100.0;
 				fvalue = FX_MIN(1.0, fvalue);
 				if (fvalue != _volume || _mute) {
@@ -189,7 +189,7 @@ namespace ftr {
 				return true;
 			}
 
-			virtual uint buffer_size() {
+			virtual uint32_t buffer_size() {
 				return _period_size;
 			}
 
@@ -199,7 +199,7 @@ namespace ftr {
 			snd_pcm_sw_params_t* _sw_params;
 			snd_mixer_t* _mixer;
 			snd_pcm_uframes_t _period_size;
-			uint _periods, _channel_count, _sample_rate;
+			uint32_t _periods, _channel_count, _sample_rate;
 			float _volume;
 			bool _mute;
 	};
@@ -207,7 +207,7 @@ namespace ftr {
 	/**
 	* @func create
 	*/
-	PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
+	PCMPlayer* PCMPlayer::create(uint32_t channel_count, uint32_t sample_rate) {
 		Handle<LinuxPCMPlayer> player = new LinuxPCMPlayer();
 		if ( player->initialize(channel_count, sample_rate) ) {
 			return player.collapse();

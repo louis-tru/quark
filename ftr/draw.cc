@@ -109,18 +109,18 @@ void Draw::clear(bool full) {
 	_font_pool->clear(full);
 }
 
-void Draw::set_max_texture_memory_limit(uint64 limit) {
+void Draw::set_max_texture_memory_limit(uint64_t limit) {
 	_max_texture_memory_limit = FX_MAX(limit, 64 * 1024 * 1024);
 }
 
-uint64 Draw::used_texture_memory() const {
+uint64_t Draw::used_texture_memory() const {
 	return _tex_pool->_total_data_size + _font_pool->_total_data_size;
 }
 
 /**
  * @func adjust_texture_memory()
  */
-bool Draw::adjust_texture_memory(uint64 will_alloc_size) {
+bool Draw::adjust_texture_memory(uint64_t will_alloc_size) {
 	
 	int i = 0;
 	do {

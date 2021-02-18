@@ -31,11 +31,9 @@
 #ifndef __ftr__js__ftr__
 #define __ftr__js__ftr__
 
-#include "ftr-js/js.h"
-#include "ftr-js/wrap.h"
-#include "ftr-js/value.h"
-#include "ftr/app.h"
-#include "ftr/view.h"
+#include "./js.h"
+#include "./value.h"
+#include "../app.h"
 
 /**
  * @ns ftr::js
@@ -50,7 +48,7 @@ JS_BEGIN
  * @class WrapViewBase
  */
 class FX_EXPORT WrapViewBase: public WrapObject {
- public:
+	public:
 
 	/**
 	 * @func overwrite
@@ -83,10 +81,6 @@ class FX_EXPORT WrapViewBase: public WrapObject {
 	static void inheritScroll(Local<JSClass> cls, Worker* worker);
 	
 };
-
-FX_EXPORT int Start(cString& cmd);
-FX_EXPORT int Start(const Array<String>& argv);
-FX_EXPORT int Start(int argc, Char** argv);
 
 JS_END
 #endif

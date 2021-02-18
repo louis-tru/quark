@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__action__
-#define __ftr__action__
+#ifndef __ftr__action__action__
+#define __ftr__action__action__
 
-#include "../util/array.h"
-#include "../util/list.h"
-#include "../util/map.h"
 #include "../value.h"
 #include "../math/bezier.h"
 #include "../event.h"
 #include "../property.h"
 #include "../background.h"
+#include <vector>
+#include <list>
+#include <map>
 
 namespace ftr {
 
@@ -54,7 +54,6 @@ namespace ftr {
 	*/
 	class FX_EXPORT Action: public Reference {
 		public:
-
 		Action();
 		
 		/**
@@ -80,37 +79,37 @@ namespace ftr {
 		/**
 		* @func seek
 		*/
-		void seek(int64 time);
+		void seek(int64_t time);
 		
 		/**
 		* @func seek_play
 		*/
-		void seek_play(int64 time);
+		void seek_play(int64_t time);
 		
 		/**
 		* @func seek_play
 		*/
-		void seek_stop(int64 time);
+		void seek_stop(int64_t time);
 		
 		/**
 		* @func loop get
 		*/
-		inline uint loop() const { return _loop; }
+		inline uint32_t loop() const { return _loop; }
 		
 		/**
 		* @func loopd get
 		*/
-		inline uint looped() const { return _loopd; }
+		inline uint32_t looped() const { return _loopd; }
 
 		/**
 		* @func delay get
 		*/
-		inline uint64 delay() const { return _delay; }
+		inline uint64_t delay() const { return _delay; }
 		
 		/**
 		* @func delayd get
 		*/
-		int64 delayed() const { return _delayd; }
+		int64_t delayed() const { return _delayd; }
 		
 		/**
 		* @func speed get
@@ -135,12 +134,12 @@ namespace ftr {
 		/**
 		* @func loop set
 		*/
-		inline void loop(uint value) { _loop = value; }
+		inline void loop(uint32_t value) { _loop = value; }
 		
 		/**
 		* @func delay set
 		*/
-		void delay(uint64 value);
+		void delay(uint64_t value);
 		
 		/**
 		* @func speed set
@@ -152,7 +151,7 @@ namespace ftr {
 		/**
 		* @func duration
 		*/
-		inline uint64 duration() { return _full_duration - _delay; }
+		inline uint64_t duration() { return _full_duration - _delay; }
 		
 		/**
 		* @func clear
@@ -184,17 +183,17 @@ namespace ftr {
 		/**
 		* @func advance
 		*/
-		virtual uint64 advance(uint64 time_span, bool restart, Action* root) = 0;
+		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root) = 0;
 		
 		/**
 		* @func seek_time
 		*/
-		virtual void seek_time(uint64 time, Action* root) = 0;
+		virtual void seek_time(uint64_t time, Action* root) = 0;
 		
 		/**
 		* @func seek_before to root action
 		*/
-		virtual void seek_before(int64 time, Action* child) = 0;
+		virtual void seek_before(int64_t time, Action* child) = 0;
 		
 		/**
 		* @func bind_view
@@ -202,7 +201,6 @@ namespace ftr {
 		virtual void bind_view(View* view) = 0;
 		
 		protected:
-		
 		struct Wrap {
 			Action* value;
 			bool play;
@@ -211,12 +209,12 @@ namespace ftr {
 		Action* _parent;
 		int     _loop;
 		int     _loopd;
-		int64   _full_duration;
-		int64   _delay;
-		int64   _delayd;
+		int64_t _full_duration;
+		int64_t _delay;
+		int64_t _delayd;
 		float   _speed;
-		List<View*> _views;
-		List<Wrap>::Iterator _action_center_id;
+		std::list<View*> _views;
+		std::list<Wrap>::iterator _action_center_id;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
@@ -225,6 +223,38 @@ namespace ftr {
 		friend class SpawnAction;
 		friend class SequenceAction;
 		friend class KeyframeAction;
+	};
+
+	/**
+	* @class ActionCenter
+	*/
+	class FX_EXPORT ActionCenter: public Object {
+		public:
+		
+		ActionCenter();
+		
+		/**
+		* @destructor
+		*/
+		virtual ~ActionCenter();
+		
+		/**
+		* @func advance
+		*/
+		void advance(int64_t now_time);
+		
+		/**
+		* @func shared
+		*/
+		static ActionCenter* shared();
+		
+		private:
+		typedef std::list<Action::Wrap> Actions;
+		
+		uint64_t _prev_sys_time;
+		Actions  _actions;
+		
+		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

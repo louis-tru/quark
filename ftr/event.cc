@@ -58,8 +58,8 @@ template<class T, typename... Args>
 inline static Handle<T> NewEvent(Args... args) { return new T(args...); }
 
 FX_DEFINE_INLINE_MEMBERS(View, EventInl) {
- public:
- #define _inl_view(self) static_cast<View::EventInl*>(static_cast<View*>(self))
+	public:
+	#define _inl_view(self) static_cast<View::EventInl*>(static_cast<View*>(self))
 	
 	/**
 	 * @func trigger_highlightted
@@ -226,10 +226,10 @@ class GUIEventDispatch::OriginTouche {
 			_is_click_down = value;
 	}
 	inline Map<uint, GUITouch>& values() { return _touches; }
-	inline GUITouch& operator[](uint id) { return _touches[id]; }
-	inline uint count() { return _touches.length(); }
-	inline bool has(uint id) { return _touches.has(id); }
-	inline void del(uint id) { _touches.del(id); }
+	inline GUITouch& operator[](uint32_t id) { return _touches[id]; }
+	inline uint32_t count() { return _touches.length(); }
+	inline bool has(uint32_t id) { return _touches.has(id); }
+	inline void del(uint32_t id) { _touches.del(id); }
  private:
 	View* _view;
 	Map<uint, GUITouch> _touches;
@@ -272,7 +272,7 @@ class GUIEventDispatch::MouseHandle {
  * @class GUIEventDispatch::Inl
  */
 FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
- public:
+	public:
 	#define _inl_di(self) static_cast<GUIEventDispatch::Inl*>(self)
 	
 	// -------------------------- touch --------------------------
@@ -519,7 +519,7 @@ FX_DEFINE_INLINE_MEMBERS(GUIEventDispatch, Inl) {
 
 	// -------------------------- mouse --------------------------
 
-	Handle<GUIMouseEvent> NewMouseEvent(View* view, float x, float y, uint keycode = 0) {
+	Handle<GUIMouseEvent> NewMouseEvent(View* view, float x, float y, uint32_t keycode = 0) {
 		return NewEvent<GUIMouseEvent>(view, x, y, keycode,
 			_keyboard->shift(),
 			_keyboard->ctrl(), _keyboard->alt(),
@@ -813,7 +813,7 @@ GUIEventDispatch::~GUIEventDispatch() {
 
 #define _loop static_cast<PostMessage*>(app_->main_loop())
 
-void KeyboardAdapter::dispatch(uint keycode, bool unicode,
+void KeyboardAdapter::dispatch(uint32_t keycode, bool unicode,
 															 bool down, int repeat, int device, int source) 
 {
 	async_callback(Cb([=](CbData& evt) {

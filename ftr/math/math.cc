@@ -50,7 +50,7 @@ namespace ftr {
 		return (color >> offset) & 0xff;
 	}
 
-	Color::Color(uint color)
+	Color::Color(uint32_t color)
 	: MTColor<uint8_t>(getPartColor(color, 24),
 									getPartColor(color, 16),
 									getPartColor(color, 8),

@@ -52,8 +52,8 @@
 # define IMMEDIATE_CRASH() ((void(*)())0)()
 #endif
 
-#ifndef nx_stderr
-# define nx_stderr stdout
+#ifndef fx_stderr
+# define fx_stderr stdout
 #endif
 
 #define FX_STRING_FORMAT(format, str) \
@@ -71,13 +71,13 @@ namespace ftr {
 		printf("Warning: %s\n", str.str_c());
 	}
 	void Console::error(cString& str) {
-		fprintf(nx_stderr, "%s\n", str.str_c());
+		fprintf(fx_stderr, "%s\n", str.str_c());
 	}
 	void Console::print(cString& str) {
 		printf("%s", str.str_c());
 	}
 	void Console::print_err(cString& str) {
-		fprintf(nx_stderr, "%s", str.str_c());
+		fprintf(fx_stderr, "%s", str.str_c());
 	}
 	void Console::clear() {
 		// noop
@@ -284,7 +284,7 @@ namespace ftr {
 
 	void fatal(cChar* file, uint32_t line, cChar* func, cChar* msg, ...) {
 		fflush(stdout);
-		fflush(nx_stderr);
+		fflush(fx_stderr);
 		if (msg) {
 			FX_STRING_FORMAT(msg, str);
 			default_console()->print_err("\n\n\n");
@@ -293,7 +293,7 @@ namespace ftr {
 		console::report_error("#\n# Fatal error in %s, line %d, func %s\n# \n\n", file, line, func);
 		console::dump_backtrace();
 		fflush(stdout);
-		fflush(nx_stderr);
+		fflush(fx_stderr);
 		IMMEDIATE_CRASH();
 	}
 

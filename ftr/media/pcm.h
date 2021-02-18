@@ -60,12 +60,12 @@ namespace ftr {
 		/**
 		* @func set_volume 0-100
 		* */
-		virtual bool set_volume(uint value) = 0;
+		virtual bool set_volume(uint32_t value) = 0;
 
 		/**
 		* @func buffer_size
 		* */
-		virtual uint buffer_size() = 0;
+		virtual uint32_t buffer_size() = 0;
 
 		/**
 		* @func compensate
@@ -75,7 +75,7 @@ namespace ftr {
 		/**
 		* @func create
 		*/
-		static PCMPlayer* create(uint channel_count, uint sample_rate);
+		static PCMPlayer* create(uint32_t channel_count, uint32_t sample_rate);
 
 	};
 

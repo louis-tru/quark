@@ -35,8 +35,8 @@
 namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
-public:
-#define _inl(self) static_cast<Indep::Inl*>(static_cast<Indep*>(self))
+	public:
+	#define _inl(self) static_cast<Indep::Inl*>(static_cast<Indep*>(self))
 	
 	/**
 	 * @func set_indep_offset

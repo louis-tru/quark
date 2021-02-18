@@ -39,7 +39,7 @@ namespace ftr {
  * @class Indep
  */
 class FX_EXPORT Indep: public Div {
- public:
+	public:
 	FX_DEFINE_GUI_VIEW(INDEP, Indep, indep);
 	
 	Indep();
@@ -69,8 +69,7 @@ class FX_EXPORT Indep: public Div {
 	 */
 	virtual Vec2 layout_offset();
 	
- protected:
-	
+	protected:
 	/**
 	 * @overwrite
 	 */
@@ -82,7 +81,7 @@ class FX_EXPORT Indep: public Div {
 	virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
 	virtual void set_layout_three_times(bool horizontal, bool hybrid);
 	
- private:
+	private:
 	Align _align_x, _align_y;
 	
 	FX_DEFINE_INLINE_CLASS(Inl);

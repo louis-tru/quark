@@ -52,16 +52,16 @@ namespace ftr {
 	*/
 	class FX_EXPORT Error: public Object {
 		public:
-			Error(const Error& err);
-			Error(int code, cChar* msg, ...);
-			Error(int code = ERR_UNKNOWN_ERROR, cString& msg = "Unknown exception");
-			virtual ~Error();
-			Error& operator=(const Error& e);
-			String message() const throw();
-			int    code() const throw();
+		Error(const Error& err);
+		Error(int code, cChar* msg, ...);
+		Error(int code = ERR_UNKNOWN_ERROR, cString& msg = "Unknown exception");
+		virtual ~Error();
+		Error& operator=(const Error& e);
+		String message() const throw();
+		int    code() const throw();
 		private:
-			int     _code;
-			String _message;
+		int     _code;
+		String _message;
 	};
 
 	typedef const Error cError;

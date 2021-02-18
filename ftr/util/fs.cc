@@ -47,12 +47,12 @@ namespace ftr {
 
 	FX_DEFINE_INLINE_MEMBERS(FileStat, Inl) {
 		public:
-			void set__stat(uv_stat_t* stat) {
-				if ( !_stat ) {
-					_stat = malloc(sizeof(uv_stat_t));
-				}
-				memcpy(_stat, stat, sizeof(uv_stat_t));
+		void set__stat(uv_stat_t* stat) {
+			if ( !_stat ) {
+				_stat = malloc(sizeof(uv_stat_t));
 			}
+			memcpy(_stat, stat, sizeof(uv_stat_t));
+		}
 	};
 
 	void inl__set_file_stat(FileStat* stat, uv_stat_t* uv_stat) {

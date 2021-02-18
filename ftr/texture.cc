@@ -300,31 +300,32 @@ static const Texture::Level levels_table[] {
 
 inline static void set_texture_total_data_size(TexturePool* pool, int size);
 
-inline static bool is_valid_texture(uint handle) {
+inline static bool is_valid_texture(uint32_t handle) {
 	return handle && handle < Uint::max;
 }
 
 FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
- public:
+	public:
+
 	/**
 	 * @func load_mipmap_data 通过像素数据载入mipmap纹理到GPU,如果成功返回true
 	 */
 	bool load_mipmap_data(const Array<PixelData>& mipmap_data) {
 		auto ctx = draw_ctx();
 		if (!ctx) return false;
-		uint size = 0;
-		uint size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
+		uint32_t size = 0;
+		uint32_t size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
 
 		FX_ASSERT_STRICT_RENDER_THREAD();
 
-		for (uint i = 0; i < mipmap_data.length(); i++) {
+		for (uint32_t i = 0; i < mipmap_data.length(); i++) {
 			auto data = mipmap_data[i];
 			size += data.width() * data.height() * size_pixel;
 		}
 		
 		if (ctx->adjust_texture_memory(size)) {
 			
-			uint handle = ctx->set_texture(mipmap_data);
+			uint32_t handle = ctx->set_texture(mipmap_data);
 			if (handle) {
 				if (_handle[0]) {
 					ctx->del_texture(_handle[0]);
@@ -364,17 +365,17 @@ FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 		} else {
 			if (_status & (TEXTURE_CHANGE_LEVEL_MASK & ~TEXTURE_CHANGE_LEVEL_0)) {
 				int mark = TEXTURE_CHANGE_LEVEL_1;
-				uint prev_level_handle = _handle[0];
-				uint width = _width / 2;
-				uint height = _height / 2;
+				uint32_t prev_level_handle = _handle[0];
+				uint32_t width = _width / 2;
+				uint32_t height = _height / 2;
 				
 				for (int i = LEVEL_1; i < LEVEL_NONE; i++) {
-					uint handle = _handle[i];
+					uint32_t handle = _handle[i];
 					if (width >= 16 && height >= 16) { // 不生成16像素以下的纹理
 						if (is_valid_texture(handle)) {
 							prev_level_handle = handle;
 						} else {
-							uint size = width * height * 4;
+							uint32_t size = width * height * 4;
 							if ((_status & mark) && prev_level_handle &&
 									ctx->adjust_texture_memory(size)) { // gen target level
 								handle = ctx->gen_texture(prev_level_handle, width, height);
@@ -470,7 +471,7 @@ Texture* Texture::create(const Array<PixelData>& data) {
 /**
  * @func get_texture_level()
  */
-Texture::Level Texture::get_texture_level(uint ratio) {
+Texture::Level Texture::get_texture_level(uint32_t ratio) {
 	if (ratio > 255) {
 		return LEVEL_7;
 	} else {
@@ -521,8 +522,8 @@ bool Texture::load_data(cPixelData& data) {
 	return Inl_Texture(this)->load_mipmap_data({ data });
 }
 
-bool Texture::use(uint slot, Level level, Repeat repeat) {
-	uint handle = _handle[level];
+bool Texture::use(uint32_t slot, Level level, Repeat repeat) {
+	uint32_t handle = _handle[level];
 	if (!is_valid_texture(handle)) {
 		load(level);
 		if (!is_valid_texture(handle = _handle[level])) {
@@ -759,7 +760,7 @@ bool FileTexture::unload(Level level) {
 }
 
 FX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
- public:
+	public:
 	#define _inl_pool(self) static_cast<TexturePool::Inl*>(self)
 	
 	void texture_change_handle(Event<int, Texture>& evt) {
@@ -891,10 +892,10 @@ void TexturePool::clear(bool full) {
 		struct TexWrap {
 			FileTexture* tex;
 			Texture::Level level;
-			uint use_count;
+			uint32_t use_count;
 		};
 		List<TexWrap> texture_sort;
-		uint64 total_data_size = 0;
+		uint64_t total_data_size = 0;
 		
 		// 先按使用使用次数排序纹理对像
 		for ( auto& i : _textures ) {
@@ -912,7 +913,7 @@ void TexturePool::clear(bool full) {
 					auto level = Texture::Level(k);
 					if (is_valid_texture(tex->_handle[k])) {
 						auto it = texture_sort.end();
-						uint use_count = tex->_use_count[k];
+						uint32_t use_count = tex->_use_count[k];
 						for ( auto& j : texture_sort ) {
 							if ( use_count <= j.value().use_count ) {
 								it = j;
@@ -938,8 +939,8 @@ void TexturePool::clear(bool full) {
 		}
 		
 		if ( texture_sort.length() ) {
-			uint64 total_data_size_1_3 = total_data_size / 3;
-			uint64 del_data_size = 0;
+			uint64_t total_data_size_1_3 = total_data_size / 3;
+			uint64_t del_data_size = 0;
 			// 从排序列表顶部开始卸载总容量的1/3
 			for ( auto& i : texture_sort ) {
 				auto tex = i.value();

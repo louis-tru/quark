@@ -64,10 +64,10 @@ typedef MultimediaSource::TrackInfo TrackInfo;
  * @class Video::Inl
  */
 FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
- public:
+	public:
 	
 	// set pcm ..
-	bool write_audio_pcm(uint64 st) {
+	bool write_audio_pcm(uint64_t st) {
 		bool r = _pcm->write(WeakBuffer((Char*)_audio_buffer.data[0], _audio_buffer.linesize[0]));
 		if ( !r ) {
 			FX_DEBUG("Discard, audio PCM frame, %lld", _audio_buffer.time);
@@ -82,7 +82,7 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 		float compensate = _pcm->compensate();
 	 loop:
 		
-		uint64 sys_time = sys::time_monotonic();
+		uint64_t sys_time = sys::time_monotonic();
 		
 		{ //
 			ScopeLock scope(_mutex);
@@ -123,13 +123,13 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 			}
 			
 			if ( _audio_buffer.total ) {
-				uint64 pts = _audio_buffer.time;
+				uint64_t pts = _audio_buffer.time;
 				
 				if (_uninterrupted_play_start_systime &&         // 0表示还没开始
 						pts &&                                        // 演示时间为0表示开始或(即时渲染如视频电话)
 						sys_time - _prev_presentation_time < 300000  // 距离上一帧超过300ms重新记时(如应用程序从休眠中恢复或数据缓冲)
 				) {
-					int64 st =  (sys_time - _uninterrupted_play_start_systime) -     // sys
+					int64_t st =  (sys_time - _uninterrupted_play_start_systime) -     // sys
 											(pts - _uninterrupted_play_start_time); // frame
 					int delay = _audio->frame_interval() * compensate;
 					
@@ -157,7 +157,7 @@ FX_DEFINE_INLINE_MEMBERS(AudioPlayer, Inl) {
 		}
 		
 		int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
-		int64 sleep_st = frame_interval - sys::time_monotonic() + sys_time;
+		int64_t sleep_st = frame_interval - sys::time_monotonic() + sys_time;
 		if ( sleep_st > 0 ) {
 			Thread::sleep(sleep_st);
 		}
@@ -448,7 +448,7 @@ PlayerStatus AudioPlayer::status() {
 /**
  * @func seek to target time
  */
-bool AudioPlayer::seek(uint64 timeUs) {
+bool AudioPlayer::seek(uint64_t timeUs) {
 	ScopeLock scope(_mutex);
 	if ( Inl_AudioPlayer(this)->is_active() && timeUs < _duration ) {
 		ASSERT(_source);
@@ -511,7 +511,7 @@ void AudioPlayer::set_mute(bool value) {
 /**
  * @func set_volume
  */
-void AudioPlayer::set_volume(uint value) {
+void AudioPlayer::set_volume(uint32_t value) {
 	ScopeLock scope(_mutex);
 	value = FX_MIN(value, 100);
 	_volume = value;
@@ -523,14 +523,14 @@ void AudioPlayer::set_volume(uint value) {
 /**
  * @func time
  * */
-uint64 AudioPlayer::time() {
+uint64_t AudioPlayer::time() {
 	ScopeLock scope(_mutex); return _time;
 }
 
 /**
  * @func duration
  * */
-uint64 AudioPlayer::duration() {
+uint64_t AudioPlayer::duration() {
 	ScopeLock scope(_mutex); return _duration;
 }
 
@@ -548,7 +548,7 @@ void AudioPlayer::disable_wait_buffer(bool value) {
 /**
  * @func audio_track_count
  */
-uint AudioPlayer::track_count() {
+uint32_t AudioPlayer::track_count() {
 	ScopeLock lock(_mutex);
 	if ( _audio ) {
 		return _audio->extractor()->track_count();
@@ -559,7 +559,7 @@ uint AudioPlayer::track_count() {
 /**
  * @func audio_track
  */
-uint AudioPlayer::track_index() {
+uint32_t AudioPlayer::track_index() {
 	ScopeLock lock(_mutex);
 	if ( _audio ) {
 		return _audio->extractor()->track_index();
@@ -581,7 +581,7 @@ const TrackInfo* AudioPlayer::track() {
 /**
  * @func audio_track
  */
-const TrackInfo* AudioPlayer::track(uint index) {
+const TrackInfo* AudioPlayer::track(uint32_t index) {
 	ScopeLock lock(_mutex);
 	if ( _audio && index < _audio->extractor()->track_count() ) {
 		return &_audio->extractor()->track(index);
@@ -592,7 +592,7 @@ const TrackInfo* AudioPlayer::track(uint index) {
 /**
  * @func select_audio_track
  * */
-void AudioPlayer::select_track(uint index) {
+void AudioPlayer::select_track(uint32_t index) {
 	ScopeLock scope(_mutex);
 	if ( _audio && index < _audio->extractor()->track_count() ) {
 		_audio->extractor()->select_track(index);

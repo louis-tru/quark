@@ -31,7 +31,7 @@
 #ifndef __ftr__action__group__
 #define __ftr__action__group__
 
-#include "../action/action.h"
+#include "./action.h"
 
 namespace ftr {
 
@@ -40,16 +40,15 @@ namespace ftr {
 	*/
 	class FX_EXPORT GroupAction: public Action {
 		public:
-		
 		/**
 		* @func operator[]
 		*/
-		Action* operator[](uint index);
+		Action* operator[](uint32_t index);
 		
 		/**
 		* @func length
 		*/
-		inline uint length() const { return _actions.length(); }
+		inline uint32_t length() const { return _actions.length(); }
 		
 		/**
 		* @func append
@@ -59,21 +58,26 @@ namespace ftr {
 		/**
 		* @func insert
 		*/
-		virtual void insert(uint index, Action* action) throw(Error);
+		virtual void insert(uint32_t index, Action* action) throw(Error);
 		
 		/**
 		* @func remove_child
 		*/
-		virtual void remove_child(uint index);
+		virtual void remove_child(uint32_t index);
 		
 		/**
 		* @overwrite
 		*/
 		virtual void clear();
-		virtual GroupAction* as_group() { return this; }
-		
+
+		/**
+		* @
+		*/
+		virtual GroupAction* as_group() {
+			return this;
+		}
+			
 		protected:
-		
 		/**
 		* @destructor
 		*/
@@ -84,13 +88,73 @@ namespace ftr {
 		*/
 		virtual void bind_view(View* view);
 		
-		typedef List<Action*>::Iterator Iterator;
-		List<Action*>   _actions;
-		Array<Iterator> _actions_index;
+		typedef std::list<Action*>::iterator Iterator;
+		std::list<Action*>    _actions;
+		std::vector<Iterator> _actions_index;
 		
 		friend class Action;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
+	};
+
+	/**
+	* @class SpawnAction
+	*/
+	class FX_EXPORT SpawnAction: public GroupAction {
+		public:
+		/**
+		* @func spawn
+		*/
+		inline Action* spawn(uint32_t index) { return (*this)[index]; }
+		
+		/**
+		* @overwrite
+		*/
+		virtual SpawnAction* as_spawn() { return this; }
+		virtual void append(Action* action) throw(Error);
+		virtual void insert(uint32_t index, Action* action) throw(Error);
+		virtual void remove_child(uint32_t index);
+
+		private:
+		/**
+		* @overwrite
+		*/
+		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
+		virtual void seek_time(uint64_t time, Action* root);
+		virtual void seek_before(uint64_t time, Action* child);
+	};
+
+	/**
+	* @class SequenceAction
+	*/
+	class FX_EXPORT SequenceAction: public GroupAction {
+		public:
+		/**
+		* @func seq
+		*/
+		inline Action* seq(uint32_t index) { return (*this)[index]; }
+		
+		/**
+		* @overwrite
+		*/
+		virtual SequenceAction* as_sequence() { return this; }
+		virtual void append(Action* action) throw(Error);
+		virtual void insert(uint32_t index, Action* action) throw(Error);
+		virtual void remove_child(uint32_t index);
+		virtual void clear();
+		
+		private:
+		/**
+		* @overwrite
+		*/
+		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
+		virtual void seek_time(uint64_t time, Action* root);
+		virtual void seek_before(uint64_t time, Action* child);
+		
+		Iterator m_action;
+		
+		friend class GroupAction::Inl;
+	
 	};
 
 }

@@ -115,7 +115,7 @@ namespace ftr {
 		/**
 		* @func mark_value()
 		*/
-		void mark(uint mark_value);
+		void mark(uint32_t mark_value);
 		
 		/**
 		* @func set_host(host)

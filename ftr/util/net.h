@@ -42,71 +42,71 @@ namespace ftr {
 	* @calss Socket
 	*/
 	class FX_EXPORT Socket: public Object {
-			FX_HIDDEN_ALL_COPY(Socket);
+		FX_HIDDEN_ALL_COPY(Socket);
 		public:
-			
-			class FX_EXPORT Delegate {
-				public:
-					virtual void trigger_socket_open(Socket* socket) = 0;
-					virtual void trigger_socket_close(Socket* socket) = 0;
-					virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
-					virtual void trigger_socket_data(Socket* socket, Buffer& buffer) = 0;
-					virtual void trigger_socket_write(Socket* socket, Buffer buffer, int mark) = 0;
-					virtual void trigger_socket_timeout(Socket* socket) = 0;
-			};
-			
-			Socket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
-			
-			/**
-			* @destructor
-			*/
-			virtual ~Socket();
-			
-			/**
-			* @func open
-			*/
-			void open();
-			
-			String  hostname() const;
-			uint16_t   port() const;
-			String  ip() const;
-			bool    ipv6() const;
-			
-			/**
-			* @func set_keep_alive 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
-			* @arg [enable = true] {bool}
-			* @arg [keep_idle = 0] {uint32_t} 空闲的时间(微秒),0使用系统默认值一般为7200秒 7200 * 10e6 毫秒
-			*/
-			void set_keep_alive(bool enable = true, uint64_t keep_idle = 0);
-			
-			/**
-			* @func set_no_delay 禁止Nagele算法,设置为有数据立即发送
-			*/
-			void set_no_delay(bool no_delay = true);
-			
-			/**
-			* @func set_timeout 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
-			*/
-			void set_timeout(uint64_t timeout_us);
-			
-			/**
-			* @func set_delegate()
-			*/
-			virtual void set_delegate(Delegate* delegate);
-			virtual void close();
-			virtual bool is_open();
-			virtual bool is_pause();
-			virtual void pause();
-			virtual void resume();
-			virtual void write(Buffer buffer, int mark = 0);
+		
+		class FX_EXPORT Delegate {
+			public:
+			virtual void trigger_socket_open(Socket* socket) = 0;
+			virtual void trigger_socket_close(Socket* socket) = 0;
+			virtual void trigger_socket_error(Socket* socket, cError& error) = 0;
+			virtual void trigger_socket_data(Socket* socket, Buffer& buffer) = 0;
+			virtual void trigger_socket_write(Socket* socket, Buffer buffer, int mark) = 0;
+			virtual void trigger_socket_timeout(Socket* socket) = 0;
+		};
+		
+		Socket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
+		
+		/**
+		* @destructor
+		*/
+		virtual ~Socket();
+		
+		/**
+		* @func open
+		*/
+		void open();
+		
+		String  hostname() const;
+		uint16_t   port() const;
+		String  ip() const;
+		bool    ipv6() const;
+		
+		/**
+		* @func set_keep_alive 如果在指定的时间(微秒)内没有任何数据交互,则进行探测
+		* @arg [enable = true] {bool}
+		* @arg [keep_idle = 0] {uint32_t} 空闲的时间(微秒),0使用系统默认值一般为7200秒 7200 * 10e6 毫秒
+		*/
+		void set_keep_alive(bool enable = true, uint64_t keep_idle = 0);
+		
+		/**
+		* @func set_no_delay 禁止Nagele算法,设置为有数据立即发送
+		*/
+		void set_no_delay(bool no_delay = true);
+		
+		/**
+		* @func set_timeout 超过指定(微妙)时间内不发送数据也没有收到数据触发事件,并不关闭连接. 0为不超时
+		*/
+		void set_timeout(uint64_t timeout_us);
+		
+		/**
+		* @func set_delegate()
+		*/
+		virtual void set_delegate(Delegate* delegate);
+		virtual void close();
+		virtual bool is_open();
+		virtual bool is_pause();
+		virtual void pause();
+		virtual void resume();
+		virtual void write(Buffer buffer, int mark = 0);
 
-			FX_DEFINE_INLINE_CLASS(Inl);
+		FX_DEFINE_INLINE_CLASS(Inl);
 
 		protected:
-			
-			Socket();
-			
-			Inl* _inl;
+		
+		Socket();
+		
+		Inl* _inl;
 	};
 
 	/**
@@ -114,13 +114,13 @@ namespace ftr {
 	*/
 	class FX_EXPORT SSLSocket: public Socket {
 		public:
-			
-			SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
-			
-			/**
-			* @func disable_ssl_verify
-			*/
-			void disable_ssl_verify(bool disable);
+		
+		SSLSocket(cString& hostname, uint16_t  port, RunLoop* loop = RunLoop::current());
+		
+		/**
+		* @func disable_ssl_verify
+		*/
+		void disable_ssl_verify(bool disable);
 	};
 
 }

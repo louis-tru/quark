@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "js-1.h"
-#include "ftr/app.h"
-#include "ftr/view.h"
-#include "ftr-js/ftr.h"
-#include "ftr/util/http.h"
-#include "binding/event-1.h"
-#include "android/android.h"
-#include "native-inl-js.h"
-#include "depe/node/src/ftr.h"
-#include "uv.h"
+#include "./_js.h"
+#include "../app.h"
+#include "../view.h"
+#include "./ftr.h"
+#include "../util/http.h"
+#include "./binding/event-1.h"
+#include "../../android/android.h"
+#include <native-inl-js.h>
+#include <depe/node/src/ftr.h>
+#include <uv.h>
 
 #if FX_UNIX
 # include <dlfcn.h>

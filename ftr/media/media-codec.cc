@@ -75,12 +75,12 @@ const URI& MultimediaSource::uri() const { return _inl->_uri; }
 MultimediaSourceStatus MultimediaSource::status() const {
 	return (MultimediaSourceStatus)(int)_inl->_status;
 }
-uint64 MultimediaSource::duration() const { return _inl->_duration; }
-uint MultimediaSource::bit_rate_index() const { return _inl->bit_rate_index(); }
+uint64_t MultimediaSource::duration() const { return _inl->_duration; }
+uint32_t MultimediaSource::bit_rate_index() const { return _inl->bit_rate_index(); }
 const Array<BitRateInfo>& MultimediaSource::bit_rate()const{ return _inl->bit_rate();}
 bool MultimediaSource::select_bit_rate(int index) { return _inl->select_bit_rate(index); }
 Extractor* MultimediaSource::extractor(MediaType type) { return _inl->extractor(type); }
-bool MultimediaSource::seek(uint64 timeUs) { return _inl->seek(timeUs); }
+bool MultimediaSource::seek(uint64_t timeUs) { return _inl->seek(timeUs); }
 void MultimediaSource::start() { _inl->start(); }
 void MultimediaSource::stop() { _inl->stop(); }
 bool MultimediaSource::is_active() { return _inl->is_active(); }
@@ -106,7 +106,7 @@ Extractor::Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& 
 /**
  * @func select_track
  */
-bool Extractor::select_track(uint index) {
+bool Extractor::select_track(uint32_t index) {
 	ScopeLock lock(_host->_inl->mutex());
 	if ( _track_index != index && index < _tracks.length() ) {
 		_host->_inl->extractor_flush(this);
@@ -119,7 +119,7 @@ bool Extractor::select_track(uint index) {
 /**
  * @func deplete_sample
  * */
-uint Extractor::deplete_sample(Char* out, uint size) {
+uint32_t Extractor::deplete_sample(Char* out, uint32_t size) {
 	if ( _sample_data.size ) {
 		size = FX_MIN(_sample_data.size, size);
 		memcpy(out, _sample_data.data, size);
@@ -134,8 +134,8 @@ uint Extractor::deplete_sample(Char* out, uint size) {
 /**
  * @func deplete_sample
  * */
-uint Extractor::deplete_sample(Buffer& out) {
-	uint size = out.write(_sample_data.data, 0, _sample_data.size);
+uint32_t Extractor::deplete_sample(Buffer& out) {
+	uint32_t size = out.write(_sample_data.data, 0, _sample_data.size);
 	_sample_data.size = 0;
 	return size;
 }
@@ -143,7 +143,7 @@ uint Extractor::deplete_sample(Buffer& out) {
 /**
  * @func deplete_sample
  * */
-uint Extractor::deplete_sample(uint size) {
+uint32_t Extractor::deplete_sample(uint32_t size) {
 	size = FX_MIN(size, _sample_data.size);
 	_sample_data.size -= size;
 	_sample_data.data += size;
@@ -184,8 +184,8 @@ inline static bool is_nalu_start(uint8_t* str) {
 	return str[0] == 0 && str[1] == 0 && str[2] == 0 && str[3] == 1;
 }
 
-static bool find_nalu_package(cBuffer& buffer, uint start, uint& end) {
-	uint length = buffer.length();
+static bool find_nalu_package(cBuffer& buffer, uint32_t start, uint& end) {
+	uint32_t length = buffer.length();
 	if ( start < length ) {
 		cChar* c = *buffer + start;
 		while(1) {
@@ -215,7 +215,7 @@ bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& 
 	uint8_t* buf = (uint8_t*)*extradata;
 	
 	if ( is_nalu_start(buf) ) { // nalu
-		uint start = 4, end = 0;
+		uint32_t start = 4, end = 0;
 		while (find_nalu_package(extradata, start, end)) {
 			int nalu_type = buf[start] & 0x1F;
 			if (nalu_type == 0x07) {        // SPS
@@ -229,10 +229,10 @@ bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& 
 			start = end + 4; // 0x0 0x0 0x0 0x1
 		}
 	} else { // mp4 style
-		uint sps_size = buf[7];
-		uint numOfPictureParameterSets = buf[8 + sps_size];
+		uint32_t sps_size = buf[7];
+		uint32_t numOfPictureParameterSets = buf[8 + sps_size];
 		if (numOfPictureParameterSets == 1) {
-			uint pps_size = buf[10 + sps_size];
+			uint32_t pps_size = buf[10 + sps_size];
 			if (sps_size + pps_size < extradata.length()) {
 				Char csd_s[4] = {0, 0, 0, 1};
 				out_psp.write(csd_s, 0, 4);
@@ -250,13 +250,13 @@ bool MediaCodec::parse_avc_psp_pps(cBuffer& extradata, Buffer& out_psp, Buffer& 
  * @func convert_sample_data_to_nalu
  * */
 bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
-	uint size = buffer.length();
+	uint32_t size = buffer.length();
 	if (size) {
 		uint8_t* buf = (uint8_t*)*buffer;
 		if ( !is_nalu_start(buf) ) {
-			uint i = 0;
+			uint32_t i = 0;
 			while ( i + 4 < size ) {
-				uint len = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8)) + buf[3];
+				uint32_t len = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8)) + buf[3];
 				buf[0] = 0;
 				buf[1] = 0;
 				buf[2] = 0;
@@ -274,11 +274,11 @@ bool MediaCodec::convert_sample_data_to_nalu(Buffer& buffer) {
  * @func convert_sample_data_to_mp4_style
  * */
 bool MediaCodec::convert_sample_data_to_mp4_style(Buffer& buffer) {
-	uint size = buffer.length();
+	uint32_t size = buffer.length();
 	if (size) {
 		uint8_t* buf = (uint8_t*)*buffer;
 		if ( is_nalu_start(buf) ) {
-			uint start = 4, end = 0;
+			uint32_t start = 4, end = 0;
 			while( find_nalu_package(buffer, start, end) ) {
 				int s = end - start;
 				uint8_t header[4] = { (uint8_t)(s >> 24), (uint8_t)(s >> 16), (uint8_t)(s >> 8), (uint8_t)s };

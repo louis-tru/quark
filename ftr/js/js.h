@@ -31,17 +31,16 @@
 #ifndef __ftr__js__js__
 #define __ftr__js__js__
 
-#include "ftr/util/util.h"
-#include "ftr/util/string.h"
-#include "ftr/util/buffer.h"
-#include "ftr/util/map.h"
-#include "ftr/util/error.h"
-#include "ftr/util/fs.h"
-#include "ftr/util/json.h"
+#include "../util/util.h"
+#include "../util/string.h"
+#include "../util/buffer.h"
+#include "../util/error.h"
+#include "../util/fs.h"
+#include "../util/json.h"
 
 // ------------- js common macro -------------
 
-#define JS_BEGIN         namespace ftr { FX_NS(js)
+#define JS_BEGIN         namespace ftr { namespace js {
 #define JS_END           } }
 #define JS_WORKER(...)   auto worker = Worker::worker(__VA_ARGS__)
 #define JS_RETURN(rev)   return worker->result(args, (rev))
@@ -148,7 +147,7 @@ class FX_EXPORT NoCopy {
 
 template<class T>
 class FX_EXPORT Maybe {
- public:
+	public:
 	Maybe() : val_ok_(false) {}
 	explicit Maybe(const T& t) : val_ok_(true), val_(t) {}
 	explicit Maybe(T&& t) : val_ok_(true), val_(move(t)) {}
@@ -163,14 +162,14 @@ class FX_EXPORT Maybe {
 	FX_INLINE T FromMaybe(const T& default_value) {
 		return val_ok_ ? move(val_) : default_value;
 	}
- private:
+	private:
 	bool val_ok_;
 	T val_;
 };
 
 template <class T>
 class FX_EXPORT MaybeLocal {
- public:
+	public:
 	FX_INLINE MaybeLocal() : val_(nullptr) {}
 	template <class S>
 	FX_INLINE MaybeLocal(Local<S> that)
@@ -188,13 +187,13 @@ class FX_EXPORT MaybeLocal {
 	FX_INLINE Local<S> FromMaybe(Local<S> default_value) const {
 		return IsEmpty() ? default_value : Local<S>(val_);
 	}
- private:
+	private:
 	T* val_;
 };
 
 template<class T>
 class FX_EXPORT Local {
- public:
+	public:
 	FX_INLINE Local() : val_(0) {}
 	template <class S>
 	FX_INLINE Local(Local<S> that)
@@ -212,7 +211,7 @@ class FX_EXPORT Local {
 		// unsafe conversion 
 		return Local<S>::Cast(*this);
 	}
- private:
+	private:
 	friend class JSValue;
 	friend class JSFunction;
 	friend class JSString;
@@ -224,7 +223,7 @@ class FX_EXPORT Local {
 
 template<class T>
 class FX_EXPORT PersistentBase: public NoCopy {
- public:
+	public:
 	typedef void (*WeakCallback)(void* ptr);
 	FX_INLINE void Reset() {
 		JS_TYPE_CHECK(JSValue, T);
@@ -247,7 +246,7 @@ class FX_EXPORT PersistentBase: public NoCopy {
 		return *reinterpret_cast<Local<T>*>(const_cast<PersistentBase*>(this));
 	}
 	FX_INLINE Worker* worker() const { return worker_; }
- private:
+	private:
 	friend class WrapObject;
 	friend class Worker;
 	template<class F1, class F2> friend class Persistent;
@@ -260,7 +259,7 @@ class FX_EXPORT PersistentBase: public NoCopy {
 
 template<class T> class
 FX_EXPORT NonCopyablePersistentTraits {
- public:
+	public:
 	static constexpr bool kResetInDestructor = true;
 	FX_INLINE static void CopyCheck() { Uncompilable<Object>(); }
 	template<class O> static void Uncompilable() {
@@ -270,7 +269,7 @@ FX_EXPORT NonCopyablePersistentTraits {
 
 template<class T> class
 FX_EXPORT CopyablePersistentTraits {
- public:
+	public:
 	typedef Persistent<T, CopyablePersistentTraits<T>> Handle;
 	static constexpr bool kResetInDestructor = true;
 	static FX_INLINE void CopyCheck() { }
@@ -278,7 +277,7 @@ FX_EXPORT CopyablePersistentTraits {
 
 template<class T, class M>
 class FX_EXPORT Persistent: public PersistentBase<T> {
- public:
+	public:
 	FX_INLINE Persistent() { }
 	
 	~Persistent() { if(M::kResetInDestructor) this->Reset(); }
@@ -313,7 +312,7 @@ class FX_EXPORT Persistent: public PersistentBase<T> {
 		return *this;
 	}
 	
- private:
+	private:
 	template<class F1, class F2> friend class Persistent;
 	template<class S>
 	FX_INLINE void Copy(const PersistentBase<S>& that) {
@@ -328,7 +327,7 @@ class FX_EXPORT Persistent: public PersistentBase<T> {
 };
 
 class FX_EXPORT ReturnValue {
- public:
+	public:
 	template <class S>
 	inline void Set(Local<S> value) {
 		JS_TYPE_CHECK(JSValue, S);
@@ -338,16 +337,16 @@ class FX_EXPORT ReturnValue {
 	void Set(bool value);
 	void Set(double i);
 	void Set(int i);
-	void Set(uint i);
+	void Set(uint32_t i);
 	void SetNull();
 	void SetUndefined();
 	void SetEmptyString();
- private:
+	private:
 	void* val_;
 };
 
 class FX_EXPORT FunctionCallbackInfo: public NoCopy {
- public:
+	public:
 	Worker* worker() const;
 	int Length() const;
 	Local<JSValue> operator[](int i) const;
@@ -357,14 +356,14 @@ class FX_EXPORT FunctionCallbackInfo: public NoCopy {
 };
 
 class FX_EXPORT PropertyCallbackInfo: public NoCopy {
- public:
+	public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
 	ReturnValue GetReturnValue() const;
 };
 
 class FX_EXPORT PropertySetCallbackInfo: public NoCopy {
- public:
+	public:
 	Worker* worker() const;
 	Local<JSObject> This() const;
 };
@@ -375,27 +374,27 @@ typedef const PropertySetCallbackInfo& PropertySetCall;
 typedef void (*FunctionCallback)(FunctionCall args);
 typedef void (*AccessorGetterCallback)(Local<JSString> name, PropertyCall args);
 typedef void (*AccessorSetterCallback)(Local<JSString> name, Local<JSValue> value, PropertySetCall args);
-typedef void (*IndexedPropertyGetterCallback)(uint index, PropertyCall info);
-typedef void (*IndexedPropertySetterCallback)(uint index, Local<JSValue> value, PropertyCall info);
+typedef void (*IndexedPropertyGetterCallback)(uint32_t index, PropertyCall info);
+typedef void (*IndexedPropertySetterCallback)(uint32_t index, Local<JSValue> value, PropertyCall info);
 
 class FX_EXPORT HandleScope: public NoCopy {
- public:
+	public:
 	explicit HandleScope(Worker* worker);
 	~HandleScope();
- private:
+	private:
 	void* val_[3];
 };
 
 class FX_EXPORT CallbackScope: public NoCopy {
- public:
+	public:
 	explicit CallbackScope(Worker* worker);
 	~CallbackScope();
- private:
+	private:
 	void* val_;
 };
 
 class FX_EXPORT JSValue: public NoCopy {
- public:
+	public:
   bool IsUndefined() const;
   bool IsNull() const;
   bool IsString() const;
@@ -441,17 +440,17 @@ class FX_EXPORT JSValue: public NoCopy {
 	bool ToBooleanValue(Worker* worker) const;
 	double ToNumberValue(Worker* worker) const;
 	int ToInt32Value(Worker* worker) const;
-	uint ToUint32Value(Worker* worker) const;
+	uint32_t ToUint32Value(Worker* worker) const;
 	Maybe<double> ToNumberMaybe(Worker* worker) const;
 	Maybe<int> ToInt32Maybe(Worker* worker) const;
 	Maybe<uint> ToUint32Maybe(Worker* worker) const;
 	bool InstanceOf(Worker* worker, Local<JSObject> value);
-  Buffer ToBuffer(Worker* worker, Encoding en) const;
-  WeakBuffer AsBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
+	Buffer ToBuffer(Worker* worker, Encoding en) const;
+	WeakBuffer AsBuffer(Worker* worker); // TypedArray or ArrayBuffer to WeakBuffer
 };
 
 class FX_EXPORT JSString: public JSValue {
- public:
+	public:
 	int Length(Worker* worker) const;
 	String Value(Worker* worker, bool ascii = false) const;
 	Ucs2String Ucs2Value(Worker* worker) const;
@@ -459,15 +458,15 @@ class FX_EXPORT JSString: public JSValue {
 };
 
 class FX_EXPORT JSObject: public JSValue {
- public:
+	public:
 	Local<JSValue> Get(Worker* worker, Local<JSValue> key);
-	Local<JSValue> Get(Worker* worker, uint index);
+	Local<JSValue> Get(Worker* worker, uint32_t index);
 	bool Set(Worker* worker, Local<JSValue> key, Local<JSValue> val);
-	bool Set(Worker* worker, uint index, Local<JSValue> val);
+	bool Set(Worker* worker, uint32_t index, Local<JSValue> val);
 	bool Has(Worker* worker, Local<JSValue> key);
-	bool Has(Worker* worker, uint index);
+	bool Has(Worker* worker, uint32_t index);
 	bool Delete(Worker* worker, Local<JSValue> key);
-	bool Delete(Worker* worker, uint index);
+	bool Delete(Worker* worker, uint32_t index);
 	Local<JSArray> GetPropertyNames(Worker* worker);
 	Maybe<Map<String, int>> ToIntegerMap(Worker* worker);
 	Maybe<Map<String, String>> ToStringMap(Worker* worker);
@@ -482,7 +481,7 @@ class FX_EXPORT JSObject: public JSValue {
 };
 
 class FX_EXPORT JSArray: public JSObject {
- public:
+	public:
 	int Length(Worker* worker) const;
 	Maybe<Array<String>> ToStringArrayMaybe(Worker* worker);
 	Maybe<Array<double>> ToNumberArrayMaybe(Worker* worker);
@@ -490,37 +489,37 @@ class FX_EXPORT JSArray: public JSObject {
 };
 
 class FX_EXPORT JSDate: public JSObject {
- public:
+	public:
 	double ValueOf(Worker* worker) const;
 };
 
 class FX_EXPORT JSNumber: public JSValue {
- public:
+	public:
 	double Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSInt32: public JSNumber {
- public:
+	public:
 	int Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSInteger: public JSNumber {
- public:
-	int64 Value(Worker* worker) const;
+	public:
+	int64_t Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSUint32: public JSNumber {
- public:
-	uint Value(Worker* worker) const;
+	public:
+	uint32_t Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSBoolean: public JSValue {
- public:
+	public:
 	bool Value(Worker* worker) const;
 };
 
 class FX_EXPORT JSFunction: public JSObject {
- public:
+	public:
 	Local<JSValue> Call(Worker* worker, int argc = 0,
 											Local<JSValue> argv[] = nullptr,
 											Local<JSValue> recv = Local<JSValue>());
@@ -530,14 +529,14 @@ class FX_EXPORT JSFunction: public JSObject {
 };
 
 class FX_EXPORT JSArrayBuffer: public JSObject {
- public:
+	public:
 	int ByteLength(Worker* worker) const;
 	Char* Data(Worker* worker);
 	WeakBuffer weakBuffer(Worker* worker);
 };
 
 class FX_EXPORT JSTypedArray: public JSObject {
- public:
+	public:
   Local<JSArrayBuffer> Buffer(Worker* worker);
   WeakBuffer weakBuffer(Worker* worker);
   int ByteLength(Worker* worker);
@@ -548,18 +547,18 @@ class FX_EXPORT JSUint8Array: public JSTypedArray {
 };
 
 class FX_EXPORT JSSet: public JSObject {
- public:
+	public:
   MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
   Maybe<bool> Has(Worker* worker, Local<JSValue> key);
   Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
 };
 
 class FX_EXPORT JSClass: public NoCopy {
- public:
-	uint64 ID() const;
+	public:
+	uint64_t ID() const;
 	bool HasInstance(Worker* worker, Local<JSValue> val);
 	Local<JSFunction> GetFunction(Worker* worker);
-	Local<JSObject> NewInstance(uint argc = 0, Local<JSValue>* argv = nullptr);
+	Local<JSObject> NewInstance(uint32_t argc = 0, Local<JSValue>* argv = nullptr);
 	bool SetMemberMethod(Worker* worker, cString& name, FunctionCallback func);
 	bool SetMemberAccessor(Worker* worker, cString& name,
 												 AccessorGetterCallback get,
@@ -577,12 +576,12 @@ class FX_EXPORT JSClass: public NoCopy {
 };
 
 class FX_EXPORT TryCatch: public NoCopy {
- public:
+	public:
 	TryCatch();
 	~TryCatch();
 	bool HasCaught() const;
 	Local<JSValue> Exception() const;
- private:
+	private:
 	void* val_;
 };
 
@@ -591,7 +590,7 @@ class FX_EXPORT TryCatch: public NoCopy {
  */
 class FX_EXPORT Worker: public Object {
 	FX_HIDDEN_ALL_COPY(Worker);
- public:
+	public:
 	typedef void (*BindingCallback)(Local<JSObject> exports, Worker* worker);
 	typedef void (*WrapAttachCallback)(WrapObject* wrap);
 
@@ -634,9 +633,9 @@ class FX_EXPORT Worker: public Object {
 	Local<JSInt32>  New(int16 data);
 	Local<JSUint32> New(uint16_t data);
 	Local<JSInt32>  New(int data);
-	Local<JSUint32> New(uint data);
-	Local<JSNumber> New(int64 data);
-	Local<JSNumber> New(uint64 data);
+	Local<JSUint32> New(uint32_t data);
+	Local<JSNumber> New(int64_t data);
+	Local<JSNumber> New(uint64_t data);
 	Local<JSString> New(cChar* data, int len = -1);
 	Local<JSString> New(cString& data, bool is_ascii = false);
 	Local<JSString> New(cUcs2String& data);
@@ -678,15 +677,15 @@ class FX_EXPORT Worker: public Object {
 	
 	Local<JSValue> New(const PersistentBase<JSValue>& value);
 
-	Local<JSObject> NewInstance(uint64 id, uint argc = 0, Local<JSValue>* argv = nullptr);
+	Local<JSObject> NewInstance(uint64_t id, uint32_t argc = 0, Local<JSValue>* argv = nullptr);
 	Local<JSString> NewString(cBuffer& data);
   Local<JSString> NewAscii(cChar* str);
-  Local<JSArrayBuffer> NewArrayBuffer(Char* use_buff, uint len);
-  Local<JSArrayBuffer> NewArrayBuffer(uint len);
+  Local<JSArrayBuffer> NewArrayBuffer(Char* use_buff, uint32_t len);
+  Local<JSArrayBuffer> NewArrayBuffer(uint32_t len);
 	Local<JSUint8Array> NewUint8Array(Local<JSString> str, Encoding enc = Encoding::utf8);
   Local<JSUint8Array> NewUint8Array(int size, Char fill = 0);
   Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab);
-  Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab, uint offset, uint size);
+  Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab, uint32_t offset, uint32_t size);
 	Local<JSObject> NewRangeError(cChar* errmsg, ...);
 	Local<JSObject> NewReferenceError(cChar* errmsg, ...);
 	Local<JSObject> NewSyntaxError(cChar* errmsg, ...);
@@ -696,7 +695,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSObject> NewError(const HttpError& err);
 	Local<JSObject> NewError(Local<JSObject> value);
 	Local<JSObject> NewObject();
-	Local<JSArray>  NewArray(uint len = 0);
+	Local<JSArray>  NewArray(uint32_t len = 0);
 	Local<JSValue>  NewNull();
 	Local<JSValue>  NewUndefined();
   Local<JSSet>    NewSet();
@@ -715,7 +714,7 @@ class FX_EXPORT Worker: public Object {
 	/**
 	 * @func hasInstance
 	 */
-	bool hasInstance(Local<JSValue> val, uint64 id);
+	bool hasInstance(Local<JSValue> val, uint64_t id);
   
 	/**
 	 * @func hasView() has View type
@@ -732,7 +731,7 @@ class FX_EXPORT Worker: public Object {
 	/**
 	 * @func jsClass(id) find class
 	 */
-	Local<JSClass> jsClass(uint id);
+	Local<JSClass> jsClass(uint32_t id);
 	
 	/**
 	 * @func result
@@ -761,20 +760,20 @@ class FX_EXPORT Worker: public Object {
 	/**
 	 * @func NewClass js class
 	 */
-	Local<JSClass> NewClass(uint64 id, cString& name,
+	Local<JSClass> NewClass(uint64_t id, cString& name,
 													FunctionCallback constructor,
 													WrapAttachCallback attach_callback,
 													Local<JSClass> base = Local<JSClass>());
 	/**
 	 * @func NewClass js class
 	 */
-	Local<JSClass> NewClass(uint64 id, cString& name,
+	Local<JSClass> NewClass(uint64_t id, cString& name,
 													FunctionCallback constructor,
-													WrapAttachCallback attach_callback, uint64 base);
+													WrapAttachCallback attach_callback, uint64_t base);
 	/**
 	 * @func NewClass js class
 	 */
-	Local<JSClass> NewClass(uint64 id, cString& name,
+	Local<JSClass> NewClass(uint64_t id, cString& name,
 													FunctionCallback constructor,
 													WrapAttachCallback attach_callback, Local<JSFunction> base);
 	/**
@@ -841,7 +840,7 @@ class FX_EXPORT Worker: public Object {
  */
 class FX_EXPORT WrapObject {
 	FX_HIDDEN_ALL_COPY(WrapObject);
- protected:
+	protected:
 	
 	inline WrapObject() {}
 	
@@ -868,7 +867,7 @@ class FX_EXPORT WrapObject {
 	
 	static WrapObject* attach(FunctionCall args);
 
- public:
+	public:
 	virtual bool addEventListener(cString& name, cString& func, int id) {
 		return false;
 	}
@@ -920,16 +919,16 @@ class FX_EXPORT WrapObject {
 		return static_cast<js::Wrap<T>*>(pack2(object, JS_TYPEID(*object)));
 	}
 	template<class T>
-	static inline Wrap<T>* pack(T* object, uint64 type_id) {
+	static inline Wrap<T>* pack(T* object, uint64_t type_id) {
 		return static_cast<js::Wrap<T>*>(pack2(object, type_id));
 	}
 	
- private:
+	private:
 	static WrapObject* unpack2(Local<JSObject> object);
-	static WrapObject* pack2(Object* object, uint64 type_id);
+	static WrapObject* pack2(Object* object, uint64_t type_id);
 	void init2(FunctionCall args);
 
- protected:
+	protected:
 	Persistent<JSObject> handle_;
 	FX_DEFINE_INLINE_CLASS(Inl);
 	friend class Allocator;
@@ -938,7 +937,7 @@ class FX_EXPORT WrapObject {
 template<class T = Object>
 class FX_EXPORT Wrap: public WrapObject {
 	Wrap() = delete;
- public:
+	public:
 	inline static Wrap<T>* unpack(Local<JSObject> value) {
 		return WrapObject::unpack<T>(value);
 	}
@@ -995,6 +994,10 @@ Local<T> MaybeLocal<T>::ToLocalChecked() {
 	return Local<T>(val_);
 }
 template <> FX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
+
+FX_EXPORT int Start(cString& cmd);
+FX_EXPORT int Start(const Array<String>& argv);
+FX_EXPORT int Start(int argc, Char** argv);
 
 JS_END
 #endif

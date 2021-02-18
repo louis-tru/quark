@@ -31,10 +31,10 @@
 #ifndef __ftr__js__value__
 #define __ftr__js__value__
 
-#include "ftr-js/wrap.h"
-#include "ftr/value.h"
-#include "ftr/bezier.h"
-#include "ftr/background.h"
+#include "./js.h"
+#include "../value.h"
+#include "../math/bezier.h"
+#include "../background.h"
 
 /**
  * @ns ftr::js
@@ -83,7 +83,7 @@ F(Floats, Array<float>) \
  * @class ValueProgram
  */
 class FX_EXPORT ValueProgram: public Object {
- public:
+	public:
 	#define def_attr_fn(Name, Type)           \
 		Local<JSValue> New(const Type& value);  \
 		bool parse##Name(Local<JSValue> in, Type& out, cChar* err_msg = nullptr);
@@ -95,7 +95,7 @@ class FX_EXPORT ValueProgram: public Object {
 	void throwError(Local<JSValue> value, cChar* msg = nullptr, cChar* help = nullptr);
 	js_value_table(def_attr_fn);
 	bool isBase(Local<JSValue> arg);
- private:
+	private:
 	js_value_table(def_attr)
 	Persistent<JSFunction> _Base;
 	Worker* worker;

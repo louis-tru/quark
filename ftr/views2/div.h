@@ -35,47 +35,42 @@
 
 namespace ftr {
 
-/**
- * @class Div
- */
-class FX_EXPORT Div: public Box {
- public:
-	
-	Div();
-	
 	/**
-	 * @get content_align
-	 */
-	inline ContentAlign content_align() const { return _content_align; };
-	
-	/**
-	 * @set set_content_align
-	 */
-	void set_content_align(ContentAlign value);
-	
- protected:
-	
-	/**
-	 * @overwrite
-	 */
-	virtual void set_layout_content_offset();
-	virtual void set_layout_three_times(bool horizontal, bool hybrid);
-	
-	/**
-	 * @func set_div_content_offset 设置div内容偏移,返回是否挤压父视图
-	 */
-	bool set_div_content_offset(Vec2& squeeze, Vec2 limit_min);
-	
- protected:
-	
-	// 内容对齐方式默认为left（即默认为水平内容布局）
-	// left|right, 水平布局,一行宽度不够向下挤压
-	// top|bottom, 垂直布局,一列高度不够向右挤压
-	ContentAlign _content_align;
+	* @class Div
+	*/
+	class FX_EXPORT Div: public Box {
+		public:
+		Div();
+		
+		/**
+		* @get content_align
+		*/
+		inline ContentAlign content_align() const { return _content_align; };
+		
+		/**
+		* @set set_content_align
+		*/
+		void set_content_align(ContentAlign value);
+		
+		protected:
+		/**
+		* @overwrite
+		*/
+		virtual void set_layout_content_offset();
+		virtual void set_layout_three_times(bool horizontal, bool hybrid);
+		
+		/**
+		* @func set_div_content_offset 设置div内容偏移,返回是否挤压父视图
+		*/
+		bool set_div_content_offset(Vec2& squeeze, Vec2 limit_min);
+		
+		// 内容对齐方式默认为left（即默认为水平内容布局）
+		// left|right, 水平布局,一行宽度不够向下挤压
+		// top|bottom, 垂直布局,一列高度不够向右挤压
+		ContentAlign _content_align;
 
-	FX_DEFINE_INLINE_CLASS(Inl);
-	
-};
+		FX_DEFINE_INLINE_CLASS(Inl);
+	};
 
 }
 

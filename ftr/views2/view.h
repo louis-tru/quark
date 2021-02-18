@@ -59,7 +59,7 @@ class Layout;
  */
 class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	FX_HIDDEN_ALL_COPY(View);
- public:
+	public:
 	
 	View();
 	
@@ -71,7 +71,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @enum MarkValue
 	 */
-	enum : uint {
+	enum : uint32_t {
 		M_NONE                  = 0,          /* 没有任何标记 */
 		M_BASIC_MATRIX          = (1 << 0),   /* 基础矩阵变化, */
 		M_TRANSFORM             = (1 << 1),   /* 矩阵变换（需要更新变换矩阵）这个标记具有继承性质 */
@@ -379,7 +379,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 * @func level # 视图在整个视图树中所处的层级
 	 *               0表示还没有加入到GUIApplication唯一的视图树中,根视图为1
 	 */
-	inline uint level() const { return _level; }
+	inline uint32_t level() const { return _level; }
 	
 	/**
 	 * @func transform # 设置视图变换
@@ -542,12 +542,12 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func mark 标记该视图已经发生改变
 	 */
-	void mark(uint value);
+	void mark(uint32_t value);
 	
 	/**
 	 * @func mark_pre 标记该视图已经发生改变并加入绘制前预处理
 	 */
-	void mark_pre(uint value);
+	void mark_pre(uint32_t value);
 	
 	/**
 	 * @func visit child draw
@@ -559,7 +559,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	/**
 	 * @func visit child draw
 	 */
-	void visit(Draw* draw, uint inherit_mark, bool need_draw = false);
+	void visit(Draw* draw, uint32_t inherit_mark, bool need_draw = false);
 	
 	/**
 	 * @func solve transform
@@ -586,8 +586,7 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	 */
 	virtual void draw(Draw* draw);
 	
- private:
-
+	private:
 	View*   _parent;     /* 父视图 */
 	View*   _prev;       /* 上一个兄弟视图,通过这些属性组成了一个双向链表 */
 	View*   _next;       /* 下一个兄视图 */
@@ -609,15 +608,15 @@ class FX_EXPORT View: public Notification<GUIEvent, GUIEventName, Reference> {
 	
 	CSSViewClasss* _classs;
 	
- protected:
+	protected:
 	
-	uint _level;         /* 视图在整个视图树中所处的层级
+	uint32_t _level;         /* 视图在整个视图树中所处的层级
 												 * 0表示还没有加入到GUIApplication唯一的视图树中,根视图为1 */
 	Mat  _matrix;        /* 基础矩阵,从父视图矩阵开始的矩阵,通过translate/scale/skew/rotate得到 */
 	Vec2 _origin;        /* 以该点 位移,缩放,旋转,歪斜 */
 	Mat  _final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
 	float _final_opacity;/* 最终的不透明值 */
-	uint mark_value;      /* 这些标记后的视图会在开始帧绘制前进行更新.
+	uint32_t mark_value;      /* 这些标记后的视图会在开始帧绘制前进行更新.
 												 * 需要这些标记的原因主要是为了最大程度的节省性能开销,
 												 * 因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 												 *

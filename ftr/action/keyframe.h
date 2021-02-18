@@ -31,7 +31,7 @@
 #ifndef __ftr__action__keyframe__
 #define __ftr__action__keyframe__
 
-#include "../action/action.h"
+#include "./action.h"
 
 namespace ftr {
 
@@ -45,37 +45,33 @@ namespace ftr {
 			public:
 			virtual ~Property() { }
 			virtual void bind_view(int view_type) = 0;
-			virtual void transition(uint frame1, Action* root) = 0;
-			virtual void transition(uint frame1, uint frame2, float x, float t, Action* root) = 0;
+			virtual void transition(uint32_t frame1, Action* root) = 0;
+			virtual void transition(uint32_t frame1, uint32_t frame2, float x, float t, Action* root) = 0;
 			virtual void add_frame() = 0;
-			virtual void fetch(uint frame, View* view) = 0;
-			virtual void default_value(uint frame) = 0;
+			virtual void fetch(uint32_t frame, View* view) = 0;
+			virtual void default_value(uint32_t frame) = 0;
 		};
 		
 		class FX_EXPORT Frame: public Object {
 			FX_HIDDEN_ALL_COPY(Frame);
 			public:
-			
-			inline Frame(KeyframeAction* host,
-									uint index, const FixedCubicBezier& curve)
-			: _host(host)
-			, _index(index)
-			, _curve(curve), _time(0) {}
+			inline Frame(KeyframeAction* host, uint32_t index, const FixedCubicBezier& curve)
+			: _host(host) , _index(index) , _curve(curve), _time(0) {}
 			
 			/**
 			* @func index
 			*/
-			inline uint index() const { return _index; }
+			inline uint32_t index() const { return _index; }
 			
 			/**
 			* @func time get
 			*/
-			inline uint64 time() const { return _time; }
+			inline uint64_t time() const { return _time; }
 			
 			/**
 			* @func time set
 			*/
-			void set_time(uint64 value);
+			void set_time(uint64_t value);
 			
 			/*
 			* @func host
@@ -107,17 +103,16 @@ namespace ftr {
 			*/
 			void flush();
 			
-#define nx_def_property(ENUM, TYPE, NAME) \
+			#define fx_def_property(ENUM, TYPE, NAME) \
 				void set_##NAME(TYPE value); TYPE NAME();
-				FX_EACH_PROPERTY_TABLE(nx_def_property)
-#undef nx_def_property
-			
+				FX_EACH_PROPERTY_TABLE(fx_def_property)
+			#undef fx_def_property
+		
 			private:
-			
 			KeyframeAction*   _host;
-			uint              _index;
+			uint32_t          _index;
 			FixedCubicBezier  _curve;
-			uint64            _time;
+			uint64_t          _time;
 			
 			FX_DEFINE_INLINE_CLASS(Inl);
 			friend class KeyframeAction;
@@ -126,7 +121,7 @@ namespace ftr {
 		/**
 		* @constructor
 		*/
-		inline KeyframeAction(): _frame(-1), _time(0), _bind_view_type(0) { }
+		inline KeyframeAction(): _frame(-1), _time(0), _bind_view_type(0) {}
 		
 		/**
 		* @destructor
@@ -161,17 +156,17 @@ namespace ftr {
 		/**
 		* @func frame
 		*/
-		inline Frame* frame(uint index) { return _frames[index]; }
+		inline Frame* frame(uint32_t index) { return _frames[index]; }
 		
 		/**
 		* @func operator[]
 		*/
-		inline Frame* operator[](uint index) { return _frames[index]; }
+		inline Frame* operator[](uint32_t index) { return _frames[index]; }
 		
 		/**
 		* @func length
 		*/
-		inline uint length() const { return _frames.length(); }
+		inline uint32_t length() const { return _frames.length(); }
 		
 		/**
 		* @func position get play frame position
@@ -181,12 +176,12 @@ namespace ftr {
 		/**
 		* @func time get play time position
 		*/
-		inline int64 time() const { return _time; }
+		inline int64_t time() const { return _time; }
 		
 		/**
 		* @func add new frame
 		*/
-		Frame* add(uint64 time, const FixedCubicBezier& curve = EASE);
+		Frame* add(uint64_t time, const FixedCubicBezier& curve = EASE);
 		
 		/**
 		* @func clear all frame and property
@@ -197,21 +192,20 @@ namespace ftr {
 		* @func is_bind_view
 		*/
 		inline bool is_bind_view() { return _bind_view_type; }
-		
+			
 		private:
-		
 		/**
 		* @overwrite
 		*/
-		virtual uint64 advance(uint64 time_span, bool restart, Action* root);
-		virtual void seek_time(uint64 time, Action* root);
-		virtual void seek_before(int64 time, Action* child);
+		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
+		virtual void seek_time(uint64_t time, Action* root);
+		virtual void seek_before(int64_t time, Action* child);
 		virtual void bind_view(View* view);
 		
 		typedef Map<PropertyName, Property*> Propertys;
 		
 		int           _frame;
-		int64         _time;
+		int64_t       _time;
 		Array<Frame*> _frames;
 		int           _bind_view_type;
 		Propertys     _property;

@@ -99,10 +99,10 @@ F(PROPERTY_SRC, String, src)    /* image */ \
 /**
  * @func PropertyName
  */
-enum PropertyName: uint {
-# define nx_def_enum(ENUM, TYPE, NAME) ENUM,
-	FX_EACH_PROPERTY_TABLE(nx_def_enum)
-# undef nx_def_enum
+enum PropertyName: uint32_t {
+# define fx_def_enum(ENUM, TYPE, NAME) ENUM,
+	FX_EACH_PROPERTY_TABLE(fx_def_enum)
+# undef fx_def_enum
 };
 
 template<> inline uint
@@ -111,7 +111,7 @@ Compare<PropertyName>::hash(const PropertyName& key) {
 }
 template<> inline bool
 Compare<PropertyName>::equals(const PropertyName& a,
-															const PropertyName& b, uint ha, uint hb) {
+															const PropertyName& b, uint32_t ha, uint32_t hb) {
 	return a == b;
 }
 
@@ -119,13 +119,12 @@ Compare<PropertyName>::equals(const PropertyName& a,
  * @class PropertysAccessor
  */
 class FX_EXPORT PropertysAccessor: public Object {
- public:
+	public:
 	
 	typedef void (View::*Func)();
 	typedef int ViewType;
 	
 	struct FX_EXPORT Accessor {
-		
 		inline Accessor(): get_accessor(nullptr), set_accessor(nullptr) { }
 		
 		template<typename T, typename T2>
@@ -153,7 +152,7 @@ class FX_EXPORT PropertysAccessor: public Object {
 	 */
 	static PropertysAccessor* shared();
 	
- private:
+	private:
 	
 	Map<ViewType, Map<PropertyName, Accessor>> _property_func_table;
 };

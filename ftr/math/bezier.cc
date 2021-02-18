@@ -60,9 +60,9 @@ namespace ftr {
 	/**
 	* @func compute_bezier_points
 	*/
-	void QuadraticBezier::sample_curve_points(uint sample_count, float* out) const {
+	void QuadraticBezier::sample_curve_points(uint32_t sample_count, float* out) const {
 		float dt = 1.0 / ( sample_count - 1 );
-		for( uint i = 0; i < sample_count; i++) {
+		for( uint32_t i = 0; i < sample_count; i++) {
 			float t = i * dt;
 			float t2 = 1 - t;
 			float t3 = t2 * t2;
@@ -76,7 +76,7 @@ namespace ftr {
 	/**
 	* @func sample_curve_points
 	*/
-	ArrayBuffer<Vec2> QuadraticBezier::sample_curve_points(uint sample_count) const {
+	ArrayBuffer<Vec2> QuadraticBezier::sample_curve_points(uint32_t sample_count) const {
 		ArrayBuffer<Vec2> rev(sample_count);
 		sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
 		return rev;
@@ -95,9 +95,9 @@ namespace ftr {
 	/**
 	* @func compute_bezier_points
 	*/
-	void CubicBezier::sample_curve_points(uint sample_count, float* out) const {
+	void CubicBezier::sample_curve_points(uint32_t sample_count, float* out) const {
 		float dt = 1.0 / ( sample_count - 1 );
-		for( uint i = 0; i < sample_count; i++) {
+		for( uint32_t i = 0; i < sample_count; i++) {
 			out[i * 2] = sample_curve_x(i * dt);
 			out[i * 2 + 1] = sample_curve_y(i * dt);
 		}
@@ -106,7 +106,7 @@ namespace ftr {
 	/**
 	* @func sample_curve_points
 	*/
-	ArrayBuffer<Vec2> CubicBezier::sample_curve_points(uint sample_count) const {
+	ArrayBuffer<Vec2> CubicBezier::sample_curve_points(uint32_t sample_count) const {
 		ArrayBuffer<Vec2> rev(sample_count);
 		sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
 		return rev;

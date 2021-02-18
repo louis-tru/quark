@@ -77,18 +77,18 @@ namespace ftr {
 	*/
 	class FX_EXPORT Object {
 		public:
-			typedef ObjectTraits Traits;
-			virtual bool is_reference() const;
-			virtual bool retain();
-			virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
-			virtual ArrayString<char, MemoryAllocator> to_string() const;
-			static void* operator new(std::size_t size);
-			static void* operator new(std::size_t size, void* p);
-			static void  operator delete(void* p);
-			static void set_object_allocator(
-				void* (*alloc)(size_t size) = nullptr,
-				void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
-			);
+		typedef ObjectTraits Traits;
+		virtual bool is_reference() const;
+		virtual bool retain();
+		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
+		virtual ArrayString<char, MemoryAllocator> to_string() const;
+		static void* operator new(std::size_t size);
+		static void* operator new(std::size_t size, void* p);
+		static void  operator delete(void* p);
+		static void set_object_allocator(
+			void* (*alloc)(size_t size) = nullptr,
+			void (*release)(Object* obj) = nullptr, void (*retain)(Object* obj) = nullptr
+		);
 		#if FX_MEMORY_TRACE_MARK
 			static std::vector<Object*> mark_objects();
 			static int mark_objects_count();
@@ -107,17 +107,17 @@ namespace ftr {
 	*/
 	class FX_EXPORT Reference: public Object {
 		public:
-			typedef ReferenceTraits Traits;
-			inline Reference(): _ref_count(0) {}
-			inline Reference(const Reference& ref): _ref_count(0) {}
-			inline Reference& operator=(const Reference& ref) { return *this; }
-			virtual ~Reference();
-			virtual bool retain();
-			virtual void release();
-			virtual bool is_reference() const;
-			inline int ref_count() const { return _ref_count; }
+		typedef ReferenceTraits Traits;
+		inline Reference(): _ref_count(0) {}
+		inline Reference(const Reference& ref): _ref_count(0) {}
+		inline Reference& operator=(const Reference& ref) { return *this; }
+		virtual ~Reference();
+		virtual bool retain();
+		virtual void release();
+		virtual bool is_reference() const;
+		inline int ref_count() const { return _ref_count; }
 		protected:
-			std::atomic_int _ref_count;
+		std::atomic_int _ref_count;
 	};
 
 	/**
@@ -125,8 +125,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT Protocol {
 		public:
-			typedef ProtocolTraits Traits;
-			virtual Object* to_object() = 0;
+		typedef ProtocolTraits Traits;
+		virtual Object* to_object() = 0;
 	};
 
 	/**
@@ -134,10 +134,10 @@ namespace ftr {
 	*/
 	class FX_EXPORT ObjectTraits {
 		public:
-			inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
-			inline static void Release(Object* obj) { if (obj) obj->release(); }
-			static constexpr bool is_reference = false;
-			static constexpr bool is_object = true;
+		inline static bool Retain(Object* obj) { return obj ? obj->retain() : 0; }
+		inline static void Release(Object* obj) { if (obj) obj->release(); }
+		static constexpr bool is_reference = false;
+		static constexpr bool is_object = true;
 	};
 
 	/**
@@ -145,7 +145,7 @@ namespace ftr {
 	*/
 	class FX_EXPORT ReferenceTraits: public ObjectTraits {
 		public:
-			static constexpr bool is_reference = true;
+		static constexpr bool is_reference = true;
 	};
 
 	/**
@@ -153,13 +153,13 @@ namespace ftr {
 	*/
 	class FX_EXPORT ProtocolTraits {
 		public:
-			template<class T> inline static bool Retain(T* obj) {
-				return obj ? obj->to_object()->retain() : 0;
-			}
-			template<class T> inline static void Release(T* obj) {
-				if (obj) obj->to_object()->release();
-			}
-			static constexpr bool is_reference = false;
+		template<class T> inline static bool Retain(T* obj) {
+			return obj ? obj->to_object()->retain() : 0;
+		}
+		template<class T> inline static void Release(T* obj) {
+			if (obj) obj->to_object()->release();
+		}
+		static constexpr bool is_reference = false;
 	};
 
 	typedef ProtocolTraits InterfaceTraits;
@@ -169,11 +169,11 @@ namespace ftr {
 	*/
 	class FX_EXPORT NonObjectTraits {
 		public:
-			template<class T> inline static bool Retain(T* obj) {
-				/* Non referential pairs need not be Retain */ return 0;
-			}
-			template<class T> inline static void Release(T* obj) { delete obj; }
-			static constexpr bool is_reference = false;
+		template<class T> inline static bool Retain(T* obj) {
+			/* Non referential pairs need not be Retain */ return 0;
+		}
+		template<class T> inline static void Release(T* obj) { delete obj; }
+		static constexpr bool is_reference = false;
 	};
 
 	FX_EXPORT void fatal(const char* file, uint32_t line, const char* func, const char* msg = 0, ...);

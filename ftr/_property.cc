@@ -47,16 +47,16 @@ namespace ftr {
 
 #define set_func(view, cls, Name, func) view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
-static PropertysAccessor* nx_accessor_shared = nullptr;
+static PropertysAccessor* fx_accessor_shared = nullptr;
 
 /**
  * @func shared
  */
 PropertysAccessor* PropertysAccessor::shared() {
-	if ( ! nx_accessor_shared ) {
-		nx_accessor_shared = new PropertysAccessor();
+	if ( ! fx_accessor_shared ) {
+		fx_accessor_shared = new PropertysAccessor();
 	}
-	return nx_accessor_shared;
+	return fx_accessor_shared;
 }
 
 PropertysAccessor::PropertysAccessor() {

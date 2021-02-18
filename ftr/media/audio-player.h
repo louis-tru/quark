@@ -107,32 +107,32 @@ namespace ftr {
 		/**
 		* @func volume
 		*/
-		inline uint volume() { return _volume; }
+		inline uint32_t volume() { return _volume; }
 
 		/**
 		* @func set_volume
 		*/
-		FX_MEDIA_DYNAMIC void set_volume(uint value);
+		FX_MEDIA_DYNAMIC void set_volume(uint32_t value);
 
 		/**
 		* @func time
 		* */
-		FX_MEDIA_DYNAMIC uint64 time();
+		FX_MEDIA_DYNAMIC uint64_t time();
 
 		/**
 		* @func duration
 		* */
-		FX_MEDIA_DYNAMIC uint64 duration();
+		FX_MEDIA_DYNAMIC uint64_t duration();
 
 		/**
 		* @func audio_track_count
 		*/
-		FX_MEDIA_DYNAMIC uint track_count();
+		FX_MEDIA_DYNAMIC uint32_t track_count();
 
 		/**
 		* @func audio_track
 		*/
-		FX_MEDIA_DYNAMIC uint track_index();
+		FX_MEDIA_DYNAMIC uint32_t track_index();
 
 		/**
 		* @func audio_track
@@ -142,12 +142,12 @@ namespace ftr {
 		/**
 		* @func audio_track
 		*/
-		FX_MEDIA_DYNAMIC const TrackInfo* track(uint index);
+		FX_MEDIA_DYNAMIC const TrackInfo* track(uint32_t index);
 
 		/**
 		* @func select_audio_track
 		* */
-		FX_MEDIA_DYNAMIC void select_track(uint index);
+		FX_MEDIA_DYNAMIC void select_track(uint32_t index);
 
 		/**
 		* @func start play
@@ -157,7 +157,7 @@ namespace ftr {
 		/**
 		* @func seek to target time
 		*/
-		FX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
+		FX_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
 
 		/**
 		* @func pause play
@@ -192,13 +192,13 @@ namespace ftr {
 		KeepLoop*     _keep;
 		PlayerStatus  _status;
 		OutputBuffer  _audio_buffer;
-		uint64  _duration, _time;
-		uint64  _uninterrupted_play_start_time;
-		uint64  _uninterrupted_play_start_systime;
-		uint64  _prev_presentation_time;
+		uint64_t  _duration, _time;
+		uint64_t  _uninterrupted_play_start_time;
+		uint64_t  _uninterrupted_play_start_systime;
+		uint64_t  _prev_presentation_time;
 		Mutex   _audio_loop_mutex, _mutex;
-		uint    _task_id;
-		uint    _volume;
+		uint32_t    _task_id;
+		uint32_t    _volume;
 		bool    _mute;
 		bool    _auto_play;
 		bool    _disable_wait_buffer;

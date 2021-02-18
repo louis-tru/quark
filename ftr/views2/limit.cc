@@ -58,7 +58,7 @@ public:
 		bool h_change = false;
 		bool v_change = false;
 		bool change = false;
-		uint child_mark = M_NONE;
+		uint32_t child_mark = M_NONE;
 		
 		if ( this->mark_value & Layout::M_SIZE_HORIZONTAL ) {
 			float limit_min_width = this->_limit_min_width;
@@ -389,7 +389,7 @@ public:
 	 * @func set_horizontal_active_mark_
 	 */
 	void set_horizontal_active_mark_() {
-		uint value = M_NONE;
+		uint32_t value = M_NONE;
 		// 如果这些值都不为像素,父视图会可能影响到子视图的M_SIZE_HORIZONTAL
 		// 相当于标记了这个子视图M_SIZE_HORIZONTAL
 		if ((this->_width.type != ValueType::PIXEL && this->_width.type != ValueType::AUTO) ||
@@ -408,7 +408,7 @@ public:
 	 * @func set_vertical_active_mark_
 	 */
 	void set_vertical_active_mark_() {
-		uint value = M_NONE;
+		uint32_t value = M_NONE;
 		// 如果这些值都不为像素,父视图将会可能影响到子视图的M_SIZE_VERTICAL
 		// 相当于标记了这个子视图M_SIZE_VERTICAL
 		if ((this->_height.type != ValueType::PIXEL && this->_height.type != ValueType::AUTO) ||

@@ -37,13 +37,13 @@
 namespace ftr {
 
 	class FX_EXPORT SimpleHash: public Object {
-			uint64_t _hash;
+		uint64_t _hash;
 		public:
-			inline SimpleHash(): _hash(5381) {}
-			inline uint64_t hash_code() { return _hash; }
-			inline void clear() { _hash = 5381; }
-			void   update(const void* data, uint32_t len);
-			String digest();
+		inline SimpleHash(): _hash(5381) {}
+		inline uint64_t hash_code() { return _hash; }
+		inline void clear() { _hash = 5381; }
+		void   update(const void* data, uint32_t len);
+		String digest();
 	};
 
 	FX_EXPORT uint64_t hash_code(const void* data, uint32_t len);

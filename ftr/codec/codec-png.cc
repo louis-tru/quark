@@ -33,147 +33,147 @@
 
 namespace ftr {
 
-struct PngDataSource {
-	cBuffer* buff;
-	uint index;
-};
+	struct PngDataSource {
+		cBuffer* buff;
+		uint32_t index;
+	};
 
-static void png_rw_fn(png_structp png, png_bytep bytep, png_size_t size) {
-	PngDataSource* s = (PngDataSource*)png->io_ptr;
-	memcpy(bytep, s->buff->value() + s->index, size);
-	s->index += size;
-}
+	static void png_rw_fn(png_structp png, png_bytep bytep, png_size_t size) {
+		PngDataSource* s = (PngDataSource*)png->io_ptr;
+		memcpy(bytep, s->buff->value() + s->index, size);
+		s->index += size;
+	}
 
-Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv;
-	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	
-	ScopeClear scope([&png]() {
-		png_destroy_read_struct(&png, NULL, NULL);
-	});
-	
-	png_infop info = png_create_info_struct(png);
-	
-	if ( ! info ) {
-		return rv;
-	}
-	if ( setjmp(png_jmpbuf(png)) ) {
-		return rv;
-	}
-	
-	PngDataSource source = { &data, 0 };
-	png_set_read_fn(png, &source, png_rw_fn);
-	png_read_info(png, info);
-	
-	png_uint_32 w, h;
-	int bit_depth;
-	int color_type;
-	png_uint_32 r = png_get_IHDR(png, info, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
-	
-	// PNG_COLOR_TYPE_GRAY          // 灰度图像,1,2,4,8或16 (1/2/4/8/16)
-	// PNG_COLOR_TYPE_PALETTE       // 索引彩色图像,1,2,4或8 (4/8/16/32)
-	// PNG_COLOR_TYPE_RGB           // 真彩色图像,8或16 (24/48)
-	// PNG_COLOR_TYPE_RGB_ALPHA     // 带α通道数据的真彩色图像,8或16 (32/64)
-	// PNG_COLOR_TYPE_GRAY_ALPHA    // 带α通道数据的灰度图像,8或16 (16/32)
-	
-	if ( bit_depth == 16 ) {
-		png_set_strip_16(png);
-	}
-	if (color_type == PNG_COLOR_TYPE_PALETTE) {
-		png_set_expand(png);
-	}
-	if ( bit_depth < 8 ) {
-		png_set_expand_gray_1_2_4_to_8(png);
-	}
-	if ( png_get_valid(png, info, PNG_INFO_tRNS) ) {
-		png_set_expand(png);
-	}
-	
-	png_read_update_info(png, info);
-	
-	png_uint_32 rowbytes = png_get_rowbytes(png, info);
-	png_uint_32 channel = rowbytes / w;
-	PixelData::Format format;
-	
-	switch (channel) {
-		case 1: format = PixelData::LUMINANCE8; break;
-		case 2: format = PixelData::LUMINANCE_ALPHA88; break;
-		case 3: format = PixelData::RGB888; break;
-		case 4: format = PixelData::RGBA8888; break;
-		default: // unknown error
+	std::vector<PixelData> PNGImageCodec::decode(cBuffer& data) {
+		std::vector<PixelData> rv;
+		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+		
+		ScopeClear scope([&png]() {
+			png_destroy_read_struct(&png, NULL, NULL);
+		});
+		
+		png_infop info = png_create_info_struct(png);
+		
+		if ( ! info ) {
 			return rv;
+		}
+		if ( setjmp(png_jmpbuf(png)) ) {
+			return rv;
+		}
+		
+		PngDataSource source = { &data, 0 };
+		png_set_read_fn(png, &source, png_rw_fn);
+		png_read_info(png, info);
+		
+		png_uint_32 w, h;
+		int bit_depth;
+		int color_type;
+		png_uint_32 r = png_get_IHDR(png, info, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
+		
+		// PNG_COLOR_TYPE_GRAY          // 灰度图像,1,2,4,8或16 (1/2/4/8/16)
+		// PNG_COLOR_TYPE_PALETTE       // 索引彩色图像,1,2,4或8 (4/8/16/32)
+		// PNG_COLOR_TYPE_RGB           // 真彩色图像,8或16 (24/48)
+		// PNG_COLOR_TYPE_RGB_ALPHA     // 带α通道数据的真彩色图像,8或16 (32/64)
+		// PNG_COLOR_TYPE_GRAY_ALPHA    // 带α通道数据的灰度图像,8或16 (16/32)
+		
+		if ( bit_depth == 16 ) {
+			png_set_strip_16(png);
+		}
+		if (color_type == PNG_COLOR_TYPE_PALETTE) {
+			png_set_expand(png);
+		}
+		if ( bit_depth < 8 ) {
+			png_set_expand_gray_1_2_4_to_8(png);
+		}
+		if ( png_get_valid(png, info, PNG_INFO_tRNS) ) {
+			png_set_expand(png);
+		}
+		
+		png_read_update_info(png, info);
+		
+		png_uint_32 rowbytes = png_get_rowbytes(png, info);
+		png_uint_32 channel = rowbytes / w;
+		PixelData::Format format;
+		
+		switch (channel) {
+			case 1: format = PixelData::LUMINANCE8; break;
+			case 2: format = PixelData::LUMINANCE_ALPHA88; break;
+			case 3: format = PixelData::RGB888; break;
+			case 4: format = PixelData::RGBA8888; break;
+			default: // unknown error
+				return rv;
+		}
+		
+		Buffer buff = Buffer::from((uint32_t)(h * rowbytes));
+		Array<png_bytep> row_pointers((uint32_t)h);
+		
+		for (uint32_t i = 0; i < h; i++) {
+			row_pointers[i] = (uint8_t*)buff.value() + rowbytes * i;
+		}
+		png_read_image(png, &row_pointers[0]);
+		png_read_end(png, info);
+		
+		rv.push_back( PixelData(buff, (uint32_t)w, (uint32_t)h, format, false) );
+		return rv;
 	}
-	
-	Buffer buff((uint)(h * rowbytes));
-	Array<png_bytep> row_pointers((uint)h);
-	
-	for (uint i = 0; i < h; i++) {
-		row_pointers[i] = (uint8_t*)buff.value() + rowbytes * i;
-	}
-	png_read_image(png, &row_pointers[0]);
-	png_read_end(png, info);
-	
-	rv.push( PixelData(buff, (uint)w, (uint)h, format, false) );
-	return rv;
-}
 
-PixelData PNGImageCodec::decode_header(cBuffer& data) {
-	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	
-	ScopeClear scope([&png]() {
-		png_destroy_read_struct(&png, NULL, NULL);
-	});
-	
-	png_infop info = png_create_info_struct(png);
-	
-	if ( ! info ) {
-		return PixelData();
-	}
-	if ( setjmp(png_jmpbuf(png)) ) {
-		return PixelData();
-	}
-	
-	PngDataSource source = { &data, 0 };
-	png_set_read_fn(png, &source, png_rw_fn);
-	png_read_info(png, info);
-	
-	png_uint_32 w, h;
-	int bit_depth;
-	int color_type;
-	png_uint_32 r = png_get_IHDR(png, info, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
-	
-	if ( bit_depth == 16 ) {
-		png_set_strip_16(png);
-	}
-	if (color_type == PNG_COLOR_TYPE_PALETTE) {
-		png_set_expand(png);
-	}
-	if ( bit_depth < 8 ) {
-		png_set_expand_gray_1_2_4_to_8(png);
-	}
-	if ( png_get_valid(png, info, PNG_INFO_tRNS) ) {
-		png_set_expand(png);
-	}
-	
-	png_read_update_info(png, info);
-	
-	png_uint_32 rowbytes = png_get_rowbytes(png, info);
-	png_uint_32 channel = rowbytes / w;
-	PixelData::Format format;
-	
-	switch (channel) {
-		case 1: format = PixelData::LUMINANCE8; break;
-		case 2: format = PixelData::LUMINANCE_ALPHA88; break;
-		case 3: format = PixelData::RGB888; break;
-		case 4: format = PixelData::RGBA8888; break;
-		default: // unknown error
+	PixelData PNGImageCodec::decode_header(cBuffer& data) {
+		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+		
+		ScopeClear scope([&png]() {
+			png_destroy_read_struct(&png, NULL, NULL);
+		});
+		
+		png_infop info = png_create_info_struct(png);
+		
+		if ( ! info ) {
 			return PixelData();
+		}
+		if ( setjmp(png_jmpbuf(png)) ) {
+			return PixelData();
+		}
+		
+		PngDataSource source = { &data, 0 };
+		png_set_read_fn(png, &source, png_rw_fn);
+		png_read_info(png, info);
+		
+		png_uint_32 w, h;
+		int bit_depth;
+		int color_type;
+		png_uint_32 r = png_get_IHDR(png, info, &w, &h, &bit_depth, &color_type, NULL, NULL, NULL);
+		
+		if ( bit_depth == 16 ) {
+			png_set_strip_16(png);
+		}
+		if (color_type == PNG_COLOR_TYPE_PALETTE) {
+			png_set_expand(png);
+		}
+		if ( bit_depth < 8 ) {
+			png_set_expand_gray_1_2_4_to_8(png);
+		}
+		if ( png_get_valid(png, info, PNG_INFO_tRNS) ) {
+			png_set_expand(png);
+		}
+		
+		png_read_update_info(png, info);
+		
+		png_uint_32 rowbytes = png_get_rowbytes(png, info);
+		png_uint_32 channel = rowbytes / w;
+		PixelData::Format format;
+		
+		switch (channel) {
+			case 1: format = PixelData::LUMINANCE8; break;
+			case 2: format = PixelData::LUMINANCE_ALPHA88; break;
+			case 3: format = PixelData::RGB888; break;
+			case 4: format = PixelData::RGBA8888; break;
+			default: // unknown error
+				return PixelData();
+		}
+		return PixelData(Buffer(), (uint)w, (uint)h, format, false);
 	}
-	return PixelData(Buffer(), (uint)w, (uint)h, format, false);
-}
 
-Buffer PNGImageCodec::encode(const PixelData& pixel_data) {
-	return Buffer();
-}
+	Buffer PNGImageCodec::encode(const PixelData& pixel_data) {
+		return Buffer();
+	}
 
 }

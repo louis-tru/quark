@@ -41,37 +41,37 @@ namespace ftr {
 	*/
 	class FX_EXPORT QuadraticBezier {
 		public:
-			
-			/**
-			* @constructor
-			*/
-			QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2);
-			
-			/**
-			* @func sample_curve_x
-			*/
-			float sample_curve_x(float t) const;
-			
-			/**
-			* @func sample_curve_y
-			*/
-			float sample_curve_y(float t) const;
-			
-			/**
-			* @func compute_bezier_points
-			*/
-			void sample_curve_points(uint sample_count, float* out) const;
-			
-			/**
-			* @func sample_curve_points
-			*/
-			ArrayBuffer<Vec2> sample_curve_points(uint sample_count) const;
+
+		/**
+		* @constructor
+		*/
+		QuadraticBezier(Vec2 p0, Vec2 p1, Vec2 p2);
+		
+		/**
+		* @func sample_curve_x
+		*/
+		float sample_curve_x(float t) const;
+		
+		/**
+		* @func sample_curve_y
+		*/
+		float sample_curve_y(float t) const;
+		
+		/**
+		* @func compute_bezier_points
+		*/
+		void sample_curve_points(uint32_t sample_count, float* out) const;
+		
+		/**
+		* @func sample_curve_points
+		*/
+		ArrayBuffer<Vec2> sample_curve_points(uint32_t sample_count) const;
 		
 		private:
 		
-			float p0x, p0y;
-			float p1x, p1y;
-			float p2x, p2y;
+		float p0x, p0y;
+		float p1x, p1y;
+		float p2x, p2y;
 	};
 
 	/**
@@ -79,47 +79,47 @@ namespace ftr {
 	*/
 	class FX_EXPORT CubicBezier {
 		public:
-			
-			/**
-			* @constructor
-			*/
-			inline CubicBezier() { }
-			
-			/**
-			* @constructor
-			*/
-			CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
-				
-			/**
-			* @func sample_curve_x
-			*/
-			inline float sample_curve_x(float t) const {
-				// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
-				return ((ax * t + bx) * t + cx) * t + p0x;
-			}
-			
-			/**
-			* @func sample_curve_y
-			*/
-			inline float sample_curve_y(float t) const {
-				return ((ay * t + by) * t + cy) * t + p0y;
-			}
-			
-			/**
-			* @func compute_bezier_points
-			*/
-			void sample_curve_points(uint sample_count, float* out) const;
-			
-			/**
-			* @func sample_curve_points
-			*/
-			ArrayBuffer<Vec2> sample_curve_points(uint sample_count) const;
-			
-		protected:
+
+		/**
+		* @constructor
+		*/
+		inline CubicBezier() { }
 		
-			float ax, bx, cx;
-			float ay, by, cy;
-			float p0x, p0y;
+		/**
+		* @constructor
+		*/
+		CubicBezier(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
+			
+		/**
+		* @func sample_curve_x
+		*/
+		inline float sample_curve_x(float t) const {
+			// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
+			return ((ax * t + bx) * t + cx) * t + p0x;
+		}
+		
+		/**
+		* @func sample_curve_y
+		*/
+		inline float sample_curve_y(float t) const {
+			return ((ay * t + by) * t + cy) * t + p0y;
+		}
+		
+		/**
+		* @func compute_bezier_points
+		*/
+		void sample_curve_points(uint32_t sample_count, float* out) const;
+		
+		/**
+		* @func sample_curve_points
+		*/
+		ArrayBuffer<Vec2> sample_curve_points(uint32_t sample_count) const;
+		
+		protected:
+
+		float ax, bx, cx;
+		float ay, by, cy;
+		float p0x, p0y;
 	};
 
 	/**
@@ -128,63 +128,63 @@ namespace ftr {
 	*/
 	class FX_EXPORT FixedCubicBezier: public CubicBezier {
 		public:
-			
-			/**
-			* @constructor
-			*/
-			FixedCubicBezier();
-			
-			/**
-			* Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
-			* @constructor
-			*/
-			FixedCubicBezier(Vec2 p1, Vec2 p2);
-			
-			/**
-			* @constructor
-			*/
-			inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
-				: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
-			{ }
-			
-			/**
-			* @func point1
-			*/
-			inline Vec2 point1() const { return _p1; }
-			
-			/**
-			* @func point2
-			*/
-			inline Vec2 point2() const { return _p2; }
-			
-			/**
-			* @func sample_curve_derivative_x
-			*/
-			inline float sample_curve_derivative_x(float t) const {
-				return (3.0 * ax * t + 2.0 * bx) * t + cx;
-			}
-			
-			/**
-			* @func solve_curve_x # Given an x value, find a parametric value it came from.
-			*/
-			float solve_curve_x(float x, float epsilon) const;
-			
-			/**
-			* @func solve
-			*/
-			inline float solve(float x, float epsilon) const {
-				return (this->*_solve)(x, epsilon);
-			}
+		
+		/**
+		* @constructor
+		*/
+		FixedCubicBezier();
+		
+		/**
+		* Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
+		* @constructor
+		*/
+		FixedCubicBezier(Vec2 p1, Vec2 p2);
+		
+		/**
+		* @constructor
+		*/
+		inline FixedCubicBezier(float p1x, float p1y, float p2x, float p2y)
+			: FixedCubicBezier(Vec2(p1x, p1y), Vec2(p2x, p2y))
+		{}
+		
+		/**
+		* @func point1
+		*/
+		inline Vec2 point1() const { return _p1; }
+		
+		/**
+		* @func point2
+		*/
+		inline Vec2 point2() const { return _p2; }
+		
+		/**
+		* @func sample_curve_derivative_x
+		*/
+		inline float sample_curve_derivative_x(float t) const {
+			return (3.0 * ax * t + 2.0 * bx) * t + cx;
+		}
+		
+		/**
+		* @func solve_curve_x # Given an x value, find a parametric value it came from.
+		*/
+		float solve_curve_x(float x, float epsilon) const;
+		
+		/**
+		* @func solve
+		*/
+		inline float solve(float x, float epsilon) const {
+			return (this->*_solve)(x, epsilon);
+		}
 		
 		private:
-			
-			typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
-			
-			Solve _solve;
-			Vec2 _p1;
-			Vec2 _p2;
-			
-			FX_DEFINE_INLINE_CLASS(Inl);
+		
+		typedef float (FixedCubicBezier::*Solve)(float x, float epsilon) const;
+		
+		Solve _solve;
+		Vec2 _p1;
+		Vec2 _p2;
+		
+		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 
 	typedef FixedCubicBezier Curve;

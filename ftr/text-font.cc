@@ -240,7 +240,7 @@ float TextFont::simple_layout_width(cUcs2String& text) {
 	float rv = 0;
 	float ratio = 4096.0 / size.value;
 	
-	for ( uint i = 0; i < text.length(); i++ ) {
+	for ( uint32_t i = 0; i < text.length(); i++ ) {
 		rv += table->glyph(text[i])->hori_advance() / ratio;
 	}
 	
@@ -403,7 +403,7 @@ struct Word {
 	Array<uint16> Chars;
 	float         width;
 	bool          newline;
-	uint          count;
+	uint32_t          count;
 };
 
 /**
@@ -465,7 +465,7 @@ public:
 	/**
 	 * @func new_row
 	 */
-	FX_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint begin) {
+	FX_INLINE void new_row(TextRows* rows, Cell& cell, Data& data, uint32_t begin) {
 		
 		/* 结束上一行 */
 		if ( cell.Chars.length() ) {
@@ -487,7 +487,7 @@ public:
 	 */
 	FX_INLINE bool read_word(Word* word, float offset_start,
 													 FontGlyphTable* table, float ratio,
-													 Options::SpaceWrap opts, cUcs2String& string, uint begin, uint end) {
+													 Options::SpaceWrap opts, cUcs2String& string, uint32_t begin, uint32_t end) {
 		if ( begin < end ) {
 			
 			const uint16* Chars = *string;
@@ -509,7 +509,7 @@ public:
 						}
 					}
 					
-					uint count = 0;
+					uint32_t count = 0;
 					do {
 						count++; begin++;
 						unicode = Chars[begin];
@@ -525,7 +525,7 @@ public:
 				goto common;
 				
 			} else if ( !opts.force_wrap && has_english_Char(unicode) ) {
-				uint count = 0;
+				uint32_t count = 0;
 				float offset = offset_start;
 				do {
 					offset += table->glyph(unicode)->hori_advance() / ratio; // 字符宽度
@@ -564,7 +564,7 @@ public:
 		cell.offset.write( word.offset, -1, word.count );
 		cell.Chars.write( word.Chars, -1, word.count );
 		
-		uint ellipsis_count = ellipsis ? 3 : 0;
+		uint32_t ellipsis_count = ellipsis ? 3 : 0;
 		
 		while ( cell.Chars.length() || ellipsis_count ) {
 			if ( cell.offset[cell.Chars.length()] + ellipsis_count * hori_advance <= limit.width() ) {
@@ -581,7 +581,7 @@ public:
 		
 		if ( ellipsis_count ) {
 			float offset = cell.offset[cell.Chars.length()] + hori_advance;
-			for ( uint i = 0; i < ellipsis_count; i++ ) {
+			for ( uint32_t i = 0; i < ellipsis_count; i++ ) {
 				cell.offset.push(offset + i * hori_advance);
 				cell.Chars.push('.');
 			}
@@ -595,7 +595,7 @@ public:
 	template<bool clip, int ellipsis, bool auto_wrap>
 	void set_text_layout_offset(TextRows* rows, Vec2 limit, Options opts,
 															Data& data, cUcs2String& string,
-															uint begin, uint end, bool ignore_empty_cell) {
+															uint32_t begin, uint32_t end, bool ignore_empty_cell) {
 		// 在这里进行文本排版布局
 		FontGlyphTable* table = get_font_glyph_table_and_height(data, opts.text_line_height);
 		float ratio = 4096.0 / _text_size.value; /* 64.0 * 64.0 = 4096.0 */
@@ -665,7 +665,7 @@ public:
 							}
 							
 							float offset = offset_end->x();
-							for ( uint i = 0; i < word.count; i++ ) {
+							for ( uint32_t i = 0; i < word.count; i++ ) {
 								word.offset[i] -= offset; // 新行重置单词偏移量
 							}
 							new_row(rows, cell, data, begin);
@@ -744,7 +744,7 @@ bool TextLayout::is_auto_wrap(TextLayout* text) {
  */
 void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 																				Data& data, cUcs2String& string,
-																				uint begin, uint end,
+																				uint32_t begin, uint32_t end,
 																				Options* options, bool ignore_empty_cell) {
 	
 	Options opts = options ? *options : get_options();
@@ -800,9 +800,9 @@ void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
 }
 
 void TextLayout::set_text_layout_offset(TextRows* rows, Vec2 limit,
-																				Data& data, uint16_t security, uint count, Options* opts) {
+																				Data& data, uint16_t security, uint32_t count, Options* opts) {
 	Ucs2String string;
-	for ( uint i = 0; i < count; i++ ) {
+	for ( uint32_t i = 0; i < count; i++ ) {
 		string.push(&security, 1);
 	}
 	set_text_layout_offset(rows, limit, data, string, 0, count, opts, true);
@@ -825,7 +825,7 @@ void TextLayout::set_text_white_space(TextWhiteSpace value) {
 /**
  * @func mark_text
  */
-void TextLayout::mark_text(uint value) {
+void TextLayout::mark_text(uint32_t value) {
 	view()->mark_pre(value);
 }
 

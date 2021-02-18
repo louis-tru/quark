@@ -105,7 +105,7 @@ void Inl::set_delegate(Delegate* delegate) {
 /**
  * @func bit_rate_index
  */
-uint Inl::bit_rate_index() {
+uint32_t Inl::bit_rate_index() {
 	ScopeLock scope(mutex());
 	return _bit_rate_index;
 }
@@ -121,7 +121,7 @@ const Array<BitRateInfo>& Inl::bit_rate() {
 /**
  * @func select_bit_rate
  */
-bool Inl::select_bit_rate(uint index) {
+bool Inl::select_bit_rate(uint32_t index) {
 	ScopeLock scope(mutex());
 	bool rt = true;
 	
@@ -132,7 +132,7 @@ bool Inl::select_bit_rate(uint index) {
 			Extractor* ex = i.value();
 			Array<TrackInfo> tracks;
 
-			for ( uint j = 0; j < info.tracks.length(); j++ ) {
+			for ( uint32_t j = 0; j < info.tracks.length(); j++ ) {
 				if (info.tracks[j].type == ex->type()) {
 					tracks.push(info.tracks[j]);
 				}
@@ -170,21 +170,21 @@ void Inl::extractor_flush(Extractor* ex) {
 }
 
 // @func select_multi_bit_rate2
-void Inl::select_multi_bit_rate2(uint index) {
+void Inl::select_multi_bit_rate2(uint32_t index) {
 	AVFormatContext* fmt_ctx = _fmt_ctx;
 	if ( fmt_ctx->nb_programs ) {
-		for (uint i = 0; i < fmt_ctx->nb_programs; i++) {
+		for (uint32_t i = 0; i < fmt_ctx->nb_programs; i++) {
 			AVProgram* program = fmt_ctx->programs[i];
-			for (uint j = 0; j < program->nb_stream_indexes; j++) {
+			for (uint32_t j = 0; j < program->nb_stream_indexes; j++) {
 				fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_ALL;
 			}
 		}
 		AVProgram* program = fmt_ctx->programs[ FX_MIN(index, fmt_ctx->nb_programs - 1) ];
-		for (uint j = 0; j < program->nb_stream_indexes; j++) {
+		for (uint32_t j = 0; j < program->nb_stream_indexes; j++) {
 			fmt_ctx->streams[*program->stream_index + j]->discard = AVDISCARD_NONE;
 		}
 	} else {
-		for ( uint i = 0; i < fmt_ctx->nb_streams; i++ ) {
+		for ( uint32_t i = 0; i < fmt_ctx->nb_streams; i++ ) {
 			fmt_ctx->streams[i]->discard = AVDISCARD_NONE;
 		}
 	}
@@ -207,7 +207,7 @@ Extractor* Inl::extractor(MediaType type) {
 			BitRateInfo& info = _bit_rate[_bit_rate_index];
 			Array<TrackInfo> tr;
 			
-			for (uint i = 0; i < info.tracks.length(); i++) {
+			for (uint32_t i = 0; i < info.tracks.length(); i++) {
 				if (info.tracks[i].type == type) {
 					tr.push(info.tracks[i]);
 				}
@@ -225,7 +225,7 @@ Extractor* Inl::extractor(MediaType type) {
 /**
  * @func seek
  * */
-bool Inl::seek(uint64 timeUs) {
+bool Inl::seek(uint64_t timeUs) {
 	ScopeLock scope(mutex());
 	
 	if ( (_status == MULTIMEDIA_SOURCE_STATUS_READY ||
@@ -379,7 +379,7 @@ void Inl::start() {
 		Array<BitRateInfo> bit_rate;
 		
 		if (fmt_ctx->nb_programs) {
-			for (uint i = 0; i < fmt_ctx->nb_programs; i++) {
+			for (uint32_t i = 0; i < fmt_ctx->nb_programs; i++) {
 				AVProgram* program = fmt_ctx->programs[i];
 				BitRateInfo info = read_bit_rate_info(fmt_ctx, *program->stream_index,
 																						 *program->stream_index + program->nb_stream_indexes);
@@ -478,7 +478,7 @@ bool Inl::extractor_push(Extractor* ex, AVPacket& pkt, AVStream* stream, double 
 		}
 	}
 	
-	uint len = ex->_sample_data_cache.length();
+	uint32_t len = ex->_sample_data_cache.length();
 	
 	if ( ex->_sample_count_cache >= len ) {
 		return false;
@@ -629,11 +629,11 @@ bool Inl::extractor_advance(Extractor* ex) {
 /**
  * @func read_stream
  * */
-void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bit_rate_index) {
+void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint32_t bit_rate_index) {
 	
 	Array<double> tbns;
 	
-	for (uint i = 0; i < fmt_ctx->nb_streams; i++) {
+	for (uint32_t i = 0; i < fmt_ctx->nb_streams; i++) {
 		AVStream* stream  = fmt_ctx->streams[i];
 		double n = double(1000000.0) / (double(stream->time_base.den) / double(stream->time_base.num));
 		tbns.push(n);
@@ -694,7 +694,7 @@ void Inl::read_stream(Thread& t, AVFormatContext* fmt_ctx, cString& uri, uint bi
 			}
 
 			if ( has_valid_extractor() ) {
-				uint stream = pkt.stream_index; // stream index
+				uint32_t stream = pkt.stream_index; // stream index
 				
 				Extractor *ex = valid_extractor(fmt_ctx->streams[stream]->codecpar->codec_type);
 				if (ex) {

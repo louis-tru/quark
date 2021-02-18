@@ -41,205 +41,203 @@
 
 namespace ftr {
 
-class TextureYUV;
-class PCMPlayer;
-
-/**
- * @class Video
- */
-class FX_EXPORT Video: public Image,
-											 public PreRender::Task,
-											 public MultimediaSource::Delegate {
- public:
-	FX_DEFINE_GUI_VIEW(VIDEO, Video, video);
-
-	Video();
+	class TextureYUV;
+	class PCMPlayer;
 
 	/**
-	 * @destructor
-	 */
-	virtual ~Video();
+	* @class Video
+	*/
+	class FX_EXPORT Video: public Image,
+												public PreRender::Task,
+												public MultimediaSource::Delegate {
+		public:
+		FX_DEFINE_GUI_VIEW(VIDEO, Video, video);
 
-	typedef MediaCodec::OutputBuffer OutputBuffer;
-	typedef MultimediaSource::TrackInfo TrackInfo;
-	typedef PreRender::Task::ID TaskID;
+		Video();
 
-	/**
-	 * @overwrite
-	 */
-	virtual bool run_task(int64 time);
-	virtual void multimedia_source_ready(MultimediaSource* src);
-	virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
-	virtual void multimedia_source_eof(MultimediaSource* src);
-	virtual void multimedia_source_error(MultimediaSource* src, cError& err);
-	virtual void remove();
+		/**
+		* @destructor
+		*/
+		virtual ~Video();
 
-	/**
-	 * @overwrite
-	 */
-	virtual void set_texture(Texture* value);
+		typedef MediaCodec::OutputBuffer OutputBuffer;
+		typedef MultimediaSource::TrackInfo TrackInfo;
+		typedef PreRender::Task::ID TaskID;
 
-	/**
-	 * @func auto_play
-	 */
-	inline bool auto_play() const { return _auto_play; }
+		/**
+		* @overwrite
+		*/
+		virtual bool run_task(int64_t time);
+		virtual void multimedia_source_ready(MultimediaSource* src);
+		virtual void multimedia_source_wait_buffer(MultimediaSource* src, float process);
+		virtual void multimedia_source_eof(MultimediaSource* src);
+		virtual void multimedia_source_error(MultimediaSource* src, cError& err);
+		virtual void remove();
 
-	/**
-	 * @func set_auto_play # setting auto play
-	 */
-	FX_MEDIA_DYNAMIC void set_auto_play(bool value);
+		/**
+		* @overwrite
+		*/
+		virtual void set_texture(Texture* value);
 
-	/**
-	 * @func source_status
-	 * */
-	FX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
+		/**
+		* @func auto_play
+		*/
+		inline bool auto_play() const { return _auto_play; }
 
-	/**
-	 * @func video_width
-	 */
-	FX_MEDIA_DYNAMIC uint video_width();
+		/**
+		* @func set_auto_play # setting auto play
+		*/
+		FX_MEDIA_DYNAMIC void set_auto_play(bool value);
 
-	/**
-	 * @func video_height
-	 */
-	FX_MEDIA_DYNAMIC uint video_height();
+		/**
+		* @func source_status
+		* */
+		FX_MEDIA_DYNAMIC MultimediaSourceStatus source_status();
 
-	/**
-	 * @func status getting play status
-	 */
-	FX_MEDIA_DYNAMIC PlayerStatus status();
+		/**
+		* @func video_width
+		*/
+		FX_MEDIA_DYNAMIC uint32_t video_width();
 
-	/**
-	 * @func mute getting mute status
-	 * */
-	inline bool mute() const { return _mute; }
+		/**
+		* @func video_height
+		*/
+		FX_MEDIA_DYNAMIC uint32_t video_height();
 
-	/**
-	 * @func mute setting mute status
-	 * */
-	FX_MEDIA_DYNAMIC void set_mute(bool value);
+		/**
+		* @func status getting play status
+		*/
+		FX_MEDIA_DYNAMIC PlayerStatus status();
 
-	/**
-	 * @func volume
-	 */
-	inline uint volume() { return _volume; }
+		/**
+		* @func mute getting mute status
+		* */
+		inline bool mute() const { return _mute; }
 
-	/**
-	 * @func volume
-	 */
-	FX_MEDIA_DYNAMIC void set_volume(uint value);
+		/**
+		* @func mute setting mute status
+		* */
+		FX_MEDIA_DYNAMIC void set_mute(bool value);
 
-	/**
-	 * @func time
-	 * */
-	FX_MEDIA_DYNAMIC uint64 time();
+		/**
+		* @func volume
+		*/
+		inline uint32_t volume() { return _volume; }
 
-	/**
-	 * @func duration
-	 * */
-	FX_MEDIA_DYNAMIC uint64 duration();
+		/**
+		* @func volume
+		*/
+		FX_MEDIA_DYNAMIC void set_volume(uint32_t value);
 
-	/**
-	 * @func audio_track_count
-	 */
-	FX_MEDIA_DYNAMIC uint audio_track_count();
+		/**
+		* @func time
+		* */
+		FX_MEDIA_DYNAMIC uint64_t time();
 
-	/**
-	 * @func audio_track
-	 */
-	FX_MEDIA_DYNAMIC uint audio_track_index();
+		/**
+		* @func duration
+		* */
+		FX_MEDIA_DYNAMIC uint64_t duration();
 
-	/**
-	 * @func audio_track
-	 */
-	FX_MEDIA_DYNAMIC const TrackInfo* audio_track();
+		/**
+		* @func audio_track_count
+		*/
+		FX_MEDIA_DYNAMIC uint32_t audio_track_count();
 
-	/**
-	 * @func audio_track
-	 */
-	FX_MEDIA_DYNAMIC const TrackInfo* audio_track(uint index);
+		/**
+		* @func audio_track
+		*/
+		FX_MEDIA_DYNAMIC uint32_t audio_track_index();
 
-	/**
-	 * @func video_track
-	 * */
-	FX_MEDIA_DYNAMIC const TrackInfo* video_track();
+		/**
+		* @func audio_track
+		*/
+		FX_MEDIA_DYNAMIC const TrackInfo* audio_track();
 
-	/**
-	 * @func select_audio_track
-	 * */
-	FX_MEDIA_DYNAMIC void select_audio_track(uint index);
+		/**
+		* @func audio_track
+		*/
+		FX_MEDIA_DYNAMIC const TrackInfo* audio_track(uint32_t index);
 
-	/**
-	 * @func start play
-	 */
-	FX_MEDIA_DYNAMIC void start();
+		/**
+		* @func video_track
+		* */
+		FX_MEDIA_DYNAMIC const TrackInfo* video_track();
 
-	/**
-	 * @func seek to target time
-	 */
-	FX_MEDIA_DYNAMIC bool seek(uint64 timeUs);
+		/**
+		* @func select_audio_track
+		* */
+		FX_MEDIA_DYNAMIC void select_audio_track(uint32_t index);
 
-	/**
-	 * @func pause play
-	 * */
-	FX_MEDIA_DYNAMIC void pause();
+		/**
+		* @func start play
+		*/
+		FX_MEDIA_DYNAMIC void start();
 
-	/**
-	 * @func resume play
-	 * */
-	FX_MEDIA_DYNAMIC void resume();
+		/**
+		* @func seek to target time
+		*/
+		FX_MEDIA_DYNAMIC bool seek(uint64_t timeUs);
 
-	/**
-	 * @func stop play
-	 * */
-	FX_MEDIA_DYNAMIC void stop();
+		/**
+		* @func pause play
+		* */
+		FX_MEDIA_DYNAMIC void pause();
 
-	/**
-	 * @func disable_wait_buffer
-	 */
-	FX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
+		/**
+		* @func resume play
+		* */
+		FX_MEDIA_DYNAMIC void resume();
 
-	/**
-	 * @func disable_wait_buffer
-	 */
-	inline bool disable_wait_buffer() const { return _disable_wait_buffer; }
+		/**
+		* @func stop play
+		* */
+		FX_MEDIA_DYNAMIC void stop();
 
- protected:
+		/**
+		* @func disable_wait_buffer
+		*/
+		FX_MEDIA_DYNAMIC void disable_wait_buffer(bool value);
 
-	/**
-	 * @overwrite
-	 */
-	virtual String source() const;
-	virtual void set_source(cString& value);
-	virtual void draw(Draw* draw);
+		/**
+		* @func disable_wait_buffer
+		*/
+		inline bool disable_wait_buffer() const { return _disable_wait_buffer; }
 
- private:
+		protected:
+		/**
+		* @overwrite
+		*/
+		virtual String source() const;
+		virtual void set_source(cString& value);
+		virtual void draw(Draw* draw);
 
-	MultimediaSource* _source;
-	MediaCodec*   _audio;
-	MediaCodec*   _video;
-	PCMPlayer*    _pcm;
-	KeepLoop*     _keep;
-	PlayerStatus  _status;
-	OutputBuffer  _audio_buffer;
-	OutputBuffer  _video_buffer;
-	uint64  _time, _duration;
-	uint64  _uninterrupted_play_start_time;
-	uint64  _uninterrupted_play_start_systime;
-	uint64  _prev_presentation_time;
-	uint64  _prev_run_task_systime;
-	uint    _video_width, _video_height;
-	uint    _task_id;
-	VideoColorFormat  _color_format;
-	Mutex   _audio_loop_mutex, _mutex;
-	uint    _volume;
-	bool    _auto_play;
-	bool    _mute;
-	bool    _disable_wait_buffer;
-	bool    _waiting_buffer;
+		private:
+		MultimediaSource* _source;
+		MediaCodec*   _audio;
+		MediaCodec*   _video;
+		PCMPlayer*    _pcm;
+		KeepLoop*     _keep;
+		PlayerStatus  _status;
+		OutputBuffer  _audio_buffer;
+		OutputBuffer  _video_buffer;
+		uint64_t  _time, _duration;
+		uint64_t  _uninterrupted_play_start_time;
+		uint64_t  _uninterrupted_play_start_systime;
+		uint64_t  _prev_presentation_time;
+		uint64_t  _prev_run_task_systime;
+		uint32_t    _video_width, _video_height;
+		uint32_t    _task_id;
+		VideoColorFormat  _color_format;
+		Mutex   _audio_loop_mutex, _mutex;
+		uint32_t    _volume;
+		bool    _auto_play;
+		bool    _mute;
+		bool    _disable_wait_buffer;
+		bool    _waiting_buffer;
 
-	FX_DEFINE_INLINE_CLASS(Inl);
-};
+		FX_DEFINE_INLINE_CLASS(Inl);
+	};
 
 }
 #endif

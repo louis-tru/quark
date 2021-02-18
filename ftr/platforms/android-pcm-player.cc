@@ -44,12 +44,12 @@ namespace ftr {
 	/**
 	* @func get_channel_mask
 	* */
-	extern int get_channel_mask(uint channel_count);
+	extern int get_channel_mask(uint32_t channel_count);
 
 	#if USE_ANDROID_OPENSLES_PCM_PLAYER
 
 	struct AudioEngine;
-	static AudioEngine* nx_share_engine = NULL;
+	static AudioEngine* fx_share_engine = NULL;
 
 	struct AudioEngine {
 
@@ -94,10 +94,10 @@ namespace ftr {
 		}
 
 		static AudioEngine* share() {
-			if ( ! nx_share_engine ) {
-				nx_share_engine = new AudioEngine();
+			if ( ! fx_share_engine ) {
+				fx_share_engine = new AudioEngine();
 			}
-			return nx_share_engine;
+			return fx_share_engine;
 		}
 
 		// engine interfaces
@@ -139,7 +139,7 @@ namespace ftr {
 				}
 			}
 
-			bool initialize(uint channel_count, uint sample_rate) {
+			bool initialize(uint32_t channel_count, uint32_t sample_rate) {
 
 				AudioEngine* engine = AudioEngine::share();
 				if ( ! engine ) {
@@ -301,7 +301,7 @@ namespace ftr {
 			/**
 			* @overwrite
 			* */
-			virtual bool set_volume(uint value) {
+			virtual bool set_volume(uint32_t value) {
 				if ( _max_volume_level ) {
 					SLresult result;
 					result = (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, value / 100 * _max_volume_level);
@@ -313,11 +313,11 @@ namespace ftr {
 			/**
 			* @func buffer_size
 			* */
-			virtual uint buffer_size() {
+			virtual uint32_t buffer_size() {
 				return _buffer_size;
 			}
 
-			uint min_buffer_size() {
+			uint32_t min_buffer_size() {
 				JNI::ScopeENV env;
 				JNI::MethodInfo m("android/media/AudioTrack", "getMinBufferSize", "(III)I", true);
 				int r = env->CallStaticIntMethod(m.clazz(), m.method(), _sample_rate,
@@ -328,9 +328,9 @@ namespace ftr {
 		private:
 			Mutex         _lock;
 			SLint16	      _max_volume_level;
-			uint          _sample_rate;
-			uint          _channel_count;
-			uint          _buffer_size;
+			uint32_t          _sample_rate;
+			uint32_t          _channel_count;
+			uint32_t          _buffer_size;
 
 			// engine interfaces
 			SLObjectItf engineObject;
@@ -352,12 +352,12 @@ namespace ftr {
 	/**
 	* @func _inl_create_android_audio_track
 	*/
-	PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate);
+	PCMPlayer* _inl_create_android_audio_track(uint32_t channel_count, uint32_t sample_rate);
 
 	/**
 	* @func create
 	*/
-	PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
+	PCMPlayer* PCMPlayer::create(uint32_t channel_count, uint32_t sample_rate) {
 		#if USE_ANDROID_OPENSLES_PCM_PLAYER
 			Handle<AndroidPCMOpenSLES> player = new AndroidPCMOpenSLES();
 			if ( player->initialize( channel_count, sample_rate) ) {

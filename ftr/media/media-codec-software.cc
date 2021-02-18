@@ -257,7 +257,7 @@ class SoftwareMediaCodec: public MediaCodec {
 		int ret = avcodec_receive_frame(_codec_ctx, _frame);
 		if ( ret == 0 ) {
 			int sample_bytes = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-			uint size = _frame->nb_samples * sample_bytes * _channel_count;
+			uint32_t size = _frame->nb_samples * sample_bytes * _channel_count;
 			
 			if (_audio_frame_size == 0) {
 				set_frame_size(size);
@@ -335,7 +335,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	/**
 	 * @overwrite
 	 * */
-	virtual void set_frame_size(uint size) {
+	virtual void set_frame_size(uint32_t size) {
 		if ( type() == MEDIA_TYPE_AUDIO ) {
 			_audio_frame_size = FX_MAX(512, size);
 			if (_audio_frame_size * 2 > _audio_buffer.length()) {
@@ -345,7 +345,7 @@ class SoftwareMediaCodec: public MediaCodec {
 			}
 			// compute audio frame interval
 			const TrackInfo &track = extractor()->track();
-			uint64 second_size = track.sample_rate * _channel_count * 2;
+			uint64_t second_size = track.sample_rate * _channel_count * 2;
 			_frame_interval = uint(uint64(_audio_frame_size) * 1000LL * 1000LL / second_size);
 		}
 	}
@@ -353,7 +353,7 @@ class SoftwareMediaCodec: public MediaCodec {
 	/**
 	 * @overwrite
 	 * */
-	virtual void set_threads(uint value) {
+	virtual void set_threads(uint32_t value) {
 		ScopeLock scope(_mutex);
 		if ( !_is_open ) {
 			_threads = FX_MAX(1, FX_MIN(8, value));
@@ -402,11 +402,11 @@ class SoftwareMediaCodec: public MediaCodec {
 	AVCodecContext* _codec_ctx;
 	AVFrame*        _frame;
 	Buffer          _audio_buffer;
-	uint            _audio_buffer_size;
+	uint32_t            _audio_buffer_size;
 	SwrContext*     _audio_swr_ctx;
-	uint            _audio_frame_size;
-	uint64          _presentation_time;
-	uint            _threads;
+	uint32_t            _audio_frame_size;
+	uint64_t          _presentation_time;
+	uint32_t            _threads;
 	bool            _background_run;
 	bool            _is_open;
 	bool            _output_occupy;

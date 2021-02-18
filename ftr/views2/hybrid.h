@@ -46,7 +46,7 @@ namespace ftr {
  * @class Hybrid
  */
 class FX_EXPORT Hybrid: public Box, public TextLayout {
- public:
+	public:
 	
 	typedef ReferenceTraits Traits;
 	
@@ -77,8 +77,7 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	 */
 	inline TextRows& rows() { return _rows; }
 	
- protected:
-
+	protected:
 	/**
 	 * @overwrite
 	 */
@@ -91,7 +90,6 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	 */
 	void set_layout_content_offset_after();
 	
- protected:
 	TextRows  _rows;
 	TextAlign _text_align;
 	

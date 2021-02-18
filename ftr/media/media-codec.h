@@ -97,29 +97,29 @@ namespace ftr {
 		struct FX_EXPORT TrackInfo {
 			TrackInfo();
 			TrackInfo(const TrackInfo&);
-			uint        track;            /* 轨道在源中的索引 */
+			uint32_t        track;            /* 轨道在源中的索引 */
 			MediaType   type;             /* type */
 			String      mime;             /* mime类型 */
 			int         codec_id;         /* codec id */
-			uint        codec_tag;        /* codec tag */
+			uint32_t        codec_tag;        /* codec tag */
 			int         format;           /* format */
 			int         profile;          /* profile */
 			int         level;            /* level */
-			uint        width;            /* 输出图像宽度 */
-			uint        height;           /* 输出图像高度 */
+			uint32_t        width;            /* 输出图像宽度 */
+			uint32_t        height;           /* 输出图像高度 */
 			String      language;         /* 语言 */
-			uint        bitrate;          /* 码率 */
-			uint        sample_rate;      /* 声音采样率 */
-			uint        channel_count;    /* 声音声道数量 */
-			uint64      channel_layout;   /* channel_layout */
-			uint        frame_interval;   /* 图像帧时间间隔 */
+			uint32_t        bitrate;          /* 码率 */
+			uint32_t        sample_rate;      /* 声音采样率 */
+			uint32_t        channel_count;    /* 声音声道数量 */
+			uint64_t      channel_layout;   /* channel_layout */
+			uint32_t        frame_interval;   /* 图像帧时间间隔 */
 			Buffer      extradata;        /* extradata */
 		};
 		
 		struct FX_EXPORT BitRateInfo {  /* 码率 */
 			int     bandwidth;
-			uint    width;
-			uint    height;
+			uint32_t    width;
+			uint32_t    height;
 			String  codecs;
 			Array<TrackInfo>  tracks;
 		};
@@ -142,12 +142,12 @@ namespace ftr {
 			/**
 			* @func track_count
 			*/
-			inline uint track_count() const { return _tracks.length(); }
+			inline uint32_t track_count() const { return _tracks.length(); }
 			
 			/**
 			* @func track_index current
 			*/
-			inline uint track_index() const { return _track_index; }
+			inline uint32_t track_index() const { return _track_index; }
 			
 			/**
 			* @func track current
@@ -157,7 +157,7 @@ namespace ftr {
 			/**
 			* @func track get track info with index
 			*/
-			inline const TrackInfo& track(uint index) const { return _tracks[index]; }
+			inline const TrackInfo& track(uint32_t index) const { return _tracks[index]; }
 			
 			/**
 			* @func host
@@ -172,22 +172,22 @@ namespace ftr {
 			/**
 			* @func frame_interval
 			* */
-			inline uint frame_interval() const { return _tracks[0].frame_interval; }
+			inline uint32_t frame_interval() const { return _tracks[0].frame_interval; }
 			
 			/**
 			* @func select_track
 			*/
-			bool select_track(uint index);
+			bool select_track(uint32_t index);
 			
 			/**
 			* @func sample_time
 			* */
-			inline uint64 sample_time() const { return _sample_data.time; }
+			inline uint64_t sample_time() const { return _sample_data.time; }
 			
 			/**
 			* @func sample_d_time
 			* */
-			inline uint64 sample_d_time() const { return _sample_data.d_time; }
+			inline uint64_t sample_d_time() const { return _sample_data.d_time; }
 			
 			/**
 			* @func sample_data
@@ -199,7 +199,7 @@ namespace ftr {
 			/**
 			* @func sample_size
 			* */
-			inline uint sample_size() const { return _sample_data.size; }
+			inline uint32_t sample_size() const { return _sample_data.size; }
 
 			/**
 			* @func presentation_time
@@ -214,22 +214,22 @@ namespace ftr {
 			/**
 			* @func deplete_sample
 			* */
-			uint deplete_sample(Char* out, uint size);
+			uint32_t deplete_sample(Char* out, uint32_t size);
 
 			/**
 			* @func deplete_sample
 			* */
-			uint deplete_sample(Buffer& out);
+			uint32_t deplete_sample(Buffer& out);
 			
 			/**
 			* @func deplete_sample
 			* */
-			uint deplete_sample(uint size);
+			uint32_t deplete_sample(uint32_t size);
 			
 			/**
 			* @func deplete_sample
 			* */
-			inline uint deplete_sample() {
+			inline uint32_t deplete_sample() {
 				return deplete_sample(_sample_data.size);
 			}
 			
@@ -255,19 +255,19 @@ namespace ftr {
 			struct SampleData {
 				Buffer  _buf;
 				Char*   data;
-				uint    size;
-				uint64  time;
-				uint64  d_time;
+				uint32_t    size;
+				uint64_t  time;
+				uint64_t  d_time;
 				int     flags;
 			};
 			
 			MultimediaSource* _host;
 			MediaType         _type;
-			uint              _track_index;
+			uint32_t              _track_index;
 			Array<TrackInfo>  _tracks;
 			Array<SampleData> _sample_data_cache;
-			uint              _sample_index_cache;
-			uint              _sample_count_cache;
+			uint32_t              _sample_index_cache;
+			uint32_t              _sample_count_cache;
 			SampleData        _sample_data;
 			bool              _eof_flags;
 			bool              _disable;
@@ -306,12 +306,12 @@ namespace ftr {
 		/**
 		* @func duration
 		*/
-		uint64 duration() const;
+		uint64_t duration() const;
 		
 		/**
 		* @func bit_rate_index
 		*/
-		uint bit_rate_index() const;
+		uint32_t bit_rate_index() const;
 		
 		/**
 		* @func bit_rate
@@ -331,7 +331,7 @@ namespace ftr {
 		/**
 		* @func seek
 		* */
-		bool seek(uint64 timeUs);
+		bool seek(uint64_t timeUs);
 		
 		/**
 		* @func start
@@ -373,15 +373,15 @@ namespace ftr {
 			OutputBuffer();
 			OutputBuffer(const OutputBuffer& buffer);
 			uint8_t*   data[8];      /* 数据Buffer */
-			uint    linesize[8];  /* 数据大小 */
-			uint    total;        /* 数据总大小 */
-			uint64  time;         /* 演示时间 */
+			uint32_t    linesize[8];  /* 数据大小 */
+			uint32_t    total;        /* 数据总大小 */
+			uint64_t  time;         /* 演示时间 */
 			int     index;        /* 数据Buffer在解码器中的索引 */
 		};
 		
 		class FX_EXPORT Delegate {
 			public:
-			virtual void media_decoder_eof(MediaCodec* de, uint64 timeUs) { }
+			virtual void media_decoder_eof(MediaCodec* de, uint64_t timeUs) { }
 			virtual void media_decoder_error(MediaCodec* de, cError& err) { }
 		};
 		
@@ -413,17 +413,17 @@ namespace ftr {
 		/**
 		* @func channel_count
 		* */
-		inline uint channel_count() const { return _channel_count; }
+		inline uint32_t channel_count() const { return _channel_count; }
 
 		/**
 		* @func channel_layout
 		* */
-		inline uint64 channel_layout() const { return _channel_layout; }
+		inline uint64_t channel_layout() const { return _channel_layout; }
 
 		/**
 		* @func frame_interval
 		* */
-		inline uint frame_interval() const { return _frame_interval; }
+		inline uint32_t frame_interval() const { return _frame_interval; }
 		
 		/**
 		* @func open
@@ -458,12 +458,12 @@ namespace ftr {
 		/**
 		* @func set_frame_size set audio frame buffer size
 		* */
-		virtual void set_frame_size(uint size) = 0;
+		virtual void set_frame_size(uint32_t size) = 0;
 
 		/**
 		* @func set_threads set soft multi thread run
 		* */
-		virtual void set_threads(uint value) = 0;
+		virtual void set_threads(uint32_t value) = 0;
 
 		/**
 		* @func set_background_run
@@ -507,9 +507,9 @@ namespace ftr {
 		Extractor*  _extractor;
 		Delegate*   _delegate;
 		VideoColorFormat _color_format;
-		uint64      _channel_layout;
-		uint        _channel_count;
-		uint        _frame_interval;
+		uint64_t      _channel_layout;
+		uint32_t        _channel_count;
+		uint32_t        _frame_interval;
 	};
 
 }

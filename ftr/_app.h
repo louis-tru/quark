@@ -39,90 +39,89 @@
 
 namespace ftr {
 
-FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
- public:
-	struct KeyboardOptions {
-		bool               is_clear;
-		KeyboardType       type;
-		KeyboardReturnType return_type;
-		Vec2               spot_location;
+	FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
+		public:
+		struct KeyboardOptions {
+			bool               is_clear;
+			KeyboardType       type;
+			KeyboardReturnType return_type;
+			Vec2               spot_location;
+		};
+		
+		void initialize(cJSON& options);
+		void refresh_display();
+		void triggerLoad();
+		void triggerRender();
+		void triggerPause();
+		void triggerResume();
+		void triggerBackground();
+		void triggerForeground();
+		void triggerMemorywarning();
+		void triggerUnload();
+		
+		/**
+		* @func set_volume_up()
+		*/
+		void set_volume_up();
+
+		/**
+		* @func set_volume_down()
+		*/
+		void set_volume_down();
+		
+		/**
+		* @func set_root
+		*/
+		void set_root(Root* value) throw(Error);
+		
+		/**
+		* @func runMain
+		*/
+		inline static void runMain(int argc, Char* argv[]) {
+			GUIApplication::runMain(argc, argv);
+		}
+		
+		/**
+		* @func set_focus_view
+		*/
+		bool set_focus_view(View* view);
+		
+		/**
+		* @func dispatch
+		* */
+		inline GUIEventDispatch* dispatch() { return _dispatch; }
+		
+		/**
+		* @func ime_keyboard_open
+		*/
+		void ime_keyboard_open(KeyboardOptions options);
+		
+		/**
+		* @func ime_keyboard_can_backspace
+		*/
+		void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
+		
+		/**
+		* @func ime_keyboard_close
+		*/
+		void ime_keyboard_close();
+		
+		/**
+		* @func ime_keyboard_spot_location
+		*/
+		void ime_keyboard_spot_location(Vec2 location);
+
+		/**
+		* @func onExit(code)
+		*/
+		int onExit(int code);
 	};
-	
-	void initialize(cJSON& options);
-	void refresh_display();
-	void triggerLoad();
-	void triggerRender();
-	void triggerPause();
-	void triggerResume();
-	void triggerBackground();
-	void triggerForeground();
-	void triggerMemorywarning();
-	void triggerUnload();
-	
-	/**
-	 * @func set_volume_up()
-	 */
-	void set_volume_up();
 
-	/**
-	 * @func set_volume_down()
-	 */
-	void set_volume_down();
-	
-	/**
-	 * @func set_root
-	 */
-	void set_root(Root* value) throw(Error);
-	
-	/**
-	 * @func runMain
-	 */
-	inline static void runMain(int argc, Char* argv[]) {
-		GUIApplication::runMain(argc, argv);
-	}
-	
-	/**
-	 * @func set_focus_view
-	 */
-	bool set_focus_view(View* view);
-	
-	/**
-	 * @func dispatch
-	 * */
-	inline GUIEventDispatch* dispatch() { return _dispatch; }
-	
-	/**
-	 * @func ime_keyboard_open
-	 */
-	void ime_keyboard_open(KeyboardOptions options);
-	
-	/**
-	 * @func ime_keyboard_can_backspace
-	 */
-	void ime_keyboard_can_backspace(bool can_back_space, bool can_delete);
-	
-	/**
-	 * @func ime_keyboard_close
-	 */
-	void ime_keyboard_close();
-	
-	/**
-	 * @func ime_keyboard_spot_location
-	 */
-	void ime_keyboard_spot_location(Vec2 location);
+	#define _inl_app(self) static_cast<AppInl*>(self)
 
-	/**
-	 * @func onExit(code)
-	 */
-	int onExit(int code);
-	
-};
+	typedef GUIApplication::Inl AppInl;
 
-#define _inl_app(self) static_cast<AppInl*>(self)
-
-typedef GUIApplication::Inl AppInl;
-
-void safeExit(int rc);
+	void safeExit(int rc);
 
 }
 

@@ -609,7 +609,7 @@ namespace ftr {
 			Orientation _current_orientation;
 			int _screen, _s_width, _s_height;
 			int _x, _y;
-			uint _width, _height;
+			uint32_t _width, _height;
 			std::atomic_int _w_width, _w_height;
 			bool _is_init, _exit;
 			float _xft_dpi, _xwin_scale;

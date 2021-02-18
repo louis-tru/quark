@@ -40,7 +40,7 @@ namespace ftr {
  * @class Input
  */
 class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
- public:
+	public:
 
 	typedef ReferenceTraits Traits;
 	
@@ -63,7 +63,7 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	// @end
 	virtual void set_value(cUcs2String& str);
 	virtual View* append_text(cUcs2String& str) throw(Error);
-	virtual bool run_task(int64 sys_time);
+	virtual bool run_task(int64_t sys_time);
 	virtual bool can_become_focus();
 	virtual Object* to_object() { return this; }
 	virtual ITextInput* as_itext_input() { return this; }
@@ -128,8 +128,7 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	 */
 	void set_text_margin(float value);
 
- protected:
-	
+	protected:
 	/**
 	 * @overwrite
 	 */
@@ -156,11 +155,10 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	 */
 	void refresh_cursor_screen_position();
 	
- protected:
 	Ucs2String  placeholder_, marked_text_;
 	Color placeholder_color_, marked_color_;
-	uint  marked_text_idx_, cursor_, cursor_linenum_;
-	uint  marked_cell_begin_, marked_cell_end_;
+	uint32_t  marked_text_idx_, cursor_, cursor_linenum_;
+	uint32_t  marked_cell_begin_, marked_cell_end_;
 	float text_margin_, cursor_x_, input_text_offset_x_;
 	bool  editing_, cursor_twinkle_status_, security_;
 	Char  flag_;

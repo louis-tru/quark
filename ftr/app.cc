@@ -397,15 +397,15 @@ void GUIApplication::set_default_text_white_space(TextWhiteSpace value) {
 	}
 }
 
-uint64 GUIApplication::max_texture_memory_limit() const {
+uint64_t GUIApplication::max_texture_memory_limit() const {
 	return _draw_ctx->max_texture_memory_limit();
 }
 
-void GUIApplication::set_max_texture_memory_limit(uint64 limit) {
+void GUIApplication::set_max_texture_memory_limit(uint64_t limit) {
 	_draw_ctx->set_max_texture_memory_limit(limit);
 }
 
-uint64 GUIApplication::used_texture_memory() const {
+uint64_t GUIApplication::used_texture_memory() const {
 	return _draw_ctx->used_texture_memory();
 }
 

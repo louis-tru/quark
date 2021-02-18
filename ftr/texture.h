@@ -76,6 +76,7 @@ namespace ftr {
 	class FX_EXPORT Texture: public Reference {
 		FX_HIDDEN_ALL_COPY(Texture);
 		public:
+
 		typedef PixelData::Format PixelFormat;
 
 		enum Level {
@@ -108,7 +109,7 @@ namespace ftr {
 		/**
 		* @func get_texture_level()
 		*/
-		static Level get_texture_level(uint ratio);
+		static Level get_texture_level(uint32_t ratio);
 
 		/**
 		* @func get_texture_level_from_convex_quadrilateral(vertex)
@@ -134,7 +135,7 @@ namespace ftr {
 		/**
 		* @func use()  绑定纹理到指定槽,成功返回true,否则返回false并调用load尝试加载纹理到GPU
 		*/
-		bool use(uint slot = 0,
+		bool use(uint32_t slot = 0,
 						Level level = LEVEL_0,
 						Repeat repeat = Repeat::NONE);
 		inline int status() const { return _status; }
@@ -149,7 +150,6 @@ namespace ftr {
 		inline PixelFormat format() const { return _format; }
 
 		protected:
-
 		/**
 		* @constructor
 		*/
@@ -161,13 +161,13 @@ namespace ftr {
 		bool load_data(cPixelData& data);
 
 		int   _status;
-		uint  _handle[8];
-		uint  _data_size[8];
-		uint  _use_count[8];
+		uint32_t  _handle[8];
+		uint32_t  _data_size[8];
+		uint32_t  _use_count[8];
 		Repeat _repeat[8];
 		int   _width;
 		int   _height;
-		uint  _diagonal;
+		uint32_t  _diagonal;
 		PixelFormat _format;
 
 		friend class GLDraw;
@@ -211,7 +211,7 @@ namespace ftr {
 		FileTexture(cString& path);
 		
 		String        _path;
-		uint          _load_id;
+		uint32_t          _load_id;
 		ImageFormat   _image_format;
 		TexturePool*  _pool;
 		
@@ -280,7 +280,7 @@ namespace ftr {
 		Draw* _draw_ctx;
 		Map<String, FileTexture*> _textures;
 		Map<PrtKey<Texture>, Texture*> _completes;
-		uint64 _total_data_size; /* 纹池当前数据总量 */
+		uint64_t _total_data_size; /* 纹池当前数据总量 */
 		
 		FX_DEFINE_INLINE_CLASS(Inl)
 		

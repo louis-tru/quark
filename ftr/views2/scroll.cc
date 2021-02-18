@@ -46,7 +46,7 @@ static cCurve ease_out(0, 0, 0.58, 1);
 class BasicScroll::Task: public PreRender::Task {
  public:
 	
-	Task(BasicScroll* host, uint64 duration, cCurve& curve = ease_out)
+	Task(BasicScroll* host, uint64_t duration, cCurve& curve = ease_out)
 	: _host(host)
 	, _start_time(sys::time_monotonic())
 	, _duration(duration)
@@ -71,12 +71,12 @@ class BasicScroll::Task: public PreRender::Task {
 	/**
 	 * @overwrite
 	 */
-	virtual bool run_task(int64 sys_time) {
+	virtual bool run_task(int64_t sys_time) {
 		
 		if ( _immediate_end_flag ) { // immediate end motion
 			immediate_end();
 		} else {
-			int64 now = sys::time_monotonic();
+			int64_t now = sys::time_monotonic();
 			if ( now >= _start_time + _duration ) {
 				end();
 			} else {
@@ -95,8 +95,8 @@ class BasicScroll::Task: public PreRender::Task {
  protected:
 
 	BasicScroll* _host;
-	uint64 _start_time;
-	uint64 _duration;
+	uint64_t _start_time;
+	uint64_t _duration;
 	List<Task*>::Iterator _id2;
 	bool   _immediate_end_flag;
 	cCurve _curve;
@@ -114,7 +114,7 @@ class BasicScroll::Inl: public BasicScroll {
 	
 	struct Momentum {
 		float dist;
-		uint64 time;
+		uint64_t time;
 	};
 	
 	/**
@@ -123,7 +123,7 @@ class BasicScroll::Inl: public BasicScroll {
 	class ScrollMotionTask: public BasicScroll::Task {
 	 public:
 		
-		ScrollMotionTask(BasicScroll* host, uint64 duration, Vec2 to, cCurve& curve = ease_out)
+		ScrollMotionTask(BasicScroll* host, uint64_t duration, Vec2 to, cCurve& curve = ease_out)
 		: Task(host, duration, curve)
 		, _from(host->_scroll)
 		, _to(to)
@@ -154,7 +154,7 @@ class BasicScroll::Inl: public BasicScroll {
 	class ScrollBarFadeInOutTask: public Scroll::Task {
 	 public:
 		
-		ScrollBarFadeInOutTask(BasicScroll* host, uint64 duration, float to, cCurve& curve = ease_out)
+		ScrollBarFadeInOutTask(BasicScroll* host, uint64_t duration, float to, cCurve& curve = ease_out)
 		: Task(host, duration, curve)
 		, _from(host->_scrollbar_opacity)
 		, _to(to)
@@ -234,7 +234,7 @@ class BasicScroll::Inl: public BasicScroll {
 	/**
 	 * @func momentum
 	 */
-	Momentum momentum(uint64 time, float dist,
+	Momentum momentum(uint64_t time, float dist,
 										float max_dist_upper, float max_dist_lower, float size) {
 		
 		float deceleration = 0.001 * _resistance;
@@ -257,7 +257,7 @@ class BasicScroll::Inl: public BasicScroll {
 		}
 		
 		new_dist = new_dist * (dist < 0 ? -1 : 1);
-		uint64 new_time = speed / deceleration * 1000;
+		uint64_t new_time = speed / deceleration * 1000;
 		
 		return { new_dist, new_time };
 	}
@@ -415,7 +415,7 @@ class BasicScroll::Inl: public BasicScroll {
 	/**
 	 * @func scroll_to_valid_scroll
 	 */
-	void scroll_to_valid_scroll(Vec2 valid_scroll, uint64 duration, cCurve& curve = ease_out) {
+	void scroll_to_valid_scroll(Vec2 valid_scroll, uint64_t duration, cCurve& curve = ease_out) {
 		termination_all_task();
 		 if ( duration ) {
 			motion_start(valid_scroll, duration, curve);
@@ -427,7 +427,7 @@ class BasicScroll::Inl: public BasicScroll {
 	/**
 	 * @func termination_recovery scroll position
 	 */
-	void termination_recovery(uint64 duration, cCurve& curve = ease_out) {
+	void termination_recovery(uint64_t duration, cCurve& curve = ease_out) {
 		termination_all_task();
 		
 		Vec2 scroll = catch_valid_scroll(_scroll);
@@ -450,7 +450,7 @@ class BasicScroll::Inl: public BasicScroll {
 	/**
 	 * @func motion_start
 	 */
-	void motion_start(Vec2 scroll, uint64 duration, cCurve& curve) {
+	void motion_start(Vec2 scroll, uint64_t duration, cCurve& curve) {
 		
 		if ( !is_task() && ! _moved ) {
 			
@@ -540,7 +540,7 @@ class BasicScroll::Inl: public BasicScroll {
 			}
 		}
 		
-		uint64 time = sys::time_monotonic();
+		uint64_t time = sys::time_monotonic();
 		
 		if (int64(time) - _move_start_time > 3e5) {
 			_move_start_time = time;
@@ -555,12 +555,12 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void move_end(Vec2 point) {
 		
-		uint64 time = sys::time_monotonic();
+		uint64_t time = sys::time_monotonic();
 		
 		Momentum momentum_x = { 0,0 };
 		Momentum momentum_y = { 0,0 };
 		
-		uint64 duration = int64(time) - _move_start_time;
+		uint64_t duration = int64(time) - _move_start_time;
 		float new_x = _scroll.x();
 		float new_y = _scroll.y();
 		
@@ -631,7 +631,7 @@ class BasicScroll::Inl: public BasicScroll {
 		//****************************************************************
 		
 		if ( momentum_x.time || momentum_y.time ) {
-			uint64 duration = FX_MAX(FX_MAX(momentum_x.time, momentum_y.time), 1e4);
+			uint64_t duration = FX_MAX(FX_MAX(momentum_x.time, momentum_y.time), 1e4);
 			scroll_to_valid_scroll(Vec2(new_x, new_y), duration);
 		} else {
 			termination_recovery(3e5, ease_in_out);
@@ -752,14 +752,14 @@ BasicScroll::~BasicScroll() {
 /**
  * @func scroll_to
  */
-void BasicScroll::scroll_to(Vec2 value, uint64 duration) {
+void BasicScroll::scroll_to(Vec2 value, uint64_t duration) {
 	scroll_to(value, duration, *_default_scroll_curve);
 }
 
 /**
  * @func scroll_to
  */
-void BasicScroll::scroll_to(Vec2 value, uint64 duration, cCurve& curve) {
+void BasicScroll::scroll_to(Vec2 value, uint64_t duration, cCurve& curve) {
 	_raw_scroll = Vec2(-value.x(), -value.y());
 	Vec2 scroll = _inl(this)->catch_valid_scroll( Vec2(-value.x(), -value.y()) );
 	if ( scroll.x() != _scroll.x() || scroll.y() != _scroll.y() ) {
@@ -882,7 +882,7 @@ void BasicScroll::solve() {
  * @class Scroll::Inl
  */
 FX_DEFINE_INLINE_MEMBERS(Scroll, Inl) {
-public:
+	public:
 	/**
 	 * @func handle_panel_focus_mode
 	 */

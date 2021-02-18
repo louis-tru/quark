@@ -33,26 +33,26 @@
 
 namespace ftr {
 
-Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-	Array<PixelData> rv;
-	int width, height;
-	uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.value(), data.length(), &width, &height);
-	if (buff) {
-		Buffer bf((Char*)buff, width * height * 4);
-		rv.push( PixelData( bf, width, height, PixelData::RGBA8888, false) );
+	std::vector<PixelData> WEBPImageCodec::decode(cBuffer& data) {
+		std::vector<PixelData> rv;
+		int width, height;
+		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.value(), data.length(), &width, &height);
+		if (buff) {
+			Buffer bf = Buffer::from((Char*)buff, width * height * 4);
+			rv.push_back( PixelData( bf, width, height, PixelData::RGBA8888, false) );
+		}
+		return rv;
 	}
-	return rv;
-}
 
-PixelData WEBPImageCodec::decode_header (cBuffer& data) {
-	int width = 0, height = 0;
-	int ok = WebPGetInfo((uint8_t*)data.value(), data.length(), &width, &height);
-	//if ( ok == VP8_STATUS_OK ) {
-	return PixelData( Buffer(), width, height, PixelData::RGBA8888, false);
-}
+	PixelData WEBPImageCodec::decode_header (cBuffer& data) {
+		int width = 0, height = 0;
+		int ok = WebPGetInfo((uint8_t*)data.value(), data.length(), &width, &height);
+		//if ( ok == VP8_STATUS_OK ) {
+		return PixelData( Buffer(), width, height, PixelData::RGBA8888, false);
+	}
 
-Buffer WEBPImageCodec::encode (const PixelData& pixel_data) {
-	return Buffer();
-}
+	Buffer WEBPImageCodec::encode (const PixelData& pixel_data) {
+		return Buffer();
+	}
 
 }

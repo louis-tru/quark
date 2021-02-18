@@ -33,164 +33,163 @@
 
 namespace ftr {
 
-ImageCodec* tga_image_codec = nullptr;
-ImageCodec* jpeg_image_codec = nullptr;
-ImageCodec* gif_image_codec = nullptr;
-ImageCodec* png_image_codec = nullptr;
-ImageCodec* webp_image_codec = nullptr;
-ImageCodec* pvrtc_image_codec = nullptr;
+	ImageCodec* tga_image_codec = nullptr;
+	ImageCodec* jpeg_image_codec = nullptr;
+	ImageCodec* gif_image_codec = nullptr;
+	ImageCodec* png_image_codec = nullptr;
+	ImageCodec* webp_image_codec = nullptr;
+	ImageCodec* pvrtc_image_codec = nullptr;
 
-/**
- * @func is_compressd_format
- */
-bool PixelData::is_compressd_format(Format format) {
-	return format < NumCompressedPFs;
-}
-
-/**
- * @func get_pixel_data_size
- */
-uint PixelData::get_pixel_data_size(Format format) {
-	switch ( format ) {
-		default: return 2;
-		case RGBA8888:
-		case RGBX8888: return 4;
-		case RGB888: return 3;
-		case RGBA4444:
-		case RGBX4444:
-		case RGB565:
-		case LUMINANCE_ALPHA88:
-		case RGBA5551: return 2;
-		case ALPHA8:
-		case LUMINANCE8: return 1;
-		case INVALID: return 0;
+	/**
+	* @func is_compressd_format
+	*/
+	bool PixelData::is_compressd_format(Format format) {
+		return format < NumCompressedPFs;
 	}
-}
 
-PixelData::PixelData()
-: _data()
-, _width(0)
-, _height(0)
-, _body()
-, _format(INVALID), _is_premultiplied_alpha(false) {
-}
-
-PixelData::PixelData(cPixelData& body)
-: _data()
-, _width(body.width())
-, _height(body.height())
-, _body(body._body)
-, _format(body.format()), _is_premultiplied_alpha(false) {
-}
-
-PixelData::PixelData(PixelData&& body)
-: _data(move(body._data))
-, _width(body.width())
-, _height(body.height())
-, _body(move(body._body))
-, _format(body.format()), _is_premultiplied_alpha(false) {
-}
-
-PixelData::PixelData(Format format)
-: _data()
-, _width(0)
-, _height(0)
-, _body()
-, _format(format), _is_premultiplied_alpha(false) {
-}
-
-PixelData::PixelData(Buffer body, int width,
-										 int height, Format format, bool is_premultiplied_alpha)
-: _data(body)
-, _width(width)
-, _height(height)
-, _body()
-, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
-	_body.push(WeakBuffer(*_data, _data.length()));
-}
-
-PixelData::PixelData(WeakBuffer body, int width,
-										 int height, Format format, bool is_premultiplied_alpha)
-: _data()
-, _width(width)
-, _height(height)
-, _body()
-, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
-	_body.push(body);
-}
-
-PixelData::PixelData(const Array<WeakBuffer>& body, int width,
-										 int height, Format format, bool is_premultiplied_alpha)
-: _data()
-, _width(width)
-, _height(height)
-, _body(body)
-, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
-
-}
-
-/**
- * @func get_image_format 通过路径获取图片类型
- */
-ImageCodec::ImageFormat ImageCodec::get_image_format(cString& path) {
-	
-	String str = path.to_lower_case();
-	int len = str.length();
-	
-	if (str.last_index_of(".pvr") != -1) {
-		return PVRTC;
+	/**
+	* @func get_pixel_data_size
+	*/
+	uint32_t PixelData::get_pixel_data_size(Format format) {
+		switch ( format ) {
+			default: return 2;
+			case RGBA8888:
+			case RGBX8888: return 4;
+			case RGB888: return 3;
+			case RGBA4444:
+			case RGBX4444:
+			case RGB565:
+			case LUMINANCE_ALPHA88:
+			case RGBA5551: return 2;
+			case ALPHA8:
+			case LUMINANCE8: return 1;
+			case INVALID: return 0;
+		}
 	}
-	else if (str.last_index_of(".tga") != -1) {
-		return TGA;
-	}
-	// JPF、JPX、J2C、JP2、J2K、JPC、LWF
-	else if ( str.last_index_of(".jpg") != -1 ||
-						str.last_index_of(".jpf") != -1 ||
-						str.last_index_of(".jpeg") != -1
-	) {
-		return JPEG;
-	}
-	else if (str.last_index_of(".gif") != -1) {
-		return GIF;
-	}
-	else if (str.last_index_of(".png") != -1) {
-		return PNG;
-	}
-	else if (str.last_index_of(".webp") != -1) {
-		return WEBP;
-	}
-	return Unknown;
-}
 
-ImageCodec* ImageCodec::shared(ImageFormat format) {
-	switch (format) {
-		case TGA:
-			if (!tga_image_codec)
-				tga_image_codec = new TGAImageCodec();
-			return tga_image_codec;
-		case JPEG:
-			if (!jpeg_image_codec)
-				jpeg_image_codec = new JPEGImageCodec();
-			return jpeg_image_codec;
-		case GIF:
-			if (!gif_image_codec)
-				gif_image_codec = new GIFImageCodec();
-			return gif_image_codec;
-		case PNG:
-			if (!png_image_codec)
-				png_image_codec = new PNGImageCodec();
-			return png_image_codec;
-		case WEBP:
-			if (!webp_image_codec)
-				webp_image_codec = new WEBPImageCodec();
-			return webp_image_codec;
-		case PVRTC:
-			if (!pvrtc_image_codec)
-				pvrtc_image_codec = new PVRTCImageCodec();
-			return pvrtc_image_codec;
-		default:
-			return nullptr;
+	PixelData::PixelData()
+	: _data()
+	, _width(0)
+	, _height(0)
+	, _body()
+	, _format(INVALID), _is_premultiplied_alpha(false) {
 	}
-}
+
+	PixelData::PixelData(cPixelData& body)
+	: _data()
+	, _width(body.width())
+	, _height(body.height())
+	, _body(body._body)
+	, _format(body.format()), _is_premultiplied_alpha(false) {
+	}
+
+	PixelData::PixelData(PixelData&& body)
+	: _data(move(body._data))
+	, _width(body.width())
+	, _height(body.height())
+	, _body(move(body._body))
+	, _format(body.format()), _is_premultiplied_alpha(false) {
+	}
+
+	PixelData::PixelData(Format format)
+	: _data()
+	, _width(0)
+	, _height(0)
+	, _body()
+	, _format(format), _is_premultiplied_alpha(false) {
+	}
+
+	PixelData::PixelData(Buffer body, int width,
+											int height, Format format, bool is_premultiplied_alpha)
+	: _data(body)
+	, _width(width)
+	, _height(height)
+	, _body()
+	, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
+		_body.push_back(WeakBuffer(*_data, _data.length()));
+	}
+
+	PixelData::PixelData(WeakBuffer body, int width,
+											int height, Format format, bool is_premultiplied_alpha)
+	: _data()
+	, _width(width)
+	, _height(height)
+	, _body()
+	, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
+		_body.push_back(body);
+	}
+
+	PixelData::PixelData(const std::vector<WeakBuffer>& body, int width,
+											int height, Format format, bool is_premultiplied_alpha)
+	: _data()
+	, _width(width)
+	, _height(height)
+	, _body(body)
+	, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
+	}
+
+	/**
+	* @func get_image_format 通过路径获取图片类型
+	*/
+	ImageCodec::ImageFormat ImageCodec::get_image_format(cString& path) {
+		
+		String str = path.to_lower_case();
+		int len = str.length();
+		
+		if (str.last_index_of(".pvr") != -1) {
+			return PVRTC;
+		}
+		else if (str.last_index_of(".tga") != -1) {
+			return TGA;
+		}
+		// JPF、JPX、J2C、JP2、J2K、JPC、LWF
+		else if ( str.last_index_of(".jpg") != -1 ||
+							str.last_index_of(".jpf") != -1 ||
+							str.last_index_of(".jpeg") != -1
+		) {
+			return JPEG;
+		}
+		else if (str.last_index_of(".gif") != -1) {
+			return GIF;
+		}
+		else if (str.last_index_of(".png") != -1) {
+			return PNG;
+		}
+		else if (str.last_index_of(".webp") != -1) {
+			return WEBP;
+		}
+		return Unknown;
+	}
+
+	ImageCodec* ImageCodec::shared(ImageFormat format) {
+		switch (format) {
+			case TGA:
+				if (!tga_image_codec)
+					tga_image_codec = new TGAImageCodec();
+				return tga_image_codec;
+			case JPEG:
+				if (!jpeg_image_codec)
+					jpeg_image_codec = new JPEGImageCodec();
+				return jpeg_image_codec;
+			case GIF:
+				if (!gif_image_codec)
+					gif_image_codec = new GIFImageCodec();
+				return gif_image_codec;
+			case PNG:
+				if (!png_image_codec)
+					png_image_codec = new PNGImageCodec();
+				return png_image_codec;
+			case WEBP:
+				if (!webp_image_codec)
+					webp_image_codec = new WEBPImageCodec();
+				return webp_image_codec;
+			case PVRTC:
+				if (!pvrtc_image_codec)
+					pvrtc_image_codec = new PVRTCImageCodec();
+				return pvrtc_image_codec;
+			default:
+				return nullptr;
+		}
+	}
 
 }

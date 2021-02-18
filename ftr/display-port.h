@@ -199,7 +199,7 @@ namespace ftr {
 		/**
 		* @func fsp()
 		*/
-		inline uint fsp() const { return _fsp; }
+		inline uint32_t fsp() const { return _fsp; }
 
 		/**
 		* @func default_atom_pixel
@@ -228,8 +228,8 @@ namespace ftr {
 		List<Region>      _draw_region;
 		GUIApplication*   _host;
 		List<Callback<>>  _next_frame;
-		uint              _fsp, _record_fsp;
-		int64             _record_fsp_time;
+		uint32_t          _fsp, _record_fsp;
+		int64_t           _record_fsp_time;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class  GUIApplication; // 友元类

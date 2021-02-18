@@ -206,17 +206,17 @@ namespace ftr {
 		/**
 		* @func max_texture_memory_limit()
 		*/
-		uint64 max_texture_memory_limit() const;
+		uint64_t max_texture_memory_limit() const;
 		
 		/**
 		* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
 		*/
-		void set_max_texture_memory_limit(uint64 limit);
+		void set_max_texture_memory_limit(uint64_t limit);
 		
 		/**
 		* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 		*/
-		uint64 used_texture_memory() const;
+		uint64_t used_texture_memory() const;
 		
 		/**
 		* @func open_url()
@@ -261,7 +261,7 @@ namespace ftr {
 		TextWhiteSpace       _default_text_white_space; // text
 		GUIEventDispatch*    _dispatch;
 		ActionCenter*        _action_center;
-		uint64 _max_texture_memory_limit;
+		uint64_t _max_texture_memory_limit;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		

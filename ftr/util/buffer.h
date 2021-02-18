@@ -50,145 +50,145 @@ namespace ftr {
 	template<typename T, typename A>
 	class FX_EXPORT ArrayBuffer: public Object {
 		public:
-			typedef                 T     Type;
-			typedef ArrayBuffer    <T, A> Strong;
-			typedef WeakArrayBuffer<T, A> Weak;
-			// constructors
-			ArrayBuffer();
-			ArrayBuffer(ArrayBuffer& arr);  // right value copy constructors
-			ArrayBuffer(ArrayBuffer&& arr); // right value copy constructors
-			ArrayBuffer(const std::initializer_list<T>& list);
+		typedef                 T     Type;
+		typedef ArrayBuffer    <T, A> Strong;
+		typedef WeakArrayBuffer<T, A> Weak;
+		// constructors
+		ArrayBuffer();
+		ArrayBuffer(ArrayBuffer& arr);  // right value copy constructors
+		ArrayBuffer(ArrayBuffer&& arr); // right value copy constructors
+		ArrayBuffer(const std::initializer_list<T>& list);
 
-			/**
-			 * @func from() greedy new ArrayBuffer from ...
-			 */
-			static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
-				return ArrayBuffer(length, FX_MAX(capacity, length), data);
-			}
-			static inline ArrayBuffer from(uint32_t length, uint32_t capacity = 0) {
-				return ArrayBuffer(length, capacity);
-			}
-
-			virtual ~ArrayBuffer() { clear(); }
-
-			/**
-			* @func size 获取数据占用内存大小
+		/**
+			* @func from() greedy new ArrayBuffer from ...
 			*/
-			inline uint32_t size() const { return _length * sizeof(T); }
+		static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
+			return ArrayBuffer(length, FX_MAX(capacity, length), data);
+		}
+		static inline ArrayBuffer from(uint32_t length, uint32_t capacity = 0) {
+			return ArrayBuffer(length, capacity);
+		}
 
-			/**
-			* @func is_null() Is null data available?
+		virtual ~ArrayBuffer() { clear(); }
+
+		/**
+		* @func size 获取数据占用内存大小
+		*/
+		inline uint32_t size() const { return _length * sizeof(T); }
+
+		/**
+		* @func is_null() Is null data available?
+		*/
+		inline bool is_null() const { return _length == 0; }
+
+		/**
+			* @func is_weak() is weak array buffer object
 			*/
-			inline bool is_null() const { return _length == 0; }
+		inline bool is_weak() const { return _capacity < 0; }
 
-			/**
-			 * @func is_weak() is weak array buffer object
-			 */
-			inline bool is_weak() const { return _capacity < 0; }
+		inline uint32_t length() const { return _length; }
+		inline int32_t  capacity() const { return _capacity; }
 
-			inline uint32_t length() const { return _length; }
-			inline int32_t  capacity() const { return _capacity; }
+		// operator=
+		ArrayBuffer& operator=(ArrayBuffer& arr);
+		ArrayBuffer& operator=(ArrayBuffer&& arr);
 
-			// operator=
-			ArrayBuffer& operator=(ArrayBuffer& arr);
-			ArrayBuffer& operator=(ArrayBuffer&& arr);
+		// get ptr
+		inline       T& operator[](uint32_t index) {
+			ASSERT(index < _length, "ArrayBuffer access violation.");
+			return _val[index];
+		}
+		inline const T& operator[](uint32_t index) const {
+			ASSERT(index < _length, "ArrayBuffer access violation.");
+			return _val[index];
+		}
+		inline       T* operator*()       { return _val; }
+		inline const T* operator*() const { return _val; }
+		inline       T* val      ()       { return _val; }
+		inline const T* val      () const { return _val; }
 
-			// get ptr
-			inline       T& operator[](uint32_t index) {
-				ASSERT(index < _length, "ArrayBuffer access violation.");
-				return _val[index];
-			}
-			inline const T& operator[](uint32_t index) const {
-				ASSERT(index < _length, "ArrayBuffer access violation.");
-				return _val[index];
-			}
-			inline       T* operator*()       { return _val; }
-			inline const T* operator*() const { return _val; }
-			inline       T* val      ()       { return _val; }
-			inline const T* val      () const { return _val; }
+		ArrayBuffer& push(T&& item);
+		ArrayBuffer& push(const T& item);
+		ArrayBuffer& pop (uint32_t count = 1);
 
-			ArrayBuffer& push(T&& item);
-			ArrayBuffer& push(const T& item);
-			ArrayBuffer& pop (uint32_t count = 1);
+		/**
+		* @func write()
+		* @arg src 
+		* @arg to {int=-1} 当前数组开始写入的位置,-1从结尾开始写入
+		* @arg size_src {int=-1} 需要写入项目数量,超过要写入数组的长度自动取写入数组长度,-1写入全部
+		* @arg form_src {int=0} 从要写入src数组的form位置开始读取数据
+		* @ret {uint32_t} 返回写入数据量
+		*/
+		template<typename A2>
+		uint32_t write(const ArrayBuffer<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
+		uint32_t write(const T* src, int to, uint32_t size_src);
 
-			/**
-			* @func write()
-			* @arg src 
-			* @arg to {int=-1} 当前数组开始写入的位置,-1从结尾开始写入
-			* @arg size_src {int=-1} 需要写入项目数量,超过要写入数组的长度自动取写入数组长度,-1写入全部
-			* @arg form_src {int=0} 从要写入src数组的form位置开始读取数据
-			* @ret {uint32_t} 返回写入数据量
+		/**
+			* @func concat() use right value move mode concat buffer 
 			*/
-			template<typename A2>
-			uint32_t write(const ArrayBuffer<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
-			uint32_t write(const T* src, int to, uint32_t size_src);
+		template<typename A2>
+		inline ArrayBuffer& concat(ArrayBuffer<T, A2>&& arr) {
+			return concat_(*arr, arr.length());
+		}
 
-			/**
-			 * @func concat() use right value move mode concat buffer 
-			 */
-			template<typename A2>
-			inline ArrayBuffer& concat(ArrayBuffer<T, A2>&& arr) {
-				return concat_(*arr, arr.length());
-			}
-
-			/**
-			 * @slice() weak copy array buffer
-			 */
-			Weak slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
-
-			/**
-			 * @func copy() strong copy array buffer
-			 */
-			Strong copy(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
-
-			/**
-			* @func collapse, discard data ownership
+		/**
+			* @slice() weak copy array buffer
 			*/
-			T* collapse();
+		Weak slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
-			/**
-			* @func collapse string, discard data ownership
+		/**
+			* @func copy() strong copy array buffer
 			*/
-			ArrayString<T, A> collapse_string();
+		Strong copy(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
-			/**
-			 * @func join() to string
-			 */
-			String join(cString& sp);
+		/**
+		* @func collapse, discard data ownership
+		*/
+		T* collapse();
 
-			/**
-			* @func clear() clear data
+		/**
+		* @func collapse string, discard data ownership
+		*/
+		ArrayString<T, A> collapse_string();
+
+		/**
+			* @func join() to string
 			*/
-			void clear();
-			
-			/**
-			* @func realloc reset realloc length and return this ArrayBuffer&&
-			*/
-			ArrayBuffer&& realloc(uint32_t capacity);
+		String join(cString& sp);
+
+		/**
+		* @func clear() clear data
+		*/
+		void clear();
+		
+		/**
+		* @func realloc reset realloc length and return this ArrayBuffer&&
+		*/
+		ArrayBuffer&& realloc(uint32_t capacity);
 
 		protected:
-			// constructors
-			ArrayBuffer(uint32_t length, uint32_t capacity, T* data); // greedy constructors
-			ArrayBuffer(uint32_t length, uint32_t capacity); // new array buffer from length
+		// constructors
+		ArrayBuffer(uint32_t length, uint32_t capacity, T* data); // greedy constructors
+		ArrayBuffer(uint32_t length, uint32_t capacity); // new array buffer from length
 
-			/**
-			 * @func concat_() concat multiple array buffer
-			 */
-			ArrayBuffer& concat_(T* src, uint32_t src_length);
-
-			/**
-			* @func realloc auro realloc
-			* @arg realloc_ {uint32_t}
+		/**
+			* @func concat_() concat multiple array buffer
 			*/
-			void realloc_(uint32_t capacity);
+		ArrayBuffer& concat_(T* src, uint32_t src_length);
 
-			struct Sham { T _item; }; // Used to call data destructors
+		/**
+		* @func realloc auro realloc
+		* @arg realloc_ {uint32_t}
+		*/
+		void realloc_(uint32_t capacity);
 
-			uint32_t  _length;
-			int32_t   _capacity; // -1 means that it does not hold a pointer. This value is determined when it is constructed
-			T*        _val;
+		struct Sham { T _item; }; // Used to call data destructors
 
-			template<typename T2, typename A2> friend class ArrayBuffer;
+		uint32_t  _length;
+		int32_t   _capacity; // -1 means that it does not hold a pointer. This value is determined when it is constructed
+		T*        _val;
+
+		template<typename T2, typename A2> friend class ArrayBuffer;
 	};
 
 	/**
@@ -197,26 +197,26 @@ namespace ftr {
 	template<typename T, typename A>
 	class FX_EXPORT WeakArrayBuffer: public ArrayBuffer<T, A> {
 		public:
-			WeakArrayBuffer(): ArrayBuffer<T, A>(0, -1, nullptr) {}
-			WeakArrayBuffer(const T* data, uint32_t length)
-				: ArrayBuffer<T, A>(length, -1, const_cast<T*>(data)) {}
-			WeakArrayBuffer(const WeakArrayBuffer& arr)
-				: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
-			template<class A2>
-			WeakArrayBuffer(const ArrayBuffer<T, A2>& arr)
-				: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
+		WeakArrayBuffer(): ArrayBuffer<T, A>(0, -1, nullptr) {}
+		WeakArrayBuffer(const T* data, uint32_t length)
+			: ArrayBuffer<T, A>(length, -1, const_cast<T*>(data)) {}
+		WeakArrayBuffer(const WeakArrayBuffer& arr)
+			: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
+		template<class A2>
+		WeakArrayBuffer(const ArrayBuffer<T, A2>& arr)
+			: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
 
-			WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
-				this->_length = arr._length;
-				this->_val = arr._val;
-				return *this;
-			}
-			template<class A2>
-			WeakArrayBuffer& operator=(const ArrayBuffer<T, A2>& arr) {
-				this->_length = arr._length;
-				this->_val = arr._val;
-				return *this;
-			}
+		WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
+			this->_length = arr._length;
+			this->_val = arr._val;
+			return *this;
+		}
+		template<class A2>
+		WeakArrayBuffer& operator=(const ArrayBuffer<T, A2>& arr) {
+			this->_length = arr._length;
+			this->_val = arr._val;
+			return *this;
+		}
 	};
 
 }

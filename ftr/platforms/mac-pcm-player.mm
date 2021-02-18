@@ -49,7 +49,7 @@ namespace ftr {
 			
 			struct WaitWriteBuffer {
 				Buffer  data;
-				uint    size = 0;
+				uint32_t    size = 0;
 			};
 			
 			ApplePCMPlayer()
@@ -74,7 +74,7 @@ namespace ftr {
 				}
 			}
 			
-			bool initialize(uint channel_count, uint sample_rate) {
+			bool initialize(uint32_t channel_count, uint32_t sample_rate) {
 				OSStatus status;
 				
 				_channel_count = channel_count;
@@ -94,7 +94,7 @@ namespace ftr {
 				AudioQueueOutputCallback cb = (AudioQueueOutputCallback)&ApplePCMPlayer::buffer_callback;
 				
 				if ( AudioQueueNewOutput(&desc, cb, this, NULL, NULL, 0, &_queue) == noErr ) { // new
-					uint size = buffer_size() * 4;
+					uint32_t size = buffer_size() * 4;
 					
 					for (int i = 0; i < QUEUE_BUFFER_COUNT; i++) {
 						if ( AudioQueueAllocateBuffer(_queue, size, &_buffer_all[i]) == noErr ) {
@@ -254,7 +254,7 @@ namespace ftr {
 			/**
 			* @overwrite
 			* */
-			virtual bool set_volume(uint value) {
+			virtual bool set_volume(uint32_t value) {
 				ScopeLock scope(_mutex);
 				OSStatus status;
 				AudioQueueParameterValue v;
@@ -273,7 +273,7 @@ namespace ftr {
 			/**
 			* @overwrite
 			* */
-			virtual uint buffer_size() {
+			virtual uint32_t buffer_size() {
 				return FX_MAX(4096, _channel_count * _sample_rate / 10);
 			}
 			
@@ -282,17 +282,17 @@ namespace ftr {
 			AudioQueueBufferRef       _buffer_all[QUEUE_BUFFER_COUNT];
 			AudioQueueBufferRef       _buffer_free[QUEUE_BUFFER_COUNT];
 			WaitWriteBuffer           _wait_write_buffer[WAIT_WRITE_BUFFER_COUNT];
-			uint                      _wait_write_buffer_index;
-			uint                      _wait_write_buffer_count;
-			uint                      _channel_count;
-			uint                      _sample_rate;
+			uint32_t                      _wait_write_buffer_index;
+			uint32_t                      _wait_write_buffer_count;
+			uint32_t                      _channel_count;
+			uint32_t                      _sample_rate;
 			Mutex                     _mutex;
 			AudioQueueParameterValue  _volume;
 			bool                      _player;
 			bool                      _flush;
 	};
 
-	PCMPlayer* PCMPlayer::create(uint channel_count, uint sample_rate) {
+	PCMPlayer* PCMPlayer::create(uint32_t channel_count, uint32_t sample_rate) {
 		Handle<ApplePCMPlayer> player = new ApplePCMPlayer();
 		if ( player->initialize(channel_count, sample_rate) ) {
 			return player.collapse();

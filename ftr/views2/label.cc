@@ -43,7 +43,7 @@ public:
 	template<TextAlign T>
 	FX_INLINE void end_line(Cell& cell, float baseline, float descender, float max_offset) {
 		
-		uint count = cell.offset.length() - 1;
+		uint32_t count = cell.offset.length() - 1;
 		if ( count ) { /* 结束上一行 */
 			switch (T) {
 				default: cell.offset_start = 0; break; // LEFT
@@ -99,9 +99,9 @@ public:
 		
 		float baseline = ascender;
 		float offset = 0;
-		uint  line = 0;
-		uint begin = 0;
-		uint end = _data.string.length();
+		uint32_t  line = 0;
+		uint32_t begin = 0;
+		uint32_t end = _data.string.length();
 		
 		Cell cell = {
 			0, 0, 0, 0, Array<float>(), Array<uint16>(), 0
@@ -112,7 +112,7 @@ public:
 			uint16_t unicode = _data.string[begin];
 			
 			if ( unicode == 0x0A ) { // \n 换行
-				uint count = cell.offset.length() - 1;
+				uint32_t count = cell.offset.length() - 1;
 				
 				end_line<T>( cell, baseline, descender, offset );
 				
@@ -193,7 +193,7 @@ void Label::set_value(cUcs2String& str) {
 /**
  * @overwrite
  */
-void Label::mark_text(uint value) {
+void Label::mark_text(uint32_t value) {
 	mark(value);
 }
 

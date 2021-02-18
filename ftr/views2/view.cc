@@ -46,7 +46,7 @@ namespace ftr {
  * @class View::Inl
  */
 FX_DEFINE_INLINE_MEMBERS(View, Inl) {
- public:
+	public:
 	#define _inl(self) static_cast<View::Inl*>(self)
 	
 	/**
@@ -380,7 +380,7 @@ void View::set_parent(View* parent) throw(Error) {
 		_parent = parent;
 		
 		// 设置level
-		uint level = parent->_level;
+		uint32_t level = parent->_level;
 		if (level) {
 			if ( level + 1 != _level ) {
 				_inl(this)->set_level_and_visible(level + 1, parent->_final_visible);
@@ -697,7 +697,7 @@ void View::set_need_draw(bool value) {
 /**
  * 标记该视图已经发生改变
  */
-void View::mark(uint value) {
+void View::mark(uint32_t value) {
 	mark_value |= value;
 	View* parent = _parent;
 	while ( parent && !parent->_child_change_flag ) {
@@ -709,7 +709,7 @@ void View::mark(uint value) {
 /**
  * @func mark_pre
  */
-void View::mark_pre(uint value) {
+void View::mark_pre(uint32_t value) {
 	View::mark(value);
 	pre_render()->mark_pre(this);
 }
@@ -830,7 +830,7 @@ void View::set_draw_visible() {
 }
 
 void View::solve() {
-	uint mark_value = this->mark_value;
+	uint32_t mark_value = this->mark_value;
 	
 	if ( mark_value & M_BASIC_MATRIX ) {
 		_inl(this)->compute_basic_transform_matrix(); // 计算基础矩阵
@@ -873,7 +873,7 @@ void View::draw(Draw* draw) {
 	}
 }
 
-void View::visit(Draw* draw, uint inherit_mark, bool need_draw) {
+void View::visit(Draw* draw, uint32_t inherit_mark, bool need_draw) {
 	View* view = _first;
 	
 	if ( _draw_visible || need_draw ) {

@@ -35,7 +35,7 @@
 namespace ftr {
 
 	class DefaultCallbackCore: public CallbackCore<Object, Error> {
-	 public:
+		public:
 		virtual bool retain() { return 1; }
 		virtual void release() {}
 		virtual void call(CbData& event) const {}
@@ -64,7 +64,7 @@ namespace ftr {
 	}
 
 	class WrapCallback: public CallbackCore<Object, Error> {
-	 public:
+		public:
 		inline WrapCallback(Cb cb, Error* err, Object* data)
 		: _cb(cb), _err(err), _data(data) {
 		}
@@ -77,10 +77,10 @@ namespace ftr {
 			evt.data = _data;
 			_cb->call(evt);
 		}
-	 private:
-		Cb _cb;
-		Error* _err;
-		Object* _data;
+		private:
+		Cb        _cb;
+		Error*    _err;
+		Object*   _data;
 	};
 
 	void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop) {

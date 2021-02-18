@@ -134,7 +134,7 @@ namespace ftr {
 		template <class Char>
 		static Buffer encode_to_binary(const Char* source, uint32_t len) {
 			const Char* end = source + len;
-			//uint size = sizeof(Char);
+			//uint32_t size = sizeof(Char);
 			auto rev = Buffer::from(len, len + 1);
 			char* data = *rev;
 			while (source < end) {

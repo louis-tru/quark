@@ -144,7 +144,7 @@ void Root::set_layout_explicit_size() {
 	
 	bool h = _final_width != final_width;
 	bool v = _final_height != final_height;
-	uint child_mark = M_NONE;
+	uint32_t child_mark = M_NONE;
 	
 	if ( h ) {
 		if ( _content_align == ContentAlign::RIGHT ) {

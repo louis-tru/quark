@@ -35,7 +35,7 @@
 namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Text, Inl) {
- public:
+	public:
 	
 	template<TextAlign T>
 	void set_text_align_offset(float text_margin) {

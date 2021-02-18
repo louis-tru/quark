@@ -50,10 +50,10 @@ namespace ftr {
 		TextFont();
 		
 		struct FX_EXPORT Cell {
-			uint    line_num;       // 行号
+			uint32_t    line_num;       // 行号
 			float   baseline;       // 基线
 			float   offset_start;   // 偏移开始
-			uint    begin;          // 在字符中有开始索引
+			uint32_t    begin;          // 在字符中有开始索引
 			Array<float>  offset;   // 偏移表
 			Array<uint16_t > Chars;  // 字符表
 			bool    reverse;        // 反向排列
@@ -69,8 +69,8 @@ namespace ftr {
 			float       text_descender;       // 基线距离行底
 			float       text_hori_bearing;    // 基线距离文本顶部
 			float       text_height;          // 文本高度
-			uint        cell_draw_begin;      // 需要绘制cell开始
-			uint        cell_draw_end;        // 需要绘制cell结束
+			uint32_t        cell_draw_begin;      // 需要绘制cell开始
+			uint32_t        cell_draw_end;        // 需要绘制cell结束
 		};
 		
 		// get attrs
@@ -139,7 +139,7 @@ namespace ftr {
 		/**
 		* @func mark_text
 		*/
-		virtual void mark_text(uint value) = 0;
+		virtual void mark_text(uint32_t value) = 0;
 		
 		protected:
 
@@ -160,7 +160,6 @@ namespace ftr {
 	*/
 	class FX_EXPORT TextLayout: public TextFont {
 		public:
-		
 		TextLayout();
 		
 		inline TextOverflow text_overflow() const { return _text_overflow; }
@@ -197,7 +196,7 @@ namespace ftr {
 		*/
 		void set_text_layout_offset(TextRows* rows, Vec2 limit,
 																Data& data, cUcs2String& string,
-																uint begin, uint end,
+																uint32_t begin, uint32_t end,
 																Options* opts = nullptr, bool ignore_empty_cell = true);
 		
 		/**
@@ -213,12 +212,12 @@ namespace ftr {
 		* @func set_text_layout_offset
 		*/
 		void set_text_layout_offset(TextRows* rows, Vec2 limit,
-																Data& data, uint16_t security, uint count, Options* opts = nullptr);
+																Data& data, uint16_t security, uint32_t count, Options* opts = nullptr);
 		
 		/**
 		* @func mark_text
 		*/
-		virtual void mark_text(uint value);
+		virtual void mark_text(uint32_t value);
 		
 		/**
 		* @func solve_text_layout_mark

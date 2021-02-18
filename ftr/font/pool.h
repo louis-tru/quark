@@ -31,10 +31,13 @@
 #ifndef __ftr__font__pool__
 #define __ftr__font__pool__
 
+#include "./font.h"
+#include <unordered_map>
+
 namespace ftr {
 
 	class Draw;
-	class BasicFont;
+	class BaseFont;
 	class FontGlyphTable;
 	class Font;
 
@@ -54,31 +57,31 @@ namespace ftr {
 		
 		/**
 		* @func set_default_fonts 尝试设置默认字体
-		* @arg first {const Array<String>*}  第一字体列表
-		* @arg ... {const Array<String>*} 第2/3/4..字体列表
+		* @arg first {const std::vector<String>*}  第一字体列表
+		* @arg ... {const std::vector<String>*} 第2/3/4..字体列表
 		*/
-		void set_default_fonts(const Array<String>* first, ...);
+		void set_default_fonts(const std::vector<String>* first, ...);
 		
 		/**
 		* @func set_default_fonts 在当前字体库找到字体名称,设置才能生效
-		* @arg fonts {const Array<String>&} 要设置的默认字体的名称
+		* @arg fonts {const std::vector<String>&} 要设置的默认字体的名称
 		*/
-		void set_default_fonts(const Array<String>& fonts);
+		void set_default_fonts(const std::vector<String>& fonts);
 		
 		/**
 		* @func default_font_names
 		*/
-		Array<String> default_font_names() const;
+		std::vector<String> default_font_names() const;
 		
 		/**
 		* @func font_familys
 		*/
-		inline Array<String> family_names() const { return _familys.keys(); }
+		inline std::vector<String> family_names() const { return _familys.keys(); }
 		
 		/**
 		* @func font_names
 		*/
-		Array<String> font_names(cString& family_name) const;
+		std::vector<String> font_names(cString& family_name) const;
 		
 		/**
 		* @func get_font_family
@@ -153,7 +156,7 @@ namespace ftr {
 		/**
 		* @func get_font_familys_id
 		*/
-		static cFFID get_font_familys_id(const Array<String> fonts);
+		static cFFID get_font_familys_id(const std::vector<String> fonts);
 		
 		/**
 		* @func get_font_familys_id
@@ -163,7 +166,7 @@ namespace ftr {
 		struct FX_EXPORT SimpleFont {
 			String  name;
 			TextStyleEnum style;
-			uint    num_glyphs;
+			uint32_t    num_glyphs;
 			int     height;       /* text height in 26.6 frac. pixels       */
 			int     max_advance;  /* max horizontal advance, in 26.6 pixels */
 			int     ascender;     /* ascender in 26.6 frac. pixels          */
@@ -176,7 +179,7 @@ namespace ftr {
 			typedef NonObjectTraits Traits;
 			String path;
 			String family;
-			Array<SimpleFont> fonts;
+			std::vector<SimpleFont> fonts;
 		};
 		
 		/**
@@ -187,7 +190,7 @@ namespace ftr {
 		/**
 		* @func system_font_family
 		*/
-		static const Array<SimpleFontFamily>& system_font_family();
+		static const std::vector<SimpleFontFamily>& system_font_family();
 		
 		private:
 		
@@ -197,16 +200,16 @@ namespace ftr {
 		void set_display_port(DisplayPort* display_port);
 		
 		void*                       _ft_lib;     /* FT_Library */
-		Map<String, BasicFont*>     _blend_fonts;/* 所有的家族与字体包括别名 */
-		Map<String, FontFamily*>    _familys;    /* 所有的字体家族 */
-		Map<String, Font*>          _fonts;      /* 所有的字体 */
-		Map<uint, FontGlyphTable*>  _tables;     /* 所有的字型表 */
-		Map<String, String>         _paths;      /* 所有的字体路径 */
-		Array<BasicFont*>           _default_fonts;
+		std::unordered_map<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 */
+		std::unordered_map<String, FontFamily*>    _familys;    /* 所有的字体家族 */
+		std::unordered_map<String, Font*>          _fonts;      /* 所有的字体 */
+		std::unordered_map<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 */
+		std::unordered_map<String, String>         _paths;      /* 所有的字体路径 */
+		std::vector<BaseFont*>      _default_fonts;
 		FontFamily*                 _spare_family;     /* 备用字体家族 */
 		Draw*                       _draw_ctx;
 		DisplayPort*                _display_port;
-		uint64                      _total_data_size; /* 总数据尺寸 */
+		uint64_t                    _total_data_size; /* 总数据尺寸 */
 		float                       _max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
 		float                       _display_port_scale;
 		

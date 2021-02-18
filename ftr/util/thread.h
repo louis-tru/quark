@@ -53,34 +53,34 @@ namespace ftr {
 	* @class Thread
 	*/
 	class FX_EXPORT Thread {
-			FX_HIDDEN_ALL_COPY(Thread);
+		FX_HIDDEN_ALL_COPY(Thread);
 		public:
-			typedef ThreadID ID;
-			typedef NonObjectTraits Traits;
-			typedef std::function<int(Thread&)> Exec;
-			inline bool is_abort() const { return _abort; }
-			inline ID id() const { return _id; }
-			inline String name() const { return _name; }
-			inline RunLoop* loop() const { return _loop; }
-			static ID spawn(Exec exec, cString& name);
-			static ID current_id();
-			static Thread* current();
-			static void sleep(int64_t timeoutUs = 0 /*小于1永久等待*/);
-			static void join(ID id, int64_t timeoutUs = 0 /*小于1永久等待*/);
-			static void awaken(ID id);
-			static void abort(ID id);
-			static EventNoticer<>& onProcessSafeExit();
+		typedef ThreadID ID;
+		typedef NonObjectTraits Traits;
+		typedef std::function<int(Thread&)> Exec;
+		inline bool is_abort() const { return _abort; }
+		inline ID id() const { return _id; }
+		inline String name() const { return _name; }
+		inline RunLoop* loop() const { return _loop; }
+		static ID spawn(Exec exec, cString& name);
+		static ID current_id();
+		static Thread* current();
+		static void sleep(int64_t timeoutUs = 0 /*小于1永久等待*/);
+		static void join(ID id, int64_t timeoutUs = 0 /*小于1永久等待*/);
+		static void awaken(ID id);
+		static void abort(ID id);
+		static EventNoticer<>& onProcessSafeExit();
 		private:
-			Thread();
-			~Thread();
-			FX_DEFINE_INLINE_CLASS(Inl);
-			bool  _abort;
-			Mutex _mutex;
-			Condition _cond;
-			ID    _id;
-			String  _name;
-			void* _data[256];
-			RunLoop* _loop;
+		Thread();
+		~Thread();
+		FX_DEFINE_INLINE_CLASS(Inl);
+		bool  _abort;
+		Mutex _mutex;
+		Condition _cond;
+		ID    _id;
+		String  _name;
+		void* _data[256];
+		RunLoop* _loop;
 	};
 
 }

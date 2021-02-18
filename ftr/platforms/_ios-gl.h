@@ -43,20 +43,20 @@ namespace ftr {
 
 	class FX_EXPORT GLDrawProxy {
 		public:
-			GLDrawProxy(GLDraw* host, EAGLContext* ctx);
-			~GLDrawProxy();
-			void commit_render();
-			GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
-			void gl_main_render_buffer_storage();
-			void set_surface_view(UIView* view, CAEAGLLayer* layer);
-			bool refresh_surface_size(::CGRect rect);
-			inline GLDraw* host() { return _host; }
-			static GLDrawProxy* create(GUIApplication* host, cJSON& options);
+		GLDrawProxy(GLDraw* host, EAGLContext* ctx);
+		~GLDrawProxy();
+		void commit_render();
+		GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
+		void gl_main_render_buffer_storage();
+		void set_surface_view(UIView* view, CAEAGLLayer* layer);
+		bool refresh_surface_size(::CGRect rect);
+		inline GLDraw* host() { return _host; }
+		static GLDrawProxy* create(GUIApplication* host, cJSON& options);
 		private:
-			UIView* _surface_view;
-			CAEAGLLayer* _layer;
-			EAGLContext* _context;
-			GLDraw*      _host;
+		UIView* _surface_view;
+		CAEAGLLayer* _layer;
+		EAGLContext* _context;
+		GLDraw*      _host;
 	};
 
 }

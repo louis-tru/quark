@@ -38,12 +38,12 @@
  * @class RenderLooper
  */
 class RenderLooper {
- public:
+	public:
 	RenderLooper(AppInl* host);
 	~RenderLooper();
 	void start();
 	void stop();
- private:
+	private:
 	AppInl* _host;
 	int* _id;
 };

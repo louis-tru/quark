@@ -73,7 +73,7 @@ enum {
 /**
  * @func get_channel_mask
  * */
-int get_channel_mask(uint channel_count) {
+int get_channel_mask(uint32_t channel_count) {
 	int channelMask = CHANNEL_OUT_DEFAULT;
 	switch (channel_count) {
 		default:
@@ -156,7 +156,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 				env->DeleteGlobalRef(_buffer);
 		}
 
-		bool initialize(uint channel_count, uint sample_rate) {
+		bool initialize(uint32_t channel_count, uint32_t sample_rate) {
 			ScopeENV env;
 
 			_channel_count = channel_count;
@@ -184,7 +184,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 			_self = env->NewGlobalRef(_self);
 
 			// new buffer swap area
-			uint size = FX_MAX(_buffer_size, 1024 * 32);
+			uint32_t size = FX_MAX(_buffer_size, 1024 * 32);
 			_buffer = env->NewGlobalRef(env->NewDirectByteBuffer(malloc(size), size));
 
 			// audio track play
@@ -239,7 +239,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 		/**
 		* @overwrite
 		* */
-		virtual bool set_volume(uint value) {
+		virtual bool set_volume(uint32_t value) {
 			JNI::ScopeENV env;
 			_volume = FX_MIN(100, value);
 			jfloat f = _volume / 100.0;
@@ -250,7 +250,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 		/**
 		* @func buffer_size
 		* */
-		virtual uint buffer_size() {
+		virtual uint32_t buffer_size() {
 			return _buffer_size;
 		}
 
@@ -262,12 +262,12 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 		}
 
 	private:
-		uint        _sample_rate;
-		uint        _channel_count;
+		uint32_t        _sample_rate;
+		uint32_t        _channel_count;
 		int         _buffer_size;
 		float       _min_volume;
 		float       _max_volume;
-		uint        _volume;
+		uint32_t        _volume;
 		jobject     _self;
 		jclass      _clazz;
 		jobject     _buffer;
@@ -287,7 +287,7 @@ class AndroidAudioTrack: public Object, public PCMPlayer {
 	/**
 	* @func _inl_create_android_audio_track
 	*/
-	PCMPlayer* _inl_create_android_audio_track(uint channel_count, uint sample_rate) {
+	PCMPlayer* _inl_create_android_audio_track(uint32_t channel_count, uint32_t sample_rate) {
 		Handle<AndroidAudioTrack> player = new AndroidAudioTrack();
 		if ( player->initialize(channel_count, sample_rate) ) {
 			return player.collapse();

@@ -38,7 +38,7 @@ extern void _box_inl__solve_final_horizontal_size_with_full_width(Box* box, floa
 extern void _box_inl__solve_final_vertical_size_with_full_height(Box* box, float parent);
 
 FX_DEFINE_INLINE_MEMBERS(Div, Inl) {
- public:
+	public:
 	
 	void set_layout_three_times2(bool horizontal) {
 		

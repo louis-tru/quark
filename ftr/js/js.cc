@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/string.h"
-#include "js-1.h"
-#include "native-inl-js.h"
-#include "native-lib-js.h"
-#include "ftr.h"
-#include "ftr/util/http.h"
-#include "ftr/util/codec.h"
-#include "value.h"
+#include <native-inl-js.h>
+#include <native-lib-js.h>
+#include "../util/string.h"
+#include "./_js.h"
+#include "./ftr.h"
+#include "../util/http.h"
+#include "../util/codec.h"
+#include "./value.h"
 
 /**
  * @ns ftr::js
@@ -55,7 +55,7 @@ Buffer JSValue::ToBuffer(Worker* worker, Encoding en) const {
 		case Encoding::ucs2:
 		case Encoding::utf16: {
 			Ucs2String str = ToUcs2StringValue(worker);
-			uint len = str.length() * 2;
+			uint32_t len = str.length() * 2;
 			return Buffer((Char*)str.collapse(), len);
 		}
 		default: // 编码
@@ -88,7 +88,7 @@ Maybe<Map<String, int>> JSObject::ToIntegerMap(Worker* worker) {
 		Local<JSArray> names = GetPropertyNames(worker);
 		if ( names.IsEmpty() ) return Maybe<Map<String, int>>();
 		
-		for ( uint i = 0, len = names->Length(worker); i < len; i++ ) {
+		for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
 			Local<JSValue> key = names->Get(worker, i);
 			if ( names.IsEmpty() ) return Maybe<Map<String, int>>();
 			Local<JSValue> val = Get(worker, key);
@@ -110,7 +110,7 @@ Maybe<Map<String, String>> JSObject::ToStringMap(Worker* worker) {
 		Local<JSArray> names = GetPropertyNames(worker);
 		if ( names.IsEmpty() ) return Maybe<Map<String, String>>();
 		
-		for ( uint i = 0, len = names->Length(worker); i < len; i++ ) {
+		for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
 			Local<JSValue> key = names->Get(worker, i);
 			if ( names.IsEmpty() ) return Maybe<Map<String, String>>();
 			Local<JSValue> val = Get(worker, key);
@@ -128,7 +128,7 @@ Maybe<JSON> JSObject::ToJSON(Worker* worker) {
 		Local<JSArray> names = GetPropertyNames(worker);
 		if ( names.IsEmpty() ) return Maybe<JSON>();
 		
-		for ( uint i = 0, len = names->Length(worker); i < len; i++ ) {
+		for ( uint32_t i = 0, len = names->Length(worker); i < len; i++ ) {
 			Local<JSValue> key = names->Get(worker, i);
 			if ( names.IsEmpty() ) return Maybe<JSON>();
 			Local<JSValue> val = Get(worker, key);
@@ -159,7 +159,7 @@ Local<JSValue> JSObject::GetProperty(Worker* worker, cString& name) {
 Maybe<Array<String>> JSArray::ToStringArrayMaybe(Worker* worker) {
 	Array<String> rv;
 	if ( IsArray(worker) ) {
-		for ( uint i = 0, len = Length(worker); i < len; i++ ) {
+		for ( uint32_t i = 0, len = Length(worker); i < len; i++ ) {
 			Local<JSValue> val = Get(worker, i);
 			if ( val.IsEmpty() )
 				return Maybe<Array<String>>();
@@ -173,7 +173,7 @@ Maybe<Array<double>> JSArray::ToNumberArrayMaybe(Worker* worker) {
 	Array<double> rv;
 	if ( IsArray(worker) ) {
 		double out;
-		for ( uint i = 0, len = Length(worker); i < len; i++ ) {
+		for ( uint32_t i = 0, len = Length(worker); i < len; i++ ) {
 			Local<JSValue> val = Get(worker, i);
 			if ( val.IsEmpty() || !val->ToNumberMaybe(worker).To(out) )
 				return Maybe<Array<double>>();
@@ -187,7 +187,7 @@ Maybe<Buffer> JSArray::ToBufferMaybe(Worker* worker) {
 	Buffer rv;
 	if ( IsArray(worker) ) {
 		double out;
-		for ( uint i = 0, len = Length(worker); i < len; i++ ) {
+		for ( uint32_t i = 0, len = Length(worker); i < len; i++ ) {
 			Local<JSValue> val = Get(worker, i);
 			if ( val.IsEmpty() || !val->ToNumberMaybe(worker).To(out) )
 				return Maybe<Buffer>();
@@ -212,7 +212,7 @@ WeakBuffer JSTypedArray::weakBuffer(Worker* worker) {
 }
 
 void JSClass::Export(Worker* worker, cString& name, Local<JSObject> exports) {
-	uint64 id = ID();
+	uint64_t id = ID();
 	auto js_class = IMPL::js_class(worker);
 	js_class->reset_constructor(id);
 	Local<JSFunction> func = js_class->get_constructor(ID());
@@ -220,17 +220,17 @@ void JSClass::Export(Worker* worker, cString& name, Local<JSObject> exports) {
 }
 
 Local<JSFunction> JSClass::GetFunction(Worker* worker) {
-	uint64 id = ID();
+	uint64_t id = ID();
 	auto js_class = IMPL::js_class(worker);
 	js_class->reset_constructor(id);
 	return js_class->get_constructor(id);
 }
 
-uint64 JSClass::ID() const {
+uint64_t JSClass::ID() const {
 	return reinterpret_cast<const JSClassIMPL*>(this)->id();
 }
 
-Local<JSObject> JSClass::NewInstance(uint argc, Local<JSValue>* argv) {
+Local<JSObject> JSClass::NewInstance(uint32_t argc, Local<JSValue>* argv) {
 	auto cls = reinterpret_cast<JSClassIMPL*>(this);
 	Local<JSFunction> func = IMPL::js_class(cls->worker())->get_constructor(cls->id());
 	ASSERT( !func.IsEmpty() );
@@ -485,7 +485,7 @@ Local<JSObject> Worker::New(FileStat&& stat) {
 	return r;
 }
 
-Local<JSObject> Worker::NewInstance(uint64 id, uint argc, Local<JSValue>* argv) {
+Local<JSObject> Worker::NewInstance(uint64_t id, uint32_t argc, Local<JSValue>* argv) {
 	Local<JSFunction> func = _inl->_classs->get_constructor(id);
 	ASSERT( !func.IsEmpty() );
 	return func->NewInstance(this, argc, argv);
@@ -516,7 +516,7 @@ bool Worker::hasView(Local<JSValue> val) {
 	return _inl->_classs->instanceof(val, ftr::View::VIEW);
 }
 
-bool Worker::hasInstance(Local<JSValue> val, uint64 id) {
+bool Worker::hasInstance(Local<JSValue> val, uint64_t id) {
 	return _inl->_classs->instanceof(val, id);
 }
 

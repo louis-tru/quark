@@ -222,7 +222,7 @@ int KeyboardAdapter::to_keypress(KeyboardKeyName name) {
 	return 0;
 }
 
-bool KeyboardAdapter::transformation(uint keycode, bool unicode, bool down) {
+bool KeyboardAdapter::transformation(uint32_t keycode, bool unicode, bool down) {
 	
 	if ( unicode ) {
 		auto it = _ascii_keycodes.find(keycode);

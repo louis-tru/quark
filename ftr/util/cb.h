@@ -49,98 +49,98 @@ namespace ftr {
 
 	template<class D, class E = Error>
 	class FX_EXPORT CallbackCore: public Reference {
-			FX_HIDDEN_ALL_COPY(CallbackCore);
+		FX_HIDDEN_ALL_COPY(CallbackCore);
 		public:
-			inline CallbackCore() {}
-			virtual void call(CallbackData<D, E>& evt) const = 0;
-			inline  int call(E* e, D* d) const { CallbackData<D, E> evt = { e,d,0 }; call(evt); return evt.rc; }
-			inline  int resolve(D* d = nullptr) const { CallbackData<D, E> evt = { 0,d,0 }; call(evt); return evt.rc; }
-			inline  int reject(E* e) const { CallbackData<D, E> evt = { e,0,0 }; call(evt); return evt.rc; }
+		inline CallbackCore() {}
+		virtual void call(CallbackData<D, E>& evt) const = 0;
+		inline  int call(E* e, D* d) const { CallbackData<D, E> evt = { e,d,0 }; call(evt); return evt.rc; }
+		inline  int resolve(D* d = nullptr) const { CallbackData<D, E> evt = { 0,d,0 }; call(evt); return evt.rc; }
+		inline  int reject(E* e) const { CallbackData<D, E> evt = { e,0,0 }; call(evt); return evt.rc; }
 	};
 
 	template<class T, class D, class E>
 	class CallbackCoreIMPL: public CallbackCore<D, E> {
 		public:
-			inline CallbackCoreIMPL(T* ctx): _ctx(ctx) {
-				if ( T::Traits::is_reference ) {
-					T::Traits::Retain(_ctx);
-				}
+		inline CallbackCoreIMPL(T* ctx): _ctx(ctx) {
+			if ( T::Traits::is_reference ) {
+				T::Traits::Retain(_ctx);
 			}
-			virtual ~CallbackCoreIMPL() {
-				if ( T::Traits::is_reference ) {
-					T::Traits::Release(_ctx);
-				}
+		}
+		virtual ~CallbackCoreIMPL() {
+			if ( T::Traits::is_reference ) {
+				T::Traits::Release(_ctx);
 			}
+		}
 		protected:
-			T* _ctx;
+		T* _ctx;
 	};
 
 	template<class T, class D, class E>
 	class FX_EXPORT LambdaCallback: public CallbackCoreIMPL<T, D, E> {
 		public:
-			typedef std::function<void(CallbackData<D, E>& evt)> Func;
-			inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
-			virtual void call(CallbackData<D, E>& evt) const { _func(evt); }
+		typedef std::function<void(CallbackData<D, E>& evt)> Func;
+		inline LambdaCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
+		virtual void call(CallbackData<D, E>& evt) const { _func(evt); }
 		private:
-			Func _func;
+		Func _func;
 	};
 
 	template<class T, class D, class E>
 	class FX_EXPORT StaticCallback: public CallbackCoreIMPL<T, D, E> {
 		public:
-			typedef void (*Func)(CallbackData<D, E>& evt, T* ctx);
-			inline StaticCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
-			virtual void call(CallbackData<D, E>& evt) const { _func(evt, this->_ctx); }
+		typedef void (*Func)(CallbackData<D, E>& evt, T* ctx);
+		inline StaticCallback(Func func, T* ctx = nullptr): CallbackCoreIMPL<T, D, E>(ctx), _func(func) {}
+		virtual void call(CallbackData<D, E>& evt) const { _func(evt, this->_ctx); }
 		private:
-			Func  _func;
+		Func  _func;
 	};
 
 	template<class T, class D, class E>
 	class FX_EXPORT MemberCallback: public CallbackCoreIMPL<T, D, E> {
 		public:
-			typedef void (T::*Func)(CallbackData<D, E>& evt);
-			inline MemberCallback(Func func, T* ctx): CallbackCoreIMPL<T, D, E>(ctx), _func(func) { }
-			virtual void call(CallbackData<D, E>& evt) const { (this->_ctx->*_func)(evt); }
+		typedef void (T::*Func)(CallbackData<D, E>& evt);
+		inline MemberCallback(Func func, T* ctx): CallbackCoreIMPL<T, D, E>(ctx), _func(func) { }
+		virtual void call(CallbackData<D, E>& evt) const { (this->_ctx->*_func)(evt); }
 		private:
-			Func  _func;
+		Func  _func;
 	};
 
 	template<class D = Object, class E = Error>
 	class FX_EXPORT Callback: public Handle<CallbackCore<D, E>> {
 		public:
-			typedef CallbackCore<D, E> Core;
-			typedef CallbackData<D, E> Data;
-			enum { kNoop = 0 };
-			Callback(int type = kNoop): Handle<Core>(static_cast<Core*>(Callback<>::DefaultCore())) {}
-			inline Callback(Core* cb): Handle<Core>(cb) {}
-			inline Callback(const Callback& cb): Handle<Core>(*const_cast<Callback*>(&cb)) {}
-			inline Callback(Callback& cb): Handle<Core>(cb) {}
-			inline Callback(Callback&& cb): Handle<Core>(cb) {}
-			template<class T = Object>
-			inline Callback(typename LambdaCallback<T, D, E>::Func func, T* ctx = nullptr):
-				Handle<Core>(new LambdaCallback<T, D, E>(func, ctx)) {}
-			template<class T = Object>
-			inline Callback(void (*func)(Data& evt, T* ctx), T* ctx = nullptr):
-				Handle<Core>(new StaticCallback<T, D, E>(func, ctx)) {}
-			template<class T = Object>
-			inline Callback(typename MemberCallback<T, D, E>::Func func, T* ctx):
-				Handle<Core>(new MemberCallback<T, D, E>(func, ctx)) {}
-			inline Callback& operator=(const Callback& cb) {
-			 	Handle<Core>::operator=(*const_cast<Callback*>(&cb));
-			 	return *this;
-			}
-			inline Callback& operator=(Callback& cb) {
-				Handle<Core>::operator=(cb);
-				return *this;
-			}
-			inline Callback& operator=(Callback&& cb) {
-				Handle<Core>::operator=(cb);
-				return *this;
-			}
-			inline Core* collapse() { return nullptr; }
+		typedef CallbackCore<D, E> Core;
+		typedef CallbackData<D, E> Data;
+		enum { kNoop = 0 };
+		Callback(int type = kNoop): Handle<Core>(static_cast<Core*>(Callback<>::DefaultCore())) {}
+		inline Callback(Core* cb): Handle<Core>(cb) {}
+		inline Callback(const Callback& cb): Handle<Core>(*const_cast<Callback*>(&cb)) {}
+		inline Callback(Callback& cb): Handle<Core>(cb) {}
+		inline Callback(Callback&& cb): Handle<Core>(cb) {}
+		template<class T = Object>
+		inline Callback(typename LambdaCallback<T, D, E>::Func func, T* ctx = nullptr):
+			Handle<Core>(new LambdaCallback<T, D, E>(func, ctx)) {}
+		template<class T = Object>
+		inline Callback(void (*func)(Data& evt, T* ctx), T* ctx = nullptr):
+			Handle<Core>(new StaticCallback<T, D, E>(func, ctx)) {}
+		template<class T = Object>
+		inline Callback(typename MemberCallback<T, D, E>::Func func, T* ctx):
+			Handle<Core>(new MemberCallback<T, D, E>(func, ctx)) {}
+		inline Callback& operator=(const Callback& cb) {
+			Handle<Core>::operator=(*const_cast<Callback*>(&cb));
+			return *this;
+		}
+		inline Callback& operator=(Callback& cb) {
+			Handle<Core>::operator=(cb);
+			return *this;
+		}
+		inline Callback& operator=(Callback&& cb) {
+			Handle<Core>::operator=(cb);
+			return *this;
+		}
+		inline Core* collapse() { return nullptr; }
 		private:
-			static void* DefaultCore();
-			template<class D2, class E2> friend class Callback;
+		static void* DefaultCore();
+		template<class D2, class E2> friend class Callback;
 	};
 
 	template<> void* Callback<Object>::DefaultCore();

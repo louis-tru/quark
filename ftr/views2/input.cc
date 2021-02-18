@@ -35,12 +35,12 @@
 namespace ftr {
 
 FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
- public:
+	public:
 	
 	/**
 	 * @func activate_touchmove_selectd_timeout
 	 */
-	int64 activate_touchmove_selectd_timeout() {
+	int64_t activate_touchmove_selectd_timeout() {
 		if ( is_multi_line_input() ) {
 			return 1e6;
 		} else {
@@ -123,7 +123,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			 */
 			if ( !flag_ ) { // 开始超时激活光标定位
 				flag_ = 1;
-				int64 timeout = activate_touchmove_selectd_timeout();
+				int64_t timeout = activate_touchmove_selectd_timeout();
 				if ( timeout ) {
 					main_loop()->post(Cb([this](CbData& evt) { // delay
 						GUILock lock;
@@ -380,7 +380,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		// find cell start and end
 		int cell_begin = -1, cell_end = -1;
 		
-		for ( uint i = 0; i < _data.cells.length(); i++ ) {
+		for ( uint32_t i = 0; i < _data.cells.length(); i++ ) {
 			if ( _data.cells[i].line_num == row->row_num  ) { // 排除小余目标行cell
 				cell_begin = i;
 				
@@ -401,7 +401,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			Cell& cell2 = _data.cells[cell_end];  // 结束cell
 			
 			float offset_start = offset.x() + cell.offset_start;
-			uint end = cell2.begin + cell2.Chars.length();
+			uint32_t end = cell2.begin + cell2.Chars.length();
 			bool reverse = cell.reverse;
 			
 			if ( x <= offset_start + (reverse ? -row->offset_end.x() : 0) ) { // 行开始位置
@@ -557,7 +557,7 @@ View* Input::append_text(cUcs2String& str) throw(Error) {
 	return r;
 }
 
-bool Input::run_task(int64 sys_time) {
+bool Input::run_task(int64_t sys_time) {
 	
 	if ( flag_ > 2 ) {
 		// direction
@@ -792,8 +792,8 @@ void Input::set_layout_content_offset() {
 			
 			if ( length() && marked_text_.length() && !security_ ) {
 				
-				uint mark = marked_text_idx_;
-				uint mark_end = mark + marked_text_.length();
+				uint32_t mark = marked_text_idx_;
+				uint32_t mark_end = mark + marked_text_.length();
 				
 				if ( mark ) {
 					set_text_layout_offset(&_rows, limit, _data, string, 0, mark, &opts, !multi_line);
@@ -803,7 +803,7 @@ void Input::set_layout_content_offset() {
 				set_text_layout_offset(&_rows, limit, _data, string, mark, mark_end, &opts, !multi_line);
 				marked_cell_end_ = _data.cells.length();
 				
-				uint end = string.length();
+				uint32_t end = string.length();
 				if ( mark_end < end ) {
 					set_text_layout_offset(&_rows, limit, _data, string, mark_end, end, &opts, !multi_line);
 				}
@@ -863,12 +863,12 @@ void Input::refresh_cursor_screen_position() {
 		if ( _data.string.length() ) {
 		
 			for ( auto& i : _data.cells ) {
-				uint begin = i.value().begin;
+				uint32_t begin = i.value().begin;
 				
 				if ( cursor_ == begin ) {
 					cell = &i.value(); break;
 				} else if ( cursor_ > begin ) {
-					uint end = begin + i.value().Chars.length();
+					uint32_t end = begin + i.value().Chars.length();
 					
 					if ( cursor_ < end ) {
 						cell = &i.value(); break;

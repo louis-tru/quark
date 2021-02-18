@@ -43,15 +43,15 @@ namespace ftr {
 	*/
 	class FX_EXPORT Console {
 		public:
-			// typedef NonObjectTraits Traits;
-			virtual ~Console() = default;
-			virtual void log(cString& str);
-			virtual void warn(cString& str);
-			virtual void error(cString& str);
-			virtual void print(cString& str);
-			virtual void print_err(cString& str);
-			virtual void clear();
-			void set_as_default();
+		// typedef NonObjectTraits Traits;
+		virtual ~Console() = default;
+		virtual void log(cString& str);
+		virtual void warn(cString& str);
+		virtual void error(cString& str);
+		virtual void print(cString& str);
+		virtual void print_err(cString& str);
+		virtual void clear();
+		void set_as_default();
 	};
 
 	namespace console {

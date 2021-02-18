@@ -75,7 +75,7 @@ Video::Video()
  * @class Video::Inl
  */
 FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
- public:
+	public:
 
 	bool load_yuv_texture(OutputBuffer& buffer) { // set yuv texture ..
 		Array<WeakBuffer> body(3);
@@ -90,7 +90,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 		return r;
 	}
 	
-	bool advance_video(uint64 sys_time) {
+	bool advance_video(uint64_t sys_time) {
 		ASSERT(_status != PLAYER_STATUS_STOP);
 		
 		bool draw = false;
@@ -135,16 +135,16 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 		
 		if ( _video_buffer.total ) {
 			
-			uint64 pts = _video_buffer.time;
+			uint64_t pts = _video_buffer.time;
 			
 			if (_uninterrupted_play_start_systime &&        // 0表示还没开始
 					pts &&                                          // 演示时间为0表示开始或(即时渲染如视频电话)
 					sys_time - _prev_presentation_time < 300000    // 距离上一帧超过300ms重新记时(如应用程序从休眠中恢复或数据缓冲)
 			) {
-				int64 st = (sys_time - _uninterrupted_play_start_systime) -       // sys
+				int64_t st = (sys_time - _uninterrupted_play_start_systime) -       // sys
 									 (pts - _uninterrupted_play_start_time);   // frame
 				if ( st >= 0 ) { // 是否达到渲染帧时间
-					uint64 st_s = sys::time_monotonic();
+					uint64_t st_s = sys::time_monotonic();
 					load_yuv_texture(_video_buffer);
 					//t_debug("+++++++ input_video_yuv, use_time: %llu, pts: %llu, delay: %lld",
 					//        sys_time_monotonic() - st_s, pts, st);
@@ -172,7 +172,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 			}
 		}
 		
-		// uint64 st = sys::time_monotonic();
+		// uint64_t st = sys::time_monotonic();
 		_video->advance();
 		// t_debug("advance, %llu", sys_time_monotonic() - st);
 		
@@ -194,7 +194,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 		// _audio->set_frame_size( _pcm->buffer_size() );
 	 loop:
 
-		uint64 sys_time = sys::time_monotonic();
+		uint64_t sys_time = sys::time_monotonic();
 		
 		{ //
 			ScopeLock scope(_mutex);
@@ -212,7 +212,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 			if (_audio_buffer.total) {
 				if (_uninterrupted_play_start_systime) {
 					if (_audio_buffer.time) {
-						int64 st = (sys_time - _uninterrupted_play_start_systime) -     // sys
+						int64_t st = (sys_time - _uninterrupted_play_start_systime) -     // sys
 											 (_audio_buffer.time - _uninterrupted_play_start_time); // frame
 						int delay = _audio->frame_interval() * compensate;
 
@@ -228,7 +228,7 @@ FX_DEFINE_INLINE_MEMBERS(Video, Inl) {
 		}
 		
 		int frame_interval = 1000.0 / 120.0 * 1000; // 120fsp
-		int64 sleep_st = frame_interval - sys::time_monotonic() + sys_time;
+		int64_t sleep_st = frame_interval - sys::time_monotonic() + sys_time;
 		if ( sleep_st > 0 ) {
 			Thread::sleep(sleep_st);
 		}
@@ -522,7 +522,7 @@ void Video::stop() {
 /**
  * @func seek to target time
  */
-bool Video::seek(uint64 timeUs) {
+bool Video::seek(uint64_t timeUs) {
 	ScopeLock scope(_mutex);
 	
 	if ( Inl_Video(this)->is_active() && timeUs < _duration ) {
@@ -595,7 +595,7 @@ void Video::set_mute(bool value) {
 /**
  * @func set_volume
  */
-void Video::set_volume(uint value) {
+void Video::set_volume(uint32_t value) {
 	ScopeLock scope(_mutex);
 	value = FX_MIN(value, 100);
 	_volume = value;
@@ -608,17 +608,17 @@ void Video::set_volume(uint value) {
 /**
  * @func time
  * */
-uint64 Video::time() { ScopeLock scope(_mutex); return _time; }
+uint64_t Video::time() { ScopeLock scope(_mutex); return _time; }
 
 /**
  * @func duration
  * */
-uint64 Video::duration() { ScopeLock scope(_mutex); return _duration; }
+uint64_t Video::duration() { ScopeLock scope(_mutex); return _duration; }
 
 /**
  * @func audio_track_count
  */
-uint Video::audio_track_count() {
+uint32_t Video::audio_track_count() {
 	ScopeLock lock(_mutex);
 	if ( _audio ) {
 		return _audio->extractor()->track_count();
@@ -629,7 +629,7 @@ uint Video::audio_track_count() {
 /**
  * @func audio_track_index
  */
-uint Video::audio_track_index() {
+uint32_t Video::audio_track_index() {
 	ScopeLock lock(_mutex);
 	if ( _audio ) {
 		return _audio->extractor()->track_index();
@@ -651,7 +651,7 @@ const TrackInfo* Video::audio_track() {
 /**
  * @func audio_track
  */
-const TrackInfo* Video::audio_track(uint index) {
+const TrackInfo* Video::audio_track(uint32_t index) {
 	ScopeLock lock(_mutex);
 	if ( _audio && index < _audio->extractor()->track_count() ) {
 		return &_audio->extractor()->track(index);
@@ -673,7 +673,7 @@ const TrackInfo* Video::video_track() {
 /**
  * @func select_audio_track
  * */
-void Video::select_audio_track(uint index) {
+void Video::select_audio_track(uint32_t index) {
 	ScopeLock scope(_mutex);
 	if ( _audio && index < _audio->extractor()->track_count() ) {
 		_audio->extractor()->select_track(index);
@@ -694,7 +694,7 @@ MultimediaSourceStatus Video::source_status() {
 /**
  * @func video_width
  */
-uint Video::video_width() {
+uint32_t Video::video_width() {
 	ScopeLock lock(_mutex);
 	return _video_width;
 }
@@ -702,7 +702,7 @@ uint Video::video_width() {
 /**
  * @func video_height
  */
-uint Video::video_height() {
+uint32_t Video::video_height() {
 	ScopeLock lock(_mutex);
 	return _video_height;
 }
@@ -712,7 +712,7 @@ PlayerStatus Video::status() {
 	return _status;
 }
 
-bool Video::run_task(int64 sys_time) {
+bool Video::run_task(int64_t sys_time) {
 	// video
 	bool draw = Inl_Video(this)->advance_video(sys_time);
 	

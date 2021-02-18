@@ -60,13 +60,13 @@ namespace ftr {
 		#pragma pack(push,4)
 		cChar* name;
 		const unsigned Char* source_vp;
-		const  unsigned long source_vp_len;
+		const unsigned long source_vp_len;
 		const unsigned Char* source_fp;
-		const  unsigned long source_fp_len;
+		const unsigned long source_fp_len;
 		const unsigned Char* es2_source_vp;
-		const  unsigned long es2_source_vp_len;
+		const unsigned long es2_source_vp_len;
 		const unsigned Char* es2_source_fp;
-		const  unsigned long es2_source_fp_len;
+		const unsigned long es2_source_fp_len;
 		cChar* shader_uniforms;
 		cChar* shader_uniform_blocks;
 		cChar* shader_attributes;
@@ -111,13 +111,13 @@ namespace ftr {
 		virtual void commit_render();
 		virtual void begin_screen_occlusion_query();
 		virtual void end_screen_occlusion_query();
-		virtual uint set_texture(const Array<PixelData>& data);
-		virtual void del_texture(uint id);
-		virtual void del_buffer(uint id);
+		virtual uint32_t set_texture(const Array<PixelData>& data);
+		virtual void del_texture(uint32_t id);
+		virtual void del_buffer(uint32_t id);
 		virtual bool set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data);
-		virtual uint gen_texture(uint origin_texture, uint width, uint height);
-		virtual void use_texture(uint id, Repeat repeat, uint slot);
-		virtual void use_texture(uint id, uint slot);
+		virtual uint32_t gen_texture(uint32_t origin_texture, uint32_t width, uint32_t height);
+		virtual void use_texture(uint32_t id, Repeat repeat, uint32_t slot);
+		virtual void use_texture(uint32_t id, uint32_t slot);
 		virtual bool set_font_glyph_vertex_data(Font* font, FontGlyph* glyph);
 		virtual bool set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level);
 		virtual void clear_color(Color color);
@@ -149,7 +149,7 @@ namespace ftr {
 		* @arg shader_type {GLenum}  #     程序类型
 		* @ret {GLuint}
 		*/
-		GLuint compile_shader(cString& name, cBuffer& code, GLenum shader_type);
+		GLuint32_t compile_shader(cString& name, cBuffer& code, GLenum shader_type);
 		
 		/**
 		* @func compile_link_shader # 编译着色器程序
@@ -158,7 +158,7 @@ namespace ftr {
 		* @arg attrs {const Array<String>&}      #             要编号的属性列表
 		* @ret {GLuint}
 		*/
-		GLuint compile_link_shader(cString& name, cBuffer& vertex,
+		GLuint32_t compile_link_shader(cString& name, cBuffer& vertex,
 															cBuffer& fragment,
 															const Array<String>& attrs = Array<String>());
 		
@@ -187,18 +187,18 @@ namespace ftr {
 		void initializ_gl_status();
 		
 		bool    _begin_screen_occlusion_query_status; // 屏幕遮挡test状态
-		GLuint  _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
-		GLuint  _current_frame_buffer;
-		GLuint  _render_buffer;
-		GLuint  _frame_buffer;
-		GLuint  _msaa_render_buffer;
-		GLuint  _msaa_frame_buffer;
-		GLuint  _depth_buffer;
-		GLuint  _stencil_buffer;
-		GLuint  _stencil_ref_value;
-		GLuint  _root_stencil_ref_value;
+		GLuint32_t  _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
+		GLuint32_t  _current_frame_buffer;
+		GLuint32_t  _render_buffer;
+		GLuint32_t  _frame_buffer;
+		GLuint32_t  _msaa_render_buffer;
+		GLuint32_t  _msaa_frame_buffer;
+		GLuint32_t  _depth_buffer;
+		GLuint32_t  _stencil_buffer;
+		GLuint32_t  _stencil_ref_value;
+		GLuint32_t  _root_stencil_ref_value;
 		
-		GLuint _indexd_vbo_data;
+		GLuint32_t _indexd_vbo_data;
 		bool _is_support_vao;
 		bool _is_support_instanced;
 		bool _is_support_query;

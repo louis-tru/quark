@@ -46,135 +46,135 @@ namespace ftr {
 	
 	class FX_EXPORT ArrayStringBase: public Object {
 		public:
-			typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
-			typedef void  (*Free)(void* ptr);
-			static constexpr char MAX_SHORT_LEN = 32;
-			struct ShortStr { char val[36]; char length; };
-			struct LongStr {
-				uint32_t length, capacity;
-				char*    val;
-				std::atomic_int ref;
-			};
-			union Val {
-				struct ShortStr s;
-				struct LongStr* l; // share long string core
-			};
-			uint32_t size() const;
+		typedef void* (*AAlloc)(void* val, uint32_t, uint32_t*, uint32_t size_of);
+		typedef void  (*Free)(void* ptr);
+		static constexpr char MAX_SHORT_LEN = 32;
+		struct ShortStr { char val[36]; char length; };
+		struct LongStr {
+			uint32_t length, capacity;
+			char*    val;
+			std::atomic_int ref;
+		};
+		union Val {
+			struct ShortStr s;
+			struct LongStr* l; // share long string core
+		};
+		uint32_t size() const;
 		protected:
-			ArrayStringBase();
-			ArrayStringBase(const ArrayStringBase& str);
-			ArrayStringBase(uint32_t len, AAlloc alloc, uint8_t size_of);
-			ArrayStringBase(uint32_t len, uint32_t capacity, char* val, uint8_t size_of);
-			void assign(uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
-			void assign(const ArrayStringBase& s, Free free);
-			      char* data();
-			const char* data() const;
-			uint32_t capacity() const;
-			char* realloc(uint32_t len, AAlloc alloc, Free free, uint8_t size_of);
-			Buffer collapse(AAlloc alloc, Free free);
-			void   clear(Free free);
-			static LongStr* NewLong(uint32_t length, uint32_t capacity, char* val);
-			static void Release(LongStr* l, Free free);
-			static void Retain (LongStr* l);
-			Val    _val;
-			template<typename T, typename A> friend class ArrayString;
+		ArrayStringBase();
+		ArrayStringBase(const ArrayStringBase& str);
+		ArrayStringBase(uint32_t len, AAlloc alloc, uint8_t size_of);
+		ArrayStringBase(uint32_t len, uint32_t capacity, char* val, uint8_t size_of);
+		void assign(uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
+		void assign(const ArrayStringBase& s, Free free);
+					char* data();
+		const char* data() const;
+		uint32_t capacity() const;
+		char* realloc(uint32_t len, AAlloc alloc, Free free, uint8_t size_of);
+		Buffer collapse(AAlloc alloc, Free free);
+		void   clear(Free free);
+		static LongStr* NewLong(uint32_t length, uint32_t capacity, char* val);
+		static void Release(LongStr* l, Free free);
+		static void Retain (LongStr* l);
+		Val    _val;
+		template<typename T, typename A> friend class ArrayString;
 	};
 
 	template<typename T, typename A>
 	class FX_EXPORT ArrayString: public ArrayStringBase {
 		public:
-			// constructors
-			ArrayString(); // empty string constructors
-			ArrayString(const ArrayString& s); // copy constructors
-			ArrayString(ArrayBuffer<T, A>&& data); // right value copy constructors
-			ArrayString(const T* s); // copy constructors
-			ArrayString(const T* s, uint32_t len); // copy constructors
-			ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
-			ArrayString(T c); // char to string constructors
-			template<typename T2>
-			ArrayString(T2 i); // number to string constructors
-			
-			virtual ~ArrayString();
-			virtual String to_string() const;
-			/**
-			 * @func format string
-			 */
-			static ArrayString format(cChar* format, ...);
+		// constructors
+		ArrayString(); // empty string constructors
+		ArrayString(const ArrayString& s); // copy constructors
+		ArrayString(ArrayBuffer<T, A>&& data); // right value copy constructors
+		ArrayString(const T* s); // copy constructors
+		ArrayString(const T* s, uint32_t len); // copy constructors
+		ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
+		ArrayString(T c); // char to string constructors
+		template<typename T2>
+		ArrayString(T2 i); // number to string constructors
+		
+		virtual ~ArrayString();
+		virtual String to_string() const;
+		/**
+			* @func format string
+			*/
+		static ArrayString format(cChar* format, ...);
 
-			inline bool  is_empty() const;
-			inline const T* str_c() const;
-			inline const T* operator*() const;
+		inline bool  is_empty() const;
+		inline const T* str_c() const;
+		inline const T* operator*() const;
 
-			inline T operator[](uint32_t index) const;
-			inline uint32_t length() const;
-			inline uint32_t capacity() const;
+		inline T operator[](uint32_t index) const;
+		inline uint32_t length() const;
+		inline uint32_t capacity() const;
 
-			// assign operator, call assign()
-			ArrayString& operator=(const T* s);
-			ArrayString& operator=(const ArrayString& s);
-			// assign value operator
-			ArrayString& assign(const T* s, uint32_t len); // operator=
-			// operator+
-			// concat string, create new string
-			// call ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
-			ArrayString operator+(const T* s) const;
-			ArrayString operator+(const ArrayString& s) const;
-			ArrayString operator+(const T s) const;
-			// operator+=
-			// concat string to current this, call append()
-			ArrayString& operator+=(const T* s);
-			ArrayString& operator+=(const ArrayString& s);
-			ArrayString& operator+=(const T s);
+		// assign operator, call assign()
+		ArrayString& operator=(const T* s);
+		ArrayString& operator=(const ArrayString& s);
+		// assign value operator
+		ArrayString& assign(const T* s, uint32_t len); // operator=
+		// operator+
+		// concat string, create new string
+		// call ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len)
+		ArrayString operator+(const T* s) const;
+		ArrayString operator+(const ArrayString& s) const;
+		ArrayString operator+(const T s) const;
+		// operator+=
+		// concat string to current this, call append()
+		ArrayString& operator+=(const T* s);
+		ArrayString& operator+=(const ArrayString& s);
+		ArrayString& operator+=(const T s);
 
-			// append string to current this
-			ArrayString& append(const T* s, uint32_t len = 0); // operator+=
-			ArrayString& append(const ArrayString& s); // operator+=
-			ArrayString& append(const T s); // operator+=
-			// get string hash code
-			uint64_t hash_code() const;
-			// collapse to array buffer
-			ArrayBuffer<T, A> collapse();
-			ArrayString<T, A> copy() const;
+		// append string to current this
+		ArrayString& append(const T* s, uint32_t len = 0); // operator+=
+		ArrayString& append(const ArrayString& s); // operator+=
+		ArrayString& append(const T s); // operator+=
+		// get string hash code
+		uint64_t hash_code() const;
+		// collapse to array buffer
+		ArrayBuffer<T, A> collapse();
+		ArrayString<T, A> copy() const;
 
-			// operator compare
-			bool operator==(const T* s) const;
-			inline bool operator==(const ArrayString& s) const { return operator==(s.str_c()); }
-			bool operator!=(const T* s) const;
-			inline bool operator!=(const ArrayString& s) const { return operator!=(s.str_c()); }
-			bool operator> (const T* s) const;
-			inline bool operator> (const ArrayString& s) const { return operator>(s.str_c()); }
-			bool operator< (const T* s) const;
-			inline bool operator< (const ArrayString& s) const { return operator<(s.str_c()); }
-			bool operator>=(const T* s) const;
-			inline bool operator>=(const ArrayString& s) const { return operator>=(s.str_c()); }
-			bool operator<=(const T* s) const;
-			inline bool operator<=(const ArrayString& s) const { return operator<=(s.str_c()); }
+		// operator compare
+		bool operator==(const T* s) const;
+		inline bool operator==(const ArrayString& s) const { return operator==(s.str_c()); }
+		bool operator!=(const T* s) const;
+		inline bool operator!=(const ArrayString& s) const { return operator!=(s.str_c()); }
+		bool operator> (const T* s) const;
+		inline bool operator> (const ArrayString& s) const { return operator>(s.str_c()); }
+		bool operator< (const T* s) const;
+		inline bool operator< (const ArrayString& s) const { return operator<(s.str_c()); }
+		bool operator>=(const T* s) const;
+		inline bool operator>=(const ArrayString& s) const { return operator>=(s.str_c()); }
+		bool operator<=(const T* s) const;
+		inline bool operator<=(const ArrayString& s) const { return operator<=(s.str_c()); }
 
-			// trim
-			ArrayString trim() const;
-			ArrayString trim_left() const;
-			ArrayString trim_right() const;
-			// substr
-			ArrayString substr(uint32_t start, uint32_t length = 0xFFFFFFFF) const;
-			ArrayString substring(uint32_t start, uint32_t end = 0xFFFFFFFF) const;
-			// upper, lower
-			ArrayString& upper_case(); // change current this string
-			ArrayString& lower_case(); // change current this string
-			ArrayString  to_upper_case() const; // create new string
-			ArrayString  to_lower_case() const; // create new string
-			// index_of
-			int index_of(const ArrayString& s, uint32_t start = 0) const;
-			int last_index_of(const ArrayString& s, uint32_t start = 0x7FFFFFFF) const;
-			// replace
-			ArrayString replace(const ArrayString& s, const ArrayString& rep) const;
-			ArrayString replace_all(const ArrayString& s, const ArrayString& rep) const;
-			// split
-			std::vector<ArrayString> split(const ArrayString& sp) const;
-			// to number
-			template<typename T2> T2   to_number()        const;
-			template<typename T2> bool to_number(T2* out) const;
+		// trim
+		ArrayString trim() const;
+		ArrayString trim_left() const;
+		ArrayString trim_right() const;
+		// substr
+		ArrayString substr(uint32_t start, uint32_t length = 0xFFFFFFFF) const;
+		ArrayString substring(uint32_t start, uint32_t end = 0xFFFFFFFF) const;
+		// upper, lower
+		ArrayString& upper_case(); // change current this string
+		ArrayString& lower_case(); // change current this string
+		ArrayString  to_upper_case() const; // create new string
+		ArrayString  to_lower_case() const; // create new string
+		// index_of
+		int index_of(const ArrayString& s, uint32_t start = 0) const;
+		int last_index_of(const ArrayString& s, uint32_t start = 0x7FFFFFFF) const;
+		// replace
+		ArrayString replace(const ArrayString& s, const ArrayString& rep) const;
+		ArrayString replace_all(const ArrayString& s, const ArrayString& rep) const;
+		// split
+		std::vector<ArrayString> split(const ArrayString& sp) const;
+		// to number
+		template<typename T2> T2   to_number()        const;
+		template<typename T2> bool to_number(T2* out) const;
 		private:
-			T* val();
+		T* val();
 	};
 
 }
@@ -185,65 +185,65 @@ namespace ftr {
 
 	class FX_EXPORT _Str {
 		public:
-			// static methods
-			typedef char T;
-			typedef void* (*Alloc)(uint32_t);
-			typedef void* (*AAlloc)(void*, uint32_t, uint32_t*, uint32_t);
+		// static methods
+		typedef char T;
+		typedef void* (*Alloc)(uint32_t);
+		typedef void* (*AAlloc)(void*, uint32_t, uint32_t*, uint32_t);
 
-			struct Size { uint32_t len; uint32_t capacity; };
-			static cChar ws[8];
-			static bool to_number(const void* i, int sizeof_i, int len_i, int32_t* o);
-			static bool to_number(const void* i, int sizeof_i, int len_i, uint32_t* o);
-			static bool to_number(const void* i, int sizeof_i, int len_i, int64_t* o);
-			static bool to_number(const void* i, int sizeof_i, int len_i, uint64_t* o);
-			static bool to_number(const void* i, int sizeof_i, int len_i, float* o);
-			static bool to_number(const void* i, int sizeof_i, int len_i, double* o);
-			static int32_t format_n(char* o, uint32_t len_o, cChar* f, ...);
-			static int32_t format_n(char* o, uint32_t len_o, int32_t i);
-			static int32_t format_n(char* o, uint32_t len_o, uint32_t i);
-			static int32_t format_n(char* o, uint32_t len_o, int64_t i);
-			static int32_t format_n(char* o, uint32_t len_o, uint64_t i);
-			static int32_t format_n(char* o, uint32_t len_o, float i);
-			static int32_t format_n(char* o, uint32_t len_o, double i);
-			static void* format(Size* size, int size_of, Alloc alloc, cChar* f, ...);
-			static void* format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg);
-			static void* format(Size* size, int size_of, Alloc alloc, int32_t i);
-			static void* format(Size* size, int size_of, Alloc alloc, uint32_t i);
-			static void* format(Size* size, int size_of, Alloc alloc, int64_t i);
-			static void* format(Size* size, int size_of, Alloc alloc, uint64_t i);
-			static void* format(Size* size, int size_of, Alloc alloc, float i);
-			static void* format(Size* size, int size_of, Alloc alloc, double i);
-			static String to_string(const void* ptr, uint32_t len, int size_of);
-			static void  strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
-			template <typename Output, typename Input>
-			static void strcpy(Output* o, const Input* i, uint32_t len) {
-				strcpy(o, sizeof(Output), i, sizeof(Input), len);
-			}
-			static uint32_t strlen(const void* s, int size_of);
-			template <typename T>
-			static uint32_t strlen(const T* s) {
-				return strlen(s, sizeof(T));
-			}
-			static int memcmp(const void* s1, const void* s2, uint32_t len, int size_of);
-			// 1 > , -1 <, 0 ==
-			template <typename T>
-			static int memcmp(const T* s1, const T* s2, uint32_t len) {
-				return _Str::memcmp(s1, s2, len, sizeof(T));
-			}
-			static int32_t index_of(
-				const void* s1, uint32_t s1_len,
-				const void* s2, uint32_t s2_len, uint32_t start, int size_of
-			);
-			static int32_t last_index_of(
-				const void* s1, uint32_t s1_len,
-				const void* s2, uint32_t s2_len, uint32_t start, int size_of
-			);
-			static void* replace(
-				const void* s1, uint32_t s1_len,
-				const void* s2, uint32_t s2_len,
-				const void* rep, uint32_t rep_len,
-				int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all, AAlloc realloc
-			);
+		struct Size { uint32_t len; uint32_t capacity; };
+		static cChar ws[8];
+		static bool to_number(const void* i, int sizeof_i, int len_i, int32_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, uint32_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, int64_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, uint64_t* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, float* o);
+		static bool to_number(const void* i, int sizeof_i, int len_i, double* o);
+		static int32_t format_n(char* o, uint32_t len_o, cChar* f, ...);
+		static int32_t format_n(char* o, uint32_t len_o, int32_t i);
+		static int32_t format_n(char* o, uint32_t len_o, uint32_t i);
+		static int32_t format_n(char* o, uint32_t len_o, int64_t i);
+		static int32_t format_n(char* o, uint32_t len_o, uint64_t i);
+		static int32_t format_n(char* o, uint32_t len_o, float i);
+		static int32_t format_n(char* o, uint32_t len_o, double i);
+		static void* format(Size* size, int size_of, Alloc alloc, cChar* f, ...);
+		static void* format(Size* size, int size_of, Alloc alloc, cChar* f, va_list arg);
+		static void* format(Size* size, int size_of, Alloc alloc, int32_t i);
+		static void* format(Size* size, int size_of, Alloc alloc, uint32_t i);
+		static void* format(Size* size, int size_of, Alloc alloc, int64_t i);
+		static void* format(Size* size, int size_of, Alloc alloc, uint64_t i);
+		static void* format(Size* size, int size_of, Alloc alloc, float i);
+		static void* format(Size* size, int size_of, Alloc alloc, double i);
+		static String to_string(const void* ptr, uint32_t len, int size_of);
+		static void  strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
+		template <typename Output, typename Input>
+		static void strcpy(Output* o, const Input* i, uint32_t len) {
+			strcpy(o, sizeof(Output), i, sizeof(Input), len);
+		}
+		static uint32_t strlen(const void* s, int size_of);
+		template <typename T>
+		static uint32_t strlen(const T* s) {
+			return strlen(s, sizeof(T));
+		}
+		static int memcmp(const void* s1, const void* s2, uint32_t len, int size_of);
+		// 1 > , -1 <, 0 ==
+		template <typename T>
+		static int memcmp(const T* s1, const T* s2, uint32_t len) {
+			return _Str::memcmp(s1, s2, len, sizeof(T));
+		}
+		static int32_t index_of(
+			const void* s1, uint32_t s1_len,
+			const void* s2, uint32_t s2_len, uint32_t start, int size_of
+		);
+		static int32_t last_index_of(
+			const void* s1, uint32_t s1_len,
+			const void* s2, uint32_t s2_len, uint32_t start, int size_of
+		);
+		static void* replace(
+			const void* s1, uint32_t s1_len,
+			const void* s2, uint32_t s2_len,
+			const void* rep, uint32_t rep_len,
+			int size_of, uint32_t* out_len, uint32_t* capacity_out, bool all, AAlloc realloc
+		);
 	};
 
 	// --------------------------------------------------------------------------------

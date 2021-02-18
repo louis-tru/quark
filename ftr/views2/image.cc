@@ -83,7 +83,7 @@ public:
 		
 		bool h = raw_limit.width() != _limit.width();
 		bool v = raw_limit.height() != _limit.height();
-		uint child_mark = M_NONE;
+		uint32_t child_mark = M_NONE;
 		
 		if ( h ) {
 			if ( _content_align == ContentAlign::RIGHT ) {
@@ -346,14 +346,14 @@ void Image::set_source(cString& value) {
 /**
  * @func source_width
  */
-uint Image::source_width() const {
+uint32_t Image::source_width() const {
 	return _texture->width();
 }
 
 /**
  * @func source_width
  */
-uint Image::source_height() const {
+uint32_t Image::source_height() const {
 	return _texture->height();
 }
 
