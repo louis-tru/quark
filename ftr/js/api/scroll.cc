@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr/scroll.h"
+#include "../_js.h"
+#include "../_view.h"
+#include "../../views2/scroll.h"
 
 /**
  * @ns ftr::js
@@ -42,7 +42,7 @@ JS_BEGIN
 BasicScroll* self = Wrap<View>::unpack(args.This())->self()->as_basic_scroll()
 
 class WrapBasicScroll {
- public:
+	public:
 
 	/**
 	 * @func scrollTo(scroll[,duration[,curve]])
@@ -367,7 +367,7 @@ class WrapBasicScroll {
 };
 
 class WrapScroll: public WrapViewBase {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

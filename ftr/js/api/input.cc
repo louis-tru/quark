@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr/input.h"
-#include "ftr/textarea.h"
-#include "ftr/scroll.h"
+#include "../_js.h"
+#include "../_view.h"
+#include "../../views2/input.h"
+#include "../../views2/textarea.h"
+#include "../../views2/scroll.h"
 
 /**
  * @ns ftr::js
@@ -41,7 +41,7 @@
 JS_BEGIN
 
 class WrapInput: public WrapViewBase {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

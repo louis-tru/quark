@@ -241,7 +241,7 @@ BackgroundImage::BackgroundImage()
 
 BackgroundImage::~BackgroundImage() {
 	if (_texture) {
-		_texture->FX_OFF(change, &Inl::texture_change_handle, _inl2(this));
+		_texture->FX_Off(change, &Inl::texture_change_handle, _inl2(this));
 		_texture->release(); // 释放纹理
 	}
 }
@@ -279,13 +279,13 @@ void BackgroundImage::set_src_base64(cString& value) {
 void BackgroundImage::set_texture(Texture* value) {
 	if (value != _texture) {
 		if (_texture) {
-			_texture->FX_OFF(change, &Inl::texture_change_handle, _inl2(this));
+			_texture->FX_Off(change, &Inl::texture_change_handle, _inl2(this));
 			_texture->release(); // 释放
 		}
 		_texture = value;
 		if (value) {
 			_texture->retain(); // 保持
-			_texture->FX_ON(change, &Inl::texture_change_handle, _inl2(this));
+			_texture->FX_On(change, &Inl::texture_change_handle, _inl2(this));
 		}
 		mark(View::M_BACKGROUND);
 		_attributes_flags |= BI_flag_texture;

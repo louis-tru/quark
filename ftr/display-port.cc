@@ -106,7 +106,7 @@ namespace ftr {
 			};
 			
 			_host->main_loop()->post(Cb([this](CbData& e){
-				FX_TRIGGER(change); // 通知事件
+				FX_Trigger(change); // 通知事件
 			}));
 		}
 		
@@ -130,8 +130,8 @@ namespace ftr {
 	* @constructor
 	*/
 	DisplayPort::DisplayPort(GUIApplication* host)
-	: FX_INIT_EVENT(change)
-	, FX_INIT_EVENT(orientation)
+	: FX_Init_Event(change)
+	, FX_Init_Event(orientation)
 	, _phy_size()
 	, _lock_size()
 	, _size()
@@ -148,9 +148,9 @@ namespace ftr {
 	{
 		_draw_region.push({ 0,0,0,0,0,0 });
 		// 侦听视口尺寸变化
-		FX_DEBUG("_draw_ctx->FX_ON ...");
-		_draw_ctx->FX_ON(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
-		FX_DEBUG("_draw_ctx->FX_ON ok");
+		FX_DEBUG("_draw_ctx->FX_On ...");
+		_draw_ctx->FX_On(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
+		FX_DEBUG("_draw_ctx->FX_On ok");
 	}
 
 	/**
@@ -158,7 +158,7 @@ namespace ftr {
 	*/
 	DisplayPort::~DisplayPort() {
 		Release(_pre_render);
-		_draw_ctx->FX_OFF(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
+		_draw_ctx->FX_Off(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 	}
 
 	float DisplayPort::best_scale() const {

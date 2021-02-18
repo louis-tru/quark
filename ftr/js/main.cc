@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/ftr.h"
-#include "ftr/app.h"
+#include "./js.h"
+#include "../app.h"
 
 using namespace ftr::js;
 

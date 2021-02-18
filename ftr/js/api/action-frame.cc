@@ -75,7 +75,7 @@ static void set_##Name(Local<JSString> name, Local<JSValue> value, PropertySetCa
  * @class WrapFrame
  */
 class WrapFrame: public WrapObject {
- public: 
+	public: 
 	typedef Frame Type;
 
 	static void constructor(FunctionCall args) {

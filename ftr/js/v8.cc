@@ -30,17 +30,16 @@
 
 #include <v8.h>
 #include <libplatform/libplatform.h>
-#include "ftr/util/util.h"
-#include "ftr/util/http.h"
-#include "ftr/util/string-builder.h"
-#include "ftr/view.h"
-#include "ftr/errno.h"
-#include "js-1.h"
-#include "wrap.h"
-#include "native-inl-js.h"
+#include "../util/util.h"
+#include "../util/http.h"
+// #include "ftr/util/string-builder.h"
+#include "../views2/view.h"
+#include "../errno.h"
+#include "./_js.h"
+#include "./value.h"
+#include <native-inl-js.h>
 #include <uv.h>
-#include "value.h"
-#include "depe/node/src/ftr.h"
+#include <depe/node/src/ftr.h>
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>
@@ -103,9 +102,9 @@ FX_INLINE v8::Local<T> Back(Local<S> o) {
  */
 class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringResource {
 	String _str;
- public:
+	public:
 	V8ExternalOneByteStringResource(cString& value): _str(value) { }
-	virtual cChar* data() const { return *_str; }
+	virtual cChar* data() const { return _str.c_str(); }
 	virtual size_t length() const { return _str.length(); }
 };
 
@@ -114,9 +113,9 @@ class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringR
  */
 class V8ExternalStringResource: public v8::String::ExternalStringResource {
 	Ucs2String _str;
- public:
+	public:
 	V8ExternalStringResource(const Ucs2String& value): _str(value) { }
-	virtual const uint16* data() const { return *_str; }
+	virtual const uint16_t* data() const { return _str.c_str(); }
 	virtual size_t length() const { return _str.length(); }
 };
 
@@ -124,7 +123,7 @@ class V8ExternalStringResource: public v8::String::ExternalStringResource {
  * @class WorkerIMPL
  */
 class WorkerIMPL: public IMPL {
- public:
+	public:
 	struct HandleScopeWrap {
 		v8::HandleScope value;
 		inline HandleScopeWrap(Isolate* isolate): value(isolate) {}
@@ -388,11 +387,11 @@ bool IMPL::SetObjectPrivate(Local<JSObject> object, WrapObject* value) {
  * @class V8JSClass
  */
 class V8JSClass: public JSClassIMPL {
- public:
+	public:
 	V8JSClass(Worker* worker, uint64_t id, cString& name,
 						FunctionCallback constructor, V8JSClass* base,
 						v8::Local<v8::Function> base2 = v8::Local<v8::Function>())
-	: JSClassIMPL(worker, id, name), parent_(base)
+		: JSClassIMPL(worker, id, name), parent_(base)
 	{ //
 		v8::FunctionCallback cb = reinterpret_cast<v8::FunctionCallback>(constructor);
 		v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(ISOLATE(worker), cb);
@@ -426,7 +425,7 @@ class V8JSClass: public JSClassIMPL {
 		return !parent_2_.IsEmpty();
 	}
 	
- private:
+	private:
 	V8JSClass* parent_;
 	v8::Persistent<v8::Function> parent_2_;
 	v8::Persistent<v8::FunctionTemplate> temp_;
@@ -664,7 +663,7 @@ Ucs2String JSValue::ToUcs2StringValue(Worker* worker) const {
 																					 OK(unknown_ucs2));
 	size_t len = JSStringGetLength(*s);
 	const uint16* ptr = JSStringGetCharactersPtr(*s);
-	WeakArrayBuffer<uint16> bf(ptr, uint(len));
+	WeakArrayBuffer<uint16_t> bf(ptr, uint(len));
 	return bf.copy().collapse_string();
 }
 #else
@@ -853,7 +852,7 @@ Local<JSObject> JSFunction::NewInstance(Worker* worker, int argc, Local<JSValue>
 }
 
 int JSArrayBuffer::ByteLength(Worker* worker) const {
-	return (uint)reinterpret_cast<const v8::ArrayBuffer*>(this)->ByteLength();
+	return (uint32_t)reinterpret_cast<const v8::ArrayBuffer*>(this)->ByteLength();
 }
 Char* JSArrayBuffer::Data(Worker* worker) {
 	return (Char*)reinterpret_cast<v8::ArrayBuffer*>(this)->GetContents().Data();
@@ -866,12 +865,12 @@ Local<JSArrayBuffer> JSTypedArray::Buffer(Worker* worker) {
 
 int JSTypedArray::ByteLength(Worker* worker) {
   auto ab = reinterpret_cast<v8::ArrayWeakBuffer*>(this);
-  return (uint)ab->ByteLength();
+  return (uint32_t)ab->ByteLength();
 }
 
 int JSTypedArray::ByteOffset(Worker* worker) {
   auto ab = reinterpret_cast<v8::ArrayWeakBuffer*>(this);
-  return (uint)ab->ByteOffset();
+  return (uint32_t)ab->ByteOffset();
 }
 
 MaybeLocal<JSSet> JSSet::Add(Worker* worker, Local<JSValue> key) {
@@ -1114,7 +1113,7 @@ Local<JSUint32> Worker::New(uint8_t data) {
 	return Cast<JSUint32>(v8::Uint32::New(ISOLATE(this), data));
 }
 
-Local<JSInt32> Worker::New(int16 data) {
+Local<JSInt32> Worker::New(int16_t data) {
 	return Cast<JSInt32>(v8::Int32::New(ISOLATE(this), data));
 }
 
@@ -1180,7 +1179,7 @@ Local<JSArray> Worker::New(Array<FileStat>&& ls) {
 	return Cast<JSArray>(rev);
 }
 
-Local<JSObject> Worker::New(const Map<String, String>& data) {
+Local<JSObject> Worker::New(const std::unordered_map<String, String>& data) {
 	v8::Local<v8::Object> rev = v8::Object::New(ISOLATE(this));
 	{ v8::HandleScope scope(ISOLATE(this));
 		for (auto& i : data) {

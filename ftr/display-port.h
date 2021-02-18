@@ -80,12 +80,12 @@ namespace ftr {
 		/**
 		* @event onchange 显示端口变化事件
 		*/
-		FX_EVENT(change);
+		FX_Event(change);
 
 		/**
 		* @event onorientation 屏幕方向发生改变触发
 		*/
-		FX_EVENT(orientation);
+		FX_Event(orientation);
 		
 		/**
 		* @func phy_size 视口在屏幕上所占的实际物理像素的尺寸

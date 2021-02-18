@@ -291,7 +291,7 @@ Image* Image::create(cString& src) {
  * @destructor
  */
 Image::~Image() {
-	_texture->FX_OFF(change, &Inl::texture_change_handle, _inl(this));
+	_texture->FX_Off(change, &Inl::texture_change_handle, _inl(this));
 	_texture->release(); // 释放纹理
 }
 
@@ -363,11 +363,11 @@ uint32_t Image::source_height() const {
 void Image::set_texture(Texture* value) {
 	ASSERT(value);
 	if (value == _texture) return;
-	_texture->FX_OFF(change, &Image::Inl::texture_change_handle, _inl(this));
+	_texture->FX_Off(change, &Image::Inl::texture_change_handle, _inl(this));
 	_texture->release(); // 释放
 	_texture = value;
 	_texture->retain(); // 保持
-	_texture->FX_ON(change, &Image::Inl::texture_change_handle, _inl(this));
+	_texture->FX_On(change, &Image::Inl::texture_change_handle, _inl(this));
 	mark_pre(M_LAYOUT | M_SIZE_HORIZONTAL | M_SIZE_VERTICAL | M_TEXTURE);
 }
 

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr/layout.h"
+#include "../_js.h"
+#include "../_view.h"
+#include "../../views2/layout.h"
 
 /**
  * @ns ftr::js
@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapLayout
  */
 class WrapLayout: public WrapObject {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);

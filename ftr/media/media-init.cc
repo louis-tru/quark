@@ -34,22 +34,22 @@
 
 namespace ftr {
 
-FX_INIT_BLOCK(media_init) {
+	FX_INIT_BLOCK(media_init) {
 
-	static module_info_t audio_player = {
-		[](void* arg) -> Object* {
-			return new AudioPlayer(arg ? *(String*)arg: String());
-		},
-		typeid(AudioPlayer).hash_code(),
-	};
+		static module_info_t audio_player = {
+			[](void* arg) -> Object* {
+				return new AudioPlayer(arg ? *(String*)arg: String());
+			},
+			typeid(AudioPlayer).hash_code(),
+		};
 
-	static module_info_t video = {
-		[](void* arg) -> Object* { return new Video(); },
-		typeid(Video).hash_code(),
-	};
+		static module_info_t video = {
+			[](void* arg) -> Object* { return new Video(); },
+			typeid(Video).hash_code(),
+		};
 
-	module_audio_player = &audio_player;
-	module_video = &video;
-}
+		module_audio_player = &audio_player;
+		module_video = &video;
+	}
 
 }

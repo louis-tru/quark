@@ -1,10 +1,18 @@
 {
 	'includes': [
-		'ftr/utils/utils.gypi',
+		'ftr/util/util.gypi',
 		'ftr/ftr.gypi',
-		'ftr-js/ftr-js.gypi',
+		'ftr/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
+	],
+
+	'conditions': [
+		['os not in "ios osx" or project=="xcode"', {
+			'includes': [
+				'test/test.gypi',
+			],
+		}],
 	],
 
 	'variables': {
@@ -33,7 +41,7 @@
 	'target_defaults': {
 		'conditions': [
 			['more_log==1', {
-				'defines': [ 'XX_MORE_LOG=1' ],
+				'defines': [ 'FX_MORE_LOG=1' ],
 			}],
 		],
 		'direct_dependent_settings': {
@@ -44,16 +52,6 @@
 	'targets': [
 	{
 		'target_name': 'libftr',
-		'type': 'none',
-		'dependencies': [
-			'ftr',
-			'ftr-js',
-			'ftr-media',
-			'ftr-node',
-		],
-	},
-	{
-		'target_name': 'ftr_mac_dylib',
 		'type': 'none',
 		'dependencies': [
 			'ftr',
@@ -109,9 +107,9 @@
 					],
 					'outputs': [
 						'<(output)/libftr.dylib',
-						'<(output)/libftr-js.dylib',
-						'<(output)/libftr-media.dylib',
-						'<(output)/libftr-node.dylib',
+						# '<(output)/libftr-js.dylib',
+						# '<(output)/libftr-media.dylib',
+						# '<(output)/libftr-node.dylib',
 					],
 					'action': [ 
 						'sh', '-c', 
@@ -124,40 +122,24 @@
 					# 'process_outputs_as_sources': 1,
 				}]
 			}],
-		], # conditions
-	},
-	{
-		'target_name': 'ftr_copy_so', 
-		'type': 'none',
-		'dependencies': [
-			'ftr',
-			'ftr-js',
-			'ftr-media',
-			'ftr-node',
-		],
-		'conditions': [
-			# copy libftr.so to product directory
-			['debug==0 and library_output=="shared_library" and OS!="mac"', {
+			# output not mac shared library for "ftr.so"
+			['library_output=="shared_library" and OS!="mac"', {
+				'product_name': 'ftr',
+				'type': 'shared_library',
+				# 'product_prefix': 'ftr',
+				# 'product_extension': 'so',
 				'copies': [{
 					'destination': '<(ftr_product_dir)/<(ftr_product_so_subdir)',
 					'files': [
 						'<(output)/lib.target/libftr.so',
-						'<(output)/lib.target/libftr-js.so',
-						'<(output)/lib.target/libftr-media.so',
-						'<(output)/lib.target/libftr-node.so',
+						# '<(output)/lib.target/libftr-js.so',
+						# '<(output)/lib.target/libftr-media.so',
+						# '<(output)/lib.target/libftr-node.so',
 					],
-				}], # copies
+				}], # copy libftr.so to product directory
 			}],
 		], # conditions
-	},
+	}
 	],
 
-	'conditions': [
-		['os not in "ios osx" or project=="xcode"', {
-			'includes': [
-				'test/test.gypi',
-			],
-		}],
-	],
-	
 }

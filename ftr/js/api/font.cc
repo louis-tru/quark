@@ -30,7 +30,7 @@
 
 #include "../_view.h"
 #include "../../font/pool.h"
-#include "ftr/draw.h"
+#include "../../draw.h"
 
 /**
  * @ns ftr::js

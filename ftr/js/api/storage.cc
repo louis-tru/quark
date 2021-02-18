@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js.h"
-#include "ftr/util/localstorage.h"
-#include "cb-1.h"
+#include "../js.h"
+#include "./_cb.h"
+#include "../../util/storage.h"
 
 /**
  * @ns ftr::js
@@ -42,7 +42,7 @@ JS_BEGIN
  * @class NativeStorage
  */
 class NativeStorage {
- public:
+	public:
 
 	/**
 	 * @func get(key)

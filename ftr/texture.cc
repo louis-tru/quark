@@ -409,7 +409,7 @@ FX_DEFINE_INLINE_MEMBERS(Texture, Inl) {
 		}
 		_status &= ~(TEXTURE_CHANGE_LEVEL_MASK | TEXTURE_LOADING); // delete mark
 		main_loop()->post(Cb([this, status](CbData& e) {
-			FX_TRIGGER(change, status);
+			FX_Trigger(change, status);
 		}, this));
 	}
 
@@ -497,7 +497,7 @@ Texture::Level Texture::get_texture_level_from_convex_quadrilateral(Vec2 vertex[
 }
 
 Texture::Texture()
-: FX_INIT_EVENT(change)
+: FX_Init_Event(change)
 , _status(TEXTURE_NO_LOADED)
 , _width(0)
 , _height(0)
@@ -577,7 +577,7 @@ bool TextureYUV::load_yuv(cPixelData& data) {
 				_format = data.format();
 				_status = TEXTURE_COMPLETE;
 				main_loop()->post(Cb([this](CbData& e) {
-					FX_TRIGGER(change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
+					FX_Trigger(change, TEXTURE_CHANGE_RELOADED | TEXTURE_CHANGE_LEVEL_MASK);
 				}, this));
 			}
 			return true;
@@ -634,7 +634,7 @@ void FileTexture::load(Level level) {
 		_status = TEXTURE_ERROR;  \
 		FX_ERR(err, *_path); \
 		main_loop()->post(Cb([this](CbData& e) { \
-			FX_TRIGGER(change, TEXTURE_CHANGE_ERROR); \
+			FX_Trigger(change, TEXTURE_CHANGE_ERROR); \
 		}, this)); \
 	}
 	
@@ -770,7 +770,7 @@ FX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
 			_completes.set(evt.sender(), evt.sender()); // 完成后加入完成列表
 			auto sender = static_cast<FileTexture*>(evt.sender());
 			TexturePoolEventData data = { progress(), sender };
-			FX_TRIGGER(change, data);
+			FX_Trigger(change, data);
 		}
 	}
 	
@@ -793,7 +793,7 @@ FX_DEFINE_INLINE_MEMBERS(TexturePool, Inl) {
 	void trigger_change() {
 		main_loop()->post(Cb([this](CbData& e) {
 			TexturePoolEventData data = { progress(), nullptr };
-			FX_TRIGGER(change, data);
+			FX_Trigger(change, data);
 		}));
 	}
 	
@@ -810,7 +810,7 @@ static void set_texture_total_data_size(TexturePool* pool, int size) {
 }
 
 TexturePool::TexturePool(Draw* ctx)
-: FX_INIT_EVENT(change)
+: FX_Init_Event(change)
 , _draw_ctx(ctx)
 , _total_data_size(0)
 {
@@ -842,7 +842,7 @@ FileTexture* TexturePool::get_texture(cString& path) {
 	FileTexture* texture = new FileTexture(pathname);
 	_inl_pool(this)->add_texture_for_pool(texture, pathname);
 	
-	texture->FX_ON(change, &Inl::texture_change_handle, _inl_pool(this));
+	texture->FX_On(change, &Inl::texture_change_handle, _inl_pool(this));
 	
 	return texture;
 }

@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "event-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr/video.h"
-#include "ftr/media-codec.h"
+#include "../_js.h"
+#include "./_event.h"
+#include "./_view.h"
+#include "../../views2/video.h"
+#include "../../media/media-codec.h"
 
 /**
  * @ns ftr::js
@@ -49,7 +49,7 @@ extern Local<JSValue> inl_track_to_jsvalue(const TrackInfo* track, Worker* worke
  * @class WrapVideo
  */
 class WrapVideo: public WrapViewBase {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

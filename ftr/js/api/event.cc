@@ -58,7 +58,7 @@ Local<JSValue> Cast::cast(const Object& object, Worker* worker) {
 typedef Event<> NativeEvent;
 
 class WrapNativeEvent: public WrapObject {
- public:
+	public:
 	typedef Event<> Type;
 	
 	static void constructor(FunctionCall args) {
@@ -144,7 +144,7 @@ class WrapNativeEvent: public WrapObject {
 		self->return_value = value->ToInt32Value(worker);
 	}
 	
- public:
+	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_NEW_CLASS(NativeEvent, constructor, {
 			JS_SET_CLASS_ACCESSOR(noticer, noticer);
@@ -164,7 +164,7 @@ class WrapNativeEvent: public WrapObject {
  * @class WrapGUIEvent
  */
 class WrapGUIEvent: public WrapObject {
- public:
+	public:
 	typedef GUIEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -249,7 +249,7 @@ class WrapGUIEvent: public WrapObject {
  * @class WrapGUIActionEvent
  */
 class WrapGUIActionEvent: public WrapObject {
- public:
+	public:
 	typedef GUIActionEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -313,7 +313,7 @@ class WrapGUIActionEvent: public WrapObject {
  * @class WrapGUIKeyEvent
  */
 class WrapGUIKeyEvent: public WrapObject {
- public:
+	public:
 	typedef GUIKeyEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -452,7 +452,7 @@ class WrapGUIKeyEvent: public WrapObject {
  * @class WrapGUIClickEvent
  */
 class WrapGUIClickEvent: public WrapObject {
- public:
+	public:
 	typedef GUIClickEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -511,7 +511,7 @@ class WrapGUIClickEvent: public WrapObject {
  * @class WrapGUIHighlightedEvent
  */
 class WrapGUIHighlightedEvent: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -539,7 +539,7 @@ class WrapGUIHighlightedEvent: public WrapObject {
  * @class GUIMouseEvent
  */
 class WrapGUIMouseEvent: public WrapObject {
- public:
+	public:
 	typedef GUIMouseEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -573,7 +573,7 @@ class WrapGUIMouseEvent: public WrapObject {
  * @class WrapGUITouchEvent
  */
 class WrapGUITouchEvent: public WrapObject {
- public:
+	public:
 	typedef GUITouchEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -636,7 +636,7 @@ class WrapGUITouchEvent: public WrapObject {
  * @class WrapGUISwitchEvent
  */
 class WrapGUIFocusMoveEvent: public WrapObject {
- public:
+	public:
 	typedef GUIFocusMoveEvent Type;
 	
 	static void constructor(FunctionCall args) {
@@ -683,7 +683,7 @@ class WrapGUIFocusMoveEvent: public WrapObject {
 };
 
 class BindingNativeEvent {
- public:
+	public:
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->runNativeScript(WeakBuffer((Char*)

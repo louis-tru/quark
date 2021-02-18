@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr/text-node.h"
+#include "../_js.h"
+#include "../_view.h"
+#include "../../views2/text-node.h"
 
 /**
  * @ns ftr::js
@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapTextNode
  */
 class WrapTextNode: public WrapViewBase {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

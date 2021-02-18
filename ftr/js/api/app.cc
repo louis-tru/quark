@@ -58,7 +58,7 @@ typedef GUIApplication NativeGUIApplication;
  * @class WrapNativeGUIApplication
  */
 class WrapNativeGUIApplication: public WrapObject {
- public: 
+	public: 
 	typedef GUIApplication Type;
 
 	/**
@@ -113,10 +113,10 @@ class WrapNativeGUIApplication: public WrapObject {
 	
 	void memorywarning_handle(Event<>& evt) {
 		worker()->garbageCollection(); // 清理内存
-#if FX_MEMORY_TRACE_MARK
-		uint32_t count = Object::mark_objects_count();
-		LOG("All unrelease heap objects count: %d", count);
-#endif
+		#if FX_MEMORY_TRACE_MARK
+			uint32_t count = Object::mark_objects_count();
+			LOG("All unrelease heap objects count: %d", count);
+		#endif
 	}
 
 	/**
@@ -137,7 +137,7 @@ class WrapNativeGUIApplication: public WrapObject {
 			Handle<GUIApplication> h = new GUIApplication();
 			h->initialize(options);
 			auto app = h.collapse();
-			app->FX_ON(Memorywarning,
+			app->FX_On(Memorywarning,
 								 &WrapNativeGUIApplication::memorywarning_handle,
 								 reinterpret_cast<WrapNativeGUIApplication*>(wrap));
 			app->run_loop_detach(); // run gui loop

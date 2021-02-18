@@ -31,7 +31,7 @@
 #ifndef __ftr__js__strs__
 #define __ftr__js__strs__
 
-#include "ftr-js/js.h"
+#include "./js.h"
 
 #define js_common_string(F)  \
 F(global)         F(exports)        F(constructor) \
@@ -62,13 +62,13 @@ JS_BEGIN
  * @class CommonStrings
  */
 class FX_EXPORT CommonStrings: public Object {
- public:
+	public:
 	CommonStrings(Worker* worker);
- #define js_def_persistent_string(name) \
- public: Local<JSValue> name() { \
+	#define js_def_persistent_string(name) \
+		public: Local<JSValue> name() { \
 		auto r = reinterpret_cast<Local<JSValue>*>(&__##name##_$_); return *r; } \
- private: Persistent<JSValue> __##name##_$_;
- private:
+		private: Persistent<JSValue> __##name##_$_;
+	private:
 	Worker* _worker;
 	js_def_persistent_string(Throw)
 	js_common_string(js_def_persistent_string);

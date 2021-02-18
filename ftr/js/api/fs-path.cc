@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/fs.h"
-#include "ftr-js/js.h"
+#include "../../util/fs.h"
+#include "../js.h"
 
 /**
  * @ns ftr::js
@@ -41,7 +41,7 @@ JS_BEGIN
  * @class NativePath
  */
 class NativePath {
- public:
+	public:
 
 	/**
 	 * @func executable()

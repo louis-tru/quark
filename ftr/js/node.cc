@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr/util/loop.h"
-#include "ftr/util/codec.h"
-#include "depe/node/src/ftr.h"
+#include "./_js.h"
+#include "../../util/loop.h"
+#include "../../util/codec.h"
+#include <depe/node/src/ftr.h>
 
 namespace node {
 

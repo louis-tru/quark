@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/ftr.h"
-#include "ftr/media-codec.h"
+#include "../_view.h"
+#include "../../media/media-codec.h"
 
 /**
  * @ns ftr::js
@@ -44,8 +44,8 @@ void binding_video(Local<JSObject> exports, Worker* worker);
  * @class NativeMedia
  */
 class NativeMedia {
- public:
-  static void binding(Local<JSObject> exports, Worker* worker) {
+	public:
+	static void binding(Local<JSObject> exports, Worker* worker) {
 		if (!initialize_media())
 			JS_THROW_ERR("binding or initialize media library fail");
 

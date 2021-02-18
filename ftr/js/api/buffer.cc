@@ -42,7 +42,7 @@ JS_BEGIN
  * @class NativeBuffer
  */
 class NativeBuffer {
- public:
+	public:
 	
 	/**
 	 * @func parseEncoding()

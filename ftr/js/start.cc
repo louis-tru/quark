@@ -1,4 +1,4 @@
-/* ***** BEGIN LICENSE BLOCK *****
+	/* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
  * Copyright (c) 2015, xuewen.chu
@@ -28,16 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_js.h"
+#include "./js.h"
 #include "../app.h"
-#include "../view.h"
-#include "./ftr.h"
-#include "../util/http.h"
-#include "./binding/event-1.h"
-#include "../../android/android.h"
-#include <native-inl-js.h>
-#include <depe/node/src/ftr.h>
-#include <uv.h>
+#include <vector>
 
 #if FX_UNIX
 # include <dlfcn.h>
@@ -45,103 +38,16 @@
 
 extern int (*__fx_default_gui_main)(int, Char**);
 
-/**
- * @ns ftr::js
- */
-
 JS_BEGIN
-
-void WrapViewBase::destroy() {
-	GUILock lock;
-	delete this;
-}
-
-template<class T, class Self>
-static void addEventListener_1(
-	Wrap<Self>* wrap, const GUIEventName& type, cString& func, int id, Cast* cast = nullptr) 
-{
-	auto f = [wrap, func, cast](typename Self::EventType& evt) {
-		auto worker = wrap->worker();
-		JS_HANDLE_SCOPE();
-		JS_CALLBACK_SCOPE();
-
-		// arg event
-		Wrap<T>* ev = Wrap<T>::pack(static_cast<T*>(&evt), JS_TYPEID(T));
-		if (cast) 
-			ev->setPrivateData(cast); // set data cast func
-		Local<JSValue> args[2] = { ev->that(), worker->New(true) };
-		
-		DLOG("addEventListener_1, %s, EventType: %s", *func, *evt.name());
-
-		// call js trigger func
-		Local<JSValue> r = wrap->call( worker->New(func,1), 2, args );
-	};
-	
-	Self* self = wrap->self();
-	self->add_event_listener(type, f, id);
-}
-
-bool WrapViewBase::addEventListener(cString& name_s, cString& func, int id)
-{
-	auto i = GUI_EVENT_TABLE.find(name_s);
-	if ( i.is_null() ) {
-		return false;
-	}
-	GUIEventName name = i.value();
-	auto wrap = reinterpret_cast<Wrap<View>*>(this);
-  
-	switch ( name.category() ) {
-		case GUI_EVENT_CATEGORY_CLICK:
-			addEventListener_1<GUIClickEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_KEYBOARD:
-			addEventListener_1<GUIKeyEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_MOUSE:
-		 addEventListener_1<GUIMouseEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_TOUCH:
-			addEventListener_1<GUITouchEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_HIGHLIGHTED:
-			addEventListener_1<GUIHighlightedEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_ACTION:
-			addEventListener_1<GUIActionEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_FOCUS_MOVE:
-			addEventListener_1<GUIFocusMoveEvent>(wrap, name, func, id); break;
-		case GUI_EVENT_CATEGORY_ERROR:
-			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Error>()); break;
-		case GUI_EVENT_CATEGORY_FLOAT:
-			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Float>()); break;
-		case GUI_EVENT_CATEGORY_UINT64:
-			addEventListener_1<GUIEvent>(wrap, name, func, id, Cast::Entity<Uint64>()); break;
-		case GUI_EVENT_CATEGORY_DEFAULT:
-			addEventListener_1<GUIEvent>(wrap, name, func, id); break;
-		default:
-			return false;
-	}
-	return true;
-}
-
-bool WrapViewBase::removeEventListener(cString& name, int id) {
-	auto i = GUI_EVENT_TABLE.find(name);
-	if ( i.is_null() ) {
-		return false;
-	}
-	
-	DLOG("removeEventListener, name:%s, id:%d", *name, id);
-	
-	auto wrap = reinterpret_cast<Wrap<View>*>(this);
-	wrap->self()->remove_event_listener(i.value(), id); // off event listener
-	return true;
-}
-
-// -------------------------------------------------------------------------------------
 
 void* object_allocator_alloc(size_t size);
 void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
 // startup argv
-Array<Char*>* __fx_ftr_argv = nullptr;
-int           __fx_ftr_have_node = 1;
-int           __fx_ftr_have_debug = 0;
+std::vector<Char*>* __fx_ftr_argv = nullptr;
+int __fx_ftr_have_node = 1;
+int __fx_ftr_have_debug = 0;
 
 // parse argv
 static void parseArgv(const Array<String> argv_in, Array<Char*>& argv, Array<Char*>& ftr_argv) {
@@ -214,17 +120,15 @@ int Start(const Array<String>& argv_in) {
 	static int is_start_initializ = 0;
 	if ( is_start_initializ++ == 0 ) {
 		HttpHelper::initialize();
-		ObjectAllocator allocator = {
-			object_allocator_alloc, object_allocator_release, object_allocator_retain,
-		};
-		ftr::set_object_allocator(&allocator);
+		Object::set_object_allocator(
+			&object_allocator_alloc, &object_allocator_release, &object_allocator_retain);
 	}
 	ASSERT(!__fx_ftr_argv);
 
 	Array<Char*> argv, ftr_argv;
 	parseArgv(argv_in, argv, ftr_argv);
 
-	Thread::FX_ON(ProcessSafeExit, on_process_safe_handle);
+	Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
 
 	__fx_ftr_argv = &ftr_argv;
 	int rc = 0;
@@ -238,19 +142,19 @@ int Start(const Array<String>& argv_in) {
 		if (node::node_api) {
 			rc = node::node_api->start(argc, argv_c);
 		} else {
-#if FX_LINUX
-			// try loading nxnode
-			void* handle = dlopen("libftr-node.so", RTLD_LAZY | RTLD_GLOBAL);
-			if (!handle) {
-				FX_WARN("No node library loaded, %s", dlerror());
+			#if FX_LINUX
+				// try loading nxnode
+				void* handle = dlopen("libftr-node.so", RTLD_LAZY | RTLD_GLOBAL);
+				if (!handle) {
+					FX_WARN("No node library loaded, %s", dlerror());
+					goto no_node_start;
+				} else {
+					rc = node::node_api->start(argc, argv_c);
+				}
+			#else
+				FX_WARN("No node library loaded");
 				goto no_node_start;
-			} else {
-				rc = node::node_api->start(argc, argv_c);
-			}
-#else
-			FX_WARN("No node library loaded");
-			goto no_node_start;
-#endif
+			#endif
 		}
 	} else {
 	 no_node_start:
@@ -258,7 +162,7 @@ int Start(const Array<String>& argv_in) {
 		rc = IMPL::start(argc, argv_c);
 	}
 	__fx_ftr_argv = nullptr;
-	Thread::FX_OFF(ProcessSafeExit, on_process_safe_handle);
+	Thread::FX_Off(ProcessSafeExit, on_process_safe_handle);
 
 	return rc;
 }
@@ -277,10 +181,10 @@ int Start(int argc, Char** argv) {
 int __default_main(int argc, Char** argv) {
 	String cmd;
 
-#if FX_ANDROID
-	cmd = Android::start_cmd();
-	if ( cmd.is_empty() )
-#endif 
+	#if FX_ANDROID
+		cmd = Android::start_cmd();
+		if ( cmd.is_empty() )
+	#endif 
 	{
 		FileReader* reader = FileReader::shared();
 		String index = Path::resources("index");
@@ -305,5 +209,3 @@ int __default_main(int argc, Char** argv) {
 FX_INIT_BLOCK(__default_main) {
 	__fx_default_gui_main = __default_main;
 }
-
-JS_END

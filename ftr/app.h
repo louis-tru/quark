@@ -90,13 +90,13 @@ namespace ftr {
 		FX_HIDDEN_ALL_COPY(GUIApplication);
 		public:
 
-		FX_EVENT(Load);
-		FX_EVENT(Unload);
-		FX_EVENT(Background);
-		FX_EVENT(Foreground);
-		FX_EVENT(Pause);
-		FX_EVENT(Resume);
-		FX_EVENT(Memorywarning);
+		FX_Event(Load);
+		FX_Event(Unload);
+		FX_Event(Background);
+		FX_Event(Foreground);
+		FX_Event(Pause);
+		FX_Event(Resume);
+		FX_Event(Memorywarning);
 
 		GUIApplication();
 		

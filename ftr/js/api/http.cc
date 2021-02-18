@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/http.h"
-#include "ftr-js/wrap.h"
-#include "cb-1.h"
+#include "../../util/http.h"
+#include "../js.h"
+#include "./_cb.h"
 
 /**
  * @ns ftr::js
@@ -55,7 +55,7 @@ typedef HttpClientRequest NativeHttpClientRequest;
  * @class WrapNativeHttpClientRequest
  */
 class WrapNativeHttpClientRequest: public WrapObject {
- public: 
+	public:
 	typedef HttpClientRequest Type;
 	
 	class Delegate: public Object, public HttpClientRequest::Delegate {
@@ -679,7 +679,7 @@ class WrapNativeHttpClientRequest: public WrapObject {
  * @class NativeHttp
  */
 class NativeHttp {
-public:
+	public:
 	typedef HttpHelper::RequestOptions RequestOptions;
 
 	static bool get_options(Worker* worker, Local<JSValue> arg, RequestOptions& opt) {
@@ -913,59 +913,59 @@ public:
 		HttpHelper::clear_cookie();
 	}
 
-// /**
-//  * @func ssl_cacert_file()
-//  * @ret {String} return cacert file path
-//  */
-// static void ssl_cacert_file(FunctionCall args) {
-// 	JS_WORKER(args);
-// 	JS_RETURN( HttpHelper::ssl_cacert_file() );
-// }
-// 
-//  /**
-//   * @func ssl_cacert_file(path)
-//   * @arg path {String}
-//   */
-//  static void set_ssl_cacert_file(FunctionCall args) {
-//    JS_WORKER(args);
-//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-//      JS_THROW_ERR(
-//        "* @func sslCacertFile(path)\n"
-//        "* @arg path {String}\n"
-//      );
-//    }
-//    HttpHelper::set_ssl_cacert_file( args[0]->ToStringValue(worker) );
-//  }
-//
-//  /**
-//   * @func set_ssl_client_key_file(path)
-//   * @arg path {String}
-//   */
-//  static void set_ssl_client_key_file(FunctionCall args) {
-//    JS_WORKER(args);
-//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-//      JS_THROW_ERR(
-//        "* @func setSslClientKeyfile(path)\n"
-//        "* @arg path {String}\n"
-//      );
-//    }
-//    HttpHelper::set_ssl_client_key_file( args[0]->ToStringValue(worker) );
-//  }
-//
-//  /**
-//   * @func set_ssl_client_keypasswd(password)
-//   * @arg password {String}
-//   */
-//  static void set_ssl_client_keypasswd(FunctionCall args) {
-//    JS_WORKER(args);
-//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
-//      JS_THROW_ERR(
-//        "* @func setSslClientKeypasswd(password)\n"
-//        "* @arg password {String}\n"
-//      );
-//    }
-//    HttpHelper::set_ssl_client_keypasswd( args[0]->ToStringValue(worker) );
-//  }
+	// /**
+	//  * @func ssl_cacert_file()
+	//  * @ret {String} return cacert file path
+	//  */
+	// static void ssl_cacert_file(FunctionCall args) {
+	// 	JS_WORKER(args);
+	// 	JS_RETURN( HttpHelper::ssl_cacert_file() );
+	// }
+	// 
+	//  /**
+	//   * @func ssl_cacert_file(path)
+	//   * @arg path {String}
+	//   */
+	//  static void set_ssl_cacert_file(FunctionCall args) {
+	//    JS_WORKER(args);
+	//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
+	//      JS_THROW_ERR(
+	//        "* @func sslCacertFile(path)\n"
+	//        "* @arg path {String}\n"
+	//      );
+	//    }
+	//    HttpHelper::set_ssl_cacert_file( args[0]->ToStringValue(worker) );
+	//  }
+	//
+	//  /**
+	//   * @func set_ssl_client_key_file(path)
+	//   * @arg path {String}
+	//   */
+	//  static void set_ssl_client_key_file(FunctionCall args) {
+	//    JS_WORKER(args);
+	//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
+	//      JS_THROW_ERR(
+	//        "* @func setSslClientKeyfile(path)\n"
+	//        "* @arg path {String}\n"
+	//      );
+	//    }
+	//    HttpHelper::set_ssl_client_key_file( args[0]->ToStringValue(worker) );
+	//  }
+	//
+	//  /**
+	//   * @func set_ssl_client_keypasswd(password)
+	//   * @arg password {String}
+	//   */
+	//  static void set_ssl_client_keypasswd(FunctionCall args) {
+	//    JS_WORKER(args);
+	//    if (args.Length() == 0 || !args[0]->IsString(worker)) {
+	//      JS_THROW_ERR(
+	//        "* @func setSslClientKeypasswd(password)\n"
+	//        "* @arg password {String}\n"
+	//      );
+	//    }
+	//    HttpHelper::set_ssl_client_keypasswd( args[0]->ToStringValue(worker) );
+	//  }
 
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_buffer");

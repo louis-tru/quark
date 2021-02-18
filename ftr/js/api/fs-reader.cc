@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/fs.h"
-#include "ftr-js/js.h"
-#include "ftr-js/string.h"
-#include "ftr/util/codec.h"
-#include "cb-1.h"
-#include "fs-1.h"
+#include "../../util/fs.h"
+#include "../js.h"
+#include "../str.h"
+#include "../../util/codec.h"
+#include "./_cb.h"
+#include "./_fs.h"
 
 /**
  * @ns ftr::js
@@ -42,7 +42,7 @@
 JS_BEGIN
 
 class NativeFileReader {
- public:
+	public:
 	
 	/**
 	 * @func readStream(cb,path)

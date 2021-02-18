@@ -56,7 +56,7 @@ Draw* Draw::_draw_ctx = nullptr; // 当前GL上下文
  * @constructor
  */
 Draw::Draw(GUIApplication* host, cJSON& options)
-: FX_INIT_EVENT(surface_size_change_r)
+: FX_Init_Event(surface_size_change_r)
 , _host(host)
 , _multisample(0)
 , _empty_texture( NewRetain<TextureEmpty>() )
@@ -95,7 +95,7 @@ bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
 		_surface_size = surface_size;
 		_selected_region = region;
 		refresh_buffer();
-		FX_TRIGGER(surface_size_change_r);
+		FX_Trigger(surface_size_change_r);
 		return true;
 	}
 	return false;

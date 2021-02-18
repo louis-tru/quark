@@ -217,7 +217,7 @@ namespace ftr {
 
 					if ( targger_orientation ) { // 触发方向变化事件
 						application->_host->main_loop()->post(Cb([](CbData& e) {
-							application->_host->display_port()->FX_TRIGGER(orientation);
+							application->_host->display_port()->FX_Trigger(orientation);
 						}));
 					}
 					ev.data->complete();
@@ -624,7 +624,7 @@ namespace ftr {
 
 		FX_EXPORT void Java_org_ftr_FtrActivity_onStatucBarVisibleChange(JNIEnv* env, jclass clazz) {
 			application->host()->main_loop()->post(Cb([](CbData& ev){
-				application->host()->display_port()->FX_TRIGGER(change);
+				application->host()->display_port()->FX_Trigger(change);
 			}));
 		}
 

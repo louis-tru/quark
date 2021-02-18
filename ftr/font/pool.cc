@@ -422,7 +422,7 @@ namespace ftr {
 		FT_Done_FreeType((FT_Library)_ft_lib); _ft_lib = nullptr;
 		
 		if ( _display_port ) {
-			_display_port->FX_OFF(change, &Inl::display_port_change_handle, _inl_pool(this));
+			_display_port->FX_Off(change, &Inl::display_port_change_handle, _inl_pool(this));
 		}
 	}
 
@@ -651,7 +651,7 @@ namespace ftr {
 	*/
 	void FontPool::set_display_port(DisplayPort* display_port) {
 		ASSERT(!_display_port);
-		display_port->FX_ON(change, &Inl::display_port_change_handle, _inl_pool(this));
+		display_port->FX_On(change, &Inl::display_port_change_handle, _inl_pool(this));
 		_display_port = display_port;
 	}
 

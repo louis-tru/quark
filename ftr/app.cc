@@ -101,7 +101,7 @@ void AppInl::refresh_display() {
 void AppInl::triggerLoad() {
 	if (!_is_load) {
 		_is_load = true;
-		_main_loop->post(Cb([&](CbData& d) { GUILock lock; FX_TRIGGER(Load); }));
+		_main_loop->post(Cb([&](CbData& d) { GUILock lock; FX_Trigger(Load); }));
 	}
 }
 
@@ -110,24 +110,24 @@ void AppInl::triggerRender() {
 }
 
 void AppInl::triggerPause() {
-	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Pause); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Pause); }));
 }
 
 void AppInl::triggerResume() {
-	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Resume); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Resume); }));
 }
 
 void AppInl::triggerBackground() {
-	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Background); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Background); }));
 }
 
 void AppInl::triggerForeground() {
-	_main_loop->post(Cb([&](CbData& d) { FX_TRIGGER(Foreground); }));
+	_main_loop->post(Cb([&](CbData& d) { FX_Trigger(Foreground); }));
 }
 
 void AppInl::triggerMemorywarning() {
 	clear();
-	_main_loop->post(Cb([&](CbData&){ FX_TRIGGER(Memorywarning); }));
+	_main_loop->post(Cb([&](CbData&){ FX_Trigger(Memorywarning); }));
 }
 
 void AppInl::triggerUnload() {
@@ -136,7 +136,7 @@ void AppInl::triggerUnload() {
 		typedef Callback<RunLoop::PostSyncData> Cb;
 		_main_loop->post_sync(Cb([&](Cb::Data& d) {
 			DLOG("AppInl::onUnload()");
-			FX_TRIGGER(Unload);
+			FX_Trigger(Unload);
 			if (_root) {
 				GUILock lock;
 				_root->remove();
@@ -256,13 +256,13 @@ int AppInl::onExit(int code) {
 }
 
 GUIApplication::GUIApplication()
-: FX_INIT_EVENT(Load)
-, FX_INIT_EVENT(Unload)
-, FX_INIT_EVENT(Background)
-, FX_INIT_EVENT(Foreground)
-, FX_INIT_EVENT(Pause)
-, FX_INIT_EVENT(Resume)
-, FX_INIT_EVENT(Memorywarning)
+: FX_Init_Event(Load)
+, FX_Init_Event(Unload)
+, FX_Init_Event(Background)
+, FX_Init_Event(Foreground)
+, FX_Init_Event(Pause)
+, FX_Init_Event(Resume)
+, FX_Init_Event(Memorywarning)
 , _is_run(false)
 , _is_load(false)
 , _render_loop(nullptr)
@@ -287,7 +287,7 @@ GUIApplication::GUIApplication()
 , _action_center(nullptr)
 {
 	_main_keep = _main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
-	Thread::FX_ON(ProcessSafeExit, on_process_safe_handle);
+	Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
 }
 
 GUIApplication::~GUIApplication() {
@@ -311,7 +311,7 @@ GUIApplication::~GUIApplication() {
 	_main_loop = nullptr;
 	_shared = nullptr;
 
-	Thread::FX_OFF(ProcessSafeExit, on_process_safe_handle);
+	Thread::FX_Off(ProcessSafeExit, on_process_safe_handle);
 }
 
 /**

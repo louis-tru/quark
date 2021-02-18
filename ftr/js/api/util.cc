@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/string.h"
-#include "ftr/util/fs.h"
-#include "ftr/sys.h"
-#include "ftr/util/loop.h"
-#include "ftr-js/ftr.h"
+#include "../../util/string.h"
+#include "../../util/fs.h"
+#include "../../util/os.h"
+#include "../../util/loop.h"
+#include "./_view.h"
 //#include "ftr/util/jsx.h"
-#include "native-ext-js.h"
+#include <native-ext-js.h>
 
 /**
  * @ns ftr::js
@@ -51,7 +51,7 @@ extern int __fx_ftr_have_debug;
 typedef Object NativeObject;
 
 class WrapNativeObject: public WrapObject {
- public:
+	public:
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
 		New<WrapNativeObject>(args, new NativeObject());
@@ -67,7 +67,7 @@ class WrapNativeObject: public WrapObject {
  * @class WrapSimpleHash
  */
 class WrapSimpleHash: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		New<WrapSimpleHash>(args, new SimpleHash());
@@ -126,7 +126,7 @@ class WrapSimpleHash: public WrapObject {
  * @class NativeUtil
  */
 class NativeUtil {
- public:
+	public:
 
 	static SimpleHash get_hash_code(FunctionCall args) {
 		JS_WORKER(args);
@@ -209,11 +209,11 @@ class NativeUtil {
 	static void garbageCollection(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
 		worker->garbageCollection();
-#if FX_MEMORY_TRACE_MARK
-		std::vector<Object*> objs = Object::mark_objects();
-		Object** objs2 = &objs[0];
-		LOG("All unrelease heap objects count: %d", objs.size());
-#endif
+		#if FX_MEMORY_TRACE_MARK
+			std::vector<Object*> objs = Object::mark_objects();
+			Object** objs2 = &objs[0];
+			LOG("All unrelease heap objects count: %d", objs.size());
+		#endif
 	}
 	
 	static void runScript(FunctionCall args) {

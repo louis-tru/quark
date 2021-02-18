@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapAction
  */
 class WrapAction: public WrapObject {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
@@ -284,7 +284,7 @@ class WrapAction: public WrapObject {
  * @class WrapGroupAction
  */
 class WrapGroupAction: public WrapObject {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
@@ -389,7 +389,7 @@ class WrapGroupAction: public WrapObject {
  * @class WrapSpawnAction
  */
 class WrapSpawnAction: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -407,7 +407,7 @@ class WrapSpawnAction: public WrapObject {
  * @class WrapSequenceAction
  */
 class WrapSequenceAction: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -427,7 +427,7 @@ typedef KeyframeAction::Frame Frame;
  * @class WrapKeyframeAction
  */
 class WrapKeyframeAction: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -627,7 +627,7 @@ void binding_frame(Local<JSObject> exports, Worker* worker);
  * @class NativeAction
  */
 class BindingAction {
- public:
+	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		worker->bindingModule("_value");
 

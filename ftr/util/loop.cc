@@ -187,7 +187,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 			}
 
 			DLOG("Inl::exit(), 0");
-			rc = Thread::FX_TRIGGER(ProcessSafeExit, Event<>(Int32(rc), std::move(rc)));
+			rc = Thread::FX_Trigger(ProcessSafeExit, Event<>(Int32(rc), std::move(rc)));
 			DLOG("Inl::exit(), 1");
 
 			Release(keep); keep = nullptr;

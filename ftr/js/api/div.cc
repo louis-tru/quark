@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapDiv
  */
 class WrapDiv: public WrapViewBase {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

@@ -28,20 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/string.h"
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr-js/value.h"
-#include "ftr/font.h"
-#include "ftr/draw.h"
-#include "native-inl-js.h"
+#include "./str.h"
+#include "./_js.h"
+#include "./api/_view.h"
+#include "./value.h"
+#include "../font/font.h"
+#include "../draw.h"
+#include <native-inl-js.h>
 
 /**
  * @ns ftr::js
  */
 
 JS_BEGIN
-
 
 ValueProgram::ValueProgram(Worker* worker,
 												 Local<JSObject> exports,

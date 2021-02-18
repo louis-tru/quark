@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "json-1.h"
-#include "ftr-js/string.h"
-#include "ftr-js/ftr.h"
-#include "ftr/view.h"
+#include "./_json.h"
+#include "../str.h"
+#include "../_view.h"
+#include "../../views2/view.h"
 
 /**
  * @ns ftr::js
@@ -82,15 +82,15 @@ class InlJSON {
 			_indent += 2;
 			for (int i = 0, j = 0; i < names->Length(worker); i++) {
 				Local<JSValue> key = names->Get(worker, i);
-        if (j > 0) _rv->push(Comma); // ,
-        _rv->push(Newline); push_indent();
-        //  _rv->push(Quotes);
-        _rv->push(key->ToStringValue(worker));
-        //  _rv->push(Quotes);
-        _rv->push(COLON); _rv->push(Space);
-        bool rv = stringify( arg->Get(worker, key), false ); // value
-        if ( ! rv ) return false;
-        j++;
+				if (j > 0) _rv->push(Comma); // ,
+				_rv->push(Newline); push_indent();
+				//  _rv->push(Quotes);
+				_rv->push(key->ToStringValue(worker));
+				//  _rv->push(Quotes);
+				_rv->push(COLON); _rv->push(Space);
+				bool rv = stringify( arg->Get(worker, key), false ); // value
+				if ( ! rv ) return false;
+				j++;
 			}
 			_indent -= 2;
 			_rv->push(Newline); push_indent();
@@ -146,15 +146,15 @@ class InlJSON {
 			_indent += 2;
 			for (int i = 0, j = 0; i < names->Length(worker); i++) {
 				Local<JSValue> key = names->Get(worker, i);
-        if (j > 0) _rv->push(Comma); // ,
-        _rv->push(Newline); push_indent();
-        //  _rv->push(Quotes);
-        _rv->push(key->ToStringValue(worker));
-        //  _rv->push(Quotes);
-        _rv->push(COLON); _rv->push(Space);
-        bool rv = stringify( arg->Get(worker, key), true ); // value
-        if ( ! rv ) return false;
-        j++;
+				if (j > 0) _rv->push(Comma); // ,
+				_rv->push(Newline); push_indent();
+				//  _rv->push(Quotes);
+				_rv->push(key->ToStringValue(worker));
+				//  _rv->push(Quotes);
+				_rv->push(COLON); _rv->push(Space);
+				bool rv = stringify( arg->Get(worker, key), true ); // value
+				if ( ! rv ) return false;
+				j++;
 			}
 			_indent -= 2;
 			_rv->push(Newline); push_indent();
@@ -209,15 +209,15 @@ class InlJSON {
 					_rv->push( Circular ); return true;
 				}
 
-        if ( _set.local()->Add(worker, o).IsEmpty() ) return false;
-        
+				if ( _set.local()->Add(worker, o).IsEmpty() ) return false;
+				
 				if (arg->IsArray(worker)) {
 					rv = stringify_array(o.To<JSArray>());
 				} else {
 					rv = stringify_object(o);
 				}
 
-        return _set.local()->Delete(worker, o).FromMaybe(false);
+				return _set.local()->Delete(worker, o).FromMaybe(false);
 			}
 		}
 		else if(arg->IsInt32(worker)) {
@@ -249,14 +249,14 @@ class InlJSON {
 		return true;
 	}
 	
- public:
+	public:
 	InlJSON(Worker* worker) : _indent(0), _rv(NULL), worker(worker) {
-    _set.Reset(worker, worker->NewSet());
+		_set.Reset(worker, worker->NewSet());
 	}
-  
-  ~InlJSON() {
-    _set.Reset();
-  }
+	
+	~InlJSON() {
+		_set.Reset();
+	}
 
 	bool stringify_console_styled(Local<JSValue> arg, StringBuilder* out) {
 		HandleScope scope(worker);

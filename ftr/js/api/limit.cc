@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr/limit.h"
-#include "ftr/limit-indep.h"
+#include "../_js.h"
+#include "../_view.h"
+#include "../../views2/limit.h"
+#include "../../views2/limit-indep.h"
 
 /**
  * @ns ftr::js
@@ -40,7 +40,7 @@
 JS_BEGIN
 
 template<class T> class WrapLimit: public WrapViewBase {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -97,7 +97,7 @@ template<class T> class WrapLimit: public WrapViewBase {
  * @class WrapLimitDiv
  */
 class WrapLimitDiv: public WrapLimit<Limit> {
- public:
+	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(Limit, constructor, {
 			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);
@@ -113,7 +113,7 @@ class WrapLimitDiv: public WrapLimit<Limit> {
  * @class WrapLimitIndep
  */
 class WrapLimitIndep: public WrapLimit<LimitIndep> {
- public:
+	public:
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_DEFINE_CLASS(LimitIndep, constructor, {
 			JS_SET_CLASS_ACCESSOR(minWidth, min_width, set_min_width);

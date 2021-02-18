@@ -68,7 +68,7 @@ Sprite::Sprite(Vec2 size)
  * @destructor
  */
 Sprite::~Sprite() {
-	_texture->FX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	_texture->FX_Off(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	_texture->release(); // 释放对像
 }
 
@@ -122,10 +122,10 @@ void Sprite::set_texture(Texture* value) {
 	}
 	
 	_texture->release(); // 释放对像
-	_texture->FX_OFF(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	_texture->FX_Off(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	_texture = value;
 	_texture->retain(); // 保持对像
-	_texture->FX_ON(change, &Inl::texture_change_handle, Inl_Sprite(this));
+	_texture->FX_On(change, &Inl::texture_change_handle, Inl_Sprite(this));
 	
 	// 顶点座标数据受 origin、width、height 的影响
 	// 纹理座标数据受 startX、startY、width、height 的影响

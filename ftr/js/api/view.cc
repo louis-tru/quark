@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/js-1.h"
-#include "ftr-js/ftr.h"
-#include "ftr-js/string.h"
-#include "ftr/app.h"
-#include "ftr/action.h"
-#include "ftr/css.h"
-#include "ftr/button.h"
-#include "ftr-js/value.h"
+#include "../_js.h"
+#include "./_view.h"
+#include "../str.h"
+#include "../../app.h"
+#include "../../action/action.h"
+#include "../../css/css.h"
+#include "../../views2/button.h"
+#include "../value.h"
 
 /**
  * @ns ftr::js

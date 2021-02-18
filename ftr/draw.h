@@ -102,7 +102,7 @@ namespace ftr {
 		/**
 		* @event surface_size_change_r 绘图表面尺寸发生变化时从渲染线程触发
 		*/
-		FX_EVENT(surface_size_change_r);
+		FX_Event(surface_size_change_r);
 		
 		inline GUIApplication* host() const { return _host; }
 		inline DrawLibrary library() { return _library; }

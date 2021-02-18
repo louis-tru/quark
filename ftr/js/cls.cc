@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./_js.h"
-#include "wrap.h"
 
 JS_BEGIN
 

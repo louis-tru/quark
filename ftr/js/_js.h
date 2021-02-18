@@ -32,12 +32,12 @@
 #define __ftr__js__js_1__
 
 #include "./js.h"
-#include "./string.h"
+#include "./str.h"
 
 #define js_bind_native_event( name, type, block) \
-	FX_ON(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
+	FX_On(name, [this, func]( type & evt) { HandleScope scope(worker()); block }, id)
 
-#define js_unbind_native_event(name) FX_OFF(name, id);
+#define js_unbind_native_event(name) FX_Off(name, id);
 
 #define js_bind_common_native_event(name) \
 	js_bind_native_event(name, Event<>, { call(worker()->New(func,1)); })
@@ -205,8 +205,8 @@ class JSClassStore {
 		Persistent<JSFunction> function;
 		WrapAttachCallback  attach_callback;
 	};
-	Array<Desc*> desc_;
-	Map<uint64, Desc*> values_;
+	std::vector<Desc*> desc_;
+	std::unordered_map<uint64, Desc*> values_;
 	WrapObject* current_attach_object_;
 	Worker* worker_;
 	

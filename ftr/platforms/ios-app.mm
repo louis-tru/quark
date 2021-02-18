@@ -137,7 +137,7 @@ static NSString* app_delegate_name = @"";
 			if (ori != app_delegate.current_orientation) {
 				app_delegate.current_orientation = ori;
 				main_loop()->post(Cb([](CbData& e) {
-					(app_delegate.app)->display_port()->FX_TRIGGER(orientation);
+					(app_delegate.app)->display_port()->FX_Trigger(orientation);
 				}));
 			}
 		}));
@@ -565,7 +565,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户
 					main_loop()->post(Cb([this](CbData& e){
-						FX_TRIGGER(change);
+						FX_Trigger(change);
 					}));
 				}
 			}), 16000); /* 延时16ms(一帧画面时间),给足够的时间让RootViewController重新刷新状态 */

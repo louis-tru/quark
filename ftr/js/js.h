@@ -37,6 +37,7 @@
 #include "../util/error.h"
 #include "../util/fs.h"
 #include "../util/json.h"
+#include <unordered_map>
 
 // ------------- js common macro -------------
 
@@ -468,8 +469,8 @@ class FX_EXPORT JSObject: public JSValue {
 	bool Delete(Worker* worker, Local<JSValue> key);
 	bool Delete(Worker* worker, uint32_t index);
 	Local<JSArray> GetPropertyNames(Worker* worker);
-	Maybe<Map<String, int>> ToIntegerMap(Worker* worker);
-	Maybe<Map<String, String>> ToStringMap(Worker* worker);
+	Maybe<std::unordered_map<String, int>> ToIntegerMap(Worker* worker);
+	Maybe<std::unordered_map<String, String>> ToStringMap(Worker* worker);
 	Maybe<JSON> ToJSON(Worker* worker);
 	Local<JSValue> GetProperty(Worker* worker, cString& name);
 	Local<JSFunction> GetConstructor(Worker* worker);
@@ -644,7 +645,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSArray>  New(const Array<String>& data);
 	Local<JSArray>  New(Array<FileStat>& data);
 	Local<JSArray>  New(Array<FileStat>&& data);
-	Local<JSObject> New(const Map<String, String>& data);
+	Local<JSObject> New(const std::unordered_map<String, String>& data);
 	Local<JSUint8Array> New(Buffer& buff);
 	Local<JSUint8Array> New(Buffer&& buff);
 	Local<JSObject> New(FileStat& stat);
@@ -946,6 +947,10 @@ class FX_EXPORT Wrap: public WrapObject {
 	}
 };
 
+FX_EXPORT int Start(cString& cmd);
+FX_EXPORT int Start(const Array<String>& argv);
+FX_EXPORT int Start(int argc, Char** argv);
+
 // **********************************************************************
 
 typedef CopyablePersistentTraits<JSClass>::Handle CopyablePersistentClass;
@@ -994,10 +999,6 @@ Local<T> MaybeLocal<T>::ToLocalChecked() {
 	return Local<T>(val_);
 }
 template <> FX_EXPORT Local<JSValue> MaybeLocal<JSValue>::ToLocalChecked();
-
-FX_EXPORT int Start(cString& cmd);
-FX_EXPORT int Start(const Array<String>& argv);
-FX_EXPORT int Start(int argc, Char** argv);
 
 JS_END
 #endif

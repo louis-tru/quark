@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/ftr.h"
-#include "ftr/span.h"
-#include "ftr-js/js-1.h"
+#include "../_view.h"
+#include "../_js.h"
+#include "../../views2/span.h"
 
 /**
  * @ns ftr::js
@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapSpan
  */
 class WrapSpan: public WrapViewBase {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

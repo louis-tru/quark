@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
-#include "ftr-js/js.h"
+#include "../../util/os.h"
+#include "../_js.h"
 
 /**
  * @ns ftr::js
@@ -37,8 +37,8 @@
 
 JS_BEGIN
 
-class NativeSys {
- public:
+class NativeOs {
+	public:
 
 	static void time(FunctionCall args) {
 		JS_WORKER(args);
@@ -135,5 +135,5 @@ class NativeSys {
 	}
 };
 
-JS_REG_MODULE(_sys, NativeSys)
+JS_REG_MODULE(_os, NativeOs)
 JS_END

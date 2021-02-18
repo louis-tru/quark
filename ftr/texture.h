@@ -94,7 +94,7 @@ namespace ftr {
 		/**
 		* @event onchange 纹理变化事件,比如尺寸了生了变化
 		*/
-		FX_EVENT(change, Event<int, Texture>);
+		FX_Event(change, Event<int, Texture>);
 
 		/**
 		* @func create() 通过图像数据创建一个新的纹理对像,如果成功返回纹理对像
@@ -238,7 +238,7 @@ namespace ftr {
 		/**
 		* @event onchange 纹理载入变化事件
 		*/
-		FX_EVENT(change, TexturePoolEvent);
+		FX_Event(change, TexturePoolEvent);
 		
 		/**
 		* @constructor

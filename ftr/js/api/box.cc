@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapBox
  */
 class WrapBox: public WrapObject {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);

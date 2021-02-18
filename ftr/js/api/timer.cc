@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/loop.h"
-#include "ftr-js/wrap.h"
+#include "../js.h"
+#include "../../util/loop.h"
 
 /**
  * @ns ftr::js
@@ -38,7 +38,7 @@
 JS_BEGIN
 
 class Timer: public Reference {
- public:
+	public:
 	typedef void (*CallbackPtr)(Timer* timer);
 	uint32_t      _timer_id;  // id
 	uint64_t    _timeout;   // 超时时间
@@ -125,7 +125,7 @@ class Timer: public Reference {
 };
 
 class WrapTimer: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);

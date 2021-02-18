@@ -42,7 +42,7 @@ JS_BEGIN
  * @class WrapBackground
  */
 class WrapBackground: public WrapObject {
- public:
+	public:
 
 	static void constructor(FunctionCall args) {
 		JS_WORKER(args);
@@ -80,7 +80,7 @@ class WrapBackground: public WrapObject {
 };
 
 class WrapBackgroundImage: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);
@@ -205,7 +205,7 @@ class WrapBackgroundImage: public WrapObject {
 };
 
 class WrapBackgroundGradient: public WrapObject {
- public:
+	public:
 	
 	static void constructor(FunctionCall args) {
 		JS_ATTACH(args);

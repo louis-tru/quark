@@ -44,7 +44,7 @@ static cString render("Render");
 static cString orientation_("Orientation");
 
 class WrapDisplayPort: public WrapObject {
- public: 
+	public:
 	typedef DisplayPort Type;
 	
 	/**

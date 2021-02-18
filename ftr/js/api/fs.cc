@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/fs.h"
-#include "ftr/util/http.h"
-#include "ftr-js/wrap.h"
-#include "ftr-js/string.h"
-#include "cb-1.h"
-#include "fs-1.h"
+#include "../../util/fs.h"
+#include "../../util/http.h"
+#include "../js.h"
+#include "../str.h"
+#include "./_cb.h"
+#include "./_fs.h"
 
 /**
  * @ns ftr::js
@@ -45,7 +45,7 @@ JS_BEGIN
  * @class WrapFileStat
  */
 class WrapFileStat: public WrapObject {
- public:
+	public:
 
 	/**
 	 * @constructor([path])

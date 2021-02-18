@@ -120,7 +120,7 @@ static void addEventListener_1(Wrap<Self>* wrap, const GUIEventName& type,
  * @class WrapAudioPlayer
  */
 class WrapAudioPlayer: public WrapObject {
- public:
+	public:
 
 	/**
 	 * @func overwrite
