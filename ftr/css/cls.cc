@@ -33,7 +33,7 @@
 namespace ftr {
 
 	void StyleSheetsClass::Inl::update_classs(Array<String>&& classs) {
-		_classs = move(classs);
+		_classs = std::move(classs);
 		_query_group = _inl_r(root_styles())->get_css_query_grpup(_classs);
 		_host->mark_pre(View::M_STYLE_CLASS);
 	}
@@ -43,11 +43,11 @@ namespace ftr {
 	{
 		typedef StyleSheetsScope::Scope Scope;
 		
-		Map<PrtKey<StyleSheets>, int> origin_child_style_sheets_map;
+		std::map<StyleSheets*, int> origin_child_style_sheets_map;
 		
 		if ( RETURN_EFFECT_CHILD ) {
 			for ( auto& i : _child_style_sheets ) {
-				origin_child_style_sheets_map.set(i.value(), 1);
+				origin_child_style_sheets_map[i] = 1;
 			}
 		}
 		
@@ -55,32 +55,32 @@ namespace ftr {
 		_is_support_pseudo = false;
 		
 		FX_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
-						_query_group.length(), scope->style_sheets().length(), _classs.join(' ').c());
+						_query_group.length(), scope->style_sheets().size(), _classs.join(' ').c_str());
 		
 		if ( _query_group.length() ) {
-			const List<Scope>& style_sheets = scope->style_sheets();
-			Map<PrtKey<StyleSheets>, int> child_style_sheets_map;
+			const std::list<Scope>& style_sheets = scope->style_sheets();
+			std::map<StyleSheets*, int> child_style_sheets_map;
 			
 			KeyframeAction* action = nullptr;
 			
 			for ( auto& i : _query_group ) {
 				for ( auto& j : style_sheets ) {
 					
-					Scope scope = j.value();
+					Scope scope = j;
 					if ( scope.ref == scope.wrap->ref ) { // 引用数不相同表示不是最优先的,忽略
 						
-						StyleSheets* ss = _inl_ss(scope.wrap->sheets)->find1(i.value());
+						StyleSheets* ss = _inl_ss(scope.wrap->sheets)->find1(i);
 						if ( ss ) {
 							
 							action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 							
-							if ( ss->has_child() && !child_style_sheets_map.has(ss) ) {
+							if ( ss->has_child() && !child_style_sheets_map.count(ss) ) {
 								if ( RETURN_EFFECT_CHILD ) {
-									if ( !origin_child_style_sheets_map.has(ss) ) {
+									if ( !origin_child_style_sheets_map.count(ss) ) {
 										*effect_child = true;
 									}
 								}
-								child_style_sheets_map.set(ss, 1);
+								child_style_sheets_map[ss] = 1;
 								_child_style_sheets.push(ss);
 							}
 							

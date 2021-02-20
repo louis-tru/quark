@@ -28,63 +28,63 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_action.h"
+#include "./_property.h"
 
 namespace ftr {
 
 	// set_property
-	template<> inline void Property2<TextColor>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextColor>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextColor);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextSize>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextSize>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextSize);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextStyle>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextStyle>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextStyle);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextFamily>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextFamily>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextFamily);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextLineHeight>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextLineHeight>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextLineHeight);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextShadow>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextShadow>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextShadow);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextDecoration>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextDecoration>::set_property(std::list<View*>& views) {
 		typedef void (TextFont::*Func)(TextDecoration);
 		for ( auto& i : views ) {
-			(i.value()->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextOverflow>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextOverflow>::set_property(std::list<View*>& views) {
 		typedef void (TextLayout::*Func)(TextOverflow);
 		for ( auto& i : views ) {
-			(i.value()->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextWhiteSpace>::set_property(List<View*>& views) {
+	template<> inline void Property2<TextWhiteSpace>::set_property(std::list<View*>& views) {
 		typedef void (TextLayout::*Func)(TextWhiteSpace);
 		for ( auto& i : views ) {
-			(i.value()->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
+			(i->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
 
@@ -332,7 +332,7 @@ namespace ftr {
 	Property2<BackgroundPtr>::~Property2() {
 		Release(_transition);
 		for (auto& i : _frames) {
-			Release(i.value());
+			Release(i);
 		}
 	}
 

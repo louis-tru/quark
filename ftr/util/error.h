@@ -42,7 +42,7 @@
 #define FX_CHECK(cond, ...) if(!(cond)) throw ftr::Error(__VA_ARGS__)
 
 #define FX_IGNORE_ERR(block) try block catch (ftr::Error& err) {    \
-	FX_DEBUG("%s,%s", "The exception is ignored", err.message().str_c());     \
+	FX_DEBUG("%s,%s", "The exception is ignored", err.message().c_str());     \
 }((void)0)
 
 namespace ftr {
@@ -53,6 +53,7 @@ namespace ftr {
 	class FX_EXPORT Error: public Object {
 		public:
 		Error(const Error& err);
+		Error(cChar* msg, ...);
 		Error(int code, cChar* msg, ...);
 		Error(int code = ERR_UNKNOWN_ERROR, cString& msg = "Unknown exception");
 		virtual ~Error();

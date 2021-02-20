@@ -60,15 +60,15 @@ namespace ftr {
 
 	void FontFamily::Inl::add_font(Font* font) {
 		int index = get_font_style_index(font->style());
-		if ( !m_fonts[index] || m_fonts[index]->num_glyphs() < font->num_glyphs() ) {
+		if ( !m_fonts[index] || _fonts[index]->num_glyphs() < font->num_glyphs() ) {
 			m_fonts[index] = font;
 		}
 		m_all_fonts.push(font);
 	}
 
 	FontFamily::FontFamily(cString& family_name)
-		: m_family_name(family_name)
-		, m_fonts()
+		: _family_name(family_name)
+		, _fonts()
 	{
 		memset(m_fonts, 0, sizeof(m_fonts));
 	}
@@ -76,11 +76,11 @@ namespace ftr {
 	/**
 	* @func font_names
 	*/
-	std::vector<String> FontFamily::font_names() const {
-		std::vector<String> rev;
+	Array<String> FontFamily::font_names() const {
+		Array<String> rev;
 		
-		for (auto i = m_all_fonts.begin(),
-							e = m_all_fonts.end(); i != e; i++) {
+		for (auto i = _all_fonts.begin(),
+							e = _all_fonts.end(); i != e; i++) {
 			rev.push_back(i.value()->font_name());
 		}
 		return rev;
@@ -90,12 +90,12 @@ namespace ftr {
 	* @overwrite
 	*/
 	cString& FontFamily::name() const {
-		return m_family_name;
+		return _family_name;
 	}
 
 	Font* FontFamily::font(TextStyleEnum style) {
 		int index = _inl_family(this)->get_font_style_index(style);
-		Font* font = m_fonts[index];
+		Font* font = _fonts[index];
 		
 		if ( font ) {
 			return font;
@@ -107,12 +107,12 @@ namespace ftr {
 		// 查找相邻字重
 		while (big < 19 || small >= 0) {
 			if ( small >= 0 ) {
-				font = m_fonts[small];
+				font = _fonts[small];
 				if ( font ) break;
 				small--;
 			}
 			if ( big < 19 ) {
-				font = m_fonts[big];
+				font = _fonts[big];
 				if ( font ) break;
 				big++;
 			}

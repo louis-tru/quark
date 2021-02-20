@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "app-1.h"
-#include "display-port.h"
-#include "root.h"
-#include "draw.h"
+#include "../_app.h"
+#include "../display-port.h"
+#include "./root.h"
+#include "../draw.h"
 
 namespace ftr {
 

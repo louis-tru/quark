@@ -39,7 +39,7 @@
 			'loop.h',
 			'thread.h',
 			'string.h',
-			'buffer.h',
+			'array.h',
 			'cb.h',
 			'codec.h',
 			'error.h',
@@ -58,7 +58,7 @@
 			# cc
 			'_uv.cc',
 			'_working.cc',
-			'buffer.cc',
+			'array.cc',
 			'fs-async.cc',
 			'fs-path.cc',
 			'fs-reader.cc',

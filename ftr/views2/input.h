@@ -31,8 +31,8 @@
 #ifndef __ftr__input__
 #define __ftr__input__
 
-#include "ftr/text.h"
-#include "ftr/pre-render.h"
+#include "./text.h"
+#include "../_pre-render.h"
 
 namespace ftr {
 
@@ -61,8 +61,8 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	virtual KeyboardType input_keyboard_type();
 	virtual KeyboardReturnType input_keyboard_return_type();
 	// @end
-	virtual void set_value(cUcs2String& str);
-	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual void set_value(cString16& str);
+	virtual View* append_text(cString16& str) throw(Error);
 	virtual bool run_task(int64_t sys_time);
 	virtual bool can_become_focus();
 	virtual Object* to_object() { return this; }
@@ -81,7 +81,7 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	/**
 	 * @func placeholder
 	 */
-	inline Ucs2String placeholder() const { return placeholder_; }
+	inline String16 placeholder() const { return placeholder_; }
 	
 	/**
 	 * @func placeholder_color
@@ -106,7 +106,7 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	/**
 	 * @func set_placeholder
 	 */
-	void set_placeholder(cUcs2String& value);
+	void set_placeholder(cString16& value);
 	
 	/**
 	 * @func set_placeholder_color
@@ -155,7 +155,7 @@ class FX_EXPORT Input: public Text, public PreRender::Task, public ITextInput {
 	 */
 	void refresh_cursor_screen_position();
 	
-	Ucs2String  placeholder_, marked_text_;
+	String16  placeholder_, marked_text_;
 	Color placeholder_color_, marked_color_;
 	uint32_t  marked_text_idx_, cursor_, cursor_linenum_;
 	uint32_t  marked_cell_begin_, marked_cell_end_;

@@ -79,7 +79,7 @@ using namespace v8;
 
 static v8::Platform* platform = nullptr;
 static String unknown("[Unknown]");
-static Ucs2String unknown_ucs2(String("[Unknown]"));
+static String16 unknown_ucs2(String("[Unknown]"));
 
 typedef const v8::FunctionCallbackInfo<Value>& V8FunctionCall;
 typedef const v8::PropertyCallbackInfo<Value>& V8PropertyCall;
@@ -112,9 +112,9 @@ class V8ExternalOneByteStringResource: public v8::String::ExternalOneByteStringR
  * @class V8ExternalStringResource
  */
 class V8ExternalStringResource: public v8::String::ExternalStringResource {
-	Ucs2String _str;
+	String16 _str;
 	public:
-	V8ExternalStringResource(const Ucs2String& value): _str(value) { }
+	V8ExternalStringResource(const String16& value): _str(value) { }
 	virtual const uint16_t* data() const { return _str.c_str(); }
 	virtual size_t length() const { return _str.length(); }
 };
@@ -644,7 +644,7 @@ String JSValue::ToStringValue(Worker* worker, bool ascii) const {
 		return rev;
 	} else {
 		StringBuilder rev;
-		ArrayBuffer<uint16> buffer(128);
+		Array<uint16> buffer(128);
 		int index = 0; int count;
 		while( (count = str->Write(*buffer, index, 128)) ) {
 			Buffer buff = Coder::encoding(Encoding::utf8, *buffer, count);
@@ -657,20 +657,20 @@ String JSValue::ToStringValue(Worker* worker, bool ascii) const {
 #endif
 
 #if USE_JSC
-Ucs2String JSValue::ToUcs2StringValue(Worker* worker) const {
+String16 JSValue::ToString16Value(Worker* worker) const {
 	JSC_ENV(worker);
 	v8::JSCStringPtr s = JSValueToStringCopy(ctx, reinterpret_cast<JSValueRef>(this),
 																					 OK(unknown_ucs2));
 	size_t len = JSStringGetLength(*s);
 	const uint16* ptr = JSStringGetCharactersPtr(*s);
-	WeakArrayBuffer<uint16_t> bf(ptr, uint(len));
+	WeakArray<uint16_t> bf(ptr, uint(len));
 	return bf.copy().collapse_string();
 }
 #else
-Ucs2String JSValue::ToUcs2StringValue(Worker* worker) const {
+String16 JSValue::ToString16Value(Worker* worker) const {
 	v8::Local<v8::String> str = ((v8::Value*)this)->ToString();
 	if ( str.IsEmpty() ) return unknown_ucs2;
-	Ucs2String rev;
+	String16 rev;
 	uint16_t buffer[512];
 	int index = 0, count;
 	do {
@@ -801,8 +801,8 @@ int JSString::Length(Worker* worker) const {
 String JSString::Value(Worker* worker, bool ascii) const {
 	return ToStringValue(worker, ascii);
 }
-Ucs2String JSString::Ucs2Value(Worker* worker) const {
-	return ToUcs2StringValue(worker);
+String16 JSString::Ucs2Value(Worker* worker) const {
+	return ToString16Value(worker);
 }
 Local<JSString> JSString::Empty(Worker* worker) {
 	return Cast<JSString>(v8::String::Empty(ISOLATE(worker)));
@@ -1152,7 +1152,7 @@ Local<JSString> Worker::New(cString& data, bool is_ascii) {
 	}
 }
 
-Local<JSString> Worker::New(cUcs2String& data) {
+Local<JSString> Worker::New(cString16& data) {
 	return Cast<JSString>(v8::String::NewExternal(ISOLATE(this), new V8ExternalStringResource(data)));
 }
 
@@ -1179,7 +1179,7 @@ Local<JSArray> Worker::New(Array<FileStat>&& ls) {
 	return Cast<JSArray>(rev);
 }
 
-Local<JSObject> Worker::New(const std::unordered_map<String, String>& data) {
+Local<JSObject> Worker::New(const std::map<String, String>& data) {
 	v8::Local<v8::Object> rev = v8::Object::New(ISOLATE(this));
 	{ v8::HandleScope scope(ISOLATE(this));
 		for (auto& i : data) {

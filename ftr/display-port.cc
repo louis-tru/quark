@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "display-port.h"
-#include "app.h"
-#include "draw.h"
-#include "pre-render.h"
-#include "root.h"
-#include "action.h"
-#include "ftr/util/loop-1.h"
-#include "sys.h"
+#include "./display-port.h"
+#include "./app.h"
+#include "./draw.h"
+#include "./_pre-render.h"
+#include "./views2/root.h"
+#include "./action/action.h"
+#include "./util/_working.h"
+#include "./util/os.h"
 
 namespace ftr {
 
@@ -99,7 +99,7 @@ namespace ftr {
 			update_root_size(); // update root
 			
 			// set default draw region
-			_draw_region.first() = {
+			_draw_region.front() = {
 				0, 0,
 				_size.width(), _size.height(),
 				_size.width(), _size.height(),
@@ -115,9 +115,9 @@ namespace ftr {
 		*/
 		void solve_next_frame() {
 			if (_next_frame.length()) {
-				List<Callback<>>* cb = new List<Callback<>>(move(_next_frame));
+				std::list<Callback<>>* cb = new std::list<Callback<>>(move(_next_frame));
 				_host->main_loop()->post(Cb([cb](CbData& e) {
-					Handle<List<Callback<>>> handle(cb);
+					Handle<std::list<Callback<>>> handle(cb);
 					for ( auto& i : *cb ) {
 						i.value()->call();
 					}

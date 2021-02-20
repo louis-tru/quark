@@ -31,10 +31,10 @@
 #ifndef __ftr__label__
 #define __ftr__label__
 
-#include "ftr/view.h"
-#include "ftr/value.h"
-#include "ftr/text-font.h"
-#include "ftr/font.h"
+#include "view.h"
+#include "../value.h"
+#include "../text-font.h"
+#include "../font/font.h"
 
 /**
  * @ns ftr
@@ -57,7 +57,7 @@ class FX_EXPORT Label: public View, public TextFont {
 	 */
 	virtual void prepend(View* child) throw(Error);
 	virtual void append(View* child) throw(Error);
-	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual View* append_text(cString16& str) throw(Error);
 	virtual TextFont* as_text_font() { return this; }
 	virtual View* view() { return this; }
 	virtual CGRect screen_rect();
@@ -67,12 +67,12 @@ class FX_EXPORT Label: public View, public TextFont {
 	/**
 	 * @func value
 	 */
-	Ucs2String value() const { return _data.string; }
+	String16 value() const { return _data.string; }
 	
 	/**
 	 * @func set_value
 	 */
-	void set_value(cUcs2String& str);
+	void set_value(cString16& str);
 	
 	/**
 	 * @func length
@@ -110,7 +110,7 @@ class FX_EXPORT Label: public View, public TextFont {
 	 */
 	virtual void draw(Draw* draw);
 	virtual void mark_text(uint32_t value);
-	virtual void accept_text(Ucs2StringBuilder& out) const;
+	virtual void accept_text(Array<String16>& out) const;
 	virtual void set_draw_visible();
 	virtual void set_parent(View* parent) throw(Error);
 	

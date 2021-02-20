@@ -33,11 +33,11 @@
 
 #include "../util/util.h"
 #include "../util/string.h"
-#include "../util/buffer.h"
+#include "../util/array.h"
 #include "../util/error.h"
 #include "../util/fs.h"
 #include "../util/json.h"
-#include <unordered_map>
+#include <map>
 
 // ------------- js common macro -------------
 
@@ -437,7 +437,7 @@ class FX_EXPORT JSValue: public NoCopy {
 	Local<JSObject> ToObject(Worker* worker) const;
 	Local<JSBoolean> ToBoolean(Worker* worker) const;
 	String ToStringValue(Worker* worker, bool ascii = false) const;
-	Ucs2String ToUcs2StringValue(Worker* worker) const;
+	String16 ToString16Value(Worker* worker) const;
 	bool ToBooleanValue(Worker* worker) const;
 	double ToNumberValue(Worker* worker) const;
 	int ToInt32Value(Worker* worker) const;
@@ -454,7 +454,7 @@ class FX_EXPORT JSString: public JSValue {
 	public:
 	int Length(Worker* worker) const;
 	String Value(Worker* worker, bool ascii = false) const;
-	Ucs2String Ucs2Value(Worker* worker) const;
+	String16 Ucs2Value(Worker* worker) const;
 	static Local<JSString> Empty(Worker* worker);
 };
 
@@ -469,8 +469,8 @@ class FX_EXPORT JSObject: public JSValue {
 	bool Delete(Worker* worker, Local<JSValue> key);
 	bool Delete(Worker* worker, uint32_t index);
 	Local<JSArray> GetPropertyNames(Worker* worker);
-	Maybe<std::unordered_map<String, int>> ToIntegerMap(Worker* worker);
-	Maybe<std::unordered_map<String, String>> ToStringMap(Worker* worker);
+	Maybe<std::map<String, int>> ToIntegerMap(Worker* worker);
+	Maybe<std::map<String, String>> ToStringMap(Worker* worker);
 	Maybe<JSON> ToJSON(Worker* worker);
 	Local<JSValue> GetProperty(Worker* worker, cString& name);
 	Local<JSFunction> GetConstructor(Worker* worker);
@@ -639,13 +639,13 @@ class FX_EXPORT Worker: public Object {
 	Local<JSNumber> New(uint64_t data);
 	Local<JSString> New(cChar* data, int len = -1);
 	Local<JSString> New(cString& data, bool is_ascii = false);
-	Local<JSString> New(cUcs2String& data);
+	Local<JSString> New(cString16& data);
 	Local<JSObject> New(cError& data);
 	Local<JSObject> New(const HttpError& err);
 	Local<JSArray>  New(const Array<String>& data);
 	Local<JSArray>  New(Array<FileStat>& data);
 	Local<JSArray>  New(Array<FileStat>&& data);
-	Local<JSObject> New(const std::unordered_map<String, String>& data);
+	Local<JSObject> New(const std::map<String, String>& data);
 	Local<JSUint8Array> New(Buffer& buff);
 	Local<JSUint8Array> New(Buffer&& buff);
 	Local<JSObject> New(FileStat& stat);

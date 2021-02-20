@@ -31,7 +31,7 @@
 #ifndef __ftr__background__
 #define __ftr__background__
 
-#include "ftr/box.h"
+#include "./views2/box.h"
 
 namespace ftr {
 

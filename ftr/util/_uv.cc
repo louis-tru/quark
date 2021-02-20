@@ -30,13 +30,13 @@
 
 #include "./handle.h"
 #include "./_uv.h"
-#include <unordered_map>
+#include <map>
 
 namespace ftr {
 
 	struct TaskList {
 		Mutex mutex;
-		std::unordered_map<uint32_t, AsyncIOTask*> values;
+		std::map<uint32_t, AsyncIOTask*> values;
 	};
 
 	static TaskList* tasks = new TaskList;

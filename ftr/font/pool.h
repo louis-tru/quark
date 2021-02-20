@@ -32,7 +32,7 @@
 #define __ftr__font__pool__
 
 #include "./font.h"
-#include <unordered_map>
+#include <map>
 
 namespace ftr {
 
@@ -57,31 +57,31 @@ namespace ftr {
 		
 		/**
 		* @func set_default_fonts 尝试设置默认字体
-		* @arg first {const std::vector<String>*}  第一字体列表
-		* @arg ... {const std::vector<String>*} 第2/3/4..字体列表
+		* @arg first {const Array<String>*}  第一字体列表
+		* @arg ... {const Array<String>*} 第2/3/4..字体列表
 		*/
-		void set_default_fonts(const std::vector<String>* first, ...);
+		void set_default_fonts(const Array<String>* first, ...);
 		
 		/**
 		* @func set_default_fonts 在当前字体库找到字体名称,设置才能生效
-		* @arg fonts {const std::vector<String>&} 要设置的默认字体的名称
+		* @arg fonts {const Array<String>&} 要设置的默认字体的名称
 		*/
-		void set_default_fonts(const std::vector<String>& fonts);
+		void set_default_fonts(const Array<String>& fonts);
 		
 		/**
 		* @func default_font_names
 		*/
-		std::vector<String> default_font_names() const;
+		Array<String> default_font_names() const;
 		
 		/**
 		* @func font_familys
 		*/
-		inline std::vector<String> family_names() const { return _familys.keys(); }
+		Array<String> family_names() const;
 		
 		/**
 		* @func font_names
 		*/
-		std::vector<String> font_names(cString& family_name) const;
+		Array<String> font_names(cString& family_name) const;
 		
 		/**
 		* @func get_font_family
@@ -91,7 +91,7 @@ namespace ftr {
 		/**
 		* @fucn test 测试是否有字体或家族
 		*/
-		inline bool test(cString& font) { return _blend_fonts.has(font); }
+		inline bool test(cString& font) { return _blend_fonts.count(font); }
 		
 		/**
 		* @func get_font 通过名称获得一个字体对像
@@ -156,7 +156,7 @@ namespace ftr {
 		/**
 		* @func get_font_familys_id
 		*/
-		static cFFID get_font_familys_id(const std::vector<String> fonts);
+		static cFFID get_font_familys_id(const Array<String> fonts);
 		
 		/**
 		* @func get_font_familys_id
@@ -179,7 +179,7 @@ namespace ftr {
 			typedef NonObjectTraits Traits;
 			String path;
 			String family;
-			std::vector<SimpleFont> fonts;
+			Array<SimpleFont> fonts;
 		};
 		
 		/**
@@ -190,7 +190,7 @@ namespace ftr {
 		/**
 		* @func system_font_family
 		*/
-		static const std::vector<SimpleFontFamily>& system_font_family();
+		static const Array<SimpleFontFamily>& system_font_family();
 		
 		private:
 		
@@ -200,12 +200,12 @@ namespace ftr {
 		void set_display_port(DisplayPort* display_port);
 		
 		void*                       _ft_lib;     /* FT_Library */
-		std::unordered_map<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 */
-		std::unordered_map<String, FontFamily*>    _familys;    /* 所有的字体家族 */
-		std::unordered_map<String, Font*>          _fonts;      /* 所有的字体 */
-		std::unordered_map<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 */
-		std::unordered_map<String, String>         _paths;      /* 所有的字体路径 */
-		std::vector<BaseFont*>      _default_fonts;
+		std::map<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 */
+		std::map<String, FontFamily*>    _familys;    /* 所有的字体家族 */
+		std::map<String, Font*>          _fonts;      /* 所有的字体 */
+		std::map<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 */
+		std::map<String, String>         _paths;      /* 所有的字体路径 */
+		Array<BaseFont*>      _default_fonts;
 		FontFamily*                 _spare_family;     /* 备用字体家族 */
 		Draw*                       _draw_ctx;
 		DisplayPort*                _display_port;

@@ -41,6 +41,8 @@ namespace ftr {
 
 	FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
 		public:
+		#define _inl_app(self) static_cast<AppInl*>(self)
+
 		struct KeyboardOptions {
 			bool               is_clear;
 			KeyboardType       type;
@@ -116,8 +118,6 @@ namespace ftr {
 		*/
 		int onExit(int code);
 	};
-
-	#define _inl_app(self) static_cast<AppInl*>(self)
 
 	typedef GUIApplication::Inl AppInl;
 

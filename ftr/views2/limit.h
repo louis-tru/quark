@@ -31,7 +31,7 @@
 #ifndef __ftr__limit__
 #define __ftr__limit__
 
-#include "ftr/div.h"
+#include "./div.h"
 
 /**
  * @ns ftr

@@ -30,7 +30,6 @@
 
 #include "./js.h"
 #include "../app.h"
-#include <vector>
 
 #if FX_UNIX
 # include <dlfcn.h>
@@ -45,7 +44,7 @@ void  object_allocator_release(Object* obj);
 void  object_allocator_retain(Object* obj);
 
 // startup argv
-std::vector<Char*>* __fx_ftr_argv = nullptr;
+Array<Char*>* __fx_ftr_argv = nullptr;
 int __fx_ftr_have_node = 1;
 int __fx_ftr_have_debug = 0;
 

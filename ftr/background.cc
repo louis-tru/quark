@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "background.h"
-#include "texture.h"
-#include "display-port.h"
+#include "./background.h"
+#include "./texture.h"
+#include "./display-port.h"
 
 namespace ftr {
 

@@ -31,7 +31,7 @@
 #ifndef __ftr__util__stream__
 #define __ftr__util__stream__
 
-#include "./buffer.h"
+#include "./array.h"
 
 namespace ftr {
 

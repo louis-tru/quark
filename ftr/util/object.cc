@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./object.h"
-#include <vector>
 #include <math.h>
 
 namespace ftr {

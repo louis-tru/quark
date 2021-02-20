@@ -205,8 +205,8 @@ class JSClassStore {
 		Persistent<JSFunction> function;
 		WrapAttachCallback  attach_callback;
 	};
-	std::vector<Desc*> desc_;
-	std::unordered_map<uint64, Desc*> values_;
+	Array<Desc*> desc_;
+	std::map<uint64, Desc*> values_;
 	WrapObject* current_attach_object_;
 	Worker* worker_;
 	

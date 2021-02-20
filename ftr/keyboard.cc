@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "keyboard.h"
-#include "app-1.h"
+#include "./keyboard.h"
+#include "./_app.h"
 
 namespace ftr {
 
@@ -212,11 +212,11 @@ int KeyboardAdapter::to_keypress(KeyboardKeyName name) {
 	
 	// Symbol
 	auto it = _symbol_keypress.find(int(name));
-	if ( !it.is_null() ) {
+	if ( it != _symbol_keypress.end() ) {
 		if ( shift_ ) {
-			return it.value().shift;
+			return it->second.shift;
 		} else {
-			return it.value().normal;
+			return it->second.normal;
 		}
 	}
 	return 0;
@@ -226,21 +226,21 @@ bool KeyboardAdapter::transformation(uint32_t keycode, bool unicode, bool down) 
 	
 	if ( unicode ) {
 		auto it = _ascii_keycodes.find(keycode);
-		if ( it.is_null() ) {
+		if ( it == _ascii_keycodes.end() ) {
 			keyname_ = KEYCODE_UNKNOWN;
 			keypress_ = keycode;
 		} else {
-			shift_ = it.value().is_shift;
-			keyname_ = it.value().name;
+			shift_ = it->second.is_shift;
+			keyname_ = it->second.name;
 			keypress_ = to_keypress( keyname_ );
 		}
 	} else {
 		auto it = _keycodes.find(keycode);
-		if ( it.is_null() ) { // Unknown keycode
+		if ( it == _keycodes.end() ) { // Unknown keycode
 			keyname_ = KeyboardKeyName(keycode + 100000);
 			keypress_ = 0;
 		} else {
-			keyname_ = it.value();
+			keyname_ = it->second;
 			
 			if ( down ) {
 				switch ( keyname_ ) {

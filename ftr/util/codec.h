@@ -32,7 +32,7 @@
 #define __ftr__util__codec__
 
 #include "./util.h"
-#include "./buffer.h"
+#include "./array.h"
 
 namespace ftr {
 
@@ -80,12 +80,12 @@ namespace ftr {
 		static String encoding_string(Encoding en);
 		
 		// encoding
-		static ArrayBuffer<char>     encode(Encoding target_en, const ArrayBuffer<char>& source);
-		static ArrayBuffer<char>     encode(Encoding target_en, const ArrayString<char>& source);
-		static ArrayBuffer<char>     encode(Encoding target_en, const ArrayBuffer<uint16_t>& source);
-		static ArrayBuffer<char>     encode(Encoding target_en, const ArrayString<uint16_t>& source);
-		static ArrayBuffer<char>     encode(Encoding target_en, const ArrayBuffer<uint32_t>& source);
-		static ArrayBuffer<char>     encode(Encoding target_en, const ArrayString<uint32_t>& source);
+		static Buffer encode(Encoding target_en, const ArrayBuffer<char>& source);
+		static Buffer encode(Encoding target_en, const ArrayString<char>& source);
+		static Buffer encode(Encoding target_en, const ArrayBuffer<uint16_t>& source);
+		static Buffer encode(Encoding target_en, const ArrayString<uint16_t>& source);
+		static Buffer encode(Encoding target_en, const ArrayBuffer<uint32_t>& source);
+		static Buffer encode(Encoding target_en, const ArrayString<uint32_t>& source);
 		// decoding
 		static ArrayBuffer<char>     decode_to_buffer(Encoding source_en, const ArrayBuffer<char>& source);
 		static ArrayBuffer<char>     decode_to_buffer(Encoding source_en, const ArrayString<char>& source);

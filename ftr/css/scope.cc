@@ -40,10 +40,8 @@ namespace ftr {
 	}
 
 	StyleSheetsScope::StyleSheetsScope(View* scope) {
-		_style_sheets.push({
-			&_style_sheets_map.set(root_styles(), { root_styles(), 1 }),
-			1
-		});
+		auto wrap = _style_sheets_map[root_styles()] = { root_styles(), 1 };
+		_style_sheets.push_back({ &wrap, 1 });
 		push_all_scope(this, scope);
 		FX_DEBUG("use StyleSheetsScope");
 	}
@@ -54,37 +52,37 @@ namespace ftr {
 		if ( classs && classs->has_child() ) {
 			for ( auto& i : classs->child_style_sheets() ) {
 				Scope::Wrap* wrap = nullptr;
-				auto it = _style_sheets_map.find(i.value());
-				if ( it.is_null() ) { // 添加
-					wrap = &_style_sheets_map.set(i.value(), { i.value(), 1 });
+				auto it = _style_sheets_map.find(i);
+				if ( it == _style_sheets_map.end() ) { // 添加
+					wrap = &(_style_sheets_map[i] = { i, 1 });
 				} else {
-					wrap = &it.value();
+					wrap = &it->second;
 					wrap->ref++;
 				}
-				_style_sheets.push({ wrap, wrap->ref });
+				_style_sheets.push_back({ wrap, wrap->ref });
 			}
 		}
-		_scopes.push(scope);
+		_scopes.push_back(scope);
 	}
 	
 	void StyleSheetsScope::pop_scope() {
-		if ( _scopes.length() ) {
-			StyleSheetsClass* classs = _scopes.last()->classs();
+		if ( _scopes.size() ) {
+			StyleSheetsClass* classs = _scopes.back()->classs();
 			if ( classs && classs->has_child() ) {
 				int count = classs->child_style_sheets().length();
 				for ( int i = 0; i < count; i++ ) {
-					ASSERT( _style_sheets.length() > 1 );
-					Scope scope = _style_sheets.last();
+					ASSERT( _style_sheets.size() > 1 );
+					Scope scope = _style_sheets.back();
 					ASSERT( scope.wrap->ref == scope.ref );
 					if ( scope.ref == 1 ) {
-						_style_sheets_map.del(scope.wrap->sheets);
+						_style_sheets_map.erase(scope.wrap->sheets);
 					} else {
 						scope.wrap->ref--;
 					}
-					_style_sheets.pop();
+					_style_sheets.pop_back();
 				}
 			}
-			_scopes.pop();
+			_scopes.pop_back();
 		}
 	}
 }

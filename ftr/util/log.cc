@@ -65,19 +65,19 @@
 namespace ftr {
 
 	void Console::log(cString& str) {
-		printf("%s\n", str.str_c());
+		printf("%s\n", str.c_str());
 	}
 	void Console::warn(cString& str) {
-		printf("Warning: %s\n", str.str_c());
+		printf("Warning: %s\n", str.c_str());
 	}
 	void Console::error(cString& str) {
-		fprintf(fx_stderr, "%s\n", str.str_c());
+		fprintf(fx_stderr, "%s\n", str.c_str());
 	}
 	void Console::print(cString& str) {
-		printf("%s", str.str_c());
+		printf("%s", str.c_str());
 	}
 	void Console::print_err(cString& str) {
-		fprintf(fx_stderr, "%s", str.str_c());
+		fprintf(fx_stderr, "%s", str.c_str());
 	}
 	void Console::clear() {
 		// noop
@@ -105,7 +105,7 @@ namespace ftr {
 		
 		void report_error(cChar* format, ...) {
 			FX_STRING_FORMAT(format, str);
-			printf("%s", str.str_c());
+			printf("%s", str.c_str());
 		}
 		
 		// Attempts to dump a backtrace (if supported).
@@ -265,7 +265,7 @@ namespace ftr {
 		}
 
 		void error(const Error& err) {
-			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().str_c());
+			auto str = String::format("Error: %d \n message:\n\t%s", err.code(), err.message().c_str());
 			default_console()->error(str);
 		}
 		

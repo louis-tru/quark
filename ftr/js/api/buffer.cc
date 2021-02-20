@@ -30,7 +30,7 @@
 
 #include "../js.h"
 #include "../str.h"
-#include "../../util/buffer.h"
+#include "../../util/array.h"
 
 /**
  * @ns ftr::js
@@ -139,7 +139,7 @@ class NativeBuffer {
 				JS_RETURN( worker->New(buff.collapse_string(), true) );
 				break;
 			} default: { // 解码to ucs2
-				Ucs2String str( Coder::decoding_to_uint16(encoding, data + start, end - start) );
+				String16 str( Coder::decoding_to_uint16(encoding, data + start, end - start) );
 				JS_RETURN( worker->New(str) );
 				break;
 			}

@@ -31,12 +31,11 @@
 #ifndef __ftr__event__
 #define __ftr__event__
 
-#include "ftr/util/event.h"
-#include "ftr/util/array.h"
-#include "ftr/sys.h"
-#include "ftr/mathe.h"
-#include "ftr/value.h"
-#include "ftr/keyboard.h"
+#include "./util/event.h"
+#include "./util/os.h"
+#include "./math/math.h"
+#include "./value.h"
+#include "./keyboard.h"
 
 namespace ftr {
 
@@ -119,7 +118,7 @@ namespace ftr {
 		public:
 		inline GUIEventName() { FX_UNREACHABLE(); }
 		inline GUIEventName(cString& n, uint32_t category, int flag)
-			: name_(n), code_(n.hash_code()), category_(category), flag_(flag) { }
+			: name_(n), code_((uint32_t)n.hash_code()), category_(category), flag_(flag) { }
 		inline uint32_t hash_code() const { return code_; }
 		inline bool equals(const GUIEventName& o) const { return o.hash_code() == code_; }
 		inline String to_string() const { return name_; }
@@ -127,13 +126,15 @@ namespace ftr {
 		inline int flag() const { return flag_; }
 		inline bool operator==(const GUIEventName& type) const { return type.code_ == code_; }
 		inline bool operator!=(const GUIEventName& type) const { return type.code_ != code_; }
+		inline bool operator>(const GUIEventName& type) const { return code_ > type.code_; }
+		inline bool operator<(const GUIEventName& type) const { return code_ < type.code_; }
 		private:
 		String  name_;
 		uint32_t  code_, category_;
 		int  flag_;
 	};
 
-	FX_EXPORT extern const Map<String, GUIEventName> GUI_EVENT_TABLE;
+	FX_EXPORT extern const std::map<String, GUIEventName> GUI_EVENT_TABLE;
 
 	#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
 		FX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
@@ -155,7 +156,7 @@ namespace ftr {
 		public:
 		inline GUIEvent(cSendData data): Event<Object, View>() { FX_UNREACHABLE(); }
 		inline GUIEvent(View* origin, cSendData data = SendData())
-			: Event(data), origin_(origin), time_(sys::time()), valid_(true) {
+			: Event(data), origin_(origin), time_(os::time()), valid_(true) {
 			return_value = RETURN_VALUE_MASK_ALL;
 		}
 		inline View* origin() const { return origin_; }
@@ -337,10 +338,10 @@ namespace ftr {
 		GUIEventDispatch(GUIApplication* app);
 		virtual ~GUIEventDispatch();
 		// touch
-		void dispatch_touchstart(List<GUITouch>&& touches);
-		void dispatch_touchmove(List<GUITouch>&& touches);
-		void dispatch_touchend(List<GUITouch>&& touches);
-		void dispatch_touchcancel(List<GUITouch>&& touches);
+		void dispatch_touchstart(std::list<GUITouch>&& touches);
+		void dispatch_touchmove(std::list<GUITouch>&& touches);
+		void dispatch_touchend(std::list<GUITouch>&& touches);
+		void dispatch_touchcancel(std::list<GUITouch>&& touches);
 		// mouse
 		void dispatch_mousemove(float x, float y);
 		void dispatch_mousepress(KeyboardKeyName key, bool down);
@@ -366,7 +367,7 @@ namespace ftr {
 		private:
 		class OriginTouche;
 		class MouseHandle;
-		typedef Map<PrtKey<View>, OriginTouche*> OriginTouches;
+		typedef std::map<View*, OriginTouche*> OriginTouches;
 		
 		GUIApplication*     app_;
 		OriginTouches       _origin_touches;
@@ -378,4 +379,5 @@ namespace ftr {
 	};
 
 }
+
 #endif

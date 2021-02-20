@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./codec.h"
+#include "../util/util.h"
 
 namespace ftr {
 
@@ -283,9 +284,9 @@ namespace ftr {
 			return false;
 		}
 		
-		std::vector<PixelData> _decode_pvr_v2 (cBuffer& data) {
+		Array<PixelData> _decode_pvr_v2 (cBuffer& data) {
 			
-			std::vector<PixelData> rest;
+			Array<PixelData> rest;
 			
 			PVRv2TexHeader* header = (PVRv2TexHeader*)*data;
 			
@@ -333,7 +334,7 @@ namespace ftr {
 					Char* _data = new Char[data_size];
 					memcpy(_data, bytes + dataOffset, data_size);
 					
-					rest.push_back(PixelData(Buffer(_data, data_size), width, height, format));
+					rest.push(PixelData(Buffer::from(_data, data_size), width, height, format));
 					
 					dataOffset += data_size;
 					
@@ -344,9 +345,9 @@ namespace ftr {
 			return rest;
 		}
 		
-		std::vector<PixelData> _decode_pvr_v3 (cBuffer& data) {
+		Array<PixelData> _decode_pvr_v3 (cBuffer& data) {
 			
-			std::vector<PixelData> rest;
+			Array<PixelData> rest;
 			PVRv3TexHeader* header = (PVRv3TexHeader*)*data;
 			
 			// parse pixel format
@@ -376,7 +377,7 @@ namespace ftr {
 					
 					memcpy(new_data, bytes + dataOffset, dataSize);
 					
-					rest.push_back(PixelData(Buffer(new_data, dataSize), width,
+					rest.push(PixelData(Buffer::from(new_data, dataSize), width,
 															height, pixelFormat, isPremultipliedAlpha));
 					dataOffset += dataSize;
 					
@@ -396,7 +397,7 @@ namespace ftr {
 		}
 	};
 
-	std::vector<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
+	Array<PixelData> PVRTCImageCodec::decode(cBuffer& data) {
 		if (_inl_pvr(this)->is_pvr_v2(data)) {
 			return _inl_pvr(this)->_decode_pvr_v2(data);
 		}
@@ -404,7 +405,7 @@ namespace ftr {
 			return _inl_pvr(this)->_decode_pvr_v3(data);
 		}
 		FX_ERR("TexurePVR: Invalid data");
-		return std::vector<PixelData>();
+		return Array<PixelData>();
 	}
 
 	PixelData PVRTCImageCodec::decode_header(cBuffer& data) {

@@ -237,6 +237,18 @@ namespace ftr {
 		*out_len = s_tmp_to;
 		return s_tmp._val;
 	}
+	
+	int _Str::tolower(int c) {
+		if ((c >= 'A') && (c <= 'Z'))
+			return c + ('a' - 'A');
+		return c;
+	}
+	
+	int _Str::toupper(int c) {
+		if ((c >= 'a') && (c <= 'z'))
+			return c + ('A' - 'a');
+		return c;
+	}
 
 	// ---------------------------------------------------------------------
 
@@ -369,9 +381,9 @@ namespace ftr {
 		if (size_of == 1) { // char
 			return String((const char*)ptr, len);
 		} else if (size_of == 2) { // uint16_t
-			return Codec::encode(Encoding::UTF8, WeakArrayBuffer<uint16_t>((const uint16_t*)ptr, len));
+			return Codec::encode(Encoding::UTF8, ArrayWeak<uint16_t>((const uint16_t*)ptr, len));
 		} else if (size_of == 4) { // uint32_t
-			return Codec::encode(Encoding::UTF8, WeakArrayBuffer<uint32_t>((const uint32_t*)ptr, len));
+			return Codec::encode(Encoding::UTF8, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
 		} else {
 			FX_FATAL("I won't support it, to_string");
 		}

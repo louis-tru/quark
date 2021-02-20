@@ -72,7 +72,7 @@ namespace ftr {
 	}
 
 	uint32_t GLDraw::set_texture(const Array<PixelData>& data) {
-		if ( data.length() == 0 ) {
+		if ( data.size() == 0 ) {
 			return 0;
 		}
 		cPixelData& pixel_data = data[0];
@@ -108,7 +108,7 @@ namespace ftr {
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_gl_UNPACK_ALIGNMENT_VALUE(pixel_format));
 		
-		int mipmap_level = data.length();
+		int mipmap_level = (int)data.size();
 		
 		if ( PixelData::is_compressd_format(pixel_format) ) {
 			if (mipmap_level > 1) { // mipmap
@@ -164,9 +164,9 @@ namespace ftr {
 	}
 
 	uint32_t GLDraw::gen_texture(uint32_t origin_texture, uint32_t width, uint32_t height) {
-		GLuint32_t default_frame_buffer = _current_frame_buffer;
-		GLuint32_t handle;
-		GLuint32_t frame_buffer;
+		GLuint default_frame_buffer = _current_frame_buffer;
+		GLuint handle;
+		GLuint frame_buffer;
 		glGenFramebuffers(1, &frame_buffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 		glGenTextures(1, &handle);

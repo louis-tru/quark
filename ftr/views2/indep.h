@@ -31,7 +31,7 @@
 #ifndef __ftr__indep__
 #define __ftr__indep__
 
-#include "ftr/div.h"
+#include "./div.h"
 
 namespace ftr {
 

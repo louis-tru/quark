@@ -31,9 +31,8 @@
 #ifndef __ftr__font__font__
 #define __ftr__font__font__
 
-#include "../draw/draw.h"
+#include "../draw.h"
 #include "../value.h"
-#include <vector>
 
 namespace ftr {
 
@@ -54,14 +53,14 @@ namespace ftr {
 	*/
 	class FX_EXPORT FontFamilysID {
 		public:
-		inline const std::vector<String>& names() const { return _names; }
+		inline const Array<String>& names() const { return _names; }
 		inline cString& name() const { return _name; }
 		inline uint32_t code() const { return _code; }
 		
 		private:
 		~FontFamilysID() {}
 		
-		std::vector<String> _names;
+		Array<String> _names;
 		String              _name;
 		uint32_t            _code;
 		
@@ -229,10 +228,10 @@ namespace ftr {
 		};
 		
 		struct TexSize {
-			int16 width;
-			int16 height;
-			int16 left;
-			int16 top;
+			int16_t width;
+			int16_t height;
+			int16_t left;
+			int16_t top;
 		};
 		
 		/**
@@ -264,7 +263,7 @@ namespace ftr {
 		/**
 		* @func hori_bearing_x
 		*/
-		inline int16 hori_bearing_x() const { return _hori_bearing_x; }
+		inline int16_t hori_bearing_x() const { return _hori_bearing_x; }
 		/**
 		* @func hori_bearing_y
 		*/
@@ -300,7 +299,7 @@ namespace ftr {
 		uint16_t      _vertex_count;       /* 顶点数量 */
 		uint16_t      _glyph_index;        /* 字型在字体文件中的索引 */
 		uint16_t      _unicode;            /* 字型的unicode */
-		int16       _hori_bearing_x;     /* 26.6 frac. 64pt hori_bearing_x */
+		int16_t       _hori_bearing_x;     /* 26.6 frac. 64pt hori_bearing_x */
 		uint16_t      _hori_bearing_y;     /* 26.6 frac. 64pt hori_bearing_y */
 		uint16_t      _hori_advance;       /* 26.6 frac. 64pt hori_advance */
 		Container*  _container;          /* 所属容器 */
@@ -327,7 +326,7 @@ namespace ftr {
 		/**
 		* @func count {uint}
 		*/
-		inline uint32_t count() const { return _fonts.length(); }
+		inline uint32_t count() const { return (uint32_t)_fonts.size(); }
 		
 		/**
 		* @func style {TextStyleEnum}
@@ -370,7 +369,7 @@ namespace ftr {
 		
 		FontPool*     _pool;
 		GlyphsBlock*  _blocks[512];
-		std::vector<Font*>  _fonts;
+		Array<Font*>  _fonts;
 		cFFID         _ffid;
 		TextStyleEnum _style;
 		int _height, _ascender, _descender;
@@ -401,12 +400,12 @@ namespace ftr {
 		/**
 		* @func font_names
 		*/
-		std::vector<String> font_names() const;
+		Array<String> font_names() const;
 		
 		/**
 		* @func num_fonts
 		*/
-		inline uint32_t num_fonts() const { return _all_fonts.length(); }
+		inline uint32_t num_fonts() const { return (uint32_t)_all_fonts.size(); }
 		
 		private:
 		
@@ -414,7 +413,7 @@ namespace ftr {
 		
 		String        _family_name;
 		Font*         _fonts[19];
-		std::vector<Font*>  _all_fonts;
+		Array<Font*>  _all_fonts;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		friend class FontPool;

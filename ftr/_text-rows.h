@@ -31,7 +31,7 @@
 #ifndef __ftr__text_rows__
 #define __ftr__text_rows__
 
-#include "ftr/layout.h"
+#include "./views2/layout.h"
 
 /**
  * @ns ftr
@@ -57,7 +57,7 @@ class FX_EXPORT TextRows {
 	TextRows();
 	
 	inline Row* last() { return _last; }
-	inline uint32_t count() const { return _values.length(); }
+	inline uint32_t count() const { return (uint32_t)_values.size(); }
 	inline uint32_t last_num() const { return _last_num; }
 	inline bool clip() const { return _is_clip; }
 	inline void mark_clip() { _is_clip = true; }

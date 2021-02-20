@@ -34,7 +34,7 @@
 #include "./error.h"
 #include "./http.h"
 #include "./_uv.h"
-#include <unordered_map>
+#include <map>
 
 namespace ftr {
 
@@ -272,8 +272,8 @@ namespace ftr {
 			return false;
 		}
 
-		std::vector<Dirent> readdir_sync(cString& path) throw(Error) {
-			std::vector<Dirent> rv;
+		Array<Dirent> readdir_sync(cString& path) throw(Error) {
+			Array<Dirent> rv;
 			switch ( protocol(path) ) {
 				default:
 				case FILE:
@@ -343,7 +343,7 @@ namespace ftr {
 		
 	 private:
 		Mutex zip_mutex_;
-		std::unordered_map<String, ZipReader*> zips_;
+		std::map<String, ZipReader*> zips_;
 	};
 
 	FileReader::FileReader(): _core(new Core()) { }
@@ -378,13 +378,13 @@ namespace ftr {
 	bool FileReader::is_directory_sync(cString& path) {
 		return _core->exists_sync(path, 0, 1);
 	}
-	std::vector<Dirent> FileReader::readdir_sync(cString& path) {
+	Array<Dirent> FileReader::readdir_sync(cString& path) {
 		try {
 			return _core->readdir_sync(path);
 		} catch(Error& err) {
 			FX_ERR(err);
 		}
-		return std::vector<Dirent>();
+		return Array<Dirent>();
 	}
 	String FileReader::format(cString& path) {
 		return _core->format(path);

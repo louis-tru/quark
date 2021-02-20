@@ -312,7 +312,7 @@ namespace ftr {
 				XIDeviceEvent* xev = (XIDeviceEvent*)cookie->data;
 				Vec2 scale = _host->display_port()->scale();
 
-				List<GUITouch> touchs = {
+				std::list<GUITouch> touchs = {
 					{
 						uint(xev->detail + 20170820),
 						0, 0,
@@ -556,7 +556,7 @@ namespace ftr {
 			}
 
 			void resolved_queue() {
-				List<Cb> queue;
+				std::list<Cb> queue;
 				{
 					ScopeLock lock(_queue_mutex);
 					if (_queue.length()) {
@@ -618,7 +618,7 @@ namespace ftr {
 			RunLoop* _main_loop;
 			String _title;
 			LINUXIMEHelper* _ime;
-			List<Cb> _queue;
+			std::list<Cb> _queue;
 			Mutex _queue_mutex;
 			snd_mixer_t* _mixer;
 			XDevice* _multitouch_device;

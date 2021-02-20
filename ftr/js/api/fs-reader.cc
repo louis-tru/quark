@@ -91,10 +91,10 @@ class NativeFileReader {
 
 		if ( isStream ) {
 			Cb cb = get_callback_for_io_stream(worker, args[0]);
-			JS_RETURN( f_reader()->read_stream( path, cb ) );
+			JS_RETURN( fs_reader()->read_stream( path, cb ) );
 		} else {
 			Cb cb = get_callback_for_buffer(worker, args[0], encoding);
-			JS_RETURN( f_reader()->read_file( path, cb ) );
+			JS_RETURN( fs_reader()->read_file( path, cb ) );
 		}
 	}
 	
@@ -130,7 +130,7 @@ class NativeFileReader {
 		
 		Buffer rv;
 		try {
-			rv = f_reader()->read_file_sync( args[0]->ToStringValue(worker) );
+			rv = fs_reader()->read_file_sync( args[0]->ToStringValue(worker) );
 		} catch(cError& err) {
 			JS_THROW_ERR(err);
 		}
@@ -152,7 +152,7 @@ class NativeFileReader {
 										"* @ret {bool}\n"
 										);
 		}
-		JS_RETURN( f_reader()->exists_sync( args[0]->ToStringValue(worker) ) );
+		JS_RETURN( fs_reader()->exists_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -169,7 +169,7 @@ class NativeFileReader {
 										"* @ret {bool}\n"
 										);
 		}
-		JS_RETURN( f_reader()->is_file_sync( args[0]->ToStringValue(worker) ) );
+		JS_RETURN( fs_reader()->is_file_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -186,7 +186,7 @@ class NativeFileReader {
 										"* @ret {bool}\n"
 										);
 		}
-		JS_RETURN( f_reader()->is_directory_sync( args[0]->ToStringValue(worker) ) );
+		JS_RETURN( fs_reader()->is_directory_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -203,7 +203,7 @@ class NativeFileReader {
 										"* @ret {Array}\n"
 										);
 		}
-		JS_RETURN( f_reader()->readdir_sync( args[0]->ToStringValue(worker) ) );
+		JS_RETURN( fs_reader()->readdir_sync( args[0]->ToStringValue(worker) ) );
 	}
 	
 	/**
@@ -218,14 +218,14 @@ class NativeFileReader {
 										"* @arg id {uint} abort id\n"
 										);
 		}
-		f_reader()->abort( args[0]->ToUint32Value(worker) );
+		fs_reader()->abort( args[0]->ToUint32Value(worker) );
 	}
 	
 	/**
 	 * @func clear()
 	 */
 	static void clear(FunctionCall args) {
-		f_reader()->clear();
+		fs_reader()->clear();
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {

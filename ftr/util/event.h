@@ -33,7 +33,7 @@
 
 #include "./util.h"
 #include "./error.h"
-#include <unordered_map>
+#include <map>
 #include <list>
 #include <functional>
 
@@ -246,21 +246,21 @@ namespace ftr {
 		* @fun count # 获取侦听器数量
 		*/
 		inline int count() const {
-			return _listener ? _listener->length() : 0;
+			return _listener ? (int)_listener->size() : 0;
 		}
 
 		template<class Scope>
 		void on(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
 			get_listener();
 			assert2(listener, scope);
-			_listener->push( { new OnListener<Scope>(this, listener, scope) } );
+			_listener->push_back( { new OnListener<Scope>(this, listener, scope) } );
 		}
 
 		template <class Data>
 		void on( void (*listener)(Event&, Data*), Data* data = nullptr) throw(Error) {
 			get_listener();
 			assert_static(listener, data);
-			_listener->push( { new OnStaticListener<Data>(this, listener, data) } );
+			_listener->push_back( { new OnStaticListener<Data>(this, listener, data) } );
 		}
 
 		void on( ListenerFunc listener, int id = 0) {
@@ -271,42 +271,42 @@ namespace ftr {
 		void on(EventNoticer* shell) throw(Error) {
 			get_listener();
 			assert_shell(shell);
-			_listener->push( { new OnShellListener(this, shell) } );
+			_listener->push_back( { new OnShellListener(this, shell) } );
 		}
 
 		template<class Scope>
 		void once(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
 			get_listener();
 			assert2(listener, scope);
-			_listener->push( { new OnceListener<Scope>(this, listener, scope) } );
+			_listener->push_back( { new OnceListener<Scope>(this, listener, scope) } );
 		}
 		
 		template <class Data>
 		void once( void (*listener)(Event&, Data*), Data* data = nullptr) throw(Error) {
 			get_listener();
 			assert_static(listener, data);
-			_listener->push( { new OnceStaticListener<Data>(this, listener, data) } );
+			_listener->push_back( { new OnceStaticListener<Data>(this, listener, data) } );
 		}
 		
 		void once( ListenerFunc listener, int id = 0) {
 			get_listener();
-			_listener->push( { new OnceLambdaFunctionListener(this, std::move(listener), id) } );
+			_listener->push_back( { new OnceLambdaFunctionListener(this, std::move(listener), id) } );
 		}
 		
 		void once(EventNoticer* shell) throw(Error) {
 			get_listener();
 			assert_shell(shell);
-			_listener->push( { new OnceShellListener(this, shell) } );
+			_listener->push_back( { new OnceShellListener(this, shell) } );
 		}
 
 		template<class Scope>
 		void off( void (Scope::*listener)(Event&) ) {
 			if (_listener) {
 				typedef OnListener<Scope> OnListener2;
-				for ( auto& i : *_listener ) {
-					if ( i.value().value() && i.value()->is_on_listener() &&
-							static_cast<OnListener2*>(i.value().value())->equals( listener ) ) {
-						i.value().del();
+				for ( auto i : *_listener ) {
+					if ( i.value() && i->is_on_listener() &&
+							static_cast<OnListener2*>(i.value())->equals( listener ) ) {
+						i.del();
 					}
 				}
 			}
@@ -316,11 +316,11 @@ namespace ftr {
 		void off( void (Scope::*listener)(Event&), Scope* scope) {
 			if (_listener) {
 				typedef OnListener<Scope> OnListener2;
-				for ( auto& i : *_listener ) {
-					if( i.value().value() && i.value()->is_on_listener() &&
-							static_cast<OnListener2*>(i.value().value())->equals(listener) &&
-							static_cast<OnListener2*>(i.value().value())->equals( scope ) ) {
-						i.value().del();
+				for ( auto i : *_listener ) {
+					if( i.value() && i->is_on_listener() &&
+							static_cast<OnListener2*>(i.value())->equals(listener) &&
+							static_cast<OnListener2*>(i.value())->equals( scope ) ) {
+						i.del();
 						break;
 					}
 				}
@@ -331,10 +331,10 @@ namespace ftr {
 		void off( void (*listener)(Event&, Data*) ) {
 			if (_listener) {
 				typedef OnStaticListener<Data> OnListener2;
-				for ( auto& i : *_listener ) {
-					if ( i.value().value() && i.value()->is_on_static_listener() &&
-							static_cast<OnListener2*>(i.value().value())->equals(listener) ) {
-						i.value().del();
+				for ( auto i : *_listener ) {
+					if ( i.value() && i->is_on_static_listener() &&
+							static_cast<OnListener2*>(i.value())->equals(listener) ) {
+						i.del();
 						break;
 					}
 				}
@@ -345,11 +345,11 @@ namespace ftr {
 		void off( void (*listener)(Event&, Data*), Data* data) {
 			if (_listener) {
 				typedef OnStaticListener<Data> OnListener2;
-				for ( auto& i : *_listener ) {
-					if ( i.value().value() && i.value()->is_on_static_listener() &&
-							static_cast<OnListener2*>(i.value().value())->equals(listener) &&
-							static_cast<OnListener2*>(i.value().value())->equals(data) ) {
-						i.value().del();
+				for ( auto i : *_listener ) {
+					if ( i.value() && i->is_on_static_listener() &&
+							static_cast<OnListener2*>(i.value())->equals(listener) &&
+							static_cast<OnListener2*>(i.value())->equals(data) ) {
+						i.del();
 						break;
 					}
 				}
@@ -358,12 +358,12 @@ namespace ftr {
 		
 		void off(int id) {
 			if (_listener) {
-				for ( auto& i : *_listener ) {
-					if ( i.value().value() && i.value()->is_on_func_listener() &&
-								static_cast<OnLambdaFunctionListener*>(i.value().value())->equals(id)
+				for ( auto i : *_listener ) {
+					if ( i.value() && i->is_on_func_listener() &&
+								static_cast<OnLambdaFunctionListener*>(i.value())->equals(id)
 						)
 					{//
-						i.value().del();
+						i.del();
 					}
 				}
 			}
@@ -374,21 +374,21 @@ namespace ftr {
 			if (_listener) {
 				typedef OnListener<Scope> OnListener2;
 				typedef OnStaticListener<Scope> OnListener3;
-				for ( auto& i : *_listener ) {
-					if ( i.value().value &&
+				for ( auto i : *_listener ) {
+					if ( i.value() &&
 							(
 								(
-									i.value()->is_on_listener() &&
-									static_cast<OnListener2*>(i.value().value())->equals(scope)
+									i->is_on_listener() &&
+									static_cast<OnListener2*>(i)->equals(scope)
 								) ||
 								(
-									i.value()->is_on_static_listener() &&
-									static_cast<OnListener3*>(i.value().value())->equals(scope)
+									i->is_on_static_listener() &&
+									static_cast<OnListener3*>(i.value())->equals(scope)
 								)
 							)
 						)
 					{//
-						i.value().del();
+						i.del();
 					}
 				}
 			}
@@ -397,7 +397,7 @@ namespace ftr {
 		void off(EventNoticer* shell) {
 			if (_listener) {
 				for ( auto i : *_listener ) {
-					if ( i.value().value() && i->is_on_shell_listener() &&
+					if ( i.value() && i->is_on_shell_listener() &&
 							static_cast<OnShellListener*>(i)->equals( shell ) )
 					{ //
 						i.del();
@@ -477,10 +477,10 @@ namespace ftr {
 		template<class Scope>
 		void assert2(void (Scope::*listener)(Event&), Scope* scope) throw(Error) {
 			typedef OnListener<Scope> OnListener2;
-			for ( auto& i : *_listener ) {
-				if ( i.value().value() && i.value()->is_on_listener() ) {
-					FX_CHECK( !(static_cast<OnListener2*>(i.value().value())->equals( listener ) &&
-											static_cast<OnListener2*>(i.value().value())->equals( scope )),
+			for ( auto i : *_listener ) {
+				if ( i.value() && i->is_on_listener() ) {
+					FX_CHECK( !(static_cast<OnListener2*>(i.value())->equals( listener ) &&
+											static_cast<OnListener2*>(i.value())->equals( scope )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
 				}
@@ -490,10 +490,10 @@ namespace ftr {
 		template<class Data>
 		void assert_static(void (*listener)(Event&, Data*), Data* data) throw(Error) {
 			typedef OnStaticListener<Data> OnStaticListener2;
-			for ( auto& i : *_listener ) {
-				if ( i.value().value() && i.value()->is_on_static_listener() ) {
-					FX_CHECK( !(static_cast<OnStaticListener2*>(i.value().value())->equals( listener ) &&
-											static_cast<OnStaticListener2*>(i.value().value())->equals( data )),
+			for ( auto i : *_listener ) {
+				if ( i.value() && i->is_on_static_listener() ) {
+					FX_CHECK( !(static_cast<OnStaticListener2*>(i.value())->equals( listener ) &&
+											static_cast<OnStaticListener2*>(i.value())->equals( data )),
 											ERR_DUPLICATE_LISTENER,
 											"Noticers have been added over the letter");
 				}
@@ -501,9 +501,9 @@ namespace ftr {
 		}
 		
 		void assert_shell(EventNoticer* shell) throw(Error) {
-			for ( auto& i : *_listener ) {
-				if ( i.value().value() && i.value()->is_on_shell_listener() ) {
-					FX_CHECK( !static_cast<OnShellListener*>(i.value().value())->equals( shell ),
+			for ( auto i : *_listener ) {
+				if ( i.value() && i->is_on_shell_listener() ) {
+					FX_CHECK( !static_cast<OnShellListener*>(i.value())->equals( shell ),
 										ERR_DUPLICATE_LISTENER,
 										"Noticers have been added over the letter");
 				}
@@ -552,10 +552,10 @@ namespace ftr {
 		
 		virtual ~Notification() {
 			if ( _noticers ) {
-				for (auto& i : *_noticers) {
-					delete i.value();
+				for (auto i : *_noticers) {
+					delete i.second;
 				}
-				Release(_noticers);
+				delete _noticers;
 				_noticers = nullptr;
 			}
 		}
@@ -563,8 +563,8 @@ namespace ftr {
 		Noticer* get_noticer(const Name& name) const {
 			if ( _noticers != nullptr ) {
 				auto it = _noticers->find(name);
-				if (!it.is_null()) {
-					return &it.value()->value;
+				if (it != _noticers->end()) {
+					return &it->second->value;
 				}
 			}
 			return nullptr;
@@ -763,8 +763,8 @@ namespace ftr {
 		*/
 		inline void remove_event_listener() {
 			if (_noticers) {
-				for ( auto& i : *_noticers ) {
-					NoticerWrap* inl = i.value();
+				for ( auto i : *_noticers ) {
+					NoticerWrap* inl = i.second;
 					inl->value.off();
 					trigger_listener_change(inl->name, inl->value.count(), -1);
 				}
@@ -806,12 +806,12 @@ namespace ftr {
 		struct NoticerWrap {
 			inline NoticerWrap() { FX_UNREACHABLE(); }
 			inline NoticerWrap(const Name& t, Sender* sender)
-			: name(t), value(t.to_string(), sender) { }
+				: name(t), value(t.to_string(), sender) {}
 			Name    name;
 			Noticer value;
 		};
 
-		typedef std::unordered_map<Name, NoticerWrap*> Noticers;
+		typedef std::map<Name, NoticerWrap*> Noticers;
 		
 		Noticer* get_noticer2(const Name& name) {
 			if (_noticers == nullptr) {
@@ -819,9 +819,11 @@ namespace ftr {
 			}
 			auto it = _noticers->find(name);
 			if (it != _noticers->end()) {
-				return &it.value()->value;
+				return &it->second->value;
 			} else {
-				return &_noticers->set(name, new NoticerWrap(name, static_cast<Sender*>(this)))->value;
+				auto wrap = new NoticerWrap(name, static_cast<Sender*>(this));
+				_noticers->operator[](name) = wrap;
+				return &wrap->value;
 			}
 		}
 

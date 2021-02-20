@@ -33,8 +33,8 @@
 
 namespace ftr {
 
-	std::vector<PixelData> WEBPImageCodec::decode(cBuffer& data) {
-		std::vector<PixelData> rv;
+	Array<PixelData> WEBPImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv;
 		int width, height;
 		uint8_t* buff = WebPDecodeRGBA((uint8_t*)data.value(), data.length(), &width, &height);
 		if (buff) {

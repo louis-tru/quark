@@ -28,6 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+#include "../util/util.h"
 #include "./media.h"
 #include <uv.h>
 

@@ -31,7 +31,7 @@
 #ifndef __ftr__root__
 #define __ftr__root__
 
-#include "ftr/div.h"
+#include "./div.h"
 
 /**
  * @ns ftr

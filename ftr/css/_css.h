@@ -89,11 +89,11 @@ namespace ftr {
 		inline void set_property_value(T value) {
 			typedef CSSProperty1<T, Name> Type;
 			auto it = _property.find(Name);
-			if ( it.is_null() ) {
+			if ( it == _property.end() ) {
 				Type* prop = new Type(value);
-				_property.set(Name, prop);
+				_property[Name] = prop;
 			} else {
-				static_cast<Type*>(it.value())->set_value(value);
+				static_cast<Type*>(it->second)->set_value(value);
 			}
 		}
 		
@@ -101,12 +101,12 @@ namespace ftr {
 		inline T get_property_value() {
 			typedef CSSProperty1<T, Name> Type;
 			auto it = _property.find(Name);
-			if ( it.is_null() ) {
+			if ( it == _property.end() ) {
 				Type* prop = new Type(T());
-				_property.set(Name, prop);
+				_property[Name] = prop;
 				return prop->value();
 			} else {
-				return static_cast<Type*>(it.value())->value();
+				return static_cast<Type*>(it->second)->value();
 			}
 		}
 		
@@ -124,12 +124,12 @@ namespace ftr {
 		// ".div_cls.div_cls2 .aa.bb.cc"
 		// ".div_cls.div_cls2:down .aa.bb.cc"
 		StyleSheets* instance(cString& expression);
-		std::vector<uint>* get_css_find_group(uint32_t hash);
-		void add_css_query_grpup(uint32_t hash, Array<uint>& css_query_group);
+		Array<uint32_t>* get_css_find_group(uint32_t hash);
+		void add_css_query_grpup(uint32_t hash, Array<uint32_t>& css_query_group);
 		CSSName new_css_name1(cString& a);
 		CSSName new_css_name2(cString& a, cString& b);
 		CSSName new_css_name3(cString& a, cString& b, cString& c);
-		std::vector<uint32_t> get_css_query_grpup(Array<String>& classs);
+		Array<uint32_t> get_css_query_grpup(Array<String>& classs);
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(StyleSheetsClass, Inl) {

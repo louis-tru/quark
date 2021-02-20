@@ -31,7 +31,7 @@
 #ifndef __ftr__text_node__
 #define __ftr__text_node__
 
-#include "ftr/span.h"
+#include "./span.h"
 
 /**
  * @ns ftr
@@ -51,7 +51,7 @@ namespace ftr {
 		*/
 		virtual void prepend(View* child) throw(Error);
 		virtual void append(View* child) throw(Error);
-		virtual View* append_text(cUcs2String& str) throw(Error);
+		virtual View* append_text(cString16& str) throw(Error);
 		virtual Vec2 layout_offset();
 		virtual bool overlap_test(Vec2 point);
 		virtual CGRect screen_rect();
@@ -59,12 +59,12 @@ namespace ftr {
 		/**
 		* @get value
 		*/
-		inline Ucs2String value() const { return _data.string; }
+		inline String16 value() const { return _data.string; }
 		
 		/**
 		* @set value
 		*/
-		void set_value(cUcs2String& str);
+		void set_value(cString16& str);
 		
 		/**
 		* @get length {uint}
@@ -91,7 +91,7 @@ namespace ftr {
 		* @overwrite
 		*/
 		virtual void draw(Draw* draw);
-		virtual void accept_text(Ucs2StringBuilder& output) const;
+		virtual void accept_text(Array<String16>& output) const;
 		virtual void set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid);
 		virtual void set_layout_three_times(bool horizontal, bool hybrid);
 		

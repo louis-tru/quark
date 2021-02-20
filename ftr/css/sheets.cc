@@ -33,35 +33,35 @@
 
 namespace ftr {
 
-	static Map<String, CSSPseudoClass> pseudo_class_table([]() {
-		Map<String, CSSPseudoClass> r;
-		r.set("normal", CSS_PSEUDO_CLASS_NORMAL);
-		r.set("hover", CSS_PSEUDO_CLASS_HOVER);
-		r.set("down", CSS_PSEUDO_CLASS_DOWN);
+	static std::map<String, CSSPseudoClass> pseudo_class_table([]() {
+		std::map<String, CSSPseudoClass> r;
+		r["normal"] = CSS_PSEUDO_CLASS_NORMAL;
+		r["hover"] = CSS_PSEUDO_CLASS_HOVER;
+		r["down"] = CSS_PSEUDO_CLASS_DOWN;
 		return r;
 	}());
 
-	static Map<int, String> pseudo_class_table2([]() {
-		Map<int, String> r;
-		r.set(CSS_PSEUDO_CLASS_NORMAL, ":normal");
-		r.set(CSS_PSEUDO_CLASS_HOVER, ":hover");
-		r.set(CSS_PSEUDO_CLASS_DOWN, ":down");
+	static std::map<int, String> pseudo_class_table2([]() {
+		std::map<int, String> r;
+		r[CSS_PSEUDO_CLASS_NORMAL] = ":normal";
+		r[CSS_PSEUDO_CLASS_HOVER] = ":hover";
+		r[CSS_PSEUDO_CLASS_DOWN] = ":down";
 		return r;
 	}());
 
 	CSSName::CSSName(const Array<String>& classs)
-	: _name(String('.').push(classs.join('.')))
-	, _hash(_name.hash_code()) {
-		
+		: _name(String('.').append(classs.join(".")))
+		, _hash((uint32_t)_name.hash_code())
+	{
 	}
 	CSSName::CSSName(cString& n)
 	: _name(n)
-	, _hash(n.hash_code()) {
+	, _hash((uint32_t)n.hash_code()) {
 	}
 
 	StyleSheets* StyleSheets::Inl::find1(uint32_t hash) {
 		auto i = _children.find(hash);
-		return i.is_null() ? nullptr : i.value();
+		return i == _children.end() ? nullptr : i->second;
 	}
 	
 	StyleSheets* StyleSheets::Inl::find2(const CSSName& name, CSSPseudoClass pseudo) {
@@ -70,12 +70,12 @@ namespace ftr {
 		
 		auto it = _children.find(name.hash());
 		
-		if ( it.is_null() ) {
+		if ( it == _children.end() ) {
 			mark_classs_names(name);
 			ss = new StyleSheets(name, this, CSS_PSEUDO_CLASS_NONE);
-			_children.set(name.hash(), ss);
+			_children[name.hash()] = ss;
 		} else {
-			ss = it.value();
+			ss = it->second;
 		}
 		
 		if ( pseudo ) { // pseudo cls
@@ -123,15 +123,15 @@ namespace ftr {
 			
 			Frame* frame = action->frame(1);
 			
-			for ( auto& i : _property ) {
-				i.value()->assignment(frame);
+			for ( auto i : _property ) {
+				i.second->assignment(frame);
 			}
 			
 			frame->set_time(_time);
 			
 		} else { // 立即设置
-			for ( auto& i : _property ) {
-				i.value()->assignment(view);
+			for ( auto i : _property ) {
+				i.second->assignment(view);
 			}
 		}
 		return action;
@@ -154,11 +154,11 @@ namespace ftr {
 	}
 
 	StyleSheets::~StyleSheets() {
-		for ( auto& i : _children ) {
-			Release(i.value());
+		for ( auto i : _children ) {
+			Release(i.second);
 		}
-		for ( auto& i : _property ) {
-			delete i.value();
+		for ( auto i : _property ) {
+			delete i.second;
 		}
 		Release(_child_NORMAL); _child_NORMAL = nullptr;
 		Release(_child_HOVER); _child_HOVER = nullptr;
@@ -168,10 +168,9 @@ namespace ftr {
 	// -----
 
 	#define fx_def_property(ENUM, TYPE, NAME) \
-	void StyleSheets::set_##NAME(TYPE value) { \
-	_inl_ss(this)->set_property_value<ENUM>(value); \
-	}
-
+		void StyleSheets::set_##NAME(TYPE value) { \
+		_inl_ss(this)->set_property_value<ENUM>(value); \
+		}
 	FX_EACH_PROPERTY_TABLE(fx_def_property)
 	#undef fx_def_accessor
 
@@ -179,12 +178,12 @@ namespace ftr {
 	get_property_value<PROPERTY_BACKGROUND, BackgroundPtr>() {
 		typedef CSSProperty1<BackgroundPtr, PROPERTY_BACKGROUND> Type;
 		auto it = _property.find(PROPERTY_BACKGROUND);
-		if (it.is_null()) {
+		if (it == _property.end()) {
 			Type* prop = new Type(new BackgroundImage());
-			_property.set(PROPERTY_BACKGROUND, prop);
+			_property[PROPERTY_BACKGROUND] = prop;
 			return prop->value();
 		} else {
-			return static_cast<Type*>(it.value())->value();
+			return static_cast<Type*>(it->second)->value();
 		}
 	}
 
@@ -206,8 +205,8 @@ namespace ftr {
 	*/
 	void StyleSheets::assignment(View* view) {
 		ASSERT(view);
-		for ( auto& i : _property ) {
-			i.value()->assignment(view);
+		for ( auto i : _property ) {
+			i.second->assignment(view);
 		}
 	}
 
@@ -216,13 +215,12 @@ namespace ftr {
 	*/
 	void StyleSheets::assignment(Frame* frame) {
 		ASSERT(frame);
-		for ( auto& i : _property ) {
-			i.value()->assignment(frame);
+		for ( auto i : _property ) {
+			i.second->assignment(frame);
 		}
 	}
 
-	std::vector<String>& RootStyleSheets::Inl::sort( Array<String>& arr, uint32_t len ) {
-		
+	Array<String>& RootStyleSheets::Inl::sort( Array<String>& arr, uint32_t len ) {
 		for ( int i = len - 1; i > 0; i-- ) {
 			for ( int j = 0; j < i; j++ ) {
 				if ( arr[j] > arr[j+1] ) {
@@ -245,17 +243,17 @@ namespace ftr {
 		int i = name.index_of(':'); // "cls:hover"
 		if ( i != -1 ) {
 			auto it = pseudo_class_table.find(name.substr(i + 1)); // normal | hover | down
-			if ( it.is_null() ) {
+			if ( it == pseudo_class_table.end() ) {
 				return false;
 			} else {
-				pseudo = it.value();
+				pseudo = it->second;
 			}
 			len = i;
 		}
 		
 		Array<String> arr = name.substring(1, len).split('.');
-		if ( arr.length() > 1 ) { // ".cls.cls2"
-			sort( arr, arr.length() );
+		if ( arr.size() > 1 ) { // ".cls.cls2"
+			sort( arr, (uint32_t)arr.size() );
 		}
 		out = CSSName(arr);
 		
@@ -263,7 +261,7 @@ namespace ftr {
 	}
 
 	void RootStyleSheets::Inl::mark_classs_names(const CSSName& name) {
-		_all_css_names.set(name.hash(), 1);
+		_all_css_names[name.hash()] = 1;
 		_css_query_group_cache.clear();
 	}
 	
@@ -273,11 +271,11 @@ namespace ftr {
 	StyleSheets* RootStyleSheets::Inl::instance(cString& expression) {
 		StyleSheets* ss = this;
 		
-		for ( auto& i : expression.split(' ') ) {
+		for ( auto i : expression.split(' ') ) {
 			CSSName name((String()));
 			CSSPseudoClass pseudo = CSS_PSEUDO_CLASS_NONE;
 			
-			if ( !verification_and_format(i.value().trim(), name, pseudo) ) {
+			if ( !verification_and_format(i.trim(), name, pseudo) ) {
 				FX_ERR("Invalid css name \"%s\"", *expression);
 				return nullptr;
 			}
@@ -296,23 +294,23 @@ namespace ftr {
 		return ss;
 	}
 	
-	std::vector<uint32_t>* get_css_find_group(uint32_t hash) {
+	Array<uint32_t>* RootStyleSheets::Inl::get_css_find_group(uint32_t hash) {
 		auto it = _css_query_group_cache.find(hash);
-		if ( it.is_null() ) {
+		if ( it == _css_query_group_cache.end() ) {
 			return nullptr;
 		} else {
-			return &it.value();
+			return &it->second;
 		}
 	}
 
-	void RootStyleSheets::Inl::add_css_query_grpup(uint32_t hash, std::vector<uint32_t>& css_query_group) {
-		if ( _all_css_names.has(hash) ) {
+	void RootStyleSheets::Inl::add_css_query_grpup(uint32_t hash, Array<uint32_t>& css_query_group) {
+		if ( _all_css_names.count(hash) ) {
 			css_query_group.push(hash);
 		}
 	}
 	
 	CSSName RootStyleSheets::Inl::new_css_name1(cString& a) {
-		return CSSName(String('.').push(a));
+		return CSSName(String('.').append(a));
 	}
 	
 	CSSName RootStyleSheets::Inl::new_css_name2(cString& a, cString& b) {
@@ -332,14 +330,14 @@ namespace ftr {
 		return CSSName(r);
 	}
 	
-	std::vector<uint32_t> RootStyleSheets::Inl::get_css_query_grpup(std::vector<String>& classs) {
-		uint32_t len = classs.length();
+	Array<uint32_t> RootStyleSheets::Inl::get_css_query_grpup(Array<String>& classs) {
+		uint32_t len = (uint32_t)classs.size();
 		
 		if ( !len ) {
-			return std::vector<uint32_t>();
+			return Array<uint32_t>();
 		}
 		
-		std::vector<uint32_t> r;
+		Array<uint32_t> r;
 		
 		if ( len == 1 ) {
 			add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
@@ -347,7 +345,7 @@ namespace ftr {
 		}
 		
 		uint32_t hash = CSSName(len > 4 ? sort(classs, 4).slice(0, 4): sort(classs, len)).hash();
-		std::vector<uint32_t>* group = get_css_find_group(hash);
+		Array<uint32_t>* group = get_css_find_group(hash);
 		
 		if ( group && len <= 4 ) {
 			return *group;
@@ -358,7 +356,7 @@ namespace ftr {
 				add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
 				add_css_query_grpup(new_css_name1(classs[1]).hash(), r);
 				add_css_query_grpup(hash, r);
-				_css_query_group_cache.set(hash, r);
+				_css_query_group_cache[hash] = r;
 				break;
 			case 3:
 				add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
@@ -368,14 +366,14 @@ namespace ftr {
 				add_css_query_grpup(new_css_name2(classs[0], classs[2]).hash(), r);
 				add_css_query_grpup(new_css_name2(classs[1], classs[2]).hash(), r);
 				add_css_query_grpup(hash, r);
-				_css_query_group_cache.set(hash, r);
+				_css_query_group_cache[hash] = r;
 				break;
 			default:  // 4...
 				if ( group ) { // len > 4
 					for ( uint32_t i = 4; i < len; i++ ) {
 						add_css_query_grpup(CSSName(classs[i]).hash(), r);
 					}
-					r.push( *group );
+					r.write(*group);
 					return r;
 				}
 				add_css_query_grpup(new_css_name1(classs[0]).hash(), r);
@@ -393,7 +391,7 @@ namespace ftr {
 				add_css_query_grpup(new_css_name3(classs[1], classs[2], classs[3]).hash(), r);
 				add_css_query_grpup(new_css_name3(classs[0], classs[2], classs[3]).hash(), r);
 				add_css_query_grpup(hash, r);
-				_css_query_group_cache.set(hash, r);
+				_css_query_group_cache[hash] = r;
 				// 
 				for ( uint32_t i = 4; i < len; i++ ) { // len > 4
 					add_css_query_grpup(CSSName(classs[i]).hash(), r);
@@ -414,12 +412,12 @@ namespace ftr {
 	: StyleSheets(CSSName(""), nullptr, CSS_PSEUDO_CLASS_NONE) {
 	}
 
-	std::vector<StyleSheets*> RootStyleSheets::instances(cString& expression) { // TODO
-		std::vector<StyleSheets*> rv;
+	Array<StyleSheets*> RootStyleSheets::instances(cString& expression) { // TODO
+		Array<StyleSheets*> rv;
 		
 		if ( expression.index_of(',') != -1 ) {
 			for ( auto& i : expression.split(',') ) {
-				StyleSheets* ss = _inl_r(this)->instance(i.value().trim());
+				StyleSheets* ss = _inl_r(this)->instance(i.trim());
 				if ( ss ) {
 					rv.push(ss);
 				}

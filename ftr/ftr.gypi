@@ -102,6 +102,10 @@
 			'views2/text.cc',
 			'views2/input.cc',
 			'views2/textarea.cc',
+			'views2/panel.h',
+			'views2/panel.cc',
+			'views2/button.h',
+			'views2/button.cc',
 			#
 			'action/_action.h',
 			'action/action.h',
@@ -111,14 +115,15 @@
 			'action/center.cc',
 			'action/group.cc',
 			'action/keyframe.cc',
+			'action/_property.h',
 			'action/property.cc',
 			'codec/codec.h',
 			'codec/codec.cc',
 			'codec/codec-tga.cc',
 			'codec/codec-pvrtc.cc',
 			'css/_css.h',
+			'css/css.h',
 			'css/cls.cc',
-			'css/css.cc',
 			'css/prop.cc',
 			'css/scope.cc',
 			'css/sheets.cc',
@@ -179,7 +184,6 @@
 					'platforms/linux-gl.cc',
 					'platforms/android-app.cc',
 					'platforms/android-keyboard.cc',
-					'platforms/android-sys.cc',
 					# '../android/org/ftr/FtrActivity.java',
 					# '../android/org/ftr/Android.java',
 					# '../android/org/ftr/IMEHelper.java',
@@ -216,7 +220,6 @@
 					'platforms/_mac-app.h',
 					'platforms/mac-image-codec.mm',
 					'platforms/mac-keyboard.mm',
-					'platforms/mac-sys.mm',
 				],
 				'link_settings': {
 					'libraries': [
@@ -264,7 +267,6 @@
 					'platforms/linux-keyboard.cc',
 					'platforms/_linux-ime-helper.h',
 					'platforms/linux-ime-helper.cc',
-					'platforms/linux-sys.cc',
 				],
 				'link_settings': { 
 					'libraries': [ 
@@ -321,7 +323,7 @@
 			'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
 		'sources': [
-			'media/pcm-player.h',
+			'media/pcm.h',
 			'media/audio-player.h',
 			'media/audio-player.cc',
 			'views2/video.cc',

@@ -47,8 +47,8 @@ namespace ftr {
 		longjmp(data->jmpbuf, 1);
 	}
 
-	std::vector<PixelData> JPEGImageCodec::decode(cBuffer& data) {
-		std::vector<PixelData> rv;
+	Array<PixelData> JPEGImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv;
 		struct jpeg_decompress_struct jpeg;
 		struct jpeg_error_mgr jerr;
 		jpeg.err = jpeg_std_error(&jerr);

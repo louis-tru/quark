@@ -31,7 +31,7 @@
 #ifndef __ftr__div__
 #define __ftr__div__
 
-#include "ftr/box.h"
+#include "box.h"
 
 namespace ftr {
 

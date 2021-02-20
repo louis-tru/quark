@@ -154,7 +154,7 @@ JSON& JSON::operator=(cChar* str) {
 
 JSON& JSON::operator=(cString& str) {
 	reinterpret_cast<RValue*>(this)->
-		SetString(str.str_c(), str.length(), shareMemoryPoolAllocator);
+		SetString(str.c_str(), str.length(), shareMemoryPoolAllocator);
 	return *this;
 }
 
@@ -401,7 +401,7 @@ static JSON parse_for(cChar* json, int64_t len = 0xFFFFFFFFFFFFFFF) throw(Error)
 }
 
 JSON JSON::parse(cString& json) throw(Error) {
-	return parse_for(json.str_c(), json.length());
+	return parse_for(json.c_str(), json.length());
 }
 
 JSON JSON::parse(cBuffer& json_str) throw(Error) {

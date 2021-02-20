@@ -32,7 +32,7 @@
 #define __ftr__math__bezier__
 
 #include "./math.h"
-#include "../util/buffer.h"
+#include "../util/array.h"
 
 namespace ftr {
 
@@ -65,7 +65,7 @@ namespace ftr {
 		/**
 		* @func sample_curve_points
 		*/
-		ArrayBuffer<Vec2> sample_curve_points(uint32_t sample_count) const;
+		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 		
 		private:
 		
@@ -113,7 +113,7 @@ namespace ftr {
 		/**
 		* @func sample_curve_points
 		*/
-		ArrayBuffer<Vec2> sample_curve_points(uint32_t sample_count) const;
+		Array<Vec2> sample_curve_points(uint32_t sample_count) const;
 		
 		protected:
 

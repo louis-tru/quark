@@ -146,6 +146,7 @@ namespace ftr {
 	template<> void* Callback<Object>::DefaultCore();
 
 	typedef Callback<> Cb;
+	typedef const Cb cCb;
 	typedef Cb::Data CbData;
 
 	FX_EXPORT void _async_callback_and_dealloc(Cb cb, Error* e, Object* d, PostMessage* loop);

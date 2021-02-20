@@ -38,8 +38,7 @@
 #include <http_parser.h>
 #include <zlib.h>
 #include <list>
-#include <unordered_map>
-#include <vector>
+#include <map>
 
 namespace ftr {
 
@@ -80,7 +79,7 @@ namespace ftr {
 		String   headers;
 	};
 
-	typedef std::unordered_map<String, String> Map;
+	typedef std::map<String, String> Map;
 
 	/**
 	 * @class HttpClientRequest::Inl
@@ -307,7 +306,7 @@ namespace ftr {
 			}
 			
 			int gzip_inflate(cChar* data, uint32_t len, Buffer& out) {
-				static auto _z_strm_buff = Buffer::from(16384); // 16k
+				static auto _z_strm_buff = Buffer::alloc(16384); // 16k
 				
 				int r = 0;
 				
@@ -439,7 +438,7 @@ namespace ftr {
 										content_length += stat.size();
 										_client->_upload_total += stat.size();
 									} else {
-										Error err(ERR_INVALID_FILE_PATH, "invalid upload path `%s`", i.second.data.str_c());
+										Error err(ERR_INVALID_FILE_PATH, "invalid upload path `%s`", i.second.data.c_str());
 										_client->report_error_and_abort(err);
 										return;
 									}
@@ -462,7 +461,7 @@ namespace ftr {
 							
 							for ( auto& i : _client->_post_form_data ) {
 								String value = inl__uri_encode(i.second.data);
-								_client->_post_data.write(i.first.str_c(), -1, i.first.length());
+								_client->_post_data.write(i.first.c_str(), -1, i.first.length());
 								_client->_post_data.write("=", -1, 1);
 								_client->_post_data.write(*value, -1, value.length());
 								_client->_post_data.write("&", -1, 1);
@@ -474,7 +473,7 @@ namespace ftr {
 					}
 				}
 				
-				ArrayBuffer<String> header_str;
+				Array<String> header_str;
 				String search = _client->_uri.search();
 
 				if (_client->_url_no_cache_arg) {
@@ -488,9 +487,9 @@ namespace ftr {
 					String::format
 					(
 						"%s %s%s HTTP/1.1\r\n"
-						, string_method[_client->_method].str_c()
+						, string_method[_client->_method].c_str()
 						, *inl__uri_encode(_client->_uri.pathname(), false, true)
-						, search.str_c()
+						, search.c_str()
 					)
 				);
 				
@@ -549,7 +548,8 @@ namespace ftr {
 						_client->trigger_http_write();
 						
 						if ( _is_multipart_form_data ) {
-							_multipart_form_buffer = buffer.realloc(BUFFER_SIZE);
+							buffer.realloc(BUFFER_SIZE);
+							_multipart_form_buffer = buffer;
 							send_multipart_form_data();
 						}
 					}
@@ -561,7 +561,7 @@ namespace ftr {
 					}
 					else if ( _is_multipart_form_data ) { // send multipart/form-data
 						if ( !_multipart_form_buffer.length() ) {
-							_multipart_form_buffer = Buffer::from(BUFFER_SIZE);
+							_multipart_form_buffer = Buffer::alloc(BUFFER_SIZE);
 						}
 						send_multipart_form_data();
 					}
@@ -595,7 +595,8 @@ namespace ftr {
 					_upload_file->release(); // release file
 					_upload_file = nullptr;
 					_multipart_form_data.pop_front();
-					_multipart_form_buffer = buffer.realloc(BUFFER_SIZE);
+					buffer.realloc(BUFFER_SIZE);
+					_multipart_form_buffer = buffer;
 					send_multipart_form_data();
 				}
 			}
@@ -619,8 +620,9 @@ namespace ftr {
 						_upload_file->set_delegate(this);
 						_upload_file->open();
 					} else {
-						_multipart_form_buffer.write( form.data.str_c(), 0, form.data.length() );
-						_socket->write(_multipart_form_buffer.realloc(form.data.length()), 1);
+						_multipart_form_buffer.write( form.data.c_str(), 0, form.data.length() );
+						_multipart_form_buffer.realloc(form.data.length());
+						_socket->write(_multipart_form_buffer, 1);
 						_socket->write(string_header_end.copy().collapse());
 						_multipart_form_data.pop_front();
 					}
@@ -864,7 +866,7 @@ namespace ftr {
 			}
 			
 			virtual void trigger_async_file_open(AsyncFile* file) {
-				read(Buffer::from(512));
+				read(Buffer::alloc(512));
 			}
 
 			virtual void trigger_async_file_close(AsyncFile* file) {
@@ -934,7 +936,8 @@ namespace ftr {
 									continue_send_and_release();
 								} else { // read next
 									_offset += i;
-									read(buffer.realloc(512), _offset);
+									buffer.realloc(512);
+									read(buffer, _offset);
 								}
 								break;
 							}
@@ -970,7 +973,7 @@ namespace ftr {
 				if ( !_parse_header ) {
 					if ( _read_count == 0 ) {
 						_read_count++;
-						read(Buffer::from(BUFFER_SIZE), _offset);
+						read(Buffer::alloc(BUFFER_SIZE), _offset);
 					}
 				}
 			}
@@ -1387,7 +1390,7 @@ namespace ftr {
 			_pause = false;
 			_url_no_cache_arg = false;
 			_cache_path = inl__get_http_cache_path() + '/' +
-				hash_code(_uri.href().str_c(), _uri.href().length());
+				hash_code(_uri.href().c_str(), _uri.href().length());
 			
 			int i = _uri.search().index_of("__no_cache");
 			if ( i != -1 && _uri.search()[i+9] != '=' ) {
@@ -1454,7 +1457,7 @@ namespace ftr {
 		FileWriter* _file_writer;
 		Map _request_header;
 		Map _response_header;
-		std::unordered_map<String, FormValue> _post_form_data;
+		std::map<String, FormValue> _post_form_data;
 		Buffer      _post_data;
 		String      _username;
 		String      _password;

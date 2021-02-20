@@ -59,13 +59,13 @@ namespace ftr {
 	struct GLShader {
 		#pragma pack(push,4)
 		cChar* name;
-		const unsigned Char* source_vp;
+		const unsigned char* source_vp;
 		const unsigned long source_vp_len;
-		const unsigned Char* source_fp;
+		const unsigned char* source_fp;
 		const unsigned long source_fp_len;
-		const unsigned Char* es2_source_vp;
+		const unsigned char* es2_source_vp;
 		const unsigned long es2_source_vp_len;
-		const unsigned Char* es2_source_fp;
+		const unsigned char* es2_source_fp;
 		const unsigned long es2_source_fp_len;
 		cChar* shader_uniforms;
 		cChar* shader_uniform_blocks;
@@ -149,7 +149,7 @@ namespace ftr {
 		* @arg shader_type {GLenum}  #     程序类型
 		* @ret {GLuint}
 		*/
-		GLuint32_t compile_shader(cString& name, cBuffer& code, GLenum shader_type);
+		GLuint compile_shader(cString& name, cBuffer& code, GLenum shader_type);
 		
 		/**
 		* @func compile_link_shader # 编译着色器程序
@@ -158,7 +158,7 @@ namespace ftr {
 		* @arg attrs {const Array<String>&}      #             要编号的属性列表
 		* @ret {GLuint}
 		*/
-		GLuint32_t compile_link_shader(cString& name, cBuffer& vertex,
+		GLuint compile_link_shader(cString& name, cBuffer& vertex,
 															cBuffer& fragment,
 															const Array<String>& attrs = Array<String>());
 		
@@ -187,18 +187,18 @@ namespace ftr {
 		void initializ_gl_status();
 		
 		bool    _begin_screen_occlusion_query_status; // 屏幕遮挡test状态
-		GLuint32_t  _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
-		GLuint32_t  _current_frame_buffer;
-		GLuint32_t  _render_buffer;
-		GLuint32_t  _frame_buffer;
-		GLuint32_t  _msaa_render_buffer;
-		GLuint32_t  _msaa_frame_buffer;
-		GLuint32_t  _depth_buffer;
-		GLuint32_t  _stencil_buffer;
-		GLuint32_t  _stencil_ref_value;
-		GLuint32_t  _root_stencil_ref_value;
+		GLuint  _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
+		GLuint  _current_frame_buffer;
+		GLuint  _render_buffer;
+		GLuint  _frame_buffer;
+		GLuint  _msaa_render_buffer;
+		GLuint  _msaa_frame_buffer;
+		GLuint  _depth_buffer;
+		GLuint  _stencil_buffer;
+		GLuint  _stencil_ref_value;
+		GLuint  _root_stencil_ref_value;
 		
-		GLuint32_t _indexd_vbo_data;
+		GLuint _indexd_vbo_data;
 		bool _is_support_vao;
 		bool _is_support_instanced;
 		bool _is_support_query;

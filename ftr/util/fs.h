@@ -35,7 +35,6 @@
 #include "./handle.h"
 #include "./loop.h"
 #include "./stream.h"
-#include <vector>
 
 namespace ftr {
 
@@ -207,7 +206,7 @@ namespace ftr {
 		static void link_sync(cString& path, cString& newPath) throw(Error);
 		static void unlink_sync(cString& path) throw(Error);
 		static void rmdir_sync(cString& path) throw(Error);
-		static std::vector<Dirent> readdir_sync(cString& path) throw(Error);
+		static Array<Dirent> readdir_sync(cString& path) throw(Error);
 		static FileStat stat_sync(cString& path) throw(Error);
 		static bool exists_sync(cString& path);
 		static bool is_file_sync(cString& path);
@@ -230,7 +229,7 @@ namespace ftr {
 		static void link(cString& path, cString& newPath, Cb cb = 0);
 		static void unlink(cString& path, Cb cb = 0);
 		static void rmdir(cString& path, Cb cb = 0);
-		static void readdir(cString& path, Callback<std::vector<Dirent>> cb = 0);
+		static void readdir(cString& path, Callback<Array<Dirent>> cb = 0);
 		static void stat(cString& path, Cb cb = 0);
 		static void exists(cString& path, Cb cb = 0);
 		static void is_file(cString& path, Cb cb = 0);
@@ -392,7 +391,7 @@ namespace ftr {
 		virtual bool exists_sync(cString& path);
 		virtual bool is_file_sync(cString& path);
 		virtual bool is_directory_sync(cString& path);
-		virtual std::vector<Dirent> readdir_sync(cString& path);
+		virtual Array<Dirent> readdir_sync(cString& path);
 		virtual bool is_absolute(cString& path);
 		virtual String format(cString& path);
 		virtual void clear();

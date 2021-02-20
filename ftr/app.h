@@ -31,11 +31,11 @@
 #ifndef __ftr__app__
 #define __ftr__app__
 
-#include "ftr/util/util.h"
-#include "ftr/util/event.h"
-#include "ftr/util/loop.h"
-#include "ftr/util/json.h"
-#include "ftr/value.h"
+#include "./util/util.h"
+#include "./util/event.h"
+#include "./util/loop.h"
+#include "./util/json.h"
+#include "./value.h"
 
 #define FX_GUI_MAIN() \
 	int __fx_gui_main__(int, Char**); \
@@ -48,7 +48,7 @@
 /**
  * gui入口程序,替代main入口函数gui启动时候会调用这个函数
  */
-FX_EXPORT extern int (*__fx_gui_main)(int, Char**);
+FX_EXPORT extern int (*__fx_gui_main)(int, char**);
 
 namespace ftr {
 

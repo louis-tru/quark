@@ -50,7 +50,7 @@ namespace ftr {
 	static cString DOMAIN_STR("domain");
 	static cString SECURE("secure");
 
-	typedef std::unordered_map<String, String> Map;
+	typedef std::map<String, String> Map;
 
 	static String get_db_filename() {
 		return Path::temp(".cookie.dp");
@@ -224,7 +224,7 @@ namespace ftr {
 			String domain_ = domain;
 			String path('/');
 
-			std::unordered_map<String, String> options;
+			std::map<String, String> options;
 			
 			for ( auto& i : expression.split("; ") ) {
 				int j = i.index_of('=');
@@ -306,7 +306,7 @@ namespace ftr {
 	String HttpHelper::get_all_cookie_string(cString& domain, cString& path, bool secure) {
 		Map all = get_all_cookie(domain, path, secure);
 		if (all.size()) {
-			ArrayBuffer<String> result;
+			Array<String> result;
 			for (auto& i : all) {
 				 result.push( std::move( String(i.second).append('=').append(i.second) ) );
 			}
@@ -338,7 +338,7 @@ namespace ftr {
 					Char* s = strchr(key->value, '/');
 					if (s) {
 						int i = 0, t_len = path->length();
-						auto t = path->str_c();
+						auto t = path->c_str();
 
 						// LOG("bp_get_filtered_range, %s, %s", s, t);
 
@@ -383,7 +383,7 @@ namespace ftr {
 			if (r == BP_OK) {
 				bp_key_t start = { buf[0].length(), *buf[0] };
 				bp_key_t end = { buf[1].length(), *buf[1] };
-				std::vector<String> rms;
+				Array<String> rms;
 
 				//LOG("http_cookie_delete_all, %s, %s", start.value, end.value);
 
@@ -391,14 +391,15 @@ namespace ftr {
 															const bp_key_t *key,
 															const bp_value_t *value) {
 					//LOG("http_cookie_delete_all 1, %s", value->value);
-					reinterpret_cast<std::vector<String>*>(arg)->push_back(String(key->value, key->length));
+					reinterpret_cast<Array<String>*>(arg)->push(
+						String(key->value, (uint32_t)key->length));
 				}, &rms);
 
 				assert_r(r);
 
 				for (auto& i : rms) {
 					bp_key_t key = {
-						i.length(), (char*)i.str_c(),
+						i.length(), (char*)i.c_str(),
 					};
 					r = bp_remove(_db, &key); assert_r(r);
 					//LOG("http_cookie_delete_all 2, %s", key.value);

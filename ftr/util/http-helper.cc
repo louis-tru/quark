@@ -33,11 +33,10 @@
 #include "./fs.h"
 #include "./_uv.h"
 #include "./os.h"
-#include <vector>
 
 namespace ftr {
 
-	typedef std::unordered_map<String, String> Map;
+	typedef std::map<String, String> Map;
 
 	static String http_cache_path = String();
 	static String http_user_agent = "Mozilla/5.0 ftr/util/" FTR_VERSION " (KHTML, like Gecko)";
@@ -62,7 +61,7 @@ namespace ftr {
 			HCb cb;
 			SCb scb;
 			bool stream, full_data;
-			ArrayBuffer<String> data;
+			Array<String> data;
 			HttpClientRequest* client;
 			
 			Task() {
@@ -114,7 +113,7 @@ namespace ftr {
 				if ( client->status_code() > 399 || client->status_code() < 100 ) {
 					HttpError e(ERR_HTTP_STATUS_ERROR,
 											String::format("Http status error, status code:%d, %s",
-																		req->status_code(), req->url().str_c()),
+																		req->status_code(), req->url().c_str()),
 											req->status_code(), req->url());
 					cb->reject(&e);
 				} else {
@@ -217,9 +216,9 @@ namespace ftr {
 		if (has_private_loop_thread()) {
 			throw HttpError(ERR_CANNOT_RUN_SYNC_IO,
 											String::format("cannot send sync http request, %s"
-																		, options.url.str_c()), 0, options.url);
+																		, options.url.c_str()), 0, options.url);
 		}
-		FX_DEBUG("request_sync %s", options.url.str_c());
+		FX_DEBUG("request_sync %s", options.url.c_str());
 		typedef Callback<RunLoop::PostSyncData> Cb_;
 		bool ok = false;
 		HttpError err = Error();
@@ -366,7 +365,7 @@ namespace ftr {
 		static int http_initialized = 0;
 		if ( ! http_initialized++ ) {
 			http_user_agent = String::format("Mozilla/5.0 (%s/%s) ftr/util/"
-					FTR_VERSION " (KHTML, like Gecko)", os::name().str_c(), os::version().str_c());
+					FTR_VERSION " (KHTML, like Gecko)", os::name().c_str(), os::version().c_str());
 			set_cache_path(Path::temp("http_cache"));
 		}
 	}

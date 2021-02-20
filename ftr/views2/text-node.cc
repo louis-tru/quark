@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <math.h>
-#include "text-node.h"
-#include "ftr/util/codec.h"
-#include "text-rows.h"
-#include "hybrid.h"
-#include "app.h"
-#include "display-port.h"
+#include "./text-node.h"
+#include "../util/codec.h"
+#include "../_text-rows.h"
+#include "./hybrid.h"
+#include "../app.h"
+#include "../display-port.h"
 
 namespace ftr {
 
@@ -58,8 +58,8 @@ class TextNode::Inl: public TextNode {
 		TextRows& rows = hybrid->rows();
 		float final_width = hybrid->final_width(), start, end;
 		
-		for ( auto& i : _data.cells ) {
-			Cell& cell = i.value();
+		for ( int i = 0; i < _data.cells.size(); i++ ) {
+			auto cell = _data.cells[i];
 			
 			TextRows::Row& row = rows[cell.line_num];
 			cell.baseline = row.baseline;
@@ -89,10 +89,10 @@ class TextNode::Inl: public TextNode {
 			if (T == TextAlign::LEFT_REVERSE ||
 					T == TextAlign::CENTER_REVERSE || T == TextAlign::RIGHT_REVERSE ) { // reverse
 				end = cell.offset_start + cell.offset[0];
-				start = end - (cell.offset[cell.Chars.length()] - cell.offset[0]);
+				start = end - (cell.offset[cell.chars.size()] - cell.offset[0]);
 			} else {
 				start = cell.offset_start + cell.offset[0];
-				end = cell.offset_start + cell.offset[cell.Chars.length()];
+				end = cell.offset_start + cell.offset[cell.chars.size()];
 			}
 			
 			if ( start < offset_start_x ) { offset_start_x = start; }
@@ -107,7 +107,7 @@ class TextNode::Inl: public TextNode {
 	 * @func set_layout_offset_and_cell_offset_start
 	 */
 	void set_layout_offset_and_cell_offset_start() {
-		if ( _data.cells.length() ) {
+		if ( _data.cells.size() ) {
 			
 			Hybrid* hybrid = _parent_layout ? _parent_layout->as_hybrid() : nullptr;
 			
@@ -129,9 +129,10 @@ class TextNode::Inl: public TextNode {
 			} else { // 非Text视图内的文本布局
 				float offset_start_x = Float::max, offset_end_x = Float::min;
 				
-				for ( auto& i : _data.cells ) {
-					float start = i.value().offset[0];
-					float end = i.value().offset[i.value().Chars.length()];
+				for ( int j = 0; j < _data.cells.size(); j++ ) {
+					auto i = _data.cells[j];
+					float start = i.offset[0];
+					float end = i.offset[i.chars.size()];
 					if ( start < offset_start_x ) { offset_start_x = start; }
 					if ( end > offset_end_x ) { offset_end_x = end; }
 				}
@@ -168,12 +169,12 @@ void TextNode::append(View* child) throw(Error) {
 	FX_ERR("%s", "Error: TextNode can not have a child view");
 }
 
-void TextNode::accept_text(Ucs2StringBuilder& output) const {
+void TextNode::accept_text(Array<String16>& output) const {
 	output.push(_data.string);
 }
 
-View* TextNode::append_text(cUcs2String& str) throw(Error) {
-	_data.string.push(str);
+View* TextNode::append_text(cString16& str) throw(Error) {
+	_data.string.append(str);
 	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 	return nullptr;
 }
@@ -181,7 +182,7 @@ View* TextNode::append_text(cUcs2String& str) throw(Error) {
 /**
  * @set value
  */
-void TextNode::set_value(cUcs2String& str) {
+void TextNode::set_value(cString16& str) {
 	_data.string = str;
 	mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 }
@@ -208,7 +209,7 @@ void TextNode::set_offset_in_hybrid(TextRows* rows, Vec2 limit, Hybrid* hybrid) 
 	// text layout ..
 	set_text_layout_offset(rows, limit, _data, &opts);
 	
-	if ( _data.cells.length() ) {
+	if ( _data.cells.size() ) {
 		_offset_end = rows->last()->offset_end;
 	}
 }

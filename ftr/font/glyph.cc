@@ -33,40 +33,40 @@
 namespace ftr {
 
 	Font* FontGlyph::font() {
-		return m_container->font;
+		return _container->font;
 	}
 
-	void FontFamilysID::Inl::initialize(const std::vector<String>& names) {
-		m_names = names;
-		m_name = names.join(',');
-		m_code = m_name.hash_code();
+	void FontFamilysID::Inl::initialize(const Array<String>& names) {
+		_names = names.copy();
+		_name = _names.join(",");
+		_code = (uint32_t)_name.hash_code();
 	}
 
 	void FontGlyphTable::Inl::clear_table() {
 		for ( int i = 0; i < 512; i++ ) {
-			delete m_blocks[i]; m_blocks[i] = nullptr;
+			delete _blocks[i]; _blocks[i] = nullptr;
 		}
 	}
 	
 	void FontGlyphTable::Inl::initialize(cFFID ffid, TextStyleEnum style, FontPool* pool) {
-		m_ffid = ffid;
-		m_style = style;
-		m_pool = pool;
+		_ffid = ffid;
+		_style = style;
+		_pool = pool;
 		make();
 	}
 	
 	void FontGlyphTable::Inl::make() {
 		clear_table();
-		m_fonts.clear();
+		_fonts.clear();
 		
-		std::unordered_map<String, bool> fonts_name;
+		std::map<String, bool> fonts_name;
 		
-		for ( auto& i : m_ffid->names() ) {
-			Font* font = m_pool->get_font(i.value(), m_style);
+		for ( auto& i : _ffid->names() ) {
+			Font* font = _pool->get_font(i, _style);
 			if ( font && !fonts_name.count(font->name()) ) {
 				if ( font->load() ) { // 载入字体
-					m_fonts.push(font);
-					fonts_name.set(font->name(), true);
+					_fonts.push(font);
+					fonts_name[font->name()] = true;
 				}
 			}
 		}
@@ -76,47 +76,47 @@ namespace ftr {
 		* 为了使用这个`icon`进行精准排版现在暂时做例外处理，在使用`icon`字体名称时不加入默认字体
 		*/
 		
-		if (m_ffid->code() != 2090550926) {
-			for ( auto& i : m_pool->m_default_fonts ) {
-				Font* font = i.value()->font(m_style);
+		if (_ffid->code() != 2090550926) {
+			for ( auto& i : _pool->_default_fonts ) {
+				Font* font = i->font(_style);
 				if ( ! fonts_name.count(font->name()) ) { // 避免重复的名称
 					if ( font->load() ) { // 载入字体
-						m_fonts.push(font);
-						fonts_name.set(font->name(), true);
+						_fonts.push(font);
+						fonts_name[font->name()] = true;
 					}
 				}
 			}
 		} else {
-			ASSERT(m_ffid->name() == "icon");
+			ASSERT(_ffid->name() == "icon");
 		}
 		
 		// 查找最大高度与行高度
-		m_height = 0;
-		m_ascender = 0;
-		m_descender = 0;
+		_height = 0;
+		_ascender = 0;
+		_descender = 0;
 		
-		for ( uint32_t i = 0; i < m_fonts.length(); i++ ) {
-			Font* font = m_fonts[i];
-			m_height = FX_MAX(m_height, font->height());
-			m_ascender = FX_MAX(m_ascender, font->ascender());
-			m_descender = FX_MAX(m_descender, font->descender());
+		for ( uint32_t i = 0; i < _fonts.length(); i++ ) {
+			Font* font = _fonts[i];
+			_height = FX_MAX(_height, font->height());
+			_ascender = FX_MAX(_ascender, font->ascender());
+			_descender = FX_MAX(_descender, font->descender());
 		}
 	}
 	
 	void FontGlyphTable::Inl::set_glyph(uint32_t region, uint32_t index, FontGlyph* glyph) {
 		ASSERT( glyph );
-		if ( !m_blocks[region] ) {
+		if ( !_blocks[region] ) {
 			GlyphsBlock* block = new GlyphsBlock();
 			memset(block, 0, sizeof(GlyphsBlock));
-			m_blocks[region] = block;
+			_blocks[region] = block;
 		}
-		m_blocks[region]->glyphs[index] = glyph;
+		_blocks[region]->glyphs[index] = glyph;
 	}
 	
-	FontGlyph* FontGlyphTable::Inl::get_glyph(uint32_t16 unicode) {
+	FontGlyph* FontGlyphTable::Inl::get_glyph(uint16_t unicode) {
 		uint32_t region = unicode / 128;
 		uint32_t index = unicode % 128;
-		GlyphsBlock* con = m_blocks[region];
+		GlyphsBlock* con = _blocks[region];
 		if ( con ) {
 			FontGlyph* glyph = con->glyphs[index];
 			if ( glyph ) {
@@ -129,17 +129,17 @@ namespace ftr {
 	/**
 	* @func find_glyph
 	*/
-	FontGlyph* FontGlyphTable::Inl::find_glyph(uint32_t16 unicode, FGTexureLevel level, bool vector) {
+	FontGlyph* FontGlyphTable::Inl::find_glyph(uint16_t unicode, FGTexureLevel level, bool vector) {
 		
 		FontGlyph* glyph = nullptr;
 		
 		uint32_t region = unicode / 128;
 		uint32_t index = unicode % 128;
 		
-		if ( m_fonts.length() ) {
+		if ( _fonts.length() ) {
 			
-			Font** begin = &m_fonts[0];
-			Font** end = begin + m_fonts.length();
+			Font** begin = &_fonts[0];
+			Font** end = begin + _fonts.length();
 			
 			do {
 				glyph = _inl_font(*begin)->get_glyph(unicode, region, index, level, vector);
@@ -151,7 +151,7 @@ namespace ftr {
 		}
 		
 		/* TODO 使用一个默认字形  � 65533 */
-		Font* font = m_pool->m_spare_family->font(m_style);
+		Font* font = _pool->_spare_family->font(m_style);
 		
 		glyph = _inl_font(font)->get_glyph(65533, 65533 / 128, 65533 % 128, level, vector);
 		
@@ -167,7 +167,7 @@ namespace ftr {
 	/**
 	* @func glyph
 	*/
-	FontGlyph* FontGlyphTable::glyph(uint32_t16 unicode) {
+	FontGlyph* FontGlyphTable::glyph(uint16_t unicode) {
 		FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 		if ( glyph ) {
 			return glyph;
@@ -178,44 +178,44 @@ namespace ftr {
 	/**
 	* @func use_texture_glyph 使用纹理字型
 	*/
-	FontGlyph* FontGlyphTable::use_texture_glyph(uint32_t16 unicode, FGTexureLevel level) {
+	FontGlyph* FontGlyphTable::use_texture_glyph(uint16_t unicode, FGTexureLevel level) {
 		ASSERT(level < FontGlyph::LEVEL_NONE);
 		
 		FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 		
 		if ( glyph ) {
 			if ( glyph->has_texure_level(level) ) {
-				glyph->m_container->use_count++; return glyph;
+				glyph->_container->use_count++; return glyph;
 			}
 			else { // 先尝试使用最快的方法
 				if ( _inl_font(glyph->font())->set_texture_data(glyph, level) ) { //
-					glyph->m_container->use_count++; return glyph;
+					glyph->_container->use_count++; return glyph;
 				}
 			}
 		}
 		glyph = _inl_table(this)->find_glyph(unicode, level, false);
 		
-		glyph->m_container->use_count++; return glyph;
+		glyph->_container->use_count++; return glyph;
 	}
 
 	/**
 	* @func use_vector_glyph # 使用字型,并且载入vbo矢量顶点数据
 	*/
-	FontGlyph* FontGlyphTable::use_vector_glyph(uint32_t16 unicode) {
+	FontGlyph* FontGlyphTable::use_vector_glyph(uint16_t unicode) {
 		FontGlyph* glyph = _inl_table(this)->get_glyph(unicode);
 		
 		if ( glyph ) {
 			if ( glyph->vertex_data() ) {
-				glyph->m_container->use_count++; return glyph;
+				glyph->_container->use_count++; return glyph;
 			}
 			else { // 先尝试使用最快的方法
 				if ( _inl_font(glyph->font())->set_vertex_data(glyph) ) { //
-					glyph->m_container->use_count++; return glyph;
+					glyph->_container->use_count++; return glyph;
 				}
 			}
 		}
 		glyph = _inl_table(this)->find_glyph(unicode, FontGlyph::LEVEL_NONE, true);
 		
-		glyph->m_container->use_count++; return glyph;
+		glyph->_container->use_count++; return glyph;
 	}
 }

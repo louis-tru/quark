@@ -33,10 +33,10 @@
 
 #include "./util/util.h"
 #include "./util/event.h"
-#include "./util/list.h"
 #include "./math/math.h"
 #include "./value.h"
 #include "./util/cb.h"
+#include <list>
 
 namespace ftr {
 
@@ -136,7 +136,9 @@ namespace ftr {
 		/**
 		* @func draw_region
 		*/
-		inline const Region& draw_region() const { return _draw_region.last(); }
+		inline const Region& draw_region() const {
+			return _draw_region.back();
+		}
 
 		/**
 		* @func push_draw_region
@@ -147,8 +149,8 @@ namespace ftr {
 		* @func pop_draw_region
 		*/
 		inline void pop_draw_region() {
-			ASSERT( _draw_region.length() > 1 );
-			_draw_region.pop();
+			ASSERT( _draw_region.size() > 1 );
+			_draw_region.pop_back();
 		}
 		
 		/**
@@ -225,9 +227,9 @@ namespace ftr {
 		Draw*             _draw_ctx;
 		Mat4              _root_matrix;
 		float             _atom_pixel;
-		List<Region>      _draw_region;
+		std::list<Region>      _draw_region;
 		GUIApplication*   _host;
-		List<Callback<>>  _next_frame;
+		std::list<Callback<>>  _next_frame;
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
 		

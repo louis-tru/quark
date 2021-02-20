@@ -89,7 +89,7 @@ class WrapSimpleHash: public WrapObject {
 		JS_SELF(SimpleHash);
 		
 		if ( args[0]->IsString(worker) ) { // 字符串
-			Ucs2String str = args[0]->ToUcs2StringValue(worker);
+			String16 str = args[0]->ToString16Value(worker);
 			self->update(*str, str.length());
 		}
 		else { // Buffer
@@ -131,7 +131,7 @@ class NativeUtil {
 	static SimpleHash get_hash_code(FunctionCall args) {
 		JS_WORKER(args);
 		SimpleHash hash;
-		Ucs2String str = args[0]->ToUcs2StringValue(worker);
+		String16 str = args[0]->ToString16Value(worker);
 		hash.update(*str, str.length());
 		return hash;
 	}
@@ -210,7 +210,7 @@ class NativeUtil {
 		JS_WORKER(args); GUILock lock;
 		worker->garbageCollection();
 		#if FX_MEMORY_TRACE_MARK
-			std::vector<Object*> objs = Object::mark_objects();
+			Array<Object*> objs = Object::mark_objects();
 			Object** objs2 = &objs[0];
 			LOG("All unrelease heap objects count: %d", objs.size());
 		#endif

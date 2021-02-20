@@ -45,8 +45,8 @@ namespace ftr {
 		return size;
 	}
 
-	std::vector<PixelData> GIFImageCodec::decode(cBuffer& data) {
-		std::vector<PixelData> rv;
+	Array<PixelData> GIFImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv;
 		
 		GifSource source = { &data, 0 };
 		GifFileType* gif = DGifOpen(&source, GifInputFunc, NULL);

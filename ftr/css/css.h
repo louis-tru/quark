@@ -36,6 +36,8 @@
 #include "../_property.h"
 #include "../value.h"
 #include "../action/action.h"
+#include "../action/keyframe.h"
+#include <map>
 
 namespace ftr {
 
@@ -139,7 +141,7 @@ namespace ftr {
 		/**
 		* @func has_child
 		*/
-		inline bool has_child() const { return _children.length(); }
+		inline bool has_child() const { return _children.size(); }
 		
 		/**
 		* @func assignment
@@ -164,9 +166,10 @@ namespace ftr {
 		private:
 		CSSName                       _css_name;
 		StyleSheets*                  _parent;
-		Map<uint, StyleSheets*>       _children;
-		Map<PropertyName, Property*>  _property;
-		uint64_t         _time;
+		std::map<uint32_t, StyleSheets*>     _children;
+		// std::map<PropertyName, Property*>    _property;
+		std::map<uint32_t, Property*>    _property;
+		uint64_t       _time;
 		StyleSheets*   _child_NORMAL;
 		StyleSheets*   _child_HOVER;
 		StyleSheets*   _child_DOWN;
@@ -198,8 +201,8 @@ namespace ftr {
 		static RootStyleSheets* shared();
 		
 		private:
-		Map<uint, int>          _all_css_names;
-		Map<uint, Array<uint>>  _css_query_group_cache;
+		std::map<uint32_t, int>                    _all_css_names;
+		std::map<uint32_t, Array<uint32_t>>  _css_query_group_cache;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
@@ -248,7 +251,7 @@ namespace ftr {
 		* @func has_child
 		*/
 		inline bool has_child() const {
-			return _child_style_sheets.length();
+			return _child_style_sheets.size();
 		}
 		
 		/**
@@ -276,7 +279,7 @@ namespace ftr {
 		private:
 		View*           _host;
 		Array<String>   _classs;
-		Array<uint>     _query_group;
+		Array<uint32_t> _query_group;
 		Array<StyleSheets*> _child_style_sheets; // 当前应用的样式表中拥有子样式表的表供后代视图查询
 		bool            _is_support_pseudo;      // 当前样式表选择器能够找到支持伪类的样式表
 		bool            _once_apply;             // 是否为第一次应用样式表,在处理动作时如果为第一次忽略动作
@@ -292,20 +295,22 @@ namespace ftr {
 		FX_HIDDEN_ALL_COPY(StyleSheetsScope);
 		public:
 		struct Scope {
-			struct Wrap { StyleSheets* sheets; int ref; };
+			struct Wrap {
+				StyleSheets* sheets; int ref;
+			};
 			Wrap* wrap;
 			int   ref;
 		};
 		StyleSheetsScope(View* scope);
 		void push_scope(View* scope);
 		void pop_scope();
-		inline View* bottom_scope() { return _scopes.length() ? _scopes.last() : nullptr; }
-		inline const List<Scope>& style_sheets() { return _style_sheets; }
+		inline View* bottom_scope() { return _scopes.size() ? _scopes.back() : nullptr; }
+		inline const std::list<Scope>& style_sheets() { return _style_sheets; }
 		private:
-		typedef Map<PrtKey<StyleSheets>, Scope::Wrap> StyleSheetsMap;
-		List<View*>   _scopes;
-		List<Scope>   _style_sheets;
-		StyleSheetsMap  _style_sheets_map;
+		typedef std::map<StyleSheets*, Scope::Wrap> StyleSheetsMap;
+		std::list<View*>   _scopes;
+		std::list<Scope>   _style_sheets;
+		StyleSheetsMap     _style_sheets_map;
 	};
 
 	FX_INLINE RootStyleSheets* root_styles() { 

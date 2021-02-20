@@ -31,7 +31,7 @@
 #ifndef __ftr__box__
 #define __ftr__box__
 
-#include "ftr/layout.h"
+#include "./layout.h"
 
 namespace ftr {
 
@@ -385,7 +385,7 @@ class FX_EXPORT Box: public Layout {
 	/**
 	 * @overwrite
 	 */
-	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual View* append_text(cString16& str) throw(Error);
 	virtual void set_visible(bool value);
 	virtual bool overlap_test(Vec2 point);
 	virtual Vec2 layout_offset();

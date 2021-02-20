@@ -33,7 +33,7 @@
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
-#include <unordered_map>
+#include <map>
 
 #if FX_UNIX
 # include <sys/utsname.h>

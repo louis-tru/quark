@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./pre-render.h"
+#include "./_pre-render.h"
 #include "./draw.h"
-#include "./div.h"
-#include "./css.h"
+#include "./views2/div.h"
+#include "./css/css.h"
 
 namespace ftr {
 
@@ -54,13 +54,14 @@ namespace ftr {
 				// 1.从外至内,计算明确的布局宽度与高度
 				
 				// 忽略第0层级,第0层级的视图是无效的
-				auto i = ++_marks.begin();
+				auto i = _marks.begin() + 1;
+				auto end = _marks.end();
 				
 				StyleSheetsScope* sss = nullptr;
 				
 				// 解决所有的布局视图的size,与style
-				for ( ; !i.is_null(); i++ ) {
-					View* begin = i.value();
+				while (i != end) {
+					View* begin = *i;
 					View* view = begin->_next_pre_mark;
 					
 					while ( begin != view ) {
@@ -89,17 +90,19 @@ namespace ftr {
 						}
 						view = next;
 					}
+					
+					i++;
 				}
 				
 				Release(sss);
 				
 				// 2.从内至外,设置偏移并挤压不明确的高度与宽度
 				
-				i = --_marks.end(); auto end = _marks.begin();
+				i = _marks.end() - 1; end = _marks.begin();
 				
 				// 解决所有的布局视图的位置
-				for ( ; i != end; i-- ) {
-					View* begin = i.value();
+				while (i != end ) {
+					View* begin = *i;
 					View* view = begin->_next_pre_mark;
 					while (begin != view) {
 						
@@ -117,13 +120,15 @@ namespace ftr {
 						}
 						view = next;
 					}
+					
+					i--;
 				}
 				
 				// 3.从外至内进一步最终解决局宽度与高度还有偏移位置
-				i = ++_marks.begin();
+				i = _marks.begin() + 1; end = _marks.end();
 				
-				for ( ; !i.is_null(); i++ ) {
-					View* begin = i.value();
+				while ( i != end ) {
+					View* begin = *i;
 					View* view = begin->_next_pre_mark;
 					
 					while (begin != view) {
@@ -148,6 +153,8 @@ namespace ftr {
 					}
 					begin->_prev_pre_mark = begin;
 					begin->_next_pre_mark = begin;
+					
+					i++;
 				}
 				
 				_mark_pre = false;
@@ -158,8 +165,8 @@ namespace ftr {
 		* @func add_task
 		*/
 		void add_task(Task* task) {
-			if ( task->get_task_id().is_null() ) {
-				Task::ID id = _tasks.push(task);
+			if ( task->get_task_id() == Task::ID() ) {
+				Task::ID id = _tasks.insert(_tasks.end(), task);
 				task->set_task_id( id );
 			}
 		}
@@ -169,9 +176,9 @@ namespace ftr {
 		*/
 		void del_task(Task* task) {
 			Task::ID id = task->get_task_id();
-			if ( !id.is_null() ) {
-				id.value()->set_task_id( Task::ID() );
-				id.value() = nullptr;
+			if ( id != Task::ID() ) {
+				(*id)->set_task_id( Task::ID() );
+				(*id) = nullptr;
 			}
 		}
 		
@@ -201,8 +208,9 @@ namespace ftr {
 	PreRender::~PreRender() {
 		auto it = _marks.begin();
 		auto end = _marks.end();
-		for (; it != end; it++) {
-			Release(it.value());
+		while (it != end) {
+			Release(*it);
+			it++;
 		}
 		_pre_render = nullptr;
 	}
@@ -240,19 +248,19 @@ namespace ftr {
 		
 		bool rv = false;
 		
-		if ( _tasks.length() ) { // solve task
-			
-			for ( auto i = _tasks.begin(), end = _tasks.end(); i != end; ) {
-				auto j = i++;
-				Task* task = j.value();
+		if ( _tasks.size() ) { // solve task
+			auto i = _tasks.begin(), end = _tasks.end();
+			while ( i != end ) {
+				Task* task = *i;
 				if ( task ) {
 					if ( now_time > task->get_task_timeout() ) {
 						if ( task->run_task(now_time) ) {
 							rv = true;
 						}
 					}
+					i++;
 				} else {
-					_tasks.del(j);
+					_tasks.erase(i++);
 				}
 			}
 		}

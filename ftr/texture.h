@@ -31,13 +31,13 @@
 #ifndef __ftr__texture__
 #define __ftr__texture__
 
-#include "ftr/util/map.h"
-#include "ftr/util/event.h"
-#include "ftr/util/string.h"
-#include "ftr/util/handle.h"
-#include "ftr/util/buffer.h"
-#include "ftr/image-codec.h"
-#include "ftr/value.h"
+#include "./util/event.h"
+#include "./util/string.h"
+#include "./util/handle.h"
+#include "./util/array.h"
+#include "./codec/codec.h"
+#include "./value.h"
+#include <set>
 
 namespace ftr {
 
@@ -140,9 +140,9 @@ namespace ftr {
 						Repeat repeat = Repeat::NONE);
 		inline int status() const { return _status; }
 		inline bool is_available() const { return _width != 0; }
-		inline const uint* handle() const { return _handle; }
-		inline const uint* data_size() const { return _data_size; }
-		inline const uint* use_count() const { return _use_count; }
+		inline const uint32_t* handle() const { return _handle; }
+		inline const uint32_t* data_size() const { return _data_size; }
+		inline const uint32_t* use_count() const { return _use_count; }
 		inline const Repeat* repeat() const { return _repeat; }
 		inline int width() const { return _width; }
 		inline int height() const { return _height; }
@@ -278,8 +278,8 @@ namespace ftr {
 		private:
 		
 		Draw* _draw_ctx;
-		Map<String, FileTexture*> _textures;
-		Map<PrtKey<Texture>, Texture*> _completes;
+		std::map<String, FileTexture*> _textures;
+		std::set<Texture*> _completes;
 		uint64_t _total_data_size; /* 纹池当前数据总量 */
 		
 		FX_DEFINE_INLINE_CLASS(Inl)

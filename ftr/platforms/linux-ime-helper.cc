@@ -501,7 +501,7 @@ namespace ftr {
 			static String wChar_t_to_string(const wChar_t *str)
 			{
 				if (sizeof(wChar_t) == 2) {
-					Ucs2String ustr = (const uint16*)str;
+					String16 ustr = (const uint16*)str;
 					return ustr.to_string();
 				} else {
 					Ucs4String ustr = (const uint*)str;

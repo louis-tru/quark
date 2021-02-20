@@ -28,15 +28,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "app-inl.h"
-#include "ftr/util/loop.h"
+#include "./_render-looper.h"
+#include "./util/loop.h"
 
 namespace ftr {
 
 RenderLooper::RenderLooper(AppInl* host)
-: _host(host), _id(nullptr) {
-	
-}
+	: _host(host), _id(nullptr) 
+{}
 
 RenderLooper::~RenderLooper() {
 	stop();
@@ -64,7 +63,7 @@ void RenderLooper::start() {
 	_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
 		if (!_id) {
 			LooperData* data = new LooperData();
-			data->id = iid32();
+			data->id = getId32();
 			data->host = _host;
 			data->cb = Callback<>(&looper, data);
 			_id = &data->id;

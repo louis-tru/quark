@@ -32,6 +32,7 @@
 #define __ftr__action__keyframe__
 
 #include "./action.h"
+#include <map>
 
 namespace ftr {
 
@@ -105,7 +106,7 @@ namespace ftr {
 			
 			#define fx_def_property(ENUM, TYPE, NAME) \
 				void set_##NAME(TYPE value); TYPE NAME();
-				FX_EACH_PROPERTY_TABLE(fx_def_property)
+			FX_EACH_PROPERTY_TABLE(fx_def_property)
 			#undef fx_def_property
 		
 			private:
@@ -151,7 +152,7 @@ namespace ftr {
 		/**
 		* @func last
 		*/
-		inline Frame* last() { return _frames[_frames.length() - 1]; }
+		inline Frame* last() { return _frames[_frames.size() - 1]; }
 		
 		/**
 		* @func frame
@@ -166,7 +167,7 @@ namespace ftr {
 		/**
 		* @func length
 		*/
-		inline uint32_t length() const { return _frames.length(); }
+		inline uint32_t length() const { return (uint32_t)_frames.size(); }
 		
 		/**
 		* @func position get play frame position
@@ -202,14 +203,15 @@ namespace ftr {
 		virtual void seek_before(int64_t time, Action* child);
 		virtual void bind_view(View* view);
 		
-		typedef Map<PropertyName, Property*> Propertys;
+		typedef std::map<PropertyName, Property*> Propertys;
 		
+		int           _bind_view_type;
 		int           _frame;
 		int64_t       _time;
 		Array<Frame*> _frames;
-		int           _bind_view_type;
-		Propertys     _property;
 		
+		Propertys     _property;
+
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 

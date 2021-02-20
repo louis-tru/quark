@@ -84,10 +84,10 @@ namespace ftr {
 	}
 
 	PixelData::PixelData(PixelData&& body)
-	: _data(move(body._data))
+	: _data(body._data)
 	, _width(body.width())
 	, _height(body.height())
-	, _body(move(body._body))
+	, _body(std::move(body._body))
 	, _format(body.format()), _is_premultiplied_alpha(false) {
 	}
 
@@ -106,7 +106,7 @@ namespace ftr {
 	, _height(height)
 	, _body()
 	, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
-		_body.push_back(WeakBuffer(*_data, _data.length()));
+		_body.push(WeakBuffer(*_data, _data.length()));
 	}
 
 	PixelData::PixelData(WeakBuffer body, int width,
@@ -116,10 +116,10 @@ namespace ftr {
 	, _height(height)
 	, _body()
 	, _format(format), _is_premultiplied_alpha(is_premultiplied_alpha) {
-		_body.push_back(body);
+		_body.push(body);
 	}
 
-	PixelData::PixelData(const std::vector<WeakBuffer>& body, int width,
+	PixelData::PixelData(const Array<WeakBuffer>& body, int width,
 											int height, Format format, bool is_premultiplied_alpha)
 	: _data()
 	, _width(width)

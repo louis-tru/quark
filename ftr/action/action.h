@@ -34,11 +34,9 @@
 #include "../value.h"
 #include "../math/bezier.h"
 #include "../event.h"
-#include "../property.h"
+#include "../_property.h"
 #include "../background.h"
-#include <vector>
 #include <list>
-#include <map>
 
 namespace ftr {
 
@@ -201,20 +199,22 @@ namespace ftr {
 		virtual void bind_view(View* view) = 0;
 		
 		protected:
+
+		Action* _parent;
+		int     _loop, _loopd;
+		int64_t _full_duration, _delay, _delayd;
+		float   _speed;
+		
+		std::list<View*> _views;
+		
 		struct Wrap {
 			Action* value;
 			bool play;
 		};
 		
-		Action* _parent;
-		int     _loop;
-		int     _loopd;
-		int64_t _full_duration;
-		int64_t _delay;
-		int64_t _delayd;
-		float   _speed;
-		std::list<View*> _views;
-		std::list<Wrap>::iterator _action_center_id;
+		typedef std::list<Wrap>::iterator ActionCenterId;
+		
+		ActionCenterId _action_center_id;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		

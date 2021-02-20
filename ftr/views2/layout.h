@@ -31,9 +31,9 @@
 #ifndef __ftr__layout__
 #define __ftr__layout__
 
-#include "ftr/view.h"
-#include "ftr/value.h"
-#include "ftr/text-font.h"
+#include "./view.h"
+#include "../value.h"
+#include "../text-font.h"
 
 namespace ftr {
 

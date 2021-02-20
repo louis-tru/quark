@@ -31,8 +31,8 @@
 #ifndef __ftr__text_font__
 #define __ftr__text_font__
 
-#include "ftr/value.h"
-#include "ftr/font.h"
+#include "./value.h"
+#include "./font/font.h"
 
 namespace ftr {
 
@@ -51,26 +51,26 @@ namespace ftr {
 		
 		struct FX_EXPORT Cell {
 			uint32_t    line_num;       // 行号
-			float   baseline;       // 基线
-			float   offset_start;   // 偏移开始
+			float       baseline;       // 基线
+			float       offset_start;   // 偏移开始
 			uint32_t    begin;          // 在字符中有开始索引
 			Array<float>  offset;   // 偏移表
-			Array<uint16_t > Chars;  // 字符表
+			Array<uint16_t > chars;  // 字符表
 			bool    reverse;        // 反向排列
 		};
 		
 		struct FX_EXPORT Data {
 			Data();
 			Array<Cell> cells;
-			Ucs2String  string;
+			String16  string;
 			TexureLevel texture_level;        // 文本的纹理等级
 			float       texture_scale;        // 文本的纹理对应等级与实际文本的缩放比
 			float       text_ascender;        // 基线距离行顶
 			float       text_descender;       // 基线距离行底
 			float       text_hori_bearing;    // 基线距离文本顶部
 			float       text_height;          // 文本高度
-			uint32_t        cell_draw_begin;      // 需要绘制cell开始
-			uint32_t        cell_draw_end;        // 需要绘制cell结束
+			uint32_t    cell_draw_begin;      // 需要绘制cell开始
+			uint32_t    cell_draw_end;        // 需要绘制cell结束
 		};
 		
 		// get attrs
@@ -120,7 +120,7 @@ namespace ftr {
 		/**
 		* @func simple_layout_width
 		*/
-		float simple_layout_width(cUcs2String& text);
+		float simple_layout_width(cString16& text);
 		
 		protected:
 		
@@ -190,12 +190,12 @@ namespace ftr {
 		static bool is_auto_wrap(TextLayout* text);
 		
 		protected:
-		
+
 		/**
 		* @func set_text_layout_offset
 		*/
 		void set_text_layout_offset(TextRows* rows, Vec2 limit,
-																Data& data, cUcs2String& string,
+																Data& data, cString16& string,
 																uint32_t begin, uint32_t end,
 																Options* opts = nullptr, bool ignore_empty_cell = true);
 		

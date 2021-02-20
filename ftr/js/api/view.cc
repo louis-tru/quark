@@ -114,7 +114,7 @@ class WrapView: public WrapViewBase {
 		View* view = nullptr;
 		
 		JS_TRY_CATCH({
-			view = self->append_text( args[0]->ToUcs2StringValue(worker) );
+			view = self->append_text( args[0]->ToString16Value(worker) );
 		}, Error);
 		
 		if (view) {

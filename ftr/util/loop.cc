@@ -32,9 +32,8 @@
 #include "./os.h"
 #include <uv.h>
 #include <pthread.h>
-#include <vector>
 #include <list>
-#include <unordered_map>
+#include <map>
 
 #if FX_ANDROID
 # include "./_android-jni.h"
@@ -53,7 +52,7 @@ struct ListenSignal {
 };
 
 static Mutex* threads_mutex;
-static std::unordered_map<ThreadID, Thread*>* threads = nullptr;
+static std::map<ThreadID, Thread*>* threads = nullptr;
 static std::list<ListenSignal*>* threads_end_listens = nullptr;
 static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
@@ -78,7 +77,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	}
 
 	static void thread_initialize() {
-		threads = new std::unordered_map<ID, Thread*>();
+		threads = new std::map<ID, Thread*>();
 		threads_mutex = new Mutex();
 		threads_end_listens = new std::list<ListenSignal*>();
 		on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
@@ -159,14 +158,14 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 
 	static void before_exit() {
 		if (!is_process_exit++) { // exit
-			std::vector<ID> threads_id;
+			Array<ID> threads_id;
 			{
 				ScopeLock scope(*threads_mutex);
 				DLOG("threads count, %d", threads->size());
 				for ( auto& i : *threads ) {
 					DLOG("atexit_exec,name, %p, %s", i.second->id(), *i.second->name());
 					_inl_t(i.second)->awaken(true); // awaken sleep status and abort
-					threads_id.push_back(i.second->id());
+					threads_id.push(i.second->id());
 				}
 			}
 			for ( auto& i: threads_id ) {
@@ -606,10 +605,10 @@ struct RunLoop::Work {
 void RunLoop::Inl::stop_after_print_message() {
 	ScopeLock lock(_mutex);
 	for (auto& i: _keeps) {
-		DLOG("Print: RunLoop keep not release \"%s\"", i->_name.str_c());
+		DLOG("Print: RunLoop keep not release \"%s\"", i->_name.c_str());
 	}
 	for (auto& i: _works) {
-		DLOG("Print: RunLoop work not complete: \"%s\"", i->name.str_c());
+		DLOG("Print: RunLoop work not complete: \"%s\"", i->name.c_str());
 	}
 }
 
@@ -640,11 +639,11 @@ RunLoop::~RunLoop() {
 	{
 		ScopeLock lock(_mutex);
 		for (auto& i: _keeps) {
-			FX_WARN("RunLoop keep not release \"%s\"", i->_name.str_c());
+			FX_WARN("RunLoop keep not release \"%s\"", i->_name.c_str());
 			i->_loop = nullptr;
 		}
 		for (auto& i: _works) {
-			FX_WARN("RunLoop work not complete: \"%s\"", i->name.str_c());
+			FX_WARN("RunLoop work not complete: \"%s\"", i->name.c_str());
 			delete i;
 		}
 	}

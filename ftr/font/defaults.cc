@@ -32,7 +32,6 @@
 #include "../util/json.h"
 #include "./_font.h"
 #include <tinyxml2.h>
-#include <vector>
 
 namespace ftr {
 
@@ -47,7 +46,7 @@ namespace ftr {
 	#elif FX_LINUX
 		static String system_fonts_dir = "/usr/share/fonts";
 	#endif
-	typedef std::vector<FontPool::SimpleFontFamily> SimpleFontList;
+	typedef Array<FontPool::SimpleFontFamily> SimpleFontList;
 	static SimpleFontList* system_font_family_list = nullptr;
 	static String system_first_font_family_name;
 	static String system_second_font_family_name;
@@ -57,9 +56,9 @@ namespace ftr {
 	*/
 	static String find_font_family_by_path(cString& path) {
 		ASSERT(system_font_family_list);
-		for ( auto& i : *system_font_family_list ) {
-			if (i.value().path == path) {
-				return i.value().family;
+		for ( auto i : *system_font_family_list ) {
+			if (i.path == path) {
+				return i.family;
 			}
 		}
 		return String();
@@ -137,7 +136,7 @@ namespace ftr {
 		}
 
 		String data = FileHelper::read_file_sync(path);
-		std::vector<String> ls = data.split('\n');
+		Array<String> ls = data.split('\n');
 		
 		if ( ls.length() != 2 ) {
 			return false;
@@ -205,9 +204,9 @@ namespace ftr {
 	*/
 	void FontPool::Inl::initialize_default_fonts() {
 		
-		std::vector<String> first;    // 第二默认字体(英文字符集)
-		std::vector<String> second;   // 第二默认字体
-		std::vector<String> third;    // 第三默认字体
+		Array<String> first;    // 第二默认字体(英文字符集)
+		Array<String> second;   // 第二默认字体
+		Array<String> third;    // 第三默认字体
 		
 		if ( !system_first_font_family_name.is_empty() ) {
 			first.push(system_first_font_family_name);
@@ -256,7 +255,7 @@ namespace ftr {
 			return *system_font_family_list;
 		}
 
-		system_font_family_list = new std::vector<SimpleFontFamily>();
+		system_font_family_list = new Array<SimpleFontFamily>();
 
 		// 先读取缓存文件,如果找不到缓存文件遍历字体文件夹
 		if ( get_system_font_family_cache() ) {

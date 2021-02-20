@@ -370,7 +370,7 @@ void AudioPlayer::set_src(cString& value) {
 	if ( value.is_empty() ) {
 		return;
 	}
-	String src = f_reader()->format(value);
+	String src = fs_reader()->format(value);
 	
 	Lock lock(_mutex);
 	

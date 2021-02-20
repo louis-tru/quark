@@ -34,7 +34,6 @@
 #include "./fs.h"
 #include "./error.h"
 #include <map>
-#include <vector>
 
 namespace ftr {
 
@@ -149,7 +148,7 @@ namespace ftr {
 		/**
 		* @func readdir(path)
 		*/
-		std::vector<Dirent> readdir(cString& path) const;
+		Array<Dirent> readdir(cString& path) const;
 		
 		/**
 		* @func jump 读取器定位到指定路径的包内文件
@@ -235,7 +234,7 @@ namespace ftr {
 		};
 		
 		typedef std::map<String, unz_entry_info> Info;
-		typedef std::map<String, std::vector<Dirent>> DirInfo;
+		typedef std::map<String, Array<Dirent>> DirInfo;
 		typedef Info::iterator iterator;
 		
 		void*     _unzp;
@@ -326,7 +325,7 @@ namespace ftr {
 		/**
 		* @func write
 		*/
-		template<class T> static bool write(const ArrayBuffer<T>& buff) {
+		template<class T> static bool write(const Array<T>& buff) {
 			return write(buff.val(), buff.size());
 		}
 		

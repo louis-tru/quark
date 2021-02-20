@@ -32,7 +32,7 @@
 #include "../string.h"
 #include "../array.h"
 #include "../fs.h"
-#include "../buffer.h"
+#include "../array.h"
 #include <unistd.h>
 
 namespace ftr {

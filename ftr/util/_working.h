@@ -32,7 +32,7 @@
 #define __ftr__util___working__
 
 #include "./loop.h"
-#include <unordered_map>
+#include <map>
 
 namespace ftr {
 
@@ -53,7 +53,7 @@ namespace ftr {
 		uint32_t post(Cb cb, uint64_t delay_us);
 		void cancel(uint32_t id = 0); // cancel message
 		private:
-		typedef std::unordered_map<ThreadID, int> Map;
+		typedef std::map<ThreadID, int> Map;
 		KeepLoop* _proxy;
 		Mutex _mutex2;
 		Map _childs;

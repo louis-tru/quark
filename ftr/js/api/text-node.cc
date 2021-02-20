@@ -65,7 +65,7 @@ class WrapTextNode: public WrapViewBase {
 	static void set_value(Local<JSString> name, Local<JSValue> value, PropertySetCall args) {
 		JS_WORKER(args); GUILock lock;
 		JS_SELF(TextNode);
-		Ucs2String str = value->ToUcs2StringValue(worker);
+		String16 str = value->ToString16Value(worker);
 		self->set_value(str);
 	}
 

@@ -392,8 +392,9 @@ namespace ftr {
 									uv_err_name((int)uv_req->result), uv_strerror((int)uv_req->result));
 				del(req)->trigger_async_file_error(host(req), err);
 			} else {
+				req->data().buffer.realloc((uint32_t)uv_req->result);
 				del(req)->trigger_async_file_read(host(req),
-																					req->data().buffer.realloc((uint32_t)uv_req->result),
+																					req->data().buffer,
 																					req->data().mark );
 			}
 		}

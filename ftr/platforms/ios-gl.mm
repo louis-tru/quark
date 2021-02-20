@@ -31,7 +31,7 @@
 #import "_ios-gl.h"
 #import "ftr/app.h"
 #import "ftr/display-port.h"
-#import "ftr/sys.h"
+#import "ftr/util/os.h"
 #import <OpenGLES/ES2/glext.h>
 
 namespace ftr {

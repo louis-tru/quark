@@ -36,7 +36,11 @@ namespace ftr {
 
 	void Action::Inl::set_parent(Action* parent) throw(Error) {
 		
-		if ( _parent || _views.length() || !_action_center_id.is_null() ) {
+		if ( _parent || _views.size() ) {
+			FX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
+		}
+		
+		if (_action_center_id != ActionCenterId()) {
 			FX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 		}
 		
@@ -57,8 +61,8 @@ namespace ftr {
 	
 	View* Action::Inl::first_view() {
 		for ( auto& i : _views ) {
-			if (i.value()) {
-				return i.value();
+			if (i) {
+				return i;
 			}
 		}
 		return nullptr;
@@ -82,12 +86,13 @@ namespace ftr {
 	}
 	
 	bool Action::Inl::is_playing() {
-		return ! _action_center_id.is_null();
+		return _action_center_id != ActionCenterId();
 	}
 	
 	void Action::Inl::trigger_action_loop(uint64_t delay, Action* root) {
-		for ( auto i = _views.begin(); !i.is_null(); ) { // trigger event action_loop
-			View* v = i.value();
+		auto i = _views.begin(), end = _views.end();
+		while ( i != end ) { // trigger event action_loop
+			View* v = *i;
 			if (v) {
 				auto evt = new GUIActionEvent(this, v, delay, 0, _loop);
 				main_loop()->post(Cb([this, evt, v](CbData& e) {
@@ -96,14 +101,15 @@ namespace ftr {
 				}, v));
 				i++;
 			} else {
-				_views.del(i++);
+				_views.erase(i++);
 			}
 		}
 	}
 	
 	void Action::Inl::trigger_action_key_frame(uint64_t delay, uint32_t frame_index, Action* root) {
-		for ( auto i = _views.begin(); !i.is_null(); ) { // trigger event action_keyframe
-			View* v = i.value();
+		auto i = _views.begin(), end = _views.end();
+		while ( i != end ) { // trigger event action_keyframe
+			View* v = *i;
 			if (v) {
 				auto evt = new GUIActionEvent(this, v, delay, frame_index, _loop);
 				main_loop()->post(Cb([this, evt, v](CbData& e) {
@@ -112,7 +118,7 @@ namespace ftr {
 				}, v));
 				i++;
 			} else {
-				_views.del(i++);
+				_views.erase(i++);
 			}
 		}
 	}
@@ -149,14 +155,14 @@ namespace ftr {
 		} else {
 			bind_view(view);
 		}
-		_views.push({view});
+		_views.push_back({view});
 	}
 	
 	void Action::Inl::del_view(View* view) {
-		uint32_t len = _views.length();
+		auto len = _views.size();
 		for ( auto& i : _views ) {
-			if ( i.value() == view ) {
-				i.value() = nullptr;
+			if ( i == view ) {
+				i = nullptr;
 				len--;
 				break;
 			}
@@ -200,7 +206,7 @@ namespace ftr {
 	* @destructor
 	*/
 	Action::~Action() {
-		ASSERT( _action_center_id.is_null() );
+		ASSERT( _action_center_id == ActionCenterId() );
 	}
 
 	/**
@@ -228,7 +234,7 @@ namespace ftr {
 	* @func playing
 	*/
 	bool Action::playing() const {
-		return _parent ? _parent->playing() : !_action_center_id.is_null();
+		return _parent ? _parent->playing() : _action_center_id != ActionCenterId();
 	}
 
 	/**

@@ -48,7 +48,7 @@ namespace ftr {
 		/**
 		* @func length
 		*/
-		inline uint32_t length() const { return _actions.length(); }
+		inline uint32_t length() const { return (uint32_t)_actions.size(); }
 		
 		/**
 		* @func append
@@ -89,8 +89,9 @@ namespace ftr {
 		virtual void bind_view(View* view);
 		
 		typedef std::list<Action*>::iterator Iterator;
-		std::list<Action*>    _actions;
-		std::vector<Iterator> _actions_index;
+		
+		std::list<Action*>  _actions;
+		Array<Iterator>     _actions_index;
 		
 		friend class Action;
 		
@@ -121,7 +122,7 @@ namespace ftr {
 		*/
 		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
 		virtual void seek_time(uint64_t time, Action* root);
-		virtual void seek_before(uint64_t time, Action* child);
+		virtual void seek_before(int64_t time, Action* child);
 	};
 
 	/**
@@ -149,9 +150,9 @@ namespace ftr {
 		*/
 		virtual uint64_t advance(uint64_t time_span, bool restart, Action* root);
 		virtual void seek_time(uint64_t time, Action* root);
-		virtual void seek_before(uint64_t time, Action* child);
+		virtual void seek_before(int64_t time, Action* child);
 		
-		Iterator m_action;
+		Iterator _action;
 		
 		friend class GroupAction::Inl;
 	

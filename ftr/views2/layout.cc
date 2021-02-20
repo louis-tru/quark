@@ -29,8 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "layout.h"
-#include "app.h"
-#include "pre-render.h"
+#include "../app.h"
+#include "../_pre-render.h"
 
 namespace ftr {
 

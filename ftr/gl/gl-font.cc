@@ -80,7 +80,7 @@ namespace ftr {
 
 	bool GLDraw::set_font_glyph_vertex_data(Font* font, FontGlyph* glyph) {
 		
-		struct ShortVec2 { int16 x; int16 y; };
+		struct ShortVec2 { int16_t x; int16_t y; };
 		
 		if ( ! glyph->_have_outline ) { // 没有轮廓,使用一个空白轮廓
 			
@@ -123,7 +123,7 @@ namespace ftr {
 		
 		Font::Inl::DecomposeData data = {
 			tess,
-			Container<Vec2>(256),
+			Array<Vec2>(256),
 			10, // 14, // 曲线采样率,采样率越高所表现的曲线越圆滑
 			0,
 			0
@@ -145,7 +145,7 @@ namespace ftr {
 		const int nelems = tessGetElementCount(tess);
 		const TESSindex* elems = tessGetElements(tess);
 		const TESSreal* verts = tessGetVertices(tess);
-		ArrayBuffer<ShortVec2> vertex(nelems * poly_size);
+		Array<ShortVec2> vertex(nelems * poly_size);
 		
 		int vertex_count = 0;
 		for (int i = 0; i < nelems; i++) {
@@ -203,7 +203,7 @@ namespace ftr {
 		FT_GlyphSlot slot = (FT_GlyphSlot)font->_ft_glyph;
 		FT_Bitmap bit = slot->bitmap;
 		
-		GLuint32_t texture_handle;
+		GLuint texture_handle;
 		glGenTextures(1, &texture_handle);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_handle);

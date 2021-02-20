@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "sys.h"
-#include "scroll.h"
-#include "bezier.h"
-#include "app.h"
-#include "display-port.h"
+#include "../util/os.h"
+#include "./scroll.h"
+#include "../math/bezier.h"
+#include "../app.h"
+#include "../display-port.h"
 #include "button.h"
 
 namespace ftr {
@@ -48,7 +48,7 @@ class BasicScroll::Task: public PreRender::Task {
 	
 	Task(BasicScroll* host, uint64_t duration, cCurve& curve = ease_out)
 	: _host(host)
-	, _start_time(sys::time_monotonic())
+	, _start_time(os::time_monotonic())
 	, _duration(duration)
 	, _immediate_end_flag(false)
 	, _curve(curve)
@@ -76,7 +76,7 @@ class BasicScroll::Task: public PreRender::Task {
 		if ( _immediate_end_flag ) { // immediate end motion
 			immediate_end();
 		} else {
-			int64_t now = sys::time_monotonic();
+			int64_t now = os::time_monotonic();
 			if ( now >= _start_time + _duration ) {
 				end();
 			} else {
@@ -97,7 +97,7 @@ class BasicScroll::Task: public PreRender::Task {
 	BasicScroll* _host;
 	uint64_t _start_time;
 	uint64_t _duration;
-	List<Task*>::Iterator _id2;
+	std::list<Task*>::iterator _id2;
 	bool   _immediate_end_flag;
 	cCurve _curve;
 	bool _is_inl_ease_out;
@@ -189,7 +189,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void register_task(Task* task) {
 		if ( !task->is_register_task() ) {
-			task->_id2 = _tasks.push(task);
+			task->_id2 = _tasks.insert(_tasks.end(), task);
 			task->register_task();
 			task->run_task(0);
 		}
@@ -200,7 +200,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void termination_task(Task* task) {
 		if ( task->is_register_task() ) {
-			_tasks.del( task->_id2 );
+			_tasks.erase( task->_id2 );
 			delete task;
 		}
 	}
@@ -209,8 +209,8 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func termination_task
 	 */
 	void termination_all_task() {
-		for ( auto& i : _tasks ) {
-			delete i.value();
+		for ( auto i : _tasks ) {
+			delete i;
 		}
 		_tasks.clear();
 	}
@@ -219,8 +219,8 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func immediate_end_all_task
 	 */
 	void immediate_end_all_task() {
-		for ( auto& i : _tasks ) {
-			i.value()->immediate_end_flag();
+		for ( auto i : _tasks ) {
+			i->immediate_end_flag();
 		}
 	}
 	
@@ -228,7 +228,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func is_task
 	 */
 	inline bool is_task() {
-		return _tasks.length();
+		return _tasks.size();
 	}
 	
 	/**
@@ -473,7 +473,7 @@ class BasicScroll::Inl: public BasicScroll {
 		_moved = false;
 		_move_dist = Vec2();
 		_move_point = point;
-		_move_start_time = sys::time_monotonic();
+		_move_start_time = os::time_monotonic();
 		_move_start_scroll = _scroll;
 	}
 	
@@ -540,9 +540,9 @@ class BasicScroll::Inl: public BasicScroll {
 			}
 		}
 		
-		uint64_t time = sys::time_monotonic();
+		uint64_t time = os::time_monotonic();
 		
-		if (int64(time) - _move_start_time > 3e5) {
+		if (int64_t(time) - _move_start_time > 3e5) {
 			_move_start_time = time;
 			_move_start_scroll = _scroll;
 		}
@@ -555,12 +555,12 @@ class BasicScroll::Inl: public BasicScroll {
 	 */
 	void move_end(Vec2 point) {
 		
-		uint64_t time = sys::time_monotonic();
+		uint64_t time = os::time_monotonic();
 		
 		Momentum momentum_x = { 0,0 };
 		Momentum momentum_y = { 0,0 };
 		
-		uint64_t duration = int64(time) - _move_start_time;
+		uint64_t duration = int64_t(time) - _move_start_time;
 		float new_x = _scroll.x();
 		float new_y = _scroll.y();
 		
@@ -597,8 +597,8 @@ class BasicScroll::Inl: public BasicScroll {
 			//捕获位置
 			Vec2 Catch = get_catch_value();
 			
-			float mod_x = int(roundf(new_x)) % uint(Catch.x());
-			float mod_y = int(roundf(new_y)) % uint(Catch.y());
+			float mod_x = int(roundf(new_x)) % uint32_t(Catch.x());
+			float mod_y = int(roundf(new_y)) % uint32_t(Catch.y());
 			float dist_x, dist_y;
 			
 			if ( new_x < 0 && new_x > _scroll_max.x() && mod_x != 0 ) {
@@ -655,9 +655,9 @@ class BasicScroll::Inl: public BasicScroll {
 	void _touch_move_handle(GUIEvent& e) {
 		if ( _action_id && e.return_value ) {
 			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
-			for ( auto& i : evt->changed_touches() ) {
-				if (i.value().id == _action_id) {
-					move(Vec2( i.value().x, i.value().y )); break;
+			for ( auto i : evt->changed_touches() ) {
+				if (i.id == _action_id) {
+					move(Vec2( i.x, i.y )); break;
 				}
 			}
 		}
@@ -670,8 +670,8 @@ class BasicScroll::Inl: public BasicScroll {
 		if ( _action_id ) {
 			GUITouchEvent* evt = static_cast<GUITouchEvent*>(&e);
 			for ( auto& i : evt->changed_touches() ) {
-				if (i.value().id == _action_id) {
-					move_end(Vec2( i.value().x, i.value().y ));
+				if (i.id == _action_id) {
+					move_end(Vec2( i.x, i.y ));
 					_action_id = 0;
 					break;
 				}

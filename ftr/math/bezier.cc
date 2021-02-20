@@ -76,8 +76,8 @@ namespace ftr {
 	/**
 	* @func sample_curve_points
 	*/
-	ArrayBuffer<Vec2> QuadraticBezier::sample_curve_points(uint32_t sample_count) const {
-		ArrayBuffer<Vec2> rev(sample_count);
+	Array<Vec2> QuadraticBezier::sample_curve_points(uint32_t sample_count) const {
+		Array<Vec2> rev(sample_count);
 		sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
 		return rev;
 	}
@@ -106,8 +106,8 @@ namespace ftr {
 	/**
 	* @func sample_curve_points
 	*/
-	ArrayBuffer<Vec2> CubicBezier::sample_curve_points(uint32_t sample_count) const {
-		ArrayBuffer<Vec2> rev(sample_count);
+	Array<Vec2> CubicBezier::sample_curve_points(uint32_t sample_count) const {
+		Array<Vec2> rev(sample_count);
 		sample_curve_points(sample_count, reinterpret_cast<float*>(*rev));
 		return rev;
 	}
@@ -137,19 +137,20 @@ namespace ftr {
 	* @constructor
 	*/
 	FixedCubicBezier::FixedCubicBezier()
-	: CubicBezier(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), Vec2(1, 1))
-	, _solve((Solve)&Inl::solve_linear)
-	, _p1(Vec2(0, 0)), _p2(Vec2(1, 1))
-	{ }
+		: CubicBezier(Vec2(0, 0), Vec2(0, 0), Vec2(1, 1), Vec2(1, 1))
+		, _solve((Solve)&Inl::solve_linear)
+		, _p1(Vec2(0, 0)), _p2(Vec2(1, 1))
+	{}
 
 	/**
 	* Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
 	* @constructor
 	*/
 	FixedCubicBezier::FixedCubicBezier(Vec2 p1, Vec2 p2)
-	: CubicBezier(Vec2(0, 0), p1, p2, Vec2(1, 1))
-	, _solve((Solve)&Inl::defalut_solve)
-	, _p1(p1), _p2(p2) {
+		: CubicBezier(Vec2(0, 0), p1, p2, Vec2(1, 1))
+		, _solve((Solve)&Inl::defalut_solve)
+		, _p1(p1), _p2(p2)
+	{
 		if ( p1.x() == 0 && p1.y() == 0 && p2.x() == 1 && p2.y() == 1 ) {
 			_solve = (Solve)&Inl::solve_linear;
 		}

@@ -28,10 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "ios-ime-helper-1.h"
-#import "ftr/util/util.h"
-#import "ftr/event.h"
-#import "ftr/app-1.h"
+#import "./_ios-ime-helper.h"
+#import "../util/util.h"
+#import "../event.h"
+#import "../_app.h"
 
 using namespace ftr;
 using namespace ftr;
@@ -267,7 +267,7 @@ using namespace ftr;
 
 - (void)insertText:(NSString*)text {
 	if ( text.length == 1 && _marked_text.length == 0 ) {
-		uint16_t keycode = [text CharacterAtIndex:0];
+		uint16_t keycode = [text characterAtIndex:0];
 		if ( _keyboard_up_keycode == 0 ) {
 			_app->dispatch()->keyboard_adapter()->dispatch(keycode, 1, 1, 0, -1, 0);
 		} else {
@@ -431,7 +431,7 @@ using namespace ftr;
 	
 	if ( text ) {
 		if ( text.length == 1 ) {
-			uint16_t keycode = [text CharacterAtIndex:0];
+			uint16_t keycode = [text characterAtIndex:0];
 			
 			if ( ![text isEqualToString:_marked_text] ) {
 				_keyboard_up_keycode = keycode;

@@ -31,9 +31,9 @@
 #ifndef __ftr__span__
 #define __ftr__span__
 
-#include "ftr/layout.h"
-#include "ftr/text-font.h"
-#include "ftr/font.h"
+#include "./layout.h"
+#include "../text-font.h"
+#include "../font/font.h"
 
 /**
  * @ns ftr
@@ -56,7 +56,7 @@ namespace ftr {
 		virtual TextLayout* as_text_layout() { return this; }
 		virtual View* view() { return this; }
 		virtual void set_visible(bool value);
-		virtual View* append_text(cUcs2String& str) throw(Error);
+		virtual View* append_text(cString16& str) throw(Error);
 		virtual Vec2 layout_offset();
 		virtual Object* to_object() { return this; }
 		

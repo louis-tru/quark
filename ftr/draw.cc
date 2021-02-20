@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./draw.h"
-#include "./font/font.h"
+#include "./font/pool.h"
 #include "./texture.h"
 #include "./display-port.h"
 
@@ -70,8 +70,8 @@ Draw::Draw(GUIApplication* host, cJSON& options)
 	_draw_ctx = this;
 	
 	cJSON& msample = options["multisample"];
-	if (msample.is_uint()) 
-		_multisample = FX_MAX(msample.to_uint(), 0);
+	if (msample.is_uint32())
+		_multisample = FX_MAX(msample.to_uint32(), 0);
 	
 	_font_pool = new FontPool(this); // 初始字体池
 	_tex_pool = new TexturePool(this); // 初始文件纹理池

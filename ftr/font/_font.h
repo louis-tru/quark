@@ -35,11 +35,12 @@
 #include "./font.h"
 #include "../math/bezier.h"
 #include "../draw.h"
+#include "./pool.h"
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include <freetype/ftoutln.h>
 #include <tesselator.h>
-#include <unordered_map>
+#include <map>
 
 namespace ftr {
 
@@ -73,7 +74,7 @@ namespace ftr {
 	};
 
 	// static data
-	static FontGlyphTextureLevel font_glyph_texture_levels_idx[513];
+	extern FontGlyphTextureLevel font_glyph_texture_levels_idx[513];
 
 	/**
 	 * @class FontFromData
@@ -133,7 +134,7 @@ namespace ftr {
 		*/
 		struct DecomposeData {
 			TESStesselator* tess;
-			Container<Vec2> vertex;
+			Array<Vec2> vertex;
 			int  sample;
 			uint32_t length;
 			uint32_t total;
@@ -219,7 +220,7 @@ namespace ftr {
 	FX_DEFINE_INLINE_MEMBERS(FontFamilysID, Inl) {
 		public:
 		#define _inl_ff_id(self) static_cast<FontFamilysID::Inl*>(self)
-		void initialize(const std::vector<String>& names);
+		void initialize(const Array<String>& names);
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(FontGlyphTable, Inl) {
@@ -229,8 +230,8 @@ namespace ftr {
 		void initialize(cFFID ffid, TextStyleEnum style, FontPool* pool);
 		void make();
 		void set_glyph(uint32_t region, uint32_t index, FontGlyph* glyph);
-		FontGlyph* get_glyph(uint32_t16 unicode);
-		FontGlyph* find_glyph(uint32_t16 unicode, FGTexureLevel level, bool vector);
+		FontGlyph* get_glyph(uint16_t unicode);
+		FontGlyph* find_glyph(uint16_t unicode, FGTexureLevel level, bool vector);
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {

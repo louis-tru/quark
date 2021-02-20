@@ -31,7 +31,7 @@
 #ifndef __ftr__box_shadow__
 #define __ftr__box_shadow__
 
-#include "ftr/div.h"
+#include "./div.h"
 
 /**
  * @ns ftr

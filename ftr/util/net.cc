@@ -294,20 +294,20 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 			sockaddr_in6 sockaddr6;
 			Char dst[64];
 			
-			if ( uv_ip4_addr(_hostname.str_c(), _port, &sockaddr) == 0 ) {
+			if ( uv_ip4_addr(_hostname.c_str(), _port, &sockaddr) == 0 ) {
 				_address = *((struct sockaddr*)&sockaddr);
 				// uv_ip4_name(&sockaddr, dst, 64); _remote_ip = dst;
 				_remote_ip = _hostname;
 			}
 			
-			else if ( uv_ip6_addr(_hostname.str_c(), _port, &sockaddr6) == 0 ) {
+			else if ( uv_ip6_addr(_hostname.c_str(), _port, &sockaddr6) == 0 ) {
 				_address = *((struct sockaddr*)&sockaddr6);
 				// uv_ip6_name(&sockaddr6, dst, 64); _remote_ip = dst;
 				_remote_ip = _hostname;
 			}
 			
 			else {
-				hostent* host = gethostbyname(_hostname.str_c());
+				hostent* host = gethostbyname(_hostname.c_str());
 				if ( host ) {
 					if ( host->h_addrtype == AF_INET ) { // ipv4
 						memset(&sockaddr, 0, sizeof(sockaddr_in));
@@ -326,11 +326,11 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 						_address = *((struct sockaddr*)&sockaddr6);
 						uv_ip6_name(&sockaddr6, dst, 64); _remote_ip = dst;
 					} else {
-						report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", _hostname.str_c()),1);
+						report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", _hostname.c_str()),1);
 						return;
 					}
 				} else {
-					report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", _hostname.str_c()),1);
+					report_err(Error(ERR_PARSE_HOSTNAME_ERROR, "Parse hostname error `%s`", _hostname.c_str()),1);
 					return;
 				}
 			}
@@ -432,7 +432,7 @@ class Socket::Inl: public Reference, public Socket::Delegate {
 	static void read_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 		Inl* self = static_cast<UVHandle*>(handle->data)->host;
 		if ( self->_read_buffer.is_null() ) {
-			self->_read_buffer = Buffer::from( FX_MIN(65536, uint32_t(suggested_size)) );
+			self->_read_buffer = Buffer::alloc( FX_MIN(65536, uint32_t(suggested_size)) );
 		}
 		buf->base = *self->_read_buffer;
 		buf->len = self->_read_buffer.length();
@@ -532,7 +532,7 @@ class SSL_INL: public Socket::Inl {
 		try {
 			set_ssl_cacert(FileHelper::read_file_sync(path));
 		} catch(cError& err) {
-			FX_ERR("set_ssl_cacert() fail, %s", err.message().str_c());
+			FX_ERR("set_ssl_cacert() fail, %s", err.message().c_str());
 		}
 	}
 	
@@ -824,7 +824,7 @@ class SSL_INL: public Socket::Inl {
 			_bio_read_source_buffer_length = nread;
 			
 			if ( !_ssl_read_buffer.length() ) {
-				_ssl_read_buffer = Buffer::from(65536);
+				_ssl_read_buffer = Buffer::alloc(65536);
 			}
 			
 			if ( _is_open ) {

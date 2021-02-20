@@ -31,8 +31,8 @@
 #ifndef __ftr__limit_indep__
 #define __ftr__limit_indep__
 
-#include "ftr/indep.h"
-#include "ftr/limit.h"
+#include "./indep.h"
+#include "./limit.h"
 
 /**
  * @ns ftr

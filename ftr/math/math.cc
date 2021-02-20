@@ -30,7 +30,7 @@
 
 #include <string.h>
 #include <math.h>
-#include "./mathe.h"
+#include "./math.h"
 
 namespace ftr {
 

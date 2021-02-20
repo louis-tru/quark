@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "../util/os.h"
-#include "../util/buffer.h"
+#include "../util/array.h"
 #include "./_font.h"
 #include "../math/bezier.h"
 #include "../texture.h"
 #include "../display-port.h"
-#include "../draw/draw.h"
+#include "../draw.h"
 #include "../_app.h"
 #include <native-font.h>
 
@@ -88,7 +88,7 @@ namespace ftr {
 						_fonts.has(font_name) ? "+++++++++++": "");
 		*/
 		
-		for (int i = 1; _fonts.has(font_name_); i++ ) { // 重复的字体名称
+		for (int i = 1; _fonts.count(font_name_); i++ ) { // 重复的字体名称
 			font_name_ = font_name + "_" + i;
 		}
 		
@@ -97,7 +97,7 @@ namespace ftr {
 		auto i = _familys.find(family_name);
 		
 		if ( i != _familys.end() ) {
-			family = i.value();
+			family = i->second;
 		} else {
 			family = new FontFamily(family_name);
 			_familys[family_name] = family;
@@ -147,8 +147,8 @@ namespace ftr {
 			
 			while (1) {
 				
-				if (face->Charmap &&
-						face->Charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
+				if (face->charmap &&
+						face->charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
 						FT_IS_SCALABLE(face)                              // 必须为矢量字体
 						) {
 					// 以64 pem 为标准
@@ -165,7 +165,7 @@ namespace ftr {
 							register_font(family_name,
 														name,
 														parse_style_flags(name, face->style_name),
-														(uint)face->num_glyphs,
+														(uint32_t)face->num_glyphs,
 														face_index, height,
 														max_advance_width, ascender,
 														descender, underline_position,
@@ -285,8 +285,8 @@ namespace ftr {
 			
 			while (1) {
 				
-				if (face->Charmap &&
-						face->Charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
+				if (face->charmap &&
+						face->charmap->encoding == FT_ENCODING_UNICODE && // 必须要有unicode编码表
 						FT_IS_SCALABLE(face)                              // 必须为矢量字体
 				) {
 					
@@ -307,7 +307,7 @@ namespace ftr {
 					sff->fonts.push({
 						name,
 						parse_style_flags(name, face->style_name),
-						(uint)face->num_glyphs,
+						(uint32_t)face->num_glyphs,
 						height,
 						max_advance_width,
 						ascender,
@@ -363,7 +363,7 @@ namespace ftr {
 				// LOG("register_font ok,%d", i);
 			}
 
-			if ( _familys.has("langou") ) {
+			if ( _familys.count("langou") ) {
 				// LOG("_familys.has langou ok");
 				// 这个内置字体必须载入成功,否则退出程序
 				// 把载入的一个内置字体做为默认备用字体,当没有任何字体可用时候,使用这个内置字体
@@ -375,11 +375,9 @@ namespace ftr {
 		
 		{
 			// 载入系统字体
-			const std::vector<SimpleFontFamily>& arr = system_font_family();
+			const Array<SimpleFontFamily>& arr = system_font_family();
 			
-			for (auto i = arr.begin(), e = arr.end(); i != e; i++) {
-				
-				const SimpleFontFamily& sffd = i.value();
+			for (auto sffd : arr) {
 				
 				for (uint32_t i = 0; i < sffd.fonts.length(); i++) {
 					const SimpleFont& sfd = sffd.fonts[i];
@@ -404,13 +402,13 @@ namespace ftr {
 	FontPool::~FontPool() {
 		
 		for ( auto& i : _familys ) {
-			Release(i.value()); // delete
+			Release(i.second); // delete
 		}
 		for ( auto& i : _fonts ) {
-			Release(i.value()); // delete
+			Release(i.second); // delete
 		}
 		for ( auto& i : _tables ) {
-			Release(i.value()); // delete
+			Release(i.second); // delete
 		}
 		
 		_familys.clear();
@@ -428,21 +426,21 @@ namespace ftr {
 
 	/**
 	* @func set_default_fonts # 尝试设置默认字体
-	* @arg first {const std::vector<String>*}  # 第一字体列表
-	* @arg ... {const std::vector<String>*} # 第2/3/4..字体列表
+	* @arg first {const Array<String>*}  # 第一字体列表
+	* @arg ... {const Array<String>*} # 第2/3/4..字体列表
 	*/
-	void FontPool::set_default_fonts(const std::vector<String>* first, ...) {
+	void FontPool::set_default_fonts(const Array<String>* first, ...) {
 		
 		_default_fonts.clear();
-		std::unordered_map<String, bool> has;
+		std::map<String, bool> has;
 		
 		auto end = _blend_fonts.end();
 		
-		for (uint32_t i = 0; i < first->length(); i++) {
-			auto j = _blend_fonts.find(first->item(i));
+		for (auto i: *first) {
+			auto j = _blend_fonts.find(i);
 			if (j != end) {
-				has.set(j.value()->name(), true);
-				_default_fonts.push(j.value()); 
+				has[j->second->name()] = true;
+				_default_fonts.push(j->second);
 				break;
 			}
 		}
@@ -450,51 +448,51 @@ namespace ftr {
 		va_list arg;
 		va_start(arg, first);
 		
-		const std::vector<String>* ls = va_arg(arg, const std::vector<String>*);
+		const Array<String>* ls = va_arg(arg, const Array<String>*);
 		
 		while (ls) {
-			for (uint32_t i = 0; i < ls->length(); i++) {
-				auto j = _blend_fonts.find(ls->item(i));
+			for (auto i: *ls) {
+				auto j = _blend_fonts.find(i);
 				if (j != end) {
-					if ( ! has.has(j.value()->name()) ) {
-						has.set(j.value()->name(), true);
-						_default_fonts.push(j.value());
+					if ( ! has.count(j->second->name()) ) {
+						has[j->second->name()] = true;
+						_default_fonts.push(j->second);
 					}
 					break;
 				}
 			}
-			ls = va_arg(arg, const std::vector<String>*);
+			ls = va_arg(arg, const Array<String>*);
 		}
 		
 		va_end(arg);
 		
-		if ( !has.has(_spare_family->name()) ) {
+		if ( !has.count(_spare_family->name()) ) {
 			_default_fonts.push(_spare_family);
 		}
 	}
 
 	/**
 	* @func set_default_fonts # 在当前字体库找到字体名称,设置才能生效
-	* @arg fonts {const std::vector<String>&} # 要设置的默认字体的名称
+	* @arg fonts {const Array<String>&} # 要设置的默认字体的名称
 	*/
-	void FontPool::set_default_fonts(const std::vector<String>& fonts) {
+	void FontPool::set_default_fonts(const Array<String>& fonts) {
 		
 		_default_fonts.clear();
-		std::unordered_map<String, bool> has;
+		std::map<String, bool> has;
 		
 		auto end = _blend_fonts.end();
 		
 		for (uint32_t i = 0; i < fonts.length(); i++) {
 			auto j = _blend_fonts.find(fonts[i].trim());
 			if (j != end) {
-				if ( ! has.has(j.value()->name()) ) {
-					has.set(j.value()->name(), true);
-					_default_fonts.push(j.value());
+				if ( ! has.count(j->second->name()) ) {
+					has[j->second->name()] = true;
+					_default_fonts.push(j->second);
 				}
 			}
 		}
 		
-		if ( !has.has(_spare_family->name()) ) {
+		if ( !has.count(_spare_family->name()) ) {
 			_default_fonts.push(_spare_family);
 		}
 	}
@@ -502,19 +500,32 @@ namespace ftr {
 	/**
 	* @func default_font_names
 	*/
-	std::vector<String> FontPool::default_font_names() const {
-		std::vector<String> rev;
+	Array<String> FontPool::default_font_names() const {
+		Array<String> rev;
 		for (uint32_t i = 0; i < _default_fonts.length(); i++)
 			rev.push(_default_fonts[i]->name());
 		return rev;
 	}
+	
+	
+	/**
+	* @func font_familys
+	*/
+	Array<String> FontPool::family_names() const {
+		Array<String> names;
+		for (auto i: _familys) {
+			names.push(i.first);
+		}
+		return names;
+	}
+	
 
 	/**
 	* @func font_names()
 	*/
-	std::vector<String> FontPool::font_names(cString& family_name) const {
+	Array<String> FontPool::font_names(cString& family_name) const {
 		FontFamily* ff = const_cast<FontPool*>(this)->get_font_family(family_name);
-		return ff ? ff->font_names() : std::vector<String>();
+		return ff ? ff->font_names() : Array<String>();
 	}
 
 	/**
@@ -522,7 +533,7 @@ namespace ftr {
 	*/
 	FontFamily* FontPool::get_font_family(cString& family_name) {
 		auto i = _familys.find(family_name);
-		return i == _familys.end() ? NULL : i.value();
+		return i == _familys.end() ? NULL : i->second;
 	}
 
 	/**
@@ -533,7 +544,7 @@ namespace ftr {
 	*/
 	Font* FontPool::get_font(cString& name, TextStyleEnum style) {
 		auto i = _blend_fonts.find(name);
-		return i == _blend_fonts.end() ? NULL : i.value()->font(style);
+		return i == _blend_fonts.end() ? NULL : i->second->font(style);
 	}
 
 	/**
@@ -544,17 +555,17 @@ namespace ftr {
 	FontGlyphTable* FontPool::get_table(cFFID ffid, TextStyleEnum style) {
 		ASSERT(ffid);
 		
-		uint32_t code = ffid->code() + (uint)style;
+		uint32_t code = ffid->code() + (uint32_t)style;
 		
 		auto i = _tables.find(code);
-		if ( !i.is_null() ) {
-			return i.value();
+		if ( i != _tables.end() ) {
+			return i->second;
 		}
 		
 		FontGlyphTable* table = new FontGlyphTable();
 		_inl_table(table)->initialize(ffid, style, this);
 		
-		_tables.set(code, table);
+		_tables[code] = table;
 		
 		return table;
 	}
@@ -584,7 +595,7 @@ namespace ftr {
 	*/
 	bool FontPool::register_font_file(cString& path, cString& family_alias) {
 		
-		if (!_paths.has(path) ) { //
+		if (!_paths.count(path) ) { //
 			
 			Handle<SimpleFontFamily> sffd = Inl::inl_read_font_file(path, (FT_Library)_ft_lib);
 			
@@ -627,8 +638,8 @@ namespace ftr {
 			
 			auto i = _blend_fonts.find(family);
 			
-			if (i != _blend_fonts.end() && !_blend_fonts.has(alias)) {
-				_blend_fonts[alias] = i.value(); // 设置一个别名
+			if (i != _blend_fonts.end() && !_blend_fonts.count(alias)) {
+				_blend_fonts[alias] = i->second; // 设置一个别名
 			}
 		}
 	}
@@ -639,10 +650,10 @@ namespace ftr {
 	*/
 	void FontPool::clear(bool full) {
 		for ( auto& i : _tables ) {
-			_inl_table(i.value())->clear_table();
+			_inl_table(i.second)->clear_table();
 		}
 		for ( auto& i : _fonts ) {
-			_inl_font(i.value())->clear(full);
+			_inl_font(i.second)->clear(full);
 		}
 	}
 
@@ -676,10 +687,10 @@ namespace ftr {
 	*/
 	String FontPool::get_family_name(cString& path) const {
 		auto it = _paths.find(path);
-		if ( it.is_null() ) {
+		if ( it == _paths.end() ) {
 			return String();
 		}
-		return it.value();
+		return it->second;
 	}
 
 	/**
@@ -701,7 +712,7 @@ namespace ftr {
 		static FontFamilysID* id = nullptr; // default group i
 		if ( ! id ) {
 			id = new FontFamilysID();
-			_inl_ff_id(id)->initialize(std::vector<String>());
+			_inl_ff_id(id)->initialize(Array<String>());
 		}
 		return id;
 	}
@@ -709,9 +720,9 @@ namespace ftr {
 	/**
 	* @func get_font_familys_id
 	*/
-	cFFID FontPool::get_font_familys_id(const std::vector<String> fonts) {
+	cFFID FontPool::get_font_familys_id(const Array<String> fonts) {
 		
-		static std::unordered_map<uint32_t, FontFamilysID*> ffids; // global groups
+		static std::map<uint32_t, FontFamilysID*> ffids; // global groups
 		
 		// TODO: 这里如果是同一个字体的不同别名会导致不相同的`ID`
 		
@@ -721,10 +732,10 @@ namespace ftr {
 			
 			auto it = ffids.find(id.code());
 			if (it != ffids.end()) {
-				return it.value();
+				return it->second;
 			} else {
-				FontFamilysID* id_p = new FontFamilysID(move( id ));
-				ffids.set ( id_p->code(), id_p );
+				FontFamilysID* id_p = new FontFamilysID(std::move( id ));
+				ffids[ id_p->code() ] = id_p;
 				return id_p;
 			}
 		} else {
@@ -752,8 +763,8 @@ namespace ftr {
 		if ( fonts.is_empty() ) {
 			return default_font_familys_id();
 		} else {
-			std::vector<String> ls = fonts.split(',');
-			std::vector<String> ls2;
+			Array<String> ls = fonts.split(',');
+			Array<String> ls2;
 			
 			for (int i = 0, len = ls.length(); i < len; i++) {
 				String name = ls[i].trim();

@@ -28,9 +28,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "textarea.h"
-#include "display-port.h"
-#include "app-1.h"
+#include "./textarea.h"
+#include "../display-port.h"
+#include "../_app.h"
 
 namespace ftr {
 

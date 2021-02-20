@@ -30,6 +30,7 @@
 
 #include "./util.h"
 #include "../version.h"
+#include <vector>
 
 namespace ftr {
 

@@ -74,7 +74,7 @@ Local<JSValue> convert_buffer(Worker* worker, Buffer& buffer, Encoding encoding)
 			break;
 		}
 		default: { // string
-			Ucs2String str(Coder::decoding_to_uint16(encoding, buffer));
+			String16 str(Coder::decoding_to_uint16(encoding, buffer));
 			result = worker->New(str);
 			break;
 		}

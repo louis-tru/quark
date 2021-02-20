@@ -66,7 +66,7 @@ namespace ftr {
 			//! Reference to (const) GenericMember
 			typedef typename BaseType::reference       Reference;
 			
-			MemberIterator(const NonIteratorConst& it) : ptr_(it.ptr_) { }
+			MemberIterator(const NonIteratorConst& it) : ptr_(it.ptr_) {}
 			
 			MemberIterator& operator++();    // ++i
 			MemberIterator& operator--();    // --i
@@ -167,7 +167,7 @@ namespace ftr {
 		bool is_array()  const;
 		bool is_number() const;
 		bool is_int()    const;
-		bool is_uint32()   const;
+		bool is_uint32() const;
 		bool is_int64()  const;
 		bool is_uint64() const;
 		bool is_double() const;
@@ -176,8 +176,8 @@ namespace ftr {
 		bool to_bool()   const;
 		int to_int()     const;
 		int64_t to_int64() const;
-		uint32_t to_uint32()   const;
-		uint64_t to_uint64()   const;
+		uint32_t to_uint32() const;
+		uint64_t to_uint64() const;
 		double to_double()   const;
 		String to_string()   const;
 

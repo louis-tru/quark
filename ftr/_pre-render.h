@@ -32,8 +32,7 @@
 #define __ftr__pre_render__
 
 #include "./util/util.h"
-#include "./util/array.h"
-#include "./util/list.h"
+#include <list>
 
 /**
  * @ns ftr
@@ -56,13 +55,13 @@ namespace ftr {
 
 		class FX_EXPORT Task {
 			public:
-			typedef List<Task*>::Iterator ID;
+			typedef std::list<Task*>::iterator ID;
 			inline Task(): _timeout(0) { }
 			virtual ~Task();
 			virtual bool run_task(int64_t sys_time) = 0;
 			void register_task();
 			void unregister_task();
-			inline bool is_register_task() const { return !_task_id.is_null(); }
+			inline bool is_register_task() const { return _task_id != ID(); }
 			inline ID get_task_id() const { return _task_id; }
 			inline void set_task_id(ID id) { _task_id = id; }
 			inline int64_t get_task_timeout() const { return _timeout; }
@@ -86,7 +85,7 @@ namespace ftr {
 
 		bool         _mark_pre;    // 是否有layout标记
 		Array<View*> _marks;       // 被标记的视图
-		List<Task*>  _tasks;
+		std::list<Task*>  _tasks;
 		static PreRender* _pre_render;
 
 		friend PreRender* pre_render();

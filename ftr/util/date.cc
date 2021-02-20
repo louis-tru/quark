@@ -618,7 +618,7 @@ namespace ftr {
 	int64_t parse_time(cString& str)
 	{
 		time_t parsed = -1;
-		int rc = parsedate(str.str_c(), &parsed);
+		int rc = parsedate(str.c_str(), &parsed);
 		
 		switch(rc) {
 			case PARSEDATE_OK:

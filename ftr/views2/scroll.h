@@ -31,9 +31,9 @@
 #ifndef __ftr__scroll__
 #define __ftr__scroll__
 
-#include "ftr/panel.h"
-#include "ftr/pre-render.h"
-#include "ftr/bezier.h"
+#include "./panel.h"
+#include "../_pre-render.h"
+#include "../math/bezier.h"
 
 /**
  * @ns ftr
@@ -283,7 +283,7 @@ namespace ftr {
 		
 		friend class GLDraw;
 		
-		List<Task*> _tasks;
+		std::list<Task*> _tasks;
 		
 		Box* _box;
 		Vec2 _raw_scroll;

@@ -31,7 +31,7 @@
 #ifndef __ftr__text__
 #define __ftr__text__
 
-#include "ftr/hybrid.h"
+#include "./hybrid.h"
 
 /**
  * @ns ftr
@@ -51,17 +51,17 @@ namespace ftr {
 		*/
 		virtual void  prepend(View* child) throw(Error);
 		virtual void  append(View* child) throw(Error);
-		virtual View* append_text(cUcs2String& str) throw(Error);
+		virtual View* append_text(cString16& str) throw(Error);
 		
 		/**
 		* @get value
 		*/
-		inline Ucs2String value() const { return _data.string; }
+		inline String16 value() const { return _data.string; }
 		
 		/**
 		* @set value
 		*/
-		virtual void set_value(cUcs2String& str);
+		virtual void set_value(cString16& str);
 		
 		/**
 		* @get length
@@ -98,7 +98,7 @@ namespace ftr {
 		* @overwrite
 		*/
 		virtual void draw(Draw* draw);
-		virtual void accept_text(Ucs2StringBuilder& output) const;
+		virtual void accept_text(Array<String16>& output) const;
 		virtual void set_layout_content_offset();
 		
 		Data  _data;

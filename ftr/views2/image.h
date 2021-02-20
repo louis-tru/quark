@@ -31,7 +31,7 @@
 #ifndef __ftr__image__
 #define __ftr__image__
 
-#include "ftr/div.h"
+#include "div.h"
 
 /**
  * @ns ftr

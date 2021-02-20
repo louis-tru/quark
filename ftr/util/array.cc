@@ -28,15 +28,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./buffer.h"
+#include "./array.h"
 #include <string.h>
 
 namespace ftr {
 
 	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, A, APPEND_ZERO) \
 		\
-		template<> ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity) \
-		: _length(length), _capacity(0), _val(nullptr) \
+		template<> Array<T, A>::Array(uint32_t length, uint32_t capacity) \
+			: _length(length), _capacity(0), _val(nullptr) \
 		{ \
 			if (_length) {  \
 				realloc_(_length + APPEND_ZERO); \
@@ -44,8 +44,8 @@ namespace ftr {
 			}\
 		}\
 		\
-		template<> ArrayBuffer<T, A>::ArrayBuffer(const std::initializer_list<T>& list) \
-		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr) \
+		template<> Array<T, A>::Array(const std::initializer_list<T>& list) \
+			: _length((uint32_t)list.size()), _capacity(0), _val(nullptr) \
 		{ \
 			if (_length) { \
 				realloc_(_length + APPEND_ZERO); \
@@ -54,7 +54,7 @@ namespace ftr {
 			}\
 		} \
 		\
-		template<> ArrayBuffer<T, A>& ArrayBuffer<T, A>::concat_(T* src, uint32_t src_length) { \
+		template<> Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) { \
 			if (src_length) {\
 				_length += src_length; \
 				realloc_(_length + APPEND_ZERO); \
@@ -66,7 +66,7 @@ namespace ftr {
 			return *this; \
 		} \
 		\
-		template<> uint32_t ArrayBuffer<T, A>::write(const T* src, int to, uint32_t size) { \
+		template<> uint32_t Array<T, A>::write(const T* src, int to, uint32_t size) { \
 			if (size) { \
 				if ( to == -1 ) to = _length; \
 				_length = FX_MAX(to + size, _length); \
@@ -77,7 +77,7 @@ namespace ftr {
 			return size; \
 		} \
 		\
-		template<> ArrayBuffer<T, A>& ArrayBuffer<T, A>::pop(uint32_t count) { \
+		template<> Array<T, A>& Array<T, A>::pop(uint32_t count) { \
 			uint32_t j = uint32_t(FX_MAX(_length - count, 0)); \
 			if (_length > j) {  \
 				_length = j;  \
@@ -88,7 +88,7 @@ namespace ftr {
 			return *this; \
 		} \
 		\
-		template<> void ArrayBuffer<T, A>::clear() { \
+		template<> void Array<T, A>::clear() { \
 			if (_val) { \
 				if (!is_weak()) { \
 					A::free(_val); /* free */ \
@@ -99,24 +99,23 @@ namespace ftr {
 			} \
 		} \
 		\
-		template<> ArrayBuffer<T, A>&& ArrayBuffer<T, A>::realloc(uint32_t capacity) { \
+		template<> void Array<T, A>::realloc(uint32_t capacity) { \
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \
 			realloc_(capacity + 1); \
 			if (APPEND_ZERO) _val[_length] = 0; \
-			return std::move(*this); \
 		} \
 		\
 		template<> ArrayBuffer<T, A> \
-		ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const { \
+		Array<T, A>::copy(uint32_t start, uint32_t end) const { \
 			end = FX_MIN(end, _length); \
 			if (start < end) { \
 				ArrayBuffer<T, A> arr(end - start, end - start + APPEND_ZERO); \
 				memcpy((void*)arr.val(), _val + start, arr.length() * sizeof(T)); \
 				if (APPEND_ZERO) (*arr)[arr.length()] = 0; \
-				return std::move(arr); \
+				return arr; \
 			} \
 			return ArrayBuffer<T, A>();\
 		} \
@@ -127,7 +126,7 @@ namespace ftr {
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(char);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(unsigned char);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int16_t);
-	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t );
+	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint16_t);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int32_t);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(uint32_t);
 	FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION_ALL(int64_t);

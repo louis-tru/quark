@@ -29,14 +29,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <math.h>
-#include "app.h"
-#include "video.h"
-#include "texture.h"
-#include "draw.h"
-#include "pcm-player.h"
-#include "media-codec.h"
-#include "ftr/util/loop.h"
-#include "ftr/errno.h"
+#include "../app.h"
+#include "./video.h"
+#include "../texture.h"
+#include "../draw.h"
+#include "../media/pcm-player.h"
+#include "../media/media-codec.h"
+#include "../util/loop.h"
+#include "../errno.h"
 
 namespace ftr {
 
@@ -468,7 +468,7 @@ void Video::set_source(cString& value) {
 		return;
 	}
 	
-	String src = f_reader()->format(value);
+	String src = fs_reader()->format(value);
 
 	Lock lock(_mutex);
 	

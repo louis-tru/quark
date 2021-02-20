@@ -30,14 +30,14 @@
 
 #import <UIKit/UIKit.h>
 #import <OpenGLES/ES2/glext.h>
-#import "ftr/util/loop.h"
-#import "ios-gl-1.h"
-#import "ios-ime-helper-1.h"
-#import "mac-app.h"
-#import "ftr/app.h"
-#import "ftr/display-port.h"
-#import "ftr/app-1.h"
-#import "ftr/event.h"
+#import "../util/loop.h"
+#import "./_ios-gl.h"
+#import "./_ios-ime-helper.h"
+#import "./_mac-app.h"
+#import "../app.h"
+#import "../display-port.h"
+#import "../_app.h"
+#import "../event.h"
 #import <MessageUI/MFMailComposeViewController.h>
 
 using namespace ftr;
@@ -178,9 +178,9 @@ static NSString* app_delegate_name = @"";
 	return YES;
 }
 
-- (List<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
+- (std::list<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
 	NSEnumerator* enumerator = [touches objectEnumerator];
-	List<GUITouch> rv; // (uint(touches.count));
+	std::list<GUITouch> rv; // (uint(touches.count));
 	
 	Vec2 size = _app->display_port()->size();
 	
@@ -192,8 +192,8 @@ static NSString* app_delegate_name = @"";
 		CGFloat force = touch.force;
 		// CGFloat angle = touch.altitudeAngle;
 		// CGFloat max_force = touch.maximumPossibleForce;
-		rv.push({
-			uint((size_t)touch % Uint::max),
+		rv.push_back({
+			uint((size_t)touch % Uint32::max),
 			0, 0,
 			float(point.x * scale_x),
 			float(point.y * scale_y),
@@ -413,7 +413,7 @@ void GUIApplication::open_url(cString& url) {
 static NSArray<NSString*>* split_ns_array(cString& str) {
 	NSMutableArray<NSString*>* arr = [NSMutableArray<NSString*> new];
 	for (auto& i : str.split(',')) {
-		[arr addObject: [NSString stringWithUTF8String:*i.value()]];
+		[arr addObject: [NSString stringWithUTF8String:i.c_str()]];
 	}
 	return arr;
 }

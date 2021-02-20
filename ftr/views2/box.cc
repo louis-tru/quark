@@ -28,18 +28,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "indep.h"
-#include "text.h"
-#include "box.h"
-#include "text-font.h"
-#include "draw.h"
-#include "app.h"
-#include "display-port.h"
-#include "css.h"
-#include "limit.h"
-#include "limit-indep.h"
-#include "background.h"
-#include "texture.h"
+#include "./indep.h"
+#include "./text.h"
+#include "./box.h"
+#include "../text-font.h"
+#include "../draw.h"
+#include "../app.h"
+#include "../display-port.h"
+#include "../css/css.h"
+#include "./limit.h"
+#include "./limit-indep.h"
+#include "../background.h"
+#include "../texture.h"
 
 namespace ftr {
 
@@ -992,8 +992,8 @@ void Box::set_draw_visible() {
 	}
 }
 
-View* Box::append_text(cUcs2String& str) throw(Error) {
-	Ucs2String str2 = str.trim();
+View* Box::append_text(cString16& str) throw(Error) {
+	String16 str2 = str.trim();
 	Text* text = new Text();
 	text->set_value(str2);
 	append(text);

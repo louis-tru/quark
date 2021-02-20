@@ -31,7 +31,6 @@
 #include "./error.h"
 #include "./fs.h"
 #include <uv.h>
-#include <vector>
 
 #if FX_WIN
 #include <io.h>
@@ -52,7 +51,7 @@ static void uv_error(int err, cChar* msg = nullptr) throw(Error) {
 							 uv_err_name((int)errno), uv_strerror((int)err), msg ? msg: "");
 }
 
-static bool each_sync(std::vector<Dirent>& ls, Cb cb, bool internal) throw(Error) {
+static bool each_sync(Array<Dirent>& ls, Cb cb, bool internal) throw(Error) {
 	for ( auto& dirent : ls ) {
 		if ( !internal ) { // 外部优先
 			CbData d = {0,&dirent,1};
@@ -94,7 +93,7 @@ static bool each_sync_1(
 	if ( !stat.is_valid() ) {
 		return false;
 	}
-	std::vector<Dirent> ls = {
+	Array<Dirent> ls = {
 		Dirent(Path::basename(path), Path::format("%s", *path), stat.type())
 	};
 
@@ -168,15 +167,15 @@ void FileHelper::rmdir_sync(cString& path) throw(Error) {
 	}
 }
 
-std::vector<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
-	std::vector<Dirent> ls;
+Array<Dirent> FileHelper::readdir_sync(cString& path) throw(Error) {
+	Array<Dirent> ls;
 	uv_fs_t req;
 	String p = Path::format("%s", *path) + '/';
 	int r = uv_fs_scandir(uv_default_loop(), &req, Path::fallback_c(path), 1, nullptr);
 	if ( r > 0 ) {
 		uv_dirent_t ent;
 		while ( uv_fs_scandir_next(&req, &ent) == 0 ) {
-			ls.push_back( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
+			ls.push( Dirent(ent.name, p + ent.name, FileType(ent.type)) );
 		}
 	} else if ( r < 0) {
 		uv_error(r, *path);
@@ -387,7 +386,7 @@ static bool cp_sync2(cString& source, cString& target, bool* stop_signal) throw(
 	}
 		
 	int size = 1024 * 512; // 512 kb
-	auto data = Buffer::from(size);
+	auto data = Buffer::alloc(size);
 
 	int64_t len = source_file.read(*data, size);
 	

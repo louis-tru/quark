@@ -70,7 +70,7 @@ namespace ftr {
 	*/
 	void ParallelWorking::abort_child(ThreadID id) {
 		if ( id == ThreadID() ) {
-			std::unordered_map<ThreadID, int> childs;
+			std::map<ThreadID, int> childs;
 			{
 				ScopeLock scope(_mutex2);
 				childs = _childs;

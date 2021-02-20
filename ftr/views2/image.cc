@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "image.h"
-#include "texture.h"
-#include "draw.h"
-#include "display-port.h"
-#include "errno.h"
+#include "../texture.h"
+#include "../draw.h"
+#include "../display-port.h"
+#include "../errno.h"
 
 namespace ftr {
 

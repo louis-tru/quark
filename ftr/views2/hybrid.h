@@ -31,10 +31,10 @@
 #ifndef __ftr__hybrid__
 #define __ftr__hybrid__
 
-#include "ftr/box.h"
-#include "ftr/text-font.h"
-#include "ftr/text-rows.h"
-#include "ftr/span.h"
+#include "../text-font.h"
+#include "../_text-rows.h"
+#include "box.h"
+#include "span.h"
 
 /**
  * @ns ftr
@@ -58,7 +58,7 @@ class FX_EXPORT Hybrid: public Box, public TextLayout {
 	virtual TextFont* as_text_font() { return this; }
 	virtual TextLayout* as_text_layout() { return this; }
 	virtual View* view() { return this; }
-	virtual View* append_text(cUcs2String& str) throw(Error);
+	virtual View* append_text(cString16& str) throw(Error);
 	virtual void set_visible(bool value);
 	virtual Object* to_object() { return this; }
 	

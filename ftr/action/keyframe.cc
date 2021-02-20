@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./_action.h"
+#include "./_property.h"
 
 namespace ftr {
 
@@ -64,13 +64,13 @@ namespace ftr {
 	void Frame::fetch(View* view) {
 		if ( view && view->view_type() == _host->_bind_view_type ) {
 			for ( auto& i : _host->_property ) {
-				i.value()->fetch(_index, view);
+				i.second->fetch(_index, view);
 			}
 		} else {
 			view = _inl_action(_host)->view();
 			if ( view ) {
 				for ( auto& i : _host->_property ) {
-					i.value()->fetch(_index, view);
+					i.second->fetch(_index, view);
 				}
 			}
 		}
@@ -81,19 +81,19 @@ namespace ftr {
 	*/
 	void Frame::flush() {
 		for ( auto& i : _host->_property ) {
-			i.value()->default_value(_index);
+			i.second->default_value(_index);
 		}
 	}
 
 	void KeyframeAction::Inl::transition(uint32_t f1, uint32_t f2, float x, float y, Action* root) {
 		for ( auto& i : _property ) {
-			i.value()->transition(f1, f2, x, y, root);
+			i.second->transition(f1, f2, x, y, root);
 		}
 	}
 	
 	void KeyframeAction::Inl::transition(uint32_t f1, Action* root) {
 		for ( auto& i : _property ) {
-			i.value()->transition(f1, root);
+			i.second->transition(f1, root);
 		}
 	}
 	
@@ -197,10 +197,10 @@ namespace ftr {
 			Frame* frame = nullptr;
 			
 			for ( auto& i: _frames ) {
-				if ( time < i.value()->time() ) {
+				if ( time < i->time() ) {
 					break;
 				}
-				frame = i.value();
+				frame = i;
 			}
 			
 			_frame = frame->index();
@@ -219,7 +219,7 @@ namespace ftr {
 				_inl_key_action(this)->transition(f1, root);
 			}
 			
-			if ( _time == int64(frame->time()) ) {
+			if ( _time == int64_t(frame->time()) ) {
 				_inl_action(this)->trigger_action_key_frame(0, _frame, root);
 			}
 		}
@@ -279,7 +279,7 @@ namespace ftr {
 		if ( view_type != _bind_view_type ) {
 			_bind_view_type = view_type;
 			for ( auto& i : _property ) {
-				i.value()->bind_view(view_type);
+				i.second->bind_view(view_type);
 			}
 		}
 	}
@@ -306,7 +306,7 @@ namespace ftr {
 		frame->_time = time;
 		
 		for ( auto& i : _property ) {
-			i.value()->add_frame();
+			i.second->add_frame();
 		}
 		
 		return frame;
@@ -318,11 +318,11 @@ namespace ftr {
 	void KeyframeAction::clear() {
 		
 		for (auto& i : _frames) {
-			i.value()->_host = nullptr;
-			Release(i.value());
+			i->_host = nullptr;
+			Release(i);
 		}
 		for (auto& i : _property) {
-			delete i.value();
+			delete i.second;
 		}
 		_frames.clear();
 		_property.clear();
@@ -333,7 +333,7 @@ namespace ftr {
 	}
 
 	bool KeyframeAction::has_property(PropertyName name) {
-		return _property.has(name);
+		return _property.count(name);
 	}
 
 	/**

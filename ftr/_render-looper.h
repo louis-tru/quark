@@ -32,18 +32,24 @@
 #ifndef __ftr__gui_render_looper__
 #define __ftr__gui_render_looper__
 
-#include "app-inl.h"
+#include "./_app.h"
 
-/**
- * @class RenderLooper
- */
-class RenderLooper {
-	public:
-	RenderLooper(AppInl* host);
-	~RenderLooper();
-	void start();
-	void stop();
-	private:
-	AppInl* _host;
-	int* _id;
-};
+namespace ftr {
+
+	/**
+	 * @class RenderLooper
+	 */
+	class RenderLooper {
+		public:
+		RenderLooper(AppInl* host);
+		~RenderLooper();
+		void start();
+		void stop();
+		private:
+		AppInl* _host;
+		int* _id;
+	};
+
+}
+
+#endif

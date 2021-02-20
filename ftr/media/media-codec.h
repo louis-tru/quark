@@ -33,7 +33,7 @@
 
 #include "../util/util.h"
 #include "../util/string.h"
-#include "../util/buffer.h"
+#include "../util/array.h"
 #include "../util/http.h"
 #include "../codec/codec.h"
 #include "./media.h"

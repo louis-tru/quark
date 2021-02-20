@@ -32,7 +32,7 @@
 #define __ftr__media__pcm__
 
 #include "../util/util.h"
-#include "../util/buffer.h"
+#include "../util/array.h"
 
 namespace ftr {
 

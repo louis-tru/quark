@@ -186,21 +186,21 @@ class WrapNativeHttpClientRequest: public WrapObject {
 		if ( id != -1 || !_del ) return 0;
 		
 		if ( name == "Error" ) {
-			_del->trigger_error = Ucs2String();
+			_del->trigger_error = String16();
 		} else if ( name == "Write" ) {
-			_del->trigger_write = Ucs2String();
+			_del->trigger_write = String16();
 		} else if ( name == "Header" ) {
-			_del->trigger_header = Ucs2String();
+			_del->trigger_header = String16();
 		} else if ( name == "Data" ) {
-			_del->trigger_data = Ucs2String();
+			_del->trigger_data = String16();
 		} else if ( name == "End" ) {
-			_del->trigger_end = Ucs2String();
+			_del->trigger_end = String16();
 		} else if ( name == "ReadystateChange" ) {
-			_del->trigger_readystate_change = Ucs2String();
+			_del->trigger_readystate_change = String16();
 		} else if ( name == "Timeout" ) {
-			_del->trigger_timeout = Ucs2String();
+			_del->trigger_timeout = String16();
 		} else if ( name == "Abort" ) {
-			_del->trigger_abort = Ucs2String();
+			_del->trigger_abort = String16();
 		} else {
 			return false;
 		}

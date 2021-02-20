@@ -28,11 +28,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "label.h"
-#include "layout.h"
-#include "app.h"
-#include "display-port.h"
-#include "text-rows.h"
+#include "./label.h"
+#include "./layout.h"
+#include "../app.h"
+#include "../display-port.h"
+#include "../_text-rows.h"
 
 namespace ftr {
 
@@ -67,7 +67,7 @@ public:
 					break;
 			}
 			cell.baseline = baseline;
-			_data.cells.push(move(cell));
+			_data.cells.push(std::move(cell));
 			cell.offset.push(0);     /* 添加第一个初始位置 */
 		}
 		// set box size
@@ -104,7 +104,7 @@ public:
 		uint32_t end = _data.string.length();
 		
 		Cell cell = {
-			0, 0, 0, 0, Array<float>(), Array<uint16>(), 0
+			0, 0, 0, 0, Array<float>(), Array<uint16_t>(), 0
 		};
 		cell.offset.push(0);
 		
@@ -127,7 +127,7 @@ public:
 				float hori_advance = table->glyph(unicode)->hori_advance() / ratio; // 字符宽度
 				offset += hori_advance;
 				cell.offset.push(offset);
-				cell.Chars.push(unicode);
+				cell.chars.push(unicode);
 			}
 			begin++;
 		}
@@ -176,8 +176,8 @@ void Label::append(View* child) throw(Error) {
 /**
  * @overwrite
  */
-View* Label::append_text(cUcs2String& str) throw(Error) {
-	_data.string.push(str);
+View* Label::append_text(cString16& str) throw(Error) {
+	_data.string.append(str);
 	mark( Layout::M_CONTENT_OFFSET );
 	return nullptr;
 }
@@ -185,7 +185,7 @@ View* Label::append_text(cUcs2String& str) throw(Error) {
 /**
  * @set set_value
  */
-void Label::set_value(cUcs2String& str) {
+void Label::set_value(cString16& str) {
 	_data.string = str;
 	mark( Layout::M_CONTENT_OFFSET );
 }
@@ -200,7 +200,7 @@ void Label::mark_text(uint32_t value) {
 /**
  * @overwrite
  */
-void Label::accept_text(Ucs2StringBuilder& out) const {
+void Label::accept_text(Array<String16>& out) const {
 	out.push(_data.string);
 }
 

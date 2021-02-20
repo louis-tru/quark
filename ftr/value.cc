@@ -28,37 +28,37 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "value.h"
-#include "font.h"
+#include "./value.h"
+#include "./font/pool.h"
 
 namespace ftr {
-FX_NS(value)
+	namespace value {
 
-bool Shadow::operator==(const Shadow& value) const {
-	return  (
-					 value.offset_x == offset_x &&
-					 value.offset_y == offset_y &&
-					 value.size == size &&
-					 value.color == color
-					);
-}
+		bool Shadow::operator==(const Shadow& value) const {
+			return  (
+							 value.offset_x == offset_x &&
+							 value.offset_y == offset_y &&
+							 value.size == size &&
+							 value.color == color
+							);
+		}
 
-TextFamily::TextFamily(TextValueType type)
-: type(TextValueType::INHERIT)
-, value( FontPool::get_font_familys_id(String()) ) {
-}
+		TextFamily::TextFamily(TextValueType type)
+		: type(TextValueType::INHERIT)
+		, value( FontPool::get_font_familys_id(String()) ) {
+		}
 
-TextFamily::TextFamily(TextValueType type, const FontFamilysID* cffid)
-: type(type), value(cffid) {
-}
+		TextFamily::TextFamily(TextValueType type, const FontFamilysID* cffid)
+		: type(type), value(cffid) {
+		}
 
-cString& TextFamily::name() const {
-	return value->name();
-}
+		cString& TextFamily::name() const {
+			return value->name();
+		}
 
-const Array<String>& TextFamily::names() const {
-	return value->names();
-}
+		const Array<String>& TextFamily::names() const {
+			return value->names();
+		}
 
-}
+	}
 }

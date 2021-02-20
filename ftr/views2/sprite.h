@@ -31,8 +31,8 @@
 #ifndef __ftr__sprite__
 #define __ftr__sprite__
 
-#include "ftr/view.h"
-#include "ftr/value.h"
+#include "./view.h"
+#include "../value.h"
 
 /**
  * @ns ftr

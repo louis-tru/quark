@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./codec.h"
+#include "../util/util.h"
 
 namespace ftr {
 
@@ -116,8 +117,8 @@ namespace ftr {
 		}
 		
 		void _read_16_data_black(uint8_t** in, uint8_t** out, int alpha) {
-			uint16* in_ = (uint16*)*in;
-			uint16* out_ = (uint16*)*out;
+			uint16_t* in_ = (uint16_t*)*in;
+			uint16_t* out_ = (uint16_t*)*out;
 			*out_ = (in_[0] << 1) | (alpha ? (in_[0] & 0x8000) : 1);
 			*in = (uint8_t*)(in_ + 1);
 			*out = (uint8_t*)(out_ + 1);
@@ -164,11 +165,11 @@ namespace ftr {
 		}
 	}
 
-	static Buffer flip_vertical(cChar* data, int width, int height, int bytes) {
-		Buffer rev(width * height * bytes);
-		Char* p = *rev;
+	static Buffer flip_vertical(const char* data, int width, int height, int bytes) {
+		Buffer rev = Buffer::alloc(width * height * bytes);
+		char* p = *rev;
 		int row_size = width * bytes;
-		Char* tmp = p + (height - 1) * row_size;
+		char* tmp = p + (height - 1) * row_size;
 		
 		for ( int i = 0; i < height; i++ ) {
 			memcpy(tmp, data, row_size);
@@ -178,8 +179,8 @@ namespace ftr {
 		return rev;
 	}
 
-	std::vector<PixelData> TGAImageCodec::decode(cBuffer& data) {
-		std::vector<PixelData> rv;
+	Array<PixelData> TGAImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv;
 		
 		_Inl::Header* header = (_Inl::Header*)*data; // 适用小端格式CPU
 		// parse image
@@ -209,9 +210,9 @@ namespace ftr {
 		int height = header->height;
 		int pixex_size = width * height;
 		int out_size = pixex_size * bytes;
-		Buffer out = Buffer::from(out_size);
-		uint8_t* out_ = (uint8_t*)out.value();
-		uint8_t* in_ = ((uint8_t*)data.value()) + sizeof(_Inl::Header) + header->idlength;
+		Buffer out = Buffer::alloc(out_size);
+		uint8_t* out_ = (uint8_t*)out.val();
+		uint8_t* in_ = ((uint8_t*)data.val()) + sizeof(_Inl::Header) + header->idlength;
 		
 		switch ( code ) {
 			case 2:  // RGB
@@ -245,7 +246,7 @@ namespace ftr {
 			// BOTTOM_LEFT
 			out = flip_vertical(*out, width, height, bytes);
 		}
-		rv.push_back( PixelData(out, width, height, format, false) );
+		rv.push( PixelData(out, width, height, format, false) );
 		return rv;
 	}
 

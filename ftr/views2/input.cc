@@ -28,9 +28,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "input.h"
-#include "textarea.h"
-#include "app-1.h"
+#include "./input.h"
+#include "./textarea.h"
+#include "../_app.h"
+#include "../util/codec.h"
 
 namespace ftr {
 
@@ -326,7 +327,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 					Cell* cell = &_data.cells[j];
 					if ( cell->line_num == cursor_linenum_ ) {
 						if ( int(cell->begin) <= cursor ) {
-							float x = cell->offset[FX_MIN(cursor - cell->begin, cell->Chars.length())];
+							float x = cell->offset[FX_MIN(cursor - cell->begin, cell->chars.length())];
 							x = cell->offset_start + (reverse ? -x : x);
 							point.x(pos.x() + offset.x() + x);
 							break;
@@ -368,9 +369,9 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			row = _rows.last();
 		} else {
 			for ( auto& i : _rows.rows() ) {
-				if (y >= offset.y() + i.value().offset_start.y() &&
-						y <= offset.y() + i.value().offset_end.y() ) {
-					row = &i.value(); break;
+				if (y >= offset.y() + i.offset_start.y() &&
+						y <= offset.y() + i.offset_end.y() ) {
+					row = &i; break;
 				}
 			}
 		}
@@ -401,7 +402,7 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 			Cell& cell2 = _data.cells[cell_end];  // 结束cell
 			
 			float offset_start = offset.x() + cell.offset_start;
-			uint32_t end = cell2.begin + cell2.Chars.length();
+			uint32_t end = cell2.begin + cell2.chars.length();
 			bool reverse = cell.reverse;
 			
 			if ( x <= offset_start + (reverse ? -row->offset_end.x() : 0) ) { // 行开始位置
@@ -452,36 +453,37 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 	void reset_cursor_twinkle_task_timeout() {
 		cursor_twinkle_status_ = 1;
 		if ( flag_ == 4 || flag_ == 6 ) {
-			set_task_timeout(sys::time_monotonic() + 10000);
+			set_task_timeout(os::time_monotonic() + 10000);
 		} else {
-			set_task_timeout(sys::time_monotonic() + 700000);
+			set_task_timeout(os::time_monotonic() + 700000);
 		}
 	}
 	
-	Ucs2String delete_line_feed_format(cString& text) {
+	String16 delete_line_feed_format(cString& text) {
 		String s = text;
 		if ( !is_multi_line_input() ) {
 			if ( text.length() > 1 ) {
 				s = text.replace_all('\n', String());
 			} else if ( text.length() == 1 ) {
-				if ( text[0] == '\n' ) return Ucs2String();
+				if ( text[0] == '\n' ) return String16();
 			} else {
-				return Ucs2String();
+				return String16();
 			}
 		}
-		return Codec::decoding_to_uint16(Encoding::utf8, s);
+		
+		return Codec::decode_to_uint16(Encoding::utf8, s);
 	}
 	
-	void input_insert_text(cUcs2String& text) {
+	void input_insert_text(cString16& text) {
 		
 		if ( !text.is_empty() ) {
 			
 			if ( cursor_ < _data.string.length() ) { // insert
-				Ucs2String old = _data.string;
-				_data.string = Ucs2String(*old, cursor_, *text, text.length());
-				_data.string.push(*old + cursor_, old.length() - cursor_);
+				String16 old = _data.string;
+				_data.string = String16(*old, cursor_, *text, text.length());
+				_data.string.append(*old + cursor_, old.length() - cursor_);
 			} else { // append
-				_data.string.push( text );
+				_data.string.append( text );
 			}
 			
 			cursor_ += text.length();
@@ -489,13 +491,13 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		}
 	}
 	
-	void input_marked_text(cUcs2String& text) {
+	void input_marked_text(cString16& text) {
 		if ( marked_text_.length() == 0 ) {
 			marked_text_idx_ = cursor_;
 		}
-		Ucs2String old = _data.string;
-		_data.string = Ucs2String(*old, marked_text_idx_, *text, text.length());
-		_data.string.push(*old + marked_text_idx_ + marked_text_.length(),
+		String16 old = _data.string;
+		_data.string = String16(*old, marked_text_idx_, *text, text.length());
+		_data.string.append(*old + marked_text_idx_ + marked_text_.length(),
 											 old.length() - marked_text_idx_ - marked_text_.length());
 		
 		cursor_ += text.length() - marked_text_.length();
@@ -504,10 +506,10 @@ FX_DEFINE_INLINE_MEMBERS(Input, Inl) {
 		mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
 	}
 	
-	void input_unmark_text(cUcs2String& text) {
+	void input_unmark_text(cString16& text) {
 		input_marked_text(text);
 		cursor_ = marked_text_idx_ + marked_text_.length();
-		marked_text_ = Ucs2String();
+		marked_text_ = String16();
 	}
 	
 	void trigger_change() {
@@ -542,16 +544,16 @@ Input::Input()
 	add_event_listener(GUI_EVENT_KEY_DOWN, &Input::Inl::keydown_handle, Inl_Input(this));
 }
 
-void Input::set_value(cUcs2String& str) {
+void Input::set_value(cString16& str) {
 	Text::set_value(str);
-	marked_text_ = Ucs2String();
+	marked_text_ = String16();
 	cursor_ = str.length();
 	Inl_Input(this)->trigger_change();
 }
 
-View* Input::append_text(cUcs2String& str) throw(Error) {
+View* Input::append_text(cString16& str) throw(Error) {
 	View* r = Text::append_text(str);
-	marked_text_ = Ucs2String();
+	marked_text_ = String16();
 	cursor_ = _data.string.length();
 	Inl_Input(this)->trigger_change();
 	return r;
@@ -582,8 +584,8 @@ void Input::input_delete(int count) {
 			if ( count < 0 ) {
 				count = FX_MIN(cursor, -count);
 				if ( count ) {
-					Ucs2String old = _data.string;
-					_data.string = Ucs2String(*old, cursor - count,
+					String16 old = _data.string;
+					_data.string = String16(*old, cursor - count,
 																		 *old + cursor, int(old.length()) - cursor);
 					cursor_ -= count;
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
@@ -591,8 +593,8 @@ void Input::input_delete(int count) {
 			} else if ( count > 0 ) {
 				count = FX_MIN(int(length()) - cursor, count);
 				if ( count ) {
-					Ucs2String old = _data.string;
-					_data.string = Ucs2String(*old, cursor,
+					String16 old = _data.string;
+					_data.string = String16(*old, cursor,
 																		 *old + cursor + count,
 																		 int(old.length()) - cursor - count);
 					mark_pre( M_CONTENT_OFFSET ); // 标记内容变化
@@ -689,7 +691,7 @@ void Input::set_return_type(KeyboardReturnType value) {
 /**
  * @func set_placeholder
  */
-void Input::set_placeholder(cUcs2String& value) {
+void Input::set_placeholder(cString16& value) {
 	placeholder_ = value;
 	mark_pre(M_CONTENT_OFFSET);
 }
@@ -774,7 +776,7 @@ void Input::set_layout_content_offset() {
 			line_height.height = _final_height;
 		}
 		
-		cUcs2String& string = _data.string.length() ? _data.string: placeholder_;
+		cString16& string = _data.string.length() ? _data.string: placeholder_;
 		
 		if ( string.length() ) {
 			
@@ -859,27 +861,29 @@ void Input::refresh_cursor_screen_position() {
 	
 		Vec2  text_offset = input_text_offset();
 		Cell* cell = nullptr;
+		int index = 0;
 		
 		if ( _data.string.length() ) {
 		
 			for ( auto& i : _data.cells ) {
-				uint32_t begin = i.value().begin;
+				uint32_t begin = i.begin;
 				
 				if ( cursor_ == begin ) {
-					cell = &i.value(); break;
+					cell = &i; break;
 				} else if ( cursor_ > begin ) {
-					uint32_t end = begin + i.value().Chars.length();
+					uint32_t end = begin + i.chars.length();
 					
 					if ( cursor_ < end ) {
-						cell = &i.value(); break;
+						cell = &i; break;
 					} else {
 						if ( cursor_ == end ) {
-							if ( uint(i.index() + 1) == _data.cells.length() ) { // last cell
-								cell = &i.value(); break;
+							if ( uint32_t(index + 1) == _data.cells.length() ) { // last cell
+								cell = &i; break;
 							}
 						}
 					}
 				}
+				index++;
 			}
 		}
 		

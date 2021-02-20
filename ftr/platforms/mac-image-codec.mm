@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "ftr/image-codec.h"
+#import "ftr/codec/codec.h"
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <GLKit/GLKit.h>
@@ -89,7 +89,7 @@ namespace ftr {
 					isPremultipliedAlpha = false;
 				}
 				
-				Buffer pixel_data(pixel_size);
+				Buffer pixel_data = Buffer::alloc(pixel_size);
 				color_space = CGColorSpaceCreateDeviceRGB();
 				CGContextRef context =
 				CGBitmapContextCreate(*pixel_data, width, height, 8,

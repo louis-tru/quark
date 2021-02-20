@@ -44,8 +44,8 @@ namespace ftr {
 		s->index += size;
 	}
 
-	std::vector<PixelData> PNGImageCodec::decode(cBuffer& data) {
-		std::vector<PixelData> rv;
+	Array<PixelData> PNGImageCodec::decode(cBuffer& data) {
+		Array<PixelData> rv;
 		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		
 		ScopeClear scope([&png]() {

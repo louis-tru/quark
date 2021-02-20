@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "text-rows.h"
+#include "./_text-rows.h"
 
 namespace ftr {
 

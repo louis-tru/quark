@@ -51,12 +51,12 @@ namespace ftr {
 				YES
 			) objectAtIndex:0].UTF8String)
 		);
-		return child.is_empty() ? path: Path::format("%s/%s", path.str_c(), child.str_c());
+		return child.is_empty() ? path: Path::format("%s/%s", path.c_str(), child.c_str());
 	}
 
 	String Path::temp(cString& child) {
 		static cString path( Path::format("%s", [NSTemporaryDirectory() UTF8String]) );
-		return child.is_empty() ? path: Path::format("%s/%s", path.str_c(), child.str_c());;
+		return child.is_empty() ? path: Path::format("%s/%s", path.c_str(), child.c_str());;
 	}
 
 	/**
@@ -64,7 +64,7 @@ namespace ftr {
 	 */
 	String Path::resources(cString& child) {
 		static cString path( Path::format("%s", [[[NSBundle mainBundle] resourcePath] UTF8String]) );
-		return child.is_empty()? path: Path::format("%s/%s", path.str_c(), child.str_c());
+		return child.is_empty()? path: Path::format("%s/%s", path.c_str(), child.c_str());
 	}
 
 }

@@ -30,7 +30,7 @@
 
 #include "span.h"
 #include "text-node.h"
-#include "text-rows.h"
+#include "../_text-rows.h"
 
 namespace ftr {
 
@@ -54,7 +54,7 @@ void Span::set_visible(bool value) {
 /**
  * @overwrite
  */
-View* Span::append_text(cUcs2String& str) throw(Error) {
+View* Span::append_text(cString16& str) throw(Error) {
 	TextNode* text = new TextNode();
 	text->set_value( str );
 	append(text);

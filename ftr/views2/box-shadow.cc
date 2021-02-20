@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "box-shadow-1.h"
-#include "draw.h"
+#include "./box-shadow.h"
+#include "../draw.h"
 
 namespace ftr {
 

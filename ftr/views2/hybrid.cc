@@ -31,7 +31,7 @@
 #include "hybrid.h"
 #include "text.h"
 #include "text-node.h"
-#include "ftr/util/codec.h"
+#include "../util/codec.h"
 
 namespace ftr {
 
@@ -45,7 +45,7 @@ Hybrid::Hybrid()
 	
 }
 
-View* Hybrid::append_text(cUcs2String& str) throw(Error) {
+View* Hybrid::append_text(cString16& str) throw(Error) {
 	TextNode* text = new TextNode();
 	text->set_value( str );
 	append(text);

@@ -60,7 +60,7 @@ Inl::Inl(MultimediaSource* host, cString& uri, RunLoop* loop)
 	, _read_eof(false)
 	, _disable_wait_buffer(false)
 {
-	_uri = URI( f_reader()->format(uri) );
+	_uri = URI( fs_reader()->format(uri) );
 	/* register all formats and codecs */
 	av_register_all();
 	avformat_network_init();

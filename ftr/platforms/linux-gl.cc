@@ -115,7 +115,7 @@ namespace ftr {
 		FX_DEBUG("numConfigs,%d", numConfigs);
 
 		// then we create array large enough to store all configs
-		ArrayBuffer<EGLConfig> supportedConfigs(numConfigs);
+		Array<EGLConfig> supportedConfigs(numConfigs);
 
 		// and load them
 		chooseConfigState = eglChooseConfig(display, attribs, 

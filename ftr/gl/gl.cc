@@ -41,7 +41,7 @@
 
 namespace ftr {
 
-	std::vector<GLShader*>* GLDraw::_shaders = nullptr;
+	Array<GLShader*>* GLDraw::_shaders = nullptr;
 
 	FX_DEFINE_INLINE_MEMBERS(GLDraw, Inl) {
 		public:
@@ -53,8 +53,8 @@ namespace ftr {
 			ASSERT(_shaders);
 			
 			for (auto& i : *_shaders) {
-				GLShader* shader = i.value();
-				GLuint32_t handle = 0;
+				GLShader* shader = i;
+				GLuint handle = 0;
 				ASSERT(shader->shader == 0);
 				
 				if (_library == DRAW_LIBRARY_GLES2) {
@@ -91,7 +91,7 @@ namespace ftr {
 		
 		void initializ_indexd_vbo() {
 			
-			ArrayBuffer<float> buffer(65536);
+			Array<float> buffer(65536);
 			for ( int i = 0; i < 65536; i++ ) {
 				buffer[i] = i;
 			}
@@ -419,8 +419,8 @@ namespace ftr {
 	* @arg shader_type {GLenum}  #     程序类型
 	* @ret {GLuint}
 	*/
-	GLuint32_t GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
-		GLuint32_t shader_handle = glCreateShader(shader_type);
+	GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
+		GLuint shader_handle = glCreateShader(shader_type);
 		GLint code_len = code.length();
 		cChar* c = code.value();
 		glShaderSource(shader_handle, 1, &c, &code_len);
@@ -444,14 +444,14 @@ namespace ftr {
 	* @ret {GLuint}
 	* @private
 	*/
-	GLuint32_t GLDraw::compile_link_shader(cString& name,
+	GLuint GLDraw::compile_link_shader(cString& name,
 																		cBuffer& vertex, cBuffer& fragment,
 																		const Array<String>& attrs) 
 	{
 		
-		GLuint32_t vertex_handle = compile_shader(name, vertex, GL_VERTEX_SHADER);
-		GLuint32_t fragment_handle = compile_shader(name, fragment, GL_FRAGMENT_SHADER);
-		GLuint32_t program_handle = glCreateProgram();
+		GLuint vertex_handle = compile_shader(name, vertex, GL_VERTEX_SHADER);
+		GLuint fragment_handle = compile_shader(name, fragment, GL_FRAGMENT_SHADER);
+		GLuint program_handle = glCreateProgram();
 		glAttachShader(program_handle, vertex_handle);
 		glAttachShader(program_handle, fragment_handle);
 		

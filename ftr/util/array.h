@@ -36,44 +36,43 @@
 
 namespace ftr {
 
+	template<typename T = char, typename A = MemoryAllocator> class Array;
 	template<typename T = char, typename A = MemoryAllocator> class ArrayBuffer;
-	template<typename T = char, typename A = MemoryAllocator> class WeakArrayBuffer;
+	template<typename T = char, typename A = MemoryAllocator> class ArrayWeak;
 
-	typedef       ArrayBuffer<char>     Buffer;
-	typedef       WeakArrayBuffer<char> WeakBuffer;
+	typedef       ArrayBuffer<char>     Buffer; // Array No Copy
+	typedef       ArrayWeak<char>       WeakBuffer;
 	typedef const ArrayBuffer<char>     cBuffer;
-	typedef const WeakArrayBuffer<char> cWeakBuffer;
+	typedef const ArrayWeak<char>       cWeakBuffer;
 
 	/**
-	 * @class ArrayBuffer
+	 * @class Array
 	 */
 	template<typename T, typename A>
-	class FX_EXPORT ArrayBuffer: public Object {
+	class FX_EXPORT Array: public Object {
 		public:
-		typedef                 T     Type;
-		typedef ArrayBuffer    <T, A> Strong;
-		typedef WeakArrayBuffer<T, A> Weak;
+		typedef           T     Type;
 		// constructors
-		ArrayBuffer();
-		ArrayBuffer(ArrayBuffer& arr);  // right value copy constructors
-		ArrayBuffer(ArrayBuffer&& arr); // right value copy constructors
-		ArrayBuffer(const std::initializer_list<T>& list);
+		Array();
+		Array(Array& arr);  // right value copy constructors
+		Array(Array&& arr); // right value copy constructors
+		Array(const std::initializer_list<T>& list);
+		Array(const Array& arr);
+		Array(uint32_t length);
+
+		typedef           T* Iterator;
+		typedef const     T* IteratorConst;
+
+		inline Iterator begin() { return _val; }
+		inline Iterator end() { return _val + _length; }
+		inline IteratorConst begin() const { return _val; }
+		inline IteratorConst end() const { return _val + _length; }
+
+		virtual ~Array() { clear(); }
 
 		/**
-			* @func from() greedy new ArrayBuffer from ...
-			*/
-		static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
-			return ArrayBuffer(length, FX_MAX(capacity, length), data);
-		}
-		static inline ArrayBuffer from(uint32_t length, uint32_t capacity = 0) {
-			return ArrayBuffer(length, capacity);
-		}
-
-		virtual ~ArrayBuffer() { clear(); }
-
-		/**
-		* @func size 获取数据占用内存大小
-		*/
+		 * @func size 获取数据占用内存大小
+		 */
 		inline uint32_t size() const { return _length * sizeof(T); }
 
 		/**
@@ -90,16 +89,17 @@ namespace ftr {
 		inline int32_t  capacity() const { return _capacity; }
 
 		// operator=
-		ArrayBuffer& operator=(ArrayBuffer& arr);
-		ArrayBuffer& operator=(ArrayBuffer&& arr);
+		Array& operator=(Array& arr);
+		Array& operator=(Array&& arr);
+		Array& operator=(const Array& arr);
 
 		// get ptr
 		inline       T& operator[](uint32_t index) {
-			ASSERT(index < _length, "ArrayBuffer access violation.");
+			ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
 		inline const T& operator[](uint32_t index) const {
-			ASSERT(index < _length, "ArrayBuffer access violation.");
+			ASSERT(index < _length, "Array access violation.");
 			return _val[index];
 		}
 		inline       T* operator*()       { return _val; }
@@ -107,9 +107,9 @@ namespace ftr {
 		inline       T* val      ()       { return _val; }
 		inline const T* val      () const { return _val; }
 
-		ArrayBuffer& push(T&& item);
-		ArrayBuffer& push(const T& item);
-		ArrayBuffer& pop (uint32_t count = 1);
+		Array& push(T&& item);
+		Array& push(const T& item);
+		Array& pop (uint32_t count = 1);
 
 		/**
 		* @func write()
@@ -120,26 +120,26 @@ namespace ftr {
 		* @ret {uint32_t} 返回写入数据量
 		*/
 		template<typename A2>
-		uint32_t write(const ArrayBuffer<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
+		uint32_t write(const Array<T, A2>& src, int to = -1, int size_src = -1, uint32_t form_src = 0);
 		uint32_t write(const T* src, int to, uint32_t size_src);
 
 		/**
 			* @func concat() use right value move mode concat buffer 
 			*/
 		template<typename A2>
-		inline ArrayBuffer& concat(ArrayBuffer<T, A2>&& arr) {
+		inline Array& concat(Array<T, A2>&& arr) {
 			return concat_(*arr, arr.length());
 		}
 
 		/**
-			* @slice() weak copy array buffer
-			*/
-		Weak slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
+		 * @slice() weak copy array buffer
+		 */
+		ArrayWeak<T, A> slice(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
 		/**
-			* @func copy() strong copy array buffer
-			*/
-		Strong copy(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
+		 * @func copy() strong copy array buffer
+		 */
+		ArrayBuffer<T, A> copy(uint32_t start = 0, uint32_t end = 0xFFFFFFFF) const;
 
 		/**
 		* @func collapse, discard data ownership
@@ -154,7 +154,7 @@ namespace ftr {
 		/**
 			* @func join() to string
 			*/
-		String join(cString& sp);
+		String join(cString& sp) const;
 
 		/**
 		* @func clear() clear data
@@ -162,19 +162,19 @@ namespace ftr {
 		void clear();
 		
 		/**
-		* @func realloc reset realloc length and return this ArrayBuffer&&
+		* @func realloc reset realloc length
 		*/
-		ArrayBuffer&& realloc(uint32_t capacity);
+		void realloc(uint32_t capacity);
 
 		protected:
 		// constructors
-		ArrayBuffer(uint32_t length, uint32_t capacity, T* data); // greedy constructors
-		ArrayBuffer(uint32_t length, uint32_t capacity); // new array buffer from length
+		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
+		Array(uint32_t length, uint32_t capacity); // new array buffer from length
 
 		/**
 			* @func concat_() concat multiple array buffer
 			*/
-		ArrayBuffer& concat_(T* src, uint32_t src_length);
+		Array& concat_(T* src, uint32_t src_length);
 
 		/**
 		* @func realloc auro realloc
@@ -188,31 +188,73 @@ namespace ftr {
 		int32_t   _capacity; // -1 means that it does not hold a pointer. This value is determined when it is constructed
 		T*        _val;
 
-		template<typename T2, typename A2> friend class ArrayBuffer;
+		template<typename T2, typename A2> friend class Array;
 	};
 
 	/**
-		* @class WeakArrayBuffer
-		*/
+	 * @class ArrayBuffer array no copy
+	 */
 	template<typename T, typename A>
-	class FX_EXPORT WeakArrayBuffer: public ArrayBuffer<T, A> {
+	class FX_EXPORT ArrayBuffer: public Array<T, A> {
 		public:
-		WeakArrayBuffer(): ArrayBuffer<T, A>(0, -1, nullptr) {}
-		WeakArrayBuffer(const T* data, uint32_t length)
+		inline ArrayBuffer() {}
+		inline ArrayBuffer(Array<T, A>& arr): Array<T, A>(std::move(arr)) {}
+		inline ArrayBuffer(ArrayBuffer<T, A>& arr): Array<T, A>(std::move(arr)) {}
+		inline ArrayBuffer(ArrayBuffer<T, A>&& arr): Array<T, A>(std::move(arr)) {}
+
+		ArrayBuffer(const ArrayBuffer& arr) = delete;
+		ArrayBuffer& operator=(const ArrayBuffer& arr) = delete;
+
+		/**
+		 * @func from() greedy new Array from ...
+		 */
+		static inline ArrayBuffer from(T* data, uint32_t length, uint32_t capacity = 0) {
+			return ArrayBuffer<T, A>(length, FX_MAX(capacity, length), data);
+		}
+		static inline ArrayBuffer alloc(uint32_t length, uint32_t capacity = 0) {
+			return ArrayBuffer<T, A>(length, capacity);
+		}
+		
+		// operator=
+		inline ArrayBuffer& operator=(ArrayBuffer<T, A>& arr) {
+			Array<T, A>::operator=(std::move(arr)); return *this;
+		}
+		inline ArrayBuffer& operator=(ArrayBuffer<T, A>&& arr) {
+			Array<T, A>::operator=(std::move(arr)); return *this;
+		}
+		
+		protected:
+		inline ArrayBuffer(uint32_t length, int32_t capacity, T* data)
+			: Array<T, A>(length, capacity, data) {}
+		inline ArrayBuffer(uint32_t length, uint32_t capacity)
+			: Array<T, A>(length, capacity) {}
+
+		template<typename T2, typename A2> friend class Array;
+	};
+
+	/**
+	 * @class WeakArrayBuffer
+	 */
+	template<typename T, typename A>
+	class FX_EXPORT ArrayWeak: public ArrayBuffer<T, A> {
+		public:
+		inline ArrayWeak()
+			: ArrayBuffer<T, A>(0, -1, nullptr) {}
+		inline ArrayWeak(const T* data, uint32_t length)
 			: ArrayBuffer<T, A>(length, -1, const_cast<T*>(data)) {}
-		WeakArrayBuffer(const WeakArrayBuffer& arr)
+		inline ArrayWeak(const ArrayWeak& arr)
 			: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
 		template<class A2>
-		WeakArrayBuffer(const ArrayBuffer<T, A2>& arr)
+		inline ArrayWeak(const Array<T, A2>& arr)
 			: ArrayBuffer<T, A>(arr.length(), -1, const_cast<T*>(arr.val())) {}
 
-		WeakArrayBuffer& operator=(const WeakArrayBuffer<T>& arr) {
+		inline ArrayWeak& operator=(const ArrayWeak<T>& arr) {
 			this->_length = arr._length;
 			this->_val = arr._val;
 			return *this;
 		}
 		template<class A2>
-		WeakArrayBuffer& operator=(const ArrayBuffer<T, A2>& arr) {
+		inline ArrayWeak& operator=(const Array<T, A2>& arr) {
 			this->_length = arr._length;
 			this->_val = arr._val;
 			return *this;
@@ -223,24 +265,28 @@ namespace ftr {
 
 namespace ftr {
 
-	// -------------------------------------- IMPL --------------------------------------
+	// ---------------------------------- IMPL ----------------------------------
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>::ArrayBuffer(): _length(0), _capacity(0), _val(nullptr) {
-	}
-
-	template<typename T, typename A>
-	ArrayBuffer<T, A>::ArrayBuffer(ArrayBuffer& arr): ArrayBuffer(std::move(arr))
+	Array<T, A>::Array(): _length(0), _capacity(0), _val(nullptr)
 	{}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>::ArrayBuffer(ArrayBuffer&& arr): _length(0), _capacity(0), _val(nullptr)
+	Array<T, A>::Array(Array& arr): Array(std::move(arr))
+	{}
+
+	template<typename T, typename A>
+	Array<T, A>::Array(Array&& arr): _length(0), _capacity(0), _val(nullptr)
 	{
 		operator=(std::move(arr));
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>::ArrayBuffer(const std::initializer_list<T>& list)
+	Array<T, A>::Array(const Array& arr): Array(arr.copy())
+	{}
+	
+	template<typename T, typename A>
+	Array<T, A>::Array(const std::initializer_list<T>& list)
 		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr)
 	{
 		realloc_(_length);
@@ -252,13 +298,16 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity, T* data)
+	Array<T, A>::Array(uint32_t length, int32_t capacity, T* data)
 		: _length(length), _capacity(capacity), _val(data)
-	{
-	}
+	{}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity)
+	Array<T, A>::Array(uint32_t length): Array(length, length)
+	{}
+
+	template<typename T, typename A>
+	Array<T, A>::Array(uint32_t length, uint32_t capacity)
 		: _length(length), _capacity(0), _val(nullptr)
 	{
 		realloc_(FX_MAX(length, capacity));
@@ -266,19 +315,19 @@ namespace ftr {
 			T* begin = _val;
 			T* end = begin + _length;
 			while (begin < end) {
-				new(begin) T(); // 调用默认构造
+				new(begin) T; // 调用默认构造
 				begin++;
 			}
 		}
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>& ArrayBuffer<T, A>::operator=(ArrayBuffer& arr) {
+	Array<T, A>& Array<T, A>::operator=(Array& arr) {
 		return operator=(std::move(arr));
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>& ArrayBuffer<T, A>::operator=(ArrayBuffer&& arr) {
+	Array<T, A>& Array<T, A>::operator=(Array&& arr) {
 		if ( arr._val != _val ) {
 			clear();
 			_length = arr._length;
@@ -292,9 +341,14 @@ namespace ftr {
 		}
 		return *this;
 	}
+	
+	template<typename T, typename A>
+	Array<T, A>& Array<T, A>::operator=(const Array& arr) {
+		return operator=(is_weak() ? arr.slice(): arr.copy());
+	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>& ArrayBuffer<T, A>::push(const T& item) {
+	Array<T, A>& Array<T, A>::push(const T& item) {
 		_length++;
 		realloc_(_length);
 		new(_val + _length - 1) T(item);
@@ -302,7 +356,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>& ArrayBuffer<T, A>::push(T&& item) {
+	Array<T, A>& Array<T, A>::push(T&& item) {
 		_length++;
 		realloc_(_length);
 		new(_val + _length - 1) T(std::move(item));
@@ -310,7 +364,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>& ArrayBuffer<T, A>::pop(uint32_t count) {
+	Array<T, A>& Array<T, A>::pop(uint32_t count) {
 		int j = FX_MAX(_length - count, 0);
 		if (_length > j) {
 			do {
@@ -324,8 +378,8 @@ namespace ftr {
 
 	template<typename T, typename A>
 	template<typename A2>
-	uint32_t ArrayBuffer<T, A>::write(
-		const ArrayBuffer<T, A2>& arr, int to, int size_src, uint32_t form_src)
+	uint32_t Array<T, A>::write(
+		const Array<T, A2>& arr, int to, int size_src, uint32_t form_src)
 	{
 		int s = FX_MIN(arr._length - form_src, size_src < 0 ? arr._length : size_src);
 		if (s > 0) {
@@ -338,7 +392,7 @@ namespace ftr {
 	* @func write
 	*/
 	template<typename T, typename A>
-	uint32_t ArrayBuffer<T, A>::write(const T* src, int to, uint32_t size_src) {
+	uint32_t Array<T, A>::write(const T* src, int to, uint32_t size_src) {
 		if (size_src) {
 			if ( to == -1 ) to = _length;
 			uint32_t old_len = _length;
@@ -359,7 +413,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>& ArrayBuffer<T, A>::concat_(T* src, uint32_t src_length) {
+	Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) {
 		if (src_length) {
 			_length += src_length;
 			realloc_(_length);
@@ -374,17 +428,17 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	WeakArrayBuffer<T, A> ArrayBuffer<T, A>::slice(uint32_t start, uint32_t end) const {
+	ArrayWeak<T, A> Array<T, A>::slice(uint32_t start, uint32_t end) const {
 		end = FX_MIN(end, _length);
 		if (start < end) {
-			return ArrayBuffer<T, A>(_val + start, end - start);
+			return ArrayWeak<T, A>(_val + start, end - start);
 		} else {
-			return ArrayBuffer<T, A>();
+			return ArrayWeak<T, A>();
 		}
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A> ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const {
+	ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const {
 		end = FX_MIN(end, _length);
 		if (start < end) {
 			ArrayBuffer<T, A> arr;
@@ -403,7 +457,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	T* ArrayBuffer<T, A>::collapse() {
+	T* Array<T, A>::collapse() {
 		if (is_weak())
 			return nullptr;
 		T* r = _val;
@@ -414,7 +468,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	void ArrayBuffer<T, A>::clear() {
+	void Array<T, A>::clear() {
 		if (_val) {
 			if (!is_weak()) {
 				T* i = _val;
@@ -430,7 +484,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	ArrayBuffer<T, A>&& ArrayBuffer<T, A>::realloc(uint32_t capacity) {
+	void Array<T, A>::realloc(uint32_t capacity) {
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		if (capacity < _length) { // clear Partial data
 			T* i = _val + capacity;
@@ -444,20 +498,20 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	void ArrayBuffer<T, A>::realloc_(uint32_t capacity) {
+	void Array<T, A>::realloc_(uint32_t capacity) {
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
 	#define FX_DEF_ARRAY_SPECIAL(T, A) \
-		template<>                       ArrayBuffer<T, A>::ArrayBuffer(uint32_t length, uint32_t capacity); \
-		template<>                       ArrayBuffer<T, A>::ArrayBuffer(const std::initializer_list<T>& list); \
-		template<> ArrayBuffer<T, A>&    ArrayBuffer<T, A>::concat_(T* src, uint32_t src_length); \
-		template<> uint32_t              ArrayBuffer<T, A>::write(const T* src, int to, uint32_t size); \
-		template<> ArrayBuffer<T, A>&    ArrayBuffer<T, A>::pop(uint32_t count); \
-		template<> void                  ArrayBuffer<T, A>::clear(); \
-		template<> ArrayBuffer<T, A>&&   ArrayBuffer<T, A>::realloc(uint32_t capacity); \
-		template<> ArrayBuffer<T, A>     ArrayBuffer<T, A>::copy(uint32_t start, uint32_t end) const \
+		template<>                   Array<T, A>::Array(uint32_t length, uint32_t capacity); \
+		template<>                   Array<T, A>::Array(const std::initializer_list<T>& list); \
+		template<> Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
+		template<> uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
+		template<> Array<T, A>&      Array<T, A>::pop(uint32_t count); \
+		template<> void              Array<T, A>::clear(); \
+		template<> void              Array<T, A>::realloc(uint32_t capacity); \
+		template<> ArrayBuffer<T, A> Array<T, A>::copy(uint32_t start, uint32_t end) const \
 
 	#define FX_DEF_ARRAY_SPECIAL_ALL(T) \
 		FX_DEF_ARRAY_SPECIAL(T, MemoryAllocator)
@@ -465,7 +519,7 @@ namespace ftr {
 	FX_DEF_ARRAY_SPECIAL_ALL(char);
 	FX_DEF_ARRAY_SPECIAL_ALL(unsigned char);
 	FX_DEF_ARRAY_SPECIAL_ALL(int16_t);
-	FX_DEF_ARRAY_SPECIAL_ALL(uint16_t );
+	FX_DEF_ARRAY_SPECIAL_ALL(uint16_t);
 	FX_DEF_ARRAY_SPECIAL_ALL(int32_t);
 	FX_DEF_ARRAY_SPECIAL_ALL(uint32_t);
 	FX_DEF_ARRAY_SPECIAL_ALL(int64_t);

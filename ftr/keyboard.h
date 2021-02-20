@@ -31,8 +31,8 @@
 #ifndef __ftr__keyboard__
 #define __ftr__keyboard__
 
-#include "ftr/util/util.h"
-#include "ftr/util/map.h"
+#include "./util/util.h"
+#include <map>
 
 namespace ftr {
 
@@ -266,9 +266,9 @@ namespace ftr {
 			int normal, shift;
 		};
 		
-		Map<int, KeyboardKeyName>      _keycodes;
-		Map<int, AsciiKeyboardKeycode> _ascii_keycodes;
-		Map<int, SymbolKeypressValue>  _symbol_keypress;
+		std::map<int, KeyboardKeyName>      _keycodes;
+		std::map<int, AsciiKeyboardKeycode> _ascii_keycodes;
+		std::map<int, SymbolKeypressValue>  _symbol_keypress;
 		
 		GUIApplication* app_;
 		KeyboardKeyName keyname_;

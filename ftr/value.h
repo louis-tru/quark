@@ -31,9 +31,8 @@
 #ifndef __ftr__value__
 #define __ftr__value__
 
-#include "ftr/util/util.h"
-#include "ftr/util/array.h"
-#include "ftr/mathe.h"
+#include "./util/util.h"
+#include "./math/math.h"
 
 namespace ftr {
 

@@ -39,14 +39,14 @@ namespace ftr {
 	void GroupAction::Inl::clear_all() {
 		
 		for ( auto& i : _actions ) {
-			GroupAction* group = i.value()->as_group();
+			GroupAction* group = i->as_group();
 			if (group) {
 				_inl_group_action(group)->clear_all();
 				if ( group->as_sequence() ) {
 					group->as_sequence()->_action = Iterator();
 				}
 			}
-			_inl_action(i.value())->clear_parent();
+			_inl_action(i)->clear_parent();
 		}
 		_actions.clear();
 		_actions_index.clear();
@@ -56,13 +56,13 @@ namespace ftr {
 	
 	uint64_t GroupAction::Inl::_remove(uint32_t index) {
 		Iterator it =
-			_actions_index.length() == _actions.length() ?
-			_actions_index[index] : _actions.find(index);
+			_actions_index.length() == _actions.size() ?
+			_actions_index[index]: _actions.find(index);
 		uint64_t duration = 0;
 		if ( it != _actions.end() ) {
-			duration = it.value()->_full_duration;
-			_inl_action(it.value())->clear_parent();
-			_actions.del( it );
+			duration = (*it)->_full_duration;
+			_inl_action(*it)->clear_parent();
+			_actions.erase( it );
 			_actions_index.clear();
 		}
 		return duration;
@@ -72,7 +72,7 @@ namespace ftr {
 		int64_t new_duration = 0;
 		
 		for ( auto& i : _actions ) {
-			new_duration = FX_MAX(i.value()->_full_duration, new_duration);
+			new_duration = FX_MAX(i->_full_duration, new_duration);
 		}
 		new_duration += _delay;
 		
@@ -92,26 +92,24 @@ namespace ftr {
 	* @func operator[]
 	*/
 	Action* GroupAction::operator[](uint32_t index) {
-		if ( _actions_index.length() != _actions.length() ) {
-			_actions_index = Array<Iterator>(_actions.length());
-			uint32_t j = 0;
-			for ( auto& i : _actions ) {
-				_actions_index[j] = i;
-				j++;
+		if ( _actions_index.length() != _actions.size() ) {
+			_actions_index.clear();
+			auto i = _actions.begin(), e = _actions.end();
+			while ( i != e ) {
+				_actions_index.push(i);
 			}
 		}
-		return _actions_index[index].value();
+		return *_actions_index[index];
 	}
 
 	/**
-	* @func append
-	*/
+	 * @func append
+	 */
 	void GroupAction::append(Action* action) throw(Error) {
 		ASSERT(action);
 		_inl_action(action)->set_parent(this);
-		_actions.push(action);
+		_actions.push_back(action);
 		_actions_index.clear();
-
 	}
 
 	/**
@@ -119,14 +117,24 @@ namespace ftr {
 	*/
 	void GroupAction::insert(uint32_t index, Action* action) throw(Error) {
 		ASSERT(action);
+		
+		if (index < _actions_index.length()) {
+			_actions.insert(_actions_index[index], action);
+		} else {
+			//
+		}
+		
+		_actions_index.clear();
+		
 		if ( index == 0 ) {
 			_inl_action(action)->set_parent(this);
-			_actions.unshift(action);
+			_actions.push_front(action);
 			_actions_index.clear();
-		} else if ( index < _actions.length() ) {
+		} else if ( index < _actions.size() ) {
 			_inl_action(action)->set_parent(this);
-			if ( _actions_index.length() == _actions.length() ) {
-				_actions.after(_actions_index[index - 1], action);
+			if ( _actions_index.length() == _actions.size() ) {
+				// _actions.after(_actions_index[index - 1], action);
+				// _actions.insert(_actions_index[index - 1] + 1, action);
 			} else {
 				_actions.after(_actions.find(index - 1), action);
 			}
@@ -182,15 +190,15 @@ namespace ftr {
 
 	void SequenceAction::remove_child(uint32_t index) {
 		Iterator it =
-			_actions_index.length() == _actions.length() ?
+			_actions_index.length() == _actions.size() ?
 			_actions_index[index] : _actions.find(index);
 		if ( it != _actions.end() ) {
 			if ( it == _action ) {
 				_action = Iterator();
 			}
-			uint64_t duration = it.value()->_full_duration;
-			_inl_action(it.value())->clear_parent();
-			_actions.del( it );
+			uint64_t duration = (*it)->_full_duration;
+			_inl_action(*it)->clear_parent();
+			_actions.erase(it);
 			_actions_index.clear();
 			if ( duration ) {
 				_inl_action(this)->update_duration(-duration);
@@ -200,7 +208,7 @@ namespace ftr {
 
 	void GroupAction::clear() {
 		for ( auto& i : _actions ) {
-			_inl_action(i.value())->clear_parent();
+			_inl_action(i)->clear_parent();
 		}
 		_actions.clear();
 		_actions_index.clear();
@@ -216,7 +224,7 @@ namespace ftr {
 
 	void GroupAction::bind_view(View* view) {
 		for ( auto& i : _actions ) {
-			i.value()->bind_view(view);
+			i->bind_view(view);
 		}
 	}
 
@@ -232,10 +240,10 @@ namespace ftr {
 	void SequenceAction::seek_before(int64_t time, Action* child) {
 		time += _delay;
 		for ( auto& i : _actions ) {
-			if ( child == i.value() ) {
+			if ( child == i ) {
 				break;
 			} else {
-				time += i.value()->_full_duration;
+				time += i->_full_duration;
 			}
 		}
 		if (_parent) {
@@ -259,7 +267,7 @@ namespace ftr {
 		_loopd = 0;// 重置循环
 		
 		for ( auto& i : _actions ) {
-			i.value()->seek_time(time, root);
+			i->seek_time(time, root);
 		}
 	}
 

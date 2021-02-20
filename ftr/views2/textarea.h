@@ -31,8 +31,8 @@
 #ifndef __ftr__textarea__
 #define __ftr__textarea__
 
-#include "ftr/input.h"
-#include "ftr/scroll.h"
+#include "./input.h"
+#include "./scroll.h"
 
 namespace ftr {
 

@@ -28,17 +28,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/loop-1.h"
-#include "ftr/util/http.h"
-#include "draw.h"
-#include "root.h"
-#include "display-port.h"
-#include "app-1.h"
-#include "action.h"
-#include "css.h"
+#include "./util/loop.h"
+#include "./util/_working.h"
+#include "./util/http.h"
+#include "./draw.h"
+#include "./views2/root.h"
+#include "./display-port.h"
+#include "./_app.h"
+#include "./action/action.h"
+#include "./css/css.h"
+#include "./font/pool.h"
 
-FX_EXPORT int (*__fx_default_gui_main)(int, Char**) = nullptr;
-FX_EXPORT int (*__fx_gui_main)(int, Char**) = nullptr;
+FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
+FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
 
 namespace ftr {
 
@@ -237,7 +239,7 @@ void GUIApplication::run_loop_detach() {
 }
 
 static void on_process_safe_handle(Event<>& e, Object* data) {
-	int rc = static_cast<const Int*>(e.data())->value;
+	int rc = static_cast<const Int32*>(e.data())->value;
 	if (app()) {
 		e.return_value = _inl_app(app())->onExit(rc);
 	}

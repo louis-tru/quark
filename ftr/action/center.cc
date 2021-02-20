@@ -33,17 +33,17 @@
 namespace ftr {
 
 	void ActionCenter::Inl::add(Action* action) {
-		if ( action->_action_center_id.is_null() ) {
-			action->_action_center_id = _actions.push({ action, 0 });
+		if ( action->_action_center_id == Action::ActionCenterId() ) {
+			action->_action_center_id = _actions.insert(_actions.end(), { action, 0 });
 			action->retain();
 		}
 	}
 	
 	void ActionCenter::Inl::del(Action* action) {
-		if ( action && !action->_action_center_id.is_null() ) {
-			action->_action_center_id.value().value = nullptr; // del
+		if ( action && action->_action_center_id != Action::ActionCenterId() ) {
+			action->_action_center_id->value = nullptr; // del
 			// _actions.del(action->_action_center_id);
-			action->_action_center_id = List<Action::Wrap>::Iterator();
+			action->_action_center_id = Action::ActionCenterId();
 			action->release();
 		}
 	}
@@ -70,7 +70,7 @@ namespace ftr {
 			LOG("ActionCenter::advance,length, %d", len);
 		}*/
 		
-		if ( _actions.length() ) { // run task
+		if ( _actions.size() ) { // run task
 			int64_t time_span = 0;
 			if (_prev_sys_time) {  // 0表示还没开始
 				time_span = now_time - _prev_sys_time;
@@ -78,10 +78,12 @@ namespace ftr {
 					time_span = 200000; // 100ms
 				}
 			}
-			for ( auto i = _actions.begin(); !i.is_null(); ) {
-				Action::Wrap& wrap = i.value();
+			auto i = _actions.begin(), end = _actions.end();
+			while ( i != end ) {
+				auto j = i++;
+				Action::Wrap& wrap = *j;
 				if ( wrap.value ) {
-					if (wrap.value->_views.length()) {
+					if (wrap.value->_views.size()) {
 						if (wrap.play) {
 							if ( wrap.value->advance(time_span, false, wrap.value) ) {
 								// 不能消耗所有时间表示动作已经结束
@@ -94,11 +96,10 @@ namespace ftr {
 						}
 					} else {
 						_inl_action_center(this)->del(wrap.value);
-						_actions.del(i);
+						_actions.erase(j);
 					}
-					i++;
 				} else {
-					_actions.del(i++);
+					_actions.erase(j);
 				}
 			}
 			_prev_sys_time = now_time;

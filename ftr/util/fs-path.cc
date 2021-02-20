@@ -29,7 +29,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <sys/stat.h>
-#include <vector>
 #include "./fs.h"
 
 #if FX_WIN
@@ -105,11 +104,11 @@ namespace ftr {
 	}
 
 	bool Path::chdir(cString& path) {
-		String str = format("%s", path.str_c());
+		String str = format("%s", path.c_str());
 		#if FX_WIN
-			return _chdir(str.substr(8).str_c()) == 0;
+			return _chdir(str.substr(8).c_str()) == 0;
 		#else
-			return ::chdir(str.substr(7).str_c()) == 0;
+			return ::chdir(str.substr(7).c_str()) == 0;
 		#endif
 	}
 
@@ -162,8 +161,8 @@ namespace ftr {
 
 	String inl_format_part_path(cString& path) {
 		
-		std::vector<String> ls = path.split("/");
-		std::vector<String> rev;
+		Array<String> ls = path.split("/");
+		Array<String> rev;
 		int up = 0;
 		for (int i = ls.size() - 1; i > -1; i--) {
 			cString& v = ls[i];
@@ -172,7 +171,7 @@ namespace ftr {
 					up++;
 				}
 				else if (up == 0) { // no up item
-					rev.push_back(v);
+					rev.push(v);
 				}
 				else { // un up
 					up--;
@@ -304,7 +303,7 @@ namespace ftr {
 	}
 
 	cChar* Path::fallback_c(cString& path) {
-		return fallback(path).str_c();
+		return fallback(path).c_str();
 	}
 
 }

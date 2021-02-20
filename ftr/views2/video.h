@@ -31,9 +31,9 @@
 #ifndef __ftr__video__
 #define __ftr__video__
 
-#include "ftr/image.h"
-#include "ftr/pre-render.h"
-#include "ftr/media-codec.h"
+#include "./image.h"
+#include "../_pre-render.h"
+#include "../media/media-codec.h"
 
 /**
  * @ns ftr

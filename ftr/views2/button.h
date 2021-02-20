@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,44 +25,44 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./hash.h"
+#ifndef __ftr__button__
+#define __ftr__button__
+
+#include "./hybrid.h"
 
 namespace ftr {
 
-	static cChar* I64BIT_TABLE =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-
-	void SimpleHash::update(const void* data, uint32_t len) {
-		while (len--)
-			_hash += (_hash << 5) + ((cChar*)data)[len];
-	}
-	
-	String SimpleHash::digest() {
-		String rev;
-		do {
-			rev.append(I64BIT_TABLE[_hash & 0x3F]);
-		} while (_hash >>= 6);
-		_hash = 5381;
-		return rev;
-	}
-
-	uint64_t hash_code(const void* data, uint32_t len) {
-		SimpleHash hash;
-		hash.update(data, len);
-		return hash.hash_code();
-	}
-
-	String hash(const void* data, uint32_t len) {
-		SimpleHash hash;
-		hash.update((cChar*)data, len);
-		return hash.digest();
-	}
-
-	String hash(cString& str) {
-		return hash(str.c_str(), str.length());
-	}
+	/**
+	* @class Button
+	*/
+	class FX_EXPORT Button: public Hybrid {
+		public:
+		FX_DEFINE_GUI_VIEW(BUTTON, Button, button)
+		
+		Button();
+		
+		/**
+		* @func panel
+		*/
+		Panel* panel();
+		
+		/**
+		* @func find_next_button
+		*/
+		Button* find_next_button(Direction direction);
+		
+		/**
+		* @overwrite
+		*/
+		virtual bool can_become_focus();
+		
+		private:
+		
+		FX_DEFINE_INLINE_CLASS(Inl);
+	};
 
 }
+#endif
