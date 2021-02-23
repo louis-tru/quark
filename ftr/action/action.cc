@@ -36,7 +36,7 @@ namespace ftr {
 
 	void Action::Inl::set_parent(Action* parent) throw(Error) {
 		
-		if ( _parent || _views.size() ) {
+		if ( _parent || _views.length() ) {
 			FX_THROW(ERR_ACTION_ILLEGAL_CHILD, "illegal child action!");
 		}
 		
@@ -81,7 +81,7 @@ namespace ftr {
 		return first_view();
 	}
 	
-	std::list<View*>& Action::Inl::views() {
+	List<View*>& Action::Inl::views() {
 		return _views;
 	}
 	
@@ -106,7 +106,10 @@ namespace ftr {
 		}
 	}
 	
-	void Action::Inl::trigger_action_key_frame(uint64_t delay, uint32_t frame_index, Action* root) {
+	void Action::Inl::trigger_action_key_frame(
+		uint64_t delay, uint32_t frame_index, Action* root
+	)
+	{
 		auto i = _views.begin(), end = _views.end();
 		while ( i != end ) { // trigger event action_keyframe
 			View* v = *i;
@@ -126,7 +129,7 @@ namespace ftr {
 	void Action::Inl::update_duration(int64_t difference) {
 		
 		Action* action = this;
-		while(1) {
+		while (1) {
 			action->_full_duration += difference;
 			action = _parent;
 			
@@ -150,7 +153,8 @@ namespace ftr {
 		View* first = first_view();
 		if ( first ) {
 			if ( first->view_type() != view->view_type() ) {
-				FX_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE, "Action can only be bound to the same type of view !");
+				FX_THROW(ERR_ACTION_ILLEGAL_VIEW_TYPE,
+					"Action can only be bound to the same type of view !");
 			}
 		} else {
 			bind_view(view);
@@ -159,7 +163,7 @@ namespace ftr {
 	}
 	
 	void Action::Inl::del_view(View* view) {
-		auto len = _views.size();
+		auto len = _views.length();
 		for ( auto& i : _views ) {
 			if ( i == view ) {
 				i = nullptr;

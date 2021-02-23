@@ -44,6 +44,8 @@ namespace ftr {
 	*/
 	class FX_EXPORT TextNode: public Span {
 		public:
+		FX_DEFINE_GUI_VIEW(TEXT_NODE, TextNode, text_node);
+
 		TextNode();
 		
 		/**

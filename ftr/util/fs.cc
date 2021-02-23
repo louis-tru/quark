@@ -425,7 +425,7 @@ namespace ftr {
 		KeepLoop*   _keep;
 		Delegate*   _delegate;
 		AsyncFile*  _host;
-		std::list<FileStreamReq*> _writeing;
+		List<FileStreamReq*> _writeing;
 	};
 
 	AsyncFile::AsyncFile(cString& path, RunLoop* loop)

@@ -17,7 +17,7 @@
 			'test2-str.cc',
 			'test2-list.cc',
 			'../ftr/util/log.cc',
-			'../ftr/util/buffer.cc',
+			'../ftr/util/array.cc',
 			'../ftr/util/string.cc',
 			'../ftr/util/object.cc',
 			'../ftr/util/hash.cc',

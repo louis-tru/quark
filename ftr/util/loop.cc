@@ -53,7 +53,7 @@ struct ListenSignal {
 
 static Mutex* threads_mutex;
 static std::map<ThreadID, Thread*>* threads = nullptr;
-static std::list<ListenSignal*>* threads_end_listens = nullptr;
+static List<ListenSignal*>* threads_end_listens = nullptr;
 static RunLoop* main_loop_obj = nullptr;
 static ThreadID main_loop_id;
 static pthread_key_t specific_key;
@@ -79,7 +79,7 @@ FX_DEFINE_INLINE_MEMBERS(Thread, Inl) {
 	static void thread_initialize() {
 		threads = new std::map<ID, Thread*>();
 		threads_mutex = new Mutex();
-		threads_end_listens = new std::list<ListenSignal*>();
+		threads_end_listens = new List<ListenSignal*>();
 		on_process_safe_exit = new EventNoticer<>("ProcessSafeExit", nullptr);
 		int err = pthread_key_create(&specific_key, thread_destructor);
 		ASSERT(err == 0);
@@ -433,7 +433,7 @@ class RunLoop::Inl: public RunLoop {
 		return Continue;
 	}
 	
-	void resolve_queue(std::list<Queue>& queue) {
+	void resolve_queue(List<Queue>& queue) {
 		int64_t now = os::time_monotonic();
 		for (auto i = queue.begin(), e = queue.end(); i != e; ) {
 			auto t = i++;
@@ -445,7 +445,7 @@ class RunLoop::Inl: public RunLoop {
 	}
 	
 	bool resolve_queue() {
-		std::list<Queue> queue;
+		List<Queue> queue;
 		{ ScopeLock lock(_mutex);
 			if (_queue.size()) {
 				queue = std::move(_queue);
@@ -563,7 +563,7 @@ class RunLoop::Inl: public RunLoop {
 			uv_async_send(_uv_async);
 	}
 	
-	inline void delete_work(std::list<Work*>::iterator it) {
+	inline void delete_work(List<Work*>::iterator it) {
 		_works.erase(it);
 	}
 };
@@ -575,7 +575,7 @@ struct RunLoop::Work {
 	typedef NonObjectTraits Traits;
 	RunLoop* host;
 	uint32_t id;
-	std::list<Work*>::iterator it;
+	List<Work*>::iterator it;
 	Callback<> work;
 	Callback<> done;
 	uv_work_t uv_req;

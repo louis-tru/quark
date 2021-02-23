@@ -40,8 +40,8 @@ namespace ftr {
 	* @class Textarea
 	*/
 	class FX_EXPORT Textarea: public Input, public BasicScroll {
-		FX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
 		public:
+		FX_DEFINE_GUI_VIEW(TEXTAREA, Textarea, textarea);
 
 		typedef ReferenceTraits Traits;
 		

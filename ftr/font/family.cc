@@ -60,17 +60,17 @@ namespace ftr {
 
 	void FontFamily::Inl::add_font(Font* font) {
 		int index = get_font_style_index(font->style());
-		if ( !m_fonts[index] || _fonts[index]->num_glyphs() < font->num_glyphs() ) {
-			m_fonts[index] = font;
+		if ( !_fonts[index] || _fonts[index]->num_glyphs() < font->num_glyphs() ) {
+			_fonts[index] = font;
 		}
-		m_all_fonts.push(font);
+		_all_fonts.push(font);
 	}
 
 	FontFamily::FontFamily(cString& family_name)
 		: _family_name(family_name)
 		, _fonts()
 	{
-		memset(m_fonts, 0, sizeof(m_fonts));
+		memset(_fonts, 0, sizeof(_fonts));
 	}
 
 	/**
@@ -81,7 +81,7 @@ namespace ftr {
 		
 		for (auto i = _all_fonts.begin(),
 							e = _all_fonts.end(); i != e; i++) {
-			rev.push_back(i.value()->font_name());
+			rev.push((*i)->font_name());
 		}
 		return rev;
 	}

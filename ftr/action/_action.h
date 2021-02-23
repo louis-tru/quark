@@ -55,7 +55,7 @@ namespace ftr {
 		View* first_view();
 		void clear_parent();
 		View* view();
-		std::list<View*>& views();
+		List<View*>& views();
 		bool is_playing(); // is_playing with root action
 		void trigger_action_loop(uint64_t delay, Action* root);
 		void trigger_action_key_frame(uint64_t delay, uint32_t frame_index, Action* root);
@@ -107,7 +107,7 @@ namespace ftr {
 		
 		virtual ~Property2() {}
 		
-		inline void set_property(std::list<View*>& views) {
+		inline void set_property(List<View*>& views) {
 			for ( auto i : views ) {
 				if ( i ) {
 					(i->*_set_property_func)(_transition);

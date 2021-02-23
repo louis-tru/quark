@@ -278,14 +278,14 @@ namespace ftr {
 		public:
 		struct TouchPoint { // touch event point
 			uint32_t id;
-			float   start_x, start_y;
-			float   x, y, force;
-			bool    click_in;
-			View*   view;
+			float    start_x, start_y;
+			float    x, y, force;
+			bool     click_in;
+			View*    view;
 		};
 		typedef TouchPoint Touch;
 		inline GUITouchEvent(View* origin, Array<TouchPoint>& touches)
-			: GUIEvent(origin), _change_touches(touches) { }
+			: GUIEvent(origin), _change_touches(touches) {}
 		inline Array<TouchPoint>& changed_touches() { return _change_touches; }
 		private:
 		Array<TouchPoint> _change_touches;
@@ -338,10 +338,10 @@ namespace ftr {
 		GUIEventDispatch(GUIApplication* app);
 		virtual ~GUIEventDispatch();
 		// touch
-		void dispatch_touchstart(std::list<GUITouch>&& touches);
-		void dispatch_touchmove(std::list<GUITouch>&& touches);
-		void dispatch_touchend(std::list<GUITouch>&& touches);
-		void dispatch_touchcancel(std::list<GUITouch>&& touches);
+		void dispatch_touchstart(List<GUITouch>&& touches);
+		void dispatch_touchmove(List<GUITouch>&& touches);
+		void dispatch_touchend(List<GUITouch>&& touches);
+		void dispatch_touchcancel(List<GUITouch>&& touches);
 		// mouse
 		void dispatch_mousemove(float x, float y);
 		void dispatch_mousepress(KeyboardKeyName key, bool down);
@@ -358,7 +358,7 @@ namespace ftr {
 		void make_text_input(ITextInput* input);
 		
 		/**
-		* @func keyboard_adapter
+		*mapunc keyboard_adapter
 		*/
 		inline KeyboardAdapter* keyboard_adapter() {
 			return _keyboard;

@@ -39,6 +39,7 @@
 #include <functional>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 #include <unordered_map>
 
 const char test_big_char[] = { 1, 0, 0, 0 };
@@ -157,8 +158,18 @@ int test2_str(int argc, char *argv[]) {
 
 	std::string s = std::string("-hello").substr(1,5) + "-";
 	
+	s.data();
+	
 	char* a = const_cast<char*>(s.c_str());
 	a[0] = 'U';
+	
+	vector<String> A{"a", "b"};
+	
+	std::for_each(++A.begin(), A.end(), [](String a) {
+		return a;
+	});
+	
+	Array<String> b{ "A", "B" };
 	
 	test_str2();
 	

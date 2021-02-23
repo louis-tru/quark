@@ -55,10 +55,10 @@ namespace ftr {
 		_is_support_pseudo = false;
 		
 		FX_DEBUG("StyleSheetsClass apply, query group count: %d, style sheets count: %d, '%s'",
-						_query_group.length(), scope->style_sheets().size(), _classs.join(' ').c_str());
+						_query_group.length(), scope->style_sheets().length(), _classs.join(' ').c_str());
 		
 		if ( _query_group.length() ) {
-			const std::list<Scope>& style_sheets = scope->style_sheets();
+			const List<Scope>& style_sheets = scope->style_sheets();
 			std::map<StyleSheets*, int> child_style_sheets_map;
 			
 			KeyframeAction* action = nullptr;
@@ -100,13 +100,13 @@ namespace ftr {
 							if ( ss ) {
 								action = _inl_ss(ss)->assignment(_host, action, _once_apply);
 								
-								if ( ss->has_child() && !child_style_sheets_map.has(ss) ) {
+								if ( ss->has_child() && !child_style_sheets_map.count(ss) ) {
 									if ( RETURN_EFFECT_CHILD ) {
-										if ( !origin_child_style_sheets_map.has(ss) ) {
+										if ( !origin_child_style_sheets_map.count(ss) ) {
 											*effect_child = true;
 										}
 									}
-									child_style_sheets_map.set(ss, 1);
+									child_style_sheets_map[ss] = 1;
 									_child_style_sheets.push(ss);
 								}
 							}
@@ -123,8 +123,8 @@ namespace ftr {
 			_once_apply = false;
 			
 			if ( RETURN_EFFECT_CHILD ) {
-				if (child_style_sheets_map.length() !=
-						origin_child_style_sheets_map.length() ) {
+				if (child_style_sheets_map.size() !=
+						origin_child_style_sheets_map.size() ) {
 					*effect_child = true;
 				}
 			}
@@ -152,11 +152,12 @@ namespace ftr {
 	* @func names
 	*/
 	void StyleSheetsClass::name(const Array<String>& value) {
-		Map<String, int> new_classs;
+		std::map<String, int> new_classs;
 		for ( auto& j : value ) {
-			new_classs.set(j.value(), 1);
+			new_classs[j] = 1;
 		}
-		_inl_cvc(this)->update_classs(new_classs.keys());
+		// TODO ...
+		// _inl_cvc(this)->update_classs(new_classs.keys());
 	}
 
 	/**
@@ -165,20 +166,22 @@ namespace ftr {
 	void StyleSheetsClass::add(cString& names) {
 		bool up = false;
 		
-		Map<String, int> new_classs;
+		std::map<String, int> new_classs;
 		for ( auto& j : _classs ) {
-			new_classs.set(j.value(), 1);
+			new_classs[j] = 1;
 		}
 		for ( auto& i : names.split(' ') ) {
-			String s = i.value().trim();
+			String s = i.trim();
 			if ( !s.is_empty() ) {
-				if ( !new_classs.has(s) ) {
-					new_classs.set(s, 1); up = true;
+				if ( !new_classs.count(s) ) {
+					new_classs[s] = 1;
+					up = true;
 				}
 			}
 		}
 		if ( up ) {
-			_inl_cvc(this)->update_classs(new_classs.keys());
+			// TODO ...
+			//_inl_cvc(this)->update_classs(new_classs.keys());
 		}
 	}
 
@@ -188,18 +191,19 @@ namespace ftr {
 	void StyleSheetsClass::remove(cString& names) {
 		bool up = false;
 		
-		Map<String, int> new_classs;
+		std::map<String, int> new_classs;
 		for ( auto& j : _classs ) {
-			new_classs.set(j.value(), 1);
+			new_classs[j] = 1;
 		}
 		for ( auto& i : names.split(' ') ) {
-			String s = i.value().trim();
+			auto s = i.trim();
 			if ( !s.is_empty() ) {
-				if ( new_classs.del(s) ) up = true;
+				if ( new_classs.erase(s) ) up = true;
 			}
 		}
 		if ( up ) {
-			_inl_cvc(this)->update_classs(new_classs.keys());
+		// TODO ...
+			// _inl_cvc(this)->update_classs(new_classs.keys());
 		}
 	}
 
@@ -209,21 +213,22 @@ namespace ftr {
 	void StyleSheetsClass::toggle(cString& names) {
 		bool up = false;
 		
-		Map<String, int> new_classs;
+		std::map<String, int> new_classs;
 		for ( auto& j : _classs ) {
-			new_classs.set(j.value(), 1);
+			new_classs[j] = 1;
 		}
 		for ( auto& i : names.split(' ') ) {
-			String s = i.value().trim();
+			auto s = i.trim();
 			if ( !s.is_empty() ) {
 				up = true;
-				if ( !new_classs.del(s) ) { // no del
-					new_classs.set(s, 1);
+				if ( !new_classs.erase(s) ) { // no del
+					new_classs[s] = 1;
 				}
 			}
 		}
 		if ( up ) {
-			_inl_cvc(this)->update_classs(new_classs.keys());
+			// TODO ...
+			// _inl_cvc(this)->update_classs(new_classs.keys());
 		}
 	}
 

@@ -479,11 +479,11 @@ namespace ftr {
 		return _val.s.length < 0 ? _val.l->capacity: MAX_SHORT_LEN;
 	}
 	
-	char* ArrayStringBase::data() {
+	char* ArrayStringBase::ptr() {
 		return _val.s.length < 0 ? _val.l->val: (char*)_val.s.val;
 	}
 
-	const char* ArrayStringBase::data() const {
+	const char* ArrayStringBase::ptr() const {
 		return _val.s.length < 0 ? _val.l->val: (const char*)_val.s.val;
 	}
 	

@@ -32,7 +32,9 @@
 #define __ftr__util__array__
 
 #include "./object.h"
+#include "./iterator.h"
 #include <initializer_list>
+#include <vector>
 
 namespace ftr {
 
@@ -57,16 +59,17 @@ namespace ftr {
 		Array(Array& arr);  // right value copy constructors
 		Array(Array&& arr); // right value copy constructors
 		Array(const std::initializer_list<T>& list);
+		Array(const std::vector<T>& list);
 		Array(const Array& arr);
 		Array(uint32_t length);
 
-		typedef           T* Iterator;
-		typedef const     T* IteratorConst;
+		typedef SimpleIterator<T,       T>       Iterator;
+		typedef SimpleIterator<const T, T> IteratorConst;
 
-		inline Iterator begin() { return _val; }
-		inline Iterator end() { return _val + _length; }
-		inline IteratorConst begin() const { return _val; }
-		inline IteratorConst end() const { return _val + _length; }
+		inline Iterator begin() { return Iterator(_val); }
+		inline Iterator end() { return Iterator(_val + _length); }
+		inline IteratorConst begin() const { return IteratorConst(_val); }
+		inline IteratorConst end() const { return IteratorConst(_val + _length); }
 
 		virtual ~Array() { clear(); }
 
@@ -150,6 +153,11 @@ namespace ftr {
 		* @func collapse string, discard data ownership
 		*/
 		ArrayString<T, A> collapse_string();
+
+		/**
+		* @func to vector
+		*/
+		std::vector<T> vector() const;
 
 		/**
 			* @func join() to string
@@ -287,14 +295,16 @@ namespace ftr {
 	
 	template<typename T, typename A>
 	Array<T, A>::Array(const std::initializer_list<T>& list)
-		: _length((uint32_t)list.size()), _capacity(0), _val(nullptr)
+		: _length(0), _capacity(0), _val(nullptr)
 	{
-		realloc_(_length);
-		T* begin = _val;
-		for (auto& i : list) {
-			new(begin) T(std::move(i)); // 调用默认构造
-			begin++;
-		}
+		write(list.begin(), 0, (uint32_t)list.size());
+	}
+
+	template<typename T, typename A>
+	Array<T, A>::Array(const std::vector<T>& list)
+		: _length(0), _capacity(0), _val(nullptr)
+	{
+		write(list.data(), 0, (uint32_t)list.size());
 	}
 
 	template<typename T, typename A>
@@ -468,6 +478,14 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
+	std::vector<T> Array<T, A>::vector() const {
+		std::vector<T> r;
+		for (auto i: *this)
+			r.push_back(i);
+		return std::move(r);
+	}
+
+	template<typename T, typename A>
 	void Array<T, A>::clear() {
 		if (_val) {
 			if (!is_weak()) {
@@ -505,7 +523,7 @@ namespace ftr {
 
 	#define FX_DEF_ARRAY_SPECIAL(T, A) \
 		template<>                   Array<T, A>::Array(uint32_t length, uint32_t capacity); \
-		template<>                   Array<T, A>::Array(const std::initializer_list<T>& list); \
+		template<> std::vector<T>    Array<T, A>::vector() const; \
 		template<> Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
 		template<> uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \
 		template<> Array<T, A>&      Array<T, A>::pop(uint32_t count); \

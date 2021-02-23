@@ -70,7 +70,7 @@ namespace ftr {
 			LOG("ActionCenter::advance,length, %d", len);
 		}*/
 		
-		if ( _actions.size() ) { // run task
+		if ( _actions.length() ) { // run task
 			int64_t time_span = 0;
 			if (_prev_sys_time) {  // 0表示还没开始
 				time_span = now_time - _prev_sys_time;
@@ -83,7 +83,7 @@ namespace ftr {
 				auto j = i++;
 				Action::Wrap& wrap = *j;
 				if ( wrap.value ) {
-					if (wrap.value->_views.size()) {
+					if (wrap.value->_views.length()) {
 						if (wrap.play) {
 							if ( wrap.value->advance(time_span, false, wrap.value) ) {
 								// 不能消耗所有时间表示动作已经结束

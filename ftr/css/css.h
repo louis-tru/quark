@@ -304,12 +304,12 @@ namespace ftr {
 		StyleSheetsScope(View* scope);
 		void push_scope(View* scope);
 		void pop_scope();
-		inline View* bottom_scope() { return _scopes.size() ? _scopes.back() : nullptr; }
-		inline const std::list<Scope>& style_sheets() { return _style_sheets; }
+		inline View* bottom_scope() { return _scopes.length() ? _scopes.back() : nullptr; }
+		inline const List<Scope>& style_sheets() { return _style_sheets; }
 		private:
 		typedef std::map<StyleSheets*, Scope::Wrap> StyleSheetsMap;
-		std::list<View*>   _scopes;
-		std::list<Scope>   _style_sheets;
+		List<View*>   _scopes;
+		List<Scope>   _style_sheets;
 		StyleSheetsMap     _style_sheets_map;
 	};
 

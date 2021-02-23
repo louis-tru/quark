@@ -347,7 +347,7 @@ namespace ftr {
 					int action = AMotionEvent_getAction(event);
 					int pointer_index = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
-					std::list<GUITouch> touchs;
+					List<GUITouch> touchs;
 					GUITouch touch;
 
 					switch (action & AMOTION_EVENT_ACTION_MASK) {
@@ -399,8 +399,8 @@ namespace ftr {
 				return x != h_x || y != h_y;
 			}
 
-			static std::list<GUITouch> to_gui_touchs(AInputEvent* motion_event, bool filter) {
-				std::list<GUITouch> rv;
+			static List<GUITouch> to_gui_touchs(AInputEvent* motion_event, bool filter) {
+				List<GUITouch> rv;
 				GUITouch touch;
 				int count = AMotionEvent_getPointerCount(motion_event);
 

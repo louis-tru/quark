@@ -56,8 +56,8 @@ namespace ftr {
 	
 	uint64_t GroupAction::Inl::_remove(uint32_t index) {
 		Iterator it =
-			_actions_index.length() == _actions.size() ?
-			_actions_index[index]: _actions.find(index);
+			_actions_index.length() == _actions.length() ?
+			_actions_index[index]: _actions.indexed(_actions.begin(), index);
 		uint64_t duration = 0;
 		if ( it != _actions.end() ) {
 			duration = (*it)->_full_duration;
@@ -92,7 +92,7 @@ namespace ftr {
 	* @func operator[]
 	*/
 	Action* GroupAction::operator[](uint32_t index) {
-		if ( _actions_index.length() != _actions.size() ) {
+		if ( _actions_index.length() != _actions.length() ) {
 			_actions_index.clear();
 			auto i = _actions.begin(), e = _actions.end();
 			while ( i != e ) {
@@ -130,13 +130,13 @@ namespace ftr {
 			_inl_action(action)->set_parent(this);
 			_actions.push_front(action);
 			_actions_index.clear();
-		} else if ( index < _actions.size() ) {
+		} else if ( index < _actions.length() ) {
 			_inl_action(action)->set_parent(this);
-			if ( _actions_index.length() == _actions.size() ) {
+			if ( _actions_index.length() == _actions.length() ) {
 				// _actions.after(_actions_index[index - 1], action);
 				// _actions.insert(_actions_index[index - 1] + 1, action);
 			} else {
-				_actions.after(_actions.find(index - 1), action);
+				// _actions.after(_actions.indexed(_actions.begin(), index - 1), action);
 			}
 			_actions_index.clear();
 		} else {
@@ -190,8 +190,8 @@ namespace ftr {
 
 	void SequenceAction::remove_child(uint32_t index) {
 		Iterator it =
-			_actions_index.length() == _actions.size() ?
-			_actions_index[index] : _actions.find(index);
+			_actions_index.length() == _actions.length() ?
+			_actions_index[index] : _actions.indexed(_actions.begin(), index);
 		if ( it != _actions.end() ) {
 			if ( it == _action ) {
 				_action = Iterator();
@@ -287,18 +287,18 @@ namespace ftr {
 		
 		uint64_t duration = 0;
 		
-		for ( auto& i : _actions ) {
-			uint64_t du = duration + i.value()->_full_duration;
+		for ( auto i = _actions.begin(), e = _actions.end(); i != e; i++ ) {
+			uint64_t du = duration + (*i)->_full_duration;
 			if ( du > time ) {
 				_action = i;
-				i.value()->seek_time(time - duration, root);
+				(*i)->seek_time(time - duration, root);
 				return;
 			}
 			duration = du;
 		}
 		
 		if ( length() ) {
-			_actions.last()->seek_time(time - duration, root);
+			_actions.back()->seek_time(time - duration, root);
 		}
 	}
 
@@ -327,7 +327,7 @@ namespace ftr {
 		advance:
 		
 		for ( auto& i : _actions ) {
-			uint64_t time = i.value()->advance(time_span, restart, root);
+			uint64_t time = i->advance(time_span, restart, root);
 			surplus_time = FX_MIN(surplus_time, time);
 		}
 		
@@ -392,7 +392,7 @@ namespace ftr {
 		
 		advance:
 		
-		time_span = _action.value()->advance(time_span, restart, root);
+		time_span = (*_action)->advance(time_span, restart, root);
 		
 		if ( time_span ) {
 			
@@ -403,7 +403,7 @@ namespace ftr {
 					goto advance;
 				}
 			} else {
-				if ( _action.value() == _actions.last() ) { // last action
+				if ( *_action == _actions.back() ) { // last action
 					if ( _loop && _full_duration > _delay ) {
 						
 						if ( _loop > 0 ) {
@@ -419,7 +419,7 @@ namespace ftr {
 						_inl_action(this)->trigger_action_loop(time_span, root); // trigger event
 						_action = _actions.begin();
 						
-						if ( _action.is_null() ) { // 可能在触发`action_loop`事件时被删除
+						if ( _action == _actions.end() ) { // 可能在触发`action_loop`事件时被删除
 							// 没有child action 无效,所以这里结束
 							goto end;
 						}

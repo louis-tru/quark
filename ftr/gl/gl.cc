@@ -59,13 +59,13 @@ namespace ftr {
 				
 				if (_library == DRAW_LIBRARY_GLES2) {
 					handle = compile_link_shader(shader->name,
-											WeakBuffer((cChar*)shader->es2_source_vp, (uint)shader->es2_source_vp_len),
-											WeakBuffer((cChar*)shader->es2_source_fp, (uint)shader->es2_source_fp_len),
+											WeakBuffer((cChar*)shader->es2_source_vp, (uint32_t)shader->es2_source_vp_len),
+											WeakBuffer((cChar*)shader->es2_source_fp, (uint32_t)shader->es2_source_fp_len),
 											String(shader->shader_attributes).split(','));
 				} else if (_library == DRAW_LIBRARY_GLES3) {
 					handle = compile_link_shader(shader->name,
-											WeakBuffer((cChar*)shader->source_vp, (uint)shader->source_vp_len),
-											WeakBuffer((cChar*)shader->source_fp, (uint)shader->source_fp_len),
+											WeakBuffer((cChar*)shader->source_vp, (uint32_t)shader->source_vp_len),
+											WeakBuffer((cChar*)shader->source_fp, (uint32_t)shader->source_fp_len),
 											String(shader->shader_attributes).split(','));
 				} else { // opengl
 					// TODO ...
@@ -162,9 +162,9 @@ namespace ftr {
 	GLDraw::~GLDraw() {
 		if (_shaders) {
 			for (auto& i : (*_shaders)) {
-				if (i.value()->shader) {
-					glDeleteProgram(i.value()->shader);
-					i.value()->shader = 0;
+				if (i->shader) {
+					glDeleteProgram(i->shader);
+					i->shader = 0;
 				}
 			}
 		}
@@ -349,8 +349,7 @@ namespace ftr {
 		
 		const Array<GLShader*>& shaders = *_shaders; // 更新2D视图变换矩阵
 		
-		for ( auto it : shaders ) {
-			GLShader* shader = it.value();
+		for ( auto shader : shaders ) {
 			int handle = glGetUniformLocation(shader->shader, "root_matrix");
 			if ( handle != -1 ) {
 				glUseProgram(shader->shader);
@@ -422,7 +421,7 @@ namespace ftr {
 	GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
 		GLuint shader_handle = glCreateShader(shader_type);
 		GLint code_len = code.length();
-		cChar* c = code.value();
+		cChar* c = code.val();
 		glShaderSource(shader_handle, 1, &c, &code_len);
 		glCompileShader(shader_handle);
 		GLint ok;
@@ -457,8 +456,7 @@ namespace ftr {
 		
 		int i = 0;
 
-		for (auto it : attrs) {
-			cString& attr = it.value();
+		for (auto attr: attrs) {
 			if ( !attr.is_empty() ) {
 				glBindAttribLocation(program_handle, i, *attr);
 			}

@@ -97,7 +97,7 @@ class BasicScroll::Task: public PreRender::Task {
 	BasicScroll* _host;
 	uint64_t _start_time;
 	uint64_t _duration;
-	std::list<Task*>::iterator _id2;
+	List<Task*>::Iterator _id2;
 	bool   _immediate_end_flag;
 	cCurve _curve;
 	bool _is_inl_ease_out;
@@ -228,7 +228,7 @@ class BasicScroll::Inl: public BasicScroll {
 	 * @func is_task
 	 */
 	inline bool is_task() {
-		return _tasks.size();
+		return _tasks.length();
 	}
 	
 	/**

@@ -151,7 +151,7 @@ namespace ftr {
 		}
 		
 		/* TODO 使用一个默认字形  � 65533 */
-		Font* font = _pool->_spare_family->font(m_style);
+		Font* font = _pool->_spare_family->font(_style);
 		
 		glyph = _inl_font(font)->get_glyph(65533, 65533 / 128, 65533 % 128, level, vector);
 		

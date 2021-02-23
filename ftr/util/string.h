@@ -67,8 +67,8 @@ namespace ftr {
 		ArrayStringBase(uint32_t len, uint32_t capacity, char* val, uint8_t size_of);
 		void assign(uint32_t len, uint32_t capacity, char* val, uint8_t size_of, Free free);
 		void assign(const ArrayStringBase& s, Free free);
-					char* data();
-		const char* data() const;
+		char*       ptr();
+		const char* ptr() const;
 		uint32_t capacity() const;
 		char* realloc(uint32_t len, AAlloc alloc, Free free, uint8_t size_of);
 		Buffer collapse(AAlloc alloc, Free free);
@@ -302,7 +302,7 @@ namespace ftr {
 	{
 		(void)(1 + i); // test number math operation
 		if (sizeof(T) == 1) {
-			_val.s.length = _Str::format_n(data(), MAX_SHORT_LEN, i);
+			_val.s.length = _Str::format_n(ptr(), MAX_SHORT_LEN, i);
 		} else {
 			_Str::Size size;
 			T* v = (T*)_Str::format(&size, (int)sizeof(T), &A::alloc, i);
@@ -340,10 +340,10 @@ namespace ftr {
 	T ArrayString<T, A>::operator[](uint32_t index) const { return c_str()[index]; }
 
 	template <typename T, typename A>
-	const T* ArrayString<T, A>::c_str() const { return (const T*)data(); }
+	const T* ArrayString<T, A>::c_str() const { return (const T*)ptr(); }
 
 	template <typename T, typename A>
-	const T* ArrayString<T, A>::operator*() const { return (const T*)data(); }
+	const T* ArrayString<T, A>::operator*() const { return (const T*)ptr(); }
 
 	template <typename T, typename A>
 	uint32_t ArrayString<T, A>::length() const { return size() / sizeof(T); }
@@ -352,7 +352,7 @@ namespace ftr {
 	uint32_t ArrayString<T, A>::capacity() const { return ArrayStringBase::capacity() / sizeof(T); }
 	
 	template <typename T, typename A>
-	T* ArrayString<T, A>::val() { return (T*)data(); }
+	T* ArrayString<T, A>::val() { return (T*)ptr(); }
 
 	// --------------------------------------------------------------------------------
 

@@ -33,8 +33,8 @@
 
 #include "./util.h"
 #include "./error.h"
+#include "./list.h"
 #include <map>
-#include <list>
 #include <functional>
 
 #define FX_Event(name, ...) \
@@ -246,7 +246,7 @@ namespace ftr {
 		* @fun count # 获取侦听器数量
 		*/
 		inline int count() const {
-			return _listener ? (int)_listener->size() : 0;
+			return _listener ? (int)_listener->length() : 0;
 		}
 
 		template<class Scope>
@@ -461,7 +461,7 @@ namespace ftr {
 		inline void get_listener() {
 			ASSERT(!_name.is_empty());
 			if (_listener == nullptr) {
-				_listener = new std::list<LWrap>();
+				_listener = new List<LWrap>();
 			}
 		}
 		
@@ -511,7 +511,7 @@ namespace ftr {
 		}
 
 		private:
-		typedef typename std::list<Listener*>::iterator iterator;
+		typedef typename List<Listener*>::Iterator iterator;
 		struct LWrap {
 			Listener* listener;
 			Listener* operator->() { return listener; }
@@ -520,7 +520,7 @@ namespace ftr {
 		};
 		String             _name;
 		Sender*            _sender;
-		std::list<LWrap>*  _listener;
+		List<LWrap>*  _listener;
 		friend class  ftr::Event<SendData, Sender, ReturnValue>;
 		friend class  OnShellListener;
 		friend class  OnceShellListener;

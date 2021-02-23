@@ -49,6 +49,7 @@ class Div;
  */
 class FX_EXPORT Box: public Layout {
 	public:
+	FX_DEFINE_GUI_VIEW(BOX, Box, box);
 	
 	Box();
 	

@@ -164,7 +164,7 @@ namespace ftr {
 		
 		class ConnectPool;
 		class Connect;
-		typedef std::list<Connect*>::iterator ConnectID;
+		typedef List<Connect*>::iterator ConnectID;
 
 		/**
 		 * @class HttpClientRequest::Inl::Connect
@@ -660,7 +660,7 @@ namespace ftr {
 			AsyncFile*  _upload_file;
 			http_parser _parser;
 			http_parser_settings _settings;
-			std::list<MultipartFormValue> _multipart_form_data;
+			List<MultipartFormValue> _multipart_form_data;
 			Buffer  _multipart_form_buffer;
 			String  _header_field;
 			Map _header;
@@ -832,8 +832,8 @@ namespace ftr {
 			
 		 private:
 			Mutex _mutex;
-			std::list<Connect*>  _pool;
-			std::list<connect_req> _connect_req;
+			List<Connect*>  _pool;
+			List<connect_req> _connect_req;
 		};
 		
 		/**

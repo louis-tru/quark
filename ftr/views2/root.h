@@ -44,6 +44,8 @@ namespace ftr {
  */
 class FX_EXPORT Root: public Div {
 	public:
+	FX_DEFINE_GUI_VIEW(ROOT, Root, root);
+
 	inline Root() {}
 	
 	/**

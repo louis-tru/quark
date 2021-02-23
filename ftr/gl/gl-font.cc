@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "../gl.h"
+#include "./gl.h"
 #include "../font/_font.h"
 #include "../display-port.h"
 
@@ -151,8 +151,8 @@ namespace ftr {
 		for (int i = 0; i < nelems; i++) {
 			const TESSindex* poly = &elems[i * poly_size * 2];
 			for (int j = 0; j < poly_size; j++) {
-				int16 x = roundf(*(verts + poly[j] * 2));
-				int16 y = roundf(*(verts + poly[j] * 2 + 1));
+				int16_t x = roundf(*(verts + poly[j] * 2));
+				int16_t y = roundf(*(verts + poly[j] * 2 + 1));
 				vertex[vertex_count] = { x, y };
 				vertex_count++;
 			}
@@ -226,10 +226,10 @@ namespace ftr {
 									GL_ALPHA, bit.width, bit.rows, 0,
 									GL_ALPHA, GL_UNSIGNED_BYTE, bit.buffer);
 			glyph->_texture_size[level] = {
-				int16(bit.width),
-				int16(bit.rows),
-				int16(slot->bitmap_left),
-				int16(slot->bitmap_top)
+				int16_t(bit.width),
+				int16_t(bit.rows),
+				int16_t(slot->bitmap_left),
+				int16_t(slot->bitmap_top)
 			};
 			
 			//uint16_t unicode = glyph->unicode();

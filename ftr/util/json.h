@@ -34,6 +34,7 @@
 #include "./handle.h"
 #include "./string.h"
 #include "./error.h"
+#include "./iterator.h"
 
 namespace ftr {
 
@@ -48,45 +49,11 @@ namespace ftr {
 		public:
 		typedef NonObjectTraits Traits;
 		struct Member;
-		
-		template <typename T> class FX_EXPORT MemberIterator {
-			typedef std::iterator<std::random_access_iterator_tag, T> BaseType;
-			template <typename> friend class MemberIterator;
 
-			public:
-			//! Iterator type itself
-			typedef MemberIterator Iterator;
-			//! Constant iterator type
-			typedef MemberIterator<const Member>  IteratorConst;
-			//! Non-constant iterator type
-			typedef MemberIterator<Member>        NonIteratorConst;
-			
-			//! Pointer to (const) GenericMember
-			typedef typename BaseType::pointer         Pointer;
-			//! Reference to (const) GenericMember
-			typedef typename BaseType::reference       Reference;
-			
-			MemberIterator(const NonIteratorConst& it) : ptr_(it.ptr_) {}
-			
-			MemberIterator& operator++();    // ++i
-			MemberIterator& operator--();    // --i
-			MemberIterator  operator++(int); // i++
-			MemberIterator  operator--(int); // i--
-			bool operator==(IteratorConst that) const { return ptr_ == that.ptr_; }
-			bool operator!=(IteratorConst that) const { return ptr_ != that.ptr_; }
-			
-			Reference operator*() const { return *ptr_; }
-			Pointer   operator->() const { return ptr_; }
-			//
-			private:
-			MemberIterator();
-			Pointer ptr_; //!< raw pointer
-		};
-		
-		typedef MemberIterator<Member>        Iterator;
-		typedef MemberIterator<const Member>  IteratorConst;
-		typedef JSON*                         ArrayIterator;
-		typedef const JSON*                   ArrayIteratorConst;
+		typedef SimpleIterator<Member,       Member>  Iterator;
+		typedef SimpleIterator<const Member, Member>  IteratorConst;
+		typedef JSON*                                 ArrayIterator;
+		typedef const JSON*                           ArrayIteratorConst;
 		
 		//! Type of JSON value
 		enum Type {
@@ -144,9 +111,9 @@ namespace ftr {
 		bool operator==(cJSON& json) const;
 		bool operator==(cChar* str) const;
 		bool operator==(cString& str) const;
-		inline bool operator!=(cJSON& json) const { return !this->operator==(json); }
-		inline bool operator!=(cChar* str) const { return !this->operator==(str); }
-		inline bool operator!=(cString& str) const { return !this->operator==(str); }
+		bool operator!=(cJSON& json) const { return !this->operator==(json); }
+		bool operator!=(cChar* str) const { return !this->operator==(str); }
+		bool operator!=(cString& str) const { return !this->operator==(str); }
 		
 		JSON& operator[](cJSON& key);
 		JSON& operator[](int index);
@@ -288,22 +255,6 @@ namespace ftr {
 		JSON name;     //!< name of member (must be a string)
 		JSON value;    //!< value of member.
 	};
-
-	//! @name stepping
-	//@{
-	template<typename T>
-	JSON::MemberIterator<T>& JSON::MemberIterator<T>::operator++() { ++ptr_; return *this; }
-	template<typename T>
-	JSON::MemberIterator<T>& JSON::MemberIterator<T>::operator--() { --ptr_; return *this; }
-	template<typename T>
-	JSON::MemberIterator<T>  JSON::MemberIterator<T>::operator++(int) {
-		MemberIterator old(*this); ++ptr_; return old;
-	}
-	template<typename T>
-	JSON::MemberIterator<T>  JSON::MemberIterator<T>::operator--(int) {
-		MemberIterator old(*this); --ptr_; return old;
-	}
-	//@}
 
 }
 #endif

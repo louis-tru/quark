@@ -36,15 +36,15 @@
 namespace ftr {
 
 	// set_property
-	template<> inline void Property2<TextColor>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextSize>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextStyle>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextFamily>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextLineHeight>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextShadow>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextDecoration>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextOverflow>::set_property(std::list<View*>& views);
-	template<> inline void Property2<TextWhiteSpace>::set_property(std::list<View*>& views);
+	template<> inline void Property2<TextColor>::set_property(List<View*>& views);
+	template<> inline void Property2<TextSize>::set_property(List<View*>& views);
+	template<> inline void Property2<TextStyle>::set_property(List<View*>& views);
+	template<> inline void Property2<TextFamily>::set_property(List<View*>& views);
+	template<> inline void Property2<TextLineHeight>::set_property(List<View*>& views);
+	template<> inline void Property2<TextShadow>::set_property(List<View*>& views);
+	template<> inline void Property2<TextDecoration>::set_property(List<View*>& views);
+	template<> inline void Property2<TextOverflow>::set_property(List<View*>& views);
+	template<> inline void Property2<TextWhiteSpace>::set_property(List<View*>& views);
 
 	// get_property
 	template<> inline TextColor Property2<TextColor>::get_property(View* view);

@@ -279,8 +279,8 @@ namespace ftr {
 		
 		// -------------------------- touch --------------------------
 		
-		void touchstart_2(View* view, std::list<GUITouch>& in) {
-			if ( view->receive() && view->_draw_visible && in.size() ) {
+		void touchstart_2(View* view, List<GUITouch>& in) {
+			if ( view->receive() && view->_draw_visible && in.length() ) {
 				Array<GUITouch> change_touches;
 				
 				for ( auto i = in.begin(), e = in.end(); i != e; ) {
@@ -320,13 +320,13 @@ namespace ftr {
 		/**
 		 * @func touchstart
 		 */
-		void touchstart(View* view, std::list<GUITouch>& in) {
+		void touchstart(View* view, List<GUITouch>& in) {
 			
-			if ( view->_visible && in.size() ) {
+			if ( view->_visible && in.length() ) {
 				if ( view->_draw_visible || view->_need_draw ) {
 					
 					if ( view->_last && view->as_box() && static_cast<Box*>(view)->clip() ) {
-						std::list<GUITouch> in2;
+						List<GUITouch> in2;
 						
 						for ( auto i = in.begin(), e = in.end(); i != e; ) {
 							if ( view->overlap_test(Vec2(i->x, i->y)) ) {
@@ -338,19 +338,19 @@ namespace ftr {
 						}
 						
 						View* v = view->_last;
-						while( v && in2.size() ) {
+						while( v && in2.length() ) {
 							touchstart(v, in2);
 							v = v->_prev;
 						}
 						
 						touchstart_2(view, in2);
 						
-						if ( in2.size() ) {
+						if ( in2.length() ) {
 							in.splice(in.end(), std::move(in2));
 						}
 					} else {
 						View* v = view->_last;
-						while( v && in.size() ) {
+						while( v && in.length() ) {
 							touchstart(v, in);
 							v = v->_prev;
 						}
@@ -364,7 +364,7 @@ namespace ftr {
 		/**
 		 * @func touch_move
 		 */
-		void touchmove(std::list<GUITouch>& in) {
+		void touchmove(List<GUITouch>& in) {
 
 			std::map<View*, Array<GUITouch>> change_touches;
 			
@@ -447,7 +447,7 @@ namespace ftr {
 		/**
 		 * @func touch_end
 		 */
-		void touchend(std::list<GUITouch>& in, const GUIEventName& type) {
+		void touchend(List<GUITouch>& in, const GUIEventName& type) {
 			std::map<View*, Array<GUITouch>> change_touches;
 			
 			for ( auto& i : in ) {
@@ -499,7 +499,7 @@ namespace ftr {
 		
 		//  dispatch touch event
 		
-		void dispatch_touchstart(Callback<std::list<GUITouch>>::Data& evt) {
+		void dispatch_touchstart(Callback<List<GUITouch>>::Data& evt) {
 			GUILock lock;
 			Root* r = app_->root();
 			if (r) {
@@ -507,17 +507,17 @@ namespace ftr {
 			}
 		}
 		
-		void dispatch_touchmove(Callback<std::list<GUITouch>>::Data& evt) {
+		void dispatch_touchmove(Callback<List<GUITouch>>::Data& evt) {
 			GUILock lock;
 			touchmove(*evt.data);
 		}
 		
-		void dispatch_touchend(Callback<std::list<GUITouch>>::Data& evt) {
+		void dispatch_touchend(Callback<List<GUITouch>>::Data& evt) {
 			GUILock lock;
 			touchend(*evt.data, GUI_EVENT_TOUCH_END);
 		}
 		
-		void dispatch_touchcancel(Callback<std::list<GUITouch>>::Data& evt) {
+		void dispatch_touchcancel(Callback<List<GUITouch>>::Data& evt) {
 			GUILock lock;
 			touchend(*evt.data, GUI_EVENT_TOUCH_CANCEL);
 		}
@@ -811,7 +811,7 @@ namespace ftr {
 
 	GUIEventDispatch::~GUIEventDispatch() {
 		for (auto& i : _origin_touches)
-			delete i.value();
+			delete i.second;
 		Release(_keyboard);
 		delete _mouse_h;
 	}
@@ -821,7 +821,7 @@ namespace ftr {
 	void KeyboardAdapter::dispatch(uint32_t keycode, bool unicode,
 																 bool down, int repeat, int device, int source)
 	{
-		async_callback(Cb([=](CbData& evt) {
+		async_resolve(Cb([=](CbData& evt) {
 			GUILock lock;
 			repeat_ = repeat; device_ = device;
 			source_ = source;
@@ -841,24 +841,28 @@ namespace ftr {
 		}), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchstart(std::list<GUITouch>&& list) {
-		async_callback(Cb(&Inl::dispatch_touchstart, _inl_di(this)), move(list), _loop);
+	void GUIEventDispatch::dispatch_touchstart(List<GUITouch>&& list) {
+		async_resolve(Callback<List<GUITouch>>(
+			&Inl::dispatch_touchstart, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchmove(std::list<GUITouch>&& list) {
-		async_callback(Cb(&Inl::dispatch_touchmove, _inl_di(this)), move(list), _loop);
+	void GUIEventDispatch::dispatch_touchmove(List<GUITouch>&& list) {
+		async_resolve(Callback<List<GUITouch>>(
+			&Inl::dispatch_touchmove, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchend(std::list<GUITouch>&& list) {
-		async_callback(Cb(&Inl::dispatch_touchend, _inl_di(this)), move(list), _loop);
+	void GUIEventDispatch::dispatch_touchend(List<GUITouch>&& list) {
+		async_resolve(Callback<List<GUITouch>>(
+			&Inl::dispatch_touchend, _inl_di(this)), std::move(list), _loop);
 	}
 
-	void GUIEventDispatch::dispatch_touchcancel(std::list<GUITouch>&& list) {
-		async_callback(Cb(&Inl::dispatch_touchcancel, _inl_di(this)), move(list), _loop);
+	void GUIEventDispatch::dispatch_touchcancel(List<GUITouch>&& list) {
+		async_resolve(Callback<List<GUITouch>>(
+			&Inl::dispatch_touchcancel, _inl_di(this)), std::move(list), _loop);
 	}
 
 	void GUIEventDispatch::dispatch_mousemove(float x, float y) {
-		async_callback(Cb([=](CbData& evt) {
+		async_resolve(Cb([=](CbData& evt) {
 			GUILock lock;
 			Vec2 pos(x, y);
 			// set current mouse pos
@@ -872,7 +876,7 @@ namespace ftr {
 	}
 
 	void GUIEventDispatch::dispatch_mousepress(KeyboardKeyName name, bool down) {
-		async_callback(Cb([=](CbData& evt) {
+		async_resolve(Cb([=](CbData& evt) {
 			GUILock lock;
 			switch(name) {
 				case KEYCODE_MOUSE_LEFT:
@@ -894,7 +898,7 @@ namespace ftr {
 	}
 
 	void GUIEventDispatch::dispatch_ime_delete(int count) {
-		async_callback(Cb([=](CbData& d) {
+		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
 				_text_input->input_delete(count);
@@ -906,7 +910,7 @@ namespace ftr {
 	}
 
 	void GUIEventDispatch::dispatch_ime_insert(cString& text) {
-		async_callback(Cb([=](CbData& d) {
+		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
 				_text_input->input_insert(text);
@@ -915,7 +919,7 @@ namespace ftr {
 	}
 
 	void GUIEventDispatch::dispatch_ime_marked(cString& text) {
-		async_callback(Cb([=](CbData& d) {
+		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
 				_text_input->input_marked(text);
@@ -924,7 +928,7 @@ namespace ftr {
 	}
 
 	void GUIEventDispatch::dispatch_ime_unmark(cString& text) {
-		async_callback(Cb([=](CbData& d) {
+		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
 				_text_input->input_unmark(text);
@@ -933,7 +937,7 @@ namespace ftr {
 	}
 
 	void GUIEventDispatch::dispatch_ime_control(KeyboardKeyName name) {
-		async_callback(Cb([=](CbData& d) {
+		async_resolve(Cb([=](CbData& d) {
 			GUILock lock;
 			if ( _text_input ) {
 				_text_input->input_control(name);

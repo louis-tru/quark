@@ -357,19 +357,19 @@ namespace ftr {
 			while ( begin < end ) {
 				TextFont::Cell& cell = data.cells[begin];
 				
-				if ( cell.Chars.length() ) {
+				if ( cell.chars.length() ) {
 					float y = cell.baseline - data.text_hori_bearing + offset.y();
 					float offset_start = cell.offset_start + offset.x();
 					float* offset_table = &cell.offset[0];
 					
 					if ( cell.reverse ) {
 						glUniform4f(shader::text_box_color.vertex_ac,
-												offset_start - offset_table[cell.Chars.length()], y,
+												offset_start - offset_table[cell.chars.length()], y,
 												offset_start - offset_table[0], y + data.text_height);
 					} else {
 						glUniform4f(shader::text_box_color.vertex_ac,
 												offset_start + offset_table[0], y,
-												offset_start + offset_table[cell.Chars.length()], y + data.text_height);
+												offset_start + offset_table[cell.chars.length()], y + data.text_height);
 					}
 					
 					glDrawArrays(GL_TRIANGLE_FAN, 0, 4); // 绘图背景
@@ -397,9 +397,9 @@ namespace ftr {
 			for (int i = data.cell_draw_begin, e = data.cell_draw_end; i < e; i++) {
 				
 				TextFont::Cell& cell = data.cells[i];
-				uint32_t count = cell.Chars.length();
+				uint32_t count = cell.chars.length();
 				if ( count ) {
-					const uint16* Chars = &cell.Chars[0];
+					const uint16_t* Chars = &cell.chars[0];
 					float offset_start = cell.offset_start + offset.x();
 					float* offset_table = &cell.offset[0];
 					
@@ -438,9 +438,9 @@ namespace ftr {
 			for (int i = data.cell_draw_begin, e = data.cell_draw_end; i < e; i++) {
 				
 				TextFont::Cell& cell = data.cells[i];
-				uint32_t count = cell.Chars.length();
+				uint32_t count = cell.chars.length();
 				if ( count ) {
-					const uint16* Chars = &cell.Chars[0];
+					const uint16_t* Chars = &cell.chars[0];
 					float offset_start = cell.offset_start + offset.x();
 					float* offset_table = &cell.offset[0];
 					

@@ -44,14 +44,11 @@ namespace ftr {
 			}\
 		}\
 		\
-		template<> Array<T, A>::Array(const std::initializer_list<T>& list) \
-			: _length((uint32_t)list.size()), _capacity(0), _val(nullptr) \
-		{ \
-			if (_length) { \
-				realloc_(_length + APPEND_ZERO); \
-				memcpy(_val, list.begin(), sizeof(T) * _length); \
-				if (APPEND_ZERO) _val[_length] = 0; \
-			}\
+		template<> std::vector<T> Array<T, A>::vector() const { \
+			std::vector<T> r(_length); \
+			if (_length) \
+				memcpy(r.data(), _val, sizeof(T) * _length); \
+			return std::move(r); \
 		} \
 		\
 		template<> Array<T, A>& Array<T, A>::concat_(T* src, uint32_t src_length) { \

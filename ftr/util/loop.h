@@ -34,7 +34,7 @@
 #include "./util.h"
 #include "./cb.h"
 #include "./thread.h"
-#include <list>
+#include "./list.h"
 #include <functional>
 
 typedef struct uv_loop_s uv_loop_t;
@@ -191,9 +191,9 @@ namespace ftr {
 			Callback<> resolve;
 		};
 		struct Work;
-		std::list<Queue>     _queue;
-		std::list<Work*>     _works;
-		std::list<KeepLoop*> _keeps;
+		List<Queue>     _queue;
+		List<Work*>     _works;
+		List<KeepLoop*> _keeps;
 		RecursiveMutex*      _independent_mutex;
 		Mutex                _mutex;
 		Thread*              _thread;
@@ -238,7 +238,7 @@ namespace ftr {
 		inline RunLoop* host() { return _loop; }
 
 		private:
-		typedef std::list<KeepLoop*>::iterator Iterator;
+		typedef List<KeepLoop*>::Iterator Iterator;
 		/**
 		* @constructor `declear=true`时表示析构时会进行清理
 		*/

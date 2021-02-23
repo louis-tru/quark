@@ -109,11 +109,11 @@ namespace ftr {
 		* @enum ViewType
 		*/
 		enum ViewType {
-		#define nx_def_view_type(enum, type, name) enum,
+			#define nx_def_view_type(enum, type, name) enum,
 			INVALID = 0,
 			VIEW,
 			FX_EACH_VIEWS(nx_def_view_type)
-		#undef nx_def_view_type
+			#undef nx_def_view_type
 		};
 
 		/**

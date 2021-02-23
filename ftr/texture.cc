@@ -893,7 +893,7 @@ namespace ftr {
 				Texture::Level level;
 				uint32_t use_count;
 			};
-			std::list<TexWrap> texture_sort;
+			List<TexWrap> texture_sort;
 			uint64_t total_data_size = 0;
 			
 			// 先按使用使用次数排序纹理对像
@@ -927,7 +927,7 @@ namespace ftr {
 				}
 			}
 			
-			if ( texture_sort.size() ) {
+			if ( texture_sort.length() ) {
 				uint64_t total_data_size_1_3 = total_data_size / 3;
 				uint64_t del_data_size = 0;
 				// 从排序列表顶部开始卸载总容量的1/3

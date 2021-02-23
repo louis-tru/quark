@@ -137,7 +137,8 @@ namespace ftr {
 		* @func draw_region
 		*/
 		inline const Region& draw_region() const {
-			return _draw_region.back();
+			//return
+			_draw_region.back();
 		}
 
 		/**
@@ -149,7 +150,7 @@ namespace ftr {
 		* @func pop_draw_region
 		*/
 		inline void pop_draw_region() {
-			ASSERT( _draw_region.size() > 1 );
+			ASSERT( _draw_region.length() > 1 );
 			_draw_region.pop_back();
 		}
 		
@@ -227,9 +228,9 @@ namespace ftr {
 		Draw*             _draw_ctx;
 		Mat4              _root_matrix;
 		float             _atom_pixel;
-		std::list<Region>      _draw_region;
+		List<Region>      _draw_region;
 		GUIApplication*   _host;
-		std::list<Callback<>>  _next_frame;
+		List<Callback<>>  _next_frame;
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
 		

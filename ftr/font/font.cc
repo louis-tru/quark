@@ -53,7 +53,7 @@ namespace ftr {
 				return false;
 			}
 			
-			_ft_glyph = ((FT_Face)m_ft_face)->glyph;
+			_ft_glyph = ((FT_Face)_ft_face)->glyph;
 			
 			if ( ! _containers ) { // 创建块容器
 				_containers = new GlyphContainer*[512];
@@ -70,7 +70,7 @@ namespace ftr {
 			for (int i = 0; i < 512; i++) {
 				_inl_font(this)->del_glyph_data( _containers[i] );
 			}
-			FT_Done_Face((FT_Face)m_ft_face);
+			FT_Done_Face((FT_Face)_ft_face);
 			_ft_face = nullptr;
 			_ft_glyph = nullptr;
 		}
@@ -90,18 +90,18 @@ namespace ftr {
 	
 	void FontFromData::install() {
 		ASSERT(!_ft_face);
-		FT_New_Memory_Face((FT_Library)m_ft_lib,
+		FT_New_Memory_Face((FT_Library)_ft_lib,
 											_data->value, _data->length,
-											m_face_index, (FT_Face*)&m_ft_face);
+											_face_index, (FT_Face*)&_ft_face);
 	}
 
 	FontFromFile::FontFromFile(cString& path): _font_path(path) { }
 	
 	void FontFromFile::install() {
 		ASSERT(!_ft_face);
-		FT_New_Face((FT_Library)m_ft_lib,
+		FT_New_Face((FT_Library)_ft_lib,
 								Path::fallback_c(_font_path),
-								m_face_index, (FT_Face*)&m_ft_face);
+								_face_index, (FT_Face*)&_ft_face);
 	}
 
 	void Font::Inl::initialize(
@@ -227,7 +227,7 @@ namespace ftr {
 				}
 				memset(glyph->_textures, 0, sizeof(uint32_t) * 13);
 			}
-			m_pool->_total_data_size -= container->data_size;
+			_pool->_total_data_size -= container->data_size;
 			container->use_count = 0;
 			container->data_size = 0;
 		}
@@ -236,19 +236,19 @@ namespace ftr {
 	/**
 	* @func get_glyph
 	*/
-	FontGlyph* Font::Inl::get_glyph(uint32_t16 unicode, uint32_t region,
+	FontGlyph* Font::Inl::get_glyph(uint16_t unicode, uint32_t region,
 																	uint32_t index, FGTexureLevel level, bool vector) 
 	{
 		ASSERT(region < 512);
 		ASSERT(index < 128);
 		
-		load(); ASSERT(m_ft_face);
+		load(); ASSERT(_ft_face);
 		
 		GlyphContainerFlag* flags = _flags[region];
 		
 		if ( !flags ) {
 			flags = new GlyphContainerFlag();
-			m_flags[region] = flags;
+			_flags[region] = flags;
 			memset(flags, 0, sizeof(GlyphContainerFlag));
 		}
 		
@@ -261,28 +261,28 @@ namespace ftr {
 			}
 			case CF_NO_READY:
 			{
-				uint32_t16 glyph_index = FT_Get_Char_Index( (FT_Face)m_ft_face, unicode );
+				uint16_t glyph_index = FT_Get_Char_Index( (FT_Face)_ft_face, unicode );
 				
 				if (! glyph_index ) goto cf_none;
 				
 				GlyphContainer* container = _containers[region];
 				if ( !container ) {
-					m_containers[region] = container = new GlyphContainer();
+					_containers[region] = container = new GlyphContainer();
 					memset(container, 0, sizeof(GlyphContainer));
 					container->font = this;
 				}
 				
-				FT_Error error = FT_Set_Char_Size( (FT_Face)m_ft_face, 0, 64 * 64, 72, 72);
+				FT_Error error = FT_Set_Char_Size( (FT_Face)_ft_face, 0, 64 * 64, 72, 72);
 				if (error) {
 					FX_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 				}
 				
-				error = FT_Load_Glyph( (FT_Face)m_ft_face, glyph_index, FT_LOAD_NO_HINTING);
+				error = FT_Load_Glyph( (FT_Face)_ft_face, glyph_index, FT_LOAD_NO_HINTING);
 				if (error) {
 					FX_WARN("%s", "parse font glyph vbo data error"); goto cf_none;
 				}
 			
-				FT_GlyphSlot ft_glyph = (FT_GlyphSlot)m_ft_glyph;
+				FT_GlyphSlot ft_glyph = (FT_GlyphSlot)_ft_glyph;
 				
 				glyph = container->glyphs + index;
 				glyph->_container = container;
@@ -351,34 +351,35 @@ namespace ftr {
 				delete _containers; _containers = nullptr;
 				delete _flags; _flags = nullptr;
 				
-				FT_Done_Face((FT_Face)m_ft_face);
-				m_ft_face = nullptr;
-				m_ft_glyph = nullptr;
+				FT_Done_Face((FT_Face)_ft_face);
+				_ft_face = nullptr;
+				_ft_glyph = nullptr;
 				
 			} else {
 				struct Container {
 					GlyphContainer* container;
 					int region;
-					uint32_t64 use_count;
+					uint64_t use_count;
 				};
-				uint32_t64 total_data_size = 0;
-				std::list<Container> containers_sort;
+				uint64_t total_data_size = 0;
+				List<Container> containers_sort;
 				// 按使用使用次数排序
 				for (int regioni = 0; regioni < 512; regioni++) {
 					GlyphContainer* con = _containers[regioni];
 					if ( con ) {
 						auto it = containers_sort.end();
-						uint32_t64 use_count = con->use_count;
+						uint64_t use_count = con->use_count;
 						
-						for ( auto& j : containers_sort ) {
-							if ( use_count <= j.value().use_count ) {
+						for ( auto j = containers_sort.begin(),
+							e = containers_sort.end(); j != e; j++ ) {
+							if ( use_count <= j->use_count ) {
 								it = j; break;
 							}
 						}
 						if ( it.is_null() ) {
-							containers_sort.push({ con, regioni, use_count });
+							containers_sort.push_back({ con, regioni, use_count });
 						} else {
-							containers_sort.before(it, { con, regioni, use_count });
+							containers_sort.insert(it, { con, regioni, use_count });
 						}
 						total_data_size += con->data_size;
 						con->use_count /= 2;
@@ -388,25 +389,25 @@ namespace ftr {
 				}
 				
 				if ( containers_sort.length() ) {
-					uint32_t64 total_data_size_1_3 = total_data_size / 3;
-					uint32_t64 del_data_size = 0;
+					uint64_t total_data_size_1_3 = total_data_size / 3;
+					uint64_t del_data_size = 0;
 					// 从排序列表顶部开始删除总容量的1/3,并置零容器使用次数
 					auto last = --containers_sort.end();
 					
 					for ( auto it = containers_sort.begin(); it != last; it++ ) {
 						if ( del_data_size < total_data_size_1_3 ) {
-							int region = it.value().region;
-							del_data_size += it.value().container->data_size;
-							del_glyph_data( it.value().container );
+							int region = it->region;
+							del_data_size += it->container->data_size;
+							del_glyph_data( it->container );
 							delete _containers[region]; _containers[region] = nullptr;
 							delete _flags[region]; _flags[region] = nullptr;
 						}
 					}
 					// 如果删除到最后一个容器还不足总容量的1/3,并且最后一个容器总容量超过512kb也一并删除
 					if ( del_data_size < total_data_size_1_3 ) {
-						if ( last.value().container->data_size > 512 * 1024 ) {
-							int region = last.value().region;
-							del_glyph_data( last.value().container );
+						if ( last->container->data_size > 512 * 1024 ) {
+							int region = last->region;
+							del_glyph_data( last->container );
 							delete _containers[region]; _containers[region] = nullptr;
 							delete _flags[region]; _flags[region] = nullptr;
 						}

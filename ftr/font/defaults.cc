@@ -31,6 +31,7 @@
 #include "../version.h"
 #include "../util/json.h"
 #include "./_font.h"
+#include "../util/os.h"
 #include <tinyxml2.h>
 
 namespace ftr {
@@ -152,13 +153,13 @@ namespace ftr {
 		try {
 			json = JSON::parse(json_str);
 		} catch(cError& err) { return false;}
-		String sys_id = hash(sys::info()); // 系统标识
+		String sys_id = hash(os::info()); // 系统标识
 		String lib_version = FTR_VERSION;
 
-		if (sys_id != json["sys_id"].to_cstring()) { // 操作系统与是否升级
+		if (sys_id != json["sys_id"].to_string()) { // 操作系统与是否升级
 			return false;
 		}
-		if (lib_version != json["library_version"].to_cstring()) {// lib版本是否变化
+		if (lib_version != json["library_version"].to_string()) {// lib版本是否变化
 			return false;
 		}
 
@@ -176,14 +177,14 @@ namespace ftr {
 				item["family"].to_string(), // family
 			};
 			
-			DLOG("family:%s, %s", item["family"].to_cstring(), item["path"].to_cstring());
+			DLOG("family:%s, %s", *item["family"].to_string(), *item["path"].to_string());
 			
 			for ( int j = 0, o = fonts.length(); j < o; j++ ) {
 				JSON& font = fonts[j];
 				sffd.fonts.push({
 					font[0].to_string(),  // name
-					TextStyleEnum(font[1].to_uint()), // style
-					font[2].to_uint(),    // num_glyphs
+					TextStyleEnum(font[1].to_uint32()), // style
+					font[2].to_uint32(),  // num_glyphs
 					font[3].to_int(),     // height
 					font[4].to_int(),     // max_advance
 					font[5].to_int(),     // ascender
@@ -194,7 +195,7 @@ namespace ftr {
 				
 				// LOG("       %s", *JSON::stringify(font));
 			}
-			system_font_family_list->push( move(sffd) );
+			system_font_family_list->push( std::move(sffd) );
 		}
 		return true; // ok
 	}
@@ -262,7 +263,7 @@ namespace ftr {
 			return *system_font_family_list;
 		}
 
-		String sys_id = hash( sys::info() ); // 系统标识
+		String sys_id = hash( os::info() ); // 系统标识
 		
 		FT_Library ft_lib;
 		FT_Init_FreeType( &ft_lib );
@@ -300,10 +301,10 @@ namespace ftr {
 					}
 					item[ "fonts" ] = fonts;
 					font_familys[ font_familys.length() ] = item;
-					system_font_family_list->push( move(**sffd) );
+					system_font_family_list->push( std::move(**sffd) );
 				}
 			}
-			d.return_value = 1;
+			d.rc = 1;
 		}));
 		
 		parse_system_font_family_name();

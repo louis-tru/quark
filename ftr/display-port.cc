@@ -115,11 +115,11 @@ namespace ftr {
 		*/
 		void solve_next_frame() {
 			if (_next_frame.length()) {
-				std::list<Callback<>>* cb = new std::list<Callback<>>(move(_next_frame));
+				List<Callback<>>* cb = new List<Callback<>>(std::move(_next_frame));
 				_host->main_loop()->post(Cb([cb](CbData& e) {
-					Handle<std::list<Callback<>>> handle(cb);
+					Handle<List<Callback<>>> handle(cb);
 					for ( auto& i : *cb ) {
-						i.value()->call();
+						i->resolve();
 					}
 				}));
 			}
@@ -146,7 +146,7 @@ namespace ftr {
 	, _record_fsp(0)
 	, _record_fsp_time(0)
 	{
-		_draw_region.push({ 0,0,0,0,0,0 });
+		_draw_region.push_back({ 0,0,0,0,0,0 });
 		// 侦听视口尺寸变化
 		FX_DEBUG("_draw_ctx->FX_On ...");
 		_draw_ctx->FX_On(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
@@ -186,7 +186,7 @@ namespace ftr {
 	*/
 	void DisplayPort::render_frame() {
 		Root* r = root();
-		int64_t now_time = sys::time_monotonic();
+		int64_t now_time = os::time_monotonic();
 		_host->action_center()->advance(now_time); // advance action
 		
 		if (r) {
@@ -236,7 +236,7 @@ namespace ftr {
 		// TODO 必须要渲染循环中调用
 		Root* r = root();
 		if ( r ) {
-			_pre_render->solve(sys::time_monotonic());
+			_pre_render->solve(os::time_monotonic());
 			_draw_ctx->begin_render();
 			r->draw(_draw_ctx); // 开始绘图
 			_draw_ctx->commit_render();
@@ -246,7 +246,7 @@ namespace ftr {
 	void DisplayPort::push_draw_region(Region re) {
 		// 计算一个交集区域
 		
-		Region dre = _draw_region.last();
+		Region dre = _draw_region.back();
 		
 		float x, x2, y, y2;
 		
@@ -274,14 +274,14 @@ namespace ftr {
 		re.w = re.x2 - re.x;
 		re.h = re.y2 - re.y;
 		
-		_draw_region.push(re);
+		_draw_region.push_back(re);
 	}
 
 	/**
 	* @func next_frame
 	*/
 	void DisplayPort::next_frame(cCb& cb) {
-		_next_frame.push(cb);
+		_next_frame.push_back(cb);
 	}
 
 }

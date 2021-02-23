@@ -66,12 +66,12 @@ namespace ftr {
 	}
 	
 	void StyleSheetsScope::pop_scope() {
-		if ( _scopes.size() ) {
+		if ( _scopes.length() ) {
 			StyleSheetsClass* classs = _scopes.back()->classs();
 			if ( classs && classs->has_child() ) {
 				int count = classs->child_style_sheets().length();
 				for ( int i = 0; i < count; i++ ) {
-					ASSERT( _style_sheets.size() > 1 );
+					ASSERT( _style_sheets.length() > 1 );
 					Scope scope = _style_sheets.back();
 					ASSERT( scope.wrap->ref == scope.ref );
 					if ( scope.ref == 1 ) {

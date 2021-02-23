@@ -36,7 +36,7 @@
 #include "../event.h"
 #include "../_property.h"
 #include "../background.h"
-#include <list>
+#include "../util/list.h"
 
 namespace ftr {
 
@@ -205,14 +205,14 @@ namespace ftr {
 		int64_t _full_duration, _delay, _delayd;
 		float   _speed;
 		
-		std::list<View*> _views;
+		List<View*> _views;
 		
 		struct Wrap {
 			Action* value;
 			bool play;
 		};
 		
-		typedef std::list<Wrap>::iterator ActionCenterId;
+		typedef List<Wrap>::Iterator ActionCenterId;
 		
 		ActionCenterId _action_center_id;
 		
@@ -249,7 +249,7 @@ namespace ftr {
 		static ActionCenter* shared();
 		
 		private:
-		typedef std::list<Action::Wrap> Actions;
+		typedef List<Action::Wrap> Actions;
 		
 		uint64_t _prev_sys_time;
 		Actions  _actions;

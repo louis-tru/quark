@@ -168,6 +168,11 @@ namespace ftr {
 		async_callback(cb, (E*)nullptr, static_cast<D*>(&data), loop);
 	}
 
+	template<class D, class E>
+	FX_EXPORT inline void async_resolve(Callback<D, E> cb, PostMessage* loop = nullptr) {
+		async_callback(cb, (E*)nullptr, (D*)nullptr, loop);
+	}
+
 	template<class D, class E, class E2>
 	FX_EXPORT inline void async_reject(Callback<D, E> cb, E2&& err, PostMessage* loop = nullptr) {
 		async_callback(cb, static_cast<E*>(&err), (D*)nullptr, loop);

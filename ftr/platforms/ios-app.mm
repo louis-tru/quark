@@ -178,9 +178,9 @@ static NSString* app_delegate_name = @"";
 	return YES;
 }
 
-- (std::list<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
+- (List<GUITouch>)toGUITouchs:(NSSet<UITouch*>*)touches {
 	NSEnumerator* enumerator = [touches objectEnumerator];
-	std::list<GUITouch> rv; // (uint(touches.count));
+	List<GUITouch> rv; // (uint(touches.count));
 	
 	Vec2 size = _app->display_port()->size();
 	

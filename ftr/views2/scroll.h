@@ -283,7 +283,7 @@ namespace ftr {
 		
 		friend class GLDraw;
 		
-		std::list<Task*> _tasks;
+		List<Task*> _tasks;
 		
 		Box* _box;
 		Vec2 _raw_scroll;
@@ -316,8 +316,8 @@ namespace ftr {
 	* @class Scroll
 	*/
 	class FX_EXPORT Scroll: public Panel, public BasicScroll {
-		FX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
 		public:
+		FX_DEFINE_GUI_VIEW(SCROLL, Scroll, scroll);
 
 		typedef ReferenceTraits Traits;
 		

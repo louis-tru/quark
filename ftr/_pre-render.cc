@@ -54,7 +54,7 @@ namespace ftr {
 				// 1.从外至内,计算明确的布局宽度与高度
 				
 				// 忽略第0层级,第0层级的视图是无效的
-				auto i = _marks.begin() + 1;
+				auto i = ++_marks.begin();
 				auto end = _marks.end();
 				
 				StyleSheetsScope* sss = nullptr;
@@ -98,7 +98,7 @@ namespace ftr {
 				
 				// 2.从内至外,设置偏移并挤压不明确的高度与宽度
 				
-				i = _marks.end() - 1; end = _marks.begin();
+				i = --_marks.end(); end = _marks.begin();
 				
 				// 解决所有的布局视图的位置
 				while (i != end ) {
@@ -125,7 +125,7 @@ namespace ftr {
 				}
 				
 				// 3.从外至内进一步最终解决局宽度与高度还有偏移位置
-				i = _marks.begin() + 1; end = _marks.end();
+				i = ++_marks.begin(); end = _marks.end();
 				
 				while ( i != end ) {
 					View* begin = *i;
@@ -248,7 +248,7 @@ namespace ftr {
 		
 		bool rv = false;
 		
-		if ( _tasks.size() ) { // solve task
+		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();
 			while ( i != end ) {
 				Task* task = *i;
