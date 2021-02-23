@@ -136,6 +136,7 @@ namespace ftr {
 			return !(_ptr == that._ptr);
 		}
 		
+		// TODO ...
 		Pointer   operator->() const { return &_ptr->data(); }
 		Reference operator*() const { return ((T2*)_ptr)->data(); }
 		
