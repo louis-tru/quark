@@ -57,6 +57,7 @@
 			'zlib.h',
 			'iterator.h',
 			'list.h',
+			'dict.h',
 			# cc
 			'_uv.cc',
 			'_working.cc',

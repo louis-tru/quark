@@ -78,8 +78,8 @@ namespace ftr {
 		typedef ComplexIterator<Node, Node>       Iterator;
 
 		Dict();
-		Dict(Dict&& map);
-		Dict(const Dict& map);
+		Dict(Dict&& dict);
+		Dict(const Dict& dict);
 		Dict(const std::initializer_list<Data>& list);
 
 		virtual ~Dict();
@@ -128,6 +128,7 @@ namespace ftr {
 		Node** _indexed;
 		Node   _end; // { _prev = last, _next = first }
 		uint32_t  _length;
+		uint32_t  _capacity;
 	};
 
 	// -----------------------------------------------------------------
@@ -137,11 +138,11 @@ namespace ftr {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::Dict(Dict&& map) {
+	Dict<K, V, C, A>::Dict(Dict&& dict) {
 	}
 
 	template<typename K, typename V, typename C, typename A>
-	Dict<K, V, C, A>::Dict(const Dict& map) {
+	Dict<K, V, C, A>::Dict(const Dict& dict) {
 	}
 
 	template<typename K, typename V, typename C, typename A>
