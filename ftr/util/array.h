@@ -63,7 +63,7 @@ namespace ftr {
 		Array(const Array& arr);
 		Array(uint32_t length);
 
-		typedef SimpleIterator<T,       T>       Iterator;
+		typedef SimpleIterator<T,       T> Iterator;
 		typedef SimpleIterator<const T, T> IteratorConst;
 
 		inline Iterator begin() { return Iterator(_val); }
