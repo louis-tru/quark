@@ -36,26 +36,26 @@
 namespace ftr {
 
 	// set_property
-	template<> inline void Property2<TextColor>::set_property(List<View*>& views);
-	template<> inline void Property2<TextSize>::set_property(List<View*>& views);
-	template<> inline void Property2<TextStyle>::set_property(List<View*>& views);
-	template<> inline void Property2<TextFamily>::set_property(List<View*>& views);
-	template<> inline void Property2<TextLineHeight>::set_property(List<View*>& views);
-	template<> inline void Property2<TextShadow>::set_property(List<View*>& views);
-	template<> inline void Property2<TextDecoration>::set_property(List<View*>& views);
-	template<> inline void Property2<TextOverflow>::set_property(List<View*>& views);
-	template<> inline void Property2<TextWhiteSpace>::set_property(List<View*>& views);
+	template<> void Property2<TextColor>::set_property(List<View*>& views);
+	template<> void Property2<TextSize>::set_property(List<View*>& views);
+	template<> void Property2<TextStyle>::set_property(List<View*>& views);
+	template<> void Property2<TextFamily>::set_property(List<View*>& views);
+	template<> void Property2<TextLineHeight>::set_property(List<View*>& views);
+	template<> void Property2<TextShadow>::set_property(List<View*>& views);
+	template<> void Property2<TextDecoration>::set_property(List<View*>& views);
+	template<> void Property2<TextOverflow>::set_property(List<View*>& views);
+	template<> void Property2<TextWhiteSpace>::set_property(List<View*>& views);
 
 	// get_property
-	template<> inline TextColor Property2<TextColor>::get_property(View* view);
-	template<> inline TextSize Property2<TextSize>::get_property(View* view);
-	template<> inline TextStyle Property2<TextStyle>::get_property(View* view);
-	template<> inline TextFamily Property2<TextFamily>::get_property(View* view);
-	template<> inline TextLineHeight Property2<TextLineHeight>::get_property(View* view);
-	template<> inline TextShadow Property2<TextShadow>::get_property(View* view);
-	template<> inline TextDecoration Property2<TextDecoration>::get_property(View* view);
-	template<> inline TextOverflow Property2<TextOverflow>::get_property(View* view);
-	template<> inline TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view);
+	template<> TextColor Property2<TextColor>::get_property(View* view);
+	template<> TextSize Property2<TextSize>::get_property(View* view);
+	template<> TextStyle Property2<TextStyle>::get_property(View* view);
+	template<> TextFamily Property2<TextFamily>::get_property(View* view);
+	template<> TextLineHeight Property2<TextLineHeight>::get_property(View* view);
+	template<> TextShadow Property2<TextShadow>::get_property(View* view);
+	template<> TextDecoration Property2<TextDecoration>::get_property(View* view);
+	template<> TextOverflow Property2<TextOverflow>::get_property(View* view);
+	template<> TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view);
 
 	// transition
 

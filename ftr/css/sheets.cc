@@ -33,16 +33,16 @@
 
 namespace ftr {
 
-	static std::map<String, CSSPseudoClass> pseudo_class_table([]() {
-		std::map<String, CSSPseudoClass> r;
+	static Dict<String, CSSPseudoClass> pseudo_class_table([]() {
+		Dict<String, CSSPseudoClass> r;
 		r["normal"] = CSS_PSEUDO_CLASS_NORMAL;
 		r["hover"] = CSS_PSEUDO_CLASS_HOVER;
 		r["down"] = CSS_PSEUDO_CLASS_DOWN;
 		return r;
 	}());
 
-	static std::map<int, String> pseudo_class_table2([]() {
-		std::map<int, String> r;
+	static Dict<int, String> pseudo_class_table2([]() {
+		Dict<int, String> r;
 		r[CSS_PSEUDO_CLASS_NORMAL] = ":normal";
 		r[CSS_PSEUDO_CLASS_HOVER] = ":hover";
 		r[CSS_PSEUDO_CLASS_DOWN] = ":down";
@@ -61,7 +61,7 @@ namespace ftr {
 
 	StyleSheets* StyleSheets::Inl::find1(uint32_t hash) {
 		auto i = _children.find(hash);
-		return i == _children.end() ? nullptr : i->second;
+		return i == _children.end() ? nullptr : i->value;
 	}
 	
 	StyleSheets* StyleSheets::Inl::find2(const CSSName& name, CSSPseudoClass pseudo) {
@@ -75,7 +75,7 @@ namespace ftr {
 			ss = new StyleSheets(name, this, CSS_PSEUDO_CLASS_NONE);
 			_children[name.hash()] = ss;
 		} else {
-			ss = it->second;
+			ss = it->value;
 		}
 		
 		if ( pseudo ) { // pseudo cls
@@ -124,14 +124,14 @@ namespace ftr {
 			Frame* frame = action->frame(1);
 			
 			for ( auto i : _property ) {
-				i.second->assignment(frame);
+				i.value->assignment(frame);
 			}
 			
 			frame->set_time(_time);
 			
 		} else { // 立即设置
 			for ( auto i : _property ) {
-				i.second->assignment(view);
+				i.value->assignment(view);
 			}
 		}
 		return action;
@@ -155,10 +155,10 @@ namespace ftr {
 
 	StyleSheets::~StyleSheets() {
 		for ( auto i : _children ) {
-			Release(i.second);
+			Release(i.value);
 		}
 		for ( auto i : _property ) {
-			delete i.second;
+			delete i.value;
 		}
 		Release(_child_NORMAL); _child_NORMAL = nullptr;
 		Release(_child_HOVER); _child_HOVER = nullptr;
@@ -183,7 +183,7 @@ namespace ftr {
 			_property[PROPERTY_BACKGROUND] = prop;
 			return prop->value();
 		} else {
-			return static_cast<Type*>(it->second)->value();
+			return static_cast<Type*>(it->value)->value();
 		}
 	}
 
@@ -206,7 +206,7 @@ namespace ftr {
 	void StyleSheets::assignment(View* view) {
 		ASSERT(view);
 		for ( auto i : _property ) {
-			i.second->assignment(view);
+			i.value->assignment(view);
 		}
 	}
 
@@ -216,7 +216,7 @@ namespace ftr {
 	void StyleSheets::assignment(Frame* frame) {
 		ASSERT(frame);
 		for ( auto i : _property ) {
-			i.second->assignment(frame);
+			i.value->assignment(frame);
 		}
 	}
 
@@ -246,7 +246,7 @@ namespace ftr {
 			if ( it == pseudo_class_table.end() ) {
 				return false;
 			} else {
-				pseudo = it->second;
+				pseudo = it->value;
 			}
 			len = i;
 		}
@@ -299,7 +299,7 @@ namespace ftr {
 		if ( it == _css_query_group_cache.end() ) {
 			return nullptr;
 		} else {
-			return &it->second;
+			return &it->value;
 		}
 	}
 

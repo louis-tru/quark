@@ -1179,7 +1179,7 @@ Local<JSArray> Worker::New(Array<FileStat>&& ls) {
 	return Cast<JSArray>(rev);
 }
 
-Local<JSObject> Worker::New(const std::map<String, String>& data) {
+Local<JSObject> Worker::New(const Dict<String, String>& data) {
 	v8::Local<v8::Object> rev = v8::Object::New(ISOLATE(this));
 	{ v8::HandleScope scope(ISOLATE(this));
 		for (auto& i : data) {

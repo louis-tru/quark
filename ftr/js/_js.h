@@ -206,7 +206,7 @@ class JSClassStore {
 		WrapAttachCallback  attach_callback;
 	};
 	Array<Desc*> desc_;
-	std::map<uint64, Desc*> values_;
+	Dict<uint64, Desc*> values_;
 	WrapObject* current_attach_object_;
 	Worker* worker_;
 	

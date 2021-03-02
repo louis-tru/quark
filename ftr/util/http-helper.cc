@@ -36,7 +36,7 @@
 
 namespace ftr {
 
-	typedef std::map<String, String> Map;
+	typedef Dict<String, String> Map;
 
 	static String http_cache_path = String();
 	static String http_user_agent = "Mozilla/5.0 ftr/util/" FTR_VERSION " (KHTML, like Gecko)";
@@ -184,7 +184,7 @@ namespace ftr {
 			}
 			
 			for ( auto& i : options.headers ) {
-				req->set_request_header(i.first, i.second);
+				req->set_request_header(i.key, i.value);
 			}
 			
 			req->send(options.post_data);

@@ -92,14 +92,23 @@ namespace ftr {
 		ArrayString(const T* s, uint32_t len); // copy constructors
 		ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
 		ArrayString(T c); // char to string constructors
-		template<typename T2>
-		ArrayString(T2 i); // number to string constructors
-		
+
+		ArrayString(int32_t i); // number to string constructors
+		ArrayString(int64_t i);
+		ArrayString(uint64_t i);
+		ArrayString(float i);
+		ArrayString(double i);
+
 		virtual ~ArrayString();
 		virtual String to_string() const;
 		/**
-			* @func format string
-			*/
+		 * @func number convert to string
+		 */
+		template<typename T2>
+		static ArrayString number(T2 i);
+		/**
+		 * @func format string
+		 */
 		static ArrayString format(cChar* format, ...);
 
 		inline bool  is_empty() const;
@@ -175,6 +184,8 @@ namespace ftr {
 		template<typename T2> T2   to_number()        const;
 		template<typename T2> bool to_number(T2* out) const;
 		private:
+		template<typename T2>
+		void number_(T2 i);
 		T* val();
 	};
 
@@ -297,8 +308,35 @@ namespace ftr {
 	}
 
 	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(int32_t i) {
+		number_(i);
+	}
+	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(int64_t i) {
+		number_(i);
+	}
+	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(uint64_t i) {
+		number_(i);
+	}
+	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(float i) {
+		number_(i);
+	}
+	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(double i) {
+		number_(i);
+	}
+
+	template <typename T, typename A>
+	template<typename T2>
+	ArrayString<T, A> ArrayString<T, A>::number(T2 i) {
+		ArrayString<T, A> s; s.number_(i); return s;
+	}
+
+	template <typename T, typename A>
 	template <typename T2>
-	ArrayString<T, A>::ArrayString(T2 i)
+	void ArrayString<T, A>::number_(T2 i)
 	{
 		(void)(1 + i); // test number math operation
 		if (sizeof(T) == 1) {

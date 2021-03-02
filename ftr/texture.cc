@@ -767,7 +767,7 @@ namespace ftr {
 			int status = *evt.data();
 			if (status & TEXTURE_CHANGE_COMPLETE) {
 				GUILock lock;
-				_completes.insert(evt.sender()); // 完成后加入完成列表
+				_completes.set(evt.sender(), 1); // 完成后加入完成列表
 				auto sender = static_cast<FileTexture*>(evt.sender());
 				TexturePoolEventData data = { progress(), sender };
 				FX_Trigger(change, data);
@@ -819,7 +819,7 @@ namespace ftr {
 
 	TexturePool::~TexturePool() {
 		for ( auto& i : _textures ) {
-			auto tex = i.second;
+			auto tex = i.value;
 			tex->_pool = nullptr;
 			ASSERT( tex->ref_count() > 0 );
 			// if ( tex->ref_count() == 1 ) {
@@ -835,7 +835,7 @@ namespace ftr {
 		// 通过路径查找纹理对像
 		auto it = _textures.find(pathname);
 		if ( it != _textures.end() ) {
-			return it->second;
+			return it->value;
 		}
 		
 		// 在当前池中创建一个纹理
@@ -855,13 +855,13 @@ namespace ftr {
 
 	void TexturePool::load_all() {
 		for (auto& i : _textures) {
-			i.second->load();
+			i.value->load();
 		}
 	}
 
 	float TexturePool::progress() const {
-		if ( _textures.size() > 0 ) {
-			return _completes.size() / float(_textures.size());
+		if ( _textures.length() > 0 ) {
+			return _completes.length() / float(_textures.length());
 		} else {
 			return 1.0f;
 		}
@@ -875,12 +875,12 @@ namespace ftr {
 		
 		if (full) {
 			while ( it != end ) {
-				FileTexture* texture = it->second;
+				FileTexture* texture = it->value;
 				texture->unload();
 				ASSERT(texture->ref_count() > 0);
 				if ( texture->ref_count() == 1 ) { // 不需要使用的纹理可以删除
 					_inl_pool(this)->del_texture_for_pool(texture);
-					it->second = nullptr;
+					it->value = nullptr;
 					_textures.erase(it++);
 					del_mark = true;
 				} else {
@@ -898,7 +898,7 @@ namespace ftr {
 			
 			// 先按使用使用次数排序纹理对像
 			while ( it != end ) {
-				FileTexture* tex = it->second;
+				FileTexture* tex = it->value;
 				ASSERT( tex->ref_count() > 0 );
 				
 				if ( tex->ref_count() == 1 ) { // 不需要使用的纹理可以删除

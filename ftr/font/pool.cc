@@ -97,7 +97,7 @@ namespace ftr {
 		auto i = _familys.find(family_name);
 		
 		if ( i != _familys.end() ) {
-			family = i->second;
+			family = i->value;
 		} else {
 			family = new FontFamily(family_name);
 			_familys[family_name] = family;
@@ -402,13 +402,13 @@ namespace ftr {
 	FontPool::~FontPool() {
 		
 		for ( auto& i : _familys ) {
-			Release(i.second); // delete
+			Release(i.value); // delete
 		}
 		for ( auto& i : _fonts ) {
-			Release(i.second); // delete
+			Release(i.value); // delete
 		}
 		for ( auto& i : _tables ) {
-			Release(i.second); // delete
+			Release(i.value); // delete
 		}
 		
 		_familys.clear();
@@ -432,15 +432,15 @@ namespace ftr {
 	void FontPool::set_default_fonts(const Array<String>* first, ...) {
 		
 		_default_fonts.clear();
-		std::map<String, bool> has;
+		Dict<String, bool> has;
 		
 		auto end = _blend_fonts.end();
 		
 		for (auto i: *first) {
 			auto j = _blend_fonts.find(i);
 			if (j != end) {
-				has[j->second->name()] = true;
-				_default_fonts.push(j->second);
+				has[j->value->name()] = true;
+				_default_fonts.push(j->value);
 				break;
 			}
 		}
@@ -454,9 +454,9 @@ namespace ftr {
 			for (auto i: *ls) {
 				auto j = _blend_fonts.find(i);
 				if (j != end) {
-					if ( ! has.count(j->second->name()) ) {
-						has[j->second->name()] = true;
-						_default_fonts.push(j->second);
+					if ( ! has.count(j->value->name()) ) {
+						has[j->value->name()] = true;
+						_default_fonts.push(j->value);
 					}
 					break;
 				}
@@ -478,16 +478,16 @@ namespace ftr {
 	void FontPool::set_default_fonts(const Array<String>& fonts) {
 		
 		_default_fonts.clear();
-		std::map<String, bool> has;
+		Dict<String, bool> has;
 		
 		auto end = _blend_fonts.end();
 		
 		for (uint32_t i = 0; i < fonts.length(); i++) {
 			auto j = _blend_fonts.find(fonts[i].trim());
 			if (j != end) {
-				if ( ! has.count(j->second->name()) ) {
-					has[j->second->name()] = true;
-					_default_fonts.push(j->second);
+				if ( ! has.count(j->value->name()) ) {
+					has[j->value->name()] = true;
+					_default_fonts.push(j->value);
 				}
 			}
 		}
@@ -514,7 +514,7 @@ namespace ftr {
 	Array<String> FontPool::family_names() const {
 		Array<String> names;
 		for (auto i: _familys) {
-			names.push(i.first);
+			names.push(i.key);
 		}
 		return names;
 	}
@@ -533,7 +533,7 @@ namespace ftr {
 	*/
 	FontFamily* FontPool::get_font_family(cString& family_name) {
 		auto i = _familys.find(family_name);
-		return i == _familys.end() ? NULL : i->second;
+		return i == _familys.end() ? NULL : i->value;
 	}
 
 	/**
@@ -544,7 +544,7 @@ namespace ftr {
 	*/
 	Font* FontPool::get_font(cString& name, TextStyleEnum style) {
 		auto i = _blend_fonts.find(name);
-		return i == _blend_fonts.end() ? NULL : i->second->font(style);
+		return i == _blend_fonts.end() ? NULL : i->value->font(style);
 	}
 
 	/**
@@ -559,7 +559,7 @@ namespace ftr {
 		
 		auto i = _tables.find(code);
 		if ( i != _tables.end() ) {
-			return i->second;
+			return i->value;
 		}
 		
 		FontGlyphTable* table = new FontGlyphTable();
@@ -639,7 +639,7 @@ namespace ftr {
 			auto i = _blend_fonts.find(family);
 			
 			if (i != _blend_fonts.end() && !_blend_fonts.count(alias)) {
-				_blend_fonts[alias] = i->second; // 设置一个别名
+				_blend_fonts[alias] = i->value; // 设置一个别名
 			}
 		}
 	}
@@ -650,10 +650,10 @@ namespace ftr {
 	*/
 	void FontPool::clear(bool full) {
 		for ( auto& i : _tables ) {
-			_inl_table(i.second)->clear_table();
+			_inl_table(i.value)->clear_table();
 		}
 		for ( auto& i : _fonts ) {
-			_inl_font(i.second)->clear(full);
+			_inl_font(i.value)->clear(full);
 		}
 	}
 
@@ -690,7 +690,7 @@ namespace ftr {
 		if ( it == _paths.end() ) {
 			return String();
 		}
-		return it->second;
+		return it->value;
 	}
 
 	/**
@@ -722,7 +722,7 @@ namespace ftr {
 	*/
 	cFFID FontPool::get_font_familys_id(const Array<String> fonts) {
 		
-		static std::map<uint32_t, FontFamilysID*> ffids; // global groups
+		static Dict<uint32_t, FontFamilysID*> ffids; // global groups
 		
 		// TODO: 这里如果是同一个字体的不同别名会导致不相同的`ID`
 		
@@ -732,7 +732,7 @@ namespace ftr {
 			
 			auto it = ffids.find(id.code());
 			if (it != ffids.end()) {
-				return it->second;
+				return it->value;
 			} else {
 				FontFamilysID* id_p = new FontFamilysID(std::move( id ));
 				ffids[ id_p->code() ] = id_p;

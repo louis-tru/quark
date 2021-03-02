@@ -30,7 +30,7 @@
 
 #include "./error.h"
 #include "./codec.h"
-#include <map>
+#include "./dict.h"
 
 namespace ftr {
 
@@ -850,8 +850,8 @@ namespace ftr {
 
 	}
 
-	static std::map<String, Encoding> init_parse_encoding() {
-		std::map<String, Encoding> encodes;
+	static Dict<String, Encoding> init_parse_encoding() {
+		Dict<String, Encoding> encodes;
 		encodes["binary"] = Encoding::binary;
 		encodes["ascii"] = Encoding::ascii;
 		encodes["base64"] = Encoding::base64;
@@ -868,8 +868,8 @@ namespace ftr {
 		return encodes;
 	}
 
-	static std::map<uint32_t, String> init_encoding_string() {
-		std::map<uint32_t, String> strs;
+	static Dict<uint32_t, String> init_encoding_string() {
+		Dict<uint32_t, String> strs;
 		strs[(uint32_t)Encoding::binary] = "binary";
 		strs[(uint32_t)Encoding::ascii] = "ascii";
 		strs[(uint32_t)Encoding::base64] = "base64";
@@ -884,22 +884,22 @@ namespace ftr {
 	}
 
 	Encoding Codec::parse_encoding(cString& en) {
-		static const std::map<String, Encoding> encodes(init_parse_encoding());
+		static const Dict<String, Encoding> encodes(init_parse_encoding());
 		String encode = en.to_lower_case();
 		
 		auto i = encodes.find(en.to_lower_case());
 		if (i != encodes.end()) {
-			return i->second;
+			return i->value;
 		}
 		return Encoding::unknown;
 	}
 
 	String Codec::encoding_string(Encoding en) {
-		static const std::map<uint32_t, String> strs(init_encoding_string());
+		static const Dict<uint32_t, String> strs(init_encoding_string());
 		static cString unknown = "unknown";
 		auto i = strs.find((uint32_t)en);
 		if (i != strs.end()) {
-			return i->second;
+			return i->value;
 		}
 		return unknown;
 	}

@@ -32,7 +32,7 @@
 #define __ftr__util___working__
 
 #include "./loop.h"
-#include <map>
+#include "./dict.h"
 
 namespace ftr {
 
@@ -53,7 +53,7 @@ namespace ftr {
 		uint32_t post(Cb cb, uint64_t delay_us);
 		void cancel(uint32_t id = 0); // cancel message
 		private:
-		typedef std::map<ThreadID, int> Map;
+		typedef Dict<ThreadID, int> Map;
 		KeepLoop* _proxy;
 		Mutex _mutex2;
 		Map _childs;

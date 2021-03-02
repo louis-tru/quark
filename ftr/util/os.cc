@@ -30,10 +30,10 @@
 
 #include "./os.h"
 #include "./fs.h"
+#include "./dict.h"
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
-#include <map>
 
 #if FX_UNIX
 # include <sys/utsname.h>
@@ -88,6 +88,7 @@ namespace ftr {
 	namespace os {
 
 		String name() {
+
 			#if  FX_IOS
 				static String _name("iOS");
 			#elif  FX_OSX

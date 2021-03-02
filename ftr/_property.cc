@@ -46,7 +46,7 @@
 namespace ftr {
 
 	#define set_func(view, cls, Name, func) \
-		view[Name] = Accessor(&cls::func, &cls::set_##func)
+		view.set(Name, Accessor(&cls::func, &cls::set_##func))
 
 	static PropertysAccessor* fx_accessor_shared = nullptr;
 
@@ -62,7 +62,7 @@ namespace ftr {
 
 	PropertysAccessor::PropertysAccessor() {
 		
-		std::map<PropertyName, Accessor> view;
+		Dict<PropertyName, Accessor> view;
 		
 		set_func(view, View, PROPERTY_X, x);
 		set_func(view, View, PROPERTY_Y, y);
@@ -76,7 +76,7 @@ namespace ftr {
 		set_func(view, View, PROPERTY_OPACITY, opacity);
 		view[PROPERTY_VISIBLE] = Accessor(&View::visible, &View::set_visible_1);
 		
-		std::map<PropertyName, Accessor> box = view;
+		Dict<PropertyName, Accessor> box = view;
 		
 		set_func(box, Box, PROPERTY_WIDTH, width);  // Value
 		set_func(box, Box, PROPERTY_HEIGHT, height); // Value
@@ -101,8 +101,8 @@ namespace ftr {
 		set_func(box, Box, PROPERTY_NEWLINE, newline);
 		set_func(box, Box, PROPERTY_CLIP, clip);
 
-		std::map<PropertyName, Accessor> div = box;
-		std::map<PropertyName, Accessor> hybrid = box;
+		Dict<PropertyName, Accessor> div = box;
+		Dict<PropertyName, Accessor> hybrid = box;
 		set_func(div, Div, PROPERTY_CONTENT_ALIGN, content_align);
 		set_func(hybrid, Hybrid, PROPERTY_TEXT_ALIGN, text_align);
 
@@ -147,7 +147,7 @@ namespace ftr {
 		set_func(_property_func_table[View::LABEL], Label, PROPERTY_TEXT_ALIGN, text_align);
 		
 		// text-font
-		std::map<PropertyName, Accessor> font;
+		Dict<PropertyName, Accessor> font;
 		set_func(font, TextFont, PROPERTY_TEXT_BACKGROUND_COLOR, text_background_color);
 		set_func(font, TextFont, PROPERTY_TEXT_COLOR, text_color);
 		set_func(font, TextFont, PROPERTY_TEXT_SIZE, text_size);
@@ -158,7 +158,7 @@ namespace ftr {
 		set_func(font, TextFont, PROPERTY_TEXT_DECORATION, text_decoration);
 		
 		for (auto i : font) { // extend
-			_property_func_table[View::LABEL][i.first] = i.second; // label
+			_property_func_table[View::LABEL].set(i.key, i.value); // label
 		}
 		
 		// text-layout
@@ -166,8 +166,8 @@ namespace ftr {
 		set_func(font, TextLayout, PROPERTY_TEXT_WHITE_SPACE, text_white_space);
 		
 		for (auto i : font) { // extend
-			_property_func_table[View::HYBRID][i.first] = i.second;  // hybrid
-			_property_func_table[View::SPAN][i.first] = i.second;  // span
+			_property_func_table[View::HYBRID].set(i.key, i.value);  // hybrid
+			_property_func_table[View::SPAN].set(i.key, i.value);  // span
 		}
 		
 		_property_func_table[View::BUTTON] = _property_func_table[View::HYBRID];

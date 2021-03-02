@@ -36,7 +36,7 @@
 #include "./error.h"
 #include "./loop.h"
 #include "./stream.h"
-#include <map>
+#include "./dict.h"
 
 namespace ftr {
 
@@ -148,8 +148,8 @@ namespace ftr {
 		void clear_request_header() throw(Error);
 		void clear_form_data() throw(Error);
 		String get_response_header(cString& name);
-		const std::map<String, String>& get_all_response_headers() const;
-					std::map<String, String>& get_all_response_headers();
+		const Dict<String, String>& get_all_response_headers() const;
+					Dict<String, String>& get_all_response_headers();
 		int64_t upload_total() const;
 		int64_t upload_size() const;
 		int64_t download_total() const;
@@ -206,7 +206,7 @@ namespace ftr {
 	*/
 	class FX_EXPORT HttpHelper {
 		public:
-		typedef std::map<String, String> Map;
+		typedef Dict<String, String> Map;
 		struct RequestOptions {
 			String     url;
 			HttpMethod method;

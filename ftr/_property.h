@@ -32,7 +32,7 @@
 #define __ftr__property__
 
 #include "./util/util.h"
-#include <map>
+#include "./util/dict.h"
 
 namespace ftr {
 
@@ -105,6 +105,8 @@ namespace ftr {
 		#undef fx_def_enum
 	};
 
+	template<> uint64_t Compare<PropertyName>::hash_code(const PropertyName& key) { return key; }
+
 	/**
 	 * @class PropertysAccessor
 	 */
@@ -144,9 +146,9 @@ namespace ftr {
 		
 		private:
 		
-		typedef std::map<PropertyName, Accessor> Accessors;
+		typedef Dict<PropertyName, Accessor> Accessors;
 		
-		std::map<ViewType, Accessors> _property_func_table;
+		Dict<ViewType, Accessors> _property_func_table;
 	};
 
 }

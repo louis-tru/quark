@@ -33,7 +33,7 @@
 
 #include "./fs.h"
 #include "./error.h"
-#include <map>
+#include "./dict.h"
 
 namespace ftr {
 
@@ -184,21 +184,21 @@ namespace ftr {
 		* @func current 当前文件名称
 		*/
 		inline String current() const {
-			return _cur_it->second.pathname;
+			return _cur_it->value.pathname;
 		}
 		
 		/**
 		* @func compressed_size 当前文件的压缩大小
 		*/
 		inline uint32_t compressed_size() const {
-			return _cur_it->second.compressed_size;
+			return _cur_it->value.compressed_size;
 		}
 		
 		/**
 		* @func uncompressed_size 当前文件的压缩前大小
 		*/
 		inline uint32_t uncompressed_size() const {
-			return _cur_it->second.uncompressed_size;
+			return _cur_it->value.uncompressed_size;
 		}
 		
 		/**
@@ -233,9 +233,9 @@ namespace ftr {
 			uint32_t  uncompressed_size;
 		};
 		
-		typedef std::map<String, unz_entry_info> Info;
-		typedef std::map<String, Array<Dirent>> DirInfo;
-		typedef Info::iterator iterator;
+		typedef Dict<String, unz_entry_info> Info;
+		typedef Dict<String, Array<Dirent>> DirInfo;
+		typedef Info::Iterator iterator;
 		
 		void*     _unzp;
 		bool      _is_open;

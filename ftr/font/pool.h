@@ -32,7 +32,7 @@
 #define __ftr__font__pool__
 
 #include "./font.h"
-#include <map>
+#include "../util/dict.h"
 
 namespace ftr {
 
@@ -200,11 +200,11 @@ namespace ftr {
 		void set_display_port(DisplayPort* display_port);
 		
 		void*                       _ft_lib;     /* FT_Library */
-		std::map<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 */
-		std::map<String, FontFamily*>    _familys;    /* 所有的字体家族 */
-		std::map<String, Font*>          _fonts;      /* 所有的字体 */
-		std::map<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 */
-		std::map<String, String>         _paths;      /* 所有的字体路径 */
+		Dict<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 */
+		Dict<String, FontFamily*>    _familys;    /* 所有的字体家族 */
+		Dict<String, Font*>          _fonts;      /* 所有的字体 */
+		Dict<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 */
+		Dict<String, String>         _paths;      /* 所有的字体路径 */
 		Array<BaseFont*>      _default_fonts;
 		FontFamily*                 _spare_family;     /* 备用字体家族 */
 		Draw*                       _draw_ctx;

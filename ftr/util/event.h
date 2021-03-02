@@ -34,7 +34,7 @@
 #include "./util.h"
 #include "./error.h"
 #include "./list.h"
-#include <map>
+#include "./dict.h"
 #include <functional>
 
 #define FX_Event(name, ...) \
@@ -553,7 +553,7 @@ namespace ftr {
 		virtual ~Notification() {
 			if ( _noticers ) {
 				for (auto i : *_noticers) {
-					delete i.second;
+					delete i.value;
 				}
 				delete _noticers;
 				_noticers = nullptr;
@@ -564,7 +564,7 @@ namespace ftr {
 			if ( _noticers != nullptr ) {
 				auto it = _noticers->find(name);
 				if (it != _noticers->end()) {
-					return &it->second->value;
+					return &it->value->value;
 				}
 			}
 			return nullptr;
@@ -764,7 +764,7 @@ namespace ftr {
 		inline void remove_event_listener() {
 			if (_noticers) {
 				for ( auto i : *_noticers ) {
-					NoticerWrap* inl = i.second;
+					auto inl = i.value;
 					inl->value.off();
 					trigger_listener_change(inl->name, inl->value.count(), -1);
 				}
@@ -811,7 +811,7 @@ namespace ftr {
 			Noticer value;
 		};
 
-		typedef std::map<Name, NoticerWrap*> Noticers;
+		typedef Dict<Name, NoticerWrap*> Noticers;
 		
 		Noticer* get_noticer2(const Name& name) {
 			if (_noticers == nullptr) {
@@ -819,7 +819,7 @@ namespace ftr {
 			}
 			auto it = _noticers->find(name);
 			if (it != _noticers->end()) {
-				return &it->second->value;
+				return &it->value->value;
 			} else {
 				auto wrap = new NoticerWrap(name, static_cast<Sender*>(this));
 				_noticers->operator[](name) = wrap;

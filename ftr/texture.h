@@ -37,7 +37,6 @@
 #include "./util/array.h"
 #include "./codec/codec.h"
 #include "./value.h"
-#include <set>
 
 namespace ftr {
 
@@ -278,8 +277,8 @@ namespace ftr {
 		private:
 		
 		Draw* _draw_ctx;
-		std::map<String, FileTexture*> _textures;
-		std::set<Texture*> _completes;
+		Dict<String, FileTexture*> _textures;
+		Dict<Texture*, bool> _completes;
 		uint64_t _total_data_size; /* 纹池当前数据总量 */
 		
 		FX_DEFINE_INLINE_CLASS(Inl)

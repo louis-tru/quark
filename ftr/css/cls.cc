@@ -43,7 +43,7 @@ namespace ftr {
 	{
 		typedef StyleSheetsScope::Scope Scope;
 		
-		std::map<StyleSheets*, int> origin_child_style_sheets_map;
+		Dict<StyleSheets*, int> origin_child_style_sheets_map;
 		
 		if ( RETURN_EFFECT_CHILD ) {
 			for ( auto& i : _child_style_sheets ) {
@@ -59,7 +59,7 @@ namespace ftr {
 		
 		if ( _query_group.length() ) {
 			const List<Scope>& style_sheets = scope->style_sheets();
-			std::map<StyleSheets*, int> child_style_sheets_map;
+			Dict<StyleSheets*, int> child_style_sheets_map;
 			
 			KeyframeAction* action = nullptr;
 			
@@ -123,8 +123,8 @@ namespace ftr {
 			_once_apply = false;
 			
 			if ( RETURN_EFFECT_CHILD ) {
-				if (child_style_sheets_map.size() !=
-						origin_child_style_sheets_map.size() ) {
+				if (child_style_sheets_map.length() !=
+						origin_child_style_sheets_map.length() ) {
 					*effect_child = true;
 				}
 			}
@@ -152,7 +152,7 @@ namespace ftr {
 	* @func names
 	*/
 	void StyleSheetsClass::name(const Array<String>& value) {
-		std::map<String, int> new_classs;
+		Dict<String, int> new_classs;
 		for ( auto& j : value ) {
 			new_classs[j] = 1;
 		}
@@ -166,7 +166,7 @@ namespace ftr {
 	void StyleSheetsClass::add(cString& names) {
 		bool up = false;
 		
-		std::map<String, int> new_classs;
+		Dict<String, int> new_classs;
 		for ( auto& j : _classs ) {
 			new_classs[j] = 1;
 		}
@@ -191,7 +191,7 @@ namespace ftr {
 	void StyleSheetsClass::remove(cString& names) {
 		bool up = false;
 		
-		std::map<String, int> new_classs;
+		Dict<String, int> new_classs;
 		for ( auto& j : _classs ) {
 			new_classs[j] = 1;
 		}
@@ -202,7 +202,7 @@ namespace ftr {
 			}
 		}
 		if ( up ) {
-		// TODO ...
+			// TODO ...
 			// _inl_cvc(this)->update_classs(new_classs.keys());
 		}
 	}
@@ -213,7 +213,7 @@ namespace ftr {
 	void StyleSheetsClass::toggle(cString& names) {
 		bool up = false;
 		
-		std::map<String, int> new_classs;
+		Dict<String, int> new_classs;
 		for ( auto& j : _classs ) {
 			new_classs[j] = 1;
 		}

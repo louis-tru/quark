@@ -32,7 +32,7 @@
 #define __ftr__action__keyframe__
 
 #include "./action.h"
-#include <map>
+#include "../util/dict.h"
 
 namespace ftr {
 
@@ -203,7 +203,7 @@ namespace ftr {
 		virtual void seek_before(int64_t time, Action* child);
 		virtual void bind_view(View* view);
 		
-		typedef std::map<PropertyName, Property*> Propertys;
+		typedef Dict<PropertyName, Property*> Propertys;
 		
 		int           _bind_view_type;
 		int           _frame;

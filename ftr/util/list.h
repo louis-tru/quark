@@ -104,7 +104,7 @@ namespace ftr {
 		private:
 
 		void init_();
-		void set_(Node* first, Node* last, uint32_t len);
+		void fill_(Node* first, Node* last, uint32_t len);
 		void erase_(Node* node);
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
@@ -135,7 +135,7 @@ namespace ftr {
 	List<T, A>::List(List&& list)
 	{
 		if (list._length) {
-			set_(list._end._next, list._end._prev, list._length);
+			fill_(list._end._next, list._end._prev, list._length);
 			list.init_();
 		} else {
 			init_();
@@ -359,11 +359,11 @@ namespace ftr {
 
 	template<typename T, typename A>
 	void List<T, A>::init_() {
-		set_(&_end, &_end, 0);
+		fill_(&_end, &_end, 0);
 	}
 
 	template<typename T, typename A>
-	void List<T, A>::set_(Node* first, Node* last, uint32_t len) {
+	void List<T, A>::fill_(Node* first, Node* last, uint32_t len) {
 		_end._prev = last;
 		_end._next = first;
 		_length = len;

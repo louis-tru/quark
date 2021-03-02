@@ -214,9 +214,9 @@ int KeyboardAdapter::to_keypress(KeyboardKeyName name) {
 	auto it = _symbol_keypress.find(int(name));
 	if ( it != _symbol_keypress.end() ) {
 		if ( shift_ ) {
-			return it->second.shift;
+			return it->value.shift;
 		} else {
-			return it->second.normal;
+			return it->value.normal;
 		}
 	}
 	return 0;
@@ -230,8 +230,8 @@ bool KeyboardAdapter::transformation(uint32_t keycode, bool unicode, bool down) 
 			keyname_ = KEYCODE_UNKNOWN;
 			keypress_ = keycode;
 		} else {
-			shift_ = it->second.is_shift;
-			keyname_ = it->second.name;
+			shift_ = it->value.is_shift;
+			keyname_ = it->value.name;
 			keypress_ = to_keypress( keyname_ );
 		}
 	} else {
@@ -240,7 +240,7 @@ bool KeyboardAdapter::transformation(uint32_t keycode, bool unicode, bool down) 
 			keyname_ = KeyboardKeyName(keycode + 100000);
 			keypress_ = 0;
 		} else {
-			keyname_ = it->second;
+			keyname_ = it->value;
 			
 			if ( down ) {
 				switch ( keyname_ ) {

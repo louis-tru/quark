@@ -59,7 +59,7 @@ namespace ftr {
 		clear_table();
 		_fonts.clear();
 		
-		std::map<String, bool> fonts_name;
+		Dict<String, bool> fonts_name;
 		
 		for ( auto& i : _ffid->names() ) {
 			Font* font = _pool->get_font(i, _style);

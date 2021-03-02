@@ -34,7 +34,7 @@
 #include "./error.h"
 #include "./http.h"
 #include "./_uv.h"
-#include <map>
+#include "./dict.h"
 
 namespace ftr {
 
@@ -58,7 +58,7 @@ namespace ftr {
 		~Core() {
 			ScopeLock lock(zip_mutex_);
 			for (auto i: zips_ ) {
-				Release(i.second);
+				Release(i.value);
 			}
 		}
 
@@ -336,14 +336,14 @@ namespace ftr {
 		void clear() {
 			ScopeLock lock(zip_mutex_);
 			for ( auto& i: zips_ ) {
-				Release(i.second);
+				Release(i.value);
 			}
 			zips_.clear();
 		}
 		
 	 private:
 		Mutex zip_mutex_;
-		std::map<String, ZipReader*> zips_;
+		Dict<String, ZipReader*> zips_;
 	};
 
 	FileReader::FileReader(): _core(new Core()) { }

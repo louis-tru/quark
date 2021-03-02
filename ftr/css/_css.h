@@ -93,7 +93,7 @@ namespace ftr {
 				Type* prop = new Type(value);
 				_property[Name] = prop;
 			} else {
-				static_cast<Type*>(it->second)->set_value(value);
+				static_cast<Type*>(it->value)->set_value(value);
 			}
 		}
 		
@@ -106,7 +106,7 @@ namespace ftr {
 				_property[Name] = prop;
 				return prop->value();
 			} else {
-				return static_cast<Type*>(it->second)->value();
+				return static_cast<Type*>(it->value)->value();
 			}
 		}
 		

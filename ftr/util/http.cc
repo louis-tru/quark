@@ -35,10 +35,10 @@
 #include "./codec.h"
 #include "./errno.h"
 #include "../version.h"
+#include "./list.h"
+#include "./dict.h"
 #include <http_parser.h>
 #include <zlib.h>
-#include <list>
-#include <map>
 
 namespace ftr {
 
@@ -79,7 +79,7 @@ namespace ftr {
 		String   headers;
 	};
 
-	typedef std::map<String, String> Map;
+	typedef Dict<String, String> Map;
 
 	/**
 	 * @class HttpClientRequest::Inl
@@ -406,16 +406,16 @@ namespace ftr {
 				if ( _client->_method == HTTP_METHOD_POST ) {
 					
 					if ( _client->_post_data.length() ) { // ignore form data
-						if ( _client->_post_form_data.size() ) {
+						if ( _client->_post_form_data.length() ) {
 							FX_WARN("Ignore form data");
 						}
 						_client->_upload_total = _client->_post_data.length();
 						header["Content-Length"] = _client->_upload_total;
 					}
-					else if ( _client->_post_form_data.size() ) { // post form data
+					else if ( _client->_post_form_data.length() ) { // post form data
 						
 						for ( auto& i : _client->_post_form_data ) {
-							if ( i.second.type == FORM_TYPE_FILE ) {
+							if ( i.value.type == FORM_TYPE_FILE ) {
 								_is_multipart_form_data = true; break;
 							}
 						}
@@ -425,11 +425,11 @@ namespace ftr {
 							uint32_t content_length = multipart_boundary_end.length();
 							
 							for ( auto& i : _client->_post_form_data ) {
-								FormValue& form = i.second;
+								FormValue& form = i.value;
 								MultipartFormValue _form = { form.type, form.data };
 								
-								if ( i.second.type == FORM_TYPE_FILE ) {
-									FileStat stat = FileHelper::stat_sync(i.second.data);
+								if ( i.value.type == FORM_TYPE_FILE ) {
+									FileStat stat = FileHelper::stat_sync(i.value.data);
 									if ( stat.is_valid() && stat.is_file() ) {
 										String basename = inl__uri_encode(Path::basename(form.data));
 										_form.headers =
@@ -439,7 +439,7 @@ namespace ftr {
 										content_length += stat.size();
 										_client->_upload_total += stat.size();
 									} else {
-										Error err(ERR_INVALID_FILE_PATH, "invalid upload path `%s`", i.second.data.c_str());
+										Error err(ERR_INVALID_FILE_PATH, "invalid upload path `%s`", i.value.data.c_str());
 										_client->report_error_and_abort(err);
 										return;
 									}
@@ -461,12 +461,12 @@ namespace ftr {
 						} else {
 							
 							for ( auto& i : _client->_post_form_data ) {
-								String value = inl__uri_encode(i.second.data);
-								_client->_post_data.write(i.first.c_str(), -1, i.first.length());
+								String value = inl__uri_encode(i.value.data);
+								_client->_post_data.write(i.key.c_str(), -1, i.key.length());
 								_client->_post_data.write("=", -1, 1);
 								_client->_post_data.write(*value, -1, value.length());
 								_client->_post_data.write("&", -1, 1);
-								_client->_upload_total += i.first.length() + value.length() + 2;
+								_client->_upload_total += i.key.length() + value.length() + 2;
 							}
 							header["Content-Length"] = _client->_upload_total;
 							header["Content-Type"] = content_type_form;
@@ -495,9 +495,9 @@ namespace ftr {
 				);
 				
 				for ( auto& i : header ) {
-					header_str.push(i.first);       // name
+					header_str.push(i.key);       // name
 					header_str.push(string_colon);  // :
-					header_str.push(i.second);     // value
+					header_str.push(i.value);     // value
 					header_str.push(string_header_end);    // \r\n
 				}
 				
@@ -1039,7 +1039,7 @@ namespace ftr {
 				
 				if ( _write_flag ) { // verification cache is valid
 					auto r_header = _client->response_header();
-					ASSERT(r_header.size());
+					ASSERT(r_header.length());
 
 					if ( r_header.count("cache-control") ) {
 						String expires = convert_to_expires(r_header["cache-control"]);
@@ -1083,18 +1083,18 @@ namespace ftr {
 					auto& r_header = _client->response_header();
 
 					for ( auto& i : r_header ) {
-						if (!i.second.is_empty() && i.first != "cache-control") {
-							header += i.first;
+						if (!i.value.is_empty() && i.key != "cache-control") {
+							header += i.key;
 							header += string_colon;
-							if (i.first == "expires") {
+							if (i.key == "expires") {
 								// 写入一个固定长度的时间字符串,方便以后重写这个值
-								String val = i.second;
+								auto val = i.value;
 								while (val.length() < 36) {
 									val.append(' ');
 								}
 								header += val;
 							} else {
-								header += i.second;
+								header += i.value;
 							}
 							header += string_header_end;
 						}
@@ -1458,7 +1458,7 @@ namespace ftr {
 		FileWriter* _file_writer;
 		Map _request_header;
 		Map _response_header;
-		std::map<String, FormValue> _post_form_data;
+		Dict<String, FormValue> _post_form_data;
 		Buffer      _post_data;
 		String      _username;
 		String      _password;
@@ -1591,7 +1591,7 @@ namespace ftr {
 	String HttpClientRequest::get_response_header(cString& name) {
 		auto i = _inl->_response_header.find(name);
 		if ( i == _inl->_response_header.end() ) return String();
-		return i->second;
+		return i->value;
 	}
 
 	const Map& HttpClientRequest::get_all_response_headers() const {

@@ -47,7 +47,7 @@ namespace ftr {
 		typedef   T&       Reference;
 
 		SimpleIterator(): _ptr(nullptr) {}
-		SimpleIterator(Pointer ptr): _ptr(ptr) {}
+		explicit SimpleIterator(Pointer ptr): _ptr(ptr) {}
 		SimpleIterator(const NonIteratorConst& it): _ptr(it._ptr) {}
 
 		bool is_null() const {
@@ -101,7 +101,7 @@ namespace ftr {
 		typedef typename T::Data& Reference;
 
 		ComplexIterator(): _ptr(nullptr) {}
-		ComplexIterator(T* ptr): _ptr(ptr) {}
+		explicit ComplexIterator(T* ptr): _ptr(ptr) {}
 		ComplexIterator(const NonIteratorConst& it): _ptr(it._ptr) {}
 		
 		T* ptr() const { return _ptr; }
@@ -137,7 +137,7 @@ namespace ftr {
 		}
 		
 		// TODO ...
-		Pointer   operator->() const { return &_ptr->data(); }
+		Pointer   operator->() const { return &((T2*)_ptr)->data(); }
 		Reference operator*() const { return ((T2*)_ptr)->data(); }
 		
 		private:

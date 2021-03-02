@@ -37,7 +37,7 @@
 #include "../util/error.h"
 #include "../util/fs.h"
 #include "../util/json.h"
-#include <map>
+#include "../util/dict.h"
 
 // ------------- js common macro -------------
 
@@ -469,8 +469,8 @@ class FX_EXPORT JSObject: public JSValue {
 	bool Delete(Worker* worker, Local<JSValue> key);
 	bool Delete(Worker* worker, uint32_t index);
 	Local<JSArray> GetPropertyNames(Worker* worker);
-	Maybe<std::map<String, int>> ToIntegerMap(Worker* worker);
-	Maybe<std::map<String, String>> ToStringMap(Worker* worker);
+	Maybe<Dict<String, int>> ToIntegerMap(Worker* worker);
+	Maybe<Dict<String, String>> ToStringMap(Worker* worker);
 	Maybe<JSON> ToJSON(Worker* worker);
 	Local<JSValue> GetProperty(Worker* worker, cString& name);
 	Local<JSFunction> GetConstructor(Worker* worker);
@@ -645,7 +645,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSArray>  New(const Array<String>& data);
 	Local<JSArray>  New(Array<FileStat>& data);
 	Local<JSArray>  New(Array<FileStat>&& data);
-	Local<JSObject> New(const std::map<String, String>& data);
+	Local<JSObject> New(const Dict<String, String>& data);
 	Local<JSUint8Array> New(Buffer& buff);
 	Local<JSUint8Array> New(Buffer&& buff);
 	Local<JSObject> New(FileStat& stat);

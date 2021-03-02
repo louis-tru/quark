@@ -88,7 +88,7 @@ namespace ftr {
 		uint64_t advance(uint64_t time_span, Action* root);
 	};
 
-	static void update_spawn_action_duration(SpawnAction* act);
+	void update_spawn_action_duration(SpawnAction* act);
 
 	/**
 	* @class Property2
@@ -194,13 +194,13 @@ namespace ftr {
 			typedef Property2<T> Type;
 			auto it = _host->_property.find(Name);
 			if (it != _host->_property.end()) {
-				return static_cast<Type*>(it->second)->frame(_index);
+				return static_cast<Type*>(it->value)->frame(_index);
 			}
 			return T();
 		}
 
 		template<PropertyName Name, class T> inline void set_property_value(T value) {
-			std::map<PropertyName, Property*>& property = _host->_property;
+			Dict<PropertyName, Property*>& property = _host->_property;
 			typedef Property3<T, Name> Type;
 			auto it = property.find(Name);
 			if (it == property.end()) {
@@ -209,7 +209,7 @@ namespace ftr {
 				prop->bind_view(_host->_bind_view_type);
 				prop->frame(_index, value);
 			} else {
-				static_cast<Type*>(it->second)->frame(_index, value);
+				static_cast<Type*>(it->value)->frame(_index, value);
 			}
 		}
 	};

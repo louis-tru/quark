@@ -40,7 +40,7 @@
 #include <freetype/freetype.h>
 #include <freetype/ftoutln.h>
 #include <tesselator.h>
-#include <map>
+#include "../util/dict.h"
 
 namespace ftr {
 

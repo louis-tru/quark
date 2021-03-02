@@ -56,7 +56,7 @@ namespace ftr {
 				if ( it == _style_sheets_map.end() ) { // 添加
 					wrap = &(_style_sheets_map[i] = { i, 1 });
 				} else {
-					wrap = &it->second;
+					wrap = &it->value;
 					wrap->ref++;
 				}
 				_style_sheets.push_back({ wrap, wrap->ref });

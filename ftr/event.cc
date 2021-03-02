@@ -43,8 +43,8 @@ namespace ftr {
 	FX_GUI_EVENT_TABLE(FX_FUN)
 	#undef FX_FUN
 
-	const std::map<String, GUIEventName> GUI_EVENT_TABLE([]() -> std::map<String, GUIEventName> {
-		std::map<String, GUIEventName> r;
+	const Dict<String, GUIEventName> GUI_EVENT_TABLE([]() -> Dict<String, GUIEventName> {
+		Dict<String, GUIEventName> r;
 		#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
 			r[GUI_EVENT_##NAME.to_string()] = GUI_EVENT_##NAME;
 		FX_GUI_EVENT_TABLE(FX_FUN)
@@ -227,14 +227,14 @@ namespace ftr {
 			if ( !_is_click_invalid )
 				_is_click_down = value;
 		}
-		inline std::map<uint32_t, GUITouch>& values() { return _touches; }
+		inline Dict<uint32_t, GUITouch>& values() { return _touches; }
 		inline GUITouch& operator[](uint32_t id) { return _touches[id]; }
-		inline uint32_t count() { return (uint32_t)_touches.size(); }
+		inline uint32_t count() { return _touches.length(); }
 		inline bool has(uint32_t id) { return _touches.count(id); }
 		inline void del(uint32_t id) { _touches.erase(id); }
 	 private:
 		View* _view;
-		std::map<uint32_t, GUITouch> _touches;
+		Dict<uint32_t, GUITouch> _touches;
 		Vec2  _start_position;
 		bool  _is_click_invalid;
 		bool  _is_click_down;
@@ -346,7 +346,7 @@ namespace ftr {
 						touchstart_2(view, in2);
 						
 						if ( in2.length() ) {
-							in.splice(in.end(), std::move(in2));
+							in.splice(in.end(), in2);
 						}
 					} else {
 						View* v = view->_last;
@@ -366,17 +366,17 @@ namespace ftr {
 		 */
 		void touchmove(List<GUITouch>& in) {
 
-			std::map<View*, Array<GUITouch>> change_touches;
+			Dict<View*, Array<GUITouch>> change_touches;
 			
 			for ( auto in_touch : in ) {
 				// GUITouch& in_touch = i;
 				for ( auto touches : _origin_touches ) {
-					if ( touches.second->has(in_touch.id) ) {
-						GUITouch& touch = (*touches.second)[in_touch.id];
+					if ( touches.value->has(in_touch.id) ) {
+						GUITouch& touch = (*touches.value)[in_touch.id];
 						touch.x = in_touch.x;
 						touch.y = in_touch.y;
 						touch.force = in_touch.force;
-						if ( !touches.second->is_click_invalid() ) {
+						if ( !touches.value->is_click_invalid() ) {
 							touch.click_in = touch.view->overlap_test(Vec2(touch.x, touch.y));
 						}
 						change_touches[touch.view].push(touch);
@@ -387,12 +387,12 @@ namespace ftr {
 			
 			for ( auto i : change_touches ) {
 				
-				Array<GUITouch>& touchs = i.second;
+				Array<GUITouch>& touchs = i.value;
 				View* view = touchs[0].view;
 				// emit event
 				_inl_view(view)->bubble_trigger(
 					 GUI_EVENT_TOUCH_MOVE,
-					 **NewEvent<GUITouchEvent>(view, i.second)
+					 **NewEvent<GUITouchEvent>(view, i.value)
 				);
 				
 				OriginTouche* origin_touche = _origin_touches[view];
@@ -417,7 +417,7 @@ namespace ftr {
 						if ( origin_touche->is_click_down() ) { // May trigger click up
 							bool trigger_event = true;
 							for ( auto t : origin_touche->values() ) {
-								if (t.second.click_in) {
+								if (t.value.click_in) {
 									trigger_event = false; break;
 								}
 							}
@@ -448,25 +448,25 @@ namespace ftr {
 		 * @func touch_end
 		 */
 		void touchend(List<GUITouch>& in, const GUIEventName& type) {
-			std::map<View*, Array<GUITouch>> change_touches;
+			Dict<View*, Array<GUITouch>> change_touches;
 			
 			for ( auto& i : in ) {
 				GUITouch& in_touch = i;
 				for ( auto& item : _origin_touches ) {
-					if ( item.second->has(in_touch.id) ) {
-						GUITouch& touch = (*item.second)[in_touch.id];
+					if ( item.value->has(in_touch.id) ) {
+						GUITouch& touch = (*item.value)[in_touch.id];
 						touch.x = in_touch.x;
 						touch.y = in_touch.y;
 						touch.force = in_touch.force;
 						change_touches[touch.view].push(touch);
-						item.second->del(touch.id); // del touch point
+						item.value->del(touch.id); // del touch point
 						break;
 					}
 				}
 			}
 			
 			for ( auto& i : change_touches ) { // views
-				Array<GUITouch>& touchs = i.second;
+				Array<GUITouch>& touchs = i.value;
 				View* view = touchs[0].view;
 				_inl_view(view)->bubble_trigger(type, **NewEvent<GUITouchEvent>(view, touchs)); // emit touch end event
 				
@@ -811,7 +811,7 @@ namespace ftr {
 
 	GUIEventDispatch::~GUIEventDispatch() {
 		for (auto& i : _origin_touches)
-			delete i.second;
+			delete i.value;
 		Release(_keyboard);
 		delete _mouse_h;
 	}

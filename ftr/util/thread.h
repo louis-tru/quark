@@ -47,6 +47,8 @@ namespace ftr {
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
+	template<> FX_EXPORT uint64_t Compare<ThreadID>::hash_code(const ThreadID& key);
+
 	class RunLoop;
 
 	/**

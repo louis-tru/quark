@@ -70,18 +70,18 @@ namespace ftr {
 	*/
 	void ParallelWorking::abort_child(ThreadID id) {
 		if ( id == ThreadID() ) {
-			std::map<ThreadID, int> childs;
+			Dict<ThreadID, int> childs;
 			{
 				ScopeLock scope(_mutex2);
 				childs = _childs;
 			}
 			for (auto& i : childs) {
-				Thread::abort(i.first);
+				Thread::abort(i.key);
 			}
 			for (auto& i : childs) {
-				Thread::join(i.first);
+				Thread::join(i.key);
 			}
-			DLOG("ParallelWorking::abort_child() ok, count: %d", childs.size());
+			DLOG("ParallelWorking::abort_child() ok, count: %d", childs.length());
 		} else {
 			{
 				ScopeLock scope(_mutex2);
@@ -101,7 +101,7 @@ namespace ftr {
 		ScopeLock scope(_mutex2);
 		if ( id == ThreadID() ) {
 			for (auto& i : _childs) {
-				Thread::awaken(i.first);
+				Thread::awaken(i.key);
 			}
 		} else {
 			ASSERT(_childs.find(id) != _childs.end(),

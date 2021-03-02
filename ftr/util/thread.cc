@@ -29,3 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./thread.h"
+
+namespace ftr {
+
+	template<> uint64_t Compare<ThreadID>::hash_code(const ThreadID& key) {
+		return *reinterpret_cast<const uint32_t*>(&key);
+	}
+
+}

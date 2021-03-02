@@ -30,13 +30,13 @@
 
 #include "./handle.h"
 #include "./_uv.h"
-#include <map>
+#include "./dict.h"
 
 namespace ftr {
 
 	struct TaskList {
 		Mutex mutex;
-		std::map<uint32_t, AsyncIOTask*> values;
+		Dict<uint32_t, AsyncIOTask*> values;
 	};
 
 	static TaskList* tasks = new TaskList;
@@ -67,13 +67,13 @@ namespace ftr {
 			if (i == tasks->values.end())
 				return;
 			
-			i->second->_loop->post(Cb([id](CbData& e) {
+			i->value->_loop->post(Cb([id](CbData& e) {
 				AsyncIOTask* task = nullptr;
 				{ //
 					ScopeLock scope(tasks->mutex);
 					auto i = tasks->values.find(id);
 					if (i != tasks->values.end()) {
-						task = i->second;
+						task = i->value;
 					}
 				}
 				if (task) {

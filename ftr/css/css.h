@@ -37,7 +37,7 @@
 #include "../value.h"
 #include "../action/action.h"
 #include "../action/keyframe.h"
-#include <map>
+#include "../util/dict.h"
 
 namespace ftr {
 
@@ -141,7 +141,7 @@ namespace ftr {
 		/**
 		* @func has_child
 		*/
-		inline bool has_child() const { return _children.size(); }
+		inline bool has_child() const { return _children.length(); }
 		
 		/**
 		* @func assignment
@@ -166,9 +166,9 @@ namespace ftr {
 		private:
 		CSSName                       _css_name;
 		StyleSheets*                  _parent;
-		std::map<uint32_t, StyleSheets*>     _children;
-		// std::map<PropertyName, Property*>    _property;
-		std::map<uint32_t, Property*>    _property;
+		Dict<uint32_t, StyleSheets*>     _children;
+		// Dict<PropertyName, Property*>    _property;
+		Dict<uint32_t, Property*>    _property;
 		uint64_t       _time;
 		StyleSheets*   _child_NORMAL;
 		StyleSheets*   _child_HOVER;
@@ -201,8 +201,8 @@ namespace ftr {
 		static RootStyleSheets* shared();
 		
 		private:
-		std::map<uint32_t, int>                    _all_css_names;
-		std::map<uint32_t, Array<uint32_t>>  _css_query_group_cache;
+		Dict<uint32_t, int>                    _all_css_names;
+		Dict<uint32_t, Array<uint32_t>>  _css_query_group_cache;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
@@ -307,7 +307,7 @@ namespace ftr {
 		inline View* bottom_scope() { return _scopes.length() ? _scopes.back() : nullptr; }
 		inline const List<Scope>& style_sheets() { return _style_sheets; }
 		private:
-		typedef std::map<StyleSheets*, Scope::Wrap> StyleSheetsMap;
+		typedef Dict<StyleSheets*, Scope::Wrap> StyleSheetsMap;
 		List<View*>   _scopes;
 		List<Scope>   _style_sheets;
 		StyleSheetsMap     _style_sheets_map;

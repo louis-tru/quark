@@ -134,7 +134,7 @@ namespace ftr {
 		int  flag_;
 	};
 
-	FX_EXPORT extern const std::map<String, GUIEventName> GUI_EVENT_TABLE;
+	FX_EXPORT extern const Dict<String, GUIEventName> GUI_EVENT_TABLE;
 
 	#define FX_FUN(NAME, STR, CATEGORY, FLAG) \
 		FX_EXPORT extern const GUIEventName GUI_EVENT_##NAME;
@@ -367,7 +367,7 @@ namespace ftr {
 		private:
 		class OriginTouche;
 		class MouseHandle;
-		typedef std::map<View*, OriginTouche*> OriginTouches;
+		typedef Dict<View*, OriginTouche*> OriginTouches;
 		
 		GUIApplication*     app_;
 		OriginTouches       _origin_touches;

@@ -33,55 +33,55 @@
 namespace ftr {
 
 	// set_property
-	template<> inline void Property2<TextColor>::set_property(List<View*>& views) {
+	template<> void Property2<TextColor>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextColor);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextSize>::set_property(List<View*>& views) {
+	template<> void Property2<TextSize>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextSize);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextStyle>::set_property(List<View*>& views) {
+	template<> void Property2<TextStyle>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextStyle);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextFamily>::set_property(List<View*>& views) {
+	template<> void Property2<TextFamily>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextFamily);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextLineHeight>::set_property(List<View*>& views) {
+	template<> void Property2<TextLineHeight>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextLineHeight);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextShadow>::set_property(List<View*>& views) {
+	template<> void Property2<TextShadow>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextShadow);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextDecoration>::set_property(List<View*>& views) {
+	template<> void Property2<TextDecoration>::set_property(List<View*>& views) {
 		typedef void (TextFont::*Func)(TextDecoration);
 		for ( auto& i : views ) {
 			(i->as_text_font()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextOverflow>::set_property(List<View*>& views) {
+	template<> void Property2<TextOverflow>::set_property(List<View*>& views) {
 		typedef void (TextLayout::*Func)(TextOverflow);
 		for ( auto& i : views ) {
 			(i->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
 		}
 	}
-	template<> inline void Property2<TextWhiteSpace>::set_property(List<View*>& views) {
+	template<> void Property2<TextWhiteSpace>::set_property(List<View*>& views) {
 		typedef void (TextLayout::*Func)(TextWhiteSpace);
 		for ( auto& i : views ) {
 			(i->as_text_layout()->*reinterpret_cast<Func>(_set_property_func))(_transition);
@@ -89,39 +89,39 @@ namespace ftr {
 	}
 
 	// get_property
-	template<> inline TextColor Property2<TextColor>::get_property(View* view) {
+	template<> TextColor Property2<TextColor>::get_property(View* view) {
 		typedef TextColor (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextSize Property2<TextSize>::get_property(View* view) {
+	template<> TextSize Property2<TextSize>::get_property(View* view) {
 		typedef TextSize (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextStyle Property2<TextStyle>::get_property(View* view) {
+	template<> TextStyle Property2<TextStyle>::get_property(View* view) {
 		typedef TextStyle (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextFamily Property2<TextFamily>::get_property(View* view) {
+	template<> TextFamily Property2<TextFamily>::get_property(View* view) {
 		typedef TextFamily (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextLineHeight Property2<TextLineHeight>::get_property(View* view) {
+	template<> TextLineHeight Property2<TextLineHeight>::get_property(View* view) {
 		typedef TextLineHeight (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextShadow Property2<TextShadow>::get_property(View* view) {
+	template<> TextShadow Property2<TextShadow>::get_property(View* view) {
 		typedef TextShadow (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextDecoration Property2<TextDecoration>::get_property(View* view) {
+	template<> TextDecoration Property2<TextDecoration>::get_property(View* view) {
 		typedef TextDecoration (TextFont::*Func)() const;
 		return (view->as_text_font()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextOverflow Property2<TextOverflow>::get_property(View* view) {
+	template<> TextOverflow Property2<TextOverflow>::get_property(View* view) {
 		typedef TextOverflow (TextLayout::*Func)() const;
 		return (view->as_text_layout()->*reinterpret_cast<Func>(_get_property_func))();
 	}
-	template<> inline TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view) {
+	template<> TextWhiteSpace Property2<TextWhiteSpace>::get_property(View* view) {
 		typedef TextWhiteSpace (TextLayout::*Func)() const;
 		return (view->as_text_layout()->*reinterpret_cast<Func>(_get_property_func))();
 	}

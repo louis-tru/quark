@@ -50,7 +50,7 @@ namespace ftr {
 	static cString DOMAIN_STR("domain");
 	static cString SECURE("secure");
 
-	typedef std::map<String, String> Map;
+	typedef Dict<String, String> Map;
 
 	static String get_db_filename() {
 		return Path::temp(".cookie.dp");
@@ -224,7 +224,7 @@ namespace ftr {
 			String domain_ = domain;
 			String path('/');
 
-			std::map<String, String> options;
+			Dict<String, String> options;
 			
 			for ( auto& i : expression.split("; ") ) {
 				int j = i.index_of('=');
@@ -248,7 +248,7 @@ namespace ftr {
 			auto it = options.find(DOMAIN_STR);
 			
 			if ( it != end ) {
-				String new_domain = it->second;
+				String new_domain = it->value;
 				if ( domain_.index_of(new_domain) == -1 ) {
 					return; // Illegal operation
 				} else {
@@ -258,16 +258,16 @@ namespace ftr {
 			
 			it = options.find(PATH);
 			if ( it != end ) {
-				path = it->second;
+				path = it->value;
 			}
 			
 			it = options.find(MAX_AGE);
 			if ( it != end ) {
-				expires = it->second.to_number<int64_t>() * 1e6 + os::time();
+				expires = it->value.to_number<int64_t>() * 1e6 + os::time();
 			} else {
 				it = options.find(EXPIRES);
 				if ( it != end ) {
-					int64_t time = parse_time(it->second);
+					int64_t time = parse_time(it->value);
 					if ( time > 0 ) {
 						expires = time;
 					}
@@ -305,10 +305,10 @@ namespace ftr {
 
 	String HttpHelper::get_all_cookie_string(cString& domain, cString& path, bool secure) {
 		Map all = get_all_cookie(domain, path, secure);
-		if (all.size()) {
+		if (all.length()) {
 			Array<String> result;
 			for (auto& i : all) {
-				 result.push( std::move( String(i.second).append('=').append(i.second) ) );
+				 result.push( std::move( String(i.value).append('=').append(i.value) ) );
 			}
 			return result.join( "; " );
 		}
