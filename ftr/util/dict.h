@@ -223,12 +223,16 @@ namespace ftr {
 		uint64_t hash = C::hash_code(key);
 		uint32_t index = hash % _capacity;
 		Node* node = _indexed[index];
-		while (node->_conflict != node) {
-			if (node->hash_code == hash)
-				break;
-			node = node->_conflict;
+		if (node) {
+			while (node->_conflict != node) {
+				if (node->hash_code == hash)
+					break;
+				node = node->_conflict;
+			}
+			return IteratorConst(node);
+		} else {
+			return IteratorConst(&_end);
 		}
-		return IteratorConst(node);
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -238,10 +242,7 @@ namespace ftr {
 
 	template<typename K, typename V, typename C, typename A>
 	uint32_t Dict<K, V, C, A>::count(const K& key) const {
-		uint64_t hash = C::hash_code(key);
-		uint32_t index = hash % _capacity;
-		Node* node = _indexed[index];
-		return node != &_end ? 1: 0;
+		return _indexed[C::hash_code(key) % _capacity] ? 1: 0;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -345,6 +346,8 @@ namespace ftr {
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::clear() {
 		erase(IteratorConst(_end._next), IteratorConst(&_end));
+		A::free(_indexed);
+		_capacity = 0;
 	}
 
 	template<typename K, typename V, typename C, typename A>
@@ -390,25 +393,68 @@ namespace ftr {
 	
 	template<typename K, typename V, typename C, typename A>
 	bool Dict<K, V, C, A>::get_(const K& key, Data** data) {
-		// TODO ...
-		return true;
+		if (!_capacity) {
+			_indexed = (Node**)A::aalloc(_indexed, 1, &_capacity, sizeof(Node*));
+			::memset(_indexed, 0, sizeof(Node*) * _capacity);
+		}
+		uint64_t hash = C::hash_code(key);
+		uint32_t index = hash % _capacity;
+		auto result = false;
+		auto node = _indexed[index];
+		if (node) {
+			while (node->_conflict != node) {
+				if (node->hash_code == hash)
+					break;
+				node = node->_conflict;
+			}
+			// TODO ...
+		} else { // insert new key
+			node = (Node*)A::alloc(sizeof(Node) + sizeof(Data));
+			node->hash_code = hash;
+			node->_conflict = node;
+			link_(_end._prev, node);
+			link_(node, &end);
+			_indexed[index] = node;
+			_length++;
+			result = true;
+		}
+		*data = &node->data();
+		return result;
 	}
 	
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::erase_(Node* node) {
-		reinterpret_cast<Data*>(node + 1)->~Data(); // destructor
-		// TODO ...
-		// auto next_conflict = node->_conflict;
-		// auto
-		if (node != node->_conflict) {
-			
+		auto data = node->data();
+		uint64_t hash = C::hash_code(data.first);
+		uint32_t index = hash % _capacity;
+		auto next = node->_conflict;
+		if (node != next) { // conflict
+			do
+				next = next->_conflict;
+			while(next->_conflict != node);
+			next->_conflict = node->_conflict;
+			_indexed[index] = next;
+		} else {
+			_indexed[index] = nullptr;
 		}
+		data.~Data(); // destructor
 		A::free(node);
 	}
-
+	
 	template<typename K, typename V, typename C, typename A>
 	void Dict<K, V, C, A>::optimize_() {
-		// TODO ...
+		if (_capacity > FX_MIN_CAPACITY) {
+			auto scale = float(_length) / float(_capacity);
+			if (scale > 0.7 || scale < 0.2) {
+				_indexed = (Node**)A::aalloc(_indexed, uint32_t(_length / 0.7) , &_capacity, sizeof(Node*));
+				::memset(_indexed, 0, sizeof(Node*) * _capacity);
+				auto node = _end._next, end = _end._prev;
+				while (node != end) {
+					node = node->_next;
+					
+				}
+			}
+		}
 	}
 
 	template<typename K, typename V, typename C, typename A>
