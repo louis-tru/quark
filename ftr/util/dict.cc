@@ -28,31 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <stdio.h>
-#include <time.h>
+#include "./dict.h"
 
-#ifdef __APPLE__
-# include <TargetConditionals.h>
-#endif
-
-#if !defined(__APPLE__) || !TARGET_OS_MAC || TARGET_OS_IPHONE
-int test2_opengl(int argc, char *argv[]) { return 0; }
-#endif
-
-#ifndef TEST_FUNC_NAME
-#define TEST_FUNC_NAME test2_dict
-#endif
-
-int TEST_FUNC_NAME(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-
-	time_t st = time(NULL);
-	
-	int r = TEST_FUNC_NAME(argc, argv);
-	
-	printf("eclapsed time:%ds\n", int(time(NULL) - st));
-
-	return r;
-}
-
+template<> uint64_t Compare<char>::hash_code(const char& key) { return *reinterpret_cast<uint8_t*>(key); }
+template<> uint64_t Compare<uint8_t>::hash_code(const uint8_t& key) { return key; }
+template<> uint64_t Compare<int16_t>::hash_code(const int16_t& key) { return *reinterpret_cast<uint16_t*>(key); }
+template<> uint64_t Compare<uint16_t>::hash_code(const uint16_t& key) { return key; }
+template<> uint64_t Compare<int>::hash_code(const int& key) { return *reinterpret_cast<uint32_t*>(&key); }
+template<> uint64_t Compare<uint32_t>::hash_code(const uint32_t& key) { return key; }
+template<> uint64_t Compare<int64_t>::hash_code(const int64_t& key) { return key; }
+template<> uint64_t Compare<uint64_t>::hash_code(const uint64_t& key) { return key; }
+template<> uint64_t Compare<float>::hash_code(const float& key) { return *reinterpret_cast<uint32_t*>(&key); }
+template<> uint64_t Compare<double>::hash_code(const double& key) { return *reinterpret_cast<uint64_t*>(&key); }
+template<> uint64_t Compare<bool>::hash_code(const bool& key) { return key; }

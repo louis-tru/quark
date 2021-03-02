@@ -304,7 +304,7 @@ namespace ftr {
 
 		void write(Buffer& buffer, int64_t offset, int mark) {
 			_writeing.push_back(new FileStreamReq(this, 0, { buffer, offset, mark }));
-			if (_writeing.size() == 1) {
+			if (_writeing.length() == 1) {
 				continue_write();
 			}
 		}
@@ -323,7 +323,7 @@ namespace ftr {
 		}
 
 		void continue_write() {
-			if (_writeing.size()) {
+			if (_writeing.length()) {
 				auto req = _writeing.front();
 				uv_buf_t buf;
 				buf.base = req->data().buffer.val();

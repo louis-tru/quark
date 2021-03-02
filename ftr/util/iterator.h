@@ -94,7 +94,7 @@ namespace ftr {
 		//! Constant iterator type
 		typedef ComplexIterator<const T2, T2> IteratorConst;
 		//! Non-constant iterator type
-		typedef ComplexIterator<T2, T2>       NonIteratorConst;
+		typedef ComplexIterator<      T2, T2> NonIteratorConst;
 		//! Pointer to (const) GenericMember
 		typedef typename T::Data* Pointer;
 		//! Reference to (const) GenericMember

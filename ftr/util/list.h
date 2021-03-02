@@ -44,11 +44,11 @@ namespace ftr {
 	class FX_EXPORT List: public Object {
 		public:
 		struct Node {
-			typedef  T  Data;
+			typedef T     Data;
 			Node* prev() const { return _prev; }
 			Node* next() const { return _next; }
-			T&       data() { return *reinterpret_cast<T*>((&_next) + 1); }
-			const T& data() const { return *reinterpret_cast<const T*>((&_next) + 1); }
+			T&       data() { return *reinterpret_cast<Data*>((&_next) + 1); }
+			const T& data() const { return *reinterpret_cast<const Data*>((&_next) + 1); }
 			private:
 			friend class List;
 			Node *_prev, *_next;
@@ -59,7 +59,7 @@ namespace ftr {
 		List();
 		List(List&&);
 		List(const List&);
-		List(const std::initializer_list<T>& list);
+		List(std::initializer_list<T>&& list);
 
 		virtual ~List();
 
@@ -71,8 +71,8 @@ namespace ftr {
 		Iterator push_front(const T& item);
 		Iterator push_front(T&& item);
 
-		void splice(IteratorConst it, List&& ls);
-		void splice(IteratorConst it, List&& ls, IteratorConst first, IteratorConst end);
+		void splice(IteratorConst it, List& ls);
+		void splice(IteratorConst it, List& ls, IteratorConst first, IteratorConst end);
 
 		void pop_back();
 		void pop_front();
@@ -103,8 +103,8 @@ namespace ftr {
 		
 		private:
 
-		void set_(Node* first, Node* last, uint32_t len);
 		void init_();
+		void set_(Node* first, Node* last, uint32_t len);
 		void erase_(Node* node);
 		Node* link_(Node* prev, Node* next);
 		Node* node_(IteratorConst it);
@@ -143,7 +143,7 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	List<T, A>::List(const std::initializer_list<T>& list)
+	List<T, A>::List(std::initializer_list<T>&& list)
 	{
 		init_();
 		for ( auto i : list ) {
@@ -194,13 +194,13 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
-	void List<T, A>::splice(IteratorConst it, List&& ls) {
-		splice(it, std::move(ls),
+	void List<T, A>::splice(IteratorConst it, List& ls) {
+		splice(it, ls,
 			IteratorConst(ls._end._next), IteratorConst(ls._end._prev));
 	}
 
 	template<typename T, typename A>
-	void List<T, A>::splice(IteratorConst it, List&& ls, IteratorConst f, IteratorConst e) {
+	void List<T, A>::splice(IteratorConst it, List& ls, IteratorConst f, IteratorConst e) {
 		if (f != e) {
 			auto start = node_(f);
 			auto end = node_(e);
@@ -259,10 +259,14 @@ namespace ftr {
 	List<T, A>::erase(IteratorConst it) {
 		ASSERT(_length);
 		auto node = node_(it);
-		auto next = link_(node->_prev, node->_next);
-		erase_(node);
-		_length--;
-		return Iterator(next);
+		if (node != &_end) {
+			auto next = link_(node->_prev, node->_next);
+			erase_(node);
+			_length--;
+			return Iterator(next);
+		} else {
+			return Iterator(&_end);
+		}
 	}
 
 	template<typename T, typename A>
@@ -354,15 +358,15 @@ namespace ftr {
 	}
 
 	template<typename T, typename A>
+	void List<T, A>::init_() {
+		set_(&_end, &_end, 0);
+	}
+
+	template<typename T, typename A>
 	void List<T, A>::set_(Node* first, Node* last, uint32_t len) {
 		_end._prev = last;
 		_end._next = first;
 		_length = len;
-	}
-
-	template<typename T, typename A>
-	void List<T, A>::init_() {
-		set_(&_end, &_end, 0);
 	}
 
 	template<typename T, typename A>

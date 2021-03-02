@@ -164,7 +164,8 @@ namespace ftr {
 		
 		class ConnectPool;
 		class Connect;
-		typedef List<Connect*>::iterator ConnectID;
+
+		typedef List<Connect*>::Iterator ConnectID;
 
 		/**
 		 * @class HttpClientRequest::Inl::Connect
@@ -589,7 +590,7 @@ namespace ftr {
 				if ( buffer.length() ) {
 					_socket->write(buffer, 1);
 				} else {
-					ASSERT(_multipart_form_data.size());
+					ASSERT(_multipart_form_data.length());
 					ASSERT(_upload_file);
 					_socket->write(string_header_end.copy().collapse()); // \r\n
 					_upload_file->release(); // release file
@@ -610,7 +611,7 @@ namespace ftr {
 					ASSERT( _upload_file->is_open() );
 					_upload_file->read(_multipart_form_buffer);
 				}
-				else if ( _multipart_form_data.size() ) {
+				else if ( _multipart_form_data.length() ) {
 					MultipartFormValue& form = _multipart_form_data.begin().operator*();
 					_socket->write(multipart_boundary_start.copy().collapse());
 					_socket->write(form.headers.collapse());

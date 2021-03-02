@@ -97,7 +97,7 @@ namespace ftr {
 		} \
 		\
 		template<> void Array<T, A>::realloc(uint32_t capacity) { \
-		FX_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
+			FX_ASSERT(!is_weak(), "the weak holder cannot be changed"); \
 			if (capacity < _length) { /* clear Partial data */ \
 				_length = capacity;\
 			} \

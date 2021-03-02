@@ -396,7 +396,7 @@ class RunLoop::Inl: public RunLoop {
 			close_uv_async();
 		}
 		else if (timeout_ms == -1) { //
-			if (_keeps.size() == 0 && _works.size() == 0) {
+			if (_keeps.length() == 0 && _works.length() == 0) {
 				// RunLoop 已经没有需要处理的消息
 				if (is_alive()) { // 如果uv还有其它活着,那么间隔一秒测试一次
 					uv_timer_req(1000);
@@ -447,13 +447,13 @@ class RunLoop::Inl: public RunLoop {
 	bool resolve_queue() {
 		List<Queue> queue;
 		{ ScopeLock lock(_mutex);
-			if (_queue.size()) {
+			if (_queue.length()) {
 				queue = std::move(_queue);
 			} else {
 				return resolve_queue_after(-1);
 			}
 		}
-		if (queue.size()) {
+		if (queue.length()) {
 			if (_independent_mutex) {
 				std::lock_guard<RecursiveMutex> lock(*_independent_mutex);
 				resolve_queue(queue);
@@ -463,7 +463,7 @@ class RunLoop::Inl: public RunLoop {
 		}
 		{ ScopeLock lock(_mutex);
 			_queue.splice(_queue.begin(), queue);
-			if (_queue.size() == 0) {
+			if (_queue.length() == 0) {
 				return resolve_queue_after(-1);
 			}
 			int64_t now = os::time_monotonic();
@@ -563,7 +563,7 @@ class RunLoop::Inl: public RunLoop {
 			uv_async_send(_uv_async);
 	}
 	
-	inline void delete_work(List<Work*>::iterator it) {
+	inline void delete_work(List<Work*>::Iterator it) {
 		_works.erase(it);
 	}
 };
@@ -575,7 +575,7 @@ struct RunLoop::Work {
 	typedef NonObjectTraits Traits;
 	RunLoop* host;
 	uint32_t id;
-	List<Work*>::iterator it;
+	List<Work*>::Iterator it;
 	Callback<> work;
 	Callback<> done;
 	uv_work_t uv_req;
@@ -903,11 +903,11 @@ KeepLoop::~KeepLoop() {
 		if ( _declear ) {
 			_inl(_loop)->cancel_group_non_lock(_group);
 		}
-		ASSERT(_loop->_keeps.size());
+		ASSERT(_loop->_keeps.length());
 
 		_loop->_keeps.erase(_id); // 减少一个引用计数
 
-		if (_loop->_keeps.size() == 0 && !_loop->_uv_loop->stop_flag) { // 可以结束了
+		if (_loop->_keeps.length() == 0 && !_loop->_uv_loop->stop_flag) { // 可以结束了
 			_inl(_loop)->activate_loop(); // 激活循环状态,不再等待
 		}
 	} else {

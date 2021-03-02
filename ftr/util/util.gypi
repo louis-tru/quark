@@ -58,6 +58,7 @@
 			'iterator.h',
 			'list.h',
 			'dict.h',
+			'dict.cc',
 			# cc
 			'_uv.cc',
 			'_working.cc',

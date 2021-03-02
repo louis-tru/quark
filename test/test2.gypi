@@ -16,6 +16,7 @@
 			'test2-sys.cc',
 			'test2-str.cc',
 			'test2-list.cc',
+			'test2-dict.cc',
 			'../ftr/util/log.cc',
 			'../ftr/util/array.cc',
 			'../ftr/util/string.cc',

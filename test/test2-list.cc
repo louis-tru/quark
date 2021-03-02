@@ -99,7 +99,7 @@ int test2_vector(int argc, char *argv[]) {
 int test2_list2(int argc, char *argv[]) {
 
 	// initializing lists
-	List<std::string> l1{ "1", "2", "3" };
+	List<std::string> l1 = { "1", "2", "3" };
 	List<std::string> l2{ "4", "5" };
 	List<std::string> l3{ "6", "7", "8", "20" };
 	
@@ -108,7 +108,7 @@ int test2_list2(int argc, char *argv[]) {
 	auto id0 = l3.end();
 
 	// transfer all the elements of l2
-	l1.splice(l1.begin(), std::move(l2));
+	l1.splice(l1.begin(), l2);
 
 	// at the beginning of l1
 	cout << "list l1 after splice operation" << endl;
@@ -116,7 +116,7 @@ int test2_list2(int argc, char *argv[]) {
 			cout << x << " ";
 
 	// transfer all the elements of l1
-	l3.splice(l3.end(), std::move(l1));
+	l3.splice(l3.end(), l1);
 	
 	// l1.erase(const_iterator __f, const_iterator __l)
 	
