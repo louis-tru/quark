@@ -321,10 +321,10 @@ namespace ftr {
 
 	// --------------------- ThreadRunLoop ---------------------
 
-	class RunLoop::Inl: public RunLoop {
-	 public:
-	 #define _inl(self) static_cast<RunLoop::Inl*>(self)
-		
+	FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl) {
+		#define _inl(self) static_cast<RunLoop::Inl*>(self)
+		public:
+
 		void run(int64_t timeout) {
 			if (is_process_exit) {
 				DLOG("cannot run RunLoop, is_process_exit != 0");

@@ -27,3 +27,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+
+#ifndef __ftr__views__view__
+#define __ftr__views__view__
+
+#include "../util/object.h"
+// #include "../event.h"
+
+namespace ftr {
+
+	// Notification<GUIEvent, GUIEventName, Reference>
+
+	class FX_EXPORT View: public Reference {
+		FX_HIDDEN_ALL_COPY(View);
+		public:
+		View();
+		virtual ~View();
+
+		virtual void layout_forward();
+		virtual void layout_reverse();
+		virtual void draw();
+
+		private:
+		// TODO ...
+	};
+
+}
+
+#endif

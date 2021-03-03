@@ -40,7 +40,7 @@ namespace ftr {
 	* @class ParallelWorking
 	*/
 	class FX_EXPORT ParallelWorking: public Object {
-			FX_HIDDEN_ALL_COPY(ParallelWorking);
+		FX_HIDDEN_ALL_COPY(ParallelWorking);
 		public:
 		typedef Thread::Exec Exec;
 		ParallelWorking();
