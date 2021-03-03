@@ -91,9 +91,9 @@ namespace ftr {
 		ArrayString(const T* s); // copy constructors
 		ArrayString(const T* s, uint32_t len); // copy constructors
 		ArrayString(const T* a, uint32_t a_len, const T* b, uint32_t b_len); // copy constructors
-		ArrayString(T c); // char to string constructors
-
+		
 		ArrayString(int32_t i); // number to string constructors
+		ArrayString(uint32_t i);
 		ArrayString(int64_t i);
 		ArrayString(uint64_t i);
 		ArrayString(float i);
@@ -101,11 +101,6 @@ namespace ftr {
 
 		virtual ~ArrayString();
 		virtual String to_string() const;
-		/**
-		 * @func number convert to string
-		 */
-		template<typename T2>
-		static ArrayString number(T2 i);
 		/**
 		 * @func format string
 		 */
@@ -301,14 +296,11 @@ namespace ftr {
 	}
 
 	template <typename T, typename A>
-	ArrayString<T, A>::ArrayString(const T c)
-		: ArrayStringBase(1, &A::aalloc, sizeof(T))
-	{
-		val()[0] = c;
-	}
-
-	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(int32_t i) {
+		number_(i);
+	}
+	template <typename T, typename A>
+	ArrayString<T, A>::ArrayString(uint32_t i) {
 		number_(i);
 	}
 	template <typename T, typename A>
@@ -326,12 +318,6 @@ namespace ftr {
 	template <typename T, typename A>
 	ArrayString<T, A>::ArrayString(double i) {
 		number_(i);
-	}
-
-	template <typename T, typename A>
-	template<typename T2>
-	ArrayString<T, A> ArrayString<T, A>::number(T2 i) {
-		ArrayString<T, A> s; s.number_(i); return s;
 	}
 
 	template <typename T, typename A>

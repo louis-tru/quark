@@ -80,8 +80,8 @@ namespace ftr {
 			return !(_ptr == that._ptr);
 		}
 
-		Pointer   operator->() { return _ptr; }
-		Reference operator*() { return *_ptr; }
+		Pointer   operator->() const { return _ptr; }
+		Reference operator*() const { return *_ptr; }
 		//
 		protected:
 		Pointer _ptr; //!< raw pointer
@@ -137,8 +137,8 @@ namespace ftr {
 		}
 		
 		// TODO ...
-		Pointer   operator->() { return &((T2*)_ptr)->data(); }
-		Reference operator*() { return ((T2*)_ptr)->data(); }
+		Pointer   operator->() const { return &((T2*)_ptr)->data(); }
+		Reference operator*() const { return ((T2*)_ptr)->data(); }
 		
 		private:
 		T* _ptr; //!< raw pointer
