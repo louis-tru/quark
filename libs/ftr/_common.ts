@@ -381,17 +381,17 @@ interface PromiseExecutor<T> {
 }
 
 export class PromiseNx<T extends any> extends Promise<T> {
-	protected m_executor?: PromiseExecutor<T>;
+	protected _executor?: PromiseExecutor<T>;
 	constructor(executor?: (resolve: (value?: T)=>void, reject: (reason?: any)=>void, promise: Promise<T>)=>any) {
 		var _resolve: any;
 		var _reject: any;
 
-		super(function(resolve: (value?: T)=>void, reject: (reason?: any)=>void) {
+		super(function(resolve: (value: T)=>void, reject: (reason?: any)=>void) {
 			_resolve = resolve;
 			_reject = reject;
 		});
 
-		this.m_executor = executor;
+		this._executor = executor;
 
 		try {
 			var r = this.executor(_resolve, _reject);
@@ -404,8 +404,8 @@ export class PromiseNx<T extends any> extends Promise<T> {
 	}
 
 	executor(resolve: (value?: T)=>void, reject: (reason?: any)=>void) {
-		if (this.m_executor) {
-			return this.m_executor(resolve, reject, this);
+		if (this._executor) {
+			return this._executor(resolve, reject, this);
 		} else {
 			throw Error.new('executor undefined');
 		}
