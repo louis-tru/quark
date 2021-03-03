@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./object.h"
+#include "./array.h"
 #include <math.h>
 
 namespace ftr {
@@ -82,10 +83,7 @@ namespace ftr {
 		static int active_mark_objects_count_ = 0;
 		static Mutex mark_objects_mutex;
 
-		static Array<Object*> mark_objects_([](){
-			Array<Object*> rv;
-			return rv;
-		}());
+		static Array<Object*> mark_objects_;
 
 		int Object::initialize_mark_() {
 			if ( mark_index_ == 123456 ) {

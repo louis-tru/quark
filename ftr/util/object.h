@@ -188,9 +188,7 @@ namespace ftr {
 
 	template<class T, typename... Args>
 	inline T* NewRetain(Args... args) {
-		T* r = new T(args...);
-		r->retain();
-		return r;
+		T* r = new T(args...); r->retain(); return r;
 	}
 
 }
