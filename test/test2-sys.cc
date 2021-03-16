@@ -31,6 +31,8 @@
 #include <stdio.h>
 #include <sys/utsname.h>
 
+
+
 int test2_sys(int argc, char *argv[]) {
 	struct utsname utsn;
 	uname(&utsn);

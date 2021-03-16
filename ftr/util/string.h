@@ -32,6 +32,7 @@
 #define __ftr__util__string__
 
 #include "./array.h"
+#include "./list.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -220,7 +221,23 @@ namespace ftr {
 		static void* format(Size* size, int size_of, Alloc alloc, uint64_t i);
 		static void* format(Size* size, int size_of, Alloc alloc, float i);
 		static void* format(Size* size, int size_of, Alloc alloc, double i);
+		class Iterator { public: virtual bool next(String* out) = 0; };
+		static String join(bool (*iterator)(void* data, String* out), cString& sp, void* data);
 		static String to_string(const void* ptr, uint32_t len, int size_of);
+		template<typename T>
+		static String to_string(const T& t) {
+			return _To<T, has_object_type<T>::isObj>::call(t);
+		}
+		template<typename T, bool isObj> struct _To {
+			static String call(const T& t) { return String("[not object]"); }
+		};
+		template<typename T> struct _To<T, true> {
+			static String call(const T& t) { return t.to_string(); }
+		};
+		template<typename T, bool isObj> struct _To<T*, isObj> {
+			typedef T* Type;
+			static String call(const Type& t) { return String::format("%p", t); }
+		};
 		static void  strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
 		template <typename Output, typename Input>
 		static void strcpy(Output* o, const Input* i, uint32_t len) {
@@ -478,27 +495,37 @@ namespace ftr {
 	ArrayString<T, A> Array<T, A>::collapse_string() {
 		return ArrayString<T, A>(std::move(*this));
 	}
+
+	// --------------------------------------------------------------------------------
 	
 	template <typename T, typename A>
 	String Array<T, A>::join(cString& sp) const {
-		Array<String> strs;
-		int total = 0;
-		for (int i = 0; i < _length; i++) {
-			if (i) strs.push(sp);
-			auto s = _val[i].to_string();
-			total += s.length();
-			strs.push(std::move(s));
-		}
-		auto buff = Buffer::alloc(total);
-		int i = 0;
-		for (int i = 0; i < _length; i++) {
-			int j = i; i += strs[i].length();
-			buff.write(strs[i].c_str(), -1, strs[i].length());
-		}
-		buff[total] = 0;
-		return String(std::move(buff));
+		IteratorConst it[] = { begin(), end() };
+		return _Str::join([](void* data, String* out) -> bool {
+			 auto it = static_cast<IteratorConst*>(data);
+			 return it[0] == it[1] ? false: (*out = _Str::to_string(*(++(it[0])))), true;
+		}, sp, it);
 	}
-	
+
+	template<typename T, typename A>
+	String List<T, A>::join(cString& sp) const {
+		IteratorConst it[] = { begin(), end() };
+		return _Str::join([](void* data, String* out) -> bool {
+			 auto it = static_cast<IteratorConst*>(data);
+			 return it[0] == it[1] ? false: (*out = _Str::to_string(*(++(it[0])))), true;
+		}, sp, it);
+	}
+
+	template<typename T, typename A>
+	String Array<T, A>::to_string() const {
+		return join(String());
+	}
+
+	template<typename T, typename A>
+	String List<T, A>::to_string() const {
+		return join(String());
+	}
+
 	// --------------------------------------------------------------------------------
 
 	template <typename T, typename A>

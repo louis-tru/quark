@@ -71,13 +71,27 @@ namespace ftr {
 	
 	typedef       ArrayString<char, MemoryAllocator> String;
 	typedef const ArrayString<char, MemoryAllocator> cString;
-
+		
+	template<typename T>
+	struct has_object_type {
+		typedef char Non[1];
+		typedef char Obj[2];
+		typedef char Ref[3];
+		template<typename C> static Obj& test(typename C::IsObjectCheck*);
+		template<typename C> static Ref& test(typename C::IsReferenceCheck*);
+		template<typename> static Non& test(...);
+		static const int type = sizeof(test<T>(0)) / sizeof(char) - 1;
+		static const bool isObj = sizeof(test<T>(0)) / sizeof(char) > 1;
+		static const bool isRef = sizeof(test<T>(0)) / sizeof(char) == 3;
+	};
+	
 	/**
 	* @class Object
 	*/
 	class FX_EXPORT Object {
 		public:
 		typedef ObjectTraits Traits;
+		typedef Object IsObjectCheck;
 		virtual bool is_reference() const;
 		virtual bool retain();
 		virtual void release(); // "new" method alloc can call，Otherwise, fatal exception will be caused
@@ -106,8 +120,10 @@ namespace ftr {
 	* @class Reference
 	*/
 	class FX_EXPORT Reference: public Object {
+		typedef Reference IsObjectCheck;
 		public:
 		typedef ReferenceTraits Traits;
+		typedef Reference IsReferenceCheck;
 		inline Reference(): _ref_count(0) {}
 		inline Reference(const Reference& ref): _ref_count(0) {}
 		inline Reference& operator=(const Reference& ref) { return *this; }

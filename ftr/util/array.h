@@ -163,6 +163,11 @@ namespace ftr {
 			* @func join() to string
 			*/
 		String join(cString& sp) const;
+		
+		/**
+		 * @func joto_stringin() to_string
+		 */
+		virtual String to_string() const;
 
 		/**
 		* @func clear() clear data

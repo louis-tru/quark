@@ -93,6 +93,9 @@ namespace ftr {
 		IteratorConst indexed(IteratorConst it, int offset = 0) const;
 
 		String join(cString& sp) const;
+		
+		// overwrite
+		virtual String to_string() const;
 
 		IteratorConst begin() const;
 		IteratorConst end() const;
@@ -324,12 +327,6 @@ namespace ftr {
 	typename List<T, A>::IteratorConst
 	List<T, A>::indexed(IteratorConst it, int offset) const {
 		return const_cast<List*>(*this)->indexed(it, offset);
-	}
-
-	template<typename T, typename A>
-	String List<T, A>::join(cString& sp) const {
-		String str;
-		return str;
 	}
 
 	template<typename T, typename A>

@@ -24,6 +24,7 @@
 			'../ftr/util/hash.cc',
 			'../ftr/util/codec.cc',
 			'../ftr/util/error.cc',
+			'../ftr/util/dict.cc',
 		],
 		'mac_bundle': 1,
 		'xcode_settings': {

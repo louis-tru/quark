@@ -371,7 +371,30 @@ namespace ftr {
 		char* buf = (char*)_Str::format(&size, 1, &MemoryAllocator::alloc, f, arg);
 		return buf ? Buffer::from(buf, size.len, size.capacity).collapse_string(): String();
 	}
-			
+	
+	String _Str::join(bool (*it)(void* data, String* out), cString& sp, void* data) {
+		String tmp;
+		Array<String> strs;
+		int total = 0, i = 0;
+
+		while (it(data, &tmp)) {
+			if (i && sp.length()) {
+				total += sp.length();
+				strs.push(sp);
+			}
+			total += tmp.length();
+			strs.push(tmp);
+		}
+
+		auto buff = Buffer::alloc(total);
+		for (int i = 0, offset = 0; i < strs.length(); i++) {
+			buff.write(strs[i].c_str(), offset, strs[i].length());
+			offset += strs[i].length();
+		}
+		buff[total] = 0;
+		return String(std::move(buff));
+	}
+	
 	String Object::to_string() const {
 		static String str("[object]");
 		return str;

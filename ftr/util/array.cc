@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./array.h"
+#include "./string.h"
 #include <string.h>
 
 namespace ftr {
