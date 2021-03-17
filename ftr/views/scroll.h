@@ -27,3 +27,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+#ifndef __ftr__views__scroll__
+#define __ftr__views__scroll__
+
+#include "./box.h"
+
+namespace ftr {
+
+	class FX_EXPORT Scroll: public Flex {
+		FX_HIDDEN_ALL_COPY(Scroll);
+		public:
+		// TODO ...
+		private:
+		// TODO ...
+	};
+
+}
+
+#endif

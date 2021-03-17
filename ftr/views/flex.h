@@ -27,3 +27,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+#ifndef __ftr__views__flex__
+#define __ftr__views__flex__
+
+#include "./box.h"
+
+namespace ftr {
+
+	class FX_EXPORT Flex: public Box {
+		FX_HIDDEN_ALL_COPY(Flex);
+		public:
+		// TODO ...
+		private:
+		// TODO ...
+	};
+
+}
+
+#endif

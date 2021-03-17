@@ -27,3 +27,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+#ifndef __ftr__views__video__
+#define __ftr__views__video__
+
+#include "./image.h"
+
+namespace ftr {
+
+	class FX_EXPORT Video: public Image {
+		FX_HIDDEN_ALL_COPY(Video);
+		public:
+		// TODO ...
+		private:
+		// TODO ...
+	};
+
+}
+
+#endif

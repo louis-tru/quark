@@ -378,7 +378,7 @@ namespace ftr {
 		int total = 0, i = 0;
 
 		while (it(data, &tmp)) {
-			if (i && sp.length()) {
+			if (++i && sp.length()) {
 				total += sp.length();
 				strs.push(sp);
 			}
