@@ -36,99 +36,100 @@
 #include <unistd.h>
 
 namespace ftr {
-FX_NS(os)
+	namespace os {
 
-static struct utsname* utsn = NULL;
+		static struct utsname* utsn = NULL;
 
-utsname* _uname() {
-	if (!utsn) {
-		utsn = new utsname();
-		uname(utsn);
+		utsname* _uname() {
+			if (!utsn) {
+				utsn = new utsname();
+				uname(utsn);
+			}
+			return utsn;
+		}
+
+		String version() {
+			return _uname()->release;
+		}
+
+		String brand() {
+			return "Linux";
+		}
+
+		String subsystem() {
+			return _uname()->version;
+		}
+
+		int network_status() {
+			return 1;
+		}
+
+		bool is_ac_power() {
+			return 1;
+		}
+
+		bool is_battery() {
+			return 0;
+		}
+
+		float battery_level() {
+			return 0;
+		}
+
+		struct memory_info_t {
+			size_t MemTotal;
+			size_t MemFree;
+			size_t MemAvailable;
+		};
+
+		memory_info_t get_memory_info() {
+			memory_info_t r = {0,0,0};
+
+			String s = FileHelper::read_file_sync("/proc/meminfo", 127).collapse_string();
+			DLOG("/proc/meminfo, %s", *s);
+
+			if (!s.is_empty()) {
+				int i, j;
+
+				i = s.index_of("MemTotal:");
+				if (i == -1) return r;
+				j = s.index_of("kB", i);
+				if (j == -1) return r;
+
+				r.MemTotal = s.substring(i + 9, j).trim().to_uint64_t() * 1024;
+				DLOG("MemTotal, %lu", r.MemTotal);
+
+				i = s.index_of("MemFree:", j);
+				if (i == -1) return r;
+				j = s.index_of("kB", i);
+				if (j == -1) return r;
+
+				r.MemFree = s.substring(i + 8, j).trim().to_uint64_t() * 1024;
+				DLOG("MemFree, %lu", r.MemFree);
+
+				i = s.index_of("MemAvailable:", j);
+				if (i == -1) return r;
+				j = s.index_of("kB", i);
+				if (j == -1) return r;
+
+				r.MemAvailable = s.substring(i + 13, j).trim().to_uint64_t() * 1024;
+				DLOG("MemAvailable, %lu", r.MemAvailable);
+			}
+			return r;
+		}
+
+		uint64_t memory() {
+			return get_memory_info().MemTotal;
+		}
+
+		uint64_t used_memory() {
+			memory_info_t info = get_memory_info();
+			return int64_t(info.MemTotal) - info.MemAvailable;
+		}
+
+		uint64_t available_memory() {
+			return get_memory_info().MemAvailable;
+		}
+
 	}
-	return utsn;
 }
-
-String version() {
-	return _uname()->release;
-}
-
-String brand() {
-	return "Linux";
-}
-
-String subsystem() {
-	return _uname()->version;
-}
-
-int network_status() {
-	return 1;
-}
-
-bool is_ac_power() {
-	return 1;
-}
-
-bool is_battery() {
-	return 0;
-}
-
-float battery_level() {
-	return 0;
-}
-
-struct memory_info_t {
-	size_t MemTotal;
-	size_t MemFree;
-	size_t MemAvailable;
-};
-
-memory_info_t get_memory_info() {
-	memory_info_t r = {0,0,0};
-
-	String s = FileHelper::read_file_sync("/proc/meminfo", 127).collapse_string();
-	DLOG("/proc/meminfo, %s", *s);
-
-	if (!s.is_empty()) {
-		int i, j;
-
-		i = s.index_of("MemTotal:");
-		if (i == -1) return r;
-		j = s.index_of("kB", i);
-		if (j == -1) return r;
-
-		r.MemTotal = s.substring(i + 9, j).trim().to_uint64_t() * 1024;
-		DLOG("MemTotal, %lu", r.MemTotal);
-
-		i = s.index_of("MemFree:", j);
-		if (i == -1) return r;
-		j = s.index_of("kB", i);
-		if (j == -1) return r;
-
-		r.MemFree = s.substring(i + 8, j).trim().to_uint64_t() * 1024;
-		DLOG("MemFree, %lu", r.MemFree);
-
-		i = s.index_of("MemAvailable:", j);
-		if (i == -1) return r;
-		j = s.index_of("kB", i);
-		if (j == -1) return r;
-
-		r.MemAvailable = s.substring(i + 13, j).trim().to_uint64_t() * 1024;
-		DLOG("MemAvailable, %lu", r.MemAvailable);
-	}
-	return r;
-}
-
-uint64_t memory() {
-	return get_memory_info().MemTotal;
-}
-
-uint64_t used_memory() {
-	memory_info_t info = get_memory_info();
-	return int64_t(info.MemTotal) - info.MemAvailable;
-}
-
-uint64_t available_memory() {
-	return get_memory_info().MemAvailable;
-}
-
-} }
