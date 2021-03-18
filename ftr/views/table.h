@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__fixed__
-#define __ftr__views__fixed__
+#ifndef __ftr__views__table__
+#define __ftr__views__table__
 
 #include "./box.h"
 
 namespace ftr {
 
-	class FX_EXPORT Fixed: public Box {
-		FX_HIDDEN_ALL_COPY(Fixed);
+	class FX_EXPORT Table: public Box {
+		FX_HIDDEN_ALL_COPY(Table);
 		public:
 		// TODO ...
 		private:
-		uint32_t _align; // left,center,right,top,bottom
+		// TODO ...
 	};
 
 }

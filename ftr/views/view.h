@@ -33,6 +33,7 @@
 #define __ftr__views__view__
 
 #include "../util/object.h"
+#include "../value.h"
 
 namespace ftr {
 

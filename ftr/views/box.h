@@ -41,14 +41,14 @@ namespace ftr {
 		public:
 		// TODO ...
 		private:
-		float _size[2]; // width,height
-		float _margin[4], _padding[4]; // top,right,bottom,left
+		Vec2 _size; // width,height
+		Vec4 _margin, _padding; // top,right,bottom,left
 		float _border[4];
 		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
 		Vec2  _origin; /* 以该点 位移,缩放,旋转,歪斜 */
 		float _weight; // layout weight
-		uint32_t _layout_align;
 		Background *_background;
+		LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
 	};
 
 }

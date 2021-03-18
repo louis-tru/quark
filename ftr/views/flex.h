@@ -38,9 +38,22 @@ namespace ftr {
 	class FX_EXPORT Flex: public Box {
 		FX_HIDDEN_ALL_COPY(Flex);
 		public:
-		// TODO ...
+
+		enum class FlexDirection: uint8_t {
+			ROW = value::ROW,
+			ROW_REVERSE = value::ROW_REVERSE,
+			COLUMN = value::COLUMN,
+			COLUMN_REVERSE = value::COLUMN_REVERSE,
+		};
+
+		enum class FlexWrap: uint8_t {
+			// nowrap | wrap | wrap-reverse;
+		};
+
 		private:
-		// TODO ...
+		uint32_t _align;
+		FlexDirection _direction;
+		FlexWrap _wrap;
 	};
 
 }

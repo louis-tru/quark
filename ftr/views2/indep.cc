@@ -43,10 +43,10 @@ FX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
 	 */
 	void set_indep_offset(Box* parent) { ASSERT(parent);
 		
-		if (_align_x == Align::RIGHT) { // 水平右对齐
+		if (_align_x == LayoutAlign::RIGHT) { // 水平右对齐
 			_offset_start.x(parent->_final_width - _raw_client_width);
 			_offset_end.x(parent->_final_width);
-		} else if (_align_x == Align::CENTER) { // 水平居中
+		} else if (_align_x == LayoutAlign::CENTER) { // 水平居中
 			_offset_start.x(-_raw_client_width / 2 + parent->_final_width / 2);
 			_offset_end.x(_raw_client_width / 2 + parent->_final_width / 2);
 		} else { // 水平左对齐
@@ -54,10 +54,10 @@ FX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
 			_offset_end.x(_raw_client_width);
 		}
 		
-		if (_align_y == Align::BOTTOM) { // 垂直底部对齐
+		if (_align_y == LayoutAlign::BOTTOM) { // 垂直底部对齐
 			_offset_start.y(parent->_final_height - _raw_client_height);
 			_offset_end.y(parent->_final_height);
-		} else if (_align_y == Align::CENTER) { // 垂直居中
+		} else if (_align_y == LayoutAlign::CENTER) { // 垂直居中
 			_offset_start.y(-_raw_client_height / 2 + parent->_final_height / 2);
 			_offset_end.y(_raw_client_height / 2 + parent->_final_height / 2);
 		} else { // 垂直顶部对齐
@@ -72,14 +72,14 @@ FX_DEFINE_INLINE_MEMBERS(Indep, Inl) {
 Indep::Indep(): _align_x(Align::LEFT), _align_y(Align::TOP) { }
 
 void Indep::set_align_x(Align value) {
-	if (value == Align::LEFT || value == Align::RIGHT || value == Align::CENTER) {
+	if (value == LayoutAlign::LEFT || value == LayoutAlign::RIGHT || value == LayoutAlign::CENTER) {
 		_align_x = value;
 		mark_pre(M_MATRIX | M_LAYOUT | M_SIZE_HORIZONTAL);
 	}
 }
 
 void Indep::set_align_y(Align value) {
-	if (value == Align::TOP || value == Align::BOTTOM || value == Align::CENTER) {
+	if (value == LayoutAlign::TOP || value == LayoutAlign::BOTTOM || value == LayoutAlign::CENTER) {
 		_align_y = value;
 		mark_pre(M_MATRIX | M_LAYOUT | M_SIZE_VERTICAL);
 	}

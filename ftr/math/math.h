@@ -175,6 +175,14 @@ namespace ftr {
 		inline void y(float value) { _value[1] = value; }
 		inline void z(float value) { _value[2] = value; }
 		inline void w(float value) { _value[3] = value; }
+		inline float top() const { return _value[0]; }
+		inline float right() const { return _value[1]; }
+		inline float bottom() const { return _value[2]; }
+		inline float left() const { return _value[3]; }
+		inline void top(float value) { _value[0] = value; }
+		inline void right(float value) { _value[1] = value; }
+		inline void bottom(float value) { _value[2] = value; }
+		inline void left(float value) { _value[3] = value; }
 		inline float width() const { return _value[0]; }
 		inline float height() const { return _value[1]; }
 		inline float depth() const { return _value[2]; }

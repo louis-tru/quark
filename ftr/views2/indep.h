@@ -47,12 +47,12 @@ class FX_EXPORT Indep: public Div {
 	/**
 	 * @func align_x
 	 */
-	inline Align align_x() const { return _align_x; };
+	inline LayoutAlign align_x() const { return _align_x; };
 	
 	/**
 	 * @func align_y
 	 */
-	inline Align align_y() const { return _align_y; };
+	inline LayoutAlign align_y() const { return _align_y; };
 	
 	/**
 	 * @func set_align_x
