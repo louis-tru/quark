@@ -28,32 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__flex__
-#define __ftr__views__flex__
+#ifndef __ftr__views__flow__
+#define __ftr__views__flow__
 
 #include "./box.h"
 
 namespace ftr {
 
-	class FX_EXPORT Flex: public Box {
-		FX_HIDDEN_ALL_COPY(Flex);
+	class FX_EXPORT Flow: public Box {
+		FX_HIDDEN_ALL_COPY(Flow);
 		public:
-
-		enum class FlexDirection: uint8_t {
-			ROW = value::ROW,
-			ROW_REVERSE = value::ROW_REVERSE,
-			COLUMN = value::COLUMN,
-			COLUMN_REVERSE = value::COLUMN_REVERSE,
-		};
-
-		enum class FlexWrap: uint8_t {
-			// nowrap | wrap | wrap-reverse;
-		};
-
+		// TODO ...
 		private:
-		uint32_t _align;
-		FlexDirection _direction;
-		FlexWrap _wrap;
 	};
 
 }

@@ -95,7 +95,6 @@ namespace ftr {
 			F(PRE,                pre) \
 			F(PRE_LINE,           pre_line) \
 			F(WRAP,               wrap) \
-			/* keyboard type */ \
 			F(ASCII,              ascii) \
 			F(NUMBER,             number) \
 			F(URL,                url) \
@@ -107,7 +106,6 @@ namespace ftr {
 			F(TWITTER,            twitter) \
 			F(SEARCH,             search) \
 			F(ASCII_NUMBER,       ascii_numner) \
-			/* keyboard return type */ \
 			F(GO,                 go) \
 			F(JOIN,               join) \
 			F(NEXT,               next) \
@@ -116,11 +114,11 @@ namespace ftr {
 			F(DONE,               done) \
 			F(EMERGENCY,          emergency) \
 			F(CONTINUE,           continue) \
-			/* flex */ \
 			F(ROW,                row) \
 			F(ROW_REVERSE,        row_reverse) \
 			F(COLUMN,             column) \
 			F(COLUMN_REVERSE,     column_reverse) \
+			F(WRAP_REVERSE,       wrap_reverse) \
 
 		#define DEF_ENUM_VALUE(NAME, NAME2) NAME,
 		
