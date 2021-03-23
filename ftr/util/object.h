@@ -71,7 +71,7 @@ namespace ftr {
 	
 	typedef       ArrayString<char, MemoryAllocator> String;
 	typedef const ArrayString<char, MemoryAllocator> cString;
-		
+	
 	template<typename T>
 	struct has_object_type {
 		typedef char Non[1];

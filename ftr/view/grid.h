@@ -27,3 +27,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+#ifndef __ftr__views__grid__
+#define __ftr__views__grid__
+
+#include "./box.h"
+
+namespace ftr {
+
+	class FX_EXPORT Grid: public Box {
+		FX_HIDDEN_ALL_COPY(Grid);
+		public:
+		// TODO ...
+		private:
+		// TODO ...
+	};
+
+}
+
+#endif

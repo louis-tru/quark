@@ -14,11 +14,11 @@ ftr is a cross-platform (Android/iOS) front-end development framework. The core 
 Build source and install ftrp
 ===============
 
-1. Build must dependent `Xcode` / `JDK1.7` / `Android-SDK-23` / `NDK` / `python` / `nodejs` / `yasm`.
+1. Build must dependent `Xcode` / `JDK` / `Android-SDK` / `NDK` / `python` / `nodejs` / `yasm`.
 
-2. Setting environment variable `JAVA_HOME` and `ANDROID_SDK` and `ANDROID_NDK` directory.
+2. Setting environment variable `ANDROID_SDK` and `ANDROID_NDK` directory.
 
-3. Pull dependent librarys, execute `make init`.
+3. Pull dependent librarys, execute `make pull`.
 
 Compile and install ftrp, execute `make` or `make install`, It takes a long time.
 

@@ -27,3 +27,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+
+#ifndef __ftr__views__view__
+#define __ftr__views__view__
+
+#include "../util/object.h"
+#include "../value.h"
+
+namespace ftr {
+
+	class FX_EXPORT View: public Reference {
+		FX_HIDDEN_ALL_COPY(View);
+		public:
+
+		virtual void layout_forward();
+		virtual void layout_reverse();
+		virtual void draw();
+
+		private:
+		View *_parent;
+		View *_first, *_last;
+		View *_prev, *_next;
+		View *_next_pre_mark; /* 下一个标记预处理视图 */
+		Action *_action;
+		uint32_t _level; /* 在视图树中所处的层级 */
+		Vec2   _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
+		float  _rotateZ;    /* z轴旋转角度值 */
+		float  _opacity;    /* 可影响子视图的透明度值 */
+		Mat   _final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
+		float _final_opacity; /* 最终的不透明值 */
+	};
+
+}
+
+#endif

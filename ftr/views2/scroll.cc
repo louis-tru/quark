@@ -907,13 +907,13 @@ FX_DEFINE_INLINE_MEMBERS(Scroll, Inl) {
 			
 			if ( _h_scroll ) {
 				switch ( _focus_align_x ) {
-					case Align::LEFT:
+					case LayoutAlign::LEFT:
 						v.x( rect.origin.x() - _focus_margin_left );
 						break;
-					case Align::RIGHT:
+					case LayoutAlign::RIGHT:
 						v.x(rect.origin.x() - rect.size.x() - final_width() + _focus_margin_right);
 						break;
-					case Align::CENTER:
+					case LayoutAlign::CENTER:
 						v.x( rect.origin.x() - (rect.size.x() + final_width()) / 2.0 );
 						break;
 					default: // none float
@@ -939,14 +939,14 @@ FX_DEFINE_INLINE_MEMBERS(Scroll, Inl) {
 			
 			if ( _v_scroll ) {
 				switch ( _focus_align_y ) {
-					case Align::TOP:
+					case LayoutAlign::TOP:
 						v.y( rect.origin.y() - _focus_margin_top );
 						break;
-					case Align::BOTTOM:
+					case LayoutAlign::BOTTOM:
 						v.y(rect.origin.y() - rect.size.y() -
 								_final_height + _focus_margin_bottom);
 						break;
-					case Align::CENTER:
+					case LayoutAlign::CENTER:
 						v.y( rect.origin.y() - (rect.size.y() + _final_height) / 2.0 );
 						break;
 					default: // none float
@@ -999,8 +999,7 @@ Vec2 Scroll::layout_in_offset() {
  * @func focus_align_x set
  */
 void Scroll::set_focus_align_x(Align value) {
-	if (value == Align::LEFT || value == Align::RIGHT ||
-			value == Align::CENTER || value == Align::NONE ) {
+	if (value == LayoutAlign::LEFT || value == LayoutAlign::RIGHT || value == LayoutAlign::CENTER ) {
 		_focus_align_x = value;
 	}
 }
@@ -1009,8 +1008,7 @@ void Scroll::set_focus_align_x(Align value) {
  * @func focus_align_y set
  */
 void Scroll::set_focus_align_y(Align value) {
-	if (value == Align::TOP || value == Align::BOTTOM ||
-			value == Align::CENTER || value == Align::NONE ) {
+	if (value == LayoutAlign::TOP || value == LayoutAlign::BOTTOM || value == LayoutAlign::CENTER ) {
 		_focus_align_y = value;
 	}
 }

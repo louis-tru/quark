@@ -29,7 +29,7 @@ void test_template() {
 	class C: public Object {
 		public:
 		String to_string() const {
-			return String("[object C]");
+			return String("class C;");
 		}
 	};
 

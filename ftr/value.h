@@ -95,7 +95,6 @@ namespace ftr {
 			F(PRE,                pre) \
 			F(PRE_LINE,           pre_line) \
 			F(WRAP,               wrap) \
-			/* keyboard type */ \
 			F(ASCII,              ascii) \
 			F(NUMBER,             number) \
 			F(URL,                url) \
@@ -107,7 +106,6 @@ namespace ftr {
 			F(TWITTER,            twitter) \
 			F(SEARCH,             search) \
 			F(ASCII_NUMBER,       ascii_numner) \
-			/* keyboard return type */ \
 			F(GO,                 go) \
 			F(JOIN,               join) \
 			F(NEXT,               next) \
@@ -116,245 +114,202 @@ namespace ftr {
 			F(DONE,               done) \
 			F(EMERGENCY,          emergency) \
 			F(CONTINUE,           continue) \
-
-		/**
-		* @enum KeyboardType
-		*/
-		#define FX_KEYBOARD_TYPE(F) \
-			F(KeyboardType, NORMAL) \
-			F(KeyboardType, ASCII) \
-			F(KeyboardType, NUMBER) \
-			F(KeyboardType, URL) \
-			F(KeyboardType, NUMBER_PAD) \
-			F(KeyboardType, PHONE) \
-			F(KeyboardType, NAME_PHONE) \
-			F(KeyboardType, EMAIL) \
-			F(KeyboardType, DECIMAL) \
-			F(KeyboardType, TWITTER) \
-			F(KeyboardType, SEARCH) \
-			F(KeyboardType, ASCII_NUMBER) \
-		
-		/**
-		* @enum KeyboardReturnType
-		*/
-		#define FX_KEYBOARD_RETURN_TYPE(F) \
-			F(KeyboardReturnType, NORMAL) \
-			F(KeyboardReturnType, GO) \
-			F(KeyboardReturnType, JOIN) \
-			F(KeyboardReturnType, NEXT) \
-			F(KeyboardReturnType, ROUTE) \
-			F(KeyboardReturnType, SEARCH) \
-			F(KeyboardReturnType, SEND) \
-			F(KeyboardReturnType, DONE) \
-			F(KeyboardReturnType, EMERGENCY) \
-			F(KeyboardReturnType, CONTINUE) \
-		
-		/**
-		* @enum Direction
-		*/
-		#define FX_DIRECTION(F) \
-			F(Direction, NONE) \
-			F(Direction, LEFT) \
-			F(Direction, RIGHT) \
-			F(Direction, TOP) \
-			F(Direction, BOTTOM) \
-
-		/**
-		* @enum ValueType
-		*/
-		#define FX_VALUE_TYPE(F) \
-			F(ValueType, AUTO)    /* 自动值  auto */ \
-			F(ValueType, FULL)    /* 吸附到父视图(client边距与父视图重叠) full */ \
-			F(ValueType, PIXEL)   /* 像素值  px */ \
-			F(ValueType, PERCENT) /* 百分比  % */ \
-			F(ValueType, MINUS)   /* 减法(parent-value) ! */ \
-
-		/**
-		* @enum BackgroundPositionType
-		*/
-		#define FX_BACKGROUND_POSITION_TYPE(F) \
-			F(ValueType, PIXEL)     /* 像素值  px */ \
-			F(ValueType, PERCENT)   /* 百分比  % */ \
-			F(ValueType, LEFT)      /* 居左 */ \
-			F(ValueType, RIGHT)     /* 居右  % */ \
-			F(ValueType, CENTER)    /* 居中 */ \
-			F(ValueType, TOP)       /* 居上 */ \
-			F(ValueType, BOTTOM)    /* 居下 */ \
-
-		/**
-		* @enum BackgroundSizeType
-		*/
-		#define FX_BACKGROUND_SIZE_TYPE(F) \
-			F(ValueType, AUTO)      /* 自动值  auto */ \
-			F(ValueType, PIXEL)     /* 像素值  px */ \
-			F(ValueType, PERCENT)   /* 百分比  % */ \
-
-		/**
-		* @enum TextValueType
-		*/
-		#define FX_TEXT_VALUE_TYPE(F) \
-			F(TextValueType, INHERIT) \
-			F(TextValueType, VALUE) \
-
-		/**
-		* @enum TextStyleEnum
-		*/
-		#define FX_TEXT_STYLE_ENUM(F) \
-			F(TextStyleEnum, THIN) \
-			F(TextStyleEnum, ULTRALIGHT) \
-			F(TextStyleEnum, LIGHT) \
-			F(TextStyleEnum, REGULAR) \
-			F(TextStyleEnum, MEDIUM) \
-			F(TextStyleEnum, SEMIBOLD) \
-			F(TextStyleEnum, BOLD) \
-			F(TextStyleEnum, HEAVY) \
-			F(TextStyleEnum, BLACK) \
-			F(TextStyleEnum, THIN_ITALIC) \
-			F(TextStyleEnum, ULTRALIGHT_ITALIC) \
-			F(TextStyleEnum, LIGHT_ITALIC) \
-			F(TextStyleEnum, ITALIC) \
-			F(TextStyleEnum, MEDIUM_ITALIC) \
-			F(TextStyleEnum, SEMIBOLD_ITALIC) \
-			F(TextStyleEnum, BOLD_ITALIC) \
-			F(TextStyleEnum, HEAVY_ITALIC) \
-			F(TextStyleEnum, BLACK_ITALIC) \
-			F(TextStyleEnum, OTHER) \
-
-		/**
-		* @enum TextDecorationEnum
-		*/
-		#define FX_TEXT_DECORATION_ENUM(F) \
-			F(TextDecoration, NONE)           /* 没有 */ \
-			F(TextDecoration, OVERLINE)       /* 上划线 */ \
-			F(TextDecoration, LINE_THROUGH)   /* 中划线 */ \
-			F(TextDecoration, UNDERLINE)      /* 下划线 */ \
-
-		#define FX_TEXT_OVERFLOW_ENUM(F) \
-			F(TextOverflowEnum, NORMAL)          /* 不做任何处理 */ \
-			F(TextOverflowEnum, CLIP)            /* 剪切 */ \
-			F(TextOverflowEnum, ELLIPSIS)        /* 剪切并显示省略号 */ \
-			F(TextOverflowEnum, CENTER_ELLIPSIS) /* 剪切并居中显示省略号 */ \
-
-		#define FX_TEXT_WHITE_SPACE_ENUM(F) \
-			F(TextWhiteSpaceEnum, NORMAL)           /* 保留所有空白,使用自动wrap */ \
-			F(TextWhiteSpaceEnum, NO_WRAP)          /* 合并空白序列,不使用自动wrap */ \
-			F(TextWhiteSpaceEnum, NO_SPACE)         /* 合并空白序列,使用自动wrap */ \
-			F(TextWhiteSpaceEnum, PRE)              /* 保留所有空白,不使用自动wrap */ \
-			F(TextWhiteSpaceEnum, PRE_LINE)         /* 合并空白符序列,但保留换行符,使用自动wrap */ \
-			F(TextWhiteSpaceEnum, WRAP)             /* 保留所有空白,强制使用自动wrap */ \
-
-		/**
-		* @enum TextAlign 文本对齐方式
-		*/
-		#define FX_TEXT_ALIGN(F) \
-			F(TextAlign, LEFT)           /* 左对齐 */ \
-			F(TextAlign, CENTER)         /* 居中 */ \
-			F(TextAlign, RIGHT)          /* 右对齐 */ \
-			F(TextAlign, LEFT_REVERSE)   /* 左对齐并反向 */ \
-			F(TextAlign, CENTER_REVERSE) /* 居中对齐并反向 */ \
-			F(TextAlign, RIGHT_REVERSE)  /* 右对齐并反向 */ \
-
-		/**
-		* @enum Align 对齐方式
-		*/
-		#define FX_ALIGN(F) \
-			F(Align, NONE) \
-			F(Align, LEFT) \
-			F(Align, RIGHT) \
-			F(Align, CENTER) \
-			F(Align, TOP) \
-			F(Align, BOTTOM) \
-
-		/**
-		* @enum ContentAlign div 内容对齐方式
-		*/
-		#define FX_CONTENT_ALIGN(F) \
-			F(ContentAlign, LEFT)    /* 水平左对齐 */ \
-			F(ContentAlign, RIGHT)   /* 水平右对齐 */ \
-			F(ContentAlign, TOP)     /* 垂直上对齐 */ \
-			F(ContentAlign, BOTTOM)  /* 垂直下对齐 */ \
-
-		/**
-		* @enum Repeat 纹理重复方式
-		*/
-		#define FX_REPEAT(F) \
-			F(Repeat, NONE) \
-			F(Repeat, REPEAT) \
-			F(Repeat, REPEAT_X) \
-			F(Repeat, REPEAT_Y) \
-			F(Repeat, MIRRORED_REPEAT) \
-			F(Repeat, MIRRORED_REPEAT_X) \
-			F(Repeat, MIRRORED_REPEAT_Y) \
+			F(ROW,                row) \
+			F(ROW_REVERSE,        row_reverse) \
+			F(COLUMN,             column) \
+			F(COLUMN_REVERSE,     column_reverse) \
+			F(WRAP_REVERSE,       wrap_reverse) \
 
 		#define DEF_ENUM_VALUE(NAME, NAME2) NAME,
-		#define DEF_ENUM(Type, NAME) NAME = Enum::NAME,
 		
 		enum Enum {
 			FX_ENUM_VALUE(DEF_ENUM_VALUE)
 		};
-		
+
+		#undef DEF_ENUM_VALUE
+
+		/**
+		 * @enum KeyboardType
+		 */
 		enum class KeyboardType: uint8_t {
-			FX_KEYBOARD_TYPE(DEF_ENUM)
+			NORMAL = value::NORMAL,
+			ASCII = value::ASCII,
+			NUMBER = value::NUMBER,
+			URL = value::URL,
+			NUMBER_PAD = value::NUMBER_PAD,
+			PHONE = value::PHONE,
+			NAME_PHONE = value::NAME_PHONE,
+			EMAIL = value::EMAIL,
+			DECIMAL = value::DECIMAL,
+			TWITTER = value::TWITTER,
+			SEARCH = value::SEARCH,
+			ASCII_NUMBER = value::ASCII_NUMBER,
 		};
 
+		/**
+		* @enum KeyboardReturnType
+		*/		
 		enum class KeyboardReturnType: uint8_t {
-			FX_KEYBOARD_RETURN_TYPE(DEF_ENUM)
+			NORMAL = value::NORMAL,
+			GO = value::GO,
+			JOIN = value::JOIN,
+			NEXT = value::NEXT,
+			ROUTE = value::ROUTE,
+			SEARCH = value::SEARCH,
+			SEND = value::SEND,
+			DONE = value::DONE,
+			EMERGENCY = value::EMERGENCY,
+			CONTINUE = value::CONTINUE,
 		};
 
+		/**
+		* @enum Direction
+		*/
 		enum class Direction: uint8_t {
-			FX_DIRECTION(DEF_ENUM)
+			NONE = value::NONE,
+			LEFT = value::LEFT,
+			RIGHT = value::RIGHT,
+			TOP = value::TOP,
+			BOTTOM = value::BOTTOM,
 		};
 
+		/**
+		* @enum ValueType
+		*/
 		enum class ValueType: uint8_t {
-			FX_VALUE_TYPE(DEF_ENUM)
+			AUTO = value::AUTO,    /* 自动值  auto */
+			FULL = value::FULL,    /* 吸附到父视图(client边距与父视图重叠) full */
+			PIXEL = value::PIXEL,   /* 像素值  px */
+			PERCENT = value::PERCENT, /* 百分比  % */
+			MINUS = value::MINUS,   /* 减法(parent-value) ! */
 		};
 
+		/**
+		* @enum BackgroundPositionType
+		*/
 		enum class BackgroundPositionType: uint8_t {
-			FX_BACKGROUND_POSITION_TYPE(DEF_ENUM)
+			PIXEL = value::PIXEL,     /* 像素值  px */
+			PERCENT = value::PERCENT,   /* 百分比  % */
+			LEFT = value::LEFT,      /* 居左 */
+			RIGHT = value::RIGHT,     /* 居右  % */
+			CENTER = value::CENTER,    /* 居中 */
+			TOP = value::TOP,       /* 居上 */
+			BOTTOM = value::BOTTOM,    /* 居下 */
 		};
 		
+		/**
+		* @enum BackgroundSizeType
+		*/
 		enum class BackgroundSizeType: uint8_t {
-			FX_BACKGROUND_SIZE_TYPE(DEF_ENUM)
+			AUTO = value::AUTO,      /* 自动值  auto */
+			PIXEL = value::PIXEL,     /* 像素值  px */
+			PERCENT = value::PERCENT,   /* 百分比  % */
 		};
 		
+		/**
+		* @enum TextValueType
+		*/
 		enum class TextValueType: uint8_t {
-			FX_TEXT_VALUE_TYPE(DEF_ENUM)
+			INHERIT = value::INHERIT,
+			VALUE = value::VALUE,
 		};
 
+		/**
+		* @enum TextStyleEnum
+		*/
 		enum class TextStyleEnum: uint8_t {
-			FX_TEXT_STYLE_ENUM(DEF_ENUM)
+			THIN = value::THIN,
+			ULTRALIGHT = value::ULTRALIGHT,
+			LIGHT = value::LIGHT,
+			REGULAR = value::REGULAR,
+			MEDIUM = value::MEDIUM,
+			SEMIBOLD = value::SEMIBOLD,
+			BOLD = value::BOLD,
+			HEAVY = value::HEAVY,
+			BLACK = value::BLACK,
+			THIN_ITALIC = value::THIN_ITALIC,
+			ULTRALIGHT_ITALIC = value::ULTRALIGHT_ITALIC,
+			LIGHT_ITALIC = value::LIGHT_ITALIC,
+			ITALIC = value::ITALIC,
+			MEDIUM_ITALIC = value::MEDIUM_ITALIC,
+			SEMIBOLD_ITALIC = value::SEMIBOLD_ITALIC,
+			BOLD_ITALIC = value::BOLD_ITALIC,
+			HEAVY_ITALIC = value::HEAVY_ITALIC,
+			BLACK_ITALIC = value::BLACK_ITALIC,
+			OTHER = value::OTHER,
 		};
 
+		/**
+		* @enum TextDecorationEnum
+		*/
 		enum class TextDecorationEnum: uint8_t {
-			FX_TEXT_DECORATION_ENUM(DEF_ENUM)
+			NONE = value::NONE,           /* 没有 */
+			OVERLINE = value::OVERLINE,       /* 上划线 */
+			LINE_THROUGH = value::LINE_THROUGH,   /* 中划线 */
+			UNDERLINE = value::UNDERLINE,      /* 下划线 */
 		};
-		
+
 		enum class TextOverflowEnum: uint8_t {
-			FX_TEXT_OVERFLOW_ENUM(DEF_ENUM)
+			NORMAL = value::NORMAL,          /* 不做任何处理 */
+			CLIP = value::CLIP,            /* 剪切 */
+			ELLIPSIS = value::ELLIPSIS,        /* 剪切并显示省略号 */
+			CENTER_ELLIPSIS = value::CENTER_ELLIPSIS, /* 剪切并居中显示省略号 */
 		};
 		
 		enum class TextWhiteSpaceEnum: uint8_t {
-			FX_TEXT_WHITE_SPACE_ENUM(DEF_ENUM)
+			NORMAL = value::NORMAL,           /* 保留所有空白,使用自动wrap */
+			NO_WRAP = value::NO_WRAP,          /* 合并空白序列,不使用自动wrap */
+			NO_SPACE = value::NO_SPACE,         /* 合并空白序列,使用自动wrap */
+			PRE = value::PRE,              /* 保留所有空白,不使用自动wrap */
+			PRE_LINE = value::PRE_LINE,         /* 合并空白符序列,但保留换行符,使用自动wrap */
+			WRAP = value::WRAP,             /* 保留所有空白,强制使用自动wrap */
 		};
 
+		/**
+		* @enum TextAlign 文本对齐方式
+		*/
 		enum class TextAlign: uint8_t {
-			FX_TEXT_ALIGN(DEF_ENUM)
+			LEFT = value::LEFT,           /* 左对齐 */
+			CENTER = value::CENTER,         /* 居中 */
+			RIGHT = value::RIGHT,          /* 右对齐 */
+			LEFT_REVERSE = value::LEFT_REVERSE,   /* 左对齐并反向 */
+			CENTER_REVERSE = value::CENTER_REVERSE, /* 居中对齐并反向 */
+			RIGHT_REVERSE = value::RIGHT_REVERSE,  /* 右对齐并反向 */
 		};
 
-		enum class Align: uint8_t {
-			FX_ALIGN(DEF_ENUM)
+		/**
+		* @enum LayoutAlign 对齐方式
+		*/
+		enum class LayoutAlign: uint8_t {
+			LEFT = value::LEFT,
+			RIGHT = value::RIGHT,
+			CENTER = value::CENTER,
+			TOP = value::TOP,
+			BOTTOM = value::BOTTOM,
 		};
 
+		/**
+		* @enum ContentAlign div 内容对齐方式
+		*/
 		enum class ContentAlign: uint8_t {
-			FX_CONTENT_ALIGN(DEF_ENUM)
-		};
-		
-		enum class Repeat: uint8_t {
-			FX_REPEAT(DEF_ENUM)
+			LEFT = value::LEFT,    /* 水平左对齐 */
+			RIGHT = value::RIGHT,   /* 水平右对齐 */
+			TOP = value::TOP,     /* 垂直上对齐 */
+			BOTTOM = value::BOTTOM,  /* 垂直下对齐 */
 		};
 
-		#undef DEF_ENUM_VALUE
-		#undef DEF_ENUM
+		/**
+		* @enum Repeat 纹理重复方式
+		*/
+		enum class Repeat: uint8_t {
+			NONE = Enum::NONE,
+			REPEAT = Enum::REPEAT,
+			REPEAT_X = Enum::REPEAT_X,
+			REPEAT_Y = Enum::REPEAT_Y,
+			MIRRORED_REPEAT = Enum::MIRRORED_REPEAT,
+			MIRRORED_REPEAT_X = Enum::MIRRORED_REPEAT_X,
+			MIRRORED_REPEAT_Y = Enum::MIRRORED_REPEAT_Y,
+		};
 		
 		struct Rect {
 			Vec2 origin;
@@ -522,7 +477,7 @@ namespace ftr {
 	using value::TextOverflowEnum;
 	using value::TextWhiteSpaceEnum;
 	using value::TextAlign;
-	using value::Align;
+	using value::LayoutAlign;
 	using value::ContentAlign;
 	using value::Repeat;
 	using value::Value;

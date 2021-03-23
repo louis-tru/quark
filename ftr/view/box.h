@@ -27,3 +27,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+#ifndef __ftr__views__box__
+#define __ftr__views__box__
+
+#include "./view.h"
+#include "../background.h"
+
+namespace ftr {
+
+	class FX_EXPORT Box: public View {
+		FX_HIDDEN_ALL_COPY(Box);
+		public:
+		// TODO ...
+		private:
+		Vec2 _size; // width,height
+		Vec4 _margin, _padding; // top,right,bottom,left
+		float _border[4];
+		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
+		Vec2  _origin; /* 以该点 位移,缩放,旋转,歪斜 */
+		float _weight; // layout weight
+		Background *_background;
+		LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
+	};
+
+}
+
+#endif

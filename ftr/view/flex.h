@@ -27,3 +27,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
+
+#ifndef __ftr__views__flex__
+#define __ftr__views__flex__
+
+#include "./box.h"
+
+namespace ftr {
+
+	class FX_EXPORT Flex: public Box {
+		FX_HIDDEN_ALL_COPY(Flex);
+		public:
+
+		enum class FlexDirection: uint8_t {
+			ROW = value::ROW,
+			ROW_REVERSE = value::ROW_REVERSE,
+			COLUMN = value::COLUMN,
+			COLUMN_REVERSE = value::COLUMN_REVERSE,
+		};
+
+		enum class FlexWrap: uint8_t {
+			NO_WRAP = value::NO_WRAP,
+			WRAP = value::WRAP,
+			WRAP_REVERSE = value::WRAP_REVERSE,
+		};
+
+		private:
+		uint32_t _align;
+		FlexDirection _direction;
+		FlexWrap _wrap;
+	};
+
+}
+
+#endif

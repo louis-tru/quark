@@ -229,14 +229,14 @@ namespace ftr {
 			return _To<T, has_object_type<T>::isObj>::call(t);
 		}
 		template<typename T, bool isObj> struct _To {
-			static String call(const T& t) { return String("[not object]"); }
+			static String call(const T& t) { return String("[unknown]"); }
 		};
 		template<typename T> struct _To<T, true> {
 			static String call(const T& t) { return t.to_string(); }
 		};
 		template<typename T> struct _To<T*, false> {
 			typedef T* Type;
-			static String call(const Type& t) { return String::format("[ptr %p]", t); }
+			static String call(const Type& t) { return String::format("[%p]", t); }
 		};
 		static void  strcpy(void* o, int sizeof_o, const void* i, int sizeof_i, uint32_t len);
 		template <typename Output, typename Input>

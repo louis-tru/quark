@@ -354,12 +354,12 @@ namespace ftr {
 		/**
 		* @func focus_align_x get
 		*/
-		inline Align focus_align_x() const { return _focus_align_x; }
+		inline LayoutAlign focus_align_x() const { return _focus_align_x; }
 		
 		/**
 		* @func focus_align_y get
 		*/
-		inline Align focus_align_y() const { return _focus_align_y; }
+		inline LayoutAlign focus_align_y() const { return _focus_align_y; }
 		
 		/**
 		* @func set_focus_margin_left set
