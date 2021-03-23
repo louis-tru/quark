@@ -662,9 +662,9 @@ export class Notification<E = DefaultEvent> {
 	}
 
 	addEventForwardOnce(noticer: EventNoticer<E>, id?: string) {
-		var del = this.getNoticer(name);
+		var del = this.getNoticer(noticer.name);
 		var r = del.forwardOnce(noticer, id);
-		this.triggerListenerChange(name, del.length, 1);
+		this.triggerListenerChange(noticer.name, del.length, 1);
 		return r;
 	}
 
@@ -708,7 +708,7 @@ export class Notification<E = DefaultEvent> {
 	removeEventListenerWithScope(scope: object) {
 		for ( let noticer of this.allNoticers() ) {
 			noticer.off(scope);
-			this.triggerListenerChange(name, noticer.length, -1);
+			this.triggerListenerChange(noticer.name, noticer.length, -1);
 		}
 	}
 
