@@ -1,0 +1,23 @@
+*.AC *.ACs
+*.AT *.ATs
+*.cp *.cps
+*.cv *.cvs
+*.ev *.evs
+*.fn *.fns
+*.MS *.MSs
+*.ov *.ovs
+*.pr *.prs
+*.vr *.vrs
+*.ky
+*.aux *.dvi *.info *.log
+Makefile
+autoconf
+*.pdf
+*.pg
+*.ps
+stamp-vti
+standards
+*.tmp
+*.toc
+*.tp
+version.texi

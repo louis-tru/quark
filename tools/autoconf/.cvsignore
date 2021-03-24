@@ -1,0 +1,9 @@
+Makefile
+config.cache
+config.log
+config.status
+configure.scan
+autoconf-[0-9].*
+*.log log
+releases
+autom4te.cache

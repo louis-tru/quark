@@ -442,6 +442,8 @@ function configure_node(opts, variables, configuration) {
 
 async function exec_check(check, cmd) {
 
+	console.log('check', check, 'cmd', cmd);
+
 	if (check.indexOf('/') != -1) { // file
 		if (fs.existsSync(check)) {
 			return;
@@ -453,9 +455,9 @@ async function exec_check(check, cmd) {
 	}
 
 	if (host_os == 'linux') {
-		util.assert(execSync('which apt-get').code == 0, 'no command `apt-get`');
+		util.assert(execSync('which apt-get').code == 0, 'No command `apt-get`');
 	} else if (host_os == 'osx') {
-		util.assert(execSync('which brew').code == 0, 'no command `brew`');
+		util.assert(execSync('which brew').code == 0, 'No command `brew`, https://brew.sh/');
 	} else {
 		throw new Error(`not support ${host_os} platform`);
 	}
