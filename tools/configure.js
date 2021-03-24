@@ -440,29 +440,38 @@ function configure_node(opts, variables, configuration) {
 	}
 }
 
-async function exec_check(check, cmd) {
+async function exec2(cmd) {
+	var r = await exec(cmd, {
+		stdout: process.stdout,
+		stderr: process.stderr, stdin: process.stdin,
+	});
+	if (r.code != 0) {
+		throw Error.new(`Run fail, "${cmd}"`);
+	}
+}
 
-	console.log('check', check, 'cmd', cmd);
+async function install_check(app, cmd) {
+	console.log('check', app);
 
-	if (check.indexOf('/') != -1) { // file
-		if (fs.existsSync(check)) {
+	if (app.indexOf('/') != -1) { // file
+		if (fs.existsSync(app)) {
 			return;
 		}
 	} else {
-		if (execSync(`which ${check}`).code == 0) {
+		if (execSync(`which ${app}`).code == 0) {
 			return;
 		}
 	}
 
 	if (host_os == 'linux') {
-		util.assert(execSync('which apt-get').code == 0, 'No command `apt-get`');
+		// util.assert(execSync('which apt-get').code == 0, 'No command `apt-get`');
 	} else if (host_os == 'osx') {
-		util.assert(execSync('which brew').code == 0, 'No command `brew`, https://brew.sh/');
+		// util.assert(execSync('which brew').code == 0, 'No command `brew`, https://brew.sh/');
 	} else {
 		throw new Error(`not support ${host_os} platform`);
 	}
 
-	var cmds;
+	var cmds, pkgCmd = false;
 
 	if (typeof cmd == 'string') {
 		cmds = [cmd];
@@ -471,11 +480,25 @@ async function exec_check(check, cmd) {
 	} else if (typeof cmd == 'object') {
 		cmds = cmd.cmds || [];
 		for (var i in cmd.deps) {
-			await exec_check(i, cmd.deps[i]);
+			await install_check(i, cmd.deps[i]);
+		}
+		if (!cmds.length) {
+			if (cmd.pkgCmds && cmd.pkgCmds.length) {
+				pkgCmd = true;
+				cmds = cmd.pkgCmds;
+			}
 		}
 	}
 
+	var cd = '';
+
+	if (pkgCmd) {
+		await exec2(`tar xfvz ${__dirname}/pkgs/${app}.tar.gz -C ${__dirname}/../out/`);
+		cd = `${__dirname}/../out/${app}`;
+	}
+
 	for (var cmd of cmds) {
+		
 		if (cmd[0] == '*') {
 			if (process.env.USER != 'root') {
 				cmd = 'sudo ' + cmd.substr(1);
@@ -483,18 +506,14 @@ async function exec_check(check, cmd) {
 				cmd = cmd.substr(1);
 			}
 		}
+		if (cd) {
+			cmd = `cd ${cd} && ${cmd}`;
+		}
 		// process.stdin.setRawMode(true);
 		process.stdin.resume();
+		console.log('Install depe', app, 'Run:', cmd);
 
-		console.log('Install depe', check, 'Run:', cmd);
-
-		var r = await exec(cmd, {
-			stdout: process.stdout,
-			stderr: process.stderr, stdin: process.stdin,
-		});
-		if (r.code != 0) {
-			throw Error.new(`Run fail, "${cmd}"`);
-		}
+		await exec2(cmd);
 	}
 }
 
@@ -503,19 +522,24 @@ async function install_depe(opts, variables) {
 	var {cross_compiling} = variables;
 	var dpkg = {};
 
+	var autoconf = { // 'brew install autoconf'
+		pkgCmds: [ `./configure`, `make`, `*make install` ],
+	};
+	var automake = {
+		pkgCmds: [ `./configure`, `make`, `*make install` ],
+		deps: { autoconf },
+	};
+	var yasm = {
+		pkgCmds: [ './autogen.sh', 'make -j2', '*make install' ],
+		deps: { autoconf, automake },
+	};
+
 	if (host_os == 'linux') {
-		var deps = {
-			dtrace: '*apt-get install systemtap-sdt-dev -y',
-			autoconf: '*apt-get install autoconf -y',
-		};
 		if (arch == 'x86' || arch == 'x64') {
-			dpkg.yasm = {
-				cmds: [
-					`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
-					`*make -C ${__dirname}/yasm install`,
-				],
-				deps,
-			};
+			yasm.deps.dtrace = '*apt-get install systemtap-sdt-dev -y';
+			// yasm.deps.automake = '*apt-get install automake -y';
+			// yasm.deps.autoconf = '*apt-get install autoconf -y';
+			dpkg.yasm = yasm;
 		}
 		if (os == 'linux') {
 			if (cross_compiling) {
@@ -535,19 +559,8 @@ async function install_depe(opts, variables) {
 		}
 	}
 	else if (host_os == 'osx') {
-		var deps = {
-			autoconf: 'brew install autoconf',
-			// ftp: 'brew install inetutils',
-			automake: 'brew install automake',
-		};
 		if (arch == 'x86' || arch == 'x64') {
-			dpkg.yasm = { 
-				cmds: [
-					`cd ${__dirname}/yasm && ./autogen.sh && make -j2`,
-					`*make -C ${__dirname}/yasm install`,
-				],
-				deps,
-			};
+			dpkg.yasm = yasm;
 		}
 	}
 	else {
@@ -555,7 +568,7 @@ async function install_depe(opts, variables) {
 	}
 
 	for (var i in dpkg) {
-		await exec_check(i, dpkg[i]);
+		await install_check(i, dpkg[i]);
 	}
 }
 
@@ -581,6 +594,10 @@ async function configure() {
 		console.log('Configuration:');
 		console.log('  ' + help_info.join('\n  '));
 		return;
+	}
+
+	if ( ! fs.existsSync('out') ) {
+		fs.mkdirSync('out');
 	}
 
 	// 
@@ -1031,10 +1048,6 @@ async function configure() {
 		console.log('');
 		console.log(config_gypi_str, '\n');
 		console.log(config_mk_str);
-	}
-
-	if ( ! fs.existsSync('out') ) {
-		fs.mkdirSync('out');
 	}
 
 	fs.writeFileSync('out/config.gypi', config_gypi_str);

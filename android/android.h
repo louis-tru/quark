@@ -39,48 +39,48 @@
 
 namespace ftr {
 
-/**
- * @class Android
-*/
-class FX_EXPORT Android {
- public:
-	static void initialize();
-	// gui
-	static void ime_keyboard_open(bool clear, int type, int return_type);
-	static void ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
-	static void ime_keyboard_close();
-	static void keep_screen(bool value);
-	static int  get_status_bar_height();
-	static void set_visible_status_bar(bool visible);
-	static void set_status_bar_style(int style);
-	static void request_fullscreen(bool fullscreen);
-	static int  get_orientation();
-	static void set_orientation(int orientation);
-	static float get_display_scale();
-	static bool is_screen_on();
-	static void set_volume_up();
-	static void set_volume_down();
-	static void open_url(cString& url);
-	static void send_email(cString& recipient,
-												 cString& subject,
-												 cString& cc, cString& bcc, cString& body);
-	// util
-	static String start_cmd();
-	static String package_code_path();
-	static String files_dir_path();
-	static String cache_dir_path();
-	static String version();
-	static String brand();
-	static String subsystem();
-	static int    network_status();
-	static bool   is_ac_power();
-	static bool   is_battery();
-	static float  battery_level();
-	static String language();
-	static uint64 available_memory();
-	static uint64 memory();
-	static uint64 used_memory();
-};
+	/**
+	* @class Android
+	*/
+	class FX_EXPORT Android {
+		public:
+		static void initialize();
+		// gui
+		static void ime_keyboard_open(bool clear, int type, int return_type);
+		static void ime_keyboard_can_backspace(bool can_backspace, bool can_delete);
+		static void ime_keyboard_close();
+		static void keep_screen(bool value);
+		static int  get_status_bar_height();
+		static void set_visible_status_bar(bool visible);
+		static void set_status_bar_style(int style);
+		static void request_fullscreen(bool fullscreen);
+		static int  get_orientation();
+		static void set_orientation(int orientation);
+		static float get_display_scale();
+		static bool is_screen_on();
+		static void set_volume_up();
+		static void set_volume_down();
+		static void open_url(cString& url);
+		static void send_email(cString& recipient,
+													cString& subject,
+													cString& cc, cString& bcc, cString& body);
+		// util
+		static String start_cmd();
+		static String package_code_path();
+		static String files_dir_path();
+		static String cache_dir_path();
+		static String version();
+		static String brand();
+		static String subsystem();
+		static int    network_status();
+		static bool   is_ac_power();
+		static bool   is_battery();
+		static float  battery_level();
+		static String language();
+		static uint64 available_memory();
+		static uint64 memory();
+		static uint64 used_memory();
+	};
 
 }
 
