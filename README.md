@@ -18,7 +18,7 @@ Build source and install ftrp
 
 2. Setting environment variable `JAVA_HOME` and `ANDROID_SDK` and `ANDROID_NDK` directory.
 
-3. Pull dependent librarys, execute `make init`.
+3. Pull dependent librarys, execute `make pull`.
 
 Compile and install ftrp, execute `make` or `make install`, It takes a long time.
 
