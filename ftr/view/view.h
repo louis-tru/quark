@@ -28,15 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-#ifndef __ftr__views__view__
-#define __ftr__views__view__
+#ifndef __ftr__view__view__
+#define __ftr__view__view__
 
 #include "../util/object.h"
 #include "../value.h"
+#include "../background.h"
 
 namespace ftr {
 
+	/**
+	 * 构成GUI树的基本节点元素,所有功能节点的父类,这是一个标准的盒模型
+	 * @class View
+	 */
 	class FX_EXPORT View: public Reference {
 		FX_HIDDEN_ALL_COPY(View);
 		public:
@@ -57,6 +61,14 @@ namespace ftr {
 		float  _opacity;    /* 可影响子视图的透明度值 */
 		Mat   _final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
 		float _final_opacity; /* 最终的不透明值 */
+		Vec2 _size; // width,height
+		Vec4 _margin, _padding; // top,right,bottom,left
+		float _border[4];
+		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
+		Vec2  _origin; /* 以该点 位移,缩放,旋转,歪斜 */
+		float _weight; // layout weight
+		Background *_background; // background, box-shadow
+		LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
 	};
 
 }

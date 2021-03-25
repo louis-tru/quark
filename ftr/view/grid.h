@@ -28,15 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__grid__
-#define __ftr__views__grid__
+#ifndef __ftr__view__grid__
+#define __ftr__view__grid__
 
-#include "./box.h"
+#include "./view.h"
 
 namespace ftr {
 
-	class FX_EXPORT Grid: public Box {
-		FX_HIDDEN_ALL_COPY(Grid);
+	/**
+	 * 网格布局（Grid）
+	 * @class GridLayout
+	 */
+	class FX_EXPORT GridLayout: public View {
+		FX_HIDDEN_ALL_COPY(GridLayout);
 		public:
 		// TODO ...
 		private:

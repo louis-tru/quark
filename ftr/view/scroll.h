@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__scroll__
-#define __ftr__views__scroll__
+#ifndef __ftr__view__scroll__
+#define __ftr__view__scroll__
 
-#include "./box.h"
+#include "./flow.h"
 
 namespace ftr {
 
-	class FX_EXPORT Scroll: public Flex {
+	class FX_EXPORT Scroll: public FlowLayout {
 		FX_HIDDEN_ALL_COPY(Scroll);
 		public:
 		// TODO ...

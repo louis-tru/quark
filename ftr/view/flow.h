@@ -28,15 +28,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__flow__
-#define __ftr__views__flow__
+#ifndef __ftr__view__flow__
+#define __ftr__view__flow__
 
-#include "./box.h"
+#include "./view.h"
 
 namespace ftr {
 
-	class FX_EXPORT Flow: public Box {
-		FX_HIDDEN_ALL_COPY(Flow);
+	/**
+	 * @class FlowLayout
+	 */
+	class FX_EXPORT FlowLayout: public View {
+		FX_HIDDEN_ALL_COPY(FlowLayout);
 		public:
 		// TODO ...
 		private:

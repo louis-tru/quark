@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__input__
-#define __ftr__views__input__
+#ifndef __ftr__view__input__
+#define __ftr__view__input__
 
-#include "./box.h"
+#include "./input.h"
 
 namespace ftr {
 
-	class FX_EXPORT Input: public Box {
+	class FX_EXPORT Input: public View {
 		FX_HIDDEN_ALL_COPY(Input);
 		public:
 		// TODO ...

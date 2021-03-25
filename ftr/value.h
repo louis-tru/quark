@@ -119,19 +119,17 @@ namespace ftr {
 			F(COLUMN,             column) \
 			F(COLUMN_REVERSE,     column_reverse) \
 			F(WRAP_REVERSE,       wrap_reverse) \
-
-		#define DEF_ENUM_VALUE(NAME, NAME2) NAME,
 		
 		enum Enum {
+			#define DEF_ENUM_VALUE(NAME, NAME2) NAME,
 			FX_ENUM_VALUE(DEF_ENUM_VALUE)
+			#undef DEF_ENUM_VALUE
 		};
-
-		#undef DEF_ENUM_VALUE
 
 		/**
 		 * @enum KeyboardType
 		 */
-		enum class KeyboardType: uint8_t {
+		enum class KeyboardType: uint16_t {
 			NORMAL = value::NORMAL,
 			ASCII = value::ASCII,
 			NUMBER = value::NUMBER,
@@ -149,7 +147,7 @@ namespace ftr {
 		/**
 		* @enum KeyboardReturnType
 		*/		
-		enum class KeyboardReturnType: uint8_t {
+		enum class KeyboardReturnType: uint16_t {
 			NORMAL = value::NORMAL,
 			GO = value::GO,
 			JOIN = value::JOIN,
@@ -165,7 +163,7 @@ namespace ftr {
 		/**
 		* @enum Direction
 		*/
-		enum class Direction: uint8_t {
+		enum class Direction: uint16_t {
 			NONE = value::NONE,
 			LEFT = value::LEFT,
 			RIGHT = value::RIGHT,
@@ -176,7 +174,7 @@ namespace ftr {
 		/**
 		* @enum ValueType
 		*/
-		enum class ValueType: uint8_t {
+		enum class ValueType: uint16_t {
 			AUTO = value::AUTO,    /* 自动值  auto */
 			FULL = value::FULL,    /* 吸附到父视图(client边距与父视图重叠) full */
 			PIXEL = value::PIXEL,   /* 像素值  px */
@@ -187,7 +185,7 @@ namespace ftr {
 		/**
 		* @enum BackgroundPositionType
 		*/
-		enum class BackgroundPositionType: uint8_t {
+		enum class BackgroundPositionType: uint16_t {
 			PIXEL = value::PIXEL,     /* 像素值  px */
 			PERCENT = value::PERCENT,   /* 百分比  % */
 			LEFT = value::LEFT,      /* 居左 */
@@ -200,7 +198,7 @@ namespace ftr {
 		/**
 		* @enum BackgroundSizeType
 		*/
-		enum class BackgroundSizeType: uint8_t {
+		enum class BackgroundSizeType: uint16_t {
 			AUTO = value::AUTO,      /* 自动值  auto */
 			PIXEL = value::PIXEL,     /* 像素值  px */
 			PERCENT = value::PERCENT,   /* 百分比  % */
@@ -209,7 +207,7 @@ namespace ftr {
 		/**
 		* @enum TextValueType
 		*/
-		enum class TextValueType: uint8_t {
+		enum class TextValueType: uint16_t {
 			INHERIT = value::INHERIT,
 			VALUE = value::VALUE,
 		};
@@ -217,7 +215,7 @@ namespace ftr {
 		/**
 		* @enum TextStyleEnum
 		*/
-		enum class TextStyleEnum: uint8_t {
+		enum class TextStyleEnum: uint16_t {
 			THIN = value::THIN,
 			ULTRALIGHT = value::ULTRALIGHT,
 			LIGHT = value::LIGHT,
@@ -242,21 +240,21 @@ namespace ftr {
 		/**
 		* @enum TextDecorationEnum
 		*/
-		enum class TextDecorationEnum: uint8_t {
+		enum class TextDecorationEnum: uint16_t {
 			NONE = value::NONE,           /* 没有 */
 			OVERLINE = value::OVERLINE,       /* 上划线 */
 			LINE_THROUGH = value::LINE_THROUGH,   /* 中划线 */
 			UNDERLINE = value::UNDERLINE,      /* 下划线 */
 		};
 
-		enum class TextOverflowEnum: uint8_t {
+		enum class TextOverflowEnum: uint16_t {
 			NORMAL = value::NORMAL,          /* 不做任何处理 */
 			CLIP = value::CLIP,            /* 剪切 */
 			ELLIPSIS = value::ELLIPSIS,        /* 剪切并显示省略号 */
 			CENTER_ELLIPSIS = value::CENTER_ELLIPSIS, /* 剪切并居中显示省略号 */
 		};
 		
-		enum class TextWhiteSpaceEnum: uint8_t {
+		enum class TextWhiteSpaceEnum: uint16_t {
 			NORMAL = value::NORMAL,           /* 保留所有空白,使用自动wrap */
 			NO_WRAP = value::NO_WRAP,          /* 合并空白序列,不使用自动wrap */
 			NO_SPACE = value::NO_SPACE,         /* 合并空白序列,使用自动wrap */
@@ -268,7 +266,7 @@ namespace ftr {
 		/**
 		* @enum TextAlign 文本对齐方式
 		*/
-		enum class TextAlign: uint8_t {
+		enum class TextAlign: uint16_t {
 			LEFT = value::LEFT,           /* 左对齐 */
 			CENTER = value::CENTER,         /* 居中 */
 			RIGHT = value::RIGHT,          /* 右对齐 */
@@ -280,7 +278,7 @@ namespace ftr {
 		/**
 		* @enum LayoutAlign 对齐方式
 		*/
-		enum class LayoutAlign: uint8_t {
+		enum class LayoutAlign: uint16_t {
 			LEFT = value::LEFT,
 			RIGHT = value::RIGHT,
 			CENTER = value::CENTER,
@@ -291,7 +289,7 @@ namespace ftr {
 		/**
 		* @enum ContentAlign div 内容对齐方式
 		*/
-		enum class ContentAlign: uint8_t {
+		enum class ContentAlign: uint16_t {
 			LEFT = value::LEFT,    /* 水平左对齐 */
 			RIGHT = value::RIGHT,   /* 水平右对齐 */
 			TOP = value::TOP,     /* 垂直上对齐 */
@@ -301,7 +299,7 @@ namespace ftr {
 		/**
 		* @enum Repeat 纹理重复方式
 		*/
-		enum class Repeat: uint8_t {
+		enum class Repeat: uint16_t {
 			NONE = Enum::NONE,
 			REPEAT = Enum::REPEAT,
 			REPEAT_X = Enum::REPEAT_X,

@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__video__
-#define __ftr__views__video__
+#ifndef __ftr__view__video__
+#define __ftr__view__video__
 
 #include "./image.h"
 

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015, xuewen.chu
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of xuewen.chu nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,71 +25,27 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
-#include "./panel.h"
-#include "./button.h"
-#include "../_app.h"
+#ifndef __ftr__view__svg__
+#define __ftr__view__svg__
+
+#include "./view.h"
 
 namespace ftr {
 
-	FX_DEFINE_INLINE_MEMBERS(Panel, Inl) {
+	/**
+	 * @class Svg
+	 */
+	class FX_EXPORT Svg: public View {
+		FX_HIDDEN_ALL_COPY(Svg);
 		public:
-		
-		static Button* first_button(View* v) {
-			
-			if ( v->as_panel() ) {
-				return nullptr;
-			}
-			else
-			if ( v->as_button() ) {
-				if ( v->final_visible() ) {
-					return v->as_button();
-				}
-			}
-			else {
-				v = v->first();
-				
-				while (v) {
-					Button* button = first_button(v);
-					if ( button ) {
-						return button;
-					}
-					v = v->next();
-				}
-			}
-			
-			return nullptr;
-		}
+		// TODO ...
+		private:
+		// TODO ...
 	};
 
-	Panel::Panel()
-		: _allow_leave(false)
-		, _allow_entry(false)
-		, _interval_time(0), _enable_select(true)
-	{}
-
-	bool Panel::is_activity() const {
-		View* view = app()->focus_view();
-		if (view) {
-			if ( view->as_button() ) {
-				return view->as_button()->panel() == this;
-			}
-		}
-		return false;
-	}
-
-	Panel* Panel::parent_panel() {
-		View* v = parent();
-		while( v ) {
-			auto p = v->as_panel();
-			if ( p ) {
-				return p;
-			}
-			v = v->parent();
-		}
-		return nullptr;
-	}
-
 }
+
+#endif

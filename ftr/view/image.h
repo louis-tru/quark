@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__views__image__
-#define __ftr__views__image__
+#ifndef __ftr__view__image__
+#define __ftr__view__image__
 
-#include "./box.h"
+#include "./view.h"
 
 namespace ftr {
 
-	class FX_EXPORT Image: public Box {
+	class FX_EXPORT Image: public View {
 		FX_HIDDEN_ALL_COPY(Image);
 		public:
 		// TODO ...
