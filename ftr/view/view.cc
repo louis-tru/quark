@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, xuewen.chu
+ * Copyright © 2015-2016, xuewen.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__box__
-#define __ftr__view__box__
-
 #include "./view.h"
-#include "../background.h"
 
 namespace ftr {
 
-	/**
-	 * @class Box
-	 */
-	class FX_EXPORT Box: public View {
-		FX_HIDDEN_ALL_COPY(Box);
-		public:
-		// TODO ...
-		private:
-		// box attrs
-		Vec2 _size; // width,height
-		Vec4 _margin, _padding; // top,right,bottom,left
-		float _border[4];
-		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
-		Background *_background; // background, box-shadow
-		// int _features;
-		// LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
-	};
+	// 布局内部偏移补偿
+	Vec2 View::layout_inside_offset() const {
+		return _final_origin;
+	}
+
+	// 计算基础变换矩阵
+	const Mat& View::matrix() {
+		// xy 布局偏移
+		Vec2 offset = _layout_offset_start;
+		Vec2 layout_in = _parent ? _parent->layout_inside_offset(): Vec2();
+		offset.x( offset.x() + _final_origin.x() + _translate.x() - layout_in.x() );
+		offset.y( offset.y() + _final_origin.y() + _translate.y() - layout_in.y() );
+		// 更新基础矩阵
+		_matrix = Mat(offset, _scale, -_rotate, _skew);
+		return _matrix;
+	}
 
 }
-
-#endif

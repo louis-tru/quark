@@ -92,19 +92,17 @@ namespace ftr {
 			float sz  = sinf(rotate_z);
 			_value[0] = cz * scale[0];
 			_value[1] = sz * scale[1];
-			_value[2] = translate[0];
 			_value[3] = -sz * scale[0];
 			_value[4] = cz * scale[1];
-			_value[5] = translate[1];
 		}
 		else {
 			_value[0] = scale[0];
 			_value[1] = 0;
-			_value[2] = translate[0];
 			_value[3] = 0;
 			_value[4] = scale[1];
-			_value[5] = translate[1];
 		}
+		_value[2] = translate[0];
+		_value[5] = translate[1];
 		if (skew[0] != 0.0f || skew[1] != 0.0f) {
 			Mat::skew(skew[0], skew[1]);
 		}

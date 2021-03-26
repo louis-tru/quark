@@ -43,6 +43,8 @@ namespace ftr {
 		public:
 		// TODO ...
 		private:
+		Color _text_background_color;
+		TextLineHeight _line_height;
 	};
 
 }
