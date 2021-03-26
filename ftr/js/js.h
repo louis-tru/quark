@@ -396,21 +396,21 @@ class FX_EXPORT CallbackScope: public NoCopy {
 
 class FX_EXPORT JSValue: public NoCopy {
 	public:
-  bool IsUndefined() const;
-  bool IsNull() const;
-  bool IsString() const;
-  bool IsBoolean() const;
-  bool IsObject() const;
-  bool IsArray() const;
-  bool IsDate() const;
-  bool IsNumber() const;
-  bool IsUint32() const;
-  bool IsInt32() const;
-  bool IsFunction() const;
-  bool IsArrayBuffer() const;
-  bool IsTypedArray() const;
-  bool IsUint8Array() const;
-  bool IsBuffer() const; // IsTypedArray or IsArrayBuffer
+	bool IsUndefined() const;
+	bool IsNull() const;
+	bool IsString() const;
+	bool IsBoolean() const;
+	bool IsObject() const;
+	bool IsArray() const;
+	bool IsDate() const;
+	bool IsNumber() const;
+	bool IsUint32() const;
+	bool IsInt32() const;
+	bool IsFunction() const;
+	bool IsArrayBuffer() const;
+	bool IsTypedArray() const;
+	bool IsUint8Array() const;
+	bool IsBuffer() const; // IsTypedArray or IsArrayBuffer
 	bool IsUndefined(Worker* worker) const;
 	bool IsNull(Worker* worker) const;
 	bool IsString(Worker* worker) const;
@@ -424,8 +424,8 @@ class FX_EXPORT JSValue: public NoCopy {
 	bool IsFunction(Worker* worker) const;
 	bool IsArrayBuffer(Worker* worker) const;
 	bool IsTypedArray(Worker* worker) const;
-  bool IsUint8Array(Worker* worker) const;
-  bool IsBuffer(Worker* worker) const;
+	bool IsUint8Array(Worker* worker) const;
+	bool IsBuffer(Worker* worker) const;
 	bool Equals(Local<JSValue> val) const;
 	bool Equals(Worker* worker, Local<JSValue> val) const;
 	bool StrictEquals(Local<JSValue> val) const;
@@ -538,10 +538,10 @@ class FX_EXPORT JSArrayBuffer: public JSObject {
 
 class FX_EXPORT JSTypedArray: public JSObject {
 	public:
-  Local<JSArrayBuffer> Buffer(Worker* worker);
-  WeakBuffer weakBuffer(Worker* worker);
-  int ByteLength(Worker* worker);
-  int ByteOffset(Worker* worker);
+	Local<JSArrayBuffer> Buffer(Worker* worker);
+	WeakBuffer weakBuffer(Worker* worker);
+	int ByteLength(Worker* worker);
+	int ByteOffset(Worker* worker);
 };
 
 class FX_EXPORT JSUint8Array: public JSTypedArray {
@@ -549,9 +549,9 @@ class FX_EXPORT JSUint8Array: public JSTypedArray {
 
 class FX_EXPORT JSSet: public JSObject {
 	public:
-  MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
-  Maybe<bool> Has(Worker* worker, Local<JSValue> key);
-  Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
+	MaybeLocal<JSSet> Add(Worker* worker, Local<JSValue> key);
+	Maybe<bool> Has(Worker* worker, Local<JSValue> key);
+	Maybe<bool> Delete(Worker* worker, Local<JSValue> key);
 };
 
 class FX_EXPORT JSClass: public NoCopy {
@@ -616,7 +616,7 @@ class FX_EXPORT Worker: public Object {
 	 * @func registerModule
 	 */
 	static void registerModule(cString& name,
-                             BindingCallback binding, cChar* file = nullptr);
+														 BindingCallback binding, cChar* file = nullptr);
 
 	/**
 	 * @func bindingModule
@@ -653,18 +653,18 @@ class FX_EXPORT Worker: public Object {
 	Local<JSObject> New(const Dirent& dir);
 	Local<JSArray>  New(Array<Dirent>& data);
 	Local<JSArray>  New(Array<Dirent>&& data);
-  
-  inline Local<JSBoolean> New(const Bool& v) { return New(v.value); }
-  inline Local<JSNumber>  New(const Float& v) { return New(v.value); }
-  inline Local<JSNumber>  New(const Double& v) { return New(v.value); }
-  inline Local<JSInt32>   New(cChar& v) { return New(v.value); }
-  inline Local<JSUint32>  New(const Byte& v) { return New(v.value); }
-  inline Local<JSInt32>   New(const Int16& v) { return New(v.value); }
-  inline Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
-  inline Local<JSInt32>   New(const Int& v) { return New(v.value); }
-  inline Local<JSUint32>  New(const Uint& v) { return New(v.value); }
-  inline Local<JSNumber>  New(const Int64& v) { return New(v.value); }
-  inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
+	
+	inline Local<JSBoolean> New(const Bool& v) { return New(v.value); }
+	inline Local<JSNumber>  New(const Float& v) { return New(v.value); }
+	inline Local<JSNumber>  New(const Double& v) { return New(v.value); }
+	inline Local<JSInt32>   New(const Int8& v) { return New(v.value); }
+	inline Local<JSUint32>  New(const Uint8& v) { return New(v.value); }
+	inline Local<JSInt32>   New(const Int16& v) { return New(v.value); }
+	inline Local<JSUint32>  New(const Uint16& v) { return New(v.value); }
+	inline Local<JSInt32>   New(const Int32& v) { return New(v.value); }
+	inline Local<JSUint32>  New(const Uint32& v) { return New(v.value); }
+	inline Local<JSNumber>  New(const Int64& v) { return New(v.value); }
+	inline Local<JSNumber>  New(const Uint64& v) { return New(v.value); }
 	
 	template <class T>
 	FX_INLINE Local<T> New(Local<T> val) { return val; }
@@ -680,13 +680,13 @@ class FX_EXPORT Worker: public Object {
 
 	Local<JSObject> NewInstance(uint64_t id, uint32_t argc = 0, Local<JSValue>* argv = nullptr);
 	Local<JSString> NewString(cBuffer& data);
-  Local<JSString> NewAscii(cChar* str);
-  Local<JSArrayBuffer> NewArrayBuffer(Char* use_buff, uint32_t len);
-  Local<JSArrayBuffer> NewArrayBuffer(uint32_t len);
+	Local<JSString> NewAscii(cChar* str);
+	Local<JSArrayBuffer> NewArrayBuffer(Char* use_buff, uint32_t len);
+	Local<JSArrayBuffer> NewArrayBuffer(uint32_t len);
 	Local<JSUint8Array> NewUint8Array(Local<JSString> str, Encoding enc = Encoding::utf8);
-  Local<JSUint8Array> NewUint8Array(int size, Char fill = 0);
-  Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab);
-  Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab, uint32_t offset, uint32_t size);
+	Local<JSUint8Array> NewUint8Array(int size, Char fill = 0);
+	Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab);
+	Local<JSUint8Array> NewUint8Array(Local<JSArrayBuffer> ab, uint32_t offset, uint32_t size);
 	Local<JSObject> NewRangeError(cChar* errmsg, ...);
 	Local<JSObject> NewReferenceError(cChar* errmsg, ...);
 	Local<JSObject> NewSyntaxError(cChar* errmsg, ...);
@@ -699,7 +699,7 @@ class FX_EXPORT Worker: public Object {
 	Local<JSArray>  NewArray(uint32_t len = 0);
 	Local<JSValue>  NewNull();
 	Local<JSValue>  NewUndefined();
-  Local<JSSet>    NewSet();
+	Local<JSSet>    NewSet();
 	
 	template<class T>
 	static inline Local<JSValue> New(const Object& obj, Worker* worker) {
@@ -716,7 +716,7 @@ class FX_EXPORT Worker: public Object {
 	 * @func hasInstance
 	 */
 	bool hasInstance(Local<JSValue> val, uint64_t id);
-  
+	
 	/**
 	 * @func hasView() has View type
 	 */
@@ -875,7 +875,7 @@ class FX_EXPORT WrapObject {
 	virtual bool removeEventListener(cString& name, int id) {
 		return false;
 	}
-  
+	
 	inline Worker* worker() {
 		return handle_.worker_;
 	}
@@ -898,7 +898,7 @@ class FX_EXPORT WrapObject {
 		return handle_.local()->Delete(worker(), key);
 	}
 	
-  // call member func
+	// call member func
 	Local<JSValue> call(Local<JSValue> name, int argc = 0, Local<JSValue> argv[] = nullptr);
 	Local<JSValue> call(cString& name, int argc = 0, Local<JSValue> argv[] = nullptr);
 	

@@ -28,22 +28,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__canvas__
-#define __ftr__view__canvas__
+#ifndef __ftr__view__box__
+#define __ftr__view__box__
 
 #include "./view.h"
+#include "../background.h"
 
 namespace ftr {
 
 	/**
-	 * @class Canvas
+	 * @class Box
 	 */
-	class FX_EXPORT Canvas: public View {
-		FX_HIDDEN_ALL_COPY(Canvas);
+	class FX_EXPORT Box: public View {
+		FX_HIDDEN_ALL_COPY(Box);
 		public:
 		// TODO ...
 		private:
-		// TODO ...
+		// box attrs
+		Vec2 _size; // width,height
+		Vec4 _margin, _padding; // top,right,bottom,left
+		float _border[4];
+		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
+		Vec2  _origin; /* 以该点 位移,缩放,旋转,歪斜 */
+		Background *_background; // background, box-shadow
+		// int _features;
+		// LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
 	};
 
 }

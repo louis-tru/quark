@@ -43,7 +43,6 @@ namespace ftr {
 		public:
 		// TODO ...
 		private:
-		// TODO ...
 	};
 
 }

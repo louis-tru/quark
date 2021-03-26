@@ -33,13 +33,13 @@
 
 #include "./view.h"
 
-namespace ftr {
+namespace box {
 
 	/**
 	 * 网格布局（Grid）
 	 * @class GridLayout
 	 */
-	class FX_EXPORT GridLayout: public View {
+	class FX_EXPORT GridLayout: public Box {
 		FX_HIDDEN_ALL_COPY(GridLayout);
 		public:
 		// TODO ...

@@ -31,14 +31,14 @@
 #ifndef __ftr__view__flow__
 #define __ftr__view__flow__
 
-#include "./view.h"
+#include "./box.h"
 
 namespace ftr {
 
 	/**
 	 * @class FlowLayout
 	 */
-	class FX_EXPORT FlowLayout: public View {
+	class FX_EXPORT FlowLayout: public Box {
 		FX_HIDDEN_ALL_COPY(FlowLayout);
 		public:
 		// TODO ...

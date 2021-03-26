@@ -31,14 +31,14 @@
 #ifndef __ftr__view__flex__
 #define __ftr__view__flex__
 
-#include "./view.h"
+#include "./box.h"
 
 namespace ftr {
 
 	/**
 	 * @class FlexLayout
 	 */
-	class FX_EXPORT FlexLayout: public View {
+	class FX_EXPORT FlexLayout: public Box {
 		FX_HIDDEN_ALL_COPY(FlexLayout);
 		public:
 

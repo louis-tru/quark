@@ -36,7 +36,9 @@
 namespace ftr {
 
 	class BackgroundImage;
+	class BackgroundColor;
 	class BackgroundGradient;
+	class BackgroundShadow;
 
 	/**
 	* @class Background
@@ -48,6 +50,7 @@ namespace ftr {
 			M_INVALID,
 			M_IMAGE,
 			M_GRADIENT,
+			M_SHADOW,
 		};
 
 		enum HolderMode {
@@ -138,6 +141,15 @@ namespace ftr {
 	typedef Background* BackgroundPtr;
 
 	/**
+	 * @class BackgroundColor
+	 */
+	class FX_EXPORT BackgroundColor: public Background {
+		public:
+		protected:
+		virtual Background* copy(Background* to);
+	};
+
+	/**
 	* @class BackgroundImage
 	*/
 	class FX_EXPORT BackgroundImage: public Background {
@@ -191,6 +203,16 @@ namespace ftr {
 		protected:
 		virtual Background* copy(Background* to);
 		friend class GLDraw;
+	};
+
+	/**
+	 * @class BackgroundShadow
+	 */
+	class FX_EXPORT BackgroundShadow: public Background {
+		public:
+		// TODO ...
+		protected:
+		virtual Background* copy(Background* to);
 	};
 
 }

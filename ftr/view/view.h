@@ -33,7 +33,6 @@
 
 #include "../util/object.h"
 #include "../value.h"
-#include "../background.h"
 
 namespace ftr {
 
@@ -49,26 +48,23 @@ namespace ftr {
 		virtual void layout_reverse();
 		virtual void draw();
 
+		protected:
+		virtual void layout_limit_size(Vec2 size);
+
 		private:
 		View *_parent;
-		View *_first, *_last;
-		View *_prev, *_next;
+		View *_first, *_last, *_prev, *_next;
 		View *_next_pre_mark; /* 下一个标记预处理视图 */
 		Action *_action;
 		uint32_t _level; /* 在视图树中所处的层级 */
-		Vec2   _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
-		float  _rotateZ;    /* z轴旋转角度值 */
-		float  _opacity;    /* 可影响子视图的透明度值 */
+		Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
+		float _rotateZ;    /* z轴旋转角度值 */
+		float _opacity;    /* 可影响子视图的透明度值 */
 		Mat   _final_matrix;  /* 父视图矩阵乘以基础矩阵等于最终变换矩阵 */
 		float _final_opacity; /* 最终的不透明值 */
-		Vec2 _size; // width,height
-		Vec4 _margin, _padding; // top,right,bottom,left
-		float _border[4];
-		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
-		Vec2  _origin; /* 以该点 位移,缩放,旋转,歪斜 */
-		float _weight; // layout weight
-		Background *_background; // background, box-shadow
-		LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
+		float _layout_weight; // layout weight
+		Vec2  _layout_offset_start; /* 相对父视图的开始偏移位置 */
+		Vec2  _layout_offset_end;   /* 相对父视图的结束偏移位置 */
 	};
 
 }

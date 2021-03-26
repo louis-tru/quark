@@ -31,11 +31,11 @@
 #ifndef __ftr__view__image__
 #define __ftr__view__image__
 
-#include "./view.h"
+#include "./box.h"
 
 namespace ftr {
 
-	class FX_EXPORT Image: public View {
+	class FX_EXPORT Image: public Box {
 		FX_HIDDEN_ALL_COPY(Image);
 		public:
 		// TODO ...

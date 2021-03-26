@@ -31,11 +31,11 @@
 #ifndef __ftr__view__input__
 #define __ftr__view__input__
 
-#include "./input.h"
+#include "./box.h"
 
 namespace ftr {
 
-	class FX_EXPORT Input: public View {
+	class FX_EXPORT Input: public Box {
 		FX_HIDDEN_ALL_COPY(Input);
 		public:
 		// TODO ...
