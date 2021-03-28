@@ -109,28 +109,45 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 基础变换矩阵,通过计算translate/scale/skew/rotate/layout_offset得到
+		 * 视图基础变换矩阵
+		 * Mat(layout_offset+final_origin+translate-parent->layout_inside_offset,scale,rotate,skew)
 		 * 
 		 * @func matrix()
 		 */
-		const Mat& matrix();
+		Mat matrix();
+
+		/**
+		 * 
+		 * 视图最终变换矩阵, parent.final_matrix * matrix
+		 * 
+		 * @func final_matrix()
+		 */
+		const Mat& final_matrix();
+
+		/**
+		 *
+		 * 可影响子视图的透明度值
+		 *
+		 * @func opacity()
+		 */
+		inline float opacity() {
+			return _opacity;
+		}
 
 		private:
 		View *_parent;
 		View *_first, *_last, *_prev, *_next;
-		View *_next_pre_mark; // 下一个标记预处理视图
+		// View *_next_pre_mark; // 下一个标记预处理视图
 		Action *_action; //
-		uint32_t _level; // 在视图树中所处的层级
+		// uint32_t _level; // 在视图树中所处的层级
 		Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
 		float _rotate;     // z轴旋转角度值
-		Mat   _matrix;     // 基础变换矩阵,通过计算translate/scale/skew/rotate/layout_offset得到
 		float _opacity;    // 可影响子视图的透明度值
 		Vec2  _final_origin;  // 最终以该点 位移,缩放,旋转,歪斜
-		Mat   _final_matrix;  // 父视图矩阵乘以基础矩阵等于最终变换矩阵 (parent.matrix * matrix)
-		float _final_opacity; // 最终的不透明值
+		Mat   _final_matrix;  // 父视图矩阵乘以基础矩阵等于最终变换矩阵 (parent.final_matrix * matrix)
+		Vec2  _layout_offset_start; // 相对父视图的开始偏移位置（box包含margin值）
+		Vec2  _layout_offset_end; // 相对父视图的结束偏移位置（end=start+margin+border+padding+content）
 		float _layout_weight; // layout weight
-		Vec2  _layout_offset_start; // 相对父视图的开始偏移位置（如果父视图是box这个值是从margin开始算起）
-		Vec2  _layout_offset_end; // 相对父视图的结束偏移位置（如果为box=start+margin+border+padding+content）
 	};
 
 }

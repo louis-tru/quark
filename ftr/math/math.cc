@@ -87,7 +87,7 @@ namespace ftr {
 
 	Mat::Mat(Vec2 translate, Vec2 scale, float rotate_z, Vec2 skew) {
 		if (rotate_z) {
-			rotate_z  *= T_PI_RATIO_180;
+			rotate_z  *= T_PI_RATIO_180; // 
 			float cz  = cosf(rotate_z);
 			float sz  = sinf(rotate_z);
 			_value[0] = cz * scale[0];
@@ -101,8 +101,10 @@ namespace ftr {
 			_value[3] = 0;
 			_value[4] = scale[1];
 		}
+
 		_value[2] = translate[0];
 		_value[5] = translate[1];
+
 		if (skew[0] != 0.0f || skew[1] != 0.0f) {
 			Mat::skew(skew[0], skew[1]);
 		}

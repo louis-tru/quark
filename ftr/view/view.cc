@@ -38,15 +38,23 @@ namespace ftr {
 	}
 
 	// 计算基础变换矩阵
-	const Mat& View::matrix() {
-		// xy 布局偏移
-		Vec2 offset = _layout_offset_start;
+	Mat View::matrix() {
+		Vec2 offset = _layout_offset_start; // xy 布局偏移
 		Vec2 layout_in = _parent ? _parent->layout_inside_offset(): Vec2();
 		offset.x( offset.x() + _final_origin.x() + _translate.x() - layout_in.x() );
 		offset.y( offset.y() + _final_origin.y() + _translate.y() - layout_in.y() );
-		// 更新基础矩阵
-		_matrix = Mat(offset, _scale, -_rotate, _skew);
-		return _matrix;
+		return Mat(offset, _scale, -_rotate, _skew);
+	}
+
+	const Mat& View::final_matrix() {
+		if (1) { // update final_matrix
+			if (_parent) {
+				_parent->final_matrix().multiplication(matrix(), _final_matrix);
+			} else {
+				_final_matrix = matrix();
+			}
+		}
+		return _final_matrix;
 	}
 
 }
