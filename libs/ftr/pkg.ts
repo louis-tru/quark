@@ -1072,7 +1072,7 @@ class PackageIMPL {
 		}
 
 		if (!pathname) {
-			pathname = self.json.main;
+			pathname = self.json.main || 'index.js';
 		}
 
 		var ver: string | undefined, file_pathnames: string[];
@@ -1294,7 +1294,7 @@ class PackageExtend extends PackageIMPL {
 		}
 
 		if (!pathname) {
-			pathname = this.json.main;
+			pathname = this.json.main || 'index.js';
 		}
 
 		if (!this.versions.hasOwnProperty(pathname)) {
