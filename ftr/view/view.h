@@ -45,6 +45,16 @@ namespace ftr {
 		public:
 
 		/**
+		 * @constructors 
+		 */
+		View();
+
+		/**
+		 * @destructor 
+		 */
+		virtual ~View();
+
+		/**
 		 *
 		 * 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 		 * 
@@ -110,7 +120,7 @@ namespace ftr {
 		/**
 		 * 
 		 * 视图基础变换矩阵
-		 * Mat(layout_offset+final_origin+translate-parent->layout_inside_offset,scale,rotate,skew)
+		 * Mat(layout_offset + final_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
 		 * 
 		 * @func matrix()
 		 */
@@ -132,6 +142,16 @@ namespace ftr {
 		 */
 		inline float opacity() {
 			return _opacity;
+		}
+
+		/**
+		 *
+		 * 布局权重（比如在flex布局中代表布局的尺寸）
+		 *
+		 * @func layout_weight()
+		 */
+		inline float layout_weight() {
+			return _layout_weight;
 		}
 
 		private:

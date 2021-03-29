@@ -32,9 +32,33 @@
 
 namespace ftr {
 
+	View::View() {
+		// TODO ...
+	}
+
+	View::~View() {
+		// TODO ...
+	}
+
+	void View::layout_forward() {
+		// TODO ...
+	}
+
+	void View::layout_reverse() {
+		// TODO ...
+	}
+
+	void View::layout_size_lock(bool lock, Vec2 size) {
+		// TODO ...
+	}
+
 	// 布局内部偏移补偿
 	Vec2 View::layout_inside_offset() const {
 		return _final_origin;
+	}
+
+	void View::draw() {
+		// TODO ...
 	}
 
 	// 计算基础变换矩阵
