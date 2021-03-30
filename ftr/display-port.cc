@@ -179,7 +179,9 @@ namespace ftr {
 		}
 	}
 
-	#define PRINT_RENDER_FRAME_TIME 0
+	#ifndef PRINT_RENDER_FRAME_TIME
+	# define PRINT_RENDER_FRAME_TIME 0
+	#endif
 
 	/**
 	* @func render_frame()
@@ -204,9 +206,9 @@ namespace ftr {
 				r->draw(_draw_ctx); // 开始绘图
 				_inl(this)->solve_next_frame();
 				
-	#if DEBUG && PRINT_RENDER_FRAME_TIME
-				int64_t st = sys::time();
-	#endif
+				#if DEBUG && PRINT_RENDER_FRAME_TIME
+					int64_t st = os::time();
+				#endif
 				/*
 				* commit_render()非常耗时,渲染线程长时间占用`GUILock`会柱塞主线程。
 				* 所以这里释放`GUILock`，commit_render()主要是绘图相关的函数调用,
@@ -215,14 +217,14 @@ namespace ftr {
 				Inl2_RunLoop(_host->render_loop())->independent_mutex_unlock();
 				_draw_ctx->commit_render();
 				Inl2_RunLoop(_host->render_loop())->independent_mutex_lock();
-	#if DEBUG && PRINT_RENDER_FRAME_TIME
-				int64_t ts2 = (sys::time() - st) / 1e3;
-				if (ts2 > 16) {
-					LOG("ts: %ld -------------- ", ts2);
-				} else {
-					LOG("ts: %ld", ts2);
-				}
-	#endif
+				#if DEBUG && PRINT_RENDER_FRAME_TIME
+					int64_t ts2 = (os::time() - st) / 1e3;
+					if (ts2 > 16) {
+						LOG("ts: %ld -------------- ", ts2);
+					} else {
+						LOG("ts: %ld", ts2);
+					}
+				#endif
 				return;
 			}
 		}

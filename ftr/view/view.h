@@ -36,8 +36,11 @@
 
 namespace ftr {
 
+	class Action;
+
 	/**
-	 * 构成GUI树的基本元素
+	 * The basic elements of GUI tree
+	 *
 	 * @class View
 	 */
 	class FX_EXPORT View: public Reference {
@@ -45,14 +48,149 @@ namespace ftr {
 		public:
 
 		/**
-		 * @constructors 
+		 * @constructors
 		 */
 		View();
 
 		/**
-		 * @destructor 
+		 * @destructor
 		 */
 		virtual ~View();
+
+		/**
+		 * parent view
+		 *
+		 * @func parent()
+		 */
+		inline View* parent() const {
+			return _parent;
+		}
+
+		/**
+		 * first subview
+		 *
+		 * @func first()
+		 */
+		inline View* first() const {
+			return _first;
+		}
+
+		/**
+		 * last subview
+		 *
+		 * @func last()
+		 */
+		inline View* last() const {
+			return _last;
+		}
+
+		/**
+		 * Previous sibling view
+		 *
+		 * @func prev()
+		 */
+		inline View* prev() const {
+			return _prev;
+		}
+
+		/**
+		 * Next sibling view
+		 *
+		 * @func nect()
+		 */
+		inline View* next() {
+			return _next;
+		}
+
+		/**
+		 * Returns the objects that automatically adjust view properties
+		 *
+		 * @func action()
+		 */
+		inline Action* action() {
+			return _action;
+		}
+
+		/**
+		 * Returns the Matrix displacement
+		 *
+		 * @func translate
+		 */
+		inline Vec2 translate() const {
+			return _translate;
+		}
+
+		/**
+		 * Returns the Matrix scaling
+		 *
+		 * @func scale()
+		 */
+		inline Vec2 scale() const {
+			return _scale;
+		}
+
+		/**
+		 * Returns the Matrix skew
+		 *
+		 * @func skew()
+		 */
+		inline Vec2 skew() const {
+			return _skew;
+		}
+
+		/**
+		 * Returns the z-axis rotation of the matrix
+		 *
+		 * @func skew()
+		 */
+		inline float rotate() const {
+			return _rotate;
+		}
+
+		/**
+		 * Set the `action` properties of the view object
+		 *
+		 * @func set_action()
+		 */
+		void set_action(Action* val);
+
+		/**
+		 * Set the matrix `translate` properties of th view object
+		 *
+		 * @func set_translate()
+		 */
+		void set_translate(Vec2 val);
+
+		/**
+		 * Set the matrix `scale` properties of th view object
+		 *
+		 * @func set_scale()
+		 */
+		void set_scale(Vec2 val);
+
+		/**
+		 * Set the matrix `skew` properties of th view object
+		 *
+		 * @func set_skew()
+		 */
+		void set_skew(Vec2 val);
+
+		/**
+		 * Set the z-axis  matrix `rotate` properties of th view object
+		 *
+		 * @func set_rotate()
+		 */
+		void set_rotate(float val);
+
+		/**
+		 *
+		 * Returns the can affect the transparency of subviews
+		 *
+		 * @func opacity()
+		 */
+		inline float opacity() {
+			return _opacity;
+		}
 
 		/**
 		 *
@@ -84,6 +222,26 @@ namespace ftr {
 		virtual void layout_size_lock(bool lock, Vec2 size = Vec2());
 
 		/**
+		 * 
+		 * 相对父视图（layout_offset_start）开始的偏移量
+		 * 
+		 * @func layout_offset_start()
+		 */
+		inline Vec2 layout_offset_start() const {
+			return _layout_offset_start;
+		}
+
+		/**
+		 * 
+		 * 相对父视图（layout_offset_start）开始的偏移量
+		 * 
+		 * @func layout_offset_end()
+		 */
+		inline Vec2 layout_offset_end() const {
+			return _layout_offset_end;
+		}
+
+		/**
 		 *
 		 * 返回布局尺寸(如果为box,size=margin+border+padding+content)
 		 *
@@ -95,21 +253,11 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 相对父视图（layout_offset）的开始偏移位置
-		 * 
-		 * @func layout_offset()
-		 */
-		inline Vec2 layout_offset() const {
-			return _layout_offset_start;
-		}
-
-		/**
-		 * 
 		 * 布局内偏移补偿，影响子视图偏移位置
 		 *
-		 * @func layout_inside_offset()
+		 * @func layout_offset_inside()
 		 */
-		virtual Vec2 layout_inside_offset() const;
+		virtual Vec2 layout_offset_inside() const;
 
 		/**
 		 * 重新绘制视图以及内部子视图
@@ -127,22 +275,21 @@ namespace ftr {
 		Mat matrix();
 
 		/**
+		 * Start the matrix transformation from this origin point
+		 *
+		 * @func final_origin()
+		 */
+		inline Vec2 final_origin() const {
+			return _final_origin;
+		}
+
+		/**
 		 * 
 		 * 视图最终变换矩阵, parent.final_matrix * matrix
 		 * 
 		 * @func final_matrix()
 		 */
 		const Mat& final_matrix();
-
-		/**
-		 *
-		 * 可影响子视图的透明度值
-		 *
-		 * @func opacity()
-		 */
-		inline float opacity() {
-			return _opacity;
-		}
 
 		/**
 		 *

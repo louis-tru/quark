@@ -40,6 +40,26 @@ namespace ftr {
 		// TODO ...
 	}
 
+	void View::set_action(Action* val) {
+		// TODO ...
+	}
+
+	void View::set_translate(Vec2 val) {
+		// TODO ...
+	}
+
+	void View::set_scale(Vec2 val) {
+		// TODO ...
+	}
+
+	void View::set_skew(Vec2 val) {
+		// TODO ...
+	}
+
+	void View::set_rotate(float val) {
+		// TODO ...
+	}
+
 	void View::layout_forward() {
 		// TODO ...
 	}
@@ -52,8 +72,8 @@ namespace ftr {
 		// TODO ...
 	}
 
-	// 布局内部偏移补偿
-	Vec2 View::layout_inside_offset() const {
+	// 内部布局偏移补偿
+	Vec2 View::layout_offset_inside() const {
 		return _final_origin;
 	}
 
@@ -64,9 +84,9 @@ namespace ftr {
 	// 计算基础变换矩阵
 	Mat View::matrix() {
 		Vec2 offset = _layout_offset_start; // xy 布局偏移
-		Vec2 layout_in = _parent ? _parent->layout_inside_offset(): Vec2();
-		offset.x( offset.x() + _final_origin.x() + _translate.x() - layout_in.x() );
-		offset.y( offset.y() + _final_origin.y() + _translate.y() - layout_in.y() );
+		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
+		offset.x( offset.x() + _final_origin.x() + _translate.x() - in.x() );
+		offset.y( offset.y() + _final_origin.y() + _translate.y() - in.y() );
 		return Mat(offset, _scale, -_rotate, _skew);
 	}
 
