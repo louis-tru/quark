@@ -42,13 +42,42 @@ namespace ftr {
 	class FX_EXPORT Box: public View {
 		FX_HIDDEN_ALL_COPY(Box);
 		public:
-		// TODO ...
+
+		/**
+		 * @func width()
+		 */
+		inline float width() const {
+			return _size.width();
+		}
+		
+		/**
+		 * @func height()
+		 */
+		inline float height() const {
+			return _size.height();
+		}
+		
+		/**
+		 * @func background_color()
+		 */
+		inline Color background_color() const {
+			return _background_color;
+		}
+
+		/**
+		 * @func background()
+		 */
+		inline Background* background() {
+			return _background;
+		}
+
 		private:
 		// box attrs
 		Vec2 _size; // width,height
 		Vec4 _margin, _padding; // top,right,bottom,left
 		float _border[4];
 		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
+		Color _background_color; // background color
 		Background *_background; // background, box-shadow
 		// int _features;
 		// LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom

@@ -193,6 +193,13 @@ namespace ftr {
 		}
 
 		/**
+		 * Set the `opacity` properties of th view object
+		 *
+		 * @func set_opacity()
+		 */
+		void set_opacity(float val);
+
+		/**
 		 *
 		 * 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 		 * 
@@ -223,17 +230,17 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 相对父视图（layout_offset_start）开始的偏移量
+		 * 相对父视图（layout_offset）开始的偏移量
 		 * 
-		 * @func layout_offset_start()
+		 * @func layout_offset()
 		 */
-		inline Vec2 layout_offset_start() const {
-			return _layout_offset_start;
+		inline Vec2 layout_offset() const {
+			return _layout_offset;
 		}
 
 		/**
 		 * 
-		 * 相对父视图（layout_offset_start）开始的偏移量
+		 * 相对父视图（layout_offset）开始的偏移量
 		 * 
 		 * @func layout_offset_end()
 		 */
@@ -248,7 +255,7 @@ namespace ftr {
 		 * @func layout_size()
 		 */
 		inline Vec2 layout_size() const {
-			return _layout_offset_end - _layout_offset_start;
+			return _layout_offset_end - layout_offset;
 		}
 
 		/**
@@ -312,7 +319,7 @@ namespace ftr {
 		float _opacity;    // 可影响子视图的透明度值
 		Vec2  _final_origin;  // 最终以该点 位移,缩放,旋转,歪斜
 		Mat   _final_matrix;  // 父视图矩阵乘以基础矩阵等于最终变换矩阵 (parent.final_matrix * matrix)
-		Vec2  _layout_offset_start; // 相对父视图的开始偏移位置（box包含margin值）
+		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_offset_end; // 相对父视图的结束偏移位置（end=start+margin+border+padding+content）
 		float _layout_weight; // layout weight
 	};

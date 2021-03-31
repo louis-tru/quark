@@ -60,6 +60,10 @@ namespace ftr {
 		// TODO ...
 	}
 
+	void View::set_opacity(float val) {
+		// TODO ...
+	}
+
 	void View::layout_forward() {
 		// TODO ...
 	}
@@ -83,7 +87,7 @@ namespace ftr {
 
 	// 计算基础变换矩阵
 	Mat View::matrix() {
-		Vec2 offset = _layout_offset_start; // xy 布局偏移
+		Vec2 offset = _layout_offset; // xy 布局偏移
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
 		offset.x( offset.x() + _final_origin.x() + _translate.x() - in.x() );
 		offset.y( offset.y() + _final_origin.y() + _translate.y() - in.y() );
