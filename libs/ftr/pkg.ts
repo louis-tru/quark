@@ -157,6 +157,18 @@ function readLocalPackageLinkSync(pathname: string) {
 	}
 }
 
+function std_package_main(main?: string) {
+	if (main) {
+		main = String(main);
+		var i = 0, len = main.length;
+		while (i < len && './\\'.indexOf(main[i]) >= 0) {
+			i++;
+		}
+		return i < len ? main.slice(i) : '';
+	}
+	return '';
+}
+
 interface Cb {
 	(err?: Error): void;
 }
@@ -1072,7 +1084,7 @@ class PackageIMPL {
 		}
 
 		if (!pathname) {
-			pathname = self.json.main || 'index.js';
+			pathname = std_package_main(self.json.main);
 		}
 
 		var ver: string | undefined, file_pathnames: string[];
@@ -1092,7 +1104,7 @@ class PackageIMPL {
 			}
 		} else {
 			// 没有扩展名,尝试使用多个扩展名查找 .js .json .node ...
-			file_pathnames = [pathname, pathname + '/index'];
+			file_pathnames = pathname ? [pathname, pathname + '/index']: ['index'];
 		}
 
 		var extnames = Object.keys(Module._extensions);
@@ -1272,6 +1284,11 @@ class PackageIMPL {
 
 }
 
+/**
+ * ext://pkg ExtendModule Internal expansion module
+ * 
+ * @class PackageExtend
+ */
 class PackageExtend extends PackageIMPL {
 
 	constructor(name: string, modules: string[]) {
@@ -1294,7 +1311,8 @@ class PackageExtend extends PackageIMPL {
 		}
 
 		if (!pathname) {
-			pathname = this.json.main || 'index.js';
+			// It must be a standard
+			pathname = self.json.main; // std_package_main(self.json.main);
 		}
 
 		if (!this.versions.hasOwnProperty(pathname)) {
