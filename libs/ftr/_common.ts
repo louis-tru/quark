@@ -346,8 +346,8 @@ export function assert(condition: any, code?: number | ErrorNewArg): void {
 /**
  * @func sleep()
  */
-export function sleep<T>(time: number, defaultValue?: T): Promise<T> {
-	return new Promise((ok, err)=>setTimeout(()=>ok(defaultValue), time));
+export function sleep<T = number>(time: number, defaultValue?: T): Promise<T> {
+	return new Promise((ok, err)=>setTimeout(()=>ok((defaultValue || 0) as any), time));
 }
 
 export function timeout<T>(promise: Promise<T> | T, time: number): Promise<T> {
