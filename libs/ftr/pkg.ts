@@ -157,6 +157,19 @@ function readLocalPackageLinkSync(pathname: string) {
 	}
 }
 
+function std_package_main(main?: string) {
+	if (main) {
+		main = String(main);
+		var i = 0, len = main.length;
+		while (i < len && './\\'.indexOf(main[i]) >= 0) {
+			i++;
+		}
+		return i < len ? main.slice(i) : 'index';
+	} else {
+		return 'index';
+	}
+}
+
 interface Cb {
 	(err?: Error): void;
 }
@@ -1072,7 +1085,7 @@ class PackageIMPL {
 		}
 
 		if (!pathname) {
-			pathname = self.json.main;
+			pathname = std_package_main(self.json.main);
 		}
 
 		var ver: string | undefined, file_pathnames: string[];
@@ -1294,7 +1307,7 @@ class PackageExtend extends PackageIMPL {
 		}
 
 		if (!pathname) {
-			pathname = this.json.main;
+			pathname = std_package_main(self.json.main);
 		}
 
 		if (!this.versions.hasOwnProperty(pathname)) {
