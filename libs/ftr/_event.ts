@@ -218,7 +218,7 @@ export class Event<Data, Sender extends object = object> {
 	}
 
 	get noticer () {
-		return this._noticer as EventNoticer<Event<Data, Sender>>;
+		return this._noticer as EventNoticer<Event<Data, Sender>> | null;
 	}
 
 	constructor(data: Data) {
