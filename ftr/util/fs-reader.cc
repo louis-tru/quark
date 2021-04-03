@@ -40,6 +40,8 @@ namespace ftr {
 
 	String inl_format_part_path(cString& path);
 
+	static const String SEPARATOR("@/", 2);
+
 	typedef HttpHelper::ResponseData ResponseData;
 
 	class FileReader::Core {
@@ -104,15 +106,18 @@ namespace ftr {
 		}
 
 		String zip_path(cString& path) {
-			int  i = path.index_of('?');
-			if (i != -1) {
+			if (path.is_empty())
+				return String();
+			int i = path.index_of(SEPARATOR);
+			if (i != -1)
 				return path.substr(0, i);
-			}
+			if (path[path.length() - 1] == SEPARATOR[0])
+				return path.substr(0, path.length() - 1);
 			return String();
 		}
 
 		ZipReader* get_zip_reader(cString& path) throw(Error) {
-			ZipReader* reader = zips_[path.copy()];
+			ZipReader* reader = zips_[path];
 			if (reader) {
 				return reader;
 			}
@@ -121,7 +126,7 @@ namespace ftr {
 				Release(reader);
 				FX_THROW(ERR_FILE_NOT_EXISTS, "Cannot open zip file, `%s`", *path);
 			}
-			zips_[path.copy()] = reader;
+			zips_[path] = reader;
 			return reader;
 		}
 
@@ -130,7 +135,7 @@ namespace ftr {
 			ScopeLock lock(zip_mutex_);
 			try {
 				ZipReader* read = get_zip_reader(zip);
-				String inl_path = inl_format_part_path(path.substr(zip.length() + 1));
+				String inl_path = inl_format_part_path(path.substr(zip.length() + SEPARATOR.length()));
 				if ( read->jump(inl_path) ) {
 					buffer = read->read();
 				} else {
@@ -220,7 +225,7 @@ namespace ftr {
 					ScopeLock lock(zip_mutex_);
 					
 					ZipReader* read = get_zip_reader(zip);
-					String inl_path = inl_format_part_path( path.substr(zip.length() + 1) );
+					String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
 					
 					if ( read->jump(inl_path) ) {
 						rv = read->read();
@@ -259,7 +264,7 @@ namespace ftr {
 						FX_IGNORE_ERR({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
-							String inl_path = inl_format_part_path( path.substr(zip.length() + 1) );
+							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
 							if ( file && read->is_file( inl_path ) )
 								return true;
 							if ( dir && read->is_directory( inl_path ) )
@@ -284,7 +289,7 @@ namespace ftr {
 						FX_IGNORE_ERR({
 							ScopeLock lock(zip_mutex_);
 							ZipReader* read = get_zip_reader(zip);
-							String inl_path = inl_format_part_path( path.substr(zip.length() + 1) );
+							String inl_path = inl_format_part_path( path.substr(zip.length() + SEPARATOR.length()) );
 							rv = read->readdir(inl_path);
 						});
 					}

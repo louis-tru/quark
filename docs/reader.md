@@ -9,7 +9,7 @@
 
 * `file://` 本地文件路径。`/var/data` or `var/data` 都可做为本地路径，并不会出错。
 
-*	`zip://`	这是`zip`包内路径的一种表示方法，`zip:///var/data/test.zip@a.txt` 
+*	`zip://`	这是`zip`包内路径的一种表示方法，`zip:///var/data/test.zip@/a.txt` 
 这个路径表示`zip:///var/data/test.zip`中的`a.txt`文件。注意这个路径一定要存在于本地文件系统中
 
 

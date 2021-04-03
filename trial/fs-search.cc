@@ -91,7 +91,7 @@ String FileSearch::ZipInSearchPath::formatPath(cString& path1, cString& path2) {
 String FileSearch::ZipInSearchPath::get_absolute_path(cString& path) {
 	String s = formatPath(m_path, path);
 	if (m_zip.exists(s)) {
-		return String::format("zip://%s?/%s", *m_zip_path.substr(7), *s);
+		return String::format("zip://%s@/%s", /*file://*/*m_zip_path.substr(7), *s);
 	}
 	return String();
 }
@@ -119,7 +119,6 @@ FileSearch::ZipInSearchPath::ZipInSearchPath(cString& zip_path, cString& path)
 }
 
 FileSearch::ZipInSearchPath::~ZipInSearchPath() {
-	
 }
 
 FileSearch::FileSearch() {
@@ -127,9 +126,11 @@ FileSearch::FileSearch() {
 	cString& res = Path::resources();
 	
 	if (Path::is_local_zip(res)) { // zip pkg
-		int i = res.index_of('?');
+		int i = res.index_of('@/');
 		if (i != -1) {
-			add_zip_search_path(res, res.substr(i + 1));
+			add_zip_search_path(/*zip://*/res.substring(6, i), res.substr(i + 2));
+		} else if (res[res.length() - 1] == '@') {
+			add_zip_search_path(res.substr(0, res.length() - 1), String());
 		} else {
 			FX_WARN("Invalid path, %s", *res);
 		}
@@ -167,9 +168,9 @@ void FileSearch::add_search_path(cString& path) {
 void FileSearch::add_zip_search_path(cString& zip_path, cString& path) {
 	String _zip_path = Path::format("%s", *zip_path);
 	String _path = path;
-#if FX_WIN
-	_path = path.replace_all('\\', '/');
-#endif
+	#if FX_WIN
+		_path = path.replace_all('\\', '/');
+	#endif
 	_path = inl_format_part_path(path);
 	
 	auto it = m_search_paths.begin();
@@ -246,7 +247,7 @@ String FileSearch::get_absolute_path(cString& path) const {
 	if (path.substr(0, 7).lower_case().index_of("zip:///") == 0) {
 		
 		String path_s = path.substr(7);
-		Array<String> ls = path_s.split("?/");
+		Array<String> ls = path_s.split("@/");
 		
 		if (ls.length() > 1) {
 			String zip_path = ls[0];
@@ -293,7 +294,7 @@ Buffer FileSearch::read(cString& path) const {
 		if (path.substr(0, 7).lower_case().index_of("zip:///") == 0) { // zip pkg inner file
 			
 			String path_s = path.substr(7);
-			Array<String> ls = path_s.split("?/");
+			Array<String> ls = path_s.split("@/");
 			
 			if (ls.length() > 1) {
 				String zip_path = ls[0];
