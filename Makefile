@@ -45,6 +45,7 @@ install: product
 install-ftrp:
 	@$(NODE) ./tools/cp-ftrp.js
 	@cd $(FTRP_OUT) && npm i -f
+	@$(SUDO) rm -rf /usr/local/bin/ftrp
 	@cd $(FTRP_OUT) && $(SUDO) npm i -g
 
 $(FORWARD):
