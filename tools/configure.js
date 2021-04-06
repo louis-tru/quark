@@ -446,7 +446,7 @@ async function exec2(cmd) {
 		stderr: process.stderr, stdin: process.stdin,
 	});
 	if (r.code != 0) {
-		throw Error.new(`Run fail, "${cmd}"`);
+		throw Error.new(`Run cmd fail, "${cmd}", code = ${r.code}`);
 	}
 }
 
@@ -526,7 +526,7 @@ async function install_depe(opts, variables) {
 		pkgCmds: [ `./configure`, `make`, `*make install` ],
 	};
 	var automake = {
-		pkgCmds: [ `./configure`, `make`, `*make install` ],
+		pkgCmds: [ `./configure`, `make -j1`, `*make -j1 install` ],
 		deps: { autoconf },
 	};
 	var yasm = {
@@ -913,11 +913,11 @@ async function configure() {
 				return;
 			}
 			if ( ['arm', 'arm64', 'x86', 'x64'].indexOf(arch) == -1) {
-				console.error(`do not support iOS and ${arch} cpu architectures`);
+				// console.error(`do not support iOS and ${arch} cpu architectures`);
 				return;
 			}
 		} else {
-			if ( ['x86', 'x64'].indexOf(arch) == -1) {
+			if ( ['x86', 'x64', 'arm64'].indexOf(arch) == -1) {
 				console.error(`do not support MacOSX and ${arch} cpu architectures`);
 				return;
 			}
