@@ -70,7 +70,7 @@ test2: $(GYPFILES)
 $(ANDROID_JAR): android/org/ftr/*.java
 	@mkdir -p out/android.classs
 	@rm -rf out/android.classs/*
-	@$(JAVAC) -bootclasspath $(ANDROID_LIB) -d out/android.classs android/org/ftr/*.java
+	$(JAVAC) -classpath $(ANDROID_LIB) -d out/android.classs android/org/ftr/*.java
 	@cd out/android.classs; $(JAR) cfv ftr.jar .
 	@mkdir -p $(FTRP_OUT)/product/android/libs
 	@cp out/android.classs/ftr.jar $(FTRP_OUT)/product/android/libs
