@@ -728,7 +728,7 @@ async function configure() {
 		// check android ndk toolchain
 		var toolchain_dir = `${__dirname}/android-toolchain/${arch}`;
 		if (!fs.existsSync(toolchain_dir)) {
-			var ndk_path = opts.ndk_path || `${process.env.ANDROID_NDK}`;
+			var ndk_path = opts.ndk_path || process.env.ANDROID_NDK;
 			var toolchain_dir2 = `${ndk_path}/toolchains/llvm/prebuilt/${get_host_tag_or_die()}`;
 			// chech ndk r19
 			if ( // opts.clang && // can use clang 
@@ -766,6 +766,7 @@ async function configure() {
 			process.exit(-1);
 		}
 
+		var cross_prefix = tool.cross_prefix;
 		var cc_prefix = tool.cross_prefix;
 
 		if (arch == 'arm' && opts.armv7) {
@@ -775,11 +776,12 @@ async function configure() {
 			tool.abi = 'armeabi-v7a';
 		}
 
-		variables.cross_prefix = tool.cross_prefix;
+		variables.cross_prefix = cross_prefix;
 		variables.arch_name = tool.arch_name;
 		variables.android_abi = tool.abi;
-
+		
 		var cc_path = `${toolchain_dir}/bin/${cc_prefix}`;
+		// var cross_path = `${toolchain_dir}/bin/${cross_prefix}`;
 
 		if (!fs.existsSync(`${cc_path}gcc`) || 
 				!execSync(`${cc_path}gcc --version| grep -i gcc`).first || opts.clang
@@ -807,14 +809,14 @@ async function configure() {
 			variables.cxx = `${cc_prefix}g++`;
 			variables.ld = `${cc_prefix}g++`;
 		}
-		variables.ar = `${variables.cross_prefix}ar`;
-		variables.as = `${variables.cross_prefix}as`;
-		variables.ranlib = `${variables.cross_prefix}ranlib`;
-		variables.strip = `${variables.cross_prefix}strip`;
+		variables.as = `${cross_prefix}as`;
+		variables.ar = `${cross_prefix}ar`;
+		variables.ranlib = `${cross_prefix}ranlib`;
+		variables.strip = `${cross_prefix}strip`;
 		variables.build_bin = `${toolchain_dir}/bin`;
 		variables.build_sysroot = `${toolchain_dir}/sysroot`;
 
-		if (opts.clang) {
+		if (opts.clang) { // llvm clang
 			var llvm_version = execSync(`${cc_path}clang \
 				--version`).first.match(/LLVM (\d+\.\d+(\.\d+)?)/i);
 			variables.llvm_version = llvm_version && llvm_version[1] || 0;
@@ -987,15 +989,22 @@ async function configure() {
 	config_mk.push('CC=' + variables.cc);
 	config_mk.push('CXX=' + variables.cxx);
 	config_mk.push('LINK=' + variables.ld);
+	config_mk.push('AR=' + variables.ar);
+	config_mk.push('AS=' + variables.as);
+	config_mk.push('STRIP=' + variables.strip);
+	config_mk.push('RANLIB=' + variables.ranlib);
 	config_mk.push('SHARED=' + shared);
 	config_mk.push('BRAND=' + brand);
 	config_mk.push('OUTPUT=' + output);
+	config_mk.push('ANDROID_API_LEVEL=' + android_api_level);
 
 	ENV.push('export CC=' + variables.cc);
 	ENV.push('export CXX=' + variables.cxx);
 	ENV.push('export LINK=' + variables.ld);
 	ENV.push('export AR=' + variables.ar);
 	ENV.push('export AS=' + variables.as);
+	ENV.push('export STRIP=' + variables.strip);
+	ENV.push('export RANLIB=' + variables.ranlib);
 	ENV.push(`export PATH=${__dirname}:${variables.build_bin}:$$PATH`);
 	ENV.push(`export SYSROOT=${variables.build_sysroot}`);
 
