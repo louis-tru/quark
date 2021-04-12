@@ -32,8 +32,11 @@
 
 namespace ftr {
 
-	View::View() {
-		// TODO ...
+	View::View():
+		_action(nullptr), _parent(nullptr),
+		_first(nullptr), _last(nullptr),
+		_prev(nullptr), _next(nullptr), _next_pre_mark(nullptr), _level(0)
+	{
 	}
 
 	View::~View() {
@@ -76,12 +79,26 @@ namespace ftr {
 		// TODO ...
 	}
 
-	void View::layout_size_lock(bool lock, Vec2 size) {
-		// TODO ...
+	void View::set_layout_offset(Vec2 val) {
+		if (_layout_offset != val) {
+			_layout_offset = val;
+			// TODO 布局偏移改变时视图以及子视图变换矩阵也会改变，（标记）MATRIX
+		}
 	}
 
-	Vec2 View::layout_content_size() {
-		return _layout_size;
+	void View::layout_size_lock(bool lock, Vec2 layout_size) {
+		if (!lock) { // No locak default Vec2(0, 0)
+			layout_size = Vec2();
+		}
+		if (layout_size != _layout_size) {
+			_layout_size = layout_size;
+			// TODO 布局尺寸改变时视图形状、子视图布局、兄弟视图布局都会改变，（标记）SHAPE、CHILD LAYOUT
+		}
+	}
+
+	bool View::layout_content_size(Vec2& size) {
+		size = _layout_size; // Explicit layout size
+		return true;
 	}
 
 	// 内部布局偏移补偿
@@ -91,15 +108,16 @@ namespace ftr {
 
 	// 计算布局变换矩阵
 	Mat View::layout_matrix() const {
-		Vec2 offset = _layout_offset; // xy 布局偏移
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
-		offset.x( offset.x() + _layout_origin.x() + _translate.x() - in.x() );
-		offset.y( offset.y() + _layout_origin.y() + _translate.y() - in.y() );
-		return Mat(offset, _scale, -_rotate, _skew);
+		Vec2 translate(
+			_layout_offset.x() + _layout_origin.x() + _translate.x() - in.x(),
+			_layout_offset.y() + _layout_origin.y() + _translate.y() - in.y()
+		); // xy 偏移
+		return Mat(translate, _scale, -_rotate, _skew);
 	}
 
 	const Mat& View::transform_matrix() {
-		if (1) { // update layout_matrix
+		if (1/*MATRIX*/) { // update transform matrix
 			if (_parent) {
 				_parent->transform_matrix().multiplication(layout_matrix(), _transform_matrix);
 			} else {
