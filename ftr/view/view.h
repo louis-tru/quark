@@ -200,6 +200,12 @@ namespace ftr {
 		void set_opacity(float val);
 
 		/**
+		 * 重新绘制视图以及内部子视图
+		 * @func draw()
+		 */
+		virtual void draw();
+
+		/**
 		 *
 		 * 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 		 * 
@@ -240,12 +246,12 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 相对父视图（layout_offset）开始的偏移量
+		 * 相对父视图（layout_offset）开始的偏移量，结束位置
 		 * 
 		 * @func layout_offset_end()
 		 */
 		inline Vec2 layout_offset_end() const {
-			return _layout_offset_end;
+			return _layout_offset + _layout_size;
 		}
 
 		/**
@@ -254,9 +260,17 @@ namespace ftr {
 		 *
 		 * @func layout_size()
 		 */
-		inline Vec2 layout_size() const {
-			return _layout_offset_end - layout_offset;
+		Vec2 layout_size() const {
+			return _layout_size;
 		}
+
+		/**
+		 *
+		 * 返回布局内部内容尺寸，Vec(-1, -1) 表示尺寸不明
+		 * 
+		 * @func layout_content_size()
+		 */
+		virtual Vec2 layout_content_size();
 
 		/**
 		 * 
@@ -264,39 +278,25 @@ namespace ftr {
 		 *
 		 * @func layout_offset_inside()
 		 */
-		virtual Vec2 layout_offset_inside() const;
-
-		/**
-		 * 重新绘制视图以及内部子视图
-		 * @func draw()
-		 */
-		virtual void draw();
+		virtual Vec2 layout_offset_inside();
 
 		/**
 		 * 
-		 * 视图基础变换矩阵
-		 * Mat(layout_offset + final_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
+		 * 视图布局变换矩阵
+		 * Mat(layout_offset + layout_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
 		 * 
-		 * @func matrix()
+		 * @func layout_matrix()
 		 */
-		Mat matrix();
+		Mat layout_matrix() const;
 
 		/**
 		 * Start the matrix transformation from this origin point
 		 *
-		 * @func final_origin()
+		 * @func layout_origin()
 		 */
-		inline Vec2 final_origin() const {
-			return _final_origin;
+		inline Vec2 layout_origin() const {
+			return _layout_origin;
 		}
-
-		/**
-		 * 
-		 * 视图最终变换矩阵, parent.final_matrix * matrix
-		 * 
-		 * @func final_matrix()
-		 */
-		const Mat& final_matrix();
 
 		/**
 		 *
@@ -308,20 +308,27 @@ namespace ftr {
 			return _layout_weight;
 		}
 
-		private:
-		View *_parent;
-		View *_first, *_last, *_prev, *_next;
+		/**
+		 * 
+		 * 视图布局的最终变换矩阵, parent.transform_matrix * layout_matrix
+		 * 
+		 * @func transform_matrix()
+		 */
+		const Mat& transform_matrix();
+
+		private: Action *_action; //
+		private: View *_parent;
+		private: View *_first, *_last, *_prev, *_next;
 		// View *_next_pre_mark; // 下一个标记预处理视图
-		Action *_action; //
 		// uint32_t _level; // 在视图树中所处的层级
-		Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
-		float _rotate;     // z轴旋转角度值
-		float _opacity;    // 可影响子视图的透明度值
-		Vec2  _final_origin;  // 最终以该点 位移,缩放,旋转,歪斜
-		Mat   _final_matrix;  // 父视图矩阵乘以基础矩阵等于最终变换矩阵 (parent.final_matrix * matrix)
-		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-		Vec2  _layout_offset_end; // 相对父视图的结束偏移位置（end=start+margin+border+padding+content）
-		float _layout_weight; // layout weight
+		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
+		private: float _rotate;     // z轴旋转角度值
+		private: float _opacity;    // 可影响子视图的透明度值
+		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
+		private: Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
+		protected: Vec2  _layout_size; // 相对父视图的结束偏移位置（end=start+margin+border+padding+content）
+		private: float _layout_weight; // layout weight
+		private: Mat   _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
 	};
 
 }

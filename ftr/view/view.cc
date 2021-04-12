@@ -64,6 +64,10 @@ namespace ftr {
 		// TODO ...
 	}
 
+	void View::draw() {
+		// TODO ...
+	}
+
 	void View::layout_forward() {
 		// TODO ...
 	}
@@ -76,33 +80,33 @@ namespace ftr {
 		// TODO ...
 	}
 
+	Vec2 View::layout_content_size() {
+		return _layout_size;
+	}
+
 	// 内部布局偏移补偿
-	Vec2 View::layout_offset_inside() const {
-		return _final_origin;
+	Vec2 View::layout_offset_inside() {
+		return _layout_origin;
 	}
 
-	void View::draw() {
-		// TODO ...
-	}
-
-	// 计算基础变换矩阵
-	Mat View::matrix() {
+	// 计算布局变换矩阵
+	Mat View::layout_matrix() const {
 		Vec2 offset = _layout_offset; // xy 布局偏移
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
-		offset.x( offset.x() + _final_origin.x() + _translate.x() - in.x() );
-		offset.y( offset.y() + _final_origin.y() + _translate.y() - in.y() );
+		offset.x( offset.x() + _layout_origin.x() + _translate.x() - in.x() );
+		offset.y( offset.y() + _layout_origin.y() + _translate.y() - in.y() );
 		return Mat(offset, _scale, -_rotate, _skew);
 	}
 
-	const Mat& View::final_matrix() {
-		if (1) { // update final_matrix
+	const Mat& View::transform_matrix() {
+		if (1) { // update layout_matrix
 			if (_parent) {
-				_parent->final_matrix().multiplication(matrix(), _final_matrix);
+				_parent->transform_matrix().multiplication(layout_matrix(), _transform_matrix);
 			} else {
-				_final_matrix = matrix();
+				_transform_matrix = layout_matrix();
 			}
 		}
-		return _final_matrix;
+		return _transform_matrix;
 	}
 
 }
