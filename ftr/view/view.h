@@ -57,6 +57,7 @@ namespace ftr {
 		 */
 		virtual ~View();
 
+		// *******************************************************************
 		/**
 		 * parent view
 		 *
@@ -102,6 +103,23 @@ namespace ftr {
 			return _next;
 		}
 
+		// TODO ...
+		void before(View* view) throw(Error);
+		void after(View* view) throw(Error);
+		virtual void prepend(View* child) throw(Error);
+		virtual void append(View* child) throw(Error);
+		virtual void remove_from_parent();
+		virtual void remove_all_child();
+
+		/**
+		 *
+		 * 重新绘制视图以及内部子视图
+		 * 
+		 * @func draw()
+		 */
+		virtual void draw();
+
+		// *******************************************************************
 		/**
 		 * Returns the objects that automatically adjust view properties
 		 *
@@ -148,6 +166,17 @@ namespace ftr {
 		}
 
 		/**
+		 *
+		 * Returns the can affect the transparency of subviews
+		 *
+		 * @func opacity()
+		 */
+		inline float opacity() {
+			return _opacity;
+		}
+
+		// *******************************************************************
+		/**
 		 * Set the `action` properties of the view object
 		 *
 		 * @func set_action()
@@ -183,16 +212,6 @@ namespace ftr {
 		void set_rotate(float val);
 
 		/**
-		 *
-		 * Returns the can affect the transparency of subviews
-		 *
-		 * @func opacity()
-		 */
-		inline float opacity() {
-			return _opacity;
-		}
-
-		/**
 		 * Set the `opacity` properties of th view object
 		 *
 		 * @func set_opacity()
@@ -200,10 +219,12 @@ namespace ftr {
 		void set_opacity(float val);
 
 		/**
-		 * 重新绘制视图以及内部子视图
-		 * @func draw()
+		 * 
+		 * 设置布局权重
+		 * 
+		 * @func set_layout_weight(val)
 		 */
-		virtual void draw();
+		void set_layout_weight(float val);
 
 		// *******************************************************************
 		/**
@@ -243,6 +264,14 @@ namespace ftr {
 		 */
 		virtual void layout_size_lock(bool lock, Vec2 layout_size = Vec2());
 
+		/**
+		 * 
+		 * 当子视图`layout_weight发生改变时会调用父视图的这个方法`
+		 *
+		 * @func layout_weight_change_notice(child)
+		 */
+		virtual void layout_weight_change_notice(View* from_child);
+
 		// *******************************************************************
 		/**
 		 * 
@@ -276,7 +305,7 @@ namespace ftr {
 
 		/**
 		 *
-		 * 获取布局内容尺寸，返回`false`表示尺寸不明
+		 * 获取布局内容尺寸，返回`false`表示尺寸未知
 		 * 
 		 * @func layout_content_size(size)
 		 */
@@ -326,12 +355,12 @@ namespace ftr {
 		 */
 		const Mat& transform_matrix();
 
+		// *******************************************************************
 		private: Action *_action; // 绑定的动作，在一定的时间内根据动作设定的程序自动修改视图属性
 		private: View *_parent;
 		private: View *_first, *_last, *_prev, *_next;
 		private: View *_next_pre_mark; /* 下一个预处理视图标记 */
 																	/* 在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图*/
-		private: uint16_t _level; // 在视图树中所处的层级
 		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
 		private: float _rotate;     // z轴旋转角度值
 		private: float _opacity;    // 可影响子视图的透明度值
@@ -340,6 +369,7 @@ namespace ftr {
 		protected: Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
+		private: uint16_t _level; // 在视图树中所处的层级
 	};
 
 }
