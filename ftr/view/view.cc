@@ -36,7 +36,36 @@ namespace ftr {
 	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		public:
 		#define _inl(self) static_cast<View::Inl*>(self)
-		// TODO ...
+
+		/**
+		* @func remove_all_child_
+		*/
+		void remove_all_child_() {
+			while (_first) {
+				_first->remove();
+			}
+		}
+		
+		/**
+		* @func clear # 清理关联视图信息
+		*/
+		void clear() {
+			if (_parent) {
+				/* 当前为第一个子视图 */
+				if (_parent->_first == this) {
+					_parent->_first = _next;
+				} else {
+					_prev->_next = _next;
+				}
+				/* 当前为最后一个子视图 */
+				if (_parent->_last == this) {
+					_parent->_last = _prev;
+				} else {
+					_next->_prev = _prev;
+				}
+			}
+		}
+
 	};
 
 	View::View()
@@ -44,15 +73,32 @@ namespace ftr {
 		, _first(nullptr), _last(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _next_pre_mark(nullptr)
-		, _rotate(0), _opacity(1)
-		, _layout_weight(0)
-		, _level(0)
+		, _rotate(0.0), _opacity(1.0)
+		, _layout_weight(0.0)
+		, _level(0.0)
+		, _visible(true)
+		, _region_visible(false)
+		, _receive(false)
 	{
 	}
 
 	View::~View() {
-		// TODO ...
-		// unload action
+		ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
+		
+		// blur(); // TODO
+		
+		set_action(nullptr); // del action
+
+		_inl(this)->remove_all_child_(); // 删除子视图
+		
+		// TODO
+		// if ( is_mark_pre ) { // 删除标记
+		// 	_inl(this)->delete_mark();
+		// }
+		// if ((size_t)_ctx_data > 0x1) {
+		// 	delete _ctx_data; _ctx_data = nullptr;
+		// }
+		// Release(_classs); _classs = nullptr;
 	}
 
 	/**
@@ -61,8 +107,23 @@ namespace ftr {
 		*
 		* @func before(view)
 		*/
-	void View::before(View* view) throw(Error) {
-		// TODO ...
+	void View::before(View* view) {
+		if (_parent) {
+			if (view == this) return;
+			if (view->_parent == _parent)
+				_inl(view)->clear();  // 清除关联
+			else
+				view->set_parent(_parent);
+			
+			if (_prev) {
+				_prev->_next = view;
+			} else { // 上面没有兄弟
+				_parent->_first = view;
+			}
+			view->_prev = _prev;
+			view->_next = this;
+			_prev = view;
+		}
 	}
 
 	/**
@@ -71,8 +132,23 @@ namespace ftr {
 		*
 		* @func after(view)
 		*/
-	void View::after(View* view) throw(Error) {
-		// TODO ...
+	void View::after(View* view) {
+		if (_parent) {
+			if (view == this) return;
+			if (view->_parent == _parent)
+				_inl(view)->clear(); // 清除关联
+			else
+				view->set_parent(_parent);
+			
+			if (m_next) {
+				_next->_prev = view;
+			} else { // 下面没有兄弟
+				_parent->_last = view;
+			}
+			view->_prev = this;
+			view->_next = _next;
+			_next = view;
+		}
 	}
 
 	/**
@@ -81,8 +157,23 @@ namespace ftr {
 		* 
 		* @func prepend(child)
 		*/
-	virtual void View::prepend(View* child) throw(Error) {
-		// TODO ...
+	void View::prepend(View* child) {
+		if (this == child->_parent)
+			_inl(child)->clear();
+		else
+			child->set_parent(this);
+		
+		if (_first) {
+			child->_prev = nullptr;
+			child->_next = _first;
+			_first->_prev = child;
+			_first = child;
+		} else { // 当前还没有子视图
+			child->_prev = nullptr;
+			child->_next = nullptr;
+			_first = child;
+			_last = child;
+		}
 	}
 
 	/**
@@ -91,18 +182,57 @@ namespace ftr {
 		*
 		* @func append(child)
 		*/
-	virtual void View::append(View* child) throw(Error) {
-		// TODO ...
+	void View::append(View* child) {
+		if (this == child->_parent)
+			_inl(child)->clear();
+		else
+			child->set_parent(this);
+		
+		if (_last) {
+			child->_prev = _last;
+			child->_next = nullptr;
+			_last->_next = child;
+			_last = child;
+		} else { // 当前还没有子视图
+			child->_prev = nullptr;
+			child->_next = nullptr;
+			_first = child;
+			_last = child;
+		}
 	}
 
 	/**
 		*
-		* Remove self from parent view
+		* Remove and destroy self
 		* 
-		* @func remove_from_parent()
+		* @func remove()
 		*/
-	virtual void View::remove_from_parent() {
-		// TODO ...
+	void View::remove() {
+		if (_parent) {
+			blur(); // 辞去焦点
+			
+			set_action(nullptr); // del action
+
+			_inl(this)->remove_all_child_(); // 删除子视图
+			
+			// TODO
+			// if ( is_mark_pre ) { // 删除标记
+			// 	_inl(this)->full_delete_mark();
+			// }
+			
+			_inl(this)->clear();
+			
+			// TODO
+			// remove_event_listener();
+			_level = 0;
+			_parent = _prev = _next = nullptr;
+			release(); // Disconnect from parent view strong reference
+		}
+		else {
+			// remove_event_listener();
+			set_action(nullptr); // del action
+			_inl(this)->remove_all_child_(); // 删除子视图
+		}
 	}
 
 	/**
@@ -111,8 +241,8 @@ namespace ftr {
 		*
 		* @func remove_all_child()
 		*/
-	virtual void View::remove_all_child() {
-		// TODO ...
+	void View::remove_all_child() {
+		_inl(this)->remove_all_child_();
 	}
 
 	/**
@@ -121,8 +251,37 @@ namespace ftr {
 		*
 		* @func set_parent(parent)
 		*/
-	virtual void View::set_parent(View* parent) throw(Error) {
-		// TODO ...
+	void View::set_parent(View* parent) {
+		// clear parent
+		if (parent != _parent) {
+			_inl(this)->clear();
+			
+			if ( !_parent ) {
+				retain(); // link to parent and retain ref
+			}
+			_parent = parent;
+			
+			// TODO ...
+			// 设置level
+			// uint32_t level = parent->_level;
+			// if (level) {
+			// 	if ( level + 1 != _level ) {
+			// 		_inl(this)->set_level_and_visible(level + 1, parent->_final_visible);
+			// 	} else {
+			// 		if ( _final_visible != parent->_final_visible ) {
+			// 			if ( _final_visible ) {
+			// 				_inl(this)->set_final_visible_false();
+			// 			} else {
+			// 				_inl(this)->set_final_visible_true();
+			// 			}
+			// 		}
+			// 	}
+			// } else {
+			// 	_inl(this)->set_level0_and_visible_false();
+			// }
+			// 这些标记是必需的
+			// mark_pre( M_MATRIX | M_SHAPE | M_OPACITY | M_STYLE_FULL );
+		}
 	}
 
 	/**
@@ -133,6 +292,30 @@ namespace ftr {
 		*/
 	void View::draw() {
 		// TODO ...
+	}
+
+		
+	/**
+		* 
+		* Sets whether the view needs to receive or handle event throws from the system
+		*
+		* @func set_receive()
+		*/
+	void View::set_receive(bool val) {
+		_receive = val;
+	}
+
+	/**
+		* 
+		* Setting the visibility properties the view object
+		*
+		* @func set_visible(val)
+		*/
+	void View::set_visible(bool val) {
+		if (_visible != val) {
+			_visible = val;
+			// TODO MARK: M_VISIBLE
+		}
 	}
 
 	// *******************************************************************
@@ -204,6 +387,84 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* 
+		* Setting x-axis matrix displacement for the view
+		*
+		* @func x()
+		*/
+	void View::set_x(float val) {
+		if (_translate.x() != val) {
+			_translate.x(val);
+			// TODO MARK: MATRIX、CHILD MATRIX
+		}
+	}
+
+	/**
+		* 
+		* Setting y-axis matrix displacement for the view
+		*
+		* @func y()
+		*/
+	void View::set_y(float val) {
+		if (_translate.y() != val) {
+			_translate.y(val);
+			// TODO MARK: MATRIX、CHILD MATRIX
+		}
+	}
+
+	/**
+		* 
+		* Returns x-axis matrix scaling for the view
+		*
+		* @func scale_x()
+		*/
+	void View::scale_x(float val) {
+		if (_scale.x() != val) {
+			_scale.x(val);
+			// TODO MARK: MATRIX、CHILD MATRIX
+		}
+	}
+
+	/**
+		* 
+		* Returns y-axis matrix scaling for the view
+		*
+		* @func scale_y()
+		*/
+	void View::scale_y(float val) {
+		if (_scale.y() != val) {
+			_scale.y(val);
+			// TODO MARK: MATRIX、CHILD MATRIX
+		}
+	}
+
+	/**
+		* 
+		* Returns x-axis matrix skew for the view
+		*
+		* @func skew_x()
+		*/
+	void View::skew_x(float val) {
+		if (_skew.x() != val) {
+			_skew.x(val);
+			// TODO MARK: MATRIX、CHILD MATRIX
+		}
+	}
+
+	/**
+		* 
+		* Returns y-axis matrix skew for the view
+		*
+		* @func skew_y()
+		*/
+	void View::skew_y(float val) {
+		if (_skew.y() != val) {
+			_skew.y(val);
+			// TODO MARK: MATRIX、CHILD MATRIX
+		}
+	}
+	
 	/**
 		* Set the `opacity` properties of the view object
 		*

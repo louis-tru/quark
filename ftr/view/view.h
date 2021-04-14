@@ -63,7 +63,7 @@ namespace ftr {
 		 *
 		 * @func parent()
 		 */
-		inline View* parent() const {
+		inline View* parent() {
 			return _parent;
 		}
 
@@ -72,7 +72,7 @@ namespace ftr {
 		 *
 		 * @func first()
 		 */
-		inline View* first() const {
+		inline View* first() {
 			return _first;
 		}
 
@@ -81,7 +81,7 @@ namespace ftr {
 		 *
 		 * @func last()
 		 */
-		inline View* last() const {
+		inline View* last() {
 			return _last;
 		}
 
@@ -90,7 +90,7 @@ namespace ftr {
 		 *
 		 * @func prev()
 		 */
-		inline View* prev() const {
+		inline View* prev() {
 			return _prev;
 		}
 
@@ -109,7 +109,7 @@ namespace ftr {
 		 *
 		 * @func before(view)
 		 */
-		void before(View* view) throw(Error);
+		void before(View* view);
 
 		/**
 		 *
@@ -117,7 +117,7 @@ namespace ftr {
 		 *
 		 * @func after(view)
 		 */
-		void after(View* view) throw(Error);
+		void after(View* view);
 
 		/**
 		 * 
@@ -125,7 +125,7 @@ namespace ftr {
 		 * 
 		 * @func prepend(child)
 		 */
-		virtual void prepend(View* child) throw(Error);
+		void prepend(View* child);
 
 		/**
 		 *
@@ -133,15 +133,15 @@ namespace ftr {
 		 *
 		 * @func append(child)
 		 */
-		virtual void append(View* child) throw(Error);
+		void append(View* child);
 
 		/**
 		 *
-		 * Remove self from parent view
+		 * Remove and destroy self
 		 * 
-		 * @func remove_from_parent()
+		 * @func remove()
 		 */
-		virtual void remove_from_parent();
+		virtual void remove();
 
 		/**
 		 *
@@ -157,15 +157,61 @@ namespace ftr {
 		 *
 		 * @func set_parent(parent)
 		 */
-		virtual void set_parent(View* parent) throw(Error);
+		protected: virtual void set_parent(View* parent);
 
 		/**
 		 *
-		 * redraw view and subview
+		 * Redraw view and subview
 		 * 
 		 * @func draw()
 		 */
 		virtual void draw();
+
+		/**
+		 *
+		 * Does the view need to receive or handle event throws from the system
+		 *
+		 * @func receive()
+		 */
+		public: inline bool receive() const {
+			return _receive;
+		}
+
+		/**
+		 *
+		 * Returns visibility for the view
+		 *
+		 * @func visible()
+		 */
+		inline bool visible() const {
+			return _visible;
+		}
+
+		/**
+		* 
+		* Returns region visibility for the view
+		* 
+		* @func region_visible
+		*/
+		inline bool region_visible() const {
+			return _region_visible;
+		}
+		
+		/**
+		 * 
+		 * Sets whether the view needs to receive or handle event throws from the system
+		 *
+		 * @func set_receive()
+		 */
+		void set_receive(bool val);
+
+		/**
+		 * 
+		 * Setting the visibility properties the view object
+		 *
+		 * @func set_visible(val)
+		 */
+		virtual void set_visible(bool val);
 
 		// *******************************************************************
 		/**
@@ -178,7 +224,7 @@ namespace ftr {
 		}
 
 		/**
-		 * Returns the Matrix displacement
+		 * Returns matrix displacement for the view
 		 *
 		 * @func translate
 		 */
@@ -207,10 +253,70 @@ namespace ftr {
 		/**
 		 * Returns the z-axis rotation of the matrix
 		 *
-		 * @func skew()
+		 * @func rotate()
 		 */
 		inline float rotate() const {
 			return _rotate;
+		}
+
+		/**
+		 * 
+		 * Returns x-axis matrix displacement for the view
+		 *
+		 * @func x()
+		 */
+		inline float x() const {
+			return _translate.x();
+		}
+
+		/**
+		 * 
+		 * Returns y-axis matrix displacement for the view
+		 *
+		 * @func y()
+		 */
+		inline float y() const {
+			return _translate.y();
+		}
+
+		/**
+		 * 
+		 * Returns x-axis matrix scaling for the view
+		 *
+		 * @func scale_x()
+		 */
+		inline float scale_x() const {
+			return _scale.x();
+		}
+
+		/**
+		 * 
+		 * Returns y-axis matrix scaling for the view
+		 *
+		 * @func scale_y()
+		 */
+		inline float scale_y() const {
+			return _scale.y();
+		}
+
+		/**
+		 * 
+		 * Returns x-axis matrix skew for the view
+		 *
+		 * @func skew_x()
+		 */
+		inline float skew_x() const {
+			return _skew.x();
+		}
+
+		/**
+		 * 
+		 * Returns y-axis matrix skew for the view
+		 *
+		 * @func skew_y()
+		 */
+		inline float skew_y() const {
+			return _skew.y();
 		}
 
 		/**
@@ -258,6 +364,54 @@ namespace ftr {
 		 * @func set_rotate()
 		 */
 		void set_rotate(float val);
+
+		/**
+		 * 
+		 * Setting x-axis matrix displacement for the view
+		 *
+		 * @func x()
+		 */
+		void set_x(float val);
+
+		/**
+		 * 
+		 * Setting y-axis matrix displacement for the view
+		 *
+		 * @func y()
+		 */
+		void set_y(float val);
+
+		/**
+		 * 
+		 * Returns x-axis matrix scaling for the view
+		 *
+		 * @func scale_x()
+		 */
+		void scale_x(float val);
+
+		/**
+		 * 
+		 * Returns y-axis matrix scaling for the view
+		 *
+		 * @func scale_y()
+		 */
+		void scale_y(float val);
+
+		/**
+		 * 
+		 * Returns x-axis matrix skew for the view
+		 *
+		 * @func skew_x()
+		 */
+		void skew_x(float val);
+
+		/**
+		 * 
+		 * Returns y-axis matrix skew for the view
+		 *
+		 * @func skew_y()
+		 */
+		void skew_y(float val);
 
 		/**
 		 * Set the `opacity` properties the view object
@@ -409,7 +563,7 @@ namespace ftr {
 		const Mat& transform_matrix();
 
 		// *******************************************************************
-		private: Action *_action; // 绑定的动作，在一定的时间内根据动作设定的程序自动修改视图属性
+		private: Action *_action; // 动作：在一定的时间内根据动作设定的程序自动修改视图属性
 		private: View *_parent;
 		private: View *_first, *_last, *_prev, *_next;
 		private: View *_next_pre_mark; /* 下一个预处理视图标记 */
@@ -423,6 +577,9 @@ namespace ftr {
 		private:  float  _layout_weight; // layout weight
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
 		private: uint16_t _level; // 在视图树中所处的层级
+		protected: bool _visible; // 视图是否可见
+		protected: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		private: bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

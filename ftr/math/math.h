@@ -77,7 +77,7 @@ namespace ftr {
 	template <int LEN> class Vec: public MTVec<float, LEN> {
 		public:
 		inline Vec() { }
-		inline Vec(float f): MTVec<float, LEN>(f) { }
+		inline Vec(float f): MTVec<float, LEN>(f) {}
 	};
 
 	class FX_EXPORT Vec2: public Vec<2> {
