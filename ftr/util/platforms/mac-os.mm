@@ -176,12 +176,12 @@ namespace ftr {
 				}
 				const void *psValue;
 				int curCapacity = 0, maxCapacity = 0;
-		#if DEBUG
-				Char buf[32] = {0};
-				psValue = (CFStringRef)CFDictionaryGetValue(pSource, CFSTR(kIOPSNameKey));
-				CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
-				NSLog(@"kIOPSNameKey, %s", buf);
-		#endif
+				#if DEBUG
+					Char buf[32] = {0};
+					psValue = (CFStringRef)CFDictionaryGetValue(pSource, CFSTR(kIOPSNameKey));
+					CFStringGetCString((CFStringRef)psValue, buf, 31, kCFStringEncodingUTF8);
+					NSLog(@"kIOPSNameKey, %s", buf);
+				#endif
 				psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSCurrentCapacityKey));
 				CFNumberGetValue((CFNumberRef)psValue, kCFNumberSInt32Type, &curCapacity);
 				psValue = CFDictionaryGetValue(pSource, CFSTR(kIOPSMaxCapacityKey));

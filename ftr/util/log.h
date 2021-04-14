@@ -60,7 +60,6 @@ namespace ftr {
 		FX_EXPORT void log(int16_t s);
 		FX_EXPORT void log(uint32_t s);
 		FX_EXPORT void log(int s);
-	
 		FX_EXPORT void log(uint32_t s);
 		FX_EXPORT void log(float s);
 		FX_EXPORT void log(double);
@@ -81,10 +80,6 @@ namespace ftr {
 		FX_EXPORT void print_err(cChar*, ...);
 		FX_EXPORT void print_err(cString&);
 		FX_EXPORT void clear();
-		#if FX_ARCH_32BIT
-			FX_EXPORT void log(long);
-			FX_EXPORT void log(unsigned long);
-		#endif
 	}
 
 }

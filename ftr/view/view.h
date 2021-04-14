@@ -103,17 +103,65 @@ namespace ftr {
 			return _next;
 		}
 
-		// TODO ...
+		/**
+		 *
+		 * Add a sibling view to the front
+		 *
+		 * @func before(view)
+		 */
 		void before(View* view) throw(Error);
+
+		/**
+		 *
+		 * Add a sibling view to the back
+		 *
+		 * @func after(view)
+		 */
 		void after(View* view) throw(Error);
+
+		/**
+		 * 
+		 * Append subview to front
+		 * 
+		 * @func prepend(child)
+		 */
 		virtual void prepend(View* child) throw(Error);
+
+		/**
+		 *
+		 * Append subview to end
+		 *
+		 * @func append(child)
+		 */
 		virtual void append(View* child) throw(Error);
+
+		/**
+		 *
+		 * Remove self from parent view
+		 * 
+		 * @func remove_from_parent()
+		 */
 		virtual void remove_from_parent();
+
+		/**
+		 *
+		 * remove all subview
+		 *
+		 * @func remove_all_child()
+		 */
 		virtual void remove_all_child();
 
 		/**
 		 *
-		 * 重新绘制视图以及内部子视图
+		 * Setting parent parent view
+		 *
+		 * @func set_parent(parent)
+		 */
+		virtual void set_parent(View* parent) throw(Error);
+
+		/**
+		 *
+		 * redraw view and subview
 		 * 
 		 * @func draw()
 		 */
@@ -184,35 +232,35 @@ namespace ftr {
 		void set_action(Action* val);
 
 		/**
-		 * Set the matrix `translate` properties of th view object
+		 * Set the matrix `translate` properties of the view object
 		 *
 		 * @func set_translate()
 		 */
 		void set_translate(Vec2 val);
 
 		/**
-		 * Set the matrix `scale` properties of th view object
+		 * Set the matrix `scale` properties of the view object
 		 *
 		 * @func set_scale()
 		 */
 		void set_scale(Vec2 val);
 
 		/**
-		 * Set the matrix `skew` properties of th view object
+		 * Set the matrix `skew` properties of the view object
 		 *
 		 * @func set_skew()
 		 */
 		void set_skew(Vec2 val);
 
 		/**
-		 * Set the z-axis  matrix `rotate` properties of th view object
+		 * Set the z-axis  matrix `rotate` properties the view object
 		 *
 		 * @func set_rotate()
 		 */
 		void set_rotate(float val);
 
 		/**
-		 * Set the `opacity` properties of th view object
+		 * Set the `opacity` properties the view object
 		 *
 		 * @func set_opacity()
 		 */
@@ -220,7 +268,7 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 设置布局权重
+		 * setting the layout weight of the view object
 		 * 
 		 * @func set_layout_weight(val)
 		 */
@@ -246,8 +294,8 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 设置视图在父视图中的布局偏移值
-		 * 
+		 * Setting the layout offset of the view object in the parent view
+		 *
 		 * @func set_layout_offset(val)
 		 */
 		void set_layout_offset(Vec2 val);
@@ -266,7 +314,7 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 当子视图`layout_weight发生改变时会调用父视图的这个方法`
+		 * This method of the parent view is called when the layout weight of the child view changes
 		 *
 		 * @func layout_weight_change_notice(child)
 		 */
@@ -275,7 +323,7 @@ namespace ftr {
 		// *******************************************************************
 		/**
 		 * 
-		 * 相对父视图（layout_offset）开始的偏移量
+		 * Relative to the parent view (layout_offset) to start offset
 		 * 
 		 * @func layout_offset()
 		 */
@@ -285,7 +333,7 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 相对父视图（layout_offset）开始的偏移量，结束位置
+		 * Relative to the parent view (layout_offset) to start offset，end position
 		 * 
 		 * @func layout_offset_end()
 		 */
@@ -295,7 +343,7 @@ namespace ftr {
 
 		/**
 		 *
-		 * 返回布局尺寸(如果为box,size=margin+border+padding+content)
+		 * Returns the layout size of view object (if is box view the: size=margin+border+padding+content)
 		 *
 		 * @func layout_size()
 		 */
@@ -305,15 +353,17 @@ namespace ftr {
 
 		/**
 		 *
-		 * 获取布局内容尺寸，返回`false`表示尺寸未知
-		 * 
+		 * Returns the layout content size of object view, 
+		 * Returns false to indicate that the size is unknown
+		 *
 		 * @func layout_content_size(size)
 		 */
 		virtual bool layout_content_size(Vec2& size);
 
 		/**
+		 * Returns internal layout offset compensation of the view, which affects the sub view offset position
 		 * 
-		 * 布局内偏移补偿，影响子视图偏移位置（比如：一个视图需要设置子视图的滚动属性scroll时，可设置该值达到子视图偏移目的）
+		 * For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
 		 *
 		 * @func layout_offset_inside()
 		 */
@@ -321,7 +371,8 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 视图布局变换矩阵
+		 * Returns layout transformation matrix of the object view
+		 * 
 		 * Mat(layout_offset + layout_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
 		 * 
 		 * @func layout_matrix()
@@ -349,7 +400,9 @@ namespace ftr {
 
 		/**
 		 * 
-		 * 视图布局的最终变换矩阵, parent.transform_matrix * layout_matrix
+		 * Returns final transformation matrix of the view layout
+		 *
+		 * parent.transform_matrix * layout_matrix
 		 * 
 		 * @func transform_matrix()
 		 */
@@ -370,6 +423,8 @@ namespace ftr {
 		private:  float  _layout_weight; // layout weight
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
 		private: uint16_t _level; // 在视图树中所处的层级
+
+		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

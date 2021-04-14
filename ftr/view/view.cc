@@ -32,6 +32,13 @@
 
 namespace ftr {
 
+	// view private members method
+	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
+		public:
+		#define _inl(self) static_cast<View::Inl*>(self)
+		// TODO ...
+	};
+
 	View::View()
 		: _action(nullptr), _parent(nullptr)
 		, _first(nullptr), _last(nullptr)
@@ -48,12 +55,93 @@ namespace ftr {
 		// unload action
 	}
 
+	/**
+		*
+		* Add a sibling view to the front
+		*
+		* @func before(view)
+		*/
+	void View::before(View* view) throw(Error) {
+		// TODO ...
+	}
+
+	/**
+		*
+		* Add a sibling view to the back
+		*
+		* @func after(view)
+		*/
+	void View::after(View* view) throw(Error) {
+		// TODO ...
+	}
+
+	/**
+		* 
+		* Append subview to front
+		* 
+		* @func prepend(child)
+		*/
+	virtual void View::prepend(View* child) throw(Error) {
+		// TODO ...
+	}
+
+	/**
+		*
+		* Append subview to end
+		*
+		* @func append(child)
+		*/
+	virtual void View::append(View* child) throw(Error) {
+		// TODO ...
+	}
+
+	/**
+		*
+		* Remove self from parent view
+		* 
+		* @func remove_from_parent()
+		*/
+	virtual void View::remove_from_parent() {
+		// TODO ...
+	}
+
+	/**
+		*
+		* remove all subview
+		*
+		* @func remove_all_child()
+		*/
+	virtual void View::remove_all_child() {
+		// TODO ...
+	}
+
+	/**
+		*
+		* Setting parent parent view
+		*
+		* @func set_parent(parent)
+		*/
+	virtual void View::set_parent(View* parent) throw(Error) {
+		// TODO ...
+	}
+
+	/**
+		*
+		* redraw view and subview
+		* 
+		* @func draw()
+		*/
 	void View::draw() {
 		// TODO ...
 	}
 
 	// *******************************************************************
 
+	/**
+		* Set the `action` properties of the view object
+		*
+		* @func set_action()
+		*/
 	void View::set_action(Action* val) {
 		if (_action != val) {
 			// TODO ...
@@ -68,6 +156,11 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* Set the matrix `translate` properties of the view object
+		*
+		* @func set_translate()
+		*/
 	void View::set_translate(Vec2 val) {
 		if (_translate != val) {
 			_translate = val;
@@ -75,6 +168,11 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* Set the matrix `scale` properties of the view object
+		*
+		* @func set_scale()
+		*/
 	void View::set_scale(Vec2 val) {
 		if (_scale != val) {
 			_scale = val;
@@ -82,6 +180,11 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* Set the matrix `skew` properties of the view object
+		*
+		* @func set_skew()
+		*/
 	void View::set_skew(Vec2 val) {
 		if (_skew != val) {
 			_skew = val;
@@ -89,6 +192,11 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* Set the z-axis  matrix `rotate` properties of the view object
+		*
+		* @func set_rotate()
+		*/
 	void View::set_rotate(float val) {
 		if (_rotate != val) {
 			_rotate = val;
@@ -96,6 +204,11 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* Set the `opacity` properties of the view object
+		*
+		* @func set_opacity()
+		*/
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
 			_opacity = val;
@@ -103,6 +216,12 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* 
+		* setting the layout weight of the view object
+		* 
+		* @func set_layout_weight(val)
+		*/
 	void View::set_layout_weight(float val) {
 		if (_layout_weight != val) {
 			_layout_weight = val;
@@ -115,14 +234,33 @@ namespace ftr {
 
 	// *******************************************************************
 
+	/**
+		*
+		* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
+		* 
+		* @func layout_forward()
+		*/
 	void View::layout_forward() {
 		// TODO ...
 	}
 
+	/**
+		* 
+		* 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
+		* 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸
+		* 
+		* @func layout_reverse()
+		*/
 	void View::layout_reverse() {
 		// TODO ...
 	}
 
+	/**
+		* 
+		* Setting the layout offset of the view object in the parent view
+		*
+		* @func set_layout_offset(val)
+		*/
 	void View::set_layout_offset(Vec2 val) {
 		if (_layout_offset != val) {
 			_layout_offset = val;
@@ -130,6 +268,16 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* 当一个父布局视图对其中所有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，会调用这个函数对子视图做尺寸上的限制
+		* 这个函数被调用后，其它调用尺寸更改的方法都应该失效，但应该记录被设置的数值一旦解除锁定后设置属性的才能生效
+		* 
+		* 调用`layout_size_lock(false)`解除锁定
+		* 
+		* 子类实现这个方法
+		* 
+		* @func layout_size_lock()
+		*/
 	void View::layout_size_lock(bool lock, Vec2 layout_size) {
 		if (!lock) { // No locak default Vec2(0, 0)
 			layout_size = Vec2();
@@ -140,32 +288,66 @@ namespace ftr {
 		}
 	}
 
+	/**
+		* 
+		* This method of the parent view is called when the layout weight of the child view changes
+		*
+		* @func layout_weight_change_notice(child)
+		*/
 	void View::layout_weight_change_notice(View* from_child) {
 		// noop
 	}
 
 	// *******************************************************************
 
+	/**
+		*
+		* Returns the layout content size of object view, 
+		* Returns false to indicate that the size is unknown
+		*
+		* @func layout_content_size(size)
+		*/
 	bool View::layout_content_size(Vec2& size) {
 		size = _layout_size; // Explicit layout size
 		return true;
 	}
 
-	// 内部布局偏移补偿
+	/**
+		* Returns internal layout offset compensation of the view, which affects the sub view offset position
+		* 
+		* For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
+		*
+		* @func layout_offset_inside()
+	*/
 	Vec2 View::layout_offset_inside() {
 		return _layout_origin;
 	}
 
-	// 计算布局变换矩阵
+	/**
+		* 
+		* Returns layout transformation matrix of the object view
+		* 
+		* Mat(layout_offset + layout_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
+		* 
+		* @func layout_matrix()
+		*/
 	Mat View::layout_matrix() const {
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
 		Vec2 translate(
 			_layout_offset.x() + _layout_origin.x() + _translate.x() - in.x(),
 			_layout_offset.y() + _layout_origin.y() + _translate.y() - in.y()
-		); // xy 偏移
+		); // xy offset
 		return Mat(translate, _scale, -_rotate, _skew);
 	}
 
+	/**
+		* 
+		* Returns final transformation matrix of the view layout
+		*
+		* parent.transform_matrix * layout_matrix
+		* 
+		* @func transform_matrix()
+		*/
 	const Mat& View::transform_matrix() {
 		if (1/*MATRIX*/) { // update transform matrix
 			if (_parent) {
@@ -179,4 +361,4 @@ namespace ftr {
 
 }
 
-	// *******************************************************************
+// *******************************************************************

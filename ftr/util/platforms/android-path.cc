@@ -64,7 +64,7 @@ namespace ftr {
 	* Get the resoures dir
 	*/
 	String Path::resources(cString& child) {
-		static String path(Path::format("zip://%s?/assets", *Android::package_code_path()));
+		static String path(Path::format("zip://%s@/assets", *Android::package_code_path()));
 		if ( child.is_empty() ) {
 			return path;
 		}

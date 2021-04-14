@@ -194,14 +194,14 @@ namespace ftr {
 			#endif
 		}
 		
-		#if FX_ARCH_32BIT
-			void log(long msg) {
-				default_console()->log( String::format("%ld", msg) );
-			}
-			void log(unsigned long msg) {
-				default_console()->log( String::format("%lu", msg) );
-			}
-		#endif
+		// #if FX_ARCH_32BIT
+		// 	void log(long msg) {
+		// 		default_console()->log( String::format("%ld", msg) );
+		// 	}
+		// 	void log(unsigned long msg) {
+		// 		default_console()->log( String::format("%lu", msg) );
+		// 	}
+		// #endif
 
 		void log(uint64_t msg) {
 			#if FX_ARCH_64BIT
