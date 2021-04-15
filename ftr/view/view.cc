@@ -553,9 +553,26 @@ namespace ftr {
 		* 
 		* This method of the parent view is called when the layout weight of the child view changes
 		*
-		* @func layout_weight_change_notice(child)
+		* @func layout_weight_change_notice_from_child(child)
 		*/
-	void View::layout_weight_change_notice(View* from_child) {
+	void View::layout_weight_change_notice_from_child(View* child) {
+		// noop
+	}
+
+	/**
+		*
+		* This method of the parent view is called when the layout size of the child view changes
+		* 
+		* @func layout_size_change_notice_from_child()
+		*/
+	void View::layout_size_change_notice_from_child(View* child) {
+		// noop
+	}
+
+	/**
+		* @func layout_size_change_notice_from_parent(parent)
+		*/
+	void View::layout_size_change_notice_from_parent(View* parent) {
 		// noop
 	}
 

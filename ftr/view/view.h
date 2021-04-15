@@ -470,9 +470,22 @@ namespace ftr {
 		 * 
 		 * This method of the parent view is called when the layout weight of the child view changes
 		 *
-		 * @func layout_weight_change_notice(child)
+		 * @func layout_weight_change_notice_from_child(child)
 		 */
-		virtual void layout_weight_change_notice(View* from_child);
+		virtual void layout_weight_change_notice_from_child(View* child);
+
+		/**
+		 *
+		 * This method of the parent view is called when the layout size of the child view changes
+		 * 
+		 * @func layout_size_change_notice_from_child()
+		 */
+		virtual void layout_size_change_notice_from_child(View* child);
+
+		/**
+		 * @func layout_size_change_notice_from_parent(parent)
+		 */
+		virtual void layout_size_change_notice_from_parent(View* parent);
 
 		// *******************************************************************
 		/**
@@ -576,7 +589,7 @@ namespace ftr {
 		protected: Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
-		private: uint16_t _level; // 在视图树中所处的层级
+		// private: uint16_t _level; // 在视图树中所处的层级
 		protected: bool _visible; // 视图是否可见
 		protected: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		private: bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
