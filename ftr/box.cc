@@ -246,7 +246,7 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 			// 5.减法值
 			
 			switch ( m_width.type ) {
-				case ValueType::AUTO:  // 自动宽度,由内部挤压确定 (width=auto)
+				case ValueType::AUTO:  // 自动宽度,由内部挤压确定 (width=auto) // wrap
 					solve_horizontal_size_with_auto_width(parent_width);
 					break;
 				case ValueType::FULL:  // 吸附父视图 (width=full)
@@ -257,7 +257,7 @@ FX_DEFINE_INLINE_MEMBERS(Box, Inl) {
 					m_limit.width(m_final_width);
 					solve_horizontal_size_with_explicit_width(parent_width);
 					break;
-				case ValueType::PERCENT: // 百分比 (width=50%)
+				case ValueType::PERCENT: // 百分比 (width=50%) // ratio
 					m_final_width = m_width.value * parent_width;
 					m_limit.width(m_final_width);
 					solve_horizontal_size_with_explicit_width(parent_width);
