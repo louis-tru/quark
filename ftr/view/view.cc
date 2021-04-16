@@ -75,7 +75,7 @@ namespace ftr {
 		, _next_pre_mark(nullptr)
 		, _rotate(0.0), _opacity(1.0)
 		, _layout_weight(0.0)
-		, _level(0.0)
+		, _level(0)
 		, _visible(true)
 		, _region_visible(false)
 		, _receive(false)
@@ -263,22 +263,22 @@ namespace ftr {
 			
 			// TODO ...
 			// 设置level
-			// uint32_t level = parent->_level;
-			// if (level) {
-			// 	if ( level + 1 != _level ) {
-			// 		_inl(this)->set_level_and_visible(level + 1, parent->_final_visible);
-			// 	} else {
-			// 		if ( _final_visible != parent->_final_visible ) {
-			// 			if ( _final_visible ) {
-			// 				_inl(this)->set_final_visible_false();
-			// 			} else {
-			// 				_inl(this)->set_final_visible_true();
-			// 			}
-			// 		}
-			// 	}
-			// } else {
-			// 	_inl(this)->set_level0_and_visible_false();
-			// }
+			uint32_t level = parent->_level;
+			if (level) {
+				if ( level + 1 != _level ) {
+					// _inl(this)->set_level_and_visible(level + 1, parent->_final_visible);
+				} else {
+					// if ( _final_visible != parent->_final_visible ) {
+					// 	if ( _final_visible ) {
+					// 		_inl(this)->set_final_visible_false();
+					// 	} else {
+					// 		_inl(this)->set_final_visible_true();
+					// 	}
+					// }
+				}
+			} else {
+				// _inl(this)->set_level0_and_visible_false();
+			}
 			// 这些标记是必需的
 			// mark_pre( M_MATRIX | M_SHAPE | M_OPACITY | M_STYLE_FULL );
 		}
@@ -488,7 +488,7 @@ namespace ftr {
 			_layout_weight = val;
 			// TODO 重新标记父视图需要重新对子视图进行偏移布局，MAKE: PARENT WEIGHT LAYOUT
 			if (_parent) {
-				_parent->layout_weight_change_notice(this);
+				_parent->layout_weight_change_notice_from_child(this);
 			}
 		}
 	}
@@ -530,8 +530,8 @@ namespace ftr {
 	}
 
 	/**
-		* 当一个父布局视图对其中所有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，会调用这个函数对子视图做尺寸上的限制
-		* 这个函数被调用后，其它调用尺寸更改的方法都应该失效，但应该记录被设置的数值一旦解除锁定后设置属性的才能生效
+		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
+		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		* 
 		* 调用`layout_size_lock(false)`解除锁定
 		* 
@@ -570,6 +570,9 @@ namespace ftr {
 	}
 
 	/**
+		* 
+		* This method of the child view is called when the layout size of the parent view changes
+		* 
 		* @func layout_size_change_notice_from_parent(parent)
 		*/
 	void View::layout_size_change_notice_from_parent(View* parent) {

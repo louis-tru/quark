@@ -433,6 +433,9 @@ namespace ftr {
 		 *
 		 * 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 		 * 
+		 * 这个方法被调用时父视图尺寸一定是有效的，在调用`layout_content_size`时有两种情况，
+		 * 返回`false`表示父视图尺寸是wrap的，返回`true`时表示父视图有明确的尺寸
+		 * 
 		 * @func layout_forward()
 		 */
 		virtual void layout_forward();
@@ -440,7 +443,9 @@ namespace ftr {
 		/**
 		 * 
 		 * 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
-		 * 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸
+		 * 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸。
+		 *
+		 * 这个方法被调用时子视图尺寸一定是明确的有效的，调用`layout_size()`返回子视图外框尺寸。
 		 * 
 		 * @func layout_reverse()
 		 */
@@ -455,8 +460,8 @@ namespace ftr {
 		void set_layout_offset(Vec2 val);
 
 		/**
-		 * 当一个父布局视图对其中所有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，会调用这个函数对子视图做尺寸上的限制
-		 * 这个函数被调用后，其它调用尺寸更改的方法都应该失效，但应该记录被设置的数值一旦解除锁定后设置属性的才能生效
+		 * 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
+		 * 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		 * 
 		 * 调用`layout_size_lock(false)`解除锁定
 		 * 
@@ -483,6 +488,9 @@ namespace ftr {
 		virtual void layout_size_change_notice_from_child(View* child);
 
 		/**
+		 * 
+		 * This method of the child view is called when the layout size of the parent view changes
+		 * 
 		 * @func layout_size_change_notice_from_parent(parent)
 		 */
 		virtual void layout_size_change_notice_from_parent(View* parent);
@@ -521,7 +529,8 @@ namespace ftr {
 		/**
 		 *
 		 * Returns the layout content size of object view, 
-		 * Returns false to indicate that the size is unknown
+		 * Returns false to indicate that the size is unknown,
+		 * indicates that the size changes with the size of the subview, and the content is wrapped
 		 *
 		 * @func layout_content_size(size)
 		 */
@@ -589,7 +598,7 @@ namespace ftr {
 		protected: Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
-		// private: uint16_t _level; // 在视图树中所处的层级
+		private: uint16_t _level; // 在视图树中所处的层级
 		protected: bool _visible; // 视图是否可见
 		protected: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		private: bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
