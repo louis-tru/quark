@@ -32,13 +32,28 @@
 
 namespace ftr {
 
+	#define is_mark_pre _prev_pre_mark
+	#define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
+
 	// view private members method
 	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		public:
 		#define _inl(self) static_cast<View::Inl*>(self)
 
 		/**
-		* @func remove_all_child_
+		* @func delete_mark() delete pre mark
+		*/
+		void delete_mark() {
+			if ( is_mark_pre ) {
+				_prev_pre_mark->_next_pre_mark = _next_pre_mark;
+				_next_pre_mark->_prev_pre_mark = _prev_pre_mark;
+				_prev_pre_mark = nullptr;
+				_next_pre_mark = nullptr;
+			}
+		}
+	
+		/**
+		* @func remove_all_child_()
 		*/
 		void remove_all_child_() {
 			while (_first) {
@@ -47,7 +62,7 @@ namespace ftr {
 		}
 		
 		/**
-		* @func clear # 清理关联视图信息
+		* @func clear() Cleaning up associated view information
 		*/
 		void clear() {
 			if (_parent) {
@@ -66,17 +81,104 @@ namespace ftr {
 			}
 		}
 
+		void clear_level_and_visibility() {
+			if ( _level ) {
+				_level = 0;
+				_visibility = false;
+				blur();
+				
+				delete_mark(); // clear mark
+				
+				View* v = _first;
+				
+				while ( v ) {
+					_inl(v)->clear_level_and_visibility();
+					v = v->_next;
+				}
+			}
+		}
+		
+		/**
+		* @func set_level_and_visibility(level, visibility) settings level and final visibility
+		*/
+		void set_level_and_visibility(uint16_t level, bool visibility) {
+			_level = level;
+			_visibility = visibility = visibility && _visible;
+
+			if ( !visibility ) {
+				blur();
+			}
+			
+			// TODO ...
+			// 在标记库中存在
+			// if ( is_mark_pre ) {
+			// 	delete_mark();
+			// 	pre_render()->mark_pre(this);
+			// } else if ( mark_value ) {
+			// 	pre_render()->mark_pre(this);
+			// }
+			
+			level++;
+			View* v = _first;
+			
+			while ( v ) {
+				_inl(v)->set_level_and_visibility(level, visibility);
+				v = v->_next;
+			}
+		}
+		
+		/**
+		* @func set_visibility_true
+		*/
+		void set_visibility_true() {
+			if ( _visible && ! _visibility ) {
+				_visibility = true;
+				
+				// TODO ...
+				//Layout* layout = as_layout();
+				//if ( layout && layout->mark_value ) {
+					// pre_render()->mark_pre(layout);
+				//}
+				
+				View* view = _first;
+				
+				while (view) {
+					_inl(view)->set_visibility_true();
+					view = view->_next;
+				}
+			}
+		}
+
+		/**
+		* @func set_visibility_false
+		*/
+		void set_visibility_false() {
+			
+			if ( _visibility ) {
+				_visibility = false;
+				blur();
+				
+				View* view = _first;
+				
+				while (view) {
+					_inl(view)->set_visibility_false();
+					view = view->_next;
+				}
+			}
+		}
+		
 	};
 
 	View::View()
 		: _action(nullptr), _parent(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _prev(nullptr), _next(nullptr)
-		, _next_pre_mark(nullptr)
+		, _prev_pre_mark(nullptr), _next_pre_mark(nullptr)
 		, _rotate(0.0), _opacity(1.0)
 		, _layout_weight(0.0)
 		, _level(0)
 		, _visible(true)
+		, _visibility(false)
 		, _region_visible(false)
 		, _receive(false)
 	{
@@ -85,7 +187,7 @@ namespace ftr {
 	View::~View() {
 		ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
 		
-		// blur(); // TODO
+		blur();
 		
 		set_action(nullptr); // del action
 
@@ -110,10 +212,12 @@ namespace ftr {
 	void View::before(View* view) {
 		if (_parent) {
 			if (view == this) return;
-			if (view->_parent == _parent)
+
+			if (view->_parent == _parent) {
 				_inl(view)->clear();  // 清除关联
-			else
+			} else {
 				view->set_parent(_parent);
+			}
 			
 			if (_prev) {
 				_prev->_next = view;
@@ -135,10 +239,12 @@ namespace ftr {
 	void View::after(View* view) {
 		if (_parent) {
 			if (view == this) return;
-			if (view->_parent == _parent)
+
+			if (view->_parent == _parent) {
 				_inl(view)->clear(); // 清除关联
-			else
+			} else {
 				view->set_parent(_parent);
+			}
 			
 			if (m_next) {
 				_next->_prev = view;
@@ -158,10 +264,11 @@ namespace ftr {
 		* @func prepend(child)
 		*/
 	void View::prepend(View* child) {
-		if (this == child->_parent)
+		if (this == child->_parent) {
 			_inl(child)->clear();
-		else
+		} else {
 			child->set_parent(this);
+		}
 		
 		if (_first) {
 			child->_prev = nullptr;
@@ -183,10 +290,11 @@ namespace ftr {
 		* @func append(child)
 		*/
 	void View::append(View* child) {
-		if (this == child->_parent)
+		if (this == child->_parent) {
 			_inl(child)->clear();
-		else
+		} else {
 			child->set_parent(this);
+		}
 		
 		if (_last) {
 			child->_prev = _last;
@@ -261,24 +369,24 @@ namespace ftr {
 			}
 			_parent = parent;
 			
-			// TODO ...
 			// 设置level
-			uint32_t level = parent->_level;
+			uint16_t level = parent->_level;
 			if (level) {
 				if ( level + 1 != _level ) {
-					// _inl(this)->set_level_and_visible(level + 1, parent->_final_visible);
+					_inl(this)->set_level_and_visibility(level + 1, parent->_visibility);
 				} else {
-					// if ( _final_visible != parent->_final_visible ) {
-					// 	if ( _final_visible ) {
-					// 		_inl(this)->set_final_visible_false();
-					// 	} else {
-					// 		_inl(this)->set_final_visible_true();
-					// 	}
-					// }
+					if ( _visibility != parent->_visibility ) {
+						if ( _visibility ) {
+							_inl(this)->set_visibility_false();
+						} else {
+							_inl(this)->set_visibility_true();
+						}
+					}
 				}
 			} else {
-				// _inl(this)->set_level0_and_visible_false();
+				_inl(this)->clear_level_and_visibility();
 			}
+			// TODO ...
 			// 这些标记是必需的
 			// mark_pre( M_MATRIX | M_SHAPE | M_OPACITY | M_STYLE_FULL );
 		}
@@ -294,7 +402,6 @@ namespace ftr {
 		// TODO ...
 	}
 
-		
 	/**
 		* 
 		* Sets whether the view needs to receive or handle event throws from the system
@@ -314,8 +421,47 @@ namespace ftr {
 	void View::set_visible(bool val) {
 		if (_visible != val) {
 			_visible = val;
+
+			if (_visible) {
+				if ( _parent && _parent->_visibility ) { // 父视图的显示状态必须要为true才能生效
+					_inl(this)->set_visibility_true();
+				}
+			} else {
+				_inl(this)->set_visibility_false();
+			}
 			// TODO MARK: M_VISIBLE
 		}
+	}
+
+	/**
+	 * @func focus()
+	 */
+	bool View::focus() {
+		return true; // TODO ...
+	}
+	
+	/**
+	 * @func blur()
+	 */
+	bool View::blur() {
+		return true; // TODO ...
+	}
+	
+	/**
+	 * @func is_focus()
+	 */
+	bool View::is_focus() const {
+		return true; // TODO ...
+	}
+	
+	/**
+	 *
+	 * Can it be the focus
+	 * 
+	 * @func can_become_focus()
+	 */
+	bool View::can_become_focus() {
+		return true; // TODO ...
 	}
 
 	// *******************************************************************

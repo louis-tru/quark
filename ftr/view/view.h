@@ -188,6 +188,16 @@ namespace ftr {
 		}
 
 		/**
+		 * 
+		 * Returns final visibility for view
+		 *
+		 * @func visibility()
+		 */
+		inline bool visibility() const {
+			return _visibility;
+		}
+
+		/**
 		* 
 		* Returns region visibility for the view
 		* 
@@ -212,6 +222,29 @@ namespace ftr {
 		 * @func set_visible(val)
 		 */
 		virtual void set_visible(bool val);
+
+		/**
+		 * @func focus()
+		 */
+		bool focus();
+		
+		/**
+		 * @func blur()
+		 */
+		bool blur();
+		
+		/**
+		 * @func is_focus()
+		 */
+		bool is_focus() const;
+		
+		/**
+			*
+			* Can it be the focus
+			* 
+			* @func can_become_focus()
+			*/
+		virtual bool can_become_focus();
 
 		// *******************************************************************
 		/**
@@ -588,8 +621,8 @@ namespace ftr {
 		private: Action *_action; // 动作：在一定的时间内根据动作设定的程序自动修改视图属性
 		private: View *_parent;
 		private: View *_first, *_last, *_prev, *_next;
-		private: View *_next_pre_mark; /* 下一个预处理视图标记 */
-																	/* 在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图*/
+		private: View *_prev_pre_mark, *_next_pre_mark; /* 预处理视图标记
+							在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图*/
 		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
 		private: float _rotate;     // z轴旋转角度值
 		private: float _opacity;    // 可影响子视图的透明度值
@@ -599,8 +632,9 @@ namespace ftr {
 		private:  float  _layout_weight; // layout weight
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
 		private: uint16_t _level; // 在视图树中所处的层级
-		protected: bool _visible; // 视图是否可见
-		protected: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
+		private: bool _visibility; // 视图的可见性，受`visible`影响
+		private: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		private: bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 
 		FX_DEFINE_INLINE_CLASS(Inl);
