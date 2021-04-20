@@ -224,11 +224,17 @@ namespace ftr {
 		virtual void set_visible(bool val);
 
 		/**
+		 * 
+		 * focus keyboard
+		 *
 		 * @func focus()
 		 */
 		bool focus();
 		
 		/**
+		 *
+		 * Unfocus keyboard
+		 *
 		 * @func blur()
 		 */
 		bool blur();
