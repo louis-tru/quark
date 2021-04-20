@@ -27,7 +27,7 @@
 				'../bench',
 			],
 			'xcode_settings': {
-				'OTHER_LDFLAGS': '-all_load',
+				'OTHER_LDFLAGS': ['-all_load'],
 			},
 			'sources': [
 				'../examples',
@@ -82,7 +82,8 @@
 						'Storyboard-<(os).storyboard',
 					],
 					'xcode_settings': {
-						'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
+						# 'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
+						'INFOPLIST_FILE': '<(output)/../../test/test-<(os).plist',
 					},
 				}],
 				['os in "linux android" and library_output=="static_library"', {

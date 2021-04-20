@@ -373,7 +373,7 @@ bool IMPL::TriggerUncaughtException(Local<JSValue> err) {
 
 bool IMPL::TriggerUnhandledRejection(Local<JSValue> reason, Local<JSValue> promise) {
 	Local<JSValue> argv[] = { reason, promise };
-	return TriggerException(_host, "UncaughtException", 2, argv);
+	return TriggerException(_host, "UnhandledRejection", 2, argv);
 }
 
 Worker* Worker::create() {

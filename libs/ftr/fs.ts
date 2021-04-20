@@ -242,42 +242,42 @@ export function rmdir(path: string) {
 }
 export function readdir(path: string) {
 	return new Promise<Dirent[]>(function(resolve, reject) {
-		_fs.readdir(path, (err?: Error, r?: Dirent[])=>err?reject(err):resolve(r));
+		_fs.readdir(path, (err?: Error, r?: Dirent[])=>err?reject(err):resolve(r as Dirent[]));
 	});
 }
 export function stat(path: string) {
 	return new Promise<FileStat>(function(resolve, reject) {
-		_fs.stat(path, (err?: Error, r?: FileStat)=>err?reject(err):resolve(r));
+		_fs.stat(path, (err?: Error, r?: FileStat)=>err?reject(err):resolve(r as FileStat));
 	});
 }
 export function exists(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
-		_fs.exists(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r));
+		_fs.exists(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 export function isFile(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
-		_fs.isFile(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r));
+		_fs.isFile(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 export function isDirectory(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
-		_fs.isDirectory(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r));
+		_fs.isDirectory(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 export function readable(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
-		_fs.readable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r));
+		_fs.readable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 export function writable(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
-		_fs.writable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r));
+		_fs.writable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 export function executable(path: string) {
 	return new Promise<boolean>(function(resolve, reject) {
-		_fs.executable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r));
+		_fs.executable(path, (err?: Error, r?: boolean)=>err?reject(err):resolve(r as boolean));
 	});
 }
 export function chmodr(path: string, mode: number = _fs.DEFAULT_MODE) {
@@ -343,7 +343,7 @@ export declare function write(fd: number, data: string, encoding?: Encoding, off
 
 exports.writeFile = function(...args: any[]) {
 	return new Promise<number>(function(resolve, reject) {
-		_fs.writeFile((err?: Error, r?: number)=>err ? reject(err) : resolve(r), ...args);
+		_fs.writeFile((err?: Error, r?: number)=>err ? reject(err) : resolve(r as number), ...args);
 	});
 };
 

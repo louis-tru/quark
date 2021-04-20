@@ -62,17 +62,19 @@ class Process extends Notification {
 
 	private _handles = {
 		BeforeExit: (noticer: EventNoticer, code = 0)=>{
-			return noticer.triggerWithEvent(new Event(code, code));
+			noticer.trigger(code);
+			return code;
 		},
 		Exit: (noticer: EventNoticer, code = 0)=>{
 			this._exiting = true;
-			return noticer.triggerWithEvent(new Event(code, code));
+			noticer.trigger(code);
+			return code;
 		},
 		UncaughtException: (noticer: EventNoticer, err: Error)=>{
-			return noticer.length && noticer.triggerWithEvent(new Event(err, 0)) === 0;
+			return noticer.length ? (noticer.trigger(err), true): false;
 		},
 		UnhandledRejection: (noticer: EventNoticer, reason: Error, promise: Promise<any>)=>{
-			return noticer.length && noticer.triggerWithEvent(new Event({ reason, promise }, 0)) === 0;
+			return noticer.length ? (noticer.trigger({ reason, promise }), true): false;
 		},
 	};
 

@@ -14,7 +14,7 @@
 	},
 	"scripts": {
 		"cp": "mkdir -p out/ftrp && cp -rf LICENSE *.keys *.md marked export out/ftrp && if [ ! -d out/ftrp/gyp ]; then ln -s ../../gyp out/ftrp; fi ",
-		"build": "npm run cp && tsc && node _.js"
+		"build": "npm run cp && tsc"
 	},
 	"keywords": [
 		"jsx",

@@ -28,7 +28,7 @@
 		],
 		'mac_bundle': 1,
 		'xcode_settings': {
-			'OTHER_LDFLAGS': '-all_load',
+			'OTHER_LDFLAGS': ['-all_load'],
 		},
 		'conditions': [
 			['os in "ios osx"', {
@@ -38,7 +38,8 @@
 					'Storyboard-<(os).storyboard',
 				],
 				'xcode_settings': {
-					'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
+					# 'INFOPLIST_FILE': '$(SRCROOT)/test/test-<(os).plist',
+					'INFOPLIST_FILE': '<(output)/../../test/test-<(os).plist',
 				},
 			}],
 			['os=="linux"', {
