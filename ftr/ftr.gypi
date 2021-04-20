@@ -31,15 +31,15 @@
 		'include_dirs': [
 			'..',
 			'../out',
-			'../depe/freetype2/include',
-			'../depe/tess2/Include',
-			'../depe/tinyxml2',
+			'../deps/freetype2/include',
+			'../deps/tess2/Include',
+			'../deps/tinyxml2',
 		],
 		'dependencies': [
 			'ftr-util',
-			'depe/tess2/tess2.gyp:tess2', 
-			'depe/freetype2/freetype2.gyp:ft2',
-			'depe/tinyxml2/tinyxml2.gyp:tinyxml2',
+			'deps/tess2/tess2.gyp:tess2', 
+			'deps/freetype2/freetype2.gyp:ft2',
+			'deps/tinyxml2/tinyxml2.gyp:tinyxml2',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '..' ],
@@ -198,10 +198,10 @@
 			}],
 			['OS!="mac"', {
 				'dependencies': [
-					'depe/libgif/libgif.gyp:libgif', 
-					'depe/libjpeg/libjpeg.gyp:libjpeg', 
-					'depe/libpng/libpng.gyp:libpng',
-					'depe/libwebp/libwebp.gyp:libwebp',
+					'deps/libgif/libgif.gyp:libgif', 
+					'deps/libjpeg/libjpeg.gyp:libjpeg', 
+					'deps/libpng/libpng.gyp:libpng',
+					'deps/libwebp/libwebp.gyp:libwebp',
 				],
 				'sources': [
 					'codec/codec-gif.cc',
@@ -320,7 +320,7 @@
 		'type': 'static_library', #<(output_type)
 		'dependencies': [
 			'ftr',
-			'depe/ffmpeg/ffmpeg.gyp:ffmpeg',
+			'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
 		],
 		'sources': [
 			'media/pcm.h',

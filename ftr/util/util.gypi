@@ -7,10 +7,10 @@
 		'type': 'static_library',
 		'dependencies': [
 			'minizip',
-			'depe/bplus/bplus.gyp:bplus',
-			'depe/libuv/libuv.gyp:libuv',
-			'depe/node/deps/openssl/openssl.gyp:openssl',
-			'depe/node/deps/http_parser/http_parser.gyp:http_parser',
+			'deps/bplus/bplus.gyp:bplus',
+			'deps/libuv/libuv.gyp:libuv',
+			'deps/node/deps/openssl/openssl.gyp:openssl',
+			'deps/node/deps/http_parser/http_parser.gyp:http_parser',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -18,10 +18,10 @@
 		},
 		'include_dirs': [
 			'../..',
-			'../../depe/rapidjson/include',
-			'../../depe/bplus/include',
-			'../../depe/node/deps/zlib',
-			'../../depe/node/deps/zlib/contrib/minizip',
+			'../../deps/rapidjson/include',
+			'../../deps/bplus/include',
+			'../../deps/node/deps/zlib',
+			'../../deps/node/deps/zlib/contrib/minizip',
 		],
 		'sources': [
 			'../../Makefile',
@@ -129,7 +129,7 @@
 			}],
 			['OS=="mac"', {
 				'dependencies': [
-					'depe/reachability/reachability.gyp:reachability',
+					'deps/reachability/reachability.gyp:reachability',
 				],
 				'sources': [
 					'platforms/mac-path.mm',
@@ -149,15 +149,15 @@
 		'cflags': [ '-ansi' ],
 		'direct_dependent_settings': {
 			'include_dirs': [ 
-				'../../depe/node/deps/zlib/contrib/minizip', 
-				'../../depe/node/deps/zlib',
+				'../../deps/node/deps/zlib/contrib/minizip', 
+				'../../deps/node/deps/zlib',
 			],
 		},
-		'include_dirs': [ '../depe/node/deps/zlib', ],
+		'include_dirs': [ '../deps/node/deps/zlib', ],
 		'sources': [
-			'../../depe/node/deps/zlib/contrib/minizip/ioapi.c',
-			'../../depe/node/deps/zlib/contrib/minizip/zip.c',
-			'../../depe/node/deps/zlib/contrib/minizip/unzip.c',
+			'../../deps/node/deps/zlib/contrib/minizip/ioapi.c',
+			'../../deps/node/deps/zlib/contrib/minizip/zip.c',
+			'../../deps/node/deps/zlib/contrib/minizip/unzip.c',
 		],
 		'conditions': [
 			['use_system_zlib==1', {
@@ -170,7 +170,7 @@
 				},
 			}, {
 				'dependencies': [
-					'depe/node/deps/zlib/zlib.gyp:zlib'
+					'deps/node/deps/zlib/zlib.gyp:zlib'
 				],
 			}],
 			['os in "osx ios" and use_system_zlib==1', {
@@ -180,7 +180,7 @@
 				},
 			}],
 			[ 'os=="win"', {
-				'sources': [ '../../depe/node/deps/zlib/contrib/minizip/iowin32.c' ]
+				'sources': [ '../../deps/node/deps/zlib/contrib/minizip/iowin32.c' ]
 			},{
 				'cflags!': [ '-ansi' ],
 			}],

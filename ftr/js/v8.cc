@@ -39,7 +39,7 @@
 #include "./value.h"
 #include <native-inl-js.h>
 #include <uv.h>
-#include <depe/node/src/ftr.h>
+#include <deps/node/src/ftr.h>
 
 #if USE_JSC
 #include <JavaScriptCore/JavaScriptCore.h>

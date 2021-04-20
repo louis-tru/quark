@@ -34,8 +34,8 @@
     <content url="file://$MODULE_DIR$/../../../android">
       <sourceFolder url="file://$MODULE_DIR$/../../../android" isTestSource="false" />
     </content>
-    <content url="file://$MODULE_DIR$/../../../depe/bplus">
-      <sourceFolder url="file://$MODULE_DIR$/../../../depe/bplus" isTestSource="false" />
+    <content url="file://$MODULE_DIR$/../../../deps/bplus">
+      <sourceFolder url="file://$MODULE_DIR$/../../../deps/bplus" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$/../../../out">
       <sourceFolder url="file://$MODULE_DIR$/../../../out" isTestSource="false" />

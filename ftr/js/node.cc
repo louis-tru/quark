@@ -31,7 +31,7 @@
 #include "./_js.h"
 #include "../../util/loop.h"
 #include "../../util/codec.h"
-#include <depe/node/src/ftr.h>
+#include <deps/node/src/ftr.h>
 
 namespace node {
 

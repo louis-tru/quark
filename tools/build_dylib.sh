@@ -77,8 +77,8 @@ if [ "$use_v8_link" = "1" ]; then
 		"" \
 		"-framework ftr -framework ftr-media -framework JavaScriptCore"
 else
-	# $obj/v8_base/depe/node/deps/v8/src/api.o
-	# $obj/v8_base/depe/node/deps/v8/src/inspector
+	# $obj/v8_base/deps/node/deps/v8/src/api.o
+	# $obj/v8_base/deps/node/deps/v8/src/inspector
 	link_dylib ftr-js \
 		"$obj/v8_base $obj/v8_libplatform $obj/ftr-js" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \

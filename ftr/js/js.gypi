@@ -43,8 +43,8 @@
 		'target_name': 'ftr-v8',
 		'type': 'none',
 		'dependencies': [
-			'depe/v8-link/v8-link.gyp:v8-link',
-			'depe/v8-link/v8-link.gyp:v8_libplatform-link',
+			'deps/v8-link/v8-link.gyp:v8-link',
+			'deps/v8-link/v8-link.gyp:v8_libplatform-link',
 		],
 	},
 	{
@@ -53,7 +53,7 @@
 		'dependencies': [
 			'ftr',
 			'ftr-js',
-			'depe/node/node.gyp:node',
+			'deps/node/node.gyp:node',
 		],
 		"sources": [
 			'../../tools/useless.c', # fix mac platform build error
@@ -65,8 +65,8 @@
 		'include_dirs': [
 			'../..',
 			'../../out',
-			'../../depe/node/deps/uv/include',
-			'../../depe/node/deps/openssl/openssl/include',
+			'../../deps/node/deps/uv/include',
+			'../../deps/node/deps/openssl/openssl/include',
 		],
 		'dependencies': [
 			'ftr',

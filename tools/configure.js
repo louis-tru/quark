@@ -127,7 +127,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	var arch = opts.arch;
 	var arch_name = variables.arch_name;
 	var cmd = '';
-	var source = __dirname + '/../depe/ffmpeg';
+	var source = __dirname + '/../deps/ffmpeg';
 
 	var ff_opts = [
 		`--prefix=${ff_install_dir}`,
@@ -301,9 +301,9 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	cmd += ff_opts.join(' ');
 
 	// clean
-	execSync(`cd depe/ffmpeg; make clean; find . -name *.o|xargs rm; `);
+	execSync(`cd deps/ffmpeg; make clean; find . -name *.o|xargs rm; `);
 	syscall(`
-		rm -rf ${variables.output}/obj.target/depe/ffmpeg/*;
+		rm -rf ${variables.output}/obj.target/deps/ffmpeg/*;
 		rm -rf ${ff_install_dir}; \
 		rm -rf \
 		${source}/compat/strtod.d \
@@ -327,7 +327,7 @@ function configure_ffmpeg(opts, variables, configuration, clang, ff_install_dir)
 	console.log(cmd, '\n');
 
 	var log = syscall(
-		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd depe/ffmpeg; ${cmd};`
+		`export PATH=${__dirname}:${variables.build_bin}:$PATH; cd deps/ffmpeg; ${cmd};`
 	);
 	console.error(log.stderr.join('\n'));
 	console.log(log.stdout.join('\n'));
@@ -1026,7 +1026,7 @@ async function configure() {
 					 !fs.existsSync(`${ff_install_dir}/objs`) ) {
 				ff_rebuild = true;
 			} else {
-				ff_rebuild = !fs.existsSync(__dirname + '/../depe/ffmpeg/config.h')
+				ff_rebuild = !fs.existsSync(__dirname + '/../deps/ffmpeg/config.h')
 			}
 			variables.media = 1;
 		} else {
@@ -1063,7 +1063,7 @@ async function configure() {
 	fs.writeFileSync('out/config.mk', config_mk_str);
 
 	if (!opts.without_node) { 
-		fs.writeFileSync('depe/node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
+		fs.writeFileSync('deps/node/config.gypi', '\n' + config_gypi_str.replace(/"([^"]*)"/g, "'$1'"));
 	}
 
 	touch_files(variables);

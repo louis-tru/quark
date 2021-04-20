@@ -100,7 +100,7 @@
 		'debug_http2%': 'false',
 		'debug_nghttp2%': 'false',
 		'OBJ_DIR%': '<(PRODUCT_DIR)/obj.target',
-		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/depe/v8/src/libv8_base.a',
+		'V8_BASE%': '<(PRODUCT_DIR)/obj.target/deps/v8/src/libv8_base.a',
 
 		# conditions
 		'conditions': [
@@ -176,11 +176,11 @@
 		'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
 		'include_dirs': [
 			'..',
-			'../depe/libuv/include',
-			'../depe/node/deps/openssl/openssl/include',
-			'../depe/node/deps/zlib',
-			'../depe/node/deps/http_parser',
-			'../depe/v8-link/include',
+			'../deps/libuv/include',
+			'../deps/node/deps/openssl/openssl/include',
+			'../deps/node/deps/zlib',
+			'../deps/node/deps/http_parser',
+			'../deps/v8-link/include',
 		],
 		'conditions': [
 			['os=="android"', {
