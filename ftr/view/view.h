@@ -624,20 +624,26 @@ namespace ftr {
 		const Mat& transform_matrix();
 
 		// *******************************************************************
-		private: Action *_action; // 动作：在一定的时间内根据动作设定的程序自动修改视图属性
+		// action:
+		private: Action *_action; // 在一定的时间内根据动作设定的程序自动修改视图属性
+		// view node:
 		private: View *_parent;
-		private: View *_first, *_last, *_prev, *_next;
-		private: View *_prev_pre_mark, *_next_pre_mark; /* 预处理视图标记
+		private: View *_first, *_last;
+		private: View *_prev, *_next;
+		// layout:
+		private: View *_next_pre_mark; /* 下一个预处理视图标记
 							在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图*/
-		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
-		private: float _rotate;     // z轴旋转角度值
-		private: float _opacity;    // 可影响子视图的透明度值
+		private: uint16_t _level; // 在视图树中所处的层级
 		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
 		private:   Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		protected: Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
+		// matrix:
+		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
+		private: float _rotate;     // z轴旋转角度值
+		private: float _opacity;    // 可影响子视图的透明度值
 		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
-		private: uint16_t _level; // 在视图树中所处的层级
+		// layout visible:
 		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		private: bool _visibility; // 视图的可见性，受`visible`影响
 		private: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕

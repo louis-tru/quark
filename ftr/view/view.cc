@@ -32,7 +32,7 @@
 
 namespace ftr {
 
-	#define is_mark_pre _prev_pre_mark
+	#define is_mark_pre _next_pre_mark
 	#define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
 
 	// view private members method
@@ -45,10 +45,11 @@ namespace ftr {
 		*/
 		void delete_mark() {
 			if ( is_mark_pre ) {
-				_prev_pre_mark->_next_pre_mark = _next_pre_mark;
-				_next_pre_mark->_prev_pre_mark = _prev_pre_mark;
-				_prev_pre_mark = nullptr;
-				_next_pre_mark = nullptr;
+				// _prev_pre_mark->_next_pre_mark = _next_pre_mark;
+				// _next_pre_mark->_prev_pre_mark = _prev_pre_mark;
+				// _prev_pre_mark = nullptr;
+				// _next_pre_mark = nullptr;
+				// TODO ...
 			}
 		}
 	
@@ -173,7 +174,7 @@ namespace ftr {
 		: _action(nullptr), _parent(nullptr)
 		, _first(nullptr), _last(nullptr)
 		, _prev(nullptr), _next(nullptr)
-		, _prev_pre_mark(nullptr), _next_pre_mark(nullptr)
+		, _next_pre_mark(nullptr)
 		, _rotate(0.0), _opacity(1.0)
 		, _layout_weight(0.0)
 		, _level(0)
