@@ -625,24 +625,37 @@ namespace ftr {
 
 		// *******************************************************************
 		// action:
-		private: Action *_action; // 在一定的时间内根据动作设定的程序自动修改视图属性
+		private: Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，来达到类似影片播放效果
 		// view node:
 		private: View *_parent;
 		private: View *_first, *_last;
 		private: View *_prev, *_next;
 		// layout:
-		private: View *_next_pre_mark; /* 下一个预处理视图标记
-							在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图*/
-		private: uint16_t _level; // 在视图树中所处的层级
+		/* 下一个预处理视图标记
+		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
+		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
+		*  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
+		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
+		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
+		*/
+		private: View *_next_pre_mark;
+		/* 视图在整个视图树中所处的层级，0表示还没有加入到应用程序唯一的视图树中,根视图为1 */
+		private: uint32_t _level;
+		/* 这些标记后的视图会在开始帧绘制前进行更新.
+		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
+		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
+		* */
+		protected: uint32_t _mark_value;
 		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
 		private:   Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-		protected: Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
+		protected: Vec2  _layout_size;   // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
 		// matrix:
 		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
 		private: float _rotate;     // z轴旋转角度值
 		private: float _opacity;    // 可影响子视图的透明度值
-		private:  Mat _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
+		private:  Mat  _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
+		// private: float _transform_opacity;
 		// layout visible:
 		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		private: bool _visibility; // 视图的可见性，受`visible`影响

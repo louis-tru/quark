@@ -102,7 +102,7 @@ namespace ftr {
 		/**
 		* @func set_level_and_visibility(level, visibility) settings level and final visibility
 		*/
-		void set_level_and_visibility(uint16_t level, bool visibility) {
+		void set_level_and_visibility(uint32_t level, bool visibility) {
 			_level = level;
 			_visibility = visibility = visibility && _visible;
 
@@ -175,9 +175,9 @@ namespace ftr {
 		, _first(nullptr), _last(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _next_pre_mark(nullptr)
-		, _rotate(0.0), _opacity(1.0)
+		, _level(0), _mark_value(0)
 		, _layout_weight(0.0)
-		, _level(0)
+		, _rotate(0.0), _opacity(1.0)
 		, _visible(true)
 		, _visibility(false)
 		, _region_visible(false)
@@ -371,7 +371,7 @@ namespace ftr {
 			_parent = parent;
 			
 			// 设置level
-			uint16_t level = parent->_level;
+			uint32_t level = parent->_level;
 			if (level) {
 				if ( level + 1 != _level ) {
 					_inl(this)->set_level_and_visibility(level + 1, parent->_visibility);
