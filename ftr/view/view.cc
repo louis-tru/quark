@@ -172,9 +172,9 @@ namespace ftr {
 
 	View::View()
 		: _action(nullptr), _parent(nullptr)
-		, _first(nullptr), _last(nullptr)
 		, _prev(nullptr), _next(nullptr)
-		, _next_pre_mark(nullptr)
+		, _first(nullptr), _last(nullptr)
+		, _next_mark(nullptr)
 		, _level(0), _mark_value(0)
 		, _layout_weight(0.0)
 		, _rotate(0.0), _opacity(1.0)
@@ -755,7 +755,7 @@ namespace ftr {
 		* 
 		* Returns layout transformation matrix of the object view
 		* 
-		* Mat(layout_offset + layout_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
+		* Mat(layout_offset + layout_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
 		* 
 		* @func layout_matrix()
 		*/

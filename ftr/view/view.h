@@ -588,7 +588,7 @@ namespace ftr {
 		 * 
 		 * Returns layout transformation matrix of the object view
 		 * 
-		 * Mat(layout_offset + layout_origin + translate - parent->layout_inside_offset, scale, rotate, skew)
+		 * Mat(layout_offset + layout_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
 		 * 
 		 * @func layout_matrix()
 		 */
@@ -626,10 +626,22 @@ namespace ftr {
 		// *******************************************************************
 		// action:
 		private: Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，来达到类似影片播放效果
-		// view node:
+		// node tree:
 		private: View *_parent;
-		private: View *_first, *_last;
 		private: View *_prev, *_next;
+		private: View *_first, *_last;
+		// layout mark change:
+		/* 这些标记后的视图会在开始帧绘制前进行更新.
+		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
+		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
+		* */
+		class LayoutMark {
+			private: LayoutMark *_prev, *_next;
+			private: View *_view;
+		};
+		private: LayoutMark *_layout_mark; /* 变化标记 */
+		/* 视图在整个视图树中所处的层级，0表示还没有加入到应用程序唯一的视图树中,根视图为1 */
+		private: uint32_t _level;
 		// layout:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
@@ -638,14 +650,6 @@ namespace ftr {
 		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
 		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 		*/
-		private: View *_next_pre_mark;
-		/* 视图在整个视图树中所处的层级，0表示还没有加入到应用程序唯一的视图树中,根视图为1 */
-		private: uint32_t _level;
-		/* 这些标记后的视图会在开始帧绘制前进行更新.
-		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
-		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
-		* */
-		protected: uint32_t _mark_value;
 		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
 		private:   Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		protected: Vec2  _layout_size;   // 在布局中所占用的尺寸（margin+border+padding+content）
