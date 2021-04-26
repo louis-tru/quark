@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, xuewen.chu
+ * Copyright © 2015-2016, xuewen.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,56 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__video__
-#define __ftr__view__video__
-
-#include "./image.h"
+#include "./gl-visitor.h"
 
 namespace ftr {
 
-	class FX_EXPORT Video: public Image {
-		FX_Define_View(Video);
-		public:
+	void GLRender::visitView(View *v) {
 		// TODO ...
-		private:
+	}
+	
+	void GLRender::visitBox(Box *v) {
 		// TODO ...
-	};
+	}
+	
+	void GLRender::visitFlexLayout(FlexLayout *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitFlowLayout(FlowLayout *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitGridLayout(GridLayout *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitImage(Image *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitInput(Input *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitLabel(Label *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitRoot(Root *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitScroll(Scroll *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitText(Text *v) {
+		// TODO ...
+	}
+	
+	void GLRender::visitVideo(Video *v) {
+		// TODO ...
+	}
 
 }
-
-#endif

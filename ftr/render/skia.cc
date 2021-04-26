@@ -1,7 +1,7 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * Distributed under the BSD license:
  *
- * Copyright (c) 2015, xuewen.chu
+ * Copyright © 2015-2016, xuewen.chu
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,56 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__video__
-#define __ftr__view__video__
-
-#include "./image.h"
+#include "./gl-visitor.h"
 
 namespace ftr {
 
-	class FX_EXPORT Video: public Image {
-		FX_Define_View(Video);
-		public:
+	void SkiaRender::visitView(View *v) {
 		// TODO ...
-		private:
+	}
+	
+	void SkiaRender::visitBox(Box *v) {
 		// TODO ...
-	};
+	}
+	
+	void SkiaRender::visitFlexLayout(FlexLayout *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitFlowLayout(FlowLayout *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitGridLayout(GridLayout *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitImage(Image *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitInput(Input *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitLabel(Label *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitRoot(Root *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitScroll(Scroll *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitText(Text *v) {
+		// TODO ...
+	}
+	
+	void SkiaRender::visitVideo(Video *v) {
+		// TODO ...
+	}
 
 }
-
-#endif

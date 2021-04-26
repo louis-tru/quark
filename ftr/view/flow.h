@@ -39,7 +39,7 @@ namespace ftr {
 	 * @class FlowLayout
 	 */
 	class FX_EXPORT FlowLayout: public Box {
-		FX_HIDDEN_ALL_COPY(FlowLayout);
+		FX_Define_View(FlowLayout);
 		public:
 		// TODO ...
 		private:

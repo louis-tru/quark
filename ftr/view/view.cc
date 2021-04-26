@@ -32,8 +32,56 @@
 
 namespace ftr {
 
-	#define is_mark_pre _next_pre_mark
+	#define is_mark_pre _next_mark
 	#define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
+
+	void View::Visitor::visitView(View *v) {
+		v->visit(this);
+	}
+
+	void View::Visitor::visitBox(Box *v) {
+		visitView(v);
+	}
+
+	void View::Visitor::visitGridLayout(GridLayout *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitFlowLayout(FlowLayout *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitFlexLayout(FlexLayout *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitImage(Image *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitVideo(Video *v) {
+		visitImage(v);
+	}
+
+	void View::Visitor::visitText(Text *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitScroll(Scroll *v) {
+		visitFlowLayout(v);
+	}
+
+	void View::Visitor::visitRoot(Root *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitLabel(Label *v) {
+		visitView(v);
+	}
+
+	void View::Visitor::visitInput(Input *v) {
+		visitBox(v);
+	}
 
 	// view private members method
 	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
@@ -174,8 +222,8 @@ namespace ftr {
 		: _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _next_mark(nullptr)
-		, _level(0), _mark_value(0)
+		, _prev_mark(nullptr), _next_mark(nullptr)
+		, _layout_mark(0), _level(0)
 		, _layout_weight(0.0)
 		, _rotate(0.0), _opacity(1.0)
 		, _visible(true)
@@ -395,12 +443,23 @@ namespace ftr {
 
 	/**
 		*
-		* redraw view and subview
+		* Accepting visitors
 		* 
-		* @func draw()
+		* @func accept(visitor)
 		*/
-	void View::draw() {
-		// TODO ...
+	void View::accept(Visitor *visitor) {
+		visitor->visitView(this);
+	}
+
+	/**
+		* @func visit(visitor)
+		*/
+	void View::visit(Visitor *visitor) {
+		auto v = _first;
+		while(v) {
+			v->accept(visitor);
+			v = v->_next;
+		}
 	}
 
 	/**

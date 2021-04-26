@@ -36,7 +36,27 @@
 
 namespace ftr {
 
-	class Action;
+	# define FX_Views(F) \
+		F(View)       F(Box) \
+		F(FlexLayout) F(FlowLayout) \
+		F(GridLayout) F(Image) \
+		F(Input)      F(Label) \
+		F(Root)       F(Scroll) \
+		F(Text)       F(Video) \
+
+	# define FX_View_Class(E, N) class N;
+		FX_Views(FX_View_Class);
+	# undef  FX_View_Class
+
+	class Action; // class Action
+	class GLRender; // class GLRender
+	class SkiaRender; // class SkiaRender
+
+	# define FX_Define_View(N) \
+		public: \
+		friend class GLRender; \
+		friend class SkiaRender; \
+		virtual void accept(Visitor *visitor); \
 
 	/**
 	 * The basic elements of GUI tree
@@ -46,6 +66,9 @@ namespace ftr {
 	class FX_EXPORT View: public Reference {
 		FX_HIDDEN_ALL_COPY(View);
 		public:
+
+		friend class GLRender;
+		friend class SkiaRender;
 
 		/**
 		 * @constructors
@@ -160,12 +183,27 @@ namespace ftr {
 		protected: virtual void set_parent(View* parent);
 
 		/**
-		 *
-		 * Redraw view and subview
-		 * 
-		 * @func draw()
+		 * @class Visitor
 		 */
-		virtual void draw();
+		public: class Visitor {
+			public:
+			# define FX_Visitor(E, N) virtual void visit##N(N *v);
+				FX_Views(FX_Visitor);
+			# undef  FX_Visitor
+		};
+
+		/**
+		 *
+		 * Accepting visitors
+		 * 
+		 * @func accept(visitor)
+		 */
+		virtual void accept(Visitor *visitor);
+
+		/**
+		 * @func visit(visitor)
+		 */
+		void visit(Visitor *visitor);
 
 		/**
 		 *
@@ -173,7 +211,7 @@ namespace ftr {
 		 *
 		 * @func receive()
 		 */
-		public: inline bool receive() const {
+		inline bool receive() const {
 			return _receive;
 		}
 
@@ -623,23 +661,31 @@ namespace ftr {
 		 */
 		const Mat& transform_matrix();
 
+		/**
+		* @enum LayoutMark
+		*/
+		enum : uint32_t {
+			L_NONE                  = 0,          /* 没有任何标记 */
+			L_TRANSFORM             = (1 << 0),   /* 矩阵变换 */
+			L_OPACITY               = (1 << 3),   /* 透明度 */
+			L_VISIBLE               = (1 << 4),   /* 显示与隐藏 */
+			L_LAYOUT                = (1 << 5),   //
+		};
+
 		// *******************************************************************
 		// action:
-		private: Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，来达到类似影片播放效果
+		private: Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
 		// node tree:
 		private: View *_parent;
 		private: View *_prev, *_next;
 		private: View *_first, *_last;
 		// layout mark change:
+		private: View *_prev_mark, *_next_mark;
 		/* 这些标记后的视图会在开始帧绘制前进行更新.
 		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
-		* */
-		class LayoutMark {
-			private: LayoutMark *_prev, *_next;
-			private: View *_view;
-		};
-		private: LayoutMark *_layout_mark; /* 变化标记 */
+		*/
+		private: uint32_t _layout_mark; /* 布局变化标记 */
 		/* 视图在整个视图树中所处的层级，0表示还没有加入到应用程序唯一的视图树中,根视图为1 */
 		private: uint32_t _level;
 		// layout:
@@ -654,12 +700,11 @@ namespace ftr {
 		private:   Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		protected: Vec2  _layout_size;   // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
-		// matrix:
+		// transform:
 		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
 		private: float _rotate;     // z轴旋转角度值
 		private: float _opacity;    // 可影响子视图的透明度值
 		private:  Mat  _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
-		// private: float _transform_opacity;
 		// layout visible:
 		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		private: bool _visibility; // 视图的可见性，受`visible`影响

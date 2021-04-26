@@ -39,7 +39,7 @@ namespace ftr {
 	 * @class Label
 	 */
 	class FX_EXPORT Label: public View {
-		FX_HIDDEN_ALL_COPY(Label);
+		FX_Define_View(Label);
 		public:
 		// TODO ...
 		private:

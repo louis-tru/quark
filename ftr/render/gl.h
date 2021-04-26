@@ -31,7 +31,7 @@
 #ifndef __ftr__gl__gl__
 #define __ftr__gl__gl__
 
-#include "../draw.h"
+#include "./draw.h"
 
 #if FX_IOS
 # include <OpenGLES/ES3/gl.h>

@@ -39,7 +39,7 @@ namespace ftr {
 	 * @class FlexLayout
 	 */
 	class FX_EXPORT FlexLayout: public Box {
-		FX_HIDDEN_ALL_COPY(FlexLayout);
+		FX_Define_View(FlexLayout);
 		public:
 
 		enum FlexDirection: uint16_t {

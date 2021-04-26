@@ -36,7 +36,7 @@
 namespace ftr {
 
 	class FX_EXPORT Image: public Box {
-		FX_HIDDEN_ALL_COPY(Image);
+		FX_Define_View(Image);
 		public:
 		// TODO ...
 		private:

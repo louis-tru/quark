@@ -36,7 +36,7 @@
 namespace ftr {
 
 	class FX_EXPORT Input: public Box {
-		FX_HIDDEN_ALL_COPY(Input);
+		FX_Define_View(Input);
 		public:
 		// TODO ...
 		private:

@@ -31,13 +31,14 @@
 #ifndef __ftr__draw__
 #define __ftr__draw__
 
-#include "./util/util.h"
-#include "./util/string.h"
-#include "./util/event.h"
-#include "./codec/codec.h"
-#include "./math/math.h"
-#include "./value.h"
-#include "./app.h"
+#include "../util/util.h"
+#include "../util/string.h"
+#include "../util/event.h"
+#include "../codec/codec.h"
+#include "../math/math.h"
+#include "../value.h"
+#include "../app.h"
+#include "../view/view.h"
 
 namespace ftr {
 
@@ -47,19 +48,6 @@ namespace ftr {
 	class FontGlyph;
 	class FontPool;
 	class TexturePool;
-	// view
-	class Box;
-	class BoxShadow;
-	class Image;
-	class Scroll;
-	class Video;
-	class Root;
-	class Sprite;
-	class Text;
-	class TextNode;
-	class Label;
-	class Input;
-	class Textarea;
 
 	/**
 	* @enum DrawLibrary
@@ -84,8 +72,8 @@ namespace ftr {
 	/**
 	* @class Draw
 	*/
-	class FX_EXPORT Draw: public Object {
-		FX_HIDDEN_ALL_COPY(Draw);
+	class FX_EXPORT ViewRender: public View::Visitor {
+		FX_HIDDEN_ALL_COPY(ViewRender);
 		public:
 		
 		/**
@@ -176,7 +164,7 @@ namespace ftr {
 	
 		protected:
 		GUIApplication*     _host;
-		uint32_t                _multisample;      /* 是否启用多重采样 default false */
+		uint32_t            _multisample;      /* 是否启用多重采样 default false */
 		Vec2                _surface_size;     /* 当前绘图表面支持的大小 */
 		CGRect              _selected_region;  /* 选择绘图表面有区域 */
 		Texture*            _empty_texture;

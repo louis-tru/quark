@@ -36,7 +36,7 @@
 namespace ftr {
 
 	class FX_EXPORT Scroll: public FlowLayout {
-		FX_HIDDEN_ALL_COPY(Scroll);
+		FX_Define_View(Scroll);
 		public:
 		// TODO ...
 		private:

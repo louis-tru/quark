@@ -40,7 +40,7 @@ namespace box {
 	 * @class GridLayout
 	 */
 	class FX_EXPORT GridLayout: public Box {
-		FX_HIDDEN_ALL_COPY(GridLayout);
+		FX_Define_View(GridLayout);
 		public:
 		// TODO ...
 		private:

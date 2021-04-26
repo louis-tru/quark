@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__video__
-#define __ftr__view__video__
+#ifndef __ftr__gl__visitor__
+#define __ftr__gl__visitor__
 
-#include "./image.h"
+#include "./render.h"
 
 namespace ftr {
 
-	class FX_EXPORT Video: public Image {
-		FX_Define_View(Video);
+	class GLRender: public ViewRender {
 		public:
-		// TODO ...
+			# define FX_Visitor(E, N) virtual void visit##N(N *v);
+				FX_Views(FX_Visitor);
+			# undef  FX_Visitor
 		private:
-		// TODO ...
 	};
 
 }

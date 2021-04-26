@@ -36,8 +36,9 @@
 namespace ftr {
 
 	class FX_EXPORT Root: public Box {
-		FX_HIDDEN_ALL_COPY(Root);
+		FX_Define_View(Root);
 		public:
+
 		// TODO ...
 		private:
 		// TODO ...

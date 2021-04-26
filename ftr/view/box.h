@@ -40,7 +40,7 @@ namespace ftr {
 	 * @class Box
 	 */
 	class FX_EXPORT Box: public View {
-		FX_HIDDEN_ALL_COPY(Box);
+		FX_Define_View(Box);
 		public:
 
 		/**
