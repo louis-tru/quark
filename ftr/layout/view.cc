@@ -32,75 +32,13 @@
 
 namespace ftr {
 
-	#define is_mark_pre _next_mark
-	#define revoke_mark_value(mark_value, mark) mark_value &= ~(mark)
-
-	void View::Visitor::visitView(View *v) {
-		v->visit(this);
-	}
-
-	void View::Visitor::visitBox(Box *v) {
-		visitView(v);
-	}
-
-	void View::Visitor::visitGridLayout(GridLayout *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitFlowLayout(FlowLayout *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitFlexLayout(FlexLayout *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitImage(Image *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitVideo(Video *v) {
-		visitImage(v);
-	}
-
-	void View::Visitor::visitText(Text *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitScroll(Scroll *v) {
-		visitFlowLayout(v);
-	}
-
-	void View::Visitor::visitRoot(Root *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitLabel(Label *v) {
-		visitView(v);
-	}
-
-	void View::Visitor::visitInput(Input *v) {
-		visitBox(v);
-	}
+	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method
 	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		public:
 		#define _inl(self) static_cast<View::Inl*>(self)
 
-		/**
-		* @func delete_mark() delete pre mark
-		*/
-		void delete_mark() {
-			if ( is_mark_pre ) {
-				// _prev_pre_mark->_next_pre_mark = _next_pre_mark;
-				// _next_pre_mark->_prev_pre_mark = _prev_pre_mark;
-				// _prev_pre_mark = nullptr;
-				// _next_pre_mark = nullptr;
-				// TODO ...
-			}
-		}
-	
 		/**
 		* @func remove_all_child_()
 		*/
@@ -130,48 +68,37 @@ namespace ftr {
 			}
 		}
 
-		void clear_level_and_visibility() {
-			if ( _level ) {
-				_level = 0;
+		void clear_depth_and_visibility() {
+			if ( _depth ) {
+				_depth = 0;
 				_visibility = false;
+				layout_depth_change_notice(_depth);
+				mark(M_LAYOUT); // TODO ...
 				blur();
-				
-				delete_mark(); // clear mark
-				
-				View* v = _first;
-				
+
+				View *v = _first;
 				while ( v ) {
-					_inl(v)->clear_level_and_visibility();
+					_inl(v)->clear_depth_and_visibility();
 					v = v->_next;
 				}
 			}
 		}
 		
 		/**
-		* @func set_level_and_visibility(level, visibility) settings level and final visibility
+		* @func set_depth_and_visibility(depth, visibility) settings depth and final visibility
 		*/
-		void set_level_and_visibility(uint32_t level, bool visibility) {
-			_level = level;
+		void set_depth_and_visibility(uint32_t depth, bool visibility) {
+			_depth = depth++;
 			_visibility = visibility = visibility && _visible;
+			layout_depth_change_notice(_depth);
+			mark(M_LAYOUT); // TODO ...
 
 			if ( !visibility ) {
 				blur();
 			}
-			
-			// TODO ...
-			// 在标记库中存在
-			// if ( is_mark_pre ) {
-			// 	delete_mark();
-			// 	pre_render()->mark_pre(this);
-			// } else if ( mark_value ) {
-			// 	pre_render()->mark_pre(this);
-			// }
-			
-			level++;
-			View* v = _first;
-			
+			View *v = _first;
 			while ( v ) {
-				_inl(v)->set_level_and_visibility(level, visibility);
+				_inl(v)->set_depth_and_visibility(depth, visibility);
 				v = v->_next;
 			}
 		}
@@ -182,18 +109,12 @@ namespace ftr {
 		void set_visibility_true() {
 			if ( _visible && ! _visibility ) {
 				_visibility = true;
-				
-				// TODO ...
-				//Layout* layout = as_layout();
-				//if ( layout && layout->mark_value ) {
-					// pre_render()->mark_pre(layout);
-				//}
-				
-				View* view = _first;
-				
-				while (view) {
-					_inl(view)->set_visibility_true();
-					view = view->_next;
+				mark(M_LAYOUT); // TODO ...
+
+				View *v = _first;
+				while (v) {
+					_inl(v)->set_visibility_true();
+					v = v->_next;
 				}
 			}
 		}
@@ -202,16 +123,15 @@ namespace ftr {
 		* @func set_visibility_false
 		*/
 		void set_visibility_false() {
-			
 			if ( _visibility ) {
 				_visibility = false;
+				mark(M_LAYOUT); // TODO ...
 				blur();
-				
-				View* view = _first;
-				
-				while (view) {
-					_inl(view)->set_visibility_false();
-					view = view->_next;
+
+				View *v = _first;
+				while (v) {
+					_inl(v)->set_visibility_false();
+					v = v->_next;
 				}
 			}
 		}
@@ -222,9 +142,7 @@ namespace ftr {
 		: _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _prev_mark(nullptr), _next_mark(nullptr)
-		, _layout_mark(0), _level(0)
-		, _layout_weight(0.0)
+		, _depth(0), _layout_weight(0.0)
 		, _rotate(0.0), _opacity(1.0)
 		, _visible(true)
 		, _visibility(false)
@@ -235,21 +153,9 @@ namespace ftr {
 
 	View::~View() {
 		ASSERT(_parent == nullptr); // 被父视图所保持的对像不应该被析构,这里parent必须为空
-		
 		blur();
-		
 		set_action(nullptr); // del action
-
 		_inl(this)->remove_all_child_(); // 删除子视图
-		
-		// TODO
-		// if ( is_mark_pre ) { // 删除标记
-		// 	_inl(this)->delete_mark();
-		// }
-		// if ((size_t)_ctx_data > 0x1) {
-		// 	delete _ctx_data; _ctx_data = nullptr;
-		// }
-		// Release(_classs); _classs = nullptr;
 	}
 
 	/**
@@ -261,13 +167,11 @@ namespace ftr {
 	void View::before(View* view) {
 		if (_parent) {
 			if (view == this) return;
-
 			if (view->_parent == _parent) {
 				_inl(view)->clear();  // 清除关联
 			} else {
 				view->set_parent(_parent);
 			}
-			
 			if (_prev) {
 				_prev->_next = view;
 			} else { // 上面没有兄弟
@@ -288,13 +192,11 @@ namespace ftr {
 	void View::after(View* view) {
 		if (_parent) {
 			if (view == this) return;
-
 			if (view->_parent == _parent) {
 				_inl(view)->clear(); // 清除关联
 			} else {
 				view->set_parent(_parent);
 			}
-			
 			if (m_next) {
 				_next->_prev = view;
 			} else { // 下面没有兄弟
@@ -318,7 +220,6 @@ namespace ftr {
 		} else {
 			child->set_parent(this);
 		}
-		
 		if (_first) {
 			child->_prev = nullptr;
 			child->_next = _first;
@@ -344,7 +245,6 @@ namespace ftr {
 		} else {
 			child->set_parent(this);
 		}
-		
 		if (_last) {
 			child->_prev = _last;
 			child->_next = nullptr;
@@ -367,21 +267,12 @@ namespace ftr {
 	void View::remove() {
 		if (_parent) {
 			blur(); // 辞去焦点
-			
 			set_action(nullptr); // del action
-
 			_inl(this)->remove_all_child_(); // 删除子视图
-			
-			// TODO
-			// if ( is_mark_pre ) { // 删除标记
-			// 	_inl(this)->full_delete_mark();
-			// }
-			
 			_inl(this)->clear();
-			
-			// TODO
-			// remove_event_listener();
-			_level = 0;
+			// remove_event_listener(); // TODO
+			_depth = 0;
+			layout_depth_change_notice(_depth);
 			_parent = _prev = _next = nullptr;
 			release(); // Disconnect from parent view strong reference
 		}
@@ -418,11 +309,10 @@ namespace ftr {
 			}
 			_parent = parent;
 			
-			// 设置level
-			uint32_t level = parent->_level;
-			if (level) {
-				if ( level + 1 != _level ) {
-					_inl(this)->set_level_and_visibility(level + 1, parent->_visibility);
+			uint32_t depth = parent->_depth;
+			if (depth) { // 设置depth
+				if ( depth + 1 != _depth ) {
+					_inl(this)->set_depth_and_visibility(depth + 1, parent->_visibility);
 				} else {
 					if ( _visibility != parent->_visibility ) {
 						if ( _visibility ) {
@@ -433,7 +323,7 @@ namespace ftr {
 					}
 				}
 			} else {
-				_inl(this)->clear_level_and_visibility();
+				_inl(this)->clear_depth_and_visibility();
 			}
 			// TODO ...
 			// 这些标记是必需的
@@ -481,7 +371,6 @@ namespace ftr {
 	void View::set_visible(bool val) {
 		if (_visible != val) {
 			_visible = val;
-
 			if (_visible) {
 				if ( _parent && _parent->_visibility ) { // 父视图的显示状态必须要为true才能生效
 					_inl(this)->set_visibility_true();
@@ -683,6 +572,8 @@ namespace ftr {
 		}
 	}
 
+	// *******************************************************************
+
 	/**
 		* 
 		* setting the layout weight of the view object
@@ -697,117 +588,6 @@ namespace ftr {
 				_parent->layout_weight_change_notice_from_child(this);
 			}
 		}
-	}
-
-	// *******************************************************************
-
-	/**
-		*
-		* 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
-		* 
-		* @func layout_forward()
-		*/
-	void View::layout_forward() {
-		// TODO ...
-	}
-
-	/**
-		* 
-		* 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
-		* 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸
-		* 
-		* @func layout_reverse()
-		*/
-	void View::layout_reverse() {
-		// TODO ...
-	}
-
-	/**
-		* 
-		* Setting the layout offset of the view object in the parent view
-		*
-		* @func set_layout_offset(val)
-		*/
-	void View::set_layout_offset(Vec2 val) {
-		if (_layout_offset != val) {
-			_layout_offset = val;
-			// TODO 布局偏移改变时视图以及子视图变换矩阵也会改变，MARK: MATRIX、CHILD MATRIX
-		}
-	}
-
-	/**
-		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
-		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
-		* 
-		* 调用`layout_size_lock(false)`解除锁定
-		* 
-		* 子类实现这个方法
-		* 
-		* @func layout_size_lock()
-		*/
-	void View::layout_size_lock(bool lock, Vec2 layout_size) {
-		if (!lock) { // No locak default Vec2(0, 0)
-			layout_size = Vec2();
-		}
-		if (layout_size != _layout_size) {
-			_layout_size = layout_size;
-			// TODO 布局尺寸改变时视图形状、子视图布局、兄弟视图布局都会改变，MARK: SHAPE、CHILD LAYOUT
-		}
-	}
-
-	/**
-		* 
-		* This method of the parent view is called when the layout weight of the child view changes
-		*
-		* @func layout_weight_change_notice_from_child(child)
-		*/
-	void View::layout_weight_change_notice_from_child(View* child) {
-		// noop
-	}
-
-	/**
-		*
-		* This method of the parent view is called when the layout size of the child view changes
-		* 
-		* @func layout_size_change_notice_from_child()
-		*/
-	void View::layout_size_change_notice_from_child(View* child) {
-		// noop
-	}
-
-	/**
-		* 
-		* This method of the child view is called when the layout size of the parent view changes
-		* 
-		* @func layout_size_change_notice_from_parent(parent)
-		*/
-	void View::layout_size_change_notice_from_parent(View* parent) {
-		// noop
-	}
-
-	// *******************************************************************
-
-	/**
-		*
-		* Returns the layout content size of object view, 
-		* Returns false to indicate that the size is unknown
-		*
-		* @func layout_content_size(size)
-		*/
-	bool View::layout_content_size(Vec2& size) {
-		size = _layout_size; // Explicit layout size
-		return true;
-	}
-
-	/**
-		* Returns internal layout offset compensation of the view, which affects the sub view offset position
-		* 
-		* For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
-		*
-		* @func layout_offset_inside()
-	*/
-	Vec2 View::layout_offset_inside() {
-		return _layout_origin;
 	}
 
 	/**
@@ -827,23 +607,66 @@ namespace ftr {
 		return Mat(translate, _scale, -_rotate, _skew);
 	}
 
-	/**
-		* 
-		* Returns final transformation matrix of the view layout
-		*
-		* parent.transform_matrix * layout_matrix
-		* 
-		* @func transform_matrix()
-		*/
-	const Mat& View::transform_matrix() {
-		if (1/*MATRIX*/) { // update transform matrix
+	// --------------- o v e r w r i t e ---------------
+
+	uint32_t View::layout_depth() {
+		return _depth;
+	}
+
+	bool View::layout_forward(uint32_t mark) {
+		// TODO ...
+		return true;
+	}
+
+	bool View::layout_reverse(uint32_t mark) {
+		// TODO ...
+		return true;
+	}
+
+	void View::layout_recursive(uint32_t mark) {
+		if (!_visibility) return;
+
+		if (mark & M_TRANSFORM) { // update transform matrix
 			if (_parent) {
-				_parent->transform_matrix().multiplication(layout_matrix(), _transform_matrix);
+				_parent->matrix().multiplication(layout_matrix(), _matrix);
 			} else {
-				_transform_matrix = layout_matrix();
+				_matrix = layout_matrix();
+			}
+			unmark(M_TRANSFORM); // unmark
+			
+			View *v = _first;
+			while (v) {
+				layout_recursive(mark & v->layout_mark());
+				v = v->_next;
 			}
 		}
-		return _transform_matrix;
+	}
+
+	void View::layout_size_lock(bool lock, Vec2 layout_size) {
+		if (!lock) { // No locak default Vec2(0, 0)
+			layout_size = Vec2();
+		}
+		if (layout_size != _layout_size) {
+			_layout_size = layout_size;
+			// TODO 布局尺寸改变时视图形状、子视图布局、兄弟视图布局都会改变，MARK: SHAPE、CHILD LAYOUT
+		}
+	}
+
+	Vec2 View::layout_size() {
+		return _layout_size;
+	}
+
+	bool View::layout_content_size(Vec2& size) {
+		size = _layout_size; // Explicit layout size
+		return true;
+	}
+
+	Vec2 View::layout_offset_inside() {
+		return _layout_origin;
+	}
+
+	float View::layout_weight() {
+		return _layout_weight;
 	}
 
 }

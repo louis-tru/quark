@@ -31,18 +31,15 @@
 #ifndef __ftr__view__view__
 #define __ftr__view__view__
 
-#include "../util/object.h"
-#include "../value.h"
+#include "./layout.h"
 
 namespace ftr {
 
 	# define FX_Views(F) \
-		F(View)       F(Box) \
-		F(FlexLayout) F(FlowLayout) \
-		F(GridLayout) F(Image) \
-		F(Input)      F(Label) \
-		F(Root)       F(Scroll) \
-		F(Text)       F(Video) \
+		F(View)       F(Box)        F(FlexLayout) \
+		F(FlowLayout) F(GridLayout) F(Image) \
+		F(Input)      F(Label)      F(Root) \
+		F(Scroll)     F(Text)       F(Video) \
 
 	# define FX_View_Class(E, N) class N;
 		FX_Views(FX_View_Class);
@@ -63,7 +60,7 @@ namespace ftr {
 	 *
 	 * @class View
 	 */
-	class FX_EXPORT View: public Reference {
+	class FX_EXPORT View: public Layout {
 		FX_HIDDEN_ALL_COPY(View);
 		public:
 
@@ -301,6 +298,13 @@ namespace ftr {
 		}
 
 		/**
+		 * Set the `action` properties of the view object
+		 *
+		 * @func set_action()
+		 */
+		void set_action(Action* val);
+
+		/**
 		 * Returns matrix displacement for the view
 		 *
 		 * @func translate
@@ -406,14 +410,6 @@ namespace ftr {
 			return _opacity;
 		}
 
-		// *******************************************************************
-		/**
-		 * Set the `action` properties of the view object
-		 *
-		 * @func set_action()
-		 */
-		void set_action(Action* val);
-
 		/**
 		 * Set the matrix `translate` properties of the view object
 		 *
@@ -497,6 +493,7 @@ namespace ftr {
 		 */
 		void set_opacity(float val);
 
+		// *******************************************************************
 		/**
 		 * 
 		 * setting the layout weight of the view object
@@ -505,84 +502,6 @@ namespace ftr {
 		 */
 		void set_layout_weight(float val);
 
-		// *******************************************************************
-		/**
-		 *
-		 * 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
-		 * 
-		 * 这个方法被调用时父视图尺寸一定是有效的，在调用`layout_content_size`时有两种情况，
-		 * 返回`false`表示父视图尺寸是wrap的，返回`true`时表示父视图有明确的尺寸
-		 * 
-		 * @func layout_forward()
-		 */
-		virtual void layout_forward();
-
-		/**
-		 * 
-		 * 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
-		 * 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸。
-		 *
-		 * 这个方法被调用时子视图尺寸一定是明确的有效的，调用`layout_size()`返回子视图外框尺寸。
-		 * 
-		 * @func layout_reverse()
-		 */
-		virtual void layout_reverse();
-
-		/**
-		 * 
-		 * Setting the layout offset of the view object in the parent view
-		 *
-		 * @func set_layout_offset(val)
-		 */
-		void set_layout_offset(Vec2 val);
-
-		/**
-		 * 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
-		 * 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
-		 * 
-		 * 调用`layout_size_lock(false)`解除锁定
-		 * 
-		 * 子类实现这个方法
-		 * 
-		 * @func layout_size_lock()
-		 */
-		virtual void layout_size_lock(bool lock, Vec2 layout_size = Vec2());
-
-		/**
-		 * 
-		 * This method of the parent view is called when the layout weight of the child view changes
-		 *
-		 * @func layout_weight_change_notice_from_child(child)
-		 */
-		virtual void layout_weight_change_notice_from_child(View* child);
-
-		/**
-		 *
-		 * This method of the parent view is called when the layout size of the child view changes
-		 * 
-		 * @func layout_size_change_notice_from_child()
-		 */
-		virtual void layout_size_change_notice_from_child(View* child);
-
-		/**
-		 * 
-		 * This method of the child view is called when the layout size of the parent view changes
-		 * 
-		 * @func layout_size_change_notice_from_parent(parent)
-		 */
-		virtual void layout_size_change_notice_from_parent(View* parent);
-
-		// *******************************************************************
-		/**
-		 * 
-		 * Relative to the parent view (layout_offset) to start offset
-		 * 
-		 * @func layout_offset()
-		 */
-		inline Vec2 layout_offset() const {
-			return _layout_offset;
-		}
-
 		/**
 		 * 
 		 * Relative to the parent view (layout_offset) to start offset，end position
@@ -590,37 +509,8 @@ namespace ftr {
 		 * @func layout_offset_end()
 		 */
 		inline Vec2 layout_offset_end() const {
-			return _layout_offset + _layout_size;
+			return layout_offset() + _layout_size;
 		}
-
-		/**
-		 *
-		 * Returns the layout size of view object (if is box view the: size=margin+border+padding+content)
-		 *
-		 * @func layout_size()
-		 */
-		Vec2 layout_size() const {
-			return _layout_size;
-		}
-
-		/**
-		 *
-		 * Returns the layout content size of object view, 
-		 * Returns false to indicate that the size is unknown,
-		 * indicates that the size changes with the size of the subview, and the content is wrapped
-		 *
-		 * @func layout_content_size(size)
-		 */
-		virtual bool layout_content_size(Vec2& size);
-
-		/**
-		 * Returns internal layout offset compensation of the view, which affects the sub view offset position
-		 * 
-		 * For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
-		 *
-		 * @func layout_offset_inside()
-		 */
-		virtual Vec2 layout_offset_inside();
 
 		/**
 		 * 
@@ -642,35 +532,29 @@ namespace ftr {
 		}
 
 		/**
-		 *
-		 * 布局权重（比如在flex布局中代表布局的尺寸）
-		 *
-		 * @func layout_weight()
-		 */
-		inline float layout_weight() {
-			return _layout_weight;
-		}
-
-		/**
 		 * 
 		 * Returns final transformation matrix of the view layout
 		 *
-		 * parent.transform_matrix * layout_matrix
+		 * parent.matrix * layout_matrix
 		 * 
-		 * @func transform_matrix()
+		 * @func matrix()
 		 */
-		const Mat& transform_matrix();
+		inline const Mat& matrix() {
+			return _matrix;
+		}
 
 		/**
-		* @enum LayoutMark
-		*/
-		enum : uint32_t {
-			L_NONE                  = 0,          /* 没有任何标记 */
-			L_TRANSFORM             = (1 << 0),   /* 矩阵变换 */
-			L_OPACITY               = (1 << 3),   /* 透明度 */
-			L_VISIBLE               = (1 << 4),   /* 显示与隐藏 */
-			L_LAYOUT                = (1 << 5),   //
-		};
+		 * @overwrite
+		 */
+		virtual uint32_t layout_depth();
+		virtual bool layout_forward(uint32_t mark);
+		virtual bool layout_reverse(uint32_t mark);
+		virtual void layout_recursive(uint32_t mark);
+		virtual void layout_size_lock(bool lock, Vec2 layout_size);
+		virtual Vec2 layout_size();
+		virtual bool layout_content_size(Vec2& size);
+		virtual Vec2 layout_offset_inside();
+		virtual float layout_weight();
 
 		// *******************************************************************
 		// action:
@@ -679,32 +563,16 @@ namespace ftr {
 		private: View *_parent;
 		private: View *_prev, *_next;
 		private: View *_first, *_last;
-		// layout mark change:
-		private: View *_prev_mark, *_next_mark;
-		/* 这些标记后的视图会在开始帧绘制前进行更新.
-		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
-		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到到需要真正帧渲染时统一进行更新.
-		*/
-		private: uint32_t _layout_mark; /* 布局变化标记 */
-		/* 视图在整个视图树中所处的层级，0表示还没有加入到应用程序唯一的视图树中,根视图为1 */
-		private: uint32_t _level;
+		private: uint32_t _depth;
 		// layout:
-		/* 下一个预处理视图标记
-		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
-		*  同一时间不会所有视图都会发生改变,如果视图树很庞大的时候,
-		*  如果涉及到布局时为了跟踪其中一个视图的变化就需要遍历整颗视图树,为了避免这种情况
-		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
-		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
-		*/
 		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
-		private:   Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		protected: Vec2  _layout_size;   // 在布局中所占用的尺寸（margin+border+padding+content）
 		private:  float  _layout_weight; // layout weight
 		// transform:
 		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
-		private: float _rotate;     // z轴旋转角度值
-		private: float _opacity;    // 可影响子视图的透明度值
-		private:  Mat  _transform_matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.transform_matrix * layout_matrix)
+		private: float _rotate;  // z轴旋转角度值
+		private: float _opacity; // 可影响子视图的透明度值
+		private:  Mat  _matrix;  // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 		// layout visible:
 		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		private: bool _visibility; // 视图的可见性，受`visible`影响

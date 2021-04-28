@@ -243,13 +243,12 @@ namespace ftr {
 		[ d, e, f ] * [ b ]
 		[ 0, 0, 1 ]   [ 1 ]
 		*/
-		Vec2 vec;
-		float* _v = const_cast<float*>(vec.value());
 		const float* _a = _value;
 		const float* _b = b.value();
-		_v[0] = _a[0] * _b[0] + _a[1] * _b[1] + _a[2];
-		_v[1] = _a[3] * _b[0] + _a[4] * _b[1] + _a[5];
-		return vec;
+		return Vec2(
+			_a[0] * _b[0] + _a[1] * _b[1] + _a[2],
+			_a[3] * _b[0] + _a[4] * _b[1] + _a[5]
+		);
 	}
 
 	/**
@@ -663,24 +662,20 @@ namespace ftr {
 	}
 
 	Vec4 Mat4::operator*(const Vec4& b) const {
-		
-		Vec4 vec;
-		
-		float* _v = const_cast<float*>(vec.value());
-		const float* _a = _value;
-		const float* _b = b.value();
 		/*
 		[ a, b, c, d ]   [ a ]
 		[ e, f, g, h ]   [ b ]
 		[ i, j, k, l ] * [ c ]
 		[ 0, 0, 0, 1 ]   [ 1 ]
 		*/
-		
-		_v[0] = _a[0] * _b[0] + _a[1] * _b[1] + _a[2] * _b[2] + _a[3] * _b[3];
-		_v[1] = _a[4] * _b[0] + _a[5] * _b[1] + _a[6] * _b[2] + _a[7] * _b[3];
-		_v[2] = _a[8] * _b[0] + _a[9] * _b[1] + _a[10] * _b[2] + _a[11] * _b[3];
-		_v[3] = _a[12] * _b[0] + _a[13] * _b[1] + _a[14] * _b[2] + _a[15] * _b[3];
-		return vec;
+		const float* _a = _value;
+		const float* _b = b.value();
+		return Vec4(
+			_a[0] * _b[0] + _a[1] * _b[1] + _a[2] * _b[2] + _a[3] * _b[3],
+			_a[4] * _b[0] + _a[5] * _b[1] + _a[6] * _b[2] + _a[7] * _b[3],
+			_a[8] * _b[0] + _a[9] * _b[1] + _a[10] * _b[2] + _a[11] * _b[3],
+			_a[12] * _b[0] + _a[13] * _b[1] + _a[14] * _b[2] + _a[15] * _b[3]
+		);
 	}
 
 	/**
