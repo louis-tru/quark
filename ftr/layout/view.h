@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__view__
-#define __ftr__view__view__
+#ifndef __ftr__layout__view__
+#define __ftr__layout__view__
 
 #include "./layout.h"
 
@@ -220,16 +220,6 @@ namespace ftr {
 		 */
 		inline bool visible() const {
 			return _visible;
-		}
-
-		/**
-		 * 
-		 * Returns final visibility for view
-		 *
-		 * @func visibility()
-		 */
-		inline bool visibility() const {
-			return _visibility;
 		}
 
 		/**
@@ -563,7 +553,7 @@ namespace ftr {
 		private: View *_parent;
 		private: View *_prev, *_next;
 		private: View *_first, *_last;
-		private: uint32_t _depth;
+		private: uint32_t _depth; // 这个值受`_visible`影响, _visible=false时_depth=0
 		// layout:
 		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
 		protected: Vec2  _layout_size;   // 在布局中所占用的尺寸（margin+border+padding+content）
@@ -575,7 +565,6 @@ namespace ftr {
 		private:  Mat  _matrix;  // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 		// layout visible:
 		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
-		private: bool _visibility; // 视图的可见性，受`visible`影响
 		private: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
 		private: bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 

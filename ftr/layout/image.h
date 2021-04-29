@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__image__
-#define __ftr__view__image__
+#ifndef __ftr__layout__image__
+#define __ftr__layout__image__
 
 #include "./box.h"
 

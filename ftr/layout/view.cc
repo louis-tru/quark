@@ -68,74 +68,50 @@ namespace ftr {
 			}
 		}
 
-		void clear_depth_and_visibility() {
+		/**
+		* @func set_depth(depth) clear depth
+		*/
+		void clear_depth() {
 			if ( _depth ) {
 				_depth = 0;
-				_visibility = false;
-				layout_depth_change_notice(_depth);
-				mark(M_LAYOUT); // TODO ...
+				layout_depth_change_notice(0);
 				blur();
-
+				
 				View *v = _first;
 				while ( v ) {
-					_inl(v)->clear_depth_and_visibility();
-					v = v->_next;
-				}
-			}
-		}
-		
-		/**
-		* @func set_depth_and_visibility(depth, visibility) settings depth and final visibility
-		*/
-		void set_depth_and_visibility(uint32_t depth, bool visibility) {
-			_depth = depth++;
-			_visibility = visibility = visibility && _visible;
-			layout_depth_change_notice(_depth);
-			mark(M_LAYOUT); // TODO ...
-
-			if ( !visibility ) {
-				blur();
-			}
-			View *v = _first;
-			while ( v ) {
-				_inl(v)->set_depth_and_visibility(depth, visibility);
-				v = v->_next;
-			}
-		}
-		
-		/**
-		* @func set_visibility_true
-		*/
-		void set_visibility_true() {
-			if ( _visible && ! _visibility ) {
-				_visibility = true;
-				mark(M_LAYOUT); // TODO ...
-
-				View *v = _first;
-				while (v) {
-					_inl(v)->set_visibility_true();
+					_inl(v)->clear_depth();
 					v = v->_next;
 				}
 			}
 		}
 
 		/**
-		* @func set_visibility_false
+		* @func set_depth(depth) settings depth
 		*/
-		void set_visibility_false() {
-			if ( _visibility ) {
-				_visibility = false;
-				mark(M_LAYOUT); // TODO ...
-				blur();
+		void set_depth(uint32_t depth) {
+			if (_visible) {
+				if ( _depth != depth ) {
+					_depth = depth++;
+					layout_depth_change_notice(_depth);
 
-				View *v = _first;
-				while (v) {
-					_inl(v)->set_visibility_false();
-					v = v->_next;
+					if ( layout_mark() ) { // remark
+						mark(M_NONE);
+						auto r = layout_mark() & M_RECURSIVE;
+						if (r) {
+							mark_recursive(r);
+						}
+					}
+
+					View *v = _first;
+					while ( v ) {
+						_inl(v)->set_depth(depth);
+						v = v->_next;
+					}
 				}
+			} else {
+				clear_depth();
 			}
 		}
-		
 	};
 
 	View::View()
@@ -145,7 +121,6 @@ namespace ftr {
 		, _depth(0), _layout_weight(0.0)
 		, _rotate(0.0), _opacity(1.0)
 		, _visible(true)
-		, _visibility(false)
 		, _region_visible(false)
 		, _receive(false)
 	{
@@ -304,30 +279,44 @@ namespace ftr {
 		if (parent != _parent) {
 			_inl(this)->clear();
 			
-			if ( !_parent ) {
+			if ( _parent ) {
+				_parent->mark(M_LAYOUT_CONTENT);
+			} else {
 				retain(); // link to parent and retain ref
 			}
 			_parent = parent;
-			
-			uint32_t depth = parent->_depth;
-			if (depth) { // 设置depth
-				if ( depth + 1 != _depth ) {
-					_inl(this)->set_depth_and_visibility(depth + 1, parent->_visibility);
-				} else {
-					if ( _visibility != parent->_visibility ) {
-						if ( _visibility ) {
-							_inl(this)->set_visibility_false();
-						} else {
-							_inl(this)->set_visibility_true();
-						}
-					}
-				}
+			_parent->mark(M_LAYOUT_CONTENT); // mark parent layout change
+			mark(M_LAYOUT_SIZE); // mark layout size
+
+			auto depth = parent->_depth;
+			if (depth) {
+				_inl(this)->set_depth(depth + 1);
 			} else {
-				_inl(this)->clear_depth_and_visibility();
+				_inl(this)->clear_depth();
 			}
-			// TODO ...
-			// 这些标记是必需的
-			// mark_pre( M_MATRIX | M_SHAPE | M_OPACITY | M_STYLE_FULL );
+		}
+	}
+
+	/**
+		* 
+		* Setting the visibility properties the view object
+		*
+		* @func set_visible(val)
+		*/
+	void View::set_visible(bool val) {
+		if (_visible != val) {
+			_visible = val;
+			if (_parent) {
+				_parent->mark(M_LAYOUT_CONTENT); // mark parent layout 
+			}
+			if (_visible) {
+				mark(M_LAYOUT_SIZE);
+			}
+			if (_parent && _parent->_depth) {
+				_inl(this)->set_depth(_parent->_depth + 1);
+			} else {
+				_inl(this)->clear_depth();
+			}
 		}
 	}
 
@@ -360,26 +349,6 @@ namespace ftr {
 		*/
 	void View::set_receive(bool val) {
 		_receive = val;
-	}
-
-	/**
-		* 
-		* Setting the visibility properties the view object
-		*
-		* @func set_visible(val)
-		*/
-	void View::set_visible(bool val) {
-		if (_visible != val) {
-			_visible = val;
-			if (_visible) {
-				if ( _parent && _parent->_visibility ) { // 父视图的显示状态必须要为true才能生效
-					_inl(this)->set_visibility_true();
-				}
-			} else {
-				_inl(this)->set_visibility_false();
-			}
-			// TODO MARK: M_VISIBLE
-		}
 	}
 
 	/**
@@ -442,7 +411,7 @@ namespace ftr {
 	void View::set_translate(Vec2 val) {
 		if (_translate != val) {
 			_translate = val;
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -454,7 +423,7 @@ namespace ftr {
 	void View::set_scale(Vec2 val) {
 		if (_scale != val) {
 			_scale = val;
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -466,7 +435,7 @@ namespace ftr {
 	void View::set_skew(Vec2 val) {
 		if (_skew != val) {
 			_skew = val;
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -478,7 +447,7 @@ namespace ftr {
 	void View::set_rotate(float val) {
 		if (_rotate != val) {
 			_rotate = val;
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -491,7 +460,7 @@ namespace ftr {
 	void View::set_x(float val) {
 		if (_translate.x() != val) {
 			_translate.x(val);
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -504,7 +473,7 @@ namespace ftr {
 	void View::set_y(float val) {
 		if (_translate.y() != val) {
 			_translate.y(val);
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -517,7 +486,7 @@ namespace ftr {
 	void View::scale_x(float val) {
 		if (_scale.x() != val) {
 			_scale.x(val);
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -530,7 +499,7 @@ namespace ftr {
 	void View::scale_y(float val) {
 		if (_scale.y() != val) {
 			_scale.y(val);
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -543,7 +512,7 @@ namespace ftr {
 	void View::skew_x(float val) {
 		if (_skew.x() != val) {
 			_skew.x(val);
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -556,7 +525,7 @@ namespace ftr {
 	void View::skew_y(float val) {
 		if (_skew.y() != val) {
 			_skew.y(val);
-			// TODO MARK: MATRIX、CHILD MATRIX
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 	
@@ -568,7 +537,7 @@ namespace ftr {
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
 			_opacity = val;
-			// TODO Mark redraw view if visible，MARK: REDRAW
+			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
 
@@ -583,7 +552,7 @@ namespace ftr {
 	void View::set_layout_weight(float val) {
 		if (_layout_weight != val) {
 			_layout_weight = val;
-			// TODO 重新标记父视图需要重新对子视图进行偏移布局，MAKE: PARENT WEIGHT LAYOUT
+			// 重新标记父视图需要重新对子视图进行偏移布局，MAKE: PARENT WEIGHT LAYOUT
 			if (_parent) {
 				_parent->layout_weight_change_notice_from_child(this);
 			}
@@ -614,17 +583,17 @@ namespace ftr {
 	}
 
 	bool View::layout_forward(uint32_t mark) {
-		// TODO ...
+		// noop
 		return true;
 	}
 
 	bool View::layout_reverse(uint32_t mark) {
-		// TODO ...
+		// noop
 		return true;
 	}
 
 	void View::layout_recursive(uint32_t mark) {
-		if (!_visibility) return;
+		if (!_depth) return;
 
 		if (mark & M_TRANSFORM) { // update transform matrix
 			if (_parent) {
@@ -636,7 +605,7 @@ namespace ftr {
 			
 			View *v = _first;
 			while (v) {
-				layout_recursive(mark & v->layout_mark());
+				layout_recursive(mark | v->layout_mark());
 				v = v->_next;
 			}
 		}
@@ -648,7 +617,8 @@ namespace ftr {
 		}
 		if (layout_size != _layout_size) {
 			_layout_size = layout_size;
-			// TODO 布局尺寸改变时视图形状、子视图布局、兄弟视图布局都会改变，MARK: SHAPE、CHILD LAYOUT
+			// 布局尺寸改变时视图形状、子视图布局、兄弟视图布局都会改变，MARK: SHAPE、CHILD LAYOUT
+			// mark(M_LAYOUT_CONTENT); // mark layout content 任何子布局都应该忽略这个尺寸改变,所以这里不标记
 		}
 	}
 

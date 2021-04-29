@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__label__
-#define __ftr__view__label__
+#ifndef __ftr__layout__label__
+#define __ftr__layout__label__
 
 #include "./view.h"
 

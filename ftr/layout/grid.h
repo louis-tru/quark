@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__grid__
-#define __ftr__view__grid__
+#ifndef __ftr__layout__grid__
+#define __ftr__layout__grid__
 
 #include "./view.h"
 

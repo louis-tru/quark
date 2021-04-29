@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__scroll__
-#define __ftr__view__scroll__
+#ifndef __ftr__layout__scroll__
+#define __ftr__layout__scroll__
 
 #include "./flow.h"
 

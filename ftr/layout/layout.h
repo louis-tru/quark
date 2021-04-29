@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__view__view__
-#define __ftr__view__view__
+#ifndef __ftr__layout__layout__
+#define __ftr__layout__layout__
 
 #include "../util/object.h"
 #include "../value.h"
@@ -47,9 +47,12 @@ namespace ftr {
 
 		// Layout mark value
 		enum : uint32_t {
-			M_NONE               = 0,          /* 没有任何标记 */
-			M_TRANSFORM          = (1 << 0),   /* 矩阵变换 recursive mark */
-			M_LAYOUT             = (2 << 0),   /* 布局变化 */
+			M_NONE             = 0,        /* 没有任何标记 */
+			M_TRANSFORM        = (1 << 0), /* 矩阵变换 recursive mark */
+			M_LAYOUT_CONTENT   = (1 << 1), /* 布局内容偏移 */
+			M_LAYOUT_SIZE      = (1 << 2), /* 布局尺寸改变 */
+			//**
+			M_RECURSIVE        = (M_TRANSFORM), /* 需要被递归的标记 */
 		};
 
 		/**
