@@ -50,44 +50,6 @@ namespace ftr {
 	}
 
 	/**
-		*
-		* 布局权重（比如在flex布局中代表布局的尺寸）
-		*
-		* @func layout_weight()
-		*/
-	Layout::layout_weight() {
-		return 0;
-	}
-
-	/**
-		* 
-		* Setting the layout offset of the view object in the parent view
-		*
-		* @func set_layout_offset(val)
-		*/
-	void Layout::set_layout_offset(Vec2 val) {
-		if (_layout_offset != val) {
-			_layout_offset = val;
-			// 布局偏移改变时视图以及子视图变换矩阵也会改变，MARK: MATRIX、CHILD MATRIX
-			mark_recursive(M_TRANSFORM); // add recursive mark
-		}
-	}
-
-	/**
-		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
-		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
-		* 
-		* 调用`layout_size_lock(false)`解除锁定
-		* 
-		* 子类实现这个方法
-		* 
-		* @func layout_size_lock()
-		*/
-	void Layout::layout_size_lock(bool lock, Vec2 layout_size) {
-		// noop
-	}
-
-	/**
 		* 
 		* This method of the parent view is called when the layout weight of the child view changes
 		*

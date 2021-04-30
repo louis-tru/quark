@@ -71,8 +71,24 @@ namespace ftr {
 			return _background;
 		}
 
+		/**
+		 * @overwrite
+		 */
+		virtual bool layout_forward(uint32_t mark);
+		virtual bool layout_reverse(uint32_t mark);
+		// virtual void layout_recursive(uint32_t mark);
+		virtual Vec2 layout_offset();
+		virtual Vec2 layout_size();
+		virtual Vec2 layout_content_size(bool& is_explicit_out);
+		virtual float layout_weight();
+		virtual void lock_layout_size(bool lock, Vec2 layout_size);
+		virtual void set_layout_offset(Vec2 val);
+
 		private:
 		// box attrs
+		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
+		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
+		float _layout_weight; // set layout weight
 		Vec2 _size; // width,height
 		Vec4 _margin, _padding; // top,right,bottom,left
 		float _border[4];

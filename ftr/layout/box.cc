@@ -42,4 +42,39 @@ namespace ftr {
 		visitor->visitBox(this);
 	}
 
+	bool Box::layout_forward(uint32_t mark) {
+		// ...
+		return true;
+	}
+
+	bool Box::layout_reverse(uint32_t mark) {
+		// ...
+		return true;
+	}
+
+	Vec2 Box::layout_offset() {
+		// ...
+	}
+
+	Vec2 Box::layout_size() {
+		// ...
+	}
+
+	Vec2 Box::layout_content_size(bool& is_explicit_out) {
+		// ...
+	}
+
+	float Box::layout_weight() {
+		// ...
+	}
+
+	void Box::lock_layout_size(bool lock, Vec2 layout_size) {
+		// ...
+	}
+
+	void Box::set_layout_offset(Vec2 val) {
+		// ...
+	}
+
+
 }

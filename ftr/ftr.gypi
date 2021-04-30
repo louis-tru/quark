@@ -268,8 +268,8 @@
 					'platforms/_linux-ime-helper.h',
 					'platforms/linux-ime-helper.cc',
 				],
-				'link_settings': { 
-					'libraries': [ 
+				'link_settings': {
+					'libraries': [
 						'-lGLESv2', '-lEGL', '-lX11', '-lXi', '-lasound',
 					],
 				},

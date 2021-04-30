@@ -145,7 +145,7 @@ namespace ftr {
 		 * 
 		 * @func prepend(child)
 		 */
-		void prepend(View* child);
+		virtual void prepend(View* child);
 
 		/**
 		 *
@@ -153,7 +153,7 @@ namespace ftr {
 		 *
 		 * @func append(child)
 		 */
-		void append(View* child);
+		virtual void append(View* child);
 
 		/**
 		 *
@@ -299,36 +299,28 @@ namespace ftr {
 		 *
 		 * @func translate
 		 */
-		inline Vec2 translate() const {
-			return _translate;
-		}
+		Vec2 translate() const;
 
 		/**
 		 * Returns the Matrix scaling
 		 *
 		 * @func scale()
 		 */
-		inline Vec2 scale() const {
-			return _scale;
-		}
+		Vec2 scale() const;
 
 		/**
 		 * Returns the Matrix skew
 		 *
 		 * @func skew()
 		 */
-		inline Vec2 skew() const {
-			return _skew;
-		}
+		Vec2 skew() const;
 
 		/**
 		 * Returns the z-axis rotation of the matrix
 		 *
 		 * @func rotate()
 		 */
-		inline float rotate() const {
-			return _rotate;
-		}
+		float rotate() const;
 
 		/**
 		 * 
@@ -336,9 +328,7 @@ namespace ftr {
 		 *
 		 * @func x()
 		 */
-		inline float x() const {
-			return _translate.x();
-		}
+		float x() const;
 
 		/**
 		 * 
@@ -346,9 +336,7 @@ namespace ftr {
 		 *
 		 * @func y()
 		 */
-		inline float y() const {
-			return _translate.y();
-		}
+		float y() const;
 
 		/**
 		 * 
@@ -357,7 +345,7 @@ namespace ftr {
 		 * @func scale_x()
 		 */
 		inline float scale_x() const {
-			return _scale.x();
+			return scale().x();
 		}
 
 		/**
@@ -367,7 +355,7 @@ namespace ftr {
 		 * @func scale_y()
 		 */
 		inline float scale_y() const {
-			return _scale.y();
+			return scale().y();
 		}
 
 		/**
@@ -377,7 +365,7 @@ namespace ftr {
 		 * @func skew_x()
 		 */
 		inline float skew_x() const {
-			return _skew.x();
+			return skew().x();
 		}
 
 		/**
@@ -387,7 +375,7 @@ namespace ftr {
 		 * @func skew_y()
 		 */
 		inline float skew_y() const {
-			return _skew.y();
+			return skew().y();
 		}
 
 		/**
@@ -396,7 +384,7 @@ namespace ftr {
 		 *
 		 * @func opacity()
 		 */
-		inline float opacity() {
+		inline float opacity() const {
 			return _opacity;
 		}
 
@@ -490,36 +478,24 @@ namespace ftr {
 		 * 
 		 * @func set_layout_weight(val)
 		 */
-		void set_layout_weight(float val);
-
-		/**
-		 * 
-		 * Relative to the parent view (layout_offset) to start offset，end position
-		 * 
-		 * @func layout_offset_end()
-		 */
-		inline Vec2 layout_offset_end() const {
-			return layout_offset() + _layout_size;
-		}
+		virtual void set_layout_weight(float val);
 
 		/**
 		 * 
 		 * Returns layout transformation matrix of the object view
 		 * 
-		 * Mat(layout_offset + layout_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
+		 * Mat(layout_offset + transform_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
 		 * 
 		 * @func layout_matrix()
 		 */
-		Mat layout_matrix() const;
+		Mat layout_matrix();
 
 		/**
 		 * Start the matrix transformation from this origin point
 		 *
-		 * @func layout_origin()
+		 * @func transform_origin()
 		 */
-		inline Vec2 layout_origin() const {
-			return _layout_origin;
-		}
+		Vec2 transform_origin() const;
 
 		/**
 		 * 
@@ -529,7 +505,7 @@ namespace ftr {
 		 * 
 		 * @func matrix()
 		 */
-		inline const Mat& matrix() {
+		inline const Mat& matrix() const {
 			return _matrix;
 		}
 
@@ -540,11 +516,18 @@ namespace ftr {
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_recursive(uint32_t mark);
-		virtual void layout_size_lock(bool lock, Vec2 layout_size);
+		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
-		virtual bool layout_content_size(Vec2& size);
+		virtual Vec2 layout_content_size(bool& is_explicit_out);
 		virtual Vec2 layout_offset_inside();
 		virtual float layout_weight();
+		virtual void lock_layout_size(bool lock, Vec2 layout_size);
+		virtual void set_layout_offset(Vec2 val);
+
+		public: struct Transform {
+			Vec2 translate, scale, skew, origin; // 平移向量, 缩放向量, 倾斜向量, origin 最终以该点 位移,缩放,旋转,歪
+			float rotate; // z轴旋转角度值
+		};
 
 		// *******************************************************************
 		// action:
@@ -554,15 +537,10 @@ namespace ftr {
 		private: View *_prev, *_next;
 		private: View *_first, *_last;
 		private: uint32_t _depth; // 这个值受`_visible`影响, _visible=false时_depth=0
-		// layout:
-		protected: Vec2  _layout_origin; // 最终以该点 位移,缩放,旋转,歪斜
-		protected: Vec2  _layout_size;   // 在布局中所占用的尺寸（margin+border+padding+content）
-		private:  float  _layout_weight; // layout weight
 		// transform:
-		private: Vec2  _translate, _scale, _skew; // 平移向量, 缩放向量, 倾斜向量
-		private: float _rotate;  // z轴旋转角度值
+		private: Transform *_transform; // 矩阵变换
 		private: float _opacity; // 可影响子视图的透明度值
-		private:  Mat  _matrix;  // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+		private:  Mat  _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 		// layout visible:
 		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
 		private: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕

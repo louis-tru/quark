@@ -79,7 +79,7 @@ namespace ftr {
 		 *
 		 * @func layout_weight()
 		 */
-		virtual float layout_weight();
+		virtual float layout_weight() = 0;
 
 		/**
 		 * 
@@ -87,9 +87,7 @@ namespace ftr {
 		 * 
 		 * @func layout_offset()
 		 */
-		inline Vec2 layout_offset() {
-			return _layout_offset;
-		}
+		virtual Vec2 layout_offset() = 0;
 
 		/**
 		 *
@@ -98,6 +96,16 @@ namespace ftr {
 		 * @func layout_size()
 		 */
 		virtual Vec2 layout_size() = 0;
+
+		/**
+		 * 
+		 * Relative to the parent view (layout_offset) to start offset，end position
+		 * 
+		 * @func layout_offset_end()
+		 */
+		inline Vec2 layout_offset_end() {
+			return layout_offset() + layout_size();
+		}
 
 		/**
 		 * Returns internal layout offset compensation of the view, which affects the sub view offset position
@@ -114,9 +122,9 @@ namespace ftr {
 		 * Returns false to indicate that the size is unknown,
 		 * indicates that the size changes with the size of the subview, and the content is wrapped
 		 *
-		 * @func layout_content_size(size)
+		 * @func layout_content_size(is_explicit_out)
 		 */
-		virtual bool layout_content_size(Vec2& size) = 0;
+		virtual Vec2 layout_content_size(bool& is_explicit_out) = 0;
 
 		/**
 		 * 
@@ -124,19 +132,19 @@ namespace ftr {
 		 *
 		 * @func set_layout_offset(val)
 		 */
-		void set_layout_offset(Vec2 val);
+		virtual void set_layout_offset(Vec2 val) = 0;
 
 		/**
 		 * 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
 		 * 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		 * 
-		 * 调用`layout_size_lock(false)`解除锁定
+		 * 调用`lock_layout_size(false)`解除锁定
 		 * 
 		 * 子类实现这个方法
 		 * 
-		 * @func layout_size_lock()
+		 * @func lock_layout_size(lock, layout_size)
 		 */
-		virtual void layout_size_lock(bool lock, Vec2 layout_size = Vec2());
+		virtual void lock_layout_size(bool lock, Vec2 layout_size = Vec2()) = 0;
 
 		/**
 		 *
@@ -205,12 +213,12 @@ namespace ftr {
 		/**
 		 * @func mark_recursive(mark)
 		 */
-		void mark_recursive(uint32_t mark)
+		void mark_recursive(uint32_t mark);
 
 		/**
 		 * @func mark_none()
 		 */
-		void mark_none()
+		void mark_none();
 
 		/**
 		 * @func unmark(mark)
@@ -240,7 +248,6 @@ namespace ftr {
 		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
 		*/
 		private: uint32_t _layout_mark; /* 标记 */
-		private: Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 	};
 
 }

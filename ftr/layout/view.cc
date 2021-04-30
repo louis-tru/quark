@@ -112,14 +112,30 @@ namespace ftr {
 				clear_depth();
 			}
 		}
+
+		/**
+			* 
+			* get transform pointer
+			* 
+			* @func transform()
+			*/
+		Transform* transform() {
+			if (!_transform) {
+				_transform = new Transform();
+				_transform->scale = Vec2(1);
+				_transform->rotate = 0;
+			}
+			return _transform;
+		}
+
 	};
 
 	View::View()
 		: _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _depth(0), _layout_weight(0.0)
-		, _rotate(0.0), _opacity(1.0)
+		, _depth(0)
+		, _transform(nullptr), _opacity(1.0)
 		, _visible(true)
 		, _region_visible(false)
 		, _receive(false)
@@ -131,6 +147,7 @@ namespace ftr {
 		blur();
 		set_action(nullptr); // del action
 		_inl(this)->remove_all_child_(); // 删除子视图
+		delete _transform; _transform = nullptr;
 	}
 
 	/**
@@ -404,13 +421,49 @@ namespace ftr {
 	}
 
 	/**
+		* Returns matrix displacement for the view
+		*
+		* @func translate
+		*/
+	Vec2 View::translate() const {
+		return _transform ? _transform->translate: Vec2();
+	}
+
+	/**
+		* Returns the Matrix scaling
+		*
+		* @func scale()
+		*/
+	Vec2 View::scale() const {
+		return _transform ? _transform->scale: Vec2(1);
+	}
+
+	/**
+		* Returns the Matrix skew
+		*
+		* @func skew()
+		*/
+	Vec2 View::skew() const {
+		return _transform ? _transform->skew: Vec2();
+	}
+
+	/**
+		* Returns the z-axis rotation of the matrix
+		*
+		* @func rotate()
+		*/
+	float View::rotate() const {
+		return _transform ? _transform->rotate: 0;
+	}
+
+	/**
 		* Set the matrix `translate` properties of the view object
 		*
 		* @func set_translate()
 		*/
 	void View::set_translate(Vec2 val) {
-		if (_translate != val) {
-			_translate = val;
+		if (translate() != val) {
+			_inl(this)->transform()->translate = val;
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -421,8 +474,8 @@ namespace ftr {
 		* @func set_scale()
 		*/
 	void View::set_scale(Vec2 val) {
-		if (_scale != val) {
-			_scale = val;
+		if (scale() != val) {
+			_inl(this)->transform()->scale = val;
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -433,8 +486,8 @@ namespace ftr {
 		* @func set_skew()
 		*/
 	void View::set_skew(Vec2 val) {
-		if (_skew != val) {
-			_skew = val;
+		if (skew() != val) {
+			_inl(this)->transform()->skew = val;
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -445,8 +498,8 @@ namespace ftr {
 		* @func set_rotate()
 		*/
 	void View::set_rotate(float val) {
-		if (_rotate != val) {
-			_rotate = val;
+		if (rotate() != val) {
+			_inl(this)->transform()->rotate = val;
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -458,8 +511,8 @@ namespace ftr {
 		* @func x()
 		*/
 	void View::set_x(float val) {
-		if (_translate.x() != val) {
-			_translate.x(val);
+		if (translate().x() != val) {
+			_inl(this)->transform()->translate.x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -471,8 +524,8 @@ namespace ftr {
 		* @func y()
 		*/
 	void View::set_y(float val) {
-		if (_translate.y() != val) {
-			_translate.y(val);
+		if (translate().y() != val) {
+			_inl(this)->transform()->translate.y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -484,8 +537,8 @@ namespace ftr {
 		* @func scale_x()
 		*/
 	void View::scale_x(float val) {
-		if (_scale.x() != val) {
-			_scale.x(val);
+		if (scale().x() != val) {
+			_inl(this)->transform()->scale.x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -497,8 +550,8 @@ namespace ftr {
 		* @func scale_y()
 		*/
 	void View::scale_y(float val) {
-		if (_scale.y() != val) {
-			_scale.y(val);
+		if (scale().y() != val) {
+			_inl(this)->transform()->scale.y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -510,8 +563,8 @@ namespace ftr {
 		* @func skew_x()
 		*/
 	void View::skew_x(float val) {
-		if (_skew.x() != val) {
-			_skew.x(val);
+		if (skew().x() != val) {
+			_inl(this)->transform()->skew.x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -523,8 +576,8 @@ namespace ftr {
 		* @func skew_y()
 		*/
 	void View::skew_y(float val) {
-		if (_skew.y() != val) {
-			_skew.y(val);
+		if (skew().y() != val) {
+			_inl(this)->transform()->skew.y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
 		}
 	}
@@ -537,7 +590,7 @@ namespace ftr {
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
 			_opacity = val;
-			mark_recursive(M_TRANSFORM); // mark transform
+			mark_none(); // mark none
 		}
 	}
 
@@ -550,37 +603,45 @@ namespace ftr {
 		* @func set_layout_weight(val)
 		*/
 	void View::set_layout_weight(float val) {
-		if (_layout_weight != val) {
-			_layout_weight = val;
-			// 重新标记父视图需要重新对子视图进行偏移布局，MAKE: PARENT WEIGHT LAYOUT
-			if (_parent) {
-				_parent->layout_weight_change_notice_from_child(this);
-			}
-		}
+		// noop
 	}
 
 	/**
 		* 
 		* Returns layout transformation matrix of the object view
 		* 
-		* Mat(layout_offset + layout_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
+		* Mat(layout_offset + transform_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
 		* 
 		* @func layout_matrix()
 		*/
-	Mat View::layout_matrix() const {
+	Mat View::layout_matrix() {
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
-		Vec2 translate(
-			_layout_offset.x() + _layout_origin.x() + _translate.x() - in.x(),
-			_layout_offset.y() + _layout_origin.y() + _translate.y() - in.y()
-		); // xy offset
-		return Mat(translate, _scale, -_rotate, _skew);
+		if (_transform) {
+			return Mat(
+				layout_offset() + _transform->origin +
+				_transform->translate - in,
+				_transform->scale,
+				-_transform->rotate, _transform->skew
+			);
+		} else {
+			Vec2 translate = layout_offset() - in;
+			return Mat(
+				1, 0, translate.x(),
+				0, 1, translate.y()
+			);
+		}
+	}
+
+	/**
+		* Start the matrix transformation from this origin point
+		*
+		* @func transform_origin()
+		*/
+	Vec2 View::transform_origin() const {
+		return _transform ? _transform->origin: Vec2();
 	}
 
 	// --------------- o v e r w r i t e ---------------
-
-	uint32_t View::layout_depth() {
-		return _depth;
-	}
 
 	bool View::layout_forward(uint32_t mark) {
 		// noop
@@ -595,7 +656,11 @@ namespace ftr {
 	void View::layout_recursive(uint32_t mark) {
 		if (!_depth) return;
 
+		// mark & M_TRANSFORM_ORIGIN
+
 		if (mark & M_TRANSFORM) { // update transform matrix
+			// TODO update transform origin ...
+
 			if (_parent) {
 				_parent->matrix().multiplication(layout_matrix(), _matrix);
 			} else {
@@ -611,32 +676,53 @@ namespace ftr {
 		}
 	}
 
-	void View::layout_size_lock(bool lock, Vec2 layout_size) {
-		if (!lock) { // No locak default Vec2(0, 0)
-			layout_size = Vec2();
-		}
-		if (layout_size != _layout_size) {
-			_layout_size = layout_size;
-			// 布局尺寸改变时视图形状、子视图布局、兄弟视图布局都会改变，MARK: SHAPE、CHILD LAYOUT
-			// mark(M_LAYOUT_CONTENT); // mark layout content 任何子布局都应该忽略这个尺寸改变,所以这里不标记
-		}
+	Vec2 View::layout_offset() {
+		return 0;
 	}
 
 	Vec2 View::layout_size() {
-		return _layout_size;
+		return 0;
 	}
 
-	bool View::layout_content_size(Vec2& size) {
-		size = _layout_size; // Explicit layout size
-		return true;
+	Vec2 View::layout_content_size(bool& is_explicit_out) {
+		is_explicit_out = true; // Explicit layout size
+		return 0;
+	}
+
+	uint32_t View::layout_depth() {
+		return _depth;
 	}
 
 	Vec2 View::layout_offset_inside() {
-		return _layout_origin;
+		return transform_origin();
 	}
 
 	float View::layout_weight() {
-		return _layout_weight;
+		return 0;
+	}
+
+	/**
+		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
+		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
+		* 
+		* 调用`lock_layout_size(false)`解除锁定
+		* 
+		* 子类实现这个方法
+		* 
+		* @func lock_layout_size(lock, layout_size)
+		*/
+	void View::lock_layout_size(bool lock, Vec2 layout_size) {
+		// noop
+	}
+
+	/**
+		* 
+		* Setting the layout offset of the view object in the parent view
+		*
+		* @func set_layout_offset(val)
+		*/
+	void View::set_layout_offset(Vec2 val) {
+		// noop
 	}
 
 }
