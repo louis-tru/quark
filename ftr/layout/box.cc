@@ -33,6 +33,21 @@
 namespace ftr {
 
 	/**
+		* @constructors
+		*/
+	Box::Box()
+		: _layout_weight(0)
+		, _background(nullptr)
+	{
+	}
+
+	/**
+		* @destructor
+		*/
+	Box::~Box() {
+	}
+	
+	/**
 		*
 		* Accepting visitors
 		* 
@@ -52,29 +67,67 @@ namespace ftr {
 		return true;
 	}
 
+	void Box::layout_recursive(uint32_t mark) {
+		View::layout_recursive(mark);
+	}
+
 	Vec2 Box::layout_offset() {
-		// ...
+		return _layout_offset;
 	}
 
 	Vec2 Box::layout_size() {
-		// ...
+		return _layout_size;
 	}
 
 	Vec2 Box::layout_content_size(bool& is_explicit_out) {
-		// ...
+		// is_explicit_out = false;
+		return Vec2();
 	}
 
 	float Box::layout_weight() {
-		// ...
+		return _layout_weight;
 	}
 
-	void Box::lock_layout_size(bool lock, Vec2 layout_size) {
+	void Box::set_layout_weight(float val) {
+		if (_layout_weight != val) {
+			_layout_weight = val;
+			if (parent()) {
+				parent()->layout_weight_change_notice_from_child(this);
+			}
+		}
+	}
+
+	Vec2 Box::layout_transform_origin(Transform& t) {
+		// TODO compute transform origin ...
+		return Vec2();
+	}
+
+	void Box::lock_layout_size(bool is_lock, Vec2 layout_size) {
 		// ...
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
+		if (val != _layout_offset) {
+			_layout_offset = val;
+			mark_recursive(M_TRANSFORM); // mark recursive transform
+		}
+	}
+
+	void Box::set_layout_offset_lazy() {
 		// ...
 	}
 
+	void Box::layout_content_change_notice(Layout* child) {
+		// ... 
+	}
+
+	void Box::layout_weight_change_notice_from_child(Layout* child) {
+		// noop
+	}
+
+	void View::layout_size_change_notice_from_parent(Layout* parent) {
+		// ...
+		// mark(M_LAYOUT_SIZE);
+	}
 
 }

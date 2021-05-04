@@ -49,8 +49,9 @@ namespace ftr {
 		enum : uint32_t {
 			M_NONE             = 0,        /* 没有任何标记 */
 			M_TRANSFORM        = (1 << 0), /* 矩阵变换 recursive mark */
-			M_LAYOUT_CONTENT   = (1 << 1), /* 布局内容偏移 */
-			M_LAYOUT_SIZE      = (1 << 2), /* 布局尺寸改变 */
+			M_TRANSFORM_ORIGIN = (1 << 1), /* 矩阵变换 origin mark */
+			M_LAYOUT_CONTENT   = (1 << 2), /* 布局内容偏移 */
+			M_LAYOUT_SIZE      = (1 << 3), /* 布局尺寸改变 */
 			//**
 			M_RECURSIVE        = (M_TRANSFORM), /* 需要被递归的标记 */
 		};
@@ -71,7 +72,7 @@ namespace ftr {
 		 *
 		 * @func layout_depth()
 		 */
-		virtual uint32_t layout_depth() = 0;
+		virtual uint32_t layout_depth();
 
 		/**
 		 *
@@ -79,7 +80,7 @@ namespace ftr {
 		 *
 		 * @func layout_weight()
 		 */
-		virtual float layout_weight() = 0;
+		virtual float layout_weight();
 
 		/**
 		 * 
@@ -87,7 +88,7 @@ namespace ftr {
 		 * 
 		 * @func layout_offset()
 		 */
-		virtual Vec2 layout_offset() = 0;
+		virtual Vec2 layout_offset();
 
 		/**
 		 *
@@ -95,7 +96,7 @@ namespace ftr {
 		 *
 		 * @func layout_size()
 		 */
-		virtual Vec2 layout_size() = 0;
+		virtual Vec2 layout_size();
 
 		/**
 		 * 
@@ -114,7 +115,7 @@ namespace ftr {
 		 *
 		 * @func layout_offset_inside()
 		 */
-		virtual Vec2 layout_offset_inside() = 0;
+		virtual Vec2 layout_offset_inside();
 
 		/**
 		 *
@@ -122,9 +123,9 @@ namespace ftr {
 		 * Returns false to indicate that the size is unknown,
 		 * indicates that the size changes with the size of the subview, and the content is wrapped
 		 *
-		 * @func layout_content_size(is_explicit_out)
+		 * @func layout_content_size(is_explicit)
 		 */
-		virtual Vec2 layout_content_size(bool& is_explicit_out) = 0;
+		virtual Vec2 layout_content_size(bool& is_explicit);
 
 		/**
 		 * 
@@ -132,19 +133,27 @@ namespace ftr {
 		 *
 		 * @func set_layout_offset(val)
 		 */
-		virtual void set_layout_offset(Vec2 val) = 0;
+		virtual void set_layout_offset(Vec2 val);
 
 		/**
-		 * 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
-		 * 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		 * 
-		 * 调用`lock_layout_size(false)`解除锁定
-		 * 
-		 * 子类实现这个方法
-		 * 
-		 * @func lock_layout_size(lock, layout_size)
+		 * Setting layout offset values lazily mode for the view object
+		 *
+		 * @func set_layout_offset_lazy()
 		 */
-		virtual void lock_layout_size(bool lock, Vec2 layout_size = Vec2()) = 0;
+		virtual void set_layout_offset_lazy();
+
+		/**
+			* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
+			* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
+			* 
+			* 调用`lock_layout_size(false)`解除锁定
+			* 
+			* 子类实现这个方法
+			* 
+			* @func lock_layout_size(is_lock, layout_size)
+			*/
+		virtual void lock_layout_size(bool is_lock, Vec2 layout_size = Vec2());
 
 		/**
 		 *
@@ -178,19 +187,21 @@ namespace ftr {
 
 		/**
 		 * 
-		 * This method of the parent view is called when the layout weight of the child view changes
+		 * This method of the parent view is called when the layout content of the child view changes
 		 *
+		 * This is not necessarily called by the child layout
+		 *
+		 * @func layout_content_change_notice(child)
+		 */
+		virtual void layout_content_change_notice(Layout* child = 0);
+
+		/**
+		 * 
+		 * This method of the parent view is called when the layout weight of the child view changes
+		 * 
 		 * @func layout_weight_change_notice_from_child(child)
 		 */
 		virtual void layout_weight_change_notice_from_child(Layout* child);
-
-		/**
-		 *
-		 * This method of the parent view is called when the layout size of the child view changes
-		 * 
-		 * @func layout_size_change_notice_from_child()
-		 */
-		virtual void layout_size_change_notice_from_child(Layout* child);
 
 		/**
 		 * 
@@ -201,6 +212,9 @@ namespace ftr {
 		virtual void layout_size_change_notice_from_parent(Layout* parent);
 
 		/**
+		 * 
+		 * layout depth change for the cureent view object
+		 *
 		 * @func layout_depth_change_notice(newDepth)
 		 */
 		void layout_depth_change_notice(uint32_t newDepth);

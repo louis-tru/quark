@@ -44,6 +44,16 @@ namespace ftr {
 		public:
 
 		/**
+		 * @constructors
+		 */
+		Box();
+
+		/**
+		 * @destructor
+		 */
+		virtual ~Box();
+
+		/**
 		 * @func width()
 		 */
 		inline float width() const {
@@ -76,25 +86,52 @@ namespace ftr {
 		 */
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		// virtual void layout_recursive(uint32_t mark);
+		virtual void layout_recursive(uint32_t mark);
 		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
 		virtual Vec2 layout_content_size(bool& is_explicit_out);
 		virtual float layout_weight();
-		virtual void lock_layout_size(bool lock, Vec2 layout_size);
+		virtual void set_layout_weight(float val);
+		virtual Vec2 layout_transform_origin(Transform& t);
+		virtual void lock_layout_size(bool is_lock, Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
+		virtual void set_layout_offset_lazy();
+		virtual void layout_content_change_notice(Layout* child);
+		virtual void layout_weight_change_notice_from_child(Layout* child);
+		virtual void layout_size_change_notice_from_parent(Layout* parent);
+
+		/**
+		* @enum ValueType
+		*/
+		enum class ValueType: uint8_t {
+			AUTO = value::AUTO,    /* 自动值  auto */
+			FULL = value::FULL,    /* 吸附到父视图(client边距与父视图重叠) full */
+			PIXEL = value::PIXEL,   /* 像素值  px */
+			PERCENT = value::PERCENT, /* 百分比  % */
+			MINUS = value::MINUS,   /* 减法(parent-value) ! */
+		};
+
+		typedef value::ValueTemplate<ValueType, ValueType::AUTO> Value;
 
 		private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		float _layout_weight; // set layout weight
-		Vec2 _size; // width,height
-		Vec4 _margin, _padding; // top,right,bottom,left
-		float _border[4];
-		float _border_radius[4]; // left-top,right-top,right-bottom,left-bottom
+		//
+		Value _size[2]; // width,height
+		Value _margin[4], _padding[4]; // top,right,bottom,left value
+		Value _border[4];       // border
+		Color _border_color[4]; // border color
+		Value _border_radius[4];// border radius
+		//
+		Vec2  _size_value; // width,height
+		Vec4 _margin_value, _padding_value; // top,right,bottom,left
+		float _border_value[4]; // top,right,bottom,left    
+		float _border_radius_value[4]; // left-top,right-top,right-bottom,left-bottom
+		//
 		Color _background_color; // background color
-		Background *_background; // background, box-shadow
+		Background *_background; // background, box-shadow, background-image
 		// int _features;
 		// LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
 	};

@@ -391,28 +391,28 @@ namespace ftr {
 		/**
 		 * Set the matrix `translate` properties of the view object
 		 *
-		 * @func set_translate()
+		 * @func set_translate(val)
 		 */
 		void set_translate(Vec2 val);
 
 		/**
 		 * Set the matrix `scale` properties of the view object
 		 *
-		 * @func set_scale()
+		 * @func set_scale(val)
 		 */
 		void set_scale(Vec2 val);
 
 		/**
 		 * Set the matrix `skew` properties of the view object
 		 *
-		 * @func set_skew()
+		 * @func set_skew(val)
 		 */
 		void set_skew(Vec2 val);
 
 		/**
 		 * Set the z-axis  matrix `rotate` properties the view object
 		 *
-		 * @func set_rotate()
+		 * @func set_rotate(val)
 		 */
 		void set_rotate(float val);
 
@@ -420,7 +420,7 @@ namespace ftr {
 		 * 
 		 * Setting x-axis matrix displacement for the view
 		 *
-		 * @func x()
+		 * @func set_x(val)
 		 */
 		void set_x(float val);
 
@@ -428,7 +428,7 @@ namespace ftr {
 		 * 
 		 * Setting y-axis matrix displacement for the view
 		 *
-		 * @func y()
+		 * @func set_y(val)
 		 */
 		void set_y(float val);
 
@@ -436,38 +436,38 @@ namespace ftr {
 		 * 
 		 * Returns x-axis matrix scaling for the view
 		 *
-		 * @func scale_x()
+		 * @func set_scale_x(val)
 		 */
-		void scale_x(float val);
+		void set_scale_x(float val);
 
 		/**
 		 * 
 		 * Returns y-axis matrix scaling for the view
 		 *
-		 * @func scale_y()
+		 * @func set_scale_y(val)
 		 */
-		void scale_y(float val);
+		void set_scale_y(float val);
 
 		/**
 		 * 
 		 * Returns x-axis matrix skew for the view
 		 *
-		 * @func skew_x()
+		 * @func set_skew_x(val)
 		 */
-		void skew_x(float val);
+		void set_skew_x(float val);
 
 		/**
 		 * 
 		 * Returns y-axis matrix skew for the view
 		 *
-		 * @func skew_y()
+		 * @func set_skew_y(val)
 		 */
-		void skew_y(float val);
+		void set_skew_y(float val);
 
 		/**
 		 * Set the `opacity` properties the view object
 		 *
-		 * @func set_opacity()
+		 * @func set_opacity(val)
 		 */
 		void set_opacity(float val);
 
@@ -479,6 +479,14 @@ namespace ftr {
 		 * @func set_layout_weight(val)
 		 */
 		virtual void set_layout_weight(float val);
+
+		/**
+		 * 
+		 * Calculate the transform origin value
+		 * 
+		 * @func layout_transform_origin(t)
+		 */
+		virtual Vec2 layout_transform_origin(Transform& t);
 
 		/**
 		 * 
@@ -512,17 +520,11 @@ namespace ftr {
 		/**
 		 * @overwrite
 		 */
-		virtual uint32_t layout_depth();
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_recursive(uint32_t mark);
-		virtual Vec2 layout_offset();
-		virtual Vec2 layout_size();
-		virtual Vec2 layout_content_size(bool& is_explicit_out);
 		virtual Vec2 layout_offset_inside();
-		virtual float layout_weight();
-		virtual void lock_layout_size(bool lock, Vec2 layout_size);
-		virtual void set_layout_offset(Vec2 val);
+		virtual uint32_t layout_depth();
 
 		public: struct Transform {
 			Vec2 translate, scale, skew, origin; // 平移向量, 缩放向量, 倾斜向量, origin 最终以该点 位移,缩放,旋转,歪

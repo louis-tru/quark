@@ -297,13 +297,13 @@ namespace ftr {
 			_inl(this)->clear();
 			
 			if ( _parent ) {
-				_parent->mark(M_LAYOUT_CONTENT);
+				_parent->layout_content_change_notice(this); // notice parent layout
 			} else {
 				retain(); // link to parent and retain ref
 			}
 			_parent = parent;
-			_parent->mark(M_LAYOUT_CONTENT); // mark parent layout change
-			mark(M_LAYOUT_SIZE); // mark layout size
+			_parent->layout_content_change_notice(this); // notice parent layout
+			mark(M_LAYOUT_SIZE); // mark layout size, reset layout size
 
 			auto depth = parent->_depth;
 			if (depth) {
@@ -324,10 +324,10 @@ namespace ftr {
 		if (_visible != val) {
 			_visible = val;
 			if (_parent) {
-				_parent->mark(M_LAYOUT_CONTENT); // mark parent layout 
+				_parent->layout_content_change_notice(this); // mark parent layout 
 			}
 			if (_visible) {
-				mark(M_LAYOUT_SIZE);
+				mark(M_LAYOUT_SIZE); // reset layout size
 			}
 			if (_parent && _parent->_depth) {
 				_inl(this)->set_depth(_parent->_depth + 1);
@@ -459,7 +459,7 @@ namespace ftr {
 	/**
 		* Set the matrix `translate` properties of the view object
 		*
-		* @func set_translate()
+		* @func set_translate(val)
 		*/
 	void View::set_translate(Vec2 val) {
 		if (translate() != val) {
@@ -471,7 +471,7 @@ namespace ftr {
 	/**
 		* Set the matrix `scale` properties of the view object
 		*
-		* @func set_scale()
+		* @func set_scale(val)
 		*/
 	void View::set_scale(Vec2 val) {
 		if (scale() != val) {
@@ -483,7 +483,7 @@ namespace ftr {
 	/**
 		* Set the matrix `skew` properties of the view object
 		*
-		* @func set_skew()
+		* @func set_skew(val)
 		*/
 	void View::set_skew(Vec2 val) {
 		if (skew() != val) {
@@ -495,7 +495,7 @@ namespace ftr {
 	/**
 		* Set the z-axis  matrix `rotate` properties of the view object
 		*
-		* @func set_rotate()
+		* @func set_rotate(val)
 		*/
 	void View::set_rotate(float val) {
 		if (rotate() != val) {
@@ -508,7 +508,7 @@ namespace ftr {
 		* 
 		* Setting x-axis matrix displacement for the view
 		*
-		* @func x()
+		* @func set_x(val)
 		*/
 	void View::set_x(float val) {
 		if (translate().x() != val) {
@@ -521,7 +521,7 @@ namespace ftr {
 		* 
 		* Setting y-axis matrix displacement for the view
 		*
-		* @func y()
+		* @func set_y(val)
 		*/
 	void View::set_y(float val) {
 		if (translate().y() != val) {
@@ -534,9 +534,9 @@ namespace ftr {
 		* 
 		* Returns x-axis matrix scaling for the view
 		*
-		* @func scale_x()
+		* @func set_scale_x(val)
 		*/
-	void View::scale_x(float val) {
+	void View::set_scale_x(float val) {
 		if (scale().x() != val) {
 			_inl(this)->transform()->scale.x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
@@ -547,9 +547,9 @@ namespace ftr {
 		* 
 		* Returns y-axis matrix scaling for the view
 		*
-		* @func scale_y()
+		* @func set_scale_y(val)
 		*/
-	void View::scale_y(float val) {
+	void View::set_scale_y(float val) {
 		if (scale().y() != val) {
 			_inl(this)->transform()->scale.y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
@@ -560,9 +560,9 @@ namespace ftr {
 		* 
 		* Returns x-axis matrix skew for the view
 		*
-		* @func skew_x()
+		* @func set_skew_x(val)
 		*/
-	void View::skew_x(float val) {
+	void View::set_skew_x(float val) {
 		if (skew().x() != val) {
 			_inl(this)->transform()->skew.x(val);
 			mark_recursive(M_TRANSFORM); // mark transform
@@ -573,9 +573,9 @@ namespace ftr {
 		* 
 		* Returns y-axis matrix skew for the view
 		*
-		* @func skew_y()
+		* @func set_skew_y(val)
 		*/
-	void View::skew_y(float val) {
+	void View::set_skew_y(float val) {
 		if (skew().y() != val) {
 			_inl(this)->transform()->skew.y(val);
 			mark_recursive(M_TRANSFORM); // mark transform
@@ -585,7 +585,7 @@ namespace ftr {
 	/**
 		* Set the `opacity` properties of the view object
 		*
-		* @func set_opacity()
+		* @func set_opacity(val)
 		*/
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
@@ -604,6 +604,17 @@ namespace ftr {
 		*/
 	void View::set_layout_weight(float val) {
 		// noop
+	}
+
+	/**
+		* 
+		* compute the transform origin value
+		* 
+		* @func layout_transform_origin(t)
+		*/
+	Vec2 View::layout_transform_origin(Transform& t) {
+		// TODO compute transform origin ...
+		return Vec2();
 	}
 
 	/**
@@ -650,17 +661,25 @@ namespace ftr {
 
 	bool View::layout_reverse(uint32_t mark) {
 		// noop
+		// call child->set_layout_offset_lazy()
 		return true;
 	}
 
 	void View::layout_recursive(uint32_t mark) {
 		if (!_depth) return;
 
-		// mark & M_TRANSFORM_ORIGIN
+		if (mark & M_TRANSFORM_ORIGIN) {
+			// mark |= M_TRANSFORM;
+			// mark &= ~M_TRANSFORM_ORIGIN;
+			if (_transform) {
+				_transform->origin = layout_transform_origin(*_transform);
+				unmark(M_TRANSFORM_ORIGIN); // unmark
+				goto tran;
+			}
+		}
 
 		if (mark & M_TRANSFORM) { // update transform matrix
-			// TODO update transform origin ...
-
+			tran:
 			if (_parent) {
 				_parent->matrix().multiplication(layout_matrix(), _matrix);
 			} else {
@@ -670,59 +689,18 @@ namespace ftr {
 			
 			View *v = _first;
 			while (v) {
-				layout_recursive(mark | v->layout_mark());
+				layout_recursive(M_TRANSFORM | v->layout_mark());
 				v = v->_next;
 			}
 		}
-	}
-
-	Vec2 View::layout_offset() {
-		return 0;
-	}
-
-	Vec2 View::layout_size() {
-		return 0;
-	}
-
-	Vec2 View::layout_content_size(bool& is_explicit_out) {
-		is_explicit_out = true; // Explicit layout size
-		return 0;
-	}
-
-	uint32_t View::layout_depth() {
-		return _depth;
 	}
 
 	Vec2 View::layout_offset_inside() {
 		return transform_origin();
 	}
 
-	float View::layout_weight() {
-		return 0;
-	}
-
-	/**
-		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
-		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
-		* 
-		* 调用`lock_layout_size(false)`解除锁定
-		* 
-		* 子类实现这个方法
-		* 
-		* @func lock_layout_size(lock, layout_size)
-		*/
-	void View::lock_layout_size(bool lock, Vec2 layout_size) {
-		// noop
-	}
-
-	/**
-		* 
-		* Setting the layout offset of the view object in the parent view
-		*
-		* @func set_layout_offset(val)
-		*/
-	void View::set_layout_offset(Vec2 val) {
-		// noop
+	uint32_t View::layout_depth() {
+		return _depth;
 	}
 
 }
