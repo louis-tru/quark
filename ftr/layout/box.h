@@ -32,7 +32,7 @@
 #define __ftr__layout__box__
 
 #include "./view.h"
-#include "../background.h"
+#include "../core/fill.h"
 
 namespace ftr {
 
@@ -118,20 +118,12 @@ namespace ftr {
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
 		float _layout_weight; // set layout weight
-		//
-		Value _size[2]; // width,height
-		Value _margin[4], _padding[4]; // top,right,bottom,left value
-		Value _border[4];       // border
-		Color _border_color[4]; // border color
-		Value _border_radius[4];// border radius
-		//
-		Vec2  _size_value; // width,height
-		Vec4 _margin_value, _padding_value; // top,right,bottom,left
-		float _border_value[4]; // top,right,bottom,left    
-		float _border_radius_value[4]; // left-top,right-top,right-bottom,left-bottom
-		//
-		Color _background_color; // background color
-		Background *_background; // background, box-shadow, background-image
+		// size
+		Value _width, _height; // width,height
+		Vec2  _size; // width,height
+		float _margin[4], _padding[4]; // top,right,bottom,left
+		// fill
+		FillPtr _fill; // color|shadow|image|gradient|border|border-radius
 		// int _features;
 		// LayoutAlign _layout_align_x, _layout_align_y; // left|center|right,top|center|bottom
 	};

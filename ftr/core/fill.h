@@ -28,26 +28,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__background__
-#define __ftr__background__
+#ifndef __ftr__core__fill__
+#define __ftr__core__fill__
 
-#include "./views2/box.h"
+#include "../layout/view.h"
 
 namespace ftr {
 
-	class BackgroundImage;
-	class BackgroundColor;
-	class BackgroundGradient;
-	class BackgroundShadow;
+	class Box;
+	class BoxFill;
+	class FillColor;
+	class FillImage;
+	class FillGradient;
+	class FillShadow;
+	class FillBorder; // top,right,bottom,left
+	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
+
+	typedef BoxFill* FillPtr;
 
 	/**
-	* @class Background
+	* @class BoxFill
 	*/
-	class FX_EXPORT Background: public Reference {
+	class FX_EXPORT BoxFill: public Reference {
 		public:
 		
 		enum Type {
 			M_INVALID,
+			M_COLOR,
 			M_IMAGE,
 			M_GRADIENT,
 			M_SHADOW,
@@ -128,9 +135,9 @@ namespace ftr {
 		/**
 		* @func copy(to)
 		*/
-		virtual Background* copy(Background* to) = 0;
+		virtual BoxFill* copy(BoxFill* to) = 0;
 		
-		Background* _next;
+		BoxFill* _next;
 		Box*        _host;
 		HolderMode  _holder_mode;
 		FX_DEFINE_INLINE_CLASS(Inl);
@@ -138,21 +145,20 @@ namespace ftr {
 		friend class GLDraw;
 	};
 
-	typedef Background* BackgroundPtr;
-
 	/**
-	 * @class BackgroundColor
+	 * @class FillColor
 	 */
-	class FX_EXPORT BackgroundColor: public Background {
+	class FX_EXPORT FillColor: public BoxFill {
 		public:
+		// TODO ...
 		protected:
-		virtual Background* copy(Background* to);
+		virtual BoxFill* copy(BoxFill* to);
 	};
 
 	/**
-	* @class BackgroundImage
+	* @class FillImage
 	*/
-	class FX_EXPORT BackgroundImage: public Background {
+	class FX_EXPORT FillImage: public BoxFill {
 		public:
 		BackgroundImage();
 		virtual ~BackgroundImage();
@@ -193,26 +199,46 @@ namespace ftr {
 	};
 
 	/**
-	* @class BackgroundGradient
+	* @class FillGradient
 	*/
-	class FX_EXPORT BackgroundGradient: public Background {
+	class FX_EXPORT FillGradient: public BoxFill {
 		public:
-		BackgroundGradient();
+		FillGradient();
 		virtual Type type() const { return M_GRADIENT; }
-		virtual BackgroundGradient* as_gradient() { return nullptr; }
+		virtual FillGradient* as_gradient() { return nullptr; }
 		protected:
-		virtual Background* copy(Background* to);
+		virtual BoxFill* copy(BoxFill* to);
 		friend class GLDraw;
 	};
 
 	/**
-	 * @class BackgroundShadow
+	 * @class FillShadow
 	 */
-	class FX_EXPORT BackgroundShadow: public Background {
+	class FX_EXPORT FillShadow: public BoxFill {
 		public:
 		// TODO ...
 		protected:
-		virtual Background* copy(Background* to);
+		virtual BoxFill* copy(BoxFill* to);
+	};
+
+	/**
+	 * @class FillShadow
+	 */
+	class FX_EXPORT FillBorder: public BoxFill {
+		public:
+		// TODO ...
+		protected:
+		virtual BoxFill* copy(BoxFill* to);
+	};
+
+	/**
+	 * @class FillBorderRadius
+	 */
+	class FX_EXPORT FillBorderRadius: public BoxFill {
+		public:
+		// TODO ...
+		protected:
+		virtual BoxFill* copy(BoxFill* to);
 	};
 
 }
