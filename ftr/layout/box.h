@@ -66,19 +66,12 @@ namespace ftr {
 		inline float height() const {
 			return _size.height();
 		}
-		
-		/**
-		 * @func background_color()
-		 */
-		inline Color background_color() const {
-			return _background_color;
-		}
 
 		/**
-		 * @func background()
+		 * @func fill()
 		 */
-		inline Background* background() {
-			return _background;
+		inline FillPtr fill() {
+			return _fill;
 		}
 
 		/**

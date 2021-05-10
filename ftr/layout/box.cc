@@ -37,7 +37,7 @@ namespace ftr {
 		*/
 	Box::Box()
 		: _layout_weight(0)
-		, _background(nullptr)
+		, _fill(nullptr)
 	{
 	}
 
