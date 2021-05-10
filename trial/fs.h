@@ -37,76 +37,76 @@
  * @ns ftr
  */
 
-FX_NS(ftr)
+namespace ftr {
 
-/**
- * @class FileSearch # Resources files search
- */
-class FX_EXPORT FileSearch: public Object {
-	FX_HIDDEN_ALL_COPY(FileSearch);
- public:
-	
-	FileSearch();
-	
 	/**
-	 * @destructor
-	 */
-	virtual ~FileSearch();
-	
-	/**
-	 * 添加一个搜索路径,路径必需存在
-	 */
-	void add_search_path(cString& path);
-	
-	/**
-	 * @func add_zip_search_path() 添加一个zip包内的搜索路径,只能添加没加密的zip包
-	 */
-	void add_zip_search_path(cString& zip_path, cString& path);
-	
-	/**
-	 * @func get_search_paths() Gets the array of search paths.
-	 */
-	Array<String> get_search_paths() const;
-	
-	/**
-	 * @func remove_search_path() remove search path
-	 */
-	void remove_search_path(cString& path);
-	
-	/**
-	 * @func remove_all_search_path() Removes all search paths.
-	 */
-	void remove_all_search_path();
-	
-	/**
-	 *
-	 * To obtain the absolute path to the file already exists.
-	 * If no such file returns the empty string ""
-	 * If it is a zip package path, will return with the prefix "zip:///home/xxx/test.apk@/assets/bb.jpg"
-	 * @func get_absolute_path
-	 */
-	String get_absolute_path(cString& path) const;
-	
-	/**
-	 * @func exists # Find the file exists
-	 */
-	bool exists(cString& path) const;
-	
-	/**
-	 * @func read_file Read the all file data and return Data
-	 */
-	Buffer read(cString& path) const;
-	
-	/**
-	 * @func share # Gets the instance of FileSearch.
-	 */
-	static FileSearch* shared();
-	
- private:
-	class SearchPath;
-	class ZipInSearchPath;
-	List<SearchPath*> m_search_paths; // Search path list
-};
+	* @class FileSearch # Resources files search
+	*/
+	class FX_EXPORT FileSearch: public Object {
+		FX_HIDDEN_ALL_COPY(FileSearch);
+		public:
+		
+		FileSearch();
+		
+		/**
+		* @destructor
+		*/
+		virtual ~FileSearch();
+		
+		/**
+		* 添加一个搜索路径,路径必需存在
+		*/
+		void add_search_path(cString& path);
+		
+		/**
+		* @func add_zip_search_path() 添加一个zip包内的搜索路径,只能添加没加密的zip包
+		*/
+		void add_zip_search_path(cString& zip_path, cString& path);
+		
+		/**
+		* @func get_search_paths() Gets the array of search paths.
+		*/
+		Array<String> get_search_paths() const;
+		
+		/**
+		* @func remove_search_path() remove search path
+		*/
+		void remove_search_path(cString& path);
+		
+		/**
+		* @func remove_all_search_path() Removes all search paths.
+		*/
+		void remove_all_search_path();
+		
+		/**
+		*
+		* To obtain the absolute path to the file already exists.
+		* If no such file returns the empty string ""
+		* If it is a zip package path, will return with the prefix "zip:///home/xxx/test.apk@/assets/bb.jpg"
+		* @func get_absolute_path
+		*/
+		String get_absolute_path(cString& path) const;
+		
+		/**
+		* @func exists # Find the file exists
+		*/
+		bool exists(cString& path) const;
+		
+		/**
+		* @func read_file Read the all file data and return Data
+		*/
+		Buffer read(cString& path) const;
+		
+		/**
+		* @func share # Gets the instance of FileSearch.
+		*/
+		static FileSearch* shared();
+		
+		private:
+		class SearchPath;
+		class ZipInSearchPath;
+		List<SearchPath*> m_search_paths; // Search path list
+	};
 
-FX_END
+}
 #endif

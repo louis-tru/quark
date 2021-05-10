@@ -33,10 +33,8 @@
 
 #include "ftr/util/error.h"
 
-FX_NS(ftr)
-
-FX_EXPORT Ucs2String javascript_transform_x(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
-FX_EXPORT Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
-
-FX_END
+namespace ftr {
+	FX_EXPORT Ucs2String javascript_transform_x(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
+	FX_EXPORT Ucs2String javascript_transform(cUcs2String& in, cString& path, bool clean_comment) throw(Error);
+}
 #endif
