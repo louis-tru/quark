@@ -141,8 +141,6 @@ namespace ftr {
 		Box*        _host;
 		HolderMode  _holder_mode;
 		FX_DEFINE_INLINE_CLASS(Inl);
-		friend class Box;
-		friend class GLDraw;
 	};
 
 	/**
@@ -160,6 +158,53 @@ namespace ftr {
 	*/
 	class FX_EXPORT FillImage: public BoxFill {
 		public:
+
+		/**
+		* @enum Repeat 纹理重复方式
+		*/
+		enum Repeat: uint8_t {
+			NONE = value::NONE,
+			REPEAT = value::REPEAT,
+			REPEAT_X = value::REPEAT_X,
+			REPEAT_Y = value::REPEAT_Y,
+			MIRRORED_REPEAT = value::MIRRORED_REPEAT,
+			MIRRORED_REPEAT_X = value::MIRRORED_REPEAT_X,
+			MIRRORED_REPEAT_Y = value::MIRRORED_REPEAT_Y,
+		};
+
+		/**
+		* @enum BackgroundPositionType
+		*/
+		enum BackgroundPositionType: uint8_t {
+			PIXEL = value::PIXEL,     /* 像素值  px */
+			PERCENT = value::PERCENT,   /* 百分比  % */
+			LEFT = value::LEFT,      /* 居左 */
+			RIGHT = value::RIGHT,     /* 居右  % */
+			CENTER = value::CENTER,    /* 居中 */
+			TOP = value::TOP,       /* 居上 */
+			BOTTOM = value::BOTTOM,    /* 居下 */
+		};
+		
+		/**
+		* @enum BackgroundSizeType
+		*/
+		enum BackgroundSizeType: uint8_t {
+			AUTO = value::AUTO,      /* 自动值  auto */
+			PIXEL = value::PIXEL,     /* 像素值  px */
+			PERCENT = value::PERCENT,   /* 百分比  % */
+		};
+
+		typedef ValueTemplate<BackgroundSizeType, BackgroundSizeType::AUTO, float> BackgroundSize;
+		typedef ValueTemplate<BackgroundPositionType, BackgroundPositionType::PIXEL, float> BackgroundPosition;
+		
+		struct BackgroundSizeCollection {
+			BackgroundSize x, y;
+		};
+
+		struct BackgroundPositionCollection {
+			BackgroundPosition x, y;
+		};
+
 		BackgroundImage();
 		virtual ~BackgroundImage();
 		virtual Type type() const { return M_IMAGE; }
@@ -181,21 +226,19 @@ namespace ftr {
 		void set_size_x(BackgroundSize value);
 		void set_size_y(BackgroundSize value);
 		bool get_background_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
+
 		protected:
 		virtual Background* copy(Background* to);
 		private:
+
 		String    _src;
 		bool      _has_base64_src;
 		Texture*  _texture;
 		Repeat    _repeat;
-		BackgroundPosition  _position_x;
-		BackgroundPosition  _position_y;
-		BackgroundSize      _size_x;
-		BackgroundSize      _size_y;
+		BackgroundPosition _position_x, _position_y;
+		BackgroundSize _size_x, _size_y;
 		int _attributes_flags;
 		FX_DEFINE_INLINE_CLASS(Inl);
-		friend class Box;
-		friend class GLDraw;
 	};
 
 	/**
@@ -208,7 +251,6 @@ namespace ftr {
 		virtual FillGradient* as_gradient() { return nullptr; }
 		protected:
 		virtual BoxFill* copy(BoxFill* to);
-		friend class GLDraw;
 	};
 
 	/**
@@ -222,13 +264,15 @@ namespace ftr {
 	};
 
 	/**
-	 * @class FillShadow
+	 * @class FillBorder
 	 */
 	class FX_EXPORT FillBorder: public BoxFill {
 		public:
 		// TODO ...
 		protected:
 		virtual BoxFill* copy(BoxFill* to);
+		float _width;
+		Color _color;
 	};
 
 	/**

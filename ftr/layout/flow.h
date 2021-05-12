@@ -41,8 +41,38 @@ namespace ftr {
 	class FX_EXPORT FlowLayout: public Box {
 		FX_Define_View(FlowLayout);
 		public:
+
+		enum ItemsAlign: uint8_t {
+			START, // 左对齐
+			END, // 右对齐
+			CENTER, // 居中
+			SPACE_BETWEEN, // 两端对齐，项目之间的间隔都相等
+			SPACE_AROUND, // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+		};
+
+		enum CrossAlign: uint8_t {
+			START, // 与交叉轴的起点对齐
+			END, // 与交叉轴的终点对齐
+			CENTER, // 与交叉轴的中点对齐
+			BASELINE, // 项目的第一行文字的基线对齐
+			STRETCH, // 如果项目未设置高度或设为auto，将占满整个容器的高度
+		};
+
+		enum MultiAlign: uint8_t {
+			START, // 与交叉轴的起点对齐
+			END, // 与交叉轴的终点对齐
+			CENTER, // 与交叉轴的中点对齐
+			SPACE_BETWEEN, // 与交叉轴两端对齐，轴线之间的间隔平均分布
+			SPACE_AROUND, // 每根轴线两侧的间隔都相等。所以，轴线之间的间隔比轴线与边框的间隔大一倍
+			STRETCH, // 轴线占满整个交叉轴
+		};
+
 		// TODO ...
 		private:
+		Direction  _direction;
+		ItemsAlign _items_align;
+		CrossAlign _cross_align;
+		MultiAlign _multi_align;
 	};
 
 }

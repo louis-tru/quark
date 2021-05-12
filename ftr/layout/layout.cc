@@ -63,10 +63,20 @@ namespace ftr {
 		*
 		* 布局权重（比如在flex布局中代表布局的尺寸）
 		*
-		* @func layout_weight()
+		* @func layout_weight(direction)
 		*/
-	float Layout::layout_weight() {
+	float Layout::layout_weight(Direction direction) {
 		return 0;
+	}
+
+	/**
+		*
+		* 布局的对齐方式（九宫格）
+		*
+		* @func layout_align()
+		*/
+	Layout::LayoutAlign Layout::layout_align() {
+		return LEFT;
 	}
 
 	/**

@@ -42,23 +42,8 @@ namespace ftr {
 		FX_Define_View(FlexLayout);
 		public:
 
-		enum FlexDirection: uint16_t {
-			ROW = value::ROW,
-			ROW_REVERSE = value::ROW_REVERSE,
-			COLUMN = value::COLUMN,
-			COLUMN_REVERSE = value::COLUMN_REVERSE,
-		};
-
-		enum FlexWrap: uint16_t {
-			NO_WRAP = value::NO_WRAP,
-			WRAP = value::WRAP,
-			WRAP_REVERSE = value::WRAP_REVERSE,
-		};
-
 		private:
-		uint32_t _align; // 对齐
-		FlexDirection _direction; // 方向
-		FlexWrap _wrap; // 换行
+		Direction _direction; // 方向
 	};
 
 }

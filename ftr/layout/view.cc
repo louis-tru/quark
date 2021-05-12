@@ -598,16 +598,6 @@ namespace ftr {
 
 	/**
 		* 
-		* setting the layout weight of the view object
-		* 
-		* @func set_layout_weight(val)
-		*/
-	void View::set_layout_weight(float val) {
-		// noop
-	}
-
-	/**
-		* 
 		* compute the transform origin value
 		* 
 		* @func layout_transform_origin(t)

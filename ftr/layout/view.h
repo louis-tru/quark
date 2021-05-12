@@ -36,10 +36,10 @@
 namespace ftr {
 
 	# define FX_Views(F) \
-		F(View)       F(Box)        F(FlexLayout) \
-		F(FlowLayout) F(GridLayout) F(Image) \
-		F(Input)      F(Label)      F(Root) \
-		F(Scroll)     F(Text)       F(Video) \
+		F(View)       F(Box)         F(Image) \
+		F(FlowLayout) F(FlexLayout)  F(GridLayout) \
+		F(Input)      F(Label)       F(Root) \
+		F(Scroll)     F(Text)        F(Video) \
 
 	# define FX_View_Class(E, N) class N;
 		FX_Views(FX_View_Class);
@@ -472,13 +472,6 @@ namespace ftr {
 		void set_opacity(float val);
 
 		// *******************************************************************
-		/**
-		 * 
-		 * setting the layout weight of the view object
-		 * 
-		 * @func set_layout_weight(val)
-		 */
-		virtual void set_layout_weight(float val);
 
 		/**
 		 * 

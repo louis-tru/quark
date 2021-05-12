@@ -56,6 +56,41 @@ namespace ftr {
 			M_RECURSIVE        = (M_TRANSFORM), /* 需要被递归的标记 */
 		};
 
+		// layout direction
+		enum Direction: uint8_t {
+			ROW = value::ROW,
+			ROW_REVERSE = value::ROW_REVERSE,
+			COLUMN = value::COLUMN,
+			COLUMN_REVERSE = value::COLUMN_REVERSE,
+		};
+
+		// layout align
+		enum LayoutAlign: unit8_t {
+			LEFT = value::LEFT,
+			CENTER = value::CENTER,
+			RIGHT = value::RIGHT,
+			TOP_LEFT = value::LEFT,
+			TOP_CENTER = value::CENTER,
+			TOP_RIGHT = value::RIGHT,
+			CENTER_LEFT = value::CENTER_LEFT,
+			CENTER_CENTER = value::CENTER_CENTER,
+			CENTER_RIGHT = value::CENTER_RIGHT,
+			BOTTOM_LEFT = value::BOTTOM_LEFT,
+			BOTTOM_CENTER = value::BOTTOM_CENTER,
+			BOTTOM_RIGHT = value::BOTTOM_RIGHT,
+		};
+
+		struct Rect {
+			Vec2 origin;
+			Vec2 size;
+		};
+		
+		struct Region {
+			float x, y;
+			float x2, y2;
+			float w, h;
+		};
+
 		/**
 		 * @constructors
 		 */
@@ -78,9 +113,17 @@ namespace ftr {
 		 *
 		 * 布局权重（比如在flex布局中代表布局的尺寸）
 		 *
-		 * @func layout_weight()
+		 * @func layout_weight(direction)
 		 */
-		virtual float layout_weight();
+		virtual float layout_weight(Direction direction);
+
+		/**
+		 *
+		 * 布局的对齐方式（九宫格）
+		 *
+		 * @func layout_align()
+		 */
+		virtual LayoutAlign layout_align();
 
 		/**
 		 * 

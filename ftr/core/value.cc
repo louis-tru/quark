@@ -29,7 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./value.h"
-#include "./font/pool.h"
+#include "../font/pool.h"
 
 namespace ftr {
 	namespace value {
@@ -41,23 +41,6 @@ namespace ftr {
 							 value.size == size &&
 							 value.color == color
 							);
-		}
-
-		TextFamily::TextFamily(TextValueType type)
-		: type(TextValueType::INHERIT)
-		, value( FontPool::get_font_familys_id(String()) ) {
-		}
-
-		TextFamily::TextFamily(TextValueType type, const FontFamilysID* cffid)
-		: type(type), value(cffid) {
-		}
-
-		cString& TextFamily::name() const {
-			return value->name();
-		}
-
-		const Array<String>& TextFamily::names() const {
-			return value->names();
 		}
 
 	}

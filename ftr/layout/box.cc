@@ -36,8 +36,8 @@ namespace ftr {
 		* @constructors
 		*/
 	Box::Box()
-		: _layout_weight(0)
-		, _fill(nullptr)
+		: _fill(nullptr)
+		, _layout_align(LEFT)
 	{
 	}
 
@@ -84,15 +84,30 @@ namespace ftr {
 		return Vec2();
 	}
 
-	float Box::layout_weight() {
-		return _layout_weight;
+	float Box::layout_weight(Direction direction) {
+		if (direction == ROW) { // ROW
+			return _width.value;
+		} else { // COLUMN
+			return _height.value;
+		}
 	}
 
-	void Box::set_layout_weight(float val) {
-		if (_layout_weight != val) {
-			_layout_weight = val;
+	Layout::LayoutAlign layout_align() {
+		return _layout_align;
+	}
+
+	/**
+		*
+		* 设置布局对齐方式
+		*
+		* @func set_layout_align(align)
+		*/
+	void Box::set_layout_align(LayoutAlign align) {
+		if (_layout_align != align) {
+			_layout_align = align;
 			if (parent()) {
-				parent()->layout_weight_change_notice_from_child(this);
+				parent()->layout_content_change_notice(this);
+				// parent()->layout_weight_change_notice_from_child(this);
 			}
 		}
 	}
@@ -119,10 +134,6 @@ namespace ftr {
 
 	void Box::layout_content_change_notice(Layout* child) {
 		// ... 
-	}
-
-	void Box::layout_weight_change_notice_from_child(Layout* child) {
-		// noop
 	}
 
 	void View::layout_size_change_notice_from_parent(Layout* parent) {
