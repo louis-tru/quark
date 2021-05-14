@@ -18,3 +18,4 @@ examples/**.js
 bench/**.js
 depe/skia
 *.pyc
+deps.bk

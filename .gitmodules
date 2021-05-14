@@ -4,22 +4,22 @@
 [submodule "libs/ftrp/gyp"]
 	path = libs/ftrp/gyp
 	url = https://github.com/louis-tru/gyp.git
-[submodule "depe/v8-link"]
-	path = depe/v8-link
+[submodule "deps/v8-link"]
+	path = deps/v8-link
 	url = https://github.com/louis-tru/v8-link.git
-[submodule "depe/ffmpeg"]
-	path = depe/ffmpeg
+[submodule "deps/ffmpeg"]
+	path = deps/ffmpeg
 	url = https://github.com/louis-tru/ffmpeg.git
-[submodule "depe/node"]
-	path = depe/node
+[submodule "deps/node"]
+	path = deps/node
 	url = https://github.com/louis-tru/node.git
-[submodule "depe/bplus"]
-	path = depe/bplus
+[submodule "deps/bplus"]
+	path = deps/bplus
 	url = https://github.com/louis-tru/bplus.git
-[submodule "depe/libuv"]
-	path = depe/libuv
+[submodule "deps/libuv"]
+	path = deps/libuv
 	url = https://github.com/louis-tru/libuv.git
 
-[submodule "depe/v8"]
-	path = depe/v8
+[submodule "deps/v8"]
+	path = deps/v8
 	url = https://github.com/louis-tru/v8.git
