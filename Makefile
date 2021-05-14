@@ -109,7 +109,7 @@ all_on_linux:
 	@./configure --os=android --arch=arm64                  && $(MAKE) build
 
 doc:
-	@$(NODE) tools/gen_html_doc.js docs out/docs
+	@$(NODE) tools/gen_html_doc.js doc out/doc
 
 web:
 	@$(NODE) --inspect=0.0.0.0:9228 tools/server.js
