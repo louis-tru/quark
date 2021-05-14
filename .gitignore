@@ -19,3 +19,5 @@ bench/**.js
 deps/skia
 *.pyc
 deps.bk
+libs/flare
+libs/fproj
