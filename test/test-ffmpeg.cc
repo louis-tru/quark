@@ -38,10 +38,10 @@ extern "C" {
 	// #include <libavcodec/fft.h>
 }
 
-#include <ftr/util/util.h>
-#include <ftr/util/fs.h>
+#include <flare/util/util.h>
+#include <flare/util/fs.h>
 
-using namespace ftr;
+using namespace flare;
 
 static AVFormatContext *fmt_ctx = NULL;
 static AVCodecContext *video_dec_ctx = NULL, *audio_dec_ctx;

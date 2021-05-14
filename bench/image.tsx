@@ -1,7 +1,7 @@
 
-import { GUIApplication, Root, Image, Scroll, _CVD } from 'ftr';
-import * as reader from 'ftr/reader';
-import path from 'ftr/path';
+import { GUIApplication, Root, Image, Scroll, _CVD } from 'flare';
+import * as reader from 'flare/reader';
+import path from 'flare/path';
 
 new GUIApplication({ multisample: 2 }).start(
 	<Root backgroundColor="#000">

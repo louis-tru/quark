@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/fs.h>
+#include <flare/util/fs.h>
 #include <trial/fs.h>
 #include <pwd.h>
 
-using namespace ftr;
+using namespace flare;
 
 void test_fs(int argc, char **argv) {
 	

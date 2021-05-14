@@ -49,7 +49,7 @@ extern "C" {
 #include <libavutil/file.h>
 #include <libswresample/swresample.h>
 }
-#include "ftr/util/util.h"
+#include "flare/util/util.h"
 #include <alsa/asoundlib.h>
 
 #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000

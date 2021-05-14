@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/array.h>
-#include <ftr/util/list.h>
-#include <ftr/util/string.h>
-#include <ftr/util/map.h>
+#include <flare/util/array.h>
+#include <flare/util/list.h>
+#include <flare/util/string.h>
+#include <flare/util/map.h>
 #include <map>
 
-using namespace ftr;
+using namespace flare;
 
 void test_map(int argc, char **argv) {
 	

@@ -1,12 +1,12 @@
 
-import { GUIApplication, ViewController, Root, Div, Scroll, default as ftr, _CVD } from 'ftr';
-import { Color } from 'ftr/value';
-import util from 'ftr/util';
+import { GUIApplication, ViewController, Root, Div, Scroll, default as flare, _CVD } from 'flare';
+import { Color } from 'flare/value';
+import util from 'flare/util';
 import * as uu from './uu';
 
 const {random} = util
 
-ftr.css({
+flare.css({
 	'.item': {
 		height: 40,
 		width: '25%',
@@ -20,7 +20,7 @@ class RootViewController extends ViewController {
 
 		uu.start();
 
-		ftr.render<Scroll>(
+		flare.render<Scroll>(
 			<Scroll width="full" height="full">
 				{
 					Array.from({ length: 10000 }, ()=>{

@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Text, Input, Textarea, default as ftr, _CVD, View } from 'ftr';
+import { Div, Button, Text, Input, Textarea, default as flare, _CVD, View } from 'flare';
 import { Mynavpage } from './public';
-import { GUIClickEvent } from 'ftr/event';
+import { GUIClickEvent } from 'flare/event';
 
 const resolve = require.resolve;
 
@@ -39,7 +39,7 @@ function start_input(evt: GUIClickEvent) {
 }
 
 function end_input(evt: GUIClickEvent) {
-	(ftr.app.focusView as View).blur();
+	(flare.app.focusView as View).blur();
 }
 
 export default ()=>(

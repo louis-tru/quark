@@ -1,8 +1,8 @@
 {
 	'includes': [
-		'ftr/util/util.gypi',
-		'ftr/ftr.gypi',
-		'ftr/js/js.gypi',
+		'flare/util/util.gypi',
+		'flare/flare.gypi',
+		'flare/js/js.gypi',
 		'trial/trial.gypi',
 		'tools/default_target.gypi',
 	],
@@ -17,20 +17,20 @@
 
 	'variables': {
 		'more_log%': 0,
-		'ftr_product_dir%': '<(output)/../ftrp/product',
-		'ftr_product_so_subdir%': '<(os)/<(arch)',
+		'flare_product_dir%': '<(output)/../fproj/product',
+		'flare_product_so_subdir%': '<(os)/<(arch)',
 		'other_ldflags': [],
 		'conditions': [
 			['os=="android"', {
-				'ftr_product_so_subdir': '<(os)/jniLibs/<(android_abi)'
+				'flare_product_so_subdir': '<(os)/jniLibs/<(android_abi)'
 			}],
 			['library_output=="static_library"', {
 				'other_ldflags+': [
 					'-Wl,--whole-archive',
-					'<(output)/obj.target/libftr-utils.a',
-					'<(output)/obj.target/libftr.a',
-					'<(output)/obj.target/libftr-js.a',
-					'<(output)/obj.target/libftr-media.a',
+					'<(output)/obj.target/libflare-utils.a',
+					'<(output)/obj.target/libflare.a',
+					'<(output)/obj.target/libflare-js.a',
+					'<(output)/obj.target/libflare-media.a',
 					'<(output)/obj.target/deps/node/libnode.a',
 					'-Wl,--no-whole-archive',
 				],
@@ -51,19 +51,19 @@
 
 	'targets': [
 	{
-		'target_name': 'libftr',
+		'target_name': 'libflare',
 		'type': 'none',
 		'dependencies': [
-			'ftr',
-			'ftr-js',
-			'ftr-media',
-			'ftr-node',
+			'flare',
+			'flare-js',
+			'flare-media',
+			'flare-node',
 		],
 		'conditions': [
-			# output mac shared library for "ftr.framework"
+			# output mac shared library for "flare.framework"
 			['library_output=="shared_library" and OS=="mac" and project=="make"', {
 				'actions': [{
-					'action_name': 'mk_ftr_dylib',
+					'action_name': 'mk_flare_dylib',
 					'variables': {
 						'embed_bitcode%': 0,
 						'use_v8_link%': 0,
@@ -98,18 +98,18 @@
 						'<(output)/obj.target/ffmpeg/libffmpeg.a',
 						'<(output)/libnghttp2.a',
 						'<(output)/libcares.a',
-						'<(output)/libftr-utils.a',
-						'<(output)/libftr.a',
-						'<(output)/libftr-js.a',
-						'<(output)/libftr-media.a',
+						'<(output)/libflare-utils.a',
+						'<(output)/libflare.a',
+						'<(output)/libflare-js.a',
+						'<(output)/libflare-media.a',
 						'<(output)/libnode.a',
 						'<@(lib_v8_a)',
 					],
 					'outputs': [
-						'<(output)/libftr.dylib',
-						# '<(output)/libftr-js.dylib',
-						# '<(output)/libftr-media.dylib',
-						# '<(output)/libftr-node.dylib',
+						'<(output)/libflare.dylib',
+						# '<(output)/libflare-js.dylib',
+						# '<(output)/libflare-media.dylib',
+						# '<(output)/libflare-node.dylib',
 					],
 					'action': [ 
 						'sh', '-c', 
@@ -122,21 +122,21 @@
 					# 'process_outputs_as_sources': 1,
 				}]
 			}],
-			# output not mac shared library for "ftr.so"
+			# output not mac shared library for "flare.so"
 			['library_output=="shared_library" and OS!="mac"', {
-				'product_name': 'ftr',
+				'product_name': 'flare',
 				'type': 'shared_library',
-				# 'product_prefix': 'ftr',
+				# 'product_prefix': 'flare',
 				# 'product_extension': 'so',
 				'copies': [{
-					'destination': '<(ftr_product_dir)/<(ftr_product_so_subdir)',
+					'destination': '<(flare_product_dir)/<(flare_product_so_subdir)',
 					'files': [
-						'<(output)/lib.target/libftr.so',
-						# '<(output)/lib.target/libftr-js.so',
-						# '<(output)/lib.target/libftr-media.so',
-						# '<(output)/lib.target/libftr-node.so',
+						'<(output)/lib.target/libflare.so',
+						# '<(output)/lib.target/libflare-js.so',
+						# '<(output)/lib.target/libflare-media.so',
+						# '<(output)/lib.target/libflare-node.so',
 					],
-				}], # copy libftr.so to product directory
+				}], # copy libflare.so to product directory
 			}],
 		], # conditions
 	}

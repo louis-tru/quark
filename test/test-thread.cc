@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
+#include <flare/util/util.h>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
 
-using namespace ftr;
+using namespace flare;
 
 class Foo {
  public:

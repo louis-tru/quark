@@ -80,10 +80,10 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-lftr',
-						'-lftr-media',
-						'-lftr-js',
-						'-lftr-node',
+						'-lflare',
+						'-lflare-media',
+						'-lflare-js',
+						'-lflare-node',
 					],
 					'library_dirs': [
 						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
@@ -133,20 +133,20 @@
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-node.framework',
 					],
 				},
 				'mac_framework_dirs': [
 					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 				],
 				'mac_bundle_frameworks': [
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-media.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-js.framework',
-					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-node.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-media.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-js.framework',
+					'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-node.framework',
 				],
 				'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 			}],
@@ -183,7 +183,7 @@
 	},
 
 	'_targets': [{
-		'target_name': 'libftr',
+		'target_name': 'libflare',
 		'type': 'none',
 		'direct_dependent_settings': {
 			'defines': [ 
@@ -204,10 +204,10 @@
 					'libraries': [
 						'-llog', 
 						'-landroid',
-						'-lftr',
-						'-lftr-media',
-						'-lftr-js',
-						'-lftr-node',
+						'-lflare',
+						'-lflare-media',
+						'-lflare-js',
+						'-lflare-node',
 					],
 					'library_dirs': [
 						'<(DEPTH)/out/libs/android/jniLibs/${ANDROID_ABI}',
@@ -221,10 +221,10 @@
 				'link_settings': {
 					'libraries': [
 						'$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-node.framework',
 					],
 				},
 				'direct_dependent_settings': {
@@ -232,10 +232,10 @@
 						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)',
 					],
 					'mac_bundle_frameworks': [
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-media.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-js.framework',
-						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/ftr-node.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-media.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-js.framework',
+						'<(DEPTH)/out/libs/ios/Frameworks/$(PLATFORM_NAME)/$(CONFIGURATION)/flare-node.framework',
 					],
 					'include_dirs': [ '<(DEPTH)/out/libs/include' ],
 				},

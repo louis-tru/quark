@@ -5,7 +5,7 @@ android {
 	buildToolsVersion '28.0.3'
 
 	defaultConfig {
-		applicationId "com.ftr.test"
+		applicationId "com.flare.test"
 		minSdkVersion 28
 		targetSdkVersion 28
 		versionCode 1

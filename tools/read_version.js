@@ -30,35 +30,35 @@
 
 var fs = require('somes/fs');
 
-function read_ftr_version() {
-	var str = fs.readFileSync(__dirname + '/../ftr/version.h').toString('utf-8');
+function read_flare_version() {
+	var str = fs.readFileSync(__dirname + '/../flare/version.h').toString('utf-8');
 	var MAJOR = 0;
 	var MINOR = 0;
 	var PATCH = 0;
 	var mat;
 
-	if ( (mat = /#define\s+FTR_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+FLARE_MAJOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MAJOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+FTR_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+FLARE_MINOR_VERSION\s+(\d+)/m.exec(str)) ) {
 		MINOR = parseInt(mat[1]);
 	}
-	if ( (mat = /#define\s+FTR_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
+	if ( (mat = /#define\s+FLARE_PATCH_VERSION\s+(\d+)/m.exec(str)) ) {
 		PATCH = parseInt(mat[1]);
 	}
 	if ( MAJOR == 0 && MINOR == 0 && PATCH == 0 ) {
-		throw new Error('Cannot parse ftr version number form ftr/version.h');
+		throw new Error('Cannot parse flare version number form flare/version.h');
 	}
 	return [MAJOR, MINOR, PATCH];
 }
 
-function update_ftr_version() {
-	var vers = read_ftr_version().join('.');
+function update_flare_version() {
+	var vers = read_flare_version().join('.');
 	[
-		__dirname + '/../libs/ftr/out/ftr/package.json',
-		__dirname + '/../libs/ftrp/out/ftrp/package.json',
-		__dirname + '/../libs/ftr/package.json',
-		__dirname + '/../libs/ftrp/package.json',
+		__dirname + '/../libs/flare/out/flare/package.json',
+		__dirname + '/../libs/fproj/out/fproj/package.json',
+		__dirname + '/../libs/flare/package.json',
+		__dirname + '/../libs/fproj/package.json',
 	].forEach(e=>{
 		var json = fs.readFileSync(e, 'utf-8');
 		json = json.replace(/\"version\"\:\s*\"[^\"]+\"/, `"version": "${vers}"`);
@@ -66,5 +66,5 @@ function update_ftr_version() {
 	});
 }
 
-exports.read_ftr_version = read_ftr_version;
-exports.update_ftr_version = update_ftr_version;
+exports.read_flare_version = read_flare_version;
+exports.update_flare_version = update_flare_version;

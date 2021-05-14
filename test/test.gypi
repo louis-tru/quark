@@ -10,10 +10,10 @@
 				'../out',
 			],
 			'dependencies': [
-				'ftr',
-				'ftr-js',
-				'ftr-media',
-				'ftr-node',
+				'flare',
+				'flare-js',
+				'flare-media',
+				'flare-node',
 				###########
 				'trial',
 				'deps/ffmpeg/ffmpeg.gyp:ffmpeg',
@@ -22,7 +22,7 @@
 			'mac_bundle': 1,
 			'mac_bundle_resources': [
 				'res',
-				'test-ftr',
+				'test-flare',
 				'../examples',
 				'../bench',
 			],
@@ -31,10 +31,10 @@
 			},
 			'sources': [
 				'../examples',
-				'../libs/ftrp',
+				'../libs/fproj',
 				'../libs/somes',
 				'test.cc',
-				'test-ftr.cc',
+				'test-flare.cc',
 				'test-fs.cc',
 				'test-fs2.cc',
 				'test-gui.cc',
@@ -94,14 +94,14 @@
 	],
 
 	'conditions': [
-		# gen android test depes `libftr-depes-test.so`
+		# gen android test depes `libflare-depes-test.so`
 		['os=="android" and (debug==1 or without_visibility_hidden==1)', {
 			'targets': [
 			{
-				'target_name': 'ftr-depes-test',
+				'target_name': 'flare-depes-test',
 				'type': 'shared_library',
 				'dependencies': [
-					'ftr/util/minizip.gyp:minizip',
+					'flare/util/minizip.gyp:minizip',
 					'deps/tess2/tess2.gyp:tess2', 
 					'deps/freetype2/freetype2.gyp:ft2',
 					'deps/ffmpeg/ffmpeg.gyp:ffmpeg_compile',
@@ -130,13 +130,13 @@
 				],
 			},
 			{
-				'target_name': 'ftr-depes-copy',
+				'target_name': 'flare-depes-copy',
 				'type': 'none',
-				'dependencies': [ 'ftr-depes-test' ],
+				'dependencies': [ 'flare-depes-test' ],
 				'copies': [{
 					'destination': '<(DEPTH)/out/jniLibs/<(android_abi)',
 					'files': [
-						'<(output)/lib.target/libftr-depes-test.so',
+						'<(output)/lib.target/libflare-depes-test.so',
 					],
 				}],
 			}],
@@ -144,7 +144,7 @@
 		['os in "ios osx"', {
 			'targets': [
 			{
-				'target_name': 'FtrTest',
+				'target_name': 'FlareTest',
 				'type': 'shared_library',
 				'mac_bundle': 1,
 				'include_dirs': [ '.' ],

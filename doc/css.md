@@ -1,4 +1,4 @@
-# `ftr/css`
+# `flare/css`
 
 * `css`样式表类似于html `css`样式表，支持使用多级样式表，但只支持`class`类
 
@@ -36,9 +36,9 @@
 Example:
 
 ```js
-import CSS from 'ftr/css'
-import { GUIApplication, Root, Div } from 'ftr'
-import 'ftr/dialog'
+import CSS from 'flare/css'
+import { GUIApplication, Root, Div } from 'flare'
+import 'flare/dialog'
 // 样式表都是全局的
 CSS({
 	'.test': {
@@ -168,7 +168,7 @@ new GUIApplication().start(
 
 [`KeyframeAction`]: action.md#class-keyframeaction
 [`Frame`]: action.md#class-frame
-[`HIGHLIGHTED_NORMAL`]: ftr.md#highlighted_normal
-[`HIGHLIGHTED_HOVER`]: ftr.md#highlighted_hover
-[`HIGHLIGHTED_DOWN`]: ftr.md#highlighted_down
-[`View.onHighlighted`]: ftr.md#view-onhighlighted
+[`HIGHLIGHTED_NORMAL`]: flare.md#highlighted_normal
+[`HIGHLIGHTED_HOVER`]: flare.md#highlighted_hover
+[`HIGHLIGHTED_DOWN`]: flare.md#highlighted_down
+[`View.onHighlighted`]: flare.md#view-onhighlighted

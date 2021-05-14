@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/array.h>
-#include <ftr/util/list.h>
-#include <ftr/util/string.h>
+#include <flare/util/array.h>
+#include <flare/util/list.h>
+#include <flare/util/string.h>
 #include <map>
 
-using namespace ftr;
+using namespace flare;
 
 class Test{
 	String str;

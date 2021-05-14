@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Indep, default as ftr, _CVD } from 'ftr';
+import { Div, Button, Indep, default as flare, _CVD } from 'flare';
 import { Navbutton, Mynavpage } from './public';
-import { Overlay } from 'ftr/overlay';
-import { GUIClickEvent } from 'ftr/event';
+import { Overlay } from 'flare/overlay';
+import { GUIClickEvent } from 'flare/event';
 
 const resolve = require.resolve;
 
 function show_overlay(evt: GUIClickEvent) {
-	ftr.render<Overlay>(
+	flare.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Menu A</Navbutton>
@@ -49,7 +49,7 @@ function show_overlay(evt: GUIClickEvent) {
 }
 
 function show_overlay2(evt: GUIClickEvent) {
-	var com = ftr.render<Overlay>(
+	var com = flare.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton>Hello.</Navbutton>
@@ -63,7 +63,7 @@ function show_overlay2(evt: GUIClickEvent) {
 }
 
 function show_overlay3(evt: GUIClickEvent) {
-	var com = ftr.render<Overlay>(
+	var com = flare.render<Overlay>(
 		<Overlay>
 			<Div>
 				<Navbutton style={{textColor:"#fff"}}>Hello.</Navbutton>

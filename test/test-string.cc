@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <ftr/util/string.h>
-#include <ftr/util/codec.h>
+#include <flare/util/string.h>
+#include <flare/util/codec.h>
 
 using namespace std;
-using namespace ftr;
+using namespace flare;
 
 class Str {
  private:

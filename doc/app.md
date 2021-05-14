@@ -1,4 +1,4 @@
-# `ftr/app`
+# `flare/app`
 
 
 ## `Class: GUIApplication`
@@ -20,8 +20,8 @@
 Example:
 
 ```jsx
-import GUIApplication from 'ftr/app'
-import Root from 'ftr'
+import GUIApplication from 'flare/app'
+import Root from 'flare'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
@@ -211,6 +211,6 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
 [`DisplayPort`]: display_port.md#class-displayport
-[`Root`]: ftr.md#class-root
-[`View`]: ftr.md#class-view
+[`Root`]: flare.md#class-root
+[`View`]: flare.md#class-view
 [`clear()`]: app.md#guiapplication-clear

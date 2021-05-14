@@ -1,0 +1,5 @@
+{
+	"name": "test-flare",
+	"main": "test_gui.jsx",
+	"flareSyntax": true
+}

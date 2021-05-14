@@ -1,9 +1,9 @@
 
-# [`Ftr`]
+# [`Flare`]
 
 * [`About`](README.md)
-* [`Tools`](https://www.npmjs.com/package/ftrp)
-* [`Examples`](https://github.com/louis-tru/ftr/tree/master/examples)
+* [`Tools`](https://www.npmjs.com/package/fproj)
+* [`Examples`](https://github.com/louis-tru/flare/tree/master/examples)
 
 # Course
 
@@ -15,25 +15,25 @@
 
 # Modules
 
-* [`ftr`](ftr.md)
+* [`flare`](flare.md)
 * [`pkg`](pkg.md)
-* [`ftr/action`](action.md)
-* [`ftr/app`](app.md)
-* [`ftr/css`](css.md)
-* [`ftr/ctr`](ctr.md)
-* [`ftr/display_port`](display_port.md)
-* [`ftr/font`](font.md)
-* [`ftr/media`](media.md)
-* [`ftr/value`](value.md)
-* [`ftr/util`](util.md)
-* [`ftr/event`](event.md)
-* [`ftr/fs`](fs.md)
-* [`ftr/http`](http.md)
-* [`ftr/keys`](keys.md)
-* [`ftr/path`](path.md)
-* [`ftr/reader`](reader.md)
-* [`ftr/storage`](storage.md)
-* [`ftr/sys`](sys.md)
+* [`flare/action`](action.md)
+* [`flare/app`](app.md)
+* [`flare/css`](css.md)
+* [`flare/ctr`](ctr.md)
+* [`flare/display_port`](display_port.md)
+* [`flare/font`](font.md)
+* [`flare/media`](media.md)
+* [`flare/value`](value.md)
+* [`flare/util`](util.md)
+* [`flare/event`](event.md)
+* [`flare/fs`](fs.md)
+* [`flare/http`](http.md)
+* [`flare/keys`](keys.md)
+* [`flare/path`](path.md)
+* [`flare/reader`](reader.md)
+* [`flare/storage`](storage.md)
+* [`flare/sys`](sys.md)
 * [`Native Types`](native_types.md)
 
-[`Ftr`]: http://fasttr.org/
+[`Flare`]: http://flare.cool/

@@ -110,15 +110,15 @@ function touch_files(variables) {
 
 	if (variables.library_output == 'shared_library' && variables.OS != 'mac') {
 		touch_file([
-			`${variables.output}/lib.target/libftr.so`,
-			`${variables.output}/lib.target/libftr-js.so`,
-			`${variables.output}/lib.target/libftr-media.so`,
-			`${variables.output}/lib.target/libftr-node.so`,
+			`${variables.output}/lib.target/libflare.so`,
+			`${variables.output}/lib.target/libflare-js.so`,
+			`${variables.output}/lib.target/libflare-media.so`,
+			`${variables.output}/lib.target/libflare-node.so`,
 		]);
 	}
 
 	if (variables.os == 'android' && (variables.debug || variables.without_visibility_hidden)) {
-		touch_file([`${variables.output}/lib.target/libftr-depes-test.so`]);
+		touch_file([`${variables.output}/lib.target/libflare-depes-test.so`]);
 	}
 }
 

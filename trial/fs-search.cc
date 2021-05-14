@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "trial/fs.h"
-#include "ftr/util/zlib.h"
-#include "ftr/util/handle.h"
-#include "ftr/util/error.h"
+#include "flare/util/zlib.h"
+#include "flare/util/handle.h"
+#include "flare/util/error.h"
 
-namespace ftr {
+namespace flare {
 
 	// FileSearch implementation
 

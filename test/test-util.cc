@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
-#include <ftr/util/string.h>
+#include <flare/util/util.h>
+#include <flare/util/string.h>
 
-using namespace ftr;
+using namespace flare;
 
 void test_util(int argc, char **argv) {
 	int64 i = parse_time("    Sat, 27 Oct 2018 11:32:18 GMT     ");

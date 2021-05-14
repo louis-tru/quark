@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Scroll, Text, _CVD } from 'ftr';
+import { Scroll, Text, _CVD } from 'flare';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'ftr/nav';
-import * as reader from 'ftr/reader';
-import {Event} from 'ftr/event';
+import { Navbar, Toolbar } from 'flare/nav';
+import * as reader from 'flare/reader';
+import {Event} from 'flare/event';
 
 function foreground(evt: Event<void, Page>) {
 	var navpage = evt.sender;

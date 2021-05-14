@@ -28,22 +28,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/app.h"
-#include "ftr/sys.h"
-#include "ftr/util/loop.h"
-#include "../deps/node/src/ftr.h"
+#include "flare/app.h"
+#include "flare/sys.h"
+#include "flare/util/loop.h"
+#include "../deps/node/src/flare.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_demo
 #endif
 
-using namespace ftr;
+using namespace flare;
 
 void TEST_FUNC_NAME(int argc, char** argv);
 
 FX_GUI_MAIN() {
 
-	// node::FtrEnvironment::test();
+	// node::FlareEnvironment::test();
 
 	uint64 st = sys::time();
 	

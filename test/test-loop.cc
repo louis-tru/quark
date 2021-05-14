@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/loop.h>
+#include <flare/util/loop.h>
 
-using namespace ftr;
+using namespace flare;
 
 static void message_cb(CbD& ev, RunLoop* loop) {
 	static int i = 0;

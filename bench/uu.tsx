@@ -1,8 +1,8 @@
 
-import * as http from 'ftr/http';
-import util from 'ftr/util';
-import * as sys from 'ftr/sys';
-import { Indep, ViewController, default as ftr, Text, _CVD } from 'ftr';
+import * as http from 'flare/http';
+import util from 'flare/util';
+import * as sys from 'flare/sys';
+import { Indep, ViewController, default as flare, Text, _CVD } from 'flare';
 
 var ts = 0;
 
@@ -30,7 +30,7 @@ class FSP extends ViewController {
 	}
 
 	up_fsp() {
-		var fsp_value = ftr.displayPort.fsp();
+		var fsp_value = flare.displayPort.fsp();
 		var cpu_usage = sys.cpuUsage();
 		this.state = { fsp_value, cpu_usage };
 		setTimeout(e=>this.up_fsp(), 1000);
@@ -42,18 +42,18 @@ var fsp: FSP;
 
 export function show_fsp() {
 	util.assert(!fsp);
-	util.assert(ftr.app);
+	util.assert(flare.app);
 
 	function show_fsp_ok() {
-		if (ftr.root) {
-			fsp = ftr.render(<FSP />, ftr.root);
+		if (flare.root) {
+			fsp = flare.render(<FSP />, flare.root);
 			fsp.up_fsp();
 		}
 	}
 
-	if (ftr.app.isLoaded) {
+	if (flare.app.isLoaded) {
 		show_fsp_ok.setTimeout(1000);
 	} else {
-		ftr.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
+		flare.app.onLoad.on(e=>show_fsp_ok.setTimeout(1000));
 	}
 };

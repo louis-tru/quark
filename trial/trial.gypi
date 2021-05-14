@@ -2,7 +2,7 @@
 	'targets': [{
 		'target_name': 'trial',
 		'type': '<(output_type)',
-		'dependencies': [ 'ftr-util' ],
+		'dependencies': [ 'flare-util' ],
 		'sources': [
 			'jsx.h',
 			'jsx.cc',

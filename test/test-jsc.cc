@@ -31,12 +31,12 @@
 #if USE_JSC
 
 #include <JavaScriptCore/JavaScript.h>
-#include "ftr/util/util.h"
-#include "ftr/util/string-builder.h"
-#include "ftr/util/buffer.h"
-#include "ftr/util/loop.h"
+#include "flare/util/util.h"
+#include "flare/util/string-builder.h"
+#include "flare/util/buffer.h"
+#include "flare/util/loop.h"
 
-using namespace ftr;
+using namespace flare;
 
 static JSClassRef NativeConstructor;
 static JSObjectRef toString;
@@ -96,7 +96,7 @@ struct JSCStringTraits: public NonObjectTraits {
 	}
 };
 
-typedef ftr::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
+typedef flare::Handle<OpaqueJSString, JSCStringTraits> JSCStringPtr;
 
 static JSValueRef ConstructorFunc(JSContextRef ctx,
 																	JSObjectRef function,

@@ -28,16 +28,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__trial__fs__
-#define __ftr__trial__fs__
+#ifndef __flare__trial__fs__
+#define __flare__trial__fs__
 
-#include "ftr/util/fs.h"
+#include "flare/util/fs.h"
 
 /**
- * @ns ftr
+ * @ns flare
  */
 
-namespace ftr {
+namespace flare {
 
 	/**
 	* @class FileSearch # Resources files search

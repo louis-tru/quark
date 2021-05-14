@@ -1,4 +1,4 @@
-# `ftr/keys`
+# `flare/keys`
 
 一种类似于json的数据格式,可以包含key/value形式与集合类形式的数据
 

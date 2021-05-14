@@ -30,11 +30,11 @@
 
 import { 
 	Div, Indep, Button, Text, Hybrid, _CVD,
-} from 'ftr';
+} from 'flare';
 import { Mynavpage, Page } from './public';
-import { Navbar, Toolbar } from 'ftr/nav';
+import { Navbar, Toolbar } from 'flare/nav';
 import review_vx from './review';
-import { GUIClickEvent } from 'ftr/event';
+import { GUIClickEvent } from 'flare/event';
 
 const resolve = require.resolve;
 

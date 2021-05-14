@@ -36,30 +36,30 @@ var read_version = require('./read_version');
 
 var args = process.argv.slice(2);
 var root = path.resolve(__dirname, '..');
-var target = args[0] ? path.resolve(args[0]) : root + '/out/ftrp';
+var target = args[0] ? path.resolve(args[0]) : root + '/out/fproj';
 var include = target + '/product/include';
 
 fs.rm_r_sync(include);
 fs.rm_r_sync(target + '/product/libs');
 fs.rm_r_sync(target + '/product/examples');
-fs.rm_r_sync(target + '/product/ftr');
+fs.rm_r_sync(target + '/product/flare');
 
-read_version.update_ftr_version();
+read_version.update_flare_version();
 
-// build ftr
-execSync(`cd ${root}/libs/ftr && npm run build`);
-fs.cp_sync(root + '/libs/ftr/out/@types', target + '/product/@types');
+// build flare
+execSync(`cd ${root}/libs/flare && npm run build`);
+fs.cp_sync(root + '/libs/flare/out/@types', target + '/product/@types');
 
-// build ftrp
-execSync(`cd ${root}/libs/ftrp && npm run build`);
-fs.cp_sync(root + '/libs/ftrp/out/ftrp', target, {ignore_hide:0,symlink: 0});
-fs.cp_sync(root + '/libs/ftrp/gyp', target + '/gyp', {ignore_hide:1,replace:0});
+// build fproj
+execSync(`cd ${root}/libs/fproj && npm run build`);
+fs.cp_sync(root + '/libs/fproj/out/fproj', target, {ignore_hide:0,symlink: 0});
+fs.cp_sync(root + '/libs/fproj/gyp', target + '/gyp', {ignore_hide:1,replace:0});
 
 fs.chmodSync(target + '/gyp/gyp', 0755);
 fs.chmodSync(target + '/shell.js', 0755);
 
-copy_header(root + '/ftr', `${include}/ftr`);
-copy_header(root + '/ftr-js', `${include}/ftr-js`);
+copy_header(root + '/flare', `${include}/flare`);
+copy_header(root + '/flare-js', `${include}/flare-js`);
 // copy_header(`${root}/deps/v8-link/include`, include);
 // copy_header(`${root}/deps/node/deps/openssl/openssl/include/openssl`, `${include}/openssl`);
 // copy_header(`${root}/deps/node/deps/openssl/config`, `${include}/openssl`);
@@ -73,8 +73,8 @@ copy_header(root + '/ftr-js', `${include}/ftr-js`);
 // copy_header(`${root}/deps/node/src/node_object_wrap.h`, `${include}/node_object_wrap.h`);
 // copy_header(`${root}/deps/node/src/node_version.h`, `${include}/node_version.h`);
 
-// fs.cp_sync(root + '/libs/ftr', target + '/product/libs/ftr');
+// fs.cp_sync(root + '/libs/flare', target + '/product/libs/flare');
 fs.cp_sync(root + '/examples', target + '/product/examples');
-fs.cp_sync(root + '/tools/product.gypi', target + '/product/ftr.gypi');
+fs.cp_sync(root + '/tools/product.gypi', target + '/product/flare.gypi');
 // fs.cp_sync(root + '/tools/common.gypi', target + '/product/common.gypi');
 // fs.cp_sync(root + '/out/config.gypi', target + '/product/config.gypi');

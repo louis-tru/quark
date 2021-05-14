@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/fs.h"
-#include "ftr/util/codec.h"
+#include "flare/util/fs.h"
+#include "flare/util/codec.h"
 #include "trial/jsx.h"
 
-using namespace ftr;
+using namespace flare;
 
 #define DEBUG_JSA 0
-#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/ftr_ace/ace/Makefile.dryice.js"
+#define DEBUG_JSA_PATH "/Users/louis/Project/TouchCode/trunk/flare_ace/ace/Makefile.dryice.js"
 
 #define error(err, ...) { FX_ERR(err, ##__VA_ARGS__); return 1; }
 

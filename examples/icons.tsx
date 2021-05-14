@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Scroll, TextNode, Hybrid, _CVD } from 'ftr';
+import { Div, Scroll, TextNode, Hybrid, _CVD } from 'flare';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;

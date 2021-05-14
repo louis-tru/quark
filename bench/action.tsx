@@ -1,15 +1,15 @@
 
-import { GUIApplication, ViewController, Root, Indep, default as ftr, _CVD } from 'ftr';
-import { Color } from 'ftr/value';
-import util from 'ftr/util';
+import { GUIApplication, ViewController, Root, Indep, default as flare, _CVD } from 'flare';
+import { Color } from 'flare/value';
+import util from 'flare/util';
 import * as uu from './uu';
 
 const random = util.random;
 
 class RootViewController extends ViewController {
 	render() {
-		var w = ftr.displayPort.width;
-		var h = ftr.displayPort.height;
+		var w = flare.displayPort.width;
+		var h = flare.displayPort.height;
 		console.log(w,h);
 
 		return (
@@ -47,6 +47,6 @@ class RootViewController extends ViewController {
 	}
 }
 
-new GUIApplication({ multisample: 4, title: 'Ftr benchmark' }).start(<RootViewController />);
+new GUIApplication({ multisample: 4, title: 'Flare benchmark' }).start(<RootViewController />);
 
 uu.show_fsp();

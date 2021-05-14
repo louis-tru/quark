@@ -1,4 +1,4 @@
-# `ftr/font`
+# `flare/font`
 
 
 ## setDefaultFonts(fonts)

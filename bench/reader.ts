@@ -1,7 +1,7 @@
 
-import * as fs from 'ftr/fs';
-import url from 'ftr/path';
-import * as reader from 'ftr/reader';
+import * as fs from 'flare/fs';
+import url from 'flare/path';
+import * as reader from 'flare/reader';
 import * as uu from './uu';
 
 var path = url.documents('benchmark.txt');

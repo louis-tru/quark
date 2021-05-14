@@ -1,13 +1,13 @@
-ftr full name (fast typesetting render)
+flare (fast layout render)
 ===============
 
-ftr is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
+flare is a cross-platform (Android/iOS) front-end development framework. The core code is written in C++. The bottom layer is based on OpenGL drawing. The upper layer implements a streamlined typesetting engine and a JS/JSX running environment. The goal is to develop GUI applications on this basis, which can take both development speed and operation efficiency into account.
 
 * Only `iOS` and `Android` systems are supported for the time being, this does not include `AndroidTV`, because `TV` applications are very different from mobile applications
 
-* From here, [`Go API Index`](http://fasttr.org/doc/) can go to `API Documents Index`
+* From here, [`Go API Index`](http://flare.cool/doc/) can go to `API Documents Index`
 
-| ![Screenshot](http://fasttr.org/img/0x0ss.jpg) | ![Screenshot](http://fasttr.org/img/0x0ss_3.jpg) | ![Screenshot](http://fasttr.org/img/0x0ss_4.jpg) |
+| ![Screenshot](http://flare.cool/img/0x0ss.jpg) | ![Screenshot](http://flare.cool/img/0x0ss_3.jpg) | ![Screenshot](http://flare.cool/img/0x0ss_4.jpg) |
 |--|--|--|
 
 
@@ -16,7 +16,7 @@ ftr is a cross-platform (Android/iOS) front-end development framework. The core 
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { GUIApplication, Root } from 'ftr'
+import { GUIApplication, Root } from 'flare'
 new GUIApplication().start(
 	<Root>hello world!</Root>
 )
@@ -26,35 +26,35 @@ You can get a more detailed [`Examples`]
 
 # Start Usage
 
-If you've never used Ftr before, you can start from here and build your Ftr program step by step.
+If you've never used Flare before, you can start from here and build your Flare program step by step.
 
-## Install ftrp
+## Install fproj
 
-First, you need to install the toolkit provided by `Ftr`
+First, you need to install the toolkit provided by `Flare`
 
-* Install `ftrp` using nodejs `npm` 
+* Install `fproj` using nodejs `npm` 
 
 * Open `Terminal` and execute the following command：
 
 ```sh
 # shell
-$ sudo npm install -g ftrp
+$ sudo npm install -g fproj
 
 ```
 	
-* Running `ftrp` requires dependency on `nodejs` and `python2.7`
+* Running `fproj` requires dependency on `nodejs` and `python2.7`
 
 * And now do not support the `windows` system, you need to use it under `mac`
 
 ## Create new project
 
-Create a new `Ftr` project using the following `shell` command：
+Create a new `Flare` project using the following `shell` command：
 
 ```sh
 # shell
 $ mkdir myproject
 $ cd myproject
-$ ftrp init
+$ fproj init
 ```
 
 ## Build project
@@ -64,7 +64,7 @@ If this is a new project, you can skip this step and go directly to the next ste
 
 ```js
 # shell
-$ ftrp build
+$ fproj build
 ```
 
 ## Export project
@@ -74,22 +74,22 @@ This step exports [`Xcode`] or [`Android Studio`] project，because you eventual
 ```js
 # shell
 # export xcode ios project
-$ ftrp export ios
+$ fproj export ios
 # export android studio project
-$ ftrp export android
+$ fproj export android
 ```
 
 After exporting the project, next you can open it using [`Xcode`] and [`Android Studio`]
 
-## Ftr test http server
+## Flare test http server
 
-`ftrp` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
+`fproj` provides a test http server, each time you change the `js` or `jsx` code, you don't have to reinstall every time.
 
 Execute the following code to start it：
 
 ```js
 # shell
-$ ftrp
+$ fproj
 ```
 
 # Downloads
@@ -99,12 +99,12 @@ $ ftrp
 * Project [`Source code`] from `Github`
 
 
-[`Examples`]: https://github.com/louis-tru/ftr/tree/master/examples
+[`Examples`]: https://github.com/louis-tru/flare/tree/master/examples
 [`Xcode`]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [`Android Studio`]: https://developer.android.com/studio/projects/create-project.html
-[`Android APK`]: https://github.com/louis-tru/ftr/releases/download/v0.1.0/examples-release.apk
-[`NPM`]: https://www.npmjs.com/package/ftrp
-[`Source code`]: https://github.com/louis-tru/ftr
+[`Android APK`]: https://github.com/louis-tru/flare/releases/download/v0.1.0/examples-release.apk
+[`NPM`]: https://www.npmjs.com/package/fproj
+[`Source code`]: https://github.com/louis-tru/flare
 
 <script>
 	<!--

@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, default as ftr, _CVD } from 'ftr';
-import { Event } from 'ftr/event';
-import { Switch, Checkbox } from 'ftr/checkbox';
+import { Div, Text, default as flare, _CVD } from 'flare';
+import { Event } from 'flare/event';
+import { Switch, Checkbox } from 'flare/checkbox';
 import { Mynavpage } from './public';
 
 const resolve = require.resolve;
-const px = ftr.atomPixel;
+const px = flare.atomPixel;
 
-ftr.css({
+flare.css({
 	'.checkbox_page': {
 		width: 'full',
 	},

@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
-#include <ftr/util/http.h>
-#include <ftr/util/string.h>
-#include <ftr/util/fs.h>
+#include <flare/util/util.h>
+#include <flare/util/http.h>
+#include <flare/util/string.h>
+#include <flare/util/fs.h>
 
-using namespace ftr;
+using namespace flare;
 
 void test_https(int argc, char **argv) {
 	HttpHelper::initialize();

@@ -3,7 +3,7 @@ out
 .DS_Store
 *.DS_Store
 node_modules/.bin
-ftr.sublime-workspace
+flare.sublime-workspace
 *jsa-shell
 .idea
 *.o
@@ -11,7 +11,7 @@ ftr.sublime-workspace
 *.so
 .vscode
 node_modules
-libs/ftr/out
+libs/flare/out
 .node_modules
 package-lock.json
 examples/**.js

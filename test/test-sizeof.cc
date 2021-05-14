@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
+#include "flare/sys.h"
 
-using namespace ftr;
+using namespace flare;
 
 class TestSizeOf {
  private:

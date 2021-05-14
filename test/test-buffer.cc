@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/util.h"
-#include "ftr/util/buffer.h"
+#include "flare/util/util.h"
+#include "flare/util/buffer.h"
 
-using namespace ftr;
+using namespace flare;
 
 void test_buffer(int argc, char **argv) {
 	

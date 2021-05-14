@@ -1,4 +1,4 @@
-# `ftr/http`
+# `flare/http`
 
 提供`http`与`https`协议的客服端支持
 
@@ -164,7 +164,7 @@ http请求头`Authorization`密码
 
 上传本地文件设置以`multipart/form-data`形式, 并在发送请求时自动添加请求头
 
-`Content-Type: multipart/form-data; boundary=----FtrFormBoundaryrGKCBY7qhFd3TrwA`
+`Content-Type: multipart/form-data; boundary=----FlareFormBoundaryrGKCBY7qhFd3TrwA`
 
 必须使用[`HTTP_METHOD_POST`]方法发送请求否则会忽略表单
 

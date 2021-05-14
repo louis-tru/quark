@@ -28,17 +28,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { NavPage } from 'ftr/nav';
+import { NavPage } from 'flare/nav';
 import { 
 	ViewController, Button, Hybrid,
-	Text, Indep, default as ftr, _CVD
-} from 'ftr';
-import {GUIClickEvent} from 'ftr/event';
+	Text, Indep, default as flare, _CVD
+} from 'flare';
+import {GUIClickEvent} from 'flare/event';
 
-const px = ftr.atomPixel;
+const px = flare.atomPixel;
 const resolve = require.resolve;
 
-ftr.css({
+flare.css({
 	
 	'.long_btn': {
 		margin: 10,

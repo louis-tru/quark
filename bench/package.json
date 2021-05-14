@@ -1,7 +1,7 @@
 {
 	"name": "bench",
-	"appName":	"Ftr-Benchmark",
-	"id": "org.ftr.benchmark",
+	"appName":	"Flare-Benchmark",
+	"id": "org.flare.benchmark",
 	"version": "0.1.0",
 	"main": "action",
 	"detach": [ "img", "img2" ]

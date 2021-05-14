@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, TextNode, _CVD } from 'ftr';
+import { Div, Button, TextNode, _CVD } from 'flare';
 import { Mynavpage } from './public';
-import * as dialog from 'ftr/dialog';
+import * as dialog from 'flare/dialog';
 
 const resolve = require.resolve;
 

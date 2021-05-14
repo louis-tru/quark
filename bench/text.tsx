@@ -1,5 +1,5 @@
 
-import { Image } from 'ftr';
+import { Image } from 'flare';
 import './print';
 
 

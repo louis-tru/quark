@@ -1,4 +1,4 @@
-# `ftr/value`
+# `flare/value`
 
 
 ## `Class: TextAlign`

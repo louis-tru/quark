@@ -30,9 +30,9 @@
 
 import {
 	Hybrid, Text, Button, Image, Indep, Clip, _CVD, Div, Label
-} from 'ftr';
-import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'ftr/event';
-import { Navbar, Toolbar, NavPage } from 'ftr/nav';
+} from 'flare';
+import { HighlightedStatus, GUIHighlightedEvent, GUIClickEvent } from 'flare/event';
+import { Navbar, Toolbar, NavPage } from 'flare/nav';
 import { Mynavpage } from './public';
 import review_vx from './review';
 

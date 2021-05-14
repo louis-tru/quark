@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/json.h>
-#include <ftr/util/string.h>
-#include <ftr/util/event.h>
+#include <flare/util/json.h>
+#include <flare/util/string.h>
+#include <flare/util/event.h>
 #include <map>
 
-using namespace ftr;
+using namespace flare;
 
 void test_json(int argc, char **argv) {
 	

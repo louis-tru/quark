@@ -51,179 +51,179 @@ unset(TARGET)
 
 add_definitions(-DDEBUG)
 
-add_library(ftr SHARED
-	# ftr-util
+add_library(flare SHARED
+	# flare-util
 	../../../android/android.cc
-	../../../ftr/util/_android.cc
-	../../../ftr/util/android-jni.cc
-	../../../ftr/util/android-log.cc
-	../../../ftr/util/object.cc
-	../../../ftr/util/string.cc
-	../../../ftr/util/string-builder.cc
-	../../../ftr/util/array.cc
-	../../../ftr/util/codec.cc
-	../../../ftr/util/error.cc
-	../../../ftr/util/http.cc
-	../../../ftr/util/http-uri.cc
-	../../../ftr/util/http-helper.cc
-	../../../ftr/util/fs.cc
-	../../../ftr/util/fs-file.cc
-	../../../ftr/util/fs-sync.cc
-	../../../ftr/util/fs-async.cc
-	../../../ftr/util/fs-reader.cc
-	../../../ftr/util/buffer.cc
-	../../../ftr/util/json.cc
-	../../../ftr/util/map.cc
-	../../../ftr/util/util.cc
-	../../../ftr/util/zlib.cc
-	../../../ftr/util/loop.cc
-	../../../ftr/util/loop-private.cc
-	../../../ftr/util/net.cc
-	../../../ftr/util/cb.cc
-	../../../ftr/util/date.cc
-	../../../ftr/util/http-cookie.cc
-	../../../ftr/util/localstorage.cc
-	# ftr
+	../../../flare/util/_android.cc
+	../../../flare/util/android-jni.cc
+	../../../flare/util/android-log.cc
+	../../../flare/util/object.cc
+	../../../flare/util/string.cc
+	../../../flare/util/string-builder.cc
+	../../../flare/util/array.cc
+	../../../flare/util/codec.cc
+	../../../flare/util/error.cc
+	../../../flare/util/http.cc
+	../../../flare/util/http-uri.cc
+	../../../flare/util/http-helper.cc
+	../../../flare/util/fs.cc
+	../../../flare/util/fs-file.cc
+	../../../flare/util/fs-sync.cc
+	../../../flare/util/fs-async.cc
+	../../../flare/util/fs-reader.cc
+	../../../flare/util/buffer.cc
+	../../../flare/util/json.cc
+	../../../flare/util/map.cc
+	../../../flare/util/util.cc
+	../../../flare/util/zlib.cc
+	../../../flare/util/loop.cc
+	../../../flare/util/loop-private.cc
+	../../../flare/util/net.cc
+	../../../flare/util/cb.cc
+	../../../flare/util/date.cc
+	../../../flare/util/http-cookie.cc
+	../../../flare/util/localstorage.cc
+	# flare
 	../../../out/native-glsl.cc
 	../../../out/native-font.cc
-	../../../ftr/action.cc
-	../../../ftr/app.cc
-	../../../ftr/div.cc
-	../../../ftr/indep.cc
-	../../../ftr/box-shadow.cc
-	../../../ftr/limit.cc
-	../../../ftr/limit-indep.cc
-	../../../ftr/image.cc
-	../../../ftr/bezier.cc
-	../../../ftr/event.cc
-	../../../ftr/display-port.cc
-	../../../ftr/font/font.cc
-	../../../ftr/image/codec.cc
-	../../../ftr/image/codec-tga.cc
-	../../../ftr/image/codec-pvrtc.cc
-	../../../ftr/pre-render.cc
-	../../../ftr/mathe.cc
-	../../../ftr/label.cc
-	../../../ftr/layout.cc
-	../../../ftr/box.cc
-	../../../ftr/text-rows.cc
-	../../../ftr/view.cc
-	../../../ftr/draw.cc
-	../../../ftr/gl/gl.cc
-	../../../ftr/gl/gl-draw.cc
-	../../../ftr/gl/gl-texture.cc
-	../../../ftr/gl/gl-font.cc
-	../../../ftr/root.cc
-	../../../ftr/sprite.cc
-	../../../ftr/scroll.cc
-	../../../ftr/span.cc
-	../../../ftr/hybrid.cc
-	../../../ftr/text-font.cc
-	../../../ftr/text-node.cc
-	../../../ftr/texture.cc
-	../../../ftr/value.cc
-	../../../ftr/panel.cc
-	../../../ftr/button.cc
-	../../../ftr/keyboard.cc
-	../../../ftr/css.cc
-	../../../ftr/property.cc
-	../../../ftr/text.cc
-	../../../ftr/input.cc
-	../../../ftr/textarea.cc
-	../../../ftr/background.cc
-	../../../ftr/render-looper.cc
-	../../../ftr/sys.cc
-	../../../ftr/platforms/linux-gl.cc
-	../../../ftr/platforms/android-app.cc
-	../../../ftr/platforms/android-keyboard.cc
-	../../../ftr/platforms/android-sys.cc
-	../../../ftr/image/codec-gif.cc
-  ../../../ftr/image/codec-jpeg.cc
-  ../../../ftr/image/codec-png.cc
-  ../../../ftr/image/codec-webp.cc
-  ../../../ftr/media.cc
+	../../../flare/action.cc
+	../../../flare/app.cc
+	../../../flare/div.cc
+	../../../flare/indep.cc
+	../../../flare/box-shadow.cc
+	../../../flare/limit.cc
+	../../../flare/limit-indep.cc
+	../../../flare/image.cc
+	../../../flare/bezier.cc
+	../../../flare/event.cc
+	../../../flare/display-port.cc
+	../../../flare/font/font.cc
+	../../../flare/image/codec.cc
+	../../../flare/image/codec-tga.cc
+	../../../flare/image/codec-pvrtc.cc
+	../../../flare/pre-render.cc
+	../../../flare/mathe.cc
+	../../../flare/label.cc
+	../../../flare/layout.cc
+	../../../flare/box.cc
+	../../../flare/text-rows.cc
+	../../../flare/view.cc
+	../../../flare/draw.cc
+	../../../flare/gl/gl.cc
+	../../../flare/gl/gl-draw.cc
+	../../../flare/gl/gl-texture.cc
+	../../../flare/gl/gl-font.cc
+	../../../flare/root.cc
+	../../../flare/sprite.cc
+	../../../flare/scroll.cc
+	../../../flare/span.cc
+	../../../flare/hybrid.cc
+	../../../flare/text-font.cc
+	../../../flare/text-node.cc
+	../../../flare/texture.cc
+	../../../flare/value.cc
+	../../../flare/panel.cc
+	../../../flare/button.cc
+	../../../flare/keyboard.cc
+	../../../flare/css.cc
+	../../../flare/property.cc
+	../../../flare/text.cc
+	../../../flare/input.cc
+	../../../flare/textarea.cc
+	../../../flare/background.cc
+	../../../flare/render-looper.cc
+	../../../flare/sys.cc
+	../../../flare/platforms/linux-gl.cc
+	../../../flare/platforms/android-app.cc
+	../../../flare/platforms/android-keyboard.cc
+	../../../flare/platforms/android-sys.cc
+	../../../flare/image/codec-gif.cc
+  ../../../flare/image/codec-jpeg.cc
+  ../../../flare/image/codec-png.cc
+  ../../../flare/image/codec-webp.cc
+  ../../../flare/media.cc
 )
 
-add_library(ftr-media SHARED
-	../../../ftr/audio-player.cc
-	../../../ftr/video.cc
-	../../../ftr/media-codec.cc
-	../../../ftr/media-codec-1.cc
-	../../../ftr/media-codec-software.cc
-	../../../ftr/media-init.cc
-	../../../ftr/platforms/android-media-codec.cc
-	../../../ftr/platforms/android-pcm-player.cc
-	../../../ftr/platforms/android-pcm-audio-track.cc
+add_library(flare-media SHARED
+	../../../flare/audio-player.cc
+	../../../flare/video.cc
+	../../../flare/media-codec.cc
+	../../../flare/media-codec-1.cc
+	../../../flare/media-codec-software.cc
+	../../../flare/media-init.cc
+	../../../flare/platforms/android-media-codec.cc
+	../../../flare/platforms/android-pcm-player.cc
+	../../../flare/platforms/android-pcm-audio-track.cc
 )
 
-add_library(ftr-js SHARED
+add_library(flare-js SHARED
 	../../../out/native-inl-js.cc
 	../../../out/native-lib-js.cc
 	../../../out/native-ext-js.cc
-	../../../ftr-js/js-cls.cc
-	../../../ftr-js/js.cc
-	../../../ftr-js/ftr.cc
-	../../../ftr-js/str.cc
-	../../../ftr-js/v8.cc
-	../../../ftr-js/wrap.cc
-	../../../ftr-js/node.cc
-	# binding ftr-util
-	../../../ftr-js/binding/cb.cc
-	../../../ftr-js/binding/fs.cc
-	../../../ftr-js/binding/fs-reader.cc
-	../../../ftr-js/binding/fs-path.cc
-	../../../ftr-js/binding/http.cc
-	../../../ftr-js/binding/util.cc
-	../../../ftr-js/binding/storage.cc
-	../../../ftr-js/binding/json.cc
-	../../../ftr-js/binding/event.cc
-	../../../ftr-js/binding/sys.cc
-	../../../ftr-js/binding/event.cc
-	../../../ftr-js/binding/timer.cc
-	../../../ftr-js/binding/console.cc
-	../../../ftr-js/binding/buffer.cc
-	# binding ftr-gui
-	../../../ftr-js/binding/value.cc
-	../../../ftr-js/binding/binding.cc
-	../../../ftr-js/binding/action.cc
-	../../../ftr-js/binding/action-frame.cc
-	../../../ftr-js/binding/app.cc
-	../../../ftr-js/binding/audio-player.cc
-	../../../ftr-js/binding/video.cc
-	../../../ftr-js/binding/media.cc
-	../../../ftr-js/binding/div.cc
-	../../../ftr-js/binding/display-port.cc
-	../../../ftr-js/binding/indep.cc
-	../../../ftr-js/binding/image.cc
-	../../../ftr-js/binding/layout.cc
-	../../../ftr-js/binding/box.cc
-	../../../ftr-js/binding/view.cc
-	../../../ftr-js/binding/root.cc
-	../../../ftr-js/binding/span.cc
-	../../../ftr-js/binding/sprite.cc
-	../../../ftr-js/binding/hybrid.cc
-	../../../ftr-js/binding/text-font.cc
-	../../../ftr-js/binding/text-node.cc
-	../../../ftr-js/binding/label.cc
-	../../../ftr-js/binding/limit.cc
-	../../../ftr-js/binding/panel.cc
-	../../../ftr-js/binding/button.cc
-	../../../ftr-js/binding/scroll.cc
-	../../../ftr-js/binding/css.cc
-	../../../ftr-js/binding/font.cc
-	../../../ftr-js/binding/text.cc
-	../../../ftr-js/binding/input.cc
-	../../../ftr-js/binding/background.cc
+	../../../flare-js/js-cls.cc
+	../../../flare-js/js.cc
+	../../../flare-js/flare.cc
+	../../../flare-js/str.cc
+	../../../flare-js/v8.cc
+	../../../flare-js/wrap.cc
+	../../../flare-js/node.cc
+	# binding flare-util
+	../../../flare-js/binding/cb.cc
+	../../../flare-js/binding/fs.cc
+	../../../flare-js/binding/fs-reader.cc
+	../../../flare-js/binding/fs-path.cc
+	../../../flare-js/binding/http.cc
+	../../../flare-js/binding/util.cc
+	../../../flare-js/binding/storage.cc
+	../../../flare-js/binding/json.cc
+	../../../flare-js/binding/event.cc
+	../../../flare-js/binding/sys.cc
+	../../../flare-js/binding/event.cc
+	../../../flare-js/binding/timer.cc
+	../../../flare-js/binding/console.cc
+	../../../flare-js/binding/buffer.cc
+	# binding flare-gui
+	../../../flare-js/binding/value.cc
+	../../../flare-js/binding/binding.cc
+	../../../flare-js/binding/action.cc
+	../../../flare-js/binding/action-frame.cc
+	../../../flare-js/binding/app.cc
+	../../../flare-js/binding/audio-player.cc
+	../../../flare-js/binding/video.cc
+	../../../flare-js/binding/media.cc
+	../../../flare-js/binding/div.cc
+	../../../flare-js/binding/display-port.cc
+	../../../flare-js/binding/indep.cc
+	../../../flare-js/binding/image.cc
+	../../../flare-js/binding/layout.cc
+	../../../flare-js/binding/box.cc
+	../../../flare-js/binding/view.cc
+	../../../flare-js/binding/root.cc
+	../../../flare-js/binding/span.cc
+	../../../flare-js/binding/sprite.cc
+	../../../flare-js/binding/hybrid.cc
+	../../../flare-js/binding/text-font.cc
+	../../../flare-js/binding/text-node.cc
+	../../../flare-js/binding/label.cc
+	../../../flare-js/binding/limit.cc
+	../../../flare-js/binding/panel.cc
+	../../../flare-js/binding/button.cc
+	../../../flare-js/binding/scroll.cc
+	../../../flare-js/binding/css.cc
+	../../../flare-js/binding/font.cc
+	../../../flare-js/binding/text.cc
+	../../../flare-js/binding/input.cc
+	../../../flare-js/binding/background.cc
 )
 
-add_library(ftr-trial SHARED
+add_library(flare-trial SHARED
 	../../../trial/fs-search.cc
 	../../../trial/jsx.cc
 )
 
-add_library(ftr-test SHARED
+add_library(flare-test SHARED
 	../../../test/test.cc
-	../../../test/test-ftr.cc
+	../../../test/test-flare.cc
 	../../../test/test-fs.cc
 	../../../test/test-fs2.cc
 	../../../test/test-gui.cc
@@ -264,8 +264,8 @@ add_library(ftr-test SHARED
 	../../../test/test-linux-input-2.cc
 )
 
-target_link_libraries(ftr       atomic z android log OpenSLES GLESv3 EGL mediandk ftr-depes-test)
-target_link_libraries(ftr-media ftr OpenSLES GLESv3 EGL mediandk ftr-depes-test)
-target_link_libraries(ftr-js    ftr ftr-depes-test)
-target_link_libraries(ftr-trial ftr ftr-depes-test)
-target_link_libraries(ftr-test  ftr ftr-js ftr-trial ftr-depes-test)
+target_link_libraries(flare       atomic z android log OpenSLES GLESv3 EGL mediandk flare-depes-test)
+target_link_libraries(flare-media flare OpenSLES GLESv3 EGL mediandk flare-depes-test)
+target_link_libraries(flare-js    flare flare-depes-test)
+target_link_libraries(flare-trial flare flare-depes-test)
+target_link_libraries(flare-test  flare flare-js flare-trial flare-depes-test)

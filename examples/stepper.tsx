@@ -28,20 +28,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Text, _CVD, default as ftr } from 'ftr';
-import { Stepper } from 'ftr/stepper';
+import { Div, Text, _CVD, default as flare } from 'flare';
+import { Stepper } from 'flare/stepper';
 import { Mynavpage } from './public';
-import { Event } from 'ftr/event';
+import { Event } from 'flare/event';
 
 const resolve = require.resolve;
 
-ftr.css({
+flare.css({
 	'.strpper_page': {
 		width: 'full',
 	},
 	'.strpper_page .item': {
 		width: 'full',
-		borderBottom: `${ftr.atomPixel} #ccc`,
+		borderBottom: `${flare.atomPixel} #ccc`,
 	},
 	'.strpper_page .text': {
 		width: '140!',

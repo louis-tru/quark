@@ -79,16 +79,16 @@ function main() {
 	}
 	
 	write(h_fd, 
-		'#ifndef __ftr__native__',
-		'#define __ftr__native__',
-	 'namespace ftr{',
+		'#ifndef __flare__native__',
+		'#define __flare__native__',
+	 'namespace flare{',
 		'struct Native_font_data_ {',
 				'unsigned int count;',
 				'const unsigned char* data;',
 	 '};'
 	);
 
-	write(cc_fd, 'namespace ftr{');
+	write(cc_fd, 'namespace flare{');
 	
 	var fonts = [];
 	

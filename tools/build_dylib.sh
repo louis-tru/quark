@@ -52,44 +52,44 @@ framework() {
 	node ../../tools/gen_apple_framework.js ios $name "no-cut" "$inc" . ./lib$name.dylib
 }
 
-# ftr
-link_dylib ftr \
-	"$obj/ftr-utils $obj/libuv $obj/openssl $obj/http_parser \
-			$obj/ftr " \
+# flare
+link_dylib flare \
+	"$obj/flare-utils $obj/libuv $obj/openssl $obj/http_parser \
+			$obj/flare " \
 	"-lminizip -lbplus -lz 
 			-lreachability -ltess2 -lft2 -ltinyxml2 -liconv -lbz2 " \
 	"-framework Foundation -framework SystemConfiguration -framework OpenGLES \
 			-framework CoreGraphics -framework QuartzCore -framework UIKit -framework MessageUI "
-framework ftr no-inc # gen temp framework
+framework flare no-inc # gen temp framework
 
-# ftr-media
-link_dylib ftr-media \
-	"$obj/ftr-media" \
+# flare-media
+link_dylib flare-media \
+	"$obj/flare-media" \
 	"-liconv -lbz2 -lz -lffmpeg" \
 	"-framework AudioToolbox -framework CoreVideo -framework VideoToolbox \
-			-framework CoreMedia -framework ftr"
-framework ftr-media no-inc # gen temp framework
+			-framework CoreMedia -framework flare"
+framework flare-media no-inc # gen temp framework
 
-# ftr-js + ftr-v8
+# flare-js + flare-v8
 if [ "$use_v8_link" = "1" ]; then
-	link_dylib ftr-js \
-		"$obj/v8-link $obj/ftr-js" \
+	link_dylib flare-js \
+		"$obj/v8-link $obj/flare-js" \
 		"" \
-		"-framework ftr -framework ftr-media -framework JavaScriptCore"
+		"-framework flare -framework flare-media -framework JavaScriptCore"
 else
 	# $obj/v8_base/deps/node/deps/v8/src/api.o
 	# $obj/v8_base/deps/node/deps/v8/src/inspector
-	link_dylib ftr-js \
-		"$obj/v8_base $obj/v8_libplatform $obj/ftr-js" \
+	link_dylib flare-js \
+		"$obj/v8_base $obj/v8_libplatform $obj/flare-js" \
 		"-lv8_base -lv8_libbase -lv8_libsampler -lv8_builtins_setup \
 				-lv8_nosnapshot -lv8_builtins_generators" \
-		"-framework ftr -framework ftr-media -framework JavaScriptCore"
+		"-framework flare -framework flare-media -framework JavaScriptCore"
 fi
-framework ftr-js no-inc # gen temp framework
+framework flare-js no-inc # gen temp framework
 
-# ftr-node
-link_dylib ftr-node \
+# flare-node
+link_dylib flare-node \
 	"$obj/node" \
 	"-lnghttp2 -lcares -lz" \
-	"-framework ftr -framework ftr-js"
-framework ftr-node no-inc # gen temp framework
+	"-framework flare -framework flare-js"
+framework flare-node no-inc # gen temp framework

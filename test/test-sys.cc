@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/sys.h"
-#include "ftr/util/string.h"
+#include "flare/sys.h"
+#include "flare/util/string.h"
 
-using namespace ftr;
+using namespace flare;
 
 void test_sys(int argc, char **argv) {
 	LOG(sys::info());

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/util.h"
-#include "ftr/util/fs.h"
+#include "flare/util/util.h"
+#include "flare/util/fs.h"
 
-using namespace ftr;
+using namespace flare;
 
 class AsyncFileRead: public AsyncFile, public AsyncFile::Delegate {
  public:

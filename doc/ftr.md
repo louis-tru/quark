@@ -1,4 +1,4 @@
-# `ftr`
+# `flare`
 
 
 ## `Class: GUIApplication`
@@ -86,15 +86,15 @@
 Example:
 
 ```js
-import { View, Div, ftr } from 'ftr'
+import { View, Div, flare } from 'flare'
 
 var v = new View();
 v.x = 100;
 v.y = 100;
-ftr.root.append(v);
+flare.root.append(v);
 
 // jsx语法只能存在于.jsx文件中
-var v2 = ftr.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
+var v2 = flare.render(<Div width=100 height=100 backgroundColor="#f00" />, v);
 v2.onClick.on(function(ev) {
 	console.log('div click');
 })
@@ -1750,38 +1750,38 @@ console.log(view.class);
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus
 [`Notification`]: event.md#class-notification
-[`TextFont`]: ftr.md#class-textfont
-[`TextLayout`]: ftr.md#class-textlayout
-[`View`]: ftr.md#class-view
-[`Sprite`]: ftr.md#class-sprite
-[`Layout`]: ftr.md#class-layout
-[`Span`]: ftr.md#class-span
-[`Box`]: ftr.md#class-box
-[`Div`]: ftr.md#class-div
-[`Hybrid`]:  ftr.md#class-hybrid
-[`Limit`]:  ftr.md#class-limit
-[`Indep`]:  ftr.md#class-indep
-[`LimitIndep`]:  ftr.md#class-limitindep
-[`Image`]:  ftr.md#class-image
-[`Panel`]:  ftr.md#class-panel
-[`Root`]:  ftr.md#class-root
-[`BasicScroll`]: ftr.md#class-basicscroll
-[`Scroll`]: ftr.md#class-scroll
-[`Button`]: ftr.md#class-button
-[`Text`]: ftr.md#class-text
-[`Input`]: ftr.md#class-input
-[`Textarea`]: ftr.md#class-textarea
-[`TextNode`]: ftr.md#class-textnode
-[`Label`]: ftr.md#class-label
-[`Trap in Layout`]: ftr.md#trap-in-layout
+[`TextFont`]: flare.md#class-textfont
+[`TextLayout`]: flare.md#class-textlayout
+[`View`]: flare.md#class-view
+[`Sprite`]: flare.md#class-sprite
+[`Layout`]: flare.md#class-layout
+[`Span`]: flare.md#class-span
+[`Box`]: flare.md#class-box
+[`Div`]: flare.md#class-div
+[`Hybrid`]:  flare.md#class-hybrid
+[`Limit`]:  flare.md#class-limit
+[`Indep`]:  flare.md#class-indep
+[`LimitIndep`]:  flare.md#class-limitindep
+[`Image`]:  flare.md#class-image
+[`Panel`]:  flare.md#class-panel
+[`Root`]:  flare.md#class-root
+[`BasicScroll`]: flare.md#class-basicscroll
+[`Scroll`]: flare.md#class-scroll
+[`Button`]: flare.md#class-button
+[`Text`]: flare.md#class-text
+[`Input`]: flare.md#class-input
+[`Textarea`]: flare.md#class-textarea
+[`TextNode`]: flare.md#class-textnode
+[`Label`]: flare.md#class-label
+[`Trap in Layout`]: flare.md#trap-in-layout
 [`reader`]: reader.md
 [`$(path)`]: global.md#_Path-path-
 [`Repeat`]: value.md#class-repeat
 [`ContentAlign`]: value.md#class-contentalign
-[`Limit.minWidth`]: ftr.md#limit-minWidth
-[`Limit.minHeight`]: ftr.md#limit-minHeight
-[`Limit.maxWidth`]: ftr.md#limit-maxWidth
-[`Limit.maxHeight`]: ftr.md#limit-maxHeight
+[`Limit.minWidth`]: flare.md#limit-minWidth
+[`Limit.minHeight`]: flare.md#limit-minHeight
+[`Limit.maxWidth`]: flare.md#limit-maxWidth
+[`Limit.maxHeight`]: flare.md#limit-maxHeight
 [`Curve`]: value.md#class-curve
 [`TextColor`]: value.md#class-textcolor
 [`TextSize`]: value.md#class-textsize

@@ -20,8 +20,8 @@
 
 #include <ft2build.h>
 #include "rastpic.c"
-#include "ftraster.c"
-#include "ftrend1.c"
+#include "flareaster.c"
+#include "flareend1.c"
 
 
 /* END */

@@ -28,16 +28,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __ftr__android__android__
-#define __ftr__android__android__
+#ifndef __flare__android__android__
+#define __flare__android__android__
 
-#include "ftr/util/util.h"
+#include "flare/util/util.h"
 
 #if FX_ANDROID
 
-#include "ftr/util/string.h"
+#include "flare/util/string.h"
 
-namespace ftr {
+namespace flare {
 
 	/**
 	* @class Android

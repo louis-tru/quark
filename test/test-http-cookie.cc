@@ -28,79 +28,79 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/http-cookie.h"
-#include "ftr/sys.h"
+#include "flare/util/http-cookie.h"
+#include "flare/sys.h"
 
-using namespace ftr;
+using namespace flare;
 
 void test_http_cookie(int argc, char **argv) {
 	
-	LOG(http_cookie_get("fasttr.org", "test"));
+	LOG(http_cookie_get("flare.cool", "test"));
 	
-	http_cookie_set("fasttr.org", "test", "fasttr.org");
+	http_cookie_set("flare.cool", "test", "flare.cool");
 	
-	LOG("A, %s", *http_cookie_get("fasttr.org", "test"));
+	LOG("A, %s", *http_cookie_get("flare.cool", "test"));
 	
-	LOG("B, %s", *http_cookie_get("www.fasttr.org", "test"));
+	LOG("B, %s", *http_cookie_get("www.flare.cool", "test"));
 
-	http_cookie_set("www.fasttr.org", "test", "$");
+	http_cookie_set("www.flare.cool", "test", "$");
 
-	LOG("B2, %s", *http_cookie_get("www.fasttr.org", "test"));
+	LOG("B2, %s", *http_cookie_get("www.flare.cool", "test"));
 
-	http_cookie_set("fasttr.org", "test2", "*");
+	http_cookie_set("flare.cool", "test2", "*");
 	
-	LOG("D, %s", *http_cookie_get("fasttr.org", "test2"));
+	LOG("D, %s", *http_cookie_get("flare.cool", "test2"));
 	
-	LOG("E, %s", *http_cookie_get("www.fasttr.org", "test2"));
+	LOG("E, %s", *http_cookie_get("www.flare.cool", "test2"));
 	
-	http_cookie_set("fasttr.org", "test2", "-----------------------------", -1, "/AA");
+	http_cookie_set("flare.cool", "test2", "-----------------------------", -1, "/AA");
 	
-	LOG("F, %s", *http_cookie_get("fasttr.org", "test2"));
+	LOG("F, %s", *http_cookie_get("flare.cool", "test2"));
 	
-	LOG("H, %s", *http_cookie_get("fasttr.org", "test2", "/AA"));
+	LOG("H, %s", *http_cookie_get("flare.cool", "test2", "/AA"));
 	
-	LOG(http_cookie_get_all_string("www.fasttr.org", "/AA"));
+	LOG(http_cookie_get_all_string("www.flare.cool", "/AA"));
 	
-	http_cookie_set_with_expression("fasttr.org", "test3=HHHH--l; path=/AA; max-age=60");
+	http_cookie_set_with_expression("flare.cool", "test3=HHHH--l; path=/AA; max-age=60");
 	
-	LOG(http_cookie_get("fasttr.org", "test3"));
+	LOG(http_cookie_get("flare.cool", "test3"));
 	
-	LOG(http_cookie_get("fasttr.org", "test3", "/AA"));
+	LOG(http_cookie_get("flare.cool", "test3", "/AA"));
 	
-	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.fasttr.org", "/AA"));
-	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("fasttr.org", "/AA"));
+	LOG("http_cookie_get_all_string 1, %s", *http_cookie_get_all_string("www.flare.cool", "/AA"));
+	LOG("http_cookie_get_all_string 2, %s", *http_cookie_get_all_string("flare.cool", "/AA"));
 	
 	// test delete
 	
-	http_cookie_delete("fasttr.org", "test");
+	http_cookie_delete("flare.cool", "test");
 	
-	LOG(http_cookie_get("fasttr.org", "test"));
+	LOG(http_cookie_get("flare.cool", "test"));
 	
-	http_cookie_set("fasttr.org", "test", "fasttr.org2");
-	http_cookie_set("fasttr.org", "test9", "fasttr.org3");
-	http_cookie_set("fasttr.org", "test8", "fasttr.org4");
-	http_cookie_set("www.fasttr.org", "test7", "fasttr.org5");
+	http_cookie_set("flare.cool", "test", "flare.cool2");
+	http_cookie_set("flare.cool", "test9", "flare.cool3");
+	http_cookie_set("flare.cool", "test8", "flare.cool4");
+	http_cookie_set("www.flare.cool", "test7", "flare.cool5");
 	
-	LOG("E, %s", *http_cookie_get("fasttr.org", "test"));
+	LOG("E, %s", *http_cookie_get("flare.cool", "test"));
 
-	http_cookie_set("ftr.orh", "test--------A", "fasttr.org%", -1, "KKK/MMM");
+	http_cookie_set("flare.orh", "test--------A", "flare.cool%", -1, "KKK/MMM");
 
-	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("fasttr.org"));
+	LOG("http_cookie_get_all_string 3, %s", *http_cookie_get_all_string("flare.cool"));
 	
-	http_cookie_delete_all("fasttr.org");
+	http_cookie_delete_all("flare.cool");
 	
-	LOG(http_cookie_get("fasttr.org", "test"));
+	LOG(http_cookie_get("flare.cool", "test"));
 	
-	http_cookie_set("fasttr.org", "test", "fasttr.org");
+	http_cookie_set("flare.cool", "test", "flare.cool");
 	
-	LOG("F, %s", *http_cookie_get("fasttr.org", "test--------A", "KKK/MMM", 1));
+	LOG("F, %s", *http_cookie_get("flare.cool", "test--------A", "KKK/MMM", 1));
 	
 	http_cookie_clear();
 	
-	LOG(http_cookie_get("fasttr.org", "test"));
+	LOG(http_cookie_get("flare.cool", "test"));
 	
-	http_cookie_set("fasttr.org", "test", "END test cookie", sys::time() + 6e7); // 60s expires
+	http_cookie_set("flare.cool", "test", "END test cookie", sys::time() + 6e7); // 60s expires
 	
-	LOG(http_cookie_get("fasttr.org", "test"));
+	LOG(http_cookie_get("flare.cool", "test"));
 	
 }

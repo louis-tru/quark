@@ -1,9 +1,9 @@
 
 HOST_OS        ?= $(shell uname|tr '[A-Z]' '[a-z]')
 NODE           ?= node
-ANDROID_JAR     = out/android.classs.ftr.jar
-FTRP            = ./libs/ftrp
-FTRP_OUT        = out/ftrp
+ANDROID_JAR     = out/android.classs.flare.jar
+FPROJ            = ./libs/fproj
+FPROJ_OUT        = out/fproj
 REMOTE_COMPILE_HOST ?= 192.168.0.115
 
 ifneq ($(USER),root)
@@ -27,25 +27,25 @@ check_osx=\
 	fi
 
 .PHONY: $(FORWARD) ios android linux osx \
-	product install install-ftrp \
+	product install install-fproj \
 	help web doc watch all all_on_linux all_on_osx pull
 
 .SECONDEXPANSION:
 
-# compile product ftr and install
+# compile product flare and install
 # It can only run in MAC system.
 product:
 	@$(MAKE) ios
 	@$(MAKE) android
-	@$(NODE) ./tools/cp-ftrp.js
+	@$(NODE) ./tools/cp-fproj.js
 
 install: product
-	@$(MAKE) install-ftrp
+	@$(MAKE) install-fproj
 
-install-ftrp:
-	@$(NODE) ./tools/cp-ftrp.js
-	@cd $(FTRP_OUT) && npm i -f
-	@cd $(FTRP_OUT) && $(SUDO) npm i -g
+install-fproj:
+	@$(NODE) ./tools/cp-fproj.js
+	@cd $(FPROJ_OUT) && npm i -f
+	@cd $(FPROJ_OUT) && $(SUDO) npm i -g
 
 $(FORWARD):
 	@$(MAKE) -f build.mk $@
@@ -58,7 +58,7 @@ ios:
 	@./configure --os=ios --arch=x64   --library=shared && $(MAKE) build # simulator
 	@./configure --os=ios --arch=arm64 --library=shared && $(MAKE) build
 	@./configure --os=ios --arch=arm64 --library=shared -v8 --suffix=arm64.v8 && $(MAKE) build # handy v8 debug
-	@./tools/gen_apple_frameworks.sh $(FTRP_OUT) ios
+	@./tools/gen_apple_frameworks.sh $(FPROJ_OUT) ios
 
 # build all android platform and output to product dir
 android:

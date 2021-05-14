@@ -28,13 +28,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'ftr';
-import * as fs from 'ftr/fs';
-import path from 'ftr/path';
-import { alert } from 'ftr/dialog';
+import { Div, Button, Input, _CVD } from 'flare';
+import * as fs from 'flare/fs';
+import path from 'flare/path';
+import { alert } from 'flare/dialog';
 import { Mynavpage } from './public';
-import { GUIClickEvent, GUIKeyEvent } from 'ftr/event';
-import * as buffer from 'ftr/buffer';
+import { GUIClickEvent, GUIKeyEvent } from 'flare/event';
+import * as buffer from 'flare/buffer';
 
 var resolve = require.resolve;
 

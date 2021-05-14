@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
-#include <ftr/util/loop.h>
-#include <ftr/util/array.h>
-#include <ftr/sys.h>
+#include <flare/util/util.h>
+#include <flare/util/loop.h>
+#include <flare/util/array.h>
+#include <flare/sys.h>
 
-using namespace ftr;
+using namespace flare;
 
 template<class T>
 void test_operation_add(const char* name) {

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/fs.h>
-#include <ftr/util/loop.h>
+#include <flare/util/fs.h>
+#include <flare/util/loop.h>
 
-using namespace ftr;
+using namespace flare;
 
 static String write_str;
 
@@ -84,7 +84,7 @@ void test_fs2(int argc, char **argv) {
 
 	LOG("START");
 	
-	write_str = f_reader()->read_file_sync(Path::resources("ftr/ctr.js"));
+	write_str = f_reader()->read_file_sync(Path::resources("flare/ctr.js"));
 
 	TestAsyncFile* file = new TestAsyncFile(Path::documents("test_fs2.txt"));
 

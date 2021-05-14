@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/http.h>
+#include <flare/util/http.h>
 
-using namespace ftr;
+using namespace flare;
 
 void test_http3(int argc, char **argv) {
 	LOG(HttpHelper::get_sync("http://127.0.0.1:1026/demo/examples/about.jsx?DopSx"));

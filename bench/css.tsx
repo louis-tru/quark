@@ -1,8 +1,8 @@
 
-import { GUIApplication, Root, Div, Indep, default as ftr, _CVD, ViewController } from 'ftr';
-import { Color } from 'ftr/value';
-import util from 'ftr/util';
-import * as css from 'ftr/css';
+import { GUIApplication, Root, Div, Indep, default as flare, _CVD, ViewController } from 'flare';
+import { Color } from 'flare/value';
+import util from 'flare/util';
+import * as css from 'flare/css';
 import * as uu from './uu';
 
 const random = util.random;
@@ -20,8 +20,8 @@ class RootViewController extends ViewController {
 	triggerMounted() {
 		super.triggerMounted();
 
-		var w = ftr.displayPort.width;
-		var h = ftr.displayPort.height;
+		var w = flare.displayPort.width;
+		var h = flare.displayPort.height;
 		var csss: Dict<css.StyleSheet> = {};
 	
 		for (var i = 0; i < test_count; i++) {
@@ -46,7 +46,7 @@ class RootViewController extends ViewController {
 	
 		v.class = 'root';
 	
-		ftr.render(
+		flare.render(
 			<Div width="full" height="full">
 				{
 					Array.from({length:test_count}, (j, i)=>{

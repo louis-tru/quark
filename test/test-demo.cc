@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/ftr.h"
+#include "flare-js/flare.h"
 
-using namespace ftr;
+using namespace flare;
 
 #define IP_REMOTE "127.0.0.1"
 #define USE_REMOTE 0
@@ -47,7 +47,7 @@ static bool has_argv(cchar* name, int argc, char **argv) {
 }
 
 void test_demo(int argc, char **argv) {
-	String cmd = "ftr ";
+	String cmd = "flare ";
 
 #if USE_NODE
 	cmd += " ";
@@ -106,10 +106,10 @@ void test_demo(int argc, char **argv) {
 extern "C" {
 
 #if FX_ANDROID
-#include <ftr/util/android-jni.h>
+#include <flare/util/android-jni.h>
 	JNIEXPORT extern void
-	Java_org_ftr_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
-		LOG("Java_org_ftr_examples_MainActivity_test");
+	Java_org_flare_examples_MainActivity_test(JNIEnv *env, jclass clazz, jint count) {
+		LOG("Java_org_flare_examples_MainActivity_test");
 	}
 #endif
 }

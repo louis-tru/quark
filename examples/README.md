@@ -1,18 +1,18 @@
-Ftr Examples
+Flare Examples
 ===============
 
-* 这是一个`Ftr`演示工程，请使用`ftrp`命令导出到`xcode`或`android studio`
+* 这是一个`Flare`演示工程，请使用`fproj`命令导出到`xcode`或`android studio`
 
 * 需要注意工具现在并不支持`Windows`系统，暂时只能在`mac`下使用
 
-## 获取`ftrp`
+## 获取`fproj`
 
-* 使用 nodejs `npm`安装`ftrp`
+* 使用 nodejs `npm`安装`fproj`
 
 
 ```sh
 # shell
-sudo npm install -g ftrp
+sudo npm install -g fproj
 
 ```
 
@@ -22,8 +22,8 @@ sudo npm install -g ftrp
 
 ```sh
 # shell
-ftrp export ios
-ftrp export android
+fproj export ios
+fproj export android
 ```
 
 导出后使用`xcode`或`android studio`打开`Project`文件夹下的工程文件

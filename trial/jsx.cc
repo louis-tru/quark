@@ -29,12 +29,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./jsx.h"
-#include "ftr/util/string.h"
-#include "ftr/util/string-builder.h"
-#include "ftr/util/map.h"
-#include "ftr/util/fs.h"
+#include "flare/util/string.h"
+#include "flare/util/string-builder.h"
+#include "flare/util/map.h"
+#include "flare/util/fs.h"
 
-namespace ftr {
+namespace flare {
 
 	#ifdef CHECK
 	# undef CHECK
@@ -126,7 +126,7 @@ namespace ftr {
 		F(NUMBER_2, "2") \
 		F(NUMBER_3, "3") \
 		F(STATIC, "static") \
-		F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('ftr/ctr');") \
+		F(JSX_HEADER, "const { _VV, _VVT, _VVD } = require('flare/ctr');") \
 		F(_VV, "_VV") \
 		F(_VVT, "_VVT") \
 		F(_VVD, "_VVD") \
@@ -1599,7 +1599,7 @@ namespace ftr {
 
 			if (_is_jsx) {
 				// add jsx header code
-				// import { _VV, _VVT, _VVD } from 'ftr/ctr';
+				// import { _VV, _VVT, _VVD } from 'flare/ctr';
 				append(S.JSX_HEADER);
 			}
 
@@ -2406,9 +2406,9 @@ namespace ftr {
 		}
 
 		void parse_import_block(Ucs2String* defaultId) {
-			// import { GUIApplication } from 'ftr/app';
-			// import { GUIApplication as App } from 'ftr/app';
-			// import app, { GUIApplication as App } from 'ftr/app';
+			// import { GUIApplication } from 'flare/app';
+			// import { GUIApplication as App } from 'flare/app';
+			// import app, { GUIApplication as App } from 'flare/app';
 
 			ASSERT(token() == LBRACE);
 			append(S.LBRACE);     // {
@@ -2453,23 +2453,23 @@ namespace ftr {
 				Ucs2String id = _scanner->string_value();
 				tok = next();
 				
-				if (tok == FROM) { // import app from 'ftr/app';
+				if (tok == FROM) { // import app from 'flare/app';
 					append(id);       // app   // TODO ... developer evn modify id
 					append(S.ASSIGN); // =
 					CHECK_NEXT(STRIFX_LITERAL);
-					append(S.REQUIRE); // require('ftr/app').default;
+					append(S.REQUIRE); // require('flare/app').default;
 					append(S.LPAREN); // (
 					fetch();
 					append(S.RPAREN); // )
 					append(S.PERIOD); // .
 					append(S.DEFAULT); // default
-				} else if (tok == COMMA) { // import app, { GUIApplication as App } from 'ftr/app';
+				} else if (tok == COMMA) { // import app, { GUIApplication as App } from 'flare/app';
 					CHECK_NEXT(LBRACE);
 					parse_import_block(&id);
 					CHECK_NEXT(FROM);
 					append(S.ASSIGN); // =
 					CHECK_NEXT(STRIFX_LITERAL);
-					append(S.REQUIRE); // require('ftr/app');
+					append(S.REQUIRE); // require('flare/app');
 					append(S.LPAREN); // (
 					fetch();
 					append(S.RPAREN); // )
@@ -2478,7 +2478,7 @@ namespace ftr {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 			}
-			else if (tok == MUL) {  // import * as app from 'ftr/app';
+			else if (tok == MUL) {  // import * as app from 'flare/app';
 				append(S.CONST);    // const
 				CHECK_NEXT(AS);       // as
 				tok = next();
@@ -2487,7 +2487,7 @@ namespace ftr {
 					CHECK_NEXT(FROM);
 					append(S.ASSIGN);  // =
 					CHECK_NEXT(STRIFX_LITERAL);
-					append(S.REQUIRE); // require('ftr/app');
+					append(S.REQUIRE); // require('flare/app');
 					append(S.LPAREN); // (
 					fetch();
 					append(S.RPAREN); // )
@@ -2495,18 +2495,18 @@ namespace ftr {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 			}
-			else if (tok == LBRACE) { // import { GUIApplication as app } from 'ftr/app';
+			else if (tok == LBRACE) { // import { GUIApplication as app } from 'flare/app';
 				append(S.CONST); // const
 				parse_import_block(nullptr);
 				CHECK_NEXT(FROM);  // from
 				append(S.ASSIGN); // =
 				CHECK_NEXT(STRIFX_LITERAL);
-				append(S.REQUIRE);// require('ftr/app');
+				append(S.REQUIRE);// require('flare/app');
 				append(S.LPAREN); // (
 				fetch();
 				append(S.RPAREN); // )
 			}
-			else if (tok == STRIFX_LITERAL) { // ftr private syntax
+			else if (tok == STRIFX_LITERAL) { // flare private syntax
 
 				Ucs2String str = _scanner->string_value();
 				if (peek() == AS) { // import 'test_gui.jsx' as gui;  ---->>>> import * as gui from 'test_gui.jsx';
@@ -2517,7 +2517,7 @@ namespace ftr {
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 						next(); // IDENTIFIER
-						append(S.REQUIRE); // require('ftr/app');
+						append(S.REQUIRE); // require('flare/app');
 						append(S.LPAREN); // (
 						append(str);
 						append(S.RPAREN); // )
@@ -2553,7 +2553,7 @@ namespace ftr {
 						append(S.SPACE); //
 						append(S.ASSIGN); // =
 					}
-					append(S.REQUIRE); // require('ftr/app');
+					append(S.REQUIRE); // require('flare/app');
 					append(S.LPAREN); // (
 					append(str);
 					append(S.RPAREN); // )

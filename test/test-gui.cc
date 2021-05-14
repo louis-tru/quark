@@ -28,19 +28,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
-#include <ftr/image.h>
-#include <ftr/sprite.h>
-#include <ftr/div.h>
-#include <ftr/app.h>
-#include <ftr/display-port.h>
-#include <ftr/root.h>
-#include <ftr/util/fs.h>
-#include <ftr/gl/gl.h>
+#include <flare/util/util.h>
+#include <flare/image.h>
+#include <flare/sprite.h>
+#include <flare/div.h>
+#include <flare/app.h>
+#include <flare/display-port.h>
+#include <flare/root.h>
+#include <flare/util/fs.h>
+#include <flare/gl/gl.h>
 
-using namespace ftr;
-using ftr::value::ValueType;
-using ftr::value::Value;
+using namespace flare;
+using flare::value::ValueType;
+using flare::value::Value;
 
 void onload_handle (Event<>& evt, void* user) {
 	Root* r = New<Root>();

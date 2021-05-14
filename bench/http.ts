@@ -1,5 +1,5 @@
 
-import * as http from 'ftr/http';
+import * as http from 'flare/http';
 
 var i = 0;
 

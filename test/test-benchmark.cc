@@ -28,9 +28,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr-js/ftr.h"
+#include "flare-js/flare.h"
 
-using namespace ftr;
+using namespace flare;
 
 #define IP_REMOTE "127.0.0.1"
 

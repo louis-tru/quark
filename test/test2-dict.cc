@@ -1,9 +1,9 @@
 
 #include <iostream>
-#include "../ftr/util/dict.h"
-#include "../ftr/util/string.h"
+#include "../flare/util/dict.h"
+#include "../flare/util/string.h"
 
-using namespace ftr;
+using namespace flare;
 
 // thanks to Substitution failure is not an erro (SFINAE)
 template<typename T>

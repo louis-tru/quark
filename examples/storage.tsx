@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Div, Button, Input, _CVD } from 'ftr';
-import * as storage from 'ftr/storage';
-import { alert } from 'ftr/dialog';
+import { Div, Button, Input, _CVD } from 'flare';
+import * as storage from 'flare/storage';
+import { alert } from 'flare/dialog';
 import { Mynavpage } from './public';
-import {GUIKeyEvent,GUIClickEvent} from 'ftr/event';
+import {GUIKeyEvent,GUIClickEvent} from 'flare/event';
 
 var resolve = require.resolve;
 

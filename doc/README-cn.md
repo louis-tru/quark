@@ -1,11 +1,11 @@
-ftr 全称 (fast typesetting render)
+flare (fast layout render)
 ===============
 
-Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
+Flare是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++编写，底层基于OpenGL绘图，上层实现了一个精简的排版引擎以及一个JS/JSX运行环境。目标是想实现在此基础上开发GUI应用程序可兼顾开发速度与运行效率。
 
 * 暂时只支持`iOS`与`Android`系统，并不包含`AndroidTV`因为`TV`应用与手机应用有很大的不同
 
-* 从这里[`Go API Index`](http://fasttr.org/doc/)可以到 `API Documents Index`
+* 从这里[`Go API Index`](http://flare.cool/doc/)可以到 `API Documents Index`
 
 | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-a053c44f45adcaca.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-93fd936d3d3fdc03.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) | ![Screenshot](https://upload-images.jianshu.io/upload_images/7936206-056a731d62180993.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240) |
 |--|--|--|
@@ -16,7 +16,7 @@ Ftr是一个跨平台（Android/iOS）前端开发框架，核心代码使用C++
 这是一个简单的在屏幕上显示`hello world!`的程序
 
 ```jsx
-import { GUIApplication, Text } from 'ftr'
+import { GUIApplication, Text } from 'flare'
 new GUIApplication().start(
 	<Text>hello world!</Text>
 )
@@ -26,35 +26,35 @@ new GUIApplication().start(
 
 # Start Usage
 
-如果你从来没有使用过`Ftr`你可以从这里开始，一步步创建你的`Ftr`程序。
+如果你从来没有使用过`Flare`你可以从这里开始，一步步创建你的`Flare`程序。
 
-## Install ftrp
+## Install fproj
 
-首先你需要安装`Ftr`提供的工具包
+首先你需要安装`Flare`提供的工具包
 
-* 使用 nodejs `npm` 安装 `ftrp`
+* 使用 nodejs `npm` 安装 `fproj`
 
 * 打开`Terminal`并执行以下命令：
 
 ```sh
 # shell
-$ sudo npm install -g ftrp
+$ sudo npm install -g fproj
 
 ```
 	
-* 运行`ftrp` 需要依赖`nodejs`与`python2.7`
+* 运行`fproj` 需要依赖`nodejs`与`python2.7`
 
 * 并且不能运行在`windows`系统, 暂时只能在`mac`或`linux`下使用
 
 ## Create new project
 
-使用下面的`shell`命令创建一个新的`Ftr`工程：
+使用下面的`shell`命令创建一个新的`Flare`工程：
 
 ```sh
 # shell
 $ mkdir myproject
 $ cd myproject
-$ ftrp init
+$ fproj init
 ```
 
 ## Build project
@@ -63,7 +63,7 @@ $ ftrp init
 
 ```sh
 # shell
-$ ftrp build
+$ fproj build
 ```
 
 ## Export project
@@ -73,23 +73,23 @@ $ ftrp build
 ```sh
 # shell
 # export xcode ios project
-$ ftrp export ios
+$ fproj export ios
 # export android studio project
-$ ftrp export android
+$ fproj export android
 ```
 
 导出工程后，接下来你可以使用[Xcode]与[Android Studio]打开它
 
 
-## Ftr test http server
+## Flare test http server
 
-`ftrp`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
+`fproj`提供了一个测试http服务器，你不需要每次修改完`js`或`jsx`代码都进行重新安装
 
 执行下面的代码可以启动它：
 
 ```sh
 # shell
-$ ftrp
+$ fproj
 ```
 
 # Downloads
@@ -99,12 +99,12 @@ $ ftrp
 * Project [Source code] from `Github`
 
 
-[Examples]: https://github.com/louis-tru/ftr/tree/master/examples
+[Examples]: https://github.com/louis-tru/flare/tree/master/examples
 [Xcode]: https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/ConfiguringYourApp/ConfiguringYourApp.html
 [Android Studio]: https://developer.android.com/studio/projects/create-project.html
-[Android APK]: https://github.com/louis-tru/ftr/releases/download/v0.1.0/examples-release.apk
-[NPM]: https://www.npmjs.com/package/ftrp
-[Source code]: https://github.com/louis-tru/ftr
+[Android APK]: https://github.com/louis-tru/flare/releases/download/v0.1.0/examples-release.apk
+[NPM]: https://www.npmjs.com/package/fproj
+[Source code]: https://github.com/louis-tru/flare
 
 
 

@@ -1,7 +1,7 @@
 {
 	"name": "examples",
-	"app": "Ftr-Examples",
-	"id": "org.ftr.examples",
+	"app": "Flare-Examples",
+	"id": "org.flare.examples",
 	"main":	"index.js",
 	"types": "index.d.ts",
 	"version": "1.0.0"

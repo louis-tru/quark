@@ -28,25 +28,25 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import util from 'ftr/util';
-import * as sys from 'ftr/sys';
-import * as reader from 'ftr/reader';
-import * as font from 'ftr/font';
+import util from 'flare/util';
+import * as sys from 'flare/sys';
+import * as reader from 'flare/reader';
+import * as font from 'flare/font';
 import {
 	GUIApplication, Root, Scroll,
-	Div, Hybrid, Clip, Text, Button, TextNode as T, default as ftr, _CVD
-} from 'ftr';
-import { NavPageCollection, Toolbar } from 'ftr/nav';
+	Div, Hybrid, Clip, Text, Button, TextNode as T, default as flare, _CVD
+} from 'flare';
+import { NavPageCollection, Toolbar } from 'flare/nav';
 import { Navbutton, Mynavpage, Page } from './public';
 import examples from './examples';
 import about_vx from './about';
 import review_vx from './review';
-import {GUIClickEvent} from 'ftr/event';
+import {GUIClickEvent} from 'flare/event';
 
 const resolve = require.resolve;
-const px = ftr.atomPixel;
+const px = flare.atomPixel;
 
-ftr.css({
+flare.css({
 	
 	'.category_title': {
 		width: 'full',
@@ -105,22 +105,22 @@ function review_code(evt: GUIClickEvent) {
 	evt.sender.ownerAs<Page>().collection.push(review_vx(), true);
 }
 
-const ftr_tools = 'https://www.npmjs.com/package/ftrp';
-const ftr_tools_issues_url = 'https://github.com/louis-tru/ftr/issues';
-const examples_source = 'https://github.com/louis-tru/ftr.git';
-const documents = 'http://fasttr.org/';
+const flare_tools = 'https://www.npmjs.com/package/fproj';
+const flare_tools_issues_url = 'https://github.com/louis-tru/flare/issues';
+const examples_source = 'https://github.com/louis-tru/flare.git';
+const documents = 'http://flare.cool/';
 
 // registerFont
 
 function handle_go_to(evt: GUIClickEvent) {
 	var url = (evt.sender as any).url;
 	if ( url ) {
-		ftr.app.openUrl(url);
+		flare.app.openUrl(url);
 	}
 }
 
 function handle_bug_feedback() {
-	ftr.app.sendEmail('louistru@hotmail.com', 'bug feedback');
+	flare.app.sendEmail('louistru@hotmail.com', 'bug feedback');
 }
 
 class DefaultToolbar extends Toolbar {
@@ -135,14 +135,14 @@ class DefaultToolbar extends Toolbar {
 	}
 }
 
-const ftr_tools_vx = ()=>(
-	<Mynavpage title="Ftr Tools" source={resolve(__filename)}>
+const flare_tools_vx = ()=>(
+	<Mynavpage title="Flare Tools" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">
-1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g ftrp\n"} />.
+1. You can use nodejs <T textBackgroundColor="#ddd" value={"npm install -g fproj\n"} />.
 2. Or get the node modules from Github.
 			</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ftr_tools}>Go Github</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={flare_tools}>Go Github</Button>
 		</Div>
 	</Mynavpage>
 )
@@ -159,7 +159,7 @@ const examples_source_vx = ()=>(
 const documents_vx = ()=>(
 	<Mynavpage title="Documents" source={resolve(__filename)}>
 		<Div width="full">
-			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="fasttr.org" /> to view the document?</Hybrid>
+			<Hybrid class="category_title">Now go to <T textColor="#0079ff" value="flare.cool" /> to view the document?</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={documents}>Go Documents</Button>
 		</Div>
 	</Mynavpage>
@@ -169,7 +169,7 @@ const bug_feedback_vx = ()=>(
 	<Mynavpage title="Bug Feedback" source={resolve(__filename)}>
 		<Div width="full">
 			<Hybrid class="category_title">Now go to Github issues list?</Hybrid>
-			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={ftr_tools_issues_url}>Go Github Issues</Button>
+			<Button class="long_btn rm_margin_top" onClick={handle_go_to} url={flare_tools_issues_url}>Go Github Issues</Button>
 			<Hybrid class="category_title">Or you can send me email, too.</Hybrid>
 			<Button class="long_btn rm_margin_top" onClick={handle_bug_feedback}>Send email</Button>
 		</Div>
@@ -183,7 +183,7 @@ var app = new GUIApplication({
 	fullScreen: !!util.options.full_screen,
 	enableTouch: true,
 	background: 0xffffff,
-	title: 'Ftr Examples',
+	title: 'Flare Examples',
 }).start(
 	<Root>
 
@@ -195,7 +195,7 @@ var app = new GUIApplication({
 					<Text class="hello" value="Hello." />
 					<Div class="category" borderBottom={`${px} #c8c7cc`}>
 						<Hybrid class="codepre">
-							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'ftr'" />
+							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'flare'" />
 								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
 								(
 									{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{">"}
@@ -207,7 +207,7 @@ var app = new GUIApplication({
 					<Clip class="category">
 						<Navbutton next={examples}>Examples</Navbutton>
 						<Navbutton next={examples_source_vx}>Examples Source</Navbutton>
-						<Navbutton next={ftr_tools_vx}>Ftr Tools</Navbutton>
+						<Navbutton next={flare_tools_vx}>Flare Tools</Navbutton>
 					</Clip>
 
 					<Text class="category_title" />

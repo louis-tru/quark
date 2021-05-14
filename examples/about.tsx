@@ -28,14 +28,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Text, Scroll, _CVD } from 'ftr';
+import { Text, Scroll, _CVD } from 'flare';
 import { Mynavpage } from './public';
 
 var resolve = require.resolve;
 
 export default ()=>{
 
-	var code = `Ftr
+	var code = `Flare
 	===============
 	
 	Used C/C++/OpenGL/javascript to implement a GUI typesetting display engine and cross platform GUI application development framework
@@ -44,13 +44,13 @@ export default ()=>{
 	使用C/C++/OpenGL/javascript实现的一个GUI排版显示引擎与跨平台GUI应用开发框架
 	目标：在此基础上开发GUI应用程序可兼顾开发WEB应用程序的简单与速度同时拥有Native应用程序的性能与体验.
 	
-	Ftr Source 
+	Flare Source 
 	===============
-	https://github.com/louis-tru/ftr.git
+	https://github.com/louis-tru/flare.git
 	
 	Support
 	===============
-	http://fasttr.org
+	http://flare.cool
 	louistru@hotmail.com`;
 
 	return (

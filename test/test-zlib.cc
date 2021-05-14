@@ -28,11 +28,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/zlib.h>
+#include <flare/util/zlib.h>
 #include <zlib.h>
 #include <map>
 
-using namespace ftr;
+using namespace flare;
 
 void test_zlib (int argc, char **argv) {
 	

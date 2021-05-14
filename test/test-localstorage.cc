@@ -28,15 +28,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/localstorage.h"
+#include "flare/util/localstorage.h"
 
-using namespace ftr;
+using namespace flare;
 
 void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test2"));
 	
-	localstorage_set("test", "fasttr.org");
+	localstorage_set("test", "flare.cool");
 	
 	LOG(localstorage_get("test"));
 	
@@ -44,7 +44,7 @@ void test_localstorage(int argc, char **argv) {
 	
 	LOG(localstorage_get("test"));
 	
-	localstorage_set("test", "fasttr.org");
+	localstorage_set("test", "flare.cool");
 	
 	LOG(localstorage_get("test"));
 	

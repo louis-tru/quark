@@ -13,7 +13,7 @@ if [ "`which tsc`" = "" ]; then
 fi
 
 if   [ ! -d libs/somes ] \
-	|| [ ! -d libs/ftrp/gyp ] \
+	|| [ ! -d libs/fproj/gyp ] \
 	|| [ ! -d deps/v8-link ] \
 	|| [ ! -d deps/ffmpeg ] \
 	|| [ ! -d deps/node ] \
@@ -22,9 +22,9 @@ if   [ ! -d libs/somes ] \
 	make pull
 fi
 
-# build libs/ftr
-if [ ! -f libs/ftr/out/ftr/package.json ]; then
-	cd libs/ftr
+# build libs/flare
+if [ ! -f libs/flare/out/flare/package.json ]; then
+	cd libs/flare
 	npm i
 	npm run build
 	cd ../..
@@ -38,9 +38,9 @@ if [ ! -f libs/somes/out/somes/package.json ]; then
 	cd ../..
 fi
 
-# build libs/ftrp
-if [ ! -f libs/ftrp/out/ftrp/package.json ]; then
-	cd libs/ftrp
+# build libs/fproj
+if [ ! -f libs/fproj/out/fproj/package.json ]; then
+	cd libs/fproj
 	npm i
 	rm -rf node_modules/somes
 	cd node_modules
@@ -51,22 +51,22 @@ if [ ! -f libs/ftrp/out/ftrp/package.json ]; then
 fi
 
 if   [ ! -d tools/node_modules/somes ] \
-	|| [ ! -d tools/node_modules/ftrp ] \
+	|| [ ! -d tools/node_modules/fproj ] \
 ; then
 	rm -rf tools/node_modules/*
 	mkdir -p tools/node_modules
 	cd tools/node_modules
 	ln -s ../../libs/somes/out/somes
-	ln -s ../../libs/ftrp/out/ftrp
+	ln -s ../../libs/fproj/out/fproj
 	cd ../..
 fi
 
 if [ ! -d node_modules ]; then
 	mkdir node_modules
 	cd node_modules
-	ln -s ../libs/ftr/out/ftr
+	ln -s ../libs/flare/out/flare
 	ln -s ../libs/somes/out/somes
-	ln -s ../libs/ftrp/out/ftrp
+	ln -s ../libs/fproj/out/fproj
 	cd ..
 fi
 

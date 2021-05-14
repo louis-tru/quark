@@ -1,5 +1,5 @@
 
-import { EventNoticer } from 'ftr/event';
+import { EventNoticer } from 'flare/event';
 import * as uu from './uu';
 
 uu.start();

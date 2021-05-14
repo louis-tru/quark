@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "ftr/util/util.h"
-#include "ftr/util/fs.h"
-#include "ftr/util/loop.h"
+#include "flare/util/util.h"
+#include "flare/util/fs.h"
+#include "flare/util/loop.h"
 #include <uv.h>
 
-using namespace ftr;
+using namespace flare;
 
 static uv_loop_t* uv_loop = nullptr;
 

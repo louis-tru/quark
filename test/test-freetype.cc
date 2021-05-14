@@ -28,12 +28,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
-#include <ftr/util/string.h>
-#include <ftr/util/map.h>
-#include <ftr/util/fs.h>
+#include <flare/util/util.h>
+#include <flare/util/string.h>
+#include <flare/util/map.h>
+#include <flare/util/fs.h>
 #include <trial/fs.h>
-#include <ftr/sys.h>
+#include <flare/sys.h>
 #include <trial/fs.h>
 
 #include <ft2build.h>
@@ -46,17 +46,17 @@
 #include <chrono>
 
 //
-#include "ftr/image-codec.h"
-#include "ftr/texture.h"
-#include "ftr/image.h"
-#include "ftr/sprite.h"
-#include "ftr/box.h"
-#include "ftr/app.h"
-#include "ftr/display-port.h"
-#include "ftr/root.h"
-#include "ftr/gl/gl.h"
+#include "flare/image-codec.h"
+#include "flare/texture.h"
+#include "flare/image.h"
+#include "flare/sprite.h"
+#include "flare/box.h"
+#include "flare/app.h"
+#include "flare/display-port.h"
+#include "flare/root.h"
+#include "flare/gl/gl.h"
 
-using namespace ftr;
+using namespace flare;
 
 void each_fonts () {
 	

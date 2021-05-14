@@ -3,13 +3,13 @@
 #include <list>
 #include <vector>
 #include <string>
-#include <ftr/util/array.h>
-#include <ftr/util/string.h>
+#include <flare/util/array.h>
+#include <flare/util/string.h>
 #include <map>
-#include "../ftr/util/list.h"
+#include "../flare/util/list.h"
 
 using namespace std;
-using namespace ftr;
+using namespace flare;
 
 class B {
 	public:

@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <ftr/util/util.h>
-#include <ftr/util/loop.h>
+#include <flare/util/util.h>
+#include <flare/util/loop.h>
 
-using namespace ftr;
+using namespace flare;
 
 volatile bool run_flag = false;
 Mutex mtx;
