@@ -16,6 +16,6 @@ libs/ftr/out
 package-lock.json
 examples/**.js
 bench/**.js
-depe/skia
+deps/skia
 *.pyc
 deps.bk

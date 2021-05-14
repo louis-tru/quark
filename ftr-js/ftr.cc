@@ -36,7 +36,7 @@
 #include "binding/event-1.h"
 #include "android/android.h"
 #include "native-inl-js.h"
-#include "depe/node/src/ftr.h"
+#include "deps/node/src/ftr.h"
 #include "uv.h"
 
 #if FX_UNIX

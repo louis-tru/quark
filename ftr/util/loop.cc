@@ -35,7 +35,7 @@
 #endif
 #include <uv.h>
 #include <pthread.h>
-// #include "depe/libuv/src/queue.h" // QUEUE_EMPTY
+// #include "deps/libuv/src/queue.h" // QUEUE_EMPTY
 
 #ifndef FX_ATEXIT_WAIT_TIMEOUT
 # define FX_ATEXIT_WAIT_TIMEOUT 1e6

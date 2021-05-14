@@ -31,7 +31,7 @@
 #include "ftr/app.h"
 #include "ftr/sys.h"
 #include "ftr/util/loop.h"
-#include "../depe/node/src/ftr.h"
+#include "../deps/node/src/ftr.h"
 
 #ifndef TEST_FUNC_NAME
 #define TEST_FUNC_NAME test_demo

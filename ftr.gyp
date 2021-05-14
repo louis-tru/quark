@@ -23,7 +23,7 @@
 					'<(output)/obj.target/libftr.a',
 					'<(output)/obj.target/libftr-js.a',
 					'<(output)/obj.target/libftr-media.a',
-					'<(output)/obj.target/depe/node/libnode.a',
+					'<(output)/obj.target/deps/node/libnode.a',
 					'-Wl,--no-whole-archive',
 				],
 			}],

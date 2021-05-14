@@ -31,7 +31,7 @@
 #include "ftr-js/js-1.h"
 #include "ftr/util/loop.h"
 #include "ftr/util/codec.h"
-#include "depe/node/src/ftr.h"
+#include "deps/node/src/ftr.h"
 
 namespace node {
 

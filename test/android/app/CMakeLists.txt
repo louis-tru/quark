@@ -2,24 +2,24 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 include_directories(../../..)
-include_directories(../../../depe/rapidjson/include)
-include_directories(../../../depe/freetype2/include)
-include_directories(../../../depe/tess2/Include)
-include_directories(../../../depe/libwebp)
-include_directories(../../../depe/libgif/lib)
-include_directories(../../../depe/libjpeg)
-include_directories(../../../depe/libpng)
-include_directories(../../../depe/libwebp)
-include_directories(../../../depe/ffmpeg)
-include_directories(../../../depe/tinyxml2)
-include_directories(../../../depe/node/src)
-include_directories(../../../depe/node/deps/cares/include)
-include_directories(../../../depe/node/deps/zlib/contrib/minizip)
-include_directories(../../../depe/node/deps/openssl/openssl/include)
-include_directories(../../../depe/node/deps/uv/include)
-include_directories(../../../depe/node/deps/http_parser)
-include_directories(../../../depe/v8-link/include)
-include_directories(../../../depe/bplus/include)
+include_directories(../../../deps/rapidjson/include)
+include_directories(../../../deps/freetype2/include)
+include_directories(../../../deps/tess2/Include)
+include_directories(../../../deps/libwebp)
+include_directories(../../../deps/libgif/lib)
+include_directories(../../../deps/libjpeg)
+include_directories(../../../deps/libpng)
+include_directories(../../../deps/libwebp)
+include_directories(../../../deps/ffmpeg)
+include_directories(../../../deps/tinyxml2)
+include_directories(../../../deps/node/src)
+include_directories(../../../deps/node/deps/cares/include)
+include_directories(../../../deps/node/deps/zlib/contrib/minizip)
+include_directories(../../../deps/node/deps/openssl/openssl/include)
+include_directories(../../../deps/node/deps/uv/include)
+include_directories(../../../deps/node/deps/http_parser)
+include_directories(../../../deps/v8-link/include)
+include_directories(../../../deps/bplus/include)
 include_directories(../../../out)
 link_directories(src/main/jniLibs/${ANDROID_ABI})
 link_directories(../../../out/jniLibs/${ANDROID_ABI})
@@ -37,11 +37,11 @@ add_definitions(
 set(TARGET "bplus")
 set(TOOLSET "target")
 add_library(bplus STATIC
-	../../../depe/bplus/bplus.c
-	../../../depe/bplus/pages.c
-	../../../depe/bplus/utils.c
-	../../../depe/bplus/values.c
-	../../../depe/bplus/writer.c
+	../../../deps/bplus/bplus.c
+	../../../deps/bplus/pages.c
+	../../../deps/bplus/utils.c
+	../../../deps/bplus/values.c
+	../../../deps/bplus/writer.c
 )
 set_target_properties(bplus PROPERTIES COMPILE_DEFINITIONS 
 	"_LARGEFILE_SOURCE;_FILE_OFFSET_BITS=64;_XOPEN_SOURCE=500;_DARWIN_C_SOURCE;NDEBUG")

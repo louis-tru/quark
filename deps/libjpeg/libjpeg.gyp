@@ -2,7 +2,7 @@
 	'variables': {
 		'use_system_libjpeg%': 0,
 		'use_system_yasm%': 1,
-		'shared_generated_dir': '<(SHARED_INTERMEDIATE_DIR)/depe/libjpeg-turbo',
+		'shared_generated_dir': '<(SHARED_INTERMEDIATE_DIR)/deps/libjpeg-turbo',
 		'conditions': [
 			[ 'OS=="win"', {
 				'object_suffix': 'obj',

@@ -14,10 +14,10 @@ fi
 
 if   [ ! -d libs/somes ] \
 	|| [ ! -d libs/ftrp/gyp ] \
-	|| [ ! -d depe/v8-link ] \
-	|| [ ! -d depe/ffmpeg ] \
-	|| [ ! -d depe/node ] \
-	|| [ ! -d depe/bplus ] \
+	|| [ ! -d deps/v8-link ] \
+	|| [ ! -d deps/ffmpeg ] \
+	|| [ ! -d deps/node ] \
+	|| [ ! -d deps/bplus ] \
 ; then
 	make pull
 fi

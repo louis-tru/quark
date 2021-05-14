@@ -7,10 +7,10 @@
 		'type': 'static_library', # <(output_type)
 		'dependencies': [
 			'ftr/util/minizip.gyp:minizip',
-			'depe/bplus/bplus.gyp:bplus',
-			'depe/libuv/libuv.gyp:libuv',
-			'depe/node/deps/openssl/openssl.gyp:openssl',
-			'depe/node/deps/http_parser/http_parser.gyp:http_parser',
+			'deps/bplus/bplus.gyp:bplus',
+			'deps/libuv/libuv.gyp:libuv',
+			'deps/node/deps/openssl/openssl.gyp:openssl',
+			'deps/node/deps/http_parser/http_parser.gyp:http_parser',
 		],
 		'direct_dependent_settings': {
 			'include_dirs': [ '../..' ],
@@ -19,10 +19,10 @@
 		},
 		'include_dirs': [
 			'../..',
-			'../../depe/rapidjson/include',
-			'../../depe/bplus/include',
-			'../../depe/node/deps/zlib',
-			'../../depe/node/deps/zlib/contrib/minizip',
+			'../../deps/rapidjson/include',
+			'../../deps/bplus/include',
+			'../../deps/node/deps/zlib',
+			'../../deps/node/deps/zlib/contrib/minizip',
 		],
 		'sources': [
 			'../../Makefile',
