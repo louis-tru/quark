@@ -19,7 +19,7 @@ if   [ ! -d libs/somes ] \
 	|| [ ! -d deps/node ] \
 	|| [ ! -d deps/bplus ] \
 ; then
-	make pull
+	git submodule update --init --recursive
 fi
 
 # build libs/flare
