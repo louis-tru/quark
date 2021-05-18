@@ -63,9 +63,9 @@ namespace flare {
 		*
 		* 布局权重（比如在flex布局中代表布局的尺寸）
 		*
-		* @func layout_weight(direction)
+		* @func layout_weight()
 		*/
-	float Layout::layout_weight(Direction direction) {
+	float Layout::layout_weight() {
 		return 0;
 	}
 
@@ -147,14 +147,17 @@ namespace flare {
 		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
 		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		* 
-		* 调用`lock_layout_size(false)`解除锁定
+		* 调用`lock_layout_size(Vec2(-1,-1))`解除锁定
 		* 
 		* 子类实现这个方法
 		* 
-		* @func lock_layout_size(is_lock, layout_size)
+		* 返回锁定后的最终尺寸
+		* 
+		* @func lock_layout_size(layout_size)
 		*/
-	void Layout::lock_layout_size(bool is_lock, Vec2 layout_size) {
+	Vec2 Layout::lock_layout_size(Vec2 layout_size) {
 		// noop
+		return layout_size();
 	}
 
 	/**

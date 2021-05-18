@@ -42,10 +42,13 @@ namespace flare {
 		FX_Define_View(FlowLayout);
 		public:
 
-		/**
-		 * @constructors
-		 */
-		FlowLayout();
+		// layout direction
+		enum Direction: uint8_t {
+			ROW = value::ROW,
+			ROW_REVERSE = value::ROW_REVERSE,
+			COLUMN = value::COLUMN,
+			COLUMN_REVERSE = value::COLUMN_REVERSE,
+		};
 
 		// 项目在主轴上的对齐方式
 		enum ItemsAlign: uint8_t {
@@ -74,6 +77,11 @@ namespace flare {
 			SPACE_AROUND = value::SPACE_AROUND, // 每根轴线两侧的间隔都相等。所以，轴线之间的间隔比轴线与边框的间隔大一倍
 			STRETCH = value::STRETCH, // 轴线占满整个交叉轴
 		};
+
+		/**
+		 * @constructors
+		 */
+		FlowLayout();
 
 		/**
 		 * 
@@ -139,15 +147,15 @@ namespace flare {
 		 *
 		 * @func stt_items_align(val)
 		 */
-		void set_items_align(ItemsAlign val);
+		void set_items_align(ItemsAlign align);
 
 		/**
 		 * 
 		 * 设置交叉轴的对齐方式
 		 *
-		 * @func set_cross_align(val)
+		 * @func set_cross_align(align)
 		 */
-		void set_cross_align(CrossAlign val);
+		void set_cross_align(CrossAlign align);
 
 		/**
 		 * 
@@ -155,21 +163,21 @@ namespace flare {
 		 *
 		 * @func set_wrap_align(val)
 		 */
-		void set_wrap_align(WrapAlign val);
+		void set_wrap_align(WrapAlign align);
 
 		/**
 		 * 
 		 * 设置多根交叉轴是否反向排列
 		 *
-		 * @func set_wrap_reverse(val)
+		 * @func set_wrap_reverse(reverse)
 		 */
-		void set_wrap_reverse(bool val);
+		void set_wrap_reverse(bool reverse);
 
 		// --------------- o v e r w r i t e ---------------
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		
+
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
 		Direction  _direction; // 主轴的方向

@@ -47,14 +47,14 @@ namespace flare {
 		* @enum ValueType
 		*/
 		enum ValueType: uint8_t {
-			AUTO = value::AUTO,    /* 自动值  auto */
-			FULL = value::FULL,    /* 吸附到父视图(client边距与父视图重叠) full */
-			PIXEL = value::PIXEL,   /* 像素值  px */
-			PERCENT = value::PERCENT, /* 百分比  % */
-			MINUS = value::MINUS,   /* 减法(parent-value) ! */
+			WRAP  = value::WRAP,    /* 内容包裹 wrap content */
+			MATCH = value::MATCH,   /* 匹配父视图 match parent */
+			VALUE = value::VALUE,   /* 明确值 value px */
+			RATIO = value::RATIO,   /* 百分比 value % */
+			MINUS = value::MINUS,   /* 减法(parent-value) value ! */
 		};
 
-		typedef value::ValueTemplate<ValueType, ValueType::AUTO> Value;
+		typedef value::ValueTemplate<ValueType, ValueType::WRAP> Value;
 
 		/**
 		 * @constructors
@@ -95,6 +95,14 @@ namespace flare {
 		 */
 		void set_layout_align(LayoutAlign align);
 
+		/**
+		 *
+		 * 设置布局权重
+		 *
+		 * @func set_layout_weight(val)
+		 */
+		void set_layout_weight(float weight);
+
 		// --------------- o v e r w r i t e ---------------
 		/**
 		 * @overwrite
@@ -105,10 +113,10 @@ namespace flare {
 		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
 		virtual Vec2 layout_content_size(bool& is_explicit_out);
-		virtual float layout_weight(Direction direction);
+		virtual float layout_weight();
 		virtual LayoutAlign layout_align();
 		virtual Vec2 layout_transform_origin(Transform& t);
-		virtual void lock_layout_size(bool is_lock, Vec2 layout_size);
+		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy();
 		virtual void layout_content_change_notice(Layout* child);
@@ -119,6 +127,7 @@ namespace flare {
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
+		float _layout_weight; // layout weight
 		// size
 		Value _width, _height; // width,height
 		Vec2  _size; // width,height

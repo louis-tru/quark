@@ -71,11 +71,11 @@ namespace flare {
 		* 
 		* 设置主轴的对齐方式
 		*
-		* @func stt_items_align(val)
+		* @func stt_items_align(align)
 		*/
-	void FlowLayout::set_items_align(ItemsAlign val) {
-		if (val != _items_align) {
-			_items_align = val;
+	void FlowLayout::set_items_align(ItemsAlign align) {
+		if (align != _items_align) {
+			_items_align = align;
 			mark(M_LAYOUT_CONTENT);
 		}
 	}
@@ -84,11 +84,11 @@ namespace flare {
 		* 
 		* 设置交叉轴的对齐方式
 		*
-		* @func set_cross_align(val)
+		* @func set_cross_align(align)
 		*/
-	void FlowLayout::set_cross_align(CrossAlign val) {
-		if (val != _cross_align) {
-			_cross_align = val;
+	void FlowLayout::set_cross_align(CrossAlign align) {
+		if (align != _cross_align) {
+			_cross_align = align;
 			mark(M_LAYOUT_CONTENT);
 		}
 	}
@@ -97,11 +97,11 @@ namespace flare {
 		* 
 		* 设置多根交叉轴的对齐方式
 		*
-		* @func set_wrap_align(val)
+		* @func set_wrap_align(align)
 		*/
-	void FlowLayout::set_wrap_align(WrapAlign val) {
-		if (val != _wrap_align) {
-			_wrap_align = val;
+	void FlowLayout::set_wrap_align(WrapAlign align) {
+		if (align != _wrap_align) {
+			_wrap_align = align;
 			mark(M_LAYOUT_CONTENT);
 		}
 	}
@@ -110,11 +110,11 @@ namespace flare {
 		* 
 		* 设置多根交叉轴是否反向方向排列
 		*
-		* @func set_wrap_reverse(val)
+		* @func set_wrap_reverse(reverse)
 		*/
-	void FlowLayout::set_wrap_reverse(bool val) {
-		if (val != _wrap_reverse) {
-			_wrap_reverse = val;
+	void FlowLayout::set_wrap_reverse(bool reverse) {
+		if (reverse != _wrap_reverse) {
+			_wrap_reverse = reverse;
 			mark(M_LAYOUT_CONTENT);
 		}
 	}

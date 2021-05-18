@@ -43,13 +43,13 @@ namespace flare {
 			F(DEFAULT,            default) \
 			F(INHERIT,            inherit) \
 			F(AUTO,               auto) \
-			F(VALUE,              value) \
 			F(NORMAL,             normal) \
 			F(NONE,               none) \
 			\
-			F(FULL,               full) \
-			F(PIXEL,              pixel) \
-			F(PERCENT,            percent) \
+			F(WRAP,               wrap) \
+			F(MATCH,              match) \
+			F(VALUE,              value) \
+			F(RATIO,              ratio) \
 			F(MINUS,              minus) \
 			\
 			F(ROW,                row) \
@@ -102,7 +102,7 @@ namespace flare {
 			F(NO_SPACE,           no_space) \
 			F(PRE,                pre) \
 			F(PRE_LINE,           pre_line) \
-			F(WRAP,               wrap) \
+			/*F(WRAP,               wrap)*/ \
 			F(WRAP_REVERSE,       wrap_reverse) \
 			\
 			/* text weight */ \

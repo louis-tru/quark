@@ -36,7 +36,8 @@ namespace flare {
 		* @constructors
 		*/
 	Box::Box()
-		: _fill(nullptr)
+		: _layout_weight(0)
+		, _fill(nullptr)
 		, _layout_align(LEFT)
 	{
 	}
@@ -84,12 +85,8 @@ namespace flare {
 		return Vec2();
 	}
 
-	float Box::layout_weight(Direction direction) {
-		if (direction == ROW) { // ROW
-			return _width.value;
-		} else { // COLUMN
-			return _height.value;
-		}
+	float Box::layout_weight() {
+		return _layout_weight;
 	}
 
 	Layout::LayoutAlign layout_align() {
@@ -112,13 +109,29 @@ namespace flare {
 		}
 	}
 
+	/**
+		*
+		* 设置布局权重
+		*
+		* @func set_layout_weight(weight)
+		*/
+	void Box::set_layout_weight(float weight) {
+		if (_layout_weight != weight) {
+			_layout_weight = weight;
+			if (parent()) {
+				parent()->layout_weight_change_notice_from_child(this);
+			}
+		}
+	}
+
 	Vec2 Box::layout_transform_origin(Transform& t) {
 		// TODO compute transform origin ...
 		return Vec2();
 	}
 
-	void Box::lock_layout_size(bool is_lock, Vec2 layout_size) {
+	Vec2 Box::lock_layout_size(Vec2 layout_size) {
 		// ...
+		return Vec2();
 	}
 
 	void Box::set_layout_offset(Vec2 val) {

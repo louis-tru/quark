@@ -9,11 +9,12 @@
 			}
 
 			.div1 {
+				width: 500px;
 				height: 500px;
 				margin: auto;
 				background: #0f0;
 				display: flex;
-				flex-wrap: wrap;
+				/* flex-wrap: wrap; */
 				/* flex-wrap: wrap-reverse; */
 				/* flex-direction: column; */
 				/* flex-direction: column-reverse; */
@@ -26,8 +27,8 @@
 
 			.div1 > div {
 				background: #f00;
-				margin: 10px;
-				/* width: 40px; */
+				margin: 5px;
+				width: 40px;
 				/* height: 30px; */
 				text-align: center;
 				color: #fff;
@@ -35,9 +36,15 @@
 			}
 
 			.div1 > div.b {
-				height: 40px;
+				/* height: 40px;
 				line-height: 60px;
-				text-align: end;
+				text-align: end; */
+			}
+
+			.div1 > div.f {
+				width: 300px;
+				flex-grow: 0;
+				flex-shrink: 0;
 			}
 
 		</style>
@@ -51,7 +58,7 @@
 			<div>C</div>
 			<div>D</div>
 			<div>E</div>
-			<div>F</div>
+			<div class="f">F</div>
 			<div>G</div>
 			<div>H</div>
 			<div>I</div>
@@ -59,6 +66,6 @@
 			<div>K</div>
 			<div class="b">M</div>
 		</div>
-		
+
 	</body>
 </html>
