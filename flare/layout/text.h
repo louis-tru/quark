@@ -53,9 +53,9 @@ namespace flare {
 		};
 
 		/**
-		* @enum TextStyleValue
+		* @enum TextWeightValue
 		*/
-		enum TextStyleValue: uint8_t {
+		enum TextWeightValue: uint8_t {
 			THIN = value::THIN,
 			ULTRALIGHT = value::ULTRALIGHT,
 			LIGHT = value::LIGHT,
@@ -65,15 +65,15 @@ namespace flare {
 			BOLD = value::BOLD,
 			HEAVY = value::HEAVY,
 			BLACK = value::BLACK,
-			THIN_ITALIC = value::THIN_ITALIC,
-			ULTRALIGHT_ITALIC = value::ULTRALIGHT_ITALIC,
-			LIGHT_ITALIC = value::LIGHT_ITALIC,
-			ITALIC = value::ITALIC,
-			MEDIUM_ITALIC = value::MEDIUM_ITALIC,
-			SEMIBOLD_ITALIC = value::SEMIBOLD_ITALIC,
-			BOLD_ITALIC = value::BOLD_ITALIC,
-			HEAVY_ITALIC = value::HEAVY_ITALIC,
-			BLACK_ITALIC = value::BLACK_ITALIC,
+		};
+
+		/**
+		 * @enum TextStyleValue
+		 */
+		enum TextStyleValue: unit8_t {
+			NORMAL = value::NORMAL, // 正常
+			ITALIC = value::ITALIC, // 斜体
+			OBLIQUE = value::OBLIQUE,  // 倾斜
 		};
 
 		/**
@@ -100,16 +100,17 @@ namespace flare {
 		 * @enum TextWhiteSpaceValue
 		 */
 		enum TextWhiteSpaceValue: uint8_t {
-			NORMAL = value::NORMAL,           /* 保留所有空白,使用自动wrap */
-			NO_WRAP = value::NO_WRAP,          /* 合并空白序列,不使用自动wrap */
-			NO_SPACE = value::NO_SPACE,         /* 合并空白序列,使用自动wrap */
-			PRE = value::PRE,              /* 保留所有空白,不使用自动wrap */
-			PRE_LINE = value::PRE_LINE,         /* 合并空白符序列,但保留换行符,使用自动wrap */
-			WRAP = value::WRAP,             /* 保留所有空白,强制使用自动wrap */
+			NORMAL = value::NORMAL,          /* 保留所有空白,使用自动wrap */
+			NO_WRAP = value::NO_WRAP,        /* 合并空白序列,不使用自动wrap */
+			NO_SPACE = value::NO_SPACE,      /* 合并空白序列,使用自动wrap */
+			PRE = value::PRE,                /* 保留所有空白,不使用自动wrap */
+			PRE_LINE = value::PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
+			WRAP = value::WRAP,              /* 保留所有空白,强制使用自动wrap */
 		};
 
 		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, Color> TextColor;
 		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, float> TextSize;
+		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextWeightValue> TextWeight;
 		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextStyleValue> TextStyle;
 		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, Shadow> TextShadow;
 		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, float> TextLineHeight;

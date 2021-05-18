@@ -42,4 +42,96 @@ namespace flare {
 		visitor->visitFlowLayout(this);
 	}
 
+	/**
+		* @constructors
+		*/
+	FlowLayout::FlowLayout()
+		: _direction(Direction::ROW)
+		, _items_align(ItemsAlign::START)
+		, _cross_align(CrossAlign::START)
+		, _wrap_align(WrapAlign::START)
+		, _wrap_reverse(false)
+	{
+	}
+
+	/**
+		*
+		* 设置主轴的方向
+		*
+		* @func set_direction(val)
+		*/
+	void FlowLayout::set_direction(Direction val) {
+		if (val != _direction) {
+			_direction = val;
+			mark(M_LAYOUT_CONTENT); // 排版参数改变,后续需对子布局重新排版
+		}
+	}
+
+	/**
+		* 
+		* 设置主轴的对齐方式
+		*
+		* @func stt_items_align(val)
+		*/
+	void FlowLayout::set_items_align(ItemsAlign val) {
+		if (val != _items_align) {
+			_items_align = val;
+			mark(M_LAYOUT_CONTENT);
+		}
+	}
+
+	/**
+		* 
+		* 设置交叉轴的对齐方式
+		*
+		* @func set_cross_align(val)
+		*/
+	void FlowLayout::set_cross_align(CrossAlign val) {
+		if (val != _cross_align) {
+			_cross_align = val;
+			mark(M_LAYOUT_CONTENT);
+		}
+	}
+
+	/**
+		* 
+		* 设置多根交叉轴的对齐方式
+		*
+		* @func set_wrap_align(val)
+		*/
+	void FlowLayout::set_wrap_align(WrapAlign val) {
+		if (val != _wrap_align) {
+			_wrap_align = val;
+			mark(M_LAYOUT_CONTENT);
+		}
+	}
+
+	/**
+		* 
+		* 设置多根交叉轴是否反向方向排列
+		*
+		* @func set_wrap_reverse(val)
+		*/
+	void FlowLayout::set_wrap_reverse(bool val) {
+		if (val != _wrap_reverse) {
+			_wrap_reverse = val;
+			mark(M_LAYOUT_CONTENT);
+		}
+	}
+
+	// --------------- o v e r w r i t e ---------------
+
+	bool FlowLayout::layout_forward(uint32_t mark) {
+		// TODO ...
+		return false;
+	}
+
+	bool FlowLayout::layout_reverse(uint32_t mark) {
+		// TODO ...
+		return false;
+	}
+	
+
 }
+
+// *******************************************************************

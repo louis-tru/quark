@@ -28,8 +28,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__draw__
-#define __flare__draw__
+#ifndef __flare__render__
+#define __flare__render__
 
 #include "../util/util.h"
 #include "../util/string.h"
@@ -50,23 +50,23 @@ namespace flare {
 	class TexturePool;
 
 	/**
-	* @enum DrawLibrary
+	* @enum RenderLibrary
 	*/
-	enum DrawLibrary {
-		DRAW_LIBRARY_INVALID,
-		DRAW_LIBRARY_GLES2,
-		DRAW_LIBRARY_GLES3,
-		DRAW_LIBRARY_GL3,
-		DRAW_LIBRARY_GL4,
+	enum RenderLibrary {
+		RENDER_LIBRARY_INVALID,
+		RENDER_LIBRARY_GLES2,
+		RENDER_LIBRARY_GLES3,
+		RENDER_LIBRARY_GL3,
+		RENDER_LIBRARY_GL4,
 	};
 
 	/**
-	* @class DrawData
+	* @class RenderData
 	*/
-	class FX_EXPORT DrawData {
+	class FX_EXPORT RenderData {
 		public:
 		typedef NonObjectTraits Traits;
-		virtual ~DrawData() {}
+		virtual ~RenderData() = default;
 	};
 
 	/**

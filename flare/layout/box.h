@@ -95,6 +95,7 @@ namespace flare {
 		 */
 		void set_layout_align(LayoutAlign align);
 
+		// --------------- o v e r w r i t e ---------------
 		/**
 		 * @overwrite
 		 */
@@ -113,6 +114,7 @@ namespace flare {
 		virtual void layout_content_change_notice(Layout* child);
 		virtual void layout_size_change_notice_from_parent(Layout* parent);
 
+		// --------------- m e m b e r . f i e l d ---------------
 		private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）

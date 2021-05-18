@@ -50,8 +50,8 @@ namespace flare {
 			M_NONE             = 0,        /* 没有任何标记 */
 			M_TRANSFORM        = (1 << 0), /* 矩阵变换 recursive mark */
 			M_TRANSFORM_ORIGIN = (1 << 1), /* 矩阵变换 origin mark */
-			M_LAYOUT_CONTENT   = (1 << 2), /* 布局内容偏移 */
-			M_LAYOUT_SIZE      = (1 << 3), /* 布局尺寸改变 */
+			M_LAYOUT_CONTENT   = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
+			M_LAYOUT_SIZE      = (1 << 3), /* 布局尺寸改变, 设置尺寸可能影响父布局 */
 			//**
 			M_RECURSIVE        = (M_TRANSFORM), /* 需要被递归的标记 */
 		};
@@ -66,12 +66,17 @@ namespace flare {
 
 		// layout align
 		enum LayoutAlign: unit8_t {
-			LEFT = value::LEFT,
+			// flow/flex
+			AUTO = value::AUTO,
+			START = value::START,
 			CENTER = value::CENTER,
-			RIGHT = value::RIGHT,
-			TOP_LEFT = value::LEFT,
-			TOP_CENTER = value::CENTER,
-			TOP_RIGHT = value::RIGHT,
+			END = value::END,
+			BASELINE = value::BASELINE,
+			STRETCH = value::STRETCH,
+			// default
+			TOP_LEFT = value::TOP_LEFT,
+			TOP_CENTER = value::TOP_CENTER,
+			TOP_RIGHT = value::TOP_RIGHT,
 			CENTER_LEFT = value::CENTER_LEFT,
 			CENTER_CENTER = value::CENTER_CENTER,
 			CENTER_RIGHT = value::CENTER_RIGHT,

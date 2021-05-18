@@ -36,24 +36,24 @@
 namespace flare {
 
 	# define FX_Views(F) \
-		F(View)       F(Box)         F(Image) \
-		F(FlowLayout) F(FlexLayout)  F(GridLayout) \
-		F(Input)      F(Label)       F(Root) \
-		F(Scroll)     F(Text)        F(Video) \
+		F(View)           F(Box)             F(Image) \
+		F(FlowLayout)     F(FlexLayout)      F(GridLayout) \
+		F(Input)          F(Label)           F(Root) \
+		F(Scroll)         F(Text)            F(Video) \
 
 	# define FX_View_Class(E, N) class N;
 		FX_Views(FX_View_Class);
 	# undef  FX_View_Class
-
-	class Action; // class Action
-	class GLRender; // class GLRender
-	class SkiaRender; // class SkiaRender
 
 	# define FX_Define_View(N) \
 		public: \
 		friend class GLRender; \
 		friend class SkiaRender; \
 		virtual void accept(Visitor *visitor); \
+
+	class Action; // class Action
+	class GLRender; // class GLRender
+	class SkiaRender; // class SkiaRender
 
 	/**
 	 * The basic elements of GUI tree

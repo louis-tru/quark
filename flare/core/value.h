@@ -45,6 +45,7 @@ namespace flare {
 			F(AUTO,               auto) \
 			F(VALUE,              value) \
 			F(NORMAL,             normal) \
+			F(NONE,               none) \
 			\
 			F(FULL,               full) \
 			F(PIXEL,              pixel) \
@@ -57,13 +58,16 @@ namespace flare {
 			F(COLUMN_REVERSE,     column_reverse) \
 			\
 			F(LEFT,               left) \
-			F(CENTER,             center) \
 			F(RIGHT,              right) \
+			F(TOP,                top) \
+			F(BOTTOM,             bottom) \
 			\
+			F(TOP_LEFT,           top_left) \
+			F(TOP_CENTER,         top_center) \
+			F(TOP_RIGHT,          top_right) \
 			F(CENTER_LEFT,        center_left) \
 			F(CENTER_CENTER,      center_center) \
 			F(CENTER_RIGHT,       center_right) \
-			\
 			F(BOTTOM_LEFT,        bottom_left) \
 			F(BOTTOM_CENTER,      bottom_center) \
 			F(BOTTOM_RIGHT,       bottom_right) \
@@ -72,14 +76,18 @@ namespace flare {
 			F(CENTER_REVERSE,     center_reverse) \
 			F(RIGHT_REVERSE,      right_reverse) \
 			\
-			F(TOP,                top) \
-			F(BOTTOM,             bottom) \
+			F(START,              start) \
+			F(CENTER,             center) \
+			F(END,                end) \
+			F(BASELINE,           baseline) \
+			F(STRETCH,            stretch) \
+			F(SPACE_BETWEEN,      space_between) \
+			F(SPACE_AROUND,       space_around) \
 			\
 			F(MIDDLE,             middle) \
 			F(REPEAT,             repeat) \
 			F(REPEAT_X,           repeat_x) \
 			F(REPEAT_Y,           repeat_y) \
-			\
 			F(MIRRORED_REPEAT,    mirrored_repeat) \
 			F(MIRRORED_REPEAT_X,  mirrored_repeat_x) \
 			F(MIRRORED_REPEAT_Y,  mirrored_repeat_y) \
@@ -87,6 +95,9 @@ namespace flare {
 			F(CLIP,               clip) \
 			F(ELLIPSIS,           ellipsis) \
 			F(CENTER_ELLIPSIS,    center_ellipsis) \
+			\
+			/* text white space */ \
+			/*F(NORMAL,       normal)*/ \
 			F(NO_WRAP,            no_wrap) \
 			F(NO_SPACE,           no_space) \
 			F(PRE,                pre) \
@@ -94,6 +105,7 @@ namespace flare {
 			F(WRAP,               wrap) \
 			F(WRAP_REVERSE,       wrap_reverse) \
 			\
+			/* text weight */ \
 			F(THIN,               thin)              /*100*/ \
 			F(ULTRALIGHT,         ultralight)        /*200*/ \
 			F(LIGHT,              light)             /*300*/ \
@@ -103,21 +115,18 @@ namespace flare {
 			F(BOLD,               bold)              /*700*/ \
 			F(HEAVY,              heavy)             /*800*/ \
 			F(BLACK,              black)             /*900*/ \
-			F(THIN_ITALIC,        thin_italic)       /*100*/ \
-			F(ULTRALIGHT_ITALIC,  ultralight_italic) /*200*/ \
-			F(LIGHT_ITALIC,       light_italic)      /*300*/ \
-			F(ITALIC,             italic)            /*400*/ \
-			F(MEDIUM_ITALIC,      medium_italic)     /*500*/ \
-			F(SEMIBOLD_ITALIC,    semibold_italic)   /*600*/ \
-			F(BOLD_ITALIC,        bold_italic)       /*700*/ \
-			F(HEAVY_ITALIC,       heavy_italic)      /*800*/ \
-			F(BLACK_ITALIC,       black_italic)      /*900*/ \
 			\
-			F(NONE,               none) \
+			/* text style */ \
+			/*F(NORMAL,       normal)*/ \
+			F(ITALIC,         italic) \
+			F(OBLIQUE,        oblique) \
+			\
+			/* text decoration */ \
 			F(OVERLINE,           overline) \
 			F(LINE_THROUGH,       line_through) \
 			F(UNDERLINE,          underline) \
 			\
+			/* soft keyboard style */\
 			F(ASCII,              ascii) \
 			F(NUMBER,             number) \
 			F(URL,                url) \
@@ -130,6 +139,7 @@ namespace flare {
 			F(SEARCH,             search) \
 			F(ASCII_NUMBER,       ascii_numner) \
 			\
+			/* enter key style in soft keyboard */ \
 			F(GO,                 go) \
 			F(JOIN,               join) \
 			F(NEXT,               next) \
