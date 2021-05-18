@@ -17,3 +17,5 @@ package-lock.json
 examples/**.js
 bench/**.js
 *.pyc
+libs/ftrp
+libs/ftr
