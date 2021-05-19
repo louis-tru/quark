@@ -57,6 +57,7 @@ namespace flare {
 			END = value::END, // 右对齐
 			SPACE_BETWEEN = value::SPACE_BETWEEN, // 两端对齐，项目之间的间隔都相等
 			SPACE_AROUND = value::SPACE_AROUND, // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+			// SPACE_EVENLY = value::SPACE_EVENLY,
 		};
 
 		// 项目在交叉轴上如何对齐
@@ -75,6 +76,7 @@ namespace flare {
 			END = value::END, // 与交叉轴的终点对齐
 			SPACE_BETWEEN = value::SPACE_BETWEEN, // 与交叉轴两端对齐，轴线之间的间隔平均分布
 			SPACE_AROUND = value::SPACE_AROUND, // 每根轴线两侧的间隔都相等。所以，轴线之间的间隔比轴线与边框的间隔大一倍
+			// SPACE_EVENLY = value::SPACE_EVENLY,
 			STRETCH = value::STRETCH, // 轴线占满整个交叉轴
 		};
 
@@ -145,7 +147,7 @@ namespace flare {
 		 * 
 		 * 设置主轴的对齐方式
 		 *
-		 * @func stt_items_align(val)
+		 * @func set_items_align(val)
 		 */
 		void set_items_align(ItemsAlign align);
 

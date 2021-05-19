@@ -104,7 +104,6 @@ namespace flare {
 			_layout_align = align;
 			if (parent()) {
 				parent()->layout_content_change_notice(this);
-				// parent()->layout_weight_change_notice_from_child(this);
 			}
 		}
 	}

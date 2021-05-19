@@ -18,21 +18,24 @@
 				/* flex-wrap: wrap-reverse; */
 				/* flex-direction: column; */
 				/* flex-direction: column-reverse; */
-				justify-content: center;
+				/* justify-content: center; */
 				/* justify-content: space-between; */
+				justify-content: space-evenly;
 				/* align-content: center; */
 				/* align-content: space-between; */
 				/* align-items: center; */
 			}
 
 			.div1 > div {
-				background: #f00;
-				margin: 5px;
-				width: 40px;
+				background: rgba(255,0,0,0.8);
+				margin: 1px;
+				/* width: 40px; */
 				/* height: 30px; */
 				text-align: center;
 				color: #fff;
 				line-height: 30px;
+				flex-grow: 1;
+				flex-shrink: 1;
 			}
 
 			.div1 > div.b {
@@ -42,9 +45,13 @@
 			}
 
 			.div1 > div.f {
-				width: 300px;
-				flex-grow: 0;
-				flex-shrink: 0;
+				width: 460px;
+				/* flex-grow: 0;
+				flex-shrink: 0; */
+			}
+
+			.div1 > div.f > div {
+				width: 460px;
 			}
 
 		</style>
@@ -58,7 +65,7 @@
 			<div>C</div>
 			<div>D</div>
 			<div>E</div>
-			<div class="f">F</div>
+			<div class="f"><div>F</div></div>
 			<div>G</div>
 			<div>H</div>
 			<div>I</div>

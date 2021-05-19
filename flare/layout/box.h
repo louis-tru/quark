@@ -126,7 +126,7 @@ namespace flare {
 		private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+border+padding+content）
+		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+padding+content）
 		float _layout_weight; // layout weight
 		// size
 		Value _width, _height; // width,height
