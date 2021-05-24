@@ -38,7 +38,7 @@ namespace flare {
 	Box::Box()
 		: _layout_weight(0)
 		, _fill(nullptr)
-		, _layout_align(LEFT)
+		, _layout_align(AUTO)
 	{
 	}
 

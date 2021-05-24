@@ -76,7 +76,7 @@ namespace flare {
 		* @func layout_align()
 		*/
 	Layout::LayoutAlign Layout::layout_align() {
-		return LEFT;
+		return AUTO;
 	}
 
 	/**

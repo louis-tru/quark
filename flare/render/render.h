@@ -170,7 +170,7 @@ namespace flare {
 		Texture*            _empty_texture;
 		FontPool*           _font_pool;        /* 字体纹理池 */
 		TexturePool*        _tex_pool;         /* 文件纹理池 */
-		uint64_t              _max_texture_memory_limit;
+		uint64_t            _max_texture_memory_limit;
 		float               _best_display_scale;
 		DrawLibrary         _library;
 		static Draw*        _draw_ctx;

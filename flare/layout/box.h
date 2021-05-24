@@ -47,7 +47,7 @@ namespace flare {
 		* @enum ValueType
 		*/
 		enum ValueType: uint8_t {
-			WRAP  = value::WRAP,    /* 内容包裹 wrap content */
+			WRAP  = value::WRAP,    /* 包裹内容 wrap content */
 			MATCH = value::MATCH,   /* 匹配父视图 match parent */
 			VALUE = value::VALUE,   /* 明确值 value px */
 			RATIO = value::RATIO,   /* 百分比 value % */
@@ -128,14 +128,13 @@ namespace flare {
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+padding+content）
 		float _layout_weight; // layout weight
+		LayoutAlign _layout_align; // layout align
 		// size
 		Value _width, _height; // width,height
 		Vec2  _size; // width,height
 		Vec4  _margin, _padding; // top,right,bottom,left
 		// fill
 		FillPtr _fill; // color|shadow|image|gradient|border|border-radius
-		// layout align
-		LayoutAlign _layout_align;
 	};
 
 }
