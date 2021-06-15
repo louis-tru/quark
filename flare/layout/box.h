@@ -49,9 +49,10 @@ namespace flare {
 		enum ValueType: uint8_t {
 			WRAP  = value::WRAP,    /* 包裹内容 wrap content */
 			MATCH = value::MATCH,   /* 匹配父视图 match parent */
-			VALUE = value::VALUE,   /* 明确值 value px */
+			PIXEL = value::PIXEL,   /* 明确值 value px */
 			RATIO = value::RATIO,   /* 百分比 value % */
 			MINUS = value::MINUS,   /* 减法(parent-value) value ! */
+			RANGE = value::RANGE,   /* 范围值 range 限制最小与最大 */
 		};
 
 		typedef value::ValueTemplate<ValueType, ValueType::WRAP> Value;

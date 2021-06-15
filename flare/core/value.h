@@ -48,7 +48,7 @@ namespace flare {
 			\
 			F(WRAP,               wrap) \
 			F(MATCH,              match) \
-			F(VALUE,              value) \
+			F(PIXEL,              pixel) \
 			F(RATIO,              ratio) \
 			F(MINUS,              minus) \
 			\
