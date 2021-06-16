@@ -44,18 +44,18 @@ namespace flare {
 		public:
 
 		/**
-		* @enum ValueType
+		* @enum SizeType
 		*/
-		enum ValueType: uint8_t {
+		enum SizeType: uint8_t {
+			NONE  = value::NONE,    /* none default wrap content */
 			WRAP  = value::WRAP,    /* 包裹内容 wrap content */
 			MATCH = value::MATCH,   /* 匹配父视图 match parent */
 			PIXEL = value::PIXEL,   /* 明确值 value px */
 			RATIO = value::RATIO,   /* 百分比 value % */
 			MINUS = value::MINUS,   /* 减法(parent-value) value ! */
-			RANGE = value::RANGE,   /* 范围值 range 限制最小与最大 */
 		};
 
-		typedef value::ValueTemplate<ValueType, ValueType::WRAP> Value;
+		typedef value::ValueTemplate<SizeType, SizeType::WRAP> SizeValue;
 
 		/**
 		 * @constructors
@@ -67,26 +67,20 @@ namespace flare {
 		 */
 		virtual ~Box();
 
-		/**
-		 * @func width()
-		 */
-		inline Value width() const {
-			return _width;
-		}
-		
-		/**
-		 * @func height()
-		 */
-		inline Value height() const {
-			return _height;
-		}
-
-		/**
-		 * @func fill()
-		 */
-		inline FillPtr fill() {
-			return _fill;
-		}
+		// define props
+		FX_Define_Prop(SizeValue, width); // size width
+		FX_Define_Prop(SizeValue, height); // size height
+		FX_Define_Prop(SizeValue, limit_width); // limit max size
+		FX_Define_Prop(SizeValue, limit_height);
+		FX_Define_Prop(float, margin_top); // margin
+		FX_Define_Prop(float, margin_right);
+		FX_Define_Prop(float, margin_bottom);
+		FX_Define_Prop(float, margin_left);
+		FX_Define_Prop(float, padding_top); // padding
+		FX_Define_Prop(float, padding_right);
+		FX_Define_Prop(float, padding_bottom);
+		FX_Define_Prop(float, padding_left);
+		FX_Define_Prop(FillPtr, fill); // color|shadow|image|gradient|border|border-radius
 
 		/**
 		 *
@@ -130,12 +124,7 @@ namespace flare {
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+padding+content）
 		float _layout_weight; // layout weight
 		LayoutAlign _layout_align; // layout align
-		// size
-		Value _width, _height; // width,height
-		Vec2  _size; // width,height
-		Vec4  _margin, _padding; // top,right,bottom,left
-		// fill
-		FillPtr _fill; // color|shadow|image|gradient|border|border-radius
+		Vec2  _size; // width,height / size
 	};
 
 }

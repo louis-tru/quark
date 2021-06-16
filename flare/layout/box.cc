@@ -36,8 +36,18 @@ namespace flare {
 		* @constructors
 		*/
 	Box::Box()
-		: _layout_weight(0)
+		: _limit_width(0, NONE)
+		, _limit_height(0, NONE)
+		, _margin_top(0)
+		, _margin_right(0)
+		, _margin_bottom(0)
+		, _margin_left(0)
+		, _padding_top(0)
+		, _padding_right(0)
+		, _padding_bottom(0)
+		, _padding_left(0)
 		, _fill(nullptr)
+		, _layout_weight(0)
 		, _layout_align(AUTO)
 	{
 	}
@@ -48,6 +58,108 @@ namespace flare {
 	Box::~Box() {
 	}
 	
+	/**
+		*
+		* 设置宽度
+		*
+		* @func set_width(width)
+		*/
+	void Box::set_width(SizeValue width) {
+		if (_width != width) {
+			// TODO ...
+		}
+	}
+
+	/**
+		*
+		* 设置高度
+		*
+		* @func set_height(height)
+		*/
+	void Box::set_height(SizeValue height) {
+		if (_height != height) {
+			// TODO ...
+		}
+	}
+
+	/**
+		*
+		* 设置最大宽度限制
+		*
+		* @func set_limit_width(limit_width)
+		*/
+	void Box::set_limit_width(SizeValue limit_width) {
+		if (_limit_width != limit_width) {
+			// TODO ...
+		}
+	}
+
+	/**
+		*
+		* 设置最大高度限制
+		*
+		* @func set_limit_height(limit_height)
+		*/
+	void Box::set_limit_height(SizeValue limit_height) {
+		if (_limit_height != limit_height) {
+			// TODO ...
+		}
+	}
+
+	void Box::margin_top(float val) { // margin
+		if (_padding_top != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::margin_right(float val) {
+		if (_padding_right != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::margin_bottom(float val) {
+		if (_padding_bottom != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::margin_left(float val) {
+		if (_padding_left != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::padding_top(float val) { // padding
+		if (_padding_top != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::padding_right(float val) {
+		if (_padding_right != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::padding_bottom(float val) {
+		if (_padding_bottom != val) {
+			// TODO ...
+		}
+	}
+
+	void Box::padding_left(float val) {
+		if (_padding_left != val) {
+			// TODO ...
+		}
+	}
+	
+	void Box::fill(FillPtr val) {
+		if (_fill != val) {
+			// TODO ...
+		}
+	}
+
 	/**
 		*
 		* Accepting visitors

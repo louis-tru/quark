@@ -40,11 +40,11 @@ namespace flare {
 
 		#define FX_ENUM_VALUE(F) \
 			\
+			F(NONE,               none) \
 			F(DEFAULT,            default) \
 			F(INHERIT,            inherit) \
 			F(AUTO,               auto) \
 			F(NORMAL,             normal) \
-			F(NONE,               none) \
 			\
 			F(WRAP,               wrap) \
 			F(MATCH,              match) \
