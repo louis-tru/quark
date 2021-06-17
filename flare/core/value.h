@@ -83,6 +83,7 @@ namespace flare {
 			F(STRETCH,            stretch) \
 			F(SPACE_BETWEEN,      space_between) \
 			F(SPACE_AROUND,       space_around) \
+			F(SPACE_EVENLY,       space_evenly) \
 			\
 			F(MIDDLE,             middle) \
 			F(REPEAT,             repeat) \

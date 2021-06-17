@@ -14,16 +14,26 @@
 				margin: auto;
 				background: #0f0;
 				display: flex;
-				/* flex-wrap: wrap; */
+				flex-wrap: wrap;
 				/* flex-wrap: wrap-reverse; */
 				/* flex-direction: column; */
 				/* flex-direction: column-reverse; */
+
+				/*主轴上的对齐方式*/
 				/* justify-content: center; */
 				/* justify-content: space-between; */
 				justify-content: space-evenly;
+				
+				/*交叉轴上如何对齐*/
+				/* align-items: center; */
+				/* align-items: flex-end; */
+				align-items: baseline;
+
+				/*多根轴线的对齐方式*/
 				/* align-content: center; */
 				/* align-content: space-between; */
-				/* align-items: center; */
+				/* align-content: space-evenly; */
+				align-content: stretch;
 			}
 
 			.div1 > div {
@@ -34,7 +44,7 @@
 				text-align: center;
 				color: #fff;
 				line-height: 30px;
-				flex-grow: 1;
+				/* flex-grow: 1; */
 				flex-shrink: 1;
 			}
 
@@ -44,8 +54,14 @@
 				text-align: end; */
 			}
 
+			.div1 > div.d {
+				height: 50px;
+				line-height: 50px;
+			}
+
 			.div1 > div.f {
 				width: 460px;
+				height: 60px;
 				/* flex-grow: 0;
 				flex-shrink: 0; */
 			}
@@ -63,7 +79,7 @@
 			<div class="a">A</div>
 			<div class="b">B</div>
 			<div>C</div>
-			<div>D</div>
+			<div class="d">D</div>
 			<div>E</div>
 			<div class="f"><div>F</div></div>
 			<div>G</div>

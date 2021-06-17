@@ -57,27 +57,27 @@ namespace flare {
 			END = value::END, // 右对齐
 			SPACE_BETWEEN = value::SPACE_BETWEEN, // 两端对齐，项目之间的间隔都相等
 			SPACE_AROUND = value::SPACE_AROUND, // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
-			// SPACE_EVENLY = value::SPACE_EVENLY,
+			SPACE_EVENLY = value::SPACE_EVENLY, // 每个项目两侧的间隔相等,这包括边框的间距
 		};
 
-		// 项目在交叉轴上如何对齐
+		// 项目在交叉轴内如何对齐
 		enum CrossAlign: uint8_t {
-			START = value::START, // 与交叉轴的起点对齐
-			CENTER = value::CENTER, // 与交叉轴的中点对齐
-			END = value::END, // 与交叉轴的终点对齐
-			BASELINE = value::BASELINE, // 项目的第一行文字的基线对齐
-			STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto，将占满整个容器的高度
+			START = value::START, // 与交叉轴内的起点对齐
+			CENTER = value::CENTER, // 与交叉轴内的中点对齐
+			END = value::END, // 与交叉轴内的终点对齐
+			STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto,将占满交叉轴内空间
+			// BASELINE = value::BASELINE, // 项目的第一行文字的基线对齐
 		};
 
-		// 多根轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
+		// 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
 		enum WrapAlign: uint8_t {
 			START = value::START, // 与交叉轴的起点对齐
 			CENTER = value::CENTER, // 与交叉轴的中点对齐
 			END = value::END, // 与交叉轴的终点对齐
-			SPACE_BETWEEN = value::SPACE_BETWEEN, // 与交叉轴两端对齐，轴线之间的间隔平均分布
-			SPACE_AROUND = value::SPACE_AROUND, // 每根轴线两侧的间隔都相等。所以，轴线之间的间隔比轴线与边框的间隔大一倍
-			// SPACE_EVENLY = value::SPACE_EVENLY,
-			STRETCH = value::STRETCH, // 轴线占满整个交叉轴
+			SPACE_BETWEEN = value::SPACE_BETWEEN, // 与交叉轴两端对齐,轴线之间的间隔平均分布
+			SPACE_AROUND = value::SPACE_AROUND, // 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
+			SPACE_EVENLY = value::SPACE_EVENLY, // 每根轴线两侧的间隔都相等,这包括边框的间距
+			STRETCH = value::STRETCH, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
 		};
 
 		/**
@@ -85,95 +85,12 @@ namespace flare {
 		 */
 		FlowLayout();
 
-		/**
-		 * 
-		 * 获取主轴的方向
-		 *
-		 * @func direction()
-		 */
-		inline Direction direction() const {
-			return _direction;
-		}
-
-		/**
-		 * 
-		 * 获取主轴的对齐方式
-		 *
-		 * @func items_align()
-		 */
-		inline ItemsAlign items_align() const {
-			return _items_align;
-		}
-
-		/**
-		 *
-		 * 获取交叉轴的对齐方式
-		 *
-		 * @func corss_align()
-		 */
-		inline CrossAlign cross_align() const {
-			return _cross_align;
-		}
-
-		/**
-		 * 
-		 * 获取多根交叉轴的对齐方式
-		 *
-		 * @func wrap_align() 
-		 */
-		inline WrapAlign wrap_align() const {
-			return _wrap_align;
-		}
-
-		/**
-		 * 
-		 * 获取，多根交叉轴是否反向排列
-		 *
-		 * @func wrap_reverse()
-		 */
-		inline bool wrap_reverse() const {
-			return _wrap_reverse;
-		}
-		
-		/**
-		 *
-		 * 设置主轴的方向
-		 *
-		 * @func set_direction(val)
-		 */
-		void set_direction(Direction val);
-
-		/**
-		 * 
-		 * 设置主轴的对齐方式
-		 *
-		 * @func set_items_align(val)
-		 */
-		void set_items_align(ItemsAlign align);
-
-		/**
-		 * 
-		 * 设置交叉轴的对齐方式
-		 *
-		 * @func set_cross_align(align)
-		 */
-		void set_cross_align(CrossAlign align);
-
-		/**
-		 * 
-		 * 设置多根交叉轴的对齐方式
-		 *
-		 * @func set_wrap_align(val)
-		 */
-		void set_wrap_align(WrapAlign align);
-
-		/**
-		 * 
-		 * 设置多根交叉轴是否反向排列
-		 *
-		 * @func set_wrap_reverse(reverse)
-		 */
-		void set_wrap_reverse(bool reverse);
+		// define props
+		FX_Define_Prop(Direction, direction); // direction 主轴的方向
+		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式
+		FX_Define_Prop(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
+		FX_Define_Prop(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
+		FX_Define_Prop(bool, wrap_reverse); // wrap_reverse 多根交叉轴是否反向排列
 
 		// --------------- o v e r w r i t e ---------------
 		// @overwrite
@@ -182,11 +99,6 @@ namespace flare {
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
-		Direction  _direction; // 主轴的方向
-		ItemsAlign _items_align; // 主轴的对齐方式
-		CrossAlign _cross_align; // 交叉轴的对齐方式
-		WrapAlign _wrap_align; // 多根交叉轴的对齐方式，如果项目只有一根交叉轴，该属性不起作用
-		bool _wrap_reverse; // 多根交叉轴是否反向排列
 	};
 
 }
