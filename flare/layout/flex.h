@@ -42,8 +42,45 @@ namespace flare {
 		FX_Define_View(FlexLayout);
 		public:
 
+		// layout direction
+		enum Direction: uint8_t {
+			ROW = value::ROW,
+			ROW_REVERSE = value::ROW_REVERSE,
+			COLUMN = value::COLUMN,
+			COLUMN_REVERSE = value::COLUMN_REVERSE,
+		};
+
+		// 项目在主轴上的对齐方式
+		enum ItemsAlign: uint8_t {
+			START = value::START, // 左对齐
+			CENTER = value::CENTER, // 居中
+			END = value::END, // 右对齐
+			SPACE_BETWEEN = value::SPACE_BETWEEN, // 两端对齐，项目之间的间隔都相等
+			SPACE_AROUND = value::SPACE_AROUND, // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
+			SPACE_EVENLY = value::SPACE_EVENLY, // 每个项目两侧的间隔相等,这包括边框的间距
+		};
+
+		// 项目在交叉轴内如何对齐
+		enum CrossAlign: uint8_t {
+			START = value::START, // 与交叉轴内的起点对齐
+			CENTER = value::CENTER, // 与交叉轴内的中点对齐
+			END = value::END, // 与交叉轴内的终点对齐
+			STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto,将占满交叉轴内空间
+			// BASELINE = value::BASELINE, // 项目的第一行文字的基线对齐
+		};
+
+		/**
+		 * @constructors
+		 */
+		FlexLayout();
+
+		// define props
+		FX_Define_Prop(Direction, direction); // direction 主轴的方向
+		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式
+		FX_Define_Prop(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
+
+		// --------------- m e m b e r . f i e l d ---------------
 		private:
-		Direction _direction; // 方向
 	};
 
 }

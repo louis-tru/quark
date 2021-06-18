@@ -32,6 +32,56 @@
 
 namespace flare {
 
+	// --------------- V i e w :: V i s i t o r ---------------
+
+	void View::Visitor::visitView(View *v) {
+		v->visit(this);
+	}
+
+	void View::Visitor::visitBox(Box *v) {
+		visitView(v);
+	}
+
+	void View::Visitor::visitGridLayout(GridLayout *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitFlexLayout(FlexLayout *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitFlowLayout(FlowLayout *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitImage(Image *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitVideo(Video *v) {
+		visitImage(v);
+	}
+
+	void View::Visitor::visitText(Text *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitScroll(Scroll *v) {
+		visitFlowLayout(v);
+	}
+
+	void View::Visitor::visitRoot(Root *v) {
+		visitBox(v);
+	}
+
+	void View::Visitor::visitLabel(Label *v) {
+		visitView(v);
+	}
+
+	void View::Visitor::visitInput(Input *v) {
+		visitBox(v);
+	}
+
 	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method

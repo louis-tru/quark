@@ -63,8 +63,8 @@ namespace flare {
 			START = value::START,
 			CENTER = value::CENTER,
 			END = value::END,
-			BASELINE = value::BASELINE,
 			STRETCH = value::STRETCH,
+			// BASELINE = value::BASELINE,
 			// default
 			TOP_LEFT = value::TOP_LEFT,
 			TOP_CENTER = value::TOP_CENTER,
@@ -83,7 +83,7 @@ namespace flare {
 		};
 		
 		struct Region {
-			float x, y;
+			float x1, y1;
 			float x2, y2;
 			float w, h;
 		};

@@ -42,4 +42,53 @@ namespace flare {
 		visitor->visitFlexLayout(this);
 	}
 
+	/**
+		* @constructors
+		*/
+	FlexLayout::FlexLayout()
+		: _direction(Direction::ROW)
+		, _items_align(ItemsAlign::START)
+		, _cross_align(CrossAlign::START)
+	{
+	}
+
+	/**
+		*
+		* 设置主轴的方向
+		*
+		* @func set_direction(val)
+		*/
+	void FlexLayout::set_direction(Direction val) {
+		if (val != _direction) {
+			_direction = val;
+			mark(M_LAYOUT_CONTENT); // 排版参数改变,后续需对子布局重新排版
+		}
+	}
+
+	/**
+		* 
+		* 设置主轴的对齐方式
+		*
+		* @func stt_items_align(align)
+		*/
+	void FlexLayout::set_items_align(ItemsAlign align) {
+		if (align != _items_align) {
+			_items_align = align;
+			mark(M_LAYOUT_CONTENT);
+		}
+	}
+
+	/**
+		* 
+		* 设置交叉轴的对齐方式
+		*
+		* @func set_cross_align(align)
+		*/
+	void FlexLayout::set_cross_align(CrossAlign align) {
+		if (align != _cross_align) {
+			_cross_align = align;
+			mark(M_LAYOUT_CONTENT);
+		}
+	}
+
 }

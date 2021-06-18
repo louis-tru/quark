@@ -31,43 +31,16 @@
 #ifndef __flare__layout__flow__
 #define __flare__layout__flow__
 
-#include "./box.h"
+#include "./flex.h"
 
 namespace flare {
 
 	/**
 	 * @class FlowLayout
 	 */
-	class FX_EXPORT FlowLayout: public Box {
+	class FX_EXPORT FlowLayout: public FlexLayout {
 		FX_Define_View(FlowLayout);
 		public:
-
-		// layout direction
-		enum Direction: uint8_t {
-			ROW = value::ROW,
-			ROW_REVERSE = value::ROW_REVERSE,
-			COLUMN = value::COLUMN,
-			COLUMN_REVERSE = value::COLUMN_REVERSE,
-		};
-
-		// 项目在主轴上的对齐方式
-		enum ItemsAlign: uint8_t {
-			START = value::START, // 左对齐
-			CENTER = value::CENTER, // 居中
-			END = value::END, // 右对齐
-			SPACE_BETWEEN = value::SPACE_BETWEEN, // 两端对齐，项目之间的间隔都相等
-			SPACE_AROUND = value::SPACE_AROUND, // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
-			SPACE_EVENLY = value::SPACE_EVENLY, // 每个项目两侧的间隔相等,这包括边框的间距
-		};
-
-		// 项目在交叉轴内如何对齐
-		enum CrossAlign: uint8_t {
-			START = value::START, // 与交叉轴内的起点对齐
-			CENTER = value::CENTER, // 与交叉轴内的中点对齐
-			END = value::END, // 与交叉轴内的终点对齐
-			STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto,将占满交叉轴内空间
-			// BASELINE = value::BASELINE, // 项目的第一行文字的基线对齐
-		};
 
 		// 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
 		enum WrapAlign: uint8_t {
@@ -86,9 +59,6 @@ namespace flare {
 		FlowLayout();
 
 		// define props
-		FX_Define_Prop(Direction, direction); // direction 主轴的方向
-		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式
-		FX_Define_Prop(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
 		FX_Define_Prop(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
 		FX_Define_Prop(bool, wrap_reverse); // wrap_reverse 多根交叉轴是否反向排列
 
