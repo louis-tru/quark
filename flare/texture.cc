@@ -484,7 +484,7 @@ namespace flare {
 	 */
 	Texture::Level Texture::get_texture_level_from_convex_quadrilateral(Vec2 vertex[4]) {
 		if (_width) {
-			auto dp = display_port();
+			auto dp = app()->display_port();
 			if (!dp) {
 				return Texture::LEVEL_0;
 			}

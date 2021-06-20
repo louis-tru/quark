@@ -86,19 +86,9 @@ namespace flare {
 		bool         _mark_pre;    // 是否有layout标记
 		Array<View*> _marks;       // 被标记的视图
 		List<Task*>  _tasks;
-		static PreRender* _pre_render;
-
-		friend PreRender* pre_render();
 
 		FX_DEFINE_INLINE_CLASS(Inl)
 	};
-
-	/**
-	* @func pre_render
-	*/
-	inline PreRender* pre_render() {
-		return PreRender::_pre_render;
-	}
 
 }
 #endif

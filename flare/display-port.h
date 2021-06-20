@@ -224,7 +224,6 @@ namespace flare {
 		Vec2              _size;       // 当前视口尺寸
 		float             _scale;      // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
 		Vec2              _scale_value;
-		PreRender*        _pre_render;
 		Draw*             _draw_ctx;
 		Mat4              _root_matrix;
 		float             _atom_pixel;

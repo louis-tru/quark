@@ -320,11 +320,11 @@ namespace flare {
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 			
 			// 限制子视图区域绘图
-			display_port()->push_draw_region(v->get_screen_region());
+			app()->display_port()->push_draw_region(v->get_screen_region());
 		}
 		
 		void draw_end_clip(Box* v) {
-			display_port()->pop_draw_region(); // 弹出区域绘图
+			app()->display_port()->pop_draw_region(); // 弹出区域绘图
 			
 			if ( _root_stencil_ref_value == _stencil_ref_value - 1 ) {
 				_root_stencil_ref_value = _stencil_ref_value;

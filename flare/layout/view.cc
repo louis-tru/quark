@@ -51,7 +51,7 @@ namespace flare {
 	}
 
 	void View::Visitor::visitFlowLayout(FlowLayout *v) {
-		visitBox(v);
+		visitFlexLayout(v);
 	}
 
 	void View::Visitor::visitImage(Image *v) {

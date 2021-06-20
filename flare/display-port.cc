@@ -49,7 +49,7 @@ namespace flare {
 		}
 		
 		void update_root_size() {
-			Root* r = root();
+			Root* r = _host->root();
 			if (r) {
 				r->set_width(_size.width());
 				r->set_height(_size.height());
@@ -137,7 +137,6 @@ namespace flare {
 	, _size()
 	, _scale(1)
 	, _scale_value(1)
-	, _pre_render(new PreRender())
 	, _draw_ctx(host->draw_ctx())
 	, _root_matrix()
 	, _atom_pixel(1)
@@ -157,7 +156,6 @@ namespace flare {
 	* @destructor
 	*/
 	DisplayPort::~DisplayPort() {
-		Release(_pre_render);
 		_draw_ctx->FX_Off(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 	}
 
@@ -187,12 +185,12 @@ namespace flare {
 	* @func render_frame()
 	*/
 	void DisplayPort::render_frame() {
-		Root* r = root();
+		Root* r = _host->root();
 		int64_t now_time = os::time_monotonic();
 		_host->action_center()->advance(now_time); // advance action
 		
 		if (r) {
-			bool ok = _pre_render->solve(now_time);
+			bool ok = _host->_pre_render->solve(now_time);
 			if (ok || r->mark_value || r->_child_change_flag) {
 				
 				if (now_time - _record_fsp_time >= 1e6) {
@@ -236,9 +234,9 @@ namespace flare {
 	*/
 	void DisplayPort::refresh() {
 		// TODO 必须要渲染循环中调用
-		Root* r = root();
+		Root* r = _host->root();
 		if ( r ) {
-			_pre_render->solve(os::time_monotonic());
+			_host->_pre_render->solve(os::time_monotonic());
 			_draw_ctx->begin_render();
 			r->draw(_draw_ctx); // 开始绘图
 			_draw_ctx->commit_render();

@@ -38,6 +38,7 @@
 #include "./action/action.h"
 #include "./css/css.h"
 #include "./font/pool.h"
+#include "./_pre-render.h"
 
 FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
 FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
@@ -287,6 +288,7 @@ GUIApplication::GUIApplication()
 , _default_text_white_space({ TextValueType::VALUE, TextWhiteSpaceEnum::NORMAL })
 , _dispatch(nullptr)
 , _action_center(nullptr)
+, _pre_render(nullptr)
 {
 	_main_keep = _main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
 	Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
@@ -306,6 +308,7 @@ GUIApplication::~GUIApplication() {
 	Release(_dispatch);      _dispatch = nullptr;
 	Release(_action_center); _action_center = nullptr;
 	Release(_display_port);  _display_port = nullptr;
+	Release(_pre_render);    _pre_render = nullptr;
 	Release(_render_keep);   _render_keep = nullptr;
 	Release(_main_keep);     _main_keep = nullptr;
 
@@ -328,6 +331,8 @@ void GUIApplication::initialize(cJSON& options) throw(Error) {
 	FX_DEBUG("Inl_GUIApplication initialize ok");
 	_display_port = NewRetain<DisplayPort>(this); // strong ref
 	FX_DEBUG("NewRetain<DisplayPort> ok");
+	_pre_render = new PreRender();
+	FX_DEBUG("new PreRender ok");
 	_draw_ctx->font_pool()->set_display_port(_display_port);
 	FX_DEBUG("_draw_ctx->font_pool()->set_display_port() ok");
 	_dispatch = new GUIEventDispatch(this);

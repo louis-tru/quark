@@ -215,7 +215,7 @@ namespace flare {
 
 	void Layout::mark_recursive(uint32_t mark) {
 		_layout_mark |= mark;
-		// TODO pushh to pre render
+		// TODO push to pre render
 	}
 
 	/**

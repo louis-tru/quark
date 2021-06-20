@@ -130,14 +130,14 @@ static NSString* app_delegate_name = @"";
 			 withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 {
 	[coordinator animateAlongsideTransition:^(id context) {
-		Orientation ori = display_port()->orientation();
+		Orientation ori = app_delegate.app->display_port()->orientation();
 		::CGRect rect = app_delegate.glview.frame;
 		app_delegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
 			gl_draw_context->refresh_surface_size(rect);
 			if (ori != app_delegate.current_orientation) {
 				app_delegate.current_orientation = ori;
 				main_loop()->post(Cb([](CbData& e) {
-					(app_delegate.app)->display_port()->FX_Trigger(orientation);
+					app_delegate.app->display_port()->FX_Trigger(orientation);
 				}));
 			}
 		}));

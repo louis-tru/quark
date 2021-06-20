@@ -62,6 +62,7 @@ namespace flare {
 	class ActionCenter;
 	class PropertysAccessor;
 	class CSSManager;
+	class PreRender;
 
 	/**
 	* 注意: 如果`main loop`与`render loop`运行在不同的线程,
@@ -231,6 +232,13 @@ namespace flare {
 										cString& cc = String(),
 										cString& bcc = String(),
 										cString& body = String());
+
+		/**
+		 * @func pre_render()
+		 */
+		inline PreRender* pre_render() {
+			return _pre_render;
+		}
 		
 		protected:
 		
@@ -247,6 +255,7 @@ namespace flare {
 		KeepLoop *_render_keep, *_main_keep;
 		Draw*                _draw_ctx;         // 绘图上下文
 		DisplayPort*         _display_port;     // 显示端口
+		PreRender*           _pre_render;
 		Root*                _root;             // 根视图
 		View*                _focus_view;       // 焦点视图
 		TextColor            _default_text_background_color; // default text attrs
@@ -266,21 +275,10 @@ namespace flare {
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
 		friend GUIApplication*  app();
-		friend Root*            root();
-		friend DisplayPort*     display_port();
 	};
 
 	inline GUIApplication* app() {
 		return GUIApplication::_shared;
-	}
-	inline Root* root() {
-		return GUIApplication::_shared ? GUIApplication::_shared->_root : nullptr;
-	}
-	inline DisplayPort* display_port() {
-		return GUIApplication::_shared ? GUIApplication::_shared->_display_port : nullptr;
-	}
-	inline RunLoop* main_loop() {
-		return RunLoop::main_loop();
 	}
 
 }

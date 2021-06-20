@@ -423,7 +423,7 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	final_position = Vec2(final_position_x, final_position_y);
 	
 	// Computing texture level
-	float dpscale = display_port()->scale();
+	float dpscale = app()->display_port()->scale();
 	// screen size
 	auto vertex = v->_final_vertex;
 	float box_screen_scale_width = sqrt(pow(vertex[0][0] - vertex[1][0], 2) +

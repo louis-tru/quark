@@ -163,7 +163,7 @@ namespace flare {
 	 */
 	bool View::blur() {
 		if ( is_focus() ) {
-			View* v = root();
+			View* v = app()->root();
 			if ( v ) {
 				if ( v != this ) {
 					return v->focus();

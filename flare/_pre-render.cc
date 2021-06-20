@@ -35,8 +35,6 @@
 
 namespace flare {
 
-	PreRender* PreRender::_pre_render(NULL);
-
 	FX_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
 		public:
 		
@@ -194,8 +192,6 @@ namespace flare {
 	* @constructor
 	*/
 	PreRender::PreRender() {
-		ASSERT(!_pre_render); // "At the same time can only run a MarkManager entity"
-		_pre_render = this;
 		BeginView* begin = new BeginView();
 		_marks.push(begin);
 		begin->_prev_pre_mark = begin;
@@ -212,7 +208,6 @@ namespace flare {
 			Release(*it);
 			it++;
 		}
-		_pre_render = nullptr;
 	}
 
 	/**

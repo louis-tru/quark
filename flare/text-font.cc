@@ -261,7 +261,7 @@ namespace flare {
 		 * 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		 * 这种模糊测试在大多数时候都是正确有效的。
 		 */
-		Region dre = display_port()->draw_region();
+		Region dre = app()->display_port()->draw_region();
 		Region re = View::screen_region_from_convex_quadrilateral(vertex);
 		
 		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
@@ -282,10 +282,10 @@ namespace flare {
 		}
 		
 		// 限制多行文本框绘图区域
-		display_port()->push_draw_region(re);
+		app()->display_port()->push_draw_region(re);
 		
 		// 限制在这个区域
-		dre = display_port()->draw_region();
+		dre = app()->display_port()->draw_region();
 		
 		View* v = view();
 		
@@ -338,7 +338,7 @@ namespace flare {
 			index++;
 		}
 		
-		display_port()->pop_draw_region();
+		app()->display_port()->pop_draw_region();
 		
 		return has_visible_draw_range;
 	}
