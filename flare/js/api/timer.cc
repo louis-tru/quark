@@ -44,9 +44,8 @@ class Timer: public Reference {
 	uint64_t    _timeout;   // 超时时间
 	int       _loop;      // -1 为无限循环
 	RunLoop*  _run_loop;  // 消息队列
-	Callback<> _cb;
+	Cb _cb, _cb2;
 	CallbackPtr _cb_ptr;
-	Callback<> _cb2;
 	
 	void _run_cb(CbData& d) {
 		

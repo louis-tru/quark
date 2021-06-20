@@ -36,7 +36,6 @@
 #include "./math/math.h"
 #include "./value.h"
 #include "./util/cb.h"
-#include <list>
 
 namespace flare {
 
@@ -229,7 +228,7 @@ namespace flare {
 		float             _atom_pixel;
 		List<Region>      _draw_region;
 		GUIApplication*   _host;
-		List<Callback<>>  _next_frame;
+		List<Cb>          _next_frame;
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
 		

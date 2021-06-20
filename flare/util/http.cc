@@ -678,7 +678,7 @@ namespace flare {
 			
 			struct connect_req {
 				Client* client;
-				Callback<> cb;
+				Cb cb;
 				uint32_t wait_id;
 				String  hostname;
 				uint16_t   port;

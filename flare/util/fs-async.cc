@@ -296,7 +296,7 @@ static AsyncIOTask* cp2(cString& source, cString& target, Cb cb, RunLoop* loop) 
 		
 		AsyncFile* _source_file;
 		AsyncFile* _target_file;
-		Callback<>   _end;
+		Cb         _end;
 		Buffer     _buffer[2];
 		int        _reading_count;
 		int        _writeing_count;
@@ -458,8 +458,7 @@ class AsyncEach: public AsyncIOTask {
  private:
 	
 	String _path;
-	Callback<> _cb;
-	Callback<> _end;
+	Cb _cb, _end;
 	Array<DirentList> _stack;
 	Dirent* _dirent;
 	DirentList* _last;
@@ -677,8 +676,8 @@ uint32_t FileHelper::copy_r(cString& source, cString& target, Cb cb) {
 		
 	private:
 		
-		Callback<> _end;
-		uint32_t   _s_len;
+		Cb _end;
+		uint32_t _s_len;
 		String _path;
 		AsyncIOTask* _copy_task;
 	};

@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./layout.h"
+#include "../_pre-render.h"
 
 namespace flare {
 
@@ -211,11 +212,13 @@ namespace flare {
 	void Layout::mark(uint32_t mark) {
 		_layout_mark |= mark;
 		// TODO push to pre render
+		app()->pre_render()->mark_pre(this);
 	}
 
 	void Layout::mark_recursive(uint32_t mark) {
 		_layout_mark |= mark;
 		// TODO push to pre render
+		app()->pre_render()->mark_pre(this);
 	}
 
 	/**
@@ -223,6 +226,7 @@ namespace flare {
 		*/
 	void Layout::mark_none() {
 		// TODO ...
+		app()->pre_render()->mark_pre(this);
 	}
 
 }

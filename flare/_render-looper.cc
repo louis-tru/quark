@@ -44,7 +44,7 @@ RenderLooper::~RenderLooper() {
 struct LooperData: Object {
 	int id;
 	AppInl* host;
-	Callback<> cb;
+	Cb cb;
 };
 
 void looper(CbData& ev, LooperData* data) {
@@ -65,9 +65,9 @@ void RenderLooper::start() {
 			LooperData* data = new LooperData();
 			data->id = getId32();
 			data->host = _host;
-			data->cb = Callback<>(&looper, data);
+			data->cb = Cb(&looper, data);
 			_id = &data->id;
-			Callback<>::Data d;
+			Cb::Data d;
 			looper(d, data);
 		}
 		ev.data->complete();

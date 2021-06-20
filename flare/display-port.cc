@@ -115,9 +115,9 @@ namespace flare {
 		*/
 		void solve_next_frame() {
 			if (_next_frame.length()) {
-				List<Callback<>>* cb = new List<Callback<>>(std::move(_next_frame));
+				List<Cb>* cb = new List<Cb>(std::move(_next_frame));
 				_host->main_loop()->post(Cb([cb](CbData& e) {
-					Handle<List<Callback<>>> handle(cb);
+					Handle<List<Cb>> handle(cb);
 					for ( auto& i : *cb ) {
 						i->resolve();
 					}

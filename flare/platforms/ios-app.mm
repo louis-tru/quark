@@ -67,8 +67,8 @@ static NSString* app_delegate_name = @"";
  */
 @interface ApplicationDelegate()<MFMailComposeViewControllerDelegate> {
 	UIWindow* _window;
-	BOOL      _is_background;
-	Callback<>  _render_exec;
+	BOOL _is_background;
+	Cb  _render_exec;
 }
 @property (strong, nonatomic) GLView* glview;
 @property (strong, nonatomic) IOSIMEHelprt* ime;

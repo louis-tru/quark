@@ -188,20 +188,20 @@ namespace flare {
 		struct Queue {
 			uint32_t id, group;
 			int64_t time;
-			Callback<> resolve;
+			Cb resolve;
 		};
 		struct Work;
 		List<Queue>     _queue;
 		List<Work*>     _works;
 		List<KeepLoop*> _keeps;
-		RecursiveMutex*      _independent_mutex;
-		Mutex                _mutex;
-		Thread*              _thread;
-		ThreadID             _tid;
-		uv_loop_t*           _uv_loop;
-		uv_async_t*          _uv_async;
-		uv_timer_t*          _uv_timer;
-		int64_t              _timeout, _record_timeout;
+		RecursiveMutex* _independent_mutex;
+		Mutex       _mutex;
+		Thread*     _thread;
+		ThreadID    _tid;
+		uv_loop_t*  _uv_loop;
+		uv_async_t* _uv_async;
+		uv_timer_t* _uv_timer;
+		int64_t     _timeout, _record_timeout;
 	};
 
 	/**

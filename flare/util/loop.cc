@@ -576,8 +576,7 @@ namespace flare {
 		RunLoop* host;
 		uint32_t id;
 		List<Work*>::Iterator it;
-		Callback<> work;
-		Callback<> done;
+		Cb work, done;
 		uv_work_t uv_req;
 		String name;
 		static void uv_work_cb(uv_work_t* req) {
