@@ -37,9 +37,10 @@ namespace flare {
 		* @constructors
 		*/
 	Layout::Layout()
-		: _mark_index(0)
-		, _recursive_mark_index(0)
+		: _mark_index(-1)
+		, _recursive_mark_index(-1)
 		, _layout_mark(M_NONE)
+		, _depth(0)
 	{
 	}
 
@@ -47,17 +48,7 @@ namespace flare {
 		* @destructor
 		*/
 	Layout::~Layout() {
-		layout_depth_change_notice(0);
-	}
-
-	/**
-		*
-		* 布局在GUI树中所处的深度，0表示还没有加入到GUI视图树中
-		*
-		* @func layout_depth()
-		*/
-	uint32_t Layout::layout_depth() {
-		return 0;
+		layout_depth_change_notice(_depth, 0);
 	}
 
 	/**
@@ -197,12 +188,22 @@ namespace flare {
 	/**
 		* @func layout_depth_change_notice(new_depth)
 		*/
-	void Layout::layout_depth_change_notice(uint32_t newDepth) {
-		if (_mark_index) {
-			// TODO ...
-		}
-		if (_recursive_mark_index) {
-			// TODO ...
+	void Layout::layout_depth_change_notice(uint32_t oldDepth, uint32_t newDepth) {
+		if (oldDepth != newDepth) {
+			ASSERT(app());
+			auto pre = app()->pre_render();
+			if (_mark_index >= 0) {
+				pre->delete_mark(this, oldDepth);
+				if (newDepth) {
+					pre->mark(this, newDepth);
+				}
+			}
+			if (_recursive_mark_index >= 0) {
+				pre->delete_mark_recursive(this, oldDepth);
+				if (newDepth) {
+					pre->mark_recursive(this, newDepth);
+				}
+			}
 		}
 	}
 
@@ -211,22 +212,30 @@ namespace flare {
 		*/
 	void Layout::mark(uint32_t mark) {
 		_layout_mark |= mark;
-		// TODO push to pre render
-		app()->pre_render()->mark_pre(this);
+		if (_mark_index < 0) {
+			auto depth = layout_depth();
+			if (depth) {
+				ASSERT(app());
+				app()->pre_render()->mark(this, depth); // push to pre render
+			}
+		}
 	}
 
 	void Layout::mark_recursive(uint32_t mark) {
 		_layout_mark |= mark;
-		// TODO push to pre render
-		app()->pre_render()->mark_pre(this);
+		if (_recursive_mark_index < 0) {
+			auto depth = layout_depth();
+			if (depth) {
+				app()->pre_render()->mark_recursive(this, depth); // push to pre render
+			}
+		}
 	}
 
 	/**
 		* @func mark_none()
 		*/
 	void Layout::mark_none() {
-		// TODO ...
-		app()->pre_render()->mark_pre(this);
+		app()->pre_render()->mark_none(this);
 	}
 
 }

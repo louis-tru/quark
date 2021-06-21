@@ -39,6 +39,7 @@
 #include "./css/css.h"
 #include "./font/pool.h"
 #include "./_pre-render.h"
+#include "../layout/text.h"
 
 FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
 FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
@@ -47,35 +48,26 @@ namespace flare {
 
 typedef GUIApplication::Inl AppInl;
 
-class ThreadHelper {
-	Mutex thread_mutex;
-	Condition thread_cond;
-	RecursiveMutex _global_gui_lock_mutex;
-
- public:
-	RecursiveMutex* global_gui_lock_mutex() {
-		return &_global_gui_lock_mutex;
+struct RunMainWait {
+	void wait() {
+		Lock lock(_thread_mutex);
+		_thread_cond.wait(lock);
 	}
-
 	void awaken() {
-		ScopeLock scope(thread_mutex);
-		thread_cond.notify_all();
+		ScopeLock scope(_thread_mutex);
+		_thread_cond.notify_all();
 	}
-
-	void sleep(bool* ok = nullptr) {
-		Lock lock(thread_mutex);
-		do {
-			thread_cond.wait(lock);
-		} while(ok && !*ok);
-	}
+	Mutex _thread_mutex;
+	Condition _thread_cond;
 };
 
 // thread helper
-static auto *thelper = new ThreadHelper();
+static auto *__run_main_wait = new RunMainWait();
+
 // global shared gui application 
 GUIApplication* GUIApplication::_shared = nullptr;
 
-GUILock::GUILock(): _d(nullptr) {
+GUILock::GUILock(GUIApplication* host): _host(host), _lock(false) {
 	lock();
 }
 
@@ -84,16 +76,16 @@ GUILock::~GUILock() {
 }
 
 void GUILock::lock() {
-	if (!_d) {
-		_d = thelper->global_gui_lock_mutex();
-		thelper->global_gui_lock_mutex()->lock();
+	if (!_lock) {
+		_lock = true;
+		_host->_gui_lock_mutex.lock();
 	}
 }
 
 void GUILock::unlock() {
-	if (_d) {
-		reinterpret_cast<RecursiveMutex*>(_d)->unlock();
-		_d = nullptr;
+	if (_lock) {
+		_host->_gui_lock_mutex.unlock();
+		_lock = false;
 	}
 }
 
@@ -179,11 +171,19 @@ bool AppInl::set_focus_view(View* view) {
 }
 
 /**
+ * @func setMain()
+ */
+void GUIApplication::setMain(int (*main)(int, char**)) {
+	ASSERT( !__fx_gui_main );
+	__fx_gui_main = main;
+}
+
+/**
  * @func runMain()
  */
 void GUIApplication::runMain(int argc, Char* argv[]) {
-	static int is_initialize = 0;
-	ASSERT(!is_initialize++, "Cannot multiple calls.");
+	static int _is_initialize = 0;
+	ASSERT(!_is_initialize++, "Cannot multiple calls.");
 	
 	// 创建一个新子工作线程.这个函数必须由main入口调用
 	Thread::spawn([argc, argv](Thread& t) {
@@ -198,8 +198,8 @@ void GUIApplication::runMain(int argc, Char* argv[]) {
 	}, "runMain");
 
 	// 在调用GUIApplication::run()之前一直阻塞这个主线程
-	while (!_shared || !_shared->_is_run) {
-		thelper->sleep();
+	while (!_shared || !_shared->_is_run)) {
+		__run_main_wait->wait();
 	}
 }
 
@@ -211,10 +211,10 @@ void GUIApplication::run_loop() {
 	_render_keep = _render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
 
 	if (_render_loop != _main_loop) {
-		Inl2_RunLoop(_render_loop)->set_independent_mutex(thelper->global_gui_lock_mutex());
+		Inl2_RunLoop(_render_loop)->set_independent_mutex(&_gui_lock_mutex);
 		Thread::awaken(_main_loop->thread_id()); // main loop awaken
 	}
-	thelper->awaken(); // 外部线程继续运行
+	__run_main_wait->awaken(); // 外部线程继续运行
 
 	ASSERT(!_render_loop->runing());
 
@@ -226,7 +226,7 @@ void GUIApplication::run_loop() {
 	_is_run = false;
 }
 
-void GUIApplication::run_loop_detach() {
+void GUIApplication::run_loop_on_new_thread() {
 	ASSERT(RunLoop::is_main_loop()); // main loop call
 
 	Thread::spawn([this](Thread& t) {
@@ -236,7 +236,7 @@ void GUIApplication::run_loop_detach() {
 		return 0;
 	}, "render_loop");
 
-	Thread::sleep(); // main loop sleep
+	Thread::sleep(); // main loop sleep, await run loop ok
 }
 
 static void on_process_safe_handle(Event<>& e, Object* data) {
@@ -276,16 +276,7 @@ GUIApplication::GUIApplication()
 , _display_port(nullptr)
 , _root(nullptr)
 , _focus_view(nullptr)
-, _default_text_background_color({ TextValueType::VALUE, Color(0, 0, 0, 0) })
-, _default_text_color({ TextValueType::VALUE, Color(0, 0, 0) })
-, _default_text_size({ TextValueType::VALUE, 16 })
-, _default_text_style({ TextValueType::VALUE, TextStyleEnum::REGULAR })
-, _default_text_family(TextValueType::VALUE, FontPool::get_font_familys_id(String()))
-, _default_text_shadow({ TextValueType::VALUE, { 0, 0, 0, Color(0, 0, 0) } })
-, _default_text_line_height({ TextValueType::VALUE, { 0 } })
-, _default_text_decoration({ TextValueType::VALUE, TextDecorationEnum::NONE })
-, _default_text_overflow({ TextValueType::VALUE, TextOverflowEnum::NORMAL })
-, _default_text_white_space({ TextValueType::VALUE, TextWhiteSpaceEnum::NORMAL })
+, _default_text_settings(new DefaultTextSettings())
 , _dispatch(nullptr)
 , _action_center(nullptr)
 , _pre_render(nullptr)
@@ -304,6 +295,7 @@ GUIApplication::~GUIApplication() {
 		_focus_view->release();
 		_focus_view = nullptr;
 	}
+	Release(_default_text_settings); _default_text_settings = nullptr;
 	Release(_draw_ctx);      _draw_ctx = nullptr;
 	Release(_dispatch);      _dispatch = nullptr;
 	Release(_action_center); _action_center = nullptr;
@@ -351,57 +343,6 @@ bool GUIApplication::has_current_render_thread() const {
  */
 void GUIApplication::clear(bool full) {
 	_render_loop->post(Cb([&, full](CbData& e){ _draw_ctx->clear(full); }));
-}
-
-void GUIApplication::set_default_text_background_color(TextColor value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_background_color = value;
-	}
-}
-void GUIApplication::set_default_text_color(TextColor value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_color = value;
-	}
-}
-void GUIApplication::set_default_text_size(TextSize value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_size = value;
-	}
-}
-void GUIApplication::set_default_text_style(TextStyle value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_style = value;
-	}
-}
-void GUIApplication::set_default_text_family(TextFamily value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_family = value;
-	}
-}
-void GUIApplication::set_default_text_shadow(TextShadow value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_shadow = value;
-	}
-}
-void GUIApplication::set_default_text_line_height(TextLineHeight value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_line_height = value;
-	}
-}
-void GUIApplication::set_default_text_decoration(TextDecoration value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_decoration = value;
-	}
-}
-void GUIApplication::set_default_text_overflow(TextOverflow value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_overflow = value;
-	}
-}
-void GUIApplication::set_default_text_white_space(TextWhiteSpace value) {
-	if ( value.type == TextValueType::VALUE ) {
-		_default_text_white_space = value;
-	}
 }
 
 uint64_t GUIApplication::max_texture_memory_limit() const {

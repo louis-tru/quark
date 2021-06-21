@@ -183,31 +183,20 @@ namespace flare {
 	};
 
 	/**
-	* @class BeginView
-	* @bases View
-	*/
-	class BeginView: public View {};
-
-	/**
 	* @constructor
 	*/
-	PreRender::PreRender() {
-		BeginView* begin = new BeginView();
-		_marks.push(begin);
-		begin->_prev_pre_mark = begin;
-		begin->_next_pre_mark = begin;
+	PreRender::PreRender()
+		: _mark_none(false)
+		, _marks(8)
+		, _mark_recursives(8)
+	{
 	}
 
 	/**
 	* @destructor
 	*/
 	PreRender::~PreRender() {
-		auto it = _marks.begin();
-		auto end = _marks.end();
-		while (it != end) {
-			Release(*it);
-			it++;
-		}
+		//
 	}
 
 	/**
@@ -265,19 +254,63 @@ namespace flare {
 		return rv;
 	}
 
+	void PreRender::mark(Layout *layout, uint32_t depth) {
+		ASSERT(depth);
+		_marks.extend(depth + 1);
+		auto arr = _marks[depth];
+		layout->_mark_index = arr.length();
+		arr.push(layout);
+	}
+
+	void PreRender::mark_recursive(Layout *layout, uint32_t depth) {
+		ASSERT(depth);
+		_mark_recursives.extend(depth + 1);
+		auto arr = _mark_recursives[depth];
+		layout->_recursive_mark_index = arr.length();
+		arr.push(layout);
+	}
+
+	void PreRender::mark_none() {
+		_mark_none = true;
+	}
+
+	void PreRender::delete_mark(Layout *layout, uint32_t depth) {
+		ASSERT(depth);
+		auto arr = _marks[depth];
+		auto last = arr[arr.length() - 1];
+		if (last != layout) {
+			arr[layout->_mark_index] = last;
+		}
+		arr.pop();
+		layout->_mark_index = -1;
+		_mark_none = true;
+	}
+
+	void PreRender::delete_mark_recursive(Layout *layout, uint32_t depth) {
+		ASSERT(depth);
+		auto arr = _mark_recursives[depth];
+		auto last = arr[arr.length() - 1];
+		if (last != layout) {
+			arr[layout->_recursive_mark_index] = last;
+		}
+		arr.pop();
+		layout->_recursive_mark_index = -1;
+		_mark_none = true;
+	}
+
 	PreRender::Task::~Task() {
 		unregister_task();
 	}
 
 	void PreRender::Task::register_task() {
-		if ( pre_render() ) {
-			Inl_PreRender(pre_render())->add_task(this);
+		if ( app() ) {
+			Inl_PreRender(app()->pre_render())->add_task(this);
 		}
 	}
 
 	void PreRender::Task::unregister_task() {
-		if ( pre_render() ) {
-			Inl_PreRender(pre_render())->del_task(this);
+		if ( app() ) {
+			Inl_PreRender(app()->pre_render())->del_task(this);
 		}
 	}
 

@@ -123,8 +123,9 @@ namespace flare {
 		*/
 		void clear_depth() {
 			if ( _depth ) {
+				auto old_depth = _depth;
 				_depth = 0;
-				layout_depth_change_notice(0);
+				layout_depth_change_notice(old_depth, 0);
 				blur();
 				
 				View *v = _first;
@@ -141,8 +142,9 @@ namespace flare {
 		void set_depth(uint32_t depth) {
 			if (_visible) {
 				if ( _depth != depth ) {
+					auto old_depth = _depth;
 					_depth = depth++;
-					layout_depth_change_notice(_depth);
+					layout_depth_change_notice(old_depth, _depth);
 
 					if ( layout_mark() ) { // remark
 						mark(M_NONE);
@@ -184,7 +186,7 @@ namespace flare {
 		: _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		, _depth(0)
+		//, _depth(0)
 		, _transform(nullptr), _opacity(1.0)
 		, _visible(true)
 		, _region_visible(false)
@@ -313,8 +315,9 @@ namespace flare {
 			_inl(this)->remove_all_child_(); // 删除子视图
 			_inl(this)->clear();
 			// remove_event_listener(); // TODO
+			auto old_depth = _depth;
 			_depth = 0;
-			layout_depth_change_notice(_depth);
+			layout_depth_change_notice(old_depth, _depth);
 			_parent = _prev = _next = nullptr;
 			release(); // Disconnect from parent view strong reference
 		}
@@ -739,9 +742,9 @@ namespace flare {
 		return transform_origin();
 	}
 
-	uint32_t View::layout_depth() {
-		return _depth;
-	}
+	// uint32_t View::layout_depth() {
+	// 	return _depth;
+	// }
 
 }
 

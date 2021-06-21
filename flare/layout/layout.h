@@ -36,6 +36,8 @@
 
 namespace flare {
 
+	class PreRender;
+
 	/**
 	 *
 	 * Layout and typesetting protocol
@@ -104,7 +106,7 @@ namespace flare {
 		 *
 		 * @func layout_depth()
 		 */
-		virtual uint32_t layout_depth();
+		uint32_t layout_depth() const { return _depth; }
 
 		/**
 		 *
@@ -257,9 +259,9 @@ namespace flare {
 		 * 
 		 * layout depth change for the cureent view object
 		 *
-		 * @func layout_depth_change_notice(newDepth)
+		 * @func layout_depth_change_notice(oldDepth, newDepth)
 		 */
-		void layout_depth_change_notice(uint32_t newDepth);
+		void layout_depth_change_notice(uint32_t oldDepth, uint32_t newDepth);
 
 		/**
 		 * @func mark(mark)
@@ -298,12 +300,15 @@ namespace flare {
 		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
 		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 		*/
-		private: uint32_t _mark_index, _recursive_mark_index;
+		private: int32_t _mark_index, _recursive_mark_index;
 		/* 这些标记后的视图会在开始帧绘制前进行更新.
 		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
 		*/
 		private: uint32_t _layout_mark; /* 标记 */
+		protected: uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+
+		friend class PreRender;
 	};
 
 }

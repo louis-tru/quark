@@ -36,11 +36,11 @@ namespace flare {
 
 	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, A, APPEND_ZERO) \
 		\
-		template<> Array<T, A>::Array(uint32_t length, uint32_t capacity) \
-			: _length(length), _capacity(0), _val(nullptr) \
+		template<> void Array<T, A>::extend(uint32_t length, uint32_t capacity) \
 		{ \
-			if (_length) {  \
-				realloc_(_length + APPEND_ZERO); \
+			if (length > _length) {  \
+				_length = length; \
+				realloc_(FX_MAX(_length + APPEND_ZERO, capacity)); \
 				if (APPEND_ZERO) _val[_length] = 0; \
 			}\
 		}\

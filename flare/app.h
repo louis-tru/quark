@@ -37,18 +37,13 @@
 #include "./util/json.h"
 #include "./value.h"
 
-#define FX_GUI_MAIN() \
-	int __fx_gui_main__(int, Char**); \
-	FX_INIT_BLOCK(__fx_gui_main__) { __fx_gui_main = __fx_gui_main__; } \
-	int __fx_gui_main__(int argc, Char** argv)
+#define FX_Main() \
+	int __fx_main__(int, Char**); \
+	FX_INIT_BLOCK(__fx_main__) { setMain(&__fx_main__); } \
+	int __fx_main__(int argc, Char** argv)
 
 #define FX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
 #define FX_ASSERT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
-
-/**
- * gui入口程序,替代main入口函数gui启动时候会调用这个函数
- */
-FX_EXPORT extern int (*__fx_gui_main)(int, char**);
 
 namespace flare {
 
@@ -63,20 +58,7 @@ namespace flare {
 	class PropertysAccessor;
 	class CSSManager;
 	class PreRender;
-
-	/**
-	* 注意: 如果`main loop`与`render loop`运行在不同的线程,
-	* 那么在主线程调用任何GUI-API函数必须加锁。
-	*/
-	class FX_EXPORT GUILock {
-		public:
-		GUILock();
-		~GUILock();
-		void lock();
-		void unlock();
-		private:
-		void* _d;
-	};
+	class DefaultTextSettings;
 
 	/*
 	* 关于GUI中的事件:
@@ -84,12 +66,29 @@ namespace flare {
 	* 所以添加事件监听器也必须在`main loop`。
 	*/
 
+	GUIApplication* app();
+
 	/**
 	* @class GUIApplication
 	*/
 	class FX_EXPORT GUIApplication: public Object {
 		FX_HIDDEN_ALL_COPY(GUIApplication);
 		public:
+
+		/**
+		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
+		* 那么在主线程调用任何GUI-API函数必须加锁。
+		*/
+		class FX_EXPORT GUILock {
+			public:
+			GUILock(GUIApplication* host = app());
+			~GUILock();
+			void lock();
+			void unlock();
+			private:
+			GUIApplication* _host;
+			bool _lock;
+		};
 
 		FX_Event(Load);
 		FX_Event(Unload);
@@ -117,9 +116,9 @@ namespace flare {
 		void run_loop();
 
 		/**
-		* @func run_loop 在新的线程运行gui消息循环
+		* @func run_loop_on_new_thread 在新的线程运行gui消息循环
 		*/
-		void run_loop_detach();
+		void run_loop_on_new_thread();
 
 		/**
 		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
@@ -135,7 +134,7 @@ namespace flare {
 		* @func is_loaded
 		*/
 		inline bool is_loaded() const { return _is_load; }
-		
+
 		/**
 		* @func draw_ctx 绘图上下文
 		*/
@@ -181,28 +180,10 @@ namespace flare {
 		*/
 		static inline GUIApplication* shared() { return _shared; }
 
-		// get default text attrs
-		inline TextColor default_text_background_color() { return _default_text_background_color; }
-		inline TextColor default_text_color() { return _default_text_color; }
-		inline TextSize default_text_size() { return _default_text_size; }
-		inline TextStyle default_text_style() { return _default_text_style; }
-		inline TextFamily default_text_family() { return _default_text_family; }
-		inline TextShadow default_text_shadow() { return _default_text_shadow; }
-		inline TextLineHeight default_text_line_height() { return _default_text_line_height; }
-		inline TextDecoration default_text_decoration() { return _default_text_decoration; }
-		inline TextOverflow default_text_overflow() { return _default_text_overflow; }
-		inline TextWhiteSpace default_text_white_space() { return _default_text_white_space; }
-		// set default text attrs
-		void set_default_text_background_color(TextColor value);
-		void set_default_text_color(TextColor value);
-		void set_default_text_size(TextSize value);
-		void set_default_text_style(TextStyle value);
-		void set_default_text_family(TextFamily value);
-		void set_default_text_shadow(TextShadow value);
-		void set_default_text_line_height(TextLineHeight value);
-		void set_default_text_decoration(TextDecoration value);
-		void set_default_text_overflow(TextOverflow value);
-		void set_default_text_white_space(TextWhiteSpace value);
+		/**
+		 * @func default_text_settings() default text settings
+		 */
+		inline DefaultTextSettings* default_text_settings() { return _default_text_settings; }
 		
 		/**
 		* @func max_texture_memory_limit()
@@ -239,6 +220,14 @@ namespace flare {
 		inline PreRender* pre_render() {
 			return _pre_render;
 		}
+
+		/**
+		 * 
+		 * setting main function
+		 *
+		 * @func setMain()
+		 */
+		static void setMain(int (*main)(int, char**));
 		
 		protected:
 		
@@ -248,8 +237,7 @@ namespace flare {
 		static void runMain(int argc, Char* argv[]);
 
 		private:
-		
-		static GUIApplication*  _shared;   // 当前应用程序
+		static GUIApplication* _shared;   // 当前应用程序
 		bool  _is_run, _is_load;
 		RunLoop  *_render_loop, *_main_loop;
 		KeepLoop *_render_keep, *_main_keep;
@@ -258,28 +246,23 @@ namespace flare {
 		PreRender*           _pre_render;
 		Root*                _root;             // 根视图
 		View*                _focus_view;       // 焦点视图
-		TextColor            _default_text_background_color; // default text attrs
-		TextColor            _default_text_color;
-		TextSize             _default_text_size;
-		TextStyle            _default_text_style;
-		TextFamily           _default_text_family;
-		TextShadow           _default_text_shadow;
-		TextLineHeight       _default_text_line_height;
-		TextDecoration       _default_text_decoration;
-		TextOverflow         _default_text_overflow;
-		TextWhiteSpace       _default_text_white_space; // text
+		DefaultTextSettings* _default_text_settings;
 		GUIEventDispatch*    _dispatch;
 		ActionCenter*        _action_center;
-		uint64_t _max_texture_memory_limit;
+		uint64_t             _max_texture_memory_limit;
+		RecursiveMutex       _gui_lock_mutex;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
-		friend GUIApplication*  app();
+		friend class GUILock;
+		friend GUIApplication* app();
 	};
 
 	inline GUIApplication* app() {
 		return GUIApplication::_shared;
 	}
+
+	typedef GUIApplication::GUILock GUILock;
 
 }
 #endif

@@ -517,7 +517,7 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_recursive(uint32_t mark);
 		virtual Vec2 layout_offset_inside();
-		virtual uint32_t layout_depth();
+		// virtual uint32_t layout_depth();
 
 		public: struct Transform {
 			Vec2 translate, scale, skew, origin; // 平移向量, 缩放向量, 倾斜向量, origin 最终以该点 位移,缩放,旋转,歪
@@ -531,7 +531,7 @@ namespace flare {
 		private: View *_parent;
 		private: View *_prev, *_next;
 		private: View *_first, *_last;
-		private: uint32_t _depth; // 这个值受`_visible`影响, _visible=false时_depth=0
+		// private: uint32_t _depth; // 这个值受`_visible`影响, _visible=false时_depth=0
 		// transform:
 		private: Transform *_transform; // 矩阵变换
 		private: float _opacity; // 可影响子视图的透明度值

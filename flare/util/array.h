@@ -179,6 +179,14 @@ namespace flare {
 		*/
 		void realloc(uint32_t capacity);
 
+		/**
+		 *
+		 * Expand the length, call the default constructor, can only increase, can not reduce
+		 *
+		 * @func extend()
+		 */
+		void extend(uint32_t length, uint32_t capacity);
+
 		protected:
 		// constructors
 		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
@@ -323,17 +331,9 @@ namespace flare {
 
 	template<typename T, typename A>
 	Array<T, A>::Array(uint32_t length, uint32_t capacity)
-		: _length(length), _capacity(0), _val(nullptr)
+		: _length(0), _capacity(0), _val(nullptr)
 	{
-		realloc_(FX_MAX(length, capacity));
-		if (_length) {
-			T* begin = _val;
-			T* end = begin + _length;
-			while (begin < end) {
-				new(begin) T; // 调用默认构造
-				begin++;
-			}
-		}
+		extend(length);
 	}
 
 	template<typename T, typename A>
@@ -521,13 +521,27 @@ namespace flare {
 	}
 
 	template<typename T, typename A>
+	void Array<T, A>::extend(uint32_t length, uint32_t capacity) {
+		if (length > _length) {
+			realloc_(FX_MAX(length, capacity));
+			T* begin = _val + _length;
+			T* end = _val + length;
+			while (begin < end) {
+				new(begin) T; // 调用默认构造
+				begin++;
+			}
+			_length = length;
+		}
+	}
+
+	template<typename T, typename A>
 	void Array<T, A>::realloc_(uint32_t capacity) {
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
 
 	#define FX_DEF_ARRAY_SPECIAL(T, A) \
-		template<>                   Array<T, A>::Array(uint32_t length, uint32_t capacity); \
+		template<> void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \
 		template<> std::vector<T>    Array<T, A>::vector() const; \
 		template<> Array<T, A>&      Array<T, A>::concat_(T* src, uint32_t src_length); \
 		template<> uint32_t          Array<T, A>::write(const T* src, int to, uint32_t size); \

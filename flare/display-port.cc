@@ -190,8 +190,8 @@ namespace flare {
 		_host->action_center()->advance(now_time); // advance action
 		
 		if (r) {
-			bool ok = _host->_pre_render->solve(now_time);
-			if (ok || r->mark_value || r->_child_change_flag) {
+			bool redraw = _host->_pre_render->solve(now_time);
+			if (redraw || r->mark_value || r->_child_change_flag) {
 				
 				if (now_time - _record_fsp_time >= 1e6) {
 					_fsp = _record_fsp;

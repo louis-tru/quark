@@ -40,7 +40,7 @@
 
 namespace flare {
 
-	class View;
+	class Layout;
 
 	/**
 	* @class PreRender 预渲染
@@ -56,7 +56,7 @@ namespace flare {
 		class FX_EXPORT Task {
 			public:
 			typedef List<Task*>::Iterator ID;
-			inline Task(): _timeout(0) { }
+			inline Task(): _timeout(0) {}
 			virtual ~Task();
 			virtual bool run_task(int64_t sys_time) = 0;
 			void register_task();
@@ -67,7 +67,7 @@ namespace flare {
 			inline int64_t get_task_timeout() const { return _timeout; }
 			inline void set_task_timeout(int64_t timeout_us) { _timeout = timeout_us; }
 			private:
-			ID    _task_id;
+			ID      _task_id;
 			int64_t _timeout;
 		};
 
@@ -77,15 +77,20 @@ namespace flare {
 		bool solve(int64_t now_time);
 
 		/**
-			* @func mark_pre
+			* @func mark
 			*/
-		void mark_pre(View* view);
+		void mark(Layout *layout, uint32_t depth);
+		void mark_recursive(Layout *layout, uint32_t depth);
+		void mark_none();
+		void delete_mark(Layout *layout, uint32_t depth);
+		void delete_mark_recursive(Layout *layout, uint32_t depth);
 
 		private:
 
-		bool         _mark_pre;    // 是否有layout标记
-		Array<View*> _marks;       // 被标记的视图
+		bool         _mark_none;    // 是否有none标记
 		List<Task*>  _tasks;
+		Array<Array<Layout*>> _marks; // 被标记的视图
+		Array<Array<Layout*>> _mark_recursives;
 
 		FX_DEFINE_INLINE_CLASS(Inl)
 	};
