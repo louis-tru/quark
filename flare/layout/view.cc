@@ -742,10 +742,6 @@ namespace flare {
 		return transform_origin();
 	}
 
-	// uint32_t View::layout_depth() {
-	// 	return _depth;
-	// }
-
 }
 
 // *******************************************************************
