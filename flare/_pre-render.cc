@@ -37,128 +37,7 @@ namespace flare {
 
 	FX_DEFINE_INLINE_MEMBERS(PreRender, Inl) {
 		public:
-		
-		void delete_mark_pre(View* view) {
-			view->_prev_pre_mark->_next_pre_mark = view->_next_pre_mark;
-			view->_next_pre_mark->_prev_pre_mark = view->_prev_pre_mark;
-			view->_prev_pre_mark = nullptr;
-			view->_next_pre_mark = nullptr;
-		}
-		
-		void solve_pre() {
-			
-			if (_mark_pre) {
-				
-				// 1.从外至内,计算明确的布局宽度与高度
-				
-				// 忽略第0层级,第0层级的视图是无效的
-				auto i = ++_marks.begin();
-				auto end = _marks.end();
-				
-				StyleSheetsScope* sss = nullptr;
-				
-				// 解决所有的布局视图的size,与style
-				while (i != end) {
-					View* begin = *i;
-					View* view = begin->_next_pre_mark;
-					
-					while ( begin != view ) {
-						
-						if ( view->mark_value & View::M_STYLE ) { // style
-							View* scope = view->parent();
-							if ( sss ) {
-								if ( sss->bottom_scope() != scope ) {
-									Release(sss);
-									sss = new StyleSheetsScope(scope);
-								}
-							} else {
-								sss = new StyleSheetsScope(scope);
-							}
-							view->refresh_styles(sss);
-						}
-						
-						View* next = view->_next_pre_mark;
-						Layout* layout = view->as_layout();
-						if ( layout ) {
-							if (view->mark_value & View::M_LAYOUT) {
-								layout->set_layout_explicit_size();
-							}
-						} else {
-							delete_mark_pre(view);
-						}
-						view = next;
-					}
-					
-					i++;
-				}
-				
-				Release(sss);
-				
-				// 2.从内至外,设置偏移并挤压不明确的高度与宽度
-				
-				i = --_marks.end(); end = _marks.begin();
-				
-				// 解决所有的布局视图的位置
-				while (i != end ) {
-					View* begin = *i;
-					View* view = begin->_next_pre_mark;
-					while (begin != view) {
-						
-						Layout* layout = static_cast<Layout*>(view);
-						if ( view->mark_value & Box::M_CONTENT_OFFSET ) {
-							layout->set_layout_content_offset();
-						}
-						
-						View* next = view->_next_pre_mark;
-						
-						if ( view->mark_value & Box::M_LAYOUT_THREE_TIMES ) {
-							
-						} else {
-							delete_mark_pre(view);
-						}
-						view = next;
-					}
-					
-					i--;
-				}
-				
-				// 3.从外至内进一步最终解决局宽度与高度还有偏移位置
-				i = ++_marks.begin(); end = _marks.end();
-				
-				while ( i != end ) {
-					View* begin = *i;
-					View* view = begin->_next_pre_mark;
-					
-					while (begin != view) {
-						
-						Layout* layout = static_cast<Layout*>(view);
-						Layout* parent = layout->_parent_layout; ASSERT( parent );
-						
-						if ( parent->as_div() ) { // in div
-							bool horizontal =
-								(static_cast<Div*>(parent)->content_align() == ContentAlign::LEFT ||
-								static_cast<Div*>(parent)->content_align() == ContentAlign::RIGHT);
-							layout->set_layout_three_times(horizontal, false);
-						} else {
-							ASSERT( parent->as_hybrid() );
-							layout->set_layout_three_times(true, true);
-						}
-						
-						View* next = view->_next_pre_mark;
-						view->_prev_pre_mark = nullptr; // 删除标记
-						view->_next_pre_mark = nullptr;
-						view = next;
-					}
-					begin->_prev_pre_mark = begin;
-					begin->_next_pre_mark = begin;
-					
-					i++;
-				}
-				
-				_mark_pre = false;
-			}
-		}
-		
+
 		/**
 		* @func add_task
 		*/
@@ -179,6 +58,64 @@ namespace flare {
 				(*id) = nullptr;
 			}
 		}
+
+		void solve_mark() {
+			bool iteration = false, forward = true;
+			do {
+				iteration = false;
+				// forward iteration
+				if (forward) {
+					for (auto levelMarks: _marks) {
+						for (auto layout: levelMarks) {
+							if (layout) {
+								if (layout->layout_forward(layout->layout_mark())) {
+									// simple delete mark
+									layout->_mark_index = -1;
+									layout = nullptr;
+								} else {
+									iteration = true;
+								}
+							}
+						}
+					}
+				} else { // reverse iteration
+					for (int i = _marks.length() - 1; i >= 0; i--) {
+						auto levelMarks = _marks[i];
+						for (auto layout: levelMarks) {
+							if (layout) {
+								if (layout->layout_reverse(layout->layout_mark())) {
+									// simple delete mark recursive
+									layout->_mark_index = -1;
+									layout = nullptr;
+								} else {
+									iteration = true;
+								}
+							}
+						}
+					}
+				}
+				forward = !forward;
+			} while (iteration);
+
+			for (auto levelMarks: _marks) {
+				levelMarks.clear();
+			}
+
+			_mark_total = 0;
+			_is_render = true;
+		}
+
+		void solve_mark_recursive() {
+			for (auto levelMarks: _mark_recursives) {
+				for (auto layout: levelMarks) {
+					layout->layout_recursive(layout->layout_mark());
+					layout->_recursive_mark_index = -1;
+				}
+				levelMarks.clear(); // clear level marks
+			}
+			_mark_recursive_total = 0;
+			_is_render = true;
+		}
 		
 	};
 
@@ -186,7 +123,9 @@ namespace flare {
 	* @constructor
 	*/
 	PreRender::PreRender()
-		: _mark_none(false)
+		: _has_render(false)
+		, _mark_total(0)
+		, _mark_recursive_total(0)
 		, _marks(8)
 		, _mark_recursives(8)
 	{
@@ -196,42 +135,13 @@ namespace flare {
 	* @destructor
 	*/
 	PreRender::~PreRender() {
-		//
-	}
-
-	/**
-	* @func mark_pre
-	* @arg {View*} view
-	*/
-	void PreRender::mark_pre(View* view) {
-		if ( view->_level ) {
-			if ( !view->_next_pre_mark ) {
-				if ( _marks.length() <= view->_level ) {
-					int len = view->_level + 1;
-					for (int i = _marks.length(); i < len; i++) {
-						View* begin = new BeginView();
-						_marks.push(begin);
-						begin->_prev_pre_mark = begin;
-						begin->_next_pre_mark = begin;
-					}
-				}
-				View* begin = _marks[view->_level];
-				view->_prev_pre_mark = begin->_prev_pre_mark;
-				view->_next_pre_mark = begin;
-				begin->_prev_pre_mark = view;
-				view->_prev_pre_mark->_next_pre_mark = view;
-			}
-			_mark_pre = true;
-		}
 	}
 
 	/**
 	* 解决标记需要更新的视图
 	*/
 	bool PreRender::solve(int64_t now_time) {
-		
-		bool rv = false;
-		
+
 		if ( _tasks.length() ) { // solve task
 			auto i = _tasks.begin(), end = _tasks.end();
 			while ( i != end ) {
@@ -239,7 +149,7 @@ namespace flare {
 				if ( task ) {
 					if ( now_time > task->get_task_timeout() ) {
 						if ( task->run_task(now_time) ) {
-							rv = true;
+							_is_render = true;
 						}
 					}
 					i++;
@@ -248,10 +158,21 @@ namespace flare {
 				}
 			}
 		}
-		
-		Inl_PreRender(this)->solve_pre();
-	
-		return rv;
+
+		if (_mark_total) { // solve marks
+			Inl_PreRender(this)->solve_mark();
+		}
+
+		if (_mark_recursive_total) { // solve mark recursive
+			Inl_PreRender(this)->solve_mark_recursive();
+		}
+
+		if (_is_render) {
+			_is_render = false;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	void PreRender::mark(Layout *layout, uint32_t depth) {
@@ -260,6 +181,7 @@ namespace flare {
 		auto arr = _marks[depth];
 		layout->_mark_index = arr.length();
 		arr.push(layout);
+		_mark_total++;
 	}
 
 	void PreRender::mark_recursive(Layout *layout, uint32_t depth) {
@@ -268,10 +190,11 @@ namespace flare {
 		auto arr = _mark_recursives[depth];
 		layout->_recursive_mark_index = arr.length();
 		arr.push(layout);
+		_mark_recursive_total++;
 	}
 
 	void PreRender::mark_none() {
-		_mark_none = true;
+		_is_render = true;
 	}
 
 	void PreRender::delete_mark(Layout *layout, uint32_t depth) {
@@ -283,7 +206,8 @@ namespace flare {
 		}
 		arr.pop();
 		layout->_mark_index = -1;
-		_mark_none = true;
+		_mark_total--;
+		_is_render = true;
 	}
 
 	void PreRender::delete_mark_recursive(Layout *layout, uint32_t depth) {
@@ -295,7 +219,8 @@ namespace flare {
 		}
 		arr.pop();
 		layout->_recursive_mark_index = -1;
-		_mark_none = true;
+		_mark_recursive_total--;
+		_is_render = true;
 	}
 
 	PreRender::Task::~Task() {
