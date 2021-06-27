@@ -477,9 +477,9 @@ namespace flare {
 		 * 
 		 * Calculate the transform origin value
 		 * 
-		 * @func layout_transform_origin(t)
+		 * @func solve_transform_origin()
 		 */
-		virtual Vec2 layout_transform_origin(Transform& t);
+		virtual Vec2 solve_transform_origin();
 
 		/**
 		 * 
@@ -496,7 +496,9 @@ namespace flare {
 		 *
 		 * @func transform_origin()
 		 */
-		Vec2 transform_origin() const;
+		inline Vec2 transform_origin() const {
+			return _transform_origin;
+		}
 
 		/**
 		 * 
@@ -519,7 +521,7 @@ namespace flare {
 		virtual Vec2 layout_offset_inside();
 
 		public: struct Transform {
-			Vec2 translate, scale, skew, origin; // 平移向量, 缩放向量, 倾斜向量, origin 最终以该点 位移,缩放,旋转,歪
+			Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
 			float rotate; // z轴旋转角度值
 		};
 
@@ -532,6 +534,7 @@ namespace flare {
 		private: View *_first, *_last;
 		// transform:
 		private: Transform *_transform; // 矩阵变换
+		private: Vec2  _transform_origin; // origin 最终以该点 位移,缩放,旋转,歪
 		private: float _opacity; // 可影响子视图的透明度值
 		private:  Mat  _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 		// layout visible:

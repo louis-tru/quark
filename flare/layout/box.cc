@@ -32,6 +32,11 @@
 
 namespace flare {
 
+	// box private members method
+	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
+		public:
+	};
+
 	/**
 		* @constructors
 		*/
@@ -64,9 +69,13 @@ namespace flare {
 		*
 		* @func set_width(width)
 		*/
-	void Box::set_width(SizeValue width) {
-		if (_width != width) {
-			// TODO ...
+	void Box::set_width(SizeValue val) {
+		if (_width != val) {
+			_width = val;
+			mark(M_LAYOUT_SIZE);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
@@ -76,9 +85,13 @@ namespace flare {
 		*
 		* @func set_height(height)
 		*/
-	void Box::set_height(SizeValue height) {
-		if (_height != height) {
-			// TODO ...
+	void Box::set_height(SizeValue val) {
+		if (_height != val) {
+			_height = val;
+			mark(M_LAYOUT_SIZE);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
@@ -88,9 +101,13 @@ namespace flare {
 		*
 		* @func set_limit_width(limit_width)
 		*/
-	void Box::set_limit_width(SizeValue limit_width) {
-		if (_limit_width != limit_width) {
-			// TODO ...
+	void Box::set_limit_width(SizeValue val) {
+		if (_limit_width != val) {
+			_limit_width = val;
+			mark(M_LAYOUT_SIZE);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
@@ -100,63 +117,107 @@ namespace flare {
 		*
 		* @func set_limit_height(limit_height)
 		*/
-	void Box::set_limit_height(SizeValue limit_height) {
-		if (_limit_height != limit_height) {
-			// TODO ...
+	void Box::set_limit_height(SizeValue val) {
+		if (_limit_height != val) {
+			_limit_height = val;
+			mark(M_LAYOUT_SIZE);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::margin_top(float val) { // margin
-		if (_padding_top != val) {
-			// TODO ...
+		if (_margin_top != val) {
+			_margin_top = val;
+			mark(M_LAYOUT_SIZE);
+			mark_recursive(M_TRANSFORM_ORIGIN);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::margin_right(float val) {
-		if (_padding_right != val) {
-			// TODO ...
+		if (_margin_right != val) {
+			_margin_right = val;
+			mark(M_LAYOUT_SIZE);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::margin_bottom(float val) {
-		if (_padding_bottom != val) {
-			// TODO ...
+		if (_margin_bottom != val) {
+			_margin_bottom = val;
+			mark(M_LAYOUT_SIZE);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::margin_left(float val) {
-		if (_padding_left != val) {
-			// TODO ...
+		if (_margin_left != val) {
+			_margin_left = val;
+			mark(M_LAYOUT_SIZE);
+			mark_recursive(M_TRANSFORM_ORIGIN); // 必然影响origin变化，因为margin是transform origin的一部分
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::padding_top(float val) { // padding
 		if (_padding_top != val) {
-			// TODO ...
+			_padding_top = val;
+			mark(M_LAYOUT_SIZE);
+			mark_recursive(M_TRANSFORM/* | M_TRANSFORM_ORIGIN*/); // 影响子布局偏移、影响尺寸变化进而影响origin
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::padding_right(float val) {
 		if (_padding_right != val) {
-			// TODO ...
+			_padding_right = val;
+			mark(M_LAYOUT_SIZE);
+			// mark_recursive(M_TRANSFORM_ORIGIN);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::padding_bottom(float val) {
 		if (_padding_bottom != val) {
-			// TODO ...
+			_padding_bottom = val;
+			mark(M_LAYOUT_SIZE);
+			// mark_recursive(M_TRANSFORM_ORIGIN);
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 
 	void Box::padding_left(float val) {
 		if (_padding_left != val) {
-			// TODO ...
+			_padding_left = val;
+			mark(M_LAYOUT_SIZE);
+			mark_recursive(M_TRANSFORM); // 几乎可以肯定会影响子布局偏移
+			if (parent()) {
+				parent()->layout_content_change_notice(this);
+			}
 		}
 	}
 	
 	void Box::fill(FillPtr val) {
 		if (_fill != val) {
 			// TODO ...
+			_fill = val; // ?
+			mark_none();
 		}
 	}
 
@@ -215,7 +276,7 @@ namespace flare {
 		if (_layout_align != align) {
 			_layout_align = align;
 			if (parent()) {
-				parent()->layout_content_change_notice(this);
+				parent()->layout_content_change_notice();
 			}
 		}
 	}
@@ -235,9 +296,9 @@ namespace flare {
 		}
 	}
 
-	Vec2 Box::layout_transform_origin(Transform& t) {
+	Vec2 Box::solve_transform_origin() {
 		// TODO compute transform origin ...
-		return Vec2();
+		return Vec2(_margin_left, _margin_top);
 	}
 
 	Vec2 Box::lock_layout_size(Vec2 layout_size) {
@@ -258,6 +319,7 @@ namespace flare {
 
 	void Box::layout_content_change_notice(Layout* child) {
 		// ... 
+		// mark(M_LAYOUT_CONTENT)
 	}
 
 	void View::layout_size_change_notice_from_parent(Layout* parent) {

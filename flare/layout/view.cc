@@ -186,7 +186,6 @@ namespace flare {
 		: _action(nullptr), _parent(nullptr)
 		, _prev(nullptr), _next(nullptr)
 		, _first(nullptr), _last(nullptr)
-		//, _depth(0)
 		, _transform(nullptr), _opacity(1.0)
 		, _visible(true)
 		, _region_visible(false)
@@ -653,9 +652,9 @@ namespace flare {
 		* 
 		* compute the transform origin value
 		* 
-		* @func layout_transform_origin(t)
+		* @func solve_transform_origin()
 		*/
-	Vec2 View::layout_transform_origin(Transform& t) {
+	Vec2 View::solve_transform_origin() {
 		// TODO compute transform origin ...
 		return Vec2();
 	}
@@ -672,27 +671,18 @@ namespace flare {
 		Vec2 in = _parent ? _parent->layout_offset_inside(): Vec2();
 		if (_transform) {
 			return Mat(
-				layout_offset() + _transform->origin +
-				_transform->translate - in,
+				layout_offset() + _transform_origin + _transform->translate - in, // translate
 				_transform->scale,
-				-_transform->rotate, _transform->skew
+				-_transform->rotate,
+				_transform->skew
 			);
 		} else {
-			Vec2 translate = layout_offset() - in;
+			Vec2 translate = layout_offset() + _transform_origin - in;
 			return Mat(
 				1, 0, translate.x(),
 				0, 1, translate.y()
 			);
 		}
-	}
-
-	/**
-		* Start the matrix transformation from this origin point
-		*
-		* @func transform_origin()
-		*/
-	Vec2 View::transform_origin() const {
-		return _transform ? _transform->origin: Vec2();
 	}
 
 	// --------------- o v e r w r i t e ---------------
@@ -712,17 +702,19 @@ namespace flare {
 		if (!_depth) return;
 
 		if (mark & M_TRANSFORM_ORIGIN) {
+			unmark(M_TRANSFORM_ORIGIN); // unmark
 			// mark |= M_TRANSFORM;
 			// mark &= ~M_TRANSFORM_ORIGIN;
-			if (_transform) {
-				_transform->origin = layout_transform_origin(*_transform);
-				unmark(M_TRANSFORM_ORIGIN); // unmark
-				goto tran;
+			Vec2 origin = solve_transform_origin();
+			if (origin != _transform_origin) {
+				_transform_origin = origin;
+				goto transform;
 			}
 		}
 
 		if (mark & M_TRANSFORM) { // update transform matrix
-			tran:
+			transform:
+
 			if (_parent) {
 				_parent->matrix().multiplication(layout_matrix(), _matrix);
 			} else {
@@ -739,7 +731,7 @@ namespace flare {
 	}
 
 	Vec2 View::layout_offset_inside() {
-		return transform_origin();
+		return _transform_origin;
 	}
 
 }

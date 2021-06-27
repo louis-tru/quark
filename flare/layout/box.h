@@ -110,7 +110,7 @@ namespace flare {
 		virtual Vec2 layout_content_size(bool& is_explicit_out);
 		virtual float layout_weight();
 		virtual LayoutAlign layout_align();
-		virtual Vec2 layout_transform_origin(Transform& t);
+		virtual Vec2 solve_transform_origin();
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy();
@@ -125,6 +125,8 @@ namespace flare {
 		float _layout_weight; // layout weight
 		LayoutAlign _layout_align; // layout align
 		Vec2  _size; // width,height / size
+
+		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

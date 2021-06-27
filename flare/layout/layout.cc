@@ -42,6 +42,7 @@ namespace flare {
 		, _layout_mark(M_NONE)
 		, _depth(0)
 	{
+		ASSERT(app());
 	}
 
 	/**
@@ -215,7 +216,6 @@ namespace flare {
 		if (_mark_index < 0) {
 			auto depth = layout_depth();
 			if (depth) {
-				ASSERT(app());
 				app()->pre_render()->mark(this, depth); // push to pre render
 			}
 		}
@@ -226,7 +226,6 @@ namespace flare {
 		if (_recursive_mark_index < 0) {
 			auto depth = layout_depth();
 			if (depth) {
-				ASSERT(app());
 				app()->pre_render()->mark_recursive(this, depth); // push to pre render
 			}
 		}
@@ -236,7 +235,6 @@ namespace flare {
 		* @func mark_none()
 		*/
 	void Layout::mark_none() {
-		ASSERT(app());
 		app()->pre_render()->mark_none(this);
 	}
 

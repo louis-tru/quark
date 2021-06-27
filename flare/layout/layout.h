@@ -55,7 +55,7 @@ namespace flare {
 			M_LAYOUT_CONTENT   = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
 			M_LAYOUT_SIZE      = (1 << 3), /* 布局尺寸改变, 设置尺寸可能影响父布局 */
 			//**
-			M_RECURSIVE        = (M_TRANSFORM), /* 需要被递归的标记 */
+			M_RECURSIVE        = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
 		};
 
 		// layout align
@@ -83,7 +83,7 @@ namespace flare {
 			Vec2 origin;
 			Vec2 size;
 		};
-		
+
 		struct Region {
 			float x1, y1;
 			float x2, y2;
@@ -106,7 +106,9 @@ namespace flare {
 		 *
 		 * @func layout_depth()
 		 */
-		uint32_t layout_depth() const { return _depth; }
+		uint32_t layout_depth() const {
+			return _depth;
+		}
 
 		/**
 		 *
