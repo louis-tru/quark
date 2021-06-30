@@ -104,18 +104,16 @@ namespace flare {
 		 */
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		virtual void layout_recursive(uint32_t mark);
 		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
-		virtual Vec2 layout_content_size(bool& is_explicit_out);
+		virtual Vec2 layout_content_size(bool& is_explicit_width, bool& is_explicit_height);
 		virtual float layout_weight();
 		virtual LayoutAlign layout_align();
 		virtual Vec2 solve_transform_origin();
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
-		virtual void set_layout_offset_lazy();
-		virtual void layout_content_change_notice(Layout* child);
-		virtual void layout_size_change_notice_from_parent(Layout* parent);
+		virtual void set_layout_offset_lazy(Rect rect);
+		virtual void layout_content_size_change_notice_from_parent(Layout* parent, uint32_t layout_mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
@@ -124,7 +122,8 @@ namespace flare {
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+padding+content）
 		float _layout_weight; // layout weight
 		LayoutAlign _layout_align; // layout align
-		Vec2  _size; // width,height / size
+		Vec2  _layout_content_size; // width,height / size
+		bool  _explicit_width, _explicit_height;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

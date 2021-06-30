@@ -49,13 +49,14 @@ namespace flare {
 
 		// Layout mark value
 		enum : uint32_t {
-			M_NONE             = 0,        /* 没有任何标记 */
-			M_TRANSFORM        = (1 << 0), /* 矩阵变换 recursive mark */
-			M_TRANSFORM_ORIGIN = (1 << 1), /* 矩阵变换 origin mark */
-			M_LAYOUT_CONTENT   = (1 << 2), /* 布局内容偏移, 需要重新对子布局排版 */
-			M_LAYOUT_SIZE      = (1 << 3), /* 布局尺寸改变, 设置尺寸可能影响父布局 */
+			M_NONE                    = 0,        /* 没有任何标记 */
+			M_TRANSFORM               = (1 << 0), /* 矩阵变换 recursive mark */
+			M_TRANSFORM_ORIGIN        = (1 << 1), /* 矩阵变换 origin mark */
+			M_LAYOUT_SIZE_WIDTH       = (1 << 2), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
+			M_LAYOUT_SIZE_HEIGHT      = (1 << 3),
+			M_LAYOUT_TYPESETTING      = (1 << 4), /* 布局内容偏移, 需要重新对子布局排版 */
 			//**
-			M_RECURSIVE        = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
+			M_RECURSIVE          = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
 		};
 
 		// layout align
@@ -106,7 +107,7 @@ namespace flare {
 		 *
 		 * @func layout_depth()
 		 */
-		uint32_t layout_depth() const {
+		inline uint32_t layout_depth() const {
 			return _depth;
 		}
 
@@ -167,9 +168,9 @@ namespace flare {
 		 * Returns false to indicate that the size is unknown,
 		 * indicates that the size changes with the size of the subview, and the content is wrapped
 		 *
-		 * @func layout_content_size(is_explicit)
+		 * @func layout_content_size(is_explicit_width, explicit_height)
 		 */
-		virtual Vec2 layout_content_size(bool& is_explicit);
+		virtual Vec2 layout_content_size(bool& is_explicit_width, bool& is_explicit_height);
 
 		/**
 		 * 
@@ -185,7 +186,7 @@ namespace flare {
 		 *
 		 * @func set_layout_offset_lazy()
 		 */
-		virtual void set_layout_offset_lazy();
+		virtual void set_layout_offset_lazy(Rect rect);
 
 		/**
 			* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
@@ -203,6 +204,8 @@ namespace flare {
 
 		/**
 		 *
+		 * (计算布局自身的尺寸)
+		 *
 		 * 从外向内正向迭代布局，比如一些布局方法是先从外部到内部先确定盒子的明确尺寸
 		 * 
 		 * 这个方法被调用时父视图尺寸一定是有效的，在调用`layout_content_size`时有两种情况，
@@ -213,6 +216,8 @@ namespace flare {
 		virtual bool layout_forward(uint32_t mark) = 0;
 
 		/**
+		 * 
+		 * (计算子布局的偏移位置，以及确定在`layout_forward()`函数没有能确定的尺寸)
 		 * 
 		 * 从内向外反向迭代布局，比如有些视图外部并没有明确的尺寸，
 		 * 尺寸是由内部视图挤压外部视图造成的，所以只能先明确内部视图的尺寸。
@@ -233,16 +238,6 @@ namespace flare {
 
 		/**
 		 * 
-		 * This method of the parent view is called when the layout content of the child view changes
-		 *
-		 * This is not necessarily called by the child layout
-		 *
-		 * @func layout_content_change_notice(child)
-		 */
-		virtual void layout_content_change_notice(Layout* child = 0);
-
-		/**
-		 * 
 		 * This method of the parent view is called when the layout weight of the child view changes
 		 * 
 		 * @func layout_weight_change_notice_from_child(child)
@@ -251,11 +246,21 @@ namespace flare {
 
 		/**
 		 * 
+		 * This method of the parent view is called when the layout content of the child view changes
+		 *
+		 * This is not necessarily called by the child layout
+		 *
+		 * @func layout_typesetting_change_notice_from_child(child)
+		 */
+		virtual void layout_typesetting_change_notice_from_child(Layout* child = 0);
+
+		/**
+		 * 
 		 * This method of the child view is called when the layout size of the parent view changes
 		 * 
-		 * @func layout_size_change_notice_from_parent(parent)
+		 * @func layout_size_change_notice_from_parent(parent, layout_mark)
 		 */
-		virtual void layout_size_change_notice_from_parent(Layout* parent);
+		virtual void layout_content_size_change_notice_from_parent(Layout* parent, uint32_t layout_mark);
 
 		/**
 		 * 
@@ -308,9 +313,11 @@ namespace flare {
 		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
 		*/
 		private: uint32_t _layout_mark; /* 标记 */
-		protected: uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
-
+		private: uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+		
 		friend class PreRender;
+
+		FX_DEFINE_INLINE_CLASS(Inl_View);
 	};
 
 }

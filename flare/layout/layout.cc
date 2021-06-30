@@ -109,11 +109,12 @@ namespace flare {
 		* Returns false to indicate that the size is unknown,
 		* indicates that the size changes with the size of the subview, and the content is wrapped
 		*
-		* @func layout_content_size(is_explicit)
+		* @func layout_content_size(is_explicit_width, is_explicit_height)
 		*/
-	Vec2 Layout::layout_content_size(bool& is_explicit) {
-		is_explicit = false; // No definite size
-		return 0;
+	Vec2 Layout::layout_content_size(bool& is_explicit_width, bool& is_explicit_height) {
+		is_explicit_width = false; // No definite size
+		is_explicit_height = false;
+		return Vec2();
 	}
 
 	/**
@@ -132,7 +133,7 @@ namespace flare {
 		*
 		* @func set_layout_offset_lazy()
 		*/
-	void Layout::set_layout_offset_lazy() {
+	void Layout::set_layout_offset_lazy(Rect rect) {
 		// noop
 	}
 
@@ -159,9 +160,8 @@ namespace flare {
 		* 
 		* @func layout_content_change_notice(child)
 		*/
-	void Layout::layout_content_change_notice(Layout* child) {
+	void Layout::layout_typesetting_change_notice_from_child(Layout* child) {
 		// noop
-		// mark(M_LAYOUT_CONTENT);
 	}
 
 	/**
@@ -172,18 +172,16 @@ namespace flare {
 		*/
 	void Layout::layout_weight_change_notice_from_child(Layout* child) {
 		// noop
-		// mark(M_LAYOUT_CONTENT);
 	}
 
 	/**
 		* 
 		* This method of the child view is called when the layout size of the parent view changes
 		* 
-		* @func layout_size_change_notice_from_parent(parent)
+		* @func layout_size_change_notice_from_parent(parent, layout_mark)
 		*/
-	void Layout::layout_size_change_notice_from_parent(Layout* parent) {
+	void Layout::layout_content_size_change_notice_from_parent(Layout* parent, uint32_t layout_mark) {
 		// noop
-		// mark(M_LAYOUT_SIZE);
 	}
 
 	/**

@@ -33,8 +33,8 @@
 
 namespace flare {
 	#define define_number(N, T) \
-		template<> const T Number<T>::min(std::numeric_limits<T>::min());\
-		template<> const T Number<T>::max(std::numeric_limits<T>::max());
+		template<> const T Number<T>::limit_min(std::numeric_limits<T>::min());\
+		template<> const T Number<T>::limit_max(std::numeric_limits<T>::max());
 
 	define_number(Int8, int8_t); define_number(Uint8 , uint8_t);
 	define_number(Int16, int16_t); define_number(Uint16, uint16_t);

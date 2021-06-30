@@ -51,11 +51,18 @@ namespace flare {
 		template <typename T2> inline bool operator<=(T2 v) { return value <= v.value; }
 		template <typename T2> inline bool operator>=(T2 v) { return value >= v.value; }
 		T value;
-		static const T min, max;
+		static const T limit_min, limit_max;
+
+		static inline T max(T a, T b) {
+			return a > b ? a: b;
+		}
+		static inline T min(T a, T b) {
+			return a < b ? a: b;
+		}
 	};
 
 	#define define_number(N, T) \
-		typedef Number<T> N; template<> const T N::min; template<> const T N::max
+		typedef Number<T> N; template<> const T N::limit_min; template<> const T N::limit_max
 
 	define_number(Int8, int8_t); define_number(Uint8 , uint8_t);
 	define_number(Int16, int16_t); define_number(Uint16, uint16_t);

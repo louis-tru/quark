@@ -82,6 +82,18 @@ namespace flare {
 		visitBox(v);
 	}
 
+	// --------------- L a y o u t ---------------
+
+	// layout private members method
+	FX_DEFINE_INLINE_MEMBERS(Layout, Inl_View) {
+		public:
+		#define _inl_layout(self) static_cast<Layout::Inl_View*>(self)
+
+		inline void set_depth(uint32_t depth) {
+			_depth = depth;
+		}
+	};
+
 	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method
@@ -122,9 +134,9 @@ namespace flare {
 		* @func set_depth(depth) clear depth
 		*/
 		void clear_depth() {
-			if ( _depth ) {
-				auto old_depth = _depth;
-				_depth = 0;
+			if ( layout_depth() ) {
+				auto old_depth = layout_depth();
+				_inl_layout(this)->set_depth(0);
 				layout_depth_change_notice(old_depth, 0);
 				blur();
 				
@@ -141,10 +153,10 @@ namespace flare {
 		*/
 		void set_depth(uint32_t depth) {
 			if (_visible) {
-				if ( _depth != depth ) {
-					auto old_depth = _depth;
-					_depth = depth++;
-					layout_depth_change_notice(old_depth, _depth);
+				if ( layout_depth() != depth ) {
+					auto old_depth = layout_depth();
+					_inl_layout(this)->set_depth(depth++);
+					layout_depth_change_notice(old_depth, layout_depth());
 
 					if ( layout_mark() ) { // remark
 						mark(M_NONE);
@@ -314,9 +326,9 @@ namespace flare {
 			_inl(this)->remove_all_child_(); // 删除子视图
 			_inl(this)->clear();
 			// remove_event_listener(); // TODO
-			auto old_depth = _depth;
-			_depth = 0;
-			layout_depth_change_notice(old_depth, _depth);
+			auto old_depth = layout_depth();
+			_inl_layout(this)->set_depth(0);
+			layout_depth_change_notice(old_depth, layout_depth());
 			_parent = _prev = _next = nullptr;
 			release(); // Disconnect from parent view strong reference
 		}
@@ -349,15 +361,15 @@ namespace flare {
 			_inl(this)->clear();
 			
 			if ( _parent ) {
-				_parent->layout_content_change_notice(this); // notice parent layout
+				_parent->layout_typesetting_change_notice_from_child(this); // notice parent layout
 			} else {
 				retain(); // link to parent and retain ref
 			}
 			_parent = parent;
-			_parent->layout_content_change_notice(this); // notice parent layout
+			_parent->layout_typesetting_change_notice_from_child(this); // notice parent layout
 			mark(M_LAYOUT_SIZE); // mark layout size, reset layout size
 
-			auto depth = parent->_depth;
+			auto depth = parent->layout_depth();
 			if (depth) {
 				_inl(this)->set_depth(depth + 1);
 			} else {
@@ -376,13 +388,13 @@ namespace flare {
 		if (_visible != val) {
 			_visible = val;
 			if (_parent) {
-				_parent->layout_content_change_notice(this); // mark parent layout 
+				_parent->layout_typesetting_change_notice_from_child(this); // mark parent layout 
 			}
 			if (_visible) {
 				mark(M_LAYOUT_SIZE); // reset layout size
 			}
-			if (_parent && _parent->_depth) {
-				_inl(this)->set_depth(_parent->_depth + 1);
+			if (_parent && _parent->layout_depth()) {
+				_inl(this)->set_depth(_parent->layout_depth() + 1);
 			} else {
 				_inl(this)->clear_depth();
 			}
@@ -655,7 +667,6 @@ namespace flare {
 		* @func solve_transform_origin()
 		*/
 	Vec2 View::solve_transform_origin() {
-		// TODO compute transform origin ...
 		return Vec2();
 	}
 
@@ -688,18 +699,28 @@ namespace flare {
 	// --------------- o v e r w r i t e ---------------
 
 	bool View::layout_forward(uint32_t mark) {
-		// noop
-		return true;
+		return !(mark & M_LAYOUT_TYPESETTING);
 	}
 
 	bool View::layout_reverse(uint32_t mark) {
-		// noop
-		// call child->set_layout_offset_lazy()
+
+		if (mark & (M_LAYOUT_TYPESETTING)) {
+			auto v = _first;
+			Rect rect = {
+				Vec2(), Vec2(),
+			};
+			while (v) {
+				v->set_layout_offset_lazy(rect); // lazy layout
+				v = v->next();
+			}
+			unmark(M_LAYOUT_TYPESETTING);
+		}
+
 		return true;
 	}
 
 	void View::layout_recursive(uint32_t mark) {
-		if (!_depth) return;
+		if (!layout_depth()) return;
 
 		if (mark & M_TRANSFORM_ORIGIN) {
 			unmark(M_TRANSFORM_ORIGIN); // unmark
@@ -732,6 +753,10 @@ namespace flare {
 
 	Vec2 View::layout_offset_inside() {
 		return _transform_origin;
+	}
+
+	void View::layout_typesetting_change_notice_from_child(Layout* child) {
+		mark(M_LAYOUT_TYPESETTING);
 	}
 
 }
