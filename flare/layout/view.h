@@ -520,11 +520,6 @@ namespace flare {
 		virtual void layout_recursive(uint32_t mark);
 		virtual Vec2 layout_offset_inside();
 
-		public: struct Transform {
-			Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
-			float rotate; // z轴旋转角度值
-		};
-
 		// *******************************************************************
 		// action:
 		private: Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
@@ -533,6 +528,10 @@ namespace flare {
 		private: View *_prev, *_next;
 		private: View *_first, *_last;
 		// transform:
+		public: struct Transform {
+			Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
+			float rotate; // z轴旋转角度值
+		};
 		private: Transform *_transform; // 矩阵变换
 		private: Vec2  _transform_origin; // origin 最终以该点 位移,缩放,旋转,歪
 		private: float _opacity; // 可影响子视图的透明度值
