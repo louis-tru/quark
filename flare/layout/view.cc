@@ -367,7 +367,7 @@ namespace flare {
 			}
 			_parent = parent;
 			_parent->layout_typesetting_change_notice_from_child(this); // notice parent layout
-			mark(M_LAYOUT_SIZE); // mark layout size, reset layout size
+			mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // mark layout size, reset layout size
 
 			auto depth = parent->layout_depth();
 			if (depth) {
@@ -391,7 +391,7 @@ namespace flare {
 				_parent->layout_typesetting_change_notice_from_child(this); // mark parent layout 
 			}
 			if (_visible) {
-				mark(M_LAYOUT_SIZE); // reset layout size
+				mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // reset layout size
 			}
 			if (_parent && _parent->layout_depth()) {
 				_inl(this)->set_depth(_parent->layout_depth() + 1);
