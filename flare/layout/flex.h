@@ -79,8 +79,14 @@ namespace flare {
 		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式
 		FX_Define_Prop(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
 
+		// @overwrite
+		virtual bool layout_forward(uint32_t mark);
+		virtual bool layout_reverse(uint32_t mark);
+		virtual void layout_typesetting_change_from_child_weight(Layout* child, float weight);
+
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
+		
 	};
 
 }

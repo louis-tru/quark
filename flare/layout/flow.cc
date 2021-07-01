@@ -60,7 +60,7 @@ namespace flare {
 	void FlowLayout::set_wrap_align(WrapAlign align) {
 		if (align != _wrap_align) {
 			_wrap_align = align;
-			mark(M_LAYOUT_CONTENT);
+			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 
@@ -73,7 +73,7 @@ namespace flare {
 	void FlowLayout::set_wrap_reverse(bool reverse) {
 		if (reverse != _wrap_reverse) {
 			_wrap_reverse = reverse;
-			mark(M_LAYOUT_CONTENT);
+			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 

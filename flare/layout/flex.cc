@@ -61,7 +61,7 @@ namespace flare {
 	void FlexLayout::set_direction(Direction val) {
 		if (val != _direction) {
 			_direction = val;
-			mark(M_LAYOUT_CONTENT); // 排版参数改变,后续需对子布局重新排版
+			mark(M_LAYOUT_TYPESETTING); // 排版参数改变,后续需对子布局重新排版
 		}
 	}
 
@@ -74,7 +74,7 @@ namespace flare {
 	void FlexLayout::set_items_align(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
-			mark(M_LAYOUT_CONTENT);
+			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 
@@ -87,8 +87,22 @@ namespace flare {
 	void FlexLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark(M_LAYOUT_CONTENT);
+			mark(M_LAYOUT_TYPESETTING);
 		}
+	}
+
+	bool FlexLayout::layout_forward(uint32_t mark) {
+		// TODO ...
+		return true;
+	}
+
+	bool FlexLayout::layout_reverse(uint32_t mark) {
+		// TODO ...
+		return true;
+	}
+
+	void FlexLayout::layout_typesetting_change_from_child_weight(Layout* child, float weight) {
+		mark(M_LAYOUT_TYPESETTING);
 	}
 
 }

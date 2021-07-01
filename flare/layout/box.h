@@ -113,7 +113,7 @@ namespace flare {
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Rect rect);
-		virtual void layout_content_size_change_from_parent(Layout* parent, uint32_t layout_mark);
+		virtual void layout_content_size_change_from_parent(Layout* parent, uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:

@@ -306,7 +306,7 @@ namespace flare {
 		}
 
 		if (layout_content_size_change_mark) {
-			auto v = _first;
+			auto v = first();
 			while (v) {
 				v->layout_content_size_change_from_parent(this, layout_content_size_change_mark);
 				v = v->next();
@@ -320,7 +320,7 @@ namespace flare {
 	bool Box::layout_reverse(uint32_t mark) {
 
 		if (mark & (M_LAYOUT_TYPESETTING)) {
-			auto v = _first;
+			auto v = first();
 			Rect rect = {
 				Vec2(_margin_left + _padding_left, _margin_top + _padding_top),
 				_layout_content_size,
@@ -457,8 +457,8 @@ namespace flare {
 		set_layout_offset(offset);
 	}
 
-	void Box::layout_content_size_change_from_parent(Layout* parent, uint32_t mark_value) {
-		mark(mark_value);
+	void Box::layout_content_size_change_from_parent(Layout* parent, uint32_t mark_) {
+		mark(mark_);
 	}
 
 }

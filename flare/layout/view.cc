@@ -688,9 +688,7 @@ namespace flare {
 
 		if (mark & (M_LAYOUT_TYPESETTING)) {
 			auto v = _first;
-			Rect rect = {
-				Vec2(), Vec2(),
-			};
+			Rect rect;
 			while (v) {
 				v->set_layout_offset_lazy(rect); // lazy layout
 				v = v->next();
