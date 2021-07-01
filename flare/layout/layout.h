@@ -258,9 +258,9 @@ namespace flare {
 		 * 
 		 * This method of the parent view is called when the layout weight of the child view changes
 		 * 
-		 * @func layout_typesetting_change_from_child_weight(child, weight)
+		 * @func layout_typesetting_change_from_child_weight(child)
 		 */
-		virtual void layout_typesetting_change_from_child_weight(Layout* child, float weight);
+		virtual void layout_typesetting_change_from_child_weight(Layout* child);
 
 		/**
 		 * 

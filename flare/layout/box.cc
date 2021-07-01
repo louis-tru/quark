@@ -382,7 +382,7 @@ namespace flare {
 		if (_layout_weight != weight) {
 			_layout_weight = weight;
 			if (parent()) {
-				parent()->layout_typesetting_change_from_child_weight(this, weight);
+				parent()->layout_typesetting_change_from_child_weight(this);
 			}
 		}
 	}

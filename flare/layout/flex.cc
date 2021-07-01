@@ -129,7 +129,7 @@ namespace flare {
 		return true;
 	}
 
-	void FlexLayout::layout_typesetting_change_from_child_weight(Layout* child, float weight) {
+	void FlexLayout::layout_typesetting_change_from_child_weight(Layout* child) {
 		mark(M_LAYOUT_TYPESETTING);
 	}
 
