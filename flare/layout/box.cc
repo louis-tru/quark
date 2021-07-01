@@ -241,15 +241,18 @@ namespace flare {
 				// mark(M_LAYOUT_TYPESETTING);
 				layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
 			}
+
+			_layout_size.width(_margin_left + _margin_right + value + _padding_left + _padding_right);
+
 			unmark(M_LAYOUT_SIZE_WIDTH);
 
-			parent()->layout_typesetting_change_notice_from_child(this);
+			parent()->layout_typesetting_change(this);
 		}
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 
 			bool is_explicit, _;
-			auto p_value = parent()->layout_content_height(is_explicit, _).height(), value;
+			auto p_value = parent()->layout_content_size(_, is_explicit).height(), value;
 
 			switch (_height.type) {
 				default: // NONE /* none default wrap content */
@@ -294,15 +297,18 @@ namespace flare {
 				// mark(M_LAYOUT_TYPESETTING);
 				layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 			}
+
+			_layout_size.height(_margin_top + _margin_bottom + value + _padding_top + _padding_bottom);
+
 			unmark(M_LAYOUT_SIZE_HEIGHT);
 
-			parent()->layout_typesetting_change_notice_from_child(this);
+			parent()->layout_typesetting_change(this);
 		}
 
 		if (layout_content_size_change_mark) {
 			auto v = _first;
 			while (v) {
-				v->layout_content_size_change_notice_from_parent(this, layout_content_size_change_mark);
+				v->layout_content_size_change_from_parent(this, layout_content_size_change_mark);
 				v = v->next();
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
@@ -361,7 +367,7 @@ namespace flare {
 		if (_layout_align != align) {
 			_layout_align = align;
 			if (parent()) {
-				parent()->layout_typesetting_change_notice_from_child(this);
+				parent()->layout_typesetting_change(this);
 			}
 		}
 	}
@@ -376,7 +382,7 @@ namespace flare {
 		if (_layout_weight != weight) {
 			_layout_weight = weight;
 			if (parent()) {
-				parent()->layout_weight_change_notice_from_child(this);
+				parent()->layout_typesetting_change_from_child_weight(this, weight);
 			}
 		}
 	}
@@ -399,31 +405,59 @@ namespace flare {
 	}
 
 	void Box::set_layout_offset_lazy(Rect rect) {
-		// TODO ...
+		Vec2 offset;
+
 		switch(_layout_align) {
 			default:
-			case TOP_LEFT:
-				set_layout_offset(rect.origin);
+			case LEFT_TOP:
+				offset = rect.origin;
 				break;
-			case TOP_CENTER:
+			case CENTER_TOP:
+				offset = Vec2(
+					rect.origin.x() + (rect.size.x() - _layout_size.x()) / 2.0,
+					rect.origin.y());
 				break;
-			case TOP_RIGHT:
+			case RIGHT_TOP:
+				offset = Vec2(
+					rect.origin.x() + rect.size.x() - _layout_size.x(),
+					rect.origin.y());
 				break;
-			case CENTER_LEFT:
+			case LEFT_CENTER:
+				offset = Vec2(
+					rect.origin.x(),
+					rect.origin.y() + (rect.size.y() - _layout_size.y()) / 2.0);
 				break;
 			case CENTER_CENTER:
+				offset = Vec2(
+					rect.origin.x() + (rect.size.x() - _layout_size.x()) / 2.0,
+					rect.origin.y() + (rect.size.y() - _layout_size.y()) / 2.0);
 				break;
-			case CENTER_RIGHT:
+			case RIGHT_CENTER:
+				offset = Vec2(
+					rect.origin.x() + (rect.size.x() - _layout_size.x()),
+					rect.origin.y() + (rect.size.y() - _layout_size.y()) / 2.0);
 				break;
-			case BOTTOM_LEFT:
+			case LEFT_BOTTOM:
+				offset = Vec2(
+					rect.origin.x(),
+					rect.origin.y() + (rect.size.y() - _layout_size.y()));
 				break;
-			case BOTTOM_CENTER:
+			case CENTER_BOTTOM:
+				offset = Vec2(
+					rect.origin.x() + (rect.size.x() - _layout_size.x()) / 2.0,
+					rect.origin.y() + (rect.size.y() - _layout_size.y()));
 				break;
-			case BOTTOM_RIGHT:
+			case RIGHT_BOTTOM:
+				offset = Vec2(
+					rect.origin.x() + (rect.size.x() - _layout_size.x()),
+					rect.origin.y() + (rect.size.y() - _layout_size.y()));
+				break;
 		}
+
+		set_layout_offset(offset);
 	}
 
-	void Box::layout_content_size_change_notice_from_parent(Layout* parent, uint32_t mark_value) {
+	void Box::layout_content_size_change_from_parent(Layout* parent, uint32_t mark_value) {
 		mark(mark_value);
 	}
 

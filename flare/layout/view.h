@@ -519,7 +519,7 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_recursive(uint32_t mark);
 		virtual Vec2 layout_offset_inside();
-		virtual void layout_typesetting_change_notice_from_child(Layout* child);
+		virtual void layout_typesetting_change(Layout* child);
 
 		// *******************************************************************
 		// action:

@@ -49,14 +49,14 @@ namespace flare {
 
 		// Layout mark value
 		enum : uint32_t {
-			M_NONE                    = 0,        /* 没有任何标记 */
+			M_NONE                    = (0),        /* 没有任何标记 */
 			M_TRANSFORM               = (1 << 0), /* 矩阵变换 recursive mark */
 			M_TRANSFORM_ORIGIN        = (1 << 1), /* 矩阵变换 origin mark */
 			M_LAYOUT_SIZE_WIDTH       = (1 << 2), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
 			M_LAYOUT_SIZE_HEIGHT      = (1 << 3),
 			M_LAYOUT_TYPESETTING      = (1 << 4), /* 布局内容偏移, 需要重新对子布局排版 */
 			//**
-			M_RECURSIVE          = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
+			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
 		};
 
 		// layout align
@@ -69,15 +69,15 @@ namespace flare {
 			STRETCH = value::STRETCH,
 			// BASELINE = value::BASELINE,
 			// default
-			TOP_LEFT = value::TOP_LEFT,
-			TOP_CENTER = value::TOP_CENTER,
-			TOP_RIGHT = value::TOP_RIGHT,
-			CENTER_LEFT = value::CENTER_LEFT,
+			LEFT_TOP = value::LEFT_TOP,
+			CENTER_TOP = value::CENTER_TOP,
+			RIGHT_TOP = value::RIGHT_TOP,
+			LEFT_CENTER = value::LEFT_CENTER,
 			CENTER_CENTER = value::CENTER_CENTER,
-			CENTER_RIGHT = value::CENTER_RIGHT,
-			BOTTOM_LEFT = value::BOTTOM_LEFT,
-			BOTTOM_CENTER = value::BOTTOM_CENTER,
-			BOTTOM_RIGHT = value::BOTTOM_RIGHT,
+			RIGHT_CENTER = value::RIGHT_CENTER,
+			LEFT_BOTTOM = value::LEFT_BOTTOM,
+			CENTER_BOTTOM = value::CENTER_BOTTOM,
+			RIGHT_BOTTOM = value::RIGHT_BOTTOM,
 		};
 
 		struct Rect {
@@ -238,37 +238,37 @@ namespace flare {
 
 		/**
 		 * 
-		 * This method of the parent view is called when the layout weight of the child view changes
-		 * 
-		 * @func layout_weight_change_notice_from_child(child)
-		 */
-		virtual void layout_weight_change_notice_from_child(Layout* child);
-
-		/**
-		 * 
 		 * This method of the parent view is called when the layout content of the child view changes
 		 *
 		 * This is not necessarily called by the child layout
 		 *
-		 * @func layout_typesetting_change_notice_from_child(child)
+		 * @func layout_typesetting_change(Layout* child)
 		 */
-		virtual void layout_typesetting_change_notice_from_child(Layout* child = 0);
+		virtual void layout_typesetting_change(Layout* child = 0);
+
+		/**
+		 * 
+		 * This method of the parent view is called when the layout weight of the child view changes
+		 * 
+		 * @func layout_typesetting_change_from_child_weight(child, weight)
+		 */
+		virtual void layout_typesetting_change_from_child_weight(Layout* child, float weight);
 
 		/**
 		 * 
 		 * This method of the child view is called when the layout size of the parent view changes
 		 * 
-		 * @func layout_size_change_notice_from_parent(parent, layout_mark)
+		 * @func layout_content_size_change_from_parent(parent, layout_mark)
 		 */
-		virtual void layout_content_size_change_notice_from_parent(Layout* parent, uint32_t layout_mark);
+		virtual void layout_content_size_change_from_parent(Layout* parent, uint32_t layout_mark);
 
 		/**
 		 * 
-		 * layout depth change for the cureent view object
+		 * set layout depth for the cureent view object
 		 *
-		 * @func layout_depth_change_notice(oldDepth, newDepth)
+		 * @func set_layout_depth(newDepth)
 		 */
-		void layout_depth_change_notice(uint32_t oldDepth, uint32_t newDepth);
+		protected: void set_layout_depth(uint32_t newDepth);
 
 		/**
 		 * @func mark(mark)
@@ -295,7 +295,7 @@ namespace flare {
 		/**
 		 * @func layout_mark()
 		 */
-		inline void layout_mark() const {
+		public: inline void layout_mark() const {
 			return _layout_mark;
 		}
 
@@ -316,8 +316,6 @@ namespace flare {
 		private: uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
 		
 		friend class PreRender;
-
-		FX_DEFINE_INLINE_CLASS(Inl_View);
 	};
 
 }

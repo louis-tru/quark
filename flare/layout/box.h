@@ -55,7 +55,7 @@ namespace flare {
 			MINUS = value::MINUS,   /* 减法(parent-value) value ! */
 		};
 
-		typedef value::ValueTemplate<SizeType, SizeType::WRAP> SizeValue;
+		typedef value::TemplateValue<SizeType, SizeType::WRAP> SizeValue;
 
 		/**
 		 * @constructors
@@ -113,7 +113,7 @@ namespace flare {
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Rect rect);
-		virtual void layout_content_size_change_notice_from_parent(Layout* parent, uint32_t layout_mark);
+		virtual void layout_content_size_change_from_parent(Layout* parent, uint32_t layout_mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:

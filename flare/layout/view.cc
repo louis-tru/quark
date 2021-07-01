@@ -82,18 +82,6 @@ namespace flare {
 		visitBox(v);
 	}
 
-	// --------------- L a y o u t ---------------
-
-	// layout private members method
-	FX_DEFINE_INLINE_MEMBERS(Layout, Inl_View) {
-		public:
-		#define _inl_layout(self) static_cast<Layout::Inl_View*>(self)
-
-		inline void set_depth(uint32_t depth) {
-			_depth = depth;
-		}
-	};
-
 	// --------------- L a y o u t  V i e w ---------------
 
 	// view private members method
@@ -135,9 +123,7 @@ namespace flare {
 		*/
 		void clear_depth() {
 			if ( layout_depth() ) {
-				auto old_depth = layout_depth();
-				_inl_layout(this)->set_depth(0);
-				layout_depth_change_notice(old_depth, 0);
+				set_layout_depth(0);
 				blur();
 				
 				View *v = _first;
@@ -154,9 +140,7 @@ namespace flare {
 		void set_depth(uint32_t depth) {
 			if (_visible) {
 				if ( layout_depth() != depth ) {
-					auto old_depth = layout_depth();
-					_inl_layout(this)->set_depth(depth++);
-					layout_depth_change_notice(old_depth, layout_depth());
+					set_layout_depth(depth++);
 
 					if ( layout_mark() ) { // remark
 						mark(M_NONE);
@@ -326,9 +310,7 @@ namespace flare {
 			_inl(this)->remove_all_child_(); // 删除子视图
 			_inl(this)->clear();
 			// remove_event_listener(); // TODO
-			auto old_depth = layout_depth();
-			_inl_layout(this)->set_depth(0);
-			layout_depth_change_notice(old_depth, layout_depth());
+			set_layout_depth(0);
 			_parent = _prev = _next = nullptr;
 			release(); // Disconnect from parent view strong reference
 		}
@@ -361,12 +343,12 @@ namespace flare {
 			_inl(this)->clear();
 			
 			if ( _parent ) {
-				_parent->layout_typesetting_change_notice_from_child(this); // notice parent layout
+				_parent->layout_typesetting_change(this); // notice parent layout
 			} else {
 				retain(); // link to parent and retain ref
 			}
 			_parent = parent;
-			_parent->layout_typesetting_change_notice_from_child(this); // notice parent layout
+			_parent->layout_typesetting_change(this); // notice parent layout
 			mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // mark layout size, reset layout size
 
 			auto depth = parent->layout_depth();
@@ -388,7 +370,7 @@ namespace flare {
 		if (_visible != val) {
 			_visible = val;
 			if (_parent) {
-				_parent->layout_typesetting_change_notice_from_child(this); // mark parent layout 
+				_parent->layout_typesetting_change(this); // mark parent layout 
 			}
 			if (_visible) {
 				mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // reset layout size
@@ -745,7 +727,7 @@ namespace flare {
 			
 			View *v = _first;
 			while (v) {
-				layout_recursive(M_TRANSFORM | v->layout_mark());
+				v->layout_recursive(M_TRANSFORM | v->layout_mark());
 				v = v->_next;
 			}
 		}
@@ -755,7 +737,7 @@ namespace flare {
 		return _transform_origin;
 	}
 
-	void View::layout_typesetting_change_notice_from_child(Layout* child) {
+	void View::layout_typesetting_change(Layout* child) {
 		mark(M_LAYOUT_TYPESETTING);
 	}
 

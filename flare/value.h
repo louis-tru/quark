@@ -38,7 +38,7 @@ namespace flare {
 
 	namespace value {
 
-		#define FX_ENUM_VALUE(F) \
+		#define FX_Enum_Value(F) \
 			\
 			F(NONE,               none) \
 			F(DEFAULT,            default) \
@@ -62,15 +62,15 @@ namespace flare {
 			F(TOP,                top) \
 			F(BOTTOM,             bottom) \
 			\
-			F(TOP_LEFT,           top_left) \
-			F(TOP_CENTER,         top_center) \
-			F(TOP_RIGHT,          top_right) \
-			F(CENTER_LEFT,        center_left) \
+			F(LEFT_TOP,           left_top) \
+			F(CENTER_TOP,         center_top) \
+			F(RIGHT_TOP,          right_top) \
+			F(LEFT_CENTER,        left_center) \
 			F(CENTER_CENTER,      center_center) \
-			F(CENTER_RIGHT,       center_right) \
-			F(BOTTOM_LEFT,        bottom_left) \
-			F(BOTTOM_CENTER,      bottom_center) \
-			F(BOTTOM_RIGHT,       bottom_right) \
+			F(RIGHT_CENTER,       right_center) \
+			F(LEFT_BOTTOM,        left_bottom) \
+			F(CENTER_BOTTOM,      center_bottom) \
+			F(RIGHT_BOTTOM,       right_bottom) \
 			\
 			F(LEFT_REVERSE,       left_reverse) \
 			F(CENTER_REVERSE,     center_reverse) \
@@ -98,7 +98,7 @@ namespace flare {
 			F(CENTER_ELLIPSIS,    center_ellipsis) \
 			\
 			/* text white space */ \
-			/*F(NORMAL,       normal)*/ \
+			/*F(NORMAL,           normal)*/ \
 			F(NO_WRAP,            no_wrap) \
 			F(NO_SPACE,           no_space) \
 			F(PRE,                pre) \
@@ -151,33 +151,35 @@ namespace flare {
 			F(CONTINUE,           continue) \
 
 		enum Enum {
-			# define DEF_ENUM_VALUE(NAME, NAME2) NAME,
-				FX_ENUM_VALUE(DEF_ENUM_VALUE)
-			# undef DEF_ENUM_VALUE
+			# define DEF_Enum_Value(NAME, NAME2) NAME,
+				FX_Enum_Value(DEF_Enum_Value)
+			# undef DEF_Enum_Value
 		};
 
-		/**
-		* @struct Shadow
-		*/
-		struct FX_EXPORT Shadow {
+		struct Shadow {
 			float offset_x, offset_y, size;
 			Color color;
-			bool operator==(const Shadow&) const;
-			inline bool operator!=(const Shadow& value) const {
-				return ! operator==(value);
+			inline bool operator==(const Shadow& val) const {
+				return (
+					val.offset_x == offset_x && val.offset_y == offset_y && 
+					val.size == size && val.color == color);
+			}
+			inline bool operator!=(const Shadow& val) const {
+				return ! operator==(val);
 			}
 		};
-		
-		/**
-		* @struct ValueTemplate
-		*/
+
 		template<typename Type, Type TypeInit, typename Value = float>
-		struct FX_EXPORT ValueTemplate {
+		struct TemplateValue {
 			Value value;
 			Type type;
-			inline bool operator==(const ValueTemplate& val) const { return val.type == type && val.value == value; }
-			inline bool operator!=(const ValueTemplate& value) const { return !operator==(value); }
-			inline ValueTemplate(Value v, Type t = TypeInit): value(v), type(t) {}
+			inline bool operator==(const TemplateValue& val) const {
+				return val.type == type && val.value == value;
+			}
+			inline bool operator!=(const TemplateValue& val) const {
+				return !operator==(val);
+			}
+			inline TemplateValue(Value v, Type t = TypeInit): value(v), type(t) {}
 		};
 		
 	}

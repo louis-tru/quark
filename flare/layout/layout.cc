@@ -49,7 +49,7 @@ namespace flare {
 		* @destructor
 		*/
 	Layout::~Layout() {
-		layout_depth_change_notice(_depth, 0);
+		set_layout_depth(0);
 	}
 
 	/**
@@ -158,9 +158,9 @@ namespace flare {
 		*
 		* This method of the parent view is called when the layout content of the child view changes
 		* 
-		* @func layout_content_change_notice(child)
+		* @func layout_typesetting_change(child)
 		*/
-	void Layout::layout_typesetting_change_notice_from_child(Layout* child) {
+	void Layout::layout_typesetting_change(Layout* child) {
 		// noop
 	}
 
@@ -168,9 +168,9 @@ namespace flare {
 		* 
 		* This method of the parent view is called when the layout weight of the child view changes
 		* 
-		* @func layout_weight_change_notice_from_child(child)
+		* @func layout_typesetting_change_from_child_weight(child, weight)
 		*/
-	void Layout::layout_weight_change_notice_from_child(Layout* child) {
+	void Layout::layout_typesetting_change_from_child_weight(Layout* child, float weight) {
 		// noop
 	}
 
@@ -178,18 +178,20 @@ namespace flare {
 		* 
 		* This method of the child view is called when the layout size of the parent view changes
 		* 
-		* @func layout_size_change_notice_from_parent(parent, layout_mark)
+		* @func layout_content_size_change_from_parent(parent, layout_mark)
 		*/
-	void Layout::layout_content_size_change_notice_from_parent(Layout* parent, uint32_t layout_mark) {
+	void Layout::layout_content_size_change_from_parent(Layout* parent, uint32_t layout_mark) {
 		// noop
 	}
 
 	/**
-		* @func layout_depth_change_notice(new_depth)
+		* @func set_layout_depth(newDepth)
 		*/
-	void Layout::layout_depth_change_notice(uint32_t oldDepth, uint32_t newDepth) {
-		if (oldDepth != newDepth) {
-			ASSERT(app());
+	void Layout::set_layout_depth(uint32_t newDepth) {
+		if (_depth != newDepth) {
+			auto oldDepth = _depth;
+			_depth = newDepth;
+			// ASSERT(app());
 			auto pre = app()->pre_render();
 			if (_mark_index >= 0) {
 				pre->delete_mark(this, oldDepth);

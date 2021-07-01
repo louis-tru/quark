@@ -194,8 +194,8 @@ namespace flare {
 			PERCENT = value::PERCENT,   /* 百分比  % */
 		};
 
-		typedef ValueTemplate<BackgroundSizeType, BackgroundSizeType::AUTO, float> BackgroundSize;
-		typedef ValueTemplate<BackgroundPositionType, BackgroundPositionType::PIXEL, float> BackgroundPosition;
+		typedef TemplateValue<BackgroundSizeType, BackgroundSizeType::AUTO, float> BackgroundSize;
+		typedef TemplateValue<BackgroundPositionType, BackgroundPositionType::PIXEL, float> BackgroundPosition;
 		
 		struct BackgroundSizeCollection {
 			BackgroundSize x, y;

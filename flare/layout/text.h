@@ -108,16 +108,16 @@ namespace flare {
 			WRAP = value::WRAP,              /* 保留所有空白,强制使用自动wrap */
 		};
 
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, Color> TextColor;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, float> TextSize;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextWeightValue> TextWeight;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextStyleValue> TextStyle;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, Shadow> TextShadow;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, float> TextLineHeight;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextDecorationValue> TextDecoration;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextOverflowValue> TextOverflow;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, TextWhiteSpaceValue> TextWhiteSpace;
-		typedef ValueTemplate<TextValueType, TextValueType::INHERIT, FFID> TextFamily;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, Color> TextColor;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextSize;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWeightValue> TextWeight;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextStyleValue> TextStyle;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, Shadow> TextShadow;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextLineHeight;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextDecorationValue> TextDecoration;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextOverflowValue> TextOverflow;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWhiteSpaceValue> TextWhiteSpace;
+		typedef TemplateValue<TextValueType, TextValueType::INHERIT, FFID> TextFamily;
 
 		// TODO ...
 		private:
