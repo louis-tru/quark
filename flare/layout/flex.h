@@ -42,14 +42,6 @@ namespace flare {
 		FX_Define_View(FlexLayout);
 		public:
 
-		// layout direction
-		enum Direction: uint8_t {
-			ROW = value::ROW,
-			ROW_REVERSE = value::ROW_REVERSE,
-			COLUMN = value::COLUMN,
-			COLUMN_REVERSE = value::COLUMN_REVERSE,
-		};
-
 		// 项目在主轴上的对齐方式
 		enum ItemsAlign: uint8_t {
 			START = value::START, // 左对齐
@@ -69,6 +61,24 @@ namespace flare {
 			// BASELINE = value::BASELINE, // 项目的第一行文字的基线对齐
 		};
 
+		// 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+		enum Wrap: uint8_t {
+			NO_WRAP = value::NO_WRAP, // 只有一根交叉轴线
+			WRAP = value::WRAP, // 溢出后会有多根交叉轴线
+			WRAP_REVERSE = value::WRAP_REVERSE, // 多根交叉轴线反向排列
+		};
+
+		// 多根交叉轴线的对齐方式。如果项目只有一根交叉轴，该属性不起作用
+		enum WrapAlign: uint8_t {
+			START = value::START, // 与交叉轴的起点对齐
+			CENTER = value::CENTER, // 与交叉轴的中点对齐
+			END = value::END, // 与交叉轴的终点对齐
+			SPACE_BETWEEN = value::SPACE_BETWEEN, // 与交叉轴两端对齐,轴线之间的间隔平均分布
+			SPACE_AROUND = value::SPACE_AROUND, // 每根轴线两侧的间隔都相等,所以轴线之间的间隔比轴线与边框的间隔大一倍
+			SPACE_EVENLY = value::SPACE_EVENLY, // 每根轴线两侧的间隔都相等,这包括边框的间距
+			STRETCH = value::STRETCH, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
+		};
+
 		/**
 		 * @constructors
 		 */
@@ -78,6 +88,8 @@ namespace flare {
 		FX_Define_Prop(Direction, direction); // direction 主轴的方向
 		FX_Define_Prop(ItemsAlign, items_align); // items_align 主轴的对齐方式
 		FX_Define_Prop(CrossAlign, cross_align); // cross_align 交叉轴的对齐方式
+		FX_Define_Prop(Wrap, wrap); // wrap 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+		FX_Define_Prop(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
 
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark);
@@ -86,7 +98,7 @@ namespace flare {
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
-		
+
 	};
 
 }

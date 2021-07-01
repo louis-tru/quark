@@ -49,6 +49,8 @@ namespace flare {
 		: _direction(Direction::ROW)
 		, _items_align(ItemsAlign::START)
 		, _cross_align(CrossAlign::START)
+		, _wrap(Wrap::NO_WRAP)
+		, _wrap_align(WrapAlign::START)
 	{
 	}
 
@@ -87,6 +89,32 @@ namespace flare {
 	void FlexLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
+			mark(M_LAYOUT_TYPESETTING);
+		}
+	}
+
+	/**
+		* 
+		* 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+		*
+		* @func set_wrap_reverse(reverse)
+		*/
+	void FlowLayout::set_wrap(Wrap wrap) {
+		if (wrap != _wrap) {
+			_wrap = wrap;
+			mark(M_LAYOUT_TYPESETTING);
+		}
+	}
+
+	/**
+		* 
+		* 设置多根交叉轴的对齐方式
+		*
+		* @func set_wrap_align(align)
+		*/
+	void FlowLayout::set_wrap_align(WrapAlign align) {
+		if (align != _wrap_align) {
+			_wrap_align = align;
 			mark(M_LAYOUT_TYPESETTING);
 		}
 	}

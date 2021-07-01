@@ -59,6 +59,14 @@ namespace flare {
 			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
 		};
 
+		// layout direction
+		enum Direction: uint8_t {
+			ROW = value::ROW,
+			ROW_REVERSE = value::ROW_REVERSE,
+			COLUMN = value::COLUMN,
+			COLUMN_REVERSE = value::COLUMN_REVERSE,
+		};
+
 		// layout align
 		enum LayoutAlign: unit8_t {
 			// flow/flex

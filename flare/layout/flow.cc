@@ -46,35 +46,8 @@ namespace flare {
 		* @constructors
 		*/
 	FlowLayout::FlowLayout()
-		: _wrap_align(WrapAlign::START)
-		, _wrap_reverse(false)
+		: _direction(Direction::ROW)
 	{
-	}
-
-	/**
-		* 
-		* 设置多根交叉轴的对齐方式
-		*
-		* @func set_wrap_align(align)
-		*/
-	void FlowLayout::set_wrap_align(WrapAlign align) {
-		if (align != _wrap_align) {
-			_wrap_align = align;
-			mark(M_LAYOUT_TYPESETTING);
-		}
-	}
-
-	/**
-		* 
-		* 设置多根交叉轴是否反向方向排列
-		*
-		* @func set_wrap_reverse(reverse)
-		*/
-	void FlowLayout::set_wrap_reverse(bool reverse) {
-		if (reverse != _wrap_reverse) {
-			_wrap_reverse = reverse;
-			mark(M_LAYOUT_TYPESETTING);
-		}
 	}
 
 	// --------------- o v e r w r i t e ---------------
