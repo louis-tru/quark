@@ -1,5 +1,6 @@
 <html>
-	<head>
+
+	<body>
 
 		<style>
 
@@ -9,8 +10,8 @@
 			}
 
 			.div1 {
-				width: 500px;
-				height: 500px;
+				width: 400px;
+				height: 400px;
 				margin: auto;
 				background: #0f0;
 				display: flex;
@@ -70,51 +71,9 @@
 				width: 460px;
 			}
 
-			.div2 {
-				width: 500px;
-				background-color: #f0f;
-			}
-
-			.div2 > div {
-				float: left;
-				width: 240px;
-				height: 240px;
-				margin: 5px;
-				background-color: #f00;
-			}
-
 		</style>
 
-		<script>
-
-			var db = null;
-			var objectStore = null;
-			var request = window.indexedDB.open("MyTestDatabase");
-			request.onerror = function(event) {
-				// 错误处理
-				console.log(' 打开数据库报错');
-			};
-			request.onsuccess = function(event) {
-				// 成功处理
-				db = event.target.result;
-				console.log('打开数据库成功');
-
-				var objectStore = null;
-				if (!db.objectStoreNames.contains('imgLists')) {
-					console.log('created imgLists');
-					objectStore = db.createObjectStore('imgLists', { keyPath: 'id' });
-					// unique name可能会重复
-					objectStore.createIndex('name', 'name', { unique: false });
-				} else {
-					console.log('no created imgLists');
-				}
-			};
-		</script>
-
-	</head>
-	<body>
-
-		<div class="div1" style="display: none;">
+		<div class="div1">
 			<div class="a">A</div>
 			<div class="b">B</div>
 			<div>C</div>
@@ -129,15 +88,54 @@
 			<div class="b">M</div>
 		</div>
 
+		<style>
+			.div2 {
+				display: flex;
+				width: 400px;
+				height: 400px;
+				margin: auto;
+				margin-top: 10px;
+				background: #0f0;
+				display: flex;
+				flex-wrap: nowrap;
+				justify-content: center;
+			}
+			.div2 > div {
+				background: rgba(255,0,0,0.8);
+				margin: 1px;
+				width: 40px;
+				height: 40px;
+				text-align: center;
+				color: #fff;
+				line-height: 40px;
+				flex-grow: 0; /*flex-grow属性定义项目的放大比例，默认为0，即如果存在剩余空间，也不放大。*/
+				flex-shrink: 0.2; /*flex-shrink属性定义了项目的缩小比例，默认为1，即如果空间不足，该项目将缩小。*/
+				/*
+					S = SR + O * W / WT * min(WT, 1)
+					size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
+				*/
+			}
+			.div2 > div.e {
+				width: 100px;
+				flex-shrink: 0.2;
+			}
+			.div2 > div.e > div {
+				/* width: 350px; */
+				background-color: #f0f;
+			}
+
+		</style>
+
 		<div class="div2">
-			<div></div>
-			<div style="height: 300px;"></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
+			<div>A</div>
+			<div>B</div>
+			<div>C</div>
+			<div>D</div>
+			<div class="e"><div>E</div></div>
+			<div>F</div>
+			<div>G</div>
+			<div>H</div>
+			<div>I</div>
 		</div>
 
 	</body>

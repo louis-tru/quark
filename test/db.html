@@ -1,0 +1,24 @@
+<script>
+	var db = null;
+	var objectStore = null;
+	var request = window.indexedDB.open("MyTestDatabase");
+	request.onerror = function(event) {
+		// 错误处理
+		console.log(' 打开数据库报错');
+	};
+	request.onsuccess = function(event) {
+		// 成功处理
+		db = event.target.result;
+		console.log('打开数据库成功');
+
+		var objectStore = null;
+		if (!db.objectStoreNames.contains('imgLists')) {
+			console.log('created imgLists');
+			objectStore = db.createObjectStore('imgLists', { keyPath: 'id' });
+			// unique name可能会重复
+			objectStore.createIndex('name', 'name', { unique: false });
+		} else {
+			console.log('no created imgLists');
+		}
+	};
+</script>

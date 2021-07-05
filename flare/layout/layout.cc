@@ -131,7 +131,7 @@ namespace flare {
 		* 
 		* Setting layout offset values lazily mode for the view object
 		*
-		* @func set_layout_offset_lazy()
+		* @func set_layout_offset_lazy(rect)
 		*/
 	void Layout::set_layout_offset_lazy(Rect rect) {
 		// noop

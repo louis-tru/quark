@@ -107,7 +107,10 @@ namespace flare {
 		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
 		virtual Vec2 layout_content_size(bool& is_explicit_width, bool& is_explicit_height);
-		virtual float layout_weight();
+		virtual float layout_weight(); /* 
+			这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
+			在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
+		*/
 		virtual LayoutAlign layout_align();
 		virtual Vec2 solve_transform_origin();
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
