@@ -119,16 +119,23 @@ namespace flare {
 		}
 	}
 
-	// bool FlexLayout::layout_forward(uint32_t mark) {
-	// 	// TODO ...
-	// 	return true;
-	// }
+	bool FlexLayout::layout_forward(uint32_t mark) {
+		// TODO ...
+		return Box::layout_forward(mark);
+	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
 		if (mark & M_LAYOUT_TYPESETTING) {
 			// TODO 计算子布局位置的同时重新计算子布局因权重导致的尺寸变化 ...
 			// TODO ...
-			
+
+			auto v = first();
+			while (v) {
+				// 获取子布局的本真尺寸/最小可调整尺寸
+				// v->set_layout_offset_lazy(rect); // lazy layout
+				v = v->next();
+			}
+
 			unmark(M_LAYOUT_TYPESETTING);
 		}
 		return true;

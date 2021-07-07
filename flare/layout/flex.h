@@ -92,7 +92,7 @@ namespace flare {
 		FX_Define_Prop(WrapAlign, wrap_align); // wrap_align 多根交叉轴的对齐方式,如果项目只有一根交叉轴,该属性不起作用
 
 		// @overwrite
-		// virtual bool layout_forward(uint32_t mark);
+		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_typesetting_change_from_child_weight(Layout* child);
 
