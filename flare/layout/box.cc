@@ -35,6 +35,93 @@ namespace flare {
 	// box private members method
 	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
 		public:
+		#define _inl(self) static_cast<Box::Inl*>(self)
+
+		float layout_content_width(float parent_content_size, bool *is_wrap_in_out) {
+			float result;
+
+			switch (_width.type) {
+				default: // NONE /* none default wrap content */
+				case WRAP: /* 包裹内容 wrap content */
+					*is_wrap_in_out = true;
+					result = 0; // invalid wrap width
+					break;
+				case PIXEL: /* 明确值 value px */
+					*is_wrap_in_out = false;
+					result = _width.value;
+					break;
+				case MATCH: /* 匹配父视图 match parent */
+					if (*is_wrap_in_out) {
+						result = 0; // invalid wrap width
+					} else { // use wrap
+						result = Number<float>::max(
+							parent_content_size - _margin_left - _margin_right - _padding_left - _padding_right, 0
+						);
+					}
+					// *is_wrap_in_out = *is_wrap_in_out;
+					break;
+				case RATIO: /* 百分比 value % */
+					if (*is_wrap_in_out) {
+						result = 0; // invalid wrap width
+					} else { // use wrap
+						result = Number<float>::max(parent_content_size * _width.value, 0);
+					}
+					// *is_wrap_in_out = *is_wrap_in_out;
+					break;
+				case MINUS: /* 减法(parent-value) value ! */
+					if (*is_wrap_in_out) {
+						result = 0; // invalid wrap width
+					} else { // use wrap
+						result = Number<float>::max(parent_content_size - _width.value, 0);
+					}
+					// *is_wrap_in_out = *is_wrap_in_out;
+					break;
+			}
+			return result;
+		}
+
+		float layout_content_height(float parent_content_size, bool *is_wrap_in_out) {
+			float result;
+
+			switch (_height.type) {
+				default: // NONE /* none default wrap content */
+				case WRAP: /* 包裹内容 wrap content */
+					*is_wrap_in_out = true;
+					result = 0; // invalid wrap height
+					break;
+				case PIXEL: /* 明确值 value px */
+					*is_wrap_in_out = false;
+					result.height(_height.value);
+					break;
+				case MATCH: /* 匹配父视图 match parent */
+					if (*is_wrap_in_out) {
+						result = 0; // invalid wrap height
+					} else { // use wrap
+						result = Number<float>::max(
+							parent_content_size - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
+						);
+					}
+					// *is_wrap_in_out = *is_wrap_in_out;
+					break;
+				case RATIO: /* 百分比 value % */
+					if (*is_wrap_in_out) {
+						result = 0; // invalid wrap height
+					} else { // use wrap
+						result = Number<float>::max(parent_content_size * _height.value, 0);
+					}
+					// *is_wrap_in_out = *is_wrap_in_out;
+					break;
+				case MINUS: /* 减法(parent-value) value ! */
+					if (*is_wrap_in_out) {
+						result = 0; // invalid wrap height
+					} else { // use wrap
+						result = Number<float>::max(parent_content_size - _height.value, 0);
+					}
+					// *is_wrap_in_out = *is_wrap_in_out;
+					break;
+			}
+			return result;
+		}
 	};
 
 	/**
@@ -48,7 +135,7 @@ namespace flare {
 		, _padding_bottom(0), _padding_left(0)
 		, _fill(nullptr)
 		, _layout_weight(0), _layout_align(AUTO)
-		, _explicit_width(false), _explicit_height(false)
+		, _wrap_width(true), _wrap_height(true)
 	{
 	}
 
@@ -67,7 +154,7 @@ namespace flare {
 	void Box::set_width(SizeValue val) {
 		if (_width != val) {
 			_width = val;
-			mark(M_LAYOUT_WIDTH);
+			mark(M_LAYOUT_SIZE_WIDTH);
 		}
 	}
 
@@ -195,54 +282,19 @@ namespace flare {
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 
-			bool is_explicit, _;
-			float p_value = parent()->layout_content_size(is_explicit, _).width(), value;
+			bool is_wrap, _;
+			float val = _inl(this)->layout_content_width(
+				parent()->layout_content_size(&is_wrap).width(), &is_wrap
+			);
+			_wrap_width = is_wrap;
 
-			switch (_width.type) {
-				default: // NONE /* none default wrap content */
-				case WRAP: /* 包裹内容 wrap content */
-					_explicit_width = false;
-					value = 0; // invalid wrap width
-					break;
-				case PIXEL: /* 明确值 value px */
-					_explicit_width = true;
-					value = _width.value;
-					break;
-				case MATCH: /* 匹配父视图 match parent */
-					if (is_explicit) {
-						value = Number<float>::max(
-							p_value - _margin_left - _margin_right - _padding_left - _padding_right, 0
-						);
-					} else { // use wrap
-						value = 0; // invalid wrap width
-					}
-					_explicit_width = is_explicit;
-					break;
-				case RATIO: /* 百分比 value % */
-					if (is_explicit) {
-						value = Number<float>::max(p_value * _width.value, 0);
-					} else { // use wrap
-						value = 0; // invalid wrap width
-					}
-					_explicit_width = is_explicit;
-					break;
-				case MINUS: /* 减法(parent-value) value ! */
-					if (is_explicit) {
-						value = Number<float>::max(p_value - _width.value, 0);
-					} else { // use wrap
-						value = 0; // invalid wrap width
-					}
-					_explicit_width = is_explicit;
-					break;
-			}
-
-			if (value != _layout_content_size.width()) {
-				_layout_content_size.width(value);
+			if (val != _layout_content_size.width()) {
+				_layout_content_size.width(val);
 				// mark(M_LAYOUT_TYPESETTING);
 				layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
 			}
 
-			_layout_size.width(_margin_left + _margin_right + value + _padding_left + _padding_right);
+			_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
 
 			unmark(M_LAYOUT_SIZE_WIDTH);
 
@@ -251,54 +303,19 @@ namespace flare {
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 
-			bool is_explicit, _;
-			auto p_value = parent()->layout_content_size(_, is_explicit).height(), value;
+			bool _, is_wrap;
+			float val = _inl(this)->layout_content_height(
+				parent()->layout_content_size(&_).height(), &is_wrap
+			);
+			_wrap_height = is_wrap;
 
-			switch (_height.type) {
-				default: // NONE /* none default wrap content */
-				case WRAP: /* 包裹内容 wrap content */
-					_explicit_height = false;
-					value = 0; // invalid wrap height
-					break;
-				case PIXEL: /* 明确值 value px */
-					_explicit_height = true;
-					_layout_content_size.height(_height.value);
-					break;
-				case MATCH: /* 匹配父视图 match parent */
-					if (is_explicit) {
-						value = Number<float>::max(
-							p_value - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
-						);
-					} else { // use wrap
-						value = 0; // invalid wrap height
-					}
-					_explicit_height = is_explicit;
-					break;
-				case RATIO: /* 百分比 value % */
-					if (is_explicit) {
-						value = Number<float>::max(p_value * _height.value, 0);
-					} else { // use wrap
-						value = 0; // invalid wrap height
-					}
-					_explicit_height = is_explicit;
-					break;
-				case MINUS: /* 减法(parent-value) value ! */
-					if (is_explicit) {
-						value = Number<float>::max(p_value - _height.value, 0);
-					} else { // use wrap
-						value = 0; // invalid wrap height
-					}
-					_explicit_height = is_explicit;
-					break;
-			}
-
-			if (value != _layout_content_size.height()) {
-				_layout_content_size.height(value);
+			if (val != _layout_content_size.height()) {
+				_layout_content_size.height(val);
 				// mark(M_LAYOUT_TYPESETTING);
 				layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 			}
 
-			_layout_size.height(_margin_top + _margin_bottom + value + _padding_top + _padding_bottom);
+			_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
 
 			unmark(M_LAYOUT_SIZE_HEIGHT);
 
@@ -343,10 +360,29 @@ namespace flare {
 		return _layout_size;
 	}
 
-	Vec2 Box::layout_content_size(bool& is_explicit_width, bool& is_explicit_height) {
-		is_explicit_width = _explicit_width;
-		is_explicit_height = _explicit_height;
+	Vec2 Box::layout_content_size(bool is_wrap_out[2]) {
+		is_wrap_out[0] = _wrap_width;
+		is_wrap_out[1] = _wrap_height;
 		return _layout_content_size;
+	}
+
+	float Box::layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal) {
+		if (is_horizontal) {
+			return _margin_left + _margin_right + _padding_left + _padding_right +
+				_inl(this)->layout_content_width(parent_content_size, is_wrap_in_out)
+			;
+		} else {
+			return _margin_top + _margin_bottom + _padding_top + _padding_bottom +
+				_inl(this)->layout_content_height(parent_content_size, is_wrap_in_out)
+			;
+		}
+	}
+
+	float Box::layout_wrap_size(bool is_horizontal) {
+		if (is_horizontal) {
+			// TODO ...
+		}
+		return 0;
 	}
 
 	float Box::layout_weight() {
@@ -453,7 +489,6 @@ namespace flare {
 					rect.origin.y() + (rect.size.y() - _layout_size.y()));
 				break;
 		}
-
 		set_layout_offset(offset);
 	}
 

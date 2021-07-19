@@ -106,11 +106,14 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t mark);
 		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
-		virtual Vec2 layout_content_size(bool& is_explicit_width, bool& is_explicit_height);
-		virtual float layout_weight(); /* 
-			这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
-			在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
+		virtual Vec2 layout_content_size(bool is_wrap_out[2]);
+		virtual float layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal);
+		virtual float layout_wrap_size(bool is_horizontal);
+		/*
+		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
+		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 		*/
+		virtual float layout_weight();
 		virtual LayoutAlign layout_align();
 		virtual Vec2 solve_transform_origin();
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
@@ -122,11 +125,11 @@ namespace flare {
 		private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
-		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+padding+content）
+		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）
 		float _layout_weight; // layout weight
 		LayoutAlign _layout_align; // layout align
 		Vec2  _layout_content_size; // width,height / size
-		bool  _explicit_width, _explicit_height;
+		bool  _wrap_width, _wrap_height;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

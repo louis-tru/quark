@@ -111,24 +111,21 @@
 				flex-grow: 1; /*flex-grow属性定义项目的放大比例，默认为0，即如果存在剩余空间，也不放大。*/
 				flex-shrink: 1; /*flex-shrink属性定义了项目的缩小比例，默认为1，即如果空间不足，该项目将缩小。*/
 				/*
-					S = SR + O * W / WT * min(WT, 1)
+					S = S_r + O * W / W_t * min(W_t, 1)
 					size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 				*/
 			}
 			.div2 > div.e {
-				/* width: auto; */
-				/* min-width: 90px; */
-				/* flex-grow: 0; */
-				/*
-					11.78   0.04465843
-					42*6=252
-					252+11.78=263.78
-					400-263.78=136.22
-				*/
+				width: 90px;
+				min-width: 38px;
 			}
 			.div2 > div.e > div {
-				width: 85px;
+				/* width: 80px; */
 				background-color: #f0f;
+			}
+
+			.div2 > div.d {
+				max-width: 30px;
 			}
 
 		</style>
@@ -140,9 +137,9 @@
 			<div>D</div>
 			<div class="e"><div>E</div></div>
 			<div>F</div>
-			<!-- <div>G</div>
-			<div>H</div> -->
-			<!-- <div>I</div> -->
+			<div class="d">G</div>
+			<div>H</div>
+			<div>I</div>
 		</div>
 
 	</body>

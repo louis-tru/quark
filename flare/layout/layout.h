@@ -145,21 +145,11 @@ namespace flare {
 
 		/**
 		 *
-		 * Returns the layout size of view object (if is box view the: size=margin+border+padding+content)
+		 * Returns the layout size of view object (if is box view the: size=margin+padding+content)
 		 *
 		 * @func layout_size()
 		 */
 		virtual Vec2 layout_size();
-
-		/**
-		 * 
-		 * Relative to the parent view (layout_offset) to start offset，end position
-		 * 
-		 * @func layout_offset_end()
-		 */
-		inline Vec2 layout_offset_end() {
-			return layout_offset() + layout_size();
-		}
 
 		/**
 		 * Returns internal layout offset compensation of the view, which affects the sub view offset position
@@ -176,9 +166,25 @@ namespace flare {
 		 * Returns false to indicate that the size is unknown,
 		 * indicates that the size changes with the size of the subview, and the content is wrapped
 		 *
-		 * @func layout_content_size(is_explicit_width, explicit_height)
+		 * @func layout_content_size(is_wrap_out[2])
 		 */
-		virtual Vec2 layout_content_size(bool& is_explicit_width, bool& is_explicit_height);
+		virtual Vec2 layout_content_size(bool is_wrap_out[2]);
+		
+		/**
+		 *
+		 * Returns the layout raw size of object view
+		 *
+		 * @func layout_raw_size(parent_content_size, is_wrap_in_out, is_horizontal)
+		 */
+		virtual float layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal);
+
+		/**
+		 * 
+		 * Returns and compute use wrap width or height of object layout
+		 * 
+		 * @func layout_wrap_size(is_horizontal)
+		 */
+		virtual float layout_wrap_size(bool is_horizontal);
 
 		/**
 		 * 

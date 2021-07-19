@@ -109,12 +109,33 @@ namespace flare {
 		* Returns false to indicate that the size is unknown,
 		* indicates that the size changes with the size of the subview, and the content is wrapped
 		*
-		* @func layout_content_size(is_explicit_width, is_explicit_height)
+		* @func layout_content_size(is_wrap_out[2])
 		*/
-	Vec2 Layout::layout_content_size(bool& is_explicit_width, bool& is_explicit_height) {
-		is_explicit_width = false; // No definite size
-		is_explicit_height = false;
+	Vec2 Layout::layout_content_size(bool is_wrap_out[2]) {
+		is_wrap_out[0] = true; // No definite size
+		is_wrap_out[1] = true;
 		return Vec2();
+	}
+
+	/**
+		*
+		* Returns the layout raw size of object view
+		*
+		* @func layout_raw_size(parent_content_size, is_wrap_in_out[2])
+		*/
+	float Layout::layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal) {
+		*is_wrap_in_out = true; // No definite size
+		return 0;
+	}
+
+	/**
+		* 
+		* Returns and compute use wrap width or height of object layout
+		* 
+		* @func layout_wrap_size(is_horizontal)
+		*/
+	float Layout::layout_wrap_size(bool is_horizontal) {
+		return 0;
 	}
 
 	/**
