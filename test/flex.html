@@ -103,7 +103,7 @@
 			.div2 > div {
 				background: rgba(255,0,0,0.8);
 				margin: 1px;
-				width: 40px;
+				width: 100px;
 				height: 40px;
 				text-align: center;
 				color: #fff;
@@ -117,25 +117,32 @@
 			}
 			.div2 > div.e {
 				/* width: auto; */
-				width: 120px;
+				/* min-width: 90px; */
+				/* flex-grow: 0; */
+				/*
+					11.78   0.04465843
+					42*6=252
+					252+11.78=263.78
+					400-263.78=136.22
+				*/
 			}
 			.div2 > div.e > div {
-				/* width: 120px; */
+				width: 85px;
 				background-color: #f0f;
 			}
 
 		</style>
 
 		<div class="div2">
-			<div>A</div>
+			<!-- <div>A</div> -->
 			<div>B</div>
 			<div>C</div>
 			<div>D</div>
 			<div class="e"><div>E</div></div>
 			<div>F</div>
-			<div>G</div>
-			<div>H</div>
-			<div>I</div>
+			<!-- <div>G</div>
+			<div>H</div> -->
+			<!-- <div>I</div> -->
 		</div>
 
 	</body>
