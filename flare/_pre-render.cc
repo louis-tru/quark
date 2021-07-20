@@ -60,11 +60,8 @@ namespace flare {
 		}
 
 		void solve_mark() {
-			bool iteration = false, forward = true;
 			do {
-				iteration = false;
-				// forward iteration
-				if (forward) {
+				{ // forward iteration
 					for (auto levelMarks: _marks) {
 						for (auto layout: levelMarks) {
 							if (layout) {
@@ -72,13 +69,13 @@ namespace flare {
 									// simple delete mark
 									layout->_mark_index = -1;
 									layout = nullptr;
-								} else {
-									iteration = true;
+									_mark_total--;
 								}
 							}
 						}
 					}
-				} else { // reverse iteration
+				}
+				if (_mark_total > 0) { // reverse iteration
 					for (int i = _marks.length() - 1; i >= 0; i--) {
 						auto levelMarks = _marks[i];
 						for (auto layout: levelMarks) {
@@ -87,21 +84,18 @@ namespace flare {
 									// simple delete mark recursive
 									layout->_mark_index = -1;
 									layout = nullptr;
-								} else {
-									iteration = true;
+									_mark_total--;
 								}
 							}
 						}
 					}
 				}
-				forward = !forward;
-			} while (iteration);
+				ASSERT(_mark_total >= 0);
+			} while (_mark_total);
 
 			for (auto levelMarks: _marks) {
 				levelMarks.clear();
 			}
-
-			_mark_total = 0;
 			_is_render = true;
 		}
 

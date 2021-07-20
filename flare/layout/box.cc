@@ -135,7 +135,8 @@ namespace flare {
 		, _padding_bottom(0), _padding_left(0)
 		, _fill(nullptr)
 		, _layout_weight(0), _layout_align(AUTO)
-		, _wrap_width(true), _wrap_height(true)
+		, _content_wrap_horizontal(true), _content_wrap_vertical(true)
+		, _lock_layout_horizontal(false), _lock_layout_vertical(false)
 	{
 	}
 
@@ -282,50 +283,56 @@ namespace flare {
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 
-			bool is_wrap, _;
-			float val = _inl(this)->layout_content_width(
-				parent()->layout_content_size(&is_wrap).width(), &is_wrap
-			);
-			_wrap_width = is_wrap;
+			if (!_lock_layout_horizontal) {
 
-			if (val != _layout_content_size.width()) {
-				_layout_content_size.width(val);
-				// mark(M_LAYOUT_TYPESETTING);
-				layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
+				bool is_wrap, _;
+				float val = _inl(this)->layout_content_width(
+					parent()->layout_content_size(&is_wrap).width(), &is_wrap
+				);
+				_content_wrap_horizontal = is_wrap;
+
+				if (val != _layout_content_size.width()) {
+					_layout_content_size.width(val);
+					// mark(M_LAYOUT_TYPESETTING);
+					layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
+				}
+
+				_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
 			}
 
-			_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
+			parent()->layout_typesetting_change(this);
 
 			unmark(M_LAYOUT_SIZE_WIDTH);
-
-			parent()->layout_typesetting_change(this);
 		}
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 
-			bool _, is_wrap;
-			float val = _inl(this)->layout_content_height(
-				parent()->layout_content_size(&_).height(), &is_wrap
-			);
-			_wrap_height = is_wrap;
+			if (!_lock_layout_vertical) {
 
-			if (val != _layout_content_size.height()) {
-				_layout_content_size.height(val);
-				// mark(M_LAYOUT_TYPESETTING);
-				layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
+				bool _, is_wrap;
+				float val = _inl(this)->layout_content_height(
+					parent()->layout_content_size(&_).height(), &is_wrap
+				);
+				_content_wrap_vertical = is_wrap;
+
+				if (val != _layout_content_size.height()) {
+					_layout_content_size.height(val);
+					// mark(M_LAYOUT_TYPESETTING);
+					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
+				}
+
+				_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
 			}
 
-			_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
+			parent()->layout_typesetting_change(this);
 
 			unmark(M_LAYOUT_SIZE_HEIGHT);
-
-			parent()->layout_typesetting_change(this);
 		}
 
 		if (layout_content_size_change_mark) {
 			auto v = first();
 			while (v) {
-				v->layout_content_size_change_from_parent(this, layout_content_size_change_mark);
+				v->layout_content_size_change(this, layout_content_size_change_mark);
 				v = v->next();
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
@@ -361,25 +368,27 @@ namespace flare {
 	}
 
 	Vec2 Box::layout_content_size(bool is_wrap_out[2]) {
-		is_wrap_out[0] = _wrap_width;
-		is_wrap_out[1] = _wrap_height;
+		is_wrap_out[0] = _content_wrap_horizontal;
+		is_wrap_out[1] = _content_wrap_vertical;
 		return _layout_content_size;
 	}
 
 	float Box::layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal) {
 		if (is_horizontal) {
-			return _margin_left + _margin_right + _padding_left + _padding_right +
-				_inl(this)->layout_content_width(parent_content_size, is_wrap_in_out)
-			;
+			auto w = _inl(this)->layout_content_width(parent_content_size, is_wrap_in_out);
+			return *is_wrap_in_out ?
+				_margin_left + _margin_right + _padding_left + _padding_right + w: 0;
 		} else {
-			return _margin_top + _margin_bottom + _padding_top + _padding_bottom +
-				_inl(this)->layout_content_height(parent_content_size, is_wrap_in_out)
-			;
+			auto h = _inl(this)->layout_content_height(parent_content_size, is_wrap_in_out);
+			return *is_wrap_in_out ?
+				_margin_top + _margin_bottom + _padding_top + _padding_bottom + h: 0;
 		}
 	}
 
 	float Box::layout_wrap_size(bool is_horizontal) {
 		if (is_horizontal) {
+			// TODO ...
+		} else {
 			// TODO ...
 		}
 		return 0;
@@ -429,7 +438,23 @@ namespace flare {
 	}
 
 	Vec2 Box::lock_layout_size(Vec2 layout_size) {
-		// ...
+		// TODO ...
+		if (layout_size.x() >= 0) { // lock
+			if (layout_size.x() != _layout_size.x()) {
+				_layout_size.x(layout_size.x());
+				mark(M_LAYOUT_TYPESETTING);
+			}
+			_content_wrap_horizontal = true;
+			_lock_layout_horizontal = true;
+		} else { // unlock
+			
+		}
+		if (layout_size.y() >= 0) { // lock
+			
+		} else { // unlock
+
+		}
+
 		return Vec2();
 	}
 
@@ -492,7 +517,7 @@ namespace flare {
 		set_layout_offset(offset);
 	}
 
-	void Box::layout_content_size_change_from_parent(Layout* parent, uint32_t mark_) {
+	void Box::layout_content_size_change(Layout* parent, uint32_t mark_) {
 		mark(mark_);
 	}
 

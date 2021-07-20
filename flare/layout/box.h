@@ -119,7 +119,7 @@ namespace flare {
 		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Rect rect);
-		virtual void layout_content_size_change_from_parent(Layout* parent, uint32_t mark);
+		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
@@ -129,9 +129,11 @@ namespace flare {
 		float _layout_weight; // layout weight
 		LayoutAlign _layout_align; // layout align
 		Vec2  _layout_content_size; // width,height / size
-		bool  _wrap_width, _wrap_height;
+		bool  _content_wrap_horizontal, _content_wrap_vertical;
+		bool  _lock_layout_horizontal, _lock_layout_vertical;
 
 		FX_DEFINE_INLINE_CLASS(Inl);
+		FX_DEFINE_INLINE_CLASS(Inl_FlexLayout);
 	};
 
 }

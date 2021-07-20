@@ -214,7 +214,7 @@ namespace flare {
 			* 
 			* @func lock_layout_size(layout_size)
 			*/
-		virtual Vec2 lock_layout_size(Vec2 layout_size);
+		virtual Vec2 lock_layout_size(Vec2 layout_size = Vec2(-1,-1));
 
 		/**
 		 *
@@ -272,9 +272,9 @@ namespace flare {
 		 * 
 		 * This method of the child view is called when the layout size of the parent view changes
 		 * 
-		 * @func layout_content_size_change_from_parent(parent, mark)
+		 * @func layout_content_size_change(parent, mark)
 		 */
-		virtual void layout_content_size_change_from_parent(Layout* parent, uint32_t mark);
+		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
 		/**
 		 * 

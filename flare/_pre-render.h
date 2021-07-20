@@ -88,7 +88,7 @@ namespace flare {
 		private:
 
 		bool _is_render;
-		uint32_t _mark_total, _mark_recursive_total;
+		int32_t _mark_total, _mark_recursive_total;
 		List<Task*>  _tasks;
 		Array<Array<Layout*>> _marks; // 被标记的视图
 		Array<Array<Layout*>> _mark_recursives;

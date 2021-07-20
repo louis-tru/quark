@@ -32,6 +32,38 @@
 
 namespace flare {
 
+	// box private members method
+	FX_DEFINE_INLINE_MEMBERS(Box, Inl_FlexLayout) {
+		public:
+		#define _box(self) static_cast<Box::Inl_FlexLayout*>(self)
+
+		inline bool content_wrap_horizontal() const { return _content_wrap_horizontal; }
+		inline bool content_wrap_vertical() const { return _content_wrap_vertical; }
+	};
+
+	// flex private members method
+	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
+		public:
+		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
+
+		void layout_typesetting_horizontal_wrap() {
+			// wrap
+		}
+
+		void layout_typesetting_horizontal() {
+			// no wrap
+		}
+
+		void layout_typesetting_vertical_wrap() {
+
+		}
+
+		void layout_typesetting_vertical() {
+
+		}
+		
+	};
+
 	/**
 		*
 		* Accepting visitors
@@ -89,7 +121,7 @@ namespace flare {
 	void FlexLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(M_LAYOUT_TYPESETTING | M_LAYOUT_TYPESETTING_FLEX_DIRECTION);
 		}
 	}
 
@@ -102,7 +134,7 @@ namespace flare {
 	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			mark(M_LAYOUT_TYPESETTING);
+			mark(M_LAYOUT_TYPESETTING | M_LAYOUT_TYPESETTING_FLEX_WRAP);
 		}
 	}
 
@@ -120,22 +152,46 @@ namespace flare {
 	}
 
 	bool FlexLayout::layout_forward(uint32_t mark) {
-		// TODO ...
-		return Box::layout_forward(mark);
+		auto r = Box::layout_forward(mark);
+
+		if (mark & (M_LAYOUT_TYPESETTING_FLEX_WRAP /*| M_LAYOUT_TYPESETTING_FLEX_DIRECTION*/)) {
+			if (_wrap != NO_WRAP) { // WRAP | WRAP_REVERSE
+				auto v = first();
+				while (v) {
+					v->lock_layout_size(); // unlock
+					v = v->next();
+				}
+			}
+		}
+
+		if (!r) {
+			if (_wrap == NO_WRAP) { // no wrap
+				// lock
+				return true;
+			}
+		}
+
+		return r;
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
 		if (mark & M_LAYOUT_TYPESETTING) {
-			// TODO 计算子布局位置的同时重新计算子布局因权重导致的尺寸变化 ...
-			// TODO ...
-
-			auto v = first();
-			while (v) {
-				// 获取子布局的本真尺寸/最小可调整尺寸
-				// v->set_layout_offset_lazy(rect); // lazy layout
-				v = v->next();
+			switch (_direction) {
+				case Direction::ROW:
+				case Direction::ROW_REVERSE:
+					if (_box(this)->content_wrap_horizontal()) {
+						_inl(this)->layout_typesetting_horizontal_wrap();
+					} else {
+						_inl(this)->layout_typesetting_horizontal();
+					}
+					break;
+				default:
+					if (_box(this)->content_wrap_vertical()) {
+						_inl(this)->layout_typesetting_vertical_wrap();
+					} else {
+						_inl(this)->layout_typesetting_vertical();
+					}
 			}
-
 			unmark(M_LAYOUT_TYPESETTING);
 		}
 		return true;
