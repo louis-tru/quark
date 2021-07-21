@@ -283,22 +283,20 @@ namespace flare {
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 
-			if (!_lock_layout_horizontal) {
+			// if (!_lock_layout_horizontal) {
+			bool is_wrap, _;
+			float val = _inl(this)->layout_content_width(
+				parent()->layout_content_size(&is_wrap).width(), &is_wrap
+			);
+			_content_wrap_horizontal = is_wrap;
 
-				bool is_wrap, _;
-				float val = _inl(this)->layout_content_width(
-					parent()->layout_content_size(&is_wrap).width(), &is_wrap
-				);
-				_content_wrap_horizontal = is_wrap;
-
-				if (val != _layout_content_size.width()) {
-					_layout_content_size.width(val);
-					// mark(M_LAYOUT_TYPESETTING);
-					layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
-				}
-
-				_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
+			if (val != _layout_content_size.width()) {
+				_layout_content_size.width(val);
+				// mark(M_LAYOUT_TYPESETTING);
+				layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
 			}
+			_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
+			// }
 
 			parent()->layout_typesetting_change(this);
 
@@ -307,22 +305,20 @@ namespace flare {
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 
-			if (!_lock_layout_vertical) {
+			// if (!_lock_layout_vertical) {
+			bool _, is_wrap;
+			float val = _inl(this)->layout_content_height(
+				parent()->layout_content_size(&_).height(), &is_wrap
+			);
+			_content_wrap_vertical = is_wrap;
 
-				bool _, is_wrap;
-				float val = _inl(this)->layout_content_height(
-					parent()->layout_content_size(&_).height(), &is_wrap
-				);
-				_content_wrap_vertical = is_wrap;
-
-				if (val != _layout_content_size.height()) {
-					_layout_content_size.height(val);
-					// mark(M_LAYOUT_TYPESETTING);
-					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
-				}
-
-				_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
+			if (val != _layout_content_size.height()) {
+				_layout_content_size.height(val);
+				// mark(M_LAYOUT_TYPESETTING);
+				layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 			}
+			_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
+			// }
 
 			parent()->layout_typesetting_change(this);
 
@@ -427,7 +423,7 @@ namespace flare {
 		if (_layout_weight != weight) {
 			_layout_weight = weight;
 			if (parent()) {
-				parent()->layout_typesetting_change_from_child_weight(this);
+				parent()->layout_typesetting_change(this, T_CHILD_WEIGHT);
 			}
 		}
 	}

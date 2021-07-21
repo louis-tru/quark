@@ -59,6 +59,12 @@ namespace flare {
 			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
 		};
 
+		// TypesettingChangeMark
+		enum TypesettingChangeMark : uint32_t {
+			T_NONE         = (0),
+			T_CHILD_WEIGHT = (1 << 0),
+		};
+
 		// layout direction
 		enum Direction: uint8_t {
 			ROW = value::ROW,
@@ -256,17 +262,9 @@ namespace flare {
 		 *
 		 * This is not necessarily called by the child layout
 		 *
-		 * @func layout_typesetting_change(Layout* child)
+		 * @func layout_typesetting_change(child, mark)
 		 */
-		virtual void layout_typesetting_change(Layout* child = 0);
-
-		/**
-		 * 
-		 * This method of the parent view is called when the layout weight of the child view changes
-		 * 
-		 * @func layout_typesetting_change_from_child_weight(child)
-		 */
-		virtual void layout_typesetting_change_from_child_weight(Layout* child);
+		virtual void layout_typesetting_change(Layout* child = nullptr, TypesettingChangeMark mark = T_NONE);
 
 		/**
 		 * 

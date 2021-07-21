@@ -167,7 +167,7 @@ namespace flare {
 		if (!r) {
 			if (_wrap == NO_WRAP) { // no wrap
 				// lock
-				return true;
+				// return true;
 			}
 		}
 
@@ -197,7 +197,7 @@ namespace flare {
 		return true;
 	}
 
-	void FlexLayout::layout_typesetting_change_from_child_weight(Layout* child) {
+	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
 		mark(M_LAYOUT_TYPESETTING);
 	}
 
