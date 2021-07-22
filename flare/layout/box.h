@@ -88,7 +88,7 @@ namespace flare {
 		 *
 		 * @func set_layout_align(align)
 		 */
-		void set_layout_align(LayoutAlign align);
+		void set_layout_align(Align align);
 
 		/**
 		 *
@@ -114,9 +114,9 @@ namespace flare {
 		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 		*/
 		virtual float layout_weight();
-		virtual LayoutAlign layout_align();
+		virtual Align layout_align();
+		virtual Vec2 layout_lock(Vec2 layout_size);
 		virtual Vec2 solve_transform_origin();
-		virtual Vec2 lock_layout_size(Vec2 layout_size);
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Rect rect);
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
@@ -127,10 +127,10 @@ namespace flare {
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）
 		float _layout_weight; // layout weight
-		LayoutAlign _layout_align; // layout align
+		Align _layout_align; // layout align
 		Vec2  _layout_content_size; // width,height / size
-		bool  _content_wrap_horizontal, _content_wrap_vertical;
-		bool  _lock_layout_horizontal, _lock_layout_vertical;
+		bool  _wrap_x, _wrap_y; // layout content size wrap
+		bool  _lock_x, _lock_y; // layout lock state
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 		FX_DEFINE_INLINE_CLASS(Inl_FlexLayout);

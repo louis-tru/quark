@@ -36,9 +36,10 @@ namespace flare {
 	FX_DEFINE_INLINE_MEMBERS(Box, Inl_FlexLayout) {
 		public:
 		#define _box(self) static_cast<Box::Inl_FlexLayout*>(self)
-
-		inline bool content_wrap_horizontal() const { return _content_wrap_horizontal; }
-		inline bool content_wrap_vertical() const { return _content_wrap_vertical; }
+		inline bool wrap_x() const { return _wrap_x; }
+		inline bool wrap_y() const { return _wrap_y; }
+		inline bool lock_x() const { return _lock_x; }
+		inline bool lock_y() const { return _lock_y; }
 	};
 
 	// flex private members method
@@ -46,20 +47,133 @@ namespace flare {
 		public:
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
-		void layout_typesetting_horizontal_wrap() {
-			// wrap
+		// content wrap horizontal
+		void layout_typesetting_from_wrap_x() { // wrap
+			/*
+				|-------------....------------|
+				|          width=WRAP         |
+				|   ___ ___ ___         ___   |
+				|  | L | L | L | ----> | L |  |
+				|   --- --- ---         ---   |
+				|                             |
+				|-------------....------------|
+			*/
+			// get layouts raw size total
+			float total_width = 0;
+			float max_height = 0;
+			auto v = first();
+			while (v) {
+				// bool is_wrap_in_out = true;
+				auto size = v->layout_size();
+				// if (is_wrap_in_out) { // wrap
+				// 	total_width += s;
+				// } else { // no wrap
+				// 	// max_height += s;
+				// }
+				total_width += size.width();
+				v = v->next();
+			}
+
+			// setting offset and layouts height
 		}
 
-		void layout_typesetting_horizontal() {
-			// no wrap
+		// no content wrap horizontal
+		void layout_typesetting_from_x() {
+			if (_wrap == Wrap::NO_WRAP) { // no wrap
+				/*
+					|-----------------------------|
+					|  width=PIXEL,wrap=NO_WRAP   |
+					|   ___ ___ ___         ___   |
+					|  | L | L | L | ----> | L |  |
+					|   --- --- ---         ---   |
+					|                             |
+					|-----------------------------|
+				*/
+			} else { // wrap Line feed
+				/*
+					|-----------------------------|
+					|   width=PIXEL,wrap=WRAP     |
+					|   ___ ___ ___         ___   |
+					|  | L | L | L | ----> | L |  |
+					|   --- --- ---         ---   |
+					|  | L | L | L | ----> | L |  |
+					|   --- --- ---         ---   |
+					|  | L | L | L | ----> | L |  |
+					|   --- --- ---         ---   |
+					|            |                |
+					|            |                |
+					|            v                |
+					|   ___ ___ ___         ___   |
+					|  | L | L | L | <---> | L |  |
+					|   --- --- ---         ---   |
+					|-----------------------------|
+				*/
+			}
 		}
 
-		void layout_typesetting_vertical_wrap() {
-
+		// content wrap vertical
+		void layout_typesetting_from_wrap_y() { // wrap
+			/*
+			  |-----------|
+			  |height=WRAP|
+			  |    ___    |
+			  |   | L |   |
+			  |    ---    |
+			  |   | L |   |
+			  |    ---    |
+			  .   | L |   .
+			  .    ---    .
+			  .     |     .
+			  .     |     .
+			  |     v     |
+			  |    ___    |
+			  |   | L |   |
+			  |    ---    |
+			  |-----------|
+			*/
 		}
 
-		void layout_typesetting_vertical() {
-
+		// no content wrap vertical
+		void layout_typesetting_from_y() {
+			if (_wrap == Wrap::NO_WRAP) { // no wrap
+				/*
+					|---------------------------|
+					| height=PIXEL,wrap=NO_WRAP |
+					|            ___            |
+					|           | L |           |
+					|            ---            |
+					|           | L |           |
+					|            ---            |
+					|           | L |           |
+					|            ---            |
+					|             |             |
+					|             |             |
+					|             v             |
+					|            ___            |
+					|           | L |           |
+					|            ---            |
+					|---------------------------|
+				*/
+			} else { // wrap Line feed
+				/*
+					|-----------------------------|
+					|  height=PIXEL,wrap=WRAP     |
+					|   ___ ___ ___         ___   |
+					|  | L | L | L |       | L |  |
+					|   --- --- ---         ---   |
+					|  | L | L | L |       | L |  |
+					|   --- --- ---         ---   |
+					|  | L | L | L | ----> | L |  |
+					|   --- --- ---         ---   |
+					|    |   |   |           |    |
+					|    |   |   |           |    |
+					|    v   v   v           v    |
+					|   ___ ___ ___         ___   |
+					|  | L | L | L |       | L |  |
+					|   --- --- ---         ---   |
+					|-----------------------------|
+				*/
+			}
 		}
 		
 	};
@@ -95,7 +209,7 @@ namespace flare {
 	void FlexLayout::set_direction(Direction val) {
 		if (val != _direction) {
 			_direction = val;
-			mark(M_LAYOUT_TYPESETTING); // 排版参数改变,后续需对子布局重新排版
+			mark(M_LAYOUT_TYPESETTING/* | M_LAYOUT_TYPESETTING_FLEX_DIRECTION*/); // 排版参数改变,后续需对子布局重新排版
 		}
 	}
 
@@ -121,7 +235,7 @@ namespace flare {
 	void FlexLayout::set_cross_align(CrossAlign align) {
 		if (align != _cross_align) {
 			_cross_align = align;
-			mark(M_LAYOUT_TYPESETTING | M_LAYOUT_TYPESETTING_FLEX_DIRECTION);
+			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 
@@ -134,7 +248,7 @@ namespace flare {
 	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			mark(M_LAYOUT_TYPESETTING | M_LAYOUT_TYPESETTING_FLEX_WRAP);
+			mark(M_LAYOUT_TYPESETTING/* | M_LAYOUT_TYPESETTING_FLEX_WRAP*/);
 		}
 	}
 
@@ -152,49 +266,39 @@ namespace flare {
 	}
 
 	bool FlexLayout::layout_forward(uint32_t mark) {
-		auto r = Box::layout_forward(mark);
-
-		if (mark & (M_LAYOUT_TYPESETTING_FLEX_WRAP /*| M_LAYOUT_TYPESETTING_FLEX_DIRECTION*/)) {
-			if (_wrap != NO_WRAP) { // WRAP | WRAP_REVERSE
-				auto v = first();
-				while (v) {
-					v->lock_layout_size(); // unlock
-					v = v->next();
-				}
-			}
-		}
-
-		if (!r) {
-			if (_wrap == NO_WRAP) { // no wrap
-				// lock
-				// return true;
-			}
-		}
-
-		return r;
+		return Box::layout_forward(mark);
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
 		if (mark & M_LAYOUT_TYPESETTING) {
-			switch (_direction) {
-				case Direction::ROW:
-				case Direction::ROW_REVERSE:
-					if (_box(this)->content_wrap_horizontal()) {
-						_inl(this)->layout_typesetting_horizontal_wrap();
-					} else {
-						_inl(this)->layout_typesetting_horizontal();
-					}
-					break;
-				default:
-					if (_box(this)->content_wrap_vertical()) {
-						_inl(this)->layout_typesetting_vertical_wrap();
-					} else {
-						_inl(this)->layout_typesetting_vertical();
-					}
+			if (_box(this)->lock_x() || _box(this)->lock_y()) {// The layout is locked and does not need to be updated
+				parent()->layout_typesetting_change(this);
+			} else {
+				switch (_direction) {
+					case Direction::ROW:
+					case Direction::ROW_REVERSE:
+						if (_box(this)->wrap_x()) { // 不换行
+							_inl(this)->layout_typesetting_from_wrap_x();
+						} else {
+							_inl(this)->layout_typesetting_from_y();
+						}
+						break;
+					default:
+						if (_box(this)->wrap_y()) {
+							_inl(this)->layout_typesetting_from_wrap_y();
+						} else {
+							_inl(this)->layout_typesetting_from_y();
+						}
+				}
 			}
 			unmark(M_LAYOUT_TYPESETTING);
 		}
 		return true;
+	}
+
+	Vec2 FlexLayout::layout_lock(Vec2 layout_size) {
+		// TODO ...
+		return Vec2();
 	}
 
 	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {

@@ -92,19 +92,20 @@
 			.div2 {
 				display: flex;
 				width: 400px;
-				height: 400px;
+				/* height: 400px; */
 				margin: auto;
 				margin-top: 10px;
 				background: #0f0;
 				display: flex;
 				flex-wrap: nowrap;
 				justify-content: center;
+				align-items: stretch;
 			}
 			.div2 > div {
 				background: rgba(255,0,0,0.8);
 				margin: 1px;
 				width: 100px;
-				height: 40px;
+				/* height: 40px; */
 				text-align: center;
 				color: #fff;
 				line-height: 40px;
@@ -118,6 +119,9 @@
 			.div2 > div.e {
 				width: 90px;
 				min-width: 38px;
+				display: flex;
+				flex-direction: column;
+				flex-wrap: wrap;
 			}
 			.div2 > div.e > div {
 				/* width: 80px; */
@@ -126,6 +130,7 @@
 
 			.div2 > div.d {
 				max-width: 30px;
+				height: 150px;
 			}
 
 		</style>
@@ -134,10 +139,10 @@
 			<!-- <div>A</div> -->
 			<div>B</div>
 			<div>C</div>
-			<div>D</div>
-			<div class="e"><div>E</div></div>
+			<div class="d">D</div>
+			<div class="e"><div>E</div><div>E</div></div>
 			<div>F</div>
-			<div class="d">G</div>
+			<div>G</div>
 			<div>H</div>
 			<div>I</div>
 		</div>
