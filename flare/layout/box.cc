@@ -325,7 +325,7 @@ namespace flare {
 		if (layout_content_size_change_mark) {
 			auto v = first();
 			while (v) {
-				v->layout_content_size_change_from_parent(this, layout_content_size_change_mark);
+				v->layout_content_size_change(this, layout_content_size_change_mark);
 				v = v->next();
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
@@ -369,12 +369,10 @@ namespace flare {
 	float Box::layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal) {
 		if (is_horizontal) {
 			return _margin_left + _margin_right + _padding_left + _padding_right +
-				_inl(this)->layout_content_width(parent_content_size, is_wrap_in_out)
-			;
+				_inl(this)->layout_content_width(parent_content_size, is_wrap_in_out);
 		} else {
 			return _margin_top + _margin_bottom + _padding_top + _padding_bottom +
-				_inl(this)->layout_content_height(parent_content_size, is_wrap_in_out)
-			;
+				_inl(this)->layout_content_height(parent_content_size, is_wrap_in_out);
 		}
 	}
 
@@ -492,7 +490,7 @@ namespace flare {
 		set_layout_offset(offset);
 	}
 
-	void Box::layout_content_size_change_from_parent(Layout* parent, uint32_t mark_) {
+	void Box::layout_content_size_change(Layout* parent, uint32_t mark_) {
 		mark(mark_);
 	}
 
