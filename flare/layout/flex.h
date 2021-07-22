@@ -79,9 +79,6 @@ namespace flare {
 			STRETCH = value::STRETCH, // 轴线占满整个交叉轴，平均分配剩余的交叉轴空间
 		};
 
-		/**
-		 * @constructors
-		 */
 		FlexLayout();
 
 		// define props
@@ -94,11 +91,12 @@ namespace flare {
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		virtual void layout_typesetting_change_from_child_weight(Layout* child);
+		virtual Vec2 layout_lock(Vec2 layout_size);
+		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
 		private:
-
+		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 
 }

@@ -68,7 +68,7 @@ namespace flare {
 		*
 		* @func layout_align()
 		*/
-	Layout::LayoutAlign Layout::layout_align() {
+	Layout::Align Layout::layout_align() {
 		return AUTO;
 	}
 
@@ -162,15 +162,15 @@ namespace flare {
 		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
 		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		* 
-		* 调用`lock_layout_size(Vec2(-1,-1))`解除锁定
+		* 调用`layout_lock(Vec2(-1,-1))`解除锁定
 		* 
 		* 子类实现这个方法
 		* 
 		* 返回锁定后的最终尺寸
 		* 
-		* @func lock_layout_size(layout_size)
+		* @func layout_lock(layout_size)
 		*/
-	Vec2 Layout::lock_layout_size(Vec2 layout_size) {
+	Vec2 Layout::layout_lock(Vec2 layout_size) {
 		// noop
 		return layout_size();
 	}
@@ -179,19 +179,9 @@ namespace flare {
 		*
 		* This method of the parent view is called when the layout content of the child view changes
 		* 
-		* @func layout_typesetting_change(child)
+		* @func layout_typesetting_change(child, mark)
 		*/
-	void Layout::layout_typesetting_change(Layout* child) {
-		// noop
-	}
-
-	/**
-		* 
-		* This method of the parent view is called when the layout weight of the child view changes
-		* 
-		* @func layout_typesetting_change_from_child_weight(child)
-		*/
-	void Layout::layout_typesetting_change_from_child_weight(Layout* child) {
+	void Layout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
 		// noop
 	}
 

@@ -735,8 +735,10 @@ namespace flare {
 		return _transform_origin;
 	}
 
-	void View::layout_typesetting_change(Layout* child) {
-		mark(M_LAYOUT_TYPESETTING);
+	void View::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
+		if (!mark) {
+			mark(M_LAYOUT_TYPESETTING);
+		}
 	}
 
 }
