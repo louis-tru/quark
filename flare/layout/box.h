@@ -32,7 +32,7 @@
 #define __flare__layout__box__
 
 #include "./view.h"
-#include "../core/fill.h"
+#include "../fill.h"
 
 namespace flare {
 

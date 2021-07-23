@@ -445,15 +445,13 @@ namespace flare {
 				_layout_size.x(layout_size.x());
 				mark(M_LAYOUT_TYPESETTING);
 			}
-			_content_wrap_horizontal = true;
-			_lock_layout_horizontal = true;
+			_wrap_x = true;
+			_lock_x = true;
 		} else { // unlock
 			
 		}
 		if (layout_size.y() >= 0) { // lock
-			
 		} else { // unlock
-
 		}
 
 		return Vec2();

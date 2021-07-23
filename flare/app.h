@@ -39,7 +39,7 @@
 
 #define FX_Main() \
 	int __fx_main__(int, Char**); \
-	FX_INIT_BLOCK(__fx_main__) { setMain(&__fx_main__); } \
+	FX_INIT_BLOCK(__fx_main__) { flare::GUIApplication::setMain(&__fx_main__); } \
 	int __fx_main__(int argc, Char** argv)
 
 #define FX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())

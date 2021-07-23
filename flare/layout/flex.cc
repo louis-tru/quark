@@ -277,10 +277,10 @@ namespace flare {
 				switch (_direction) {
 					case Direction::ROW:
 					case Direction::ROW_REVERSE:
-						if (_box(this)->wrap_x()) { // 不换行
+						if (_box(this)->wrap_x()) { // wrap
 							_inl(this)->layout_typesetting_from_wrap_x();
 						} else {
-							_inl(this)->layout_typesetting_from_y();
+							_inl(this)->layout_typesetting_from_x();
 						}
 						break;
 					default:

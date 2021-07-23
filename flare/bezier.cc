@@ -33,7 +33,7 @@
 
 namespace flare {
 
-	// 德卡斯特里奥
+	// 德卡斯特里奥算法
 
 	/**
 	* @constructor
