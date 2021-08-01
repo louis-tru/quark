@@ -93,6 +93,18 @@ namespace flare {
 	}
 
 	/**
+		*
+		* Recursive returns the layout size of object view
+		*
+		* @func layout_compute_size()
+		*/
+	Layout::ComputeSize Layout::layout_compute_size() {
+		return {
+			Vec2(), Vec2(), true, true
+		};
+	}
+
+	/**
 		* Returns internal layout offset compensation of the view, which affects the sub view offset position
 		* 
 		* For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
@@ -115,27 +127,6 @@ namespace flare {
 		is_wrap_out[0] = true; // No definite size
 		is_wrap_out[1] = true;
 		return Vec2();
-	}
-
-	/**
-		*
-		* Returns the layout raw size of object view
-		*
-		* @func layout_raw_size(parent_content_size, is_wrap_in_out[2])
-		*/
-	float Layout::layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal) {
-		*is_wrap_in_out = true; // No definite size
-		return 0;
-	}
-
-	/**
-		* 
-		* Returns and compute use wrap width or height of object layout
-		* 
-		* @func layout_wrap_size(is_horizontal)
-		*/
-	float Layout::layout_wrap_size(bool is_horizontal) {
-		return 0;
 	}
 
 	/**

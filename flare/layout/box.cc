@@ -294,10 +294,7 @@ namespace flare {
 		uint32_t layout_content_size_change_mark = M_NONE;
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
-			if (_lock_x) {// The layout is locked and does not need to be updated
-				// lock notice who ?->layout_typesetting_change(this);
-				parent()->layout_typesetting_change(this);
-			} else {
+			if (!_lock_x) {
 				bool is_wrap, _;
 				float val = _inl(this)->layout_content_width(
 					parent()->layout_content_size(&is_wrap).width(), &is_wrap
@@ -309,16 +306,13 @@ namespace flare {
 				}
 				_wrap_x = is_wrap;
 				_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
-				parent()->layout_typesetting_change(this);
-			}
+			} // else The layout is locked and does not need to be updated
+			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_WIDTH);
 		}
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
-			if (_lock_y) {
-				// lock notice who ?->layout_typesetting_change(this);
-				parent()->layout_typesetting_change(this);
-			} else {
+			if (!_lock_y) {
 				bool _, is_wrap;
 				float val = _inl(this)->layout_content_height(
 					parent()->layout_content_size(&_).height(), &is_wrap
@@ -329,8 +323,8 @@ namespace flare {
 				}
 				_wrap_y = is_wrap;
 				_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
-				parent()->layout_typesetting_change(this);
-			}
+			} // else The layout is locked and does not need to be updated
+			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_HEIGHT);
 		}
 
@@ -368,6 +362,11 @@ namespace flare {
 		return _layout_size;
 	}
 
+	Layout::ComputeSize Layout::layout_compute_size() {
+		// TODO ...
+		return Layout::layout_compute_size();
+	}
+
 	Vec2 Box::layout_content_size(bool is_wrap_out[2]) {
 		is_wrap_out[0] = _wrap_x;
 		is_wrap_out[1] = _wrap_y;
@@ -384,15 +383,6 @@ namespace flare {
 			return *is_wrap_in_out ?
 				_margin_top + _margin_bottom + _padding_top + _padding_bottom + h: 0;
 		}
-	}
-
-	float Box::layout_wrap_size(bool is_horizontal) {
-		if (is_horizontal) {
-			// TODO ...
-		} else {
-			// TODO ...
-		}
-		return 0;
 	}
 
 	float Box::layout_weight() {

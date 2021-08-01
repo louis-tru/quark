@@ -106,9 +106,8 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t mark);
 		virtual Vec2 layout_offset();
 		virtual Vec2 layout_size();
+		virtual ComputeSize layout_compute_size();
 		virtual Vec2 layout_content_size(bool is_wrap_out[2]);
-		virtual float layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal);
-		virtual float layout_wrap_size(bool is_horizontal);
 		/*
 		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
 		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)

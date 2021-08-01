@@ -64,13 +64,18 @@ namespace flare {
 			auto v = first();
 			while (v) {
 				// bool is_wrap_in_out = true;
-				auto size = v->layout_size();
+				auto cs = v->layout_compute_size();
+				// auto size = v->layout_size();
+				// if (_box(v)->lock_x()) {
+					//
+				// }
 				// if (is_wrap_in_out) { // wrap
 				// 	total_width += s;
 				// } else { // no wrap
 				// 	// max_height += s;
 				// }
-				total_width += size.width();
+				total_width += cs.layout_size.width();
+				max_height = FX_MAX(max_height, cs.layout_size.height());
 				v = v->next();
 			}
 
@@ -271,7 +276,7 @@ namespace flare {
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
 		if (mark & M_LAYOUT_TYPESETTING) {
-			if (_box(this)->lock_x() || _box(this)->lock_y()) {// The layout is locked and does not need to be updated
+			if (_box(this)->lock_x() || _box(this)->lock_y()) { // The layout is locked and does not need to be updated
 				parent()->layout_typesetting_change(this);
 			} else {
 				switch (_direction) {

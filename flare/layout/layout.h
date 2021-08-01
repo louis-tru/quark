@@ -105,6 +105,12 @@ namespace flare {
 			float w, h;
 		};
 
+		struct ComputeSize {
+			Vec2 layout_size;
+			Vec2 wrap_size;
+			bool is_wrap[2];
+		};
+
 		/**
 		 * @constructors
 		 */
@@ -158,6 +164,14 @@ namespace flare {
 		virtual Vec2 layout_size();
 
 		/**
+		 *
+		 * Recursive returns the layout size of object view
+		 *
+		 * @func layout_compute_size()
+		 */
+		virtual ComputeSize layout_compute_size();
+
+		/**
 		 * Returns internal layout offset compensation of the view, which affects the sub view offset position
 		 * 
 		 * For example: when a view needs to set the scrolling property scroll of a subview, you can set this property
@@ -175,22 +189,6 @@ namespace flare {
 		 * @func layout_content_size(is_wrap_out[2])
 		 */
 		virtual Vec2 layout_content_size(bool is_wrap_out[2]);
-		
-		/**
-		 *
-		 * Returns the layout raw size of object view
-		 *
-		 * @func layout_raw_size(parent_content_size, is_wrap_in_out, is_horizontal)
-		 */
-		virtual float layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal);
-
-		/**
-		 * 
-		 * Returns and compute use wrap width or height of object layout
-		 * 
-		 * @func layout_wrap_size(is_horizontal)
-		 */
-		virtual float layout_wrap_size(bool is_horizontal);
 
 		/**
 		 * 
