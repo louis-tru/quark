@@ -62,7 +62,7 @@ namespace flare {
 	 */
 	class FX_EXPORT View: public Layout {
 		FX_HIDDEN_ALL_COPY(View);
-		public:
+	 public:
 
 		friend class GLRender;
 		friend class SkiaRender;
@@ -177,13 +177,15 @@ namespace flare {
 		 *
 		 * @func set_parent(parent)
 		 */
-		protected: virtual void set_parent(View* parent);
+	 protected: 
+		virtual void set_parent(View* parent);
 
 		/**
 		 * @class Visitor
 		 */
-		public: class Visitor {
-			public:
+	 public:
+		class Visitor {
+		 public:
 			# define FX_Visitor(E, N) virtual void visit##N(N *v);
 				FX_Views(FX_Visitor);
 			# undef  FX_Visitor
@@ -522,25 +524,27 @@ namespace flare {
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
 
 		// *******************************************************************
-		// action:
-		private: Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
-		// node tree:
-		private: View *_parent;
-		private: View *_prev, *_next;
-		private: View *_first, *_last;
-		// transform:
-		public: struct Transform {
+
+		// transform
+		struct Transform {
 			Vec2 translate, scale, skew; // 平移向量, 缩放向量, 倾斜向量
 			float rotate; // z轴旋转角度值
 		};
-		private: Transform *_transform; // 矩阵变换
-		private: Vec2  _transform_origin; // origin 最终以该点 位移,缩放,旋转,歪
-		private: float _opacity; // 可影响子视图的透明度值
-		private:  Mat  _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
+
+	 private:
+		Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
+		// node tree:
+		View *_parent;
+		View *_prev, *_next;
+		View *_first, *_last;
+		Transform *_transform; // 矩阵变换
+		Vec2  _transform_origin; // origin 最终以该点 位移,缩放,旋转,歪
+		float _opacity; // 可影响子视图的透明度值
+		Mat   _matrix; // 父视图矩阵乘以布局矩阵等于最终变换矩阵 (parent.matrix * layout_matrix)
 		// layout visible:
-		private: bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
-		private: bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
-		private: bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
+		bool _visible; // 设置视图的可见性，这个值设置为`false`时视图为不可见且不占用任何布局空间
+		bool _region_visible; // 这个值与`visible`完全无关，这个代表视图在当前显示区域是否可见，这个显示区域大多数情况下就是屏幕
+		bool _receive; // 视图是否需要接收或处理系统的事件抛出，大部情况下这些事件都是不需要处理的，这样可以提高整体事件处理效率
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

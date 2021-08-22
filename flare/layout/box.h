@@ -105,23 +105,32 @@ namespace flare {
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual Vec2 layout_offset();
-		virtual Vec2 layout_size();
-		virtual ComputeSize layout_compute_size();
-		virtual Vec2 layout_content_size(bool is_wrap_out[2]);
+		virtual Size layout_size();
+		virtual Size layout_raw_size();
 		/*
 		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
 		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
 		*/
 		virtual float layout_weight();
 		virtual Align layout_align();
-		virtual Vec2 layout_lock(Vec2 layout_size);
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_lock);
 		virtual Vec2 solve_transform_origin();
 		virtual void set_layout_offset(Vec2 val);
-		virtual void set_layout_offset_lazy(Rect rect);
+		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
+		// overwrite set_parent
+	 protected:
+		// @overwrite
+		virtual void set_parent(View* parent);
+
+		/**
+		 * @func solve_layout_size()
+		 */
+		uint32_t solve_layout_size(uint32_t mark);
+
 		// --------------- m e m b e r . f i e l d ---------------
-		private:
+	 private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）
@@ -129,7 +138,7 @@ namespace flare {
 		Align _layout_align; // layout align
 		Vec2  _layout_content_size; // width,height / size
 		bool  _wrap_x, _wrap_y; // layout content size wrap
-		bool  _lock_x, _lock_y; // layout lock state
+		bool  _lock; // layout lock state
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 		FX_DEFINE_INLINE_CLASS(Inl_FlexLayout);

@@ -45,11 +45,11 @@ namespace flare {
 	 * @class Layout
 	 */
 	class Layout: public Reference {
-		public:
+	 public:
 
 		// Layout mark value
 		enum : uint32_t {
-			M_NONE                    = (0),        /* 没有任何标记 */
+			M_NONE                    = (0),      /* 没有任何标记 */
 			M_TRANSFORM               = (1 << 0), /* 矩阵变换 recursive mark */
 			M_TRANSFORM_ORIGIN        = (1 << 1), /* 矩阵变换 origin mark */
 			M_LAYOUT_SIZE_WIDTH       = (1 << 2), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
@@ -94,21 +94,13 @@ namespace flare {
 			RIGHT_BOTTOM = value::RIGHT_BOTTOM,
 		};
 
-		struct Rect {
-			Vec2 origin;
-			Vec2 size;
-		};
-
-		struct Region {
-			float x1, y1;
-			float x2, y2;
-			float w, h;
-		};
-
-		struct ComputeSize {
+		// layout size
+		struct Size {
 			Vec2 layout_size;
-			Vec2 wrap_size;
-			bool is_wrap[2];
+			// Vec2 layout_min_size; ??
+			// vec2 layout_max_size; ??
+			Vec2 content_size;
+			bool is_wrap_x, is_wrap_y;
 		};
 
 		/**
@@ -159,17 +151,21 @@ namespace flare {
 		 *
 		 * Returns the layout size of view object (if is box view the: size=margin+padding+content)
 		 *
+		 * Returns the layout content size of object view, 
+		 * Returns false to indicate that the size is unknown,
+		 * indicates that the size changes with the size of the subview, and the content is wrapped
+		 *
 		 * @func layout_size()
 		 */
-		virtual Vec2 layout_size();
+		virtual Size layout_size();
 
 		/**
 		 *
-		 * Recursive returns the layout size of object view
+		 * Returns the layout raw size of object view
 		 *
-		 * @func layout_compute_size()
+		 * @func layout_raw_size()
 		 */
-		virtual ComputeSize layout_compute_size();
+		virtual Size layout_raw_size();
 
 		/**
 		 * Returns internal layout offset compensation of the view, which affects the sub view offset position
@@ -179,16 +175,6 @@ namespace flare {
 		 * @func layout_offset_inside()
 		 */
 		virtual Vec2 layout_offset_inside();
-
-		/**
-		 *
-		 * Returns the layout content size of object view, 
-		 * Returns false to indicate that the size is unknown,
-		 * indicates that the size changes with the size of the subview, and the content is wrapped
-		 *
-		 * @func layout_content_size(is_wrap_out[2])
-		 */
-		virtual Vec2 layout_content_size(bool is_wrap_out[2]);
 
 		/**
 		 * 
@@ -202,23 +188,23 @@ namespace flare {
 		 * 
 		 * Setting layout offset values lazily mode for the view object
 		 *
-		 * @func set_layout_offset_lazy()
+		 * @func set_layout_offset_lazy(origin, size)
 		 */
-		virtual void set_layout_offset_lazy(Rect rect);
+		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 
 		/**
 			* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
 			* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 			* 
-			* 调用`layout_lock(Vec2(-1,-1))`解除锁定
+			* 调用`layout_lock(Vec2(), false)`解除锁定
 			* 
 			* 子类实现这个方法
 			* 
 			* 返回锁定后的最终尺寸
 			* 
-			* @func layout_lock(layout_size)
+			* @func layout_lock(layout_size, is_lock)
 			*/
-		virtual Vec2 layout_lock(Vec2 layout_size = Vec2(-1,-1));
+		virtual Vec2 layout_lock(Vec2 layout_size, is_lock = true);
 
 		/**
 		 *
@@ -302,13 +288,15 @@ namespace flare {
 			_layout_mark &= (~mark);
 		}
 
+	 public:
 		/**
 		 * @func layout_mark()
 		 */
-		public: inline void layout_mark() const {
+		inline void layout_mark() const {
 			return _layout_mark;
 		}
 
+	 private:
 		// layout:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。
@@ -317,13 +305,13 @@ namespace flare {
 		*  把标记的视图独立到视图外部按视图等级进行分类以双向环形链表形式存储(PreRender)
 		*  这样可以避免访问那些没有发生改变的视图并可以根据视图等级顺序访问.
 		*/
-		private: int32_t _mark_index, _recursive_mark_index;
+		int32_t _mark_index, _recursive_mark_index;
 		/* 这些标记后的视图会在开始帧绘制前进行更新.
 		*  需要这些标记的原因主要是为了最大程度的节省性能开销,因为程序在运行过程中可能会频繁的更新视图局部属性也可能视图很少发生改变.
 		*  1.如果对每次更新如果都更新GPU中的数据那么对性能消耗那将是场灾难,那么记录视图所有的局部变化,待到需要帧渲染时统一进行更新.
 		*/
-		private: uint32_t _layout_mark; /* 标记 */
-		private: uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
+		uint32_t _layout_mark; /* 标记 */
+		uint32_t _depth; // 这个值受`View::_visible`影响, View::_visible=false时_depth=0
 		
 		friend class PreRender;
 	};

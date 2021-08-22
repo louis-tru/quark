@@ -125,12 +125,10 @@ namespace flare {
 
 		void layout_typesetting() {
 			auto v = first();
-			Rect rect = {
-				Vec2(_margin_left + _padding_left, _margin_top + _padding_top),
-				_layout_content_size,
-			};
+			Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
+			vac2 size = _layout_content_size;
 			while (v) {
-				v->set_layout_offset_lazy(rect); // lazy layout
+				v->set_layout_offset_lazy(origin, size); // lazy layout
 				v = v->next();
 			}
 		}
@@ -148,7 +146,7 @@ namespace flare {
 		, _fill(nullptr)
 		, _layout_weight(0), _layout_align(AUTO)
 		, _wrap_x(true), _wrap_y(true)
-		, _lock_x(false), _lock_y(false)
+		, _lock(false)
 	{
 	}
 
@@ -290,21 +288,23 @@ namespace flare {
 		visitor->visitBox(this);
 	}
 
-	bool Box::layout_forward(uint32_t mark) {
+	/**
+		* @func solve_layout_size()
+		*/
+	uint32_t Box::solve_layout_size(uint32_t mark, bool is_update_child) {
 		uint32_t layout_content_size_change_mark = M_NONE;
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
-			if (!_lock_x) {
-				bool is_wrap, _;
-				float val = _inl(this)->layout_content_width(
-					parent()->layout_content_size(&is_wrap).width(), &is_wrap
-				);
+			if (!_lock) {
+				auto size = parent()->layout_size();
+				float val = _inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x);
+
 				if (val != _layout_content_size.width()) {
 					_layout_content_size.width(val);
 					// mark(M_LAYOUT_TYPESETTING);
 					layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
 				}
-				_wrap_x = is_wrap;
+				_wrap_x = size.is_wrap_x;
 				_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
@@ -312,21 +312,26 @@ namespace flare {
 		}
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
-			if (!_lock_y) {
-				bool _, is_wrap;
-				float val = _inl(this)->layout_content_height(
-					parent()->layout_content_size(&_).height(), &is_wrap
-				);
+			if (!_lock) {
+				auto size = parent()->layout_size();
+				float val = _inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y);
+
 				if (val != _layout_content_size.height()) {
 					_layout_content_size.height(val);
 					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 				}
-				_wrap_y = is_wrap;
+				_wrap_y = size.is_wrap_y;
 				_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_HEIGHT);
 		}
+
+		return layout_content_size_change_mark;
+	}
+
+	bool Box::layout_forward(uint32_t mark) {
+		uint32_t layout_content_size_change_mark = solve_layout_size(mark);
 
 		if (layout_content_size_change_mark) {
 			auto v = first();
@@ -343,7 +348,7 @@ namespace flare {
 	bool Box::layout_reverse(uint32_t mark) {
 
 		if (mark & (M_LAYOUT_TYPESETTING)) {
-			if (_lock_x || _lock_y) {// The layout is locked and does not need to be updated
+			if (_lock) {// The layout is locked and does not need to be updated
 				parent()->layout_typesetting_change(this);
 			} else {
 				_inl(this)->layout_typesetting();
@@ -358,31 +363,23 @@ namespace flare {
 		return _layout_offset;
 	}
 
-	Vec2 Box::layout_size() {
-		return _layout_size;
+	Layout::Size Box::layout_size() {
+		return {
+			_layout_size, _layout_content_size, _wrap_x, _wrap_y
+		};
 	}
 
-	Layout::ComputeSize Layout::layout_compute_size() {
-		// TODO ...
-		return Layout::layout_compute_size();
-	}
-
-	Vec2 Box::layout_content_size(bool is_wrap_out[2]) {
-		is_wrap_out[0] = _wrap_x;
-		is_wrap_out[1] = _wrap_y;
-		return _layout_content_size;
-	}
-
-	float Box::layout_raw_size(float parent_content_size, bool *is_wrap_in_out, bool is_horizontal) {
-		if (is_horizontal) {
-			auto w = _inl(this)->layout_content_width(parent_content_size, is_wrap_in_out);
-			return *is_wrap_in_out ?
-				_margin_left + _margin_right + _padding_left + _padding_right + w: 0;
-		} else {
-			auto h = _inl(this)->layout_content_height(parent_content_size, is_wrap_in_out);
-			return *is_wrap_in_out ?
-				_margin_top + _margin_bottom + _padding_top + _padding_bottom + h: 0;
-		}
+	Layout::Size Box::layout_raw_size() {
+		auto size = parent()->layout_size();
+		size.content_size = Vec2(
+			_inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x),
+			_inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y),
+		);
+		size.layout_size = Vec2(
+			_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right),
+			_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom),
+		);
+		return size;
 	}
 
 	float Box::layout_weight() {
@@ -428,23 +425,43 @@ namespace flare {
 		return Vec2(_margin_left, _margin_top);
 	}
 
-	Vec2 Box::layout_lock(Vec2 layout_size) {
-		// TODO ...
-		if (layout_size.x() >= 0) { // lock
-			if (layout_size.x() != _layout_size.x()) {
-				_layout_size.x(layout_size.x());
-				mark(M_LAYOUT_TYPESETTING);
-			}
-			_wrap_x = true;
-			_lock_x = true;
-		} else { // unlock
-			
-		}
-		if (layout_size.y() >= 0) { // lock
-		} else { // unlock
+	Vec2 Box::layout_lock(Vec2 layout_size, bool is_lock) {
+		auto layout_content_size_change_mark = M_NONE;
+		auto layout_content_size = _layout_content_size;
+
+		if (is_lock) {
+			auto mp_x = _margin_left + _margin_right + _padding_left + _padding_right;
+			auto mp_y = _margin_top + _margin_bottom + _padding_top + _padding_bottom;
+			_layout_content_size.x(layout_size.x() > mp_x ? layout_size.x() - mp_x: 0);
+			_layout_content_size.y(layout_size.y() > mp_y ? layout_size.y() - mp_y: 0);
+			_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
+		} else {
+			auto size = layout_raw_size();
+			_layout_size = size.layout_size;
+			_layout_content_size = size.layout_content_size;
+			_wrap_x = size.is_wrap_x;
+			_wrap_y = size.is_wrap_y;
 		}
 
-		return Vec2();
+		_lock = is_lock;
+
+		if (layout_content_size.x() != _layout_content_size.x()) {
+			layout_content_size_change_mark |= M_LAYOUT_SIZE_WIDTH;
+		}
+		if (layout_content_size.y() != _layout_content_size.y()) {
+			layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
+		}
+
+		auto v = first();
+		while (v) {
+			v->layout_content_size_change(this, layout_content_size_change_mark);
+			v = v->next();
+		}
+
+		unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+		mark(M_LAYOUT_TYPESETTING); // rearrange
+
+		return _layout_size;
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
@@ -454,53 +471,54 @@ namespace flare {
 		}
 	}
 
-	void Box::set_layout_offset_lazy(Rect rect) {
+	void Box::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
 		Vec2 offset;
+		auto _layout_size = layout_size();
 
 		switch(_layout_align) {
 			default:
 			case LEFT_TOP:
-				offset = rect.origin;
+				offset = origin;
 				break;
 			case CENTER_TOP:
 				offset = Vec2(
-					rect.origin.x() + (rect.size.x() - _layout_size.x()) / 2.0,
-					rect.origin.y());
+					origin.x() + (size.x() - _layout_size.x()) / 2.0,
+					origin.y());
 				break;
 			case RIGHT_TOP:
 				offset = Vec2(
-					rect.origin.x() + rect.size.x() - _layout_size.x(),
-					rect.origin.y());
+					origin.x() + size.x() - _layout_size.x(),
+					origin.y());
 				break;
 			case LEFT_CENTER:
 				offset = Vec2(
-					rect.origin.x(),
-					rect.origin.y() + (rect.size.y() - _layout_size.y()) / 2.0);
+					origin.x(),
+					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
 			case CENTER_CENTER:
 				offset = Vec2(
-					rect.origin.x() + (rect.size.x() - _layout_size.x()) / 2.0,
-					rect.origin.y() + (rect.size.y() - _layout_size.y()) / 2.0);
+					origin.x() + (size.x() - _layout_size.x()) / 2.0,
+					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
 			case RIGHT_CENTER:
 				offset = Vec2(
-					rect.origin.x() + (rect.size.x() - _layout_size.x()),
-					rect.origin.y() + (rect.size.y() - _layout_size.y()) / 2.0);
+					origin.x() + (size.x() - _layout_size.x()),
+					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
 			case LEFT_BOTTOM:
 				offset = Vec2(
-					rect.origin.x(),
-					rect.origin.y() + (rect.size.y() - _layout_size.y()));
+					origin.x(),
+					origin.y() + (size.y() - _layout_size.y()));
 				break;
 			case CENTER_BOTTOM:
 				offset = Vec2(
-					rect.origin.x() + (rect.size.x() - _layout_size.x()) / 2.0,
-					rect.origin.y() + (rect.size.y() - _layout_size.y()));
+					origin.x() + (size.x() - _layout_size.x()) / 2.0,
+					origin.y() + (size.y() - _layout_size.y()));
 				break;
 			case RIGHT_BOTTOM:
 				offset = Vec2(
-					rect.origin.x() + (rect.size.x() - _layout_size.x()),
-					rect.origin.y() + (rect.size.y() - _layout_size.y()));
+					origin.x() + (size.x() - _layout_size.x()),
+					origin.y() + (size.y() - _layout_size.y()));
 				break;
 		}
 		set_layout_offset(offset);
@@ -508,6 +526,11 @@ namespace flare {
 
 	void Box::layout_content_size_change(Layout* parent, uint32_t mark_) {
 		mark(mark_);
+	}
+
+	void Box::set_parent(View* parent) {
+		View::set_parent(parent);
+		_lock = false;
 	}
 
 }

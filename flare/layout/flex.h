@@ -91,7 +91,7 @@ namespace flare {
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		virtual Vec2 layout_lock(Vec2 layout_size);
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_lock);
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
 
 		// --------------- m e m b e r . f i e l d ---------------

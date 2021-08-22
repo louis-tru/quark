@@ -86,21 +86,27 @@ namespace flare {
 		*
 		* Returns the layout size of view object (if is box view the: size=margin+border+padding+content)
 		*
+		* Returns the layout content size of object view, 
+		* Returns false to indicate that the size is unknown,
+		* indicates that the size changes with the size of the subview, and the content is wrapped
+		*
 		* @func layout_size()
 		*/
-	Vec2 Layout::layout_size() {
-		return Vec2();
+	Layout::Size Layout::layout_size() {
+		return {
+			Vec2(), Vec2(), true, true,
+		};
 	}
 
 	/**
 		*
-		* Recursive returns the layout size of object view
+		* Returns the layout raw size of object view
 		*
-		* @func layout_compute_size()
+		* @func layout_raw_size()
 		*/
-	Layout::ComputeSize Layout::layout_compute_size() {
+	Layout::Size Layout::layout_raw_size() {
 		return {
-			Vec2(), Vec2(), true, true
+			Vec2(), Vec2(), true, true,
 		};
 	}
 
@@ -112,20 +118,6 @@ namespace flare {
 		* @func layout_offset_inside()
 		*/
 	Vec2 Layout::layout_offset_inside() {
-		return Vec2();
-	}
-
-	/**
-		*
-		* Returns the layout content size of object view, 
-		* Returns false to indicate that the size is unknown,
-		* indicates that the size changes with the size of the subview, and the content is wrapped
-		*
-		* @func layout_content_size(is_wrap_out[2])
-		*/
-	Vec2 Layout::layout_content_size(bool is_wrap_out[2]) {
-		is_wrap_out[0] = true; // No definite size
-		is_wrap_out[1] = true;
 		return Vec2();
 	}
 
@@ -143,9 +135,9 @@ namespace flare {
 		* 
 		* Setting layout offset values lazily mode for the view object
 		*
-		* @func set_layout_offset_lazy(rect)
+		* @func set_layout_offset_lazy(origin, size)
 		*/
-	void Layout::set_layout_offset_lazy(Rect rect) {
+	void Layout::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
 		// noop
 	}
 
@@ -153,17 +145,17 @@ namespace flare {
 		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
 		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
 		* 
-		* 调用`layout_lock(Vec2(-1,-1))`解除锁定
+		* 调用`layout_lock(Vec2(), false)`解除锁定
 		* 
 		* 子类实现这个方法
 		* 
 		* 返回锁定后的最终尺寸
 		* 
-		* @func layout_lock(layout_size)
+		* @func layout_lock(layout_size, is_lock)
 		*/
-	Vec2 Layout::layout_lock(Vec2 layout_size) {
+	Vec2 Layout::layout_lock(Vec2 layout_size, bool is_lock) {
 		// noop
-		return layout_size();
+		return Vec2();
 	}
 
 	/**
