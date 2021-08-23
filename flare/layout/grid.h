@@ -41,9 +41,9 @@ namespace box {
 	 */
 	class FX_EXPORT GridLayout: public Box {
 		FX_Define_View(GridLayout);
-		public:
+	 public:
 		// TODO ...
-		private:
+	 private:
 		// TODO ...
 	};
 

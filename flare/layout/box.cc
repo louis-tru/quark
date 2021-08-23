@@ -291,13 +291,13 @@ namespace flare {
 	/**
 		* @func solve_layout_size()
 		*/
-	uint32_t Box::solve_layout_size(uint32_t mark, bool is_update_child) {
+	uint32_t Box::solve_layout_size(uint32_t mark) {
 		uint32_t layout_content_size_change_mark = M_NONE;
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 			if (!_lock) {
 				auto size = parent()->layout_size();
-				float val = _inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x);
+				auto val = _inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x);
 
 				if (val != _layout_content_size.width()) {
 					_layout_content_size.width(val);
@@ -314,7 +314,7 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 			if (!_lock) {
 				auto size = parent()->layout_size();
-				float val = _inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y);
+				auto val = _inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y);
 
 				if (val != _layout_content_size.height()) {
 					_layout_content_size.height(val);
@@ -529,8 +529,8 @@ namespace flare {
 	}
 
 	void Box::set_parent(View* parent) {
-		View::set_parent(parent);
 		_lock = false;
+		View::set_parent(parent);
 	}
 
 }

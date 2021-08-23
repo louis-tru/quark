@@ -41,7 +41,7 @@ namespace flare {
 
 	class FX_EXPORT Text: public Box {
 		FX_Define_View(Text);
-		public:
+	 public:
 
 		/**
 		* @enum TextValueType
@@ -125,7 +125,7 @@ namespace flare {
 	};
 
 	class DefaultTextSettings: public Object {
-		public:
+	 public:
 		DefaultTextSettings();
 
 		// get default text attrs
@@ -151,7 +151,7 @@ namespace flare {
 		void set_text_overflow(TextOverflow value);
 		void set_text_white_space(TextWhiteSpace value);
 		
-		private:
+	 private:
 		TextColor       _text_background_color; // default text attrs
 		TextColor       _text_color;
 		TextSize        _text_size;

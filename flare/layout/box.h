@@ -41,7 +41,7 @@ namespace flare {
 	 */
 	class FX_EXPORT Box: public View {
 		FX_Define_View(Box);
-		public:
+	 public:
 
 		/**
 		* @enum SizeType
@@ -125,7 +125,7 @@ namespace flare {
 		virtual void set_parent(View* parent);
 
 		/**
-		 * @func solve_layout_size()
+		 * @func solve_layout_size(mark)
 		 */
 		uint32_t solve_layout_size(uint32_t mark);
 

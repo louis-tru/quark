@@ -40,7 +40,7 @@ namespace flare {
 	 */
 	class FX_EXPORT FlexLayout: public Box {
 		FX_Define_View(FlexLayout);
-		public:
+	 public:
 
 		// 项目在主轴上的对齐方式
 		enum ItemsAlign: uint8_t {
@@ -95,7 +95,7 @@ namespace flare {
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
-		private:
+	 private:
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 

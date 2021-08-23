@@ -34,7 +34,7 @@ namespace flare {
 
 	// box private members method
 	FX_DEFINE_INLINE_MEMBERS(Box, Inl_FlexLayout) {
-		public:
+	 public:
 		#define _box(self) static_cast<Box::Inl_FlexLayout*>(self)
 		inline bool wrap_x() const { return _wrap_x; }
 		inline bool wrap_y() const { return _wrap_y; }
@@ -43,7 +43,7 @@ namespace flare {
 
 	// flex private members method
 	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
-		public:
+	 public:
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 		// content wrap horizontal

@@ -37,10 +37,10 @@ namespace flare {
 
 	class FX_EXPORT Root: public Box {
 		FX_Define_View(Root);
-		public:
+	 public:
 
 		// TODO ...
-		private:
+	 private:
 		// TODO ...
 	};
 
