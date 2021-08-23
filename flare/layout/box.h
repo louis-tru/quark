@@ -113,7 +113,7 @@ namespace flare {
 		*/
 		virtual float layout_weight();
 		virtual Align layout_align();
-		virtual Vec2 layout_lock(Vec2 layout_size, bool is_lock);
+		virtual Vec2 layout_lock(Vec2 layout_size);
 		virtual Vec2 solve_transform_origin();
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
@@ -121,13 +121,19 @@ namespace flare {
 
 		// overwrite set_parent
 	 protected:
-		// @overwrite
-		virtual void set_parent(View* parent);
+		/**
+		 * 
+		 * is ready layout layout typesetting in the `layout_reverse() or layout_forward()` func
+		 *
+		 * @func is_ready_layout_typesetting()
+		 */
+		bool is_ready_layout_typesetting();
 
 		/**
 		 * @func solve_layout_size()
 		 */
 		uint32_t solve_layout_size(uint32_t mark);
+		Vec2     solve_layout_lock(Vec2 layout_size, bool is_mark_child);
 
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:
@@ -138,7 +144,6 @@ namespace flare {
 		Align _layout_align; // layout align
 		Vec2  _layout_content_size; // width,height / size
 		bool  _wrap_x, _wrap_y; // layout content size wrap
-		bool  _lock; // layout lock state
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 		FX_DEFINE_INLINE_CLASS(Inl_FlexLayout);

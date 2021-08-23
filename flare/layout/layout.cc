@@ -142,20 +142,28 @@ namespace flare {
 	}
 
 	/**
-		* 当一个父布局视图对其中所拥有的子视图进行布局时，为了调整各个子视图合适位置与尺寸，如有必要可以调用这个函数对子视图做尺寸限制
-		* 这个函数被调用后，子视图上任何调用尺寸更改的方法都应该失效，但应该记录更改的数值一旦解除锁定后之前更改尺寸属性才可生效
+		* 一个具有`is_child_layout_locked()`特征的父布局在排版过程中必须调用子布局的`layout_lock()`方法。
+		* 因为具有`is_child_layout_locked()`特征的布局拥有对子布局尺寸的控制权，一般适用于复杂布局。
+		* 相反没有`is_child_layout_locked()`特征的父布局的布局自身就可以确定自身的尺寸，这一般适应于简单的布局系统中。
+		* 这个方法应该在`layout_forward()`正向迭代中调用，因为尺寸的调整一般在正向迭代中。
 		* 
-		* 调用`layout_lock(Vec2(), false)`解除锁定
+		* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
 		* 
-		* 子类实现这个方法
-		* 
-		* 返回锁定后的最终尺寸
-		* 
-		* @func layout_lock(layout_size, is_lock)
+		* @func layout_lock(layout_size)
 		*/
-	Vec2 Layout::layout_lock(Vec2 layout_size, bool is_lock) {
+	Vec2 Layout::layout_lock(Vec2 layout_size) {
 		// noop
 		return Vec2();
+	}
+
+	/**
+		*
+		* Is the stator layout locked
+		*
+		* @func is_child_layout_locked()
+		*/
+	bool Layout::is_child_layout_locked() {
+		return false;
 	}
 
 	/**
