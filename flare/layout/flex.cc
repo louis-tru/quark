@@ -38,7 +38,6 @@ namespace flare {
 		#define _box(self) static_cast<Box::Inl_FlexLayout*>(self)
 		inline bool wrap_x() const { return _wrap_x; }
 		inline bool wrap_y() const { return _wrap_y; }
-		inline bool lock() const { return _lock; }
 	};
 
 	// flex private members method
@@ -285,37 +284,33 @@ namespace flare {
 	bool FlexLayout::layout_forward(uint32_t mark) {
 		solve_layout_size(mark);
 
-		if (mark & (M_LAYOUT_TYPESETTING | M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
-			if (_box(this)->lock()) { // The layout is locked and does not need to be updated
-				parent()->layout_typesetting_change(this);
-			} else {
+		auto M_MARK =
+			M_LAYOUT_TYPESETTING | 
+			M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT;
+
+		if (mark & M_MARK) {
+			if (is_ready_layout_typesetting()) {
 				_inl(this)->layout_typesetting();
 			}
-			unmark(M_LAYOUT_TYPESETTING | M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
+			unmark(M_MARK);
 		}
-
-		return true;
+		return false;
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
-		if (mark & M_LAYOUT_TYPESETTING) {
-			if (_box(this)->lock()) {
-				parent()->layout_typesetting_change(this);
-				unmark(M_LAYOUT_TYPESETTING);
-			} else {
-				return false;
-			}
-		}
-		return true;
+		return mark & M_LAYOUT_TYPESETTING; // 必须在正向迭代中处理
 	}
 
-	Vec2 FlexLayout::layout_lock(Vec2 layout_size, bool is_lock) {
-		// TODO ...
-		return Vec2();
+	Vec2 FlexLayout::layout_lock(Vec2 layout_size) {
+		return solve_layout_lock(layout_size, false);
 	}
 
 	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
 		mark(M_LAYOUT_TYPESETTING);
+	}
+
+	bool FlexLayout::is_child_layout_locked() {
+		return true;
 	}
 
 }

@@ -681,7 +681,7 @@ namespace flare {
 	// --------------- o v e r w r i t e ---------------
 
 	bool View::layout_forward(uint32_t mark) {
-		return !(mark & M_LAYOUT_TYPESETTING);
+		return (mark & M_LAYOUT_TYPESETTING);
 	}
 
 	bool View::layout_reverse(uint32_t mark) {
@@ -696,7 +696,7 @@ namespace flare {
 			unmark(M_LAYOUT_TYPESETTING);
 		}
 
-		return true;
+		return false;
 	}
 
 	void View::layout_recursive(uint32_t mark) {
