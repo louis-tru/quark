@@ -305,7 +305,7 @@ namespace flare {
 					// mark(M_LAYOUT_TYPESETTING);
 					layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 				}
-				_layout_size.width(_margin_left + _margin_right + val + _padding_left + _padding_right);
+				_layout_size.x(_margin_left + _margin_right + val + _padding_left + _padding_right);
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_WIDTH);
@@ -321,7 +321,7 @@ namespace flare {
 					_wrap_y = size.is_wrap_y;
 					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 				}
-				_layout_size.height(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
+				_layout_size.y(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
 			} // else The layout is locked and does not need to be updated
 			parent()->layout_typesetting_change(this);
 			unmark(M_LAYOUT_SIZE_HEIGHT);
@@ -378,7 +378,7 @@ namespace flare {
 			_inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x),
 			_inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y),
 		);
-		size.layout_size = Vec2(
+		Vec2(
 			_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right),
 			_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom),
 		);
@@ -435,8 +435,6 @@ namespace flare {
 	Vec2 Box::solve_layout_lock(Vec2 layout_size, bool is_mark_child) {
 		auto layout_content_size_change_mark = M_NONE;
 		auto layout_content_size = _layout_content_size;
-		auto layout_wrap_x = _wrap_x;
-		auto layout_wrap_y = _wrap_y;
 
 		auto mp_x = _margin_left + _margin_right + _padding_left + _padding_right;
 		auto mp_y = _margin_top + _margin_bottom + _padding_top + _padding_bottom;
@@ -446,14 +444,15 @@ namespace flare {
 			layout_size.y() > mp_y ? layout_size.y() - mp_y: 0
 		);
 		_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
-		_wrap_x = _wrap_y = false;
 
-		if (layout_content_size.x() != _layout_content_size.x() || layout_wrap_x) {
+		if (layout_content_size.x() != _layout_content_size.x() || _wrap_x) {
 			layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 		}
-		if (layout_content_size.y() != _layout_content_size.y() || layout_wrap_y) {
+		if (layout_content_size.y() != _layout_content_size.y() || _wrap_y) {
 			layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 		}
+
+		_wrap_x = _wrap_y = false;
 
 		if (layout_content_size_change_mark)  {
 			if (is_mark_child) {
@@ -549,6 +548,17 @@ namespace flare {
 			}
 		}
 		return true;
+	}
+
+	/**
+		* @func set_layout_size(layout_content_size)
+		*/
+	void Box::set_layout_size(Vec2 layout_content_size) {
+		_layout_content_size = layout_content_size;
+		_layout_size = Vec2(
+			_margin_left + _margin_right + layout_content_size.x() + _padding_left + _padding_right,
+			_margin_top + _margin_bottom + layout_content_size.y() + _padding_top + _padding_bottom,
+		);
 	}
 
 }

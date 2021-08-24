@@ -46,7 +46,7 @@ namespace flare {
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 		// content wrap horizontal
-		Vec2 layout_typesetting_from_wrap_x() { // wrap
+		void layout_typesetting_from_wrap_x() { // wrap
 			/*
 				|-------------....------------|
 				|          width=WRAP         |
@@ -59,19 +59,48 @@ namespace flare {
 			// get layouts raw size total
 			float total_width = 0;
 			float max_height = 0;
-			auto v = first();
-			while (v) {
-				auto size = v->layout_raw_size();
 
-				total_width += size.layout_size.x();
-				max_height = FX_MAX(max_height, size.layout_size.y());
-				v = v->next();
+			if (_box(this)->wrap_y()) { // wrap y
+				// Array<Vec2> size_arr;
+				// while (v) {
+				// 	auto size = v->layout_raw_size();
+				// 	total_width += size.layout_size.x();
+				// 	max_height = FX_MAX(max_height, size.layout_size.y());
+				// 	size_arr.push(size.layout_size);
+				// 	v = v->next();
+				// }
+			} else { // no wrap y
+				Vec2 c_size = layout_size().content_size;
+				auto v = first();
+				while (v) {
+					auto raw = v->layout_raw_size();
+					auto align = v->layout_align();
+					auto cross_align = align == Align::AUTO ? _cross_align: align;
+					float offset_y = 0;
+					// enum CrossAlign: uint8_t {
+					// 	START = value::START, // 与交叉轴内的起点对齐
+					// 	CENTER = value::CENTER, // 与交叉轴内的中点对齐
+					// 	END = value::END, // 与交叉轴内的终点对齐
+					// 	STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto,将占满交叉轴内空间
+					// };
+					switch(cross_align) {
+						default:
+						case CrossAlign::START: break;
+						case CrossAlign::CENTER: offset_y = (c_size.y() - raw.layout_size.y()) / 2.0; break;
+						case CrossAlign::END: offset_y = c_size.y() - raw.layout_size.y(); break;
+						case CrossAlign::STRETCH:
+							break;
+					}
+					v->set_layout_offset(Vec2(total_width, offset_y));
+					// v->layout_lock(raw.layout_size);
+					total_width += raw.layout_size.x();
+					v = v->next();
+				}
+				if (c_size.x() != total_width) {
+					set_layout_size(Vec2(total_width, c_size.y()));
+					parent()->layout_typesetting_change(this);
+				}
 			}
-
-			// setting offset and layouts height ??
-			// lock layout ??
-
-			return Vec2(total_width, max_height);
 		}
 
 		// no content wrap horizontal
@@ -264,7 +293,7 @@ namespace flare {
 	void FlowLayout::set_wrap(Wrap wrap) {
 		if (wrap != _wrap) {
 			_wrap = wrap;
-			mark(M_LAYOUT_TYPESETTING/* | M_LAYOUT_TYPESETTING_FLEX_WRAP*/);
+			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 

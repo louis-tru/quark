@@ -133,7 +133,16 @@ namespace flare {
 		 * @func solve_layout_size(mark)
 		 */
 		uint32_t solve_layout_size(uint32_t mark);
-		Vec2     solve_layout_lock(Vec2 layout_size, bool is_mark_child);
+
+		/**
+		 * @func solve_layout_lock()
+		 */
+		Vec2 solve_layout_lock(Vec2 layout_size, bool is_mark_child);
+
+		/**
+		 * @func set_layout_size(layout_content_size)
+		 */
+		void set_layout_size(Vec2 layout_content_size);
 
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:
