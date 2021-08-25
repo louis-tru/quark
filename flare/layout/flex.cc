@@ -78,6 +78,7 @@ namespace flare {
 
 			int i = 0;
 			auto v = first();
+
 			while (v) {
 				auto raw = child_size.length() ? child_size[i++]: v->layout_raw_size();
 				auto align = v->layout_align();
@@ -85,14 +86,11 @@ namespace flare {
 				float offset_y = 0;
 				switch(cross_align) {
 					default:
-					case CrossAlign::START: // 与交叉轴内的起点对齐
-						break;
+					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_y = (content_height - raw.layout_size.y()) / 2.0;
-						break;
+						offset_y = (content_height - raw.layout_size.y()) / 2.0; break;
 					case CrossAlign::END: // 与交叉轴内的终点对齐
-						offset_y = content_height - raw.layout_size.y();
-						break;
+						offset_y = content_height - raw.layout_size.y(); break;
 					case CrossAlign::STRETCH: // 如果项目未设置高度或设为auto,将占满交叉轴内空间
 						if (raw.wrap_y) {
 							raw.wrap_y = false;
