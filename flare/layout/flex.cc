@@ -57,49 +57,59 @@ namespace flare {
 				|-------------....------------|
 			*/
 			// get layouts raw size total
-			float total_width = 0;
-			float max_height = 0;
+			float content_height = 0;
+			float layout_height = 0;
+			float layout_width = 0;
+			auto size = layout_size();
+			Array<Size> child_size;
 
 			if (_box(this)->wrap_y()) { // wrap y
-				// Array<Vec2> size_arr;
-				// while (v) {
-				// 	auto size = v->layout_raw_size();
-				// 	total_width += size.layout_size.x();
-				// 	max_height = FX_MAX(max_height, size.layout_size.y());
-				// 	size_arr.push(size.layout_size);
-				// 	v = v->next();
-				// }
-			} else { // no wrap y
-				Vec2 c_size = layout_size().content_size;
-				auto v = first();
 				while (v) {
-					auto raw = v->layout_raw_size();
-					auto align = v->layout_align();
-					auto cross_align = align == Align::AUTO ? _cross_align: align;
-					float offset_y = 0;
-					// enum CrossAlign: uint8_t {
-					// 	START = value::START, // 与交叉轴内的起点对齐
-					// 	CENTER = value::CENTER, // 与交叉轴内的中点对齐
-					// 	END = value::END, // 与交叉轴内的终点对齐
-					// 	STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto,将占满交叉轴内空间
-					// };
-					switch(cross_align) {
-						default:
-						case CrossAlign::START: break;
-						case CrossAlign::CENTER: offset_y = (c_size.y() - raw.layout_size.y()) / 2.0; break;
-						case CrossAlign::END: offset_y = c_size.y() - raw.layout_size.y(); break;
-						case CrossAlign::STRETCH:
-							break;
-					}
-					v->set_layout_offset(Vec2(total_width, offset_y));
-					// v->layout_lock(raw.layout_size);
-					total_width += raw.layout_size.x();
+					auto size = v->layout_raw_size();
+					content_height = FX_MAX(content_height, size.layout_size.y());
+					child_size.push(size);
 					v = v->next();
 				}
-				if (c_size.x() != total_width) {
-					set_layout_size(Vec2(total_width, c_size.y()));
-					parent()->layout_typesetting_change(this);
+				layout_height = content_height + size.layout_size.y() - size.content_size.y();
+			} else {
+				content_height = size.content_size.y();
+				layout_height = size.layout_size.y();
+			}
+
+			int i = 0;
+			auto v = first();
+			while (v) {
+				auto raw = child_size.length() ? child_size[i++]: v->layout_raw_size();
+				auto align = v->layout_align();
+				auto cross_align = align == Align::AUTO ? _cross_align: align;
+				float offset_y = 0;
+				switch(cross_align) {
+					default:
+					case CrossAlign::START: // 与交叉轴内的起点对齐
+						break;
+					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+						offset_y = (content_height - raw.layout_size.y()) / 2.0;
+						break;
+					case CrossAlign::END: // 与交叉轴内的终点对齐
+						offset_y = content_height - raw.layout_size.y();
+						break;
+					case CrossAlign::STRETCH: // 如果项目未设置高度或设为auto,将占满交叉轴内空间
+						if (raw.wrap_y) {
+							raw.wrap_y = false;
+							raw.layout_size.y(content_height);
+						}
+						break;
 				}
+				v->layout_lock(raw.layout_size, &raw.wrap_x);
+				v->set_layout_offset(Vec2(layout_width, offset_y));
+				layout_width += raw.layout_size.x();
+				v = v->next();
+			}
+
+			Vec2 new_size(layout_width, layout_height);
+			if (size != new_size) {
+				set_layout_size(new_size);
+				parent()->layout_typesetting_change(this);
 			}
 		}
 
@@ -330,8 +340,8 @@ namespace flare {
 		return mark & M_LAYOUT_TYPESETTING; // 必须在正向迭代中处理
 	}
 
-	Vec2 FlexLayout::layout_lock(Vec2 layout_size) {
-		return solve_layout_lock(layout_size, false);
+	Vec2 FlexLayout::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
+		return solve_layout_lock(layout_size, is_wrap, false);
 	}
 
 	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {

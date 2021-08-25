@@ -100,7 +100,7 @@ namespace flare {
 			// Vec2 layout_min_size; ??
 			// vec2 layout_max_size; ??
 			Vec2 content_size;
-			bool is_wrap_x, is_wrap_y;
+			bool wrap_x, wrap_y;
 		};
 
 		/**
@@ -161,7 +161,7 @@ namespace flare {
 
 		/**
 		 *
-		 * Returns the layout raw size of object view
+		 * Returns the and compute layout size of object view
 		 *
 		 * @func layout_raw_size()
 		 */
@@ -200,9 +200,9 @@ namespace flare {
 			* 
 			* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
 			* 
-			* @func layout_lock(layout_size)
+			* @func layout_lock(layout_size, is_wrap)
 			*/
-		virtual Vec2 layout_lock(Vec2 layout_size);
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
 
 		/**
 		 *

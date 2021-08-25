@@ -375,9 +375,16 @@ namespace flare {
 	Layout::Size Box::layout_raw_size() {
 		auto size = parent()->layout_size();
 		size.content_size = Vec2(
-			_inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x),
-			_inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y),
+			_inl(this)->layout_content_width(size.content_size.x(), &size.wrap_x),
+			_inl(this)->layout_content_height(size.content_size.y(), &size.wrap_y),
 		);
+
+		if (size.wrap_x || size.wrap_y) {
+			// TODO compute wrap content size
+			// ...
+			// ...
+		}
+
 		Vec2(
 			_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right),
 			_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom),
@@ -428,11 +435,11 @@ namespace flare {
 		return Vec2(_margin_left, _margin_top);
 	}
 
-	Vec2 Box::layout_lock(Vec2 layout_size) {
-		return solve_layout_lock(layout_size, true);
+	Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
+		return solve_layout_lock(layout_size, is_wrap, true);
 	}
-	
-	Vec2 Box::solve_layout_lock(Vec2 layout_size, bool is_mark_child) {
+
+	Vec2 Box::solve_layout_lock(Vec2 layout_size, bool is_wrap[2], bool is_mark_child) {
 		auto layout_content_size_change_mark = M_NONE;
 		auto layout_content_size = _layout_content_size;
 
@@ -445,14 +452,15 @@ namespace flare {
 		);
 		_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
 
-		if (layout_content_size.x() != _layout_content_size.x() || _wrap_x) {
+		if (layout_content_size.x() != _layout_content_size.x() || _wrap_x != is_wrap[0]) {
 			layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 		}
-		if (layout_content_size.y() != _layout_content_size.y() || _wrap_y) {
+		if (layout_content_size.y() != _layout_content_size.y() || _wrap_y != is_wrap[1]) {
 			layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 		}
 
-		_wrap_x = _wrap_y = false;
+		_wrap_x = is_wrap[0];
+		_wrap_y = is_wrap[1];
 
 		if (layout_content_size_change_mark)  {
 			if (is_mark_child) {
@@ -468,6 +476,17 @@ namespace flare {
 		unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
 
 		return _layout_size;
+	}
+
+	/**
+		* @func set_layout_size(layout_content_size)
+		*/
+	void Box::set_layout_size(Vec2 layout_content_size) {
+		_layout_content_size = layout_content_size;
+		_layout_size = Vec2(
+			_margin_left + _margin_right + layout_content_size.x() + _padding_left + _padding_right,
+			_margin_top + _margin_bottom + layout_content_size.y() + _padding_top + _padding_bottom,
+		);
 	}
 
 	void Box::set_layout_offset(Vec2 val) {
@@ -548,17 +567,6 @@ namespace flare {
 			}
 		}
 		return true;
-	}
-
-	/**
-		* @func set_layout_size(layout_content_size)
-		*/
-	void Box::set_layout_size(Vec2 layout_content_size) {
-		_layout_content_size = layout_content_size;
-		_layout_size = Vec2(
-			_margin_left + _margin_right + layout_content_size.x() + _padding_left + _padding_right,
-			_margin_top + _margin_bottom + layout_content_size.y() + _padding_top + _padding_bottom,
-		);
 	}
 
 }

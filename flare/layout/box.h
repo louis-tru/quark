@@ -113,7 +113,7 @@ namespace flare {
 		*/
 		virtual float layout_weight();
 		virtual Align layout_align();
-		virtual Vec2 layout_lock(Vec2 layout_size);
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
 		virtual Vec2 solve_transform_origin();
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
@@ -137,7 +137,7 @@ namespace flare {
 		/**
 		 * @func solve_layout_lock()
 		 */
-		Vec2 solve_layout_lock(Vec2 layout_size, bool is_mark_child);
+		Vec2 solve_layout_lock(Vec2 layout_size, bool is_wrap[2], bool is_mark_child);
 
 		/**
 		 * @func set_layout_size(layout_content_size)
