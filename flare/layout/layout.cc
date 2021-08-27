@@ -104,7 +104,7 @@ namespace flare {
 		*
 		* @func layout_raw_size()
 		*/
-	Layout::Size Layout::layout_raw_size() {
+	Layout::Size Layout::layout_raw_size(Size parent_content_size) {
 		return {
 			Vec2(), Vec2(), true, true,
 		};

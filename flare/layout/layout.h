@@ -96,10 +96,8 @@ namespace flare {
 
 		// layout size
 		struct Size {
-			Vec2 layout_size;
-			// Vec2 layout_min_size; ??
-			// vec2 layout_max_size; ??
-			Vec2 content_size;
+			Vec2 layout_size, content_size;
+			// Vec2 layout_min_size, layout_max_size; ??
 			bool wrap_x, wrap_y;
 		};
 
@@ -163,9 +161,9 @@ namespace flare {
 		 *
 		 * Returns the and compute layout size of object view
 		 *
-		 * @func layout_raw_size()
+		 * @func layout_raw_size(parent_content_size)
 		 */
-		virtual Size layout_raw_size();
+		virtual Size layout_raw_size(Size parent_content_size);
 
 		/**
 		 * Returns internal layout offset compensation of the view, which affects the sub view offset position

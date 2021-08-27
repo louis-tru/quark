@@ -106,7 +106,7 @@ namespace flare {
 		virtual bool layout_reverse(uint32_t mark);
 		virtual Vec2 layout_offset();
 		virtual Size layout_size();
-		virtual Size layout_raw_size();
+		virtual Size layout_raw_size(Size parent_content_size);
 		/*
 		* 这里定义项目的放大与缩小比例，默认为0，即如果存在剩余空间，不放大也不缩小 
 		* 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
@@ -144,6 +144,15 @@ namespace flare {
 		 */
 		void set_layout_size(Vec2 layout_content_size);
 
+		/**
+		 * @func layout_wrap_x()
+		 */
+		inline bool layout_wrap_x() const { return _wrap_x; }
+		inline bool layout_wrap_y() const { return _wrap_y; }
+		float solve_layout_content_width(float parent_c_szie, bool *is_wrap_in_out);
+		float solve_layout_content_height(float parent_c_size, bool *is_wrap_in_out);
+		void  mark_layout_size(uint32_t mark);
+
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:
 		// box attrs
@@ -155,7 +164,6 @@ namespace flare {
 		bool  _wrap_x, _wrap_y; // layout content size wrap
 
 		FX_DEFINE_INLINE_CLASS(Inl);
-		FX_DEFINE_INLINE_CLASS(Inl_FlexLayout);
 	};
 
 }

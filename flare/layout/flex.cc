@@ -32,21 +32,13 @@
 
 namespace flare {
 
-	// box private members method
-	FX_DEFINE_INLINE_MEMBERS(Box, Inl_FlexLayout) {
-	 public:
-		#define _box(self) static_cast<Box::Inl_FlexLayout*>(self)
-		inline bool wrap_x() const { return _wrap_x; }
-		inline bool wrap_y() const { return _wrap_y; }
-	};
-
 	// flex private members method
 	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
 	 public:
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 		// content wrap horizontal
-		void layout_typesetting_from_wrap_x() { // wrap
+		Vec2 layout_typesetting_from_wrap_x(Size cur_size, bool isUpdate) { // wrap
 			/*
 				|-------------....------------|
 				|          width=WRAP         |
@@ -57,62 +49,73 @@ namespace flare {
 				|-------------....------------|
 			*/
 			// get layouts raw size total
-			float content_height = 0;
-			float layout_height = 0;
-			float layout_width = 0;
-			auto size = layout_size();
+			float content_width = 0;
+			float content_height = size.wrap_y ? 0 : cur_size.content_size.y();
+
+			if (!isUpdate) {
+				auto v = first();
+				while (v) {
+					auto size = v->layout_raw_size(cur_size);
+					if (size.wrap_y)
+						content_height = FX_MAX(content_height, size.layout_size.y());
+					content_width += size.layout_size.x();
+					v = v->next();
+				}
+				return Vec2(content_width, content_height);
+			}
+
 			Array<Size> child_size;
 
-			if (_box(this)->wrap_y()) { // wrap y
+			if (size.wrap_y) { // wrap y
+				auto v = first();
 				while (v) {
-					auto size = v->layout_raw_size();
-					content_height = FX_MAX(content_height, size.layout_size.y());
+					auto size = v->layout_raw_size(cur_size);
+					content_height = FX_MAX(content_height, size.layout_size.y()); // solve content height
 					child_size.push(size);
 					v = v->next();
 				}
-				layout_height = content_height + size.layout_size.y() - size.content_size.y();
-			} else {
-				content_height = size.content_size.y();
-				layout_height = size.layout_size.y();
 			}
 
 			int i = 0;
 			auto v = first();
 
 			while (v) {
-				auto raw = child_size.length() ? child_size[i++]: v->layout_raw_size();
+				auto raw_ch = child_size.length() ? child_size[i++]: v->layout_raw_size(cur_size);
 				auto align = v->layout_align();
-				auto cross_align = align == Align::AUTO ? _cross_align: align;
 				float offset_y = 0;
-				switch(cross_align) {
+
+				switch (align == Align::AUTO ? _cross_align: align) {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_y = (content_height - raw.layout_size.y()) / 2.0; break;
+						offset_y = (content_height - raw_ch.layout_size.y()) / 2.0; break;
 					case CrossAlign::END: // 与交叉轴内的终点对齐
-						offset_y = content_height - raw.layout_size.y(); break;
+						offset_y = content_height - raw_ch.layout_size.y(); break;
 					case CrossAlign::STRETCH: // 如果项目未设置高度或设为auto,将占满交叉轴内空间
-						if (raw.wrap_y) {
-							raw.wrap_y = false;
-							raw.layout_size.y(content_height);
+						if (raw_ch.wrap_y) {
+							raw_ch.wrap_y = false;
+							raw_ch.layout_size.y(content_height);
 						}
 						break;
 				}
-				v->layout_lock(raw.layout_size, &raw.wrap_x);
-				v->set_layout_offset(Vec2(layout_width, offset_y));
-				layout_width += raw.layout_size.x();
+				v->layout_lock(raw_ch.layout_size, &raw_ch.wrap_x);
+				v->set_layout_offset(Vec2(content_width, offset_y));
+				content_width += raw_ch.layout_size.x();
 				v = v->next();
 			}
 
-			Vec2 new_size(layout_width, layout_height);
-			if (size != new_size) {
-				set_layout_size(new_size);
+			Vec2 new_content_size(content_width, content_height);
+
+			if (cur_size.content_size != new_content_size) {
+				set_layout_size(new_content_size);
 				parent()->layout_typesetting_change(this);
 			}
+
+			return new_content_size;
 		}
 
 		// no content wrap horizontal
-		void layout_typesetting_from_x() {
+		Vec2 layout_typesetting_from_x(Size cur_size, bool isUpdate) {
 			if (_wrap == Wrap::NO_WRAP) { // no wrap
 				/*
 					|-----------------------------|
@@ -143,10 +146,11 @@ namespace flare {
 					|-----------------------------|
 				*/
 			}
+			return Vec2();
 		}
 
 		// content wrap vertical
-		void layout_typesetting_from_wrap_y() { // wrap
+		Vec2 layout_typesetting_from_wrap_y(Size cur_size, bool isUpdate) { // wrap
 			/*
 			  |-----------|
 			  |height=WRAP|
@@ -165,10 +169,26 @@ namespace flare {
 			  |    ---    |
 			  |-----------|
 			*/
+			float content_width = cur_size.content_size.x();
+			float content_height = 0;
+
+			if (!isUpdate) {
+				auto v = first();
+				while (v) {
+					auto size = v->layout_raw_size(cur_size);
+					if (size.wrap_x)
+						content_width = FX_MAX(content_width, size.layout_size.w());
+					content_height += size.layout_size.y();
+					v = v->next();
+				}
+				return Vec2(content_width, content_height);
+			}
+
+			return Vec2();
 		}
 
 		// no content wrap vertical
-		void layout_typesetting_from_y() {
+		Vec2 layout_typesetting_from_y(Size cur_size, bool isUpdate) {
 			if (_wrap == Wrap::NO_WRAP) { // no wrap
 				/*
 					|---------------------------|
@@ -208,27 +228,21 @@ namespace flare {
 					|-----------------------------|
 				*/
 			}
+			return Vec2();
 		}
 
-		void layout_typesetting() {
-			switch (_direction) {
-				case Direction::ROW:
-				case Direction::ROW_REVERSE:
-					if (_box(this)->wrap_x()) { // wrap
-						layout_typesetting_from_wrap_x();
-					} else {
-						layout_typesetting_from_x();
-					}
-					break;
-				default:
-					if (_box(this)->wrap_y()) {
-						layout_typesetting_from_wrap_y();
-					} else {
-						layout_typesetting_from_y();
-					}
+		void layout_typesetting(Size cur_size, bool isUpdate) {
+			if (_direction == ROW || _direction == ROW_REVERSE) {
+				return cur_size.wrap_x ? 
+					layout_typesetting_from_wrap_x(cur_size, isUpdate):
+					layout_typesetting_from_x(cur_size, isUpdate);
+			} else {
+				return cur_size.wrap_y ? 
+					layout_typesetting_from_wrap_y(cur_size, isUpdate):
+					layout_typesetting_from_y(cur_size, isUpdate);
 			}
 		}
-		
+
 	};
 
 	/**
@@ -327,7 +341,7 @@ namespace flare {
 
 		if (mark & M_MARK) {
 			if (is_ready_layout_typesetting()) {
-				_inl(this)->layout_typesetting();
+				_inl(this)->layout_typesetting(layout_size(), true);
 			}
 			unmark(M_MARK);
 		}
@@ -335,11 +349,23 @@ namespace flare {
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
-		return mark & M_LAYOUT_TYPESETTING; // 必须在正向迭代中处理
+		return mark & M_LAYOUT_TYPESETTING; // 在正向迭代中处理
 	}
 
 	Vec2 FlexLayout::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 		return solve_layout_lock(layout_size, is_wrap, false);
+	}
+
+	Layout::Size layout_raw_size(Size size) {
+		size.content_size.x(solve_layout_content_width(size.content_size.x(), &size.wrap_x));
+		size.content_size.x(solve_layout_content_height(size.content_size.y(), &size.wrap_y));
+
+		if (size.wrap_x || size.wrap_y) {
+			size.content_size = _inl(this)->layout_typesetting(size, false);
+		}
+		size.layout_size.x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
+		size.layout_size.y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
+		return size;
 	}
 
 	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {

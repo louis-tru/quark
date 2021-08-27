@@ -32,108 +32,102 @@
 
 namespace flare {
 
-	// box private members method
-	FX_DEFINE_INLINE_MEMBERS(View, Inl) {
-		public:
-		#define _inl(self) static_cast<Box::Inl*>(self)
+	float Box::solve_layout_content_width(float parent_c_szie, bool *is_wrap_in_out) {
+		float result;
 
-		float layout_content_width(float parent_content_size, bool *is_wrap_in_out) {
-			float result;
-
-			switch (_width.type) {
-				default: // NONE /* none default wrap content */
-				case WRAP: /* 包裹内容 wrap content */
-					*is_wrap_in_out = true;
+		switch (_width.type) {
+			default: // NONE /* none default wrap content */
+			case WRAP: /* 包裹内容 wrap content */
+				*is_wrap_in_out = true;
+				result = 0; // invalid wrap width
+				break;
+			case PIXEL: /* 明确值 value px */
+				*is_wrap_in_out = false;
+				result = _width.value;
+				break;
+			case MATCH: /* 匹配父视图 match parent */
+				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
-					break;
-				case PIXEL: /* 明确值 value px */
-					*is_wrap_in_out = false;
-					result = _width.value;
-					break;
-				case MATCH: /* 匹配父视图 match parent */
-					if (*is_wrap_in_out) {
-						result = 0; // invalid wrap width
-					} else { // use wrap
-						result = Number<float>::max(
-							parent_content_size - _margin_left - _margin_right - _padding_left - _padding_right, 0
-						);
-					}
-					// *is_wrap_in_out = *is_wrap_in_out;
-					break;
-				case RATIO: /* 百分比 value % */
-					if (*is_wrap_in_out) {
-						result = 0; // invalid wrap width
-					} else { // use wrap
-						result = Number<float>::max(parent_content_size * _width.value, 0);
-					}
-					// *is_wrap_in_out = *is_wrap_in_out;
-					break;
-				case MINUS: /* 减法(parent-value) value ! */
-					if (*is_wrap_in_out) {
-						result = 0; // invalid wrap width
-					} else { // use wrap
-						result = Number<float>::max(parent_content_size - _width.value, 0);
-					}
-					// *is_wrap_in_out = *is_wrap_in_out;
-					break;
-			}
-			return result;
-		}
-
-		float layout_content_height(float parent_content_size, bool *is_wrap_in_out) {
-			float result;
-
-			switch (_height.type) {
-				default: // NONE /* none default wrap content */
-				case WRAP: /* 包裹内容 wrap content */
-					*is_wrap_in_out = true;
-					result = 0; // invalid wrap height
-					break;
-				case PIXEL: /* 明确值 value px */
-					*is_wrap_in_out = false;
-					result.height(_height.value);
-					break;
-				case MATCH: /* 匹配父视图 match parent */
-					if (*is_wrap_in_out) {
-						result = 0; // invalid wrap height
-					} else { // use wrap
-						result = Number<float>::max(
-							parent_content_size - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
-						);
-					}
-					// *is_wrap_in_out = *is_wrap_in_out;
-					break;
-				case RATIO: /* 百分比 value % */
-					if (*is_wrap_in_out) {
-						result = 0; // invalid wrap height
-					} else { // use wrap
-						result = Number<float>::max(parent_content_size * _height.value, 0);
-					}
-					// *is_wrap_in_out = *is_wrap_in_out;
-					break;
-				case MINUS: /* 减法(parent-value) value ! */
-					if (*is_wrap_in_out) {
-						result = 0; // invalid wrap height
-					} else { // use wrap
-						result = Number<float>::max(parent_content_size - _height.value, 0);
-					}
-					// *is_wrap_in_out = *is_wrap_in_out;
-					break;
-			}
-			return result;
-		}
-
-		void mark_layout_size(uint32_t mark_) {
-			auto _parent = parent();
-			if (_parent) {
-				if (_parent->is_child_layout_locked()) {
-					_parent->layout_typesetting_change(this);
-				} else {
-					mark(mark_);
+				} else { // use wrap
+					result = Number<float>::max(
+						parent_c_szie - _margin_left - _margin_right - _padding_left - _padding_right, 0
+					);
 				}
+				// *is_wrap_in_out = *is_wrap_in_out;
+				break;
+			case RATIO: /* 百分比 value % */
+				if (*is_wrap_in_out) {
+					result = 0; // invalid wrap width
+				} else { // use wrap
+					result = Number<float>::max(parent_c_szie * _width.value, 0);
+				}
+				// *is_wrap_in_out = *is_wrap_in_out;
+				break;
+			case MINUS: /* 减法(parent-value) value ! */
+				if (*is_wrap_in_out) {
+					result = 0; // invalid wrap width
+				} else { // use wrap
+					result = Number<float>::max(parent_c_szie - _width.value, 0);
+				}
+				// *is_wrap_in_out = *is_wrap_in_out;
+				break;
+		}
+		return result;
+	}
+
+	float Box::solve_layout_content_height(float parent_c_szie, bool *is_wrap_in_out) {
+		float result;
+
+		switch (_height.type) {
+			default: // NONE /* none default wrap content */
+			case WRAP: /* 包裹内容 wrap content */
+				*is_wrap_in_out = true;
+				result = 0; // invalid wrap height
+				break;
+			case PIXEL: /* 明确值 value px */
+				*is_wrap_in_out = false;
+				result.height(_height.value);
+				break;
+			case MATCH: /* 匹配父视图 match parent */
+				if (*is_wrap_in_out) {
+					result = 0; // invalid wrap height
+				} else { // use wrap
+					result = Number<float>::max(
+						parent_c_szie - _margin_top - _margin_bottom - _padding_top - _padding_bottom, 0
+					);
+				}
+				// *is_wrap_in_out = *is_wrap_in_out;
+				break;
+			case RATIO: /* 百分比 value % */
+				if (*is_wrap_in_out) {
+					result = 0; // invalid wrap height
+				} else { // use wrap
+					result = Number<float>::max(parent_c_szie * _height.value, 0);
+				}
+				// *is_wrap_in_out = *is_wrap_in_out;
+				break;
+			case MINUS: /* 减法(parent-value) value ! */
+				if (*is_wrap_in_out) {
+					result = 0; // invalid wrap height
+				} else { // use wrap
+					result = Number<float>::max(parent_c_szie - _height.value, 0);
+				}
+				// *is_wrap_in_out = *is_wrap_in_out;
+				break;
+		}
+		return result;
+	}
+
+	void Box::mark_layout_size(uint32_t mark_) {
+		auto _parent = parent();
+		if (_parent) {
+			if (_parent->is_child_layout_locked()) {
+				_parent->layout_typesetting_change(this);
+			} else {
+				mark(mark_);
 			}
 		}
-	};
+	}
 
 	/**
 		* @constructors
@@ -297,7 +291,7 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 			if (!parent()->is_child_layout_locked()) {
 				auto size = parent()->layout_size();
-				auto val = _inl(this)->layout_content_width(size.content_size.x(), &size.is_wrap_x);
+				auto val = solve_layout_content_width(size.content_size.x(), &size.is_wrap_x);
 
 				if (val != _layout_content_size.width() || _wrap_x != size.is_wrap_x) {
 					_layout_content_size.width(val);
@@ -314,7 +308,7 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 			if (!parent()->is_child_layout_locked()) {
 				auto size = parent()->layout_size();
-				auto val = _inl(this)->layout_content_height(size.content_size.y(), &size.is_wrap_y);
+				auto val = solve_layout_content_height(size.content_size.y(), &size.is_wrap_y);
 
 				if (val != _layout_content_size.height() || _wrap_y != size.is_wrap_y) {
 					_layout_content_size.height(val);
@@ -372,23 +366,11 @@ namespace flare {
 		};
 	}
 
-	Layout::Size Box::layout_raw_size() {
-		auto size = parent()->layout_size();
-		size.content_size = Vec2(
-			_inl(this)->layout_content_width(size.content_size.x(), &size.wrap_x),
-			_inl(this)->layout_content_height(size.content_size.y(), &size.wrap_y),
-		);
-
-		if (size.wrap_x || size.wrap_y) {
-			// TODO compute wrap content size
-			// ...
-			// ...
-		}
-
-		Vec2(
-			_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right),
-			_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom),
-		);
+	Layout::Size Box::layout_raw_size(Size size) {
+		size.content_size.x(solve_layout_content_width(size.content_size.x(), &size.wrap_x));
+		size.content_size.x(solve_layout_content_height(size.content_size.y(), &size.wrap_y));
+		size.layout_size.x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
+		size.layout_size.y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
 		return size;
 	}
 
