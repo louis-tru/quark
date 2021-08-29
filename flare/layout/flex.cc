@@ -38,7 +38,7 @@ namespace flare {
 		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
 
 		// content wrap horizontal
-		Vec2 layout_typesetting_from_wrap_x(Size cur_size, bool isUpdate) { // wrap
+		Vec2 layout_typesetting_from_wrap_x(Size cur_size) { // wrap
 			/*
 				|-------------....------------|
 				|          width=WRAP         |
@@ -50,20 +50,7 @@ namespace flare {
 			*/
 			// get layouts raw size total
 			float content_width = 0;
-			float content_height = size.wrap_y ? 0 : cur_size.content_size.y();
-
-			if (!isUpdate) {
-				auto v = first();
-				while (v) {
-					auto size = v->layout_raw_size(cur_size);
-					if (size.wrap_y)
-						content_height = FX_MAX(content_height, size.layout_size.y());
-					content_width += size.layout_size.x();
-					v = v->next();
-				}
-				return Vec2(content_width, content_height);
-			}
-
+			float content_height = 0;
 			Array<Size> child_size;
 
 			if (size.wrap_y) { // wrap y
@@ -74,6 +61,8 @@ namespace flare {
 					child_size.push(size);
 					v = v->next();
 				}
+			} else {
+				content_height = cur_size.content_size.y();
 			}
 
 			int i = 0;
@@ -115,7 +104,7 @@ namespace flare {
 		}
 
 		// no content wrap horizontal
-		Vec2 layout_typesetting_from_x(Size cur_size, bool isUpdate) {
+		Vec2 layout_typesetting_from_x(Size cur_size) {
 			if (_wrap == Wrap::NO_WRAP) { // no wrap
 				/*
 					|-----------------------------|
@@ -150,7 +139,7 @@ namespace flare {
 		}
 
 		// content wrap vertical
-		Vec2 layout_typesetting_from_wrap_y(Size cur_size, bool isUpdate) { // wrap
+		Vec2 layout_typesetting_from_wrap_y(Size cur_size) { // wrap
 			/*
 			  |-----------|
 			  |height=WRAP|
@@ -188,7 +177,7 @@ namespace flare {
 		}
 
 		// no content wrap vertical
-		Vec2 layout_typesetting_from_y(Size cur_size, bool isUpdate) {
+		Vec2 layout_typesetting_from_y(Size cur_size) {
 			if (_wrap == Wrap::NO_WRAP) { // no wrap
 				/*
 					|---------------------------|
@@ -231,15 +220,15 @@ namespace flare {
 			return Vec2();
 		}
 
-		void layout_typesetting(Size cur_size, bool isUpdate) {
+		Vec2 layout_typesetting(Size cur_size) {
 			if (_direction == ROW || _direction == ROW_REVERSE) {
 				return cur_size.wrap_x ? 
-					layout_typesetting_from_wrap_x(cur_size, isUpdate):
-					layout_typesetting_from_x(cur_size, isUpdate);
+					layout_typesetting_from_wrap_x(cur_size):
+					layout_typesetting_from_x(cur_size);
 			} else {
 				return cur_size.wrap_y ? 
-					layout_typesetting_from_wrap_y(cur_size, isUpdate):
-					layout_typesetting_from_y(cur_size, isUpdate);
+					layout_typesetting_from_wrap_y(cur_size):
+					layout_typesetting_from_y(cur_size);
 			}
 		}
 
@@ -341,7 +330,7 @@ namespace flare {
 
 		if (mark & M_MARK) {
 			if (is_ready_layout_typesetting()) {
-				_inl(this)->layout_typesetting(layout_size(), true);
+				_inl(this)->layout_typesetting(layout_size());
 			}
 			unmark(M_MARK);
 		}
@@ -349,31 +338,15 @@ namespace flare {
 	}
 
 	bool FlexLayout::layout_reverse(uint32_t mark) {
-		return mark & M_LAYOUT_TYPESETTING; // 在正向迭代中处理
+		return mark & M_LAYOUT_TYPESETTING; // 必需在正向迭代中处理
 	}
 
-	Vec2 FlexLayout::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
-		return solve_layout_lock(layout_size, is_wrap, false);
-	}
-
-	Layout::Size layout_raw_size(Size size) {
-		size.content_size.x(solve_layout_content_width(size.content_size.x(), &size.wrap_x));
-		size.content_size.x(solve_layout_content_height(size.content_size.y(), &size.wrap_y));
-
-		if (size.wrap_x || size.wrap_y) {
-			size.content_size = _inl(this)->layout_typesetting(size, false);
-		}
-		size.layout_size.x(_margin_left + _margin_right + size.content_size.x() + _padding_left + _padding_right);
-		size.layout_size.y(_margin_top + _margin_bottom + size.content_size.y() + _padding_top + _padding_bottom);
-		return size;
+	Vec2 FlexLayout::layout_lock(bool isLock, Vec2 layout_size) {
+		return solve_layout_lock(isLock, layout_size, false);
 	}
 
 	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
 		mark(M_LAYOUT_TYPESETTING);
-	}
-
-	bool FlexLayout::is_child_layout_locked() {
-		return true;
 	}
 
 }
