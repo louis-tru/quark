@@ -57,8 +57,6 @@ namespace flare {
 			START = value::START, // 与交叉轴内的起点对齐
 			CENTER = value::CENTER, // 与交叉轴内的中点对齐
 			END = value::END, // 与交叉轴内的终点对齐
-			STRETCH = value::STRETCH, // 如果项目未设置高度或设为auto,将占满交叉轴内空间
-			// BASELINE = value::BASELINE, // 项目的第一行文字的基线对齐
 		};
 
 		// 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
@@ -91,11 +89,12 @@ namespace flare {
 		// @overwrite
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-		virtual Vec2 layout_lock(bool isLock, Vec2 layout_size);
+		virtual bool is_layout_lock_child();
 		virtual void layout_typesetting_change(Layout* child, TypesettingChangeMark mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
 	 private:
+		bool _is_lock_child;
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 

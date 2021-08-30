@@ -121,7 +121,7 @@ namespace flare {
 	void Box::mark_layout_size(uint32_t mark_) {
 		auto _parent = parent();
 		if (_parent) {
-			if (_isLock) {
+			if (_parent->is_layout_lock_child()) {
 				_parent->layout_typesetting_change(this);
 			} else {
 				mark(mark_);
@@ -140,7 +140,7 @@ namespace flare {
 		, _padding_bottom(0), _padding_left(0)
 		, _fill(nullptr)
 		, _layout_weight(0), _layout_align(AUTO)
-		, _wrap_x(true), _wrap_y(true), _isLock(false)
+		, _wrap_x(true), _wrap_y(true)
 	{
 	}
 
@@ -159,7 +159,7 @@ namespace flare {
 	void Box::set_width(SizeValue val) {
 		if (_width != val) {
 			_width = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 		}
 	}
 
@@ -172,7 +172,7 @@ namespace flare {
 	void Box::set_height(SizeValue val) {
 		if (_height != val) {
 			_height = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 		}
 	}
 
@@ -185,7 +185,7 @@ namespace flare {
 	void Box::set_limit_width(SizeValue val) {
 		if (_limit_width != val) {
 			_limit_width = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 		}
 	}
 
@@ -198,14 +198,14 @@ namespace flare {
 	void Box::set_limit_height(SizeValue val) {
 		if (_limit_height != val) {
 			_limit_height = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 		}
 	}
 
 	void Box::margin_top(float val) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 			mark_recursive(M_TRANSFORM_ORIGIN);
 		}
 	}
@@ -213,21 +213,21 @@ namespace flare {
 	void Box::margin_right(float val) {
 		if (_margin_right != val) {
 			_margin_right = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 		}
 	}
 
 	void Box::margin_bottom(float val) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 		}
 	}
 
 	void Box::margin_left(float val) {
 		if (_margin_left != val) {
 			_margin_left = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 			mark_recursive(M_TRANSFORM_ORIGIN); // 必然影响origin变化，因为margin是transform origin的一部分
 		}
 	}
@@ -235,7 +235,7 @@ namespace flare {
 	void Box::padding_top(float val) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 			mark_recursive(M_TRANSFORM/* | M_TRANSFORM_ORIGIN*/); // 影响子布局偏移、影响尺寸变化进而影响origin
 		}
 	}
@@ -243,7 +243,7 @@ namespace flare {
 	void Box::padding_right(float val) {
 		if (_padding_right != val) {
 			_padding_right = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 			// mark_recursive(M_TRANSFORM_ORIGIN);
 		}
 	}
@@ -251,7 +251,7 @@ namespace flare {
 	void Box::padding_bottom(float val) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
+			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 			// mark_recursive(M_TRANSFORM_ORIGIN);
 		}
 	}
@@ -259,7 +259,7 @@ namespace flare {
 	void Box::padding_left(float val) {
 		if (_padding_left != val) {
 			_padding_left = val;
-			_inl(this)->mark_layout_size(M_LAYOUT_SIZE_WIDTH);
+			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 			mark_recursive(M_TRANSFORM); // 几乎可以肯定会影响子布局偏移
 		}
 	}
@@ -289,7 +289,7 @@ namespace flare {
 		uint32_t layout_content_size_change_mark = M_NONE;
 
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
-			if (!_isLock) {
+			if (!parent()->is_layout_lock_child()) {
 				auto size = parent()->layout_size();
 				auto val = solve_layout_content_width(size.content_size.x(), &size.is_wrap_x);
 
@@ -306,7 +306,7 @@ namespace flare {
 		}
 
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
-			if (!_isLock) {
+			if (!parent()->is_layout_lock_child()) {
 				auto size = parent()->layout_size();
 				auto val = solve_layout_content_height(size.content_size.y(), &size.is_wrap_y);
 
@@ -417,21 +417,7 @@ namespace flare {
 		return Vec2(_margin_left, _margin_top);
 	}
 
-	Vec2 Box::layout_lock(bool isLock, Vec2 layout_size) {
-		return solve_layout_lock(isLock, layout_size, true);
-	}
-
-	Vec2 Box::solve_layout_lock(bool isLock, Vec2 layout_size, bool is_mark_child) {
-		if (!isLock) {
-			if (_isLock != isLock) {
-				_isLock = false;
-				mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
-			}
-			return Vec2();
-		}
-
-		_isLock = true;
-
+	Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
 		auto layout_content_size_change_mark = M_NONE;
 		auto layout_content_size = _layout_content_size;
 
@@ -444,18 +430,18 @@ namespace flare {
 		);
 		_layout_size = Vec2(mp_x + _layout_content_size.x(), mp_y + _layout_content_size.y());
 
-		if (layout_content_size.x() != _layout_content_size.x() || _wrap_x) {
+		if (layout_content_size.x() != _layout_content_size.x() || _wrap_x != is_wrap[0]) {
 			layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 		}
-		if (layout_content_size.y() != _layout_content_size.y() || _wrap_y) {
+		if (layout_content_size.y() != _layout_content_size.y() || _wrap_y != is_wrap[1]) {
 			layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 		}
 
-		_wrap_x = false;
-		_wrap_y = false;
+		_wrap_x = is_wrap[0];
+		_wrap_y = is_wrap[1];
 
 		if (layout_content_size_change_mark)  {
-			if (is_mark_child) {
+			if (!is_layout_lock_child()) {
 				auto v = first();
 				while (v) {
 					v->layout_content_size_change(this, layout_content_size_change_mark);
@@ -552,18 +538,13 @@ namespace flare {
 		* @func is_ready_layout_typesetting()
 		*/
 	bool Box::is_ready_layout_typesetting() {
-		if (_isLock) { // layout size locked by parent layout
+		if (parent()->is_layout_lock_child()) { // layout size locked by parent layout
 			if (parent()->layout_mark() & M_LAYOUT_TYPESETTING) {
 				// The parent layout needs to be readjusted
 				return false;
 			}
 		}
 		return true;
-	}
-
-	void Box::set_parent(View* parent) {
-		_isLock = false;
-		View::set_parent(parent);
 	}
 
 }

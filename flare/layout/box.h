@@ -113,15 +113,13 @@ namespace flare {
 		*/
 		virtual float layout_weight();
 		virtual Align layout_align();
-		virtual Vec2 layout_lock(bool isLock, Vec2 layout_size);
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
 		virtual Vec2 solve_transform_origin();
 		virtual void set_layout_offset(Vec2 val);
 		virtual void set_layout_offset_lazy(Vec2 origin, Vec2 size);
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
 	 protected:
-		// @overwrite set_parent
-		virtual void set_parent(View* parent);
 
 		/**
 		 * 
@@ -137,11 +135,6 @@ namespace flare {
 		uint32_t solve_layout_size(uint32_t mark);
 
 		/**
-		 * @func solve_layout_lock()
-		 */
-		Vec2 solve_layout_lock(bool isLock, Vec2 layout_size, bool is_mark_child);
-
-		/**
 		 * @func set_layout_size(layout_content_size)
 		 */
 		void set_layout_size(Vec2 layout_content_size);
@@ -151,8 +144,8 @@ namespace flare {
 		 */
 		inline bool layout_wrap_x() const { return _wrap_x; }
 		inline bool layout_wrap_y() const { return _wrap_y; }
-		float solve_layout_content_width(float parent_c_szie, bool *is_wrap_in_out);
-		float solve_layout_content_height(float parent_c_size, bool *is_wrap_in_out);
+		float solve_layout_content_width(float parent_content_szie, bool *is_wrap_in_out);
+		float solve_layout_content_height(float parent_content_szie, bool *is_wrap_in_out);
 		void  mark_layout_size(uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
@@ -164,7 +157,6 @@ namespace flare {
 		Align _layout_align; // layout align
 		Vec2  _layout_content_size; // width,height / size
 		bool  _wrap_x, _wrap_y; // layout content size wrap
-		bool  _isLock; // layout lock
 
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

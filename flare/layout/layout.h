@@ -80,8 +80,6 @@ namespace flare {
 			START = value::START,
 			CENTER = value::CENTER,
 			END = value::END,
-			STRETCH = value::STRETCH,
-			// BASELINE = value::BASELINE,
 			// default
 			LEFT_TOP = value::LEFT_TOP,
 			CENTER_TOP = value::CENTER_TOP,
@@ -197,9 +195,14 @@ namespace flare {
 			* 
 			* 返回锁定后的最终尺寸，调用后视返回后的尺寸为最终尺寸
 			* 
-			* @func layout_lock(isLock, layout_size)
+			* @func layout_lock(layout_size, is_wrap)
 			*/
-		virtual Vec2 layout_lock(bool isLock, Vec2 layout_size = Vec2());
+		virtual Vec2 layout_lock(Vec2 layout_size, bool is_wrap[2]);
+
+		/**
+		 * @func is_layout_lock_child()
+		 */
+		virtual bool is_layout_lock_child();
 
 		/**
 		 *
