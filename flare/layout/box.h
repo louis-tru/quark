@@ -120,7 +120,6 @@ namespace flare {
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
 	 protected:
-
 		/**
 		 * 
 		 * is ready layout layout typesetting in the `layout_reverse() or layout_forward()` func

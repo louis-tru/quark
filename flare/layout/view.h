@@ -37,7 +37,7 @@ namespace flare {
 
 	# define FX_Views(F) \
 		F(View)           F(Box)             F(Image) \
-		F(FlowLayout)     F(FlexLayout)      F(GridLayout) \
+		F(Flow)           F(Flex ) \
 		F(Input)          F(Label)           F(Root) \
 		F(Scroll)         F(Text)            F(Video) \
 
@@ -183,8 +183,7 @@ namespace flare {
 		/**
 		 * @class Visitor
 		 */
-	 public:
-		class Visitor {
+	 public: class Visitor {
 		 public:
 			# define FX_Visitor(E, N) virtual void visit##N(N *v);
 				FX_Views(FX_Visitor);

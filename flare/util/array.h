@@ -187,6 +187,14 @@ namespace flare {
 		 */
 		void extend(uint32_t length, uint32_t capacity);
 
+		/**
+		 *
+		 * reverse array list
+		 *
+		 * @func reverse()
+		 */
+		Array& reverse();
+
 		protected:
 		// constructors
 		Array(uint32_t length, int32_t capacity, T* data); // greedy constructors
@@ -210,6 +218,8 @@ namespace flare {
 		T*        _val;
 
 		template<typename T2, typename A2> friend class Array;
+
+		static void _Reverse(void *src, size_t size, uint32_t len);
 	};
 
 	/**
@@ -535,10 +545,19 @@ namespace flare {
 	}
 
 	template<typename T, typename A>
+	Array<T, A>& Array<T, A>::reverse() {
+		Array<char, MemoryAllocator>::_Reverse(_val, sozeof(T), _length);
+		return *this;
+	}
+
+	template<typename T, typename A>
 	void Array<T, A>::realloc_(uint32_t capacity) {
 		FX_ASSERT(!is_weak(), "the weak holder cannot be changed");
 		_val = (T*)A::aalloc(_val, capacity, (uint32_t*)&_capacity, sizeof(T));
 	}
+
+	template<>
+	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len);
 
 	#define FX_DEF_ARRAY_SPECIAL(T, A) \
 		template<> void              Array<T, A>::extend(uint32_t length, uint32_t capacity); \

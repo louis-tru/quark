@@ -31,8 +31,27 @@
 #include "./array.h"
 #include "./string.h"
 #include <string.h>
+#include <math.h>
 
 namespace flare {
+
+	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
+		if (len > 1) {
+			char* _src = (char*)src;
+			void* tmp = malloc(szie);
+			uint32_t len2 = floor(len / 2);
+			uint32_t i = 0;
+			while (i < len2) {
+				size_t src = _src + (i * size);
+				size_t dest = _src + ((len - i - 1) * size);
+				memcpy(tmp, src, size);
+				memcpy(src, dest, size);
+				memcpy(dest, tmp, size);
+				i++;
+			}
+			free(tmp);
+		}
+	}
 
 	#define FX_DEF_ARRAY_SPECIAL_IMPLEMENTATION(T, A, APPEND_ZERO) \
 		\

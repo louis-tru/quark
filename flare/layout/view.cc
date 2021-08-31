@@ -42,16 +42,12 @@ namespace flare {
 		visitView(v);
 	}
 
-	void View::Visitor::visitGridLayout(GridLayout *v) {
+	void View::Visitor::visitFlow(FlowLayout *v) {
 		visitBox(v);
 	}
 
-	void View::Visitor::visitFlexLayout(FlexLayout *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitFlowLayout(FlowLayout *v) {
-		visitFlexLayout(v);
+	void View::Visitor::visitFlex(FlexLayout *v) {
+		visitFlow(v);
 	}
 
 	void View::Visitor::visitImage(Image *v) {
@@ -67,7 +63,7 @@ namespace flare {
 	}
 
 	void View::Visitor::visitScroll(Scroll *v) {
-		visitFlowLayout(v);
+		visitFlow(v);
 	}
 
 	void View::Visitor::visitRoot(Root *v) {

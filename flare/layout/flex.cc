@@ -32,132 +32,25 @@
 
 namespace flare {
 
+	/**
+		*
+		* Accepting visitors
+		* 
+		* @func accept(visitor)
+		*/
+	void Flex::accept(Visitor *visitor) {
+		visitor->visitFlex(this);
+	}
+
 	// flex private members method
-	FX_DEFINE_INLINE_MEMBERS(FlexLayout, Inl) {
+	FX_DEFINE_INLINE_MEMBERS(Flex, Inl) {
 	 public:
-		#define _inl(self) static_cast<FlexLayout::Inl*>(self)
+		#define _inl(self) static_cast<Flex::Inl*>(self)
 
-		// auto horizontal layout
-		void layout_typesetting_from_x(Size cur_size) {
-			/*
-				|-------------....------------|
-				|          width=WRAP         |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|                             |
-				|-------------....------------|
-			*/
-			// get layouts raw size total
-			float offset_x = 0, height = 0;
-			bool is_reverse = _direction == ROW_REVERSE;
+		float parseAlign(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
+			float offset_x = 0, space = 0;
 
-			if (cur_size.wrap_y) { // wrap y
-				auto v = first();
-				while (v) {
-					auto size = v->layout_size().layout_size;
-					height = FX_MAX(height, size.y()); // solve content height
-					v = v->next();
-				}
-			} else {
-				height = cur_size.content_size.y();
-			}
-
-			auto v = is_reverse ? last(): first();
-			while (v) {
-				auto size = v->layout_size().layout_size;
-				auto align = v->layout_align();
-				float offset_y = 0;
-				switch (align == Align::AUTO ? _cross_align: align) {
-					default:
-					case CrossAlign::START: break; // 与交叉轴内的起点对齐
-					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_y = (height - size.y()) / 2.0; break;
-					case CrossAlign::END: // 与交叉轴内的终点对齐
-						offset_y = height - size.y(); break;
-				}
-				v->set_layout_offset(Vec2(offset_x, offset_y));
-				offset_x += size.x();
-				v = is_reverse ? v->prev() : v->next();
-			}
-
-			Vec2 new_content_size(offset_x, height);
-			if (cur_size.content_size != new_content_size) {
-				set_layout_size(new_content_size);
-				parent()->layout_typesetting_change(this);
-			}
-		}
-
-		// wrap content horizontal
-		void layout_typesetting_from_wrap_x(Size cur_size) { // wrap Line feed
-			/*
-				|-----------------------------|
-				|   width=PIXEL,wrap=WRAP     |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|            |                |
-				|            |                |
-				|            v                |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | <---> | L |  |
-				|   --- --- ---         ---   |
-				|-----------------------------|
-			*/
-		}
-
-		// flex horizontal
-		void layout_typesetting_from_flex_x(Size cur_size) { // flex
-			/*
-				|-----------------------------|
-				|  width=PIXEL,wrap=NO_WRAP   |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|                             |
-				|-----------------------------|
-			*/
-			float total_width = 0, max_height = 0;
-			bool is_reverse = _direction == ROW_REVERSE;
-			Array<Vec2> size_arr;
-			float weight_total = 0;
-
-			auto v = is_reverse ? last(): first();
-			while (v) {
-				auto size = v->layout_raw_size(cur_size).layout_size;
-				max_height = FX_MAX(max_height, size.y()); // solve content height
-				total_width += size.x();
-				weight_total += v->layout_weight();
-				size_arr.push(size);
-				v = is_reverse ? v->prev() : v->next();
-			}
-
-			float offset_x = 0;
-			float space = 0;
-			float content_height = cur_size.wrap_y ? max_height: cur_size.content_size.y();
-			float overflow = cur_size.content_size.x() - total_width;
-			bool wrap_const[2] = { false, false };
-
-			if (weight_total) {
-				total_width = 0;
-				float min_weight_total = Math.min(weight_total, 1);
-				auto v = is_reverse ? last(): first();
-				while (v) {
-					auto size = size_arr[i++];
-					// 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
-					size.x( size.x() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
-					size = v->layout_lock(size, wrap_const);
-					total_width += size.x();
-					v = is_reverse ? v->prev() : v->next();
-				}
-				overflow = cur_size.content_size.x() - total_width;
-			}
-
-			switch (_items_align) {
+			switch (align) {
 				default:
 				case ItemsAlign::START: // 左对齐
 					if (is_reverse) {
@@ -173,47 +66,328 @@ namespace flare {
 					}
 					break;
 				case ItemsAlign::SPACE_BETWEEN: // 两端对齐，项目之间的间隔都相等
-					if (is_reverse) {
-						offset_x = overflow;
-					}
 					if (overflow > 0) {
-						space = overflow / (size_arr.length() - 1);
+						space = overflow / (count - 1);
+					} else {
+						if (is_reverse) {
+							offset_x = overflow;
+						}
 					}
 					break;
 				case ItemsAlign::SPACE_AROUND: // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
-					offset_x = overflow / 2;
 					if (overflow > 0) {
-						// set space
+						space = overflow / count;
+						offset_x = space / 2;
+					} else {
+						offset_x = overflow / 2;
 					}
 					break;
 				case ItemsAlign::SPACE_EVENLY: // 每个项目两侧的间隔相等,这包括边框的间距
-					offset_x = overflow / 2;
 					if (overflow > 0) {
-						// set space
+						offset_x = space = overflow / (count + 1);
+					} else {
+						offset_x = overflow / 2;
 					}
 					break;
 			}
 
-			int i = 0;
+			*space_out = space;
+
+			return offset_x;
+		}
+
+		// auto layout horizontal or vertical
+		template<bool is_horizontal>
+		void layout_typesetting_from_auto(Size cur_size) {
+			// get layouts raw size total
+			float offset = 0, max_cross = 0;
+			bool is_reverse = _direction == ROW_REVERSE;
+			Vec2 cur = cur_size.content_size;
+
+			if (cur_size.wrap_y) { // wrap y
+				auto v = first();
+				while (v) {
+					auto size = v->layout_size().layout_size;
+					auto cross = is_horizontal ? size.y(): size.x();
+					max_cross = FX_MAX(max_cross, cross);
+					v = v->next();
+				}
+			} else {
+				max_cross = is_horizontal ? cur.y(): cur.x();
+			}
+
 			auto v = is_reverse ? last(): first();
 			while (v) {
-				auto size = size_arr[i++];
+				auto size = v->layout_size().layout_size;
 				auto align = v->layout_align();
-				float offset_y = 0;
+				float offset_cross = 0;
 				switch (align == Align::AUTO ? _cross_align: align) {
 					default:
 					case CrossAlign::START: break; // 与交叉轴内的起点对齐
 					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_y = (content_height - size.y()) / 2.0; break;
+						offset_cross = (max_cross - (is_horizontal ? size.y(): size.x())) / 2.0; break;
 					case CrossAlign::END: // 与交叉轴内的终点对齐
-						offset_y = content_height - size.y(); break;
+						offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
 				}
-				if (!weight_total)
-					size = v->layout_lock(size, wrap_const);
-				v->set_layout_offset(Vec2(offset_x, offset_y));
-				offset_x += (size.x() + space);
+				if (is_horizontal) {
+					v->set_layout_offset(Vec2(offset, offset_cross));
+					offset += size.x();
+				} else {
+					v->set_layout_offset(Vec2(offset_cross, offset));
+					offset += size.y();
+				}
 				v = is_reverse ? v->prev() : v->next();
 			}
+
+			Vec2 new_size = is_horizontal ? Vec2(offset, max_cross): Vec2(max_cross, offset);
+
+			if (cur != new_size) {
+				set_layout_size(new_size);
+				parent()->layout_typesetting_change(this);
+			}
+		}
+
+		// wrap content horizontal or vertical
+		template<bool is_horizontal>
+		void layout_typesetting_from_wrap(Size cur_size) { // wrap Line feed
+			struct Line {
+				struct Item {
+					Vec2: s; View* v;
+				};
+				float total_main;
+				float max_cross;
+				Array<Item> items;
+			};
+			Vec2 cur = cur_size.content_size;
+			Array<Line> line;
+			float main_size = is_horizontal ? cur.x(): cur.y();
+			float total_cross = 0;
+			bool is_reverse = _direction == ROW_REVERSE;
+			bool wrap_reverse = _direction == Wrap::WRAP_REVERSE;
+
+			Array<Item> tmp_items
+			float tmp_total_main = 0, tmp_max_cross = 0;
+
+			auto v = first();
+			while (v) {
+				auto size = v->layout_size().layout_size;
+				auto main = tmp_total_main + (is_horizontal ? size.x(): size.y());
+				if (main > main_size) { // Line feed
+					if (is_reverse)
+						tmp_items.reverse();
+					line.push({ tmp_total_main, tmp_max_cross, std::move(tmp_items) });
+					total_cross += tmp_max_cross;
+					tmp_total_main = is_horizontal ? size.x(): size.y();
+					tmp_max_cross = is_horizontal ? size.y(): size.x();
+				} else {
+					tmp_total_main = main;
+					tmp_max_cross = FX_MAX(tmp_max_cross, size.y());
+				}
+				tmp_items.push({ size, v });
+				v = v->next();
+			}
+
+			if (tmp_items.length()) {
+				if (is_reverse)
+					tmp_items.reverse();
+				line.push({ tmp_total_main, tmp_max_cross, std::move(tmp_items) });
+				total_cross += tmp_max_cross;
+			}
+
+			if (wrap_reverse) {
+				line.reverse();
+			}
+
+			bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
+			float cross_size_old = is_horizontal ? cur.y(): cur.y();
+			float cross_size = is_wrap_cross ? total_cross: cross_size_old;
+			float cross_overflow = cross_size - total_cross;
+			float cross_overflow_item = 0;
+			float cross_space = 0, cross_offset = 0;
+
+			if (!is_wrap_cross) {
+				if (STRETCH == _wrap_align) {
+					cross_overflow_item = line.length() ? cross_overflow / line.length() : 0;
+				} else {
+					cross_offset = parseAlign((ItemsAlign)
+						_wrap_align, wrap_reverse, cross_overflow, line.length(), &cross_space);
+				}
+			}
+
+			for (auto i: line) {
+				float cross = i.max_cross + cross_overflow_item;
+				float overflow = main_size - i.total_main;
+				float space = 0;
+				float offset = parseAlign(_items_align, is_reverse, overflow, i.items.length(), &space);
+
+				for (auto j: i.items) {
+					auto s = i.s;
+					auto v = i.v;
+					auto align = v->layout_align();
+					float cross_offset_item = cross_offset;
+					switch (align == Align::AUTO ? _cross_align: align) {
+						default:
+						case CrossAlign::START: break; // 与交叉轴内的起点对齐
+						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) / 2.0); break;
+						case CrossAlign::END: // 与交叉轴内的终点对齐
+							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
+					}
+					if (is_horizontal) {
+						v->set_layout_offset(Vec2(offset, cross_offset_item));
+						offset += (s.x() + space);
+					} else {
+						v->set_layout_offset(Vec2(cross_offset_item, offset));
+						offset += (s.y() + space);
+					}
+				}
+				cross_offset += (cross + cross_space);
+			}
+
+			if (cross_size != cross_size_old) {
+				if (is_horizontal) {
+					set_layout_size(Vec(main_size, cross_size));
+				} else {
+					set_layout_size(Vec(cross_size, main_size));
+				}
+				parent()->layout_typesetting_change(this);
+			}
+		}
+
+		// flex horizontal or vertical
+		template<bool is_horizontal>
+		void layout_typesetting_from_flex(Size cur_size) { // flex
+			struct Item { Vec2: s; View* v; };
+			float total_main = 0, max_cross = 0;
+			bool is_reverse = _direction == ROW_REVERSE;
+			Array<Item> items;
+			float weight_total = 0;
+			Vec2 cur = cur_size.content_size;
+			float main_size = is_horizontal ? cur.x(): cur.y();
+			float cross_size_old = is_horizontal ? cur.y(): cur.x();
+
+			auto v = is_reverse ? last(): first();
+			while (v) {
+				auto size = v->layout_raw_size(cur_size).layout_size;
+				max_cross = FX_MAX(max_cross, size.y()); // solve content height
+				total_main += size.x();
+				weight_total += v->layout_weight();
+				items.push({size, v});
+				v = is_reverse ? v->prev() : v->next();
+			}
+
+			bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
+			float cross_size = is_wrap_cross ? max_cross: cross_size_old;
+			float overflow = main_size - total_main;
+			bool wrap_const[2] = { false, false };
+
+			if (weight_total) {
+				total_main = 0;
+				float min_weight_total = Math.min(weight_total, 1);
+				for (auto i: arr) {
+					auto size = i.s;
+					auto v = i.v;
+					// 在flex中：size = size_raw + overflow * weight / weight_total * min(weight_total, 1)
+					if (is_horizontal) {
+						size.x( size.x() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
+					} else {
+						size.y( size.y() + overflow * (v->layout_weight() / weight_total) * min_weight_total );
+					}
+					size = v->layout_lock(size, wrap_const);
+					total_main += (is_horizontal ? size.x(): size.y());
+				}
+				overflow = main_size - total_main;
+			}
+
+			float space = 0;
+			float offset = parseAlign(_items_align, is_reverse, overflow, items.length(), &space);
+
+			for (auto i: arr) {
+				auto size = i.s;
+				auto v = i.v;
+				auto align = v->layout_align();
+				float offset_cross = 0;
+				switch (align == Align::AUTO ? _cross_align: align) {
+					default:
+					case CrossAlign::START: break; // 与交叉轴内的起点对齐
+					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+						offset_cross = (cross_size - size.y()) / 2.0; break;
+					case CrossAlign::END: // 与交叉轴内的终点对齐
+						offset_cross = cross_size - size.y(); break;
+				}
+				if (!weight_total) {
+					size = v->layout_lock(size, wrap_const);
+				}
+				if (is_horizontal) {
+					v->set_layout_offset(Vec2(offset, offset_cross));
+					offset += (size.x(): size.y() + space);
+				} else {
+					v->set_layout_offset(Vec2(offset_cross, offset));
+					offset += (size.y() + space);
+				}
+			}
+
+			if (cross_size != cross_size_old) {
+				if (is_horizontal) {
+					set_layout_size(Vec(main_size, cross_size));
+				} else {
+					set_layout_size(Vec(cross_size, main_size));
+				}
+				parent()->layout_typesetting_change(this);
+			}
+		}
+
+		// ------------------------------------------------
+
+		// auto horizontal layout
+		void layout_typesetting_from_x(Size cur_size) {
+			/*
+				|-------------....------------|
+				|          width=WRAP         |
+				|   ___ ___ ___         ___   |
+				|  | L | L | L | ----> | L |  |
+				|   --- --- ---         ---   |
+				|                             |
+				|-------------....------------|
+			*/
+			layout_typesetting_from_auto<true>(cur_size);
+		}
+
+		// wrap content horizontal
+		void layout_typesetting_from_wrap(Size cur_size) {
+			/*
+				|-----------------------------|
+				|   width=PIXEL,wrap=WRAP     |
+				|   ___ ___ ___         ___   |
+				|  | L | L | L | ----> | L |  |
+				|   --- --- ---         ---   |
+				|  | L | L | L | ----> | L |  |
+				|   --- --- ---         ---   |
+				|  | L | L | L | ----> | L |  |
+				|   --- --- ---         ---   |
+				|              |              |
+				|              |              |
+				|              v              |
+				|   ___ ___ ___         ___   |
+				|  | L | L | L | <---> | L |  |
+				|   --- --- ---         ---   |
+				|-----------------------------|
+			*/
+			layout_typesetting_from_wrap<true>(cur_size);
+		}
+
+		// flex horizontal
+		void layout_typesetting_from_flex_x(Size cur_size) { // flex
+			/*
+				|-----------------------------|
+				|  width=PIXEL,wrap=NO_WRAP   |
+				|   ___ ___ ___         ___   |
+				|  | L | L | L | ----> | L |  |
+				|   --- --- ---         ---   |
+				|                             |
+				|-----------------------------|
+			*/
+			layout_typesetting_from_flex<true>(cur_size);
 		}
 
 		// auto vertical layout
@@ -236,43 +410,7 @@ namespace flare {
 			  |    ---    |
 			  |-----------|
 			*/
-			float width = 0, offset_y = 0;
-			bool is_reverse = _direction == COLUMN_REVERSE;
-
-			if (cur_size.wrap_y) { // wrap y
-				auto v = first();
-				while (v) {
-					auto size = v->layout_size();
-					width = FX_MAX(width, size.layout_size.x()); // solve content width
-					v = v->next();
-				}
-			} else {
-				width = cur_size.content_size.x();
-			}
-
-			auto v = is_reverse ? last(): first();
-			while (v) {
-				auto size = v->layout_size();
-				auto align = v->layout_align();
-				float offset_x = 0;
-				switch (align == Align::AUTO ? _cross_align: align) {
-					default:
-					case CrossAlign::START: break; // 与交叉轴内的起点对齐
-					case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-						offset_x = (width - size.layout_size.x()) / 2.0; break;
-					case CrossAlign::END: // 与交叉轴内的终点对齐
-						offset_x = width - size.layout_size.x(); break;
-				}
-				v->set_layout_offset(Vec2(offset_x, offset_y));
-				offset_y += size.layout_size.y();
-				v = is_reverse ? v->prev() : v->next();
-			}
-
-			Vec2 new_content_size(width, offset_y);
-			if (cur_size.content_size != new_content_size) {
-				set_layout_size(new_content_size);
-				parent()->layout_typesetting_change(this);
-			}
+			layout_typesetting_from_auto<false>(cur_size);
 		}
 
 		// no content wrap vertical
@@ -295,6 +433,7 @@ namespace flare {
 				|   --- --- ---         ---   |
 				|-----------------------------|
 			*/
+			layout_typesetting_from_wrap<false>(cur_size);
 		}
 
 		void layout_typesetting_from_flex_y(Size cur_size) {
@@ -316,9 +455,7 @@ namespace flare {
 				|            ---            |
 				|---------------------------|
 			*/
-			float content_width = 0, content_height = 0;
-			bool is_reverse = _direction == COLUMN_REVERSE;
-
+			layout_typesetting_from_flex<false>(cur_size);
 		}
 
 		void update_IsLockChild(uint32_t layout_content_size_change_mark) {
@@ -355,39 +492,13 @@ namespace flare {
 	};
 
 	/**
-		*
-		* Accepting visitors
-		* 
-		* @func accept(visitor)
-		*/
-	void FlexLayout::accept(Visitor *visitor) {
-		visitor->visitFlexLayout(this);
-	}
-
-	/**
 		* @constructors
 		*/
-	FlexLayout::FlexLayout()
-		: _direction(Direction::ROW)
-		, _items_align(ItemsAlign::START)
-		, _cross_align(CrossAlign::START)
-		, _wrap(Wrap::NO_WRAP)
-		, _wrap_align(WrapAlign::START)
+	Flex::Flex()
+		: _items_align(ItemsAlign::START)
 		, _is_lock_child(false)
 	{
-	}
-
-	/**
-		*
-		* 设置主轴的方向
-		*
-		* @func set_direction(val)
-		*/
-	void FlexLayout::set_direction(Direction val) {
-		if (val != _direction) {
-			_direction = val;
-			mark(M_LAYOUT_TYPESETTING); // 排版参数改变,后续需对子布局重新排版
-		}
+		_wrap = NO_WRAP;
 	}
 
 	/**
@@ -396,53 +507,15 @@ namespace flare {
 		*
 		* @func stt_items_align(align)
 		*/
-	void FlexLayout::set_items_align(ItemsAlign align) {
+	void Flex::set_items_align(ItemsAlign align) {
 		if (align != _items_align) {
 			_items_align = align;
 			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 
-	/**
-		* 
-		* 设置交叉轴的对齐方式
-		*
-		* @func set_cross_align(align)
-		*/
-	void FlexLayout::set_cross_align(CrossAlign align) {
-		if (align != _cross_align) {
-			_cross_align = align;
-			mark(M_LAYOUT_TYPESETTING);
-		}
-	}
 
-	/**
-		* 
-		* 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
-		*
-		* @func set_wrap_reverse(reverse)
-		*/
-	void FlowLayout::set_wrap(Wrap wrap) {
-		if (wrap != _wrap) {
-			_wrap = wrap;
-			mark(M_LAYOUT_TYPESETTING);
-		}
-	}
-
-	/**
-		* 
-		* 设置多根交叉轴的对齐方式
-		*
-		* @func set_wrap_align(align)
-		*/
-	void FlowLayout::set_wrap_align(WrapAlign align) {
-		if (align != _wrap_align) {
-			_wrap_align = align;
-			mark(M_LAYOUT_TYPESETTING);
-		}
-	}
-
-	bool FlexLayout::layout_forward(uint32_t mark) {
+	bool Flex::layout_forward(uint32_t mark) {
 		auto layout_content_size_change_mark = solve_layout_size(mark);
 
 		if (mark & (M_LAYOUT_TYPESETTING | M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
@@ -466,7 +539,7 @@ namespace flare {
 		return false;
 	}
 
-	bool FlexLayout::layout_reverse(uint32_t mark) {
+	bool Flex::layout_reverse(uint32_t mark) {
 		if(mark & M_LAYOUT_TYPESETTING) {
 			if (!is_ready_layout_typesetting()) {
 				return true; // continue iteration
@@ -493,11 +566,11 @@ namespace flare {
 		return false;
 	}
 
-	bool FlexLayout::is_layout_lock_child() {
+	bool Flex::is_layout_lock_child() {
 		return _is_lock_child;
 	}
 
-	void FlexLayout::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
+	void Flex::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
 		mark(M_LAYOUT_TYPESETTING);
 	}
 

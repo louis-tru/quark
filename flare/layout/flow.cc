@@ -38,30 +38,87 @@ namespace flare {
 		* 
 		* @func accept(visitor)
 		*/
-	void FlowLayout::accept(Visitor *visitor) {
-		visitor->visitFlowLayout(this);
+	void Flow::accept(Visitor *visitor) {
+		visitor->visitFlow(this);
 	}
 
 	/**
 		* @constructors
 		*/
-	FlowLayout::FlowLayout()
+	Flow::Flow()
 		: _direction(Direction::ROW)
+		, _cross_align(CrossAlign::START)
+		, _wrap(Wrap::WRAP)
+		, _wrap_align(WrapAlign::START)
 	{
+	}
+
+	/**
+		*
+		* 设置主轴的方向
+		*
+		* @func set_direction(val)
+		*/
+	void Flow::set_direction(Direction val) {
+		if (val != _direction) {
+			_direction = val;
+			mark(M_LAYOUT_TYPESETTING); // 排版参数改变,后续需对子布局重新排版
+		}
+	}
+
+	/**
+		* 
+		* 设置交叉轴的对齐方式
+		*
+		* @func set_cross_align(align)
+		*/
+	void Flow::set_cross_align(CrossAlign align) {
+		if (align != _cross_align) {
+			_cross_align = align;
+			mark(M_LAYOUT_TYPESETTING);
+		}
+	}
+
+	/**
+		* 
+		* 主轴溢出包裹，开启后当主轴溢出时分裂成多根交叉轴
+		*
+		* @func set_wrap_reverse(wrap)
+		*/
+	void Flow::set_wrap(Wrap wrap) {
+		if (wrap != _wrap) {
+			_wrap = wrap;
+			mark(M_LAYOUT_TYPESETTING);
+		}
+	}
+
+	/**
+		* 
+		* 设置多根交叉轴的对齐方式
+		*
+		* @func set_wrap_align(align)
+		*/
+	void Flow::set_wrap_align(WrapAlign align) {
+		if (align != _wrap_align) {
+			_wrap_align = align;
+			mark(M_LAYOUT_TYPESETTING);
+		}
 	}
 
 	// --------------- o v e r w r i t e ---------------
 
-	bool FlowLayout::layout_forward(uint32_t mark) {
-		// TODO ...
-		return false;
-	}
+	bool Flow::layout_reverse(uint32_t mark) {
+		if (mark & (M_LAYOUT_TYPESETTING)) {
+			if (!is_ready_layout_typesetting()) {
+				return true; // continue iteration
+			}
 
-	bool FlowLayout::layout_reverse(uint32_t mark) {
-		// TODO ...
+			// TODO ...
+
+			unmark(M_LAYOUT_TYPESETTING);
+		}
 		return false;
 	}
-	
 
 }
 
