@@ -70,8 +70,8 @@ namespace flare {
 		// define props
 		FX_Define_Prop(SizeValue, width); // size width
 		FX_Define_Prop(SizeValue, height); // size height
-		// FX_Define_Prop(SizeValue, limit_width); // limit max size
-		// FX_Define_Prop(SizeValue, limit_height);
+		FX_Define_Prop(SizeValue, limit_width); // limit max size
+		FX_Define_Prop(SizeValue, limit_height);
 		FX_Define_Prop(float, margin_top); // margin
 		FX_Define_Prop(float, margin_right);
 		FX_Define_Prop(float, margin_bottom);
