@@ -58,6 +58,7 @@ namespace flare {
 		// set_fill(new FillColor(255, 255, 255)); // // 默认白色背景
 		mark_recursive(M_TRANSFORM);
 		_inl_app(app)->set_root(r);
+		return r.collapse();
 	}
 
 	/**
