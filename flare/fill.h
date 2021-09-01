@@ -44,7 +44,7 @@ namespace flare {
 	class FillBorder; // top,right,bottom,left
 	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
 
-	typedef BoxFill* FillPtr;
+	typedef BoxFill* Fill;
 
 	/**
 	* @class BoxFill
@@ -135,9 +135,9 @@ namespace flare {
 		/**
 		* @func copy(to)
 		*/
-		virtual BoxFill* copy(BoxFill* to) = 0;
+		virtual Fill copy(Fill to) = 0;
 		
-		BoxFill* _next;
+		Fill        _next;
 		Box*        _host;
 		HolderMode  _holder_mode;
 		FX_DEFINE_INLINE_CLASS(Inl);
@@ -150,7 +150,7 @@ namespace flare {
 		public:
 		// TODO ...
 		protected:
-		virtual BoxFill* copy(BoxFill* to);
+		virtual Fill copy(Fill to);
 	};
 
 	/**
@@ -250,7 +250,7 @@ namespace flare {
 		virtual Type type() const { return M_GRADIENT; }
 		virtual FillGradient* as_gradient() { return nullptr; }
 		protected:
-		virtual BoxFill* copy(BoxFill* to);
+		virtual Fill copy(Fill to);
 	};
 
 	/**
@@ -260,7 +260,7 @@ namespace flare {
 		public:
 		// TODO ...
 		protected:
-		virtual BoxFill* copy(BoxFill* to);
+		virtual Fill copy(Fill to);
 	};
 
 	/**
@@ -270,7 +270,7 @@ namespace flare {
 		public:
 		// TODO ...
 		protected:
-		virtual BoxFill* copy(BoxFill* to);
+		virtual Fill copy(Fill to);
 		float _width;
 		Color _color;
 	};
@@ -282,7 +282,7 @@ namespace flare {
 		public:
 		// TODO ...
 		protected:
-		virtual BoxFill* copy(BoxFill* to);
+		virtual Fill copy(Fill to);
 	};
 
 }

@@ -264,7 +264,7 @@ namespace flare {
 		}
 	}
 	
-	void Box::fill(FillPtr val) {
+	void Box::fill(Fill val) {
 		if (_fill != val) {
 			// TODO ...
 			_fill = val; // ?

@@ -42,67 +42,23 @@ namespace flare {
 		visitor->visitFlex(this);
 	}
 
+	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out);
+
 	// flex private members method
 	FX_DEFINE_INLINE_MEMBERS(Flex, Inl) {
 	 public:
 		#define _inl(self) static_cast<Flex::Inl*>(self)
 
-		float parseAlign(ItemsAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
-			float offset_x = 0, space = 0;
-
-			switch (align) {
-				default:
-				case ItemsAlign::START: // 左对齐
-					if (is_reverse) {
-						offset_x = overflow;
-					}
-					break;
-				case ItemsAlign::CENTER: // 居中
-					offset_x =  overflow / 2;
-					break;
-				case ItemsAlign::END: // 右对齐
-					if (!is_reverse) {
-						offset_x = overflow;
-					}
-					break;
-				case ItemsAlign::SPACE_BETWEEN: // 两端对齐，项目之间的间隔都相等
-					if (overflow > 0) {
-						space = overflow / (count - 1);
-					} else {
-						if (is_reverse) {
-							offset_x = overflow;
-						}
-					}
-					break;
-				case ItemsAlign::SPACE_AROUND: // 每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍
-					if (overflow > 0) {
-						space = overflow / count;
-						offset_x = space / 2;
-					} else {
-						offset_x = overflow / 2;
-					}
-					break;
-				case ItemsAlign::SPACE_EVENLY: // 每个项目两侧的间隔相等,这包括边框的间距
-					if (overflow > 0) {
-						offset_x = space = overflow / (count + 1);
-					} else {
-						offset_x = overflow / 2;
-					}
-					break;
-			}
-
-			*space_out = space;
-
-			return offset_x;
-		}
-
 		// auto layout horizontal or vertical
 		template<bool is_horizontal>
-		void layout_typesetting_from_auto(Size cur_size) {
+		void layout_typesetting_from_auto(Size cur_size, bool is_reverse) {
 			// get layouts raw size total
 			float offset = 0, max_cross = 0;
-			bool is_reverse = _direction == ROW_REVERSE;
 			Vec2 cur = cur_size.content_size;
+
+			Vec2 origin = is_horizontal ?
+				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
+				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
 
 			if (cur_size.wrap_y) { // wrap y
 				auto v = first();
@@ -130,10 +86,10 @@ namespace flare {
 						offset_cross = max_cross - (is_horizontal ? size.y(): size.x()); break;
 				}
 				if (is_horizontal) {
-					v->set_layout_offset(Vec2(offset, offset_cross));
+					v->set_layout_offset(Vec2(offset, offset_cross) + origin);
 					offset += size.x();
 				} else {
-					v->set_layout_offset(Vec2(offset_cross, offset));
+					v->set_layout_offset(Vec2(offset_cross, offset) + origin);
 					offset += size.y();
 				}
 				v = is_reverse ? v->prev() : v->next();
@@ -147,124 +103,20 @@ namespace flare {
 			}
 		}
 
-		// wrap content horizontal or vertical
-		template<bool is_horizontal>
-		void layout_typesetting_from_wrap(Size cur_size) { // wrap Line feed
-			struct Line {
-				struct Item {
-					Vec2: s; View* v;
-				};
-				float total_main;
-				float max_cross;
-				Array<Item> items;
-			};
-			Vec2 cur = cur_size.content_size;
-			Array<Line> line;
-			float main_size = is_horizontal ? cur.x(): cur.y();
-			float total_cross = 0;
-			bool is_reverse = _direction == ROW_REVERSE;
-			bool wrap_reverse = _direction == Wrap::WRAP_REVERSE;
-
-			Array<Item> tmp_items
-			float tmp_total_main = 0, tmp_max_cross = 0;
-
-			auto v = first();
-			while (v) {
-				auto size = v->layout_size().layout_size;
-				auto main = tmp_total_main + (is_horizontal ? size.x(): size.y());
-				if (main > main_size) { // Line feed
-					if (is_reverse)
-						tmp_items.reverse();
-					line.push({ tmp_total_main, tmp_max_cross, std::move(tmp_items) });
-					total_cross += tmp_max_cross;
-					tmp_total_main = is_horizontal ? size.x(): size.y();
-					tmp_max_cross = is_horizontal ? size.y(): size.x();
-				} else {
-					tmp_total_main = main;
-					tmp_max_cross = FX_MAX(tmp_max_cross, size.y());
-				}
-				tmp_items.push({ size, v });
-				v = v->next();
-			}
-
-			if (tmp_items.length()) {
-				if (is_reverse)
-					tmp_items.reverse();
-				line.push({ tmp_total_main, tmp_max_cross, std::move(tmp_items) });
-				total_cross += tmp_max_cross;
-			}
-
-			if (wrap_reverse) {
-				line.reverse();
-			}
-
-			bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
-			float cross_size_old = is_horizontal ? cur.y(): cur.y();
-			float cross_size = is_wrap_cross ? total_cross: cross_size_old;
-			float cross_overflow = cross_size - total_cross;
-			float cross_overflow_item = 0;
-			float cross_space = 0, cross_offset = 0;
-
-			if (!is_wrap_cross) {
-				if (STRETCH == _wrap_align) {
-					cross_overflow_item = line.length() ? cross_overflow / line.length() : 0;
-				} else {
-					cross_offset = parseAlign((ItemsAlign)
-						_wrap_align, wrap_reverse, cross_overflow, line.length(), &cross_space);
-				}
-			}
-
-			for (auto i: line) {
-				float cross = i.max_cross + cross_overflow_item;
-				float overflow = main_size - i.total_main;
-				float space = 0;
-				float offset = parseAlign(_items_align, is_reverse, overflow, i.items.length(), &space);
-
-				for (auto j: i.items) {
-					auto s = i.s;
-					auto v = i.v;
-					auto align = v->layout_align();
-					float cross_offset_item = cross_offset;
-					switch (align == Align::AUTO ? _cross_align: align) {
-						default:
-						case CrossAlign::START: break; // 与交叉轴内的起点对齐
-						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
-							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) / 2.0); break;
-						case CrossAlign::END: // 与交叉轴内的终点对齐
-							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
-					}
-					if (is_horizontal) {
-						v->set_layout_offset(Vec2(offset, cross_offset_item));
-						offset += (s.x() + space);
-					} else {
-						v->set_layout_offset(Vec2(cross_offset_item, offset));
-						offset += (s.y() + space);
-					}
-				}
-				cross_offset += (cross + cross_space);
-			}
-
-			if (cross_size != cross_size_old) {
-				if (is_horizontal) {
-					set_layout_size(Vec(main_size, cross_size));
-				} else {
-					set_layout_size(Vec(cross_size, main_size));
-				}
-				parent()->layout_typesetting_change(this);
-			}
-		}
-
 		// flex horizontal or vertical
 		template<bool is_horizontal>
-		void layout_typesetting_from_flex(Size cur_size) { // flex
+		void layout_typesetting_from_flex(Size cur_size, bool is_reverse) { // flex
 			struct Item { Vec2: s; View* v; };
 			float total_main = 0, max_cross = 0;
-			bool is_reverse = _direction == ROW_REVERSE;
 			Array<Item> items;
 			float weight_total = 0;
 			Vec2 cur = cur_size.content_size;
 			float main_size = is_horizontal ? cur.x(): cur.y();
 			float cross_size_old = is_horizontal ? cur.y(): cur.x();
+
+			Vec2 origin = is_horizontal ?
+				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
+				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
 
 			auto v = is_reverse ? last(): first();
 			while (v) {
@@ -300,7 +152,7 @@ namespace flare {
 			}
 
 			float space = 0;
-			float offset = parseAlign(_items_align, is_reverse, overflow, items.length(), &space);
+			float offset = __Flow_ParseAlignSpace((ItemsAlign)_items_align, is_reverse, overflow, items.length(), &space);
 
 			for (auto i: arr) {
 				auto size = i.s;
@@ -319,10 +171,10 @@ namespace flare {
 					size = v->layout_lock(size, wrap_const);
 				}
 				if (is_horizontal) {
-					v->set_layout_offset(Vec2(offset, offset_cross));
+					v->set_layout_offset(Vec2(offset, offset_cross) + origin);
 					offset += (size.x(): size.y() + space);
 				} else {
-					v->set_layout_offset(Vec2(offset_cross, offset));
+					v->set_layout_offset(Vec2(offset_cross, offset) + origin);
 					offset += (size.y() + space);
 				}
 			}
@@ -337,126 +189,119 @@ namespace flare {
 			}
 		}
 
+		// wrap content horizontal or vertical
+		template<bool is_horizontal>
+		void layout_typesetting_from_wrap(Size cur_size, bool is_reverse) { // wrap Line feed
+			struct Line {
+				struct Item {
+					Vec2: s; View* v;
+				};
+				float total_main;
+				float max_cross;
+				Array<Item> items;
+			};
+			Vec2 cur = cur_size.content_size;
+			Array<Line> lines;
+			bool is_wrap_main = is_horizontal ? cur_size.wrap_x: cur_size.wrap_y;
+			bool is_wrap_cross = is_horizontal ? cur_size.wrap_y: cur_size.wrap_x;
+			float main_size = is_wrap_main ? 0 : (is_horizontal ? cur.x(): cur.y());
+			float max_main = 0;
+			float total_cross = 0;
+			bool wrap_reverse = _direction == Wrap::WRAP_REVERSE;
+
+			Vec2 origin = is_horizontal ?
+				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
+				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
+
+			Array<Item> _items
+			float _total_main = 0, _max_cross = 0;
+
+			auto v = first();
+			while (v) {
+				auto size = v->layout_size().layout_size;
+				auto main = _total_main + (is_horizontal ? size.x(): size.y());
+				if (main > main_size) { // Line feed
+					if (is_reverse)
+						_items.reverse();
+					lines.push({ _total_main, _max_cross, std::move(_items) });
+					max_main = FX_MAX(max_main, _total_main);
+					total_cross += _max_cross;
+					_total_main = is_horizontal ? size.x(): size.y();
+					_max_cross = is_horizontal ? size.y(): size.x();
+				} else {
+					_total_main = main;
+					_max_cross = FX_MAX(_max_cross, size.y());
+				}
+				_items.push({ size, v });
+				v = v->next();
+			}
+
+			if (_items.length()) {
+				if (is_reverse)
+					_items.reverse();
+				lines.push({ _total_main, _max_cross, std::move(_items) });
+				max_main = FX_MAX(max_main, _total_main);
+				total_cross += _max_cross;
+			}
+
+			if (wrap_reverse) {
+				lines.reverse();
+			}
+
+			if (is_wrap_main) main_size = max_main;
+			float cross_size = is_wrap_cross ? total_cross: (is_horizontal ? cur.y(): cur.y());
+			float cross_overflow = cross_size - total_cross;
+			float cross_overflow_item = 0;
+			float cross_space = 0, cross_offset = 0;
+
+			if (!is_wrap_cross) {
+				if (STRETCH == _wrap_align) {
+					cross_overflow_item = line.length() ? cross_overflow / line.length() : 0;
+				} else {
+					cross_offset = __Flow_ParseAlignSpace(
+						_wrap_align, wrap_reverse, cross_overflow, line.length(), &cross_space);
+				}
+			}
+
+			for (auto i: line) {
+				float cross = i.max_cross + cross_overflow_item;
+				float overflow = main_size - i.total_main;
+				float space = 0;
+				float offset = __Flow_ParseAlignSpace((ItemsAlign)_items_align, is_reverse, overflow, i.items.length(), &space);
+
+				for (auto j: i.items) {
+					auto s = i.s;
+					auto v = i.v;
+					auto align = v->layout_align();
+					float cross_offset_item = cross_offset;
+					switch (align == Align::AUTO ? _cross_align: align) {
+						default:
+						case CrossAlign::START: break; // 与交叉轴内的起点对齐
+						case CrossAlign::CENTER: // 与交叉轴内的中点对齐
+							cross_offset_item += ((cross - (is_horizontal ? s.y(): s.x())) / 2.0); break;
+						case CrossAlign::END: // 与交叉轴内的终点对齐
+							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
+					}
+					if (is_horizontal) {
+						v->set_layout_offset(Vec2(offset, cross_offset_item));
+						offset += (s.x() + space);
+					} else {
+						v->set_layout_offset(Vec2(cross_offset_item, offset));
+						offset += (s.y() + space);
+					}
+				}
+				cross_offset += (cross + cross_space);
+			}
+
+			Vec2 new_size = is_horizontal ? Vec2(main_size, cross_size): Vec2(cross_size, main_size);
+
+			if (new_size != cur) {
+				set_layout_size(new_size);
+				parent()->layout_typesetting_change(this);
+			}
+		}
+
 		// ------------------------------------------------
-
-		// auto horizontal layout
-		void layout_typesetting_from_x(Size cur_size) {
-			/*
-				|-------------....------------|
-				|          width=WRAP         |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|                             |
-				|-------------....------------|
-			*/
-			layout_typesetting_from_auto<true>(cur_size);
-		}
-
-		// wrap content horizontal
-		void layout_typesetting_from_wrap(Size cur_size) {
-			/*
-				|-----------------------------|
-				|   width=PIXEL,wrap=WRAP     |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|              |              |
-				|              |              |
-				|              v              |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | <---> | L |  |
-				|   --- --- ---         ---   |
-				|-----------------------------|
-			*/
-			layout_typesetting_from_wrap<true>(cur_size);
-		}
-
-		// flex horizontal
-		void layout_typesetting_from_flex_x(Size cur_size) { // flex
-			/*
-				|-----------------------------|
-				|  width=PIXEL,wrap=NO_WRAP   |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|                             |
-				|-----------------------------|
-			*/
-			layout_typesetting_from_flex<true>(cur_size);
-		}
-
-		// auto vertical layout
-		void layout_typesetting_from_y(Size cur_size) {
-			/*
-			  |-----------|
-			  |height=WRAP|
-			  |    ___    |
-			  |   | L |   |
-			  |    ---    |
-			  |   | L |   |
-			  |    ---    |
-			  .   | L |   .
-			  .    ---    .
-			  .     |     .
-			  .     |     .
-			  |     v     |
-			  |    ___    |
-			  |   | L |   |
-			  |    ---    |
-			  |-----------|
-			*/
-			layout_typesetting_from_auto<false>(cur_size);
-		}
-
-		// no content wrap vertical
-		void layout_typesetting_from_wrap_y(Size cur_size) { // wrap Line feed
-			/*
-				|-----------------------------|
-				|  height=PIXEL,wrap=WRAP     |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L |       | L |  |
-				|   --- --- ---         ---   |
-				|  | L | L | L |       | L |  |
-				|   --- --- ---         ---   |
-				|  | L | L | L | ----> | L |  |
-				|   --- --- ---         ---   |
-				|    |   |   |           |    |
-				|    |   |   |           |    |
-				|    v   v   v           v    |
-				|   ___ ___ ___         ___   |
-				|  | L | L | L |       | L |  |
-				|   --- --- ---         ---   |
-				|-----------------------------|
-			*/
-			layout_typesetting_from_wrap<false>(cur_size);
-		}
-
-		void layout_typesetting_from_flex_y(Size cur_size) {
-			/*
-				|---------------------------|
-				| height=PIXEL,wrap=NO_WRAP |
-				|            ___            |
-				|           | L |           |
-				|            ---            |
-				|           | L |           |
-				|            ---            |
-				|           | L |           |
-				|            ---            |
-				|             |             |
-				|             |             |
-				|             v             |
-				|            ___            |
-				|           | L |           |
-				|            ---            |
-				|---------------------------|
-			*/
-			layout_typesetting_from_flex<false>(cur_size);
-		}
 
 		void update_IsLockChild(uint32_t layout_content_size_change_mark) {
 			bool is_lock_child = false;
@@ -526,9 +371,36 @@ namespace flare {
 			}
 			if (_is_lock_child) { // flex
 				if (_direction == ROW || _direction == ROW_REVERSE) {
-					_inl(this)->layout_typesetting_from_flex_x(layout_size());
+					/*
+						|-----------------------------|
+						|  width=PIXEL,wrap=NO_WRAP   |
+						|   ___ ___ ___         ___   |
+						|  | L | L | L | ----> | L |  |
+						|   --- --- ---         ---   |
+						|                             |
+						|-----------------------------|
+					*/
+					_inl(this)->layout_typesetting_from_flex<true>(layout_size(), _direction == ROW_REVERSE); // flex horizontal
 				} else {
-					_inl(this)->layout_typesetting_from_flex_y(layout_size());
+					/*
+						|---------------------------|
+						| height=PIXEL,wrap=NO_WRAP |
+						|            ___            |
+						|           | L |           |
+						|            ---            |
+						|           | L |           |
+						|            ---            |
+						|           | L |           |
+						|            ---            |
+						|             |             |
+						|             |             |
+						|             v             |
+						|            ___            |
+						|           | L |           |
+						|            ---            |
+						|---------------------------|
+					*/
+					_inl(this)->layout_typesetting_from_flex<false>(layout_size(), _direction == COLUMN_REVERSE); // flex vertical
 				}
 			} else {
 				return true; // layout_reverse() 必需在反向迭代中处理
@@ -545,20 +417,87 @@ namespace flare {
 				return true; // continue iteration
 			}
 			if (_direction == ROW || _direction == ROW_REVERSE) {
-				if (layout_wrap_x()) {
-					_inl(this)->layout_typesetting_from_x(layout_size());
-				} else if (_wrap == Wrap::NO_WRAP) { // flex
-					return true; // layout_forward() 必需在正向迭代中处理
+				if (_wrap == Wrap::NO_WRAP) {
+					if (layout_wrap_x()) { // auto horizontal layout
+						/*
+							|-------------....------------|
+							|          width=WRAP         |
+							|   ___ ___ ___         ___   |
+							|  | L | L | L | ----> | L |  |
+							|   --- --- ---         ---   |
+							|                             |
+							|-------------....------------|
+						*/
+						_inl(this)->layout_typesetting_from_auto<true>(layout_size(), _direction == ROW_REVERSE);
+					} else { // flex
+						return true; // layout_forward() 必需在正向迭代中处理
+					}
 				} else { // wrap Line feed
-					_inl(this)->layout_typesetting_from_wrap_x(layout_size());
+						/*
+							|-----------------------------|
+							|  width=PIXEL|WRAP,wrap=WRAP |
+							|   ___ ___ ___         ___   |
+							|  | L | L | L | ----> | L |  |
+							|   --- --- ---         ---   |
+							|  | L | L | L | ----> | L |  |
+							|   --- --- ---         ---   |
+							|  | L | L | L | ----> | L |  |
+							|   --- --- ---         ---   |
+							|              |              |
+							|              |              |
+							|              v              |
+							|   ___ ___ ___         ___   |
+							|  | L | L | L | <---> | L |  |
+							|   --- --- ---         ---   |
+							|-----------------------------|
+						*/
+					_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), _direction == ROW_REVERSE);
 				}
 			} else {
-				if (layout_wrap_y()) {
-					_inl(this)->layout_typesetting_from_y(layout_size());
-				} else if (_wrap == Wrap::NO_WRAP) { // flex
-					return true; // layout_forward()
+				if (_wrap == Wrap::NO_WRAP) {
+					if (layout_wrap_y()) { // auto vertical layout
+						/*
+							|-----------|
+							|height=WRAP|
+							|    ___    |
+							|   | L |   |
+							|    ---    |
+							|   | L |   |
+							|    ---    |
+							.   | L |   .
+							.    ---    .
+							.     |     .
+							.     |     .
+							|     v     |
+							|    ___    |
+							|   | L |   |
+							|    ---    |
+							|-----------|
+						*/
+						_inl(this)->layout_typesetting_from_auto<false>(layout_size(), _direction == COLUMN_REVERSE);
+					} else {
+						return true; // layout_forward()
+					}
 				} else { // wrap Line feed
-					_inl(this)->layout_typesetting_from_wrap_y(layout_size());
+					/*
+						|-----------------------------|
+						| height=PIXEL|WRAP,wrap=WRAP |
+						|   ___ ___ ___         ___   |
+						|  | L | L | L |       | L |  |
+						|   --- --- ---         ---   |
+						|  | L | L | L |       | L |  |
+						|   --- --- ---         ---   |
+						|  | L | L | L | ----> | L |  |
+						|   --- --- ---         ---   |
+						|    |   |   |           |    |
+						|    |   |   |           |    |
+						|    v   v   v           v    |
+						|   ___ ___ ___         ___   |
+						|  | L | L | L |       | L |  |
+						|   --- --- ---         ---   |
+						|-----------------------------|
+					*/
+					_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), _direction == COLUMN_REVERSE);
 				}
 			}
 			unmark(M_LAYOUT_TYPESETTING);

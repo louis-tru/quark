@@ -50,7 +50,7 @@ namespace flare {
 	*/
 	class FX_EXPORT DisplayPort: public Reference {
 		FX_HIDDEN_ALL_COPY(DisplayPort);
-		public:
+	 public:
 
 		enum Orientation {
 			ORIENTATION_INVALID = -1,
@@ -213,8 +213,7 @@ namespace flare {
 		*/
 		static float default_status_bar_height();
 
-		private:
-
+	 private:
 		void render_frame();
 		void refresh();
 		

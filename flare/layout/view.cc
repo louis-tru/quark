@@ -172,7 +172,26 @@ namespace flare {
 			return _transform;
 		}
 
+		static set_visible(View::Inl* self, bool val, uint32_t layout_depth) {
+			self->_visible = val;
+			if (self->_parent) {
+				self->_parent->layout_typesetting_change(this); // mark parent layout 
+			}
+			if (val) {
+				self->mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // reset layout size
+			}
+			if (layout_depth) {
+				self->set_depth(layout_depth);
+			} else {
+				self->clear_depth();
+			}
+		}
+
 	};
+
+	void __View_SetVisible(View* self, bool val, uint32_t layout_depth) {
+		View::Inl::set_visible(_inl(self), val, layout_depth);
+	}
 
 	View::View()
 		: _action(nullptr), _parent(nullptr)
@@ -363,18 +382,12 @@ namespace flare {
 		* @func set_visible(val)
 		*/
 	void View::set_visible(bool val) {
-		if (_visible != val) {
-			_visible = val;
+		if (self->_visible != val) {
 			if (_parent) {
-				_parent->layout_typesetting_change(this); // mark parent layout 
-			}
-			if (_visible) {
-				mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // reset layout size
-			}
-			if (_parent && _parent->layout_depth()) {
-				_inl(this)->set_depth(_parent->layout_depth() + 1);
+				auto depth = _parent->layout_depth();
+				View::Inl::set_visible(_inl(this), val, depth ? depth + 1: 0);
 			} else {
-				_inl(this)->clear_depth();
+				View::Inl::set_visible(_inl(this), val, 0);
 			}
 		}
 	}
