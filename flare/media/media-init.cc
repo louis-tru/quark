@@ -30,7 +30,7 @@
 
 #include "./pcm.h"
 #include "./audio-player.h"
-#include "../views/video.h"
+#include "../layout/video.h"
 
 namespace flare {
 

@@ -49,7 +49,7 @@ namespace flare {
 	* @class PostMessage
 	*/
 	class FX_EXPORT PostMessage {
-		public:
+	 public:
 		virtual uint32_t post_message(Cb cb, uint64_t delay_us = 0) = 0;
 	};
 
@@ -58,7 +58,7 @@ namespace flare {
 	*/
 	class FX_EXPORT RunLoop: public Object, public PostMessage {
 		FX_HIDDEN_ALL_COPY(RunLoop);
-		public:
+	 public:
 		
 		/**
 		* @func runing()
@@ -210,7 +210,7 @@ namespace flare {
 	*/
 	class FX_EXPORT KeepLoop: public Object, public PostMessage {
 		FX_HIDDEN_ALL_COPY(KeepLoop);
-		public:
+	 public:
 		FX_DEFAULT_ALLOCATOR();
 		/**
 		* @destructor `destructor_clear=true`时会取消通过它`post`的所有消息
@@ -237,7 +237,7 @@ namespace flare {
 		*/
 		inline RunLoop* host() { return _loop; }
 
-		private:
+	 private:
 		typedef List<KeepLoop*>::Iterator Iterator;
 		/**
 		* @constructor `declear=true`时表示析构时会进行清理

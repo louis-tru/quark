@@ -40,10 +40,10 @@
 
 namespace flare {
 
-	typedef std::thread::id ThreadID;
-	typedef std::mutex Mutex;
-	typedef std::recursive_mutex RecursiveMutex;
-	typedef std::lock_guard<Mutex> ScopeLock;
+	typedef std::thread::id         ThreadID;
+	typedef std::mutex              Mutex;
+	typedef std::recursive_mutex    RecursiveMutex;
+	typedef std::lock_guard<Mutex>  ScopeLock;
 	typedef std::unique_lock<Mutex> Lock;
 	typedef std::condition_variable Condition;
 
@@ -56,7 +56,7 @@ namespace flare {
 	*/
 	class FX_EXPORT Thread {
 		FX_HIDDEN_ALL_COPY(Thread);
-		public:
+	 public:
 		typedef ThreadID ID;
 		typedef NonObjectTraits Traits;
 		typedef std::function<int(Thread&)> Exec;
@@ -72,7 +72,7 @@ namespace flare {
 		static void awaken(ID id);
 		static void abort(ID id);
 		static EventNoticer<>& onProcessSafeExit();
-		private:
+	 private:
 		Thread();
 		~Thread();
 		FX_DEFINE_INLINE_CLASS(Inl);
@@ -83,6 +83,7 @@ namespace flare {
 		String  _name;
 		void* _data[256];
 		RunLoop* _loop;
+		friend class RunLoop;
 	};
 
 }

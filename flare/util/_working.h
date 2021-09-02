@@ -53,10 +53,10 @@ namespace flare {
 		uint32_t post(Cb cb, uint64_t delay_us);
 		void cancel(uint32_t id = 0); // cancel message
 		private:
-		typedef Dict<ThreadID, int> Map;
+		typedef Dict<ThreadID, int> Childs;
 		KeepLoop* _proxy;
 		Mutex _mutex2;
-		Map _childs;
+		Childs _childs;
 	};
 
 	FX_DEFINE_INLINE_MEMBERS(RunLoop, Inl2) {

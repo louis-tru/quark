@@ -49,7 +49,7 @@ namespace flare {
 	class SoftwareMediaCodec;
 
 	class MultimediaSource::Inl: public ParallelWorking {
-		public:
+	 public:
 		
 		Inl(MultimediaSource*, cString& uri, RunLoop* loop);
 		
@@ -116,8 +116,7 @@ namespace flare {
 		*/
 		AVStream* get_stream(const TrackInfo& track);
 		
-		private:
-
+	 private:
 		typedef Extractor::SampleData SampleData;
 		
 		void reset();
