@@ -730,13 +730,20 @@ namespace flare {
 			} else {
 				_matrix = layout_matrix();
 			}
-			unmark(M_TRANSFORM); // unmark
+
+			_region_visible = solve_region_visible();
+
+			unmark(M_TRANSFORM | M_LAYOUT_SHAPE); // unmark
 			
 			View *v = _first;
 			while (v) {
 				v->layout_recursive(M_TRANSFORM | v->layout_mark());
 				v = v->_next;
 			}
+		} else if (mark & M_LAYOUT_SHAPE) {
+			_region_visible = solve_region_visible();
+
+			unmark(M_LAYOUT_SHAPE); // unmark
 		}
 	}
 
@@ -748,6 +755,121 @@ namespace flare {
 		if (!mark) {
 			mark(M_LAYOUT_TYPESETTING);
 		}
+	}
+
+	bool void::solve_region_visible() {
+		return true;
+	}
+
+	/**
+	* @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
+	*/
+	bool View::overlap_test(Vec2 point) {
+		return false;
+	}
+
+	/**
+	* @func overlap_test_from_convex_quadrilateral
+	*/
+	bool View::overlap_test_from_convex_quadrilateral(Vec2* quadrilateral_vertex, Vec2 point) {
+		/*
+		* 直线方程：(x-x1)(y2-y1)-(y-y1)(x2-x1)=0
+		* 平面座标系中凸四边形内任一点是否存在：
+		* [(x-x1)(y2-y1)-(y-y1)(x2-x1)][(x-x4)(y3-y4)-(y-y4)(x3-x4)] < 0  and
+		* [(x-x2)(y3-y2)-(y-y2)(x3-x2)][(x-x1)(y4-y1)-(y-y1)(x4-x1)] < 0
+		*/
+		
+		float x = point.x();
+		float y = point.y();
+		
+		#define x1 quadrilateral_vertex[0].x()
+		#define y1 quadrilateral_vertex[0].y()
+		#define x2 quadrilateral_vertex[1].x()
+		#define y2 quadrilateral_vertex[1].y()
+		#define x3 quadrilateral_vertex[2].x()
+		#define y3 quadrilateral_vertex[2].y()
+		#define x4 quadrilateral_vertex[3].x()
+		#define y4 quadrilateral_vertex[3].y()
+		
+		if (((x-x1)*(y2-y1)-(y-y1)*(x2-x1))*((x-x4)*(y3-y4)-(y-y4)*(x3-x4)) < 0 &&
+				((x-x2)*(y3-y2)-(y-y2)*(x3-x2))*((x-x1)*(y4-y1)-(y-y1)*(x4-x1)) < 0
+		) {
+			return true;
+		}
+		
+		#undef x1
+		#undef y1
+		#undef x2
+		#undef y2
+		#undef x3
+		#undef y3
+		#undef x4
+		#undef y4
+		
+		return false;
+	}
+
+	/**
+	* @func screen_rect_from_convex_quadrilateral
+	*/
+	CGRect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
+		
+		Region re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
+		
+		return { Vec2(re.x, re.y), Vec2(re.w, re.h) };
+	}
+
+	/**
+	* @func screen_region_from_convex_quadrilateral
+	*/
+	Region View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
+			
+		#define A quadrilateral_vertex[0]
+		#define B quadrilateral_vertex[1]
+		#define C quadrilateral_vertex[2]
+		#define D quadrilateral_vertex[3]
+			
+		Vec2 min, max, size;
+		
+		float w1 = fabs(A.x() - C.x());
+		float w2 = fabs(B.x() - D.x());
+		
+		if (w1 > w2) {
+			if ( A.x() > C.x() ) {
+				max.x( A.x() ); min.x( C.x() );
+			} else {
+				max.x( C.x() ); min.x( A.x() );
+			}
+			if ( B.y() > D.y() ) {
+				max.y( B.y() ); min.y( D.y() );
+			} else {
+				max.y( D.y() ); min.y( B.y() );
+			}
+			size = Vec2(w1, max.y() - min.y());
+		} else {
+			if ( B.x() > D.x() ) {
+				max.x( B.x() ); min.x( D.x() );
+			} else {
+				max.x( D.x() ); min.x( B.x() );
+			}
+			if ( A.y() > C.y() ) {
+				max.y( A.y() ); min.y( C.y() );
+			} else {
+				max.y( C.y() ); min.y( A.y() );
+			}
+			size = Vec2(w2, max.y() - min.y());
+		}
+		
+		#undef A
+		#undef B
+		#undef C
+		#undef D
+			
+		return {
+			min.x(), min.y(),
+			max.x(), max.y(),
+			size.width(), size.height()
+		};
 	}
 
 }

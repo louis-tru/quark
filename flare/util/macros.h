@@ -392,7 +392,7 @@ defined(__DragonFly__)
 	private: static void operator delete(void*, size_t) = delete
 
 #define FX_Define_Prop_Read(type, name) \
-	private: type _##name;
+	private: type _##name; \
 	public: inline type name##() const { return _##name; } \
 
 #define FX_Define_Prop(type, name) \

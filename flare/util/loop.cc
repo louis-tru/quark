@@ -197,7 +197,7 @@ namespace flare {
 					return resolve_queue_after(-1);
 				}
 				int64_t now = os::time_monotonic();
-				int64_t duration = Int64::max;
+				int64_t duration = Int64::limit_max;
 				for ( auto& i : _queue ) {
 					int64_t du = i.time - now;
 					if (du <= 0) {

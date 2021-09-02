@@ -81,7 +81,7 @@ namespace flare {
 	}
 
 	uint32_t getId32() {
-		return id++ % Uint32::max;
+		return id++ % Uint32::limit_max;
 	}
 
 	String version() {

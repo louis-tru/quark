@@ -409,6 +409,7 @@ namespace flare {
 			return Codec::encode(Encoding::UTF8, ArrayWeak<uint32_t>((const uint32_t*)ptr, len));
 		} else {
 			FX_FATAL("I won't support it, to_string");
+			return String();
 		}
 	}
 

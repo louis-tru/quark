@@ -185,7 +185,7 @@ namespace flare {
 		 *
 		 * @func extend()
 		 */
-		void extend(uint32_t length, uint32_t capacity);
+		void extend(uint32_t length, uint32_t capacity = 0);
 
 		/**
 		 *
@@ -343,7 +343,7 @@ namespace flare {
 	Array<T, A>::Array(uint32_t length, uint32_t capacity)
 		: _length(0), _capacity(0), _val(nullptr)
 	{
-		extend(length);
+		extend(length, capacity);
 	}
 
 	template<typename T, typename A>
@@ -546,7 +546,7 @@ namespace flare {
 
 	template<typename T, typename A>
 	Array<T, A>& Array<T, A>::reverse() {
-		Array<char, MemoryAllocator>::_Reverse(_val, sozeof(T), _length);
+		Array<char, MemoryAllocator>::_Reverse(_val, sizeof(T), _length);
 		return *this;
 	}
 

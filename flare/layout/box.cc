@@ -29,6 +29,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./box.h"
+#include "../app.h"
 
 namespace flare {
 
@@ -333,7 +334,7 @@ namespace flare {
 				v->layout_content_size_change(this, layout_content_size_change_mark);
 				v = v->next();
 			}
-			mark(M_LAYOUT_TYPESETTING); // rearrange
+			mark(M_LAYOUT_TYPESETTING | M_LAYOUT_SHAPE); // rearrange
 		}
 
 		return (layout_mark() & M_LAYOUT_TYPESETTING);
@@ -545,6 +546,27 @@ namespace flare {
 			}
 		}
 		return true;
+	}
+
+	bool Box::solve_region_visible() {
+		bool visible = false;
+
+		compute_box_vertex(m_final_vertex);
+		
+		/*
+		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
+		* 这种模糊测试在大多数时候都是正确有效的。
+		*/
+		Region dre = app()->display_port()->draw_region();
+		Region re = get_screen_region();
+		
+		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
+				FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.w + dre.w
+		) {
+			visible = true;
+		}
+
+		return visible;
 	}
 
 }

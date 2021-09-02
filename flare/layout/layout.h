@@ -55,6 +55,7 @@ namespace flare {
 			M_LAYOUT_SIZE_WIDTH       = (1 << 2), /* 布局尺寸改变, 尺寸改变可能影响父布局 */
 			M_LAYOUT_SIZE_HEIGHT      = (1 << 3),
 			M_LAYOUT_TYPESETTING      = (1 << 4), /* 布局内容偏移, 需要重新对子布局排版 */
+			M_LAYOUT_SHAPE            = (1 << 5),
 			//**
 			M_RECURSIVE               = (M_TRANSFORM | M_TRANSFORM_ORIGIN), /* 需要被递归的标记 */
 		};
@@ -99,6 +100,17 @@ namespace flare {
 			bool wrap_x, wrap_y;
 		};
 
+		// rect
+		struct Rect {
+			Vec2 origin, size;
+		};
+		
+		// react region
+		struct Region {
+			float x, y, x2, y2;
+			float w, h;
+		};
+		
 		/**
 		 * @constructors
 		 */

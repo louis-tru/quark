@@ -113,7 +113,7 @@ namespace flare {
 					}
 				}
 				DLOG("Thread end  ok, %s", *thread->name());
-				threads->erase(thread->id());
+				__Thread_threads->erase(thread->id());
 			}
 		}
 
@@ -129,7 +129,7 @@ namespace flare {
 				thread->_abort = false;
 				thread->_loop = nullptr;
 				memset(thread->_data, 0, sizeof(void*[256]));
-				(*threads)[thread->_id] = thread;
+				(*__Thread_threads)[thread->_id] = thread;
 				t.detach();
 				return thread->_id;
 			}
@@ -177,7 +177,7 @@ namespace flare {
 				rc = Thread::FX_Trigger(ProcessSafeExit, Event<>(Int32(rc), std::move(rc)));
 				DLOG("Inl::exit(), 1");
 
-				Release(keep); keep = nullptr;
+				// Release(keep); keep = nullptr;
 				before_exit();
 
 				DLOG("Inl::reallyExit()");
@@ -261,16 +261,16 @@ namespace flare {
 	 */
 	void Thread::awaken(ID id) {
 		ScopeLock lock(*__Thread_threads_mutex);
-		auto i = threads->find(id);
-		if ( i != threads->end() ) {
+		auto i = __Thread_threads->find(id);
+		if ( i != __Thread_threads->end() ) {
 			_inl_t(i->value)->awaken(); // awaken sleep status
 		}
 	}
 
 	void Thread::abort(ID id) {
 		ScopeLock lock(*__Thread_threads_mutex);
-		auto i = threads->find(id);
-		if ( i != threads->end() ) {
+		auto i = __Thread_threads->find(id);
+		if ( i != __Thread_threads->end() ) {
 			_inl_t(i->value)->awaken(true); // awaken sleep status and abort
 		}
 	}

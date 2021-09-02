@@ -514,6 +514,31 @@ namespace flare {
 		}
 
 		/**
+		 * @func solve_region_visible()
+		 */
+		virtual bool solve_region_visible();
+
+		/**
+		* @func overlap_test 重叠测试,测试屏幕上的点是否与视图重叠
+		*/
+		virtual bool overlap_test(Vec2 point);
+		
+		/**
+		* @func overlap_test_from_convex_quadrilateral
+		*/
+		static bool overlap_test_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4], Vec2 point);
+		
+		/**
+		* @func screen_rect_from_convex_quadrilateral
+		*/
+		static CGRect screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+		
+		/**
+		* @func screen_region_from_convex_quadrilateral
+		*/
+		static Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+
+		/**
 		 * @overwrite
 		 */
 		virtual bool layout_forward(uint32_t mark);

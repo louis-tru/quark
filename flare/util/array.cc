@@ -35,15 +35,16 @@
 
 namespace flare {
 
+	template<>
 	void Array<char, MemoryAllocator>::_Reverse(void *src, size_t size, uint32_t len) {
 		if (len > 1) {
 			char* _src = (char*)src;
-			void* tmp = malloc(szie);
+			void* tmp = malloc(size);
 			uint32_t len2 = floor(len / 2);
 			uint32_t i = 0;
 			while (i < len2) {
-				size_t src = _src + (i * size);
-				size_t dest = _src + ((len - i - 1) * size);
+				char* src = _src + (i * size);
+				char* dest = _src + ((len - i - 1) * size);
 				memcpy(tmp, src, size);
 				memcpy(src, dest, size);
 				memcpy(dest, tmp, size);
