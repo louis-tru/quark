@@ -446,7 +446,7 @@ namespace flare {
 			RenderLooper* _render_looper;
 			GUIEventDispatch* _dispatch;
 			Orientation _current_orientation;
-			CGRect _rect;
+			Rect _rect;
 			// Mutex _mutex;
 			bool _is_init_ok;
 	};

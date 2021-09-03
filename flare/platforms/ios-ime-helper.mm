@@ -130,7 +130,7 @@ using namespace flare;
 @synthesize tokenizer;
 
 - (id)initWithApplication:(GUIApplication*)app {
-	self = [super initWithFrame:CGRectMake(0, -1000, 0, 0)];
+	self = [super initWithFrame:RectMake(0, -1000, 0, 0)];
 	if (self) {
 		self.autocapitalizationType = UITextAutocapitalizationTypeNone;
 		self.autocorrectionType = UITextAutocorrectionTypeNo;
@@ -401,12 +401,12 @@ using namespace flare;
 	
 }
 
-- (::CGRect)firstRectForRange:(UITextRange*)range {
-	return CGRectZero;
+- (::Rect)firstRectForRange:(UITextRange*)range {
+	return RectZero;
 }
 
-- (::CGRect)caretRectForPosition:(UITextPosition*)position {
-	return CGRectZero;
+- (::Rect)caretRectForPosition:(UITextPosition*)position {
+	return RectZero;
 }
 
 - (NSArray*)selectionRectsForRange:(UITextRange*)range{

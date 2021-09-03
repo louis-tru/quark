@@ -41,9 +41,9 @@
 
 namespace flare {
 
-	Array<GLShader*>* GLDraw::_shaders = nullptr;
+	Array<GLShader*>* GLRender::_shaders = nullptr;
 
-	FX_DEFINE_INLINE_MEMBERS(GLDraw, Inl) {
+	FX_DEFINE_INLINE_MEMBERS(GLRender, Inl) {
 		public:
 
 		/**
@@ -138,7 +138,7 @@ namespace flare {
 	/**
 	* @constructor
 	*/
-	GLDraw::GLDraw(GUIApplication* host, cJSON& options)
+	GLRender::GLRender(GUIApplication* host, cJSON& options)
 		: Draw(host, options)
 		, _begin_screen_occlusion_query_status(false)
 		, _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE(0)
@@ -159,7 +159,7 @@ namespace flare {
 		, _is_support_compressed_ETC1(true)
 	{}
 
-	GLDraw::~GLDraw() {
+	GLRender::~GLRender() {
 		if (_shaders) {
 			for (auto& i : (*_shaders)) {
 				if (i->shader) {
@@ -191,17 +191,17 @@ namespace flare {
 	/**
 	* 初始化上下文
 	*/
-	void GLDraw::initialize() {
-		Inl_GLDraw(this)->initializ_shader();
+	void GLRender::initialize() {
+		Inl_GLRender(this)->initializ_shader();
 		if (_library == DRAW_LIBRARY_GLES2) {
-			Inl_GLDraw(this)->es2_initializ_indexd_vbo_and_ext_support();
+			Inl_GLRender(this)->es2_initializ_indexd_vbo_and_ext_support();
 		}
-		Inl_GLDraw(this)->initializ_indexd_vbo();
+		Inl_GLRender(this)->initializ_indexd_vbo();
 		initializ_gl_buffers();
 		initializ_gl_status();
 	}
 
-	void GLDraw::initializ_gl_status() {
+	void GLRender::initializ_gl_status() {
 		glClearDepthf(0);
 		glClearStencil(0);
 		
@@ -239,7 +239,7 @@ namespace flare {
 	/**
 	* @func initializ_gl_buffers
 	*/
-	void GLDraw::initializ_gl_buffers() {
+	void GLRender::initializ_gl_buffers() {
 		if ( ! _frame_buffer ) {
 			// Create the framebuffer and bind it so that future OpenGL ES framebuffer commands are directed to it.
 			glGenFramebuffers(1, &_frame_buffer);
@@ -264,11 +264,11 @@ namespace flare {
 	/**
 	* @func gl_main_render_buffer_storage
 	*/
-	void GLDraw::gl_main_render_buffer_storage() {
+	void GLRender::gl_main_render_buffer_storage() {
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, surface_size()[0], surface_size()[1]);
 	}
 
-	void GLDraw::refresh_buffer() {
+	void GLRender::refresh_buffer() {
 
 		if ( surface_size() == Vec2() )
 			return;
@@ -341,7 +341,7 @@ namespace flare {
 		FX_DEBUG("GL_RENDERBUFFER_WIDTH: %d, GL_RENDERBUFFER_HEIGHT: %d", width, height);
 	}
 
-	void GLDraw::refresh_root_matrix(const Mat4& root, const Mat4& query) {
+	void GLRender::refresh_root_matrix(const Mat4& root, const Mat4& query) {
 		if (!_shaders) return;
 		
 		Mat4 root_(root); root_   .transpose();
@@ -362,12 +362,12 @@ namespace flare {
 		}
 	}
 
-	void GLDraw::refresh_font_pool(FontPool* pool) {
+	void GLRender::refresh_font_pool(FontPool* pool) {
 		glUseProgram(shader::text_texture.shader);
 		glUniform1f(shader::text_texture.display_port_scale, pool->_display_port_scale);
 	}
 
-	void GLDraw::begin_render() {
+	void GLRender::begin_render() {
 		_stencil_ref_value = 0;
 		_root_stencil_ref_value = 0;
 		glDisable(GL_DEPTH_TEST);
@@ -383,7 +383,7 @@ namespace flare {
 		}
 	}
 
-	void GLDraw::commit_render() {
+	void GLRender::commit_render() {
 		if ( is_support_vao() ) {
 			glBindVertexArray(0);
 		}
@@ -398,14 +398,14 @@ namespace flare {
 		}
 	}
 
-	void GLDraw::begin_screen_occlusion_query() {
+	void GLRender::begin_screen_occlusion_query() {
 		if ( ! _begin_screen_occlusion_query_status ) {
 			_begin_screen_occlusion_query_status = true;
 			glViewport(0, 0, surface_size()[0] / 10, surface_size()[1] / 10);
 		}
 	}
 
-	void GLDraw::end_screen_occlusion_query() {
+	void GLRender::end_screen_occlusion_query() {
 		if ( _begin_screen_occlusion_query_status ) {
 			_begin_screen_occlusion_query_status = false;
 			glViewport(0, 0, surface_size()[0], surface_size()[1]);
@@ -418,7 +418,7 @@ namespace flare {
 	* @arg shader_type {GLenum}  #     程序类型
 	* @ret {GLuint}
 	*/
-	GLuint GLDraw::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
+	GLuint GLRender::compile_shader(cString& name, cBuffer& code, GLenum shader_type) {
 		GLuint shader_handle = glCreateShader(shader_type);
 		GLint code_len = code.length();
 		cChar* c = code.val();
@@ -443,7 +443,7 @@ namespace flare {
 	* @ret {GLuint}
 	* @private
 	*/
-	GLuint GLDraw::compile_link_shader(cString& name,
+	GLuint GLRender::compile_link_shader(cString& name,
 																		cBuffer& vertex, cBuffer& fragment,
 																		const Array<String>& attrs) 
 	{
@@ -477,11 +477,11 @@ namespace flare {
 		return program_handle;
 	}
 
-	void GLDraw::del_buffer(uint32_t id) {
+	void GLRender::del_buffer(uint32_t id) {
 		glDeleteBuffers(1, &id); // delete gl buffer data
 	}
 
-	void GLDraw::register_gl_shader(GLShader* shader) {
+	void GLRender::register_gl_shader(GLShader* shader) {
 		static Array<GLShader*> shaders;
 		if (!_shaders) {
 			_shaders = &shaders;

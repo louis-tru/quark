@@ -354,7 +354,7 @@ namespace flare {
 				typedef Callback<RunLoop::PostSyncData> Cb;
 				_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
 					if (_is_init) {
-						CGRect rect = {Vec2(), get_window_size()};
+						Rect rect = {Vec2(), get_window_size()};
 						gl_draw_context->refresh_surface_size(&rect);
 						_host->refresh_display(); // 刷新显示
 					} else {

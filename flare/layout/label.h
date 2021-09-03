@@ -36,26 +36,13 @@
 namespace flare {
 
 	/**
-	 * @class Label
-	 */
+		* @class Label
+		*/
 	class FX_EXPORT Label: public View {
 		FX_Define_View(Label);
-	 public:
-
-		/**
-		* @enum TextAlign 文本对齐方式
-		*/
-		enum TextAlign: uint8_t {
-			LEFT = value::LEFT,           /* 左对齐 */
-			CENTER = value::CENTER,         /* 居中 */
-			RIGHT = value::RIGHT,          /* 右对齐 */
-			LEFT_REVERSE = value::LEFT_REVERSE,   /* 左对齐并反向 */
-			CENTER_REVERSE = value::CENTER_REVERSE, /* 居中对齐并反向 */
-			RIGHT_REVERSE = value::RIGHT_REVERSE,  /* 右对齐并反向 */
-		};
-
+		public:
 		// TODO ...
-	 private:
+		private:
 		Color _text_background_color;
 		TextLineHeight _line_height;
 	};

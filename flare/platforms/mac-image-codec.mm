@@ -94,7 +94,7 @@ namespace flare {
 				CGContextRef context =
 				CGBitmapContextCreate(*pixel_data, width, height, 8,
 															width * 4, color_space, info | kCGBitmapByteOrder32Big);
-				CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+				CGContextDrawImage(context, RectMake(0, 0, width, height), image);
 				CGContextRelease(context);
 				CFRelease(color_space);
 				return PixelData(pixel_data, width, height, PixelData::RGBA8888, isPremultipliedAlpha);

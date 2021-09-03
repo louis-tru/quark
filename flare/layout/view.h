@@ -41,7 +41,7 @@ namespace flare {
 		F(Input)          F(Label)           F(Root) \
 		F(Scroll)         F(Text)            F(Video) \
 
-	# define FX_View_Class(E, N) class N;
+	# define FX_View_Class(N) class N;
 		FX_Views(FX_View_Class);
 	# undef  FX_View_Class
 
@@ -56,169 +56,169 @@ namespace flare {
 	class SkiaRender; // class SkiaRender
 
 	/**
-	 * The basic elements of GUI tree
-	 *
-	 * @class View
-	 */
+		* The basic elements of GUI tree
+		*
+		* @class View
+		*/
 	class FX_EXPORT View: public Layout {
 		FX_HIDDEN_ALL_COPY(View);
-	 public:
+		public:
 
 		friend class GLRender;
 		friend class SkiaRender;
 
 		/**
-		 * @constructors
-		 */
+			* @constructors
+			*/
 		View();
 
 		/**
-		 * @destructor
-		 */
+			* @destructor
+			*/
 		virtual ~View();
 
 		// *******************************************************************
 		/**
-		 * parent view
-		 *
-		 * @func parent()
-		 */
+			* parent view
+			*
+			* @func parent()
+			*/
 		inline View* parent() {
 			return _parent;
 		}
 
 		/**
-		 * first subview
-		 *
-		 * @func first()
-		 */
+			* first subview
+			*
+			* @func first()
+			*/
 		inline View* first() {
 			return _first;
 		}
 
 		/**
-		 * last subview
-		 *
-		 * @func last()
-		 */
+			* last subview
+			*
+			* @func last()
+			*/
 		inline View* last() {
 			return _last;
 		}
 
 		/**
-		 * Previous sibling view
-		 *
-		 * @func prev()
-		 */
+			* Previous sibling view
+			*
+			* @func prev()
+			*/
 		inline View* prev() {
 			return _prev;
 		}
 
 		/**
-		 * Next sibling view
-		 *
-		 * @func nect()
-		 */
+			* Next sibling view
+			*
+			* @func nect()
+			*/
 		inline View* next() {
 			return _next;
 		}
 
 		/**
-		 *
-		 * Add a sibling view to the front
-		 *
-		 * @func before(view)
-		 */
+			*
+			* Add a sibling view to the front
+			*
+			* @func before(view)
+			*/
 		void before(View* view);
 
 		/**
-		 *
-		 * Add a sibling view to the back
-		 *
-		 * @func after(view)
-		 */
+			*
+			* Add a sibling view to the back
+			*
+			* @func after(view)
+			*/
 		void after(View* view);
 
 		/**
-		 * 
-		 * Append subview to front
-		 * 
-		 * @func prepend(child)
-		 */
+			* 
+			* Append subview to front
+			* 
+			* @func prepend(child)
+			*/
 		virtual void prepend(View* child);
 
 		/**
-		 *
-		 * Append subview to end
-		 *
-		 * @func append(child)
-		 */
+			*
+			* Append subview to end
+			*
+			* @func append(child)
+			*/
 		virtual void append(View* child);
 
 		/**
-		 *
-		 * Remove and destroy self
-		 * 
-		 * @func remove()
-		 */
+			*
+			* Remove and destroy self
+			* 
+			* @func remove()
+			*/
 		virtual void remove();
 
 		/**
-		 *
-		 * remove all subview
-		 *
-		 * @func remove_all_child()
-		 */
+			*
+			* remove all subview
+			*
+			* @func remove_all_child()
+			*/
 		virtual void remove_all_child();
 
 		/**
-		 *
-		 * Setting parent parent view
-		 *
-		 * @func set_parent(parent)
-		 */
-	 protected: 
+			*
+			* Setting parent parent view
+			*
+			* @func set_parent(parent)
+			*/
+		protected:
 		virtual void set_parent(View* parent);
 
 		/**
-		 * @class Visitor
-		 */
-	 public: class Visitor {
-		 public:
-			# define FX_Visitor(E, N) virtual void visit##N(N *v);
+			* @class Visitor
+			*/
+		public: class Visitor {
+			public:
+			# define FX_Visitor(N) virtual void visit##N(N *v);
 				FX_Views(FX_Visitor);
 			# undef  FX_Visitor
 		};
 
 		/**
-		 *
-		 * Accepting visitors
-		 * 
-		 * @func accept(visitor)
-		 */
+			*
+			* Accepting visitors
+			* 
+			* @func accept(visitor)
+			*/
 		virtual void accept(Visitor *visitor);
 
 		/**
-		 * @func visit(visitor)
-		 */
+			* @func visit(visitor)
+			*/
 		void visit(Visitor *visitor);
 
 		/**
-		 *
-		 * Does the view need to receive or handle event throws from the system
-		 *
-		 * @func receive()
-		 */
+			*
+			* Does the view need to receive or handle event throws from the system
+			*
+			* @func receive()
+			*/
 		inline bool receive() const {
 			return _receive;
 		}
 
 		/**
-		 *
-		 * Returns visibility for the view
-		 *
-		 * @func visible()
-		 */
+			*
+			* Returns visibility for the view
+			*
+			* @func visible()
+			*/
 		inline bool visible() const {
 			return _visible;
 		}
@@ -234,40 +234,40 @@ namespace flare {
 		}
 		
 		/**
-		 * 
-		 * Sets whether the view needs to receive or handle event throws from the system
-		 *
-		 * @func set_receive()
-		 */
+			* 
+			* Sets whether the view needs to receive or handle event throws from the system
+			*
+			* @func set_receive()
+			*/
 		void set_receive(bool val);
 
 		/**
-		 * 
-		 * Setting the visibility properties the view object
-		 *
-		 * @func set_visible(val)
-		 */
+			* 
+			* Setting the visibility properties the view object
+			*
+			* @func set_visible(val)
+			*/
 		virtual void set_visible(bool val);
 
 		/**
-		 * 
-		 * focus keyboard
-		 *
-		 * @func focus()
-		 */
+			* 
+			* focus keyboard
+			*
+			* @func focus()
+			*/
 		bool focus();
 		
 		/**
-		 *
-		 * Unfocus keyboard
-		 *
-		 * @func blur()
-		 */
+			*
+			* Unfocus keyboard
+			*
+			* @func blur()
+			*/
 		bool blur();
 		
 		/**
-		 * @func is_focus()
-		 */
+			* @func is_focus()
+			*/
 		bool is_focus() const;
 		
 		/**
@@ -280,242 +280,242 @@ namespace flare {
 
 		// *******************************************************************
 		/**
-		 * Returns the objects that automatically adjust view properties
-		 *
-		 * @func action()
-		 */
+			* Returns the objects that automatically adjust view properties
+			*
+			* @func action()
+			*/
 		inline Action* action() {
 			return _action;
 		}
 
 		/**
-		 * Set the `action` properties of the view object
-		 *
-		 * @func set_action()
-		 */
+			* Set the `action` properties of the view object
+			*
+			* @func set_action()
+			*/
 		void set_action(Action* val);
 
 		/**
-		 * Returns matrix displacement for the view
-		 *
-		 * @func translate
-		 */
+			* Returns matrix displacement for the view
+			*
+			* @func translate
+			*/
 		Vec2 translate() const;
 
 		/**
-		 * Returns the Matrix scaling
-		 *
-		 * @func scale()
-		 */
+			* Returns the Matrix scaling
+			*
+			* @func scale()
+			*/
 		Vec2 scale() const;
 
 		/**
-		 * Returns the Matrix skew
-		 *
-		 * @func skew()
-		 */
+			* Returns the Matrix skew
+			*
+			* @func skew()
+			*/
 		Vec2 skew() const;
 
 		/**
-		 * Returns the z-axis rotation of the matrix
-		 *
-		 * @func rotate()
-		 */
+			* Returns the z-axis rotation of the matrix
+			*
+			* @func rotate()
+			*/
 		float rotate() const;
 
 		/**
-		 * 
-		 * Returns x-axis matrix displacement for the view
-		 *
-		 * @func x()
-		 */
+			* 
+			* Returns x-axis matrix displacement for the view
+			*
+			* @func x()
+			*/
 		float x() const;
 
 		/**
-		 * 
-		 * Returns y-axis matrix displacement for the view
-		 *
-		 * @func y()
-		 */
+			* 
+			* Returns y-axis matrix displacement for the view
+			*
+			* @func y()
+			*/
 		float y() const;
 
 		/**
-		 * 
-		 * Returns x-axis matrix scaling for the view
-		 *
-		 * @func scale_x()
-		 */
+			* 
+			* Returns x-axis matrix scaling for the view
+			*
+			* @func scale_x()
+			*/
 		inline float scale_x() const {
 			return scale().x();
 		}
 
 		/**
-		 * 
-		 * Returns y-axis matrix scaling for the view
-		 *
-		 * @func scale_y()
-		 */
+			* 
+			* Returns y-axis matrix scaling for the view
+			*
+			* @func scale_y()
+			*/
 		inline float scale_y() const {
 			return scale().y();
 		}
 
 		/**
-		 * 
-		 * Returns x-axis matrix skew for the view
-		 *
-		 * @func skew_x()
-		 */
+			* 
+			* Returns x-axis matrix skew for the view
+			*
+			* @func skew_x()
+			*/
 		inline float skew_x() const {
 			return skew().x();
 		}
 
 		/**
-		 * 
-		 * Returns y-axis matrix skew for the view
-		 *
-		 * @func skew_y()
-		 */
+			* 
+			* Returns y-axis matrix skew for the view
+			*
+			* @func skew_y()
+			*/
 		inline float skew_y() const {
 			return skew().y();
 		}
 
 		/**
-		 *
-		 * Returns the can affect the transparency of subviews
-		 *
-		 * @func opacity()
-		 */
+			*
+			* Returns the can affect the transparency of subviews
+			*
+			* @func opacity()
+			*/
 		inline float opacity() const {
 			return _opacity;
 		}
 
 		/**
-		 * Set the matrix `translate` properties of the view object
-		 *
-		 * @func set_translate(val)
-		 */
+			* Set the matrix `translate` properties of the view object
+			*
+			* @func set_translate(val)
+			*/
 		void set_translate(Vec2 val);
 
 		/**
-		 * Set the matrix `scale` properties of the view object
-		 *
-		 * @func set_scale(val)
-		 */
+			* Set the matrix `scale` properties of the view object
+			*
+			* @func set_scale(val)
+			*/
 		void set_scale(Vec2 val);
 
 		/**
-		 * Set the matrix `skew` properties of the view object
-		 *
-		 * @func set_skew(val)
-		 */
+			* Set the matrix `skew` properties of the view object
+			*
+			* @func set_skew(val)
+			*/
 		void set_skew(Vec2 val);
 
 		/**
-		 * Set the z-axis  matrix `rotate` properties the view object
-		 *
-		 * @func set_rotate(val)
-		 */
+			* Set the z-axis  matrix `rotate` properties the view object
+			*
+			* @func set_rotate(val)
+			*/
 		void set_rotate(float val);
 
 		/**
-		 * 
-		 * Setting x-axis matrix displacement for the view
-		 *
-		 * @func set_x(val)
-		 */
+			* 
+			* Setting x-axis matrix displacement for the view
+			*
+			* @func set_x(val)
+			*/
 		void set_x(float val);
 
 		/**
-		 * 
-		 * Setting y-axis matrix displacement for the view
-		 *
-		 * @func set_y(val)
-		 */
+			* 
+			* Setting y-axis matrix displacement for the view
+			*
+			* @func set_y(val)
+			*/
 		void set_y(float val);
 
 		/**
-		 * 
-		 * Returns x-axis matrix scaling for the view
-		 *
-		 * @func set_scale_x(val)
-		 */
+			* 
+			* Returns x-axis matrix scaling for the view
+			*
+			* @func set_scale_x(val)
+			*/
 		void set_scale_x(float val);
 
 		/**
-		 * 
-		 * Returns y-axis matrix scaling for the view
-		 *
-		 * @func set_scale_y(val)
-		 */
+			* 
+			* Returns y-axis matrix scaling for the view
+			*
+			* @func set_scale_y(val)
+			*/
 		void set_scale_y(float val);
 
 		/**
-		 * 
-		 * Returns x-axis matrix skew for the view
-		 *
-		 * @func set_skew_x(val)
-		 */
+			* 
+			* Returns x-axis matrix skew for the view
+			*
+			* @func set_skew_x(val)
+			*/
 		void set_skew_x(float val);
 
 		/**
-		 * 
-		 * Returns y-axis matrix skew for the view
-		 *
-		 * @func set_skew_y(val)
-		 */
+			* 
+			* Returns y-axis matrix skew for the view
+			*
+			* @func set_skew_y(val)
+			*/
 		void set_skew_y(float val);
 
 		/**
-		 * Set the `opacity` properties the view object
-		 *
-		 * @func set_opacity(val)
-		 */
+			* Set the `opacity` properties the view object
+			*
+			* @func set_opacity(val)
+			*/
 		void set_opacity(float val);
 
 		// *******************************************************************
 
 		/**
-		 * 
-		 * Calculate the transform origin value
-		 * 
-		 * @func solve_transform_origin()
-		 */
+			* 
+			* Calculate the transform origin value
+			* 
+			* @func solve_transform_origin()
+			*/
 		virtual Vec2 solve_transform_origin();
 
 		/**
-		 * 
-		 * Returns layout transformation matrix of the object view
-		 * 
-		 * Mat(layout_offset + transform_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
-		 * 
-		 * @func layout_matrix()
-		 */
+			* 
+			* Returns layout transformation matrix of the object view
+			* 
+			* Mat(layout_offset + transform_origin + translate - parent->layout_offset_inside, scale, rotate, skew)
+			* 
+			* @func layout_matrix()
+			*/
 		Mat layout_matrix();
 
 		/**
-		 * Start the matrix transformation from this origin point
-		 *
-		 * @func transform_origin()
-		 */
+			* Start the matrix transformation from this origin point
+			*
+			* @func transform_origin()
+			*/
 		inline Vec2 transform_origin() const {
 			return _transform_origin;
 		}
 
 		/**
-		 * 
-		 * Returns final transformation matrix of the view layout
-		 *
-		 * parent.matrix * layout_matrix
-		 * 
-		 * @func matrix()
-		 */
+			* 
+			* Returns final transformation matrix of the view layout
+			*
+			* parent.matrix * layout_matrix
+			* 
+			* @func matrix()
+			*/
 		inline const Mat& matrix() const {
 			return _matrix;
 		}
 
 		/**
-		 * @func solve_region_visible()
-		 */
+			* @func solve_region_visible()
+			*/
 		virtual bool solve_region_visible();
 
 		/**
@@ -531,7 +531,7 @@ namespace flare {
 		/**
 		* @func screen_rect_from_convex_quadrilateral
 		*/
-		static CGRect screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
+		static Rect screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
 		
 		/**
 		* @func screen_region_from_convex_quadrilateral
@@ -539,8 +539,8 @@ namespace flare {
 		static Region screen_region_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]);
 
 		/**
-		 * @overwrite
-		 */
+			* @overwrite
+			*/
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual void layout_recursive(uint32_t mark);
@@ -555,7 +555,7 @@ namespace flare {
 			float rotate; // z轴旋转角度值
 		};
 
-	 private:
+		private:
 		Action *_action; // 在指定的时间内根据动作设定运行连续一系列的动作命令，达到类似影片播放效果
 		// node tree:
 		View *_parent;

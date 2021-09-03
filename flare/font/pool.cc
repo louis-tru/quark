@@ -34,7 +34,7 @@
 #include "../math/bezier.h"
 #include "../texture.h"
 #include "../display-port.h"
-#include "../draw.h"
+// #include "../draw.h"
 #include "../_app.h"
 #include <native-font.h>
 
@@ -210,10 +210,11 @@ namespace flare {
 			}
 			_display_port_scale = scale;
 			
-			_draw_ctx->host()->render_loop()->post(Cb([this](CbData& e) {
-				_draw_ctx->refresh_font_pool(this);
-				_inl_app(_draw_ctx->host())->refresh_display();
-			}));
+			// TODO ...
+			// _draw_ctx->host()->render_loop()->post(Cb([this](CbData& e) {
+			// 	_draw_ctx->refresh_font_pool(this);
+			// 	_inl_app(_draw_ctx->host())->refresh_display();
+			// }));
 			
 			Vec2 size = _display_port->size();
 			uint32_t font_size = sqrtf(size.width() * size.height()) / 10;
@@ -340,15 +341,15 @@ namespace flare {
 	/**
 	* @constructor
 	*/
-	FontPool::FontPool(Draw* ctx)
+	FontPool::FontPool(Render* ctx)
 		: _ft_lib(nullptr)
-		, _draw_ctx(ctx)
+		, _render_ctx(ctx)
 		, _display_port(nullptr)
 		, _total_data_size(0)
 		, _max_glyph_texture_size(0)
 		, _display_port_scale(0)
 	{
-		ASSERT(_draw_ctx);
+		ASSERT(_render_ctx);
 		
 		FT_Init_FreeType((FT_Library*)&_ft_lib);
 			

@@ -39,7 +39,7 @@
 
 namespace flare {
 
-	class Draw;
+	class Render;
 	class Root;
 	class GUIApplication;
 	class PreRender;
@@ -222,10 +222,10 @@ namespace flare {
 		Vec2              _size;       // 当前视口尺寸
 		float             _scale;      // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
 		Vec2              _scale_value;
-		Draw*             _draw_ctx;
+		Render*           _render_ctx;
 		Mat4              _root_matrix;
 		float             _atom_pixel;
-		List<Region>      _draw_region;
+		List<Region>      _region;
 		GUIApplication*   _host;
 		List<Cb>          _next_frame;
 		uint32_t          _fsp, _record_fsp;

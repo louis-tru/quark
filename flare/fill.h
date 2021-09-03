@@ -43,6 +43,7 @@ namespace flare {
 	class FillShadow;
 	class FillBorder; // top,right,bottom,left
 	class FillBorderRadius; // left-top,right-top,right-bottom,left-bottom
+	class Texture;
 
 	typedef BoxFill* Fill;
 
@@ -66,22 +67,22 @@ namespace flare {
 			M_DISABLE,
 		};
 		
-		Background();
+		BoxFill();
 		
 		/**
 		* @destructor
 		*/
-		virtual ~Background();
+		virtual ~BoxFill();
 		
 		/**
 		* @func next()
 		*/
-		inline Background* next() { return _next; }
+		inline BoxFill* next() { return _next; }
 		
 		/**
 		* @func set_next(value)
 		*/
-		void set_next(Background* value);
+		void set_next(BoxFill* value);
 		
 		/**
 		* @func type()
@@ -91,18 +92,18 @@ namespace flare {
 		/**
 		* @func as_image()
 		*/
-		virtual BackgroundImage* as_image() { return nullptr; }
+		virtual FillImage* as_image() { return nullptr; }
 		
 		/**
 		* @func as_gradient()
 		*/
-		virtual BackgroundGradient* as_gradient() { return nullptr; }
+		virtual FillGradient* as_gradient() { return nullptr; }
 		
 		/**
 		* @func assign(left, right)
 		* @ret return left value
 		*/
-		static Background* assign(Background* left, Background* right);
+		static BoxFill* assign(BoxFill* left, BoxFill* right);
 		
 		/**
 		* @func allow_multi_holder()
@@ -159,84 +160,38 @@ namespace flare {
 	class FX_EXPORT FillImage: public BoxFill {
 		public:
 
-		/**
-		* @enum Repeat 纹理重复方式
-		*/
-		enum Repeat: uint8_t {
-			NONE = value::NONE,
-			REPEAT = value::REPEAT,
-			REPEAT_X = value::REPEAT_X,
-			REPEAT_Y = value::REPEAT_Y,
-			MIRRORED_REPEAT = value::MIRRORED_REPEAT,
-			MIRRORED_REPEAT_X = value::MIRRORED_REPEAT_X,
-			MIRRORED_REPEAT_Y = value::MIRRORED_REPEAT_Y,
-		};
-
-		/**
-		* @enum BackgroundPositionType
-		*/
-		enum BackgroundPositionType: uint8_t {
-			PIXEL = value::PIXEL,     /* 像素值  px */
-			PERCENT = value::PERCENT,   /* 百分比  % */
-			LEFT = value::LEFT,      /* 居左 */
-			RIGHT = value::RIGHT,     /* 居右  % */
-			CENTER = value::CENTER,    /* 居中 */
-			TOP = value::TOP,       /* 居上 */
-			BOTTOM = value::BOTTOM,    /* 居下 */
-		};
-		
-		/**
-		* @enum BackgroundSizeType
-		*/
-		enum BackgroundSizeType: uint8_t {
-			AUTO = value::AUTO,      /* 自动值  auto */
-			PIXEL = value::PIXEL,     /* 像素值  px */
-			PERCENT = value::PERCENT,   /* 百分比  % */
-		};
-
-		typedef TemplateValue<BackgroundSizeType, BackgroundSizeType::AUTO, float> BackgroundSize;
-		typedef TemplateValue<BackgroundPositionType, BackgroundPositionType::PIXEL, float> BackgroundPosition;
-		
-		struct BackgroundSizeCollection {
-			BackgroundSize x, y;
-		};
-
-		struct BackgroundPositionCollection {
-			BackgroundPosition x, y;
-		};
-
-		BackgroundImage();
-		virtual ~BackgroundImage();
+		FillImage();
+		virtual ~FillImage();
 		virtual Type type() const { return M_IMAGE; }
-		virtual BackgroundImage* as_image() { return this; }
+		virtual FillImage* as_image() { return this; }
 		inline Texture* texture() { return _texture; }
 		inline Repeat repeat() const { return _repeat; }
-		inline BackgroundPosition position_x() const { return _position_x; }
-		inline BackgroundPosition position_y() const { return _position_y; }
-		inline BackgroundSize size_x() const { return _size_x; }
-		inline BackgroundSize size_y() const { return _size_y; }
+		inline FillPosition position_x() const { return _position_x; }
+		inline FillPosition position_y() const { return _position_y; }
+		inline FillSize size_x() const { return _size_x; }
+		inline FillSize size_y() const { return _size_y; }
 		inline bool has_base64() const { return _has_base64_src; }
 		String src() const;
 		void set_src(cString& value);
 		void set_src_base64(cString& data);
 		void set_texture(Texture* value);
 		void set_repeat(Repeat value);
-		void set_position_x(BackgroundPosition value);
-		void set_position_y(BackgroundPosition value);
-		void set_size_x(BackgroundSize value);
-		void set_size_y(BackgroundSize value);
+		void set_position_x(FillPosition value);
+		void set_position_y(FillPosition value);
+		void set_size_x(FillSize value);
+		void set_size_y(FillSize value);
 		bool get_background_image_data(Box* host, Vec2& size_out, Vec2& position_out, int& level_out);
 
 		protected:
-		virtual Background* copy(Background* to);
+		virtual BoxFill* copy(BoxFill* to);
 		private:
 
 		String    _src;
 		bool      _has_base64_src;
 		Texture*  _texture;
 		Repeat    _repeat;
-		BackgroundPosition _position_x, _position_y;
-		BackgroundSize _size_x, _size_y;
+		FillPosition _position_x, _position_y;
+		FillSize _size_x, _size_y;
 		int _attributes_flags;
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};

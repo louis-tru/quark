@@ -169,7 +169,7 @@ Local<JSValue> ValueProgram::New(cCurve& value) {
 	return _Curve.local()->Call(worker, 4, args);
 }
 
-Local<JSValue> ValueProgram::New(const CGRect& value) {
+Local<JSValue> ValueProgram::New(const Rect& value) {
 	Local<JSValue> args[] = {
 		worker->New(value.origin.x()),
 		worker->New(value.origin.y()),
@@ -523,7 +523,7 @@ bool ValueProgram::parseCurve(Local<JSValue> in, Curve& out, cChar* desc) {
 	});
 }
 
-bool ValueProgram::parseRect(Local<JSValue> in, CGRect& out, cChar* desc) {
+bool ValueProgram::parseRect(Local<JSValue> in, Rect& out, cChar* desc) {
 	js_parse(Rect, {
 		out.origin.x(obj->Get(worker, worker->strs()->x())->ToNumberValue(worker));
 		out.origin.y(obj->Get(worker, worker->strs()->y())->ToNumberValue(worker));

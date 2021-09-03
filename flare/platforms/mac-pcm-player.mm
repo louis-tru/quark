@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "flare/pcm-player.h"
+#import "flare/media/pcm.h"
 #import "flare/util/handle.h"
 #import "flare/util/loop.h"
 #import <AudioToolbox/AudioToolbox.h>

@@ -370,7 +370,7 @@ namespace flare {
 		}
 	}
 
-	void GLDrawProxy::refresh_surface_size(CGRect* rect) {
+	void GLDrawProxy::refresh_surface_size(Rect* rect) {
 
 		if ( _window ) {
 			_raw_surface_size = get_window_size(_window);
@@ -379,7 +379,7 @@ namespace flare {
 		if ( _raw_surface_size[0] == 0 || _raw_surface_size[1] == 0 ) return;
 
 		if ( rect == nullptr ) {
-			CGRect region = _host->selected_region(); // 使用上次的区域，如果这是有效的
+			Rect region = _host->selected_region(); // 使用上次的区域，如果这是有效的
 
 			if (region.size[0] == 0 || region.size[1] == 0) { // 区域无效
 				_host->set_surface_size(_raw_surface_size);
@@ -397,10 +397,10 @@ namespace flare {
 	void GLDrawProxy::refresh_virtual_keyboard_rect() {
 		// draw android virtual keyboard rect
 		#if FX_ANDROID
-			_virtual_keys_rect = CGRect();
+			_virtual_keys_rect = Rect();
 
 			Vec2 scale = _host->host()->display_port()->scale_value();
-			CGRect region = _host->selected_region();
+			Rect region = _host->selected_region();
 
 			int width = int(_host->surface_size().width() - region.size.width());
 			int height = int(_host->surface_size().height() - region.size.height());

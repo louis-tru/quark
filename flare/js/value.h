@@ -63,7 +63,7 @@ F(Align, Align)                         F(ContentAlign, ContentAlign) \
 F(Border, Border)                       F(Shadow, Shadow) \
 F(Color, Color)                         F(Vec2, Vec2) \
 F(Vec3, Vec3)                           F(Vec4, Vec4) \
-F(Rect, CGRect)                         F(Mat, Mat) \
+F(Rect, Rect)                         F(Mat, Mat) \
 F(Mat4, Mat4)                           F(Value, Value) \
 F(TextColor, TextColor)                 F(TextSize, TextSize)  \
 F(TextFamily, TextFamily)               F(TextStyle, TextStyle) \

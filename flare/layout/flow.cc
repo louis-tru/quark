@@ -104,9 +104,7 @@ namespace flare {
 			struct Item { Vec2: s; View* v; };
 			Array<Item> start, center, end;
 
-			Vec2 origin = is_horizontal ?
-				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
-				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
+			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
 			auto v = first();
 			while (v) {
@@ -181,9 +179,7 @@ namespace flare {
 			float total_cross = 0;
 			bool wrap_reverse = _direction == Wrap::WRAP_REVERSE;
 
-			Vec2 origin = is_horizontal ?
-				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
-				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
+			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
 			Array<Item> _start, _center, _end;
 			float _total_main = 0, _max_cross = 0;

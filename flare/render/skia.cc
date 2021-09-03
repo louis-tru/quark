@@ -40,15 +40,11 @@ namespace flare {
 		// TODO ...
 	}
 	
-	void SkiaRender::visitFlexLayout(FlexLayout *v) {
+	void SkiaRender::visitFlow(FlowLayout *v) {
 		// TODO ...
 	}
-	
-	void SkiaRender::visitFlowLayout(FlowLayout *v) {
-		// TODO ...
-	}
-	
-	void SkiaRender::visitGridLayout(GridLayout *v) {
+
+	void SkiaRender::visitFlex(FlexLayout *v) {
 		// TODO ...
 	}
 	

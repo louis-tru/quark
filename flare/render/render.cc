@@ -42,7 +42,7 @@ namespace flare {
 	* @class TextureEmpty
 	*/
 	class TextureEmpty: public Texture {
-	public:
+		public:
 		virtual void load() {
 			if (_status == TEXTURE_NO_LOADED) {
 				ASSERT(load_data(empty_pixel_data), "Load temp texture error");
@@ -50,24 +50,24 @@ namespace flare {
 		}
 	};
 
-	Draw* Draw::_draw_ctx = nullptr; // 当前GL上下文
+	Render* Render::_ctx = nullptr; // 当前GL上下文
 
 	/**
 	* @constructor
 	*/
-	Draw::Draw(GUIApplication* host, cJSON& options)
-	: FX_Init_Event(surface_size_change_r)
-	, _host(host)
-	, _multisample(0)
-	, _empty_texture( NewRetain<TextureEmpty>() )
-	, _font_pool(nullptr)
-	, _tex_pool(nullptr)
-	, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
-	, _best_display_scale(1)
-	, _library(DRAW_LIBRARY_INVALID)
+	Render::Render(GUIApplication* host, cJSON& options)
+		: FX_Init_Event(surface_size_change_r)
+		, _host(host)
+		, _multisample(0)
+		, _empty_texture( NewRetain<TextureEmpty>() )
+		, _font_pool(nullptr)
+		, _tex_pool(nullptr)
+		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
+		, _best_display_scale(1)
+		, _library(DRAW_LIBRARY_INVALID)
 	{
-		ASSERT(!_draw_ctx, "At the same time can only run a GLDraw entity");
-		_draw_ctx = this;
+		ASSERT(!_ctx, "At the same time can only run a Render entity");
+		_ctx = this;
 		
 		cJSON& msample = options["multisample"];
 		if (msample.is_uint32())
@@ -77,16 +77,16 @@ namespace flare {
 		_tex_pool = new TexturePool(this); // 初始文件纹理池
 	}
 
-	Draw::~Draw() {
+	Render::~Render() {
 		Release(_empty_texture); _empty_texture = nullptr;
 		Release(_font_pool); _font_pool = nullptr;
 		Release(_tex_pool); _tex_pool = nullptr;
-		_draw_ctx = nullptr;
+		_ctx = nullptr;
 	}
 
-	bool Draw::set_surface_size(Vec2 surface_size, CGRect* select_region) {
-		CGRect region = select_region ? 
-			*select_region : CGRect({ Vec2(), surface_size });
+	bool Render::set_surface_size(Vec2 surface_size, Rect* select_region) {
+		Rect region = select_region ? 
+			*select_region : Rect({ Vec2(), surface_size });
 			
 		if (_surface_size != surface_size ||
 				_selected_region.origin != region.origin ||
@@ -104,23 +104,23 @@ namespace flare {
 	/**
 	* @func clear
 	*/
-	void Draw::clear(bool full) {
+	void Render::clear(bool full) {
 		_tex_pool->clear(full);
 		_font_pool->clear(full);
 	}
 
-	void Draw::set_max_texture_memory_limit(uint64_t limit) {
+	void Render::set_max_texture_memory_limit(uint64_t limit) {
 		_max_texture_memory_limit = FX_MAX(limit, 64 * 1024 * 1024);
 	}
 
-	uint64_t Draw::used_texture_memory() const {
+	uint64_t Render::used_texture_memory() const {
 		return _tex_pool->_total_data_size + _font_pool->_total_data_size;
 	}
 
 	/**
 	* @func adjust_texture_memory()
 	*/
-	bool Draw::adjust_texture_memory(uint64_t will_alloc_size) {
+	bool Render::adjust_texture_memory(uint64_t will_alloc_size) {
 		
 		int i = 0;
 		do {

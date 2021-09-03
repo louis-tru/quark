@@ -49,7 +49,7 @@ namespace flare {
 		GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 		void gl_main_render_buffer_storage();
 		void set_surface_view(UIView* view, CAEAGLLayer* layer);
-		bool refresh_surface_size(::CGRect rect);
+		bool refresh_surface_size(::Rect rect);
 		inline GLDraw* host() { return _host; }
 		static GLDrawProxy* create(GUIApplication* host, cJSON& options);
 		private:

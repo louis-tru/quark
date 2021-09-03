@@ -34,31 +34,31 @@
 
 namespace flare {
 
-module_info_t* module_audio_player = nullptr;
-module_info_t* module_video = nullptr;
+	module_info_t* module_audio_player = nullptr;
+	module_info_t* module_video = nullptr;
 
-static int is_loaded_lib() {
-	return module_audio_player && module_video;
-}
-
-int initialize_media() {
-
-	if (is_loaded_lib()) {
-		return 1;
+	static int is_loaded_lib() {
+		return module_audio_player && module_video;
 	}
-	// try loading nxnode
-	uv_lib_t lib;
-	int err = uv_dlopen("libflare-media.so", &lib);
-	if (err != 0) {
-		FX_WARN("No flare-media library loaded, %s", uv_dlerror(&lib));
-	} else {
+
+	int initialize_media() {
+
 		if (is_loaded_lib()) {
 			return 1;
 		}
-		FX_WARN("No flare-media library loaded");
-	}
+		// try loading nxnode
+		uv_lib_t lib;
+		int err = uv_dlopen("libflare-media.so", &lib);
+		if (err != 0) {
+			FX_WARN("No flare-media library loaded, %s", uv_dlerror(&lib));
+		} else {
+			if (is_loaded_lib()) {
+				return 1;
+			}
+			FX_WARN("No flare-media library loaded");
+		}
 
-	return 0;
-}
+		return 0;
+	}
 
 }

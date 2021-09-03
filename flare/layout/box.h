@@ -37,34 +37,20 @@
 namespace flare {
 
 	/**
-	 * @class Box
-	 */
+		* @class Box
+		*/
 	class FX_EXPORT Box: public View {
 		FX_Define_View(Box);
-	 public:
+		public:
 
 		/**
-		* @enum SizeType
-		*/
-		enum SizeType: uint8_t {
-			NONE  = value::NONE,    /* none default wrap content */
-			WRAP  = value::WRAP,    /* 包裹内容 wrap content */
-			MATCH = value::MATCH,   /* 匹配父视图 match parent */
-			PIXEL = value::PIXEL,   /* 明确值 value px */
-			RATIO = value::RATIO,   /* 百分比 value % */
-			MINUS = value::MINUS,   /* 减法(parent-value) value ! */
-		};
-
-		typedef value::TemplateValue<SizeType, SizeType::WRAP> SizeValue;
-
-		/**
-		 * @constructors
-		 */
+			* @constructors
+			*/
 		Box();
 
 		/**
-		 * @destructor
-		 */
+			* @destructor
+			*/
 		virtual ~Box();
 
 		// define props
@@ -83,25 +69,30 @@ namespace flare {
 		FX_Define_Prop(Fill, fill); // color|shadow|image|gradient|border|border-radius
 
 		/**
-		 *
-		 * 设置布局对齐方式
-		 *
-		 * @func set_layout_align(align)
-		 */
+			*
+			* 设置布局对齐方式
+			*
+			* @func set_layout_align(align)
+			*/
 		void set_layout_align(Align align);
 
 		/**
-		 *
-		 * 设置布局权重
-		 *
-		 * @func set_layout_weight(val)
-		 */
+			*
+			* 设置布局权重
+			*
+			* @func set_layout_weight(val)
+			*/
 		void set_layout_weight(float weight);
+
+		/**
+			* @func solve_rect_vertex(vertex)
+			*/
+		void solve_rect_vertex(Vec2 vertex[4]);
 
 		// --------------- o v e r w r i t e ---------------
 		/**
-		 * @overwrite
-		 */
+			* @overwrite
+			*/
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
 		virtual Vec2 layout_offset();
@@ -120,28 +111,28 @@ namespace flare {
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 		virtual bool solve_region_visible();
 
-	 protected:
+		protected:
 		/**
-		 * 
-		 * is ready layout layout typesetting in the `layout_reverse() or layout_forward()` func
-		 *
-		 * @func is_ready_layout_typesetting()
-		 */
+			* 
+			* is ready layout layout typesetting in the `layout_reverse() or layout_forward()` func
+			*
+			* @func is_ready_layout_typesetting()
+			*/
 		bool is_ready_layout_typesetting();
 
 		/**
-		 * @func solve_layout_size(mark)
-		 */
+			* @func solve_layout_size(mark)
+			*/
 		uint32_t solve_layout_size(uint32_t mark);
 
 		/**
-		 * @func set_layout_size(layout_content_size)
-		 */
+			* @func set_layout_size(layout_content_size)
+			*/
 		void set_layout_size(Vec2 layout_content_size);
 
 		/**
-		 * @func layout_wrap_x()
-		 */
+			* @func layout_wrap_x()
+			*/
 		inline bool layout_wrap_x() const { return _wrap_x; }
 		inline bool layout_wrap_y() const { return _wrap_y; }
 		float solve_layout_content_width(float parent_content_szie, bool *is_wrap_in_out);
@@ -149,7 +140,7 @@ namespace flare {
 		void  mark_layout_size(uint32_t mark);
 
 		// --------------- m e m b e r . f i e l d ---------------
-	 private:
+		private:
 		// box attrs
 		Vec2  _layout_offset; // 相对父视图的开始偏移位置（box包含margin值）
 		Vec2  _layout_size; // 在布局中所占用的尺寸（margin+content+padding）

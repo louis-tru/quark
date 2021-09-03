@@ -33,7 +33,7 @@
 
 #include "./util/event.h"
 #include "./util/os.h"
-#include "./math/math.h"
+#include "./math.h"
 #include "./value.h"
 #include "./keyboard.h"
 
@@ -299,7 +299,7 @@ namespace flare {
 	class FX_EXPORT GUIFocusMoveEvent: public GUIEvent {
 		public:
 		inline GUIFocusMoveEvent(View* origin, View* old_focus, View* new_focus)
-			: GUIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) { }
+			: GUIEvent(origin), _old_focus(old_focus), _new_focus(new_focus) {}
 		inline View* old_focus() { return _old_focus; }
 		inline View* new_focus() { return _new_focus; }
 		inline View* focus() { return _old_focus; }

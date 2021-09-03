@@ -28,10 +28,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
-#ifndef __flare__gl__gl__
-#define __flare__gl__gl__
+#ifndef __flare__render__gl__
+#define __flare__render__gl__
 
-#include "./draw.h"
+#include "./render.h"
 
 #if FX_IOS
 # include <OpenGLES/ES3/gl.h>
@@ -76,20 +76,20 @@ namespace flare {
 	};
 
 	/**
-	* @class GLDraw
+	* @class GLRender
 	*/
-	class FX_EXPORT GLDraw: public Draw {
+	class FX_EXPORT GLRender: public ViewRender {
 		public:
 		
 		/**
 		* @constructor
 		*/
-		GLDraw(GUIApplication* host, cJSON& options);
+		GLRender(GUIApplication* host, cJSON& options);
 		
 		/**
 		* @destructor
 		*/
-		virtual ~GLDraw();
+		virtual ~GLRender();
 		
 		/**
 		* 初始化上下文
@@ -137,6 +137,10 @@ namespace flare {
 		virtual void draw(Scroll* v);
 		virtual void draw(Input* v);
 		virtual void draw(Textarea* v);
+
+		# define FX_Visitor(E, N) virtual void visit##N(N *v);
+			FX_Views(FX_Visitor);
+		# undef  FX_Visitor
 		
 		/**
 		* @func get_gl_texture_pixel_format 获取当前环境对应的OpenGL纹理像素格式,如果返回0表示不支持纹理格式
@@ -213,7 +217,7 @@ namespace flare {
 		
 		friend class GLShader;
 		friend class Texture;
-		friend class GLDrawProxy;
+		friend class GLRenderProxy;
 	};
 
 }

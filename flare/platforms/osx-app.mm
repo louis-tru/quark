@@ -224,7 +224,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	return _window;
 }
 
-- (void)refresh_surface_size_with_rect:(::CGRect)rect {
+- (void)refresh_surface_size_with_rect:(::Rect)rect {
 	if (!_loaded) return;
 	_app->render_loop()->post(Cb([self, rect](CbData& d) {
 		gl_draw_context->refresh_surface_size(rect);
@@ -281,7 +281,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 - (void)initialize {
 	NSOpenGLContext* context = self.glview.openGLContext;
-	::CGRect rect = self.glview.frame;
+	::Rect rect = self.glview.frame;
 	typedef Callback<RunLoop::PostSyncData> Cb;
 	_app->render_loop()->post_sync(Cb([self, rect, context](Cb::Data& d) {
 		gl_draw_context->initialize(self.glview, context);
@@ -304,7 +304,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	NSWindowStyleMask style = NSWindowStyleMaskBorderless |
 		NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
 		NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-	::CGRect sframe = screen.frame;
+	::Rect sframe = screen.frame;
 	
 	float scale = screen.backingScaleFactor;
 	float width = app_options.width > 0 ? app_options.width: sframe.size.width;

@@ -37,14 +37,14 @@ namespace flare {
 
 	class FX_EXPORT Root: public Box {
 		FX_Define_View(Root);
-	 public:
+		public:
 		static Root* create();
 		virtual ~Root();
 		// @overwrite
 		virtual void set_visible(bool val);
 		virtual bool layout_forward(uint32_t mark);
 		virtual bool layout_reverse(uint32_t mark);
-	 protected:
+		protected:
 		virtual void set_parent(View* parent);
 	};
 

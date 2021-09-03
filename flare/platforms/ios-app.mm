@@ -131,7 +131,7 @@ static NSString* app_delegate_name = @"";
 {
 	[coordinator animateAlongsideTransition:^(id context) {
 		Orientation ori = app_delegate.app->display_port()->orientation();
-		::CGRect rect = app_delegate.glview.frame;
+		::Rect rect = app_delegate.glview.frame;
 		app_delegate.app->render_loop()->post(Cb([ori, rect](CbData& d) {
 			gl_draw_context->refresh_surface_size(rect);
 			if (ori != app_delegate.current_orientation) {
@@ -261,7 +261,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 }
 
 - (void)refresh_surface_size {
-	::CGRect rect = app_delegate.glview.frame;
+	::Rect rect = app_delegate.glview.frame;
 	_app->render_loop()->post(Cb([self, rect](CbData& d) {
 		gl_draw_context->refresh_surface_size(rect);
 	}));
@@ -327,7 +327,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	[self add_system_notification];
 	
 	CAEAGLLayer* layer = (CAEAGLLayer*)self.glview.layer;
-	::CGRect rect = self.glview.frame;
+	::Rect rect = self.glview.frame;
 	
 	layer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
 															[NSNumber numberWithBool: NO],
@@ -346,7 +346,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	return YES;
 }
 
-- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::CGRect)frame {
+- (void)application:(UIApplication*)app didChangeStatusBarFrame:(::Rect)frame {
 	if ( app_delegate && !_is_background ) {
 		[self refresh_surface_size];
 	}
@@ -530,7 +530,7 @@ void DisplayPort::keep_screen(bool keep) {
  * @func status_bar_height()
  */
 float DisplayPort::status_bar_height() {
-	::CGRect rect = app_delegate.host.statusBarFrame;
+	::Rect rect = app_delegate.host.statusBarFrame;
 	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale_value[1];
 }
 
@@ -560,7 +560,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 			//}
 			[app_delegate refresh_status];
 			
-			::CGRect rect = app_delegate.glview.frame;
+			::Rect rect = app_delegate.glview.frame;
 			_host->render_loop()->post(Cb([this, rect](CbData& ev) {
 				if ( !gl_draw_context->refresh_surface_size(rect) ) {
 					// 绘图表面尺寸没有改变，表示只是单纯状态栏改变，这个改变也当成change通知给用户

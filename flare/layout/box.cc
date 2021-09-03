@@ -38,15 +38,15 @@ namespace flare {
 
 		switch (_width.type) {
 			default: // NONE /* none default wrap content */
-			case WRAP: /* 包裹内容 wrap content */
+			case SizeType::WRAP: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap width
 				break;
-			case PIXEL: /* 明确值 value px */
+			case SizeType::PIXEL: /* 明确值 value px */
 				*is_wrap_in_out = false;
 				result = _width.value;
 				break;
-			case MATCH: /* 匹配父视图 match parent */
+			case SizeType::MATCH: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -56,7 +56,7 @@ namespace flare {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case RATIO: /* 百分比 value % */
+			case SizeType::RATIO: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -64,7 +64,7 @@ namespace flare {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case MINUS: /* 减法(parent-value) value ! */
+			case SizeType::MINUS: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap width
 				} else { // use wrap
@@ -81,15 +81,15 @@ namespace flare {
 
 		switch (_height.type) {
 			default: // NONE /* none default wrap content */
-			case WRAP: /* 包裹内容 wrap content */
+			case SizeType::WRAP: /* 包裹内容 wrap content */
 				*is_wrap_in_out = true;
 				result = 0; // invalid wrap height
 				break;
-			case PIXEL: /* 明确值 value px */
+			case SizeType::PIXEL: /* 明确值 value px */
 				*is_wrap_in_out = false;
 				result.height(_height.value);
 				break;
-			case MATCH: /* 匹配父视图 match parent */
+			case SizeType::MATCH: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -99,7 +99,7 @@ namespace flare {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case RATIO: /* 百分比 value % */
+			case SizeType::RATIO: /* 百分比 value % */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -107,7 +107,7 @@ namespace flare {
 				}
 				// *is_wrap_in_out = *is_wrap_in_out;
 				break;
-			case MINUS: /* 减法(parent-value) value ! */
+			case SizeType::MINUS: /* 减法(parent-value) value ! */
 				if (*is_wrap_in_out) {
 					result = 0; // invalid wrap height
 				} else { // use wrap
@@ -140,7 +140,7 @@ namespace flare {
 		, _padding_top(0), _padding_right(0)
 		, _padding_bottom(0), _padding_left(0)
 		, _fill(nullptr)
-		, _layout_weight(0), _layout_align(AUTO)
+		, _layout_weight(0), _layout_align(Align::AUTO)
 		, _wrap_x(true), _wrap_y(true)
 	{
 	}
@@ -292,11 +292,11 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_WIDTH) {
 			if (!parent()->is_layout_lock_child()) {
 				auto size = parent()->layout_size();
-				auto val = solve_layout_content_width(size.content_size.x(), &size.is_wrap_x);
+				auto val = solve_layout_content_width(size.content_size.x(), &size.wrap_x);
 
-				if (val != _layout_content_size.width() || _wrap_x != size.is_wrap_x) {
+				if (val != _layout_content_size.width() || _wrap_x != size.wrap_x) {
 					_layout_content_size.width(val);
-					_wrap_x = size.is_wrap_x;
+					_wrap_x = size.wrap_x;
 					// mark(M_LAYOUT_TYPESETTING);
 					layout_content_size_change_mark = M_LAYOUT_SIZE_WIDTH;
 				}
@@ -309,11 +309,11 @@ namespace flare {
 		if (mark & M_LAYOUT_SIZE_HEIGHT) {
 			if (!parent()->is_layout_lock_child()) {
 				auto size = parent()->layout_size();
-				auto val = solve_layout_content_height(size.content_size.y(), &size.is_wrap_y);
+				auto val = solve_layout_content_height(size.content_size.y(), &size.wrap_y);
 
-				if (val != _layout_content_size.height() || _wrap_y != size.is_wrap_y) {
+				if (val != _layout_content_size.height() || _wrap_y != size.wrap_y) {
 					_layout_content_size.height(val);
-					_wrap_y = size.is_wrap_y;
+					_wrap_y = size.wrap_y;
 					layout_content_size_change_mark |= M_LAYOUT_SIZE_HEIGHT;
 				}
 				_layout_size.y(_margin_top + _margin_bottom + val + _padding_top + _padding_bottom);
@@ -334,7 +334,8 @@ namespace flare {
 				v->layout_content_size_change(this, layout_content_size_change_mark);
 				v = v->next();
 			}
-			mark(M_LAYOUT_TYPESETTING | M_LAYOUT_SHAPE); // rearrange
+			mark(M_LAYOUT_TYPESETTING); // rearrange
+			mark_recursive(M_LAYOUT_SHAPE);
 		}
 
 		return (layout_mark() & M_LAYOUT_TYPESETTING);
@@ -347,7 +348,7 @@ namespace flare {
 			}
 			auto v = first();
 			Vec2 origin(_margin_left + _padding_left, _margin_top + _padding_top);
-			vac2 size = _layout_content_size;
+			Vec2 size = _layout_content_size;
 			while (v) {
 				v->set_layout_offset_lazy(origin, size); // lazy layout
 				v = v->next();
@@ -379,7 +380,7 @@ namespace flare {
 		return _layout_weight;
 	}
 
-	Layout::Align layout_align() {
+	Align Box::layout_align() {
 		return _layout_align;
 	}
 
@@ -450,6 +451,7 @@ namespace flare {
 				}
 			}
 			mark(M_LAYOUT_TYPESETTING); // rearrange
+			mark_recursive(M_LAYOUT_SHAPE);
 		}
 
 		unmark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT);
@@ -548,17 +550,36 @@ namespace flare {
 		return true;
 	}
 
+	/**
+		* @func solve_rect_vertex(vertex)
+		*/
+	void Box::solve_rect_vertex(Vec2 vertex[4]) {
+		auto final_matrix = matrix();
+		auto origin = transform_origin();
+		Vec2 start(_margin_left - origin.x(), _margin_top - origin.y());
+		Vec2 end(
+			_layout_content_size.x() + _padding_left + _padding_right + start.x(),
+			_layout_content_size.y() + _padding_top + _padding_bottom + start.y()
+		);
+		vertex[0] = final_matrix * start;
+		vertex[1] = final_matrix * Vec2(end.x(), start.y());
+		vertex[2] = final_matrix * end;
+		vertex[3] = final_matrix * Vec2(start.x(), end.y());
+	}
+
 	bool Box::solve_region_visible() {
 		bool visible = false;
 
-		compute_box_vertex(m_final_vertex);
-		
+		Vec2 vertex[4];
+
+		solve_rect_vertex(vertex);
+
 		/*
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
 		Region dre = app()->display_port()->draw_region();
-		Region re = get_screen_region();
+		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
 		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
 				FX_MAX( dre.x2, re.x2 ) - FX_MIN( dre.x, re.x ) <= re.w + dre.w

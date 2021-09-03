@@ -80,12 +80,12 @@ namespace flare {
 		* @constructor
 		* @arg options {Map} { multisample: 0-4 }
 		*/
-		Draw(GUIApplication* host, cJSON& options);
+		Render(GUIApplication* host, cJSON& options);
 		
 		/**
 		* @destructor
 		*/
-		virtual ~Draw();
+		virtual ~Render();
 		
 		/**
 		* @event surface_size_change_r 绘图表面尺寸发生变化时从渲染线程触发
@@ -93,10 +93,10 @@ namespace flare {
 		FX_Event(surface_size_change_r);
 		
 		inline GUIApplication* host() const { return _host; }
-		inline DrawLibrary library() { return _library; }
+		inline RenderLibrary library() { return _library; }
 		inline Vec2 surface_size() const { return _surface_size; }
-		inline CGRect selected_region() const { return _selected_region; }
-		bool set_surface_size(Vec2 surface_size, CGRect* select_region = nullptr);
+		inline Rect selected_region() const { return _selected_region; }
+		bool set_surface_size(Vec2 surface_size, Rect* select_region = nullptr);
 		inline float best_display_scale() const { return _best_display_scale; }
 		inline uint32_t multisample() const { return _multisample; }
 		inline void set_best_display_scale(float value) { _best_display_scale = value; }
@@ -166,14 +166,14 @@ namespace flare {
 		GUIApplication*     _host;
 		uint32_t            _multisample;      /* 是否启用多重采样 default false */
 		Vec2                _surface_size;     /* 当前绘图表面支持的大小 */
-		CGRect              _selected_region;  /* 选择绘图表面有区域 */
+		Rect              _selected_region;  /* 选择绘图表面有区域 */
 		Texture*            _empty_texture;
 		FontPool*           _font_pool;        /* 字体纹理池 */
 		TexturePool*        _tex_pool;         /* 文件纹理池 */
 		uint64_t            _max_texture_memory_limit;
 		float               _best_display_scale;
-		DrawLibrary         _library;
-		static Draw*        _draw_ctx;
+		RenderLibrary       _library;
+		static Render*      _ctx;
 		
 		friend Draw*        draw_ctx();
 		friend FontPool*    font_pool();

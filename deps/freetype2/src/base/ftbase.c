@@ -29,7 +29,7 @@
 #include "fthash.c"
 #include "ftobjs.c"
 #include "ftoutln.c"
-#include "flarefork.c"
+#include "ftrfork.c"
 #include "ftsnames.c"
 #include "ftstream.c"
 #include "fttrigon.c"

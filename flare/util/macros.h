@@ -393,11 +393,11 @@ defined(__DragonFly__)
 
 #define FX_Define_Prop_Read(type, name) \
 	private: type _##name; \
-	public: inline type name##() const { return _##name; } \
+	public: inline type name () const { return _##name; } \
 
 #define FX_Define_Prop(type, name) \
 	FX_Define_Prop_Read(type, name) \
-	public: void set_##name##(type val); \
+	public: void set_##name (type val); \
 
 // Helper macros end
 // -----------------------------------------------------------------------------

@@ -744,7 +744,7 @@ namespace flare {
 					}
 
 					if ( name == KEYCODE_CENTER && _keyboard->repeat() == 0 ) {
-						// CGRect rect = view->screen_rect();
+						// Rect rect = view->screen_rect();
 						auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_DOWN);
 						_inl_view(view)->trigger_highlightted(**evt); // emit click status event
 					}
@@ -776,7 +776,7 @@ namespace flare {
 				
 				if ( evt->is_default() ) {
 					if ( name == KEYCODE_BACK ) {
-						CGRect rect = view->screen_rect();
+						Rect rect = view->screen_rect();
 						auto evt = NewEvent<GUIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
 																								rect.origin.y() + rect.size.y() / 2,
 																								GUIClickEvent::KEYBOARD);
@@ -791,7 +791,7 @@ namespace flare {
 						auto evt = NewEvent<GUIHighlightedEvent>(view, HIGHLIGHTED_HOVER);
 						_inl_view(view)->trigger_highlightted(**evt); // emit style status event
 						
-						CGRect rect = view->screen_rect();
+						Rect rect = view->screen_rect();
 						auto evt2 = NewEvent<GUIClickEvent>(view, rect.origin.x() + rect.size.x() / 2,
 																							 rect.origin.y() + rect.size.y() / 2,
 																							 GUIClickEvent::KEYBOARD);

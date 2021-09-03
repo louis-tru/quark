@@ -49,7 +49,7 @@ namespace flare {
 		void initialize();
 		bool create_surface(EGLNativeWindowType window);
 		void destroy_surface(EGLNativeWindowType window);
-		void refresh_surface_size(CGRect* rect);
+		void refresh_surface_size(Rect* rect);
 		void refresh_virtual_keyboard_rect();
 		void refresh_buffer();
 		void begin_render();
@@ -65,7 +65,7 @@ namespace flare {
 		EGLSurface _surface;
 		EGLNativeWindowType _window;
 		Vec2 _raw_surface_size;
-		CGRect _virtual_keys_rect;
+		Rect _virtual_keys_rect;
 		GLDraw* _host;
 	};
 

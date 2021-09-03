@@ -34,7 +34,7 @@
 #include "../util/fs.h"
 #include "./font.h"
 #include "../math/bezier.h"
-#include "../draw.h"
+// #include "../draw.h"
 #include "./pool.h"
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -200,14 +200,18 @@ namespace flare {
 		* @func set_vertex_data
 		*/
 		inline bool set_vertex_data( FontGlyph* glyph ) {
-			return _pool->_draw_ctx->set_font_glyph_vertex_data(this, glyph);
+			// return _pool->_draw_ctx->set_font_glyph_vertex_data(this, glyph);
+			// TODO ...
+			return true;
 		}
 		
 		/**
 		* @func set_texture_data
 		*/
 		inline bool set_texture_data(FontGlyph* glyph, FGTexureLevel level) {
-			return _pool->_draw_ctx->set_font_glyph_texture_data(this, glyph, level);
+			// return _pool->_draw_ctx->set_font_glyph_texture_data(this, glyph, level);
+			// TODO ...
+			return true;
 		}
 		
 		/**

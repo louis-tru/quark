@@ -28,17 +28,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "./background.h"
+#include "./fill.h"
 #include "./texture.h"
 #include "./display-port.h"
 
 namespace flare {
 
-FX_DEFINE_INLINE_MEMBERS(Background, Inl) {
+FX_DEFINE_INLINE_MEMBERS(BoxFill, Inl) {
 	public:
-	#define _inl(self) static_cast<Background::Inl*>(static_cast<Background*>(self))
+	#define _inl(self) static_cast<BoxFill::Inl*>(static_cast<BoxFill*>(self))
 	
-	bool check_loop_reference(Background* value) {
+	bool check_loop_reference(BoxFill* value) {
 		if (value) {
 			auto bg = value;
 			do {
@@ -51,7 +51,7 @@ FX_DEFINE_INLINE_MEMBERS(Background, Inl) {
 		return false;
 	}
 	
-	static Background* assign(Background* left, Background* right) {
+	static BoxFill* assign(BoxFill* left, BoxFill* right) {
 		if (right) {
 			if (left == right) {
 				return left;
@@ -81,7 +81,7 @@ FX_DEFINE_INLINE_MEMBERS(Background, Inl) {
 		}
 	}
 	
-	void set_next(Background* value) {
+	void set_next(BoxFill* value) {
 		_next = assign(_next, value);
 		if (_next) {
 			_next->set_host(_host);
@@ -92,21 +92,21 @@ FX_DEFINE_INLINE_MEMBERS(Background, Inl) {
 
 };
 
-Background::Background()
+BoxFill::BoxFill()
 : _next(nullptr)
 , _host(nullptr)
 , _holder_mode(M_INDEPENDENT)
 {
 }
 
-Background::~Background() {
+BoxFill::~BoxFill() {
 	if (_next) {
 		_next->release();
 		_next = nullptr;
 	}
 }
 
-void Background::set_next(Background* value) {
+void BoxFill::set_next(BoxFill* value) {
 	if (value != _next) {
 		if (_inl(this)->check_loop_reference(value)) {
 			FX_ERR("Box background loop reference error");
@@ -118,7 +118,7 @@ void Background::set_next(Background* value) {
 	}
 }
 
-Background* Background::assign(Background* left, Background* right) {
+BoxFill* BoxFill::assign(BoxFill* left, BoxFill* right) {
 	if (left == right) {
 		return left;
 	} else {
@@ -131,7 +131,7 @@ Background* Background::assign(Background* left, Background* right) {
 	}
 }
 
-bool Background::retain() {
+bool BoxFill::retain() {
 	if (_holder_mode == M_DISABLE) {
 		return false;
 	} else if (_holder_mode == M_INDEPENDENT) {
@@ -142,12 +142,12 @@ bool Background::retain() {
 	return Reference::retain();
 }
 
-void Background::release() {
+void BoxFill::release() {
 	set_host(nullptr);
 	Reference::release();
 }
 
-void Background::set_host(Box* host) {
+void BoxFill::set_host(Box* host) {
 	if (_host != host) {
 		_host = host;
 		if (_next) {
@@ -159,7 +159,7 @@ void Background::set_host(Box* host) {
 /**
  * @func set_holder_mode(mode)
  */
-void Background::set_holder_mode(HolderMode mode) {
+void BoxFill::set_holder_mode(HolderMode mode) {
 	if (_holder_mode != mode) {
 		_holder_mode = mode;
 		if (_next) {
@@ -168,7 +168,7 @@ void Background::set_holder_mode(HolderMode mode) {
 	}
 }
 
-void Background::mark(uint32_t mark_value) {
+void BoxFill::mark(uint32_t mark_value) {
 	if (_host) {
 		_host->mark(mark_value);
 	}
@@ -184,9 +184,9 @@ enum {
 	BI_flag_size_y = (1 << 6),
 };
 
-FX_DEFINE_INLINE_MEMBERS(BackgroundImage, Inl) {
+FX_DEFINE_INLINE_MEMBERS(FillImage, Inl) {
 	public:
-	#define _inl2(self) static_cast<BackgroundImage::Inl*>(self)
+	#define _inl2(self) static_cast<FillImage::Inl*>(self)
 
 	void texture_change_handle(Event<int, Texture>& evt) { // 收到图像变化通知
 		GUILock lock;
@@ -231,7 +231,7 @@ FX_DEFINE_INLINE_MEMBERS(BackgroundImage, Inl) {
 	
 };
 
-BackgroundImage::BackgroundImage()
+FillImage::FillImage()
 : _src()
 , _texture(nullptr)
 , _repeat(Repeat::REPEAT)
@@ -239,16 +239,16 @@ BackgroundImage::BackgroundImage()
 {
 }
 
-BackgroundImage::~BackgroundImage() {
+FillImage::~FillImage() {
 	if (_texture) {
 		_texture->FX_Off(change, &Inl::texture_change_handle, _inl2(this));
 		_texture->release(); // 释放纹理
 	}
 }
 
-Background* BackgroundImage::copy(Background* to) {
-	BackgroundImage* target = (to && to->type() == M_IMAGE) ?
-			static_cast<BackgroundImage*>(to) : new BackgroundImage();
+BoxFill* FillImage::copy(BoxFill* to) {
+	FillImage* target = (to && to->type() == M_IMAGE) ?
+			static_cast<FillImage*>(to) : new FillImage();
 	target->_attributes_flags |= _attributes_flags;
 	if (_attributes_flags & BI_flag_src) {
 		target->_src = _src;
@@ -264,19 +264,19 @@ Background* BackgroundImage::copy(Background* to) {
 	return target;
 }
 
-String BackgroundImage::src() const {
+String FillImage::src() const {
 	return _src;
 }
 
-void BackgroundImage::set_src(cString& value) {
+void FillImage::set_src(cString& value) {
 	_inl2(this)->set_source(value, false);
 }
 
-void BackgroundImage::set_src_base64(cString& value) {
+void FillImage::set_src_base64(cString& value) {
 	_inl2(this)->set_source(value, true);
 }
 
-void BackgroundImage::set_texture(Texture* value) {
+void FillImage::set_texture(Texture* value) {
 	if (value != _texture) {
 		if (_texture) {
 			_texture->FX_Off(change, &Inl::texture_change_handle, _inl2(this));
@@ -292,7 +292,7 @@ void BackgroundImage::set_texture(Texture* value) {
 	}
 }
 
-void BackgroundImage::set_repeat(Repeat value) {
+void FillImage::set_repeat(Repeat value) {
 	if (_repeat != value) {
 		_repeat = value;
 		mark(View::M_BACKGROUND);
@@ -300,7 +300,7 @@ void BackgroundImage::set_repeat(Repeat value) {
 	}
 }
 
-void BackgroundImage::set_position_x(BackgroundPosition value) {
+void FillImage::set_position_x(FillPosition value) {
 	if (value != _position_x) {
 		_position_x = value;
 		mark(View::M_BACKGROUND);
@@ -308,7 +308,7 @@ void BackgroundImage::set_position_x(BackgroundPosition value) {
 	}
 }
 
-void BackgroundImage::set_position_y(BackgroundPosition value) {
+void FillImage::set_position_y(FillPosition value) {
 	if (value != _position_y) {
 		_position_y = value;
 		mark(View::M_BACKGROUND);
@@ -316,7 +316,7 @@ void BackgroundImage::set_position_y(BackgroundPosition value) {
 	}
 }
 
-void BackgroundImage::set_size_x(BackgroundSize value) {
+void FillImage::set_size_x(FillSize value) {
 	if (value != _size_x) {
 		_size_x = value;
 		mark(View::M_BACKGROUND);
@@ -324,7 +324,7 @@ void BackgroundImage::set_size_x(BackgroundSize value) {
 	}
 }
 
-void BackgroundImage::set_size_y(BackgroundSize value) {
+void FillImage::set_size_y(FillSize value) {
 	if (value != _size_y) {
 		_size_y = value;
 		mark(View::M_BACKGROUND);
@@ -332,7 +332,7 @@ void BackgroundImage::set_size_y(BackgroundSize value) {
 	}
 }
 
-bool BackgroundImage::get_background_image_data(Box* v,
+bool FillImage::get_fill_image_data(Box* v,
 																								Vec2& final_size,
 																								Vec2& final_position, int& level) {
 	bool ok = false;
@@ -351,51 +351,51 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	
 	float final_size_x, final_size_y, final_position_x, final_position_y;
 	
-	if (sx.type == BackgroundSizeType::AUTO) {
+	if (sx.type == FillSizeType::AUTO) {
 		switch (sy.type) {
-			case BackgroundSizeType::AUTO:
+			case FillSizeType::AUTO:
 				final_size_x = tex_width;
 				final_size_y = tex_height;
 				break;
-			case BackgroundSizeType::PIXEL:
+			case FillSizeType::PIXEL:
 				final_size_y = sy.value;
 				final_size_x = tex_width * final_size_y / tex_height;
 				break;
-			default: // case BackgroundSizeType::PERCENT:
+			default: // case FillSizeType::PERCENT:
 				final_size_y = sy.value * v->_final_height;
 				final_size_x = tex_width * final_size_y / tex_height;
 				break;
 		}
 	} else {
-		if (sx.type == BackgroundSizeType::PIXEL) {
+		if (sx.type == FillSizeType::PIXEL) {
 			final_size_x = sx.value;
 		} else {
 			final_size_x = sx.value * v->_final_width;
 		}
 		switch (sy.type) {
-			case BackgroundSizeType::AUTO:
+			case FillSizeType::AUTO:
 				final_size_y = tex_height * final_size_x / tex_width;
 				break;
-			case BackgroundSizeType::PIXEL:
+			case FillSizeType::PIXEL:
 				final_size_y = sy.value;
 				break;
-			default:// case BackgroundSizeType::PERCENT:
+			default:// case FillSizeType::PERCENT:
 				final_size_y = sy.value * v->_final_height;
 				break;
 		}
 	}
 	
 	switch (px.type) {
-		case BackgroundPositionType::PIXEL:     /* 像素值  px */
+		case FillPositionType::PIXEL:     /* 像素值  px */
 			final_position_x = px.value;
 			break;
-		case BackgroundPositionType::PERCENT:   /* 百分比  % */
+		case FillPositionType::PERCENT:   /* 百分比  % */
 			final_position_x = px.value * v->_final_width;
 			break;
-		case BackgroundPositionType::RIGHT:     /* 居右  % */
+		case FillPositionType::RIGHT:     /* 居右  % */
 			final_position_x = v->_final_width - final_size_x;
 			break;
-		case BackgroundPositionType::CENTER:    /* 居中 */
+		case FillPositionType::CENTER:    /* 居中 */
 			final_position_x = (v->_final_width - final_size_x) / 2;
 			break;
 		default:
@@ -403,16 +403,16 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	}
 	
 	switch (py.type) {
-		case BackgroundPositionType::PIXEL:     /* 像素值  px */
+		case FillPositionType::PIXEL:     /* 像素值  px */
 			final_position_y = py.value;
 			break;
-		case BackgroundPositionType::PERCENT:   /* 百分比  % */
+		case FillPositionType::PERCENT:   /* 百分比  % */
 			final_position_y = py.value * v->_final_height;
 			break;
-		case BackgroundPositionType::BOTTOM:     /* 居下  % */
+		case FillPositionType::BOTTOM:     /* 居下  % */
 			final_position_y = v->_final_height - final_size_y;
 			break;
-		case BackgroundPositionType::CENTER:    /* 居中 */
+		case FillPositionType::CENTER:    /* 居中 */
 			final_position_y = (v->_final_height - final_size_y) / 2;
 			break;
 		default:
@@ -441,13 +441,13 @@ bool BackgroundImage::get_background_image_data(Box* v,
 	return true;
 }
 
-BackgroundGradient::BackgroundGradient()
+FillGradient::FillGradient()
 {
 }
 
-Background* BackgroundGradient::copy(Background* to) {
-	BackgroundGradient* target = (to && to->type() == M_GRADIENT) ?
-		static_cast<BackgroundGradient*>(to) : new BackgroundGradient();
+BoxFill* FillGradient::copy(BoxFill* to) {
+	FillGradient* target = (to && to->type() == M_GRADIENT) ?
+		static_cast<FillGradient*>(to) : new FillGradient();
 	// TODO ..
 	_inl(target)->set_next(_next);
 	return target;

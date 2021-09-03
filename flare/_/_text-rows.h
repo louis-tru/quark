@@ -31,7 +31,7 @@
 #ifndef __flare__text_rows__
 #define __flare__text_rows__
 
-#include "./views2/layout.h"
+#include "./layout/layout.h"
 
 /**
  * @ns flare

@@ -56,9 +56,7 @@ namespace flare {
 			float offset = 0, max_cross = 0;
 			Vec2 cur = cur_size.content_size;
 
-			Vec2 origin = is_horizontal ?
-				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
-				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
+			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
 			if (cur_size.wrap_y) { // wrap y
 				auto v = first();
@@ -114,9 +112,7 @@ namespace flare {
 			float main_size = is_horizontal ? cur.x(): cur.y();
 			float cross_size_old = is_horizontal ? cur.y(): cur.x();
 
-			Vec2 origin = is_horizontal ?
-				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
-				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
+			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
 			auto v = is_reverse ? last(): first();
 			while (v) {
@@ -209,9 +205,7 @@ namespace flare {
 			float total_cross = 0;
 			bool wrap_reverse = _direction == Wrap::WRAP_REVERSE;
 
-			Vec2 origin = is_horizontal ?
-				Vec2(margin_left() + padding_left(), margin_top() + padding_top()):
-				Vec2(margin_top() + padding_top(), margin_left() + padding_left());
+			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
 			Array<Item> _items
 			float _total_main = 0, _max_cross = 0;
@@ -283,10 +277,10 @@ namespace flare {
 							cross_offset_item += (cross - (is_horizontal ? s.y(): s.x())); break;
 					}
 					if (is_horizontal) {
-						v->set_layout_offset(Vec2(offset, cross_offset_item));
+						v->set_layout_offset(Vec2(offset, cross_offset_item) + origin);
 						offset += (s.x() + space);
 					} else {
-						v->set_layout_offset(Vec2(cross_offset_item, offset));
+						v->set_layout_offset(Vec2(cross_offset_item, offset) + origin);
 						offset += (s.y() + space);
 					}
 				}
@@ -362,6 +356,10 @@ namespace flare {
 
 	bool Flex::layout_forward(uint32_t mark) {
 		auto layout_content_size_change_mark = solve_layout_size(mark);
+
+		if (layout_content_size_change_mark) {
+			mark_recursive(M_LAYOUT_SHAPE);
+		}
 
 		if (mark & (M_LAYOUT_TYPESETTING | M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT)) {
 			_inl(this)->update_IsLockChild(layout_content_size_change_mark);

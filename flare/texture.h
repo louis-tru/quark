@@ -40,7 +40,7 @@
 
 namespace flare {
 
-	class Draw;
+	class Render;
 	class FileTexture;
 	class TexturePool;
 
@@ -169,7 +169,7 @@ namespace flare {
 		uint32_t  _diagonal;
 		PixelFormat _format;
 
-		friend class GLDraw;
+		// friend class GLDraw;
 		FX_DEFINE_INLINE_CLASS(Inl);
 	};
 
@@ -242,7 +242,7 @@ namespace flare {
 		/**
 		* @constructor
 		*/
-		TexturePool(Draw* ctx);
+		TexturePool(Render* ctx);
 		
 		/**
 		* @destructor
@@ -276,14 +276,14 @@ namespace flare {
 		
 		private:
 		
-		Draw* _draw_ctx;
+		Render* _render_ctx;
 		Dict<String, FileTexture*> _textures;
 		Dict<Texture*, bool> _completes;
 		uint64_t _total_data_size; /* 纹池当前数据总量 */
 		
 		FX_DEFINE_INLINE_CLASS(Inl)
 		
-		friend class Draw;
+		friend class Render;
 	};
 
 }

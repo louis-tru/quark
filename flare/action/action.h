@@ -32,7 +32,7 @@
 #define __flare__action__action__
 
 #include "../value.h"
-#include "../math/bezier.h"
+#include "../bezier.h"
 #include "../event.h"
 #include "../_property.h"
 #include "../background.h"

@@ -812,10 +812,8 @@ namespace flare {
 	/**
 	* @func screen_rect_from_convex_quadrilateral
 	*/
-	CGRect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
-		
+	Rect View::screen_rect_from_convex_quadrilateral(Vec2 quadrilateral_vertex[4]) {
 		Region re = screen_region_from_convex_quadrilateral(quadrilateral_vertex);
-		
 		return { Vec2(re.x, re.y), Vec2(re.w, re.h) };
 	}
 
@@ -823,12 +821,11 @@ namespace flare {
 	* @func screen_region_from_convex_quadrilateral
 	*/
 	Region View::screen_region_from_convex_quadrilateral(Vec2* quadrilateral_vertex) {
-			
 		#define A quadrilateral_vertex[0]
 		#define B quadrilateral_vertex[1]
 		#define C quadrilateral_vertex[2]
 		#define D quadrilateral_vertex[3]
-			
+		
 		Vec2 min, max, size;
 		
 		float w1 = fabs(A.x() - C.x());

@@ -97,30 +97,30 @@ namespace flare {
 		struct FX_EXPORT TrackInfo {
 			TrackInfo();
 			TrackInfo(const TrackInfo&);
-			uint32_t        track;            /* 轨道在源中的索引 */
+			uint32_t    track;            /* 轨道在源中的索引 */
 			MediaType   type;             /* type */
 			String      mime;             /* mime类型 */
 			int         codec_id;         /* codec id */
-			uint32_t        codec_tag;        /* codec tag */
+			uint32_t    codec_tag;        /* codec tag */
 			int         format;           /* format */
 			int         profile;          /* profile */
 			int         level;            /* level */
-			uint32_t        width;            /* 输出图像宽度 */
-			uint32_t        height;           /* 输出图像高度 */
+			uint32_t    width;            /* 输出图像宽度 */
+			uint32_t    height;           /* 输出图像高度 */
 			String      language;         /* 语言 */
-			uint32_t        bitrate;          /* 码率 */
-			uint32_t        sample_rate;      /* 声音采样率 */
-			uint32_t        channel_count;    /* 声音声道数量 */
-			uint64_t      channel_layout;   /* channel_layout */
-			uint32_t        frame_interval;   /* 图像帧时间间隔 */
+			uint32_t    bitrate;          /* 码率 */
+			uint32_t    sample_rate;      /* 声音采样率 */
+			uint32_t    channel_count;    /* 声音声道数量 */
+			uint64_t    channel_layout;   /* channel_layout */
+			uint32_t    frame_interval;   /* 图像帧时间间隔 */
 			Buffer      extradata;        /* extradata */
 		};
 		
 		struct FX_EXPORT BitRateInfo {  /* 码率 */
-			int     bandwidth;
+			int         bandwidth;
 			uint32_t    width;
 			uint32_t    height;
-			String  codecs;
+			String      codecs;
 			Array<TrackInfo>  tracks;
 		};
 		
@@ -249,7 +249,7 @@ namespace flare {
 			inline bool is_disable() const { return _disable; }
 			
 			private:
-			
+
 			Extractor(MediaType type, MultimediaSource* host, Array<TrackInfo>&& tracks);
 
 			struct SampleData {
@@ -354,7 +354,7 @@ namespace flare {
 		AVStream* get_stream(const TrackInfo& track);
 		
 		private:
-		
+
 		friend class Extractor;
 		friend class MediaCodec;
 		Inl*         _inl;
@@ -501,15 +501,14 @@ namespace flare {
 		static MediaCodec* software(MediaType type, MultimediaSource* source);
 		
 		protected:
-
 		MediaCodec(Extractor* extractor);
 		
 		Extractor*  _extractor;
 		Delegate*   _delegate;
 		VideoColorFormat _color_format;
 		uint64_t      _channel_layout;
-		uint32_t        _channel_count;
-		uint32_t        _frame_interval;
+		uint32_t      _channel_count;
+		uint32_t      _frame_interval;
 	};
 
 }

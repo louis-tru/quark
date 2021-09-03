@@ -31,7 +31,6 @@
 #ifndef __flare__font__font__
 #define __flare__font__font__
 
-#include "../draw.h"
 #include "../value.h"
 
 namespace flare {
@@ -197,7 +196,7 @@ namespace flare {
 		friend class FontGlyph;
 		friend class FontGlyphTable;
 		friend class FontPool;
-		friend class GLDraw;
+		// friend class GLDraw;
 	};
 
 	/**
@@ -307,7 +306,7 @@ namespace flare {
 		
 		friend class Font;
 		friend class FontGlyphTable;
-		friend class GLDraw;
+		// friend class GLDraw;
 	};
 
 	/**

@@ -47,9 +47,6 @@
 
 namespace flare {
 
-	class DrawOption;
-	class Draw;
-	class GLDraw;
 	class DisplayPort;
 	class View;
 	class Root;
@@ -58,7 +55,9 @@ namespace flare {
 	class PropertysAccessor;
 	class CSSManager;
 	class PreRender;
+	class Render;
 	class DefaultTextSettings;
+	class GUIApplication;
 
 	/*
 	* 关于GUI中的事件:
@@ -136,9 +135,9 @@ namespace flare {
 		inline bool is_loaded() const { return _is_load; }
 
 		/**
-		* @func draw_ctx 绘图上下文
+		* @func render_ctx 绘图上下文
 		*/
-		inline Draw* draw_ctx() { return _draw_ctx; }
+		inline Render* render_ctx() { return _render_ctx; }
 		
 		/**
 		* @func display_port GUI程序显示端口
@@ -241,7 +240,7 @@ namespace flare {
 		bool  _is_run, _is_load;
 		RunLoop  *_render_loop, *_main_loop;
 		KeepLoop *_render_keep, *_main_keep;
-		Draw*                _draw_ctx;         // 绘图上下文
+		Render*              _render_ctx;         // 绘图上下文
 		DisplayPort*         _display_port;     // 显示端口
 		PreRender*           _pre_render;
 		Root*                _root;             // 根视图

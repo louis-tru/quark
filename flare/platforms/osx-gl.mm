@@ -140,7 +140,7 @@ namespace flare {
 		}
 	}
 
-	bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
+	bool GLDrawProxy::refresh_surface_size(::Rect rect) {
 		float scale = UIScreen.mainScreen.backingScaleFactor;
 		Vec2 size(rect.size.width * scale, rect.size.height * scale);
 		if ( !size.is_zero() ) {

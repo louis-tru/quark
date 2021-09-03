@@ -31,7 +31,7 @@
 #ifndef __flare__math__math__
 #define __flare__math__math__
 
-#include "../util/util.h"
+#include "./util/util.h"
 
 
 #define T_PI 3.1415926535898f                   // PI

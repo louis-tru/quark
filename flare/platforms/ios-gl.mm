@@ -171,7 +171,7 @@ namespace flare {
 		_host->set_best_display_scale(UIScreen.mainScreen.scale);
 	}
 
-	bool GLDrawProxy::refresh_surface_size(::CGRect rect) {
+	bool GLDrawProxy::refresh_surface_size(::Rect rect) {
 		float scale = UIScreen.mainScreen.scale;
 		Vec2 size(rect.size.width * scale, rect.size.height * scale);
 		if ( !size.is_zero() ) {

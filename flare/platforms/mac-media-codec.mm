@@ -28,7 +28,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "flare/media-codec-1.h"
+#import "flare/media/_media-codec.h"
 #import <VideoToolbox/VideoToolbox.h>
 #import <AudioToolbox/AudioToolbox.h>
 
@@ -366,7 +366,7 @@ namespace flare {
 					for (int i = 0; i < OUTPUT_BUFFER_NUM; i++) {
 						OutputBufferInfo* b2 = _output_buffer + i;
 						if ( b2->buffer ) {
-							if ( b2->time == Uint64::max ) { //  Unknown time frame
+							if ( b2->time == Uint64::limit_max ) { //  Unknown time frame
 								if ( unknown_time_frame ) {
 									_output_buffer_count--;
 									CVPixelBufferUnlockBaseAddress(unknown_time_frame->buffer, unknown_time_frame->lock);

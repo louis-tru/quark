@@ -41,91 +41,14 @@ namespace flare {
 
 	class FX_EXPORT Text: public Box {
 		FX_Define_View(Text);
-	 public:
-
-		/**
-		* @enum TextValueType
-		*/
-		enum TextValueType: uint8_t {
-			DEFAULT = value::DEFAULT,
-			INHERIT = value::INHERIT,
-			VALUE = value::VALUE,
-		};
-
-		/**
-		* @enum TextWeightValue
-		*/
-		enum TextWeightValue: uint8_t {
-			THIN = value::THIN,
-			ULTRALIGHT = value::ULTRALIGHT,
-			LIGHT = value::LIGHT,
-			REGULAR = value::REGULAR,
-			MEDIUM = value::MEDIUM,
-			SEMIBOLD = value::SEMIBOLD,
-			BOLD = value::BOLD,
-			HEAVY = value::HEAVY,
-			BLACK = value::BLACK,
-		};
-
-		/**
-		 * @enum TextStyleValue
-		 */
-		enum TextStyleValue: unit8_t {
-			NORMAL = value::NORMAL, // 正常
-			ITALIC = value::ITALIC, // 斜体
-			OBLIQUE = value::OBLIQUE,  // 倾斜
-		};
-
-		/**
-		* @enum TextDecorationValue
-		*/
-		enum TextDecorationValue: uint8_t {
-			NONE = value::NONE,           /* 没有 */
-			OVERLINE = value::OVERLINE,       /* 上划线 */
-			LINE_THROUGH = value::LINE_THROUGH,   /* 中划线 */
-			UNDERLINE = value::UNDERLINE,      /* 下划线 */
-		};
-
-		/**
-		* @enum TextOverflowValue
-		*/
-		enum TextOverflowValue: uint8_t {
-			NORMAL = value::NORMAL,          /* 不做任何处理 */
-			CLIP = value::CLIP,            /* 剪切 */
-			ELLIPSIS = value::ELLIPSIS,        /* 剪切并显示省略号 */
-			CENTER_ELLIPSIS = value::CENTER_ELLIPSIS, /* 剪切并居中显示省略号 */
-		};
-		
-		/**
-		 * @enum TextWhiteSpaceValue
-		 */
-		enum TextWhiteSpaceValue: uint8_t {
-			NORMAL = value::NORMAL,          /* 保留所有空白,使用自动wrap */
-			NO_WRAP = value::NO_WRAP,        /* 合并空白序列,不使用自动wrap */
-			NO_SPACE = value::NO_SPACE,      /* 合并空白序列,使用自动wrap */
-			PRE = value::PRE,                /* 保留所有空白,不使用自动wrap */
-			PRE_LINE = value::PRE_LINE,      /* 合并空白符序列,但保留换行符,使用自动wrap */
-			WRAP = value::WRAP,              /* 保留所有空白,强制使用自动wrap */
-		};
-
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, Color> TextColor;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextSize;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWeightValue> TextWeight;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextStyleValue> TextStyle;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, Shadow> TextShadow;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextLineHeight;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextDecorationValue> TextDecoration;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextOverflowValue> TextOverflow;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWhiteSpaceValue> TextWhiteSpace;
-		typedef TemplateValue<TextValueType, TextValueType::INHERIT, FFID> TextFamily;
-
+		public:
 		// TODO ...
 		private:
 		// TODO ...
 	};
 
 	class DefaultTextSettings: public Object {
-	 public:
+		public:
 		DefaultTextSettings();
 
 		// get default text attrs
@@ -151,7 +74,7 @@ namespace flare {
 		void set_text_overflow(TextOverflow value);
 		void set_text_white_space(TextWhiteSpace value);
 		
-	 private:
+		private:
 		TextColor       _text_background_color; // default text attrs
 		TextColor       _text_color;
 		TextSize        _text_size;

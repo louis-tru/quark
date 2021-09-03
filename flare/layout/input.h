@@ -37,44 +37,9 @@ namespace flare {
 
 	class FX_EXPORT Input: public Box {
 		FX_Define_View(Input);
-	 public:
-
-		/**
-		 * @enum KeyboardType
-		 */
-		enum KeyboardType: uint8_t {
-			NORMAL = value::NORMAL,
-			ASCII = value::ASCII,
-			NUMBER = value::NUMBER,
-			URL = value::URL,
-			NUMBER_PAD = value::NUMBER_PAD,
-			PHONE = value::PHONE,
-			NAME_PHONE = value::NAME_PHONE,
-			EMAIL = value::EMAIL,
-			DECIMAL = value::DECIMAL,
-			TWITTER = value::TWITTER,
-			SEARCH = value::SEARCH,
-			ASCII_NUMBER = value::ASCII_NUMBER,
-		};
-
-		/**
-		* @enum KeyboardReturnType
-		*/		
-		enum KeyboardReturnType: uint8_t {
-			NORMAL = value::NORMAL,
-			GO = value::GO,
-			JOIN = value::JOIN,
-			NEXT = value::NEXT,
-			ROUTE = value::ROUTE,
-			SEARCH = value::SEARCH,
-			SEND = value::SEND,
-			DONE = value::DONE,
-			EMERGENCY = value::EMERGENCY,
-			CONTINUE = value::CONTINUE,
-		};
-
+		public:
 		// TODO ...
-	 private:
+		private:
 		// TODO ...
 	};
 

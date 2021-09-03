@@ -30,7 +30,7 @@
 
 #include "./app.h"
 #include "./texture.h"
-#include "./draw.h"
+// #include "./draw.h"
 #include "./util/fs.h"
 #include "./util/array.h"
 #include "./display-port.h"
@@ -311,7 +311,8 @@ namespace flare {
 		 * @func load_mipmap_data 通过像素数据载入mipmap纹理到GPU,如果成功返回true
 		 */
 		bool load_mipmap_data(const Array<PixelData>& mipmap_data) {
-			auto ctx = draw_ctx();
+			// TODO ...
+			auto ctx = nullptr;//draw_ctx();
 			if (!ctx) return false;
 			uint32_t size = 0;
 			uint32_t size_pixel = PixelData::get_pixel_data_size(mipmap_data[0].format());
@@ -352,7 +353,8 @@ namespace flare {
 		}
 		
 		void generate_texture() {
-			auto ctx = draw_ctx();
+			// TODO ...
+			Render* ctx = nullptr;//draw_ctx();
 			if (!ctx) return;
 
 			FX_ASSERT_STRICT_RENDER_THREAD();

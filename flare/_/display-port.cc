@@ -82,8 +82,8 @@ namespace flare {
 			
 			// 计算2D视图变换矩阵
 			
-			CGRect region = _draw_ctx->selected_region();
-			Vec2 surface_size = _draw_ctx->surface_size();
+			Rect region = _render_ctx->selected_region();
+			Vec2 surface_size = _render_ctx->surface_size();
 			
 			Vec2 start = Vec2(-region.origin.x() / _scale_value[0], -region.origin.y() / _scale_value[1]);
 			Vec2 end = Vec2(surface_size.width() / _scale_value[0] + start.x(),
@@ -187,7 +187,8 @@ namespace flare {
 	void DisplayPort::render_frame() {
 		Root* r = _host->root();
 		int64_t now_time = os::time_monotonic();
-		_host->action_center()->advance(now_time); // advance action
+		// TODO ...
+		// _host->action_center()->advance(now_time); // advance action
 		
 		if (r) {
 			bool redraw = _host->_pre_render->solve(now_time);
