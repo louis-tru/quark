@@ -32,7 +32,7 @@
 #define __flare__math__bezier__
 
 #include "./math.h"
-#include "../util/array.h"
+#include "./util/array.h"
 
 namespace flare {
 

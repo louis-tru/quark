@@ -183,7 +183,7 @@ namespace flare {
 				JSON& font = fonts[j];
 				sffd.fonts.push({
 					font[0].to_string(),  // name
-					TextStyleEnum(font[1].to_uint32()), // style
+					TextStyleValue(font[1].to_uint32()), // style
 					font[2].to_uint32(),  // num_glyphs
 					font[3].to_int(),     // height
 					font[4].to_int(),     // max_advance

@@ -30,6 +30,7 @@
 
 #include "./layout.h"
 #include "../_pre-render.h"
+#include "../app.h"
 
 namespace flare {
 
@@ -68,8 +69,8 @@ namespace flare {
 		*
 		* @func layout_align()
 		*/
-	Layout::Align Layout::layout_align() {
-		return AUTO;
+	Align Layout::layout_align() {
+		return Align::AUTO;
 	}
 
 	/**
@@ -227,13 +228,6 @@ namespace flare {
 				app()->pre_render()->mark_recursive(this, depth); // push to pre render
 			}
 		}
-	}
-
-	/**
-		* @func mark_none()
-		*/
-	void Layout::mark_none() {
-		app()->pre_render()->mark_none(this);
 	}
 
 }

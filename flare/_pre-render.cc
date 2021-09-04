@@ -29,9 +29,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./_pre-render.h"
-#include "./draw.h"
-#include "./views2/div.h"
-#include "./css/css.h"
+#include "./layout/layout.h"
+#include "./app.h"
 
 namespace flare {
 
@@ -117,7 +116,7 @@ namespace flare {
 	* @constructor
 	*/
 	PreRender::PreRender()
-		: _has_render(false)
+		: _is_render(false)
 		, _mark_total(0)
 		, _mark_recursive_total(0)
 		, _marks(8)
@@ -186,10 +185,6 @@ namespace flare {
 		layout->_recursive_mark_index = arr.length();
 		arr.push(layout);
 		_mark_recursive_total++;
-	}
-
-	void PreRender::mark_none() {
-		_is_render = true;
 	}
 
 	void PreRender::delete_mark(Layout *layout, uint32_t depth) {

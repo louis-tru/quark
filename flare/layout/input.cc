@@ -32,6 +32,10 @@
 
 namespace flare {
 
+	void View::Visitor::visitInput(Input *v) {
+		visitBox(v);
+	}
+
 	/**
 		*
 		* Accepting visitors

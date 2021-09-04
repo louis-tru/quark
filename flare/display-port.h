@@ -33,7 +33,7 @@
 
 #include "./util/util.h"
 #include "./util/event.h"
-#include "./math/math.h"
+#include "./math.h"
 #include "./value.h"
 #include "./util/cb.h"
 
@@ -135,22 +135,21 @@ namespace flare {
 		/**
 		* @func draw_region
 		*/
-		inline const Region& draw_region() const {
-			//return
-			_draw_region.back();
+		inline const Region& region() const {
+			return _region.back();
 		}
 
 		/**
 		* @func push_draw_region
 		*/
-		void push_draw_region(Region value);
+		void push_region(Region value);
 		
 		/**
 		* @func pop_draw_region
 		*/
-		inline void pop_draw_region() {
-			ASSERT( _draw_region.length() > 1 );
-			_draw_region.pop_back();
+		inline void pop_region() {
+			ASSERT( _region.length() > 1 );
+			_region.pop_back();
 		}
 		
 		/**

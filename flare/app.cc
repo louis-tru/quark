@@ -39,7 +39,8 @@
 // #include "./css/css.h"
 #include "./font/pool.h"
 #include "./_pre-render.h"
-#include "../layout/text.h"
+#include "./layout/text.h"
+#include "./event.h"
 
 FX_EXPORT int (*__fx_default_gui_main)(int, char**) = nullptr;
 FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
@@ -156,13 +157,14 @@ namespace flare {
 	*/
 	bool AppInl::set_focus_view(View* view) {
 		if ( _focus_view != view ) {
-			if ( view->final_visible() && view->can_become_focus() ) {
+			if ( view->layout_depth() && view->can_become_focus() ) {
 				if ( _focus_view ) {
 					_focus_view->release();
 				}
 				_focus_view = view;
 				_focus_view->retain(); // strong ref
-				_dispatch->make_text_input(view->as_itext_input());
+				// TODO ...
+				// _dispatch->make_text_input(view->as_itext_input());
 			} else {
 				return false;
 			}
@@ -198,7 +200,7 @@ namespace flare {
 		}, "runMain");
 
 		// 在调用GUIApplication::run()之前一直阻塞这个主线程
-		while (!_shared || !_shared->_is_run)) {
+		while (!_shared || !_shared->_is_run) {
 			__run_main_wait->wait();
 		}
 	}

@@ -83,10 +83,10 @@
 			'layout/scroll.cc',
 			'layout/text.h',
 			'layout/text.cc',
-			'layout/vodeo.h',
-			'layout/vodeo.cc',
+			'layout/video.h',
+			'layout/video.cc',
 			'layout/view.h',
-			'layout/vite.cc',
+			'layout/view.cc',
 			#
 			# 'action/_action.h',
 			# 'action/action.h',
@@ -121,11 +121,11 @@
 			'font/levels.cc',
 			'font/pool.cc',
 			#
-			'gl/gl.h',
-			'gl/gl.cc',
-			'gl/gl-draw.cc',
-			'gl/gl-texture.cc',
-			'gl/gl-font.cc',
+			# 'gl/gl.h',
+			# 'gl/gl.cc',
+			# 'gl/gl-draw.cc',
+			# 'gl/gl-texture.cc',
+			# 'gl/gl-font.cc',
 			#
 			'math.h',
 			'math.cc',
@@ -270,7 +270,7 @@
 				],
 				'outputs': [
 					'../out/native-glsl.h',
-					'../out/native-glsl.cc',
+					# '../out/native-glsl.cc',
 				],
 				'action': [
 					'<(node)',

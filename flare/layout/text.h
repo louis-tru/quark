@@ -35,10 +35,6 @@
 
 namespace flare {
 
-	class FontFamilysID;
-
-	typedef const FontFamilysID *FFID;
-
 	class FX_EXPORT Text: public Box {
 		FX_Define_View(Text);
 		public:
@@ -50,42 +46,19 @@ namespace flare {
 	class DefaultTextSettings: public Object {
 		public:
 		DefaultTextSettings();
-
-		// get default text attrs
-		inline TextColor text_background_color() { return _text_background_color; }
-		inline TextColor text_color() { return _text_color; }
-		inline TextSize text_size() { return _text_size; }
-		inline TextStyle text_style() { return _text_style; }
-		inline TextFamily text_family() { return _text_family; }
-		inline TextShadow text_shadow() { return _text_shadow; }
-		inline TextLineHeight text_line_height() { return _text_line_height; }
-		inline TextDecoration text_decoration() { return _text_decoration; }
-		inline TextOverflow text_overflow() { return _text_overflow; }
-		inline TextWhiteSpace text_white_space() { return _text_white_space; }
-		// set default text attrs
-		void set_text_background_color(TextColor value);
-		void set_text_color(TextColor value);
-		void set_text_size(TextSize value);
-		void set_text_style(TextStyle value);
-		void set_text_family(TextFamily value);
-		void set_text_shadow(TextShadow value);
-		void set_text_line_height(TextLineHeight value);
-		void set_text_decoration(TextDecoration value);
-		void set_text_overflow(TextOverflow value);
-		void set_text_white_space(TextWhiteSpace value);
-		
-		private:
-		TextColor       _text_background_color; // default text attrs
-		TextColor       _text_color;
-		TextSize        _text_size;
-		TextStyle       _text_style;
-		TextFamily      _text_family;
-		TextShadow      _text_shadow;
-		TextLineHeight  _text_line_height;
-		TextDecoration  _text_decoration;
-		TextOverflow    _text_overflow;
-		TextWhiteSpace  _text_white_space; // text
-	}
+		// define props
+		FX_Define_Prop(TextColor, text_background_color);
+		FX_Define_Prop(TextColor, text_color);
+		FX_Define_Prop(TextSize, text_size);
+		FX_Define_Prop(TextWeight, text_weight);
+		FX_Define_Prop(TextStyle, text_style);
+		FX_Define_Prop(TextFamily, text_family);
+		FX_Define_Prop(TextShadow, text_shadow);
+		FX_Define_Prop(TextLineHeight, text_line_height);
+		FX_Define_Prop(TextDecoration, text_decoration);
+		FX_Define_Prop(TextOverflow, text_overflow);
+		FX_Define_Prop(TextWhiteSpace, text_white_space);
+	};
 
 }
 

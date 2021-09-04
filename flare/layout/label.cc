@@ -32,6 +32,10 @@
 
 namespace flare {
 
+	void View::Visitor::visitLabel(Label *v) {
+		visitView(v);
+	}
+
 	/**
 		*
 		* Accepting visitors

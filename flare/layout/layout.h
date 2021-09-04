@@ -68,9 +68,9 @@ namespace flare {
 
 		// layout size
 		struct Size {
-			Vec2 layout_size; Vec2 content_size;
+			Vec2 layout_size, content_size;
 			// Vec2 layout_min_size, layout_max_size; ??
-			bool wrap_x; bool wrap_y;
+			bool wrap_x, wrap_y;
 		};
 
 		/**
@@ -247,11 +247,6 @@ namespace flare {
 			* @func mark_recursive(mark)
 			*/
 		void mark_recursive(uint32_t mark);
-
-		/**
-			* @func mark_none()
-			*/
-		void mark_none();
 
 		/**
 			* @func unmark(mark)

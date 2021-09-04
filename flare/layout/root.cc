@@ -32,10 +32,15 @@
 #include "../fill.h"
 #include "../_app.h"
 #include "../util/handle.h"
+#include "../display-port.h"
 
 namespace flare {
 
 	void __View_SetVisible(View* self, bool val, uint32_t layout_depth);
+
+	void View::Visitor::visitRoot(Root *v) {
+		visitBox(v);
+	}
 
 	/**
 		*
@@ -43,7 +48,7 @@ namespace flare {
 		* 
 		* @func accept(visitor)
 		*/
-	void Video::accept(Visitor *visitor) {
+	void Root::accept(Visitor *visitor) {
 		visitor->visitRoot(this);
 	}
 
@@ -53,11 +58,11 @@ namespace flare {
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);
-		r->set_width(SizeValue(0, MATCH));
-		r->set_height(SizeValue(0, MATCH));
+		r->set_width(SizeValue(0, SizeType::MATCH));
+		r->set_height(SizeValue(0, SizeType::MATCH));
 		// set_fill(new FillColor(255, 255, 255)); // // 默认白色背景
-		mark_recursive(M_TRANSFORM);
-		_inl_app(app)->set_root(r);
+		r->mark_recursive(M_TRANSFORM);
+		_inl_app(app)->set_root(*r);
 		return r.collapse();
 	}
 
@@ -93,7 +98,7 @@ namespace flare {
 		if (mark & (M_LAYOUT_TYPESETTING)) {
 			auto v = first();
 			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
-			vac2 size = layout_size().content_size;
+			Vec2 size = layout_size().content_size;
 			while (v) {
 				v->set_layout_offset_lazy(origin, size); // lazy layout
 				v = v->next();
@@ -103,7 +108,7 @@ namespace flare {
 		return false; // stop iteration
 	}
 
-	void Root::set_parent() {
+	void Root::set_parent(View* parent) {
 		FX_UNREACHABLE();
 	}
 

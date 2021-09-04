@@ -33,7 +33,7 @@
 
 #include "../util/fs.h"
 #include "./font.h"
-#include "../math/bezier.h"
+#include "../bezier.h"
 // #include "../draw.h"
 #include "./pool.h"
 #include <ft2build.h>
@@ -118,7 +118,7 @@ namespace flare {
 			FontPool* pool,
 			FontFamily* family,
 			String font_name,
-			TextStyleEnum style,
+			TextStyleValue style,
 			uint32_t num_glyphs,
 			uint32_t face_index,
 			int height,       /* text height in 26.6 frac. pixels       */
@@ -231,7 +231,7 @@ namespace flare {
 		public:
 		#define _inl_table(self) static_cast<FontGlyphTable::Inl*>(self)
 		void clear_table();
-		void initialize(cFFID ffid, TextStyleEnum style, FontPool* pool);
+		void initialize(FFID ffid, TextStyleValue style, FontPool* pool);
 		void make();
 		void set_glyph(uint32_t region, uint32_t index, FontGlyph* glyph);
 		FontGlyph* get_glyph(uint16_t unicode);
@@ -241,7 +241,7 @@ namespace flare {
 	FX_DEFINE_INLINE_MEMBERS(FontFamily, Inl) {
 		public:
 		#define _inl_family(self) static_cast<FontFamily::Inl*>(self)
-		int get_font_style_index(TextStyleEnum style);
+		int get_font_style_index(TextStyleValue style);
 		void add_font(Font* font);
 	};
 
@@ -252,7 +252,7 @@ namespace flare {
 		bool register_font(
 			cString& family_name,
 			cString& font_name,
-			TextStyleEnum style,
+			TextStyleValue style,
 			uint32_t num_glyphs,
 			uint32_t face_index,
 			int  height,       /* text height in 26.6 frac. pixels       */
@@ -267,7 +267,7 @@ namespace flare {
 		bool register_font(FontFromData::Data* font_data, cString& family_alias);
 		void display_port_change_handle(Event<>& evt);
 		static bool has_italic_style(cString& style_name);
-		static TextStyleEnum parse_style_flags(cString& name, cString& style_name);
+		static TextStyleValue parse_style_flags(cString& name, cString& style_name);
 		static Handle<FontPool::SimpleFontFamily> inl_read_font_file(cString& path, FT_Library lib);
 	};
 

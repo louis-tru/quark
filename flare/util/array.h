@@ -527,7 +527,7 @@ namespace flare {
 			_length = capacity;
 		}
 		realloc_(capacity);
-		return std::move(*this);
+		// return std::move(*this);
 	}
 
 	template<typename T, typename A>

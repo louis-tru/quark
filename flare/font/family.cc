@@ -32,29 +32,30 @@
 
 namespace flare {
 
-	int FontFamily::Inl::get_font_style_index(TextStyleEnum style) {
-		int index;
-		switch(style) {
-			case TextStyleEnum::THIN: index = 0; break;
-			case TextStyleEnum::ULTRALIGHT: index = 1; break;
-			case TextStyleEnum::LIGHT: index = 2; break;
-			case TextStyleEnum::REGULAR: index = 3; break;
-			case TextStyleEnum::MEDIUM: index = 4; break;
-			case TextStyleEnum::SEMIBOLD: index = 5; break;
-			case TextStyleEnum::BOLD: index = 6; break;
-			case TextStyleEnum::HEAVY: index = 7; break;
-			case TextStyleEnum::BLACK: index = 8; break;
-			case TextStyleEnum::BLACK_ITALIC: index = 9; break;
-			case TextStyleEnum::HEAVY_ITALIC: index = 10; break;
-			case TextStyleEnum::BOLD_ITALIC: index = 11; break;
-			case TextStyleEnum::SEMIBOLD_ITALIC: index = 12; break;
-			case TextStyleEnum::MEDIUM_ITALIC: index = 13; break;
-			case TextStyleEnum::ITALIC: index = 14; break;
-			case TextStyleEnum::LIGHT_ITALIC: index = 15; break;
-			case TextStyleEnum::ULTRALIGHT_ITALIC: index = 16; break;
-			case TextStyleEnum::THIN_ITALIC: index = 17; break;
-			default: index = 18; break;
-		}
+	int FontFamily::Inl::get_font_style_index(TextStyleValue style) {
+		// TODO ...
+		int index = 0;
+		// switch(style) {
+		// 	case TextStyleValue::THIN: index = 0; break;
+		// 	case TextStyleValue::ULTRALIGHT: index = 1; break;
+		// 	case TextStyleValue::LIGHT: index = 2; break;
+		// 	case TextStyleValue::NORMAL: index = 3; break;
+		// 	case TextStyleValue::MEDIUM: index = 4; break;
+		// 	case TextStyleValue::SEMIBOLD: index = 5; break;
+		// 	case TextStyleValue::BOLD: index = 6; break;
+		// 	case TextStyleValue::HEAVY: index = 7; break;
+		// 	case TextStyleValue::BLACK: index = 8; break;
+		// 	case TextStyleValue::BLACK_ITALIC: index = 9; break;
+		// 	case TextStyleValue::HEAVY_ITALIC: index = 10; break;
+		// 	case TextStyleValue::BOLD_ITALIC: index = 11; break;
+		// 	case TextStyleValue::SEMIBOLD_ITALIC: index = 12; break;
+		// 	case TextStyleValue::MEDIUM_ITALIC: index = 13; break;
+		// 	case TextStyleValue::ITALIC: index = 14; break;
+		// 	case TextStyleValue::LIGHT_ITALIC: index = 15; break;
+		// 	case TextStyleValue::ULTRALIGHT_ITALIC: index = 16; break;
+		// 	case TextStyleValue::THIN_ITALIC: index = 17; break;
+		// 	default: index = 18; break;
+		// }
 		return index;
 	}
 
@@ -93,7 +94,7 @@ namespace flare {
 		return _family_name;
 	}
 
-	Font* FontFamily::font(TextStyleEnum style) {
+	Font* FontFamily::font(TextStyleValue style, TextWeightValue weight) {
 		int index = _inl_family(this)->get_font_style_index(style);
 		Font* font = _fonts[index];
 		

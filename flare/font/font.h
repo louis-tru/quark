@@ -45,8 +45,6 @@ namespace flare {
 	class FontFamily;
 	class FontPool;
 
-	typedef const FontFamilysID* cFFID;
-
 	/**
 	* @class FontFamilysID
 	*/
@@ -73,7 +71,7 @@ namespace flare {
 	class FX_EXPORT BaseFont: public Object {
 		public:
 		virtual cString& name() const = 0;
-		virtual Font* font(TextStyleEnum style = TextStyleEnum::REGULAR) = 0;
+		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR) = 0;
 	};
 
 	/**
@@ -96,7 +94,7 @@ namespace flare {
 		* @overwrite
 		*/
 		virtual cString& name() const;
-		virtual Font* font(TextStyleEnum style = TextStyleEnum::REGULAR);
+		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR);
 		
 		/**
 		* @func font_name
@@ -156,7 +154,7 @@ namespace flare {
 		/**
 		* @func style
 		*/
-		inline TextStyleEnum style() const { return _style; }
+		inline TextStyleValue style() const { return _style; }
 		
 		private:
 		
@@ -174,7 +172,8 @@ namespace flare {
 		FontPool*     _pool;
 		FontFamily*   _font_family;    // 所属字体家族
 		String        _font_name;      // 字体名称
-		TextStyleEnum _style;    //
+		TextStyleValue _style;    //
+		TextWeightValue _weight;
 		uint32_t      _num_glyphs;     //
 		void*         _ft_glyph;       /* FT_GlyphSlot */
 		int           _height;         /* text height in 26.6 frac. pixels       */
@@ -318,9 +317,9 @@ namespace flare {
 		virtual ~FontGlyphTable();
 		
 		/**
-		* @func id {cFFID}
+		* @func id {FFID}
 		*/
-		inline cFFID id() const { return _ffid; }
+		inline FFID id() const { return _ffid; }
 		
 		/**
 		* @func count {uint}
@@ -328,9 +327,11 @@ namespace flare {
 		inline uint32_t count() const { return (uint32_t)_fonts.size(); }
 		
 		/**
-		* @func style {TextStyleEnum}
+		* @func style {TextStyleValue}
 		*/
-		inline TextStyleEnum style() const { return _style; }
+		inline TextStyleValue style() const { return _style; }
+
+		inline TextWeightValue weight() const { return _weight; }
 		
 		/**
 		* @func text_height {int} # 字体列表中最大text-height
@@ -369,8 +370,9 @@ namespace flare {
 		FontPool*     _pool;
 		GlyphsBlock*  _blocks[512];
 		Array<Font*>  _fonts;
-		cFFID         _ffid;
-		TextStyleEnum _style;
+		FFID         _ffid;
+		TextStyleValue _style;
+		TextWeightValue _weight;
 		int _height, _ascender, _descender;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
@@ -389,7 +391,7 @@ namespace flare {
 		* @overwrite
 		*/
 		virtual cString& name() const;
-		virtual Font* font(TextStyleEnum style = TextStyleEnum::REGULAR);
+		virtual Font* font(TextStyleValue style = TextStyleValue::NORMAL, TextWeightValue weight = TextWeightValue::REGULAR);
 		
 		/**
 		* @func family_name

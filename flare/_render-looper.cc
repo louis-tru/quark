@@ -33,56 +33,56 @@
 
 namespace flare {
 
-RenderLooper::RenderLooper(AppInl* host)
-	: _host(host), _id(nullptr) 
-{}
+	RenderLooper::RenderLooper(AppInl* host)
+		: _host(host), _id(nullptr) 
+	{}
 
-RenderLooper::~RenderLooper() {
-	stop();
-}
-
-struct LooperData: Object {
-	int id;
-	AppInl* host;
-	Cb cb;
-};
-
-void looper(CbData& ev, LooperData* data) {
-	if ( data->id && !is_exited() ) {
-		// 60fsp
-		data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
-		data->host->triggerRender();
-		// DLOG("onRender");
-	} else {
-		Release(data);
+	RenderLooper::~RenderLooper() {
+		stop();
 	}
-}
 
-void RenderLooper::start() {
-	typedef Callback<RunLoop::PostSyncData> Cb;
-	_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
-		if (!_id) {
-			LooperData* data = new LooperData();
-			data->id = getId32();
-			data->host = _host;
-			data->cb = Cb(&looper, data);
-			_id = &data->id;
-			Cb::Data d;
-			looper(d, data);
-		}
-		ev.data->complete();
-	}));
-}
+	struct LooperData: Object {
+		int id;
+		AppInl* host;
+		Callback<> cb;
+	};
 
-void RenderLooper::stop() {
-	typedef Callback<RunLoop::PostSyncData> Cb;
-	_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
-		if (_id) {
-			*_id = 0;
-			_id = nullptr;
+	void looper(CbData& ev, LooperData* data) {
+		if ( data->id && !is_exited() ) {
+			// 60fsp
+			data->host->render_loop()->post(data->cb, 1000.0 / 60.0 * 1000);
+			data->host->triggerRender();
+			// DLOG("onRender");
+		} else {
+			Release(data);
 		}
-		ev.data->complete();
-	}));
-}
+	}
+
+	void RenderLooper::start() {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		_host->render_loop()->post_sync(Cb([this](Cb::Data &ev) {
+			if (!_id) {
+				LooperData* data = new LooperData();
+				data->id = getId32();
+				data->host = _host;
+				data->cb = Callback<>(&looper, data);
+				_id = &data->id;
+				Callback<>::Data d;
+				looper(d, data);
+			}
+			ev.data->complete();
+		}));
+	}
+
+	void RenderLooper::stop() {
+		typedef Callback<RunLoop::PostSyncData> Cb;
+		_host->render_loop()->post_sync(Cb([this](Cb::Data& ev) {
+			if (_id) {
+				*_id = 0;
+				_id = nullptr;
+			}
+			ev.data->complete();
+		}));
+	}
 
 }

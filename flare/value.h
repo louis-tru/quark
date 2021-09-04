@@ -152,9 +152,9 @@ namespace flare {
 			F(CONTINUE,           continue) \
 
 		enum Enum {
-			# define FX_Value_Name(NAME, NAME2) NAME,
-				FX_Enum_Value(FX_Value_Name)
-			# undef FX_Value_Name
+			# define FX_Enum_F(NAME, NAME2) NAME,
+				FX_Enum_Value(FX_Enum_F)
+			# undef FX_Enum_F
 		};
 	}
 
@@ -168,7 +168,7 @@ namespace flare {
 		inline bool operator!=(const TemplateValue& val) const {
 			return !operator==(val);
 		}
-		inline TemplateValue(Value v, Type t = TypeInit): value(v), type(t) {}
+		inline TemplateValue(Value v = Value(), Type t = TypeInit): value(v), type(t) {}
 	};
 
 	// rect
@@ -400,7 +400,6 @@ namespace flare {
 	class FontFamilysID;
 
 	typedef FontFamilysID* FFID;
-	typedef const FFID cFFID;
 
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, Color> TextColor;
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, float> TextSize;
@@ -411,7 +410,7 @@ namespace flare {
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextDecorationValue> TextDecoration;
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextOverflowValue> TextOverflow;
 	typedef TemplateValue<TextValueType, TextValueType::INHERIT, TextWhiteSpaceValue> TextWhiteSpace;
-	typedef TemplateValue<TextValueType, TextValueType::INHERIT, cFFID> TextFamily;
+	typedef TemplateValue<TextValueType, TextValueType::INHERIT, FFID> TextFamily;
 
 	// ---------------- K e y b o a r d . T y p e ----------------
 

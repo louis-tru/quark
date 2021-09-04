@@ -32,50 +32,8 @@
 
 namespace flare {
 
-	// --------------- V i e w :: V i s i t o r ---------------
-
 	void View::Visitor::visitView(View *v) {
 		v->visit(this);
-	}
-
-	void View::Visitor::visitBox(Box *v) {
-		visitView(v);
-	}
-
-	void View::Visitor::visitFlow(FlowLayout *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitFlex(FlexLayout *v) {
-		visitFlow(v);
-	}
-
-	void View::Visitor::visitImage(Image *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitVideo(Video *v) {
-		visitImage(v);
-	}
-
-	void View::Visitor::visitText(Text *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitScroll(Scroll *v) {
-		visitFlow(v);
-	}
-
-	void View::Visitor::visitRoot(Root *v) {
-		visitBox(v);
-	}
-
-	void View::Visitor::visitLabel(Label *v) {
-		visitView(v);
-	}
-
-	void View::Visitor::visitInput(Input *v) {
-		visitBox(v);
 	}
 
 	// --------------- L a y o u t  V i e w ---------------
@@ -172,10 +130,10 @@ namespace flare {
 			return _transform;
 		}
 
-		static set_visible(View::Inl* self, bool val, uint32_t layout_depth) {
+		static void set_visible_static(View::Inl* self, bool val, uint32_t layout_depth) {
 			self->_visible = val;
 			if (self->_parent) {
-				self->_parent->layout_typesetting_change(this); // mark parent layout 
+				self->_parent->layout_typesetting_change(self); // mark parent layout 
 			}
 			if (val) {
 				self->mark(M_LAYOUT_SIZE_WIDTH | M_LAYOUT_SIZE_HEIGHT); // reset layout size
@@ -190,7 +148,7 @@ namespace flare {
 	};
 
 	void __View_SetVisible(View* self, bool val, uint32_t layout_depth) {
-		View::Inl::set_visible(_inl(self), val, layout_depth);
+		View::Inl::set_visible_static(_inl(self), val, layout_depth);
 	}
 
 	View::View()
@@ -251,7 +209,7 @@ namespace flare {
 			} else {
 				view->set_parent(_parent);
 			}
-			if (m_next) {
+			if (_next) {
 				_next->_prev = view;
 			} else { // 下面没有兄弟
 				_parent->_last = view;
@@ -382,12 +340,12 @@ namespace flare {
 		* @func set_visible(val)
 		*/
 	void View::set_visible(bool val) {
-		if (self->_visible != val) {
+		if (_visible != val) {
 			if (_parent) {
 				auto depth = _parent->layout_depth();
-				View::Inl::set_visible(_inl(this), val, depth ? depth + 1: 0);
+				View::Inl::set_visible_static(_inl(this), val, depth ? depth + 1: 0);
 			} else {
-				View::Inl::set_visible(_inl(this), val, 0);
+				View::Inl::set_visible_static(_inl(this), val, 0);
 			}
 		}
 	}
@@ -645,7 +603,7 @@ namespace flare {
 	void View::set_opacity(float val) {
 		if (_opacity != val) {
 			_opacity = val;
-			mark_none(); // mark none
+			mark(M_NONE); // mark none
 		}
 	}
 
@@ -697,9 +655,9 @@ namespace flare {
 
 		if (mark & (M_LAYOUT_TYPESETTING)) {
 			auto v = _first;
-			Rect rect;
+			Vec2 origin, size;
 			while (v) {
-				v->set_layout_offset_lazy(rect); // lazy layout
+				v->set_layout_offset_lazy(origin, size); // lazy layout
 				v = v->next();
 			}
 			unmark(M_LAYOUT_TYPESETTING);
@@ -751,13 +709,13 @@ namespace flare {
 		return _transform_origin;
 	}
 
-	void View::layout_typesetting_change(Layout* child, TypesettingChangeMark mark) {
-		if (!mark) {
+	void View::layout_typesetting_change(Layout* child, TypesettingChangeMark _mark) {
+		if (!_mark) {
 			mark(M_LAYOUT_TYPESETTING);
 		}
 	}
 
-	bool void::solve_region_visible() {
+	bool View::solve_region_visible() {
 		return true;
 	}
 

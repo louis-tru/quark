@@ -48,7 +48,7 @@ namespace flare {
 		}
 	}
 	
-	void FontGlyphTable::Inl::initialize(cFFID ffid, TextStyleEnum style, FontPool* pool) {
+	void FontGlyphTable::Inl::initialize(FFID ffid, TextStyleValue style, FontPool* pool) {
 		_ffid = ffid;
 		_style = style;
 		_pool = pool;

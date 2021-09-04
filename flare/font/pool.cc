@@ -31,7 +31,7 @@
 #include "../util/os.h"
 #include "../util/array.h"
 #include "./_font.h"
-#include "../math/bezier.h"
+#include "../bezier.h"
 #include "../texture.h"
 #include "../display-port.h"
 // #include "../draw.h"
@@ -58,7 +58,7 @@ namespace flare {
 	bool FontPool::Inl::register_font(
 		cString& family_name,
 		cString& font_name,
-		TextStyleEnum style,
+		TextStyleValue style,
 		uint32_t num_glyphs,
 		uint32_t face_index,
 		int  height,       /* text height in 26.6 frac. pixels       */
@@ -232,37 +232,41 @@ namespace flare {
 		return style_name.index_of(ITALIC_) != -1 || style_name.index_of(OBLIQUE_) != -1;
 	}
 
-	TextStyleEnum FontPool::Inl::parse_style_flags(cString& name, cString& style_name) {
+	TextStyleValue FontPool::Inl::parse_style_flags(cString& name, cString& style_name) {
 		String str = style_name.to_lower_case();
+
+		// TODO ...
 		
-		if ( str.index_of(THIN_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::THIN_ITALIC : TextStyleEnum::THIN;
-		}
-		if ( str.index_of(ULTRALIGHT_) != -1 || str.index_of(BOOK_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::ULTRALIGHT_ITALIC : TextStyleEnum::ULTRALIGHT;
-		}
-		if ( str.index_of(LIGHT_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::LIGHT_ITALIC : TextStyleEnum::LIGHT;
-		}
-		if ( str.index_of(REGULAR_) != -1 || str.index_of(NORMAL_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::ITALIC : TextStyleEnum::REGULAR;
-		}
-		if ( str.index_of(MEDIUM_) != -1 || str.index_of(DEMI_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::MEDIUM_ITALIC : TextStyleEnum::MEDIUM;
-		}
-		if ( str.index_of(SEMIBOLD_) != -1 || str.index_of(ROMAN_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::SEMIBOLD_ITALIC : TextStyleEnum::SEMIBOLD;
-		}
-		if ( str.index_of(BOLD_) != -1 || str.index_of(CONDENSED_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::BOLD_ITALIC : TextStyleEnum::BOLD;
-		}
-		if ( str.index_of(HEAVY_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::HEAVY_ITALIC : TextStyleEnum::HEAVY;
-		}
-		if ( str.index_of(BLACK_) != -1 ) {
-			return has_italic_style(str) ? TextStyleEnum::BLACK_ITALIC : TextStyleEnum::BLACK;
-		}
-		return TextStyleEnum::OTHER;
+		// if ( str.index_of(THIN_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::THIN_ITALIC : TextStyleValue::THIN;
+		// }
+		// if ( str.index_of(ULTRALIGHT_) != -1 || str.index_of(BOOK_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::ULTRALIGHT_ITALIC : TextStyleValue::ULTRALIGHT;
+		// }
+		// if ( str.index_of(LIGHT_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::LIGHT_ITALIC : TextStyleValue::LIGHT;
+		// }
+		// if ( str.index_of(REGULAR_) != -1 || str.index_of(NORMAL_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::ITALIC : TextStyleValue::NORMAL;
+		// }
+		// if ( str.index_of(MEDIUM_) != -1 || str.index_of(DEMI_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::MEDIUM_ITALIC : TextStyleValue::MEDIUM;
+		// }
+		// if ( str.index_of(SEMIBOLD_) != -1 || str.index_of(ROMAN_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::SEMIBOLD_ITALIC : TextStyleValue::SEMIBOLD;
+		// }
+		// if ( str.index_of(BOLD_) != -1 || str.index_of(CONDENSED_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::BOLD_ITALIC : TextStyleValue::BOLD;
+		// }
+		// if ( str.index_of(HEAVY_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::HEAVY_ITALIC : TextStyleValue::HEAVY;
+		// }
+		// if ( str.index_of(BLACK_) != -1 ) {
+		// 	return has_italic_style(str) ? TextStyleValue::BLACK_ITALIC : TextStyleValue::BLACK;
+		// }
+		// return TextStyleValue::OTHER;
+
+		return TextStyleValue::NORMAL;
 	}
 	
 	Handle<FontPool::SimpleFontFamily> FontPool::Inl::inl_read_font_file(cString& path, FT_Library lib) {
@@ -543,17 +547,17 @@ namespace flare {
 	* @arg [style = fs_regular] {Font::TextStyle}
 	* @ret {Font*}
 	*/
-	Font* FontPool::get_font(cString& name, TextStyleEnum style) {
+	Font* FontPool::get_font(cString& name, TextStyleValue style) {
 		auto i = _blend_fonts.find(name);
 		return i == _blend_fonts.end() ? NULL : i->value->font(style);
 	}
 
 	/**
 	* @func get_group # 通过字体名称列表获取字型集合
-	* @arg id {cFFID} # cFFID
+	* @arg id {FFID} # FFID
 	* @arg [style = fs_regular] {Font::TextStyle} # 使用的字体家族才生效
 	*/
-	FontGlyphTable* FontPool::get_table(cFFID ffid, TextStyleEnum style) {
+	FontGlyphTable* FontPool::get_table(FFID ffid, TextStyleValue style) {
 		ASSERT(ffid);
 		
 		uint32_t code = ffid->code() + (uint32_t)style;
@@ -573,9 +577,9 @@ namespace flare {
 
 	/**
 	* @func get_table # 获取默认字型集合
-	* @arg [style = fs_regular] {TextStyleEnum}
+	* @arg [style = fs_regular] {TextStyleValue}
 	*/
-	FontGlyphTable* FontPool::get_table(TextStyleEnum style) {
+	FontGlyphTable* FontPool::get_table(TextStyleValue style) {
 		return get_table(get_font_familys_id(String()), style);
 	}
 
@@ -709,7 +713,7 @@ namespace flare {
 	/**
 	* @func default_font_familys_id
 	*/
-	static cFFID default_font_familys_id() {
+	static FFID default_font_familys_id() {
 		static FontFamilysID* id = nullptr; // default group i
 		if ( ! id ) {
 			id = new FontFamilysID();
@@ -721,7 +725,7 @@ namespace flare {
 	/**
 	* @func get_font_familys_id
 	*/
-	cFFID FontPool::get_font_familys_id(const Array<String> fonts) {
+	FFID FontPool::get_font_familys_id(const Array<String> fonts) {
 		
 		static Dict<uint32_t, FontFamilysID*> ffids; // global groups
 		
@@ -760,7 +764,7 @@ namespace flare {
 	/**
 	* @func get_font_familys_id
 	*/
-	cFFID FontPool::get_font_familys_id(cString fonts) {
+	FFID FontPool::get_font_familys_id(cString fonts) {
 		if ( fonts.is_empty() ) {
 			return default_font_familys_id();
 		} else {

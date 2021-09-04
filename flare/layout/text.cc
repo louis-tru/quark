@@ -29,8 +29,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "./text.h"
+#include "../font/pool.h"
 
 namespace flare {
+
+	void View::Visitor::visitText(Text *v) {
+		visitBox(v);
+	}
 
 	/**
 		*
@@ -43,67 +48,68 @@ namespace flare {
 	}
 
 	DefaultTextSettings::DefaultTextSettings()
-		: _text_background_color({ TextValueType::VALUE, Color(0, 0, 0, 0) })
-		, _text_color({ TextValueType::VALUE, Color(0, 0, 0) })
-		, _text_size({ TextValueType::VALUE, 16 })
-		, _text_style({ TextValueType::VALUE, TextStyleEnum::REGULAR })
-		, _text_family(TextValueType::VALUE, FontPool::get_font_familys_id(String()))
-		, _text_shadow({ TextValueType::VALUE, { 0, 0, 0, Color(0, 0, 0) } })
-		, _text_line_height({ TextValueType::VALUE, { 0 } })
-		, _text_decoration({ TextValueType::VALUE, TextDecorationEnum::NONE })
-		, _text_overflow({ TextValueType::VALUE, TextOverflowEnum::NORMAL })
-		, _text_white_space({ TextValueType::VALUE, TextWhiteSpaceEnum::NORMAL })
+		: _text_background_color(Color(0, 0, 0, 0), TextValueType::VALUE)
+		, _text_color(Color(0, 0, 0), TextValueType::VALUE)
+		, _text_size(16, TextValueType::VALUE)
+		, _text_weight(TextWeightValue::REGULAR, TextValueType::VALUE)
+		, _text_style(TextStyleValue::NORMAL, TextValueType::VALUE)
+		, _text_family(FontPool::get_font_familys_id(String()), TextValueType::VALUE)
+		, _text_shadow({ 0, 0, 0, Color(0, 0, 0) }, TextValueType::VALUE)
+		, _text_line_height(0, TextValueType::VALUE)
+		, _text_decoration(TextDecorationValue::NONE, TextValueType::VALUE)
+		, _text_overflow(TextOverflowValue::NORMAL, TextValueType::VALUE)
+		, _text_white_space(TextWhiteSpaceValue::NORMAL, TextValueType::VALUE)
 	{
 	}
 
 	void DefaultTextSettings::set_text_background_color(TextColor value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_background_color = value;
+			_text_background_color = value;
 		}
 	}
 	void DefaultTextSettings::set_text_color(TextColor value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_color = value;
+			_text_color = value;
 		}
 	}
 	void DefaultTextSettings::set_text_size(TextSize value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_size = value;
+			_text_size = value;
 		}
 	}
 	void DefaultTextSettings::set_text_style(TextStyle value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_style = value;
+			_text_style = value;
 		}
 	}
 	void DefaultTextSettings::set_text_family(TextFamily value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_family = value;
+			_text_family = value;
 		}
 	}
 	void DefaultTextSettings::set_text_shadow(TextShadow value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_shadow = value;
+			_text_shadow = value;
 		}
 	}
 	void DefaultTextSettings::set_text_line_height(TextLineHeight value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_line_height = value;
+			_text_line_height = value;
 		}
 	}
 	void DefaultTextSettings::set_text_decoration(TextDecoration value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_decoration = value;
+			_text_decoration = value;
 		}
 	}
 	void DefaultTextSettings::set_text_overflow(TextOverflow value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_overflow = value;
+			_text_overflow = value;
 		}
 	}
 	void DefaultTextSettings::set_text_white_space(TextWhiteSpace value) {
 		if ( value.type == TextValueType::VALUE ) {
-			_default_text_white_space = value;
+			_text_white_space = value;
 		}
 	}
 

@@ -33,6 +33,7 @@
 
 #include "./font.h"
 #include "../util/dict.h"
+#include "../util/handle.h"
 
 namespace flare {
 
@@ -97,19 +98,19 @@ namespace flare {
 		* @func get_font 通过名称获得一个字体对像
 		* @arg name {cString&} 字体名称或家族名称
 		*/
-		Font* get_font(cString& font, TextStyleEnum style = TextStyleEnum::REGULAR);
+		Font* get_font(cString& font, TextStyleValue style = TextStyleValue::NORMAL);
 		
 		/**
 		* @func get_group 通过id获取字型集合表
-		* @arg id {cFFID} 组id
+		* @arg id {FFID} 组id
 		* @arg [style = fs_regular] {Font::TextStyle} # 使用的字体家族才生效
 		*/
-		FontGlyphTable* get_table(cFFID id, TextStyleEnum style = TextStyleEnum::REGULAR);
+		FontGlyphTable* get_table(FFID id, TextStyleValue style = TextStyleValue::NORMAL);
 		
 		/**
 		* @func get_group 获取默认字型集合表
 		*/
-		FontGlyphTable* get_table(TextStyleEnum style = TextStyleEnum::REGULAR);
+		FontGlyphTable* get_table(TextStyleValue style = TextStyleValue::NORMAL);
 		
 		/**
 		* @func register_font 通过Buffer数据注册字体
@@ -156,16 +157,16 @@ namespace flare {
 		/**
 		* @func get_font_familys_id
 		*/
-		static cFFID get_font_familys_id(const Array<String> fonts);
+		static FFID get_font_familys_id(const Array<String> fonts);
 		
 		/**
 		* @func get_font_familys_id
 		*/
-		static cFFID get_font_familys_id(cString fonts);
+		static FFID get_font_familys_id(cString fonts);
 		
 		struct FX_EXPORT SimpleFont {
 			String  name;
-			TextStyleEnum style;
+			TextStyleValue style;
 			uint32_t    num_glyphs;
 			int     height;       /* text height in 26.6 frac. pixels       */
 			int     max_advance;  /* max horizontal advance, in 26.6 pixels */
@@ -203,7 +204,7 @@ namespace flare {
 		Dict<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 name => BaseFont */
 		Dict<String, FontFamily*>    _familys;    /* 所有的字体家族 family name => FontFamily */
 		Dict<String, Font*>          _fonts;      /* 所有的字体 font name => Font */
-		Dict<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 cFFID => FontGlyphTable */
+		Dict<uint32_t, FontGlyphTable*> _tables;  /* 所有的字型表 FFID => FontGlyphTable */
 		Dict<String, String>         _paths;      /* 所有的字体路径 name => path */
 		Array<BaseFont*>      _default_fonts;     /* default font list */
 		FontFamily*           _spare_family;     /* 备用字体家族 spare family */

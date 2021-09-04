@@ -32,6 +32,10 @@
 
 namespace flare {
 
+	void View::Visitor::visitFlow(Flow *v) {
+		visitBox(v);
+	}
+
 	/**
 		*
 		* Accepting visitors
@@ -101,7 +105,7 @@ namespace flare {
 			// get layouts raw size total
 			float offset = 0, max_cross = 0;
 			Vec2 cur = cur_size.content_size;
-			struct Item { Vec2: s; View* v; };
+			struct Item { Vec2 s; View* v; };
 			Array<Item> start, center, end;
 
 			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
@@ -115,9 +119,9 @@ namespace flare {
 				}
 				switch (v->layout_align()) {
 					default:
-					case START: start.push({ v, size }); break;
-					case CENTER: center.push({ v, size }); break;
-					case END: end.push({ v, size }); break;
+					case Align::START: start.push({ size, v }); break;
+					case Align::CENTER: center.push({ size, v }); break;
+					case Align::END: end.push({ size, v }); break;
 				}
 				v = v->next();
 			}
@@ -164,7 +168,7 @@ namespace flare {
 		void layout_typesetting_from_wrap(Size cur_size, bool is_reverse) {
 			struct Line {
 				struct Item {
-					Vec2: s; View* v; bool space;
+					Vec2 s; View* v; bool space;
 				};
 				float total_main;
 				float max_cross;
@@ -177,11 +181,11 @@ namespace flare {
 			float main_size = is_wrap_main ? 0 : (is_horizontal ? cur.x(): cur.y());
 			float max_main = 0;
 			float total_cross = 0;
-			bool wrap_reverse = _direction == Wrap::WRAP_REVERSE;
+			bool wrap_reverse = _wrap == Wrap::WRAP_REVERSE;
 
 			Vec2 origin(margin_left() + padding_left(), margin_top() + padding_top());
 
-			Array<Item> _start, _center, _end;
+			Array<typename Line::Item> _start, _center, _end;
 			float _total_main = 0, _max_cross = 0;
 
 			auto v = first();
@@ -204,9 +208,9 @@ namespace flare {
 				}
 				switch (v->layout_align()) {
 					default:
-					case START: _start.push({ v, size }); break;
-					case CENTER: _center.push({ v, size }); break;
-					case END: _end.push({ v, size }); break;
+					case Align::START: _start.push({ size,v }); break;
+					case Align::CENTER: _center.push({ size,v }); break;
+					case Align::END: _end.push({ size,v }); break;
 				}
 				v = v->next();
 			}
@@ -232,7 +236,7 @@ namespace flare {
 			float cross_space = 0, cross_offset = 0;
 
 			if (!is_wrap_cross) {
-				if (STRETCH == _wrap_align) {
+				if (WrapAlign::STRETCH == _wrap_align) {
 					cross_overflow_item = lines.length() ? cross_overflow / lines.length() : 0;
 				} else {
 					cross_offset = parseAlignSpace(
@@ -247,8 +251,8 @@ namespace flare {
 				float space = overflow / 2;
 
 				for (auto j: i.items) {
-					auto s = i.s;
-					auto v = i.v;
+					auto s = j.s;
+					auto v = j.v;
 					if (v) {
 						float cross_offset_item = cross_offset;
 						switch (_cross_align) {
@@ -284,7 +288,7 @@ namespace flare {
 	};
 
 	float __Flow_ParseAlignSpace(WrapAlign align,  bool is_reverse, float overflow, int count, float *space_out) {
-		return Flow::Inl::parseAlignSpace(align, is_reverse, overflow, space_out);
+		return Flow::Inl::parseAlignSpace(align, is_reverse, overflow, count, space_out);
 	}
 
 	/**
@@ -357,17 +361,17 @@ namespace flare {
 			if (!is_ready_layout_typesetting()) {
 				return true; // continue iteration
 			}
-			if (_direction == ROW || _direction == ROW_REVERSE) {
+			if (_direction == Direction::ROW || _direction == Direction::ROW_REVERSE) {
 				if (_wrap == Wrap::NO_WRAP) { // no wrap
-					_inl(this)->layout_typesetting_from_auto<true>(layout_size(), _direction == ROW_REVERSE);
+					_inl(this)->layout_typesetting_from_auto<true>(layout_size(), _direction == Direction::ROW_REVERSE);
 				} else {
-					_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), _direction == ROW_REVERSE)
+					_inl(this)->layout_typesetting_from_wrap<true>(layout_size(), _direction == Direction::ROW_REVERSE);
 				}
 			} else {
 				if (_wrap == Wrap::NO_WRAP) { // no wrap
-					_inl(this)->layout_typesetting_from_auto<false>(layout_size(), _direction == COLUMN_REVERSE);
+					_inl(this)->layout_typesetting_from_auto<false>(layout_size(), _direction == Direction::COLUMN_REVERSE);
 				} else {
-					_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), _direction == COLUMN_REVERSE)
+					_inl(this)->layout_typesetting_from_wrap<false>(layout_size(), _direction == Direction::COLUMN_REVERSE);
 				}
 			}
 

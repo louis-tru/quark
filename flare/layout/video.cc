@@ -32,6 +32,10 @@
 
 namespace flare {
 
+	void View::Visitor::visitVideo(Video *v) {
+		visitImage(v);
+	}
+
 	/**
 		*
 		* Accepting visitors

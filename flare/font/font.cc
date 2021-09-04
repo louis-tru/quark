@@ -40,7 +40,7 @@ namespace flare {
 		return _font_name;
 	}
 
-	Font* Font::font(TextStyleEnum style) {
+	Font* Font::font(TextStyleValue style, TextWeightValue weight) {
 		return this;
 	}
 
@@ -108,7 +108,7 @@ namespace flare {
 		FontPool* pool,
 		FontFamily* family,
 		String font_name,
-		TextStyleEnum style,
+		TextStyleValue style,
 		uint32_t num_glyphs,
 		uint32_t face_index,
 		int height,       /* text height in 26.6 frac. pixels       */
@@ -211,18 +211,20 @@ namespace flare {
 		
 		if ( container ) {
 			FontGlyph* glyph = container->glyphs;
-			auto ctx = _pool->_draw_ctx;
+			auto ctx = _pool->_render_ctx;
 			
 			for ( int i = 0; i < 128; i++, glyph++ ) {
 				if ( glyph->_vertex_value ) {
-					ctx->del_buffer( glyph->_vertex_value );
+					// TODO ...
+					// ctx->del_buffer( glyph->_vertex_value );
 					glyph->_vertex_value = 0;
 					glyph->_vertex_count = 0;
 				}
 				
 				for ( int i = 1; i < 12; i++ ) {
 					if ( glyph->_textures[i] ) { // 删除纹理
-						ctx->del_texture( glyph->_textures[i] );
+						// TODO ...
+						// ctx->del_texture( glyph->_textures[i] );
 					}
 				}
 				memset(glyph->_textures, 0, sizeof(uint32_t) * 13);

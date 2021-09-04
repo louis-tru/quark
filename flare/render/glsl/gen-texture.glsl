@@ -1,34 +1,303 @@
-#vert
-#include "_util.glsl"
-
-out vec2  f_tex_coord;
-
-void main() {
-	vec2 v;
-	
-	if (gl_VertexID == 0) {
-		v = vec2(-1.0, 1.0); f_tex_coord = vec2(0.0, 1.0);
-	}
-	else if (gl_VertexID == 1) {
-		v = vec2(1.0, 1.0); f_tex_coord = vec2(1.0, 1.0);
-	}
-	else if (gl_VertexID == 2) {
-		v = vec2(1.0, -1.0); f_tex_coord = vec2(1.0, 0.0);
-	}
-	else {
-		v = vec2(-1.0, -1.0); f_tex_coord = vec2(0.0, 0.0);
-	}
-	gl_Position = vec4(v.xy, 0.0, 1.0);
+#ifndef __shader_natives_1630752764920
+#define __shader_natives_1630752764920
+namespace flare {
+namespace shader {
+#pragma pack(push,4)
+struct struct_sprite {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int tex_start_size;
+  int tex_ratio;
+  int s_tex0;
+  unsigned int vertex_id;
+} extern sprite;
+struct struct_box_image {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int is_radius;
+  int sample_x2;
+  int s_tex0;
+  unsigned int vertex_id;
+} extern box_image;
+struct struct_box_yuv420p_image {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int s_tex_y;
+  int s_tex_uv;
+  unsigned int vertex_id;
+} extern box_yuv420p_image;
+struct struct_box_yuv420sp_image {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int s_tex_y;
+  int s_tex_uv;
+  unsigned int vertex_id;
+} extern box_yuv420sp_image;
+struct struct_box_border {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int direction;
+  int border_color;
+  unsigned int vertex_id;
+} extern box_border;
+struct struct_box_border_radius {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int direction;
+  int border_color;
+  unsigned int vertex_id;
+} extern box_border_radius;
+struct struct_box_background_image {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int is_radius;
+  int sample_x2;
+  int tex_coord;
+  int s_tex0;
+  int repeat;
+  unsigned int vertex_id;
+} extern box_background_image;
+struct struct_box_color {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int is_radius;
+  int sample_x2;
+  int background_color;
+  unsigned int vertex_id;
+} extern box_color;
+struct struct_box_shadow {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int border_width;
+  int radius_size;
+  int shadow;
+  int shadow_color;
+  unsigned int vertex_id;
+} extern box_shadow;
+struct struct_text_box_color {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int background_color;
+  int origin;
+  unsigned int vertex_id;
+} extern text_box_color;
+struct struct_text_texture {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int display_port_scale;
+  int texture_scale;
+  int color;
+  int hori_baseline;
+  int tex_size;
+  int offset_x;
+  int sampler_tex_1;
+  unsigned int vertex_id;
+} extern text_texture;
+struct struct_text_vertex {
+  const char* name;
+  const unsigned char* source_vp;
+  const  unsigned long source_vp_len;
+  const unsigned char* source_fp;
+  const  unsigned long source_fp_len;
+  const unsigned char* es2_source_vp;
+  const  unsigned long es2_source_vp_len;
+  const unsigned char* es2_source_fp;
+  const  unsigned long es2_source_fp_len;
+  const char* shader_uniforms;
+  const char* shader_uniform_blocks;
+  const char* shader_attributes;
+  unsigned int shader;
+  const int is_test;
+  int root_matrix;
+  int view_matrix;
+  int vertex_ac;
+  int text_size;
+  int color;
+  int hori_baseline;
+  int offset_x;
+  unsigned int vertex_id;
+  unsigned int vertex;
+} extern text_vertex;
+#pragma pack(pop)
 }
-
-#frag
-#include "_version.glsl"
-
-uniform sampler2D s_tex0;
-
-in  lowp vec2  f_tex_coord;
-out lowp vec4  FragColor;
-
-void main(void) {
-	FragColor = texture(s_tex0, f_tex_coord);
 }
+#endif

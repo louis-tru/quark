@@ -30,8 +30,13 @@
 
 #include "./box.h"
 #include "../app.h"
+#include "../display-port.h"
 
 namespace flare {
+
+	void View::Visitor::visitBox(Box *v) {
+		visitView(v);
+	}
 
 	float Box::solve_layout_content_width(float parent_c_szie, bool *is_wrap_in_out) {
 		float result;
@@ -87,7 +92,7 @@ namespace flare {
 				break;
 			case SizeType::PIXEL: /* 明确值 value px */
 				*is_wrap_in_out = false;
-				result.height(_height.value);
+				result = _height.value;
 				break;
 			case SizeType::MATCH: /* 匹配父视图 match parent */
 				if (*is_wrap_in_out) {
@@ -134,7 +139,7 @@ namespace flare {
 		* @constructors
 		*/
 	Box::Box()
-		: _limit_width(0, NONE), _limit_height(0, NONE)
+		: _limit_width(0, SizeType::NONE), _limit_height(0, SizeType::NONE)
 		, _margin_top(0), _margin_right(0)
 		, _margin_bottom(0), _margin_left(0)
 		, _padding_top(0), _padding_right(0)
@@ -203,7 +208,7 @@ namespace flare {
 		}
 	}
 
-	void Box::margin_top(float val) { // margin
+	void Box::set_margin_top(float val) { // margin
 		if (_margin_top != val) {
 			_margin_top = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -211,21 +216,21 @@ namespace flare {
 		}
 	}
 
-	void Box::margin_right(float val) {
+	void Box::set_margin_right(float val) {
 		if (_margin_right != val) {
 			_margin_right = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
 		}
 	}
 
-	void Box::margin_bottom(float val) {
+	void Box::set_margin_bottom(float val) {
 		if (_margin_bottom != val) {
 			_margin_bottom = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
 		}
 	}
 
-	void Box::margin_left(float val) {
+	void Box::set_margin_left(float val) {
 		if (_margin_left != val) {
 			_margin_left = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -233,7 +238,7 @@ namespace flare {
 		}
 	}
 
-	void Box::padding_top(float val) { // padding
+	void Box::set_padding_top(float val) { // padding
 		if (_padding_top != val) {
 			_padding_top = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -241,7 +246,7 @@ namespace flare {
 		}
 	}
 
-	void Box::padding_right(float val) {
+	void Box::set_padding_right(float val) {
 		if (_padding_right != val) {
 			_padding_right = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -249,7 +254,7 @@ namespace flare {
 		}
 	}
 
-	void Box::padding_bottom(float val) {
+	void Box::set_padding_bottom(float val) {
 		if (_padding_bottom != val) {
 			_padding_bottom = val;
 			mark_layout_size(M_LAYOUT_SIZE_HEIGHT);
@@ -257,7 +262,7 @@ namespace flare {
 		}
 	}
 
-	void Box::padding_left(float val) {
+	void Box::set_padding_left(float val) {
 		if (_padding_left != val) {
 			_padding_left = val;
 			mark_layout_size(M_LAYOUT_SIZE_WIDTH);
@@ -265,11 +270,11 @@ namespace flare {
 		}
 	}
 	
-	void Box::fill(Fill val) {
+	void Box::set_fill(Fill val) {
 		if (_fill != val) {
 			// TODO ...
 			_fill = val; // ?
-			mark_none();
+			mark(M_NONE);
 		}
 	}
 
@@ -325,8 +330,8 @@ namespace flare {
 		return layout_content_size_change_mark;
 	}
 
-	bool Box::layout_forward(uint32_t mark) {
-		uint32_t layout_content_size_change_mark = solve_layout_size(mark);
+	bool Box::layout_forward(uint32_t _mark) {
+		uint32_t layout_content_size_change_mark = solve_layout_size(_mark);
 
 		if (layout_content_size_change_mark) {
 			auto v = first();
@@ -420,7 +425,7 @@ namespace flare {
 	}
 
 	Vec2 Box::layout_lock(Vec2 layout_size, bool is_wrap[2]) {
-		auto layout_content_size_change_mark = M_NONE;
+		uint32_t layout_content_size_change_mark = M_NONE;
 		auto layout_content_size = _layout_content_size;
 
 		auto mp_x = _margin_left + _margin_right + _padding_left + _padding_right;
@@ -466,7 +471,7 @@ namespace flare {
 		_layout_content_size = layout_content_size;
 		_layout_size = Vec2(
 			_margin_left + _margin_right + layout_content_size.x() + _padding_left + _padding_right,
-			_margin_top + _margin_bottom + layout_content_size.y() + _padding_top + _padding_bottom,
+			_margin_top + _margin_bottom + layout_content_size.y() + _padding_top + _padding_bottom
 		);
 	}
 
@@ -479,49 +484,48 @@ namespace flare {
 
 	void Box::set_layout_offset_lazy(Vec2 origin, Vec2 size) {
 		Vec2 offset;
-		auto _layout_size = layout_size();
 
 		switch(_layout_align) {
 			default:
-			case LEFT_TOP:
+			case Align::LEFT_TOP:
 				offset = origin;
 				break;
-			case CENTER_TOP:
+			case Align::CENTER_TOP:
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y());
 				break;
-			case RIGHT_TOP:
+			case Align::RIGHT_TOP:
 				offset = Vec2(
 					origin.x() + size.x() - _layout_size.x(),
 					origin.y());
 				break;
-			case LEFT_CENTER:
+			case Align::LEFT_CENTER:
 				offset = Vec2(
 					origin.x(),
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case CENTER_CENTER:
+			case Align::CENTER_CENTER:
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case RIGHT_CENTER:
+			case Align::RIGHT_CENTER:
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()),
 					origin.y() + (size.y() - _layout_size.y()) / 2.0);
 				break;
-			case LEFT_BOTTOM:
+			case Align::LEFT_BOTTOM:
 				offset = Vec2(
 					origin.x(),
 					origin.y() + (size.y() - _layout_size.y()));
 				break;
-			case CENTER_BOTTOM:
+			case Align::CENTER_BOTTOM:
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()) / 2.0,
 					origin.y() + (size.y() - _layout_size.y()));
 				break;
-			case RIGHT_BOTTOM:
+			case Align::RIGHT_BOTTOM:
 				offset = Vec2(
 					origin.x() + (size.x() - _layout_size.x()),
 					origin.y() + (size.y() - _layout_size.y()));
@@ -578,7 +582,7 @@ namespace flare {
 		* 这里考虑到性能不做精确的多边形重叠测试，只测试图形在横纵轴是否与当前绘图区域是否为重叠。
 		* 这种模糊测试在大多数时候都是正确有效的。
 		*/
-		Region dre = app()->display_port()->draw_region();
+		Region dre = app()->display_port()->region();
 		Region re = screen_region_from_convex_quadrilateral(vertex);
 		
 		if (FX_MAX( dre.y2, re.y2 ) - FX_MIN( dre.y, re.y ) <= re.h + dre.h &&
