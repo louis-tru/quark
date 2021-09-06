@@ -32,7 +32,7 @@
 
 #import <AppKit/AppKit.h>
 #import "flare/util/loop.h"
-#import "mac-app.h"
+#import "mac-app_.h"
 #import "osx-gl-1.h"
 #import "flare/app.h"
 #import "flare/display-port.h"
