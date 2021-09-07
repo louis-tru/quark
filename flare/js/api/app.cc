@@ -233,7 +233,7 @@ class WrapNativeGUIApplication: public WrapObject {
 	}
 	
 	/**
-	 * @get display_port {DisplayPort}
+	 * @get display_port {Display}
 	 */
 	static void display_port(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args);

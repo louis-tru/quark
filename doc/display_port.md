@@ -24,25 +24,25 @@
 ### STATUS_BAR_STYLE_BLACK
 
 
-## `Class DisplayPort`
+## `Class Display`
 
 这个类型的构造函数禁止访问
 
 可以通过[`app.displayPort`]或[`gui.displayPort`]访问
 
-### DisplayPort.onChange
+### Display.onChange
 
 屏幕尺寸变化时触发
 
-### DisplayPort.onOrientation
+### Display.onOrientation
 
 屏幕方向改变时触发
 
-### DisplayPort.onRender
+### Display.onRender
 
 一帧渲染完成后触发
 
-### DisplayPort.lockSize([width[,height]])
+### Display.lockSize([width[,height]])
 * @arg `[width=0]` {[`float`]}
 * @arg `[height=0]` {[`float`]}
 
@@ -52,56 +52,56 @@
 
 * 如果width设置为零表示不锁定宽度,系统会自动根据height值设置一个同等比例的宽度
 
-	如果设置为非零表示锁定宽度,不管[`DisplayPort`]尺寸怎么变化对于编程者来说,这个值永远保持不变
+	如果设置为非零表示锁定宽度,不管[`Display`]尺寸怎么变化对于编程者来说,这个值永远保持不变
 
 * 如果height设置为零表示不锁定,系统会自动根据width值设置一个同等比例的高度
 
-	如果设置为非零表示锁定高度,不管[`DisplayPort`]尺寸怎么变化对于编程者来说,这个值永远保持不变
+	如果设置为非零表示锁定高度,不管[`Display`]尺寸怎么变化对于编程者来说,这个值永远保持不变
 
-### DisplayPort.nextFrame(cb)
+### Display.nextFrame(cb)
 * @arg `cb` {[`Function`]}
 
-### Get: DisplayPort.width 
+### Get: Display.width 
 
 * {[`float`]} 
 
-### Get: DisplayPort.height 
+### Get: Display.height 
 
 * {[`float`]} 
 
-### Get: DisplayPort.phyWidth 
+### Get: Display.phyWidth 
 
 屏幕的实际物理像素宽度
 
 * {[`float`]} 
 
-### Get: DisplayPort.phyHeight 
+### Get: Display.phyHeight 
 
 屏幕的实际物理像素高度
 
 * {[`float`]} 
 
-### Get: DisplayPort.bestScale 
+### Get: Display.bestScale 
 
 系统建议的屏幕缩放比
 
 * {[`float`]} 
 
-### Get: DisplayPort.scale 
+### Get: Display.scale 
 
 当前屏幕缩放比
 
 * {[`float`]} 
 
-### Get: DisplayPort.scaleValue 
+### Get: Display.scaleValue 
 
 * {[`Vec2`]} 
 
-### Get: DisplayPort.rootMatrix 
+### Get: Display.rootMatrix 
 
 * {[`Mat4`]} 
 
-### Get: DisplayPort.atomPixel
+### Get: Display.atomPixel
 
 屏幕原子像素尺寸
 
@@ -180,9 +180,9 @@
 
 ## Get: current 
 
-获取当前`DisplayPort`实例
+获取当前`Display`实例
 
-* {[`DisplayPort`]}
+* {[`Display`]}
 
 ## nextFrame(cb)
 
@@ -217,7 +217,7 @@ Callback: cb()
 [`double`]: native_types.md#double
 [`bool`]: native_types.md#bool
 
-[`DisplayPort`]: display_port.md#class-displayport
+[`Display`]: display_port.md#class-displayport
 [`Mat4`]: value.md#class-mat4
 [`Vec2`]: value.md#class-vec2
 [`Color`]: value.md#class-color

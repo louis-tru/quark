@@ -52,7 +52,7 @@ export enum StatusBarStyle {
 	STATUS_BAR_STYLE_BLACK = _display_port.STATUS_BAR_STYLE_BLACK as number,
 }
 
-export declare class DisplayPort extends Notification {
+export declare class Display extends Notification {
 	onChange: EventNoticer;
 	onOrientation: EventNoticer;
 	lockSize(width?: number, height?: number): void;
@@ -76,14 +76,14 @@ export declare class DisplayPort extends Notification {
 	atomPixel: number;
 }
 
-class _DisplayPort extends NativeNotification {
+class _Display extends NativeNotification {
 	@event onChange: EventNoticer;
 	@event onOrientation: EventNoticer;
 }
 
-utils.extendClass(_display_port.DisplayPort, _DisplayPort);
+utils.extendClass(_display_port.Display, _Display);
 
-exports.DisplayPort = _display_port.DisplayPort;
+exports.Display = _display_port.Display;
 
 export default {
 
@@ -91,9 +91,9 @@ export default {
 	get defaultStatusBarHeight(): number { return _display_port.defaultStatusBarHeight() },
 
 	/**
-	 * @get current {DisplayPort}
+	 * @get current {Display}
 	 */
-	get current(): DisplayPort { return app.current.displayPort; },
+	get current(): Display { return app.current.displayPort; },
 
 	/**
 	 * @get atomPixel {float}

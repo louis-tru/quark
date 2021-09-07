@@ -270,7 +270,7 @@ export default {
 	get rootCtr() { return app.rootCtr },
 
 	/**
-	 * @get displayPort {DisplayPort} get current display port
+	 * @get displayPort {Display} get current display port
 	 */
 	get displayPort() { return app.current.displayPort },
 

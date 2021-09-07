@@ -31,11 +31,11 @@
 #ifndef __flare__util__android_jni__
 #define __flare__util__android_jni__
 
-#include "./macros.h"
+#include "../macros.h"
 
 #if FX_ANDROID
 
-#include "./object.h"
+#include "../object.h"
 #include <jni.h>
 
 namespace flare {

@@ -39,9 +39,9 @@
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(DisplayPort, Inl) {
-		public:
-		#define _inl(self) static_cast<DisplayPort::Inl*>(self)
+	FX_DEFINE_INLINE_MEMBERS(Display, Inl) {
+	public:
+		#define _inl(self) static_cast<Display::Inl*>(self)
 		
 		void handle_surface_size_change(Event<>& evt) {
 			_phy_size = _draw_ctx->selected_region().size;
@@ -74,27 +74,28 @@ namespace flare {
 				_size.width(_size.height() / _phy_size.height() * _phy_size.width());
 			}
 			
-			_scale_value[0] = _phy_size.width() / _size.width();
-			_scale_value[1] = _phy_size.height() / _size.height();
-			_scale = (_scale_value[0] + _scale_value[1]) / 2;
+			_scale[0] = _phy_size.width() / _size.width();
+			_scale[1] = _phy_size.height() / _size.height();
+
+			float scale = (_scale[0] + _scale[1]) / 2;
 			
-			_atom_pixel = 1.0f / _scale;
+			_atom_pixel = 1.0f / scale;
 			
 			// 计算2D视图变换矩阵
 			
 			Rect region = _render_ctx->selected_region();
 			Vec2 surface_size = _render_ctx->surface_size();
 			
-			Vec2 start = Vec2(-region.origin.x() / _scale_value[0], -region.origin.y() / _scale_value[1]);
-			Vec2 end = Vec2(surface_size.width() / _scale_value[0] + start.x(),
-											surface_size.height() / _scale_value[1] + start.y());
+			Vec2 start = Vec2(-region.origin.x() / _scale[0], -region.origin.y() / _scale[1]);
+			Vec2 end   = Vec2(surface_size.width() / _scale[0] + start.x(),
+												surface_size.height() / _scale[1] + start.y());
 			
 			_root_matrix = Mat4::ortho(start[0], end[0], start[1], end[1], -1.0f, 1.0f);
 			
 			Mat4 test_root_matrix = // 测试着色器视图矩阵要大一圈
 			Mat4::ortho(start[0]-5, end[0]+5, start[1]-5, end[1]+5, -1.0f, 1.0f);
 			
-			_draw_ctx->refresh_root_matrix(_root_matrix, test_root_matrix);
+			// _draw_ctx->refresh_root_matrix(_root_matrix, test_root_matrix);
 			
 			update_root_size(); // update root
 			
@@ -129,14 +130,10 @@ namespace flare {
 	/**
 	* @constructor
 	*/
-	DisplayPort::DisplayPort(GUIApplication* host)
-	: FX_Init_Event(change)
-	, FX_Init_Event(orientation)
-	, _phy_size()
-	, _lock_size()
-	, _size()
-	, _scale(1)
-	, _scale_value(1)
+	Display::Display(GUIApplication* host)
+	: FX_Init_Event(change), FX_Init_Event(orientation)
+	, _phy_size(), _lock_size()
+	, _size(), _scale(1, 1)
 	, _draw_ctx(host->draw_ctx())
 	, _root_matrix()
 	, _atom_pixel(1)
@@ -155,15 +152,15 @@ namespace flare {
 	/**
 	* @destructor
 	*/
-	DisplayPort::~DisplayPort() {
+	Display::~Display() {
 		_draw_ctx->FX_Off(surface_size_change_r, &Inl::handle_surface_size_change, _inl(this));
 	}
 
-	float DisplayPort::best_scale() const {
+	float Display::best_scale() const {
 		return _draw_ctx->best_display_scale();
 	}
 
-	void DisplayPort::lock_size(float width, float height) {
+	void Display::lock_size(float width, float height) {
 		if (width >= 0.0 && height >= 0.0) {
 			if (_lock_size.width() != width || _lock_size.height() != height) {
 				_lock_size = { width, height };
@@ -184,7 +181,7 @@ namespace flare {
 	/**
 	* @func render_frame()
 	*/
-	void DisplayPort::render_frame() {
+	void Display::render_frame() {
 		Root* r = _host->root();
 		int64_t now_time = os::time_monotonic();
 		// TODO ...
@@ -233,7 +230,7 @@ namespace flare {
 	/**
 	* @func refresh()
 	*/
-	void DisplayPort::refresh() {
+	void Display::refresh() {
 		// TODO 必须要渲染循环中调用
 		Root* r = _host->root();
 		if ( r ) {
@@ -244,7 +241,7 @@ namespace flare {
 		}
 	}
 
-	void DisplayPort::push_draw_region(Region re) {
+	void Display::push_draw_region(Region re) {
 		// 计算一个交集区域
 		
 		Region dre = _draw_region.back();
@@ -281,8 +278,26 @@ namespace flare {
 	/**
 	* @func next_frame
 	*/
-	void DisplayPort::next_frame(cCb& cb) {
+	void Display::next_frame(cCb& cb) {
 		_next_frame.push_back(cb);
 	}
+
+	bool Display::set_surface_size(Vec2 surface_size, Rect* surface_region) {
+		Rect region = surface_region ? 
+			*surface_region : Rect({ Vec2(), surface_size });
+			
+		if (_surface_size != surface_size ||
+				_surface_region.origin != region.origin ||
+				_surface_region.size != region.size
+		) {
+			_surface_size = surface_size;
+			_surface_region = region;
+			// refresh_buffer();
+			// FX_Trigger(surface_size_change_from_render);
+			return true;
+		}
+		return false;
+	}
+
 
 }

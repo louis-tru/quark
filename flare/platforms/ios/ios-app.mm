@@ -42,8 +42,8 @@
 
 using namespace flare;
 
-typedef DisplayPort::Orientation Orientation;
-typedef DisplayPort::StatusBarStyle StatusBarStyle;
+typedef Display::Orientation Orientation;
+typedef Display::StatusBarStyle StatusBarStyle;
 
 static ApplicationDelegate* app_delegate = nil;
 static GLDrawProxy* gl_draw_context = nil;
@@ -504,19 +504,19 @@ void AppInl::set_volume_down() {
 	// TODO ..
 }
 
-// ******************************* DisplayPort *******************************
+// ******************************* Display *******************************
 
 /**
  * @func default_atom_pixel
  */
-float DisplayPort::default_atom_pixel() {
+float Display::default_atom_pixel() {
 	return 1.0 / UIScreen.mainScreen.scale;
 }
 
 /**
  * @func keep_screen(keep)
  */
-void DisplayPort::keep_screen(bool keep) {
+void Display::keep_screen(bool keep) {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if ( keep ) {
 			app_delegate.host.idleTimerDisabled = YES;
@@ -529,7 +529,7 @@ void DisplayPort::keep_screen(bool keep) {
 /**
  * @func status_bar_height()
  */
-float DisplayPort::status_bar_height() {
+float Display::status_bar_height() {
 	::Rect rect = app_delegate.host.statusBarFrame;
 	return FX_MIN(rect.size.height, 20) * UIScreen.mainScreen.scale / _scale_value[1];
 }
@@ -537,7 +537,7 @@ float DisplayPort::status_bar_height() {
 /**
  * @func default_status_bar_height
  */
-float DisplayPort::default_status_bar_height() {
+float Display::default_status_bar_height() {
 	if (app_delegate && app_delegate.app) {
 		return app_delegate.app->display_port()->status_bar_height();
 	} else {
@@ -548,7 +548,7 @@ float DisplayPort::default_status_bar_height() {
 /**
  * @func set_visible_status_bar(visible)
  */
-void DisplayPort::set_visible_status_bar(bool visible) {
+void Display::set_visible_status_bar(bool visible) {
 	
 	if ( visible != app_delegate.visible_status_bar ) {
 		app_delegate.visible_status_bar = visible;
@@ -576,7 +576,7 @@ void DisplayPort::set_visible_status_bar(bool visible) {
 /**
  * @func set_status_bar_text_color(color)
  */
-void DisplayPort::set_status_bar_style(StatusBarStyle style) {
+void Display::set_status_bar_style(StatusBarStyle style) {
 	UIStatusBarStyle style_2;
 	if ( style == STATUS_BAR_STYLE_WHITE ) {
 		style_2 = UIStatusBarStyleLightContent;
@@ -595,14 +595,14 @@ void DisplayPort::set_status_bar_style(StatusBarStyle style) {
 /**
  * @func request_fullscreen(fullscreen)
  */
-void DisplayPort::request_fullscreen(bool fullscreen) {
+void Display::request_fullscreen(bool fullscreen) {
 	set_visible_status_bar(!fullscreen);
 }
 
 /**
  * @func orientation()
  */
-Orientation DisplayPort::orientation() {
+Orientation Display::orientation() {
 	Orientation r = ORIENTATION_INVALID;
 	switch ( app_delegate.host.statusBarOrientation ) {
 		case UIInterfaceOrientationPortrait:
@@ -627,7 +627,7 @@ Orientation DisplayPort::orientation() {
 /**
  * @func set_orientation(orientation)
  */
-void DisplayPort::set_orientation(Orientation orientation) {
+void Display::set_orientation(Orientation orientation) {
 	if ( app_delegate.setting_orientation != orientation ) {
 		app_delegate.setting_orientation = orientation;
 		dispatch_async(dispatch_get_main_queue(), ^{

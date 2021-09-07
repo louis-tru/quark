@@ -31,7 +31,7 @@
 ///<reference path="_ext.ts"/>
 
 import utils from './util';
-import {DisplayPort} from './display_port';
+import {Display} from './display_port';
 import { Root, View } from './_view';
 import * as value from './value';
 import event, {EventNoticer, Notification, NativeNotification, Event} from './event';
@@ -68,7 +68,7 @@ declare class NativeGUIApplication extends Notification {
 	usedMemory(): number;
 	pending(): void;
 	readonly isLoaded: boolean;
-	readonly displayPort: DisplayPort;
+	readonly displayPort: Display;
 	readonly root: Root | null;
 	readonly focusView: View | null;
 	defaultTextBackgroundColor: value.TextColor;

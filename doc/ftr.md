@@ -41,9 +41,9 @@
 
 ## Get: displayPort
 
-获取当前`DisplayPort`实例
+获取当前`Display`实例
 
-* {[`DisplayPort`]} 
+* {[`Display`]} 
 
 ## Get: atomPixel 
 
@@ -563,7 +563,7 @@ console.log(view.class);
 
 **Default**`0`
 
-* 浮点类型的宽度,这里的单位并非为像素,这要参照[`DisplayPort`]设置的尺寸与屏幕的缩放
+* 浮点类型的宽度,这里的单位并非为像素,这要参照[`Display`]设置的尺寸与屏幕的缩放
 
 * 这个值也表示选取图像的宽度，当然这个值会受`ratio`影响,`ratio`越小实际选取的图像范围越大
 
@@ -770,7 +770,7 @@ console.log(view.class);
 
 * `pixel` - `明确`的像素数值并非真正就义上的像素，使用浮点数表示但在这里不能为负，
 
-	`1`代表屏幕的多少像素需要参照[`DisplayPort`]中设置的尺寸与屏幕的缩放
+	`1`代表屏幕的多少像素需要参照[`Display`]中设置的尺寸与屏幕的缩放
 
 * `percent` - 百分比值使用`10%`形式表示，取父视图`width`的百分比值，需要父视图有`明确`的`width`，
 
@@ -1745,7 +1745,7 @@ console.log(view.class);
 [`nextFrame(cb)`]: display_port.md#nextFrame-cb-
 [`render()`]: ctr.md#static-viewcontroller-render-vdom-parentview-
 [`CSS()`]: css.md#css-sheets-
-[`DisplayPort`]: display_port.md#class-displayport
+[`Display`]: display_port.md#class-displayport
 [`GUIApplication`]: app.md#class-guiapplication
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus

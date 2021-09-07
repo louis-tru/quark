@@ -950,4 +950,23 @@ namespace flare {
 		}
 	}
 
+
+	// TODO ...
+
+	static Char empty_[4] = { 0, 0, 0, 0 };
+	static cPixelData empty_pixel_data(WeakBuffer(empty_, 4), 1, 1, PixelData::RGBA8888);
+
+	/**
+	* @class TextureEmpty
+	*/
+	class TextureEmpty: public Texture {
+		public:
+		virtual void load() {
+			if (_status == TEXTURE_NO_LOADED) {
+				ASSERT(load_data(empty_pixel_data), "Load temp texture error");
+			}
+		}
+	};
+
+
 }

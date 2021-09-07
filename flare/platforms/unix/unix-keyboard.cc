@@ -34,14 +34,14 @@
 namespace flare {
 
 	/**
-	* @class LinuxKeyboardAdapter
+	* @class UnixKeyboardAdapter
 	*/
-	class LinuxKeyboardAdapter: public KeyboardAdapter {
+	class UnixKeyboardAdapter: public KeyboardAdapter {
 		public:
-			LinuxKeyboardAdapter();
+			UnixKeyboardAdapter();
 	};
 
-	LinuxKeyboardAdapter::LinuxKeyboardAdapter() {
+	UnixKeyboardAdapter::UnixKeyboardAdapter() {
 		_keycodes[22] = KEYCODE_BACK_SPACE;
 		_keycodes[23] = KEYCODE_TAB;
 		// _keycodes[AKEYCODE_CLEAR] = KEYCODE_CLEAR;
@@ -184,7 +184,7 @@ namespace flare {
 	}
 
 	KeyboardAdapter* KeyboardAdapter::create() {
-		return new LinuxKeyboardAdapter();
+		return new UnixKeyboardAdapter();
 	}
 
 }

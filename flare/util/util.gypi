@@ -100,10 +100,10 @@
 				'sources':[
 					'../../android/android.h',
 					'../../android/android.cc',
-					'_android-jni.h',
-					'_android-log.h',
-					'_android-jni.cc',
-					'_android-log.cc',
+					'platforms/android-jni_.h',
+					'platforms/android-log_.h',
+					'platforms/android-jni_.cc',
+					'platforms/android-log_.cc',
 					'platforms/android-path.cc',
 					'platforms/android-os.cc',
 				],
@@ -118,8 +118,8 @@
 			}],
 			['os=="linux"', {
 				'sources': [
-					'platforms/linux-path.cc',
-					'platforms/linux-os.cc',
+					'platforms/unix-path.cc',
+					'platforms/unix-os.cc',
 				],
 				'link_settings': {
 					'libraries': [

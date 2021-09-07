@@ -34,7 +34,6 @@
 #import "../_app.h"
 
 using namespace flare;
-using namespace flare;
 
 @interface IOSTextPosition: UITextPosition
 @property (assign, nonatomic) NSUInteger value;

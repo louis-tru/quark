@@ -665,7 +665,7 @@ namespace flare {
 	/**
 	* @func set_display_port
 	*/
-	void FontPool::set_display_port(DisplayPort* display_port) {
+	void FontPool::set_display_port(Display* display_port) {
 		ASSERT(!_display_port);
 		display_port->FX_On(change, &Inl::display_port_change_handle, _inl_pool(this));
 		_display_port = display_port;

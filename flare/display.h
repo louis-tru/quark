@@ -37,6 +37,10 @@
 #include "./value.h"
 #include "./util/cb.h"
 
+namespace sk_app {
+	class WindowContext;
+}
+
 namespace flare {
 
 	class Render;
@@ -46,11 +50,11 @@ namespace flare {
 
 	/**
 	* 提供的一些对显示与屏幕的常用方法属性与事件
-	* @class DisplayPort
+	* @class Display
 	*/
-	class FX_EXPORT DisplayPort: public Reference {
-		FX_HIDDEN_ALL_COPY(DisplayPort);
-	 public:
+	class FX_EXPORT Display: public Reference {
+		FX_HIDDEN_ALL_COPY(Display);
+	public:
 
 		enum Orientation {
 			ORIENTATION_INVALID = -1,
@@ -69,12 +73,12 @@ namespace flare {
 			STATUS_BAR_STYLE_BLACK,
 		};
 		
-		DisplayPort(GUIApplication* host);
+		Display(GUIApplication* host);
 		
 		/**
 		* @destructor
 		*/
-		virtual ~DisplayPort();
+		virtual ~Display();
 		
 		/**
 		* @event onchange 显示端口变化事件
@@ -102,14 +106,9 @@ namespace flare {
 		float best_scale() const;
 		
 		/**
-		* @func scale 当前视口缩放
-		*/
-		inline float scale() const { return _scale; }
-		
-		/**
 		* @func scale_value
 		*/
-		inline Vec2 scale_value() const { return _scale_value; }
+		inline Vec2 scale() const { return _scale; }
 		
 		/**
 		* @func set_lock_size()
@@ -203,6 +202,16 @@ namespace flare {
 		inline uint32_t fsp() const { return _fsp; }
 
 		/**
+		 * @func best_display_scale()
+		 */
+		inline float best_display_scale() const { return _best_display_scale; }
+		inline void set_best_display_scale(float value) { _best_display_scale = value; }
+		inline Vec2 surface_size() const { return _surface_size; }
+		inline Rect surface_region() const { return _surface_region; }
+		
+		bool set_surface_size(Vec2 surface_size, Rect* surface_region = nullptr); // private:
+
+		/**
 		* @func default_atom_pixel
 		*/
 		static float default_atom_pixel();
@@ -212,16 +221,15 @@ namespace flare {
 		*/
 		static float default_status_bar_height();
 
-	 private:
+	private:
 		void render_frame();
 		void refresh();
 		
 		Vec2              _phy_size;   // 视口在屏幕上所占的实际像素的尺寸
 		Vec2              _lock_size;  // 锁定视口的尺寸
 		Vec2              _size;       // 当前视口尺寸
-		float             _scale;      // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
-		Vec2              _scale_value;
-		Render*           _render_ctx;
+		Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
+		WindowContext*    _sk_ctx;
 		Mat4              _root_matrix;
 		float             _atom_pixel;
 		List<Region>      _region;
@@ -229,9 +237,12 @@ namespace flare {
 		List<Cb>          _next_frame;
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
+		float             _best_display_scale;
+		Vec2              _surface_size;     /* 当前绘图表面支持的大小 */
+		Rect              _surface_region;  /* 选择绘图表面有区域 */
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
-		friend class  GUIApplication; // 友元类
+		// friend class  GUIApplication;
 	};
 
 }

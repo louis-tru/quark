@@ -41,8 +41,8 @@
 
 using namespace flare;
 
-typedef DisplayPort::Orientation Orientation;
-typedef DisplayPort::StatusBarStyle StatusBarStyle;
+typedef Display::Orientation Orientation;
+typedef Display::StatusBarStyle StatusBarStyle;
 
 @class ApplicationOptions;
 @class MacIMEHelprt;
@@ -489,64 +489,64 @@ void AppInl::set_volume_down() {
 	// TODO ..
 }
 
-// ******************************* DisplayPort *******************************
+// ******************************* Display *******************************
 
 /**
  * @func default_atom_pixel
  */
-float DisplayPort::default_atom_pixel() {
+float Display::default_atom_pixel() {
 	return 1.0 / UIScreen.mainScreen.backingScaleFactor;
 }
 
 /**
  * @func keep_screen(keep)
  */
-void DisplayPort::keep_screen(bool keep) {
+void Display::keep_screen(bool keep) {
 }
 
 /**
  * @func status_bar_height()
  */
-float DisplayPort::status_bar_height() {
+float Display::status_bar_height() {
 	return 0;
 }
 
 /**
  * @func default_status_bar_height
  */
-float DisplayPort::default_status_bar_height() {
+float Display::default_status_bar_height() {
 	return 0;
 }
 
 /**
  * @func set_visible_status_bar(visible)
  */
-void DisplayPort::set_visible_status_bar(bool visible) {
+void Display::set_visible_status_bar(bool visible) {
 }
 
 /**
  * @func set_status_bar_text_color(color)
  */
-void DisplayPort::set_status_bar_style(StatusBarStyle style) {
+void Display::set_status_bar_style(StatusBarStyle style) {
 }
 
 /**
  * @func request_fullscreen(fullscreen)
  */
-void DisplayPort::request_fullscreen(bool fullscreen) {
+void Display::request_fullscreen(bool fullscreen) {
 }
 
 /**
  * @func orientation()
  */
-Orientation DisplayPort::orientation() {
+Orientation Display::orientation() {
 	return ORIENTATION_INVALID;
 }
 
 /**
  * @func set_orientation(orientation)
  */
-void DisplayPort::set_orientation(Orientation orientation) {
+void Display::set_orientation(Orientation orientation) {
 }
 
 extern "C" FX_EXPORT int main(int argc, Char* argv[]) {

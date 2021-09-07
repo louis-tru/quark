@@ -88,7 +88,7 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 
 ### Get: GUIApplication.displayPort 
 
-* {[`DisplayPort`]}
+* {[`Display`]}
 
 ### Get: GUIApplication.root 
 
@@ -210,7 +210,7 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`TextDecoration`]: value.md#class-textdecoration
 [`TextOverflow`]: value.md#class-textoverflow
 [`TextWhiteSpace`]: value.md#class-textwhitespace
-[`DisplayPort`]: display_port.md#class-displayport
+[`Display`]: display_port.md#class-displayport
 [`Root`]: flare.md#class-root
 [`View`]: flare.md#class-view
 [`clear()`]: app.md#guiapplication-clear

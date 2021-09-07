@@ -28,37 +28,24 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#include "flare/media-codec-1.h"
+#include "flare/util/macros.h"
 
-namespace flare {
+#if FX_IOS
 
-	/**
-	* @class LinuxHardwareMediaCodec
-	* */
-	class LinuxHardwareMediaCodec: public MediaCodec {
-		public:
+#import <UIKit/UIKit.h>
+#import "flare/app.h"
+#import "flare/event.h"
 
-			LinuxHardwareMediaCodec(Extractor* extractor)
-			: MediaCodec(extractor) {
-				// TODO ...
-			}
+using namespace flare;
 
-			/**
-			* @destructor
-			*/
-			virtual ~LinuxHardwareMediaCodec() {
-				// TODO ...
-			}
+@interface IOSIMEHelprt: UIView<UITextInput>
+- (id)initWithApplication:(GUIApplication*)app;
+- (void)open;
+- (void)close;
+- (void)clear;
+- (void)set_keyboard_can_backspace:(bool)can_backspace can_delete:(bool)can_delete;
+- (void)set_keyboard_type:(KeyboardType)type;
+- (void)set_keyboard_return_type:(KeyboardReturnType)type;
+@end
 
-		private:
-
-	};
-
-	/**
-	* @func hardware
-	*/
-	MediaCodec* MediaCodec::hardware(MediaType type, MultimediaSource* source) {
-		return nullptr;
-	}
-
-}
+#endif

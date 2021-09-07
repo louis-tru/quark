@@ -91,7 +91,7 @@ namespace flare {
 	}
 
 	void AppInl::refresh_display() {
-		_display_port->refresh();
+		_display->refresh();
 	}
 
 	void AppInl::triggerLoad() {
@@ -102,7 +102,7 @@ namespace flare {
 	}
 
 	void AppInl::triggerRender() {
-		_display_port->render_frame();
+		_display->render_frame();
 	}
 
 	void AppInl::triggerPause() {
@@ -261,28 +261,32 @@ namespace flare {
 	}
 
 	GUIApplication::GUIApplication()
-	: FX_Init_Event(Load)
-	, FX_Init_Event(Unload)
-	, FX_Init_Event(Background)
-	, FX_Init_Event(Foreground)
-	, FX_Init_Event(Pause)
-	, FX_Init_Event(Resume)
-	, FX_Init_Event(Memorywarning)
-	, _is_run(false)
-	, _is_load(false)
-	, _render_loop(nullptr)
-	, _main_loop(RunLoop::main_loop())
-	, _render_keep(nullptr)
-	, _main_keep(nullptr)
-	// , _draw_ctx(nullptr)
-	, _display_port(nullptr)
-	, _root(nullptr)
-	, _focus_view(nullptr)
-	, _default_text_settings(new DefaultTextSettings())
-	, _dispatch(nullptr)
-	// , _action_center(nullptr)
-	, _pre_render(nullptr)
+		: FX_Init_Event(Load)
+		, FX_Init_Event(Unload)
+		, FX_Init_Event(Background)
+		, FX_Init_Event(Foreground)
+		, FX_Init_Event(Pause)
+		, FX_Init_Event(Resume)
+		, FX_Init_Event(Memorywarning)
+		, _is_run(false)
+		, _is_load(false)
+		, _render_loop(nullptr)
+		, _main_loop(RunLoop::main_loop())
+		, _render_keep(nullptr)
+		, _main_keep(nullptr)
+		// , _render(nullptr)
+		, _display(nullptr)
+		, _root(nullptr)
+		, _focus_view(nullptr)
+		, _default_text_settings(new DefaultTextSettings())
+		, _dispatch(nullptr)
+		, _action_center(nullptr)
+		, _pre_render(nullptr)
+		, _font_pool(nullptr), _tex_pool(nullptr)
+		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
+		_font_pool = new FontPool(this); // 初始字体池
+		_tex_pool = new TexturePool(this); // 初始文件纹理池
 		_main_keep = _main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
 		Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
 	}
@@ -305,6 +309,8 @@ namespace flare {
 		Release(_pre_render);    _pre_render = nullptr;
 		Release(_render_keep);   _render_keep = nullptr;
 		Release(_main_keep);     _main_keep = nullptr;
+		Release(_font_pool);   _font_pool = nullptr;
+		Release(_tex_pool);    _tex_pool = nullptr;
 
 		_render_loop = nullptr;
 		_main_loop = nullptr;
@@ -323,8 +329,8 @@ namespace flare {
 		HttpHelper::initialize(); // 初始http
 		_inl_app(this)->initialize(options);
 		FX_DEBUG("Inl_GUIApplication initialize ok");
-		_display_port = NewRetain<DisplayPort>(this); // strong ref
-		FX_DEBUG("NewRetain<DisplayPort> ok");
+		_display_port = NewRetain<Display>(this); // strong ref
+		FX_DEBUG("NewRetain<Display> ok");
 		_pre_render = new PreRender();
 		FX_DEBUG("new PreRender ok");
 		// _draw_ctx->font_pool()->set_display_port(_display_port);
@@ -344,21 +350,36 @@ namespace flare {
 	* @func clear([full]) 清理不需要使用的资源
 	*/
 	void GUIApplication::clear(bool full) {
-		// _render_loop->post(Cb([&, full](CbData& e){ _draw_ctx->clear(full); }));
+		_render_loop->post(Cb([&, full](CbData& e){ 
+			_tex_pool->clear(full);
+			_font_pool->clear(full);
+		}));
 	}
 
-	uint64_t GUIApplication::max_texture_memory_limit() const {
-		// return _draw_ctx->max_texture_memory_limit();
-		return 0;
+	void Render::set_max_texture_memory_limit(uint64_t limit) {
+		_max_texture_memory_limit = FX_MAX(limit, 64 * 1024 * 1024);
 	}
 
-	void GUIApplication::set_max_texture_memory_limit(uint64_t limit) {
-		// _draw_ctx->set_max_texture_memory_limit(limit);
+	uint64_t Render::used_texture_memory() const {
+		return _tex_pool->_total_data_size + _font_pool->_total_data_size;
 	}
 
-	uint64_t GUIApplication::used_texture_memory() const {
-		// return _draw_ctx->used_texture_memory();
-		return 0;
+	/**
+	* @func adjust_texture_memory()
+	*/
+	bool Render::adjust_texture_memory(uint64_t will_alloc_size) {
+		int i = 0;
+		do {
+			if (will_alloc_size + used_texture_memory() <= _max_texture_memory_limit) {
+				return true;
+			}
+			clear();
+			i++;
+		} while(i < 3);
+		
+		FX_WARN("Adjust texture memory fail");
+		
+		return false;
 	}
 
 }

@@ -43,9 +43,9 @@ static cString beforerender("Beforerender");
 static cString render("Render");
 static cString orientation_("Orientation");
 
-class WrapDisplayPort: public WrapObject {
+class WrapDisplay: public WrapObject {
 	public:
-	typedef DisplayPort Type;
+	typedef Display Type;
 	
 	/**
 	 * @func bind_event
@@ -110,7 +110,7 @@ class WrapDisplayPort: public WrapObject {
 				"* @arg [height=0] {float}"
 			);
 		}
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		
 		if (args.Length() > 1 && args[1]->IsNumber(worker)) {
 			self->lock_size( args[0]->ToNumberValue(worker), args[1]->ToNumberValue(worker) );
@@ -131,7 +131,7 @@ class WrapDisplayPort: public WrapObject {
 				"* @arg cb {Function}\n"
 			);
 		}
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		
 		CopyablePersistentFunc func(worker, args[0].To<JSFunction>());
 
@@ -149,7 +149,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void width(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->size().width() );
 	}
 	
@@ -158,7 +158,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void height(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->size().height() );
 	}
 	
@@ -167,7 +167,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void phy_width(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->phy_size().width() );
 	}
 	
@@ -176,7 +176,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void phy_height(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->phy_size().height() );
 	}
 	
@@ -185,7 +185,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void best_scale(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->best_scale() );
 	}
 	
@@ -194,7 +194,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void scale(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->scale() );
 	}
 	
@@ -203,7 +203,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void scale_value(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( worker->values()->New(self->scale_value()) );
 	}
 	
@@ -212,7 +212,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void root_matrix(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( worker->values()->New(self->root_matrix()) );
 	}
 	
@@ -221,7 +221,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void atom_pixel(Local<JSString> name, PropertyCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->atom_pixel() );
 	}
 	
@@ -236,7 +236,7 @@ class WrapDisplayPort: public WrapObject {
 										"* @arg keep {bool}\n"
 										);
 		}
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		self->keep_screen( args[0]->ToBooleanValue(worker) );
 	}
 	
@@ -245,7 +245,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void status_bar_height(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->status_bar_height() );
 	}
 	
@@ -260,7 +260,7 @@ class WrapDisplayPort: public WrapObject {
 										"* @arg visible {bool}\n"
 										);
 		}
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		self->set_visible_status_bar( args[0]->ToBooleanValue(worker) );
 	}
 	
@@ -275,8 +275,8 @@ class WrapDisplayPort: public WrapObject {
 										"* @arg style {StatusBarStyle}\n"
 										);
 		}
-		JS_SELF(DisplayPort);
-		self->set_status_bar_style( DisplayPort::StatusBarStyle(args[0]->ToUint32Value(worker)) );
+		JS_SELF(Display);
+		self->set_status_bar_style( Display::StatusBarStyle(args[0]->ToUint32Value(worker)) );
 	}
 	
 	/**
@@ -290,7 +290,7 @@ class WrapDisplayPort: public WrapObject {
 										"* @arg fullscreen {bool}\n"
 										);
 		}
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		self->request_fullscreen( args[0]->ToBooleanValue(worker) );
 	}
 	
@@ -299,7 +299,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void orientation(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->orientation() );
 	}
 	
@@ -314,8 +314,8 @@ class WrapDisplayPort: public WrapObject {
 										"* @arg orientation {Orientation}\n"
 										);
 		}
-		JS_SELF(DisplayPort);
-		self->set_orientation( DisplayPort::Orientation(args[0]->ToUint32Value(worker)) );
+		JS_SELF(Display);
+		self->set_orientation( Display::Orientation(args[0]->ToUint32Value(worker)) );
 	}
 	
 	/**
@@ -323,7 +323,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void fsp(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_SELF(DisplayPort);
+		JS_SELF(Display);
 		JS_RETURN( self->fsp() );
 	}
 	
@@ -332,7 +332,7 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void default_atom_pixel(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_RETURN( DisplayPort::default_atom_pixel() );
+		JS_RETURN( Display::default_atom_pixel() );
 	}
 	
 	/**
@@ -340,14 +340,14 @@ class WrapDisplayPort: public WrapObject {
 	 */
 	static void default_status_bar_height(FunctionCall args) {
 		JS_WORKER(args); GUILock lock;
-		JS_RETURN( DisplayPort::default_status_bar_height() );
+		JS_RETURN( Display::default_status_bar_height() );
 	}
 	
 	static void binding(Local<JSObject> exports, Worker* worker) {
 		JS_SET_METHOD(defaultAtomPixel, default_atom_pixel);
 		JS_SET_METHOD(defaultStatusBarHeight, default_status_bar_height);
 
-		JS_DEFINE_CLASS(DisplayPort, constructor, {
+		JS_DEFINE_CLASS(Display, constructor, {
 			JS_SET_CLASS_METHOD(lockSize, lock_size);
 			JS_SET_CLASS_METHOD(nextFrame, next_frame);
 			JS_SET_CLASS_METHOD(keepScreen, keep_screen);
@@ -371,5 +371,5 @@ class WrapDisplayPort: public WrapObject {
 	}
 };
 
-JS_REG_MODULE(_display_port, WrapDisplayPort);
+JS_REG_MODULE(_display_port, WrapDisplay);
 JS_END

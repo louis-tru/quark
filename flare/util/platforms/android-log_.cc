@@ -28,27 +28,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__util__android_log__
-#define __flare__util__android_log__
-
-#include "./log.h"
-
-#if FX_ANDROID
+#include <android/log.h>
+#include "./android-log_.h"
+#include "./string.h"
 
 namespace flare {
 
-	/**
-	* @class AndroidConsole # util log
-	*/
-	class FX_EXPORT AndroidConsole: public Console {
-		public:
-		virtual void log(cString& str);
-		virtual void warn(cString& str);
-		virtual void error(cString& str);
-		virtual void print(cString& str);
-		virtual void print_err(cString& str);
-		virtual void clear();
-	};
+	void AndroidConsole::log(cString& str) {
+		__android_log_print(ANDROID_LOG_INFO, "LOG", "%s\n", *str);
+	}
+	void AndroidConsole::warn(cString& str) {
+		__android_log_print(ANDROID_LOG_WARN, "FX_WARN", "%s\n", *str);
+	}
+	void AndroidConsole::error(cString& str) {
+		__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s\n", *str);
+	}
+	void AndroidConsole::print(cString& str) {
+		__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", *str);
+	}
+	void AndroidConsole::print_err(cString& str) {
+		__android_log_print(ANDROID_LOG_ERROR, "ERR", "%s", *str);
+	}
+	void AndroidConsole::clear() {
+		// noop
+	}
+
 }
-#endif
-#endif

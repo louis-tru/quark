@@ -47,7 +47,7 @@
 
 namespace flare {
 
-	class DisplayPort;
+	class Display;
 	class View;
 	class Root;
 	class GUIEventDispatch;
@@ -55,9 +55,10 @@ namespace flare {
 	class PropertysAccessor;
 	class CSSManager;
 	class PreRender;
-	class Render;
 	class DefaultTextSettings;
 	class GUIApplication;
+	class FontPool;
+	class TexturePool;
 
 	/*
 	* 关于GUI中的事件:
@@ -72,7 +73,7 @@ namespace flare {
 	*/
 	class FX_EXPORT GUIApplication: public Object {
 		FX_HIDDEN_ALL_COPY(GUIApplication);
-		public:
+	public:
 
 		/**
 		* 注意: 如果`main loop`与`render loop`运行在不同的线程,
@@ -135,14 +136,9 @@ namespace flare {
 		inline bool is_loaded() const { return _is_load; }
 
 		/**
-		* @func render_ctx 绘图上下文
-		*/
-		inline Render* render_ctx() { return _render_ctx; }
-		
-		/**
 		* @func display_port GUI程序显示端口
 		*/
-		inline DisplayPort* display_port() { return _display_port; }
+		inline Display* display() { return _display; }
 		
 		/**
 		* @func root GUI程序的根视图
@@ -187,7 +183,9 @@ namespace flare {
 		/**
 		* @func max_texture_memory_limit()
 		*/
-		uint64_t max_texture_memory_limit() const;
+		inline uint64_t max_texture_memory_limit() const {
+			return _max_texture_memory_limit;
+		}
 		
 		/**
 		* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
@@ -198,6 +196,11 @@ namespace flare {
 		* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
 		*/
 		uint64_t used_texture_memory() const;
+
+		/**
+		* @func adjust_texture_memory()
+		*/
+		bool adjust_texture_memory(uint64_t will_alloc_size);
 		
 		/**
 		* @func open_url()
@@ -210,8 +213,7 @@ namespace flare {
 		void send_email(cString& recipient,
 										cString& subject,
 										cString& cc = String(),
-										cString& bcc = String(),
-										cString& body = String());
+										cString& bcc = String(), cString& body = String());
 
 		/**
 		 * @func pre_render()
@@ -221,6 +223,12 @@ namespace flare {
 		}
 
 		/**
+		 * @func font_pool()
+		 */
+		inline FontPool* font_pool() const { return _font_pool; }
+		inline TexturePool* tex_pool() const { return _tex_pool; }
+
+		/**
 		 * 
 		 * setting main function
 		 *
@@ -228,20 +236,19 @@ namespace flare {
 		 */
 		static void setMain(int (*main)(int, char**));
 		
-		protected:
+	protected:
 		
 		/**
 		* @func runMain(argc, argv) create sub gui thread, call by system, First thread call
 		*/
 		static void runMain(int argc, Char* argv[]);
 
-		private:
+	private:
 		static GUIApplication* _shared;   // 当前应用程序
 		bool  _is_run, _is_load;
 		RunLoop  *_render_loop, *_main_loop;
 		KeepLoop *_render_keep, *_main_keep;
-		Render*              _render_ctx;         // 绘图上下文
-		DisplayPort*         _display_port;     // 显示端口
+		Display*             _display;     // 显示端口
 		PreRender*           _pre_render;
 		Root*                _root;             // 根视图
 		View*                _focus_view;       // 焦点视图
@@ -250,6 +257,9 @@ namespace flare {
 		ActionCenter*        _action_center;
 		uint64_t             _max_texture_memory_limit;
 		RecursiveMutex       _gui_lock_mutex;
+		FontPool*           _font_pool;        /* 字体纹理池 */
+		TexturePool*        _tex_pool;         /* 文件纹理池 */
+		uint64_t            _max_texture_memory_limit;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
@@ -257,9 +267,10 @@ namespace flare {
 		friend GUIApplication* app();
 	};
 
-	inline GUIApplication* app() {
-		return GUIApplication::_shared;
-	}
+	inline GUIApplication* app() { return GUIApplication::_shared; }
+	inline Display* display() { return app()->display(); }
+	inline FontPool* font_pool() { return app()->font_pool(); }
+	inline TexturePool* tex_pool() { return app()->tex_pool(); }
 
 	typedef GUIApplication::GUILock GUILock;
 

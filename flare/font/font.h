@@ -36,7 +36,7 @@
 namespace flare {
 
 	class GUIApplication;
-	class DisplayPort;
+	class Display;
 	class Texture;
 	class FontFamilysID;
 	class FontGlyph;
