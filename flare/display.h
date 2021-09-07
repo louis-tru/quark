@@ -43,8 +43,6 @@ namespace sk_app {
 
 namespace flare {
 
-	class Render;
-	class Root;
 	class GUIApplication;
 	class PreRender;
 
