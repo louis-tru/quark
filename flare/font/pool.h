@@ -37,7 +37,7 @@
 
 namespace flare {
 
-	class Render;
+	class Application;
 	class BaseFont;
 	class FontGlyphTable;
 	class Font;
@@ -49,7 +49,7 @@ namespace flare {
 		FX_HIDDEN_ALL_COPY(FontPool);
 		public:
 		
-		FontPool(Render* ctx);
+		FontPool(Application* host);
 		
 		/**
 		* @destructor
@@ -200,6 +200,7 @@ namespace flare {
 		*/
 		void set_display_port(Display* display_port);
 		
+		Application*                 _host;
 		void*                        _ft_lib;     /* FT_Library object */
 		Dict<String, BaseFont*>      _blend_fonts;/* 所有的家族与字体包括别名 name => BaseFont */
 		Dict<String, FontFamily*>    _familys;    /* 所有的字体家族 family name => FontFamily */
@@ -208,8 +209,6 @@ namespace flare {
 		Dict<String, String>         _paths;      /* 所有的字体路径 name => path */
 		Array<BaseFont*>      _default_fonts;     /* default font list */
 		FontFamily*           _spare_family;     /* 备用字体家族 spare family */
-		Render*               _render_ctx;
-		Display*          _display_port;
 		uint64_t              _total_data_size; /* 当前使用内存数据尺寸 */
 		float                 _max_glyph_texture_size; /* 纹理绘制的最大限制,超过这个size使用顶点进行绘制 */
 		float                 _display_port_scale;
@@ -218,7 +217,7 @@ namespace flare {
 		
 		friend class Font;
 		friend class FontGlyphTable;
-		friend class GUIApplication;
+		friend class Application;
 		friend class Render;
 		// friend class GLDraw;
 	};

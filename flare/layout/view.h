@@ -33,6 +33,8 @@
 
 #include "./layout.h"
 
+class SkCanvas;
+
 namespace flare {
 
 	# define FX_Views(F) \
@@ -202,6 +204,11 @@ namespace flare {
 			* @func visit(visitor)
 			*/
 		void visit(Visitor *visitor);
+
+		/**
+		 * @func draw(canvas)
+		 */
+		virtual void draw(SkCanvas* canvas);
 
 		/**
 			*

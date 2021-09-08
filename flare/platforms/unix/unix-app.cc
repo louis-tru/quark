@@ -211,7 +211,7 @@ namespace flare {
 		}
 
 		void run() {
-			_host = Inl_GUIApplication(app());
+			_host = Inl_Application(app());
 			_dispatch = _host->dispatch();
 			_render_looper = new RenderLooper(_host);
 			_main_loop = _host->main_loop();
@@ -645,14 +645,14 @@ namespace flare {
 	/**
 	* @func pending() 挂起应用进程
 	*/
-	void GUIApplication::pending() {
+	void Application::pending() {
 		// exit(0);
 	}
 
 	/**
 	* @func open_url()
 	*/
-	void GUIApplication::open_url(cString& url) {
+	void Application::open_url(cString& url) {
 		if (vfork() == 0) {
 			execlp("xdg-open", "xdg-open", *url, NULL);
 		}
@@ -661,7 +661,7 @@ namespace flare {
 	/**
 	* @func send_email
 	*/
-	void GUIApplication::send_email(cString& recipient,
+	void Application::send_email(cString& recipient,
 																	cString& subject,
 																	cString& cc, cString& bcc, cString& body) 
 	{

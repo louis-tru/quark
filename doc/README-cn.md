@@ -16,8 +16,8 @@ Flare是一个跨平台（Android/iOS）前端开发框架，核心代码使用C
 这是一个简单的在屏幕上显示`hello world!`的程序
 
 ```jsx
-import { GUIApplication, Text } from 'flare'
-new GUIApplication().start(
+import { Application, Text } from 'flare'
+new Application().start(
 	<Text>hello world!</Text>
 )
 ```

@@ -45,7 +45,7 @@ namespace flare {
 	*/
 	template<class Basic> class MyGLDraw: public Basic {
 		public:
-			MyGLDraw(GUIApplication* host,
+			MyGLDraw(Application* host,
 							DrawLibrary library,
 							cJSON& options): Basic(host, options), proxy_(this) {
 				this->_library = library;
@@ -65,7 +65,7 @@ namespace flare {
 			GLDrawProxy proxy_;
 	};
 
-	GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
+	GLDrawProxy* GLDrawProxy::create(Application* host, cJSON& options) {
 		GLDrawProxy* rv = nullptr;
 		rv = (new MyGLDraw<GLDraw>(host, DRAW_LIBRARY_GL3, options))->proxy();
 		return rv;

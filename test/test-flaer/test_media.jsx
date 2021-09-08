@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'flare';
+import { Application, Root } from 'flare';
 import 'flare/media';
 
-new GUIApplication().start(<Root/>).onLoad = function() {
+new Application().start(<Root/>).onLoad = function() {
 
 	LOG('\nTest Audio:\n')
 

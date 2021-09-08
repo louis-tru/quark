@@ -37,7 +37,7 @@ Example:
 
 ```js
 import CSS from 'flare/css'
-import { GUIApplication, Root, Div } from 'flare'
+import { Application, Root, Div } from 'flare'
 import 'flare/dialog'
 // 样式表都是全局的
 CSS({
@@ -64,7 +64,7 @@ CSS({
 		backgroundColor: '#f00',
 	},
 })
-new GUIApplication().start(
+new Application().start(
 	// 需要注意jsx语法只能存在于.jsx文件中
 	<Root>
 		<Div class="test"onClick=(e=>{ dialog.alert('Hello!') })>

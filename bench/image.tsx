@@ -1,9 +1,9 @@
 
-import { GUIApplication, Root, Image, Scroll, _CVD } from 'flare';
+import { Application, Root, Image, Scroll, _CVD } from 'flare';
 import * as reader from 'flare/reader';
 import path from 'flare/path';
 
-new GUIApplication({ multisample: 2 }).start(
+new Application({ multisample: 2 }).start(
 	<Root backgroundColor="#000">
 		<Scroll width="full" height="full">
 			{

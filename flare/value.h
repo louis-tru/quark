@@ -178,7 +178,7 @@ namespace flare {
 
 	// react region
 	struct Region {
-		float x, y, x2, y2, w, h;
+		float x, y, x2, y2, width, height;
 	};
 
 	// rect

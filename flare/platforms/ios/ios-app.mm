@@ -278,7 +278,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	//[app setStatusBarStyle:UIStatusBarStyleLightContent];
 	//[app setStatusBarHidden:NO];
 	
-	_app = Inl_GUIApplication(GUIApplication::shared()); 
+	_app = Inl_Application(Application::shared()); 
 	ASSERT(self.app);
 	_window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	_is_background = NO;
@@ -388,19 +388,19 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 @end
 
-// ******************************* GUIApplication *******************************
+// ******************************* Application *******************************
 
 /**
  * @func pending() 挂起应用进程
  */
-void GUIApplication::pending() {
+void Application::pending() {
 	// exit(0);
 }
 
 /**
  * @func open_url()
  */
-void GUIApplication::open_url(cString& url) {
+void Application::open_url(cString& url) {
 	NSURL* url2 = [NSURL URLWithString:[NSString stringWithUTF8String:*url]];
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[app_delegate.host openURL:url2 options:@{ } completionHandler:nil];
@@ -421,7 +421,7 @@ static NSArray<NSString*>* split_ns_array(cString& str) {
 /**
  * @func send_email
  */
-void GUIApplication::send_email(cString& recipient,
+void Application::send_email(cString& recipient,
 																cString& subject,
 																cString& cc, cString& bcc, cString& body) {
 	id recipient_ = split_ns_array(recipient);
@@ -447,8 +447,8 @@ void GUIApplication::send_email(cString& recipient,
 void AppInl::initialize(cJSON& options) {
 	ASSERT(!gl_draw_context);
 	gl_draw_context = GLDrawProxy::create(this, options);
-	_draw_ctx = gl_draw_context->host();
-	ASSERT(_draw_ctx);
+	_render = gl_draw_context->host();
+	ASSERT(_render);
 }
 
 /**

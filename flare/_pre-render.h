@@ -47,7 +47,7 @@ namespace flare {
 	*/
 	class FX_EXPORT PreRender: public Object {
 		FX_HIDDEN_ALL_COPY(PreRender);
-		public:
+	public:
 
 		PreRender();
 
@@ -84,8 +84,8 @@ namespace flare {
 		void delete_mark(Layout *layout, uint32_t depth);
 		void delete_mark_recursive(Layout *layout, uint32_t depth);
 
-		private:
-
+	private:
+		Application* _host;
 		bool _is_render;
 		int32_t _mark_total, _mark_recursive_total;
 		List<Task*>  _tasks;

@@ -54,7 +54,7 @@ namespace flare {
 
 	Root* Root::create() {
 		auto app = flare::app();
-		FX_CHECK(app, "Before you create a root, you need to create a GUIApplication");
+		FX_CHECK(app, "Before you create a root, you need to create a Application");
 		Handle<Root> r = new Root();
 		r->set_layout_depth(1);
 		r->set_receive(1);

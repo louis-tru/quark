@@ -35,7 +35,7 @@
 
 namespace flare {
 
-	class GUIApplication;
+	class Application;
 	class Display;
 	class Texture;
 	class FontFamilysID;

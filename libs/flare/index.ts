@@ -45,7 +45,7 @@ import display_port from './display_port';
 import css from './css';
 export * from './_view';
 export {ViewController, VirtualDOM,_CVD} from './ctr';
-export {GUIApplication} from './app';
+export {Application} from './app';
 
 const _flare = __require__('_flare');
 
@@ -255,7 +255,7 @@ export default {
 	CVD: _CVD,
 
 	/**
-	 * @get app {GUIApplication} get current application object
+	 * @get app {Application} get current application object
 	 */
 	get app() { return app.current },
 

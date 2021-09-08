@@ -16,8 +16,8 @@ flare is a cross-platform (Android/iOS) front-end development framework. The cor
 This is a simple program to display Hello world on the screen
 
 ```jsx
-import { GUIApplication, Root } from 'flare'
-new GUIApplication().start(
+import { Application, Root } from 'flare'
+new Application().start(
 	<Root>hello world!</Root>
 )
 ```

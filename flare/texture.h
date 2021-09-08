@@ -40,7 +40,7 @@
 
 namespace flare {
 
-	class Render;
+	class Application;
 	class FileTexture;
 	class TexturePool;
 
@@ -242,7 +242,7 @@ namespace flare {
 		/**
 		* @constructor
 		*/
-		TexturePool(Render* ctx);
+		TexturePool(Application* host);
 		
 		/**
 		* @destructor
@@ -276,7 +276,7 @@ namespace flare {
 		
 		private:
 		
-		Render* _render_ctx;
+		Application* _host;
 		Dict<String, FileTexture*> _textures;
 		Dict<Texture*, bool> _completes;
 		uint64_t _total_data_size; /* 纹池当前数据总量 */

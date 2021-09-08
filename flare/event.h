@@ -143,7 +143,7 @@ namespace flare {
 
 	// -----------------------------------
 
-	class GUIApplication;
+	class Application;
 	class View;
 	class Action;
 	class Activity;
@@ -335,7 +335,7 @@ namespace flare {
 	*/
 	class FX_EXPORT GUIEventDispatch: public Object {
 		public:
-		GUIEventDispatch(GUIApplication* app);
+		GUIEventDispatch(Application* app);
 		virtual ~GUIEventDispatch();
 		// touch
 		void dispatch_touchstart(List<GUITouch>&& touches);
@@ -369,7 +369,7 @@ namespace flare {
 		class MouseHandle;
 		typedef Dict<View*, OriginTouche*> OriginTouches;
 		
-		GUIApplication*     app_;
+		Application*     app_;
 		OriginTouches       _origin_touches;
 		MouseHandle*        _mouse_h;
 		KeyboardAdapter*    _keyboard;

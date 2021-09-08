@@ -28,8 +28,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __flare__gui_app_1__
-#define __flare__gui_app_1__
+#ifndef __flare__app_1__
+#define __flare__app_1__
 
 #include "./app.h"
 
@@ -39,8 +39,8 @@
 
 namespace flare {
 
-	FX_DEFINE_INLINE_MEMBERS(GUIApplication, Inl) {
-	 public:
+	FX_DEFINE_INLINE_MEMBERS(Application, Inl) {
+	public:
 		#define _inl_app(self) static_cast<AppInl*>(self)
 
 		struct KeyboardOptions {
@@ -49,8 +49,7 @@ namespace flare {
 			KeyboardReturnType return_type;
 			Vec2               spot_location;
 		};
-		
-		void initialize(cJSON& options);
+
 		void refresh_display();
 		void triggerLoad();
 		void triggerRender();
@@ -80,7 +79,7 @@ namespace flare {
 		* @func runMain
 		*/
 		inline static void runMain(int argc, Char* argv[]) {
-			GUIApplication::runMain(argc, argv);
+			Application::runMain(argc, argv);
 		}
 		
 		/**
@@ -119,7 +118,7 @@ namespace flare {
 		int onExit(int code);
 	};
 
-	typedef GUIApplication::Inl AppInl;
+	typedef Application::Inl AppInl;
 
 	void safeExit(int rc);
 

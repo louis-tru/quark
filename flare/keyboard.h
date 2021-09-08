@@ -36,7 +36,7 @@
 
 namespace flare {
 
-	class GUIApplication;
+	class Application;
 
 	#define fx_each_keyboard_key_name_table(F) \
 	F(KEYCODE_UNKNOWN,          0)  \
@@ -270,7 +270,7 @@ namespace flare {
 		Dict<int, AsciiKeyboardKeycode> _ascii_keycodes;
 		Dict<int, SymbolKeypressValue>  _symbol_keypress;
 		
-		GUIApplication* app_;
+		Application* app_;
 		KeyboardKeyName keyname_;
 		int   keypress_;
 		bool  shift_;

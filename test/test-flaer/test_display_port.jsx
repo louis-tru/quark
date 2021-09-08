@@ -29,10 +29,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, AM, VM, VP, CA } from './test';
-import { GUIApplication, Root, Div, Image } from 'flare';
+import { Application, Root, Div, Image } from 'flare';
 import dp from 'flare/display_port';
 
-new GUIApplication().start(
+new Application().start(
 	<Root>
 		<Div width={200} height={200} background_color="#f00">
 			<Image src={resolve('res/cc.jpg')} width="full" height="full" opacity={0.5} />

@@ -32,7 +32,7 @@ import { P, M, LOG, VM, VP } from './test'
 import { Vec2, value } from 'flare/value';
 import KeyframeAction from 'flare/action';
 import {
-	GUIApplication,
+	Application,
 	CSS,
 	View,
 	Root, 
@@ -64,7 +64,7 @@ CSS({
 })
 
 // start gui application
-new GUIApplication({ _multisample: 4 }).start(
+new Application({ _multisample: 4 }).start(
 	<Root>
 	</Root>
 ).onload = function() {

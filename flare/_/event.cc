@@ -804,7 +804,7 @@ namespace flare {
 		// ---------------
 	};
 
-	GUIEventDispatch::GUIEventDispatch(GUIApplication* app): app_(app), _text_input(nullptr) {
+	GUIEventDispatch::GUIEventDispatch(Application* app): app_(app), _text_input(nullptr) {
 		_keyboard = KeyboardAdapter::create();
 		_mouse_h = new MouseHandle();
 	}

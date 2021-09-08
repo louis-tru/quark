@@ -39,7 +39,7 @@ import ViewController, { VirtualDOM, _CVD, _CVDD } from './ctr';
 
 const _flare = __require__('_flare');
 
-var cur: GUIApplication | null = null;
+var cur: Application | null = null;
 var cur_root_ctr: ViewController | null = null;
 
 export interface Options {
@@ -56,9 +56,9 @@ export interface Options {
 }
 
 /**
- * @class NativeGUIApplication
+ * @class NativeApplication
  */
-declare class NativeGUIApplication extends Notification {
+declare class NativeApplication extends Notification {
 	constructor(options?: Options);
 	clear(full?: boolean): void;
 	openUrl(url: string): void;
@@ -84,17 +84,17 @@ declare class NativeGUIApplication extends Notification {
 }
 
 /**
- * @class GUIApplication
+ * @class Application
  */
-export class GUIApplication extends (_flare.NativeGUIApplication as typeof NativeGUIApplication) {
+export class Application extends (_flare.NativeApplication as typeof NativeApplication) {
 
-	@event readonly onLoad: EventNoticer<Event<void, GUIApplication>>;
-	@event readonly onUnload: EventNoticer<Event<void, GUIApplication>>;
-	@event readonly onBackground: EventNoticer<Event<void, GUIApplication>>;
-	@event readonly onForeground: EventNoticer<Event<void, GUIApplication>>;
-	@event readonly onPause: EventNoticer<Event<void, GUIApplication>>;
-	@event readonly onResume: EventNoticer<Event<void, GUIApplication>>;
-	@event readonly onMemoryWarning: EventNoticer<Event<void, GUIApplication>>;
+	@event readonly onLoad: EventNoticer<Event<void, Application>>;
+	@event readonly onUnload: EventNoticer<Event<void, Application>>;
+	@event readonly onBackground: EventNoticer<Event<void, Application>>;
+	@event readonly onForeground: EventNoticer<Event<void, Application>>;
+	@event readonly onPause: EventNoticer<Event<void, Application>>;
+	@event readonly onResume: EventNoticer<Event<void, Application>>;
+	@event readonly onMemoryWarning: EventNoticer<Event<void, Application>>;
 	
 	constructor(options?: Options) {
 		super(options);
@@ -127,10 +127,10 @@ export class GUIApplication extends (_flare.NativeGUIApplication as typeof Nativ
 
 }
 
-utils.extendClass(GUIApplication, NativeNotification);
+utils.extendClass(Application, NativeNotification);
 
 export default {
-	get current() { return cur as GUIApplication },
+	get current() { return cur as Application },
 	get root() { return (cur_root_ctr as ViewController).dom as unknown as Root },
 	get rootCtr() { return cur_root_ctr as ViewController },
 };

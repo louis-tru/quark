@@ -57,7 +57,7 @@ namespace flare {
 		void initializ_gl_buffers();
 		GLint get_gl_texture_pixel_format(PixelData::Format pixel_format);
 		inline GLDraw* host() { return _host; }
-		static GLDrawProxy* create(GUIApplication* host, cJSON& options);
+		static GLDrawProxy* create(Application* host, cJSON& options);
 		protected:
 		EGLDisplay _display;
 		EGLConfig _config;

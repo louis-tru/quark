@@ -345,15 +345,14 @@ namespace flare {
 	/**
 	* @constructor
 	*/
-	FontPool::FontPool(Render* ctx)
+	FontPool::FontPool(Application* host)
 		: _ft_lib(nullptr)
-		, _render_ctx(ctx)
-		, _display_port(nullptr)
+		, _host(ctx)
 		, _total_data_size(0)
 		, _max_glyph_texture_size(0)
 		, _display_port_scale(0)
 	{
-		ASSERT(_render_ctx);
+		ASSERT(host);
 		
 		FT_Init_FreeType((FT_Library*)&_ft_lib);
 			

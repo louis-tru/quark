@@ -33,7 +33,7 @@ import * as sys from 'flare/sys';
 import * as reader from 'flare/reader';
 import * as font from 'flare/font';
 import {
-	GUIApplication, Root, Scroll,
+	Application, Root, Scroll,
 	Div, Hybrid, Clip, Text, Button, TextNode as T, default as flare, _CVD
 } from 'flare';
 import { NavPageCollection, Toolbar } from 'flare/nav';
@@ -176,7 +176,7 @@ const bug_feedback_vx = ()=>(
 	</Mynavpage>
 )
 
-var app = new GUIApplication({
+var app = new Application({
 	multisample: 4,
 	width: 420,
 	height: 800,
@@ -195,8 +195,8 @@ var app = new GUIApplication({
 					<Text class="hello" value="Hello." />
 					<Div class="category" borderBottom={`${px} #c8c7cc`}>
 						<Hybrid class="codepre">
-							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="GUIApplication" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'flare'" />
-								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="GUIApplication"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
+							<T class="keywork" value="import"/> {"{"} <T class="identifier" value="Application" />, <T class="identifier" value="Root" /> {"}"} <T class="keywork" value="from" /> <T class="str" value="'flare'" />
+								<T class="keywork" value={'\nnew'}/> <T class="identifier" value="Application"/>()<T class="keywork" value="."/><T class="identifier" value="start"/>
 								(
 									{"<"}<T class="tag_name" value="Root" />{">"}hello world!{"</"}<T class="tag_name" value="Root" />{">"}
 								)

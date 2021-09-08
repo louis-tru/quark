@@ -28,7 +28,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-import { Root, GUIApplication } from 'flare';
+import { Root, Application } from 'flare';
 import { AudioPlayer, Video } from 'flare/media';
 
 const src0 = '/sdcard/Download/Shutter.Island.2010.禁闭岛.双语字幕.HR-HDTV.AC3.1024X576.X264-人人影视制作.mkv';
@@ -63,7 +63,7 @@ const src21 = 'http://182.254.20.104/vipts.tc.qq.com/14x0qPPqKRFQDSwsxbfHRwUe4Ma
 
 // var player = new AudioPlayer(src11_1);
 
-new GUIApplication().start(
+new Application().start(
 	<Root background_color="#000">
 	  <Video width="100%" margin="auto" src=src21 autoPlay=true />
 	</Root>

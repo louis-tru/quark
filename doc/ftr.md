@@ -1,9 +1,9 @@
 # `flare`
 
 
-## `Class: GUIApplication`
+## `Class: Application`
 
-快捷方式 --> [`GUIApplication`]
+快捷方式 --> [`Application`]
 
 ## `Class: ViewController`
 
@@ -23,9 +23,9 @@
 
 ## Get: app
 
-获取当前`GUIApplication`实例
+获取当前`Application`实例
 
-* {[`GUIApplication`]}
+* {[`Application`]}
 
 ## Get: root
 
@@ -81,7 +81,7 @@
 
 ### View.constructor() 
 
-构造函数调用前必需先创建[`GUIApplication`]否则抛出异常
+构造函数调用前必需先创建[`Application`]否则抛出异常
 
 Example:
 
@@ -1746,7 +1746,7 @@ console.log(view.class);
 [`render()`]: ctr.md#static-viewcontroller-render-vdom-parentview-
 [`CSS()`]: css.md#css-sheets-
 [`Display`]: display_port.md#class-displayport
-[`GUIApplication`]: app.md#class-guiapplication
+[`Application`]: app.md#class-guiapplication
 [`ViewController`]: ctr.md#class-viewcontroller
 [`HighlightedStatus`]: event.md#enum-highlightedstatus
 [`Notification`]: event.md#class-notification

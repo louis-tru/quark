@@ -27,198 +27,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 #ifndef __flare__render__gl__
 #define __flare__render__gl__
 
 #include "./render.h"
-
-#if FX_IOS
-# include <OpenGLES/ES3/gl.h>
-# include <OpenGLES/ES3/glext.h>
-#elif FX_ANDROID
-# define GL_GLEXT_PROTOTYPES
-# include <GLES3/gl3.h>
-# include <GLES3/gl3ext.h>
-#elif FX_OSX
-# include <OpenGL/gl3.h>
-# include <OpenGL/gl3ext.h>
-#elif FX_LINUX
-# define GL_GLEXT_PROTOTYPES
-# include <GLES3/gl3.h>
-# include <GLES3/gl3ext.h>
-#else
-# error "The operating system does not support"
-#endif
+#include "skia/gpu/gl/GrGLInterface.h"
+#include "skia/core/SkRefCnt.h"
+#include "skia/core/SkSurface.h"
 
 namespace flare {
 
-	class  Font;
-	class  FontGlyph;
+	class GLRender: public Render {
+	public:
+		sk_sp<SkSurface> getBackbufferSurface() override;
 
-	struct GLShader {
-		#pragma pack(push,4)
-		cChar* name;
-		const unsigned char* source_vp;
-		const unsigned long source_vp_len;
-		const unsigned char* source_fp;
-		const unsigned long source_fp_len;
-		const unsigned char* es2_source_vp;
-		const unsigned long es2_source_vp_len;
-		const unsigned char* es2_source_fp;
-		const unsigned long es2_source_fp_len;
-		cChar* shader_uniforms;
-		cChar* shader_uniform_blocks;
-		cChar* shader_attributes;
-		unsigned int shader;
-		const int is_test;
-		#pragma pack(pop)
+		bool isValid() override;
+
+		void resize(Vec2 size, Rect surface_region) override;
+		void swapBuffers() override;
+
+		void setDisplayParams(const DisplayParams& params) override;
+
+	protected:
+		GLRender(Application* host, const DisplayParams& params);
+		// This should be called by subclass constructor. It is also called when window/display
+		// parameters change. This will in turn call onInitializeContext().
+		void initializeContext();
+		virtual sk_sp<const DisplayParams> onInitializeContext() = 0;
+
+		// This should be called by subclass destructor. It is also called when window/display
+		// parameters change prior to initializing a new GL context. This will in turn call
+		// onDestroyContext().
+		void destroyContext();
+		virtual void onDestroyContext() = 0;
+
+		virtual void onSwapBuffers() = 0;
+
+		bool isGpuContext() override { return true; }
+
+		sk_sp<const GrGLInterface> fBackendContext;
+		sk_sp<SkSurface>           fSurface;
 	};
 
-	/**
-	* @class GLRender
-	*/
-	class FX_EXPORT GLRender: public ViewRender {
-		public:
-		
-		/**
-		* @constructor
-		*/
-		GLRender(GUIApplication* host, cJSON& options);
-		
-		/**
-		* @destructor
-		*/
-		virtual ~GLRender();
-		
-		/**
-		* 初始化上下文
-		*/
-		virtual void initialize();
-		
-		/**
-		* @func gl_main_render_buffer_storage()
-		*/
-		virtual void gl_main_render_buffer_storage();
+}   // namespace flare
 
-		/**
-		* @overwrite
-		*/
-		virtual void refresh_buffer();
-		virtual void refresh_root_matrix(const Mat4& root, const Mat4& query);
-		virtual void refresh_font_pool(FontPool* pool);
-		virtual void begin_render();
-		virtual void commit_render();
-		virtual void begin_screen_occlusion_query();
-		virtual void end_screen_occlusion_query();
-		virtual uint32_t set_texture(const Array<PixelData>& data);
-		virtual void del_texture(uint32_t id);
-		virtual void del_buffer(uint32_t id);
-		virtual bool set_yuv_texture(TextureYUV* yuv_tex, cPixelData& data);
-		virtual uint32_t gen_texture(uint32_t origin_texture, uint32_t width, uint32_t height);
-		virtual void use_texture(uint32_t id, Repeat repeat, uint32_t slot);
-		virtual void use_texture(uint32_t id, uint32_t slot);
-		virtual bool set_font_glyph_vertex_data(Font* font, FontGlyph* glyph);
-		virtual bool set_font_glyph_texture_data(Font* font, FontGlyph* glyph, int level);
-		virtual void clear_color(Color color);
-		
-		/**
-		* @overwrite
-		*/
-		virtual void draw(Root* v);
-		virtual void draw(Video* v);
-		virtual void draw(Image* v);
-		virtual void draw(BoxShadow* v);
-		virtual void draw(Box* v);
-		virtual void draw(TextNode* v);
-		virtual void draw(Label* v);
-		virtual void draw(Text* v);
-		virtual void draw(Sprite* v);
-		virtual void draw(Scroll* v);
-		virtual void draw(Input* v);
-		virtual void draw(Textarea* v);
-
-		# define FX_Visitor(E, N) virtual void visit##N(N *v);
-			FX_Views(FX_Visitor);
-		# undef  FX_Visitor
-		
-		/**
-		* @func get_gl_texture_pixel_format 获取当前环境对应的OpenGL纹理像素格式,如果返回0表示不支持纹理格式
-		*/
-		virtual GLint get_gl_texture_pixel_format(PixelData::Format pixel_format) = 0;
-		
-		/**
-		* @func compile_shader       # 编译着色器程序
-		* @arg code {cData&}         #     代码
-		* @arg shader_type {GLenum}  #     程序类型
-		* @ret {GLuint}
-		*/
-		GLuint compile_shader(cString& name, cBuffer& code, GLenum shader_type);
-		
-		/**
-		* @func compile_link_shader # 编译着色器程序
-		* @arg vertex {cBuffer&}                 #             顶点程序代码
-		* @arg fragment {cData&}                 #             片段程序代码
-		* @arg attrs {const Array<String>&}      #             要编号的属性列表
-		* @ret {GLuint}
-		*/
-		GLuint compile_link_shader(cString& name, cBuffer& vertex,
-															cBuffer& fragment,
-															const Array<String>& attrs = Array<String>());
-		
-		inline bool is_support_query() { return _is_support_query; }
-		inline bool is_support_vao() { return _is_support_vao; }
-		inline bool is_support_instanced() { return _is_support_instanced; }
-		inline bool is_support_multisampled() { return _is_support_multisampled; }
-		inline bool is_support_compressed_ETC1() { return _is_support_compressed_ETC1; }
-		inline bool is_support_packed_depth_stencil() { return _is_support_packed_depth_stencil; }
-		
-		/**
-		* @func register_gl_shader()
-		*/
-		static void register_gl_shader(GLShader* shader);
-
-		protected:
-
-		/**
-		* @func initializ_gl_buffers
-		*/
-		virtual void initializ_gl_buffers();
-
-		/**
-		* @func initializ_gl_status
-		*/
-		void initializ_gl_status();
-		
-		bool    _begin_screen_occlusion_query_status; // 屏幕遮挡test状态
-		GLuint  _SCREEN_RANGE_OCCLUSION_QUERY_HANDLE; // 屏幕遮挡查询对像句柄
-		GLuint  _current_frame_buffer;
-		GLuint  _render_buffer;
-		GLuint  _frame_buffer;
-		GLuint  _msaa_render_buffer;
-		GLuint  _msaa_frame_buffer;
-		GLuint  _depth_buffer;
-		GLuint  _stencil_buffer;
-		GLuint  _stencil_ref_value;
-		GLuint  _root_stencil_ref_value;
-		
-		GLuint _indexd_vbo_data;
-		bool _is_support_vao;
-		bool _is_support_instanced;
-		bool _is_support_query;
-		bool _is_support_multisampled;
-		bool _is_support_compressed_ETC1;
-		bool _is_support_packed_depth_stencil;
-		
-		static Array<GLShader*>* _shaders;
-		
-		FX_DEFINE_INLINE_CLASS(Inl);
-		FX_DEFINE_INLINE_CLASS(Inl2);
-		
-		friend class GLShader;
-		friend class Texture;
-		friend class GLRenderProxy;
-	};
-
-}
 #endif

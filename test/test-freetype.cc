@@ -301,7 +301,7 @@ void onload_f(Event<>& evt, void* user) {
 }
 
 void draw_char() {
-	GUIApplication app;
+	Application app;
 	app.FX_ON(Load, onload_f);
 	app.run_loop();
 }

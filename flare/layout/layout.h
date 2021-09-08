@@ -45,7 +45,7 @@ namespace flare {
 		* @class Layout
 		*/
 	class Layout: public Reference {
-		public:
+	public:
 
 		// Layout mark value
 		enum : uint32_t {
@@ -230,13 +230,14 @@ namespace flare {
 			*/
 		virtual void layout_content_size_change(Layout* parent, uint32_t mark);
 
+	protected:
 		/**
 			* 
 			* set layout depth for the cureent view object
 			*
 			* @func set_layout_depth(newDepth)
-			*/
-		protected: void set_layout_depth(uint32_t newDepth);
+			*/	
+		void set_layout_depth(uint32_t newDepth);
 
 		/**
 			* @func mark(mark)
@@ -255,7 +256,7 @@ namespace flare {
 			_layout_mark &= (~mark);
 		}
 
-		public:
+	public:
 		/**
 			* @func layout_mark()
 			*/
@@ -263,7 +264,7 @@ namespace flare {
 			return _layout_mark;
 		}
 
-		private:
+	private:
 		// layout:
 		/* 下一个预处理视图标记
 		*  在绘图前需要调用`layout_forward`与`layout_reverse`处理这些被标记过的视图。

@@ -42,7 +42,7 @@
 JS_BEGIN
 
 #define JS_CHECK_APP() if ( ! app() ) { \
-	JS_WORKER(args); JS_THROW_ERR("Need to create a `new GUIApplication()`"); }
+	JS_WORKER(args); JS_THROW_ERR("Need to create a `new Application()`"); }
 
 /**
  * @class WrapViewBase

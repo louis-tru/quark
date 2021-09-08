@@ -39,7 +39,7 @@
 using namespace flare;
 
 @interface IOSIMEHelprt: UIView<UITextInput>
-- (id)initWithApplication:(GUIApplication*)app;
+- (id)initWithApplication:(Application*)app;
 - (void)open;
 - (void)close;
 - (void)clear;

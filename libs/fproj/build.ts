@@ -42,9 +42,9 @@ const base64_chars =
 	'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
 
 const init_code = `
-import { GUIApplication, Root, Indep, Text, _CVD } from 'flare';
+import { Application, Root, Indep, Text, _CVD } from 'flare';
 
-new GUIApplication({ multisample: 4 }).start(
+new Application({ multisample: 4 }).start(
 	<Root>
 		<Indep align="center" backgroundColor="#f00">
 			<Text value="Hello world" />

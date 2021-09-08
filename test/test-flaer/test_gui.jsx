@@ -31,7 +31,7 @@
 import 'flare/sys';
 import 'flare/dialog';
 import {
-	GUIApplication,
+	Application,
 	Root, Div, Image, Sprite,
 	Text, Label, Limit, Hybrid,
 	Span, Video, Panel, Button, TextNode, Scroll, flare: gui
@@ -184,7 +184,7 @@ const div1 = (
 )
 
 // start gui application
-new GUIApplication({ multisample: 4 }).start(
+new Application({ multisample: 4 }).start(
 	<Root backgroundColor="#0ff" background=`url(${resolve('./res/bb.jpg')}) center center 80%`>
 		<vx:test_scroll id="view1" />
 		%{ div1 }

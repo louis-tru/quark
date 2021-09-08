@@ -297,7 +297,7 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 	UIApplication* app = UIApplication.sharedApplication;
 	ASSERT(!app_delegate);
 	app_delegate = self;
-	_app = Inl_GUIApplication(GUIApplication::shared());
+	_app = Inl_Application(Application::shared());
 	ASSERT(_app);
 	
 	UIScreen* screen = UIScreen.mainScreen;
@@ -416,25 +416,25 @@ static void render_exec_func(CbData& evt, Object* ctx) {
 
 @end
 
-// ******************************* GUIApplication *******************************
+// ******************************* Application *******************************
 
 /**
  * @func pending() 挂起应用进程
  */
-void GUIApplication::pending() {
+void Application::pending() {
 	// exit(0);
 }
 
 /**
  * @func open_url()
  */
-void GUIApplication::open_url(cString& url) {
+void Application::open_url(cString& url) {
 }
 
 /**
  * @func send_email
  */
-void GUIApplication::send_email(cString& recipient,
+void Application::send_email(cString& recipient,
 																cString& subject,
 																cString& cc, cString& bcc, cString& body) {
 }

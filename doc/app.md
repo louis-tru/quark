@@ -1,55 +1,55 @@
 # `flare/app`
 
 
-## `Class: GUIApplication`
+## `Class: Application`
 * `extends` [`Notification`]
 
-### GUIApplication.onLoad
-### GUIApplication.onUnload
-### GUIApplication.onBackground
-### GUIApplication.onForeground
-### GUIApplication.onPause
-### GUIApplication.onResume
-### GUIApplication.onMemoryWarning
+### Application.onLoad
+### Application.onUnload
+### Application.onBackground
+### Application.onForeground
+### Application.onPause
+### Application.onResume
+### Application.onMemoryWarning
 
 内存不足时触发，触发后会自动调用[`clear()`]进行资源清理并执行`js`垃圾收集
 
-### GUIApplication.constructor([options])
+### Application.constructor([options])
 * @arg `[options]` {[`Options`]}
 
 Example:
 
 ```jsx
-import GUIApplication from 'flare/app'
+import Application from 'flare/app'
 import Root from 'flare'
 
 var opts = { anisotropic: true, mipmap: true, multisample: 2 };
 
 // 注意: jsx语法只能出现在.jsx文件中
-new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
+new Application(opts).start(<Root>Hello</Root>).onLoad = function () {
 	// my code ...
 	console.log('Hello!');
 };
 ```
 
-### GUIApplication.start(vx)
+### Application.start(vx)
 
 通过`vx`视图xml数据启动应用程序
 
 * @arg `vx` {[`Object`]}
-* @ret {[`GUIApplication`]}
+* @ret {[`Application`]}
 
-### GUIApplication.clear() 
+### Application.clear() 
 
 清理释放一些不常用到的资源
 
-### GUIApplication.openUrl(url)
+### Application.openUrl(url)
 
 调用后会打开系统浏览器并跳转到`url`
 
 * @arg `url` {[`String`]}
 
-### GUIApplication.sendEmail(recipient,subject[,cc[,bcc[,body]]])
+### Application.sendEmail(recipient,subject[,cc[,bcc[,body]]])
 
 调用后会打开系统邮件邮件客户端的发送界面,并填充传入的参数。
 
@@ -62,99 +62,99 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 * @arg `[body]` {[`String`]}
 
 
-### GUIApplication.maxTextureMemoryLimit()
+### Application.maxTextureMemoryLimit()
 
 获取纹理数据的最大内存限制值
 
 * @ret {[`uint64`]}
 
-### GUIApplication.setMaxTextureMemoryLimit(limit)
+### Application.setMaxTextureMemoryLimit(limit)
 
 设置纹理数据的最大内存限制值，系统初始化默认为`512MB`，当纹理数据内存占用超过这个值，会根据数据的使用频率进行清理。
 
 * @arg `limit` {[`uint64`]}
 
-### GUIApplication.usedTextureMemory()
+### Application.usedTextureMemory()
 
 返回纹理数据使用的内存大小，这包括字体纹理数据与图像纹理数据
 
 * @ret {[`uint64`]}
 
-### Get: GUIApplication.isLoad 
+### Get: Application.isLoad 
 
 是否已载入完成
 
 * {[`bool`]}
 
-### Get: GUIApplication.displayPort 
+### Get: Application.displayPort 
 
 * {[`Display`]}
 
-### Get: GUIApplication.root 
+### Get: Application.root 
 
 * {[`Root`]}
 
-### Get: GUIApplication.focusView 
+### Get: Application.focusView 
 
 获取第一响应者，即当前焦点
 
 * {[`View`]}
 
-### GUIApplication.defaultTextBackgroundColor 
+### Application.defaultTextBackgroundColor 
 
 默认文本背景颜色
 
 * {[`TextColor`]}
 
-### GUIApplication.defaultTextColor 
+### Application.defaultTextColor 
 
 默认文本颜色
 
 * {[`TextColor`]}
 
-### GUIApplication.defaultTextSize 
+### Application.defaultTextSize 
 
 默认文本尺寸
 
 * {[`TextSize`]}
 
-### GUIApplication.defaultTextStyle 
+### Application.defaultTextStyle 
 
 默认文本样式
 
 * {[`TextStyle`]}
 
-### GUIApplication.defaultTextFamily 
+### Application.defaultTextFamily 
 
 默认文本字体家族
 
 * {[`TextFamily`]}
 
-### GUIApplication.defaultTextShadow 
+### Application.defaultTextShadow 
 
 默认文本阴影
 
 * {[`TextShadow`]}
 
-### GUIApplication.defaultTextLineHeight 
+### Application.defaultTextLineHeight 
 
 默认文本行高
 
 * {[`TextLineHeight`]}
 
-### GUIApplication.defaultTextDecoration 
+### Application.defaultTextDecoration 
 
 默认文本装饰
 
 * {[`TextDecoration`]}
 
-### GUIApplication.defaultTextOverflow 
+### Application.defaultTextOverflow 
 
 默认文本溢出选项
 
 * {[`TextOverflow`]}
 
-### GUIApplication.defaultTextWhiteSpace 
+### Application.defaultTextWhiteSpace 
 
 默认文本处理空格方式
 
@@ -163,7 +163,7 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 
 ## `Object: Options`
 
-* 创建`GUIApplication`的选项，这是个`Object`类型描述并没有实际存在的构造函数
+* 创建`Application`的选项，这是个`Object`类型描述并没有实际存在的构造函数
 
 ### multisample
 
@@ -199,7 +199,7 @@ new GUIApplication(opts).start(<Root>Hello</Root>).onLoad = function () {
 [`bool`]: native_types.md#bool
 
 [`Notification`]: event.md#class-notification
-[`GUIApplication`]: app.md#class-guiapplication
+[`Application`]: app.md#class-guiapplication
 [`Options`]: app.md#object-options
 [`TextColor`]: value.md#class-textcolor
 [`TextSize`]: value.md#class-textsize

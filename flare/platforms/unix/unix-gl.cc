@@ -166,7 +166,7 @@ namespace flare {
 	*/
 	template<class Basic> class MyGLDraw: public Basic {
 		public:
-			inline MyGLDraw(GUIApplication* host, EGLDisplay display,
+			inline MyGLDraw(Application* host, EGLDisplay display,
 											EGLConfig config,
 											EGLContext ctx,
 											bool multisample_ok,
@@ -199,7 +199,7 @@ namespace flare {
 			bool multisample_ok_;
 	};
 
-	GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
+	GLDrawProxy* GLDrawProxy::create(Application* host, cJSON& options) {
 		GLDrawProxy* rv = nullptr;
 		bool multisample_ok;
 		EGLDisplay display = egl_display();

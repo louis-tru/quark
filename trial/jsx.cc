@@ -2406,9 +2406,9 @@ namespace flare {
 		}
 
 		void parse_import_block(Ucs2String* defaultId) {
-			// import { GUIApplication } from 'flare/app';
-			// import { GUIApplication as App } from 'flare/app';
-			// import app, { GUIApplication as App } from 'flare/app';
+			// import { Application } from 'flare/app';
+			// import { Application as App } from 'flare/app';
+			// import app, { Application as App } from 'flare/app';
 
 			ASSERT(token() == LBRACE);
 			append(S.LBRACE);     // {
@@ -2463,7 +2463,7 @@ namespace flare {
 					append(S.RPAREN); // )
 					append(S.PERIOD); // .
 					append(S.DEFAULT); // default
-				} else if (tok == COMMA) { // import app, { GUIApplication as App } from 'flare/app';
+				} else if (tok == COMMA) { // import app, { Application as App } from 'flare/app';
 					CHECK_NEXT(LBRACE);
 					parse_import_block(&id);
 					CHECK_NEXT(FROM);
@@ -2495,7 +2495,7 @@ namespace flare {
 					UNEXPECTED_TOKEN_ERROR();
 				}
 			}
-			else if (tok == LBRACE) { // import { GUIApplication as app } from 'flare/app';
+			else if (tok == LBRACE) { // import { Application as app } from 'flare/app';
 				append(S.CONST); // const
 				parse_import_block(nullptr);
 				CHECK_NEXT(FROM);  // from

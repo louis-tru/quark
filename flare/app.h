@@ -39,7 +39,7 @@
 
 #define FX_Main() \
 	int __fx_main__(int, Char**); \
-	FX_INIT_BLOCK(__fx_main__) { flare::GUIApplication::setMain(&__fx_main__); } \
+	FX_INIT_BLOCK(__fx_main__) { flare::Application::setMain(&__fx_main__); } \
 	int __fx_main__(int argc, Char** argv)
 
 #define FX_ASSERT_STRICT_RENDER_THREAD() ASSERT(app()->has_current_render_thread())
@@ -47,16 +47,15 @@
 
 namespace flare {
 
+	class Application;
 	class Display;
+	class PreRender;
+	class Render;
 	class View;
 	class Root;
-	class GUIEventDispatch;
+	class EventDispatch;
 	class ActionCenter;
-	class PropertysAccessor;
-	class CSSManager;
-	class PreRender;
 	class DefaultTextSettings;
-	class GUIApplication;
 	class FontPool;
 	class TexturePool;
 
@@ -66,13 +65,13 @@ namespace flare {
 	* 所以添加事件监听器也必须在`main loop`。
 	*/
 
-	GUIApplication* app();
+	Application* app();
 
 	/**
-	* @class GUIApplication
+	* @class Application
 	*/
-	class FX_EXPORT GUIApplication: public Object {
-		FX_HIDDEN_ALL_COPY(GUIApplication);
+	class FX_EXPORT Application: public Object {
+		FX_HIDDEN_ALL_COPY(Application);
 	public:
 
 		/**
@@ -80,13 +79,13 @@ namespace flare {
 		* 那么在主线程调用任何GUI-API函数必须加锁。
 		*/
 		class FX_EXPORT GUILock {
-			public:
-			GUILock(GUIApplication* host = app());
+		public:
+			GUILock(Application* host = app());
 			~GUILock();
 			void lock();
 			void unlock();
-			private:
-			GUIApplication* _host;
+		private:
+			Application* _host;
 			bool _lock;
 		};
 
@@ -98,12 +97,12 @@ namespace flare {
 		FX_Event(Resume);
 		FX_Event(Memorywarning);
 
-		GUIApplication();
+		Application();
 		
 		/**
 		* @destructor
 		*/
-		virtual ~GUIApplication();
+		virtual ~Application();
 
 		/**
 		* @func initialize()
@@ -121,11 +120,6 @@ namespace flare {
 		void run_loop_on_new_thread();
 
 		/**
-		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
-		*/
-		void clear(bool full = false);
-
-		/**
 		* @func pending() 挂起应用进程
 		*/
 		void pending();
@@ -136,29 +130,19 @@ namespace flare {
 		inline bool is_loaded() const { return _is_load; }
 
 		/**
-		* @func display_port GUI程序显示端口
-		*/
+			* @func default_text_settings()
+			*/
+		inline DefaultTextSettings* default_text_settings() { return _default_text_settings; }
 		inline Display* display() { return _display; }
-		
-		/**
-		* @func root GUI程序的根视图
-		*/
 		inline Root* root() { return _root; }
-		
-		/**
-		* @func focus_view
-		*/
 		inline View* focus_view() { return _focus_view; }
-		
-		/**
-		* @func render_loop gui render loop
-		*/
-		inline RunLoop* render_loop() const { return _render_loop; }
-		
-		/**
-		* @func work_loop work loop
-		*/
-		inline RunLoop* main_loop() const { return _main_loop; }
+		inline RunLoop* render_loop() { return _render_loop; }
+		inline RunLoop* main_loop() { return _main_loop; }
+		inline ActionCenter* action_center() { return _action_center; }
+		inline PreRender* pre_render() { return _pre_render; }
+		inline Render* render() { return _render; }
+		inline FontPool* font_pool() { return _font_pool; }
+		inline TexturePool* _tex_pool() { return _tex_pool; }
 
 		/**
 		* @func has_current_render_thread()
@@ -166,26 +150,14 @@ namespace flare {
 		bool has_current_render_thread() const;
 
 		/**
-		* @func action_center
+		* @func clear 清理垃圾回收内存资源, full=true 清理全部资源
 		*/
-		inline ActionCenter* action_center() { return _action_center; }
-		
-		/**
-		* @func app Get current gui application entity
-		*/
-		static inline GUIApplication* shared() { return _shared; }
+		void clear(bool full = false);
 
-		/**
-		 * @func default_text_settings() default text settings
-		 */
-		inline DefaultTextSettings* default_text_settings() { return _default_text_settings; }
-		
 		/**
 		* @func max_texture_memory_limit()
 		*/
-		inline uint64_t max_texture_memory_limit() const {
-			return _max_texture_memory_limit;
-		}
+		uint64_t max_texture_memory_limit() const;
 		
 		/**
 		* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
@@ -201,7 +173,7 @@ namespace flare {
 		* @func adjust_texture_memory()
 		*/
 		bool adjust_texture_memory(uint64_t will_alloc_size);
-		
+
 		/**
 		* @func open_url()
 		*/
@@ -216,19 +188,6 @@ namespace flare {
 										cString& bcc = String(), cString& body = String());
 
 		/**
-		 * @func pre_render()
-		 */
-		inline PreRender* pre_render() {
-			return _pre_render;
-		}
-
-		/**
-		 * @func font_pool()
-		 */
-		inline FontPool* font_pool() const { return _font_pool; }
-		inline TexturePool* tex_pool() const { return _tex_pool; }
-
-		/**
 		 * 
 		 * setting main function
 		 *
@@ -236,6 +195,11 @@ namespace flare {
 		 */
 		static void setMain(int (*main)(int, char**));
 		
+		/**
+		* @func app Get current gui application entity
+		*/
+		static inline Application* shared() { return _shared; }
+
 	protected:
 		
 		/**
@@ -244,35 +208,33 @@ namespace flare {
 		static void runMain(int argc, Char* argv[]);
 
 	private:
-		static GUIApplication* _shared;   // 当前应用程序
+		static Application* _shared;   // 当前应用程序
 		bool  _is_run, _is_load;
 		RunLoop  *_render_loop, *_main_loop;
 		KeepLoop *_render_keep, *_main_keep;
 		Display*             _display;     // 显示端口
 		PreRender*           _pre_render;
+		Render*              _render;
 		Root*                _root;             // 根视图
 		View*                _focus_view;       // 焦点视图
 		DefaultTextSettings* _default_text_settings;
-		GUIEventDispatch*    _dispatch;
+		EventDispatch*       _dispatch;
 		ActionCenter*        _action_center;
-		uint64_t             _max_texture_memory_limit;
 		RecursiveMutex       _gui_lock_mutex;
 		FontPool*           _font_pool;        /* 字体纹理池 */
 		TexturePool*        _tex_pool;         /* 文件纹理池 */
-		uint64_t            _max_texture_memory_limit;
+		uint64_t      _max_texture_memory_limit; // 纹理内存限制，不能小于64MB，默认为512MB.
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
 		
 		friend class GUILock;
-		friend GUIApplication* app();
+		friend Application* app();
 	};
 
-	inline GUIApplication* app() { return GUIApplication::_shared; }
+	inline Application* app() { return Application::_shared; }
 	inline Display* display() { return app()->display(); }
-	inline FontPool* font_pool() { return app()->font_pool(); }
-	inline TexturePool* tex_pool() { return app()->tex_pool(); }
 
-	typedef GUIApplication::GUILock GUILock;
+	typedef Application::GUILock GUILock;
 
 }
 #endif

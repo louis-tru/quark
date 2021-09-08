@@ -31,13 +31,14 @@
 #include "./util/loop.h"
 #include "./util/_working.h"
 #include "./util/http.h"
-// #include "./draw.h"
+#include "./render.h"
 #include "./layout/root.h"
-#include "./display-port.h"
+#include "./display.h"
 #include "./_app.h"
 // #include "./action/action.h"
 // #include "./css/css.h"
 #include "./font/pool.h"
+#include "./texture.h"
 #include "./_pre-render.h"
 #include "./layout/text.h"
 #include "./event.h"
@@ -47,7 +48,7 @@ FX_EXPORT int (*__fx_gui_main)(int, char**) = nullptr;
 
 namespace flare {
 
-	typedef GUIApplication::Inl AppInl;
+	typedef Application::Inl AppInl;
 
 	struct RunMainWait {
 		void wait() {
@@ -66,9 +67,9 @@ namespace flare {
 	static auto *__run_main_wait = new RunMainWait();
 
 	// global shared gui application 
-	GUIApplication* GUIApplication::_shared = nullptr;
+	Application* Application::_shared = nullptr;
 
-	GUILock::GUILock(GUIApplication* host): _host(host), _lock(false) {
+	GUILock::GUILock(Application* host): _host(host), _lock(false) {
 		lock();
 	}
 
@@ -175,7 +176,7 @@ namespace flare {
 	/**
 	* @func setMain()
 	*/
-	void GUIApplication::setMain(int (*main)(int, char**)) {
+	void Application::setMain(int (*main)(int, char**)) {
 		ASSERT( !__fx_gui_main );
 		__fx_gui_main = main;
 	}
@@ -183,7 +184,7 @@ namespace flare {
 	/**
 	* @func runMain()
 	*/
-	void GUIApplication::runMain(int argc, Char* argv[]) {
+	void Application::runMain(int argc, Char* argv[]) {
 		static int _is_initialize = 0;
 		ASSERT(!_is_initialize++, "Cannot multiple calls.");
 		
@@ -194,23 +195,23 @@ namespace flare {
 			__fx_default_gui_main = nullptr;
 			__fx_gui_main = nullptr;
 			int rc = main(argc, argv); // 运行这个自定gui入口函数
-			DLOG("GUIApplication::start Exit");
+			DLOG("Application::start Exit");
 			flare::exit(rc); // if sub thread end then exit
 			return rc;
 		}, "runMain");
 
-		// 在调用GUIApplication::run()之前一直阻塞这个主线程
+		// 在调用Application::run()之前一直阻塞这个主线程
 		while (!_shared || !_shared->_is_run) {
 			__run_main_wait->wait();
 		}
 	}
 
-	void GUIApplication::run_loop() {
+	void Application::run_loop() {
 		ASSERT(!_is_run, "GUI program has been running");
 
 		_is_run = true;
 		_render_loop = RunLoop::current(); // 当前消息队列
-		_render_keep = _render_loop->keep_alive("GUIApplication::run, render_loop"); // 保持
+		_render_keep = _render_loop->keep_alive("Application::run, render_loop"); // 保持
 
 		if (_render_loop != _main_loop) {
 			Inl2_RunLoop(_render_loop)->set_independent_mutex(&_gui_lock_mutex);
@@ -228,7 +229,7 @@ namespace flare {
 		_is_run = false;
 	}
 
-	void GUIApplication::run_loop_on_new_thread() {
+	void Application::run_loop_on_new_thread() {
 		ASSERT(RunLoop::is_main_loop()); // main loop call
 
 		Thread::spawn([this](Thread& t) {
@@ -255,12 +256,12 @@ namespace flare {
 			Release(_render_keep); _render_keep = nullptr; // stop render loop
 			Release(_main_keep); _main_keep = nullptr; // stop main loop
 			Thread::abort(render_loop_id);
-			DLOG("GUIApplication onExit");
+			DLOG("Application onExit");
 		}
 		return code;
 	}
 
-	GUIApplication::GUIApplication()
+	Application::Application()
 		: FX_Init_Event(Load)
 		, FX_Init_Event(Unload)
 		, FX_Init_Event(Background)
@@ -268,30 +269,21 @@ namespace flare {
 		, FX_Init_Event(Pause)
 		, FX_Init_Event(Resume)
 		, FX_Init_Event(Memorywarning)
-		, _is_run(false)
-		, _is_load(false)
-		, _render_loop(nullptr)
-		, _main_loop(RunLoop::main_loop())
-		, _render_keep(nullptr)
-		, _main_keep(nullptr)
-		// , _render(nullptr)
-		, _display(nullptr)
-		, _root(nullptr)
-		, _focus_view(nullptr)
+		, _is_run(false), _is_load(false)
+		, _render_loop(nullptr), _main_loop(RunLoop::main_loop())
+		, _render_keep(nullptr), _main_keep(nullptr)
+		, _render(nullptr), _display(nullptr)
+		, _root(nullptr), _focus_view(nullptr)
 		, _default_text_settings(new DefaultTextSettings())
-		, _dispatch(nullptr)
-		, _action_center(nullptr)
+		, _dispatch(nullptr), _action_center(nullptr)
 		, _pre_render(nullptr)
-		, _font_pool(nullptr), _tex_pool(nullptr)
 		, _max_texture_memory_limit(512 * 1024 * 1024) // init 512MB
 	{
-		_font_pool = new FontPool(this); // 初始字体池
-		_tex_pool = new TexturePool(this); // 初始文件纹理池
-		_main_keep = _main_loop->keep_alive("GUIApplication::GUIApplication(), main_keep");
+		_main_keep = _main_loop->keep_alive("Application::Application(), main_keep");
 		Thread::FX_On(ProcessSafeExit, on_process_safe_handle);
 	}
 
-	GUIApplication::~GUIApplication() {
+	Application::~Application() {
 		GUILock lock;
 		if (_root) {
 			_root->remove();
@@ -302,15 +294,15 @@ namespace flare {
 			_focus_view = nullptr;
 		}
 		Release(_default_text_settings); _default_text_settings = nullptr;
-		// Release(_draw_ctx);      _draw_ctx = nullptr;
 		Release(_dispatch);      _dispatch = nullptr;
-		// Release(_action_center); _action_center = nullptr;
-		Release(_display_port);  _display_port = nullptr;
+		Release(_action_center); _action_center = nullptr;
+		Release(_display);       _display = nullptr;
 		Release(_pre_render);    _pre_render = nullptr;
+		Release(_render);      _render = nullptr;
 		Release(_render_keep);   _render_keep = nullptr;
 		Release(_main_keep);     _main_keep = nullptr;
-		Release(_font_pool);   _font_pool = nullptr;
-		Release(_tex_pool);    _tex_pool = nullptr;
+		Release(_font_pool); _font_pool = nullptr;
+		Release(_tex_pool); _tex_pool = nullptr;
 
 		_render_loop = nullptr;
 		_main_loop = nullptr;
@@ -322,52 +314,62 @@ namespace flare {
 	/**
 	* @func initialize()
 	*/
-	void GUIApplication::initialize(cJSON& options) throw(Error) {
+	void Application::initialize(cJSON& options) throw(Error) {
 		GUILock lock;
-		FX_CHECK(!_shared, "At the same time can only run a GUIApplication entity");
+		FX_CHECK(!_shared, "At the same time can only run a Application entity");
 		_shared = this;
 		HttpHelper::initialize(); // 初始http
-		_inl_app(this)->initialize(options);
-		FX_DEBUG("Inl_GUIApplication initialize ok");
-		_display_port = NewRetain<Display>(this); // strong ref
-		FX_DEBUG("NewRetain<Display> ok");
-		_pre_render = new PreRender();
-		FX_DEBUG("new PreRender ok");
-		// _draw_ctx->font_pool()->set_display_port(_display_port);
-		// FX_DEBUG("_draw_ctx->font_pool()->set_display_port() ok");
-		_dispatch = new GUIEventDispatch(this);
-		// _action_center = new ActionCenter();
+		_pre_render = new PreRender(); FX_DEBUG("new PreRender ok");
+		_display = NewRetain<Display>(this); FX_DEBUG("NewRetain<Display> ok"); // strong ref
+		_render = Render::create(this, options); FX_DEBUG("Render::create() ok");
+		_font_pool = new FontPool(this);
+		_tex_pool = new TexturePool(this);
+		_dispatch = new EventDispatch(this); FX_DEBUG("new EventDispatch ok");
+		_action_center = new ActionCenter(); FX_DEBUG("new ActionCenter ok");
 	}
 
 	/**
 	* @func has_current_render_thread()
 	*/
-	bool GUIApplication::has_current_render_thread() const {
+	bool Application::has_current_render_thread() const {
 		return _render_loop && _render_loop->thread_id() == Thread::current_id();
 	}
 
 	/**
 	* @func clear([full]) 清理不需要使用的资源
 	*/
-	void GUIApplication::clear(bool full) {
-		_render_loop->post(Cb([&, full](CbData& e){ 
+	void Application::clear(bool full) {
+		_render_loop->post(Cb([&, full](CbD& e){
 			_tex_pool->clear(full);
 			_font_pool->clear(full);
 		}));
 	}
 
-	void Render::set_max_texture_memory_limit(uint64_t limit) {
+	/**
+	* @func max_texture_memory_limit()
+	*/
+	uint64_t Application::max_texture_memory_limit() const {
+		return _render->max_texture_memory_limit();
+	}
+	
+	/**
+	* @func set_max_texture_memory_limit(limit) 设置纹理内存限制，不能小于64MB，默认为512MB.
+	*/
+	void Application::set_max_texture_memory_limit(uint64_t limit) {
 		_max_texture_memory_limit = FX_MAX(limit, 64 * 1024 * 1024);
 	}
-
-	uint64_t Render::used_texture_memory() const {
-		return _tex_pool->_total_data_size + _font_pool->_total_data_size;
+	
+	/**
+	* @func used_memory() 当前纹理数据使用的内存数量,包括图像纹理与字体纹理
+	*/
+	uint64_t Application::used_texture_memory() const {
+		return _tex_pool->m_total_data_size + _font_pool->m_total_data_size;
 	}
 
 	/**
 	* @func adjust_texture_memory()
 	*/
-	bool Render::adjust_texture_memory(uint64_t will_alloc_size) {
+	bool Application::adjust_texture_memory(uint64_t will_alloc_size) {
 		int i = 0;
 		do {
 			if (will_alloc_size + used_texture_memory() <= _max_texture_memory_limit) {

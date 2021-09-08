@@ -177,7 +177,7 @@ namespace flare {
 				/**************************************************/
 				AppInl::runMain(0, nullptr); // run gui application
 
-				application->_host = Inl_GUIApplication(app());
+				application->_host = Inl_Application(app());
 				application->_dispatch = application->_host->dispatch();
 				application->_render_looper = new RenderLooper(application->_host);
 
@@ -453,7 +453,7 @@ namespace flare {
 	/**
 	* @func pending() 挂起应用进程
 	*/
-	void GUIApplication::pending() {
+	void Application::pending() {
 		if ( application ) {
 			application->pending();
 		}
@@ -462,14 +462,14 @@ namespace flare {
 	/**
 	* @func open_url()
 	*/
-	void GUIApplication::open_url(cString& url) {
+	void Application::open_url(cString& url) {
 		Android::open_url(url);
 	}
 
 	/**
 	* @func send_email
 	*/
-	void GUIApplication::send_email(cString& recipient,
+	void Application::send_email(cString& recipient,
 																	cString& subject,
 																	cString& cc, cString& bcc, cString& body) {
 		Android::send_email(recipient, subject, cc, bcc, body);

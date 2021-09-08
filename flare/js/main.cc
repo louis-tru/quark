@@ -38,7 +38,7 @@ FX_GUI_MAIN() {
 }
 
 #if FX_ANDROID
-class App: public flare::GUIApplication {
+class App: public flare::Application {
 	public: static void run(int argc, Char *argv[]) {
 		runMain(argc, argv);
 	}

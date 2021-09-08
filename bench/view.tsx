@@ -1,5 +1,5 @@
 
-import { GUIApplication, ViewController, Root, Div, Scroll, default as flare, _CVD } from 'flare';
+import { Application, ViewController, Root, Div, Scroll, default as flare, _CVD } from 'flare';
 import { Color } from 'flare/value';
 import util from 'flare/util';
 import * as uu from './uu';
@@ -37,7 +37,7 @@ class RootViewController extends ViewController {
 	}
 }
 
-new GUIApplication({ multisample: 2 }).start(
+new Application({ multisample: 2 }).start(
 	<RootViewController><Root backgroundColor="#000" /></RootViewController>
 );
 

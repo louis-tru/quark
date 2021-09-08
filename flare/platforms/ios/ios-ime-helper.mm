@@ -128,7 +128,7 @@ using namespace flare;
 @synthesize inputDelegate;
 @synthesize tokenizer;
 
-- (id)initWithApplication:(GUIApplication*)app {
+- (id)initWithApplication:(Application*)app {
 	self = [super initWithFrame:RectMake(0, -1000, 0, 0)];
 	if (self) {
 		self.autocapitalizationType = UITextAutocapitalizationTypeNone;

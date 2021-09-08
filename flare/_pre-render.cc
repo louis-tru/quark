@@ -122,7 +122,6 @@ namespace flare {
 		, _marks(8)
 		, _mark_recursives(8)
 	{
-		ASSERT(app());
 	}
 
 	/**

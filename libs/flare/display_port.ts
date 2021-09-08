@@ -121,7 +121,7 @@ export default {
 		if ( app.current ) {
 			app.current.displayPort.nextFrame(cb);
 		} else {
-			throw new Error("GUIApplication has not been created");
+			throw new Error("Application has not been created");
 		}
 	},
 }

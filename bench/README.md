@@ -56,7 +56,7 @@ Div视图是自动布局的，所以10万个Div不会在屏幕中同时出现。
 * 下面是主要的测试源码:
 
 ```jsx
-new GUIApplication({ multisample: 2 }).start(
+new Application({ multisample: 2 }).start(
 	<Root backgroundColor="#000">
 		<Scroll width="full" height="full">
 			${

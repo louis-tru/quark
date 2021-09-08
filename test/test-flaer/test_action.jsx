@@ -29,11 +29,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root, Div, Button, Indep, Image } from 'flare';
+import { Application, Root, Div, Button, Indep, Image } from 'flare';
 import * as action from 'flare/action';
 import css from 'flare/css';
 
-new GUIApplication().start(
+new Application().start(
 	<Root>
 		<Div id="div" width={100} height={100} backgroundColor="#f00" x={150} origin="50 50" />
 		<Image id="img" width={100} height={100} />

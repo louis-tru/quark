@@ -55,7 +55,7 @@ FX_GUI_MAIN() {
 }
 
 #if FX_ANDROID
-class App: public GUIApplication {
+class App: public Application {
 	public: static void run(int argc, char *argv[]) {
 		runMain(argc, argv);
 	}

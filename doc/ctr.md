@@ -11,7 +11,7 @@
 Example:
 
 ```jsx
-import { GUIApplication, ViewController, Root, Div } from 'flare'
+import { Application, ViewController, Root, Div } from 'flare'
 import 'flare/http'
 class MyCtr extends ViewController {
 	triggerLoad(e) {
@@ -25,7 +25,7 @@ class MyCtr extends ViewController {
 		)
 	}
 }
-new GUIApplication().start(
+new Application().start(
 	<Root>
 		<MyCtr message={param:10} />
 	</Root>

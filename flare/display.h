@@ -36,15 +36,11 @@
 #include "./math.h"
 #include "./value.h"
 #include "./util/cb.h"
-
-namespace sk_app {
-	class WindowContext;
-}
+#include "./util/thread.h"
 
 namespace flare {
 
-	class GUIApplication;
-	class PreRender;
+	class Application;
 
 	/**
 	* 提供的一些对显示与屏幕的常用方法属性与事件
@@ -71,7 +67,7 @@ namespace flare {
 			STATUS_BAR_STYLE_BLACK,
 		};
 		
-		Display(GUIApplication* host);
+		Display(Application* host);
 		
 		/**
 		* @destructor
@@ -89,19 +85,9 @@ namespace flare {
 		FX_Event(orientation);
 		
 		/**
-		* @func phy_size 视口在屏幕上所占的实际物理像素的尺寸
-		*/
-		inline Vec2 phy_size() const { return _phy_size; }
-		
-		/**
 		* @func size 当前视口尺寸
 		*/
 		inline Vec2 size() const { return _size; }
-		
-		/**
-		* @func best_scale 最好的视口缩放
-		*/
-		float best_scale() const;
 		
 		/**
 		* @func scale_value
@@ -109,7 +95,7 @@ namespace flare {
 		inline Vec2 scale() const { return _scale; }
 		
 		/**
-		* @func set_lock_size()
+		* @func lock_size()
 		*
 		* width与height都设置为0时自动设置一个最舒适的默认显示尺寸
 		*
@@ -132,21 +118,21 @@ namespace flare {
 		/**
 		* @func draw_region
 		*/
-		inline const Region& region() const {
-			return _region.back();
+		inline const Region& display_region() const {
+			return _display_region.back();
 		}
 
 		/**
-		* @func push_draw_region
+		* @func push_display_region
 		*/
-		void push_region(Region value);
+		void push_display_region(Region value);
 		
 		/**
-		* @func pop_draw_region
+		* @func pop_display_region
 		*/
-		inline void pop_region() {
-			ASSERT( _region.length() > 1 );
-			_region.pop_back();
+		inline void pop_display_region() {
+			ASSERT( _display_region.length() > 1 );
+			_display_region.pop_back();
 		}
 		
 		/**
@@ -204,10 +190,7 @@ namespace flare {
 		 */
 		inline float best_display_scale() const { return _best_display_scale; }
 		inline void set_best_display_scale(float value) { _best_display_scale = value; }
-		inline Vec2 surface_size() const { return _surface_size; }
 		inline Rect surface_region() const { return _surface_region; }
-		
-		bool set_surface_size(Vec2 surface_size, Rect* surface_region = nullptr); // private:
 
 		/**
 		* @func default_atom_pixel
@@ -222,25 +205,23 @@ namespace flare {
 	private:
 		void render_frame();
 		void refresh();
+		void set_surface_region(Rect surface_region); // call from render loop
 		
-		Vec2              _phy_size;   // 视口在屏幕上所占的实际像素的尺寸
+		Application*      _host;
 		Vec2              _lock_size;  // 锁定视口的尺寸
 		Vec2              _size;       // 当前视口尺寸
 		Vec2              _scale;   // 当前屏幕显示缩放比,这个值越大size越小显示的内容也越少
-		WindowContext*    _sk_ctx;
 		Mat4              _root_matrix;
 		float             _atom_pixel;
-		List<Region>      _region;
-		GUIApplication*   _host;
+		float             _best_display_scale;
+		List<Region>      _display_region;
 		List<Cb>          _next_frame;
 		uint32_t          _fsp, _record_fsp;
 		int64_t           _record_fsp_time;
-		float             _best_display_scale;
-		Vec2              _surface_size;     /* 当前绘图表面支持的大小 */
 		Rect              _surface_region;  /* 选择绘图表面有区域 */
+		Mutex             _Mutex;
 		
 		FX_DEFINE_INLINE_CLASS(Inl);
-		// friend class  GUIApplication;
 	};
 
 }

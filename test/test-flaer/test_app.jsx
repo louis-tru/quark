@@ -29,15 +29,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 import { P, M, LOG, VM, VP } from './test'
-import { GUIApplication, Root } from 'flare';
+import { Application, Root } from 'flare';
 import 'flare/font' as f;
 import 'flare/url';
 import 'flare/app';
 
-new GUIApplication().start(<Root/>).onLoad = function() {
+new Application().start(<Root/>).onLoad = function() {
 	const a = this;
 
-	LOG('\nTest GUIApplication:\n')
+	LOG('\nTest Application:\n')
 
 	P(app, 'current')
 	P(app, 'root')

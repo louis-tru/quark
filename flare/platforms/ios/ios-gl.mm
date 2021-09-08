@@ -28,156 +28,155 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-#import "_ios-gl.h"
-#import "flare/app.h"
-#import "flare/display-port.h"
-#import "flare/util/os.h"
-#import <OpenGLES/ES2/glext.h>
+#include "include/gpu/gl/GrGLInterface.h"
+#include "../render/gl.h"
+
+#import <OpenGLES/ES3/gl.h>
+#import <UIKit/UIKit.h>
+
+// using sk_app::window_context_factory::IOSWindowInfo;
+
+@interface GLView : MainView
+@end
+
+@implementation GLView
++ (Class) layerClass {
+	return [CAEAGLLayer class];
+}
+@end
 
 namespace flare {
 
-	/**
-	* @class MyGLDraw
-	*/
-	template<class Basic> class MyGLDraw: public Basic {
-		public:
-			MyGLDraw(GUIApplication* host, EAGLContext* ctx,
-							DrawLibrary library,
-							cJSON& options): Basic(host, options), proxy_(this, ctx) {
-				this->_library = library;
-				this->initialize();
-			}
-			virtual void commit_render() {
-				proxy_.commit_render();
-			}
-			virtual GLint get_gl_texture_pixel_format(PixelData::Format pixel_format) {
-				return proxy_.get_gl_texture_pixel_format(pixel_format);
-			}
-			virtual void gl_main_render_buffer_storage() {
-				proxy_.gl_main_render_buffer_storage();
-			}
-			inline GLDrawProxy* proxy() { return &proxy_; }
-			
-		private:
-			GLDrawProxy proxy_;
+	class GLRender_ios : public GLRender {
+	public:
+		GLRender_ios(Application* host, const IOSWindowInfo&, const DisplayParams&);
+
+		~GLRender_ios() override;
+
+		void onSwapBuffers() override;
+
+		sk_sp<const GrGLInterface> onInitializeContext() override;
+		void onDestroyContext() override;
+
+		void resize(int w, int h) override;
+
+	private:
+		sk_app::Window_ios*  fWindow;
+		UIViewController*    fViewController;
+		GLView*              fGLView;
+		EAGLContext*         fGLContext;
+		GLuint               fFramebuffer;
+		GLuint               fRenderbuffer;
+
+		using INHERITED = GLWindowContext;
 	};
 
-	GLDrawProxy* GLDrawProxy::create(GUIApplication* host, cJSON& options) {
-		GLDrawProxy* rv = nullptr;
-		EAGLContext* ctx = [EAGLContext alloc];
-		
-		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES3] ) {
-			rv = (new MyGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES3, options))->proxy();
-		} else
-		if ( [ctx initWithAPI:kEAGLRenderingAPIOpenGLES2] ) {
-			rv = (new MyGLDraw<GLDraw>(host, ctx, DRAW_LIBRARY_GLES2, options))->proxy();
-		} else {
-			FX_FATAL("Unable to initialize OGL device does not support OpenGLES");
+	GLRender_ios::GLRender_ios(const IOSWindowInfo& info, const DisplayParams& params)
+		: INHERITED(params)
+		, fWindow(info.fWindow)
+		, fViewController(info.fViewController)
+		, fGLContext(nil) {
+
+		// any config code here (particularly for msaa)?
+
+		this->initializeContext();
+	}
+
+	GLRender_ios::~GLRender_ios() {
+		this->destroyContext();
+		[fGLView removeFromSuperview];
+		[fGLView release];
+	}
+
+	sk_sp<const GrGLInterface> GLRender_ios::onInitializeContext() {
+		SkASSERT(nil != fViewController);
+		SkASSERT(!fGLContext);
+
+		CGRect frameRect = [fViewController.view frame];
+		fGLView = [[[GLView alloc] initWithFrame:frameRect] initWithWindow:fWindow];
+		[fViewController.view addSubview:fGLView];
+
+		fGLContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+
+		if (!fGLContext)
+		{
+			SkDebugf("Could Not Create OpenGL ES Context\n");
+			return nullptr;
 		}
-		
-		return rv;
-	}
 
-	GLDrawProxy::GLDrawProxy(GLDraw* host, EAGLContext* ctx): _host(host), _context(ctx) {
-		ASSERT([EAGLContext setCurrentContext:ctx], "Failed to set current OpenGL context");
-		ctx.multiThreaded = NO;
-	}
-
-	GLDrawProxy::~GLDrawProxy() {
-		[EAGLContext setCurrentContext:nullptr];
-	}
-
-	void GLDrawProxy::gl_main_render_buffer_storage() {
-		// Create the color renderbuffer and call the rendering context to allocate the storage
-		// on our Core Animation layer.
-		// The width, height, and format of the renderbuffer storage are derived from the bounds
-		// and properties of the CAEAGLLayer object
-		// at the moment the renderbufferStorage:fromDrawable: method is called.
-		[_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_layer];
-	}
-
-	void GLDrawProxy::commit_render() {
-		glBindVertexArray(0); // clear vao
-		
-		if (_host->multisample() > 1) {
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, _host->_msaa_frame_buffer);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _host->_frame_buffer);
-			GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			
-			if (_host->library() == DRAW_LIBRARY_GLES2) {
-				glResolveMultisampleFramebufferAPPLE();
-				glDiscardFramebufferEXT(GL_READ_FRAMEBUFFER, 3, attachments);
-			} else {
-				Vec2 ssize = _host->surface_size();
-				glBlitFramebuffer(0, 0, ssize.width(), ssize.height(),
-													0, 0, ssize.width(), ssize.height(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-				glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 3, attachments);
-			}
-			glBindFramebuffer(GL_FRAMEBUFFER, _host->_frame_buffer);
-			glBindRenderbuffer(GL_RENDERBUFFER, _host->_frame_buffer);
-		} else {
-			GLenum attachments[] = { GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT, };
-			if (_host->library() == DRAW_LIBRARY_GLES2) {
-				glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
-			} else {
-				glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);
-			}
+		if (![EAGLContext setCurrentContext:fGLContext]) {
+			SkDebugf("Could Not Set OpenGL ES Context As Current\n");
+			this->onDestroyContext();
+			return nullptr;
 		}
-		
-		// Assuming you allocated a color renderbuffer to point at a Core Animation layer,
-		// you present its contents by making it the current renderbuffer
-		// and calling the presentRenderbuffer: method on your rendering context.
-		[_context presentRenderbuffer:GL_FRAMEBUFFER];
-	}
 
-	/**
-	* @func get_gl_texture_pixel_format 获取当前环境对应的OpenGL纹理像素格式,如果返回0表示不支持纹理格式
-	*/
-	GLint GLDrawProxy::get_gl_texture_pixel_format(PixelData::Format pixel_format) {
-		switch (pixel_format) {
-			case PixelData::RGBA4444:
-			case PixelData::RGBX4444:
-			case PixelData::RGBA5551:
-			case PixelData::RGBA8888:
-			case PixelData::RGBX8888: return GL_RGBA;
-			case PixelData::RGB565:
-			case PixelData::RGB888: return GL_RGB;
-			case PixelData::ALPHA8: return GL_ALPHA;
-			case PixelData::LUMINANCE8: return GL_LUMINANCE;
-			case PixelData::LUMINANCE_ALPHA88: return GL_LUMINANCE_ALPHA;
-				// compressd texture
-			case PixelData::PVRTCI_2BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-			case PixelData::PVRTCI_2BPP_RGBA:
-			case PixelData::PVRTCII_2BPP: return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-			case PixelData::PVRTCI_4BPP_RGB: return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-			case PixelData::PVRTCI_4BPP_RGBA:
-			case PixelData::PVRTCII_4BPP: return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-			case PixelData::ETC1:
-			case PixelData::ETC2_RGB: return GL_COMPRESSED_RGB8_ETC2;
-			case PixelData::ETC2_RGB_A1:
-			case PixelData::ETC2_RGBA: return GL_COMPRESSED_RGBA8_ETC2_EAC;
-			default: return 0;
+		// Set up EAGLLayer
+		CAEAGLLayer* eaglLayer = (CAEAGLLayer*)fGLView.layer;
+		eaglLayer.drawableProperties = @{kEAGLDrawablePropertyRetainedBacking : @NO,
+										kEAGLDrawablePropertyColorFormat     : kEAGLColorFormatRGBA8 };
+		eaglLayer.opaque = YES;
+		eaglLayer.frame = frameRect;
+		eaglLayer.contentsGravity = kCAGravityTopLeft;
+
+		// Set up framebuffer
+		glGenFramebuffers(1, &fFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, fFramebuffer);
+
+		glGenRenderbuffers(1, &fRenderbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, fRenderbuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, fRenderbuffer);
+
+		[fGLContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:eaglLayer];
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			SkDebugf("Invalid Framebuffer\n");
+			this->onDestroyContext();
+			return nullptr;
 		}
+
+		glClearStencil(0);
+		glClearColor(0, 0, 0, 255);
+		glStencilMask(0xffffffff);
+		glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+		fStencilBits = 8;
+		fSampleCount = 1; // TODO: handle multisampling
+
+		fWidth = fViewController.view.frame.size.width;
+		fHeight = fViewController.view.frame.size.height;
+
+		glViewport(0, 0, fWidth, fHeight);
+
+		return GrGLMakeNativeInterface();
 	}
 
-	//void GLDrawProxy::set_current_context() {
-	//  ASSERT([EAGLContext setCurrentContext:_context], "Failed to set current OpenGL context");
-	//}
-
-	void GLDrawProxy::set_surface_view(UIView* view, CAEAGLLayer* layer) {
-		ASSERT([EAGLContext setCurrentContext:_context], "Failed to set current OpenGL context");
-		_surface_view = view;
-		_layer = layer;
-		_host->set_best_display_scale(UIScreen.mainScreen.scale);
+	void GLRender_ios::onDestroyContext() {
+		glDeleteFramebuffers(1, &fFramebuffer);
+		glDeleteRenderbuffers(1, &fRenderbuffer);
+		[EAGLContext setCurrentContext:nil];
+		[fGLContext release];
+		fGLContext = nil;
 	}
 
-	bool GLDrawProxy::refresh_surface_size(::Rect rect) {
-		float scale = UIScreen.mainScreen.scale;
-		Vec2 size(rect.size.width * scale, rect.size.height * scale);
-		if ( !size.is_zero() ) {
-			return _host->set_surface_size(size);
+	void GLRender_ios::onSwapBuffers() {
+		glBindRenderbuffer(GL_RENDERBUFFER, fRenderbuffer);
+		[fGLContext presentRenderbuffer:GL_RENDERBUFFER];
+	}
+
+	void GLRender_ios::resize(int w, int h) {
+		// TODO: handle rotation
+		// [fGLContext update];
+		INHERITED::resize(w, h);
+	}
+
+	Render* MakeGLForIOS(Application* host, const IOSWindowInfo& info,
+												const DisplayParams& params) {
+		Handle<WindowContext> ctx(new GLRender_ios(host, info, params));
+		if (!ctx->isValid()) {
+			return nullptr;
 		}
-		return false;
+		return ctx.collapse();
 	}
 
-}
+}  // namespace flare
